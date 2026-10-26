@@ -118,7 +118,7 @@ nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109
 | `python3 build/sdk_package_test.py --package dist/<包> --keep` | 保留解包目录、消费者构建目录和日志 |
 | `python3 build/sdk_package_test.py --package dist/<包> --dry-run` | 不执行编译类场景；包级场景仍真实执行 |
 | `python3 build/sdk_package_test.py --package dist/<包> --run-examples` | 允许执行 C10 示例冒烟 |
-| `python3 build/sdk_package_test.py --package dist/<包> --out-dir C:/develop/temp/sdk_test/manual` | 指定输出目录（不再追加时间戳子目录） |
+| `python3 build/sdk_package_test.py --package dist/<包> --out-dir <输出目录>/manual` | 指定输出目录（不再追加时间戳子目录） |
 
 `--package` 可重复指定，且每个路径必须是已存在的文件。`--scenarios` 默认为 `all`；
 空值、`all` 都表示全部场景；未知编号会直接报错退出。
@@ -258,17 +258,17 @@ C10 只负责启动存活判断：找到示例程序后 `Popen` 启动，等待 
 Visual Studio 生成器：
 
 ```bash
-cmake -S build/sdk_test -B C:/develop/temp/sdk_consumer -G "Visual Studio 17 2022" -A x64 -DNIM_DUILIB_SDK_DIR=C:/develop/temp/sdk_test/extract/nim_duilib-1.0.2026.1023-win-x64 -DSDK_EXPECT_ARCH=x64 -DSDK_EXPECT_CONFIG=Debug
-cmake --build C:/develop/temp/sdk_consumer --config Debug --parallel 4
-C:/develop/temp/sdk_consumer/Debug/sdk_consumer.exe
+cmake -S build/sdk_test -B <临时目录>/sdk_consumer -G "Visual Studio 17 2022" -A x64 -DNIM_DUILIB_SDK_DIR=<解包后的 SDK 根目录> -DSDK_EXPECT_ARCH=x64 -DSDK_EXPECT_CONFIG=Debug
+cmake --build <临时目录>/sdk_consumer --config Debug --parallel 4
+<临时目录>/sdk_consumer/Debug/sdk_consumer.exe
 ```
 
 Ninja / 单配置生成器：
 
 ```bash
-cmake -S build/sdk_test -B C:/develop/temp/sdk_consumer_ninja -G Ninja -DCMAKE_BUILD_TYPE=Debug -DNIM_DUILIB_SDK_DIR=C:/develop/temp/sdk_test/extract/nim_duilib-1.0.2026.1023-win-x64 -DSDK_EXPECT_ARCH=x64 -DSDK_EXPECT_CONFIG=Debug
-cmake --build C:/develop/temp/sdk_consumer_ninja --parallel 4
-C:/develop/temp/sdk_consumer_ninja/sdk_consumer.exe
+cmake -S build/sdk_test -B <临时目录>/sdk_consumer_ninja -G Ninja -DCMAKE_BUILD_TYPE=Debug -DNIM_DUILIB_SDK_DIR=<解包后的 SDK 根目录> -DSDK_EXPECT_ARCH=x64 -DSDK_EXPECT_CONFIG=Debug
+cmake --build <临时目录>/sdk_consumer_ninja --parallel 4
+<临时目录>/sdk_consumer_ninja/sdk_consumer.exe
 ```
 
 Linux/macOS 上去掉 `.exe`；`NIM_DUILIB_SDK_DIR` 用实际解包路径。`SDK_EXPECT_*` 都可以
@@ -356,17 +356,17 @@ SKIP 是“没测到”，不是通过。`--no-build`、`--dry-run`、包类型�
 
 ### 6.3 输出目录与日志
 
-默认输出根目录：
+默认输出根目录（所有平台一致）：
 
-- Windows：`C:\develop\temp\sdk_test\<时间戳>`；
-- 其他平台：`<系统临时目录>/nim_duilib_sdk_test/<时间戳>`；
+- `<系统临时目录>/nim_duilib_sdk_test/<时间戳>`（Windows 的临时目录通常为
+  `%TEMP%`，Linux/macOS 通常为 `/tmp`）；
 - 时间戳格式为 `%Y%m%d-%H%M%S`；
 - 显式指定 `--out-dir` 时使用该目录，不再追加时间戳。
 
 每个包一个子目录，命名为 `<两位序号>-<归档去扩展名>`：
 
 ```text
-C:/develop/temp/sdk_test/20261026-153000/
+<系统临时目录>/nim_duilib_sdk_test/20261026-153000/
 ├─ report.json
 ├─ 01-nim_duilib-1.0.2026.1023-win-x64-cef-examples-debug/
 │  ├─ extract/nim_duilib-1.0.2026.1023-win-x64-cef-examples-debug/...
@@ -391,7 +391,7 @@ C:/develop/temp/sdk_test/20261026-153000/
 ```text
 [PASS] P01  package.extract           解包成功：...
 [FAIL] C01  consumer.static           配置失败（rc=1）：...
-       日志：C:/develop/temp/sdk_test/.../logs/consumer.log
+       日志：<输出目录>/.../logs/consumer.log
 ```
 
 最后打印 `结果：PASS=x FAIL=y SKIP=z` 与报告路径。

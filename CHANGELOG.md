@@ -45,6 +45,12 @@
 
 ### 修复
 
+- 构建工具：`autotest.py`、`sdk_package_test.py` 的默认输出目录改用系统临时目录
+  （`tempfile.gettempdir()`），移除写死的 `C:\develop\temp`、`/tmp`，换机器无需改代码；
+  `README`、`README.en.md`、`sdk-package-test.md` 中的相关示例同步更新。
+- 依赖准备（Windows）：Skia 使用的 LLVM 根目录不再写死 `C:/LLVM`，改为按
+  `-DDUILIB_LLVM_ROOT` → `LLVM_ROOT` 环境变量 → `C:/LLVM` → `Program Files/LLVM`
+  → Visual Studio 自带 LLVM 的顺序探测。
 - 构建（macOS）：示例程序链接时 ld64 报 “ignoring duplicate libraries”（`-lpthread`、
   `-lSDL3`、Skia 库等被重复列出，链接器本身会忽略重复项）。现在在链接器支持时添加
   `-Wl,-no_warn_duplicate_libraries`，消除该告警。

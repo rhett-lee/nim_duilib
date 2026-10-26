@@ -14,7 +14,7 @@
   - bg_/text_/color_/border_*  语义色名
 
 用法：
-    python scripts/verify_docs.py --repo C:/develop/nim_duilib
+    python scripts/verify_docs.py --repo <nim_duilib 仓库根目录>
     python scripts/verify_docs.py --repo .            # 当前目录就是仓库根
     python scripts/verify_docs.py --repo . --quiet    # 只打印汇总
 

@@ -116,7 +116,7 @@ python3 build/build.py pack --config Debug --out-dir dist
 
 `autotest.py` 把「环境检测 →（可选）构建 → 打包 → 校验 → 结构断言 →（可选）冒烟」
 串成可重复执行的任务，**不接入 CI**，默认不写仓库的 `bin/`、`lib/`、`dist/`，
-输出与日志放在 `C:\develop\temp\autotest\<时间戳>/`。
+输出与日志放在系统临时目录下的 `nim_duilib_autotest/<时间戳>/`（可用 `--out-dir` 覆盖）。
 
 ```bash
 python3 build/autotest.py --preset unit                    # 单元测试

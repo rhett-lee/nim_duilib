@@ -291,7 +291,23 @@ set(DUILIB_DOWNLOAD_RETRY_DELAY "${_duilib_retry_delay}" CACHE STRING
     "Retry interval in seconds (retry.delaySeconds in third_party_versions.json)" FORCE)
 set(DUILIB_DOWNLOAD_CONNECT_TIMEOUT "30" CACHE STRING "Download connect timeout in seconds")
 set(DUILIB_DEPS_JOBS "6" CACHE STRING "Parallel jobs for Skia/SDL dependency builds")
-set(DUILIB_LLVM_ROOT "C:/LLVM" CACHE PATH "LLVM root used by Skia on Windows")
+# Skia 在 Windows 上需要 LLVM 根目录（gn 的 clang_win 参数）。
+# 不写死 C:/LLVM：显式 -D 优先，其次按环境变量与常见安装位置探测。
+if(NOT DEFINED DUILIB_LLVM_ROOT)
+    set(DUILIB_LLVM_ROOT "")
+    foreach(_duilib_llvm_candidate
+            "$ENV{LLVM_ROOT}"
+            "C:/LLVM"
+            "$ENV{ProgramFiles}/LLVM"
+            "$ENV{VCINSTALLDIR}/Tools/Llvm/x64"
+            "$ENV{VSINSTALLDIR}/VC/Tools/Llvm/x64")
+        if(_duilib_llvm_candidate AND EXISTS "${_duilib_llvm_candidate}/bin/clang.exe")
+            file(TO_CMAKE_PATH "${_duilib_llvm_candidate}" DUILIB_LLVM_ROOT)
+            break()
+        endif()
+    endforeach()
+endif()
+set(DUILIB_LLVM_ROOT "${DUILIB_LLVM_ROOT}" CACHE PATH "LLVM root used by Skia on Windows")
 set(DUILIB_GN_EXECUTABLE "" CACHE FILEPATH "Override the gn executable")
 set(DUILIB_NINJA_EXECUTABLE "" CACHE FILEPATH "Override the ninja executable")
 set(DUILIB_CEF_ARCHIVE "" CACHE FILEPATH "Local CEF archive (skip download)")

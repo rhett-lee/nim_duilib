@@ -4,7 +4,7 @@
 
 定位：本地可重复执行的打包自动化，不接入 CI。默认只读现有产物，
 不写仓库的 bin/、lib/、dist/；所有输出放在 --out-dir（默认
-C:\\develop\\temp\\autotest\\<时间戳>）。
+系统临时目录下的 nim_duilib_autotest/<时间戳>）。
 
 用法：
     python build/autotest.py --list-presets
@@ -25,6 +25,7 @@ import platform
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 import zipfile
 
@@ -34,10 +35,7 @@ sys.path.insert(0, BUILD_DIR)
 
 import pack  # noqa: E402
 
-if os.name == 'nt':
-    DEFAULT_OUT_ROOT = os.path.join('C:\\develop\\temp', 'autotest')
-else:
-    DEFAULT_OUT_ROOT = os.path.join('/tmp', 'autotest')
+DEFAULT_OUT_ROOT = os.path.join(tempfile.gettempdir(), 'nim_duilib_autotest')
 
 PRESETS = {
     'unit': {
@@ -518,7 +516,7 @@ def main(argv=None):
                         choices=ALL_PRESETS + ['all-ready'],
                         help='要执行的预设（默认 unit；all-ready 运行所有可运行项）')
     parser.add_argument('--out-dir', default=None,
-                        help='运行输出目录（默认 C:\\develop\\temp\\autotest\\<时间戳>）')
+                        help='运行输出目录（默认系统临时目录下的 nim_duilib_autotest/<时间戳>）')
     parser.add_argument('--build', action='store_true',
                         help='先调用现有构建脚本（仅部分预设支持）')
     parser.add_argument('--smoke', action='store_true',

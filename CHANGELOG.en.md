@@ -50,6 +50,14 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Fixed
 
+- Build tools: `autotest.py` and `sdk_package_test.py` now default their output root to
+  the system temp directory (`tempfile.gettempdir()`) instead of hard-coded
+  `C:\develop\temp` and `/tmp`, so no code changes are needed on another machine. The
+  examples in `README`, `README.en.md` and `sdk-package-test.md` were updated to match.
+- Dependency preparation (Windows): the LLVM root used by Skia is no longer hard-coded
+  to `C:/LLVM`; it is detected from `-DDUILIB_LLVM_ROOT`, the `LLVM_ROOT` environment
+  variable, `C:/LLVM`, `Program Files/LLVM`, and the Visual Studio bundled LLVM, in
+  that order.
 - Build (macOS): linking example programs made ld64 report "ignoring duplicate
   libraries" (`-lpthread`, `-lSDL3` and the Skia libraries were listed more than once;
   the linker ignores duplicates anyway). The warning is suppressed by adding

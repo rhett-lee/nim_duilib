@@ -29,6 +29,7 @@ import shutil
 import subprocess
 import sys
 import tarfile
+import tempfile
 import time
 import traceback
 import zipfile
@@ -40,11 +41,7 @@ REPO_ROOT = BUILD_DIR.parent
 SDK_TEST_DIR = BUILD_DIR / "sdk_test"
 PACK_PY = BUILD_DIR / "pack.py"
 
-if os.name == "nt":
-    DEFAULT_OUT_ROOT = Path(r"C:\develop\temp\sdk_test")
-else:
-    import tempfile
-    DEFAULT_OUT_ROOT = Path(tempfile.gettempdir()) / "nim_duilib_sdk_test"
+DEFAULT_OUT_ROOT = Path(tempfile.gettempdir()) / "nim_duilib_sdk_test"
 
 # 场景登记表：(编号, 名称, 说明, 是否需要编译)
 SCENARIO_ORDER = [

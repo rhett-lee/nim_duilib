@@ -105,7 +105,7 @@ It contains `include/duilib/`, `lib/<arch>/<Config>/`, `bin/` (runtime DLLs and
 `autotest.py` chains environment checks → (optional) build → package → verification →
 structural assertions → (optional) smoke tests. It is **not wired into CI**, does not
 write the repository's `bin/`, `lib/` or `dist/`, and stores output under
-`C:\develop\temp\autotest\<timestamp>/`.
+`<system temp>/nim_duilib_autotest/<timestamp>/` (override with `--out-dir`).
 
 ```bash
 python3 build/autotest.py --preset unit
