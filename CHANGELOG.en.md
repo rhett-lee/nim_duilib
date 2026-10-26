@@ -43,6 +43,10 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Fixed
 
+- Dependency preparation: the Skia source repository now matches the legacy scripts
+  (`https://github.com/google/skia.git`); the previous `skia.googlesource.com` URL was
+  unreachable on some networks. Skia/SDL clone URLs are read from the version manifest
+  instead of being hard-coded in the script.
 - `build.py`: options placed before a subcommand (e.g. `--config Debug build`) were
   overwritten by the subcommand defaults; subcommand parsers now suppress defaults.
 - `build.py`: reusing the same `out/<arch>/<Config>` after switching compilers

@@ -33,6 +33,22 @@ if(NOT EXISTS "${DUILIB_VERSIONS_FILE}")
 endif()
 file(READ "${DUILIB_VERSIONS_FILE}" DUILIB_VERSIONS_JSON)
 
+# 源码仓库地址优先用 -D 传入的值（可换成镜像），否则取自版本清单
+if("${DUILIB_SKIA_REPO}" STREQUAL "")
+    string(JSON DUILIB_SKIA_REPO ERROR_VARIABLE _duilib_json_err
+           GET "${DUILIB_VERSIONS_JSON}" skia repo)
+    if(_duilib_json_err OR DUILIB_SKIA_REPO STREQUAL "")
+        duilib_error("deps.versions_invalid" "deps.versions_invalid_hint")
+    endif()
+endif()
+if("${DUILIB_SDL_REPO}" STREQUAL "")
+    string(JSON DUILIB_SDL_REPO ERROR_VARIABLE _duilib_json_err
+           GET "${DUILIB_VERSIONS_JSON}" sdl repo)
+    if(_duilib_json_err OR DUILIB_SDL_REPO STREQUAL "")
+        duilib_error("deps.versions_invalid" "deps.versions_invalid_hint")
+    endif()
+endif()
+
 # 依赖根目录与锁（并发 deps 只允许一个进程写入）
 get_filename_component(DUILIB_DEPS_ROOT "${DUILIB_DEPS_ROOT}" ABSOLUTE)
 file(MAKE_DIRECTORY "${DUILIB_DEPS_ROOT}")
@@ -331,7 +347,7 @@ function(duilib_prepare_skia)
     # 源码
     if(NOT EXISTS "${DUILIB_SKIA_ROOT}")
         _duilib_clone("${DUILIB_SKIA_REF_TYPE}" "${DUILIB_SKIA_REF_VALUE}"
-                      "https://skia.googlesource.com/skia.git" "${DUILIB_SKIA_ROOT}")
+                      "${DUILIB_SKIA_REPO}" "${DUILIB_SKIA_ROOT}")
     elseif(DUILIB_SKIA_REF_TYPE STREQUAL "commit")
         _duilib_git_head("${DUILIB_SKIA_ROOT}" _head)
         if(NOT _head STREQUAL DUILIB_SKIA_REF_VALUE)
@@ -513,7 +529,7 @@ function(duilib_prepare_sdl)
 
     if(NOT EXISTS "${DUILIB_SDL_SRC}")
         _duilib_clone("tag" "${DUILIB_SDL_REF_VALUE}"
-                      "https://github.com/libsdl-org/SDL.git" "${DUILIB_SDL_SRC}")
+                      "${DUILIB_SDL_REPO}" "${DUILIB_SDL_SRC}")
     endif()
 
     duilib_msg("deps.sdl_building" " (${DUILIB_SDL_REF_VALUE})")

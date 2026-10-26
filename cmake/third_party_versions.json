@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "skia": {
     "default": "6f559bafbed4c8323a899df4008aa073df4eccc6",
-    "repo": "https://skia.googlesource.com/skia.git",
+    "repo": "https://github.com/google/skia.git",
     "refs": {
       "6f559bafbed4c8323a899df4008aa073df4eccc6": {
         "type": "commit",

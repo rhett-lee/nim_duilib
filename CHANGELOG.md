@@ -40,6 +40,9 @@
 
 ### 修复
 
+- 依赖准备：Skia 源码仓库改为与旧脚本一致的 `https://github.com/google/skia.git`，
+  原先的 `skia.googlesource.com` 在部分网络下无法访问；Skia/SDL 的克隆地址统一从
+  版本清单读取，不再在脚本里硬编码。
 - `build.py`：写在子命令之前的选项（如 `--config Debug build`）会被子命令默认值覆盖，
   现已在子命令侧抑制默认值。
 - `build.py`：同一 `out/<arch>/<Config>` 切换编译器（MSVC ↔ MinGW）时复用旧 CMake
