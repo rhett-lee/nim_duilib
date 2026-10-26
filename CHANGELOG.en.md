@@ -67,6 +67,55 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Fixed
 
+- Build (Windows link dependencies): Skia and SDL3 static libraries were passed to
+  `target_link_libraries` by name (with `link_directories`), so Ninja did not
+  track them as link dependencies; after rebuilding a dependency the example
+  binaries were not relinked and packages could ship binaries built against the
+  old libraries. Static libraries are now linked by absolute path on all
+  platforms (MSVC `SDL3-static[d].lib`, MinGW `libSDL3.a`, Skia `.a`/`.lib`);
+  shared libraries (Unix SDL3 `.so`/`.dylib`) keep the plain names resolved by
+  `-l` so build-machine paths are not baked into dylib `install_name`/rpath.
+- Build (Windows examples): Debug enables incremental linking by default, and
+  linking many examples in parallel occasionally failed with
+  `LNK1000: Internal error during IncrBuildImage` (plus stale `.ilk` files).
+  Examples now pass `/INCREMENTAL:NO`; the extra link time is negligible.
+- Packaging (same-name Debug/Release examples): a POST_BUILD step now records the
+  configuration in `bin/<target>.build-config`; `pack.py` skips examples built
+  for the other configuration and only warns when the marker is missing, instead
+  of a blanket "may be mixed" warning.
+- Dependency preparation (SDL3): Debug and Release produce the same
+  `SDL3-static.lib` name and install into one prefix; both configurations were
+  built and Release was installed last, so Debug builds actually linked the
+  Release static library (`/MTd` vs `/MT`, `/MDd` vs `/MD`). Single-config
+  generators (Ninja, the `build.py` default) now build and install only the
+  current configuration, and the stamp records the configuration so switching
+  between Debug/Release rebuilds it; multi-config generators (Visual Studio)
+  still build both and print a notice that Debug links the Release library.
+- Build (CMake example list): `DUILIB_EXAMPLES` wrote its derived value into the
+  cache, so after turning `DUILIB_ENABLE_CEF` off the old list still contained
+  `cef`/`CefBrowser` and linking failed with unresolved `CefManager::GetInstance`
+  symbols. The platform default list is now re-derived on every configure (a
+  cached value is treated as a user override only when it differs from the
+  defaults and from the previously derived list), and the root project also
+  skips CEF examples with a notice when `DUILIB_ENABLE_CEF=OFF`.
+- `build.py`: `DUILIB_ENABLE_CEF` is a stateful cache entry too; passing
+  `--cmake-arg=-DDUILIB_ENABLE_CEF=OFF` once made later builds keep it off. It is
+  now passed explicitly on every configure (ON for Windows MSVC, Linux and
+  macOS; OFF for MinGW/MSYS2 and FreeBSD), and `--cmake-arg` still wins.
+- Packaging (SDK integration): `NimDuilibPackageRuntimeDlls` used to list the CEF
+  runtime DLLs from `bin/libcef_win[_109]/<arch>/` as flattened names, so
+  downstream `nim_duilib_copy_runtime` tried to copy a non-existent `bin/<name>`
+  and the build failed. The metadata now lists only DLLs directly under `bin/`,
+  and `nim_duilibConfig.cmake` also filters by existence so older packages keep
+  working. The CEF runtime is still deployed by copying that subdirectory, as
+  documented.
+- Build (macOS CEF examples): `cef.app`/`CefBrowser.app` did not ship the SDL3
+  dylib in `Contents/Frameworks` and had no relative rpath pointing there, so the
+  apps only ran through the builder's absolute SDL3 path. The post-build step in
+  `duilib_copy_sdl_bundle.cmake` now copies `libSDL3*.dylib` (preserving the
+  version links) and sets the main executable's rpath to
+  `@executable_path/../Frameworks` (Helpers use `@executable_path/../../..`);
+  a user-provided static SDL3 is detected and the copy is skipped.
 - Build (macOS): CEF binary distributions usually ship only the Release framework,
   so a Debug build failed while copying
   `Debug/Chromium Embedded Framework.framework`. Configuration now checks both
@@ -173,6 +222,20 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 - When packaging without CEF (`--with-cef` omitted), the `cef` and `CefBrowser`
   examples (`cef.exe`/`CefBrowser.exe` on Windows) are skipped automatically so the
   package never contains binaries that cannot start; the bundled README says so.
+- Packaging (Linux): the CEF wrapper's Unix artifact drops the `lib` prefix
+  (upstream CMake sets `PREFIX ""`), producing `cef_dll_wrapper.a`, which was not
+  in `pack.py`'s collection whitelist — `--with-cef` failed with
+  "missing libcef_dll_wrapper". Name normalization now maps the prefixless name
+  back to the whitelist name; the packaged file keeps its original name (both
+  spellings are accepted by `nim_duilibConfig.cmake`).
+- Dependency prep (Unix): the SDL3 completion stamp included the build
+  configuration, but on Unix SDL3 is always built as a Release shared library
+  independent of duilib's Debug/Release, so switching configurations needlessly
+  rebuilt SDL3; the configuration component is now kept on Windows only.
+- Dependency prep (CEF): `_duilib_cef_tracked_dir` ignored the platform and
+  always returned `libcef_win[_109]`, so Linux/macOS compared versions against
+  the Windows tracking header; it now returns `libcef_linux` / `libcef_macos` /
+  `libcef_win[_109]` per platform.
 - Packaging supports the macOS CEF example App Bundles (`bin/cef.app`,
   `bin/CefBrowser.app`): with `--with-examples`, `--with-cef` controls whether they
   ship, exactly like other platforms — omitted means skipped with a warning, specified

@@ -25,6 +25,13 @@ endfunction()
 # 构造传给脚本模式的 -D 参数列表
 function(_duilib_deps_script_args out_var)
     _duilib_deps_config(_duilib_deps_cfg)
+    # 多配置生成器（Visual Studio）无法在配置期区分目标配置：SDL3 只能构建
+    # Debug/Release 两份并让 Release 覆盖安装，脚本据此给出提示。
+    if(CMAKE_CONFIGURATION_TYPES)
+        set(_duilib_deps_multi ON)
+    else()
+        set(_duilib_deps_multi OFF)
+    endif()
     set(_args
         "-DDUILIB_LANG=${DUILIB_I18N_LANG}"
         "-DDUILIB_DEPS_MODE=${DUILIB_DEPS_MODE}"
@@ -33,6 +40,7 @@ function(_duilib_deps_script_args out_var)
         "-DDUILIB_DEPS_PLATFORM=${DUILIB_DEPS_PLATFORM}"
         "-DDUILIB_ARCH=${DUILIB_TARGET_ARCH_RESOLVED}"
         "-DDUILIB_CONFIG=${_duilib_deps_cfg}"
+        "-DDUILIB_MULTI_CONFIG=${_duilib_deps_multi}"
         "-DDUILIB_BUILD_TYPE=${DUILIB_BUILD_TYPE}"
         "-DDUILIB_COMPILER_ID=${CMAKE_CXX_COMPILER_ID}"
         "-DDUILIB_COMPILER_NAME=${DUILIB_COMPILER_NAME}"

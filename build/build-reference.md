@@ -96,10 +96,13 @@ python3 build/build.py --config Release
 （只写 `--sdl` 时 `build.py` 会打印提示，打包内容保持不变）。
 
 `out/<arch>/<Config>` 会复用 CMake 缓存，而 `DUILIB_MD`、`DUILIB_BUILD_EXAMPLES`、
-`DUILIB_ENABLE_SDL`、`DUILIB_CEF_VERSION`、`DUILIB_SKIA_REF` 等都是有状态选项。
-`build.py` 每次都会显式传入解析后的取值，所以先跑 `--no-examples --md`、再跑默认
-命令不会沿用旧选项；只有绕过 `build.py` 直接用 `cmake` 配置同一目录时才需要自己
-清理缓存（删除构建目录后重新配置）。
+`DUILIB_ENABLE_SDL`、`DUILIB_ENABLE_CEF`、`DUILIB_CEF_VERSION`、`DUILIB_SKIA_REF`
+等都是有状态选项。`build.py` 每次都会显式传入解析后的取值，所以先跑
+`--no-examples --md`、再跑默认命令不会沿用旧选项；`DUILIB_ENABLE_CEF` 也会按平台
+重新传入（Windows MSVC、Linux、macOS 为 `ON`，MinGW/MSYS2、FreeBSD 为 `OFF`）。
+只有绕过 `build.py` 直接用 `cmake` 配置同一目录时才需要自己清理缓存（删除构建
+目录后重新配置）。用 `--cmake-arg` 临时关掉 CEF 时，`DUILIB_EXAMPLES` 中残留的
+`cef`/`CefBrowser` 会被自动剔除或跳过，不会再去链接不存在的 CEF 符号。
 
 Unix 上示例程序默认写入相对 rpath（`$ORIGIN/../lib`、`@loader_path/../lib` 等），
 并追加 SDL3 依赖前缀作为构建树兜底。要生成完全不含构建机绝对路径的产物，可加
@@ -264,11 +267,18 @@ python3 build/build.py --cmake-arg -DCMAKE_C_COMPILER=gcc   -DCMAKE_CXX_COMPILER
 
 MSYS2 各环境使用各自目录下的工具链（MSYS2 终端中 `MSYSTEM` 与 `PATH` 已就绪）：
 
-| 环境 | `MSYSTEM` | 工具链目录 | 建议的 `CC`/`CXX` | Skia 目录前缀 |
-| --- | --- | --- | --- | --- |
-| MINGW64（msvcrt） | `MINGW64` | `E:\msys64\mingw64\bin` | `gcc` / `g++` | `gcc.<arch>` |
-| UCRT64 | `UCRT64` | `E:\msys64\ucrt64\bin` | `gcc` / `g++` | `gcc.<arch>` |
-| CLANG64 | `CLANG64` | `E:\msys64\clang64\bin` | `clang` / `clang++` | `mingw64-llvm.<arch>`（回退） |
+| 环境 | `MSYSTEM` | 工具链目录 | 建议的 `CC`/`CXX` | Skia 目录候选（`skia/out/`，按顺序取第一个） | 包名后缀 |
+| --- | --- | --- | --- | --- | --- |
+| MINGW64（msvcrt） | `MINGW64` | `E:\msys64\mingw64\bin` | `gcc` / `g++` | `gcc.msvcrt.<arch>.release` → `mingw64-gcc.<arch>.release` → `gcc.<arch>.release` | `-mingw-gcc` |
+| UCRT64 | `UCRT64` | `E:\msys64\ucrt64\bin` | `gcc` / `g++` | `mingw64-gcc.<arch>.release` → `gcc.<arch>.release` → `gcc.msvcrt.<arch>.release` | `-mingw-gcc` |
+| CLANG64 | `CLANG64` | `E:\msys64\clang64\bin` | `clang` / `clang++` | `mingw64-llvm.<arch>.release` → `llvm.<arch>.release` | `-mingw-llvm` |
+
+MINGW64（msvcrt）与 UCRT64（ucrt）的 gcc 静态库 C 运行库不同，Skia 也必须用同源目录；
+MINGW64 会优先选带 `.msvcrt` 的目录。两者的包名都是 `-mingw-gcc`，**不能归档到同一目录**。
+独立版 llvm-mingw 使用 `mingw64-llvm.<arch>.release`（libc++），与 MSYS2 CLANG64 的
+`llvm.<arch>.release` 也不是同一份产物，`pack.py` 会按库内符号（`libstdc++` / `libc++`）区分。
+需要强制指定某个 Skia 目录时用 `--skia-lib-dir <目录>`（编译侧对应
+`-DDUILIB_SKIA_LIB_SUBPATH=<目录>`）。
 
 从 PowerShell 调用时同样导出 `MSYSTEM`，并把对应 `bin` 目录放到 `PATH` 最前面；
 只要设置了 `MSYSTEM`，`build.py` 就不会执行 vcvars，而是使用 `CC`/`CXX` 指定的编译器。

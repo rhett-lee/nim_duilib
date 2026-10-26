@@ -144,6 +144,15 @@ add_subdirectory(duilib)
 
 if(DUILIB_BUILD_EXAMPLES)
     foreach(_duilib_example IN LISTS DUILIB_EXAMPLES)
+        # CEF 示例依赖 duilib 中的 CefManager/CefControl 实现：关闭 DUILIB_ENABLE_CEF
+        # 时构建它们只会在链接阶段报“无法解析的外部符号”。这里直接跳过，避免
+        # 缓存里残留的旧示例列表（例如上次 CEF 开启时推导出的 cef/CefBrowser）
+        # 造成构建失败。
+        if(NOT DUILIB_ENABLE_CEF AND (_duilib_example STREQUAL "cef"
+                                      OR _duilib_example STREQUAL "CefBrowser"))
+            message(STATUS "[INFO] example '${_duilib_example}' skipped: DUILIB_ENABLE_CEF=OFF")
+            continue()
+        endif()
         if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/examples/${_duilib_example}/CMakeLists.txt")
             add_subdirectory("examples/${_duilib_example}")
         else()

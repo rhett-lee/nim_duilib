@@ -56,6 +56,34 @@ if(DUILIB_SRC_SUB_DIRS)
     endforeach()
 endif()
 
+# 示例目录里按平台提供了 main_windows.cpp/main_linux.cpp/main_macos.cpp/
+# main_freebsd.cpp，aux_source_directory 会把它们全部加入。非当前平台的入口
+# 文件只有空的占位实现，编进来既浪费时间（每个示例多 3 个编译单元），也会让
+# 无关平台的代码参与编译。这里只保留当前平台的入口文件。
+set(_duilib_platform_srcs "")
+foreach(_src IN LISTS SRC_FILES)
+    get_filename_component(_src_name "${_src}" NAME)
+    if(_src_name MATCHES "^main_(windows|linux|macos|freebsd)\\.cpp$")
+        string(REGEX REPLACE "^main_([a-z]+)\\.cpp$" "\\1" _src_platform "${_src_name}")
+        set(_src_wanted FALSE)
+        if(_src_platform STREQUAL "windows" AND DUILIB_OS_WINDOWS)
+            set(_src_wanted TRUE)
+        elseif(_src_platform STREQUAL "linux" AND DUILIB_OS_LINUX)
+            set(_src_wanted TRUE)
+        elseif(_src_platform STREQUAL "macos" AND DUILIB_OS_MACOS)
+            set(_src_wanted TRUE)
+        elseif(_src_platform STREQUAL "freebsd" AND DUILIB_OS_FREEBSD)
+            set(_src_wanted TRUE)
+        endif()
+        if(_src_wanted)
+            list(APPEND _duilib_platform_srcs "${_src}")
+        endif()
+    else()
+        list(APPEND _duilib_platform_srcs "${_src}")
+    endif()
+endforeach()
+set(SRC_FILES "${_duilib_platform_srcs}")
+
 # 把上面收集的include/link目录应用到已创建的可执行目标上（CM-17）
 # 需在各平台的 add_executable() 之后调用；不带参数时作用于 ${PROJECT_NAME}，
 # 传入目标名时作用于该目标（如 macOS 的 CEF Helper 子目标）。

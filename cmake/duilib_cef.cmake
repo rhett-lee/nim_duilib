@@ -25,6 +25,18 @@ function(_duilib_cef_read_version header out_var)
 endfunction()
 
 function(_duilib_cef_tracked_dir out_var)
+    # 跟踪头文件（include/cef_version.h）必须取当前平台的 libcef 源目录，
+    # 否则 Linux/macOS 会错对 Windows 的跟踪头做版本比对与迁移采纳。
+    if(DUILIB_DEPS_PLATFORM STREQUAL "linux")
+        set(${out_var}
+            "${DUILIB_ROOT}/duilib/third_party/libcef/libcef_linux" PARENT_SCOPE)
+        return()
+    endif()
+    if(DUILIB_DEPS_PLATFORM STREQUAL "macos")
+        set(${out_var}
+            "${DUILIB_ROOT}/duilib/third_party/libcef/libcef_macos" PARENT_SCOPE)
+        return()
+    endif()
     set(_suffix "")
     if("${DUILIB_CEF_VERSION}" STREQUAL "109")
         set(_suffix "_109")

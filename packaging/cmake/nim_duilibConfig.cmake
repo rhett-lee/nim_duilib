@@ -420,7 +420,25 @@ set_target_properties(nim_duilib::duilib PROPERTIES
 
 # 供 nim_duilibHelpers.cmake 使用
 set_property(GLOBAL PROPERTY NIM_DUILIB_ROOT "${nim_duilib_ROOT}")
-set_property(GLOBAL PROPERTY NIM_DUILIB_RUNTIME_DLLS "${NIM_DUILIB_PACKAGE_RUNTIME_DLLS}")
+# 只登记包里真实位于 bin/ 根目录的运行期 DLL。旧包元数据可能把
+# bin/libcef_win[_109]/<arch>/ 下的 CEF 运行时文件名摊平列出，按存在性过滤后
+# nim_duilib_copy_runtime 不会去复制不存在的 bin/<name>。
+set(_nim_runtime_dlls "")
+set(_nim_missing_runtime_dlls "")
+foreach(_nim_dll IN LISTS NIM_DUILIB_PACKAGE_RUNTIME_DLLS)
+    if(EXISTS "${nim_duilib_ROOT}/bin/${_nim_dll}")
+        list(APPEND _nim_runtime_dlls "${_nim_dll}")
+    else()
+        list(APPEND _nim_missing_runtime_dlls "${_nim_dll}")
+    endif()
+endforeach()
+if(_nim_missing_runtime_dlls)
+    string(REPLACE ";" ", " _nim_missing_text "${_nim_missing_runtime_dlls}")
+    message(STATUS
+        "nim_duilib: 以下运行期 DLL 不在 bin/ 根目录，已跳过（CEF 运行时请整体复制"
+        " bin/libcef_win[_109]/<arch>/）：${_nim_missing_text}")
+endif()
+set_property(GLOBAL PROPERTY NIM_DUILIB_RUNTIME_DLLS "${_nim_runtime_dlls}")
 
 # 常用查询变量
 set(NIM_DUILIB_HAS_SDL "${NIM_DUILIB_PACKAGE_HAS_SDL}")

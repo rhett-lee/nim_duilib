@@ -236,6 +236,10 @@
       "en": "check the SDL3 build output above, then run 'build.py deps --force'",
       "zh_CN": "查看上面的 SDL3 输出，然后执行 'build.py deps --force'"
     },
+    "deps.sdl_multi_config": {
+      "en": "[deps] multi-config generator: building SDL3 for Debug and Release; Release is installed last, so Debug targets link the Release static library (use Ninja for per-config SDL3)",
+      "zh_CN": "[deps] 多配置生成器：Debug 与 Release 都会编译 SDL3；Release 最后安装，因此 Debug 目标链接的是 Release 静态库（需要按配置区分时请改用 Ninja）"
+    },
     "deps.cef_combo_missing": {
       "en": "[ERROR] CEF archive is not configured for this version/platform/architecture",
       "zh_CN": "[ERROR] 清单中没有该 CEF 版本/平台/架构的下载包"

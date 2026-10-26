@@ -372,7 +372,9 @@ The CEF runtime (`libcef.dll`, `*.pak`, `icudtl.dat`) still has to be placed
 next to the executable manually; `nim_duilib_copy_runtime` only copies the
 SDK's `bin/*.dll` and `bin/resources/` (on macOS, `FRAMEWORKS` additionally
 copies `lib/libSDL3*.dylib` into the App Bundle, and `RESOURCES` targets
-`Contents/Resources/duilib/` for bundle builds).
+`Contents/Resources/duilib/` for bundle builds). The CEF runtime of a CEF package
+lives under `bin/libcef_win[_109]/<arch>/`, not directly in `bin/`, so it is never
+flattened; copy that whole subdirectory next to the executable and keep its layout.
 
 ### The header path layout must not change
 

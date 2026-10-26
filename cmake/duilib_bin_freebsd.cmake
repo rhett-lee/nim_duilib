@@ -20,5 +20,7 @@ find_package(X11 REQUIRED)
 
 # FreeBSD平台所依赖的库
 target_link_libraries(${PROJECT_NAME} ${DUILIB_LIBS} ${DUILIB_SDL_LIBS} ${DUILIB_SKIA_LIBS}  ${DUILIB_FREEBSD_LIBS} X11::X11 ${DUILIB_FONT_LIBS})
+# 记录本目标的构建配置，供 pack.py 判断 bin/ 是否混有另一配置的同名程序
+duilib_add_build_config_stamp(${PROJECT_NAME})
 
 

@@ -21,6 +21,10 @@ if(DUILIB_CONFIG STREQUAL "Debug")
 else()
     set(DUILIB_BUILD_TYPE "release")
 endif()
+# 多配置生成器（Visual Studio）在配置期无法确定目标配置，依赖按 Release 处理。
+if("${DUILIB_MULTI_CONFIG}" STREQUAL "")
+    set(DUILIB_MULTI_CONFIG OFF)
+endif()
 if("${DUILIB_DEPS_JOBS}" STREQUAL "")
     set(DUILIB_DEPS_JOBS 6)
 endif()
@@ -548,9 +552,21 @@ endfunction()
 # SDL3
 # ---------------------------------------------------------------------------
 function(_duilib_sdl_stamp_value out_var)
-    set(${out_var}
-        "${DUILIB_SDL_REF_VALUE}|${DUILIB_ARCH}|${DUILIB_CRT_ID}|${DUILIB_DEPS_PLATFORM}"
-        PARENT_SCOPE)
+    # Windows：stamp 带上目标配置。Debug 与 Release 生成的 SDL3-static.lib 同名
+    # 且安装到同一个前缀，最终只保留最近一次安装的那一份；切换配置必须重建，
+    # 否则 Debug 会链接 Release 版静态库（/MTd 与 /MT、/MDd 与 /MD 混用）。
+    # Unix：SDL3 固定按 Release 构建共享库（见下方 ${DUILIB_ARCH}-release 目录），
+    # 产物与 duilib 的 Debug/Release 无关；stamp 不含配置分量，避免切换配置时
+    # 无谓地重新编译 SDL3。
+    if(DUILIB_DEPS_PLATFORM STREQUAL "windows")
+        set(${out_var}
+            "${DUILIB_SDL_REF_VALUE}|${DUILIB_ARCH}|${DUILIB_CRT_ID}|${DUILIB_DEPS_PLATFORM}|${DUILIB_CONFIG}"
+            PARENT_SCOPE)
+    else()
+        set(${out_var}
+            "${DUILIB_SDL_REF_VALUE}|${DUILIB_ARCH}|${DUILIB_CRT_ID}|${DUILIB_DEPS_PLATFORM}"
+            PARENT_SCOPE)
+    endif()
 endfunction()
 
 function(_duilib_sdl_ready out_ready)
@@ -674,8 +690,20 @@ function(duilib_prepare_sdl)
         if(DUILIB_DEPS_FORCE OR NOT _sdl_cache_reusable)
             file(REMOVE_RECURSE "${DUILIB_SDL_BUILD_ROOT}")
         endif()
-        _duilib_sdl_build_one("${DUILIB_SDL_BUILD_ROOT}/${DUILIB_ARCH}-debug" "Debug")
-        _duilib_sdl_build_one("${DUILIB_SDL_BUILD_ROOT}/${DUILIB_ARCH}-release" "Release")
+        if(DUILIB_MULTI_CONFIG)
+            # 多配置生成器在配置期不知道目标配置，只能把两个配置都构建一遍；
+            # 两者安装到同一前缀、库同名，最后安装的 Release 会覆盖 Debug，
+            # 因此 Debug 目标实际链接的是 Release 版 SDL3 静态库。
+            # 需要严格的 Debug/Release 一致时请使用单配置生成器（Ninja/Makefiles）。
+            duilib_msg("deps.sdl_multi_config" "")
+            _duilib_sdl_build_one("${DUILIB_SDL_BUILD_ROOT}/${DUILIB_ARCH}-debug" "Debug")
+            _duilib_sdl_build_one("${DUILIB_SDL_BUILD_ROOT}/${DUILIB_ARCH}-release" "Release")
+        else()
+            # 单配置生成器（build.py 默认的 Ninja）：只构建并安装当前配置，
+            # 保证 Debug 使用 /MTd、/MDd 编译的 SDL3，Release 使用 /MT、/MD。
+            _duilib_sdl_build_one("${DUILIB_SDL_BUILD_ROOT}/${DUILIB_ARCH}-${DUILIB_BUILD_TYPE}"
+                                  "${DUILIB_CONFIG}")
+        endif()
     else()
         _duilib_sdl_build_one("${DUILIB_SDL_BUILD_ROOT}/${DUILIB_ARCH}-release" "Release")
     endif()

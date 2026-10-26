@@ -175,3 +175,9 @@ CEF 的 macOS 二进制分发包通常只在 `Release/` 下提供
 `duilib_cef_macos.cmake` 会在配置期检测 `Debug/` 与 `Release/`：
 Debug 框架缺失时自动回退到 Release 并打印提示；两者都不存在时直接报错。
 因此 Debug 构建无需手工复制框架。
+
+CEF 示例在 macOS 上输出为 `.app`。启用 SDL 时，构建后会把
+`libSDL3*.dylib` 复制到 `Contents/Frameworks`，并把主程序 rpath 设为
+`@executable_path/../Frameworks`、Helper 设为 `@executable_path/../../..`，
+因此整个 `.app` 可以直接拷贝到其他机器运行，不依赖构建机的 SDL3 路径。
+自备静态 SDL3（`libSDL3.a`）时不需要复制，构建会自动跳过。

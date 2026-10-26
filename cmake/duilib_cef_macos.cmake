@@ -112,6 +112,9 @@ if(OS_MAC)
                             ${ACCELERATE} ${COREFOUNDATION} ${CORETEXT} ${COREGRAPHICS} ${DUILIB_MACOS_LIBS}
                             "-framework AppKit" "-framework Foundation" "-framework Metal"
                           )
+
+    # 记录构建配置，供 pack.py 判断 bin/ 中是否混有另一配置的 .app
+    duilib_add_build_config_stamp(${CEF_TARGET})
     
     set_target_properties(${CEF_TARGET} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/mac/Info.plist.in)
 
@@ -140,6 +143,29 @@ if(OS_MAC)
             "Please check that CEF_ROOT points to an extracted CEF binary distribution.")
     endif()
     COPY_MAC_FRAMEWORK("${CEF_TARGET}" "${_cef_binary_dir}" "${CEF_APP}")
+
+    # SDL3 在 macOS 上是动态库（cmake/duilib_deps_run.cmake 使用 SDL_SHARED=ON），
+    # 必须随 App Bundle 分发：复制到 Contents/Frameworks，并让可执行文件用相对
+    # rpath 查找，否则只能靠构建机的绝对路径运行，换目录或换机器就会加载失败。
+    # 静态 SDL3（用户自备 libSDL3.a）不需要复制，脚本会直接跳过。
+    if(DUILIB_ENABLE_SDL)
+        # 在构建期复制：DUILIB_DEPS_MODE=auto 时 SDL3 由 duilib_deps 目标在
+        # 构建阶段安装，configure 阶段还看不到 dylib，因此由 -P 脚本内 glob。
+        add_custom_command(TARGET ${CEF_TARGET}
+                           POST_BUILD
+                           COMMAND ${CMAKE_COMMAND}
+                                   "-DSDL3_LIB_DIR=${DUILIB_SDL_LIB_PATH}"
+                                   "-DBUNDLE_FRAMEWORKS_DIR=${CEF_APP}/Contents/Frameworks"
+                                   -P "${CMAKE_CURRENT_LIST_DIR}/duilib_copy_sdl_bundle.cmake"
+                           COMMENT "Copying SDL3 runtime into ${CEF_TARGET}.app"
+                           VERBATIM)
+
+        # 主程序的 exe 在 Contents/MacOS，动态库在 Contents/Frameworks；
+        # 用安装期 rpath 覆盖构建树 rpath，避免把 SDL3 的绝对路径写进包内。
+        set_target_properties(${CEF_TARGET} PROPERTIES
+            BUILD_WITH_INSTALL_RPATH TRUE
+            INSTALL_RPATH "@executable_path/../Frameworks")
+    endif()
 
     # temp build directory
     set(CEF_OLD_TARGET_OUT_DIR ${CEF_TARGET_OUT_DIR})

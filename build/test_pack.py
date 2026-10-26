@@ -283,6 +283,15 @@ class IntegrationFilesTest(_TempDirTest):
                 'lib/cmake/nim_duilib/nim_duilibPackageInfo.cmake'):
             self.assertIn(rel, virtual)
 
+    def test_cmake_config_skips_dlls_outside_bin_root(self):
+        # 旧包的元数据会把 CEF 运行时 DLL 摊平列出；生成的 Config 必须按存在性过滤，
+        # 否则 nim_duilib_copy_runtime 会复制不存在的 bin/<name>。
+        _count, virtual = pack.collect_integration_files(self._collector(),
+                                                         self._meta())
+        config = virtual['lib/cmake/nim_duilib/nim_duilibConfig.cmake']
+        self.assertIn('NIM_DUILIB_PACKAGE_RUNTIME_DLLS', config)
+        self.assertIn('EXISTS "${nim_duilib_ROOT}/bin/${_nim_dll}"', config)
+
     def test_arm64_metadata_in_generated_files(self):
         meta = self._meta(arch='arm64')
         _count, virtual = pack.collect_integration_files(self._collector(), meta)
@@ -299,6 +308,20 @@ class IntegrationFilesTest(_TempDirTest):
         config = virtual['lib/cmake/nim_duilib/nim_duilibConfig.cmake']
         self.assertIn('CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64"',
                       config)
+
+    def test_runtime_dlls_only_from_bin_root(self):
+        # CEF 运行时在 bin/libcef_win/<arch>/ 下，不能摊平成 bin/<name> 列进元数据，
+        # 否则 CEF 包的消费者执行 nim_duilib_copy_runtime 会复制失败。
+        collector = self._collector(with_dll=True)
+        collector.add('bin/WebView2Loader.dll',
+                      self._touch('bin/WebView2Loader.dll'))
+        collector.add('bin/libcef_win/x64/chrome_elf.dll',
+                      self._touch('bin/libcef_win/x64/chrome_elf.dll'))
+        collector.add('bin/libcef_win/x64/libcef.dll',
+                      self._touch('bin/libcef_win/x64/libcef.dll'))
+        meta = self._meta(collector=collector)
+        self.assertEqual(meta['runtime_dlls'],
+                         ['WebView2Loader.dll', 'duilib.dll'])
 
     def test_msvc_runtime_auto(self):
         self.assertEqual(self._meta()['msvc_runtime'], 'MT')
@@ -594,6 +617,35 @@ class CefLinuxPackagingTest(_TempDirTest):
         self.assertIn('-Lbin/libcef_linux -lcef', text)
         self.assertIn('LD_LIBRARY_PATH', text)
 
+    def test_wrapper_base_name_without_lib_prefix(self):
+        """Unix 的 wrapper 产物被 CMake 去掉 lib 前缀（PREFIX ""），
+        文件名为 cef_dll_wrapper.a；_lib_base_name 必须归一为白名单名。"""
+        wanted = set(pack.LIB_BASENAMES) | set(pack.CEF_WRAPPER_BY_VERSION.values())
+        self.assertEqual(pack._lib_base_name('cef_dll_wrapper', wanted),
+                         'libcef_dll_wrapper')
+        self.assertEqual(pack._lib_base_name('cef_dll_wrapper_109', wanted),
+                         'libcef_dll_wrapper_109')
+        # 带前缀与基础库的既有行为不回归
+        self.assertEqual(pack._lib_base_name('libcef_dll_wrapper', wanted),
+                         'libcef_dll_wrapper')
+        self.assertEqual(pack._lib_base_name('libduilib', wanted), 'duilib')
+        self.assertEqual(pack._lib_base_name('duilib', wanted), 'duilib')
+
+    def test_collect_libs_accepts_prefixless_wrapper(self):
+        """Linux lib 目录中是 cef_dll_wrapper.a 时 --with-cef 收集不报错。"""
+        lib_dir = os.path.join(self.tmp, 'lib', 'Release')
+        for base in pack.LIB_BASENAMES:
+            self._touch('lib/Release/lib%s.a' % base)
+        # 真实产物：无 lib 前缀（libcef_dll 的 CMakeLists.txt 设 PREFIX ""）
+        self._touch('lib/Release/cef_dll_wrapper.a')
+        collector = pack.Collector()
+        count = pack.collect_libs(collector, lib_dir, 'Release',
+                                  True, 'latest', 'linux')
+        self.assertEqual(count, len(pack.LIB_BASENAMES) + 1)
+        rels = [rel for rel, _abs in collector.items]
+        self.assertIn('lib/cef_dll_wrapper.a', rels)
+        self.assertEqual(collector.critical, [])
+
 
 class DocLinkRewriteTest(unittest.TestCase):
 
@@ -733,6 +785,83 @@ class PeArchCheckTest(_TempDirTest):
                          ['bin/basic.exe'])
         self.assertEqual(count, 1)
         self.assertTrue(any('架构' in msg for msg in collector.critical))
+
+
+class ExampleBuildConfigTest(_TempDirTest):
+    """Debug/Release 同名示例：按 CMake 写入的 .build-config 标记判定配置。"""
+
+    def _bin_with(self, entries):
+        bin_dir = os.path.join(self.tmp, 'bin')
+        os.makedirs(bin_dir, exist_ok=True)
+        for name, stamp in entries:
+            self._touch('bin/' + name)
+            if stamp is not None:
+                with open(os.path.join(bin_dir, name + '.build-config'), 'w',
+                          encoding='utf-8') as fp:
+                    fp.write(stamp + '\n')
+        return bin_dir
+
+    def _collect(self, config, bin_dir):
+        collector = pack.Collector()
+        with mock.patch.object(pack, 'BIN_DIR', bin_dir):
+            count = pack.collect_examples(collector, config, True, True)
+        return count, [rel for rel, _abs in collector.items], collector.warnings
+
+    def test_debug_skips_examples_built_for_release(self):
+        bin_dir = self._bin_with([('basic.exe', 'Release'),
+                                  ('layout.exe', 'Debug')])
+        count, items, warnings = self._collect('Debug', bin_dir)
+        self.assertEqual(items, ['bin/layout.exe'])
+        self.assertEqual(count, 1)
+        self.assertTrue(any('另一配置' in msg for msg in warnings))
+
+    def test_release_skips_examples_built_for_debug(self):
+        bin_dir = self._bin_with([('basic.exe', 'Debug')])
+        count, items, warnings = self._collect('Release', bin_dir)
+        self.assertEqual(count, 0)
+        self.assertEqual(items, [])
+        self.assertTrue(any('另一配置' in msg for msg in warnings))
+
+    def test_debug_example_without_stamp_warns(self):
+        bin_dir = self._bin_with([('basic.exe', None)])
+        count, items, warnings = self._collect('Debug', bin_dir)
+        self.assertEqual(count, 1)
+        self.assertEqual(items, ['bin/basic.exe'])
+        self.assertTrue(any('无法确认' in msg for msg in warnings))
+
+    def test_release_example_without_stamp_no_warning(self):
+        bin_dir = self._bin_with([('basic.exe', None)])
+        _count, items, warnings = self._collect('Release', bin_dir)
+        self.assertEqual(items, ['bin/basic.exe'])
+        self.assertFalse(any('无法确认' in msg for msg in warnings))
+
+    def test_windows_exe_uses_target_stamp(self):
+        """CMake 按目标名写标记（basic.build-config），而 bin 中的文件是 basic.exe。"""
+        bin_dir = os.path.join(self.tmp, 'bin')
+        os.makedirs(bin_dir, exist_ok=True)
+        self._touch('bin/basic.exe')
+        with open(os.path.join(bin_dir, 'basic.build-config'), 'w',
+                  encoding='utf-8') as fp:
+            fp.write('Release\n')
+        count, items, warnings = self._collect('Debug', bin_dir)
+        self.assertEqual(count, 0)
+        self.assertEqual(items, [])
+        self.assertTrue(any('另一配置' in msg for msg in warnings))
+
+    def test_macos_app_reads_target_stamp(self):
+        bin_dir = os.path.join(self.tmp, 'bin')
+        os.makedirs(bin_dir, exist_ok=True)
+        self._touch('bin/cef.app/Contents/MacOS/cef')
+        with open(os.path.join(bin_dir, 'cef.build-config'), 'w',
+                  encoding='utf-8') as fp:
+            fp.write('Release\n')
+        collector = pack.Collector()
+        with mock.patch.object(pack, 'BIN_DIR', bin_dir):
+            count = pack.collect_examples(collector, 'Debug', False, True,
+                                          is_macos=True)
+        self.assertEqual(count, 0)
+        self.assertEqual([rel for rel, _abs in collector.items], [])
+        self.assertTrue(any('另一配置' in msg for msg in collector.warnings))
 
 
 if __name__ == '__main__':

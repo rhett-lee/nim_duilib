@@ -673,6 +673,12 @@ def _lib_base_name(stem, wanted):
             return name[3:]
         if name in wanted:
             return name
+    # CEF wrapper 在 Unix 上的产物被 CMake 强制去掉 lib 前缀
+    # （libcef_dll/CMakeLists.txt 设 PREFIX ""），文件名为 cef_dll_wrapper.a；
+    # 归一为白名单名 libcef_dll_wrapper，否则 --with-cef 校验会误报缺少库。
+    for name in names:
+        if ('lib' + name) in wanted:
+            return 'lib' + name
     return stem
 
 
@@ -1401,12 +1407,40 @@ def _rewrite_doc_links(text, packaged):
     return _DOC_LINK_RE.sub(repl, text)
 
 
+def _read_build_stamp(name):
+    """读取 CMake 在链接后写入的构建配置标记（bin/<目标>.build-config）。
+
+    Debug 与 Release 的示例程序同名，切换配置后若没有全部重新链接，bin/ 里会混有
+    另一种配置的二进制。有标记时可以明确判断；旧构建没有标记则返回 None，
+    由调用方按“无法确认”处理。
+    """
+    candidates = [name]
+    if name.endswith('.app'):
+        # macOS 的示例是 cef.app 目录，CMake 目标名为 cef
+        candidates.append(name[:-4])
+    elif name.lower().endswith('.exe'):
+        # Windows 的示例文件是 basic.exe，CMake 目标名为 basic
+        candidates.append(name[:-4])
+    for stem in candidates:
+        path = os.path.join(BIN_DIR, stem + '.build-config')
+        if not os.path.isfile(path):
+            continue
+        try:
+            with open(path, 'r', encoding='utf-8', errors='replace') as fp:
+                value = fp.read().strip()
+        except OSError:
+            return None
+        return value or None
+    return None
+
+
 def collect_examples(collector, config, is_windows, with_cef=True, is_macos=False,
                      arch_tag=None):
     """收集示例程序可执行文件与运行时 dll。
 
     Release 包跳过 VS 的 Debug 可执行文件（*_d.exe）；Debug 包因 CMake 的
-    Debug exe 与 Release 同名，无法区分，全部收集并告警。
+    Debug exe 与 Release 同名，无法从文件名区分，改为读取构建时写入的
+    `<目标>.build-config` 标记：与目标配置不符的直接跳过，缺少标记的告警提示。
     未打包 CEF 模块（with_cef=False）时跳过 cef/CefBrowser，避免包内留下
     缺少 libcef 运行时、必然启动失败的示例。
     macOS 的 CEF 示例是 App Bundle（bin/cef.app、bin/CefBrowser.app 目录），
@@ -1425,6 +1459,8 @@ def collect_examples(collector, config, is_windows, with_cef=True, is_macos=Fals
     skipped_debug = []
     skipped_cef = []
     skipped_arch = []
+    skipped_config = []
+    unverified = []
     for name in sorted(os.listdir(BIN_DIR)):
         full = os.path.join(BIN_DIR, name)
         if os.path.isdir(full):
@@ -1435,6 +1471,12 @@ def collect_examples(collector, config, is_windows, with_cef=True, is_macos=Fals
             if not with_cef and is_cef_example(name):
                 skipped_cef.append(name)
                 continue
+            stamp = _read_build_stamp(name)
+            if stamp and stamp.lower() != config.lower():
+                skipped_config.append('%s(%s)' % (name, stamp))
+                continue
+            if not stamp:
+                unverified.append(name)
             added = 0
             for abs_path, rel in iter_files(full):
                 if collector.add('bin/%s/%s' % (name, rel), abs_path):
@@ -1469,12 +1511,23 @@ def collect_examples(collector, config, is_windows, with_cef=True, is_macos=Fals
         if not with_cef and is_cef_example(name):
             skipped_cef.append(name)
             continue
+        stamp = _read_build_stamp(name)
+        if stamp and stamp.lower() != config.lower():
+            skipped_config.append('%s(%s)' % (name, stamp))
+            continue
+        if not stamp:
+            unverified.append(name)
         if collector.add('bin/' + name, full):
             count += 1
             exe_count += 1
-    if config == 'Debug' and exe_count:
-        collector.warn('Debug 包中的示例程序可能混有 Release 版本'
-                       '（CMake 的 Debug exe 与 Release 同名），请确认后再分发')
+    if skipped_config:
+        collector.warn('以下示例由另一配置构建，已跳过：%s'
+                       '（请按目标配置重新构建后再打包）'
+                       % ', '.join(skipped_config))
+    if config == 'Debug' and unverified:
+        collector.warn('无法确认以下示例的构建配置（缺少 %s），'
+                       '可能混有 Release 版本，请确认后再分发：%s'
+                       % ('<目标>.build-config', ', '.join(unverified)))
     if skipped_debug:
         collector.warn('已跳过 Debug 示例程序：%s' % ', '.join(skipped_debug))
     if skipped_cef:
@@ -1557,8 +1610,11 @@ def build_package_meta(collector, version, sys_tag, arch_tag, config,
     """
     lib_names = _package_lib_names(collector)
     stems = _package_lib_stems(lib_names)
+    # 只收集 bin 根目录下的 DLL：CEF 运行时位于 bin/libcef_win[_109]/<arch>/，
+    # 需由下游整体复制，不能把其文件名摊平后当成 bin/<name> 去复制。
     bin_dlls = sorted(rel.rsplit('/', 1)[-1] for rel, _abs in collector.items
-                      if rel.startswith('bin/') and rel.lower().endswith('.dll'))
+                      if rel.startswith('bin/') and rel.count('/') == 1
+                      and rel.lower().endswith('.dll'))
     is_dll = any(name.lower().startswith('duilib') for name in bin_dlls)
 
     sdl_static = ('SDL3-static.lib' in lib_names) or ('libSDL3.a' in lib_names)
@@ -2662,8 +2718,10 @@ def main(argv=None):
     print('示例程序  : %d' % n_exe)
     print('接入文件  : %d（生成 %d）'
           % (n_integration + n_generated, n_generated))
+    # 包内还会固化 3 个元数据文件（MANIFEST.txt、SHA256SUMS、VERSION），
+    # 这里一并计入，保证与 `pack.py --verify` 报出的条目数一致。
     print('合计      : %d 个文件，%s'
-          % (len(collector.items) + len(virtual_files),
+          % (len(collector.items) + len(virtual_files) + 3,
              human_size(collector.total_size())))
     if collector.warnings:
         print('-' * 60)

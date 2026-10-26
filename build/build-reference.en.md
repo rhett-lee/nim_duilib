@@ -101,12 +101,16 @@ is also given (using `--sdl` alone now prints a hint and leaves package contents
 unchanged).
 
 `out/<arch>/<Config>` reuses the CMake cache, and `DUILIB_MD`,
-`DUILIB_BUILD_EXAMPLES`, `DUILIB_ENABLE_SDL`, `DUILIB_CEF_VERSION`,
-`DUILIB_SKIA_REF` and friends are stateful options. `build.py` always passes the
-resolved values explicitly, so running `--no-examples --md` first and then a
-plain command does not inherit the old options. Only when configuring the same
-directory directly with `cmake` do you need to clear the cache (delete the build
-directory and reconfigure).
+`DUILIB_BUILD_EXAMPLES`, `DUILIB_ENABLE_SDL`, `DUILIB_ENABLE_CEF`,
+`DUILIB_CEF_VERSION`, `DUILIB_SKIA_REF` and friends are stateful options.
+`build.py` always passes the resolved values explicitly, so running
+`--no-examples --md` first and then a plain command does not inherit the old
+options; `DUILIB_ENABLE_CEF` is also re-evaluated per platform (ON for Windows
+MSVC, Linux and macOS; OFF for MinGW/MSYS2 and FreeBSD). Only when configuring
+the same directory directly with `cmake` do you need to clear the cache (delete
+the build directory and reconfigure). When CEF is turned off through
+`--cmake-arg`, stale `cef`/`CefBrowser` entries left in `DUILIB_EXAMPLES` are
+dropped or skipped instead of failing to link.
 
 On Unix, examples carry origin-relative rpath entries (`$ORIGIN/../lib`,
 `@loader_path/../lib`, etc.) plus the SDL3 prefix as a build-tree fallback. To
@@ -276,11 +280,20 @@ python3 build/build.py --cmake-arg -DCMAKE_C_COMPILER=gcc   -DCMAKE_CXX_COMPILER
 Each MSYS2 environment uses the toolchain in its own directory (inside an MSYS2
 terminal `MSYSTEM` and `PATH` are already set):
 
-| Environment | `MSYSTEM` | toolchain directory | `CC`/`CXX` | Skia directory prefix |
-| --- | --- | --- | --- | --- |
-| MINGW64 (msvcrt) | `MINGW64` | `E:\msys64\mingw64\bin` | `gcc` / `g++` | `gcc.<arch>` |
-| UCRT64 | `UCRT64` | `E:\msys64\ucrt64\bin` | `gcc` / `g++` | `gcc.<arch>` |
-| CLANG64 | `CLANG64` | `E:\msys64\clang64\bin` | `clang` / `clang++` | `mingw64-llvm.<arch>` (fallback) |
+| Environment | `MSYSTEM` | toolchain directory | `CC`/`CXX` | Skia directory candidates (`skia/out/`, first match wins) | Package suffix |
+| --- | --- | --- | --- | --- | --- |
+| MINGW64 (msvcrt) | `MINGW64` | `E:\msys64\mingw64\bin` | `gcc` / `g++` | `gcc.msvcrt.<arch>.release` → `mingw64-gcc.<arch>.release` → `gcc.<arch>.release` | `-mingw-gcc` |
+| UCRT64 | `UCRT64` | `E:\msys64\ucrt64\bin` | `gcc` / `g++` | `mingw64-gcc.<arch>.release` → `gcc.<arch>.release` → `gcc.msvcrt.<arch>.release` | `-mingw-gcc` |
+| CLANG64 | `CLANG64` | `E:\msys64\clang64\bin` | `clang` / `clang++` | `mingw64-llvm.<arch>.release` → `llvm.<arch>.release` | `-mingw-llvm` |
+
+MINGW64 (msvcrt) and UCRT64 (ucrt) gcc static libraries use different C runtimes, so
+Skia must come from a matching directory; MINGW64 therefore prefers the `.msvcrt`
+variant. Both use the `-mingw-gcc` suffix, so their packages **must not be archived
+into the same directory**. A standalone llvm-mingw uses
+`mingw64-llvm.<arch>.release` (libc++), which is also not the same artifact as MSYS2
+CLANG64's `llvm.<arch>.release`; `pack.py` tells them apart by library symbols
+(`libstdc++` / `libc++`). Use `--skia-lib-dir <dir>` to force a specific Skia
+directory (the build equivalent is `-DDUILIB_SKIA_LIB_SUBPATH=<dir>`).
 
 When invoking from PowerShell, export `MSYSTEM` yourself and prepend the matching
 `bin` directory to `PATH`; `build.py` skips vcvars whenever `MSYSTEM` is set and

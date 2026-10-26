@@ -94,6 +94,10 @@ if(MSVC)
     target_link_options(${PROJECT_NAME} PRIVATE
         "/SUBSYSTEM:WINDOWS"
         "/ENTRY:wWinMainCRTStartup"
+        # Debug 默认开启增量链接；并行链接多个示例时会偶发
+        # “LNK1000: Internal error during IncrBuildImage”，旧 .ilk 损坏后还需手工
+        # 删除。示例程序链接耗时很短，统一关闭增量链接以获得稳定的构建结果。
+        "/INCREMENTAL:NO"
     )
     
     if(DUILIB_EXAMPLE_CEF_LIBS)
@@ -151,3 +155,5 @@ if(DUILIB_WEBVIEW2_EXE)
 endif()
 
 target_link_libraries(${PROJECT_NAME} ${DUILIB_LIBS} ${DUILIB_SDL_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_EXAMPLE_CEF_LIBS} ${DUILIB_WINDOWS_LIBS})
+# 记录本目标的构建配置，供 pack.py 判断 bin/ 是否混有另一配置的同名 exe
+duilib_add_build_config_stamp(${PROJECT_NAME})

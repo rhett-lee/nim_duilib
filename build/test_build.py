@@ -10,6 +10,7 @@ from __future__ import annotations
 import contextlib
 import importlib.util
 import io
+import os
 import sys
 import tempfile
 import unittest
@@ -182,6 +183,15 @@ class CmakeDefinePersistenceTests(unittest.TestCase):
         expected_sdl = ('-DDUILIB_ENABLE_SDL=OFF' if sys.platform == 'win32'
                         else '-DDUILIB_ENABLE_SDL=ON')
         self.assertIn(expected_sdl, defines)
+        # CEF 是否编译进库同样有状态：MSVC/Linux/macOS 默认开启，MinGW/FreeBSD 关闭
+        if sys.platform == 'win32':
+            expected_cef = ('-DDUILIB_ENABLE_CEF=OFF' if os.environ.get('MSYSTEM')
+                            else '-DDUILIB_ENABLE_CEF=ON')
+        elif sys.platform == 'darwin' or sys.platform.startswith('linux'):
+            expected_cef = '-DDUILIB_ENABLE_CEF=ON'
+        else:
+            expected_cef = '-DDUILIB_ENABLE_CEF=OFF'
+        self.assertIn(expected_cef, defines)
         self.assertIn('-DDUILIB_CEF_VERSION=%s' % manifest['cef']['default'],
                       defines)
         self.assertIn('-DDUILIB_SKIA_REF=%s' % manifest['skia']['default'],
@@ -204,6 +214,14 @@ class CmakeDefinePersistenceTests(unittest.TestCase):
         defines = self._defines(['build', '--md',
                                  '--cmake-arg=-DDUILIB_MD=OFF'])
         self.assertEqual(defines[-1], '-DDUILIB_MD=OFF')
+
+    def test_cef_off_via_cmake_arg(self):
+        """`--cmake-arg` 关闭 CEF 时应覆盖显式传入的默认值，并排在最后生效。"""
+        defines = self._defines(['build',
+                                 '--cmake-arg=-DDUILIB_ENABLE_CEF=OFF'])
+        self.assertEqual(defines[-1], '-DDUILIB_ENABLE_CEF=OFF')
+        self.assertTrue(any(d.startswith('-DDUILIB_ENABLE_CEF=')
+                            for d in defines[:-1]))
 
 
 class StaleCacheTests(unittest.TestCase):

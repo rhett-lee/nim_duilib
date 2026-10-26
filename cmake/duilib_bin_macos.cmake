@@ -40,3 +40,6 @@ else()
                             "-framework AppKit" "-framework Foundation" "-framework Metal" "-framework Cocoa"
                           )
 endif()
+
+# 记录本目标的构建配置，供 pack.py 判断 bin/ 是否混有另一配置的同名程序
+duilib_add_build_config_stamp(${PROJECT_NAME})

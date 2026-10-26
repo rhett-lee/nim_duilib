@@ -211,6 +211,21 @@ class ArchiveRootTest(unittest.TestCase):
             sdk.select_archive_root([])
 
 
+class RepackArchiveTest(unittest.TestCase):
+    """重打包测试只用较低压缩级别，避免大包用例耗时过长。"""
+
+    def test_compressed_modes_use_low_level(self):
+        for mode in ("w:gz", "w:bz2"):
+            with mock.patch.object(sdk.tarfile, "open") as opener:
+                sdk._tar_open(Path("repack.tmp"), mode)
+            self.assertEqual(opener.call_args.kwargs.get("compresslevel"), 1, mode)
+
+    def test_uncompressed_mode_has_no_level(self):
+        with mock.patch.object(sdk.tarfile, "open") as opener:
+            sdk._tar_open(Path("repack.tmp"), "w")
+        self.assertNotIn("compresslevel", opener.call_args.kwargs)
+
+
 class ApplicabilityTest(unittest.TestCase):
     STATIC = {"is_dll": False, "has_examples": True}
     DLL = {"is_dll": True, "has_examples": False}

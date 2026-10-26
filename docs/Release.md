@@ -327,6 +327,8 @@ CEF 运行时（`libcef.dll`、`*.pak`、`icudtl.dat`）仍需自行放到程序
 `nim_duilib_copy_runtime` 只复制 SDK 的 `bin/*.dll` 与 `bin/resources/`
 （macOS 的 `FRAMEWORKS` 额外复制 `lib/libSDL3*.dylib` 到 App Bundle；bundle 目标上
 `RESOURCES` 的目标目录为 `Contents/Resources/duilib/`）。
+CEF 包的运行时位于 `bin/libcef_win[_109]/<架构>/`，不在 `bin/` 根目录，因此不会被
+摊平复制；请把该子目录整体复制到可执行文件同级，保持原有层级。
 
 ### 头文件路径不可改动
 

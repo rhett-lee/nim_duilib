@@ -179,3 +179,10 @@ reuse that framework. `duilib_cef_macos.cmake` checks both `Debug/` and
 `Release/` at configure time: when the Debug framework is missing it falls back
 to Release and prints a hint; when neither exists it fails immediately. No
 manual framework copy is needed for Debug builds.
+
+CEF examples are emitted as `.app` bundles on macOS. When SDL is enabled the
+build copies `libSDL3*.dylib` into `Contents/Frameworks` and sets the main
+executable's rpath to `@executable_path/../Frameworks` (Helpers use
+`@executable_path/../../..`), so the whole `.app` can be copied to another
+machine and runs without the builder's SDL3 path. With a user-provided static
+SDL3 (`libSDL3.a`) the copy is skipped automatically.

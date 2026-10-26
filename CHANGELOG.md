@@ -59,6 +59,44 @@
 
 ### 修复
 
+- 构建（Windows 链接依赖）：Skia 与 SDL3 的静态库此前只以库名（配合
+  `link_directories`）传给 `target_link_libraries`，Ninja 不会把它们记为链接依赖，
+  依赖重新编译后示例程序不会重新链接，包里可能留下用旧库生成的二进制。现在
+  各平台统一按库文件绝对路径链接静态库（MSVC 的 `SDL3-static[d].lib`、MinGW 的
+  `libSDL3.a`、各平台的 Skia `.a`/`.lib`）；共享库（Unix 的 SDL3 `.so`/`.dylib`）
+  仍保留库名由 `-l` 解析，避免把构建机绝对路径写进 dylib 的 `install_name`/rpath。
+- 构建（Windows 示例）：Debug 默认开启增量链接，并行链接多个示例时偶发
+  `LNK1000: Internal error during IncrBuildImage`，旧 `.ilk` 损坏后还要手工删除；
+  示例程序统一加 `/INCREMENTAL:NO`，链接耗时代价很小、构建结果稳定。
+- 打包（Debug/Release 同名示例）：CMake 链接后新增 `bin/<目标>.build-config`
+  记录构建配置；`pack.py` 打 Debug 包时按标记跳过 Release 构建的示例，缺少标记
+  时提示无法确认，不再笼统告警“可能混有 Release 版本”。
+- 依赖准备（SDL3）：Debug 与 Release 生成的 `SDL3-static.lib` 同名且安装到同一个
+  前缀，原先两个配置都构建、Release 最后安装，Debug 构建实际链接的是 Release 版
+  静态库（`/MTd` 与 `/MT`、`/MDd` 与 `/MD` 混用）。现在单配置生成器（`build.py`
+  默认的 Ninja）只构建并安装当前配置，完成标记也记录配置，切换 Debug/Release 时
+  自动重建；多配置生成器（Visual Studio）仍需构建两份，会打印提示说明 Debug
+  链接的是 Release 静态库。
+- 构建（CMake 示例列表）：`DUILIB_EXAMPLES` 把推导结果写进缓存，关闭
+  `DUILIB_ENABLE_CEF` 后再配置时仍沿用上次含 `cef`/`CefBrowser` 的旧列表，
+  链接阶段报 `CefManager::GetInstance` 等符号无法解析。现在每次配置都重新推导
+  平台默认列表（只有与默认值都不同、且非上次推导结果时才视为用户显式覆盖），
+  根工程另加一道保护：`DUILIB_ENABLE_CEF=OFF` 时直接跳过 CEF 示例并提示。
+- `build.py`：`DUILIB_ENABLE_CEF` 也是有状态的缓存项，用
+  `--cmake-arg=-DDUILIB_ENABLE_CEF=OFF` 关掉一次后，后续不带该参数的构建仍沿用
+  旧值。现在与其他开关一样每次显式传入（Windows MSVC、Linux、macOS 为 ON，
+  MinGW/MSYS2 与 FreeBSD 为 OFF），用户仍可用 `--cmake-arg` 覆盖。
+- 打包（SDK 接入）：`NimDuilibPackageRuntimeDlls` 之前把
+  `bin/libcef_win[_109]/<arch>/` 下的 CEF 运行时 DLL 文件名摊平列入，下游用
+  `nim_duilib_copy_runtime` 时会尝试复制不存在的 `bin/<name>` 而构建失败。
+  现在元数据只登记 bin 根目录下的 DLL；`nim_duilibConfig.cmake` 也会按文件是否
+  存在过滤，旧包同样可用。CEF 运行时仍按文档由下游整体复制对应子目录。
+- 构建（macOS CEF 示例）：`cef.app`/`CefBrowser.app` 未把 SDL3 动态库放进
+  `Contents/Frameworks`，也没有指向该目录的相对 rpath，只能靠构建机的 SDL3
+  绝对路径运行。现在构建后由 `duilib_copy_sdl_bundle.cmake` 复制
+  `libSDL3*.dylib`（保留版本链接），主程序 rpath 设为
+  `@executable_path/../Frameworks`（Helper 为 `@executable_path/../../..`）；
+  自备静态 SDL3 时自动跳过复制。
 - 构建（macOS）：CEF 二进制分发包通常只带 Release 框架，Debug 构建复制
   `Debug/Chromium Embedded Framework.framework` 时会失败。现在配置期检测
   `Debug/` 与 `Release/`，Debug 框架缺失时自动回退到 Release 并打印提示；
@@ -153,6 +191,16 @@
 - 打包未包含 CEF 模块（未指定 `--with-cef`）时，自动跳过 `cef` 与 `CefBrowser`
   示例程序（Windows 为 `cef.exe`/`CefBrowser.exe`），避免包内留下必然启动失败的
   二进制；包内 README 同步说明。
+- 打包（Linux）：CEF wrapper 的 Unix 产物被上游 CMake 去掉 `lib` 前缀
+  （`PREFIX ""`），文件名为 `cef_dll_wrapper.a`，不在 `pack.py` 的收集白名单中，
+  `--with-cef` 时报“缺少 libcef_dll_wrapper”。现在归一化时把无前缀名映射回
+  白名单名，包内文件保持原名（下游 `nim_duilibConfig.cmake` 两种写法都接受）。
+- 依赖准备（Unix）：SDL3 的完成标记包含目标配置，而 Unix 上 SDL3 固定按 Release
+  构建共享库、与 duilib 的 Debug/Release 无关，切换配置会无谓地重新编译 SDL3；
+  现在配置分量仅 Windows 保留。
+- 依赖准备（CEF）：`_duilib_cef_tracked_dir` 原先不区分平台，恒返回
+  `libcef_win[_109]`，Linux/macOS 的版本比对与迁移采纳错对 Windows 的跟踪头；
+  现在按平台返回 `libcef_linux` / `libcef_macos` / `libcef_win[_109]`。
 - 打包支持 macOS 的 CEF 示例 App Bundle（`bin/cef.app`、`bin/CefBrowser.app`）：
   `--with-examples` 时与其他平台一致由 `--with-cef` 联动控制——未指定则跳过并告警，
   指定后整个目录（含 `Contents/Frameworks` 内的 CEF Framework、Helper 与符号链接）

@@ -11,9 +11,9 @@
 | 领域 | 状态 |
 | :--- | :--- |
 | 产物收集 | 头文件、库、Skia、SDL、CEF、WebView2、JPEG、运行期 DLL、资源、许可证、文档 |
-| 包内布局 | `include/`、`lib/`、`bin/`（含 `bin/resources/`）、`docs/`、`licenses/`、`msvc/`、`lib/cmake/` |
+| 包内布局 | `include/`、`lib/`（含 `lib/cmake/`）、`bin/`（含 `bin/resources/`）、`docs/`、`LICENSES/`、`msvc/` |
 | 元数据与校验 | `MANIFEST.txt`（含文档清单）、`SHA256SUMS`、`VERSION` |
-| 下游接入 | VS props/targets、CMake Config/Helper、x64 + x86 manifest |
+| 下游接入 | VS props/targets、CMake Config/Helper、x64 + x86 + arm64 manifest（三份均随包） |
 | 文档处理 | 只打顶层使用文档，源码链接按包布局重写，无断链 |
 | 已验证 | `--list`、XML 解析、CMake 配置、SHA/断链检查、真实 zip 抽查；x64/x86 Debug 与 Release 出包、解包及 SHA 校验；MinGW（gcc / llvm）5 库 + 21 示例构建与运行；VS/CMake 端到端（x64/x86 Debug、x64/x86 Release、MinGW x64 gcc/llvm 包、MSVC DLL 包）；MSYS2 真实环境（UCRT64 gcc、CLANG64 llvm、MINGW64 gcc/msvcrt）全量构建、出包、解包与 CMake 端到端；MSVC DLL 模式（`/MD`）构建、出包与端到端；MSVC x64/x86 与 MinGW x64 的 SDL/示例组合出包、`--verify` 与解包运行；Linux/FreeBSD x64 Release 出包（2026-10-25，FreeBSD 不含 CEF） |
 

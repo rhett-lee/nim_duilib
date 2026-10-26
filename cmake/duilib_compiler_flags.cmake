@@ -1,7 +1,8 @@
 # 公共的编译器参数（GCC / Clang）
 #
-# 说明：macOS 的 duilib 库、macOS 的示例程序（含 CEF 分支）、Linux/FreeBSD 的示例程序
-#       共用这一份定义，避免多处各写一遍导致参数漂移（CM-10）。
+# 说明：各 Unix 平台（Linux/FreeBSD/macOS）的 duilib 库（duilib/CMakeLists.txt）、
+#       macOS 的示例程序（含 CEF 分支）共用这一份定义，避免多处各写一遍导致参数漂移（CM-10）。
+#       Linux/FreeBSD 的示例程序目前不套用这份参数（保持与历史行为一致）。
 #
 # 使用方式：
 #   include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_compiler_flags.cmake")

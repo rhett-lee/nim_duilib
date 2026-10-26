@@ -503,8 +503,48 @@ unset(_candidates)
 unset(_candidates_text)
 unset(_resolved)
 unset(_cfg)
+# 把库名解析成绝对路径（用于各平台的静态库）。
+# Ninja 只会把“链接命令行里出现的文件路径”记为链接依赖；若只写库名（配合
+# link_directories），库文件更新后 Ninja 不知道，示例程序不会重新链接，仍留着
+# 旧版本静态库生成的二进制。Skia 由 deps 重新编译后必须能触发重新链接。
+# 绝对路径只用于静态库（.a/.lib 会被完整吞进链接产物，不写进 install_name/rpath）；
+# 共享库（SDL3 .dylib/.so）仍保留库名由 -l 解析，避免把构建机绝对路径写进
+# dylib 的 install_name/rpath，影响打包后的可迁移性。
+function(_duilib_resolve_static_libs out_var lib_dir)
+    set(_result "")
+    foreach(_lib IN LISTS ARGN)
+        set(_found "")
+        foreach(_candidate
+                "${lib_dir}/${_lib}.lib"
+                "${lib_dir}/${_lib}d.lib"
+                "${lib_dir}/lib${_lib}.a"
+                "${lib_dir}/lib${_lib}.dll.a"
+                "${lib_dir}/${_lib}.a"
+                "${lib_dir}/${_lib}.dll.a")
+            if(EXISTS "${_candidate}")
+                set(_found "${_candidate}")
+                break()
+            endif()
+        endforeach()
+        if(_found)
+            list(APPEND _result "${_found}")
+        else()
+            list(APPEND _result "${_lib}")
+        endif()
+    endforeach()
+    set(${out_var} "${_result}" PARENT_SCOPE)
+endfunction()
+
 set(DUILIB_SKIA_LIBS svg skshaper skottie sksg jsonreader skia)
 _duilib_check_deps_crt("Skia" "${DUILIB_SKIA_LIB_PATH}")
+if(NOT DUILIB_SKIA_LIB_PATH MATCHES "\\$<")
+    # 多配置生成器下库目录可能含生成器表达式，此时保持库名，交给链接器解析。
+    # 其余情况（含 Unix 单配置）把 Skia 静态库解析为绝对路径，让 Ninja 把库文件
+    # 记为链接依赖：deps 重新编译 Skia 后，示例程序才会重新链接。
+    _duilib_resolve_static_libs(_duilib_skia_abs_libs
+                                "${DUILIB_SKIA_LIB_PATH}" ${DUILIB_SKIA_LIBS})
+    set(DUILIB_SKIA_LIBS "${_duilib_skia_abs_libs}")
+endif()
 
 #SDL库根目录，lib文件目录（Windows系统可选，其他平台必选）
 if(DUILIB_ENABLE_SDL)
@@ -520,25 +560,44 @@ if(DUILIB_ENABLE_SDL)
         set(DUILIB_SDL_LIB_PATH "${DUILIB_SDL_SRC_ROOT_DIR}/lib")
     endif()
     if(DUILIB_OS_WINDOWS AND NOT MINGW)
-        # MSVC：Debug/Release 使用各自的静态库；只准备了一份时退回同一份
+        # MSVC：Debug/Release 使用各自的静态库；只准备了一份时退回同一份。
+        # 这里写绝对路径，Ninja 才能把库文件记为链接依赖（SDL3 重新编译后会重新链接）。
         if(EXISTS "${DUILIB_SDL_LIB_PATH}/SDL3-staticd.lib" AND
            EXISTS "${DUILIB_SDL_LIB_PATH}/SDL3-static.lib")
             set(DUILIB_SDL_LIBS
-                "$<$<CONFIG:Debug>:SDL3-staticd.lib>$<$<NOT:$<CONFIG:Debug>>:SDL3-static.lib>")
+                "$<$<CONFIG:Debug>:${DUILIB_SDL_LIB_PATH}/SDL3-staticd.lib>$<$<NOT:$<CONFIG:Debug>>:${DUILIB_SDL_LIB_PATH}/SDL3-static.lib>")
         elseif(EXISTS "${DUILIB_SDL_LIB_PATH}/SDL3-staticd.lib")
-            set(DUILIB_SDL_LIBS SDL3-staticd.lib)
+            set(DUILIB_SDL_LIBS "${DUILIB_SDL_LIB_PATH}/SDL3-staticd.lib")
         elseif(EXISTS "${DUILIB_SDL_LIB_PATH}/SDL3-static.lib")
-            set(DUILIB_SDL_LIBS SDL3-static.lib)
+            set(DUILIB_SDL_LIBS "${DUILIB_SDL_LIB_PATH}/SDL3-static.lib")
         else()
             message(FATAL_ERROR
                 "SDL3 静态库不存在：${DUILIB_SDL_LIB_PATH}\n"
-                "请执行 'build.py deps'（Windows 会同时编译 Debug/Release），"
+                "请执行 'build.py deps'（Windows 会按 Debug/Release 分别编译），"
                 "或传入 -DDUILIB_SDL_ROOT=<已安装的 SDL3 前缀>。")
         endif()
+    elseif(DUILIB_OS_WINDOWS AND EXISTS "${DUILIB_SDL_LIB_PATH}/libSDL3.a")
+        # MinGW：静态库用绝对路径，理由同上。
+        set(DUILIB_SDL_LIBS "${DUILIB_SDL_LIB_PATH}/libSDL3.a")
     else()
         set(DUILIB_SDL_LIBS SDL3)
     endif()
 endif()
+
+# 记录目标的构建配置：写 bin/<目标>.build-config（见 duilib_write_build_stamp.cmake）。
+# pack.py 据此判断 bin/ 中是否混有其他配置的同名产物。
+function(duilib_add_build_config_stamp target)
+    if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+        return()
+    endif()
+    add_custom_command(TARGET ${target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND}
+                "-DSTAMP_FILE=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}.build-config"
+                "-DSTAMP_CONFIG=$<CONFIG>"
+                -P "${CMAKE_CURRENT_LIST_DIR}/duilib_write_build_stamp.cmake"
+        COMMENT "Recording build configuration for ${target}"
+        VERBATIM)
+endfunction()
 
 #输出日志：打印变量数据（实现在 duilib_log_variables.cmake 中）
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_log_variables.cmake")

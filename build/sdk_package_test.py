@@ -669,9 +669,21 @@ def check_docs(info: PackageInfo) -> str:
     return "文档 %d 份，许可证 %d 份，运行资源存在" % (len(docs), len(licenses))
 
 
-def _make_tar(root: Path, dest: Path, mode: str) -> Path:
+def _tar_open(dest: Path, mode: str):
+    """打开用于重打包测试的归档。
+
+    这里生成的归档只用于校验逻辑（格式、缺文件、篡改），压缩率不影响结论；
+    大包（1 GB 以上）在级别 9 下重打包要几分钟，级别 1 可以显著缩短耗时。
+    """
+    kwargs = {}
+    if mode.startswith("w:"):
+        kwargs["compresslevel"] = 1
     dest.parent.mkdir(parents=True, exist_ok=True)
-    with tarfile.open(dest, mode) as tf:
+    return tarfile.open(dest, mode, **kwargs)
+
+
+def _make_tar(root: Path, dest: Path, mode: str) -> Path:
+    with _tar_open(dest, mode) as tf:
         tf.add(str(root), arcname=root.name)
     return dest
 
@@ -703,7 +715,7 @@ def _make_tar_from_root(root: Path, dest: Path, mode: str, *,
     import io
 
     dest.parent.mkdir(parents=True, exist_ok=True)
-    with tarfile.open(dest, mode) as tf:
+    with _tar_open(dest, mode) as tf:
         for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
             dirnames[:] = [name for name in dirnames
                            if not os.path.islink(os.path.join(dirpath, name))]
@@ -1359,27 +1371,36 @@ def run_package(info: PackageInfo, package_out: Path, options: Options) -> list[
 
     block_reason = build_block_reason(info)
     results = []
+
+    def record(result: Result) -> None:
+        """记录结果并立即输出进度：大包用例（重打包/缺文件）单场景可能要几分钟，
+        无人值守运行时需要能及时看到当前进度，避免误判为卡死。"""
+        results.append(result)
+        print("     [%s] %s %s" % (result.status, result.scenario_id, result.name),
+              flush=True)
+
     for sid in [item[0] for item in SCENARIO_ORDER if item[0] in options.selected]:
         name = SCENARIO_NAMES[sid]
         if options.dry_run and sid in BUILD_SCENARIOS:
-            results.append(Result(sid, name, "SKIP", "dry-run：未执行", ""))
+            record(Result(sid, name, "SKIP", "dry-run：未执行", ""))
             continue
+        print("  >> %s %s ..." % (sid, name), flush=True)
         applicable, reason = scenario_applicability(
             sid, info.caps, info.info, no_build=options.no_build,
             run_examples=options.run_examples, build_block_reason=block_reason)
         if not applicable:
-            results.append(Result(sid, name, "SKIP", reason, ""))
+            record(Result(sid, name, "SKIP", reason, ""))
             continue
         try:
             detail = _scenario_runner(sid, info, work_dir, log_dir, options)
-            results.append(Result(sid, name, "PASS", detail, ""))
+            record(Result(sid, name, "PASS", detail, ""))
         except ScenarioSkipped as exc:
-            results.append(Result(sid, name, "SKIP", str(exc), ""))
+            record(Result(sid, name, "SKIP", str(exc), ""))
         except AssertionError as exc:
-            results.append(Result(sid, name, "FAIL", str(exc), _existing_log(log_dir)))
+            record(Result(sid, name, "FAIL", str(exc), _existing_log(log_dir)))
         except Exception as exc:  # 未预期异常也计为失败，但不中断其它场景
             detail = "%s: %s\n%s" % (type(exc).__name__, exc, traceback.format_exc(limit=3))
-            results.append(Result(sid, name, "FAIL", detail, _existing_log(log_dir)))
+            record(Result(sid, name, "FAIL", detail, _existing_log(log_dir)))
     return results
 
 

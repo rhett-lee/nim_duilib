@@ -236,7 +236,7 @@ def build_parser() -> argparse.ArgumentParser:
                 "  build.py build --help   # --no-deps / --target / --no-examples\n"
                 "  build.py deps --help    # --force\n"
                 "  build.py pack --help    # --with-cef / --with-sdl / --with-examples / --out-dir / --pack-arg\n"
-                "  build.py clean --help   # --deps"),
+                "  build.py clean --help   # --deps / --build-dir"),
         formatter_class=argparse.RawDescriptionHelpFormatter,
         parents=[main_common])
     sub = parser.add_subparsers(dest="command")
@@ -261,7 +261,8 @@ def build_parser() -> argparse.ArgumentParser:
     pack_parser.add_argument("--out-dir", default=None, help="包输出目录")
     pack_parser.add_argument("--pack-arg", action="append", default=[], help="追加给 pack.py 的参数")
 
-    clean_parser = sub.add_parser("clean", parents=[sub_common], help="清理构建树")
+    clean_parser = sub.add_parser("clean", parents=[sub_common],
+                                  help="清理构建树（默认整个 out/；--build-dir 可只清理指定目录）")
     clean_parser.add_argument("--deps", action="store_true", help="同时清理依赖构建产物")
 
     return parser
@@ -509,6 +510,15 @@ def _cmake_defines(args, arch: str, deps_mode: str, force: bool) -> list:
     rpath_absolute = getattr(args, "rpath_absolute", True)
     defines.append(f"-DDUILIB_RPATH_ABSOLUTE={'ON' if rpath_absolute else 'OFF'}")
     defines.append(f"-DDUILIB_BUILD_EXAMPLES={'OFF' if getattr(args, 'no_examples', False) else 'ON'}")
+    # CEF 是否编译进库：与根工程默认一致（Windows MSVC、Linux、macOS 开启；
+    # MinGW/MSYS2 与 FreeBSD 关闭）。这也是有状态的缓存项：一旦某次用
+    # `--cmake-arg=-DDUILIB_ENABLE_CEF=OFF` 关掉，后续不传就会一直沿用旧值。
+    # 这里每次显式传入，用户仍可用 `--cmake-arg` 覆盖（它排在最后）。
+    if sys.platform == "win32":
+        cef_enabled = not os.environ.get("MSYSTEM")
+    else:
+        cef_enabled = sys.platform == "darwin" or sys.platform.startswith("linux")
+    defines.append(f"-DDUILIB_ENABLE_CEF={'ON' if cef_enabled else 'OFF'}")
     defines.append(f"-DDUILIB_CEF_VERSION={args.cef_version or manifest['cef']['default']}")
     defines.append(f"-DDUILIB_SKIA_REF={args.skia_ref or manifest['skia']['default']}")
     defines.append(f"-DDUILIB_SDL_REF={args.sdl_ref or manifest['sdl']['default']}")

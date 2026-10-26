@@ -21,6 +21,12 @@ endif()
 
 file(GLOB _duilib_sdl3_dylibs "${SDL3_LIB_DIR}/libSDL3*.dylib")
 if(NOT _duilib_sdl3_dylibs)
+    # 用户自备静态 SDL3（libSDL3.a）时不需要随 Bundle 分发动态库
+    if(EXISTS "${SDL3_LIB_DIR}/libSDL3.a")
+        message(STATUS
+            "duilib_copy_sdl_bundle: ${SDL3_LIB_DIR} 中是静态 SDL3，跳过 dylib 复制。")
+        return()
+    endif()
     message(FATAL_ERROR
         "未找到 SDL3 动态库：${SDL3_LIB_DIR}/libSDL3*.dylib\n"
         "请先执行 'build.py deps'，或传入 -DDUILIB_SDL_ROOT=<SDL3 安装前缀>。")

@@ -377,26 +377,44 @@ set(_duilib_examples_common
     basic controls ColorPicker DpiAware chat layout ListBox ListCtrl MoveControl
     MultiLang render RichEdit VirtualListBox threads TreeView ChildWindow
     XmlPreview ColorTheme panel)
-set(_duilib_examples "")
+# 平台基础示例（不含 CEF 示例）与 CEF 开启时的默认列表。
+set(_duilib_examples_base ${_duilib_examples_common})
+set(_duilib_examples_cef ${_duilib_examples_common})
 if(DUILIB_OS_WINDOWS)
-    set(_duilib_examples ${_duilib_examples_common})
-    if(DUILIB_ENABLE_CEF)
-        list(APPEND _duilib_examples cef CefBrowser)
-    endif()
-    list(APPEND _duilib_examples WebView2 WebView2Browser)
-elseif(DUILIB_OS_LINUX OR DUILIB_OS_MACOS)
-    set(_duilib_examples ${_duilib_examples_common})
-    if(DUILIB_ENABLE_CEF)
-        list(APPEND _duilib_examples cef CefBrowser)
-    endif()
-else()
-    set(_duilib_examples ${_duilib_examples_common})
+    list(APPEND _duilib_examples_base WebView2 WebView2Browser)
+    list(APPEND _duilib_examples_cef WebView2 WebView2Browser)
 endif()
-# 用户显式列表优先
-if(DEFINED DUILIB_EXAMPLES AND NOT DUILIB_EXAMPLES STREQUAL "")
+if(DUILIB_OS_WINDOWS OR DUILIB_OS_LINUX OR DUILIB_OS_MACOS)
+    list(APPEND _duilib_examples_cef cef CefBrowser)
+endif()
+# 本次的自动推导结果：CEF 开启时包含 cef/CefBrowser。
+set(_duilib_examples_auto ${_duilib_examples_base})
+if(DUILIB_ENABLE_CEF AND (DUILIB_OS_WINDOWS OR DUILIB_OS_LINUX OR DUILIB_OS_MACOS))
+    list(APPEND _duilib_examples_auto cef CefBrowser)
+endif()
+
+# 用户显式列表优先。DUILIB_EXAMPLES 会写进缓存，但缓存里的值可能只是上一次
+# 自动推导的结果（例如上次 DUILIB_ENABLE_CEF=ON 时含 cef/CefBrowser）。关闭
+# CEF 后若把旧缓存值当成用户指定，仍会去构建 cef/CefBrowser，链接时报
+# “CefManager::GetInstance 无法解析”。因此只有缓存值既不等于本次推导结果，也
+# 不等于“CEF 开/关”的任一默认列表，也不等于上次记录的推导值时，才当作显式
+# 覆盖（`-DDUILIB_EXAMPLES=...` 或 cmake-gui 修改）。
+set(_duilib_examples_prev_auto "")
+if(DEFINED DUILIB_EXAMPLES_AUTO)
+    set(_duilib_examples_prev_auto "${DUILIB_EXAMPLES_AUTO}")
+endif()
+set(_duilib_examples ${_duilib_examples_auto})
+if(DEFINED DUILIB_EXAMPLES AND NOT DUILIB_EXAMPLES STREQUAL ""
+   AND NOT DUILIB_EXAMPLES STREQUAL _duilib_examples_prev_auto
+   AND NOT DUILIB_EXAMPLES STREQUAL _duilib_examples_auto
+   AND NOT DUILIB_EXAMPLES STREQUAL _duilib_examples_base
+   AND NOT DUILIB_EXAMPLES STREQUAL _duilib_examples_cef)
     set(_duilib_examples ${DUILIB_EXAMPLES})
 endif()
-set(DUILIB_EXAMPLES "${_duilib_examples}" CACHE STRING "Example applications to build")
+set(DUILIB_EXAMPLES "${_duilib_examples}" CACHE STRING
+    "Example applications to build" FORCE)
+set(DUILIB_EXAMPLES_AUTO "${_duilib_examples_auto}" CACHE INTERNAL
+    "Platform default example list (derived, used to detect stale cache)")
 
 # ---------------------------------------------------------------------------
 # Unix rpath：优先加载包内的 SDL3 与 CEF 运行时，构建树用依赖前缀兜底
