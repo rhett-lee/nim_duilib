@@ -107,16 +107,17 @@ python3 build/build.py --config Release
 ```
 <deps-root>/
   skia/            # Skia 源码（由 skia_compile 补丁构建）
-  skia_compile/    # Skia 补丁归档（缺少时由 deps 自动下载）
+  skia_compile/    # skia_compile 仓库（缺少补丁归档时由 deps 自动克隆）
   SDL/             # SDL3 源码
   SDL3/            # SDL3 安装前缀
   SDL3_build/      # SDL3 构建目录
   cef_binary/      # CEF 下载/解压缓存（macOS 为完整分发目录）
 ```
 
-Skia 的补丁归档由 `build.py deps`（以及默认的 `build`）自动获取：缺少时从
-[skia_compile](https://github.com/rhett-lee/skia_compile) 下载到
-`<deps-root>/skia_compile`。`--offline` 下不联网，需要提前自备补丁归档；
+Skia 的补丁归档由 `build.py deps`（以及默认的 `build`）自动获取：缺少时克隆整个
+[skia_compile](https://github.com/rhett-lee/skia_compile) 仓库到
+`<deps-root>/skia_compile`；仓库已存在则执行 `git pull` 更新，更新失败时继续使用
+本地已有内容（与旧脚本一致）。`--offline` 下不联网，需要提前自备补丁归档；
 `doctor` 会显示该归档是否存在。
 
 版本由 [third_party_versions.json](../cmake/third_party_versions.json) 统一锁定：

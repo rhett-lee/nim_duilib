@@ -16,9 +16,11 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 - Automatic dependency preparation driven by `cmake/third_party_versions.json`
   (Skia, SDL3, CEF), with download caches, sha256 checks, resume and a process lock;
   existing artifacts are adopted through stamp files.
-- When the Skia patch archive is missing, `build.py deps` / `build` downloads it from
-  [skia_compile](https://github.com/rhett-lee/skia_compile) into `skia_compile/`;
-  `--offline` never touches the network.
+- When the Skia patch archive is missing, `build.py deps` / `build` clones the whole
+  [skia_compile](https://github.com/rhett-lee/skia_compile) repository into
+  `skia_compile/`; an existing checkout is updated with `git pull`, falling back to the
+  local copy when the update fails (matching the legacy script); `--offline` never
+  touches the network.
 - Bilingual build reference `build/build-reference.md` / `.en.md`; `build/README.md`
   and `README.en.md` now focus on prerequisites and packaging.
 - `build/test_build.py`: standard-library unit tests for the build entry and i18n.

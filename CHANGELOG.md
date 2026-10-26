@@ -15,8 +15,9 @@
   构建树统一为 `out/<arch>/<Config>`。
 - 依赖自动准备：版本清单 `cmake/third_party_versions.json` 锁定 Skia、SDL3 与 CEF，
   支持下载缓存、sha256 校验、断点续传与并发锁；已有产物可按 stamp 直接采纳。
-- 缺少 Skia 补丁归档时，`build.py deps` / `build` 自动从
-  [skia_compile](https://github.com/rhett-lee/skia_compile) 下载到 `skia_compile/`；
+- 缺少 Skia 补丁归档时，`build.py deps` / `build` 自动克隆整个
+  [skia_compile](https://github.com/rhett-lee/skia_compile) 仓库到 `skia_compile/`；
+  仓库已存在则 `git pull` 更新，失败时继续使用本地内容（与旧脚本一致）；
   `--offline` 下不联网，需提前自备。
 - 双语构建参考手册 `build/build-reference.md` / `.en.md`；`build/README.md` /
   `.en.md` 改为前置依赖与发布打包索引。

@@ -114,17 +114,20 @@ Dependency directories live next to the repository by default (`--deps-root` ove
 ```
 <deps-root>/
   skia/            # Skia source (patched by skia_compile)
-  skia_compile/    # Skia patch archives (downloaded on demand by deps)
+  skia_compile/    # skia_compile repository (cloned by deps when the patch is missing)
   SDL/             # SDL3 source
   SDL3/            # SDL3 install prefix
   SDL3_build/      # SDL3 build directory
   cef_binary/      # CEF download/extract cache (full distribution on macOS)
 ```
 
-The Skia patch archive is downloaded automatically by `build.py deps` (and the default
-`build`) from [skia_compile](https://github.com/rhett-lee/skia_compile) into
-`<deps-root>/skia_compile` when missing. `--offline` never touches the network, so the
-archive must be prepared in advance; `doctor` reports whether it exists.
+The Skia patch archive is obtained automatically by `build.py deps` (and the default
+`build`): when missing, the whole
+[skia_compile](https://github.com/rhett-lee/skia_compile) repository is cloned into
+`<deps-root>/skia_compile`; an existing checkout is updated with `git pull`, and a
+failed update keeps the local copy (matching the legacy script). `--offline` never
+touches the network, so the archive must be prepared in advance; `doctor` reports
+whether it exists.
 
 Versions are pinned in [third_party_versions.json](../cmake/third_party_versions.json):
 
