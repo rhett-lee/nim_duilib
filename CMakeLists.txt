@@ -122,6 +122,18 @@ if(DUILIB_ENABLE_CEF)
     endif()
     if(_duilib_cef_subdir AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/duilib/third_party/libcef/${_duilib_cef_subdir}/CMakeLists.txt")
         add_subdirectory("duilib/third_party/libcef/${_duilib_cef_subdir}")
+
+        # CEF wrapper 按上游固定使用 C++17，而本工程是 C++20。若不做目标级降级，
+        # 编译命令会同时带 /std:c++20（MSVC）或 -std=c++20（clang）与 CEF 自带的
+        # /std:c++17，触发 D9025（或 clang 的选项覆盖警告）。wrapper 是独立静态库，
+        # 单独使用 C++17 不影响 duilib 自身的 C++20。
+        foreach(_duilib_cef_target libcef_dll_wrapper libcef_dll_wrapper_109)
+            if(TARGET ${_duilib_cef_target})
+                set_target_properties(${_duilib_cef_target} PROPERTIES
+                    CXX_STANDARD 17
+                    CXX_STANDARD_REQUIRED ON)
+            endif()
+        endforeach()
     endif()
 endif()
 

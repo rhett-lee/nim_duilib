@@ -83,8 +83,6 @@ void TimelineForm::AddItem()
         return;
     }
     //动态追加一条进行中的条目
-    static int nIndex = 0;
-    ++nIndex;
     DString strTime = TimelineLang(_T("STRID_TIMELINE_ADD_TIME"));
     DString strTitle = TimelineLang(_T("STRID_TIMELINE_ADD_TITLE"));
     DString strContent = TimelineLang(_T("STRID_TIMELINE_ADD_CONTENT"));

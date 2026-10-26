@@ -6,6 +6,18 @@ endif()
 set(CMAKE_CXX_STANDARD 20) # C++20
 set(CMAKE_CXX_STANDARD_REQUIRED ON) # C++20
 
+# macOS：新版 ld64 会对链接命令中重复出现的同一个库给出
+# “ignoring duplicate libraries” 告警（CEF 与系统库的链接接口会叠加同一批库，
+# 重复项本身会被链接器忽略）。这里在链接器支持时关闭该告警，避免构建日志噪声。
+if(DUILIB_OS_MACOS)
+    include(CheckLinkerFlag)
+    check_linker_flag(CXX "-Wl,-no_warn_duplicate_libraries"
+                      DUILIB_LINKER_HAS_NO_WARN_DUPLICATE_LIBRARIES)
+    if(DUILIB_LINKER_HAS_NO_WARN_DUPLICATE_LIBRARIES)
+        add_link_options("-Wl,-no_warn_duplicate_libraries")
+    endif()
+endif()
+
 #输出基本信息
 message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
 message(STATUS "C compiler  : ${CMAKE_C_COMPILER} ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION}")

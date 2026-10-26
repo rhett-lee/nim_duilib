@@ -45,6 +45,15 @@
 
 ### 修复
 
+- 构建（macOS）：示例程序链接时 ld64 报 “ignoring duplicate libraries”（`-lpthread`、
+  `-lSDL3`、Skia 库等被重复列出，链接器本身会忽略重复项）。现在在链接器支持时添加
+  `-Wl,-no_warn_duplicate_libraries`，消除该告警。
+- 示例（controls）：`TabCtrlForm.h`/`TabCtrlForm.cpp` 缺少文件末尾换行、
+  `TimelineForm.cpp` 存在只自增未使用的 `nIndex`，分别触发 `-Wnewline-eof` 与
+  `-Wunused-but-set-variable`；已补齐换行并删除无用变量。
+- 构建（Windows / CEF）：主工程使用 C++20，而 `libcef_dll_wrapper` 按上游固定使用
+  C++17，编译命令行同时带 `/std:c++20` 与 `/std:c++17`，产生 D9025 警告。现在为
+  wrapper 目标（含 109 变体）单独设置 `CXX_STANDARD 17`，不再覆盖全局标准。
 - 依赖准备（UOS）：与旧脚本一致，统信 UOS 上固定使用 `gcc/g++`（Skia 与主工程一致），
   避免 clang++ 在该平台的链接错误。
 - 依赖准备：Skia 补丁归档增加“已应用”校验与内容指纹（`skia/.duilib-patch`），补丁与
