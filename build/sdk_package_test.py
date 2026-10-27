@@ -1341,9 +1341,10 @@ def check_macos_bundle(info: PackageInfo, work_dir: Path, log_dir: Path,
     if not dylibs:
         raise AssertionError("Contents/Frameworks 中没有 libSDL3*.dylib：%s"
                              % (app / "Contents/Frameworks"))
-    global_xml = app / "Contents/Resources/duilib/themes/default/global.xml"
+    global_xml = app / "Contents/Resources/duilib/resources/themes/default/global.xml"
     if not global_xml.is_file():
-        raise AssertionError("资源未复制到 Contents/Resources/duilib：%s" % global_xml)
+        raise AssertionError("资源未复制到 Contents/Resources/duilib/resources：%s"
+                             % global_xml)
 
     # rpath 与 install_name：确认引用 @rpath，且不残留 SDK/构建机的绝对路径。
     linked = _run_otool(["-L", str(exe)], log, env)
@@ -1395,8 +1396,8 @@ def check_macos_bundle(info: PackageInfo, work_dir: Path, log_dir: Path,
                              "install_name 有问题）：\n%s" % _tail(run_output))
     resource_line = next((line for line in run_output.splitlines()
                           if line.startswith("SDK_TEST_RESOURCE_ROOT=")), "")
-    if "Contents/Resources/duilib" not in resource_line:
-        raise AssertionError("资源根不是 Contents/Resources/duilib：%s"
+    if "Contents/Resources/duilib/resources" not in resource_line:
+        raise AssertionError("资源根不是 Contents/Resources/duilib/resources：%s"
                              % (resource_line or "(未输出 SDK_TEST_RESOURCE_ROOT)"))
     sdl_version = 0
     for line in run_output.splitlines():
@@ -1411,7 +1412,8 @@ def check_macos_bundle(info: PackageInfo, work_dir: Path, log_dir: Path,
                              % _tail(run_output))
     _check_features(info, run_output)
     return ("App Bundle 通过：Frameworks/libSDL3*.dylib、rpath、"
-            "Contents/Resources/duilib 与迁移后运行均正常（SDL3 %d）" % sdl_version)
+            "Contents/Resources/duilib/resources 与迁移后运行均正常（SDL3 %d）"
+            % sdl_version)
 
 
 def _scenario_runner(sid: str, info: PackageInfo, work_dir: Path,

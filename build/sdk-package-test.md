@@ -12,7 +12,7 @@ nim_duilib 自身；它验证的是下游用户实际拿到的东西。
    `pack.py --verify`、文档与许可证、tar 格式重打包；
 2. **真实消费者验证**：用 `build/sdk_test` 这个仅依赖解包 SDK 的 CMake 工程完成配置、
    编译、链接、运行，并核对运行期编译特性；macOS 上还会用同一工程生成 App Bundle，
-   验证 `FRAMEWORKS`/rpath/`Contents/Resources/duilib` 的部署是否正确；
+   验证 `FRAMEWORKS`/rpath/`Contents/Resources/duilib/resources` 的部署是否正确；
 3. **负向用例**：配置、架构、MSVC 运行库、工具链不匹配时必须被 SDK 拒绝；缺库/缺头
    文件、被篡改的包必须被 `pack.py --verify` 拒绝。
 
@@ -186,7 +186,7 @@ nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109
 | C08 | `negative.tampered` | 包级 | 任意包；需要生成小归档 | 篡改 `bin/resources/themes/default/global.xml`（不存在时取 SHA256SUMS 中体积最小的文件），小归档的 SHA256SUMS 仍写原内容哈希，`--verify` 必须失败且输出含 `SHA256` | 无 |
 | C09 | `package.tar-formats` | 包级 | 任意包；需要生成小归档 | 用最小头文件、最小静态库与运行资源生成 `.tgz` 与 `.tar.bz2`，两者分别通过 `pack.py --verify` | 无 |
 | C10 | `examples.smoke` | 需编译（不编译） | 指定 `--run-examples`；包内含示例；平台与工具链前置满足 | 启动 `bin/basic.exe`（Unix 为 `bin/basic`，macOS 为 `bin/basic.app/Contents/MacOS/basic`），3 秒后进程仍存活 | 未指定 `--run-examples`；包内无示例；平台/工具链前置不满足；找不到 `bin/basic` |
-| C11 | `consumer.macos-bundle` | 需编译 | 仅 macOS 本机；macOS 包；包内有 SDL3 动态库；平台与工具链前置满足 | 用 `build/sdk_test` 构建 `sdk_bundle.app`（`MACOSX_BUNDLE` + `RESOURCES FRAMEWORKS`）→ 检查 `Contents/Frameworks/libSDL3*.dylib`、`Contents/Resources/duilib/themes/default/global.xml` → `otool -L` 引用 `@rpath/libSDL3*` 且无 SDK 绝对路径 → `otool -l` 含 `LC_RPATH @executable_path/../Frameworks` → `otool -D` 为 `@rpath/...` → 把 `.app` 复制到构建树外运行，要求返回 0、输出 `SDK_TEST_RESULT=ok` 与正的 `SDK_TEST_SDL_VERSION` | 非 macOS；非 macOS 包；包内无 SDL3 动态库（静态 SDL 或无 SDL）；`--no-build`；工具链不可用；找不到 `otool` |
+| C11 | `consumer.macos-bundle` | 需编译 | 仅 macOS 本机；macOS 包；包内有 SDL3 动态库；平台与工具链前置满足 | 用 `build/sdk_test` 构建 `sdk_bundle.app`（`MACOSX_BUNDLE` + `RESOURCES FRAMEWORKS`）→ 检查 `Contents/Frameworks/libSDL3*.dylib`、`Contents/Resources/duilib/resources/themes/default/global.xml` → `otool -L` 引用 `@rpath/libSDL3*` 且无 SDK 绝对路径 → `otool -l` 含 `LC_RPATH @executable_path/../Frameworks` → `otool -D` 为 `@rpath/...` → 把 `.app` 复制到构建树外运行，要求返回 0、输出 `SDK_TEST_RESULT=ok` 与正的 `SDK_TEST_SDL_VERSION` | 非 macOS；非 macOS 包；包内无 SDL3 动态库（静态 SDL 或无 SDL）；`--no-build`；工具链不可用；找不到 `otool` |
 
 ### 4.1 包级场景细节
 
@@ -257,14 +257,14 @@ C11 的步骤（仅 macOS）：
 1. 用同一个 `build/sdk_test` 工程配置到独立的 `work/consumer_bundle` 目录，只构建
    `nim_duilib_sdk_bundle` 目标；
 2. 由 CMake 生成 `sdk_bundle.app`：`bundle_main.cpp` 调用
-   `GlobalManager::GetResourceRootPath()`（参数已废弃，macOS 下自动检测标准目录），
-   `nim_duilib_copy_runtime(... RESOURCES
+   `GlobalManager::GetResourceRootPath(true)`（默认参数，macOS 下返回 bundle 内的
+   标准目录），`nim_duilib_copy_runtime(... RESOURCES
    FRAMEWORKS)` 把 SDL3 dylib 放进 `Contents/Frameworks`、把主题资源放进
-   `Contents/Resources/duilib`，并把可执行文件的 rpath 设为
+   `Contents/Resources/duilib/resources`，并把可执行文件的 rpath 设为
    `@executable_path/../Frameworks`（使用 `INSTALL_RPATH`，避免构建树的 SDK
    绝对路径抢先命中同名库）；
 3. 检查 bundle 布局：`Contents/MacOS/sdk_bundle`、`Contents/Frameworks/libSDL3*.dylib`、
-   `Contents/Resources/duilib/themes/default/global.xml`；
+   `Contents/Resources/duilib/resources/themes/default/global.xml`；
 4. 用 `otool` 检查链接与加载信息：`-L` 必须是 `@rpath/libSDL3*` 且不含 SDK 根目录的
    绝对路径；`-l` 必须出现 `LC_RPATH @executable_path/../Frameworks`；`-D` 的
    install_name 必须以 `@rpath/` 开头；
@@ -272,7 +272,7 @@ C11 的步骤（仅 macOS）：
    的绝对 rpath 掩盖问题；运行环境带 `DYLD_PRINT_LIBRARIES=1`，要求 dyld 打印的
    SDL3 路径位于迁移后 `.app` 的 `Contents/Frameworks`，且不出现 SDK 的 `lib/`
    路径；同时要求返回 0、输出 `SDK_TEST_RESULT=ok`、资源根含
-   `Contents/Resources/duilib`、`SDK_TEST_SDL_VERSION` 为正数，并核对
+   `Contents/Resources/duilib/resources`、`SDK_TEST_SDL_VERSION` 为正数，并核对
    `SDK_TEST_FEATURES` 与包能力一致。
 
 C11 不创建窗口，因此无桌面会话的 macOS 也能执行；它也不负责签名/公证，
@@ -287,7 +287,7 @@ C11 不创建窗口，因此无桌面会话的 macOS 也能执行；它也不负
 | :--- | :--- |
 | `CMakeLists.txt` | `find_package(nim_duilib CONFIG REQUIRED)`、`SDK_EXPECT_*` 自检、按包能力选择头文件用例、复制运行期文件；macOS 上额外登记 App Bundle 目标 |
 | `main.cpp` | 运行期用例：输出特性、检查资源目录、`Startup`/`Shutdown`、输出 `SDK_TEST_RESULT` |
-| `bundle_main.cpp` | macOS App Bundle 运行期用例：`GetResourceRootPath()` 自动定位 `Contents/Resources/duilib`、调用 `SDL_GetVersion()` 验证 Frameworks/rpath、`Startup`/`Shutdown` |
+| `bundle_main.cpp` | macOS App Bundle 运行期用例：`GetResourceRootPath(true)` 定位 `Contents/Resources/duilib/resources`、调用 `SDL_GetVersion()` 验证 Frameworks/rpath、`Startup`/`Shutdown` |
 | `header_duilib.cpp` | 伞形头文件自包含用例，始终参与编译 |
 | `header_cef.cpp` | CEF 头文件转发用例，仅 `HAS_CEF=1` 时编译 |
 | `header_webview2.cpp` | WebView2 头文件转发用例，仅 `HAS_WEBVIEW2=1` 时编译 |
@@ -426,7 +426,7 @@ SDK_TEST_SDL_VERSION=30201
 
 `SDK_TEST_SDL_VERSION` 是 `SDL_GetVersion()` 从 `Contents/Frameworks` 的动态库读到的
 版本号；能打印它说明 `@rpath` 已生效。C11 的判定见第 4.2 节，另外还要求
-`SDK_TEST_RESOURCE_ROOT` 位于 `Contents/Resources/duilib`。
+`SDK_TEST_RESOURCE_ROOT` 位于 `Contents/Resources/duilib/resources`。
 
 编排器判定 C01/C02 成功需要同时满足：进程返回码为 0、输出含
 `SDK_TEST_RESULT=ok`、`SDK_TEST_FEATURES` 的 `sdl`/`cef`/`webview2`/`jpeg`/`dll`
@@ -434,7 +434,7 @@ SDK_TEST_SDL_VERSION=30201
 
 `nim_duilib_copy_runtime(<target> RESOURCES)` 会把 SDK 的 `bin/*.dll` 和
 `bin/resources/` 复制到可执行文件同级；目标是 macOS `MACOSX_BUNDLE` 且未指定
-`DESTINATION` 时，资源改复制到 `<target>.app/Contents/Resources/duilib/`。
+`DESTINATION` 时，资源改复制到 `<target>.app/Contents/Resources/duilib/resources/`。
 手工运行时若跳过这一步，资源目录检查会失败。
 
 ## 6. 结果解读与 report.json
@@ -594,7 +594,7 @@ SKIP 是“没测到”，不是通过。`--no-build`、`--dry-run`、包类型�
 | C11 `otool -L` 仍是绝对路径 | SDL3 的 `install_name` 不是 `@rpath`（例如未启用 `MACOSX_RPATH`） | 用 `otool -D lib/libSDL3*.dylib` 检查；重新构建依赖，或 `install_name_tool -id @rpath/<文件名>` 后重新出包 |
 | C11 缺少 `LC_RPATH` | 目标不是 `MACOSX_BUNDLE`，或 `nim_duilib_copy_runtime` 未执行到设置 rpath 的分支（无动态 SDL） | 检查 `add_executable(... MACOSX_BUNDLE)` 与包内 SDL 形态；用 `otool -l` 查看实际 rpath |
 | C11 迁移后运行失败（`Library not loaded`） | `Contents/Frameworks` 缺少 dylib、符号链接链缺失、或签名被破坏 | 不解包直接运行构建树里的 `.app` 对比；确认 `libSDL3.dylib -> libSDL3.<abi>.dylib` 符号链接；归档解包需保留符号链接 |
-| C11 资源目录检查失败 | `RESOURCES` 未生效，或目标不是 `MACOSX_BUNDLE`（资源落到了可执行文件同级的 `resources`，而不是 `Contents/Resources/duilib`） | 检查 `bundle.log`；确认调用为 `nim_duilib_copy_runtime(<bundle> RESOURCES FRAMEWORKS)`，且未显式传 `DESTINATION` |
+| C11 资源目录检查失败 | `RESOURCES` 未生效，或目标不是 `MACOSX_BUNDLE`（资源落到了可执行文件同级的 `resources`，而不是 `Contents/Resources/duilib/resources`） | 检查 `bundle.log`；确认调用为 `nim_duilib_copy_runtime(<bundle> RESOURCES FRAMEWORKS)`，且未显式传 `DESTINATION` |
 | C03 配置没有被拒绝 | 生成器是多配置的 Visual Studio（本应 SKIP）；或 SDK 未校验配置 | 先用 Ninja/Makefiles 生成器复核；若仍通过，检查 SDK 的配置校验逻辑与错误文案“配置为” |
 | C04 架构没有被拒绝 | 本机没有相反架构工具集（本应 SKIP）；或 SDK 未校验架构 | Windows 安装 VS 的 x86/x64 工具集后重试；检查错误文案“架构为” |
 | C05 运行库没有被拒绝 | 包不是 Windows MSVC，或未声明 `MT`/`MD`（本应 SKIP）；DLL 包未使用 `/MD` | 检查 P04 是否已报运行库问题；确认 DLL 包元数据为 `MD`，静态包默认 `MT` |

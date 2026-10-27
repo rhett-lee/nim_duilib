@@ -1,7 +1,7 @@
 // nim_duilib 发布 SDK 包的 macOS App Bundle 运行期用例。
 //
 // 与 main.cpp（资源放在可执行文件同级 resources/）不同，本用例验证 bundle 布局：
-//   - 资源根为 <app>/Contents/Resources/duilib/；
+//   - 资源根为 <app>/Contents/Resources/duilib/resources/（与普通程序同构）；
 //   - SDL3 动态库由 Contents/Frameworks 通过 @rpath 加载（能取到运行期版本号）。
 // Runner 解析本程序的 stdout：必须看到 SDK_TEST_RESULT=ok；包内有 SDL 时还必须
 // 看到正的 SDK_TEST_SDL_VERSION。输出保持 ASCII，避免控制台代码页影响解析。
@@ -73,8 +73,9 @@ int main()
 #endif
 
     try {
-        // bundle 形态：GetResourceRootPath() 在 macOS 下按运行环境自动检测
-        // <app>/Contents/Resources/duilib/（参数已废弃，传 true/false 均可）。
+        // bundle 形态：GetResourceRootPath(true) 返回
+        // <app>/Contents/Resources/duilib/resources/（非 bundle 或传 false 时为
+        // 可执行文件同级的 resources/）。
         // 该目录由 nim_duilib_copy_runtime(<target> RESOURCES) 复制。
         const ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(true);
         const std::string resourcePathUtf8 = resourcePath.NativePathA();
@@ -85,7 +86,7 @@ int main()
         }
 
         // 与下游 bundle 程序一致：Startup 初始化渲染工厂、字体、解码器与内部线程，
-        // 并加载 Contents/Resources/duilib/ 下的主题资源。
+        // 并加载 Contents/Resources/duilib/resources/ 下的主题资源。
         const ui::LocalFilesResParam resParam(resourcePath);
         if (!ui::GlobalManager::Instance().Startup(resParam)) {
             std::printf("SDK_TEST_RESULT=failed: Startup returned false\n");

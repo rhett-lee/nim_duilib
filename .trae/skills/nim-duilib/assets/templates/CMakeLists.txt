@@ -26,7 +26,7 @@ include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_common.cmake")
 
 # 可选变量：必须写在 include(duilib_bin.cmake) 之前
 # set(DUILIB_SRC_SUB_DIRS "sub_dir1" "sub_dir2")        # 源代码文件需要枚举的子目录（相对于项目源码目录）
-# set(DUILIB_THEME_DIR_NAME "<theme_dir_name>")         # 资源的子目录名（位于resources/themes/default，MacOS复制资源时使用）
+# set(DUILIB_THEME_DIR_NAME "<theme_dir_name>")         # 资源子目录名（可选；默认按项目名自动匹配 themes/default 下的目录，macOS 复制资源时使用）
 
 # 包含公共实现代码
 include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_bin.cmake")

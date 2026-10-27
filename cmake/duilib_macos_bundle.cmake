@@ -3,9 +3,10 @@
 # 由 cmake/duilib_bin_macos.cmake 在 DUILIB_EXAMPLE_MACOS_BUNDLE=ON 时 include，
 # 并对目标调用 duilib_configure_macos_bundle()。
 #
-# 资源采用 macOS 标准 Bundle 布局：<App>.app/Contents/Resources/duilib/。
-# GlobalManager::GetResourceRootPath() 在 macOS 下按运行环境自动检测该目录，
-# 不再依赖调用参数，因此示例的 C++ 代码不需要修改（传 true/false 均可）。
+# 资源采用 macOS 标准 Bundle 布局：<App>.app/Contents/Resources/duilib/resources/，
+# 与普通程序的 <exe 目录>/resources/ 保持同构；zip 模式对应
+# <App>.app/Contents/Resources/duilib/resources.zip。
+# GlobalManager::GetResourceRootPath(true) 会定位该目录，示例的 C++ 代码不需要修改。
 
 # 在示例的 CMakeLists.txt 中，include duilib_example.cmake 之前可设置：
 #   DUILIB_EXAMPLE_MACOS_BUNDLE   本示例是否编译为 .app（仅 macOS 生效）
@@ -76,7 +77,7 @@ function(_duilib_macos_bundle_theme_dir target out_dir)
             get_filename_component(_theme_dir_name "${_theme_dir_candidate}" NAME)
             string(TOLOWER "${_theme_dir_name}" _theme_dir_key)
             string(REPLACE "_" "" _theme_dir_key "${_theme_dir_key}")
-            if(_theme_dir_key STREQUAL _target_key)
+            if("${_theme_dir_key}" STREQUAL "${_target_key}")
                 if("${_theme_dir_name}" STREQUAL "${target}")
                     set(_theme_dir "${_theme_dir_name}")
                     break()
@@ -94,7 +95,7 @@ endfunction()
 #   themes/default/global.xml    全局变量、字体配置与公共控件样式（启动必需）
 #   themes/default/public        公共图片与样式（被 ${PATH_...} 引用）
 #   themes/default/<示例目录>     示例自己的 XML（由 _duilib_macos_bundle_theme_dir 推导）
-#   themes/color_light|color_dark/global.xml  标题栏的主题切换
+#   themes/color_light|color_dark/global.xml  启动时按系统深浅色加载语义色值（必需）
 #   fonts、lang                  启动时加载的字体与 text_id 文本
 function(_duilib_macos_bundle_default_resources target out_list)
     _duilib_macos_bundle_theme_dir(${target} _theme_dir)
@@ -103,6 +104,12 @@ function(_duilib_macos_bundle_default_resources target out_list)
         "themes/default/public")
     if(NOT "${_theme_dir}" STREQUAL "")
         list(APPEND _list "themes/default/${_theme_dir}")
+    else()
+        # 没有自己的主题目录（如 ColorPicker），只复制公共资源；
+        # 新示例若目录名与项目名差异较大，可显式设置 DUILIB_THEME_DIR_NAME。
+        message(STATUS
+            "No example theme directory matched '${target}' in themes/default; "
+            "copying shared resources only")
     endif()
     list(APPEND _list
         "themes/color_light/global.xml"
@@ -173,8 +180,8 @@ function(duilib_configure_macos_bundle target)
             MACOSX_BUNDLE_ICON_FILE "${_duilib_bundle_icon_name}")
     endif()
 
-    # 资源复制到 Contents/Resources/duilib：macOS 标准 Bundle 布局，
-    # 与 GetResourceRootPath() 的自动检测逻辑一致。
+    # 资源复制到 Contents/Resources/duilib/resources：与普通程序的 resources/
+    # 目录保持同构，GetResourceRootPath(true) 与 resources.zip 模式都依赖该布局。
     # 默认清单由 _duilib_macos_bundle_default_resources() 按示例名推导，示例的
     # CMakeLists.txt 无需配置；设置 DUILIB_MACOS_BUNDLE_RESOURCES 时以它为准，
     # 用于补充额外资源或去掉默认条目。
@@ -185,7 +192,7 @@ function(duilib_configure_macos_bundle target)
             "Restore bin/resources in the source tree before building a bundle.")
     endif()
     set(_duilib_resources_to
-        "$<TARGET_BUNDLE_DIR:${target}>/Contents/Resources/duilib")
+        "$<TARGET_BUNDLE_DIR:${target}>/Contents/Resources/duilib/resources")
 
     # 先清理上一次生成的资源目录，避免修改裁剪列表后遗留旧文件。
     add_custom_command(TARGET ${target}

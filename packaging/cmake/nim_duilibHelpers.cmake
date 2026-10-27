@@ -11,8 +11,9 @@
 # - 默认把 SDK 的 bin/*.dll 复制到可执行文件同级目录；
 # - RESOURCES 时额外把 SDK 的 bin/resources/ 复制到同级 resources/；
 #   目标是 macOS 的 MACOSX_BUNDLE 且未指定 DESTINATION 时，改复制到
-#   <target>.app/Contents/Resources/duilib/，即 GlobalManager::GetResourceRootPath()
-#   在 macOS 下自动检测的标准目录；
+#   <target>.app/Contents/Resources/duilib/resources/，与普通程序的
+#   <exe 目录>/resources/ 同构，也是 GlobalManager::GetResourceRootPath(true)
+#   在 macOS 下定位的目录；
 # - DESTINATION 可覆盖目标目录（多目标共享输出目录时使用）；
 # - FRAMEWORKS（仅 macOS）要求目标为 MACOSX_BUNDLE：把 SDK 的
 #   lib/libSDL3*.dylib 复制到 <target>.app/Contents/Frameworks，并把可执行文件的
@@ -123,13 +124,14 @@ function(nim_duilib_copy_runtime target)
         else()
             set(_nim_res_dest "${_nim_dest}/resources")
             if(APPLE AND NOT _nim_copy_DESTINATION)
-                # App Bundle 遵循 bundle 约定：资源放入 Contents/Resources/duilib/，
-                # 即 GlobalManager::GetResourceRootPath() 在 macOS 下自动检测的
-                # 标准目录，而不是可执行文件同级的 resources/。
+                # App Bundle 遵循 bundle 约定：资源放入
+                # Contents/Resources/duilib/resources/，与普通程序的 resources/
+                # 目录同构，即 GetResourceRootPath(true) 定位的标准目录；
+                # 而不是可执行文件同级的 resources/。
                 get_target_property(_nim_res_is_bundle ${target} MACOSX_BUNDLE)
                 if(_nim_res_is_bundle)
                     set(_nim_res_dest
-                        "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Resources/duilib")
+                        "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Resources/duilib/resources")
                 endif()
             endif()
             add_custom_command(TARGET ${target} POST_BUILD

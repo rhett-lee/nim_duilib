@@ -248,12 +248,16 @@ if(OS_MAC)
     endif()
     
     set(DUILIB_RES_FROM "${DUILIB_ROOT}/bin/resources")
-    set(DUILIB_RES_TO "${CEF_APP}/Contents/Resources/duilib")
+    set(DUILIB_RES_TO "${CEF_APP}/Contents/Resources/duilib/resources")
+    # 颜色主题（themes/color_light|color_dark）也必须在包内：启动时按系统深浅色
+    # 加载语义色值，缺失会导致界面无色。
     add_custom_command(TARGET ${CEF_TARGET} 
                        POST_BUILD
                        COMMAND ${CMAKE_COMMAND} -E copy_directory "${DUILIB_RES_FROM}/themes/default/public" "${DUILIB_RES_TO}/themes/default/public/"
                        COMMAND ${CMAKE_COMMAND} -E copy_directory "${DUILIB_RES_FROM}/themes/default/${DUILIB_THEME_DIR_NAME}" "${DUILIB_RES_TO}/themes/default/${DUILIB_THEME_DIR_NAME}"
                        COMMAND ${CMAKE_COMMAND} -E copy "${DUILIB_RES_FROM}/themes/default/global.xml" "${DUILIB_RES_TO}/themes/default/"
+                       COMMAND ${CMAKE_COMMAND} -E copy_directory "${DUILIB_RES_FROM}/themes/color_light/" "${DUILIB_RES_TO}/themes/color_light/"
+                       COMMAND ${CMAKE_COMMAND} -E copy_directory "${DUILIB_RES_FROM}/themes/color_dark/" "${DUILIB_RES_TO}/themes/color_dark/"
                        COMMAND ${CMAKE_COMMAND} -E copy_directory "${DUILIB_RES_FROM}/lang/" "${DUILIB_RES_TO}/lang/"
                        COMMAND ${CMAKE_COMMAND} -E copy_directory "${DUILIB_RES_FROM}/fonts/" "${DUILIB_RES_TO}/fonts/"
                        VERBATIM)

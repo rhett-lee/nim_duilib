@@ -281,7 +281,7 @@ Skia 也只会探测 `llvm.<arch>.<config>`；DLL 模式的 `bin/duilib*.dll` �
   `Contents/Frameworks`，并把可执行文件的 rpath 设为
   `@executable_path/../Frameworks`（`BUILD_WITH_INSTALL_RPATH`，bundle 内的库优先）；
   `MACOSX_BUNDLE` 目标未指定 `DESTINATION` 时，`RESOURCES` 复制到
-  `Contents/Resources/duilib/`。
+  `Contents/Resources/duilib/resources/`。
 - 元数据字段：版本、系统、架构、配置、工具链、DLL 模式、SDL 形态、
   WebView2/JPEG/CEF、MSVC 运行库、运行期 DLL。MinGW 包不生成 `msvc/`；
   WebView2/JPEG/CEF 只在 MSVC 下声明为可用。

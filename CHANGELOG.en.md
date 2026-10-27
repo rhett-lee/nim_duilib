@@ -42,19 +42,21 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   and integration docs describe the option.
 - SDK integration layer (bundle resources): on a `MACOSX_BUNDLE` target without
   `DESTINATION`, `nim_duilib_copy_runtime`'s `RESOURCES` now copies into
-  `Contents/Resources/duilib/`, the standard directory that
-  `GlobalManager::GetResourceRootPath()` detects automatically on macOS.
+  `Contents/Resources/duilib/resources/`, isomorphic to the plain program's
+  `<exe dir>/resources/` and the standard directory located by
+  `GlobalManager::GetResourceRootPath(true)`.
 - Package test suite: new C11 macOS App Bundle consumer scenario. A
   `nim_duilib_sdk_bundle` target in `build/sdk_test` (with `bundle_main.cpp`)
   builds `sdk_bundle.app` from the SDK package and verifies
   `Contents/Frameworks/libSDL3*.dylib`, `@rpath`/`LC_RPATH`,
-  `Contents/Resources/duilib`, then runs a copy of the app outside the build tree.
+  `Contents/Resources/duilib/resources`, then runs a copy of the app outside the build tree.
 - macOS App Bundles for ordinary examples, without C++ changes: an example can set
   `DUILIB_EXAMPLE_MACOS_BUNDLE=ON`, or be selected with the root option
   `DUILIB_MACOS_BUNDLE_EXAMPLES=<target list>`; `examples/basic` is enabled by default.
-  After linking, the bundle copies resources into `Contents/Resources/duilib`
-  (the standard layout, with the resource list derived from the example name),
-  copies SDL3 dylibs into `Contents/Frameworks` with an
+  After linking, the bundle copies resources into
+  `Contents/Resources/duilib/resources` (isomorphic to a plain program, with the
+  resource list derived from the example name), copies SDL3 dylibs into
+  `Contents/Frameworks` with an
   `@executable_path/../Frameworks` rpath, removes the stale artifact of the other
   mode, and derives bundle versions from `duilib_version.h`.
 - macOS bundles trim resources per example automatically: the list is derived from
@@ -64,10 +66,11 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `themes/default` stay out of the bundle, reducing bundle resources from about
   4 MB to 1.3 MB. Use `DUILIB_MACOS_BUNDLE_RESOURCES` to override the default
   list when extra resources are needed.
-- On macOS, `GlobalManager::GetResourceRootPath(bool)` now decides from the runtime
-  environment; the argument is kept for compatibility only and is ignored. It
-  prefers `<App>.app/Contents/Resources/duilib/` and falls back to `resources/`
-  next to the executable. Other platforms are unchanged.
+- On macOS, `GlobalManager::GetResourceRootPath(bool bMacOsAppBundle = true)`
+  selects the resource root from the argument: `true` (default) returns
+  `<App>.app/Contents/Resources/duilib/resources/`, `false` returns `resources/`
+  next to the executable; non-bundle programs still fall back to the latter.
+  `GetResourceZipPath(bool)` returns `.../duilib/resources.zip` for the zip mode.
 - macOS App Bundle reference `build/macos-app-bundle.md` / `.en.md`, plus an
   `Info.plist` template and optional `.icns` icon support.
 

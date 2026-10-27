@@ -35,17 +35,17 @@
   登记 SDL3 dylib 文件名，包内 README 与接入文档同步说明。
 - SDK 接入层（macOS App Bundle 资源）：`nim_duilib_copy_runtime` 的 `RESOURCES`
   在 `MACOSX_BUNDLE` 目标上（未指定 `DESTINATION` 时）复制到
-  `Contents/Resources/duilib/`，与 `GlobalManager::GetResourceRootPath()` 在
-  macOS 下自动检测的标准目录一致。
+  `Contents/Resources/duilib/resources/`，与普通程序的 `<exe 目录>/resources/`
+  同构，也是 `GlobalManager::GetResourceRootPath(true)` 定位的标准目录。
 - 发布包测试新增 macOS App Bundle 消费者用例 C11：`build/sdk_test/bundle_main.cpp`
   与 `nim_duilib_sdk_bundle` 目标用 SDK 包生成 `sdk_bundle.app`，校验
   `Contents/Frameworks/libSDL3*.dylib`、`@rpath`/`LC_RPATH`、
-  `Contents/Resources/duilib`，并把 `.app` 复制到构建树外运行。
+  `Contents/Resources/duilib/resources`，并把 `.app` 复制到构建树外运行。
 - 普通示例的 macOS App Bundle 支持（不修改 C++ 代码）：示例可设置
   `DUILIB_EXAMPLE_MACOS_BUNDLE=ON`，或用根选项
   `DUILIB_MACOS_BUNDLE_EXAMPLES=<目标名列表>` 指定；`examples/basic` 已默认开启。
-  Bundle 在链接后把资源复制到 `Contents/Resources/duilib`（macOS 标准布局，
-  资源清单按示例名自动推导），把 SDL3 动态库复制到 `Contents/Frameworks` 并设置
+  Bundle 在链接后把资源复制到 `Contents/Resources/duilib/resources`（与普通程序
+  同构，资源清单按示例名自动推导），把 SDL3 动态库复制到 `Contents/Frameworks` 并设置
   `@executable_path/../Frameworks` rpath，自动清理切换模式后残留的另一种产物，
   并从 `duilib_version.h` 生成 Bundle 版本号。
 - macOS Bundle 资源按示例自动裁剪：资源清单由示例的目标名（`project()` 名称）
@@ -53,9 +53,10 @@
   示例的 `CMakeLists.txt` 不需要配置；`themes/default` 下其他示例的目录不再进包，
   Bundle 资源体积由约 4 MB 降到约 1.3 MB。需要额外资源时可用
   `DUILIB_MACOS_BUNDLE_RESOURCES` 覆盖默认清单。
-- `GlobalManager::GetResourceRootPath(bool)` 在 macOS 下改为按运行环境自动决策，
-  参数保留仅为兼容（已忽略）：优先使用 `<App>.app/Contents/Resources/duilib/`，
-  不存在时回退到可执行文件同目录的 `resources/`；其他平台行为不变。
+- `GlobalManager::GetResourceRootPath(bool bMacOsAppBundle = true)` 在 macOS 下按
+  参数选择资源根：`true`（默认）返回 `<App>.app/Contents/Resources/duilib/resources/`，
+  `false` 返回可执行文件同目录的 `resources/`；非 Bundle 程序仍回退到后者。
+  `GetResourceZipPath(bool)` 的 zip 模式对应 `.../duilib/resources.zip`。
 - macOS App Bundle 参考文档 `build/macos-app-bundle.md` / `.en.md`，以及
   `Info.plist` 模板与可选的 `.icns` 图标配置。
 

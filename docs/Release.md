@@ -294,9 +294,9 @@ nim_duilib_copy_runtime(my_app RESOURCES FRAMEWORKS)
 ```
 
 目标为 `MACOSX_BUNDLE` 且未指定 `DESTINATION` 时，`RESOURCES` 复制到
-`my_app.app/Contents/Resources/duilib/`（macOS 标准布局），不会落到
-`Contents/MacOS/resources`；`GlobalManager::GetResourceRootPath()` 在 macOS 下会
-自动检测该目录（参数已忽略），因此无需修改调用代码。
+`my_app.app/Contents/Resources/duilib/resources/`（与普通程序的 `resources/` 同构），
+不会落到 `Contents/MacOS/resources`；`GlobalManager::GetResourceRootPath(true)`
+（默认参数）在 macOS 下返回该目录，因此无需修改调用代码。
 可直接参考 `build/sdk_test/bundle_main.cpp` 与 `build/sdk_test/CMakeLists.txt`
 （发布包测试的 C11 场景）获取完整可运行的 bundle 接入示例。
 
@@ -327,7 +327,7 @@ cmake -S . -B build-release -G "Visual Studio 17 2022" -A x64 ^
 CEF 运行时（`libcef.dll`、`*.pak`、`icudtl.dat`）仍需自行放到程序目录；
 `nim_duilib_copy_runtime` 只复制 SDK 的 `bin/*.dll` 与 `bin/resources/`
 （macOS 的 `FRAMEWORKS` 额外复制 `lib/libSDL3*.dylib` 到 App Bundle；bundle 目标上
-`RESOURCES` 的目标目录为 `Contents/Resources/duilib/`）。
+`RESOURCES` 的目标目录为 `Contents/Resources/duilib/resources/`）。
 CEF 包的运行时位于 `bin/libcef_win[_109]/<架构>/`，不在 `bin/` 根目录，因此不会被
 摊平复制；请把该子目录整体复制到可执行文件同级，保持原有层级。
 
@@ -603,24 +603,25 @@ cmake --build build
 
 #### 4. 资源目录
 
-CEF 应用的资源根由 `GlobalManager::GetResourceRootPath()` 决定（macOS 下按运行
-环境自动检测，调用参数已忽略）：存在 `<app>/Contents/Resources/duilib/` 时以它
+CEF 应用的资源根由 `GlobalManager::GetResourceRootPath(true)` 决定（`false` 时回退
+到可执行文件同级的 `resources/`）：`<app>/Contents/Resources/duilib/resources/`
 为根，主题目录为 `themes/default/<DUILIB_THEME_DIR_NAME>`，语言与字体分别在
 `lang/`、`fonts/`。
 `duilib_cef_macos.cmake` 已按此复制：
 
 ```
-MyApp.app/Contents/Resources/duilib/
+MyApp.app/Contents/Resources/duilib/resources/
   themes/default/public/
   themes/default/<主题目录名>/
   themes/default/global.xml
+  themes/color_light/global.xml
+  themes/color_dark/global.xml
   lang/
   fonts/
 ```
 
 普通示例的 `.app` 同样使用上述标准布局（见 [build/macos-app-bundle.md](../build/macos-app-bundle.md)）。
-非 Bundle 的 macOS 程序找不到 `Contents/Resources/duilib/` 时，自动回退到可执行
-文件同级的 `resources/`。
+非 Bundle 的 macOS 程序（或传 `false`）使用可执行文件同级的 `resources/`。
 
 #### 5. 成品结构（缺一不可）
 
@@ -633,7 +634,7 @@ MyApp.app/Contents/
   Frameworks/MyApp Helper (GPU).app/
   Frameworks/MyApp Helper (Renderer).app/
   Frameworks/MyApp Helper (Plugin).app/
-  Resources/duilib/                                   # 主题、语言、字体
+  Resources/duilib/resources/                         # 主题、语言、字体
 ```
 
 运行期不要拆散 Framework，也不要把它移到 `Contents/MacOS/`；`@rpath` 与
@@ -676,7 +677,7 @@ Framework 的相对位置由 `COPY_MAC_FRAMEWORK` 保证，手工移动后需重
 | `Library not loaded: @rpath/libSDL3*.dylib` | SDL3 dylib 未放进 `Contents/Frameworks`，或 rpath 仍指向构建机 | 重新构建（脚本会自动复制并设置 rpath）；用 `otool -L`/`otool -l` 检查，必要时重新签名 |
 | `libcef.dylib` 加载失败 | 主进程直接链接了 libcef，或 bundle id 不一致 | 主进程用 `CefScopedLibraryLoader::LoadInMain()`；Framework 与 Helper 的 bundle id 同一前缀 |
 | 只显示空窗口或崩溃在 `CefInitialize` | 未初始化 sandbox / Helper 参数不全 | 保留 `process_helper_mac.cc` 的 sandbox 初始化，或统一改为 `USE_SANDBOX=OFF` |
-| 找不到主题、字体 | 资源未按 `Contents/Resources/duilib/` 布局 | 检查 `DUILIB_THEME_DIR_NAME` 与复制目标路径 |
+| 找不到主题、字体 | 资源未按 `Contents/Resources/duilib/resources/` 布局 | 检查 `DUILIB_THEME_DIR_NAME` 与复制目标路径 |
 | 提示“无法打开，因为无法验证开发者” | 未签名 / 未公证 | 按第 6 节签名并公证，或本地临时签名自测 |
 | Apple Silicon 上闪退 | CEF 分发包与目标架构不一致 | 换用 arm64 分发包（或改用 x64 分发包 + Rosetta 全链路） |
 

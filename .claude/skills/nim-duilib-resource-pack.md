@@ -9,15 +9,18 @@ description: nim_duilib 资源打包与部署（ZIP打包、嵌入EXE、单文�
 
 ### 模式 1：本地文件夹（开发时推荐）
 ```cpp
-// 推荐：跨平台，参数已废弃（true/false 均可），按运行环境自动检测：
-//   macOS Bundle：优先 <App>.app/Contents/Resources/duilib/，不存在时回退到
-//                 <App>.app/Contents/MacOS/resources/
-//   Windows/Linux/FreeBSD：<exe 目录>/resources/
-ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
+// 推荐：跨平台；macOS 下默认参数按 Bundle 布局定位资源：
+//   macOS Bundle：<App>.app/Contents/Resources/duilib/resources/
+//   Windows/Linux/FreeBSD 或传 false：<exe 目录>/resources/
+ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath();
 ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 ```
 （`ui::FilePathUtil::GetCurrentModuleDirectory()` + 手工拼 `"resources\\"` 只在 Windows 下碰巧能用，
 在 Linux/macOS 上分隔符不对，不要照抄。）
+macOS 示例 Bundle 的资源清单由构建脚本按示例名（`project()` 名称）自动推导：
+`themes/default/global.xml` + `themes/default/public` + 示例自己的目录 +
+`themes/color_light|color_dark/global.xml` + `fonts` + `lang`，示例的
+`CMakeLists.txt` 无需配置；需要额外资源时用 `DUILIB_MACOS_BUNDLE_RESOURCES` 覆盖。
 目录结构：
 ```
 MyApp.exe
@@ -108,7 +111,7 @@ void MainThread::OnInit()
     ui::GlobalManager::Instance().Startup(resParam);
 #else
     // Debug：使用本地文件夹（方便修改和调试）
-    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
+    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath();
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 #endif
 

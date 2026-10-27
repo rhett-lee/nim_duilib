@@ -280,7 +280,7 @@ void HelloForm::OnInitWindow()
 
 **④ 主线程 `MainThread.h` / `MainThread.cpp`**
 
-负责初始化全局资源（`GetResourceRootPath(false)` 按平台自动定位 resources 目录）并创建窗口：
+负责初始化全局资源（`GetResourceRootPath()` 按平台自动定位 resources 目录；macOS Bundle 为 `Contents/Resources/duilib/resources/`）并创建窗口：
 
 ```cpp
 // MainThread.h
@@ -302,7 +302,7 @@ MainThread::MainThread() : FrameworkThread(_T("MainThread"), ui::kThreadUI) {}
 
 bool MainThread::OnInit()
 {
-    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
+    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath();
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
     // 窗口由框架负责析构，用 new 创建即可，不要手动 delete
@@ -443,7 +443,7 @@ SDK="C:/Program Files (x86)/Windows Kits/10/Include/<SDK版本>"
 4. **取事件发送者用 `args.GetSender()`**，不是 `args.pSender`（后者是 private，编译不过）；  
    返回 `nullptr` 表示控件已销毁，应提前返回。
 5. **`FrameworkThread::OnInit()` 返回 `bool`**，不是 `void`，末尾要 `return true;`。
-6. **资源初始化用 `ui::GlobalManager::GetResourceRootPath(false)`**，不要手工拼 `+ "\\resources\\"`——  
+6. **资源初始化用 `ui::GlobalManager::GetResourceRootPath()`**（默认参数适配 macOS Bundle），不要手工拼 `+ "\\resources\\"`——
    硬编码反斜杠在 Linux/macOS 上路径就是错的。
 
 ---

@@ -1082,7 +1082,7 @@ MainThread::~MainThread() {}
 
 bool MainThread::OnInit()
 {
-    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
+    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath();
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
     MyForm* window = new MyForm();

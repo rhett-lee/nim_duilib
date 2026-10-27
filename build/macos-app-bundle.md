@@ -85,18 +85,19 @@ bin/basic.app/
     MacOS/
       basic                       # 可执行文件
     Resources/
-      duilib/                     # 标准 Bundle 资源目录
-        themes/
-          default/
-            global.xml
-            public/               # 默认主题的公共样式与图片
-            basic/                # basic 示例自己的 XML
-          color_light/
-            global.xml
-          color_dark/
-            global.xml
-        fonts/                    # 框架启动时加载
-        lang/                     # text_id 文本
+      duilib/
+        resources/                # 标准 Bundle 资源目录（与 exe 同级 resources/ 同构）
+          themes/
+            default/
+              global.xml
+              public/             # 默认主题的公共样式与图片
+              basic/              # basic 示例自己的 XML
+            color_light/
+              global.xml
+            color_dark/
+              global.xml
+          fonts/                  # 框架启动时加载
+          lang/                   # text_id 文本
       basic.icns                  # 仅在配置了图标时存在
     Frameworks/
       libSDL3*.dylib              # SDL3 动态库（静态 SDL3 时不存在）
@@ -106,23 +107,26 @@ Bundle 内的资源清单由公共脚本按示例名自动推导（见 §4），
 `themes/default` 下其他示例的目录（`chat`、`cef`、`controls` 等）不会进入 Bundle。
 因此示例的 `CMakeLists.txt` 不需要配置任何资源列表。
 
-资源采用 macOS 标准布局 `Contents/Resources/duilib/`。`GlobalManager::GetResourceRootPath()`
-在 macOS 下已经不再依赖调用参数，而是按运行环境自动检测：
+资源采用 macOS 标准布局 `Contents/Resources/duilib/resources/`，其内部结构与普通程序的
+`<可执行文件目录>/resources/` 完全一致，框架的路径拼接逻辑不需要区分两种形态。
+`GlobalManager::GetResourceRootPath(bool bMacOsAppBundle)` 在 macOS 下的行为：
 
-1. 优先使用 `<App>.app/Contents/Resources/duilib/`（存在时）；
-2. 否则回退到“可执行文件同目录 + `resources/`”，兼容旧布局和非 Bundle 程序。
+1. `bMacOsAppBundle == true`（默认值）：返回
+   `<App>.app/Contents/Resources/duilib/resources/`（zip 模式为同目录的
+   `resources.zip`）；
+2. `bMacOsAppBundle == false`：返回“可执行文件同目录 + `resources/`”，
+   兼容非 Bundle 程序和手动放置资源的场景。
 
-因此示例代码无论写 `GetResourceRootPath(false)` 还是
-`GetResourceRootPath(true)`，都不需要修改即可正确加载资源。SDK 消费者使用
-`nim_duilib_copy_runtime(... RESOURCES)` 时也使用相同的标准布局。
+因此示例代码保持 `GetResourceRootPath()` 或写 `GetResourceRootPath(true)` 都能正确加载；
+SDK 消费者使用 `nim_duilib_copy_runtime(... RESOURCES)` 时也复制到相同布局。
 
 ## 3. 构建时的自动处理
 
 `cmake/duilib_macos_bundle.cmake` 在链接后执行以下操作：
 
-1. 把资源复制到 `Contents/Resources/duilib`（标准布局）：按示例名自动推导的清单
-   只复制需要的子目录/文件（basic 当前约 1.3 MB，整份 `bin/resources` 约 4 MB）。
-   复制前会清理旧的 `duilib/` 目录，避免残留旧文件；
+1. 把资源复制到 `Contents/Resources/duilib/resources`（标准布局）：按示例名自动
+   推导的清单只复制需要的子目录/文件（basic 当前约 1.3 MB，整份 `bin/resources`
+   约 4 MB）。复制前会清理旧的 `resources/` 目录，避免残留旧文件；
 2. 若启用 SDL3（macOS 上始终启用），把 `libSDL3*.dylib` 及其版本软链接链复制到
    `Contents/Frameworks`；
 3. 把主程序 rpath 设为 `@executable_path/../Frameworks`，避免加载构建机上的
@@ -163,7 +167,7 @@ Bundle 内的资源清单由 `cmake/duilib_macos_bundle.cmake` 按示例的目�
 | `themes/default/global.xml` | 全局变量、字体配置与公共控件样式（启动必需） |
 | `themes/default/public` | `global.xml` 中 `${PATH_...}` 引用的公共图片/样式 |
 | `themes/default/<示例资源目录>` | 示例自己的 XML 与图片 |
-| `themes/color_light/global.xml`、`themes/color_dark/global.xml` | 标题栏的主题切换 |
+| `themes/color_light/global.xml`、`themes/color_dark/global.xml` | 语义色值，启动时按系统深浅色加载（必需），标题栏主题切换也使用 |
 | `fonts` | `global.xml` 的 `FontFile` 在启动时加载 |
 | `lang` | `text_id` 以及中英文切换所需文本 |
 
@@ -177,18 +181,18 @@ Bundle 内的资源清单由 `cmake/duilib_macos_bundle.cmake` 按示例的目�
 覆盖默认清单（相对 `bin/resources`，分号或逗号分隔）：
 
 ```cmake
-# 可选：覆盖默认资源清单；目录递归复制，单个文件按原路径复制
+# 可选：覆盖默认资源清单；目录递归复制，单个文件按原路径复制。
+# 例如去掉颜色主题（不建议，界面会缺少语义色值）：
 set(DUILIB_MACOS_BUNDLE_RESOURCES
     "themes/default/global.xml"
     "themes/default/public"
     "themes/default/chat"
-    "themes/default/chat_res"
     "fonts"
     "lang")
 ```
 
 显式清单里的路径不存在会在配置阶段直接报错并打印缺失路径，便于定位。
-无论使用默认清单还是显式清单，复制前都会清空 `Contents/Resources/duilib`，
+无论使用默认清单还是显式清单，复制前都会清空 `Contents/Resources/duilib/resources`，
 不会残留上一次的旧主题目录。
 
 图标要求：
@@ -231,17 +235,17 @@ otool -D bin/basic.app/Contents/Frameworks/libSDL3.0.dylib
 # 期望：@rpath/libSDL3.0.dylib
 
 # 资源与启动
-test -f bin/basic.app/Contents/Resources/duilib/themes/default/global.xml && echo resources-ok
-test ! -e bin/basic.app/Contents/Resources/duilib/themes/default/chat && echo resources-trimmed
+test -f bin/basic.app/Contents/Resources/duilib/resources/themes/default/global.xml && echo resources-ok
+test ! -e bin/basic.app/Contents/Resources/duilib/resources/themes/default/chat && echo resources-trimmed
 DYLD_PRINT_LIBRARIES=1 bin/basic.app/Contents/MacOS/basic
 open bin/basic.app
 ```
 
-如果启动后找不到主题或字体，先确认 `Contents/Resources/duilib/themes/default/public`、
-`themes/default/basic`、`themes/default/global.xml`、`themes/color_light/global.xml`、
-`themes/color_dark/global.xml`、`lang/`、`fonts/` 都在
-`bin/basic.app/Contents/Resources/duilib/` 下。构建脚本只复制默认清单里的资源，
-其他示例的目录本来就不应出现。
+如果启动后找不到主题或字体，先确认
+`Contents/Resources/duilib/resources/themes/default/public`、`themes/default/basic`、
+`themes/default/global.xml`、`themes/color_light/global.xml`、`themes/color_dark/global.xml`、
+`lang/`、`fonts/` 都在 `bin/basic.app/Contents/Resources/duilib/resources/` 下。
+构建脚本只复制默认清单里的资源，其他示例的目录本来就不应出现。
 
 ## 6. 签名与公证
 
@@ -293,8 +297,8 @@ Debug 与 Release 的 `.app` 同名，仍由 `bin/.build-config/<目标>` 标记
 | 现象 | 原因 | 处理 |
 | :--- | :--- | :--- |
 | 仍然是 `bin/basic`，没有 `.app` | 开关没生效 | 确认 `set(DUILIB_EXAMPLE_MACOS_BUNDLE ON)` 位于 include 之前；本开关仅 macOS 生效 |
-| `bin/basic.app` 中没有 `Resources/duilib/` | 资源未复制或源目录缺失 | 确认仓库有 `bin/resources`，重新构建；查看构建日志中的 `Copying ... into basic.app` |
-| 启动后提示找不到主题/字体 | 资源不在标准目录，或示例资源目录名与目标名不匹配 | 检查 `Contents/Resources/duilib/themes/default/global.xml`；确认 `themes/default/<示例目录>` 存在，必要时用 `DUILIB_THEME_DIR_NAME` 指定目录名后再构建 |
+| `bin/basic.app` 中没有 `Resources/duilib/resources/` | 资源未复制或源目录缺失 | 确认仓库有 `bin/resources`，重新构建；查看构建日志中的 `Copying ... into basic.app` |
+| 启动后提示找不到主题/字体 | 资源不在标准目录，或示例资源目录名与目标名不匹配 | 检查 `Contents/Resources/duilib/resources/themes/default/global.xml`；确认 `themes/default/<示例目录>` 存在，必要时用 `DUILIB_THEME_DIR_NAME` 指定目录名后再构建 |
 | `themes/default` 下缺少其他示例的目录 | Bundle 默认按示例裁剪资源 | 正常现象；需要额外资源时用 `DUILIB_MACOS_BUNDLE_RESOURCES` 覆盖默认清单 |
 | `Library not loaded: @rpath/libSDL3*.dylib` | SDL3 未复制或 rpath 被改动 | 检查 `Contents/Frameworks` 与 `LC_RPATH`；重新构建，必要时重新签名 |
 | 双击提示“无法验证开发者” | 未签名/未公证 | 本地自测先 `codesign --force --deep --sign -`，分发按第 6 节处理 |

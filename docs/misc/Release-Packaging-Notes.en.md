@@ -253,7 +253,8 @@ the **actually collected files**:
   executable's rpath to `@executable_path/../Frameworks`
   (`BUILD_WITH_INSTALL_RPATH`, so the bundle's copies win); for a `MACOSX_BUNDLE` target
   without `DESTINATION`, `RESOURCES` copies into
-  `Contents/Resources/duilib/`.
+  `Contents/Resources/duilib/resources/` (isomorphic to a plain program's
+  `resources/`, i.e. `GetResourceRootPath(true)`).
 - Metadata fields: version, system, arch, config, toolchain, DLL mode, SDL
   kind, WebView2/JPEG/CEF, MSVC runtime, runtime DLLs. MinGW packages do not
   generate `msvc/`; WebView2/JPEG/CEF are only declared available for MSVC.

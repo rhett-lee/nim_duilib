@@ -244,11 +244,11 @@ whether the library compiles the CEF control sources.
 On macOS, `basic` is built as `bin/basic.app` by default. Any other example can add
 `set(DUILIB_EXAMPLE_MACOS_BUNDLE ON)` to its `CMakeLists.txt`, or be selected with
 `-DDUILIB_MACOS_BUNDLE_EXAMPLES=<target list>`; no C++ changes are needed. Resources
-are copied into `Contents/Resources/duilib` (the standard macOS layout), and SDL3
-dylibs into `Contents/Frameworks` with a relative rpath. On macOS,
-`GlobalManager::GetResourceRootPath()` detects this directory automatically (its
-argument is ignored) and falls back to `resources/` next to the executable when the
-directory is absent.
+are copied into `Contents/Resources/duilib/resources` (isomorphic to the plain
+`<exe directory>/resources/`), and SDL3 dylibs into `Contents/Frameworks` with a
+relative rpath. On macOS, `GlobalManager::GetResourceRootPath(true)` (the default
+argument) returns that directory; with `false` it falls back to `resources/` next
+to the executable.
 
 See [macos-app-bundle.en.md](macos-app-bundle.en.md) for the switch, layout, icons,
 verification, signing and packaging details.

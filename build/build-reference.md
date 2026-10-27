@@ -217,10 +217,10 @@ CEF 运行时目录需要随程序一起发布；CEF 的用法见 [docs/CEF.md](
 macOS 下 `basic` 默认编译为 `bin/basic.app`。其他示例可以在自己的
 `CMakeLists.txt` 中加一行 `set(DUILIB_EXAMPLE_MACOS_BUNDLE ON)`，或用
 `-DDUILIB_MACOS_BUNDLE_EXAMPLES=<目标名列表>` 指定；示例 C++ 代码无需修改，
-资源按 macOS 标准布局复制到 `Contents/Resources/duilib`，SDL3 动态库复制到
-`Contents/Frameworks` 并设置相对 rpath。`GlobalManager::GetResourceRootPath()`
-在 macOS 下自动检测该标准目录（参数已忽略），找不到时回退到可执行文件同目录的
-`resources/`。
+资源按 macOS 标准布局复制到 `Contents/Resources/duilib/resources`（与普通程序的
+`<exe 目录>/resources/` 同构），SDL3 动态库复制到 `Contents/Frameworks` 并设置相对
+rpath。`GlobalManager::GetResourceRootPath(true)`（默认参数）在 macOS 下返回该目录，
+传 `false` 时回退到可执行文件同目录的 `resources/`。
 
 完整说明（开关、目录结构、图标、验证、签名、打包）见
 [macos-app-bundle.md](macos-app-bundle.md)。

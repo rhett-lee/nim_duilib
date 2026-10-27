@@ -50,7 +50,8 @@ else()
                             "-framework AppKit" "-framework Foundation" "-framework Metal" "-framework Cocoa"
                           )
 
-    # Bundle 属性、资源、SDL3 动态库与 rpath（不修改示例 C++ 代码）
+    # Bundle 属性、资源、SDL3 动态库与 rpath（不修改示例 C++ 代码）；
+    # 资源清单按 PROJECT_NAME（project() 定义的名称）自动推导，示例无需配置。
     if(_duilib_macos_bundle)
         include("${CMAKE_CURRENT_LIST_DIR}/duilib_macos_bundle.cmake")
         duilib_configure_macos_bundle(${PROJECT_NAME})

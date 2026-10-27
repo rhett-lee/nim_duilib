@@ -149,8 +149,8 @@ python3 .trae/skills/nim-duilib/scripts/verify_docs.py --repo <仓库根> --extr
 ### 4.2 关键代码模式
 
 ```cpp
-// 资源初始化：自动处理平台差异，不要手工拼 "\\resources\\"
-ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
+// 资源初始化：自动处理平台差异（macOS Bundle 定位 Resources/duilib/resources/），不要手工拼 "\\resources\\"
+ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath();
 ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
 // 创建窗口（框架负责析构，用 new，不要 delete）
@@ -181,7 +181,7 @@ btn->AttachClick([this](const ui::EventArgs& args) { return true; });
 4. **取事件发送者用 `args.GetSender()`**，不是 `args.pSender`（后者是 private，编译不过）；
    返回 `nullptr` 表示控件已销毁，应提前返回。
 5. **`FrameworkThread::OnInit()` 返回 `bool`**（不是 void），末尾 `return true;`。
-6. **资源初始化用 `ui::GlobalManager::GetResourceRootPath(false)`**，不要手工拼路径分隔符。
+6. **资源初始化用 `ui::GlobalManager::GetResourceRootPath()`**（默认参数适配 macOS Bundle），不要手工拼路径分隔符。
 
 其他编码规范：字符串用 `DString` + `_T("...")`；`FindControl` 后 `dynamic_cast`；
 事件回调返回 `true` 表示已处理；XML 属性值内嵌引号用单引号 `'` 或花括号 `{}`。

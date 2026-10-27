@@ -334,10 +334,10 @@ nim_duilib_copy_runtime(my_app RESOURCES FRAMEWORKS)
 ```
 
 For a `MACOSX_BUNDLE` target without an explicit `DESTINATION`, `RESOURCES`
-copies into `my_app.app/Contents/Resources/duilib/` (the standard macOS layout),
-not `Contents/MacOS/resources`. On macOS, `GlobalManager::GetResourceRootPath()`
-detects that directory automatically (its argument is ignored), so no call-site
-changes are required. See `build/sdk_test/bundle_main.cpp` and
+copies into `my_app.app/Contents/Resources/duilib/resources/` (isomorphic to the
+plain `resources/`), not `Contents/MacOS/resources`. On macOS,
+`GlobalManager::GetResourceRootPath(true)` (the default argument) returns that
+directory, so no call-site changes are required. See `build/sdk_test/bundle_main.cpp` and
 `build/sdk_test/CMakeLists.txt` (scenario C11 of the package test suite) for a
 complete, runnable bundle integration sample.
 
@@ -373,7 +373,7 @@ The CEF runtime (`libcef.dll`, `*.pak`, `icudtl.dat`) still has to be placed
 next to the executable manually; `nim_duilib_copy_runtime` only copies the
 SDK's `bin/*.dll` and `bin/resources/` (on macOS, `FRAMEWORKS` additionally
 copies `lib/libSDL3*.dylib` into the App Bundle, and `RESOURCES` targets
-`Contents/Resources/duilib/` for bundle builds). The CEF runtime of a CEF package
+`Contents/Resources/duilib/resources/` for bundle builds). The CEF runtime of a CEF package
 lives under `bin/libcef_win[_109]/<arch>/`, not directly in `bin/`, so it is never
 flattened; copy that whole subdirectory next to the executable and keep its layout.
 
@@ -686,25 +686,26 @@ set it in their own `CMakeLists.txt` before including
 #### 4. Resource directory
 
 For CEF apps the resource root comes from
-`GlobalManager::GetResourceRootPath()` (on macOS it decides from the runtime
-environment and ignores its argument): when `<app>/Contents/Resources/duilib/`
-exists it is used as the root, with themes under
-`themes/default/<DUILIB_THEME_DIR_NAME>` and languages/fonts under `lang/` and
-`fonts/`. `duilib_cef_macos.cmake` already copies it this way:
+`GlobalManager::GetResourceRootPath(true)` (with `false` it falls back to
+`resources/` next to the executable): `<app>/Contents/Resources/duilib/resources/`
+is the root, with themes under `themes/default/<DUILIB_THEME_DIR_NAME>` and
+languages/fonts under `lang/` and `fonts/`. `duilib_cef_macos.cmake` already
+copies it this way:
 
 ```
-MyApp.app/Contents/Resources/duilib/
+MyApp.app/Contents/Resources/duilib/resources/
   themes/default/public/
   themes/default/<theme dir name>/
   themes/default/global.xml
+  themes/color_light/global.xml
+  themes/color_dark/global.xml
   lang/
   fonts/
 ```
 
 Ordinary examples built as `.app` use the same standard layout (see
 [build/macos-app-bundle.en.md](../build/macos-app-bundle.en.md)). Non-bundle macOS
-programs fall back to `resources/` next to the executable when
-`Contents/Resources/duilib/` is not found.
+programs (or `false`) use `resources/` next to the executable.
 
 #### 5. Final layout (all required)
 
@@ -717,7 +718,7 @@ MyApp.app/Contents/
   Frameworks/MyApp Helper (GPU).app/
   Frameworks/MyApp Helper (Renderer).app/
   Frameworks/MyApp Helper (Plugin).app/
-  Resources/duilib/                                   # theme, language and font resources
+  Resources/duilib/resources/                         # theme, language and font resources
 ```
 
 Do not split the framework or move it into `Contents/MacOS/` at runtime; the
@@ -764,7 +765,7 @@ manual move requires re-signing.
 | `Library not loaded: @rpath/libSDL3*.dylib` | SDL3 dylib missing from `Contents/Frameworks`, or rpath still points at the build machine | Rebuild (the script copies it and sets the rpath); check with `otool -L`/`otool -l`, and re-sign if needed |
 | `libcef.dylib` fails to load | Main process links libcef directly, or bundle ids mismatch | Use `CefScopedLibraryLoader::LoadInMain()`; share a bundle-id prefix between framework and Helpers |
 | Empty window or crash in `CefInitialize` | Sandbox not initialized / incomplete helper args | Keep the sandbox init from `process_helper_mac.cc`, or switch consistently to `USE_SANDBOX=OFF` |
-| Theme or fonts not found | Resources not under `Contents/Resources/duilib/` | Check `DUILIB_THEME_DIR_NAME` and the copy destination |
+| Theme or fonts not found | Resources not under `Contents/Resources/duilib/resources/` | Check `DUILIB_THEME_DIR_NAME` and the copy destination |
 | "Cannot be opened because the developer cannot be verified" | Unsigned / not notarized | Sign and notarize per section 6, or ad-hoc sign for local tests |
 | Crash on Apple Silicon | CEF distribution does not match the target architecture | Use an arm64 distribution (or an x64 one with Rosetta throughout) |
 

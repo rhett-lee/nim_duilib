@@ -57,7 +57,7 @@ nim_duilib 是一个 XML 驱动皮肤 + C++ 逻辑的跨平台桌面 UI 框架�
 
 5. **`FrameworkThread::OnInit()` 返回 `bool`，不是 `void`。** 末尾要 `return true;`。
 
-6. **资源初始化用 `ui::GlobalManager::GetResourceRootPath(false)`**，不要手工拼
+6. **资源初始化用 `ui::GlobalManager::GetResourceRootPath()`**（默认参数适配 macOS Bundle），不要手工拼
    `GetCurrentModuleDirectory() + "resources\\"`——后者硬编码反斜杠，在 Linux/macOS 上路径分隔符错误。
 
 ## 核对源码，别信记忆

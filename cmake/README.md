@@ -345,10 +345,10 @@ target_link_libraries(${PROJECT_NAME}
 把目标创建为 `MACOSX_BUNDLE`，并完成：
 
 - `Info.plist`（模板 `cmake/macos/Info.plist.in`）、Bundle 标识与版本号；
-- `bin/resources` → `Contents/Resources/duilib`（macOS 标准布局，
-  `GetResourceRootPath()` 在 macOS 下按运行环境自动检测，不需要改 C++ 代码）；
-  资源清单按示例名（`project()` 名称）自动推导，示例无需配置；需要覆盖时
-  设置 `DUILIB_MACOS_BUNDLE_RESOURCES`；
+- `bin/resources` → `Contents/Resources/duilib/resources`（与普通程序的
+  `<exe 目录>/resources/` 同构，`GetResourceRootPath(true)` 在 macOS 下定位该目录，
+  不需要改 C++ 代码）；资源清单按示例名（`project()` 名称）自动推导，示例无需配置；
+  需要覆盖时设置 `DUILIB_MACOS_BUNDLE_RESOURCES`；
 - SDL3 动态库 → `Contents/Frameworks`，rpath 设为
   `@executable_path/../Frameworks`；
 - 切换 Bundle/普通程序时清理残留的另一种产物。

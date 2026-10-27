@@ -95,9 +95,9 @@ FilePath GlobalManager::GetResourceRootPath(bool bMacOsAppBundle)
     ui::FilePath resourcePath;
 #ifdef DUILIB_BUILD_FOR_MACOS
     if (bMacOsAppBundle) {
-        // MacOS平台：按运行环境自动选择资源根目录，不再依赖调用参数。
+        // MacOS平台：按调用参数选择资源根目录（默认按 App Bundle 布局）。
         // 1. 标准App Bundle布局：<App>.app/Contents/Resources/duilib/resources/
-        // 2. 兼容布局或非Bundle程序：<可执行文件目录>/resources/
+        // 2. false 或非 Bundle 程序：<可执行文件目录>/resources/
         ui::FilePath bundleResourcePath = ui::FilePathUtil::GetBundleResourcesPath();
         if (!bundleResourcePath.IsEmpty()) {
             bundleResourcePath.NormalizeDirectoryPath();

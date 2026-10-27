@@ -122,8 +122,8 @@ MainThread::~MainThread()
 
 bool MainThread::OnInit()
 {
-    //初始化全局资源, 使用本地文件夹作为资源
-    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
+    //初始化全局资源, 使用本地文件夹作为资源（macOS Bundle 下自动定位 Resources/duilib/resources/）
+    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath();
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
     //在下面加入启动窗口代码
@@ -287,8 +287,8 @@ void MainForm::OnInitWindow()
 ```cpp
 bool MainThread::OnInit()
 {
-    //初始化全局资源, 使用本地文件夹作为资源
-    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
+    //初始化全局资源, 使用本地文件夹作为资源（macOS Bundle 下自动定位 Resources/duilib/resources/）
+    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath();
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
     //在下面加入启动窗口代码

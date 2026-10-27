@@ -182,8 +182,8 @@ void MainForm::OnInitWindow()
 ```cpp
 bool MainThread::OnInit()
 {
-    // 初始化全局资源（使用本地文件夹，不要手工拼路径）
-    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
+    // 初始化全局资源（使用本地文件夹，不要手工拼路径；macOS Bundle 自动定位 Resources/duilib/resources/）
+    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath();
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
     // 创建并显示主窗口
@@ -305,11 +305,11 @@ void MainThread::OnInit()
 }
 ```
 
-### 6. 资源初始化用 `GetResourceRootPath(false)`
+### 6. 资源初始化用 `GetResourceRootPath()`
 
 ```cpp
-// 正确：自动处理平台差异
-ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
+// 正确：自动处理平台差异（默认参数适配 macOS Bundle）
+ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath();
 ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
 // 错误：硬编码反斜杠，Linux/macOS 上路径分隔符错误

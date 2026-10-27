@@ -137,7 +137,7 @@ paths, library lists and macros by hand:
   provides `nim_duilib::duilib` and
   `nim_duilib_copy_runtime(<target> [RESOURCES] [FRAMEWORKS])`
   (`FRAMEWORKS` is for macOS App Bundles only; on a bundle target `RESOURCES`
-  copies into `Contents/Resources/duilib/`). See `sdk_test/bundle_main.cpp`
+  copies into `Contents/Resources/duilib/resources/`). See `sdk_test/bundle_main.cpp`
   and `sdk_test/CMakeLists.txt` for a runnable bundle integration sample.
 - Both mechanisms validate architecture/configuration/toolchain. Packages are single
   architecture and single configuration; Debug and Release need their own packages.

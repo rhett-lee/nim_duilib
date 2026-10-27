@@ -86,18 +86,19 @@ bin/basic.app/
     MacOS/
       basic                       # executable
     Resources/
-      duilib/                     # standard bundle resource directory
-        themes/
-          default/
-            global.xml
-            public/               # shared styles and images
-            basic/                # XML for the basic example
-          color_light/
-            global.xml
-          color_dark/
-            global.xml
-        fonts/                    # loaded during framework startup
-        lang/                     # text for text_id lookups
+      duilib/
+        resources/                # standard bundle resource directory
+          themes/                 # (same layout as the exe-side resources/)
+            default/
+              global.xml
+              public/             # shared styles and images
+              basic/              # XML for the basic example
+            color_light/
+              global.xml
+            color_dark/
+              global.xml
+          fonts/                  # loaded during framework startup
+          lang/                   # text for text_id lookups
       basic.icns                  # only when an icon is configured
     Frameworks/
       libSDL3*.dylib              # absent when SDL3 is static
@@ -108,26 +109,29 @@ section 4), so only that example's resources are copied and the other example
 directories under `themes/default` (`chat`, `cef`, `controls`, ...) stay out of
 the bundle. No resource list is needed in the example's `CMakeLists.txt`.
 
-Resources use the standard macOS layout `Contents/Resources/duilib/`. On macOS,
-`GlobalManager::GetResourceRootPath()` no longer depends on its argument; it
-detects the resource directory from the runtime environment:
+Resources use the standard macOS layout `Contents/Resources/duilib/resources/`, whose
+inner structure is identical to the plain `<executable directory>/resources/`, so
+the framework's path handling needs no special case. On macOS,
+`GlobalManager::GetResourceRootPath(bool bMacOsAppBundle)` behaves as follows:
 
-1. it prefers `<App>.app/Contents/Resources/duilib/` when that directory exists;
-2. otherwise it falls back to "executable directory + `resources/`", which keeps
-   the legacy layout and non-bundle executables working.
+1. `bMacOsAppBundle == true` (the default) returns
+   `<App>.app/Contents/Resources/duilib/resources/` (`resources.zip` in the same
+   directory for zip mode);
+2. `bMacOsAppBundle == false` returns "executable directory + `resources/`", which
+   keeps non-bundle executables and manually placed resources working.
 
-As a result, example code works unchanged whether it calls
-`GetResourceRootPath(false)` or `GetResourceRootPath(true)`. SDK consumers using
-`nim_duilib_copy_runtime(... RESOURCES)` follow the same standard layout.
+Example code therefore works unchanged with `GetResourceRootPath()` or an explicit
+`GetResourceRootPath(true)`. SDK consumers using
+`nim_duilib_copy_runtime(... RESOURCES)` copy into the same layout.
 
 ## 3. What the build does
 
 `cmake/duilib_macos_bundle.cmake` runs after linking and:
 
-1. copies resources into `Contents/Resources/duilib` (standard layout): the list
-   is derived from the example name and contains only what it needs (basic is
-   about 1.3 MB instead of 4 MB for the whole `bin/resources`). The old
-   `duilib/` directory is removed first so stale files do not survive;
+1. copies resources into `Contents/Resources/duilib/resources` (standard layout):
+   the list is derived from the example name and contains only what it needs
+   (basic is about 1.3 MB instead of 4 MB for the whole `bin/resources`). The old
+   `resources/` directory is removed first so stale files do not survive;
 2. copies `libSDL3*.dylib` and its version symlink chain into `Contents/Frameworks`
    when SDL3 is enabled (always on macOS);
 3. sets the executable rpath to `@executable_path/../Frameworks` so SDL3 is not
@@ -170,7 +174,7 @@ resource list at all:
 | `themes/default/global.xml` | global variables, font configuration and shared styles (required at startup) |
 | `themes/default/public` | shared images/styles referenced by `${PATH_...}` |
 | `themes/default/<example directory>` | the example's own XML and images |
-| `themes/color_light/global.xml`, `themes/color_dark/global.xml` | title-bar theme switching |
+| `themes/color_light/global.xml`, `themes/color_dark/global.xml` | semantic colors loaded at startup per system appearance (required); also used by title-bar theme switching |
 | `fonts` | loaded by the `FontFile` entries in `global.xml` at startup |
 | `lang` | text for `text_id` and the language switcher |
 
@@ -188,19 +192,20 @@ semicolons or commas):
 
 ```cmake
 # Optional: override the default resource list; directories are copied
-# recursively, single files keep their relative path
+# recursively, single files keep their relative path.
+# For example, dropping the color themes (not recommended: semantic colors
+# would be missing):
 set(DUILIB_MACOS_BUNDLE_RESOURCES
     "themes/default/global.xml"
     "themes/default/public"
     "themes/default/chat"
-    "themes/default/chat_res"
     "fonts"
     "lang")
 ```
 
 A missing path in an explicit list fails at configure time and prints the missing
-path. With either the default or an explicit list, `Contents/Resources/duilib` is
-cleared first, so stale theme directories from a previous build do not survive.
+path. With either the default or an explicit list, `Contents/Resources/duilib/resources`
+is cleared first, so stale theme directories from a previous build do not survive.
 
 The icon must be `.icns`; a Windows `.ico` is not accepted. Include 16, 32, 128,
 256, 512 and matching `@2x` sizes. A typical conversion:
@@ -236,8 +241,8 @@ otool -l bin/basic.app/Contents/MacOS/basic | grep -A2 LC_RPATH
 otool -D bin/basic.app/Contents/Frameworks/libSDL3.0.dylib
 # expect @rpath/libSDL3.0.dylib
 
-test -f bin/basic.app/Contents/Resources/duilib/themes/default/global.xml && echo resources-ok
-test ! -e bin/basic.app/Contents/Resources/duilib/themes/default/chat && echo resources-trimmed
+test -f bin/basic.app/Contents/Resources/duilib/resources/themes/default/global.xml && echo resources-ok
+test ! -e bin/basic.app/Contents/Resources/duilib/resources/themes/default/chat && echo resources-trimmed
 DYLD_PRINT_LIBRARIES=1 bin/basic.app/Contents/MacOS/basic
 open bin/basic.app
 ```
@@ -245,9 +250,9 @@ open bin/basic.app
 If themes or fonts are missing at startup, check that
 `themes/default/public`, `themes/default/basic`, `themes/default/global.xml`,
 `themes/color_light/global.xml`, `themes/color_dark/global.xml`, `lang/` and
-`fonts/` all exist under `bin/basic.app/Contents/Resources/duilib/`. The build
-only copies the entries in the default list; other examples' directories are
-intentionally absent.
+`fonts/` all exist under
+`bin/basic.app/Contents/Resources/duilib/resources/`. The build only copies the
+entries in the default list; other examples' directories are intentionally absent.
 
 ## 6. Signing and notarization
 
@@ -303,8 +308,8 @@ artifacts when switching configurations.
 | Symptom | Cause | Fix |
 | :--- | :--- | :--- |
 | Still `bin/basic`, no `.app` | Switch not applied | Put `set(DUILIB_EXAMPLE_MACOS_BUNDLE ON)` before the include; it only applies on macOS |
-| No `Resources/duilib/` inside the bundle | Copy skipped or source missing | Ensure `bin/resources` exists and rebuild; look for `Copying ... into basic.app` in the build log |
-| Themes/fonts not found at startup | Resources not in the standard directory, or the example directory name does not match the target | Check `Contents/Resources/duilib/themes/default/global.xml`; make sure `themes/default/<example directory>` exists, or set `DUILIB_THEME_DIR_NAME` and rebuild |
+| No `Resources/duilib/resources/` inside the bundle | Copy skipped or source missing | Ensure `bin/resources` exists and rebuild; look for `Copying ... into basic.app` in the build log |
+| Themes/fonts not found at startup | Resources not in the standard directory, or the example directory name does not match the target | Check `Contents/Resources/duilib/resources/themes/default/global.xml`; make sure `themes/default/<example directory>` exists, or set `DUILIB_THEME_DIR_NAME` and rebuild |
 | Other example directories under `themes/default` are missing | Bundles are trimmed per example by default | Expected; override the default list with `DUILIB_MACOS_BUNDLE_RESOURCES` if you really need them |
 | `Library not loaded: @rpath/libSDL3*.dylib` | SDL3 missing or rpath changed | Check `Contents/Frameworks` and `LC_RPATH`; rebuild and re-sign |
 | “Developer cannot be verified” | Not signed/notarized | Ad-hoc sign for local tests; follow section 6 for distribution |

@@ -47,8 +47,8 @@ nim_duilib/
 **初始化全局资源:**
 ```cpp
 // 推荐写法：自动处理平台差异（Windows 取 exe 同目录的 resources/，
-// macOS 取 .app bundle 内的 Resources/），不要手工拼 "\\"
-ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
+// macOS Bundle 取 Contents/Resources/duilib/resources/），不要手工拼 "\\"
+ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath();
 ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 ```
 发布时切换到 ZIP / 嵌入 EXE 资源，详见 `.claude/skills/nim-duilib-resource-pack.md`。

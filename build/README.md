@@ -145,7 +145,7 @@ python3 build/autotest.py --preset arm64-synthetic --dry-run      # 只打印命
   得到 `nim_duilib::duilib`，并提供
   `nim_duilib_copy_runtime(<target> [RESOURCES] [FRAMEWORKS])`
   （`FRAMEWORKS` 仅 macOS App Bundle；bundle 目标上的 `RESOURCES` 复制到
-  `Contents/Resources/duilib/`）。可运行的 bundle 接入示例见
+  `Contents/Resources/duilib/resources/`）。可运行的 bundle 接入示例见
   `sdk_test/bundle_main.cpp` 与 `sdk_test/CMakeLists.txt`。
 - 两套机制都会校验架构/配置/工具链；包是单架构、单配置的，Debug 与 Release
   必须各用各的包。MSVC 运行库默认按包元数据强制对齐（可关闭）。

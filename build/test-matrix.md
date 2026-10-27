@@ -163,7 +163,7 @@ Skia `llvm.x64.release`、SDL3 `main`、CEF 142/x64。
 | M-B03 | arm64 / Release | 默认 | `--arch arm64` | 未测 | 缺 arm64 真机 |
 | M-B04 | x64 / Release | CEF 示例 / `.app` | 构建 `cef`、`CefBrowser` | 通过 | Helper/Framework/wrapper 正常，Bundle 随 `--with-cef` 进包 |
 | M-B05 | x64 / Release ↔ Debug | 同一 `bin/` 切换配置 | 连续执行 `python3 build/build.py` 与 `--config Debug` | 通过 | 两次构建均通过，切换后示例重新链接；单元测试覆盖两个方向 |
-| M-B06 | x64 / Release | 普通示例 `.app`（`basic` 默认开启） | `python3 build/build.py` 后检查 `bin/basic.app`（资源在 `Contents/Resources/duilib`，且只含按示例名自动推导的子集） | 未测 | 新增普通示例 Bundle 支持与按示例裁剪资源；需在 macOS 真机验证资源、Frameworks 与 rpath，Windows 侧仅做静态检查 |
+| M-B06 | x64 / Release | 普通示例 `.app`（`basic` 默认开启） | `python3 build/build.py` 后检查 `bin/basic.app`（资源在 `Contents/Resources/duilib/resources`，且只含按示例名自动推导的子集） | 未测 | 新增普通示例 Bundle 支持与按示例裁剪资源；需在 macOS 真机验证资源、Frameworks 与 rpath，Windows 侧仅做静态检查 |
 
 ### 5.2 打包与包测试
 

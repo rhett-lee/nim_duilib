@@ -125,7 +125,8 @@ MainThread::~MainThread()
 bool MainThread::OnInit()
 {
     //Initialize global resources, using a local folder as the resource
-    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
+    //(inside a macOS bundle this resolves to Resources/duilib/resources/)
+    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath();
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
     //Add the startup window code below
@@ -290,7 +291,8 @@ In the `MainThread::OnInit` method of the main thread, create the window and dis
 bool MainThread::OnInit()
 {
     //Initialize global resources, using a local folder as the resource
-    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
+    //(inside a macOS bundle this resolves to Resources/duilib/resources/)
+    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath();
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
     //Add the startup window code below
