@@ -58,6 +58,13 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   published by CEF. The hash file is cached next to the archive and reused offline;
   when it cannot be fetched, `deps` falls back to the manifest's `sha256` and only
   warns when neither is available.
+- Command-line help removes ambiguity: on non-Windows platforms `--sdl`/`--no-sdl`,
+  `--md` and `--vs-version` are marked Windows-only; on Windows `--no-absolute-rpath`
+  is marked Unix-only. `--deps-root` (where Skia/SDL3/CEF are installed), `--jobs`,
+  `--skia-ref` and `--sdl-ref` now explain their purpose. `--cef-version` no longer
+  hardcodes 142 and accepts `109` or `latest` (following the manifest default as it
+  upgrades); help for the same options in `pack.py`, `release.py`, `autotest.py`
+  and `sdk_package_test.py` was updated as well.
 - `doctor` reports dependency state in more detail: Skia source and patch archive,
   SDL source and prefix, and the CEF runtime are listed separately, noting that
   `deps` fetches them while `--offline` cannot; the interpreter is shown under its

@@ -591,20 +591,25 @@ def build_parser():
     package.add_argument('--config', type=_parse_config, default='Release',
                          metavar='{Release,Debug}', help='库配置（默认 Release）')
     package.add_argument('--arch', choices=('x64', 'x86', 'arm64'), default=None,
-                         help='目标架构（默认主机架构）')
+                         help='目标架构（默认主机架构；x86 主要用于 Windows 32 位包）')
     package.add_argument('--with-sdl', action='store_true',
-                         help='Windows 下额外打包 SDL3')
+                         help='Windows 下额外打包 SDL3（Unix 始终打包）')
     package.add_argument('--with-cef', action='store_true',
-                         help='额外打包 CEF 开发包')
+                         help='额外打包 CEF 开发包（头文件、wrapper 与运行时；'
+                              'Windows/Linux；macOS 仅控制 CEF 示例 .app；体积巨大）')
     package.add_argument('--cef-version', choices=('latest', '109'),
-                         default='latest', help='CEF 版本（默认 latest）')
+                         default='latest',
+                         help='CEF 版本：109（旧版）或 latest（当前最新，见 '
+                              'third_party_versions.json；默认 latest）')
     package.add_argument('--with-examples', action='store_true',
-                         help='包含示例程序')
+                         help='包含示例程序与私有资源')
     package.add_argument('--msvc-runtime', choices=('auto', 'mt', 'md'),
-                         default='auto', help='MSVC 运行库（默认 auto）')
+                         default='auto',
+                         help='MSVC 运行库（仅 Windows 包；默认 auto）：'
+                              '仅影响包内元数据与下游校验')
     package.add_argument('--mingw-variant', choices=('auto', 'gcc', 'llvm'),
                          default='auto',
-                         help='MinGW 编译器变体（默认自动判断），'
+                         help='MinGW 编译器变体（仅 Windows 的 MinGW 包；默认自动判断），'
                               '包名追加 -mingw-gcc / -mingw-llvm')
     package.add_argument('--format', choices=('zip', 'tgz', 'tarbz2'),
                          default=None, help='压缩格式（默认 Windows zip、其它 tgz）')

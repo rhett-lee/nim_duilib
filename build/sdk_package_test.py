@@ -1457,14 +1457,16 @@ def main(argv: list[str] | None = None) -> int:
         prog="sdk_package_test.py",
         description="nim_duilib 发布 SDK 包测试（结构校验 + 消费者编译运行 + 负向用例）")
     parser.add_argument("--package", action="append", default=[], metavar="ARCHIVE",
-                        help="待测试的发布包，可重复指定")
+                        help="待测试的发布包（必填，可重复指定）")
     parser.add_argument("--scenarios", default="all",
-                        help="场景编号列表（逗号分隔）或 all")
+                        help="场景编号列表（逗号分隔）或 all；"
+                             "用 --list-scenarios 查看全部编号")
     parser.add_argument("--no-build", action="store_true", help="只执行包级场景")
     parser.add_argument("--run-examples", action="store_true", help="额外冒烟启动示例程序")
     parser.add_argument("--out-dir", default=None, help="临时目录与报告输出目录")
     parser.add_argument("--keep", action="store_true", help="保留解包与构建目录")
-    parser.add_argument("--jobs", type=int, default=None, help="并行编译任务数")
+    parser.add_argument("--jobs", type=int, default=None,
+                        help="并行编译任务数（默认 CPU 逻辑核心数）")
     parser.add_argument("--dry-run", action="store_true", help="只打印将执行的命令")
     parser.add_argument("--list-scenarios", action="store_true", help="列出场景后退出")
     args = parser.parse_args(argv)

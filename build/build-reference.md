@@ -73,24 +73,24 @@ python3 build/build.py --config Release
 | `--arch auto\|x86\|x64\|arm64` | 目标架构，默认主机架构；Windows + Ninja 交叉编译 arm64 时必须显式指定 |
 | `--lang auto\|zh_CN\|en` | 交互语言，默认跟随系统；也读取环境变量 `DUILIB_LANG` |
 | `--build-dir <dir>` | 覆盖构建目录，允许放到仓库外 |
-| `--deps-root <dir>` | 依赖源码/安装根目录，默认仓库同级目录 |
-| `--jobs N` | 并行编译任务数 |
+| `--deps-root <dir>` | 依赖源码/安装根目录，默认仓库同级目录（与 `nim_duilib` 平级）；Skia、SDL3、CEF 都安装到这里 |
+| `--jobs N` | 并行编译任务数，默认 CPU 逻辑核心数 |
 | `--offline` | 只使用已缓存的依赖源码/归档，不联网 |
 | `--dry-run` | 只打印将执行的命令 |
-| `--cmake-arg <arg>` / `--build-arg <arg>` | 透传给 configure / build；值以 `-` 开头时写成 `--cmake-arg=-DFOO=1` |
-| `--vs-version N` | 显式指定 Visual Studio 主版本（如 `17`） |
-| `--cef-version 109\|142` | CEF 版本，默认取版本清单 |
-| `--skia-ref` / `--sdl-ref` | 选择版本清单中的 ref |
-| `--sdl` / `--no-sdl` | 显式启用/关闭 SDL；Windows 默认关闭，其他平台强制开启 |
-| `--md` | 使用 MSVC 动态运行库（/MD、/MDd） |
-| `--no-absolute-rpath` | Unix 产物只写相对 rpath，不附加 SDL3 等绝对兜底路径 |
-| `--cef-archive <file>` | 使用本地 CEF 归档，跳过下载 |
-| `--no-deps`（build） | 跳过依赖准备，直接构建 |
-| `--target <name>`（build） | 只构建指定目标，如 `duilib` |
-| `--no-examples`（build） | 不编译示例程序 |
-| `--force`（deps） | 强制重建依赖 |
-| `--with-cef` / `--with-sdl` / `--with-examples`（pack） | 包内包含对应内容 |
-| `--out-dir`（pack） | 指定包输出目录 |
+| `--cmake-arg <arg>` / `--build-arg <arg>` | 透传给 configure / build（可重复）；值以 `-` 开头时写成 `--cmake-arg=-DFOO=1` |
+| `--vs-version N` | 显式指定 Visual Studio 主版本（如 `17`）；仅 Windows 有效 |
+| `--cef-version 109\|latest` | CEF 版本：`109` 为旧版，`latest` 取版本清单默认值（当前为 142，清单升级后自动跟随） |
+| `--skia-ref` / `--sdl-ref` | 选择版本清单中的 ref，如 `chrome/m142`、`release-3.4.18` |
+| `--sdl` / `--no-sdl` | 仅 Windows 有效；Windows 默认关闭，其他平台强制开启 |
+| `--md` | 使用 MSVC 动态运行库（/MD、/MDd）；仅 Windows 有效 |
+| `--no-absolute-rpath` | 仅 Unix 有效；产物只写相对 rpath，不附加 SDL3 等绝对兜底路径 |
+| `--cef-archive <file>` | 使用本地 CEF 归档，跳过下载（仍按官方 `.sha1` 校验） |
+| `--no-deps`（build） | 跳过依赖准备，复用已就绪的 Skia/SDL3/CEF |
+| `--target <name>`（build） | 只构建指定 CMake 目标，如 `duilib` |
+| `--no-examples`（build） | 不编译示例程序（仍配置工程） |
+| `--force`（deps） | 忽略完成标记，强制重建依赖 |
+| `--with-cef` / `--with-sdl` / `--with-examples`（pack） | 包内包含对应内容（Unix 始终打包 SDL3，无需 `--with-sdl`） |
+| `--out-dir`（pack） | 指定包输出目录（默认 `dist/`） |
 
 `--sdl` 只是编译开关；`pack` 要在包内包含 SDL3 时必须另加 `--with-sdl`
 （只写 `--sdl` 时 `build.py` 会打印提示，打包内容保持不变）。

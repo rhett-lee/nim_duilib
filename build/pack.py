@@ -2567,7 +2567,7 @@ def main(argv=None):
                              '（默认 Release）')
     parser.add_argument('--arch', choices=('x64', 'x86', 'arm64'), default=None,
                         help='库架构；Windows 影响库目录，所有平台影响包名'
-                             '（默认主机架构）')
+                             '（默认主机架构；x86 主要用于 Windows 32 位包）')
     parser.add_argument('--lib-dir', default=None,
                         help='显式指定 duilib 库目录，此时 --arch/--config 不再参与'
                              '路径计算，但仍决定包名与示例过滤')
@@ -2580,8 +2580,8 @@ def main(argv=None):
                              'MinGW 会按目录内是否存在 .a 校验）')
     parser.add_argument('--mingw-variant', choices=('auto', 'gcc', 'llvm'),
                         default='auto',
-                        help='MinGW 编译器变体（默认从静态库符号自动判断）；'
-                             'gcc 与 llvm-mingw 产物绑定不同 C++ 运行时，'
+                        help='MinGW 编译器变体（仅 Windows 的 MinGW 包；默认从静态库'
+                             '符号自动判断）；gcc 与 llvm-mingw 产物绑定不同 C++ 运行时，'
                              '包名会追加 -mingw-gcc / -mingw-llvm'
                              '（MSYS2 CLANG64 使用 libc++，归为 llvm）')
     parser.add_argument('--sdl-dir', default=None,
@@ -2593,10 +2593,11 @@ def main(argv=None):
                              '（Windows/Linux；macOS 仅控制 CEF 示例 .app 是否随包；'
                              '体积巨大，默认不带）')
     parser.add_argument('--cef-version', choices=('latest', '109'), default='latest',
-                        help='配合 --with-cef 选择 CEF 版本（默认 latest）')
+                        help='配合 --with-cef 选择 CEF 版本：109（旧版）或 latest'
+                             '（当前最新，见 third_party_versions.json；默认 latest）')
     parser.add_argument('--msvc-runtime', choices=('auto', 'mt', 'md'), default='auto',
-                        help='MSVC 运行库：auto（DLL 模式 MD，否则 MT）/ mt / md；'
-                             '仅影响包内元数据与下游校验，不改变已构建产物')
+                        help='MSVC 运行库（仅 Windows 包）：auto（DLL 模式 MD，否则 MT）'
+                             '/ mt / md；仅影响包内元数据与下游校验，不改变已构建产物')
     parser.add_argument('--with-examples', action='store_true',
                         help='包含示例程序与全部示例私有资源（默认只打 SDK；'
                              'macOS 的 cef.app/CefBrowser.app 按整目录随包）')

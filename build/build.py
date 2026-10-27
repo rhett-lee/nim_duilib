@@ -64,6 +64,25 @@ def normalize_arch(value: str) -> str:
     return value
 
 
+def resolve_cef_version(requested: str | None, manifest: dict) -> str:
+    """把 --cef-version 归一为版本清单中的键。
+
+    109 表示旧版；latest 或未指定时取清单 cef.default，清单升级后自动跟随，
+    避免把当前版本号（如 142）硬编码进命令行与帮助文本。
+    """
+    cef = manifest.get("cef", {}) if isinstance(manifest, dict) else {}
+    default = str(cef.get("default", ""))
+    versions = cef.get("versions", {})
+    if not requested or requested == "latest":
+        return default
+    if requested not in versions:
+        raise BuildError(
+            f"未知的 CEF 版本：{requested}",
+            f"可选值：109、latest（当前对应 {default}）；"
+            f"清单 third_party_versions.json 中已配置：{'、'.join(versions)}")
+    return requested
+
+
 def host_arch() -> str:
     if sys.platform == "win32":
         value = os.environ.get("PROCESSOR_ARCHITEW6432") or os.environ.get("PROCESSOR_ARCHITECTURE", "")
@@ -177,6 +196,11 @@ def platform_name() -> str:
 # ---------------------------------------------------------------------------
 # 参数解析
 # ---------------------------------------------------------------------------
+def _platform_help(windows: str, other: str) -> str:
+    """按当前平台选择帮助文本：只在有实际效果的平台上完整说明。"""
+    return windows if sys.platform == "win32" else other
+
+
 def _add_common_options(parser: argparse.ArgumentParser, suppress_defaults: bool = False) -> None:
     """公共选项。
 
@@ -191,36 +215,54 @@ def _add_common_options(parser: argparse.ArgumentParser, suppress_defaults: bool
     parser.add_argument("--config", choices=VALID_CONFIGS, default=default(DEFAULT_CONFIG),
                         help="构建配置（一次只构建一个，默认 Release）")
     parser.add_argument("--arch", choices=VALID_ARCHES, default=default("auto"),
-                        help="目标架构（默认主机架构）")
+                        help="目标架构（默认主机架构；x86 主要用于 Windows 32 位）")
     parser.add_argument("--lang", choices=("auto", "zh_CN", "en"), default=default("auto"),
                         help="交互语言（默认跟随系统）")
     parser.add_argument("--build-dir", default=default(None), help="覆盖构建目录（默认 out/<arch>/<Config>）")
-    parser.add_argument("--deps-root", default=default(None), help="依赖源码/安装根目录（默认仓库同级）")
-    parser.add_argument("--jobs", type=int, default=default(None), help="并行编译任务数")
+    parser.add_argument("--deps-root", default=default(None),
+                        help="依赖源码/安装根目录（默认仓库同级，即与 nim_duilib 平级；"
+                             "Skia、SDL3、CEF 都安装到这里）")
+    parser.add_argument("--jobs", type=int, default=default(None),
+                        help="并行编译任务数（默认 CPU 逻辑核心数）")
     parser.add_argument("--offline", action="store_true", default=default(False),
-                        help="只使用已缓存的依赖源码/归档")
+                        help="只使用已缓存的依赖源码/归档（不访问网络）")
     parser.add_argument("--dry-run", action="store_true", default=default(False), help="只打印将执行的命令")
     parser.add_argument("--cmake-arg", action="append", default=default([]),
-                        help="追加给 cmake configure 的参数")
+                        help="追加给 cmake configure 的参数（可重复，如 --cmake-arg=-DFOO=ON）")
     parser.add_argument("--build-arg", action="append", default=default([]),
-                        help="追加给 cmake --build 的参数")
+                        help="追加给 cmake --build 的参数（可重复，如 --build-arg=-v）")
     parser.add_argument("--vs-version", default=default(None),
-                        help="显式指定 Visual Studio 主版本（如 17）")
-    parser.add_argument("--cef-version", choices=("109", "142"), default=default(None),
-                        help="CEF 版本（默认取 third_party_versions.json）")
-    parser.add_argument("--skia-ref", default=default(None), help="Skia ref key（默认取清单）")
-    parser.add_argument("--sdl-ref", default=default(None), help="SDL3 ref key（默认取清单）")
+                        help=_platform_help(
+                            "显式指定 Visual Studio 主版本（如 17，默认自动探测）",
+                            "仅 Windows 有效；其他平台忽略该参数"))
+    parser.add_argument("--cef-version", metavar="VERSION", default=default(None),
+                        help="CEF 版本：109（旧版）或 latest（当前最新，默认取 "
+                             "third_party_versions.json；清单升级后自动跟随）")
+    parser.add_argument("--skia-ref", default=default(None),
+                        help="Skia 引用键（清单 skia.refs 中的键，默认取 skia.default；"
+                             "如 chrome/m142）")
+    parser.add_argument("--sdl-ref", default=default(None),
+                        help="SDL3 引用键（清单 sdl.refs 中的键，默认取 sdl.default；"
+                             "如 release-3.4.18、main）")
     parser.add_argument("--sdl", dest="sdl", action="store_true", default=default(None),
-                        help="强制启用 SDL")
+                        help=_platform_help(
+                            "强制启用 SDL（默认开启）",
+                            "仅 Windows 有效；其他平台 SDL 始终开启"))
     parser.add_argument("--no-sdl", dest="sdl", action="store_false", default=default(None),
-                        help="强制关闭 SDL")
+                        help=_platform_help(
+                            "强制关闭 SDL",
+                            "仅 Windows 有效；其他平台 SDL 始终开启，无法关闭"))
     parser.add_argument("--md", action="store_true", default=default(False),
-                        help="使用 MSVC 动态运行库 (/MD, /MDd)")
+                        help=_platform_help(
+                            "使用 MSVC 动态运行库 (/MD, /MDd)；默认 MT",
+                            "仅 Windows（MSVC）有效；其他平台使用工具链默认运行库"))
     parser.add_argument("--no-absolute-rpath", dest="rpath_absolute",
                         action="store_false", default=default(True),
-                        help="Unix 产物只写相对 rpath，不附加 SDL3 等绝对兜底路径")
+                        help=_platform_help(
+                            "仅 Unix（Linux/macOS/FreeBSD）有效；Windows 忽略该参数",
+                            "产物只写相对 rpath，不附加 SDL3 等绝对兜底路径"))
     parser.add_argument("--cef-archive", default=default(None),
-                        help="本地 CEF 归档路径（跳过下载）")
+                        help="本地 CEF 归档路径（跳过下载；仍按官方 .sha1 校验完整性）")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -242,28 +284,39 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command")
 
     build_parser_ = sub.add_parser("build", parents=[sub_common], help="准备依赖并编译一个配置")
-    build_parser_.add_argument("--no-deps", action="store_true", help="跳过依赖准备")
-    build_parser_.add_argument("--target", default=None, help="只构建指定目标")
-    build_parser_.add_argument("--no-examples", action="store_true", help="不编译示例")
+    build_parser_.add_argument("--no-deps", action="store_true",
+                               help="跳过依赖准备（复用已就绪的 Skia/SDL3/CEF）")
+    build_parser_.add_argument("--target", default=None,
+                               help="只构建指定 CMake 目标（默认全部）")
+    build_parser_.add_argument("--no-examples", action="store_true",
+                               help="不编译示例（仍配置工程）")
 
-    deps_parser = sub.add_parser("deps", parents=[sub_common], help="只准备 Skia/SDL3/CEF")
-    deps_parser.add_argument("--force", action="store_true", help="重建依赖")
+    deps_parser = sub.add_parser("deps", parents=[sub_common],
+                                 help="只准备依赖（Skia/SDL3/CEF）并安装到 --deps-root")
+    deps_parser.add_argument("--force", action="store_true",
+                             help="忽略完成标记，重建依赖（Skia/SDL3/CEF）")
     deps_parser.add_argument("--no-examples", action="store_true", help=argparse.SUPPRESS)
 
-    sub.add_parser("doctor", parents=[sub_common], help="环境自检（无副作用）")
+    sub.add_parser("doctor", parents=[sub_common], help="环境自检（只读，不修改文件）")
 
     sub.add_parser("test", parents=[sub_common], help="运行单元测试")
 
     pack_parser = sub.add_parser("pack", parents=[sub_common], help="调用 pack.py 出包")
-    pack_parser.add_argument("--with-cef", action="store_true", help="包内包含 CEF")
-    pack_parser.add_argument("--with-sdl", action="store_true", help="包内包含 SDL3")
-    pack_parser.add_argument("--with-examples", action="store_true", help="包内包含示例")
-    pack_parser.add_argument("--out-dir", default=None, help="包输出目录")
-    pack_parser.add_argument("--pack-arg", action="append", default=[], help="追加给 pack.py 的参数")
+    pack_parser.add_argument("--with-cef", action="store_true",
+                             help="包内包含 CEF（Windows/Linux 含头文件、wrapper 与运行时；"
+                                  "macOS 仅控制 CEF 示例 .app；体积巨大，默认不带）")
+    pack_parser.add_argument("--with-sdl", action="store_true",
+                             help="包内包含 SDL3（仅 Windows 需要；Unix 始终打包）")
+    pack_parser.add_argument("--with-examples", action="store_true",
+                             help="包内包含示例程序与私有资源")
+    pack_parser.add_argument("--out-dir", default=None, help="包输出目录（默认 dist/）")
+    pack_parser.add_argument("--pack-arg", action="append", default=[],
+                             help="追加给 pack.py 的参数（可重复）")
 
     clean_parser = sub.add_parser("clean", parents=[sub_common],
                                   help="清理构建树（默认整个 out/；--build-dir 可只清理指定目录）")
-    clean_parser.add_argument("--deps", action="store_true", help="同时清理依赖构建产物")
+    clean_parser.add_argument("--deps", action="store_true",
+                              help="同时清理依赖构建产物（--deps-root 下的 Skia/SDL3/CEF 构建目录）")
 
     return parser
 
@@ -519,7 +572,7 @@ def _cmake_defines(args, arch: str, deps_mode: str, force: bool) -> list:
     else:
         cef_enabled = sys.platform == "darwin" or sys.platform.startswith("linux")
     defines.append(f"-DDUILIB_ENABLE_CEF={'ON' if cef_enabled else 'OFF'}")
-    defines.append(f"-DDUILIB_CEF_VERSION={args.cef_version or manifest['cef']['default']}")
+    defines.append(f"-DDUILIB_CEF_VERSION={resolve_cef_version(args.cef_version, manifest)}")
     defines.append(f"-DDUILIB_SKIA_REF={args.skia_ref or manifest['skia']['default']}")
     defines.append(f"-DDUILIB_SDL_REF={args.sdl_ref or manifest['sdl']['default']}")
     archive = Path(args.cef_archive).expanduser().resolve() if args.cef_archive else ""
@@ -819,6 +872,8 @@ def cmd_doctor(args, messages) -> int:
         _info_line("cef not supported in this environment")
     else:
         cef_version = getattr(args, "cef_version", None) or (manifest["cef"]["default"] if manifest else "")
+        if manifest and cef_version == "latest":
+            cef_version = manifest["cef"]["default"]
         if host == "windows":
             suffix = "_109" if cef_version == "109" else ""
             cef_arch = "Win32" if arch == "x86" else arch
@@ -881,6 +936,7 @@ def cmd_pack(args, messages) -> int:
                "--config", args.config, "--arch", arch]
     if args.with_cef:
         command.append("--with-cef")
+        # pack.py 只区分 109 与最新版；latest/未指定/清单默认版本都不传。
         if args.cef_version == "109":
             command += ["--cef-version", "109"]
     if args.with_sdl:

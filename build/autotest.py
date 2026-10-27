@@ -522,9 +522,9 @@ def main(argv=None):
     parser.add_argument('--smoke', action='store_true',
                         help='解包并启动 bin/basic.exe（需包内含示例）')
     parser.add_argument('--with-sdl', action='store_true',
-                        help='打包时附加 --with-sdl')
+                        help='打包时附加 --with-sdl（仅 Windows 需要；Unix 始终打包）')
     parser.add_argument('--with-examples', action='store_true',
-                        help='打包时附加 --with-examples')
+                        help='打包时附加 --with-examples（包含示例与私有资源）')
     parser.add_argument('--build-timeout', type=int, default=3600,
                         help='构建超时秒数（默认 3600）')
     parser.add_argument('--dry-run', action='store_true',

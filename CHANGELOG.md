@@ -51,6 +51,12 @@
 - 依赖准备（CEF）：下载的归档按 CEF 官方发布的 `<下载地址>.sha1` 校验完整性；
   哈希文件与归档一起缓存、离线可复用。拿不到时回退版本清单中的 `sha256`，
   两者都没有时只告警并跳过校验。
+- 命令行帮助去歧义：`--sdl`/`--no-sdl`、`--md`、`--vs-version` 在非 Windows 平台上
+  标注为仅 Windows 有效；`--no-absolute-rpath` 在 Windows 上标注为仅 Unix。
+  补充 `--deps-root`（Skia/SDL3/CEF 的安装位置）、`--jobs`、`--skia-ref`、
+  `--sdl-ref` 等参数的用途说明。`--cef-version` 不再硬编码 142，接受 `109` 或
+  `latest`（跟随版本清单默认值，清单升级后自动跟随）；`pack.py`、`release.py`、
+  `autotest.py`、`sdk_package_test.py` 的同类参数说明同步完善。
 - `doctor` 的依赖状态报告更完整：分别列出 Skia 源码与补丁归档、SDL 源码与前缀、
   CEF 运行时，缺失时说明由 `deps` 获取，`--offline` 下则提示无法获取；解释器名称
   按实际命令显示（Linux 上为 `python3`）。

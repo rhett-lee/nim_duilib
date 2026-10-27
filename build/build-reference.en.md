@@ -77,24 +77,24 @@ python3 build/build.py --config Release
 | `--arch auto\|x86\|x64\|arm64` | target architecture, default host; required for Windows+Ninja arm64 |
 | `--lang auto\|zh_CN\|en` | UI language, defaults to the system; also reads `DUILIB_LANG` |
 | `--build-dir <dir>` | override the build directory (may be outside the repo) |
-| `--deps-root <dir>` | dependency source/install root, defaults to the repo's parent |
-| `--jobs N` | parallel build jobs |
+| `--deps-root <dir>` | dependency source/install root, defaults to the repo's parent (next to `nim_duilib`); Skia, SDL3 and CEF are installed here |
+| `--jobs N` | parallel build jobs, defaulting to the CPU logical core count |
 | `--offline` | use cached dependency sources/archives only |
 | `--dry-run` | print commands without executing them |
-| `--cmake-arg <arg>` / `--build-arg <arg>` | forwarded to configure/build; use `--cmake-arg=-DFOO=1` when the value starts with `-` |
-| `--vs-version N` | pin the Visual Studio major version (for example `17`) |
-| `--cef-version 109\|142` | CEF version, default from the version manifest |
-| `--skia-ref` / `--sdl-ref` | select a ref from the version manifest |
-| `--sdl` / `--no-sdl` | force SDL on/off; off by default on Windows, forced on elsewhere |
-| `--md` | use the MSVC dynamic runtime (/MD, /MDd) |
-| `--no-absolute-rpath` | write only origin-relative rpath entries on Unix |
-| `--cef-archive <file>` | use a local CEF archive and skip downloading |
-| `--no-deps` (build) | skip dependency preparation |
-| `--target <name>` (build) | build only the given target, e.g. `duilib` |
-| `--no-examples` (build) | do not build examples |
-| `--force` (deps) | rebuild dependencies |
-| `--with-cef` / `--with-sdl` / `--with-examples` (pack) | include the given content |
-| `--out-dir` (pack) | package output directory |
+| `--cmake-arg <arg>` / `--build-arg <arg>` | forwarded to configure/build (repeatable); use `--cmake-arg=-DFOO=1` when the value starts with `-` |
+| `--vs-version N` | pin the Visual Studio major version (for example `17`); Windows only |
+| `--cef-version 109\|latest` | CEF version: `109` is the legacy build, `latest` follows the manifest default (currently 142 and tracking manifest upgrades) |
+| `--skia-ref` / `--sdl-ref` | select a ref from the version manifest, e.g. `chrome/m142` or `release-3.4.18` |
+| `--sdl` / `--no-sdl` | Windows only; off by default on Windows, forced on elsewhere |
+| `--md` | use the MSVC dynamic runtime (/MD, /MDd); Windows only |
+| `--no-absolute-rpath` | Unix only; write only origin-relative rpath entries |
+| `--cef-archive <file>` | use a local CEF archive and skip downloading (still verified against the official `.sha1`) |
+| `--no-deps` (build) | skip dependency preparation and reuse the ready Skia/SDL3/CEF |
+| `--target <name>` (build) | build only the given CMake target, e.g. `duilib` |
+| `--no-examples` (build) | do not build examples (the project is still configured) |
+| `--force` (deps) | ignore completion stamps and rebuild dependencies |
+| `--with-cef` / `--with-sdl` / `--with-examples` (pack) | include the given content (Unix always packages SDL3, so `--with-sdl` is unnecessary) |
+| `--out-dir` (pack) | package output directory (default `dist/`) |
 
 `--sdl` is a build switch only; a package includes SDL3 only when `--with-sdl`
 is also given (using `--sdl` alone now prints a hint and leaves package contents

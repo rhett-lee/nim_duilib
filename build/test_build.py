@@ -224,6 +224,44 @@ class CmakeDefinePersistenceTests(unittest.TestCase):
                             for d in defines[:-1]))
 
 
+class CefVersionTests(unittest.TestCase):
+    """--cef-version：109 为旧版，latest 跟随版本清单，不硬编码当前版本号。"""
+
+    def setUp(self):
+        self.manifest = entry.load_manifest(entry.VERSIONS_FILE)
+
+    def test_latest_follows_manifest_default(self):
+        default = self.manifest["cef"]["default"]
+        self.assertEqual(entry.resolve_cef_version("latest", self.manifest), default)
+        self.assertEqual(entry.resolve_cef_version(None, self.manifest), default)
+
+    def test_109_and_concrete_version(self):
+        self.assertEqual(entry.resolve_cef_version("109", self.manifest), "109")
+        default = self.manifest["cef"]["default"]
+        self.assertEqual(entry.resolve_cef_version(default, self.manifest), default)
+
+    def test_unknown_version_raises(self):
+        with self.assertRaises(entry.BuildError):
+            entry.resolve_cef_version("999", self.manifest)
+
+    def test_define_uses_manifest_default_for_latest(self):
+        args = entry.parse_args(["build", "--cef-version", "latest"])
+        defines, _ = entry._cmake_defines(args, "x64", "prepare", False)
+        self.assertIn("-DDUILIB_CEF_VERSION=%s" % self.manifest["cef"]["default"],
+                      defines)
+
+    def test_help_marks_windows_only_options(self):
+        """非 Windows 平台应把 --sdl/--md/--vs-version 标注为仅 Windows。"""
+        with mock.patch.object(entry.sys, "platform", "linux"):
+            parser = entry.argparse.ArgumentParser(add_help=False)
+            entry._add_common_options(parser)
+            text = parser.format_help()
+        self.assertIn("仅 Windows 有效；其他平台 SDL 始终开启", text)
+        self.assertIn("仅 Windows（MSVC）有效", text)
+        self.assertIn("仅 Windows 有效；其他平台忽略该参数", text)
+        self.assertIn("产物只写相对 rpath", text)
+
+
 class StaleCacheTests(unittest.TestCase):
     # 与平台无关的“另一个编译器”路径：测试只比较路径是否变化
     OLD_COMPILER = Path(tempfile.gettempdir()) / "duilib-old-compiler"
