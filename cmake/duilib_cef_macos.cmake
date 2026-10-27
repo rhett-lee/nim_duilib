@@ -244,11 +244,20 @@ if(OS_MAC)
 
     # Copy duilib resources into the Resources directory.
     if("${DUILIB_THEME_DIR_NAME}" STREQUAL "")
-        message(FATAL_ERROR "NOT DEFINED DUILIB_THEME_DIR_NAME!")
+        message(FATAL_ERROR
+            "DUILIB_THEME_DIR_NAME is not set for target '${CEF_TARGET}'.\n"
+            "Set it to the example's subdirectory name under bin/resources/themes/default "
+            "(for example \"cef\" or \"cef_browser\").")
     endif()
-    
+
     set(DUILIB_RES_FROM "${DUILIB_ROOT}/bin/resources")
     set(DUILIB_RES_TO "${CEF_APP}/Contents/Resources/duilib/resources")
+    if(NOT IS_DIRECTORY "${DUILIB_RES_FROM}/themes/default/${DUILIB_THEME_DIR_NAME}")
+        message(FATAL_ERROR
+            "DUILIB_THEME_DIR_NAME='${DUILIB_THEME_DIR_NAME}' is not a directory: "
+            "${DUILIB_RES_FROM}/themes/default/${DUILIB_THEME_DIR_NAME}\n"
+            "Target '${CEF_TARGET}': fix the name or create the theme directory.")
+    endif()
     # 颜色主题（themes/color_light|color_dark）也必须在包内：启动时按系统深浅色
     # 加载语义色值，缺失会导致界面无色。
     add_custom_command(TARGET ${CEF_TARGET} 

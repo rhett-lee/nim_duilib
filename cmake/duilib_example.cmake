@@ -10,8 +10,9 @@
 #   DUILIB_ENABLE_CEF             使用CEF模块（全局能力开关，见 duilib_root_options.cmake）
 #   DUILIB_EXAMPLE_CEF            本示例使用CEF模块（仅 cef/CefBrowser 设置；默认 OFF）
 #   DUILIB_WEBVIEW2_EXE           定义使用WebView2的可执行程序
-#   DUILIB_THEME_DIR_NAME         资源子目录名称（可选；默认按项目名自动匹配
-#                                 resources/themes/default 下的目录，macOS复制资源时使用）
+#   DUILIB_THEME_DIR_NAME         资源子目录名称（可选；显式值优先于自动匹配，并校验
+#                                 resources/themes/default 下目录存在；未设置时按项目名
+#                                 自动匹配，macOS复制资源时使用）
 #   DUILIB_SRC_SUB_DIRS           需要枚举C++源码的子目录
 #   DUILIB_SRC_SUB_DIRS_WINDOWS   仅Windows平台需要枚举的源码子目录
 #   DUILIB_EXAMPLE_SDL_INCLUDE    为ON时把SDL的include目录加入本示例（仅少数直接使用SDL的示例需要）

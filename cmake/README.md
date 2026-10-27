@@ -348,7 +348,9 @@ target_link_libraries(${PROJECT_NAME}
 - `bin/resources` → `Contents/Resources/duilib/resources`（与普通程序的
   `<exe 目录>/resources/` 同构，`GetResourceRootPath(true)` 在 macOS 下定位该目录，
   不需要改 C++ 代码）；资源清单按示例名（`project()` 名称）自动推导，示例无需配置；
-  需要覆盖时设置 `DUILIB_MACOS_BUNDLE_RESOURCES`；
+  目标名与资源目录名不一致（如 `ChildWindow`→`child_window`）时也可显式设置
+  `DUILIB_THEME_DIR_NAME`，显式值优先且会校验目录存在；需要覆盖清单时设置
+  `DUILIB_MACOS_BUNDLE_RESOURCES`；
 - SDL3 动态库 → `Contents/Frameworks`，rpath 设为
   `@executable_path/../Frameworks`；
 - 切换 Bundle/普通程序时清理残留的另一种产物。

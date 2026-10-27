@@ -357,8 +357,10 @@ target_link_libraries(${PROJECT_NAME}
 - copies `bin/resources` into `Contents/Resources/duilib/resources` (isomorphic to
   the plain `<exe directory>/resources/`; `GetResourceRootPath(true)` locates it on
   macOS, so no C++ changes are needed). The resource list is derived from the
-  example name (`project()`), so nothing has to be configured; use
-  `DUILIB_MACOS_BUNDLE_RESOURCES` to override it;
+  example name (`project()`), so nothing has to be configured; when the target
+  name differs from the resource directory (`ChildWindow`→`child_window`), set
+  `DUILIB_THEME_DIR_NAME` explicitly — it takes precedence and is validated; use
+  `DUILIB_MACOS_BUNDLE_RESOURCES` to override the whole list;
 - copies SDL3 dylibs into `Contents/Frameworks` and sets the rpath to
   `@executable_path/../Frameworks`;
 - removes the stale artifact of the other mode when switching between bundle and

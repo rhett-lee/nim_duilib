@@ -50,7 +50,9 @@
   并从 `duilib_version.h` 生成 Bundle 版本号。
 - macOS Bundle 资源按示例自动裁剪：资源清单由示例的目标名（`project()` 名称）
   推导，只复制示例自己的主题目录、默认主题公共资源、字体与语言文件，
-  示例的 `CMakeLists.txt` 不需要配置；`themes/default` 下其他示例的目录不再进包，
+  示例的 `CMakeLists.txt` 不需要配置；目标名与资源目录名不一致时（如
+  `ChildWindow`→`child_window`）也可显式设置 `DUILIB_THEME_DIR_NAME`，显式值优先，
+  写错目录会在配置阶段直接报错；`themes/default` 下其他示例的目录不再进包，
   Bundle 资源体积由约 4 MB 降到约 1.3 MB。需要额外资源时可用
   `DUILIB_MACOS_BUNDLE_RESOURCES` 覆盖默认清单。
 - `GlobalManager::GetResourceRootPath(bool bMacOsAppBundle = true)` 在 macOS 下按

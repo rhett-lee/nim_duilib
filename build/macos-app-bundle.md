@@ -175,7 +175,17 @@ Bundle 内的资源清单由 `cmake/duilib_macos_bundle.cmake` 按示例的目�
 去掉下划线后比较，所以 `basic→basic`、`ChildWindow→child_window`、
 `MultiLang→MultiLang`、`WebView2Browser→webview2_browser` 都能自动对应。
 找不到对应目录时（如 `ColorPicker` 不使用 XML）只复制公共资源，不会报错。
-也可以像 `cef`、`CefBrowser` 那样显式声明 `DUILIB_THEME_DIR_NAME`。
+
+任何示例都可以显式声明 `DUILIB_THEME_DIR_NAME`（`cef`、`CefBrowser` 就是这样），
+显式值**优先于**自动推导；不设置或设为空字符串时才自动推导：
+
+```cmake
+# ChildWindow 的资源目录名与目标名不同，显式声明后不再依赖自动推导
+set(DUILIB_THEME_DIR_NAME "child_window")
+```
+
+显式值必须是 `bin/resources/themes/default` 下的真实目录名，写错会在配置阶段
+直接报错并打印缺失路径（不会静默生成缺少示例 XML 的 Bundle）。
 
 只有在需要额外资源或去掉默认条目时，才设置 `DUILIB_MACOS_BUNDLE_RESOURCES`
 覆盖默认清单（相对 `bin/resources`，分号或逗号分隔）：

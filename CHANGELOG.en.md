@@ -62,10 +62,13 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 - macOS bundles trim resources per example automatically: the list is derived from
   the example's target name (`project()`), so only its own theme directory, the
   shared default theme, fonts and language files are copied; the example's
-  `CMakeLists.txt` needs no configuration. Other example directories under
-  `themes/default` stay out of the bundle, reducing bundle resources from about
-  4 MB to 1.3 MB. Use `DUILIB_MACOS_BUNDLE_RESOURCES` to override the default
-  list when extra resources are needed.
+  `CMakeLists.txt` needs no configuration. When the target name differs from the
+  resource directory (`ChildWindow`→`child_window`), `DUILIB_THEME_DIR_NAME` can
+  be set explicitly; it takes precedence and a wrong directory fails the
+  configure step. Other example directories under `themes/default` stay out of
+  the bundle, reducing bundle resources from about 4 MB to 1.3 MB. Use
+  `DUILIB_MACOS_BUNDLE_RESOURCES` to override the default list when extra
+  resources are needed.
 - On macOS, `GlobalManager::GetResourceRootPath(bool bMacOsAppBundle = true)`
   selects the resource root from the argument: `true` (default) returns
   `<App>.app/Contents/Resources/duilib/resources/`, `false` returns `resources/`

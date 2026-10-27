@@ -183,8 +183,21 @@ Matching rule for the example directory: both the target name and the
 comparison, so `basic→basic`, `ChildWindow→child_window`, `MultiLang→MultiLang`
 and `WebView2Browser→webview2_browser` all resolve automatically. When no
 directory matches (`ColorPicker` uses no XML), only the shared resources are
-copied and no error is reported. An example can still declare
-`DUILIB_THEME_DIR_NAME` explicitly, as `cef` and `CefBrowser` do.
+copied and no error is reported.
+
+Any example can declare `DUILIB_THEME_DIR_NAME` explicitly (`cef` and
+`CefBrowser` already do). An explicit value **takes precedence** over automatic
+derivation; automatic derivation only runs when the variable is unset or empty:
+
+```cmake
+# ChildWindow's resource directory differs from its target name; declaring it
+# explicitly removes the dependency on automatic derivation.
+set(DUILIB_THEME_DIR_NAME "child_window")
+```
+
+The explicit value must be a real directory under
+`bin/resources/themes/default`; a typo fails the configure step with the missing
+path (instead of silently producing a bundle without the example XML).
 
 Set `DUILIB_MACOS_BUNDLE_RESOURCES` only to add extra resources or drop default
 entries; it overrides the list (paths relative to `bin/resources`, separated by

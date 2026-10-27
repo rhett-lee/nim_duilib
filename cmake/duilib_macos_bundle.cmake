@@ -59,14 +59,17 @@ endfunction()
 # basic→basic、ChildWindow→child_window、MultiLang→MultiLang、
 # WebView2Browser→webview2_browser 都能自动匹配。
 # 优先级：
-#   1. 示例显式声明的 DUILIB_THEME_DIR_NAME（cef/CefBrowser 使用这种方式）；
+#   1. 示例显式声明的 DUILIB_THEME_DIR_NAME（任何示例都可用，cef/CefBrowser 使用
+#      这种方式；显式声明时会校验目录是否存在，写错在配置阶段直接报错）；
 #   2. themes/default 下与目标名匹配的目录（优先大小写完全一致的）；
 #   3. 都找不到时返回空，表示该示例没有自己的 XML 资源（如 ColorPicker）。
 function(_duilib_macos_bundle_theme_dir target out_dir)
     set(_theme_dir "")
+    set(_theme_dir_explicit FALSE)
     if(DEFINED DUILIB_THEME_DIR_NAME AND
        NOT "${DUILIB_THEME_DIR_NAME}" STREQUAL "")
         set(_theme_dir "${DUILIB_THEME_DIR_NAME}")
+        set(_theme_dir_explicit TRUE)
     else()
         string(TOLOWER "${target}" _target_key)
         string(REPLACE "_" "" _target_key "${_target_key}")
@@ -86,6 +89,16 @@ function(_duilib_macos_bundle_theme_dir target out_dir)
                 endif()
             endif()
         endforeach()
+    endif()
+
+    if(_theme_dir_explicit)
+        set(_theme_dir_path "${DUILIB_ROOT}/bin/resources/themes/default/${_theme_dir}")
+        if(NOT IS_DIRECTORY "${_theme_dir_path}")
+            message(FATAL_ERROR
+                "DUILIB_THEME_DIR_NAME='${_theme_dir}' is not a directory: ${_theme_dir_path}\n"
+                "Target '${target}': set DUILIB_THEME_DIR_NAME to a subdirectory name of "
+                "bin/resources/themes/default, or remove it to auto-derive from the target name.")
+        endif()
     endif()
     set(${out_dir} "${_theme_dir}" PARENT_SCOPE)
 endfunction()
