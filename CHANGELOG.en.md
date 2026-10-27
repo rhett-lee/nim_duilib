@@ -52,11 +52,18 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 - macOS App Bundles for ordinary examples, without C++ changes: an example can set
   `DUILIB_EXAMPLE_MACOS_BUNDLE=ON`, or be selected with the root option
   `DUILIB_MACOS_BUNDLE_EXAMPLES=<target list>`; `examples/basic` is enabled by default.
-  After linking, the bundle copies `bin/resources` into
-  `Contents/Resources/duilib` (the standard layout), copies SDL3 dylibs into
-  `Contents/Frameworks` with an `@executable_path/../Frameworks` rpath, removes the
-  stale artifact of the other mode, and derives bundle versions from
-  `duilib_version.h`.
+  After linking, the bundle copies resources into `Contents/Resources/duilib`
+  (the standard layout, with the resource list derived from the example name),
+  copies SDL3 dylibs into `Contents/Frameworks` with an
+  `@executable_path/../Frameworks` rpath, removes the stale artifact of the other
+  mode, and derives bundle versions from `duilib_version.h`.
+- macOS bundles trim resources per example automatically: the list is derived from
+  the example's target name (`project()`), so only its own theme directory, the
+  shared default theme, fonts and language files are copied; the example's
+  `CMakeLists.txt` needs no configuration. Other example directories under
+  `themes/default` stay out of the bundle, reducing bundle resources from about
+  4 MB to 1.3 MB. Use `DUILIB_MACOS_BUNDLE_RESOURCES` to override the default
+  list when extra resources are needed.
 - On macOS, `GlobalManager::GetResourceRootPath(bool)` now decides from the runtime
   environment; the argument is kept for compatibility only and is ignored. It
   prefers `<App>.app/Contents/Resources/duilib/` and falls back to `resources/`

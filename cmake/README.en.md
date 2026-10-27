@@ -356,7 +356,8 @@ target_link_libraries(${PROJECT_NAME}
 - generates `Info.plist` (template `cmake/macos/Info.plist.in`), identifier and versions;
 - copies `bin/resources` into `Contents/Resources/duilib` (the standard layout;
   `GetResourceRootPath()` detects it automatically on macOS, so no C++ changes are
-  needed);
+  needed). The resource list is derived from the example name (`project()`), so
+  nothing has to be configured; use `DUILIB_MACOS_BUNDLE_RESOURCES` to override it;
 - copies SDL3 dylibs into `Contents/Frameworks` and sets the rpath to
   `@executable_path/../Frameworks`;
 - removes the stale artifact of the other mode when switching between bundle and

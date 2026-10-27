@@ -87,12 +87,24 @@ bin/basic.app/
     Resources/
       duilib/                     # 标准 Bundle 资源目录
         themes/
-        lang/
-        fonts/
+          default/
+            global.xml
+            public/               # 默认主题的公共样式与图片
+            basic/                # basic 示例自己的 XML
+          color_light/
+            global.xml
+          color_dark/
+            global.xml
+        fonts/                    # 框架启动时加载
+        lang/                     # text_id 文本
       basic.icns                  # 仅在配置了图标时存在
     Frameworks/
       libSDL3*.dylib              # SDL3 动态库（静态 SDL3 时不存在）
 ```
+
+Bundle 内的资源清单由公共脚本按示例名自动推导（见 §4），只复制该示例需要的部分，
+`themes/default` 下其他示例的目录（`chat`、`cef`、`controls` 等）不会进入 Bundle。
+因此示例的 `CMakeLists.txt` 不需要配置任何资源列表。
 
 资源采用 macOS 标准布局 `Contents/Resources/duilib/`。`GlobalManager::GetResourceRootPath()`
 在 macOS 下已经不再依赖调用参数，而是按运行环境自动检测：
@@ -108,8 +120,9 @@ bin/basic.app/
 
 `cmake/duilib_macos_bundle.cmake` 在链接后执行以下操作：
 
-1. 复制整个 `bin/resources` 到 `Contents/Resources/duilib`（标准布局，体积约 4 MB；
-   如需精简，可在出包后删除未使用的主题目录）；
+1. 把资源复制到 `Contents/Resources/duilib`（标准布局）：按示例名自动推导的清单
+   只复制需要的子目录/文件（basic 当前约 1.3 MB，整份 `bin/resources` 约 4 MB）。
+   复制前会清理旧的 `duilib/` 目录，避免残留旧文件；
 2. 若启用 SDL3（macOS 上始终启用），把 `libSDL3*.dylib` 及其版本软链接链复制到
    `Contents/Frameworks`；
 3. 把主程序 rpath 设为 `@executable_path/../Frameworks`，避免加载构建机上的
@@ -118,6 +131,10 @@ bin/basic.app/
    `bin/<目标>.app`；
 5. 从 `duilib/duilib_version.h` 读取版本，写入 `CFBundleVersion` 与
    `CFBundleShortVersionString`。
+
+资源复制挂在目标的 `POST_BUILD` 上，只有目标重新链接时才会执行。如果只修改了
+资源文件，而目标没有重新链接，请先删除 `bin/<目标>.app` 再构建，避免 Bundle
+里仍是旧资源。
 
 Bundle 只会在 macOS 上生成，其他平台的构建逻辑没有任何变化。
 
@@ -135,6 +152,44 @@ set(DUILIB_MACOS_BUNDLE_NAME "Chat Demo")
 # .icns 图标（绝对路径，或相对示例源码目录）
 set(DUILIB_MACOS_BUNDLE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/chat.icns")
 ```
+
+### 默认资源清单（示例无需配置）
+
+Bundle 内的资源清单由 `cmake/duilib_macos_bundle.cmake` 按示例的目标名
+（`project(<名称> CXX)`）自动推导，示例的 `CMakeLists.txt` 不需要写任何资源列表：
+
+| 条目 | 说明 |
+| --- | --- |
+| `themes/default/global.xml` | 全局变量、字体配置与公共控件样式（启动必需） |
+| `themes/default/public` | `global.xml` 中 `${PATH_...}` 引用的公共图片/样式 |
+| `themes/default/<示例资源目录>` | 示例自己的 XML 与图片 |
+| `themes/color_light/global.xml`、`themes/color_dark/global.xml` | 标题栏的主题切换 |
+| `fonts` | `global.xml` 的 `FontFile` 在启动时加载 |
+| `lang` | `text_id` 以及中英文切换所需文本 |
+
+示例资源目录的匹配规则：把目标名和 `themes/default` 下的目录名都转成小写、
+去掉下划线后比较，所以 `basic→basic`、`ChildWindow→child_window`、
+`MultiLang→MultiLang`、`WebView2Browser→webview2_browser` 都能自动对应。
+找不到对应目录时（如 `ColorPicker` 不使用 XML）只复制公共资源，不会报错。
+也可以像 `cef`、`CefBrowser` 那样显式声明 `DUILIB_THEME_DIR_NAME`。
+
+只有在需要额外资源或去掉默认条目时，才设置 `DUILIB_MACOS_BUNDLE_RESOURCES`
+覆盖默认清单（相对 `bin/resources`，分号或逗号分隔）：
+
+```cmake
+# 可选：覆盖默认资源清单；目录递归复制，单个文件按原路径复制
+set(DUILIB_MACOS_BUNDLE_RESOURCES
+    "themes/default/global.xml"
+    "themes/default/public"
+    "themes/default/chat"
+    "themes/default/chat_res"
+    "fonts"
+    "lang")
+```
+
+显式清单里的路径不存在会在配置阶段直接报错并打印缺失路径，便于定位。
+无论使用默认清单还是显式清单，复制前都会清空 `Contents/Resources/duilib`，
+不会残留上一次的旧主题目录。
 
 图标要求：
 
@@ -177,15 +232,16 @@ otool -D bin/basic.app/Contents/Frameworks/libSDL3.0.dylib
 
 # 资源与启动
 test -f bin/basic.app/Contents/Resources/duilib/themes/default/global.xml && echo resources-ok
+test ! -e bin/basic.app/Contents/Resources/duilib/themes/default/chat && echo resources-trimmed
 DYLD_PRINT_LIBRARIES=1 bin/basic.app/Contents/MacOS/basic
 open bin/basic.app
 ```
 
 如果启动后找不到主题或字体，先确认 `Contents/Resources/duilib/themes/default/public`、
-`themes/default/basic`、`themes/default/global.xml`、`themes/color_light`、
-`themes/color_dark`、`lang/`、`fonts/` 都在
-`bin/basic.app/Contents/Resources/duilib/` 下。构建脚本复制的是整个
-`bin/resources`，正常情况下应全部存在。
+`themes/default/basic`、`themes/default/global.xml`、`themes/color_light/global.xml`、
+`themes/color_dark/global.xml`、`lang/`、`fonts/` 都在
+`bin/basic.app/Contents/Resources/duilib/` 下。构建脚本只复制默认清单里的资源，
+其他示例的目录本来就不应出现。
 
 ## 6. 签名与公证
 
@@ -237,18 +293,20 @@ Debug 与 Release 的 `.app` 同名，仍由 `bin/.build-config/<目标>` 标记
 | 现象 | 原因 | 处理 |
 | :--- | :--- | :--- |
 | 仍然是 `bin/basic`，没有 `.app` | 开关没生效 | 确认 `set(DUILIB_EXAMPLE_MACOS_BUNDLE ON)` 位于 include 之前；本开关仅 macOS 生效 |
-| `bin/basic.app` 中没有 `Resources/duilib/` | 资源未复制或源目录缺失 | 确认仓库有 `bin/resources`，重新构建；查看构建日志中的 `Copying duilib resources` |
-| 启动后提示找不到主题/字体 | 资源不在标准目录 | 检查 `Contents/Resources/duilib/themes/default/global.xml`；`GetResourceRootPath` 会自动检测该目录 |
+| `bin/basic.app` 中没有 `Resources/duilib/` | 资源未复制或源目录缺失 | 确认仓库有 `bin/resources`，重新构建；查看构建日志中的 `Copying ... into basic.app` |
+| 启动后提示找不到主题/字体 | 资源不在标准目录，或示例资源目录名与目标名不匹配 | 检查 `Contents/Resources/duilib/themes/default/global.xml`；确认 `themes/default/<示例目录>` 存在，必要时用 `DUILIB_THEME_DIR_NAME` 指定目录名后再构建 |
+| `themes/default` 下缺少其他示例的目录 | Bundle 默认按示例裁剪资源 | 正常现象；需要额外资源时用 `DUILIB_MACOS_BUNDLE_RESOURCES` 覆盖默认清单 |
 | `Library not loaded: @rpath/libSDL3*.dylib` | SDL3 未复制或 rpath 被改动 | 检查 `Contents/Frameworks` 与 `LC_RPATH`；重新构建，必要时重新签名 |
 | 双击提示“无法验证开发者” | 未签名/未公证 | 本地自测先 `codesign --force --deep --sign -`，分发按第 6 节处理 |
 | 切换开关后 `bin/` 里同时有 `basic` 和 `basic.app` | 上一次产物残留 | 重新链接目标（构建脚本会删除反向产物），或手工删除旧产物 |
 | 打包时收集了旧的 `.app` | 关闭 Bundle 后没有重新链接 | 手工 `rm -rf bin/<目标>.app` 后重新构建 |
+| 修改资源后 Bundle 没变化 | 资源复制在 `POST_BUILD`，目标未重新链接 | 先 `rm -rf bin/<目标>.app`，再重新构建 |
 
 ## 9. 相关文件
 
 | 文件 | 作用 |
 | :--- | :--- |
-| `examples/basic/CMakeLists.txt` | 已开启 Bundle 的示例（一行开关） |
+| `examples/basic/CMakeLists.txt` | 已开启 Bundle；资源清单按示例名自动推导，无需配置 |
 | `cmake/duilib_example.cmake` | 解析 `DUILIB_EXAMPLE_MACOS_BUNDLE` 与目标列表 |
 | `cmake/duilib_bin_macos.cmake` | macOS 分支：`MACOSX_BUNDLE` 目标与普通目标二选一 |
 | `cmake/duilib_macos_bundle.cmake` | Bundle 属性、资源、图标、SDL3、rpath |

@@ -12,6 +12,8 @@
 #   DUILIB_MACOS_BUNDLE_IDENTIFIER  Bundle Identifier（默认 com.nimduilib.<目标名>）
 #   DUILIB_MACOS_BUNDLE_NAME        Bundle 显示名称（默认目标名）
 #   DUILIB_MACOS_BUNDLE_ICON        .icns 图标路径（绝对路径，或相对当前源码目录）
+#   DUILIB_MACOS_BUNDLE_RESOURCES   可选：覆盖默认资源清单（相对 bin/resources，
+#                                   分号或逗号分隔）；不设置时按示例名自动推导
 
 # 从 duilib_version.h 读取版本宏，生成 CFBundleVersion / CFBundleShortVersionString。
 function(_duilib_macos_bundle_version out_version out_short)
@@ -49,6 +51,65 @@ function(_duilib_macos_bundle_version out_version out_short)
     endif()
     set(${out_version} "${_version}" PARENT_SCOPE)
     set(${out_short} "${_short}" PARENT_SCOPE)
+endfunction()
+
+# 示例自己的资源目录名（resources/themes/default 下的子目录名）。
+# 约定：目录名与示例的目标名对应，比较时忽略大小写和下划线差异，因此
+# basic→basic、ChildWindow→child_window、MultiLang→MultiLang、
+# WebView2Browser→webview2_browser 都能自动匹配。
+# 优先级：
+#   1. 示例显式声明的 DUILIB_THEME_DIR_NAME（cef/CefBrowser 使用这种方式）；
+#   2. themes/default 下与目标名匹配的目录（优先大小写完全一致的）；
+#   3. 都找不到时返回空，表示该示例没有自己的 XML 资源（如 ColorPicker）。
+function(_duilib_macos_bundle_theme_dir target out_dir)
+    set(_theme_dir "")
+    if(DEFINED DUILIB_THEME_DIR_NAME AND
+       NOT "${DUILIB_THEME_DIR_NAME}" STREQUAL "")
+        set(_theme_dir "${DUILIB_THEME_DIR_NAME}")
+    else()
+        string(TOLOWER "${target}" _target_key)
+        string(REPLACE "_" "" _target_key "${_target_key}")
+        file(GLOB _theme_dir_candidates
+             LIST_DIRECTORIES true
+             "${DUILIB_ROOT}/bin/resources/themes/default/*")
+        foreach(_theme_dir_candidate IN LISTS _theme_dir_candidates)
+            get_filename_component(_theme_dir_name "${_theme_dir_candidate}" NAME)
+            string(TOLOWER "${_theme_dir_name}" _theme_dir_key)
+            string(REPLACE "_" "" _theme_dir_key "${_theme_dir_key}")
+            if(_theme_dir_key STREQUAL _target_key)
+                if("${_theme_dir_name}" STREQUAL "${target}")
+                    set(_theme_dir "${_theme_dir_name}")
+                    break()
+                elseif("${_theme_dir}" STREQUAL "")
+                    set(_theme_dir "${_theme_dir_name}")
+                endif()
+            endif()
+        endforeach()
+    endif()
+    set(${out_dir} "${_theme_dir}" PARENT_SCOPE)
+endfunction()
+
+# 默认资源清单（相对 bin/resources），所有示例共用同一约定，示例的
+# CMakeLists.txt 不需要再写任何资源列表：
+#   themes/default/global.xml    全局变量、字体配置与公共控件样式（启动必需）
+#   themes/default/public        公共图片与样式（被 ${PATH_...} 引用）
+#   themes/default/<示例目录>     示例自己的 XML（由 _duilib_macos_bundle_theme_dir 推导）
+#   themes/color_light|color_dark/global.xml  标题栏的主题切换
+#   fonts、lang                  启动时加载的字体与 text_id 文本
+function(_duilib_macos_bundle_default_resources target out_list)
+    _duilib_macos_bundle_theme_dir(${target} _theme_dir)
+    set(_list
+        "themes/default/global.xml"
+        "themes/default/public")
+    if(NOT "${_theme_dir}" STREQUAL "")
+        list(APPEND _list "themes/default/${_theme_dir}")
+    endif()
+    list(APPEND _list
+        "themes/color_light/global.xml"
+        "themes/color_dark/global.xml"
+        "fonts"
+        "lang")
+    set(${out_list} "${_list}" PARENT_SCOPE)
 endfunction()
 
 function(duilib_configure_macos_bundle target)
@@ -114,6 +175,9 @@ function(duilib_configure_macos_bundle target)
 
     # 资源复制到 Contents/Resources/duilib：macOS 标准 Bundle 布局，
     # 与 GetResourceRootPath() 的自动检测逻辑一致。
+    # 默认清单由 _duilib_macos_bundle_default_resources() 按示例名推导，示例的
+    # CMakeLists.txt 无需配置；设置 DUILIB_MACOS_BUNDLE_RESOURCES 时以它为准，
+    # 用于补充额外资源或去掉默认条目。
     set(_duilib_resources_from "${DUILIB_ROOT}/bin/resources")
     if(NOT EXISTS "${_duilib_resources_from}")
         message(FATAL_ERROR
@@ -122,13 +186,76 @@ function(duilib_configure_macos_bundle target)
     endif()
     set(_duilib_resources_to
         "$<TARGET_BUNDLE_DIR:${target}>/Contents/Resources/duilib")
+
+    # 先清理上一次生成的资源目录，避免修改裁剪列表后遗留旧文件。
     add_custom_command(TARGET ${target}
         POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${_duilib_resources_to}"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-                "${_duilib_resources_from}" "${_duilib_resources_to}"
-        COMMENT "Copying duilib resources into ${target}.app"
+        COMMAND ${CMAKE_COMMAND} -E rm -rf "${_duilib_resources_to}"
+        COMMENT "Cleaning duilib resources in ${target}.app"
         VERBATIM)
+
+    set(_duilib_resources_explicit FALSE)
+    set(_duilib_resource_list "")
+    if(DEFINED DUILIB_MACOS_BUNDLE_RESOURCES AND
+       NOT "${DUILIB_MACOS_BUNDLE_RESOURCES}" STREQUAL "")
+        set(_duilib_resource_entries "")
+        string(REPLACE "," ";" _duilib_resource_entries
+               "${DUILIB_MACOS_BUNDLE_RESOURCES}")
+        foreach(_duilib_resource IN LISTS _duilib_resource_entries)
+            string(STRIP "${_duilib_resource}" _duilib_resource)
+            if(NOT "${_duilib_resource}" STREQUAL "")
+                list(APPEND _duilib_resource_list "${_duilib_resource}")
+            endif()
+        endforeach()
+        set(_duilib_resources_explicit TRUE)
+    endif()
+    list(LENGTH _duilib_resource_list _duilib_resource_count)
+    if(_duilib_resource_count EQUAL 0)
+        # 未设置（或列表为空）时使用公共约定，示例无需配置。
+        _duilib_macos_bundle_default_resources(${target} _duilib_resource_list)
+        set(_duilib_resources_explicit FALSE)
+    endif()
+
+    foreach(_duilib_resource IN LISTS _duilib_resource_list)
+        set(_duilib_resource_src
+            "${_duilib_resources_from}/${_duilib_resource}")
+        if(NOT EXISTS "${_duilib_resource_src}")
+            # 显式清单写错要立刻失败；默认清单里缺失的条目（例如某个示例
+            # 没有自己的主题目录）直接跳过，只复制公共资源。
+            if(_duilib_resources_explicit)
+                message(FATAL_ERROR
+                    "macOS bundle resource not found: ${_duilib_resource_src}\n"
+                    "Check DUILIB_MACOS_BUNDLE_RESOURCES in ${CMAKE_CURRENT_SOURCE_DIR}")
+            endif()
+            message(STATUS
+                "Skipping macOS bundle resource (not found): ${_duilib_resource}")
+            continue()
+        endif()
+
+        if(IS_DIRECTORY "${_duilib_resource_src}")
+            add_custom_command(TARGET ${target}
+                POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E make_directory
+                        "${_duilib_resources_to}/${_duilib_resource}"
+                COMMAND ${CMAKE_COMMAND} -E copy_directory
+                        "${_duilib_resource_src}"
+                        "${_duilib_resources_to}/${_duilib_resource}"
+                COMMENT "Copying ${_duilib_resource} into ${target}.app"
+                VERBATIM)
+        else()
+            get_filename_component(_duilib_resource_dst_dir
+                "${_duilib_resources_to}/${_duilib_resource}" DIRECTORY)
+            add_custom_command(TARGET ${target}
+                POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E make_directory
+                        "${_duilib_resource_dst_dir}"
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                        "${_duilib_resource_src}"
+                        "${_duilib_resources_to}/${_duilib_resource}"
+                COMMENT "Copying ${_duilib_resource} into ${target}.app"
+                VERBATIM)
+        endif()
+    endforeach()
 
     # 切换为 Bundle 后，bin/ 中可能还留有上一次生成的非 Bundle 可执行文件；
     # 删除它，避免 pack.py 同时收集 bin/<target> 与 bin/<target>.app。

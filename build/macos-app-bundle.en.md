@@ -88,12 +88,25 @@ bin/basic.app/
     Resources/
       duilib/                     # standard bundle resource directory
         themes/
-        lang/
-        fonts/
+          default/
+            global.xml
+            public/               # shared styles and images
+            basic/                # XML for the basic example
+          color_light/
+            global.xml
+          color_dark/
+            global.xml
+        fonts/                    # loaded during framework startup
+        lang/                     # text for text_id lookups
       basic.icns                  # only when an icon is configured
     Frameworks/
       libSDL3*.dylib              # absent when SDL3 is static
 ```
+
+The bundle resource list is derived automatically from the example name (see
+section 4), so only that example's resources are copied and the other example
+directories under `themes/default` (`chat`, `cef`, `controls`, ...) stay out of
+the bundle. No resource list is needed in the example's `CMakeLists.txt`.
 
 Resources use the standard macOS layout `Contents/Resources/duilib/`. On macOS,
 `GlobalManager::GetResourceRootPath()` no longer depends on its argument; it
@@ -111,8 +124,10 @@ As a result, example code works unchanged whether it calls
 
 `cmake/duilib_macos_bundle.cmake` runs after linking and:
 
-1. copies the whole `bin/resources` into `Contents/Resources/duilib` (standard
-   layout, about 4 MB; unused theme directories can be trimmed after packaging);
+1. copies resources into `Contents/Resources/duilib` (standard layout): the list
+   is derived from the example name and contains only what it needs (basic is
+   about 1.3 MB instead of 4 MB for the whole `bin/resources`). The old
+   `duilib/` directory is removed first so stale files do not survive;
 2. copies `libSDL3*.dylib` and its version symlink chain into `Contents/Frameworks`
    when SDL3 is enabled (always on macOS);
 3. sets the executable rpath to `@executable_path/../Frameworks` so SDL3 is not
@@ -121,6 +136,10 @@ As a result, example code works unchanged whether it calls
    removes `bin/<target>.app`;
 5. reads `duilib/duilib_version.h` and fills `CFBundleVersion` /
    `CFBundleShortVersionString`.
+
+Resource copying is a `POST_BUILD` step, so it only runs when the target relinks.
+If you changed resource files without causing a relink, delete
+`bin/<target>.app` and rebuild; otherwise the bundle keeps the old resources.
 
 Bundles are only produced on macOS; other platforms are unchanged.
 
@@ -139,6 +158,49 @@ set(DUILIB_MACOS_BUNDLE_NAME "Chat Demo")
 # .icns icon: absolute, or relative to the example source directory
 set(DUILIB_MACOS_BUNDLE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/chat.icns")
 ```
+
+### Default resource list (nothing to configure)
+
+`cmake/duilib_macos_bundle.cmake` derives the resource list from the example's
+target name (`project(<name> CXX)`), so the example's `CMakeLists.txt` needs no
+resource list at all:
+
+| Entry | Purpose |
+| --- | --- |
+| `themes/default/global.xml` | global variables, font configuration and shared styles (required at startup) |
+| `themes/default/public` | shared images/styles referenced by `${PATH_...}` |
+| `themes/default/<example directory>` | the example's own XML and images |
+| `themes/color_light/global.xml`, `themes/color_dark/global.xml` | title-bar theme switching |
+| `fonts` | loaded by the `FontFile` entries in `global.xml` at startup |
+| `lang` | text for `text_id` and the language switcher |
+
+Matching rule for the example directory: both the target name and the
+`themes/default` directory names are lower-cased with underscores removed before
+comparison, so `basic→basic`, `ChildWindow→child_window`, `MultiLang→MultiLang`
+and `WebView2Browser→webview2_browser` all resolve automatically. When no
+directory matches (`ColorPicker` uses no XML), only the shared resources are
+copied and no error is reported. An example can still declare
+`DUILIB_THEME_DIR_NAME` explicitly, as `cef` and `CefBrowser` do.
+
+Set `DUILIB_MACOS_BUNDLE_RESOURCES` only to add extra resources or drop default
+entries; it overrides the list (paths relative to `bin/resources`, separated by
+semicolons or commas):
+
+```cmake
+# Optional: override the default resource list; directories are copied
+# recursively, single files keep their relative path
+set(DUILIB_MACOS_BUNDLE_RESOURCES
+    "themes/default/global.xml"
+    "themes/default/public"
+    "themes/default/chat"
+    "themes/default/chat_res"
+    "fonts"
+    "lang")
+```
+
+A missing path in an explicit list fails at configure time and prints the missing
+path. With either the default or an explicit list, `Contents/Resources/duilib` is
+cleared first, so stale theme directories from a previous build do not survive.
 
 The icon must be `.icns`; a Windows `.ico` is not accepted. Include 16, 32, 128,
 256, 512 and matching `@2x` sizes. A typical conversion:
@@ -175,15 +237,17 @@ otool -D bin/basic.app/Contents/Frameworks/libSDL3.0.dylib
 # expect @rpath/libSDL3.0.dylib
 
 test -f bin/basic.app/Contents/Resources/duilib/themes/default/global.xml && echo resources-ok
+test ! -e bin/basic.app/Contents/Resources/duilib/themes/default/chat && echo resources-trimmed
 DYLD_PRINT_LIBRARIES=1 bin/basic.app/Contents/MacOS/basic
 open bin/basic.app
 ```
 
 If themes or fonts are missing at startup, check that
 `themes/default/public`, `themes/default/basic`, `themes/default/global.xml`,
-`themes/color_light`, `themes/color_dark`, `lang/` and `fonts/` all exist under
-`bin/basic.app/Contents/Resources/duilib/`. The build copies the whole
-`bin/resources` directory.
+`themes/color_light/global.xml`, `themes/color_dark/global.xml`, `lang/` and
+`fonts/` all exist under `bin/basic.app/Contents/Resources/duilib/`. The build
+only copies the entries in the default list; other examples' directories are
+intentionally absent.
 
 ## 6. Signing and notarization
 
@@ -239,18 +303,20 @@ artifacts when switching configurations.
 | Symptom | Cause | Fix |
 | :--- | :--- | :--- |
 | Still `bin/basic`, no `.app` | Switch not applied | Put `set(DUILIB_EXAMPLE_MACOS_BUNDLE ON)` before the include; it only applies on macOS |
-| No `Resources/duilib/` inside the bundle | Copy skipped or source missing | Ensure `bin/resources` exists and rebuild; look for `Copying duilib resources` in the build log |
-| Themes/fonts not found at startup | Resources not in the standard directory | Check `Contents/Resources/duilib/themes/default/global.xml`; `GetResourceRootPath()` detects this directory automatically |
+| No `Resources/duilib/` inside the bundle | Copy skipped or source missing | Ensure `bin/resources` exists and rebuild; look for `Copying ... into basic.app` in the build log |
+| Themes/fonts not found at startup | Resources not in the standard directory, or the example directory name does not match the target | Check `Contents/Resources/duilib/themes/default/global.xml`; make sure `themes/default/<example directory>` exists, or set `DUILIB_THEME_DIR_NAME` and rebuild |
+| Other example directories under `themes/default` are missing | Bundles are trimmed per example by default | Expected; override the default list with `DUILIB_MACOS_BUNDLE_RESOURCES` if you really need them |
 | `Library not loaded: @rpath/libSDL3*.dylib` | SDL3 missing or rpath changed | Check `Contents/Frameworks` and `LC_RPATH`; rebuild and re-sign |
 | “Developer cannot be verified” | Not signed/notarized | Ad-hoc sign for local tests; follow section 6 for distribution |
 | Both `basic` and `basic.app` exist | Old artifact from a previous mode | Relink the target (the build removes the opposite artifact) or delete the old one manually |
 | Packaging picks up an old `.app` | Bundle was disabled without relinking | `rm -rf bin/<target>.app` and rebuild |
+| Bundle keeps old resources after changing them | Resource copy is `POST_BUILD`; the target did not relink | `rm -rf bin/<target>.app` and rebuild |
 
 ## 9. Related files
 
 | File | Purpose |
 | :--- | :--- |
-| `examples/basic/CMakeLists.txt` | Example already opted in with one line |
+| `examples/basic/CMakeLists.txt` | Opted in; the resource list is derived from the example name, nothing to configure |
 | `cmake/duilib_example.cmake` | Resolves `DUILIB_EXAMPLE_MACOS_BUNDLE` and the target list |
 | `cmake/duilib_bin_macos.cmake` | Chooses between `MACOSX_BUNDLE` and a plain executable |
 | `cmake/duilib_macos_bundle.cmake` | Bundle properties, resources, icon, SDL3, rpath |
