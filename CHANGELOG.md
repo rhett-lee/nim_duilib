@@ -108,9 +108,10 @@
 - 构建（Windows 示例）：Debug 默认开启增量链接，并行链接多个示例时偶发
   `LNK1000: Internal error during IncrBuildImage`，旧 `.ilk` 损坏后还要手工删除；
   示例程序统一加 `/INCREMENTAL:NO`，链接耗时代价很小、构建结果稳定。
-- 打包（Debug/Release 同名示例）：CMake 链接后新增 `bin/<目标>.build-config`
-  记录构建配置；`pack.py` 打 Debug 包时按标记跳过 Release 构建的示例，缺少标记
-  时提示无法确认，不再笼统告警“可能混有 Release 版本”。
+- 打包（Debug/Release 同名示例）：CMake 链接后在隐藏目录
+  `bin/.build-config/<目标>` 记录构建配置（升级前写在 `bin/<目标>.build-config`，
+  `pack.py` 仍兼容读取，重新链接时会自动删除旧文件）；打 Debug 包时按标记跳过
+  Release 构建的示例，缺少标记时提示无法确认，不再笼统告警“可能混有 Release 版本”。
 - 依赖准备（SDL3）：Debug 与 Release 生成的 `SDL3-static.lib` 同名且安装到同一个
   前缀，原先两个配置都构建、Release 最后安装，Debug 构建实际链接的是 Release 版
   静态库（`/MTd` 与 `/MT`、`/MDd` 与 `/MD` 混用）。现在单配置生成器（`build.py`

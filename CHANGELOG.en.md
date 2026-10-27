@@ -139,9 +139,11 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `LNK1000: Internal error during IncrBuildImage` (plus stale `.ilk` files).
   Examples now pass `/INCREMENTAL:NO`; the extra link time is negligible.
 - Packaging (same-name Debug/Release examples): a POST_BUILD step now records the
-  configuration in `bin/<target>.build-config`; `pack.py` skips examples built
-  for the other configuration and only warns when the marker is missing, instead
-  of a blanket "may be mixed" warning.
+  configuration under the hidden directory `bin/.build-config/<target>` (older
+  builds wrote `bin/<target>.build-config`, which `pack.py` still reads and the
+  stamp step removes when the target relinks); `pack.py` skips examples built for
+  the other configuration and only warns when the marker is missing, instead of a
+  blanket "may be mixed" warning.
 - Dependency preparation (SDL3): Debug and Release produce the same
   `SDL3-static.lib` name and install into one prefix; both configurations were
   built and Release was installed last, so Debug builds actually linked the
