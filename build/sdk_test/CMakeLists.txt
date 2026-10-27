@@ -167,7 +167,7 @@ nim_duilib_copy_runtime(nim_duilib_sdk_consumer RESOURCES)
 #   - FRAMEWORKS 把 SDK 的 lib/libSDL3*.dylib 复制到 Contents/Frameworks，
 #     并把主可执行文件的 rpath 设为 @executable_path/../Frameworks（优先 bundle 内的库）；
 #   - RESOURCES 在 bundle 目标上复制到 Contents/Resources/duilib/，
-#     与 GlobalManager::GetResourceRootPath(true) 的查找位置一致。
+#     即 GlobalManager::GetResourceRootPath() 在 macOS 下自动检测的标准目录。
 # 运行期用例见 bundle_main.cpp；由 sdk_package_test.py 的 C11 驱动。
 # 该目标只在 macOS 上创建，其他平台不参与配置与构建。
 # ---------------------------------------------------------------------------

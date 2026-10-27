@@ -45,11 +45,13 @@ public:
     static GlobalManager& Instance();
 
     /** 获取资源目录的根路径（绝对路径）
-    * @param [in] bMacOsAppBundle MacOS平台是否使用App Bundle（目前仅在使用CEF模块时需要传入true，其他均传入false）
+    * @param [in] bMacOsAppBundle 兼容参数，已废弃：macOS下忽略该值，函数按运行环境自动选择
+    *             <App>.app/Contents/Resources/duilib/（存在时）或可执行文件同目录的resources/；
+    *             其他平台同样忽略该值。保留参数仅为兼容现有调用。
     *             该函数仅用于在调用Startup函数前确定资源目录，其他情况下，请使用GlobalManager::Instance().GetResourceRootPath()函数
     * @return 返回绝对路径，示例：<程序所在目录的绝对路径>/resources/
     */
-    static FilePath GetResourceRootPath(bool bMacOsAppBundle);
+    static FilePath GetResourceRootPath(bool bMacOsAppBundle = false);
 
     /** 获取资源压缩包的路径（绝对路径）
     * @return 返回绝对路径，示例：<程序所在目录的绝对路径>/resources.zip

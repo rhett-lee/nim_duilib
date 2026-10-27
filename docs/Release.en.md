@@ -334,9 +334,10 @@ nim_duilib_copy_runtime(my_app RESOURCES FRAMEWORKS)
 ```
 
 For a `MACOSX_BUNDLE` target without an explicit `DESTINATION`, `RESOURCES`
-copies into `my_app.app/Contents/Resources/duilib/` (where
-`GlobalManager::GetResourceRootPath(true)` looks), not
-`Contents/MacOS/resources`. See `build/sdk_test/bundle_main.cpp` and
+copies into `my_app.app/Contents/Resources/duilib/` (the standard macOS layout),
+not `Contents/MacOS/resources`. On macOS, `GlobalManager::GetResourceRootPath()`
+detects that directory automatically (its argument is ignored), so no call-site
+changes are required. See `build/sdk_test/bundle_main.cpp` and
 `build/sdk_test/CMakeLists.txt` (scenario C11 of the package test suite) for a
 complete, runnable bundle integration sample.
 
@@ -685,10 +686,11 @@ set it in their own `CMakeLists.txt` before including
 #### 4. Resource directory
 
 For CEF apps the resource root comes from
-`GlobalManager::GetResourceRootPath(true)`: when
-`<app>/Contents/Resources/duilib/` exists it is used as the root, with themes
-under `themes/default/<DUILIB_THEME_DIR_NAME>` and languages/fonts under
-`lang/` and `fonts/`. `duilib_cef_macos.cmake` already copies it this way:
+`GlobalManager::GetResourceRootPath()` (on macOS it decides from the runtime
+environment and ignores its argument): when `<app>/Contents/Resources/duilib/`
+exists it is used as the root, with themes under
+`themes/default/<DUILIB_THEME_DIR_NAME>` and languages/fonts under `lang/` and
+`fonts/`. `duilib_cef_macos.cmake` already copies it this way:
 
 ```
 MyApp.app/Contents/Resources/duilib/
@@ -699,8 +701,10 @@ MyApp.app/Contents/Resources/duilib/
   fonts/
 ```
 
-Non-CEF or non-bundle macOS programs use `GetResourceRootPath(false)` and keep
-`resources/` next to the executable.
+Ordinary examples built as `.app` use the same standard layout (see
+[build/macos-app-bundle.en.md](../build/macos-app-bundle.en.md)). Non-bundle macOS
+programs fall back to `resources/` next to the executable when
+`Contents/Resources/duilib/` is not found.
 
 #### 5. Final layout (all required)
 

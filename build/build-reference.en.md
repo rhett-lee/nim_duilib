@@ -117,7 +117,10 @@ MSVC, Linux and macOS; OFF for MinGW/MSYS2 and FreeBSD). Only when configuring
 the same directory directly with `cmake` do you need to clear the cache (delete
 the build directory and reconfigure). When CEF is turned off through
 `--cmake-arg`, stale `cef`/`CefBrowser` entries left in `DUILIB_EXAMPLES` are
-dropped or skipped instead of failing to link.
+dropped or skipped instead of failing to link. `DUILIB_MACOS_BUNDLE_EXAMPLES`
+(the macOS App Bundle target list) is set only through `--cmake-arg` and persists
+in the cache; pass an empty value to disable it. See
+[macos-app-bundle.en.md](macos-app-bundle.en.md).
 
 On Unix, examples carry origin-relative rpath entries (`$ORIGIN/../lib`,
 `@loader_path/../lib`, etc.) plus the SDL3 prefix as a build-tree fallback. To
@@ -236,6 +239,20 @@ for usage. Only the `cef` and `CefBrowser` examples link CEF (`DUILIB_EXAMPLE_CE
 other example executables do not import `libcef`. `DUILIB_ENABLE_CEF` only controls
 whether the library compiles the CEF control sources.
 
+### macOS App Bundles
+
+On macOS, `basic` is built as `bin/basic.app` by default. Any other example can add
+`set(DUILIB_EXAMPLE_MACOS_BUNDLE ON)` to its `CMakeLists.txt`, or be selected with
+`-DDUILIB_MACOS_BUNDLE_EXAMPLES=<target list>`; no C++ changes are needed. Resources
+are copied into `Contents/Resources/duilib` (the standard macOS layout), and SDL3
+dylibs into `Contents/Frameworks` with a relative rpath. On macOS,
+`GlobalManager::GetResourceRootPath()` detects this directory automatically (its
+argument is ignored) and falls back to `resources/` next to the executable when the
+directory is absent.
+
+See [macos-app-bundle.en.md](macos-app-bundle.en.md) for the switch, layout, icons,
+verification, signing and packaging details.
+
 ## 7. Packaging
 
 SDKs are produced only by `pack.py`; the root CMake project has no `install()` target.
@@ -258,13 +275,16 @@ package never ships examples that cannot start without the libcef runtime; add
 `--with-cef` for runnable CEF examples.
 
 macOS is the exception: CEF examples are App Bundles (`bin/cef.app`,
-`bin/CefBrowser.app` directories). With `--with-examples`, `--with-cef` decides whether
-they ship: omitted means they are skipped with a warning, specified means the whole
-bundle (CEF framework and Helpers under `Contents/Frameworks`) is packaged with its
-original layout. Bundles carry their own runtime, so on macOS `--with-cef` only
-controls the examples and never collects CEF development files or a runtime directory
-(the SDK has no macOS CEF development files; build from the source tree as described
-in [Release.en.md](../docs/Release.en.md)).
+`bin/CefBrowser.app` directories), and ordinary examples can be built as
+`bin/<example>.app` as described in [macos-app-bundle.en.md](macos-app-bundle.en.md).
+`.app` directories are collected as a whole (executable, resources and Frameworks under
+`Contents/`). With `--with-examples`, `--with-cef` decides whether the CEF examples
+ship: omitted means they are skipped with a warning, specified means the whole bundle
+(CEF framework and Helpers under `Contents/Frameworks`) is packaged with its original
+layout. Bundles carry their own runtime, so on macOS `--with-cef` only controls the
+examples and never collects CEF development files or a runtime directory (the SDK has
+no macOS CEF development files; build from the source tree as described in
+[Release.en.md](../docs/Release.en.md)).
 
 ## 8. Platform × compiler × dependencies × optional modules
 

@@ -12,6 +12,7 @@ and troubleshooting, see [build-reference.en.md](build-reference.en.md)
 | `build.py` | **the single command-line entry**: deps, build, test, pack, clean |
 | `build.bat` | thin Windows wrapper that locates Python 3 and calls `build.py` |
 | `build-reference.md` / `.en.md` | build reference manual (commands, deps, outputs, troubleshooting) |
+| `macos-app-bundle.md` / `.en.md` | reference for building examples as macOS `.app` bundles |
 | `pack.py` | produces SDK packages (collects existing artifacts, never builds) |
 | `release.py` | release orchestration: checks, packaging, verification (no commit/tag/push) |
 | `autotest.py` | local automation: environment check → build → package → verify → assertions |

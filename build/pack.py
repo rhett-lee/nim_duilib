@@ -1484,8 +1484,8 @@ def collect_examples(collector, config, is_windows, with_cef=True, is_macos=Fals
     for name in sorted(os.listdir(BIN_DIR)):
         full = os.path.join(BIN_DIR, name)
         if os.path.isdir(full):
-            # macOS 的 CEF 示例是 .app Bundle（目录），逐文件收集以保留结构；
-            # 与其他平台一致，未打包 CEF 模块（--with-cef）时跳过。
+            # macOS 的示例可以是 .app Bundle（CEF 示例或普通示例），逐文件收集
+            # 以保留 Contents/ 结构；CEF 示例在未加 --with-cef 时跳过。
             if not (is_macos and name.endswith('.app')):
                 continue
             if not with_cef and is_cef_example(name):
@@ -2056,7 +2056,7 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
         lines.append('  @executable_path/../Frameworks（优先使用 bundle 内的库）；Helper 的 exe 在')
         lines.append('  Contents/Frameworks/<Helper>.app/Contents/MacOS，需用 ../../..。')
         lines.append('  bundle 目标上的 RESOURCES 复制到 Contents/Resources/duilib/')
-        lines.append('  （不指定 DESTINATION 时），与 GetResourceRootPath(true) 一致。')
+        lines.append('  （不指定 DESTINATION 时），即 GetResourceRootPath() 自动检测的标准目录。')
     lines.append('  可设置 NIM_DUILIB_SET_MSVC_RUNTIME=OFF 退出运行库强制对齐；')
     lines.append('  NIM_DUILIB_ALLOW_{ARCH,CONFIG}_MISMATCH=ON 放行不匹配（不推荐）。')
     lines.append('  注意：发布包是单架构、单配置的，Debug/Release 需各用各的包。')

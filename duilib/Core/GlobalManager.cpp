@@ -91,21 +91,22 @@ GlobalManager& GlobalManager::Instance()
 
 FilePath GlobalManager::GetResourceRootPath(bool bMacOsAppBundle)
 {
+    // 该参数仅用于兼容旧版调用，资源目录由运行环境自动检测
+    UNUSED_VARIABLE(bMacOsAppBundle);
+
     ui::FilePath resourcePath;
 #ifdef DUILIB_BUILD_FOR_MACOS
-    //MacOS平台，优先使用bundle的资源目录
-    if (bMacOsAppBundle) {
-        resourcePath = ui::FilePathUtil::GetBundleResourcesPath();
-        if (!resourcePath.IsEmpty()) {
-            resourcePath.NormalizeDirectoryPath();
-            resourcePath += _T("duilib/");
-            if (!resourcePath.IsExistsDirectory()) {
-                resourcePath.Clear();
-            }
+    // MacOS平台：按运行环境自动选择资源根目录，不再依赖调用参数。
+    // 1. 标准App Bundle布局：<App>.app/Contents/Resources/duilib/
+    // 2. 兼容布局或非Bundle程序：<可执行文件目录>/resources/
+    ui::FilePath bundleResourcePath = ui::FilePathUtil::GetBundleResourcesPath();
+    if (!bundleResourcePath.IsEmpty()) {
+        bundleResourcePath.NormalizeDirectoryPath();
+        bundleResourcePath += _T("duilib/");
+        if (bundleResourcePath.IsExistsDirectory()) {
+            resourcePath = bundleResourcePath;
         }
     }
-#else
-    UNUSED_VARIABLE(bMacOsAppBundle);
 #endif
     if (resourcePath.IsEmpty()) {
         resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();

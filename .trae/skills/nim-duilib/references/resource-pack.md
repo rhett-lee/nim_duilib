@@ -5,13 +5,20 @@
 ### 模式 1：本地文件夹（开发时推荐）
 
 ```cpp
-// 推荐：跨平台，自动适配 Windows(exe 同目录 resources/) 与 macOS bundle(Resources/)
+// 推荐：跨平台，参数已废弃（true/false 均可），按运行环境自动检测：
+//   macOS Bundle：优先 <App>.app/Contents/Resources/duilib/，不存在时回退到
+//                 <App>.app/Contents/MacOS/resources/
+//   Windows/Linux/FreeBSD：<exe 目录>/resources/
 ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
 ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 ```
 
 （`ui::FilePathUtil::GetCurrentModuleDirectory()` + 手工拼 `"resources\\"` 只在 Windows 下碰巧能用，
 在 Linux/macOS 上分隔符不对，不要照抄。）
+
+macOS `.app` 的构建方式、资源放置位置与签名/打包见
+`build/macos-app-bundle.md`；basic 示例默认编译为 `bin/basic.app`，资源位于
+`Contents/Resources/duilib/`（macOS 标准布局），因此不需要改 C++ 代码。
 
 目录结构：
 

@@ -1,6 +1,7 @@
 # 把 SDL3 动态库复制到 macOS App Bundle 的 Contents/Frameworks 目录。
 #
-# 用法（由 cmake/duilib_cef_macos.cmake 作为 POST_BUILD 调用）：
+# 用法（由 cmake/duilib_cef_macos.cmake 或 cmake/duilib_macos_bundle.cmake
+# 作为 POST_BUILD 调用）：
 #   cmake -DSDL3_LIB_DIR=<SDL3 的 lib64 或 lib 目录>
 #         -DBUNDLE_FRAMEWORKS_DIR=<App>.app/Contents/Frameworks
 #         -P cmake/duilib_copy_sdl_bundle.cmake

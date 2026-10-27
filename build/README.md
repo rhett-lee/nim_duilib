@@ -11,6 +11,7 @@
 | `build.py` | **唯一命令行入口**：生成依赖、编译、测试、出包、清理 |
 | `build.bat` | Windows 薄封装：定位 Python 3 后转调 `build.py` |
 | `build-reference.md` / `.en.md` | 编译参考手册（命令、依赖、产物、排障） |
+| `macos-app-bundle.md` / `.en.md` | 把示例编译为 macOS `.app` 的参考文档 |
 | `pack.py` | 生成 SDK 包（只收集已构建产物，不参与编译） |
 | `release.py` | 发布流程编排：预检、打包、校验（不做 commit/tag/push） |
 | `autotest.py` | 本地自动化：环境检测 → 构建 → 打包 → 校验 → 结构断言 |

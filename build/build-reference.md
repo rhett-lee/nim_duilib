@@ -108,6 +108,9 @@ Debug 与 Release 的示例输出同名，都写在共享的 `bin/`，而目标�
 只有绕过 `build.py` 直接用 `cmake` 配置同一目录时才需要自己清理缓存（删除构建
 目录后重新配置）。用 `--cmake-arg` 临时关掉 CEF 时，`DUILIB_EXAMPLES` 中残留的
 `cef`/`CefBrowser` 会被自动剔除或跳过，不会再去链接不存在的 CEF 符号。
+`DUILIB_MACOS_BUNDLE_EXAMPLES`（macOS App Bundle 目标列表）只通过
+`--cmake-arg` 设置，会保留在缓存中；关闭时传空值，见
+[macos-app-bundle.md](macos-app-bundle.md)。
 
 Unix 上示例程序默认写入相对 rpath（`$ORIGIN/../lib`、`@loader_path/../lib` 等），
 并追加 SDL3 依赖前缀作为构建树兜底。要生成完全不含构建机绝对路径的产物，可加
@@ -209,6 +212,19 @@ CEF 运行时目录需要随程序一起发布；CEF 的用法见 [docs/CEF.md](
 只有 `cef` 与 `CefBrowser` 示例链接 CEF（`DUILIB_EXAMPLE_CEF`），其余示例的可执行
 文件不导入 `libcef`；`DUILIB_ENABLE_CEF` 只决定库是否编译 CEF 控件源码。
 
+### macOS App Bundle
+
+macOS 下 `basic` 默认编译为 `bin/basic.app`。其他示例可以在自己的
+`CMakeLists.txt` 中加一行 `set(DUILIB_EXAMPLE_MACOS_BUNDLE ON)`，或用
+`-DDUILIB_MACOS_BUNDLE_EXAMPLES=<目标名列表>` 指定；示例 C++ 代码无需修改，
+资源按 macOS 标准布局复制到 `Contents/Resources/duilib`，SDL3 动态库复制到
+`Contents/Frameworks` 并设置相对 rpath。`GlobalManager::GetResourceRootPath()`
+在 macOS 下自动检测该标准目录（参数已忽略），找不到时回退到可执行文件同目录的
+`resources/`。
+
+完整说明（开关、目录结构、图标、验证、签名、打包）见
+[macos-app-bundle.md](macos-app-bundle.md)。
+
 ## 7. 出包
 
 SDK 只由 `pack.py` 生成，根 CMake 工程不提供 `install()` 目标。
@@ -229,9 +245,12 @@ python3 build/build.py pack --out-dir dist     # 指定输出目录
 （Windows 为 `cef.exe`/`CefBrowser.exe`），避免包内留下缺少 libcef 运行时、
 必然启动失败的程序；需要可运行的 CEF 示例请同时加 `--with-cef`。
 
-macOS 例外：CEF 示例是 App Bundle（`bin/cef.app`、`bin/CefBrowser.app` 目录）。
-`--with-examples` 时同样以 `--with-cef` 决定是否随包：未指定则跳过并告警，指定后
-整个目录（含 `Contents/Frameworks` 下的 CEF Framework 与 Helper）按原结构打包。
+macOS 例外：CEF 示例是 App Bundle（`bin/cef.app`、`bin/CefBrowser.app` 目录），
+普通示例也可以按 [macos-app-bundle.md](macos-app-bundle.md) 编译为
+`bin/<示例名>.app`。`.app` 目录会整体收集（含 `Contents/` 下的可执行文件、
+资源与 Frameworks）。
+`--with-examples` 时同样以 `--with-cef` 决定 CEF 示例是否随包：未指定则跳过并告警，
+指定后整个目录（含 `Contents/Frameworks` 下的 CEF Framework 与 Helper）按原结构打包。
 Bundle 自带运行时，因此 macOS 的 `--with-cef` 只控制示例，不收集 CEF 开发文件与
 运行时目录（SDK 不含 macOS CEF 开发文件，需按 [Release.md](../docs/Release.md)
 的 macOS 章节从源码树构建）。

@@ -73,7 +73,8 @@ int main()
 #endif
 
     try {
-        // bundle 形态：优先使用 <app>/Contents/Resources/duilib/。
+        // bundle 形态：GetResourceRootPath() 在 macOS 下按运行环境自动检测
+        // <app>/Contents/Resources/duilib/（参数已废弃，传 true/false 均可）。
         // 该目录由 nim_duilib_copy_runtime(<target> RESOURCES) 复制。
         const ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(true);
         const std::string resourcePathUtf8 = resourcePath.NativePathA();

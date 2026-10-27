@@ -383,6 +383,7 @@ nim_duilib/.claude/
  - [Responding to Control Events Directly in XML Files](docs/XmlEvents.en.md)
  - [CEF Control](docs/CEF.en.md)
  - [Build Reference](build/build-reference.en.md)
+ - [Building an Example as a macOS App Bundle](build/macos-app-bundle.en.md)
  - [build directory: prerequisites and packaging](build/README.en.md)
  - [Reference Documentation](docs/Summary.en.md)
 

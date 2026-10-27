@@ -294,8 +294,9 @@ nim_duilib_copy_runtime(my_app RESOURCES FRAMEWORKS)
 ```
 
 目标为 `MACOSX_BUNDLE` 且未指定 `DESTINATION` 时，`RESOURCES` 复制到
-`my_app.app/Contents/Resources/duilib/`（对应
-`GlobalManager::GetResourceRootPath(true)`），不会落到 `Contents/MacOS/resources`。
+`my_app.app/Contents/Resources/duilib/`（macOS 标准布局），不会落到
+`Contents/MacOS/resources`；`GlobalManager::GetResourceRootPath()` 在 macOS 下会
+自动检测该目录（参数已忽略），因此无需修改调用代码。
 可直接参考 `build/sdk_test/bundle_main.cpp` 与 `build/sdk_test/CMakeLists.txt`
 （发布包测试的 C11 场景）获取完整可运行的 bundle 接入示例。
 
@@ -602,9 +603,10 @@ cmake --build build
 
 #### 4. 资源目录
 
-CEF 应用的资源根由 `GlobalManager::GetResourceRootPath(true)` 决定：
-存在 `<app>/Contents/Resources/duilib/` 时以它为根，主题目录为
-`themes/default/<DUILIB_THEME_DIR_NAME>`，语言与字体分别在 `lang/`、`fonts/`。
+CEF 应用的资源根由 `GlobalManager::GetResourceRootPath()` 决定（macOS 下按运行
+环境自动检测，调用参数已忽略）：存在 `<app>/Contents/Resources/duilib/` 时以它
+为根，主题目录为 `themes/default/<DUILIB_THEME_DIR_NAME>`，语言与字体分别在
+`lang/`、`fonts/`。
 `duilib_cef_macos.cmake` 已按此复制：
 
 ```
@@ -616,8 +618,9 @@ MyApp.app/Contents/Resources/duilib/
   fonts/
 ```
 
-非 CEF 或非 bundle 的 macOS 程序使用 `GetResourceRootPath(false)`，资源放在
-可执行文件同级的 `resources/`。
+普通示例的 `.app` 同样使用上述标准布局（见 [build/macos-app-bundle.md](../build/macos-app-bundle.md)）。
+非 Bundle 的 macOS 程序找不到 `Contents/Resources/duilib/` 时，自动回退到可执行
+文件同级的 `resources/`。
 
 #### 5. 成品结构（缺一不可）
 

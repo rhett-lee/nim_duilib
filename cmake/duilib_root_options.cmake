@@ -280,6 +280,11 @@ duilib_msg("options.arch_resolved" " ${_duilib_arch}")
 # ---------------------------------------------------------------------------
 option(DUILIB_BUILD_THIRD_PARTY "Build zlib/libpng/cximage/libwebp" ON)
 option(DUILIB_BUILD_EXAMPLES "Build example applications" ON)
+# macOS App Bundle 示例列表（仅 Darwin 生效）：分号/逗号分隔的 CMake 目标名，
+# all 或 * 表示全部示例。示例自己的 CMakeLists.txt 中设置的
+# DUILIB_EXAMPLE_MACOS_BUNDLE 优先于本列表。
+set(DUILIB_MACOS_BUNDLE_EXAMPLES "" CACHE STRING
+    "macOS examples to build as .app bundles (semicolon/comma separated; all = every example)")
 option(DUILIB_MD "Use the MSVC dynamic runtime (/MD, /MDd)" OFF)
 option(DUILIB_SDL_RPATH "Write rpath entries on Unix (relative first)" ON)
 option(DUILIB_RPATH_ABSOLUTE "Include absolute fallback paths in the Unix rpath" ON)

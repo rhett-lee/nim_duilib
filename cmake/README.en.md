@@ -1,6 +1,6 @@
 English | [简体中文](README.md)
 
-> Last synced: 2026-09-29
+> Last synced: 2026-10-27
 
 # nim_duilib CMake Project Configuration Guide
 
@@ -17,7 +17,8 @@ cmake/
 ├── duilib_bin_macos.cmake     # macOS platform-specific configuration
 ├── duilib_bin_freebsd.cmake   # FreeBSD platform-specific configuration
 ├── duilib_compiles.cmake      # Compile option detection (AVX/AVX2)
-└── duilib_cef_macos.cmake     # macOS CEF special configuration
+├── duilib_cef_macos.cmake     # macOS CEF special configuration
+└── duilib_macos_bundle.cmake  # macOS App Bundle configuration for plain examples
 ```
 
 ---
@@ -346,6 +347,23 @@ target_link_libraries(${PROJECT_NAME}
     "-framework AppKit" "-framework Foundation" "-framework Metal" "-framework Cocoa"
 )
 ```
+
+#### 5.4 App Bundles for plain examples
+
+`duilib_macos_bundle.cmake` is called when an example sets
+`DUILIB_EXAMPLE_MACOS_BUNDLE=ON`. It creates the target as a `MACOSX_BUNDLE` and:
+
+- generates `Info.plist` (template `cmake/macos/Info.plist.in`), identifier and versions;
+- copies `bin/resources` into `Contents/Resources/duilib` (the standard layout;
+  `GetResourceRootPath()` detects it automatically on macOS, so no C++ changes are
+  needed);
+- copies SDL3 dylibs into `Contents/Frameworks` and sets the rpath to
+  `@executable_path/../Frameworks`;
+- removes the stale artifact of the other mode when switching between bundle and
+  plain executable.
+
+The root option `DUILIB_MACOS_BUNDLE_EXAMPLES` can also select targets. See
+[build/macos-app-bundle.en.md](../build/macos-app-bundle.en.md) for details.
 
 ---
 

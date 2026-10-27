@@ -35,12 +35,24 @@
   登记 SDL3 dylib 文件名，包内 README 与接入文档同步说明。
 - SDK 接入层（macOS App Bundle 资源）：`nim_duilib_copy_runtime` 的 `RESOURCES`
   在 `MACOSX_BUNDLE` 目标上（未指定 `DESTINATION` 时）复制到
-  `Contents/Resources/duilib/`，与 `GlobalManager::GetResourceRootPath(true)`
-  的查找位置一致。
+  `Contents/Resources/duilib/`，与 `GlobalManager::GetResourceRootPath()` 在
+  macOS 下自动检测的标准目录一致。
 - 发布包测试新增 macOS App Bundle 消费者用例 C11：`build/sdk_test/bundle_main.cpp`
   与 `nim_duilib_sdk_bundle` 目标用 SDK 包生成 `sdk_bundle.app`，校验
   `Contents/Frameworks/libSDL3*.dylib`、`@rpath`/`LC_RPATH`、
   `Contents/Resources/duilib`，并把 `.app` 复制到构建树外运行。
+- 普通示例的 macOS App Bundle 支持（不修改 C++ 代码）：示例可设置
+  `DUILIB_EXAMPLE_MACOS_BUNDLE=ON`，或用根选项
+  `DUILIB_MACOS_BUNDLE_EXAMPLES=<目标名列表>` 指定；`examples/basic` 已默认开启。
+  Bundle 在链接后把 `bin/resources` 复制到 `Contents/Resources/duilib`（macOS
+  标准布局），把 SDL3 动态库复制到 `Contents/Frameworks` 并设置
+  `@executable_path/../Frameworks` rpath，自动清理切换模式后残留的另一种产物，
+  并从 `duilib_version.h` 生成 Bundle 版本号。
+- `GlobalManager::GetResourceRootPath(bool)` 在 macOS 下改为按运行环境自动决策，
+  参数保留仅为兼容（已忽略）：优先使用 `<App>.app/Contents/Resources/duilib/`，
+  不存在时回退到可执行文件同目录的 `resources/`；其他平台行为不变。
+- macOS App Bundle 参考文档 `build/macos-app-bundle.md` / `.en.md`，以及
+  `Info.plist` 模板与可选的 `.icns` 图标配置。
 
 ### 变更
 

@@ -15,7 +15,8 @@ cmake/
 ├── duilib_bin_macos.cmake     # macOS 平台特定配置
 ├── duilib_bin_freebsd.cmake   # FreeBSD 平台特定配置
 ├── duilib_compiles.cmake      # 编译选项检测（AVX/AVX2）
-└── duilib_cef_macos.cmake     # macOS CEF 特殊配置
+├── duilib_cef_macos.cmake     # macOS CEF 特殊配置
+└── duilib_macos_bundle.cmake  # macOS 普通示例的 App Bundle 配置
 ```
 
 ---
@@ -337,6 +338,21 @@ target_link_libraries(${PROJECT_NAME}
     "-framework AppKit" "-framework Foundation" "-framework Metal" "-framework Cocoa"
 )
 ```
+
+#### 5.4 普通示例的 App Bundle
+
+`duilib_macos_bundle.cmake` 在示例设置 `DUILIB_EXAMPLE_MACOS_BUNDLE=ON` 时被调用，
+把目标创建为 `MACOSX_BUNDLE`，并完成：
+
+- `Info.plist`（模板 `cmake/macos/Info.plist.in`）、Bundle 标识与版本号；
+- `bin/resources` → `Contents/Resources/duilib`（macOS 标准布局，
+  `GetResourceRootPath()` 在 macOS 下按运行环境自动检测，不需要改 C++ 代码）；
+- SDL3 动态库 → `Contents/Frameworks`，rpath 设为
+  `@executable_path/../Frameworks`；
+- 切换 Bundle/普通程序时清理残留的另一种产物。
+
+目标列表也可以用根选项 `DUILIB_MACOS_BUNDLE_EXAMPLES` 指定。完整说明见
+[build/macos-app-bundle.md](../build/macos-app-bundle.md)。
 
 ---
 

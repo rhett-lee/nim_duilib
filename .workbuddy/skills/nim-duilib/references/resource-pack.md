@@ -5,7 +5,10 @@
 ### 模式 1：本地文件夹（开发时推荐）
 
 ```cpp
-// 推荐：跨平台，自动适配 Windows(exe 同目录 resources/) 与 macOS bundle(Resources/)
+// 推荐：跨平台，参数已废弃（true/false 均可），按运行环境自动检测：
+//   macOS Bundle：优先 <App>.app/Contents/Resources/duilib/，不存在时回退到
+//                 <App>.app/Contents/MacOS/resources/
+//   Windows/Linux/FreeBSD：<exe 目录>/resources/
 ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
 ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 ```

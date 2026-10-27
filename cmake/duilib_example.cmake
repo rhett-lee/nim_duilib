@@ -44,5 +44,34 @@ if(DUILIB_EXAMPLE_SDL_INCLUDE AND DUILIB_ENABLE_SDL)
     include_directories("${DUILIB_SDL_SRC_ROOT_DIR}/include")
 endif()
 
+# macOS App Bundle 开关（仅 macOS 生效，其他平台强制关闭）：
+#   1. 示例自己的 CMakeLists.txt 可设置 DUILIB_EXAMPLE_MACOS_BUNDLE=ON；
+#   2. 未设置时，由根工程的 DUILIB_MACOS_BUNDLE_EXAMPLES 列表决定
+#      （分号/逗号分隔的目标名，all 或 * 表示全部示例）。
+# 示例内的显式设置优先，便于单独启用/禁用某个示例。
+if(NOT DUILIB_OS_MACOS)
+    set(DUILIB_EXAMPLE_MACOS_BUNDLE OFF)
+elseif(NOT DEFINED DUILIB_EXAMPLE_MACOS_BUNDLE)
+    set(DUILIB_EXAMPLE_MACOS_BUNDLE OFF)
+    if(DEFINED DUILIB_MACOS_BUNDLE_EXAMPLES AND
+       NOT "${DUILIB_MACOS_BUNDLE_EXAMPLES}" STREQUAL "")
+        string(REPLACE "," ";" _duilib_bundle_targets
+               "${DUILIB_MACOS_BUNDLE_EXAMPLES}")
+        set(_duilib_bundle_targets_normalized "")
+        foreach(_duilib_bundle_target IN LISTS _duilib_bundle_targets)
+            string(STRIP "${_duilib_bundle_target}" _duilib_bundle_target)
+            if(NOT "${_duilib_bundle_target}" STREQUAL "")
+                list(APPEND _duilib_bundle_targets_normalized
+                     "${_duilib_bundle_target}")
+            endif()
+        endforeach()
+        if(_duilib_bundle_targets_normalized MATCHES "^(all|ALL|All|\\*)$")
+            set(DUILIB_EXAMPLE_MACOS_BUNDLE ON)
+        elseif(PROJECT_NAME IN_LIST _duilib_bundle_targets_normalized)
+            set(DUILIB_EXAMPLE_MACOS_BUNDLE ON)
+        endif()
+    endif()
+endif()
+
 # 包含可执行程序的公共实现代码
 include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_bin.cmake")

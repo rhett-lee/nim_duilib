@@ -5,6 +5,8 @@ examples 目录中包含了一些示例程序，可以参考这些示例程序�
 
 ## 1. examples/basic
 一个基础的窗口示例程序，带有最小化、最大化、还原和关闭按钮。    
+macOS 下默认编译为 `bin/basic.app`，C++ 代码无需修改；配置方法见
+[build/macos-app-bundle.md](../build/macos-app-bundle.md)。    
 <img width="700" src="./Images/basic.png"/>
 
 ## 2. examples/ColorPicker

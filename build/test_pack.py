@@ -769,6 +769,21 @@ class CefExampleSelectionTest(_TempDirTest):
         self.assertEqual(items, ['bin/basic'])
         self.assertTrue(any('cef.app' in msg for msg in warnings))
 
+    def test_collect_plain_macos_app_bundle(self):
+        """普通示例的 .app（如 basic.app）不是 CEF 示例，应整体收集。"""
+        self._make_bin_app()
+        self._touch('bin/basic.app/Contents/MacOS/basic')
+        self._touch('bin/basic.app/Contents/Resources/duilib/themes/default/global.xml')
+        count, items, warnings = self._collect(False, is_macos=True)
+        self.assertEqual(count, 3)
+        self.assertEqual(sorted(items), [
+            'bin/basic',
+            'bin/basic.app/Contents/MacOS/basic',
+            'bin/basic.app/Contents/Resources/duilib/themes/default/global.xml',
+        ])
+        self.assertTrue(any('cef.app' in msg for msg in warnings))
+        self.assertFalse(any('basic.app' in msg for msg in warnings))
+
     def test_manifest_documents_macos_app_bundles(self):
         collector = pack.Collector()
         collector.add('include/duilib/duilib.h', self._touch('duilib.h'))

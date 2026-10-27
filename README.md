@@ -377,6 +377,7 @@ nim_duilib/.claude/
  - [XML文件中直接响应控件的事件](docs/XmlEvents.md)
  - [CEF控件](docs/CEF.md)
  - [项目编译参考手册](build/build-reference.md)
+ - [把示例编译为 macOS App Bundle](build/macos-app-bundle.md)
  - [build 目录说明（前置依赖与发布打包）](build/README.md)
  - [参考文档](docs/Summary.md)
 

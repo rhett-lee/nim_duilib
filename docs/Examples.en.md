@@ -1,12 +1,14 @@
 English | [简体中文](Examples.md)
 
-> Last synced: 2026-09-29
+> Last synced: 2026-10-27
 
 ## Example Programs
 The examples directory contains several example programs that you can reference to improve your own applications.
 
 ## 1. examples/basic
 A basic window example program, with minimize, maximize, restore and close buttons.    
+On macOS it is built as `bin/basic.app` without C++ changes; see
+[build/macos-app-bundle.en.md](../build/macos-app-bundle.en.md) for configuration.    
 <img width="700" src="./Images/basic.png"/>
 
 ## 2. examples/ColorPicker
