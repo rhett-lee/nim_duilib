@@ -430,6 +430,16 @@
 - 验收：文档已明确“支持范围 + 未验证项”；发布矩阵中 arm64 仍标记为
   “结构就绪、待真机验证”，不得声称已通过运行验证。
 
+#### P2-5 Unix 共享库（.so/.dylib）
+
+- [-] **暂不实施**（2026-10-28 决策：收益不足，Unix 保持静态库）。
+- 评估记录见 [Unix-Shared-Library-Feasibility.md](Unix-Shared-Library-Feasibility.md)：
+  符号导出（`-fvisibility=hidden` + Unix `DUILIB_API` 为空）、第三方静态库 PIC、
+  CEF 无 delay-load 语义、rpath/install_name 与打包/下游接入是主要改造点；
+  技术上可行，但不等同于 Windows 的 `--dll`。
+- 重新评估条件：多程序共享同一份库、插件热更新、分发包体积或链接时间有明确收益，
+  或下游明确要求动态库形态。
+
 ## 四、建议推进顺序
 
 1. P0-1 全矩阵与 P0-3 接入层冒烟（含真实 MSYS2 环境），同步修复 P1-1 归档语义；
@@ -501,3 +511,4 @@
 | 2026-10-28 | `sdk_package_test.py` Windows 长路径修复：解包时去掉归档顶层包目录（`root_name` 仅用于 P01/P04 校验），包工作目录改用 `01`/`02` 短名，避免 CEF 深头文件与 MSBuild `.tlog` 超过 MAX_PATH（`FileNotFoundError`/`MSB6003`）；`--out-dir` 与 `--keep` 语义同步写入 `sdk-package-test.md` |
 | 2026-10-28 | Windows DLL 模式回归（第一轮）：`build.py --dll` x64 Debug（802/802）与 Release 全量示例构建通过，basic/ChildWindow 启动正常；出包 `nim_duilib-...-win-x64-sdl-cef-examples-dll[-debug].zip`（均 1396 条目，210.1/219.6 MB），`--verify` 通过，`sdk_package_test.py` 均 PASS=15 / SKIP=4 |
 | 2026-10-28 | Windows DLL 模式回归（收尾）：x86 Debug DLL 802/802（`bin/duilib32_d.dll` 29,417,472 B）、x86 Release DLL（`duilib32.dll` 11,598,336 B）；x86 Debug/Release 包 1394 条目（191.6/183.4 MB）；MSBuild DLL 包 `win-x64-cef-dll` 1099 条目 / 200.2 MB，含 `bin/turbojpeg.dll`、无 `turbojpeg-static.lib`；修正 `infer_capabilities()` 对 DLL 包 `HAS_JPEG` 的误判（P04/C02），单测 207 项通过；五个 DLL 包均通过 `--verify` 与 SDK 测试（PASS=15 / SKIP=4）；回归后删除 `duilib_dll.flag`、`bin/duilib*.dll` 并恢复静态库基线 |
+| 2026-10-28 | P2-5 Unix 共享库评估：新增 [Unix-Shared-Library-Feasibility.md](Unix-Shared-Library-Feasibility.md)，分析 Linux/macOS/FreeBSD 把 duilib 改为 `.so/.dylib` 的可行性、导出可见性/PIC/CEF 运行期依赖/rpath/打包改造点；结论为技术上可行但不等同于 Windows DLL，决定暂不实施，Unix 保持静态库 |
