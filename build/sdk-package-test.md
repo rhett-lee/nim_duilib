@@ -47,7 +47,7 @@ nim_duilib 自身；它验证的是下游用户实际拿到的东西。
 | :--- | :--- | :--- |
 | Python | Python 3 | 脚本仅用标准库；P07/C07/C08/C09 会用当前 Python 解释器调用 `pack.py` |
 | 待测包 | 已由 `build.py pack` 或 `build/pack.py` 生成 | 支持 zip、tgz、tar.bz2 等 `shutil.unpack_archive` 可解格式；归档必须只有一个顶层目录 |
-| 磁盘空间 | 至少能容纳解包内容、消费者构建树和重打包归档 | 带示例/CEF 的包可达数百 MB，Debug 消费者构建还会额外占用空间 |
+| 磁盘空间 | 至少能容纳解包内容与消费者构建树 | 带示例/CEF 的包可达数百 MB，Debug 消费者构建还会额外占用空间；C07/C08/C09 只写几 KB 的代表性小归档 |
 | CMake | 3.18+（`build/sdk_test/CMakeLists.txt` 的最低版本） | 只影响 C01–C06、C11；找不到 `cmake` 时记为 SKIP |
 | 生成器/编译器 | CMake 可用的 Ninja、Makefiles 或 Visual Studio 生成器 | 只影响 C01–C06、C11；工具链经 `build.py` 的 `detect_toolchain()` 探测 |
 | 桌面会话 | 能启动 GUI 程序 | 只影响 C10；无桌面环境时示例可能启动即退出，从而判为 FAIL |
@@ -153,7 +153,7 @@ nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109
 - **`--dry-run`**：`run_package()` 在进入场景前就把编译类场景记为
   `SKIP / dry-run：未执行`，因此 **不会调用 CMake，也不会把构建命令写进日志**。
   CLI 帮助中的“只打印将执行的命令”在本工具里实际表现为“跳过编译类场景”。
-  包级场景仍会真实解包、计算哈希、重新打包并调用 `pack.py --verify`。
+  包级场景仍会真实解包、计算哈希，并用代表性小归档调用 `pack.py --verify`。
   该模式下不做任何清理，输出目录会保留。
 - **`--run-examples`**：只是 C10 的开关门禁。未指定时 C10 SKIP “未指定
   --run-examples”；指定后还必须满足“包内含示例”和平台/工具链前置条件。
@@ -171,7 +171,7 @@ nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109
 | P01 | `package.extract` | 包级 | 任意可加载的包 | 归档只有一个顶层目录；解包后恰好得到一个根目录；报告文件数与根目录名 | 无；失败通常在加载阶段变成 P00 FAIL |
 | P02 | `package.layout` | 包级 | 任意包 | 必需文件 10 项齐全；`lib/` 下有 `duilib` 主库；静态包还需 `duilib-cximage`、`duilib-webp`、`duilib-png`、`duilib-zlib`、`skia`；`bin/resources/themes/default/global.xml` 存在 | 无 |
 | P03 | `package.checksums` | 包级 | 任意包 | `SHA256SUMS` 每行可解析；除 `MANIFEST.txt`、`VERSION`、`SHA256SUMS` 外的普通文件全部在册且无多余条目；实际 SHA256 与登记值一致 | 无 |
-| P04 | `package.metadata` | 包级 | 包名符合命名规则 | 包名中的版本/平台/架构/配置与 CMake、`VERSION`、`MANIFEST.txt` 一致；`IS_DLL`/`HAS_SDL`/`HAS_CEF`/`HAS_WEBVIEW2`/`HAS_JPEG` 在包名、CMake 元数据、实际文件三处一致；示例标志；MinGW 变体；MSVC 运行库规则 | 无；包名无法解析也判 FAIL |
+| P04 | `package.metadata` | 包级 | 包名符合命名规则 | 包名中的版本/平台/架构/配置与 CMake、`VERSION`、`MANIFEST.txt` 一致；`IS_DLL`/`HAS_SDL`/`HAS_CEF`/`HAS_WEBVIEW2`/`HAS_JPEG` 在包名、CMake 元数据、实际文件三处一致；示例标志；MinGW 变体；MSVC 运行库规则。macOS 例外：`-cef` 表示 CEF 示例 App Bundle（内嵌 Framework）随包，`HAS_CEF` 必须为 0（SDK 不提供 CEF 开发文件） | 无；包名无法解析也判 FAIL |
 | P05 | `package.integration` | 包级 | 任意包 | `*.cmake` 无未替换的 `@...@` 占位符；`nim_duilibConfigVersion.cmake` 含 `PACKAGE_VERSION`；Windows 包有 `msvc/manifest/duilib.{x64,x86,arm64}.manifest` 且 XML 可解析；MSVC 包还有 `msvc/nim_duilib.props`、`.targets`、`.sdk.props` 及 4 个属性键 | 无 |
 | P06 | `package.forbidden` | 包级 | 任意包 | 不含 `.pdb`/`.ilk`/`.exp`/`.obj`/`.o`；不含 `cef_sandbox.lib`；`include/` 下无 `.cpp`；无 `bin/resources.zip`；未声明 CEF 时不含 CEF 头；未声明 SDL 时不含 `include/SDL3/` | 无 |
 | P07 | `package.verify-cli` | 包级 | 任意包，且 `pack.py` 可运行 | `python build/pack.py --verify <原包>` 返回 0 | 无；`pack.py` 缺失或无法执行会 FAIL |
@@ -182,9 +182,9 @@ nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109
 | C04 | `negative.arch` | 需编译（仅配置） | 能构造与包不同的架构 | 用相反架构配置必须失败，stdout 含“架构为”；Windows 优先用 VS 生成器的 `-A`（x64↔x86，arm64→x64），非 Windows 用主机架构与包架构不一致来触发 | 构建前置不满足；工具链不可用；非 Windows 且包架构 = 主机架构；Windows 无 VS 且包架构 = 主机架构 |
 | C05 | `negative.msvc-runtime` | 需编译（仅配置） | Windows MSVC 包，且元数据声明了 `MT`/`MD` | 传入相反的 `CMAKE_MSVC_RUNTIME_LIBRARY` 后配置必须失败，stdout 含“运行库” | 非 Windows 或非 MSVC 包；包未声明 MSVC 运行库；工具链不可用 |
 | C06 | `negative.toolchain` | 需编译（仅配置） | Windows 包，且本机存在“对立”工具链 | MSVC 包改用 Ninja + `g++` 配置；MinGW 包改用本机 MSVC 配置；必须失败且 stdout 含“该 nim_duilib SDK 是” | 非 Windows 包；工具链不可用；MSVC 包但无 `g++` 或无 Ninja；MinGW 包但无 VS 或 `cl.exe` |
-| C07 | `negative.incomplete` | 包级 | 任意包；需要重打包 | 从解包目录分别生成“缺全部 `lib/*.lib`、`*.a`”和“缺 `include/duilib/`”的 tgz，两次 `--verify` 都必须非 0 | 无 |
-| C08 | `negative.tampered` | 包级 | 任意包；需要重打包 | 篡改 `bin/resources/themes/default/global.xml`（不存在时取 SHA256SUMS 中体积最小的文件），重打包后 `--verify` 必须失败且输出含 `SHA256` | 无 |
-| C09 | `package.tar-formats` | 包级 | 任意包；需要重打包 | 从解包目录重新生成 `.tgz` 与 `.tar.bz2`，两者分别通过 `pack.py --verify` | 无；磁盘空间不足会 FAIL |
+| C07 | `negative.incomplete` | 包级 | 任意包；需要生成小归档 | 从真实包挑最小头文件与最小静态库，分别生成“只含头文件（缺库）”和“只含库（缺头文件）”的小 tgz，两次 `--verify` 都必须非 0，且输出分别含 `缺少 lib/ 静态库`、`缺少 include/duilib/ 头文件` | 包内既无头文件也无静态库时 FAIL |
+| C08 | `negative.tampered` | 包级 | 任意包；需要生成小归档 | 篡改 `bin/resources/themes/default/global.xml`（不存在时取 SHA256SUMS 中体积最小的文件），小归档的 SHA256SUMS 仍写原内容哈希，`--verify` 必须失败且输出含 `SHA256` | 无 |
+| C09 | `package.tar-formats` | 包级 | 任意包；需要生成小归档 | 用最小头文件、最小静态库与运行资源生成 `.tgz` 与 `.tar.bz2`，两者分别通过 `pack.py --verify` | 无 |
 | C10 | `examples.smoke` | 需编译（不编译） | 指定 `--run-examples`；包内含示例；平台与工具链前置满足 | 启动 `bin/basic.exe`（Unix 为 `bin/basic`，macOS 为 `bin/basic.app/Contents/MacOS/basic`），3 秒后进程仍存活 | 未指定 `--run-examples`；包内无示例；平台/工具链前置不满足；找不到 `bin/basic` |
 | C11 | `consumer.macos-bundle` | 需编译 | 仅 macOS 本机；macOS 包；包内有 SDL3 动态库；平台与工具链前置满足 | 用 `build/sdk_test` 构建 `sdk_bundle.app`（`MACOSX_BUNDLE` + `RESOURCES FRAMEWORKS`）→ 检查 `Contents/Frameworks/libSDL3*.dylib`、`Contents/Resources/duilib/themes/default/global.xml` → `otool -L` 引用 `@rpath/libSDL3*` 且无 SDK 绝对路径 → `otool -l` 含 `LC_RPATH @executable_path/../Frameworks` → `otool -D` 为 `@rpath/...` → 把 `.app` 复制到构建树外运行，要求返回 0、输出 `SDK_TEST_RESULT=ok` 与正的 `SDK_TEST_SDL_VERSION` | 非 macOS；非 macOS 包；包内无 SDL3 动态库（静态 SDL 或无 SDL）；`--no-build`；工具链不可用；找不到 `otool` |
 
@@ -198,15 +198,20 @@ nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109
 - P04 的 `IS_DLL`/`HAS_SDL`/`HAS_CEF`/`HAS_WEBVIEW2`/`HAS_JPEG` 不是只看包名：
   包名、`nim_duilibPackageInfo.cmake` 元数据、实际文件推断三者必须一致。MSVC 运行库
   还要求：DLL 包必须是 `MD`；静态包可为 `MT` 或 `MD`；非 Windows/MSVC 包不得声明
-  MSVC 运行库。
+  MSVC 运行库。macOS 的 CEF 语义不同：SDK 不提供 CEF 开发文件（`HAS_CEF` 恒为 0），
+  包名中的 `-cef` 表示 CEF 示例 App Bundle（内嵌 Chromium Embedded Framework）随包。
 - P05 对 Windows 包统一要求三份架构 manifest（即使 MinGW 包也一样）；只有 MSVC 包
   额外要求 `msvc/nim_duilib.props`、`nim_duilib.targets`、`nim_duilib.sdk.props`。
-- C07 的两次重打包都在原解包目录上流式生成，不复制整包；判定完全依赖
-  `pack.py --verify` 的返回码。
+- C07/C09 用 `_make_sample_package()` 生成只含 `MANIFEST.txt`、`VERSION`、一个最小
+  头文件、一个最小静态库（C09 另加 `global.xml`）、少量符号链接的小归档，并重建
+  `SHA256SUMS`。因此重打包耗时与包体积无关；完整包的结构与校验和仍由 P01–P03、
+  P07 覆盖。C07 还要求两次失败原因分别命中“缺少库”“缺少头文件”，避免因其他错误
+  误判。
 - C08 优先篡改 `global.xml`，因为它在任何包里都存在且通常较小；篡改方式是在原内容
-  末尾追加一段注释。判定还要求失败输出中出现 `SHA256`，避免“因其他原因失败”误判通过。
-- C09 只验证从解包目录重打包后的 tgz/tar.bz2 能被 `--verify` 接受；原始包如果是 zip，
-  其 zip 路径由 P07 覆盖。
+  末尾追加一段注释，而小归档的 `SHA256SUMS` 仍写原内容哈希，因此失败原因必须是
+  `SHA256` 不匹配；归档同时带上头文件与静态库，避免“缺文件”掩盖哈希问题。
+- C09 只验证 tgz/tar.bz2 的写出与 `--verify` 接受；原始包如果是 zip，其 zip 路径由
+  P07 覆盖。
 
 ### 4.2 编译类场景细节
 
@@ -503,9 +508,8 @@ SKIP 是“没测到”，不是通过。`--no-build`、`--dry-run`、包类型�
 最后打印 `结果：PASS=x FAIL=y SKIP=z` 与报告路径。
 
 每个场景开始时还会打印一行 `>> C07 ...`，结束后立即打印该场景结果（`flush`），
-因此把输出重定向到日志文件时也能实时看到进度。C07/C09 会把 1 GB 以上的包重新
-打包，单场景可能需要几分钟，属于正常耗时；重打包只使用较低压缩级别以缩短时间，
-不影响校验结论。
+因此把输出重定向到日志文件时也能实时看到进度。C07/C08/C09 只生成代表性小归档，
+耗时与包体积无关（Debug CEF 包也不再出现长时间 100% CPU）。
 
 ### 6.4 report.json 结构
 
@@ -595,11 +599,11 @@ SKIP 是“没测到”，不是通过。`--no-build`、`--dry-run`、包类型�
 | C05 运行库没有被拒绝 | 包不是 Windows MSVC，或未声明 `MT`/`MD`（本应 SKIP）；DLL 包未使用 `/MD` | 检查 P04 是否已报运行库问题；确认 DLL 包元数据为 `MD`，静态包默认 `MT` |
 | C06 SKIP | MSVC 包缺 `g++` 或 Ninja；MinGW 包缺 VS/`cl.exe`；非 Windows 包 | 这是环境不满足，不是包缺陷；按需安装对立工具链，或接受 SKIP |
 | C06 FAIL | 配置未被拒绝，或失败原因不是“该 nim_duilib SDK 是” | 检查 SDK 是否错误接受了异种工具链；查看 `neg-toolchain.log` 中的实际错误文本 |
-| C07/C08 `--verify` 接受了坏包 | `pack.py --verify` 回归，或重打包时跳文件/篡改未生效 | 手工检查 `work/bad-*.tgz`、`work/tampered.tgz`；确认 `pack.py` 是当前版本 |
-| C09 重打包校验失败 | 重构的 tgz/tar.bz2 内容或权限有问题，或磁盘空间不足 | 查看失败输出与磁盘余量；确认解包目录完整；先跑 P07 排除原包问题 |
+| C07/C08 `--verify` 接受了坏包 | `pack.py --verify` 回归，或小归档生成时跳文件/篡改未生效 | 手工检查 `work/bad-*.tgz`、`work/tampered.tgz`；确认 `pack.py` 是当前版本 |
+| C09 小归档校验失败 | 生成的 tgz/tar.bz2 内容或 `SHA256SUMS` 有问题 | 查看失败输出；先跑 P07 排除原包问题，再用 `--keep` 保留 `work/repack.*` 检查 |
 | 所有场景 SKIP、退出码 2 | 只选了编译类场景但包类型/环境不适用；`--no-build` 后只剩不适用场景；工具链/CMake 缺失 | 看每个 SKIP 的 `detail`；补跑 P 系列确认包本身；安装缺失工具或改用适用包 |
 | C01–C06、C11 全部 SKIP“找不到 cmake” | `cmake` 不在 `PATH` | 把 CMake 加入 `PATH`；包级场景不受影响 |
-| 磁盘空间不足 | 解包 + 消费者构建 + 多个重打包归档 | 换用空间充足的 `--out-dir`；清理旧的运行目录；排查时先用 `--scenarios P01,P02,P03` 缩小范围 |
+| 磁盘空间不足 | 解包 + 消费者构建 | 换用空间充足的 `--out-dir`；清理旧的运行目录；排查时先用 `--scenarios P01,P02,P03` 缩小范围 |
 
 ## 8. 扩展新场景的方法
 
@@ -648,7 +652,7 @@ P01–P08、C07–C09 对任何可加载的包都会执行（其中 P02/P04/P05 
 
 | 维度 | 取值 | 主要影响 |
 | :--- | :--- | :--- |
-| 归档格式 | zip / tgz / tar.bz2 | P07 校验原始归档；C09 额外验证从解包目录重打包的 tgz/tar.bz2 |
+| 归档格式 | zip / tgz / tar.bz2 | P07 校验原始归档；C09 额外验证由代表性小文件生成的 tgz/tar.bz2 |
 | 库形态 | 静态 / DLL | P02 的库清单、P04 的 `IS_DLL` 与运行库规则；C01 与 C02 互斥 |
 | CEF | 无 / CEF 142 / CEF 109 | P04 的 `HAS_CEF`、P06 的反向检查；消费者编译 `header_cef.cpp`，`FEATURES cef=1` |
 | SDL | 无 / 静态 / 动态 | P04 的 `HAS_SDL`、P06 的反向检查；消费者链接 SDL，`FEATURES sdl=1` |

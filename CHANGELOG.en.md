@@ -86,6 +86,26 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Fixed
 
+- SDK package test (macOS P04/P06 false failures): `sdk_package_test.py` only looked
+  for the CEF runtime under `bin/libcef_win*` / `bin/libcef_linux`, but on macOS it
+  lives inside the example bundle (`.app/Contents/Frameworks/Chromium Embedded
+  Framework.framework`). A `-cef` package therefore disagreed with the inferred
+  capabilities, and bundled CEF headers were reported as "undeclared CEF". On macOS
+  `-cef` now means "a CEF example bundle is included", while `HAS_CEF` describes
+  whether the SDK ships CEF development files.
+- Packaging (macOS CEF headers): `--with-cef` used to forward
+  `include/duilib/duilib_cef.h` and `include/duilib/CEFControl/` on macOS as well,
+  but those headers depend on `third_party/libcef` headers that are not shipped, so
+  downstream could not compile with them; this also contradicted `HAS_CEF=0` and the
+  release docs. macOS no longer forwards CEF headers, and the `-cef` package-name
+  flag is only added when the cef/CefBrowser example bundles are actually collected.
+- SDK package test (C07/C08/C09 runtime): these scenarios re-compressed the whole
+  extracted package into tgz / tar.bz2. A Debug CEF package can be several GB, so a
+  single scenario ran for more than ten minutes with Python pegging one CPU core (it
+  was not an infinite loop). They now build a representative small archive from the
+  smallest header, library and runtime resource, with a rebuilt `SHA256SUMS`; the
+  verdict is unchanged, runtime no longer depends on package size, and the full
+  package is still covered by P01–P03 and P07.
 - Dependency preparation (SDL3): when the local `<deps-root>/SDL` checkout sat on
   another branch/tag than the manifest ref, the script compiled that source anyway
   and the completion stamp only recorded the manifest ref name, so the resulting
@@ -119,11 +139,9 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `LNK1000: Internal error during IncrBuildImage` (plus stale `.ilk` files).
   Examples now pass `/INCREMENTAL:NO`; the extra link time is negligible.
 - Packaging (same-name Debug/Release examples): a POST_BUILD step now records the
-  configuration under the hidden directory `bin/.build-config/<target>` (older
-  builds wrote `bin/<target>.build-config`, which `pack.py` still reads and the
-  stamp step removes when the target relinks); `pack.py` skips examples built for
-  the other configuration and only warns when the marker is missing, instead of a
-  blanket "may be mixed" warning.
+  configuration in `bin/<target>.build-config`; `pack.py` skips examples built
+  for the other configuration and only warns when the marker is missing, instead
+  of a blanket "may be mixed" warning.
 - Dependency preparation (SDL3): Debug and Release produce the same
   `SDL3-static.lib` name and install into one prefix; both configurations were
   built and Release was installed last, so Debug builds actually linked the

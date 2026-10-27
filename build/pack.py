@@ -40,7 +40,9 @@
    注意两类头文件按条件转发：
    - WebView2 只有 Windows 支持，非 Windows 平台不转发 WebView2/、
      duilib_webview2.h 与 third_party/Microsoft.Web.WebView2 的头文件；
-   - CEF 相关头文件（CEFControl/、duilib_cef.h）仅在 --with-cef 时转发。
+   - CEF 相关头文件（CEFControl/、duilib_cef.h）仅在 --with-cef 时转发；
+     macOS 例外：该平台不随包 CEF 开发文件（CEF 头文件依赖未随包的
+     third_party/libcef 头文件），--with-cef 只控制示例 App Bundle。
 
 5. SDK 必须能独立支撑下游编译、链接、运行，因此除 5 个 duilib 库外还随包：
    - Skia 全部静态库（duilib 的必选链接依赖，整目录打包）；
@@ -55,7 +57,9 @@
    locales/）：Windows 保持 bin/libcef_win[_109]/<arch>/ 结构，Linux 为
    bin/libcef_linux/ 扁平结构；仓库中缺少该目录时只告警，包内只有开发文件，
    含 CEF 的示例程序不能直接运行，清单中会标注。macOS 的 CEF 运行时以
-   .app 内嵌 Framework 提供，不自动收集，下游按发布文档手动部署。
+   .app 内嵌 Framework 提供，不自动收集，也不随包 CEF 开发文件；此时
+   --with-cef 只决定 cef/CefBrowser 示例 Bundle 是否随包，包名里的 -cef
+   仅在这些示例确实进包时追加。
 
 6. Windows 工具链按库目录内容自动判断：存在 duilib.lib 为 MSVC，
    存在 libduilib*.a 为 MinGW。两者产物不同，不能混用：
@@ -467,6 +471,16 @@ def detect_platform_tag():
     return sys_tag, arch_tag
 
 
+def has_macos_cef_examples(items):
+    """收集结果里是否有内嵌 CEF Framework 的 macOS 示例 App Bundle。
+
+    macOS 不随包 CEF 开发文件，包名里的 -cef 只表示这类示例确实随包，
+    因此命名不能只看 --with-cef 开关。
+    """
+    return any('.app/Contents/Frameworks/Chromium Embedded Framework.framework/'
+               in rel for rel, _abs in items)
+
+
 def build_package_name(version, sys_tag, arch_tag, config,
                        with_sdl, with_cef, cef_version, with_examples,
                        mingw_variant=None, is_dll=False):
@@ -585,14 +599,17 @@ class Collector(object):
         self.items.sort(key=lambda kv: kv[0])
 
 
-def collect_headers(collector, with_cef, with_sdl, is_windows):
+def collect_headers(collector, with_cef, with_sdl, is_windows, is_macos=False):
     """收集对外头文件 + 必需的 third_party 头文件。
 
     路径前缀必须是 `include/duilib/`，不能是 `include/`——
     下游的写法是 `#include "duilib/duilib.h"`（见 examples/basic/MainForm.h:5），
     所以包内必须保留仓库根的相对路径层级。少了这一层下游直接编译失败。
 
-    WebView2 头文件仅 Windows 转发；CEF 头文件仅 --with-cef 时转发；
+    WebView2 头文件仅 Windows 转发；CEF 头文件仅 --with-cef 时转发，
+    但 macOS 例外：该平台不随包 CEF 开发文件（--with-cef 只控制示例 Bundle，
+    且 CEF 头文件依赖未随包的 third_party/libcef 头文件，单独转发不可用），
+    见 docs/Release.md 的 macOS CEF 章节。
     图片解码实现头文件与内部实现头文件（IMAGE_DECODER_HEADER_FILES /
     INTERNAL_HEADER_FILES）不转发；SDL_HEADER_FILES 仅在 Windows 未启用
     --with-sdl 时排除。
@@ -604,7 +621,7 @@ def collect_headers(collector, with_cef, with_sdl, is_windows):
     if not is_windows:
         excluded_dirs.extend(WEBVIEW2_HEADER_DIRS)
         excluded_files.extend(WEBVIEW2_HEADER_FILES)
-    if not with_cef:
+    if not with_cef or is_macos:
         excluded_dirs.extend(CEF_HEADER_DIRS)
         excluded_files.extend(CEF_HEADER_FILES)
 
@@ -1408,12 +1425,11 @@ def _rewrite_doc_links(text, packaged):
 
 
 def _read_build_stamp(name):
-    """读取 CMake 在链接后写入的构建配置标记（bin/.build-config/<目标>）。
+    """读取 CMake 在链接后写入的构建配置标记（bin/<目标>.build-config）。
 
     Debug 与 Release 的示例程序同名，切换配置后若没有全部重新链接，bin/ 里会混有
-    另一种配置的二进制。有标记时可以明确判断；旧版本构建把标记写在
-    bin/<目标>.build-config，仍兼容读取；都没有则返回 None，由调用方按“无法确认”
-    处理。
+    另一种配置的二进制。有标记时可以明确判断；旧构建没有标记则返回 None，
+    由调用方按“无法确认”处理。
     """
     candidates = [name]
     if name.endswith('.app'):
@@ -1423,17 +1439,15 @@ def _read_build_stamp(name):
         # Windows 的示例文件是 basic.exe，CMake 目标名为 basic
         candidates.append(name[:-4])
     for stem in candidates:
-        paths = [os.path.join(BIN_DIR, '.build-config', stem),
-                 os.path.join(BIN_DIR, stem + '.build-config')]
-        for path in paths:
-            if not os.path.isfile(path):
-                continue
-            try:
-                with open(path, 'r', encoding='utf-8', errors='replace') as fp:
-                    value = fp.read().strip()
-            except OSError:
-                return None
-            return value or None
+        path = os.path.join(BIN_DIR, stem + '.build-config')
+        if not os.path.isfile(path):
+            continue
+        try:
+            with open(path, 'r', encoding='utf-8', errors='replace') as fp:
+                value = fp.read().strip()
+        except OSError:
+            return None
+        return value or None
     return None
 
 
@@ -1530,7 +1544,7 @@ def collect_examples(collector, config, is_windows, with_cef=True, is_macos=Fals
     if config == 'Debug' and unverified:
         collector.warn('无法确认以下示例的构建配置（缺少 %s），'
                        '可能混有 Release 版本，请确认后再分发：%s'
-                       % ('bin/.build-config/<目标>', ', '.join(unverified)))
+                       % ('<目标>.build-config', ', '.join(unverified)))
     if skipped_debug:
         collector.warn('已跳过 Debug 示例程序：%s' % ', '.join(skipped_debug))
     if skipped_cef:
@@ -1659,6 +1673,8 @@ def build_package_meta(collector, version, sys_tag, arch_tag, config,
             has_cef = True
             cef_wrapper = wrapper
             cef_src = 'libcef_linux'
+    # macOS 不随包 CEF 开发文件与运行时（见 collect_cef），HAS_CEF 恒为 0；
+    # 包名的 -cef 只表示 CEF 示例 App Bundle 随包（见 build_package_name 调用处）。
 
     if sys_tag == 'win' and toolchain == 'msvc':
         if msvc_runtime == 'auto':
@@ -2653,7 +2669,8 @@ def main(argv=None):
                                         dll_mode=(toolchain == 'msvc' and detect_dll_mode()))
 
         collector = Collector(allow_missing=args.allow_missing)
-        n_headers = collect_headers(collector, args.with_cef, args.with_sdl, sys_tag == 'win')
+        n_headers = collect_headers(collector, args.with_cef, args.with_sdl,
+                                    sys_tag == 'win', is_macos=(sys_tag == 'macos'))
         n_libs = collect_libs(collector, lib_dir, config,
                               args.with_cef, args.cef_version, sys_tag)
         n_skia = collect_skia_libs(collector, skia_dir, toolchain)
@@ -2751,9 +2768,14 @@ def main(argv=None):
         eprint('  仅需先出包排查时可加 --allow-missing（不要用于发布）。')
         return 1
 
+    # macOS 不随包 CEF 开发文件，包名里的 -cef 只表示 CEF 示例 App Bundle
+    # 确实进了包（--with-cef 只控制示例），因此按实际收集结果决定是否追加。
+    name_with_cef = args.with_cef
+    if sys_tag == 'macos' and name_with_cef:
+        name_with_cef = has_macos_cef_examples(collector.items)
     pkg_root_name = build_package_name(
         version, sys_tag, arch_tag, config,
-        args.with_sdl, args.with_cef, args.cef_version, args.with_examples,
+        args.with_sdl, name_with_cef, args.cef_version, args.with_examples,
         mingw_variant=mingw_variant, is_dll=meta['is_dll'])
     package_time = (source_date_epoch if source_date_epoch is not None
                     else _default_archive_time(collector))

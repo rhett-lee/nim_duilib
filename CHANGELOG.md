@@ -72,6 +72,21 @@
 
 ### 修复
 
+- 发布包测试（macOS P04/P06 误报）：`sdk_package_test.py` 原先只在
+  `bin/libcef_win*`、`bin/libcef_linux` 中查找 CEF 运行时，macOS 的 CEF 位于示例
+  `.app/Contents/Frameworks/Chromium Embedded Framework.framework`，导致包名 `-cef`
+  与实际能力不一致，且把随包的 CEF 头文件当成“未声明 CEF”。现在 macOS 的 `-cef`
+  只表示 CEF 示例 Bundle 随包，`HAS_CEF` 按“SDK 是否提供 CEF 开发文件”判定。
+- 打包（macOS CEF 头文件）：`--with-cef` 此前在 macOS 也转发
+  `include/duilib/duilib_cef.h`、`include/duilib/CEFControl/`，但这些头文件依赖
+  未随包的 `third_party/libcef` 头文件，无法用于下游编译，且与元数据 `HAS_CEF=0`
+  和发布文档矛盾。现在 macOS 不转发 CEF 头文件；包名中的 `-cef` 只在
+  cef/CefBrowser 示例 App Bundle 确实进包时追加。
+- 发布包测试（C07/C08/C09 耗时）：三个场景此前把整个解包目录重新压缩成 tgz /
+  tar.bz2，Debug CEF 包可达数 GB，单场景会持续十几分钟且 Python 占满一个核
+  （并非死循环）。现在只从真实包挑选最小头文件、最小静态库与运行资源生成代表性
+  小归档，并重建 `SHA256SUMS`；判定逻辑不变，耗时与包体积无关，完整包仍由
+  P01–P03、P07 覆盖。
 - 依赖准备（SDL3）：本地 `<deps-root>/SDL` 源码停在别的分支/标签（例如 `main`）时，
   脚本此前直接用它编译，完成标记却只记录清单里的 ref 名称，导致用错版本编译的库被
   当成清单版本的产物复用。现在 `deps` 先按清单把工作区切到指定 tag/commit（本地
@@ -93,10 +108,9 @@
 - 构建（Windows 示例）：Debug 默认开启增量链接，并行链接多个示例时偶发
   `LNK1000: Internal error during IncrBuildImage`，旧 `.ilk` 损坏后还要手工删除；
   示例程序统一加 `/INCREMENTAL:NO`，链接耗时代价很小、构建结果稳定。
-- 打包（Debug/Release 同名示例）：CMake 链接后在隐藏目录
-  `bin/.build-config/<目标>` 记录构建配置（升级前写在 `bin/<目标>.build-config`，
-  `pack.py` 仍兼容读取，重新链接时会自动删除旧文件）；打 Debug 包时按标记跳过
-  Release 构建的示例，缺少标记时提示无法确认，不再笼统告警“可能混有 Release 版本”。
+- 打包（Debug/Release 同名示例）：CMake 链接后新增 `bin/<目标>.build-config`
+  记录构建配置；`pack.py` 打 Debug 包时按标记跳过 Release 构建的示例，缺少标记
+  时提示无法确认，不再笼统告警“可能混有 Release 版本”。
 - 依赖准备（SDL3）：Debug 与 Release 生成的 `SDL3-static.lib` 同名且安装到同一个
   前缀，原先两个配置都构建、Release 最后安装，Debug 构建实际链接的是 Release 版
   静态库（`/MTd` 与 `/MT`、`/MDd` 与 `/MD` 混用）。现在单配置生成器（`build.py`

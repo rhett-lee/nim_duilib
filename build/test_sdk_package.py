@@ -4,6 +4,7 @@
 import importlib.util
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -196,6 +197,58 @@ class CapabilityTest(unittest.TestCase):
             {"duilib.lib", "libskia.a", "libSDL3.dll.a", "libcef_dll_wrapper.a"})
         self.assertEqual(stems, {"duilib", "skia", "SDL3", "cef_dll_wrapper"})
 
+    MACOS_CEF_EXAMPLE = [
+        "include/duilib/duilib.h",
+        "lib/libduilib.a",
+        "lib/libskia.a",
+        "lib/libSDL3.dylib",
+        "bin/basic.app/Contents/MacOS/basic",
+        "bin/cef.app/Contents/MacOS/cef",
+        "bin/cef.app/Contents/Frameworks/"
+        "Chromium Embedded Framework.framework/Chromium Embedded Framework",
+        "bin/resources/themes/default/global.xml",
+    ]
+
+    def test_macos_cef_example_bundle(self):
+        """macOS 无 CEF 开发文件，-cef 只由示例 .app 内嵌 Framework 表示。"""
+        caps = sdk.infer_capabilities(self.MACOS_CEF_EXAMPLE)
+        self.assertFalse(caps["has_cef"])
+        self.assertFalse(caps["cef_headers"])
+        self.assertTrue(caps["has_cef_examples"])
+        self.assertTrue(caps["has_examples"])
+        self.assertTrue(caps["has_sdl"])
+        self.assertEqual(caps["sdl_kind"], "shared")
+
+    def test_macos_without_cef_examples(self):
+        files = [item for item in self.MACOS_CEF_EXAMPLE
+                 if "Chromium Embedded Framework" not in item]
+        caps = sdk.infer_capabilities(files)
+        self.assertFalse(caps["has_cef"])
+        self.assertFalse(caps["has_cef_examples"])
+        self.assertTrue(caps["has_examples"])
+
+    def test_macos_old_package_cef_headers_are_not_cef_support(self):
+        """旧包曾随包 CEF 头文件：仍不视为 SDK 支持 CEF（P06 会报告）。"""
+        files = self.MACOS_CEF_EXAMPLE + [
+            "include/duilib/duilib_cef.h",
+            "include/duilib/CEFControl/CefManager.h",
+        ]
+        caps = sdk.infer_capabilities(files)
+        self.assertFalse(caps["has_cef"])
+        self.assertTrue(caps["cef_headers"])
+        self.assertTrue(caps["has_cef_examples"])
+
+    def test_windows_cef_without_runtime_still_declares_cef(self):
+        """Windows 允许缺 CEF 运行时出包；开发文件齐全时 has_cef 仍为真。"""
+        files = [item for item in self.MSVC_STATIC_CEF
+                 if not item.startswith("bin/libcef_win_109/")]
+        files += ["include/duilib/duilib_cef.h",
+                  "include/duilib/CEFControl/CefManager.h"]
+        caps = sdk.infer_capabilities(files, "msvc")
+        self.assertTrue(caps["has_cef"])
+        self.assertEqual(caps["cef_src"], "")
+        self.assertTrue(caps["cef_headers"])
+
 
 class ArchiveRootTest(unittest.TestCase):
     def test_single_root(self):
@@ -316,6 +369,97 @@ class SelectionTest(unittest.TestCase):
     def test_unknown(self):
         with self.assertRaises(SystemExit):
             sdk.parse_selection("X99")
+
+
+class macOSMetadataTest(unittest.TestCase):
+    """P04 在 macOS 上的判定：-cef 表示 CEF 示例 Bundle，HAS_CEF 恒为 0。"""
+
+    NAME = "nim_duilib-1.0.2026.1023-macos-x64-cef-examples-debug"
+    VERSION = "1.0.2026.1023"
+
+    def _info(self, files, *, has_cef="0"):
+        meta = {
+            "NIM_DUILIB_PACKAGE_VERSION": self.VERSION,
+            "NIM_DUILIB_PACKAGE_SYSTEM": "macos",
+            "NIM_DUILIB_PACKAGE_ARCH": "x64",
+            "NIM_DUILIB_PACKAGE_CONFIG": "Debug",
+            "NIM_DUILIB_PACKAGE_IS_DLL": "0",
+            "NIM_DUILIB_PACKAGE_HAS_SDL": "1",
+            "NIM_DUILIB_PACKAGE_HAS_CEF": has_cef,
+            "NIM_DUILIB_PACKAGE_HAS_WEBVIEW2": "0",
+            "NIM_DUILIB_PACKAGE_HAS_JPEG": "0",
+            "NIM_DUILIB_PACKAGE_MSVC_RUNTIME": "",
+        }
+        return sdk.PackageInfo(
+            archive=Path(self.NAME + ".tar.gz"),
+            root=Path(self.NAME),
+            files=files,
+            name_parts=sdk.parse_package_name(self.NAME + ".tar.gz"),
+            info=meta,
+            manifest={"版本": self.VERSION, "平台": "macos-x64",
+                      "配置": "Debug", "包名": self.NAME},
+            caps=sdk.infer_capabilities(files),
+            version_text=self.VERSION)
+
+    def test_consistent_package(self):
+        info = self._info(CapabilityTest.MACOS_CEF_EXAMPLE)
+        sdk.check_metadata(info)
+
+    def test_cef_name_without_example_fails(self):
+        files = [item for item in CapabilityTest.MACOS_CEF_EXAMPLE
+                 if "Chromium Embedded Framework" not in item]
+        with self.assertRaises(AssertionError) as ctx:
+            sdk.check_metadata(self._info(files))
+        self.assertIn("CEF", str(ctx.exception))
+
+    def test_has_cef_must_be_zero(self):
+        info = self._info(CapabilityTest.MACOS_CEF_EXAMPLE, has_cef="1")
+        with self.assertRaises(AssertionError) as ctx:
+            sdk.check_metadata(info)
+        self.assertIn("HAS_CEF", str(ctx.exception))
+
+
+class SamplePackageTest(unittest.TestCase):
+    """C07/C08/C09 只重打包代表性小文件，不整包重新压缩。"""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.tmp = Path(self._tmp.name)
+        self.root = self.tmp / "nim_duilib-1.0.2026.1023-win-x64"
+        (self.root / "include/duilib").mkdir(parents=True)
+        (self.root / "lib").mkdir()
+        (self.root / "bin/resources/themes/default").mkdir(parents=True)
+        (self.root / "include/duilib/duilib.h").write_bytes(b"#pragma once\n")
+        (self.root / "lib/duilib.lib").write_bytes(b"fake static library\n")
+        (self.root / "bin/resources/themes/default/global.xml").write_bytes(b"<x/>\n")
+        (self.root / "MANIFEST.txt").write_bytes(b"test manifest\n")
+        (self.root / "VERSION").write_bytes(b"1.0.2026.1023\n")
+        (self.root / "SHA256SUMS").write_bytes(b"")
+        self.info = sdk.PackageInfo(
+            archive=self.tmp / "pkg.zip", root=self.root,
+            files=sdk.collect_files(self.root), name_parts={}, info={},
+            manifest={}, caps=sdk.infer_capabilities(sdk.collect_files(self.root)),
+            version_text="1.0.2026.1023")
+        self.work = self.tmp / "work"
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_tar_formats_repack_small(self):
+        detail = sdk.check_tar_formats(self.info, self.work)
+        self.assertIn(".tgz", detail)
+        self.assertIn(".tar.bz2", detail)
+        for name in ("repack.tgz", "repack.tar.bz2"):
+            self.assertTrue((self.work / name).is_file(), name)
+
+    def test_incomplete_rejected(self):
+        detail = sdk.check_incomplete(self.info, self.work)
+        self.assertIn("缺库", detail)
+        self.assertIn("缺头文件", detail)
+
+    def test_tampered_rejected(self):
+        detail = sdk.check_tampered(self.info, self.work)
+        self.assertIn("global.xml", detail)
 
 
 def _print_help() -> None:

@@ -647,6 +647,48 @@ class CefLinuxPackagingTest(_TempDirTest):
         self.assertEqual(collector.critical, [])
 
 
+class CefMacosPackagingTest(_TempDirTest):
+    """macOS 不随包 CEF 开发文件；-cef 只表示 CEF 示例 Bundle 随包。"""
+
+    def test_headers_exclude_cef_on_macos(self):
+        collector = pack.Collector()
+        pack.collect_headers(collector, True, False, False, is_macos=True)
+        rels = [rel for rel, _abs in collector.items]
+        self.assertIn('include/duilib/duilib.h', rels)
+        self.assertNotIn('include/duilib/duilib_cef.h', rels)
+        self.assertFalse(any(rel.startswith('include/duilib/CEFControl/')
+                             for rel in rels))
+
+    def test_headers_include_cef_elsewhere(self):
+        collector = pack.Collector()
+        pack.collect_headers(collector, True, False, False, is_macos=False)
+        rels = [rel for rel, _abs in collector.items]
+        self.assertIn('include/duilib/duilib_cef.h', rels)
+
+    def test_meta_never_declares_cef_on_macos(self):
+        collector = pack.Collector()
+        collector.add('include/duilib/duilib_cef.h',
+                      self._touch('duilib_cef.h'))
+        collector.add('include/duilib/CEFControl/CefManager.h',
+                      self._touch('CefManager.h'))
+        collector.add('lib/libduilib.a', self._touch('libduilib.a'))
+        meta = pack.build_package_meta(
+            collector, '1.0', 'macos', 'x64', 'Release', None,
+            True, 'latest', 'auto')
+        self.assertFalse(meta['has_cef'])
+        self.assertEqual(meta['cef_src'], '')
+        self.assertEqual(meta['cef_wrapper'], '')
+
+    def test_name_cef_follows_example_bundle(self):
+        item = ('bin/cef.app/Contents/Frameworks/'
+                'Chromium Embedded Framework.framework/Chromium Embedded Framework',
+                '/abs/ignored')
+        self.assertTrue(pack.has_macos_cef_examples([item]))
+        self.assertFalse(pack.has_macos_cef_examples(
+            [('bin/basic.app/Contents/MacOS/basic', '/abs/ignored')]))
+        self.assertFalse(pack.has_macos_cef_examples([]))
+
+
 class DocLinkRewriteTest(unittest.TestCase):
 
     def test_rewrite_and_drop(self):
@@ -792,16 +834,11 @@ class ExampleBuildConfigTest(_TempDirTest):
 
     def _bin_with(self, entries):
         bin_dir = os.path.join(self.tmp, 'bin')
-        stamp_dir = os.path.join(bin_dir, '.build-config')
-        os.makedirs(stamp_dir, exist_ok=True)
+        os.makedirs(bin_dir, exist_ok=True)
         for name, stamp in entries:
             self._touch('bin/' + name)
             if stamp is not None:
-                # 标记按 CMake 目标名保存（basic.exe -> basic，cef.app -> cef）
-                stem = name
-                if name.endswith('.app') or name.lower().endswith('.exe'):
-                    stem = name[:-4]
-                with open(os.path.join(stamp_dir, stem), 'w',
+                with open(os.path.join(bin_dir, name + '.build-config'), 'w',
                           encoding='utf-8') as fp:
                     fp.write(stamp + '\n')
         return bin_dir
@@ -840,35 +877,8 @@ class ExampleBuildConfigTest(_TempDirTest):
         self.assertEqual(items, ['bin/basic.exe'])
         self.assertFalse(any('无法确认' in msg for msg in warnings))
 
-    def test_stamp_directory_is_not_collected(self):
-        """bin/.build-config 目录本身不能被当作示例程序收集。"""
-        bin_dir = os.path.join(self.tmp, 'bin')
-        stamp_dir = os.path.join(bin_dir, '.build-config')
-        os.makedirs(stamp_dir, exist_ok=True)
-        self._touch('bin/basic.exe')
-        with open(os.path.join(stamp_dir, 'basic'), 'w',
-                  encoding='utf-8') as fp:
-            fp.write('Release\n')
-        count, items, _warnings = self._collect('Release', bin_dir)
-        self.assertEqual(count, 1)
-        self.assertEqual(items, ['bin/basic.exe'])
-
     def test_windows_exe_uses_target_stamp(self):
-        """CMake 按目标名写标记（.build-config/basic），而 bin 中的文件是 basic.exe。"""
-        bin_dir = os.path.join(self.tmp, 'bin')
-        stamp_dir = os.path.join(bin_dir, '.build-config')
-        os.makedirs(stamp_dir, exist_ok=True)
-        self._touch('bin/basic.exe')
-        with open(os.path.join(stamp_dir, 'basic'), 'w',
-                  encoding='utf-8') as fp:
-            fp.write('Release\n')
-        count, items, warnings = self._collect('Debug', bin_dir)
-        self.assertEqual(count, 0)
-        self.assertEqual(items, [])
-        self.assertTrue(any('另一配置' in msg for msg in warnings))
-
-    def test_legacy_inline_stamp_is_still_read(self):
-        """升级前写在 bin/<目标>.build-config 的标记仍能识别配置。"""
+        """CMake 按目标名写标记（basic.build-config），而 bin 中的文件是 basic.exe。"""
         bin_dir = os.path.join(self.tmp, 'bin')
         os.makedirs(bin_dir, exist_ok=True)
         self._touch('bin/basic.exe')
@@ -882,10 +892,9 @@ class ExampleBuildConfigTest(_TempDirTest):
 
     def test_macos_app_reads_target_stamp(self):
         bin_dir = os.path.join(self.tmp, 'bin')
-        stamp_dir = os.path.join(bin_dir, '.build-config')
-        os.makedirs(stamp_dir, exist_ok=True)
+        os.makedirs(bin_dir, exist_ok=True)
         self._touch('bin/cef.app/Contents/MacOS/cef')
-        with open(os.path.join(stamp_dir, 'cef'), 'w',
+        with open(os.path.join(bin_dir, 'cef.build-config'), 'w',
                   encoding='utf-8') as fp:
             fp.write('Release\n')
         collector = pack.Collector()

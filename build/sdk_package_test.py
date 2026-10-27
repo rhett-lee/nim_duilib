@@ -180,6 +180,20 @@ def _package_lib_stems(lib_names: set[str]) -> set[str]:
     return stems
 
 
+CEF_FRAMEWORK_MARK = (
+    ".app/Contents/Frameworks/Chromium Embedded Framework.framework/")
+
+
+def has_cef_example_bundle(files: list[str]) -> bool:
+    """包内是否有内嵌 CEF Framework 的 macOS 示例 Bundle。
+
+    macOS 不随包 CEF 开发文件/运行时，包名里的 -cef 只表示这类示例随包，
+    因此 P04 用它校验包名，而不是 HAS_CEF。
+    """
+    return any(item.startswith("bin/") and CEF_FRAMEWORK_MARK in item
+               for item in files)
+
+
 def infer_capabilities(files: list[str], toolchain: str = "") -> dict:
     """由包内实际文件推断能力开关，规则与 build/pack.py 保持一致。"""
     lib_names = _package_lib_names(files)
@@ -222,14 +236,18 @@ def infer_capabilities(files: list[str], toolchain: str = "") -> dict:
         if stem.startswith("cef_dll_wrapper"):
             wrapper = "lib" + stem
             break
-    if cef_src == "libcef_win":
-        has_cef = "libcef.lib" in lib_names and bool(wrapper)
-    elif cef_src == "libcef_win_109":
+    cef_headers = ("include/duilib/duilib_cef.h" in files
+                   or any(item.startswith("include/duilib/CEFControl/")
+                          for item in files))
+    if cef_src in ("libcef_win", "libcef_win_109"):
         has_cef = "libcef.lib" in lib_names and bool(wrapper)
     elif cef_src == "libcef_linux":
         has_cef = bool(wrapper) and "bin/libcef_linux/libcef.so" in files
     else:
-        has_cef = False
+        # 未收集到 bin/libcef_win[_109]/ 运行库目录时（Windows 允许缺运行时出包），
+        # pack.py 仍以“头文件 + libcef.lib + wrapper”声明 CEF；macOS 不随包
+        # CEF 开发文件，恒为 False，其 CEF 能力由 has_cef_examples 单独表示。
+        has_cef = cef_headers and bool(wrapper) and "libcef.lib" in lib_names
 
     has_examples = any(
         (item.startswith("bin/") and item.count("/") == 1
@@ -247,6 +265,8 @@ def infer_capabilities(files: list[str], toolchain: str = "") -> dict:
         "has_webview2": has_webview2,
         "has_jpeg": has_jpeg,
         "has_cef": has_cef,
+        "cef_headers": cef_headers,
+        "has_cef_examples": has_cef_example_bundle(files),
         "cef_src": cef_src,
         "cef_wrapper": wrapper,
         "has_examples": has_examples,
@@ -537,6 +557,14 @@ def check_metadata(info: PackageInfo) -> str:
          caps["has_webview2"], "WebView2"),
         ("HAS_JPEG", flag_value(info.meta("HAS_JPEG")), caps["has_jpeg"], "JPEG"),
     ]
+    if parts["system"] == "macos":
+        # macOS 不随包 CEF 开发文件与运行时，HAS_CEF 必须为 0；包名的 -cef
+        # 只表示 CEF 示例 App Bundle（内嵌 Framework）确实随包。
+        if flag_value(info.meta("HAS_CEF")):
+            problems.append("macOS 包不应声明 CEF 开发文件（HAS_CEF 应为 0）")
+        expect(parts["has_cef"], caps["has_cef_examples"],
+               "包名 CEF 标志 vs 实际 CEF 示例 Bundle")
+        checks = [item for item in checks if item[0] != "HAS_CEF"]
     for key, name_value, file_value, label in checks:
         meta_value = flag_value(info.meta(key))
         if name_value != file_value or meta_value != file_value:
@@ -628,7 +656,11 @@ def check_forbidden(info: PackageInfo) -> str:
     if not info.caps["has_cef"]:
         for prefix in ("include/duilib/duilib_cef.h", "include/duilib/CEFControl/"):
             if any(item == prefix or item.startswith(prefix) for item in info.files):
-                problems.append("未声明 CEF 却包含 %s" % prefix)
+                message = "未声明 CEF 却包含 %s" % prefix
+                if info.name_parts.get("system") == "macos":
+                    message += ("（macOS 包不随 CEF 开发文件，-cef 只表示 CEF 示例"
+                                " Bundle；请用当前 pack.py 重新出包）")
+                problems.append(message)
                 break
     if not info.caps["has_sdl"]:
         if any(item.startswith("include/SDL3/") for item in info.files):
@@ -673,7 +705,7 @@ def _tar_open(dest: Path, mode: str):
     """打开用于重打包测试的归档。
 
     这里生成的归档只用于校验逻辑（格式、缺文件、篡改），压缩率不影响结论；
-    大包（1 GB 以上）在级别 9 下重打包要几分钟，级别 1 可以显著缩短耗时。
+    归档里只有代表性小文件（见 _make_sample_package），级别 1 已足够。
     """
     kwargs = {}
     if mode.startswith("w:"):
@@ -682,17 +714,95 @@ def _tar_open(dest: Path, mode: str):
     return tarfile.open(dest, mode, **kwargs)
 
 
-def _make_tar(root: Path, dest: Path, mode: str) -> Path:
+def _sample_symlinks(info: PackageInfo, limit: int = 3):
+    """返回包内前若干个符号链接（相对路径、链接目标），用于格式重打包用例。"""
+    found = []
+    for dirpath, dirnames, filenames in os.walk(info.root, followlinks=False):
+        for name in dirnames + filenames:
+            full = os.path.join(dirpath, name)
+            if not os.path.islink(full):
+                continue
+            rel = os.path.relpath(full, info.root).replace(os.sep, "/")
+            found.append((rel, os.readlink(full)))
+            if len(found) >= limit:
+                return found
+    return found
+
+
+def _pick_smallest(info: PackageInfo, predicate) -> str:
+    """在包内挑选满足条件且体积最小的文件，控制测试归档大小。"""
+    candidates = [rel for rel in info.files if predicate(rel)]
+    if not candidates:
+        return ""
+    return min(candidates, key=lambda rel: (info.root / rel).stat().st_size)
+
+
+def _make_sample_package(info: PackageInfo, dest: Path, mode: str,
+                         rels, *, override=None, hash_from=None) -> Path:
+    """从真实包生成只含代表性文件的小归档，供 C07/C08/C09 使用。
+
+    整包重新 gzip/bz2 在 Debug CEF 包（可达数 GB）上单次就要十几分钟，而这三个
+    用例只验证 `--verify` 对缺文件/篡改的判定以及 tgz/tar.bz2 的写出；完整包
+    的校验已由 P07 覆盖。这里保留真实的 MANIFEST/VERSION、调用方指定的文件、
+    一个符号链接，并按实际内容重建 SHA256SUMS。
+
+    override 用指定内容替换某个文件；hash_from 指定该文件参与 SHA256SUMS 的
+    基准内容（C08 用它模拟“文件被篡改而校验和未更新”）。
+    """
+    import io
+
+    override = override or {}
+    hash_from = hash_from or {}
+    wanted = list(dict.fromkeys(list(rels) + list(override)))
+    payload = {}
+    for rel in wanted:
+        data = override.get(rel)
+        payload[rel] = data if data is not None else (info.root / rel).read_bytes()
+    for rel in ("MANIFEST.txt", "VERSION"):
+        path = info.root / rel
+        if path.is_file():
+            payload[rel] = path.read_bytes()
+
+    lines = []
+    for rel, data in sorted(payload.items()):
+        if rel in ("MANIFEST.txt", "VERSION"):
+            continue
+        basis = hash_from.get(rel, data)
+        lines.append("%s  %s" % (hashlib.sha256(basis).hexdigest(), rel))
+    payload["SHA256SUMS"] = ("\n".join(lines) + "\n").encode("utf-8")
+
+    dest.parent.mkdir(parents=True, exist_ok=True)
     with _tar_open(dest, mode) as tf:
-        tf.add(str(root), arcname=root.name)
+        for rel in sorted(payload):
+            data = payload[rel]
+            entry = tarfile.TarInfo(info.root.name + "/" + rel)
+            entry.size = len(data)
+            entry.mtime = 0
+            entry.mode = 0o644
+            tf.addfile(entry, io.BytesIO(data))
+        for rel, target in _sample_symlinks(info):
+            entry = tarfile.TarInfo(info.root.name + "/" + rel)
+            entry.type = tarfile.SYMTYPE
+            entry.linkname = target
+            entry.mtime = 0
+            tf.addfile(entry)
     return dest
 
 
 def check_tar_formats(info: PackageInfo, work_dir: Path) -> str:
+    header = _pick_smallest(info, lambda rel: rel.startswith("include/duilib/"))
+    lib = _pick_smallest(info, _is_library_file)
+    if not header or not lib:
+        raise AssertionError("包内缺少头文件或静态库，无法验证重打包格式")
+    rels = [header, lib]
+    runtime = "bin/resources/themes/default/global.xml"
+    if (info.root / runtime).is_file():
+        rels.append(runtime)
+
     results = []
     for suffix, mode in ((".tgz", "w:gz"), (".tar.bz2", "w:bz2")):
         dest = work_dir / ("repack" + suffix)
-        _make_tar(info.root, dest, mode)
+        _make_sample_package(info, dest, mode, rels)
         proc = run_verify_cli(dest)
         if proc.returncode != 0:
             raise AssertionError("%s 校验失败：%s" % (suffix, (proc.stdout or "")[-800:]))
@@ -705,66 +815,48 @@ def _is_library_file(rel: str) -> bool:
         rel.lower().endswith((".lib", ".a"))
 
 
-def _make_tar_from_root(root: Path, dest: Path, mode: str, *,
-                        skip=None, override_rel: str = "",
-                        override_data: bytes = b"") -> Path:
-    """由解包目录直接生成归档，可选跳过文件或替换某个文件的内容。
-
-    直接在原目录上生成归档，避免为负向用例复制整包（大包会耗尽临时空间）。
-    """
-    import io
-
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    with _tar_open(dest, mode) as tf:
-        for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
-            dirnames[:] = [name for name in dirnames
-                           if not os.path.islink(os.path.join(dirpath, name))]
-            for name in filenames:
-                full = os.path.join(dirpath, name)
-                rel = os.path.relpath(full, root).replace(os.sep, "/")
-                if skip and skip(rel):
-                    continue
-                info = tf.gettarinfo(full, arcname=root.name + "/" + rel)
-                if os.path.islink(full):
-                    tf.addfile(info)
-                elif rel == override_rel:
-                    info.size = len(override_data)
-                    tf.addfile(info, io.BytesIO(override_data))
-                else:
-                    with open(full, "rb") as handle:
-                        tf.addfile(info, handle)
-    return dest
-
-
 def check_incomplete(info: PackageInfo, work_dir: Path) -> str:
+    header = _pick_smallest(info, lambda rel: rel.startswith("include/duilib/"))
+    lib = _pick_smallest(info, _is_library_file)
+    if not header or not lib:
+        raise AssertionError("包内缺少可用于负向校验的头文件或静态库")
     cases = [
-        ("缺库", lambda rel: _is_library_file(rel)),
-        ("缺头文件", lambda rel: rel.startswith("include/duilib/")),
+        ("缺库", "缺少 lib/ 静态库", [header]),
+        ("缺头文件", "缺少 include/duilib/ 头文件", [lib]),
     ]
     verified = []
-    for index, (label, skip) in enumerate(cases):
-        archive = _make_tar_from_root(
-            info.root, work_dir / ("bad-%d.tgz" % index), "w:gz", skip=skip)
+    for index, (label, expected, rels) in enumerate(cases):
+        archive = _make_sample_package(info, work_dir / ("bad-%d.tgz" % index),
+                                       "w:gz", rels)
         proc = run_verify_cli(archive)
         if proc.returncode == 0:
             raise AssertionError("%s 的包本应被 --verify 拒绝，实际通过" % label)
+        if expected not in (proc.stdout or ""):
+            raise AssertionError("%s 的失败原因不符合预期（应包含“%s”）：%s"
+                                 % (label, expected, (proc.stdout or "")[-500:]))
         verified.append(label)
     return "%s 均被 --verify 拒绝" % " / ".join(verified)
 
 
 def check_tampered(info: PackageInfo, work_dir: Path) -> str:
-    checksum_file = _pick_checksum_target(info)
-    original = (info.root / checksum_file).read_bytes()
-    data = original + b"\n# sdk-package-test tampered\n"
-    archive = _make_tar_from_root(
-        info.root, work_dir / "tampered.tgz", "w:gz",
-        override_rel=checksum_file, override_data=data)
+    rel = _pick_checksum_target(info)
+    original = (info.root / rel).read_bytes()
+    tampered = original + b"\n# sdk-package-test tampered\n"
+    # 同时带上头文件与静态库，避免“缺文件”错误掩盖 SHA256 不匹配。
+    rels = [rel]
+    for extra in (_pick_smallest(info, lambda item: item.startswith("include/duilib/")),
+                  _pick_smallest(info, _is_library_file)):
+        if extra and extra not in rels:
+            rels.append(extra)
+    archive = _make_sample_package(
+        info, work_dir / "tampered.tgz", "w:gz", rels,
+        override={rel: tampered}, hash_from={rel: original})
     proc = run_verify_cli(archive)
     if proc.returncode == 0:
-        raise AssertionError("篡改 %s 后 --verify 本应失败，实际通过" % checksum_file)
+        raise AssertionError("篡改 %s 后 --verify 本应失败，实际通过" % rel)
     if "SHA256" not in (proc.stdout or ""):
         raise AssertionError("失败原因不是 SHA256 不匹配：%s" % (proc.stdout or "")[-500:])
-    return "篡改 %s 被 --verify 以 SHA256 不匹配拒绝" % checksum_file
+    return "篡改 %s 被 --verify 以 SHA256 不匹配拒绝" % rel
 
 
 def _pick_checksum_target(info: PackageInfo) -> str:
