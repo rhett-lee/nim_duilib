@@ -56,7 +56,7 @@ python3 build/build.py deps
 ## DLL mode (Windows MSVC)
 
 ```bash
-# Build duilib as bin/duilib*.dll; prepares Skia .md/.mdd and SDL (/MD, /MDd)
+# Build duilib as bin/duilib*.dll; prepares Skia .md/.mdd (SDL is off by default; add --sdl if needed)
 python3 build/build.py build --dll --config Release
 
 # Debug DLL (bin/duilib_d.dll, Skia uses .mdd)
@@ -70,6 +70,10 @@ python3 build/build.py build --dll --target duilib
 running without `--dll` removes the flag and returns to static mode. On a mode
 switch the build tree is cleaned automatically, so the CEF wrapper and all
 targets rebuild with the new CRT; no manual `build_temp/` cleanup is needed.
+SDL is off by default on Windows and DLL mode does not turn it on either (SDL
+behaves noticeably worse than the native backends there); while it is off,
+`deps` neither downloads the SDL sources nor builds SDL3. Pass `--sdl`
+explicitly if you really need it.
 DLL packages collect `bin/duilib*.dll`; JPEG support adds `bin/turbojpeg.dll`
 only when the DLL really imports it, and the package name gets `-dll`.
 

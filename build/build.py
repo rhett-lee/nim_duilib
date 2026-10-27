@@ -468,7 +468,8 @@ def _add_common_options(parser: argparse.ArgumentParser, suppress_defaults: bool
                              "如 release-3.4.18、main）")
     parser.add_argument("--sdl", dest="sdl", action="store_true", default=default(None),
                         help=_platform_help(
-                            "强制启用 SDL（默认开启）",
+                            "启用 SDL（Windows 默认关闭，DLL 模式也不会自动开启；"
+                            "关闭时不下载/不构建 SDL3）",
                             "仅 Windows 有效；其他平台 SDL 始终开启"))
     parser.add_argument("--no-sdl", dest="sdl", action="store_false", default=default(None),
                         help=_platform_help(
@@ -481,7 +482,8 @@ def _add_common_options(parser: argparse.ArgumentParser, suppress_defaults: bool
     parser.add_argument("--dll", action="store_true", default=default(False),
                         help=_platform_help(
                             "构建 duilib DLL 模式（隐式开启 --md，自动准备并编译 "
-                            "Skia .md/.mdd 与 SDL，输出 bin/duilib*.dll）；"
+                            "Skia .md/.mdd，输出 bin/duilib*.dll；SDL 不自动开启，"
+                            "需要时显式 --sdl）；"
                             "同时同步 msvc/PropertySheets/duilib_dll.flag",
                             "仅 Windows MSVC 有效；其他平台不支持"))
     parser.add_argument("--no-absolute-rpath", dest="rpath_absolute",
@@ -520,7 +522,8 @@ def build_parser() -> argparse.ArgumentParser:
                                help="不编译示例（仍配置工程）")
 
     deps_parser = sub.add_parser("deps", parents=[sub_common],
-                                 help="只准备依赖（Skia/SDL3/CEF）并安装到 --deps-root")
+                                 help="只准备依赖（Skia/SDL3/CEF；SDL 关闭时跳过 SDL3）"
+                                      "并安装到 --deps-root")
     deps_parser.add_argument("--force", action="store_true",
                              help="忽略完成标记，重建依赖（Skia/SDL3/CEF）")
     deps_parser.add_argument("--no-examples", action="store_true", help=argparse.SUPPRESS)
@@ -790,9 +793,10 @@ def _cmake_defines(args, arch: str, deps_mode: str, force: bool) -> list:
         sdl_enabled = args.sdl
     else:
         # 与根工程默认一致：Windows（含 MinGW）默认关闭，其他平台强制开启。
-        # DLL 模式默认打开 SDL，让依赖链路（Skia .md/.mdd + SDL /MD）
-        # 一次性自动准备完整；显式 --no-sdl 可关闭。
-        sdl_enabled = sys.platform != "win32" or getattr(args, "dll", False)
+        # DLL 模式也不隐式开启 SDL：Windows 上 SDL 体验不如原生实现，需要时
+        # 显式 --sdl。DLL 模式只需 Skia 的 .md/.mdd 变体，SDL 关闭时
+        # deps 不会 clone/build SDL3。
+        sdl_enabled = sys.platform != "win32"
     defines.append(f"-DDUILIB_ENABLE_SDL={'ON' if sdl_enabled else 'OFF'}")
     defines.append(f"-DDUILIB_MD={'ON' if args.md else 'OFF'}")
     defines.append(f"-DDUILIB_DLL={'ON' if getattr(args, 'dll', False) else 'OFF'}")

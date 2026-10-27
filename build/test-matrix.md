@@ -87,9 +87,10 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
   需 `git checkout -- bin/resources.zip` 恢复。
 - `--md`、`--sdl`、`--no-examples`、`--cef-version` 等是有状态选项，`build.py` 每次都会
   显式传入解析后的值；直接调用 `cmake` 复用目录时才需要手工清缓存。
-- `--dll`（Windows MSVC）隐含 `--md`，并默认启用 SDL；`build.py` 会自动准备
-  Skia 的 `.md`（Release）/.mdd（Debug）变体与 `/MD`/`/MDd` 的 SDL3，无需手工转
-  运行库。
+- `--dll`（Windows MSVC）隐含 `--md`；`build.py` 会自动准备 Skia 的 `.md`
+  （Release）/.mdd（Debug）变体，无需手工转运行库。SDL 在 Windows 上默认关闭，
+  `--dll` 也不自动开启；关闭时 `deps` 不下载 SDL 源码、不构建 SDL3，需要时显式
+  `--sdl`。
 - 本轮 DLL 回归结束后恢复静态基线：删除 `msvc/PropertySheets/duilib_dll.flag`、
   `bin/duilib*.dll` 及对应 `.pdb/.ilk`，并用测试前备份覆盖
   `lib/x64/Release`、`lib/x86/Release`、`lib/x86/Debug`；随后

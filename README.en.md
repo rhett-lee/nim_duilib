@@ -241,7 +241,7 @@ Windows you can run `build\build.bat` instead (same arguments).
 ### Quick Start
 
 ```bash
-python3 build/build.py                 # Release: prepare Skia/SDL/CEF on first run, build lib + examples
+python3 build/build.py                 # Release: prepare Skia/CEF on first run (SDL is off by default on Windows; pass --sdl if needed), build lib + examples
 python3 build/build.py --config Debug  # Debug (separate build tree)
 python3 build/build.py doctor          # environment check
 python3 build/build.py pack            # build an SDK package

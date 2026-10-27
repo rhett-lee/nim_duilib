@@ -57,7 +57,7 @@ python3 build/build.py deps
 ## DLL 模式（Windows MSVC）
 
 ```bash
-# duilib 编为 bin/duilib*.dll；自动准备 Skia .md/.mdd 与 SDL（/MD、/MDd）
+# duilib 编为 bin/duilib*.dll；自动准备 Skia .md/.mdd（SDL 默认关闭，需要时加 --sdl）
 python3 build/build.py build --dll --config Release
 
 # Debug DLL（bin/duilib_d.dll，Skia 用 .mdd）
@@ -70,6 +70,9 @@ python3 build/build.py build --dll --target duilib
 `--dll` 隐式开启 `--md`，并同步 `msvc/PropertySheets/duilib_dll.flag`；不加
 `--dll` 的构建会删除该 flag 并回到静态模式。切换模式时构建目录会自动清理，
 CEF wrapper 与所有目标按新的 CRT 重新编译，无需手工删除 `build_temp/`。
+SDL 在 Windows 上默认关闭，DLL 模式也不会自动开启（Windows 下 SDL 的体验明显
+不如原生实现）；关闭时 `deps` 不下载 SDL 源码、也不构建 SDL3，需要时显式加
+`--sdl`。
 DLL 模式包的 `pack.py` 会自动收集 `bin/duilib*.dll`，包名追加 `-dll`；
 duilib DLL 实际引用 `turbojpeg.dll`（MSBuild 构建）时才随包该 DLL，且在 SDL
 支持下打包必须带 `--with-sdl`。

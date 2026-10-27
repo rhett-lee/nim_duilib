@@ -239,7 +239,7 @@
 ### 快速开始
 
 ```bash
-python3 build/build.py                 # Release：首次自动准备 Skia/SDL/CEF，构建库与示例
+python3 build/build.py                 # Release：首次自动准备 Skia/CEF（Windows 的 SDL 默认关闭，需要时加 --sdl），构建库与示例
 python3 build/build.py --config Debug  # Debug（与 Release 使用不同构建目录）
 python3 build/build.py doctor          # 环境自检
 python3 build/build.py pack            # 出 SDK 包

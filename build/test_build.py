@@ -208,6 +208,15 @@ class CmakeDefinePersistenceTests(unittest.TestCase):
         self.assertIn('-DDUILIB_ENABLE_SDL=ON', defines)
         self.assertIn('-DDUILIB_CEF_VERSION=109', defines)
 
+    @unittest.skipUnless(sys.platform == 'win32' and not os.environ.get('MSYSTEM'),
+                         '--dll 仅在 Windows MSVC 下可用')
+    def test_dll_does_not_enable_sdl(self):
+        """Windows 上 SDL 始终默认关闭，DLL 模式也不例外。"""
+        defines = self._defines(['build', '--dll'])
+        self.assertIn('-DDUILIB_DLL=ON', defines)
+        self.assertIn('-DDUILIB_MD=ON', defines)
+        self.assertIn('-DDUILIB_ENABLE_SDL=OFF', defines)
+
     def test_no_absolute_rpath(self):
         defines = self._defines(['build', '--no-absolute-rpath'])
         self.assertIn('-DDUILIB_RPATH_ABSOLUTE=OFF', defines)

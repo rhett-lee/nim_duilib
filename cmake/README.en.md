@@ -473,7 +473,7 @@ cmake -S .. -B ./build_debug -DCMAKE_BUILD_TYPE=Debug
 cmake --build ./build_debug
 ```
 
-For everyday builds use the unified entry (it prepares Skia/SDL3/CEF automatically):
+For everyday builds use the unified entry (it prepares Skia/CEF automatically; SDL is off by default on Windows, pass `--sdl` if needed):
 
 ```bash
 python3 build/build.py --config Debug

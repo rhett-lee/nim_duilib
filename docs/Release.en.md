@@ -71,9 +71,11 @@ always writes to `dist/<version>/`.
 **DLL mode** has two entry points that share `bin/` and `lib/`:
 
 - **CMake / build.py**: `python build/build.py build --dll`. `--dll` implies
-  `--md`, enables SDL by default, automatically prepares and builds the required
-  Skia (`.md`/`.mdd`) and SDL (`/MD`, `/MDd`) variants, then configures
-  `DUILIB_DLL=ON` (`add_library(... SHARED)`). `build.py` also synchronizes
+  `--md`, automatically prepares and builds the required Skia (`.md`/`.mdd`)
+  variants, then configures `DUILIB_DLL=ON` (`add_library(... SHARED)`). SDL is
+  off by default on Windows and DLL mode does not enable it either; while off,
+  `deps` neither downloads the SDL sources nor builds SDL3 (pass `--sdl` to opt
+  in). `build.py` also synchronizes
   `msvc/PropertySheets/duilib_dll.flag` so both entry points use the same mode.
 - **VS/MSBuild**: create the file `msvc/PropertySheets/duilib_dll.flag` and
   rebuild.

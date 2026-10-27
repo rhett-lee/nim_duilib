@@ -461,7 +461,7 @@ cmake -S .. -B ./build_debug -DCMAKE_BUILD_TYPE=Debug
 cmake --build ./build_debug
 ```
 
-日常构建推荐使用统一入口（自动准备 Skia/SDL3/CEF）：
+日常构建推荐使用统一入口（自动准备 Skia/CEF；Windows 上 SDL 默认关闭，需要时加 `--sdl`）：
 
 ```bash
 python3 build/build.py --config Debug

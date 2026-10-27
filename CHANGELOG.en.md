@@ -79,9 +79,11 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 - Windows MSVC DLL mode: `python build/build.py build --dll` builds duilib as
   `bin/duilib*.dll` (`duilib32*.dll` on x86, `_d` for Debug, with the import
   library always at `lib/<arch>/<Config>/duilib.lib`). `--dll` implies `--md`
-  and enables SDL by default, automatically preparing the Skia `.md`/`.mdd` and
-  `/MD`/`/MDd` SDL3 variants and synchronizing
-  `msvc/PropertySheets/duilib_dll.flag`. Switching between static and DLL modes
+  and prepares the Skia `.md`/`.mdd` variants while synchronizing
+  `msvc/PropertySheets/duilib_dll.flag`. SDL stays off by default on Windows and
+  DLL mode does not enable it either; while off, `deps` neither downloads the
+  SDL sources nor builds SDL3 (pass `--sdl` to opt in). Switching between static
+  and DLL modes
   is detected through `out/<arch>/<Config>/.duilib-build-mode`, which wipes the
   build tree (including stale `/MT` objects of `libcef_dll_wrapper`); DLL →
   static also removes `bin/duilib*.dll`.

@@ -63,9 +63,10 @@
   `Info.plist` 模板与可选的 `.icns` 图标配置。
 - Windows MSVC DLL 模式：`python build/build.py build --dll` 把 duilib 编为
   `bin/duilib*.dll`（x86 为 `duilib32*.dll`，Debug 带 `_d`，导入库统一为
-  `lib/<arch>/<Config>/duilib.lib`）；`--dll` 隐含 `--md` 并默认启用 SDL，
-  自动准备 Skia `.md`/`.mdd` 与 `/MD`、`/MDd` 的 SDL3，同时同步
-  `msvc/PropertySheets/duilib_dll.flag`。静态 ↔ DLL 模式切换由
+  `lib/<arch>/<Config>/duilib.lib`）；`--dll` 隐含 `--md`，自动准备 Skia
+  `.md`/`.mdd`，同时同步 `msvc/PropertySheets/duilib_dll.flag`。Windows 上 SDL
+  默认关闭，DLL 模式也不自动开启；关闭时 `deps` 不下载 SDL 源码、不构建 SDL3，
+  需要时显式 `--sdl`。静态 ↔ DLL 模式切换由
   `out/<arch>/<Config>/.duilib-build-mode` 检测，自动清理构建树（含
   `libcef_dll_wrapper` 旧 `/MT` 目标文件）；DLL → 静态还会删除 `bin/duilib*.dll`。
 - 发布包 DLL 支持：自动收集 `bin/duilib*.dll`，包名追加 `-dll`，元数据

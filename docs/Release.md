@@ -56,8 +56,9 @@ python3 build/pack.py --with-examples
 **DLL 模式**支持两个入口，二者共用 `bin/`、`lib/`：
 
 - **CMake / build.py**：`python build/build.py build --dll`。`--dll` 隐式开启
-  `--md`，默认启用 SDL，自动准备并构建所需 Skia（`.md`/`.mdd`）与 SDL（`/MD`、
-  `/MDd`），随后配置 `DUILIB_DLL=ON`（`add_library(... SHARED)`）。
+  `--md`，自动准备并构建所需 Skia（`.md`/`.mdd`），随后配置 `DUILIB_DLL=ON`
+  （`add_library(... SHARED)`）。Windows 上 SDL 默认关闭，DLL 模式也不自动
+  开启；关闭时 `deps` 不下载 SDL 源码、不构建 SDL3，需要时显式 `--sdl`。
   `build.py` 会同步 `msvc/PropertySheets/duilib_dll.flag`，避免两个入口模式不一致。
 - **VS/MSBuild**：在 `msvc/PropertySheets/` 下新建文件 `duilib_dll.flag`
   后重新构建。
