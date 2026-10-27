@@ -137,11 +137,16 @@ Dependency directories live next to the repository by default (`--deps-root` ove
 The Skia patch archive is obtained automatically by `build.py deps` (and the default
 `build`): when missing, the whole
 [skia_compile](https://github.com/rhett-lee/skia_compile) repository is cloned into
-`<deps-root>/skia_compile`; an existing checkout is updated with `git pull`, and a
-failed update keeps the local copy (matching the legacy script). Building directly with
-CMake (`DUILIB_DEPS_MODE=auto` or the `duilib_deps` target) performs the same
-clone/update through the dependency script. `--offline` never touches the network, so
-the archive must be prepared in advance; `doctor` reports whether it exists.
+`<deps-root>/skia_compile`; an existing checkout is checked against the current commit
+first (the same name may be committed more than once, e.g.
+`skia.2026-09-16.src.zip`), so a local copy that was replaced with an older version (or
+deleted) is restored from the checkout before `git pull` fetches the latest commit; a
+changed patch makes the matching Skia artifacts rebuild. A failed update keeps the local
+copy (matching the legacy script). Building directly with CMake
+(`DUILIB_DEPS_MODE=auto` or the `duilib_deps` target) performs the same logic through
+the dependency script. `--offline` never touches the network and only restores the local
+copy, so the archive must be prepared in advance; `doctor` reports whether it exists and
+whether it differs from the local checkout.
 
 All network operations (git clone/fetch, CEF downloads) share one retry policy kept in
 the `retry` block of
@@ -153,7 +158,9 @@ the `retry` block of
 
 `maxAttempts=0` means retry forever (the default) and `delaySeconds` is the fixed delay
 between attempts. `git pull` is the exception: it is tried once and a failure only warns
-before continuing with the local copy (matching the legacy script).
+before continuing with the local copy (matching the legacy script). Switching a
+dependency checkout to the manifest ref fetches only when the target commit is missing
+locally; an already fetched commit is checked out directly, which also works offline.
 
 Versions are pinned in [third_party_versions.json](../cmake/third_party_versions.json):
 
@@ -163,11 +170,17 @@ Versions are pinned in [third_party_versions.json](../cmake/third_party_versions
   falls back to gcc/g++ when clang is missing; the artifact directory is
   `out/llvm.<arch>.release` or `out/gcc.<arch>.release` accordingly. Debug reuses the
   release build mode and only changes the runtime (`/MTd` or `/MDd`), so each
-  configuration needs its own Skia variant directory.
+  configuration needs its own Skia variant directory. If the local `skia/` checkout is
+  not at the manifest commit (or the tag/branch selected by `--skia-ref`), `deps`
+  switches it to the manifest revision; a branch ref only requires the checkout to be
+  on that branch and does not chase remote tip on every run.
 - **SDL3**: fixed tag (`sdl.default`). Disabled on Windows by default; when enabled,
   `deps` builds Debug and Release static libraries. Unix builds shared libraries and
   writes rpath entries (relative entries first; the absolute fallback is controlled
-  by `DUILIB_RPATH_ABSOLUTE`).
+  by `DUILIB_RPATH_ABSOLUTE`). If the local `SDL/` checkout is on another branch (for
+  example `main`), `deps` switches to the manifest tag before building; the SDL3 install
+  stamp records the source commit, so artifacts built from the wrong revision are
+  rebuilt automatically (once when upgrading to this version).
 - **CEF**: fixed version branch (`cef.default`; `109` is available for Windows 7).
   The `_minimal` distributions are used everywhere (about half the size of the standard
   package; they contain `include/`, `Release/` and `Resources/`). Only

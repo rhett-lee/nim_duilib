@@ -126,10 +126,13 @@ Unix 上示例程序默认写入相对 rpath（`$ORIGIN/../lib`、`@loader_path/
 
 Skia 的补丁归档由 `build.py deps`（以及默认的 `build`）自动获取：缺少时克隆整个
 [skia_compile](https://github.com/rhett-lee/skia_compile) 仓库到
-`<deps-root>/skia_compile`；仓库已存在则执行 `git pull` 更新，更新失败时继续使用
-本地已有内容（与旧脚本一致）。直接用 CMake 构建（`DUILIB_DEPS_MODE=auto` 或
-`duilib_deps` 目标）时由依赖脚本执行同样的克隆/更新逻辑。`--offline` 下不联网，
-需要提前自备补丁归档；`doctor` 会显示该归档是否存在。
+`<deps-root>/skia_compile`；仓库已存在时先检查本地归档是否与当前提交一致
+（同名归档可能被重复提交，例如 `skia.2026-09-16.src.zip`），把被替换成旧版本
+（或删除）的文件恢复成仓库版本，再执行 `git pull` 取最新提交；补丁内容变化会让
+对应的 Skia 产物重新编译。更新失败时继续使用本地已有内容（与旧脚本一致）。
+直接用 CMake 构建（`DUILIB_DEPS_MODE=auto` 或 `duilib_deps` 目标）时由依赖脚本
+执行同样的逻辑。`--offline` 下不联网，只做本地恢复；需要提前自备补丁归档，
+`doctor` 会显示归档是否存在、以及是否与本地仓库不一致。
 
 所有网络操作（git clone/fetch、CEF 下载）共用一套重试参数，维护在
 [third_party_versions.json](../cmake/third_party_versions.json) 的 `retry` 段：
@@ -140,6 +143,8 @@ Skia 的补丁归档由 `build.py deps`（以及默认的 `build`）自动获取
 
 `maxAttempts=0` 表示无限重试（默认），`delaySeconds` 为两次尝试之间的固定间隔。
 `git pull` 例外：只尝试一次，失败仅告警并继续使用本地内容（与旧脚本一致）。
+把依赖源码切到清单 ref 时，只有本地缺少目标提交才会 fetch；本地已有该提交时直接
+`git checkout`，离线构建同样可用。
 
 版本由 [third_party_versions.json](../cmake/third_party_versions.json) 统一锁定：
 
@@ -148,9 +153,14 @@ Skia 的补丁归档由 `build.py deps`（以及默认的 `build`）自动获取
   较差），只有 clang 不可用时才回退 gcc/g++；产物目录相应为
   `out/llvm.<arch>.release` 或 `out/gcc.<arch>.release`。Debug 复用 Release 编译
   模式，仅切换运行库（`/MTd` 或 `/MDd`），因此每种配置需要各自的 Skia 变体目录。
+  本地 `skia/` 源码不在清单 commit（或 `--skia-ref` 指定的 tag/branch）上时，
+  `deps` 会把工作区切到清单指定的提交；branch ref 只要求当前就在该分支上，
+  不会每次都去追远端新提交。
 - **SDL3**：固定 tag（`sdl.default`）。Windows 默认不启用；显式启用时由 `deps`
   自动构建 Debug + Release 静态库。Unix 构建动态库，并写入 rpath（相对条目在前，
-  绝对兜底由 `DUILIB_RPATH_ABSOLUTE` 控制）。
+  绝对兜底由 `DUILIB_RPATH_ABSOLUTE` 控制）。本地 `SDL/` 源码停在别的分支
+  （例如 `main`）时，`deps` 会先切到清单指定的 tag 再编译；SDL3 的安装 stamp
+  记录源码提交，切到清单版本后旧产物会自动重建（升级到本版本时会重建一次）。
 - **CEF**：固定版本分支（`cef.default`，可选 `109` 兼容 Windows 7）。统一使用
   `_minimal` 发行包（体积约为标准包的一半，含 `include/`、`Release/`、
   `Resources/`），只安装 `Release/*` 与 `Resources/*` 运行时，放到：

@@ -11,6 +11,8 @@ import contextlib
 import importlib.util
 import io
 import os
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -491,6 +493,119 @@ class SkiaPatchTests(unittest.TestCase):
             entry._ensure_skia_patch(args, self._messages(), runner)
             runner.run.assert_not_called()
             self.assertFalse((Path(root) / "skia_compile").exists())
+
+    def _existing_repo(self, root: str):
+        repo = Path(root) / "skia_compile"
+        (repo / ".git").mkdir(parents=True)
+        args = entry.parse_args(["deps", "--deps-root", root])
+        patch = entry._skia_patch_archive(entry.load_manifest(entry.VERSIONS_FILE), args)
+        patch.write_bytes(b"x")
+        return repo.resolve(), patch, args
+
+    def test_stale_patch_is_restored_before_pull(self):
+        """本地补丁是旧版本时，先 checkout 恢复，再 pull 取最新提交。"""
+        with tempfile.TemporaryDirectory() as root:
+            repo, patch, args = self._existing_repo(root)
+            runner = mock.Mock()
+            runner.run.return_value = 0
+            with mock.patch.object(entry, "patch_archive_stale", return_value=True):
+                entry._ensure_skia_patch(args, self._messages(), runner)
+            calls = [call.args[0] for call in runner.run.call_args_list]
+            self.assertEqual(calls[0], ["git", "-C", str(repo), "checkout", "--", patch.name])
+            self.assertEqual(calls[1], ["git", "-C", str(repo), "pull", "--ff-only"])
+
+    def test_current_patch_is_not_restored(self):
+        with tempfile.TemporaryDirectory() as root:
+            repo, _, args = self._existing_repo(root)
+            runner = mock.Mock()
+            runner.run.return_value = 0
+            with mock.patch.object(entry, "patch_archive_stale", return_value=False):
+                entry._ensure_skia_patch(args, self._messages(), runner)
+            calls = [call.args[0] for call in runner.run.call_args_list]
+            self.assertEqual(calls, [["git", "-C", str(repo), "pull", "--ff-only"]])
+
+    def test_offline_restores_without_network(self):
+        """离线时仍可用本地仓库恢复旧归档，但不 pull。"""
+        with tempfile.TemporaryDirectory() as root:
+            repo, patch, _ = self._existing_repo(root)
+            args = entry.parse_args(["deps", "--deps-root", root, "--offline"])
+            runner = mock.Mock()
+            runner.run.return_value = 0
+            with mock.patch.object(entry, "patch_archive_stale", return_value=True):
+                entry._ensure_skia_patch(args, self._messages(), runner)
+            calls = [call.args[0] for call in runner.run.call_args_list]
+            self.assertEqual(calls, [["git", "-C", str(repo), "checkout", "--", patch.name]])
+
+    def test_pull_failure_keeps_existing_patch(self):
+        with tempfile.TemporaryDirectory() as root:
+            _, patch, args = self._existing_repo(root)
+            runner = mock.Mock()
+            runner.run.return_value = 128
+            with mock.patch.object(entry, "patch_archive_stale", return_value=False):
+                entry._ensure_skia_patch(args, self._messages(), runner)
+            self.assertTrue(patch.is_file())
+
+
+class GitRefTests(unittest.TestCase):
+    """依赖源码/补丁归档与清单 ref 的一致性检查（需要 git）。"""
+
+    PATCH = "skia.2026-09-16.src.zip"
+
+    def setUp(self):
+        if not shutil.which("git"):
+            self.skipTest("git not available")
+
+    def _git(self, repo: Path, *args: str) -> str:
+        completed = subprocess.run(
+            ["git", "-C", str(repo), "-c", "user.name=test", "-c", "user.email=test@example.com",
+             *args], capture_output=True, text=True, check=True)
+        return completed.stdout.strip()
+
+    def _repo(self, root: Path) -> Path:
+        repo = root / "repo"
+        repo.mkdir()
+        self._git(repo, "init", "-q")
+        (repo / self.PATCH).write_bytes(b"first")
+        self._git(repo, "add", ".")
+        self._git(repo, "commit", "-q", "-m", "patch")
+        return repo
+
+    def test_patch_archive_stale_detects_replaced_file(self):
+        with tempfile.TemporaryDirectory() as root:
+            repo = self._repo(Path(root))
+            patch = repo / self.PATCH
+            self.assertFalse(entry.patch_archive_stale(patch, repo))
+            patch.write_bytes(b"older-version")
+            self.assertTrue(entry.patch_archive_stale(patch, repo))
+
+    def test_patch_archive_stale_detects_deleted_file(self):
+        with tempfile.TemporaryDirectory() as root:
+            repo = self._repo(Path(root))
+            (repo / self.PATCH).unlink()
+            self.assertTrue(entry.patch_archive_stale(repo / self.PATCH, repo))
+
+    def test_resolve_git_ref_commit_and_tag(self):
+        with tempfile.TemporaryDirectory() as root:
+            repo = self._repo(Path(root))
+            head = entry.git_head(repo)
+            self.assertTrue(head)
+            missing = {"type": "tag", "value": "release-3.4.18"}
+            self.assertEqual(entry.resolve_git_ref(repo, missing), "")
+            self._git(repo, "tag", "release-3.4.18")
+            self.assertEqual(entry.resolve_git_ref(repo, missing), head)
+            self.assertEqual(entry.resolve_git_ref(repo, {"type": "commit", "value": head}), head)
+
+    def test_resolve_git_ref_branch(self):
+        with tempfile.TemporaryDirectory() as root:
+            repo = self._repo(Path(root))
+            head = entry.git_head(repo)
+            branch = self._git(repo, "rev-parse", "--abbrev-ref", "HEAD")
+            self.assertEqual(entry.resolve_git_ref(repo, {"type": "branch", "value": branch}), head)
+            self.assertEqual(entry.resolve_git_ref(repo, {"type": "branch", "value": "nope"}), "")
+
+    def test_git_head_ignores_plain_directory(self):
+        with tempfile.TemporaryDirectory() as root:
+            self.assertEqual(entry.git_head(Path(root)), "")
 
 
 if __name__ == "__main__":

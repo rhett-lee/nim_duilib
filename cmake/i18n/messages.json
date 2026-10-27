@@ -196,6 +196,22 @@
       "en": "skia_compile update failed, continuing with the local copy",
       "zh_CN": "skia_compile 更新失败，继续使用本地已有内容"
     },
+    "deps.skia_patch_restoring": {
+      "en": "[deps] restoring the patch archive from the skia_compile checkout",
+      "zh_CN": "[deps] 正在从 skia_compile 仓库恢复补丁包"
+    },
+    "deps.skia_patch_restore_failed": {
+      "en": "failed to restore the patch archive from skia_compile",
+      "zh_CN": "从 skia_compile 仓库恢复补丁包失败"
+    },
+    "deps.skia_patch_changed": {
+      "en": "[deps] the Skia patch archive changed, rebuilding Skia",
+      "zh_CN": "[deps] Skia 补丁包已更新，重新编译 Skia"
+    },
+    "deps.git_ref_switching": {
+      "en": "[deps] local source is not at the manifest ref, switching",
+      "zh_CN": "[deps] 本地源码与版本清单不一致，正在切换"
+    },
     "deps.skia_patch_fetch_failed_hint": {
       "en": "check network access, or clone https://github.com/rhett-lee/skia_compile.git into DUILIB_SKIA_COMPILE_ROOT manually",
       "zh_CN": "检查网络连接，或手工把 https://github.com/rhett-lee/skia_compile.git 克隆到 DUILIB_SKIA_COMPILE_ROOT"

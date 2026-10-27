@@ -178,6 +178,17 @@ function(_duilib_git_head repo out_var)
     set(${out_var} "${_head}" PARENT_SCOPE)
 endfunction()
 
+# 把 ref 解析成提交哈希；本地没有对应对象时返回空串，由调用方决定是否 fetch。
+function(_duilib_git_resolve repo spec out_commit)
+    execute_process(COMMAND git -C "${repo}" rev-parse --verify --quiet "${spec}"
+                    OUTPUT_VARIABLE _commit OUTPUT_STRIP_TRAILING_WHITESPACE
+                    ERROR_QUIET RESULT_VARIABLE _rc)
+    if(NOT _rc EQUAL 0)
+        set(_commit "")
+    endif()
+    set(${out_commit} "${_commit}" PARENT_SCOPE)
+endfunction()
+
 function(_duilib_find_gn out_var)
     set(_gn "")
     if(NOT "${DUILIB_GN_EXECUTABLE}" STREQUAL "" AND EXISTS "${DUILIB_GN_EXECUTABLE}")
@@ -349,9 +360,64 @@ function(_duilib_clone ref_type ref_value repo dest)
     endif()
 endfunction()
 
-# 确保补丁归档存在；缺失时克隆/更新 skia_compile 仓库（与 build.py 行为一致）。
+# 本地补丁归档是否与 skia_compile 当前提交一致：被替换成旧版本或被删除时返回 TRUE。
+# 同名归档可能被重复提交（如 skia.2026-09-16.src.zip），只判断“文件存在”会让
+# 旧的 Skia 产物一直被判定为可复用。
+function(_duilib_skia_patch_stale patch out_stale)
+    set(_stale FALSE)
+    if(EXISTS "${DUILIB_SKIA_COMPILE_ROOT}/.git")
+        get_filename_component(_name "${patch}" NAME)
+        execute_process(
+            COMMAND git -C "${DUILIB_SKIA_COMPILE_ROOT}" status --porcelain
+                    --untracked-files=no -- "${_name}"
+            OUTPUT_VARIABLE _status OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET RESULT_VARIABLE _rc)
+        if(_rc EQUAL 0 AND NOT _status STREQUAL "")
+            set(_stale TRUE)
+        endif()
+    endif()
+    set(${out_stale} ${_stale} PARENT_SCOPE)
+endfunction()
+
+# 归档与仓库不一致时用本地对象恢复（不联网）。带本地修改时 git pull 会被拒绝，
+# 所以必须先恢复再更新。
+function(_duilib_skia_patch_restore patch)
+    _duilib_skia_patch_stale("${patch}" _stale)
+    if(NOT _stale)
+        return()
+    endif()
+    get_filename_component(_name "${patch}" NAME)
+    duilib_msg("deps.skia_patch_restoring" " (${_name})")
+    execute_process(COMMAND git -C "${DUILIB_SKIA_COMPILE_ROOT}" checkout -- "${_name}"
+                    RESULT_VARIABLE _rc)
+    if(NOT _rc EQUAL 0)
+        duilib_warn("deps.skia_patch_restore_failed")
+    endif()
+endfunction()
+
+# 仓库已存在时刷新补丁归档：恢复本地旧文件后 pull 取最新提交（离线只做恢复）。
+function(_duilib_skia_patch_refresh patch)
+    if(NOT EXISTS "${DUILIB_SKIA_COMPILE_ROOT}/.git")
+        return()
+    endif()
+    _duilib_skia_patch_restore("${patch}")
+    if(DUILIB_OFFLINE)
+        return()
+    endif()
+    # 与旧脚本一致：更新失败只告警，继续使用本地已有内容
+    duilib_msg("deps.skia_patch_updating" " (${DUILIB_SKIA_COMPILE_ROOT})")
+    execute_process(COMMAND git -C "${DUILIB_SKIA_COMPILE_ROOT}" pull --ff-only
+                    RESULT_VARIABLE _rc)
+    if(NOT _rc EQUAL 0)
+        duilib_warn("deps.skia_patch_update_failed")
+    endif()
+endfunction()
+
+# 确保补丁归档存在：仓库已存在时刷新，仍缺失才克隆。
+# 只在确实需要重建 Skia 时调用，复用已有产物时不会触发下载。
 function(_duilib_ensure_skia_patch out_patch)
     set(_patch "${DUILIB_SKIA_COMPILE_ROOT}/${DUILIB_SKIA_PATCH_ZIP}")
+    _duilib_skia_patch_refresh("${_patch}")
     if(EXISTS "${_patch}")
         set(${out_patch} "${_patch}" PARENT_SCOPE)
         return()
@@ -381,19 +447,102 @@ function(_duilib_ensure_skia_patch out_patch)
             file(REMOVE_RECURSE "${DUILIB_SKIA_COMPILE_ROOT}")
             duilib_error("deps.skia_patch_missing" "deps.skia_patch_fetch_failed_hint")
         endif()
-    else()
-        # 与旧脚本一致：更新失败只告警，继续使用本地已有内容
-        duilib_msg("deps.skia_patch_updating" " (${DUILIB_SKIA_COMPILE_ROOT})")
-        execute_process(COMMAND git -C "${DUILIB_SKIA_COMPILE_ROOT}" pull --ff-only
-                        RESULT_VARIABLE _rc)
-        if(NOT _rc EQUAL 0)
-            duilib_warn("deps.skia_patch_update_failed")
-        endif()
     endif()
     if(NOT EXISTS "${_patch}")
         duilib_error("deps.skia_patch_missing" "deps.skia_patch_fetch_failed_hint")
     endif()
     set(${out_patch} "${_patch}" PARENT_SCOPE)
+endfunction()
+
+# 把本地依赖仓库切到清单指定的 ref：commit/tag 要求 HEAD 等于目标提交，
+# branch 要求当前就在该分支上（不主动追远端新提交，避免每次全量重编依赖）。
+# 本地仓库停在别的分支（如 SDL 源码停在 main）时，stamp 只记录 ref 名称会把
+# “用错版本编译出来的库”当成清单版本的产物复用，因此这里必须先对齐。
+function(_duilib_ensure_git_ref repo ref_type ref_value label)
+    if(NOT EXISTS "${repo}/.git")
+        return()
+    endif()
+    _duilib_git_head("${repo}" _head)
+    if(ref_type STREQUAL "branch")
+        execute_process(COMMAND git -C "${repo}" rev-parse --abbrev-ref HEAD
+                        OUTPUT_VARIABLE _current OUTPUT_STRIP_TRAILING_WHITESPACE
+                        ERROR_QUIET RESULT_VARIABLE _rc)
+        if(_rc EQUAL 0 AND _current STREQUAL ref_value)
+            return()
+        endif()
+        # 本地已有该分支（或远端跟踪分支）时直接切过去，不必联网
+        _duilib_git_resolve("${repo}" "refs/heads/${ref_value}^{commit}" _local)
+        _duilib_git_resolve("${repo}" "refs/remotes/origin/${ref_value}^{commit}" _remote)
+        if(NOT _local STREQUAL "")
+            duilib_msg("deps.git_ref_switching" " (${label}: ${_current} -> ${ref_value})")
+            execute_process(COMMAND git -C "${repo}" checkout "${ref_value}"
+                            RESULT_VARIABLE _rc)
+            if(NOT _rc EQUAL 0)
+                duilib_error_values("cannot switch ${repo} to branch ${ref_value}"
+                                    "clean the working tree or re-clone the repository")
+            endif()
+            return()
+        endif()
+        if(NOT _remote STREQUAL "")
+            duilib_msg("deps.git_ref_switching" " (${label}: ${_current} -> ${ref_value})")
+            execute_process(COMMAND git -C "${repo}" checkout -B "${ref_value}" "${_remote}"
+                            RESULT_VARIABLE _rc)
+            if(NOT _rc EQUAL 0)
+                duilib_error_values("cannot switch ${repo} to branch ${ref_value}"
+                                    "clean the working tree or re-clone the repository")
+            endif()
+            return()
+        endif()
+        if(DUILIB_OFFLINE)
+            duilib_error("deps.offline_missing" "deps.offline_missing_hint")
+        endif()
+        duilib_msg("deps.git_ref_switching" " (${label}: ${_current} -> ${ref_value})")
+        duilib_run_with_retry(_ok "git fetch ${ref_value}"
+                              git -C "${repo}" fetch --depth 1 origin "${ref_value}")
+        if(NOT _ok)
+            duilib_error_values("git fetch ${ref_value} failed for ${repo}"
+                                "check the network/proxy settings")
+        endif()
+        execute_process(COMMAND git -C "${repo}" checkout -B "${ref_value}" FETCH_HEAD
+                        RESULT_VARIABLE _rc)
+        if(NOT _rc EQUAL 0)
+            duilib_error_values("cannot switch ${repo} to branch ${ref_value}"
+                                "clean the working tree or re-clone the repository")
+        endif()
+        return()
+    endif()
+
+    if(ref_type STREQUAL "tag")
+        _duilib_git_resolve("${repo}" "refs/tags/${ref_value}^{commit}" _expected)
+        set(_fetch_args fetch --depth 1 origin tag "${ref_value}")
+    else()
+        _duilib_git_resolve("${repo}" "${ref_value}^{commit}" _expected)
+        set(_fetch_args fetch --depth 1 origin "${ref_value}")
+    endif()
+    if(NOT _expected STREQUAL "" AND _head STREQUAL _expected)
+        return()
+    endif()
+    if(NOT _expected STREQUAL "")
+        # 目标提交已在本地：直接切过去，不必联网（离线同样可用）
+        duilib_msg("deps.git_ref_switching" " (${label}: ${_head} -> ${ref_value})")
+    else()
+        if(DUILIB_OFFLINE)
+            duilib_error("deps.offline_missing" "deps.offline_missing_hint")
+        endif()
+        duilib_msg("deps.git_ref_switching" " (${label}: ${_head} -> ${ref_value})")
+        duilib_run_with_retry(_ok "git fetch ${ref_value}"
+                              git -C "${repo}" ${_fetch_args})
+        if(NOT _ok)
+            duilib_error_values("git fetch ${ref_value} failed for ${repo}"
+                                "check the network/proxy settings")
+        endif()
+    endif()
+    execute_process(COMMAND git -C "${repo}" checkout "${ref_value}"
+                    RESULT_VARIABLE _rc)
+    if(NOT _rc EQUAL 0)
+        duilib_error_values("cannot switch ${repo} to ${ref_value}"
+                            "clean the working tree or re-clone the repository")
+    endif()
 endfunction()
 
 # 补丁是否确实落在源码树中：只信 stamp 不够，git checkout 等操作可能还原工作区，
@@ -424,19 +573,58 @@ function(duilib_prepare_skia)
     set(_lib "${_out_dir}/${_lib_name}")
     _duilib_skia_stamp_value(_stamp_expected)
 
+    # 补丁归档先与 skia_compile 仓库同步：同名归档可能被重复提交（如
+    # skia.2026-09-16.src.zip），本地留着旧文件时，旧的 Skia 产物会被一直复用。
+    set(_patch "")
+    set(_patch_key "")
+    set(_patch_stamp "${DUILIB_SKIA_ROOT}/.duilib-patch")
+    set(_stamp_old "")
+    if(EXISTS "${_patch_stamp}")
+        file(READ "${_patch_stamp}" _stamp_old)
+        string(STRIP "${_stamp_old}" _stamp_old)
+    endif()
+    if(NOT "${DUILIB_SKIA_PATCH_ZIP}" STREQUAL "")
+        set(_patch "${DUILIB_SKIA_COMPILE_ROOT}/${DUILIB_SKIA_PATCH_ZIP}")
+        if(EXISTS "${_patch}")
+            # 只在归档已存在时刷新，避免复用旧产物时无谓地下载
+            _duilib_skia_patch_refresh("${_patch}")
+            _duilib_skia_patch_key(_patch_key "${_patch}")
+        endif()
+    elseif(DUILIB_SKIA_REQUIRE_PATCH)
+        duilib_error("deps.skia_patch_missing" "deps.skia_patch_missing_hint")
+    endif()
+
     if(NOT DUILIB_DEPS_FORCE AND EXISTS "${_lib}")
         if(EXISTS "${_out_dir}/.duilib-ref")
             file(READ "${_out_dir}/.duilib-ref" _stamp)
-            if(_stamp STREQUAL _stamp_expected)
+            if(_stamp STREQUAL _stamp_expected AND
+               ("${_patch_key}" STREQUAL "" OR _stamp_old STREQUAL _patch_key))
                 _duilib_write_crt("${_out_dir}")
                 duilib_msg("deps.skia_ready" " (${_variant})")
                 return()
             endif()
+            if(NOT "${_patch_key}" STREQUAL "" AND NOT _stamp_old STREQUAL _patch_key)
+                duilib_msg("deps.skia_patch_changed" " (${DUILIB_SKIA_PATCH_ZIP})")
+            endif()
         else()
-            # 迁移：已有构建产物但还没有 stamp 时，源码 HEAD 与清单一致则直接采纳，
-            # 避免为已有环境重复编译 Skia。
+            # 迁移：已有构建产物但还没有 stamp 时，源码 HEAD 与清单一致、补丁确实
+            # 落在源码树中则直接采纳，避免为已有环境重复编译 Skia。
             _duilib_git_head("${DUILIB_SKIA_ROOT}" _head)
-            if(NOT DUILIB_SKIA_REF_TYPE STREQUAL "commit" OR _head STREQUAL DUILIB_SKIA_REF_VALUE)
+            _duilib_skia_patch_applied(_applied)
+            set(_patch_ok TRUE)
+            if(NOT "${_patch_key}" STREQUAL "")
+                if(NOT _applied)
+                    set(_patch_ok FALSE)
+                elseif(EXISTS "${_patch_stamp}" AND NOT _stamp_old STREQUAL _patch_key)
+                    # 补丁已更新：旧产物不能按新补丁采纳，必须重建
+                    set(_patch_ok FALSE)
+                endif()
+            endif()
+            if(_patch_ok AND
+               (NOT DUILIB_SKIA_REF_TYPE STREQUAL "commit" OR _head STREQUAL DUILIB_SKIA_REF_VALUE))
+                if(NOT "${_patch_key}" STREQUAL "" AND NOT _stamp_old STREQUAL _patch_key)
+                    file(WRITE "${_patch_stamp}" "${_patch_key}")
+                endif()
                 file(WRITE "${_out_dir}/.duilib-ref" "${_stamp_expected}")
                 _duilib_write_crt("${_out_dir}")
                 duilib_msg("deps.skia_ready" " (${_variant}, adopted existing build)")
@@ -454,38 +642,19 @@ function(duilib_prepare_skia)
     if(NOT EXISTS "${DUILIB_SKIA_ROOT}")
         _duilib_clone("${DUILIB_SKIA_REF_TYPE}" "${DUILIB_SKIA_REF_VALUE}"
                       "${DUILIB_SKIA_REPO}" "${DUILIB_SKIA_ROOT}")
-    elseif(DUILIB_SKIA_REF_TYPE STREQUAL "commit")
-        _duilib_git_head("${DUILIB_SKIA_ROOT}" _head)
-        if(NOT _head STREQUAL DUILIB_SKIA_REF_VALUE)
-            if(DUILIB_OFFLINE)
-                duilib_error("deps.offline_missing" "deps.offline_missing_hint")
-            endif()
-            duilib_run_with_retry(_ok "git fetch ${DUILIB_SKIA_REF_VALUE}"
-                                  git -C "${DUILIB_SKIA_ROOT}" fetch origin "${DUILIB_SKIA_REF_VALUE}")
-            if(NOT _ok)
-                duilib_error_values("git fetch ${DUILIB_SKIA_REF_VALUE} failed"
-                                    "check the network/proxy settings")
-            endif()
-            execute_process(COMMAND git -C "${DUILIB_SKIA_ROOT}" checkout "${DUILIB_SKIA_REF_VALUE}"
-                            RESULT_VARIABLE _rc)
-            if(NOT _rc EQUAL 0)
-                duilib_error_values("cannot switch ${DUILIB_SKIA_ROOT} to ${DUILIB_SKIA_REF_VALUE}"
-                                    "clean the working tree or re-clone Skia")
-            endif()
-        endif()
+    else()
+        # commit / tag / branch 统一按清单对齐工作区（HEAD 已一致时不联网）
+        _duilib_ensure_git_ref("${DUILIB_SKIA_ROOT}" "${DUILIB_SKIA_REF_TYPE}"
+                               "${DUILIB_SKIA_REF_VALUE}" "Skia")
     endif()
 
-    # 补丁包：缺失时由本脚本克隆/更新 skia_compile 仓库（build.py 路径同样适用）
+    # 补丁包：需要重建时确保归档存在（缺仓库才克隆，已存在时只刷新）
     if(NOT "${DUILIB_SKIA_PATCH_ZIP}" STREQUAL "")
-        _duilib_ensure_skia_patch(_patch)
-        _duilib_skia_patch_key(_patch_key "${_patch}")
-        _duilib_skia_patch_applied(_applied)
-        set(_patch_stamp "${DUILIB_SKIA_ROOT}/.duilib-patch")
-        set(_stamp_old "")
-        if(EXISTS "${_patch_stamp}")
-            file(READ "${_patch_stamp}" _stamp_old)
-            string(STRIP "${_stamp_old}" _stamp_old)
+        if(NOT EXISTS "${_patch}")
+            _duilib_ensure_skia_patch(_patch)
+            _duilib_skia_patch_key(_patch_key "${_patch}")
         endif()
+        _duilib_skia_patch_applied(_applied)
         # 补丁内容与基线提交未变且补丁确实在源码树中时跳过解压：重复解压会刷新
         # 源码 mtime，让 Ninja 认为全部目标过期而重编整个 Skia（多配置构建尤其浪费）。
         if(_applied AND _stamp_old STREQUAL _patch_key)
@@ -504,8 +673,6 @@ function(duilib_prepare_skia)
             file(WRITE "${_patch_stamp}" "${_patch_key}")
         endif()
         file(REMOVE_RECURSE "${_out_dir}")
-    elseif(DUILIB_SKIA_REQUIRE_PATCH)
-        duilib_error("deps.skia_patch_missing" "deps.skia_patch_missing_hint")
     endif()
 
     _duilib_find_gn(_gn)
@@ -552,6 +719,9 @@ endfunction()
 # SDL3
 # ---------------------------------------------------------------------------
 function(_duilib_sdl_stamp_value out_var)
+    # 源码提交参与 stamp：本地仓库可能停在别的分支/标签（例如 SDL 源码停在
+    # main），只记录 ref 名称会把“用错版本编译出来的库”当成清单版本的产物复用。
+    _duilib_git_head("${DUILIB_SDL_SRC}" _sdl_commit)
     # Windows：stamp 带上目标配置。Debug 与 Release 生成的 SDL3-static.lib 同名
     # 且安装到同一个前缀，最终只保留最近一次安装的那一份；切换配置必须重建，
     # 否则 Debug 会链接 Release 版静态库（/MTd 与 /MT、/MDd 与 /MD 混用）。
@@ -560,11 +730,11 @@ function(_duilib_sdl_stamp_value out_var)
     # 无谓地重新编译 SDL3。
     if(DUILIB_DEPS_PLATFORM STREQUAL "windows")
         set(${out_var}
-            "${DUILIB_SDL_REF_VALUE}|${DUILIB_ARCH}|${DUILIB_CRT_ID}|${DUILIB_DEPS_PLATFORM}|${DUILIB_CONFIG}"
+            "${DUILIB_SDL_REF_VALUE}|${_sdl_commit}|${DUILIB_ARCH}|${DUILIB_CRT_ID}|${DUILIB_DEPS_PLATFORM}|${DUILIB_CONFIG}"
             PARENT_SCOPE)
     else()
         set(${out_var}
-            "${DUILIB_SDL_REF_VALUE}|${DUILIB_ARCH}|${DUILIB_CRT_ID}|${DUILIB_DEPS_PLATFORM}"
+            "${DUILIB_SDL_REF_VALUE}|${_sdl_commit}|${DUILIB_ARCH}|${DUILIB_CRT_ID}|${DUILIB_DEPS_PLATFORM}"
             PARENT_SCOPE)
     endif()
 endfunction()
@@ -656,6 +826,12 @@ function(_duilib_sdl_build_one build_dir config)
 endfunction()
 
 function(duilib_prepare_sdl)
+    # 本地源码可能停在别的分支/标签（如 main），先按清单对齐；stamp 里包含源码
+    # 提交，切换后旧版本的安装产物不会被当成清单版本的产物复用。
+    if(EXISTS "${DUILIB_SDL_SRC}/.git")
+        _duilib_ensure_git_ref("${DUILIB_SDL_SRC}" "${DUILIB_SDL_REF_TYPE}"
+                               "${DUILIB_SDL_REF_VALUE}" "SDL3")
+    endif()
     _duilib_sdl_ready(_ready)
     if(_ready AND NOT DUILIB_DEPS_FORCE)
         _duilib_write_crt("${DUILIB_SDL_ROOT}")
@@ -669,7 +845,7 @@ function(duilib_prepare_sdl)
                             "remove that directory, or clone the repository manually")
     endif()
     if(NOT EXISTS "${DUILIB_SDL_SRC}")
-        _duilib_clone("tag" "${DUILIB_SDL_REF_VALUE}"
+        _duilib_clone("${DUILIB_SDL_REF_TYPE}" "${DUILIB_SDL_REF_VALUE}"
                       "${DUILIB_SDL_REPO}" "${DUILIB_SDL_SRC}")
     endif()
 

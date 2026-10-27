@@ -652,6 +652,57 @@ def _deps_root(args) -> Path:
     return Path(args.deps_root).expanduser().resolve() if args.deps_root else REPO_ROOT.parent
 
 
+def _git_capture(repo: Path, args: list[str]) -> tuple[int, str]:
+    """执行只读 git 查询，返回 (退出码, 标准输出)。git 不可用时返回 (1, "")。"""
+    try:
+        completed = subprocess.run(["git", "-C", str(repo), *args],
+                                   capture_output=True, text=True, errors="replace")
+    except OSError:
+        return 1, ""
+    return completed.returncode, completed.stdout.strip()
+
+
+def git_head(repo: Path) -> str:
+    """仓库当前的提交哈希；不是 git 仓库时返回空串。"""
+    if not (repo / ".git").is_dir():
+        return ""
+    code, output = _git_capture(repo, ["rev-parse", "HEAD"])
+    return output if code == 0 else ""
+
+
+def resolve_git_ref(repo: Path, ref: dict) -> str:
+    """把清单 ref（commit/tag/branch）解析成本地仓库里的提交；解析不到返回空串。"""
+    if not isinstance(ref, dict) or not (repo / ".git").is_dir():
+        return ""
+    kind = str(ref.get("type", ""))
+    value = str(ref.get("value", ""))
+    if not value:
+        return ""
+    specs = {
+        "commit": [value],
+        "tag": [f"refs/tags/{value}"],
+        "branch": [f"refs/remotes/origin/{value}", f"refs/heads/{value}"],
+    }.get(kind, [value])
+    for spec in specs:
+        code, output = _git_capture(repo, ["rev-parse", "--verify", "--quiet", spec])
+        if code == 0 and output:
+            return output
+    return ""
+
+
+def patch_archive_stale(patch: Path, repo_dir: Path) -> bool:
+    """补丁归档与仓库当前提交不一致（被替换成旧版本或已删除）。
+
+    同名归档可能在 skia_compile 里被重复提交（如 skia.2026-09-16.src.zip），
+    只判断“文件存在”会让看起来相同的旧归档一直产生同一份 Skia 产物。
+    """
+    if not (repo_dir / ".git").is_dir():
+        return False
+    code, status = _git_capture(repo_dir, ["status", "--porcelain",
+                                           "--untracked-files=no", "--", patch.name])
+    return code == 0 and bool(status)
+
+
 def _skia_patch_archive(manifest, args) -> Path | None:
     """当前 Skia ref 对应的补丁归档路径；该 ref 不需要补丁时返回 None。"""
     ref = getattr(args, "skia_ref", None) or manifest["skia"]["default"]
@@ -700,41 +751,71 @@ def _run_with_retry(runner: Runner, command, messages, what: str,
         attempt += 1
 
 
+def _restore_skia_patch(patch: Path, messages, runner: Runner, args) -> None:
+    """把被替换成旧版本（或删掉）的补丁归档恢复成仓库当前提交里的版本。
+
+    不联网：git checkout 只用本地对象。
+    """
+    if getattr(args, "dry_run", False) or not patch_archive_stale(patch, patch.parent):
+        return
+    print(messages.t("deps.skia_patch_restoring") + f" ({patch.name})", flush=True)
+    if runner.run(["git", "-C", str(patch.parent), "checkout", "--", patch.name]) != 0:
+        _warn_line(messages.t("deps.skia_patch_restore_failed") + f" ({patch})")
+
+
 def _ensure_skia_patch(args, messages, runner: Runner) -> None:
-    """缺少 Skia 补丁归档时，克隆/更新 skia_compile 仓库获取。"""
+    """确保 Skia 补丁归档与 skia_compile 的当前版本一致。
+
+    归档已存在时也要刷新：同名归档可能被重复提交，本地旧文件会让旧的 Skia
+    产物一直被复用。仓库不存在时按需克隆（已有 Skia 产物且归档齐备时不下载）。
+    """
     try:
         manifest = load_manifest(VERSIONS_FILE)
     except (OSError, ValueError):
         # 清单损坏时交给 configure 阶段统一报错
         return
     patch = _skia_patch_archive(manifest, args)
-    if patch is None or patch.is_file() or not _skia_patch_needed(args):
+    if patch is None:
         return
-    if getattr(args, "offline", False):
+    repo_dir = patch.parent
+    offline = getattr(args, "offline", False)
+
+    if (repo_dir / ".git").is_dir():
+        # 先恢复本地归档：带本地修改时 git pull 会被拒绝；恢复后 pull 才能取到
+        # 最新提交（同名归档的新版本）。
+        _restore_skia_patch(patch, messages, runner, args)
+        if not offline:
+            # 与旧脚本一致：更新失败只告警，继续使用本地已有内容
+            print(messages.t("deps.skia_patch_updating") + f" ({repo_dir})", flush=True)
+            if runner.run(["git", "-C", str(repo_dir), "pull", "--ff-only"]) != 0:
+                _warn_line(messages.t("deps.skia_patch_update_failed"))
+
+    if patch.is_file() or not _skia_patch_needed(args):
+        return
+    if offline:
         raise BuildError(messages.t("deps.skia_patch_missing") + f": {patch}",
                          messages.hint("deps.offline_missing_hint"))
 
     repo_url = manifest.get("skiaCompileRepo") or SKIA_COMPILE_REPO
     attempts, delay = _retry_settings(manifest)
-    repo_dir = patch.parent
     if (repo_dir / ".git").is_dir():
-        # 与旧脚本一致：更新失败只告警，继续使用本地已有内容
-        print(messages.t("deps.skia_patch_updating") + f" ({repo_dir})", flush=True)
-        if runner.run(["git", "-C", str(repo_dir), "pull", "--ff-only"]) != 0:
-            _warn_line(messages.t("deps.skia_patch_update_failed"))
-    else:
-        if repo_dir.exists() and any(repo_dir.iterdir()):
-            # 非 git 目录无法克隆进去，避免无限重试
-            raise BuildError(messages.t("deps.skia_patch_dir_invalid") + f": {repo_dir}",
-                             messages.hint("deps.skia_patch_dir_invalid_hint"))
-        print(messages.t("deps.skia_patch_fetching") + f" ({repo_dir})", flush=True)
-        repo_dir.parent.mkdir(parents=True, exist_ok=True)
-        if not _run_with_retry(
-                runner,
-                ["git", "clone", "--depth", "1", repo_url, str(repo_dir)],
-                messages, f"git clone {repo_url}", attempts, delay):
+        # 仓库已存在但归档仍缺失（远端更新失败或离线拉取未成功）
+        if not args.dry_run and not patch.is_file():
             raise BuildError(messages.t("deps.skia_patch_missing") + f": {patch}",
                              messages.hint("deps.skia_patch_fetch_failed_hint"))
+        return
+    if repo_dir.exists() and any(repo_dir.iterdir()):
+        # 非 git 目录无法克隆进去，避免无限重试
+        raise BuildError(messages.t("deps.skia_patch_dir_invalid") + f": {repo_dir}",
+                         messages.hint("deps.skia_patch_dir_invalid_hint"))
+    print(messages.t("deps.skia_patch_fetching") + f" ({repo_dir})", flush=True)
+    repo_dir.parent.mkdir(parents=True, exist_ok=True)
+    if not _run_with_retry(
+            runner,
+            ["git", "clone", "--depth", "1", repo_url, str(repo_dir)],
+            messages, f"git clone {repo_url}", attempts, delay):
+        raise BuildError(messages.t("deps.skia_patch_missing") + f": {patch}",
+                         messages.hint("deps.skia_patch_fetch_failed_hint"))
     if not args.dry_run and not patch.is_file():
         raise BuildError(messages.t("deps.skia_patch_missing") + f": {patch}",
                          messages.hint("deps.skia_patch_fetch_failed_hint"))
@@ -792,6 +873,21 @@ def _info_line(text: str) -> None:
     print(f"[INFO]  {text}", flush=True)
 
 
+def _check_source_ref(label: str, src: Path, ref_key: str, refs: dict) -> None:
+    """本地依赖源码不在清单指定的提交上时提示。
+
+    deps 会先把工作区切到清单的 ref，再按新提交重新编译依赖；这里提前说明，
+    避免用户以为编译用的是清单版本。
+    """
+    if not isinstance(refs, dict):
+        return
+    expected = resolve_git_ref(src, refs.get(ref_key, {}))
+    actual = git_head(src)
+    if expected and actual and actual != expected:
+        _warn_line(f"{label} source at {actual[:12]}, manifest {ref_key} expects "
+                   f"{expected[:12]}; build.py deps will switch it")
+
+
 def cmd_doctor(args, messages) -> int:
     arch = resolve_arch(args.arch)
     host = platform_name()
@@ -838,13 +934,21 @@ def cmd_doctor(args, messages) -> int:
     skia_root = deps_root / "skia"
     if skia_root.is_dir():
         _ok_line(f"skia source {skia_root}")
+        if manifest:
+            _check_source_ref("skia", skia_root, args.skia_ref or manifest["skia"]["default"],
+                              manifest["skia"]["refs"])
     else:
         _warn_line(f"skia source missing: {skia_root} ({missing_hint})")
 
     patch = _skia_patch_archive(manifest, args) if manifest else None
     if patch is not None:
         if patch.is_file():
-            _ok_line(f"skia patch {patch}")
+            if patch_archive_stale(patch, patch.parent):
+                # 同名归档可能被重复提交，旧的本地副本会让 Skia 产物一直不更新
+                _warn_line(f"skia patch differs from skia_compile HEAD: {patch.name} "
+                           "(build.py deps will restore it)")
+            else:
+                _ok_line(f"skia patch {patch}")
         else:
             _warn_line(f"skia patch missing: {patch} ({missing_hint})")
 
@@ -857,6 +961,9 @@ def cmd_doctor(args, messages) -> int:
     else:
         if sdl_src.is_dir():
             _ok_line(f"sdl source {sdl_src}")
+            if manifest:
+                _check_source_ref("sdl", sdl_src, args.sdl_ref or manifest["sdl"]["default"],
+                                  manifest["sdl"]["refs"])
         else:
             _warn_line(f"sdl source missing: {sdl_src} ({missing_hint})")
         if sdl_root.is_dir():

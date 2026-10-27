@@ -147,9 +147,13 @@ set(DUILIB_SKIA_REF_TYPE "${_duilib_skia_ref_type}")
 set(DUILIB_SKIA_REF_VALUE "${_duilib_skia_ref_value}")
 string(JSON DUILIB_SDL_REF_VALUE ERROR_VARIABLE _duilib_json_err
        GET "${DUILIB_VERSIONS_JSON}" sdl refs "${DUILIB_SDL_REF}" value)
-if(_duilib_json_err)
+string(JSON _duilib_sdl_ref_type ERROR_VARIABLE _duilib_json_err2
+       GET "${DUILIB_VERSIONS_JSON}" sdl refs "${DUILIB_SDL_REF}" type)
+if(_duilib_json_err OR _duilib_json_err2)
     duilib_error("deps.versions_invalid" "deps.versions_invalid_hint")
 endif()
+# 依赖脚本据此把本地源码切到清单指定的提交（tag / branch / commit）
+set(DUILIB_SDL_REF_TYPE "${_duilib_sdl_ref_type}")
 
 # Skia 补丁包（相对 skia_compile/）
 set(DUILIB_SKIA_PATCH_ZIP "")

@@ -18,10 +18,14 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   existing artifacts are adopted through stamp files.
 - When the Skia patch archive is missing, `build.py deps` / `build` clones the whole
   [skia_compile](https://github.com/rhett-lee/skia_compile) repository into
-  `skia_compile/`; an existing checkout is updated with `git pull`, falling back to the
-  local copy when the update fails (matching the legacy script); `--offline` never
-  touches the network. Building directly with CMake (`DUILIB_DEPS_MODE=auto` or the
-  `duilib_deps` target) performs the same clone automatically.
+  `skia_compile/`; an existing checkout is checked against its current commit first
+  (the same name may be committed more than once, e.g. `skia.2026-09-16.src.zip`), so a
+  local copy that was replaced with an older version is restored before `git pull`
+  fetches the latest commit; a changed patch makes the matching Skia artifacts rebuild.
+  A failed update keeps the local copy (matching the legacy script); `--offline` never
+  touches the network and only restores the local copy. Building directly with CMake
+  (`DUILIB_DEPS_MODE=auto` or the `duilib_deps` target) performs the same logic through
+  the dependency script.
 - Unified network retries: `git clone/fetch` and CEF downloads share the `retry` block in
   the version manifest (`maxAttempts=0` = unlimited, `delaySeconds=20`).
 - Bilingual build reference `build/build-reference.md` / `.en.md`; `build/README.md`
@@ -78,6 +82,27 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Fixed
 
+- Dependency preparation (SDL3): when the local `<deps-root>/SDL` checkout sat on
+  another branch/tag (for example `main`) while the manifest pinned
+  `release-3.4.18`, the script compiled that source anyway and the completion stamp
+  only recorded the manifest ref name, so the resulting library was adopted as if it
+  were the manifest version. `deps` now switches the checkout to the manifest
+  tag/commit first (no network access when the commit already exists locally, so
+  `--offline` works too) and records the source commit in `.duilib-sdl`; stale
+  artifacts are rebuilt after the switch (SDL3 is rebuilt once when upgrading to
+  this version).
+- Dependency preparation (Skia patch): an existing patch archive was reused as long
+  as the file name matched, but skia_compile may commit the same name several times
+  (`skia.2026-09-16.src.zip`); an outdated local copy kept the old Skia artifacts
+  from ever updating. `deps` now checks the archive against the checkout's current
+  commit, restores a replaced (or deleted) archive from the checkout and then runs
+  `git pull` for the latest commit; a changed patch fingerprint triggers a rebuild.
+  `--offline` only restores the local copy, and `doctor` warns when the archive
+  differs from the checkout.
+- Dependency preparation (Skia source): tag/branch refs selected with `--skia-ref`
+  were not checked against the local worktree; they are now aligned like commit
+  refs (a branch only requires being on that branch, without chasing new remote
+  commits).
 - Build (Windows link dependencies): Skia and SDL3 static libraries were passed to
   `target_link_libraries` by name (with `link_directories`), so Ninja did not
   track them as link dependencies; after rebuilding a dependency the example

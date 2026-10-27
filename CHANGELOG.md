@@ -17,9 +17,10 @@
   支持下载缓存、sha256 校验、断点续传与并发锁；已有产物可按 stamp 直接采纳。
 - 缺少 Skia 补丁归档时，`build.py deps` / `build` 自动克隆整个
   [skia_compile](https://github.com/rhett-lee/skia_compile) 仓库到 `skia_compile/`；
-  仓库已存在则 `git pull` 更新，失败时继续使用本地内容（与旧脚本一致）；
-  `--offline` 下不联网，需提前自备。直接用 CMake 构建（`DUILIB_DEPS_MODE=auto`
-  或 `duilib_deps` 目标）时也会自动完成同样的克隆。
+  仓库已存在时先核对本地归档与当前提交（同名归档可能被重复提交），把被替换成旧版本
+  的文件恢复后再 `git pull` 更新，失败时继续使用本地内容（与旧脚本一致）；
+  `--offline` 下不联网，只做本地恢复，离线使用需提前自备。直接用 CMake 构建
+  （`DUILIB_DEPS_MODE=auto` 或 `duilib_deps` 目标）时也会自动完成同样的处理。
 - 网络操作统一重试：`git clone/fetch`、CEF 下载共用版本清单 `retry` 段
   （`maxAttempts=0` 无限重试、`delaySeconds=20`）。
 - 双语构建参考手册 `build/build-reference.md` / `.en.md`；`build/README.md` /
@@ -68,6 +69,18 @@
 
 ### 修复
 
+- 依赖准备（SDL3）：本地 `<deps-root>/SDL` 源码停在别的分支/标签（例如 `main`）时，
+  脚本此前直接用它编译，完成标记却只记录清单里的 ref 名称，导致用错版本编译的库被
+  当成清单版本的产物复用。现在 `deps` 先按清单把工作区切到指定 tag/commit（本地
+  已有该提交时不联网，`--offline` 同样可用），并在 `.duilib-sdl` 中记录源码提交；
+  切换后旧产物自动重建（升级到本版本时会重建一次 SDL3）。
+- 依赖准备（Skia 补丁）：本地补丁归档此前只要文件名存在就直接复用，而
+  skia_compile 中同名归档可能被重复提交（如 `skia.2026-09-16.src.zip`），旧版本
+  补丁会让旧的 Skia 产物一直不更新。现在 `deps` 核对归档与仓库当前提交，把被替换
+  （或删除）的归档恢复成仓库版本，再 `git pull` 取最新提交；补丁指纹变化时重新
+  解压并编译 Skia。`--offline` 只做本地恢复；`doctor` 会提示归档与仓库不一致。
+- 依赖准备（Skia 源码）：`--skia-ref` 选中的 tag/branch 此前不会检查本地工作区，
+  现在与 commit ref 一样按清单对齐（branch 只要求当前就在该分支上，不追远端新提交）。
 - 构建（Windows 链接依赖）：Skia 与 SDL3 的静态库此前只以库名（配合
   `link_directories`）传给 `target_link_libraries`，Ninja 不会把它们记为链接依赖，
   依赖重新编译后示例程序不会重新链接，包里可能留下用旧库生成的二进制。现在
