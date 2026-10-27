@@ -12,7 +12,7 @@ MainThread::~MainThread()
 bool MainThread::OnInit()
 {
     //初始化全局资源, 使用本地文件夹作为资源
-    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
+    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath();
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
     ui::ColorPicker* pColorPicker = new ui::ColorPicker;

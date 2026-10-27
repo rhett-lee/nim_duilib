@@ -45,18 +45,21 @@ public:
     static GlobalManager& Instance();
 
     /** 获取资源目录的根路径（绝对路径）
-    * @param [in] bMacOsAppBundle 兼容参数，已废弃：macOS下忽略该值，函数按运行环境自动选择
-    *             <App>.app/Contents/Resources/duilib/（存在时）或可执行文件同目录的resources/；
-    *             其他平台同样忽略该值。保留参数仅为兼容现有调用。
-    *             该函数仅用于在调用Startup函数前确定资源目录，其他情况下，请使用GlobalManager::Instance().GetResourceRootPath()函数
-    * @return 返回绝对路径，示例：<程序所在目录的绝对路径>/resources/
+    * @param [in] bMacOsAppBundle 对于macOS系统，是否支持AppBundle
+    * @return 返回如下的绝对路径：
+    *         macOS系统，AppBundle模式，返回绝对路径：<App>.app/Contents/Resources/duilib/resources/
+    *         其他环境，返回：<程序所在目录的绝对路径>/resources/
+    *         该函数仅用于在调用Startup函数前确定资源目录，其他情况下，请使用无参数的GlobalManager::Instance().GetResourceRootPath()函数
     */
-    static FilePath GetResourceRootPath(bool bMacOsAppBundle);
+    static FilePath GetResourceRootPath(bool bMacOsAppBundle = true);
 
     /** 获取资源压缩包的路径（绝对路径）
-    * @return 返回绝对路径，示例：<程序所在目录的绝对路径>/resources.zip
+    * @param [in] bMacOsAppBundle 对于macOS系统，是否支持AppBundle
+    * @return 返回如下的绝对路径：
+    *         macOS系统，AppBundle模式，返回绝对路径：<App>.app/Contents/Resources/duilib/resources.zip
+    *         其他环境，返回：<程序所在目录的绝对路径>/resources.zip
     */
-    static FilePath GetResourceZipPath();
+    static FilePath GetResourceZipPath(bool bMacOsAppBundle = true);
 
     /** 根据语言文件的资源ID获取对应的实际文字（支持多国语言版）
     *   该函数是对GlobalManager::Instance().Lang().GetStringByID(const DString& textId)的二次封装，方便使用
@@ -92,11 +95,13 @@ public:
     */
     void* GetPlatformData() const;
 
-    /** 获取资源目录的根路径，为相对路径，示例：_T("resources\\")
-     *  如果是使用本地文件系统做资源目录，则为绝对路径
-     *  如果是使用zip压缩包提供资源，则为相对路径
+    /** 获取当前资源目录的根路径，其取值在程序启动时完成初始化
+     *  如果是使用本地文件系统做资源目录，则为绝对路径，示例：
+     *      macOS系统，AppBundle模式，返回绝对路径：<App>.app/Contents/Resources/duilib/resources/
+     *      其他环境，返回：<程序所在目录的绝对路径>/resources/
+     *  如果是使用zip压缩包提供资源，则为相对路径，示例：_T("resources\\")
      */
-    FilePath GetResourceRootPath() const;
+    FilePath GetCurrentResourceRootPath() const;
 
     /** 设置字体文件所在目录，可以是相对路径或者是绝对路径
      *  如果是使用本地文件系统做资源目录，则为绝对路径

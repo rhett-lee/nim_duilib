@@ -497,7 +497,7 @@ bool FontManager::AddFontFile(const DString& strFontFile, const DString& /*strFo
 
     std::vector<FilePath> searchDirList;
     searchDirList.push_back(GlobalManager::Instance().GetFontFilePath());
-    searchDirList.push_back(GlobalManager::Instance().GetResourceRootPath());
+    searchDirList.push_back(GlobalManager::Instance().GetCurrentResourceRootPath());
     bool bRet = false;
     for (const FilePath& searchDir : searchDirList) {
         FilePath fontFilePath = searchDir;

@@ -91,24 +91,26 @@ GlobalManager& GlobalManager::Instance()
 
 FilePath GlobalManager::GetResourceRootPath(bool bMacOsAppBundle)
 {
-    // 该参数仅用于兼容旧版调用，资源目录由运行环境自动检测
-    UNUSED_VARIABLE(bMacOsAppBundle);
-
+    UNUSED_VARIABLE(bMacOsAppBundle); //该参数仅在macOS使用
     ui::FilePath resourcePath;
 #ifdef DUILIB_BUILD_FOR_MACOS
-    // MacOS平台：按运行环境自动选择资源根目录，不再依赖调用参数。
-    // 1. 标准App Bundle布局：<App>.app/Contents/Resources/duilib/
-    // 2. 兼容布局或非Bundle程序：<可执行文件目录>/resources/
-    ui::FilePath bundleResourcePath = ui::FilePathUtil::GetBundleResourcesPath();
-    if (!bundleResourcePath.IsEmpty()) {
-        bundleResourcePath.NormalizeDirectoryPath();
-        bundleResourcePath += _T("duilib/");
-        if (bundleResourcePath.IsExistsDirectory()) {
-            resourcePath = bundleResourcePath;
+    if (bMacOsAppBundle) {
+        // MacOS平台：按运行环境自动选择资源根目录，不再依赖调用参数。
+        // 1. 标准App Bundle布局：<App>.app/Contents/Resources/duilib/resources/
+        // 2. 兼容布局或非Bundle程序：<可执行文件目录>/resources/
+        ui::FilePath bundleResourcePath = ui::FilePathUtil::GetBundleResourcesPath();
+        if (!bundleResourcePath.IsEmpty()) {
+            bundleResourcePath.NormalizeDirectoryPath();
+            bundleResourcePath += _T("duilib/");
+            bundleResourcePath += DUILIB_RESOURCE_DIR;
+            if (bundleResourcePath.IsExistsDirectory()) {
+                resourcePath = bundleResourcePath;
+            }
         }
     }
 #endif
     if (resourcePath.IsEmpty()) {
+        //非Bundle程序：<可执行文件目录>/resources/
         resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
         resourcePath += DUILIB_RESOURCE_DIR;
     }
@@ -116,11 +118,29 @@ FilePath GlobalManager::GetResourceRootPath(bool bMacOsAppBundle)
     return resourcePath;
 }
 
-FilePath GlobalManager::GetResourceZipPath()
+FilePath GlobalManager::GetResourceZipPath(bool bMacOsAppBundle)
 {
-    ui::FilePath resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
-    resourcePath += DUILIB_RESOURCE_ZIP;
-    resourcePath.NormalizeFilePath();
+    FilePath resourcePath;
+#ifdef DUILIB_BUILD_FOR_MACOS
+    FilePath resourceRootPath = GlobalManager::GetResourceRootPath(bMacOsAppBundle);
+    if (!resourceRootPath.IsEmpty()) {
+        DString resourcePathString = resourceRootPath.ToString();
+        StringUtil::TrimRight(resourcePathString);
+        if (!resourcePathString.empty() && resourcePathString.back() == FilePath::GetPathSeparator()) {
+            resourcePathString.pop_back();
+        }
+        FilePath parentPath = FilePath(resourcePathString).GetParentPath();
+        if (!parentPath.IsEmpty()) {
+            resourcePath = parentPath;
+            resourcePath.JoinFilePath(FilePath(DUILIB_RESOURCE_ZIP));
+        }
+    }
+#endif
+    if (resourcePath.IsEmpty()) {
+        resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
+        resourcePath += DUILIB_RESOURCE_ZIP;
+        resourcePath.NormalizeFilePath();
+    }    
     return resourcePath;
 }
 
@@ -362,7 +382,7 @@ void* GlobalManager::GetPlatformData() const
     return m_platformData;
 }
 
-FilePath GlobalManager::GetResourceRootPath() const
+FilePath GlobalManager::GetCurrentResourceRootPath() const
 {
     return m_resourceRootPath;
 }

@@ -29,7 +29,7 @@ void MainForm::OnInitWindow()
     if (pOpenThemeMgrBtn != nullptr) {
         pOpenThemeMgrBtn->AttachClick([](const ui::EventArgs&) {
             //打开主题配色管理器
-            ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
+            ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath();
             resourcePath /= ui::FilePath(_T("../../docs/Tools/ColorThemeMgr.html"));
             ui::SystemUtil::OpenUrl(resourcePath.NativePath());
             return true;

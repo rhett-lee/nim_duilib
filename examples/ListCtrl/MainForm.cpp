@@ -838,7 +838,7 @@ void MainForm::InitStressTest(ui::ListCtrl* pListCtrl)
     pButton = dynamic_cast<ui::Button*>(FindControl(_T("export_csv_btn")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pListCtrl](const ui::EventArgs&) {
-            ui::FilePath csvPath = ui::GlobalManager::GetResourceRootPath(false);
+            ui::FilePath csvPath = ui::GlobalManager::GetResourceRootPath();
             csvPath /= ui::FilePath(_T("list_ctrl_export.csv"));
             const DString strFilePath = csvPath.ToString();
             const bool bRet = pListCtrl->ExportToCsvFile(strFilePath, true);
@@ -2321,7 +2321,7 @@ void MainForm::InitCheckCopyTests(ui::ListCtrl* pListCtrl)
     pButton = dynamic_cast<ui::Button*>(FindControl(_T("export_all_csv_btn")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pListCtrl, setLabel](const ui::EventArgs&) {
-            ui::FilePath csvPath = ui::GlobalManager::GetResourceRootPath(false);
+            ui::FilePath csvPath = ui::GlobalManager::GetResourceRootPath();
             csvPath /= ui::FilePath(_T("list_ctrl_export_all.csv"));
             const DString strFilePath = csvPath.ToString();
             const bool bRet = pListCtrl->ExportToCsvFile(strFilePath, false);

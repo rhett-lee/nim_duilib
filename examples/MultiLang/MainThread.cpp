@@ -21,7 +21,7 @@ bool MainThread::OnInit()
     constexpr ui::ResourceType resType = ui::ResourceType::kLocalFiles;
     if (resType == ui::ResourceType::kLocalFiles) {
         //使用本地文件夹作为资源
-        ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
+        ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath();
         ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
     }
     else if (resType == ui::ResourceType::kZipFile) {
