@@ -1408,11 +1408,12 @@ def _rewrite_doc_links(text, packaged):
 
 
 def _read_build_stamp(name):
-    """读取 CMake 在链接后写入的构建配置标记（bin/<目标>.build-config）。
+    """读取 CMake 在链接后写入的构建配置标记（bin/.build-config/<目标>）。
 
     Debug 与 Release 的示例程序同名，切换配置后若没有全部重新链接，bin/ 里会混有
-    另一种配置的二进制。有标记时可以明确判断；旧构建没有标记则返回 None，
-    由调用方按“无法确认”处理。
+    另一种配置的二进制。有标记时可以明确判断；旧版本构建把标记写在
+    bin/<目标>.build-config，仍兼容读取；都没有则返回 None，由调用方按“无法确认”
+    处理。
     """
     candidates = [name]
     if name.endswith('.app'):
@@ -1422,15 +1423,17 @@ def _read_build_stamp(name):
         # Windows 的示例文件是 basic.exe，CMake 目标名为 basic
         candidates.append(name[:-4])
     for stem in candidates:
-        path = os.path.join(BIN_DIR, stem + '.build-config')
-        if not os.path.isfile(path):
-            continue
-        try:
-            with open(path, 'r', encoding='utf-8', errors='replace') as fp:
-                value = fp.read().strip()
-        except OSError:
-            return None
-        return value or None
+        paths = [os.path.join(BIN_DIR, '.build-config', stem),
+                 os.path.join(BIN_DIR, stem + '.build-config')]
+        for path in paths:
+            if not os.path.isfile(path):
+                continue
+            try:
+                with open(path, 'r', encoding='utf-8', errors='replace') as fp:
+                    value = fp.read().strip()
+            except OSError:
+                return None
+            return value or None
     return None
 
 
@@ -1527,7 +1530,7 @@ def collect_examples(collector, config, is_windows, with_cef=True, is_macos=Fals
     if config == 'Debug' and unverified:
         collector.warn('无法确认以下示例的构建配置（缺少 %s），'
                        '可能混有 Release 版本，请确认后再分发：%s'
-                       % ('<目标>.build-config', ', '.join(unverified)))
+                       % ('bin/.build-config/<目标>', ', '.join(unverified)))
     if skipped_debug:
         collector.warn('已跳过 Debug 示例程序：%s' % ', '.join(skipped_debug))
     if skipped_cef:

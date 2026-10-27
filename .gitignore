@@ -358,6 +358,8 @@ healthchecksdb
 /msvc/PropertySheets/duilib_dll.flag
 /bin/*.dll
 # CMake 在构建后写入的“本示例由哪个配置构建”标记（供 pack.py 判定）
+/bin/.build-config/
+# 旧版本把标记写在 bin/ 根目录，保留忽略规则以兼容升级前的构建
 /bin/*.build-config
 # 自动化回归的构建/打包日志
 /.regress

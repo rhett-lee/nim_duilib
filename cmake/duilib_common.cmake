@@ -584,7 +584,7 @@ if(DUILIB_ENABLE_SDL)
     endif()
 endif()
 
-# 记录目标的构建配置：写 bin/<目标>.build-config（见 duilib_write_build_stamp.cmake）。
+# 记录目标的构建配置：写 bin/.build-config/<目标>（见 duilib_write_build_stamp.cmake）。
 # pack.py 据此判断 bin/ 中是否混有其他配置的同名产物。
 function(duilib_add_build_config_stamp target)
     if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
@@ -592,7 +592,7 @@ function(duilib_add_build_config_stamp target)
     endif()
     add_custom_command(TARGET ${target} POST_BUILD
         COMMAND ${CMAKE_COMMAND}
-                "-DSTAMP_FILE=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}.build-config"
+                "-DSTAMP_FILE=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/.build-config/${target}"
                 "-DSTAMP_CONFIG=$<CONFIG>"
                 -P "${CMAKE_CURRENT_LIST_DIR}/duilib_write_build_stamp.cmake"
         COMMENT "Recording build configuration for ${target}"

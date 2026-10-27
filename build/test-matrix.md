@@ -49,7 +49,7 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
 
 | 编号 | 工具链 | 架构/配置 | 关键开关 | 范围 | 命令示例 | 状态 | 备注 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| W-B01 | MSVC | x64 / Debug | 默认（/MT、CEF 142、无 SDL） | 库 + 全部示例 | `python build/build.py build --config Debug` | 通过 | 861/861；过滤其他平台入口后增量构建为 21 次链接，新生成的 exe 均写入 `.build-config` |
+| W-B01 | MSVC | x64 / Debug | 默认（/MT、CEF 142、无 SDL） | 库 + 全部示例 | `python build/build.py build --config Debug` | 通过 | 861/861；过滤其他平台入口后增量构建为 21 次链接，新生成的 exe 均写入 `bin/.build-config/` |
 | W-B02 | MSVC | x64 / Debug | `--cef-version 109` | 库 + 全部示例 | `... --config Debug --cef-version 109` | 通过 | 838/838，109 目标更少 |
 | W-B03 | MSVC | x86 / Debug | 默认 | 库 + 全部示例 | `... --config Debug --arch x86` | 通过 | 861/861 |
 | W-B04 | MSVC | x64 / Release | 默认 | 库 + 全部示例 | `... --config Release` | 通过 | 861/861 |
@@ -74,7 +74,8 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
 
 - 在同一个 `out/<arch>/<Config>` 中切换工具链会被自动清理；但 `lib/<arch>/<Config>`、
   `bin/` 不会自动清理，切换工具链或架构前需手工清理，否则打包会报混合库/架构不一致。
-- 手工清理 `bin/` 时只删 `*.exe`、`*.dll`、`*.build-config`；**`bin/resources.zip` 是仓库
+- 手工清理 `bin/` 时只删 `*.exe`、`*.dll` 与 `.build-config/` 目录（升级前旧构建
+  可能在根目录留下 `*.build-config` 文件，一并删除）；**`bin/resources.zip` 是仓库
   跟踪的 748 字节占位文件**（示例 `.rc` 通过 `IDR_THEME THEME "..\..\bin\resources.zip"`
   内嵌引用），误删会导致 windres 报 `can't open file '..\..\bin\resources.zip'`，
   需 `git checkout -- bin/resources.zip` 恢复。
@@ -168,7 +169,7 @@ FreeBSD 复用 Linux/X11 分支；不支持 CEF，`--with-cef` 直接报错。
 | G-03 | `build.py clean` | 删除整个 `out/`；`--build-dir` 可只清理指定构建目录 | 通过 | dry-run 仅打印路径 |
 | G-04 | `build.py clean --deps --dry-run` | 展示依赖清理范围 | 通过 | 不会删除源码克隆 |
 | G-05 | `build.py build/pack/test --dry-run` | 只打印命令 | 通过 | build/clean 不再误报完成 |
-| G-06 | `build.py test` | 构建/打包单元测试 | 通过 | 174 项全部通过 |
+| G-06 | `build.py test` | 构建/打包单元测试 | 通过 | 176 项全部通过（含 `bin/.build-config/` 新路径、旧标记兼容、标记目录不被误收） |
 | G-07 | 负向校验 | 混合库、架构不一致、CEF 版本不匹配、错误 ref/archive | 通过 | 均在配置/打包阶段明确报错 |
 
 ## 7. 当前测试进展（2026-10-26）
