@@ -72,6 +72,12 @@
 
 ### 修复
 
+- 构建（切换 Debug/Release）：示例程序都输出到共享的 `bin/`，目标文件却按配置
+  分开存放；先编译 Debug 再编译 Release 时，`bin/` 中的文件比 Release 的目标
+  文件新，Ninja 判定链接步骤已是最新（`ninja: no work to do`），`bin/` 一直是
+  Debug 产物。现在 `build.py build` 在链接前根据 `bin/.build-config/<目标>`
+  （兼容旧版 `bin/<目标>.build-config`）删除其他配置的示例产物及标记，强制当前
+  配置重新链接；`--target X` 只清理该目标，`--no-examples` 跳过清理。
 - 发布包测试（macOS P04/P06 误报）：`sdk_package_test.py` 原先只在
   `bin/libcef_win*`、`bin/libcef_linux` 中查找 CEF 运行时，macOS 的 CEF 位于示例
   `.app/Contents/Frameworks/Chromium Embedded Framework.framework`，导致包名 `-cef`

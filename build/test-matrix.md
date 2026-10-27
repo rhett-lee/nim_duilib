@@ -159,6 +159,7 @@ FreeBSD 复用 Linux/X11 分支；不支持 CEF，`--with-cef` 直接报错。
 | M-B04 | x64 / Release | CEF 示例 / `.app` | 构建 `cef`、`CefBrowser` | 部分 | Helper/Framework/wrapper 修复已合入，实机 Bundle 待确认 |
 | M-P01 | x64 / Release | 无 CEF 出包 | `pack --with-examples` | 未测 | 非 Windows 按可执行位识别示例 |
 | M-P02 | x64 / Release | CEF `.app` 出包 | `pack --with-examples --with-cef` | 部分 | Bundle 收集逻辑与单元测试完成；不收集 CEF 开发文件/运行时 |
+| M-B05 | x64 / Debug → Release | 同一 `bin/` 切换配置 | 先 `--config Debug`，再 `--config Release` | 待验证 | 代码已按 `bin/.build-config` 删除另一配置的示例并强制重链；单元测试与 `--dry-run` 覆盖 |
 
 ## 6. 跨平台通用命令矩阵
 
@@ -169,7 +170,7 @@ FreeBSD 复用 Linux/X11 分支；不支持 CEF，`--with-cef` 直接报错。
 | G-03 | `build.py clean` | 删除整个 `out/`；`--build-dir` 可只清理指定构建目录 | 通过 | dry-run 仅打印路径 |
 | G-04 | `build.py clean --deps --dry-run` | 展示依赖清理范围 | 通过 | 不会删除源码克隆 |
 | G-05 | `build.py build/pack/test --dry-run` | 只打印命令 | 通过 | build/clean 不再误报完成 |
-| G-06 | `build.py test` | 构建/打包单元测试 | 通过 | 176 项全部通过（含 `bin/.build-config/` 新路径、旧标记兼容、标记目录不被误收） |
+| G-06 | `build.py test` | 构建/打包单元测试 | 通过 | 202 项全部通过（含 `bin/.build-config/` 新路径、旧标记兼容、标记目录不被误收、Debug/Release 切换清理） |
 | G-07 | 负向校验 | 混合库、架构不一致、CEF 版本不匹配、错误 ref/archive | 通过 | 均在配置/打包阶段明确报错 |
 
 ## 7. 当前测试进展（2026-10-26）

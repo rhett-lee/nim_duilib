@@ -65,6 +65,11 @@ python3 build/build.py --config Debug
 python3 build/build.py --config Release
 ```
 
+Debug 与 Release 的示例输出同名，都写在共享的 `bin/`，而目标文件按配置分开存放。
+切换配置时 `build.py` 会先删除另一种配置的示例产物及其
+`bin/.build-config/<目标>` 标记，强制当前配置重新链接；否则 Ninja 会因 `bin/`
+中的文件比本配置的目标文件新而跳过链接（`ninja: no work to do`）。
+
 ## 4. 常用参数
 
 | 参数 | 说明 |
@@ -330,6 +335,7 @@ MINGW64 会优先选带 `.msvcrt` 的目录。两者的包名都是 `-mingw-gcc`
 | 构建目录损坏 | `python3 build/build.py clean` 后重试 |
 | `clean` 删除失败（权限/占用） | 关闭占用构建树的程序（编辑器、运行中的示例、杀毒软件）后重试；错误信息会给出无法删除的具体路径 |
 | 切换编译器后配置失败（如 cl.exe 找不到 `kernel32.lib`） | 无需手动清理：`build.py` 检测到 `out/<arch>/<Config>` 缓存中的编译器变化会自动清空该目录 |
+| 先编译 Debug 再编译 Release 时直接结束（`ninja: no work to do`），`bin/` 仍是 Debug 示例 | 两个配置的示例都写到共享的 `bin/`，切换配置时 `build.py` 会删除另一种配置的示例产物与 `bin/.build-config` 标记后重新链接；手工调用 CMake 时需自行清理 `bin/` 中的同名示例 |
 | `Visual Studio C++ tools for <arch> are not installed` | 在 Visual Studio Installer 中为对应架构安装 MSVC 生成工具（如 ARM64）；仅有 x64/x86 工具集时不要构建 arm64 |
 | MSYS2 CLANG64 配置期报 Skia 目录没有 `.a` | 已按候选顺序自动回退到 `mingw64-llvm.<arch>.release`；若仍无可用的 `.a` 目录，请用 `-DDUILIB_SKIA_LIB_SUBPATH=<目录>` 指定 clang64 编译的 Skia |
 | `--cef-version 109` 构建报找不到 `libcef_dll_wrapper_109` | 已修复：wrapper 的源码目录与目标名现在跟随 `DUILIB_CEF_VERSION`；旧构建树需 `build.py clean` 后重新配置 |

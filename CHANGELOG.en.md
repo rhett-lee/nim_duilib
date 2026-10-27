@@ -86,6 +86,15 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Fixed
 
+- Build (switching Debug/Release): examples share the `bin/` output directory but
+  their objects live in per-configuration trees. After building Debug, the files in
+  `bin/` are newer than Release's objects, so Ninja considered the link steps up to
+  date (`ninja: no work to do`) and `bin/` kept the Debug binaries. `build.py build`
+  now removes examples produced by another configuration (based on
+  `bin/.build-config/<target>`, still reading legacy `bin/<target>.build-config`)
+  together with their stamps before linking, forcing a relink for the requested
+  configuration; `--target X` only cleans that target and `--no-examples` skips the
+  cleanup.
 - SDK package test (macOS P04/P06 false failures): `sdk_package_test.py` only looked
   for the CEF runtime under `bin/libcef_win*` / `bin/libcef_linux`, but on macOS it
   lives inside the example bundle (`.app/Contents/Frameworks/Chromium Embedded

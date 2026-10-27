@@ -336,6 +336,10 @@
       "en": "[build] compiler changed in {dir}: {cached} -> {expected}; discarding the stale CMake cache",
       "zh_CN": "[build] 检测到 {dir} 的编译器已切换：{cached} → {expected}，将清理旧的 CMake 缓存"
     },
+    "build.config_switch": {
+      "en": "[build] bin/ holds {stale} example outputs from another configuration; removing {count} target(s) so {config} relinks",
+      "zh_CN": "[build] bin/ 中是 {stale} 配置的示例产物；删除 {count} 个目标，强制 {config} 重新链接"
+    },
     "build.configuring": {
       "en": "[build] configuring",
       "zh_CN": "[build] 正在配置"

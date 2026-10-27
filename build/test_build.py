@@ -316,6 +316,160 @@ class StaleCacheTests(unittest.TestCase):
         self.assertTrue(root.exists())
 
 
+class ConfigSwitchTests(unittest.TestCase):
+    """切换 Debug/Release 时，共享 bin/ 中另一种配置的示例产物要被清理。
+
+    Debug 与 Release 的示例同名且都写到 bin/，目标文件却按配置分开；不清理时
+    Ninja 会认为链接步骤已是最新（ninja: no work to do），bin/ 一直不更新。
+    """
+
+    class _Messages:
+        @staticmethod
+        def t(key):
+            return {
+                "build.config_switch": "switch {stale}/{count}/{config}",
+                "build.clean_failed": "failed {path}: {error}",
+            }.get(key, key)
+
+        @staticmethod
+        def hint(_key):
+            return "hint"
+
+    def _bin(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        bin_dir = Path(temp.name) / "bin"
+        (bin_dir / ".build-config").mkdir(parents=True)
+        return bin_dir
+
+    def _stamp(self, bin_dir, target, config):
+        (bin_dir / ".build-config" / target).write_text(config + "\n", encoding="utf-8")
+
+    def _touch(self, path):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("x", encoding="utf-8")
+
+    def _clear(self, bin_dir, config, target=None, dry_run=False):
+        stream = io.StringIO()
+        with contextlib.redirect_stdout(stream):
+            removed = entry.clear_stale_build_outputs(
+                bin_dir, config, target, self._Messages(), dry_run=dry_run)
+        return removed, stream.getvalue()
+
+    def test_stale_output_detected_for_other_config(self):
+        bin_dir = self._bin()
+        self._stamp(bin_dir, "basic", "Debug")
+        self._touch(bin_dir / "basic")
+        stale = entry.stale_build_outputs(bin_dir, "Release")
+        self.assertEqual([item[0] for item in stale], ["basic"])
+        self.assertEqual(stale[0][1], "Debug")
+        self.assertEqual(stale[0][3], [bin_dir / "basic"])
+        # 标记目录本身不能当成旧版标记文件
+        self.assertNotIn(".build-config", entry.build_config_stamps(bin_dir))
+
+    def test_current_config_is_kept(self):
+        bin_dir = self._bin()
+        self._stamp(bin_dir, "basic", "Release")
+        self._touch(bin_dir / "basic")
+        self.assertEqual(entry.stale_build_outputs(bin_dir, "Release"), [])
+        removed, output = self._clear(bin_dir, "Release")
+        self.assertEqual(removed, [])
+        self.assertEqual(output, "")
+        self.assertTrue((bin_dir / "basic").exists())
+
+    def test_clear_removes_output_and_stamp(self):
+        bin_dir = self._bin()
+        self._stamp(bin_dir, "basic", "Debug")
+        self._touch(bin_dir / "basic")
+        removed, output = self._clear(bin_dir, "Release")
+        self.assertEqual(removed, ["basic"])
+        self.assertIn("Debug/1/Release", output)
+        self.assertFalse((bin_dir / "basic").exists())
+        self.assertFalse((bin_dir / ".build-config" / "basic").exists())
+
+    def test_windows_exe_is_removed(self):
+        bin_dir = self._bin()
+        self._stamp(bin_dir, "basic", "Debug")
+        self._touch(bin_dir / "basic.exe")
+        removed, _ = self._clear(bin_dir, "Release")
+        self.assertEqual(removed, ["basic"])
+        self.assertFalse((bin_dir / "basic.exe").exists())
+
+    def test_macos_bundle_is_removed(self):
+        bin_dir = self._bin()
+        self._stamp(bin_dir, "CefBrowser", "Debug")
+        self._touch(bin_dir / "CefBrowser.app" / "Contents" / "MacOS" / "CefBrowser")
+        removed, _ = self._clear(bin_dir, "Release")
+        self.assertEqual(removed, ["CefBrowser"])
+        self.assertFalse((bin_dir / "CefBrowser.app").exists())
+
+    def test_legacy_inline_stamp_is_read_and_removed(self):
+        bin_dir = self._bin()
+        legacy = bin_dir / "basic.build-config"
+        legacy.write_text("Debug\n", encoding="utf-8")
+        self._touch(bin_dir / "basic")
+        stale = entry.stale_build_outputs(bin_dir, "Release")
+        self.assertEqual(len(stale), 1)
+        self.assertEqual(stale[0][2], legacy)
+        self._clear(bin_dir, "Release")
+        self.assertFalse(legacy.exists())
+        self.assertFalse((bin_dir / "basic").exists())
+
+    def test_directory_stamp_wins_over_legacy(self):
+        bin_dir = self._bin()
+        self._stamp(bin_dir, "basic", "Release")
+        (bin_dir / "basic.build-config").write_text("Debug\n", encoding="utf-8")
+        self._touch(bin_dir / "basic")
+        # 新路径说 Release，说明产物已是当前配置；旧标记不应把它当成 Debug
+        self.assertEqual(entry.stale_build_outputs(bin_dir, "Release"), [])
+
+    def test_stale_stamp_without_output_is_ignored(self):
+        bin_dir = self._bin()
+        self._stamp(bin_dir, "basic", "Debug")
+        self.assertEqual(entry.stale_build_outputs(bin_dir, "Release"), [])
+        self.assertEqual(entry.build_config_stamps(bin_dir)["basic"][0], "Debug")
+
+    def test_target_filter_limits_cleanup(self):
+        bin_dir = self._bin()
+        for name in ("basic", "chat"):
+            self._stamp(bin_dir, name, "Debug")
+            self._touch(bin_dir / name)
+        removed, _ = self._clear(bin_dir, "Release", target="basic")
+        self.assertEqual(removed, ["basic"])
+        self.assertFalse((bin_dir / "basic").exists())
+        self.assertTrue((bin_dir / "chat").exists())
+        self.assertTrue((bin_dir / ".build-config" / "chat").exists())
+
+    def test_target_accepts_output_name(self):
+        bin_dir = self._bin()
+        for name in ("basic", "chat"):
+            self._stamp(bin_dir, name, "Debug")
+            self._touch(bin_dir / name)
+        removed, _ = self._clear(bin_dir, "Release", target="basic.app")
+        self.assertEqual(removed, ["basic"])
+
+    def test_all_targets_clean_whole_bin(self):
+        for target in (None, "all"):
+            bin_dir = self._bin()
+            for name in ("basic", "chat"):
+                self._stamp(bin_dir, name, "Debug")
+                self._touch(bin_dir / name)
+            removed, _ = self._clear(bin_dir, "Release", target=target)
+            self.assertEqual(removed, ["basic", "chat"])
+            self.assertFalse((bin_dir / "basic").exists())
+            self.assertFalse((bin_dir / "chat").exists())
+
+    def test_dry_run_keeps_outputs_and_stamps(self):
+        bin_dir = self._bin()
+        self._stamp(bin_dir, "basic", "Debug")
+        self._touch(bin_dir / "basic")
+        removed, output = self._clear(bin_dir, "Release", dry_run=True)
+        self.assertEqual(removed, ["basic"])
+        self.assertIn("Debug/1/Release", output)
+        self.assertTrue((bin_dir / "basic").exists())
+        self.assertTrue((bin_dir / ".build-config" / "basic").exists())
+
+
 class LanguageTests(unittest.TestCase):
     def test_cli_wins(self):
         self.assertEqual(resolve_language(cli="zh_CN", env={"DUILIB_LANG": "en"}, system="en-US"),

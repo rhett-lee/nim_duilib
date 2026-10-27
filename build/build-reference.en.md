@@ -69,6 +69,13 @@ python3 build/build.py --config Debug
 python3 build/build.py --config Release
 ```
 
+Debug and Release examples share the same output names and both write into `bin/`,
+while their object files live in separate per-configuration trees. When switching
+configurations, `build.py` first removes the other configuration's example outputs and
+their `bin/.build-config/<target>` stamps so the requested configuration relinks;
+otherwise Ninja sees `bin/` files newer than its own objects and skips the link steps
+(`ninja: no work to do`).
+
 ## 4. Common options
 
 | Option | Description |
@@ -348,6 +355,7 @@ sure the Skia libraries are the `mingw64-llvm.<arch>` variant.
 | No text on Linux | install fontconfig and CJK fonts; check `bin/resources/fonts` |
 | Corrupted build tree | `python3 build/build.py clean` and retry |
 | Configure fails after switching compilers (e.g. `cl.exe` cannot find `kernel32.lib`) | no manual cleanup needed: `build.py` detects the compiler change in the `out/<arch>/<Config>` cache and clears that directory |
+| Building Debug and then Release finishes immediately (`ninja: no work to do`) and `bin/` still holds Debug examples | both configurations write examples into the shared `bin/`; `build.py` removes the other configuration's outputs and `bin/.build-config` stamps before relinking. When invoking CMake directly, remove the same-named examples from `bin/` yourself |
 | `--cef-version 109` cannot find `libcef_dll_wrapper_109` | fixed: the wrapper source directory and target name now follow `DUILIB_CEF_VERSION`; run `build.py clean` and reconfigure an old build tree |
 | `--cef-version 109` Debug link fails with `_ITERATOR_DEBUG_LEVEL` 0 vs 2 (LNK2038) | fixed: 109 configurations force `USE_SANDBOX=OFF`, so the wrapper's `_HAS_ITERATOR_DEBUGGING=0` no longer conflicts with a Debug project |
 | `pack` reports that `lib/<arch>/<Config>` mixes MSVC `.lib` and MinGW `.a` | old libraries survive a toolchain switch; delete that directory (or run `build.py clean`) and rebuild with a single toolchain |

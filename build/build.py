@@ -157,6 +157,121 @@ def reset_stale_build_dir(build_dir: Path, toolchain: "Toolchain", messages, dry
         shutil.rmtree(build_dir)
 
 
+STAMP_DIR_NAME = ".build-config"
+LEGACY_STAMP_SUFFIX = ".build-config"
+
+
+def _stamp_config(path: Path) -> str | None:
+    """读取一个构建配置标记；空文件或不可读时返回 None。"""
+    try:
+        return path.read_text(encoding="utf-8", errors="replace").strip() or None
+    except OSError:
+        return None
+
+
+def build_config_stamps(bin_dir: Path) -> dict[str, tuple[str, Path]]:
+    """扫描 bin/ 下的构建配置标记，返回 {目标名: (构建配置, 标记文件)}。
+
+    CMake 在链接后写 bin/.build-config/<目标>（见
+    cmake/duilib_write_build_stamp.cmake）；旧版本写在
+    bin/<目标>.build-config，仍兼容读取。同一目标两种标记并存时以新路径为准。
+    """
+    stamps: dict[str, tuple[str, Path]] = {}
+    stamp_dir = bin_dir / STAMP_DIR_NAME
+    if stamp_dir.is_dir():
+        for path in sorted(stamp_dir.iterdir()):
+            if not path.is_file():
+                continue
+            config = _stamp_config(path)
+            if config:
+                stamps[path.name] = (config, path)
+    if bin_dir.is_dir():
+        for path in sorted(bin_dir.glob("*" + LEGACY_STAMP_SUFFIX)):
+            if not path.is_file():
+                continue
+            stem = path.name[:-len(LEGACY_STAMP_SUFFIX)]
+            config = _stamp_config(path)
+            if config and stem not in stamps:
+                stamps[stem] = (config, path)
+    return stamps
+
+
+def target_bin_outputs(bin_dir: Path, target: str) -> list[Path]:
+    """目标在共享 bin/ 下可能产生的产物（可执行文件或 macOS App Bundle）。"""
+    candidates = [bin_dir / target,
+                  bin_dir / (target + ".exe"),
+                  bin_dir / (target + ".app")]
+    return [path for path in candidates if path.exists() or path.is_symlink()]
+
+
+def stale_build_outputs(bin_dir: Path, config: str,
+                        target: str | None = None) -> list[tuple[str, str, Path, list[Path]]]:
+    """找出 bin/ 中由其他配置链接出来的示例产物。
+
+    Debug 与 Release 的示例输出同名，且都写到共享的 bin/；目标文件却按配置
+    分别存放在 out/<arch>/<Config>。Ninja 只按修改时间判断链接步骤是否需要
+    重跑：先构建 Debug 后，bin/ 中的文件比 Release 的目标文件新，Release 的
+    链接步骤就被判为已是最新（ninja: no work to do），bin/ 一直是 Debug 产物。
+    返回 [(目标, 实际配置, 标记文件, 待删除产物)]。
+    """
+    wanted = (target or "").strip()
+    for suffix in (".exe", ".app"):
+        if wanted.lower().endswith(suffix):
+            wanted = wanted[:-len(suffix)]
+            break
+    if wanted.lower() == "all":
+        wanted = ""
+    stale = []
+    for stem, (stamp_config, stamp_path) in sorted(build_config_stamps(bin_dir).items()):
+        if wanted and stem != wanted:
+            continue
+        if stamp_config == config:
+            continue
+        outputs = target_bin_outputs(bin_dir, stem)
+        if outputs:
+            stale.append((stem, stamp_config, stamp_path, outputs))
+    return stale
+
+
+def clear_stale_build_outputs(bin_dir: Path, config: str, target: str | None,
+                              messages, dry_run: bool = False) -> list[str]:
+    """删除 bin/ 中其他配置的示例产物，强制当前配置重新链接。
+
+    只处理有配置标记的目标；没有标记时无法判断产物属于哪个配置，交由
+    pack.py 的“无法确认”提示处理。--target 只清理该目标。
+    """
+    stale = stale_build_outputs(bin_dir, config, target)
+    if not stale:
+        return []
+    other = ", ".join(sorted({entry[1] for entry in stale}))
+    print(messages.t("build.config_switch").format(
+        stale=other, count=len(stale), config=config), flush=True)
+    if dry_run:
+        return [entry[0] for entry in stale]
+    for _stem, _stamp_config, stamp_path, outputs in stale:
+        for path in outputs:
+            try:
+                if path.is_dir() and not path.is_symlink():
+                    shutil.rmtree(path)
+                else:
+                    path.unlink()
+            except FileNotFoundError:
+                continue
+            except OSError as exc:
+                raise BuildError(
+                    messages.t("build.clean_failed").format(path=path, error=exc),
+                    messages.hint("build.clean_failed_hint"))
+        try:
+            stamp_path.unlink()
+        except FileNotFoundError:
+            pass
+        except OSError as exc:
+            raise BuildError(
+                messages.t("build.clean_failed").format(path=stamp_path, error=exc),
+                messages.hint("build.clean_failed_hint"))
+    return [entry[0] for entry in stale]
+
+
 def load_manifest(path: Path) -> dict:
     with path.open("r", encoding="utf-8") as handle:
         data = json.load(handle)
@@ -851,6 +966,12 @@ def cmd_build(args, messages) -> int:
     if runner.run(_configure_command(args, toolchain, arch, args.config, build_dir, "off", False),
                   cwd=REPO_ROOT) != 0:
         raise BuildError(messages.t("build.failed"), messages.hint("build.failed_hint"))
+
+    # Debug/Release 的示例都输出到共享的 bin/，但目标文件按配置分开；先删掉
+    # 另一种配置的示例产物，否则 Ninja 会认为链接步骤已最新而跳过（bin/ 不会更新）。
+    if not getattr(args, "no_examples", False):
+        clear_stale_build_outputs(REPO_ROOT / "bin", args.config, args.target,
+                                  messages, args.dry_run)
 
     print(messages.t("build.building") + f" ({build_dir})", flush=True)
     if runner.run(_build_command(args, toolchain, build_dir, args.config, args.target),
