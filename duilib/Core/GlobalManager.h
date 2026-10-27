@@ -51,7 +51,7 @@ public:
     *             该函数仅用于在调用Startup函数前确定资源目录，其他情况下，请使用GlobalManager::Instance().GetResourceRootPath()函数
     * @return 返回绝对路径，示例：<程序所在目录的绝对路径>/resources/
     */
-    static FilePath GetResourceRootPath(bool bMacOsAppBundle = false);
+    static FilePath GetResourceRootPath(bool bMacOsAppBundle);
 
     /** 获取资源压缩包的路径（绝对路径）
     * @return 返回绝对路径，示例：<程序所在目录的绝对路径>/resources.zip
@@ -92,7 +92,7 @@ public:
     */
     void* GetPlatformData() const;
 
-    /** 获取资源目录的根路径
+    /** 获取资源目录的根路径，为相对路径，示例：_T("resources\\")
      *  如果是使用本地文件系统做资源目录，则为绝对路径
      *  如果是使用zip压缩包提供资源，则为相对路径
      */
