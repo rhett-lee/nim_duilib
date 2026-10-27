@@ -80,7 +80,7 @@ python3 build/build.py --config Release
 | `--cmake-arg <arg>` / `--build-arg <arg>` | 透传给 configure / build（可重复）；值以 `-` 开头时写成 `--cmake-arg=-DFOO=1` |
 | `--vs-version N` | 显式指定 Visual Studio 主版本（如 `17`）；仅 Windows 有效 |
 | `--cef-version 109\|latest` | CEF 版本：`109` 为旧版，`latest` 取版本清单默认值（当前为 142，清单升级后自动跟随） |
-| `--skia-ref` / `--sdl-ref` | 选择版本清单中的 ref，如 `chrome/m142`、`release-3.4.18` |
+| `--skia-ref` / `--sdl-ref` | 选择版本清单中的 ref，如 `chrome/m142`、`main`、`release-3.4.18` |
 | `--sdl` / `--no-sdl` | 仅 Windows 有效；Windows 默认关闭，其他平台强制开启 |
 | `--md` | 使用 MSVC 动态运行库（/MD、/MDd）；仅 Windows 有效 |
 | `--no-absolute-rpath` | 仅 Unix 有效；产物只写相对 rpath，不附加 SDL3 等绝对兜底路径 |
@@ -156,11 +156,14 @@ Skia 的补丁归档由 `build.py deps`（以及默认的 `build`）自动获取
   本地 `skia/` 源码不在清单 commit（或 `--skia-ref` 指定的 tag/branch）上时，
   `deps` 会把工作区切到清单指定的提交；branch ref 只要求当前就在该分支上，
   不会每次都去追远端新提交。
-- **SDL3**：固定 tag（`sdl.default`）。Windows 默认不启用；显式启用时由 `deps`
-  自动构建 Debug + Release 静态库。Unix 构建动态库，并写入 rpath（相对条目在前，
-  绝对兜底由 `DUILIB_RPATH_ABSOLUTE` 控制）。本地 `SDL/` 源码停在别的分支
-  （例如 `main`）时，`deps` 会先切到清单指定的 tag 再编译；SDL3 的安装 stamp
-  记录源码提交，切到清单版本后旧产物会自动重建（升级到本版本时会重建一次）。
+- **SDL3**：默认 ref 为 `main` 分支（`sdl.default`；`refs` 中也保留
+  `release-3.4.18` tag，源码编译报错时不要选用，需要时可用 `--sdl-ref` 切换）。
+  Windows 默认不启用；显式启用时由 `deps` 自动构建 Debug + Release 静态库。
+  Unix 构建动态库，并写入 rpath（相对条目在前，绝对兜底由
+  `DUILIB_RPATH_ABSOLUTE` 控制）。本地 `SDL/` 源码停在别的分支/标签时，`deps`
+  会先切到清单指定的 ref 再编译（branch ref 只要求当前就在该分支上，不追远端）；
+  SDL3 的安装 stamp 记录源码提交，切到清单版本后旧产物会自动重建（升级到本版本
+  时会重建一次）。
 - **CEF**：固定版本分支（`cef.default`，可选 `109` 兼容 Windows 7）。统一使用
   `_minimal` 发行包（体积约为标准包的一半，含 `include/`、`Release/`、
   `Resources/`），只安装 `Release/*` 与 `Resources/*` 运行时，放到：

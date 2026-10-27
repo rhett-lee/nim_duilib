@@ -363,8 +363,9 @@ extra_cflags=["-DSK_DISABLE_LEGACY_PNG_WRITEBUFFER"]
 
 - **可选性**：Windows 下 `DUILIB_ENABLE_SDL` 默认 `OFF`（可选）；Linux/macOS/FreeBSD
   下为必选，忽略 `-DDUILIB_ENABLE_SDL=OFF` 并输出 `[WARN]`；
-- **版本配置**：来自清单 `sdl` 段的 `sdl.default`，默认固定为 `release-3.4.18` tag，
-  也允许 `main`（`type=branch`）；`DUILIB_SDL_REF` 可临时切换；
+- **版本配置**：来自清单 `sdl` 段的 `sdl.default`，默认为 `main` 分支
+  （`type=branch`；`release-3.4.18` tag 源码编译报错，仅保留在 `refs` 中备用）；
+  `DUILIB_SDL_REF` 可临时切换；
 - **源码获取**：`ExternalProject_Add(sdl_ext GIT_REPOSITORY ${DUILIB_SDL_REPO}
   GIT_TAG <value>)`，tag/branch 用 `GIT_SHALLOW TRUE`；固定 tag 时不做 `git pull`；
 - **就绪判定**：`${DUILIB_SDL_ROOT}/include/SDL3/SDL.h` 存在，且
@@ -478,11 +479,11 @@ Windows 与 Linux 共用同一套实现，只是复制目标不同。
   }
 },
 "sdl": {
-  "default": "release-3.4.18",
+  "default": "main",
   "repo": "https://github.com/libsdl-org/SDL.git",
   "refs": {
-    "release-3.4.18": { "type": "tag" },
-    "main":           { "type": "branch" }
+    "main":           { "type": "branch" },
+    "release-3.4.18": { "type": "tag" }
   }
 }
 ```
@@ -623,7 +624,7 @@ Windows 与 Linux 共用同一套实现，只是复制目标不同。
 | `DUILIB_EXAMPLES` | 平台默认列表 | 可用分号列表裁剪 |
 | `DUILIB_ENABLE_SDL` | Windows `OFF`（可选），其他平台强制 `ON` | `-D...=OFF` 在非 Windows 被忽略并告警 |
 | `DUILIB_SKIA_REF` | 清单 `skia.default` | 清单键；commit / branch / tag 均可 |
-| `DUILIB_SDL_REF` | 清单 `sdl.default`（`release-3.4.18`） | 清单键；tag 优先，可选 `main` |
+| `DUILIB_SDL_REF` | 清单 `sdl.default`（`main`） | 清单键；branch / tag / commit 均可（`release-3.4.18` tag 当前源码编译报错，不建议选用） |
 | `DUILIB_DEPS_LOCK_TIMEOUT` | `5` | 依赖准备并发锁等待秒数 |
 | `DUILIB_DOWNLOAD_RETRIES` | `0` | `0` = 无限重试；`N>0` = 有限重试次数 |
 | `DUILIB_DOWNLOAD_RETRY_DELAY` | `3` | 重试起始间隔（秒），指数退避上限 60 秒 |

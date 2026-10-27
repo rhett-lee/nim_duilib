@@ -73,6 +73,10 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   SDL source and prefix, and the CEF runtime are listed separately, noting that
   `deps` fetches them while `--offline` cannot; the interpreter is shown under its
   actual command name (`python3` on Linux).
+- Dependency version (SDL3): the manifest default ref is now the `main` branch
+  instead of the `release-3.4.18` tag (that tag's source currently fails to build);
+  `release-3.4.18` stays in `refs` and can still be selected with
+  `--sdl-ref release-3.4.18`.
 
 ### Removed
 
@@ -83,14 +87,13 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 ### Fixed
 
 - Dependency preparation (SDL3): when the local `<deps-root>/SDL` checkout sat on
-  another branch/tag (for example `main`) while the manifest pinned
-  `release-3.4.18`, the script compiled that source anyway and the completion stamp
-  only recorded the manifest ref name, so the resulting library was adopted as if it
-  were the manifest version. `deps` now switches the checkout to the manifest
-  tag/commit first (no network access when the commit already exists locally, so
-  `--offline` works too) and records the source commit in `.duilib-sdl`; stale
-  artifacts are rebuilt after the switch (SDL3 is rebuilt once when upgrading to
-  this version).
+  another branch/tag than the manifest ref, the script compiled that source anyway
+  and the completion stamp only recorded the manifest ref name, so the resulting
+  library was adopted as if it were the manifest version. `deps` now switches the
+  checkout to the manifest tag/commit first (no network access when the commit
+  already exists locally, so `--offline` works too) and records the source commit
+  in `.duilib-sdl`; stale artifacts are rebuilt after the switch (SDL3 is rebuilt
+  once when upgrading to this version).
 - Dependency preparation (Skia patch): an existing patch archive was reused as long
   as the file name matched, but skia_compile may commit the same name several times
   (`skia.2026-09-16.src.zip`); an outdated local copy kept the old Skia artifacts

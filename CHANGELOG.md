@@ -61,6 +61,9 @@
 - `doctor` 的依赖状态报告更完整：分别列出 Skia 源码与补丁归档、SDL 源码与前缀、
   CEF 运行时，缺失时说明由 `deps` 获取，`--offline` 下则提示无法获取；解释器名称
   按实际命令显示（Linux 上为 `python3`）。
+- 依赖版本（SDL3）：清单默认 ref 由 `release-3.4.18` tag 改为 `main` 分支
+  （该 tag 的源码当前编译报错）；`release-3.4.18` 仍保留在 `refs` 中，需要时可用
+  `--sdl-ref release-3.4.18` 临时切换。
 
 ### 移除
 

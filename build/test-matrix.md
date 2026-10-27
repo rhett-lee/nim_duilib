@@ -30,7 +30,7 @@
 | MSYS2 | `E:\msys64`（MINGW64、UCRT64、CLANG64；MINGW32 缺 gcc/make） |
 | 独立 MinGW | `C:\mingw64\llvm-mingw-20250430-ucrt-x86_64` |
 | Skia | `6f559bafbed4c8323a899df4008aa073df4eccc6` |
-| SDL3 | `release-3.4.18` |
+| SDL3 | `main`（`release-3.4.18` tag 源码编译报错，已不再作为默认） |
 | CEF | 默认 142；109 可选（Windows 7） |
 
 MinGW 环境变量模板（每次新终端都要设置）：
@@ -164,7 +164,7 @@ FreeBSD 复用 Linux/X11 分支；不支持 CEF，`--with-cef` 直接报错。
 | 编号 | 命令 | 覆盖内容 | 状态 | 备注 |
 | :--- | :--- | :--- | :--- | :--- |
 | G-01 | `build.py doctor` | 工具链、版本清单、依赖目录、预检 | 通过 | Windows 本轮；Linux/FreeBSD/macOS 历史 |
-| G-02 | `build.py deps --offline` | 离线采纳已有 Skia/CEF/SDL3；本地源码不在清单 ref 上时先切到本地已有的提交 | 通过 | 不访问网络，stamp 校验；Windows 本轮实测 SDL 由 `main` 切到 `release-3.4.18` |
+| G-02 | `build.py deps --offline` | 离线采纳已有 Skia/CEF/SDL3；本地源码不在清单 ref 上时先切到本地已有的提交 | 通过 | 不访问网络，stamp 校验；Windows 实测 SDL `main` ↔ `release-3.4.18` 双向切换均可用 |
 | G-03 | `build.py clean` | 删除整个 `out/`；`--build-dir` 可只清理指定构建目录 | 通过 | dry-run 仅打印路径 |
 | G-04 | `build.py clean --deps --dry-run` | 展示依赖清理范围 | 通过 | 不会删除源码克隆 |
 | G-05 | `build.py build/pack/test --dry-run` | 只打印命令 | 通过 | build/clean 不再误报完成 |
@@ -219,7 +219,8 @@ FreeBSD 复用 Linux/X11 分支；不支持 CEF，`--with-cef` 直接报错。
 
 | 问题 | 处理 | 验证 |
 | :--- | :--- | :--- |
-| `<deps-root>/SDL` 停在 `main`，清单为 `release-3.4.18`，脚本仍编译本地源码并复用旧 stamp | `deps` 先按清单切换 tag/commit（本地已有提交不联网，`--offline` 可用）；`.duilib-sdl` 记录源码提交，切换后旧产物重建 | `build.py deps --sdl --offline`：HEAD `3b2bc95` → `829a65d`，SDL3 重建，stamp 含 `829a65d...`；二次运行 `[OK] SDL3 is ready` |
+| `<deps-root>/SDL` 停在 `main`，清单为 `release-3.4.18`，脚本仍编译本地源码并复用旧 stamp | `deps` 先按清单切换 tag/commit（本地已有提交不联网，`--offline` 可用）；`.duilib-sdl` 记录源码提交，切换后旧产物重建 | 当时清单为 `release-3.4.18`：`build.py deps --sdl --offline` 使 HEAD `3b2bc95` → `829a65d`，SDL3 重建，stamp 含 `829a65d...`；二次运行 `[OK] SDL3 is ready` |
+| 清单默认 ref 为 `release-3.4.18` tag，但其源码编译报错 | 默认 ref 改为 `main` 分支；`release-3.4.18` 保留在 `refs` 中，需要时用 `--sdl-ref` 选择 | `build.py deps --sdl --offline`：HEAD `829a65d`（tag）→ `3b2bc95`（main），SDL3 重建，stamp 为 `main|3b2bc95...`；二次运行 `[OK] SDL3 is ready`，未再重建 |
 | `skia_compile` 同名补丁归档被替换成旧版本后仍直接复用，Skia 产物不更新 | 先 `git status` 核对归档与当前提交，必要时 `git checkout -- <zip>` 恢复，再 `git pull`；补丁指纹变化时重新解压并重建 Skia | 篡改本地 zip 后 `doctor` 输出 `[WARN] skia patch differs from skia_compile HEAD`；`deps --offline` 恢复归档（`hash-object` 与 `HEAD:zip` 一致），Skia 未无谓重建 |
 | `--skia-ref` 选中的 tag/branch 不检查本地工作区 | 与 commit ref 一样按清单对齐；branch 只要求当前在该分支，不追远端 | 临时仓库隔离验证：tag、branch 均可切换；离线缺 ref 时明确报错 |
 
@@ -242,9 +243,10 @@ FreeBSD 复用 Linux/X11 分支；不支持 CEF，`--with-cef` 直接报错。
 10. `_duilib_cef_tracked_dir` 已按平台返回跟踪目录（修复前 Linux/macOS 错对
     `libcef_win` 的跟踪头）；需在 Linux/macOS 真机验证一次 `build.py deps` 的 CEF
     下载与迁移采纳路径。
-11. SDL3 源码 ref 对齐与源码提交 stamp 仅在 Windows 验证（`main` → `release-3.4.18`
-    切换并重建）；需在 Linux/macOS/FreeBSD 真机验证：本地 `SDL/` 不在清单 tag 时
-    能离线切换，切换后 `.duilib-sdl` 记录新提交并触发一次重建，二次运行直接复用。
+11. SDL3 源码 ref 对齐与源码提交 stamp 仅在 Windows 验证（`main` ↔
+    `release-3.4.18` 双向切换并重建，清单默认已改为 `main`）；需在
+    Linux/macOS/FreeBSD 真机验证：本地 `SDL/` 不在清单分支时能离线切换，
+    切换后 `.duilib-sdl` 记录新提交并触发一次重建，二次运行直接复用。
 12. `skia_compile` 补丁归档刷新（旧归档恢复 + `git pull` + 补丁指纹触发重建）仅在
     Windows 验证；需在 Unix 真机验证 `git status` 少文件路径在子目录下的行为一致，
     以及本地归档缺失时 `deps` 仍能从仓库恢复而不联网。

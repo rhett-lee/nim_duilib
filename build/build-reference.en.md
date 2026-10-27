@@ -84,7 +84,7 @@ python3 build/build.py --config Release
 | `--cmake-arg <arg>` / `--build-arg <arg>` | forwarded to configure/build (repeatable); use `--cmake-arg=-DFOO=1` when the value starts with `-` |
 | `--vs-version N` | pin the Visual Studio major version (for example `17`); Windows only |
 | `--cef-version 109\|latest` | CEF version: `109` is the legacy build, `latest` follows the manifest default (currently 142 and tracking manifest upgrades) |
-| `--skia-ref` / `--sdl-ref` | select a ref from the version manifest, e.g. `chrome/m142` or `release-3.4.18` |
+| `--skia-ref` / `--sdl-ref` | select a ref from the version manifest, e.g. `chrome/m142`, `main` or `release-3.4.18` |
 | `--sdl` / `--no-sdl` | Windows only; off by default on Windows, forced on elsewhere |
 | `--md` | use the MSVC dynamic runtime (/MD, /MDd); Windows only |
 | `--no-absolute-rpath` | Unix only; write only origin-relative rpath entries |
@@ -174,13 +174,16 @@ Versions are pinned in [third_party_versions.json](../cmake/third_party_versions
   not at the manifest commit (or the tag/branch selected by `--skia-ref`), `deps`
   switches it to the manifest revision; a branch ref only requires the checkout to be
   on that branch and does not chase remote tip on every run.
-- **SDL3**: fixed tag (`sdl.default`). Disabled on Windows by default; when enabled,
+- **SDL3**: the default ref is the `main` branch (`sdl.default`; the
+  `release-3.4.18` tag remains in `refs` but does not compile, so do not select it
+  unless you need it via `--sdl-ref`). Disabled on Windows by default; when enabled,
   `deps` builds Debug and Release static libraries. Unix builds shared libraries and
   writes rpath entries (relative entries first; the absolute fallback is controlled
-  by `DUILIB_RPATH_ABSOLUTE`). If the local `SDL/` checkout is on another branch (for
-  example `main`), `deps` switches to the manifest tag before building; the SDL3 install
-  stamp records the source commit, so artifacts built from the wrong revision are
-  rebuilt automatically (once when upgrading to this version).
+  by `DUILIB_RPATH_ABSOLUTE`). If the local `SDL/` checkout is on another
+  branch/tag, `deps` switches to the manifest ref before building (a branch ref
+  only requires being on that branch, without chasing the remote tip); the SDL3
+  install stamp records the source commit, so artifacts built from the wrong
+  revision are rebuilt automatically (once when upgrading to this version).
 - **CEF**: fixed version branch (`cef.default`; `109` is available for Windows 7).
   The `_minimal` distributions are used everywhere (about half the size of the standard
   package; they contain `include/`, `Release/` and `Resources/`). Only

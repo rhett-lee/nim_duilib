@@ -22,7 +22,7 @@
     }
   },
   "sdl": {
-    "default": "release-3.4.18",
+    "default": "main",
     "repo": "https://github.com/libsdl-org/SDL.git",
     "refs": {
       "release-3.4.18": {
