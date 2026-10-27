@@ -54,6 +54,10 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   using the `_minimal` distributions on every platform (about half the size of the
   standard package, still containing `include/`, `Release/` and `Resources/`);
   compilation uses the tracked headers and import libraries.
+- Downloaded CEF archives are verified against the official `<download-url>.sha1`
+  published by CEF. The hash file is cached next to the archive and reused offline;
+  when it cannot be fetched, `deps` falls back to the manifest's `sha256` and only
+  warns when neither is available.
 - `doctor` reports dependency state in more detail: Skia source and patch archive,
   SDL source and prefix, and the CEF runtime are listed separately, noting that
   `deps` fetches them while `--offline` cannot; the interpreter is shown under its

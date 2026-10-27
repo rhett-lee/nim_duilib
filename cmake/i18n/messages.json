@@ -252,6 +252,10 @@
       "en": "[deps] downloading CEF runtime",
       "zh_CN": "[deps] 正在下载 CEF 运行时"
     },
+    "deps.cef_sha1_fetching": {
+      "en": "[deps] fetching the official SHA1 for the CEF archive",
+      "zh_CN": "[deps] 正在获取 CEF 下载包的官方 SHA1"
+    },
     "deps.cef_download_failed": {
       "en": "[ERROR] failed to download CEF",
       "zh_CN": "[ERROR] 下载 CEF 失败"
@@ -261,16 +265,16 @@
       "zh_CN": "使用 '--offline' 配合已缓存的包，或传入 -DDUILIB_CEF_ARCHIVE=<本地文件>"
     },
     "deps.cef_hash_mismatch": {
-      "en": "[ERROR] CEF archive sha256 mismatch",
-      "zh_CN": "[ERROR] CEF 下载包 sha256 不匹配"
+      "en": "[ERROR] CEF archive checksum mismatch",
+      "zh_CN": "[ERROR] CEF 下载包校验值不匹配"
     },
     "deps.cef_hash_mismatch_hint": {
-      "en": "delete the cached archive and retry; if it persists, fix the sha256 in third_party_versions.json",
-      "zh_CN": "删除缓存的下载包后重试；若仍失败，修正 third_party_versions.json 中的 sha256"
+      "en": "delete the cached archive and retry; if it persists, compare it with the .sha1 published by CEF, or fix the sha256 in third_party_versions.json",
+      "zh_CN": "删除缓存的下载包后重试；若仍失败，请与 CEF 官方发布的 .sha1 比对，或修正 third_party_versions.json 中的 sha256"
     },
     "deps.cef_no_sha": {
-      "en": "[WARN] sha256 is empty for this CEF archive; integrity check skipped",
-      "zh_CN": "[WARN] 该 CEF 下载包未配置 sha256；已跳过完整性校验"
+      "en": "[WARN] no SHA1 (and no sha256 in the manifest) is available for this CEF archive; integrity check skipped",
+      "zh_CN": "[WARN] 未能获取该 CEF 下载包的 SHA1（版本清单也未配置 sha256）；已跳过完整性校验"
     },
     "deps.cef_version_mismatch": {
       "en": "[ERROR] CEF runtime/header version mismatch",

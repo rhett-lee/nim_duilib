@@ -5,7 +5,7 @@
 #   - 统一重试参数：DUILIB_DOWNLOAD_RETRIES / DUILIB_DOWNLOAD_RETRY_DELAY，
 #     来源于 cmake/third_party_versions.json 的 retry 段（0 = 无限重试）；
 #   - 重试间隔固定为 DUILIB_DOWNLOAD_RETRY_DELAY（默认 20 秒）；
-#   - 完整性校验由调用方负责（sha256 不匹配时删除缓存并重新下载，最多 3 次）。
+#   - 完整性校验由调用方负责（SHA1 / sha256 不匹配时删除缓存并重新下载，最多 3 次）。
 
 include_guard(GLOBAL)
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_i18n.cmake")
@@ -107,6 +107,60 @@ function(duilib_download_file url dest)
     endwhile()
 endfunction()
 
+# duilib_download_file_optional(<url> <dest> <out_ok>)
+# 与 duilib_download_file 相同，但失败时返回 FALSE 而不是 FATAL_ERROR。
+# 用于可选的辅助文件（如 CEF 官方发布的 <url>.sha1）：远端没有该文件或网络
+# 短暂不可用时，调用方可以回退到其他校验方式或告警，不能因此阻断构建。
+# 只重试有限次数，避免远端确实没有该文件（HTTP 404）时长时间等待。
+function(duilib_download_file_optional url dest out_ok)
+    get_filename_component(_dest_dir "${dest}" DIRECTORY)
+    file(MAKE_DIRECTORY "${_dest_dir}")
+
+    _duilib_retry_settings(_max_attempts _delay)
+    set(_max_tries 2)
+    if(_max_attempts GREATER 0 AND _max_attempts LESS _max_tries)
+        set(_max_tries "${_max_attempts}")
+    endif()
+    set(_connect_timeout "${DUILIB_DOWNLOAD_CONNECT_TIMEOUT}")
+    if("${_connect_timeout}" STREQUAL "")
+        set(_connect_timeout 30)
+    endif()
+
+    _duilib_find_curl(_duilib_curl)
+    set(_attempt 1)
+    while(TRUE)
+        if(_duilib_curl)
+            execute_process(
+                COMMAND "${_duilib_curl}" -fL --continue-at - --connect-timeout "${_connect_timeout}"
+                        --speed-limit 100 --speed-time 120
+                        -o "${dest}" "${url}"
+                RESULT_VARIABLE _rc)
+        else()
+            file(DOWNLOAD "${url}" "${dest}"
+                 STATUS _status
+                 TIMEOUT "${_connect_timeout}"
+                 TLS_VERIFY ON)
+            list(GET _status 0 _rc)
+        endif()
+        if(_rc EQUAL 0 AND EXISTS "${dest}")
+            file(SIZE "${dest}" _size)
+            if(_size GREATER 0)
+                set(${out_ok} TRUE PARENT_SCOPE)
+                return()
+            endif()
+        endif()
+        # 删除本次残留（可能是空文件或续传用的半截文件），下次重新开始
+        file(REMOVE "${dest}")
+        if(_attempt GREATER_EQUAL _max_tries)
+            set(${out_ok} FALSE PARENT_SCOPE)
+            return()
+        endif()
+        message(STATUS "[deps] optional download attempt ${_attempt} failed: ${url}")
+        _duilib_sleep("${_delay}")
+        math(EXPR _attempt "${_attempt} + 1")
+    endwhile()
+endfunction()
+
 # 校验 sha256；expected 为空时仅告警并返回成功。
 function(duilib_verify_sha256 path expected out_ok)
     if("${expected}" STREQUAL "")
@@ -119,6 +173,27 @@ function(duilib_verify_sha256 path expected out_ok)
         return()
     endif()
     file(SHA256 "${path}" _actual)
+    string(TOLOWER "${_actual}" _actual_lower)
+    string(TOLOWER "${expected}" _expected_lower)
+    if(_actual_lower STREQUAL _expected_lower)
+        set(${out_ok} TRUE PARENT_SCOPE)
+    else()
+        set(${out_ok} FALSE PARENT_SCOPE)
+    endif()
+endfunction()
+
+# 校验 SHA1（CEF 官方为每个归档发布 <url>.sha1）；expected 为空时仅告警并返回成功。
+function(duilib_verify_sha1 path expected out_ok)
+    if("${expected}" STREQUAL "")
+        duilib_warn("deps.cef_no_sha")
+        set(${out_ok} TRUE PARENT_SCOPE)
+        return()
+    endif()
+    if(NOT EXISTS "${path}")
+        set(${out_ok} FALSE PARENT_SCOPE)
+        return()
+    endif()
+    file(SHA1 "${path}" _actual)
     string(TOLOWER "${_actual}" _actual_lower)
     string(TOLOWER "${expected}" _expected_lower)
     if(_actual_lower STREQUAL _expected_lower)

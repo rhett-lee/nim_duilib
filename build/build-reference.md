@@ -162,6 +162,10 @@ Skia 的补丁归档由 `build.py deps`（以及默认的 `build`）自动获取
   `Release/` 下提供 `Chromium Embedded Framework.framework`，CMake 会自动回退）。
   MinGW 不支持 CEF。
 
+下载的 CEF 归档会按官方发布的 `<下载地址>.sha1` 校验完整性。哈希文件与归档一起
+缓存，离线时可复用；拿不到时 `deps` 回退版本清单中的 `sha256`，两者都没有时
+只告警并跳过校验。
+
 已有依赖产物但没有 stamp 文件时，`deps` 会校验版本后直接采纳（Skia 校验源码
 HEAD，CEF 校验跟踪头文件主版本），避免重复编译或重复下载。
 

@@ -181,6 +181,11 @@ Versions are pinned in [third_party_versions.json](../cmake/third_party_versions
   `Release/Chromium Embedded Framework.framework`; CMake falls back automatically).
   MinGW does not support CEF.
 
+Downloaded CEF archives are verified against the official `<download-url>.sha1`
+published by CEF. The hash file is cached next to the archive and reused offline. If
+it cannot be fetched, `deps` falls back to the manifest's `sha256`; when both are
+unavailable it only warns and skips the check.
+
 When dependency artifacts exist without a stamp file, `deps` validates and adopts them
 (Skia: source HEAD; CEF: tracked header major version) instead of rebuilding or
 re-downloading.

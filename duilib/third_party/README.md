@@ -59,4 +59,4 @@
 2. 项目中其他需要修改的内容
  - `README.md` CEF版本号需要修改    
  - `docs\CEF.md`    
- - `cmake\third_party_versions.json`（CEF 版本、下载包与 sha256）    
+ - `cmake\third_party_versions.json`（CEF 版本、下载包与 sha256；下载后还会按官方 `.sha1` 校验）    
