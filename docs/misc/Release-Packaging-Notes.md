@@ -57,13 +57,13 @@ write_release_docs.py
 | `third_party` 转发 | 仅 Microsoft.Web.WebView2（且仅 Windows） | 对外头文件只有这一处依赖；图片解码实现头文件与 `Core/ZipStreamIO.h` 均只在库内部使用，libpng / giflib / zlib 头文件随之不再需要 |
 | 库目录 | 只认一套布局（Windows `lib/<arch>/<Config>`、Unix `lib/<Config>`） | CM-5 D-2 方案 B；配置由目录表达，删除 `_d` 判定与多目录合并 |
 | Windows 工具链 | 按库目录内容判定：`duilib.lib` → MSVC，`libduilib*.a` → MinGW；MinGW 收集 `.a` / `.dll.a`，Skia 探测 `mingw64-gcc.*` / `mingw64-llvm.*` | `build/gcc-mingw-w64_build.bat` 与 `llvm-mingw-w64_build.bat` 分别产出上述库名与 Skia 目录；两类产物不可混用 |
-| DLL 模式运行库 | Windows 下若存在 `bin/duilib.dll` / `duilib_d.dll` / `duilib32.dll` / `duilib32_d.dll` 则随包，`lib/` 中为导入库 | `EnableDuilibDll`（`duilib_dll.flag`）开启时 `DuilibSettings.props` 输出 DLL 到 `bin/`，导入库仍写 `lib/<arch>/<Config>/duilib.lib`；缺 DLL 下游运行失败 |
+| DLL 模式运行库 | Windows 下若存在 `bin/duilib.dll` / `duilib_d.dll` / `duilib32.dll` / `duilib32_d.dll` 则随包，`lib/` 中为导入库；JPEG 随包时还收集 `bin/turbojpeg.dll` | `build.py --dll` 或 `EnableDuilibDll`（`duilib_dll.flag`）开启时输出 DLL 到 `bin/`，导入库仍写 `lib/<arch>/<Config>/duilib.lib`；DLL 内部已链接 `turbojpeg.lib`，不再随包静态库；缺 DLL 下游运行失败 |
 | Debug 包 | `--config Debug` 时包名加 `-debug`、MANIFEST 标注 | Debug 库带调试 CRT（静态 `/MTd`，DLL 模式 `/MDd`），只能给 Debug 下游；两套不可混用 |
 | VS 接入层 | Windows + MSVC 包内生成 `msvc/nim_duilib.props`、`.targets`、`nim_duilib.sdk.props` 与 `msvc/manifest/`（x64、x86 两份） | 下游导入一次 `.targets` 即可完成 include/宏/链接/manifest/DLL 复制；x64 机器上也能开发 x86 程序，故两种 manifest 都随包；元数据来自实际收集结果 |
 | CMake 接入层 | 所有平台生成 `lib/cmake/nim_duilib/*.cmake`，提供 `nim_duilib::duilib` 与 `nim_duilib_copy_runtime()` | `find_package(nim_duilib CONFIG REQUIRED)`；架构/配置/工具链/运行库不匹配默认 FATAL |
 | MSVC 运行库元数据 | `--msvc-runtime auto` 时按模式推断：DLL 模式 `MD`，否则 `MT`；写入包元数据供下游对齐 | 混用 `/MT` 与 `/MD` 会触发 LNK2038，因此默认强制对齐，可用开关退出 |
 | Skia 库 | 整目录随包，并写入链接列表 | `duilib` 静态库含 Skia 符号，缺 Skia 无法链接 |
-| WebView2 / JPEG | Windows 默认随包 loader 库、`bin/WebView2Loader.dll` 与 `turbojpeg-static` | VS 默认启用 WebView2 与 libjpeg-turbo，`duilib.lib` 有对应符号；CMake 使用动态 loader，运行期需要该 DLL |
+| WebView2 / JPEG | Windows 默认随包 loader 库、`bin/WebView2Loader.dll` 与 `turbojpeg-static`；DLL 模式改为 `bin/turbojpeg.dll` | VS 默认启用 WebView2 与 libjpeg-turbo，`duilib.lib` 有对应符号；CMake 使用动态 loader，运行期需要该 DLL；DLL 模式的 duilib.dll 已链接动态 turbojpeg |
 | SDL3 | Unix 始终随包；Windows 仅 `--with-sdl`；按产物收集静态库或导入库，动态时连同 `bin/SDL3.dll` | Windows 默认关闭 SDL；Unix 默认启用且为动态库；MinGW 的 CMake 构建链接动态 SDL3（`libSDL3.dll.a`） |
 | CEF 开发包 | 默认不打，需 `--with-cef`（可选 `--cef-version 109`） | wrapper 单个 80–100 MB；运行库仍需外置 |
 | `bin/resources.zip` | 一律排除 | 仅 748 字节的空壳文件 |
@@ -229,7 +229,9 @@ Image/ImageDecoder_WEBP.h
 - 新增 `SDL_HEADER_FILES = ('Core/DragWindowFilter_SDL.h',)`：`Core/ControlDragable.h`
   在 `DUILIB_BUILD_FOR_SDL` 下包含它。非 Windows 平台该宏恒为开，必须保留；
   Windows 仅在 `--with-sdl` 时保留。
-- `collect_jpeg_turbo` 不再转发 `turbojpeg.h` 等头文件；`turbojpeg-static.lib` 仍随包（Windows 链接需要）。
+- `collect_jpeg_turbo` 不再转发 `turbojpeg.h` 等头文件；静态包仍随
+  `turbojpeg-static.lib`，DLL 包改为随 `bin/turbojpeg.dll`（duilib.dll 已链接
+  `turbojpeg.lib` 导入库）。
 - 最终只转发 `Microsoft.Web.WebView2`（仅 Windows）。
 
 **验证（2026-10-23，Windows x64 Debug `--list`，EXIT=0）：**

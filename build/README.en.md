@@ -53,6 +53,26 @@ python3 build/build.py deps
 - Solutions keep using `build/build_temp` and `build/.vs`; the new entry uses
   `out/<arch>/<Config>` and the two do not interfere.
 
+## DLL mode (Windows MSVC)
+
+```bash
+# Build duilib as bin/duilib*.dll; prepares Skia .md/.mdd and SDL (/MD, /MDd)
+python3 build/build.py build --dll --config Release
+
+# Debug DLL (bin/duilib_d.dll, Skia uses .mdd)
+python3 build/build.py build --dll --config Debug
+
+# Library only, no examples
+python3 build/build.py build --dll --target duilib
+```
+
+`--dll` implies `--md` and synchronizes `msvc/PropertySheets/duilib_dll.flag`;
+running without `--dll` removes the flag and returns to static mode. On a mode
+switch the build tree is cleaned automatically, so the CEF wrapper and all
+targets rebuild with the new CRT; no manual `build_temp/` cleanup is needed.
+DLL packages collect `bin/duilib*.dll`; JPEG support adds `bin/turbojpeg.dll`
+only when the DLL really imports it, and the package name gets `-dll`.
+
 ## Outputs and cleanup
 
 | Path | Content | Safe to delete |
@@ -156,9 +176,13 @@ Common pitfalls:
   `duilib` / `duilib-cximage` / `duilib-png` / `duilib-webp` / `duilib-zlib` is missing.
 - MinGW libraries are `libduilib*.a` (static) or `libduilib*.dll.a` (import). The packer
   detects the toolchain from library contents; manifest link lines use `-lxxx`.
-- In DLL mode (`msvc/PropertySheets/duilib_dll.flag`) `bin/duilib*.dll` ships with
-  matching import libraries and the package name gets `-dll`. DLL mode requires `/MD`,
-  so Skia must use the same CRT.
+- In DLL mode (`bin/` contains `duilib*.dll`, from `build.py --dll` or
+  `duilib_dll.flag`) `bin/duilib*.dll` ships with the import library and the
+  package name gets `-dll`. DLL mode requires `/MD`, so Skia must use the same
+  CRT. If the duilib DLL was built with SDL, packaging must pass `--with-sdl`
+  (`pack.py` probes the DLL export table and fails otherwise); `turbojpeg.dll`
+  is shipped only when that DLL actually imports it (MSBuild builds do, the
+  CMake build currently does not enable libjpeg-turbo).
 - `--with-sdl` collects actual SDL3 artifacts; Windows does not package SDL3 by default.
 - CEF requires `--with-cef`: on Windows runtime files follow
   `bin/libcef_win[/_109]/<arch>/`; on Linux they are flat under `bin/libcef_linux/`.

@@ -101,6 +101,12 @@ endif()
 #设置库文件的输出目录（D-2：按平台/配置分目录，规则见 cmake/duilib_lib_output.cmake）
 include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_lib_output.cmake")
 
+# DLL 模式：共享库需要自己链接 Skia/SDL/CEF 与第三方静态库，
+# 依赖路径/库名由 duilib_common.cmake 统一解析（与示例工程一致）。
+if(DUILIB_DLL)
+    include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_common.cmake")
+endif()
+
 #添加源代码文件
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR} DIR_LIB_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Animation ANIMATION_SRC)
@@ -276,6 +282,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
     include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_unix_font_libs.cmake")
     add_library(${PROJECT_NAME} ${LIBRARY_SOURCES})
     target_link_libraries(${PROJECT_NAME} ${DUILIB_FONT_LIBS})
+elseif(DUILIB_DLL)
+    # Create the shared library (Windows DLL mode)
+    add_library(${PROJECT_NAME} SHARED ${LIBRARY_SOURCES})
 else()
     # Create the library with the filtered sources
     add_library(${PROJECT_NAME} ${LIBRARY_SOURCES})
@@ -299,6 +308,68 @@ endif()
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")  # Windows, WebView2
     target_compile_definitions(${PROJECT_NAME} PRIVATE DUILIB_WEBVIEW2=1)
     target_compile_definitions(${PROJECT_NAME} PRIVATE DUILIB_USE_WEBVIEW2_LOADER_DLL=1)
+endif()
+
+# ---------------------------------------------------------------------------
+# Windows DLL 模式（DUILIB_DLL=ON）
+#
+# 共享库需要自己链接所有第三方静态库；下游只链接 duilib 导入库即可。
+# 输出命名与 MSBuild 的 DLL 模式保持一致（见 msvc/PropertySheets/
+# DuilibSettings.props），这样 pack.py 无需区分构建系统：
+#   x64/arm64: bin/duilib.dll / bin/duilib_d.dll，lib/.../duilib.lib
+#   x86      : bin/duilib32.dll / bin/duilib32_d.dll，lib/.../duilib.lib
+# 导入库在不同配置下都叫 duilib.lib（目录已按配置区分）。
+# ---------------------------------------------------------------------------
+if(DUILIB_DLL)
+    set(_duilib_dll_base "duilib")
+    if(DUILIB_SYSTEM_PROCESSOR STREQUAL "x86")
+        set(_duilib_dll_base "duilib32")
+    endif()
+
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        RUNTIME_OUTPUT_NAME "$<IF:$<CONFIG:Debug>,${_duilib_dll_base}_d,${_duilib_dll_base}>"
+        # 导入库名与 MSBuild 一致：x86 的 DLL 叫 duilib32*.dll，但导入库仍为
+        # duilib.lib（下游 props/CMake 只认这个名字）。
+        ARCHIVE_OUTPUT_NAME "duilib"
+        RUNTIME_OUTPUT_DIRECTORY "${DUILIB_BIN_PATH}"
+        RUNTIME_OUTPUT_DIRECTORY_DEBUG "${DUILIB_BIN_PATH}"
+        RUNTIME_OUTPUT_DIRECTORY_RELEASE "${DUILIB_BIN_PATH}"
+        RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${DUILIB_BIN_PATH}"
+        RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${DUILIB_BIN_PATH}"
+    )
+
+    # 编译 DLL 时导出符号；使用方看到的是 dllimport
+    target_compile_definitions(${PROJECT_NAME} PRIVATE DUILIB_DLL DUILIB_EXPORTS)
+    target_compile_definitions(${PROJECT_NAME} INTERFACE DUILIB_DLL)
+
+    # 第三方静态库（zlib/png/cximage/webp）
+    foreach(_duilib_lib IN LISTS DUILIB_LIBS)
+        if(NOT _duilib_lib STREQUAL "duilib")
+            target_link_libraries(${PROJECT_NAME} PRIVATE ${_duilib_lib})
+        endif()
+    endforeach()
+
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${DUILIB_SKIA_LIBS})
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${DUILIB_SDL_LIBS})
+    if(DUILIB_ENABLE_SDL)
+        # SDL3 静态库在 Windows 上直接引用这些系统库（与示例链接列表保持一致）
+        target_link_libraries(${PROJECT_NAME} PRIVATE
+            Version Winmm Setupapi Hid Mincore Dinput8)
+    endif()
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(${PROJECT_NAME} PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(${PROJECT_NAME} PRIVATE ${DUILIB_CEF_LIBS})
+        if(NOT DUILIB_MINGW)
+            # duilib.dll 内包含 CEF 代码；延迟加载 libcef.dll，使不启用 CEF
+            # 的示例无需在 bin/libcef_win/<arch> 存在时也能启动。
+            target_link_options(${PROJECT_NAME} PRIVATE
+                "/DELAYLOAD:libcef.dll"
+                "/DEFAULTLIB:delayimp.lib")
+        endif()
+    endif()
+
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet)
 endif()
 
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")

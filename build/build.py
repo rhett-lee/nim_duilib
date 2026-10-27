@@ -272,6 +272,113 @@ def clear_stale_build_outputs(bin_dir: Path, config: str, target: str | None,
     return [entry[0] for entry in stale]
 
 
+BUILD_MODE_STAMP_NAME = ".duilib-build-mode"
+MSVC_DLL_FLAG = REPO_ROOT / "msvc" / "PropertySheets" / "duilib_dll.flag"
+
+
+def requested_build_mode(args) -> str:
+    """本次构建的 CRT/DLL 模式；非 Windows MSVC 环境不参与切换检测。"""
+    if sys.platform != "win32" or os.environ.get("MSYSTEM"):
+        return "default"
+    if getattr(args, "dll", False):
+        return "dll"
+    return "md" if getattr(args, "md", False) else "mt"
+
+
+def _cached_build_mode(build_dir: Path) -> str | None:
+    """从旧构建目录的 CMakeCache 推断上次模式（兼容升级前的构建目录）。"""
+    cache = build_dir / "CMakeCache.txt"
+    if not cache.is_file():
+        return None
+    try:
+        text = cache.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+
+    def cached_bool(name: str) -> bool:
+        match = re.search(rf"^{name}:BOOL=(ON|OFF)$", text, re.MULTILINE)
+        return bool(match and match.group(1) == "ON")
+
+    if cached_bool("DUILIB_DLL"):
+        return "dll"
+    return "md" if cached_bool("DUILIB_MD") else "mt"
+
+
+def reset_stale_build_mode(build_dir: Path, args, messages, dry_run: bool) -> str | None:
+    """运行库/DLL 模式切换后清理构建树。
+
+    MSVC 的 /MT 与 /MD 目标文件、CEF wrapper 的静态库互不兼容；旧构建目录
+    继续复用时，只能靠命令行变化触发重编（Visual Studio 生成器不一定跟踪），
+    容易出现旧的 /MT wrapper 被链进新的 DLL。这里在构建目录记录模式，
+    切换时直接清理，保证 wrapper 与全部目标按新模式重新编译。
+    返回被清理的旧模式（未切换时返回 None）。
+    """
+    mode = requested_build_mode(args)
+    if mode == "default" or not build_dir.is_dir():
+        return None
+    stamp = build_dir / BUILD_MODE_STAMP_NAME
+    previous = _stamp_config(stamp) or _cached_build_mode(build_dir)
+    if previous is None or previous == mode:
+        return None
+    print(messages.t("build.mode_changed").format(
+        dir=build_dir, previous=previous, mode=mode), flush=True)
+    if not dry_run:
+        shutil.rmtree(build_dir)
+        if previous == "dll" and mode != "dll":
+            # 切回静态库后，bin/ 里的旧 duilib DLL 会让 pack.py 误判为 DLL 包。
+            for path in (REPO_ROOT / "bin").glob("duilib*.dll"):
+                try:
+                    path.unlink()
+                except OSError:
+                    pass
+    return previous
+
+
+def write_build_mode_stamp(build_dir: Path, args, dry_run: bool) -> None:
+    mode = requested_build_mode(args)
+    if mode == "default":
+        return
+    if dry_run:
+        return
+    try:
+        build_dir.mkdir(parents=True, exist_ok=True)
+        (build_dir / BUILD_MODE_STAMP_NAME).write_text(mode, encoding="utf-8")
+    except OSError:
+        # 标记只用于下次切换检测，写失败不应让构建失败。
+        pass
+
+
+def sync_msvc_dll_flag(enabled: bool, messages, dry_run: bool) -> None:
+    """让 MSBuild 的属性表与本入口的 DLL 模式保持一致。
+
+    CMake 构建（build.py）与 VS 工程共用 bin/、lib/；如果 flag 不跟随，切换
+    入口后另一套构建会沿用旧模式。flag 本身被 gitignore。
+    """
+    if sys.platform != "win32" or os.environ.get("MSYSTEM"):
+        return
+    exists = MSVC_DLL_FLAG.is_file()
+    if exists == enabled:
+        return
+    state = "ON" if enabled else "OFF"
+    print(messages.t("build.dll_flag").format(state=state), flush=True)
+    if dry_run:
+        return
+    try:
+        if enabled:
+            MSVC_DLL_FLAG.parent.mkdir(parents=True, exist_ok=True)
+            MSVC_DLL_FLAG.write_text(
+                "DLL mode marker for nim_duilib.\n"
+                "Managed by build/build.py --dll; delete this file to switch "
+                "the MSBuild projects back to static mode.\n",
+                encoding="utf-8")
+        else:
+            MSVC_DLL_FLAG.unlink()
+    except OSError as exc:
+        raise BuildError(
+            messages.t("build.clean_failed").format(path=MSVC_DLL_FLAG, error=exc),
+            messages.hint("build.clean_failed_hint"))
+
+
 def load_manifest(path: Path) -> dict:
     with path.open("r", encoding="utf-8") as handle:
         data = json.load(handle)
@@ -371,6 +478,12 @@ def _add_common_options(parser: argparse.ArgumentParser, suppress_defaults: bool
                         help=_platform_help(
                             "使用 MSVC 动态运行库 (/MD, /MDd)；默认 MT",
                             "仅 Windows（MSVC）有效；其他平台使用工具链默认运行库"))
+    parser.add_argument("--dll", action="store_true", default=default(False),
+                        help=_platform_help(
+                            "构建 duilib DLL 模式（隐式开启 --md，自动准备并编译 "
+                            "Skia .md/.mdd 与 SDL，输出 bin/duilib*.dll）；"
+                            "同时同步 msvc/PropertySheets/duilib_dll.flag",
+                            "仅 Windows MSVC 有效；其他平台不支持"))
     parser.add_argument("--no-absolute-rpath", dest="rpath_absolute",
                         action="store_false", default=default(True),
                         help=_platform_help(
@@ -446,9 +559,15 @@ def parse_args(argv=None) -> argparse.Namespace:
         args.no_examples = False
     # 子命令未提供的属性补默认，便于统一处理
     for name, default in (("force", False), ("with_cef", False), ("with_sdl", False),
-                          ("with_examples", False), ("out_dir", None), ("pack_arg", [])):
+                          ("with_examples", False), ("out_dir", None), ("pack_arg", []),
+                          ("dll", False)):
         if not hasattr(args, name):
             setattr(args, name, default)
+    if args.dll:
+        if sys.platform != "win32" or os.environ.get("MSYSTEM"):
+            parser.error("--dll 仅支持 Windows MSVC；其他平台请使用静态构建")
+        # DLL 必须使用动态运行库，避免 wrapper/第三方库的 /MT 冲突。
+        args.md = True
     return args
 
 
@@ -670,10 +789,13 @@ def _cmake_defines(args, arch: str, deps_mode: str, force: bool) -> list:
     if args.sdl is not None:
         sdl_enabled = args.sdl
     else:
-        # 与根工程默认一致：Windows（含 MinGW）默认关闭，其他平台强制开启
-        sdl_enabled = sys.platform != "win32"
+        # 与根工程默认一致：Windows（含 MinGW）默认关闭，其他平台强制开启。
+        # DLL 模式默认打开 SDL，让依赖链路（Skia .md/.mdd + SDL /MD）
+        # 一次性自动准备完整；显式 --no-sdl 可关闭。
+        sdl_enabled = sys.platform != "win32" or getattr(args, "dll", False)
     defines.append(f"-DDUILIB_ENABLE_SDL={'ON' if sdl_enabled else 'OFF'}")
     defines.append(f"-DDUILIB_MD={'ON' if args.md else 'OFF'}")
+    defines.append(f"-DDUILIB_DLL={'ON' if getattr(args, 'dll', False) else 'OFF'}")
     # Unix rpath 的绝对兜底默认开启；发布构建可用 --no-absolute-rpath。
     rpath_absolute = getattr(args, "rpath_absolute", True)
     defines.append(f"-DDUILIB_RPATH_ABSOLUTE={'ON' if rpath_absolute else 'OFF'}")
@@ -751,6 +873,7 @@ def _prepare(args, messages, runner: Runner, toolchain: Toolchain,
     if runner.run(_build_command(args, toolchain, build_dir, args.config, "duilib_deps"),
                   cwd=REPO_ROOT) != 0:
         raise BuildError(messages.t("build.failed"), messages.hint("build.failed_hint"))
+    write_build_mode_stamp(build_dir, args, runner.dry_run)
 
 
 def _check_cef_archive(args, messages) -> None:
@@ -943,6 +1066,8 @@ def cmd_deps(args, messages) -> int:
     build_dir = resolve_build_dir(REPO_ROOT, arch, args.config, args.build_dir)
     toolchain = detect_toolchain(arch, args.vs_version)
     reset_stale_build_dir(build_dir, toolchain, messages, args.dry_run)
+    reset_stale_build_mode(build_dir, args, messages, args.dry_run)
+    sync_msvc_dll_flag(getattr(args, "dll", False), messages, args.dry_run)
     runner = Runner(toolchain.env, args.dry_run)
     _ensure_skia_patch(args, messages, runner)
     _prepare(args, messages, runner, toolchain, arch, build_dir, "prepare", args.force)
@@ -956,6 +1081,8 @@ def cmd_build(args, messages) -> int:
     build_dir = resolve_build_dir(REPO_ROOT, arch, args.config, args.build_dir)
     toolchain = detect_toolchain(arch, args.vs_version)
     reset_stale_build_dir(build_dir, toolchain, messages, args.dry_run)
+    reset_stale_build_mode(build_dir, args, messages, args.dry_run)
+    sync_msvc_dll_flag(getattr(args, "dll", False), messages, args.dry_run)
     runner = Runner(toolchain.env, args.dry_run)
 
     if not args.no_deps:
@@ -966,6 +1093,7 @@ def cmd_build(args, messages) -> int:
     if runner.run(_configure_command(args, toolchain, arch, args.config, build_dir, "off", False),
                   cwd=REPO_ROOT) != 0:
         raise BuildError(messages.t("build.failed"), messages.hint("build.failed_hint"))
+    write_build_mode_stamp(build_dir, args, args.dry_run)
 
     # Debug/Release 的示例都输出到共享的 bin/，但目标文件按配置分开；先删掉
     # 另一种配置的示例产物，否则 Ninja 会认为链接步骤已最新而跳过（bin/ 不会更新）。

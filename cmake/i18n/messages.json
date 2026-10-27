@@ -340,6 +340,14 @@
       "en": "[build] bin/ holds {stale} example outputs from another configuration; removing {count} target(s) so {config} relinks",
       "zh_CN": "[build] bin/ 中是 {stale} 配置的示例产物；删除 {count} 个目标，强制 {config} 重新链接"
     },
+    "build.mode_changed": {
+      "en": "[build] CRT/DLL mode changed in {dir} ({previous} -> {mode}); cleaning the build tree so the CEF wrapper and every target rebuild in the new mode",
+      "zh_CN": "[build] 检测到 {dir} 的运行库/DLL 模式已切换（{previous} → {mode}），将清理构建树，确保 CEF wrapper 与全部目标按新模式重编"
+    },
+    "build.dll_flag": {
+      "en": "[build] synchronized msvc/PropertySheets/duilib_dll.flag (DLL mode {state})",
+      "zh_CN": "[build] 已同步 msvc/PropertySheets/duilib_dll.flag（DLL 模式 {state}）"
+    },
     "build.configuring": {
       "en": "[build] configuring",
       "zh_CN": "[build] 正在配置"

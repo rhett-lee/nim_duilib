@@ -220,8 +220,11 @@ def infer_capabilities(files: list[str], toolchain: str = "") -> dict:
     else:
         has_webview2 = ("WebView2Loader.dll.lib" in lib_names
                         or "WebView2Loader.dll" in bin_dlls)
-    has_jpeg = is_msvc_like and any(name.lower().startswith("turbojpeg")
-                                    for name in lib_names)
+    # 静态包随 turbojpeg-static.lib；DLL 包只随运行期 bin/turbojpeg.dll，
+    # lib/ 中只有导入库 duilib.lib，因此必须同时看 bin。
+    has_jpeg = is_msvc_like and (
+        any(name.lower().startswith("turbojpeg") for name in lib_names)
+        or "turbojpeg.dll" in bin_dlls)
 
     cef_src = ""
     for prefix in ("bin/libcef_win_109", "bin/libcef_win", "bin/libcef_linux"):
@@ -369,12 +372,18 @@ class PackageInfo:
     manifest: dict
     caps: dict
     version_text: str
+    # 归档顶层包目录名；解包后其内容已落到 root，仅 P01/P04 与重打包使用。
+    # 单测可省略，此时按归档文件名推导。
+    root_name: str = ""
 
     def meta(self, key: str, default: str = "") -> str:
         return self.info.get("NIM_DUILIB_PACKAGE_" + key.upper(), default)
 
     def archive_stem(self) -> str:
         return strip_archive_ext(self.archive.name)
+
+    def root_dir_name(self) -> str:
+        return self.root_name or self.archive_stem()
 
 
 @dataclass
@@ -408,12 +417,48 @@ def collect_files(root: Path) -> list[str]:
 
 
 def extract_package(archive: Path, dest: Path) -> Path:
+    """解包，并把归档顶层包目录的内容直接落到 dest。
+
+    Windows 未启用长路径支持时，“解包目录/包名/包内深路径”很容易超过
+    MAX_PATH（CEF 头文件最长的相对路径约 120 字符，包名本身约 70~80 字符），
+    shutil.unpack_archive 会在创建深目录时直接抛 FileNotFoundError。这里去掉
+    归档的顶层包目录，避免把包名重复叠加进解包路径。包名本身仍由
+    select_archive_root 校验，P01/P04 使用 root_name 对照。
+    """
     dest.mkdir(parents=True, exist_ok=True)
-    shutil.unpack_archive(str(archive), str(dest))
-    roots = [item for item in dest.iterdir() if item.is_dir()]
-    if len(roots) != 1:
-        raise AssertionError("包根目录不唯一：%s" % ", ".join(item.name for item in roots[:5]))
-    return roots[0]
+    root_name = select_archive_root(archive_member_names(archive))
+    prefix = root_name + "/"
+    if archive.name.lower().endswith(".zip"):
+        with zipfile.ZipFile(archive) as zf:
+            for member in zf.infolist():
+                name = member.filename
+                if member.is_dir() or not name.startswith(prefix):
+                    continue
+                rel = name[len(prefix):]
+                if not rel:
+                    continue
+                target = dest / rel
+                target.parent.mkdir(parents=True, exist_ok=True)
+                with zf.open(member) as src, open(target, "wb") as dst:
+                    shutil.copyfileobj(src, dst)
+    else:
+        with tarfile.open(archive, "r:*") as tf:
+            for member in tf.getmembers():
+                name = member.name
+                if not name.startswith(prefix) or \
+                        not (member.isfile() or member.issym()):
+                    continue
+                rel = name[len(prefix):]
+                target = dest / rel
+                target.parent.mkdir(parents=True, exist_ok=True)
+                if member.issym():
+                    if target.exists() or target.is_symlink():
+                        target.unlink()
+                    os.symlink(member.linkname, target)
+                elif member.isfile():
+                    with tf.extractfile(member) as src, open(target, "wb") as dst:
+                        shutil.copyfileobj(src, dst)
+    return dest
 
 
 def archive_member_names(archive: Path) -> list[str]:
@@ -428,7 +473,7 @@ def archive_member_names(archive: Path) -> list[str]:
 def load_package(archive: Path, extract_dir: Path) -> PackageInfo:
     """解包并读取包内元数据。"""
     names = archive_member_names(archive)
-    select_archive_root(names)
+    root_name = select_archive_root(names)
     root = extract_package(archive, extract_dir)
     files = collect_files(root)
 
@@ -443,6 +488,7 @@ def load_package(archive: Path, extract_dir: Path) -> PackageInfo:
     return PackageInfo(
         archive=archive,
         root=root,
+        root_name=root_name,
         files=files,
         name_parts=parse_package_name(archive.name),
         info=info,
@@ -589,7 +635,7 @@ def check_metadata(info: PackageInfo) -> str:
         if info.meta("MSVC_RUNTIME"):
             problems.append("非 Windows/MSVC 包不应声明 MSVC 运行库")
 
-    expect(info.manifest.get("包名", ""), info.root.name, "MANIFEST 包名 vs 包根目录")
+    expect(info.manifest.get("包名", ""), info.root_dir_name(), "MANIFEST 包名 vs 包根目录")
 
     if problems:
         raise AssertionError("；".join(problems[:8]))
@@ -775,13 +821,13 @@ def _make_sample_package(info: PackageInfo, dest: Path, mode: str,
     with _tar_open(dest, mode) as tf:
         for rel in sorted(payload):
             data = payload[rel]
-            entry = tarfile.TarInfo(info.root.name + "/" + rel)
+            entry = tarfile.TarInfo(info.root_dir_name() + "/" + rel)
             entry.size = len(data)
             entry.mtime = 0
             entry.mode = 0o644
             tf.addfile(entry, io.BytesIO(data))
         for rel, target in _sample_symlinks(info):
-            entry = tarfile.TarInfo(info.root.name + "/" + rel)
+            entry = tarfile.TarInfo(info.root_dir_name() + "/" + rel)
             entry.type = tarfile.SYMTYPE
             entry.linkname = target
             entry.mtime = 0
@@ -1021,6 +1067,39 @@ def find_consumer_executable(build_dir: Path) -> Path | None:
     return None
 
 
+def deploy_msvc_runtime(exe_dir: Path, info: PackageInfo) -> None:
+    """为 /MD 的 MSVC 消费者部署 app-local CRT。
+
+    测试机上的 x86 VC 运行库常常比 VS 2022 自带版本旧（例如 SysWOW64 里的
+    MSVCP140 仍是 14.29），直接运行会在 MSVCP140.dll 里崩溃；而 app-local
+    部署本身就是官方支持的发布方式。仅对 MD 包复制，/MT 包无需运行库。
+    """
+    if info.meta("TOOLCHAIN") != "msvc" or info.meta("MSVC_RUNTIME") != "MD":
+        return
+    crt = _msvc_crt_dir(info.meta("ARCH"))
+    if crt is None:
+        return
+    for dll in crt.glob("*.dll"):
+        shutil.copy2(dll, exe_dir / dll.name)
+
+
+def _msvc_crt_dir(arch: str) -> Path | None:
+    if os.name != "nt":
+        return None
+    candidates: list[tuple[str, Path]] = []
+    for var in ("ProgramFiles", "ProgramFiles(x86)"):
+        base = os.environ.get(var)
+        if not base:
+            continue
+        for ver in Path(base).glob("Microsoft Visual Studio/*/*/VC/Redist/MSVC/*"):
+            for crt in (ver / arch).glob("Microsoft.VC*.CRT"):
+                if (crt / "msvcp140.dll").is_file():
+                    candidates.append((ver.name, crt))
+    if not candidates:
+        return None
+    candidates.sort(key=lambda item: item[0], reverse=True)
+    return candidates[0][1]
+
 def check_consumer(info: PackageInfo, work_dir: Path, log_dir: Path, options: Options) -> str:
     toolchain, reason = detect_toolchain(info)
     if toolchain is None:
@@ -1063,6 +1142,10 @@ def check_consumer(info: PackageInfo, work_dir: Path, log_dir: Path, options: Op
                    if not (exe_dir / name).is_file()]
         if missing:
             raise AssertionError("DLL 未复制到可执行文件同级：%s" % ", ".join(missing))
+
+    # /MD 消费者的运行库可能与测试机系统目录版本不一致，按官方 app-local
+    # 方式把 VS 自带的 CRT 复制到 exe 同级，避免误判为 SDK 问题。
+    deploy_msvc_runtime(exe_dir, info)
 
     try:
         proc = subprocess.run([str(exe)], cwd=str(exe_dir), env=env,
@@ -1419,7 +1502,7 @@ def check_macos_bundle(info: PackageInfo, work_dir: Path, log_dir: Path,
 def _scenario_runner(sid: str, info: PackageInfo, work_dir: Path,
                      log_dir: Path, options: Options):
     if sid == "P01":
-        return "解包成功：%d 个文件，包根 %s" % (len(info.files), info.root.name)
+        return "解包成功：%d 个文件，包根 %s" % (len(info.files), info.root_dir_name())
     if sid == "P02":
         return check_layout(info)
     if sid == "P03":
@@ -1594,7 +1677,9 @@ def main(argv: list[str] | None = None) -> int:
     entries = []
     total = {"PASS": 0, "FAIL": 0, "SKIP": 0}
     for index, archive in enumerate(packages):
-        package_out = out_root / ("%02d-%s" % (index + 1, archive.stem))
+        # 目录名只用序号：Windows 未启用长路径时，包名+work+CMakeScratch
+        # 很容易超过 MAX_PATH（MSBuild 的 .tlog 路径甚至会直接打不开）。
+        package_out = out_root / ("%02d" % (index + 1))
         package_out.mkdir(parents=True, exist_ok=True)
         try:
             info = load_package(archive, package_out / "extract")

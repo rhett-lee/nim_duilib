@@ -4,7 +4,7 @@
 全部测试组合，供后续版本回归测试直接参照。矩阵按平台、工具链、架构、配置和功能开关
 划分，并记录当前验证状态。
 
-- 更新日期：2026-10-27
+- 更新日期：2026-10-28
 - 适用版本：新构建系统（`out/<arch>/<Config>` + `lib/<arch>/<Config>` + `bin/`）
 - 命令示例中 Windows 用 `python`，Linux/macOS/FreeBSD 用 `python3`
 - 每个组合出包后都必须执行 `pack.py --verify <包>` 校验条目数、文件 SHA 与文档链接
@@ -13,7 +13,7 @@
 
 | 标记 | 含义 |
 | :--- | :--- |
-| 通过 | 2026-10-26 ~ 27 本轮实际执行并通过 |
+| 通过 | 2026-10-26 ~ 28 本轮实际执行并通过 |
 | 历史通过 | 新构建系统验证阶段（2026-10-23 ~ 25）执行并通过，本轮未复测 |
 | 部分 | 已执行但存在已知限制，或仅完成构建/打包中的一项 |
 | 未测 | 尚未验证 |
@@ -69,6 +69,12 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
 | W-B18 | MSVC | arm64 / Debug/Release | 默认 | 库 + 示例 | `... --arch arm64` | 未测 | VS 未安装 arm64 工具集 |
 | W-B19 | MSVC | x64 / Debug | `--dry-run` | 仅打印命令 | `... --config Debug --dry-run` | 通过 | 不执行配置/编译，不输出“编译完成” |
 | W-B20 | MSVC | x64 / Debug | 复用构建目录 | 有状态选项回归 | 先 `--no-examples --md --sdl`，再默认构建 | 通过 | 默认值显式传入，不继承旧选项 |
+| W-B21 | MSVC | x64 / Debug | `--dll` | 库 + 全部示例 | `... build --dll --config Debug` | 通过 | 802/802；`bin/duilib_d.dll` 36,225,024 B；basic/ChildWindow 启动正常（窗口标题正确） |
+| W-B22 | MSVC | x64 / Release | `--dll` | 库 + 全部示例 | `... build --dll --config Release` | 通过 | 24 个增量链接；`bin/duilib.dll` 13,598,720 B、`lib/x64/Release/duilib.lib` 导入库；basic/ChildWindow 启动正常 |
+| W-B23 | MSVC | x86 / Debug | `--dll` | 库 + 全部示例 | `... build --dll --config Debug --arch x86` | 通过 | 日志含 `mt → dll` 自动清理；802/802；`bin/duilib32_d.dll` 29,417,472 B、`lib/x86/Debug/duilib.lib` 导入库；basic/ChildWindow 启动正常（Debug CRT 14.44 已在 SysWOW64） |
+| W-B24 | MSVC | x86 / Release | `--dll` | 库 + 全部示例 | `... build --dll --config Release --arch x86` | 通过 | 802/802；`bin/duilib32.dll` 11,598,336 B、`lib/x86/Release/duilib.lib` 导入库；basic/ChildWindow 用 app-local CRT 启动正常 |
+| W-B25 | MSVC | x64 / Debug ↔ Release | 静态 ↔ DLL 模式切换 | 模式切换自动清理 | 依次 `build --config Debug`、`build --dll --config Debug`、再静态 | 通过 | 日志含 `dll → mt`，构建树重建、`bin/duilib_d.dll` 删除、`duilib_dll.flag` 同步为 OFF；307/307 得到 `lib/x64/Debug/duilib.lib`（256,775,712 B 静态库）。反向 `mt → dll` 见 W-B23 |
+| W-B26 | MSBuild | x64 / Release | `duilib_dll.flag` | duilib + 第三方 + wrapper | 先无 flag 构建 `build/duilib.sln`，再创建 flag 重建 | 通过 | 静态库 870,484,530 B；加 flag 后 6 个工程 `duilib_crt_mode.txt` 变为 `dll`，wrapper/109/第三方与 duilib 全部重编；无 LNK4098/LNK2038；`bin/duilib.dll` 17,366,016 B，导入 `turbojpeg.dll`、`MSVCP140.dll`、`libcef.dll`，导入库 4,349,026 B，`bin/turbojpeg.dll` 自动复制 |
 
 构建矩阵执行要点：
 
@@ -81,6 +87,19 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
   需 `git checkout -- bin/resources.zip` 恢复。
 - `--md`、`--sdl`、`--no-examples`、`--cef-version` 等是有状态选项，`build.py` 每次都会
   显式传入解析后的值；直接调用 `cmake` 复用目录时才需要手工清缓存。
+- `--dll`（Windows MSVC）隐含 `--md`，并默认启用 SDL；`build.py` 会自动准备
+  Skia 的 `.md`（Release）/.mdd（Debug）变体与 `/MD`/`/MDd` 的 SDL3，无需手工转
+  运行库。
+- 本轮 DLL 回归结束后恢复静态基线：删除 `msvc/PropertySheets/duilib_dll.flag`、
+  `bin/duilib*.dll` 及对应 `.pdb/.ilk`，并用测试前备份覆盖
+  `lib/x64/Release`、`lib/x86/Release`、`lib/x86/Debug`；随后
+  `python build/build.py build --config Debug` 重新链接 x64 Debug 静态示例
+  （basic/ChildWindow 启动正常，`bin/` 中无 `duilib*.dll`）。
+- 静态 ↔ DLL 模式切换时，`build.py` 读取 `out/<arch>/<Config>/.duilib-build-mode`，
+  模式变化会删除整个构建树（含 `libcef_dll_wrapper` 旧 `.obj`）并重新配置；
+  DLL → 静态还会清理 `bin/duilib*.dll`。MSBuild 侧对应
+  `$(IntDir)duilib_crt_mode.txt`，切换 `duilib_dll.flag` 后会自动删除旧
+  `.obj/.pch`，不必手工清理 `build_temp`。
 - MinGW Debug 示例单个体积约 200–280 MB，全部示例约 10 GB；日常回归优先用 Release。
 - MinGW 编译/链接内存不足时用 `--jobs 2` 或 `--jobs 3`，默认并行度可能触发
   `cc1plus/ld out of memory`。
@@ -111,18 +130,34 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
 | W-P15 | MinGW 动态链接 Release + 示例（无 CEF） | `... --config Release --with-examples`（源码关闭静态链接） | 757 / 195.4 MB | 通过，有限制 |
 | W-P16 | x64 Debug，zip / tgz / tar.bz2 | `pack.py --config Debug --format zip\|tgz\|tarbz2` | 546 / 63.5 MB 各一份 | 通过 |
 | W-P17 | 显式 MSVC 运行库 MT / MD | `pack.py --msvc-runtime mt` / `md` | 元数据与库一致 | 通过 |
-| W-P18 | DLL 模式包 | `pack.py --verify dist/<旧 DLL 包>` | — | 部分 |
+| W-P18 | x64 Debug DLL + 示例 + SDL + CEF | `pack.py --config Debug --with-examples --with-sdl --with-cef` | 1396 / 219.6 MB | 通过 |
+| W-P19 | x64 Release DLL + 示例 + SDL + CEF | `pack.py --config Release --with-examples --with-sdl --with-cef` | 1396 / 210.1 MB | 通过 |
+| W-P20 | x86 Debug DLL + 示例 + SDL + CEF | `pack.py --config Debug --arch x86 --with-examples --with-sdl --with-cef` | 1394 / 191.6 MB | 通过 |
+| W-P21 | x86 Release DLL + 示例 + SDL + CEF | `pack.py --config Release --arch x86 --with-examples --with-sdl --with-cef` | 1394 / 183.4 MB | 通过 |
+| W-P22 | MSBuild DLL（动态 turbojpeg，无 SDL） | MSBuild 构建后 `pack.py --config Release`（不加 `--with-sdl`） | 1099 / 200.2 MB | 通过 | 包名 `win-x64-cef-dll`；`JPEG=1`、`SDL3=0`；含 `bin/duilib.dll` + `bin/turbojpeg.dll`，无 `turbojpeg-static.lib`；`--verify` 与 SDK 测试（PASS=15 FAIL=0 SKIP=4）通过；修复 P04/C02 对 DLL 包 `HAS_JPEG` 的误判 |
 
 打包专项说明：
 
 - W-P15：关闭静态链接后示例依赖 MinGW 运行库，当前构建与打包不会自动收集这些 DLL；
   分发前需手工复制到 exe 同级。包内 README 已提示。
-- W-P18：新 CMake 工程不提供 duilib 的 DLL 构建目标；`bin/` 中出现 duilib DLL 时
-  `pack.py` 仍可按 DLL 模式收集。仓库内旧 `dist/` DLL 包因历史文档链接失效未通过
-  `--verify`，属于旧产物，不代表当前打包逻辑回归。
+- W-P18 ~ W-P21：DLL 包由 `build.py build --dll`（CMake `DUILIB_DLL=ON`）产物打出，
+  不再依赖历史/外部 DLL 包。包名带 `-dll`，元数据 `IS_DLL=1`、`MSVC_RUNTIME=MD`，
+  `lib/` 只要求 `duilib.lib` 导入库。`pack.py` 通过 duilib DLL 导出表判断 SDL
+  支持，DLL 以 SDL 编译时必须加 `--with-sdl`，否则直接报错（避免下游
+  `DUILIB_SDL=0` 与 DLL 的 Control/WindowBase 类布局不一致）。
+- W-P18 ~ W-P21 四个 DLL 包均已通过 `pack.py --verify` 与 `sdk_package_test.py`
+  （PASS=15 FAIL=0 SKIP=4：C02 覆盖 DLL 消费者，C01/C06/C10/C11 按平台或参数跳过）。
+  x86 消费者使用 `/MD` 时由测试脚本把 VS 2022 运行库复制到 exe 同级，
+  避免本机 `SysWOW64` 旧 `msvcp140.dll`（14.29）导致崩溃。
+- DLL 包的 JPEG 规则：CMake 构建当前不启用 libjpeg-turbo，包内 `JPEG=0`；
+  MSBuild 构建默认启用，DLL 模式随包 `bin/turbojpeg.dll`（导入库
+  `turbojpeg.lib`），`pack.py` 只在 duilib DLL 实际引用 `turbojpeg.dll` 时收集，
+  不会再收集按 `/MT` 构建的 `turbojpeg-static.lib`。
+- DLL 包的 SDL3/Skia 已静态链接进 `duilib.dll`；包内 SDL3 头文件与库只用于
+  下游编译宏与（静态模式）链接，DLL 消费者只需链接 `duilib.lib`。
 - `--with-examples` 未加 `--with-cef` 时会跳过 `cef.exe`/`CefBrowser.exe`，避免包内
   留下必然启动失败的二进制。
-- 包名模式：`nim_duilib-<版本>-win-<arch>[-sdl][-cef|-cef109]-examples[-debug].zip`。
+- 包名模式：`nim_duilib-<版本>-win-<arch>[-sdl][-cef|-cef109]-examples[-dll][-debug].zip`。
 
 ## 3. Linux 构建与打包矩阵
 
@@ -265,7 +300,10 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
 ### 已知缺口与风险
 
 1. MinGW `DUILIB_MINGW_STATIC=OFF` 的包不包含 `libstdc++-6.dll` 等运行库，分发前需手工补齐。
-2. 旧 `dist/` DLL 包未通过 `--verify`（历史文档链接失效）；新工程也没有 DLL 构建目标。
+2. DLL 模式已由 `build.py --dll` 与 `duilib_dll.flag` 两个入口产出，x64/x86 ×
+   Debug/Release 的构建、打包与 SDK 接入已覆盖（见 W-B21 ~ W-B26、W-P18 ~ W-P22）；
+   2026-10-24 生成的旧 `dist/` DLL 包（含 `/MT` 的 `turbojpeg-static.lib`）已删除，
+   `dist/` 中只保留本轮通过校验的新 DLL 包（W-P18 ~ W-P21、W-P22）。
 3. Linux/FreeBSD 仅验证 Release 构建与打包，Debug、解包运行、下游工程接入未验证。
 4. macOS x64 的 Release/Debug 构建、6 个出包与 `sdk_package_test.py` 已全部通过；
    示例程序启动（C10/`--run-examples`）、GUI 运行与 arm64 仍未验证。

@@ -46,7 +46,10 @@
             <AdditionalDependencies>$(DuilibBinLibList);$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
         </Link>
     </ItemDefinitionGroup>
-    <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
+    <!-- 静态 Debug 模式：预编译 turbojpeg-static.lib 按 /MT 构建，带
+         /DEFAULTLIB:libcmt.lib；与 /MTd 的 Debug 工程混链时屏蔽该指令。
+         DLL 模式已改用动态 turbojpeg.lib，不再需要该选项。 -->
+    <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug' And '$(EnableDuilibDll)' != '1'">
         <Link>
             <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" %(AdditionalOptions)</AdditionalOptions>
         </Link>

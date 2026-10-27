@@ -68,19 +68,44 @@ python3 build/pack.py --with-examples
 Running `pack.py` directly writes to `dist/`; `build/release.py package`
 always writes to `dist/<version>/`.
 
-**DLL mode** (VS/MSBuild path only): create an empty file
-`msvc/PropertySheets/duilib_dll.flag` and rebuild. The duilib project then
-produces `bin/duilib*.dll` (x86 uses `duilib32*.dll`, Debug adds `_d`) plus the
-`lib/<arch>/<Config>/duilib.lib` import library; all other libraries stay
-static. Delete the flag to return to static mode. The `build.py` build path
-produces static libraries by default; add `--md` to use the dynamic MSVC
-runtime (`/MD`, `/MDd`). DLL-mode duilib uses `/MD`, so Skia must be built with `/MD`
-too: `SkiaSettings.props` switches to `skia/out/llvm.<arch>.release.md` when
-`duilib_dll.flag` exists (Debug uses `llvm.<arch>.debug.mdd`). Build both
-directories yourself with the same arguments as the normal build, replacing
-`/MT` with `/MD` and `/MTd` with `/MDd` in `extra_cflags`. In DLL mode
-`pack.py` collects the runtime DLLs automatically, picks the matching Skia
-variant, and appends `-dll` to the package name.
+**DLL mode** has two entry points that share `bin/` and `lib/`:
+
+- **CMake / build.py**: `python build/build.py build --dll`. `--dll` implies
+  `--md`, enables SDL by default, automatically prepares and builds the required
+  Skia (`.md`/`.mdd`) and SDL (`/MD`, `/MDd`) variants, then configures
+  `DUILIB_DLL=ON` (`add_library(... SHARED)`). `build.py` also synchronizes
+  `msvc/PropertySheets/duilib_dll.flag` so both entry points use the same mode.
+- **VS/MSBuild**: create the file `msvc/PropertySheets/duilib_dll.flag` and
+  rebuild.
+
+Both produce `bin/duilib*.dll` (x86 uses `duilib32*.dll`, Debug adds `_d`) plus
+the `lib/<arch>/<Config>/duilib.lib` import library; all other libraries stay
+static. Delete the flag (or use `build.py` without `--dll`) to return to static
+mode.
+
+DLL-mode duilib uses `/MD`, so:
+
+- Skia uses `skia/out/llvm.<arch>.release.md` (Debug:
+  `llvm.<arch>.debug.mdd`). `build.py --dll` prepares it automatically; when
+  using the VS projects directly, `SkiaSettings.props` switches automatically.
+- libjpeg-turbo switches to the dynamic `turbojpeg.lib` import library (the
+  static `turbojpeg-static.lib` is built with `/MT` and mixing it into `/MD`
+  triggers LNK4098). `bin/turbojpeg.dll` is required at runtime: the VS projects
+  enable libjpeg-turbo by default and `JpegTurboSettings.props` copies the DLL
+  into `bin/` after the build, while the `build.py` CMake build does not enable
+  libjpeg-turbo at all, so it has no such dependency. `pack.py` only ships the
+  DLL when the duilib DLL actually imports `turbojpeg.dll`; DLL packages no
+  longer contain `turbojpeg-static.lib`.
+- **Switching modes rebuilds automatically**: MSVC `/MT` and `/MD` objects and
+  the CEF wrapper static library are incompatible. `CommonSettings.props`
+  records the CRT mode in each project's `IntDir` and deletes stale
+  `.obj`/`.pch` files when it changes; `build.py` records the mode in the build
+  directory and cleans the tree on a switch. You no longer need to delete
+  `build_temp/` or rebuild `libcef_dll_wrapper` by hand.
+
+In DLL mode `pack.py` collects the runtime DLLs (`duilib*.dll`,
+`turbojpeg.dll`), picks the matching Skia variant, and appends `-dll` to the
+package name.
 DLL-mode programs depend on the MSVC dynamic runtime (`msvcp140.dll`,
 `vcruntime140.dll`, etc.), so the target machine needs the Visual C++
 2015-2022 Redistributable matching the compiler version. Static builds (`/MT`)
@@ -153,8 +178,10 @@ To let downstream builds **compile, link and run**, `MANIFEST.txt` records:
      `WebView2Loader.dll.lib` (CMake); MinGW ships only
      `WebView2Loader.dll.lib`, written as `-lWebView2Loader.dll`. Both need
      `WebView2Loader.dll` at runtime
-   - JPEG (Windows MSVC): `turbojpeg-static`; MinGW packages omit this
-     MSVC-only static library
+   - JPEG (Windows MSVC): static packages ship `turbojpeg-static` (`/MT`);
+     DLL packages link `turbojpeg.lib` inside duilib.dll and ship only
+     `bin/turbojpeg.dll` (no static library); MinGW packages omit this
+     MSVC-only library
    - SDL (optional): `SDL3-static` (MSVC static) / `SDL3` import library plus
      `bin/SDL3.dll` (dynamic) / `libSDL3.a` (MinGW static); on Unix `SDL3`
    - CEF (optional): on Windows `libcef` + `libcef_dll_wrapper[_109]`; on
@@ -172,7 +199,8 @@ To let downstream builds **compile, link and run**, `MANIFEST.txt` records:
    provides a loader and depends on the Microsoft Edge WebView2 Evergreen
    Runtime installed on the system;
    `bin/duilib*.dll` must sit next to the executable when duilib
-   is built in DLL mode; copy `bin/SDL3.dll` for dynamic SDL3 on Windows;
+   is built in DLL mode; DLL packages also need `bin/turbojpeg.dll`;
+   copy `bin/SDL3.dll` for dynamic SDL3 on Windows;
    on Unix `libSDL3.so*` must be findable (`LD_LIBRARY_PATH`
    etc.); for macOS App Bundles `duilib_cef_macos.cmake` copies the dylib into
    `Contents/Frameworks/` and sets a relative rpath (see
@@ -443,8 +471,10 @@ forwarded with the package:
 | `WebView2/WebView2Control.h`, `WebView2/WebView2EnvironmentOptions.h` | `Microsoft.Web.WebView2` | Forwarded on Windows only |
 
 Accordingly, `zlib`, `libpng`, `giflib` and `libjpeg-turbo` headers are no
-longer forwarded. The `duilib-zlib` and `turbojpeg-static` libraries are still
-shipped because linking needs them; only their headers are omitted.
+longer forwarded. In static packages the `duilib-zlib` and `turbojpeg-static`
+libraries are still shipped because linking needs them; only their headers are
+omitted. DLL packages ship just `bin/turbojpeg.dll` instead (duilib.dll links
+the `turbojpeg.lib` import library).
 
 These include relationships were verified one by one: every
 `#include "duilib/..."` in the packaged `duilib/` headers resolves, so

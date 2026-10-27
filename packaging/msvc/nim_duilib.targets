@@ -44,6 +44,8 @@
                Text="SDK 的 SDL3 为动态库，但缺少 bin\SDL3.dll，运行期会失败。" />
         <Error Condition="'$(NimDuilibPackageHasJpeg)'=='1' And '$(NimDuilibPackageIsDll)'!='1' And !Exists('$(NimDuilibLibDir)\turbojpeg-static.lib')"
                Text="SDK 声明支持 libjpeg-turbo，但缺少 lib\turbojpeg-static.lib。" />
+        <Error Condition="'$(NimDuilibPackageHasJpeg)'=='1' And '$(NimDuilibPackageIsDll)'=='1' And !Exists('$(NimDuilibDir)bin\turbojpeg.dll')"
+               Text="SDK 声明支持 libjpeg-turbo（DLL 模式），但缺少 bin\turbojpeg.dll，运行期会加载失败。" />
         <Error Condition="'$(NimDuilibPackageHasWebView2)'=='1' And '$(NimDuilibPackageIsDll)'!='1' And !Exists('$(NimDuilibLibDir)\WebView2LoaderStatic.lib')"
                Text="SDK 声明支持 WebView2，但缺少 lib\WebView2LoaderStatic.lib。" />
         <Error Condition="'$(NimDuilibPackageHasCef)'=='1' And '$(NimDuilibPackageIsDll)'!='1' And !Exists('$(NimDuilibLibDir)\libcef.lib')"

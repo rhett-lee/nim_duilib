@@ -94,6 +94,7 @@ otherwise Ninja sees `bin/` files newer than its own objects and skips the link 
 | `--skia-ref` / `--sdl-ref` | select a ref from the version manifest, e.g. `chrome/m142`, `main` or `release-3.4.18` |
 | `--sdl` / `--no-sdl` | Windows only; off by default on Windows, forced on elsewhere |
 | `--md` | use the MSVC dynamic runtime (/MD, /MDd); Windows only |
+| `--dll` | Windows MSVC DLL mode: implies `--md`, enables SDL by default, prepares Skia `.md/.mdd` and SDL `/MD`, emits `bin/duilib*.dll`, synchronizes `msvc/PropertySheets/duilib_dll.flag` |
 | `--no-absolute-rpath` | Unix only; write only origin-relative rpath entries |
 | `--cef-archive <file>` | use a local CEF archive and skip downloading (still verified against the official `.sha1`) |
 | `--no-deps` (build) | skip dependency preparation and reuse the ready Skia/SDL3/CEF |
@@ -356,6 +357,20 @@ sure the Skia libraries are the `mingw64-llvm.<arch>` variant.
   `--msvc-runtime md`.
 - Skia and nim_duilib must use the same runtime; `deps` builds the matching Skia variant.
 - If nim_duilib is built as a DLL, the dynamic runtime is mandatory.
+- `--dll` = `--md` + `DUILIB_DLL=ON`: the duilib target becomes `SHARED` and
+  emits `bin/duilib*.dll` (x86 uses `duilib32*.dll`, Debug adds `_d`) plus the
+  `lib/<arch>/<Config>/duilib.lib` import library; examples link the import
+  library only.
+- `--dll` enables SDL by default so `deps` builds the `/MD` SDL variant; pass
+  `--no-sdl` to disable it explicitly.
+- **Automatic cleanup on mode switches:** `build.py` records the mode
+  (`mt`/`md`/`dll`) in `out/<arch>/<Config>/.duilib-build-mode`. Switching
+  between them deletes the build tree so the CEF wrapper and every target
+  rebuild with the new CRT; switching from DLL back to static also removes
+  `bin/duilib*.dll` so `pack.py` does not misdetect a DLL package. The MSBuild
+  path does the same via the `IntDir` marker in `CommonSettings.props`.
+- libjpeg-turbo: DLL mode uses the `turbojpeg.lib` import library and copies
+  `bin/turbojpeg.dll`; static mode keeps `turbojpeg-static.lib` (/MT).
 
 ## 10. Troubleshooting
 

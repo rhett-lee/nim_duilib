@@ -76,6 +76,20 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `GetResourceZipPath(bool)` returns `.../duilib/resources.zip` for the zip mode.
 - macOS App Bundle reference `build/macos-app-bundle.md` / `.en.md`, plus an
   `Info.plist` template and optional `.icns` icon support.
+- Windows MSVC DLL mode: `python build/build.py build --dll` builds duilib as
+  `bin/duilib*.dll` (`duilib32*.dll` on x86, `_d` for Debug, with the import
+  library always at `lib/<arch>/<Config>/duilib.lib`). `--dll` implies `--md`
+  and enables SDL by default, automatically preparing the Skia `.md`/`.mdd` and
+  `/MD`/`/MDd` SDL3 variants and synchronizing
+  `msvc/PropertySheets/duilib_dll.flag`. Switching between static and DLL modes
+  is detected through `out/<arch>/<Config>/.duilib-build-mode`, which wipes the
+  build tree (including stale `/MT` objects of `libcef_dll_wrapper`); DLL →
+  static also removes `bin/duilib*.dll`.
+- DLL release packages: `bin/duilib*.dll` is collected automatically, the
+  package name gains `-dll`, and metadata reports `IS_DLL=1` with
+  `MSVC_RUNTIME=MD`. `pack.py` probes the DLL export table for SDL support
+  (packaging a SDL-enabled DLL requires `--with-sdl`) and ships
+  `bin/turbojpeg.dll` only when the DLL really imports it.
 
 ### Changed
 
@@ -174,6 +188,27 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   linking many examples in parallel occasionally failed with
   `LNK1000: Internal error during IncrBuildImage` (plus stale `.ilk` files).
   Examples now pass `/INCREMENTAL:NO`; the extra link time is negligible.
+- Build (Windows DLL / libjpeg-turbo): DLL mode links the dynamic
+  `turbojpeg.lib` import library and copies `turbojpeg.dll` into `bin/` after
+  building, instead of linking the `/MT`-built `turbojpeg-static.lib` and
+  triggering `LNK4098` (mixed `/MT` and `/MD` objects).
+- Build (MSBuild CRT switching): `CommonSettings.props` records
+  `duilib_crt_mode.txt` in each project's `IntDir` and deletes stale
+  `.obj/.pch` files (including the CEF wrapper) after `duilib_dll.flag`
+  changes, fixing the VS incremental build that does not track compiler-option
+  changes and kept linking old `/MT` objects.
+- Release package tests (Windows long paths / x86 CRT): extraction now strips
+  the archive's top-level package directory and package work directories use
+  short ordinal names, keeping CEF headers and MSBuild `.tlog` files under
+  `MAX_PATH` (`FileNotFoundError`, `MSB6003`). For `/MD` MSVC packages the
+  VS 2022 runtime is copied next to the executable before running consumers,
+  avoiding x86 crashes caused by the old `SysWOW64` runtime.
+- Release package tests (DLL package JPEG misdetection): `infer_capabilities()`
+  only looked at `lib/`, while a DLL package ships the runtime
+  `bin/turbojpeg.dll`, so P04 reported "metadata HAS_JPEG=1, actual files 0"
+  and C02 configured the consumer with the wrong feature set. Static packages
+  now look at `lib/turbojpeg*.lib` and DLL packages at `bin/turbojpeg.dll`;
+  a unit test covers the DLL case.
 - Packaging (same-name Debug/Release examples): a POST_BUILD step now records the
   configuration under the hidden directory `bin/.build-config/<target>` (older
   builds wrote `bin/<target>.build-config`, which `pack.py` still reads and the

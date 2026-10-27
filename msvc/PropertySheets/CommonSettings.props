@@ -51,6 +51,29 @@
         </ClCompile>
     </ItemDefinitionGroup>
 
+    <!-- MT/MTd -> MD/MDd（或反向）切换时，MSBuild 的增量构建不会因为编译选项
+         变化而重新编译已有 .obj：旧的 /MT 目标文件会与新运行库混链，产生
+         LNK4098/LNK2038，CEF wrapper 等预编译库尤其容易残留旧模式产物。
+         每个工程在自己的 IntDir 记录上次的 CRT 模式，发现不一致时删除该工程
+         的 .obj/.pch，强制重新编译；切换后无需手工清理 build_temp。 -->
+    <PropertyGroup>
+        <DuilibCrtModeStamp>$(IntDir)duilib_crt_mode.txt</DuilibCrtModeStamp>
+        <DuilibLastCrtMode Condition="Exists('$(DuilibCrtModeStamp)')">$([System.IO.File]::ReadAllText('$(DuilibCrtModeStamp)').Trim())</DuilibLastCrtMode>
+        <DuilibCurrentCrtMode Condition="'$(EnableDuilibDll)' == '1'">dll</DuilibCurrentCrtMode>
+        <DuilibCurrentCrtMode Condition="'$(EnableDuilibDll)' != '1'">static</DuilibCurrentCrtMode>
+    </PropertyGroup>
+    <Target Name="DuilibCrtModeCheck" BeforeTargets="ClCompile">
+        <ItemGroup Condition="'$(DuilibLastCrtMode)' != '$(DuilibCurrentCrtMode)'">
+            <_DuilibStaleObjects Include="$(IntDir)**\*.obj" />
+            <_DuilibStalePch Include="$(IntDir)**\*.pch" />
+        </ItemGroup>
+        <Delete Files="@(_DuilibStaleObjects);@(_DuilibStalePch)" />
+        <MakeDir Directories="$(IntDir)" Condition="!Exists('$(IntDir)')" />
+        <WriteLinesToFile File="$(DuilibCrtModeStamp)"
+                          Lines="$(DuilibCurrentCrtMode)"
+                          Overwrite="true" />
+    </Target>
+
     <!-- duilib项目，支持VS2026和VS2022[主分支]：使用C++20标准 -->
     <ItemDefinitionGroup Condition="'$(VisualStudioVersion)' != '15.0' And '$(VisualStudioVersion)' != '16.0'">
         <ClCompile>

@@ -88,6 +88,7 @@ Debug 与 Release 的示例输出同名，都写在共享的 `bin/`，而目标�
 | `--skia-ref` / `--sdl-ref` | 选择版本清单中的 ref，如 `chrome/m142`、`main`、`release-3.4.18` |
 | `--sdl` / `--no-sdl` | 仅 Windows 有效；Windows 默认关闭，其他平台强制开启 |
 | `--md` | 使用 MSVC 动态运行库（/MD、/MDd）；仅 Windows 有效 |
+| `--dll` | Windows MSVC DLL 模式：隐式 `--md`、默认启用 SDL，自动准备 Skia `.md/.mdd` 与 SDL `/MD`，输出 `bin/duilib*.dll`；同步 `msvc/PropertySheets/duilib_dll.flag` |
 | `--no-absolute-rpath` | 仅 Unix 有效；产物只写相对 rpath，不附加 SDL3 等绝对兜底路径 |
 | `--cef-archive <file>` | 使用本地 CEF 归档，跳过下载（仍按官方 `.sha1` 校验） |
 | `--no-deps`（build） | 跳过依赖准备，复用已就绪的 Skia/SDL3/CEF |
@@ -334,6 +335,17 @@ MINGW64 会优先选带 `.msvcrt` 的目录。两者的包名都是 `-mingw-gcc`
   `/MT` 使用 `llvm.<arch>.debug` / `llvm.<arch>.release`，`/MD` 使用
   `llvm.<arch>.debug.mdd` / `llvm.<arch>.release.md`。
 - 若 nim_duilib 最终编译为 DLL，必须使用动态运行库。
+- `--dll` = `--md` + `DUILIB_DLL=ON`：duilib 目标改为 `SHARED`，输出
+  `bin/duilib*.dll`（x86 为 `duilib32*.dll`，Debug 带 `_d`）与
+  `lib/<arch>/<Config>/duilib.lib` 导入库；示例只链接导入库。
+- `--dll` 默认启用 SDL，`deps` 会构建 `/MD` 版 SDL；显式 `--no-sdl` 可关闭。
+- **模式切换自动清理**：`build.py` 在 `out/<arch>/<Config>/.duilib-build-mode`
+  记录上次模式（`mt`/`md`/`dll`）。在 `mt`/`md`/`dll` 之间切换时自动删除整个
+  构建目录，CEF wrapper 与所有目标按新 CRT 重新编译；从 DLL 切回静态时还会删除
+  `bin/duilib*.dll`，避免 `pack.py` 误判。MSBuild 路径由
+  `CommonSettings.props` 的 `IntDir` 标记完成同样的自动重编。
+- libjpeg-turbo：DLL 模式使用 `turbojpeg.lib` 导入库并复制
+  `bin/turbojpeg.dll`；静态模式仍为 `turbojpeg-static.lib`（/MT）。
 
 ## 10. 排障
 

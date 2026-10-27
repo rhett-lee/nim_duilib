@@ -48,7 +48,8 @@
    - Skia 全部静态库（duilib 的必选链接依赖，整目录打包）；
    - WebView2 loader 库（Windows：MSVC 带静态 loader + 动态 loader 导入库 + DLL；
      MinGW 只带动态 loader 的导入库 + DLL，MSVC 静态 loader 不可链接）；
-   - turbojpeg-static（仅 Windows MSVC：VS 默认启用 libjpeg-turbo，duilib.lib 有符号）；
+   - libjpeg-turbo（仅 Windows MSVC：静态模式随包 turbojpeg-static.lib；
+     DLL 模式改随包运行期 bin/turbojpeg.dll，不再提供 /MT 静态库）；
    - SDL3（Unix 始终；Windows 需 --with-sdl；动态库时同时带运行期 DLL）；
    - CEF 开发包（仅 --with-cef：头文件 + libcef.lib/wrapper；Linux 无导入库，
      链接时直接使用 bin/libcef_linux/libcef.so）；
@@ -1128,10 +1129,10 @@ def collect_webview2_loader(collector, arch_tag, toolchain=None):
 def collect_duilib_runtime_dll(collector, arch_tag, config):
     """收集 DLL 模式下的 duilib 运行库（bin/duilib*.dll）。
 
-    命名由 msvc/PropertySheets/DuilibSettings.props 决定：
-    x64/arm64 为 duilib[_d].dll，x86（VS 的 Win32）为 duilib32[_d].dll。
-    此时 lib/ 下打包的是同名导入库，下游运行必须带上这个 DLL。
-    静态库模式（含 CMake 构建）没有该文件，返回 0，不告警。
+    命名与 msvc/PropertySheets/DuilibSettings.props 及 CMake 的
+    DUILIB_DLL 模式一致：x64/arm64 为 duilib[_d].dll，x86（VS 的 Win32）
+    为 duilib32[_d].dll。此时 lib/ 下是同名导入库，下游运行必须带上该 DLL。
+    静态库模式没有该文件，返回 0，不告警。
     """
     if not is_windows_host():
         return 0
@@ -1152,12 +1153,71 @@ def collect_duilib_runtime_dll(collector, arch_tag, config):
     return 1 if collector.add('bin/%s.dll' % base, full) else 0
 
 
-def collect_jpeg_turbo(collector, arch_tag, toolchain=None):
-    """收集 libjpeg-turbo 静态库（仅 Windows MSVC，P4-B4/Q12）。
+def duilib_runtime_dll(arch_tag, config):
+    """返回本次打包对应的 duilib 运行期 DLL（DLL 模式）；不存在时返回 None。
+
+    命名规则与 MSBuild/CMake 一致：x64/arm64 为 duilib[_d].dll，x86 为
+    duilib32[_d].dll；Debug 优先 `_d`，Release 优先不带后缀。
+    """
+    if arch_tag == 'x86':
+        names = ('duilib32_d.dll', 'duilib32.dll')
+    else:
+        names = ('duilib_d.dll', 'duilib.dll')
+    if str(config).lower() != 'debug':
+        names = tuple(reversed(names))
+    for name in names:
+        path = os.path.join(REPO_ROOT, 'bin', name)
+        if os.path.isfile(path):
+            return path
+    return None
+
+
+def binary_references_dll(path, dll_name):
+    """粗略检查 PE 文件的导入表是否包含某个 DLL（DLL 名以 ASCII 存在导入表）。"""
+    try:
+        with open(path, 'rb') as handle:
+            data = handle.read()
+    except OSError:
+        return False
+    return dll_name.lower().encode('ascii') in data.lower()
+
+
+# DLL 模式下的 SDL 支持只能从产物本身确认：SDL 是静态链接进 duilib.dll 的，
+# lib/ 里有没有 SDL3-static.lib 取决于打包参数，不能代表 DLL 的真实功能。
+# WindowBase::GetVideoDriverName() 仅在 DUILIB_BUILD_FOR_SDL 时编译，其导出名
+# 稳定存在于 DLL 的导出表中，可作为可靠标记。
+SDL_EXPORT_MARKER = '?GetVideoDriverName@WindowBase@ui@@'
+CEF_EXPORT_MARKER = '@CefControl@ui@@'
+
+
+def duilib_dll_in_collector(collector):
+    """返回本次包内收集到的 duilib 运行期 DLL 的绝对路径（DLL 模式）。"""
+    for rel, abs_path in collector.items:
+        if not rel.startswith('bin/') or rel.count('/') != 1:
+            continue
+        name = rel.rsplit('/', 1)[-1].lower()
+        if name.startswith('duilib') and name.endswith('.dll'):
+            return abs_path
+    return None
+
+
+def dll_built_with_sdl(dll_path):
+    """duilib DLL 是否以 SDL 支持编译；无法判断时返回 None。"""
+    if not dll_path:
+        return None
+    return binary_references_dll(dll_path, SDL_EXPORT_MARKER)
+
+
+def collect_jpeg_turbo(collector, arch_tag, toolchain=None, dll_mode=False,
+                       config='Release'):
+    """收集 libjpeg-turbo（仅 Windows MSVC，P4-B4/Q12）。
 
     头文件只在库内部使用，不对外转发（图片解码头文件不打包）。
-    预编译的 turbojpeg-static.lib 是 MSVC 静态库，MinGW 无法链接；MinGW
-    构建也不使用它，因此 MinGW 包不收集，避免给下游一个不可用的库。
+    静态模式随包 turbojpeg-static.lib：它是 MSVC 静态库，MinGW 无法链接；
+    MinGW 构建也不使用它，因此 MinGW 包不收集，避免给下游一个不可用的库。
+    DLL 模式只有 duilib DLL 实际导入了 turbojpeg.dll 时才收集该运行期 DLL；
+    不再随包静态库（避免误链 /MT 产物触发 LNK4098）。CMake 构建当前不启用
+    libjpeg-turbo，因此也不会被误标记为支持 JPEG。
     """
     if not is_windows_host():
         return 0
@@ -1169,6 +1229,20 @@ def collect_jpeg_turbo(collector, arch_tag, toolchain=None):
         collector.warn('libjpeg-turbo 上游没有 Windows %s 预编译库，已跳过' % arch_tag)
         return count
     root = os.path.join(JPEG_TURBO_DIR, 'libjpeg-turbo6-win-vc-%s' % arch_dir)
+    if dll_mode:
+        runtime = duilib_runtime_dll(arch_tag, config)
+        if runtime is None:
+            collector.warn('DLL 模式下未找到 duilib 运行期 DLL，无法确认 JPEG 支持')
+            return count
+        if not binary_references_dll(runtime, 'turbojpeg.dll'):
+            return count
+        dll = os.path.join(root, 'bin', 'turbojpeg.dll')
+        if os.path.isfile(dll):
+            if collector.add('bin/turbojpeg.dll', dll):
+                count += 1
+        else:
+            collector.warn('缺少 turbojpeg.dll：%s' % _rel(dll))
+        return count
     lib = os.path.join(root, 'lib', 'turbojpeg-static.lib')
     if os.path.isfile(lib):
         if collector.add('lib/turbojpeg-static.lib', lib):
@@ -1622,11 +1696,13 @@ def _package_lib_stems(lib_names):
 
 def build_package_meta(collector, version, sys_tag, arch_tag, config,
                        toolchain, with_cef, cef_version, msvc_runtime,
-                       mingw_variant=None):
+                       mingw_variant=None, with_sdl=False):
     """汇总发布包的接入元数据（VS props 与 CMake package info 共用）。
 
     所有特性均以“实际进了包的文件”为准，而不是命令行开关，
-    避免声明了 SDL/CEF 但包里没有对应库。
+    避免声明了 SDL/CEF 但包里没有对应库。DLL 模式例外：SDL 已静态链接进
+    duilib.dll，是否启用必须从 DLL 本身判断，否则下游的 DUILIB_SDL 宏与
+    DLL 的真实类布局不一致（Control/WindowBase 含 SDL 专有成员）。
     """
     lib_names = _package_lib_names(collector)
     stems = _package_lib_stems(lib_names)
@@ -1645,8 +1721,34 @@ def build_package_meta(collector, version, sys_tag, arch_tag, config,
     has_sdl = sdl_static or sdl_shared
     sdl_kind = 'static' if sdl_static else ('shared' if sdl_shared else '')
 
+    if is_dll and sys_tag == 'win':
+        runtime_dll = duilib_dll_in_collector(collector)
+        dll_sdl = dll_built_with_sdl(runtime_dll)
+        if dll_sdl is not None:
+            if dll_sdl and not with_sdl:
+                raise PackageError(
+                    'duilib.dll 以 SDL 支持编译，但打包未加 --with-sdl：'
+                    '下游缺少 SDL 头文件且 DUILIB_SDL 宏与 DLL 不一致，'
+                    '会破坏 Control/WindowBase 的类布局。请补 --with-sdl 后重新打包')
+            if dll_sdl and not has_sdl:
+                # --with-sdl 已收集 SDL 库时不会走到这里。
+                raise PackageError(
+                    'duilib.dll 以 SDL 支持编译，但包内没有 SDL3 库/头文件，'
+                    '请确认 --sdl-dir 指向有效的 SDL3 源码目录')
+            if not dll_sdl and with_sdl:
+                collector.warn('duilib.dll 未以 SDL 支持编译，包内 SDL3 内容'
+                               '不会用于元数据（HAS_SDL=0），下游 DUIlib 宏与 DLL 一致')
+            has_sdl = dll_sdl
+            sdl_kind = 'static' if dll_sdl else ''
+        if runtime_dll and binary_references_dll(runtime_dll, 'libcef.dll') \
+                and not with_cef:
+            collector.warn('duilib.dll 以 CEF 支持编译（延迟加载 libcef.dll），'
+                           '但打包未加 --with-cef：SDK 不含 CEF 头文件与运行时，'
+                           'CEF 控件不可用（其余功能不受影响）')
+
     # WebView2：MSVC 可用静态或动态 loader；MinGW 只随包动态 loader 的导入库。
-    # JPEG：预编译 turbojpeg-static.lib 仅 MSVC 可用，MinGW 包不收集。
+    # JPEG：预编译库（静态 turbojpeg-static.lib 或动态 turbojpeg.dll）仅 MSVC
+    # 可用，MinGW 包不收集。
     is_msvc = toolchain == 'msvc'
     if is_msvc:
         has_webview2 = ('WebView2LoaderStatic.lib' in lib_names or
@@ -1654,8 +1756,10 @@ def build_package_meta(collector, version, sys_tag, arch_tag, config,
     else:
         has_webview2 = (toolchain == 'mingw' and
                         'WebView2Loader.dll.lib' in lib_names)
-    has_jpeg = is_msvc and any(name.lower().startswith('turbojpeg')
-                               for name in lib_names)
+    # 静态模式看 turbojpeg-static.lib；DLL 模式只有运行期 turbojpeg.dll。
+    has_jpeg = is_msvc and (
+        any(name.lower().startswith('turbojpeg') for name in lib_names)
+        or 'turbojpeg.dll' in bin_dlls)
 
     cef_wrapper = ''
     cef_src = ''
@@ -2019,6 +2123,9 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
                          '运行期需 WebView2Loader.dll）')
     if 'turbojpeg-static' in stems:
         lines.append('   JPEG    : turbojpeg-static.lib')
+    elif 'turbojpeg.dll' in bin_dlls:
+        lines.append('   JPEG    : duilib.dll 内部链接 turbojpeg；'
+                     '运行期需 bin/turbojpeg.dll')
     if sdl_static:
         sdl_static_name = ('SDL3-static.lib' if 'SDL3-static.lib' in lib_names
                            else 'libSDL3.a')
@@ -2667,9 +2774,10 @@ def main(argv=None):
         if args.with_cef and sys_tag != 'win' and args.cef_version != 'latest':
             raise PackageError('--cef-version 109 仅适用于 Windows；'
                                'Linux 只有 latest')
+        dll_mode = toolchain == 'msvc' and detect_dll_mode()
         skia_dir = resolve_skia_lib_dir(args.skia_lib_dir, config, arch_tag,
                                         toolchain, mingw_variant,
-                                        dll_mode=(toolchain == 'msvc' and detect_dll_mode()))
+                                        dll_mode=dll_mode)
 
         collector = Collector(allow_missing=args.allow_missing)
         n_headers = collect_headers(collector, args.with_cef, args.with_sdl,
@@ -2680,7 +2788,8 @@ def main(argv=None):
         n_sdl = collect_sdl(collector, args.sdl_dir, config, args.with_sdl)
         n_wv2 = collect_webview2_loader(collector, arch_tag, toolchain)
         n_dll = collect_duilib_runtime_dll(collector, arch_tag, config)
-        n_jpeg = collect_jpeg_turbo(collector, arch_tag, toolchain)
+        n_jpeg = collect_jpeg_turbo(collector, arch_tag, toolchain,
+                                    dll_mode=dll_mode, config=config)
         n_cef = 0
         n_cef_rt = 0
         if args.with_cef:
@@ -2702,7 +2811,8 @@ def main(argv=None):
     try:
         meta = build_package_meta(collector, version, sys_tag, arch_tag, config,
                                   toolchain, args.with_cef, args.cef_version,
-                                  args.msvc_runtime, mingw_variant)
+                                  args.msvc_runtime, mingw_variant,
+                                  with_sdl=args.with_sdl)
         n_integration, gen_files = collect_integration_files(collector, meta)
         n_generated = len(gen_files)
         virtual_files = dict(gen_files)

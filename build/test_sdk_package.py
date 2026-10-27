@@ -159,6 +159,18 @@ class CapabilityTest(unittest.TestCase):
         self.assertFalse(caps["has_jpeg"])
         self.assertFalse(caps["has_examples"])
 
+    def test_dll_dynamic_jpeg(self):
+        files = [
+            "include/duilib/duilib.h",
+            "lib/duilib.lib",
+            "bin/duilib.dll",
+            "bin/turbojpeg.dll",
+        ]
+        caps = sdk.infer_capabilities(files, "msvc")
+        self.assertTrue(caps["is_dll"])
+        self.assertTrue(caps["has_jpeg"])
+        self.assertFalse(caps["has_sdl"])
+
     def test_linux_sdl_shared_and_cef(self):
         files = [
             "include/duilib/duilib.h",

@@ -336,6 +336,43 @@ class IntegrationFilesTest(_TempDirTest):
             False, 'latest', 'md')
         self.assertEqual(meta['msvc_runtime'], 'MD')
 
+    def test_dll_sdl_feature_requires_with_sdl(self):
+        # DLL 以 SDL 编译但打包没加 --with-sdl：下游缺 SDL 头文件、宏与 DLL
+        # 的类布局不一致，必须直接报错，不能静默出包。
+        collector = pack.Collector()
+        collector.add('bin/duilib.dll',
+                      self._touch('bin/duilib.dll',
+                                  pack.SDL_EXPORT_MARKER.encode('ascii')))
+        with self.assertRaises(pack.PackageError):
+            pack.build_package_meta(
+                collector, '1.0.0', 'win', 'x64', 'Release', 'msvc',
+                False, 'latest', 'auto')
+
+    def test_dll_sdl_feature_matches_with_sdl(self):
+        collector = pack.Collector()
+        collector.add('bin/duilib.dll',
+                      self._touch('bin/duilib.dll',
+                                  pack.SDL_EXPORT_MARKER.encode('ascii')))
+        collector.add('lib/SDL3-static.lib',
+                      self._touch('lib/SDL3-static.lib'))
+        meta = pack.build_package_meta(
+            collector, '1.0.0', 'win', 'x64', 'Release', 'msvc',
+            False, 'latest', 'auto', with_sdl=True)
+        self.assertTrue(meta['has_sdl'])
+        self.assertEqual(meta['sdl_kind'], 'static')
+
+    def test_dll_without_sdl_ignores_with_sdl(self):
+        # DLL 本身没有 SDL 时，即使包内带 SDL 库也要按 HAS_SDL=0 生成元数据。
+        collector = pack.Collector()
+        collector.add('bin/duilib.dll', self._touch('bin/duilib.dll', b'MZ'))
+        collector.add('lib/SDL3-static.lib',
+                      self._touch('lib/SDL3-static.lib'))
+        meta = pack.build_package_meta(
+            collector, '1.0.0', 'win', 'x64', 'Release', 'msvc',
+            False, 'latest', 'auto', with_sdl=True)
+        self.assertFalse(meta['has_sdl'])
+        self.assertEqual(meta['sdl_kind'], '')
+
 
 class Arm64SupportTest(_TempDirTest):
 

@@ -61,6 +61,17 @@
   `GetResourceZipPath(bool)` 的 zip 模式对应 `.../duilib/resources.zip`。
 - macOS App Bundle 参考文档 `build/macos-app-bundle.md` / `.en.md`，以及
   `Info.plist` 模板与可选的 `.icns` 图标配置。
+- Windows MSVC DLL 模式：`python build/build.py build --dll` 把 duilib 编为
+  `bin/duilib*.dll`（x86 为 `duilib32*.dll`，Debug 带 `_d`，导入库统一为
+  `lib/<arch>/<Config>/duilib.lib`）；`--dll` 隐含 `--md` 并默认启用 SDL，
+  自动准备 Skia `.md`/`.mdd` 与 `/MD`、`/MDd` 的 SDL3，同时同步
+  `msvc/PropertySheets/duilib_dll.flag`。静态 ↔ DLL 模式切换由
+  `out/<arch>/<Config>/.duilib-build-mode` 检测，自动清理构建树（含
+  `libcef_dll_wrapper` 旧 `/MT` 目标文件）；DLL → 静态还会删除 `bin/duilib*.dll`。
+- 发布包 DLL 支持：自动收集 `bin/duilib*.dll`，包名追加 `-dll`，元数据
+  `IS_DLL=1`、`MSVC_RUNTIME=MD`；`pack.py` 通过 DLL 导出表确认 SDL 能力
+  （DLL 以 SDL 构建时打包必须加 `--with-sdl`），并按 DLL 的实际导入决定是否
+  随包 `bin/turbojpeg.dll`。
 
 ### 变更
 
@@ -134,6 +145,20 @@
 - 构建（Windows 示例）：Debug 默认开启增量链接，并行链接多个示例时偶发
   `LNK1000: Internal error during IncrBuildImage`，旧 `.ilk` 损坏后还要手工删除；
   示例程序统一加 `/INCREMENTAL:NO`，链接耗时代价很小、构建结果稳定。
+- 构建（Windows DLL / libjpeg-turbo）：DLL 模式改用动态 `turbojpeg.lib` 导入库，
+  构建后把 `turbojpeg.dll` 复制到 `bin/`，不再链接按 `/MT` 编译的
+  `turbojpeg-static.lib`，消除 `LNK4098`（`/MT` 与 `/MD` 目标文件冲突）。
+- 构建（MSBuild 运行库切换）：`CommonSettings.props` 在每个工程 `IntDir` 记录
+  `duilib_crt_mode.txt`，切换 `duilib_dll.flag` 后自动删除旧 `.obj/.pch`
+  （含 CEF wrapper），修掉 VS 增量构建不跟踪编译选项、仍链接旧 `/MT` 目标文件的问题。
+- 发布包测试（Windows 长路径 / x86 运行库）：解包时去掉归档顶层包目录、包工作
+  目录改用短序号名，避免 CEF 头文件与 MSBuild `.tlog` 超过 `MAX_PATH`
+  （`FileNotFoundError`、`MSB6003`）；MSVC `/MD` 包在运行消费者前把 VS 2022
+  运行库复制到 exe 同级，避开系统 `SysWOW64` 旧运行库导致的 x86 崩溃。
+- 发布包测试（DLL 包 JPEG 误判）：`infer_capabilities()` 只看 `lib/`，DLL 包
+  实际只有运行期 `bin/turbojpeg.dll`，导致 P04 报“元数据 HAS_JPEG=1、实际文件
+  为 0”，并连带 C02 消费者按错误能力配置失败；现在静态包看
+  `lib/turbojpeg*.lib`、DLL 包看 `bin/turbojpeg.dll`，新增对应单元测试。
 - 打包（Debug/Release 同名示例）：CMake 链接后在隐藏目录
   `bin/.build-config/<目标>` 记录构建配置（升级前写在 `bin/<目标>.build-config`，
   `pack.py` 仍兼容读取，重新链接时会自动删除旧文件）；打 Debug 包时按标记跳过

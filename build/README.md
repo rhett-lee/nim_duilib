@@ -54,6 +54,26 @@ python3 build/build.py deps
 - 解决方案的中间目录仍是 `build/build_temp` 与 `build/.vs`，与新入口的
   `out/<arch>/<Config>` 互不影响。
 
+## DLL 模式（Windows MSVC）
+
+```bash
+# duilib 编为 bin/duilib*.dll；自动准备 Skia .md/.mdd 与 SDL（/MD、/MDd）
+python3 build/build.py build --dll --config Release
+
+# Debug DLL（bin/duilib_d.dll，Skia 用 .mdd）
+python3 build/build.py build --dll --config Debug
+
+# 只有库，不编示例
+python3 build/build.py build --dll --target duilib
+```
+
+`--dll` 隐式开启 `--md`，并同步 `msvc/PropertySheets/duilib_dll.flag`；不加
+`--dll` 的构建会删除该 flag 并回到静态模式。切换模式时构建目录会自动清理，
+CEF wrapper 与所有目标按新的 CRT 重新编译，无需手工删除 `build_temp/`。
+DLL 模式包的 `pack.py` 会自动收集 `bin/duilib*.dll`，包名追加 `-dll`；
+duilib DLL 实际引用 `turbojpeg.dll`（MSBuild 构建）时才随包该 DLL，且在 SDL
+支持下打包必须带 `--with-sdl`。
+
 ## 构建产物与清理
 
 | 路径 | 内容 | 是否可清理 |
@@ -163,8 +183,11 @@ python3 build/autotest.py --preset arm64-synthetic --dry-run      # 只打印命
   任一缺失时打包直接失败。
 - MinGW 库为 `libduilib*.a`（静态）或 `libduilib*.dll.a`（导入库）；打包脚本按
   库目录内容自动判断工具链（MSVC/MinGW），清单中的链接写法为 `-lxxx`。
-- DLL 模式（存在 `msvc/PropertySheets/duilib_dll.flag`）下 `bin/duilib*.dll` 随包，
-  `lib/` 中为导入库；包名自动追加 `-dll`。DLL 模式使用 `/MD`，Skia 必须同 CRT。
+- DLL 模式（`bin/` 中存在 `duilib*.dll`，来自 `build.py --dll` 或
+  `duilib_dll.flag`）下 `bin/duilib*.dll` 随包，`lib/` 中为导入库；包名自动追加
+  `-dll`。DLL 模式使用 `/MD`，Skia 必须同 CRT。duilib DLL 以 SDL 编译时打包
+  必须加 `--with-sdl`（`pack.py` 从 DLL 导出表检测，缺失时直接报错）；JPEG 只在
+  该 DLL 实际引用 `turbojpeg.dll` 时收集（MSBuild 产物才有，CMake 当前未启用）。
 - `--with-sdl` 时按实际产物收集 SDL3；Windows 默认不打包 SDL3。
 - CEF 需要 `--with-cef`：Windows 运行时按 `bin/libcef_win[/_109]/<架构>/` 随包，
   Linux 按扁平 `bin/libcef_linux/` 随包；`--cef-version 109` 仅 Windows。

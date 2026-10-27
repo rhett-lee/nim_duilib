@@ -286,6 +286,18 @@ option(DUILIB_BUILD_EXAMPLES "Build example applications" ON)
 set(DUILIB_MACOS_BUNDLE_EXAMPLES "" CACHE STRING
     "macOS examples to build as .app bundles (semicolon/comma separated; all = every example)")
 option(DUILIB_MD "Use the MSVC dynamic runtime (/MD, /MDd)" OFF)
+# DLL 模式：duilib 编译为 bin/duilib*.dll，下游只链接导入库。
+# 仅支持 Windows MSVC（/MD 是 DLL 的必然选择），并自动打开 DUILIB_MD。
+option(DUILIB_DLL "Build duilib as a shared library (Windows MSVC, implies /MD)" OFF)
+if(DUILIB_DLL)
+    if(NOT DUILIB_OS_WINDOWS OR NOT DUILIB_COMPILER_MSVC)
+        message(FATAL_ERROR
+            "[ERROR] DUILIB_DLL=ON only supports Windows with MSVC "
+            "(current: ${CMAKE_SYSTEM_NAME}, ${CMAKE_CXX_COMPILER_ID}).\n"
+            "Use the static build, or a Windows MSVC toolchain.")
+    endif()
+    set(DUILIB_MD ON CACHE BOOL "Use the MSVC dynamic runtime (/MD, /MDd)" FORCE)
+endif()
 option(DUILIB_SDL_RPATH "Write rpath entries on Unix (relative first)" ON)
 option(DUILIB_RPATH_ABSOLUTE "Include absolute fallback paths in the Unix rpath" ON)
 option(DUILIB_OFFLINE "Use only cached dependency sources/archives" OFF)

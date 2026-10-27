@@ -515,11 +515,24 @@ cmake -S .. -B . -DDUILIB_SKIA_LIB_SUBPATH=llvm.x64.release -DCMAKE_BUILD_TYPE=R
 cmake -S .. -B . -DDUILIB_LOG=ON -DCMAKE_BUILD_TYPE=Debug
 ```
 
-#### 6. MSVC dynamic runtime
+#### 6. MSVC dynamic runtime and DLL mode
 
 ```bash
+# Dynamic runtime (static libraries)
 cmake -S .. -B . -DDUILIB_MD=ON -DCMAKE_BUILD_TYPE=Release
+
+# Build duilib as a DLL (implies /MD), producing bin/duilib*.dll + import lib
+cmake -S .. -B . -DDUILIB_DLL=ON -DCMAKE_BUILD_TYPE=Release
 ```
+
+`DUILIB_DLL` supports Windows MSVC only and enables `DUILIB_MD` automatically.
+The shared duilib links Skia/SDL/CEF and the third-party static libraries itself;
+examples link only the import library. Output names match MSBuild DLL mode (x86:
+`duilib32*.dll`, Debug adds `_d`, the import library is always `duilib.lib`).
+After switching between `MT`/`MD`/DLL modes, every target including the CEF
+wrapper must be recompiled. `build.py --dll` records and cleans the build tree
+automatically; when using `cmake` directly, delete the build directory and
+reconfigure.
 
 ---
 
@@ -562,6 +575,7 @@ cmake --build ./build_llvm
 | `DUILIB_CEF_109` | BOOL | OFF | CEF 109 version (Win7) |
 | `DUILIB_WEBVIEW2_EXE` | BOOL | OFF | WebView2 executable program |
 | `DUILIB_MD` | BOOL | OFF | MSVC dynamic runtime (/MD) |
+| `DUILIB_DLL` | BOOL | OFF | Build duilib as a DLL (Windows MSVC only, implies `DUILIB_MD=ON`) |
 | `DUILIB_MINGW_STATIC` | BOOL | ON | MinGW static linking |
 
 ---

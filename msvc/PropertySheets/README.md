@@ -44,7 +44,9 @@ PropertySheets/
   - VS2022/VS2026：使用 C++20 标准
   - VS2019/VS2017：使用 C++17 标准
 
-- **运行库配置**：通过检测 `duilib_dll.flag` 文件自动切换 MT/MTd 或 MD/MDd 模式
+- **运行库配置**：通过检测 `duilib_dll.flag` 文件自动切换 MT/MTd 或 MD/MDd 模式。
+  每个工程会在 `IntDir` 记录 `duilib_crt_mode.txt`；切换模式后下次构建自动删除
+  旧的 `.obj/.pch`（含 CEF wrapper），无需手工清理 `build_temp/`
 
 - **基础库列表**（CM-5 后库名统一，Debug 不再加 `_d`，配置由输出目录区分）：
   ```xml
@@ -215,7 +217,11 @@ BinCommonSettingsWebView2.props
 - `JpegTurboEnabled`：libjpeg-turbo 支持开关（0=禁用，1=启用）
 - `JpegTurboIncludeDir`：libjpeg-turbo include 目录
 - `JpegTurboLibDir`：libjpeg-turbo lib 目录
-- `JpegTurboLibs`：依赖库列表（`turbojpeg-static.lib`）
+- `JpegTurboLibs`：依赖库列表；静态模式为 `turbojpeg-static.lib`（/MT），
+  DLL 模式自动改为 `turbojpeg.lib` 导入库，避免 LNK4098
+
+**DLL 模式运行期：** 构建后自动把 `turbojpeg.dll` 复制到共享的 `bin/`
+（`JpegTurboCopyRuntime` 目标）；`pack.py` 在 DLL 包中收集该 DLL 而不是静态库。
 
 **宏定义：** `DUILIB_JPEG_TURBO=$(JpegTurboEnabled)`
 
@@ -344,6 +350,12 @@ BinCommonSettingsWebView2.props
    - 关闭 Visual Studio
    - 重新打开解决方案文件（*.sln）
    - 等待属性重新加载完成
+
+4. **切换模式会自动全量重编相关目标**：
+   - `CommonSettings.props` 在每个工程的 `IntDir` 写入 `duilib_crt_mode.txt`；
+   - 下次构建发现模式不一致时，自动删除该工程的 `.obj/.pch`，
+     包括 `libcef_dll_wrapper`，不再需要手工清理 `build_temp/`；
+   - 解决方案中的工程依赖已保证 wrapper 先于 duilib 构建。
 
 ---
 

@@ -198,8 +198,10 @@ nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109
 - P04 的 `IS_DLL`/`HAS_SDL`/`HAS_CEF`/`HAS_WEBVIEW2`/`HAS_JPEG` 不是只看包名：
   包名、`nim_duilibPackageInfo.cmake` 元数据、实际文件推断三者必须一致。MSVC 运行库
   还要求：DLL 包必须是 `MD`；静态包可为 `MT` 或 `MD`；非 Windows/MSVC 包不得声明
-  MSVC 运行库。macOS 的 CEF 语义不同：SDK 不提供 CEF 开发文件（`HAS_CEF` 恒为 0），
-  包名中的 `-cef` 表示 CEF 示例 App Bundle（内嵌 Chromium Embedded Framework）随包。
+  MSVC 运行库。`HAS_JPEG` 按实际文件推断：静态包看 `lib/turbojpeg*.lib`，
+  DLL 包看运行期 `bin/turbojpeg.dll`。macOS 的 CEF 语义不同：SDK 不提供 CEF
+  开发文件（`HAS_CEF` 恒为 0），包名中的 `-cef` 表示 CEF 示例 App Bundle
+  （内嵌 Chromium Embedded Framework）随包。
 - P05 对 Windows 包统一要求三份架构 manifest（即使 MinGW 包也一样）；只有 MSVC 包
   额外要求 `msvc/nim_duilib.props`、`nim_duilib.targets`、`nim_duilib.sdk.props`。
 - C07/C09 用 `_make_sample_package()` 生成只含 `MANIFEST.txt`、`VERSION`、一个最小
@@ -472,20 +474,32 @@ SKIP 是“没测到”，不是通过。`--no-build`、`--dry-run`、包类型�
 - 时间戳格式为 `%Y%m%d-%H%M%S`；
 - 显式指定 `--out-dir` 时使用该目录，不再追加时间戳。
 
-每个包一个子目录，命名为 `<两位序号>-<归档去扩展名>`：
+每个包一个子目录，命名为两位序号（如 `01`），不再拼接包名：
 
 ```text
 <系统临时目录>/nim_duilib_sdk_test/20261026-153000/
 ├─ report.json
-├─ 01-nim_duilib-1.0.2026.1023-win-x64-cef-examples-debug/
-│  ├─ extract/nim_duilib-1.0.2026.1023-win-x64-cef-examples-debug/...
+├─ 01/
+│  ├─ extract/...                  # 包内容（已去掉归档顶层包目录）
 │  ├─ work/consumer/...            # 消费者构建树
 │  ├─ work/consumer_bundle/...     # macOS App Bundle 构建树（仅 C11）
 │  ├─ work/bundle-relocated/...    # 迁移后的 .app 副本（仅 C11，用于运行）
 │  ├─ work/repack.tgz / repack.tar.bz2 / bad-*.tgz / tampered.tgz
 │  └─ logs/consumer.log, bundle.log, neg-config.log, neg-arch.log, neg-runtime.log, neg-toolchain.log
-└─ 02-<下一个包>/
+└─ 02/                            # 下一个包
 ```
+
+路径与 Windows 长路径：
+
+- 归档顶层包目录只用于 P01/P04 校验（`root_name`），解包时其内容直接落到
+  `extract/`；否则“输出目录 + 包名 + 包名 + CEF 深头文件”很容易超过 260 字符，
+  Windows 未启用长路径支持时 `shutil.unpack_archive` 会直接抛
+  `FileNotFoundError`。
+- 子目录只用 `01`、`02` 这样的短名，也是为了给 `work/CMakeFiles/CMakeScratch`
+  与 MSBuild 的 `.tlog` 路径留出余量（C04 的 VS 生成器最容易触发
+  `MSB6003 DirectoryNotFoundException`）。
+- 需要保留解包结果排查时加 `--keep`；默认运行结束只删 `extract/`、`work/`
+  与包子目录，`report.json` 保留。
 
 日志规则：
 
@@ -669,7 +683,7 @@ P01–P08、C07–C09 对任何可加载的包都会执行（其中 P02/P04/P05 
 | :--- | :--- | :--- | :--- |
 | Windows MSVC 静态，无 CEF，无 SDL，Release，x64 | 全部执行 | C01 PASS；C02 SKIP；C03/C04/C05/C06 视生成器与工具而定，通常 C01/C03/C05 可跑，C04 需 VS 的相反架构工具集，C06 需 `g++`+Ninja；C10 可选 | 真实 MSVC 静态包；VS 2022+；Ninja 优先 |
 | Windows MSVC 静态，CEF + SDL，Debug，x64 | 全部执行 | C01 PASS（编译 `header_cef.cpp`，`FEATURES cef=1 sdl=1`）；C02 SKIP；C03/C04/C06 视生成器与工具而定；C05 用相反运行库；C10 指定 `--run-examples` 后可跑 | 真实 CEF/SDL 静态包；CEF 运行时部署不由 C01 覆盖 |
-| Windows MSVC DLL，CEF，Release，x64 | 全部执行（P02 只要求 `duilib` 主库） | C02 PASS（检查顶层 DLL 复制）；C01 SKIP；C05 用相反运行库；CEF 头文件参与编译 | 需要真实 DLL 产物；当前仓库构建不提供 duilib DLL 目标，通常用历史/外部 DLL 包验证 |
+| Windows MSVC DLL，CEF，Release，x64 | 全部执行（P02 只要求 `duilib` 主库） | C02 PASS（检查顶层 DLL 复制）；C01 SKIP；C05 用相反运行库；CEF 头文件参与编译 | 真实 DLL 产物：`build/build.py build --dll`（或 `duilib_dll.flag` + MSBuild）生成 `bin/duilib.dll` 与 `lib/x64/Release/duilib.lib` |
 | Windows MSVC 静态，无 CEF，Debug，x86 | 全部执行 | C01 需 x86 编译器；C04 用 x64 作相反架构；C05/C06 视工具而定；C10 可选 | 真实 x86 包 + x86 工具集 |
 | Windows MinGW gcc/llvm 静态，无 CEF，Release，x64 | 全部执行 | C01 需 MSYS2 + `MSYSTEM`（llvm 变体还需 `CC`/`CXX` 指向 clang）；C03 用 Ninja；C04 通常 SKIP；C05/C06 SKIP；C10 可选 | 真实 MinGW 包；MSYS2/MinGW-w64 环境；CEF 不支持 |
 | Linux gcc/clang 静态，SDL，Release，x64 | 全部执行 | C01 PASS；C03 用 Ninja/Makefiles；C04 SKIP（包架构=主机）；C05/C06 SKIP；C10 需桌面会话且包含示例 | 真实 Linux 包；X11/字体等运行依赖 |
@@ -685,8 +699,12 @@ P01–P08、C07–C09 对任何可加载的包都会执行（其中 P02/P04/P05 
 - **CEF/WebView2 运行期**：消费者只编译头文件并核对宏，不启动浏览器、不复制
   `bin/libcef_win*/` 等 CEF 运行时目录。CEF 运行期部署需要真实包配合示例（C10）或
   手工验证。
-- **DLL 模式**：当前构建系统没有 duilib DLL 构建目标，DLL 组合必须使用真实 DLL
-  产物（历史或外部构建）才能覆盖 C02 与 P04 的 `MD` 规则。
+- **DLL 模式**：用 `build/build.py build --dll`（或 VS 工程的
+  `msvc/PropertySheets/duilib_dll.flag`）生成真实 DLL 产物，再运行 C02 与 P04
+  的 `MD` 规则；纯合成包只能验证结构。DLL 包需要 `bin/duilib*.dll`；若 duilib
+  DLL 引用 `turbojpeg.dll`（MSBuild 默认启用 libjpeg-turbo），还需要
+  `bin/turbojpeg.dll`，`pack.py` 会自动收集；CMake 构建当前未启用 JPEG，不
+  产生该依赖。duilib DLL 以 SDL 编译时打包必须加 `--with-sdl`。
 - **arm64**：需要 arm64 工具链、真机或仿真环境；没有时 C01/C02/C10/C11 会 SKIP，C04 也
   可能因工具集缺失而 SKIP。
 - **Linux/macOS 运行**：C10 需要桌面会话、X11/字体或 macOS 窗口环境；纯 headless

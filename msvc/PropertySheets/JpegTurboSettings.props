@@ -21,10 +21,35 @@
         <JpegTurboLibDir Condition="'$(JpegTurboEnabled)' != '0' And '$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-arm64\lib</JpegTurboLibDir>
         <JpegTurboLibDir Condition="'$(JpegTurboEnabled)' != '0' And '$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-arm64\lib</JpegTurboLibDir>
 
-        <!-- lib列表 -->
-        <JpegTurboLibs Condition="'$(JpegTurboEnabled)' != '0'">turbojpeg-static.lib</JpegTurboLibs>
+        <!-- lib列表：
+             - 静态模式（/MT、/MTd）：turbojpeg-static.lib，下游与 duilib 一起链；
+             - DLL 模式（/MD、/MDd）：turbojpeg.lib 导入库，只由 duilib.dll 链接，
+               同时需要把 turbojpeg.dll 复制到 bin/ 供运行期加载。
+             预编译的 turbojpeg-static.lib 按 /MT 构建，混入 /MD 的 DLL 会触发
+             LNK4098，因此 DLL 模式必须改用动态库。 -->
+        <JpegTurboLibs Condition="'$(JpegTurboEnabled)' != '0' And '$(EnableDuilibDll)' == '1'">turbojpeg.lib</JpegTurboLibs>
+        <JpegTurboLibs Condition="'$(JpegTurboEnabled)' != '0' And '$(EnableDuilibDll)' != '1'">turbojpeg-static.lib</JpegTurboLibs>
         <JpegTurboLibs Condition="'$(JpegTurboEnabled)' == '0'"></JpegTurboLibs>
 
+        <!-- turbojpeg.dll 所在目录（预编译包中与 lib/ 同级） -->
+        <JpegTurboBinDir Condition="'$(JpegTurboEnabled)' != '0'">$(JpegTurboLibDir)\..\bin</JpegTurboBinDir>
+
     </PropertyGroup>
+
+    <!-- DLL 模式：duilib.dll 依赖 turbojpeg.dll，构建后复制到共享 bin/。
+         只在 duilib 工程执行，避免多个示例并行复制同一个文件。 -->
+    <Target Name="JpegTurboCopyRuntime" AfterTargets="Build"
+            Condition="'$(EnableDuilibDll)' == '1' And '$(JpegTurboEnabled)' != '0' And '$(ProjectName)' == 'duilib'">
+        <ItemGroup>
+            <_JpegTurboRuntimeDll Include="$(JpegTurboBinDir)\turbojpeg.dll"
+                                  Condition="Exists('$(JpegTurboBinDir)\turbojpeg.dll')" />
+        </ItemGroup>
+        <Copy SourceFiles="@(_JpegTurboRuntimeDll)"
+              DestinationFolder="$(SolutionDir)\..\bin"
+              SkipUnchangedFiles="true"
+              Condition="'@(_JpegTurboRuntimeDll)' != ''" />
+        <Warning Condition="'@(_JpegTurboRuntimeDll)' == ''"
+                 Text="DLL 模式下未找到 turbojpeg.dll：$(JpegTurboBinDir)\turbojpeg.dll" />
+    </Target>
 
 </Project>

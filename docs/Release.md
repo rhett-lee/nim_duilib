@@ -53,17 +53,38 @@ python3 build/pack.py --with-examples
 直接运行 `pack.py` 时产物输出到 `dist/`；通过 `build/release.py package`
 执行时固定输出到 `dist/<版本>/`。
 
-**DLL 模式**（仅 VS/MSBuild 路径）：在 `msvc/PropertySheets/` 下新建空文件
-`duilib_dll.flag` 后重新构建，duilib 工程会产出 `bin/duilib*.dll`
-（x86 为 `duilib32*.dll`，Debug 带 `_d`）与 `lib/<arch>/<Config>/duilib.lib`
-导入库，其余库仍为静态库；删除该文件即回到静态模式。`build.py` 构建路径默认
-静态库，加 `--md` 时使用动态运行库（/MD、/MDd）。
-DLL 模式的 duilib 使用 `/MD`，因此 Skia 也必须使用 `/MD` 版本：
-`SkiaSettings.props` 在检测到 `duilib_dll.flag` 时改用
-`skia/out/llvm.<arch>.release.md`（Debug 为 `llvm.<arch>.debug.mdd`），
-两个目录均需自行构建（参数与普通版本相同，仅把 `extra_cflags` 中的
-`/MT` 换成 `/MD`、`/MTd` 换成 `/MDd`）。DLL 模式下 `pack.py` 会自动随包
-收集运行期 DLL、选用同一 Skia 变体，包名追加 `-dll`。
+**DLL 模式**支持两个入口，二者共用 `bin/`、`lib/`：
+
+- **CMake / build.py**：`python build/build.py build --dll`。`--dll` 隐式开启
+  `--md`，默认启用 SDL，自动准备并构建所需 Skia（`.md`/`.mdd`）与 SDL（`/MD`、
+  `/MDd`），随后配置 `DUILIB_DLL=ON`（`add_library(... SHARED)`）。
+  `build.py` 会同步 `msvc/PropertySheets/duilib_dll.flag`，避免两个入口模式不一致。
+- **VS/MSBuild**：在 `msvc/PropertySheets/` 下新建文件 `duilib_dll.flag`
+  后重新构建。
+
+两种入口都会产出 `bin/duilib*.dll`（x86 为 `duilib32*.dll`，Debug 带 `_d`）与
+`lib/<arch>/<Config>/duilib.lib` 导入库，其余库仍为静态库；删除 flag（或改用
+不加 `--dll` 的 `build.py`）即回到静态模式。
+
+DLL 模式的 duilib 使用 `/MD`，因此：
+
+- Skia 使用 `skia/out/llvm.<arch>.release.md`（Debug 为
+  `llvm.<arch>.debug.mdd`）；`build.py --dll` 会自动准备，直接使用 VS 工程时
+  `SkiaSettings.props` 自动切换；
+- libjpeg-turbo 改用动态 `turbojpeg.lib` 导入库（静态的
+  `turbojpeg-static.lib` 按 `/MT` 构建，混入 `/MD` 会触发 LNK4098），运行期
+  需要 `bin/turbojpeg.dll`。VS 工程默认启用 libjpeg-turbo，构建后由
+  `JpegTurboSettings.props` 把它复制到 `bin/`；`build.py` 的 CMake 构建当前
+  不启用 libjpeg-turbo，因此不产生该依赖。`pack.py` 只在 duilib DLL 实际
+  引用了 `turbojpeg.dll` 时收集它，DLL 包不再随包 `turbojpeg-static.lib`；
+- **切换模式会自动重编**：MSVC 的 `/MT` 与 `/MD` 目标文件、CEF wrapper
+  静态库互不兼容。`CommonSettings.props` 会在每个工程的 `IntDir` 记录 CRT
+  模式，模式变化时删除旧 `.obj/.pch`；`build.py` 也在构建目录记录模式，切换时
+  清理构建树。因此不再需要手工删除 `build_temp/` 或单独重编
+  `libcef_dll_wrapper`。
+
+DLL 模式下 `pack.py` 会自动随包收集运行期 DLL（`duilib*.dll`、
+`turbojpeg.dll`）、选用同一 Skia 变体，包名追加 `-dll`。
 DLL 模式的下游程序依赖 MSVC 动态运行库（`msvcp140.dll`、`vcruntime140.dll` 等），
 目标机器需安装与编译工具版本匹配的 Visual C++ 2015-2022 Redistributable；
 静态模式（`/MT`）没有该依赖。系统自带运行库过旧时（例如 14.29 配 14.4x 编译器），
@@ -126,7 +147,9 @@ nim_duilib-<版本>-<系统>-<架构>[-特性]/
    - WebView2：MSVC 为 `WebView2LoaderStatic`（VS）或 `WebView2Loader.dll.lib`
      （CMake）；MinGW 只随包 `WebView2Loader.dll.lib`，写作 `-lWebView2Loader.dll`
      运行期均需 `WebView2Loader.dll`
-   - JPEG（Windows MSVC）：`turbojpeg-static`；MinGW 包不包含该 MSVC 静态库
+   - JPEG（Windows MSVC）：静态包为 `turbojpeg-static`（`/MT`）；DLL 包中
+     duilib.dll 已链接 `turbojpeg.lib` 导入库，只随包 `bin/turbojpeg.dll`，
+     不再提供静态库；MinGW 包不包含该 MSVC 库
    - SDL（可选）：`SDL3-static`（MSVC 静态）/ `SDL3` 导入库 + `bin/SDL3.dll`
      （动态）/ `libSDL3.a`（MinGW 静态）；Unix 为 `SDL3`
    - CEF（可选）：Windows 为 `libcef.lib` + `libcef_dll_wrapper[_109].lib`；
@@ -141,6 +164,7 @@ nim_duilib-<版本>-<系统>-<架构>[-特性]/
    WebView2 只提供 loader，依赖系统安装的 Microsoft Edge WebView2 Evergreen
    Runtime；
    duilib 以 DLL 模式构建时 `bin/duilib*.dll` 需与可执行文件同级；
+   DLL 模式还需要 `bin/turbojpeg.dll`（JPEG 随包时）；
    Windows 动态 SDL3 需复制 `bin/SDL3.dll`；
    Unix 的 `libSDL3.so*` 需可被找到（`LD_LIBRARY_PATH` 等）；
    macOS 的 App Bundle 由 `duilib_cef_macos.cmake` 自动复制到
@@ -390,7 +414,9 @@ Windows 包未启用 `--with-sdl` 时不打包。
 | `WebView2/WebView2Control.h`、`WebView2/WebView2EnvironmentOptions.h` | `Microsoft.Web.WebView2` | 仅 Windows 转发 |
 
 相应地，`zlib`、`libpng`、`giflib`、`libjpeg-turbo` 的头文件都不再转发。
-其中 `duilib-zlib`、`turbojpeg-static` 静态库仍随包（链接需要），只是不提供头文件。
+其中静态包的 `duilib-zlib` 与 `turbojpeg-static` 静态库仍随包（链接需要），
+只是不提供头文件；DLL 包则只随 `bin/turbojpeg.dll`（duilib.dll 链接
+`turbojpeg.lib` 导入库）。
 
 上述包含关系已逐个核对：包内 `duilib/` 头文件的 `#include "duilib/..."`
 全部可以解析，下游只需 `#include "duilib/duilib.h"` 即可编译。

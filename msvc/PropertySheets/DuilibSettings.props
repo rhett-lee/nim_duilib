@@ -110,11 +110,9 @@
             <AdditionalDependencies>$(DuilibBinLibList);$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
         </Link>
     </ItemDefinitionGroup>
-    <ItemDefinitionGroup Condition="'$(EnableDuilibDll)' == '1' And '$(Configuration)'=='Debug'">
-        <Link>
-            <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" %(AdditionalOptions)</AdditionalOptions>
-        </Link>
-    </ItemDefinitionGroup>
+    <!-- 说明：DLL 模式改用动态 turbojpeg.lib（见 JpegTurboSettings.props），
+         不再需要 /NODEFAULTLIB:"libcmt.lib" 来屏蔽 turbojpeg-static.lib 的
+         /MT 默认库指令；保留该选项会掩盖其它真正的 CRT 混用问题。 -->
 
     <!-- duilib项目，当使用DLL时，添加嵌入的Manifest配置文件 -->
     <Import Project="BinManifestSettings.props" Condition="'$(EnableDuilibDll)' == '1'"/>

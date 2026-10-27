@@ -370,8 +370,10 @@ if(MSVC)
 endif()
 
 set(_nim_link_options "")
-if(MSVC AND NIM_DUILIB_PACKAGE_CONFIG STREQUAL "Debug")
-    # 与 VS 属性表一致：Debug 下屏蔽 release CRT，避免第三方预编译库触发 LNK4098
+if(MSVC AND NIM_DUILIB_PACKAGE_CONFIG STREQUAL "Debug" AND NOT NIM_DUILIB_PACKAGE_IS_DLL)
+    # 与 VS 属性表一致：静态 Debug 下屏蔽 release CRT，避免预编译的
+    # turbojpeg-static.lib（/MT）触发 LNK4098；DLL 模式已用动态 turbojpeg，
+    # 导入库不携带 CRT 指令，不再屏蔽。
     list(APPEND _nim_link_options "/NODEFAULTLIB:libcmt.lib")
 endif()
 if(WIN32)

@@ -94,8 +94,9 @@
     </ItemDefinitionGroup>
 
     <!-- 与仓库内 DuilibSettings.props / BinCommonSettings.props 一致：
-         Debug 下屏蔽 release CRT，避免第三方预编译库触发 LNK4098 -->
-    <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
+         静态 Debug 下屏蔽 release CRT，避免第三方预编译库触发 LNK4098；
+         DLL 模式只链导入库，不携带 CRT 指令，不再屏蔽 -->
+    <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug' And '$(NimDuilibPackageIsDll)'!='1'">
         <Link>
             <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" %(AdditionalOptions)</AdditionalOptions>
         </Link>

@@ -46,7 +46,10 @@ PropertySheets/
   - VS2022/VS2026: Use C++20 standard
   - VS2019/VS2017: Use C++17 standard
 
-- **Runtime library configuration:** Automatically switch between MT/MTd or MD/MDd mode by detecting the `duilib_dll.flag` file
+- **Runtime library configuration:** Automatically switch between MT/MTd or MD/MDd mode by detecting the `duilib_dll.flag` file.
+  Each project records `duilib_crt_mode.txt` in `IntDir`; after a mode change the next
+  build deletes stale `.obj/.pch` files (including the CEF wrapper), so there is no
+  need to clean `build_temp/` manually
 
 - **Base library list** (after CM-5 the names are unified; Debug no longer adds `_d`,
   the configuration is distinguished by the output directory):
@@ -218,7 +221,13 @@ BinCommonSettingsWebView2.props
 - `JpegTurboEnabled`: libjpeg-turbo support switch (0=disabled, 1=enabled)
 - `JpegTurboIncludeDir`: libjpeg-turbo include directory
 - `JpegTurboLibDir`: libjpeg-turbo lib directory
-- `JpegTurboLibs`: Dependency library list (`turbojpeg-static.lib`)
+- `JpegTurboLibs`: Dependency library list; static mode uses
+  `turbojpeg-static.lib` (/MT), DLL mode automatically switches to the
+  `turbojpeg.lib` import library to avoid LNK4098
+
+**DLL mode runtime:** after building, `turbojpeg.dll` is copied to the shared
+`bin/` directory by the `JpegTurboCopyRuntime` target; `pack.py` ships that DLL
+instead of the static library in DLL packages.
 
 **Macro definition:** `DUILIB_JPEG_TURBO=$(JpegTurboEnabled)`
 
@@ -347,6 +356,15 @@ BinCommonSettingsWebView2.props
    - Close Visual Studio
    - Reopen the solution file (*.sln)
    - Wait for the properties to finish reloading
+
+4. **Mode switches rebuild automatically:**
+   - `CommonSettings.props` writes `duilib_crt_mode.txt` into each project's
+     `IntDir`;
+   - if the mode differs on the next build, that project's `.obj`/`.pch` files
+     are deleted, including `libcef_dll_wrapper`; no manual `build_temp/`
+     cleanup is needed;
+   - the solution's project dependencies already build the wrapper before
+     duilib.
 
 ---
 

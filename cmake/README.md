@@ -503,11 +503,22 @@ cmake -S .. -B . -DDUILIB_SKIA_LIB_SUBPATH=llvm.x64.release -DCMAKE_BUILD_TYPE=R
 cmake -S .. -B . -DDUILIB_LOG=ON -DCMAKE_BUILD_TYPE=Debug
 ```
 
-#### 6. MSVC 动态运行库
+#### 6. MSVC 动态运行库与 DLL 模式
 
 ```bash
+# 动态运行库（静态库）
 cmake -S .. -B . -DDUILIB_MD=ON -DCMAKE_BUILD_TYPE=Release
+
+# duilib 编译为 DLL（隐含 /MD），输出 bin/duilib*.dll + 导入库
+cmake -S .. -B . -DDUILIB_DLL=ON -DCMAKE_BUILD_TYPE=Release
 ```
+
+`DUILIB_DLL` 仅支持 Windows MSVC，会自动打开 `DUILIB_MD`。duilib 共享库自行
+链接 Skia/SDL/CEF 与第三方静态库；示例只链接导入库。输出命名与 MSBuild 的
+DLL 模式一致（x86 为 `duilib32*.dll`，Debug 带 `_d`，导入库统一为
+`duilib.lib`）。切换 `MT`/`MD`/DLL 模式后需要重新编译 CEF wrapper 等全部目标；
+使用 `build.py --dll` 时会自动记录并清理构建目录，直接使用 `cmake` 时请删除
+构建目录后重新配置。
 
 ---
 
@@ -550,6 +561,7 @@ cmake --build ./build_llvm
 | `DUILIB_CEF_109` | BOOL | OFF | CEF 109 版本（Win7） |
 | `DUILIB_WEBVIEW2_EXE` | BOOL | OFF | WebView2 可执行程序 |
 | `DUILIB_MD` | BOOL | OFF | MSVC 动态运行库（/MD） |
+| `DUILIB_DLL` | BOOL | OFF | duilib 编译为 DLL（仅 Windows MSVC，隐含 `DUILIB_MD=ON`） |
 | `DUILIB_MINGW_STATIC` | BOOL | ON | MinGW 静态链接 |
 
 ---

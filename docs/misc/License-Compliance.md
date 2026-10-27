@@ -34,7 +34,7 @@
 | libpng | libpng-2.0（PNG Reference Library License v2） | 是 | `lib/duilib-png.lib` / `LICENSES/libpng.LICENSE.txt` | PNG/APNG |
 | libwebp | BSD-3-Clause | 是 | `lib/duilib-webp.lib` / `LICENSES/libwebp.LICENSE.txt` | WebP |
 | cximage | CxImage 自定义 MIT 风格 | 是 | `lib/duilib-cximage.lib` / `LICENSES/cximage.LICENSE.txt` | ICO 等图片格式 |
-| libjpeg-turbo | IJG + BSD-3-Clause | 是 | `lib/turbojpeg-static.lib` / `LICENSES/libjpeg-turbo.LICENSE.md` | 仅 Windows MSVC 包随包（MinGW 不可链接，不收集），头文件不转发 |
+| libjpeg-turbo | IJG + BSD-3-Clause | 是 | `lib/turbojpeg-static.lib`（静态模式）/ `bin/turbojpeg.dll`（DLL 模式）/ `LICENSES/libjpeg-turbo.LICENSE.md` | 仅 Windows MSVC 包随包（MinGW 不可链接，不收集），头文件不转发 |
 | Roboto Mono（字体） | Apache-2.0 | 是 | `bin/resources/fonts/RobotoMono-*.ttf` / `LICENSES/RobotoMono.LICENSE.txt` | 字体 name 表声明 Apache-2.0；随示例资源分发 |
 | giflib | MIT | 是 | 编译进 `lib/duilib.lib` / `LICENSES/giflib.LICENSE.txt` | GIF |
 | stb_image | MIT 或公有领域（二选一） | 是 | 编译进 `lib/duilib.lib` / `LICENSES/stb_image.LICENSE.txt` | BMP、缩放 |

@@ -154,6 +154,9 @@ if(DUILIB_WEBVIEW2_EXE)
     list(APPEND DUILIB_WINDOWS_LIBS WinInet.lib WebView2Loader.dll.lib)
 endif()
 
+# duilib 在 DLL 模式下由 DUILIB_LIBS 中的 duilib 目标解析为导入库。
+# 其他库仍需保留：部分示例（ChildWindow 的 SDL 绘制、CEF 示例等）直接调用
+# SDL/CEF API，不能只依赖 duilib.dll 内部的符号。
 target_link_libraries(${PROJECT_NAME} ${DUILIB_LIBS} ${DUILIB_SDL_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_EXAMPLE_CEF_LIBS} ${DUILIB_WINDOWS_LIBS})
 # 记录本目标的构建配置，供 pack.py 判断 bin/ 是否混有另一配置的同名 exe
 duilib_add_build_config_stamp(${PROJECT_NAME})
