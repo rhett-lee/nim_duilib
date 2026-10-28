@@ -204,8 +204,13 @@ function(duilib_configure_macos_bundle target)
             "macOS bundle resources not found: ${_duilib_resources_from}\n"
             "Restore bin/resources in the source tree before building a bundle.")
     endif()
+    # 这里刻意不用 $<TARGET_BUNDLE_DIR:${target}>：目标相关的生成表达式会给
+    # <目标>_bundle_resources 隐式加上“依赖 ${target}”的边（CMP0112），与
+    # add_dependencies(${target} ...) 构成循环依赖，generate 阶段直接报错。
+    # 示例的输出目录固定为 ${DUILIB_BIN_PATH}（见 cmake/duilib_bin.cmake），
+    # 因此 Bundle 目录就是 ${DUILIB_BIN_PATH}/<目标>.app。
     set(_duilib_resources_to
-        "$<TARGET_BUNDLE_DIR:${target}>/Contents/Resources/duilib/resources")
+        "${DUILIB_BIN_PATH}/${target}.app/Contents/Resources/duilib/resources")
 
     set(_duilib_resources_explicit FALSE)
     set(_duilib_resource_list "")
