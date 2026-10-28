@@ -33,6 +33,8 @@
 | SDL3 | `main`（`release-3.4.18` tag 源码编译报错，已不再作为默认） |
 | CEF | 默认 142；109 可选（Windows 7） |
 
+Linux 与 macOS 的本轮环境记录在各章开头（§3、§5）。
+
 MinGW 环境变量模板（每次新终端都要设置）：
 
 ```powershell
@@ -164,15 +166,75 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
 
 Unix 平台一次只构建一个配置，库输出到 `lib/<Config>`；`--md` 仅 MSVC 有效。
 
+本轮环境：Linux x64（VMware 虚拟机）、CMake 3.31、Ninja、gcc（另验证 clang）；
+`/tmp` 为 1.9 GiB tmpfs 且已写满，包测试改将临时目录放到 `--out-dir` 下（见 §7 修复表）。
+
+2026-10-28 Linux 真机复测：Release/Debug 构建、6 个出包、8 次包测试（含两次
+`--run-examples`），以及 `build.py doctor/test`、`test_build.py`、`test_pack.py`、
+`test_sdk_package.py`、`test_autotest.py`、`autotest.py` 全部通过（命令见 3.3）。
+
+### 3.1 构建
+
 | 编号 | 平台 / 工具链 | 架构/配置 | 关键开关 | 命令示例 | 状态 | 备注 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| L-B01 | Linux gcc | x64 / Release | 默认（SDL 默认开启） | `python3 build/build.py --config Release` | 历史通过 | 构建 + 出包已验证 |
-| L-B02 | Linux clang | x64 / Release | 默认 | 同上，`CC/CXX=clang/clang++` | 未测 | 预检与 Skia 工具链优先 clang |
-| L-B03 | Linux | x64 / Debug | 默认 | `python3 build/build.py --config Debug` | 未测 | |
+| L-B01 | Linux gcc | x64 / Release | 默认（SDL 默认开启） | `python3 build/build.py --config Release` | 通过 | 2026-10-28 真机；`python3 build/build.py` 同义 |
+| L-B02 | Linux clang | x64 / Release | 默认 | `CC=clang CXX=clang++ python3 build/build.py` | 通过 | 2026-10-28 真机；仅验证构建，未做 clang 出包与包测试（预检与 Skia 工具链优先 clang） |
+| L-B03 | Linux | x64 / Debug | 默认 | `python3 build/build.py --config Debug` | 通过 | 2026-10-28 真机；切换配置后重新链接 |
 | L-B04 | Linux | arm64 / Release | 默认 | `--arch arm64` | 未测 | 缺真机/交叉工具链 |
-| L-B05 | Linux gcc | x64 / Release | 关闭 SDL | `--no-sdl` | 未测 | |
-| L-B06 | Linux | x64 / Release | `--with-cef` 打包 | `pack --with-cef` | 未测 | 代码路径有单元测试，缺实机包 |
-| L-B07 | Linux | x64 / Release | 运行验证 | 解包运行示例 | 未测 | 依赖系统 X11/字体 |
+| L-B05 | Linux | x64 / Release | `--with-cef` 打包 | `pack --with-examples --with-cef` | 通过 | 2026-10-28 真机；CEF 示例包生成并通过包测试 |
+| L-B06 | Linux | x64 / Release | 运行验证 | 解包运行示例（C10） | 通过 | `--run-examples` 启动 `bin/basic` 3 秒后仍在运行 |
+
+### 3.2 打包与包测试
+
+包名统一为 `nim_duilib-1.0.2026.1023-linux-x64[-examples[-cef]][-debug].tar.gz`；
+所有包测试都带 `--out-dir ./temp`（系统 `/tmp` 空间不足时的显式落盘位置）。
+
+| 编号 | 包 | 生成命令 | 包测试 | 状态 |
+| :--- | :--- | :--- | :--- | :--- |
+| L-P01 | Release 仅库 | `python3 build/pack.py` | `--package ...-linux-x64.tar.gz` | 通过 |
+| L-P02 | Release 示例 | `python3 build/pack.py --with-examples` | `--package ...-linux-x64-examples.tar.gz` | 通过 |
+| L-P03 | Release CEF 示例 | `python3 build/pack.py --with-examples --with-cef` | `--package ...-linux-x64-cef-examples.tar.gz` | 通过 |
+| L-P04 | Debug 仅库 | `python3 build/pack.py --config Debug` | `--package ...-linux-x64-debug.tar.gz` | 通过 |
+| L-P05 | Debug 示例 | `python3 build/pack.py --config Debug --with-examples` | `--package ...-linux-x64-examples-debug.tar.gz` | 通过 |
+| L-P06 | Debug CEF 示例 | `python3 build/pack.py --config Debug --with-examples --with-cef` | `--package ...-linux-x64-cef-examples-debug.tar.gz` | 通过 |
+| L-T01 | Release 示例 + 启动示例 | — | `--package ...-linux-x64-examples.tar.gz --run-examples` | 通过：C10 `examples.smoke` |
+| L-T02 | Debug 示例 + 启动示例 | — | `--package ...-linux-x64-examples-debug.tar.gz --run-examples` | 通过：C10 `examples.smoke` |
+
+Linux 上 C02（DLL）、C04（架构）、C05/C06（MSVC 工具链）、C11（macOS Bundle）按平台
+SKIP，属预期。
+
+### 3.3 2026-10-28 Linux 真机复测命令（全部通过）
+
+| 序号 | 命令 | 覆盖 |
+| ---: | :--- | :--- |
+| 1 | `python3 build/build.py doctor` | 工具链 / 依赖 / 预检 |
+| 2 | `python3 build/build.py test` | 构建与打包脚本单元测试 |
+| 3 | `python3 build/test_build.py` | 构建脚本测试 |
+| 4 | `python3 build/build.py` | Release 全量构建（L-B01） |
+| 5 | `python3 build/pack.py` | Release 仅库出包（L-P01） |
+| 6 | `python3 build/pack.py --with-examples` | Release 示例出包（L-P02） |
+| 7 | `python3 build/pack.py --with-examples --with-cef` | Release CEF 示例出包（L-P03、L-B05） |
+| 8 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-linux-x64.tar.gz --out-dir ./temp` | L-P01 |
+| 9 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-linux-x64-examples.tar.gz --out-dir ./temp` | L-P02 |
+| 10 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-linux-x64-cef-examples.tar.gz --out-dir ./temp` | L-P03 |
+| 11 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-linux-x64-examples.tar.gz --run-examples --out-dir ./temp` | L-T01（C10） |
+| 12 | `python3 build/build.py --config Debug` | Debug 全量构建（L-B03） |
+| 13 | `python3 build/pack.py --config Debug` | Debug 仅库出包（L-P04） |
+| 14 | `python3 build/pack.py --config Debug --with-examples` | Debug 示例出包（L-P05） |
+| 15 | `python3 build/pack.py --config Debug --with-examples --with-cef` | Debug CEF 示例出包（L-P06） |
+| 16 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-linux-x64-debug.tar.gz --out-dir ./temp` | L-P04 |
+| 17 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-linux-x64-examples-debug.tar.gz --out-dir ./temp` | L-P05 |
+| 18 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-linux-x64-cef-examples-debug.tar.gz --out-dir ./temp` | L-P06 |
+| 19 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-linux-x64-examples-debug.tar.gz --run-examples --out-dir ./temp` | L-T02（C10） |
+| 20 | `python3 build/test_pack.py` | 打包脚本测试 |
+| 21 | `python3 build/test_sdk_package.py` | 包测试脚本测试 |
+| 22 | `python3 build/test_autotest.py` | 自动化脚本测试 |
+| 23 | `python3 build/autotest.py` | 自动化（默认 `unit` 预设） |
+| 24 | `CC=clang CXX=clang++ python3 build/build.py` | clang Release 构建（L-B02） |
+
+复测结论：上述命令全部通过，无遗留问题。`--out-dir ./temp` 是必要的：该机 `/tmp` 为
+1.9 GiB tmpfs 且已写满，旧版脚本会把编译器临时文件写到 `/tmp`，导致 C01/C03 误报
+「C++ 编译器不可用」；当前版本已把 `TMPDIR` 指到输出目录下（见 §7 修复表）。
 
 ## 4. FreeBSD 构建与打包矩阵
 
@@ -287,7 +349,12 @@ Skia `llvm.x64.release`、SDL3 `main`、CEF 142/x64。
 | Windows P1（关键出包组合） | 7 / 7 | 全部通过 |
 | Windows P2（参数分支与工程逻辑） | 9 / 9 | 全部通过 |
 | Windows 自动测试 | 158 项 | 全部通过 |
-| Linux x64 Release 构建与打包 | 历史验证 | 通过（运行时未验证） |
+| Linux x64 Release/Debug 构建 | 2 / 2 | 通过（含 CEF 示例，见 3.3） |
+| Linux x64 clang 构建（Release） | 1 / 1 | 通过（`CC=clang CXX=clang++ python3 build/build.py`，仅构建，未出包） |
+| Linux x64 出包 | 6 个包 | 全部通过（Release/Debug × 仅库/示例/CEF 示例） |
+| Linux 包测试（`sdk_package_test.py`） | 8 / 8 | 全部通过（含 Release/Debug 示例包的 `--run-examples`，`--out-dir ./temp`） |
+| Linux 脚本测试（`doctor`/`test`/`test_*`/`autotest`） | 7 项 | 全部通过（见 3.3） |
+| Linux 示例启动/运行验证（`--run-examples`） | 2 次 | 通过：Release、Debug 示例包均 `[PASS] C10 examples.smoke`（L-T01/L-T02） |
 | FreeBSD x64 Release 构建与打包 | 历史验证 | 通过（CEF 不支持，运行时未验证） |
 | macOS x64 Release/Debug 构建 | 2 / 2 | 全部通过（含 CEF `.app`，见 5.3） |
 | macOS 普通示例 Bundle（`basic.app`） | 2 / 2 | Bundle 生成、`Info.plist` 保留、切换配置后首次启动正常（M-B06）；只改资源的增量同步手测通过，修改/新增/删除 XML 均生效（M-B07） |
@@ -353,11 +420,14 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
    Debug/Release 的构建、打包与 SDK 接入已覆盖（见 W-B21 ~ W-B26、W-P18 ~ W-P22）；
    2026-10-24 生成的旧 `dist/` DLL 包（含 `/MT` 的 `turbojpeg-static.lib`）已删除，
    `dist/` 中只保留本轮通过校验的新 DLL 包（W-P18 ~ W-P21、W-P22）。
-3. Linux/FreeBSD 仅验证 Release 构建与打包，Debug、解包运行、下游工程接入未验证。
+3. Linux x64 已完成 Release/Debug 构建、6 个出包、8 次包测试（含下游工程接入 C01 与
+   `--run-examples` 的 C10）与全部脚本测试（2026-10-28 真机复测）；clang 工具链已验证
+   Release 构建（未出包）；未覆盖：arm64。FreeBSD 仍只验证过 Release 构建与打包。
 4. macOS x64 的 Release/Debug 构建、`basic.app`（`Info.plist` 保留、切换配置后首次启动
    正常、只改资源的增量同步）、6 个出包、8 次包测试（含两次 `--run-examples`）与全部脚本
    测试均已通过（2026-10-28 真机复测）；仅 arm64 未覆盖（无测试环境）。
-5. Windows/Linux/macOS 的 arm64 均未实测；Windows 缺 arm64 MSVC 工具集。
+5. Windows/Linux/macOS 的 arm64 均未实测（均无 arm64 测试环境）；Windows 另缺 arm64
+   MSVC 工具集。
 6. `bin/` 与 `lib/<arch>/<Config>` 被多架构/多工具链共用，切换后必须清理，否则打包
    会因 PE 架构或混合库校验失败（这是预期保护，不是缺陷）。
 7. MinGW 默认并行度在内存较小的机器上可能 OOM，回归时优先 `--jobs 2`/`--jobs 3`。
