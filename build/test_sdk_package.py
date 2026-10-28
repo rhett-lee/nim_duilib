@@ -2,10 +2,15 @@
 """build/sdk_package_test.py 的纯函数单元测试（不需要真实发布包）。"""
 
 import importlib.util
+import io
+import os
+import stat
 import subprocess
 import sys
+import tarfile
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 from unittest import mock
 
@@ -472,6 +477,88 @@ class SamplePackageTest(unittest.TestCase):
     def test_tampered_rejected(self):
         detail = sdk.check_tampered(self.info, self.work)
         self.assertIn("global.xml", detail)
+
+
+class ExtractModeTest(unittest.TestCase):
+    """解包必须保留归档条目的权限位。
+
+    `extract_package` 用 `open(..., "wb")` 写文件，得到的是 0644；macOS 的
+    `bin/basic.app/Contents/MacOS/basic` 因此丢掉可执行位，C10 直接用
+    subprocess 启动时报 `PermissionError: [Errno 13]`。
+    """
+
+    EXE_REL = "bin/basic.app/Contents/MacOS/basic"
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.tmp = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _entries(self, exe_mode):
+        return (("MANIFEST.txt", b"manifest\n", 0o644),
+                (self.EXE_REL, b"\xcf\xfa\xed\xfe binary\n", exe_mode))
+
+    def _make_tar(self, exe_mode):
+        archive = self.tmp / "pkg.tar.gz"
+        with tarfile.open(archive, "w:gz") as tf:
+            for rel, data, mode in self._entries(exe_mode):
+                info = tarfile.TarInfo("pkg/" + rel)
+                info.size = len(data)
+                info.mode = mode
+                tf.addfile(info, io.BytesIO(data))
+        return archive
+
+    def _make_zip(self, exe_mode):
+        archive = self.tmp / "pkg.zip"
+        with zipfile.ZipFile(archive, "w") as zf:
+            for rel, data, mode in self._entries(exe_mode):
+                info = zipfile.ZipInfo("pkg/" + rel)
+                info.external_attr = (stat.S_IFREG | mode) << 16
+                zf.writestr(info, data)
+        return archive
+
+    @unittest.skipIf(os.name == "nt", "Windows 没有 POSIX 权限位")
+    def test_tar_keeps_mode(self):
+        dest = sdk.extract_package(self._make_tar(0o755), self.tmp / "tgz")
+        exe = dest / self.EXE_REL
+        self.assertTrue(exe.is_file())
+        self.assertEqual(stat.S_IMODE(exe.stat().st_mode), 0o755)
+        self.assertTrue(os.access(exe, os.X_OK))
+        self.assertEqual(
+            stat.S_IMODE((dest / "MANIFEST.txt").stat().st_mode), 0o644)
+
+    @unittest.skipIf(os.name == "nt", "Windows 没有 POSIX 权限位")
+    def test_zip_keeps_mode(self):
+        dest = sdk.extract_package(self._make_zip(0o755), self.tmp / "zip")
+        exe = dest / self.EXE_REL
+        self.assertTrue(exe.is_file())
+        self.assertEqual(stat.S_IMODE(exe.stat().st_mode), 0o755)
+        self.assertTrue(os.access(exe, os.X_OK))
+
+    def test_missing_mode_is_ignored(self):
+        """条目没有权限位（mode=0）时不能把文件 chmod 成 0，导致自己不可读。"""
+        dest = sdk.extract_package(self._make_tar(0), self.tmp / "zero")
+        self.assertTrue((dest / "MANIFEST.txt").is_file())
+        self.assertEqual((dest / self.EXE_REL).read_bytes(), b"\xcf\xfa\xed\xfe binary\n")
+
+    def test_restore_mode_on_posix(self):
+        """模拟 POSIX，确认权限位只取 S_IMODE（去掉文件类型位）。"""
+        target = self.tmp / "fake_exe"
+        target.write_bytes(b"x")
+        with mock.patch.object(sdk.os, "name", "posix"), \
+                mock.patch.object(sdk.os, "chmod") as chmod:
+            sdk._restore_entry_mode(target, stat.S_IFREG | 0o755)
+        chmod.assert_called_once_with(target, 0o755)
+
+    def test_restore_mode_skipped_on_windows(self):
+        target = self.tmp / "fake_exe"
+        target.write_bytes(b"x")
+        with mock.patch.object(sdk.os, "name", "nt"), \
+                mock.patch.object(sdk.os, "chmod") as chmod:
+            sdk._restore_entry_mode(target, stat.S_IFREG | 0o755)
+        chmod.assert_not_called()
 
 
 def _print_help() -> None:

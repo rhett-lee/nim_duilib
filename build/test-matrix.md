@@ -190,6 +190,10 @@ FreeBSD 复用 Linux/X11 分支；不支持 CEF，`--with-cef` 直接报错。
 本轮环境：macOS x64、AppleClang 21、CMake 4.0.2、Ninja、Python 3.13.3；
 Skia `llvm.x64.release`、SDL3 `main`、CEF 142/x64。
 
+2026-10-28 macOS 真机复测：Release/Debug 构建、6 个出包、6 次包测试，以及
+`build.py doctor/test`、`test_build.py`、`test_pack.py`、`test_sdk_package.py`、
+`test_autotest.py`、`autotest.py` 全部通过，当前无遗留问题（命令清单见 5.3）。
+
 ### 5.1 构建
 
 | 编号 | 架构/配置 | 关键开关 | 命令示例 | 状态 | 备注 |
@@ -199,7 +203,8 @@ Skia `llvm.x64.release`、SDL3 `main`、CEF 142/x64。
 | M-B03 | arm64 / Release | 默认 | `--arch arm64` | 未测 | 缺 arm64 真机 |
 | M-B04 | x64 / Release | CEF 示例 / `.app` | 构建 `cef`、`CefBrowser` | 通过 | Helper/Framework/wrapper 正常，Bundle 随 `--with-cef` 进包 |
 | M-B05 | x64 / Release ↔ Debug | 同一 `bin/` 切换配置 | 连续执行 `python3 build/build.py` 与 `--config Debug` | 通过 | 两次构建均通过，切换后示例重新链接；单元测试覆盖两个方向 |
-| M-B06 | x64 / Release | 普通示例 `.app`（`basic` 默认开启） | `python3 build/build.py` 后检查 `bin/basic.app`（资源在 `Contents/Resources/duilib/resources`，且只含按示例名自动推导的子集） | 未测 | 新增普通示例 Bundle 支持与按示例裁剪资源；需在 macOS 真机验证资源、Frameworks 与 rpath，Windows 侧仅做静态检查 |
+| M-B06 | x64 / Release | 普通示例 `.app`（`basic` 默认开启） | `python3 build/build.py` 后检查 `bin/basic.app`（`Contents/Info.plist`、`Contents/Resources/duilib/resources` 只含按示例名自动推导的子集） | 通过 | macOS 真机：`.app` 生成正常、`Info.plist` 存在、Debug/Release 切换后首次启动不再崩溃。资源改由 `<目标>_bundle_resources` 每次构建同步（按内容比较），实现见 `cmake/duilib_copy_bundle_resources.cmake` |
+| M-B07 | x64 / Release | 仅改资源、不改源码 | 改 `bin/resources/themes/default/basic/*.xml` 后 `python3 build/build.py`，`open bin/basic.app` | 未测 | 需手测一次确认 Bundle 内资源随构建更新（日志应出现 `Syncing duilib resources into basic.app`，有变化时再出现 `Bundle 资源已同步`）；脚本本身已在 Windows 侧用 `cmake -P` 夹具与桩工程验证 |
 
 ### 5.2 打包与包测试
 
@@ -213,7 +218,7 @@ Skia `llvm.x64.release`、SDL3 `main`、CEF 142/x64。
 | M-P03 | Release，含示例 + CEF | `python3 build/pack.py --with-examples --with-cef` | `nim_duilib-1.0.2026.1023-macos-x64-cef-examples.tar.gz` | 通过 |
 | M-P04 | Debug，含示例，无 CEF | `python3 build/pack.py --config Debug --with-examples` | `nim_duilib-1.0.2026.1023-macos-x64-examples-debug.tar.gz` | 通过 |
 | M-P05 | Debug，含示例 + CEF | `python3 build/pack.py --config Debug --with-examples --with-cef` | `nim_duilib-1.0.2026.1023-macos-x64-cef-examples-debug.tar.gz` | 通过 |
-| M-P06 | Debug，仅库 | —（本轮未单独执行打包命令） | `nim_duilib-1.0.2026.1023-macos-x64-debug.tar.gz` | 通过（包测试） |
+| M-P06 | Debug，仅库 | `python3 build/pack.py --config Debug` | `nim_duilib-1.0.2026.1023-macos-x64-debug.tar.gz` | 通过 |
 
 包测试命令与结果：
 
@@ -225,20 +230,53 @@ Skia `llvm.x64.release`、SDL3 `main`、CEF 142/x64。
 | M-T04 | Debug 仅库 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-macos-x64-debug.tar.gz` | 通过 |
 | M-T05 | Debug 示例 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-macos-x64-examples-debug.tar.gz` | 通过 |
 | M-T06 | Debug CEF 示例 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-macos-x64-cef-examples-debug.tar.gz` | 通过 |
+| M-T07 | Release 示例 + 启动示例 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-macos-x64-examples.tar.gz --run-examples` | 失败 → 已修复待复测：C10 `examples.smoke` 报 `PermissionError: [Errno 13]`，原因是解包丢可执行位（见 §7） |
+
+### 5.3 2026-10-28 macOS 真机复测命令（全部通过）
+
+按执行顺序，同一 `bin/`、`lib/` 上完成 Release → Debug 的构建、出包与包测试：
+
+| 序号 | 命令 | 覆盖 |
+| ---: | :--- | :--- |
+| 1 | `python3 build/build.py doctor` | 工具链 / 依赖 / 预检 |
+| 2 | `python3 build/build.py test` | 构建与打包脚本单元测试 |
+| 3 | `python3 build/test_build.py` | 构建脚本测试（含 `bin/.build-config/` 清理） |
+| 4 | `python3 build/build.py` | Release 全量构建（含 `basic.app`、CEF `.app`） |
+| 5 | `python3 build/pack.py` | Release 仅库出包（M-P01） |
+| 6 | `python3 build/pack.py --with-examples` | Release 示例出包（M-P02） |
+| 7 | `python3 build/pack.py --with-examples --with-cef` | Release CEF 示例出包（M-P03） |
+| 8 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-macos-x64.tar.gz` | M-T01 |
+| 9 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-macos-x64-examples.tar.gz` | M-T02 |
+| 10 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-macos-x64-cef-examples.tar.gz` | M-T03 |
+| 11 | `python3 build/build.py --config Debug` | Debug 全量构建（切换配置，验证 Info.plist 保留与重链） |
+| 12 | `python3 build/pack.py --config Debug` | Debug 仅库出包（M-P06） |
+| 13 | `python3 build/pack.py --config Debug --with-examples` | Debug 示例出包（M-P04） |
+| 14 | `python3 build/pack.py --config Debug --with-examples --with-cef` | Debug CEF 示例出包（M-P05） |
+| 15 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-macos-x64-debug.tar.gz` | M-T04 |
+| 16 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-macos-x64-examples-debug.tar.gz` | M-T05 |
+| 17 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-macos-x64-cef-examples-debug.tar.gz` | M-T06 |
+| 18 | `python3 build/test_pack.py` | 打包脚本测试 |
+| 19 | `python3 build/test_sdk_package.py` | 包测试脚本测试 |
+| 20 | `python3 build/test_autotest.py` | 自动化脚本测试 |
+| 21 | `python3 build/autotest.py` | 自动化（默认 `unit` 预设） |
+
+复测结论：上述命令全部通过。额外的 `--run-examples`（M-T07）暴露出 C10 解包丢可执行位
+的问题，已修复，需在 macOS 复跑一次确认。尚未覆盖：M-B03（arm64）、M-B07（只改资源的
+增量同步手测）。
 
 ## 6. 跨平台通用命令矩阵
 
 | 编号 | 命令 | 覆盖内容 | 状态 | 备注 |
 | :--- | :--- | :--- | :--- | :--- |
-| G-01 | `build.py doctor` | 工具链、版本清单、依赖目录、预检 | 通过 | Windows 本轮；Linux/FreeBSD/macOS 历史 |
+| G-01 | `build.py doctor` | 工具链、版本清单、依赖目录、预检 | 通过 | Windows 本轮；Linux/FreeBSD 历史；macOS 2026-10-28 真机通过 |
 | G-02 | `build.py deps --offline` | 离线采纳已有 Skia/CEF/SDL3；本地源码不在清单 ref 上时先切到本地已有的提交 | 通过 | 不访问网络，stamp 校验；Windows 实测 SDL `main` ↔ `release-3.4.18` 双向切换均可用 |
 | G-03 | `build.py clean` | 删除整个 `out/`；`--build-dir` 可只清理指定构建目录 | 通过 | dry-run 仅打印路径 |
 | G-04 | `build.py clean --deps --dry-run` | 展示依赖清理范围 | 通过 | 不会删除源码克隆 |
 | G-05 | `build.py build/pack/test --dry-run` | 只打印命令 | 通过 | build/clean 不再误报完成 |
-| G-06 | `build.py test` | 构建/打包单元测试 | 通过 | 202 项全部通过（含 `bin/.build-config/` 新路径、旧标记兼容、标记目录不被误收、Debug/Release 切换清理） |
+| G-06 | `build.py test` | 构建/打包单元测试 | 通过 | 202 项全部通过（含 `bin/.build-config/` 新路径、旧标记兼容、标记目录不被误收、Debug/Release 切换清理）；macOS 2026-10-28 复测 `build.py test`、`test_build.py`、`test_pack.py`、`test_sdk_package.py`、`test_autotest.py` 均通过 |
 | G-07 | 负向校验 | 混合库、架构不一致、CEF 版本不匹配、错误 ref/archive | 通过 | 均在配置/打包阶段明确报错 |
 
-## 7. 当前测试进展（2026-10-27）
+## 7. 当前测试进展（2026-10-28）
 
 | 范围 | 已完成 | 结果 |
 | :--- | :--- | :--- |
@@ -247,11 +285,12 @@ Skia `llvm.x64.release`、SDL3 `main`、CEF 142/x64。
 | Windows 自动测试 | 158 项 | 全部通过 |
 | Linux x64 Release 构建与打包 | 历史验证 | 通过（运行时未验证） |
 | FreeBSD x64 Release 构建与打包 | 历史验证 | 通过（CEF 不支持，运行时未验证） |
-| macOS x64 Release/Debug 构建 | 2 / 2 | 全部通过（含 CEF `.app`） |
-| macOS 普通示例 Bundle（`basic.app`） | 0 | 未测（需 macOS 真机；构建脚本与文档已完成） |
-| macOS x64 出包 | 6 个包 | 通过（Release 三类重新出包；Debug 仅库包复测，示例/CEF 示例重新出包） |
+| macOS x64 Release/Debug 构建 | 2 / 2 | 全部通过（含 CEF `.app`，见 5.3） |
+| macOS 普通示例 Bundle（`basic.app`） | 1 / 2 | Bundle 生成、`Info.plist` 保留、切换配置后首次启动正常（M-B06）；只改资源的增量同步待手测（M-B07） |
+| macOS x64 出包 | 6 个包 | 全部通过（Release/Debug × 仅库/示例/CEF 示例） |
 | macOS 包测试（`sdk_package_test.py`） | 6 / 6 | 全部通过 |
-| macOS 示例启动/运行验证 | 0 | 未测（本轮未加 `--run-examples`） |
+| macOS 脚本测试（`doctor`/`test`/`test_*`/`autotest`） | 7 项 | 全部通过（见 5.3） |
+| macOS 示例启动/运行验证（`--run-examples`） | 1 次 | 已执行：C10 因解包丢可执行位失败，代码已修复，待在 macOS 复跑（M-T07） |
 | arm64（Windows/Linux/macOS） | 0 | 未测 |
 
 本轮验证过的代表性产物（中间包已清理，仅保留最终包）：
@@ -288,6 +327,10 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
 | `build`/`clean` 的 `--dry-run` 仍打印“编译完成/已删除” | dry-run 下不再输出完成提示，新增 1 项测试 |
 | MinGW 禁用静态链接后示例缺运行库 DLL | 已验证构建/打包，文档补充运行库清单；不由构建自动收集 |
 | 切换 Debug/Release 后 Ninja 判定链接已最新，`bin/` 不更新 | `build.py` 链接前按 `bin/.build-config` 删除另一配置的示例及标记，强制重链；macOS 本轮 Release → Debug 实测通过，单元测试覆盖两个方向 |
+| macOS 切换 Debug/Release 后，后编译的那一版首次启动崩溃（栈顶 `+[UNUserNotificationCenter currentNotificationCenter]` 断言） | 根因是跨配置清理整删 `.app`，丢掉 configure 阶段生成、链接阶段不重建的 `Contents/Info.plist`（缺 `CFBundleIdentifier`，LaunchServices 解析不到 bundle）。`build.py` 的清理改为对 `.app` 只删 `Contents/MacOS` 内容，保留 plist 与资源；macOS 真机 Release ↔ Debug 反复切换后启动正常，单元测试覆盖 |
+| 只改资源、不改源码时 Bundle 内仍是旧资源（测试看不到修改） | 资源复制原先挂在 `POST_BUILD`，不重链就不执行。新增 `cmake/duilib_copy_bundle_resources.cmake`，由每次构建都运行的 `<目标>_bundle_resources` 目标调用：按 SHA256 比较、增量复制、删除清单外文件；普通示例与 CEF 示例共用 |
+| 新增资源目标后 configure 报循环依赖（`<目标>_bundle_resources` ↔ `<目标>`） | 自定义目标的 `COMMAND` 中引用了 `$<TARGET_BUNDLE_DIR:${target}>`，目标相关生成表达式会隐式加一条依赖目标的边（CMP0112），与 `add_dependencies` 成环。改为字面路径 `${DUILIB_BIN_PATH}/<目标>.app/...`；CEF 分支本就是字面路径，无此问题 |
+| macOS `--run-examples` 的 C10 报 `PermissionError: [Errno 13]`（`bin/basic.app/Contents/MacOS/basic`） | `sdk_package_test.py` 的 `extract_package` 用 `open(..., "wb")` 解包，权限固定 0644，Unix 上丢可执行位。tar 按 `member.mode`、zip 按 `external_attr >> 16` 恢复模式（Windows 跳过），新增 5 项单元测试（POSIX 分支用 mock 断言 `chmod` 参数） |
 
 ### 2026-10-27 依赖版本一致性（Windows 已验证）
 
@@ -306,8 +349,10 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
    2026-10-24 生成的旧 `dist/` DLL 包（含 `/MT` 的 `turbojpeg-static.lib`）已删除，
    `dist/` 中只保留本轮通过校验的新 DLL 包（W-P18 ~ W-P21、W-P22）。
 3. Linux/FreeBSD 仅验证 Release 构建与打包，Debug、解包运行、下游工程接入未验证。
-4. macOS x64 的 Release/Debug 构建、6 个出包与 `sdk_package_test.py` 已全部通过；
-   示例程序启动（C10/`--run-examples`）、GUI 运行与 arm64 仍未验证。
+4. macOS x64 的 Release/Debug 构建、`basic.app`（`Info.plist` 保留、切换配置后首次启动
+   正常）、6 个出包、`sdk_package_test.py` 与全部脚本测试均已通过（2026-10-28 真机复测）；
+   `--run-examples` 已执行一次并修复 C10 的解包权限问题，待在 macOS 复跑确认；仍未验证：
+   只改资源的增量同步手测（M-B07）、arm64。
 5. Windows/Linux/macOS 的 arm64 均未实测；Windows 缺 arm64 MSVC 工具集。
 6. `bin/` 与 `lib/<arch>/<Config>` 被多架构/多工具链共用，切换后必须清理，否则打包
    会因 PE 架构或混合库校验失败（这是预期保护，不是缺陷）。

@@ -142,6 +142,22 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   together with their stamps before linking, forcing a relink for the requested
   configuration; `--target X` only cleans that target and `--no-examples` skips the
   cleanup.
+- macOS example app bundles (crash on first launch after switching Debug/Release):
+  `build.py`'s cross-configuration cleanup removed the whole `bin/<target>.app`, but
+  `Contents/Info.plist` is produced by CMake at configure time and is not rebuilt when
+  linking. The relinked bundle therefore had no `CFBundleIdentifier`, LaunchServices
+  could not resolve the running process' bundle, and SDL initialization tripped the
+  `+[UNUserNotificationCenter currentNotificationCenter]` assertion. The assertion
+  runs inside `dispatch_once`, so `@try/@catch` cannot intercept it. The cleanup now
+  only removes what is under `Contents/MacOS` and keeps `Info.plist`, `PkgInfo` and
+  the resources; cef/CefBrowser are structurally identical bundles and are covered by
+  the same fix.
+- SDK package test (macOS C10 example launch): `extract_package` wrote files with
+  `open(..., "wb")`, always producing mode 0644, so Unix lost the executable bit and
+  launching `bin/basic.app/Contents/MacOS/basic` raised
+  `PermissionError: [Errno 13]`. Archive entry modes are now restored (tar:
+  `member.mode`, zip: `external_attr >> 16`), skipped on Windows where POSIX
+  permission bits do not exist.
 - SDK package test (macOS P04/P06 false failures): `sdk_package_test.py` only looked
   for the CEF runtime under `bin/libcef_win*` / `bin/libcef_linux`, but on macOS it
   lives inside the example bundle (`.app/Contents/Frameworks/Chromium Embedded

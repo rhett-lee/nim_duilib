@@ -113,6 +113,17 @@
   Debug 产物。现在 `build.py build` 在链接前根据 `bin/.build-config/<目标>`
   （兼容旧版 `bin/<目标>.build-config`）删除其他配置的示例产物及标记，强制当前
   配置重新链接；`--target X` 只清理该目标，`--no-examples` 跳过清理。
+- macOS 示例 App Bundle（切换 Debug/Release 后启动崩溃）：`build.py` 的跨配置清理
+  会整删 `bin/<目标>.app`，而 `Contents/Info.plist` 由 CMake 在 configure 阶段生成、
+  链接阶段不重建；重新链接后 bundle 缺 `CFBundleIdentifier`，LaunchServices 解析不到
+  当前进程的 bundle，SDL 初始化时 `+[UNUserNotificationCenter currentNotificationCenter]`
+  断言抛异常，且断言位于 `dispatch_once` 内，`@try/@catch` 无法捕获。现在只删除
+  `.app` 内 `Contents/MacOS` 下的产物，保留 `Info.plist`、`PkgInfo` 与资源；
+  cef/CefBrowser 为同构 Bundle，同样受此修复保护。
+- 发布包测试（macOS C10 示例启动）：`extract_package` 用 `open(..., "wb")` 解包，
+  文件权限固定为 0644，Unix 上丢掉可执行位，`bin/basic.app/Contents/MacOS/basic`
+  直接启动时报 `PermissionError: [Errno 13]`。现在按归档条目的权限位恢复（tar 用
+  `member.mode`，zip 用 `external_attr >> 16`），Windows 上没有 POSIX 权限位则跳过。
 - 发布包测试（macOS P04/P06 误报）：`sdk_package_test.py` 原先只在
   `bin/libcef_win*`、`bin/libcef_linux` 中查找 CEF 运行时，macOS 的 CEF 位于示例
   `.app/Contents/Frameworks/Chromium Embedded Framework.framework`，导致包名 `-cef`

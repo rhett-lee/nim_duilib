@@ -27,6 +27,7 @@ import os
 import platform
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tarfile
@@ -416,6 +417,22 @@ def collect_files(root: Path) -> list[str]:
     return sorted(result)
 
 
+def _restore_entry_mode(path: Path, mode: int) -> None:
+    """按归档条目权限位恢复解包文件的模式。
+
+    `open(..., "wb")` 建出来的文件是 0644，Unix 上丢掉了可执行位：
+    macOS 的 `bin/basic.app/Contents/MacOS/basic` 解包后无法执行，C10 会直接
+    报 `PermissionError: [Errno 13]`。Windows 没有 POSIX 权限位，chmod 只影响
+    只读位，因此跳过。
+    """
+    if os.name == "nt" or not mode:
+        return
+    try:
+        os.chmod(path, stat.S_IMODE(mode))
+    except OSError:
+        pass
+
+
 def extract_package(archive: Path, dest: Path) -> Path:
     """解包，并把归档顶层包目录的内容直接落到 dest。
 
@@ -441,6 +458,7 @@ def extract_package(archive: Path, dest: Path) -> Path:
                 target.parent.mkdir(parents=True, exist_ok=True)
                 with zf.open(member) as src, open(target, "wb") as dst:
                     shutil.copyfileobj(src, dst)
+                _restore_entry_mode(target, member.external_attr >> 16)
     else:
         with tarfile.open(archive, "r:*") as tf:
             for member in tf.getmembers():
@@ -458,6 +476,7 @@ def extract_package(archive: Path, dest: Path) -> Path:
                 elif member.isfile():
                     with tf.extractfile(member) as src, open(target, "wb") as dst:
                         shutil.copyfileobj(src, dst)
+                    _restore_entry_mode(target, member.mode)
     return dest
 
 
