@@ -260,16 +260,29 @@ if(OS_MAC)
     endif()
     # 颜色主题（themes/color_light|color_dark）也必须在包内：启动时按系统深浅色
     # 加载语义色值，缺失会导致界面无色。
-    add_custom_command(TARGET ${CEF_TARGET} 
-                       POST_BUILD
-                       COMMAND ${CMAKE_COMMAND} -E copy_directory "${DUILIB_RES_FROM}/themes/default/public" "${DUILIB_RES_TO}/themes/default/public/"
-                       COMMAND ${CMAKE_COMMAND} -E copy_directory "${DUILIB_RES_FROM}/themes/default/${DUILIB_THEME_DIR_NAME}" "${DUILIB_RES_TO}/themes/default/${DUILIB_THEME_DIR_NAME}"
-                       COMMAND ${CMAKE_COMMAND} -E copy "${DUILIB_RES_FROM}/themes/default/global.xml" "${DUILIB_RES_TO}/themes/default/"
-                       COMMAND ${CMAKE_COMMAND} -E copy_directory "${DUILIB_RES_FROM}/themes/color_light/" "${DUILIB_RES_TO}/themes/color_light/"
-                       COMMAND ${CMAKE_COMMAND} -E copy_directory "${DUILIB_RES_FROM}/themes/color_dark/" "${DUILIB_RES_TO}/themes/color_dark/"
-                       COMMAND ${CMAKE_COMMAND} -E copy_directory "${DUILIB_RES_FROM}/lang/" "${DUILIB_RES_TO}/lang/"
-                       COMMAND ${CMAKE_COMMAND} -E copy_directory "${DUILIB_RES_FROM}/fonts/" "${DUILIB_RES_TO}/fonts/"
-                       VERBATIM)
+    #
+    # 资源同步不能挂在链接后的 POST_BUILD 上：只改资源、不改源码时目标不会重新
+    # 链接，POST_BUILD 不执行，Bundle 里就会一直是旧资源（测试时看到的仍是旧界面）。
+    # 这里改为「每次构建都执行」的依赖目标，由脚本按内容比较，只复制变化的文件。
+    set(_duilib_res_entries
+        "themes/default/public"
+        "themes/default/${DUILIB_THEME_DIR_NAME}"
+        "themes/default/global.xml"
+        "themes/color_light"
+        "themes/color_dark"
+        "lang"
+        "fonts"
+       )
+    string(REPLACE ";" "|" _duilib_res_entries_arg "${_duilib_res_entries}")
+    add_custom_target(${CEF_TARGET}_bundle_resources
+        COMMAND ${CMAKE_COMMAND}
+                "-DDUILIB_RES_SRC=${DUILIB_RES_FROM}"
+                "-DDUILIB_RES_DST=${DUILIB_RES_TO}"
+                "-DDUILIB_RES_ENTRIES=${_duilib_res_entries_arg}"
+                -P "${CMAKE_CURRENT_LIST_DIR}/duilib_copy_bundle_resources.cmake"
+        COMMENT "Syncing duilib resources into ${CEF_TARGET}.app"
+        VERBATIM)
+    add_dependencies(${CEF_TARGET} ${CEF_TARGET}_bundle_resources)
     
     # Manually process and copy over resource files.
     # The Xcode generator can support this via the set_target_properties RESOURCE

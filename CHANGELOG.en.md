@@ -58,7 +58,11 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   resource list derived from the example name), copies SDL3 dylibs into
   `Contents/Frameworks` with an
   `@executable_path/../Frameworks` rpath, removes the stale artifact of the other
-  mode, and derives bundle versions from `duilib_version.h`.
+  mode, and derives bundle versions from `duilib_version.h`. Resource syncing runs
+  through a `<target>_bundle_resources` target on every build
+  (`cmake/duilib_copy_bundle_resources.cmake` compares content, copies only changed
+  files and removes stale ones), so editing XML/images without touching C++ updates
+  the bundle without forcing a relink.
 - macOS bundles trim resources per example automatically: the list is derived from
   the example's target name (`project()`), so only its own theme directory, the
   shared default theme, fonts and language files are copied; the example's

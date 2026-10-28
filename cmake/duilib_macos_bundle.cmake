@@ -207,13 +207,6 @@ function(duilib_configure_macos_bundle target)
     set(_duilib_resources_to
         "$<TARGET_BUNDLE_DIR:${target}>/Contents/Resources/duilib/resources")
 
-    # 先清理上一次生成的资源目录，避免修改裁剪列表后遗留旧文件。
-    add_custom_command(TARGET ${target}
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E rm -rf "${_duilib_resources_to}"
-        COMMENT "Cleaning duilib resources in ${target}.app"
-        VERBATIM)
-
     set(_duilib_resources_explicit FALSE)
     set(_duilib_resource_list "")
     if(DEFINED DUILIB_MACOS_BUNDLE_RESOURCES AND
@@ -236,12 +229,13 @@ function(duilib_configure_macos_bundle target)
         set(_duilib_resources_explicit FALSE)
     endif()
 
+    # 校验清单条目：显式清单写错要立刻失败；默认清单里缺失的条目（例如某个示例
+    # 没有自己的主题目录）直接跳过，只复制公共资源。
+    set(_duilib_resource_sync_entries "")
     foreach(_duilib_resource IN LISTS _duilib_resource_list)
         set(_duilib_resource_src
             "${_duilib_resources_from}/${_duilib_resource}")
         if(NOT EXISTS "${_duilib_resource_src}")
-            # 显式清单写错要立刻失败；默认清单里缺失的条目（例如某个示例
-            # 没有自己的主题目录）直接跳过，只复制公共资源。
             if(_duilib_resources_explicit)
                 message(FATAL_ERROR
                     "macOS bundle resource not found: ${_duilib_resource_src}\n"
@@ -251,31 +245,26 @@ function(duilib_configure_macos_bundle target)
                 "Skipping macOS bundle resource (not found): ${_duilib_resource}")
             continue()
         endif()
-
-        if(IS_DIRECTORY "${_duilib_resource_src}")
-            add_custom_command(TARGET ${target}
-                POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E make_directory
-                        "${_duilib_resources_to}/${_duilib_resource}"
-                COMMAND ${CMAKE_COMMAND} -E copy_directory
-                        "${_duilib_resource_src}"
-                        "${_duilib_resources_to}/${_duilib_resource}"
-                COMMENT "Copying ${_duilib_resource} into ${target}.app"
-                VERBATIM)
-        else()
-            get_filename_component(_duilib_resource_dst_dir
-                "${_duilib_resources_to}/${_duilib_resource}" DIRECTORY)
-            add_custom_command(TARGET ${target}
-                POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E make_directory
-                        "${_duilib_resource_dst_dir}"
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                        "${_duilib_resource_src}"
-                        "${_duilib_resources_to}/${_duilib_resource}"
-                COMMENT "Copying ${_duilib_resource} into ${target}.app"
-                VERBATIM)
-        endif()
+        list(APPEND _duilib_resource_sync_entries "${_duilib_resource}")
     endforeach()
+
+    # 资源同步不能挂在链接后的 POST_BUILD 上：只改资源、不改源码时目标不会重新
+    # 链接，POST_BUILD 不执行，Bundle 里就会一直是旧资源（测试时看到的仍是旧界面）。
+    # 这里改为「每次构建都执行」的依赖目标，由脚本按内容比较，只复制变化的文件，
+    # 并删除清单之外的旧文件。
+    if(_duilib_resource_sync_entries)
+        string(REPLACE ";" "|" _duilib_resource_sync_arg
+               "${_duilib_resource_sync_entries}")
+        add_custom_target(${target}_bundle_resources
+            COMMAND ${CMAKE_COMMAND}
+                    "-DDUILIB_RES_SRC=${_duilib_resources_from}"
+                    "-DDUILIB_RES_DST=${_duilib_resources_to}"
+                    "-DDUILIB_RES_ENTRIES=${_duilib_resource_sync_arg}"
+                    -P "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/duilib_copy_bundle_resources.cmake"
+            COMMENT "Syncing duilib resources into ${target}.app"
+            VERBATIM)
+        add_dependencies(${target} ${target}_bundle_resources)
+    endif()
 
     # 切换为 Bundle 后，bin/ 中可能还留有上一次生成的非 Bundle 可执行文件；
     # 删除它，避免 pack.py 同时收集 bin/<target> 与 bin/<target>.app。

@@ -126,12 +126,13 @@ Example code therefore works unchanged with `GetResourceRootPath()` or an explic
 
 ## 3. What the build does
 
-`cmake/duilib_macos_bundle.cmake` runs after linking and:
+`cmake/duilib_macos_bundle.cmake` runs during the build and:
 
-1. copies resources into `Contents/Resources/duilib/resources` (standard layout):
+1. syncs resources into `Contents/Resources/duilib/resources` (standard layout):
    the list is derived from the example name and contains only what it needs
-   (basic is about 1.3 MB instead of 4 MB for the whole `bin/resources`). The old
-   `resources/` directory is removed first so stale files do not survive;
+   (basic is about 1.3 MB instead of 4 MB for the whole `bin/resources`). The sync
+   runs through a separate `<target>_bundle_resources` target on **every build**
+   (see the next paragraph);
 2. copies `libSDL3*.dylib` and its version symlink chain into `Contents/Frameworks`
    when SDL3 is enabled (always on macOS);
 3. sets the executable rpath to `@executable_path/../Frameworks` so SDL3 is not
@@ -141,9 +142,15 @@ Example code therefore works unchanged with `GetResourceRootPath()` or an explic
 5. reads `duilib/duilib_version.h` and fills `CFBundleVersion` /
    `CFBundleShortVersionString`.
 
-Resource copying is a `POST_BUILD` step, so it only runs when the target relinks.
-If you changed resource files without causing a relink, delete
-`bin/<target>.app` and rebuild; otherwise the bundle keeps the old resources.
+The sync is performed by `cmake/duilib_copy_bundle_resources.cmake` as a build
+dependency of the example target, so it runs on **every build**. The script compares
+files by SHA256, copies only new or changed ones and deletes files outside the list,
+so unchanged files keep their mtime.
+
+As a result, **changing only XML, images, fonts or `lang` files — with no C++ change —
+updates the bundle automatically**; there is no need to delete `bin/<target>.app` or
+force a relink (`POST_BUILD` steps only run on relink and cannot sync resources).
+Resources are still edited under `bin/resources/...`.
 
 Bundles are only produced on macOS; other platforms are unchanged.
 
@@ -318,19 +325,30 @@ the executable under `.app/Contents/MacOS`: `Contents/Info.plist` is generated d
 configure (relinking does not recreate it), so the bundle metadata and copied
 resources stay intact while the wrong configuration is still kept out of `bin/`.
 
+The CEF examples (`cef`, `CefBrowser`) behave the same way: they also write
+`bin/.build-config/<target>`, and their `Contents/Info.plist` comes from
+`examples/<name>/mac/Info.plist.in`, likewise generated during configure. The cleanup
+only removes the main executable; the Chromium Embedded Framework, `<target> Helper.app`
+and the SDL3 dylib under `Contents/Frameworks` are left in place and refreshed by the
+`POST_BUILD` steps of the relinked target, so the CEF examples are covered by the same fix.
+CEF examples sync their resources through the same
+`cmake/duilib_copy_bundle_resources.cmake` script (entries: `themes/default/public`,
+`themes/default/<DUILIB_THEME_DIR_NAME>`, `themes/default/global.xml`, `themes/color_light`,
+`themes/color_dark`, `lang`, `fonts`), refreshed on every build.
+
 ## 8. Troubleshooting
 
 | Symptom | Cause | Fix |
 | :--- | :--- | :--- |
 | Still `bin/basic`, no `.app` | Switch not applied | Put `set(DUILIB_EXAMPLE_MACOS_BUNDLE ON)` before the include; it only applies on macOS |
-| No `Resources/duilib/resources/` inside the bundle | Copy skipped or source missing | Ensure `bin/resources` exists and rebuild; look for `Copying ... into basic.app` in the build log |
+| No `Resources/duilib/resources/` inside the bundle | Copy skipped or source missing | Ensure `bin/resources` exists and rebuild; look for `Syncing duilib resources into basic.app` in the build log |
 | Themes/fonts not found at startup | Resources not in the standard directory, or the example directory name does not match the target | Check `Contents/Resources/duilib/resources/themes/default/global.xml`; make sure `themes/default/<example directory>` exists, or set `DUILIB_THEME_DIR_NAME` and rebuild |
 | Other example directories under `themes/default` are missing | Bundles are trimmed per example by default | Expected; override the default list with `DUILIB_MACOS_BUNDLE_RESOURCES` if you really need them |
 | `Library not loaded: @rpath/libSDL3*.dylib` | SDL3 missing or rpath changed | Check `Contents/Frameworks` and `LC_RPATH`; rebuild and re-sign |
 | “Developer cannot be verified” | Not signed/notarized | Ad-hoc sign for local tests; follow section 6 for distribution |
 | Both `basic` and `basic.app` exist | Old artifact from a previous mode | Relink the target (the build removes the opposite artifact) or delete the old one manually |
 | Packaging picks up an old `.app` | Bundle was disabled without relinking | `rm -rf bin/<target>.app` and rebuild |
-| Bundle keeps old resources after changing them | Resource copy is `POST_BUILD`; the target did not relink | `rm -rf bin/<target>.app` and rebuild |
+| Bundle keeps old resources after changing them | Older versions copied resources in `POST_BUILD`, which only runs on relink | Fixed: `<target>_bundle_resources` syncs resources on every build; if it still fails, check that you edited the file under `bin/resources` and look for the sync message in the log |
 | Crash on the first launch after switching Debug/Release, with `+[UNUserNotificationCenter currentNotificationCenter]` at the top of the stack | `Contents/Info.plist` is missing (older `build.py` deleted the whole `.app` and relinking only recreated the executable) | Fixed; for an existing bundle delete `bin/<target>.app` and rebuild, then verify with `plutil -p bin/<target>.app/Contents/Info.plist` |
 
 ## 9. Related files
@@ -342,4 +360,5 @@ resources stay intact while the wrong configuration is still kept out of `bin/`.
 | `cmake/duilib_bin_macos.cmake` | Chooses between `MACOSX_BUNDLE` and a plain executable |
 | `cmake/duilib_macos_bundle.cmake` | Bundle properties, resources, icon, SDL3, rpath |
 | `cmake/macos/Info.plist.in` | Info.plist template |
+| `cmake/duilib_copy_bundle_resources.cmake` | Syncs resources into the bundle on every build (content-based, incremental) |
 | `cmake/duilib_copy_sdl_bundle.cmake` | Copies SDL3 dylibs into `Contents/Frameworks` |

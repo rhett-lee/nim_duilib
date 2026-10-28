@@ -405,18 +405,32 @@ class ConfigSwitchTests(unittest.TestCase):
         self.assertFalse((bin_dir / "basic.exe").exists())
 
     def test_macos_bundle_keeps_info_plist(self):
-        """只删 .app 内的可执行文件：Info.plist 由 configure 生成，删掉不会再生。"""
+        """只删 .app 内的可执行文件：Info.plist 由 configure 生成，删掉不会再生。
+
+        用 CEF 示例名（CefBrowser）验证：CEF 的 .app 结构与普通示例一致，
+        且额外带 Contents/Frameworks（CEF framework、Helper.app、SDL3 动态库），
+        这些都由链接后的 POST_BUILD 复制，清理时不能整目录删除。
+        """
         bin_dir = self._bin()
         self._stamp(bin_dir, "CefBrowser", "Debug")
         bundle = bin_dir / "CefBrowser.app"
         self._touch(bundle / "Contents" / "Info.plist")
         self._touch(bundle / "Contents" / "MacOS" / "CefBrowser")
         self._touch(bundle / "Contents" / "Resources" / "duilib" / "resources" / "themes" / "global.xml")
+        framework = bundle / "Contents" / "Frameworks" / "Chromium Embedded Framework.framework"
+        self._touch(framework / "Versions" / "A" / "Chromium Embedded Framework")
+        helper_exe = (bundle / "Contents" / "Frameworks" / "CefBrowser Helper.app"
+                      / "Contents" / "MacOS" / "CefBrowser Helper")
+        self._touch(helper_exe)
+        self._touch(bundle / "Contents" / "Frameworks" / "libSDL3.dylib")
         removed, _ = self._clear(bin_dir, "Release")
         self.assertEqual(removed, ["CefBrowser"])
         self.assertFalse((bundle / "Contents" / "MacOS" / "CefBrowser").exists())
         self.assertTrue((bundle / "Contents" / "Info.plist").exists())
         self.assertTrue((bundle / "Contents" / "Resources" / "duilib" / "resources" / "themes" / "global.xml").exists())
+        self.assertTrue((framework / "Versions" / "A" / "Chromium Embedded Framework").exists())
+        self.assertTrue(helper_exe.exists())
+        self.assertTrue((bundle / "Contents" / "Frameworks" / "libSDL3.dylib").exists())
 
     def test_non_bundle_directory_is_removed(self):
         bin_dir = self._bin()

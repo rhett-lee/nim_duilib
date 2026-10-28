@@ -122,11 +122,12 @@ SDK 消费者使用 `nim_duilib_copy_runtime(... RESOURCES)` 时也复制到相�
 
 ## 3. 构建时的自动处理
 
-`cmake/duilib_macos_bundle.cmake` 在链接后执行以下操作：
+`cmake/duilib_macos_bundle.cmake` 在构建时执行以下操作：
 
-1. 把资源复制到 `Contents/Resources/duilib/resources`（标准布局）：按示例名自动
+1. 把资源同步到 `Contents/Resources/duilib/resources`（标准布局）：按示例名自动
    推导的清单只复制需要的子目录/文件（basic 当前约 1.3 MB，整份 `bin/resources`
-   约 4 MB）。复制前会清理旧的 `resources/` 目录，避免残留旧文件；
+   约 4 MB）。同步由独立的 `<目标>_bundle_resources` 目标完成，**每次构建都会执行**，
+   见下一段；
 2. 若启用 SDL3（macOS 上始终启用），把 `libSDL3*.dylib` 及其版本软链接链复制到
    `Contents/Frameworks`；
 3. 把主程序 rpath 设为 `@executable_path/../Frameworks`，避免加载构建机上的
@@ -136,9 +137,15 @@ SDK 消费者使用 `nim_duilib_copy_runtime(... RESOURCES)` 时也复制到相�
 5. 从 `duilib/duilib_version.h` 读取版本，写入 `CFBundleVersion` 与
    `CFBundleShortVersionString`。
 
-资源复制挂在目标的 `POST_BUILD` 上，只有目标重新链接时才会执行。如果只修改了
-资源文件，而目标没有重新链接，请先删除 `bin/<目标>.app` 再构建，避免 Bundle
-里仍是旧资源。
+资源同步由 `cmake/duilib_copy_bundle_resources.cmake` 完成，它挂在
+`<目标>_bundle_resources` 目标上、作为示例目标的构建依赖，**每次构建都会运行**：
+脚本按 SHA256 逐个文件比较，只复制新增或有变化的文件，删除清单之外的旧文件，
+因此未变化的文件 mtime 不会被改写。
+
+因此**只修改 XML、图片、字体、`lang` 等资源、不修改 C++ 源码时，Bundle 内的资源
+也会自动更新**，不需要删除 `bin/<目标>.app` 或强制重新链接（链接后的
+`POST_BUILD` 只在重新链接时执行，不能用于资源同步）。资源路径仍是
+`bin/resources/...`。
 
 Bundle 只会在 macOS 上生成，其他平台的构建逻辑没有任何变化。
 
@@ -304,19 +311,28 @@ Debug 与 Release 的 `.app` 同名，仍由 `bin/.build-config/<目标>` 标记
 `Contents/Info.plist`（由 CMake 在 configure 阶段生成，链接阶段不会重建）与已复制的
 资源，既避免包内混入错误配置，也不会破坏 bundle 元数据。
 
+CEF 示例（`cef`、`CefBrowser`）同理：它们也写 `bin/.build-config/<目标>`，
+`Contents/Info.plist` 来自 `examples/<名称>/mac/Info.plist.in`（同样在 configure
+阶段生成）。清理时只删主可执行文件，`Contents/Frameworks` 下的 Chromium Embedded
+Framework、`<目标> Helper.app` 与 SDL3 动态库保持不动，随后由链接后的 `POST_BUILD`
+重新复制，因此 CEF 示例也受同一修复保护。CEF 示例的资源同步同样走
+`cmake/duilib_copy_bundle_resources.cmake`（清单为 `themes/default/public`、
+`themes/default/<DUILIB_THEME_DIR_NAME>`、`themes/default/global.xml`、
+`themes/color_light`、`themes/color_dark`、`lang`、`fonts`），每次构建都会刷新。
+
 ## 8. 常见问题
 
 | 现象 | 原因 | 处理 |
 | :--- | :--- | :--- |
 | 仍然是 `bin/basic`，没有 `.app` | 开关没生效 | 确认 `set(DUILIB_EXAMPLE_MACOS_BUNDLE ON)` 位于 include 之前；本开关仅 macOS 生效 |
-| `bin/basic.app` 中没有 `Resources/duilib/resources/` | 资源未复制或源目录缺失 | 确认仓库有 `bin/resources`，重新构建；查看构建日志中的 `Copying ... into basic.app` |
+| `bin/basic.app` 中没有 `Resources/duilib/resources/` | 资源未复制或源目录缺失 | 确认仓库有 `bin/resources`，重新构建；查看构建日志中的 `Syncing duilib resources into basic.app` |
 | 启动后提示找不到主题/字体 | 资源不在标准目录，或示例资源目录名与目标名不匹配 | 检查 `Contents/Resources/duilib/resources/themes/default/global.xml`；确认 `themes/default/<示例目录>` 存在，必要时用 `DUILIB_THEME_DIR_NAME` 指定目录名后再构建 |
 | `themes/default` 下缺少其他示例的目录 | Bundle 默认按示例裁剪资源 | 正常现象；需要额外资源时用 `DUILIB_MACOS_BUNDLE_RESOURCES` 覆盖默认清单 |
 | `Library not loaded: @rpath/libSDL3*.dylib` | SDL3 未复制或 rpath 被改动 | 检查 `Contents/Frameworks` 与 `LC_RPATH`；重新构建，必要时重新签名 |
 | 双击提示“无法验证开发者” | 未签名/未公证 | 本地自测先 `codesign --force --deep --sign -`，分发按第 6 节处理 |
 | 切换开关后 `bin/` 里同时有 `basic` 和 `basic.app` | 上一次产物残留 | 重新链接目标（构建脚本会删除反向产物），或手工删除旧产物 |
 | 打包时收集了旧的 `.app` | 关闭 Bundle 后没有重新链接 | 手工 `rm -rf bin/<目标>.app` 后重新构建 |
-| 修改资源后 Bundle 没变化 | 资源复制在 `POST_BUILD`，目标未重新链接 | 先 `rm -rf bin/<目标>.app`，再重新构建 |
+| 修改资源后 Bundle 没变化 | 旧版资源复制在 `POST_BUILD`，只有重新链接才执行 | 已修复：每次构建都会运行 `<目标>_bundle_resources` 同步资源；若仍不生效，确认 `bin/resources` 下改的是对应文件，并查看日志中的 `Bundle 资源已同步` |
 | 切换 Debug/Release 后第一次启动即崩溃，栈顶为 `+[UNUserNotificationCenter currentNotificationCenter]` 断言 | `Contents/Info.plist` 缺失（旧版 `build.py` 曾整个删除 `.app`，重新链接只重建可执行文件） | 已修复；已有产物删掉 `bin/<目标>.app` 后重新构建，并用 `plutil -p bin/<目标>.app/Contents/Info.plist` 确认 |
 
 ## 9. 相关文件
@@ -328,4 +344,5 @@ Debug 与 Release 的 `.app` 同名，仍由 `bin/.build-config/<目标>` 标记
 | `cmake/duilib_bin_macos.cmake` | macOS 分支：`MACOSX_BUNDLE` 目标与普通目标二选一 |
 | `cmake/duilib_macos_bundle.cmake` | Bundle 属性、资源、图标、SDL3、rpath |
 | `cmake/macos/Info.plist.in` | Info.plist 模板 |
+| `cmake/duilib_copy_bundle_resources.cmake` | 每次构建同步资源到 Bundle（按内容比较，增量复制） |
 | `cmake/duilib_copy_sdl_bundle.cmake` | 复制 SDL3 动态库到 `Contents/Frameworks` |

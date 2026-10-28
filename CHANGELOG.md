@@ -44,10 +44,13 @@
 - 普通示例的 macOS App Bundle 支持（不修改 C++ 代码）：示例可设置
   `DUILIB_EXAMPLE_MACOS_BUNDLE=ON`，或用根选项
   `DUILIB_MACOS_BUNDLE_EXAMPLES=<目标名列表>` 指定；`examples/basic` 已默认开启。
-  Bundle 在链接后把资源复制到 `Contents/Resources/duilib/resources`（与普通程序
+  Bundle 把资源同步到 `Contents/Resources/duilib/resources`（与普通程序
   同构，资源清单按示例名自动推导），把 SDL3 动态库复制到 `Contents/Frameworks` 并设置
   `@executable_path/../Frameworks` rpath，自动清理切换模式后残留的另一种产物，
-  并从 `duilib_version.h` 生成 Bundle 版本号。
+  并从 `duilib_version.h` 生成 Bundle 版本号。资源同步由每次构建都会运行的
+  `<目标>_bundle_resources` 目标完成（`cmake/duilib_copy_bundle_resources.cmake`
+  按内容比较、只复制变化的文件并清理清单外的旧文件），因此只改 XML/图片等资源、
+  不改 C++ 源码时 Bundle 内容也会更新，不需要强制重新链接。
 - macOS Bundle 资源按示例自动裁剪：资源清单由示例的目标名（`project()` 名称）
   推导，只复制示例自己的主题目录、默认主题公共资源、字体与语言文件，
   示例的 `CMakeLists.txt` 不需要配置；目标名与资源目录名不一致时（如
