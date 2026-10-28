@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """build/sdk_package_test.py 的纯函数单元测试（不需要真实发布包）。"""
 
+import contextlib
 import importlib.util
 import io
 import os
@@ -559,6 +560,59 @@ class ExtractModeTest(unittest.TestCase):
                 mock.patch.object(sdk.os, "chmod") as chmod:
             sdk._restore_entry_mode(target, stat.S_IFREG | 0o755)
         chmod.assert_not_called()
+
+
+class ScenarioEnvTest(unittest.TestCase):
+    """编译/运行的临时目录要落在 --out-dir 下，避免系统 /tmp 写满导致误判。"""
+
+    def _options(self, tmp_dir=None):
+        return sdk.Options(out_root=self.tmp, selected=set(), no_build=False,
+                           run_examples=False, keep=False, jobs=1, dry_run=False,
+                           tmp_dir=tmp_dir)
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.tmp = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_sets_all_temp_variables(self):
+        tmp_dir = self.tmp / "tmp"
+        base = {"PATH": "/usr/bin"}
+        env = sdk._scenario_env(base, self._options(tmp_dir))
+        for name in ("TMPDIR", "TEMP", "TMP"):
+            self.assertEqual(env[name], str(tmp_dir))
+        self.assertEqual(env["PATH"], "/usr/bin")
+        self.assertNotIn("TMPDIR", base, "不能改动调用方传入的环境字典")
+
+    def test_without_tmp_dir_keeps_base(self):
+        base = {"PATH": "/usr/bin"}
+        env = sdk._scenario_env(base, self._options())
+        self.assertEqual(env, base)
+        self.assertIsNot(env, base)
+
+    def test_warns_when_space_is_short(self):
+        archive = self.tmp / "pkg.tar.gz"
+        archive.write_bytes(b"x" * 4096)
+        stream = io.StringIO()
+        with mock.patch.object(sdk.shutil, "disk_usage",
+                               return_value=mock.Mock(free=1024)), \
+                contextlib.redirect_stdout(stream):
+            sdk._warn_disk_space([archive], self.tmp)
+        output = stream.getvalue()
+        self.assertIn("[WARN]", output)
+        self.assertIn("--out-dir", output)
+
+    def test_quiet_when_space_is_enough(self):
+        archive = self.tmp / "pkg.tar.gz"
+        archive.write_bytes(b"x" * 4096)
+        stream = io.StringIO()
+        with mock.patch.object(sdk.shutil, "disk_usage",
+                               return_value=mock.Mock(free=8 * 2 ** 30)), \
+                contextlib.redirect_stdout(stream):
+            sdk._warn_disk_space([archive], self.tmp)
+        self.assertEqual(stream.getvalue(), "")
 
 
 def _print_help() -> None:

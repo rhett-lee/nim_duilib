@@ -397,6 +397,37 @@ class Options:
     jobs: int
     dry_run: bool
     package_paths: list[Path] = field(default_factory=list)
+    tmp_dir: Path | None = None
+
+
+def _scenario_env(base_env: dict, options: Options) -> dict:
+    """给配置/编译/运行注入本场景的临时目录。
+
+    编译器的临时文件默认写到系统临时目录：Linux 上 `/tmp` 常常是小容量 tmpfs
+    （例如 1.9 GiB），写满后 gcc 会报 "error closing ...s: 设备上没有空间"，
+    进而被误报成「C++ 编译器不可用」「配置失败原因不含 ...」。把 TMPDIR/TEMP/TMP
+    指到 `--out-dir` 下的 `tmp/`（与解包目录同一块磁盘），既不依赖系统临时目录的
+    剩余空间，也不把编译中间文件散落到系统目录。
+    """
+    env = dict(base_env)
+    if options.tmp_dir is not None:
+        for name in ("TMPDIR", "TEMP", "TMP"):
+            env[name] = str(options.tmp_dir)
+    return env
+
+
+def _warn_disk_space(packages: list[Path], out_root: Path) -> None:
+    """启动前估算磁盘需求：解包、编译与重打包都会占用 `--out-dir` 所在磁盘。"""
+    try:
+        free = shutil.disk_usage(out_root).free
+        archive_bytes = sum(path.stat().st_size for path in packages)
+    except OSError:
+        return
+    need = archive_bytes * 2 + 512 * 1024 * 1024
+    if free < need:
+        print("[WARN] %s 可用空间 %.1f GiB，估算需要 %.1f GiB（解包 + 编译 + 重打包）；"
+              "可用 --out-dir 指向更大的磁盘"
+              % (out_root, free / 2 ** 30, need / 2 ** 30), flush=True)
 
 
 def _read_text(path: Path) -> str:
@@ -1127,7 +1158,7 @@ def check_consumer(info: PackageInfo, work_dir: Path, log_dir: Path, options: Op
         raise ScenarioSkipped("包平台与本机不同")
 
     build_dir = work_dir / "consumer"
-    env = toolchain.env
+    env = _scenario_env(toolchain.env, options)
     log = log_dir / "consumer.log"
     log.parent.mkdir(parents=True, exist_ok=True)
     if log.is_file():
@@ -1247,7 +1278,7 @@ def check_negative_config(info: PackageInfo, work_dir: Path, log_dir: Path,
                                 build_type=opposite)
     return _expect_configure_failure(
         info, work_dir, log_dir, options, log_name="neg-config.log",
-        command=command, env=toolchain.env, expected_text="配置为")
+        command=command, env=_scenario_env(toolchain.env, options), expected_text="配置为")
 
 
 def check_negative_arch(info: PackageInfo, work_dir: Path, log_dir: Path,
@@ -1264,7 +1295,7 @@ def check_negative_arch(info: PackageInfo, work_dir: Path, log_dir: Path,
         command = configure_command(info, work_dir / "neg-arch", toolchain)
         return _expect_configure_failure(
             info, work_dir, log_dir, options, log_name="neg-arch.log",
-            command=command, env=toolchain.env, expected_text="架构为")
+            command=command, env=_scenario_env(toolchain.env, options), expected_text="架构为")
 
     package_arch = info.meta("ARCH")
     opposite = {"x64": "x86", "x86": "x64", "arm64": "x64"}.get(package_arch, "x86")
@@ -1274,12 +1305,12 @@ def check_negative_arch(info: PackageInfo, work_dir: Path, log_dir: Path,
                                     arch=opposite)
         return _expect_configure_failure(
             info, work_dir, log_dir, options, log_name="neg-arch.log",
-            command=command, env=toolchain.env, expected_text="架构为")
+            command=command, env=_scenario_env(toolchain.env, options), expected_text="架构为")
     if package_arch != host_arch():
         command = configure_command(info, work_dir / "neg-arch", toolchain)
         return _expect_configure_failure(
             info, work_dir, log_dir, options, log_name="neg-arch.log",
-            command=command, env=toolchain.env, expected_text="架构为")
+            command=command, env=_scenario_env(toolchain.env, options), expected_text="架构为")
     raise ScenarioSkipped("未安装 Visual Studio，且包架构与主机一致")
 
 
@@ -1300,7 +1331,7 @@ def check_negative_msvc_runtime(info: PackageInfo, work_dir: Path, log_dir: Path
                                 extra=["-DCMAKE_MSVC_RUNTIME_LIBRARY=%s" % opposite])
     return _expect_configure_failure(
         info, work_dir, log_dir, options, log_name="neg-runtime.log",
-        command=command, env=toolchain.env, expected_text="运行库")
+        command=command, env=_scenario_env(toolchain.env, options), expected_text="运行库")
 
 
 def check_negative_toolchain(info: PackageInfo, work_dir: Path, log_dir: Path,
@@ -1328,7 +1359,7 @@ def check_negative_toolchain(info: PackageInfo, work_dir: Path, log_dir: Path,
         command = configure_command(info, work_dir / "neg-toolchain", toolchain)
     return _expect_configure_failure(
         info, work_dir, log_dir, options, log_name="neg-toolchain.log",
-        command=command, env=toolchain.env, expected_text="该 nim_duilib SDK 是")
+        command=command, env=_scenario_env(toolchain.env, options), expected_text="该 nim_duilib SDK 是")
 
 
 def check_examples_smoke(info: PackageInfo, work_dir: Path, log_dir: Path,
@@ -1342,6 +1373,7 @@ def check_examples_smoke(info: PackageInfo, work_dir: Path, log_dir: Path,
     if exe is None:
         raise ScenarioSkipped("未找到 bin/basic 示例程序")
     proc = subprocess.Popen([str(exe)], cwd=str(exe.parent),
+                            env=_scenario_env(os.environ, options),
                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         time.sleep(3)
@@ -1413,7 +1445,7 @@ def check_macos_bundle(info: PackageInfo, work_dir: Path, log_dir: Path,
         raise ScenarioSkipped("工具链不可用（%s）" % reason)
 
     build_dir = work_dir / "consumer_bundle"
-    env = toolchain.env
+    env = _scenario_env(toolchain.env, options)
     log = log_dir / "bundle.log"
     log.parent.mkdir(parents=True, exist_ok=True)
     if log.is_file():
@@ -1564,6 +1596,9 @@ def run_package(info: PackageInfo, package_out: Path, options: Options) -> list[
     log_dir = package_out / "logs"
     work_dir.mkdir(parents=True, exist_ok=True)
     log_dir.mkdir(parents=True, exist_ok=True)
+    # 编译器的临时文件放到本包目录下（见 _scenario_env）：不依赖系统临时目录余量。
+    options.tmp_dir = work_dir / "tmp"
+    options.tmp_dir.mkdir(parents=True, exist_ok=True)
 
     block_reason = build_block_reason(info)
     results = []
@@ -1659,7 +1694,8 @@ def main(argv: list[str] | None = None) -> int:
                              "用 --list-scenarios 查看全部编号")
     parser.add_argument("--no-build", action="store_true", help="只执行包级场景")
     parser.add_argument("--run-examples", action="store_true", help="额外冒烟启动示例程序")
-    parser.add_argument("--out-dir", default=None, help="临时目录与报告输出目录")
+    parser.add_argument("--out-dir", default=None,
+                        help="临时目录与报告输出目录（解包+编译+重打包需要足够空间）")
     parser.add_argument("--keep", action="store_true", help="保留解包与构建目录")
     parser.add_argument("--jobs", type=int, default=None,
                         help="并行编译任务数（默认 CPU 逻辑核心数）")
@@ -1681,6 +1717,7 @@ def main(argv: list[str] | None = None) -> int:
     out_root = Path(args.out_dir).expanduser().resolve() if args.out_dir else \
         DEFAULT_OUT_ROOT / time.strftime("%Y%m%d-%H%M%S")
     out_root.mkdir(parents=True, exist_ok=True)
+    _warn_disk_space(packages, out_root)
 
     options = Options(
         out_root=out_root,

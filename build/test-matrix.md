@@ -335,6 +335,7 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
 | 只改资源、不改源码时 Bundle 内仍是旧资源（测试看不到修改） | 资源复制原先挂在 `POST_BUILD`，不重链就不执行。新增 `cmake/duilib_copy_bundle_resources.cmake`，由每次构建都运行的 `<目标>_bundle_resources` 目标调用：按 SHA256 比较、增量复制、删除清单外文件；普通示例与 CEF 示例共用 |
 | 新增资源目标后 configure 报循环依赖（`<目标>_bundle_resources` ↔ `<目标>`） | 自定义目标的 `COMMAND` 中引用了 `$<TARGET_BUNDLE_DIR:${target}>`，目标相关生成表达式会隐式加一条依赖目标的边（CMP0112），与 `add_dependencies` 成环。改为字面路径 `${DUILIB_BIN_PATH}/<目标>.app/...`；CEF 分支本就是字面路径，无此问题 |
 | macOS `--run-examples` 的 C10 报 `PermissionError: [Errno 13]`（`bin/basic.app/Contents/MacOS/basic`） | `sdk_package_test.py` 的 `extract_package` 用 `open(..., "wb")` 解包，权限固定 0644，Unix 上丢可执行位。tar 按 `member.mode`、zip 按 `external_attr >> 16` 恢复模式（Windows 跳过），新增 5 项单元测试（POSIX 分支用 mock 断言 `chmod` 参数） |
+| Linux 上 C01/C03 报「C++ 编译器不可用」「配置失败原因不含 …」，日志为 `error closing ...s: 设备上没有空间` | `/tmp` 是小容量 tmpfs 且已写满，gcc 临时汇编文件写不进去，被误判成包/工具链问题。`sdk_package_test.py` 现在把 `TMPDIR`/`TEMP`/`TMP` 指到 `--out-dir/<NN>/work/tmp`；启动时按包大小估算空间并打印 `[WARN]`；新增 4 项单元测试 |
 
 ### 2026-10-27 依赖版本一致性（Windows 已验证）
 

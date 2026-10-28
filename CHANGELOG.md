@@ -124,6 +124,11 @@
   文件权限固定为 0644，Unix 上丢掉可执行位，`bin/basic.app/Contents/MacOS/basic`
   直接启动时报 `PermissionError: [Errno 13]`。现在按归档条目的权限位恢复（tar 用
   `member.mode`，zip 用 `external_attr >> 16`），Windows 上没有 POSIX 权限位则跳过。
+- 发布包测试（Linux 磁盘空间）：编译器的临时文件原先落在系统临时目录，`/tmp`
+  被写满（常见为 1–2 GiB 的 tmpfs）时 gcc 报 `error closing ...s: 设备上没有空间`，
+  C01/C03 会被误判为「C++ 编译器不可用」「配置失败原因不正确」。现在把
+  `TMPDIR`/`TEMP`/`TMP` 指到 `--out-dir/<NN>/work/tmp`，并在启动时按包大小估算
+  所需空间、不足时打印 `[WARN]` 提示改用更大的 `--out-dir`。
 - 发布包测试（macOS P04/P06 误报）：`sdk_package_test.py` 原先只在
   `bin/libcef_win*`、`bin/libcef_linux` 中查找 CEF 运行时，macOS 的 CEF 位于示例
   `.app/Contents/Frameworks/Chromium Embedded Framework.framework`，导致包名 `-cef`

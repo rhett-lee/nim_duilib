@@ -158,6 +158,13 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `PermissionError: [Errno 13]`. Archive entry modes are now restored (tar:
   `member.mode`, zip: `external_attr >> 16`), skipped on Windows where POSIX
   permission bits do not exist.
+- SDK package test (Linux disk space): compiler temporaries used to be written to the
+  system temp directory. When `/tmp` (often a 1–2 GiB tmpfs) filled up, gcc reported
+  `error closing ...s: no space left on device`, and C01/C03 were misreported as
+  "C++ compiler cannot compile a simple test program" / "configure failed for the
+  wrong reason". `TMPDIR`/`TEMP`/`TMP` now point to `--out-dir/<NN>/work/tmp`, and the
+  run estimates the required space up front, printing a `[WARN]` hint to use a larger
+  `--out-dir` when the free space is short.
 - SDK package test (macOS P04/P06 false failures): `sdk_package_test.py` only looked
   for the CEF runtime under `bin/libcef_win*` / `bin/libcef_linux`, but on macOS it
   lives inside the example bundle (`.app/Contents/Frameworks/Chromium Embedded

@@ -47,7 +47,7 @@ nim_duilib 自身；它验证的是下游用户实际拿到的东西。
 | :--- | :--- | :--- |
 | Python | Python 3 | 脚本仅用标准库；P07/C07/C08/C09 会用当前 Python 解释器调用 `pack.py` |
 | 待测包 | 已由 `build.py pack` 或 `build/pack.py` 生成 | 支持 zip、tgz、tar.bz2 等 `shutil.unpack_archive` 可解格式；归档必须只有一个顶层目录 |
-| 磁盘空间 | 至少能容纳解包内容与消费者构建树 | 带示例/CEF 的包可达数百 MB，Debug 消费者构建还会额外占用空间；C07/C08/C09 只写几 KB 的代表性小归档 |
+| 磁盘空间 | 至少能容纳解包内容与消费者构建树 | 带示例/CEF 的包可达数百 MB，Debug 消费者构建还会额外占用空间；C07/C08/C09 只写几 KB 的代表性小归档。编译器的临时文件写在 `--out-dir` 下的 `tmp/`，不占用系统临时目录；启动时会按包大小估算并在空间不足时打印 `[WARN]` |
 | CMake | 3.18+（`build/sdk_test/CMakeLists.txt` 的最低版本） | 只影响 C01–C06、C11；找不到 `cmake` 时记为 SKIP |
 | 生成器/编译器 | CMake 可用的 Ninja、Makefiles 或 Visual Studio 生成器 | 只影响 C01–C06、C11；工具链经 `build.py` 的 `detect_toolchain()` 探测 |
 | 桌面会话 | 能启动 GUI 程序 | 只影响 C10；无桌面环境时示例可能启动即退出，从而判为 FAIL |
@@ -140,7 +140,7 @@ nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109
 | `--scenarios LIST` | `all` | 逗号分隔的场景编号；`all` 或空串表示全部 |
 | `--no-build` | 关 | 跳过所有“需编译”场景（C01–C06、C10、C11） |
 | `--run-examples` | 关 | 解除 C10 的开关门禁；仍需包内含示例且环境满足 |
-| `--out-dir DIR` | 平台默认目录 | 输出目录；显式指定时不再追加时间戳 |
+| `--out-dir DIR` | 平台默认目录 | 输出目录；显式指定时不再追加时间戳；解包、编译临时文件与重打包都在此目录，需预留足够空间 |
 | `--keep` | 关 | 保留 `extract/`、`work/`、`logs/` |
 | `--jobs N` | CPU 数，取不到时 4 | 传给 `cmake --build --parallel` |
 | `--dry-run` | 关 | 跳过编译类场景；包级场景照常执行；保留输出目录 |
@@ -484,10 +484,16 @@ SKIP 是“没测到”，不是通过。`--no-build`、`--dry-run`、包类型�
 │  ├─ work/consumer/...            # 消费者构建树
 │  ├─ work/consumer_bundle/...     # macOS App Bundle 构建树（仅 C11）
 │  ├─ work/bundle-relocated/...    # 迁移后的 .app 副本（仅 C11，用于运行）
+│  ├─ work/tmp/...                 # 编译/运行的 TMPDIR（见下方说明）
 │  ├─ work/repack.tgz / repack.tar.bz2 / bad-*.tgz / tampered.tgz
 │  └─ logs/consumer.log, bundle.log, neg-config.log, neg-arch.log, neg-runtime.log, neg-toolchain.log
 └─ 02/                            # 下一个包
 ```
+
+`work/tmp/` 是通过 `TMPDIR`/`TEMP`/`TMP` 交给编译器与示例程序的临时目录。Linux 上
+`/tmp` 常常是小容量 tmpfs，写满时 gcc 会报 `error closing ...s: 设备上没有空间`，
+进而被误判成「C++ 编译器不可用」（C01）或「配置失败原因不含 …」（C03）；把临时目录
+放到 `--out-dir` 下即可避免这类环境性失败。
 
 路径与 Windows 长路径：
 
@@ -619,6 +625,7 @@ SKIP 是“没测到”，不是通过。`--no-build`、`--dry-run`、包类型�
 | 所有场景 SKIP、退出码 2 | 只选了编译类场景但包类型/环境不适用；`--no-build` 后只剩不适用场景；工具链/CMake 缺失 | 看每个 SKIP 的 `detail`；补跑 P 系列确认包本身；安装缺失工具或改用适用包 |
 | C01–C06、C11 全部 SKIP“找不到 cmake” | `cmake` 不在 `PATH` | 把 CMake 加入 `PATH`；包级场景不受影响 |
 | 磁盘空间不足 | 解包 + 消费者构建 | 换用空间充足的 `--out-dir`；清理旧的运行目录；排查时先用 `--scenarios P01,P02,P03` 缩小范围 |
+| C01/C03 报“C++ 编译器不可用”“配置失败原因不含 …”，日志里是 `error closing ...s: 设备上没有空间` | 系统临时目录（Linux 常为 1–2 GiB 的 `/tmp` tmpfs）被写满，gcc 的临时汇编文件写不进去；与包和工具链无关 | 现在的版本已把 `TMPDIR`/`TEMP`/`TMP` 指到 `--out-dir/<NN>/work/tmp`，不会再落到系统 `/tmp`；若仍有告警，用 `--out-dir` 指到剩余空间更大的磁盘（启动时的 `[WARN]` 会给出估算值） |
 
 ## 8. 扩展新场景的方法
 
