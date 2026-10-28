@@ -233,6 +233,31 @@ def stale_build_outputs(bin_dir: Path, config: str,
     return stale
 
 
+def _remove_stale_output(path: Path) -> None:
+    """删除 bin/ 中另一个配置链接出来的产物，迫使当前配置重新链接。
+
+    macOS App Bundle 不能整个删除：`Contents/Info.plist` 由 CMake 在 configure
+    阶段生成，链接阶段只重建 `Contents/MacOS` 下的可执行文件。若把整个 `.app`
+    删掉，重新链接后 bundle 缺少 Info.plist（没有 CFBundleIdentifier），
+    LaunchServices 无法解析当前进程的 bundle，启动 SDL 时
+    `+[UNUserNotificationCenter currentNotificationCenter]` 断言抛异常并把进程带崩。
+    因此这里只删可执行文件，保留 Info.plist、PkgInfo 与资源目录。
+    """
+    if path.is_dir() and not path.is_symlink():
+        if path.suffix == ".app":
+            macos_dir = path / "Contents" / "MacOS"
+            if macos_dir.is_dir():
+                for child in sorted(macos_dir.iterdir()):
+                    if child.is_dir() and not child.is_symlink():
+                        shutil.rmtree(child)
+                    else:
+                        child.unlink()
+                return
+        shutil.rmtree(path)
+    else:
+        path.unlink()
+
+
 def clear_stale_build_outputs(bin_dir: Path, config: str, target: str | None,
                               messages, dry_run: bool = False) -> list[str]:
     """删除 bin/ 中其他配置的示例产物，强制当前配置重新链接。
@@ -251,10 +276,7 @@ def clear_stale_build_outputs(bin_dir: Path, config: str, target: str | None,
     for _stem, _stamp_config, stamp_path, outputs in stale:
         for path in outputs:
             try:
-                if path.is_dir() and not path.is_symlink():
-                    shutil.rmtree(path)
-                else:
-                    path.unlink()
+                _remove_stale_output(path)
             except FileNotFoundError:
                 continue
             except OSError as exc:

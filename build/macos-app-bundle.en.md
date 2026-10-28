@@ -313,8 +313,10 @@ python3 build/sdk_package_test.py \
 ```
 
 Debug and Release bundles share the same name and are still distinguished by
-`bin/.build-config/<target>`. `build.py` removes the other configuration's
-artifacts when switching configurations.
+`bin/.build-config/<target>`. When switching configurations `build.py` only removes
+the executable under `.app/Contents/MacOS`: `Contents/Info.plist` is generated during
+configure (relinking does not recreate it), so the bundle metadata and copied
+resources stay intact while the wrong configuration is still kept out of `bin/`.
 
 ## 8. Troubleshooting
 
@@ -329,6 +331,7 @@ artifacts when switching configurations.
 | Both `basic` and `basic.app` exist | Old artifact from a previous mode | Relink the target (the build removes the opposite artifact) or delete the old one manually |
 | Packaging picks up an old `.app` | Bundle was disabled without relinking | `rm -rf bin/<target>.app` and rebuild |
 | Bundle keeps old resources after changing them | Resource copy is `POST_BUILD`; the target did not relink | `rm -rf bin/<target>.app` and rebuild |
+| Crash on the first launch after switching Debug/Release, with `+[UNUserNotificationCenter currentNotificationCenter]` at the top of the stack | `Contents/Info.plist` is missing (older `build.py` deleted the whole `.app` and relinking only recreated the executable) | Fixed; for an existing bundle delete `bin/<target>.app` and rebuild, then verify with `plutil -p bin/<target>.app/Contents/Info.plist` |
 
 ## 9. Related files
 

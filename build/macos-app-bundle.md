@@ -300,7 +300,9 @@ python3 build/sdk_package_test.py \
 ```
 
 Debug 与 Release 的 `.app` 同名，仍由 `bin/.build-config/<目标>` 标记区分。
-切换配置时 `build.py` 会删除另一配置的同名产物，避免包内混入错误配置。
+切换配置时 `build.py` 只删除 `.app` 内 `Contents/MacOS` 下的可执行文件，保留
+`Contents/Info.plist`（由 CMake 在 configure 阶段生成，链接阶段不会重建）与已复制的
+资源，既避免包内混入错误配置，也不会破坏 bundle 元数据。
 
 ## 8. 常见问题
 
@@ -315,6 +317,7 @@ Debug 与 Release 的 `.app` 同名，仍由 `bin/.build-config/<目标>` 标记
 | 切换开关后 `bin/` 里同时有 `basic` 和 `basic.app` | 上一次产物残留 | 重新链接目标（构建脚本会删除反向产物），或手工删除旧产物 |
 | 打包时收集了旧的 `.app` | 关闭 Bundle 后没有重新链接 | 手工 `rm -rf bin/<目标>.app` 后重新构建 |
 | 修改资源后 Bundle 没变化 | 资源复制在 `POST_BUILD`，目标未重新链接 | 先 `rm -rf bin/<目标>.app`，再重新构建 |
+| 切换 Debug/Release 后第一次启动即崩溃，栈顶为 `+[UNUserNotificationCenter currentNotificationCenter]` 断言 | `Contents/Info.plist` 缺失（旧版 `build.py` 曾整个删除 `.app`，重新链接只重建可执行文件） | 已修复；已有产物删掉 `bin/<目标>.app` 后重新构建，并用 `plutil -p bin/<目标>.app/Contents/Info.plist` 确认 |
 
 ## 9. 相关文件
 

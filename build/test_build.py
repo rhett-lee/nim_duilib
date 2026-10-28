@@ -404,13 +404,27 @@ class ConfigSwitchTests(unittest.TestCase):
         self.assertEqual(removed, ["basic"])
         self.assertFalse((bin_dir / "basic.exe").exists())
 
-    def test_macos_bundle_is_removed(self):
+    def test_macos_bundle_keeps_info_plist(self):
+        """只删 .app 内的可执行文件：Info.plist 由 configure 生成，删掉不会再生。"""
         bin_dir = self._bin()
         self._stamp(bin_dir, "CefBrowser", "Debug")
-        self._touch(bin_dir / "CefBrowser.app" / "Contents" / "MacOS" / "CefBrowser")
+        bundle = bin_dir / "CefBrowser.app"
+        self._touch(bundle / "Contents" / "Info.plist")
+        self._touch(bundle / "Contents" / "MacOS" / "CefBrowser")
+        self._touch(bundle / "Contents" / "Resources" / "duilib" / "resources" / "themes" / "global.xml")
         removed, _ = self._clear(bin_dir, "Release")
         self.assertEqual(removed, ["CefBrowser"])
-        self.assertFalse((bin_dir / "CefBrowser.app").exists())
+        self.assertFalse((bundle / "Contents" / "MacOS" / "CefBrowser").exists())
+        self.assertTrue((bundle / "Contents" / "Info.plist").exists())
+        self.assertTrue((bundle / "Contents" / "Resources" / "duilib" / "resources" / "themes" / "global.xml").exists())
+
+    def test_non_bundle_directory_is_removed(self):
+        bin_dir = self._bin()
+        self._stamp(bin_dir, "basic", "Debug")
+        self._touch(bin_dir / "basic" / "nested" / "file")
+        removed, _ = self._clear(bin_dir, "Release")
+        self.assertEqual(removed, ["basic"])
+        self.assertFalse((bin_dir / "basic").exists())
 
     def test_legacy_inline_stamp_is_read_and_removed(self):
         bin_dir = self._bin()
