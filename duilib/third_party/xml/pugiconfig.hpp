@@ -1,14 +1,12 @@
 /**
- * pugixml parser - version 1.15
+ * pugixml parser - version 1.16
  * --------------------------------------------------------
- * Copyright (C) 2006-2025, by Arseny Kapoulkine (arseny.kapoulkine@gmail.com)
  * Report bugs and download new versions at https://pugixml.org/
  *
- * This library is distributed under the MIT License. See notice at the end
- * of this file.
+ * SPDX-FileCopyrightText: Copyright (C) 2006-2026, by Arseny Kapoulkine (arseny.kapoulkine@gmail.com)
+ * SPDX-License-Identifier: MIT
  *
- * This work is based on the pugxml parser, which is:
- * Copyright (C) 2003, by Kristen Wegner (kristen@tima.net)
+ * See LICENSE.md or notice at the end of this file.
  */
 
 #ifndef HEADER_PUGICONFIG_HPP
@@ -19,14 +17,17 @@
     #define PUGIXML_WCHAR_MODE
 #endif
 
+// Uncomment this to enable from_chars/to_chars for number conversion
+// #define PUGIXML_CHARCONV_FLOAT
+
 // Uncomment this to enable compact mode
 // #define PUGIXML_COMPACT
 
 // Uncomment this to disable XPath
- #define PUGIXML_NO_XPATH
+   #define PUGIXML_NO_XPATH
 
 // Uncomment this to disable STL
-  #define PUGIXML_NO_STL
+   #define PUGIXML_NO_STL
 
 // Uncomment this to disable exceptions
 // #define PUGIXML_NO_EXCEPTIONS
@@ -49,7 +50,7 @@
 // #define PUGIXML_HEADER_ONLY
 
 // Uncomment this to enable long long support (usually enabled automatically)
- #define PUGIXML_HAS_LONG_LONG
+   #define PUGIXML_HAS_LONG_LONG
 
 // Uncomment this to enable support for std::string_view (usually enabled automatically)
 // #define PUGIXML_HAS_STRING_VIEW
@@ -57,7 +58,7 @@
 #endif
 
 /**
- * Copyright (c) 2006-2025 Arseny Kapoulkine
+ * Copyright (c) 2006-2026 Arseny Kapoulkine
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
