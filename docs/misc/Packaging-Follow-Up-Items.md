@@ -431,8 +431,24 @@
   `pack.py` 按 `lib/arm64` 收集导入库、按 `bin/libcef_win[_109]/arm64/` 收集运行时，
   `third_party_versions.json` 补 109 的 `windows/arm64` 归档，`test_pack.py` 由
   「报错」改为「收集」用例；执行步骤见 `build/arm64-test-plan.md`（W-A06/W-A07）。
-- 验收：文档已明确“支持范围 + 未验证项”；发布矩阵中 arm64 仍标记为
-  “结构就绪、待真机验证”，不得声称已通过运行验证。
+- 现状（2026-10-28，范围收敛）：arm64 本轮**只验证 Windows**——macOS / Linux / FreeBSD
+  均无真机，不安排测试。Windows 侧 VS 2022 已装 MSVC 14.44.35207 ARM64 交叉工具，
+  `build.py doctor --arch arm64` 通过；`build.py` 的 `vcvarsall` 参数此前固定传 `arm64`
+  （要求 Hostarm64 原生工具集）导致误报“工具未安装”，已改为按主机选择
+  `amd64_arm64` / `x86_arm64` / `arm64`。
+- 现状（2026-10-28，Windows 实测）：`deps` 自动构建 `skia/out/llvm.arm64.release` 与
+  `llvm.arm64.debug`；`build.py --arch arm64` Release（25/25）与 Debug（802/802，23 个
+  示例）全量构建均通过，产物均为 PE `0xAA64`，嵌入清单为 `ARM64`；出包
+  `-win-arm64-examples.zip`（760 条目 / 109.0 MB）、
+  `-win-arm64-cef-examples.zip`（1314 条目 / 311.7 MB，CEF 运行时 `0xAA64`）与
+  `-win-arm64-cef-examples-debug.zip`（1314 条目 / 394.5 MB），`pack.py --verify` 全匹配；
+  `sdk_package_test.py` 三包均 PASS=14 FAIL=0 SKIP=5
+  （C01 完成配置/编译/链接，因 x64 主机无法运行 ARM64 程序而按架构 SKIP）。
+  同轮修复：ARM64 无 WGL（Skia 恒走 CPU）、manifest 选错、`nim_duilibConfig.cmake`
+  交叉架构识别。
+- 验收：Windows Release/Debug 构建与三个包的出包/包测试已通过；DLL 模式、CEF109
+  出包、示例启动与运行验证（需 Windows on ARM 设备）仍未完成，不得声称已通过
+  运行验证。计划与结果见 `build/arm64-test-plan.md`。
 
 #### P2-5 Unix 共享库（.so/.dylib）
 

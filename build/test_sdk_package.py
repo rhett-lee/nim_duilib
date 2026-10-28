@@ -376,6 +376,28 @@ class ApplicabilityTest(unittest.TestCase):
         self.assertIn("--no-build", reason)
 
 
+class CanRunArchTest(unittest.TestCase):
+    """交叉编译产物能否在本机直接运行（决定 C01 是运行还是 SKIP）。"""
+
+    def test_native_arches(self):
+        for arch in ("x64", "x86", "arm64"):
+            self.assertTrue(sdk._can_run_arch(arch, arch))
+
+    def test_x86_on_x64_via_wow64(self):
+        self.assertTrue(sdk._can_run_arch("x86", "x64"))
+
+    def test_arm64_cannot_run_on_x64(self):
+        self.assertFalse(sdk._can_run_arch("arm64", "x64"))
+        self.assertFalse(sdk._can_run_arch("arm64", "x86"))
+
+    def test_x64_cannot_run_on_arm64(self):
+        self.assertFalse(sdk._can_run_arch("x64", "arm64"))
+
+    def test_x86_cannot_run_on_arm64(self):
+        # Windows on ARM 不通过 SDK 测试覆盖 x86 模拟运行，按不可运行处理。
+        self.assertFalse(sdk._can_run_arch("x86", "arm64"))
+
+
 class SelectionTest(unittest.TestCase):
     def test_all(self):
         self.assertEqual(sdk.parse_selection("all"),

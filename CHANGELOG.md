@@ -139,6 +139,28 @@
   `lib/arm64/libcef.lib` 收集导入库、按 `bin/libcef_win[_109]/arm64/` 收集运行时，
   `third_party_versions.json` 补上 109 的 `windows/arm64` 归档，`test_pack.py` 的
   「拒绝」用例改为「收集」用例；arm64 包内清单同步说明可用 `--with-cef` 出包。
+- 构建（Windows arm64 工具链探测）：`build.py` 原先对 `vcvarsall.bat` 固定传 `arm64`，
+  该参数要求 `Hostarm64` 原生工具集；x64 主机默认只装 `Hostx64\arm64` 交叉工具，
+  于是已安装 ARM64 生成工具时仍误报 `Visual Studio C++ tools for arm64 are not installed`。
+  现在按主机架构选择 `amd64_arm64` / `x86_arm64` / `arm64`，并新增 `_vcvars_platform`
+  的 4 项单元测试；`build.py doctor --arch arm64` 可正确识别 Ninja 与 VS 工具链。
+- 渲染（Windows arm64 构建失败）：Skia 上游在 `_M_ARM64` 下把 `SkWGL_win.cpp` 整体
+  排除，`GrGLMakeNativeInterface()` 返回 nullptr，ARM64 没有 WGL 后端，链接时报
+  `SkCreateWGLContext`、`SkWGLExtensions::*` 无法解析。`SkGLWindowContext_Windows.cpp`
+  与 `Render_Skia_Windows` 现在在 ARM64 下不编译/不调用 GL 后端：`MakeGLForWin`
+  直接返回 nullptr，Skia 渲染固定走 CPU，其他架构行为不变。
+- 构建（Windows arm64 manifest）：`cmake/duilib_bin_windows.cmake` 原先只按 32/64 位
+  选择清单，arm64 示例链接的是 `duilib.x64.manifest`（ARM64 进程无法启动）。现在按
+  `DUILIB_TARGET_ARCH_RESOLVED` 优先选 `duilib.arm64.manifest`，`cmake/README*.md`
+  的代码片段同步更新。
+- SDK 接入（arm64 交叉编译）：Ninja 在 x64 主机交叉编译 arm64 时
+  `CMAKE_SYSTEM_PROCESSOR` 仍是主机架构，`nim_duilibConfig.cmake` 把消费者工程判为
+  x64 并拒绝 arm64 包。新增 `CMAKE_CXX_COMPILER_ARCHITECTURE_ID MATCHES "ARM64"`
+  回退分支后，arm64 包的下游配置/编译恢复正常。
+- 发布包测试（交叉架构消费者）：x64 主机运行 arm64 消费者会报
+  `OSError: [WinError 216]`，C01 被误判为 FAIL。`sdk_package_test.py` 新增
+  `_can_run_arch()`（x64 主机可经 WOW64 运行 x86，反向不可），配置/编译/链接通过后
+  按架构 SKIP 并注明「运行验证需 arm64 环境」，另加 5 项单元测试。
 - 打包（macOS CEF 头文件）：`--with-cef` 此前在 macOS 也转发
   `include/duilib/duilib_cef.h`、`include/duilib/CEFControl/`，但这些头文件依赖
   未随包的 `third_party/libcef` 头文件，无法用于下游编译，且与元数据 `HAS_CEF=0`

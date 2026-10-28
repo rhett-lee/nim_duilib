@@ -668,6 +668,18 @@ def _vswhere_installation(vs_version: str | None) -> Path | None:
     return path if path.is_dir() else None
 
 
+def _vcvars_platform(arch: str) -> str:
+    """vcvarsall.bat 的平台参数（`主机_目标` 形式，单段表示原生工具）。
+
+    arm64 需要区分主机：VS 默认只装 x64 主机的交叉工具（bin/Hostx64/arm64），
+    直接传 `arm64` 会要求 Hostarm64 原生工具集，未安装时报
+    "tools for arm64 are not installed"，与「已装 ARM64 生成工具」的实际状态不符。
+    """
+    if arch != "arm64":
+        return arch
+    return {"x64": "amd64_arm64", "x86": "x86_arm64", "arm64": "arm64"}[host_arch()]
+
+
 def _msvc_environment(arch: str, vs_version: str | None) -> tuple[dict, Path | None]:
     install = _vswhere_installation(vs_version)
     if not install:
@@ -675,7 +687,7 @@ def _msvc_environment(arch: str, vs_version: str | None) -> tuple[dict, Path | N
     vcvars = install / "VC" / "Auxiliary" / "Build" / "vcvarsall.bat"
     if not vcvars.is_file():
         return dict(os.environ), install
-    vs_arch = {"x86": "x86", "x64": "x64", "arm64": "arm64"}[arch]
+    vs_arch = _vcvars_platform(arch)
     command = f'call "{vcvars}" {vs_arch} >nul && set'
     # 不能把带引号的批处理命令当成 argv 传给 cmd /c：Windows argv 转义会引入 \"；
     # 改用 shell=True 让 cmd 自己解析整条命令。
@@ -700,8 +712,8 @@ def _msvc_environment(arch: str, vs_version: str | None) -> tuple[dict, Path | N
     if not shutil.which("cl", path=env.get("PATH")):
         raise BuildError(
             f"[ERROR] Visual Studio C++ tools for {arch} are not installed",
-            f"open the Visual Studio Installer and add the '{vs_arch}' MSVC build tools "
-            "(Individual components > MSVC ... build tools)")
+            f"open the Visual Studio Installer and add the MSVC {arch} build tools component "
+            "(Individual components > MSVC ... build tools), then reopen the terminal")
     return env, install
 
 

@@ -18,7 +18,7 @@ and troubleshooting, see [build-reference.en.md](build-reference.en.md)
 | `autotest.py` | local automation: environment check → build → package → verify → assertions |
 | `test_build.py` | unit tests for the build entry |
 | `test_pack.py` / `test_autotest.py` | packaging and automation tests |
-| `arm64-test-plan.md` | arm64 test plan (three-platform matrix, dependency checks, result backfill) |
+| `arm64-test-plan.md` | arm64 test plan (Windows matrix, dependency checks, result backfill) |
 | `duilib.sln` / `duilib_no_cef.sln` | Visual Studio solutions (library only) |
 | `examples.sln` / `examples_no_cef.sln` | Visual Studio solutions (library + examples) |
 | `README.md` / `README.en.md` | this document |
@@ -147,11 +147,15 @@ Exit codes: 0 some preset passed and none failed; 1 a failure; 2 all skipped.
 `autotest.log`.
 
 arm64 scope: integration files and package layout are ready and libjpeg-turbo ships an
-arm64 prebuilt library, but nothing has been validated on real arm64 hardware. All three
-platforms can ship CEF on arm64 (`windows/arm64` prebuilt archives exist for both CEF 142
-and 109, with the import library taken from `lib/arm64` and the runtime from
-`bin/libcef_win[_109]/arm64`; Linux/macOS use the `linux/arm64` and `macos/arm64`
-archives). See the [arm64 test plan](arm64-test-plan.md) for execution steps.
+arm64 prebuilt library. All three platforms can ship CEF on arm64 (`windows/arm64` prebuilt
+archives exist for both CEF 142 and 109, with the import library taken from `lib/arm64` and
+the runtime from `bin/libcef_win[_109]/arm64`; Linux/macOS use the `linux/arm64` and
+`macos/arm64` archives). **This round validates Windows only** (macOS / Linux / FreeBSD have
+no real hardware and are out of scope). Windows arm64 has passing Release and Debug builds,
+plus three packages that were packed and package-tested (Release without CEF, Release with
+CEF 142, Debug with CEF 142), all artifacts being PE `0xAA64`; DLL mode, CEF109 and run
+verification are still pending (run verification needs Windows on ARM hardware). Steps
+and results are in the [arm64 test plan](arm64-test-plan.md).
 
 ### Downstream integration
 

@@ -695,7 +695,7 @@ P01–P08、C07–C09 对任何可加载的包都会执行（其中 P02/P04/P05 
 | Windows MinGW gcc/llvm 静态，无 CEF，Release，x64 | 全部执行 | C01 需 MSYS2 + `MSYSTEM`（llvm 变体还需 `CC`/`CXX` 指向 clang）；C03 用 Ninja；C04 通常 SKIP；C05/C06 SKIP；C10 可选 | 真实 MinGW 包；MSYS2/MinGW-w64 环境；CEF 不支持 |
 | Linux gcc/clang 静态，SDL，Release，x64 | 全部执行 | C01 PASS；C03 用 Ninja/Makefiles；C04 SKIP（包架构=主机）；C05/C06 SKIP；C10 需桌面会话且包含示例 | 真实 Linux 包；X11/字体等运行依赖 |
 | macOS 静态，SDL（动态 dylib），Release，x64，含示例 | 全部执行 | C01 PASS；C11 PASS（`sdk_bundle.app` 的 Frameworks/rpath/资源布局）；C03 PASS；C04 SKIP；C05/C06 SKIP；C10 需 `bin/basic.app` 与桌面会话 | 真实 macOS 包（`.app` 示例）；macOS 本机 + `otool` |
-| Windows/Linux/macOS arm64 任意静态包 | 全部执行 | C01 需要 arm64 编译器或可用交叉/仿真环境，否则 SKIP；C04 在 Windows 需要 arm64 工具集或 x64 生成器才能构造相反架构，否则 SKIP；C05/C06 视 Windows 环境；C10 需能运行 arm64 程序 | 真实 arm64 包；arm64 工具链或真机；结构可由包级场景先行验证 |
+| Windows/Linux/macOS arm64 任意静态包 | 全部执行 | C01 需要 arm64 编译器或可用交叉/仿真环境，否则 SKIP；C04 在 Windows 需要 arm64 工具集或 x64 生成器才能构造相反架构，否则 SKIP；C05/C06 视 Windows 环境；C10 需能运行 arm64 程序 | 真实 arm64 包；Windows 交叉工具已就绪（`Hostx64\arm64`），运行验证仍需 arm64 设备；Linux/macOS 不安排 |
 | 非 Windows 或 MinGW 的 DLL 包 | 结构上可执行包级场景 | C02 需要平台一致且工具链支持；C05/C06 不适用 | 当前构建不产出该组合，属于不适用/需外部产物 |
 
 ### 9.3 必须用真实包或真实环境才能验证的部分
@@ -712,8 +712,14 @@ P01–P08、C07–C09 对任何可加载的包都会执行（其中 P02/P04/P05 
   DLL 引用 `turbojpeg.dll`（MSBuild 默认启用 libjpeg-turbo），还需要
   `bin/turbojpeg.dll`，`pack.py` 会自动收集；CMake 构建当前未启用 JPEG，不
   产生该依赖。duilib DLL 以 SDL 编译时打包必须加 `--with-sdl`。
-- **arm64**：需要 arm64 工具链、真机或仿真环境；没有时 C01/C02/C10/C11 会 SKIP，C04 也
-  可能因工具集缺失而 SKIP。
+- **arm64**：C01 需要 arm64 工具链，C10/C11 需要能运行 arm64 程序的环境。Windows 上
+  VS 2022 的 ARM64 交叉工具（`Hostx64\arm64`）可完成 C01 的配置/编译/链接；x64 主机
+  无法运行 ARM64 产物（`WinError 216`），因此 `check_consumer()` 在链接后按
+  `_can_run_arch()` 判为不可运行，C01 记为 SKIP 并注明「运行验证需 arm64 环境」，
+  不再误判为 FAIL。C10 同样会 SKIP；Linux/macOS arm64 无真机时不安排（见
+  `build/arm64-test-plan.md`）。C04 在 Windows 用 `-A x64` 即可构造相反架构。
+  2026-10-28 实测：arm64 的 Release 无 CEF、Release CEF142、Debug CEF142 三个包均为
+  `PASS=14 FAIL=0 SKIP=5`。
 - **Linux/macOS 运行**：C10 需要桌面会话、X11/字体或 macOS 窗口环境；纯 headless
   环境只能验证包级场景。
 - **MinGW llvm 变体**：需要 MSYS2 环境且 `CC`/`CXX` 指向 clang，否则 C01/C02 会 SKIP。

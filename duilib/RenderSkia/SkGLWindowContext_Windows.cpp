@@ -1,7 +1,10 @@
 #include "SkGLWindowContext_Windows.h"
 #include "duilib/Render/IRender.h"
 
-#ifdef DUILIB_BUILD_FOR_WIN
+// Skia 上游没有 Windows ARM64 的 WGL 实现：SkWGL_win.cpp 在 _M_ARM64 下被整体
+// 排除，GrGLMakeNativeInterface() 在 ARM64 下直接返回 nullptr，因此这一渲染后端
+// 在 ARM64 上不可用（Render_Skia_Windows 会自动回退到 CPU 绘制）。
+#if defined(DUILIB_BUILD_FOR_WIN) && !defined(_M_ARM64)
 
 #include "SkiaHeaderBegin.h"
 
@@ -213,4 +216,4 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* /*pRender*/, IRende
 
 } // namespace ui
 
-#endif //DUILIB_BUILD_FOR_WIN
+#endif //DUILIB_BUILD_FOR_WIN && !_M_ARM64

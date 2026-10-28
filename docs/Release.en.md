@@ -239,8 +239,9 @@ The property sheets handle:
 - MSVC runtime alignment to the package;
 - manifest: `msvc/manifest/duilib.x64.manifest`, `duilib.x86.manifest` or
   `duilib.arm64.manifest`, selected by the project's Platform (all three ship,
-  so x86/arm64 programs can be built on an x64 machine; the arm64 package
-  layout is ready but has not been verified on real hardware);
+  so x86/arm64 programs can be built on an x64 machine; the Windows arm64 Release
+  packages have been built and verified, while run verification still needs Windows
+  on ARM hardware);
 - post-build copy of `bin/*.dll` into `$(OutDir)`.
 
 **When the SDK path is not fixed**, define the property before the import:

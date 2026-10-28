@@ -32,11 +32,19 @@ std::unique_ptr<skwindow::WindowContext> MakeRasterForWin(HWND hWnd, std::unique
 */
 std::unique_ptr<skwindow::WindowContext> MakeGLForWin(HWND hWnd, std::unique_ptr<const skwindow::DisplayParams> params)
 {
+#if defined(_M_ARM64)
+    // Skia 上游没有 Windows ARM64 的 WGL/OpenGL 实现（SkWGL_win.cpp 与
+    // GrGLMakeNativeInterface 在 _M_ARM64 下均为空），因此 ARM64 只用 CPU 绘制。
+    (void)hWnd;
+    (void)params;
+    return nullptr;
+#else
     std::unique_ptr<skwindow::WindowContext> ctx(new SkGLWindowContext_Windows(hWnd, std::move(params)));
     if (!ctx->isValid()) {
         return nullptr;
     }
     return ctx;
+#endif
 }
 
 Render_Skia_Windows::Render_Skia_Windows(HWND hWnd, RenderBackendType backendType):
@@ -56,7 +64,9 @@ Render_Skia_Windows::Render_Skia_Windows(HWND hWnd, RenderBackendType backendTyp
     if (backendType == RenderBackendType::kNativeGL_BackendType) {
         //GPU绘制
         m_pWindowContext = MakeGLForWin(hWnd, std::make_unique<skwindow::DisplayParams>());
+#if !defined(_M_ARM64)
         ASSERT(m_pWindowContext != nullptr);
+#endif
         if (m_pWindowContext != nullptr) {
             m_backendType = RenderBackendType::kNativeGL_BackendType;
         }        
@@ -133,6 +143,10 @@ bool Render_Skia_Windows::PaintAndSwapBuffers(IRenderPaint* pRenderPaint)
     ASSERT(pRenderPaint != nullptr);
     ASSERT(m_pWindowContext != nullptr);
     if ((m_pWindowContext != nullptr) && (pRenderPaint != nullptr)) {
+#if defined(_M_ARM64)
+        // ARM64 没有 OpenGL 后端（Skia 未实现），只会走 CPU 绘制
+        if (m_backendType == RenderBackendType::kRaster_BackendType) {
+#else
         if (m_backendType == RenderBackendType::kNativeGL_BackendType) {
             SkGLWindowContext_Windows* pWindowContext = dynamic_cast<SkGLWindowContext_Windows*>(m_pWindowContext.get());
             ASSERT(pWindowContext != nullptr);
@@ -141,6 +155,7 @@ bool Render_Skia_Windows::PaintAndSwapBuffers(IRenderPaint* pRenderPaint)
             }
         }
         else if (m_backendType == RenderBackendType::kRaster_BackendType) {
+#endif
             SkRasterWindowContext_Windows* pWindowContext = dynamic_cast<SkRasterWindowContext_Windows*>(m_pWindowContext.get());
             ASSERT(pWindowContext != nullptr);
             if (pWindowContext != nullptr) {

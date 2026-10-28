@@ -55,6 +55,27 @@ class ArchTests(unittest.TestCase):
         self.assertIn(entry.host_arch(), ("x86", "x64", "arm64"))
 
 
+class MsvcVcvarsTests(unittest.TestCase):
+    """vcvarsall 平台参数：x64 主机上的 arm64 目标走交叉工具，不要求 Hostarm64。"""
+
+    def _platform(self, arch, host):
+        with mock.patch.object(entry, "host_arch", return_value=host):
+            return entry._vcvars_platform(arch)
+
+    def test_native_platforms(self):
+        self.assertEqual(self._platform("x64", "x64"), "x64")
+        self.assertEqual(self._platform("x86", "x64"), "x86")
+
+    def test_arm64_cross_from_x64(self):
+        self.assertEqual(self._platform("arm64", "x64"), "amd64_arm64")
+
+    def test_arm64_cross_from_x86(self):
+        self.assertEqual(self._platform("arm64", "x86"), "x86_arm64")
+
+    def test_arm64_native(self):
+        self.assertEqual(self._platform("arm64", "arm64"), "arm64")
+
+
 class LayoutTests(unittest.TestCase):
     def test_preset_name(self):
         self.assertEqual(entry.preset_name("x64", "Debug"), "x64-debug")

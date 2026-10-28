@@ -179,6 +179,33 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   gained the missing `windows/arm64` entry for 109, and the "rejected" unit test in
   `test_pack.py` became a collection test. The arm64 package manifest now documents
   that `--with-cef` is supported.
+- Build (Windows arm64 toolchain detection): `build.py` always passed `arm64` to
+  `vcvarsall.bat`, which asks for the native `Hostarm64` toolset; an x64 host usually
+  only has the `Hostx64\arm64` cross tools, so an installed ARM64 toolset was still
+  reported as `Visual Studio C++ tools for arm64 are not installed`. The argument is
+  now chosen by host architecture (`amd64_arm64` / `x86_arm64` / `arm64`) via the new
+  `_vcvars_platform` helper, with 4 unit tests; `build.py doctor --arch arm64` now
+  detects Ninja and the VS toolchain correctly.
+- Rendering (Windows arm64 build failure): upstream Skia excludes `SkWGL_win.cpp`
+  entirely under `_M_ARM64` and `GrGLMakeNativeInterface()` returns nullptr, so ARM64
+  has no WGL backend and linking failed on `SkCreateWGLContext` / `SkWGLExtensions::*`.
+  `SkGLWindowContext_Windows.cpp` and `Render_Skia_Windows` no longer compile or call
+  the GL backend on ARM64: `MakeGLForWin` returns nullptr and Skia rendering always
+  uses the CPU path; other architectures are unchanged.
+- Build (Windows arm64 manifest): `cmake/duilib_bin_windows.cmake` picked the manifest
+  by pointer width only, so arm64 examples embedded `duilib.x64.manifest` and the
+  ARM64 process could not start. It now selects `duilib.arm64.manifest` first based on
+  `DUILIB_TARGET_ARCH_RESOLVED`, and the `cmake/README*.md` snippets were updated.
+- SDK integration (arm64 cross build): when Ninja cross-compiles arm64 on an x64 host,
+  `CMAKE_SYSTEM_PROCESSOR` still reports the host architecture, so
+  `nim_duilibConfig.cmake` treated the consumer as x64 and rejected the arm64 package.
+  A new `CMAKE_CXX_COMPILER_ARCHITECTURE_ID MATCHES "ARM64"` fallback branch restores
+  configuration and compilation for arm64 packages.
+- Package test (cross-arch consumer): running an arm64 consumer on an x64 host failed
+  with `OSError: [WinError 216]`, turning C01 into a false FAIL. `sdk_package_test.py`
+  gained `_can_run_arch()` (an x64 host can run x86 through WOW64, not vice versa) and
+  now SKIPs after configure/compile/link with a "needs arm64 environment" note, plus
+  5 unit tests.
 - Packaging (macOS CEF headers): `--with-cef` used to forward
   `include/duilib/duilib_cef.h` and `include/duilib/CEFControl/` on macOS as well,
   but those headers depend on `third_party/libcef` headers that are not shipped, so

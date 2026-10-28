@@ -21,7 +21,7 @@
 | `sdk_package_test.py` | 发布 SDK 包测试编排器（结构校验 + 消费者编译运行 + 负向用例） |
 | `sdk_test/` | SDK 消费者用例工程（仅依赖解包后的 SDK） |
 | `sdk-package-test.md` | SDK 包测试方法与用途说明 |
-| `arm64-test-plan.md` | arm64 测试计划（三平台矩阵、依赖专项、结果回填） |
+| `arm64-test-plan.md` | arm64 测试计划（Windows 矩阵、依赖专项、结果回填） |
 | `duilib.sln` / `duilib_no_cef.sln` | Visual Studio 解决方案（只含库） |
 | `examples.sln` / `examples_no_cef.sln` | Visual Studio 解决方案（库 + 示例） |
 | `README.md` / `README.en.md` | 本文件 |
@@ -158,7 +158,10 @@ python3 build/autotest.py --preset arm64-synthetic --dry-run      # 只打印命
 `arm64` 支持范围：接入文件与包结构已就绪，libjpeg-turbo 提供 arm64 预编译库，
 Windows / Linux / macOS 的 arm64 都能按对应归档随包 CEF（Windows 142 与 109 均有
 `windowsarm64` 预编译包，出包时从 `lib/arm64` 取导入库、从 `bin/libcef_win[_109]/arm64`
-取运行时）；但未在 arm64 真机上验证。有环境后的执行步骤见
+取运行时）。**本轮只验证 Windows**（macOS / Linux / FreeBSD 无真机，不安排测试）；
+Windows arm64 已完成 Release/Debug 构建，以及三个包的出包/包测试（Release 无 CEF、
+Release CEF 142、Debug CEF 142；产物均为 PE `0xAA64`）；DLL 模式、CEF109 与启动验证
+仍待补（启动验证需 Windows on ARM 设备）；步骤与结果见
 [arm64 测试计划](arm64-test-plan.md)。
 
 ### 下游接入

@@ -17,6 +17,7 @@
 | 历史通过 | 新构建系统验证阶段（2026-10-23 ~ 25）执行并通过，本轮未复测 |
 | 部分 | 已执行但存在已知限制，或仅完成构建/打包中的一项 |
 | 未测 | 尚未验证 |
+| 不安排 | 明确不纳入本轮测试（如无对应真机环境），保留编号备查 |
 | 不适用 | 项目不支持该组合 |
 
 ## 0. 测试环境基线
@@ -24,7 +25,7 @@
 | 项目 | 本轮环境 |
 | :--- | :--- |
 | 操作系统 | Windows 10/11 x64 |
-| Visual Studio | 2022 17.14.37710.0（MSVC x64/x86；无 arm64 工具集） |
+| Visual Studio | 2022 17.14.37710.0（MSVC 14.44.35207：x64/x86 + ARM64 交叉工具 `Hostx64\arm64`；Windows SDK 10.0.26100.0 含 arm64 库） |
 | CMake / Ninja | CMake 4.3.0，Ninja（VS 自带） |
 | Python | 3.14.4 |
 | MSYS2 | `E:\msys64`（MINGW64、UCRT64、CLANG64；MINGW32 缺 gcc/make） |
@@ -68,7 +69,8 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
 | W-B15 | MSYS2 gcc | x64 / Release | `-DDUILIB_MINGW_STATIC=OFF` | 库 + 非 CEF 示例 | `... --config Release --cmake-arg=-DDUILIB_MINGW_STATIC=OFF --jobs 3` | 通过 | 571/571；objdump 确认示例依赖 libstdc++-6/libgcc_s_seh-1/libwinpthread-1.dll |
 | W-B16 | MSYS2 gcc/llvm | x64 / Debug | 默认 | 库 | `... --config Debug --target duilib --no-examples` | 通过 | MINGW64 本轮实测 285/285（libduilib.a 333.2 MB）；UCRT64/CLANG64 历史通过；示例未复测 |
 | W-B17 | MSYS2 MINGW32 | x86 / Release | 默认 | 库 + 示例 | — | 未测 | 环境缺 gcc/make，需先补齐工具链 |
-| W-B18 | MSVC | arm64 / Debug/Release | 默认 | 库 + 示例 | `... --arch arm64` | 未测 | VS 未安装 arm64 工具集 |
+| W-B18 | MSVC | arm64 / Release | 默认 | 库 + 示例 | `... --arch arm64` | 通过 | 25/25 目标、21 个示例链接完成；`bin/*.exe` 23 个与 `lib/arm64/Release` 6 个库均为 PE `0xAA64`；Skia 由 `deps` 自动构建 `skia/out/llvm.arm64.release`；ARM64 无 WGL，Skia 渲染走 CPU（见本节修复） |
+| W-B18b | MSVC | arm64 / Debug | 默认 | 库 + 示例 | `... --arch arm64 --config Debug` | 通过 | `deps` 自动构建 `skia/out/llvm.arm64.debug`（1078 目标，约 6 分钟）；802/802 目标、23 个示例链接完成；`bin/*.exe` 均为 `0xAA64`，嵌入清单为 `processorArchitecture="ARM64"`；`lib/arm64/Debug` 6 个库 409.4 MB（`duilib.lib` 254 MB） |
 | W-B19 | MSVC | x64 / Debug | `--dry-run` | 仅打印命令 | `... --config Debug --dry-run` | 通过 | 不执行配置/编译，不输出“编译完成” |
 | W-B20 | MSVC | x64 / Debug | 复用构建目录 | 有状态选项回归 | 先 `--no-examples --md --sdl`，再默认构建 | 通过 | 默认值显式传入，不继承旧选项 |
 | W-B21 | MSVC | x64 / Debug | `--dll` | 库 + 全部示例 | `... build --dll --config Debug` | 通过 | 802/802；`bin/duilib_d.dll` 36,225,024 B；basic/ChildWindow 启动正常（窗口标题正确） |
@@ -138,8 +140,10 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
 | W-P20 | x86 Debug DLL + 示例 + SDL + CEF | `pack.py --config Debug --arch x86 --with-examples --with-sdl --with-cef` | 1394 / 191.6 MB | 通过 |
 | W-P21 | x86 Release DLL + 示例 + SDL + CEF | `pack.py --config Release --arch x86 --with-examples --with-sdl --with-cef` | 1394 / 183.4 MB | 通过 |
 | W-P22 | MSBuild DLL（动态 turbojpeg，无 SDL） | MSBuild 构建后 `pack.py --config Release`（不加 `--with-sdl`） | 1099 / 200.2 MB | 通过 | 包名 `win-x64-cef-dll`；`JPEG=1`、`SDL3=0`；含 `bin/duilib.dll` + `bin/turbojpeg.dll`，无 `turbojpeg-static.lib`；`--verify` 与 SDK 测试（PASS=15 FAIL=0 SKIP=4）通过；修复 P04/C02 对 DLL 包 `HAS_JPEG` 的误判 |
-| W-P23 | arm64 Release + 示例 + CEF 142 | `pack.py --arch arm64 --with-examples --with-cef` | 待测（需已有 arm64 构建产物） | 未测 | 脚本已放开：`lib/arm64/libcef.lib` + `bin/libcef_win/arm64/`；真机未验证 |
-| W-P24 | arm64 Release + 示例 + CEF 109 | `pack.py --arch arm64 --with-examples --with-cef --cef-version 109` | 待测 | 未测 | 109 的 `windows/arm64` 归档已补进 `third_party_versions.json` |
+| W-P23 | arm64 Release + 示例（无 CEF） | `pack.py --arch arm64 --with-examples` | 760 / 109.0 MB | 通过 | `--verify` 760 条目全匹配；SDK 测试 PASS=14 FAIL=0 SKIP=5（C01 配置/编译/链接通过，因本机 x64 无法运行 arm64 程序而 SKIP） |
+| W-P24 | arm64 Release + 示例 + CEF 142 | `pack.py --arch arm64 --with-examples --with-cef` | 1314 / 311.7 MB | 通过 | CEF 开发文件 288 项 + 运行时 238 项；包内 `bin/libcef_win/arm64/libcef.dll` 为 PE `0xAA64`，三份 manifest 齐全；`--verify` 1314 条目全匹配；SDK 测试 PASS=14 FAIL=0 SKIP=5 |
+| W-P25 | arm64 Release + 示例 + CEF 109 | `pack.py --arch arm64 --with-examples --with-cef --cef-version 109` | — | 未测 | 109 的 `windows/arm64` 归档已补进 `third_party_versions.json`，待 arm64 CEF109 构建后验证 |
+| W-P26 | arm64 Debug + 示例 + CEF 142 | `pack.py --arch arm64 --config Debug --with-examples --with-cef` | 1314 / 394.5 MB | 通过 | Skia 目录 `llvm.arm64.debug`；CEF 288 + 运行时 238；`--verify` 1314 条目全匹配；SDK 测试 PASS=14 FAIL=0 SKIP=5（C01 按架构 SKIP）；WebView2 无 arm64 loader，按预期跳过 |
 
 打包专项说明：
 
@@ -182,7 +186,7 @@ Unix 平台一次只构建一个配置，库输出到 `lib/<Config>`；`--md` �
 | L-B01 | Linux gcc | x64 / Release | 默认（SDL 默认开启） | `python3 build/build.py --config Release` | 通过 | 2026-10-28 真机；`python3 build/build.py` 同义 |
 | L-B02 | Linux clang | x64 / Release | 默认 | `CC=clang CXX=clang++ python3 build/build.py` | 通过 | 2026-10-28 真机；仅验证构建，未做 clang 出包与包测试（预检与 Skia 工具链优先 clang） |
 | L-B03 | Linux | x64 / Debug | 默认 | `python3 build/build.py --config Debug` | 通过 | 2026-10-28 真机；切换配置后重新链接 |
-| L-B04 | Linux | arm64 / Release | 默认 | `--arch arm64` | 未测 | 缺真机/交叉工具链 |
+| L-B04 | Linux | arm64 / Release | 默认 | `--arch arm64` | 不安排 | 无 arm64 真机（2026-10-28 决策：arm64 只测 Windows） |
 | L-B05 | Linux | x64 / Release | `--with-cef` 打包 | `pack --with-examples --with-cef` | 通过 | 2026-10-28 真机；CEF 示例包生成并通过包测试 |
 | L-B06 | Linux | x64 / Release | 运行验证 | 解包运行示例（C10） | 通过 | `--run-examples` 启动 `bin/basic` 3 秒后仍在运行 |
 
@@ -257,7 +261,7 @@ Skia `llvm.x64.release`、SDL3 `main`、CEF 142/x64。
 2026-10-28 macOS 真机复测：Release/Debug 构建、6 个出包、8 次包测试（含两次
 `--run-examples`），以及 `build.py doctor/test`、`test_build.py`、`test_pack.py`、
 `test_sdk_package.py`、`test_autotest.py`、`autotest.py` 全部通过；只改资源的增量同步
-（M-B07）手测通过；当前仅 arm64 无测试环境（命令清单见 5.3）。
+（M-B07）手测通过；arm64 按 2026-10-28 决策不安排（无 arm64 真机，只测 Windows）。
 
 ### 5.1 构建
 
@@ -265,7 +269,7 @@ Skia `llvm.x64.release`、SDL3 `main`、CEF 142/x64。
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | M-B01 | x64 / Release | 默认（CEF 142、SDL 默认开启） | `python3 build/build.py` | 通过 | 全量构建通过；`bin/` 示例与 `.app` 正常更新 |
 | M-B02 | x64 / Debug | 默认 | `python3 build/build.py --config Debug` | 通过 | 全量构建通过；切换配置后示例重新链接 |
-| M-B03 | arm64 / Release | 默认 | `--arch arm64` | 未测 | 无 arm64 测试环境 |
+| M-B03 | arm64 / Release | 默认 | `--arch arm64` | 不安排 | 无 arm64 真机（2026-10-28 决策：arm64 只测 Windows） |
 | M-B04 | x64 / Release | CEF 示例 / `.app` | 构建 `cef`、`CefBrowser` | 通过 | Helper/Framework/wrapper 正常，Bundle 随 `--with-cef` 进包 |
 | M-B05 | x64 / Release ↔ Debug | 同一 `bin/` 切换配置 | 连续执行 `python3 build/build.py` 与 `--config Debug` | 通过 | 两次构建均通过，切换后示例重新链接；单元测试覆盖两个方向 |
 | M-B06 | x64 / Release | 普通示例 `.app`（`basic` 默认开启） | `python3 build/build.py` 后检查 `bin/basic.app`（`Contents/Info.plist`、`Contents/Resources/duilib/resources` 只含按示例名自动推导的子集） | 通过 | macOS 真机：`.app` 生成正常、`Info.plist` 存在、Debug/Release 切换后首次启动不再崩溃。资源改由 `<目标>_bundle_resources` 每次构建同步（按内容比较），实现见 `cmake/duilib_copy_bundle_resources.cmake` |
@@ -329,8 +333,8 @@ Skia `llvm.x64.release`、SDL3 `main`、CEF 142/x64。
 | 23 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-macos-x64-examples-debug.tar.gz --run-examples` | M-T08（C10 启动示例，Debug） |
 
 复测结论：上述命令全部通过，无遗留问题。`M-B07`（只改资源、不改源码）已手测通过
-（修改、新增、删除 XML 三种改动均由每次构建同步进 `basic.app`）。唯一未覆盖项为
-`M-B03`（arm64），当前没有 arm64 测试环境。
+（修改、新增、删除 XML 三种改动均由每次构建同步进 `basic.app`）。`M-B03`（arm64）
+按 2026-10-28 决策不安排（无 arm64 真机，arm64 只测 Windows）。
 
 ## 6. 跨平台通用命令矩阵
 
@@ -341,7 +345,7 @@ Skia `llvm.x64.release`、SDL3 `main`、CEF 142/x64。
 | G-03 | `build.py clean` | 删除整个 `out/`；`--build-dir` 可只清理指定构建目录 | 通过 | dry-run 仅打印路径 |
 | G-04 | `build.py clean --deps --dry-run` | 展示依赖清理范围 | 通过 | 不会删除源码克隆 |
 | G-05 | `build.py build/pack/test --dry-run` | 只打印命令 | 通过 | build/clean 不再误报完成 |
-| G-06 | `build.py test` | 构建/打包单元测试 | 通过 | 202 项全部通过（含 `bin/.build-config/` 新路径、旧标记兼容、标记目录不被误收、Debug/Release 切换清理）；macOS 2026-10-28 复测 `build.py test`、`test_build.py`、`test_pack.py`、`test_sdk_package.py`、`test_autotest.py` 均通过 |
+| G-06 | `build.py test` | 构建/打包单元测试 | 通过 | 227 项通过、2 项按平台跳过（2026-10-28；含新增 `_vcvars_platform` arm64 交叉参数 4 项与 `_can_run_arch` 5 项）；macOS 2026-10-28 复测 `build.py test`、`test_build.py`、`test_pack.py`、`test_sdk_package.py`、`test_autotest.py` 均通过 |
 | G-07 | 负向校验 | 混合库、架构不一致、CEF 版本不匹配、错误 ref/archive | 通过 | 均在配置/打包阶段明确报错 |
 
 ## 7. 当前测试进展（2026-10-28）
@@ -364,7 +368,7 @@ Skia `llvm.x64.release`、SDL3 `main`、CEF 142/x64。
 | macOS 包测试（`sdk_package_test.py`） | 8 / 8 | 全部通过（含 Release/Debug 示例包的 `--run-examples`） |
 | macOS 脚本测试（`doctor`/`test`/`test_*`/`autotest`） | 7 项 | 全部通过（见 5.3） |
 | macOS 示例启动/运行验证（`--run-examples`） | 2 次 | 通过：Release、Debug 示例包均 `[PASS] C10 examples.smoke`（M-T07/M-T08） |
-| arm64（Windows/Linux/macOS） | 0 | 未测（无 arm64 测试环境）；Windows arm64 的 CEF 随包已放开（脚本层，见下方修复表） |
+| arm64（仅 Windows） | 6 / 8 | Release/Debug 构建（W-B18/W-B18b）、Release 无 CEF / CEF142 与 Debug CEF142 出包 + 包测试（W-P23/W-P24/W-P26）通过；DLL 模式、CEF109 出包、示例启动未测（缺 arm64 真机）；Linux/macOS/FreeBSD 的 arm64 不安排（无真机） |
 
 本轮验证过的代表性产物（中间包已清理，仅保留最终包）：
 
@@ -385,6 +389,9 @@ Skia `llvm.x64.release`、SDL3 `main`、CEF 142/x64。
 | win-x64 llvm-mingw Release 示例 | 757 | 151.8 MB |
 | win-x64 MinGW gcc Release SDL 示例 | 837 | 248.2 MB |
 | win-x64 MinGW 动态链接 Release 示例 | 757 | 201.2 MB |
+| win-arm64 Release 无 CEF 示例 | 760 | 109.0 MB |
+| win-arm64 Release CEF 示例 | 1314 | 311.7 MB |
+| win-arm64 Debug CEF 示例 | 1314 | 394.5 MB |
 
 最终包位置：`E:\packtest\final\nim_duilib-1.0.2026.1023-win-x64-cef-examples-debug.zip`
 （420.2 MB，1316 条目，`pack.py --verify` 全部匹配）。
@@ -405,6 +412,11 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
 | 新增资源目标后 configure 报循环依赖（`<目标>_bundle_resources` ↔ `<目标>`） | 自定义目标的 `COMMAND` 中引用了 `$<TARGET_BUNDLE_DIR:${target}>`，目标相关生成表达式会隐式加一条依赖目标的边（CMP0112），与 `add_dependencies` 成环。改为字面路径 `${DUILIB_BIN_PATH}/<目标>.app/...`；CEF 分支本就是字面路径，无此问题 |
 | macOS `--run-examples` 的 C10 报 `PermissionError: [Errno 13]`（`bin/basic.app/Contents/MacOS/basic`） | `sdk_package_test.py` 的 `extract_package` 用 `open(..., "wb")` 解包，权限固定 0644，Unix 上丢可执行位。tar 按 `member.mode`、zip 按 `external_attr >> 16` 恢复模式（Windows 跳过），新增 5 项单元测试（POSIX 分支用 mock 断言 `chmod` 参数） |
 | Windows arm64 无法随包 CEF（`collect_cef()` 直接报错，`third_party_versions.json` 的 109 缺 `windows/arm64` 条目） | 上游已发布 Windows arm64 预编译包（142 与 109 都有），`pack.py` 现按 `lib/arm64` 收集 `libcef.lib`、按 `bin/libcef_win[_109]/arm64` 收集运行时；清单补 109 的 `windows/arm64` 归档；`test_pack.py` 由「拒绝」改为「收集」用例 |
+| `doctor --arch arm64` 报 `Visual Studio C++ tools for arm64 are not installed`，但 VS 已装 ARM64 生成工具 | `vcvarsall.bat` 原先固定传 `arm64`，该参数要求 `Hostarm64` 原生工具集，x64 主机默认只装 `Hostx64\arm64`。改为按主机选择 `amd64_arm64` / `x86_arm64` / `arm64`（新增 `_vcvars_platform` 与 4 项单元测试）；`doctor --arch arm64` 复查通过（Ninja + VS + gn + curl 全 OK） |
+| Windows arm64 链接失败：`SkCreateWGLContext`、`SkWGLExtensions::*` 共 5 个 LNK2019 | Skia 上游在 `_M_ARM64` 下把 `SkWGL_win.cpp` 整体排除，`GrGLMakeNativeInterface()` 返回 nullptr，ARM64 没有 WGL 后端。`SkGLWindowContext_Windows.cpp` 改用 `#if defined(DUILIB_BUILD_FOR_WIN) && !defined(_M_ARM64)`；`Render_Skia_Windows` 在 ARM64 的 `MakeGLForWin` 直接返回 nullptr，绘制固定走 CPU（`PaintAndSwapBuffers` 的 GL 分支同步排除），非 ARM64 行为不变 |
+| arm64 示例链接命令嵌入的是 `duilib.x64.manifest` | `cmake/duilib_bin_windows.cmake` 原先只按 32/64 位选清单，ARM64 进程用 x64 清单无法启动；改为按 `DUILIB_TARGET_ARCH_RESOLVED` 优先匹配 `duilib.arm64.manifest`，`cmake/README*.md` 同步代码片段 |
+| Ninja 交叉编译 arm64 时 `nim_duilibConfig.cmake` 把消费者判成 x64，C01/C03/C05 配置阶段报「SDK 架构为 arm64，当前工程为 x64」 | 单配置生成器下 `CMAKE_SYSTEM_PROCESSOR` 仍是主机架构；新增 `CMAKE_CXX_COMPILER_ARCHITECTURE_ID MATCHES "ARM64"` 回退分支，重打包后 C03/C05 转 PASS、C01 配置与编译通过 |
+| x64 主机上 arm64 消费者运行失败（`OSError: [WinError 216]`），C01 被误判为 FAIL | 交叉编译产物无法在本机执行。`sdk_package_test.py` 新增 `_can_run_arch()`（x64 主机可经 WOW64 运行 x86，反之不可），配置/编译/链接通过后按架构 SKIP 并注明「运行验证需 arm64 环境」；新增 5 项单元测试 |
 | Linux 上 C01/C03 报「C++ 编译器不可用」「配置失败原因不含 …」，日志为 `error closing ...s: 设备上没有空间` | `/tmp` 是小容量 tmpfs 且已写满，gcc 临时汇编文件写不进去，被误判成包/工具链问题。`sdk_package_test.py` 现在把 `TMPDIR`/`TEMP`/`TMP` 指到 `--out-dir/<NN>/work/tmp`；启动时按包大小估算空间并打印 `[WARN]`；新增 4 项单元测试 |
 
 ### 2026-10-27 依赖版本一致性（Windows 已验证）
@@ -425,13 +437,17 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
    `dist/` 中只保留本轮通过校验的新 DLL 包（W-P18 ~ W-P21、W-P22）。
 3. Linux x64 已完成 Release/Debug 构建、6 个出包、8 次包测试（含下游工程接入 C01 与
    `--run-examples` 的 C10）与全部脚本测试（2026-10-28 真机复测）；clang 工具链已验证
-   Release 构建（未出包）；未覆盖：arm64。FreeBSD 仍只验证过 Release 构建与打包。
+   Release 构建（未出包）；arm64 不安排（无真机）。FreeBSD 仍只验证过 Release 构建与打包。
 4. macOS x64 的 Release/Debug 构建、`basic.app`（`Info.plist` 保留、切换配置后首次启动
    正常、只改资源的增量同步）、6 个出包、8 次包测试（含两次 `--run-examples`）与全部脚本
-   测试均已通过（2026-10-28 真机复测）；仅 arm64 未覆盖（无测试环境）。
-5. Windows/Linux/macOS 的 arm64 均未实测（均无 arm64 测试环境）；Windows 另缺 arm64
-   MSVC 工具集。有环境后的执行步骤见 `build/arm64-test-plan.md`
-   （Phase 0 无真机回归 + W-A/L-A/M-A 三套矩阵 + 依赖与打包专项）。
+   测试均已通过（2026-10-28 真机复测）；arm64 不安排（无 arm64 真机）。
+5. arm64 本轮只测 Windows（2026-10-28 决策：macOS/Linux/FreeBSD 均无真机）。Windows 已
+   完成 Release/Debug 构建（W-B18/W-B18b）、Release 无 CEF / CEF142 与 Debug CEF142 出包
+   与包测试（W-P23/W-P24/W-P26），Skia 由 `deps` 自动构建 `skia/out/llvm.arm64.release`
+   与 `llvm.arm64.debug`。仍缺：
+   DLL 模式、CEF109 出包、示例启动与运行验证（需 Windows on ARM 设备；
+   x64 主机无法运行 ARM64 程序，C01 因此按架构 SKIP）。ARM64 没有 WGL，Skia 恒走 CPU
+   绘制；步骤与剩余项见 `build/arm64-test-plan.md`。
 6. `bin/` 与 `lib/<arch>/<Config>` 被多架构/多工具链共用，切换后必须清理，否则打包
    会因 PE 架构或混合库校验失败（这是预期保护，不是缺陷）。
 7. MinGW 默认并行度在内存较小的机器上可能 OOM，回归时优先 `--jobs 2`/`--jobs 3`。

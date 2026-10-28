@@ -83,6 +83,11 @@ if(NIM_DUILIB_PACKAGE_SYSTEM STREQUAL "win")
         if(_nim_arch STREQUAL "win32")
             set(_nim_arch "x86")
         endif()
+    elseif(DEFINED CMAKE_CXX_COMPILER_ARCHITECTURE_ID AND
+           CMAKE_CXX_COMPILER_ARCHITECTURE_ID MATCHES "ARM64")
+        # Ninja 等单配置生成器在 x64 主机上交叉编译 ARM64 时，
+        # CMAKE_SYSTEM_PROCESSOR 仍是主机架构，这里用编译器自身的架构标识。
+        set(_nim_arch "arm64")
     elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64")
         # Ninja 等单配置生成器没有 CMAKE_GENERATOR_PLATFORM，ARM64 主机
         # 仅按指针宽度会被误判为 x64，这里先看目标处理器。

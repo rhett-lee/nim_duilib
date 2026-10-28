@@ -1150,6 +1150,13 @@ def _msvc_crt_dir(arch: str) -> Path | None:
     candidates.sort(key=lambda item: item[0], reverse=True)
     return candidates[0][1]
 
+def _can_run_arch(arch: str, host: str) -> bool:
+    """本机能否直接运行该架构的程序（x64 主机可通过 WOW64 运行 x86）。"""
+    if arch == host:
+        return True
+    return arch == "x86" and host == "x64"
+
+
 def check_consumer(info: PackageInfo, work_dir: Path, log_dir: Path, options: Options) -> str:
     toolchain, reason = detect_toolchain(info)
     if toolchain is None:
@@ -1196,6 +1203,14 @@ def check_consumer(info: PackageInfo, work_dir: Path, log_dir: Path, options: Op
     # /MD 消费者的运行库可能与测试机系统目录版本不一致，按官方 app-local
     # 方式把 VS 自带的 CRT 复制到 exe 同级，避免误判为 SDK 问题。
     deploy_msvc_runtime(exe_dir, info)
+
+    package_arch = info.meta("ARCH") or host_arch()
+    if not _can_run_arch(package_arch, host_arch()):
+        # 交叉编译产物无法在本机执行（如 x64 主机上构建 arm64 消费者）：
+        # 配置与链接已验证，运行验证需对应架构的机器。
+        raise ScenarioSkipped(
+            "配置/编译/链接通过；本机为 %s，无法运行 %s 程序"
+            "（运行验证需 %s 环境）" % (host_arch(), package_arch, package_arch))
 
     try:
         proc = subprocess.run([str(exe)], cwd=str(exe_dir), env=env,

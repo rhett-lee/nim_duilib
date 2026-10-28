@@ -197,7 +197,8 @@ SDL/WebView2/JPEG/CEF、MSVC 运行库、运行期 DLL），无需手工抄写�
 - MSVC 运行库：按包元数据强制对齐；
 - manifest：按工程 Platform 嵌入 `msvc/manifest/duilib.x64.manifest`、
   `duilib.x86.manifest` 或 `duilib.arm64.manifest`（三份均随包，x64 机器上也能
-  开发 x86/arm64 程序；arm64 包结构已就绪，但未做真机编译/运行验证）；
+  开发 x86/arm64 程序；Windows arm64 Release 包已完成构建与出包验证，运行验证
+  仍需 Windows on ARM 设备）；
 - 构建后：复制 `bin/*.dll` 到 `$(OutDir)`。
 
 **SDK 路径不固定时**，先定义属性再导入（属性必须在 Import 之前）：

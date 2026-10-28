@@ -30,8 +30,10 @@ add_definitions(-DUNICODE -D_UNICODE)
 # 目录名与 CPU 架构对应：x64 → native/x64，x86 → native/x86
 set(DUILIB_WEBVIEW2_NATIVE_DIR "${DUILIB_ROOT}/duilib/third_party/Microsoft.Web.WebView2/build/native/${DUILIB_SYSTEM_PROCESSOR}")
 
-# 需要嵌入的manifest文件路径
-if(DUILIB_BITS_64)
+# 需要嵌入的manifest文件路径（arm64 必须用 ARM64 清单，否则 ARM64 进程无法启动）
+if(DUILIB_TARGET_ARCH_RESOLVED STREQUAL "arm64")
+    set(DUILIB_WIN_MANIFEST "${DUILIB_ROOT}/msvc/manifest/duilib.arm64.manifest")
+elseif(DUILIB_BITS_64)
     set(DUILIB_WIN_MANIFEST "${DUILIB_ROOT}/msvc/manifest/duilib.x64.manifest")
 else()
     set(DUILIB_WIN_MANIFEST "${DUILIB_ROOT}/msvc/manifest/duilib.x86.manifest")

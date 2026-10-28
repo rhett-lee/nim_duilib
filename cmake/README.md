@@ -235,7 +235,9 @@ endif()
 
 #### 3.5 Manifest 文件配置
 ```cmake
-if(DUILIB_BITS_64)
+if(DUILIB_TARGET_ARCH_RESOLVED STREQUAL "arm64")
+    set(DUILIB_WIN_MANIFEST "${DUILIB_ROOT}/msvc/manifest/duilib.arm64.manifest")
+elseif(DUILIB_BITS_64)
     set(DUILIB_WIN_MANIFEST "${DUILIB_ROOT}/msvc/manifest/duilib.x64.manifest")
 else()
     set(DUILIB_WIN_MANIFEST "${DUILIB_ROOT}/msvc/manifest/duilib.x86.manifest")
