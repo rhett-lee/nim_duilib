@@ -172,6 +172,13 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   capabilities, and bundled CEF headers were reported as "undeclared CEF". On macOS
   `-cef` now means "a CEF example bundle is included", while `HAS_CEF` describes
   whether the SDK ships CEF development files.
+- Packaging (Windows arm64 CEF): `pack.py` rejected `--with-cef` for Windows arm64,
+  although upstream `cef_builds` publishes `windowsarm64` prebuilt archives for both
+  CEF 142 and 109. The import library is now collected from `lib/arm64/libcef.lib`
+  and the runtime from `bin/libcef_win[_109]/arm64/`; `third_party_versions.json`
+  gained the missing `windows/arm64` entry for 109, and the "rejected" unit test in
+  `test_pack.py` became a collection test. The arm64 package manifest now documents
+  that `--with-cef` is supported.
 - Packaging (macOS CEF headers): `--with-cef` used to forward
   `include/duilib/duilib_cef.h` and `include/duilib/CEFControl/` on macOS as well,
   but those headers depend on `third_party/libcef` headers that are not shipped, so

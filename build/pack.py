@@ -290,7 +290,7 @@ def cef_src_name(sys_tag, cef_version):
 # CefManager 按“可执行文件目录 + 该子目录”加载 libcef.dll
 # （见 duilib/CEFControl/CefManager_Windows.cpp: AddCefDllToPath），
 # 所以包内必须保持同样的相对结构，不能把运行时摊平到 bin/。
-CEF_RUNTIME_ARCH_DIRS = {'x64': 'x64', 'x86': 'Win32'}
+CEF_RUNTIME_ARCH_DIRS = {'x64': 'x64', 'x86': 'Win32', 'arm64': 'arm64'}
 
 # 随 Windows 包分发的 VS manifest 架构。x64 主机上也可能开发 x86/arm64 程序，
 # 三份都随包，由 props 按 Platform 选择。
@@ -1275,7 +1275,9 @@ def collect_cef(collector, sys_tag, arch_tag, cef_version):
 
     count = 0
     if sys_tag == 'win':
-        arch_dir = {'x64': 'x64', 'x86': 'Win32'}.get(arch_tag)
+        # 上游为 Windows 提供 x64/Win32/arm64 三套预编译包（142 与 109 都有）。
+        arch_dir = {'x64': 'x64', 'x86': 'Win32',
+                    'arm64': 'arm64'}.get(arch_tag)
         if arch_dir is None:
             raise PackageError('CEF 上游没有 Windows %s 预编译包，无法随包' % arch_tag)
         lib = os.path.join(src_root, 'lib', arch_dir, 'libcef.lib')
@@ -1299,7 +1301,7 @@ def collect_cef_runtime(collector, sys_tag, arch_tag, cef_version):
     """收集 CEF 运行时（--with-cef 时随包）。
 
     运行时按“可执行文件目录 + 固定子目录”被加载：
-      Windows：<exe>/libcef_win[/_109]/{x64,Win32}/
+      Windows：<exe>/libcef_win[/_109]/{x64,Win32,arm64}/
       Linux：  <exe>/libcef_linux/（扁平结构，libcef.so 与资源文件同级）
     包内保持仓库 bin/ 下的同一相对结构（bin/libcef_win[_109]/<arch>/、
     bin/libcef_linux/），示例程序放在 bin/ 时可直接启动，下游把该子目录
@@ -2170,8 +2172,12 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     if is_windows and arch_tag == 'arm64':
         lines.append('')
         lines.append('  arm64 说明：manifest / props / CMake config 等接入文件与包结构')
-        lines.append('  已就绪，但未在 arm64 真机上做编译、打包、运行验证；')
-        lines.append('  CEF 上游没有 Windows arm64 预编译包，本包不含 CEF。')
+        lines.append('  已就绪，但未在 arm64 真机上做编译、打包、运行验证。')
+        lines.append('  CEF 上游提供 Windows arm64 预编译包（142 与 109）：')
+        if with_cef:
+            lines.append('  本包已按 --with-cef 收集 CEF 开发文件与运行时。')
+        else:
+            lines.append('  需要 CEF 时加 --with-cef 重新出包；本包不含 CEF 开发文件与运行时。')
 
     section('运行期')
     lines.append('  bin/resources/ 必须与可执行文件同级（框架启动必需）；从 bin/ 取用')

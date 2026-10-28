@@ -425,8 +425,12 @@
 - 支持范围：接入文件与包结构**已就绪**；libjpeg-turbo 的 Windows arm64 预编译库
   已入库（`libjpeg-turbo6-win-vc-arm64`），`pack.py` 与 `JpegTurboSettings.props`
   已接入，arm64 包随包 `lib/turbojpeg-static.lib`；**未在 arm64 真机上做编译、
-  打包、运行验证**（无测试设备）；CEF 上游无 Windows arm64 预编译包，
-  `--with-cef --arch arm64` 明确报错。
+  打包、运行验证**（无测试设备）。
+- 现状（2026-10-28）：CEF 的 Windows arm64 随包放开。上游 `cef_builds` 对 142 与 109
+  都发布 `windowsarm64` 预编译包，仓库 `libcef_win[_109]/lib/arm64/libcef.lib` 已入库；
+  `pack.py` 按 `lib/arm64` 收集导入库、按 `bin/libcef_win[_109]/arm64/` 收集运行时，
+  `third_party_versions.json` 补 109 的 `windows/arm64` 归档，`test_pack.py` 由
+  「报错」改为「收集」用例；执行步骤见 `build/arm64-test-plan.md`（W-A06/W-A07）。
 - 验收：文档已明确“支持范围 + 未验证项”；发布矩阵中 arm64 仍标记为
   “结构就绪、待真机验证”，不得声称已通过运行验证。
 

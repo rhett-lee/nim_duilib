@@ -18,6 +18,7 @@ and troubleshooting, see [build-reference.en.md](build-reference.en.md)
 | `autotest.py` | local automation: environment check → build → package → verify → assertions |
 | `test_build.py` | unit tests for the build entry |
 | `test_pack.py` / `test_autotest.py` | packaging and automation tests |
+| `arm64-test-plan.md` | arm64 test plan (three-platform matrix, dependency checks, result backfill) |
 | `duilib.sln` / `duilib_no_cef.sln` | Visual Studio solutions (library only) |
 | `examples.sln` / `examples_no_cef.sln` | Visual Studio solutions (library + examples) |
 | `README.md` / `README.en.md` | this document |
@@ -146,8 +147,11 @@ Exit codes: 0 some preset passed and none failed; 1 a failure; 2 all skipped.
 `autotest.log`.
 
 arm64 scope: integration files and package layout are ready and libjpeg-turbo ships an
-arm64 prebuilt library, but nothing has been validated on real arm64 hardware; CEF has
-no Windows arm64 prebuilt package, so arm64 packages exclude CEF.
+arm64 prebuilt library, but nothing has been validated on real arm64 hardware. All three
+platforms can ship CEF on arm64 (`windows/arm64` prebuilt archives exist for both CEF 142
+and 109, with the import library taken from `lib/arm64` and the runtime from
+`bin/libcef_win[_109]/arm64`; Linux/macOS use the `linux/arm64` and `macos/arm64`
+archives). See the [arm64 test plan](arm64-test-plan.md) for execution steps.
 
 ### Downstream integration
 

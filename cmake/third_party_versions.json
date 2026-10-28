@@ -48,6 +48,10 @@
           "windows/x64": {
             "file": "cef_binary_109.1.18%2Bgf1c41e4%2Bchromium-109.0.5414.120_windows64_minimal.tar.bz2",
             "sha256": ""
+          },
+          "windows/arm64": {
+            "file": "cef_binary_109.1.18%2Bgf1c41e4%2Bchromium-109.0.5414.120_windowsarm64_minimal.tar.bz2",
+            "sha256": ""
           }
         }
       },

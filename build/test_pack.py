@@ -424,19 +424,44 @@ class Arm64SupportTest(_TempDirTest):
             pack.is_windows_host = old_win
             pack.JPEG_TURBO_DIR = old_dir
 
-    def test_cef_arm64_is_rejected(self):
+    def test_cef_arm64_is_supported(self):
+        # 上游已发布 Windows arm64 预编译包（142 与 109 都有），
+        # collect_cef 按 lib/arm64 收集导入库，collect_cef_runtime 按 arm64 子目录。
         old_win = pack.is_windows_host
+        old_dir = pack.CEF_DIR
         try:
             pack.is_windows_host = lambda: True
-            with self.assertRaises(pack.PackageError) as ctx:
-                pack.collect_cef(pack.Collector(), 'win', 'arm64', 'latest')
-            self.assertIn('arm64', str(ctx.exception))
+            pack.CEF_DIR = self.tmp
+            self._touch('libcef_win/lib/arm64/libcef.lib', b'ARM64LIB')
+            self._touch('libcef_win_109/lib/arm64/libcef.lib', b'ARM64LIB109')
             collector = pack.Collector()
             self.assertEqual(
-                pack.collect_cef_runtime(collector, 'win', 'arm64', 'latest'), 0)
-            self.assertTrue(any('arm64' in msg for msg in collector.warnings))
+                pack.collect_cef(collector, 'win', 'arm64', 'latest'), 1)
+            self.assertEqual([rel for rel, _abs in collector.items],
+                             ['lib/libcef.lib'])
+            collector = pack.Collector()
+            self.assertEqual(
+                pack.collect_cef(collector, 'win', 'arm64', '109'), 1)
+            self.assertEqual(collector.warnings, [])
+            # 运行时：bin/libcef_win/arm64/ 目录存在时按 CEF_RUNTIME_ARCH_DIRS
+            # 的 arm64 映射收集，不再告警跳过。
+            old_bin = pack.BIN_DIR
+            pack.BIN_DIR = self.tmp
+            try:
+                self._touch('libcef_win/arm64/libcef.dll', b'MZ')
+                collector = pack.Collector()
+                self.assertEqual(
+                    pack.collect_cef_runtime(collector, 'win', 'arm64',
+                                             'latest'), 1)
+                self.assertEqual(
+                    [rel for rel, _abs in collector.items],
+                    ['bin/libcef_win/arm64/libcef.dll'])
+                self.assertEqual(collector.warnings, [])
+            finally:
+                pack.BIN_DIR = old_bin
         finally:
             pack.is_windows_host = old_win
+            pack.CEF_DIR = old_dir
 
     def test_manifest_notes_arm64_scope(self):
         collector = self._collector()
@@ -447,7 +472,15 @@ class Arm64SupportTest(_TempDirTest):
         self.assertIn('平台      : win-arm64', text)
         self.assertIn('arm64 说明', text)
         self.assertIn('未在 arm64 真机上做编译、打包、运行验证', text)
-        self.assertIn('CEF 上游没有 Windows arm64 预编译包', text)
+        self.assertIn('CEF 上游提供 Windows arm64 预编译包（142 与 109）', text)
+        self.assertIn('需要 CEF 时加 --with-cef 重新出包', text)
+        # --with-cef 出包时说明改为“已收集 CEF 开发文件与运行时”
+        text, _sums = pack.write_manifest(
+            self._collector(), 'nim_duilib-1.0-win-arm64-cef', '1.0', 'win',
+            'arm64', 'Release', False, False, True, 'latest', toolchain='msvc',
+            virtual_files={}, msvc_runtime='MT', package_time=0)
+        self.assertIn('本包已按 --with-cef 收集 CEF 开发文件与运行时', text)
+        self.assertNotIn('需要 CEF 时加 --with-cef 重新出包', text)
 
     def test_manifest_time_is_deterministic(self):
         collector = self._collector()

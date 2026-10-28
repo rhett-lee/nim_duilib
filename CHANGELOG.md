@@ -134,6 +134,11 @@
   `.app/Contents/Frameworks/Chromium Embedded Framework.framework`，导致包名 `-cef`
   与实际能力不一致，且把随包的 CEF 头文件当成“未声明 CEF”。现在 macOS 的 `-cef`
   只表示 CEF 示例 Bundle 随包，`HAS_CEF` 按“SDK 是否提供 CEF 开发文件”判定。
+- 打包（Windows arm64 CEF）：`pack.py` 原先对 Windows arm64 的 `--with-cef` 直接报错，
+  实际上游 `cef_builds` 已提供 `windowsarm64` 预编译包（142 与 109 都有）。现在按
+  `lib/arm64/libcef.lib` 收集导入库、按 `bin/libcef_win[_109]/arm64/` 收集运行时，
+  `third_party_versions.json` 补上 109 的 `windows/arm64` 归档，`test_pack.py` 的
+  「拒绝」用例改为「收集」用例；arm64 包内清单同步说明可用 `--with-cef` 出包。
 - 打包（macOS CEF 头文件）：`--with-cef` 此前在 macOS 也转发
   `include/duilib/duilib_cef.h`、`include/duilib/CEFControl/`，但这些头文件依赖
   未随包的 `third_party/libcef` 头文件，无法用于下游编译，且与元数据 `HAS_CEF=0`
