@@ -14,7 +14,19 @@
 #
 # SPDX-License-Identifier: libpng-2.0
 
-cmake_minimum_required(VERSION 3.14...4.4)
+cmake_minimum_required(VERSION 3.18)
+
+# duilib
+# MSVC runtime library flags are selected by an abstraction.
+set(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
+if(DUILIB_MD)
+    # MD/MDd
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+else()
+    # MT/MTd
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+# duilib end
 
 set(PNGLIB_MAJOR 1)
 set(PNGLIB_MINOR 6)
@@ -70,10 +82,10 @@ if((NOT DFA_XTRA STREQUAL "") AND (NOT PNG_LIBCONF_HEADER STREQUAL ""))
 endif()
 
 # Allow the users to switch on/off various library build types.
-option(PNG_SHARED "Build libpng as a shared library" ON)
+option(PNG_SHARED "Build libpng as a shared library" OFF)
 option(PNG_STATIC "Build libpng as a static library" ON)
 if(APPLE)
-  option(PNG_FRAMEWORK "Build libpng as a framework bundle" ON)
+  option(PNG_FRAMEWORK "Build libpng as a framework bundle" OFF)
 else()
   option(PNG_FRAMEWORK "Build libpng as a framework bundle (not available on this platform)" OFF)
 endif()
@@ -84,7 +96,7 @@ endif()
 # Allow the users to switch on/off the auxiliary build and test artifacts.
 # These artifacts are NOT part of libpng proper, and are subject to change
 # at any time.
-option(PNG_TESTS "Build the libpng tests" ON)
+option(PNG_TESTS "Build the libpng tests" OFF)
 
 # Same as above, but for the third-party tools.
 # Although these tools are targeted at development environments only,
@@ -92,7 +104,7 @@ option(PNG_TESTS "Build the libpng tests" ON)
 if(ANDROID OR IOS)
   option(PNG_TOOLS "Build the libpng tools" OFF)
 else()
-  option(PNG_TOOLS "Build the libpng tools" ON)
+  option(PNG_TOOLS "Build the libpng tools" OFF)
 endif()
 
 # Maintain backwards compatibility with the deprecated option PNG_EXECUTABLES.
@@ -124,6 +136,20 @@ else()
 endif()
 message(STATUS "Building for target architecture: ${PNG_TARGET_ARCHITECTURE}")
 
+# duilib: please build zlib first
+get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../" ABSOLUTE)
+# 库输出目录（D-2：按平台/配置分目录）
+include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_lib_output.cmake")
+set(ZLIB_ROOT "${DUILIB_SRC_ROOT_DIR}/duilib/third_party/zlib/")
+# zlib库的文件名：zlib的输出名是duilib-zlib，库文件名的前缀/后缀由CMake按编译器给出
+# （Linux/FreeBSD/macOS: libduilib-zlib.a，Windows: duilib-zlib.lib）
+set(DUILIB_ZLIB_LIB_NAME "${CMAKE_STATIC_LIBRARY_PREFIX}duilib-zlib${CMAKE_STATIC_LIBRARY_SUFFIX}")
+# zlib 库路径：D-2 后为 <root>/lib[<arch>]/<Config>；$<CONFIG> 由 CMake 在链接时展开
+set(ZLIB_LIBRARY "${DUILIB_LIB_BASE}/$<CONFIG>/${DUILIB_ZLIB_LIB_NAME}")
+message(STATUS "ZLIB_ROOT: ${ZLIB_ROOT}")
+message(STATUS "ZLIB_LIBRARY: ${ZLIB_LIBRARY}")
+# duilib end
+
 # Allow the users to specify a custom location of zlib.
 # With CMake 3.12 and newer, this option is no longer necessary.
 option(PNG_BUILD_ZLIB "[Deprecated; please use ZLIB_ROOT]" OFF)
@@ -139,7 +165,13 @@ endif()
 
 # Find the zlib library.
 find_package(ZLIB REQUIRED)
-set(PNG_LINK_LIBRARIES ZLIB::ZLIB)
+# duilib: 优先链接本工程的 zlib 目标，避免 FindZLIB 生成的 ZLIB::ZLIB 导入目标
+#         把含 $<CONFIG> 的库路径带入依赖列表
+if(TARGET duilib-zlib)
+  set(PNG_LINK_LIBRARIES duilib-zlib)
+else()
+  set(PNG_LINK_LIBRARIES ZLIB::ZLIB)
+endif()
 
 # Find the math library (unless we already know it's not available or
 # not needed).
@@ -704,22 +736,28 @@ if(PNG_SHARED)
                         PUBLIC ${PNG_LINK_LIBRARIES})
 endif()
 
+#duilib: 输出目录已由 cmake/duilib_lib_output.cmake 设置（D-2）
+
 if(PNG_STATIC)
-  add_library(png_static STATIC ${libpng_sources})
-  add_dependencies(png_static png_genfiles)
-  list(APPEND PNG_LIBRARY_TARGETS png_static)
-  set_target_properties(png_static
-                        PROPERTIES OUTPUT_NAME "${PNG_STATIC_OUTPUT_NAME}"
-                                   DEBUG_POSTFIX "${PNG_DEBUG_POSTFIX}")
-  target_include_directories(png_static
+  # duilib: 目标名与库文件名保持一致（duilib-png），便于 DUILIB_LIBS 直接按目标名链接
+  add_library(duilib-png STATIC ${libpng_sources})
+  add_dependencies(duilib-png png_genfiles)
+  list(APPEND PNG_LIBRARY_TARGETS duilib-png)
+#  set_target_properties(duilib-png
+#                        PROPERTIES OUTPUT_NAME "${PNG_STATIC_OUTPUT_NAME}"
+#                                   DEBUG_POSTFIX "${PNG_DEBUG_POSTFIX}")
+  target_include_directories(duilib-png
                              PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>")
-  target_include_directories(png_static
+  target_include_directories(duilib-png
                              PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>")
-  target_include_directories(png_static
+  target_include_directories(duilib-png
                              SYSTEM
                              INTERFACE "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/libpng${PNGLIB_ABI_VERSION}>")
-  target_link_libraries(png_static
+  target_link_libraries(duilib-png
                         PUBLIC ${PNG_LINK_LIBRARIES})
+  #duilib
+  # 保留上游安装导出的名称（PNG::png_static），仅本地目标名与库文件名一致
+  set_target_properties(duilib-png PROPERTIES OUTPUT_NAME "duilib-png" EXPORT_NAME png_static)
 endif()
 
 if(PNG_FRAMEWORK AND NOT APPLE)
@@ -1134,8 +1172,8 @@ if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
 
   if(PNG_STATIC)
     if(NOT WIN32 OR CYGWIN OR MINGW)
-      create_symlink(libpng${CMAKE_STATIC_LIBRARY_SUFFIX} TARGET png_static)
-      install(FILES "$<TARGET_LINKER_FILE_DIR:png_static>/libpng${CMAKE_STATIC_LIBRARY_SUFFIX}"
+#      create_symlink(libpng${CMAKE_STATIC_LIBRARY_SUFFIX} TARGET duilib-png)
+      install(FILES "$<TARGET_LINKER_FILE_DIR:duilib-png>/libpng${CMAKE_STATIC_LIBRARY_SUFFIX}"
               DESTINATION "${CMAKE_INSTALL_LIBDIR}")
     endif()
   endif()
