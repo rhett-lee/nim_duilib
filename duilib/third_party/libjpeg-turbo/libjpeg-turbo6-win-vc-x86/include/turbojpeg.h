@@ -76,6 +76,59 @@
  * of 4 bytes on top of this, then the luminance plane would be 36 x 35 bytes,
  * and each of the chrominance planes would be 20 x 35 bytes.
  *
+ * @anchor JPEGDestBufNotes
+ * JPEG Destination Buffer Management
+ * ----------------------------------
+ *
+ * **If #TJPARAM_NOREALLOC is set to `0`:**
+ *
+ * The TurboJPEG compression and transform functions will reallocate the
+ * destination buffer, if necessary, to accommodate the size of a
+ * generated/transformed JPEG image.  Thus, you can choose one of the following
+ * options:
+ * -# Use #tj3Alloc() to pre-allocate the buffer with an arbitrary size, and
+ *    let the API automatically reallocate the buffer as needed.  (If the API
+ *    reallocates the buffer, then the pre-allocated buffer is no longer
+ *    valid.)
+ * -# Set the buffer pointer to NULL to tell the API to automatically allocate
+ *    the buffer.
+ * -# Use #tj3Alloc() to pre-allocate the buffer to a "worst-case" size
+ *    determined as follows:
+ *    - *Compression:* Call #tj3JPEGBufSize() and add the return value to the
+ *      size of the ICC profile (if any) that was previously associated with
+ *      the TurboJPEG instance.  (See #tj3SetICCProfile() and
+ *      #tj3GetICCProfile().)
+ *    - *Lossless transformation:* Call #tj3TransformBufSize().
+ *    .
+ *    This should ensure that the buffer never has to be re-allocated.
+ *    (Setting #TJPARAM_NOREALLOC to `1` guarantees that it won't be.)
+ *
+ * Because there is no way for applications to know the size of an
+ * automatically (re)allocated JPEG destination buffer, the API tracks a
+ * destination buffer's size across multiple compression and transform function
+ * calls until the first such call in which the buffer is no longer used.  If a
+ * specified JPEG destination buffer pointer matches a destination buffer that
+ * was previously used in one of the compression or transform functions, then
+ * the specified buffer size is ignored.  (If multiple simultaneous transforms
+ * are performed, then #tj3Transform() separately tracks the destination buffer
+ * size for each transformed image.  The destination buffer size for the first
+ * image is tracked from a previous compression function call, and vice versa.)
+ * This allows applications to repeatedly call a compression or transform
+ * function with the same destination buffer argument(s) without re-specifying
+ * the destination buffer size(s) each time.
+ *
+ * @warning A JPEG destination buffer is API-managed rather than
+ * caller-managed between the first and last compression or transform function
+ * calls in which that buffer is used.  Applications must not reallocate the
+ * buffer during that time.
+ *
+ * **If #TJPARAM_NOREALLOC is set to `1`:**
+ *
+ * The JPEG destination buffer must always be pre-allocated, and the buffer
+ * size must always be specified.  The TurboJPEG compression and transform
+ * functions will throw an error if the destination buffer is not big enough to
+ * receive the generated/transformed JPEG image.  The buffer must be
+ * pre-allocated to the "worst-case" size, per above, to avoid this.
  * @{
  */
 
@@ -570,10 +623,13 @@ enum TJPARAM {
    * transformation]
    *
    * **Value**
-   * - `0` *[default]* Attempt to allocate or reallocate the JPEG destination
-   * buffer as needed.
+   * - `0` *[default]* Automatically allocate or reallocate the JPEG
+   * destination buffer as needed.
    * - `1` Generate an error if the JPEG destination buffer is invalid or too
    * small.
+   *
+   * Refer to @ref JPEGDestBufNotes "JPEG Destination Buffer Management" for
+   * more details.
    */
   TJPARAM_NOREALLOC,
   /**
@@ -981,8 +1037,9 @@ enum TJPARAM {
    *
    * If this parameter is set to `2` or `4`:
    * - When decompressing, #tj3DecompressHeader() extracts the ICC profile from
-   *   a JPEG image.  #tj3GetICCProfile() can then be used to retrieve the
-   *   profile.
+   *   a JPEG image.  (#tj3DecompressHeader() always removes any ICC profile
+   *   that was previously extracted.)  #tj3GetICCProfile() can then be used to
+   *   retrieve the extracted profile.
    * - When loading a PNG image using a TurboJPEG compression instance,
    *   #tj3LoadImage8(), #tj3LoadImage12(), and #tj3LoadImage16() extract the
    *   ICC profile from the PNG image and associate the profile with the
@@ -1088,7 +1145,9 @@ enum TJXOP {
  */
 #define TJXOPT_TRIM  (1 << 1)
 /**
- * Enable lossless cropping.  See #tj3Transform() for more information.
+ * Enable lossless cropping of the transformed image.  (Cropping is performed
+ * after any other transformation operations.)  See #tj3Transform() for more
+ * information.
  */
 #define TJXOPT_CROP  (1 << 2)
 /**
@@ -1146,20 +1205,22 @@ typedef struct {
 } tjscalingfactor;
 
 /**
- * Cropping region
+ * Cropping region.  Note that lossless cropping is performed after any other
+ * transformation operations, so the coordinates and iMCU dimensions are
+ * relative to the flipped/rotated/tranposed image.
  */
 typedef struct {
   /**
    * The left boundary of the cropping region.  For lossless transformation,
    * this must be evenly divisible by the iMCU width (see #tjMCUWidth) of the
-   * destination image.  For decompression, this must be evenly divisible by
+   * transformed image.  For decompression, this must be evenly divisible by
    * the scaled iMCU width of the source image.
    */
   int x;
   /**
    * The upper boundary of the cropping region.  For lossless transformation,
    * this must be evenly divisible by the iMCU height (see #tjMCUHeight) of the
-   * destination image.
+   * transformed image.
    */
   int y;
   /**
@@ -1348,7 +1409,7 @@ DLLEXPORT int tj3Get(tjhandle handle, int param);
  * Allocate a byte buffer for use with TurboJPEG.  You should always use this
  * function to allocate the JPEG destination buffer(s) for the compression and
  * transform functions unless you are disabling automatic buffer (re)allocation
- * (by setting #TJPARAM_NOREALLOC.)
+ * (by setting #TJPARAM_NOREALLOC to `1`.)
  *
  * @param bytes the number of bytes to allocate
  *
@@ -1542,29 +1603,14 @@ DLLEXPORT int tj3SetICCProfile(tjhandle handle, unsigned char *iccBuf,
  * "Pixel formats".)
  *
  * @param jpegBuf address of a pointer to a byte buffer that will receive the
- * JPEG image.  TurboJPEG has the ability to reallocate the JPEG buffer to
- * accommodate the size of the JPEG image.  Thus, you can choose to:
- * -# pre-allocate the JPEG buffer with an arbitrary size using #tj3Alloc() and
- * let TurboJPEG grow the buffer as needed,
- * -# set `*jpegBuf` to NULL to tell TurboJPEG to allocate the buffer for you,
- * or
- * -# pre-allocate the buffer to a "worst case" size determined by calling
- * #tj3JPEGBufSize() and adding the return value to the size of the ICC profile
- * (if any) that was previously associated with the TurboJPEG instance (see
- * #tj3SetICCProfile() and #tj3GetICCProfile().)  This should ensure that the
- * buffer never has to be re-allocated.  (Setting #TJPARAM_NOREALLOC guarantees
- * that it won't be.)
- * .
- * Unless you have set #TJPARAM_NOREALLOC, you should always check `*jpegBuf`
- * upon return from this function, as it may have changed.
+ * JPEG image.  If #TJPARAM_NOREALLOC is set to `0`, you should always check
+ * `*jpegBuf` upon return from this function, as it may have changed.  Refer to
+ * @ref JPEGDestBufNotes "JPEG Destination Buffer Management" for more details.
  *
- * @param jpegSize pointer to a size_t variable that holds the size of the JPEG
- * buffer.  If `*jpegBuf` points to a pre-allocated buffer, then `*jpegSize`
- * should be set to the size of the buffer.  Otherwise, `*jpegSize` is
- * ignored.  If `*jpegBuf` points to a JPEG buffer that is being reused from a
- * previous call to one of the JPEG compression functions, then `*jpegSize` is
- * also ignored.  Upon return, `*jpegSize` will contain the size of the JPEG
- * image (in bytes.)
+ * @param jpegSize pointer to a size_t variable that specifies the size of the
+ * JPEG buffer.  Upon return, `*jpegSize` will contain the size of the JPEG
+ * image (in bytes.)  Refer to
+ * @ref JPEGDestBufNotes "JPEG Destination Buffer Management" for more details.
  *
  * @return 0 if successful, or -1 if an error occurred (see #tj3GetErrorStr()
  * and #tj3GetErrorCode().)
@@ -1603,29 +1649,14 @@ DLLEXPORT int tj3Compress8(tjhandle handle, const unsigned char *srcBuf,
  * "Pixel formats".)
  *
  * @param jpegBuf address of a pointer to a byte buffer that will receive the
- * JPEG image.  TurboJPEG has the ability to reallocate the JPEG buffer to
- * accommodate the size of the JPEG image.  Thus, you can choose to:
- * -# pre-allocate the JPEG buffer with an arbitrary size using #tj3Alloc() and
- * let TurboJPEG grow the buffer as needed,
- * -# set `*jpegBuf` to NULL to tell TurboJPEG to allocate the buffer for you,
- * or
- * -# pre-allocate the buffer to a "worst case" size determined by calling
- * #tj3JPEGBufSize() and adding the return value to the size of the ICC profile
- * (if any) that was previously associated with the TurboJPEG instance (see
- * #tj3SetICCProfile() and #tj3GetICCProfile().)  This should ensure that the
- * buffer never has to be re-allocated.  (Setting #TJPARAM_NOREALLOC guarantees
- * that it won't be.)
- * .
- * Unless you have set #TJPARAM_NOREALLOC, you should always check `*jpegBuf`
- * upon return from this function, as it may have changed.
+ * JPEG image.  If #TJPARAM_NOREALLOC is set to `0`, you should always check
+ * `*jpegBuf` upon return from this function, as it may have changed.  Refer to
+ * @ref JPEGDestBufNotes "JPEG Destination Buffer Management" for more details.
  *
- * @param jpegSize pointer to a size_t variable that holds the size of the JPEG
- * buffer.  If `*jpegBuf` points to a pre-allocated buffer, then `*jpegSize`
- * should be set to the size of the buffer.  Otherwise, `*jpegSize` is
- * ignored.  If `*jpegBuf` points to a JPEG buffer that is being reused from a
- * previous call to one of the JPEG compression functions, then `*jpegSize` is
- * also ignored.  Upon return, `*jpegSize` will contain the size of the JPEG
- * image (in bytes.)
+ * @param jpegSize pointer to a size_t variable that specifies the size of the
+ * JPEG buffer.  Upon return, `*jpegSize` will contain the size of the JPEG
+ * image (in bytes.)  Refer to
+ * @ref JPEGDestBufNotes "JPEG Destination Buffer Management" for more details.
  *
  * @return 0 if successful, or -1 if an error occurred (see #tj3GetErrorStr()
  * and #tj3GetErrorCode().)
@@ -1665,29 +1696,14 @@ DLLEXPORT int tj3Compress12(tjhandle handle, const short *srcBuf, int width,
  * "Pixel formats".)
  *
  * @param jpegBuf address of a pointer to a byte buffer that will receive the
- * JPEG image.  TurboJPEG has the ability to reallocate the JPEG buffer to
- * accommodate the size of the JPEG image.  Thus, you can choose to:
- * -# pre-allocate the JPEG buffer with an arbitrary size using #tj3Alloc() and
- * let TurboJPEG grow the buffer as needed,
- * -# set `*jpegBuf` to NULL to tell TurboJPEG to allocate the buffer for you,
- * or
- * -# pre-allocate the buffer to a "worst case" size determined by calling
- * #tj3JPEGBufSize() and adding the return value to the size of the ICC profile
- * (if any) that was previously associated with the TurboJPEG instance (see
- * #tj3SetICCProfile() and #tj3GetICCProfile().)  This should ensure that the
- * buffer never has to be re-allocated.  (Setting #TJPARAM_NOREALLOC guarantees
- * that it won't be.)
- * .
- * Unless you have set #TJPARAM_NOREALLOC, you should always check `*jpegBuf`
- * upon return from this function, as it may have changed.
+ * JPEG image.  If #TJPARAM_NOREALLOC is set to `0`, you should always check
+ * `*jpegBuf` upon return from this function, as it may have changed.  Refer to
+ * @ref JPEGDestBufNotes "JPEG Destination Buffer Management" for more details.
  *
- * @param jpegSize pointer to a size_t variable that holds the size of the JPEG
- * buffer.  If `*jpegBuf` points to a pre-allocated buffer, then `*jpegSize`
- * should be set to the size of the buffer.  Otherwise, `*jpegSize` is
- * ignored.  If `*jpegBuf` points to a JPEG buffer that is being reused from a
- * previous call to one of the JPEG compression functions, then `*jpegSize` is
- * also ignored.  Upon return, `*jpegSize` will contain the size of the JPEG
- * image (in bytes.)
+ * @param jpegSize pointer to a size_t variable that specifies the size of the
+ * JPEG buffer.  Upon return, `*jpegSize` will contain the size of the JPEG
+ * image (in bytes.)  Refer to
+ * @ref JPEGDestBufNotes "JPEG Destination Buffer Management" for more details.
  *
  * @return 0 if successful, or -1 if an error occurred (see #tj3GetErrorStr()
  * and #tj3GetErrorCode().)
@@ -1731,29 +1747,14 @@ DLLEXPORT int tj3Compress16(tjhandle handle, const unsigned short *srcBuf,
  * buffer copy will be performed.
  *
  * @param jpegBuf address of a pointer to a byte buffer that will receive the
- * JPEG image.  TurboJPEG has the ability to reallocate the JPEG buffer to
- * accommodate the size of the JPEG image.  Thus, you can choose to:
- * -# pre-allocate the JPEG buffer with an arbitrary size using #tj3Alloc() and
- * let TurboJPEG grow the buffer as needed,
- * -# set `*jpegBuf` to NULL to tell TurboJPEG to allocate the buffer for you,
- * or
- * -# pre-allocate the buffer to a "worst case" size determined by calling
- * #tj3JPEGBufSize() and adding the return value to the size of the ICC profile
- * (if any) that was previously associated with the TurboJPEG instance (see
- * #tj3SetICCProfile() and #tj3GetICCProfile().)  This should ensure that the
- * buffer never has to be re-allocated.  (Setting #TJPARAM_NOREALLOC guarantees
- * that it won't be.)
- * .
- * Unless you have set #TJPARAM_NOREALLOC, you should always check `*jpegBuf`
- * upon return from this function, as it may have changed.
+ * JPEG image.  If #TJPARAM_NOREALLOC is set to `0`, you should always check
+ * `*jpegBuf` upon return from this function, as it may have changed.  Refer to
+ * @ref JPEGDestBufNotes "JPEG Destination Buffer Management" for more details.
  *
- * @param jpegSize pointer to a size_t variable that holds the size of the JPEG
- * buffer.  If `*jpegBuf` points to a pre-allocated buffer, then `*jpegSize`
- * should be set to the size of the buffer.  Otherwise, `*jpegSize` is
- * ignored.  If `*jpegBuf` points to a JPEG buffer that is being reused from a
- * previous call to one of the JPEG compression functions, then `*jpegSize` is
- * also ignored.  Upon return, `*jpegSize` will contain the size of the JPEG
- * image (in bytes.)
+ * @param jpegSize pointer to a size_t variable that specifies the size of the
+ * JPEG buffer.  Upon return, `*jpegSize` will contain the size of the JPEG
+ * image (in bytes.)  Refer to
+ * @ref JPEGDestBufNotes "JPEG Destination Buffer Management" for more details.
  *
  * @return 0 if successful, or -1 if an error occurred (see #tj3GetErrorStr()
  * and #tj3GetErrorCode().)
@@ -1794,29 +1795,14 @@ DLLEXPORT int tj3CompressFromYUVPlanes8(tjhandle handle,
  * buffer copy will be performed.
  *
  * @param jpegBuf address of a pointer to a byte buffer that will receive the
- * JPEG image.  TurboJPEG has the ability to reallocate the JPEG buffer to
- * accommodate the size of the JPEG image.  Thus, you can choose to:
- * -# pre-allocate the JPEG buffer with an arbitrary size using #tj3Alloc() and
- * let TurboJPEG grow the buffer as needed,
- * -# set `*jpegBuf` to NULL to tell TurboJPEG to allocate the buffer for you,
- * or
- * -# pre-allocate the buffer to a "worst case" size determined by calling
- * #tj3JPEGBufSize() and adding the return value to the size of the ICC profile
- * (if any) that was previously associated with the TurboJPEG instance (see
- * #tj3SetICCProfile() and #tj3GetICCProfile().)  This should ensure that the
- * buffer never has to be re-allocated.  (Setting #TJPARAM_NOREALLOC guarantees
- * that it won't be.)
- * .
- * Unless you have set #TJPARAM_NOREALLOC, you should always check `*jpegBuf`
- * upon return from this function, as it may have changed.
+ * JPEG image.  If #TJPARAM_NOREALLOC is set to `0`, you should always check
+ * `*jpegBuf` upon return from this function, as it may have changed.  Refer to
+ * @ref JPEGDestBufNotes "JPEG Destination Buffer Management" for more details.
  *
- * @param jpegSize pointer to a size_t variable that holds the size of the JPEG
- * buffer.  If `*jpegBuf` points to a pre-allocated buffer, then `*jpegSize`
- * should be set to the size of the buffer.  Otherwise, `*jpegSize` is
- * ignored.  If `*jpegBuf` points to a JPEG buffer that is being reused from a
- * previous call to one of the JPEG compression functions, then `*jpegSize` is
- * also ignored.  Upon return, `*jpegSize` will contain the size of the JPEG
- * image (in bytes.)
+ * @param jpegSize pointer to a size_t variable that specifies the size of the
+ * JPEG buffer.  Upon return, `*jpegSize` will contain the size of the JPEG
+ * image (in bytes.)  Refer to
+ * @ref JPEGDestBufNotes "JPEG Destination Buffer Management" for more details.
  *
  * @return 0 if successful, or -1 if an error occurred (see #tj3GetErrorStr()
  * and #tj3GetErrorCode().)
@@ -1935,11 +1921,13 @@ DLLEXPORT int tj3EncodeYUV8(tjhandle handle, const unsigned char *srcBuf,
 /**
  * Retrieve information about a JPEG image without decompressing it, or prime
  * the decompressor with quantization and Huffman tables.  If a JPEG image is
- * passed to this function, then the @ref TJPARAM "parameters" that describe
- * the JPEG image will be set when the function returns.  If a JPEG image is
- * passed to this function and #TJPARAM_SAVEMARKERS is set to `2` or `4`, then
- * the ICC profile (if any) will be extracted from the JPEG image.
- * (#tj3GetICCProfile() can then be used to retrieve the profile.)
+ * passed to this function, then:
+ * - The @ref TJPARAM "parameters" that describe the JPEG image will be set
+ *   when the function returns.
+ * - If #TJPARAM_SAVEMARKERS is set to `2` or `4`, then the ICC profile (if
+ *   any) will be extracted from the JPEG image.  #tj3GetICCProfile() can then
+ *   be used to retrieve the profile.
+ * - Any ICC profile that was previously extracted will be removed.
  *
  * @param handle handle to a TurboJPEG instance that has been initialized for
  * decompression
@@ -1956,6 +1944,13 @@ DLLEXPORT int tj3EncodeYUV8(tjhandle handle, const unsigned char *srcBuf,
  *
  * @return 0 if successful, or -1 if an error occurred (see #tj3GetErrorStr()
  * and #tj3GetErrorCode().)
+ *
+ * @warning If this function returns a fatal error, then continuing to use the
+ * TurboJPEG instance is unsupported API abuse.  An application that abuses the
+ * API in that manner may work in practice, but it is relying upon undefined
+ * behavior.  If a fatal error occurs, then the application should destroy the
+ * TurboJPEG instance and create a new one if it wishes to safely continue
+ * decompressing images.
  */
 DLLEXPORT int tj3DecompressHeader(tjhandle handle,
                                   const unsigned char *jpegBuf,
@@ -2339,9 +2334,10 @@ DLLEXPORT int tj3DecodeYUV8(tjhandle handle, const unsigned char *srcBuf,
  * This function is a wrapper for #tj3JPEGBufSize() that takes into account
  * cropping, transposition of the width and height (which affects the
  * destination image dimensions and level of chrominance subsampling),
- * grayscale conversion, and the ICC profile (if any) that was previously
+ * grayscale conversion, the ICC profile (if any) that was previously
  * associated with the TurboJPEG instance or extracted from the source image
- * (see #tj3SetICCProfile(), #tj3GetICCProfile(), and #TJPARAM_SAVEMARKERS.)
+ * (see #tj3SetICCProfile(), #tj3GetICCProfile(), and #TJPARAM_SAVEMARKERS),
+ * and any other extra markers in the source image (see #TJPARAM_SAVEMARKERS.)
  * The JPEG header must be read (see #tj3DecompressHeader()) prior to calling
  * this function.
  *
@@ -2384,31 +2380,16 @@ DLLEXPORT size_t tj3TransformBufSize(tjhandle handle,
  *
  * @param dstBufs pointer to an array of n byte buffers.  `dstBufs[i]` will
  * receive a JPEG image that has been transformed using the parameters in
- * `transforms[i]`.  TurboJPEG has the ability to reallocate the JPEG
- * destination buffer to accommodate the size of the transformed JPEG image.
- * Thus, you can choose to:
- * -# pre-allocate the JPEG destination buffer with an arbitrary size using
- * #tj3Alloc() and let TurboJPEG grow the buffer as needed,
- * -# set `dstBufs[i]` to NULL to tell TurboJPEG to allocate the buffer for
- * you, or
- * -# pre-allocate the buffer to a "worst case" size determined by calling
- * #tj3TransformBufSize().  Under normal circumstances, this should ensure that
- * the buffer never has to be re-allocated.  (Setting #TJPARAM_NOREALLOC
- * guarantees that it won't be.  However, if the source image has a large
- * amount of embedded Exif data, then the transformed JPEG image may be larger
- * than the worst-case size.  #TJPARAM_NOREALLOC cannot be used in that case
- * unless the embedded data is discarded using #TJXOPT_COPYNONE or
- * #TJPARAM_SAVEMARKERS.)
- * .
- * Unless you have set #TJPARAM_NOREALLOC, you should always check `dstBufs[i]`
- * upon return from this function, as it may have changed.
+ * `transforms[i]`.  If #TJPARAM_NOREALLOC is set to `0`, you should always
+ * check `dstBufs[i]` upon return from this function, as it may have changed.
+ * Refer to @ref JPEGDestBufNotes "JPEG Destination Buffer Management" for more
+ * details.
  *
- * @param dstSizes pointer to an array of n size_t variables that will receive
- * the actual sizes (in bytes) of each transformed JPEG image.  If `dstBufs[i]`
- * points to a pre-allocated buffer, then `dstSizes[i]` should be set to the
- * size of the buffer.  Otherwise, `dstSizes[i]` is ignored.  Upon return,
- * `dstSizes[i]` will contain the size of the transformed JPEG image (in
- * bytes.)
+ * @param dstSizes pointer to an array of n size_t variables, each of which
+ * specifies the size of the destination buffer for the corresponding
+ * transformed JPEG image.  Upon return, `dstSizes[i]` will contain the size of
+ * the transformed JPEG image (in bytes.)  Refer to
+ * @ref JPEGDestBufNotes "JPEG Destination Buffer Management" for more details.
  *
  * @param transforms pointer to an array of n #tjtransform structures, each of
  * which specifies the transform parameters and/or cropping region for the

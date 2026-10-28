@@ -24,5 +24,25 @@ endmacro()
 
 ####################################################################################
 
+set(WITH_SYSTEM_SPNG 0)
+set(WITH_SYSTEM_ZLIB 0)
+
+if(WITH_SYSTEM_SPNG OR WITH_SYSTEM_ZLIB)
+  include(CMakeFindDependencyMacro)
+  if(WITH_SYSTEM_SPNG)
+    set(SPNG_LIBRARY )
+    if(SPNG_LIBRARY MATCHES "PkgConfig::")
+      find_dependency(PkgConfig)
+      if(PkgConfig_FOUND)
+        pkg_check_modules(spng REQUIRED spng IMPORTED_TARGET)
+      endif()
+    else()
+      find_dependency(SPNG)
+    endif()
+  else()
+    find_dependency(ZLIB)
+  endif()
+endif()
+
 include("${CMAKE_CURRENT_LIST_DIR}/libjpeg-turboTargets.cmake")
 check_required_components("libjpeg-turbo")
