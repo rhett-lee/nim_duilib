@@ -240,12 +240,62 @@ SKIP，属预期。
 
 FreeBSD 复用 Linux/X11 分支；不支持 CEF，`--with-cef` 直接报错。
 
+2026-10-28 FreeBSD 真机复测：Release/Debug 构建、4 个出包、6 次包测试（含两次
+`--run-examples`），以及 `build.py doctor/test`、`test_build.py`、`test_pack.py`、
+`test_sdk_package.py`、`test_autotest.py`、`autotest.py` 全部通过（命令见 4.3）。
+
+### 4.1 构建
+
 | 编号 | 架构/配置 | 关键开关 | 命令示例 | 状态 | 备注 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| F-B01 | x64 / Release | 默认 | `python3 build/build.py --config Release` | 历史通过 | 构建 + 出包 |
-| F-B02 | x64 / Debug | 默认 | `--config Debug` | 未测 | |
+| F-B01 | x64 / Release | 默认 | `python3 build/build.py --config Release` | 通过 | 2026-10-28 真机；`python3 build/build.py` 同义 |
+| F-B02 | x64 / Debug | 默认 | `--config Debug` | 通过 | 2026-10-28 真机 |
 | F-B03 | x64 / Release | `--with-cef` | `pack --with-cef` | 历史通过（负向） | 预期报错，CEF 不支持 |
-| F-B04 | x64 / Release | 运行验证 | 解包运行示例 | 未测 | |
+| F-B04 | x64 / Release | 运行验证 | 解包运行示例（C10） | 通过 | `--run-examples` 启动 `bin/basic` 3 秒后仍在运行 |
+
+### 4.2 打包与包测试
+
+包名统一为 `nim_duilib-1.0.2026.1023-freebsd-x64[-examples][-debug].tar.gz`；FreeBSD
+不支持 CEF，因此没有 `--with-cef` 组合。包测试均带 `--out-dir ./temp`。
+
+| 编号 | 包 | 生成命令 | 包测试 | 状态 |
+| :--- | :--- | :--- | :--- | :--- |
+| F-P01 | Release 仅库 | `python3 build/pack.py` | `--package ...-freebsd-x64.tar.gz` | 通过 |
+| F-P02 | Release 示例 | `python3 build/pack.py --with-examples` | `--package ...-freebsd-x64-examples.tar.gz` | 通过 |
+| F-P03 | Debug 仅库 | `python3 build/pack.py --config Debug` | `--package ...-freebsd-x64-debug.tar.gz` | 通过 |
+| F-P04 | Debug 示例 | `python3 build/pack.py --config Debug --with-examples` | `--package ...-freebsd-x64-examples-debug.tar.gz` | 通过 |
+| F-T01 | Release 示例 + 启动示例 | — | `--package ...-freebsd-x64-examples.tar.gz --run-examples` | 通过：C10 `examples.smoke` |
+| F-T02 | Debug 示例 + 启动示例 | — | `--package ...-freebsd-x64-examples-debug.tar.gz --run-examples` | 通过：C10 `examples.smoke` |
+
+FreeBSD 上 C02（DLL）、C04（架构）、C05/C06（MSVC 工具链）、C11（macOS Bundle）按平台
+SKIP，属预期。
+
+### 4.3 2026-10-28 FreeBSD 真机复测命令（全部通过）
+
+| 序号 | 命令 | 覆盖 |
+| ---: | :--- | :--- |
+| 1 | `python3 build/build.py doctor` | 工具链 / 依赖 / 预检 |
+| 2 | `python3 build/build.py test` | 构建与打包脚本单元测试 |
+| 3 | `python3 build/test_build.py` | 构建脚本测试 |
+| 4 | `python3 build/build.py` | Release 全量构建（F-B01） |
+| 5 | `python3 build/pack.py` | Release 仅库出包（F-P01） |
+| 6 | `python3 build/pack.py --with-examples` | Release 示例出包（F-P02） |
+| 7 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-freebsd-x64.tar.gz --out-dir ./temp` | F-P01 |
+| 8 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-freebsd-x64-examples.tar.gz --out-dir ./temp` | F-P02 |
+| 9 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-freebsd-x64-examples.tar.gz --run-examples --out-dir ./temp` | F-T01（C10） |
+| 10 | `python3 build/build.py --config Debug` | Debug 全量构建（F-B02） |
+| 11 | `python3 build/pack.py --config Debug` | Debug 仅库出包（F-P03） |
+| 12 | `python3 build/pack.py --config Debug --with-examples` | Debug 示例出包（F-P04） |
+| 13 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-freebsd-x64-debug.tar.gz --out-dir ./temp` | F-P03 |
+| 14 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-freebsd-x64-examples-debug.tar.gz --out-dir ./temp` | F-P04 |
+| 15 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-freebsd-x64-examples-debug.tar.gz --run-examples --out-dir ./temp` | F-T02（C10） |
+| 16 | `python3 build/test_pack.py` | 打包脚本测试 |
+| 17 | `python3 build/test_sdk_package.py` | 包测试脚本测试 |
+| 18 | `python3 build/test_autotest.py` | 自动化脚本测试 |
+| 19 | `python3 build/autotest.py` | 自动化（默认 `unit` 预设） |
+
+复测结论：上述命令全部通过，无遗留问题。CEF 相关未执行（FreeBSD 不支持 CEF，`--with-cef`
+按预期报错）。
 
 ## 5. macOS 构建与打包矩阵
 
@@ -355,7 +405,11 @@ Skia `llvm.x64.release`、SDL3 `main`、CEF 142/x64。
 | Linux 包测试（`sdk_package_test.py`） | 8 / 8 | 全部通过（含 Release/Debug 示例包的 `--run-examples`，`--out-dir ./temp`） |
 | Linux 脚本测试（`doctor`/`test`/`test_*`/`autotest`） | 7 项 | 全部通过（见 3.3） |
 | Linux 示例启动/运行验证（`--run-examples`） | 2 次 | 通过：Release、Debug 示例包均 `[PASS] C10 examples.smoke`（L-T01/L-T02） |
-| FreeBSD x64 Release 构建与打包 | 历史验证 | 通过（CEF 不支持，运行时未验证） |
+| FreeBSD x64 Release/Debug 构建 | 2 / 2 | 通过（CEF 不支持，`--with-cef` 仍按预期报错，见 4.3） |
+| FreeBSD x64 出包 | 4 个包 | 全部通过（Release/Debug × 仅库/示例） |
+| FreeBSD 包测试（`sdk_package_test.py`） | 6 / 6 | 全部通过（含 Release/Debug 示例包的 `--run-examples`，`--out-dir ./temp`） |
+| FreeBSD 脚本测试（`doctor`/`test`/`test_*`/`autotest`） | 7 项 | 全部通过（见 4.3） |
+| FreeBSD 示例启动/运行验证（`--run-examples`） | 2 次 | 通过：Release、Debug 示例包均 `[PASS] C10 examples.smoke`（F-T01/F-T02） |
 | macOS x64 Release/Debug 构建 | 2 / 2 | 全部通过（含 CEF `.app`，见 5.3） |
 | macOS 普通示例 Bundle（`basic.app`） | 2 / 2 | Bundle 生成、`Info.plist` 保留、切换配置后首次启动正常（M-B06）；只改资源的增量同步手测通过，修改/新增/删除 XML 均生效（M-B07） |
 | macOS x64 出包 | 6 个包 | 全部通过（Release/Debug × 仅库/示例/CEF 示例） |
@@ -420,9 +474,9 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
    Debug/Release 的构建、打包与 SDK 接入已覆盖（见 W-B21 ~ W-B26、W-P18 ~ W-P22）；
    2026-10-24 生成的旧 `dist/` DLL 包（含 `/MT` 的 `turbojpeg-static.lib`）已删除，
    `dist/` 中只保留本轮通过校验的新 DLL 包（W-P18 ~ W-P21、W-P22）。
-3. Linux x64 已完成 Release/Debug 构建、6 个出包、8 次包测试（含下游工程接入 C01 与
-   `--run-examples` 的 C10）与全部脚本测试（2026-10-28 真机复测）；clang 工具链已验证
-   Release 构建（未出包）；未覆盖：arm64。FreeBSD 仍只验证过 Release 构建与打包。
+3. Linux 与 FreeBSD x64 均已完成 Release/Debug 构建、出包、包测试（含下游工程接入 C01
+   与 `--run-examples` 的 C10）与全部脚本测试（2026-10-28 真机复测）；Linux 另验证了
+   clang Release 构建（未出包）。Unix 侧未覆盖：arm64。
 4. macOS x64 的 Release/Debug 构建、`basic.app`（`Info.plist` 保留、切换配置后首次启动
    正常、只改资源的增量同步）、6 个出包、8 次包测试（含两次 `--run-examples`）与全部脚本
    测试均已通过（2026-10-28 真机复测）；仅 arm64 未覆盖（无测试环境）。
@@ -457,5 +511,6 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
 3. 按 W-B02 ~ W-B15 逐项构建，每项后立即出包并 `pack.py --verify`。
 4. 切换工具链/架构前清理 `bin/*.exe`、`bin/*.dll` 与 `lib/<arch>/<Config>`。
 5. Windows 完成后执行 G-01 ~ G-05 通用命令分支。
-6. Linux、FreeBSD、macOS 按各自矩阵执行，Release 优先；有条件再补 Debug 与运行验证。
+6. Linux、FreeBSD、macOS 按各自矩阵执行（命令清单见 3.3 / 4.3 / 5.3）：Release 与 Debug
+   都要做，示例包加 `--run-examples` 验证能启动；arm64 待有环境再补。
 7. 回归结束恢复默认 x64 Debug 构建，并重新生成最终包校验。
