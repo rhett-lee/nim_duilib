@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
 set -o errexit -o pipefail -o posix
 
-# Copyright (c) 2019-2025 Cosmin Truta.
-#
-# Use, modification and distribution are subject to the MIT License.
-# Please see the accompanying file LICENSE_MIT.txt
-#
+# Copyright (C) 2019 Cosmin Truta
 # SPDX-License-Identifier: MIT
 
 # shellcheck source=ci/lib/ci.lib.sh
@@ -125,7 +121,7 @@ function ci_build {
     }
     # Spawn "autogen.sh" if the configure script is not available.
     [[ -x "$CI_SRC_DIR/configure" ]] || {
-        ci_spawn "$CI_SRC_DIR/autogen.sh" --maintainer
+        ci_spawn "$CI_SRC_DIR/autogen.sh"
     }
     # And... build!
     ci_spawn mkdir -p "$CI_BUILD_DIR"

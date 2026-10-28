@@ -1,6 +1,6 @@
 # CMakeLists.txt - CMake lists for libpng
 #
-# Copyright (c) 2018-2025 Cosmin Truta
+# Copyright (c) 2018-2026 Cosmin Truta
 # Copyright (c) 2007-2018 Glenn Randers-Pehrson
 # Originally written by Christian Ehrlicher, 2007
 #
@@ -14,23 +14,11 @@
 #
 # SPDX-License-Identifier: libpng-2.0
 
-cmake_minimum_required(VERSION 3.18)
-
-# duilib
-# MSVC runtime library flags are selected by an abstraction.
-set(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
-if(DUILIB_MD)
-    # MD/MDd
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
-else()
-    # MT/MTd
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-endif()
-# duilib end
+cmake_minimum_required(VERSION 3.14...4.4)
 
 set(PNGLIB_MAJOR 1)
 set(PNGLIB_MINOR 6)
-set(PNGLIB_REVISION 50)
+set(PNGLIB_REVISION 59)
 set(PNGLIB_SUBREVISION 0)
 #set(PNGLIB_SUBREVISION "git")
 set(PNGLIB_VERSION ${PNGLIB_MAJOR}.${PNGLIB_MINOR}.${PNGLIB_REVISION})
@@ -39,7 +27,7 @@ set(PNGLIB_SHARED_VERSION ${PNGLIB_ABI_VERSION}.${PNGLIB_REVISION}.${PNGLIB_SUBR
 
 project(libpng
         VERSION ${PNGLIB_VERSION}
-        LANGUAGES C ASM)
+        LANGUAGES C)
 
 include(CheckCSourceCompiles)
 include(CheckLibraryExists)
@@ -82,10 +70,10 @@ if((NOT DFA_XTRA STREQUAL "") AND (NOT PNG_LIBCONF_HEADER STREQUAL ""))
 endif()
 
 # Allow the users to switch on/off various library build types.
-option(PNG_SHARED "Build libpng as a shared library" OFF)
+option(PNG_SHARED "Build libpng as a shared library" ON)
 option(PNG_STATIC "Build libpng as a static library" ON)
 if(APPLE)
-  option(PNG_FRAMEWORK "Build libpng as a framework bundle" OFF)
+  option(PNG_FRAMEWORK "Build libpng as a framework bundle" ON)
 else()
   option(PNG_FRAMEWORK "Build libpng as a framework bundle (not available on this platform)" OFF)
 endif()
@@ -96,15 +84,15 @@ endif()
 # Allow the users to switch on/off the auxiliary build and test artifacts.
 # These artifacts are NOT part of libpng proper, and are subject to change
 # at any time.
-option(PNG_TESTS "Build the libpng tests" OFF)
+option(PNG_TESTS "Build the libpng tests" ON)
 
 # Same as above, but for the third-party tools.
-# Although these tools are targetted at development environments only,
+# Although these tools are targeted at development environments only,
 # the users are allowed to override the option to build by default.
 if(ANDROID OR IOS)
   option(PNG_TOOLS "Build the libpng tools" OFF)
 else()
-  option(PNG_TOOLS "Build the libpng tools" OFF)
+  option(PNG_TOOLS "Build the libpng tools" ON)
 endif()
 
 # Maintain backwards compatibility with the deprecated option PNG_EXECUTABLES.
@@ -136,20 +124,6 @@ else()
 endif()
 message(STATUS "Building for target architecture: ${PNG_TARGET_ARCHITECTURE}")
 
-# duilib: please build zlib first
-get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../" ABSOLUTE)
-# 库输出目录（D-2：按平台/配置分目录）
-include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_lib_output.cmake")
-set(ZLIB_ROOT "${DUILIB_SRC_ROOT_DIR}/duilib/third_party/zlib/")
-# zlib库的文件名：zlib的输出名是duilib-zlib，库文件名的前缀/后缀由CMake按编译器给出
-# （Linux/FreeBSD/macOS: libduilib-zlib.a，Windows: duilib-zlib.lib）
-set(DUILIB_ZLIB_LIB_NAME "${CMAKE_STATIC_LIBRARY_PREFIX}duilib-zlib${CMAKE_STATIC_LIBRARY_SUFFIX}")
-# zlib 库路径：D-2 后为 <root>/lib[<arch>]/<Config>；$<CONFIG> 由 CMake 在链接时展开
-set(ZLIB_LIBRARY "${DUILIB_LIB_BASE}/$<CONFIG>/${DUILIB_ZLIB_LIB_NAME}")
-message(STATUS "ZLIB_ROOT: ${ZLIB_ROOT}")
-message(STATUS "ZLIB_LIBRARY: ${ZLIB_LIBRARY}")
-# duilib end
-
 # Allow the users to specify a custom location of zlib.
 # With CMake 3.12 and newer, this option is no longer necessary.
 option(PNG_BUILD_ZLIB "[Deprecated; please use ZLIB_ROOT]" OFF)
@@ -165,13 +139,7 @@ endif()
 
 # Find the zlib library.
 find_package(ZLIB REQUIRED)
-# duilib: 优先链接本工程的 zlib 目标，避免 FindZLIB 生成的 ZLIB::ZLIB 导入目标
-#         把含 $<CONFIG> 的库路径带入依赖列表
-if(TARGET duilib-zlib)
-  set(PNG_LINK_LIBRARIES duilib-zlib)
-else()
-  set(PNG_LINK_LIBRARIES ZLIB::ZLIB)
-endif()
+set(PNG_LINK_LIBRARIES ZLIB::ZLIB)
 
 # Find the math library (unless we already know it's not available or
 # not needed).
@@ -363,10 +331,6 @@ if(PNG_HARDWARE_OPTIMIZATIONS)
 
       check_c_source_compiles("
         #include <riscv_vector.h>
-        #include <asm/hwcap.h>
-        #ifndef COMPAT_HWCAP_ISA_V /* added in linux-6.5 */
-        #error \"COMPAT_HWCAP_ISA_V is not available\"
-        #endif
         int main() {
           const float src[] = { 0.0f, 0.0f, 0.0f, 0.0f };
           uint64_t ptr[2] = {0x0908060504020100, 0xFFFFFFFF0E0D0C0A};
@@ -432,34 +396,37 @@ if(ld-version-script AND NOT (ANDROID OR APPLE))
 VERS_1 { global: sym1; local: *; };
 VERS_2 { global: sym2; main; } VERS_1;
 ")
-  set(_SAVED_CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS})
+  # CMAKE_REQUIRED_FLAGS is a space-separated string, not a CMake list.
+  # Use string(APPEND) instead of list(APPEND) to prevent misparsing by
+  # try_compile under CMake 4.4 or newer.
+  set(_SAVED_CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS}")
   if(NOT CMAKE_HOST_SOLARIS)
     # Avoid using CMAKE_SHARED_LIBRARY_C_FLAGS in version script checks on
     # Solaris, because of an incompatibility with the Solaris link editor.
-    list(APPEND CMAKE_REQUIRED_FLAGS ${CMAKE_SHARED_LIBRARY_C_FLAGS})
+    string(APPEND CMAKE_REQUIRED_FLAGS " ${CMAKE_SHARED_LIBRARY_C_FLAGS}")
   endif()
-  list(APPEND CMAKE_REQUIRED_FLAGS
-              "-Wl,--version-script='${CMAKE_CURRENT_BINARY_DIR}/conftest.map'")
+  string(APPEND CMAKE_REQUIRED_FLAGS
+                " -Wl,--version-script='${CMAKE_CURRENT_BINARY_DIR}/conftest.map'")
   check_c_source_compiles("
 void sym1(void) {}
 void sym2(void) {}
 int main(void) { return 0; }
 " HAVE_LD_VERSION_SCRIPT)
   if(NOT HAVE_LD_VERSION_SCRIPT)
-    set(CMAKE_REQUIRED_FLAGS ${_SAVED_CMAKE_REQUIRED_FLAGS})
+    set(CMAKE_REQUIRED_FLAGS "${_SAVED_CMAKE_REQUIRED_FLAGS}")
     if(NOT CMAKE_HOST_SOLARIS)
       # Again, avoid using CMAKE_SHARED_LIBRARY_C_FLAGS in version script
       # checks on Solaris.
-      list(APPEND CMAKE_REQUIRED_FLAGS ${CMAKE_SHARED_LIBRARY_C_FLAGS})
+      string(APPEND CMAKE_REQUIRED_FLAGS " ${CMAKE_SHARED_LIBRARY_C_FLAGS}")
     endif()
-    list(APPEND CMAKE_REQUIRED_FLAGS "-Wl,-M -Wl,${CMAKE_CURRENT_BINARY_DIR}/conftest.map")
+    string(APPEND CMAKE_REQUIRED_FLAGS " -Wl,-M -Wl,${CMAKE_CURRENT_BINARY_DIR}/conftest.map")
     check_c_source_compiles("
 void sym1(void) {}
 void sym2(void) {}
 int main(void) { return 0; }
 " HAVE_SOLARIS_LD_VERSION_SCRIPT)
   endif()
-  set(CMAKE_REQUIRED_FLAGS ${_SAVED_CMAKE_REQUIRED_FLAGS})
+  set(CMAKE_REQUIRED_FLAGS "${_SAVED_CMAKE_REQUIRED_FLAGS}")
   file(REMOVE "${CMAKE_CURRENT_BINARY_DIR}/conftest.map")
 endif()
 
@@ -660,6 +627,9 @@ set(pngvalid_sources
 set(pngstest_sources
     contrib/libtests/pngstest.c
 )
+set(pnggetset_sources
+    contrib/libtests/pnggetset.c
+)
 set(pngunknown_sources
     contrib/libtests/pngunknown.c
 )
@@ -734,28 +704,22 @@ if(PNG_SHARED)
                         PUBLIC ${PNG_LINK_LIBRARIES})
 endif()
 
-#duilib: 输出目录已由 cmake/duilib_lib_output.cmake 设置（D-2）
-
 if(PNG_STATIC)
-  # duilib: 目标名与库文件名保持一致（duilib-png），便于 DUILIB_LIBS 直接按目标名链接
-  add_library(duilib-png STATIC ${libpng_sources})
-  add_dependencies(duilib-png png_genfiles)
-  list(APPEND PNG_LIBRARY_TARGETS duilib-png)
-#  set_target_properties(duilib-png
-#                        PROPERTIES OUTPUT_NAME "${PNG_STATIC_OUTPUT_NAME}"
-#                                   DEBUG_POSTFIX "${PNG_DEBUG_POSTFIX}")
-  target_include_directories(duilib-png
+  add_library(png_static STATIC ${libpng_sources})
+  add_dependencies(png_static png_genfiles)
+  list(APPEND PNG_LIBRARY_TARGETS png_static)
+  set_target_properties(png_static
+                        PROPERTIES OUTPUT_NAME "${PNG_STATIC_OUTPUT_NAME}"
+                                   DEBUG_POSTFIX "${PNG_DEBUG_POSTFIX}")
+  target_include_directories(png_static
                              PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>")
-  target_include_directories(duilib-png
+  target_include_directories(png_static
                              PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>")
-  target_include_directories(duilib-png
+  target_include_directories(png_static
                              SYSTEM
                              INTERFACE "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/libpng${PNGLIB_ABI_VERSION}>")
-  target_link_libraries(duilib-png
+  target_link_libraries(png_static
                         PUBLIC ${PNG_LINK_LIBRARIES})
-  #duilib
-  # 保留上游安装导出的名称（PNG::png_static），仅本地目标名与库文件名一致
-  set_target_properties(duilib-png PROPERTIES OUTPUT_NAME "duilib-png" EXPORT_NAME png_static)
 endif()
 
 if(PNG_FRAMEWORK AND NOT APPLE)
@@ -814,6 +778,8 @@ if(PNG_TESTS AND PNG_SHARED)
 
   set(PNGTEST_PNG "${CMAKE_CURRENT_SOURCE_DIR}/pngtest.png")
 
+  # pngtest tests:
+  # Basic read/write roundtrip using the sequential API.
   add_executable(pngtest ${pngtest_sources})
   target_link_libraries(pngtest
                         PRIVATE png_shared)
@@ -826,6 +792,18 @@ if(PNG_TESTS AND PNG_SHARED)
                COMMAND pngtest
                FILES "${TEST_PNG3_PNGS}")
 
+  # pnggetset test:
+  # Getter-to-setter roundtrips for various chunk types.
+  add_executable(pnggetset ${pnggetset_sources})
+  target_link_libraries(pnggetset
+                        PRIVATE png_shared)
+
+  png_add_test(NAME pnggetset
+               COMMAND pnggetset)
+
+  # pngvalid tests:
+  # Internal validation of standard and progressive reading,
+  # transforms, and gamma handling.
   add_executable(pngvalid ${pngvalid_sources})
   target_link_libraries(pngvalid
                         PRIVATE png_shared)
@@ -873,6 +851,9 @@ if(PNG_TESTS AND PNG_SHARED)
                COMMAND pngvalid
                OPTIONS --transform)
 
+  # pngstest tests:
+  # Format conversions through the simplified API,
+  # by gamma type and alpha type.
   add_executable(pngstest ${pngstest_sources})
   target_link_libraries(pngstest
                         PRIVATE png_shared)
@@ -929,6 +910,48 @@ if(PNG_TESTS AND PNG_SHARED)
     endforeach()
   endforeach()
 
+  # Large-stride test:
+  # Use stride_extra > 32767 to trigger row_bytes > 65535 for linear images.
+  png_add_test(NAME pngstest-large-stride
+               COMMAND pngstest
+               OPTIONS --stride-extra 33000 --tmpfile "large-stride-" --log
+               FILES "${CMAKE_CURRENT_SOURCE_DIR}/contrib/testpngs/rgb-alpha-16-linear.png")
+
+  # Negative-stride test:
+  # Bottom-up layout through all read/write paths.
+  png_add_test(NAME pngstest-negative-stride
+               COMMAND pngstest
+               OPTIONS --negative-stride --tmpfile "negative-stride-" --log
+               FILES "${CMAKE_CURRENT_SOURCE_DIR}/contrib/testpngs/gray-1.png"
+                     "${CMAKE_CURRENT_SOURCE_DIR}/contrib/testpngs/gray-16-linear.png"
+                     "${CMAKE_CURRENT_SOURCE_DIR}/contrib/testpngs/rgb-8-linear.png"
+                     "${CMAKE_CURRENT_SOURCE_DIR}/contrib/testpngs/rgb-16-linear.png"
+                     "${CMAKE_CURRENT_SOURCE_DIR}/contrib/testpngs/palette-8-tRNS.png"
+                     "${CMAKE_CURRENT_SOURCE_DIR}/contrib/testpngs/gray-alpha-8-linear.png"
+                     "${CMAKE_CURRENT_SOURCE_DIR}/contrib/testpngs/gray-alpha-16-linear.png"
+                     "${CMAKE_CURRENT_SOURCE_DIR}/contrib/testpngs/rgb-alpha-8-1.8.png"
+                     "${CMAKE_CURRENT_SOURCE_DIR}/contrib/testpngs/rgb-alpha-8-sRGB.png"
+                     "${CMAKE_CURRENT_SOURCE_DIR}/contrib/testpngs/rgb-alpha-16-linear.png")
+
+  # Negative-stride-extra test:
+  # Bottom-up layout with non-aligned padding.
+  png_add_test(NAME pngstest-negative-stride-extra
+               COMMAND pngstest
+               OPTIONS --negative-stride --stride-extra 7
+                       --tmpfile "negative-stride-extra-" --log
+               FILES "${CMAKE_CURRENT_SOURCE_DIR}/contrib/testpngs/gray-1.png"
+                     "${CMAKE_CURRENT_SOURCE_DIR}/contrib/testpngs/gray-16-linear.png"
+                     "${CMAKE_CURRENT_SOURCE_DIR}/contrib/testpngs/rgb-8-linear.png"
+                     "${CMAKE_CURRENT_SOURCE_DIR}/contrib/testpngs/rgb-16-linear.png"
+                     "${CMAKE_CURRENT_SOURCE_DIR}/contrib/testpngs/palette-8-tRNS.png"
+                     "${CMAKE_CURRENT_SOURCE_DIR}/contrib/testpngs/gray-alpha-8-linear.png"
+                     "${CMAKE_CURRENT_SOURCE_DIR}/contrib/testpngs/gray-alpha-16-linear.png"
+                     "${CMAKE_CURRENT_SOURCE_DIR}/contrib/testpngs/rgb-alpha-8-1.8.png"
+                     "${CMAKE_CURRENT_SOURCE_DIR}/contrib/testpngs/rgb-alpha-8-sRGB.png"
+                     "${CMAKE_CURRENT_SOURCE_DIR}/contrib/testpngs/rgb-alpha-16-linear.png")
+
+  # pngunknown tests:
+  # Unknown chunk handling under various read policies.
   add_executable(pngunknown ${pngunknown_sources})
   target_link_libraries(pngunknown
                         PRIVATE png_shared)
@@ -963,6 +986,8 @@ if(PNG_TESTS AND PNG_SHARED)
                OPTIONS --strict vpAg=if-safe
                FILES "${PNGTEST_PNG}")
 
+  # pngimage tests:
+  # Image read validation against the pngsuite corpus.
   add_executable(pngimage ${pngimage_sources})
   target_link_libraries(pngimage
                         PRIVATE png_shared)
@@ -1002,7 +1027,7 @@ function(create_symlink DEST_FILE)
     message(FATAL_ERROR "create_symlink: Missing arguments: FILE or TARGET")
   endif()
   if(_SYM_FILE AND _SYM_TARGET)
-    message(FATAL_ERROR "create_symlink: Mutually-exlusive arguments:"
+    message(FATAL_ERROR "create_symlink: Mutually-exclusive arguments:"
                         "FILE (${_SYM_FILE}) and TARGET (${_SYM_TARGET})")
   endif()
 
@@ -1092,18 +1117,25 @@ if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
           FRAMEWORK DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 
   if(PNG_SHARED)
-    # Create a symlink for libpng.dll.a => libpng16.dll.a on Cygwin
+    # Create an unversioned symlink to the shared library's link-time file.
     if(NOT WIN32 OR CYGWIN OR MINGW)
-      create_symlink(libpng${CMAKE_SHARED_LIBRARY_SUFFIX} TARGET png_shared)
-      install(FILES "$<TARGET_LINKER_FILE_DIR:png_shared>/libpng${CMAKE_SHARED_LIBRARY_SUFFIX}"
+      if(CYGWIN OR MINGW)
+        # The symlink is for the import library (e.g., libpng.dll.a => libpng16.dll.a).
+        set(libpng_symlink_name "libpng${CMAKE_IMPORT_LIBRARY_SUFFIX}")
+      else()
+        # The symlink is for the shared object (e.g., libpng.so => libpng16.so).
+        set(libpng_symlink_name "libpng${CMAKE_SHARED_LIBRARY_SUFFIX}")
+      endif()
+      create_symlink(${libpng_symlink_name} TARGET png_shared)
+      install(FILES "$<TARGET_LINKER_FILE_DIR:png_shared>/${libpng_symlink_name}"
               DESTINATION "${CMAKE_INSTALL_LIBDIR}")
     endif()
   endif()
 
   if(PNG_STATIC)
     if(NOT WIN32 OR CYGWIN OR MINGW)
-#      create_symlink(libpng${CMAKE_STATIC_LIBRARY_SUFFIX} TARGET duilib-png)
-      install(FILES "$<TARGET_LINKER_FILE_DIR:duilib-png>/libpng${CMAKE_STATIC_LIBRARY_SUFFIX}"
+      create_symlink(libpng${CMAKE_STATIC_LIBRARY_SUFFIX} TARGET png_static)
+      install(FILES "$<TARGET_LINKER_FILE_DIR:png_static>/libpng${CMAKE_STATIC_LIBRARY_SUFFIX}"
               DESTINATION "${CMAKE_INSTALL_LIBDIR}")
     endif()
   endif()

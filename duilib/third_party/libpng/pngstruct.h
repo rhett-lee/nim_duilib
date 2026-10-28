@@ -1,6 +1,6 @@
 /* pngstruct.h - internal structures for libpng
  *
- * Copyright (c) 2018-2025 Cosmin Truta
+ * Copyright (c) 2018-2026 Cosmin Truta
  * Copyright (c) 1998-2002,2004,2006-2018 Glenn Randers-Pehrson
  * Copyright (c) 1996-1997 Andreas Dilger
  * Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc.
@@ -24,11 +24,7 @@
    /* We must ensure that zlib uses 'const' in declarations. */
 #  define ZLIB_CONST
 #endif
-
-#ifndef ZLIB_H
-   #include "zlib.h"
-#endif
-
+#include "zlib.h"
 #ifdef const
    /* zlib.h sometimes #defines const to nothing, undo this. */
 #  undef const
@@ -110,7 +106,7 @@ typedef enum
  * TODO: C23: convert these macros to C23 inlines (which are static).
  */
 #define png_chunk_flag_from_index(i) (0x80000000U >> (31 - (i)))
-   /* The flag coresponding to the given png_index enum value.  This is defined
+   /* The flag corresponding to the given png_index enum value.  This is defined
     * for png_unknown as well (until it reaches the value 32) but this should
     * not be relied on.
     */
@@ -119,7 +115,7 @@ typedef enum
    (((png_ptr)->chunks & png_chunk_flag_from_index(i)) != 0)
    /* The chunk has been recorded in png_struct */
 
-#define png_file_add_chunk(pnt_ptr, i)\
+#define png_file_add_chunk(png_ptr, i)\
    ((void)((png_ptr)->chunks |= png_chunk_flag_from_index(i)))
    /* Record the chunk in the png_struct */
 
@@ -395,27 +391,6 @@ struct png_struct_def
    png_byte filter_type;
 #endif
 
-#ifdef PNG_APNG_SUPPORTED
-   png_uint_32 apng_flags;
-   png_uint_32 next_seq_num;         /* next fcTL/fdAT chunk sequence number */
-   png_uint_32 first_frame_width;
-   png_uint_32 first_frame_height;
-
-#ifdef PNG_READ_APNG_SUPPORTED
-   png_uint_32 num_frames_read;      /* incremented after all image data of */
-                                     /* a frame is read */
-#ifdef PNG_PROGRESSIVE_READ_SUPPORTED
-   png_progressive_frame_ptr frame_info_fn; /* frame info read callback */
-   png_progressive_frame_ptr frame_end_fn;  /* frame data read callback */
-#endif
-#endif
-
-#ifdef PNG_WRITE_APNG_SUPPORTED
-   png_uint_32 num_frames_to_write;
-   png_uint_32 num_frames_written;
-#endif
-#endif /* PNG_APNG_SUPPORTED */
-
 /* New members added in libpng-1.2.0 */
 
 /* New members added in libpng-1.0.2 but first enabled by default in 1.2.0 */
@@ -430,7 +405,6 @@ struct png_struct_def
 
 #ifdef PNG_READ_QUANTIZE_SUPPORTED
 /* The following three members were added at version 1.0.14 and 1.2.4 */
-   png_bytep quantize_sort;          /* working sort array */
    png_bytep index_to_palette;       /* where the original index currently is
                                         in the palette */
    png_bytep palette_to_index;       /* which original index points to this
