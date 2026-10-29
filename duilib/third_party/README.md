@@ -6,7 +6,7 @@
 ## 当前各个第三方库的使用情况
 | 名称         | <div style="width: 90px">更新日期</div>   | 版本号|<div style="width: 40px">是否修改</div>| 获取URL | 备注 |
 | :---        | :---       | :---  |:---    | :---    |:---  |
-| apng        | 2025-09-12 |v1.6.50|无 |https://sourceforge.net/projects/libpng-apng/ |通过libpng + libpng-1.6.50-apng.patch来支持的 |
+| apng        | 2025-10-29 |v1.6.59|无 |https://sourceforge.net/projects/libpng-apng/ |通过libpng + libpng-1.6.59-apng.patch来支持的 |
 | libpng      | 2026-10-29 |v1.6.59|有 |https://sourceforge.net/projects/libpng/|参见后续说明，对以下文件有修改：<br>CMakeLists.txt<br>projects\vstudio\libpng\libpng.vcxproj <br>pngstruct.h|
 | cximage     | 2024-05-30 |v7.02  |无 |https://sourceforge.net/projects/cximage/|2011-02-11后已停止更新|
 | giflib      | 2026-04-14 |v6.1.3 |无 |https://sourceforge.net/projects/giflib/||
