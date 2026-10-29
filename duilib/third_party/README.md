@@ -32,14 +32,14 @@
 1. 下载最新版本的压缩包：https://github.com/pnggroup/libpng/ 或者 https://sourceforge.net/projects/libpng/
 2. 下载压缩包后，解压，进入解压后的目录，按照INSTALL的说明，使用VS的命令行模式，运行：`nmake -f scripts\makefile.vcwin32`，会生成`pnglibconf.h`文件
 3. 然后整个目录（去除.lib和.obj文件），覆盖`duilib\third_party\libpng`里面的所有文件，里面的文件与下载的压缩包保持一致，多删少补，新增加的文件要添加到git库
-4. 注意检查`pnglibconf.h`文件，保持必要的同步
+4. 注意检查`pnglibconf.h`文件，保持必要的同步（备注：最新版本的nmake执行后，未发现生成该文件，待后续确认其生成规则）
 5. 注意`libpng\projects\vstudio\libpng\libpng.vcxproj`工程文件不轻易更新，除非有文件变化时需要同步（可以用新版和旧版的官方包，在两个目录中分别运行`nmake -f scripts\makefile.vcwin32`，然后比较生成的vcxproj是否有变化，然后决定是否要修改）
-6. 同步CMakeLists.txt的修改：比较新旧两个版本的CMakeLists.txt，需要将在旧版本上修改的内容，同步到新版的CMakeLists.txt中
+6. 同步CMakeLists.txt的修改：比较新旧两个版本的CMakeLists.txt，需要将在旧版本上修改的内容，同步到新版的CMakeLists.txt中（用工具合并，不需要手动合并）
 7. 对代码打支持APNG的补丁：
  - 补丁下载地址：https://sourceforge.net/projects/libpng-apng/ ，如果找不到对应的补丁，可用搜索引擎搜`libpng PNG_APNG_SUPPORTED`，尝试查找
  - 如果找不到对应版本的补丁，可以考虑暂缓更新libpng
- - 更新步骤1：将`libpng-1.6.50-apng.patch.gz`文件解压出`libpng-1.6.50-apng.patch`文件，放在`duilib\third_party\libpng`目录中
- - 更新步骤2：命令行模式，进入`duilib\third_party\libpng`目录，运行命令：`git apply .\libpng-1.6.50-apng.patch`
+ - 更新步骤1：将`libpng-1.6.59-apng.patch.gz`文件解压出`libpng-1.6.59-apng.patch`文件，放在`duilib\third_party\libpng`目录中
+ - 更新步骤2：命令行模式，进入`duilib\third_party\libpng`目录，运行命令：`git apply .\libpng-1.6.59-apng.patch`
  - 更新步骤3：补丁打完以后，检查、测试并提交。
 8. 修改`duilib\third_party\libpng\pngstruct.h`，同步修改内容；
 
