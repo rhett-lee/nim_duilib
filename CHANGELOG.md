@@ -144,6 +144,22 @@
   各包 `pack.py --verify` SHA 全匹配，`sdk_package_test.py --scenarios C10
   --run-examples` 均为 `[PASS] C10 examples.smoke`（`bin/basic.exe` 启动 3 秒后仍在
   运行）；DLL 回归后已恢复静态构建并清理 `bin/duilib*.dll`。
+- 新增 MSVC x86 + SDL3 出包组合（2026-10-29）：`build.py build --config Release
+  --arch x86 --sdl` 按 x86 重建 `SDL3-static.lib`（786/786，Skia
+  `llvm.x86.release`），`pack.py` 产出 `win-x86-sdl-examples.zip`
+  （844 条目 / 128.2 MB，SDL3 79 项 + 21 个示例），`--verify` 844 条目 SHA 全匹配，
+  `sdk_package_test.py --run-examples` 报 PASS=16 / FAIL=0 / SKIP=3（含
+  `[PASS] C10 examples.smoke`）。打包矩阵 P0-1 的最后一个空格关闭；测试后已恢复
+  x64 静态基线并重新构建 x64 `SDL3-static.lib`。
+- 许可合规遗留项核对完成（2026-10-29，P3-6）：`docs/misc/License-Compliance.md`
+  的 4 条遗留事项全部处理。新增组件登记流程写入 `Release-Checklist.md`
+  （`pack.py --list` 对照、`licenses/`、`THIRD-PARTY-NOTICES.md`、对照表与更新记录）；
+  确认 SDK 包固定 `DUILIB_LIB_PAG=0`、不收集 libpag 库，启用 libpag 时须随程序分发
+  `duilib/third_party/libpag/licenses/**`（含 `tgfx.LICENSE.txt`）；`bin/resources`
+  的 409 个文件按来源分层记录（首提交的 144 个上游资源、项目自制的控件/示例资源、
+  Lottie/PAG 演示素材），并在 `THIRD-PARTY-NOTICES.md` 增补演示素材说明；
+  CEF 官方 109/142 二进制包实测不含 `LICENSES.chromium.html`，估算其体积为 10 MB
+  量级（zip 后 1–2 MB），决定默认不随包、需要时按同版本 Chrome/Chromium 手工补充。
 
 ### 移除
 

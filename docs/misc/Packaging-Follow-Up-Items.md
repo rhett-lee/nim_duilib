@@ -45,7 +45,7 @@
 
 #### P0-1 打包矩阵实测
 
-- [~] 覆盖“平台 × 配置 × 模式 × 特性”组合，每个组合至少执行一次 `--list` 与解包检查。
+- [x] 覆盖“平台 × 配置 × 模式 × 特性”组合，每个组合至少执行一次 `--list` 与解包检查。
 - 现状：已验证 Windows x64、x86 两个架构的 Debug 与 Release 静态包
   （2026-10-24 补齐 x86 与 x64 Release）；
   x86 另以 `--with-cef --list` 核对 CEF 运行时按 `bin/libcef_win/Win32/` 收集。
@@ -105,8 +105,11 @@
   739.1 MB，zip 208.5 MB，755 条目）与 `-sdl-examples`（832 文件/748.8 MB，
   zip 211.1 MB，835 条目）`--verify` 通过，包内 `libSDL3.a` 与元数据为静态 SDL，
   解包后 `basic.exe` 独立运行。
-  未覆盖：x86 SDL 组合——当前 `../SDL3` 只有 x64 的 `SDL3-static.lib`，
-  缺少 x86 SDL3 库。
+  原未覆盖的 x86 SDL 组合已于 2026-10-29 补齐：`build.py build --config Release
+  --arch x86 --sdl` 重建 x86 `SDL3-static.lib`（786/786，Skia `llvm.x86.release`），
+  出包 `nim_duilib-1.0.2026.1023-win-x86-sdl-examples.zip`（844 条目 / 128.2 MB，
+  SDL3 79 项 + 21 个示例），`--verify` 844 条目 SHA 全匹配，SDK 测试
+  PASS=16 / FAIL=0 / SKIP=3，`bin/basic.exe` 启动通过（W-P27）。
 - Linux x64 Release 实测（2026-10-25）：编译与打包流程均通过；
   `pack.py` 分别产出默认 SDK 包、`--with-cef`、`--with-examples` 三种组合。
   2026-10-28 真机复测补齐 Debug 配置（再出 3 个 Debug 包）与解包后示例启动运行，
@@ -134,10 +137,13 @@
     （2026-10-24 / 2026-10-28）；
   - 平台：Windows、Linux、macOS、FreeBSD 均已完成（Linux/macOS 2026-10-28、
     FreeBSD 2026-10-29 真机复测）；
-  - 特性：`--with-sdl`（MSVC x64、MSYS2 UCRT64 gcc 已完成，2026-10-24）、
+  - 特性：`--with-sdl`（MSVC x64/x86、MSYS2 UCRT64 gcc 已完成，2026-10-24 / 10-29）、
     `--with-cef`（Windows、Linux、macOS 已完成；FreeBSD 不支持，负向验证通过）、
     `--with-examples`（MSVC x64/x86、MinGW x64、Linux/macOS/FreeBSD Release/Debug
     已完成，2026-10-25/28/29）。
+- 2026-10-29 收口：最后一个空格（MSVC x86 + SDL）已补齐、出包并通过 C10，
+  本项改为 `[x]`；剩余未覆盖项仅为明确「未测、不跟进」的组合（MINGW32 x86、
+  arm64 真机运行）。
 - 验收：矩阵中每个格子都有记录（命令、文件数、关键文件存在性、告警），异常项有结论。
 
 #### P0-2 关键产物缺失时阻止出包
@@ -490,8 +496,8 @@
 ### P3：本轮剩余跟进项（2026-10-29）
 
 > 建立依据：对 P0～P2 的逐项复核。功能与验证层面只剩以下 6 项，其余条目均已
-> `[x]`，或按决策 `[-]` / `[~]` 关闭。截至 2026-10-29 收盘，P3-1 与 P3-4 已完成，
-> 剩余 P3-2、P3-3、P3-5、P3-6。
+> `[x]`，或按决策 `[-]` / `[~]` 关闭。截至 2026-10-29，P3-1、P3-2、P3-4 与 P3-6
+> 已完成，剩余 P3-3、P3-5。
 
 #### P3-1 Windows 示例包的包内启动冒烟（C10）
 
@@ -514,9 +520,16 @@
 
 #### P3-2 x86 + SDL3 出包组合
 
-- [ ] 为 SDL3 构建 x86 静态库，补 `pack.py --arch x86 --with-sdl --with-examples`
-  的出包与 `--verify`。现状：`../SDL3` 只有 x64 的 `SDL3-static.lib`（见 P0-1
-  「未覆盖」与 `build/test-matrix.md` 中 W-P 组合的空格）。完成后 P0-1 可改为 `[x]`。
+- [x] 已完成（2026-10-29）：`python build\build.py build --config Release --arch x86
+  --sdl`（786/786，SDL3 按 x86 重建为 `../SDL3/lib/SDL3-static.lib`，Skia
+  `llvm.x86.release`）→ `python build\pack.py --config Release --arch x86
+  --with-examples --with-sdl --out-dir dist` 产出
+  `nim_duilib-1.0.2026.1023-win-x86-sdl-examples.zip`（844 条目 / 128.2 MB，
+  SDL3 79 项、21 个示例、CEF 库按未请求跳过）→ `pack.py --verify` 844 条目
+  SHA 全匹配 → `sdk_package_test.py --run-examples`：PASS=16 / FAIL=0 / SKIP=3
+  （含 `[PASS] C10 examples.smoke`，`bin/basic.exe` 启动 3 秒后仍在运行）。
+  证据已回填 `build/test-matrix.md` 的 W-B30、W-P27、§2/§7 与已知缺口第 10 条；
+  P0-1 随之收口。测试后已恢复 x64 静态基线，并重新构建 x64 `SDL3-static.lib`。
 
 #### P3-3 `build/` 脚本控制台输出英文化
 
@@ -542,20 +555,34 @@
 
 #### P3-6 许可合规遗留项
 
-- [ ] 处理 `docs/misc/License-Compliance.md`「遗留事项」的 4 条（第 72–79 行）：
-  新增随包组件的许可同步（已写入 `Release-Checklist.md` 第 22 行，随发版执行）、
-  启用 libpag 时的第三方许可、`bin/resources` 素材来源与授权、
-  CEF `LICENSES.chromium.html` 的体积评估。性质为发布前检查项，不影响当前出包。
+- [x] 已完成（2026-10-29）：`docs/misc/License-Compliance.md`「遗留事项」4 条全部处理，
+  文档复核日期改为 2026-10-29 并新增「遗留事项处理结果」与更新记录。
+  - 新增组件同步：登记流程写入 `Release-Checklist.md` 第 1 节（`pack.py --list`
+    对照、`licenses/`、`THIRD-PARTY-NOTICES.md`、对照表与更新记录）与第 5 节
+    finalize 复核；复核时随包组件与 `licenses/` 的 20 个许可文件完全对应；
+  - libpag：确认 SDK 包固定 `DUILIB_LIB_PAG=0`、不收集 libpag 库；写明启用时须随程序
+    分发 `duilib/third_party/libpag/licenses/**`（`libpag.LICENSE.txt` 118,099 B、
+    `tgfx.LICENSE.txt` 49,968 B），且未使用 lz4/Qt；
+  - `bin/resources`：按来源分三层记录（首提交 `02c0f6e9` 的 144 个上游资源、
+    后续项目新增的控件/示例资源、Lottie/PAG 演示素材）；其中 `loading5.json`/
+    `loading6.json` 含 `LottieFiles AE` 导出元数据，`lottie.json`/`pag_logo.pag`
+    的提交未记录授权；已在 `THIRD-PARTY-NOTICES.md` 增加「示例动画与图片素材」说明，
+    约定仅作演示、下游商用前自行确认或替换；
+  - CEF：实测官方 109/142 二进制包均无 `LICENSES.chromium.html`，按其生成方式估算体积
+    为 10 MB 量级（zip 后 1–2 MB，占 CEF 运行时不足 1%），决定默认不随包，
+    需要严格覆盖时按同版本 Chrome/Chromium 手工补充到 `LICENSES/CEF/`。
+  性质为发布前检查项，不改变当前出包行为；`python build\build.py test` 复跑通过。
 
 ## 四、建议推进顺序
 
-1. P3-1 Windows 示例包 C10 冒烟已完成（2026-10-29：五个示例包全部通过）；
-2. P3-2 x86 SDL3 库与出包组合，关闭 P0-1 的最后一个空格；
+1. P3-1 Windows 示例包 C10 冒烟已完成（2026-10-29：六个示例包全部通过）；
+2. P3-2 x86 SDL3 库与出包组合已完成（2026-10-29：W-P27，P0-1 收口）；
 3. P3-3 脚本控制台英文化（P3-4 的 `build/legacy/` 清理已于 2026-10-29 完成）；
-4. 发版前执行 P3-5 `release.py` 全流程演练与 P3-6 许可合规遗留核对。
+4. P3-6 许可合规遗留已核对完成（2026-10-29）；发版前执行 P3-5 `release.py` 全流程演练。
 
-> P0-2 已实施（2026-10-25）；P0-1 仅剩 x86 SDL 组合；P0-3、P0-5、P1、P2 均已
-> 收口；P0-4、P2-5 已明确关闭，不再排期。
+> P0-2 已实施（2026-10-25）；P0-1 已于 2026-10-29 收口（x86 SDL 组合补齐）；
+> P0-3、P0-5、P1、P2 均已收口；P0-4、P2-5 已明确关闭，不再排期。
+> P3-1、P3-2、P3-4、P3-6 已完成，剩余 P3-3、P3-5。
 
 ## 五、更新记录
 
@@ -628,4 +655,6 @@
 | 2026-10-29 | 剩余跟进项收敛为 P3-1～P3-6（Windows 示例包 C10 冒烟、x86 SDL3 出包、脚本控制台英文化、`build/legacy/` 清理、`release.py` 全流程演练、许可合规遗留）；P0-3 改为完成；修正 P1-1 macOS 与 P1-3 Windows 的过期表述，建议推进顺序改为按 P3 排期 |
 | 2026-10-29 | P3-4 完成：删除 `build/legacy/` 下 11 个旧分平台脚本（`build_duilib_all_in_one.*`、`msvc_build.bat`、`linux_build.sh`、`macos_build.sh`、`freebsd_build.sh`、`msys2_build.sh` 与 MinGW/VS 辅助脚本）；`README(.en).md`、`build/README(.en).md`、`build/build-reference(.en).md`、`CHANGELOG(.en).md` 与 `CMake-Improvement-Plan.md` 统一改为「已删除」，仓库中无残留引用 |
 | 2026-10-29 | P3-1 部分完成：Windows 首次执行包内示例启动（C10）。x64 Release + CEF 示例包 `nim_duilib-1.0.2026.1023-win-x64-cef-examples.zip`（1318 条目 / 328.2 MB）`--verify` SHA 全匹配，`sdk_package_test.py --scenarios C10 --run-examples` 报 `[PASS] C10 examples.smoke`（`bin/basic.exe` 启动 3 秒后仍在运行，PASS=1 / FAIL=0 / SKIP=0）；SDL、DLL、无 CEF 三个变体待补 |
-| 2026-10-29 | P3-1 完成：补齐 SDL、无 CEF 与 DLL 组合，五个示例包的 C10 全部通过 —— `win-x64-sdl-cef-examples.zip`（1398 条目 / 352.9 MB）、`win-x64-examples.zip`（764 / 121.8 MB）、`win-x64-sdl-cef-examples-dll.zip`（1398 / 210.1 MB）、`win-x64-sdl-cef-examples-dll-debug.zip`（1398 / 219.6 MB），四包 `--verify` SHA 全匹配、C10 均 `[PASS]`；DLL 回归后已恢复静态构建并自动清理 `bin/duilib*.dll` |
+| 2026-10-29 | P3-1 完成：补齐 SDL、无 CEF 与 DLL 组合，连同前一轮 x64 CEF 包共 5 个示例包的 C10 全部通过 —— `win-x64-sdl-cef-examples.zip`（1398 条目 / 352.9 MB）、`win-x64-examples.zip`（764 / 121.8 MB）、`win-x64-sdl-cef-examples-dll.zip`（1398 / 210.1 MB）、`win-x64-sdl-cef-examples-dll-debug.zip`（1398 / 219.6 MB），四包 `--verify` SHA 全匹配、C10 均 `[PASS]`；DLL 回归后已恢复静态构建并自动清理 `bin/duilib*.dll` |
+| 2026-10-29 | P3-2 完成：`build.py build --config Release --arch x86 --sdl`（786/786，SDL3 按 x86 重建、Skia `llvm.x86.release`）→ `pack.py --arch x86 --with-examples --with-sdl` 产出 `nim_duilib-1.0.2026.1023-win-x86-sdl-examples.zip`（844 条目 / 128.2 MB）；`--verify` 844 条目 SHA 全匹配，SDK 测试 PASS=16 / FAIL=0 / SKIP=3（含 C10 `bin/basic.exe` 启动）；W-B30/W-P27 回填后 P0-1 收口；测试后恢复 x64 静态基线并重建 x64 `SDL3-static.lib` |
+| 2026-10-29 | P3-6 完成：`License-Compliance.md` 的 4 条遗留事项全部处理 —— 新增组件登记流程写入 `Release-Checklist.md`；确认 SDK 包固定 `DUILIB_LIB_PAG=0` 并写明启用 libpag 时须随程序分发 `duilib/third_party/libpag/licenses/**`（含 `tgfx.LICENSE.txt`）；`bin/resources` 的 409 个文件按来源分层记录（首提交 144 个上游资源、项目新增控件/示例资源、Lottie/PAG 演示素材），`loading5/6.json` 含 `LottieFiles AE` 元数据已在 `THIRD-PARTY-NOTICES.md` 增加演示素材说明；CEF 官方 109/142 包实测无 `LICENSES.chromium.html`，估算 10 MB 量级（zip 后 1–2 MB），决定默认不随包、需要时按同版本 Chrome/Chromium 手工补充 |

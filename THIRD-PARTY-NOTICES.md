@@ -30,6 +30,36 @@ released SDK.
 | duilib | 上游项目 / upstream project | BSD-3-Clause | `licenses/duilib.LICENSE.txt` |
 | NIM_Duilib_Framework | 本项目基础 / project base | MIT | `licenses/NIM_Duilib_Framework.LICENSE.txt` |
 
+## 示例动画与图片素材 / Sample animation and image assets
+
+`bin/resources` 中的动画与图片测试素材仅用于示例程序演示，不单独授予任何许可：
+
+- `themes/default/public/animation/loading1..6.json`、`loading_progress1/2.json`
+  （Lottie）；其中 `loading5.json`、`loading6.json` 的 `meta.g` 为 `LottieFiles AE`，
+  由 LottieFiles 导出；
+- `themes/default/render/lottie.json`、`pag_logo.pag`（提交 `020fcfe0`，2025-10-22
+  加入时未记录来源与授权）；
+- `themes/default/render/{fan.gif,gif_test.gif,gif_test2.gif,jpg_test.jpg,bmp_test_24.bmp,webp_test*.webp}`
+  为图片编解码测试图。
+
+其余控件图标（SVG/PNG）随功能开发提交，按项目自制素材处理，由根 `LICENSE`（MIT）
+覆盖；上游初始资源（144 个文件，2019-04-19 导入）由
+`licenses/NIM_Duilib_Framework.LICENSE.txt` 与 `licenses/duilib.LICENSE.txt` 覆盖。
+示例网页通过 CDN 引用 Bootstrap 3.3.7、Font Awesome Free 4.7.0 与 Tailwind，
+运行期由浏览器加载，不随包。若要在商业产品中再分发上述演示素材，
+请先自行确认来源或替换为自有素材。
+
+The Lottie/PAG animations and image test files under `bin/resources` are demo-only
+and grant no license of their own: `loading5.json` and `loading6.json` carry
+`LottieFiles AE` export metadata, while `lottie.json` / `pag_logo.pag` were added
+in commit `020fcfe0` (2025-10-22) without recorded provenance. The other control
+icons are project-authored and covered by the root `LICENSE` (MIT); the 144 files
+imported in the first commit (2019-04-19) are covered by
+`licenses/NIM_Duilib_Framework.LICENSE.txt` and `licenses/duilib.LICENSE.txt`.
+Example web pages load Bootstrap 3.3.7, Font Awesome Free 4.7.0 and Tailwind from
+CDNs at run time; they are not redistributed. Verify the provenance of the demo
+assets or replace them before redistributing them in a commercial product.
+
 ## 说明 / Notes
 
 - 本文件只做组件汇总，不改变任何组件的许可证条款；以 `LICENSES/` 中

@@ -137,6 +137,19 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   table (source tree → SDK, static → DLL, CEF142 → CEF109, single configuration →
   Debug/Release, x64 → arm64) and 11 FAQ entries. The generated `MANIFEST.txt`
   inside each package remains the authoritative list.
+- Closed the license-compliance follow-up items (2026-10-29, P3-6): all four items
+  in `docs/misc/License-Compliance.md` are resolved. The new-component registration
+  procedure now lives in `Release-Checklist.md` (`pack.py --list` cross-check,
+  `licenses/`, `THIRD-PARTY-NOTICES.md`, the compliance table and the change log);
+  the SDK packages pin `DUILIB_LIB_PAG=0` and never collect libpag libraries, so
+  enabling libpag requires shipping `duilib/third_party/libpag/licenses/**`
+  (including `tgfx.LICENSE.txt`) with the program; the 409 files under
+  `bin/resources` are documented by origin (144 upstream files from the first
+  commit, project-authored control/example assets, and Lottie/PAG demo assets),
+  with a demo-asset note added to `THIRD-PARTY-NOTICES.md`; the official CEF 109/142
+  binary packages were confirmed not to contain `LICENSES.chromium.html`, whose size
+  is estimated at the 10 MB level (1–2 MB when zipped), so it stays out of the
+  default package and can be added manually from a matching Chrome/Chromium build.
 
 ### Changed
 
@@ -184,6 +197,14 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `[PASS] C10 examples.smoke` (`bin/basic.exe` is still running after 3 seconds).
   The static baseline was restored after the DLL runs and `bin/duilib*.dll` was
   removed automatically.
+- Added an MSVC x86 + SDL3 packaging combination (2026-10-29):
+  `build.py build --config Release --arch x86 --sdl` rebuilds `SDL3-static.lib`
+  for x86 (786/786, Skia `llvm.x86.release`), and `pack.py` produces
+  `win-x86-sdl-examples.zip` (844 entries / 128.2 MB, 79 SDL3 files + 21 examples).
+  `--verify` matches all 844 SHA256 values, and `sdk_package_test.py
+  --run-examples` reports PASS=16 / FAIL=0 / SKIP=3 including
+  `[PASS] C10 examples.smoke`. This closes the last gap in packaging matrix P0-1;
+  the x64 static baseline and x64 `SDL3-static.lib` were restored afterwards.
 
 ### Removed
 

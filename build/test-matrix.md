@@ -82,6 +82,7 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
 | W-B27 | MSBuild | arm64 / Release + Debug | VS 解决方案 ARM64 配置（4 个 `.sln` 及 30 个工程） | 库 + 23 个示例 | `msbuild build\duilib.sln /p:Configuration=Release /p:Platform=ARM64 /m`；`msbuild build\examples.sln /p:Configuration=Release /p:Platform=ARM64 /m:2`（Debug 相同） | 通过 | Release：`lib/arm64/Release` 7 个库（`duilib.lib` 828.5 MB，LTCG）、23 个示例全部链接；Debug：`lib/arm64/Debug` 7 个库、`bin/*_d.exe` 23 个；Release/Debug 共 46 个 exe 均 PE `0xAA64`、清单 `processorArchitecture="ARM64"`；4 个 `.sln` 的 ARM64 配置经 `ValidateSolutionConfiguration` 与映射检查（30/30、24/24、7/7、5/5）；`duilib_no_cef.sln` / `examples_no_cef.sln` 的 Release/Debug 也已实际编译通过，各 19 个示例 |
 | W-B28 | MSVC | arm64 / Release + Debug | `--dll` | 库 + 全部示例 | `python build/build.py --arch arm64 --dll`（Debug 加 `--config Debug`） | 通过 | `deps` 自动构建 `llvm.arm64.release.md` / `debug.mdd`；`bin/duilib.dll` 9.9 MB、`duilib_d.dll` 36 MB 均为 PE `0xAA64`；导入库 4.15 / 4.17 MB；46 个 exe 全 `0xAA64` |
 | W-B29 | MSBuild | arm64 / Release + Debug | `duilib_dll.flag` | duilib + 第三方 + wrapper | 创建 `msvc/PropertySheets/duilib_dll.flag` 后 `msbuild build\duilib.sln /p:Configuration=Release /p:Platform=ARM64 /m:2`（Debug 同） | 通过 | Release `bin/duilib.dll` 17.3 MB（LTCG）、Debug `bin/duilib_d.dll` 27.3 MB，均为 PE `0xAA64`；导入库 `lib/arm64/<Config>/duilib.lib` 4.15 / 4.17 MB；Debug 首次因 E: 盘写满报 `C2471`/`FTK1005`，清理中间产物与 PDB 后重跑 0 error；flag 已删除 |
+| W-B30 | MSVC | x86 / Release | `--sdl` | 库 + 全部示例 | `python build/build.py build --config Release --arch x86 --sdl` | 通过 | 786/786；Skia 用 `llvm.x86.release`；SDL3 按 x86 重建并安装到 `../SDL3`（stamp 含架构，x64 下次 `--sdl` 会自动重建）；`bin/` 23 个示例均为 PE `0x014C` |
 
 构建矩阵执行要点：
 
@@ -147,6 +148,7 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
 | W-P24 | arm64 Release + 示例 + CEF 142 | `pack.py --arch arm64 --with-examples --with-cef` | 1314 / 311.7 MB | 通过 | CEF 开发文件 288 项 + 运行时 238 项；包内 `bin/libcef_win/arm64/libcef.dll` 为 PE `0xAA64`，三份 manifest 齐全；`--verify` 1314 条目全匹配；SDK 测试 PASS=14 FAIL=0 SKIP=5 |
 | W-P25 | arm64 Release + 示例 + CEF 109 | `pack.py --arch arm64 --with-examples --with-cef --cef-version 109` | 1131 / 252.1 MB | 通过 | 包内 `bin/libcef_win_109/arm64/libcef.dll` 为 `0xAA64`（165.5 MB）；开发库仅 `lib/libcef_dll_wrapper_109.lib`（119.2 MB），无 142 混入；`--verify` 1131 条目全匹配；SDK 测试 PASS=14 FAIL=0 SKIP=5（C01 按架构 SKIP）；WebView2 无 arm64 loader，按预期跳过 |
 | W-P26 | arm64 Debug + 示例 + CEF 142 | `pack.py --arch arm64 --config Debug --with-examples --with-cef` | 1314 / 394.5 MB | 通过 | Skia 目录 `llvm.arm64.debug`；CEF 288 + 运行时 238；`--verify` 1314 条目全匹配；SDK 测试 PASS=14 FAIL=0 SKIP=5（C01 按架构 SKIP）；WebView2 无 arm64 loader，按预期跳过 |
+| W-P27 | x86 Release + 示例 + SDL（无 CEF） | `pack.py --config Release --arch x86 --with-examples --with-sdl` | 844 / 128.2 MB | 通过（含 C10） | 2026-10-29 补齐 x86 SDL 组合：SDL3 79 项、21 个示例、Skia `llvm.x86.release`；`--verify` 844 条目 SHA 全匹配；`sdk_package_test.py --run-examples` PASS=16 FAIL=0 SKIP=3（C10 通过，C02/C06/C11 按平台跳过）；未加 `--with-cef`，包内 CEF 库与 `cef.exe`/`CefBrowser.exe` 按预期跳过 |
 
 打包专项说明：
 
@@ -171,7 +173,7 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
   下游编译宏与（静态模式）链接，DLL 消费者只需链接 `duilib.lib`。
 - `--with-examples` 未加 `--with-cef` 时会跳过 `cef.exe`/`CefBrowser.exe`，避免包内
   留下必然启动失败的二进制。
-- Windows 示例包的**包内启动冒烟（C10）**：2026-10-29 首次执行并覆盖 5 个示例包，
+- Windows 示例包的**包内启动冒烟（C10）**：2026-10-29 首次执行并覆盖 6 个示例包，
   全部为 `[PASS] C10 examples.smoke`（`bin/basic.exe` 启动 3 秒后仍在运行）：
   - x64 Release + CEF：`nim_duilib-1.0.2026.1023-win-x64-cef-examples.zip`
     （1318 条目 / 328.2 MB，`--verify` 全匹配）；
@@ -182,7 +184,9 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
   - x64 Release DLL + SDL + CEF：`...-win-x64-sdl-cef-examples-dll.zip`
     （1398 条目 / 210.1 MB，`duilib.dll` 13,602,816 B，`--verify` 全匹配）；
   - x64 Debug DLL + SDL + CEF：`...-win-x64-sdl-cef-examples-dll-debug.zip`
-    （1398 条目 / 219.6 MB，`duilib_d.dll` 36,236,800 B，`--verify` 全匹配）。
+    （1398 条目 / 219.6 MB，`duilib_d.dll` 36,236,800 B，`--verify` 全匹配）；
+  - x86 Release + SDL（无 CEF，W-P27）：`nim_duilib-1.0.2026.1023-win-x86-sdl-examples.zip`
+    （844 条目 / 128.2 MB，SDL3 79 项 + 21 个示例，`--verify` 全匹配，SDK 测试 PASS=16）。
   均以 `sdk_package_test.py --scenarios C10 --run-examples` 执行（PASS=1 / FAIL=0 / SKIP=0）。
 - 包内条目数较本表历史值 +2：2026-10-29 起 `docs/Deployment*.md` 随包收录，
   同一组合的文档条目从 32 增至 34。
@@ -430,7 +434,7 @@ Skia `llvm.x64.release`、SDL3 `main`、CEF 142/x64。
 | Windows P1（关键出包组合） | 7 / 7 | 全部通过 |
 | Windows P2（参数分支与工程逻辑） | 9 / 9 | 全部通过 |
 | Windows 自动测试 | 158 项 | 全部通过 |
-| Windows 示例启动（C10） | 5 次 | 通过（2026-10-29）：x64 Release 的 CEF、SDL、无 CEF 三包 + x64 Debug/Release 的 DLL 两包，均 `[PASS] C10 examples.smoke` |
+| Windows 示例启动（C10） | 6 次 | 通过（2026-10-29）：x64 Release 的 CEF、SDL、无 CEF 三包 + x64 Debug/Release 的 DLL 两包 + x86 Release SDL 包，均 `[PASS] C10 examples.smoke` |
 | Linux x64 Release/Debug 构建 | 2 / 2 | 通过（含 CEF 示例，见 3.3） |
 | Linux x64 clang 构建（Release） | 1 / 1 | 通过（`CC=clang CXX=clang++ python3 build/build.py`，仅构建，未出包） |
 | Linux x64 出包 | 6 个包 | 全部通过（Release/Debug × 仅库/示例/CEF 示例） |
@@ -573,11 +577,14 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
    「改 Skia 后示例重新链接」这两个观测点；Windows 侧对应逻辑（补丁归档恢复、ref 切换、
    stamp 复用）已在 §7 的回归中实测。本轮起不再把这几条列入待办，后续有 Unix 环境时
    可按上述命令顺带复测。
-9. **Windows 示例包的包内启动冒烟（C10）**：已关闭。2026-10-29 的 5 个示例包
-   （x64 Release 静态 CEF / +SDL / 无 CEF，x64 Debug 与 Release 的 DLL + SDL + CEF）
-   全部 `[PASS] C10 examples.smoke`，`--verify` 均 SHA 全匹配；DLL 回归后已恢复静态
-   构建并清理 `bin/duilib*.dll`（P3-1 完成）。
-10. **x86 + SDL3 组合缺库**：`../SDL3` 只有 x64 静态库，尚未生成 x86 包（P3-2）。
+9. **Windows 示例包的包内启动冒烟（C10）**：已关闭。2026-10-29 的 6 个示例包
+   （x64 Release 静态 CEF / +SDL / 无 CEF，x64 Debug 与 Release 的 DLL + SDL + CEF，
+   x86 Release + SDL）全部 `[PASS] C10 examples.smoke`，`--verify` 均 SHA 全匹配；
+   DLL 回归后已恢复静态构建并清理 `bin/duilib*.dll`（P3-1、P3-2 完成）。
+10. **x86 + SDL3 组合缺库**：已关闭（2026-10-29）。`build.py build --config Release
+    --arch x86 --sdl` 会按 x86 重建 SDL3（`../SDL3` 的 stamp 含架构与 CRT），
+    出包 W-P27（844 条目 / 128.2 MB），`--verify` 与 SDK 测试（PASS=16 FAIL=0 SKIP=3）
+    通过，C10 启动成功（P3-2 完成，P0-1 收口）。
 11. **`build/` 脚本控制台输出未英文化**：`pack.py`、`autotest.py`、`release.py` 与两个
     `.sh` 仍为中文；`docs/misc/specs/English-Console-Output` 的 T1～T7 未实施（P3-3）。
     `release.py` 的 `finalize`/`clean` 无实测记录（P3-5）。

@@ -19,8 +19,18 @@
   - 需要时：SDL3、CEF、示例程序。
 - [ ] 确认库目录符合约定：Windows `lib/<arch>/<Config>/`，Unix `lib/<Config>/`。
 - [ ] 确认 `dist/` 不参与提交（已在 `.gitignore` 中）。
-- [ ] 若本次新增随包二进制组件，已在 `licenses/` 补充许可文本，并更新
-      [许可合规对照表](License-Compliance.md)。
+- [ ] 若本次新增随包二进制组件或第三方资源（字体、图片、网页库），已按
+      [许可合规对照表](License-Compliance.md) 的登记流程处理：
+      - 以 `python build/pack.py --config <Config> --arch <arch> [特性开关] --list`
+        的产物清单逐项对照表格，确认没有未登记项；
+      - 在 `licenses/` 补充许可文本，并在 `THIRD-PARTY-NOTICES.md` 与对照表各补一行；
+      - 在对照表的「更新记录」注明来源（项目/外部素材库/官方分发包）。
+- [ ] 若本次启用 libpag（非 SDK 默认配置），已随程序分发
+      `duilib/third_party/libpag/licenses/` 下的全部文件（含 `libpag.LICENSE.txt`、
+      `tgfx.LICENSE.txt`），并确认未使用 lz4（GPLv2）与 Qt（GPLv3）。
+- [ ] （可选）需要对 CEF 覆盖 Chromium 组件声明时，已从与 CEF 主版本一致的
+      Chrome/Chromium 复制 `LICENSES.chromium.html` 到包内 `LICENSES/CEF/` 并登记；
+      默认不做（理由与体积评估见 [许可合规对照表](License-Compliance.md)）。
 
 ## 2. 更新版本与变更记录
 
@@ -86,7 +96,8 @@ python build/release.py finalize
 - [ ] `VERSION` 内容与当前版本一致；
 - [ ] 包内文档相对链接无断链；
 - [ ] 包内 `licenses/` 覆盖所有随包组件（对照
-      [许可合规对照表](License-Compliance.md)）；
+      [许可合规对照表](License-Compliance.md)），可选的 libpag/CEF 附加声明
+      按实际是否随包复核；
 - [ ] 生成 `dist/<版本>/SHA256SUMS.txt`；
 - [ ] 生成 `dist/<版本>/RELEASE-NOTES.md` 与 `RELEASE-NOTES.en.md`。
 
