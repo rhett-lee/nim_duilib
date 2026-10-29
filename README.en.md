@@ -235,8 +235,7 @@ The example programs written using this GUI library, demonstrating the display e
 
 Requirements: CMake 3.24+, Python 3, Git, Ninja; on Windows also Visual Studio 2022+
 (or MSYS2 / MinGW-w64); on Linux/macOS/FreeBSD use gcc/clang. macOS, Linux and FreeBSD
-usually only provide the `python3` command, so all examples below use `python3`; on
-Windows you can run `build\build.bat` instead (same arguments).
+usually only provide the `python3` command, so all examples below use `python3`.
 
 ### Quick Start
 
@@ -261,11 +260,6 @@ for Debug + Release.
 | Build a release package | `python3 build/build.py pack --with-cef` |
 | Debug build | `python3 build/build.py --config Debug` |
 | Full options | [build/build-reference.en.md](build/build-reference.en.md) |
-
-On Windows, prefer `build\build.bat` (same arguments, no `python3` command needed). The legacy
-per-platform scripts (`build_duilib_all_in_one.*`, `msvc_build.bat`, `linux_build.sh`, ...)
-were deleted on 2026-10-29 (the new entry point is validated on Windows, Linux, macOS and
-FreeBSD); use `build\build.bat` or `build.py`.
 
 ### Dependencies and Platform Differences
 

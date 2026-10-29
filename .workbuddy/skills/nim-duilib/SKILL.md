@@ -80,7 +80,7 @@ nim_duilib 是一个 XML 驱动皮肤 + C++ 逻辑的跨平台桌面 UI 框架�
 `DUI_CTR_*`、`kEvent*`、类名、字体 ID、颜色名对照源码逐一验证，报告不一致项：
 
 ```bash
-python scripts/verify_docs.py --repo <nim_duilib仓库根目录>
+python3 scripts/verify_docs.py --repo <nim_duilib仓库根目录>
 ```
 
 ## 编译前自检：只编译不链接
@@ -88,8 +88,8 @@ python scripts/verify_docs.py --repo <nim_duilib仓库根目录>
 完整构建需要 duilib 库与 Skia（Skia 源码通常在仓库外，全量构建耗时数小时）。
 
 > **首次拉取源码后必须先做一次依赖库预编译**，否则找不到库：
-> 运行 `python3 build/build.py deps`（macOS/Linux/FreeBSD；Windows 运行 `build\build.bat deps`，
-> 自动下载并编译 Skia、CEF 运行时；SDL3 在 Windows 默认关闭，可用 `--sdl` 启用）。
+> 运行 `python3 build/build.py deps`，自动下载并编译 Skia、CEF 运行时；
+> SDL3 在 Windows 默认关闭，可用 `--sdl` 启用。
 > 需要编译库与示例时运行 `python3 build/build.py --config Debug`（或默认的 Release）。
 > 详见 `build/build-reference.md` 与仓库根目录的 `WORKBUDDY.md`。
 

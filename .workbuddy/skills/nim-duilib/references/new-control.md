@@ -296,7 +296,7 @@ MSBuild "c:\develop\nim_duilib\build\examples.sln" /p:Configuration=Debug /p:Pla
 1. **文档漂移校验**（仓库根执行）：
 
    ```bash
-   python .trae/skills/nim-duilib/scripts/verify_docs.py --extra docs
+   python3 .trae/skills/nim-duilib/scripts/verify_docs.py --extra docs
    ```
 
    期望：`全部命中，未发现文档漂移`。若报某名字不存在：

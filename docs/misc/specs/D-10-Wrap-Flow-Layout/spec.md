@@ -217,7 +217,7 @@ if (生效方式 != kStart):
 ## 七、验证步骤
 
 1. MSBuild Debug|x64 编译 `build/examples.sln`（不做 Release），要求 0 error。
-2. `python .trae/skills/nim-duilib/scripts/verify_docs.py --repo . --extra docs examples/controls bin/resources/themes/default/controls bin/resources/lang` 退出码 0。
+2. `python3 .trae/skills/nim-duilib/scripts/verify_docs.py --repo . --extra docs examples/controls bin/resources/themes/default/controls bin/resources/lang` 退出码 0。
 3. `git status` 仅包含本规格列出的文件，无临时脚本/截图。
 4. 人工视觉验证（交由用户）：运行 `layout` 示例 → HFlowBox 页切换各 `justify` 选项：
    - 默认与 `start` 行为与改动前一致；

@@ -229,7 +229,7 @@ yyyy-mm-dd~yyyy-mm-dd
 ```powershell
 & "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe" `
   "build\examples.sln" /p:Configuration=Debug /p:Platform=x64 /clp:ErrorsOnly /m:1 /nologo
-python .trae/skills/nim-duilib/scripts/verify_docs.py --extra docs
+python3 .trae/skills/nim-duilib/scripts/verify_docs.py --extra docs
 ```
 
 运行时手工验证（用户执行）：
@@ -298,7 +298,7 @@ python .trae/skills/nim-duilib/scripts/verify_docs.py --extra docs
 ```powershell
 & "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe" `
   "build\examples.sln" /p:Configuration=Debug /p:Platform=x64 /clp:ErrorsOnly /m:1 /nologo
-python .trae/skills/nim-duilib/scripts/verify_docs.py --extra docs
+python3 .trae/skills/nim-duilib/scripts/verify_docs.py --extra docs
 ```
 
 - 运行 `bin\controls_d.exe`，点击 `date_time_calendar` 与 `time_calendar` 两个示例，确认浮层正常弹出、无断言/崩溃。

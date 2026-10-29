@@ -37,9 +37,9 @@
 
 ## T5 验证
 
-- [x] `python -m py_compile build/sdk_package_test.py build/test_sdk_package.py`
-- [x] `python build/build.py test`
-- [x] `python build/sdk_package_test.py --list-scenarios`
+- [x] `python3 -m py_compile build/sdk_package_test.py build/test_sdk_package.py`
+- [x] `python3 build/build.py test`
+- [x] `python3 build/sdk_package_test.py --list-scenarios`
 - [x] 对 `dist/nim_duilib-1.0.2026.1023-win-x64-examples-debug.zip` 执行全部场景
 - [x] 对 `dist/nim_duilib-1.0.2026.1023-win-x64-dll-debug.zip` 执行全部场景
       （C02 通过；P02/P05/P07/P08/C09 因该包为旧版 `pack.py` 产物而失败，

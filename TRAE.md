@@ -8,7 +8,7 @@
 
 | 事项 | 位置 / 命令 |
 |------|-------------|
-| 首次拉取源码后的依赖库预编译 | `python3 build/build.py deps`（macOS/Linux/FreeBSD；Windows 运行 `build\build.bat deps`） |
+| 首次拉取源码后的依赖库预编译 | `python3 build/build.py deps` |
 | TRAE 专用 Skill | `.trae\skills\nim-duilib\`（项目级） |
 | 新建窗口骨架 | Skill 的 `assets/templates/`：CMakeLists.txt + MyForm.h + MyForm.cpp + my_form.xml |
 | 改文档后自检 | `python3 .trae/skills/nim-duilib/scripts/verify_docs.py --repo .` |
@@ -21,7 +21,7 @@
 新克隆的仓库里**没有**编译好的依赖库（Skia、zlib、libpng、cximage、libwebp 等），直接开工程会报
 找不到库。**只需要在第一次（以及升级 Skia / 切换架构时）做一次**。
 
-### 2.1 统一入口（Windows 用 `build\build.bat`，macOS/Linux/FreeBSD 用 `python3`）
+### 2.1 统一入口（`python3 build/build.py`）
 
 ```bash
 python3 build/build.py                 # Release：准备依赖 + 编译库与示例

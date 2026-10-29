@@ -1,7 +1,7 @@
 # 编译参考手册
 
 本文是 nim_duilib 的唯一编译参考手册，适用于命令行构建、依赖准备、出包与环境排查。
-旧的分平台构建脚本（`build_duilib_all_in_one.*`、`msvc_build.bat`、`linux_build.sh` 等）
+旧的分平台构建脚本（`build_duilib_all_in_one.*`、`msvc_build.*`、`linux_build.sh` 等）
 已于 2026-10-29 删除（四个平台均验证过新入口），统一使用 `python3 build/build.py`。
 
 英文版：[build-reference.en.md](build-reference.en.md)
@@ -19,13 +19,14 @@
 | macOS | Xcode 命令行工具 13.5+，Homebrew 安装 cmake/ninja/gn |
 | FreeBSD | clang、cmake、ninja、gn、fontconfig、freetype2 |
 
-Python 3 缺失时 `build.bat` / `build.py` 会直接报错并给出安装提示，不提供绕过
-Python 的构建路径。只有 `python` / `py -3`、PATH 中没有 `python3` 时，预检给出
-告警，并在实际编译 Skia 前报错终止。
+Python 3 缺失时 `build.py` 会直接报错并给出安装提示，不提供绕过 Python 的构建
+路径。Skia 的构建脚本固定调用 `python3`；若 PATH 中只有 `python` / `py -3` 而没有
+`python3`，预检会给出告警，并在实际编译 Skia 前报错终止。
 
-本文命令统一写作 `python3`：macOS/Linux/FreeBSD 通常没有 `python` 命令；Windows
-可运行 `build\build.bat`（参数相同，无需 `python3`），或把命令中的 `python3`
-换成 `python`。
+本文命令统一写作 `python3 build/build.py`：Windows 与 Unix 使用同一形式，参数与
+子命令完全一致。macOS/Linux/FreeBSD 通常只提供 `python3`；Windows 上没有 `python3`
+命令时的替代写法见根 README 的「为什么统一使用 `python3 build/build.py`」。由于
+Skia 的构建脚本固定调用 `python3`，各平台都必须保证 `python3` 在 PATH 中。
 
 ## 2. 快速开始
 
@@ -36,11 +37,8 @@ python3 build/build.py doctor           # 环境自检（无副作用）
 python3 build/build.py pack --with-cef  # 出 SDK 包
 ```
 
-Windows 也可以直接运行：
-
-```bat
-build\build.bat --config Debug
-```
+Windows 与 Unix 使用同一条命令；Windows 上的 `python3`
+替代写法见根 README 的「为什么统一使用 `python3 build/build.py`」。
 
 构建目录固定为 `out/<arch>/<Config>`（例如 `out/x64/Debug`），与 `build/` 平级，
 不写入 `build/build_temp`。可执行文件与运行时资源始终输出到仓库根 `bin/`，
@@ -355,7 +353,7 @@ MINGW64 会优先选带 `.msvcrt` 的目录。两者的包名都是 `-mingw-gcc`
 | `Visual Studio not found` | 安装 VS 2022+ 与 C++ 工作负载；或用 `--vs-version` 指定版本 |
 | `Skia not found` | 首次执行 `python3 build/build.py deps`，或检查 `--deps-root` |
 | `gn/ninja not found` | Windows 使用 VS 自带目录；Unix 安装 `ninja` 与 `gn`。Unix 不会使用 Skia 目录里的 `gn.exe`（Windows 版无法运行），只有 `gn.exe` 时必须另装原生 `gn` |
-| `python: command not found`（macOS/Linux） | 这些系统通常只有 `python3`：改用 `python3 build/build.py ...`；Windows 直接运行 `build\build.bat` |
+| `python: command not found`（macOS/Linux） | 这些系统通常只有 `python3`：改用 `python3 build/build.py ...`，参数不变 |
 | `python3 not found`（编译 Skia 时报错） | Skia 构建脚本固定调用 `python3`，不认 `python` / `py -3`；安装 Python 3 并确认 `python3 --version` 可用（Windows 可把 Python 安装目录加入 PATH） |
 | `CMake version is too old` | 升级到 CMake 3.24+ |
 | CEF 示例无法运行 | 确认 `bin/libcef_win/<arch>`（或 `bin/libcef_linux`）包含运行时；`pack --with-cef` 会带上 |

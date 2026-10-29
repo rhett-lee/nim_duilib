@@ -19,11 +19,11 @@ root project therefore provides **no** `install()`; the SDK is produced only by
 `pack.py`.
 
 Builds go through `python3 build/build.py` (the old `msvc_build.bat`,
-`linux_build.sh` and friends are gone). macOS/Linux/FreeBSD usually have no `python`
-command; on Windows replace `python3` with `python`, and `build.py` can also be run
-as `build\build.bat`. `pack.py` reads only the single
-library directory selected by `--config`; it no longer merges candidate
-directories or guesses by priority.
+`linux_build.sh` and friends are gone), using the same form on Windows and Unix; for the
+Windows fallback when no `python3` command exists, see the build-entry section of the
+root [README.md](../README.md) (in Chinese). `pack.py` reads only the single
+library directory selected by `--config`; it no longer merges candidate directories or
+guesses by priority.
 
 The library layout is shared by both build systems — `build/*.sln` (MSBuild)
 and `build.py` (CMake):
@@ -46,7 +46,7 @@ You must complete a build of the matching configuration before packaging; the
 script does not trigger compilation:
 
 ```
-# Recommended (use python3 on macOS/Linux/FreeBSD; on Windows run build\build.bat)
+# Recommended
 python3 build/build.py --config Release
 
 # Or open the Visual Studio solution (run build.py deps first)
@@ -71,7 +71,7 @@ always writes to `dist/<version>/`.
 
 **DLL mode** has two entry points that share `bin/` and `lib/`:
 
-- **CMake / build.py**: `python build/build.py build --dll`. `--dll` implies
+- **CMake / build.py**: `python3 build/build.py build --dll`. `--dll` implies
   `--md`, automatically prepares and builds the required Skia (`.md`/`.mdd`)
   variants, then configures `DUILIB_DLL=ON` (`add_library(... SHARED)`). SDL is
   off by default on Windows and DLL mode does not enable it either; while off,

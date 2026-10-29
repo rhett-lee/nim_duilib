@@ -21,7 +21,7 @@
 - [ ] 确认 `dist/` 不参与提交（已在 `.gitignore` 中）。
 - [ ] 若本次新增随包二进制组件或第三方资源（字体、图片、网页库），已按
       [许可合规对照表](License-Compliance.md) 的登记流程处理：
-      - 以 `python build/pack.py --config <Config> --arch <arch> [特性开关] --list`
+      - 以 `python3 build/pack.py --config <Config> --arch <arch> [特性开关] --list`
         的产物清单逐项对照表格，确认没有未登记项；
       - 在 `licenses/` 补充许可文本，并在中英文两份 `THIRD-PARTY-NOTICES`
         （`.md` / `.en.md`）与对照表各补一行；
@@ -44,7 +44,7 @@
 ## 3. 预检
 
 ```
-python build/release.py check
+python3 build/release.py check
 ```
 
 - [ ] 工作区无已跟踪文件的未提交修改；
@@ -62,21 +62,21 @@ python build/release.py check
 Windows（在已编译 Release/Debug 产物的机器上）：
 
 ```
-python build/release.py package --config Release --arch x64 --dry-run
-python build/release.py package --config Release --arch x64
+python3 build/release.py package --config Release --arch x64 --dry-run
+python3 build/release.py package --config Release --arch x64
 
-python build/release.py package --config Debug   --arch x64
-python build/release.py package --config Release --arch x64 --with-examples
-python build/release.py package --config Release --arch x64 --with-sdl
-python build/release.py package --config Release --arch x64 --with-cef
-python build/release.py package --config Release --arch x64 --with-cef --cef-version 109
+python3 build/release.py package --config Debug   --arch x64
+python3 build/release.py package --config Release --arch x64 --with-examples
+python3 build/release.py package --config Release --arch x64 --with-sdl
+python3 build/release.py package --config Release --arch x64 --with-cef
+python3 build/release.py package --config Release --arch x64 --with-cef --cef-version 109
 ```
 
 Linux / macOS / FreeBSD（先执行对应构建脚本）：
 
 ```
-python build/release.py package --config Release
-python build/release.py package --config Debug
+python3 build/release.py package --config Release
+python3 build/release.py package --config Debug
 ```
 
 - [ ] 按发布计划逐项执行，包名后缀应为
@@ -87,7 +87,7 @@ python build/release.py package --config Debug
 ## 5. 产物校验
 
 ```
-python build/release.py finalize
+python3 build/release.py finalize
 ```
 
 对 `dist/<版本>/` 下每个压缩包执行：
@@ -122,13 +122,13 @@ git push origin --tags
 - [ ] 查看历史产物：
 
   ```
-  python build/release.py clean --list
+  python3 build/release.py clean --list
   ```
 
 - [ ] 需要时手动删除旧版本（脚本拒绝删除当前版本）：
 
   ```
-  python build/release.py clean --version <旧版本> --yes
+  python3 build/release.py clean --version <旧版本> --yes
   ```
 
 `clean` 默认只列出，不删除任何文件。

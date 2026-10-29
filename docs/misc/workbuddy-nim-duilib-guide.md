@@ -61,16 +61,15 @@ btn->AttachClick([this](const ui::EventArgs& args) { /* ... */ return true; });
 cd <仓库根>
 
 # 第 1 步：下载依赖库源码并编译（主要是 Skia，耗时数小时）
-python build/build.py deps
+python3 build/build.py deps
 
 # 第 2 步：编译第三方库 + duilib + 各示例（默认 Release）
-python build/build.py
+python3 build/build.py
 ```
 
 - 第 1 步按 `cmake/third_party_versions.json` 检出 Skia 固定 commit 并打补丁，下载 CEF 运行时，Windows 下用 `--sdl` 才会构建 SDL3；前置条件是 `git`、Python 3、CMake、Ninja 与对应编译器（Windows 需 VS 2022+，Skia 用 VS 自带 clang）。
 - 第 2 步一次性配置并构建全部目标，产物在 `lib/` 与 `bin/`，构建树在 `out/<arch>/<Config>/`，可随时清理。
 - 需要 Debug 时加 `--config Debug`；运行库默认 `/MT`，`--md` 切到 `/MD`，**选定后中途不要混用**。
-- Windows 也可以直接运行 `build\build.bat`（参数相同）；完整参数见 `build/build-reference.md`。
 
 ---
 
@@ -396,8 +395,8 @@ Skia 在仓库外、全量构建要几小时，所以日常用这三层验证，
 `DUI_CTR_*`、`kEvent*`、类名、字体 ID、语义色名逐一对照源码：
 
 ```bash
-python .workbuddy/skills/nim-duilib/scripts/verify_docs.py --repo <仓库根>
-python .workbuddy/skills/nim-duilib/scripts/verify_docs.py --repo <仓库根> --extra <自己生成的文档或目录>
+python3 .workbuddy/skills/nim-duilib/scripts/verify_docs.py --repo <仓库根>
+python3 .workbuddy/skills/nim-duilib/scripts/verify_docs.py --repo <仓库根> --extra <自己生成的文档或目录>
 ```
 
 输出形如：`扫描文档 13 个，源码索引：121 个宏 / 96 个事件 / 2408 个类名 / 42 个字体 / 350 个色名，

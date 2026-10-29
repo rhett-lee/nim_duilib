@@ -90,15 +90,15 @@ SDK 模式下被排除的是 22 个示例私有主题目录：
 ### 命令行接口
 
 ```
-python build/pack.py                      # Release SDK 包（不含示例）
-python build/pack.py --config Debug       # Debug SDK 包（包名带 -debug）
-python build/pack.py --with-examples      # SDK + 示例程序
-python build/pack.py --with-cef           # 额外带上 CEF 开发包
-python build/pack.py --with-sdl           # Windows 额外带上 SDL3
-python build/pack.py --list               # 只打印将收集的文件，不打包
-python build/pack.py --format tgz         # 强制 tgz（默认 Windows 用 zip）
-python build/pack.py --lib-dir lib/x86/Debug  # 显式指定库目录
-python build/pack.py --out-dir dist       # 指定输出目录
+python3 build/pack.py                      # Release SDK 包（不含示例）
+python3 build/pack.py --config Debug       # Debug SDK 包（包名带 -debug）
+python3 build/pack.py --with-examples      # SDK + 示例程序
+python3 build/pack.py --with-cef           # 额外带上 CEF 开发包
+python3 build/pack.py --with-sdl           # Windows 额外带上 SDL3
+python3 build/pack.py --list               # 只打印将收集的文件，不打包
+python3 build/pack.py --format tgz         # 强制 tgz（默认 Windows 用 zip）
+python3 build/pack.py --lib-dir lib/x86/Debug  # 显式指定库目录
+python3 build/pack.py --out-dir dist       # 指定输出目录
 ```
 
 直接运行 `pack.py` 时产物输出到 `dist/`；`release.py package` 固定输出到
@@ -387,10 +387,10 @@ git tag 建议用 `v<版本号>` 格式。仓库现有 tag（`2026-06-08(main)` 
 
 ```
 # 1. 列表模式先看收集范围
-python build/pack.py --list
+python3 build/pack.py --list
 
 # 2. 打包
-python build/pack.py
+python3 build/pack.py
 
 # 3. 完整性校验
 cd dist/<版本> && unzip -q nim_duilib-<版本>-<系统>-<架构>[-特性].zip -d /tmp/check

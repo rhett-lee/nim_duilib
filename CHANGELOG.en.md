@@ -10,7 +10,7 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Added
 
-- Root CMake project and unified entry `python build/build.py` (or `build\build.bat`):
+- Root CMake project and unified entry `python3 build/build.py`:
   `build` (default), `deps`, `test`, `pack`, `doctor`, `clean`; build trees live in
   `out/<arch>/<Config>`.
 - Automatic dependency preparation driven by `cmake/third_party_versions.json`
@@ -30,7 +30,7 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   the version manifest (`maxAttempts=0` = unlimited, `delaySeconds=20`).
 - Bilingual build reference `build/build-reference.md` / `.en.md`; `build/README.md`
   and `README.en.md` now focus on prerequisites and packaging.
-- `build/test_build.py`: standard-library unit tests for the build entry and i18n.
+- `build/test_build.py`: standard-library unit tests for the build entry point and i18n.
 - Compliance: `THIRD-PARTY-NOTICES.md`; SDK license directory renamed to `LICENSES/`.
 - Compliance: added the English third-party notices `THIRD-PARTY-NOTICES.en.md` at the
   repository root as a pair with the Chinese file; `pack.py` and the SDK package tests
@@ -83,7 +83,7 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `GetResourceZipPath(bool)` returns `.../duilib/resources.zip` for the zip mode.
 - macOS App Bundle reference `build/macos-app-bundle.md` / `.en.md`, plus an
   `Info.plist` template and optional `.icns` icon support.
-- Windows MSVC DLL mode: `python build/build.py build --dll` builds duilib as
+- Windows MSVC DLL mode: `python3 build/build.py build --dll` builds duilib as
   `bin/duilib*.dll` (`duilib32*.dll` on x86, `_d` for Debug, with the import
   library always at `lib/<arch>/<Config>/duilib.lib`). `--dll` implies `--md`
   and prepares the Skia `.md`/`.mdd` variants while synchronizing
@@ -206,7 +206,7 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `release-3.4.18` stays in `refs` and can still be selected with
   `--sdl-ref release-3.4.18`.
 - FreeBSD build and packaging verification now covers Debug and Release
-  (on real hardware, 2026-10-29): the Release/Debug builds via `build.py`, the
+  (in a FreeBSD VM, 2026-10-29): the Release/Debug builds via `build.py`, the
   four packages from `pack.py` (Release/Debug × default SDK and `--with-examples`),
   the four `sdk_package_test.py` runs (including two `--run-examples` C10
   example startups), and `doctor`/`test`/`test_build`/`test_pack`/
@@ -239,7 +239,7 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 - Removed the legacy per-platform build scripts (`build_duilib_all_in_one.*`,
   `msvc_build.bat`, `linux_build.sh`, `macos_build.sh`, `freebsd_build.sh`,
   `msys2_build.sh`, ...) on 2026-10-29 after all four platforms were verified with
-  the new entry point; use `build/build.py` (`build/build.bat` on Windows).
+  the new entry point; use `build/build.py`.
 
 ### Fixed
 
@@ -488,8 +488,8 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   up while compiling Skia. The preflight now warns when `python3` is missing, and the
   Skia build step aborts with an error before compiling.
 - Docs and command examples: macOS/Linux/FreeBSD usually provide only `python3`, so the
-  documented `python build/build.py` failed with "command not found"; examples now use
-  `python3 build/build.py`, and Windows can keep using `build\build.bat` directly.
+  documented `python` invocation of `build/build.py` failed with "command not found";
+  examples now use `python3 build/build.py`.
 - Dependency preparation (macOS): `SDL3 build failed` was reported even after a successful
   SDL3 build and install; the readiness check only accepted `libSDL3.so`, while macOS
   installs `libSDL3.dylib`. macOS is now checked for the dylib.
@@ -597,7 +597,7 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   the error names the CEF version actually present in the lib directory and
   the matching `--cef-version` to pass.
 - `pack.py --with-examples` (Windows): `bin/` is shared by all architectures,
-  so packing an x86 SDK used to collect leftover x64 examples. The PE COFF
+  so packaging an x86 SDK used to collect leftover x64 examples. The PE COFF
   Machine field is now checked; mismatching exe/dll files are skipped and
   packaging is blocked (clean `bin/` or use `--allow-missing`).
 - `build.py`: stateful options such as `DUILIB_MD`, `DUILIB_BUILD_EXAMPLES`,

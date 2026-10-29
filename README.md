@@ -1,388 +1,255 @@
 简体中文 | [English](README.en.md)
 
+> 英文版 [README.en.md](README.en.md) 最近同步于 2026-09-29，可能落后于本文。
+
 # nim_duilib
 
-[nim_duilib](https://github.com/rhett-lee/nim_duilib) 是一款基于C++开发的跨平台界面库，源于经典的 duilib 界面库并进行了深度优化与功能扩展，支持Windows/Linux/macOS/FreeBSD平台，支持的Linux系统包括OpenEuler、OpenKylin、UbuntuKylin、统信UOS、中科方德、Ubuntu、Fedora、Debian等，专注于简化桌面应用的高效开发。其设计融合了DirectUI理念，通过XML描述界面布局，实现视觉与逻辑的分离，显著提升开发灵活性与维护性。
+[nim_duilib](https://github.com/rhett-lee/nim_duilib) 是一款基于 **C++20** 的跨平台桌面 UI 库，源于经典 duilib（经 NIM_Duilib_Framework 演进）：用 XML 描述界面结构与样式，用 C++ 编写业务逻辑，渲染由 Skia 完成。同一套界面代码可以构建到 Windows、Linux、macOS 与 FreeBSD，适合既需要原生窗口能力（托盘、网页控件、系统通知、DPI 感知）、又不想为每个平台重写一套界面的桌面客户端。
+
+- 语言标准：`main`、`develop` 为 C++20；`develop-cpp17` 分支为 C++17（仅用于 Windows VS2017/VS2019）
+- 支持平台：Windows 7/10/11（x86/x64/arm64；Windows 7 使用 CEF 109）、Linux x64、macOS x64/arm64、FreeBSD x64
+- 版本信息：版本号见 [duilib/duilib_version.h](duilib/duilib_version.h)，发布包见 GitHub Releases，变更记录见 [CHANGELOG.md](CHANGELOG.md)
+- 许可证：[MIT](LICENSE)
 
 ![GitHub](https://img.shields.io/badge/license-MIT-green.svg)
 
-## 核心技术特性
+## 项目定位与能力边界
 
- - XML布局驱动：采用 XML 文件定义界面结构，将界面布局与业务逻辑完全分离。开发者可通过修改 XML 快速调整控件位置、尺寸和样式，无需改动 C++ 核心代码，极大提升开发与迭代效率。
- - 丰富的控件体系：内置按钮、文本框、列表视图、虚表控件、树形控件、滑块、进度条、菜单、颜色选择、属性页、标签页等基础控件，同时支持自定义控件开发，满足多样化界面设计需求。
- - 高效的渲染机制：使用Skia作为渲染引擎，实现控件的无窗口绘制，减少系统资源占用，提升界面刷新速度。支持硬件加速渲染（后端绘制支持使用CPU绘制或者GPU绘制），确保复杂界面流畅运行。
- - 事件驱动：基于消息机制的事件处理，使得UI交互逻辑清晰，支持在XML文件中配置事件响应代码。
- - 多种图片格式：支持SVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO图片格式。
- - 支持动画格式：支持GIF、APNG、WEBP、Lottie JSON、PAG动画文件格式。
- - 多语言与国际化：支持动态多种语言切换，便于开发全球化的应用程序。
- - 支持动态换肤：通过XML文件定义皮肤结构，可以轻松改变界面风格，支持动态换肤。
- - 支持窗口阴影：支持窗口的圆角阴影、直角阴影，并可选择阴影大小，可实时更新；在Windows和macOS系统中，支持使用系统阴影。
- - 支持DPI感知：有Unaware、SystemAware、PerMonitorAware、PerMonitorAware_V2四种模式，支持独立设置DPI，支持高清DPI的适配（仅限Windows平台）。
- - 支持CEF控件：支持libcef 109 版本，以兼容Windows 7系统；支持libcef 142 版本，支持Windows 10及以上操作系统，支持Linux和MacOS平台。
- - 支持WebView2控件：支持使用WebView2控件用于显示网页，其接口封装简单，更易于使用（仅支持Windows平台）。
- - 支持SDL3：可使用SDL3作为窗口管理和输入输出等基本功能提供者，从而支持跨平台（目前已经适配了Windows/Linux/MacOS/FreeBSD平台）。
- - 支持主题切换，默认支持浅色主题和深色主题，支持设置强调色，并提供设计主题的辅助工具。
+动手之前先确认这个库能覆盖哪些需求、哪些还需要额外工作，可以避免选型后返工。
+
+**定位**：面向桌面客户端的 C++ 界面库。适合需要深度定制界面、同时覆盖 Windows/Linux/macOS 的桌面应用，也适合从 duilib / NIM_Duilib_Framework 迁移的项目。它提供的是"界面层"：窗口、布局、控件、渲染、资源与事件；网络、存储、业务逻辑仍由你自己的代码或第三方库负责。
+
+**能力边界**（与上手直接相关的几点）：
+
+- **渲染**：Skia 是必需的后端，负责矢量绘制、文字与动画。构建脚本会按 [版本清单](cmake/third_party_versions.json) 自动准备并编译它，不需要手工编译；如果这一步失败，通常是网络或工具链问题，`doctor` 会指出缺少哪一项。
+- **开发方式**：以 XML + C++ 为主，仓库不包含可视化设计器；另有 `.claude` AI 技能辅助生成界面代码。
+- **平台专属**：WebView2 仅 Windows；"DPI 独立设置"仅 Windows；系统窗口阴影仅 Windows/macOS。
+- **CEF**：Windows/Linux/macOS 默认启用，FreeBSD 与 MinGW 不支持。默认使用 142（要求 Windows 10+）；要在 Windows 7 上运行网页控件，构建时加 `--cef-version 109`。
+- **动画**：GIF/APNG/WebP/Lottie 默认可用；PAG 默认关闭，仅在 Windows + MSVC 解决方案下可启用（需自行编译 libpag）。
+- **SDL3**：Windows 默认关闭（加 `--sdl` 开启），Linux/macOS/FreeBSD 强制开启，用于窗口管理与输入。
+- **运行库**：Windows 默认静态运行库（/MT、/MTd）；需要动态运行库时加 `--md`（/MD、/MDd）。
+- **DLL 模式**：Windows MSVC 下加 `--dll` 可把库编译为动态库，产物为 `bin/duilib.dll`（Debug 为 `bin/duilib_d.dll`），导入库在 `lib/<arch>/<Config>/duilib.lib`。适合需要动态加载、缩小可执行体量，或让多个程序共享同一份库的场景；同一程序只能选用静态库或 DLL 中的一种，发布时必须随包分发 DLL。
+
+## 主要特性
+
+以下能力覆盖桌面客户端最常见的需求，多数可以直接在示例程序中运行验证。
+
+- **XML 布局驱动**：界面结构与业务逻辑分离，调整布局或换肤时只需改 XML，不必重新组织 C++ 代码。
+- **丰富的控件与容器**：基础控件、虚表列表、树、菜单、属性表、标签页等，并支持自定义控件与自定义容器。
+- **Skia 无窗口渲染**：绝大多数控件不依赖系统原生窗口句柄，后端可选择 CPU 或 GPU 绘制，复杂界面也能保持流畅。
+- **事件驱动**：既可在 C++ 中绑定回调，也可在 XML 中直接配置事件响应代码，交互逻辑集中且易读。
+- **图片格式**：SVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO。
+- **动画格式**：GIF、APNG、WEBP、Lottie JSON、PAG（默认关闭）。
+- **多语言、动态换肤、浅色/深色主题与强调色**：字符串与颜色集中管理，切换语言或主题不需要重启。
+- **窗口阴影**：圆角/直角阴影，Windows 与 macOS 还可使用系统阴影。
+- **DPI 感知**：Unaware、SystemAware、PerMonitorAware、PerMonitorAware_V2（Windows）。
+- **网页控件**：CEF（Windows/Linux/macOS）与 WebView2（仅 Windows）。
+
+## 界面预览
+
+下图是 `examples/controls` 的运行效果，用于直观了解常用控件的默认外观。界面中的字体、配色与图片都来自 `bin/resources` 下的 XML 皮肤资源，替换资源即可得到完全不同的视觉风格，这也是本项目支持动态换肤的基础。
+
+<img width="760" src="docs/Images/controls.png"/>
+
+其余示例（basic、render、layout、ListCtrl、TreeView、CEF 等）的截图与说明见 [docs/Examples.md](docs/Examples.md)。
+
+## 环境与依赖要求
+
+构建分为两部分：编译器与基础工具由你准备，第三方源码依赖（Skia/SDL3/CEF）由 `build.py` 按 [版本清单](cmake/third_party_versions.json) 自动获取、编译并缓存到仓库同级目录。因此本机不需要预装这些依赖的库文件；但系统开发包缺失时，CMake 配置阶段会直接报错，按报错补装即可。
+
+### 语言与编译器
+
+| 平台 | 架构 | 编译器 | 说明 |
+| :--- | :--- | :--- | :--- |
+| Windows | x86 / x64 / arm64 | Visual Studio 2022（v143）、Visual Studio 2026（v145）、MSYS2 / MinGW-w64（gcc 或 clang） | 支持 Windows 7 及以上；VS2017/2019 请用 `develop-cpp17` 分支 |
+| Linux | x64 | gcc 10+、clang 12+ | arm64 见下方“待确认” |
+| macOS | x64 / arm64 | Xcode 命令行工具 13.5+（AppleClang） | 最低系统版本待确认 |
+| FreeBSD | x64 | 系统自带 clang | |
+
+Windows 7 的兼容性来自库自身配置（[duilib/duilib_config.h](duilib/duilib_config.h) 默认兼容 Win7 以上）与 CEF 109；CEF 142 要求 Windows 10 及以上。
+
+### 构建工具
+
+| 工具 | 要求 | 用途与说明 |
+| :--- | :--- | :--- |
+| CMake | 3.24+ | 生成构建文件；根工程使用 CMakePresets |
+| Python | 3.8+ | 运行 `build/build.py`；Skia 的构建脚本还要求 PATH 中存在 `python3` |
+| Git | 任意较新版本 | 获取 Skia/SDL3 源码与 CEF 归档 |
+| Ninja | 构建后端 | Windows 使用 Visual Studio 自带的版本 |
+| macOS 额外 | `brew install cmake ninja`，并从源码安装 `gn` | Skia 构建需要 `gn` |
+| FreeBSD 额外 | `sudo pkg install git unzip python3 cmake ninja gn llvm fontconfig freetype2` | 一次性装齐工具链与字体依赖 |
+
+### Linux 系统依赖
+
+Linux 上还需要发行版提供的 X11、字体、OpenGL/EGL、DBus/ibus 等开发包。各发行版包名差异较大，装错或漏装通常表现为 CMake 阶段报 `Could not find X11`、`Could not find Freetype` 或 `Could not find Fontconfig`。按发行版划分的安装命令、必需包清单和验证方法见单独文档：[build/linux-dependencies.md](build/linux-dependencies.md)（英文版 [linux-dependencies.en.md](build/linux-dependencies.en.md)）。其中的命令取自仓库构建文档，覆盖 Ubuntu、Debian、Fedora、openSUSE、OpenEuler、OpenKylin、UbuntuKylin、中科方德、统信 UOS；除 Ubuntu 外未逐一实测，文档中已说明验证范围。
+
+### 平台验证状态
+
+下表只记录仓库中能找到证据的验证结果；没有验证记录的组合不会被写成“支持”。
+
+| 平台 / 架构 | 验证环境 | 状态 |
+| :--- | :--- | :--- |
+| Windows 7 x64 | 真机手动测试（CEF 109） | 已验证 |
+| Windows 10/11 x64 | VS 2022 17.14（MSVC 14.44）、VS 2026、CMake 4.3、Python 3.14；另测 MSYS2、llvm-mingw、x86 | 已验证 |
+| Windows arm64 | VS 2022 交叉工具链；构建、DLL 模式与出包 | 构建/出包已验证；无 arm64 真机，未做启动验证 |
+| macOS x64 | AppleClang 21、CMake 4.0.2、Python 3.13 | 已验证 |
+| macOS arm64 | Apple Silicon 真机 | 已验证 |
+| Linux x64 | VMware 虚拟机、CMake 3.31、gcc（另测 clang） | 已验证；Ubuntu 之外的发行版待确认 |
+| FreeBSD x64 | FreeBSD 虚拟机、系统 clang | 已验证 |
+
+仍标注 **待确认** 的项目：Linux arm64、Ubuntu 之外 Linux 发行版的实际验证、macOS 最低系统版本。详细用例、命令与结果见 [build/test-matrix.md](build/test-matrix.md)。
+
+## 快速开始
+
+以下步骤假设机器上已装好上表中的编译器与构建工具，并且能访问 GitHub。首次构建需要从源码编译 Skia 并下载 CEF 运行时，耗时从十几分钟到一小时不等；依赖会缓存在仓库同级目录（可用 `--deps-root` 修改），之后的增量构建不再重复下载和编译。
+
+### 为什么统一使用 `python3 build/build.py`
+
+仓库不再为各平台提供不同的构建脚本，文档里的命令也统一写成 `python3 build/build.py`。这样做的原因有三点：Skia 的构建脚本固定调用 `python3`，缺少 `python3` 时会在编译 Skia 前直接失败，`python` 不能替代；macOS/Linux 的常见环境只提供 `python3`，命令若写成 `python` 会报 command not found；统一成同一条命令后，文档只需维护一套命令，新用户不必先判断自己该用哪个脚本，参数、子命令与产物路径在各平台完全一致，学习成本最低。`build.py` 会自动识别当前平台与编译器、选择生成器、准备依赖，并附带 `doctor`（环境自检）、`deps`（只准备依赖）、`test`（单元测试）、`pack`（出包）、`clean`（清理）等子命令。
+
+Windows 上如果没有 `python3` 命令，可以把命令开头的 `python3` 换成 `py -3`，或换成环境里指向 Python 3 的 `python`（先用 `--version` 确认版本）；这两种写法只适用于 Windows，本文其他命令示例一律使用 `python3`。需要注意，它们只改变 `build.py` 的启动方式，Skia 构建阶段仍要求 PATH 中存在 `python3`，否则会在编译 Skia 前报错终止。
+
+### Windows（已验证：Windows 10/11 x64 + VS 2022/VS 2026）
+
+前置：已安装 Visual Studio 2022 或 2026（含“使用 C++ 的桌面开发”工作负载）、Git、Python 3。
+
+```bat
+git clone https://github.com/rhett-lee/nim_duilib.git
+cd nim_duilib
+python3 build/build.py doctor
+python3 build/build.py
+bin\basic.exe
+```
+
+- `doctor` 只做环境自检，不修改仓库。预期看到编译器、CMake、Python、依赖目录的摘要；若某项缺失或版本过低，会给出提示，先按提示修好环境再继续。
+- 首次构建会先准备依赖再编译。成功时日志以 `[OK] 编译完成` 结束；失败时以 `[ERROR] 编译失败` 结束并提示查看上方的编译输出。
+- 产物：示例程序在 `bin\`（Debug/Release 同名），静态库在 `lib\x64\Release`，构建树在 `out\x64\Release`。`bin\basic.exe` 能正常打开窗口即说明工具链、依赖与运行资源都已就绪。
+- 只想先确认库能编译通过：`python3 build/build.py build --no-examples --target duilib`。
+- 暂时跳过 CEF 相关示例：`python3 build/build.py --cmake-arg=-DDUILIB_ENABLE_CEF=OFF`（其余示例照常构建）。
+- Debug 构建：`python3 build/build.py --config Debug`。一次调用只构建一个配置，需要两种配置时执行两次。
+
+### Linux / macOS / FreeBSD
+
+前置：按上文安装编译器、CMake、Ninja、Git、Python 3；Linux 还需按 [build/linux-dependencies.md](build/linux-dependencies.md) 安装系统开发包。
+
+```bash
+git clone https://github.com/rhett-lee/nim_duilib.git
+cd nim_duilib
+python3 build/build.py doctor
+python3 build/build.py
+./bin/basic            # macOS 为 open bin/basic.app
+```
+
+- macOS 下 `basic` 默认编译为 `bin/basic.app`，示例 C++ 代码无需修改。
+- 构建成功的表现与 Windows 相同：日志以 `[OK] 编译完成` 结束，`bin/basic`（或 `bin/basic.app`）可以启动。
+- 若在 CMake 配置阶段报找不到 X11/字体相关包，按 [build/linux-dependencies.md](build/linux-dependencies.md) 补装；若 Skia 编译阶段报找不到 `gn`/`ninja`/`clang`，补装对应构建工具。
+
+### 使用 Visual Studio 解决方案
+
+如果团队需要在 Visual Studio IDE 中调试，解决方案仍然可用，但它不会自动准备依赖，必须先执行一次依赖准备：
+
+```bat
+python3 build/build.py deps
+```
+
+然后打开 `build/examples.sln` 构建（不需要 CEF 时用 `build/examples_no_cef.sln`）。解决方案的 Debug 产物带 `_d` 后缀（如 `basic_d.exe`），与 `build.py` 输出的 `bin\basic.exe` 不同；两者中间目录也相互独立（解决方案为 `build/build_temp`，命令行入口为 `out/<arch>/<Config>`）。
+
+### DLL 模式（仅 Windows MSVC）
+
+默认构建产出静态库。如果希望把界面库做成可以动态加载的组件、缩小主程序的体积，或让多个程序共享同一份库，可以在 Windows MSVC 下使用 `--dll`：
+
+```bat
+python3 build/build.py --dll --config Release
+```
+
+- `--dll` 会隐式开启 `--md`（/MD、/MDd），并把 Skia 换成对应的 `.md`/`.mdd` 变体；`deps` 会自动准备，不需要手工处理。
+- 预期产物：`bin/duilib.dll`（Debug 为 `bin/duilib_d.dll`，x86 为 `duilib32*.dll`）与导入库 `lib/<arch>/<Config>/duilib.lib`；示例程序只链接导入库。构建成功的日志同样以 `[OK] 编译完成` 结束。
+- 发布时 `bin/duilib*.dll` 必须与可执行文件一起分发；漏发 DLL 的典型表现是程序启动阶段报“找不到 duilib.dll”。
+- 该模式只支持 Windows + MSVC；Linux/macOS/FreeBSD 仍构建静态库。`--dll` 不会顺带开启 SDL，需要时另加 `--sdl`。
+- 打包时 `pack.py` 会自动收集 `bin/duilib*.dll`，包名追加 `-dll`；在 DLL 与静态模式之间切换时构建目录会自动清理，避免混用旧产物。
 
 ## 目录结构
-| 目录          | 说明 |
-| :---          | :--- |
-| duilib        | 项目的源代码|
-| docs          | 项目的说明文档，包括各个控件的功能介绍与属性列表说明文档|
-| bin           | 各个示例程序输出目录，包含预设的皮肤和语言文件以及 CEF 依赖|
-| licenses      | 引用的其他开源代码对应的licenses文件|
-| cmake         | cmake编译时依赖的公共设置|
-| build         | 各个平台的编译脚本和编译工程（包括VC编译工程）|
-| msvc          | Windows平台的应用程序清单文件和VC工程公共配置|
-| examples      | 项目的示例程序源代码，涵盖所有控件的基本用法示例（示例程序，详见 [docs/Examples.md](docs/Examples.md)）|
-| duilib/third_party| 项目代码依赖的第三方库，详细内容见后续文档|
 
-## 基于NIM_Duilib_Framework源码做的主要修改
-<table>
-    <tr>
-        <th>分类</th>
-        <th>修改内容</th>
-    </tr>
-    <tr>
-        <td rowspan="12">整体改进</td>
-        <td align="left">1. 调整了代码的组织结构，按照功能模块划分，大文件按类拆分为多个小文件，有利于理解整个库的体系结构</td>
-    </tr>
-    <tr><td align="left">2. 梳理了代码的接口文件，补充各个接口的注释和功能注释，有利于阅读和理解代码</td></tr>
-    <tr><td align="left">3. 对配置XML文件进行优化，调整了属性命名规则，控件的宽度和高度可以按百分比设置，图片属性增加了部分扩展，优化了图片加载流程</td></tr>
-    <tr><td align="left">4. 扩展了图片资源的支持：新增加APNG/WEBP动画/Lottie JSON动画/PAG动画，新增对ICO的支持，并优化了图片加载引擎及代码实现逻辑</td></tr>
-    <tr><td align="left">5. 重新实现各个布局的代码，并新增了常见的界面布局方案，总体归类为：浮动布局、水平布局、垂直布局、水平流式布局、垂直流式布局、网格布局、水平瓦片布局、垂直瓦片布局、虚表水平布局、虚表垂直布局、虚表水平瓦片布局、虚表垂直瓦片布局，使布局的概念更易理解，易于扩展，详情可参考文档(docs/Box.md)</td></tr>
-    <tr><td align="left">6. XML文件解析引擎替换为pugixml parser，性能更优</td></tr>
-    <tr><td align="left">7. 移除对base库的依赖，消息循环和线程通信相关功能改为自己实现</td></tr>
-    <tr><td align="left">8. 集成了Skia引擎，并作为默认的渲染引擎</td></tr>
-    <tr><td align="left">9. 支持SDL3，支持跨平台（已经适配了Windows平台、Linux平台、MacOS平台、FreeBSD平台）</td></tr>
-    <tr><td align="left">10. CEF组件放到duilib工程，并对CEF的版本进行了升级（支持libcef 109 版本，以兼容Win7系统；支持libcef 142 版本，支持Win10及以上操作系统）</td></tr>
-    <tr><td align="left">11. 重新设计图片管理的接口和加载流程（Image目录），支持多线程加载图片，以更好的扩展其他图片格式支持</td></tr>
-    <tr><td align="left">12. 重新设计全局资源管理器的XML文件结构（global.xml），改进字体管理功能，支持字体回退功能，从而支持Emoji字体显示；支持浅色主题和深色主题，支持强调色</td></tr>
-    <tr>
-        <td rowspan="23">功能完善</td>
-        <td align="left">1. 对窗口类（Window）增加了新的属性：的功能进行了完善，提高对DPI自适应、窗口消息的代码容错，代码结构做了调整</td>
-    </tr>
-    <tr><td align="left">2. 对窗口类（Window）增加了新的属性：use_system_caption，snap_layout_menu，sys_menu，sys_menu_rect, icon属性，提供使用操作系统默认标题栏的选项，自绘标题栏的功能与系统标题栏的功能相似</td></tr>
-    <tr><td align="left">3. 对窗口（Window）引入WindowDropTarget辅助类，提供对基于窗口的拖放功能的支持</td></tr>
-    <tr><td align="left">4. 对资源管理相关的部分做了梳理，使得字体、颜色、图片等资源管理更容易理解</td></tr>
-    <tr><td align="left">5. 对ListBox控件进行了优化：细分为ListBox、VListBox、HListBox、VTileListBox、HTileListBox、VirtualListBox、VirtualVListBox、VirtualHListBox、VirtualVTileListBox、VirtualHTileListBox几种，功能更加完善，基于虚表的ListBox功能可用性提升</td></tr>
-    <tr><td align="left">6. 对组合框（Combo）关联的控件（CheckCombo、FilterCombo）进行了优化，提升可用性</td></tr>
-    <tr><td align="left">7. 对日期时间（DateTime）控件的编辑功能进行了完善</td></tr>
-    <tr><td align="left">8. 对菜单（CMenuWnd）类的功能代码进行优化，按新的结构重新实现菜单，使得菜单内的控件完全兼容现有容器/控件体系，易于理解和维护</td></tr>
-    <tr><td align="left">9. 对文本编辑控件（RichEdit）进行功能优化和扩展，丰富了较多常用功能</td></tr>
-    <tr><td align="left">10. 对树控件（TreeView）进行功能优化和扩展，丰富了较多常用功能，提升可用性</td></tr>
-    <tr><td align="left">11. 全局资源（GlobalManager）的接口进行了优化，使得所有资源全部通过此接口管理，易于理解和维护</td></tr>
-    <tr><td align="left">12. 同一个窗口内的不同容器之间，容器内的控件可以通过属性设置支持拖出和拖入操作</td></tr>
-    <tr><td align="left">13. 控件的背景色支持渐变色，新增前景色功能</td></tr>
-    <tr><td align="left">14. 完善了多国语言的功能，能够更好的支持多语言动态切换，并提供示例程序examples/MultiLang</td></tr>
-    <tr><td align="left">15. 完善了DPI感知功能，支持Unaware、SystemAware、PerMonitorAware、PerMonitorAware_V2四种模式，支持独立设置DPI，支持高清DPI的适配，提供了示例程序examples/DpiAware</td></tr>
-    <tr><td align="left">16. 移除了ui_components工程，CEF组件代码重新梳理，继承到duilib工程中，其他内容删除</td></tr>
-    <tr><td align="left">17. 优化窗口的阴影功能，窗口的阴影使用svg图片，增加了阴影类型属性（shadow_type），支持自绘阴影和系统阴影，详见`docs/Window.md`文档</td></tr>
-    <tr><td align="left">18. 新增对APNG/SVG/WEBP/ICO/LOTTIE/PAG图片格式的支持</td></tr>
-    <tr><td align="left">19. 重新设计控件的loading功能，使用Box容器展示loading功能，通过xml文件配置loading界面（包括动画图片），并支持与动画图片交互</td></tr>
-    <tr><td align="left">20. Label文本显示控件的功能加强：对文本齐方式新增加"两端对齐"，新增对竖排文本的支持（文本绘制方向从上到下，从右到左），新增支持设置行间距和设置字间距</td></tr>
-    <tr><td align="left">21. Control控件支持全屏显示（通过调用新增加的Window::SetFullscreenControl函数实现该功能），CEF控件和WebView2控件支持F11切换页面全屏</td></tr>
-    <tr><td align="left">22. 完善控件动画的功能细节，并引入缓动函数，支持设置控件动画的属性，比如设置缓动函数类型，设置动画总时长和播放间隔等</td></tr>
-    <tr><td align="left">23. 上下文菜单统一 API：Control::AttachPopupMenu 一行代码把右键菜单绑定到任意控件（自动创建菜单、坐标换算、菜单项回调，支持菜单弹出后动态调整），配套 DetachPopupMenu 解除绑定</td></tr>
-    <tr>
-        <td rowspan="52">新增控件/新增容器</td>
-        <td align="left">1. GroupBox：分组容器</td>
-    </tr>
-    <tr><td align="left">2. HotKey：热键控件</td></tr>
-    <tr><td align="left">3. HyperLink：带有超级链接的文字</td></tr>
-    <tr><td align="left">4. IPAddress：IP地址控件</td></tr>
-    <tr><td align="left">5. Line：画线控件</td></tr>
-    <tr><td align="left">6. RichText：格式化文本（类HTML格式）</td></tr>
-    <tr><td align="left">7. Split: 分割条控件/容器</td></tr>
-    <tr><td align="left">8. TabCtrl：多标签控件（类似浏览器的多标签）</td></tr>
-    <tr><td align="left">9. ListCtrl：列表控件（Report/Icon/List三个视图）</td></tr>
-    <tr><td align="left">10. PropertyGrid: 属性表控件，支持文本、数字、复选框、字体、颜色、日期、IP地址、热键、文件路径、文件夹等属性</td></tr>
-    <tr><td align="left">11. ColorPicker：拾色器，独立窗口，其中的子控件，可以单独作为颜色控件来使用</td></tr>
-    <tr><td align="left">12. ComboButton：带有下拉组合框的按钮</td></tr>
-    <tr><td align="left">13. DirectoryTree：目录树控件，用于显示文件系统中的目录</td></tr>
-    <tr><td align="left">14. AddressBar：地址栏控件，用于显示本地文件系统的路径</td></tr>
-    <tr><td align="left">15. WebView2Control：封装了WebView2控件的基本功能</td></tr>
-    <tr><td align="left">16. GridBox/GridScrollBox：基于网格布局的控件</td></tr>
-    <tr><td align="left">17. HFlowBox/VFlowBox/HFlowScrollBox/VFlowScrollBox：基于水平流式布局和垂直流式布局的控件</td></tr>
-    <tr><td align="left">18. MenuBar：菜单栏控件</td></tr>
-    <tr><td align="left">19. IconControl/BitmapControl：用户显示基于内存的小图标和位图数据</td></tr>
-    <tr><td align="left">20. ChildWindow：子窗口控件，Windows平台的实现为系统原生子窗口（带有WS_CHILD属性）；其他平台为SDL的弹出式窗口，非原生子窗口，SDL不支持原生子窗口</td></tr>
-    <tr><td align="left">21. ControlDragableT(模板类，包含以下四个标准控件：ControlDragable/BoxDragable/HBoxDragable/VBoxDragable)：支持相同Box内的子控件通过拖动来调整顺序，支持在不同的Box内通过拖动来调整控件所属容器</td></tr>
-    <tr><td align="left">22. ControlMovableT(模板类，包含以下四个标准控件：ControlMovable/BoxMovable/HBoxMovable/VBoxMovable)：支持通过鼠标拖动来调整控件的位置，也支持通过鼠标拖动来调整父容器的位置</td></tr>
-    <tr><td align="left">23. ControlResizableT(模板类，包含以下四个标准控件：ControlResizable/BoxResizable/HBoxResizable/VBoxResizable)：支持通过鼠标拖动来调整控件的大小，功能与调整窗口大小的功能相似</td></tr>
-    <tr><td align="left">24. XmlBox：支持加载并预览界面库的XML文件的容器，可以用于预览XML文件中定义的控件显示效果</td></tr>
-    <tr><td align="left">25. Pane/PanelHBox/PanelVBox：带标题栏的面板容器（PanelTemplate<Box>），支持标题栏样式、折叠/展开、手风琴分组</td></tr>
-    <tr><td align="left">26. MessageBoxWnd：框架自带的自绘皮肤模态消息框</td></tr>
-    <tr><td align="left">27. ToastWnd：框架自带的自绘皮肤非模态通知框，自动消失、多条堆叠、悬停暂停、点击关闭</td></tr>
-    <tr><td align="left">28. SearchBox：搜索框组合控件，左侧图标+编辑框+清除按钮</td></tr>
-    <tr><td align="left">29. SpinBox：数字输入框，继承RichEdit，支持步长/范围/步进按钮</td></tr>
-    <tr><td align="left">30. Switch：滑块开关控件，继承CheckBox，自带滑动动画与颜色过渡</td></tr>
-    <tr><td align="left">31. Badge：角标控件，未读数/小红点，数量超限显示"99+"，count<=0 自动隐藏</td></tr>
-    <tr><td align="left">32. Flyout：Flyout是通用浮层（弹出卡片）窗口，。用于在锚点控件周围浮出任意Box内容（操作面板、确认卡片、富内容提示等）</td></tr>
-    <tr><td align="left">33. Calendar：日历控件</td></tr>
-    <tr><td align="left">34. NavigationView：侧边栏导航容器（左侧导航窗格+右侧内容区），支持导航项分组、底部设置项、窗格收起/展开</td></tr>
-    <tr><td align="left">35. Chart：轻量图表控件，支持折线图（line）、柱状图（bar）、饼图（pie）等形态</td></tr>
-    <tr><td align="left">36. Marquee：文本跑马灯控件，用于在界面中横向/纵向循环滚动显示文本</td></tr>
-    <tr><td align="left">37. Timeline：垂直时间轴控件（节点+连接线+内容，数据驱动、状态配色、正序/倒序、多语言绑定、滚动条）</td></tr>
-    <tr><td align="left">38. TagInput：标签输入框组合控件，输入回车（或指定分隔符）生成标签，支持关闭按钮/Backspace删除、去重、最大数量限制，标签过多自动换行</td></tr>
-    <tr><td align="left">39. AutoComplete：自动完成输入框组合控件，边输入边在编辑框下方弹出候选浮层（复用Flyout、不抢焦点、宽度跟随编辑框），支持前缀/包含匹配、忽略大小写、键盘上下键/回车/Esc与鼠标选择</td></tr>
-    <tr><td align="left">40. Mask：遮罩/蒙版层控件（继承Box），用于模态对话框背景遮罩、新手引导蒙层、加载遮罩；支持镂空高亮指定控件、镂空区域内点击穿透到目标控件、语义色适配深浅色</td></tr>
-    <tr><td align="left">41. StatusBar：状态栏控件（继承HBox），用于显示光标位置、字数、连接状态、后台进度等状态提示；子控件即状态面板，相邻面板之间自动绘制分隔线（可配置宽度与颜色），可选右下角尺寸手柄，详见 docs/Control.md</td></tr>
-    <tr><td align="left">42. ToolBar：工具条（工具栏）控件（继承HBox），用于承载一排工具按钮与分隔线；当可用宽度不足时，自动隐藏尾部子控件并在右端显示"更多"按钮，点击弹出浮层列出被收纳的项，并通过回调通知应用层，窗口宽度变化时自动重新计算，详见 docs/Control.md</td></tr>
-    <tr><td align="left">43. RangeSlider：双滑块范围选择控件（继承Progress），在一条轨道上放置下限/上限两个滑块并高亮选中区间，支持最小间距、区间颜色/圆角、值气泡 Tooltip、marks 刻度与标签、included 外侧高亮、刻度吸附与范围变化回调（pEventData 携带 low/high），详见 docs/Control.md</td></tr>
-    <tr><td align="left">44. Stepper：向导步骤条控件，安装/注册/配置向导与审批流程场景；水平/垂直排列，节点显示序号或对勾，状态由当前索引+禁用集合派生（待开始/进行中/已完成/禁用），连接线按完成度着色，支持 Next/Back/GoTo 与点击跳转、多语言标题/描述，步骤变化回调的 pEventData 携带 currentIndex/oldIndex，详见 docs/Control.md</td></tr>
-    <tr><td align="left">45. Rating：星级评分控件（继承 Control），用于评价/打分/满意度调查；支持只读展示、半星（allow_half）、鼠标悬停预览与点击/拖拽打分，实心星/半星/空心星及悬停/按下态外观全部由 SVG 图片驱动并映射语义色，可配置星星数量（max/star_count）、尺寸与间距，值变化回调的 pEventData 携带 value/oldValue，详见 docs/Control.md</td></tr>
-    <tr><td align="left">46. Carousel：图片轮播控件（继承 Control），用于首页横幅/广告位/图片集；幻灯片、左右切换按钮与底部可点击页码指示点均由 SVG 图片承载并映射语义色，支持自动播放+悬停暂停、无限循环（loop）、切换动画（transition_ms）与鼠标按住左右拖拽翻页，索引变化回调的 pEventData 携带 index/oldIndex，详见 docs/Control.md</td></tr>
-    <tr><td align="left">47. Pagination：分页器控件（继承 HBox），用于报表/表格/列表的页码导航；上一页/下一页（可选首页/末页）+ 按数据动态生成的页码按钮，当前页呈选中态，页码超出显示上限时以"…"收纳并始终保留首尾与当前页附近，按钮配色由 button_class 皮肤类（走语义色）驱动，可选"每页条数"选择器（show_page_size，默认关闭；page_size_options 配置候选值，切换后按 total_count 重算页数并重置到第 1 页），页码/每页条数变化回调的 pEventData 携带 page/oldPage/pageSize/oldPageSize，详见 docs/Control.md</td></tr>
-    <tr><td align="left">48. TreeGrid：树表格控件（继承 VBox），在同一控件内呈现"可展开/收起的层级行 + 多列表格"，用于文件树/报表/组织架构；表头固定不滚动、列表体自带纵向滚动条，表头与数据行复用同一列宽数组而天然逐列对齐（缩进由树列单元格内嵌占位实现，其它列不错位）；列标题/列宽/对齐可配置，支持多选（multi_select）与行首复选框父子三态级联（check_mode + check_cascade），勾选变化事件的 pEventData 携带 TreeGridCheckValue，详见 docs/Control.md</td></tr>
-    <tr><td align="left">49. Dialog：通用模态对话框（duilib/Utils/Dialog.h），内容区支持任意 XML 片段，底部按钮的数量/文字/默认按钮可自定义，不依赖额外的 XML 文件；DoModal 返回被点击按钮的索引，支持 ESC 与标题栏关闭取消、Enter 触发当前焦点按钮、多语言文本 ID，以及关闭前执行的按钮点击回调（返回 false 可阻止关闭，便于读取内容区数据或校验输入）</td></tr>
-    <tr><td align="left">50. SystemNotification：系统原生通知（duilib/Utils/SystemNotification.h），使用SDL3构建时通过SDL系统通知API发送到系统通知中心（Windows/macOS/Linux/FreeBSD），不使用SDL的Windows构建通过Shell_NotifyIcon托盘气泡实现（兼容Windows 7及以上）；提供 IsSupported/RequestPermission/Show/Remove 接口，支持通知优先级，通知的显示与销毁由系统负责，详见 docs/SystemNotification.md</td></tr>
-    <tr><td align="left">51. Breadcrumb：面包屑导航控件（duilib/Control/Breadcrumb.h），纯自绘，支持 `|` 分隔条目、当前项高亮、点击祖先项跳转、禁用项、自定义分隔符/间距/字体与语义色，多语言 `item_text_id`，当前项变化事件 `AttachCurrentChanged`；宽度不足时右对齐裁剪以保证当前项可见</td></tr>
-    <tr><td align="left">52. CascadingSelect：级联选择器（duilib/Control/CascadingSelect.h），支持内嵌多列与下拉列表框两种形态，父项变更自动过滤子列并重置深层旧选择，支持任意层级、`items`/`items_id` 路径数据（相同前缀自动合并）、禁用路径及子树、固定/等分列宽、列内滚轮滚动、多语言与语义色，下拉形态支持提示文本、清空按钮、移入展开、自定义显示文本与浮层尺寸控制，选择变化事件 `AttachSelectionChanged`</td></tr>
-    <tr>
-        <td rowspan="3">性能优化</td>
-        <td align="left">1. 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低</td>
-    </tr>
-    <tr><td align="left">2. 优化了动画绘制流程，合并定时器的触发事件，避免播放控件动画或者播放动画图片的过程中导致界面很卡的现象</td></tr>
-    <tr><td align="left">3. 基于虚表的ListBox控件及关联控件：通过优化实现机制，使得可用性和性能有较大改善</td></tr>
-    <tr>
-        <td rowspan="16">示例程序完善</td>
-        <td align="left">1. examples/ColorPicker: 新增加了拾色器示例程序</td>
-    </tr>
-    <tr><td align="left">2. examples/ListCtrl：新增加了列表的示例程序，演示列表的个性功能</td></tr>
-    <tr><td align="left">3. examples/render：新增加了渲染引擎示例程序，演示了大部分容器、控件、资源管理的功能</td></tr>
-    <tr><td align="left">4. examples/TreeView：新增加了树控件的示例程序，演示了树控件的各种功能</td></tr>
-    <tr><td align="left">5. examples/RichEdit：新增加了富文本编辑控件的示例程序，演示了富文本编辑控件的各种功能</td></tr>
-    <tr><td align="left">6. examples/MultiLang：提供多语言的动态切换功能演示</td></tr>
-    <tr><td align="left">7. examples/DpiAware：提供了DPI感知功能的功能演示</td></tr>
-    <tr><td align="left">8. examples/threads：提供了多线程的功能演示</td></tr>
-    <tr><td align="left">9. examples/WebView2：提供了WebView2控件的功能演示</td></tr>
-    <tr><td align="left">10. examples/WebView2Browser：提供了WebView2控件的功能演示（多标签）</td></tr>
-    <tr><td align="left">11. examples/layout：所有布局和容器的功能演示</td></tr>
-    <tr><td align="left">12. examples/ChildWindow：子窗口控件的功能演示</td></tr>
-    <tr><td align="left">13. examples/XmlPreview：XML文件的界面效果预览功能测试（测试XmlBox容器）</td></tr>
-    <tr><td align="left">14. examples/ColorTheme：颜色主题的功能预览与测试程序</td></tr>
-    <tr><td align="left">15. examples/panel：带标题栏的面板容器（Pane/PanelHBox/PanelVBox）功能演示，含折叠/展开动画、标题栏槽位按钮、折叠前取消（veto）与动态修改标题</td></tr>
-    <tr><td align="left">16. 其他的示例程序：大部分进行了代码兼容性修改和优化，使得示例程序也可以当作测试程序使用</td></tr>
-    <tr>
-        <td rowspan="8">完善文档</td>
-        <td align="left">1. README.md和docs子目录的文档重新进行了梳理，使得阅读者更容易理解界面库的功能、用法，更易上手</td>
-    </tr>
-    <tr><td align="left">2. 各个控件的接口没有单独整理成文档，因为可以直接阅读接口文件中的注释来达到目的，目前各个接口的注释是比较完善的</td></tr>
-    <tr><td align="left">3. 各个平台的编译文档和依赖的编译脚本</td></tr>
-    <tr><td align="left">4. 重新整理主体项目、依赖第三方源码的授权文件，统一放在licenses目录中管理</td></tr>
-</table>
+了解目录划分有助于快速定位源码与文档；生成目录（`out/`、`lib/`、`dist/`）可以随时删除，重新构建即可恢复。
 
-## 使用的第三方库说明
-| 名称     |代码子目录                 | 用途                                 | license文件        | 协议分类          |
-| :---     | :---                      |:---                                  |:---               |:---               |
-|apng      |duilib/third_party/libpng  | 支持APNG图片格式                     |zlib/libpng License|zlib/libpng 许可协议，宽松型开源协议|
-|libpng    |duilib/third_party/libpng  | 支持PNG图片格式                      |[libpng.LICENSE.txt](licenses/libpng.LICENSE.txt)|自定义的 BSD 风格宽松协议|
-|zlib      |duilib/third_party/zlib    | 支持PNG/APNG图片格式<br>Zip文件解压  |[zlib.LICENSE.txt](licenses/zlib.LICENSE.txt)|zlib许可协议，宽松型开源协议|
-|cximage   |duilib/third_party/cximage | 支持ICO图片格式                      |[cximage.LICENSE.txt](licenses/cximage.LICENSE.txt)|MIT 风格协议（非标准 MIT 协议）|
-|giflib    |duilib/third_party/giflib  | 支持GIF图片格式                      |[giflib.LICENSE.txt](licenses/giflib.LICENSE.txt)|MIT 许可协议|
-|libwebp   |duilib/third_party/libwebp | 支持WebP图片格式                     |[libWebP.LICENSE.txt](licenses/libwebp.LICENSE.txt)|BSD 3条款许可协议|
-|stb_image |duilib/third_party/stb_image| 支持BMP图片格式<br>调整图片大小     |[stb_image.LICENSE.txt](licenses/stb_image.LICENSE.txt)|MIT 许可协议/公有领域协议|
-|libjpeg-turbo|duilib/third_party/libjpeg-turbo| 支持JPEG图片格式             |[libjpeg-turbo.LICENSE.md](licenses/libjpeg-turbo.LICENSE.md)|IJG 许可证和修改后的BSD 3条款许可协议|
-|nanosvg   |duilib/third_party/svg      | 支持SVG图片格式                     |[nanosvg.LICENSE.txt](licenses/nanosvg.LICENSE.txt)|zlib 许可协议|
-|pugixml   |duilib/third_party/xml      | 支持资源描述XML的解析               |[pugixml.LICENSE.txt](licenses/pugixml.LICENSE.txt)|MIT 许可协议|
-|ConvertUTF|duilib/third_party/convert_utf| 用于UTF-8/UTF-16编码转换         |[llvm.LICENSE.txt](licenses/llvm.LICENSE.txt)|Apache License Version 2.0 为主，<br>LLVM 例外条款补充，<br>历史版本兼容 legacy 协议|
-|skia      |项目未包含skia源码          | 界面库渲染引擎<br>支持SVG图片格式<br>支持Lottie JSON动画|[skia.LICENSE.txt](licenses/skia.LICENSE.txt)|BSD 3条款许可协议|
-|expat     |Skia 源码树 third_party/expat| Skia SVG 解析                     |[expat.LICENSE.txt](licenses/expat.LICENSE.txt)|MIT 许可协议|
-|Roboto Mono|bin/resources/fonts       | 界面字体（示例资源）                 |[RobotoMono.LICENSE.txt](licenses/RobotoMono.LICENSE.txt)|Apache License 2.0|
-|SDL       |项目未包含SDL源码           | 跨平台窗口管理                     |[SDL.LICENSE.txt](licenses/SDL.LICENSE.txt)|zlib 许可协议|
-|duilib    |                            | NIM_Duilib_Framework<br>是基于duilib开发  |[duilib.LICENSE.txt](licenses/duilib.LICENSE.txt)|BSD 2条款许可协议|
-|NIM_Duilib<br>Framework|               | 本项目是基于<br>NIM_Duilib_Framework开发   |[NIM_Duilib_Framework.LICENSE.txt](licenses/NIM_Duilib_Framework.LICENSE.txt)|MIT 许可协议|
-|libcef    |duilib/third_party/libcef   | 用于加载CEF模块|[libcef.LICENSE.txt](licenses/libcef.LICENSE.txt)|BSD 3条款许可协议|
-|udis86    |duilib/third_party/libudis86| 反汇编计算完整性指令最短长度         |[udis86.LICENSE.txt](licenses/udis86.LICENSE.txt)|BSD 2条款许可协议|
-|WebView2  |duilib/third_party/<br>Microsoft.Web.WebView2| 支持WebView2控件 |[Microsoft.Web.WebView2.LICENSE.txt](licenses/Microsoft.Web.WebView2.LICENSE.txt)|BSD 3条款许可协议|
-|libpag    |duilib/third_party/libpag   | 支持PAG动画文件<br>（该功能默认未启用，详见后续文档） |[libpag.LICENSE.txt](licenses/libpag.LICENSE.txt)|Apache License Version 2.0(主体)<br>libpag依赖的第三方组件的<br>授权协议很多，详见目录:<br>`duilib/third_party/libpag/licenses`<br>中的文件。如果介意libpag的授权协议<br>（包括主体协议/第三方组件协议），<br>可以不启用libpag。|
-
-## 界面效果预览
-使用该界面库编写的示例程序，该文档可以见到各个控件的展示效果：[docs/Examples.md](docs/Examples.md) 
-
-## 关于PAG动画文件格式
-* 目前PAG动画文件格式仅在Window平台支持，其他平台暂未支持
-* 支持PAG动画文件格式功能默认关闭（因为需要自己编译libpag.lib和libpag.dll，放进项目才能正常编译运行）
-* 支持PAG动画格式的开启方法：    
-（1）使用文本编译器打开[`msvc/PropertySheets/LibPagSettings.props`](msvc/PropertySheets/LibPagSettings.props)文件，将`LibPagEnabled`变量的支持修改为`1`    
-（2）参照以下文档编译libpag库：[`duilib/third_party/libpag/windows/libpag-build.md`](duilib/third_party/libpag/windows/libpag-build.md)     
-* 编译nim_duilib的时候，需要使用`build/duilib.sln`或者`build/examples.sln`编译，其他方式编译不支持。
-* libpag库的主体授权协议为Apache License Version 2.0，其依赖的第三方组件的授权协议很多，<br>详见目录:`duilib/third_party/libpag/licenses`中的文件。<br>如果介意libpag的授权协议（包括主体协议/第三方组件协议），可以不启用libpag。
-
-## 编程语言
-- C/C++: 编译器需要支持C++20（`main`分支）
-- C/C++: 编译器需要支持C++17（`develop-cpp17`分支，该分支仅用于支持Windows系统的VS2017/VS2019编译器，其他环境请使用主分支）
-
-## 支持的操作系统
-- Windows：7/10/11 及以上
-- Linux：OpenEuler、OpenKylin（开放麒麟）、UbuntuKylin（优麒麟）、中科方德、统信UOS、Ubuntu、Debian、Fedora、OpenSuse等
-- macOS：12+
-- FreeBSD
-
-## 支持的编译器
-- Visual Studio 2022/2026（Windows）
-- Visual Studio 2017/2019（Windows，这两个版本的编译器仅在`develop-cpp17`分支代码支持，其他分支代码均不支持；使用VS2017时，不支持CEF模块）
-- LLVM（Windows）
-- MinGW-W64：gcc/g++、clang/clang++（Windows）
-- gcc/g++（Linux）
-- clang/clang++（Linux）
-- clang/clang++（macOS）
-- clang/clang++（FreeBSD）
-
-## 编译
-
-环境要求：CMake 3.24+、Python 3、Git、Ninja；Windows 另需 Visual Studio 2022+
-（或 MSYS2 / MinGW-w64），Linux/macOS/FreeBSD 使用 gcc/clang。macOS/Linux/FreeBSD
-通常只提供 `python3` 命令，下方示例统一写作 `python3`；Windows 可直接用
-`build\build.bat`（参数相同）。
-
-### 快速开始
-
-```bash
-python3 build/build.py                 # Release：首次自动准备 Skia/CEF（Windows 的 SDL 默认关闭，需要时加 --sdl），构建库与示例
-python3 build/build.py --config Debug  # Debug（与 Release 使用不同构建目录）
-python3 build/build.py doctor          # 环境自检
-python3 build/build.py pack            # 出 SDK 包
-```
-
-构建目录为 `out/<arch>/<Config>`，库输出到 `lib/<arch>/<Config>`，示例程序与运行时
-资源输出到 `bin/`。一次调用只构建一个配置，需要 Debug + Release 时调用两次。
-
-### 我该用哪个方式？
-
-| 场景 | 做法 |
+| 目录 | 说明 |
 | :--- | :--- |
-| 只想跑起来 | `python3 build/build.py` |
-| 用 Visual Studio | 先 `python3 build/build.py deps`，再打开 `build/examples.sln` |
-| 只编库 | `python3 build/build.py build --target duilib` |
-| 出发布包 | `python3 build/build.py pack --with-cef` |
-| Debug 构建 | `python3 build/build.py --config Debug` |
-| 完整参数 | 见 [build/build-reference.md](build/build-reference.md) / [build-reference.en.md](build/build-reference.en.md) |
+| `duilib/` | 库源码，按模块划分：`Core`、`Control`、`Box`、`Layout`、`Render`、`RenderSkia`、`Image`、`Animation`、`CEFControl`、`WebView2`、`Utils`、`third_party` |
+| `examples/` | 仓库附带多个可直接运行的示例，覆盖基础窗口、控件演示、渲染、布局与 WebView 等场景；清单见 [docs/Examples.md](docs/Examples.md) |
+| `bin/` | 示例程序输出目录，包含 `resources/` 皮肤与语言资源、CEF 运行时（构建后） |
+| `docs/` | 控件、布局、事件、部署等文档与截图，索引见 [docs/Summary.md](docs/Summary.md) |
+| `build/` | 统一构建入口 `build.py`、出包与发布脚本、VS 解决方案、[构建参考手册](build/build-reference.md)、[Linux 系统依赖](build/linux-dependencies.md) |
+| `cmake/` | 公共 CMake 模块与第三方版本清单 |
+| `msvc/` | Windows 清单文件与 VS 工程公共配置（如 libpag 开关） |
+| `packaging/` | SDK 接入层（CMake 包与 MSVC props/targets） |
+| `licenses/` | 第三方组件的许可证文件 |
+| `out/<arch>/<Config>` | 构建树（生成） |
+| `lib/<arch>/<Config>` | 库产物（生成） |
+| `dist/<版本>` | 发布包（`pack` 生成） |
+| `.claude/` | AI 技能定义与注册脚本 |
 
-Windows 推荐直接运行 `build\build.bat`（参数与 `build.py` 相同，无需 `python3` 命令）。
-旧的分平台脚本（`build_duilib_all_in_one.*`、`msvc_build.bat`、`linux_build.sh` 等）
-已于 2026-10-29 删除（四个平台均验证过新入口），统一使用 `build\build.bat` 或
-`build.py`。
+## 常用构建与运行命令
 
-### 前置依赖与平台差异
+所有命令都在仓库根目录执行，且一次调用只构建一个架构 + 一个配置；需要 Debug 与 Release 时执行两次。Windows 与 Unix 使用同一条 `python3 build/build.py` 命令。
 
-- **Skia**：必需，由 `deps` 按版本清单（`cmake/third_party_versions.json`）构建。
-  Windows 使用 Visual Studio 自带的 clang/ninja；Linux/macOS/FreeBSD 使用系统 LLVM。
-- **SDL3**：Windows 默认关闭（`--sdl` 可启用）；Linux/macOS/FreeBSD 强制启用。
-- **CEF**：Windows/Linux/macOS 默认启用，FreeBSD 与 MinGW 不支持；运行时下载到
-  `bin/libcef_win/<arch>`、`bin/libcef_win_109/<arch>` 或 `bin/libcef_linux`。
-- **WebView2**：仅 Windows。
-- Linux 各发行版所需的系统包（字体、GL、X11、ibus 等）见
-  [skia_compile](https://github.com/rhett-lee/skia_compile)；macOS 需
-  `brew install cmake ninja` 并从源码安装 `gn`；FreeBSD 执行
-  `sudo pkg install git unzip python3 cmake ninja gn llvm fontconfig freetype2`。
-
-运行库默认静态（/MT、/MTd）；需要动态运行库时加 `--md`（/MD、/MDd），且 Skia
-必须使用相同运行库。SDK 只由 `pack.py` 生成，包内含 `LICENSES/` 与中英文两份
-`THIRD-PARTY-NOTICES`（`.md` / `.en.md`）。
-
-## 开发计划
- - 继续丰富界面库的控件，完善界面库的功能
- - 跨平台（Windows/Linux/macOS/FreeBSD）窗口引擎（基于[SDL3.0](https://www.libsdl.org/)）的不断测试与完善（目前X11/XWayland桌面环境下较稳定，但纯Wayland桌面环境下问题较多）
- - 测试界面库，发现缺陷并修复，不断完善代码
-
-## AI 辅助开发（Claude Code 集成）
-
-nim_duilib 提供了 AI 友好的文档和技能（Skills），可配合 [Claude Code](https://docs.anthropic.com/en/docs/claude-code) 实现 AI 辅助界面开发。
-
-### 功能说明
-注册后，Claude Code 在**任何项目**中都可以使用以下 nim_duilib 专属技能：
-
-| 指令 / 技能 | 说明 |
+| 目的 | 命令 |
 | :--- | :--- |
-| `/nim-init` | 为当前项目初始化 nim_duilib 开发环境（复制 LLM 参考文档、更新 CLAUDE.md） |
-| `/nim-duilib-create-window` | 创建新窗口（自动生成 C++ 类 + XML 布局文件） |
-| `/nim-duilib-xml-layout` | 设计 XML 界面布局（表单、分栏、工具栏、卡片网格等模板） |
-| `/nim-duilib-add-control` | 添加控件（15+ 种控件的 XML 片段和 C++ 事件绑定代码） |
-| `/nim-duilib-event-handler` | 事件处理（XML 内联事件和 C++ Attach 绑定） |
-| `/nim-duilib-theme` | 主题定制（预定义颜色、字体、100+ 通用样式 Class 速查） |
-| `/nim-duilib-resource-pack` | 资源打包与部署（ZIP 打包、嵌入 EXE 单文件发布） |
+| 环境自检 | `python3 build/build.py doctor` |
+| 构建 Release（库 + 示例） | `python3 build/build.py` |
+| 构建 Debug | `python3 build/build.py --config Debug` |
+| 只准备依赖（Skia/SDL3/CEF） | `python3 build/build.py deps` |
+| 只编译库 | `python3 build/build.py build --no-examples --target duilib` |
+| 运行单元测试 | `python3 build/build.py test` |
+| 生成 SDK 包 | `python3 build/build.py pack --with-cef`（需要示例时再加 `--with-examples`） |
+| 清理构建树 | `python3 build/build.py clean`（`clean --deps` 同时清理依赖） |
+| 启用 SDL3（Windows） | `python3 build/build.py --sdl` |
+| 动态运行库 | `python3 build/build.py --md` |
+| DLL 模式（仅 Windows MSVC） | `python3 build/build.py --dll`（隐式 `--md`；产物 `bin/duilib*.dll` + `lib/<arch>/<Config>/duilib.lib` 导入库） |
+| 指定架构 | `python3 build/build.py --arch arm64` |
+| 使用 CEF 109（Windows 7） | `python3 build/build.py --cef-version 109` |
+| 离线构建 | `python3 build/build.py --offline` |
+| 完整参数说明 | [build/build-reference.md](build/build-reference.md) |
 
-### 快速开始
+## 进阶用法
 
-**前提条件：** 已安装 [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
+下面这些路径对应更深入的开发场景，按需查阅即可；新手先按“快速开始”跑通再深入会更顺畅。
 
-**第一步：注册（只需执行一次）**
+- **写第一个窗口**：[examples/basic](examples/basic) 是最小工程；分步教程见 [docs/Getting-Started.md](docs/Getting-Started.md)。该教程以 VS 解决方案为例，依赖准备请以 `python3 build/build.py deps` 为准，构建入口以本文“快速开始”为准。
+- **界面开发文档**：[窗口](docs/Window.md)、[容器/布局](docs/Box.md)、[控件](docs/Control.md)、[菜单](docs/Menu.md)、[全局样式](docs/Global.md)、[事件](docs/Events.md)、[XML 节点](docs/XmlNode.md)、[XML 事件](docs/XmlEvents.md)。
+- **构建与发布**：完整参数见 [build/build-reference.md](build/build-reference.md)；依赖目录与发布打包说明见 [build/README.md](build/README.md)。
+- **内置对话框与通知**：[MessageBoxWnd](docs/MessageBox.md)、[ToastWnd](docs/Toast.md)、[SystemNotification](docs/SystemNotification.md)。
+- **网页控件**：[CEF 控件](docs/CEF.md)、[WebView2 示例](examples/WebView2)；CEF 示例运行需要 `bin/libcef_win/<arch>` 下的运行时。
+- **接入 SDK**：[docs/Deployment.md](docs/Deployment.md)、[cmake/README.md](cmake/README.md)（CMake 包接入与排障，含英文版）。
+- **macOS App Bundle**：[build/macos-app-bundle.md](build/macos-app-bundle.md)。
+- **启用 PAG**：仅 Windows + MSVC 解决方案。将 [msvc/PropertySheets/LibPagSettings.props](msvc/PropertySheets/LibPagSettings.props) 中的 `LibPagEnabled` 改为 `1`，并按 [libpag-build.md](duilib/third_party/libpag/windows/libpag-build.md) 编译 libpag；CMake 构建不包含 PAG。
+- **AI 辅助开发**：仓库同时内置 Claude、WorkBuddy 与 TRAE 三套配置，技能内容同源，只是加载方式不同：Claude 使用 `.claude/skills/` 与注册脚本，WorkBuddy 使用 `.workbuddy/skills/nim-duilib/`，TRAE 使用 `.trae/skills/nim-duilib/`；三份指南分别为 [CLAUDE.md](CLAUDE.md)、[WORKBUDDY.md](WORKBUDDY.md)、[TRAE.md](TRAE.md)。Claude 需先执行 `.claude/register.bat`（Windows）或 `bash .claude/register.sh`（Linux/macOS）注册技能，然后在任意项目中运行 `/nim-init`；WorkBuddy 与 TRAE 的项目级技能无需注册脚本，按语义触发即可。可从 `/nim-duilib-create-window`、`/nim-duilib-xml-layout`、`/nim-duilib-add-control`、`/nim-duilib-event-handler`、`/nim-duilib-theme`、`/nim-duilib-resource-pack` 开始；参考手册见 [.claude/docs/nim-duilib-llm-reference.md](.claude/docs/nim-duilib-llm-reference.md)。
+- **变更记录**：[CHANGELOG.md](CHANGELOG.md)。
 
-在 nim_duilib 根目录下执行：
-```bash
-# Windows (CMD / PowerShell)
-.claude\register.bat
+## 常见问题
 
-# Linux / macOS
-bash .claude/register.sh
-```
-注册脚本会将所有技能安装到 `~/.claude/skills/`，全局生效。
+下表中列出了最常见的现象与处理方式；如果表中没有，`doctor` 的输出与 [build/build-reference.md](build/build-reference.md) 的排障章节通常能定位到具体环节。
 
-**第二步：在你的应用项目中使用**
+| 现象 | 处理 |
+| :--- | :--- |
+| 首次构建很慢 / 失败于下载 | 首次需要编译 Skia 并下载 CEF；已有缓存或本地归档时用 `--offline`、`--cef-archive <file>` |
+| `doctor` 报找不到 Visual Studio | 安装 VS 2022 或 2026 的 C++ 桌面开发工作负载；多版本并存时用 `--vs-version 17`（或 `18`）显式指定 |
+| 报 CMake 版本过低 | 升级到 3.24+ |
+| 找不到 `python3` 命令 | 安装 Python 3 并确保 `python3` 在 PATH 中；Windows 的特殊处理见「为什么统一使用 `python3 build/build.py`」 |
+| 切换 Debug/Release 后 `bin/` 仍是旧示例 | `build.py` 会自动清理另一种配置的示例；手工调用 CMake 时需自行清理 `bin/` |
+| CEF 示例无法运行 | 确认 `bin/libcef_win/<arch>`（Linux 为 `bin/libcef_linux`）包含运行时；出包用 `pack --with-cef`，且编译与打包的 CEF 版本要一致 |
+| Linux 下界面文字不显示 | 安装 fontconfig 与中文字体，见 [build/linux-dependencies.md](build/linux-dependencies.md) |
+| WebView2 示例启动失败 | 确认 `bin/WebView2Loader.dll` 已生成，详见 [cmake/README.md](cmake/README.md) 的常见问题 |
+| 其他构建问题 | [build/build-reference.md §10 排障](build/build-reference.md) |
 
-在任何需要使用 nim_duilib 的项目中打开 Claude Code，输入：
-```
-/nim-init
-```
-AI 会自动为该项目配置 LLM 参考文档和 CLAUDE.md。之后即可直接用自然语言指示 Claude 完成界面开发，例如：
-- "创建一个设置窗口，包含用户名输入框和保存按钮"
-- "设计一个左侧导航栏 + 右侧内容区的布局"
-- "给这个按钮添加点击事件"
-- "把资源打包成单个 EXE"
+## 许可证与贡献
 
-### 更新技能
-当 nim_duilib 的 AI 技能文件（`.claude/skills/`）有更新时，重新执行注册脚本即可：
-```bash
-cd nim_duilib
-.claude\register.bat   # Windows
-# bash .claude/register.sh  # Linux / macOS
-```
+- **许可证**：本项目使用 MIT 协议，见 [LICENSE](LICENSE)。分发衍生程序时请保留版权声明与许可文本。
+- **第三方组件**：汇总见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)，逐项许可证在 [licenses/](licenses)；SDK 包内为 `LICENSES/`，分发 SDK 时必须一并保留。
+- **反馈与贡献**：通过 GitHub Issue/PR，仓库提供 [bug 报告](.github/ISSUE_TEMPLATE/bug_report.md)、[功能建议](.github/ISSUE_TEMPLATE/feature_request.md) 与 [PR 模板](.github/pull_request_template.md)。提交前建议运行 `python3 build/build.py test`，并确保至少一个平台的 Release 构建通过。
+- **当前开发计划**：丰富控件与功能；持续测试和完善基于 SDL3 的跨平台窗口引擎（X11/XWayland 较稳定，纯 Wayland 问题较多）；修复缺陷。
 
-### 注销
-如需移除所有全局技能：
-```bash
-bash nim_duilib/.claude/unregister.sh
-```
+## 与上游 duilib / NIM_Duilib_Framework 的差异
 
-### 文件结构
-```
-nim_duilib/.claude/
-├── register.bat / register.ps1 / register.sh   # 全局注册脚本
-├── unregister.sh                                # 注销脚本
-├── docs/
-│   └── nim-duilib-llm-reference.md              # LLM 完整参考手册
-└── skills/                                      # AI 技能定义
-    ├── nim-duilib-create-window.md
-    ├── nim-duilib-xml-layout.md
-    ├── nim-duilib-add-control.md
-    ├── nim-duilib-event-handler.md
-    ├── nim-duilib-theme.md
-    └── nim-duilib-resource-pack.md
-```
+本项目在 NIM_Duilib_Framework 基础上做了系统性改造：代码按功能模块拆分、XML 解析替换为 pugixml、移除 base 库依赖、集成 Skia 与 SDL3、重写布局体系，并新增 50+ 个控件/容器。因此它与上游在 API、XML 属性与控件行为上都可能存在差异，上游文档不能直接当作本项目文档使用；从上游迁移时建议先按清单核对。
 
-## 参考文档
-
- - [快速上手](docs/Getting-Started.md)
- - [示例程序](docs/Examples.md)
- - [全局样式：字体、颜色、图片等资源](docs/Global.md)
- - [窗口的样式](docs/Window.md)
- - [容器的样式](docs/Box.md)
- - [控件的样式](docs/Control.md)
- - [菜单的样式](docs/Menu.md)
- - [模态消息框（MessageBoxWnd）](docs/MessageBox.md)
- - [非模态通知框（ToastWnd）](docs/Toast.md)
- - [系统原生通知（SystemNotification）](docs/SystemNotification.md)
- - [控件的事件/消息](docs/Events.md)
- - [XML文件中各控件的节点名称](docs/XmlNode.md)
- - [XML文件中直接响应控件的事件](docs/XmlEvents.md)
- - [CEF控件](docs/CEF.md)
- - [项目编译参考手册](build/build-reference.md)
- - [把示例编译为 macOS App Bundle](build/macos-app-bundle.md)
- - [build 目录说明（前置依赖与发布打包）](build/README.md)
- - [参考文档](docs/Summary.md)
-
-## 相关链接
-1. Skia的编译文档库，点击访问：[skia_compile](https://github.com/rhett-lee/skia_compile) ：    
-2. 本项目是直接在NIM_Duilib_Framework项目的基础上继续开发的，项目地址：[NIM_Duilib_Framework](https://github.com/netease-im/NIM_Duilib_Framework/)
-3. NIM_Duilib_Framework项目是基于duilib开发的，项目地址：[duilib](https://github.com/duilib/duilib)
+完整的差异清单（十余项整体改进、二十余项功能完善、50+ 个新增控件/容器、性能优化、示例程序与文档）以及上游项目链接，见 [docs/Differences.md](docs/Differences.md)（英文版 [Differences.en.md](docs/Differences.en.md)）。控件属性与用法以 [docs/Control.md](docs/Control.md) 为准。

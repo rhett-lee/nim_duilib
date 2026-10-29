@@ -1,8 +1,8 @@
 """build/build.py 与 build/i18n.py 的单元测试（标准库 unittest）。
 
 运行：
-  python build/build.py test
-  python -m unittest discover -s build -p test_*.py -v
+  python3 build/build.py test
+  python3 -m unittest discover -s build -p test_*.py -v
 """
 
 from __future__ import annotations

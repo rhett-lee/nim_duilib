@@ -117,7 +117,7 @@ SDK_TEST_RESULT=ok
 | P04 | `package.metadata` | 全部 | 包名、`VERSION`、`MANIFEST.txt`、`nim_duilibPackageInfo.cmake`、实际文件四者一致（系统/架构/配置/工具链/DLL/SDL/CEF/WebView2/JPEG/MSVC 运行库） |
 | P05 | `package.integration` | 全部 | CMake 接入文件无未替换 `@...@`；`win+msvc` 包含 `msvc/nim_duilib.props/.targets/.sdk.props` 与三份 manifest，XML 可解析；`ConfigVersion` 含 `PACKAGE_VERSION` |
 | P06 | `package.forbidden` | 全部 | 不含 `.pdb/.ilk/.exp/.obj/.o`、`cef_sandbox.lib`、`bin/resources.zip`；`include/` 下无 `.cpp`；未启用 CEF 时无 CEF 头与 wrapper |
-| P07 | `package.verify-cli` | 全部 | `python build/pack.py --verify <包>` 返回 0 |
+| P07 | `package.verify-cli` | 全部 | `python3 build/pack.py --verify <包>` 返回 0 |
 | P08 | `package.docs` | 全部 | `docs/` 至少一份文档；`LICENSES/` 非空；`bin/resources/global.xml` 存在（运行必需） |
 | C01 | `consumer.static` | `IS_DLL=0` 且本机可编译同平台/架构 | 配置、编译、运行通过；运行输出 `SDK_TEST_RESULT=ok`，特性值与元数据一致 |
 | C02 | `consumer.dll` | `IS_DLL=1` 且本机可编译同平台/架构 | 同上；额外确认运行时 DLL 被复制到可执行文件同级并能加载 |
@@ -135,7 +135,7 @@ SKIP 必须写明原因（例如「DLL 包但当前平台不支持运行」「�
 ## 5. CLI 约定
 
 ```
-python build/sdk_package_test.py --package dist/<包> [--package <包2>] \
+python3 build/sdk_package_test.py --package dist/<包> [--package <包2>] \
        [--scenarios all|P01,C01,...] [--no-build] [--run-examples] \
        [--out-dir DIR] [--keep] [--jobs N] [--dry-run] [--list-scenarios]
 ```
@@ -155,11 +155,11 @@ python build/sdk_package_test.py --package dist/<包> [--package <包2>] \
 
 ## 7. 验收步骤
 
-1. `python -m py_compile build/sdk_package_test.py build/test_sdk_package.py`；
-2. `python build/build.py test`：新增单测与既有单测全部通过；
-3. `python build/sdk_package_test.py --list-scenarios` 正确列出 P01–P08、C01–C10；
+1. `python3 -m py_compile build/sdk_package_test.py build/test_sdk_package.py`；
+2. `python3 build/build.py test`：新增单测与既有单测全部通过；
+3. `python3 build/sdk_package_test.py --list-scenarios` 正确列出 P01–P08、C01–C10；
 4. 用现有 Debug 静态包执行：
-   `python build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-win-x64-examples-debug.zip`
+   `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-win-x64-examples-debug.zip`
    —— P* 与 C01 通过，负向场景（C03/C05/C07/C08/C09）通过；
 5. 用现有 DLL Debug 包执行同一命令：C02 通过、C01 SKIP；
 6. 若某负向场景因环境缺失无法执行，必须输出 SKIP 及原因，不得计为通过；

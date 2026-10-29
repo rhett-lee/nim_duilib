@@ -1,6 +1,6 @@
 """nim_duilib 统一构建入口。
 
-用法（macOS/Linux/FreeBSD；Windows 可运行 build\\build.bat，参数相同）：
+用法：
   python3 build/build.py [--config Debug|Release]      # 默认：准备依赖 + 编译一个配置
   python3 build/build.py build [--no-deps] [--target X]
   python3 build/build.py deps [--force]

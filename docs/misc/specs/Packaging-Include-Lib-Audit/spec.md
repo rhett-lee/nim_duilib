@@ -136,10 +136,10 @@ Control/RichEditDropTarget_SDL.h
 
 ## 4. 验收
 
-1. `python -m py_compile build/pack.py` 通过。
+1. `python3 -m py_compile build/pack.py` 通过。
 2. 闭包脚本：Windows 245（唯一条件包含）、Windows+SDL 246（0 缺失）、
    Unix 238（0 缺失）、Windows+CEF 270、Unix+CEF 263。
-3. `python build/pack.py --config Debug --list`：
+3. `python3 build/pack.py --config Debug --list`：
    - 头文件 245；
    - 基础库 5、Skia 10、WebView2 3（2 个 `.lib` + 1 个 DLL）、JPEG 1；
    - `bin/WebView2Loader.dll` 出现在清单中；

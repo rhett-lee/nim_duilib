@@ -202,7 +202,7 @@
   1. 新增 [cmake/duilib_compiler_flags.cmake](../../cmake/duilib_compiler_flags.cmake)，提供两组公共变量：`DUILIB_COMPILER_FLAGS`（`-fno-strict-aliasing`、`-fstack-protector`、`-funwind-tables`、`-fvisibility=hidden`、`-Wall`、`-Wno-unknown-pragmas`、`-Wextra`、`-Wendif-labels`、`-Wno-missing-field-initializers`、`-Wno-unused-parameter`）与 `DUILIB_CXX_COMPILER_FLAGS`（`-fno-threadsafe-statics`、`-fvisibility-inlines-hidden`、`-frtti`、`-Wno-narrowing`、`-Wsign-compare`、`-Wno-unused-variable`），并按 `CMAKE_CXX_COMPILER_ID` 追加 GNU（`-Wno-reorder`）与 Clang（`-Wnewline-eof`、`-fobjc-call-cxx-cdtors`、`-Wno-reorder-ctor`、`-Wno-unused-lambda-capture`、`-Wno-unused-private-field`）专有项。
   2. 三处改为 `include(...)`：`cmake/duilib_bin_macos.cmake`（非 CEF 分支）、`cmake/duilib_cef_macos.cmake`（`CEF_COMPILER_FLAGS`/`CEF_CXX_COMPILER_FLAGS` 直接取公共值）、`duilib/CMakeLists.txt`（GNU 专有的 `-Wno-cast-function-type` 与 AVX 源文件属性保留在本地追加）。
   3. `duilib_cef_macos.cmake` 中 `-fobjc-arc` 仍在公共值赋值**之后**追加，保持 CM-3 的修复语义。
-- **验证说明**：Linux、FreeBSD 分支已实机编译验证（FreeBSD 2026-10-29 复测 Release/Debug），参数集合与原三份逐项比对一致；macOS 分支已实机验证（2026-10-28）。
+- **验证说明**：Linux 分支已在虚拟机编译验证；FreeBSD 分支已在 FreeBSD 虚拟机编译验证（2026-10-29 复测 Release/Debug），参数集合与原三份逐项比对一致；macOS 分支已实机验证（2026-10-28）。
 - **工作量**：低　**依赖**：需 macOS / Linux 环境验证
 
 ### CM-11 23 个示例的 CMakeLists 是同一份 21 行样板 ✅ 已完成（2026-10-20）
@@ -241,7 +241,7 @@
   2. `cmake/duilib_bin_linux.cmake`：`include(...)` 该文件，`find_package(X11 REQUIRED)`，`DUILIB_LINUX_LIBS = X11::X11 ${DUILIB_FONT_LIBS} pthread dl`，不再使用裸名 `freetype fontconfig X11`。
   3. `cmake/duilib_bin_freebsd.cmake`：改为同一份 `include(...)`，链接 `X11::X11 ${DUILIB_FONT_LIBS}`；FreeBSD 原有行为（imported target）不变。
   4. `duilib/CMakeLists.txt` 的 FreeBSD 分支同样改为 `include` 该公共文件，库与示例共用一份定义。
-- **验证说明**：Linux、FreeBSD 分支已实机验证（FreeBSD 2026-10-29 复测 Release/Debug 编译与出包）。
+- **验证说明**：Linux 分支已在虚拟机验证；FreeBSD 分支已在 FreeBSD 虚拟机验证（2026-10-29 复测 Release/Debug 编译与出包）。
 - **工作量**：低　**依赖**：需 Linux 环境验证
 
 ### CM-14 示例个例修补 SDL include 路径，未统一 ✗ 不处理（2026-10-20 按反馈退回，保持现状）
@@ -384,8 +384,8 @@
      （`DUILIB_DEPS_MODE=off/prepare/auto`）。
   2. 动作 3：旧分平台脚本（`build/msvc_build.bat`、`linux_build.sh`、`macos_build.sh`、
      `freebsd_build.sh`）先归档到 `build/legacy/`（2026-10-24），四平台验证新入口后
-     已于 2026-10-29 删除；统一入口为 `python build/build.py`
-     （`build\build.bat` 为薄封装），编排逻辑下沉到根工程与 `cmake/`，命令行行为等价。
+     已于 2026-10-29 删除；统一入口为 `python3 build/build.py`，编排逻辑下沉到
+     根工程与 `cmake/`，命令行行为等价。
   3. 动作 2：**不新增 `install()`/`export()`**（决策 D-8）——SDK 包的接入层
      （`packaging/cmake/nim_duilibConfig.cmake`、`packaging/msvc/nim_duilib.props|.targets`）
      由 `build/pack.py` 渲染生成，包布局（`include/`、`lib/`、`bin/`、`lib/cmake/`）
@@ -404,7 +404,7 @@
 | :--- | :--- |
 | 第三方上游自带的 CMake 文件 | `third_party/zlib/contrib/**`、`libpng/contrib/**`、`libcef/**`、`libjpeg-turbo/**` 的 CMake 文件保持原样，不纳入改进范围 |
 | 手写 `.vcxproj` / `.sln` 工程 | `build/*.sln` 与 `examples/*/*.vcxproj` 是另一套构建通道，本文档不涉及（但 CM-5 / CM-21 的命名约定需与其保持一致） |
-| macOS / Linux / FreeBSD 上的实机验证 | 相关项在对应平台标记"需平台核实"，本机（Windows）只做配置级与逻辑级验证 |
+| macOS / Linux / FreeBSD 上的对应环境验证 | 相关项在对应平台标记"需平台核实"，本机（Windows）只做配置级与逻辑级验证 |
 | 不追求 CMake 版本升级 | 保持 `cmake_minimum_required` 现状（3.18），不引入仅高版本可用的特性 |
 
 ---
@@ -445,10 +445,10 @@
 
 **三、可维护性与一致性**
 
-- [x] **CM-10** macOS 编译参数三份重复收敛　｜ 低 ｜ 完成日期：2026-10-20（Linux/FreeBSD 实机验证 2026-10-25/29；macOS 实机验证 2026-10-28）
+- [x] **CM-10** macOS 编译参数三份重复收敛　｜ 低 ｜ 完成日期：2026-10-20（Linux 虚拟机验证 2026-10-25、FreeBSD 虚拟机验证 2026-10-29；macOS 实机验证 2026-10-28）
 - [x] **CM-11** 23 个示例的样板代码收敛　｜ 中 ｜ 完成日期：2026-10-20
 - [x] **CM-12** 平台判据统一（`APPLE` → `Darwin`）　｜ 极低 ｜ 完成日期：2026-10-20
-- [x] **CM-13** Linux / FreeBSD 的 freetype+fontconfig 处理统一　｜ 低 ｜ 完成日期：2026-10-20（Linux/FreeBSD 实机验证 2026-10-25/29）
+- [x] **CM-13** Linux / FreeBSD 的 freetype+fontconfig 处理统一　｜ 低 ｜ 完成日期：2026-10-20（Linux 虚拟机验证 2026-10-25、FreeBSD 虚拟机验证 2026-10-29）
 - [~] **CM-14** SDL include 路径上收到公共模块　｜ 不处理（2026-10-20 按反馈退回，保持现状，见 CM-14 小节）
 - [x] **CM-15** 硬编码路径清理（WebView2 / manifest / macOS CEF_ROOT）　｜ 低（macOS 实机验证 2026-10-28）｜ 完成日期：2026-10-20
 - [x] **CM-16** 小项合集（6 条）　｜ 低 ｜ 完成日期：2026-10-20
@@ -607,7 +607,7 @@
 | `examples/basic` Debug x64 编译 | 编译阶段 **0 error / 0 warning**；链接阶段仅剩 CM-5 已知的 LNK2038（Debug 目标链接到 Skia release 库），非本批改动引入 |
 | `basic.vcxproj` 目标级目录 | `AdditionalIncludeDirectories = C:\develop\nim_duilib;...\examples\basic`；`AdditionalLibraryDirectories` 含 `lib`、`lib/$(Configuration)`、Skia 路径 → CM-17 的目标级设置已生效 |
 | 全局目录 Grep | `cmake/*.cmake` 仅剩 `ChildWindow` 的 SDL include（CM-14 有意例外）；`CMakeLists.txt` 仅剩 `third_party` 内 3 处（第三方库自身逻辑，不在本项范围） |
-| macOS / Linux / FreeBSD 分支 | Linux、FreeBSD 已实机验证（FreeBSD 2026-10-29 复测 Release/Debug 构建与出包；Linux 2026-10-28）；macOS 已实机验证 CM-10/CM-13/CM-17 对应部分（2026-10-28） |
+| macOS / Linux / FreeBSD 分支 | Linux 已在虚拟机验证（2026-10-28）、FreeBSD 已在 FreeBSD 虚拟机验证（2026-10-29 复测 Release/Debug 构建与出包）；macOS 已实机验证 CM-10/CM-13/CM-17 对应部分（2026-10-28） |
 
 **批次内额外发现与修正**
 
@@ -624,7 +624,7 @@
 | `CMakeLists.txt`（仓库根，新增于根工程重构批次） | **CM-22** 顶层聚合：`project(nim_duilib)` 之后按依赖顺序 `add_subdirectory` 第三方库、`duilib` 与示例；范围由根选项控制 |
 | `cmake/duilib_root_options.cmake`（新增） | **CM-22** 平台/编译器/架构识别、`DUILIB_BUILD_THIRD_PARTY` / `DUILIB_BUILD_EXAMPLES` / `DUILIB_ENABLE_CEF` / `DUILIB_ENABLE_SDL` / `DUILIB_EXAMPLES` / `DUILIB_DLL`、依赖目录与版本清单、rpath、MSVC 运行库 |
 | `cmake/duilib_deps.cmake`、`cmake/duilib_deps_run.cmake`、`cmake/duilib_preflight*.cmake`（新增） | **CM-22** 依赖准备（`DUILIB_DEPS_MODE=off/prepare/auto`、`duilib_deps` 目标）与两阶段环境预检 |
-| `build/build.py`（新增）与 `build/build.bat`（薄封装） | **CM-22** 统一命令入口（`build`/`deps`/`test`/`pack`/`doctor`/`clean`），替代逐库、逐示例单独配置 |
+| `build/build.py`（新增） | **CM-22** 统一命令入口（`build`/`deps`/`test`/`pack`/`doctor`/`clean`），替代逐库、逐示例单独配置 |
 | `build/legacy/`（2026-10-24 归档、2026-10-29 删除） | **CM-22** 旧分平台脚本（`msvc_build.bat`、`linux_build.sh`、`macos_build.sh`、`freebsd_build.sh`、`msys2_build.sh`、MinGW 脚本等）整体归档后移除，不再参与构建 |
 | （`install()`/`export()` 未添加） | **CM-22** 按决策 D-8 保持不做，SDK 安装语义由 `build/pack.py` 与 `packaging/` 模板承担 |
 

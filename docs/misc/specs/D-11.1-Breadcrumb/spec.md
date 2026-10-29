@@ -207,7 +207,7 @@
 2. 运行 `bin\examples.exe`（或项目实际示例可执行文件）→ 打开 controls 测试页 → 点击 Breadcrumb 入口，按 `checklist.md` 手工验收。
 3. 文档校验：
    ```bash
-   python .trae/skills/nim-duilib/scripts/verify_docs.py --repo . --extra docs examples/controls bin/resources/themes/default/controls bin/resources/lang
+   python3 .trae/skills/nim-duilib/scripts/verify_docs.py --repo . --extra docs examples/controls bin/resources/themes/default/controls bin/resources/lang
    ```
    退出码 0 = 无漂移；若出现新标识符误报，按 `verify_allowlist.txt` 规则补充，不得在文档里写 HTML 注释规避。
 4. 主题与语言：浅色/深色主题各看一次；中文 → 英文 → 中文切换后条目文案自动刷新、布局不串位。

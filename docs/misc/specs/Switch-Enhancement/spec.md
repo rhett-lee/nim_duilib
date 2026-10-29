@@ -303,7 +303,7 @@ DString GetThumbDisabledColor() const;
 ## 11. 验证
 
 1. **编译**：`MSBuild.exe build/examples.sln /p:Configuration=Debug /p:Platform=x64 /clp:ErrorsOnly /m:1 /nologo`，要求 `EXIT=0`
-2. **文档校验**：`python .trae/skills/nim-duilib/scripts/verify_docs.py --repo . --extra docs examples/controls bin/resources/themes/default`
+2. **文档校验**：`python3 .trae/skills/nim-duilib/scripts/verify_docs.py --repo . --extra docs examples/controls bin/resources/themes/default`
 3. **运行** `layout_d.exe` / `controls_d.exe`：
    - 打开 Switch 演示窗口，逐项核对第 8.2 节卡片
    - 切换「文字和图标」中的开关，确认文字/图标随动画淡入淡出

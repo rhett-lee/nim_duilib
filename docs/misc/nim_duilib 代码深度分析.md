@@ -110,7 +110,7 @@ nim_duilib提供**跨平台一键编译+手动编译**双方案，编译脚本�
 - 必备工具：Python3（编译Skia）、Git（拉取源码）、CMake/Ninja（跨平台编译）。
 
 ### 2. 编译脚本设计
-- **一键编译**：提供build.bat（Windows）/build.sh（类Unix）脚本，自动拉取源码、编译Skia/SDL3、编译nim_duilib及示例，无需手动配置环境，路径无空格即可运行；
+- **一键编译**：提供一键编译脚本，自动拉取源码、编译Skia/SDL3、编译nim_duilib及示例，无需手动配置环境，路径无空格即可运行；
 - **手动编译**：分步骤提供Skia/SDL3/nim_duilib的编译脚本，便于开发者自定义编译配置（如开启/关闭PAG/CEF）；
 - **平台专属优化**：
   - Windows：基于VS2022工程（sln）编译，提供msvc专属属性表配置；

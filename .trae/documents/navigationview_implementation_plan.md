@@ -153,7 +153,7 @@ NavigationView (Box)
 
 * `docs/Control-Roadmap.md`（+ .en）#8 状态改为已完成并简述
 
-* 运行 `python .trae/skills/nim-duilib/scripts/verify_docs.py`（如涉及文档）
+* 运行 `python3 .trae/skills/nim-duilib/scripts/verify_docs.py`（如涉及文档）
 
 * 构建：改头文件后先 Rebuild duilib，再构建 controls；清理临时文件
 

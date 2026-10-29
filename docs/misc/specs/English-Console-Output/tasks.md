@@ -29,7 +29,7 @@
       `test_build.py` 固定中文并新增繁体回退、英文纯 ASCII 帮助用例；
       `test_pack.py`、`test_autotest.py`、`test_sdk_package.py` 固定中文，
       并各补英文纯 ASCII 用例。
-- [x] T10 验证：`python build/build.py test`（236 用例）通过；
+- [x] T10 验证：`python3 build/build.py test`（236 用例）通过；
       `PYTHONIOENCODING=ascii` 下五个入口的 `--help` 与列表类命令（加
       `--lang en`）非 ASCII 字符数均为 0；CJK 扫描确认输出上下文无中文。
 - [x] T11 文档：本目录 `spec.md` 与 `tasks.md` 改写为双语设计；

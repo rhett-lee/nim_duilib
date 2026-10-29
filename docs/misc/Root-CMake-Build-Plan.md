@@ -116,10 +116,10 @@ Unix `lib/<Config>`；不同架构必须使用不同的构建目录，避免缓�
 **编码与 Windows 控制台**：
 
 - 消息文件与源码统一 UTF-8（无 BOM）；中文只出现在消息目录中，CMake 模块内不内联中文字符串；
-- `build.bat` / `build.py` 在中文模式下切到 UTF-8（`chcp 65001` 或
+- 构建入口在中文模式下切到 UTF-8（`chcp 65001` 或
   `SetConsoleOutputCP(65001)`）；
 - 直接使用 CMake 且控制台不是 UTF-8（`chcp` ≠ 65001）时，CMake 自动降级为英文并输出一行
-  `[WARN] Non-UTF-8 console; falling back to English. Run 'chcp 65001' or use build.bat.`；
+  `[WARN] Non-UTF-8 console; falling back to English. Run 'chcp 65001' or use the build entry point.`；
 - 无法切换代码页（重定向/CI）时保持英文，避免乱码。
 
 **不适用范围**：代码注释（维持现状）、文档（中文/英文并存）、`pack.py` 生成的 MANIFEST/报告内容
@@ -835,8 +835,8 @@ libjpeg-turbo/WebView2 沿用仓库既有配置（见 3.4.4）。
 
 ```
 # 推荐入口
-python build/build.py --config Release          # 原生架构
-python build/build.py --config Debug
+python3 build/build.py --config Release          # 原生架构
+python3 build/build.py --config Debug
 
 # 直接使用 CMake（x64 Release，单命令模式）
 cmake --preset x64-release -DDUILIB_DEPS_MODE=auto
@@ -885,7 +885,7 @@ cmake --build --preset x64-release
    `--with-cef` 出包通过 `--verify`；
 3. macOS（x64 / arm64）：两阶段构建出 `cef.app`，`Contents/Frameworks` 结构符合
    `Release.md` 的 macOS 章节；
-4. FreeBSD（x64 / arm64）：配置与构建通过；x64 Release 已真机验证（编译与出包，
+4. FreeBSD（x64 / arm64）：配置与构建通过；x64 Release 已在 FreeBSD 虚拟机验证（编译与出包，
    2026-10-25，不含 CEF），arm64 待真机验证；
 5. 架构校验：不支持的架构（如 Unix x86、Windows arm32）在配置期报错；
    Windows + Ninja 未显式指定 arm64 时给出明确提示而非静默产出 x64 产物；
@@ -922,14 +922,14 @@ cmake --build --preset x64-release
     依赖缓存，`clean --deps` 才清理依赖产物；
 18. 文档：`build-reference.md` 与 `build-reference.en.md` 内容对应、同步维护，
     命名与 `docs/` 下其他 `*.md` / `*.en.md` 一致；`build/build.md` 已删除且
-    全仓库引用已更新；根 README 首屏只使用 `python build/build.py` /
+    全仓库引用已更新；根 README 首屏只使用 `python3 build/build.py` /
     `--config Debug`；
 19. `build.py` 语义：`--config Debug|Release` 一次只构建一个配置（默认 `Release`）；
     `build` 默认自动确保依赖就绪（`--no-deps` 跳过）；Debug/Release 分别调用一次
     即可得到两种配置的产物；`release.py` / `autotest.py` 不再单次构建两种配置；
 20. Python 3：环境缺少 `python3`/`py -3` 时预检报 `[ERROR]`，并给出安装提示；
     不存在绕过 Python 的构建路径；
-21. 测试：`python -m unittest build/test_build.py` 通过；中英文两种语言下断言一致；
+21. 测试：`python3 -m unittest build/test_build.py` 通过；中英文两种语言下断言一致；
     下载重试/哈希测试不访问网络；
 22. SDK：根工程不提供 `install()` 目标；`pack.py` 产出的 `lib/cmake/nim_duilib`
     可被 `find_package(nim_duilib)` 使用；
@@ -971,7 +971,7 @@ cmake --build --preset x64-release
 | 根构建树使用 `out/<arch>/<Config>` | 与仓库内 `build/` 混淆；`.gitignore` 漏配导致误提交 | `out/` 整体忽略；`build/` 保持只放已跟踪脚本；README 明确“构建树在 `out/`，运行时在 `bin/`” |
 | Windows + Ninja 交叉编译架构误判 | arm64 被当作 x64，链接到错误 Skia/JPEG | 强制显式 `DUILIB_TARGET_ARCH`，配置期校验 Skia 变体与指针宽度 |
 | 多架构共用构建目录 / 依赖前缀 | 错误架构的库混入产物 | 每架构独立构建目录；`DUILIB_SDL_ROOT` 按架构分目录并在配置期校验 |
-| 中文输出在非 UTF-8 控制台乱码 | 提示不可读 | 中文模式先 `chcp 65001`（`build.bat`/`build.py` 自动执行）；检测不到 UTF-8 时自动回退英文；`LC_ALL=C` 与英文 Windows 实测 |
+| 中文输出在非 UTF-8 控制台乱码 | 提示不可读 | 中文模式先 `chcp 65001`（构建入口自动执行）；检测不到 UTF-8 时自动回退英文；`LC_ALL=C` 与英文 Windows 实测 |
 | 预检误报（`pkg-config` 缺失、工具不在 PATH） | 正常环境被阻断 | 缺 `pkg-config` 时降级为 `[WARN]` 并给出手动安装提示；提供 `DUILIB_PREFLIGHT=OFF`；CI 同时覆盖“最小环境”与“完整环境” |
 | CEF 清单配置错误（文件名/哈希） | 下载或解压失败 | `sha256` 首次接入后固定；`doctor` 打印解析出的版本/架构/URL；缺失的版本+架构组合在预检阶段报错 |
 | CEF 上游删除旧版本包 | 109 无法重新下载 | 保留 `cef_binary/` 缓存与 `DUILIB_CEF_ARCHIVE` 离线包；必要时在清单中改用镜像 `url` |
@@ -1086,15 +1086,14 @@ cmake --build --preset x64-release
 21. **CI 矩阵**（暂缓）：Windows/Linux/macOS/FreeBSD、架构与缓存策略留待后续
     单独评估；当前以本地 `build.py test` + `autotest.py` 验证，不阻塞本次设计。
 22. **Python 依赖**（已决策）：**Python 3 是硬性要求**（Skia 的构建流程依赖
-    `python3`），不提供无 Python 的备用入口；`build.bat` 依次尝试 `py -3` /
-    `python3`，都找不到时报 `[ERROR]` 并给出安装提示。旧 `.bat`/`.sh` 编译脚本
-    全部删除，不保留兼容路径。
+    `python3`），不提供无 Python 的备用入口；缺少 `python3` 时报 `[ERROR]` 并给出安装提示。
+    旧 `.bat`/`.sh` 编译脚本全部删除，不保留兼容路径。
 23. **文档**（已决策）：`build-reference.md` + `build-reference.en.md`（命名同
     `docs/` 下其他 `*.en.md`）；`build/build.md` **删除**并更新全部引用
     （根 README、WORKBUDDY、TRAE、CLAUDE、Release 文档等）；`build/README.md` /
     `.en.md` 保留为“各平台前置依赖 + 发布打包 + 排障索引”，删除旧脚本对照表并
     指向 `build-reference.md`；根 README 快速开始只用
-    `python build/build.py`（默认 Release）与 `python build/build.py --config Debug`，
+    `python3 build/build.py`（默认 Release）与 `python3 build/build.py --config Debug`，
     不再出现 `--debug` 或 `build` 子命令形式。
 24. **合规**（已决策）：`pack.py` 随包生成 `LICENSES/` 与
     `THIRD-PARTY-NOTICES.md`，收集 CEF / SDL / Skia / libjpeg-turbo / WebView2

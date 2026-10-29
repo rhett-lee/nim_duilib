@@ -7,13 +7,13 @@
 系统临时目录下的 nim_duilib_autotest/<时间戳>）。
 
 用法：
-    python build/autotest.py --list-presets
-    python build/autotest.py --preset unit
-    python build/autotest.py --preset pack-msvc-x64-release
-    python build/autotest.py --preset arm64-synthetic
-    python build/autotest.py --preset all-ready
-    python build/autotest.py --preset pack-msvc-x64-release --build
-    python build/autotest.py --preset ... --dry-run
+    python3 build/autotest.py --list-presets
+    python3 build/autotest.py --preset unit
+    python3 build/autotest.py --preset pack-msvc-x64-release
+    python3 build/autotest.py --preset arm64-synthetic
+    python3 build/autotest.py --preset all-ready
+    python3 build/autotest.py --preset pack-msvc-x64-release --build
+    python3 build/autotest.py --preset ... --dry-run
 
 退出码：0 有预设通过且无失败；1 存在失败；2 全部跳过（前置条件不足）。
 """

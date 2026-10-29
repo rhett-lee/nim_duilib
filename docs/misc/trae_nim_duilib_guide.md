@@ -24,13 +24,13 @@ nim_duilib 依赖 Skia 渲染引擎和若干第三方库（zlib、libpng、cxima
 cd <仓库根>
 
 # 第 1 步：拉取依赖源码并编译（需要联网，耗时较长）
-python build/build.py deps
+python3 build/build.py deps
 
 # 第 2 步：编译依赖库 + duilib + 示例（默认 Release）
-python build/build.py
+python3 build/build.py
 ```
 
-Windows 也可以直接运行 `build\build.bat`（参数相同）。依赖版本固定在 `cmake/third_party_versions.json`；构建树在 `out/<arch>/<Config>/`，产物在 `lib/` 与 `bin/`。完成后 `lib/` 目录下就有编译好的库了。详细参数见 `build/build-reference.md`。
+依赖版本固定在 `cmake/third_party_versions.json`；构建树在 `out/<arch>/<Config>/`，产物在 `lib/` 与 `bin/`。完成后 `lib/` 目录下就有编译好的库了。详细参数见 `build/build-reference.md`。
 
 > **小贴士**：Skia 源码在仓库外且体积巨大，日常开发不需要全量链接构建。后面会讲怎么用 `/Zs` 语法检查模式快速验证代码，不生成 obj、不链接，几秒就能确认 API 用法对不对。
 
@@ -203,7 +203,7 @@ AI 生成完代码后，可以跑两个自动检查：
 **文档漂移校验**——确认代码里出现的所有 API 名、控件名、颜色名、字体 ID 都真实存在于源码：
 
 ```bash
-python .trae/skills/nim-duilib/scripts/verify_docs.py --repo . \
+python3 .trae/skills/nim-duilib/scripts/verify_docs.py --repo . \
     --extra examples/simple_button bin/resources/themes/default/simple_button
 ```
 
@@ -363,7 +363,7 @@ include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_bin.cmake")
 | 改主题 | 编辑 `global.xml` 的 `<ThemeColor>`/`<Font>`/`<Class>` |
 | 打包发布 | 把 `bin/resources/` 打成 ZIP 或嵌入 EXE |
 | 验证语法 | `cl.exe /Zs` 只编译不链接，几秒出结果 |
-| 校验文档 | `python verify_docs.py --repo . --extra <你的代码目录>` |
+| 校验文档 | `python3 verify_docs.py --repo . --extra <你的代码目录>` |
 
 ### 权威源对照表——写不确定的名字前先查
 

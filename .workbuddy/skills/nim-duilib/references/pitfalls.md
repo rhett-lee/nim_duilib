@@ -194,7 +194,7 @@ Windows 下默认值与主导出规则一致：`llvm.<CPU_ARCH>.<DUILIB_BUILD_TY
 改动本 skill 的 `references/` 后，运行：
 
 ```bash
-python scripts/verify_docs.py --repo <nim_duilib仓库根目录>
+python3 scripts/verify_docs.py --repo <nim_duilib仓库根目录>
 ```
 
 它会自动比对文档里出现的 `DUI_CTR_*`、`kEvent*`、类名、字体 ID、颜色名与源码是否一致。

@@ -59,10 +59,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 ## Configure project properties
 - Use the common configuration provided by nim_duilib (`msvc\PropertySheets\BinCommonSettings.props`)    
-（1）Open the just-created project file (`examples\MyDuilibApp\MyDuilibApp.vcxproj`) with a text editor    
-（2）Find the line `<Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />` and insert a line after it, adding the following content:    
+(1) Open the just-created project file (`examples\MyDuilibApp\MyDuilibApp.vcxproj`) with a text editor    
+(2) Find the line `<Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />` and insert a line after it, adding the following content:    
          `<Import Project="..\..\msvc\PropertySheets\BinCommonSettings.props" />`    
-（3）Save the changes to the project file; if it is already open in VS, it needs to be reloaded.    
+(3) Save the changes to the project file; if it is already open in VS, it needs to be reloaded.    
 
 <img src="./Images/vs02.png"/>
 

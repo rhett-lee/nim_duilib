@@ -100,6 +100,6 @@ btn->AttachClick([this](const ui::EventArgs& args) {
   新代码一律用新名，否则 `WindowImplBase` 的标题栏按钮自动处理会退化到 fallback 路径
 
 ## 构建
-- 统一入口: `python3 build/build.py`（`--config Debug` 构建 Debug；Windows 用 `build\build.bat`）
-- Windows: 先 `build\build.bat deps`，再打开 `build/examples.sln`
+- 统一入口: `python3 build/build.py`（`--config Debug` 构建 Debug）
+- Windows: 先 `python3 build/build.py deps`，再打开 `build/examples.sln`
 - 依赖: 由 `python3 build/build.py deps` 自动准备（参考 `build/build-reference.md`）

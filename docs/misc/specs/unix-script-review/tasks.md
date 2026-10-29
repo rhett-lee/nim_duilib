@@ -8,5 +8,5 @@
 - [x] T6 更正 duilib_compiler_flags.cmake 头注释（修复 5）
 - [x] T7 test-matrix.md 登记真机验证缺口（修复 2/3/4）
 - [x] T8 同步 CHANGELOG.md/.en.md（修复区 3 条新增 + 1 条修订）；build-reference 双语无需改动
-- [x] T9 运行 `python build/build.py test`，160 项全部通过
+- [x] T9 运行 `python3 build/build.py test`，160 项全部通过
 - [x] T10 汇总发现清单报告用户（提醒手动提交）

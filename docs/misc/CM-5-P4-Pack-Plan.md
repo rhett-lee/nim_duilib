@@ -284,20 +284,20 @@ Unix   : -lskia -lsvg -lskshaper -lskottie -lsksg -ljsonreader
 
 | # | 命令 / 操作 | 期望 |
 | :--- | :--- | :--- |
-| 1 | `python build/pack.py --list` | 目录不存在 → 退出码 1，提示 `lib/x64/Release` 与构建命令 |
-| 2 | `python build/pack.py --config Debug --list` | 命中 5 个 `duilib-*` 库；含 10 个 Skia Debug 库、`WebView2Loader*.lib`、`turbojpeg-static.lib`；**不含 SDL**（Windows 默认关闭）；不出现 `_d.lib` / `.pdb` |
-| 3 | `python build/pack.py --config debug --list` | 同上（大小写不敏感） |
-| 4 | `python build/pack.py --lib-dir lib/x86/Debug --list` | 只命中 `duilib-zlib.lib`；告警缺其余库；主库缺失 → 退出码 1 |
-| 5 | `python build/pack.py --config Debug --skia-lib-dir <指定目录> --list` | 使用外部指定的 Skia 目录，不再自动探测 |
-| 6 | `python build/pack.py --config Release --with-examples --list`（用户构建 Release 后） | 只含 Release 库；不出现 `*_d.exe`；头文件/资源数量与旧版一致 |
-| 7 | `python build/pack.py --config Debug --with-examples --list` | 含全部 exe，并输出"可能混合配置"告警 |
+| 1 | `python3 build/pack.py --list` | 目录不存在 → 退出码 1，提示 `lib/x64/Release` 与构建命令 |
+| 2 | `python3 build/pack.py --config Debug --list` | 命中 5 个 `duilib-*` 库；含 10 个 Skia Debug 库、`WebView2Loader*.lib`、`turbojpeg-static.lib`；**不含 SDL**（Windows 默认关闭）；不出现 `_d.lib` / `.pdb` |
+| 3 | `python3 build/pack.py --config debug --list` | 同上（大小写不敏感） |
+| 4 | `python3 build/pack.py --lib-dir lib/x86/Debug --list` | 只命中 `duilib-zlib.lib`；告警缺其余库；主库缺失 → 退出码 1 |
+| 5 | `python3 build/pack.py --config Debug --skia-lib-dir <指定目录> --list` | 使用外部指定的 Skia 目录，不再自动探测 |
+| 6 | `python3 build/pack.py --config Release --with-examples --list`（用户构建 Release 后） | 只含 Release 库；不出现 `*_d.exe`；头文件/资源数量与旧版一致 |
+| 7 | `python3 build/pack.py --config Debug --with-examples --list` | 含全部 exe，并输出"可能混合配置"告警 |
 | 8 | 实际打包（Debug） | 包名带 `-debug`；MANIFEST 含配置、Skia/WebView2/TurboJPEG（及可选的 SDL/CEF）清单与使用契约；`SHA256SUMS` 可校验 |
 | 9 | **最小消费工程链接测试** | 在仓库外临时目录建最小工程，`include += <包>/include`、`lib += <包>/lib`，链接 3.9 的完整列表（含 Skia、WebView2 loader、turbojpeg），**成功产出 exe** |
 | 10 | **运行测试** | 将 `basic_d.exe`（或 Release 版）与 `resources/` 放入包根；若 Unix/`--with-sdl`，SDL3 动态库可被找到；程序能启动并正常显示窗口（用户手动确认） |
 | 11 | Unix（待环境） | 包内含 `lib/libduilib*.a`、`lib/libskia*.a` 等、`lib/libSDL3.so*`、`include/SDL3/` |
-| 12 | `python build/pack.py --config Debug --with-sdl --list` | 额外包含 `SDL3-static.lib` 与 `include/SDL3/`；缺少 SDL3 目录 → 退出码 1 |
-| 13 | `python build/pack.py --config Debug --with-cef --list` | 包含 CEF 头文件、`libcef.lib`、`libcef_dll_wrapper.lib`；MANIFEST 标注运行库外置 |
-| 14 | `python build/pack.py --with-cef --cef-version 109 --list` | 使用 `libcef_win_109` 头文件与 `libcef_dll_wrapper_109.lib` |
+| 12 | `python3 build/pack.py --config Debug --with-sdl --list` | 额外包含 `SDL3-static.lib` 与 `include/SDL3/`；缺少 SDL3 目录 → 退出码 1 |
+| 13 | `python3 build/pack.py --config Debug --with-cef --list` | 包含 CEF 头文件、`libcef.lib`、`libcef_dll_wrapper.lib`；MANIFEST 标注运行库外置 |
+| 14 | `python3 build/pack.py --with-cef --cef-version 109 --list` | 使用 `libcef_win_109` 头文件与 `libcef_dll_wrapper_109.lib` |
 | 15 | `--list` 架构一致性 | `--arch x86` 时 WebView2 / TurboJPEG / libcef 均取 x86（Win32）目录，包名架构为 `x86` |
 
 ---

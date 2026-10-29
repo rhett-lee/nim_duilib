@@ -100,7 +100,7 @@ typedef std::function<void(const DString& itemName, bool bChecked)> ToolItemChec
 
 ```bash
 MSBuild build\examples.sln /p:Configuration=Debug /p:Platform=x64 /clp:ErrorsOnly /m:1
-python .trae/skills/nim-duilib/scripts/verify_docs.py --extra docs
+python3 .trae/skills/nim-duilib/scripts/verify_docs.py --extra docs
 ```
 
 运行时：

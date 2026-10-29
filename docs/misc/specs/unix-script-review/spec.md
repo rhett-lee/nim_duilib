@@ -78,6 +78,6 @@ ninja 示例是否重链接）。
 
 ## 验证
 
-- `python build/build.py test` 全部通过（158+ 项）。
+- `python3 build/build.py test` 全部通过（158+ 项）。
 - 代码由用户手动提交，助手不执行 git commit。
 - 本机为 Windows，三平台无法实测；需真机验证项写入 test-matrix.md。

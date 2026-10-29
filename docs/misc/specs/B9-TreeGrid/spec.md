@@ -260,7 +260,7 @@ public:
   4. 单击选中行、`Ctrl` / `Shift` 多选生效，无选中态串行；
   5. 勾选父节点级联子孙，部分勾选时父节点呈三态，事件回显；
   6. 切换主题后表头 / 行 / 箭头配色跟随。
-- **文档**：`python .trae/skills/nim-duilib/scripts/verify_docs.py --repo "C:/develop/nim_duilib"` 全量扫描无漂移。
+- **文档**：`python3 .trae/skills/nim-duilib/scripts/verify_docs.py --repo "C:/develop/nim_duilib"` 全量扫描无漂移。
 - **回归**：`ListCtrl` 与 `TreeView` 行为不变，既有示例无异常。
 
 ## 非目标（Out of Scope）

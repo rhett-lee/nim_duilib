@@ -593,7 +593,7 @@ C0 单元格坐标层 ──┬──▶ C1 单元格选择 ──┬──▶ C
 - `docs/Control.md` / `.en.md`：`ui::ListCtrl` 新增接口与 XML 属性（`selection_mode`）；**不再新增** `sub_item_row_span` / `sub_item_column_span`（随 C4 取消）。
 - `docs/Events.md` / `.en.md`、`docs/XmlEvents.md` / `.en.md`：新增事件参数表与 XML 内联事件名（**C4~C7 相关事件 `kEventCellsMerged` / `kEventCellsUnmerged` / `kEventItemExpandedChanged` / `kEventGroupCollapsedChanged` / `kEventRowMoved` 随该四项取消而不再新增**）。
 - 三处技能参考副本（`.trae` / `.workbuddy` / `.claude`）与 `README.md` / `.en.md` 功能计数。
-- 每项落地后运行 `python .trae/skills/nim-duilib/scripts/verify_docs.py` 校验无漂移。
+- 每项落地后运行 `python3 .trae/skills/nim-duilib/scripts/verify_docs.py` 校验无漂移。
 
 ---
 

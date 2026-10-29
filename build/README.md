@@ -9,8 +9,8 @@
 | 文件 | 说明 |
 | :--- | :--- |
 | `build.py` | **唯一命令行入口**：生成依赖、编译、测试、出包、清理 |
-| `build.bat` | Windows 薄封装：定位 Python 3 后转调 `build.py` |
 | `build-reference.md` / `.en.md` | 编译参考手册（命令、依赖、产物、排障） |
+| `linux-dependencies.md` / `.en.md` | Linux 各发行版系统依赖安装命令与验证方法 |
 | `macos-app-bundle.md` / `.en.md` | 把示例编译为 macOS `.app` 的参考文档 |
 | `pack.py` | 生成 SDK 包（只收集已构建产物，不参与编译） |
 | `release.py` | 发布流程编排：预检、打包、校验（不做 commit/tag/push） |
@@ -31,14 +31,15 @@
 
 ## 前置依赖
 
-- CMake 3.24+、Python 3（必需；Unix 上命令为 `python3`）、Git、Ninja。
-- Windows：Visual Studio 2022+（C++ 工作负载），或 MSYS2 / MinGW-w64；可直接运行
-  `build\build.bat`（参数与 `build.py` 相同，无需 `python3` 命令）。
+- CMake 3.24+、Python 3（必需；命令统一使用 `python3`）、Git、Ninja。
+- Windows：Visual Studio 2022+（C++ 工作负载），或 MSYS2 / MinGW-w64。
 - Linux/macOS/FreeBSD：gcc 10+/clang 12+，以及字体、GL、X11 等开发包；这些系统
-  通常只提供 `python3`，没有 `python`。
-- 首次构建前执行 `python3 build/build.py deps` 准备 Skia/SDL3/CEF。
-- 下文命令中的 `python3` 在 Windows 上可换成 `python`；`build.py` 入口也可直接运行
-  `build\build.bat`。
+  通常只提供 `python3`。
+- 首次构建前执行 `python3 build/build.py deps` 准备 Skia/SDL3/CEF。Skia 构建脚本
+  固定调用 `python3`，必须确保它在 PATH 中。
+- 下文命令统一写作 `python3 build/build.py`，Windows 与 Unix 使用同一形式；Windows
+  上没有 `python3` 命令时的替代写法见根 README 的「为什么统一使用
+  `python3 build/build.py`」。
 
 各平台系统包清单与版本要求见 [build-reference.md](build-reference.md) 第 1、8 节。
 

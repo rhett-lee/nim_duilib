@@ -94,17 +94,17 @@
 DLL 模式（运行期目录 bin/ 中有 duilib*.dll）自动追加 -dll，避免与静态包同名覆盖。
 
 用法：
-    python build/pack.py                      # Release SDK 包（不含示例）
-    python build/pack.py --config Debug       # Debug SDK 包（包名带 -debug）
-    python build/pack.py --with-examples      # SDK + 示例程序（包名带 -examples）
-    python build/pack.py --list               # 只打印将收集的文件，不打包
-    python build/pack.py --format tgz         # 强制 tgz（默认 Windows 用 zip）
-    python build/pack.py --lib-dir lib/x86/Debug  # 显式指定库目录
-    python build/pack.py --with-sdl           # Windows 额外打包 SDL3（包名带 -sdl）
-    python build/pack.py --with-cef           # 打包 CEF 开发文件 + 运行时（包名带 -cef）
-    python build/pack.py --msvc-runtime md    # 指定 MSVC 运行库（默认按模式推断）
-    python build/pack.py --out-dir dist       # 指定输出目录
-    python build/pack.py --allow-missing      # 关键产物缺失时仍出包（仅排查用）
+    python3 build/pack.py                      # Release SDK 包（不含示例）
+    python3 build/pack.py --config Debug       # Debug SDK 包（包名带 -debug）
+    python3 build/pack.py --with-examples      # SDK + 示例程序（包名带 -examples）
+    python3 build/pack.py --list               # 只打印将收集的文件，不打包
+    python3 build/pack.py --format tgz         # 强制 tgz（默认 Windows 用 zip）
+    python3 build/pack.py --lib-dir lib/x86/Debug  # 显式指定库目录
+    python3 build/pack.py --with-sdl           # Windows 额外打包 SDL3（包名带 -sdl）
+    python3 build/pack.py --with-cef           # 打包 CEF 开发文件 + 运行时（包名带 -cef）
+    python3 build/pack.py --msvc-runtime md    # 指定 MSVC 运行库（默认按模式推断）
+    python3 build/pack.py --out-dir dist       # 指定输出目录
+    python3 build/pack.py --allow-missing      # 关键产物缺失时仍出包（仅排查用）
 
 发布流程请使用 build/release.py（check / package / finalize / clean）。
 

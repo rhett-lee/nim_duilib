@@ -10,13 +10,13 @@ and troubleshooting, see [build-reference.en.md](build-reference.en.md)
 | File | Purpose |
 | :--- | :--- |
 | `build.py` | **the single command-line entry**: deps, build, test, pack, clean |
-| `build.bat` | thin Windows wrapper that locates Python 3 and calls `build.py` |
 | `build-reference.md` / `.en.md` | build reference manual (commands, deps, outputs, troubleshooting) |
+| `linux-dependencies.md` / `.en.md` | system dependency commands for Linux distributions and how to verify them |
 | `macos-app-bundle.md` / `.en.md` | reference for building examples as macOS `.app` bundles |
 | `pack.py` | produces SDK packages (collects existing artifacts, never builds) |
 | `release.py` | release orchestration: checks, packaging, verification (no commit/tag/push) |
 | `autotest.py` | local automation: environment check → build → package → verify → assertions |
-| `test_build.py` | unit tests for the build entry |
+| `test_build.py` | unit tests for the build entry point |
 | `test_pack.py` / `test_autotest.py` | packaging and automation tests |
 | `test_sdk_package.py` | unit tests for the pure functions of the SDK package test orchestrator |
 | `sdk_package_test.py` | released-SDK package test orchestrator (structure checks + consumer build/run + negative cases) |
@@ -32,14 +32,15 @@ verified with the new entry point); use `python3 build/build.py`.
 
 ## Prerequisites
 
-- CMake 3.24+, Python 3 (required; the command is `python3` on Unix), Git, Ninja.
-- Windows: Visual Studio 2022+ with the C++ workload, or MSYS2 / MinGW-w64; you can run
-  `build\build.bat` directly (same arguments, no `python3` command needed).
+- CMake 3.24+, Python 3 (required; commands use `python3` throughout), Git, Ninja.
+- Windows: Visual Studio 2022+ with the C++ workload, or MSYS2 / MinGW-w64.
 - Linux/macOS/FreeBSD: gcc 10+/clang 12+, plus font/GL/X11 development packages; these
-  systems usually provide only `python3`, not `python`.
-- Run `python3 build/build.py deps` once to prepare Skia/SDL3/CEF.
-- On Windows, replace `python3` with `python` in the commands below; the `build.py`
-  entry point can also be run as `build\build.bat`.
+  systems usually provide only `python3`.
+- Run `python3 build/build.py deps` once to prepare Skia/SDL3/CEF. The Skia build
+  scripts invoke `python3`, so it must be on PATH.
+- Commands below use `python3 build/build.py` on Windows and Unix alike; for the
+  Windows fallback when no `python3` command exists, see the build-entry section of the
+  root [README.md](../README.md) (in Chinese).
 
 Per-platform package lists and version requirements are in
 [build-reference.en.md](build-reference.en.md), sections 1 and 8.

@@ -2,7 +2,7 @@
 
 This is the single build reference for nim_duilib: command-line builds, dependency
 preparation, packaging and troubleshooting. The legacy per-platform scripts
-(`build_duilib_all_in_one.*`, `msvc_build.bat`, `linux_build.sh`, ...) were deleted
+(`build_duilib_all_in_one.*`, `msvc_build.*`, `linux_build.sh`, ...) were deleted
 on 2026-10-29 (all four platforms are verified with the new entry point); use
 `python3 build/build.py` instead.
 
@@ -21,14 +21,16 @@ Chinese version: [build-reference.md](build-reference.md)
 | macOS | Xcode command line tools 13.5+, cmake/ninja/gn via Homebrew |
 | FreeBSD | clang, cmake, ninja, gn, fontconfig, freetype2 |
 
-Without Python 3, `build.bat` / `build.py` fail immediately and print installation
-hints; there is no Python-free build path. If only `python` / `py -3` is available
-and `python3` is missing from PATH, the preflight prints a warning and the Skia
-build aborts with an error before compiling.
+Without Python 3, `build.py` fails immediately and prints installation hints; there
+is no Python-free build path. The Skia build scripts invoke `python3`; if PATH provides
+only `python` / `py -3` and no `python3`, the preflight warns and the Skia build aborts
+with an error before compiling.
 
-Commands in this document use `python3`: macOS, Linux and FreeBSD usually have no
-`python` command. On Windows, run `build\build.bat` instead (same arguments, no
-`python3` needed), or replace `python3` with `python`.
+Commands in this document use `python3 build/build.py` on Windows and Unix alike, with
+identical arguments. macOS/Linux/FreeBSD usually provide only `python3`; for the Windows
+fallback when no `python3` command exists, see the build-entry section of the root
+[README.md](../README.md) (in Chinese). Because the Skia build scripts always invoke
+`python3`, it must be on PATH on every platform.
 
 ## 2. Quick start
 
@@ -39,11 +41,9 @@ python3 build/build.py doctor           # environment check (no side effects)
 python3 build/build.py pack --with-cef  # build an SDK package
 ```
 
-On Windows you can also run:
-
-```bat
-build\build.bat --config Debug
-```
+Windows and Unix use the same command. For the Windows
+fallback when no `python3` command exists, see the build-entry section of the root
+[README.md](../README.md) (in Chinese).
 
 The build tree is `out/<arch>/<Config>` (for example `out/x64/Debug`), a sibling of
 `build/`; `build/build_temp` is never written by the new entry. Executables and runtime
@@ -380,7 +380,7 @@ sure the Skia libraries are the `mingw64-llvm.<arch>` variant.
 | `Visual Studio not found` | install VS 2022+ with the C++ workload, or pass `--vs-version` |
 | `Skia not found` | run `python3 build/build.py deps` first, or check `--deps-root` |
 | `gn/ninja not found` | use VS's bundled tools on Windows; on Unix install `ninja` and `gn`. Unix ignores `gn.exe` inside the Skia tree (it cannot run there); install a native `gn` when only `gn.exe` exists |
-| `python: command not found` (macOS/Linux) | these systems usually provide only `python3`: use `python3 build/build.py ...`; on Windows run `build\build.bat` instead |
+| `python: command not found` (macOS/Linux) | these systems usually provide only `python3`: run the same script as `python3 build/build.py ...` |
 | `python3 not found` (error while building Skia) | the Skia build scripts invoke `python3` and do not accept `python` / `py -3`; install Python 3 and make sure `python3 --version` works (on Windows add the Python install directory to PATH) |
 | `CMake version is too old` | upgrade to CMake 3.24+ |
 | CEF example does not start | ensure `bin/libcef_win/<arch>` (or `bin/libcef_linux`) contains the runtime; `pack --with-cef` includes it |

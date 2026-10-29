@@ -6,7 +6,7 @@
 
 ## 一、当前基线
 
-已完成并验证的内容（Windows：MSVC x64/x86 Debug、x64/x86 Release 静态包、MSVC x64/x86 DLL（`/MD`）Debug/Release 包、arm64 Release/Debug 静态与 DLL、arm64 CEF142/CEF109 包；MinGW x64 Release；MSYS2 UCRT64 gcc / CLANG64 llvm / MINGW64 gcc(msvcrt) x64 Release；MSVC x64 `--with-sdl`、`--with-examples` 与 MSVC / MinGW 示例组合；Linux x64 Release/Debug：编译、出包与包测试；macOS x64 Release/Debug：构建、出包、包测试与 Bundle 运行；FreeBSD x64 Release/Debug：构建、出包、包测试与示例启动（不支持 CEF）。Linux/macOS 于 2026-10-28、FreeBSD 于 2026-10-29 真机复测，Windows arm64 于 2026-10-28/29 完成）：
+已完成并验证的内容（Windows：MSVC x64/x86 Debug、x64/x86 Release 静态包、MSVC x64/x86 DLL（`/MD`）Debug/Release 包、arm64 Release/Debug 静态与 DLL、arm64 CEF142/CEF109 包；MinGW x64 Release；MSYS2 UCRT64 gcc / CLANG64 llvm / MINGW64 gcc(msvcrt) x64 Release；MSVC x64 `--with-sdl`、`--with-examples` 与 MSVC / MinGW 示例组合；Linux x64 Release/Debug：编译、出包与包测试；macOS x64 Release/Debug：构建、出包、包测试与 Bundle 运行；FreeBSD x64 Release/Debug：构建、出包、包测试与示例启动（不支持 CEF）。Linux 于 2026-10-28 虚拟机复测、macOS 于 2026-10-28 真机复测、FreeBSD 于 2026-10-29 虚拟机复测，Windows arm64 于 2026-10-28/29 完成）：
 
 | 领域 | 状态 |
 | :--- | :--- |
@@ -15,7 +15,7 @@
 | 元数据与校验 | `MANIFEST.txt`（含文档清单）、`SHA256SUMS`、`VERSION` |
 | 下游接入 | VS props/targets、CMake Config/Helper、x64 + x86 + arm64 manifest（三份均随包） |
 | 文档处理 | 只打顶层使用文档，源码链接按包布局重写，无断链 |
-| 已验证 | `--list`、XML 解析、CMake 配置、SHA/断链检查、真实 zip 抽查；x64/x86 Debug 与 Release 出包、解包及 SHA 校验；MinGW（gcc / llvm）5 库 + 21 示例构建与运行；VS/CMake 端到端（x64/x86 Debug、x64/x86 Release、MinGW x64 gcc/llvm 包、MSVC DLL 包）；MSYS2 真实环境（UCRT64 gcc、CLANG64 llvm、MINGW64 gcc/msvcrt）全量构建、出包、解包与 CMake 端到端；MSVC DLL 模式（`/MD`）构建、出包与端到端；MSVC x64/x86 与 MinGW x64 的 SDL/示例组合出包、`--verify` 与解包运行；Windows arm64 Release/Debug（静态、DLL）与 CEF142/109 出包、`--verify`、SDK 包测试；Linux x64 Release/Debug、macOS x64 Release/Debug 与 FreeBSD x64 Release/Debug 的构建、出包、包测试与示例运行（Linux/macOS 2026-10-28、FreeBSD 2026-10-29 真机复测；FreeBSD 不含 CEF） |
+| 已验证 | `--list`、XML 解析、CMake 配置、SHA/断链检查、真实 zip 抽查；x64/x86 Debug 与 Release 出包、解包及 SHA 校验；MinGW（gcc / llvm）5 库 + 21 示例构建与运行；VS/CMake 端到端（x64/x86 Debug、x64/x86 Release、MinGW x64 gcc/llvm 包、MSVC DLL 包）；MSYS2 真实环境（UCRT64 gcc、CLANG64 llvm、MINGW64 gcc/msvcrt）全量构建、出包、解包与 CMake 端到端；MSVC DLL 模式（`/MD`）构建、出包与端到端；MSVC x64/x86 与 MinGW x64 的 SDL/示例组合出包、`--verify` 与解包运行；Windows arm64 Release/Debug（静态、DLL）与 CEF142/109 出包、`--verify`、SDK 包测试；Linux x64 Release/Debug、macOS x64 Release/Debug 与 FreeBSD x64 Release/Debug 的构建、出包、包测试与示例运行（Linux 2026-10-28 虚拟机复测、macOS 2026-10-28 真机复测、FreeBSD 2026-10-29 虚拟机复测；FreeBSD 不含 CEF） |
 
 尚未覆盖：Windows on ARM 真机运行（无设备，未测、不跟进）；Windows x86 SDL
 （缺 x86 SDL3 库）；MSYS2 MINGW32 x86 与 libpag 的 ARM64 支持（未测、不跟进）。
@@ -112,11 +112,11 @@
   PASS=16 / FAIL=0 / SKIP=3，`bin/basic.exe` 启动通过（W-P27）。
 - Linux x64 Release 实测（2026-10-25）：编译与打包流程均通过；
   `pack.py` 分别产出默认 SDK 包、`--with-cef`、`--with-examples` 三种组合。
-  2026-10-28 真机复测补齐 Debug 配置（再出 3 个 Debug 包）与解包后示例启动运行，
+  2026-10-28 虚拟机复测补齐 Debug 配置（再出 3 个 Debug 包）与解包后示例启动运行，
   8 次 `sdk_package_test.py` 全部通过（含下游工程接入与两次 `--run-examples`）。
   此前 `ldd` 检查发现非 CEF 示例也依赖 `libcef.so`，已改为示例级
   `DUILIB_EXAMPLE_CEF` 控制（仅 `cef`/`CefBrowser` 链接 CEF）。
-- FreeBSD x64 全量实测（2026-10-29 真机复测）：Release/Debug 编译与打包流程均通过，
+- FreeBSD x64 全量实测（2026-10-29 虚拟机复测）：Release/Debug 编译与打包流程均通过，
   测试内容与 Linux 相同但不含 CEF（FreeBSD 上游无 Chromium 构建）；`pack.py` 产出
   Release/Debug 的默认 SDK 包与 `--with-examples` 包共 4 个，4 次
   `sdk_package_test.py` 全部通过（含 Release/Debug 示例包的 `--run-examples`，C10 启动
@@ -136,7 +136,7 @@
   - 模式：静态已完成；DLL（`EnableDuilibDll`）x64/x86 与 arm64 × Debug/Release 均已完成
     （2026-10-24 / 2026-10-28）；
   - 平台：Windows、Linux、macOS、FreeBSD 均已完成（Linux/macOS 2026-10-28、
-    FreeBSD 2026-10-29 真机复测）；
+    FreeBSD 2026-10-29 虚拟机复测）；
   - 特性：`--with-sdl`（MSVC x64/x86、MSYS2 UCRT64 gcc 已完成，2026-10-24 / 10-29）、
     `--with-cef`（Windows、Linux、macOS 已完成；FreeBSD 不支持，负向验证通过）、
     `--with-examples`（MSVC x64/x86、MinGW x64、Linux/macOS/FreeBSD Release/Debug
@@ -276,8 +276,8 @@
   `libSDL3.so*` 等链接结构与构建目录一致。
   Windows 侧已回归：Debug x64 zip 539 个文件，`SHA256SUMS` 全部匹配，
   `.dll` 条目 `0755`、`.lib` 条目 `0644`，`zip` 可完整解压；
-  Linux、FreeBSD 侧已真机出包（FreeBSD Release/Debug，2026-10-29；Linux 2026-10-28），
-  符号链接与权限位逻辑随包生效，示例程序可直接执行；
+  Linux 侧已在虚拟机出包（2026-10-28），FreeBSD 侧已在虚拟机出包（Release/Debug，
+  2026-10-29），符号链接与权限位逻辑随包生效，示例程序可直接执行；
   macOS 侧真实包已验证：2026-10-28 的 `--run-examples` 从解包产物直接启动
   `basic.app`（首次因解包丢可执行位失败，修复后通过并补 5 项单元测试）；
   构造用例（zip 写 `S_IFLNK` 条目、tar 写 `SYMTYPE`，链接目标与模式均正确）
@@ -325,7 +325,7 @@
     时按关键产物缺失处理（`PackageError`）。
   - macOS 按既定设计不自动收集（见下条）。
 - 现状（2026-10-25）：Windows 运行时已随包；MinGW 包禁止 CEF；Linux 已接入
-  `bin/libcef_linux/` 并完成真机出包（Release，含 `--with-cef`）；FreeBSD 不支持
+  `bin/libcef_linux/` 并完成虚拟机出包（Release，含 `--with-cef`）；FreeBSD 不支持
   CEF（上游无 Chromium 构建，`pack.py` 对 `--with-cef` 直接报错）；macOS 仍由下游手动
   配置，`docs/Release.md` 与 `Release.en.md` 已补充手动部署流程。
 - [x] macOS：结构已确认，CEF 随示例以 `.app` 形式生成：
@@ -348,7 +348,7 @@
   x64 Release 的静态 CEF 包、SDL 包、无 CEF 包与 x64 Debug/Release 的 DLL 包
   五个示例包全部 `[PASS] C10 examples.smoke`（见 P3-1）。
   Linux 侧由 `test_pack.py` 的 `CefLinuxPackagingTest` 覆盖收集、元数据、MANIFEST
-  与拒绝场景（5 个用例）；真机出包已验证（Release，含 `--with-cef` 与
+  与拒绝场景（5 个用例）；虚拟机出包已验证（Release，含 `--with-cef` 与
   `--with-examples` 组合，2026-10-25），解包后示例运行已于 2026-10-28 的
   `--run-examples` 验证通过；macOS 手动部署流程见
   `docs/Release.md` 的“macOS：下游手动配置 CEF”。
@@ -519,9 +519,9 @@
 
 #### P3-2 x86 + SDL3 出包组合
 
-- [x] 已完成（2026-10-29）：`python build\build.py build --config Release --arch x86
+- [x] 已完成（2026-10-29）：`python3 build\build.py build --config Release --arch x86
   --sdl`（786/786，SDL3 按 x86 重建为 `../SDL3/lib/SDL3-static.lib`，Skia
-  `llvm.x86.release`）→ `python build\pack.py --config Release --arch x86
+  `llvm.x86.release`）→ `python3 build\pack.py --config Release --arch x86
   --with-examples --with-sdl --out-dir dist` 产出
   `nim_duilib-1.0.2026.1023-win-x86-sdl-examples.zip`（844 条目 / 128.2 MB，
   SDL3 79 项、21 个示例、CEF 库按未请求跳过）→ `pack.py --verify` 844 条目
@@ -547,7 +547,7 @@
     同一语言，负向用例的预期报错文本才能匹配。
   - 注释、docstring、`MANIFEST.txt`、`RELEASE-NOTES` 与包内中文内容保持原样；
     两个 `.sh` 脚本（原 T4）已不在仓库中，任务作废。
-  - 验证：`python build\build.py test` 全部 236 个用例通过；`test_build.py` 新增
+  - 验证：`python3 build\build.py test` 全部 236 个用例通过；`test_build.py` 新增
     繁体回退与英文纯 ASCII 帮助用例，`test_pack.py` / `test_autotest.py` /
     `test_sdk_package.py` 固定中文并各补英文纯 ASCII 用例；
     `PYTHONIOENCODING=ascii` 下五个入口的 `--help` 与列表类命令（加 `--lang en`）
@@ -603,7 +603,7 @@
   - CEF：实测官方 109/142 二进制包均无 `LICENSES.chromium.html`，按其生成方式估算体积
     为 10 MB 量级（zip 后 1–2 MB，占 CEF 运行时不足 1%），决定默认不随包，
     需要严格覆盖时按同版本 Chrome/Chromium 手工补充到 `LICENSES/CEF/`。
-  性质为发布前检查项，不改变当前出包行为；`python build\build.py test` 复跑通过。
+  性质为发布前检查项，不改变当前出包行为；`python3 build\build.py test` 复跑通过。
 
 ## 四、建议推进顺序
 
@@ -674,7 +674,7 @@
 | 2026-10-25 | arm64 libjpeg-turbo 接入：上游 arm64 预编译库入库后，`collect_jpeg_turbo()` 收集 `libjpeg-turbo6-win-vc-arm64/lib/turbojpeg-static.lib`，`JpegTurboSettings.props` 增加 ARM64 的 include/lib 目录；MANIFEST 的 arm64 说明改为仅 CEF 缺席，测试与 README/Checklist 同步；真机编译/运行验证仍未做 |
 | 2026-10-25 | macOS 示例 Bundle 打包支持：`collect_examples()` 识别目录型 `bin/*.app`，逐文件收集（保留 `Contents/MacOS`、`Contents/Frameworks` 内的 CEF Framework/Helper 与原权限、符号链接）；`is_cef_example()` 支持 `.app`；是否随包与其他平台一致由 `--with-cef` 控制（未指定则跳过并告警）。macOS 的 `collect_cef()` 不再报错，只提示不收集 CEF 开发文件/运行时；`collect_libs()` 在 macOS 跳过 wrapper 校验；MANIFEST、`build-reference*.md`、`docs/Release*.md` 与 `test_pack.py` 同步 |
 | 2026-10-25 | Linux x64 Release 编译与打包实测通过：`pack.py` 产出默认 SDK 包、`--with-cef`、`--with-examples` 三种组合；非 CEF 示例不再链接 `libcef.so`（新增示例级 `DUILIB_EXAMPLE_CEF`，仅 `cef`/`CefBrowser` 链接 CEF，Windows/macOS 同步）。未覆盖：Linux Debug、解包后示例启动运行 |
-| 2026-10-25 | FreeBSD x64 Release 编译与打包实测通过（除 CEF 外与 Linux 覆盖相同）：`pack.py` 产出默认 SDK 包与 `--with-examples` 包，`--with-cef` 明确报错；FreeBSD 走 Linux/X11 分支（CM-10/CM-13 的 FreeBSD 部分已实机验证）。未覆盖：FreeBSD Debug、解包后示例启动运行 |
+| 2026-10-25 | FreeBSD x64 Release 编译与打包实测通过（除 CEF 外与 Linux 覆盖相同）：`pack.py` 产出默认 SDK 包与 `--with-examples` 包，`--with-cef` 明确报错；FreeBSD 走 Linux/X11 分支（CM-10/CM-13 的 FreeBSD 部分已在 FreeBSD 虚拟机验证）。未覆盖：FreeBSD Debug、解包后示例启动运行 |
 | 2026-10-28 | DLL 模式 turbojpeg 修正：`JpegTurboSettings.props` 在 `EnableDuilibDll=1` 时改用 `turbojpeg.lib` 导入库（不再用按 `/MT` 构建的 `turbojpeg-static.lib`，消除 LNK4098），并在 duilib 构建后把 `bin/turbojpeg.dll` 复制到 `bin/`；`DuilibSettings.props`/`BinCommonSettings.props` 的 Debug `/NODEFAULTLIB:libcmt.lib` 只保留给静态模式；`pack.py` 的 `collect_jpeg_turbo()` 改为 DLL 模式按 duilib DLL 是否实际引用 `turbojpeg.dll` 决定收集，DLL 包不再带静态库；`packaging/msvc/nim_duilib.targets` 校验 DLL 包必须有 `bin/turbojpeg.dll` |
 | 2026-10-28 | DLL 模式入口与自动重建：`build.py` 新增 `--dll`（隐含 `--md`，自动准备 Skia `.md`/`.mdd`；Windows 上 SDL 默认关闭，`--dll` 也不自动开启，关闭时 `deps` 不下载、不构建 SDL3），`_cmake_defines` 显式传 `DUILIB_DLL`，并同步 `msvc/PropertySheets/duilib_dll.flag`；`out/<arch>/<Config>/.duilib-build-mode` 记录模式，静态↔DLL 切换时自动删除构建树（含旧 CEF wrapper `.obj`），DLL→静态还清理 `bin/duilib*.dll`；MSBuild 侧由 `CommonSettings.props` 的 `$(IntDir)duilib_crt_mode.txt` 触发同样的全量重编，不再需要手工删 `build_temp` |
 | 2026-10-28 | DLL 包特性一致性：`pack.py` 从 duilib DLL 导出表探测 SDL（`WindowBase::GetVideoDriverName`），DLL 以 SDL 编译而打包未加 `--with-sdl` 时直接报错，避免下游 `DUILIB_SDL=0` 与 DLL 的 Control/WindowBase 类布局不一致；DLL 以 CEF 编译但未加 `--with-cef` 时告警。`test_pack.py` 增至 72 个用例 |
@@ -693,4 +693,4 @@
 | 2026-10-29 | P3-2 完成：`build.py build --config Release --arch x86 --sdl`（786/786，SDL3 按 x86 重建、Skia `llvm.x86.release`）→ `pack.py --arch x86 --with-examples --with-sdl` 产出 `nim_duilib-1.0.2026.1023-win-x86-sdl-examples.zip`（844 条目 / 128.2 MB）；`--verify` 844 条目 SHA 全匹配，SDK 测试 PASS=16 / FAIL=0 / SKIP=3（含 C10 `bin/basic.exe` 启动）；W-B30/W-P27 回填后 P0-1 收口；测试后恢复 x64 静态基线并重建 x64 `SDL3-static.lib` |
 | 2026-10-29 | P3-5 完成：`release.py` 全流程演练 —— `check` 四项 OK；3 个组合 `--dry-run` 包名正确；实际产出 `nim_duilib-1.0.2026.1023-win-x64.zip`（548 文件 / 164.6 MB，包体检 SHA 全匹配）；`finalize` 校验 `dist/1.0.2026.1023/` 下 9 个包（2.0 GB）全部通过并生成 `SHA256SUMS.txt` 与中英 `RELEASE-NOTES`；`clean --list` 正确列出且不删除；`check` 5 类失败路径、`finalize` 2 类失败路径与 `clean` 3 类保护均按预期退出 1；演练后主仓库工作区干净、无临时 tag |
 | 2026-10-29 | P3-6 完成：`License-Compliance.md` 的 4 条遗留事项全部处理 —— 新增组件登记流程写入 `Release-Checklist.md`；确认 SDK 包固定 `DUILIB_LIB_PAG=0` 并写明启用 libpag 时须随程序分发 `duilib/third_party/libpag/licenses/**`（含 `tgfx.LICENSE.txt`）；`bin/resources` 的 409 个文件按来源分层记录（首提交 144 个上游资源、项目新增控件/示例资源、Lottie/PAG 演示素材），`loading5/6.json` 含 `LottieFiles AE` 元数据已在 `THIRD-PARTY-NOTICES.md` 增加演示素材说明；CEF 官方 109/142 包实测无 `LICENSES.chromium.html`，估算 10 MB 量级（zip 后 1–2 MB），决定默认不随包、需要时按同版本 Chrome/Chromium 手工补充 |
-| 2026-10-29 | P3-3 完成：`build/` 五个入口（`build.py`、`pack.py`、`release.py`、`autotest.py`、`sdk_package_test.py`）的运行期消息与 `--help` 改为简易双语 —— 简体（`zh`/`zh_CN`/`zh_Hans`）显示中文，其余（含 `zh_TW`/`zh_HK`/`zh_Hant`）显示英文；文案集中在 `cmake/i18n/messages.json`（594 键，每键含 `en`/`zh_CN`），五个入口均支持 `--lang`，语言在 argparse 之前解析；`sdk_package_test.py` 调用 `pack.py --verify` 时传递同一语言；注释、docstring、`MANIFEST.txt` 与 `RELEASE-NOTES` 保持中文。`python build/build.py test` 234 用例通过，ASCII 控制台下五个入口的 `--help` 与列表命令（`--lang en`）均无中文 |
+| 2026-10-29 | P3-3 完成：`build/` 五个入口（`build.py`、`pack.py`、`release.py`、`autotest.py`、`sdk_package_test.py`）的运行期消息与 `--help` 改为简易双语 —— 简体（`zh`/`zh_CN`/`zh_Hans`）显示中文，其余（含 `zh_TW`/`zh_HK`/`zh_Hant`）显示英文；文案集中在 `cmake/i18n/messages.json`（594 键，每键含 `en`/`zh_CN`），五个入口均支持 `--lang`，语言在 argparse 之前解析；`sdk_package_test.py` 调用 `pack.py --verify` 时传递同一语言；注释、docstring、`MANIFEST.txt` 与 `RELEASE-NOTES` 保持中文。`python3 build/build.py test` 234 用例通过，ASCII 控制台下五个入口的 `--help` 与列表命令（`--lang en`）均无中文 |

@@ -12,7 +12,7 @@ Windows on ARM 真机运行验证同样不具备条件（无设备），相关�
 | 项目 | 现状 | 影响 |
 | :--- | :--- | :--- |
 | 脚本支持 | `build.py --arch auto\|x86\|x64\|arm64`；库目录 `lib/<arch>/<Config>` | 构建入口已就绪 |
-| Windows 工具链 | VS 2022 17.14.37710.0 已装 MSVC 14.44.35207「ARM64 生成工具」；`Hostx64\arm64\cl.exe` 与 Windows SDK 10.0.26100.0 的 `um/arm64`、`ucrt/arm64` 齐全；`python build/build.py doctor --arch arm64` 通过（Ninja + VS + gn + curl 全 OK） | Windows arm64 可交叉编译 |
+| Windows 工具链 | VS 2022 17.14.37710.0 已装 MSVC 14.44.35207「ARM64 生成工具」；`Hostx64\arm64\cl.exe` 与 Windows SDK 10.0.26100.0 的 `um/arm64`、`ucrt/arm64` 齐全；`python3 build/build.py doctor --arch arm64` 通过（Ninja + VS + gn + curl 全 OK） | Windows arm64 可交叉编译 |
 | vcvars 平台参数 | 原先对 `vcvarsall.bat` 传 `arm64`，要求 x64 主机也装 `Hostarm64` 原生工具集，导致误报 `Visual Studio C++ tools for arm64 are not installed`；已改为按主机选择 `amd64_arm64` / `x86_arm64` / `arm64`（2026-10-28 修复） | 交叉编译不再需要额外组件 |
 | 打包支持 | `pack.py --arch arm64`；库目录映射 `lib/arm64/...`；PE 架构校验（`0xAA64`）；随包三份 manifest（含 `duilib.arm64.manifest`）；`NIM_DUILIB_PACKAGE_ARCH=arm64` | 已生成 Release 无 CEF、Release CEF142 与 Debug CEF142 三个包并通过校验 |
 | 无真机校验 | `autotest.py --preset arm64-synthetic` 用临时假库出包并体检 | 不依赖 arm64 机器即可回归包结构 |
@@ -154,7 +154,7 @@ Windows arm64 构建 + 出包 + 包测试        1–2 h
 
 | 编号 | 结果 | 关键数据 |
 | :--- | :--- | :--- |
-| Phase 0 | 通过 | `python -m unittest build.test_build build.test_pack build.test_sdk_package build.test_autotest`：227 项通过、2 项按平台跳过 |
+| Phase 0 | 通过 | `python3 -m unittest build.test_build build.test_pack build.test_sdk_package build.test_autotest`：227 项通过、2 项按平台跳过 |
 | W-A01 | 通过 | `build.py --arch arm64`：25/25 目标、21 个示例链接完成；`bin/*.exe` 23 个全部 PE `0xAA64`；`lib/arm64/Release` 6 个库 237 MB |
 | W-A02 | 通过 | `deps` 自动构建 `skia/out/llvm.arm64.debug`（1078 目标，约 6 分钟）；802/802 目标、23 个示例链接完成；`bin/*.exe` 均为 `0xAA64`，清单为 `processorArchitecture="ARM64"`；`lib/arm64/Debug` 6 个库 409.4 MB |
 | W-A03 | 通过 | `build.py --arch arm64 --dll`（Release）与 `--dll --config Debug`：`deps` 自动构建 `llvm.arm64.release.md` / `llvm.arm64.debug.mdd`；`bin/duilib.dll` 9.9 MB、`duilib_d.dll` 36 MB 均为 PE `0xAA64`；导入库 `lib/arm64/<Config>/duilib.lib` 4.15 / 4.17 MB；23 个示例链接正常，46 个 exe 全为 `0xAA64` |

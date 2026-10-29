@@ -115,14 +115,14 @@ MSYS2 Python 下运行。
 CLI：
 
 ```
-python build/autotest.py --list-presets
-python build/autotest.py --preset unit
-python build/autotest.py --preset pack-msvc-x64-release [--with-examples]
-python build/autotest.py --preset arm64-synthetic
-python build/autotest.py --preset all-ready
-python build/autotest.py --preset pack-msvc-x64-release --build
-python build/autotest.py --preset ... --dry-run
-python build/autotest.py --preset ... --out-dir C:\develop\temp\autotest\run1
+python3 build/autotest.py --list-presets
+python3 build/autotest.py --preset unit
+python3 build/autotest.py --preset pack-msvc-x64-release [--with-examples]
+python3 build/autotest.py --preset arm64-synthetic
+python3 build/autotest.py --preset all-ready
+python3 build/autotest.py --preset pack-msvc-x64-release --build
+python3 build/autotest.py --preset ... --dry-run
+python3 build/autotest.py --preset ... --out-dir C:\develop\temp\autotest\run1
 ```
 
 预设（`PRESETS` 表：名称 → lib 架构/配置/工具链、pack 参数、是否需要构建）：
@@ -169,10 +169,10 @@ python build/autotest.py --preset ... --out-dir C:\develop\temp\autotest\run1
 
 ## 4. 验收标准
 
-1. `python build/test_pack.py`、MSYS2 Python 同命令全部通过；
-2. `python build/test_autotest.py` 全部通过；
-3. `python build/autotest.py --preset unit` 退出码 0；
-4. `python build/autotest.py --preset arm64-synthetic` 退出码 0：
+1. `python3 build/test_pack.py`、MSYS2 Python 同命令全部通过；
+2. `python3 build/test_autotest.py` 全部通过；
+3. `python3 build/autotest.py --preset unit` 退出码 0；
+4. `python3 build/autotest.py --preset arm64-synthetic` 退出码 0：
    产出 zip 内含 `msvc/manifest/duilib.arm64.manifest` 且架构为 ARM64，
    `--verify` 通过；
 5. 前置条件满足的 `pack-*` 预设：`--verify` 通过，报告记录包大小与 SHA 校验结果；

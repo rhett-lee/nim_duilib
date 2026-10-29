@@ -125,8 +125,8 @@ lib/cmake/nim_duilib/
 
 ## 验证
 
-1. `python -m py_compile build/pack.py`。
-2. `python build/pack.py --list --arch x64 --config Debug`：`[gen]` 文件齐全、`接入文件` 计数正确、原有文件数不减少；再跑 `--with-sdl`、`--with-cef` 变体。
+1. `python3 -m py_compile build/pack.py`。
+2. `python3 build/pack.py --list --arch x64 --config Debug`：`[gen]` 文件齐全、`接入文件` 计数正确、原有文件数不减少；再跑 `--with-sdl`、`--with-cef` 变体。
 3. 伪造 MinGW 库目录：元数据为 `mingw`，不生成 `msvc/` 文件，`PackageInfo.cmake` 正确；伪造 DLL/SDL/CEF 包验证 `IS_DLL`、`SDL_KIND`、`CEF_WRAPPER`、`MSVC_RUNTIME`。
 4. 用临时脚本把渲染结果写到 `%TEMP%`，用 `[xml]` 校验两份 props XML；有 `msbuild` 时对临时 `.vcxproj` 执行 `/pp` 检查 Import 链与宏展开。
 5. 临时 CMake consumer：伪造 SDK 根（最小 `include/` + 空库文件 + 生成的 config），`cmake -S ... -B ... -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=...` 只配置不编译，确认 `nim_duilib::duilib` 及其属性；再分别制造架构/配置不匹配，确认报错信息。

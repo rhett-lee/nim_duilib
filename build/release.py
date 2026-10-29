@@ -12,12 +12,12 @@ commit / tag / push 只在检查结束后打印建议命令，由维护者手动
     clean      列出或手动删除 dist/<版本>/，默认不删除任何内容
 
 用法：
-    python build/release.py check
-    python build/release.py package --config Release --arch x64 --with-cef --dry-run
-    python build/release.py package --config Release --arch x64 --with-cef
-    python build/release.py finalize
-    python build/release.py clean --list
-    python build/release.py clean --version 1.0.2026.1015 --yes
+    python3 build/release.py check
+    python3 build/release.py package --config Release --arch x64 --with-cef --dry-run
+    python3 build/release.py package --config Release --arch x64 --with-cef
+    python3 build/release.py finalize
+    python3 build/release.py clean --list
+    python3 build/release.py clean --version 1.0.2026.1015 --yes
 
 退出码：0 成功；1 检查或校验失败；2 执行异常。
 """

@@ -10,8 +10,7 @@
 
 ### 新增
 
-- 根 CMake 工程与统一构建入口 `python build/build.py`（Windows 可用
-  `build/build.bat`）：`build`（默认）、`deps`、`test`、`pack`、`doctor`、`clean`；
+- 根 CMake 工程与统一构建入口 `python3 build/build.py`：`build`（默认）、`deps`、`test`、`pack`、`doctor`、`clean`；
   构建树统一为 `out/<arch>/<Config>`。
 - 依赖自动准备：版本清单 `cmake/third_party_versions.json` 锁定 Skia、SDL3 与 CEF，
   支持下载缓存、sha256 校验、断点续传与并发锁；已有产物可按 stamp 直接采纳。
@@ -66,7 +65,7 @@
   `GetResourceZipPath(bool)` 的 zip 模式对应 `.../duilib/resources.zip`。
 - macOS App Bundle 参考文档 `build/macos-app-bundle.md` / `.en.md`，以及
   `Info.plist` 模板与可选的 `.icns` 图标配置。
-- Windows MSVC DLL 模式：`python build/build.py build --dll` 把 duilib 编为
+- Windows MSVC DLL 模式：`python3 build/build.py build --dll` 把 duilib 编为
   `bin/duilib*.dll`（x86 为 `duilib32*.dll`，Debug 带 `_d`，导入库统一为
   `lib/<arch>/<Config>/duilib.lib`）；`--dll` 隐含 `--md`，自动准备 Skia
   `.md`/`.mdd`，同时同步 `msvc/PropertySheets/duilib_dll.flag`。Windows 上 SDL
@@ -143,7 +142,7 @@
 - 依赖版本（SDL3）：清单默认 ref 由 `release-3.4.18` tag 改为 `main` 分支
   （该 tag 的源码当前编译报错）；`release-3.4.18` 仍保留在 `refs` 中，需要时可用
   `--sdl-ref release-3.4.18` 临时切换。
-- FreeBSD 构建与打包验证扩展到 Debug/Release 全量（2026-10-29 真机）：
+- FreeBSD 构建与打包验证扩展到 Debug/Release 全量（2026-10-29 FreeBSD 虚拟机）：
   `build.py` 的 Release/Debug 构建、`pack.py` 的 4 个包（Release/Debug × 默认 SDK 与
   `--with-examples`）、4 次 `sdk_package_test.py`（含两次 `--run-examples` 的 C10
   示例启动）与 `doctor`/`test`/`test_build`/`test_pack`/`test_sdk_package`/
@@ -187,8 +186,7 @@
 - 删除 `build/build.md`，构建说明合并到 `build/build-reference.md`。
 - 删除旧的分平台构建脚本（`build_duilib_all_in_one.*`、`msvc_build.bat`、
   `linux_build.sh`、`macos_build.sh`、`freebsd_build.sh`、`msys2_build.sh` 等）：
-  四个平台均已验证新入口后于 2026-10-29 移除，统一使用 `build/build.py`
-  （Windows 可用 `build/build.bat`）。
+  四个平台均已验证新入口后于 2026-10-29 移除，统一使用 `build/build.py`。
 
 ### 修复
 
@@ -369,9 +367,9 @@
 - 依赖准备：Skia 的构建脚本固定调用 `python3`（不认 `python` / `py -3`），而预检此前
   接受 `python` 或 `py -3`，导致问题到编译 Skia 时才暴露。现在缺少 `python3` 时预检
   给出告警，并在实际编译 Skia 前报错终止。
-- 文档与命令示例：macOS/Linux/FreeBSD 通常只有 `python3`，按原文档执行
-  `python build/build.py` 会报 command not found；示例已统一为
-  `python3 build/build.py`，Windows 仍可直接运行 `build\build.bat`。
+- 文档与命令示例：macOS/Linux/FreeBSD 通常只有 `python3`，按旧文档用 `python` 调用
+  `build/build.py` 会报 command not found；示例已统一为
+  `python3 build/build.py`。
 - 依赖准备（macOS）：SDL3 已成功编译安装后仍报 `SDL3 build failed`；就绪检查只认
   `libSDL3.so`，而 macOS 的安装产物是 `libSDL3.dylib`。现在 macOS 平台按 dylib 判断。
 - CEF 示例（macOS）：各 Helper 子目标未应用 duilib 的 include/link 目录，编译时报

@@ -117,25 +117,25 @@ def _requested_lang(argv):
 - `build/test_pack.py`、`build/test_autotest.py`、`build/test_sdk_package.py`：
   断言前固定 `MESSAGES = make_messages('zh_CN')`，避免宿主系统语言影响结果；
   另设英文用例断言关键文案为纯 ASCII。
-- `python build/build.py test`（`unittest discover -s build`）覆盖全部 236 个用例。
+- `python3 build/build.py test`（`unittest discover -s build`）覆盖全部 236 个用例。
 
 ## 验收
 
 1. `PYTHONIOENCODING=ascii` 下，以下命令输出均为纯 ASCII（非 ASCII 字符数为 0）：
 
    ```bat
-   python build/build.py --help --lang en
-   python build/pack.py --help --lang en
-   python build/pack.py --list --lang en
-   python build/release.py --help --lang en
-   python build/release.py clean --list --lang en
-   python build/autotest.py --help --lang en
-   python build/autotest.py --list-presets --lang en
-   python build/sdk_package_test.py --help --lang en
-   python build/sdk_package_test.py --list-scenarios --lang en
+   python3 build/build.py --help --lang en
+   python3 build/pack.py --help --lang en
+   python3 build/pack.py --list --lang en
+   python3 build/release.py --help --lang en
+   python3 build/release.py clean --list --lang en
+   python3 build/autotest.py --help --lang en
+   python3 build/autotest.py --list-presets --lang en
+   python3 build/sdk_package_test.py --help --lang en
+   python3 build/sdk_package_test.py --list-scenarios --lang en
    ```
 
 2. `DUILIB_LANG=zh_CN` / `zh_Hans` 显示中文；`zh_TW` / `zh_HK` / `zh_Hant` 显示英文。
-3. `python build/build.py test` 全部通过。
+3. `python3 build/build.py test` 全部通过。
 4. 扫描五个脚本的非 docstring 中文字面量，仅剩上文「不参与翻译的内容」。
 5. 不提交代码；只保证单元测试与上述命令通过。

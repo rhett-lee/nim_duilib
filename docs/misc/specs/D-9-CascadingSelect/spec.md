@@ -159,7 +159,7 @@ struct CascadingSelectValue
 2. 文档校验：
 
 ```powershell
-python .trae/skills/nim-duilib/scripts/verify_docs.py --repo . --extra docs examples/controls bin/resources/themes/default/controls bin/resources/lang
+python3 .trae/skills/nim-duilib/scripts/verify_docs.py --repo . --extra docs examples/controls bin/resources/themes/default/controls bin/resources/lang
 ```
 
 退出码必须为 0。

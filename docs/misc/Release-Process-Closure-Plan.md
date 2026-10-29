@@ -31,12 +31,12 @@
 新增 `build/release.py`，只做编排，不替代 `build/pack.py`，不执行 git 写操作。
 
 ```
-python build/release.py check
-python build/release.py package --config Release --arch x64 --with-cef --dry-run
-python build/release.py package --config Release --arch x64 --with-cef
-python build/release.py finalize
-python build/release.py clean --list
-python build/release.py clean --version 1.0.2026.1015 --yes
+python3 build/release.py check
+python3 build/release.py package --config Release --arch x64 --with-cef --dry-run
+python3 build/release.py package --config Release --arch x64 --with-cef
+python3 build/release.py finalize
+python3 build/release.py clean --list
+python3 build/release.py clean --version 1.0.2026.1015 --yes
 ```
 
 - `package` 带默认参数调用 `build/pack.py`，输出目录固定为 `dist/<版本>/`；
@@ -236,7 +236,7 @@ r'^\s*#\s*define\s+DUILIB_VER_(MAJOR|MINOR|PATCH|BUILD)\s+(\d+)\b'
 
 ### 13.5 验收
 
-- `python build/pack.py --config Debug --list` 正常，版本为 `1.0.2026.1023`；
+- `python3 build/pack.py --config Debug --list` 正常，版本为 `1.0.2026.1023`；
 - 包名、包内 `VERSION`、`MANIFEST.txt`、CMake 包版本四处一致；
 - 在 `duilib_version.h` 中加入无关宏、注释、版权声明后，解析结果不变；
 - 缺失某个宏或重复定义时，脚本以非 0 退出并给出明确错误；

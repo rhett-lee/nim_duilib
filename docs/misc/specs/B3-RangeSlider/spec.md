@@ -113,7 +113,7 @@
    - 启动 demo → 打开「范围滑块测试」窗口 → 截图确认：双 thumb + 高亮区间 + 垂直示例。
    - 真实鼠标拖动下限/上限 thumb → 截图确认高亮区间随之变化，`rs_event` 标签更新为 `low ~ high`。
    - 点击「重置区间 / 全选区间」按钮 → 标签回显对应范围。
-3. **文档漂移**：`python ".trae/skills/nim-duilib/scripts/verify_docs.py" --repo "c:/develop/nim_duilib" --extra <本次改动的 md 文件>` → 期望「全部命中，未发现文档漂移」。
+3. **文档漂移**：`python3 ".trae/skills/nim-duilib/scripts/verify_docs.py" --repo "c:/develop/nim_duilib" --extra <本次改动的 md 文件>` → 期望「全部命中，未发现文档漂移」。
 4. **盘点表**：确认 B3 行已标注 ✅。
 
 ## 6. 验收标准

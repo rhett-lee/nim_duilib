@@ -9,10 +9,10 @@
   3. C03-C06：配置/架构/运行库/工具链不匹配时必须被 SDK 拒绝。
 
 用法：
-  python build/sdk_package_test.py --list-scenarios
-  python build/sdk_package_test.py --package dist/nim_duilib-...zip
-  python build/sdk_package_test.py --package dist/xxx.zip --no-build
-  python build/sdk_package_test.py --package dist/xxx.zip --scenarios P01,C01 --keep
+  python3 build/sdk_package_test.py --list-scenarios
+  python3 build/sdk_package_test.py --package dist/nim_duilib-...zip
+  python3 build/sdk_package_test.py --package dist/xxx.zip --no-build
+  python3 build/sdk_package_test.py --package dist/xxx.zip --scenarios P01,C01 --keep
 
 退出码：0 全部通过（允许 SKIP）、1 存在 FAIL、2 全部 SKIP。
 """

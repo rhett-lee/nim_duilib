@@ -130,7 +130,7 @@
    - 启动 demo → 打开「控件测试」→ 点击「Stepper Demo」→ 截图确认：水平 4 步 + 垂直 3 步，节点序号/对勾、连接线、标题/描述显示正确。
    - 点击"下一步 / 上一步 / 跳到第3步 / 重置"→ 截图确认节点状态（已完成/进行中/待开始）与 `step_event` 标签同步更新。
    - 直接点击某个步骤节点 → 确认跳转生效。
-3. **文档漂移**：`python ".trae/skills/nim-duilib/scripts/verify_docs.py" --repo "c:/develop/nim_duilib" --extra <本次改动的 md 文件>` → 期望「全部命中，未发现文档漂移」。
+3. **文档漂移**：`python3 ".trae/skills/nim-duilib/scripts/verify_docs.py" --repo "c:/develop/nim_duilib" --extra <本次改动的 md 文件>` → 期望「全部命中，未发现文档漂移」。
 4. **盘点表 / 计划**：确认 B4 行已标注 ✅、D-6 已勾选。
 
 ## 6. 验收标准

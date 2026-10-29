@@ -3,7 +3,7 @@
 > 复核日期：2026-10-29（首次建立 2026-10-24，随后续组件与素材复核更新）
 > 复核范围：`build/pack.py` 实际收集、随发布包以二进制形式分发的组件；
 > 仅源码引用、默认未启用或未随包的组件单独注明。
-> 依据：`python build/pack.py --config Debug --arch x64 --list` 的收集结果、
+> 依据：`python3 build/pack.py --config Debug --arch x64 --list` 的收集结果、
 > Skia 构建参数（`skia/out/llvm.x64.*/args.gn`）与构建产物、
 > `licenses/` 下的许可文本，以及 `bin/resources`（4.2 MB / 409 个文件）与
 > `duilib/third_party/libpag/licenses/` 的来源核对。
@@ -78,7 +78,7 @@
 
 - [x] **新增随包二进制组件或第三方资源时同步许可**：登记流程已写入
   [Release-Checklist.md](Release-Checklist.md) 第 1 节（准备）与第 5 节（finalize 校验）：
-  1. 出包前执行 `python build/pack.py --config <Config> --arch <arch> [特性开关] --list`，
+  1. 出包前执行 `python3 build/pack.py --config <Config> --arch <arch> [特性开关] --list`，
      把清单中的二进制与资源产物逐项对照本表；
   2. 新增组件必须同时补齐 `licenses/<组件>.LICENSE.*`、`THIRD-PARTY-NOTICES.md`
      与 `THIRD-PARTY-NOTICES.en.md` 中的同名行，以及本表的一行，并在本文件末尾的

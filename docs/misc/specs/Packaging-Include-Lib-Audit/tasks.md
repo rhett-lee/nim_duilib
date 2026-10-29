@@ -32,8 +32,8 @@
 
 ## T5 验证
 
-- [x] `python -m py_compile build/pack.py`
+- [x] `python3 -m py_compile build/pack.py`
 - [x] 闭包预演：Windows 245、Windows+SDL 246、Windows+CEF 270、Unix 238、Unix+CEF 263；
       除 Windows 非 SDL 的 SDL 条件包含外 0 缺失。
-- [x] `python build/pack.py --config Debug --list` 核对头文件数、库数、`bin/WebView2Loader.dll`。
+- [x] `python3 build/pack.py --config Debug --list` 核对头文件数、库数、`bin/WebView2Loader.dll`。
 - [x] 实际打包到临时目录并解压抽查文件存在性与 MANIFEST 文案。

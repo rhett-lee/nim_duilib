@@ -1,8 +1,8 @@
 {
   "messages": {
     "lang.non_utf8_fallback": {
-      "en": "[WARN] Non-UTF-8 console; falling back to English. Run 'chcp 65001' or use build.bat.",
-      "zh_CN": "[WARN] 控制台不是 UTF-8；已回退为英文。请执行 'chcp 65001' 或使用 build.bat。"
+      "en": "[WARN] Non-UTF-8 console; falling back to English. Run 'chcp 65001' or use the build entry point.",
+      "zh_CN": "[WARN] 控制台不是 UTF-8；已回退为英文。请执行 'chcp 65001' 或使用构建入口。"
     },
     "preflight.cmake_too_old": {
       "en": "[ERROR] CMake 3.24 or newer is required",
@@ -1325,8 +1325,8 @@
       "zh_CN": "dist/ 不存在，无需清理"
     },
     "rel.clean_needs_yes": {
-      "en": "[ERROR] deletion requires an explicit --yes: python build/release.py clean --version %s --yes",
-      "zh_CN": "[ERROR] 删除需要显式 --yes：python build/release.py clean --version %s --yes"
+      "en": "[ERROR] deletion requires an explicit --yes: python3 build/release.py clean --version %s --yes",
+      "zh_CN": "[ERROR] 删除需要显式 --yes：python3 build/release.py clean --version %s --yes"
     },
     "rel.clean_current_refused": {
       "en": "[ERROR] refusing to delete the current version directory: %s",
@@ -1361,8 +1361,8 @@
       "zh_CN": "默认不删除任何内容；如需删除旧版本："
     },
     "rel.clean_command": {
-      "en": "  python build/release.py clean --version <version> --yes",
-      "zh_CN": "  python build/release.py clean --version <版本> --yes"
+      "en": "  python3 build/release.py clean --version <version> --yes",
+      "zh_CN": "  python3 build/release.py clean --version <版本> --yes"
     },
     "rel.config_invalid": {
       "en": "config must be Release or Debug: %r",

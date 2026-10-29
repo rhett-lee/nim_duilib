@@ -115,7 +115,7 @@ RichEdit 的数字能力是 `int64_t` + `number_only` 输入过滤，直接改�
    - 显示为 `$ 1,234.50 kg`；
    - 输入 `abc` 后失焦恢复原值；
    - 切换英文/中文、浅色/深色、100%/150% DPI 显示正常。
-3. `python .trae/skills/nim-duilib/scripts/verify_docs.py --extra docs` 零漂移。
+3. `python3 .trae/skills/nim-duilib/scripts/verify_docs.py --extra docs` 零漂移。
 
 ## 六、验收标准
 

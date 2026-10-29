@@ -114,7 +114,7 @@ nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109
 
 ### 3.2 常用命令
 
-以下命令在仓库根目录执行；Windows 上可把 `python3` 换成 `python`。
+以下命令在仓库根目录执行，统一使用 `python3`。
 
 | 命令 | 作用 |
 | :--- | :--- |
@@ -174,7 +174,7 @@ nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109
 | P04 | `package.metadata` | 包级 | 包名符合命名规则 | 包名中的版本/平台/架构/配置与 CMake、`VERSION`、`MANIFEST.txt` 一致；`IS_DLL`/`HAS_SDL`/`HAS_CEF`/`HAS_WEBVIEW2`/`HAS_JPEG` 在包名、CMake 元数据、实际文件三处一致；示例标志；MinGW 变体；MSVC 运行库规则。macOS 例外：`-cef` 表示 CEF 示例 App Bundle（内嵌 Framework）随包，`HAS_CEF` 必须为 0（SDK 不提供 CEF 开发文件） | 无；包名无法解析也判 FAIL |
 | P05 | `package.integration` | 包级 | 任意包 | `*.cmake` 无未替换的 `@...@` 占位符；`nim_duilibConfigVersion.cmake` 含 `PACKAGE_VERSION`；Windows 包有 `msvc/manifest/duilib.{x64,x86,arm64}.manifest` 且 XML 可解析；MSVC 包还有 `msvc/nim_duilib.props`、`.targets`、`.sdk.props` 及 4 个属性键 | 无 |
 | P06 | `package.forbidden` | 包级 | 任意包 | 不含 `.pdb`/`.ilk`/`.exp`/`.obj`/`.o`；不含 `cef_sandbox.lib`；`include/` 下无 `.cpp`；无 `bin/resources.zip`；未声明 CEF 时不含 CEF 头；未声明 SDL 时不含 `include/SDL3/` | 无 |
-| P07 | `package.verify-cli` | 包级 | 任意包，且 `pack.py` 可运行 | `python build/pack.py --verify <原包>` 返回 0 | 无；`pack.py` 缺失或无法执行会 FAIL |
+| P07 | `package.verify-cli` | 包级 | 任意包，且 `pack.py` 可运行 | `python3 build/pack.py --verify <原包>` 返回 0 | 无；`pack.py` 缺失或无法执行会 FAIL |
 | P08 | `package.docs` | 包级 | 任意包 | `docs/` 至少一份 `.md`；`LICENSES/` 非空；`THIRD-PARTY-NOTICES.md` 与 `.en.md` 均存在；运行资源 `global.xml` 存在 | 无 |
 | C01 | `consumer.static` | 需编译 | 静态包；未 `--no-build`；平台与工具链可用 | 用 `build/sdk_test` 配置（`find_package(nim_duilib CONFIG)` + `SDK_EXPECT_*` 自检）→ 编译 → 找到 `sdk_consumer` → 可执行文件同级有 `resources/` → 运行返回 0 且输出 `SDK_TEST_RESULT=ok` → `SDK_TEST_FEATURES` 与包能力一致 | DLL 包改由 C02；`--no-build`；平台不同；MSVC 包不在 Windows；MinGW 包无 `MSYSTEM`；`mingw-llvm` 的 `CC`/`CXX` 不含 `clang`；工具链不可用 |
 | C02 | `consumer.dll` | 需编译 | DLL 包；其余条件同 C01 | 同 C01，并额外检查 `bin/` 下所有顶层 DLL 已复制到可执行文件同级 | 静态包改由 C01；其余同 C01 |

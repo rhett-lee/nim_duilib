@@ -90,15 +90,15 @@ The 22 example-private theme directories excluded in SDK mode are:
 ### Command line interface
 
 ```
-python build/pack.py                      # Release SDK package (no examples)
-python build/pack.py --config Debug       # Debug SDK package (name gains -debug)
-python build/pack.py --with-examples      # SDK plus example programs
-python build/pack.py --with-cef           # additionally include the CEF development set
-python build/pack.py --with-sdl           # additionally include SDL3 on Windows
-python build/pack.py --list               # print the file list that would be collected, do not package
-python build/pack.py --format tgz         # force tgz (Windows defaults to zip)
-python build/pack.py --lib-dir lib/x86/Debug  # explicit library directory
-python build/pack.py --out-dir dist       # specify the output directory
+python3 build/pack.py                      # Release SDK package (no examples)
+python3 build/pack.py --config Debug       # Debug SDK package (name gains -debug)
+python3 build/pack.py --with-examples      # SDK plus example programs
+python3 build/pack.py --with-cef           # additionally include the CEF development set
+python3 build/pack.py --with-sdl           # additionally include SDL3 on Windows
+python3 build/pack.py --list               # print the file list that would be collected, do not package
+python3 build/pack.py --format tgz         # force tgz (Windows defaults to zip)
+python3 build/pack.py --lib-dir lib/x86/Debug  # explicit library directory
+python3 build/pack.py --out-dir dist       # specify the output directory
 ```
 
 Running `pack.py` directly writes to `dist/`; `release.py package` always writes
@@ -290,7 +290,7 @@ documents and are excluded:
   signing, notarization, build scripts);
 - `Getting-Started.md` / `Getting-Started.en.md` and `Examples.md` /
   `Examples.en.md`: library-internal quick-start and example descriptions;
-- `感谢名单.txt`: project credits.
+- The credits list (file name `感谢名单.txt`).
 
 `Summary.md` / `Summary.en.md` is the in-package documentation index. Links to
 other directories (`../README.md`, `../build/build-reference.md`, `build/README.md`, `misc/`, etc.) and
@@ -310,7 +310,7 @@ are not written to disk):
 No link is left broken inside the package, while the repository docs stay
 unchanged and still navigate the source tree. The conversion is done by
 `collect_docs()` in `pack.py`; docs are written into zip/tar as virtual files.
-The "文档" (docs) section of `MANIFEST.txt` lists every packaged doc, and
+The docs section of `MANIFEST.txt` lists every packaged doc, and
 `SHA256SUMS` covers all of them.
 
 The exclusion list lives in `DOC_EXCLUDE_FILES` in `pack.py`; new top-level
@@ -369,10 +369,10 @@ When the packaging feature is picked up again, verify in this order:
 
 ```
 # 1. Use list mode to inspect the collection scope first
-python build/pack.py --list
+python3 build/pack.py --list
 
 # 2. Package
-python build/pack.py
+python3 build/pack.py
 
 # 3. Integrity check
 cd dist/<version> && unzip -q nim_duilib-<version>-<system>-<arch>[-feature].zip -d /tmp/check

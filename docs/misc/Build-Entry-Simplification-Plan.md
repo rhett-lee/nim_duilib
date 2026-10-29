@@ -48,7 +48,6 @@ Python 已是 `pack.py` / `release.py` / `autotest.py` 的前置条件，不引�
 ```
 build/
   build.py              # 唯一命令行入口（子命令）
-  build.bat             # Windows 薄封装：寻找 py/python 后转调 build.py
   pack.py               # 出包（保持现状）
   release.py            # 发布流程（保持现状）
   autotest.py           # 自动化（保持现状）
@@ -73,7 +72,7 @@ build/
 
 | 命令 | 作用 |
 | :--- | :--- |
-| `python build/build.py [--config Release\|Debug]` | 默认：自动确保依赖就绪 + 构建**一个**配置（默认 Release）+ 库与示例 |
+| `python3 build/build.py [--config Release\|Debug]` | 默认：自动确保依赖就绪 + 构建**一个**配置（默认 Release）+ 库与示例 |
 | `build.py deps [--config ...] [--force]` | 只准备当前配置所需的 Skia/SDL/CEF |
 | `build.py build [--config ...] [--no-deps] [--target ...]` | 构建一个配置；默认先确保依赖，`--no-deps` 跳过检查 |
 | `build.py test [--config ...]` | 调用 `test_pack.py` / `test_autotest.py` |
@@ -83,8 +82,8 @@ build/
 
 说明：不再提供 `--debug` 别名，统一使用 `--config Debug|Release`；一次调用只构建
 一个配置，需要两种配置时调用两次（见 `Root-CMake-Build-Plan.md` 10.4 第 14 条）。
-**Python 3 是硬性要求**（Skia 的构建流程依赖 `python3`），没有 Python 3 时
-`build.bat` / `build.py` 直接报错并给出安装提示；不提供绕过 Python 的脚本。
+**Python 3 是硬性要求**（Skia 的构建流程依赖 `python3`），缺少时会直接报错并给出
+安装提示；不提供绕过 Python 的脚本。
 SDK 只由 `pack.py` 产出，根工程**不新增 `install()` 目标**。
 
 ### 5.2 自动识别
@@ -123,7 +122,7 @@ SDK 只由 `pack.py` 产出，根工程**不新增 `install()` 目标**。
 4. **引用清理**：删除前全仓库搜索旧脚本名，更新 `README`、`README.en.md`、
    `build-reference.md`、`build-reference.en.md`、`autotest.py` 预设、`.sln` 说明
    及 CI 配置中的调用；
-5. **记录变更**：在 CHANGELOG 写一条“构建入口统一为 `python build/build.py`”，不再提供旧命令。
+5. **记录变更**：在 CHANGELOG 写一条“构建入口统一为 `python3 build/build.py`”，不再提供旧命令。
 
 ## 7. 文档重构
 
@@ -135,17 +134,17 @@ SDK 只由 `pack.py` 产出，根工程**不新增 `install()` 目标**。
 环境要求：CMake 3.24+、Python 3.8+、Git；Windows 另需 Visual Studio 2022+（或 Ninja + clang）。
 
 ## 快速开始
-python build/build.py                 # 首次自动准备 Skia/SDL/CEF，构建 Release 库与示例
-python build/build.py --config Debug  # Debug（与 Release 使用不同构建目录）
-python build/build.py doctor          # 环境自检
-python build/build.py pack            # 出包
+python3 build/build.py                 # 首次自动准备 Skia/SDL/CEF，构建 Release 库与示例
+python3 build/build.py --config Debug  # Debug（与 Release 使用不同构建目录）
+python3 build/build.py doctor          # 环境自检
+python3 build/build.py pack            # 出包
 
 ## 我该用哪个方式？
 | 场景 | 做法 |
-| 只想跑起来 | python build/build.py |
+| 只想跑起来 | python3 build/build.py |
 | 用 Visual Studio | 打开 build/examples.sln（需先准备依赖：build.py deps） |
-| 只编库 | python build/build.py build --target duilib |
-| 出发布包 | python build/build.py pack --with-cef |
+| 只编库 | python3 build/build.py build --target duilib |
+| 出发布包 | python3 build/build.py pack --with-cef |
 | 完整参数 | 见 build-reference.md / build-reference.en.md |
 ```
 
@@ -188,17 +187,17 @@ python build/build.py pack            # 出包
    `--no-deps` 可跳过；
 7. `pack.py`、`release.py`、`autotest.py` 行为不变（需要两种配置时分两次调用），
    测试全绿；
-8. `python -m unittest build/test_build.py` 通过（标准库 unittest，无 pytest 依赖）；
+8. `python3 -m unittest build/test_build.py` 通过（标准库 unittest，无 pytest 依赖）；
 9. `pack.py` 产物包含 `LICENSES/` 与 `THIRD-PARTY-NOTICES.md`；
 10. `build/build.md` 已删除，全仓库无指向它的链接；根 README 首屏只出现
-    `python build/build.py` 与 `python build/build.py --config Debug`，不出现
+    `python3 build/build.py` 与 `python3 build/build.py --config Debug`，不出现
     `--debug` 或 `build` 子命令形式。
 
 ## 10. 风险
 
 | 风险 | 缓解 |
 | :--- | :--- |
-| 新手机器无 Python | Python 3 是硬性要求（Skia 构建依赖）；`build.bat` 依次尝试 `py -3` / `python3`，缺失时报错并给出安装提示；不提供仅调 CMake 的备用脚本 |
+| 新手机器无 Python | Python 3 是硬性要求（Skia 构建依赖）；缺少时报错并给出安装提示；不提供仅调 CMake 的备用脚本 |
 | 旧文档/个人脚本仍引用旧路径 | 删除前全仓库搜索旧脚本名并更新；发布说明给出新命令；不保留转发层 |
 | 入口与 CMake 参数重复 | 所有参数尽量透传，入口不实现构建逻辑 |
 | 旧脚本的隐式默认值丢失 | 删除前逐个比对默认参数，差异点写入 `build.py` 默认值或 `build-reference.md` |

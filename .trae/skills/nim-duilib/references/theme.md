@@ -310,10 +310,10 @@ bkimage="file='../public/shadow/shadow_big.svg' corner='64,64,68,70'"
 rg -n 'SetBkColor\(_T\("(white|black|#)|GetUiColor\(_T\("(white|black)"\)|UiColor\(0xFF' duilib/Control duilib/Core
 
 # 2) 两主题色名集合是否一致（无输出即一致）
-python -c "import re;g=lambda p:set(re.findall(r'<ThemeColor name=\"([^\"]+)\"',open(p,encoding='utf-8-sig').read()));a=g('bin/resources/themes/color_light/global.xml');b=g('bin/resources/themes/color_dark/global.xml');print('only_light=',sorted(a-b));print('only_dark=',sorted(b-a))"
+python3 -c "import re;g=lambda p:set(re.findall(r'<ThemeColor name=\"([^\"]+)\"',open(p,encoding='utf-8-sig').read()));a=g('bin/resources/themes/color_light/global.xml');b=g('bin/resources/themes/color_dark/global.xml');print('only_light=',sorted(a-b));print('only_dark=',sorted(b-a))"
 
 # 3) 抽查两主题同值 token（品牌色/状态色同值正常，text_*/bg_* 同值需确认是否合理）
-python -c "import re;L=lambda p:{m[0]:m[1] for m in re.findall(r'<ThemeColor name=\"([^\"]+)\" value=\"([^\"]+)\"',open(p,encoding='utf-8-sig').read())};a=L('bin/resources/themes/color_light/global.xml');b=L('bin/resources/themes/color_dark/global.xml');print([k for k in a if k in b and a[k]==b[k]])"
+python3 -c "import re;L=lambda p:{m[0]:m[1] for m in re.findall(r'<ThemeColor name=\"([^\"]+)\" value=\"([^\"]+)\"',open(p,encoding='utf-8-sig').read())};a=L('bin/resources/themes/color_light/global.xml');b=L('bin/resources/themes/color_dark/global.xml');print([k for k in a if k in b and a[k]==b[k]])"
 ```
 
 ### 验证方法

@@ -12,9 +12,9 @@
 `build/pack.py` 统一收集与校验，比在根工程里维护一套 `install()` 规则更可控。
 根工程因此**不提供** `install()`，SDK 只由 `pack.py` 产出。
 
-构建统一走 `python3 build/build.py`（旧的 `msvc_build.bat`、`linux_build.sh` 等已废弃）。
-macOS/Linux/FreeBSD 通常没有 `python` 命令；Windows 上可将命令中的 `python3` 换成
-`python`，`build.py` 也可直接运行 `build\build.bat`。
+构建统一走 `python3 build/build.py`（旧的 `msvc_build.bat`、`linux_build.sh` 等已废弃），
+Windows 与 Unix 使用同一形式；Windows 上没有 `python3` 命令时，见根 README 的
+「为什么统一使用 `python3 build/build.py`」。
 `pack.py` 只读取 `--config` 选中的一个库目录，不再合并候选目录或按优先级猜测。
 
 | 平台 | 库目录 |
@@ -30,7 +30,7 @@ macOS/Linux/FreeBSD 通常没有 `python` 命令；Windows 上可将命令中的
 打包前必须先完成对应配置的编译，脚本不会触发编译：
 
 ```
-# 推荐（macOS/Linux/FreeBSD 用 python3；Windows 可运行 build\build.bat）
+# 推荐
 python3 build/build.py --config Release
 
 # 也可以先打开 Visual Studio 解决方案（先运行 build.py deps）
@@ -55,7 +55,7 @@ python3 build/pack.py --with-examples
 
 **DLL 模式**支持两个入口，二者共用 `bin/`、`lib/`：
 
-- **CMake / build.py**：`python build/build.py build --dll`。`--dll` 隐式开启
+- **CMake / build.py**：`python3 build/build.py build --dll`。`--dll` 隐式开启
   `--md`，自动准备并构建所需 Skia（`.md`/`.mdd`），随后配置 `DUILIB_DLL=ON`
   （`add_library(... SHARED)`）。Windows 上 SDL 默认关闭，DLL 模式也不自动
   开启；关闭时 `deps` 不下载 SDL 源码、不构建 SDL3，需要时显式 `--sdl`。

@@ -6,7 +6,7 @@
 
 - 更新日期：2026-10-29
 - 适用版本：新构建系统（`out/<arch>/<Config>` + `lib/<arch>/<Config>` + `bin/`）
-- 命令示例中 Windows 用 `python`，Linux/macOS/FreeBSD 用 `python3`
+- 命令示例统一使用 `python3 build/build.py`
 - 每个组合出包后都必须执行 `pack.py --verify <包>` 校验条目数、文件 SHA 与文档链接
 
 ## 状态标记
@@ -52,7 +52,7 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
 
 | 编号 | 工具链 | 架构/配置 | 关键开关 | 范围 | 命令示例 | 状态 | 备注 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| W-B01 | MSVC | x64 / Debug | 默认（/MT、CEF 142、无 SDL） | 库 + 全部示例 | `python build/build.py build --config Debug` | 通过 | 861/861；过滤其他平台入口后增量构建为 21 次链接，新生成的 exe 均写入 `bin/.build-config/` |
+| W-B01 | MSVC | x64 / Debug | 默认（/MT、CEF 142、无 SDL） | 库 + 全部示例 | `python3 build/build.py build --config Debug` | 通过 | 861/861；过滤其他平台入口后增量构建为 21 次链接，新生成的 exe 均写入 `bin/.build-config/` |
 | W-B02 | MSVC | x64 / Debug | `--cef-version 109` | 库 + 全部示例 | `... --config Debug --cef-version 109` | 通过 | 838/838，109 目标更少 |
 | W-B03 | MSVC | x86 / Debug | 默认 | 库 + 全部示例 | `... --config Debug --arch x86` | 通过 | 861/861 |
 | W-B04 | MSVC | x64 / Release | 默认 | 库 + 全部示例 | `... --config Release` | 通过 | 861/861 |
@@ -80,9 +80,9 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
 | W-B25 | MSVC | x64 / Debug ↔ Release | 静态 ↔ DLL 模式切换 | 模式切换自动清理 | 依次 `build --config Debug`、`build --dll --config Debug`、再静态 | 通过 | 日志含 `dll → mt`，构建树重建、`bin/duilib_d.dll` 删除、`duilib_dll.flag` 同步为 OFF；307/307 得到 `lib/x64/Debug/duilib.lib`（256,775,712 B 静态库）。反向 `mt → dll` 见 W-B23 |
 | W-B26 | MSBuild | x64 / Release | `duilib_dll.flag` | duilib + 第三方 + wrapper | 先无 flag 构建 `build/duilib.sln`，再创建 flag 重建 | 通过 | 静态库 870,484,530 B；加 flag 后 6 个工程 `duilib_crt_mode.txt` 变为 `dll`，wrapper/109/第三方与 duilib 全部重编；无 LNK4098/LNK2038；`bin/duilib.dll` 17,366,016 B，导入 `turbojpeg.dll`、`MSVCP140.dll`、`libcef.dll`，导入库 4,349,026 B，`bin/turbojpeg.dll` 自动复制 |
 | W-B27 | MSBuild | arm64 / Release + Debug | VS 解决方案 ARM64 配置（4 个 `.sln` 及 30 个工程） | 库 + 23 个示例 | `msbuild build\duilib.sln /p:Configuration=Release /p:Platform=ARM64 /m`；`msbuild build\examples.sln /p:Configuration=Release /p:Platform=ARM64 /m:2`（Debug 相同） | 通过 | Release：`lib/arm64/Release` 7 个库（`duilib.lib` 828.5 MB，LTCG）、23 个示例全部链接；Debug：`lib/arm64/Debug` 7 个库、`bin/*_d.exe` 23 个；Release/Debug 共 46 个 exe 均 PE `0xAA64`、清单 `processorArchitecture="ARM64"`；4 个 `.sln` 的 ARM64 配置经 `ValidateSolutionConfiguration` 与映射检查（30/30、24/24、7/7、5/5）；`duilib_no_cef.sln` / `examples_no_cef.sln` 的 Release/Debug 也已实际编译通过，各 19 个示例 |
-| W-B28 | MSVC | arm64 / Release + Debug | `--dll` | 库 + 全部示例 | `python build/build.py --arch arm64 --dll`（Debug 加 `--config Debug`） | 通过 | `deps` 自动构建 `llvm.arm64.release.md` / `debug.mdd`；`bin/duilib.dll` 9.9 MB、`duilib_d.dll` 36 MB 均为 PE `0xAA64`；导入库 4.15 / 4.17 MB；46 个 exe 全 `0xAA64` |
+| W-B28 | MSVC | arm64 / Release + Debug | `--dll` | 库 + 全部示例 | `python3 build/build.py --arch arm64 --dll`（Debug 加 `--config Debug`） | 通过 | `deps` 自动构建 `llvm.arm64.release.md` / `debug.mdd`；`bin/duilib.dll` 9.9 MB、`duilib_d.dll` 36 MB 均为 PE `0xAA64`；导入库 4.15 / 4.17 MB；46 个 exe 全 `0xAA64` |
 | W-B29 | MSBuild | arm64 / Release + Debug | `duilib_dll.flag` | duilib + 第三方 + wrapper | 创建 `msvc/PropertySheets/duilib_dll.flag` 后 `msbuild build\duilib.sln /p:Configuration=Release /p:Platform=ARM64 /m:2`（Debug 同） | 通过 | Release `bin/duilib.dll` 17.3 MB（LTCG）、Debug `bin/duilib_d.dll` 27.3 MB，均为 PE `0xAA64`；导入库 `lib/arm64/<Config>/duilib.lib` 4.15 / 4.17 MB；Debug 首次因 E: 盘写满报 `C2471`/`FTK1005`，清理中间产物与 PDB 后重跑 0 error；flag 已删除 |
-| W-B30 | MSVC | x86 / Release | `--sdl` | 库 + 全部示例 | `python build/build.py build --config Release --arch x86 --sdl` | 通过 | 786/786；Skia 用 `llvm.x86.release`；SDL3 按 x86 重建并安装到 `../SDL3`（stamp 含架构，x64 下次 `--sdl` 会自动重建）；`bin/` 23 个示例均为 PE `0x014C` |
+| W-B30 | MSVC | x86 / Release | `--sdl` | 库 + 全部示例 | `python3 build/build.py build --config Release --arch x86 --sdl` | 通过 | 786/786；Skia 用 `llvm.x86.release`；SDL3 按 x86 重建并安装到 `../SDL3`（stamp 含架构，x64 下次 `--sdl` 会自动重建）；`bin/` 23 个示例均为 PE `0x014C` |
 
 构建矩阵执行要点：
 
@@ -102,7 +102,7 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
 - 本轮 DLL 回归结束后恢复静态基线：删除 `msvc/PropertySheets/duilib_dll.flag`、
   `bin/duilib*.dll` 及对应 `.pdb/.ilk`，并用测试前备份覆盖
   `lib/x64/Release`、`lib/x86/Release`、`lib/x86/Debug`；随后
-  `python build/build.py build --config Debug` 重新链接 x64 Debug 静态示例
+  `python3 build/build.py build --config Debug` 重新链接 x64 Debug 静态示例
   （basic/ChildWindow 启动正常，`bin/` 中无 `duilib*.dll`）。
 - 静态 ↔ DLL 模式切换时，`build.py` 读取 `out/<arch>/<Config>/.duilib-build-mode`，
   模式变化会删除整个构建树（含 `libcef_dll_wrapper` 旧 `.obj`）并重新配置；
@@ -122,7 +122,7 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
 
 | 编号 | 内容组合 | 命令示例 | 结果（条目 / 大小） | 状态 |
 | :--- | :--- | :--- | :--- | :--- |
-| W-P01 | x64 Debug + 示例 + CEF 142 | `python build/build.py pack --config Debug --with-examples --with-cef` | 1316 / 412.3 MB | 通过 |
+| W-P01 | x64 Debug + 示例 + CEF 142 | `python3 build/build.py pack --config Debug --with-examples --with-cef` | 1316 / 412.3 MB | 通过 |
 | W-P02 | x64 Debug + 示例 + CEF 109 | `... --config Debug --with-examples --with-cef --cef-version 109` | 1134 / 373.5 MB | 通过 |
 | W-P03 | x86 Debug + 示例 + CEF 142 | `... --config Debug --arch x86 --with-examples --with-cef` | 1314 / 368.1 MB | 通过 |
 | W-P04 | x64 Release + 示例 + CEF 142 | `... --config Release --with-examples --with-cef` | 1318 / 328.2 MB | 通过（含 C10） |
@@ -199,7 +199,7 @@ Unix 平台一次只构建一个配置，库输出到 `lib/<Config>`；`--md` �
 本轮环境：Linux x64（VMware 虚拟机）、CMake 3.31、Ninja、gcc（另验证 clang）；
 `/tmp` 为 1.9 GiB tmpfs 且已写满，包测试改将临时目录放到 `--out-dir` 下（见 §7 修复表）。
 
-2026-10-28 Linux 真机复测：Release/Debug 构建、6 个出包、8 次包测试（含两次
+2026-10-28 Linux 虚拟机复测：Release/Debug 构建、6 个出包、8 次包测试（含两次
 `--run-examples`），以及 `build.py doctor/test`、`test_build.py`、`test_pack.py`、
 `test_sdk_package.py`、`test_autotest.py`、`autotest.py` 全部通过（命令见 3.3）。
 
@@ -207,11 +207,11 @@ Unix 平台一次只构建一个配置，库输出到 `lib/<Config>`；`--md` �
 
 | 编号 | 平台 / 工具链 | 架构/配置 | 关键开关 | 命令示例 | 状态 | 备注 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| L-B01 | Linux gcc | x64 / Release | 默认（SDL 默认开启） | `python3 build/build.py --config Release` | 通过 | 2026-10-28 真机；`python3 build/build.py` 同义 |
-| L-B02 | Linux clang | x64 / Release | 默认 | `CC=clang CXX=clang++ python3 build/build.py` | 通过 | 2026-10-28 真机；仅验证构建，未做 clang 出包与包测试（预检与 Skia 工具链优先 clang） |
-| L-B03 | Linux | x64 / Debug | 默认 | `python3 build/build.py --config Debug` | 通过 | 2026-10-28 真机；切换配置后重新链接 |
+| L-B01 | Linux gcc | x64 / Release | 默认（SDL 默认开启） | `python3 build/build.py --config Release` | 通过 | 2026-10-28 虚拟机；`python3 build/build.py` 同义 |
+| L-B02 | Linux clang | x64 / Release | 默认 | `CC=clang CXX=clang++ python3 build/build.py` | 通过 | 2026-10-28 虚拟机；仅验证构建，未做 clang 出包与包测试（预检与 Skia 工具链优先 clang） |
+| L-B03 | Linux | x64 / Debug | 默认 | `python3 build/build.py --config Debug` | 通过 | 2026-10-28 虚拟机；切换配置后重新链接 |
 | L-B04 | Linux | arm64 / Release | 默认 | `--arch arm64` | 不安排 | 无 arm64 真机（2026-10-28 决策：arm64 只测 Windows） |
-| L-B05 | Linux | x64 / Release | `--with-cef` 打包 | `pack --with-examples --with-cef` | 通过 | 2026-10-28 真机；CEF 示例包生成并通过包测试 |
+| L-B05 | Linux | x64 / Release | `--with-cef` 打包 | `pack --with-examples --with-cef` | 通过 | 2026-10-28 虚拟机；CEF 示例包生成并通过包测试 |
 | L-B06 | Linux | x64 / Release | 运行验证 | 解包运行示例（C10） | 通过 | `--run-examples` 启动 `bin/basic` 3 秒后仍在运行 |
 
 ### 3.2 打包与包测试
@@ -233,7 +233,7 @@ Unix 平台一次只构建一个配置，库输出到 `lib/<Config>`；`--md` �
 Linux 上 C02（DLL）、C04（架构）、C05/C06（MSVC 工具链）、C11（macOS Bundle）按平台
 SKIP，属预期。
 
-### 3.3 2026-10-28 Linux 真机复测命令（全部通过）
+### 3.3 2026-10-28 Linux 虚拟机复测命令（全部通过）
 
 | 序号 | 命令 | 覆盖 |
 | ---: | :--- | :--- |
@@ -271,10 +271,10 @@ SKIP，属预期。
 FreeBSD 复用 Linux/X11 分支；一次只构建一个配置，库输出到 `lib/<Config>`。
 不支持 CEF，`--with-cef` 直接报错。
 
-本轮环境：FreeBSD x64 真机、系统 clang、cmake、ninja、`python3`；Skia 为
+本轮环境：FreeBSD x64 虚拟机、系统 clang、cmake、ninja、`python3`；Skia 为
 `llvm.x64.release`（Unix 侧只构建一份 release 版，Debug 构建共用）。
 
-2026-10-29 FreeBSD 真机复测：Release/Debug 构建、4 个出包、4 次包测试（含两次
+2026-10-29 FreeBSD 虚拟机复测：Release/Debug 构建、4 个出包、4 次包测试（含两次
 `--run-examples`），以及 `build.py doctor/test`、`test_build.py`、`test_pack.py`、
 `test_sdk_package.py`、`test_autotest.py`、`autotest.py` 全部通过（命令见 4.3）；
 `pack.py --with-cef` 按预期报错（CEF 不支持 FreeBSD）。
@@ -283,8 +283,8 @@ FreeBSD 复用 Linux/X11 分支；一次只构建一个配置，库输出到 `li
 
 | 编号 | 架构/配置 | 关键开关 | 命令示例 | 状态 | 备注 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| F-B01 | x64 / Release | 默认（SDL 默认开启） | `python3 build/build.py --config Release` | 通过 | 2026-10-29 真机；`python3 build/build.py` 同义 |
-| F-B02 | x64 / Debug | 默认 | `--config Debug` | 通过 | 2026-10-29 真机；切换配置后重新链接 |
+| F-B01 | x64 / Release | 默认（SDL 默认开启） | `python3 build/build.py --config Release` | 通过 | 2026-10-29 虚拟机；`python3 build/build.py` 同义 |
+| F-B02 | x64 / Debug | 默认 | `--config Debug` | 通过 | 2026-10-29 虚拟机；切换配置后重新链接 |
 | F-B03 | x64 / Release | `--with-cef` | `python3 build/pack.py --with-cef` | 通过（负向） | 按预期报错：FreeBSD 上游无 Chromium 构建，不支持 CEF |
 | F-B04 | x64 / Release + Debug | 运行验证 | 解包运行示例（C10） | 通过 | `--run-examples` 启动 `bin/basic` 3 秒后仍在运行 |
 
@@ -305,7 +305,7 @@ FreeBSD 复用 Linux/X11 分支；一次只构建一个配置，库输出到 `li
 FreeBSD 上 C02（DLL）、C04（架构）、C05/C06（MSVC 工具链）与 C11（macOS Bundle）
 按平台 SKIP，与 Linux 一致，属预期；此前 FreeBSD 无 CEF，CEF 相关用例同样跳过。
 
-### 4.3 2026-10-29 FreeBSD 真机复测命令（全部通过）
+### 4.3 2026-10-29 FreeBSD 虚拟机复测命令（全部通过）
 
 | 序号 | 命令 | 覆盖 |
 | ---: | :--- | :--- |
@@ -419,7 +419,7 @@ Skia `llvm.x64.release`、SDL3 `main`、CEF 142/x64。
 
 | 编号 | 命令 | 覆盖内容 | 状态 | 备注 |
 | :--- | :--- | :--- | :--- | :--- |
-| G-01 | `build.py doctor` | 工具链、版本清单、依赖目录、预检 | 通过 | Windows 本轮；Linux 2026-10-28、FreeBSD 2026-10-29、macOS 2026-10-28 真机通过 |
+| G-01 | `build.py doctor` | 工具链、版本清单、依赖目录、预检 | 通过 | Windows 本轮；Linux 2026-10-28 虚拟机通过；macOS 2026-10-28 真机通过；FreeBSD 2026-10-29 虚拟机通过 |
 | G-02 | `build.py deps --offline` | 离线采纳已有 Skia/CEF/SDL3；本地源码不在清单 ref 上时先切到本地已有的提交 | 通过 | 不访问网络，stamp 校验；Windows 实测 SDL `main` ↔ `release-3.4.18` 双向切换均可用 |
 | G-03 | `build.py clean` | 删除整个 `out/`；`--build-dir` 可只清理指定构建目录 | 通过 | dry-run 仅打印路径 |
 | G-04 | `build.py clean --deps --dry-run` | 展示依赖清理范围 | 通过 | 不会删除源码克隆 |
@@ -441,7 +441,7 @@ Skia `llvm.x64.release`、SDL3 `main`、CEF 142/x64。
 | Linux 包测试（`sdk_package_test.py`） | 8 / 8 | 全部通过（含 Release/Debug 示例包的 `--run-examples`，`--out-dir ./temp`） |
 | Linux 脚本测试（`doctor`/`test`/`test_*`/`autotest`） | 7 项 | 全部通过（见 3.3） |
 | Linux 示例启动/运行验证（`--run-examples`） | 2 次 | 通过：Release、Debug 示例包均 `[PASS] C10 examples.smoke`（L-T01/L-T02） |
-| FreeBSD x64 Release/Debug 构建 | 2 / 2 | 通过（2026-10-29 真机，命令见 4.3） |
+| FreeBSD x64 Release/Debug 构建 | 2 / 2 | 通过（2026-10-29 虚拟机，命令见 4.3） |
 | FreeBSD x64 出包 | 4 个包 | 全部通过（Release/Debug × 仅库/示例） |
 | FreeBSD 包测试（`sdk_package_test.py`） | 4 / 4 | 全部通过（含 Release/Debug 示例包的 `--run-examples`，`--out-dir ./temp`） |
 | FreeBSD 脚本测试（`doctor`/`test`/`test_*`/`autotest`） | 7 项 | 全部通过（见 4.3） |
@@ -536,10 +536,10 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
    2026-10-24 生成的旧 `dist/` DLL 包（含 `/MT` 的 `turbojpeg-static.lib`）已删除，
    `dist/` 中只保留本轮通过校验的新 DLL 包（W-P18 ~ W-P21、W-P22）。
 3. Linux x64 已完成 Release/Debug 构建、6 个出包、8 次包测试（含下游工程接入 C01 与
-   `--run-examples` 的 C10）与全部脚本测试（2026-10-28 真机复测）；clang 工具链已验证
+   `--run-examples` 的 C10）与全部脚本测试（2026-10-28 虚拟机复测）；clang 工具链已验证
    Release 构建（未出包）；arm64 不安排（无真机）。FreeBSD x64 已完成 Release/Debug
    构建、4 个出包、4 次包测试（含两次 `--run-examples`）与全部脚本测试
-   （2026-10-29 真机复测），CEF 按平台不支持（`--with-cef` 报错属预期）。
+   （2026-10-29 虚拟机复测），CEF 按平台不支持（`--with-cef` 报错属预期）。
 4. macOS x64 的 Release/Debug 构建、`basic.app`（`Info.plist` 保留、切换配置后首次启动
    正常、只改资源的增量同步）、6 个出包、8 次包测试（含两次 `--run-examples`）与全部脚本
    测试均已通过（2026-10-28 真机复测）；arm64 不安排（无 arm64 真机）。
@@ -572,7 +572,7 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
    - 第 13 条 `--skia-ref` 分支：已确认 `build.py doctor` 的 `_check_source_ref()` 只读
      `rev-parse` 做状态报告，不 fetch、不 checkout；实际切换只在 `deps`/构建阶段由
      `_duilib_ensure_git_ref()` 完成，不会留在 detached HEAD。
-   说明：2026-10-28 的 Linux/macOS 真机复测跑过 Release/Debug 双配置构建与出包
+   说明：2026-10-28 的 Linux 虚拟机、macOS 真机复测跑过 Release/Debug 双配置构建与出包
    （第 8/9 条的运行场景已被覆盖），但当时没有单独记录「第二次 `deps` 不重建 SDL3」
    「改 Skia 后示例重新链接」这两个观测点；Windows 侧对应逻辑（补丁归档恢复、ref 切换、
    stamp 复用）已在 §7 的回归中实测。本轮起不再把这几条列入待办，后续有 Unix 环境时
@@ -590,7 +590,7 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
     改为简易双语：简体（`zh`/`zh_CN`/`zh_Hans`）显示中文，其余区域（含
     `zh_TW`/`zh_HK`/`zh_Hant`）显示英文；文案集中在 `cmake/i18n/messages.json`，
     五个入口均支持 `--lang`，语言在 argparse 之前解析。`PYTHONIOENCODING=ascii`
-    下 `--help` 与列表命令（加 `--lang en`）无中文，`python build/build.py test`
+    下 `--help` 与列表命令（加 `--lang en`）无中文，`python3 build/build.py test`
     236 个用例通过；原任务中的两个 `.sh` 已随 `build/legacy/` 清理删除。
     `release.py` 的 `check`/`package`/`finalize`/`clean` 全流程已于 2026-10-29 实测
     通过（含失败路径，P3-5 完成，记录见 `Packaging-Follow-Up-Items.md`）。

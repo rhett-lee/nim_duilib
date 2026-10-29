@@ -84,5 +84,5 @@
 ## 6. 验证命令
 
 - [x] `MSBuild "build\examples.sln" /p:Configuration=Debug /p:Platform=x64 /clp:ErrorsOnly /m:1 /nologo` 退出码 0。
-- [x] `python .trae/skills/nim-duilib/scripts/verify_docs.py --repo . --extra docs examples/controls bin/resources/themes/default/controls bin/resources/lang` 退出码 0（扫描 191 个文档，全部命中）。
+- [x] `python3 .trae/skills/nim-duilib/scripts/verify_docs.py --repo . --extra docs examples/controls bin/resources/themes/default/controls bin/resources/lang` 退出码 0（扫描 191 个文档，全部命中）。
 - [x] 未执行 `git commit`（由用户手动提交）。

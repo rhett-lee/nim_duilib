@@ -258,7 +258,7 @@ function(_duilib_check_deps_crt what dir)
             "  ${dir}\n"
             "  已构建: ${_stamp_crt}\n"
             "  当前:   ${_expected_crt}\n"
-            "Hint: 用相同的 DUILIB_MD 重新执行 'python build/build.py deps'，"
+            "Hint: 用相同的 DUILIB_MD 重新执行 'python3 build/build.py deps'，"
             "或改用与依赖匹配的构建目录。")
     endif()
 endfunction()
