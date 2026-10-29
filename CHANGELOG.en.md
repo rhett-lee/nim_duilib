@@ -150,6 +150,17 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   binary packages were confirmed not to contain `LICENSES.chromium.html`, whose size
   is estimated at the 10 MB level (1–2 MB when zipped), so it stays out of the
   default package and can be added manually from a matching Chrome/Chromium build.
+- Rehearsed the full `release.py` flow (2026-10-29, P3-5): `check` passed all four
+  gates (version, work tree, tags and both CHANGELOGs); `package --dry-run` verified
+  the commands and package names for three combinations, and a real run produced
+  `nim_duilib-1.0.2026.1023-win-x64.zip` (548 files / 164.6 MB, 34.3 MB zipped,
+  548 entries with matching SHA256); `finalize` validated all nine packages under
+  `dist/1.0.2026.1023/` (2.0 GB) and generated `SHA256SUMS.txt` plus bilingual
+  `RELEASE-NOTES`; `clean --list` listed the version directory without deleting
+  anything. Failure paths also returned 1 as expected: dirty work tree, existing
+  tag, non-increasing version, missing CHANGELOG and missing version entry in
+  `check`; missing directory and a corrupt archive in `finalize`; and refusal to
+  delete the current version, missing `--yes` and a missing directory in `clean`.
 
 ### Changed
 

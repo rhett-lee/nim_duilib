@@ -496,8 +496,8 @@
 ### P3：本轮剩余跟进项（2026-10-29）
 
 > 建立依据：对 P0～P2 的逐项复核。功能与验证层面只剩以下 6 项，其余条目均已
-> `[x]`，或按决策 `[-]` / `[~]` 关闭。截至 2026-10-29，P3-1、P3-2、P3-4 与 P3-6
-> 已完成，剩余 P3-3、P3-5。
+> `[x]`，或按决策 `[-]` / `[~]` 关闭。截至 2026-10-29，P3-1、P3-2、P3-4、P3-5 与
+> P3-6 已完成，剩余 P3-3。
 
 #### P3-1 Windows 示例包的包内启动冒烟（C10）
 
@@ -549,9 +549,26 @@
 
 #### P3-5 `release.py` 全流程演练
 
-- [ ] 发版前完整执行 `check → package → finalize → clean --list` 并记录结果。
-  现状：`build/test_*.py` 没有 release 相关的自动化用例，文档只给出步骤
-  （P0-5 的验收未附执行记录）。
+- [x] 已完成（2026-10-29）：`check → package → finalize → clean --list` 全流程执行并记录。
+  - `check`：工作区干净、版本 `1.0.2026.1023`、无 `v*` tag、中英 CHANGELOG 均含当前版本，
+    四项全部 `[OK]`，退出码 0；
+  - `package --dry-run`：核对 3 个组合的命令与包名（x64 默认、x64 示例、
+    x86 SDL 示例），输出 `dist/1.0.2026.1023` 与预期包名一致；
+  - `package`（实际执行，x64 Release 默认包）：548 文件 / 164.6 MB，产物
+    `nim_duilib-1.0.2026.1023-win-x64.zip`（34.3 MB）；包体检 548 条目
+    （548 文件 / 0 链接）、246 个头文件、18 个库，SHA 全匹配；
+  - `finalize`：`dist/1.0.2026.1023/` 下 9 个包（2.0 GB，含既有 8 个包与本次新包）
+    全部通过 SHA256、必备文件与文档链接校验，生成 `SHA256SUMS.txt` 与
+    `RELEASE-NOTES.md` / `RELEASE-NOTES.en.md`；
+  - `clean --list`：正确列出 `1.0.2026.1023  9 个包  2.0 GB（当前版本）`，不删除文件；
+  - 负向路径（均退出码 1）：`clean` 拒绝删除当前版本、缺少 `--yes`、目录不存在；
+    `check` 的脏工作区、已存在 tag、版本未严格递增、缺少 `CHANGELOG.en.md`、
+    版本不在 CHANGELOG 五类；`finalize` 的目录不存在与坏压缩包；
+    `clean --version <非当前版本> --yes` 对临时目录可正常删除。
+  - 演练环境整理：dist 由平铺改为 `dist/1.0.2026.1023/`（与 `release.py` 约定一致），
+    临时负向用例目录与临时 tag 均已删除，主仓库工作区干净。
+  - 现状补充：`build/test_*.py` 仍无 release 自动化用例，本次以手工演练覆盖
+    （P0-5 的验收记录由此补齐）。
 
 #### P3-6 许可合规遗留项
 
@@ -577,12 +594,13 @@
 
 1. P3-1 Windows 示例包 C10 冒烟已完成（2026-10-29：六个示例包全部通过）；
 2. P3-2 x86 SDL3 库与出包组合已完成（2026-10-29：W-P27，P0-1 收口）；
-3. P3-3 脚本控制台英文化（P3-4 的 `build/legacy/` 清理已于 2026-10-29 完成）；
-4. P3-6 许可合规遗留已核对完成（2026-10-29）；发版前执行 P3-5 `release.py` 全流程演练。
+3. P3-6 许可合规遗留（2026-10-29）与 P3-5 `release.py` 全流程演练（2026-10-29，
+   `check` → `package` → `finalize` → `clean`，含失败路径）已完成；
+4. 剩余 P3-3 脚本控制台英文化（P3-4 的 `build/legacy/` 清理已于 2026-10-29 完成）。
 
 > P0-2 已实施（2026-10-25）；P0-1 已于 2026-10-29 收口（x86 SDL 组合补齐）；
 > P0-3、P0-5、P1、P2 均已收口；P0-4、P2-5 已明确关闭，不再排期。
-> P3-1、P3-2、P3-4、P3-6 已完成，剩余 P3-3、P3-5。
+> P3-1、P3-2、P3-4、P3-5、P3-6 已完成，剩余 P3-3。
 
 ## 五、更新记录
 
@@ -657,4 +675,5 @@
 | 2026-10-29 | P3-1 部分完成：Windows 首次执行包内示例启动（C10）。x64 Release + CEF 示例包 `nim_duilib-1.0.2026.1023-win-x64-cef-examples.zip`（1318 条目 / 328.2 MB）`--verify` SHA 全匹配，`sdk_package_test.py --scenarios C10 --run-examples` 报 `[PASS] C10 examples.smoke`（`bin/basic.exe` 启动 3 秒后仍在运行，PASS=1 / FAIL=0 / SKIP=0）；SDL、DLL、无 CEF 三个变体待补 |
 | 2026-10-29 | P3-1 完成：补齐 SDL、无 CEF 与 DLL 组合，连同前一轮 x64 CEF 包共 5 个示例包的 C10 全部通过 —— `win-x64-sdl-cef-examples.zip`（1398 条目 / 352.9 MB）、`win-x64-examples.zip`（764 / 121.8 MB）、`win-x64-sdl-cef-examples-dll.zip`（1398 / 210.1 MB）、`win-x64-sdl-cef-examples-dll-debug.zip`（1398 / 219.6 MB），四包 `--verify` SHA 全匹配、C10 均 `[PASS]`；DLL 回归后已恢复静态构建并自动清理 `bin/duilib*.dll` |
 | 2026-10-29 | P3-2 完成：`build.py build --config Release --arch x86 --sdl`（786/786，SDL3 按 x86 重建、Skia `llvm.x86.release`）→ `pack.py --arch x86 --with-examples --with-sdl` 产出 `nim_duilib-1.0.2026.1023-win-x86-sdl-examples.zip`（844 条目 / 128.2 MB）；`--verify` 844 条目 SHA 全匹配，SDK 测试 PASS=16 / FAIL=0 / SKIP=3（含 C10 `bin/basic.exe` 启动）；W-B30/W-P27 回填后 P0-1 收口；测试后恢复 x64 静态基线并重建 x64 `SDL3-static.lib` |
+| 2026-10-29 | P3-5 完成：`release.py` 全流程演练 —— `check` 四项 OK；3 个组合 `--dry-run` 包名正确；实际产出 `nim_duilib-1.0.2026.1023-win-x64.zip`（548 文件 / 164.6 MB，包体检 SHA 全匹配）；`finalize` 校验 `dist/1.0.2026.1023/` 下 9 个包（2.0 GB）全部通过并生成 `SHA256SUMS.txt` 与中英 `RELEASE-NOTES`；`clean --list` 正确列出且不删除；`check` 5 类失败路径、`finalize` 2 类失败路径与 `clean` 3 类保护均按预期退出 1；演练后主仓库工作区干净、无临时 tag |
 | 2026-10-29 | P3-6 完成：`License-Compliance.md` 的 4 条遗留事项全部处理 —— 新增组件登记流程写入 `Release-Checklist.md`；确认 SDK 包固定 `DUILIB_LIB_PAG=0` 并写明启用 libpag 时须随程序分发 `duilib/third_party/libpag/licenses/**`（含 `tgfx.LICENSE.txt`）；`bin/resources` 的 409 个文件按来源分层记录（首提交 144 个上游资源、项目新增控件/示例资源、Lottie/PAG 演示素材），`loading5/6.json` 含 `LottieFiles AE` 元数据已在 `THIRD-PARTY-NOTICES.md` 增加演示素材说明；CEF 官方 109/142 包实测无 `LICENSES.chromium.html`，估算 10 MB 量级（zip 后 1–2 MB），决定默认不随包、需要时按同版本 Chrome/Chromium 手工补充 |

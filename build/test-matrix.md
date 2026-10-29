@@ -587,7 +587,8 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
     通过，C10 启动成功（P3-2 完成，P0-1 收口）。
 11. **`build/` 脚本控制台输出未英文化**：`pack.py`、`autotest.py`、`release.py` 与两个
     `.sh` 仍为中文；`docs/misc/specs/English-Console-Output` 的 T1～T7 未实施（P3-3）。
-    `release.py` 的 `finalize`/`clean` 无实测记录（P3-5）。
+    `release.py` 的 `check`/`package`/`finalize`/`clean` 全流程已于 2026-10-29 实测
+    通过（含失败路径，P3-5 完成，记录见 `Packaging-Follow-Up-Items.md`）。
 
 ## 8. 回归执行顺序建议
 

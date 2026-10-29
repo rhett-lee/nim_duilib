@@ -160,6 +160,14 @@
   Lottie/PAG 演示素材），并在 `THIRD-PARTY-NOTICES.md` 增补演示素材说明；
   CEF 官方 109/142 二进制包实测不含 `LICENSES.chromium.html`，估算其体积为 10 MB
   量级（zip 后 1–2 MB），决定默认不随包、需要时按同版本 Chrome/Chromium 手工补充。
+- 发布流程 `release.py` 完成全流程演练（2026-10-29，P3-5）：`check` 的版本、工作区、
+  tag 与中英 CHANGELOG 四项全部通过；`package --dry-run` 核对 3 个组合的命令与包名，
+  实际产出 `nim_duilib-1.0.2026.1023-win-x64.zip`（548 文件 / 164.6 MB，zip 34.3 MB，
+  包体检 548 条目 SHA 全匹配）；`finalize` 校验 `dist/1.0.2026.1023/` 下 9 个包
+  （2.0 GB）全部通过，生成 `SHA256SUMS.txt` 与中英 `RELEASE-NOTES`；
+  `clean --list` 正确列出版本目录且不删除文件；`check` 的脏工作区、已存在 tag、
+  版本未严格递增、缺少 CHANGELOG、版本无条目 5 类失败路径，`finalize` 的目录缺失与
+  坏压缩包，`clean` 的拒绝删除当前版本、缺少 `--yes`、目录不存在均按预期退出 1。
 
 ### 移除
 
