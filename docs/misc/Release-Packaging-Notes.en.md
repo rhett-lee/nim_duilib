@@ -408,5 +408,5 @@ Measured on Windows on 2026-10-20:
 
 * [Release and Packaging](../Release.en.md) — the complete user-facing guide
 * [Build Process and Scripts](../../build/README.en.md)
-* [Development Plan](Development-Plan.md) — the B-3 entry and the overall roadmap
-* [Project Audit Report](Project-Audit.md) — the original audit conclusion behind B-3
+* [Development Plan](Development-Plan.md) (Chinese) — the B-3 entry and the overall roadmap
+* [Project Audit Report](Project-Audit.md) (Chinese) — the original audit conclusion behind B-3

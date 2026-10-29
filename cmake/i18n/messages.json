@@ -1853,8 +1853,8 @@
       "zh_CN": "LICENSES/ 为空"
     },
     "sdk.notices_missing": {
-      "en": "missing THIRD-PARTY-NOTICES.md",
-      "zh_CN": "缺少 THIRD-PARTY-NOTICES.md"
+      "en": "missing third-party notices: %s",
+      "zh_CN": "缺少第三方声明：%s"
     },
     "sdk.global_xml_missing": {
       "en": "missing bin/resources/themes/default/global.xml",

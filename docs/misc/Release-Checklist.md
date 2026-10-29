@@ -23,7 +23,8 @@
       [许可合规对照表](License-Compliance.md) 的登记流程处理：
       - 以 `python build/pack.py --config <Config> --arch <arch> [特性开关] --list`
         的产物清单逐项对照表格，确认没有未登记项；
-      - 在 `licenses/` 补充许可文本，并在 `THIRD-PARTY-NOTICES.md` 与对照表各补一行；
+      - 在 `licenses/` 补充许可文本，并在中英文两份 `THIRD-PARTY-NOTICES`
+        （`.md` / `.en.md`）与对照表各补一行；
       - 在对照表的「更新记录」注明来源（项目/外部素材库/官方分发包）。
 - [ ] 若本次启用 libpag（非 SDK 默认配置），已随程序分发
       `duilib/third_party/libpag/licenses/` 下的全部文件（含 `libpag.LICENSE.txt`、

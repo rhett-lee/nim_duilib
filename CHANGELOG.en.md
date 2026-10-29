@@ -32,6 +32,9 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   and `README.en.md` now focus on prerequisites and packaging.
 - `build/test_build.py`: standard-library unit tests for the build entry and i18n.
 - Compliance: `THIRD-PARTY-NOTICES.md`; SDK license directory renamed to `LICENSES/`.
+- Compliance: added the English third-party notices `THIRD-PARTY-NOTICES.en.md` at the
+  repository root as a pair with the Chinese file; `pack.py` and the SDK package tests
+  now ship and validate both notices.
 - SDK integration layer (macOS App Bundles): `nim_duilib_copy_runtime` gained a
   `FRAMEWORKS` option (the target must be a `MACOSX_BUNDLE`) that copies the
   package's `lib/libSDL3*.dylib` into `<target>.app/Contents/Frameworks` and

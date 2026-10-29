@@ -10,8 +10,9 @@ already been built; it does not trigger any compilation**.
 
 The SDK is not a plain install layout: besides libraries and headers it must
 carry the downstream integration layers (`msvc/*.props/.targets`,
-`lib/cmake/nim_duilib/`), runtime DLLs, `bin/resources`, `LICENSES/` and
-`THIRD-PARTY-NOTICES.md`, all named per single arch and single configuration.
+`lib/cmake/nim_duilib/`), runtime DLLs, `bin/resources`, `LICENSES/` and the
+`THIRD-PARTY-NOTICES` pair (`.md` / `.en.md`), all named per single arch and single
+configuration.
 `build/pack.py` collects and validates these in one place, which is easier to
 control than maintaining a set of `install()` rules in the root project. The
 root project therefore provides **no** `install()`; the SDK is produced only by
@@ -154,7 +155,8 @@ nim_duilib-<version>-<system>-<arch>[-feature]/
   include/duilib/       Public headers (plus include/SDL3/ when SDL is used)
   lib/                  Static libraries (5 duilib libs + all Skia libs + third-party link libs)
   LICENSES/             Third-party licenses
-  THIRD-PARTY-NOTICES.md  Third-party component notices
+  THIRD-PARTY-NOTICES.md     Third-party component notices (Chinese)
+  THIRD-PARTY-NOTICES.en.md  Third-party component notices (English)
   docs/                 User documentation (top level only; links rewritten for the package layout)
   msvc/                 Downstream integration: props/targets/manifest (x64, x86 and arm64)
   lib/cmake/nim_duilib/ Downstream integration: CMake find_package config
@@ -861,8 +863,8 @@ used directly as a package name or CPack version.
 
 ## Release process
 
-The complete manual steps are in [Release-Checklist.md](misc/Release-Checklist.md)
-(not shipped in release packages). The automation lives in `build/release.py`:
+The complete manual steps are in [Release-Checklist.md](misc/Release-Checklist.md) (Chinese;
+not shipped in release packages). The automation lives in `build/release.py`:
 it only calls `pack.py` and verifies the output, and **never runs commit, tag or
 push**.
 

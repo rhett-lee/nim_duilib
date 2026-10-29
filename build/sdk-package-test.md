@@ -175,7 +175,7 @@ nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109
 | P05 | `package.integration` | 包级 | 任意包 | `*.cmake` 无未替换的 `@...@` 占位符；`nim_duilibConfigVersion.cmake` 含 `PACKAGE_VERSION`；Windows 包有 `msvc/manifest/duilib.{x64,x86,arm64}.manifest` 且 XML 可解析；MSVC 包还有 `msvc/nim_duilib.props`、`.targets`、`.sdk.props` 及 4 个属性键 | 无 |
 | P06 | `package.forbidden` | 包级 | 任意包 | 不含 `.pdb`/`.ilk`/`.exp`/`.obj`/`.o`；不含 `cef_sandbox.lib`；`include/` 下无 `.cpp`；无 `bin/resources.zip`；未声明 CEF 时不含 CEF 头；未声明 SDL 时不含 `include/SDL3/` | 无 |
 | P07 | `package.verify-cli` | 包级 | 任意包，且 `pack.py` 可运行 | `python build/pack.py --verify <原包>` 返回 0 | 无；`pack.py` 缺失或无法执行会 FAIL |
-| P08 | `package.docs` | 包级 | 任意包 | `docs/` 至少一份 `.md`；`LICENSES/` 非空；`THIRD-PARTY-NOTICES.md` 存在；运行资源 `global.xml` 存在 | 无 |
+| P08 | `package.docs` | 包级 | 任意包 | `docs/` 至少一份 `.md`；`LICENSES/` 非空；`THIRD-PARTY-NOTICES.md` 与 `.en.md` 均存在；运行资源 `global.xml` 存在 | 无 |
 | C01 | `consumer.static` | 需编译 | 静态包；未 `--no-build`；平台与工具链可用 | 用 `build/sdk_test` 配置（`find_package(nim_duilib CONFIG)` + `SDK_EXPECT_*` 自检）→ 编译 → 找到 `sdk_consumer` → 可执行文件同级有 `resources/` → 运行返回 0 且输出 `SDK_TEST_RESULT=ok` → `SDK_TEST_FEATURES` 与包能力一致 | DLL 包改由 C02；`--no-build`；平台不同；MSVC 包不在 Windows；MinGW 包无 `MSYSTEM`；`mingw-llvm` 的 `CC`/`CXX` 不含 `clang`；工具链不可用 |
 | C02 | `consumer.dll` | 需编译 | DLL 包；其余条件同 C01 | 同 C01，并额外检查 `bin/` 下所有顶层 DLL 已复制到可执行文件同级 | 静态包改由 C01；其余同 C01 |
 | C03 | `negative.config` | 需编译（仅配置） | 平台与工具链可用；生成器不是 Visual Studio 多配置 | 用相反配置（Debug↔Release）配置必须失败，stdout 含“配置为” | 构建前置不满足；工具链不可用；生成器为 Visual Studio，无法用 `CMAKE_BUILD_TYPE` 触发校验 |

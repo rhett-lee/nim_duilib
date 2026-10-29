@@ -267,8 +267,8 @@ python3 build/build.py pack --out-dir dist     # custom output directory
 ```
 
 Packages contain `include/`, `lib/<arch>/<Config>/`, `bin/`, `lib/cmake/nim_duilib/`,
-`LICENSES/` and `THIRD-PARTY-NOTICES.md`. Both compliance files must be kept when
-redistributing the SDK.
+`LICENSES/`, `THIRD-PARTY-NOTICES.md` and `THIRD-PARTY-NOTICES.en.md`. Both notices
+must be kept when redistributing the SDK.
 
 With `--with-examples` but without `--with-cef`, the `cef` and `CefBrowser`
 binaries (`cef.exe`/`CefBrowser.exe` on Windows) are skipped automatically so the
@@ -413,7 +413,7 @@ Legacy troubleshooting notes from the script era remain in [build/README.en.md](
 | Configuration | Debug + Release in one run | one `--config` per run, invoke twice |
 | Build tree | `build/build_temp` | `out/<arch>/<Config>` |
 | Dependencies | handled inside all-in-one scripts | `deps` subcommand driven by the version manifest |
-| SDK | assembled manually | `build.py pack` (with `LICENSES/`, `THIRD-PARTY-NOTICES.md`) |
+| SDK | assembled manually | `build.py pack` (with `LICENSES/`, `THIRD-PARTY-NOTICES.md` / `.en.md`) |
 
 The Visual Studio solutions (`build/duilib.sln`, `examples.sln`, ...) are kept; run
 `python3 build/build.py deps` before opening them.

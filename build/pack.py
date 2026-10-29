@@ -1394,13 +1394,14 @@ def collect_licenses(collector, skia_lib_dir):
     if os.path.isfile(root_license):
         collector.add('LICENSE', root_license)
         count += 1
-    # 第三方声明汇总（合规要求：包内必须带 THIRD-PARTY-NOTICES.md）
-    notices = os.path.join(REPO_ROOT, 'THIRD-PARTY-NOTICES.md')
-    if os.path.isfile(notices):
-        if collector.add('THIRD-PARTY-NOTICES.md', notices):
-            count += 1
-    else:
-        collector.warn(T('pkg.notices_missing') % notices)
+    # 第三方声明汇总（合规要求：包内必须带中英文两份）
+    for notices_name in ('THIRD-PARTY-NOTICES.md', 'THIRD-PARTY-NOTICES.en.md'):
+        notices = os.path.join(REPO_ROOT, notices_name)
+        if os.path.isfile(notices):
+            if collector.add(notices_name, notices):
+                count += 1
+        else:
+            collector.warn(T('pkg.notices_missing') % notices)
     # Skia 的许可证不在本仓库内（Skia 源码树同级）；仓库 licenses/ 已有时不重复
     skia_root = os.path.dirname(os.path.dirname(skia_lib_dir))
     skia_license = os.path.join(skia_root, 'LICENSE')
@@ -2070,7 +2071,7 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
             lines.append('  %s/  CEF 运行时（libcef.dll、*.pak、icudtl.dat、'
                          'locales/）' % cef_runtime_rel)
     lines.append('  LICENSES/             第三方许可证')
-    lines.append('  THIRD-PARTY-NOTICES.md 第三方组件声明')
+    lines.append('  THIRD-PARTY-NOTICES.md / .en.md 第三方组件声明（中文 / English）')
     lines.append('  docs/                 使用文档（顶层；清单见“文档”章节）')
     lines.append('  msvc/                 VS 接入：props/targets/manifest（仅 Windows+MSVC）')
     lines.append('  lib/cmake/nim_duilib/ CMake 接入：find_package(nim_duilib)')

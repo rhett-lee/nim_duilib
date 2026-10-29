@@ -25,7 +25,7 @@ runtime files, upgrade to a newer package, and migrate from the old layout.
 | `msvc/` | Windows + MSVC integration: `nim_duilib.props`, `nim_duilib.targets`, manifests |
 | `lib/cmake/nim_duilib/` | Cross-platform CMake integration: `find_package(nim_duilib CONFIG)` |
 | `docs/` | Bundled documentation (relative links rewritten for the package layout) |
-| `LICENSES/`, `THIRD-PARTY-NOTICES.md` | Third-party licenses and notices |
+| `LICENSES/`, `THIRD-PARTY-NOTICES.md` / `.en.md` | Third-party licenses and notices (Chinese / English) |
 | `VERSION`, `MANIFEST.txt`, `SHA256SUMS` | Version, manifest, per-file checksums |
 
 Package name segments: `-mingw-gcc` / `-mingw-llvm` (the two MinGW C++ runtime

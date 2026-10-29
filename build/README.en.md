@@ -18,7 +18,11 @@ and troubleshooting, see [build-reference.en.md](build-reference.en.md)
 | `autotest.py` | local automation: environment check → build → package → verify → assertions |
 | `test_build.py` | unit tests for the build entry |
 | `test_pack.py` / `test_autotest.py` | packaging and automation tests |
-| `arm64-test-plan.md` | arm64 test plan (Windows matrix, dependency checks, result backfill) |
+| `test_sdk_package.py` | unit tests for the pure functions of the SDK package test orchestrator |
+| `sdk_package_test.py` | released-SDK package test orchestrator (structure checks + consumer build/run + negative cases) |
+| `sdk_test/` | SDK consumer test projects (depend only on the unpacked SDK) |
+| `sdk-package-test.md` | SDK package test methods and purpose (Chinese) |
+| `arm64-test-plan.md` | arm64 test plan (Windows matrix, dependency checks, result backfill) (Chinese) |
 | `duilib.sln` / `duilib_no_cef.sln` | Visual Studio solutions (library only) |
 | `examples.sln` / `examples_no_cef.sln` | Visual Studio solutions (library + examples) |
 | `README.md` / `README.en.md` | this document |
@@ -140,7 +144,8 @@ python3 build/build.py pack --config Debug --out-dir dist
 Package name: `nim_duilib-<version>-<system>-<arch>[-sdl][-cef|-cef109][-examples][-debug]`.
 It contains `include/duilib/`, `lib/<arch>/<Config>/`, `bin/` (runtime DLLs and
 `bin/resources/`), `lib/cmake/nim_duilib/`, `LICENSES/`, `docs/`, `MANIFEST.txt` and
-`SHA256SUMS`. `LICENSES/` and `THIRD-PARTY-NOTICES.md` must be kept when redistributing.
+`SHA256SUMS`. `LICENSES/`, `THIRD-PARTY-NOTICES.md` and `THIRD-PARTY-NOTICES.en.md`
+must be kept when redistributing.
 
 ### Local packaging automation
 
@@ -171,7 +176,7 @@ no real hardware and are out of scope; Windows on ARM run verification has no de
 untested, not followed up). Windows arm64 has passing Release and Debug builds, DLL mode,
 and four packages that were packed and package-tested (Release without CEF, Release with
 CEF 142, Release with CEF 109, Debug with CEF 142), all artifacts being PE `0xAA64`;
-steps and results are in the [arm64 test plan](arm64-test-plan.md).
+steps and results are in the [arm64 test plan](arm64-test-plan.md) (Chinese).
 
 ### Downstream integration
 

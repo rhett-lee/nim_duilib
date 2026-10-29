@@ -284,7 +284,7 @@ FreeBSD); use `build\build.bat` or `build.py`.
 
 The static runtime (/MT, /MTd) is the default; add `--md` for the dynamic runtime
 (/MD, /MDd) and build Skia with the same runtime. SDKs are produced only by `pack.py`
-and include `LICENSES/` and `THIRD-PARTY-NOTICES.md`.
+and include `LICENSES/`, `THIRD-PARTY-NOTICES.md` and `THIRD-PARTY-NOTICES.en.md`.
 
 ## Development Plan
  - Continue to enrich the controls of the GUI library and improve its functionality

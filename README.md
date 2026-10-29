@@ -278,8 +278,8 @@ Windows 推荐直接运行 `build\build.bat`（参数与 `build.py` 相同，无
   `sudo pkg install git unzip python3 cmake ninja gn llvm fontconfig freetype2`。
 
 运行库默认静态（/MT、/MTd）；需要动态运行库时加 `--md`（/MD、/MDd），且 Skia
-必须使用相同运行库。SDK 只由 `pack.py` 生成，包内含 `LICENSES/` 与
-`THIRD-PARTY-NOTICES.md`。
+必须使用相同运行库。SDK 只由 `pack.py` 生成，包内含 `LICENSES/` 与中英文两份
+`THIRD-PARTY-NOTICES`（`.md` / `.en.md`）。
 
 ## 开发计划
  - 继续丰富界面库的控件，完善界面库的功能

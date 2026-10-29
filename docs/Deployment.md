@@ -23,7 +23,7 @@
 | `msvc/` | Windows + MSVC 接入：`nim_duilib.props`、`nim_duilib.targets`、manifest |
 | `lib/cmake/nim_duilib/` | 全平台 CMake 接入：`find_package(nim_duilib CONFIG)` |
 | `docs/` | 随包使用文档（相对链接已按包内布局重写） |
-| `LICENSES/`、`THIRD-PARTY-NOTICES.md` | 第三方组件许可证与声明 |
+| `LICENSES/`、`THIRD-PARTY-NOTICES.md` / `.en.md` | 第三方组件许可证与声明（中英文） |
 | `VERSION`、`MANIFEST.txt`、`SHA256SUMS` | 版本号、包清单、逐文件校验和 |
 
 包名各段含义：`-mingw-gcc` / `-mingw-llvm`（MinGW 的两个 C++ 运行时变体）、

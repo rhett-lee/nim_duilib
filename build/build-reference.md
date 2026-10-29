@@ -239,8 +239,8 @@ python3 build/build.py pack --out-dir dist     # 指定输出目录
 ```
 
 包内包含 `include/`、`lib/<arch>/<Config>/`、`bin/`、`lib/cmake/nim_duilib/`、
-`LICENSES/` 与 `THIRD-PARTY-NOTICES.md`。合规要求：分发 SDK 时必须保留
-`LICENSES/` 与 `THIRD-PARTY-NOTICES.md`。
+`LICENSES/`、`THIRD-PARTY-NOTICES.md` 与 `THIRD-PARTY-NOTICES.en.md`。合规要求：
+分发 SDK 时必须保留 `LICENSES/` 与中英文两份第三方声明。
 
 只给 `--with-examples` 而不给 `--with-cef` 时，会自动跳过 `cef` 与 `CefBrowser`
 （Windows 为 `cef.exe`/`CefBrowser.exe`），避免包内留下缺少 libcef 运行时、
@@ -391,7 +391,7 @@ MINGW64 会优先选带 `.msvcrt` 的目录。两者的包名都是 `-mingw-gcc`
 | 配置 | 一次构建 Debug + Release | 一次一个 `--config`，调用两次 |
 | 构建树 | `build/build_temp` | `out/<arch>/<Config>` |
 | 依赖 | all-in-one 脚本内部处理 | `deps` 子命令，按版本清单准备 |
-| SDK | 手工整理 | `build.py pack`（含 `LICENSES/`、`THIRD-PARTY-NOTICES.md`） |
+| SDK | 手工整理 | `build.py pack`（含 `LICENSES/`、`THIRD-PARTY-NOTICES.md` / `.en.md`） |
 
 VS 解决方案文件（`build/duilib.sln`、`examples.sln` 等）仍保留，使用前先运行
 `python3 build/build.py deps` 准备依赖。

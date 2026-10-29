@@ -8,7 +8,7 @@
 
 本仓库的 SDK 不是普通的安装布局：除了库与头文件，还要带下游接入层
 （`msvc/*.props/.targets`、`lib/cmake/nim_duilib/`）、运行期 DLL、`bin/resources`、
-`LICENSES/` 与 `THIRD-PARTY-NOTICES.md`，并按单架构、单配置命名。这些内容由
+`LICENSES/` 与中英文两份 `THIRD-PARTY-NOTICES`，并按单架构、单配置命名。这些内容由
 `build/pack.py` 统一收集与校验，比在根工程里维护一套 `install()` 规则更可控。
 根工程因此**不提供** `install()`，SDK 只由 `pack.py` 产出。
 
@@ -126,7 +126,8 @@ nim_duilib-<版本>-<系统>-<架构>[-特性]/
   include/duilib/       对外头文件（使用 SDL 时含 include/SDL3/）
   lib/                  静态库（duilib 5 个库 + Skia 全部库 + 第三方链接库）
   LICENSES/             第三方许可证
-  THIRD-PARTY-NOTICES.md 第三方组件声明
+  THIRD-PARTY-NOTICES.md     第三方组件声明（中文）
+  THIRD-PARTY-NOTICES.en.md  第三方组件声明（English）
   docs/                 使用文档（仅顶层；链接已按包内布局重写）
   msvc/                 下游接入：props/targets/manifest（x64/x86/arm64 均随包）
   lib/cmake/nim_duilib/ 下游接入：CMake find_package 配置

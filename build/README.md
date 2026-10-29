@@ -149,7 +149,8 @@ python3 build/build.py pack --config Debug --out-dir dist
 包名为 `nim_duilib-<版本>-<系统>-<架构>[-sdl][-cef|-cef109][-examples][-debug]`，
 内含 `include/duilib/`、`lib/<arch>/<Config>/`、`bin/`（运行期 DLL 与
 `bin/resources/`）、`lib/cmake/nim_duilib/`、`LICENSES/`、`docs/`、`MANIFEST.txt`
-与 `SHA256SUMS`。分发时必须保留 `LICENSES/` 与 `THIRD-PARTY-NOTICES.md`。
+与 `SHA256SUMS`。分发时必须保留 `LICENSES/` 与中英文两份 `THIRD-PARTY-NOTICES`
+（`.md` / `.en.md`）。
 
 ### 打包自动化（本地）
 

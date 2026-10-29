@@ -55,8 +55,9 @@
    libpng、zlib、libjpeg-turbo、libwebp、ICU，构建产物中
    `out/*/obj/third_party` 仅出现 expat；因此不需要额外附带这些组件的许可。
 2. **宽松许可的义务是保留声明**：仓库 `licenses/` 已覆盖表中全部许可文本，
-   打包脚本会把 `licenses/` 复制为包内 `LICENSES/`，并带上根 `LICENSE` 与
-   `THIRD-PARTY-NOTICES.md`，同时补充 Skia 源码树的 `LICENSE`（仓库内缺失时）。
+   打包脚本会把 `licenses/` 复制为包内 `LICENSES/`，并带上根 `LICENSE` 与中英文
+   两份 `THIRD-PARTY-NOTICES`（`THIRD-PARTY-NOTICES.md` / `.en.md`），同时补充
+   Skia 源码树的 `LICENSE`（仓库内缺失时）。
 3. **CEF**：`--with-cef` 只收集运行时（排除 `.lib`）与 wrapper 开发库，
    许可文本随包；CEF 官方二进制分发包本身即按 BSD-3 再分发。
    Chromium 内含的第三方组件声明未单独附带（沿用 CEF 官方分发方式），
@@ -80,7 +81,8 @@
   1. 出包前执行 `python build/pack.py --config <Config> --arch <arch> [特性开关] --list`，
      把清单中的二进制与资源产物逐项对照本表；
   2. 新增组件必须同时补齐 `licenses/<组件>.LICENSE.*`、`THIRD-PARTY-NOTICES.md`
-     中的一行与本表的一行，并在本文件末尾的更新记录中注明来源；
+     与 `THIRD-PARTY-NOTICES.en.md` 中的同名行，以及本表的一行，并在本文件末尾的
+     更新记录中注明来源；
   3. 未登记的组件不进入 `dist/<版本>/`（finalize 阶段由发布人按包内 `LICENSES/`
      与 `bin/resources/` 复核）。
   现状：2026-10-29 复核时，表中 25 个组件均能在 `licenses/` 的 20 个文件中找到对应

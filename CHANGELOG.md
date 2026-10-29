@@ -27,6 +27,8 @@
   `.en.md` 改为前置依赖与发布打包索引。
 - `build/test_build.py`：构建入口与 i18n 的标准库单元测试。
 - 合规：`THIRD-PARTY-NOTICES.md`，SDK 包内许可证目录统一为 `LICENSES/`。
+- 合规：新增英文版第三方组件声明 `THIRD-PARTY-NOTICES.en.md`（根目录，与中文版成对）；
+  `pack.py` 与 SDK 包测试改为同时打包、校验中英文两份声明。
 - SDK 接入层（macOS App Bundle）：`nim_duilib_copy_runtime` 新增 `FRAMEWORKS`
   选项（目标须为 `MACOSX_BUNDLE`），把包内 `lib/libSDL3*.dylib` 复制到
   `<target>.app/Contents/Frameworks`，并把可执行文件的 rpath 设为

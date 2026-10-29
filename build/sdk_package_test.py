@@ -580,6 +580,7 @@ def check_layout(info: PackageInfo) -> str:
         "VERSION",
         "LICENSE",
         "THIRD-PARTY-NOTICES.md",
+        "THIRD-PARTY-NOTICES.en.md",
         "lib/cmake/nim_duilib/nim_duilibConfig.cmake",
         "lib/cmake/nim_duilib/nim_duilibHelpers.cmake",
         "lib/cmake/nim_duilib/nim_duilibPackageInfo.cmake",
@@ -813,8 +814,9 @@ def check_docs(info: PackageInfo) -> str:
         problems.append(T('sdk.no_docs'))
     if not licenses:
         problems.append(T('sdk.licenses_empty'))
-    if not (info.root / "THIRD-PARTY-NOTICES.md").is_file():
-        problems.append(T('sdk.notices_missing'))
+    for notices_name in ("THIRD-PARTY-NOTICES.md", "THIRD-PARTY-NOTICES.en.md"):
+        if not (info.root / notices_name).is_file():
+            problems.append(T('sdk.notices_missing') % notices_name)
     if not info.caps["has_resources"]:
         problems.append(T('sdk.global_xml_missing'))
     if problems:
