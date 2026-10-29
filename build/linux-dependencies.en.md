@@ -8,7 +8,7 @@ libraries automatically, but these system packages must be installed by hand.
 The distribution commands in this document are taken from the build reference
 that has been verified in this repository (the
 "platform × compiler × dependencies × optional modules" section of
-[build-reference.md](build-reference.md)). Distributions that have no command in
+[build-reference.en.md](build-reference.en.md)). Distributions that have no command in
 the repository are marked "to be confirmed" — do not copy package names from a
 different distribution.
 
@@ -69,7 +69,7 @@ configure step. Typical messages:
 
 ## 4. To be confirmed
 
-- **Distributions other than Ubuntu**: the test matrix ([test-matrix.md](test-matrix.md))
+- **Distributions other than Ubuntu**: the test matrix ([test-matrix.md](test-matrix.md), Chinese)
   records build and packaging results for Linux x64 (a VMware virtual machine)
   without recording the distribution per case. The commands for distributions
   other than Ubuntu come from the build reference and have not been tested one by
@@ -77,7 +77,7 @@ configure step. Typical messages:
 
 ## 5. Related documents
 
-- Full build parameters and troubleshooting: [build-reference.md](build-reference.md)
+- Full build parameters and troubleshooting: [build-reference.en.md](build-reference.en.md)
 - macOS / FreeBSD dependencies and build instructions: see "Environment and
   dependencies" in the root README
 - Build outputs and how to run them: see "Quick start" in the root README

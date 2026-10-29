@@ -1,6 +1,6 @@
 简体中文 | [English](README.en.md)
 
-> 英文版 [README.en.md](README.en.md) 最近同步于 2026-09-29，可能落后于本文。
+> 英文版 `README.en.md` 最近同步于 2026-10-29。
 
 # nim_duilib
 
@@ -81,7 +81,7 @@ Windows 7 的兼容性来自库自身配置（[duilib/duilib_config.h](duilib/du
 
 ### Linux 系统依赖
 
-Linux 上还需要发行版提供的 X11、字体、OpenGL/EGL、DBus/ibus 等开发包。各发行版包名差异较大，装错或漏装通常表现为 CMake 阶段报 `Could not find X11`、`Could not find Freetype` 或 `Could not find Fontconfig`。按发行版划分的安装命令、必需包清单和验证方法见单独文档：[build/linux-dependencies.md](build/linux-dependencies.md)（英文版 [linux-dependencies.en.md](build/linux-dependencies.en.md)）。其中的命令取自仓库构建文档，覆盖 Ubuntu、Debian、Fedora、openSUSE、OpenEuler、OpenKylin、UbuntuKylin、中科方德、统信 UOS；除 Ubuntu 外未逐一实测，文档中已说明验证范围。
+Linux 上还需要发行版提供的 X11、字体、OpenGL/EGL、DBus/ibus 等开发包。各发行版包名差异较大，装错或漏装通常表现为 CMake 阶段报 `Could not find X11`、`Could not find Freetype` 或 `Could not find Fontconfig`。按发行版划分的安装命令、必需包清单和验证方法见单独文档：[build/linux-dependencies.md](build/linux-dependencies.md)。其中的命令取自仓库构建文档，覆盖 Ubuntu、Debian、Fedora、openSUSE、OpenEuler、OpenKylin、UbuntuKylin、中科方德、统信 UOS；除 Ubuntu 外未逐一实测，文档中已说明验证范围。
 
 ### 平台验证状态
 
@@ -252,4 +252,4 @@ python3 build/build.py --dll --config Release
 
 本项目在 NIM_Duilib_Framework 基础上做了系统性改造：代码按功能模块拆分、XML 解析替换为 pugixml、移除 base 库依赖、集成 Skia 与 SDL3、重写布局体系，并新增 50+ 个控件/容器。因此它与上游在 API、XML 属性与控件行为上都可能存在差异，上游文档不能直接当作本项目文档使用；从上游迁移时建议先按清单核对。
 
-完整的差异清单（十余项整体改进、二十余项功能完善、50+ 个新增控件/容器、性能优化、示例程序与文档）以及上游项目链接，见 [docs/Differences.md](docs/Differences.md)（英文版 [Differences.en.md](docs/Differences.en.md)）。控件属性与用法以 [docs/Control.md](docs/Control.md) 为准。
+完整的差异清单（十余项整体改进、二十余项功能完善、50+ 个新增控件/容器、性能优化、示例程序与文档）以及上游项目链接，见 [docs/Differences.md](docs/Differences.md)。控件属性与用法以 [docs/Control.md](docs/Control.md) 为准。

@@ -2,8 +2,7 @@
 
 This directory contains the unified build entry point, packaging/release tools,
 unit tests and Visual Studio solutions. For full commands, options, dependencies
-and troubleshooting, see [build-reference.en.md](build-reference.en.md)
-(Chinese: [build-reference.md](build-reference.md)).
+and troubleshooting, see [build-reference.en.md](build-reference.en.md).
 
 ## Files
 

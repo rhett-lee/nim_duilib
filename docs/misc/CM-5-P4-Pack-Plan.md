@@ -256,11 +256,11 @@ Unix   : -lskia -lsvg -lskshaper -lskottie -lsksg -ljsonreader
 | 文件 | 需要修改的内容 |
 | :--- | :--- |
 | [docs/Release.md](../Release.md) | 参数表（删 `--allow-debug-libs` / `--with-cef-libs`，增 `--config`/`--arch`/`--skia-lib-dir`/`--sdl-dir`/`--with-sdl`/`--with-cef`/`--cef-version`）；Debug 规则改写为按目录；包名补 `-debug`；新增"SDK 使用契约"（包含路径、链接列表、运行期依赖） |
-| [docs/Release.en.md](../Release.en.md) | 同上（英文） |
+| `docs/Release.en.md` | 同上（英文） |
 | [build/README.md](../../build/README.md) | 发布打包小节补 `--config` 与第三方库打包说明 |
-| [build/README.en.md](../../build/README.en.md) | 同上（英文） |
+| `build/README.en.md` | 同上（英文） |
 | [docs/misc/Release-Packaging-Notes.md](Release-Packaging-Notes.md) | 契约表与 CLI 段更新；原文保留为历史并加日期注记；补 Skia/SDL 决策 |
-| [docs/misc/Release-Packaging-Notes.en.md](Release-Packaging-Notes.en.md) | 同上（英文） |
+| `docs/misc/Release-Packaging-Notes.en.md` | 同上（英文） |
 | [docs/misc/Development-Plan.md](Development-Plan.md)（B-3 记录） | 只加"2026-10-21 CLI 与第三方库变更"注记，不改写历史 |
 | [CMake-Improvement-Plan.md](CMake-Improvement-Plan.md) | P4 状态与实施记录 |
 | [CM-5-Build-Artifacts-Inventory.md](CM-5-Build-Artifacts-Inventory.md) | 3.1 节更新为 P4 后规则；补 B3 结论 |

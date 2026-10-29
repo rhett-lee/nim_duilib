@@ -146,7 +146,7 @@
   - [duilib/third_party/libpng/CMakeLists.txt:22](..//..//duilib/third_party/libpng/CMakeLists.txt#L22)（审核时遗漏）
   - [duilib/third_party/libwebp/CMakeLists.txt:10](..//..//duilib/third_party/libwebp/CMakeLists.txt#L10)
   - [duilib/third_party/cximage/CMakeLists.txt:10](..//..//duilib/third_party/cximage/CMakeLists.txt#L10)（审核时遗漏）
-  - 另有两份文档中的同款示例：[cmake/README.md:176](..//..//cmake/README.md#L176)、[cmake/README.en.md:179](..//..//cmake/README.en.md#L179)
+  - 另有两份文档中的同款示例：[cmake/README.md:176](..//..//cmake/README.md#L176)、`cmake/README.en.md:179`
 - **问题**：写法都是 `if("${DUILIB_MD}" STREQUAL "ON")`。`DUILIB_MD` 是外部可传的开关，未定义时会被 `--warn-uninitialized` 报出（本机实测：全量配置仅此一条警告）。
 - **影响**：功能上等价于"未设置则走 else（MT）"，但语义隐晦，且是 CMake 层面唯一的未初始化变量告警。
 - **动作**：统一改为 `if(DUILIB_MD)`（6 处 + 2 份文档示例保持同一种写法）；如需保留"仅 ON 生效"的语义，可改为 `if(DUILIB_MD STREQUAL "ON")`（不引用 `${}` 即可避免告警）。

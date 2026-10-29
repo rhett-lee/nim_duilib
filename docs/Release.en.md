@@ -21,7 +21,7 @@ root project therefore provides **no** `install()`; the SDK is produced only by
 Builds go through `python3 build/build.py` (the old `msvc_build.bat`,
 `linux_build.sh` and friends are gone), using the same form on Windows and Unix; for the
 Windows fallback when no `python3` command exists, see the build-entry section of the
-root [README.md](../README.md) (in Chinese). `pack.py` reads only the single
+root [README.en.md](../README.en.md). `pack.py` reads only the single
 library directory selected by `--config`; it no longer merges candidate directories or
 guesses by priority.
 

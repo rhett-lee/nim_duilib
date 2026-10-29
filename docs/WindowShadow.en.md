@@ -197,7 +197,7 @@ pWindow->SetEnableShadowSnap(true);
 </Option>
 ```
 
-For the complete example, see [render/page_window_shadow.xml](../../bin/resources/themes/default/render/page_window_shadow.xml).
+For the complete example, see [render/page_window_shadow.xml](../bin/resources/themes/default/render/page_window_shadow.xml).
 
 ---
 
@@ -292,5 +292,5 @@ Use the `Event` + `apply_attribute` mechanism (such as the example in section 6.
 - System shadow definition: [NativeWindowShadow.h](../duilib/Core/NativeWindowShadow.h)
 - XML parsing: [WindowBuilder.cpp](../duilib/Core/WindowBuilder.cpp)
 - Window attribute table: [Window.md](./Window.en.md)
-- Shadow demo page: [page_window_shadow.xml](../../bin/resources/themes/default/render/page_window_shadow.xml)
+- Shadow demo page: [page_window_shadow.xml](../bin/resources/themes/default/render/page_window_shadow.xml)
 - Self-drawn shadow assets: `public/shadow/` (`shadow_big.svg`, `shadow_big_round.svg`, `shadow_small.svg`, `shadow_small_round.svg`, `shadow_menu.svg`, `shadow_menu_round.svg`)

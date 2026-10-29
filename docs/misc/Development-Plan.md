@@ -298,7 +298,7 @@ API 变动频率高 |
   因此改为「**独立打包脚本**」路线：与构建体系解耦，按文件名白名单收集，
   两条构建路径的产物都能收，也不需要新增顶层工程。
 - **详细工作记录**（成果清单、技术决策依据、踩过的坑、已知缺口与后续跟进）：
-  [发布打包工作记录](Release-Packaging-Notes.md) / [Release Packaging Work Record](Release-Packaging-Notes.en.md)。
+  [发布打包工作记录](Release-Packaging-Notes.md)（英文版 `Release-Packaging-Notes.en.md`）。
 - **已完成的改动**：
   | 文件 | 改动 |
   | :--- | :--- |

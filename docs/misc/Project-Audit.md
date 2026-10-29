@@ -9,7 +9,7 @@
 | 源码 | `duilib/Control`（83 个头文件）、`duilib/Core`、`duilib/Utils`、`duilib/RenderSkia`、`duilib/Box`、`duilib/Layout`、`duilib/CEFControl`、`duilib/Image` |
 | 文档 | `docs/`（55 份，含中英双语对） + `README.md` + `docs/misc/` 专项文档 |
 | 平台维度 | Windows / macOS / Linux / FreeBSD，按"平台专属源文件矩阵"逐项核对 |
-| 方法 | 类名与 `DUI_CTR_*` 宏检索确认控件是否存在；`_Windows` / `_SDL` / `_MacOS` / `_Linux` / `_X11` / `_Wayland` 文件配对确认平台覆盖；与既有规划文档（[Control-Roadmap.md](Control-Roadmap.md)、[跨平台开发相关事项.md](misc/跨平台开发相关事项.md)、[ListCtrl-Roadmap.md](misc/ListCtrl-Roadmap.md)）交叉比对，避免重复已记录项 |
+| 方法 | 类名与 `DUI_CTR_*` 宏检索确认控件是否存在；`_Windows` / `_SDL` / `_MacOS` / `_Linux` / `_X11` / `_Wayland` 文件配对确认平台覆盖；与既有规划文档（[Control-Roadmap.md](Control-Roadmap.md)、[跨平台开发相关事项.md](跨平台开发相关事项.md)、[ListCtrl-Roadmap.md](ListCtrl-Roadmap.md)）交叉比对，避免重复已记录项 |
 
 ### 与既有规划文档的关系
 
@@ -31,9 +31,9 @@ Window::OnPreparePaint → ArrangeRoot → ColorPickerCustom::SetPos → InitPic
   → OnRGBChanged / OnHSVChanged / OnHSLChanged → OnColorChanged  ← 回到起点
 ```
 
-* 根因：[ColorPickerCustom.cpp](../duilib/Control/ColorPickerCustom.cpp#L212-L374) 用 `ColorSlider::SetValue` 把颜色扇出写入 RGB / HSV / HSL 三组滑块，滑块同步派发 `kEventValueChanged`，回调再次进入 `OnColorChanged`；由于颜色量化后数值持续微变（`Progress::SetValue` 仅在值变化时派发事件），该环不收敛，首帧绘制永不返回。
+* 根因：[ColorPickerCustom.cpp](../../duilib/Control/ColorPickerCustom.cpp#L212-L374) 用 `ColorSlider::SetValue` 把颜色扇出写入 RGB / HSV / HSL 三组滑块，滑块同步派发 `kEventValueChanged`，回调再次进入 `OnColorChanged`；由于颜色量化后数值持续微变（`Progress::SetValue` 仅在值变化时派发事件），该环不收敛，首帧绘制永不返回。
 * 实测：修复前进程 5 秒内消耗 CPU 时间 9.25s、`Responding=False`；修复后 0.078s、`Responding=True`，界面数值一致（RGB `255/255/255`、HSV `H0 S0 V100`、HSL `H0 S0 L100`）。
-* 已落地修复：`ColorPickerCustom` 增加 `m_bUpdatingColorUI` 重入守卫（[ColorPickerCustom.h](../duilib/Control/ColorPickerCustom.h#L133-L136)、[ColorPickerCustom.cpp](../duilib/Control/ColorPickerCustom.cpp#L150-L157)、[ColorPickerCustom.cpp](../duilib/Control/ColorPickerCustom.cpp#L209)）。
+* 已落地修复：`ColorPickerCustom` 增加 `m_bUpdatingColorUI` 重入守卫（[ColorPickerCustom.h](../../duilib/Control/ColorPickerCustom.h#L133-L136)、[ColorPickerCustom.cpp](../../duilib/Control/ColorPickerCustom.cpp#L150-L157)、[ColorPickerCustom.cpp](../../duilib/Control/ColorPickerCustom.cpp#L209)）。
 
 ### 1.2 框架级缺口（部分实施：A1/A3 已完成，A2 未实施）
 
@@ -122,7 +122,7 @@ Window::OnPreparePaint → ArrangeRoot → ColorPickerCustom::SetPos → InitPic
 | 内联 Hook | `Utils/InlineHook_Windows.*` | 平台专属，非缺口但需在矩阵中标明 |
 | 控件级拖拽源 | `Control/RichEditDragSource_Windows.*` | 待核实非 Windows 是否具备控件级拖拽 |
 
-### 3.3 Linux 已知问题（记录于[跨平台开发相关事项.md](misc/跨平台开发相关事项.md#L138-L156)）
+### 3.3 Linux 已知问题（记录于[跨平台开发相关事项.md](跨平台开发相关事项.md#L138-L156)）
 
 1. 自定义（半透明 + 阴影）标题栏：双击标题栏无法最大化 / 还原（需 SDL 底层支持）；
 2. 调整窗口大小时黑屏（消息过多导致绘制不及时，多数发行版存在，需 SDL 底层支持）；
@@ -138,7 +138,7 @@ Window::OnPreparePaint → ArrangeRoot → ColorPickerCustom::SetPos → InitPic
 
 ### 3.5 文档漂移（跨平台部分）
 
-[跨平台开发相关事项.md](misc/跨平台开发相关事项.md) 中以下描述与源码现状不符，需要更新（该文档是第三章矩阵的直接来源，建议以本文档 3.1/3.2 为准重建）。**2026-10-21 已按下表回写该文档；仅 HotKey 仍待核实。**
+[跨平台开发相关事项.md](跨平台开发相关事项.md) 中以下描述与源码现状不符，需要更新（该文档是第三章矩阵的直接来源，建议以本文档 3.1/3.2 为准重建）。**2026-10-21 已按下表回写该文档；仅 HotKey 仍待核实。**
 
 | 文档描述 | 实际情况 |
 | :--- | :--- |

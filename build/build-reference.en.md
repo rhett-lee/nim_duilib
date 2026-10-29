@@ -29,7 +29,7 @@ with an error before compiling.
 Commands in this document use `python3 build/build.py` on Windows and Unix alike, with
 identical arguments. macOS/Linux/FreeBSD usually provide only `python3`; for the Windows
 fallback when no `python3` command exists, see the build-entry section of the root
-[README.md](../README.md) (in Chinese). Because the Skia build scripts always invoke
+[README.en.md](../README.en.md). Because the Skia build scripts always invoke
 `python3`, it must be on PATH on every platform.
 
 ## 2. Quick start
@@ -43,7 +43,7 @@ python3 build/build.py pack --with-cef  # build an SDK package
 
 Windows and Unix use the same command. For the Windows
 fallback when no `python3` command exists, see the build-entry section of the root
-[README.md](../README.md) (in Chinese).
+[README.en.md](../README.en.md).
 
 The build tree is `out/<arch>/<Config>` (for example `out/x64/Debug`), a sibling of
 `build/`; `build/build_temp` is never written by the new entry. Executables and runtime

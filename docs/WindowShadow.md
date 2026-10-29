@@ -195,7 +195,7 @@ pWindow->SetEnableShadowSnap(true);
 </Option>
 ```
 
-完整示例参见 [render/page_window_shadow.xml](../../bin/resources/themes/default/render/page_window_shadow.xml)。
+完整示例参见 [render/page_window_shadow.xml](../bin/resources/themes/default/render/page_window_shadow.xml)。
 
 ---
 
@@ -290,5 +290,5 @@ Win7、Win10 仅 `system_default` 可用，其他 3 个 `system_*` 类型会自�
 - 系统阴影定义：[NativeWindowShadow.h](../duilib/Core/NativeWindowShadow.h)
 - XML 解析：[WindowBuilder.cpp](../duilib/Core/WindowBuilder.cpp)
 - 窗口属性表：[Window.md](./Window.md)
-- 阴影演示页：[page_window_shadow.xml](../../bin/resources/themes/default/render/page_window_shadow.xml)
+- 阴影演示页：[page_window_shadow.xml](../bin/resources/themes/default/render/page_window_shadow.xml)
 - 自绘阴影素材：`public/shadow/`（`shadow_big.svg`、`shadow_big_round.svg`、`shadow_small.svg`、`shadow_small_round.svg`、`shadow_menu.svg`、`shadow_menu_round.svg`）

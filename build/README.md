@@ -1,8 +1,7 @@
 # build 目录说明
 
 本目录保存统一构建入口、出包/发布工具、单元测试与 Visual Studio 解决方案。
-完整的命令、参数、依赖与排障说明见 [build-reference.md](build-reference.md)（英文版
-[build-reference.en.md](build-reference.en.md)）。
+完整的命令、参数、依赖与排障说明见 [build-reference.md](build-reference.md)。
 
 ## 目录文件概览
 

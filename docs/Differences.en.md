@@ -161,7 +161,7 @@ The examples serve both as usage documentation and as regression-test entry poin
 
 ## 8. Further reading
 
-- Full change history: [CHANGELOG.md](../CHANGELOG.md)
-- Control attributes, events and usage: [Control.md](Control.en.md)
-- Layouts and containers: [Box.md](Box.en.md)
-- Example index: [Examples.md](Examples.en.md)
+- Full change history: [CHANGELOG.en.md](../CHANGELOG.en.md)
+- Control attributes, events and usage: [Control.en.md](Control.en.md)
+- Layouts and containers: [Box.en.md](Box.en.md)
+- Example index: [Examples.en.md](Examples.en.md)

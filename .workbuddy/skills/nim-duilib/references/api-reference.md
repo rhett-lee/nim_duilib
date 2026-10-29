@@ -1402,7 +1402,7 @@ pListCtrl->StartLoading(33, -1);   // 33ms 心跳，-1 = 不靠次数停止
 - `kEventLoading` 回调里**不要用 `IsLoading()` 短路 return false**（该事件是定时器驱动的，
   结束后还会派发几次），只判 `args.wParam == nullptr`。
 
-完整章节见 [docs/Control.md](../../docs/Control.md#controlloading-与骨架屏)，
+完整章节见 [docs/Control.md](../../../../docs/Control.md#controlloading-与骨架屏)，
 演示见 `examples/ListCtrl` 的「骨架屏测试（列表）/（卡片）/ 停止Loading」三个按钮。
 
 ### 弱回调保护
