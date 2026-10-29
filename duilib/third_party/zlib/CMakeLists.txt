@@ -248,6 +248,10 @@ if(ZLIB_BUILD_STATIC)
     set_target_properties(
         duilib-zlib PROPERTIES EXPORT_NAME ZLIBSTATIC OUTPUT_NAME
                                                       ${DUILIB_ZLIB_OUTPUT_NAME})
+    # libjpeg-turbo 3.2+ 的预编译 turbojpeg-static.lib 内嵌了一份 Z_PREFIX 构建的 zlib，
+    # 但 zutil.c 中的 z_errmsg 不在 zconf.h 的 Z_PREFIX 列表内，仍以原名导出，与本目标
+    # 冲突（LNK2005）。z_errmsg 是 zlib 内部符号（仅 zutil.h 使用），改名不影响 API。
+    target_compile_definitions(duilib-zlib PRIVATE z_errmsg=duilib_z_errmsg)
 # duilib end
 endif(ZLIB_BUILD_STATIC)
 

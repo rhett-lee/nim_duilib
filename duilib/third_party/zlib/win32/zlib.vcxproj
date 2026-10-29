@@ -231,6 +231,14 @@
       <LinkTimeCodeGeneration>true</LinkTimeCodeGeneration>
     </Lib>
   </ItemDefinitionGroup>
+  <!-- duilib: libjpeg-turbo 3.2+ 的 turbojpeg-static.lib 内嵌了一份 Z_PREFIX 构建的
+       zlib，其 zutil.c 中的 z_errmsg 未被 Z_PREFIX 改名，与本工程同名符号冲突
+       （LNK2005）。它是 zlib 内部符号（仅 zutil.h 使用），改名不影响 API。 -->
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);z_errmsg=duilib_z_errmsg</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

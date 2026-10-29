@@ -14,7 +14,7 @@
 | stb_image   | 2026-03-24 |stb_image v2.30 <br> stb_image_resize2 v2.18|无 |https://github.com/nothings/stb|无修改，直接取master的代码|
 | libjpeg-turbo| 2026-10-28 |v3.2.1|无 |https://github.com/libjpeg-turbo/libjpeg-turbo|无修改，直接取其release的代码和lib|
 | svg         | 2026-10-28 |无（2026-07-10）     |有 |https://github.com/memononen/nanosvg| 代码更新到2026-07-10，修改参见提交记录|
-| zlib        | 2026-03-24 |v1.3.2（2026-02-17） |有 |https://github.com/madler/zlib | 修改了以下文件：<br> 1.zlib\contrib\minizip\ioapi.h(1处代码) 2.zlib\contrib\minizip\unzip.h(1处代码) 3.zlib\contrib\minizip\unzip.c(1处代码) <br> 4.CMakeLists.txt(修改内容用duilib注释) <br> 5.如果文件名或个数有变更，需要修改VC工程|
+| zlib        | 2026-03-24 |v1.3.2（2026-02-17） |有 |https://github.com/madler/zlib | 修改了以下文件：<br> 1.zlib\contrib\minizip\ioapi.h(1处代码) 2.zlib\contrib\minizip\unzip.h(1处代码) 3.zlib\contrib\minizip\unzip.c(1处代码) <br> 4.CMakeLists.txt(修改内容用duilib注释) <br> 5. win32/zlib.vcxproj(兼容libjpeg-turbo的修改) <br> 6.如果文件名或个数有变更，需要修改VC工程|
 | xml         | 2026-10-28 |v1.16（2026-06-16）  |无 |https://github.com/zeux/pugixml| pugixml|
 | convert_utf | 2025-03-11 |v20.1.0|无 |https://releases.llvm.org      | 下载最新版的源码包，解压后找到这两个文件  |
 | udis86      | 2025-04-11 |v1.7.2 |有 |https://sourceforge.net/projects/udis86/      |  udint.h 有修改|
