@@ -24,6 +24,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import pack  # noqa: E402
 
+# 固定简体中文：采集/体检的告警断言基于中文，不能随宿主系统语言变化。
+pack.MESSAGES = pack.make_messages('zh_CN')
+
 
 def _payload():
     return {
@@ -1022,6 +1025,43 @@ class ExampleBuildConfigTest(_TempDirTest):
         self.assertEqual(count, 0)
         self.assertEqual([rel for rel, _abs in collector.items], [])
         self.assertTrue(any('另一配置' in msg for msg in collector.warnings))
+
+
+class ConsoleLanguageTest(unittest.TestCase):
+    """英文模式下控制台文案必须是纯 ASCII（非中文系统不会乱码）。"""
+
+    def _messages(self):
+        return [
+            pack.T('pkg.resources_missing') % 'res',
+            pack.T('pkg.cef_runtime_missing') % 'bin/libcef_win',
+            pack.T('pkg.examples_missing') % 'bin',
+            pack.T('pkg.headers_missing'),
+            pack.T('pkg.static_libs_missing'),
+        ]
+
+    def test_english_messages_are_ascii(self):
+        old = pack.MESSAGES
+        pack.MESSAGES = pack.make_messages('en')
+        try:
+            texts = self._messages()
+        finally:
+            pack.MESSAGES = old
+        self.assertIn('resources directory does not exist', texts[0])
+        self.assertIn('CEF runtime directory does not exist', texts[1])
+        self.assertIn('no example binaries were found', texts[2])
+        for text in texts:
+            self.assertEqual([ch for ch in text if ord(ch) > 127], [], text)
+
+    def test_simplified_chinese_messages_stay_chinese(self):
+        old = pack.MESSAGES
+        pack.MESSAGES = pack.make_messages('zh_CN')
+        try:
+            texts = self._messages()
+        finally:
+            pack.MESSAGES = old
+        self.assertIn('资源目录', texts[0])
+        self.assertIn('CEF 运行时', texts[1])
+        self.assertIn('示例程序', texts[2])
 
 
 if __name__ == '__main__':

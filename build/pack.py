@@ -129,6 +129,21 @@ import tarfile
 import time
 import zipfile
 
+from i18n import make_messages, set_console_utf8
+
+# --------------------------------------------------------------------------
+# 控制台文案：英文在脚本里按 key 引用，中文在 cmake/i18n/messages.json。
+# 语言顺序：--lang / DUILIB_LANG -> LC_ALL/LC_MESSAGES/LANG -> 系统区域 -> en。
+# --------------------------------------------------------------------------
+
+MESSAGES = make_messages()
+
+
+def T(key):
+    """取控制台文案：简体中文系统显示中文，其余（含 zh_TW/zh_HK）显示英文。"""
+    return MESSAGES.t(key)
+
+
 # --------------------------------------------------------------------------
 # 路径
 # --------------------------------------------------------------------------
@@ -386,7 +401,7 @@ def read_version():
     BUILD 段按 MMDD 语义书写但不补零（0105 在 C/RC 中是八进制）。
     """
     if not os.path.isfile(VERSION_HEADER):
-        eprint('[ERROR] 找不到版本头文件：%s' % VERSION_HEADER)
+        eprint(T('pkg.version_header_missing') % VERSION_HEADER)
         return None
     values = {}
     duplicated = set()
@@ -402,22 +417,22 @@ def read_version():
                 else:
                     values[name] = value
     except OSError as exc:
-        eprint('[ERROR] 读取版本头文件失败：%s' % exc)
+        eprint(T('pkg.version_header_read_failed') % exc)
         return None
     if duplicated:
-        eprint('[ERROR] 版本宏重复定义：%s（%s）'
+        eprint(T('pkg.version_macro_duplicated')
                % (', '.join('DUILIB_VER_' + name for name in sorted(duplicated)),
                   VERSION_HEADER))
         return None
     missing = [name for name in _VERSION_MACROS if name not in values]
     if missing:
-        eprint('[ERROR] 版本宏缺失：%s（%s）'
+        eprint(T('pkg.version_macro_missing')
                % (', '.join('DUILIB_VER_' + name for name in missing),
                   VERSION_HEADER))
         return None
     for name in _VERSION_MACROS:
         if values[name] > 65535:
-            eprint('[ERROR] 版本宏超出范围（0..65535）：DUILIB_VER_%s=%s'
+            eprint(T('pkg.version_macro_range')
                    % (name, values[name]))
             return None
     return '.'.join(str(values[name]) for name in _VERSION_MACROS)
@@ -645,7 +660,7 @@ def collect_headers(collector, with_cef, with_sdl, is_windows, is_macos=False):
         parts = WEBVIEW2_INCLUDE_DIR
         root = os.path.join(DUIBIB_SRC_DIR, 'third_party', *parts)
         if not os.path.isdir(root):
-            collector.warn('third_party/%s 不存在，头文件可能不完整'
+            collector.warn(T('pkg.third_party_missing')
                            % os.path.join(*parts))
         else:
             prefix = 'include/duilib/third_party/' + '/'.join(parts)
@@ -657,7 +672,7 @@ def collect_headers(collector, with_cef, with_sdl, is_windows, is_macos=False):
 
     if not any(rel == 'include/duilib/duilib.h'
                for rel, _abs in collector.items):
-        collector.warn('缺少核心头文件 include/duilib/duilib.h（源目录：%s）'
+        collector.warn(T('pkg.core_header_missing')
                        % _rel(DUIBIB_SRC_DIR), critical=True)
 
     return count
@@ -717,8 +732,7 @@ def detect_windows_toolchain(lib_dir):
         # 切换工具链时旧库不会被自动删除，混在一起的产物无法判断该按哪套
         # 命名与 Skia 变体收集，直接报错比悄悄打包错误的库更安全。
         raise PackageError(
-            '库目录同时包含 MSVC（.lib）与 MinGW（.a）产物：%s；'
-            '请清理该目录（或先运行 build.py clean）后只用一个工具链重新构建'
+            T('pkg.lib_dir_mixed_toolchains')
             % _rel(lib_dir))
     if has_msvc:
         return 'msvc'
@@ -756,14 +770,13 @@ def resolve_mingw_variant(lib_dir, requested='auto'):
     if requested and requested != 'auto':
         if detected and detected != requested:
             raise PackageError(
-                '库目录 %s 看起来是 %s 编译的，与 --mingw-variant=%s 不一致'
+                T('pkg.mingw_variant_mismatch')
                 % (_rel(lib_dir), 'llvm-mingw' if detected == 'llvm' else 'gcc',
                    requested))
         return requested
     if detected is None:
         raise PackageError(
-            '无法从 %s 判断 MinGW 编译器（gcc / llvm-mingw），'
-            '请用 --mingw-variant 指定' % _rel(lib_dir))
+            T('pkg.mingw_variant_unknown') % _rel(lib_dir))
     return detected
 
 
@@ -817,16 +830,16 @@ def collect_libs(collector, lib_dir, config, with_cef, cef_version, sys_tag):
             if other:
                 # pack.py 内部用 'latest'，命令行上写作 142
                 label = '142' if other[0] == 'latest' else other[0]
-                hint = '；库目录中是 CEF %s 的 %s，打包时请加 --cef-version %s' % (
+                hint = T('pkg.cef_lib_version_hint') % (
                     label, CEF_WRAPPER_BY_VERSION[other[0]], label)
-            raise PackageError('启用了 --with-cef，但库目录中缺少 %s（目录：%s）%s'
+            raise PackageError(T('pkg.cef_lib_missing')
                                % (wrapper, _rel(lib_dir), hint))
     elif not with_cef and sys_tag != 'macos':
         for base in CEF_WRAPPER_BY_VERSION.values():
             name = available.get(base)
             if name is not None:
                 full = os.path.join(lib_dir, name)
-                collector.warn('存在 CEF 库 %s（%s），未打包；需要请加 --with-cef'
+                collector.warn(T('pkg.cef_lib_unpacked')
                                % (name, human_size(os.path.getsize(full))))
 
     wanted = list(LIB_BASENAMES)
@@ -835,7 +848,7 @@ def collect_libs(collector, lib_dir, config, with_cef, cef_version, sys_tag):
 
     missing_base = [b for b in LIB_BASENAMES if b not in available]
     if missing_base:
-        raise PackageError('缺少基础库：%s（目录：%s），请先完成 %s 编译'
+        raise PackageError(T('pkg.base_libs_missing')
                            % (', '.join(missing_base), _rel(lib_dir), config))
 
     count = 0
@@ -900,7 +913,7 @@ def collect_skia_libs(collector, skia_lib_dir, toolchain=None):
         if collector.add('lib/' + name, full):
             count += 1
     if count == 0:
-        raise PackageError('Skia 目录中没有 %s 静态库：%s'
+        raise PackageError(T('pkg.skia_libs_missing')
                            % ('/'.join(exts), _rel(skia_lib_dir)))
     return count
 
@@ -937,17 +950,17 @@ def resolve_skia_lib_dir(explicit_dir, config, arch_tag, toolchain=None,
         path = explicit_dir if os.path.isabs(explicit_dir) \
             else os.path.join(REPO_ROOT, explicit_dir)
         if not os.path.isdir(path):
-            raise PackageError('--skia-lib-dir 不存在：%s' % path)
+            raise PackageError(T('pkg.skia_dir_missing') % path)
         if toolchain in ('mingw', 'msvc') and not _skia_dir_has_libs(path, toolchain):
             raise PackageError(
-                '--skia-lib-dir 中没有 %s 静态库，与 %s 工具链不匹配：%s'
+                T('pkg.skia_dir_toolchain_mismatch')
                 % ('/'.join(_skia_lib_exts(toolchain)), toolchain, path))
         if toolchain == 'mingw' and mingw_variant:
             base = os.path.basename(os.path.normpath(path))
             match = re.match(r'(?:mingw64-)?(gcc|llvm)\.', base)
             if match and match.group(1) != mingw_variant:
                 raise PackageError(
-                    '--skia-lib-dir 是 %s 的产物，与 MinGW 编译器 %s 不匹配：%s'
+                    T('pkg.skia_dir_mingw_mismatch')
                     % (match.group(1), mingw_variant, path))
         return path
 
@@ -1002,10 +1015,9 @@ def resolve_skia_lib_dir(explicit_dir, config, arch_tag, toolchain=None,
     if os.path.isdir(out_dir):
         available = sorted(d for d in os.listdir(out_dir)
                            if os.path.isdir(os.path.join(out_dir, d)))
-    raise PackageError('未找到 Skia 库目录（尝试过：%s；可用：%s）。'
-                       '可用 --skia-lib-dir 指定'
+    raise PackageError(T('pkg.skia_dir_not_found')
                        % (', '.join(candidates),
-                          ', '.join(available) if available else '无'))
+                          ', '.join(available) if available else T('pkg.none')))
 
 
 def collect_sdl(collector, sdl_dir, config, with_sdl):
@@ -1021,7 +1033,7 @@ def collect_sdl(collector, sdl_dir, config, with_sdl):
     if sdl_dir and not os.path.isabs(sdl_dir):
         root = os.path.join(REPO_ROOT, sdl_dir)
     if not os.path.isdir(root):
-        raise PackageError('SDL3 目录不存在：%s（可用 --sdl-dir 指定）' % root)
+        raise PackageError(T('pkg.sdl_dir_missing') % root)
 
     count = 0
     if is_windows:
@@ -1041,8 +1053,7 @@ def collect_sdl(collector, sdl_dir, config, with_sdl):
                 chosen = (name, needs_dll, full)
                 break
         if chosen is None:
-            raise PackageError('启用了 --with-sdl，但 %s 下没有 SDL3 静态库或导入库'
-                               '（尝试过：%s）'
+            raise PackageError(T('pkg.sdl_libs_missing')
                                % (_rel(lib_root),
                                   ', '.join(n for n, _ in candidates)))
         name, needs_dll, full = chosen
@@ -1055,7 +1066,7 @@ def collect_sdl(collector, sdl_dir, config, with_sdl):
                 if collector.add('bin/SDL3.dll', dll):
                     count += 1
             else:
-                collector.warn('缺少 SDL3 运行期 DLL：%s（下游运行会失败）'
+                collector.warn(T('pkg.sdl_dll_missing')
                                % _rel(dll), critical=True)
     else:
         lib_dirs = [os.path.join(root, 'lib64'), os.path.join(root, 'lib')]
@@ -1077,7 +1088,7 @@ def collect_sdl(collector, sdl_dir, config, with_sdl):
             if found:
                 break
         if not found:
-            raise PackageError('SDL3 动态库不存在（查找 %s）' % ', '.join(lib_dirs))
+            raise PackageError(T('pkg.sdl_shared_missing') % ', '.join(lib_dirs))
 
     count += _collect_tree(collector, os.path.join(root, 'include', 'SDL3'),
                            'include/SDL3')
@@ -1103,7 +1114,7 @@ def collect_webview2_loader(collector, arch_tag, toolchain=None):
     arch_dir = {'x64': 'x64', 'x86': 'x86'}.get(arch_tag)
     count = 0
     if arch_dir is None:
-        collector.warn('WebView2 没有 %s 架构的 loader，已跳过' % arch_tag)
+        collector.warn(T('pkg.webview2_loader_arch_skipped') % arch_tag)
         return count
     root = os.path.join(WEBVIEW2_NATIVE_DIR, arch_dir)
     lib_names = (('WebView2Loader.dll.lib',) if toolchain == 'mingw'
@@ -1114,7 +1125,7 @@ def collect_webview2_loader(collector, arch_tag, toolchain=None):
             if collector.add('lib/' + name, full):
                 count += 1
         else:
-            collector.warn('缺少 WebView2 loader：%s' % _rel(full))
+            collector.warn(T('pkg.webview2_loader_missing') % _rel(full))
     # 动态 loader 的运行期 DLL：SDK-only 包也必须自带，否则 CMake 构建的下游
     # 在运行期找不到 WebView2Loader.dll。
     dll = os.path.join(root, 'WebView2Loader.dll')
@@ -1122,7 +1133,7 @@ def collect_webview2_loader(collector, arch_tag, toolchain=None):
         if collector.add('bin/WebView2Loader.dll', dll):
             count += 1
     else:
-        collector.warn('缺少 WebView2 loader：%s' % _rel(dll))
+        collector.warn(T('pkg.webview2_loader_missing') % _rel(dll))
     return count
 
 
@@ -1147,7 +1158,7 @@ def collect_duilib_runtime_dll(collector, arch_tag, config):
     machine = pe_machine(full)
     expected = PE_MACHINE_BY_ARCH.get(arch_tag)
     if machine is not None and expected is not None and machine != expected:
-        collector.warn('bin/%s.dll 的架构（0x%04X）与目标 %s 不匹配，已跳过'
+        collector.warn(T('pkg.dll_arch_mismatch')
                        % (base, machine, arch_tag))
         return 0
     return 1 if collector.add('bin/%s.dll' % base, full) else 0
@@ -1226,13 +1237,13 @@ def collect_jpeg_turbo(collector, arch_tag, toolchain=None, dll_mode=False,
     arch_dir = {'x64': 'x64', 'x86': 'x86', 'arm64': 'arm64'}.get(arch_tag)
     count = 0
     if arch_dir is None:
-        collector.warn('libjpeg-turbo 上游没有 Windows %s 预编译库，已跳过' % arch_tag)
+        collector.warn(T('pkg.jpeg_upstream_unsupported') % arch_tag)
         return count
     root = os.path.join(JPEG_TURBO_DIR, 'libjpeg-turbo6-win-vc-%s' % arch_dir)
     if dll_mode:
         runtime = duilib_runtime_dll(arch_tag, config)
         if runtime is None:
-            collector.warn('DLL 模式下未找到 duilib 运行期 DLL，无法确认 JPEG 支持')
+            collector.warn(T('pkg.jpeg_runtime_unknown'))
             return count
         if not binary_references_dll(runtime, 'turbojpeg.dll'):
             return count
@@ -1241,14 +1252,14 @@ def collect_jpeg_turbo(collector, arch_tag, toolchain=None, dll_mode=False,
             if collector.add('bin/turbojpeg.dll', dll):
                 count += 1
         else:
-            collector.warn('缺少 turbojpeg.dll：%s' % _rel(dll))
+            collector.warn(T('pkg.turbojpeg_dll_missing') % _rel(dll))
         return count
     lib = os.path.join(root, 'lib', 'turbojpeg-static.lib')
     if os.path.isfile(lib):
         if collector.add('lib/turbojpeg-static.lib', lib):
             count += 1
     else:
-        collector.warn('缺少 turbojpeg-static.lib：%s' % _rel(lib))
+        collector.warn(T('pkg.turbojpeg_static_missing') % _rel(lib))
     return count
 
 
@@ -1262,16 +1273,15 @@ def collect_cef(collector, sys_tag, arch_tag, cef_version):
     `--with-cef` 只控制 CEF 示例 App Bundle 是否打包，见 collect_examples()。
     """
     if sys_tag == 'macos':
-        collector.warn('macOS 不收集 CEF 开发文件与运行时，--with-cef 仅控制 '
-                       'CEF 示例（cef.app、CefBrowser.app）是否随包')
+        collector.warn(T('pkg.cef_macos_not_collected'))
         return 0
     if sys_tag not in ('win', 'linux'):
-        raise PackageError('--with-cef 仅支持 Windows / Linux / macOS')
+        raise PackageError(T('pkg.cef_platform_unsupported'))
 
     src_name = cef_src_name(sys_tag, cef_version)
     src_root = os.path.join(CEF_DIR, src_name)
     if not os.path.isdir(src_root):
-        raise PackageError('缺少 CEF 源码目录：%s' % _rel(src_root))
+        raise PackageError(T('pkg.cef_source_missing') % _rel(src_root))
 
     count = 0
     if sys_tag == 'win':
@@ -1279,18 +1289,17 @@ def collect_cef(collector, sys_tag, arch_tag, cef_version):
         arch_dir = {'x64': 'x64', 'x86': 'Win32',
                     'arm64': 'arm64'}.get(arch_tag)
         if arch_dir is None:
-            raise PackageError('CEF 上游没有 Windows %s 预编译包，无法随包' % arch_tag)
+            raise PackageError(T('pkg.cef_windows_binary_missing') % arch_tag)
         lib = os.path.join(src_root, 'lib', arch_dir, 'libcef.lib')
         if not os.path.isfile(lib):
-            raise PackageError('缺少 %s' % _rel(lib))
+            raise PackageError(T('pkg.missing') % _rel(lib))
         if collector.add('lib/libcef.lib', lib):
             count += 1
     elif sys_tag == 'linux':
         so = os.path.join(BIN_DIR, src_name, 'libcef.so')
         if not os.path.isfile(so):
             raise PackageError(
-                '缺少 %s：请把 CEF 二进制分发包的 Release/ 与 Resources/ '
-                '内容复制到 bin/%s/' % (_rel(so), src_name))
+                T('pkg.cef_binary_missing') % (_rel(so), src_name))
 
     count += _collect_tree(collector, os.path.join(src_root, 'include'),
                            'include/duilib/third_party/libcef/%s/include' % src_name)
@@ -1321,15 +1330,14 @@ def collect_cef_runtime(collector, sys_tag, arch_tag, cef_version):
     else:
         arch_dir = CEF_RUNTIME_ARCH_DIRS.get(arch_tag)
         if arch_dir is None:
-            collector.warn('CEF 运行时没有 %s 架构的目录，已跳过' % arch_tag,
+            collector.warn(T('pkg.cef_runtime_arch_skipped') % arch_tag,
                            critical=True)
             return 0
         src_root = os.path.join(BIN_DIR, src_name, arch_dir)
         dst_prefix = 'bin/%s/%s/' % (src_name, arch_dir)
 
     if not os.path.isdir(src_root):
-        collector.warn('CEF 运行时目录不存在：%s（本包只有头文件与库，'
-                       '带 CEF 的示例程序无法直接运行）' % _rel(src_root),
+        collector.warn(T('pkg.cef_runtime_missing') % _rel(src_root),
                        critical=True)
         return 0
 
@@ -1361,7 +1369,7 @@ def _resource_rel_ok(rel, with_examples):
 
 def collect_resources(collector, with_examples):
     if not os.path.isdir(RESOURCES_DIR):
-        collector.warn('资源目录不存在：%s（框架启动必需）' % RESOURCES_DIR,
+        collector.warn(T('pkg.resources_missing') % RESOURCES_DIR,
                        critical=True)
         return 0
     count = 0
@@ -1375,7 +1383,7 @@ def collect_resources(collector, with_examples):
 
 def collect_licenses(collector, skia_lib_dir):
     if not os.path.isdir(LICENSES_DIR):
-        collector.warn('许可证目录不存在：%s' % LICENSES_DIR)
+        collector.warn(T('pkg.licenses_missing') % LICENSES_DIR)
         return 0
     count = 0
     for abs_path, rel in iter_files(LICENSES_DIR):
@@ -1392,7 +1400,7 @@ def collect_licenses(collector, skia_lib_dir):
         if collector.add('THIRD-PARTY-NOTICES.md', notices):
             count += 1
     else:
-        collector.warn('缺少第三方声明：%s' % notices)
+        collector.warn(T('pkg.notices_missing') % notices)
     # Skia 的许可证不在本仓库内（Skia 源码树同级）；仓库 licenses/ 已有时不重复
     skia_root = os.path.dirname(os.path.dirname(skia_lib_dir))
     skia_license = os.path.join(skia_root, 'LICENSE')
@@ -1401,7 +1409,7 @@ def collect_licenses(collector, skia_lib_dir):
         if collector.add('LICENSES/skia/LICENSE', skia_license):
             count += 1
     elif not has_skia_license:
-        collector.warn('缺少 Skia 许可证：%s' % skia_license)
+        collector.warn(T('pkg.skia_license_missing') % skia_license)
     return count
 
 
@@ -1416,7 +1424,7 @@ def collect_docs(collector):
     去掉链接，只保留显示文字，避免包内出现断链。
     """
     if not os.path.isdir(DOCS_DIR):
-        collector.warn('文档目录不存在：%s' % DOCS_DIR)
+        collector.warn(T('pkg.docs_missing') % DOCS_DIR)
         return {}
 
     doc_names = []
@@ -1548,7 +1556,7 @@ def collect_examples(collector, config, is_windows, with_cef=True, is_macos=Fals
     会造成包内程序与 SDK 库架构不符，直接按关键告警拦截。
     """
     if not os.path.isdir(BIN_DIR):
-        collector.warn('bin 目录不存在：%s' % BIN_DIR, critical=True)
+        collector.warn(T('pkg.bin_dir_missing') % BIN_DIR, critical=True)
         return 0
     count = 0
     exe_count = 0
@@ -1617,26 +1625,23 @@ def collect_examples(collector, config, is_windows, with_cef=True, is_macos=Fals
             count += 1
             exe_count += 1
     if skipped_config:
-        collector.warn('以下示例由另一配置构建，已跳过：%s'
-                       '（请按目标配置重新构建后再打包）'
+        collector.warn(T('pkg.examples_other_config')
                        % ', '.join(skipped_config))
     if config == 'Debug' and unverified:
-        collector.warn('无法确认以下示例的构建配置（缺少 %s），'
-                       '可能混有 Release 版本，请确认后再分发：%s'
-                       % ('bin/.build-config/<目标>', ', '.join(unverified)))
+        collector.warn(T('pkg.examples_unknown_config')
+                       % (T('pkg.build_config_stamp'), ', '.join(unverified)))
     if skipped_debug:
-        collector.warn('已跳过 Debug 示例程序：%s' % ', '.join(skipped_debug))
+        collector.warn(T('pkg.debug_examples_skipped') % ', '.join(skipped_debug))
     if skipped_cef:
-        collector.warn('未打包 CEF 模块，已跳过 CEF 示例程序：%s'
+        collector.warn(T('pkg.cef_examples_skipped')
                        % ', '.join(skipped_cef))
     if skipped_arch:
         # bin/ 由多个架构共用；把别的架构的 exe/dll 打进包会让下游启动失败
-        collector.warn('%s 的架构与目标 %s 不一致，已跳过：%s'
-                       '（请清理 bin 后只构建目标架构）'
+        collector.warn(T('pkg.examples_arch_mismatch')
                        % (_rel(BIN_DIR), arch_tag, ', '.join(skipped_arch)),
                        critical=True)
     if exe_count == 0:
-        collector.warn('启用了 --with-examples，但 %s 下没有可打包的示例程序'
+        collector.warn(T('pkg.examples_missing')
                        % _rel(BIN_DIR), critical=True)
     return count
 
@@ -1653,7 +1658,7 @@ def _render_template(rel_path, mapping):
     """
     path = os.path.join(PACKAGING_DIR, rel_path.replace('/', os.sep))
     if not os.path.isfile(path):
-        raise PackageError('接入模板不存在：%s（应位于仓库 packaging/ 目录）'
+        raise PackageError(T('pkg.template_missing')
                            % _rel(path))
     with io.open(path, 'r', encoding='utf-8-sig') as f:
         text = f.read()
@@ -1661,7 +1666,7 @@ def _render_template(rel_path, mapping):
         text = text.replace('@%s@' % key, str(value))
     leftover = re.findall(r'@[A-Z0-9_]+@', text)
     if leftover:
-        raise PackageError('接入模板 %s 存在未替换的占位符：%s'
+        raise PackageError(T('pkg.template_placeholder')
                            % (rel_path, ', '.join(sorted(set(leftover)))))
     return text
 
@@ -1729,24 +1734,18 @@ def build_package_meta(collector, version, sys_tag, arch_tag, config,
         if dll_sdl is not None:
             if dll_sdl and not with_sdl:
                 raise PackageError(
-                    'duilib.dll 以 SDL 支持编译，但打包未加 --with-sdl：'
-                    '下游缺少 SDL 头文件且 DUILIB_SDL 宏与 DLL 不一致，'
-                    '会破坏 Control/WindowBase 的类布局。请补 --with-sdl 后重新打包')
+                    T('pkg.dll_sdl_flag_missing'))
             if dll_sdl and not has_sdl:
                 # --with-sdl 已收集 SDL 库时不会走到这里。
                 raise PackageError(
-                    'duilib.dll 以 SDL 支持编译，但包内没有 SDL3 库/头文件，'
-                    '请确认 --sdl-dir 指向有效的 SDL3 源码目录')
+                    T('pkg.dll_sdl_libs_missing'))
             if not dll_sdl and with_sdl:
-                collector.warn('duilib.dll 未以 SDL 支持编译，包内 SDL3 内容'
-                               '不会用于元数据（HAS_SDL=0），下游 DUIlib 宏与 DLL 一致')
+                collector.warn(T('pkg.dll_sdl_not_used'))
             has_sdl = dll_sdl
             sdl_kind = 'static' if dll_sdl else ''
         if runtime_dll and binary_references_dll(runtime_dll, 'libcef.dll') \
                 and not with_cef:
-            collector.warn('duilib.dll 以 CEF 支持编译（延迟加载 libcef.dll），'
-                           '但打包未加 --with-cef：SDK 不含 CEF 头文件与运行时，'
-                           'CEF 控件不可用（其余功能不受影响）')
+            collector.warn(T('pkg.dll_cef_flag_missing'))
 
     # WebView2：MSVC 可用静态或动态 loader；MinGW 只随包动态 loader 的导入库。
     # JPEG：预编译库（静态 turbojpeg-static.lib 或动态 turbojpeg.dll）仅 MSVC
@@ -1922,8 +1921,8 @@ def collect_integration_files(collector, meta):
                 if collector.add('msvc/manifest/' + manifest_name, manifest):
                     count += 1
             else:
-                collector.warn('缺少 manifest：%s（VS 工程不会自动嵌入 Common Controls v6）'
-                               % _rel(manifest), critical=True)
+                collector.warn(T('pkg.manifest_missing') % _rel(manifest),
+                               critical=True)
 
     if meta['system'] == 'win' and meta['toolchain'] == 'msvc':
         virtual['msvc/nim_duilib.props'] = _with_bom(
@@ -2347,9 +2346,9 @@ def read_source_date_epoch():
     try:
         epoch = int(value)
     except ValueError:
-        raise PackageError('SOURCE_DATE_EPOCH 必须是整数秒：%r' % value)
+        raise PackageError(T('pkg.source_date_epoch_invalid') % value)
     if epoch < 0:
-        raise PackageError('SOURCE_DATE_EPOCH 不能为负数：%d' % epoch)
+        raise PackageError(T('pkg.source_date_epoch_negative') % epoch)
     return epoch
 
 
@@ -2532,7 +2531,7 @@ def resolve_lib_dir(lib_dir_opt, config, arch_tag):
         path = lib_dir_opt if os.path.isabs(lib_dir_opt) \
             else os.path.join(REPO_ROOT, lib_dir_opt)
         if not os.path.isdir(path):
-            raise PackageError('--lib-dir 不存在：%s' % path)
+            raise PackageError(T('pkg.lib_dir_arg_missing') % path)
         return path
 
     if is_windows_host():
@@ -2541,7 +2540,7 @@ def resolve_lib_dir(lib_dir_opt, config, arch_tag):
         parts = ['lib', config]
     path = os.path.join(REPO_ROOT, *parts)
     if not os.path.isdir(path):
-        raise PackageError('库目录不存在：%s（请先完成 %s|%s 的构建）'
+        raise PackageError(T('pkg.lib_dir_missing')
                            % (_rel(path), arch_tag, config))
     return path
 
@@ -2552,7 +2551,7 @@ def verify_package(path):
     返回 True 表示通过（无错误），False 表示存在错误；告警不影响返回值。
     """
     if not os.path.isfile(path):
-        eprint('[ERROR] 包不存在：%s' % path)
+        eprint(T('pkg.package_missing') % path)
         return False
 
     errors = []
@@ -2581,7 +2580,7 @@ def verify_package(path):
             def is_symlink(name):
                 return members[name].issym()
     except (OSError, zipfile.BadZipFile, tarfile.TarError) as exc:
-        eprint('[ERROR] 无法打开包 %s：%s' % (path, exc))
+        eprint(T('pkg.package_open_failed') % (path, exc))
         return False
 
     try:
@@ -2589,7 +2588,7 @@ def verify_package(path):
         symlinks = [name for name in members if is_symlink(name)]
         roots = sorted({name.split('/', 1)[0] for name in members})
         if len(roots) != 1:
-            errors.append('包根目录不唯一：%s' % ', '.join(roots[:5]))
+            errors.append(T('pkg.package_root_not_unique') % ', '.join(roots[:5]))
             root = ''
         else:
             root = roots[0] + '/'
@@ -2599,17 +2598,17 @@ def verify_package(path):
 
         for required in ('MANIFEST.txt', 'SHA256SUMS'):
             if not has(required):
-                errors.append('缺少 %s' % required)
+                errors.append(T('pkg.missing') % required)
 
         headers = [name for name in files
                    if name.startswith(root + 'include/duilib/')]
         if not headers:
-            errors.append('缺少 include/duilib/ 头文件')
+            errors.append(T('pkg.headers_missing'))
         libs = [name for name in files
                 if name.startswith(root + 'lib/')
                 and (name.endswith('.a') or name.endswith('.lib'))]
         if not libs:
-            errors.append('缺少 lib/ 静态库（.a / .lib）')
+            errors.append(T('pkg.static_libs_missing'))
 
         sums = {}
         if has('SHA256SUMS'):
@@ -2618,7 +2617,7 @@ def verify_package(path):
                 match = re.match(r'^([0-9a-fA-F]{64})\s+\*?(.+)$', line)
                 if not match:
                     if line.strip():
-                        warnings.append('SHA256SUMS 行格式异常：%s' % line[:60])
+                        warnings.append(T('pkg.sums_line_malformed') % line[:60])
                     continue
                 sums[match.group(2)] = match.group(1).lower()
 
@@ -2627,9 +2626,9 @@ def verify_package(path):
         listed = {root + rel for rel in sums}
         actual = set(files) - {root + 'SHA256SUMS'} - virtual
         for name in sorted(actual - listed):
-            warnings.append('未登记到 SHA256SUMS：%s' % name[len(root):])
+            warnings.append(T('pkg.sums_not_listed') % name[len(root):])
         for name in sorted(listed - actual):
-            errors.append('SHA256SUMS 登记了包内不存在的文件：%s' % name[len(root):])
+            errors.append(T('pkg.sums_file_absent') % name[len(root):])
 
         mismatches = 0
         for rel, digest in sums.items():
@@ -2638,9 +2637,9 @@ def verify_package(path):
                 continue
             if hashlib.sha256(read(name)).hexdigest().lower() != digest:
                 mismatches += 1
-                errors.append('SHA256 不匹配：%s' % rel)
+                errors.append(T('pkg.sha_mismatch') % rel)
                 if mismatches >= 20:
-                    errors.append('…（已发现 %d 处不匹配，不再逐个列出）' % mismatches)
+                    errors.append(T('pkg.sha_mismatch_truncated') % mismatches)
                     break
 
         # 文档相对链接：只检查 SDK 文档（跳过 LICENSES/ 下逐字复制的上游文本）
@@ -2657,11 +2656,11 @@ def verify_package(path):
                 dest = os.path.normpath(os.path.join(base, link)).replace('\\', '/')
                 if dest not in members and not any(
                         item.startswith(dest + '/') for item in members):
-                    errors.append('文档链接失效：%s -> %s'
+                    errors.append(T('pkg.doc_link_broken')
                                   % (name[len(root):], target))
 
         if symlinks:
-            warnings.append('包内含 %d 个符号链接（未计入 SHA256SUMS）' % len(symlinks))
+            warnings.append(T('pkg.symlinks_noted') % len(symlinks))
     finally:
         archive.close()
 
@@ -2671,11 +2670,10 @@ def verify_package(path):
         sys.stdout.write('[ERROR] %s\n' % item)
 
     if errors:
-        sys.stdout.write('[FAIL] %s：%d 个条目，%d 个错误，%d 个告警\n'
+        sys.stdout.write(T('pkg.verify_fail')
                          % (path, len(members), len(errors), len(warnings)))
         return False
-    sys.stdout.write('[OK] %s：%d 个条目（%d 文件 / %d 链接），%d 个头文件，'
-                     '%d 个库，SHA 全部匹配\n'
+    sys.stdout.write(T('pkg.verify_ok')
                      % (path, len(members), len(files), len(symlinks),
                         len(headers), len(libs)))
     return True
@@ -2688,65 +2686,65 @@ def _parse_config(value):
         return 'Release'
     if norm == 'debug':
         return 'Debug'
-    raise argparse.ArgumentTypeError('配置只能是 Release 或 Debug：%r' % value)
+    raise argparse.ArgumentTypeError(T('pkg.config_invalid') % value)
+
+
+def _requested_lang(argv):
+    """预扫描 --lang：让 --help 与参数错误也按所选语言输出。"""
+    for index, arg in enumerate(argv):
+        if arg.startswith('--lang='):
+            return arg.split('=', 1)[1]
+        if arg == '--lang' and index + 1 < len(argv):
+            return argv[index + 1]
+    return 'auto'
 
 
 def main(argv=None):
+    # Console language must be ready before argparse: --help is console output too.
+    global MESSAGES
+    argv = sys.argv[1:] if argv is None else list(argv)
+    MESSAGES = make_messages(_requested_lang(argv))
+    set_console_utf8()
+
     parser = argparse.ArgumentParser(
-        description='nim_duilib 发布打包脚本',
+        description=T('pkg.help_description'),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument('--config', type=_parse_config, default='Release',
                         metavar='{Release,Debug}',
-                        help='库配置，决定读取 lib/.../Release 或 lib/.../Debug'
-                             '（默认 Release）')
+                        help=T('pkg.help_config'))
     parser.add_argument('--arch', choices=('x64', 'x86', 'arm64'), default=None,
-                        help='库架构；Windows 影响库目录，所有平台影响包名'
-                             '（默认主机架构；x86 主要用于 Windows 32 位包）')
+                        help=T('pkg.help_arch'))
     parser.add_argument('--lib-dir', default=None,
-                        help='显式指定 duilib 库目录，此时 --arch/--config 不再参与'
-                             '路径计算，但仍决定包名与示例过滤')
+                        help=T('pkg.help_lib_dir'))
     parser.add_argument('--skia-lib-dir', default=None,
-                        help='Skia 静态库目录（默认按平台/工具链探测，'
-                             '如 ../skia/out/llvm.<arch>.<config>、'
-                             'mingw64-gcc.<arch>.release（独立 MinGW-w64）或 '
-                             'gcc.<arch>.release（MSYS2）；'
-                             'DLL 模式为 llvm.<arch>.release.md；'
-                             'MinGW 会按目录内是否存在 .a 校验）')
+                        help=T('pkg.help_skia_lib_dir'))
     parser.add_argument('--mingw-variant', choices=('auto', 'gcc', 'llvm'),
                         default='auto',
-                        help='MinGW 编译器变体（仅 Windows 的 MinGW 包；默认从静态库'
-                             '符号自动判断）；gcc 与 llvm-mingw 产物绑定不同 C++ 运行时，'
-                             '包名会追加 -mingw-gcc / -mingw-llvm'
-                             '（MSYS2 CLANG64 使用 libc++，归为 llvm）')
+                        help=T('pkg.help_mingw_variant'))
     parser.add_argument('--sdl-dir', default=None,
-                        help='SDL3 根目录（默认 ../SDL3）')
+                        help=T('pkg.help_sdl_dir'))
     parser.add_argument('--with-sdl', action='store_true',
-                        help='Windows 下额外打包 SDL3（Unix 始终打包，无需该参数）')
+                        help=T('pkg.help_with_sdl'))
     parser.add_argument('--with-cef', action='store_true',
-                        help='打包 CEF：头文件 + libcef.lib/wrapper + 运行时'
-                             '（Windows/Linux；macOS 仅控制 CEF 示例 .app 是否随包；'
-                             '体积巨大，默认不带）')
+                        help=T('pkg.help_with_cef'))
     parser.add_argument('--cef-version', choices=('latest', '109'), default='latest',
-                        help='配合 --with-cef 选择 CEF 版本：109（旧版）或 latest'
-                             '（当前最新，见 third_party_versions.json；默认 latest）')
+                        help=T('pkg.help_cef_version'))
     parser.add_argument('--msvc-runtime', choices=('auto', 'mt', 'md'), default='auto',
-                        help='MSVC 运行库（仅 Windows 包）：auto（DLL 模式 MD，否则 MT）'
-                             '/ mt / md；仅影响包内元数据与下游校验，不改变已构建产物')
+                        help=T('pkg.help_msvc_runtime'))
     parser.add_argument('--with-examples', action='store_true',
-                        help='包含示例程序与全部示例私有资源（默认只打 SDK；'
-                             'macOS 的 cef.app/CefBrowser.app 按整目录随包）')
+                        help=T('pkg.help_with_examples'))
     parser.add_argument('--format', choices=('zip', 'tgz', 'tarbz2'), default=None,
-                        help='压缩格式，默认 Windows 用 zip、其它用 tgz')
-    parser.add_argument('--out-dir', default=DEFAULT_OUT_DIR, help='输出目录，默认 dist/')
+                        help=T('pkg.help_format'))
+    parser.add_argument('--out-dir', default=DEFAULT_OUT_DIR, help=T('pkg.help_out_dir'))
     parser.add_argument('--list', action='store_true',
-                        help='只打印将收集的文件清单，不实际打包')
+                        help=T('pkg.help_list'))
     parser.add_argument('--allow-missing', action='store_true',
-                        help='关键产物缺失时仍继续出包（仅用于排查，'
-                             '发布流程不应使用）')
+                        help=T('pkg.help_allow_missing'))
     parser.add_argument('--verify', metavar='PACKAGE', default=None,
-                        help='只校验已有包：布局、MANIFEST、SHA256SUMS 与文档相对链接，'
-                             '不做打包；通过返回 0，发现错误返回 1')
+                        help=T('pkg.help_verify'))
+    parser.add_argument('--lang', choices=('auto', 'zh_CN', 'en'), default='auto',
+                        help=T('pkg.help_lang'))
     args = parser.parse_args(argv)
 
     if args.verify:
@@ -2776,10 +2774,9 @@ def main(argv=None):
         if toolchain == 'mingw':
             mingw_variant = resolve_mingw_variant(lib_dir, args.mingw_variant)
         if toolchain == 'mingw' and args.with_cef:
-            raise PackageError('--with-cef 仅支持 MSVC；MinGW（含 MSYS2）不支持 CEF')
+            raise PackageError(T('pkg.cef_mingw_unsupported'))
         if args.with_cef and sys_tag != 'win' and args.cef_version != 'latest':
-            raise PackageError('--cef-version 109 仅适用于 Windows；'
-                               'Linux 只有 latest')
+            raise PackageError(T('pkg.cef109_windows_only'))
         dll_mode = toolchain == 'msvc' and detect_dll_mode()
         skia_dir = resolve_skia_lib_dir(args.skia_lib_dir, config, arch_tag,
                                         toolchain, mingw_variant,
@@ -2828,44 +2825,44 @@ def main(argv=None):
         return 1
     collector.sort()
 
-    print('版本      : %s' % version)
-    print('平台      : %s-%s' % (sys_tag, arch_tag))
-    print('配置      : %s' % config)
+    print(T('pkg.sum_version') % version)
+    print(T('pkg.sum_platform') % (sys_tag, arch_tag))
+    print(T('pkg.sum_config') % config)
     if sys_tag == 'win' and toolchain:
         if toolchain == 'mingw':
-            toolchain_text = ('MinGW（llvm-mingw）' if mingw_variant == 'llvm'
-                              else 'MinGW（gcc）')
+            toolchain_text = (T('pkg.mingw_llvm') if mingw_variant == 'llvm'
+                              else T('pkg.mingw_gcc'))
         else:
             toolchain_text = 'MSVC'
-        print('工具链    : %s' % toolchain_text)
-    print('库目录    : %s' % _rel(lib_dir))
-    print('Skia 目录 : %s' % _rel(skia_dir))
-    print('格式      : %s' % fmt)
-    print('包含示例  : %s' % ('是' if args.with_examples else '否'))
+        print(T('pkg.sum_toolchain') % toolchain_text)
+    print(T('pkg.sum_lib_dir') % _rel(lib_dir))
+    print(T('pkg.sum_skia_dir') % _rel(skia_dir))
+    print(T('pkg.sum_format') % fmt)
+    print(T('pkg.sum_examples') % (T('pkg.yes') if args.with_examples else T('pkg.no')))
     print('-' * 60)
-    print('头文件    : %d' % n_headers)
-    print('静态库    : %d' % n_libs)
-    print('Skia 库   : %d' % n_skia)
+    print(T('pkg.sum_headers') % n_headers)
+    print(T('pkg.sum_libs') % n_libs)
+    print(T('pkg.sum_skia') % n_skia)
     print('SDL3      : %d' % n_sdl)
     print('WebView2  : %d' % n_wv2)
-    print('DLL运行库 : %d' % n_dll)
+    print(T('pkg.sum_dlls') % n_dll)
     print('JPEG      : %d' % n_jpeg)
     print('CEF       : %d' % n_cef)
-    print('CEF运行时 : %d' % n_cef_rt)
-    print('资源文件  : %d' % n_res)
-    print('许可证    : %d' % n_lic)
-    print('文档      : %d' % n_docs)
-    print('示例程序  : %d' % n_exe)
-    print('接入文件  : %d（生成 %d）'
+    print(T('pkg.sum_cef_runtime') % n_cef_rt)
+    print(T('pkg.sum_resources') % n_res)
+    print(T('pkg.sum_licenses') % n_lic)
+    print(T('pkg.sum_docs') % n_docs)
+    print(T('pkg.sum_example_bins') % n_exe)
+    print(T('pkg.sum_integration')
           % (n_integration + n_generated, n_generated))
     # 包内还会固化 3 个元数据文件（MANIFEST.txt、SHA256SUMS、VERSION），
     # 这里一并计入，保证与 `pack.py --verify` 报出的条目数一致。
-    print('合计      : %d 个文件，%s'
+    print(T('pkg.sum_total')
           % (len(collector.items) + len(virtual_files) + 3,
              human_size(collector.total_size())))
     if collector.warnings:
         print('-' * 60)
-        print('告警：')
+        print(T('pkg.warnings_header'))
         for w in collector.warnings:
             print('  ! %s' % w)
 
@@ -2881,10 +2878,10 @@ def main(argv=None):
         return 0
 
     if collector.critical:
-        eprint('[ERROR] 关键产物缺失，已阻止出包：')
+        eprint(T('pkg.critical_missing'))
         for msg in collector.critical:
             eprint('  - %s' % msg)
-        eprint('  仅需先出包排查时可加 --allow-missing（不要用于发布）。')
+        eprint(T('pkg.critical_missing_hint'))
         return 1
 
     # macOS 不随包 CEF 开发文件，包名里的 -cef 只表示 CEF 示例 App Bundle
@@ -2916,11 +2913,11 @@ def main(argv=None):
     except Exception as exc:  # noqa: BLE001 - 顶层兜底，避免半成品包
         if os.path.exists(out_path):
             os.remove(out_path)
-        eprint('[ERROR] 打包失败：%s' % exc)
+        eprint(T('pkg.pack_failed') % exc)
         return 2
 
     print('-' * 60)
-    print('产物      : %s（%s）' % (out_path, human_size(os.path.getsize(out_path))))
+    print(T('pkg.artifact') % (out_path, human_size(os.path.getsize(out_path))))
     return 0
 
 

@@ -420,6 +420,198 @@
       "en": "close programs that use the build tree (editors, running examples, antivirus) and retry",
       "zh_CN": "请关闭占用构建树的程序（编辑器、正在运行的示例、杀毒软件）后重试"
     },
+    "help.description": {
+      "en": "nim_duilib unified build entry",
+      "zh_CN": "nim_duilib 统一构建入口"
+    },
+    "help.epilog": {
+      "en": "Subcommand options are listed in their own help (build.py <command> --help):\n  build.py build --help   # --no-deps / --target / --no-examples\n  build.py deps --help    # --force\n  build.py pack --help    # --with-cef / --with-sdl / --with-examples / --out-dir / --pack-arg\n  build.py clean --help   # --deps / --build-dir",
+      "zh_CN": "子命令专属参数需查看子命令帮助（build.py <command> --help）：\n  build.py build --help   # --no-deps / --target / --no-examples\n  build.py deps --help    # --force\n  build.py pack --help    # --with-cef / --with-sdl / --with-examples / --out-dir / --pack-arg\n  build.py clean --help   # --deps / --build-dir"
+    },
+    "help.config": {
+      "en": "build config (one per invocation, default: Release)",
+      "zh_CN": "构建配置（一次只构建一个，默认 Release）"
+    },
+    "help.arch": {
+      "en": "target architecture (default: host; x86 is mainly for 32-bit Windows)",
+      "zh_CN": "目标架构（默认主机架构；x86 主要用于 Windows 32 位）"
+    },
+    "help.lang": {
+      "en": "console language (default: follow the system locale)",
+      "zh_CN": "交互语言（默认跟随系统）"
+    },
+    "help.build_dir": {
+      "en": "override the build directory (default: out/<arch>/<Config>)",
+      "zh_CN": "覆盖构建目录（默认 out/<arch>/<Config>）"
+    },
+    "help.deps_root": {
+      "en": "dependency source/install root (default: next to the repo, i.e. peer of nim_duilib; Skia, SDL3 and CEF are installed there)",
+      "zh_CN": "依赖源码/安装根目录（默认仓库同级，即与 nim_duilib 平级；Skia、SDL3、CEF 都安装到这里）"
+    },
+    "help.jobs": {
+      "en": "parallel compile jobs (default: CPU logical cores)",
+      "zh_CN": "并行编译任务数（默认 CPU 逻辑核心数）"
+    },
+    "help.offline": {
+      "en": "only use cached dependency sources/archives (no network)",
+      "zh_CN": "只使用已缓存的依赖源码/归档（不访问网络）"
+    },
+    "help.dry_run": {
+      "en": "only print the commands that would run",
+      "zh_CN": "只打印将执行的命令"
+    },
+    "help.cmake_arg": {
+      "en": "extra cmake configure args (repeatable, e.g. --cmake-arg=-DFOO=ON)",
+      "zh_CN": "追加给 cmake configure 的参数（可重复，如 --cmake-arg=-DFOO=ON）"
+    },
+    "help.build_arg": {
+      "en": "extra cmake --build args (repeatable, e.g. --build-arg=-v)",
+      "zh_CN": "追加给 cmake --build 的参数（可重复，如 --build-arg=-v）"
+    },
+    "help.vs_windows": {
+      "en": "explicit Visual Studio major version (e.g. 17; default: auto-detect)",
+      "zh_CN": "显式指定 Visual Studio 主版本（如 17，默认自动探测）"
+    },
+    "help.vs_other": {
+      "en": "Windows only; ignored on other platforms",
+      "zh_CN": "仅 Windows 有效；其他平台忽略该参数"
+    },
+    "help.cef_version": {
+      "en": "CEF version: 109 (legacy) or latest (default: from third_party_versions.json; follows manifest upgrades)",
+      "zh_CN": "CEF 版本：109（旧版）或 latest（当前最新，默认取 third_party_versions.json；清单升级后自动跟随）"
+    },
+    "help.skia_ref": {
+      "en": "Skia ref key (key in manifest skia.refs; default: skia.default, e.g. chrome/m142)",
+      "zh_CN": "Skia 引用键（清单 skia.refs 中的键，默认取 skia.default；如 chrome/m142）"
+    },
+    "help.sdl_ref": {
+      "en": "SDL3 ref key (key in manifest sdl.refs; default: sdl.default, e.g. release-3.4.18, main)",
+      "zh_CN": "SDL3 引用键（清单 sdl.refs 中的键，默认取 sdl.default；如 release-3.4.18、main）"
+    },
+    "help.sdl_windows": {
+      "en": "enable SDL (off by default on Windows, and not enabled by DLL mode; when off, SDL3 is not downloaded or built)",
+      "zh_CN": "启用 SDL（Windows 默认关闭，DLL 模式也不会自动开启；关闭时不下载/不构建 SDL3）"
+    },
+    "help.sdl_other": {
+      "en": "Windows only; SDL is always enabled on other platforms",
+      "zh_CN": "仅 Windows 有效；其他平台 SDL 始终开启"
+    },
+    "help.no_sdl_windows": {
+      "en": "force SDL off",
+      "zh_CN": "强制关闭 SDL"
+    },
+    "help.no_sdl_other": {
+      "en": "Windows only; SDL is always enabled on other platforms and cannot be disabled",
+      "zh_CN": "仅 Windows 有效；其他平台 SDL 始终开启，无法关闭"
+    },
+    "help.md_windows": {
+      "en": "use the MSVC dynamic runtime (/MD, /MDd); default: MT",
+      "zh_CN": "使用 MSVC 动态运行库 (/MD, /MDd)；默认 MT"
+    },
+    "help.md_other": {
+      "en": "Windows (MSVC) only; other platforms use the toolchain default runtime",
+      "zh_CN": "仅 Windows（MSVC）有效；其他平台使用工具链默认运行库"
+    },
+    "help.dll_windows": {
+      "en": "build duilib in DLL mode (implies --md, prepares and builds Skia .md/.mdd, outputs bin/duilib*.dll; SDL is not enabled implicitly, pass --sdl when needed); also syncs msvc/PropertySheets/duilib_dll.flag",
+      "zh_CN": "构建 duilib DLL 模式（隐式开启 --md，自动准备并编译 Skia .md/.mdd，输出 bin/duilib*.dll；SDL 不自动开启，需要时显式 --sdl）；同时同步 msvc/PropertySheets/duilib_dll.flag"
+    },
+    "help.dll_other": {
+      "en": "Windows MSVC only; not supported on other platforms",
+      "zh_CN": "仅 Windows MSVC 有效；其他平台不支持"
+    },
+    "help.rpath_windows": {
+      "en": "Unix (Linux/macOS/FreeBSD) only; ignored on Windows",
+      "zh_CN": "仅 Unix（Linux/macOS/FreeBSD）有效；Windows 忽略该参数"
+    },
+    "help.rpath_other": {
+      "en": "write only relative rpath entries; no absolute fallbacks such as SDL3",
+      "zh_CN": "产物只写相对 rpath，不附加 SDL3 等绝对兜底路径"
+    },
+    "help.cef_archive": {
+      "en": "local CEF archive path (skips download; integrity still checked against the official .sha1)",
+      "zh_CN": "本地 CEF 归档路径（跳过下载；仍按官方 .sha1 校验完整性）"
+    },
+    "help.cmd_build": {
+      "en": "prepare dependencies and build one configuration",
+      "zh_CN": "准备依赖并编译一个配置"
+    },
+    "help.no_deps": {
+      "en": "skip dependency preparation (reuse ready Skia/SDL3/CEF)",
+      "zh_CN": "跳过依赖准备（复用已就绪的 Skia/SDL3/CEF）"
+    },
+    "help.target": {
+      "en": "build only the given CMake target (default: all)",
+      "zh_CN": "只构建指定 CMake 目标（默认全部）"
+    },
+    "help.no_examples": {
+      "en": "do not build examples (the project is still configured)",
+      "zh_CN": "不编译示例（仍配置工程）"
+    },
+    "help.cmd_deps": {
+      "en": "prepare dependencies only (Skia/SDL3/CEF; SDL3 is skipped when SDL is off) and install them into --deps-root",
+      "zh_CN": "只准备依赖（Skia/SDL3/CEF；SDL 关闭时跳过 SDL3）并安装到 --deps-root"
+    },
+    "help.force": {
+      "en": "ignore completion stamps and rebuild dependencies (Skia/SDL3/CEF)",
+      "zh_CN": "忽略完成标记，重建依赖（Skia/SDL3/CEF）"
+    },
+    "help.cmd_doctor": {
+      "en": "environment self-check (read-only, no files modified)",
+      "zh_CN": "环境自检（只读，不修改文件）"
+    },
+    "help.cmd_test": {
+      "en": "run unit tests",
+      "zh_CN": "运行单元测试"
+    },
+    "help.cmd_pack": {
+      "en": "invoke pack.py to build a package",
+      "zh_CN": "调用 pack.py 出包"
+    },
+    "help.with_cef": {
+      "en": "include CEF in the package (Windows/Linux: headers, wrapper and runtime; macOS: only controls the CEF example .app; very large, off by default)",
+      "zh_CN": "包内包含 CEF（Windows/Linux 含头文件、wrapper 与运行时；macOS 仅控制 CEF 示例 .app；体积巨大，默认不带）"
+    },
+    "help.with_sdl": {
+      "en": "include SDL3 in the package (only needed on Windows; Unix always packages it)",
+      "zh_CN": "包内包含 SDL3（仅 Windows 需要；Unix 始终打包）"
+    },
+    "help.with_examples": {
+      "en": "include example programs and private resources in the package",
+      "zh_CN": "包内包含示例程序与私有资源"
+    },
+    "help.out_dir": {
+      "en": "package output directory (default: dist/)",
+      "zh_CN": "包输出目录（默认 dist/）"
+    },
+    "help.pack_arg": {
+      "en": "extra pack.py args (repeatable)",
+      "zh_CN": "追加给 pack.py 的参数（可重复）"
+    },
+    "help.cmd_clean": {
+      "en": "clean the build tree (default: the whole out/; --build-dir limits it to one directory)",
+      "zh_CN": "清理构建树（默认整个 out/；--build-dir 可只清理指定目录）"
+    },
+    "help.clean_deps": {
+      "en": "also clean dependency build artifacts (Skia/SDL3/CEF build dirs under --deps-root)",
+      "zh_CN": "同时清理依赖构建产物（--deps-root 下的 Skia/SDL3/CEF 构建目录）"
+    },
+    "help.cef_unknown": {
+      "en": "unknown CEF version: {requested}",
+      "zh_CN": "未知的 CEF 版本：{requested}"
+    },
+    "help.cef_unknown_choices": {
+      "en": "valid values: 109, latest (currently {default}); configured in third_party_versions.json: {versions}",
+      "zh_CN": "可选值：109、latest（当前对应 {default}）；清单 third_party_versions.json 中已配置：{versions}"
+    },
+    "help.list_sep": {
+      "en": ", ",
+      "zh_CN": "、"
+    },
+    "help.dll_platform": {
+      "en": "--dll is supported only by Windows MSVC; use a static build on other platforms",
+      "zh_CN": "--dll 仅支持 Windows MSVC；其他平台请使用静态构建"
+    },
     "doctor.title": {
       "en": "Environment summary",
       "zh_CN": "环境摘要"
@@ -455,6 +647,1734 @@
     "pack.sdl_flag_hint": {
       "en": "[HINT] --sdl only enables SDL for the build; add --with-sdl to include SDL3 in the package",
       "zh_CN": "[提示] --sdl 只影响编译开关；包内包含 SDL3 需要额外加 --with-sdl"
+    },
+    "pkg.version_header_missing": {
+      "en": "[ERROR] version header not found: %s",
+      "zh_CN": "[ERROR] 找不到版本头文件：%s"
+    },
+    "pkg.version_header_read_failed": {
+      "en": "[ERROR] failed to read version header: %s",
+      "zh_CN": "[ERROR] 读取版本头文件失败：%s"
+    },
+    "pkg.version_macro_duplicated": {
+      "en": "[ERROR] duplicate version macros: %s (%s)",
+      "zh_CN": "[ERROR] 版本宏重复定义：%s（%s）"
+    },
+    "pkg.version_macro_missing": {
+      "en": "[ERROR] missing version macros: %s (%s)",
+      "zh_CN": "[ERROR] 版本宏缺失：%s（%s）"
+    },
+    "pkg.version_macro_range": {
+      "en": "[ERROR] version macro out of range (0..65535): DUILIB_VER_%s=%s",
+      "zh_CN": "[ERROR] 版本宏超出范围（0..65535）：DUILIB_VER_%s=%s"
+    },
+    "pkg.third_party_missing": {
+      "en": "third_party/%s is missing; headers may be incomplete",
+      "zh_CN": "third_party/%s 不存在，头文件可能不完整"
+    },
+    "pkg.core_header_missing": {
+      "en": "missing core header include/duilib/duilib.h (source dir: %s)",
+      "zh_CN": "缺少核心头文件 include/duilib/duilib.h（源目录：%s）"
+    },
+    "pkg.lib_dir_mixed_toolchains": {
+      "en": "library directory contains both MSVC (.lib) and MinGW (.a) artifacts: %s; clean it (or run build.py clean) and rebuild with a single toolchain",
+      "zh_CN": "库目录同时包含 MSVC（.lib）与 MinGW（.a）产物：%s；请清理该目录（或先运行 build.py clean）后只用一个工具链重新构建"
+    },
+    "pkg.mingw_variant_mismatch": {
+      "en": "library directory %s looks like %s output, which conflicts with --mingw-variant=%s",
+      "zh_CN": "库目录 %s 看起来是 %s 编译的，与 --mingw-variant=%s 不一致"
+    },
+    "pkg.mingw_variant_unknown": {
+      "en": "cannot tell the MinGW compiler (gcc / llvm-mingw) from %s; specify --mingw-variant",
+      "zh_CN": "无法从 %s 判断 MinGW 编译器（gcc / llvm-mingw），请用 --mingw-variant 指定"
+    },
+    "pkg.cef_lib_version_hint": {
+      "en": "; the library directory has %s from CEF %s; add --cef-version %s when packaging",
+      "zh_CN": "；库目录中是 CEF %s 的 %s，打包时请加 --cef-version %s"
+    },
+    "pkg.cef_lib_missing": {
+      "en": "--with-cef was requested but %s is missing from the library directory (%s)%s",
+      "zh_CN": "启用了 --with-cef，但库目录中缺少 %s（目录：%s）%s"
+    },
+    "pkg.cef_lib_unpacked": {
+      "en": "found CEF library %s (%s) but it is not packaged; add --with-cef to include it",
+      "zh_CN": "存在 CEF 库 %s（%s），未打包；需要请加 --with-cef"
+    },
+    "pkg.base_libs_missing": {
+      "en": "missing base libraries: %s (dir: %s); build %s first",
+      "zh_CN": "缺少基础库：%s（目录：%s），请先完成 %s 编译"
+    },
+    "pkg.skia_libs_missing": {
+      "en": "no %s static libraries in the Skia directory: %s",
+      "zh_CN": "Skia 目录中没有 %s 静态库：%s"
+    },
+    "pkg.skia_dir_missing": {
+      "en": "--skia-lib-dir does not exist: %s",
+      "zh_CN": "--skia-lib-dir 不存在：%s"
+    },
+    "pkg.skia_dir_toolchain_mismatch": {
+      "en": "--skia-lib-dir has no %s static libraries; toolchain %s mismatch: %s",
+      "zh_CN": "--skia-lib-dir 中没有 %s 静态库，与 %s 工具链不匹配：%s"
+    },
+    "pkg.skia_dir_mingw_mismatch": {
+      "en": "--skia-lib-dir was built by %s, which does not match MinGW compiler %s: %s",
+      "zh_CN": "--skia-lib-dir 是 %s 的产物，与 MinGW 编译器 %s 不匹配：%s"
+    },
+    "pkg.skia_dir_not_found": {
+      "en": "Skia library directory not found (tried: %s; available: %s); use --skia-lib-dir",
+      "zh_CN": "未找到 Skia 库目录（尝试过：%s；可用：%s）。可用 --skia-lib-dir 指定"
+    },
+    "pkg.none": {
+      "en": "none",
+      "zh_CN": "无"
+    },
+    "pkg.sdl_dir_missing": {
+      "en": "SDL3 directory does not exist: %s (use --sdl-dir)",
+      "zh_CN": "SDL3 目录不存在：%s（可用 --sdl-dir 指定）"
+    },
+    "pkg.sdl_libs_missing": {
+      "en": "--with-sdl was requested but no SDL3 static/import library exists under %s (tried: %s)",
+      "zh_CN": "启用了 --with-sdl，但 %s 下没有 SDL3 静态库或导入库（尝试过：%s）"
+    },
+    "pkg.sdl_dll_missing": {
+      "en": "missing SDL3 runtime DLL: %s (downstream programs will fail to run)",
+      "zh_CN": "缺少 SDL3 运行期 DLL：%s（下游运行会失败）"
+    },
+    "pkg.sdl_shared_missing": {
+      "en": "SDL3 dynamic library not found (looked in %s)",
+      "zh_CN": "SDL3 动态库不存在（查找 %s）"
+    },
+    "pkg.webview2_loader_arch_skipped": {
+      "en": "WebView2 has no loader for %s; skipped",
+      "zh_CN": "WebView2 没有 %s 架构的 loader，已跳过"
+    },
+    "pkg.webview2_loader_missing": {
+      "en": "missing WebView2 loader: %s",
+      "zh_CN": "缺少 WebView2 loader：%s"
+    },
+    "pkg.dll_arch_mismatch": {
+      "en": "bin/%s.dll architecture (0x%04X) does not match target %s; skipped",
+      "zh_CN": "bin/%s.dll 的架构（0x%04X）与目标 %s 不匹配，已跳过"
+    },
+    "pkg.jpeg_upstream_unsupported": {
+      "en": "libjpeg-turbo has no prebuilt Windows %s library upstream; skipped",
+      "zh_CN": "libjpeg-turbo 上游没有 Windows %s 预编译库，已跳过"
+    },
+    "pkg.jpeg_runtime_unknown": {
+      "en": "duilib runtime DLL not found in DLL mode; cannot confirm JPEG support",
+      "zh_CN": "DLL 模式下未找到 duilib 运行期 DLL，无法确认 JPEG 支持"
+    },
+    "pkg.turbojpeg_dll_missing": {
+      "en": "missing turbojpeg.dll: %s",
+      "zh_CN": "缺少 turbojpeg.dll：%s"
+    },
+    "pkg.turbojpeg_static_missing": {
+      "en": "missing turbojpeg-static.lib: %s",
+      "zh_CN": "缺少 turbojpeg-static.lib：%s"
+    },
+    "pkg.cef_macos_not_collected": {
+      "en": "macOS does not collect CEF development files or runtime; --with-cef only controls whether the CEF examples (cef.app, CefBrowser.app) ship",
+      "zh_CN": "macOS 不收集 CEF 开发文件与运行时，--with-cef 仅控制 CEF 示例（cef.app、CefBrowser.app）是否随包"
+    },
+    "pkg.cef_platform_unsupported": {
+      "en": "--with-cef is supported on Windows / Linux / macOS only",
+      "zh_CN": "--with-cef 仅支持 Windows / Linux / macOS"
+    },
+    "pkg.cef_source_missing": {
+      "en": "missing CEF source directory: %s",
+      "zh_CN": "缺少 CEF 源码目录：%s"
+    },
+    "pkg.cef_windows_binary_missing": {
+      "en": "CEF has no prebuilt Windows %s package upstream; cannot ship it",
+      "zh_CN": "CEF 上游没有 Windows %s 预编译包，无法随包"
+    },
+    "pkg.missing": {
+      "en": "missing %s",
+      "zh_CN": "缺少 %s"
+    },
+    "pkg.cef_binary_missing": {
+      "en": "missing %s: copy the Release/ and Resources/ content of the CEF binary distribution into bin/%s/",
+      "zh_CN": "缺少 %s：请把 CEF 二进制分发包的 Release/ 与 Resources/ 内容复制到 bin/%s/"
+    },
+    "pkg.cef_runtime_arch_skipped": {
+      "en": "no CEF runtime directory for %s; skipped",
+      "zh_CN": "CEF 运行时没有 %s 架构的目录，已跳过"
+    },
+    "pkg.cef_runtime_missing": {
+      "en": "CEF runtime directory does not exist: %s (this package ships headers and libraries only; CEF examples cannot run directly)",
+      "zh_CN": "CEF 运行时目录不存在：%s（本包只有头文件与库，带 CEF 的示例程序无法直接运行）"
+    },
+    "pkg.resources_missing": {
+      "en": "resources directory does not exist: %s (required at startup)",
+      "zh_CN": "资源目录不存在：%s（框架启动必需）"
+    },
+    "pkg.licenses_missing": {
+      "en": "licenses directory does not exist: %s",
+      "zh_CN": "许可证目录不存在：%s"
+    },
+    "pkg.notices_missing": {
+      "en": "missing third-party notices: %s",
+      "zh_CN": "缺少第三方声明：%s"
+    },
+    "pkg.skia_license_missing": {
+      "en": "missing Skia license: %s",
+      "zh_CN": "缺少 Skia 许可证：%s"
+    },
+    "pkg.docs_missing": {
+      "en": "docs directory does not exist: %s",
+      "zh_CN": "文档目录不存在：%s"
+    },
+    "pkg.bin_dir_missing": {
+      "en": "bin directory does not exist: %s",
+      "zh_CN": "bin 目录不存在：%s"
+    },
+    "pkg.examples_other_config": {
+      "en": "examples built with another configuration were skipped: %s (rebuild with the target configuration before packaging)",
+      "zh_CN": "以下示例由另一配置构建，已跳过：%s（请按目标配置重新构建后再打包）"
+    },
+    "pkg.examples_unknown_config": {
+      "en": "cannot confirm the build configuration of these examples (missing %s); Release binaries may be mixed in; verify before distributing: %s",
+      "zh_CN": "无法确认以下示例的构建配置（缺少 %s），可能混有 Release 版本，请确认后再分发：%s"
+    },
+    "pkg.build_config_stamp": {
+      "en": "bin/.build-config/<target>",
+      "zh_CN": "bin/.build-config/<目标>"
+    },
+    "pkg.debug_examples_skipped": {
+      "en": "skipped Debug example binaries: %s",
+      "zh_CN": "已跳过 Debug 示例程序：%s"
+    },
+    "pkg.cef_examples_skipped": {
+      "en": "CEF module not packaged; skipped CEF example binaries: %s",
+      "zh_CN": "未打包 CEF 模块，已跳过 CEF 示例程序：%s"
+    },
+    "pkg.examples_arch_mismatch": {
+      "en": "%s architecture does not match target %s; skipped: %s (clean bin and build only the target architecture)",
+      "zh_CN": "%s 的架构与目标 %s 不一致，已跳过：%s（请清理 bin 后只构建目标架构）"
+    },
+    "pkg.examples_missing": {
+      "en": "--with-examples was requested but no example binaries were found under %s",
+      "zh_CN": "启用了 --with-examples，但 %s 下没有可打包的示例程序"
+    },
+    "pkg.template_missing": {
+      "en": "integration template not found: %s (expected under packaging/)",
+      "zh_CN": "接入模板不存在：%s（应位于仓库 packaging/ 目录）"
+    },
+    "pkg.template_placeholder": {
+      "en": "integration template %s has unreplaced placeholders: %s",
+      "zh_CN": "接入模板 %s 存在未替换的占位符：%s"
+    },
+    "pkg.manifest_missing": {
+      "en": "missing manifest: %s (VS projects will not embed Common Controls v6)",
+      "zh_CN": "缺少 manifest：%s（VS 工程不会自动嵌入 Common Controls v6）"
+    },
+    "pkg.dll_sdl_flag_missing": {
+      "en": "duilib.dll was built with SDL support but packaging did not pass --with-sdl: downstream would lack SDL headers and DUILIB_SDL would disagree with the DLL, breaking the Control/WindowBase class layout. Add --with-sdl and repackage",
+      "zh_CN": "duilib.dll 以 SDL 支持编译，但打包未加 --with-sdl：下游缺少 SDL 头文件且 DUILIB_SDL 宏与 DLL 不一致，会破坏 Control/WindowBase 的类布局。请补 --with-sdl 后重新打包"
+    },
+    "pkg.dll_sdl_libs_missing": {
+      "en": "duilib.dll was built with SDL support but the package has no SDL3 libraries or headers; check that --sdl-dir points to a valid SDL3 source tree",
+      "zh_CN": "duilib.dll 以 SDL 支持编译，但包内没有 SDL3 库/头文件，请确认 --sdl-dir 指向有效的 SDL3 源码目录"
+    },
+    "pkg.dll_sdl_not_used": {
+      "en": "duilib.dll was built without SDL support; packaged SDL3 content is not used in the metadata (HAS_SDL=0) and downstream macros match the DLL",
+      "zh_CN": "duilib.dll 未以 SDL 支持编译，包内 SDL3 内容不会用于元数据（HAS_SDL=0），下游 DUIlib 宏与 DLL 一致"
+    },
+    "pkg.dll_cef_flag_missing": {
+      "en": "duilib.dll was built with CEF support (libcef.dll is delay-loaded) but packaging did not pass --with-cef: the SDK ships no CEF headers or runtime, so CEF controls are unavailable (other features are unaffected)",
+      "zh_CN": "duilib.dll 以 CEF 支持编译（延迟加载 libcef.dll），但打包未加 --with-cef：SDK 不含 CEF 头文件与运行时，CEF 控件不可用（其余功能不受影响）"
+    },
+    "pkg.source_date_epoch_invalid": {
+      "en": "SOURCE_DATE_EPOCH must be an integer number of seconds: %r",
+      "zh_CN": "SOURCE_DATE_EPOCH 必须是整数秒：%r"
+    },
+    "pkg.source_date_epoch_negative": {
+      "en": "SOURCE_DATE_EPOCH must not be negative: %d",
+      "zh_CN": "SOURCE_DATE_EPOCH 不能为负数：%d"
+    },
+    "pkg.lib_dir_arg_missing": {
+      "en": "--lib-dir does not exist: %s",
+      "zh_CN": "--lib-dir 不存在：%s"
+    },
+    "pkg.lib_dir_missing": {
+      "en": "library directory does not exist: %s (build %s|%s first)",
+      "zh_CN": "库目录不存在：%s（请先完成 %s|%s 的构建）"
+    },
+    "pkg.package_missing": {
+      "en": "[ERROR] package does not exist: %s",
+      "zh_CN": "[ERROR] 包不存在：%s"
+    },
+    "pkg.package_open_failed": {
+      "en": "[ERROR] cannot open package %s: %s",
+      "zh_CN": "[ERROR] 无法打开包 %s：%s"
+    },
+    "pkg.package_root_not_unique": {
+      "en": "multiple package root directories: %s",
+      "zh_CN": "包根目录不唯一：%s"
+    },
+    "pkg.headers_missing": {
+      "en": "missing include/duilib/ headers",
+      "zh_CN": "缺少 include/duilib/ 头文件"
+    },
+    "pkg.static_libs_missing": {
+      "en": "missing static libraries under lib/ (.a / .lib)",
+      "zh_CN": "缺少 lib/ 静态库（.a / .lib）"
+    },
+    "pkg.sums_line_malformed": {
+      "en": "malformed SHA256SUMS line: %s",
+      "zh_CN": "SHA256SUMS 行格式异常：%s"
+    },
+    "pkg.sums_not_listed": {
+      "en": "file not listed in SHA256SUMS: %s",
+      "zh_CN": "未登记到 SHA256SUMS：%s"
+    },
+    "pkg.sums_file_absent": {
+      "en": "SHA256SUMS lists a file that is missing from the package: %s",
+      "zh_CN": "SHA256SUMS 登记了包内不存在的文件：%s"
+    },
+    "pkg.sha_mismatch": {
+      "en": "SHA256 mismatch: %s",
+      "zh_CN": "SHA256 不匹配：%s"
+    },
+    "pkg.sha_mismatch_truncated": {
+      "en": "... (%d mismatches found; the rest is not listed)",
+      "zh_CN": "…（已发现 %d 处不匹配，不再逐个列出）"
+    },
+    "pkg.doc_link_broken": {
+      "en": "broken document link: %s -> %s",
+      "zh_CN": "文档链接失效：%s -> %s"
+    },
+    "pkg.symlinks_noted": {
+      "en": "package contains %d symbolic links (not included in SHA256SUMS)",
+      "zh_CN": "包内含 %d 个符号链接（未计入 SHA256SUMS）"
+    },
+    "pkg.verify_fail": {
+      "en": "[FAIL] %s: %d entries, %d errors, %d warnings\n",
+      "zh_CN": "[FAIL] %s：%d 个条目，%d 个错误，%d 个告警\n"
+    },
+    "pkg.verify_ok": {
+      "en": "[OK] %s: %d entries (%d files / %d links), %d headers, %d libraries, all SHA256 match\n",
+      "zh_CN": "[OK] %s：%d 个条目（%d 文件 / %d 链接），%d 个头文件，%d 个库，SHA 全部匹配\n"
+    },
+    "pkg.config_invalid": {
+      "en": "config must be Release or Debug: %r",
+      "zh_CN": "配置只能是 Release 或 Debug：%r"
+    },
+    "pkg.help_description": {
+      "en": "nim_duilib release packaging script",
+      "zh_CN": "nim_duilib 发布打包脚本"
+    },
+    "pkg.help_config": {
+      "en": "library configuration; reads lib/.../Release or lib/.../Debug (default: Release)",
+      "zh_CN": "库配置，决定读取 lib/.../Release 或 lib/.../Debug（默认 Release）"
+    },
+    "pkg.help_arch": {
+      "en": "library architecture; affects the library directory on Windows and the package name everywhere (default: host; x86 targets 32-bit Windows packages)",
+      "zh_CN": "库架构；Windows 影响库目录，所有平台影响包名（默认主机架构；x86 主要用于 Windows 32 位包）"
+    },
+    "pkg.help_lib_dir": {
+      "en": "explicit duilib library directory; --arch/--config no longer select the path but still decide the package name and example filtering",
+      "zh_CN": "显式指定 duilib 库目录，此时 --arch/--config 不再参与路径计算，但仍决定包名与示例过滤"
+    },
+    "pkg.help_skia_lib_dir": {
+      "en": "Skia static library directory (auto-detected per platform/toolchain, e.g. ../skia/out/llvm.<arch>.<config>, mingw64-gcc.<arch>.release (standalone MinGW-w64) or gcc.<arch>.release (MSYS2); DLL mode uses llvm.<arch>.release.md; MinGW variants are validated by the .a files inside)",
+      "zh_CN": "Skia 静态库目录（默认按平台/工具链探测，如 ../skia/out/llvm.<arch>.<config>、mingw64-gcc.<arch>.release（独立 MinGW-w64）或 gcc.<arch>.release（MSYS2）；DLL 模式为 llvm.<arch>.release.md；MinGW 会按目录内是否存在 .a 校验）"
+    },
+    "pkg.help_mingw_variant": {
+      "en": "MinGW compiler variant (Windows MinGW packages only; auto-detected from static library symbols); gcc and llvm-mingw bind different C++ runtimes, so the package name gets -mingw-gcc / -mingw-llvm (MSYS2 CLANG64 uses libc++ and counts as llvm)",
+      "zh_CN": "MinGW 编译器变体（仅 Windows 的 MinGW 包；默认从静态库符号自动判断）；gcc 与 llvm-mingw 产物绑定不同 C++ 运行时，包名会追加 -mingw-gcc / -mingw-llvm（MSYS2 CLANG64 使用 libc++，归为 llvm）"
+    },
+    "pkg.help_sdl_dir": {
+      "en": "SDL3 root directory (default: ../SDL3)",
+      "zh_CN": "SDL3 根目录（默认 ../SDL3）"
+    },
+    "pkg.help_with_sdl": {
+      "en": "also package SDL3 on Windows (Unix always packages it; this flag is unnecessary there)",
+      "zh_CN": "Windows 下额外打包 SDL3（Unix 始终打包，无需该参数）"
+    },
+    "pkg.help_with_cef": {
+      "en": "package CEF: headers + libcef.lib/wrapper + runtime (Windows/Linux; on macOS only decides whether CEF example .apps ship; very large, off by default)",
+      "zh_CN": "打包 CEF：头文件 + libcef.lib/wrapper + 运行时（Windows/Linux；macOS 仅控制 CEF 示例 .app 是否随包；体积巨大，默认不带）"
+    },
+    "pkg.help_cef_version": {
+      "en": "CEF version used with --with-cef: 109 (legacy) or latest (current, see third_party_versions.json; default: latest)",
+      "zh_CN": "配合 --with-cef 选择 CEF 版本：109（旧版）或 latest（当前最新，见 third_party_versions.json；默认 latest）"
+    },
+    "pkg.help_msvc_runtime": {
+      "en": "MSVC runtime (Windows packages only): auto (MD in DLL mode, otherwise MT) / mt / md; affects package metadata and downstream validation only, never existing artifacts",
+      "zh_CN": "MSVC 运行库（仅 Windows 包）：auto（DLL 模式 MD，否则 MT）/ mt / md；仅影响包内元数据与下游校验，不改变已构建产物"
+    },
+    "pkg.help_with_examples": {
+      "en": "include example binaries and all example-private resources (SDK only by default; macOS cef.app/CefBrowser.app ship as whole bundles)",
+      "zh_CN": "包含示例程序与全部示例私有资源（默认只打 SDK；macOS 的 cef.app/CefBrowser.app 按整目录随包）"
+    },
+    "pkg.help_format": {
+      "en": "archive format; Windows defaults to zip, other platforms to tgz",
+      "zh_CN": "压缩格式，默认 Windows 用 zip、其它用 tgz"
+    },
+    "pkg.help_out_dir": {
+      "en": "output directory (default: dist/)",
+      "zh_CN": "输出目录，默认 dist/"
+    },
+    "pkg.help_list": {
+      "en": "print the file list only; do not build an archive",
+      "zh_CN": "只打印将收集的文件清单，不实际打包"
+    },
+    "pkg.help_allow_missing": {
+      "en": "keep packaging even when critical artifacts are missing (troubleshooting only; never for releases)",
+      "zh_CN": "关键产物缺失时仍继续出包（仅用于排查，发布流程不应使用）"
+    },
+    "pkg.help_verify": {
+      "en": "verify an existing package only: layout, MANIFEST, SHA256SUMS and relative doc links; no packaging; exits 0 on success, 1 on errors",
+      "zh_CN": "只校验已有包：布局、MANIFEST、SHA256SUMS 与文档相对链接，不做打包；通过返回 0，发现错误返回 1"
+    },
+    "pkg.help_lang": {
+      "en": "console language (default: follow the system locale)",
+      "zh_CN": "交互语言（默认跟随系统）"
+    },
+    "pkg.mingw_llvm": {
+      "en": "MinGW (llvm-mingw)",
+      "zh_CN": "MinGW（llvm-mingw）"
+    },
+    "pkg.mingw_gcc": {
+      "en": "MinGW (gcc)",
+      "zh_CN": "MinGW（gcc）"
+    },
+    "pkg.yes": {
+      "en": "yes",
+      "zh_CN": "是"
+    },
+    "pkg.no": {
+      "en": "no",
+      "zh_CN": "否"
+    },
+    "pkg.sum_version": {
+      "en": "Version     : %s",
+      "zh_CN": "版本      : %s"
+    },
+    "pkg.sum_platform": {
+      "en": "Platform    : %s-%s",
+      "zh_CN": "平台      : %s-%s"
+    },
+    "pkg.sum_config": {
+      "en": "Config      : %s",
+      "zh_CN": "配置      : %s"
+    },
+    "pkg.sum_toolchain": {
+      "en": "Toolchain   : %s",
+      "zh_CN": "工具链    : %s"
+    },
+    "pkg.sum_lib_dir": {
+      "en": "Lib dir     : %s",
+      "zh_CN": "库目录    : %s"
+    },
+    "pkg.sum_skia_dir": {
+      "en": "Skia dir    : %s",
+      "zh_CN": "Skia 目录 : %s"
+    },
+    "pkg.sum_format": {
+      "en": "Format      : %s",
+      "zh_CN": "格式      : %s"
+    },
+    "pkg.sum_examples": {
+      "en": "Examples    : %s",
+      "zh_CN": "包含示例  : %s"
+    },
+    "pkg.sum_headers": {
+      "en": "Headers     : %d",
+      "zh_CN": "头文件    : %d"
+    },
+    "pkg.sum_libs": {
+      "en": "Libraries   : %d",
+      "zh_CN": "静态库    : %d"
+    },
+    "pkg.sum_skia": {
+      "en": "Skia libs   : %d",
+      "zh_CN": "Skia 库   : %d"
+    },
+    "pkg.sum_dlls": {
+      "en": "Runtime DLLs: %d",
+      "zh_CN": "DLL运行库 : %d"
+    },
+    "pkg.sum_cef_runtime": {
+      "en": "CEF runtime : %d",
+      "zh_CN": "CEF运行时 : %d"
+    },
+    "pkg.sum_resources": {
+      "en": "Resources   : %d",
+      "zh_CN": "资源文件  : %d"
+    },
+    "pkg.sum_licenses": {
+      "en": "Licenses    : %d",
+      "zh_CN": "许可证    : %d"
+    },
+    "pkg.sum_docs": {
+      "en": "Docs        : %d",
+      "zh_CN": "文档      : %d"
+    },
+    "pkg.sum_example_bins": {
+      "en": "Example bins: %d",
+      "zh_CN": "示例程序  : %d"
+    },
+    "pkg.sum_integration": {
+      "en": "Integration : %d (%d generated)",
+      "zh_CN": "接入文件  : %d（生成 %d）"
+    },
+    "pkg.sum_total": {
+      "en": "Total       : %d files, %s",
+      "zh_CN": "合计      : %d 个文件，%s"
+    },
+    "pkg.warnings_header": {
+      "en": "Warnings:",
+      "zh_CN": "告警："
+    },
+    "pkg.critical_missing": {
+      "en": "[ERROR] critical artifacts are missing; packaging aborted:",
+      "zh_CN": "[ERROR] 关键产物缺失，已阻止出包："
+    },
+    "pkg.critical_missing_hint": {
+      "en": "  add --allow-missing only to inspect packaging output (never for releases).",
+      "zh_CN": "  仅需先出包排查时可加 --allow-missing（不要用于发布）。"
+    },
+    "pkg.pack_failed": {
+      "en": "[ERROR] packaging failed: %s",
+      "zh_CN": "[ERROR] 打包失败：%s"
+    },
+    "pkg.artifact": {
+      "en": "Artifact    : %s (%s)",
+      "zh_CN": "产物      : %s（%s）"
+    },
+    "pkg.cef_mingw_unsupported": {
+      "en": "--with-cef is supported for MSVC only; MinGW (including MSYS2) does not support CEF",
+      "zh_CN": "--with-cef 仅支持 MSVC；MinGW（含 MSYS2）不支持 CEF"
+    },
+    "pkg.cef109_windows_only": {
+      "en": "--cef-version 109 is available on Windows only; Linux ships latest",
+      "zh_CN": "--cef-version 109 仅适用于 Windows；Linux 只有 latest"
+    },
+    "rel.version": {
+      "en": "Version     : %s",
+      "zh_CN": "版本      : %s"
+    },
+    "rel.git_status_failed": {
+      "en": "git status failed: %s",
+      "zh_CN": "执行 git status 失败：%s"
+    },
+    "rel.workspace_dirty": {
+      "en": "tracked files have uncommitted changes:\n",
+      "zh_CN": "工作区有已跟踪文件的未提交修改：\n"
+    },
+    "rel.workspace_check": {
+      "en": "[%s] workspace check",
+      "zh_CN": "[%s] 工作区检查"
+    },
+    "rel.version_parsed": {
+      "en": "[OK] version parsed: %s",
+      "zh_CN": "[OK] 版本号解析：%s"
+    },
+    "rel.git_tag_failed": {
+      "en": "git tag failed: %s",
+      "zh_CN": "执行 git tag 失败：%s"
+    },
+    "rel.tag_check_fail": {
+      "en": "[FAIL] tag check",
+      "zh_CN": "[FAIL] tag 检查"
+    },
+    "rel.tag_exists": {
+      "en": "tag %s already exists; cannot release twice",
+      "zh_CN": "tag %s 已存在，不能重复发布"
+    },
+    "rel.version_not_increased": {
+      "en": "version is not strictly increasing: %s is not greater than the latest tag %s",
+      "zh_CN": "版本未严格递增：当前 %s 不大于最近 tag %s"
+    },
+    "rel.tag_check_ok": {
+      "en": "[OK] tag check: latest tag is %s",
+      "zh_CN": "[OK] tag 检查：最近 tag 为 %s"
+    },
+    "rel.tag_check_empty": {
+      "en": "[OK] tag check: no v* tags yet",
+      "zh_CN": "[OK] tag 检查：尚无 v* 版本 tag"
+    },
+    "rel.changelog_missing": {
+      "en": "missing CHANGELOG: %s",
+      "zh_CN": "缺少 CHANGELOG：%s"
+    },
+    "rel.changelog_no_entry": {
+      "en": "%s has no entry for version [%s]",
+      "zh_CN": "%s 没有当前版本 [%s] 的条目"
+    },
+    "rel.changelog_heading_mismatch": {
+      "en": "CHANGELOG version headings differ between languages: %s / %s",
+      "zh_CN": "中英 CHANGELOG 的版本标题不一致：%s / %s"
+    },
+    "rel.changelog_check": {
+      "en": "[%s] CHANGELOG check",
+      "zh_CN": "[%s] CHANGELOG 检查"
+    },
+    "rel.check_failed": {
+      "en": "checks failed:",
+      "zh_CN": "检查未通过："
+    },
+    "rel.check_passed": {
+      "en": "checks passed. Run these commands manually:",
+      "zh_CN": "检查通过。以下命令由维护者手动执行："
+    },
+    "rel.platform": {
+      "en": "Platform    : %s-%s",
+      "zh_CN": "平台      : %s-%s"
+    },
+    "rel.config": {
+      "en": "Config      : %s",
+      "zh_CN": "配置      : %s"
+    },
+    "rel.output_dir": {
+      "en": "Output dir  : %s",
+      "zh_CN": "输出目录  : %s"
+    },
+    "rel.expected_artifact": {
+      "en": "Artifacts   : %s",
+      "zh_CN": "预计产物  : %s"
+    },
+    "rel.command": {
+      "en": "Command     : %s",
+      "zh_CN": "执行命令  : %s"
+    },
+    "rel.dry_run": {
+      "en": "(--dry-run: packaging was not executed)",
+      "zh_CN": "（--dry-run：未执行打包）"
+    },
+    "rel.pack_exit": {
+      "en": "[ERROR] pack.py exited with code %d",
+      "zh_CN": "[ERROR] pack.py 退出码 %d"
+    },
+    "rel.pack_check_failed": {
+      "en": "[ERROR] package check failed: %s",
+      "zh_CN": "[ERROR] 包体检未通过：%s"
+    },
+    "rel.sums_missing": {
+      "en": "missing SHA256SUMS",
+      "zh_CN": "缺少 SHA256SUMS"
+    },
+    "rel.sums_line_invalid": {
+      "en": "SHA256SUMS line %d is malformed",
+      "zh_CN": "SHA256SUMS 第 %d 行格式错误"
+    },
+    "rel.sums_file_absent": {
+      "en": "SHA256SUMS references a file that does not exist: %s",
+      "zh_CN": "SHA256SUMS 引用的文件不存在：%s"
+    },
+    "rel.sha_mismatch": {
+      "en": "SHA256 mismatch: %s",
+      "zh_CN": "SHA256 不匹配：%s"
+    },
+    "rel.docs_missing": {
+      "en": "missing docs/ directory",
+      "zh_CN": "缺少 docs/ 目录"
+    },
+    "rel.doc_link_broken": {
+      "en": "%s:%d link target does not exist: %s",
+      "zh_CN": "%s:%d 链接目标不存在：%s"
+    },
+    "rel.required_missing": {
+      "en": "missing required file: %s",
+      "zh_CN": "缺少必备文件：%s"
+    },
+    "rel.version_content": {
+      "en": "VERSION contains %r, expected %r",
+      "zh_CN": "VERSION 内容为 %r，期望 %r"
+    },
+    "rel.dir_missing": {
+      "en": "[ERROR] directory does not exist: %s",
+      "zh_CN": "[ERROR] 目录不存在：%s"
+    },
+    "rel.archive_missing": {
+      "en": "[ERROR] no archives found: %s",
+      "zh_CN": "[ERROR] 未找到压缩包：%s"
+    },
+    "rel.dir": {
+      "en": "Dir         : %s",
+      "zh_CN": "目录      : %s"
+    },
+    "rel.verify": {
+      "en": "Verify      : %s",
+      "zh_CN": "校验      : %s"
+    },
+    "rel.verify_exception": {
+      "en": "extract or verify failed: %s",
+      "zh_CN": "解压或校验异常：%s"
+    },
+    "rel.verify_ok": {
+      "en": "  [OK] SHA256, required files, doc links",
+      "zh_CN": "  [OK] SHA256、必备文件、文档链接"
+    },
+    "rel.not_verified": {
+      "en": "[ERROR] some archives failed verification; release notes were not generated",
+      "zh_CN": "[ERROR] 存在未通过校验的压缩包，未生成发布说明"
+    },
+    "rel.generated": {
+      "en": "Generated   : %s",
+      "zh_CN": "已生成    : %s"
+    },
+    "rel.notes_missing": {
+      "en": "[ERROR] these files have no entry for version [%s]: %s",
+      "zh_CN": "[ERROR] 以下文件缺少版本 [%s] 条目：%s"
+    },
+    "rel.dist_missing": {
+      "en": "dist/ does not exist; nothing to clean",
+      "zh_CN": "dist/ 不存在，无需清理"
+    },
+    "rel.clean_needs_yes": {
+      "en": "[ERROR] deletion requires an explicit --yes: python build/release.py clean --version %s --yes",
+      "zh_CN": "[ERROR] 删除需要显式 --yes：python build/release.py clean --version %s --yes"
+    },
+    "rel.clean_current_refused": {
+      "en": "[ERROR] refusing to delete the current version directory: %s",
+      "zh_CN": "[ERROR] 拒绝删除当前版本目录：%s"
+    },
+    "rel.clean_version_missing": {
+      "en": "[ERROR] version directory does not exist: %s",
+      "zh_CN": "[ERROR] 版本目录不存在：%s"
+    },
+    "rel.deleted": {
+      "en": "Deleted     : %s",
+      "zh_CN": "已删除    : %s"
+    },
+    "rel.dist_empty": {
+      "en": "no version directories under dist/",
+      "zh_CN": "dist/ 下没有版本目录"
+    },
+    "rel.dist_versions": {
+      "en": "dist/ version directories:",
+      "zh_CN": "dist/ 版本目录："
+    },
+    "rel.current_marker": {
+      "en": "(current version)",
+      "zh_CN": "（当前版本）"
+    },
+    "rel.dist_line": {
+      "en": "  %-16s %2d packages  %8s %s",
+      "zh_CN": "  %-16s %2d 个包  %8s %s"
+    },
+    "rel.clean_hint": {
+      "en": "nothing is deleted by default; to remove an old version:",
+      "zh_CN": "默认不删除任何内容；如需删除旧版本："
+    },
+    "rel.clean_command": {
+      "en": "  python build/release.py clean --version <version> --yes",
+      "zh_CN": "  python build/release.py clean --version <版本> --yes"
+    },
+    "rel.config_invalid": {
+      "en": "config must be Release or Debug: %r",
+      "zh_CN": "配置只能是 Release 或 Debug：%r"
+    },
+    "rel.help_description": {
+      "en": "nim_duilib release orchestration (never writes to git)",
+      "zh_CN": "nim_duilib 发布流程编排（不执行 git 写操作）"
+    },
+    "rel.help_check": {
+      "en": "check version, workspace, tags and CHANGELOGs",
+      "zh_CN": "版本、工作区、tag、CHANGELOG 检查"
+    },
+    "rel.help_package": {
+      "en": "run pack.py into dist/<version>/",
+      "zh_CN": "调用 pack.py 打包到 dist/<版本>/"
+    },
+    "rel.help_config": {
+      "en": "library configuration (default: Release)",
+      "zh_CN": "库配置（默认 Release）"
+    },
+    "rel.help_arch": {
+      "en": "target architecture (default: host; x86 targets 32-bit Windows packages)",
+      "zh_CN": "目标架构（默认主机架构；x86 主要用于 Windows 32 位包）"
+    },
+    "rel.help_with_sdl": {
+      "en": "also package SDL3 on Windows (Unix always packages it)",
+      "zh_CN": "Windows 下额外打包 SDL3（Unix 始终打包）"
+    },
+    "rel.help_with_cef": {
+      "en": "also package the CEF development kit (headers, wrapper and runtime; Windows/Linux; on macOS only CEF example .apps; very large)",
+      "zh_CN": "额外打包 CEF 开发包（头文件、wrapper 与运行时；Windows/Linux；macOS 仅控制 CEF 示例 .app；体积巨大）"
+    },
+    "rel.help_cef_version": {
+      "en": "CEF version: 109 (legacy) or latest (see third_party_versions.json; default: latest)",
+      "zh_CN": "CEF 版本：109（旧版）或 latest（当前最新，见 third_party_versions.json；默认 latest）"
+    },
+    "rel.help_with_examples": {
+      "en": "include example binaries and private resources",
+      "zh_CN": "包含示例程序与私有资源"
+    },
+    "rel.help_msvc_runtime": {
+      "en": "MSVC runtime (Windows packages only; default: auto); affects package metadata and downstream validation only",
+      "zh_CN": "MSVC 运行库（仅 Windows 包；默认 auto）：仅影响包内元数据与下游校验"
+    },
+    "rel.help_mingw_variant": {
+      "en": "MinGW compiler variant (Windows MinGW packages only; auto-detected); the package name gets -mingw-gcc / -mingw-llvm",
+      "zh_CN": "MinGW 编译器变体（仅 Windows 的 MinGW 包；默认自动判断），包名追加 -mingw-gcc / -mingw-llvm"
+    },
+    "rel.help_format": {
+      "en": "archive format (Windows: zip, others: tgz)",
+      "zh_CN": "压缩格式（默认 Windows zip、其它 tgz）"
+    },
+    "rel.help_dry_run": {
+      "en": "print the command and final package name only; do not package",
+      "zh_CN": "只打印命令与最终包名，不执行打包"
+    },
+    "rel.help_verify": {
+      "en": "verify the archives under dist/<version>/",
+      "zh_CN": "校验 dist/<版本>/ 下压缩包"
+    },
+    "rel.help_clean": {
+      "en": "list or manually delete dist/<version>/",
+      "zh_CN": "列出或手动删除 dist/<版本>/"
+    },
+    "rel.help_list": {
+      "en": "list version directories and their size only (default)",
+      "zh_CN": "只列出版本目录与占用（默认行为）"
+    },
+    "rel.help_version": {
+      "en": "version directory to delete; requires --yes",
+      "zh_CN": "要删除的版本目录名，必须同时给 --yes"
+    },
+    "rel.help_yes": {
+      "en": "confirm deletion",
+      "zh_CN": "确认删除"
+    },
+    "rel.help_lang": {
+      "en": "console language (default: follow the system locale)",
+      "zh_CN": "交互语言（默认跟随系统）"
+    },
+    "rel.interrupted": {
+      "en": "[ERROR] interrupted",
+      "zh_CN": "[ERROR] 已中断"
+    },
+    "auto.preset_unit_desc": {
+      "en": "run test_pack.py and test_autotest.py",
+      "zh_CN": "运行 test_pack.py 与 test_autotest.py"
+    },
+    "auto.preset_win_x64_release": {
+      "en": "MSVC x64 Release: package existing artifacts and verify",
+      "zh_CN": "MSVC x64 Release：现有产物打包 + 体检"
+    },
+    "auto.preset_win_x64_debug": {
+      "en": "MSVC x64 Debug: package existing artifacts and verify",
+      "zh_CN": "MSVC x64 Debug：现有产物打包 + 体检"
+    },
+    "auto.preset_win_x86_release": {
+      "en": "MSVC x86 Release: package existing artifacts and verify",
+      "zh_CN": "MSVC x86 Release：现有产物打包 + 体检"
+    },
+    "auto.preset_mingw_x64_release": {
+      "en": "MinGW x64 Release: package existing artifacts and verify",
+      "zh_CN": "MinGW x64 Release：现有产物打包 + 体检"
+    },
+    "auto.preset_arm64_synthetic": {
+      "en": "build an arm64 package from temporary fake libraries and check MANIFEST/integration files (no real hardware needed)",
+      "zh_CN": "用临时假库产出 arm64 包，校验 manifest/接入文件（无需真机）"
+    },
+    "auto.lib_dir_missing": {
+      "en": "library directory does not exist: %s",
+      "zh_CN": "库目录不存在：%s"
+    },
+    "auto.lib_dir_artifact_missing": {
+      "en": "library directory is missing %s for %s",
+      "zh_CN": "库目录缺少 %s 的 %s"
+    },
+    "auto.prereq_no_build": {
+      "en": "this preset does not support automatic builds",
+      "zh_CN": "该预设不支持自动构建"
+    },
+    "auto.timeout": {
+      "en": "timeout (%d s)",
+      "zh_CN": "超时（%d 秒）"
+    },
+    "auto.step": {
+      "en": "--> %s (exit code %s, %.2fs)\n",
+      "zh_CN": "--> %s（退出码 %s，%.2fs）\n"
+    },
+    "auto.package_unreadable": {
+      "en": "cannot read package: %s",
+      "zh_CN": "无法读取包：%s"
+    },
+    "auto.package_empty": {
+      "en": "package is empty",
+      "zh_CN": "包为空"
+    },
+    "auto.package_root_not_unique": {
+      "en": "multiple package root directories: %s",
+      "zh_CN": "包内根目录不唯一：%s"
+    },
+    "auto.missing": {
+      "en": "missing %s",
+      "zh_CN": "缺少 %s"
+    },
+    "auto.manifest_missing": {
+      "en": "missing %s manifest",
+      "zh_CN": "缺少 %s manifest"
+    },
+    "auto.arm64_manifest_missing": {
+      "en": "missing arm64 manifest",
+      "zh_CN": "缺少 arm64 manifest"
+    },
+    "auto.arm64_manifest_arch": {
+      "en": "arm64 manifest architecture is not ARM64",
+      "zh_CN": "arm64 manifest 的架构不是 ARM64"
+    },
+    "auto.no_basic_exe": {
+      "en": "no bin/basic.exe in the package (examples not included)",
+      "zh_CN": "包内没有 bin/basic.exe（未包含示例）"
+    },
+    "auto.example_arch_mismatch": {
+      "en": "example architecture (0x%04X) does not match host %s",
+      "zh_CN": "示例架构（0x%04X）与主机 %s 不一致"
+    },
+    "auto.smoke_still_running": {
+      "en": "still running 8 seconds after launch",
+      "zh_CN": "启动后 8 秒仍在运行"
+    },
+    "auto.exit_code": {
+      "en": "exit code %d",
+      "zh_CN": "退出码 %d"
+    },
+    "auto.exit_code_after_launch": {
+      "en": "exit code %d after launch",
+      "zh_CN": "启动后退出码 %d"
+    },
+    "auto.pack_failed": {
+      "en": "packaging failed",
+      "zh_CN": "打包失败"
+    },
+    "auto.package_not_found": {
+      "en": "no newly generated package found",
+      "zh_CN": "未找到新生成的包"
+    },
+    "auto.package_check_failed": {
+      "en": "package check failed",
+      "zh_CN": "包体检未通过"
+    },
+    "auto.assertions_passed": {
+      "en": "structure assertions passed",
+      "zh_CN": "结构断言通过"
+    },
+    "auto.assertions_failed": {
+      "en": "structure assertions failed",
+      "zh_CN": "结构断言未通过"
+    },
+    "auto.smoke": {
+      "en": "smoke: %s",
+      "zh_CN": "冒烟：%s"
+    },
+    "auto.duilib_arm64_manifest_missing": {
+      "en": "missing duilib.arm64.manifest",
+      "zh_CN": "缺少 duilib.arm64.manifest"
+    },
+    "auto.arm64_pack_failed": {
+      "en": "arm64 packaging failed",
+      "zh_CN": "arm64 打包失败"
+    },
+    "auto.arm64_package_not_found": {
+      "en": "no newly generated arm64 package found",
+      "zh_CN": "未找到新生成的 arm64 包"
+    },
+    "auto.arm64_check_failed": {
+      "en": "arm64 structure/check failed",
+      "zh_CN": "arm64 结构/体检未通过"
+    },
+    "auto.failed_item": {
+      "en": "%s failed",
+      "zh_CN": "%s 未通过"
+    },
+    "auto.paren": {
+      "en": "(%s)",
+      "zh_CN": "（%s）"
+    },
+    "auto.package_line": {
+      "en": "  package: %s",
+      "zh_CN": "  包：%s"
+    },
+    "auto.summary": {
+      "en": "passed %d, failed %d, skipped %d",
+      "zh_CN": "通过 %d，失败 %d，跳过 %d"
+    },
+    "auto.help_description": {
+      "en": "nim_duilib packaging automation (not wired into CI)",
+      "zh_CN": "nim_duilib 打包自动化（不接入 CI）"
+    },
+    "auto.help_list_presets": {
+      "en": "list all presets and exit",
+      "zh_CN": "列出全部预设后退出"
+    },
+    "auto.help_preset": {
+      "en": "preset to run (default: unit; all-ready runs every runnable preset)",
+      "zh_CN": "要执行的预设（默认 unit；all-ready 运行所有可运行项）"
+    },
+    "auto.help_out_dir": {
+      "en": "output directory (default: nim_duilib_autotest/<timestamp> under the system temp dir)",
+      "zh_CN": "运行输出目录（默认系统临时目录下的 nim_duilib_autotest/<时间戳>）"
+    },
+    "auto.help_build": {
+      "en": "call the existing build scripts first (only some presets support it)",
+      "zh_CN": "先调用现有构建脚本（仅部分预设支持）"
+    },
+    "auto.help_smoke": {
+      "en": "extract the package and launch bin/basic.exe (the package must include examples)",
+      "zh_CN": "解包并启动 bin/basic.exe（需包内含示例）"
+    },
+    "auto.help_with_sdl": {
+      "en": "pass --with-sdl when packaging (Windows only; Unix always packages SDL3)",
+      "zh_CN": "打包时附加 --with-sdl（仅 Windows 需要；Unix 始终打包）"
+    },
+    "auto.help_with_examples": {
+      "en": "pass --with-examples when packaging (includes examples and private resources)",
+      "zh_CN": "打包时附加 --with-examples（包含示例与私有资源）"
+    },
+    "auto.help_timeout": {
+      "en": "build timeout in seconds (default: 3600)",
+      "zh_CN": "构建超时秒数（默认 3600）"
+    },
+    "auto.help_dry_run": {
+      "en": "print the commands only; do not run them",
+      "zh_CN": "只打印将执行的命令，不运行"
+    },
+    "auto.help_lang": {
+      "en": "console language (default: follow the system locale)",
+      "zh_CN": "交互语言（默认跟随系统）"
+    },
+    "auto.presets_all_ready": {
+      "en": "run every preset whose prerequisites are met",
+      "zh_CN": "运行所有前置条件满足的预设"
+    },
+    "auto.log_title": {
+      "en": "nim_duilib packaging automation\n",
+      "zh_CN": "nim_duilib 打包自动化\n"
+    },
+    "auto.log_path": {
+      "en": "Log         : %s",
+      "zh_CN": "日志：%s"
+    },
+    "auto.report_path": {
+      "en": "Report      : %s",
+      "zh_CN": "报告：%s"
+    },
+    "sdk.sep": {
+      "en": "; ",
+      "zh_CN": "；"
+    },
+    "sdk.archive_empty": {
+      "en": "archive is empty",
+      "zh_CN": "归档为空"
+    },
+    "sdk.root_not_unique": {
+      "en": "multiple package root directories: %s",
+      "zh_CN": "包根目录不唯一：%s"
+    },
+    "sdk.no_build": {
+      "en": "--no-build was requested",
+      "zh_CN": "指定了 --no-build"
+    },
+    "sdk.dll_covered": {
+      "en": "DLL package is covered by C02",
+      "zh_CN": "DLL 包由 C02 覆盖"
+    },
+    "sdk.static_covered": {
+      "en": "static package is covered by C01",
+      "zh_CN": "静态包由 C01 覆盖"
+    },
+    "sdk.no_run_examples": {
+      "en": "--run-examples was not specified",
+      "zh_CN": "未指定 --run-examples"
+    },
+    "sdk.no_examples": {
+      "en": "the package does not include examples",
+      "zh_CN": "包内不含示例程序"
+    },
+    "sdk.macos_only": {
+      "en": "the App Bundle scenario only runs on macOS",
+      "zh_CN": "App Bundle 用例仅在 macOS 上执行"
+    },
+    "sdk.no_shared_sdl": {
+      "en": "the package has no SDL3 dynamic library; nothing to verify under Frameworks",
+      "zh_CN": "包内没有 SDL3 动态库，Frameworks 无内容可验证"
+    },
+    "sdk.disk_space": {
+      "en": "[WARN] %s has %.1f GiB free, about %.1f GiB is needed (extract + build + repack); point --out-dir to a larger disk",
+      "zh_CN": "[WARN] %s 可用空间 %.1f GiB，估算需要 %.1f GiB（解包 + 编译 + 重打包）；可用 --out-dir 指向更大的磁盘"
+    },
+    "sdk.required_missing": {
+      "en": "missing required files: ",
+      "zh_CN": "缺少必需文件："
+    },
+    "sdk.main_lib_missing": {
+      "en": "missing the main duilib library under lib/",
+      "zh_CN": "lib/ 下缺少 duilib 主库"
+    },
+    "sdk.static_lib_missing": {
+      "en": "static package is missing %s under lib/",
+      "zh_CN": "静态包 lib/ 下缺少 %s"
+    },
+    "sdk.resource_missing": {
+      "en": "missing runtime resource bin/resources/themes/default/global.xml",
+      "zh_CN": "缺少运行资源 bin/resources/themes/default/global.xml"
+    },
+    "sdk.layout_ok": {
+      "en": "all %d required files present, %d libraries",
+      "zh_CN": "必需文件 %d 项齐全，库 %d 个"
+    },
+    "sdk.line_unparsable": {
+      "en": "cannot parse line: %s",
+      "zh_CN": "无法解析行：%s"
+    },
+    "sdk.not_listed": {
+      "en": "file not listed in SHA256SUMS: %s",
+      "zh_CN": "未登记到 SHA256SUMS：%s"
+    },
+    "sdk.listed_missing": {
+      "en": "SHA256SUMS lists a file that does not exist: %s",
+      "zh_CN": "SHA256SUMS 登记了不存在的文件：%s"
+    },
+    "sdk.sha_mismatch": {
+      "en": "SHA256 mismatch: %s",
+      "zh_CN": "SHA256 不匹配：%s"
+    },
+    "sdk.checksums_ok": {
+      "en": "checksums cover %d files and all match",
+      "zh_CN": "校验和覆盖 %d 个文件且全部匹配"
+    },
+    "sdk.name_unparsable": {
+      "en": "cannot parse package name: %s",
+      "zh_CN": "包名无法解析：%s"
+    },
+    "sdk.expect": {
+      "en": "%s: expected '%s', got '%s'",
+      "zh_CN": "%s：期望 '%s'，实际 '%s'"
+    },
+    "sdk.toolchain_label_mismatch": {
+      "en": "MANIFEST toolchain '%s' does not match package name '%s'",
+      "zh_CN": "MANIFEST 工具链 '%s' 与包名 '%s' 不一致"
+    },
+    "sdk.macos_has_cef": {
+      "en": "a macOS package must not declare CEF development files (HAS_CEF should be 0)",
+      "zh_CN": "macOS 包不应声明 CEF 开发文件（HAS_CEF 应为 0）"
+    },
+    "sdk.cap_mismatch": {
+      "en": "%s mismatch: package name=%s, CMake=%s, actual files=%s",
+      "zh_CN": "%s 不一致：包名=%s, CMake=%s, 实际文件=%s"
+    },
+    "sdk.bad_msvc_runtime": {
+      "en": "invalid MSVC runtime metadata: '%s'",
+      "zh_CN": "MSVC 运行库元数据非法：'%s'"
+    },
+    "sdk.dll_needs_md": {
+      "en": "DLL packages must use /MD; metadata says %s",
+      "zh_CN": "DLL 包必须使用 /MD，实际元数据为 %s"
+    },
+    "sdk.runtime_not_allowed": {
+      "en": "non-Windows/non-MSVC packages must not declare an MSVC runtime",
+      "zh_CN": "非 Windows/MSVC 包不应声明 MSVC 运行库"
+    },
+    "sdk.metadata_ok": {
+      "en": "package name, version, manifest, CMake metadata and actual files agree",
+      "zh_CN": "包名/版本/清单/CMake 元数据与实际文件一致"
+    },
+    "sdk.placeholder": {
+      "en": "%s has unreplaced placeholders %s",
+      "zh_CN": "%s 存在未替换占位符 %s"
+    },
+    "sdk.config_version_missing": {
+      "en": "nim_duilibConfigVersion.cmake is missing PACKAGE_VERSION",
+      "zh_CN": "nim_duilibConfigVersion.cmake 缺少 PACKAGE_VERSION"
+    },
+    "sdk.manifest_file_missing": {
+      "en": "missing msvc/manifest/duilib.%s.manifest",
+      "zh_CN": "缺少 msvc/manifest/duilib.%s.manifest"
+    },
+    "sdk.missing": {
+      "en": "missing %s",
+      "zh_CN": "缺少 %s"
+    },
+    "sdk.props_missing_key": {
+      "en": "nim_duilib.sdk.props is missing %s",
+      "zh_CN": "nim_duilib.sdk.props 缺少 %s"
+    },
+    "sdk.xml_invalid": {
+      "en": "%s is not valid XML: %s",
+      "zh_CN": "%s XML 非法：%s"
+    },
+    "sdk.integration_ok": {
+      "en": "CMake/MSVC integration files are complete and parseable",
+      "zh_CN": "CMake/MSVC 接入文件完整且可解析"
+    },
+    "sdk.forbidden_debug": {
+      "en": "forbidden debug/intermediate files: %s",
+      "zh_CN": "禁止的调试/中间文件：%s"
+    },
+    "sdk.forbidden_sandbox": {
+      "en": "sandbox libraries that must not ship: %s",
+      "zh_CN": "不应随包的沙箱库：%s"
+    },
+    "sdk.forbidden_cpp": {
+      "en": "no .cpp files under include/: %s",
+      "zh_CN": "include/ 下不应有 .cpp：%s"
+    },
+    "sdk.forbidden_zip": {
+      "en": "resources.zip must not ship",
+      "zh_CN": "不应随包 resources.zip"
+    },
+    "sdk.undeclared_cef": {
+      "en": "CEF is not declared but the package contains %s",
+      "zh_CN": "未声明 CEF 却包含 %s"
+    },
+    "sdk.macos_cef_hint": {
+      "en": " (macOS packages do not ship CEF development files; -cef only means CEF example bundles; repackage with the current pack.py)",
+      "zh_CN": "（macOS 包不随 CEF 开发文件，-cef 只表示 CEF 示例 Bundle；请用当前 pack.py 重新出包）"
+    },
+    "sdk.undeclared_sdl": {
+      "en": "SDL is not declared but include/SDL3/ is present",
+      "zh_CN": "未声明 SDL 却包含 include/SDL3/"
+    },
+    "sdk.forbidden_ok": {
+      "en": "no forbidden content found",
+      "zh_CN": "未发现禁止内容"
+    },
+    "sdk.verify_failed": {
+      "en": "pack.py --verify failed (rc=%d):\n%s",
+      "zh_CN": "pack.py --verify 失败（rc=%d）：\n%s"
+    },
+    "sdk.verify_ok": {
+      "en": "pack.py --verify returned 0",
+      "zh_CN": "pack.py --verify 返回 0"
+    },
+    "sdk.no_docs": {
+      "en": "no user documentation under docs/",
+      "zh_CN": "docs/ 下没有使用文档"
+    },
+    "sdk.licenses_empty": {
+      "en": "LICENSES/ is empty",
+      "zh_CN": "LICENSES/ 为空"
+    },
+    "sdk.notices_missing": {
+      "en": "missing THIRD-PARTY-NOTICES.md",
+      "zh_CN": "缺少 THIRD-PARTY-NOTICES.md"
+    },
+    "sdk.global_xml_missing": {
+      "en": "missing bin/resources/themes/default/global.xml",
+      "zh_CN": "缺少 bin/resources/themes/default/global.xml"
+    },
+    "sdk.docs_ok": {
+      "en": "%d documents, %d license files, runtime resources present",
+      "zh_CN": "文档 %d 份，许可证 %d 份，运行资源存在"
+    },
+    "sdk.repack_need_files": {
+      "en": "the package lacks headers or static libraries; cannot verify repack formats",
+      "zh_CN": "包内缺少头文件或静态库，无法验证重打包格式"
+    },
+    "sdk.repack_failed": {
+      "en": "%s verification failed: %s",
+      "zh_CN": "%s 校验失败：%s"
+    },
+    "sdk.repack_ok": {
+      "en": "repacked %s both pass --verify",
+      "zh_CN": "重新打包 %s 后均通过 --verify"
+    },
+    "sdk.negative_need_files": {
+      "en": "the package lacks headers or static libraries for negative checks",
+      "zh_CN": "包内缺少可用于负向校验的头文件或静态库"
+    },
+    "sdk.label_missing_lib": {
+      "en": "missing library",
+      "zh_CN": "缺库"
+    },
+    "sdk.label_missing_header": {
+      "en": "missing header",
+      "zh_CN": "缺头文件"
+    },
+    "sdk.should_reject": {
+      "en": "the %s package should have been rejected by --verify but passed",
+      "zh_CN": "%s 的包本应被 --verify 拒绝，实际通过"
+    },
+    "sdk.unexpected_reason": {
+      "en": "unexpected failure reason for %s (should contain '%s'): %s",
+      "zh_CN": "%s 的失败原因不符合预期（应包含“%s”）：%s"
+    },
+    "sdk.rejected_ok": {
+      "en": "%s were both rejected by --verify",
+      "zh_CN": "%s 均被 --verify 拒绝"
+    },
+    "sdk.tamper_should_fail": {
+      "en": "after tampering with %s, --verify should fail but passed",
+      "zh_CN": "篡改 %s 后 --verify 本应失败，实际通过"
+    },
+    "sdk.tamper_reason": {
+      "en": "failure reason is not a SHA256 mismatch: %s",
+      "zh_CN": "失败原因不是 SHA256 不匹配：%s"
+    },
+    "sdk.tamper_ok": {
+      "en": "tampering with %s was rejected by --verify as a SHA256 mismatch",
+      "zh_CN": "篡改 %s 被 --verify 以 SHA256 不匹配拒绝"
+    },
+    "sdk.no_tamper_target": {
+      "en": "SHA256SUMS has no file that can be tampered with",
+      "zh_CN": "SHA256SUMS 中没有可篡改的文件"
+    },
+    "sdk.platform_differs": {
+      "en": "package platform %s differs from this host %s",
+      "zh_CN": "包平台 %s 与本机 %s 不同"
+    },
+    "sdk.msvc_windows_only": {
+      "en": "MSVC packages can only be built on Windows",
+      "zh_CN": "MSVC 包只能在 Windows 编译"
+    },
+    "sdk.mingw_env_required": {
+      "en": "MinGW packages need an MSYS2/MinGW environment",
+      "zh_CN": "MinGW 包需要 MSYS2/MinGW 环境"
+    },
+    "sdk.mingw_llvm_env": {
+      "en": "mingw-llvm packages must be built where CC/CXX point to clang",
+      "zh_CN": "mingw-llvm 包需要在 CC/CXX 指向 clang 的环境中编译"
+    },
+    "sdk.toolchain_unavailable": {
+      "en": "toolchain unavailable (%s)",
+      "zh_CN": "工具链不可用（%s）"
+    },
+    "sdk.no_mingw_compiler": {
+      "en": "no MinGW compiler in this environment",
+      "zh_CN": "当前环境没有 MinGW 编译器"
+    },
+    "sdk.no_cmake": {
+      "en": "cmake not found",
+      "zh_CN": "找不到 cmake"
+    },
+    "sdk.host_platform_differs": {
+      "en": "package platform differs from this host",
+      "zh_CN": "包平台与本机不同"
+    },
+    "sdk.dry_run_configure": {
+      "en": "dry-run: configure/build commands printed",
+      "zh_CN": "dry-run：已打印配置/编译命令"
+    },
+    "sdk.configure_failed": {
+      "en": "configure failed (rc=%d):\n%s",
+      "zh_CN": "配置失败（rc=%d）：\n%s"
+    },
+    "sdk.build_failed": {
+      "en": "build failed (rc=%d):\n%s",
+      "zh_CN": "编译失败（rc=%d）：\n%s"
+    },
+    "sdk.consumer_not_found": {
+      "en": "test program sdk_consumer not found",
+      "zh_CN": "未找到测试程序 sdk_consumer"
+    },
+    "sdk.resources_not_copied": {
+      "en": "runtime resources were not copied next to the executable: %s",
+      "zh_CN": "运行资源未复制到可执行文件同级：%s"
+    },
+    "sdk.dlls_not_copied": {
+      "en": "DLLs were not copied next to the executable: %s",
+      "zh_CN": "DLL 未复制到可执行文件同级：%s"
+    },
+    "sdk.cross_arch_skip": {
+      "en": "configure/build/link passed; this host is %s and cannot run %s programs (run verification needs a %s environment)",
+      "zh_CN": "配置/编译/链接通过；本机为 %s，无法运行 %s 程序（运行验证需 %s 环境）"
+    },
+    "sdk.run_timeout": {
+      "en": "run timed out (180 s)",
+      "zh_CN": "运行超时（180 秒）"
+    },
+    "sdk.run_failed": {
+      "en": "run failed (rc=%d):\n%s",
+      "zh_CN": "运行失败（rc=%d）：\n%s"
+    },
+    "sdk.consumer_ok": {
+      "en": "configure/build/run passed; feature switches match the metadata",
+      "zh_CN": "配置/编译/运行通过，特性开关与元数据一致"
+    },
+    "sdk.feature_value": {
+      "en": "%s=%s (expected %s)",
+      "zh_CN": "%s=%s（期望 %s）"
+    },
+    "sdk.features_mismatch": {
+      "en": "runtime build features disagree with the metadata: %s",
+      "zh_CN": "运行期编译特性与元数据不一致：%s"
+    },
+    "sdk.dry_run_configure_only": {
+      "en": "dry-run: configure command printed",
+      "zh_CN": "dry-run：已打印配置命令"
+    },
+    "sdk.configure_should_fail": {
+      "en": "configure should have failed but succeeded",
+      "zh_CN": "配置本应失败，实际成功"
+    },
+    "sdk.configure_reason": {
+      "en": "configure failure does not mention '%s':\n%s",
+      "zh_CN": "配置失败原因不含 '%s'：\n%s"
+    },
+    "sdk.rejected_expected": {
+      "en": "rejected as expected (%s)",
+      "zh_CN": "按预期被拒绝（%s）"
+    },
+    "sdk.multiconfig_hint": {
+      "en": "multi-config generators cannot trigger the config check via CMAKE_BUILD_TYPE",
+      "zh_CN": "多配置生成器无法通过 CMAKE_BUILD_TYPE 触发配置校验"
+    },
+    "sdk.arch_same_host": {
+      "en": "the package architecture matches the host and this platform cannot switch architectures",
+      "zh_CN": "包架构与主机一致，且当前平台无法交叉切换架构"
+    },
+    "sdk.no_vs_arch_same": {
+      "en": "Visual Studio is not installed and the package architecture matches the host",
+      "zh_CN": "未安装 Visual Studio，且包架构与主机一致"
+    },
+    "sdk.msvc_only": {
+      "en": "applies to Windows MSVC packages only",
+      "zh_CN": "仅 Windows MSVC 包适用"
+    },
+    "sdk.no_runtime_declared": {
+      "en": "the package does not declare an MSVC runtime",
+      "zh_CN": "包未声明 MSVC 运行库"
+    },
+    "sdk.non_windows_no_counterpart": {
+      "en": "non-Windows packages have no MSVC/MinGW counterpart",
+      "zh_CN": "非 Windows 包不存在 MSVC/MinGW 工具链对立面"
+    },
+    "sdk.no_gxx": {
+      "en": "g++ not found; cannot emulate a MinGW toolchain",
+      "zh_CN": "未找到 g++，无法模拟 MinGW 工具链"
+    },
+    "sdk.no_ninja": {
+      "en": "Ninja not found; cannot switch compilers",
+      "zh_CN": "未找到 Ninja，无法切换编译器"
+    },
+    "sdk.no_msvc": {
+      "en": "MSVC is not installed; cannot emulate an MSVC toolchain",
+      "zh_CN": "未安装 MSVC，无法模拟 MSVC 工具链"
+    },
+    "sdk.no_basic": {
+      "en": "example program bin/basic not found",
+      "zh_CN": "未找到 bin/basic 示例程序"
+    },
+    "sdk.example_exited": {
+      "en": "the example exited immediately after launch (rc=%s)",
+      "zh_CN": "示例程序启动后立即退出（rc=%s）"
+    },
+    "sdk.example_running": {
+      "en": "bin/basic is still running 3 seconds after launch",
+      "zh_CN": "bin/basic 启动 3 秒后仍在运行"
+    },
+    "sdk.no_otool": {
+      "en": "otool not found; cannot inspect the App Bundle rpath/install_name",
+      "zh_CN": "找不到 otool，无法检查 App Bundle 的 rpath 与 install_name"
+    },
+    "sdk.otool_failed": {
+      "en": "otool %s failed (rc=%d):\n%s",
+      "zh_CN": "otool %s 执行失败（rc=%d）：\n%s"
+    },
+    "sdk.bundle_not_found": {
+      "en": "sdk_bundle.app not found (build dir: %s)",
+      "zh_CN": "未找到 sdk_bundle.app（构建目录：%s）"
+    },
+    "sdk.no_framework_dylib": {
+      "en": "no libSDL3*.dylib under Contents/Frameworks: %s",
+      "zh_CN": "Contents/Frameworks 中没有 libSDL3*.dylib：%s"
+    },
+    "sdk.bundle_resources_missing": {
+      "en": "resources were not copied to Contents/Resources/duilib/resources: %s",
+      "zh_CN": "资源未复制到 Contents/Resources/duilib/resources：%s"
+    },
+    "sdk.no_rpath_ref": {
+      "en": "the executable does not reference @rpath/libSDL3*.dylib:\n%s",
+      "zh_CN": "可执行文件未引用 @rpath/libSDL3*.dylib：\n%s"
+    },
+    "sdk.absolute_sdk_ref": {
+      "en": "the executable still references an absolute SDK path (%s):\n%s",
+      "zh_CN": "可执行文件仍引用 SDK 绝对路径（%s）：\n%s"
+    },
+    "sdk.missing_lc_rpath": {
+      "en": "the executable lacks LC_RPATH @executable_path/../Frameworks:\n%s",
+      "zh_CN": "可执行文件缺少 LC_RPATH @executable_path/../Frameworks：\n%s"
+    },
+    "sdk.sdl_install_name": {
+      "en": "SDL3 install_name is not @rpath:\n%s",
+      "zh_CN": "SDL3 的 install_name 不是 @rpath：\n%s"
+    },
+    "sdk.relocated_timeout": {
+      "en": "run timed out after relocation (180 s)",
+      "zh_CN": "迁移后运行超时（180 秒）"
+    },
+    "sdk.relocated_failed": {
+      "en": "run failed after relocation (rc=%d):\n%s",
+      "zh_CN": "迁移后运行失败（rc=%d）：\n%s"
+    },
+    "sdk.dyld_not_framework": {
+      "en": "dyld did not load SDL3 from Contents/Frameworks:\n%s",
+      "zh_CN": "dyld 未从 Contents/Frameworks 加载 SDL3：\n%s"
+    },
+    "sdk.dyld_sdk_lib": {
+      "en": "dyld still loads SDL3 from the SDK lib/ (rpath order or install_name is wrong):\n%s",
+      "zh_CN": "dyld 仍从 SDK 的 lib/ 加载 SDL3（rpath 顺序或 install_name 有问题）：\n%s"
+    },
+    "sdk.resource_root": {
+      "en": "resource root is not Contents/Resources/duilib/resources: %s",
+      "zh_CN": "资源根不是 Contents/Resources/duilib/resources：%s"
+    },
+    "sdk.resource_root_missing": {
+      "en": "(SDK_TEST_RESOURCE_ROOT was not printed)",
+      "zh_CN": "(未输出 SDK_TEST_RESOURCE_ROOT)"
+    },
+    "sdk.no_sdl_version": {
+      "en": "did not get the SDL3 runtime version (Frameworks is not effective):\n%s",
+      "zh_CN": "未取到 SDL3 运行期版本号（Frameworks 未生效）：\n%s"
+    },
+    "sdk.bundle_ok": {
+      "en": "App Bundle passed: Frameworks/libSDL3*.dylib, rpath, Contents/Resources/duilib/resources and post-relocation run all work (SDL3 %d)",
+      "zh_CN": "App Bundle 通过：Frameworks/libSDL3*.dylib、rpath、Contents/Resources/duilib/resources 与迁移后运行均正常（SDL3 %d）"
+    },
+    "sdk.extracted": {
+      "en": "extracted %d files, package root %s",
+      "zh_CN": "解包成功：%d 个文件，包根 %s"
+    },
+    "sdk.unknown_scenario": {
+      "en": "unknown scenario: %s",
+      "zh_CN": "未知场景：%s"
+    },
+    "sdk.dry_run_skipped": {
+      "en": "dry-run: not executed",
+      "zh_CN": "dry-run：未执行"
+    },
+    "sdk.unknown_scenario_hint": {
+      "en": "unknown scenario: %s (see --list-scenarios)",
+      "zh_CN": "未知场景：%s（用 --list-scenarios 查看）"
+    },
+    "sdk.scenarios_empty": {
+      "en": "--scenarios must not be empty",
+      "zh_CN": "--scenarios 不能为空"
+    },
+    "sdk.hdr_id": {
+      "en": "id",
+      "zh_CN": "编号"
+    },
+    "sdk.hdr_name": {
+      "en": "name",
+      "zh_CN": "名称"
+    },
+    "sdk.hdr_kind": {
+      "en": "kind",
+      "zh_CN": "类型"
+    },
+    "sdk.hdr_desc": {
+      "en": "description",
+      "zh_CN": "说明"
+    },
+    "sdk.kind_build": {
+      "en": "build",
+      "zh_CN": "需编译"
+    },
+    "sdk.kind_package": {
+      "en": "package",
+      "zh_CN": "包级"
+    },
+    "sdk.log_line": {
+      "en": "       log: %s",
+      "zh_CN": "       日志：%s"
+    },
+    "sdk.help_description": {
+      "en": "nim_duilib SDK package test (structure checks + consumer build/run + negative cases)",
+      "zh_CN": "nim_duilib 发布 SDK 包测试（结构校验 + 消费者编译运行 + 负向用例）"
+    },
+    "sdk.help_package": {
+      "en": "release packages to test (required, repeatable)",
+      "zh_CN": "待测试的发布包（必填，可重复指定）"
+    },
+    "sdk.help_scenarios": {
+      "en": "scenario ids (comma separated) or all; use --list-scenarios to see them",
+      "zh_CN": "场景编号列表（逗号分隔）或 all；用 --list-scenarios 查看全部编号"
+    },
+    "sdk.help_no_build": {
+      "en": "run package-level scenarios only",
+      "zh_CN": "只执行包级场景"
+    },
+    "sdk.help_run_examples": {
+      "en": "additionally smoke-launch the example program",
+      "zh_CN": "额外冒烟启动示例程序"
+    },
+    "sdk.help_out_dir": {
+      "en": "temp and report output directory (extract + build + repack need space)",
+      "zh_CN": "临时目录与报告输出目录（解包+编译+重打包需要足够空间）"
+    },
+    "sdk.help_keep": {
+      "en": "keep extracted and build directories",
+      "zh_CN": "保留解包与构建目录"
+    },
+    "sdk.help_jobs": {
+      "en": "parallel build jobs (default: CPU logical cores)",
+      "zh_CN": "并行编译任务数（默认 CPU 逻辑核心数）"
+    },
+    "sdk.help_dry_run": {
+      "en": "print the commands only",
+      "zh_CN": "只打印将执行的命令"
+    },
+    "sdk.help_list_scenarios": {
+      "en": "list scenarios and exit",
+      "zh_CN": "列出场景后退出"
+    },
+    "sdk.help_lang": {
+      "en": "console language (default: follow the system locale)",
+      "zh_CN": "交互语言（默认跟随系统）"
+    },
+    "sdk.package_required": {
+      "en": "one or more --package <archive> are required",
+      "zh_CN": "需要 --package <发布包>（可重复指定）"
+    },
+    "sdk.package_missing": {
+      "en": "package does not exist: %s",
+      "zh_CN": "包不存在：%s"
+    },
+    "sdk.load_failed_print": {
+      "en": "[FAIL] %s\n       cannot load package: %s: %s",
+      "zh_CN": "[FAIL] %s\n       无法加载发布包：%s: %s"
+    },
+    "sdk.load_failed": {
+      "en": "cannot load package: %s: %s",
+      "zh_CN": "无法加载发布包：%s: %s"
+    },
+    "sdk.result_line": {
+      "en": "\nResult: PASS=%d FAIL=%d SKIP=%d",
+      "zh_CN": "\n结果：PASS=%d FAIL=%d SKIP=%d"
+    },
+    "sdk.report_path": {
+      "en": "Report      : %s",
+      "zh_CN": "报告：%s"
+    },
+    "sdk.scn_p01": {
+      "en": "unpack and single package root",
+      "zh_CN": "解包与包根目录唯一"
+    },
+    "sdk.scn_p02": {
+      "en": "required directories and files present",
+      "zh_CN": "必需目录与文件齐全"
+    },
+    "sdk.scn_p03": {
+      "en": "SHA256SUMS complete and all hashes match",
+      "zh_CN": "SHA256SUMS 完整且哈希匹配"
+    },
+    "sdk.scn_p04": {
+      "en": "package name, version, manifest, CMake metadata and files agree",
+      "zh_CN": "包名/版本/清单/CMake 元数据/实际文件一致"
+    },
+    "sdk.scn_p05": {
+      "en": "CMake and MSVC integration files usable",
+      "zh_CN": "CMake 与 MSVC 接入文件可用"
+    },
+    "sdk.scn_p06": {
+      "en": "no debug files, sandbox libraries or other forbidden content",
+      "zh_CN": "不含调试文件、沙箱库等禁止内容"
+    },
+    "sdk.scn_p07": {
+      "en": "pack.py --verify passes",
+      "zh_CN": "pack.py --verify 通过"
+    },
+    "sdk.scn_p08": {
+      "en": "docs and licenses present, runtime resources exist",
+      "zh_CN": "文档与许可证齐全、运行资源存在"
+    },
+    "sdk.scn_c01": {
+      "en": "static consumer: configure/build/link/run",
+      "zh_CN": "静态库消费者：配置/编译/链接/运行"
+    },
+    "sdk.scn_c02": {
+      "en": "DLL consumer: import library and runtime DLL",
+      "zh_CN": "DLL 消费者：导入库与运行期 DLL"
+    },
+    "sdk.scn_c03": {
+      "en": "mismatched config must be rejected",
+      "zh_CN": "配置不匹配必须拒绝"
+    },
+    "sdk.scn_c04": {
+      "en": "mismatched architecture must be rejected",
+      "zh_CN": "架构不匹配必须拒绝"
+    },
+    "sdk.scn_c05": {
+      "en": "mismatched MSVC runtime must be rejected",
+      "zh_CN": "MSVC 运行库不匹配必须拒绝"
+    },
+    "sdk.scn_c06": {
+      "en": "mismatched toolchain must be rejected",
+      "zh_CN": "工具链不匹配必须拒绝"
+    },
+    "sdk.scn_c07": {
+      "en": "missing library/header must be caught by --verify",
+      "zh_CN": "缺库/缺头文件必须被 --verify 发现"
+    },
+    "sdk.scn_c08": {
+      "en": "tampered file must be caught by --verify",
+      "zh_CN": "文件被篡改必须被 --verify 发现"
+    },
+    "sdk.scn_c09": {
+      "en": "repacked tgz/tarbz2 still pass verification",
+      "zh_CN": "tgz/tarbz2 重新打包后仍可通过校验"
+    },
+    "sdk.scn_c10": {
+      "en": "example smoke launch (optional)",
+      "zh_CN": "示例程序冒烟启动（可选）"
+    },
+    "sdk.scn_c11": {
+      "en": "macOS App Bundle: Frameworks/rpath/resource layout",
+      "zh_CN": "macOS App Bundle：Frameworks/rpath/资源布局"
+    },
+    "sdk.lbl_version_cmake": {
+      "en": "package version vs CMake version",
+      "zh_CN": "包名版本 vs CMake 版本"
+    },
+    "sdk.lbl_version_text": {
+      "en": "package version vs VERSION",
+      "zh_CN": "包名版本 vs VERSION"
+    },
+    "sdk.lbl_version_manifest": {
+      "en": "package version vs MANIFEST",
+      "zh_CN": "包名版本 vs MANIFEST"
+    },
+    "sdk.lbl_platform_cmake": {
+      "en": "package platform vs CMake platform",
+      "zh_CN": "包名平台 vs CMake 平台"
+    },
+    "sdk.lbl_platform_manifest": {
+      "en": "package platform vs MANIFEST",
+      "zh_CN": "包名平台 vs MANIFEST"
+    },
+    "sdk.lbl_arch_cmake": {
+      "en": "package arch vs CMake arch",
+      "zh_CN": "包名架构 vs CMake 架构"
+    },
+    "sdk.lbl_config_cmake": {
+      "en": "package config vs CMake config",
+      "zh_CN": "包名配置 vs CMake 配置"
+    },
+    "sdk.lbl_config_manifest": {
+      "en": "package config vs MANIFEST",
+      "zh_CN": "包名配置 vs MANIFEST"
+    },
+    "sdk.lbl_toolchain_cmake": {
+      "en": "package toolchain vs CMake toolchain",
+      "zh_CN": "包名工具链 vs CMake 工具链"
+    },
+    "sdk.lbl_cef_bundle": {
+      "en": "package CEF flag vs actual CEF example bundles",
+      "zh_CN": "包名 CEF 标志 vs 实际 CEF 示例 Bundle"
+    },
+    "sdk.lbl_examples_manifest": {
+      "en": "package examples flag vs MANIFEST",
+      "zh_CN": "包名示例标志 vs MANIFEST"
+    },
+    "sdk.lbl_mingw_variant": {
+      "en": "package MinGW variant vs CMake",
+      "zh_CN": "包名 MinGW 变体 vs CMake"
+    },
+    "sdk.lbl_examples_files": {
+      "en": "package examples flag vs actual files",
+      "zh_CN": "包名示例标志 vs 实际文件"
+    },
+    "sdk.lbl_name_root": {
+      "en": "MANIFEST package name vs package root",
+      "zh_CN": "MANIFEST 包名 vs 包根目录"
     }
   }
 }

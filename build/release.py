@@ -44,6 +44,28 @@ if SCRIPT_DIR not in sys.path:
 
 import pack  # noqa: E402 - 复用版本解析与包名规则，必须先把脚本目录加入 sys.path
 
+from i18n import make_messages, set_console_utf8  # noqa: E402 - 同上
+
+# 控制台文案：英文在脚本里按 key 引用，中文在 cmake/i18n/messages.json。
+# 语言顺序：--lang / DUILIB_LANG -> LC_ALL/LC_MESSAGES/LANG -> 系统区域 -> en。
+MESSAGES = make_messages()
+
+
+def T(key):
+    """取控制台文案：简体中文系统显示中文，其余（含 zh_TW/zh_HK）显示英文。"""
+    return MESSAGES.t(key)
+
+
+def _requested_lang(argv):
+    """预扫描 --lang：让 --help 与参数错误也按所选语言输出。"""
+    for index, arg in enumerate(argv):
+        if arg.startswith('--lang='):
+            return arg.split('=', 1)[1]
+        if arg == '--lang' and index + 1 < len(argv):
+            return argv[index + 1]
+    return 'auto'
+
+
 CHANGELOG_FILES = ('CHANGELOG.md', 'CHANGELOG.en.md')
 REQUIRED_PACKAGE_FILES = ('MANIFEST.txt', 'VERSION',
                           'include/duilib/duilib.h')
@@ -122,7 +144,7 @@ def cmd_check(args):
     if version is None:
         return 1
 
-    print('版本      : %s' % version)
+    print(T('rel.version') % version)
     failures = []
 
     # 1. 工作区无已跟踪文件的未提交修改。dist/ 是产物目录，不参与检查。
@@ -131,7 +153,7 @@ def cmd_check(args):
     workspace_ok = True
     if code is None or code != 0:
         workspace_ok = False
-        failures.append('执行 git status 失败：%s' % out)
+        failures.append(T('rel.git_status_failed') % out)
     else:
         for line in out.splitlines():
             if not line.strip():
@@ -141,18 +163,18 @@ def cmd_check(args):
                 dirty.append('%s  %s' % (line[:2], path))
         if dirty:
             workspace_ok = False
-            failures.append('工作区有已跟踪文件的未提交修改：\n' +
+            failures.append(T('rel.workspace_dirty') +
                             '\n'.join('    ' + item for item in dirty))
-    print('[%s] 工作区检查' % ('OK' if workspace_ok else 'FAIL'))
+    print(T('rel.workspace_check') % ('OK' if workspace_ok else 'FAIL'))
 
     # 2. 版本号解析（read_version 已校验缺失、重复与范围）。
-    print('[OK] 版本号解析：%s' % version)
+    print(T('rel.version_parsed') % version)
 
     # 3. 当前版本 tag 不存在，且相对最近的 v* tag 严格递增。
     code, out = run_git(['tag', '--list', 'v*'])
     if code is None or code != 0:
-        failures.append('执行 git tag 失败：%s' % out)
-        print('[FAIL] tag 检查')
+        failures.append(T('rel.git_tag_failed') % out)
+        print(T('rel.tag_check_fail'))
     else:
         current_tag = 'v' + version
         parsed = []
@@ -161,18 +183,18 @@ def cmd_check(args):
             if match:
                 parsed.append((tuple(int(x) for x in match.groups()), name.strip()))
         if current_tag in [name for _key, name in parsed]:
-            failures.append('tag %s 已存在，不能重复发布' % current_tag)
-            print('[FAIL] tag 检查')
+            failures.append(T('rel.tag_exists') % current_tag)
+            print(T('rel.tag_check_fail'))
         elif parsed:
             latest_key, latest_name = max(parsed, key=lambda kv: kv[0])
             if _version_tuple(version) <= latest_key:
-                failures.append('版本未严格递增：当前 %s 不大于最近 tag %s'
+                failures.append(T('rel.version_not_increased')
                                 % (version, latest_name))
-                print('[FAIL] tag 检查')
+                print(T('rel.tag_check_fail'))
             else:
-                print('[OK] tag 检查：最近 tag 为 %s' % latest_name)
+                print(T('rel.tag_check_ok') % latest_name)
         else:
-            print('[OK] tag 检查：尚无 v* 版本 tag')
+            print(T('rel.tag_check_empty'))
 
     # 4. 中英 CHANGELOG 都包含当前版本条目，且版本标题一致。
     changelog_failures = []
@@ -181,28 +203,28 @@ def cmd_check(args):
         path = os.path.join(REPO_ROOT, name)
         headings = _changelog_headings(path)
         if headings is None:
-            changelog_failures.append('缺少 CHANGELOG：%s' % name)
+            changelog_failures.append(T('rel.changelog_missing') % name)
             continue
         changelog_sets[name] = set(h for h in headings if h.lower() != 'unreleased')
         if version not in headings:
-            changelog_failures.append('%s 没有当前版本 [%s] 的条目'
+            changelog_failures.append(T('rel.changelog_no_entry')
                                       % (name, version))
     if len(changelog_sets) == len(CHANGELOG_FILES):
         if changelog_sets[CHANGELOG_FILES[0]] != changelog_sets[CHANGELOG_FILES[1]]:
-            changelog_failures.append('中英 CHANGELOG 的版本标题不一致：%s / %s'
+            changelog_failures.append(T('rel.changelog_heading_mismatch')
                                       % (CHANGELOG_FILES[0], CHANGELOG_FILES[1]))
     failures.extend(changelog_failures)
-    print('[%s] CHANGELOG 检查' % ('OK' if not changelog_failures else 'FAIL'))
+    print(T('rel.changelog_check') % ('OK' if not changelog_failures else 'FAIL'))
 
     if failures:
         print('')
-        eprint('检查未通过：')
+        eprint(T('rel.check_failed'))
         for item in failures:
             eprint('  - %s' % item)
         return 1
 
     print('')
-    print('检查通过。以下命令由维护者手动执行：')
+    print(T('rel.check_passed'))
     print('  git add CHANGELOG.md CHANGELOG.en.md duilib/duilib_version.h')
     print('  git commit -m "release: %s"' % version)
     print('  git tag -a v%s -m "release %s"' % (version, version))
@@ -261,24 +283,24 @@ def cmd_package(args):
         mingw_variant=mingw_variant)
     out_path = os.path.join(out_dir, pkg_name + ext)
 
-    print('版本      : %s' % version)
-    print('平台      : %s-%s' % (sys_tag, arch_tag))
-    print('配置      : %s' % args.config)
-    print('输出目录  : %s' % os.path.relpath(out_dir, REPO_ROOT))
-    print('预计产物  : %s' % os.path.relpath(out_path, REPO_ROOT))
-    print('执行命令  : %s' % format_command(cmd))
+    print(T('rel.version') % version)
+    print(T('rel.platform') % (sys_tag, arch_tag))
+    print(T('rel.config') % args.config)
+    print(T('rel.output_dir') % os.path.relpath(out_dir, REPO_ROOT))
+    print(T('rel.expected_artifact') % os.path.relpath(out_path, REPO_ROOT))
+    print(T('rel.command') % format_command(cmd))
     if args.dry_run:
-        print('（--dry-run：未执行打包）')
+        print(T('rel.dry_run'))
         return 0
 
     print('-' * 60)
     code = subprocess.call(cmd, cwd=REPO_ROOT)
     if code != 0:
-        eprint('[ERROR] pack.py 退出码 %d' % code)
+        eprint(T('rel.pack_exit') % code)
         return code
     # 出包后立即对归档做一次体检（布局 / SHA / 文档链接），坏包不进入发布目录
     if not pack.verify_package(out_path):
-        eprint('[ERROR] 包体检未通过：%s' % os.path.relpath(out_path, REPO_ROOT))
+        eprint(T('rel.pack_check_failed') % os.path.relpath(out_path, REPO_ROOT))
         return 1
     return 0
 
@@ -320,7 +342,7 @@ def _package_root(extract_dir):
 def _verify_sha256sums(pkg_root):
     sums_path = os.path.join(pkg_root, 'SHA256SUMS')
     if not os.path.isfile(sums_path):
-        return ['缺少 SHA256SUMS']
+        return [T('rel.sums_missing')]
     failures = []
     with open(sums_path, 'r', encoding='utf-8') as f:
         for lineno, line in enumerate(f, 1):
@@ -329,14 +351,14 @@ def _verify_sha256sums(pkg_root):
                 continue
             parts = line.split('  ', 1)
             if len(parts) != 2:
-                failures.append('SHA256SUMS 第 %d 行格式错误' % lineno)
+                failures.append(T('rel.sums_line_invalid') % lineno)
                 continue
             digest, rel = parts
             path = os.path.join(pkg_root, rel.replace('/', os.sep))
             if not os.path.isfile(path):
-                failures.append('SHA256SUMS 引用的文件不存在：%s' % rel)
+                failures.append(T('rel.sums_file_absent') % rel)
             elif sha256_of(path).lower() != digest.lower():
-                failures.append('SHA256 不匹配：%s' % rel)
+                failures.append(T('rel.sha_mismatch') % rel)
     return failures
 
 
@@ -349,7 +371,7 @@ def _check_doc_links(pkg_root):
     failures = []
     docs_root = os.path.join(pkg_root, 'docs')
     if not os.path.isdir(docs_root):
-        return ['缺少 docs/ 目录']
+        return [T('rel.docs_missing')]
     for current, _dirs, files in os.walk(docs_root):
         for name in sorted(files):
             if not name.lower().endswith('.md'):
@@ -379,7 +401,7 @@ def _check_doc_links(pkg_root):
                         resolved = os.path.normpath(
                             os.path.join(current, path_part.replace('/', os.sep)))
                         if not os.path.exists(resolved):
-                            failures.append('%s:%d 链接目标不存在：%s'
+                            failures.append(T('rel.doc_link_broken')
                                             % (rel_md, lineno, target))
     return failures
 
@@ -389,13 +411,13 @@ def _verify_package(pkg_root, version):
     for rel in REQUIRED_PACKAGE_FILES:
         path = os.path.join(pkg_root, rel.replace('/', os.sep))
         if not os.path.isfile(path):
-            failures.append('缺少必备文件：%s' % rel)
+            failures.append(T('rel.required_missing') % rel)
 
     version_path = os.path.join(pkg_root, 'VERSION')
     if os.path.isfile(version_path):
         actual = read_text(version_path).strip()
         if actual != version:
-            failures.append('VERSION 内容为 %r，期望 %r' % (actual, version))
+            failures.append(T('rel.version_content') % (actual, version))
 
     failures.extend(_verify_sha256sums(pkg_root))
     failures.extend(_check_doc_links(pkg_root))
@@ -422,30 +444,30 @@ def cmd_finalize(args):
 
     out_dir = os.path.join(DIST_DIR, version)
     if not os.path.isdir(out_dir):
-        eprint('[ERROR] 目录不存在：%s' % os.path.relpath(out_dir, REPO_ROOT))
+        eprint(T('rel.dir_missing') % os.path.relpath(out_dir, REPO_ROOT))
         return 1
     archives = _find_archives(out_dir)
     if not archives:
-        eprint('[ERROR] 未找到压缩包：%s' %
+        eprint(T('rel.archive_missing') %
                os.path.relpath(out_dir, REPO_ROOT))
         return 1
 
-    print('版本      : %s' % version)
-    print('目录      : %s' % os.path.relpath(out_dir, REPO_ROOT))
+    print(T('rel.version') % version)
+    print(T('rel.dir') % os.path.relpath(out_dir, REPO_ROOT))
 
     archive_hashes = {}
     failed = False
     for archive in archives:
         name = os.path.basename(archive)
         print('-' * 60)
-        print('校验      : %s' % name)
+        print(T('rel.verify') % name)
         temp_dir = tempfile.mkdtemp(prefix='nim_duilib_finalize_')
         try:
             _extract_archive(archive, temp_dir)
             pkg_root = _package_root(temp_dir)
             failures = _verify_package(pkg_root, version)
         except Exception as exc:  # noqa: BLE001 - 解压失败按校验失败处理
-            failures = ['解压或校验异常：%s' % exc]
+            failures = [T('rel.verify_exception') % exc]
         finally:
             shutil.rmtree(temp_dir, ignore_errors=True)
 
@@ -455,10 +477,10 @@ def cmd_finalize(args):
                 print('  [FAIL] %s' % item)
         else:
             archive_hashes[name] = sha256_of(archive)
-            print('  [OK] SHA256、必备文件、文档链接')
+            print(T('rel.verify_ok'))
 
     if failed:
-        eprint('[ERROR] 存在未通过校验的压缩包，未生成发布说明')
+        eprint(T('rel.not_verified'))
         return 1
 
     # 压缩包级哈希
@@ -468,7 +490,7 @@ def cmd_finalize(args):
     with open(sums_path, 'w', encoding='utf-8', newline='\n') as f:
         f.write('\n'.join(sums_lines) + '\n')
     print('-' * 60)
-    print('已生成    : %s' % os.path.relpath(sums_path, REPO_ROOT))
+    print(T('rel.generated') % os.path.relpath(sums_path, REPO_ROOT))
 
     # 中英发布说明
     notes = (('CHANGELOG.md', 'RELEASE-NOTES.md', '发布说明'),
@@ -484,9 +506,9 @@ def cmd_finalize(args):
         path = os.path.join(out_dir, target)
         with open(path, 'w', encoding='utf-8', newline='\n') as f:
             f.write(text)
-        print('已生成    : %s' % os.path.relpath(path, REPO_ROOT))
+        print(T('rel.generated') % os.path.relpath(path, REPO_ROOT))
     if missing:
-        eprint('[ERROR] 以下文件缺少版本 [%s] 条目：%s'
+        eprint(T('rel.notes_missing')
                % (version, ', '.join(missing)))
         return 1
     return 0
@@ -522,44 +544,43 @@ def cmd_clean(args):
         return 1
 
     if not os.path.isdir(DIST_DIR):
-        print('dist/ 不存在，无需清理')
+        print(T('rel.dist_missing'))
         return 0
 
     if args.version:
         if not args.yes:
-            eprint('[ERROR] 删除需要显式 --yes：'
-                   'python build/release.py clean --version %s --yes'
+            eprint(T('rel.clean_needs_yes')
                    % args.version)
             return 1
         if args.version == version:
-            eprint('[ERROR] 拒绝删除当前版本目录：%s' % args.version)
+            eprint(T('rel.clean_current_refused') % args.version)
             return 1
         target = os.path.join(DIST_DIR, args.version)
         if not os.path.isdir(target):
-            eprint('[ERROR] 版本目录不存在：%s'
+            eprint(T('rel.clean_version_missing')
                    % os.path.relpath(target, REPO_ROOT))
             return 1
         shutil.rmtree(target)
-        print('已删除    : %s' % os.path.relpath(target, REPO_ROOT))
+        print(T('rel.deleted') % os.path.relpath(target, REPO_ROOT))
         return 0
 
     # --list 与不带参数行为一致：只列出，不删除。
     entries = sorted(name for name in os.listdir(DIST_DIR)
                      if os.path.isdir(os.path.join(DIST_DIR, name)))
     if not entries:
-        print('dist/ 下没有版本目录')
+        print(T('rel.dist_empty'))
         return 0
 
-    print('dist/ 版本目录：')
+    print(T('rel.dist_versions'))
     for name in entries:
         directory = os.path.join(DIST_DIR, name)
         archives = _find_archives(directory)
-        mark = '（当前版本）' if name == version else ''
-        print('  %-16s %2d 个包  %8s %s'
+        mark = T('rel.current_marker') if name == version else ''
+        print(T('rel.dist_line')
               % (name, len(archives), _human_size(_dir_size(directory)), mark))
     print('')
-    print('默认不删除任何内容；如需删除旧版本：')
-    print('  python build/release.py clean --version <版本> --yes')
+    print(T('rel.clean_hint'))
+    print(T('rel.clean_command'))
     return 0
 
 
@@ -573,72 +594,86 @@ def _parse_config(value):
         return 'Release'
     if norm == 'debug':
         return 'Debug'
-    raise argparse.ArgumentTypeError('配置只能是 Release 或 Debug：%r' % value)
+    raise argparse.ArgumentTypeError(T('rel.config_invalid') % value)
+
+
+def _add_lang_option(parser, suppress_default=False):
+    """--lang 同时挂在主命令与子命令上，写在子命令之后也能生效。"""
+    parser.add_argument('--lang', choices=('auto', 'zh_CN', 'en'),
+                        default=argparse.SUPPRESS if suppress_default else 'auto',
+                        help=T('rel.help_lang'))
 
 
 def build_parser():
     parser = argparse.ArgumentParser(
-        description='nim_duilib 发布流程编排（不执行 git 写操作）',
+        description=T('rel.help_description'),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+    _add_lang_option(parser)
     sub = parser.add_subparsers(dest='command')
     sub.required = True
 
-    check = sub.add_parser('check', help='版本、工作区、tag、CHANGELOG 检查')
+    check = sub.add_parser('check', help=T('rel.help_check'))
+    _add_lang_option(check, suppress_default=True)
     check.set_defaults(func=cmd_check)
 
-    package = sub.add_parser('package', help='调用 pack.py 打包到 dist/<版本>/')
+    package = sub.add_parser('package', help=T('rel.help_package'))
+    _add_lang_option(package, suppress_default=True)
     package.add_argument('--config', type=_parse_config, default='Release',
-                         metavar='{Release,Debug}', help='库配置（默认 Release）')
+                         metavar='{Release,Debug}', help=T('rel.help_config'))
     package.add_argument('--arch', choices=('x64', 'x86', 'arm64'), default=None,
-                         help='目标架构（默认主机架构；x86 主要用于 Windows 32 位包）')
+                         help=T('rel.help_arch'))
     package.add_argument('--with-sdl', action='store_true',
-                         help='Windows 下额外打包 SDL3（Unix 始终打包）')
+                         help=T('rel.help_with_sdl'))
     package.add_argument('--with-cef', action='store_true',
-                         help='额外打包 CEF 开发包（头文件、wrapper 与运行时；'
-                              'Windows/Linux；macOS 仅控制 CEF 示例 .app；体积巨大）')
+                         help=T('rel.help_with_cef'))
     package.add_argument('--cef-version', choices=('latest', '109'),
                          default='latest',
-                         help='CEF 版本：109（旧版）或 latest（当前最新，见 '
-                              'third_party_versions.json；默认 latest）')
+                         help=T('rel.help_cef_version'))
     package.add_argument('--with-examples', action='store_true',
-                         help='包含示例程序与私有资源')
+                         help=T('rel.help_with_examples'))
     package.add_argument('--msvc-runtime', choices=('auto', 'mt', 'md'),
                          default='auto',
-                         help='MSVC 运行库（仅 Windows 包；默认 auto）：'
-                              '仅影响包内元数据与下游校验')
+                         help=T('rel.help_msvc_runtime'))
     package.add_argument('--mingw-variant', choices=('auto', 'gcc', 'llvm'),
                          default='auto',
-                         help='MinGW 编译器变体（仅 Windows 的 MinGW 包；默认自动判断），'
-                              '包名追加 -mingw-gcc / -mingw-llvm')
+                         help=T('rel.help_mingw_variant'))
     package.add_argument('--format', choices=('zip', 'tgz', 'tarbz2'),
-                         default=None, help='压缩格式（默认 Windows zip、其它 tgz）')
+                         default=None, help=T('rel.help_format'))
     package.add_argument('--dry-run', action='store_true',
-                         help='只打印命令与最终包名，不执行打包')
+                         help=T('rel.help_dry_run'))
     package.set_defaults(func=cmd_package)
 
-    finalize = sub.add_parser('finalize', help='校验 dist/<版本>/ 下压缩包')
+    finalize = sub.add_parser('finalize', help=T('rel.help_verify'))
+    _add_lang_option(finalize, suppress_default=True)
     finalize.set_defaults(func=cmd_finalize)
 
-    clean = sub.add_parser('clean', help='列出或手动删除 dist/<版本>/')
+    clean = sub.add_parser('clean', help=T('rel.help_clean'))
+    _add_lang_option(clean, suppress_default=True)
     clean.add_argument('--list', action='store_true',
-                       help='只列出版本目录与占用（默认行为）')
+                       help=T('rel.help_list'))
     clean.add_argument('--version', default=None,
-                       help='要删除的版本目录名，必须同时给 --yes')
+                       help=T('rel.help_version'))
     clean.add_argument('--yes', action='store_true',
-                       help='确认删除')
+                       help=T('rel.help_yes'))
     clean.set_defaults(func=cmd_clean)
 
     return parser
 
 
 def main(argv=None):
+    # Console language must be ready before build_parser(): --help is output too.
+    global MESSAGES
+    argv = sys.argv[1:] if argv is None else list(argv)
+    MESSAGES = make_messages(_requested_lang(argv))
+    set_console_utf8()
+
     parser = build_parser()
     args = parser.parse_args(argv)
     try:
         return args.func(args)
     except KeyboardInterrupt:
-        eprint('[ERROR] 已中断')
+        eprint(T('rel.interrupted'))
         return 2
     except Exception as exc:  # noqa: BLE001 - 顶层兜底，给出可读错误
         eprint('[ERROR] %s' % exc)

@@ -164,6 +164,19 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Changed
 
+- `build/` console output is now optionally bilingual (2026-10-29, P3-3): runtime
+  messages and `--help` text of `build.py`, `pack.py`, `release.py`, `autotest.py`
+  and `sdk_package_test.py` come from `cmake/i18n/messages.json` and follow
+  `--lang` / `DUILIB_LANG` → `LC_ALL`/`LC_MESSAGES`/`LANG` → system locale → `en`.
+  Only `zh`/`zh_CN`/`zh_Hans` get Chinese; `zh_TW`/`zh_HK`/`zh_Hant` and every
+  non-Chinese locale get English, matching `cmake/duilib_i18n.cmake`. The language
+  is resolved before argparse, so `--help` and argument errors follow it as well;
+  English output is pure ASCII, so non-Chinese consoles never show garbled text.
+  All five entries accept `--lang {auto,zh_CN,en}` (for `release.py` it also works
+  after the subcommand), and `sdk_package_test.py` passes the same language to
+  `pack.py --verify` so negative cases match the expected error text. Comments,
+  docstrings, `MANIFEST.txt`, `RELEASE-NOTES` and in-package Chinese content are
+  unchanged.
 - One invocation builds one `--config` (Debug/Release); invoke twice for both.
   `build/autotest.py` now builds through `build.py`.
 - CEF runtime files are placed in `bin/libcef_win[/_109]/<arch>` or `bin/libcef_linux`

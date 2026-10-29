@@ -43,29 +43,54 @@ REPO_ROOT = BUILD_DIR.parent
 SDK_TEST_DIR = BUILD_DIR / "sdk_test"
 PACK_PY = BUILD_DIR / "pack.py"
 
+if str(BUILD_DIR) not in sys.path:
+    sys.path.insert(0, str(BUILD_DIR))
+
+from i18n import make_messages, set_console_utf8  # noqa: E402 - 复用 build/i18n.py 的取词逻辑
+
+# 控制台文案：英文在脚本里按 key 引用，中文在 cmake/i18n/messages.json。
+# 语言顺序：--lang / DUILIB_LANG -> LC_ALL/LC_MESSAGES/LANG -> 系统区域 -> en。
+MESSAGES = make_messages()
+
+
+def T(key):
+    """取控制台文案：简体中文系统显示中文，其余（含 zh_TW/zh_HK）显示英文。"""
+    return MESSAGES.t(key)
+
+
+def _requested_lang(argv):
+    """预扫描 --lang：让 --help 与参数错误也按所选语言输出。"""
+    for index, arg in enumerate(argv):
+        if arg.startswith('--lang='):
+            return arg.split('=', 1)[1]
+        if arg == '--lang' and index + 1 < len(argv):
+            return argv[index + 1]
+    return 'auto'
+
+
 DEFAULT_OUT_ROOT = Path(tempfile.gettempdir()) / "nim_duilib_sdk_test"
 
 # 场景登记表：(编号, 名称, 说明, 是否需要编译)
 SCENARIO_ORDER = [
-    ("P01", "package.extract", "解包与包根目录唯一", False),
-    ("P02", "package.layout", "必需目录与文件齐全", False),
-    ("P03", "package.checksums", "SHA256SUMS 完整且哈希匹配", False),
-    ("P04", "package.metadata", "包名/版本/清单/CMake 元数据/实际文件一致", False),
-    ("P05", "package.integration", "CMake 与 MSVC 接入文件可用", False),
-    ("P06", "package.forbidden", "不含调试文件、沙箱库等禁止内容", False),
-    ("P07", "package.verify-cli", "pack.py --verify 通过", False),
-    ("P08", "package.docs", "文档与许可证齐全、运行资源存在", False),
-    ("C01", "consumer.static", "静态库消费者：配置/编译/链接/运行", True),
-    ("C02", "consumer.dll", "DLL 消费者：导入库与运行期 DLL", True),
-    ("C03", "negative.config", "配置不匹配必须拒绝", True),
-    ("C04", "negative.arch", "架构不匹配必须拒绝", True),
-    ("C05", "negative.msvc-runtime", "MSVC 运行库不匹配必须拒绝", True),
-    ("C06", "negative.toolchain", "工具链不匹配必须拒绝", True),
-    ("C07", "negative.incomplete", "缺库/缺头文件必须被 --verify 发现", False),
-    ("C08", "negative.tampered", "文件被篡改必须被 --verify 发现", False),
-    ("C09", "package.tar-formats", "tgz/tarbz2 重新打包后仍可通过校验", False),
-    ("C10", "examples.smoke", "示例程序冒烟启动（可选）", True),
-    ("C11", "consumer.macos-bundle", "macOS App Bundle：Frameworks/rpath/资源布局", True),
+    ("P01", "package.extract", "sdk.scn_p01", False),
+    ("P02", "package.layout", "sdk.scn_p02", False),
+    ("P03", "package.checksums", "sdk.scn_p03", False),
+    ("P04", "package.metadata", "sdk.scn_p04", False),
+    ("P05", "package.integration", "sdk.scn_p05", False),
+    ("P06", "package.forbidden", "sdk.scn_p06", False),
+    ("P07", "package.verify-cli", "sdk.scn_p07", False),
+    ("P08", "package.docs", "sdk.scn_p08", False),
+    ("C01", "consumer.static", "sdk.scn_c01", True),
+    ("C02", "consumer.dll", "sdk.scn_c02", True),
+    ("C03", "negative.config", "sdk.scn_c03", True),
+    ("C04", "negative.arch", "sdk.scn_c04", True),
+    ("C05", "negative.msvc-runtime", "sdk.scn_c05", True),
+    ("C06", "negative.toolchain", "sdk.scn_c06", True),
+    ("C07", "negative.incomplete", "sdk.scn_c07", False),
+    ("C08", "negative.tampered", "sdk.scn_c08", False),
+    ("C09", "package.tar-formats", "sdk.scn_c09", False),
+    ("C10", "examples.smoke", "sdk.scn_c10", True),
+    ("C11", "consumer.macos-bundle", "sdk.scn_c11", True),
 ]
 SCENARIO_NAMES = {sid: name for sid, name, _desc, _build in SCENARIO_ORDER}
 BUILD_SCENARIOS = {sid for sid, _name, _desc, needs_build in SCENARIO_ORDER if needs_build}
@@ -282,9 +307,9 @@ def select_archive_root(names: list[str]) -> str:
     """发布包必须只有一个顶层目录。"""
     roots = {name.split("/", 1)[0] for name in names if name and name.strip("/")}
     if not roots:
-        raise ValueError("归档为空")
+        raise ValueError(T('sdk.archive_empty'))
     if len(roots) != 1:
-        raise ValueError("包根目录不唯一：%s" % ", ".join(sorted(roots)[:5]))
+        raise ValueError(T('sdk.root_not_unique') % ", ".join(sorted(roots)[:5]))
     return roots.pop()
 
 
@@ -295,28 +320,28 @@ def scenario_applicability(sid: str, caps: dict, meta: dict, *,
     if sid not in BUILD_SCENARIOS:
         return True, ""
     if no_build:
-        return False, "指定了 --no-build"
+        return False, T('sdk.no_build')
     if sid in ("C01", "C02"):
         if sid == "C01" and caps.get("is_dll"):
-            return False, "DLL 包由 C02 覆盖"
+            return False, T('sdk.dll_covered')
         if sid == "C02" and not caps.get("is_dll"):
-            return False, "静态包由 C01 覆盖"
+            return False, T('sdk.static_covered')
         if build_block_reason:
             return False, build_block_reason
         return True, ""
     if sid == "C10":
         if not run_examples:
-            return False, "未指定 --run-examples"
+            return False, T('sdk.no_run_examples')
         if not caps.get("has_examples"):
-            return False, "包内不含示例程序"
+            return False, T('sdk.no_examples')
         if build_block_reason:
             return False, build_block_reason
         return True, ""
     if sid == "C11":
         if host_system() != "macos":
-            return False, "App Bundle 用例仅在 macOS 上执行"
+            return False, T('sdk.macos_only')
         if not caps.get("has_sdl") or caps.get("sdl_kind") != "shared":
-            return False, "包内没有 SDL3 动态库，Frameworks 无内容可验证"
+            return False, T('sdk.no_shared_sdl')
         if build_block_reason:
             return False, build_block_reason
         return True, ""
@@ -425,8 +450,7 @@ def _warn_disk_space(packages: list[Path], out_root: Path) -> None:
         return
     need = archive_bytes * 2 + 512 * 1024 * 1024
     if free < need:
-        print("[WARN] %s 可用空间 %.1f GiB，估算需要 %.1f GiB（解包 + 编译 + 重打包）；"
-              "可用 --out-dir 指向更大的磁盘"
+        print(T('sdk.disk_space')
               % (out_root, free / 2 ** 30, need / 2 ** 30), flush=True)
 
 
@@ -563,18 +587,18 @@ def check_layout(info: PackageInfo) -> str:
     ]
     problems = [item for item in required if not (info.root / item).is_file()]
     if problems:
-        raise AssertionError("缺少必需文件：" + ", ".join(problems))
+        raise AssertionError(T('sdk.required_missing') + ", ".join(problems))
 
     stems = info.caps["lib_stems"]
     if "duilib" not in stems:
-        raise AssertionError("lib/ 下缺少 duilib 主库")
+        raise AssertionError(T('sdk.main_lib_missing'))
     if not info.caps["is_dll"]:
         for stem in ("duilib-cximage", "duilib-webp", "duilib-png", "duilib-zlib", "skia"):
             if stem not in stems:
-                raise AssertionError("静态包 lib/ 下缺少 %s" % stem)
+                raise AssertionError(T('sdk.static_lib_missing') % stem)
     if not info.caps["has_resources"]:
-        raise AssertionError("缺少运行资源 bin/resources/themes/default/global.xml")
-    return "必需文件 %d 项齐全，库 %d 个" % (len(required), len(stems))
+        raise AssertionError(T('sdk.resource_missing'))
+    return T('sdk.layout_ok') % (len(required), len(stems))
 
 
 def check_checksums(info: PackageInfo) -> str:
@@ -587,11 +611,11 @@ def check_checksums(info: PackageInfo) -> str:
             continue
         match = _SHA_LINE_RE.match(line)
         if not match:
-            problems.append("无法解析行：%s" % line[:60])
+            problems.append(T('sdk.line_unparsable') % line[:60])
             continue
         sums[match.group(2)] = match.group(1).lower()
     if problems:
-        raise AssertionError("；".join(problems[:5]))
+        raise AssertionError(T('sdk.sep').join(problems[:5]))
 
     virtual = {"MANIFEST.txt", "VERSION"}
     actual = {item for item in info.files
@@ -599,9 +623,9 @@ def check_checksums(info: PackageInfo) -> str:
     missing = sorted(actual - set(sums))
     extra = sorted(set(sums) - actual)
     if missing:
-        raise AssertionError("未登记到 SHA256SUMS：%s" % ", ".join(missing[:5]))
+        raise AssertionError(T('sdk.not_listed') % ", ".join(missing[:5]))
     if extra:
-        raise AssertionError("SHA256SUMS 登记了不存在的文件：%s" % ", ".join(extra[:5]))
+        raise AssertionError(T('sdk.listed_missing') % ", ".join(extra[:5]))
 
     mismatches = []
     for rel, digest in sums.items():
@@ -611,37 +635,37 @@ def check_checksums(info: PackageInfo) -> str:
         if hashlib.sha256(path.read_bytes()).hexdigest().lower() != digest:
             mismatches.append(rel)
     if mismatches:
-        raise AssertionError("SHA256 不匹配：%s" % ", ".join(mismatches[:5]))
-    return "校验和覆盖 %d 个文件且全部匹配" % len(sums)
+        raise AssertionError(T('sdk.sha_mismatch') % ", ".join(mismatches[:5]))
+    return T('sdk.checksums_ok') % len(sums)
 
 
 def check_metadata(info: PackageInfo) -> str:
     parts = info.name_parts
     if not parts:
-        raise AssertionError("包名无法解析：%s" % info.archive.name)
+        raise AssertionError(T('sdk.name_unparsable') % info.archive.name)
 
     problems = []
 
     def expect(actual, expected, label):
         if str(actual).strip() != str(expected).strip():
-            problems.append("%s：期望 '%s'，实际 '%s'" % (label, expected, actual))
+            problems.append(T('sdk.expect') % (label, expected, actual))
 
-    expect(parts["version"], info.meta("VERSION"), "包名版本 vs CMake 版本")
-    expect(parts["version"], info.version_text, "包名版本 vs VERSION")
-    expect(parts["version"], info.manifest.get("版本", ""), "包名版本 vs MANIFEST")
-    expect(parts["system"], info.meta("SYSTEM"), "包名平台 vs CMake 平台")
+    expect(parts["version"], info.meta("VERSION"), T('sdk.lbl_version_cmake'))
+    expect(parts["version"], info.version_text, T('sdk.lbl_version_text'))
+    expect(parts["version"], info.manifest.get("版本", ""), T('sdk.lbl_version_manifest'))
+    expect(parts["system"], info.meta("SYSTEM"), T('sdk.lbl_platform_cmake'))
     expect("%s-%s" % (parts["system"], parts["arch"]),
-           info.manifest.get("平台", ""), "包名平台 vs MANIFEST")
-    expect(parts["arch"], info.meta("ARCH"), "包名架构 vs CMake 架构")
-    expect(parts["config"], info.meta("CONFIG"), "包名配置 vs CMake 配置")
-    expect(parts["config"], info.manifest.get("配置", ""), "包名配置 vs MANIFEST")
+           info.manifest.get("平台", ""), T('sdk.lbl_platform_manifest'))
+    expect(parts["arch"], info.meta("ARCH"), T('sdk.lbl_arch_cmake'))
+    expect(parts["config"], info.meta("CONFIG"), T('sdk.lbl_config_cmake'))
+    expect(parts["config"], info.manifest.get("配置", ""), T('sdk.lbl_config_manifest'))
 
     if parts["system"] == "win":
-        expect(parts["toolchain"], info.meta("TOOLCHAIN"), "包名工具链 vs CMake 工具链")
+        expect(parts["toolchain"], info.meta("TOOLCHAIN"), T('sdk.lbl_toolchain_cmake'))
         toolchain_label = info.manifest.get("工具链", "")
         expected_label = "MSVC" if parts["toolchain"] == "msvc" else "MinGW"
         if toolchain_label and not toolchain_label.startswith(expected_label):
-            problems.append("MANIFEST 工具链 '%s' 与包名 '%s' 不一致"
+            problems.append(T('sdk.toolchain_label_mismatch')
                             % (toolchain_label, parts["toolchain"]))
 
     caps = info.caps
@@ -657,39 +681,39 @@ def check_metadata(info: PackageInfo) -> str:
         # macOS 不随包 CEF 开发文件与运行时，HAS_CEF 必须为 0；包名的 -cef
         # 只表示 CEF 示例 App Bundle（内嵌 Framework）确实随包。
         if flag_value(info.meta("HAS_CEF")):
-            problems.append("macOS 包不应声明 CEF 开发文件（HAS_CEF 应为 0）")
+            problems.append(T('sdk.macos_has_cef'))
         expect(parts["has_cef"], caps["has_cef_examples"],
-               "包名 CEF 标志 vs 实际 CEF 示例 Bundle")
+               T('sdk.lbl_cef_bundle'))
         checks = [item for item in checks if item[0] != "HAS_CEF"]
     for key, name_value, file_value, label in checks:
         meta_value = flag_value(info.meta(key))
         if name_value != file_value or meta_value != file_value:
-            problems.append("%s 不一致：包名=%s, CMake=%s, 实际文件=%s"
+            problems.append(T('sdk.cap_mismatch')
                             % (label, name_value, meta_value, file_value))
 
     if parts["system"] == "win":
         expect(parts["has_examples"], info.manifest.get("包含示例") == "是",
-               "包名示例标志 vs MANIFEST")
+               T('sdk.lbl_examples_manifest'))
         if info.meta("TOOLCHAIN") == "mingw":
             expect(parts["mingw_variant"], info.meta("MINGW_VARIANT"),
-                   "包名 MinGW 变体 vs CMake")
-    expect(parts["has_examples"], caps["has_examples"], "包名示例标志 vs 实际文件")
+                   T('sdk.lbl_mingw_variant'))
+    expect(parts["has_examples"], caps["has_examples"], T('sdk.lbl_examples_files'))
 
     if info.meta("SYSTEM") == "win" and info.meta("TOOLCHAIN") == "msvc":
         runtime = info.meta("MSVC_RUNTIME").upper()
         if runtime not in ("MT", "MD"):
-            problems.append("MSVC 运行库元数据非法：'%s'" % runtime)
+            problems.append(T('sdk.bad_msvc_runtime') % runtime)
         if caps["is_dll"] and runtime != "MD":
-            problems.append("DLL 包必须使用 /MD，实际元数据为 %s" % runtime)
+            problems.append(T('sdk.dll_needs_md') % runtime)
     else:
         if info.meta("MSVC_RUNTIME"):
-            problems.append("非 Windows/MSVC 包不应声明 MSVC 运行库")
+            problems.append(T('sdk.runtime_not_allowed'))
 
-    expect(info.manifest.get("包名", ""), info.root_dir_name(), "MANIFEST 包名 vs 包根目录")
+    expect(info.manifest.get("包名", ""), info.root_dir_name(), T('sdk.lbl_name_root'))
 
     if problems:
-        raise AssertionError("；".join(problems[:8]))
-    return "包名/版本/清单/CMake 元数据与实际文件一致"
+        raise AssertionError(T('sdk.sep').join(problems[:8]))
+    return T('sdk.metadata_ok')
 
 
 def check_integration(info: PackageInfo) -> str:
@@ -699,41 +723,41 @@ def check_integration(info: PackageInfo) -> str:
         text = _read_text(path)
         leftover = re.findall(r"@[A-Z0-9_]+@", text)
         if leftover:
-            problems.append("%s 存在未替换占位符 %s"
+            problems.append(T('sdk.placeholder')
                             % (path.name, ", ".join(sorted(set(leftover)))))
     version_file = cmake_dir / "nim_duilibConfigVersion.cmake"
     if not version_file.is_file() or "PACKAGE_VERSION" not in _read_text(version_file):
-        problems.append("nim_duilibConfigVersion.cmake 缺少 PACKAGE_VERSION")
+        problems.append(T('sdk.config_version_missing'))
 
     system = info.meta("SYSTEM")
     if system == "win":
         for arch in ("x64", "x86", "arm64"):
             manifest = info.root / ("msvc/manifest/duilib.%s.manifest" % arch)
             if not manifest.is_file():
-                problems.append("缺少 msvc/manifest/duilib.%s.manifest" % arch)
+                problems.append(T('sdk.manifest_file_missing') % arch)
         if info.meta("TOOLCHAIN") == "msvc":
             for rel in ("msvc/nim_duilib.props", "msvc/nim_duilib.targets",
                         "msvc/nim_duilib.sdk.props"):
                 if not (info.root / rel).is_file():
-                    problems.append("缺少 %s" % rel)
+                    problems.append(T('sdk.missing') % rel)
             props = info.root / "msvc/nim_duilib.sdk.props"
             if props.is_file():
                 text = _read_text(props)
                 for key in ("NimDuilibPackageVersion", "NimDuilibPackageArch",
                             "NimDuilibPackageConfig", "NimDuilibPackageIsDll"):
                     if key not in text:
-                        problems.append("nim_duilib.sdk.props 缺少 %s" % key)
+                        problems.append(T('sdk.props_missing_key') % key)
         # 所有 Windows 包的 manifest 必须是合法 XML（带 BOM 也能解析）。
         import xml.etree.ElementTree as ET
         for path in (info.root / "msvc/manifest").glob("*.manifest"):
             try:
                 ET.parse(str(path))
             except ET.ParseError as exc:
-                problems.append("%s XML 非法：%s" % (path.name, exc))
+                problems.append(T('sdk.xml_invalid') % (path.name, exc))
 
     if problems:
-        raise AssertionError("；".join(problems[:8]))
-    return "CMake/MSVC 接入文件完整且可解析"
+        raise AssertionError(T('sdk.sep').join(problems[:8]))
+    return T('sdk.integration_ok')
 
 
 def check_forbidden(info: PackageInfo) -> str:
@@ -742,33 +766,34 @@ def check_forbidden(info: PackageInfo) -> str:
     for item in info.files:
         lower = item.lower()
         if lower.endswith(bad_ext):
-            problems.append("禁止的调试/中间文件：%s" % item)
+            problems.append(T('sdk.forbidden_debug') % item)
         if lower.endswith("cef_sandbox.lib"):
-            problems.append("不应随包的沙箱库：%s" % item)
+            problems.append(T('sdk.forbidden_sandbox') % item)
         if lower.endswith(".cpp") and item.startswith("include/"):
-            problems.append("include/ 下不应有 .cpp：%s" % item)
+            problems.append(T('sdk.forbidden_cpp') % item)
         if item == "bin/resources.zip":
-            problems.append("不应随包 resources.zip")
+            problems.append(T('sdk.forbidden_zip'))
     if not info.caps["has_cef"]:
         for prefix in ("include/duilib/duilib_cef.h", "include/duilib/CEFControl/"):
             if any(item == prefix or item.startswith(prefix) for item in info.files):
-                message = "未声明 CEF 却包含 %s" % prefix
+                message = T('sdk.undeclared_cef') % prefix
                 if info.name_parts.get("system") == "macos":
-                    message += ("（macOS 包不随 CEF 开发文件，-cef 只表示 CEF 示例"
-                                " Bundle；请用当前 pack.py 重新出包）")
+                    message += (T('sdk.macos_cef_hint'))
                 problems.append(message)
                 break
     if not info.caps["has_sdl"]:
         if any(item.startswith("include/SDL3/") for item in info.files):
-            problems.append("未声明 SDL 却包含 include/SDL3/")
+            problems.append(T('sdk.undeclared_sdl'))
     if problems:
-        raise AssertionError("；".join(problems[:8]))
-    return "未发现禁止内容"
+        raise AssertionError(T('sdk.sep').join(problems[:8]))
+    return T('sdk.forbidden_ok')
 
 
 def run_verify_cli(archive: Path) -> subprocess.CompletedProcess:
+    # Same language as this process: verify messages are matched verbatim.
     return subprocess.run(
-        [sys.executable, str(PACK_PY), "--verify", str(archive)],
+        [sys.executable, str(PACK_PY), "--verify", str(archive),
+         "--lang", MESSAGES.language],
         capture_output=True, text=True, encoding="utf-8", errors="replace")
 
 
@@ -776,8 +801,8 @@ def check_verify_cli(info: PackageInfo) -> str:
     proc = run_verify_cli(info.archive)
     if proc.returncode != 0:
         tail = (proc.stdout or "")[-1200:]
-        raise AssertionError("pack.py --verify 失败（rc=%d）：\n%s" % (proc.returncode, tail))
-    return "pack.py --verify 返回 0"
+        raise AssertionError(T('sdk.verify_failed') % (proc.returncode, tail))
+    return T('sdk.verify_ok')
 
 
 def check_docs(info: PackageInfo) -> str:
@@ -785,16 +810,16 @@ def check_docs(info: PackageInfo) -> str:
     licenses = [item for item in info.files if item.startswith("LICENSES/")]
     problems = []
     if not docs:
-        problems.append("docs/ 下没有使用文档")
+        problems.append(T('sdk.no_docs'))
     if not licenses:
-        problems.append("LICENSES/ 为空")
+        problems.append(T('sdk.licenses_empty'))
     if not (info.root / "THIRD-PARTY-NOTICES.md").is_file():
-        problems.append("缺少 THIRD-PARTY-NOTICES.md")
+        problems.append(T('sdk.notices_missing'))
     if not info.caps["has_resources"]:
-        problems.append("缺少 bin/resources/themes/default/global.xml")
+        problems.append(T('sdk.global_xml_missing'))
     if problems:
-        raise AssertionError("；".join(problems))
-    return "文档 %d 份，许可证 %d 份，运行资源存在" % (len(docs), len(licenses))
+        raise AssertionError(T('sdk.sep').join(problems))
+    return T('sdk.docs_ok') % (len(docs), len(licenses))
 
 
 def _tar_open(dest: Path, mode: str):
@@ -889,7 +914,7 @@ def check_tar_formats(info: PackageInfo, work_dir: Path) -> str:
     header = _pick_smallest(info, lambda rel: rel.startswith("include/duilib/"))
     lib = _pick_smallest(info, _is_library_file)
     if not header or not lib:
-        raise AssertionError("包内缺少头文件或静态库，无法验证重打包格式")
+        raise AssertionError(T('sdk.repack_need_files'))
     rels = [header, lib]
     runtime = "bin/resources/themes/default/global.xml"
     if (info.root / runtime).is_file():
@@ -901,9 +926,9 @@ def check_tar_formats(info: PackageInfo, work_dir: Path) -> str:
         _make_sample_package(info, dest, mode, rels)
         proc = run_verify_cli(dest)
         if proc.returncode != 0:
-            raise AssertionError("%s 校验失败：%s" % (suffix, (proc.stdout or "")[-800:]))
+            raise AssertionError(T('sdk.repack_failed') % (suffix, (proc.stdout or "")[-800:]))
         results.append(suffix)
-    return "重新打包 %s 后均通过 --verify" % " / ".join(results)
+    return T('sdk.repack_ok') % " / ".join(results)
 
 
 def _is_library_file(rel: str) -> bool:
@@ -915,10 +940,10 @@ def check_incomplete(info: PackageInfo, work_dir: Path) -> str:
     header = _pick_smallest(info, lambda rel: rel.startswith("include/duilib/"))
     lib = _pick_smallest(info, _is_library_file)
     if not header or not lib:
-        raise AssertionError("包内缺少可用于负向校验的头文件或静态库")
+        raise AssertionError(T('sdk.negative_need_files'))
     cases = [
-        ("缺库", "缺少 lib/ 静态库", [header]),
-        ("缺头文件", "缺少 include/duilib/ 头文件", [lib]),
+        (T('sdk.label_missing_lib'), T('pkg.static_libs_missing'), [header]),
+        (T('sdk.label_missing_header'), T('pkg.headers_missing'), [lib]),
     ]
     verified = []
     for index, (label, expected, rels) in enumerate(cases):
@@ -926,12 +951,12 @@ def check_incomplete(info: PackageInfo, work_dir: Path) -> str:
                                        "w:gz", rels)
         proc = run_verify_cli(archive)
         if proc.returncode == 0:
-            raise AssertionError("%s 的包本应被 --verify 拒绝，实际通过" % label)
+            raise AssertionError(T('sdk.should_reject') % label)
         if expected not in (proc.stdout or ""):
-            raise AssertionError("%s 的失败原因不符合预期（应包含“%s”）：%s"
+            raise AssertionError(T('sdk.unexpected_reason')
                                  % (label, expected, (proc.stdout or "")[-500:]))
         verified.append(label)
-    return "%s 均被 --verify 拒绝" % " / ".join(verified)
+    return T('sdk.rejected_ok') % " / ".join(verified)
 
 
 def check_tampered(info: PackageInfo, work_dir: Path) -> str:
@@ -949,10 +974,10 @@ def check_tampered(info: PackageInfo, work_dir: Path) -> str:
         override={rel: tampered}, hash_from={rel: original})
     proc = run_verify_cli(archive)
     if proc.returncode == 0:
-        raise AssertionError("篡改 %s 后 --verify 本应失败，实际通过" % rel)
+        raise AssertionError(T('sdk.tamper_should_fail') % rel)
     if "SHA256" not in (proc.stdout or ""):
-        raise AssertionError("失败原因不是 SHA256 不匹配：%s" % (proc.stdout or "")[-500:])
-    return "篡改 %s 被 --verify 以 SHA256 不匹配拒绝" % rel
+        raise AssertionError(T('sdk.tamper_reason') % (proc.stdout or "")[-500:])
+    return T('sdk.tamper_ok') % rel
 
 
 def _pick_checksum_target(info: PackageInfo) -> str:
@@ -966,7 +991,7 @@ def _pick_checksum_target(info: PackageInfo) -> str:
             sums.add(match.group(2))
     candidates = [item for item in info.files if item in sums]
     if not candidates:
-        raise AssertionError("SHA256SUMS 中没有可篡改的文件")
+        raise AssertionError(T('sdk.no_tamper_target'))
     return min(candidates, key=lambda item: (info.root / item).stat().st_size)
 
 
@@ -1003,27 +1028,27 @@ def build_block_reason(info: PackageInfo) -> str:
     system = info.meta("SYSTEM")
     toolchain = info.meta("TOOLCHAIN")
     if system != host_system():
-        return "包平台 %s 与本机 %s 不同" % (system, host_system())
+        return T('sdk.platform_differs') % (system, host_system())
     if toolchain == "msvc" and sys.platform != "win32":
-        return "MSVC 包只能在 Windows 编译"
+        return T('sdk.msvc_windows_only')
     if toolchain == "mingw" and not os.environ.get("MSYSTEM"):
-        return "MinGW 包需要 MSYS2/MinGW 环境"
+        return T('sdk.mingw_env_required')
     if toolchain == "mingw" and info.meta("MINGW_VARIANT") == "llvm":
         compilers = (os.environ.get("CC", "") + os.environ.get("CXX", "")).lower()
         if "clang" not in compilers:
-            return "mingw-llvm 包需要在 CC/CXX 指向 clang 的环境中编译"
+            return T('sdk.mingw_llvm_env')
     tc, reason = detect_toolchain(info)
     if tc is None:
-        return "工具链不可用（%s）" % reason
+        return T('sdk.toolchain_unavailable') % reason
     if toolchain == "mingw" and tc.generator == "Visual Studio 17 2022":
-        return "当前环境没有 MinGW 编译器"
+        return T('sdk.no_mingw_compiler')
     return ""
 
 
 def cmake_exe() -> str:
     found = shutil.which("cmake")
     if not found:
-        raise ScenarioSkipped("找不到 cmake")
+        raise ScenarioSkipped(T('sdk.no_cmake'))
     return found
 
 
@@ -1160,9 +1185,9 @@ def _can_run_arch(arch: str, host: str) -> bool:
 def check_consumer(info: PackageInfo, work_dir: Path, log_dir: Path, options: Options) -> str:
     toolchain, reason = detect_toolchain(info)
     if toolchain is None:
-        raise ScenarioSkipped("工具链不可用（%s）" % reason)
+        raise ScenarioSkipped(T('sdk.toolchain_unavailable') % reason)
     if info.meta("SYSTEM") != host_system():
-        raise ScenarioSkipped("包平台与本机不同")
+        raise ScenarioSkipped(T('sdk.host_platform_differs'))
 
     build_dir = work_dir / "consumer"
     env = _scenario_env(toolchain.env, options)
@@ -1175,9 +1200,9 @@ def check_consumer(info: PackageInfo, work_dir: Path, log_dir: Path, options: Op
     rc, output = run_command(configure, cwd=REPO_ROOT, env=env, log_path=log,
                              dry_run=options.dry_run)
     if options.dry_run:
-        raise ScenarioSkipped("dry-run：已打印配置/编译命令")
+        raise ScenarioSkipped(T('sdk.dry_run_configure'))
     if rc != 0:
-        raise AssertionError("配置失败（rc=%d）：\n%s" % (rc, _tail(output)))
+        raise AssertionError(T('sdk.configure_failed') % (rc, _tail(output)))
 
     # 只构建可执行文件消费者目标；macOS 上同一工程还登记了 bundle 目标，
     # 由 C11 单独构建，避免每个场景都多链接一次静态库。
@@ -1186,19 +1211,19 @@ def check_consumer(info: PackageInfo, work_dir: Path, log_dir: Path, options: Op
     rc, output = run_command(build, cwd=REPO_ROOT, env=env, log_path=log,
                              dry_run=False, timeout=3600)
     if rc != 0:
-        raise AssertionError("编译失败（rc=%d）：\n%s" % (rc, _tail(output)))
+        raise AssertionError(T('sdk.build_failed') % (rc, _tail(output)))
 
     exe = find_consumer_executable(build_dir)
     if exe is None:
-        raise AssertionError("未找到测试程序 sdk_consumer")
+        raise AssertionError(T('sdk.consumer_not_found'))
     exe_dir = exe.parent
     if not (exe_dir / "resources/themes/default/global.xml").is_file():
-        raise AssertionError("运行资源未复制到可执行文件同级：%s" % exe_dir)
+        raise AssertionError(T('sdk.resources_not_copied') % exe_dir)
     if info.caps["is_dll"]:
         missing = [name for name in info.caps["bin_dlls"]
                    if not (exe_dir / name).is_file()]
         if missing:
-            raise AssertionError("DLL 未复制到可执行文件同级：%s" % ", ".join(missing))
+            raise AssertionError(T('sdk.dlls_not_copied') % ", ".join(missing))
 
     # /MD 消费者的运行库可能与测试机系统目录版本不一致，按官方 app-local
     # 方式把 VS 自带的 CRT 复制到 exe 同级，避免误判为 SDK 问题。
@@ -1209,24 +1234,23 @@ def check_consumer(info: PackageInfo, work_dir: Path, log_dir: Path, options: Op
         # 交叉编译产物无法在本机执行（如 x64 主机上构建 arm64 消费者）：
         # 配置与链接已验证，运行验证需对应架构的机器。
         raise ScenarioSkipped(
-            "配置/编译/链接通过；本机为 %s，无法运行 %s 程序"
-            "（运行验证需 %s 环境）" % (host_arch(), package_arch, package_arch))
+            T('sdk.cross_arch_skip') % (host_arch(), package_arch, package_arch))
 
     try:
         proc = subprocess.run([str(exe)], cwd=str(exe_dir), env=env,
                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                               timeout=180)
     except subprocess.TimeoutExpired:
-        raise AssertionError("运行超时（180 秒）")
+        raise AssertionError(T('sdk.run_timeout'))
     run_output = proc.stdout.decode("utf-8", errors="replace")
     _log_command(log, [str(exe)], run_output, proc.returncode)
 
     if proc.returncode != 0 or "SDK_TEST_RESULT=ok" not in run_output:
-        raise AssertionError("运行失败（rc=%d）：\n%s"
+        raise AssertionError(T('sdk.run_failed')
                              % (proc.returncode, _tail(run_output)))
 
     _check_features(info, run_output)
-    return "配置/编译/运行通过，特性开关与元数据一致"
+    return T('sdk.consumer_ok')
 
 
 def _check_features(info: PackageInfo, output: str) -> None:
@@ -1239,10 +1263,10 @@ def _check_features(info: PackageInfo, output: str) -> None:
         "jpeg": "1" if info.caps["has_jpeg"] else "0",
         "dll": "1" if info.caps["is_dll"] else "0",
     }
-    wrong = ["%s=%s（期望 %s）" % (key, features.get(key, "?"), value)
+    wrong = [T('sdk.feature_value') % (key, features.get(key, "?"), value)
              for key, value in expected.items() if features.get(key) != value]
     if wrong:
-        raise AssertionError("运行期编译特性与元数据不一致：%s" % ", ".join(wrong))
+        raise AssertionError(T('sdk.features_mismatch') % ", ".join(wrong))
 
 
 def _parse_features(output: str) -> dict:
@@ -1268,13 +1292,13 @@ def _expect_configure_failure(info: PackageInfo, work_dir: Path, log_dir: Path,
     rc, output = run_command(command, cwd=REPO_ROOT, env=env, log_path=log,
                              dry_run=options.dry_run, timeout=600)
     if options.dry_run:
-        raise ScenarioSkipped("dry-run：已打印配置命令")
+        raise ScenarioSkipped(T('sdk.dry_run_configure_only'))
     if rc == 0:
-        raise AssertionError("配置本应失败，实际成功")
+        raise AssertionError(T('sdk.configure_should_fail'))
     if expected_text not in output:
-        raise AssertionError("配置失败原因不含 '%s'：\n%s"
+        raise AssertionError(T('sdk.configure_reason')
                              % (expected_text, _tail(output, 1500)))
-    return "按预期被拒绝（%s）" % expected_text
+    return T('sdk.rejected_expected') % expected_text
 
 
 def check_negative_config(info: PackageInfo, work_dir: Path, log_dir: Path,
@@ -1284,9 +1308,9 @@ def check_negative_config(info: PackageInfo, work_dir: Path, log_dir: Path,
         raise ScenarioSkipped(blocked)
     toolchain, reason = detect_toolchain(info)
     if toolchain is None:
-        raise ScenarioSkipped("工具链不可用（%s）" % reason)
+        raise ScenarioSkipped(T('sdk.toolchain_unavailable') % reason)
     if toolchain.generator.startswith("Visual Studio"):
-        raise ScenarioSkipped("多配置生成器无法通过 CMAKE_BUILD_TYPE 触发配置校验")
+        raise ScenarioSkipped(T('sdk.multiconfig_hint'))
     config = info.meta("CONFIG") or "Release"
     opposite = "Release" if config == "Debug" else "Debug"
     command = configure_command(info, work_dir / "neg-config", toolchain,
@@ -1303,10 +1327,10 @@ def check_negative_arch(info: PackageInfo, work_dir: Path, log_dir: Path,
         raise ScenarioSkipped(blocked)
     toolchain, reason = detect_toolchain(info)
     if toolchain is None:
-        raise ScenarioSkipped("工具链不可用（%s）" % reason)
+        raise ScenarioSkipped(T('sdk.toolchain_unavailable') % reason)
     if info.meta("SYSTEM") != "win":
         if info.meta("ARCH") == host_arch():
-            raise ScenarioSkipped("包架构与主机一致，且当前平台无法交叉切换架构")
+            raise ScenarioSkipped(T('sdk.arch_same_host'))
         command = configure_command(info, work_dir / "neg-arch", toolchain)
         return _expect_configure_failure(
             info, work_dir, log_dir, options, log_name="neg-arch.log",
@@ -1326,19 +1350,19 @@ def check_negative_arch(info: PackageInfo, work_dir: Path, log_dir: Path,
         return _expect_configure_failure(
             info, work_dir, log_dir, options, log_name="neg-arch.log",
             command=command, env=_scenario_env(toolchain.env, options), expected_text="架构为")
-    raise ScenarioSkipped("未安装 Visual Studio，且包架构与主机一致")
+    raise ScenarioSkipped(T('sdk.no_vs_arch_same'))
 
 
 def check_negative_msvc_runtime(info: PackageInfo, work_dir: Path, log_dir: Path,
                                 options: Options) -> str:
     if info.meta("SYSTEM") != "win" or info.meta("TOOLCHAIN") != "msvc":
-        raise ScenarioSkipped("仅 Windows MSVC 包适用")
+        raise ScenarioSkipped(T('sdk.msvc_only'))
     runtime = info.meta("MSVC_RUNTIME").upper()
     if runtime not in ("MT", "MD"):
-        raise ScenarioSkipped("包未声明 MSVC 运行库")
+        raise ScenarioSkipped(T('sdk.no_runtime_declared'))
     toolchain, reason = detect_toolchain(info)
     if toolchain is None:
-        raise ScenarioSkipped("工具链不可用（%s）" % reason)
+        raise ScenarioSkipped(T('sdk.toolchain_unavailable') % reason)
     opposite = ("MultiThreaded$<$<CONFIG:Debug>:Debug>"
                 if runtime == "MD"
                 else "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
@@ -1353,24 +1377,24 @@ def check_negative_toolchain(info: PackageInfo, work_dir: Path, log_dir: Path,
                              options: Options) -> str:
     package_toolchain = info.meta("TOOLCHAIN")
     if package_toolchain not in ("msvc", "mingw"):
-        raise ScenarioSkipped("非 Windows 包不存在 MSVC/MinGW 工具链对立面")
+        raise ScenarioSkipped(T('sdk.non_windows_no_counterpart'))
     toolchain, reason = detect_toolchain(info)
     if toolchain is None:
-        raise ScenarioSkipped("工具链不可用（%s）" % reason)
+        raise ScenarioSkipped(T('sdk.toolchain_unavailable') % reason)
 
     if package_toolchain == "msvc":
         gxx = shutil.which("g++")
         if not gxx:
-            raise ScenarioSkipped("未找到 g++，无法模拟 MinGW 工具链")
+            raise ScenarioSkipped(T('sdk.no_gxx'))
         generator = "Ninja" if toolchain.ninja else None
         if generator is None:
-            raise ScenarioSkipped("未找到 Ninja，无法切换编译器")
+            raise ScenarioSkipped(T('sdk.no_ninja'))
         command = configure_command(info, work_dir / "neg-toolchain", toolchain,
                                     generator=generator,
                                     extra=["-DCMAKE_CXX_COMPILER=%s" % gxx])
     else:
         if toolchain.vs_install is None or not shutil.which("cl", path=toolchain.env.get("PATH")):
-            raise ScenarioSkipped("未安装 MSVC，无法模拟 MSVC 工具链")
+            raise ScenarioSkipped(T('sdk.no_msvc'))
         command = configure_command(info, work_dir / "neg-toolchain", toolchain)
     return _expect_configure_failure(
         info, work_dir, log_dir, options, log_name="neg-toolchain.log",
@@ -1386,7 +1410,7 @@ def check_examples_smoke(info: PackageInfo, work_dir: Path, log_dir: Path,
     ]
     exe = next((path for path in candidates if path.is_file()), None)
     if exe is None:
-        raise ScenarioSkipped("未找到 bin/basic 示例程序")
+        raise ScenarioSkipped(T('sdk.no_basic'))
     proc = subprocess.Popen([str(exe)], cwd=str(exe.parent),
                             env=_scenario_env(os.environ, options),
                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -1394,7 +1418,7 @@ def check_examples_smoke(info: PackageInfo, work_dir: Path, log_dir: Path,
         time.sleep(3)
         code = proc.poll()
         if code is not None:
-            raise AssertionError("示例程序启动后立即退出（rc=%s）" % code)
+            raise AssertionError(T('sdk.example_exited') % code)
     finally:
         if proc.poll() is None:
             proc.terminate()
@@ -1402,7 +1426,7 @@ def check_examples_smoke(info: PackageInfo, work_dir: Path, log_dir: Path,
                 proc.wait(timeout=10)
             except subprocess.TimeoutExpired:
                 proc.kill()
-    return "bin/basic 启动 3 秒后仍在运行"
+    return T('sdk.example_running')
 
 
 # ---------------------------------------------------------------------------
@@ -1436,11 +1460,11 @@ def _otool_path() -> str | None:
 def _run_otool(arguments: list[str], log_path: Path, env: dict) -> str:
     otool = _otool_path()
     if otool is None:
-        raise ScenarioSkipped("找不到 otool，无法检查 App Bundle 的 rpath 与 install_name")
+        raise ScenarioSkipped(T('sdk.no_otool'))
     rc, output = run_command([otool, *arguments], cwd=REPO_ROOT, env=env,
                              log_path=log_path, dry_run=False, timeout=120)
     if rc != 0:
-        raise AssertionError("otool %s 执行失败（rc=%d）：\n%s"
+        raise AssertionError(T('sdk.otool_failed')
                              % (" ".join(arguments), rc, _tail(output)))
     return output
 
@@ -1449,15 +1473,15 @@ def check_macos_bundle(info: PackageInfo, work_dir: Path, log_dir: Path,
                        options: Options) -> str:
     """C11：用 SDK 包生成 macOS App Bundle，验证 Frameworks/rpath/资源布局。"""
     if sys.platform != "darwin":
-        raise ScenarioSkipped("App Bundle 用例仅在 macOS 上执行")
+        raise ScenarioSkipped(T('sdk.macos_only'))
     if not info.caps.get("has_sdl") or info.caps.get("sdl_kind") != "shared":
-        raise ScenarioSkipped("包内没有 SDL3 动态库，Frameworks 无内容可验证")
+        raise ScenarioSkipped(T('sdk.no_shared_sdl'))
     blocked = build_block_reason(info)
     if blocked:
         raise ScenarioSkipped(blocked)
     toolchain, reason = detect_toolchain(info)
     if toolchain is None:
-        raise ScenarioSkipped("工具链不可用（%s）" % reason)
+        raise ScenarioSkipped(T('sdk.toolchain_unavailable') % reason)
 
     build_dir = work_dir / "consumer_bundle"
     env = _scenario_env(toolchain.env, options)
@@ -1470,47 +1494,47 @@ def check_macos_bundle(info: PackageInfo, work_dir: Path, log_dir: Path,
     rc, output = run_command(configure, cwd=REPO_ROOT, env=env, log_path=log,
                              dry_run=options.dry_run)
     if options.dry_run:
-        raise ScenarioSkipped("dry-run：已打印配置/编译命令")
+        raise ScenarioSkipped(T('sdk.dry_run_configure'))
     if rc != 0:
-        raise AssertionError("配置失败（rc=%d）：\n%s" % (rc, _tail(output)))
+        raise AssertionError(T('sdk.configure_failed') % (rc, _tail(output)))
 
     build = build_command(build_dir, toolchain, options.jobs, info.meta("CONFIG"),
                           target="nim_duilib_sdk_bundle")
     rc, output = run_command(build, cwd=REPO_ROOT, env=env, log_path=log,
                              dry_run=False, timeout=3600)
     if rc != 0:
-        raise AssertionError("编译失败（rc=%d）：\n%s" % (rc, _tail(output)))
+        raise AssertionError(T('sdk.build_failed') % (rc, _tail(output)))
 
     app = find_macos_bundle(build_dir)
     if app is None:
-        raise AssertionError("未找到 sdk_bundle.app（构建目录：%s）" % build_dir)
+        raise AssertionError(T('sdk.bundle_not_found') % build_dir)
 
     exe = app / "Contents/MacOS/sdk_bundle"
     dylibs = sorted((app / "Contents/Frameworks").glob("libSDL3*.dylib"))
     if not dylibs:
-        raise AssertionError("Contents/Frameworks 中没有 libSDL3*.dylib：%s"
+        raise AssertionError(T('sdk.no_framework_dylib')
                              % (app / "Contents/Frameworks"))
     global_xml = app / "Contents/Resources/duilib/resources/themes/default/global.xml"
     if not global_xml.is_file():
-        raise AssertionError("资源未复制到 Contents/Resources/duilib/resources：%s"
+        raise AssertionError(T('sdk.bundle_resources_missing')
                              % global_xml)
 
     # rpath 与 install_name：确认引用 @rpath，且不残留 SDK/构建机的绝对路径。
     linked = _run_otool(["-L", str(exe)], log, env)
     if "@rpath/libSDL3" not in linked:
-        raise AssertionError("可执行文件未引用 @rpath/libSDL3*.dylib：\n%s"
+        raise AssertionError(T('sdk.no_rpath_ref')
                              % _tail(linked))
     if str(info.root) in linked:
-        raise AssertionError("可执行文件仍引用 SDK 绝对路径（%s）：\n%s"
+        raise AssertionError(T('sdk.absolute_sdk_ref')
                              % (info.root, _tail(linked)))
     load_commands = _run_otool(["-l", str(exe)], log, env)
     if "@executable_path/../Frameworks" not in load_commands:
-        raise AssertionError("可执行文件缺少 LC_RPATH @executable_path/../Frameworks：\n%s"
+        raise AssertionError(T('sdk.missing_lc_rpath')
                              % _tail(load_commands))
     install_name = _run_otool(["-D", str(dylibs[0])], log, env)
     if not any(line.strip().startswith("@rpath/")
                for line in install_name.splitlines()):
-        raise AssertionError("SDL3 的 install_name 不是 @rpath：\n%s"
+        raise AssertionError(T('sdk.sdl_install_name')
                              % _tail(install_name))
 
     # 把 .app 复制到构建树之外再运行，确保不依赖构建目录的绝对 rpath。
@@ -1531,23 +1555,22 @@ def check_macos_bundle(info: PackageInfo, work_dir: Path, log_dir: Path,
                               env=run_env, stdout=subprocess.PIPE,
                               stderr=subprocess.STDOUT, timeout=180)
     except subprocess.TimeoutExpired:
-        raise AssertionError("迁移后运行超时（180 秒）")
+        raise AssertionError(T('sdk.relocated_timeout'))
     run_output = proc.stdout.decode("utf-8", errors="replace")
     _log_command(log, [str(relocated_exe)], run_output, proc.returncode)
     if proc.returncode != 0 or "SDK_TEST_RESULT=ok" not in run_output:
-        raise AssertionError("迁移后运行失败（rc=%d）：\n%s"
+        raise AssertionError(T('sdk.relocated_failed')
                              % (proc.returncode, _tail(run_output)))
     if "Contents/Frameworks/libSDL3" not in run_output:
-        raise AssertionError("dyld 未从 Contents/Frameworks 加载 SDL3：\n%s"
+        raise AssertionError(T('sdk.dyld_not_framework')
                              % _tail(run_output))
     if "/lib/libSDL3" in run_output:
-        raise AssertionError("dyld 仍从 SDK 的 lib/ 加载 SDL3（rpath 顺序或 "
-                             "install_name 有问题）：\n%s" % _tail(run_output))
+        raise AssertionError(T('sdk.dyld_sdk_lib') % _tail(run_output))
     resource_line = next((line for line in run_output.splitlines()
                           if line.startswith("SDK_TEST_RESOURCE_ROOT=")), "")
     if "Contents/Resources/duilib/resources" not in resource_line:
-        raise AssertionError("资源根不是 Contents/Resources/duilib/resources：%s"
-                             % (resource_line or "(未输出 SDK_TEST_RESOURCE_ROOT)"))
+        raise AssertionError(T('sdk.resource_root')
+                             % (resource_line or T('sdk.resource_root_missing')))
     sdl_version = 0
     for line in run_output.splitlines():
         if line.startswith("SDK_TEST_SDL_VERSION="):
@@ -1557,18 +1580,17 @@ def check_macos_bundle(info: PackageInfo, work_dir: Path, log_dir: Path,
                 sdl_version = 0
             break
     if sdl_version <= 0:
-        raise AssertionError("未取到 SDL3 运行期版本号（Frameworks 未生效）：\n%s"
+        raise AssertionError(T('sdk.no_sdl_version')
                              % _tail(run_output))
     _check_features(info, run_output)
-    return ("App Bundle 通过：Frameworks/libSDL3*.dylib、rpath、"
-            "Contents/Resources/duilib/resources 与迁移后运行均正常（SDL3 %d）"
+    return (T('sdk.bundle_ok')
             % sdl_version)
 
 
 def _scenario_runner(sid: str, info: PackageInfo, work_dir: Path,
                      log_dir: Path, options: Options):
     if sid == "P01":
-        return "解包成功：%d 个文件，包根 %s" % (len(info.files), info.root_dir_name())
+        return T('sdk.extracted') % (len(info.files), info.root_dir_name())
     if sid == "P02":
         return check_layout(info)
     if sid == "P03":
@@ -1603,7 +1625,7 @@ def _scenario_runner(sid: str, info: PackageInfo, work_dir: Path,
         return check_examples_smoke(info, work_dir, log_dir, options)
     if sid == "C11":
         return check_macos_bundle(info, work_dir, log_dir, options)
-    raise AssertionError("未知场景：%s" % sid)
+    raise AssertionError(T('sdk.unknown_scenario') % sid)
 
 
 def run_package(info: PackageInfo, package_out: Path, options: Options) -> list[Result]:
@@ -1628,7 +1650,7 @@ def run_package(info: PackageInfo, package_out: Path, options: Options) -> list[
     for sid in [item[0] for item in SCENARIO_ORDER if item[0] in options.selected]:
         name = SCENARIO_NAMES[sid]
         if options.dry_run and sid in BUILD_SCENARIOS:
-            record(Result(sid, name, "SKIP", "dry-run：未执行", ""))
+            record(Result(sid, name, "SKIP", T('sdk.dry_run_skipped'), ""))
             continue
         print("  >> %s %s ..." % (sid, name), flush=True)
         applicable, reason = scenario_applicability(
@@ -1664,18 +1686,22 @@ def parse_selection(value: str) -> set[str]:
         if not item:
             continue
         if item not in SCENARIO_NAMES:
-            raise SystemExit("未知场景：%s（用 --list-scenarios 查看）" % item)
+            raise SystemExit(T('sdk.unknown_scenario_hint') % item)
         selected.add(item)
     if not selected:
-        raise SystemExit("--scenarios 不能为空")
+        raise SystemExit(T('sdk.scenarios_empty'))
     return selected
 
 
 def print_scenarios() -> None:
-    print("%-4s %-24s %-8s %s" % ("编号", "名称", "类型", "说明"))
+    # Descriptions are catalog keys so that --lang still applies.
+    print("%-4s %-24s %-8s %s" % (T('sdk.hdr_id'), T('sdk.hdr_name'),
+                                   T('sdk.hdr_kind'), T('sdk.hdr_desc')))
     print("-" * 78)
     for sid, name, desc, needs_build in SCENARIO_ORDER:
-        print("%-4s %-24s %-8s %s" % (sid, name, "需编译" if needs_build else "包级", desc))
+        print("%-4s %-24s %-8s %s" % (sid, name,
+                                      T('sdk.kind_build') if needs_build
+                                      else T('sdk.kind_package'), T(desc)))
 
 
 def print_results(package: PackageInfo, results: list[Result]) -> None:
@@ -1683,7 +1709,7 @@ def print_results(package: PackageInfo, results: list[Result]) -> None:
     for item in results:
         print("[%-4s] %s %-24s %s" % (item.status, item.scenario_id, item.name, item.detail))
         if item.log:
-            print("       日志：%s" % item.log)
+            print(T('sdk.log_line') % item.log)
 
 
 def write_report(out_root: Path, entries: list[dict]) -> Path:
@@ -1699,23 +1725,29 @@ def write_report(out_root: Path, entries: list[dict]) -> Path:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Console language must be ready before argparse: --help is output too.
+    global MESSAGES
+    argv = sys.argv[1:] if argv is None else list(argv)
+    MESSAGES = make_messages(_requested_lang(argv))
+    set_console_utf8()
     parser = argparse.ArgumentParser(
         prog="sdk_package_test.py",
-        description="nim_duilib 发布 SDK 包测试（结构校验 + 消费者编译运行 + 负向用例）")
+        description=T('sdk.help_description'))
     parser.add_argument("--package", action="append", default=[], metavar="ARCHIVE",
-                        help="待测试的发布包（必填，可重复指定）")
+                        help=T('sdk.help_package'))
     parser.add_argument("--scenarios", default="all",
-                        help="场景编号列表（逗号分隔）或 all；"
-                             "用 --list-scenarios 查看全部编号")
-    parser.add_argument("--no-build", action="store_true", help="只执行包级场景")
-    parser.add_argument("--run-examples", action="store_true", help="额外冒烟启动示例程序")
+                        help=T('sdk.help_scenarios'))
+    parser.add_argument("--no-build", action="store_true", help=T('sdk.help_no_build'))
+    parser.add_argument("--run-examples", action="store_true", help=T('sdk.help_run_examples'))
     parser.add_argument("--out-dir", default=None,
-                        help="临时目录与报告输出目录（解包+编译+重打包需要足够空间）")
-    parser.add_argument("--keep", action="store_true", help="保留解包与构建目录")
+                        help=T('sdk.help_out_dir'))
+    parser.add_argument("--keep", action="store_true", help=T('sdk.help_keep'))
     parser.add_argument("--jobs", type=int, default=None,
-                        help="并行编译任务数（默认 CPU 逻辑核心数）")
-    parser.add_argument("--dry-run", action="store_true", help="只打印将执行的命令")
-    parser.add_argument("--list-scenarios", action="store_true", help="列出场景后退出")
+                        help=T('sdk.help_jobs'))
+    parser.add_argument("--dry-run", action="store_true", help=T('sdk.help_dry_run'))
+    parser.add_argument("--list-scenarios", action="store_true", help=T('sdk.help_list_scenarios'))
+    parser.add_argument("--lang", choices=('auto', 'zh_CN', 'en'), default='auto',
+                        help=T('sdk.help_lang'))
     args = parser.parse_args(argv)
 
     if args.list_scenarios:
@@ -1724,10 +1756,10 @@ def main(argv: list[str] | None = None) -> int:
 
     packages = [Path(item).expanduser().resolve() for item in args.package]
     if not packages:
-        parser.error("需要 --package <发布包>（可重复指定）")
+        parser.error(T('sdk.package_required'))
     for path in packages:
         if not path.is_file():
-            parser.error("包不存在：%s" % path)
+            parser.error(T('sdk.package_missing') % path)
 
     out_root = Path(args.out_dir).expanduser().resolve() if args.out_dir else \
         DEFAULT_OUT_ROOT / time.strftime("%Y%m%d-%H%M%S")
@@ -1755,12 +1787,12 @@ def main(argv: list[str] | None = None) -> int:
         try:
             info = load_package(archive, package_out / "extract")
         except Exception as exc:
-            print("[FAIL] %s\n       无法加载发布包：%s: %s"
+            print(T('sdk.load_failed_print')
                   % (archive.name, type(exc).__name__, exc))
             entries.append({
                 "archive": str(archive), "package": archive.name,
                 "results": [{"id": "P00", "name": "package.load", "status": "FAIL",
-                             "detail": "无法加载发布包：%s: %s" % (type(exc).__name__, exc),
+                             "detail": T('sdk.load_failed') % (type(exc).__name__, exc),
                              "log": ""}],
             })
             total["FAIL"] += 1
@@ -1796,8 +1828,8 @@ def main(argv: list[str] | None = None) -> int:
             shutil.rmtree(package_out / "work", ignore_errors=True)
 
     report_path = write_report(out_root, entries)
-    print("\n结果：PASS=%d FAIL=%d SKIP=%d" % (total["PASS"], total["FAIL"], total["SKIP"]))
-    print("报告：%s" % report_path)
+    print(T('sdk.result_line') % (total["PASS"], total["FAIL"], total["SKIP"]))
+    print(T('sdk.report_path') % report_path)
     if not options.keep and not options.dry_run:
         for item in out_root.iterdir():
             if item.is_dir() and item.name[:2].isdigit():

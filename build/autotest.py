@@ -29,6 +29,31 @@ import tempfile
 import time
 import zipfile
 
+from i18n import make_messages, set_console_utf8
+
+# --------------------------------------------------------------------------
+# 控制台文案：英文在脚本里按 key 引用，中文在 cmake/i18n/messages.json。
+# 语言顺序：--lang / DUILIB_LANG -> LC_ALL/LC_MESSAGES/LANG -> 系统区域 -> en。
+# --------------------------------------------------------------------------
+
+MESSAGES = make_messages()
+
+
+def T(key):
+    """取控制台文案：简体中文系统显示中文，其余（含 zh_TW/zh_HK）显示英文。"""
+    return MESSAGES.t(key)
+
+
+def _requested_lang(argv):
+    """预扫描 --lang：让 --help 与参数错误也按所选语言输出。"""
+    for index, arg in enumerate(argv):
+        if arg.startswith('--lang='):
+            return arg.split('=', 1)[1]
+        if arg == '--lang' and index + 1 < len(argv):
+            return argv[index + 1]
+    return 'auto'
+
+
 BUILD_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(BUILD_DIR)
 sys.path.insert(0, BUILD_DIR)
@@ -40,7 +65,7 @@ DEFAULT_OUT_ROOT = os.path.join(tempfile.gettempdir(), 'nim_duilib_autotest')
 PRESETS = {
     'unit': {
         'kind': 'unit',
-        'description': '运行 test_pack.py 与 test_autotest.py',
+        'description': 'auto.preset_unit_desc',
     },
     'pack-msvc-x64-release': {
         'kind': 'pack',
@@ -48,7 +73,7 @@ PRESETS = {
         'config': 'Release',
         'toolchain': 'msvc',
         'lib_dir': os.path.join('lib', 'x64', 'Release'),
-        'description': 'MSVC x64 Release：现有产物打包 + 体检',
+        'description': 'auto.preset_win_x64_release',
         'build': 'msvc',
     },
     'pack-msvc-x64-debug': {
@@ -57,7 +82,7 @@ PRESETS = {
         'config': 'Debug',
         'toolchain': 'msvc',
         'lib_dir': os.path.join('lib', 'x64', 'Debug'),
-        'description': 'MSVC x64 Debug：现有产物打包 + 体检',
+        'description': 'auto.preset_win_x64_debug',
     },
     'pack-msvc-x86-release': {
         'kind': 'pack',
@@ -65,7 +90,7 @@ PRESETS = {
         'config': 'Release',
         'toolchain': 'msvc',
         'lib_dir': os.path.join('lib', 'x86', 'Release'),
-        'description': 'MSVC x86 Release：现有产物打包 + 体检',
+        'description': 'auto.preset_win_x86_release',
     },
     'pack-mingw-x64-release': {
         'kind': 'pack',
@@ -73,12 +98,12 @@ PRESETS = {
         'config': 'Release',
         'toolchain': 'mingw',
         'lib_dir': os.path.join('lib', 'x64', 'Release'),
-        'description': 'MinGW x64 Release：现有产物打包 + 体检',
+        'description': 'auto.preset_mingw_x64_release',
         'build': 'mingw',
     },
     'arm64-synthetic': {
         'kind': 'synthetic-arm64',
-        'description': '用临时假库产出 arm64 包，校验 manifest/接入文件（无需真机）',
+        'description': 'auto.preset_arm64_synthetic',
     },
 }
 
@@ -131,14 +156,14 @@ def check_prereq(preset):
 
     lib_dir = os.path.join(REPO_ROOT, preset['lib_dir'])
     if not os.path.isdir(lib_dir):
-        return False, '库目录不存在：%s' % preset['lib_dir']
+        return False, T('auto.lib_dir_missing') % preset['lib_dir']
 
     names = {name.lower() for name in os.listdir(lib_dir)}
     exts = _lib_ext(preset['toolchain'])
     for base in pack.LIB_BASENAMES:
         if not any(name.startswith(base.lower()) and name.endswith(exts)
                    for name in names):
-            return False, '库目录缺少 %s 的 %s' % (base, '/'.join(exts))
+            return False, T('auto.lib_dir_artifact_missing') % (base, '/'.join(exts))
 
     try:
         toolchain = pack.detect_windows_toolchain(lib_dir)
@@ -202,7 +227,7 @@ def _synthetic_command(work_dir, args):
 def _build_command(preset, args):
     kind = preset.get('build')
     if not kind:
-        return None, '该预设不支持自动构建'
+        return None, T('auto.prereq_no_build')
     command = [sys.executable, os.path.join(BUILD_DIR, 'build.py'),
                '--config', preset.get('config', 'Release')]
     if preset.get('arch'):
@@ -239,13 +264,13 @@ def _run_step(name, cmd, log_fp, timeout, dry_run=False, env=None):
         log_fp.write((exc.stdout or '') + (exc.stderr or ''))
         step['status'] = 'failed'
         step['returncode'] = -1
-        step['error'] = '超时（%d 秒）' % timeout
+        step['error'] = T('auto.timeout') % timeout
     except OSError as exc:
         step['status'] = 'failed'
         step['returncode'] = -1
         step['error'] = str(exc)
     step['duration'] = round(time.time() - start, 2)
-    log_fp.write('--> %s（退出码 %s，%.2fs）\n'
+    log_fp.write(T('auto.step')
                  % (step['status'], step['returncode'], step['duration']))
     log_fp.flush()
     return step
@@ -271,13 +296,13 @@ def inspect_package(package, arch):
     try:
         members = _zip_members(package)
     except (OSError, zipfile.BadZipFile) as exc:
-        return False, ['无法读取包：%s' % exc]
+        return False, [T('auto.package_unreadable') % exc]
     if not members:
-        return False, ['包为空']
+        return False, [T('auto.package_empty')]
 
     roots = {name.split('/', 1)[0] for name in members}
     if len(roots) != 1:
-        errors.append('包内根目录不唯一：%s' % ', '.join(sorted(roots)))
+        errors.append(T('auto.package_root_not_unique') % ', '.join(sorted(roots)))
         rels = set(members)
     else:
         root = roots.pop()
@@ -287,12 +312,12 @@ def inspect_package(package, arch):
     for required in ('MANIFEST.txt', 'SHA256SUMS',
                      'lib/cmake/nim_duilib/nim_duilibConfig.cmake'):
         if required not in rels:
-            errors.append('缺少 %s' % required)
+            errors.append(T('auto.missing') % required)
     if 'win' in package.lower() or any(
             rel.startswith('msvc/') for rel in rels):
         for manifest_arch in pack.WINDOWS_MANIFEST_ARCHES:
             if 'msvc/manifest/duilib.%s.manifest' % manifest_arch not in rels:
-                errors.append('缺少 %s manifest' % manifest_arch)
+                errors.append(T('auto.manifest_missing') % manifest_arch)
     if arch == 'arm64':
         name = 'msvc/manifest/duilib.arm64.manifest'
         # 直接按后缀查找，避免依赖根目录名
@@ -300,9 +325,9 @@ def inspect_package(package, arch):
             member = next((n for n in zf.namelist()
                            if n.endswith('/' + name)), '')
             if not member:
-                errors.append('缺少 arm64 manifest')
+                errors.append(T('auto.arm64_manifest_missing'))
             elif b'processorArchitecture="ARM64"' not in zf.read(member):
-                errors.append('arm64 manifest 的架构不是 ARM64')
+                errors.append(T('auto.arm64_manifest_arch'))
     return not errors, errors
 
 
@@ -324,12 +349,12 @@ def _smoke(package, work_dir, host_arch, log_fp):
         if exe:
             break
     if not exe:
-        return 'skipped', '包内没有 bin/basic.exe（未包含示例）'
+        return 'skipped', T('auto.no_basic_exe')
 
     machine = pack.pe_machine(exe)
     expected = pack.PE_MACHINE_BY_ARCH.get(host_arch)
     if machine is not None and expected is not None and machine != expected:
-        return 'skipped', '示例架构（0x%04X）与主机 %s 不一致' % (machine, host_arch)
+        return 'skipped', T('auto.example_arch_mismatch') % (machine, host_arch)
 
     log_fp.write('\n=== smoke ===\n%s\n' % exe)
     log_fp.flush()
@@ -341,9 +366,9 @@ def _smoke(package, work_dir, host_arch, log_fp):
             proc.wait(timeout=5)
         except subprocess.TimeoutExpired:
             proc.kill()
-        return 'passed', '启动后 8 秒仍在运行'
-    return ('passed', '退出码 %d' % proc.returncode) if proc.returncode == 0 \
-        else ('failed', '启动后退出码 %d' % proc.returncode)
+        return 'passed', T('auto.smoke_still_running')
+    return ('passed', T('auto.exit_code') % proc.returncode) if proc.returncode == 0 \
+        else ('failed', T('auto.exit_code_after_launch') % proc.returncode)
 
 
 def _run_pack_preset(name, preset, args, work_dir, log_fp):
@@ -372,7 +397,7 @@ def _run_pack_preset(name, preset, args, work_dir, log_fp):
     record['steps'].append(pack_step)
     if pack_step['status'] == 'failed':
         record['status'] = 'failed'
-        record['reason'] = '打包失败'
+        record['reason'] = T('auto.pack_failed')
         return record
     if args.dry_run:
         record['status'] = 'planned'
@@ -381,7 +406,7 @@ def _run_pack_preset(name, preset, args, work_dir, log_fp):
     package = _new_package(out_dir, before)
     if not package:
         record['status'] = 'failed'
-        record['reason'] = '未找到新生成的包'
+        record['reason'] = T('auto.package_not_found')
         return record
     record['package'] = {
         'path': package,
@@ -395,20 +420,20 @@ def _run_pack_preset(name, preset, args, work_dir, log_fp):
     record['steps'].append(verify)
     if verify['status'] == 'failed':
         record['status'] = 'failed'
-        record['reason'] = '包体检未通过'
+        record['reason'] = T('auto.package_check_failed')
         return record
 
     inspect_ok, errors = inspect_package(package, preset['arch'])
-    record['assertions'] = errors or ['结构断言通过']
+    record['assertions'] = errors or [T('auto.assertions_passed')]
     if not inspect_ok:
         record['status'] = 'failed'
-        record['reason'] = '结构断言未通过'
+        record['reason'] = T('auto.assertions_failed')
         return record
 
     if args.smoke and preset['config'] == 'Release':
         smoke_status, smoke_reason = _smoke(
             package, work_dir, detect_environment()['host_arch'], log_fp)
-        record['assertions'].append('冒烟：%s' % smoke_reason)
+        record['assertions'].append(T('auto.smoke') % smoke_reason)
         if smoke_status == 'failed':
             record['status'] = 'failed'
             record['reason'] = smoke_reason
@@ -423,7 +448,7 @@ def _run_synthetic_arm64(name, args, work_dir, log_fp):
               'steps': [], 'assertions': [], 'package': {}}
     if not os.path.isfile(os.path.join(pack.MSVC_MANIFEST_DIR,
                                        'duilib.arm64.manifest')):
-        record['reason'] = '缺少 duilib.arm64.manifest'
+        record['reason'] = T('auto.duilib_arm64_manifest_missing')
         return record
 
     out_dir = os.path.join(work_dir, 'dist')
@@ -433,7 +458,7 @@ def _run_synthetic_arm64(name, args, work_dir, log_fp):
     record['steps'].append(pack_step)
     if pack_step['status'] == 'failed':
         record['status'] = 'failed'
-        record['reason'] = 'arm64 打包失败'
+        record['reason'] = T('auto.arm64_pack_failed')
         return record
     if args.dry_run:
         record['status'] = 'planned'
@@ -442,7 +467,7 @@ def _run_synthetic_arm64(name, args, work_dir, log_fp):
     package = _new_package(out_dir, before)
     if not package:
         record['status'] = 'failed'
-        record['reason'] = '未找到新生成的 arm64 包'
+        record['reason'] = T('auto.arm64_package_not_found')
         return record
     record['package'] = {'path': package, 'size': os.path.getsize(package)}
 
@@ -451,10 +476,10 @@ def _run_synthetic_arm64(name, args, work_dir, log_fp):
                         '--verify', package], log_fp, 600)
     record['steps'].append(verify)
     inspect_ok, errors = inspect_package(package, 'arm64')
-    record['assertions'] = errors or ['结构断言通过']
+    record['assertions'] = errors or [T('auto.assertions_passed')]
     if verify['status'] == 'failed' or not inspect_ok:
         record['status'] = 'failed'
-        record['reason'] = 'arm64 结构/体检未通过'
+        record['reason'] = T('auto.arm64_check_failed')
         return record
     record['status'] = 'passed'
     return record
@@ -471,7 +496,7 @@ def _run_unit(name, args, log_fp):
         record['steps'].append(step)
         if step['status'] == 'failed':
             record['status'] = 'failed'
-            record['reason'] = '%s 未通过' % script
+            record['reason'] = T('auto.failed_item') % script
             return record
     if args.dry_run:
         record['status'] = 'planned'
@@ -494,12 +519,12 @@ def _print_summary(records):
     for record in records:
         line = '%-26s %s' % (record['name'], record['status'])
         if record.get('reason'):
-            line += '（%s）' % record['reason']
+            line += T('auto.paren') % record['reason']
         if record.get('package'):
-            line += '  包：%s' % record['package']['path']
+            line += T('auto.package_line') % record['package']['path']
         print(line)
     print('-' * 60)
-    print('通过 %d，失败 %d，跳过 %d' % (passed, failed, skipped))
+    print(T('auto.summary') % (passed, failed, skipped))
     if failed:
         return 1
     if not passed:
@@ -508,33 +533,42 @@ def _print_summary(records):
 
 
 def main(argv=None):
+    # Console language must be ready before argparse: --help is output too.
+    global MESSAGES
+    argv = sys.argv[1:] if argv is None else list(argv)
+    MESSAGES = make_messages(_requested_lang(argv))
+    set_console_utf8()
+
     parser = argparse.ArgumentParser(
-        description='nim_duilib 打包自动化（不接入 CI）')
+        description=T('auto.help_description'))
     parser.add_argument('--list-presets', action='store_true',
-                        help='列出全部预设后退出')
+                        help=T('auto.help_list_presets'))
     parser.add_argument('--preset', default='unit',
                         choices=ALL_PRESETS + ['all-ready'],
-                        help='要执行的预设（默认 unit；all-ready 运行所有可运行项）')
+                        help=T('auto.help_preset'))
     parser.add_argument('--out-dir', default=None,
-                        help='运行输出目录（默认系统临时目录下的 nim_duilib_autotest/<时间戳>）')
+                        help=T('auto.help_out_dir'))
     parser.add_argument('--build', action='store_true',
-                        help='先调用现有构建脚本（仅部分预设支持）')
+                        help=T('auto.help_build'))
     parser.add_argument('--smoke', action='store_true',
-                        help='解包并启动 bin/basic.exe（需包内含示例）')
+                        help=T('auto.help_smoke'))
     parser.add_argument('--with-sdl', action='store_true',
-                        help='打包时附加 --with-sdl（仅 Windows 需要；Unix 始终打包）')
+                        help=T('auto.help_with_sdl'))
     parser.add_argument('--with-examples', action='store_true',
-                        help='打包时附加 --with-examples（包含示例与私有资源）')
+                        help=T('auto.help_with_examples'))
     parser.add_argument('--build-timeout', type=int, default=3600,
-                        help='构建超时秒数（默认 3600）')
+                        help=T('auto.help_timeout'))
     parser.add_argument('--dry-run', action='store_true',
-                        help='只打印将执行的命令，不运行')
+                        help=T('auto.help_dry_run'))
+    parser.add_argument('--lang', choices=('auto', 'zh_CN', 'en'), default='auto',
+                        help=T('auto.help_lang'))
     args = parser.parse_args(argv)
 
     if args.list_presets:
         for name in ALL_PRESETS:
-            print('%-26s %s' % (name, PRESETS[name]['description']))
-        print('%-26s %s' % ('all-ready', '运行所有前置条件满足的预设'))
+            # Description is a catalog key so that --lang still applies.
+            print('%-26s %s' % (name, T(PRESETS[name]['description'])))
+        print('%-26s %s' % ('all-ready', T('auto.presets_all_ready')))
         return 0
 
     run_dir = args.out_dir or os.path.join(DEFAULT_OUT_ROOT, _now_stamp())
@@ -549,7 +583,7 @@ def main(argv=None):
     started = time.strftime('%Y-%m-%d %H:%M:%S')
 
     with open(log_path, 'w', encoding='utf-8') as log_fp:
-        log_fp.write('nim_duilib 打包自动化\n')
+        log_fp.write(T('auto.log_title'))
         log_fp.write(json.dumps(env, ensure_ascii=False, indent=2) + '\n')
         for name in names:
             work_dir = os.path.join(run_dir, name)
@@ -576,9 +610,9 @@ def main(argv=None):
     if not args.dry_run:
         with open(report_path, 'w', encoding='utf-8') as fp:
             json.dump(report, fp, ensure_ascii=False, indent=2)
-    print('日志：%s' % log_path)
+    print(T('auto.log_path') % log_path)
     if not args.dry_run:
-        print('报告：%s' % report_path)
+        print(T('auto.report_path') % report_path)
     return _print_summary(records)
 
 

@@ -32,6 +32,21 @@ def _system_locale() -> str:
     return ""
 
 
+def _normalize_language(tag: str) -> str:
+    """把区域标签归一为 zh_CN / en。
+
+    只有简体中文（zh、zh_CN、zh_Hans，含 zh_Hans_CN 之类）显示中文；
+    zh_TW / zh_HK / zh_MO / zh_Hant 等繁体区域一律显示英文，
+    与 cmake/duilib_i18n.cmake 的 ^zh([-_]CN|[-_]Hans)?$ 判定保持一致。
+    """
+    normalized = (tag or "").replace("-", "_").lower()
+    if not normalized.startswith("zh"):
+        return "en"
+    if normalized.startswith(("zh_tw", "zh_hk", "zh_mo", "zh_hant")):
+        return "en"
+    return "zh_CN"
+
+
 def resolve_language(cli=None, env=None, system=None) -> str:
     """纯函数：返回 zh_CN 或 en。"""
     env = os.environ if env is None else env
@@ -40,11 +55,9 @@ def resolve_language(cli=None, env=None, system=None) -> str:
 
     candidate = cli if cli and cli != "auto" else env.get("DUILIB_LANG", "")
     if candidate and candidate != "auto":
-        normalized = candidate.replace("-", "_").lower()
-        return "zh_CN" if normalized.startswith("zh") else "en"
+        return _normalize_language(candidate)
 
-    normalized = (system or "").replace("-", "_").lower()
-    return "zh_CN" if normalized.startswith("zh") else "en"
+    return _normalize_language(system)
 
 
 def _load_messages() -> dict:

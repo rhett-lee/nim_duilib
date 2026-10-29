@@ -28,6 +28,26 @@ from pathlib import Path
 
 from i18n import make_messages, set_console_utf8
 
+# 控制台文案：英文在脚本里按 key 引用，中文在 cmake/i18n/messages.json。
+# 语言顺序：--lang / DUILIB_LANG -> LC_ALL/LC_MESSAGES/LANG -> 系统区域 -> en。
+MESSAGES = make_messages()
+
+
+def T(key):
+    """取控制台文案：简体中文系统显示中文，其余（含 zh_TW/zh_HK）显示英文。"""
+    return MESSAGES.t(key)
+
+
+def _requested_lang(argv):
+    """预扫描 --lang：让 --help 与参数错误也按所选语言输出。"""
+    for index, arg in enumerate(argv):
+        if arg.startswith('--lang='):
+            return arg.split('=', 1)[1]
+        if arg == '--lang' and index + 1 < len(argv):
+            return argv[index + 1]
+    return 'auto'
+
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BUILD_DIR = REPO_ROOT / "build"
 CMAKE_FILE = REPO_ROOT / "CMakeLists.txt"
@@ -77,9 +97,10 @@ def resolve_cef_version(requested: str | None, manifest: dict) -> str:
         return default
     if requested not in versions:
         raise BuildError(
-            f"未知的 CEF 版本：{requested}",
-            f"可选值：109、latest（当前对应 {default}）；"
-            f"清单 third_party_versions.json 中已配置：{'、'.join(versions)}")
+            T('help.cef_unknown').format(requested=requested),
+            T('help.cef_unknown_choices').format(
+                default=default,
+                versions=T('help.list_sep').join(versions)))
     return requested
 
 
@@ -440,9 +461,9 @@ def platform_name() -> str:
 # ---------------------------------------------------------------------------
 # 参数解析
 # ---------------------------------------------------------------------------
-def _platform_help(windows: str, other: str) -> str:
-    """按当前平台选择帮助文本：只在有实际效果的平台上完整说明。"""
-    return windows if sys.platform == "win32" else other
+def _platform_help(windows_key: str, other_key: str) -> str:
+    """按当前平台选择帮助文案 key：只在有实际效果的平台上完整说明。"""
+    return T(windows_key) if sys.platform == "win32" else T(other_key)
 
 
 def _add_common_options(parser: argparse.ArgumentParser, suppress_defaults: bool = False) -> None:
@@ -457,64 +478,42 @@ def _add_common_options(parser: argparse.ArgumentParser, suppress_defaults: bool
         return argparse.SUPPRESS if suppress_defaults else value
 
     parser.add_argument("--config", choices=VALID_CONFIGS, default=default(DEFAULT_CONFIG),
-                        help="构建配置（一次只构建一个，默认 Release）")
+                        help=T("help.config"))
     parser.add_argument("--arch", choices=VALID_ARCHES, default=default("auto"),
-                        help="目标架构（默认主机架构；x86 主要用于 Windows 32 位）")
+                        help=T("help.arch"))
     parser.add_argument("--lang", choices=("auto", "zh_CN", "en"), default=default("auto"),
-                        help="交互语言（默认跟随系统）")
-    parser.add_argument("--build-dir", default=default(None), help="覆盖构建目录（默认 out/<arch>/<Config>）")
-    parser.add_argument("--deps-root", default=default(None),
-                        help="依赖源码/安装根目录（默认仓库同级，即与 nim_duilib 平级；"
-                             "Skia、SDL3、CEF 都安装到这里）")
+                        help=T("help.lang"))
+    parser.add_argument("--build-dir", default=default(None), help=T("help.build_dir"))
+    parser.add_argument("--deps-root", default=default(None), help=T("help.deps_root"))
     parser.add_argument("--jobs", type=int, default=default(None),
-                        help="并行编译任务数（默认 CPU 逻辑核心数）")
+                        help=T("help.jobs"))
     parser.add_argument("--offline", action="store_true", default=default(False),
-                        help="只使用已缓存的依赖源码/归档（不访问网络）")
-    parser.add_argument("--dry-run", action="store_true", default=default(False), help="只打印将执行的命令")
+                        help=T("help.offline"))
+    parser.add_argument("--dry-run", action="store_true", default=default(False),
+                        help=T("help.dry_run"))
     parser.add_argument("--cmake-arg", action="append", default=default([]),
-                        help="追加给 cmake configure 的参数（可重复，如 --cmake-arg=-DFOO=ON）")
+                        help=T("help.cmake_arg"))
     parser.add_argument("--build-arg", action="append", default=default([]),
-                        help="追加给 cmake --build 的参数（可重复，如 --build-arg=-v）")
+                        help=T("help.build_arg"))
     parser.add_argument("--vs-version", default=default(None),
-                        help=_platform_help(
-                            "显式指定 Visual Studio 主版本（如 17，默认自动探测）",
-                            "仅 Windows 有效；其他平台忽略该参数"))
+                        help=_platform_help("help.vs_windows", "help.vs_other"))
     parser.add_argument("--cef-version", metavar="VERSION", default=default(None),
-                        help="CEF 版本：109（旧版）或 latest（当前最新，默认取 "
-                             "third_party_versions.json；清单升级后自动跟随）")
-    parser.add_argument("--skia-ref", default=default(None),
-                        help="Skia 引用键（清单 skia.refs 中的键，默认取 skia.default；"
-                             "如 chrome/m142）")
-    parser.add_argument("--sdl-ref", default=default(None),
-                        help="SDL3 引用键（清单 sdl.refs 中的键，默认取 sdl.default；"
-                             "如 release-3.4.18、main）")
+                        help=T("help.cef_version"))
+    parser.add_argument("--skia-ref", default=default(None), help=T("help.skia_ref"))
+    parser.add_argument("--sdl-ref", default=default(None), help=T("help.sdl_ref"))
     parser.add_argument("--sdl", dest="sdl", action="store_true", default=default(None),
-                        help=_platform_help(
-                            "启用 SDL（Windows 默认关闭，DLL 模式也不会自动开启；"
-                            "关闭时不下载/不构建 SDL3）",
-                            "仅 Windows 有效；其他平台 SDL 始终开启"))
+                        help=_platform_help("help.sdl_windows", "help.sdl_other"))
     parser.add_argument("--no-sdl", dest="sdl", action="store_false", default=default(None),
-                        help=_platform_help(
-                            "强制关闭 SDL",
-                            "仅 Windows 有效；其他平台 SDL 始终开启，无法关闭"))
+                        help=_platform_help("help.no_sdl_windows", "help.no_sdl_other"))
     parser.add_argument("--md", action="store_true", default=default(False),
-                        help=_platform_help(
-                            "使用 MSVC 动态运行库 (/MD, /MDd)；默认 MT",
-                            "仅 Windows（MSVC）有效；其他平台使用工具链默认运行库"))
+                        help=_platform_help("help.md_windows", "help.md_other"))
     parser.add_argument("--dll", action="store_true", default=default(False),
-                        help=_platform_help(
-                            "构建 duilib DLL 模式（隐式开启 --md，自动准备并编译 "
-                            "Skia .md/.mdd，输出 bin/duilib*.dll；SDL 不自动开启，"
-                            "需要时显式 --sdl）；"
-                            "同时同步 msvc/PropertySheets/duilib_dll.flag",
-                            "仅 Windows MSVC 有效；其他平台不支持"))
+                        help=_platform_help("help.dll_windows", "help.dll_other"))
     parser.add_argument("--no-absolute-rpath", dest="rpath_absolute",
                         action="store_false", default=default(True),
-                        help=_platform_help(
-                            "仅 Unix（Linux/macOS/FreeBSD）有效；Windows 忽略该参数",
-                            "产物只写相对 rpath，不附加 SDL3 等绝对兜底路径"))
+                        help=_platform_help("help.rpath_windows", "help.rpath_other"))
     parser.add_argument("--cef-archive", default=default(None),
-                        help="本地 CEF 归档路径（跳过下载；仍按官方 .sha1 校验完整性）")
+                        help=T("help.cef_archive"))
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -525,51 +524,45 @@ def build_parser() -> argparse.ArgumentParser:
 
     parser = argparse.ArgumentParser(
         prog="build.py",
-        description="nim_duilib 统一构建入口",
-        epilog=("子命令专属参数需查看子命令帮助（build.py <command> --help）：\n"
-                "  build.py build --help   # --no-deps / --target / --no-examples\n"
-                "  build.py deps --help    # --force\n"
-                "  build.py pack --help    # --with-cef / --with-sdl / --with-examples / --out-dir / --pack-arg\n"
-                "  build.py clean --help   # --deps / --build-dir"),
+        description=T("help.description"),
+        epilog=T("help.epilog"),
         formatter_class=argparse.RawDescriptionHelpFormatter,
         parents=[main_common])
     sub = parser.add_subparsers(dest="command")
 
-    build_parser_ = sub.add_parser("build", parents=[sub_common], help="准备依赖并编译一个配置")
+    build_parser_ = sub.add_parser("build", parents=[sub_common], help=T("help.cmd_build"))
     build_parser_.add_argument("--no-deps", action="store_true",
-                               help="跳过依赖准备（复用已就绪的 Skia/SDL3/CEF）")
+                               help=T("help.no_deps"))
     build_parser_.add_argument("--target", default=None,
-                               help="只构建指定 CMake 目标（默认全部）")
+                               help=T("help.target"))
     build_parser_.add_argument("--no-examples", action="store_true",
-                               help="不编译示例（仍配置工程）")
+                               help=T("help.no_examples"))
 
     deps_parser = sub.add_parser("deps", parents=[sub_common],
-                                 help="只准备依赖（Skia/SDL3/CEF；SDL 关闭时跳过 SDL3）"
-                                      "并安装到 --deps-root")
+                                 help=T("help.cmd_deps"))
     deps_parser.add_argument("--force", action="store_true",
-                             help="忽略完成标记，重建依赖（Skia/SDL3/CEF）")
+                             help=T("help.force"))
     deps_parser.add_argument("--no-examples", action="store_true", help=argparse.SUPPRESS)
 
-    sub.add_parser("doctor", parents=[sub_common], help="环境自检（只读，不修改文件）")
+    sub.add_parser("doctor", parents=[sub_common], help=T("help.cmd_doctor"))
 
-    sub.add_parser("test", parents=[sub_common], help="运行单元测试")
+    sub.add_parser("test", parents=[sub_common], help=T("help.cmd_test"))
 
-    pack_parser = sub.add_parser("pack", parents=[sub_common], help="调用 pack.py 出包")
+    pack_parser = sub.add_parser("pack", parents=[sub_common], help=T("help.cmd_pack"))
     pack_parser.add_argument("--with-cef", action="store_true",
-                             help="包内包含 CEF（Windows/Linux 含头文件、wrapper 与运行时；"
-                                  "macOS 仅控制 CEF 示例 .app；体积巨大，默认不带）")
+                             help=T("help.with_cef"))
     pack_parser.add_argument("--with-sdl", action="store_true",
-                             help="包内包含 SDL3（仅 Windows 需要；Unix 始终打包）")
+                             help=T("help.with_sdl"))
     pack_parser.add_argument("--with-examples", action="store_true",
-                             help="包内包含示例程序与私有资源")
-    pack_parser.add_argument("--out-dir", default=None, help="包输出目录（默认 dist/）")
+                             help=T("help.with_examples"))
+    pack_parser.add_argument("--out-dir", default=None, help=T("help.out_dir"))
     pack_parser.add_argument("--pack-arg", action="append", default=[],
-                             help="追加给 pack.py 的参数（可重复）")
+                             help=T("help.pack_arg"))
 
     clean_parser = sub.add_parser("clean", parents=[sub_common],
-                                  help="清理构建树（默认整个 out/；--build-dir 可只清理指定目录）")
+                                  help=T("help.cmd_clean"))
     clean_parser.add_argument("--deps", action="store_true",
-                              help="同时清理依赖构建产物（--deps-root 下的 Skia/SDL3/CEF 构建目录）")
+                              help=T("help.clean_deps"))
 
     return parser
 
@@ -590,7 +583,7 @@ def parse_args(argv=None) -> argparse.Namespace:
             setattr(args, name, default)
     if args.dll:
         if sys.platform != "win32" or os.environ.get("MSYSTEM"):
-            parser.error("--dll 仅支持 Windows MSVC；其他平台请使用静态构建")
+            parser.error(T("help.dll_platform"))
         # DLL 必须使用动态运行库，避免 wrapper/第三方库的 /MT 冲突。
         args.md = True
     return args
@@ -1385,9 +1378,13 @@ def cmd_clean(args, messages) -> int:
 # 入口
 # ---------------------------------------------------------------------------
 def main(argv=None) -> int:
-    args = parse_args(argv)
+    # Console language must be ready before argparse: --help is output too.
+    global MESSAGES
+    argv = sys.argv[1:] if argv is None else list(argv)
+    MESSAGES = make_messages(_requested_lang(argv))
     set_console_utf8()
-    messages = make_messages(args.lang)
+    args = parse_args(argv)
+    messages = MESSAGES
 
     if sys.version_info < (3, 8):
         print(messages.t("build.python_missing"))

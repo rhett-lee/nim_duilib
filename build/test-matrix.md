@@ -585,8 +585,13 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
     --arch x86 --sdl` 会按 x86 重建 SDL3（`../SDL3` 的 stamp 含架构与 CRT），
     出包 W-P27（844 条目 / 128.2 MB），`--verify` 与 SDK 测试（PASS=16 FAIL=0 SKIP=3）
     通过，C10 启动成功（P3-2 完成，P0-1 收口）。
-11. **`build/` 脚本控制台输出未英文化**：`pack.py`、`autotest.py`、`release.py` 与两个
-    `.sh` 仍为中文；`docs/misc/specs/English-Console-Output` 的 T1～T7 未实施（P3-3）。
+11. **`build/` 脚本控制台输出**：已关闭（2026-10-29，P3-3）。`build.py`、`pack.py`、
+    `release.py`、`autotest.py` 与 `sdk_package_test.py` 的运行期消息与 `--help`
+    改为简易双语：简体（`zh`/`zh_CN`/`zh_Hans`）显示中文，其余区域（含
+    `zh_TW`/`zh_HK`/`zh_Hant`）显示英文；文案集中在 `cmake/i18n/messages.json`，
+    五个入口均支持 `--lang`，语言在 argparse 之前解析。`PYTHONIOENCODING=ascii`
+    下 `--help` 与列表命令（加 `--lang en`）无中文，`python build/build.py test`
+    236 个用例通过；原任务中的两个 `.sh` 已随 `build/legacy/` 清理删除。
     `release.py` 的 `check`/`package`/`finalize`/`clean` 全流程已于 2026-10-29 实测
     通过（含失败路径，P3-5 完成，记录见 `Packaging-Follow-Up-Items.md`）。
 

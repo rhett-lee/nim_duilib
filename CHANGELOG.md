@@ -110,6 +110,17 @@
 
 ### 变更
 
+- `build/` 控制台输出改为简易双语（2026-10-29，P3-3）：`build.py`、`pack.py`、
+  `release.py`、`autotest.py`、`sdk_package_test.py` 的运行期消息与 `--help`
+  文案统一由 `cmake/i18n/messages.json` 提供，按 `--lang` / `DUILIB_LANG` →
+  `LC_ALL`/`LC_MESSAGES`/`LANG` → 系统区域 → `en` 判定；仅 `zh`/`zh_CN`/`zh_Hans`
+  显示中文，`zh_TW`/`zh_HK`/`zh_Hant` 等繁体区域与所有非中文区域显示英文，与
+  `cmake/duilib_i18n.cmake` 的判定保持一致。语言在 argparse 之前解析，因此
+  `--help` 与参数错误也按所选语言输出；英文输出为纯 ASCII，非中文控制台不会乱码。
+  五个入口均支持 `--lang {auto,zh_CN,en}`（`release.py` 的子命令后也可写），
+  `sdk_package_test.py` 调用 `pack.py --verify` 时传递同一语言，保证负向用例的
+  预期报错文本匹配。注释、docstring、`MANIFEST.txt`、`RELEASE-NOTES` 与包内中文
+  内容保持原样。
 - 统一入口一次只构建一个 `--config`（Debug/Release），需要两者时调用两次；
   `build/autotest.py` 的构建步骤改为调用 `build.py`。
 - CEF 运行时按版本与架构输出到 `bin/libcef_win[/_109]/<arch>` 或 `bin/libcef_linux`，

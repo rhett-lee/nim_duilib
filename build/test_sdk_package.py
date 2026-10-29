@@ -22,6 +22,9 @@ sdk = importlib.util.module_from_spec(_SPEC)
 sys.modules[_SPEC.name] = sdk
 _SPEC.loader.exec_module(sdk)
 
+# 固定简体中文：场景说明与拒绝原因断言基于中文，不能随宿主系统语言变化。
+sdk.MESSAGES = sdk.make_messages("zh_CN")
+
 
 class PackageNameTest(unittest.TestCase):
     def test_release_static(self):
@@ -411,6 +414,24 @@ class SelectionTest(unittest.TestCase):
             sdk.parse_selection("X99")
 
 
+class ConsoleLanguageTest(unittest.TestCase):
+    """--lang en 时场景清单必须是纯 ASCII（非中文控制台不会乱码）。"""
+
+    def test_scenario_descriptions_switch_to_english(self):
+        old = sdk.MESSAGES
+        sdk.MESSAGES = sdk.make_messages("en")
+        try:
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                sdk.print_scenarios()
+            text = out.getvalue()
+        finally:
+            sdk.MESSAGES = old
+        self.assertIn("unpack and single package root", text)
+        self.assertIn("missing library/header must be caught by --verify", text)
+        self.assertEqual([ch for ch in text if ord(ch) > 127], [])
+
+
 class macOSMetadataTest(unittest.TestCase):
     """P04 在 macOS 上的判定：-cef 表示 CEF 示例 Bundle，HAS_CEF 恒为 0。"""
 
@@ -496,6 +517,18 @@ class SamplePackageTest(unittest.TestCase):
         detail = sdk.check_incomplete(self.info, self.work)
         self.assertIn("缺库", detail)
         self.assertIn("缺头文件", detail)
+
+    def test_incomplete_rejected_in_english(self):
+        """英文模式下 pack.py --verify 的报错也必须按同一语言匹配。"""
+        old = sdk.MESSAGES
+        sdk.MESSAGES = sdk.make_messages("en")
+        try:
+            detail = sdk.check_incomplete(self.info, self.work)
+        finally:
+            sdk.MESSAGES = old
+        self.assertIn("missing library", detail)
+        self.assertIn("missing header", detail)
+        self.assertEqual([ch for ch in detail if ord(ch) > 127], [])
 
     def test_tampered_rejected(self):
         detail = sdk.check_tampered(self.info, self.work)

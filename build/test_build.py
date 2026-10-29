@@ -31,6 +31,9 @@ _spec = importlib.util.spec_from_file_location("duilib_build_entry", BUILD_DIR /
 entry = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(entry)
 
+# 固定简体中文：帮助文本断言基于中文，不能随宿主系统语言变化。
+entry.MESSAGES = entry.make_messages("zh_CN")
+
 
 class ArchTests(unittest.TestCase):
     def test_normalize_arch_aliases(self):
@@ -293,6 +296,22 @@ class CefVersionTests(unittest.TestCase):
         self.assertIn("仅 Windows 有效；其他平台忽略该参数", text)
         self.assertIn("产物只写相对 rpath", text)
 
+    def test_help_switches_to_english(self):
+        """--lang en 时帮助文案必须全英文且为纯 ASCII。"""
+        with mock.patch.object(entry.sys, "platform", "linux"):
+            old = entry.MESSAGES
+            entry.MESSAGES = entry.make_messages("en")
+            try:
+                parser = entry.argparse.ArgumentParser(add_help=False)
+                entry._add_common_options(parser)
+                text = parser.format_help()
+            finally:
+                entry.MESSAGES = old
+        self.assertIn("Windows only; SDL is always enabled", text)
+        self.assertIn("Windows (MSVC) only", text)
+        self.assertIn("write only relative rpath", text)
+        self.assertEqual([ch for ch in text if ord(ch) > 127], [])
+
 
 class StaleCacheTests(unittest.TestCase):
     # 与平台无关的“另一个编译器”路径：测试只比较路径是否变化
@@ -544,12 +563,36 @@ class LanguageTests(unittest.TestCase):
         self.assertEqual(resolve_language(cli=None, env={}, system="en_US"), "en")
         self.assertEqual(resolve_language(cli=None, env={}, system=""), "en")
 
+    def test_traditional_chinese_falls_back_to_english(self):
+        """繁体区域一律英文，与 cmake/duilib_i18n.cmake 的判定保持一致。"""
+        for system in ("zh_TW", "zh-HK", "zh_MO", "zh_Hant", "zh_Hant_TW"):
+            self.assertEqual(resolve_language(cli=None, env={}, system=system), "en", system)
+
+    def test_simplified_chinese_variants(self):
+        for system in ("zh_CN", "zh-CN", "zh_Hans", "zh_Hans_CN", "zh"):
+            self.assertEqual(resolve_language(cli=None, env={}, system=system), "zh_CN", system)
+
     def test_messages_lookup_and_fallback(self):
         messages = Messages("zh_CN", {"k": {"en": "hello", "zh_CN": "你好"},
                                       "only_en": {"en": "only"}})
         self.assertEqual(messages.t("k"), "你好")
         self.assertEqual(messages.t("only_en"), "only")
         self.assertEqual(messages.t("missing"), "missing")
+
+    def test_help_honors_lang_before_argparse(self):
+        """--help 在 argparse 之前解析 --lang，英文输出必须是纯 ASCII。"""
+        out = io.StringIO()
+        old = entry.MESSAGES
+        try:
+            with contextlib.redirect_stdout(out):
+                with self.assertRaises(SystemExit) as ctx:
+                    entry.main(["--help", "--lang", "en"])
+        finally:
+            entry.MESSAGES = old
+        self.assertEqual(ctx.exception.code, 0)
+        text = out.getvalue()
+        self.assertIn("nim_duilib unified build entry", text)
+        self.assertEqual([ch for ch in text if ord(ch) > 127], [])
 
 
 class DryRunOutputTests(unittest.TestCase):

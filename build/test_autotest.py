@@ -15,6 +15,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import autotest  # noqa: E402
 
+# 固定简体中文：原因文案断言基于中文，不能随宿主系统语言变化。
+autotest.MESSAGES = autotest.make_messages('zh_CN')
+
 
 class PresetTableTest(unittest.TestCase):
 
@@ -56,6 +59,20 @@ class PrereqTest(unittest.TestCase):
         ok, reason = autotest.check_prereq(preset)
         self.assertFalse(ok)
         self.assertIn('库目录不存在', reason)
+
+    def test_missing_lib_dir_reason_switches_to_english(self):
+        """英文模式下原因文案不得含中文（非中文控制台不会乱码）。"""
+        preset = dict(autotest.PRESETS['pack-msvc-x64-release'])
+        preset['lib_dir'] = os.path.join('lib', 'no-such-arch', 'Release')
+        old = autotest.MESSAGES
+        autotest.MESSAGES = autotest.make_messages('en')
+        try:
+            ok, reason = autotest.check_prereq(preset)
+        finally:
+            autotest.MESSAGES = old
+        self.assertFalse(ok)
+        self.assertIn('library directory does not exist', reason)
+        self.assertEqual([ch for ch in reason if ord(ch) > 127], [])
 
 
 class PackCommandTest(unittest.TestCase):
