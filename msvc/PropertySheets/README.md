@@ -178,6 +178,11 @@ BinCommonSettingsWebView2.props
 | Debug x64 | `..\bin\` | `build_temp\x64\$(ProjectName)\Debug\` | `$(ProjectName)_d` |
 | Release Win32 | `..\bin\` | `build_temp\x86\$(ProjectName)\Release\` | `$(ProjectName)32` |
 | Debug Win32 | `..\bin\` | `build_temp\x86\$(ProjectName)\Debug\` | `$(ProjectName)32_d` |
+| Release ARM64 | `..\bin\` | `build_temp\ARM64\$(ProjectName)\Release\` | `$(ProjectName)` |
+| Debug ARM64 | `..\bin\` | `build_temp\ARM64\$(ProjectName)\Debug\` | `$(ProjectName)_d` |
+
+> ARM64 平台与 x64 共用 `bin\` 输出目录，目标名也不加额外后缀；如需区分，
+> 请自行复制产物或使用 `build/build.py --arch arm64` 的 `out/arm64/...` 目录。
 
 ---
 
@@ -468,11 +473,42 @@ BinCommonSettingsWebView2.props
 
 ### 5. Debug/Release 配置差异
 
-- 静态库名称不再带 `_d`，配置只由输出目录区分：`lib\<x64|x86>\Debug\` 与 `lib\<x64|x86>\Release\`
+- 静态库名称不再带 `_d`，配置只由输出目录区分：`lib\<x64|x86|arm64>\Debug\` 与 `lib\<x64|x86|arm64>\Release\`
 - Debug 模式下，可执行程序的目标名称仍会自动添加 `_d` 后缀（仅 exe，库不适用）
 - Debug 模式下会禁用 `libcmt.lib` 默认库
 - Skia 在 Debug/Release 下使用不同目录（`llvm.<arch>.debug` / `llvm.<arch>.release`）；
   SDL 与 libjpeg-turbo 只有一套库路径，不区分配置
+
+### 6. Windows ARM64 平台
+
+所有解决方案（`build/duilib.sln`、`build/duilib_no_cef.sln`、`build/examples.sln`、
+`build/examples_no_cef.sln`）及被引用的工程都包含 `Debug|ARM64` / `Release|ARM64`
+配置，可直接在 VS 的配置管理器中选 `ARM64`，或命令行构建：
+
+```bat
+msbuild build\duilib.sln /p:Configuration=Release /p:Platform=ARM64 /m
+msbuild build\examples.sln /p:Configuration=Release /p:Platform=ARM64 /m:2
+```
+
+说明：
+
+- 库输出目录由 `DuilibLibPlatform` 把 VS 的 `ARM64` 映射为 `arm64`，
+  与 CMake 构建系统（`out/arm64/...`、`lib/arm64/...`）落到同一目录；
+  manifest 使用 `msvc/manifest/duilib.arm64.manifest`。
+- 依赖的 arm64 预编译库：Skia（`skia/out/llvm.arm64.release|debug`）、
+  CEF（`libcef_win{,_109}/lib/arm64`）、WebView2（`build/native/arm64`）、
+  libjpeg-turbo（`libjpeg-turbo6-win-vc-arm64`）。
+- 仓库内 SDL3、libpag 只有 x64/x86 库，`SDLSettings.props` 与 `LibPagSettings.props`
+  在 ARM64 下强制 `SDLEnabled=0` / `LibPagEnabled=0`；需要时先用 `build/build.py`
+  构建 arm64 依赖后再调整这两个 props。
+- ARM64 无 WGL：`duilib\RenderSkia\SkGLWindowContext_Windows.cpp` 在
+  `Debug|ARM64` / `Release|ARM64` 下通过 `ExcludedFromBuild` 排除编译。
+- `libwebp.vcxproj` 已包含 NEON 源文件（`src\dsp\*_neon.c`）；这些文件在
+  非 NEON 平台由 `WEBP_DSP_INIT_STUB` 生成空实现，因此可以无条件列出。
+- 全量并行（`/m`）构建 23 个示例 + LTCG 静态库时容易触发 `C1060 编译器堆空间不足`，
+  建议示例解决方案使用 `/m:2`（或在 VS 中降低“最大并行项目生成数”）。
+- 已实测：4 个解决方案的 `Release|ARM64` / `Debug|ARM64` 均编译通过（CEF 版各 23 个
+  示例、`_no_cef` 版各 19 个示例），示例 exe 为 PE `AA64`、嵌入清单为 `ARM64`。
 
 ---
 

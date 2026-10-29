@@ -28,8 +28,12 @@
         <LibCefIncludeDir Condition="'$(LibCefEnabled)' == '0'"></LibCefIncludeDir>
         <LibCefIncludeDir Condition="'$(LibCefEnabled)' != '0'">$(SolutionDir)\..\duilib\third_party\libcef\$(LibCefSrcDir)</LibCefIncludeDir>
 
+        <!-- CEF 预编译包的目录名：Win32/x64 与 VS 平台名一致，ARM64 为小写 arm64 -->
+        <LibCefPlatform>$(Platform)</LibCefPlatform>
+        <LibCefPlatform Condition="'$(Platform)'=='ARM64'">arm64</LibCefPlatform>
+
         <LibCefLibDir Condition="'$(LibCefEnabled)' == '0'"></LibCefLibDir>
-        <LibCefLibDir Condition="'$(LibCefEnabled)' != '0'">$(SolutionDir)\..\duilib\third_party\libcef\$(LibCefSrcDir)\lib\$(Platform)</LibCefLibDir>
+        <LibCefLibDir Condition="'$(LibCefEnabled)' != '0'">$(SolutionDir)\..\duilib\third_party\libcef\$(LibCefSrcDir)\lib\$(LibCefPlatform)</LibCefLibDir>
 
         <!-- libCEF的库的lib名称 -->
         <LibCefLibs Condition="'$(LibCefEnabled)' == '0'"></LibCefLibs>

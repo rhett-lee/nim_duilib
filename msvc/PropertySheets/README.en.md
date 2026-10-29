@@ -182,6 +182,12 @@ BinCommonSettingsWebView2.props
 | Debug x64 | `..\bin\` | `build_temp\x64\$(ProjectName)\Debug\` | `$(ProjectName)_d` |
 | Release Win32 | `..\bin\` | `build_temp\x86\$(ProjectName)\Release\` | `$(ProjectName)32` |
 | Debug Win32 | `..\bin\` | `build_temp\x86\$(ProjectName)\Debug\` | `$(ProjectName)32_d` |
+| Release ARM64 | `..\bin\` | `build_temp\ARM64\$(ProjectName)\Release\` | `$(ProjectName)` |
+| Debug ARM64 | `..\bin\` | `build_temp\ARM64\$(ProjectName)\Debug\` | `$(ProjectName)_d` |
+
+> ARM64 shares the same `bin\` output directory and target names as x64. Copy the
+> artifacts if you need to keep the two architectures side by side, or use the
+> `out/arm64/...` directories produced by `build/build.py --arch arm64`.
 
 ---
 
@@ -478,11 +484,45 @@ If you need to add a new third-party library dependency, it is recommended to:
 ### 5. Debug/Release configuration differences
 
 - Static library names no longer carry `_d`; the configuration is distinguished only by the
-  output directory: `lib\<x64|x86>\Debug\` vs `lib\<x64|x86>\Release\`
+  output directory: `lib\<x64|x86|arm64>\Debug\` vs `lib\<x64|x86|arm64>\Release\`
 - In Debug mode, executable target names still get a `_d` suffix (executables only, not libraries)
 - In Debug mode, the `libcmt.lib` default library is disabled
 - Skia uses different directories for Debug/Release (`llvm.<arch>.debug` / `llvm.<arch>.release`);
   SDL and libjpeg-turbo each have a single library path regardless of configuration
+
+### 6. Windows ARM64 platform
+
+All solutions (`build/duilib.sln`, `build/duilib_no_cef.sln`, `build/examples.sln`,
+`build/examples_no_cef.sln`) and the projects they reference contain `Debug|ARM64` and
+`Release|ARM64` configurations. Select `ARM64` in the Visual Studio configuration manager,
+or build from the command line:
+
+```bat
+msbuild build\duilib.sln /p:Configuration=Release /p:Platform=ARM64 /m
+msbuild build\examples.sln /p:Configuration=Release /p:Platform=ARM64 /m:2
+```
+
+Notes:
+
+- `DuilibLibPlatform` maps the VS platform `ARM64` to `arm64`, so libraries land in the same
+  directory as the CMake build (`lib/arm64/...`, `out/arm64/...`); the manifest comes from
+  `msvc/manifest/duilib.arm64.manifest`.
+- Prebuilt arm64 dependencies: Skia (`skia/out/llvm.arm64.release|debug`),
+  CEF (`libcef_win{,_109}/lib/arm64`), WebView2 (`build/native/arm64`),
+  libjpeg-turbo (`libjpeg-turbo6-win-vc-arm64`).
+- The in-repo SDL3 and libpag packages only ship x64/x86 libraries, so
+  `SDLSettings.props` / `LibPagSettings.props` force `SDLEnabled=0` / `LibPagEnabled=0`
+  on ARM64. Build the arm64 dependencies with `build/build.py` first if you need them.
+- ARM64 has no WGL: `duilib\RenderSkia\SkGLWindowContext_Windows.cpp` is excluded from the
+  build for `Debug|ARM64` and `Release|ARM64` through `ExcludedFromBuild`.
+- `libwebp.vcxproj` lists the NEON sources (`src\dsp\*_neon.c`); on non-NEON platforms they
+  compile to `WEBP_DSP_INIT_STUB` stubs, so they can be listed unconditionally.
+- Building all 23 examples with `/m` plus an LTCG static library can trigger
+  `C1060: not enough space for compiler heap`; use `/m:2` for the examples solution
+  (or lower "maximum number of parallel project builds" in Visual Studio).
+- Verified: all four solutions build for both `Release|ARM64` and `Debug|ARM64`
+  (23 examples with CEF, 19 examples for the `_no_cef` variants); executables are PE
+  `AA64` with an `ARM64` embedded manifest.
 
 ---
 

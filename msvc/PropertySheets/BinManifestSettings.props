@@ -24,5 +24,15 @@
             <AdditionalManifestFiles>$(SolutionDir)\..\msvc\manifest\duilib.x64.manifest</AdditionalManifestFiles>
         </Manifest>
     </ItemDefinitionGroup>
+    <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+        <Manifest>
+            <AdditionalManifestFiles>$(SolutionDir)\..\msvc\manifest\duilib.arm64.manifest</AdditionalManifestFiles>
+        </Manifest>
+    </ItemDefinitionGroup>
+    <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+        <Manifest>
+            <AdditionalManifestFiles>$(SolutionDir)\..\msvc\manifest\duilib.arm64.manifest</AdditionalManifestFiles>
+        </Manifest>
+    </ItemDefinitionGroup>
     <ItemGroup />
 </Project>

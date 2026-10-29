@@ -96,6 +96,27 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `MSVC_RUNTIME=MD`. `pack.py` probes the DLL export table for SDL support
   (packaging a SDL-enabled DLL requires `--with-sdl`) and ships
   `bin/turbojpeg.dll` only when the DLL really imports it.
+- Windows ARM64 support in the Visual Studio projects: `build/duilib.sln`,
+  `duilib_no_cef.sln`, `examples.sln`, `examples_no_cef.sln` and the 30 projects
+  they reference now expose `Debug|ARM64` and `Release|ARM64`, selectable in the
+  VS configuration manager or via
+  `msbuild ... /p:Configuration=Release /p:Platform=ARM64`.
+  `CommonSettings.props` maps `ARM64` to `arm64`, so libraries land in the same
+  `lib/arm64/<Config>` directory as the CMake build; the manifest is
+  `duilib.arm64.manifest`; WebView2 points at `build/native/arm64`; SDL3 and
+  libpag have no arm64 binaries and are forced off on ARM64.
+  `libwebp.vcxproj` now lists the 7 NEON sources, and
+  `SkGLWindowContext_Windows.cpp` is `ExcludedFromBuild` on ARM64 (no WGL).
+  Use `/m:2` for the examples solution to avoid C1060 during LTCG linking.
+  Verified in both Release and Debug: all four solutions build (23 examples with
+  CEF, 19 examples for the `_no_cef` variants) and the 46 example executables
+  are PE `AA64`.
+- Fixed the redundant `libcef_dll_wrapper_109` solution dependency: building
+  `examples.sln` used to pull that wrapper into the link line, which failed with
+  `LNK2001` (for example `cef_v8value_create_string`) whenever
+  `LibCefVersion109=0` provided only the CEF 142 `libcef.lib`. The 109 wrapper
+  is still built as part of the solution and is linked explicitly through
+  `CEFSettings.props` when `LibCefVersion109=1`.
 
 ### Changed
 

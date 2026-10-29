@@ -176,6 +176,11 @@ BinCommonSettingsWebView2.props
 | Debug x64 | `..\bin\` | `build_temp\x64\$(ProjectName)\Debug\` | `$(ProjectName)_d` |
 | Release Win32 | `..\bin\` | `build_temp\x86\$(ProjectName)\Release\` | `$(ProjectName)32` |
 | Debug Win32 | `..\bin\` | `build_temp\x86\$(ProjectName)\Debug\` | `$(ProjectName)32_d` |
+| Release ARM64 | `..\bin\` | `build_temp\ARM64\$(ProjectName)\Release\` | `$(ProjectName)` |
+| Debug ARM64 | `..\bin\` | `build_temp\ARM64\$(ProjectName)\Debug\` | `$(ProjectName)_d` |
+
+> ARM64 与 x64 共用 `bin\` 输出目录和目标名；如需并存请自行复制产物，
+> 或使用 `build/build.py --arch arm64` 的 `out/arm64/...` 目录。
 
 ---
 
@@ -460,11 +465,33 @@ BinCommonSettingsWebView2.props
 
 ### 5. Debug/Release 配置差异
 
-- 静态库名称不再带 `_d`，配置只由输出目录区分：`lib\<x64|x86>\Debug\` 与 `lib\<x64|x86>\Release\`
+- 静态库名称不再带 `_d`，配置只由输出目录区分：`lib\<x64|x86|arm64>\Debug\` 与 `lib\<x64|x86|arm64>\Release\`
 - Debug 模式下，可执行程序的目标名称仍会自动添加 `_d` 后缀（仅 exe，库不适用）
 - Debug 模式下会禁用 `libcmt.lib` 默认库
 - Skia 在 Debug/Release 下使用不同目录（`llvm.<arch>.debug` / `llvm.<arch>.release`）；
   SDL 与 libjpeg-turbo 只有一套库路径，不区分配置
+
+### 6. Windows ARM64 平台
+
+所有解决方案及其引用的工程都包含 `Debug|ARM64` / `Release|ARM64` 配置，可在 VS 的
+配置管理器中选择 `ARM64`，或命令行构建：
+
+```bat
+msbuild build\duilib.sln /p:Configuration=Release /p:Platform=ARM64 /m
+msbuild build\examples.sln /p:Configuration=Release /p:Platform=ARM64 /m:2
+```
+
+说明：
+
+- `DuilibLibPlatform` 把 VS 的 `ARM64` 映射为 `arm64`，库输出与 CMake 构建落到
+  同一目录（`lib/arm64/...`）；manifest 使用 `msvc/manifest/duilib.arm64.manifest`。
+- arm64 预编译依赖：Skia、CEF、WebView2、libjpeg-turbo；仓库内 SDL3 与 libpag
+  只有 x64/x86 库，ARM64 下 `SDLSettings.props` / `LibPagSettings.props` 强制关闭。
+- ARM64 无 WGL：`SkGLWindowContext_Windows.cpp` 在 ARM64 配置下 `ExcludedFromBuild`。
+- `libwebp.vcxproj` 已列出 NEON 源文件（`src\dsp\*_neon.c`），非 NEON 平台自动生成空实现。
+- 示例解决方案并行度建议 `/m:2`，避免 LTCG 链接时出现 `C1060 编译器堆空间不足`。
+- 已验证 4 个解决方案的 `Release|ARM64` / `Debug|ARM64` 均可编译（CEF 版 23 个示例、
+  `_no_cef` 版 19 个示例），exe 为 PE `AA64`。
 
 ---
 

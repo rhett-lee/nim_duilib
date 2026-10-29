@@ -76,6 +76,22 @@
   `IS_DLL=1`、`MSVC_RUNTIME=MD`；`pack.py` 通过 DLL 导出表确认 SDL 能力
   （DLL 以 SDL 构建时打包必须加 `--with-sdl`），并按 DLL 的实际导入决定是否
   随包 `bin/turbojpeg.dll`。
+- Visual Studio 工程支持 Windows ARM64：`build/duilib.sln`、`duilib_no_cef.sln`、
+  `examples.sln`、`examples_no_cef.sln` 及被引用的 30 个工程新增
+  `Debug|ARM64` / `Release|ARM64`，可在 VS 配置管理器选择 ARM64，或用
+  `msbuild ... /p:Configuration=Release /p:Platform=ARM64` 构建。
+  `CommonSettings.props` 把 `ARM64` 映射为 `arm64`，与 CMake 产物共用
+  `lib/arm64/<Config>`；manifest 使用 `duilib.arm64.manifest`；WebView2 指向
+  `build/native/arm64`；SDL3 与 libpag 无 arm64 预编译库，ARM64 下强制关闭。
+  `libwebp.vcxproj` 补入 7 个 NEON 源，`SkGLWindowContext_Windows.cpp` 在 ARM64
+  下 `ExcludedFromBuild`（无 WGL）；示例解决方案建议 `/m:2` 以避免 LTCG 链接的
+  `C1060`。Release/Debug 均已实测：4 个解决方案全部编译通过（CEF 版各 23 个示例、
+  `_no_cef` 版各 19 个示例），46 个示例 exe 为 PE `AA64`。
+- 修正 VS 解决方案里 `libcef_dll_wrapper_109` 的冗余工程依赖：解决构建
+  `examples.sln` 时该封装库被自动加入链接、而 `LibCefVersion109=0` 只提供
+  CEF 142 的 `libcef.lib` 导致的 `LNK2001`（如 `cef_v8value_create_string`）。
+  109 封装库仍随解决方案一起编译，`LibCefVersion109=1` 时由
+  `CEFSettings.props` 显式链接。
 
 ### 变更
 

@@ -120,6 +120,7 @@ FilePath GlobalManager::GetResourceRootPath(bool bMacOsAppBundle)
 
 FilePath GlobalManager::GetResourceZipPath(bool bMacOsAppBundle)
 {
+    UNUSED_VARIABLE(bMacOsAppBundle); //该参数仅在macOS使用
     FilePath resourcePath;
 #ifdef DUILIB_BUILD_FOR_MACOS
     FilePath resourceRootPath = GlobalManager::GetResourceRootPath(bMacOsAppBundle);

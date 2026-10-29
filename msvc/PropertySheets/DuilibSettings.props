@@ -65,6 +65,14 @@
         <OutDir>$(SolutionDir)\..\bin\</OutDir>
         <TargetName>$(ProjectName)_d</TargetName>
     </PropertyGroup>
+    <PropertyGroup Condition="'$(EnableDuilibDll)' == '1' And '$(Configuration)|$(Platform)'=='Release|ARM64'">
+        <OutDir>$(SolutionDir)\..\bin\</OutDir>
+        <TargetName>$(ProjectName)</TargetName>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(EnableDuilibDll)' == '1' And '$(Configuration)|$(Platform)'=='Debug|ARM64'">
+        <OutDir>$(SolutionDir)\..\bin\</OutDir>
+        <TargetName>$(ProjectName)_d</TargetName>
+    </PropertyGroup>
     <PropertyGroup Condition="'$(EnableDuilibDll)' == '1' And '$(Configuration)|$(Platform)'=='Release|Win32'">
         <OutDir>$(SolutionDir)\..\bin\</OutDir>
         <TargetName>$(ProjectName)32</TargetName>

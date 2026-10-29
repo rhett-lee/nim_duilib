@@ -53,6 +53,22 @@ python3 build/build.py deps
 - `duilib_no_cef.sln` / `examples_no_cef.sln`: CEF disabled, faster builds.
 - Solutions keep using `build/build_temp` and `build/.vs`; the new entry uses
   `out/<arch>/<Config>` and the two do not interfere.
+- All solutions and projects now contain `Debug|ARM64` and `Release|ARM64`
+  configurations. Pick `ARM64` in the VS configuration manager, or build from
+  the command line:
+
+  ```bat
+  msbuild build\duilib.sln /p:Configuration=Release /p:Platform=ARM64 /m
+  msbuild build\examples.sln /p:Configuration=Release /p:Platform=ARM64 /m:2
+  ```
+
+  Libraries are written to `lib/arm64/<Configuration>`, the same directory the
+  CMake entry uses. arm64 Skia / CEF / WebView2 / libjpeg-turbo are required;
+  SDL3 and libpag have no arm64 binaries and are disabled for ARM64. Use
+  `/m:2` for the examples solution to avoid C1060 during LTCG linking.
+  All four solutions have been built and verified for both `Release|ARM64` and
+  `Debug|ARM64` (23 examples with CEF, 19 examples for the `_no_cef` variants);
+  the output is PE `AA64`.
 
 ## DLL mode (Windows MSVC)
 

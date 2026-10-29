@@ -5,9 +5,11 @@
 
     <!-- duilib项目，所有工程的输出公共配置（D-2：库输出到 lib/<arch>/<Configuration>/） -->
     <PropertyGroup>
-        <!-- 库目录中的平台名：VS 的 Win32 对应 CMake 的 x86，保证两套体系落到同一目录 -->
+        <!-- 库目录中的平台名：VS 的 Win32/ARM64 对应 CMake 的 x86/arm64，
+             保证两套体系落到同一目录（VS 平台名 ARM64 与目录名 arm64 大小写不同） -->
         <DuilibLibPlatform Condition="'$(Platform)'=='Win32'">x86</DuilibLibPlatform>
-        <DuilibLibPlatform Condition="'$(Platform)'!='Win32'">$(Platform)</DuilibLibPlatform>
+        <DuilibLibPlatform Condition="'$(Platform)'=='ARM64'">arm64</DuilibLibPlatform>
+        <DuilibLibPlatform Condition="'$(Platform)'!='Win32' And '$(Platform)'!='ARM64'">$(Platform)</DuilibLibPlatform>
         <OutDir>$(SolutionDir)\..\lib\$(DuilibLibPlatform)\$(Configuration)\</OutDir>
         <IntDir>$(SolutionDir)\build_temp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
     </PropertyGroup>

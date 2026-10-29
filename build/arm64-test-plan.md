@@ -77,6 +77,7 @@ Phase 0 不通过则先修脚本，不要继续。
 | W-A08 | 包测试（结构 + 编译校验） | `python3 build/sdk_package_test.py --package dist/<W-A04 产物> --out-dir ./temp` | P01–P08 通过；C01 用 VS ARM64 工具链编译运行（x64 主机可编译、不可运行，C10 会 SKIP）；C04 用 `-A x64` 构造相反架构并被拒绝 |
 | W-A09 | 启动示例（需 Windows arm64 环境） | 同上加 `--run-examples` | `[PASS] C10 examples.smoke`；无环境时记录为「待真机」 |
 | W-A10 | CEF 示例启动（需 Windows arm64 环境） | 解包 W-A06 / W-A07 产物后运行 `bin\cef.exe`、`bin\CefBrowser.exe` | 窗口正常、页面加载，进程不崩溃（运行时在 `bin/libcef_win[_109]/arm64/`） |
+| W-A11 | VS 解决方案手动构建（可选，等价于 CMake 入口） | `msbuild build\duilib.sln /p:Configuration=Release /p:Platform=ARM64 /m`；`msbuild build\examples.sln /p:Configuration=Release /p:Platform=ARM64 /m:2`（Debug 相同） | 7 个库与 23 个示例全部成功；exe 为 PE `AA64`、清单 `processorArchitecture="ARM64"`；无 CEF109 误链接（`LNK2001`） |
 
 W-A08 的 C01 若因工具链缺失 SKIP，说明 arm64 工具集未装好，回到 §2 检查；不要当作通过。
 
@@ -159,6 +160,7 @@ Windows arm64 构建 + 出包 + 包测试        1–2 h
 | W-A07 | 未测 | CEF109 arm64 未构建/出包（清单条目已就绪） |
 | W-A08 | 通过（C01 按架构 SKIP） | 三个包均 `PASS=14 FAIL=0 SKIP=5`；C01 已完成配置/编译/链接，因 x64 主机不能执行 ARM64 程序而 SKIP；C02 由 C01 覆盖，C06 缺 g++，C10 未开 `--run-examples`，C11 仅 macOS |
 | W-A09 / W-A10 / R-01 ~ R-04 | 待真机 | 需 Windows on ARM 设备；x64 主机运行 ARM64 程序报 `WinError 216` |
+| W-A11 | 通过（Release + Debug） | VS 解决方案 ARM64 配置：Release `lib/arm64/Release` 7 个库（`duilib.lib` 828.5 MB LTCG）+ 23 个示例；Debug `lib/arm64/Debug` 7 个库 + `bin/*_d.exe` 23 个；46 个 exe 均 PE `0xAA64`、清单 `processorArchitecture="ARM64"`；4 个 `.sln` 的 ARM64 配置经校验，其中 `duilib_no_cef.sln` / `examples_no_cef.sln` 的 Release/Debug 也实际编译通过（各 19 个示例）；构建问题（libwebp NEON、`libcef_dll_wrapper_109` 依赖、`C1060`）见 `build/test-matrix.md` §「2026-10-28 VS 工程 ARM64 支持」 |
 
 本轮修复（详见 `build/test-matrix.md` §7）：Skia ARM64 无 WGL（`Render_Skia_Windows`
 固定 CPU 绘制）、arm64 manifest 选错、`nim_duilibConfig.cmake` 交叉架构识别、

@@ -10,6 +10,7 @@
         <WebView2LibDir Condition="'$(WebView2Enabled)' == '0'"></WebView2LibDir>
         <WebView2LibDir Condition="'$(WebView2Enabled)' != '0' And '$(Platform)' == 'x64'">$(SolutionDir)\..\duilib\third_party\Microsoft.Web.WebView2\build\native\x64</WebView2LibDir>
         <WebView2LibDir Condition="'$(WebView2Enabled)' != '0' And '$(Platform)' == 'Win32'">$(SolutionDir)\..\duilib\third_party\Microsoft.Web.WebView2\build\native\x86</WebView2LibDir>
+        <WebView2LibDir Condition="'$(WebView2Enabled)' != '0' And '$(Platform)' == 'ARM64'">$(SolutionDir)\..\duilib\third_party\Microsoft.Web.WebView2\build\native\arm64</WebView2LibDir>
         
         <!-- WebView2库的lib名称 -->
         <WebView2Libs Condition="'$(WebView2Enabled)' != '0'">WebView2LoaderStatic.lib</WebView2Libs>

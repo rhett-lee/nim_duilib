@@ -54,6 +54,19 @@ python3 build/build.py deps
 - `duilib_no_cef.sln` / `examples_no_cef.sln`：不编译 CEF，可缩短编译时间。
 - 解决方案的中间目录仍是 `build/build_temp` 与 `build/.vs`，与新入口的
   `out/<arch>/<Config>` 互不影响。
+- 所有解决方案与工程均包含 `Debug|ARM64` / `Release|ARM64`，可在 VS 的配置管理器
+  选择 `ARM64`，或命令行构建：
+
+  ```bat
+  msbuild build\duilib.sln /p:Configuration=Release /p:Platform=ARM64 /m
+  msbuild build\examples.sln /p:Configuration=Release /p:Platform=ARM64 /m:2
+  ```
+
+  库输出到 `lib/arm64/<Configuration>`（与 CMake 侧同一目录）。需要 arm64 版
+  Skia / CEF / WebView2 / libjpeg-turbo；SDL3 与 libpag 无 arm64 预编译库，
+  ARM64 下自动关闭。示例解决方案建议 `/m:2`，避免 LTCG 链接时 C1060。
+  4 个解决方案的 `Release|ARM64` / `Debug|ARM64` 均已实测编译（CEF 版各 23 个示例，
+  `_no_cef` 版各 19 个示例），产物为 PE `AA64`。
 
 ## DLL 模式（Windows MSVC）
 

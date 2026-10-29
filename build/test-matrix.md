@@ -79,6 +79,7 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
 | W-B24 | MSVC | x86 / Release | `--dll` | 库 + 全部示例 | `... build --dll --config Release --arch x86` | 通过 | 802/802；`bin/duilib32.dll` 11,598,336 B、`lib/x86/Release/duilib.lib` 导入库；basic/ChildWindow 用 app-local CRT 启动正常 |
 | W-B25 | MSVC | x64 / Debug ↔ Release | 静态 ↔ DLL 模式切换 | 模式切换自动清理 | 依次 `build --config Debug`、`build --dll --config Debug`、再静态 | 通过 | 日志含 `dll → mt`，构建树重建、`bin/duilib_d.dll` 删除、`duilib_dll.flag` 同步为 OFF；307/307 得到 `lib/x64/Debug/duilib.lib`（256,775,712 B 静态库）。反向 `mt → dll` 见 W-B23 |
 | W-B26 | MSBuild | x64 / Release | `duilib_dll.flag` | duilib + 第三方 + wrapper | 先无 flag 构建 `build/duilib.sln`，再创建 flag 重建 | 通过 | 静态库 870,484,530 B；加 flag 后 6 个工程 `duilib_crt_mode.txt` 变为 `dll`，wrapper/109/第三方与 duilib 全部重编；无 LNK4098/LNK2038；`bin/duilib.dll` 17,366,016 B，导入 `turbojpeg.dll`、`MSVCP140.dll`、`libcef.dll`，导入库 4,349,026 B，`bin/turbojpeg.dll` 自动复制 |
+| W-B27 | MSBuild | arm64 / Release + Debug | VS 解决方案 ARM64 配置（4 个 `.sln` 及 30 个工程） | 库 + 23 个示例 | `msbuild build\duilib.sln /p:Configuration=Release /p:Platform=ARM64 /m`；`msbuild build\examples.sln /p:Configuration=Release /p:Platform=ARM64 /m:2`（Debug 相同） | 通过 | Release：`lib/arm64/Release` 7 个库（`duilib.lib` 828.5 MB，LTCG）、23 个示例全部链接；Debug：`lib/arm64/Debug` 7 个库、`bin/*_d.exe` 23 个；Release/Debug 共 46 个 exe 均 PE `0xAA64`、清单 `processorArchitecture="ARM64"`；4 个 `.sln` 的 ARM64 配置经 `ValidateSolutionConfiguration` 与映射检查（30/30、24/24、7/7、5/5）；`duilib_no_cef.sln` / `examples_no_cef.sln` 的 Release/Debug 也已实际编译通过，各 19 个示例 |
 
 构建矩阵执行要点：
 
@@ -368,7 +369,7 @@ Skia `llvm.x64.release`、SDL3 `main`、CEF 142/x64。
 | macOS 包测试（`sdk_package_test.py`） | 8 / 8 | 全部通过（含 Release/Debug 示例包的 `--run-examples`） |
 | macOS 脚本测试（`doctor`/`test`/`test_*`/`autotest`） | 7 项 | 全部通过（见 5.3） |
 | macOS 示例启动/运行验证（`--run-examples`） | 2 次 | 通过：Release、Debug 示例包均 `[PASS] C10 examples.smoke`（M-T07/M-T08） |
-| arm64（仅 Windows） | 6 / 8 | Release/Debug 构建（W-B18/W-B18b）、Release 无 CEF / CEF142 与 Debug CEF142 出包 + 包测试（W-P23/W-P24/W-P26）通过；DLL 模式、CEF109 出包、示例启动未测（缺 arm64 真机）；Linux/macOS/FreeBSD 的 arm64 不安排（无真机） |
+| arm64（仅 Windows） | 6 / 8 | Release/Debug 构建（W-B18/W-B18b）、VS 解决方案 ARM64 手动构建（W-B27，4 个 `.sln` 的 Release/Debug 均通过）、Release 无 CEF / CEF142 与 Debug CEF142 出包 + 包测试（W-P23/W-P24/W-P26）通过；DLL 模式、CEF109 出包、示例启动未测（缺 arm64 真机）；Linux/macOS/FreeBSD 的 arm64 不安排（无真机） |
 
 本轮验证过的代表性产物（中间包已清理，仅保留最终包）：
 
@@ -418,6 +419,15 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
 | Ninja 交叉编译 arm64 时 `nim_duilibConfig.cmake` 把消费者判成 x64，C01/C03/C05 配置阶段报「SDK 架构为 arm64，当前工程为 x64」 | 单配置生成器下 `CMAKE_SYSTEM_PROCESSOR` 仍是主机架构；新增 `CMAKE_CXX_COMPILER_ARCHITECTURE_ID MATCHES "ARM64"` 回退分支，重打包后 C03/C05 转 PASS、C01 配置与编译通过 |
 | x64 主机上 arm64 消费者运行失败（`OSError: [WinError 216]`），C01 被误判为 FAIL | 交叉编译产物无法在本机执行。`sdk_package_test.py` 新增 `_can_run_arch()`（x64 主机可经 WOW64 运行 x86，反之不可），配置/编译/链接通过后按架构 SKIP 并注明「运行验证需 arm64 环境」；新增 5 项单元测试 |
 | Linux 上 C01/C03 报「C++ 编译器不可用」「配置失败原因不含 …」，日志为 `error closing ...s: 设备上没有空间` | `/tmp` 是小容量 tmpfs 且已写满，gcc 临时汇编文件写不进去，被误判成包/工具链问题。`sdk_package_test.py` 现在把 `TMPDIR`/`TEMP`/`TMP` 指到 `--out-dir/<NN>/work/tmp`；启动时按包大小估算空间并打印 `[WARN]`；新增 4 项单元测试 |
+
+### 2026-10-28 VS 工程 ARM64 支持（已验证）
+
+| 问题 | 处理 | 验证 |
+| :--- | :--- | :--- |
+| VS 解决方案只有 Win32/x64，无法在 VS 配置管理器里选 ARM64 | `CommonSettings.props` 把 `ARM64` 映射为 `arm64`（`OutDir` 与 CMake 共用 `lib/arm64/<Config>`），`CEFSettings`/`WebView2Settings`/`BinManifestSettings` 增加 ARM64 分支，`BinOutSettings`/`DuilibSettings` 增加 ARM64 输出目录与 `_d` 名称，`SDLSettings`/`LibPagSettings` 在 ARM64 强制关闭（无预编译库）；30 个 `.vcxproj` 复制 x64 配置为 `Debug|ARM64`/`Release|ARM64`（`/machine:x64`→`/machine:arm64`），4 个 `.sln` 补平台与工程映射；`SkGLWindowContext_Windows.cpp` 在 ARM64 下 `ExcludedFromBuild`（无 WGL） | 4 个 `.sln` 的 Release/Debug ARM64 均通过 `ValidateSolutionConfiguration`，映射 30/30、24/24、7/7、5/5 无缺失；Release/Debug 各 23 个示例与 7 个库构建成功，46 个 exe 均 PE `0xAA64`、清单 `processorArchitecture="ARM64"`；`duilib_no_cef.sln` / `examples_no_cef.sln` 的 ARM64 Release/Debug 也实际编译通过（各 19 个示例） |
+| ARM64 链接 `duilib-webp.lib` 报 7 个 `*NEON` 符号 LNK2001（`VP8DspInitNEON`、`WebPInitUpsamplersNEON` 等） | libwebp 在 `_M_ARM64` 下定义 `WEBP_HAVE_NEON`，而 VCXPROJ 只列了 SSE/AVX 源；补入 `src\dsp\alpha_processing_neon.c`、`dec_neon.c`、`filters_neon.c`、`lossless_neon.c`、`rescaler_neon.c`、`upsampling_neon.c`、`yuv_neon.c`（非 NEON 平台由 `WEBP_DSP_INIT_STUB` 生成空实现，可无条件列出） | `examples.sln` ARM64 Release 不再出现该 LNK2001 |
+| `examples.sln` 链接 `cef.exe`/`CefBrowser.exe` 报 20 个 `cef_v8value_*`、`cef_create_context_shared` 等 LNK2001 | 解决方案把 `libcef_dll_wrapper_109` 声明为 `cef`/`duilib`/`CefBrowser` 的工程依赖，sln 构建会把依赖工程的输出注入链接行，且 109 封装库排在 142 之前被优先拉取；此时 `LibCefVersion109=0` 只提供 CEF 142 的 `libcef.lib`（已移除相关 C API）。移除 3 处（`examples.sln`）与 1 处（`duilib.sln`）冗余依赖；109 封装库仍随解决方案编译，`LibCefVersion109=1` 时由 `CEFSettings.props` 显式链接 | `cef.exe`、`CefBrowser.exe` 链接通过；`duilib.sln` ARM64 Release 增量构建 0 错误 |
+| 全并行 `/m` 构建示例并链接 LTCG 静态库时出现 `C1060 编译器堆空间不足` | 与平台无关的并行度/内存峰值问题（`duilib.lib` 828.5 MB，`/GL`）；文档建议示例解决方案用 `/m:2` 或在 VS 里降低“最大并行项目生成数” | `/m:2` 下 Release（`/GL`）与 Debug 的 23 个示例全部通过 |
 
 ### 2026-10-27 依赖版本一致性（Windows 已验证）
 
