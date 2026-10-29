@@ -486,7 +486,8 @@ msbuild build\examples.sln /p:Configuration=Release /p:Platform=ARM64 /m:2
 - `DuilibLibPlatform` 把 VS 的 `ARM64` 映射为 `arm64`，库输出与 CMake 构建落到
   同一目录（`lib/arm64/...`）；manifest 使用 `msvc/manifest/duilib.arm64.manifest`。
 - arm64 预编译依赖：Skia、CEF、WebView2、libjpeg-turbo；仓库内 SDL3 与 libpag
-  只有 x64/x86 库，ARM64 下 `SDLSettings.props` / `LibPagSettings.props` 强制关闭。
+  只有 x64/x86 库，ARM64 下 `SDLSettings.props` / `LibPagSettings.props` 强制关闭；
+  libpag 的 ARM64 支持未测、不跟进。
 - ARM64 无 WGL：`SkGLWindowContext_Windows.cpp` 在 ARM64 配置下 `ExcludedFromBuild`。
 - `libwebp.vcxproj` 已列出 NEON 源文件（`src\dsp\*_neon.c`），非 NEON 平台自动生成空实现。
 - 示例解决方案并行度建议 `/m:2`，避免 LTCG 链接时出现 `C1060 编译器堆空间不足`。

@@ -18,6 +18,7 @@ English | [简体中文](Summary.md)
 * [Directly Responding to Control Events in XML Files](XmlEvents.en.md)
 * [Theme Reference Document](Theme.en.md)
 * [CEF Control](CEF.en.md)
+* [SDK Guide: Installation, Upgrade, Migration and FAQ](Deployment.en.md)
 
 ## Brief Table of Main Classes in the Project
 For detailed interface descriptions of each class, please refer to the associated header file, which has detailed comments.    

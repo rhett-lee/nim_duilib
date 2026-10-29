@@ -64,7 +64,8 @@ python3 build/build.py deps
 
   Libraries are written to `lib/arm64/<Configuration>`, the same directory the
   CMake entry uses. arm64 Skia / CEF / WebView2 / libjpeg-turbo are required;
-  SDL3 and libpag have no arm64 binaries and are disabled for ARM64. Use
+  SDL3 and libpag have no arm64 binaries and are disabled for ARM64 (libpag on
+  ARM64 is untested and not followed up). Use
   `/m:2` for the examples solution to avoid C1060 during LTCG linking.
   All four solutions have been built and verified for both `Release|ARM64` and
   `Debug|ARM64` (23 examples with CEF, 19 examples for the `_no_cef` variants);
@@ -167,11 +168,11 @@ arm64 prebuilt library. All three platforms can ship CEF on arm64 (`windows/arm6
 archives exist for both CEF 142 and 109, with the import library taken from `lib/arm64` and
 the runtime from `bin/libcef_win[_109]/arm64`; Linux/macOS use the `linux/arm64` and
 `macos/arm64` archives). **This round validates Windows only** (macOS / Linux / FreeBSD have
-no real hardware and are out of scope). Windows arm64 has passing Release and Debug builds,
-plus three packages that were packed and package-tested (Release without CEF, Release with
-CEF 142, Debug with CEF 142), all artifacts being PE `0xAA64`; DLL mode, CEF109 and run
-verification are still pending (run verification needs Windows on ARM hardware). Steps
-and results are in the [arm64 test plan](arm64-test-plan.md).
+no real hardware and are out of scope; Windows on ARM run verification has no device and is
+untested, not followed up). Windows arm64 has passing Release and Debug builds, DLL mode,
+and four packages that were packed and package-tested (Release without CEF, Release with
+CEF 142, Release with CEF 109, Debug with CEF 142), all artifacts being PE `0xAA64`;
+steps and results are in the [arm64 test plan](arm64-test-plan.md).
 
 ### Downstream integration
 

@@ -333,7 +333,8 @@ Skia 也只会探测 `llvm.<arch>.<config>`；DLL 模式的 `bin/duilib*.dll` �
 
 排除名单集中在 `pack.py` 的 `DOC_EXCLUDE_FILES`，新增顶层文档默认随包。
 Windows x64 Debug 验证：文档 32 个（16 对中英文）；包内 32 篇文档的相对链接
-全部指向包内文件（0 断链），SHA256SUMS 校验一致。
+全部指向包内文件（0 断链），SHA256SUMS 校验一致。2026-10-29 新增
+`Deployment.md` / `Deployment.en.md` 后为 34 篇（17 对），链接转换规则不变。
 
 ### 4. Debug 库判定：后缀 + 目录名双条件
 

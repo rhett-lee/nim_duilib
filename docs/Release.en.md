@@ -972,3 +972,4 @@ be checked after the first package is produced.
 * [Quick Start](Getting-Started.en.md)
 * [Example Programs](Examples.en.md)
 * [CEF Control](CEF.en.md)
+* [SDK Guide: Installation, Upgrade, Migration and FAQ](Deployment.en.md)

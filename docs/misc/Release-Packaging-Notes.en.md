@@ -316,7 +316,9 @@ The "文档" (docs) section of `MANIFEST.txt` lists every packaged doc, and
 The exclusion list lives in `DOC_EXCLUDE_FILES` in `pack.py`; new top-level
 documents ship by default. Windows x64 Debug verification: 32 docs (16
 Chinese/English pairs); all relative links in the packaged docs resolve inside
-the package (0 broken links), and SHA256SUMS matches.
+the package (0 broken links), and SHA256SUMS matches. Adding `Deployment.md` /
+`Deployment.en.md` on 2026-10-29 brings it to 34 docs (17 pairs); the link
+rewriting rules are unchanged.
 
 ### 4. Debug library detection: suffix plus directory name
 

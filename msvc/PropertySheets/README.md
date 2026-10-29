@@ -499,8 +499,8 @@ msbuild build\examples.sln /p:Configuration=Release /p:Platform=ARM64 /m:2
   CEF（`libcef_win{,_109}/lib/arm64`）、WebView2（`build/native/arm64`）、
   libjpeg-turbo（`libjpeg-turbo6-win-vc-arm64`）。
 - 仓库内 SDL3、libpag 只有 x64/x86 库，`SDLSettings.props` 与 `LibPagSettings.props`
-  在 ARM64 下强制 `SDLEnabled=0` / `LibPagEnabled=0`；需要时先用 `build/build.py`
-  构建 arm64 依赖后再调整这两个 props。
+  在 ARM64 下强制 `SDLEnabled=0` / `LibPagEnabled=0`；libpag 的 ARM64 支持未测、
+  不跟进（不再列入待办）；SDL3 需要时先用 `build/build.py` 构建 arm64 依赖后调整。
 - ARM64 无 WGL：`duilib\RenderSkia\SkGLWindowContext_Windows.cpp` 在
   `Debug|ARM64` / `Release|ARM64` 下通过 `ExcludedFromBuild` 排除编译。
 - `libwebp.vcxproj` 已包含 NEON 源文件（`src\dsp\*_neon.c`）；这些文件在

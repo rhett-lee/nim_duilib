@@ -82,16 +82,31 @@
   `msbuild ... /p:Configuration=Release /p:Platform=ARM64` 构建。
   `CommonSettings.props` 把 `ARM64` 映射为 `arm64`，与 CMake 产物共用
   `lib/arm64/<Config>`；manifest 使用 `duilib.arm64.manifest`；WebView2 指向
-  `build/native/arm64`；SDL3 与 libpag 无 arm64 预编译库，ARM64 下强制关闭。
+  `build/native/arm64`；SDL3 与 libpag 无 arm64 预编译库，ARM64 下强制关闭
+  （libpag ARM64 未测、不跟进）。
   `libwebp.vcxproj` 补入 7 个 NEON 源，`SkGLWindowContext_Windows.cpp` 在 ARM64
   下 `ExcludedFromBuild`（无 WGL）；示例解决方案建议 `/m:2` 以避免 LTCG 链接的
   `C1060`。Release/Debug 均已实测：4 个解决方案全部编译通过（CEF 版各 23 个示例、
   `_no_cef` 版各 19 个示例），46 个示例 exe 为 PE `AA64`。
+- 补齐 Windows ARM64 DLL 模式与 CEF 109 验证：`build.py --arch arm64 --dll` 与
+  `--dll --config Debug` 生成 `bin/duilib.dll`（9.9 MB）/ `duilib_d.dll`（36 MB），
+  导入库 4.15 / 4.17 MB；创建 `duilib_dll.flag` 后 VS `duilib.sln` 的 Release/Debug
+  也产出 `duilib.dll`（17.3 MB）/ `duilib_d.dll`（27.3 MB），以上均为 PE `AA64`。
+  CEF109 包 `nim_duilib-1.0.2026.1023-win-arm64-cef109-examples.zip`（1131 条目 /
+  252.1 MB）通过 `--verify` 与 SDK 包测试（PASS=14 FAIL=0 SKIP=5）。
+  Windows on ARM 真机运行验证无设备，标记未测、不跟进。
 - 修正 VS 解决方案里 `libcef_dll_wrapper_109` 的冗余工程依赖：解决构建
   `examples.sln` 时该封装库被自动加入链接、而 `LibCefVersion109=0` 只提供
   CEF 142 的 `libcef.lib` 导致的 `LNK2001`（如 `cef_v8value_create_string`）。
   109 封装库仍随解决方案一起编译，`LibCefVersion109=1` 时由
   `CEFSettings.props` 显式链接。
+- 新增双语 SDK 使用说明 `docs/Deployment.md` / `Deployment.en.md`（并登记到
+  `docs/Summary*.md` 索引、随包收录）：包目录结构与包名含义、免安装解包与
+  `SHA256SUMS` 校验、VS（`nim_duilib.targets`）与 CMake（`find_package` +
+  `nim_duilib_copy_runtime`）接入、运行期文件清单（`resources/`、DLL、CEF 运行时
+  目录、MSVC/MinGW 运行库）、升级步骤、迁移表（源码树 → SDK、静态 → DLL、
+  CEF142 → CEF109、单配置 → Debug/Release、x64 → arm64）与 11 条常见问题；
+  包内自动生成的 `MANIFEST.txt` 仍是权威清单。
 
 ### 变更
 
@@ -425,6 +440,19 @@
   目录的原始路径做比较，而 `build.py` 的 deps root 会 `resolve()` 成真实路径；macOS 上
   `/var` 是 `/private/var` 的符号链接，两者不相等导致测试失败。断言改为按
   `Path.resolve()` 后的路径比较，Windows/Linux 结果不变。
+- 链接（libjpeg-turbo 3.2.x + duilib-zlib）：libjpeg-turbo 3.2 起，上游预编译的
+  `turbojpeg-static.lib` 内嵌 spng + zlib（用于 `tjLoadImage`/`tjSaveImage` 的 PNG
+  支持），链接 `turbojpeg.c.obj` 时会一并拉入内置的 `zutil.c.obj`；其内置 zlib 虽
+  已按 `Z_PREFIX` 改名，但 `zutil.c` 中的 `z_errmsg` 不在 `zconf.h` 的前缀列表内，
+  与本工程的 duilib-zlib 重复定义，静态链接时报 `LNK2005`（3.1.x 的内置库不含 zlib，
+  升级前不出现）。现在给 duilib-zlib 增加编译宏 `z_errmsg=duilib_z_errmsg`
+  （内部符号，不在 `zlib.h` 公开 API 中，改名不影响功能），CMake
+  （`duilib/third_party/zlib/CMakeLists.txt`）与 VS 工程
+  （`duilib/third_party/zlib/win32/zlib.vcxproj`）两套构建同步修改；最小工程同时链接
+  `duilib-zlib.lib` 与 `turbojpeg-static.lib` 验证通过。2026-10-29 又用 SDK 包测试的
+  C01 消费者用例复验（重新构建 `lib/x64/Release/duilib-zlib.lib`——旧库早于修复提交，
+  仍带原符号）：`PASS=15 FAIL=0 SKIP=4`；x86 与 arm64 的 `duilib-zlib.lib` 也已重新
+  构建，三个架构的符号表均为 `duilib_z_errmsg`、无裸 `z_errmsg`。
 
 ## [1.0.2026.1023] - 2026-10-23
 

@@ -859,3 +859,4 @@ macOS 首次打包后仍需核对库清单。
 * [快速上手](Getting-Started.md)
 * [示例程序](Examples.md)
 * [CEF 控件](CEF.md)
+* [SDK 使用说明（安装、升级、迁移与常见问题）](Deployment.md)

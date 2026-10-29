@@ -512,7 +512,8 @@ Notes:
   libjpeg-turbo (`libjpeg-turbo6-win-vc-arm64`).
 - The in-repo SDL3 and libpag packages only ship x64/x86 libraries, so
   `SDLSettings.props` / `LibPagSettings.props` force `SDLEnabled=0` / `LibPagEnabled=0`
-  on ARM64. Build the arm64 dependencies with `build/build.py` first if you need them.
+  on ARM64. libpag on ARM64 is untested and not followed up (no longer tracked).
+  Build the arm64 dependencies with `build/build.py` first if you need SDL3.
 - ARM64 has no WGL: `duilib\RenderSkia\SkGLWindowContext_Windows.cpp` is excluded from the
   build for `Debug|ARM64` and `Release|ARM64` through `ExcludedFromBuild`.
 - `libwebp.vcxproj` lists the NEON sources (`src\dsp\*_neon.c`); on non-NEON platforms they

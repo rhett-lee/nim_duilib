@@ -28,7 +28,7 @@
 | Visual Studio | 2022 17.14.37710.0（MSVC 14.44.35207：x64/x86 + ARM64 交叉工具 `Hostx64\arm64`；Windows SDK 10.0.26100.0 含 arm64 库） |
 | CMake / Ninja | CMake 4.3.0，Ninja（VS 自带） |
 | Python | 3.14.4 |
-| MSYS2 | `E:\msys64`（MINGW64、UCRT64、CLANG64；MINGW32 缺 gcc/make） |
+| MSYS2 | `E:\msys64`（MINGW64、UCRT64、CLANG64；MINGW32 缺 gcc/make，未测、不跟进） |
 | 独立 MinGW | `C:\mingw64\llvm-mingw-20250430-ucrt-x86_64` |
 | Skia | `6f559bafbed4c8323a899df4008aa073df4eccc6` |
 | SDL3 | `main`（`release-3.4.18` tag 源码编译报错，已不再作为默认） |
@@ -68,7 +68,7 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
 | W-B14 | MSYS2 gcc | x64 / Release | `--sdl` | 库 + 非 CEF 示例 | `... --config Release --sdl` | 通过 | 571/571，SDL3 按 gcc 重建（CRT stamp 触发） |
 | W-B15 | MSYS2 gcc | x64 / Release | `-DDUILIB_MINGW_STATIC=OFF` | 库 + 非 CEF 示例 | `... --config Release --cmake-arg=-DDUILIB_MINGW_STATIC=OFF --jobs 3` | 通过 | 571/571；objdump 确认示例依赖 libstdc++-6/libgcc_s_seh-1/libwinpthread-1.dll |
 | W-B16 | MSYS2 gcc/llvm | x64 / Debug | 默认 | 库 | `... --config Debug --target duilib --no-examples` | 通过 | MINGW64 本轮实测 285/285（libduilib.a 333.2 MB）；UCRT64/CLANG64 历史通过；示例未复测 |
-| W-B17 | MSYS2 MINGW32 | x86 / Release | 默认 | 库 + 示例 | — | 未测 | 环境缺 gcc/make，需先补齐工具链 |
+| W-B17 | MSYS2 MINGW32 | x86 / Release | 默认 | 库 + 示例 | — | 未测（不跟进） | 环境缺 gcc/make，且无跟进计划；编号保留备查 |
 | W-B18 | MSVC | arm64 / Release | 默认 | 库 + 示例 | `... --arch arm64` | 通过 | 25/25 目标、21 个示例链接完成；`bin/*.exe` 23 个与 `lib/arm64/Release` 6 个库均为 PE `0xAA64`；Skia 由 `deps` 自动构建 `skia/out/llvm.arm64.release`；ARM64 无 WGL，Skia 渲染走 CPU（见本节修复） |
 | W-B18b | MSVC | arm64 / Debug | 默认 | 库 + 示例 | `... --arch arm64 --config Debug` | 通过 | `deps` 自动构建 `skia/out/llvm.arm64.debug`（1078 目标，约 6 分钟）；802/802 目标、23 个示例链接完成；`bin/*.exe` 均为 `0xAA64`，嵌入清单为 `processorArchitecture="ARM64"`；`lib/arm64/Debug` 6 个库 409.4 MB（`duilib.lib` 254 MB） |
 | W-B19 | MSVC | x64 / Debug | `--dry-run` | 仅打印命令 | `... --config Debug --dry-run` | 通过 | 不执行配置/编译，不输出“编译完成” |
@@ -80,6 +80,8 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
 | W-B25 | MSVC | x64 / Debug ↔ Release | 静态 ↔ DLL 模式切换 | 模式切换自动清理 | 依次 `build --config Debug`、`build --dll --config Debug`、再静态 | 通过 | 日志含 `dll → mt`，构建树重建、`bin/duilib_d.dll` 删除、`duilib_dll.flag` 同步为 OFF；307/307 得到 `lib/x64/Debug/duilib.lib`（256,775,712 B 静态库）。反向 `mt → dll` 见 W-B23 |
 | W-B26 | MSBuild | x64 / Release | `duilib_dll.flag` | duilib + 第三方 + wrapper | 先无 flag 构建 `build/duilib.sln`，再创建 flag 重建 | 通过 | 静态库 870,484,530 B；加 flag 后 6 个工程 `duilib_crt_mode.txt` 变为 `dll`，wrapper/109/第三方与 duilib 全部重编；无 LNK4098/LNK2038；`bin/duilib.dll` 17,366,016 B，导入 `turbojpeg.dll`、`MSVCP140.dll`、`libcef.dll`，导入库 4,349,026 B，`bin/turbojpeg.dll` 自动复制 |
 | W-B27 | MSBuild | arm64 / Release + Debug | VS 解决方案 ARM64 配置（4 个 `.sln` 及 30 个工程） | 库 + 23 个示例 | `msbuild build\duilib.sln /p:Configuration=Release /p:Platform=ARM64 /m`；`msbuild build\examples.sln /p:Configuration=Release /p:Platform=ARM64 /m:2`（Debug 相同） | 通过 | Release：`lib/arm64/Release` 7 个库（`duilib.lib` 828.5 MB，LTCG）、23 个示例全部链接；Debug：`lib/arm64/Debug` 7 个库、`bin/*_d.exe` 23 个；Release/Debug 共 46 个 exe 均 PE `0xAA64`、清单 `processorArchitecture="ARM64"`；4 个 `.sln` 的 ARM64 配置经 `ValidateSolutionConfiguration` 与映射检查（30/30、24/24、7/7、5/5）；`duilib_no_cef.sln` / `examples_no_cef.sln` 的 Release/Debug 也已实际编译通过，各 19 个示例 |
+| W-B28 | MSVC | arm64 / Release + Debug | `--dll` | 库 + 全部示例 | `python build/build.py --arch arm64 --dll`（Debug 加 `--config Debug`） | 通过 | `deps` 自动构建 `llvm.arm64.release.md` / `debug.mdd`；`bin/duilib.dll` 9.9 MB、`duilib_d.dll` 36 MB 均为 PE `0xAA64`；导入库 4.15 / 4.17 MB；46 个 exe 全 `0xAA64` |
+| W-B29 | MSBuild | arm64 / Release + Debug | `duilib_dll.flag` | duilib + 第三方 + wrapper | 创建 `msvc/PropertySheets/duilib_dll.flag` 后 `msbuild build\duilib.sln /p:Configuration=Release /p:Platform=ARM64 /m:2`（Debug 同） | 通过 | Release `bin/duilib.dll` 17.3 MB（LTCG）、Debug `bin/duilib_d.dll` 27.3 MB，均为 PE `0xAA64`；导入库 `lib/arm64/<Config>/duilib.lib` 4.15 / 4.17 MB；Debug 首次因 E: 盘写满报 `C2471`/`FTK1005`，清理中间产物与 PDB 后重跑 0 error；flag 已删除 |
 
 构建矩阵执行要点：
 
@@ -143,7 +145,7 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
 | W-P22 | MSBuild DLL（动态 turbojpeg，无 SDL） | MSBuild 构建后 `pack.py --config Release`（不加 `--with-sdl`） | 1099 / 200.2 MB | 通过 | 包名 `win-x64-cef-dll`；`JPEG=1`、`SDL3=0`；含 `bin/duilib.dll` + `bin/turbojpeg.dll`，无 `turbojpeg-static.lib`；`--verify` 与 SDK 测试（PASS=15 FAIL=0 SKIP=4）通过；修复 P04/C02 对 DLL 包 `HAS_JPEG` 的误判 |
 | W-P23 | arm64 Release + 示例（无 CEF） | `pack.py --arch arm64 --with-examples` | 760 / 109.0 MB | 通过 | `--verify` 760 条目全匹配；SDK 测试 PASS=14 FAIL=0 SKIP=5（C01 配置/编译/链接通过，因本机 x64 无法运行 arm64 程序而 SKIP） |
 | W-P24 | arm64 Release + 示例 + CEF 142 | `pack.py --arch arm64 --with-examples --with-cef` | 1314 / 311.7 MB | 通过 | CEF 开发文件 288 项 + 运行时 238 项；包内 `bin/libcef_win/arm64/libcef.dll` 为 PE `0xAA64`，三份 manifest 齐全；`--verify` 1314 条目全匹配；SDK 测试 PASS=14 FAIL=0 SKIP=5 |
-| W-P25 | arm64 Release + 示例 + CEF 109 | `pack.py --arch arm64 --with-examples --with-cef --cef-version 109` | — | 未测 | 109 的 `windows/arm64` 归档已补进 `third_party_versions.json`，待 arm64 CEF109 构建后验证 |
+| W-P25 | arm64 Release + 示例 + CEF 109 | `pack.py --arch arm64 --with-examples --with-cef --cef-version 109` | 1131 / 252.1 MB | 通过 | 包内 `bin/libcef_win_109/arm64/libcef.dll` 为 `0xAA64`（165.5 MB）；开发库仅 `lib/libcef_dll_wrapper_109.lib`（119.2 MB），无 142 混入；`--verify` 1131 条目全匹配；SDK 测试 PASS=14 FAIL=0 SKIP=5（C01 按架构 SKIP）；WebView2 无 arm64 loader，按预期跳过 |
 | W-P26 | arm64 Debug + 示例 + CEF 142 | `pack.py --arch arm64 --config Debug --with-examples --with-cef` | 1314 / 394.5 MB | 通过 | Skia 目录 `llvm.arm64.debug`；CEF 288 + 运行时 238；`--verify` 1314 条目全匹配；SDK 测试 PASS=14 FAIL=0 SKIP=5（C01 按架构 SKIP）；WebView2 无 arm64 loader，按预期跳过 |
 
 打包专项说明：
@@ -250,9 +252,9 @@ FreeBSD 复用 Linux/X11 分支；不支持 CEF，`--with-cef` 直接报错。
 | 编号 | 架构/配置 | 关键开关 | 命令示例 | 状态 | 备注 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | F-B01 | x64 / Release | 默认 | `python3 build/build.py --config Release` | 历史通过 | 构建 + 出包 |
-| F-B02 | x64 / Debug | 默认 | `--config Debug` | 未测 | |
+| F-B02 | x64 / Debug | 默认 | `--config Debug` | 未测 | 本机无 FreeBSD 环境，暂无法执行 |
 | F-B03 | x64 / Release | `--with-cef` | `pack --with-cef` | 历史通过（负向） | 预期报错，CEF 不支持 |
-| F-B04 | x64 / Release | 运行验证 | 解包运行示例 | 未测 | |
+| F-B04 | x64 / Release | 运行验证 | 解包运行示例 | 未测 | 本机无 FreeBSD 环境，暂无法执行 |
 
 ## 5. macOS 构建与打包矩阵
 
@@ -369,7 +371,7 @@ Skia `llvm.x64.release`、SDL3 `main`、CEF 142/x64。
 | macOS 包测试（`sdk_package_test.py`） | 8 / 8 | 全部通过（含 Release/Debug 示例包的 `--run-examples`） |
 | macOS 脚本测试（`doctor`/`test`/`test_*`/`autotest`） | 7 项 | 全部通过（见 5.3） |
 | macOS 示例启动/运行验证（`--run-examples`） | 2 次 | 通过：Release、Debug 示例包均 `[PASS] C10 examples.smoke`（M-T07/M-T08） |
-| arm64（仅 Windows） | 6 / 8 | Release/Debug 构建（W-B18/W-B18b）、VS 解决方案 ARM64 手动构建（W-B27，4 个 `.sln` 的 Release/Debug 均通过）、Release 无 CEF / CEF142 与 Debug CEF142 出包 + 包测试（W-P23/W-P24/W-P26）通过；DLL 模式、CEF109 出包、示例启动未测（缺 arm64 真机）；Linux/macOS/FreeBSD 的 arm64 不安排（无真机） |
+| arm64（仅 Windows） | 8 / 8 | Release/Debug 构建（W-B18/W-B18b）、DLL 模式（W-B28/W-B29）、VS 解决方案 ARM64（W-B27）、Release 无 CEF / CEF142 / CEF109 与 Debug CEF142 出包 + 包测试（W-P23/W-P24/W-P25/W-P26）均通过；示例启动未测（不跟进：无 Windows on ARM 设备）；Linux/macOS/FreeBSD 的 arm64 不安排（无真机） |
 
 本轮验证过的代表性产物（中间包已清理，仅保留最终包）：
 
@@ -429,6 +431,12 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
 | `examples.sln` 链接 `cef.exe`/`CefBrowser.exe` 报 20 个 `cef_v8value_*`、`cef_create_context_shared` 等 LNK2001 | 解决方案把 `libcef_dll_wrapper_109` 声明为 `cef`/`duilib`/`CefBrowser` 的工程依赖，sln 构建会把依赖工程的输出注入链接行，且 109 封装库排在 142 之前被优先拉取；此时 `LibCefVersion109=0` 只提供 CEF 142 的 `libcef.lib`（已移除相关 C API）。移除 3 处（`examples.sln`）与 1 处（`duilib.sln`）冗余依赖；109 封装库仍随解决方案编译，`LibCefVersion109=1` 时由 `CEFSettings.props` 显式链接 | `cef.exe`、`CefBrowser.exe` 链接通过；`duilib.sln` ARM64 Release 增量构建 0 错误 |
 | 全并行 `/m` 构建示例并链接 LTCG 静态库时出现 `C1060 编译器堆空间不足` | 与平台无关的并行度/内存峰值问题（`duilib.lib` 828.5 MB，`/GL`）；文档建议示例解决方案用 `/m:2` 或在 VS 里降低“最大并行项目生成数” | `/m:2` 下 Release（`/GL`）与 Debug 的 23 个示例全部通过 |
 
+### 2026-10-29 libjpeg-turbo 3.2.x 与 duilib-zlib 的 `z_errmsg` 冲突（Windows 已验证）
+
+| 问题 | 处理 | 验证 |
+| :--- | :--- | :--- |
+| 静态链接 `turbojpeg-static.lib` 时报 `LNK2005`：`z_errmsg` 在 `zutil.obj`（libjpeg-turbo 内置 zlib）与 `zutil.obj`（duilib-zlib）重复定义 | libjpeg-turbo 3.2 起上游预编译库内嵌 spng + zlib（`tjLoadImage`/`tjSaveImage` 的 PNG 支持），链接 `turbojpeg.c.obj` 会一并拉入内置 `zutil.c.obj`；其内置 zlib 虽按 `Z_PREFIX` 改名，但 `z_errmsg` 不在 `zconf.h` 的前缀列表内，仍以原名导出。为 duilib-zlib 增加编译宏 `z_errmsg=duilib_z_errmsg`（内部符号，不在 `zlib.h` 公开 API 中），CMake 与 VS 工程两套构建同步修改 | Debug x64 重编 duilib-zlib 后符号表为 `duilib_z_errmsg`；最小工程同时链接 `duilib-zlib.lib` 与 `turbojpeg-static.lib`，修复前可复现 `LNK2005`、修复后链接通过；`build.py test` 不受影响。2026-10-29 复验：`lib/x64/Release/duilib-zlib.lib` 是修复提交（09:22）之前构建的旧库，出包后 SDK 测试 C01 仍报 `LNK2005`；用 `build.py build --config Release --target duilib-zlib` 重编后重新出包，`pack.py --verify` 1100 条目 SHA 全匹配、`sdk_package_test.py` `PASS=15 FAIL=0 SKIP=4`（C01 由 FAIL 转 PASS）。x86 与 arm64 的 `duilib-zlib.lib` 同日重编，三架构符号表均为 `duilib_z_errmsg`、无裸 `z_errmsg` |
+
 ### 2026-10-27 依赖版本一致性（Windows 已验证）
 
 | 问题 | 处理 | 验证 |
@@ -447,38 +455,45 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
    `dist/` 中只保留本轮通过校验的新 DLL 包（W-P18 ~ W-P21、W-P22）。
 3. Linux x64 已完成 Release/Debug 构建、6 个出包、8 次包测试（含下游工程接入 C01 与
    `--run-examples` 的 C10）与全部脚本测试（2026-10-28 真机复测）；clang 工具链已验证
-   Release 构建（未出包）；arm64 不安排（无真机）。FreeBSD 仍只验证过 Release 构建与打包。
+   Release 构建（未出包）；arm64 不安排（无真机）。FreeBSD 只验证过 Release 构建与打包，
+   Debug 构建与解包后示例运行（F-B02/F-B04）当前无 FreeBSD 环境，标记未测、不跟进。
 4. macOS x64 的 Release/Debug 构建、`basic.app`（`Info.plist` 保留、切换配置后首次启动
    正常、只改资源的增量同步）、6 个出包、8 次包测试（含两次 `--run-examples`）与全部脚本
    测试均已通过（2026-10-28 真机复测）；arm64 不安排（无 arm64 真机）。
 5. arm64 本轮只测 Windows（2026-10-28 决策：macOS/Linux/FreeBSD 均无真机）。Windows 已
-   完成 Release/Debug 构建（W-B18/W-B18b）、Release 无 CEF / CEF142 与 Debug CEF142 出包
-   与包测试（W-P23/W-P24/W-P26），Skia 由 `deps` 自动构建 `skia/out/llvm.arm64.release`
-   与 `llvm.arm64.debug`。仍缺：
-   DLL 模式、CEF109 出包、示例启动与运行验证（需 Windows on ARM 设备；
-   x64 主机无法运行 ARM64 程序，C01 因此按架构 SKIP）。ARM64 没有 WGL，Skia 恒走 CPU
-   绘制；步骤与剩余项见 `build/arm64-test-plan.md`。
+   完成 Release/Debug 构建（W-B18/W-B18b）、VS 解决方案 ARM64（W-B27）、Release 无 CEF /
+   CEF142 与 Debug CEF142 出包与包测试（W-P23/W-P24/W-P26）。DLL 模式（W-B28/W-B29）
+   与 CEF109 出包（W-A07/W-P25）也已补齐。Windows on ARM 真机运行验证不具备条件
+   （无设备），标记未测、不跟进；x64 主机运行 ARM64 程序报 `WinError 216`，C01 因此
+   按架构 SKIP。ARM64 没有 WGL，Skia 恒走 CPU 绘制；步骤与剩余项见
+   `build/arm64-test-plan.md`。
 6. `bin/` 与 `lib/<arch>/<Config>` 被多架构/多工具链共用，切换后必须清理，否则打包
    会因 PE 架构或混合库校验失败（这是预期保护，不是缺陷）。
 7. MinGW 默认并行度在内存较小的机器上可能 OOM，回归时优先 `--jobs 2`/`--jobs 3`。
-8. Unix 的 SDL3 stamp 不再含配置分量（修复前切换 Debug/Release 会无谓重建 SDL3）；
-   需在 Linux/macOS 真机验证：先 Release 后 Debug 各跑一次 `build.py deps`，第二次
-   不应重新编译 SDL3。
-9. Unix 的 Skia 静态库改为绝对路径链接（与 Windows 一致）；需在 Linux/macOS 真机
-   验证：重新编译 Skia 后 `ninja` 能触发示例程序重新链接，且链接命令不再依赖
-   `link_directories` 的搜索顺序。
-10. `_duilib_cef_tracked_dir` 已按平台返回跟踪目录（修复前 Linux/macOS 错对
-    `libcef_win` 的跟踪头）；需在 Linux/macOS 真机验证一次 `build.py deps` 的 CEF
-    下载与迁移采纳路径。
-11. SDL3 源码 ref 对齐与源码提交 stamp 仅在 Windows 验证（`main` ↔
-    `release-3.4.18` 双向切换并重建，清单默认已改为 `main`）；需在
-    Linux/macOS/FreeBSD 真机验证：本地 `SDL/` 不在清单分支时能离线切换，
-    切换后 `.duilib-sdl` 记录新提交并触发一次重建，二次运行直接复用。
-12. `skia_compile` 补丁归档刷新（旧归档恢复 + `git pull` + 补丁指纹触发重建）仅在
-    Windows 验证；需在 Unix 真机验证 `git status` 少文件路径在子目录下的行为一致，
-    以及本地归档缺失时 `deps` 仍能从仓库恢复而不联网。
-13. Skia tag/branch ref 对齐在临时仓库中隔离验证；需在真实 `skia/` 工作区验证
-    `--skia-ref` 选 branch 时不会误 fetch 或切到 detached HEAD。
+8. Unix 台账第 8～13 条（2026-10-29 复核）：**代码修复均已就位，运行期验证缺少 Unix 环境
+   （未测、不跟进，不再列入待办）**。逐条结论：
+   - 第 8 条 SDL3 stamp 去掉配置分量：已确认 `cmake/duilib_deps_run.cmake`
+     `_duilib_sdl_stamp_value()` 仅 Windows 追加 `${DUILIB_CONFIG}`，Unix 分支不带配置；
+     Unix 的 SDL3 固定按 Release 构建共享库，产物与 duilib 的 Debug/Release 无关。
+   - 第 9 条 Skia 绝对路径链接：已确认 `cmake/duilib_common.cmake` 在库目录不含生成器
+     表达式时（含 Unix 单配置）调用 `_duilib_resolve_static_libs()`，把
+     `svg/skshaper/skottie/sksg/jsonreader/skia` 解析为绝对路径，Ninja 因此把库文件
+     记为链接依赖；多配置生成器下仍保留库名交给链接器解析。
+   - 第 10 条 CEF 跟踪目录：已确认 `cmake/duilib_cef.cmake` 的 `_duilib_cef_tracked_dir()`
+     按平台返回（Windows 为 `libcef_win[_109]`，Unix 为 `libcef_linux`）。
+   - 第 11 条 SDL ref 对齐：已确认 `_duilib_ensure_git_ref()` 在构建前把本地仓库切到清单
+     ref（本地已有分支/远端跟踪分支时不联网），stamp 含源码提交，切换后必然重建一次。
+   - 第 12 条补丁归档刷新：已确认 `_duilib_skia_patch_stale/restore/refresh` 先按
+     `git status --porcelain -- <zip>` 恢复被替换的归档，再 `git pull --ff-only`
+     （`--offline` 只做恢复，拉取失败仅告警）。
+   - 第 13 条 `--skia-ref` 分支：已确认 `build.py doctor` 的 `_check_source_ref()` 只读
+     `rev-parse` 做状态报告，不 fetch、不 checkout；实际切换只在 `deps`/构建阶段由
+     `_duilib_ensure_git_ref()` 完成，不会留在 detached HEAD。
+   说明：2026-10-28 的 Linux/macOS 真机复测跑过 Release/Debug 双配置构建与出包
+   （第 8/9 条的运行场景已被覆盖），但当时没有单独记录「第二次 `deps` 不重建 SDL3」
+   「改 Skia 后示例重新链接」这两个观测点；Windows 侧对应逻辑（补丁归档恢复、ref 切换、
+   stamp 复用）已在 §7 的回归中实测。本轮起不再把这几条列入待办，后续有 Unix 环境时
+   可按上述命令顺带复测。
 
 ## 8. 回归执行顺序建议
 

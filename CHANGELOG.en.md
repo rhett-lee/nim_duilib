@@ -104,19 +104,39 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `CommonSettings.props` maps `ARM64` to `arm64`, so libraries land in the same
   `lib/arm64/<Config>` directory as the CMake build; the manifest is
   `duilib.arm64.manifest`; WebView2 points at `build/native/arm64`; SDL3 and
-  libpag have no arm64 binaries and are forced off on ARM64.
+  libpag have no arm64 binaries and are forced off on ARM64 (libpag on ARM64 is
+  untested and not followed up).
   `libwebp.vcxproj` now lists the 7 NEON sources, and
   `SkGLWindowContext_Windows.cpp` is `ExcludedFromBuild` on ARM64 (no WGL).
   Use `/m:2` for the examples solution to avoid C1060 during LTCG linking.
   Verified in both Release and Debug: all four solutions build (23 examples with
   CEF, 19 examples for the `_no_cef` variants) and the 46 example executables
   are PE `AA64`.
+- Completed the Windows ARM64 DLL mode and CEF 109 verification:
+  `build.py --arch arm64 --dll` and `--dll --config Debug` produce
+  `bin/duilib.dll` (9.9 MB) / `duilib_d.dll` (36 MB) with import libraries of
+  4.15 / 4.17 MB; after creating `duilib_dll.flag`, the VS `duilib.sln` Release
+  and Debug builds also emit `duilib.dll` (17.3 MB) / `duilib_d.dll` (27.3 MB).
+  All of these are PE `AA64`. The CEF 109 package
+  `nim_duilib-1.0.2026.1023-win-arm64-cef109-examples.zip` (1131 entries /
+  252.1 MB) passes `--verify` and the SDK package tests
+  (PASS=14 FAIL=0 SKIP=5). Windows on ARM run-time verification has no
+  available device, so it is marked untested and not followed up.
 - Fixed the redundant `libcef_dll_wrapper_109` solution dependency: building
   `examples.sln` used to pull that wrapper into the link line, which failed with
   `LNK2001` (for example `cef_v8value_create_string`) whenever
   `LibCefVersion109=0` provided only the CEF 142 `libcef.lib`. The 109 wrapper
   is still built as part of the solution and is linked explicitly through
   `CEFSettings.props` when `LibCefVersion109=1`.
+- Added a bilingual SDK guide `docs/Deployment.md` / `Deployment.en.md` (also
+  indexed from `docs/Summary*.md` and shipped with the packages): package layout
+  and name segments, installation-free unpacking and `SHA256SUMS` verification,
+  Visual Studio (`nim_duilib.targets`) and CMake (`find_package` +
+  `nim_duilib_copy_runtime`) integration, runtime file checklist (`resources/`,
+  DLLs, CEF runtime directory, MSVC/MinGW runtimes), upgrade steps, a migration
+  table (source tree → SDK, static → DLL, CEF142 → CEF109, single configuration →
+  Debug/Release, x64 → arm64) and 11 FAQ entries. The generated `MANIFEST.txt`
+  inside each package remains the authoritative list.
 
 ### Changed
 
@@ -541,6 +561,24 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   to the real path; on macOS `/var` is a symlink to `/private/var`, so the strings
   differed and the test failed. The assertion now compares `Path.resolve()`d paths;
   Windows/Linux results are unchanged.
+- Linking (libjpeg-turbo 3.2.x + duilib-zlib): since libjpeg-turbo 3.2, the upstream
+  prebuilt `turbojpeg-static.lib` embeds spng + zlib (for PNG support in
+  `tjLoadImage`/`tjSaveImage`), so linking `turbojpeg.c.obj` also drags in the bundled
+  `zutil.c.obj`. Its embedded zlib is renamed with `Z_PREFIX`, but `z_errmsg` in
+  `zutil.c` is not in the `zconf.h` prefix list and keeps its original name, colliding
+  with this project's duilib-zlib and producing `LNK2005` at static link time (3.1.x
+  did not bundle zlib, so the problem did not exist before the upgrade). duilib-zlib
+  now compiles with `z_errmsg=duilib_z_errmsg` (an internal symbol that is only used
+  by `zutil.h` and is not part of the public `zlib.h` API, so the rename does not
+  change behaviour); both builds are updated, CMake
+  (`duilib/third_party/zlib/CMakeLists.txt`) and Visual Studio
+  (`duilib/third_party/zlib/win32/zlib.vcxproj`). A minimal project linking both
+  `duilib-zlib.lib` and `turbojpeg-static.lib` now links successfully.
+  On 2026-10-29 the SDK test suite's C01 consumer scenario re-verified the fix
+  after rebuilding `lib/x64/Release/duilib-zlib.lib` (the old archive predated
+  the fix commit and still carried the original symbol): `PASS=15 FAIL=0 SKIP=4`.
+  The x86 and arm64 `duilib-zlib.lib` archives were rebuilt as well; all three
+  Windows architectures now export `duilib_z_errmsg` and no bare `z_errmsg`.
 
 ## [1.0.2026.1023] - 2026-10-23
 

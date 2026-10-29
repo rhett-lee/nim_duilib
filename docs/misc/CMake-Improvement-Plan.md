@@ -93,6 +93,7 @@
 - **已确认决策 D-6（2026-10-21）**：**CMake 与 VS 解决方案长期并存**（保留 VS 是因为大量 Windows 开发者习惯 VS、不习惯 CMake）。CM-22 顶层聚合只覆盖 CMake 入口，不替代 VS 工程；两套体系在产物命名（D-1）与 Debug 边界（D-3）上保持一致。
 - **已确认决策 D-2（2026-10-21）**：布局采用**方案 B（CMake 风格）**——库输出统一为 `lib/<arch>/<Configuration>/`（Windows，arch 为 x64/x86）与 `lib/<Configuration>/`（Linux/macOS/FreeBSD），**文件名不再带 `_d`**；VS 改 `CommonSettings.props` 的 `OutDir` 并移除 `TargetName` 的 `_d`；**exe 保持现状**（VS `bin\` + `_d`）。
 - **已确认决策 D-7（2026-10-21）**：pack 采用**方案 C**——按 D-2 的配置目录取库、默认 Release，删除双套白名单、`_d` 判定与目录优先级猜测，并修正 `pack.py` 中写反的注释。
+- **已确认决策 D-8（2026-10-29）**：**不为 CM-22 增加 `install()`/`export()`**。SDK 包的接入层由 `build/pack.py` 按 `packaging/` 模板渲染（`lib/cmake/nim_duilib/*.cmake`、`msvc/nim_duilib.props` / `.targets`），包布局与 `--verify` 体检均已固化；再引入 CMake 安装规则会形成第二套安装语义，与打包流程重复维护。
 
 **实施方案（已定；P1~P5 全部完成，2026-10-21）**
 
@@ -364,9 +365,9 @@
   4. 因此本项本轮完成「定制点清单 + 升级说明」的文档化，命名统一的代码改动留待 CM-5。**2026-10-21 已确定（D-1）**：以 `duilib-*` 为统一前缀，VS 侧 4 个库同步改名（清单见盘点文档 5.2）；**D-5 已确定**：`libcef_dll_wrapper` 不纳入前缀、保持现状。
 - **工作量**：中　**依赖**：CM-2、CM-5
 
-### CM-22 顶层 `CMakeLists.txt` 聚合（构建体系结构）
+### CM-22 顶层 `CMakeLists.txt` 聚合（构建体系结构）✅ 已完成（2026-10-29，install/export 按决策不做）
 
-- **位置**：仓库根（当前**没有**顶层 CMakeLists）
+- **位置**：仓库根（2026-10-29 已落地：`CMakeLists.txt` + `cmake/duilib_root_options.cmake`）
 - **问题**：每个第三方库、每个示例都要单独 `cmake -S ... -B ...`，依赖顺序与清单硬编码在 `build/msvc_build.bat`、`build/linux_build.sh`、`build/macos_build.sh`、`build/freebsd_build.sh` 里；没有统一的 `add_subdirectory` 依赖图，也没有 `install()`/`export()` 规则（产物全靠 `CMAKE_*_OUTPUT_DIRECTORY` 写进 `lib/`，与 [pack.py](../../build/pack.py) 只能靠目录约定耦合）。
 - **动作（需先决策范围）**：
   1. 增加顶层 `CMakeLists.txt`：`option(DUILIB_BUILD_LIBS/EXAMPLES/TESTS)` + `add_subdirectory`，让 `cmake -S . -B build` 一把配置；
@@ -374,6 +375,25 @@
   3. 各平台 `*_build.sh` 改为薄封装（保持命令行兼容）。
 - **验收**：`cmake -S . -B <dir>` 能配置出全部目标；`cmake --build <dir>` 按依赖顺序完成；现有 4 个构建脚本行为不变或等价。
 - **工作量**：中 ~ 高　**依赖**：建议在 CM-21 之后；需先确认是否保留"逐库单独配置"的用法
+- **实施（2026-10-29）**：顶层 `CMakeLists.txt` 已落地，动作 1、3 完成，动作 2 按决策不做。
+  1. 动作 1：根工程提供 `cmake -S . -B out/<arch>/<Config>` 一把配置——`project()` 之后依次
+     `add_subdirectory` 第三方库（zlib / libpng / cximage / libwebp / CEF wrapper）、`duilib`
+     与示例；范围由根选项控制（`DUILIB_BUILD_THIRD_PARTY`、`DUILIB_BUILD_EXAMPLES`、
+     `DUILIB_ENABLE_CEF`、`DUILIB_ENABLE_SDL`、`DUILIB_EXAMPLES`、`DUILIB_DLL`，
+     见 `cmake/duilib_root_options.cmake`），另含 i18n、两阶段环境预检与依赖准备
+     （`DUILIB_DEPS_MODE=off/prepare/auto`）。
+  2. 动作 3：旧分平台脚本（`build/msvc_build.bat`、`linux_build.sh`、`macos_build.sh`、
+     `freebsd_build.sh`）已归档到 `build/legacy/`，统一入口为 `python build/build.py`
+     （`build\build.bat` 为薄封装），编排逻辑下沉到根工程与 `cmake/`，命令行行为等价。
+  3. 动作 2：**不新增 `install()`/`export()`**（决策 D-8）——SDK 包的接入层
+     （`packaging/cmake/nim_duilibConfig.cmake`、`packaging/msvc/nim_duilib.props|.targets`）
+     由 `build/pack.py` 渲染生成，包布局（`include/`、`lib/`、`bin/`、`lib/cmake/`）
+     与 `--verify` 体检已固化；再加 CMake `install()` 会形成第二套安装语义，与打包流程重复。
+     若后续需要 `cmake --install`，再单独评估。
+  4. 验收：四平台（Windows x64/x86/arm64、Linux、macOS、FreeBSD）与非 CEF、DLL、SDL、
+     CEF142/109、macOS Bundle 各分支均由该入口实际构建/出包；本项验收见
+     [test-matrix.md](../../build/test-matrix.md)。
+  5. 方案与决策细节见 [Root-CMake-Build-Plan.md](Root-CMake-Build-Plan.md)。
 
 ---
 
@@ -397,7 +417,7 @@
 | 第 3 步 ✅ 已完成（2026-10-20） | **CM-3、CM-15** | 需 macOS（或对应平台）核实；本机仅做静态核实 + Windows 侧行为验证，macOS 实机验证待补 |
 | 第 4 步 ✅ 已完成（2026-10-21） | **CM-5、CM-20** | CM-20 于 2026-10-20 完成；CM-5 于 2026-10-21 完成 P1~P5 并通过用户验收（构建系统系统性测试后续单独成计划） |
 | 第 5 步 ✅ 已完成（2026-10-20） | **CM-10、CM-11、CM-13、CM-17、CM-21**（CM-18 按用户决定**不处理**） | 重构类：CM-10/13/17/11 已完成；CM-21 完成定制清单文档化，命名统一待 CM-5；CM-18 保持 `aux_source_directory` 现状（见该小节） |
-| 第 6 步 | **CM-22** | 结构性改造，需先确认是否保留逐库单独配置用法 |
+| 第 6 步 ✅ 已完成（2026-10-29） | **CM-22** | 顶层 `CMakeLists.txt` 聚合与旧脚本归档已完成；`install()`/`export()` 按决策 D-8 不做 |
 
 > 每完成一步，把对应项在第八节打勾，并在此表标记阶段完成情况。
 
@@ -442,7 +462,7 @@
 
 - [x] **CM-20** `duilib` 库层增加 `option(DUILIB_ENABLE_CEF)`　｜ 低~中 ｜ 完成日期：2026-10-20
 - [x] **CM-21** 第三方库定制方式规范化（含升级清单）　｜ 中 ｜ 完成日期：2026-10-20（定制清单文档化完成；命名统一待 CM-5）
-- [ ] **CM-22** 顶层 `CMakeLists.txt` 聚合与 install/export　｜ 中~高 ｜ 完成日期：______
+- [x] **CM-22** 顶层 `CMakeLists.txt` 聚合与 install/export　｜ 中~高 ｜ 完成日期：2026-10-29（顶层聚合与 `build/legacy/` 归档已完成；`install()`/`export()` 按决策 D-8 不做）
 
 ---
 
@@ -593,4 +613,26 @@
 1. **示例开关的声明时机**：`CefBrowser` 原在 `duilib_common.cmake` 之前用 `DUILIB_OS_WINDOWS` 判断子目录，汇总到公共文件后该变量尚未定义。改为声明式开关 `DUILIB_SRC_SUB_DIRS_WINDOWS`，由 `duilib_example.cmake` 在 `duilib_common.cmake` 之后做平台合并。
 2. **`CMAKE_CURRENT_LIST_DIR` 与 `CMAKE_CURRENT_SOURCE_DIR` 的区别**：在 `cmake/duilib_example.cmake` 内，前者是 `cmake/` 目录（用于反推仓库根），后者仍是示例目录（用于 `DUILIB_PROJECT_SRC_DIR`），两者不可互换。
 3. **批量配置脚本需排除 `examples/bin`**：该目录是示例产物输出目录、没有 `CMakeLists.txt`，逐个 `cmake -S` 时会报错（本批实测唯一的非零退出项）。
+
+### 批次 6（2026-10-29）：CM-22（`install()`/`export()` 按决策 D-8 不做）
+
+**改动清单**
+
+| 文件 | 改动 |
+| :--- | :--- |
+| `CMakeLists.txt`（仓库根，新增于根工程重构批次） | **CM-22** 顶层聚合：`project(nim_duilib)` 之后按依赖顺序 `add_subdirectory` 第三方库、`duilib` 与示例；范围由根选项控制 |
+| `cmake/duilib_root_options.cmake`（新增） | **CM-22** 平台/编译器/架构识别、`DUILIB_BUILD_THIRD_PARTY` / `DUILIB_BUILD_EXAMPLES` / `DUILIB_ENABLE_CEF` / `DUILIB_ENABLE_SDL` / `DUILIB_EXAMPLES` / `DUILIB_DLL`、依赖目录与版本清单、rpath、MSVC 运行库 |
+| `cmake/duilib_deps.cmake`、`cmake/duilib_deps_run.cmake`、`cmake/duilib_preflight*.cmake`（新增） | **CM-22** 依赖准备（`DUILIB_DEPS_MODE=off/prepare/auto`、`duilib_deps` 目标）与两阶段环境预检 |
+| `build/build.py`（新增）与 `build/build.bat`（薄封装） | **CM-22** 统一命令入口（`build`/`deps`/`test`/`pack`/`doctor`/`clean`），替代逐库、逐示例单独配置 |
+| `build/legacy/`（新增归档目录） | **CM-22** 旧分平台脚本（`msvc_build.bat`、`linux_build.sh`、`macos_build.sh`、`freebsd_build.sh`、`msys2_build.sh`、MinGW 脚本等）整体归档，不再参与构建 |
+| （`install()`/`export()` 未添加） | **CM-22** 按决策 D-8 保持不做，SDK 安装语义由 `build/pack.py` 与 `packaging/` 模板承担 |
+
+**验收证据**
+
+| 项 | 结果 |
+| :--- | :--- |
+| `cmake -S . -B out/<arch>/<Config>` 一把配置 | 通过（Windows MSVC x64/x86/arm64、MinGW、Linux gcc/clang、macOS、FreeBSD 分支均由该入口配置） |
+| 依赖顺序 | 通过：第三方库 → `duilib` → 示例（含 CEF wrapper、WebView2、SDL、DLL 模式各分支） |
+| 旧脚本行为等价 | 通过：`build.py` 的命令行覆盖旧脚本的构建/出包能力，旧脚本归档后由文档标注「不再参与构建」 |
+| 跨平台实测 | Windows x64/x86/arm64、Linux x64、macOS x64 构建与出包全部通过；FreeBSD 历史验证（Release 构建 + 出包）；详见 [test-matrix.md](../../build/test-matrix.md) |
 

@@ -365,3 +365,4 @@ healthchecksdb
 /.regress
 /dist
 /out
+/temp
