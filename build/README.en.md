@@ -24,8 +24,8 @@ and troubleshooting, see [build-reference.en.md](build-reference.en.md)
 | `README.md` / `README.en.md` | this document |
 
 The legacy per-platform scripts are archived under `legacy/` (not part of the
-build, to be deleted after full-platform verification; Windows, Linux and FreeBSD
-are verified, macOS pending); use `python3 build/build.py`.
+build, to be deleted; Windows, Linux, macOS and FreeBSD are all verified); use
+`python3 build/build.py`.
 
 ## Prerequisites
 

@@ -94,7 +94,7 @@ Window::OnPreparePaint → ArrangeRoot → ColorPickerCustom::SetPos → InitPic
 
 | 模块 | Windows | macOS | Linux | FreeBSD | 备注 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| 窗口创建 / 消息循环 | `NativeWindow_Windows` | `NativeWindow_SDL` | `NativeWindow_SDL` | `NativeWindow_SDL` | FreeBSD 复用 Linux/X11 分支（构建与出包已实测，2026-10-25） |
+| 窗口创建 / 消息循环 | `NativeWindow_Windows` | `NativeWindow_SDL` | `NativeWindow_SDL` | `NativeWindow_SDL` | FreeBSD 复用 Linux/X11 分支（Debug/Release 构建、出包与示例启动已实测，2026-10-29） |
 | 渲染（Skia CPU 光栅） | `SkRasterWindowContext_Windows` | SDL 版 | SDL 版 | SDL 版 | 已完成 |
 | 键盘 / 光标 | `Keyboard_Windows`、`CursorManager_Windows` | SDL 版 | SDL 版 | SDL 版 | 已完成 |
 | DPI 感知 | `DpiAwareness_Windows` | `DpiAwareness_SDL` | `DpiAwareness_SDL` | 同左 | 非 Windows 平台"暂不支持"缩放感知 |
@@ -186,13 +186,13 @@ Window::OnPreparePaint → ArrangeRoot → ColorPickerCustom::SetPos → InitPic
 
 **剩余优先级**：
 
-1. **跨平台实测**：macOS 构建与冒烟；FreeBSD 运行时冒烟（构建与出包已实测，2026-10-25）；Linux 已知问题（标题栏双击、调整大小黑屏、最大化位置、Wayland）；核实 `HotKey` 与控件级拖拽源；
+1. **跨平台实测**：macOS 构建与冒烟；FreeBSD 运行时冒烟（Debug/Release 构建、出包与示例启动已实测，2026-10-29）；Linux 已知问题（标题栏双击、调整大小黑屏、最大化位置、Wayland）；核实 `HotKey` 与控件级拖拽源；
 2. **平台差异与生态**：GPU 渲染后端、Web 嵌入的非 Windows 替代方案，按实际需求评估；可视化编辑器（C10，远期）。
 
 ## 附录：待核实项清单（2026-10-21 更新）
 
 1. ~~1.3 节同类回环候选~~：✅ 已完成（2026-10-21，除 `ColorPickerCustom` 外未发现新增回环）；
 2. `HotKey`、控件级拖拽源（`RichEditDragSource`）在非 Windows 平台的实现状态：仍待核实；
-3. FreeBSD 复用 Linux / X11 分支：构建与出包已实测（Release，2026-10-25），运行时行为仍待实测；
+3. FreeBSD 复用 Linux / X11 分支：Debug/Release 构建、出包与示例启动已实测（2026-10-29），控件级 UI 行为冒烟仍待实测；
 4. macOS 各项能力的实测结论：仍无记录；原生通知还需在 `.app` 包内验证；
 5. `Control-Roadmap.md` 已取消项（ListCtrl 内嵌树 / 分组折叠 / L3 列筛选）：已决定不做，TreeGrid 独立控件已落地；如出现企业报表需求再重新评估。

@@ -130,11 +130,18 @@
 - 依赖版本（SDL3）：清单默认 ref 由 `release-3.4.18` tag 改为 `main` 分支
   （该 tag 的源码当前编译报错）；`release-3.4.18` 仍保留在 `refs` 中，需要时可用
   `--sdl-ref release-3.4.18` 临时切换。
+- FreeBSD 构建与打包验证扩展到 Debug/Release 全量（2026-10-29 真机）：
+  `build.py` 的 Release/Debug 构建、`pack.py` 的 4 个包（Release/Debug × 默认 SDK 与
+  `--with-examples`）、4 次 `sdk_package_test.py`（含两次 `--run-examples` 的 C10
+  示例启动）与 `doctor`/`test`/`test_build`/`test_pack`/`test_sdk_package`/
+  `test_autotest`/`autotest` 全部通过；`pack.py --with-cef` 按预期报错
+  （FreeBSD 不支持 CEF）。测试矩阵与结论见 `build/test-matrix.md` §4。
 
 ### 移除
 
 - 删除 `build/build.md`，构建说明合并到 `build/build-reference.md`。
-- 旧分平台构建脚本归档到 `build/legacy/`（不再参与构建，全平台验证后移除）。
+- 旧分平台构建脚本归档到 `build/legacy/`（不再参与构建，四个平台均已验证新入口，
+  待后续清理时删除）。
 
 ### 修复
 

@@ -6,7 +6,7 @@
 
 ## 一、当前基线
 
-已完成并验证的内容（Windows：MSVC x64/x86 Debug、x64/x86 Release 静态包、MSVC x64/x86 DLL（`/MD`）Debug/Release 包、arm64 Release/Debug 静态与 DLL、arm64 CEF142/CEF109 包；MinGW x64 Release；MSYS2 UCRT64 gcc / CLANG64 llvm / MINGW64 gcc(msvcrt) x64 Release；MSVC x64 `--with-sdl`、`--with-examples` 与 MSVC / MinGW 示例组合；Linux x64 Release/Debug：编译、出包与包测试；macOS x64 Release/Debug：构建、出包、包测试与 Bundle 运行；FreeBSD x64 Release：编译与出包（不支持 CEF）。Linux/macOS 于 2026-10-28 真机复测，Windows arm64 于 2026-10-28/29 完成）：
+已完成并验证的内容（Windows：MSVC x64/x86 Debug、x64/x86 Release 静态包、MSVC x64/x86 DLL（`/MD`）Debug/Release 包、arm64 Release/Debug 静态与 DLL、arm64 CEF142/CEF109 包；MinGW x64 Release；MSYS2 UCRT64 gcc / CLANG64 llvm / MINGW64 gcc(msvcrt) x64 Release；MSVC x64 `--with-sdl`、`--with-examples` 与 MSVC / MinGW 示例组合；Linux x64 Release/Debug：编译、出包与包测试；macOS x64 Release/Debug：构建、出包、包测试与 Bundle 运行；FreeBSD x64 Release/Debug：构建、出包、包测试与示例启动（不支持 CEF）。Linux/macOS 于 2026-10-28、FreeBSD 于 2026-10-29 真机复测，Windows arm64 于 2026-10-28/29 完成）：
 
 | 领域 | 状态 |
 | :--- | :--- |
@@ -15,11 +15,10 @@
 | 元数据与校验 | `MANIFEST.txt`（含文档清单）、`SHA256SUMS`、`VERSION` |
 | 下游接入 | VS props/targets、CMake Config/Helper、x64 + x86 + arm64 manifest（三份均随包） |
 | 文档处理 | 只打顶层使用文档，源码链接按包布局重写，无断链 |
-| 已验证 | `--list`、XML 解析、CMake 配置、SHA/断链检查、真实 zip 抽查；x64/x86 Debug 与 Release 出包、解包及 SHA 校验；MinGW（gcc / llvm）5 库 + 21 示例构建与运行；VS/CMake 端到端（x64/x86 Debug、x64/x86 Release、MinGW x64 gcc/llvm 包、MSVC DLL 包）；MSYS2 真实环境（UCRT64 gcc、CLANG64 llvm、MINGW64 gcc/msvcrt）全量构建、出包、解包与 CMake 端到端；MSVC DLL 模式（`/MD`）构建、出包与端到端；MSVC x64/x86 与 MinGW x64 的 SDL/示例组合出包、`--verify` 与解包运行；Windows arm64 Release/Debug（静态、DLL）与 CEF142/109 出包、`--verify`、SDK 包测试；Linux x64 Release/Debug 与 macOS x64 Release/Debug 的构建、出包、包测试与示例运行（2026-10-28 真机复测）；FreeBSD x64 Release 出包（2026-10-25，不含 CEF） |
+| 已验证 | `--list`、XML 解析、CMake 配置、SHA/断链检查、真实 zip 抽查；x64/x86 Debug 与 Release 出包、解包及 SHA 校验；MinGW（gcc / llvm）5 库 + 21 示例构建与运行；VS/CMake 端到端（x64/x86 Debug、x64/x86 Release、MinGW x64 gcc/llvm 包、MSVC DLL 包）；MSYS2 真实环境（UCRT64 gcc、CLANG64 llvm、MINGW64 gcc/msvcrt）全量构建、出包、解包与 CMake 端到端；MSVC DLL 模式（`/MD`）构建、出包与端到端；MSVC x64/x86 与 MinGW x64 的 SDL/示例组合出包、`--verify` 与解包运行；Windows arm64 Release/Debug（静态、DLL）与 CEF142/109 出包、`--verify`、SDK 包测试；Linux x64 Release/Debug、macOS x64 Release/Debug 与 FreeBSD x64 Release/Debug 的构建、出包、包测试与示例运行（Linux/macOS 2026-10-28、FreeBSD 2026-10-29 真机复测；FreeBSD 不含 CEF） |
 
-尚未覆盖：FreeBSD Debug 与示例解包运行（无环境，未测、不跟进）；Windows on ARM 真机运行
-（无设备，未测、不跟进）；Windows x86 SDL（缺 x86 SDL3 库）；MSYS2 MINGW32 x86 与 libpag
-的 ARM64 支持（未测、不跟进）。
+尚未覆盖：Windows on ARM 真机运行（无设备，未测、不跟进）；Windows x86 SDL
+（缺 x86 SDL3 库）；MSYS2 MINGW32 x86 与 libpag 的 ARM64 支持（未测、不跟进）。
 
 ### 平台与特性约束
 
@@ -28,7 +27,7 @@
 | Windows | x64 / x86 / arm64 | 支持 | CEF 二进制按版本与架构位于 `bin/libcef_win/{x64,Win32,arm64}/`、`bin/libcef_win_109/{x64,Win32,arm64}/`；arm64 Release/Debug（静态与 DLL）与 CEF142/109 出包已实测（2026-10-28/29），真机运行无设备、未测不跟进 |
 | Linux | 仅 x64（不支持 x86） | 支持 | CEF 运行时位于 `bin/libcef_linux/`，与 Windows 的分架构结构不同；Release/Debug 编译、出包与包测试（含示例运行）已实测（2026-10-25 / 2026-10-28） |
 | macOS | x64 | 以 `.app` 内嵌 | CEF 随示例生成 `cef.app`、`CefBrowser.app`；`--with-examples` 时由 `--with-cef` 控制是否随包（未指定则跳过并告警），随包时整目录（含 Framework/Helper）收集；CEF 运行时目录不单独收集；x64 Release/Debug 构建、出包、包测试与 Bundle 运行已实测（2026-10-28），arm64 无真机不安排 |
-| FreeBSD | 仅 x64（本次实测） | 不支持 | 目录结构沿用 Linux 分支，包内不包含 CEF；Release 编译与默认 SDK 包、`--with-examples` 出包已实测（2026-10-25），`--with-cef` 直接报错；Debug 与示例运行无环境，未测、不跟进 |
+| FreeBSD | 仅 x64（本次实测） | 不支持 | 目录结构沿用 Linux 分支，包内不包含 CEF；Release/Debug 的构建、默认 SDK 包与 `--with-examples` 出包、包测试（含示例启动）已实测（2026-10-29），`--with-cef` 直接报错 |
 
 说明：上表是平台能力与目录约束，包内最终布局以打包脚本为准；CEF 运行时的收集与落包见 P1-3。
 
@@ -114,28 +113,31 @@
   8 次 `sdk_package_test.py` 全部通过（含下游工程接入与两次 `--run-examples`）。
   此前 `ldd` 检查发现非 CEF 示例也依赖 `libcef.so`，已改为示例级
   `DUILIB_EXAMPLE_CEF` 控制（仅 `cef`/`CefBrowser` 链接 CEF）。
-- FreeBSD x64 Release 实测（2026-10-25）：编译与打包流程均通过，测试内容与
-  Linux 相同但不含 CEF（FreeBSD 上游无 Chromium 构建）；`pack.py` 产出默认 SDK
-  包与 `--with-examples` 包，`--with-cef` 按不支持的平台直接报错。
-  Debug 配置与解包后示例启动运行（F-B02/F-B04）当前无 FreeBSD 环境，标记未测、不跟进。
+- FreeBSD x64 全量实测（2026-10-29 真机复测）：Release/Debug 编译与打包流程均通过，
+  测试内容与 Linux 相同但不含 CEF（FreeBSD 上游无 Chromium 构建）；`pack.py` 产出
+  Release/Debug 的默认 SDK 包与 `--with-examples` 包共 4 个，4 次
+  `sdk_package_test.py` 全部通过（含 Release/Debug 示例包的 `--run-examples`，C10 启动
+  `bin/basic`），`build.py doctor/test`、`test_build.py`、`test_pack.py`、
+  `test_sdk_package.py`、`test_autotest.py`、`autotest.py` 亦全部通过；
+  `--with-cef` 按不支持的平台直接报错（属预期的负向结果）。命令与结果见
+  `build/test-matrix.md` §4。
 - macOS x64 实测（2026-10-28 真机复测）：Release/Debug 构建、6 个出包、8 次包测试
   （含两次 `--run-examples`）与全部脚本测试通过；`basic.app` 的 `Info.plist`、
   仅改资源的增量同步与 CEF 示例 Bundle 均已验证。arm64 无真机，不安排。
 - 待覆盖：
-  - 配置：Linux 已覆盖 Debug/Release（2026-10-28）；FreeBSD 仅 Release
-    （Debug 与示例运行未测、不跟进，无环境）；
+  - 配置：Linux 与 FreeBSD 均已覆盖 Debug/Release（2026-10-28 / 2026-10-29）；
   - 架构：Windows x64/x86；Linux、FreeBSD 仅 x64（不支持 x86）；arm64 的 Windows
     Release/Debug、CEF142 与 CEF109 已完成（2026-10-28），arm64 真机运行未测、不跟进；
   - 工具链：MSVC（Debug/Release 已完成）/ MinGW（gcc、llvm 已完成）/
     MSYS2（UCRT64、CLANG64、MINGW64 均已完成，2026-10-24；MINGW32 x86 未测、不跟进）；
   - 模式：静态已完成；DLL（`EnableDuilibDll`）x64/x86 与 arm64 × Debug/Release 均已完成
     （2026-10-24 / 2026-10-28）；
-  - 平台：Windows、Linux、macOS 均已完成（Linux/macOS 于 2026-10-28 真机复测）；
-    FreeBSD 已出 Release 包（2026-10-25，无 CEF），Debug 与示例运行未测、不跟进；
+  - 平台：Windows、Linux、macOS、FreeBSD 均已完成（Linux/macOS 2026-10-28、
+    FreeBSD 2026-10-29 真机复测）；
   - 特性：`--with-sdl`（MSVC x64、MSYS2 UCRT64 gcc 已完成，2026-10-24）、
-    `--with-cef`（Windows、Linux、macOS 已完成；FreeBSD 不支持）、
-    `--with-examples`（MSVC x64/x86、MinGW x64、Linux/macOS/FreeBSD Release 已完成，
-    2026-10-25/28）。
+    `--with-cef`（Windows、Linux、macOS 已完成；FreeBSD 不支持，负向验证通过）、
+    `--with-examples`（MSVC x64/x86、MinGW x64、Linux/macOS/FreeBSD Release/Debug
+    已完成，2026-10-25/28/29）。
 - 验收：矩阵中每个格子都有记录（命令、文件数、关键文件存在性、告警），异常项有结论。
 
 #### P0-2 关键产物缺失时阻止出包
@@ -155,8 +157,7 @@
 
 - [~] Windows x64、x86（Debug、Release）、MSYS2 UCRT64/CLANG64/MINGW64
   与 MSVC DLL 模式（x64/x86 × Debug/Release）已完成（2026-10-24）；
-  Linux、macOS 的包测试（含下游 CMake 工程与示例运行）已于 2026-10-28 通过；
-  FreeBSD 下游工程端到端未测（无环境，不跟进）。
+  Linux、macOS、FreeBSD 的包测试（含下游 CMake 工程与示例运行）已于 2026-10-28/29 通过。
 - 已完成：
   - MSBuild：导入 `msvc/nim_duilib.targets` 的 Debug|x64 工程编译、链接、运行通过；
     `NimDuilibCopyResources=1` 复制 `resources/`，`bin/*.dll` 复制 `WebView2Loader.dll`；
@@ -214,9 +215,9 @@
   （`skia.lib`），出现全量 `undefined reference`。两个脚本的示例配置行已补
   `-DDUILIB_SKIA_LIB_SUBPATH=%DUILIB_SKIA_LIB_SUBPATH%`，复测全部链接通过。
 - 未覆盖及原因：
-  - Linux / FreeBSD：已真机出包（Release，2026-10-25），但下游工程的端到端
-    （`find_package` 配置、编译、链接、运行）尚未验证；
-  - macOS：无对应环境。
+  - 当前无：Windows x64/x86、Linux、macOS 与 FreeBSD 的下游接入（`find_package`
+    配置、编译、链接、运行）均已通过包测试（Linux/macOS 2026-10-28，
+    FreeBSD 2026-10-29）；macOS 的 CEF Bundle 仍按“下游手动配置”流程验证。
 - 验收（Windows x64）：同上（Debug/Release）；另确认 CMake 与 MSBuild 的架构校验均能拒绝 Win32 工程误用 x64 包。
 - 验收（Windows x86）：同上（Debug/Release）；另确认 CMake 与 MSBuild 的架构校验均能拒绝 x64 工程误用 x86 包。
 - 验收（MinGW x64）：同上；另确认 MSVC 工程误用 MinGW 包会被工具链校验拒绝。
@@ -269,7 +270,8 @@
   `libSDL3.so*` 等链接结构与构建目录一致。
   Windows 侧已回归：Debug x64 zip 539 个文件，`SHA256SUMS` 全部匹配，
   `.dll` 条目 `0755`、`.lib` 条目 `0644`，`zip` 可完整解压；
-  Linux、FreeBSD 侧已真机出包（Release，2026-10-25），符号链接与权限位逻辑随包生效；
+  Linux、FreeBSD 侧已真机出包（FreeBSD Release/Debug，2026-10-29；Linux 2026-10-28），
+  符号链接与权限位逻辑随包生效，示例程序可直接执行；
   macOS 侧仍以构造用例验证（zip 写 `S_IFLNK` 条目、tar 写 `SYMTYPE`，
   链接目标与模式均正确）。
 
@@ -336,7 +338,8 @@
   运行时文件；x86 latest 233 个，且不含任何 `.lib`）；示例程序尚未构建，运行验证待补。
   Linux 侧由 `test_pack.py` 的 `CefLinuxPackagingTest` 覆盖收集、元数据、MANIFEST
   与拒绝场景（5 个用例）；真机出包已验证（Release，含 `--with-cef` 与
-  `--with-examples` 组合，2026-10-25），解包后示例运行仍待补；macOS 手动部署流程见
+  `--with-examples` 组合，2026-10-25），解包后示例运行已于 2026-10-28 的
+  `--run-examples` 验证通过；macOS 手动部署流程见
   `docs/Release.md` 的“macOS：下游手动配置 CEF”。
 
 #### P1-4 WebView2 运行时说明
@@ -554,3 +557,4 @@
 | 2026-10-29 | P2-4 arm64 补齐：`build.py --arch arm64 --dll`（Release/Debug）与 VS `duilib.sln` ARM64 DLL 模式产出 `duilib.dll`/`duilib_d.dll`（均 PE `AA64`）；CEF109 包 `-win-arm64-cef109-examples.zip`（1131 条目 / 252.1 MB）通过 `--verify` 与 `sdk_package_test.py`（PASS=14 / SKIP=5）；Windows on ARM 真机运行无设备，标记未测、不跟进 |
 | 2026-10-29 | P2-3 完成：新增双语 `docs/Deployment.md` / `Deployment.en.md`（安装、升级、迁移、运行期部署与 FAQ），并入 `docs/Summary*.md` 索引，作为顶层文档随包收录；包内 `MANIFEST.txt` 仍是权威清单 |
 | 2026-10-29 | libjpeg-turbo 3.2.x 静态库与 duilib-zlib 的 `z_errmsg` 符号冲突（LNK2005）：duilib-zlib 增加 `z_errmsg=duilib_z_errmsg` 编译宏（CMake 与 VS 两套构建），最小工程同链 `turbojpeg-static.lib` 验证通过 |
+| 2026-10-29 | FreeBSD x64 全量实测通过：Release/Debug 构建、4 个出包（默认 SDK 与 `--with-examples`）、4 次 `sdk_package_test.py`（含两次 `--run-examples` 的 C10 示例启动）与全部脚本测试（`doctor`/`test`/`test_build`/`test_pack`/`test_sdk_package`/`test_autotest`/`autotest`）通过；`pack.py --with-cef` 按预期报错。此前“FreeBSD Debug 与示例运行未测、不跟进”的结论已撤销，P0-1/P0-3 的 FreeBSD 缺口关闭 |

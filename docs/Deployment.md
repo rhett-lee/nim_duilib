@@ -29,6 +29,8 @@
 包名各段含义：`-mingw-gcc` / `-mingw-llvm`（MinGW 的两个 C++ 运行时变体）、
 `-sdl`、`-cef` / `-cef109`、`-examples`、`-dll`、`-debug`。
 **发布包是单架构、单配置的**：Debug 与 Release、x64/x86/arm64 各用各的包，不能混用。
+平台差异：Windows/Linux/macOS 包可按需带 CEF；**FreeBSD 包不含 CEF**
+（上游无 Chromium 构建，`pack.py --with-cef` 直接报错），其余内容与 Linux 包同构。
 
 ## 二、安装
 

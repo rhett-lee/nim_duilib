@@ -26,8 +26,8 @@
 | `examples.sln` / `examples_no_cef.sln` | Visual Studio 解决方案（库 + 示例） |
 | `README.md` / `README.en.md` | 本文件 |
 
-旧的分平台构建脚本已归档到 `legacy/`（不再参与构建，待全平台验证后删除；
-Windows、Linux、FreeBSD 已验证，macOS 待验证），统一改用 `python3 build/build.py`。
+旧的分平台构建脚本已归档到 `legacy/`（不再参与构建，待删除；Windows、Linux、
+macOS、FreeBSD 均已验证），统一改用 `python3 build/build.py`。
 
 ## 前置依赖
 

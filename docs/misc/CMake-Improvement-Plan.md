@@ -202,7 +202,7 @@
   1. 新增 [cmake/duilib_compiler_flags.cmake](../../cmake/duilib_compiler_flags.cmake)，提供两组公共变量：`DUILIB_COMPILER_FLAGS`（`-fno-strict-aliasing`、`-fstack-protector`、`-funwind-tables`、`-fvisibility=hidden`、`-Wall`、`-Wno-unknown-pragmas`、`-Wextra`、`-Wendif-labels`、`-Wno-missing-field-initializers`、`-Wno-unused-parameter`）与 `DUILIB_CXX_COMPILER_FLAGS`（`-fno-threadsafe-statics`、`-fvisibility-inlines-hidden`、`-frtti`、`-Wno-narrowing`、`-Wsign-compare`、`-Wno-unused-variable`），并按 `CMAKE_CXX_COMPILER_ID` 追加 GNU（`-Wno-reorder`）与 Clang（`-Wnewline-eof`、`-fobjc-call-cxx-cdtors`、`-Wno-reorder-ctor`、`-Wno-unused-lambda-capture`、`-Wno-unused-private-field`）专有项。
   2. 三处改为 `include(...)`：`cmake/duilib_bin_macos.cmake`（非 CEF 分支）、`cmake/duilib_cef_macos.cmake`（`CEF_COMPILER_FLAGS`/`CEF_CXX_COMPILER_FLAGS` 直接取公共值）、`duilib/CMakeLists.txt`（GNU 专有的 `-Wno-cast-function-type` 与 AVX 源文件属性保留在本地追加）。
   3. `duilib_cef_macos.cmake` 中 `-fobjc-arc` 仍在公共值赋值**之后**追加，保持 CM-3 的修复语义。
-- **验证说明**：Linux、FreeBSD 分支已实机编译验证（Release，2026-10-25），参数集合与原三份逐项比对一致；macOS 分支仍为静态核对，**macOS 实机编译验证待补**。
+- **验证说明**：Linux、FreeBSD 分支已实机编译验证（FreeBSD 2026-10-29 复测 Release/Debug），参数集合与原三份逐项比对一致；macOS 分支已实机验证（2026-10-28）。
 - **工作量**：低　**依赖**：需 macOS / Linux 环境验证
 
 ### CM-11 23 个示例的 CMakeLists 是同一份 21 行样板 ✅ 已完成（2026-10-20）
@@ -241,7 +241,7 @@
   2. `cmake/duilib_bin_linux.cmake`：`include(...)` 该文件，`find_package(X11 REQUIRED)`，`DUILIB_LINUX_LIBS = X11::X11 ${DUILIB_FONT_LIBS} pthread dl`，不再使用裸名 `freetype fontconfig X11`。
   3. `cmake/duilib_bin_freebsd.cmake`：改为同一份 `include(...)`，链接 `X11::X11 ${DUILIB_FONT_LIBS}`；FreeBSD 原有行为（imported target）不变。
   4. `duilib/CMakeLists.txt` 的 FreeBSD 分支同样改为 `include` 该公共文件，库与示例共用一份定义。
-- **验证说明**：Linux、FreeBSD 分支已实机验证（Release 编译与出包通过，2026-10-25）。
+- **验证说明**：Linux、FreeBSD 分支已实机验证（FreeBSD 2026-10-29 复测 Release/Debug 编译与出包）。
 - **工作量**：低　**依赖**：需 Linux 环境验证
 
 ### CM-14 示例个例修补 SDL include 路径，未统一 ✗ 不处理（2026-10-20 按反馈退回，保持现状）
@@ -444,10 +444,10 @@
 
 **三、可维护性与一致性**
 
-- [x] **CM-10** macOS 编译参数三份重复收敛　｜ 低 ｜ 完成日期：2026-10-20（Linux/FreeBSD 实机验证 2026-10-25；macOS 实机验证待补）
+- [x] **CM-10** macOS 编译参数三份重复收敛　｜ 低 ｜ 完成日期：2026-10-20（Linux/FreeBSD 实机验证 2026-10-25/29；macOS 实机验证 2026-10-28）
 - [x] **CM-11** 23 个示例的样板代码收敛　｜ 中 ｜ 完成日期：2026-10-20
 - [x] **CM-12** 平台判据统一（`APPLE` → `Darwin`）　｜ 极低 ｜ 完成日期：2026-10-20
-- [x] **CM-13** Linux / FreeBSD 的 freetype+fontconfig 处理统一　｜ 低 ｜ 完成日期：2026-10-20（Linux/FreeBSD 实机验证 2026-10-25）
+- [x] **CM-13** Linux / FreeBSD 的 freetype+fontconfig 处理统一　｜ 低 ｜ 完成日期：2026-10-20（Linux/FreeBSD 实机验证 2026-10-25/29）
 - [~] **CM-14** SDL include 路径上收到公共模块　｜ 不处理（2026-10-20 按反馈退回，保持现状，见 CM-14 小节）
 - [x] **CM-15** 硬编码路径清理（WebView2 / manifest / macOS CEF_ROOT）　｜ 低（macOS 实机验证待补）｜ 完成日期：2026-10-20
 - [x] **CM-16** 小项合集（6 条）　｜ 低 ｜ 完成日期：2026-10-20
@@ -606,7 +606,7 @@
 | `examples/basic` Debug x64 编译 | 编译阶段 **0 error / 0 warning**；链接阶段仅剩 CM-5 已知的 LNK2038（Debug 目标链接到 Skia release 库），非本批改动引入 |
 | `basic.vcxproj` 目标级目录 | `AdditionalIncludeDirectories = C:\develop\nim_duilib;...\examples\basic`；`AdditionalLibraryDirectories` 含 `lib`、`lib/$(Configuration)`、Skia 路径 → CM-17 的目标级设置已生效 |
 | 全局目录 Grep | `cmake/*.cmake` 仅剩 `ChildWindow` 的 SDL include（CM-14 有意例外）；`CMakeLists.txt` 仅剩 `third_party` 内 3 处（第三方库自身逻辑，不在本项范围） |
-| macOS / Linux / FreeBSD 分支 | Linux、FreeBSD 已实机验证（Release 编译与出包，2026-10-25）；macOS 仍未实机验证（CM-10、CM-13、CM-17 的对应平台部分仅静态核对）**待补** |
+| macOS / Linux / FreeBSD 分支 | Linux、FreeBSD 已实机验证（FreeBSD 2026-10-29 复测 Release/Debug 构建与出包；Linux 2026-10-28）；macOS 已实机验证 CM-10/CM-13/CM-17 对应部分（2026-10-28） |
 
 **批次内额外发现与修正**
 
@@ -634,5 +634,5 @@
 | `cmake -S . -B out/<arch>/<Config>` 一把配置 | 通过（Windows MSVC x64/x86/arm64、MinGW、Linux gcc/clang、macOS、FreeBSD 分支均由该入口配置） |
 | 依赖顺序 | 通过：第三方库 → `duilib` → 示例（含 CEF wrapper、WebView2、SDL、DLL 模式各分支） |
 | 旧脚本行为等价 | 通过：`build.py` 的命令行覆盖旧脚本的构建/出包能力，旧脚本归档后由文档标注「不再参与构建」 |
-| 跨平台实测 | Windows x64/x86/arm64、Linux x64、macOS x64 构建与出包全部通过；FreeBSD 历史验证（Release 构建 + 出包）；详见 [test-matrix.md](../../build/test-matrix.md) |
+| 跨平台实测 | Windows x64/x86/arm64、Linux x64、macOS x64、FreeBSD x64 的 Debug/Release 构建、出包与包测试全部通过（FreeBSD 2026-10-29，其余 2026-10-28）；详见 [test-matrix.md](../../build/test-matrix.md) |
 

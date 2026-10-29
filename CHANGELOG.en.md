@@ -165,12 +165,21 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   instead of the `release-3.4.18` tag (that tag's source currently fails to build);
   `release-3.4.18` stays in `refs` and can still be selected with
   `--sdl-ref release-3.4.18`.
+- FreeBSD build and packaging verification now covers Debug and Release
+  (on real hardware, 2026-10-29): the Release/Debug builds via `build.py`, the
+  four packages from `pack.py` (Release/Debug × default SDK and `--with-examples`),
+  the four `sdk_package_test.py` runs (including two `--run-examples` C10
+  example startups), and `doctor`/`test`/`test_build`/`test_pack`/
+  `test_sdk_package`/`test_autotest`/`autotest` all pass; `pack.py --with-cef`
+  fails fast as expected (CEF is not supported on FreeBSD). See
+  `build/test-matrix.md` §4 for the matrix and results.
 
 ### Removed
 
 - `build/build.md`; its content moved into `build/build-reference.md`.
 - Legacy per-platform build scripts are archived under `build/legacy/` (not part of
-  the build; removed after full-platform verification).
+  the build; the new entry point is verified on all four platforms and the
+  scripts will be deleted in a later cleanup).
 
 ### Fixed
 

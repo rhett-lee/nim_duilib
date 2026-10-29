@@ -32,6 +32,9 @@ Package name segments: `-mingw-gcc` / `-mingw-llvm` (the two MinGW C++ runtime
 variants), `-sdl`, `-cef` / `-cef109`, `-examples`, `-dll`, `-debug`.
 **A package is single-architecture and single-configuration**: Debug and Release,
 x64/x86/arm64 each use their own package and must not be mixed.
+Platform difference: Windows/Linux/macOS packages may include CEF; **FreeBSD
+packages never do** (no upstream Chromium build, so `pack.py --with-cef` fails
+fast). Everything else matches the Linux package layout.
 
 ## 2. Installation
 

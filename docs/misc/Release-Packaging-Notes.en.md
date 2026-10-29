@@ -355,7 +355,7 @@ git tags are recommended in the form `v<version>`. The repository's existing tag
 
 1. **The version number was maintained in two places (resolved 2026-10-23).** The version now lives only in `duilib/duilib_version.h`; `msvc/dllRes/version.h` is an adapter and `VERSION.txt` has been removed. `DUILIB_VER_BUILD` uses MMDD without a leading zero to avoid C/RC octal issues.
 
-2. **Only Windows was tested.** The script itself is cross-platform (pure standard library, one codebase for all four platforms). Unix `.a` collection and `lib` prefix normalization are implemented, but the resulting packages have not yet been verified on Linux/macOS/FreeBSD. `docs/Release.en.md` already marks these as "not verified on this machine".
+2. **All four platforms are now tested (2026-10-28/29).** The script itself is cross-platform (pure standard library, one codebase for all four platforms). Unix `.a` collection and `lib` prefix normalization are implemented. Debug/Release packages were verified for every Windows toolchain combination, Linux x64 (default SDK, `--with-cef`, `--with-examples`; 2026-10-28), macOS x64 (same combinations; 2026-10-28) and FreeBSD x64 (default SDK, `--with-examples`; no CEF; 2026-10-29), and all three Unix platforms also cover post-unpack example startup runs.
 
 3. **Signing and notarization are not automated.** The project produces pure static libraries (`add_library` does not specify `SHARED`, and `msvc/dllRes/dllmain.cpp` only compiles in the `.vcxproj`), so the SDK package itself needs no signature; the documentation only gives the manual procedure. Automated signing is equivalent to B-2's CI — it needs certificate management, which is a long-term maintenance burden.
 
@@ -402,7 +402,7 @@ Measured on Windows on 2026-10-20:
 - **Resource exclusion precision**: with examples off, only `global.xml` and `public/` remain under `themes/default/` in the package; with examples on, all 389 files match the repository exactly.
 - **Checksums**: `SHA256SUMS` independently recomputed, 587/587 all matching.
 - **Package structure**: both zip and tgz formats are correct.
-- **Four-platform differences**: the script is isomorphic, but **only Windows artifact correctness has been tested** (see gap 2 in section 5).
+- **Four-platform differences**: the script is isomorphic, and artifact correctness has been tested for Debug/Release on every Windows toolchain combination, Linux x64 (default SDK, `--with-cef`, `--with-examples`; 2026-10-28), macOS x64 (same combinations; 2026-10-28) and FreeBSD x64 (default SDK, `--with-examples`; no CEF; 2026-10-29) — see gap 2 in section 5.
 
 ## 7. Related documents
 

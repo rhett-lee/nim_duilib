@@ -842,16 +842,15 @@ gpg --detach-sign --armor dist/<版本>/nim_duilib-<版本>-<系统>-<架构>[-�
 | 平台 | 默认格式 | 状态 |
 | :--- | :--- | :--- |
 | Windows | `zip` | 已实测 |
-| Linux | `tgz` | 已实测（x64 Release；默认 SDK、`--with-cef`、`--with-examples`） |
-| macOS | `tgz` | 脚本同构，产物未在本机验证 |
-| FreeBSD | `tgz` | 已实测（x64 Release；默认 SDK、`--with-examples`；不支持 CEF） |
+| Linux | `tgz` | 已实测（x64 Debug/Release；默认 SDK、`--with-cef`、`--with-examples`；含示例启动） |
+| macOS | `tgz` | 已实测（x64 Debug/Release；默认 SDK、`--with-cef`、`--with-examples`；含示例启动） |
+| FreeBSD | `tgz` | 已实测（x64 Debug/Release；默认 SDK、`--with-examples`；含示例启动；不支持 CEF） |
 
 打包脚本本身跨平台（纯标准库，无外部依赖），四平台共用同一份代码。
 Windows 的 `.lib` 与 Unix 的 `.a` 均按目录白名单收集；Unix 的 `lib` 前缀
 会自动归一化（如 `libduilib-zlib.a` → `duilib-zlib`）。目前 Windows（各工具链
-组合）以及 Linux、FreeBSD（x64 Release）的产物已实测；Linux/FreeBSD 尚未覆盖 Debug
-配置与解包后示例启动运行。FreeBSD 不支持 CEF，`--with-cef` 会直接报错。
-macOS 首次打包后仍需核对库清单。
+组合）以及 Linux、macOS、FreeBSD（x64，Debug/Release）的产物均已实测，三者也都
+覆盖了解包后示例启动运行。FreeBSD 不支持 CEF，`--with-cef` 会直接报错（属预期）。
 
 ## 相关文档
 

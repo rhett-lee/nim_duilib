@@ -952,19 +952,18 @@ Verify after publishing with `gpg --verify`.
 | Platform | Default format | Status |
 | :--- | :--- | :--- |
 | Windows | `zip` | Verified |
-| Linux | `tgz` | Verified (x64 Release; default SDK, `--with-cef`, `--with-examples`) |
-| macOS | `tgz` | Same script; artifacts not verified on this machine |
-| FreeBSD | `tgz` | Verified (x64 Release; default SDK, `--with-examples`; no CEF) |
+| Linux | `tgz` | Verified (x64 Debug/Release; default SDK, `--with-cef`, `--with-examples`; including example startup) |
+| macOS | `tgz` | Verified (x64 Debug/Release; default SDK, `--with-cef`, `--with-examples`; including example startup) |
+| FreeBSD | `tgz` | Verified (x64 Debug/Release; default SDK, `--with-examples`; including example startup; no CEF) |
 
 The script itself is cross-platform (standard library only, no external
 dependencies) and a single implementation serves all four platforms.
 Windows `.lib` and Unix `.a` files are both collected by the directory
 whitelist; the Unix `lib` prefix is normalized automatically (e.g.
-`libduilib-zlib.a` → `duilib-zlib`). The Windows (all toolchain combinations),
-Linux and FreeBSD (x64 Release) artifacts have been verified; Linux/FreeBSD still lack Debug
-packaging and post-unpack example startup runs. CEF is not supported on
-FreeBSD and `--with-cef` fails fast. The library list on macOS should still
-be checked after the first package is produced.
+`libduilib-zlib.a` → `duilib-zlib`). The Windows (all toolchain combinations)
+artifacts and the Linux, macOS and FreeBSD (x64, Debug/Release) artifacts have
+all been verified, including post-unpack example startup runs. CEF is not
+supported on FreeBSD and `--with-cef` fails fast (expected).
 
 ## Related documentation
 

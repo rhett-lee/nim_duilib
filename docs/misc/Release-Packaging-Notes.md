@@ -373,7 +373,7 @@ git tag 建议用 `v<版本号>` 格式。仓库现有 tag（`2026-06-08(main)` 
 
 1. **版本号两处独立维护（已解决，2026-10-23）。** 版本已统一到 `duilib/duilib_version.h`；`msvc/dllRes/version.h` 改为适配层，`VERSION.txt` 已删除。`DUILIB_VER_BUILD` 按 MMDD 书写且不补零，避免 C/RC 的八进制问题。
 
-2. **已实测 Windows、Linux 与 FreeBSD。** 脚本本身跨平台（纯标准库，四平台共用同一份代码），Unix 的 `.a` 收集与 `lib` 前缀归一化已实现。Windows 各工具链组合、Linux x64 Release（默认 SDK、`--with-cef`、`--with-examples`）与 FreeBSD x64 Release（默认 SDK、`--with-examples`，CEF 不支持）出包均已实测（2026-10-25）；macOS 的产物尚未在本机实测，`docs/Release.md` 中仍标注「未在本机验证」。Linux/FreeBSD 的 Debug 配置与解包后示例启动运行也未覆盖。
+2. **四平台均已实测（2026-10-28/29）。** 脚本本身跨平台（纯标准库，四平台共用同一份代码），Unix 的 `.a` 收集与 `lib` 前缀归一化已实现。Windows 各工具链组合、Linux x64（默认 SDK、`--with-cef`、`--with-examples`，2026-10-28）、macOS x64（同上，2026-10-28）与 FreeBSD x64（默认 SDK、`--with-examples`，CEF 不支持，2026-10-29）的 Debug/Release 出包均已实测，三者也都覆盖了解包后示例启动运行。
 
 3. **签名与公证未自动化。** 本项目产出纯静态库（`add_library` 未指定 `SHARED`，`msvc/dllRes/dllmain.cpp` 只在 `.vcxproj` 中编译），SDK 包本身无需签名，文档只给手工流程。自动化签名等同 B-2 的 CI —— 需要证书管理，是长期维护负担。
 
@@ -419,7 +419,7 @@ cd /tmp/check/nim_duilib-* && sha256sum -c SHA256SUMS
 - **资源排除精确性**：关闭示例时包内 `themes/default/` 下只有 `global.xml` 与 `public/`；打开时 389 个文件与仓库完全一致。
 - **校验和**：`SHA256SUMS` 独立复算 587/587 全部一致。
 - **包结构**：zip 与 tgz 两种格式均正确。
-- **四平台差异**：脚本同构；产物正确性已在 Windows 各工具链组合、Linux x64 Release（默认 SDK、`--with-cef`、`--with-examples`）与 FreeBSD x64 Release（默认 SDK、`--with-examples`，不支持 CEF）上实测（2026-10-25），macOS 仍待实测（见第五节缺口 2）。
+- **四平台差异**：脚本同构；产物正确性已在 Windows 各工具链组合、Linux x64（默认 SDK、`--with-cef`、`--with-examples`，2026-10-28）、macOS x64（同上，2026-10-28）与 FreeBSD x64（默认 SDK、`--with-examples`，不支持 CEF，2026-10-29）的 Debug/Release 上实测（见第五节缺口 2）。
 
 ## 七、相关文档
 

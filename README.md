@@ -261,7 +261,8 @@ python3 build/build.py pack            # 出 SDK 包
 
 Windows 推荐直接运行 `build\build.bat`（参数与 `build.py` 相同，无需 `python3` 命令）。
 旧的分平台脚本（`build_duilib_all_in_one.*`、`msvc_build.bat`、`linux_build.sh` 等）
-已归档到 `build/legacy/`，不再参与构建，将在全平台验证后移除。
+已归档到 `build/legacy/`，不再参与构建，将在后续清理中移除（Windows/Linux/macOS/FreeBSD
+均已验证新入口）。
 
 ### 前置依赖与平台差异
 
