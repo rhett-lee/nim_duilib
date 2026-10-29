@@ -2,7 +2,7 @@
 
 本文是 nim_duilib 的唯一编译参考手册，适用于命令行构建、依赖准备、出包与环境排查。
 旧的分平台构建脚本（`build_duilib_all_in_one.*`、`msvc_build.bat`、`linux_build.sh` 等）
-已归档到 `build/legacy/`、不再参与构建（Windows/Linux/macOS/FreeBSD 均已验证，待清理时删除），统一使用 `python3 build/build.py`。
+已于 2026-10-29 删除（四个平台均验证过新入口），统一使用 `python3 build/build.py`。
 
 英文版：[build-reference.en.md](build-reference.en.md)
 

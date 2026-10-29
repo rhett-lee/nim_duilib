@@ -2,9 +2,9 @@
 
 This is the single build reference for nim_duilib: command-line builds, dependency
 preparation, packaging and troubleshooting. The legacy per-platform scripts
-(`build_duilib_all_in_one.*`, `msvc_build.bat`, `linux_build.sh`, ...) are archived
-under `build/legacy/` and no longer part of the build (all four platforms are
-verified; deleted during a later cleanup); use `python3 build/build.py` instead.
+(`build_duilib_all_in_one.*`, `msvc_build.bat`, `linux_build.sh`, ...) were deleted
+on 2026-10-29 (all four platforms are verified with the new entry point); use
+`python3 build/build.py` instead.
 
 Chinese version: [build-reference.md](build-reference.md)
 

@@ -124,13 +124,13 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
 | W-P01 | x64 Debug + 示例 + CEF 142 | `python build/build.py pack --config Debug --with-examples --with-cef` | 1316 / 412.3 MB | 通过 |
 | W-P02 | x64 Debug + 示例 + CEF 109 | `... --config Debug --with-examples --with-cef --cef-version 109` | 1134 / 373.5 MB | 通过 |
 | W-P03 | x86 Debug + 示例 + CEF 142 | `... --config Debug --arch x86 --with-examples --with-cef` | 1314 / 368.1 MB | 通过 |
-| W-P04 | x64 Release + 示例 + CEF 142 | `... --config Release --with-examples --with-cef` | 1316 / 328.1 MB | 通过 |
+| W-P04 | x64 Release + 示例 + CEF 142 | `... --config Release --with-examples --with-cef` | 1318 / 328.2 MB | 通过（含 C10） |
 | W-P05 | x86 Release + 示例 + CEF 142 | `... --config Release --arch x86 --with-examples --with-cef` | 1314 / 287.8 MB | 通过 |
 | W-P06 | x64 Release + 示例 + CEF 109 | `... --config Release --with-examples --with-cef --cef-version 109` | 1134 / 280.8 MB | 通过 |
 | W-P07 | x64 Debug + 示例 + SDL + MD | `... --config Debug --md --with-examples --with-sdl --with-cef` | 1396 / 416.5 MB | 通过 |
 | W-P08 | x64 Release + 示例 + MD | `... --config Release --md --with-examples --with-cef` | 1316 / 304.2 MB | 通过 |
-| W-P09 | x64 Release + 示例 + SDL | `... --config Release --with-examples --with-sdl --with-cef` | 1396 / 352.8 MB | 通过 |
-| W-P10 | x64 Release + 示例，无 CEF | `... --config Release --with-examples` | 762 / 121.8 MB | 通过 |
+| W-P09 | x64 Release + 示例 + SDL | `... --config Release --with-examples --with-sdl --with-cef` | 1398 / 352.9 MB | 通过（含 C10） |
+| W-P10 | x64 Release + 示例，无 CEF | `... --config Release --with-examples` | 764 / 121.8 MB | 通过（含 C10） |
 | W-P11 | x64 Debug，仅库无示例 | `... --config Debug` | 546 / 63.5 MB | 通过 |
 | W-P12 | MinGW gcc Release + 示例（无 CEF） | `... --config Release --with-examples` | 757 / 208.2 MB | 通过 |
 | W-P13 | llvm-mingw Release + 示例（无 CEF） | 同上（MinGW 环境） | 757 / 147.0 MB | 通过 |
@@ -138,8 +138,8 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
 | W-P15 | MinGW 动态链接 Release + 示例（无 CEF） | `... --config Release --with-examples`（源码关闭静态链接） | 757 / 195.4 MB | 通过，有限制 |
 | W-P16 | x64 Debug，zip / tgz / tar.bz2 | `pack.py --config Debug --format zip\|tgz\|tarbz2` | 546 / 63.5 MB 各一份 | 通过 |
 | W-P17 | 显式 MSVC 运行库 MT / MD | `pack.py --msvc-runtime mt` / `md` | 元数据与库一致 | 通过 |
-| W-P18 | x64 Debug DLL + 示例 + SDL + CEF | `pack.py --config Debug --with-examples --with-sdl --with-cef` | 1396 / 219.6 MB | 通过 |
-| W-P19 | x64 Release DLL + 示例 + SDL + CEF | `pack.py --config Release --with-examples --with-sdl --with-cef` | 1396 / 210.1 MB | 通过 |
+| W-P18 | x64 Debug DLL + 示例 + SDL + CEF | `pack.py --config Debug --with-examples --with-sdl --with-cef` | 1398 / 219.6 MB | 通过（含 C10） |
+| W-P19 | x64 Release DLL + 示例 + SDL + CEF | `pack.py --config Release --with-examples --with-sdl --with-cef` | 1398 / 210.1 MB | 通过（含 C10） |
 | W-P20 | x86 Debug DLL + 示例 + SDL + CEF | `pack.py --config Debug --arch x86 --with-examples --with-sdl --with-cef` | 1394 / 191.6 MB | 通过 |
 | W-P21 | x86 Release DLL + 示例 + SDL + CEF | `pack.py --config Release --arch x86 --with-examples --with-sdl --with-cef` | 1394 / 183.4 MB | 通过 |
 | W-P22 | MSBuild DLL（动态 turbojpeg，无 SDL） | MSBuild 构建后 `pack.py --config Release`（不加 `--with-sdl`） | 1099 / 200.2 MB | 通过 | 包名 `win-x64-cef-dll`；`JPEG=1`、`SDL3=0`；含 `bin/duilib.dll` + `bin/turbojpeg.dll`，无 `turbojpeg-static.lib`；`--verify` 与 SDK 测试（PASS=15 FAIL=0 SKIP=4）通过；修复 P04/C02 对 DLL 包 `HAS_JPEG` 的误判 |
@@ -158,7 +158,9 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
   支持，DLL 以 SDL 编译时必须加 `--with-sdl`，否则直接报错（避免下游
   `DUILIB_SDL=0` 与 DLL 的 Control/WindowBase 类布局不一致）。
 - W-P18 ~ W-P21 四个 DLL 包均已通过 `pack.py --verify` 与 `sdk_package_test.py`
-  （PASS=15 FAIL=0 SKIP=4：C02 覆盖 DLL 消费者，C01/C06/C10/C11 按平台或参数跳过）。
+  （PASS=15 FAIL=0 SKIP=4：C02 覆盖 DLL 消费者，C01/C06/C11 按平台或参数跳过）。
+  其中 x64 的 W-P18/W-P19 已于 2026-10-29 追加执行 C10（`--run-examples`）并通过；
+  x86 的 W-P20/W-P21 未执行 C10（本轮不带 `--run-examples`）。
   x86 消费者使用 `/MD` 时由测试脚本把 VS 2022 运行库复制到 exe 同级，
   避免本机 `SysWOW64` 旧 `msvcp140.dll`（14.29）导致崩溃。
 - DLL 包的 JPEG 规则：CMake 构建当前不启用 libjpeg-turbo，包内 `JPEG=0`；
@@ -169,6 +171,21 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
   下游编译宏与（静态模式）链接，DLL 消费者只需链接 `duilib.lib`。
 - `--with-examples` 未加 `--with-cef` 时会跳过 `cef.exe`/`CefBrowser.exe`，避免包内
   留下必然启动失败的二进制。
+- Windows 示例包的**包内启动冒烟（C10）**：2026-10-29 首次执行并覆盖 5 个示例包，
+  全部为 `[PASS] C10 examples.smoke`（`bin/basic.exe` 启动 3 秒后仍在运行）：
+  - x64 Release + CEF：`nim_duilib-1.0.2026.1023-win-x64-cef-examples.zip`
+    （1318 条目 / 328.2 MB，`--verify` 全匹配）；
+  - x64 Release + SDL + CEF：`...-win-x64-sdl-cef-examples.zip`
+    （1398 条目 / 352.9 MB，`--verify` 全匹配）；
+  - x64 Release 无 CEF：`...-win-x64-examples.zip`
+    （764 条目 / 121.8 MB，`--verify` 全匹配）；
+  - x64 Release DLL + SDL + CEF：`...-win-x64-sdl-cef-examples-dll.zip`
+    （1398 条目 / 210.1 MB，`duilib.dll` 13,602,816 B，`--verify` 全匹配）；
+  - x64 Debug DLL + SDL + CEF：`...-win-x64-sdl-cef-examples-dll-debug.zip`
+    （1398 条目 / 219.6 MB，`duilib_d.dll` 36,236,800 B，`--verify` 全匹配）。
+  均以 `sdk_package_test.py --scenarios C10 --run-examples` 执行（PASS=1 / FAIL=0 / SKIP=0）。
+- 包内条目数较本表历史值 +2：2026-10-29 起 `docs/Deployment*.md` 随包收录，
+  同一组合的文档条目从 32 增至 34。
 - 包名模式：`nim_duilib-<版本>-win-<arch>[-sdl][-cef|-cef109]-examples[-dll][-debug].zip`。
 
 ## 3. Linux 构建与打包矩阵
@@ -413,6 +430,7 @@ Skia `llvm.x64.release`、SDL3 `main`、CEF 142/x64。
 | Windows P1（关键出包组合） | 7 / 7 | 全部通过 |
 | Windows P2（参数分支与工程逻辑） | 9 / 9 | 全部通过 |
 | Windows 自动测试 | 158 项 | 全部通过 |
+| Windows 示例启动（C10） | 5 次 | 通过（2026-10-29）：x64 Release 的 CEF、SDL、无 CEF 三包 + x64 Debug/Release 的 DLL 两包，均 `[PASS] C10 examples.smoke` |
 | Linux x64 Release/Debug 构建 | 2 / 2 | 通过（含 CEF 示例，见 3.3） |
 | Linux x64 clang 构建（Release） | 1 / 1 | 通过（`CC=clang CXX=clang++ python3 build/build.py`，仅构建，未出包） |
 | Linux x64 出包 | 6 个包 | 全部通过（Release/Debug × 仅库/示例/CEF 示例） |
@@ -555,12 +573,22 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
    「改 Skia 后示例重新链接」这两个观测点；Windows 侧对应逻辑（补丁归档恢复、ref 切换、
    stamp 复用）已在 §7 的回归中实测。本轮起不再把这几条列入待办，后续有 Unix 环境时
    可按上述命令顺带复测。
+9. **Windows 示例包的包内启动冒烟（C10）**：已关闭。2026-10-29 的 5 个示例包
+   （x64 Release 静态 CEF / +SDL / 无 CEF，x64 Debug 与 Release 的 DLL + SDL + CEF）
+   全部 `[PASS] C10 examples.smoke`，`--verify` 均 SHA 全匹配；DLL 回归后已恢复静态
+   构建并清理 `bin/duilib*.dll`（P3-1 完成）。
+10. **x86 + SDL3 组合缺库**：`../SDL3` 只有 x64 静态库，尚未生成 x86 包（P3-2）。
+11. **`build/` 脚本控制台输出未英文化**：`pack.py`、`autotest.py`、`release.py` 与两个
+    `.sh` 仍为中文；`docs/misc/specs/English-Console-Output` 的 T1～T7 未实施（P3-3）。
+    `release.py` 的 `finalize`/`clean` 无实测记录（P3-5）。
 
 ## 8. 回归执行顺序建议
 
 1. `build.py test`，确认构建/打包脚本自身无回归。
 2. Windows 默认 x64 Debug 全量构建，作为基线。
-3. 按 W-B02 ~ W-B15 逐项构建，每项后立即出包并 `pack.py --verify`。
+3. 按 W-B02 ~ W-B15 逐项构建，每项后立即出包并 `pack.py --verify`；示例包再执行一次
+   `sdk_package_test.py --run-examples`（Windows 的 C10 已覆盖 Release 静态 CEF / SDL /
+   无 CEF 与 Debug/Release DLL 五包，新增组合仍应按同一口径补测）。
 4. 切换工具链/架构前清理 `bin/*.exe`、`bin/*.dll` 与 `lib/<arch>/<Config>`。
 5. Windows 完成后执行 G-01 ~ G-05 通用命令分支。
 6. Linux、FreeBSD、macOS 按各自矩阵执行；三者的 Release/Debug 构建、出包、包测试与

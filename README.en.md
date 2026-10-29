@@ -264,8 +264,8 @@ for Debug + Release.
 
 On Windows, prefer `build\build.bat` (same arguments, no `python3` command needed). The legacy
 per-platform scripts (`build_duilib_all_in_one.*`, `msvc_build.bat`, `linux_build.sh`, ...)
-are archived under `build/legacy/`, no longer part of the build, and will be removed in
-a later cleanup (the new entry point is validated on Windows, Linux, macOS and FreeBSD).
+were deleted on 2026-10-29 (the new entry point is validated on Windows, Linux, macOS and
+FreeBSD); use `build\build.bat` or `build.py`.
 
 ### Dependencies and Platform Differences
 

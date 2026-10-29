@@ -8,8 +8,9 @@
   「检测环境 →（可选）编译 → 打包 → `--verify` →（可选）冒烟」自动化脚本；
   **不接入 CI**（用户明确不做 CI 部分）。
 - **P2-4**：支持 arm64 的**接入文件与产物结构**（manifest、`pack.py` 收集、
-  VS props、CMake 架构识别、Skia 目录映射、文档支持范围）；**不做真机编译/打包/
-  运行验证**（无设备）。缺 arm64 预编译依赖时给出明确错误，而不是静默出坏包。
+  VS props、CMake 架构识别、Skia 目录映射、文档支持范围）；实施时不做真机验证
+  （无设备）。缺 arm64 预编译依赖时给出明确错误，而不是静默出坏包。
+  2026-10-28/29 已补齐编译、出包与包测试，仅运行验证仍未做（见 §2 表）。
 
 约束：
 
@@ -28,10 +29,13 @@
 | Common Controls manifest | 本次补齐 `duilib.arm64.manifest`，随包并在 VS 工程中嵌入 |
 | CMake / MSBuild 架构识别 | 本次补齐 ARM64 识别与 manifest 选择 |
 | Skia 目录 | 映射 `llvm.arm64.release` / `llvm.arm64.debug`（DLL 模式 `.md` / `.mdd`）；目录缺失时报错 |
-| CEF | 上游无 Windows arm64 预编译包，`--with-cef --arch arm64` 明确报错退出 |
-| libjpeg-turbo | 无 arm64 预编译静态库，打包告警并跳过 |
+| CEF | arm64 预编译包已入库：CEF142 与 CEF109 的 arm64 包均已出并随包收集（2026-10-28/29）；运行验证未做 |
+| libjpeg-turbo | arm64 预编译静态库已入库，`collect_jpeg_turbo()` 收集 `libjpeg-turbo6-win-vc-arm64/lib/turbojpeg-static.lib`（2026-10-25） |
 | WebView2 / SDL3 | 沿用现有按架构探测；缺产物时保持现有告警/跳过语义 |
-| 真机编译、打包、运行验证 | **未做**（无测试设备），发布时不得声称已验证 |
+| 真机编译、打包、运行验证 | 编译、出包与 `sdk_package_test.py` 已完成（2026-10-28/29，静态与 DLL、CEF142/CEF109）；**运行验证未做**（无 Windows on ARM 设备），发布时不得声称运行已验证 |
+
+> 2026-10-29 更新：上表 CEF、libjpeg-turbo、真机验证三行按实际进展修订，
+> §2.1 的实施记录保留原貌（其中“arm64 报错/跳过”的描述对应当初的依赖状态）。
 
 ### 2.1 具体改动
 

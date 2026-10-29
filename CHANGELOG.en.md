@@ -173,13 +173,25 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `test_sdk_package`/`test_autotest`/`autotest` all pass; `pack.py --with-cef`
   fails fast as expected (CEF is not supported on FreeBSD). See
   `build/test-matrix.md` §4 for the matrix and results.
+- Windows example packages now get an in-package startup smoke test (C10), first
+  run on 2026-10-29 across five packages: the x64 Release static CEF package
+  (`win-x64-cef-examples.zip`, 1318 entries / 328.2 MB), the SDL package
+  (`win-x64-sdl-cef-examples.zip`, 1398 / 352.9 MB), the no-CEF package
+  (`win-x64-examples.zip`, 764 / 121.8 MB), and the x64 Debug/Release DLL + SDL +
+  CEF packages (`...-dll-debug.zip` 1398 / 219.6 MB, `...-dll.zip` 1398 / 210.1 MB).
+  Every package passes `pack.py --verify` with all SHA256 values matching, and
+  `sdk_package_test.py --scenarios C10 --run-examples` reports
+  `[PASS] C10 examples.smoke` (`bin/basic.exe` is still running after 3 seconds).
+  The static baseline was restored after the DLL runs and `bin/duilib*.dll` was
+  removed automatically.
 
 ### Removed
 
 - `build/build.md`; its content moved into `build/build-reference.md`.
-- Legacy per-platform build scripts are archived under `build/legacy/` (not part of
-  the build; the new entry point is verified on all four platforms and the
-  scripts will be deleted in a later cleanup).
+- Removed the legacy per-platform build scripts (`build_duilib_all_in_one.*`,
+  `msvc_build.bat`, `linux_build.sh`, `macos_build.sh`, `freebsd_build.sh`,
+  `msys2_build.sh`, ...) on 2026-10-29 after all four platforms were verified with
+  the new entry point; use `build/build.py` (`build/build.bat` on Windows).
 
 ### Fixed
 

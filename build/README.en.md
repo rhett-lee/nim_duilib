@@ -23,9 +23,8 @@ and troubleshooting, see [build-reference.en.md](build-reference.en.md)
 | `examples.sln` / `examples_no_cef.sln` | Visual Studio solutions (library + examples) |
 | `README.md` / `README.en.md` | this document |
 
-The legacy per-platform scripts are archived under `legacy/` (not part of the
-build, to be deleted; Windows, Linux, macOS and FreeBSD are all verified); use
-`python3 build/build.py`.
+The legacy per-platform scripts were deleted on 2026-10-29 (all four platforms are
+verified with the new entry point); use `python3 build/build.py`.
 
 ## Prerequisites
 

@@ -23,5 +23,8 @@
 
 - [x] P2-1 标注「自动化已完成、CI 不做」。
 - [x] P2-4 标注「接入文件与产物结构就绪；未做真机编译/打包/运行验证；CEF/JPEG 不适用」。
+- [x] 2026-10-29 回填：arm64 编译、出包（静态/DLL、CEF142/CEF109）与包测试已完成，
+      仅运行验证未测；CEF/JPEG 的 arm64 预编译包已入库，原「不适用」结论撤销
+      （见 `spec.md` §2 更新说明与 `docs/misc/Packaging-Follow-Up-Items.md` P2-4）。
 - [x] `build/README(.en).md` 有 `autotest.py` 用法与安全说明。
 - [x] 更新记录有新条目。

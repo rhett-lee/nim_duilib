@@ -383,7 +383,8 @@
      见 `cmake/duilib_root_options.cmake`），另含 i18n、两阶段环境预检与依赖准备
      （`DUILIB_DEPS_MODE=off/prepare/auto`）。
   2. 动作 3：旧分平台脚本（`build/msvc_build.bat`、`linux_build.sh`、`macos_build.sh`、
-     `freebsd_build.sh`）已归档到 `build/legacy/`，统一入口为 `python build/build.py`
+     `freebsd_build.sh`）先归档到 `build/legacy/`（2026-10-24），四平台验证新入口后
+     已于 2026-10-29 删除；统一入口为 `python build/build.py`
      （`build\build.bat` 为薄封装），编排逻辑下沉到根工程与 `cmake/`，命令行行为等价。
   3. 动作 2：**不新增 `install()`/`export()`**（决策 D-8）——SDK 包的接入层
      （`packaging/cmake/nim_duilibConfig.cmake`、`packaging/msvc/nim_duilib.props|.targets`）
@@ -449,7 +450,7 @@
 - [x] **CM-12** 平台判据统一（`APPLE` → `Darwin`）　｜ 极低 ｜ 完成日期：2026-10-20
 - [x] **CM-13** Linux / FreeBSD 的 freetype+fontconfig 处理统一　｜ 低 ｜ 完成日期：2026-10-20（Linux/FreeBSD 实机验证 2026-10-25/29）
 - [~] **CM-14** SDL include 路径上收到公共模块　｜ 不处理（2026-10-20 按反馈退回，保持现状，见 CM-14 小节）
-- [x] **CM-15** 硬编码路径清理（WebView2 / manifest / macOS CEF_ROOT）　｜ 低（macOS 实机验证待补）｜ 完成日期：2026-10-20
+- [x] **CM-15** 硬编码路径清理（WebView2 / manifest / macOS CEF_ROOT）　｜ 低（macOS 实机验证 2026-10-28）｜ 完成日期：2026-10-20
 - [x] **CM-16** 小项合集（6 条）　｜ 低 ｜ 完成日期：2026-10-20
 
 **四、现代化**
@@ -624,7 +625,7 @@
 | `cmake/duilib_root_options.cmake`（新增） | **CM-22** 平台/编译器/架构识别、`DUILIB_BUILD_THIRD_PARTY` / `DUILIB_BUILD_EXAMPLES` / `DUILIB_ENABLE_CEF` / `DUILIB_ENABLE_SDL` / `DUILIB_EXAMPLES` / `DUILIB_DLL`、依赖目录与版本清单、rpath、MSVC 运行库 |
 | `cmake/duilib_deps.cmake`、`cmake/duilib_deps_run.cmake`、`cmake/duilib_preflight*.cmake`（新增） | **CM-22** 依赖准备（`DUILIB_DEPS_MODE=off/prepare/auto`、`duilib_deps` 目标）与两阶段环境预检 |
 | `build/build.py`（新增）与 `build/build.bat`（薄封装） | **CM-22** 统一命令入口（`build`/`deps`/`test`/`pack`/`doctor`/`clean`），替代逐库、逐示例单独配置 |
-| `build/legacy/`（新增归档目录） | **CM-22** 旧分平台脚本（`msvc_build.bat`、`linux_build.sh`、`macos_build.sh`、`freebsd_build.sh`、`msys2_build.sh`、MinGW 脚本等）整体归档，不再参与构建 |
+| `build/legacy/`（2026-10-24 归档、2026-10-29 删除） | **CM-22** 旧分平台脚本（`msvc_build.bat`、`linux_build.sh`、`macos_build.sh`、`freebsd_build.sh`、`msys2_build.sh`、MinGW 脚本等）整体归档后移除，不再参与构建 |
 | （`install()`/`export()` 未添加） | **CM-22** 按决策 D-8 保持不做，SDK 安装语义由 `build/pack.py` 与 `packaging/` 模板承担 |
 
 **验收证据**

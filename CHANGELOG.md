@@ -136,12 +136,22 @@
   示例启动）与 `doctor`/`test`/`test_build`/`test_pack`/`test_sdk_package`/
   `test_autotest`/`autotest` 全部通过；`pack.py --with-cef` 按预期报错
   （FreeBSD 不支持 CEF）。测试矩阵与结论见 `build/test-matrix.md` §4。
+- Windows 示例包的包内启动冒烟（C10）已覆盖 5 个包（2026-10-29）：x64 Release 的
+  静态 CEF 包（`win-x64-cef-examples.zip`，1318 条目 / 328.2 MB）、SDL 包
+  （`win-x64-sdl-cef-examples.zip`，1398 / 352.9 MB）、无 CEF 包
+  （`win-x64-examples.zip`，764 / 121.8 MB），以及 x64 Debug/Release 的 DLL + SDL +
+  CEF 包（`...-dll-debug.zip` 1398 / 219.6 MB、`...-dll.zip` 1398 / 210.1 MB）。
+  各包 `pack.py --verify` SHA 全匹配，`sdk_package_test.py --scenarios C10
+  --run-examples` 均为 `[PASS] C10 examples.smoke`（`bin/basic.exe` 启动 3 秒后仍在
+  运行）；DLL 回归后已恢复静态构建并清理 `bin/duilib*.dll`。
 
 ### 移除
 
 - 删除 `build/build.md`，构建说明合并到 `build/build-reference.md`。
-- 旧分平台构建脚本归档到 `build/legacy/`（不再参与构建，四个平台均已验证新入口，
-  待后续清理时删除）。
+- 删除旧的分平台构建脚本（`build_duilib_all_in_one.*`、`msvc_build.bat`、
+  `linux_build.sh`、`macos_build.sh`、`freebsd_build.sh`、`msys2_build.sh` 等）：
+  四个平台均已验证新入口后于 2026-10-29 移除，统一使用 `build/build.py`
+  （Windows 可用 `build/build.bat`）。
 
 ### 修复
 

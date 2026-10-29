@@ -155,7 +155,7 @@
 
 #### P0-3 接入层端到端验证
 
-- [~] Windows x64、x86（Debug、Release）、MSYS2 UCRT64/CLANG64/MINGW64
+- [x] Windows x64、x86（Debug、Release）、MSYS2 UCRT64/CLANG64/MINGW64
   与 MSVC DLL 模式（x64/x86 × Debug/Release）已完成（2026-10-24）；
   Linux、macOS、FreeBSD 的包测试（含下游 CMake 工程与示例运行）已于 2026-10-28/29 通过。
 - 已完成：
@@ -272,8 +272,10 @@
   `.dll` 条目 `0755`、`.lib` 条目 `0644`，`zip` 可完整解压；
   Linux、FreeBSD 侧已真机出包（FreeBSD Release/Debug，2026-10-29；Linux 2026-10-28），
   符号链接与权限位逻辑随包生效，示例程序可直接执行；
-  macOS 侧仍以构造用例验证（zip 写 `S_IFLNK` 条目、tar 写 `SYMTYPE`，
-  链接目标与模式均正确）。
+  macOS 侧真实包已验证：2026-10-28 的 `--run-examples` 从解包产物直接启动
+  `basic.app`（首次因解包丢可执行位失败，修复后通过并补 5 项单元测试）；
+  构造用例（zip 写 `S_IFLNK` 条目、tar 写 `SYMTYPE`，链接目标与模式均正确）
+  继续覆盖归档层。
 
 #### P1-2 可复现构建
 
@@ -335,7 +337,10 @@
 - 验收：带 CEF 的 Windows/Linux 示例程序在干净机器上无需额外拷贝即可启动；
   `chrome-sandbox` 的可执行权限正确；macOS 按手动配置流程验证。
   Windows 侧已满足运行时随包（`--with-cef --list`：x64 latest 235 个、109 个 69 个
-  运行时文件；x86 latest 233 个，且不含任何 `.lib`）；示例程序尚未构建，运行验证待补。
+  运行时文件；x86 latest 233 个，且不含任何 `.lib`）；示例程序已在
+  W-P01～W-P09 等示例包内构建完成。**包内示例启动（C10）已于 2026-10-29 验证**：
+  x64 Release 的静态 CEF 包、SDL 包、无 CEF 包与 x64 Debug/Release 的 DLL 包
+  五个示例包全部 `[PASS] C10 examples.smoke`（见 P3-1）。
   Linux 侧由 `test_pack.py` 的 `CefLinuxPackagingTest` 覆盖收集、元数据、MANIFEST
   与拒绝场景（5 个用例）；真机出包已验证（Release，含 `--with-cef` 与
   `--with-examples` 组合，2026-10-25），解包后示例运行已于 2026-10-28 的
@@ -482,13 +487,75 @@
 - 重新评估条件：多程序共享同一份库、插件热更新、分发包体积或链接时间有明确收益，
   或下游明确要求动态库形态。
 
+### P3：本轮剩余跟进项（2026-10-29）
+
+> 建立依据：对 P0～P2 的逐项复核。功能与验证层面只剩以下 6 项，其余条目均已
+> `[x]`，或按决策 `[-]` / `[~]` 关闭。截至 2026-10-29 收盘，P3-1 与 P3-4 已完成，
+> 剩余 P3-2、P3-3、P3-5、P3-6。
+
+#### P3-1 Windows 示例包的包内启动冒烟（C10）
+
+- [x] 已完成（2026-10-29）：五个示例包的包内启动（C10）全部通过
+  （覆盖静态/SDL/无 CEF 与 DLL 的 Debug/Release）。
+  - W-P04（x64 Release + CEF，1318 条目 / 328.2 MB）：
+    `nim_duilib-1.0.2026.1023-win-x64-cef-examples.zip`；
+  - W-P09（+SDL，1398 条目 / 352.9 MB）：
+    `...-win-x64-sdl-cef-examples.zip`；
+  - W-P10（无 CEF，764 条目 / 121.8 MB）：`...-win-x64-examples.zip`；
+  - W-P18（x64 Debug DLL + SDL + CEF，1398 条目 / 219.6 MB）：
+    `...-win-x64-sdl-cef-examples-dll-debug.zip`（`duilib_d.dll` 36,236,800 B）；
+  - W-P19（x64 Release DLL + SDL + CEF，1398 条目 / 210.1 MB）：
+    `...-win-x64-sdl-cef-examples-dll.zip`（`duilib.dll` 13,602,816 B）。
+  每个包均先 `pack.py --verify`（SHA 全匹配），再
+  `sdk_package_test.py --scenarios C10 --run-examples`，结果均为
+  `[PASS] C10 examples.smoke`（`bin/basic.exe` 启动 3 秒后仍在运行，
+  PASS=1 / FAIL=0 / SKIP=0）；证据已回填 `build/test-matrix.md` §2/§7。
+  DLL 回归后已执行 DLL → 静态恢复构建（`bin/duilib*.dll` 由 `build.py` 自动清理）。
+
+#### P3-2 x86 + SDL3 出包组合
+
+- [ ] 为 SDL3 构建 x86 静态库，补 `pack.py --arch x86 --with-sdl --with-examples`
+  的出包与 `--verify`。现状：`../SDL3` 只有 x64 的 `SDL3-static.lib`（见 P0-1
+  「未覆盖」与 `build/test-matrix.md` 中 W-P 组合的空格）。完成后 P0-1 可改为 `[x]`。
+
+#### P3-3 `build/` 脚本控制台输出英文化
+
+- [ ] 按 `docs/misc/specs/English-Console-Output/tasks.md` 的 T1～T7 执行
+  （`pack.py`、`release.py`、`autotest.py`、两个 `.sh`，并同步测试断言）。
+  现状：T1～T7 全部未勾选；`build/pack.py:389` 等处仍输出中文 `[ERROR]`，
+  `autotest.py` 的预设说明仍为中文，纯英文环境会显示乱码/方块。
+- 约束：只改运行期输出，注释、docstring 与 `MANIFEST.txt` 内容保持中文。
+
+#### P3-4 `build/legacy/` 旧脚本清理
+
+- [x] 已完成（2026-10-29）：删除 `build/legacy/` 下 11 个旧脚本
+  （`build_duilib_all_in_one.*`、`msvc_build.bat`、`linux_build.sh`、`macos_build.sh`、
+  `freebsd_build.sh`、`msys2_build.sh`、MinGW/VS 辅助脚本）；`README.md` / `README.en.md`、
+  `build/README*.md`、`build/build-reference*.md`、`CHANGELOG*.md` 与本文档同步为
+  「已删除」，仓库内已无对该目录的引用。
+
+#### P3-5 `release.py` 全流程演练
+
+- [ ] 发版前完整执行 `check → package → finalize → clean --list` 并记录结果。
+  现状：`build/test_*.py` 没有 release 相关的自动化用例，文档只给出步骤
+  （P0-5 的验收未附执行记录）。
+
+#### P3-6 许可合规遗留项
+
+- [ ] 处理 `docs/misc/License-Compliance.md`「遗留事项」的 4 条（第 72–79 行）：
+  新增随包组件的许可同步（已写入 `Release-Checklist.md` 第 22 行，随发版执行）、
+  启用 libpag 时的第三方许可、`bin/resources` 素材来源与授权、
+  CEF `LICENSES.chromium.html` 的体积评估。性质为发布前检查项，不影响当前出包。
+
 ## 四、建议推进顺序
 
-1. P0-1 全矩阵与 P0-3 接入层冒烟（含真实 MSYS2 环境），同步修复 P1-1 归档语义；
-2. P0-5 发布 checklist；
-3. P1 其余项（优先 P1-3 CEF 运行时）、P2 长期项按版本节奏推进。
+1. P3-1 Windows 示例包 C10 冒烟已完成（2026-10-29：五个示例包全部通过）；
+2. P3-2 x86 SDL3 库与出包组合，关闭 P0-1 的最后一个空格；
+3. P3-3 脚本控制台英文化（P3-4 的 `build/legacy/` 清理已于 2026-10-29 完成）；
+4. 发版前执行 P3-5 `release.py` 全流程演练与 P3-6 许可合规遗留核对。
 
-> P0-2 已改为实施（2026-10-25）；P0-4 已明确关闭，不再排期。
+> P0-2 已实施（2026-10-25）；P0-1 仅剩 x86 SDL 组合；P0-3、P0-5、P1、P2 均已
+> 收口；P0-4、P2-5 已明确关闭，不再排期。
 
 ## 五、更新记录
 
@@ -558,3 +625,7 @@
 | 2026-10-29 | P2-3 完成：新增双语 `docs/Deployment.md` / `Deployment.en.md`（安装、升级、迁移、运行期部署与 FAQ），并入 `docs/Summary*.md` 索引，作为顶层文档随包收录；包内 `MANIFEST.txt` 仍是权威清单 |
 | 2026-10-29 | libjpeg-turbo 3.2.x 静态库与 duilib-zlib 的 `z_errmsg` 符号冲突（LNK2005）：duilib-zlib 增加 `z_errmsg=duilib_z_errmsg` 编译宏（CMake 与 VS 两套构建），最小工程同链 `turbojpeg-static.lib` 验证通过 |
 | 2026-10-29 | FreeBSD x64 全量实测通过：Release/Debug 构建、4 个出包（默认 SDK 与 `--with-examples`）、4 次 `sdk_package_test.py`（含两次 `--run-examples` 的 C10 示例启动）与全部脚本测试（`doctor`/`test`/`test_build`/`test_pack`/`test_sdk_package`/`test_autotest`/`autotest`）通过；`pack.py --with-cef` 按预期报错。此前“FreeBSD Debug 与示例运行未测、不跟进”的结论已撤销，P0-1/P0-3 的 FreeBSD 缺口关闭 |
+| 2026-10-29 | 剩余跟进项收敛为 P3-1～P3-6（Windows 示例包 C10 冒烟、x86 SDL3 出包、脚本控制台英文化、`build/legacy/` 清理、`release.py` 全流程演练、许可合规遗留）；P0-3 改为完成；修正 P1-1 macOS 与 P1-3 Windows 的过期表述，建议推进顺序改为按 P3 排期 |
+| 2026-10-29 | P3-4 完成：删除 `build/legacy/` 下 11 个旧分平台脚本（`build_duilib_all_in_one.*`、`msvc_build.bat`、`linux_build.sh`、`macos_build.sh`、`freebsd_build.sh`、`msys2_build.sh` 与 MinGW/VS 辅助脚本）；`README(.en).md`、`build/README(.en).md`、`build/build-reference(.en).md`、`CHANGELOG(.en).md` 与 `CMake-Improvement-Plan.md` 统一改为「已删除」，仓库中无残留引用 |
+| 2026-10-29 | P3-1 部分完成：Windows 首次执行包内示例启动（C10）。x64 Release + CEF 示例包 `nim_duilib-1.0.2026.1023-win-x64-cef-examples.zip`（1318 条目 / 328.2 MB）`--verify` SHA 全匹配，`sdk_package_test.py --scenarios C10 --run-examples` 报 `[PASS] C10 examples.smoke`（`bin/basic.exe` 启动 3 秒后仍在运行，PASS=1 / FAIL=0 / SKIP=0）；SDL、DLL、无 CEF 三个变体待补 |
+| 2026-10-29 | P3-1 完成：补齐 SDL、无 CEF 与 DLL 组合，五个示例包的 C10 全部通过 —— `win-x64-sdl-cef-examples.zip`（1398 条目 / 352.9 MB）、`win-x64-examples.zip`（764 / 121.8 MB）、`win-x64-sdl-cef-examples-dll.zip`（1398 / 210.1 MB）、`win-x64-sdl-cef-examples-dll-debug.zip`（1398 / 219.6 MB），四包 `--verify` SHA 全匹配、C10 均 `[PASS]`；DLL 回归后已恢复静态构建并自动清理 `bin/duilib*.dll` |
