@@ -6,13 +6,13 @@
   },
   "skiaCompileRepo": "https://github.com/rhett-lee/skia_compile.git",
   "skia": {
-    "default": "6f559bafbed4c8323a899df4008aa073df4eccc6",
+    "default": "e46ba84356043800523c401eaec9ecfd5cb67539",
     "repo": "https://github.com/google/skia.git",
     "refs": {
-      "6f559bafbed4c8323a899df4008aa073df4eccc6": {
+      "e46ba84356043800523c401eaec9ecfd5cb67539": {
         "type": "commit",
-        "value": "6f559bafbed4c8323a899df4008aa073df4eccc6",
-        "patchZip": "skia.2026-09-16.src.zip"
+        "value": "e46ba84356043800523c401eaec9ecfd5cb67539",
+        "patchZip": "skia.2026-10-30.src.zip"
       },
       "chrome/m142": {
         "type": "branch",
