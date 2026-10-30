@@ -216,6 +216,12 @@
 
 ### 修复
 
+- 依赖准备（Skia 升级）：本地 Skia 源码仍带着旧版本补丁在工作区里的修改时，
+  `git checkout` 会因“本地修改将被检出操作覆盖”直接失败（依赖准备中断）。
+  `cmake/duilib_deps_run.cmake` 在切换版本、重新解压补丁前先用 `git stash` 保存
+  已跟踪文件的修改（不再 `reset --hard` / `clean -fd`），用户的手工修改与未跟踪
+  脚本都不会被删除，需要时可用 `git stash list` / `git stash pop` 找回；补丁随后
+  从归档重新应用。
 - 构建消息语言（中文环境）：`cmake/duilib_i18n.cmake` 被根 CMakeLists、preflight、
   deps 等重复 include 时，文件开头的默认值 `DUILIB_I18N_LANG=en` 会覆盖已解析的
   `zh_CN`，导致 `project()` 之后的配置与依赖准备消息（含新增的补丁校验提示）全变成

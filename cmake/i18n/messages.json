@@ -212,6 +212,10 @@
       "en": "[deps] local source is not at the manifest ref, switching",
       "zh_CN": "[deps] 本地源码与版本清单不一致，正在切换"
     },
+    "deps.git_stash_local": {
+      "en": "[deps] local modifications in the dependency source are saved to git stash, not discarded (run 'git -C {repo} stash list' to review them; the patch is re-applied from the archive)",
+      "zh_CN": "[deps] 依赖源码中的本地修改已保存到 git stash（不会丢弃；可用 'git -C {repo} stash list' 查看；补丁会从归档重新应用）"
+    },
     "deps.retry": {
       "en": "[deps] {what} failed (attempt {attempt}), retrying in {delay}s",
       "zh_CN": "[deps] {what} 失败（第 {attempt} 次），{delay} 秒后重试"

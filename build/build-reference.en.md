@@ -149,8 +149,12 @@ The Skia patch archive ships with the repository in `build/skia_patch/` (set by 
 belongs to. `build.py deps` (and the default `build`) as well as the CMake dependency
 script verify that `SHA1.txt` matches `skia.default` in the manifest and stop with an
 error when it does not, so a patch never gets applied to the wrong Skia revision. A
-changed patch makes the matching Skia artifacts rebuild. This step needs no network
-access and no longer clones an external patch repository; when the archive is missing,
+changed patch makes the matching Skia artifacts rebuild. Before switching to the commit
+pinned by the manifest, or before re-extracting the patch, the dependency script saves
+tracked modifications in the `skia/` working tree with `git stash` (the previous patch's
+edits are never deleted); recover them with `git stash list` / `git stash pop` if
+needed. This step needs no network access and no longer clones an external patch
+repository; when the archive is missing,
 restore it with `git checkout -- build/skia_patch` (a build with existing Skia
 artifacts only warns instead of failing). `doctor` reports whether the archive exists
 and whether its SHA1 matches the manifest.

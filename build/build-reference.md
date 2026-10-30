@@ -134,7 +134,10 @@ Skia 的补丁归档随仓库提交，位于 `build/skia_patch/`（由清单 `sk
 归档内的 `SHA1.txt` 记录它对应的 Skia 提交。`build.py deps`（以及默认的 `build`）
 与 CMake 依赖脚本在使用前都会校验 `SHA1.txt` 与清单 `skia.default` 是否一致，
 不一致时直接报错，避免用错版本的补丁编译。补丁内容变化会让对应的 Skia 产物
-重新编译。这一步不需要联网，也不再克隆外部补丁仓库；归档缺失时用
+重新编译。切换到清单指定的提交、或重新解压补丁之前，依赖脚本会先用 `git stash`
+保存 `skia/` 工作区里已跟踪文件的修改（旧版本补丁的改动不会被删除），需要时可用
+`git stash list` / `git stash pop` 找回。这一步不需要联网，也不再克隆外部补丁
+仓库；归档缺失时用
 `git checkout -- build/skia_patch` 恢复（仅有 Skia 产物、无需重建时只告警，不中断）。
 `doctor` 会显示归档是否存在、SHA1 是否与清单一致。
 

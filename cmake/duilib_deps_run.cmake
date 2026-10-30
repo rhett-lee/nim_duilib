@@ -426,7 +426,40 @@ endfunction()
 # branch 要求当前就在该分支上（不主动追远端新提交，避免每次全量重编依赖）。
 # 本地仓库停在别的分支（如 SDL 源码停在 main）时，stamp 只记录 ref 名称会把
 # “用错版本编译出来的库”当成清单版本的产物复用，因此这里必须先对齐。
+# 依赖源码树由 deps 管理（Skia 的补丁从归档重新应用），切换版本前把本地修改存进
+# git stash：旧版本的补丁直接改在工作区，不先保存会让 git checkout 因“本地修改
+# 将被覆盖”而失败。用 stash 而不是 reset --hard / clean，避免用户手工修改（以及
+# 未跟踪的辅助脚本）被删除，需要时可用 'git stash pop' 找回。
+function(_duilib_git_stash_local repo label)
+    # 只看已跟踪文件的修改（--untracked-files=no）：未跟踪文件不会被 checkout 覆盖，
+    # 且 stash 不带 -u 时也不会被保存，无需为此提示或改动工作区。
+    execute_process(COMMAND git -C "${repo}" status --porcelain --untracked-files=no
+                    OUTPUT_VARIABLE _porcelain
+                    ERROR_QUIET RESULT_VARIABLE _rc)
+    if(NOT _rc EQUAL 0 OR "${_porcelain}" STREQUAL "")
+        return()
+    endif()
+    duilib_t("deps.git_stash_local" _what)
+    string(REPLACE "{repo}" "${repo}" _what "${_what}")
+    message(STATUS "${_what}")
+    string(TIMESTAMP _now "%Y-%m-%d %H:%M:%S")
+    # 只暂存已跟踪文件的修改：未跟踪文件（补丁自带的 gn/is_mingw.py 等、用户自己的
+    # 脚本）留在工作区，不会被删除；补丁自带的部分随后由归档重新解压刷新。
+    execute_process(COMMAND git -C "${repo}" stash push
+                    --message "duilib-deps auto-stash ${label} ${_now}"
+                    OUTPUT_VARIABLE _stash_out ERROR_VARIABLE _stash_err
+                    RESULT_VARIABLE _stash_rc)
+    if(NOT _stash_rc EQUAL 0)
+        duilib_error_values("cannot stash local changes in ${repo}"
+                            "clean the working tree manually, or re-clone the repository")
+    endif()
+endfunction()
+
 function(_duilib_ensure_git_ref repo ref_type ref_value label)
+    set(_stash_local FALSE)
+    if(ARGC GREATER 4 AND ARGV4)
+        set(_stash_local TRUE)
+    endif()
     if(NOT EXISTS "${repo}/.git")
         return()
     endif()
@@ -438,6 +471,9 @@ function(_duilib_ensure_git_ref repo ref_type ref_value label)
         if(_rc EQUAL 0 AND _current STREQUAL ref_value)
             return()
         endif()
+        if(_stash_local)
+            _duilib_git_stash_local("${repo}" "${label}")
+        endif()
         # 本地已有该分支（或远端跟踪分支）时直接切过去，不必联网
         _duilib_git_resolve("${repo}" "refs/heads/${ref_value}^{commit}" _local)
         _duilib_git_resolve("${repo}" "refs/remotes/origin/${ref_value}^{commit}" _remote)
@@ -447,7 +483,7 @@ function(_duilib_ensure_git_ref repo ref_type ref_value label)
                             RESULT_VARIABLE _rc)
             if(NOT _rc EQUAL 0)
                 duilib_error_values("cannot switch ${repo} to branch ${ref_value}"
-                                    "clean the working tree or re-clone the repository")
+                                    "tracked changes are already saved to git stash; remove the untracked files listed above (or run 'git -C ${repo} stash --include-untracked'), then retry")
             endif()
             return()
         endif()
@@ -457,7 +493,7 @@ function(_duilib_ensure_git_ref repo ref_type ref_value label)
                             RESULT_VARIABLE _rc)
             if(NOT _rc EQUAL 0)
                 duilib_error_values("cannot switch ${repo} to branch ${ref_value}"
-                                    "clean the working tree or re-clone the repository")
+                                    "tracked changes are already saved to git stash; remove the untracked files listed above (or run 'git -C ${repo} stash --include-untracked'), then retry")
             endif()
             return()
         endif()
@@ -475,7 +511,7 @@ function(_duilib_ensure_git_ref repo ref_type ref_value label)
                         RESULT_VARIABLE _rc)
         if(NOT _rc EQUAL 0)
             duilib_error_values("cannot switch ${repo} to branch ${ref_value}"
-                                "clean the working tree or re-clone the repository")
+                                "tracked changes are already saved to git stash; remove the untracked files listed above (or run 'git -C ${repo} stash --include-untracked'), then retry")
         endif()
         return()
     endif()
@@ -489,6 +525,9 @@ function(_duilib_ensure_git_ref repo ref_type ref_value label)
     endif()
     if(NOT _expected STREQUAL "" AND _head STREQUAL _expected)
         return()
+    endif()
+    if(_stash_local)
+        _duilib_git_stash_local("${repo}" "${label}")
     endif()
     if(NOT _expected STREQUAL "")
         # 目标提交已在本地：直接切过去，不必联网（离线同样可用）
@@ -509,7 +548,7 @@ function(_duilib_ensure_git_ref repo ref_type ref_value label)
                     RESULT_VARIABLE _rc)
     if(NOT _rc EQUAL 0)
         duilib_error_values("cannot switch ${repo} to ${ref_value}"
-                            "clean the working tree or re-clone the repository")
+                            "tracked changes are already saved to git stash; remove the untracked files listed above (or run 'git -C ${repo} stash --include-untracked'), then retry")
     endif()
 endfunction()
 
@@ -619,8 +658,10 @@ function(duilib_prepare_skia)
                       "${DUILIB_SKIA_REPO}" "${DUILIB_SKIA_ROOT}")
     else()
         # commit / tag / branch 统一按清单对齐工作区（HEAD 已一致时不联网）
+        # 最后一个参数：切换前把工作区里的本地修改存进 git stash（旧版本补丁留下
+        # 的脏工作区，不保存会让 checkout 失败；保存后可用 stash pop 找回）
         _duilib_ensure_git_ref("${DUILIB_SKIA_ROOT}" "${DUILIB_SKIA_REF_TYPE}"
-                               "${DUILIB_SKIA_REF_VALUE}" "Skia")
+                               "${DUILIB_SKIA_REF_VALUE}" "Skia" TRUE)
     endif()
 
     # 补丁包：需要重建时确认归档存在并校验 SHA-1
@@ -635,6 +676,10 @@ function(duilib_prepare_skia)
         if(_applied AND _stamp_old STREQUAL _patch_key)
             message(STATUS "[deps] Skia patch already applied, skip extraction")
         else()
+            # 补丁内容变化（或需要重新应用）时先把源码树还原干净：旧补丁留在工作区
+            # 里的修改会与新补丁叠加成混合状态。这里同样用 git stash 保存（不删除），
+            # 用户叠加在旧补丁之上的手工修改需要时可用 'git stash pop' 找回。
+            _duilib_git_stash_local("${DUILIB_SKIA_ROOT}" "Skia")
             if(NOT _applied)
                 message(STATUS "[deps] Skia patch missing in source tree, re-applying")
             endif()

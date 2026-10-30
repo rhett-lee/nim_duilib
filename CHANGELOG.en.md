@@ -277,6 +277,13 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Fixed
 
+- Dependency preparation (Skia upgrade): when the local Skia checkout still carried the
+  previous patch's edits, `git checkout` aborted with "Your local changes to the
+  following files would be overwritten by checkout" and dependency preparation stopped.
+  `cmake/duilib_deps_run.cmake` now saves tracked modifications with `git stash` before
+  switching the ref or re-extracting the patch (instead of `reset --hard` / `clean -fd`),
+  so manual edits and untracked scripts are never deleted and can be recovered with
+  `git stash list` / `git stash pop`; the patch is then re-applied from the archive.
 - Build messages (Chinese locale): `cmake/duilib_i18n.cmake` is included several times
   (root CMakeLists, preflight, deps). The file reset `DUILIB_I18N_LANG` to `en` on every
   include, overwriting the already-resolved `zh_CN`, so configuration and dependency
