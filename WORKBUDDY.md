@@ -8,9 +8,10 @@
 | 事项 | 位置 / 命令 |
 |------|-------------|
 | 首次拉取源码后的依赖库预编译 | `python3 build/build.py deps` |
-| WorkBuddy 专用 Skill | `.workbuddy\skills\nim-duilib\`（项目级）、`~/.workbuddy/skills/nim-duilib\`（用户级） |
+| WorkBuddy 专用 Skill | `.workbuddy\skills\nim-duilib\`（项目级）、`~/.workbuddy/skills/nim-duilib\`（用户级）；CEF 升级另见 `nim-duilib-cef-upgrade` |
 | 新建窗口骨架 | Skill 的 `assets/templates/`：CMakeLists.txt + MyForm.h + MyForm.cpp + my_form.xml |
 | 改文档后自检 | `python3 .workbuddy/skills/nim-duilib/scripts/verify_docs.py --repo .` |
+| CEF 版本升级 / 升级后自检 | `.workbuddy\skills\nim-duilib-cef-upgrade\`（SKILL.md + `scripts/cef_bridge_probe.py`） |
 | 只验证 C++ 语法（不链接） | `cl.exe /Zs ...`（见第 6 节） |
 
 ---
@@ -108,6 +109,40 @@ python3 .workbuddy/skills/nim-duilib/scripts/verify_docs.py --repo <仓库根> -
 `scripts/verify_allowlist.txt`，每行格式为 `<glob> :: 名字1 名字2 ...`，`glob` 留空表示对所有文件生效。
 
 **不要把豁免写成文档里的 HTML 注释** —— 注释会破坏 markdown 正文结构。
+
+### 3.5 第二个项目级 Skill：`nim-duilib-cef-upgrade`
+
+CEF（libcef）依赖升级的专用手册，把 142 → 156 的实战步骤与坑固化下来：
+
+```
+.workbuddy/skills/nim-duilib-cef-upgrade/
+├── SKILL.md                    # 升级步骤、5 处仓库本地补丁、验证清单、坑表、新版本预检
+└── scripts/cef_bridge_probe.py # JS 桥端到端探针（DevTools 协议，无第三方依赖）
+```
+
+- **触发**：提到“升级 CEF / libcef 版本”“deps 运行时版本不对”“wrapper 编译或链接失败”
+  “CefRegisterExtension 找不到”等场景。
+- **同步**：仓库内 `.trae/` 与 `.workbuddy/` 两份必须同源，用户级再部署一份：
+
+  ```bash
+  # 1) 仓库内两份保持同源（改完任何一份都要执行）
+  cp -r .trae/skills/nim-duilib-cef-upgrade/. .workbuddy/skills/nim-duilib-cef-upgrade/
+  # 2) 部署到用户级
+  cp -r .workbuddy/skills/nim-duilib-cef-upgrade/. ~/.workbuddy/skills/nim-duilib-cef-upgrade/
+  ```
+
+- **升级后验证**：按 `SKILL.md` 第 9 节依次跑 `deps`、Release/Debug 构建、`build.py test`、
+  `doctor`、`git diff --check`；JS 桥用探针实测（`inspect` → `invoke` → 关闭模态框 → `read`）：
+
+  ```bash
+  Start-Process .\bin\cef.exe -ArgumentList '--remote-debugging-port=9335'
+  python .workbuddy/skills/nim-duilib-cef-upgrade/scripts/cef_bridge_probe.py --port 9335 inspect
+  python .workbuddy/skills/nim-duilib-cef-upgrade/scripts/cef_bridge_probe.py --port 9335 invoke
+  python .workbuddy/skills/nim-duilib-cef-upgrade/scripts/cef_bridge_probe.py --port 9335 read
+  ```
+
+`inspect` 应输出 `NimCefWebInstance` 为 `object`、`__nimCefNativeCall` 为 `function`；
+`read` 应输出 `[false,{"message":"Success."}]`。
 
 ---
 
@@ -245,8 +280,8 @@ cmake --build build/build_temp/hello_button --config Release
 | 目录 | 使用者 | 形态 |
 |------|--------|------|
 | `CLAUDE.md` + `.claude/docs` + `.claude/skills/*.md` | Claude Code | 扁平 md，靠注册脚本部署 |
-| `WORKBUDDY.md`（本文）+ `.workbuddy/skills/nim-duilib/` | WorkBuddy | `SKILL.md` + `references/`，语义触发、三级加载 |
-| `TRAE.md` + `.trae/skills/nim-duilib/` | TRAE | `SKILL.md` + `references/`，语义触发、frontmatter 路由 |
+| `WORKBUDDY.md`（本文）+ `.workbuddy/skills/nim-duilib/`、`nim-duilib-cef-upgrade/` | WorkBuddy | `SKILL.md` + `references/`，语义触发、三级加载 |
+| `TRAE.md` + `.trae/skills/nim-duilib/`、`nim-duilib-cef-upgrade/` | TRAE | `SKILL.md` + `references/`，语义触发、frontmatter 路由 |
 
 三份描述的是同一套框架事实，**修一份就要同步另外两份**，否则会重新出现文档与代码不一致
 （本项目历史上出现过 26 处）。`C++20`、`WindowImplBase` 位于 `duilib/Utils/WinImplBase.h`、

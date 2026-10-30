@@ -10,6 +10,7 @@
 |------|-------------|
 | 首次拉取源码后的依赖库预编译 | `python3 build/build.py deps` |
 | TRAE 专用 Skill | `.trae\skills\nim-duilib\`（项目级） |
+| CEF 版本升级 / 升级后自检 | `.trae\skills\nim-duilib-cef-upgrade\`（SKILL.md + `scripts/cef_bridge_probe.py`） |
 | 新建窗口骨架 | Skill 的 `assets/templates/`：CMakeLists.txt + MyForm.h + MyForm.cpp + my_form.xml |
 | 改文档后自检 | `python3 .trae/skills/nim-duilib/scripts/verify_docs.py --repo .` |
 | 只验证 C++ 语法（不链接） | `cl.exe /Zs ...`（见第 6 节） |
@@ -63,10 +64,11 @@ python3 build/build.py doctor          # 环境自检
 | 级别 | 路径 | 生效范围 |
 |------|------|----------|
 | 项目级 | `<仓库根>\.trae\skills\nim-duilib\` | 仅本仓库 |
+| 项目级（CEF 升级） | `<仓库根>\.trae\skills\nim-duilib-cef-upgrade\` | 仅本仓库，见 3.6 节 |
 
-TRAE 项目级 Skill 只有一份，无需像 WorkBuddy 那样在项目级与用户级之间双向同步。
-若需跨项目复用，可将 Skill 复制到用户级全局目录 `~/.trae-cn/skills/nim-duilib/`（CN 版）
-或 `~/.trae/skills/nim-duilib/`（国际版），但项目级是首选——它随仓库走，团队成员拉取即生效。
+TRAE 项目级 Skill 不需要用户级副本，无需像 WorkBuddy 那样在项目级与用户级之间双向同步。
+若需跨项目复用，可将 Skill 复制到用户级全局目录 `~/.trae-cn/skills/<skill 名>/`（CN 版）
+或 `~/.trae/skills/<skill 名>/`（国际版），但项目级是首选——它随仓库走，团队成员拉取即生效。
 
 ### 3.2 目录结构
 
@@ -125,6 +127,27 @@ python3 .trae/skills/nim-duilib/scripts/verify_docs.py --repo <仓库根> --extr
 `scripts/verify_allowlist.txt`，每行格式为 `<glob> :: 名字1 名字2 ...`，`glob` 留空表示对所有文件生效。
 
 **不要把豁免写成文档里的 HTML 注释** —— 注释会破坏 markdown 正文结构。
+
+### 3.6 第二个项目级 Skill：`nim-duilib-cef-upgrade`
+
+CEF（libcef）依赖升级的专用手册，把 142 → 156 的实战步骤与坑固化下来，与 WorkBuddy 端同名
+Skill 内容同源：
+
+```
+.trae/skills/nim-duilib-cef-upgrade/
+├── SKILL.md                    # 架构地图、升级步骤、5 处本地补丁、验证清单、坑表、新版本预检
+└── scripts/cef_bridge_probe.py # JS 桥端到端探针（DevTools 协议，无第三方依赖）
+```
+
+- **触发**：升级 CEF/libcef 版本、`deps` 运行时版本错配、wrapper 编译或链接失败、
+  `CefRegisterExtension` 等 API 被移除。
+- **同步**：`.trae/` 与 `.workbuddy/` 两份保持同源
+  （`cp -r .trae/skills/nim-duilib-cef-upgrade/. .workbuddy/skills/nim-duilib-cef-upgrade/`）；
+  Claude 端是扁平源 `.claude/skills/nim-duilib-cef-upgrade.md`，改完需重跑 `.claude/register.*` 部署。
+- **验证**：升级后按 `SKILL.md` 第 9 节跑 `deps`、Release/Debug 构建、`build.py test`、`doctor`、
+  `git diff --check`；JS 桥用探针 `inspect → invoke → 关闭模态框 → read` 实测，
+  期望 `NimCefWebInstance` 为 `object`、`__nimCefNativeCall` 为 `function`，
+  `read` 输出 `[false,{"message":"Success."}]`。
 
 ---
 
@@ -261,9 +284,9 @@ cmake --build build/build_temp/hello_button --config Release
 
 | 目录 | 使用者 | 形态 |
 |------|--------|------|
-| `CLAUDE.md` + `.claude/docs` + `.claude/skills/*.md` | Claude Code | 扁平 md，靠注册脚本部署 |
-| `WORKBUDDY.md` + `.workbuddy/skills/nim-duilib/` | WorkBuddy | `SKILL.md` + `references/`，语义触发、三级加载 |
-| `TRAE.md`（本文）+ `.trae/skills/nim-duilib/` | TRAE | `SKILL.md` + `references/`，语义触发、frontmatter 路由 |
+| `CLAUDE.md` + `.claude/docs` + `.claude/skills/*.md`（含 `nim-duilib-cef-upgrade.md`） | Claude Code | 扁平 md，靠注册脚本部署 |
+| `WORKBUDDY.md` + `.workbuddy/skills/nim-duilib/`、`nim-duilib-cef-upgrade/` | WorkBuddy | `SKILL.md` + `references/`，语义触发、三级加载 |
+| `TRAE.md`（本文）+ `.trae/skills/nim-duilib/`、`nim-duilib-cef-upgrade/` | TRAE | `SKILL.md` + `references/`，语义触发、frontmatter 路由 |
 
 三份描述的是同一套框架事实，**修一份就要同步另外两份**，否则会重新出现文档与代码不一致
 （本项目历史上出现过 26 处）。`C++20`、`WindowImplBase` 位于 `duilib/Utils/WinImplBase.h`、

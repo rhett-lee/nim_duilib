@@ -144,6 +144,7 @@ Tell the user initialization is complete. Note that nim_duilib skills are alread
 - nim-duilib-event-handler - Event handlers
 - nim-duilib-theme - Theme customization
 - nim-duilib-resource-pack - Resource packaging / single EXE
+- nim-duilib-cef-upgrade - CEF (libcef) version upgrade / runtime & wrapper troubleshooting
 "@
 
 $SkillPath = Join-Path $NimInitDir "SKILL.md"
