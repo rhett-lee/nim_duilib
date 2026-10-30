@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2026 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -33,7 +33,7 @@
 // by hand. See the translator.README.txt file in the tools directory for
 // more information.
 //
-// $hash=2df4a6c4c6e7d5b5088b8c69f7370ce791870253$
+// $hash=a935a1fa527e1f635bf33c83c38c82689b13069a$
 //
 
 #ifndef CEF_INCLUDE_CAPI_CEF_BROWSER_CAPI_H_
@@ -686,8 +686,7 @@ typedef struct _cef_browser_host_t {
   /// information will be sent to the renderer process to configure screen size
   /// and position values used by CSS and JavaScript (window.deviceScaleFactor,
   /// window.screenX/Y, window.outerWidth/Height, etc.). For background see
-  /// https://bitbucket.org/chromiumembedded/cef/wiki/GeneralUsage.md#markdown-
-  /// header-coordinate-systems
+  /// https://chromiumembedded.github.io/cef/general_usage#coordinate-systems
   ///
   /// This function is used with (a) windowless rendering and (b) windowed
   /// rendering with external (client-provided) root window.
@@ -780,8 +779,8 @@ typedef struct _cef_browser_host_t {
   /// Returns the maximum rate in frames per second (fps) that
   /// cef_render_handler_t::OnPaint will be called for a windowless browser. The
   /// actual fps may be lower if the browser cannot generate frames at the
-  /// requested rate. The minimum value is 1 and the maximum value is 60
-  /// (default 30). This function can only be called on the UI thread.
+  /// requested rate. The minimum value is 1 and the default value is 30. This
+  /// function can only be called on the UI thread.
   ///
   int(CEF_CALLBACK* get_windowless_frame_rate)(
       struct _cef_browser_host_t* self);
@@ -790,8 +789,8 @@ typedef struct _cef_browser_host_t {
   /// Set the maximum rate in frames per second (fps) that
   /// cef_render_handler_t:: OnPaint will be called for a windowless browser.
   /// The actual fps may be lower if the browser cannot generate frames at the
-  /// requested rate. The minimum value is 1 and the maximum value is 60
-  /// (default 30). Can also be set at browser creation via
+  /// requested rate. The minimum value is 1 and the default value is 30. Can
+  /// also be set at browser creation via
   /// cef_browser_tSettings.windowless_frame_rate.
   ///
   void(CEF_CALLBACK* set_windowless_frame_rate)(
@@ -1050,6 +1049,23 @@ typedef struct _cef_browser_host_t {
   ///
   cef_runtime_style_t(CEF_CALLBACK* get_runtime_style)(
       struct _cef_browser_host_t* self);
+
+#if CEF_API_ADDED(CEF_EXPERIMENTAL)
+  ///
+  /// Enable or disable CDP accessibility tree viewport collapse for this
+  /// browser. When enabled, off-screen landmarks and headings are serialized as
+  /// summaries and other off-screen nodes are pruned. Overrides the
+  /// cef_browser_tSettings.ax_viewport_collapse value. If called on the UI
+  /// thread the change will be applied immediately. Otherwise, the change will
+  /// be applied asynchronously on the UI thread. WARNING: This collapses the
+  /// CDP accessibility tree and disables CDP dynamic tree updates (nodesUpdated
+  /// events). The DevTools Accessibility panel will show an incomplete tree.
+  /// Platform screen readers (NVDA, JAWS, VoiceOver) are unaffected - they use
+  /// a separate code path.
+  ///
+  void(CEF_CALLBACK* set_ax_viewport_collapse)(struct _cef_browser_host_t* self,
+                                               int enabled);
+#endif
 } cef_browser_host_t;
 
 ///

@@ -13,6 +13,10 @@ namespace ui
 
 void CefClientApp::OnWebKitInitialized() 
 {
+    if (!m_renderJsBridge.get()) {
+        m_renderJsBridge.reset(new CefJSBridge);
+    }
+#if CEF_VERSION_MAJOR <= 109
     /**
      * JavaScript 扩展代码，这里定义一个 NimCefWebFunction 对象提供 call 方法来让 Web 端触发 native 的 CefV8Handler 处理代码
      * param[in] functionName    要调用的 C++ 方法名称
@@ -43,12 +47,9 @@ void CefClientApp::OnWebKitInitialized()
         })();
     )";
     CefRefPtr<CefJSHandler> handler = new CefJSHandler();
-
-    if (!m_renderJsBridge.get()) {
-        m_renderJsBridge.reset(new CefJSBridge);
-    }
     handler->AttachJSBridge(m_renderJsBridge);
-     CefRegisterExtension("v8/extern", extensionCode, handler);
+    CefRegisterExtension("v8/extern", extensionCode, handler);
+#endif
 }
 
 void CefClientApp::OnBrowserCreated(CefRefPtr<CefBrowser> /*browser*/, CefRefPtr<CefDictionaryValue> /*extra_info*/)
@@ -67,9 +68,56 @@ CefRefPtr<CefLoadHandler> CefClientApp::GetLoadHandler()
     return nullptr;
 }
 
-void CefClientApp::OnContextCreated(CefRefPtr<CefBrowser> /*browser*/, CefRefPtr<CefFrame> /*frame*/, CefRefPtr<CefV8Context> /*context*/)
+void CefClientApp::OnContextCreated(CefRefPtr<CefBrowser> /*browser*/,
+                                    CefRefPtr<CefFrame> /*frame*/,
+                                    CefRefPtr<CefV8Context> context)
 {
+#if CEF_VERSION_MAJOR > 109
+    // CEF 156（API 15400）起移除了 CefRegisterExtension：改为在每个 V8 上下文中
+    // 绑定 native 函数（call/register），再注入与原扩展等价的 NimCefWebInstance
+    // 包装代码，Web 端的调用方式保持不变。
+    if (context == nullptr) {
+        return;
+    }
+    CefRefPtr<CefV8Value> global = context->GetGlobal();
+    if (global == nullptr) {
+        return;
+    }
+    if (!m_renderJsBridge.get()) {
+        m_renderJsBridge.reset(new CefJSBridge);
+    }
+    CefRefPtr<CefJSHandler> handler = new CefJSHandler();
+    handler->AttachJSBridge(m_renderJsBridge);
 
+    global->SetValue("__nimCefNativeCall",
+                     CefV8Value::CreateFunction("call", handler),
+                     V8_PROPERTY_ATTRIBUTE_DONTENUM);
+    global->SetValue("__nimCefNativeRegister",
+                     CefV8Value::CreateFunction("register", handler),
+                     V8_PROPERTY_ATTRIBUTE_DONTENUM);
+
+    std::string extensionCode = R"(
+        var NimCefWebInstance = {};
+        (() => {
+            NimCefWebInstance.call = (functionName, arg1, arg2) => {
+                if (typeof arg1 === 'function') {
+                    return __nimCefNativeCall(functionName, arg1);
+                } else {
+                    const jsonString = JSON.stringify(arg1);
+                    return __nimCefNativeCall(functionName, jsonString, arg2);
+                }
+            };
+            NimCefWebInstance.register = (functionName, callback) => {
+                return __nimCefNativeRegister(functionName, callback);
+            };
+        })();
+    )";
+    CefRefPtr<CefV8Value> retval;
+    CefRefPtr<CefV8Exception> exception;
+    context->Eval(extensionCode, CefString(), 0, retval, exception);
+#else
+    (void)context;
+#endif
 }
 
 void CefClientApp::OnContextReleased(CefRefPtr<CefBrowser> /*browser*/, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> /*context*/)

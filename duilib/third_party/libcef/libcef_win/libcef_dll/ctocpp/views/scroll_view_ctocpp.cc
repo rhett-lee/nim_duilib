@@ -1,4 +1,4 @@
-// Copyright (c) 2025 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2026 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=806bcc25843e601937bcac44c6c44c4eed034e3e$
+// $hash=edd13222ac7a73fd2c580eb63b1b12cf61906968$
 //
 
 #include "libcef_dll/ctocpp/views/scroll_view_ctocpp.h"

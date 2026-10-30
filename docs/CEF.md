@@ -38,8 +38,8 @@ libcef.dll/libcef.so是CEF的核心动态链接库，提供Chromium的浏览器�
 将libcef的二进制文件和资源文件（libcef.dll等）放在以下目录中：    
 x64版本的放在`${NIM_DUILIB_ROOT}\bin\libcef_win\x64`目录，    
 Win32版本的放在`${NIM_DUILIB_ROOT}\bin\libcef_win\Win32`目录    
-* 64位版本的下载链接：[11/11/2025 - 142.0.10+g29548e2+chromium-142.0.7444.135 / Chromium 142.0.7444.135](https://cef-builds.spotifycdn.com/cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_windows64.tar.bz2)
-* 32位版本的下载链接：[11/11/2025 - 142.0.10+g29548e2+chromium-142.0.7444.135 / Chromium 142.0.7444.135](https://cef-builds.spotifycdn.com/cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_windows32.tar.bz2)    
+* 64位版本的下载链接：[10/24/2026 - 156.0.14+g4fa4ab5+chromium-156.0.8078.48 / Chromium 156.0.8078.48](https://cef-builds.spotifycdn.com/cef_binary_156.0.14%2Bg4fa4ab5%2Bchromium-156.0.8078.48_windows64.tar.bz2)
+* 32位版本的下载链接：[10/24/2026 - 156.0.14+g4fa4ab5+chromium-156.0.8078.48 / Chromium 156.0.8078.48](https://cef-builds.spotifycdn.com/cef_binary_156.0.14%2Bg4fa4ab5%2Bchromium-156.0.8078.48_windows32.tar.bz2)
   下载压缩包后，解压。    
   对于64位版本，将Release目录里的文件和Resources目录里面的文件复制到`${NIM_DUILIB_ROOT}\bin\libcef_win\x64`目录即可，    
   对于32位版本，将Release目录里的文件和Resources目录里面的文件复制到`${NIM_DUILIB_ROOT}\bin\libcef_win\Win32`目录即可。
@@ -115,8 +115,8 @@ libcef 109版本支持Win7及以上版本的操作系统（Win7/Win10/Win11等�
 ## 五、CEF控件（CefControl）的使用说明（Linux平台）
 使用的基本步骤如下（所有目录只写了相对nim_duilib根目录${NIM_DUILIB_ROOT}的子目录，实际设置根据自己的项目组织结构可灵活调整）：    
 ### 1. libcef 最新版本二进制文件和资源文件的下载（需要自己下载）
-* x64位版本的下载链接：  [11/11/2025 - 142.0.10+g29548e2+chromium-142.0.7444.135 / Chromium 142.0.7444.135](https://cef-builds.spotifycdn.com/cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_linux64.tar.bz2)    
-* ARM64位版本的下载链接：[11/11/2025 - 142.0.10+g29548e2+chromium-142.0.7444.135 / Chromium 142.0.7444.135](https://cef-builds.spotifycdn.com/cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_linuxarm64.tar.bz2)    
+* x64位版本的下载链接：  [10/24/2026 - 156.0.14+g4fa4ab5+chromium-156.0.8078.48 / Chromium 156.0.8078.48](https://cef-builds.spotifycdn.com/cef_binary_156.0.14%2Bg4fa4ab5%2Bchromium-156.0.8078.48_linux64.tar.bz2)
+* ARM64位版本的下载链接：[10/24/2026 - 156.0.14+g4fa4ab5+chromium-156.0.8078.48 / Chromium 156.0.8078.48](https://cef-builds.spotifycdn.com/cef_binary_156.0.14%2Bg4fa4ab5%2Bchromium-156.0.8078.48_linuxarm64.tar.bz2)
   下载压缩包后，解压。    
   然后将Release目录里的文件和Resources目录里面的文件复制到`${NIM_DUILIB_ROOT}/bin/libcef_linux/`目录即可（libcef_linux这个文件夹需要新建）。    
 ### 2. libcef二进制文件和资源文件的组织结构说明
@@ -144,8 +144,8 @@ locales（目录，里面包含zh-CN.pak、en-US.pak等语言包）
 ## 六、CEF控件（CefControl）的使用说明（macOS平台）
 使用的基本步骤如下（所有目录只写了相对nim_duilib根目录${NIM_DUILIB_ROOT}的子目录，实际设置根据自己的项目组织结构可灵活调整）：    
 ### 1. libcef 最新版本二进制文件和资源文件的下载（需要自己下载）
-* x64位版本的下载链接：  [11/12/2025 - 142.0.10+g29548e2+chromium-142.0.7444.135 / Chromium 142.0.7444.135](https://cef-builds.spotifycdn.com/cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_macosx64.tar.bz2)    
-* ARM64位版本的下载链接：[11/12/2025 - 142.0.10+g29548e2+chromium-142.0.7444.135 / Chromium 142.0.7444.135](https://cef-builds.spotifycdn.com/cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_macosarm64.tar.bz2)    
+* x64位版本的下载链接：  [10/24/2026 - 156.0.14+g4fa4ab5+chromium-156.0.8078.48 / Chromium 156.0.8078.48](https://cef-builds.spotifycdn.com/cef_binary_156.0.14%2Bg4fa4ab5%2Bchromium-156.0.8078.48_macosx64.tar.bz2)
+* ARM64位版本的下载链接：[10/24/2026 - 156.0.14+g4fa4ab5+chromium-156.0.8078.48 / Chromium 156.0.8078.48](https://cef-builds.spotifycdn.com/cef_binary_156.0.14%2Bg4fa4ab5%2Bchromium-156.0.8078.48_macosarm64.tar.bz2)
   下载压缩包后，解压。    
   然后将目录里的内容完整复制到`${NIM_DUILIB_ROOT}/../cef_binary`目录即可（cef_binary这个文件夹需要新建，与nim_duilib目录是平级目录）。    
 ### 2. cef_binary里面内容列表

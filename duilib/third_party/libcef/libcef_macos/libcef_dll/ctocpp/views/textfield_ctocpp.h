@@ -1,4 +1,4 @@
-// Copyright (c) 2025 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2026 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=e5c1ad6ecdfef56bd555448244e2a4c9e6a3e3db$
+// $hash=c9a58f4a434549349c05521d4cd5ce2ae094b365$
 //
 
 #ifndef CEF_LIBCEF_DLL_CTOCPP_VIEWS_TEXTFIELD_CTOCPP_H_
@@ -49,12 +49,24 @@ class CefTextfieldCToCpp : public CefCToCppRefCounted<CefTextfieldCToCpp,
   CefRange GetSelectedRange() override;
   void SelectRange(const CefRange& range) override;
   size_t GetCursorPosition() override;
+#if CEF_API_REMOVED(15000)
   void SetTextColor(cef_color_t color) override;
+#endif
+#if CEF_API_REMOVED(15000)
   cef_color_t GetTextColor() override;
+#endif
+#if CEF_API_REMOVED(15000)
   void SetSelectionTextColor(cef_color_t color) override;
+#endif
+#if CEF_API_REMOVED(15000)
   cef_color_t GetSelectionTextColor() override;
+#endif
+#if CEF_API_REMOVED(15000)
   void SetSelectionBackgroundColor(cef_color_t color) override;
+#endif
+#if CEF_API_REMOVED(15000)
   cef_color_t GetSelectionBackgroundColor() override;
+#endif
   void SetFontList(const CefString& font_list) override;
   void ApplyTextColor(cef_color_t color, const CefRange& range) override;
   void ApplyTextStyle(cef_text_style_t style,
@@ -65,7 +77,9 @@ class CefTextfieldCToCpp : public CefCToCppRefCounted<CefTextfieldCToCpp,
   void ClearEditHistory() override;
   void SetPlaceholderText(const CefString& text) override;
   CefString GetPlaceholderText() override;
+#if CEF_API_REMOVED(15000)
   void SetPlaceholderTextColor(cef_color_t color) override;
+#endif
   void SetAccessibleName(const CefString& name) override;
 
   // CefView methods.

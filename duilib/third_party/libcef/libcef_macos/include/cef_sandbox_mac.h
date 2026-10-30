@@ -48,8 +48,9 @@ extern "C" {
 /// The sandbox is used to restrict sub-processes (renderer, GPU, etc) from
 /// directly accessing system resources. This helps to protect the user from
 /// untrusted and potentially malicious Web content. See
-/// https://bitbucket.org/chromiumembedded/cef/wiki/SandboxSetup.md for usage
-/// details. See include/wrapper/cef_library_loader.h for example usage.
+/// https://chromiumembedded.github.io/cef/sandbox_setup
+/// for usage details. See include/wrapper/cef_library_loader.h for example
+/// usage.
 ///
 
 ///
@@ -60,9 +61,24 @@ extern "C" {
 CEF_EXPORT void* cef_sandbox_initialize(int argc, char** argv);
 
 ///
-/// Destroy the specified sandbox context handle.
+/// Destroy the specified sandbox context handle created by
+/// cef_sandbox_initialize().
 ///
 CEF_EXPORT void cef_sandbox_destroy(void* sandbox_context);
+
+///
+/// Initialize the scoped sandbox for this process. Returns an opaque handle
+/// on success or NULL on failure. The returned handle should be passed to
+/// cef_scoped_sandbox_destroy() immediately before process termination.
+/// This is a wrapper around CefScopedSandboxContext for C API users.
+///
+void* cef_scoped_sandbox_initialize(int argc, char** argv);
+
+///
+/// Destroy the specified scoped sandbox handle created by
+/// cef_scoped_sandbox_initialize().
+///
+void cef_scoped_sandbox_destroy(void* sandbox_context);
 
 #ifdef __cplusplus
 }

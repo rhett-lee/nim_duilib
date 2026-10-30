@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2026 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -33,7 +33,7 @@
 // by hand. See the translator.README.txt file in the tools directory for
 // more information.
 //
-// $hash=239f4760e09071556a555cdce7d945e7e2169e4e$
+// $hash=42927bf79376ed17d3e4f5827d4f75d790e19707$
 //
 
 #ifndef CEF_INCLUDE_CAPI_CEF_LIFE_SPAN_HANDLER_CAPI_H_
@@ -96,6 +96,18 @@ typedef struct _cef_life_span_handler_t {
   /// browser has not yet been destroyed, then OnBeforePopupAborted will be
   /// called for the opener browser. See OnBeforePopupAborted documentation for
   /// additional details.
+  ///
+  /// A default popup window is created if this function returns false (0)
+  /// without setting a parent window handle via cef_window_tInfo (for native-
+  /// hosted popups), or without implementing
+  /// cef_browser_view_delegate_t::OnPopupBrowserViewCreated (for Views-hosted
+  /// popups). The default popup window type depends on the parent browser
+  /// configuration:
+  /// - Views-hosted parent: Creates a Views-hosted popup window.
+  /// - Native-hosted Alloy style parent: Creates a native popup window.
+  /// - Native-hosted Chrome style parent: Creates a Chrome UI popup window by
+  ///   default; set CefSettings.use_views_default_popup to true (1) to instead
+  ///   create a Views-hosted popup window.
   ///
   int(CEF_CALLBACK* on_before_popup)(
       struct _cef_life_span_handler_t* self,

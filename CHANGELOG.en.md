@@ -183,6 +183,24 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Changed
 
+- CEF default version upgraded to 156 (`156.0.14+g4fa4ab5+chromium-156.0.8078.48`,
+  2026-10-24), while 109 stays available for Windows 7. The three platform
+  directories under `duilib/third_party/libcef/` were replaced with the 156 sources:
+  the 156 distribution no longer ships a `lib/` directory, so the Windows import
+  library now comes from `Release/libcef.lib` (`lib/{x64,Win32,arm64}`); the wrapper
+  switched to C++20 upstream and the sandbox is disabled on Windows as required
+  (avoiding the `CEF_API_VERSION_LAST` wrapper ABI difference); the C++17 downgrade
+  now applies to 109 only. The version manifest, VS project file lists, `deps`
+  fingerprints and the default-version wording in the scripts were updated.
+- CEF 156 removed `CefRegisterExtension` (`CEF_API_REMOVED(15400)`): the JS bridge
+  now binds native functions on the page global object in `OnContextCreated` and
+  `Eval`s an equivalent `NimCefWebInstance` wrapper, so web pages keep using
+  `call` / `register` unchanged; the 109 branch still registers the original
+  extension.
+- CEF runtime adoption in `deps` tightened: Windows cannot read the runtime version,
+  so the runtime is always re-extracted from the archive, while Linux/macOS are
+  adopted only when `include/cef_version.h` matches. This prevents a stale runtime
+  from being stamped as the new version.
 - `build/` console output is now optionally bilingual (2026-10-29, P3-3): runtime
   messages and `--help` text of `build.py`, `pack.py`, `release.py`, `autotest.py`
   and `sdk_package_test.py` come from `cmake/i18n/messages.json` and follow

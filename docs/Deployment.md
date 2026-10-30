@@ -135,10 +135,10 @@ macOS 的 `.app` 目标可加 `FRAMEWORKS`，把 `lib/libSDL3*.dylib` 复制到
 | :--- | :--- |
 | 直接引用源码树 → 使用 SDK 包 | 头文件路径改为 `<SDK根>/include`，链接列表按 `MANIFEST.txt` 取；宏定义（`DUILIB_SDL`/`DUILIB_CEF`/…）不要手写漏项，交给 `nim_duilib.targets` 或 CMake config |
 | 静态包 → DLL 包（`-dll`） | 换用 `-dll` 包并在工程里定义 `DUILIB_DLL`（接入层自动完成）；运行期随程序分发 `bin/duilib*.dll` 与 `bin/turbojpeg.dll`；`/MT` 与 `/MD` 不能混用 |
-| CEF 142 包 → CEF 109 包 | 用 `-cef109` 包整体替换；封装库名由 `libcef_dll_wrapper` 变为 `libcef_dll_wrapper_109`，两者不可混链；运行时目录也是 `bin/libcef_win_109/<arch>` |
+| CEF 156 包 → CEF 109 包 | 用 `-cef109` 包整体替换；封装库名由 `libcef_dll_wrapper` 变为 `libcef_dll_wrapper_109`，两者不可混链；运行时目录也是 `bin/libcef_win_109/<arch>` |
 | 从源码树构建 → 消费 SDK 包 | 不再需要自己构建 Skia/SDL/CEF；但项目若用第三方依赖（WebView2、CEF）需按包能力启用对应宏 |
 | 单配置工程 → Debug/Release 双配置 | 准备两份包（`-debug` 与默认 Release），按 `Configuration` 分别导入；CMake 下可把两份包放到不同前缀目录分别 configure |
-| x64 → arm64（Windows） | 换 arm64 包；arm64 包不带 SDL 与 libpag（上游无预编译库）；CEF 包与 142/109 均已提供 |
+| x64 → arm64（Windows） | 换 arm64 包；arm64 包不带 SDL 与 libpag（上游无预编译库）；CEF 包与 156/109 均已提供 |
 
 ## 六、常见问题（FAQ）
 
@@ -150,7 +150,7 @@ macOS 的 `.app` 目标可加 `FRAMEWORKS`，把 `lib/libSDL3*.dylib` 复制到
 | `LNK4098`（默认库与其他库冲突） | Debug 工程链到了 Release 版第三方库，或混用了其他运行库 | 使用配套的 Debug 包；静态 Debug 下接入层已加 `/NODEFAULTLIB:"libcmt.lib"` |
 | `LNK2019`：大量 `duilib-*` / Skia 符号未解析 | 只链了 `duilib.lib`，漏掉 `MANIFEST.txt` 中的 Skia 与第三方库 | 按链接列表补全，或直接使用 `nim_duilib.targets` / `nim_duilib::duilib` |
 | WebView2 创建失败（`0x80070002` 等） | 系统未安装 Edge WebView2 Evergreen Runtime，或用了动态 loader 但没带 `WebView2Loader.dll` | 安装 WebView2 Runtime；把 `bin/WebView2Loader.dll` 放到可执行文件同级 |
-| CEF 页面白屏 / `CefManager` 初始化失败 | CEF 运行时目录缺失、被摊平，或 142/109 文件混用 | 把 `bin/libcef_win[_109]/<arch>/` 整个目录复制到可执行文件同级；同一进程只保留一个 CEF 版本 |
+| CEF 页面白屏 / `CefManager` 初始化失败 | CEF 运行时目录缺失、被摊平，或 156/109 文件混用 | 把 `bin/libcef_win[_109]/<arch>/` 整个目录复制到可执行文件同级；同一进程只保留一个 CEF 版本 |
 | Unix 上运行示例报找不到 `libSDL3.so.0` | rpath 被改写或未设置库搜索路径 | 用包内相对 rpath（`$ORIGIN/../lib`），或设置 `LD_LIBRARY_PATH`（macOS 为 `DYLD_LIBRARY_PATH`） |
 | 打包/接入时提示“SDK 是 MinGW 产物，不能用于 VS” | 混用了 MinGW 包与 MSVC 工程 | 换 MSVC 包，或改用 CMake + MinGW 工具链 |
 | `sdk_package_test.py` 里 C01 显示 SKIP | 在 x64 主机上交叉验证 arm64 包，产物无法在本机运行 | 属预期；运行验证需对应架构的环境 |

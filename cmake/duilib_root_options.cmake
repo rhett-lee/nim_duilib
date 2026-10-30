@@ -195,11 +195,11 @@ endif()
 # ---------------------------------------------------------------------------
 # CEF 版本
 # ---------------------------------------------------------------------------
-set(DUILIB_CEF_VERSION "${_duilib_default_cef}" CACHE STRING "CEF version key (109 / 142)")
+set(DUILIB_CEF_VERSION "${_duilib_default_cef}" CACHE STRING "CEF version key (109 / 156)")
 option(DUILIB_CEF_109 "Legacy switch: use CEF 109" OFF)
 if(DUILIB_CEF_109)
     duilib_warn("options.cef_109_deprecated")
-    set(DUILIB_CEF_VERSION "109" CACHE STRING "CEF version key (109 / 142)" FORCE)
+    set(DUILIB_CEF_VERSION "109" CACHE STRING "CEF version key (109 / 156)" FORCE)
 endif()
 string(JSON _duilib_unused ERROR_VARIABLE _duilib_json_err
        GET "${DUILIB_VERSIONS_JSON}" cef versions "${DUILIB_CEF_VERSION}")

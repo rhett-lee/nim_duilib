@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2026 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -33,7 +33,7 @@
 // by hand. See the translator.README.txt file in the tools directory for
 // more information.
 //
-// $hash=4617637c16b4530c6a0cceb649929fc1eb0525ff$
+// $hash=7eaff7067d4d35abfcd0a4368aa020ee8fa537a0$
 //
 
 #ifndef CEF_INCLUDE_CAPI_VIEWS_CEF_DISPLAY_CAPI_H_
@@ -59,8 +59,7 @@ extern "C" {
 /// otherwise indicated.
 ///
 /// For details on coordinate systems and usage see
-/// https://bitbucket.org/chromiumembedded/cef/wiki/GeneralUsage#markdown-
-/// header-coordinate-systems
+/// https://chromiumembedded.github.io/cef/general_usage#coordinate-systems
 ///
 /// NOTE: This struct is allocated DLL-side.
 ///

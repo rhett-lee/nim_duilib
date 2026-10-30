@@ -82,7 +82,7 @@ Debug 与 Release 的示例输出同名，都写在共享的 `bin/`，而目标�
 | `--dry-run` | 只打印将执行的命令 |
 | `--cmake-arg <arg>` / `--build-arg <arg>` | 透传给 configure / build（可重复）；值以 `-` 开头时写成 `--cmake-arg=-DFOO=1` |
 | `--vs-version N` | 显式指定 Visual Studio 主版本（如 `17`）；仅 Windows 有效 |
-| `--cef-version 109\|latest` | CEF 版本：`109` 为旧版，`latest` 取版本清单默认值（当前为 142，清单升级后自动跟随） |
+| `--cef-version 109\|latest` | CEF 版本：`109` 为旧版，`latest` 取版本清单默认值（当前为 156，清单升级后自动跟随） |
 | `--skia-ref` / `--sdl-ref` | 选择版本清单中的 ref，如 `chrome/m142`、`main`、`release-3.4.18` |
 | `--sdl` / `--no-sdl` | 仅 Windows 有效；Windows 默认关闭，其他平台强制开启 |
 | `--md` | 使用 MSVC 动态运行库（/MD、/MDd）；仅 Windows 有效 |
@@ -182,7 +182,7 @@ ninja，仍找不到时从归档解压到 `out/.duilib-tools/bin/ninja.exe` 并�
 - **CEF**：固定版本分支（`cef.default`，可选 `109` 兼容 Windows 7）。统一使用
   `_minimal` 发行包（体积约为标准包的一半，含 `include/`、`Release/`、
   `Resources/`），只安装 `Release/*` 与 `Resources/*` 运行时，放到：
-  - Windows：`bin/libcef_win/<arch>`（142）或 `bin/libcef_win_109/<arch>`（109）
+  - Windows：`bin/libcef_win/<arch>`（156）或 `bin/libcef_win_109/<arch>`（109）
   - Linux：`bin/libcef_linux`
   - macOS：`<deps-root>/cef_binary`
   编译使用仓库中已跟踪的头文件与导入库；下载包内的 `CEF_VERSION` 必须与跟踪
@@ -266,7 +266,7 @@ Bundle 自带运行时，因此 macOS 的 `--with-cef` 只控制示例，不收�
 
 | 平台 | 编译器 | Skia | SDL3 | CEF | WebView2 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Windows | MSVC 2022+ | 必须 | 默认关闭，可 `--sdl` 启用 | 默认启用（109/142） | 支持 |
+| Windows | MSVC 2022+ | 必须 | 默认关闭，可 `--sdl` 启用 | 默认启用（109/156） | 支持 |
 | Windows | MSYS2 / MinGW-w64 gcc、clang | 必须 | 默认关闭，可启用 | 不支持 | 支持 |
 | Linux | gcc 10+ / clang 12+ | 必须 | 强制启用 | 默认启用 | 不支持 |
 | macOS | clang（Xcode） | 必须 | 强制启用 | 默认启用 | 不支持 |

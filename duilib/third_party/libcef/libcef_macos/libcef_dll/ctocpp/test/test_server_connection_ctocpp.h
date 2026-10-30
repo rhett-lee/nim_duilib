@@ -1,4 +1,4 @@
-// Copyright (c) 2025 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2026 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=b2043b0aeccf4481d93e6f6d0c1d4e5a535153a1$
+// $hash=6010f28b1d9d8d5cb40a2d64964459a2ec049932$
 //
 
 #ifndef CEF_LIBCEF_DLL_CTOCPP_TEST_TEST_SERVER_CONNECTION_CTOCPP_H_
@@ -45,6 +45,12 @@ class CefTestServerConnectionCToCpp
                         const void* data,
                         size_t data_size,
                         const HeaderMap& extra_headers) override;
+#if CEF_API_ADDED(15100)
+  void SendHttpResponseWithRawHeaders(const void* header_data,
+                                      size_t header_data_size,
+                                      const void* response_data,
+                                      size_t response_data_size) override;
+#endif
 };
 
 constexpr auto CefTestServerConnectionCToCpp_Wrap =

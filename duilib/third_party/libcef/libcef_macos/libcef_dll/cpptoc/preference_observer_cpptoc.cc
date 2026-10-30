@@ -1,4 +1,4 @@
-// Copyright (c) 2025 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2026 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=8e25f22188b5e74771b20ba94254adb157c84916$
+// $hash=9b232195a3e0c96d45cac83535144e8925b42f8c$
 //
 
 #include "libcef_dll/cpptoc/preference_observer_cpptoc.h"

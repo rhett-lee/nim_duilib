@@ -1,4 +1,4 @@
-// Copyright (c) 2025 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2026 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=b800cc37305836b785267206c39f3a0939252281$
+// $hash=36f1608e2996cad9868aefb398c6d4970f5ef733$
 //
 
 #include "libcef_dll/ctocpp/shared_process_message_builder_ctocpp.h"

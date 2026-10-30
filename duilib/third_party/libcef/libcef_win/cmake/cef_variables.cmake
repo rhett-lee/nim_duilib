@@ -68,10 +68,28 @@ list(APPEND CEF_COMPILER_DEFINES
 # Configure use of the sandbox.
 option(USE_SANDBOX "Enable or disable use of the sandbox." ON)
 
+# Configure the installer-managed cefclient example.
+option(USE_INSTALLER "Build the installer-managed cefclient example." OFF)
+
+if(USE_INSTALLER)
+  if(NOT OS_WINDOWS)
+    message(FATAL_ERROR "USE_INSTALLER is supported only on Windows.")
+  endif()
+  if(NOT USE_SANDBOX)
+    message(FATAL_ERROR
+            "USE_INSTALLER requires USE_SANDBOX=On for bootstrap support.")
+  endif()
+  if((GEN_NINJA OR GEN_MAKEFILES) AND
+     NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+    message(FATAL_ERROR
+            "USE_INSTALLER requires CMAKE_BUILD_TYPE=Release.")
+  endif()
+endif()
+
 
 # Optionally configure the CEF API version by adding `-D api_version=XXXXX` to the
 # cmake command-line where XXXXX is the desired version number. For background see
-# https://bitbucket.org/chromiumembedded/cef/wiki/ApiVersioning.md
+# https://chromiumembedded.github.io/cef/api_versioning
 if(DEFINED api_version)
   string(LENGTH "${api_version}" length)
   if (NOT length EQUAL 5 OR NOT api_version MATCHES "^[0-9]+$")
@@ -79,6 +97,18 @@ if(DEFINED api_version)
   endif()
   list(APPEND CEF_COMPILER_DEFINES
     CEF_API_VERSION=${api_version}
+  )
+elseif(OS_WINDOWS AND USE_SANDBOX)
+  # When building a client DLL loaded by bootstrap.exe (Windows + USE_SANDBOX),
+  # default to the last released API version instead of the experimental
+  # (unversioned) API. The experimental API is not back/forward compatible
+  # across CEF versions and does not bump the version number, so the installer's
+  # vmin-based version selection cannot work safely against it. Building against
+  # CEF_API_VERSION_LAST makes the client forward-compatible with newer
+  # libcef.dll binaries (via API backwards compatibility). Set -Dapi_version=XXXXX
+  # to override (e.g. for new-API development testing).
+  list(APPEND CEF_COMPILER_DEFINES
+    CEF_API_VERSION=CEF_API_VERSION_LAST
   )
 endif()
 
@@ -115,7 +145,7 @@ if(OS_LINUX)
     -fno-rtti                       # Disable real-time type information
     -fno-threadsafe-statics         # Don't generate thread-safe statics
     -fvisibility-inlines-hidden     # Give hidden visibility to inlined class member functions
-    -std=c++17                      # Use the C++17 language standard
+    -std=c++20                      # Use the C++20 language standard
     -Wsign-compare                  # Warn about mixed signed/unsigned type comparisons
     )
   list(APPEND CEF_COMPILER_FLAGS_DEBUG
@@ -216,6 +246,7 @@ if(OS_LINUX)
   # Standard libraries.
   set(CEF_STANDARD_LIBS
     X11
+    ${CMAKE_DL_LIBS}
     )
 
   # CEF directory paths.
@@ -232,8 +263,6 @@ if(OS_LINUX)
   set(CEF_BINARY_FILES
     chrome-sandbox
     libcef.so
-    libEGL.so
-    libGLESv2.so
     libvk_swiftshader.so
     libvulkan.so.1
     v8_context_snapshot.bin
@@ -287,7 +316,7 @@ if(OS_MAC)
     -fno-threadsafe-statics         # Don't generate thread-safe statics
     -fobjc-call-cxx-cdtors          # Call the constructor/destructor of C++ instance variables in ObjC objects
     -fvisibility-inlines-hidden     # Give hidden visibility to inlined class member functions
-    -std=c++17                      # Use the C++17 language standard
+    -std=c++20                      # Use the C++20 language standard
     -Wno-narrowing                  # Don't warn about type narrowing
     -Wsign-compare                  # Warn about mixed signed/unsigned type comparisons
     )
@@ -326,7 +355,7 @@ if(OS_MAC)
 
   # Find the newest available base SDK.
   execute_process(COMMAND xcode-select --print-path OUTPUT_VARIABLE XCODE_PATH OUTPUT_STRIP_TRAILING_WHITESPACE)
-  foreach(OS_VERSION 15.5 15.4 14.2 14.0 12.0)
+  foreach(OS_VERSION 27.0 26.0 15.5 15.4 14.2 14.0 13.0)
     set(SDK "${XCODE_PATH}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX${OS_VERSION}.sdk")
     if(NOT "${CMAKE_OSX_SYSROOT}" AND EXISTS "${SDK}" AND IS_DIRECTORY "${SDK}")
       set(CMAKE_OSX_SYSROOT ${SDK})
@@ -334,7 +363,7 @@ if(OS_MAC)
   endforeach()
 
   # Target SDK.
-  set(CEF_TARGET_SDK               "12.0")
+  set(CEF_TARGET_SDK               "13.0")
   list(APPEND CEF_COMPILER_FLAGS
     -mmacosx-version-min=${CEF_TARGET_SDK}
   )
@@ -409,7 +438,9 @@ if(OS_WINDOWS)
   list(APPEND CEF_COMPILER_FLAGS
     /MP           # Multiprocess compilation
     /Gy           # Enable function-level linking
+    /GF           # Enable string pooling
     /GR-          # Disable run-time type information
+    /utf-8        # Treat source and execution character sets as UTF-8
     /W4           # Warning level 4
     /WX           # Treat warnings as errors
     /wd4100       # Ignore "unreferenced formal parameter" warning
@@ -430,10 +461,9 @@ if(OS_WINDOWS)
   list(APPEND CEF_COMPILER_FLAGS_RELEASE
     /O2           # Optimize for maximum speed
     /Ob2          # Inline any suitable function
-    /GF           # Enable string pooling
     )
   list(APPEND CEF_CXX_COMPILER_FLAGS
-    /std:c++17    # Use the C++17 language standard
+    /std:c++20    # Use the C++20 language standard
     )
   list(APPEND CEF_LINKER_FLAGS_DEBUG
     /DEBUG        # Generate debug information
@@ -452,29 +482,38 @@ if(OS_WINDOWS)
     /DELAYLOAD:libcef.dll
 
     # "delayloads" target.
+    /DELAYLOAD:api-ms-win-core-synch-l1-2-0.dll
     /DELAYLOAD:api-ms-win-core-winrt-error-l1-1-0.dll
     /DELAYLOAD:api-ms-win-core-winrt-l1-1-0.dll
     /DELAYLOAD:api-ms-win-core-winrt-string-l1-1-0.dll
     /DELAYLOAD:advapi32.dll
+    /DELAYLOAD:bcryptprimitives.dll
     /DELAYLOAD:comctl32.dll
     /DELAYLOAD:comdlg32.dll
     /DELAYLOAD:credui.dll
     /DELAYLOAD:cryptui.dll
     /DELAYLOAD:d3d11.dll
+    /DELAYLOAD:d3d12.dll
     /DELAYLOAD:d3d9.dll
+    /DELAYLOAD:dbghelp.dll
+    /DELAYLOAD:dcomp.dll
     /DELAYLOAD:dwmapi.dll
     /DELAYLOAD:dxgi.dll
     /DELAYLOAD:dxva2.dll
     /DELAYLOAD:esent.dll
+    /DELAYLOAD:fontsub.dll
     /DELAYLOAD:gdi32.dll
     /DELAYLOAD:hid.dll
     /DELAYLOAD:imagehlp.dll
     /DELAYLOAD:imm32.dll
+    /DELAYLOAD:mmdevapi.dll
     /DELAYLOAD:msi.dll
     /DELAYLOAD:netapi32.dll
     /DELAYLOAD:ncrypt.dll
     /DELAYLOAD:ole32.dll
     /DELAYLOAD:oleacc.dll
+    /DELAYLOAD:oleaut32.dll
+    /DELAYLOAD:pdh.dll
     /DELAYLOAD:propsys.dll
     /DELAYLOAD:psapi.dll
     /DELAYLOAD:rpcrt4.dll
@@ -496,11 +535,9 @@ if(OS_WINDOWS)
 
     # "delayloads_not_for_child_dll" target.
     /DELAYLOAD:crypt32.dll
-    /DELAYLOAD:dbghelp.dll
     /DELAYLOAD:dhcpcsvc.dll
     /DELAYLOAD:dwrite.dll
     /DELAYLOAD:iphlpapi.dll
-    /DELAYLOAD:oleaut32.dll
     /DELAYLOAD:secur32.dll
     /DELAYLOAD:userenv.dll
     /DELAYLOAD:winhttp.dll
@@ -580,8 +617,6 @@ if(OS_WINDOWS)
     chrome_elf.dll
     d3dcompiler_47.dll
     libcef.dll
-    libEGL.dll
-    libGLESv2.dll
     v8_context_snapshot.bin
     vk_swiftshader.dll
     vk_swiftshader_icd.json
@@ -590,7 +625,6 @@ if(OS_WINDOWS)
 
   if(PROJECT_ARCH STREQUAL "x86_64")
     list(APPEND CEF_BINARY_FILES
-      dxil.dll
       dxcompiler.dll
       )
   endif()

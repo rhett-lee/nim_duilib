@@ -41,8 +41,8 @@ libcef.dll/libcef.so is the core dynamic-link library (DLL) of CEF, providing th
 Place the binary files and resource files of libcef (libcef.dll, etc.) in the following directories:    
 The x64 version goes to the `${NIM_DUILIB_ROOT}\bin\libcef_win\x64` directory,    
 The Win32 version goes to the `${NIM_DUILIB_ROOT}\bin\libcef_win\Win32` directory    
-* Download link for the 64-bit version: [11/11/2025 - 142.0.10+g29548e2+chromium-142.0.7444.135 / Chromium 142.0.7444.135](https://cef-builds.spotifycdn.com/cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_windows64.tar.bz2)
-* Download link for the 32-bit version: [11/11/2025 - 142.0.10+g29548e2+chromium-142.0.7444.135 / Chromium 142.0.7444.135](https://cef-builds.spotifycdn.com/cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_windows32.tar.bz2)    
+* Download link for the 64-bit version: [10/24/2026 - 156.0.14+g4fa4ab5+chromium-156.0.8078.48 / Chromium 156.0.8078.48](https://cef-builds.spotifycdn.com/cef_binary_156.0.14%2Bg4fa4ab5%2Bchromium-156.0.8078.48_windows64.tar.bz2)
+* Download link for the 32-bit version: [10/24/2026 - 156.0.14+g4fa4ab5+chromium-156.0.8078.48 / Chromium 156.0.8078.48](https://cef-builds.spotifycdn.com/cef_binary_156.0.14%2Bg4fa4ab5%2Bchromium-156.0.8078.48_windows32.tar.bz2)
   After downloading the archive, extract it.    
   For the 64-bit version, copy the files in the Release directory and the files in the Resources directory to the `${NIM_DUILIB_ROOT}\bin\libcef_win\x64` directory,    
   For the 32-bit version, copy the files in the Release directory and the files in the Resources directory to the `${NIM_DUILIB_ROOT}\bin\libcef_win\Win32` directory.
@@ -118,8 +118,8 @@ The basic usage steps are as follows (all directories only write the subdirector
 ## V. Usage Notes for the CEF Control (CefControl) (Linux Platform)
 The basic usage steps are as follows (all directories only write the subdirectories relative to the nim_duilib root directory ${NIM_DUILIB_ROOT}; the actual settings can be flexibly adjusted according to your own project organization structure):    
 ### 1. Download of the Latest Version Binary Files and Resource Files of libcef (You Need to Download Them Yourself)
-* Download link for the x64 version:  [11/11/2025 - 142.0.10+g29548e2+chromium-142.0.7444.135 / Chromium 142.0.7444.135](https://cef-builds.spotifycdn.com/cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_linux64.tar.bz2)    
-* Download link for the ARM64 version: [11/11/2025 - 142.0.10+g29548e2+chromium-142.0.7444.135 / Chromium 142.0.7444.135](https://cef-builds.spotifycdn.com/cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_linuxarm64.tar.bz2)    
+* Download link for the x64 version:  [10/24/2026 - 156.0.14+g4fa4ab5+chromium-156.0.8078.48 / Chromium 156.0.8078.48](https://cef-builds.spotifycdn.com/cef_binary_156.0.14%2Bg4fa4ab5%2Bchromium-156.0.8078.48_linux64.tar.bz2)
+* Download link for the ARM64 version: [10/24/2026 - 156.0.14+g4fa4ab5+chromium-156.0.8078.48 / Chromium 156.0.8078.48](https://cef-builds.spotifycdn.com/cef_binary_156.0.14%2Bg4fa4ab5%2Bchromium-156.0.8078.48_linuxarm64.tar.bz2)
   After downloading the archive, extract it.    
   Then copy the files in the Release directory and the files in the Resources directory to the `${NIM_DUILIB_ROOT}/bin/libcef_linux/` directory (the libcef_linux folder needs to be created).    
 ### 2. Organization Structure of libcef Binary Files and Resource Files
@@ -147,8 +147,8 @@ locales (directory, containing language packs such as zh-CN.pak, en-US.pak, etc.
 ## VI. Usage Notes for the CEF Control (CefControl) (macOS Platform)
 The basic usage steps are as follows (all directories only write the subdirectories relative to the nim_duilib root directory ${NIM_DUILIB_ROOT}; the actual settings can be flexibly adjusted according to your own project organization structure):    
 ### 1. Download of the Latest Version Binary Files and Resource Files of libcef (You Need to Download Them Yourself)
-* Download link for the x64 version:  [11/12/2025 - 142.0.10+g29548e2+chromium-142.0.7444.135 / Chromium 142.0.7444.135](https://cef-builds.spotifycdn.com/cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_macosx64.tar.bz2)    
-* Download link for the ARM64 version: [11/12/2025 - 142.0.10+g29548e2+chromium-142.0.7444.135 / Chromium 142.0.7444.135](https://cef-builds.spotifycdn.com/cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_macosarm64.tar.bz2)    
+* Download link for the x64 version:  [10/24/2026 - 156.0.14+g4fa4ab5+chromium-156.0.8078.48 / Chromium 156.0.8078.48](https://cef-builds.spotifycdn.com/cef_binary_156.0.14%2Bg4fa4ab5%2Bchromium-156.0.8078.48_macosx64.tar.bz2)
+* Download link for the ARM64 version: [10/24/2026 - 156.0.14+g4fa4ab5+chromium-156.0.8078.48 / Chromium 156.0.8078.48](https://cef-builds.spotifycdn.com/cef_binary_156.0.14%2Bg4fa4ab5%2Bchromium-156.0.8078.48_macosarm64.tar.bz2)
   After downloading the archive, extract it.    
   Then copy the entire contents of the directory to the `${NIM_DUILIB_ROOT}/../cef_binary` directory (the cef_binary folder needs to be created, and is at the same level as the nim_duilib directory).    
 ### 2. Content List Inside cef_binary

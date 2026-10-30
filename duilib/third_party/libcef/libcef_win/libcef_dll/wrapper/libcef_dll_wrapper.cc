@@ -1,4 +1,4 @@
-// Copyright (c) 2025 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2026 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=e9d06b12ca631d207f5ebd213dbf9921ca8518b5$
+// $hash=a55e760b5a7b2fe6ce030d87bfe6a3fcceac2620$
 //
 
 #include "include/capi/cef_app_capi.h"
@@ -48,6 +48,7 @@
 #include "libcef_dll/cpptoc/task_cpptoc.h"
 #include "libcef_dll/cpptoc/v8_handler_cpptoc.h"
 #include "libcef_dll/ctocpp/binary_value_ctocpp.h"
+#include "libcef_dll/ctocpp/browser_ctocpp.h"
 #include "libcef_dll/ctocpp/command_line_ctocpp.h"
 #include "libcef_dll/ctocpp/frame_ctocpp.h"
 #include "libcef_dll/ctocpp/value_ctocpp.h"
@@ -816,6 +817,7 @@ NO_SANITIZE("cfi-icall") CEF_GLOBAL int64_t CefNowFromSystemTraceTime() {
   return _retval;
 }
 
+#if CEF_API_REMOVED(15400)
 NO_SANITIZE("cfi-icall") CEF_GLOBAL bool CefRegisterExtension(const CefString& extension_name, const CefString& javascript_code, CefRefPtr<CefV8Handler> handler) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
@@ -840,6 +842,7 @@ NO_SANITIZE("cfi-icall") CEF_GLOBAL bool CefRegisterExtension(const CefString& e
   // Return type: bool
   return _retval?true:false;
 }
+#endif  // CEF_API_REMOVED(15400)
 
 NO_SANITIZE("cfi-icall") CEF_GLOBAL void CefExecuteJavaScriptWithUserGestureForTests(CefRefPtr<CefFrame> frame, const CefString& javascript) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
@@ -887,4 +890,51 @@ NO_SANITIZE("cfi-icall") CEF_GLOBAL bool CefIsFeatureEnabledForTests(const CefSt
   // Return type: bool
   return _retval?true:false;
 }
+
+#if CEF_API_ADDED(CEF_EXPERIMENTAL)
+NO_SANITIZE("cfi-icall") CEF_GLOBAL int CefGetChromeBrowserOwnedWidgetCountForTests(CefRefPtr<CefBrowser> browser) {
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Verify param: browser; type: refptr_same
+  DCHECK(browser.get());
+  if (!browser.get()) {
+    return 0;
+  }
+
+  // Execute
+  int _retval = cef_get_chrome_browser_owned_widget_count_for_tests(
+      CefBrowserCToCpp_Unwrap(browser));
+
+  // Return type: simple
+  return _retval;
+}
+#endif  // CEF_API_ADDED(CEF_EXPERIMENTAL)
+
+#if CEF_API_ADDED(CEF_EXPERIMENTAL)
+NO_SANITIZE("cfi-icall") CEF_GLOBAL void CefClearChromeBrowserPasswordDismissalStatsForTests(CefRefPtr<CefBrowser> browser, const CefString& origin, CefRefPtr<CefCompletionCallback> callback) {
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Verify param: browser; type: refptr_same
+  DCHECK(browser.get());
+  if (!browser.get()) {
+    return;
+  }
+  // Verify param: origin; type: string_byref_const
+  DCHECK(!origin.empty());
+  if (origin.empty()) {
+    return;
+  }
+  // Verify param: callback; type: refptr_diff
+  DCHECK(callback.get());
+  if (!callback.get()) {
+    return;
+  }
+
+  // Execute
+  cef_clear_chrome_browser_password_dismissal_stats_for_tests(
+      CefBrowserCToCpp_Unwrap(browser),
+      origin.GetStruct(),
+      CefCompletionCallbackCppToC_Wrap(callback));
+}
+#endif  // CEF_API_ADDED(CEF_EXPERIMENTAL)
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2025 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2026 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=264b5e2103cef05b5e2be77c6688a4e0b5e0d507$
+// $hash=bc9ced7979fff37450ec5c0d6e24adf56b25ac6d$
 //
 
 #include "libcef_dll/ctocpp/context_menu_params_ctocpp.h"

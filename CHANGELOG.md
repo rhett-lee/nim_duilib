@@ -123,6 +123,20 @@
 
 ### 变更
 
+- CEF 默认版本升级到 156（`156.0.14+g4fa4ab5+chromium-156.0.8078.48`，2026-10-24），
+  109 继续保留供 Windows 7 使用。`duilib/third_party/libcef/` 下的三个平台目录整体
+  替换为 156 源码：156 发行包取消了 `lib/` 目录，Windows 导入库改从
+  `Release/libcef.lib` 取得（`lib/{x64,Win32,arm64}`）；封装库随上游改用 C++20，
+  Windows 上按要求关闭沙箱（避免 `CEF_API_VERSION_LAST` 与 wrapper 的 ABI 差异），
+  wrapper 的 C++17 降级只保留给 109。版本清单、VS 工程文件列表、`deps` 指纹与脚本
+  默认版本提示同步更新。
+- CEF 156 移除了 `CefRegisterExtension`（`CEF_API_REMOVED(15400)`）：JS 桥改为在
+  `OnContextCreated` 中向页面全局对象绑定 native 函数，再 `Eval` 注入等价的
+  `NimCefWebInstance` 包装代码，Web 端 `call`/`register` 的调用方式不变；109 分支
+  仍使用原有扩展注册。
+- 依赖准备（CEF 运行时）的“采纳已有产物”规则收紧：Windows 无法从运行时读取版本
+  号，改为每次按归档解压覆盖，Linux/macOS 仍在 `include/cef_version.h` 版本匹配时
+  才采纳，避免旧版本运行时被写成新版本指纹。
 - `build/` 控制台输出改为简易双语（2026-10-29，P3-3）：`build.py`、`pack.py`、
   `release.py`、`autotest.py`、`sdk_package_test.py` 的运行期消息与 `--help`
   文案统一由 `cmake/i18n/messages.json` 提供，按 `--lang` / `DUILIB_LANG` →

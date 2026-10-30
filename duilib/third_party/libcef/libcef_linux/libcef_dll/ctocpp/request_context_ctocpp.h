@@ -1,4 +1,4 @@
-// Copyright (c) 2025 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2026 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=d897bb2cf6469de3868812a2fb26ed9e36e33c5a$
+// $hash=2758ffc07a3dadbaa74a06c96cf76734fb270499$
 //
 
 #ifndef CEF_LIBCEF_DLL_CTOCPP_REQUEST_CONTEXT_CTOCPP_H_
@@ -53,6 +53,9 @@ class CefRequestContextCToCpp
   bool ClearSchemeHandlerFactories() override;
   void ClearCertificateExceptions(
       CefRefPtr<CefCompletionCallback> callback) override;
+#if CEF_API_ADDED(14400)
+  void ClearHttpCache(CefRefPtr<CefCompletionCallback> callback) override;
+#endif
   void ClearHttpAuthCredentials(
       CefRefPtr<CefCompletionCallback> callback) override;
   void CloseAllConnections(CefRefPtr<CefCompletionCallback> callback) override;

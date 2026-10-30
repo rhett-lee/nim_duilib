@@ -1,4 +1,4 @@
-// Copyright (c) 2025 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2026 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=6c8e46d9927020dc89df0ee097e2cb303544c3a4$
+// $hash=2fd5ac00fa193e1af800be9652b52b7f24faf3b5$
 //
 
 #ifndef CEF_LIBCEF_DLL_WRAPPER_TYPES_H_
@@ -55,6 +55,9 @@ enum CefWrapperType {
   WT_COMMAND_HANDLER,
   WT_COMMAND_LINE,
   WT_COMPLETION_CALLBACK,
+  WT_COMPONENT,
+  WT_COMPONENT_UPDATE_CALLBACK,
+  WT_COMPONENT_UPDATER,
   WT_CONTEXT_MENU_HANDLER,
   WT_CONTEXT_MENU_PARAMS,
   WT_COOKIE_ACCESS_FILTER,
@@ -182,6 +185,7 @@ enum CefWrapperType {
   WT_UNRESPONSIVE_PROCESS_CALLBACK,
   WT_V8_ACCESSOR,
   WT_V8_ARRAY_BUFFER_RELEASE_CALLBACK,
+  WT_V8_BACKING_STORE,
   WT_V8_CONTEXT,
   WT_V8_EXCEPTION,
   WT_V8_HANDLER,

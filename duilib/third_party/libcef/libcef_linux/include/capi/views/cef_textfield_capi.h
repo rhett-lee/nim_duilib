@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2026 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -33,7 +33,7 @@
 // by hand. See the translator.README.txt file in the tools directory for
 // more information.
 //
-// $hash=c23c3546fcd0911268c52851e1e2b6a7f9261066$
+// $hash=20544adf29b2c74b85ae240905e8823afe1ab6ac$
 //
 
 #ifndef CEF_INCLUDE_CAPI_VIEWS_CEF_TEXTFIELD_CAPI_H_
@@ -46,6 +46,7 @@
 
 #include "include/capi/views/cef_textfield_delegate_capi.h"
 #include "include/capi/views/cef_view_capi.h"
+#include "include/cef_api_hash.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -151,41 +152,65 @@ typedef struct _cef_textfield_t {
   ///
   size_t(CEF_CALLBACK* get_cursor_position)(struct _cef_textfield_t* self);
 
+#if CEF_API_REMOVED(15000)
   ///
   /// Sets the text color.
   ///
   void(CEF_CALLBACK* set_text_color)(struct _cef_textfield_t* self,
                                      cef_color_t color);
+#else
+  uintptr_t set_text_color_removed;
+#endif
 
+#if CEF_API_REMOVED(15000)
   ///
   /// Returns the text color.
   ///
   cef_color_t(CEF_CALLBACK* get_text_color)(struct _cef_textfield_t* self);
+#else
+  uintptr_t get_text_color_removed;
+#endif
 
+#if CEF_API_REMOVED(15000)
   ///
   /// Sets the selection text color.
   ///
   void(CEF_CALLBACK* set_selection_text_color)(struct _cef_textfield_t* self,
                                                cef_color_t color);
+#else
+  uintptr_t set_selection_text_color_removed;
+#endif
 
+#if CEF_API_REMOVED(15000)
   ///
   /// Returns the selection text color.
   ///
   cef_color_t(CEF_CALLBACK* get_selection_text_color)(
       struct _cef_textfield_t* self);
+#else
+  uintptr_t get_selection_text_color_removed;
+#endif
 
+#if CEF_API_REMOVED(15000)
   ///
   /// Sets the selection background color.
   ///
   void(CEF_CALLBACK* set_selection_background_color)(
       struct _cef_textfield_t* self,
       cef_color_t color);
+#else
+  uintptr_t set_selection_background_color_removed;
+#endif
 
+#if CEF_API_REMOVED(15000)
   ///
   /// Returns the selection background color.
   ///
   cef_color_t(CEF_CALLBACK* get_selection_background_color)(
       struct _cef_textfield_t* self);
+#else
+  uintptr_t get_selection_background_color_removed;
+#endif
 
   ///
   /// Sets the font list. The format is "<FONT_FAMILY_LIST>,[STYLES] <SIZE>",
@@ -255,11 +280,15 @@ typedef struct _cef_textfield_t {
   cef_string_userfree_t(CEF_CALLBACK* get_placeholder_text)(
       struct _cef_textfield_t* self);
 
+#if CEF_API_REMOVED(15000)
   ///
   /// Sets the placeholder text color.
   ///
   void(CEF_CALLBACK* set_placeholder_text_color)(struct _cef_textfield_t* self,
                                                  cef_color_t color);
+#else
+  uintptr_t set_placeholder_text_color_removed;
+#endif
 
   ///
   /// Set the accessible name that will be exposed to assistive technology (AT).

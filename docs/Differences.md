@@ -21,7 +21,7 @@ nim_duilib 基于 [NIM_Duilib_Framework](https://github.com/netease-im/NIM_Duili
 | 7 | 移除对 base 库的依赖，消息循环和线程通信相关功能改为自行实现 |
 | 8 | 集成 Skia 引擎，并作为默认的渲染引擎 |
 | 9 | 支持 SDL3，实现跨平台（已适配 Windows、Linux、macOS、FreeBSD） |
-| 10 | CEF 组件并入 duilib 工程，并升级 CEF 版本：支持 libcef 109（兼容 Windows 7）与 libcef 142（Windows 10 及以上） |
+| 10 | CEF 组件并入 duilib 工程，并升级 CEF 版本：支持 libcef 109（兼容 Windows 7）与 libcef 156（Windows 10 及以上） |
 | 11 | 重新设计图片管理接口和加载流程（Image 目录），支持多线程加载图片，便于扩展更多图片格式 |
 | 12 | 重新设计全局资源管理器的 XML 结构（global.xml），改进字体管理，支持字体回退以显示 Emoji；支持浅色/深色主题与强调色 |
 

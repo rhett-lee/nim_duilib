@@ -11,8 +11,8 @@
 # CMake-generated project formats that have been tested with this CEF binary
 # distribution include:
 #
-# Linux:      Ninja, GCC 7.5.0+, Unix Makefiles
-# MacOS:      Ninja, Xcode 13.3 to 16.4
+# Linux:      Ninja, GCC 10+, Unix Makefiles
+# MacOS:      Ninja, Xcode 16+
 # Windows:    Ninja, Visual Studio 2022
 #
 # Ninja is a cross-platform open-source tool for running fast builds using
@@ -38,9 +38,11 @@
 #
 # - CMake version 3.21 or newer.
 #
+# - Compiler with C++20 support (-std=c++20).
+#
 # - Linux requirements:
-#   Currently supported distributions include Debian 10 (Buster), Ubuntu 18
-#   (Bionic Beaver), and related. Ubuntu 18.04 64-bit with GCC 7.5.0+ is
+#   Currently supported distributions include Debian 12 (Bookworm), Ubuntu 22
+#   (Jammy Jellyfish), and related. Ubuntu 22.04 64-bit with GCC 10+ is
 #   recommended. Newer versions will likely also work but may not have been
 #   tested.
 #   Required packages include:
@@ -48,9 +50,9 @@
 #     libgtk3.0-dev     (required by the cefclient target only)
 #
 # - MacOS requirements:
-#   Xcode 13.5 to 16.4 building on MacOS 12.0 (Monterey) or newer. The Xcode
-#   command-line tools must also be installed. Newer Xcode versions may not have
-#   been been tested and are not recommended.
+#   Xcode 16+ building on MacOS 14.5 (Sonoma) or newer. The Xcode command-line
+#   tools must also be installed. Xcode versions newer than this binary
+#   distribution may not have been tested and are not recommended.
 #
 # - Windows requirements:
 #   Visual Studio 2022 building on Windows 10 or newer. Windows 10/11 64-bit is
@@ -127,6 +129,12 @@
 #     > cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Debug ..
 #     > ninja cefsimple
 
+# Windows bootstrap distributions also support an installer-managed cefclient
+# example. Configure a new directory with -DUSE_INSTALLER=On and build the
+# cefclient target in Release. This mode requires USE_SANDBOX=On, generates no
+# other CEF application/test targets, and retains libcef_dll_wrapper plus CMake
+# utility targets. See README.txt for the additional option and the managed
+# config, payload, signing, application identity, and explicit-mode limitations.
 #
 # Global setup.
 #
@@ -134,8 +142,25 @@
 # For VS2022 and Xcode 12+ support.
 cmake_minimum_required(VERSION 3.21)
 
-# Only generate Debug and Release configuration types.
-set(CMAKE_CONFIGURATION_TYPES Debug Release)
+# Select supported configurations before project() initializes generator
+# defaults. Installer mode uses the prebuilt Release bootstrap and runtime
+# exclusively.
+get_property(CEF_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(USE_INSTALLER AND CEF_MULTI_CONFIG)
+  set(CMAKE_CONFIGURATION_TYPES Release CACHE STRING
+      "Supported installer-mode configurations" FORCE)
+elseif(USE_INSTALLER)
+  if(NOT DEFINED CMAKE_BUILD_TYPE OR "${CMAKE_BUILD_TYPE}" STREQUAL "")
+    set(CMAKE_BUILD_TYPE Release CACHE STRING
+        "Installer-mode build type" FORCE)
+  elseif(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+    message(FATAL_ERROR
+            "USE_INSTALLER requires CMAKE_BUILD_TYPE=Release.")
+  endif()
+else()
+  set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE STRING
+      "Supported configurations" FORCE)
+endif()
 
 # Project name.
 # TODO: Change this line to match your project name when you copy this file.
@@ -214,6 +239,7 @@ get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../.
 include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_lib_output.cmake")
 # duilib end
 
+
 #
 # Define CEF-based targets.
 #
@@ -226,8 +252,10 @@ add_subdirectory(${CEF_LIBCEF_DLL_WRAPPER_PATH} libcef_dll_wrapper)
 # Include application targets.
 # Comes from the <target>/CMakeLists.txt file in the current directory.
 # TODO: Change these lines to match your project target when you copy this file.
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests")
+if(NOT USE_INSTALLER AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests")
   add_subdirectory(tests/cefsimple)
+  add_subdirectory(tests/cefsimple_capi)
+  add_subdirectory(tests/gmock)
   add_subdirectory(tests/gtest)
   add_subdirectory(tests/ceftests)
 endif()
@@ -244,16 +272,18 @@ PRINT_CEF_CONFIG()
 # Define the API documentation target.
 #
 
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile")
+if(NOT USE_INSTALLER AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile")
   find_package(Doxygen)
   if(DOXYGEN_FOUND)
     add_custom_target(apidocs ALL
       # Generate documentation in the docs/html directory.
       COMMAND "${DOXYGEN_EXECUTABLE}" Doxyfile
       # Write a docs/index.html file.
+      COMMAND ${CMAKE_COMMAND} -E make_directory docs
       COMMAND ${CMAKE_COMMAND} -E echo "<html><head><meta http-equiv=\"refresh\" content=\"0;URL='html/index.html'\"/></head></html>" > docs/index.html
       WORKING_DIRECTORY "${CEF_ROOT}"
       COMMENT "Generating API documentation with Doxygen..."
+      USES_TERMINAL
       VERBATIM )
   else()
     message(WARNING "Doxygen must be installed to generate API documentation.")

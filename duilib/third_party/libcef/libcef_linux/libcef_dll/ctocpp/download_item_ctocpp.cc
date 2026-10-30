@@ -1,4 +1,4 @@
-// Copyright (c) 2025 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2026 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=2db1b9771f8500564bc2b942b7e4066eadc34b31$
+// $hash=a07135233a53af967af9e1905d216aace9c94d06$
 //
 
 #include "libcef_dll/ctocpp/download_item_ctocpp.h"
@@ -102,6 +102,25 @@ NO_SANITIZE("cfi-icall") bool CefDownloadItemCToCpp::IsInterrupted() {
   // Return type: bool
   return _retval ? true : false;
 }
+
+#if CEF_API_ADDED(14400)
+NO_SANITIZE("cfi-icall") bool CefDownloadItemCToCpp::IsPaused() {
+  shutdown_checker::AssertNotShutdown();
+
+  auto* _struct = GetStruct();
+  if (!_struct->is_paused) {
+    return false;
+  }
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Execute
+  int _retval = _struct->is_paused(_struct);
+
+  // Return type: bool
+  return _retval ? true : false;
+}
+#endif  // CEF_API_ADDED(14400)
 
 NO_SANITIZE("cfi-icall")
 cef_download_interrupt_reason_t CefDownloadItemCToCpp::GetInterruptReason() {

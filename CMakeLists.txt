@@ -145,11 +145,14 @@ endif()
 # 目录必须跟随 DUILIB_CEF_VERSION（109 -> libcef_win_109），否则会用最新版
 # 的 wrapper 源码去编译 109 的头文件，且产物名与链接方期望的不一致。
 if(DUILIB_ENABLE_CEF)
-    if(DUILIB_OS_WINDOWS AND DUILIB_CEF_VERSION STREQUAL "109")
-        # CEF 109 在 USE_SANDBOX=ON 时会为 Debug 的 wrapper 追加
-        # _HAS_ITERATOR_DEBUGGING=0（等价 _ITERATOR_DEBUG_LEVEL=0），与 Debug
-        # 主工程的默认值 2 冲突，链接时报 LNK2038。本项目不链接 cef_sandbox.lib
-        # （打包也不随包），因此直接关闭沙箱。
+    if(DUILIB_OS_WINDOWS)
+        # 本项目不使用CEF沙箱（不链接 cef_sandbox.lib，打包也不随包），直接关闭：
+        # - CEF 109：USE_SANDBOX=ON 时会为 Debug 的 wrapper 追加
+        #   _HAS_ITERATOR_DEBUGGING=0（等价 _ITERATOR_DEBUG_LEVEL=0），与 Debug
+        #   主工程的默认值 2 冲突，链接时报 LNK2038。
+        # - CEF 156：USE_SANDBOX=ON 时会为 wrapper 追加
+        #   CEF_API_VERSION=CEF_API_VERSION_LAST，而主工程未定义该宏（使用实验性
+        #   API），wrapper 与主工程必须使用同一 API 版本，否则存在 ABI 不一致风险。
         set(USE_SANDBOX OFF CACHE BOOL "Enable or disable use of the sandbox." FORCE)
     endif()
     set(_duilib_cef_subdir "")
@@ -168,17 +171,16 @@ if(DUILIB_ENABLE_CEF)
     if(_duilib_cef_subdir AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/duilib/third_party/libcef/${_duilib_cef_subdir}/CMakeLists.txt")
         add_subdirectory("duilib/third_party/libcef/${_duilib_cef_subdir}")
 
-        # CEF wrapper 按上游固定使用 C++17，而本工程是 C++20。若不做目标级降级，
-        # 编译命令会同时带 /std:c++20（MSVC）或 -std=c++20（clang）与 CEF 自带的
-        # /std:c++17，触发 D9025（或 clang 的选项覆盖警告）。wrapper 是独立静态库，
-        # 单独使用 C++17 不影响 duilib 自身的 C++20。
-        foreach(_duilib_cef_target libcef_dll_wrapper libcef_dll_wrapper_109)
-            if(TARGET ${_duilib_cef_target})
-                set_target_properties(${_duilib_cef_target} PROPERTIES
-                    CXX_STANDARD 17
-                    CXX_STANDARD_REQUIRED ON)
-            endif()
-        endforeach()
+        # CEF 109 的 wrapper 按上游固定使用 C++17，而本工程是 C++20。若不做目标级
+        # 降级，编译命令会同时带 /std:c++20（MSVC）或 -std=c++20（clang）与 CEF
+        # 自带的 /std:c++17，触发 D9025（或 clang 的选项覆盖警告）。wrapper 是独立
+        # 静态库，单独使用 C++17 不影响 duilib 自身的 C++20。
+        # 最新版（156 起）的 wrapper 已改用 C++20，无需降级。
+        if(TARGET libcef_dll_wrapper_109)
+            set_target_properties(libcef_dll_wrapper_109 PROPERTIES
+                CXX_STANDARD 17
+                CXX_STANDARD_REQUIRED ON)
+        endif()
     endif()
 endif()
 

@@ -75,7 +75,11 @@ typedef enum {
   CEF_CONTENT_SETTING_TYPE_PROTECTED_MEDIA_IDENTIFIER,
   CEF_CONTENT_SETTING_TYPE_APP_BANNER,
   CEF_CONTENT_SETTING_TYPE_SITE_ENGAGEMENT,
+#if CEF_API_ADDED(14600)
+  CEF_CONTENT_SETTING_TYPE_PERSISTENT_STORAGE,
+#else
   CEF_CONTENT_SETTING_TYPE_DURABLE_STORAGE,
+#endif
   CEF_CONTENT_SETTING_TYPE_USB_CHOOSER_DATA,
   CEF_CONTENT_SETTING_TYPE_BLUETOOTH_GUARD,
   CEF_CONTENT_SETTING_TYPE_BACKGROUND_SYNC,
@@ -360,9 +364,13 @@ typedef enum {
   /// should be enabled.
   CEF_CONTENT_SETTING_TYPE_ANTI_ABUSE,
 
+#if CEF_API_ADDED(14600)
+  CEF_CONTENT_SETTING_TYPE_THIRD_PARTY_STORAGE_PARTITIONING_DEPRECATED,
+#else
   /// Content setting used to indicate whether third-party storage partitioning
   /// should be enabled.
   CEF_CONTENT_SETTING_TYPE_THIRD_PARTY_STORAGE_PARTITIONING,
+#endif
 
   /// Used to indicate whether HTTPS-First Mode is enabled on the hostname.
   CEF_CONTENT_SETTING_TYPE_HTTPS_ENFORCED,
@@ -374,30 +382,48 @@ typedef enum {
   /// Stores per origin metadata for cookie controls.
   CEF_CONTENT_SETTING_TYPE_COOKIE_CONTROLS_METADATA,
 
+#if CEF_API_ADDED(14900)
+  CEF_CONTENT_SETTING_TYPE_TPCD_HEURISTICS_GRANTS_DEPRECATED,
+#else
   /// Content Setting for temporary 3PC accesses granted by user behavior
   /// heuristics.
   CEF_CONTENT_SETTING_TYPE_TPCD_HEURISTICS_GRANTS,
+#endif
 
+#if CEF_API_ADDED(14900)
+  CEF_CONTENT_SETTING_TYPE_TPCD_METADATA_GRANTS_DEPRECATED,
+#else
   /// Content Setting for 3PC accesses granted by metadata delivered via the
   /// component updater service. This type will only be used when
   /// `net::features::kTpcdMetadataGrants` is enabled.
   CEF_CONTENT_SETTING_TYPE_TPCD_METADATA_GRANTS,
+#endif
 
+#if CEF_API_ADDED(14400)
+  CEF_CONTENT_SETTING_TYPE_TPCD_TRIAL_DEPRECATED,
+#else
   /// Content Setting for 3PC accesses granted via 3PC deprecation trial.
   CEF_CONTENT_SETTING_TYPE_TPCD_TRIAL,
+#endif
 
+#if CEF_API_ADDED(14300)
+  CEF_CONTENT_SETTING_TYPE_TOP_LEVEL_TPCD_TRIAL_DEPRECATED,
+#else
   /// Content Setting for 3PC accesses granted via top-level 3PC deprecation
   /// trial. Similar to TPCD_TRIAL, but applicable at the page-level for the
   /// lifetime of the page that served the token, rather than being specific to
   /// a requesting-origin/top-level-site combination and persistent.
   CEF_CONTENT_SETTING_TYPE_TOP_LEVEL_TPCD_TRIAL,
+#endif
 
-/// Content Setting for a first-party origin trial that allows websites to
-/// enable third-party cookie deprecation.
-/// ALLOW (default): no effect (e.g. third-party cookies allowed, if not
-///                  blocked otherwise).
-/// BLOCK: third-party cookies blocked, but 3PCD mitigations enabled.
-#if CEF_API_ADDED(13601)
+#if CEF_API_ADDED(14300)
+  CEF_CONTENT_SETTING_TYPE_TOP_LEVEL_TPCD_ORIGIN_TRIAL_DEPRECATED,
+#elif CEF_API_ADDED(13601)
+  /// Content Setting for a first-party origin trial that allows websites to
+  /// enable third-party cookie deprecation.
+  /// ALLOW (default): no effect (e.g. third-party cookies allowed, if not
+  ///                  blocked otherwise).
+  /// BLOCK: third-party cookies blocked, but 3PCD mitigations enabled.
   CEF_CONTENT_SETTING_TYPE_TOP_LEVEL_TPCD_ORIGIN_TRIAL,
 #else
   CEF_CONTENT_SETTING_TOP_LEVEL_TPCD_ORIGIN_TRIAL,
@@ -434,9 +460,17 @@ typedef enum {
   /// automatically (i.e. without transient activation) should be enabled.
   CEF_CONTENT_SETTING_TYPE_AUTOMATIC_FULLSCREEN,
 
+#if CEF_API_ADDED(15000)
   /// Content settings used to indicate that a web app is allowed to prompt the
   /// user for the installation of sub apps.
   CEF_CONTENT_SETTING_TYPE_SUB_APP_INSTALLATION_PROMPTS,
+#elif CEF_API_ADDED(14800)
+  CEF_CONTENT_SETTING_TYPE_SUB_APP_INSTALLATION_PROMPTS_DEPRECATED,
+#else
+  /// Content settings used to indicate that a web app is allowed to prompt the
+  /// user for the installation of sub apps.
+  CEF_CONTENT_SETTING_TYPE_SUB_APP_INSTALLATION_PROMPTS,
+#endif
 
   /// Whether an application can enumerate audio output device.
   CEF_CONTENT_SETTING_TYPE_SPEAKER_SELECTION,
@@ -456,10 +490,14 @@ typedef enum {
   /// auto-revoked notification permissions from abusive sites.
   CEF_CONTENT_SETTING_TYPE_REVOKED_ABUSIVE_NOTIFICATION_PERMISSIONS,
 
+#if CEF_API_ADDED(14600)
+  CEF_CONTENT_SETTING_TYPE_TRACKING_PROTECTION_DEPRECATED,
+#else
   /// Content setting that controls tracking protection status per site.
   /// BLOCK: Protections enabled. This is the default state.
   /// ALLOW: Protections disabled.
   CEF_CONTENT_SETTING_TYPE_TRACKING_PROTECTION,
+#endif
 
   /// With this permission, when the application calls `getDisplayMedia()`, a
   /// system audio track can be returned without showing the display media
@@ -473,6 +511,9 @@ typedef enum {
   /// page.
   CEF_CONTENT_SETTING_TYPE_JAVASCRIPT_OPTIMIZER,
 
+#if CEF_API_ADDED(15600)
+  CEF_CONTENT_SETTING_TYPE_STORAGE_ACCESS_HEADER_ORIGIN_TRIAL_DEPRECATED,
+#else
   /// Content Setting for the Storage Access Headers persistent origin trial
   /// that allows origins to opt into the storage access header behavior. Should
   /// be scoped to `REQUESTING_ORIGIN_AND_TOP_SCHEMEFUL_SITE_SCOPE` in order to
@@ -483,6 +524,7 @@ typedef enum {
   ///        origins to retry a request or load with storage access.
   /// BLOCK (default): no effect.
   CEF_CONTENT_SETTING_TYPE_STORAGE_ACCESS_HEADER_ORIGIN_TRIAL,
+#endif
 
   /// Whether or not sites can request Hand Tracking data within WebXR Sessions.
   CEF_CONTENT_SETTING_TYPE_HAND_TRACKING,
@@ -491,9 +533,13 @@ typedef enum {
   /// install other web apps.
   CEF_CONTENT_SETTING_TYPE_WEB_APP_INSTALLATION,
 
+#if CEF_API_ADDED(15600)
+  CEF_CONTENT_SETTING_TYPE_DIRECT_SOCKETS_PRIVATE_NETWORK_ACCESS_DEPRECATED,
+#else
   /// Content settings for private network access in the context of the
   /// Direct Sockets API.
   CEF_CONTENT_SETTING_TYPE_DIRECT_SOCKETS_PRIVATE_NETWORK_ACCESS,
+#endif
 
   /// Content settings for legacy cookie scope.
   /// Checks whether cookies scope is handled according to origin-bound cookies
@@ -558,6 +604,32 @@ typedef enum {
   /// when suspicious warning is shown. If the user has selected this, the
   /// notification permission will not be revoked based on suspicious verdict.
   CEF_CONTENT_SETTING_TYPE_SUSPICIOUS_NOTIFICATION_SHOW_ORIGINAL,
+#endif
+
+#if CEF_API_ADDED(14500)
+  /// Content setting for whether the site is allowed to make local network
+  /// requests. Split from LOCAL_NETWORK_ACCESS.
+  CEF_CONTENT_SETTING_TYPE_LOCAL_NETWORK,
+
+  /// Content setting for whether the site is allowed to make loopback network
+  /// requests. Split from LOCAL_NETWORK_ACCESS.
+  CEF_CONTENT_SETTING_TYPE_LOOPBACK_NETWORK,
+#endif
+
+#if CEF_API_ADDED(15000)
+  /// Content setting for whether an IWA can add sub apps without prompting
+  /// users.
+  CEF_CONTENT_SETTING_TYPE_SUB_APPS_WITHOUT_PROMPTS,
+#endif
+
+#if CEF_API_ADDED(15100)
+  /// Content setting for inline cue menus.
+  CEF_CONTENT_SETTING_TYPE_INLINE_CUE_MENU,
+#endif
+
+#if CEF_API_ADDED(15200)
+  /// Stores allowlist decisions for Suspicious Site Warnings.
+  CEF_CONTENT_SETTING_TYPE_SUSPICIOUS_SITE_WARNING_DATA,
 #endif
 
   CEF_CONTENT_SETTING_TYPE_NUM_VALUES,

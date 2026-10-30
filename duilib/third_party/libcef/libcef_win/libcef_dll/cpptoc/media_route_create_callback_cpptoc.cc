@@ -1,4 +1,4 @@
-// Copyright (c) 2025 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2026 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=2aff2d51154dddea48b2e6649b66b55856177936$
+// $hash=bf3e5b1373f14a200c92d1a504d0cb8c47caa96b$
 //
 
 #include "libcef_dll/cpptoc/media_route_create_callback_cpptoc.h"

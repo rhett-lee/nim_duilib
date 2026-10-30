@@ -1,4 +1,4 @@
-// Copyright (c) 2025 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2026 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=34c21edf0ddb3d28717f7e5d4727ea3f3f31e912$
+// $hash=0a164880a7775660ab9cf228e73f7c0174b9190a$
 //
 
 #include "libcef_dll/ctocpp/preference_registrar_ctocpp.h"
@@ -47,6 +47,65 @@ bool CefPreferenceRegistrarCToCpp::AddPreference(
   // Return type: bool
   return _retval ? true : false;
 }
+
+#if CEF_API_ADDED(15600)
+NO_SANITIZE("cfi-icall")
+bool CefPreferenceRegistrarCToCpp::SetDefaultPreference(
+    const CefString& name,
+    CefRefPtr<CefValue> value,
+    CefString& error) {
+  auto* _struct = GetStruct();
+  if (!_struct->set_default_preference) {
+    return false;
+  }
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Verify param: name; type: string_byref_const
+  DCHECK(!name.empty());
+  if (name.empty()) {
+    return false;
+  }
+  // Verify param: value; type: refptr_same
+  DCHECK(value.get());
+  if (!value.get()) {
+    return false;
+  }
+
+  // Execute
+  int _retval = _struct->set_default_preference(_struct, name.GetStruct(),
+                                                CefValueCToCpp_Unwrap(value),
+                                                error.GetWritableStruct());
+
+  // Return type: bool
+  return _retval ? true : false;
+}
+#endif  // CEF_API_ADDED(15600)
+
+#if CEF_API_ADDED(15600)
+NO_SANITIZE("cfi-icall")
+CefRefPtr<CefValue> CefPreferenceRegistrarCToCpp::GetDefaultPreference(
+    const CefString& name) {
+  auto* _struct = GetStruct();
+  if (!_struct->get_default_preference) {
+    return nullptr;
+  }
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Verify param: name; type: string_byref_const
+  DCHECK(!name.empty());
+  if (name.empty()) {
+    return nullptr;
+  }
+
+  // Execute
+  auto* _retval = _struct->get_default_preference(_struct, name.GetStruct());
+
+  // Return type: refptr_same
+  return CefValueCToCpp_Wrap(_retval);
+}
+#endif  // CEF_API_ADDED(15600)
 
 // CONSTRUCTOR - Do not edit by hand.
 

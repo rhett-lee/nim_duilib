@@ -60,6 +60,8 @@ set(LIBCEF_CPPTOC_SRCS
   cpptoc/command_handler_cpptoc.h
   cpptoc/completion_callback_cpptoc.cc
   cpptoc/completion_callback_cpptoc.h
+  cpptoc/component_update_callback_cpptoc.cc
+  cpptoc/component_update_callback_cpptoc.h
   cpptoc/context_menu_handler_cpptoc.cc
   cpptoc/context_menu_handler_cpptoc.h
   cpptoc/cookie_access_filter_cpptoc.cc
@@ -226,6 +228,10 @@ set(LIBCEF_CTOCPP_SRCS
   ctocpp/callback_ctocpp.h
   ctocpp/command_line_ctocpp.cc
   ctocpp/command_line_ctocpp.h
+  ctocpp/component_ctocpp.cc
+  ctocpp/component_ctocpp.h
+  ctocpp/component_updater_ctocpp.cc
+  ctocpp/component_updater_ctocpp.h
   ctocpp/context_menu_params_ctocpp.cc
   ctocpp/context_menu_params_ctocpp.h
   ctocpp/cookie_manager_ctocpp.cc
@@ -332,6 +338,8 @@ set(LIBCEF_CTOCPP_SRCS
   ctocpp/unresponsive_process_callback_ctocpp.h
   ctocpp/urlrequest_ctocpp.cc
   ctocpp/urlrequest_ctocpp.h
+  ctocpp/v8_backing_store_ctocpp.cc
+  ctocpp/v8_backing_store_ctocpp.h
   ctocpp/v8_context_ctocpp.cc
   ctocpp/v8_context_ctocpp.h
   ctocpp/v8_exception_ctocpp.cc
@@ -448,6 +456,7 @@ set(LIBCEF_INCLUDE_SRCS
   ../include/cef_client.h
   ../include/cef_command_handler.h
   ../include/cef_command_line.h
+  ../include/cef_component_updater.h
   ../include/cef_context_menu_handler.h
   ../include/cef_cookie.h
   ../include/cef_crash_util.h
@@ -532,17 +541,16 @@ source_group(include FILES ${LIBCEF_INCLUDE_SRCS})
 set(LIBCEF_INCLUDE_BASE_SRCS
   ../include/base/cef_atomic_flag.h
   ../include/base/cef_atomic_ref_count.h
-  ../include/base/cef_auto_reset.h
   ../include/base/cef_bind.h
   ../include/base/cef_build.h
   ../include/base/cef_callback.h
   ../include/base/cef_callback_forward.h
   ../include/base/cef_callback_helpers.h
-  ../include/base/cef_callback_list.h
-  ../include/base/cef_cancelable_callback.h
   ../include/base/cef_compiler_specific.h
   ../include/base/cef_dump_without_crashing.h
   ../include/base/cef_immediate_crash.h
+  ../include/base/cef_is_complete.h
+  ../include/base/cef_is_instantiation.h
   ../include/base/cef_lock.h
   ../include/base/cef_logging.h
   ../include/base/cef_macros.h
@@ -550,29 +558,21 @@ set(LIBCEF_INCLUDE_BASE_SRCS
   ../include/base/cef_ref_counted.h
   ../include/base/cef_scoped_refptr.h
   ../include/base/cef_thread_checker.h
+  ../include/base/cef_to_address.h
   ../include/base/cef_trace_event.h
-  ../include/base/cef_tuple.h
   ../include/base/cef_weak_ptr.h
   )
-set(LIBCEF_INCLUDE_BASE_SRCS_MAC
-  ../include/base/cef_scoped_typeref_mac.h
-  )
-LIBCEF_APPEND_PLATFORM_SOURCES(LIBCEF_INCLUDE_BASE_SRCS)
 source_group(include\\\\base FILES ${LIBCEF_INCLUDE_BASE_SRCS})
 
 set(LIBCEF_INCLUDE_BASE_INTERNAL_SRCS
+  ../include/base/internal/cef_always_false.h
   ../include/base/internal/cef_bind_internal.h
   ../include/base/internal/cef_callback_internal.h
+  ../include/base/internal/cef_callback_tags.h
   ../include/base/internal/cef_color_id_macros.inc
   ../include/base/internal/cef_lock_impl.h
-  ../include/base/internal/cef_raw_scoped_refptr_mismatch_checker.h
-  ../include/base/internal/cef_scoped_policy.h
   ../include/base/internal/cef_thread_checker_impl.h
   )
-set(LIBCEF_INCLUDE_BASE_INTERNAL_SRCS_MAC
-  ../include/base/internal/cef_scoped_block_mac.h
-  )
-LIBCEF_APPEND_PLATFORM_SOURCES(LIBCEF_INCLUDE_BASE_INTERNAL_SRCS)
 source_group(include\\\\base\\\\internal FILES ${LIBCEF_INCLUDE_BASE_INTERNAL_SRCS})
 
 set(LIBCEF_INCLUDE_CAPI_SRCS
@@ -587,6 +587,7 @@ set(LIBCEF_INCLUDE_CAPI_SRCS
   ../include/capi/cef_client_capi.h
   ../include/capi/cef_command_handler_capi.h
   ../include/capi/cef_command_line_capi.h
+  ../include/capi/cef_component_updater_capi.h
   ../include/capi/cef_context_menu_handler_capi.h
   ../include/capi/cef_cookie_capi.h
   ../include/capi/cef_crash_util_capi.h
@@ -708,6 +709,7 @@ set(LIBCEF_INCLUDE_INTERNAL_SRCS
   ../include/internal/cef_trace_event_internal.h
   ../include/internal/cef_types.h
   ../include/internal/cef_types_color.h
+  ../include/internal/cef_types_component.h
   ../include/internal/cef_types_content_settings.h
   ../include/internal/cef_types_geometry.h
   ../include/internal/cef_types_osr.h

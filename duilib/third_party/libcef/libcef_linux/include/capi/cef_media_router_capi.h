@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2026 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -33,7 +33,7 @@
 // by hand. See the translator.README.txt file in the tools directory for
 // more information.
 //
-// $hash=42fa8dfb3dec7ef405b5d1ea27dfff54b2ec0ca8$
+// $hash=0de3054be09e30bbc616713186324578cd1426ed$
 //
 
 #ifndef CEF_INCLUDE_CAPI_CEF_MEDIA_ROUTER_CAPI_H_
@@ -120,8 +120,8 @@ typedef struct _cef_media_router_t {
 /// Returns the MediaRouter object associated with the global request context.
 /// If |callback| is non-NULL it will be executed asnychronously on the UI
 /// thread after the manager's storage has been initialized. Equivalent to
-/// calling cef_request_context_t::cef_request_context_get_global_context()->get
-/// _media_router().
+/// calling cef_request_context_t::cef_request_context_get_global_context()-
+/// >get_media_router().
 ///
 CEF_EXPORT cef_media_router_t* cef_media_router_get_global(
     struct _cef_completion_callback_t* callback);

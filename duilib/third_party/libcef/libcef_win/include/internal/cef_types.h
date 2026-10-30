@@ -499,6 +499,34 @@ typedef struct _cef_settings_t {
   /// Specify whether signal handlers must be disabled on POSIX systems.
   ///
   int disable_signal_handlers;
+
+#if CEF_API_ADDED(14600)
+  ///
+  /// If true use a Views (bare-bones) window instead of a Chrome UI window when
+  /// creating default popups for Chrome style native-hosted (non-Views)
+  /// browsers. This applies when CefLifeSpanHandler::OnBeforePopup has not been
+  /// implemented to provide parent window information for the new popup.
+  ///
+  int use_views_default_popup;
+#endif
+
+#if CEF_API_ADDED(15600)
+  ///
+  /// The macOS Keychain service name used by OSCrypt. If this value is empty
+  /// then the default Chromium/Chrome service name will be used. Changing this
+  /// value will create or access a different Keychain item and may make
+  /// previously encrypted data unreadable.
+  ///
+  cef_string_t keychain_service_name;
+
+  ///
+  /// The macOS Keychain account name used by OSCrypt. If this value is empty
+  /// then the default Chromium/Chrome account name will be used. Changing this
+  /// value will create or access a different Keychain item and may make
+  /// previously encrypted data unreadable.
+  ///
+  cef_string_t keychain_account_name;
+#endif
 } cef_settings_t;
 
 ///
@@ -574,8 +602,8 @@ typedef struct _cef_browser_settings_t {
   /// The maximum rate in frames per second (fps) that CefRenderHandler::OnPaint
   /// will be called for a windowless browser. The actual fps may be lower if
   /// the browser cannot generate frames at the requested rate. The minimum
-  /// value is 1 and the maximum value is 60 (default 30). This value can also
-  /// be changed dynamically via CefBrowserHost::SetWindowlessFrameRate.
+  /// value is 1 and the default value is 30. This value can also be changed
+  /// dynamically via CefBrowserHost::SetWindowlessFrameRate.
   ///
   int windowless_frame_rate;
 
@@ -711,6 +739,22 @@ typedef struct _cef_browser_settings_t {
   /// supported with Chrome style.
   ///
   cef_state_t chrome_zoom_bubble;
+
+#if CEF_API_ADDED(CEF_EXPERIMENTAL)
+  ///
+  /// Controls whether CDP accessibility tree serialization collapses off-screen
+  /// nodes. When enabled, off-screen landmarks and headings are serialized as
+  /// summaries (role + name only) and other off-screen nodes are pruned.
+  /// This reduces snapshot size for AI agents using Playwright ariaSnapshot().
+  /// WARNING: This collapses the CDP accessibility tree and disables CDP
+  /// dynamic tree updates (nodesUpdated events). The DevTools Accessibility
+  /// panel will show an incomplete tree. Platform screen readers (NVDA, JAWS,
+  /// VoiceOver) are unaffected - they use a separate code path.
+  /// Can also be configured at runtime using
+  /// CefBrowserHost::SetAxViewportCollapse.
+  ///
+  cef_state_t ax_viewport_collapse;
+#endif
 } cef_browser_settings_t;
 
 ///
@@ -1113,7 +1157,24 @@ typedef enum {
   CEF_RESULT_CODE_TERMINATED_BY_OTHER_PROCESS_ON_COMMIT_FAILURE = 39,
 #endif
 
-#if CEF_API_ADDED(13900)
+#if CEF_API_ADDED(14700)
+  /// The isolated browser process launched but it was not possible to wait on
+  /// the exit of the process, so the browser must exit.
+  CEF_RESULT_CODE_INVALID_ISOLATED_BROWSER_PROCESS = 40,
+#endif
+
+#if CEF_API_ADDED(15600)
+  /// A relaunch was requested during shutdown of an isolated browser process.
+  CEF_RESULT_CODE_NORMAL_EXIT_RELAUNCH_REQUESTED = 41,
+
+  /// A relaunch in background mode was requested during shutdown of an
+  /// isolated browser process.
+  CEF_RESULT_CODE_NORMAL_EXIT_RELAUNCH_BACKGROUND = 42,
+
+  CEF_RESULT_CODE_CHROME_LAST = 43,
+#elif CEF_API_ADDED(14700)
+  CEF_RESULT_CODE_CHROME_LAST = 41,
+#elif CEF_API_ADDED(13900)
   CEF_RESULT_CODE_CHROME_LAST = 40,
 #elif CEF_API_ADDED(13800)
   CEF_RESULT_CODE_CHROME_LAST = 39,
@@ -1225,6 +1286,13 @@ typedef enum {
   /// Creates a new document picture-in-picture window showing a child WebView.
   ///
   CEF_WOD_NEW_PICTURE_IN_PICTURE,
+
+#if CEF_API_ADDED(14800)
+  ///
+  /// Opens a link in a split view alongside the current tab.
+  ///
+  CEF_WOD_NEW_SPLIT_VIEW,
+#endif
 
   CEF_WOD_NUM_VALUES,
 } cef_window_open_disposition_t;
@@ -3490,6 +3558,16 @@ typedef enum {
   /// Front L, Front R, LFE, Back C
   CEF_CHANNEL_LAYOUT_3_1_BACK,
 
+#if CEF_API_ADDED(14800)
+  /// Front L, Front R, Front C, LFE, Side L, Side R,
+  /// Top Front L, Top Front R, Top Back L, Top Back R
+  CEF_CHANNEL_LAYOUT_5_1_4,
+
+  /// Front L, Front R, Front C, LFE, Back L, Back R, Side L, Side R,
+  /// Top Front L, Top Front R, Top Back L, Top Back R
+  CEF_CHANNEL_LAYOUT_7_1_4,
+#endif
+
   CEF_CHANNEL_NUM_VALUES,
 } cef_channel_layout_t;
 
@@ -3661,6 +3739,34 @@ typedef enum {
 #if CEF_API_ADDED(14000)
   CEF_CPAIT_AI_MODE,
 #endif
+#if CEF_API_ADDED(14400)
+  CEF_CPAIT_READING_MODE,
+  CEF_CPAIT_CONTEXTUAL_SIDE_PANEL,
+  CEF_CPAIT_JS_OPTIMIZATIONS,
+#endif
+#if CEF_API_ADDED(14700)
+  CEF_CPAIT_RECORD_REPLAY,
+  CEF_CPAIT_INDIGO,
+#endif
+#if CEF_API_ADDED(14800)
+  CEF_CPAIT_FEDERATION,
+  CEF_CPAIT_GLIC,
+#endif
+#if CEF_API_ADDED(14900)
+  CEF_CPAIT_ANCHORED_CONTEXTUAL_CUE,
+  CEF_CPAIT_WEB_AUTHN_AMBIENT_SIGNIN,
+#endif
+#if CEF_API_ADDED(15000)
+  CEF_CPAIT_AUTOFILL_PAYMENT,
+  CEF_CPAIT_MULTISTEP_FILTER,
+#endif
+#if CEF_API_ADDED(15200)
+  CEF_CPAIT_PAYMENTS_CHURNED_USERS,
+  CEF_CPAIT_FAKE_PAGE_ACTION_FOR_DEBUG,
+#endif
+#if CEF_API_ADDED(15400)
+  CEF_CPAIT_WALLET_REMINDER_NOTICE,
+#endif
   CEF_CPAIT_NUM_VALUES,
 } cef_chrome_page_action_icon_type_t;
 
@@ -3684,10 +3790,14 @@ typedef enum {
 #if CEF_API_ADDED(14000)
   CEF_CTBT_SIDE_PANEL_DEPRECATED,
   CEF_CTBT_MEDIA,
+#if CEF_API_ADDED(15100)
+  CEF_CTBT_TAB_SEARCH_DEPRECATED,
+#else
   CEF_CTBT_TAB_SEARCH,
+#endif
   CEF_CTBT_BATTERY_SAVER,
   CEF_CTBT_AVATAR,
-#else
+#else  // !CEF_API_ADDED(14000)
   CEF_CTBT_SIDE_PANEL,
 #endif
   CEF_CTBT_NUM_VALUES,
@@ -3841,8 +3951,20 @@ typedef enum {
   CEF_PERMISSION_TYPE_WEB_APP_INSTALLATION = 1 << 22,
   CEF_PERMISSION_TYPE_WINDOW_MANAGEMENT = 1 << 23,
   CEF_PERMISSION_TYPE_FILE_SYSTEM_ACCESS = 1 << 24,
-#if CEF_API_ADDED(13600)
+#if CEF_API_ADDED(15000)
+  CEF_PERMISSION_TYPE_LOCAL_NETWORK_ACCESS_DEPRECATED = 1 << 25,
+#elif CEF_API_ADDED(13600)
   CEF_PERMISSION_TYPE_LOCAL_NETWORK_ACCESS = 1 << 25,
+#endif
+#if CEF_API_ADDED(14500)
+  CEF_PERMISSION_TYPE_LOCAL_NETWORK = 1 << 26,
+  CEF_PERMISSION_TYPE_LOOPBACK_NETWORK = 1 << 27,
+#endif
+#if CEF_API_ADDED(14700)
+  CEF_PERMISSION_TYPE_SENSORS = 1 << 28,
+#endif
+#if CEF_API_ADDED(15600)
+  CEF_PERMISSION_TYPE_AMBIENT_LOGIN = 1 << 29,
 #endif
 } cef_permission_request_types_t;
 

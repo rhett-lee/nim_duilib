@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2026 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -33,7 +33,7 @@
 // by hand. See the translator.README.txt file in the tools directory for
 // more information.
 //
-// $hash=409a438b598bdae8a0728cb6d1a281d550c44841$
+// $hash=4d9c82ad7c1e05a6868a1d1dd40a82cf7ec7bbf1$
 //
 
 #ifndef CEF_INCLUDE_CAPI_CEF_DOWNLOAD_HANDLER_CAPI_H_
@@ -119,6 +119,8 @@ typedef struct _cef_download_handler_t {
   /// attachment` response from the server). |url| is the target download URL
   /// and |request_function| is the target function (GET, POST, etc). Return
   /// true (1) to proceed with the download or false (0) to cancel the download.
+  /// This function is not called for downloads initiated by
+  /// cef_browser_host_t::start_download().
   ///
   int(CEF_CALLBACK* can_download)(struct _cef_download_handler_t* self,
                                   struct _cef_browser_t* browser,
@@ -128,9 +130,12 @@ typedef struct _cef_download_handler_t {
   ///
   /// Called before a download begins. |suggested_name| is the suggested name
   /// for the download file. Return true (1) and execute |callback| either
-  /// asynchronously or in this function to continue or cancel the download.
-  /// Return false (0) to proceed with default handling (cancel with Alloy
-  /// style, download shelf with Chrome style). Do not keep a reference to
+  /// asynchronously or in this function to continue the download. Return false
+  /// (0) to proceed with default handling (cancel with Alloy style, default
+  /// download handling with Chrome style). To cancel the download with either
+  /// style execute the callback passed to on_download_updated(). If this
+  /// function returns true (1) and |callback| is destroyed without being
+  /// executed, the download will be canceled. Do not keep a reference to
   /// |download_item| outside of this function.
   ///
   int(CEF_CALLBACK* on_before_download)(

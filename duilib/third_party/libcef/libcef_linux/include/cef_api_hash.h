@@ -28,7 +28,8 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Versions are managed using the version_manager.py tool. For usage details
-// see https://bitbucket.org/chromiumembedded/cef/wiki/ApiVersioning.md
+// see
+// https://chromiumembedded.github.io/cef/api_versioning
 //
 
 #ifndef CEF_INCLUDE_CEF_API_HASH_H_
@@ -130,6 +131,7 @@ extern "C" {
 /// 0 - CEF_API_HASH_PLATFORM
 /// 1 - CEF_API_HASH_UNIVERSAL (deprecated, same as CEF_API_HASH_PLATFORM)
 /// 2 - CEF_COMMIT_HASH (from cef_version.h)
+/// 3 - CEF_SANDBOX_COMPAT_HASH (from cef_version.h, Windows only)
 ///
 CEF_EXPORT const char* cef_api_hash(int version, int entry);
 

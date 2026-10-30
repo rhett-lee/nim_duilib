@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2026 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -33,7 +33,7 @@
 // by hand. See the translator.README.txt file in the tools directory for
 // more information.
 //
-// $hash=e6e214aab8252f224e5a30e4fea245eae421858c$
+// $hash=bfa31676eb640a90a0057826481bb7eaa5e5cd3d$
 //
 
 #ifndef CEF_INCLUDE_CAPI_TEST_CEF_TEST_SERVER_CAPI_H_
@@ -197,6 +197,27 @@ typedef struct _cef_test_server_connection_t {
       const void* data,
       size_t data_size,
       cef_string_multimap_t extra_headers);
+
+#if CEF_API_ADDED(15100)
+  ///
+  /// Send a custom HTTP response using raw header data. |header_data| is the
+  /// complete raw HTTP response header block, including the status line (e.g.
+  /// "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n"), and
+  /// |header_data_size| is its size in bytes. |response_data| is the response
+  /// content and |response_data_size| is its size in bytes. The contents of
+  /// both buffers will be copied. Unlike the other Send functions, the header
+  /// bytes are sent verbatim and are not subject to CefString (UTF-8)
+  /// conversion, which allows sending raw non-ASCII header values (e.g. a non-
+  /// UTF-8 Content-Disposition filename) for testing purposes. The connection
+  /// will be closed automatically after the response is sent.
+  ///
+  void(CEF_CALLBACK* send_http_response_with_raw_headers)(
+      struct _cef_test_server_connection_t* self,
+      const void* header_data,
+      size_t header_data_size,
+      const void* response_data,
+      size_t response_data_size);
+#endif
 } cef_test_server_connection_t;
 
 #ifdef __cplusplus

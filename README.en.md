@@ -24,7 +24,7 @@ Confirming up front what the library covers, and what still needs extra work, av
 - **Rendering**: Skia is the required backend for vector drawing, text and animation. The build script prepares and compiles it automatically from the [version manifest](cmake/third_party_versions.json), so no manual build is needed; if that step fails it is usually a network or toolchain issue, and `doctor` points out which item is missing.
 - **Development workflow**: XML + C++ is the primary approach; the repository ships no visual designer. The `.claude` AI skills can help generate UI code.
 - **Platform-specific features**: WebView2 is Windows only; "independent DPI settings" is Windows only; system window shadows are Windows/macOS only.
-- **CEF**: enabled by default on Windows/Linux/macOS; not supported on FreeBSD or MinGW. Version 142 is the default (requires Windows 10+); to run web controls on Windows 7, build with `--cef-version 109`.
+- **CEF**: enabled by default on Windows/Linux/macOS; not supported on FreeBSD or MinGW. Version 156 is the default (requires Windows 10+); to run web controls on Windows 7, build with `--cef-version 109`.
 - **Animation**: GIF/APNG/WebP/Lottie work out of the box; PAG is disabled by default and can only be enabled on Windows with the MSVC solution (libpag must be compiled yourself).
 - **SDL3**: off by default on Windows (enable with `--sdl`), mandatory on Linux/macOS/FreeBSD for window management and input.
 - **Runtime library**: static runtime (/MT, /MTd) is the Windows default; add `--md` for the dynamic runtime (/MD, /MDd).
@@ -66,7 +66,7 @@ The build has two parts: you provide the compiler and basic tools, while third-p
 | macOS | x64 / arm64 | Xcode Command Line Tools 13.5+ (AppleClang) | Minimum OS version pending confirmation |
 | FreeBSD | x64 | system clang | |
 
-Windows 7 compatibility comes from the library configuration ([duilib/duilib_config.h](duilib/duilib_config.h) targets Windows 7+ by default) plus CEF 109; CEF 142 requires Windows 10 or later.
+Windows 7 compatibility comes from the library configuration ([duilib/duilib_config.h](duilib/duilib_config.h) targets Windows 7+ by default) plus CEF 109; CEF 156 requires Windows 10 or later.
 
 ### Build Tools
 

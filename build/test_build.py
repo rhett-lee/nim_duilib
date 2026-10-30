@@ -184,13 +184,13 @@ class ManifestTests(unittest.TestCase):
         self.assertEqual(str(self.manifest["cef"]["default"]), self.manifest["cef"]["default"])
 
     def test_cef_archive_entry_known(self):
-        archive = entry.cef_archive_entry(self.manifest, "142", "windows", "x64")
+        archive = entry.cef_archive_entry(self.manifest, "156", "windows", "x64")
         self.assertIsNotNone(archive)
         self.assertIn("file", archive)
 
     def test_cef_archive_entry_unknown(self):
         self.assertIsNone(entry.cef_archive_entry(self.manifest, "999", "windows", "x64"))
-        self.assertIsNone(entry.cef_archive_entry(self.manifest, "142", "plan9", "x64"))
+        self.assertIsNone(entry.cef_archive_entry(self.manifest, "156", "plan9", "x64"))
 
     def test_cef_archives_are_minimal(self):
         for version, block in self.manifest["cef"]["versions"].items():

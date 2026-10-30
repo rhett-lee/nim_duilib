@@ -98,6 +98,22 @@ BUILD_SCENARIOS = {sid for sid, _name, _desc, needs_build in SCENARIO_ORDER if n
 _PACKAGE_NAME_RE = re.compile(
     r"^nim_duilib-(?P<version>[0-9][0-9A-Za-z.]*)-(?P<system>win|linux|macos|freebsd)-"
     r"(?P<arch>x64|x86|arm64)(?P<flags>(?:-[A-Za-z0-9]+)*)$")
+_CEF_DEFAULT_VERSION = None
+
+
+def cef_default_version() -> str:
+    """版本清单中的 cef.default；用于把包名里的 -cef 映射为具体版本号。"""
+    global _CEF_DEFAULT_VERSION
+    if _CEF_DEFAULT_VERSION is None:
+        try:
+            with open(REPO_ROOT / "cmake" / "third_party_versions.json",
+                      encoding="utf-8") as f:
+                _CEF_DEFAULT_VERSION = str(json.load(f)["cef"]["default"])
+        except (OSError, ValueError, KeyError, TypeError):
+            _CEF_DEFAULT_VERSION = "latest"
+    return _CEF_DEFAULT_VERSION
+
+
 _CMAKE_SET_RE = re.compile(
     r'^\s*set\(\s*([A-Za-z0-9_]+)\s+(?:"([^"]*)"|([^)\s]*))\s*\)', re.MULTILINE)
 _SHA_LINE_RE = re.compile(r"^([0-9a-fA-F]{64})\s+\*?(.+)$")
@@ -154,7 +170,8 @@ def parse_package_name(name: str) -> dict:
         # Unix 包默认携带 SDL，包名不追加 -sdl。
         "has_sdl": ("sdl" in flags) or system != "win",
         "has_cef": ("cef" in flags) or ("cef109" in flags),
-        "cef_version": "109" if "cef109" in flags else ("142" if "cef" in flags else ""),
+        "cef_version": ("109" if "cef109" in flags
+                        else (cef_default_version() if "cef" in flags else "")),
         "has_examples": "examples" in flags,
     }
 

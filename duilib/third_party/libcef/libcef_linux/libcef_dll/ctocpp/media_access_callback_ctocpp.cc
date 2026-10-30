@@ -1,4 +1,4 @@
-// Copyright (c) 2025 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2026 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=dd51c6575bb9f80f3003cdc691f5cafcf283d5ca$
+// $hash=01023023a39b77b3b281dfb4bd5f72e96ce36690$
 //
 
 #include "libcef_dll/ctocpp/media_access_callback_ctocpp.h"

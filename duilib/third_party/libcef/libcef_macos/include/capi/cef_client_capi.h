@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2026 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -33,7 +33,7 @@
 // by hand. See the translator.README.txt file in the tools directory for
 // more information.
 //
-// $hash=89798b8a3a9a4ae14a57e81dfaad1e05a2c23639$
+// $hash=9fc6b02b2ac78479f4a68f4c7a805229c54ebc8d$
 //
 
 #ifndef CEF_INCLUDE_CAPI_CEF_CLIENT_CAPI_H_
@@ -115,7 +115,8 @@ typedef struct _cef_client_t {
 
   ///
   /// Return the handler for download events. If no handler is returned
-  /// downloads will not be allowed.
+  /// downloads will be canceled with Alloy style and will proceed with default
+  /// handling with Chrome style.
   ///
   struct _cef_download_handler_t*(CEF_CALLBACK* get_download_handler)(
       struct _cef_client_t* self);

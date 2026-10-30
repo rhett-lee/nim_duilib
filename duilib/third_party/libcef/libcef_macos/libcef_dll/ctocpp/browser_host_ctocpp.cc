@@ -1,4 +1,4 @@
-// Copyright (c) 2025 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2026 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=16c047514575975baaf8e77e457b38a38fc5d132$
+// $hash=f26dfc049cd214fba69e2c675e26fa24ca0ffda2$
 //
 
 #include "libcef_dll/ctocpp/browser_host_ctocpp.h"
@@ -1342,6 +1342,23 @@ cef_runtime_style_t CefBrowserHostCToCpp::GetRuntimeStyle() {
   // Return type: simple
   return _retval;
 }
+
+#if CEF_API_ADDED(CEF_EXPERIMENTAL)
+NO_SANITIZE("cfi-icall")
+void CefBrowserHostCToCpp::SetAxViewportCollapse(bool enabled) {
+  shutdown_checker::AssertNotShutdown();
+
+  auto* _struct = GetStruct();
+  if (!_struct->set_ax_viewport_collapse) {
+    return;
+  }
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Execute
+  _struct->set_ax_viewport_collapse(_struct, enabled);
+}
+#endif  // CEF_API_ADDED(CEF_EXPERIMENTAL)
 
 // CONSTRUCTOR - Do not edit by hand.
 

@@ -119,6 +119,7 @@ import argparse
 import gzip
 import hashlib
 import io
+import json
 import os
 import platform
 import re
@@ -292,6 +293,19 @@ CEF_SRC_BY_VERSION = {
     'latest': 'libcef_win',
     '109': 'libcef_win_109',
 }
+
+
+def cef_default_version():
+    """版本清单中的 cef.default（用于提示与 MANIFEST 文案）。
+
+    读取失败时回退为 'latest'，保证提示信息不因清单缺失而中断打包。
+    """
+    try:
+        with open(os.path.join(REPO_ROOT, 'cmake', 'third_party_versions.json'),
+                  'r', encoding='utf-8') as f:
+            return str(json.load(f)['cef']['default'])
+    except (OSError, ValueError, KeyError, TypeError):
+        return 'latest'
 
 
 def cef_src_name(sys_tag, cef_version):
@@ -828,8 +842,8 @@ def collect_libs(collector, lib_dir, config, with_cef, cef_version, sys_tag):
                      if v != cef_version and name in available]
             hint = ''
             if other:
-                # pack.py 内部用 'latest'，命令行上写作 142
-                label = '142' if other[0] == 'latest' else other[0]
+                # pack.py 内部用 'latest' 表示清单默认版本，提示里换成实际版本号
+                label = cef_default_version() if other[0] == 'latest' else other[0]
                 hint = T('pkg.cef_lib_version_hint') % (
                     label, CEF_WRAPPER_BY_VERSION[other[0]], label)
             raise PackageError(T('pkg.cef_lib_missing')
@@ -1285,7 +1299,7 @@ def collect_cef(collector, sys_tag, arch_tag, cef_version):
 
     count = 0
     if sys_tag == 'win':
-        # 上游为 Windows 提供 x64/Win32/arm64 三套预编译包（142 与 109 都有）。
+        # 上游为 Windows 提供 x64/Win32/arm64 三套预编译包（默认版本与 109 都有）。
         arch_dir = {'x64': 'x64', 'x86': 'Win32',
                     'arm64': 'arm64'}.get(arch_tag)
         if arch_dir is None:
@@ -2173,7 +2187,8 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
         lines.append('')
         lines.append('  arm64 说明：manifest / props / CMake config 等接入文件与包结构')
         lines.append('  已就绪，但未在 arm64 真机上做编译、打包、运行验证。')
-        lines.append('  CEF 上游提供 Windows arm64 预编译包（142 与 109）：')
+        lines.append('  CEF 上游提供 Windows arm64 预编译包（%s 与 109）：'
+                     % cef_default_version())
         if with_cef:
             lines.append('  本包已按 --with-cef 收集 CEF 开发文件与运行时。')
         else:

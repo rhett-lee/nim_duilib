@@ -1,4 +1,4 @@
-// Copyright (c) 2025 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2026 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=2acd77330cac5c9dc0f6512543b511160c9563f0$
+// $hash=4020ad4c527ddf0fb9ff7c4d77e4f6e8a1b6c21a$
 //
 
 #include "libcef_dll/cpptoc/views/browser_view_delegate_cpptoc.h"
@@ -244,6 +244,35 @@ int CEF_CALLBACK browser_view_delegate_allow_move_for_picture_in_picture(
   return _retval;
 }
 #endif  // CEF_API_ADDED(13601)
+
+#if CEF_API_ADDED(14400)
+int CEF_CALLBACK
+browser_view_delegate_allow_picture_in_picture_without_user_activation(
+    struct _cef_browser_view_delegate_t* self,
+    struct _cef_browser_view_t* browser_view) {
+  shutdown_checker::AssertNotShutdown();
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  DCHECK(self);
+  if (!self) {
+    return 0;
+  }
+  // Verify param: browser_view; type: refptr_diff
+  DCHECK(browser_view);
+  if (!browser_view) {
+    return 0;
+  }
+
+  // Execute
+  bool _retval = CefBrowserViewDelegateCppToC::Get(self)
+                     ->AllowPictureInPictureWithoutUserActivation(
+                         CefBrowserViewCToCpp_Wrap(browser_view));
+
+  // Return type: bool
+  return _retval;
+}
+#endif  // CEF_API_ADDED(14400)
 
 int CEF_CALLBACK browser_view_delegate_on_gesture_command(
     struct _cef_browser_view_delegate_t* self,
@@ -605,6 +634,10 @@ CefBrowserViewDelegateCppToC::CefBrowserViewDelegateCppToC() {
 #if CEF_API_ADDED(13601)
   GetStruct()->allow_move_for_picture_in_picture =
       browser_view_delegate_allow_move_for_picture_in_picture;
+#endif
+#if CEF_API_ADDED(14400)
+  GetStruct()->allow_picture_in_picture_without_user_activation =
+      browser_view_delegate_allow_picture_in_picture_without_user_activation;
 #endif
   GetStruct()->base.get_preferred_size =
       browser_view_delegate_get_preferred_size;

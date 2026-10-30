@@ -171,12 +171,13 @@ python3 build/autotest.py --preset arm64-synthetic --dry-run      # 只打印命
 预设与前置条件；报告写入 `report.json`，完整输出写入 `autotest.log`。
 
 `arm64` 支持范围：接入文件与包结构已就绪，libjpeg-turbo 提供 arm64 预编译库，
-Windows / Linux / macOS 的 arm64 都能按对应归档随包 CEF（Windows 142 与 109 均有
+Windows / Linux / macOS 的 arm64 都能按对应归档随包 CEF（Windows 156 与 109 均有
 `windowsarm64` 预编译包，出包时从 `lib/arm64` 取导入库、从 `bin/libcef_win[_109]/arm64`
 取运行时）。**本轮只验证 Windows**（macOS / Linux / FreeBSD 无真机，不安排测试；
 Windows on ARM 真机启动验证无设备，未测、不跟进）。Windows arm64 已完成 Release/Debug
-构建、DLL 模式，以及四个包的出包/包测试（Release 无 CEF、Release CEF 142、
-Release CEF 109、Debug CEF 142；产物均为 PE `0xAA64`）；步骤与结果见
+构建、DLL 模式，以及四个包的出包/包测试（Release 无 CEF、Release CEF、Release CEF 109、
+Debug CEF；产物均为 PE `0xAA64`；出包实测于 2026-10-28，当时默认 CEF 版本为 142，
+升级 156 后未复测 arm64 出包）；步骤与结果见
 [arm64 测试计划](arm64-test-plan.md)。
 
 ### 下游接入

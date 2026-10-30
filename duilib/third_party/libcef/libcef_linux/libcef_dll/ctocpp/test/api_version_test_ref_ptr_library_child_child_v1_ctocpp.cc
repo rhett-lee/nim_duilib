@@ -1,4 +1,4 @@
-// Copyright (c) 2025 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2026 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=253c2a5e8cadac4d0a3204e74b31da060c872876$
+// $hash=00f45ef122bc6087387834e2586a0a3dcdca21fb$
 //
 
 #include "libcef_dll/ctocpp/test/api_version_test_ref_ptr_library_child_child_v1_ctocpp.h"

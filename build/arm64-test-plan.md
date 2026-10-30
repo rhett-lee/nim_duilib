@@ -16,7 +16,7 @@ Windows on ARM 真机运行验证同样不具备条件（无设备），相关�
 | vcvars 平台参数 | 原先对 `vcvarsall.bat` 传 `arm64`，要求 x64 主机也装 `Hostarm64` 原生工具集，导致误报 `Visual Studio C++ tools for arm64 are not installed`；已改为按主机选择 `amd64_arm64` / `x86_arm64` / `arm64`（2026-10-28 修复） | 交叉编译不再需要额外组件 |
 | 打包支持 | `pack.py --arch arm64`；库目录映射 `lib/arm64/...`；PE 架构校验（`0xAA64`）；随包三份 manifest（含 `duilib.arm64.manifest`）；`NIM_DUILIB_PACKAGE_ARCH=arm64` | 已生成 Release 无 CEF、Release CEF142 与 Debug CEF142 三个包并通过校验 |
 | 无真机校验 | `autotest.py --preset arm64-synthetic` 用临时假库出包并体检 | 不依赖 arm64 机器即可回归包结构 |
-| Windows + CEF | 上游提供 Windows arm64 预编译包（142 与 109）；`third_party_versions.json` 两个版本都登记了 `windows/arm64`；CMake 按 `lib/arm64` 取 `libcef.lib`，`pack.py` 按 `bin/libcef_win[_109]/arm64` 收集运行时 | CEF 构建、出包与包测试都纳入 Windows 矩阵 |
+| Windows + CEF | 上游提供 Windows arm64 预编译包（156 与 109）；`third_party_versions.json` 两个版本都登记了 `windows/arm64`；CMake 按 `lib/arm64` 取 `libcef.lib`，`pack.py` 按 `bin/libcef_win[_109]/arm64` 收集运行时 | CEF 构建、出包与包测试都纳入 Windows 矩阵 |
 | Skia | `deps` 已按 GN `target_cpu="arm64"` + clang 构建出 `skia/out/llvm.arm64.release` 与 `llvm.arm64.debug`（各 1078 个目标，约 6 分钟）；DLL 模式所需的 `llvm.arm64.release.md` 与 `debug.mdd` 也已构建 | Release/Debug 与 DLL 模式均可直接用对应 Skia 目录 |
 | SDL3 | Windows 默认 `DUILIB_ENABLE_SDL=OFF`；只有 `--sdl` 才需要 arm64 SDL3 | 默认组合不依赖 SDL3 |
 | 现有矩阵 | W-B18/W-B18b（arm64 Release/Debug 构建）、W-A03（arm64 DLL 模式）、W-P23/W-P24（arm64 出包）已回填为「通过」；CEF109 仍「未测」；L-B04、M-B03 因无真机改为「不安排」；示例启动等真机项「未测、不跟进」 | 见文末「本轮执行结果」 |
@@ -25,7 +25,7 @@ Windows on ARM 真机运行验证同样不具备条件（无设备），相关�
 
 **做**：Windows x64 主机交叉编译 arm64（Release + Debug）、DLL 模式、出包
 （含 `--with-examples`）、`pack.py --verify`、`sdk_package_test.py`（编译/结构场景）、
-CEF 142 与 109 的构建与出包。
+CEF 156 与 109 的构建与出包。
 
 **不做**：Windows on ARM 真机运行验证（无设备，未测、不跟进）；macOS / Linux / FreeBSD
 的 arm64（无真机，不安排测试）；FreeBSD arm64（上游也不在本项目支持范围）；x86/arm64
@@ -37,7 +37,7 @@ CEF 142 与 109 的构建与出包。
 | :--- | :--- | :--- |
 | VS 工具链 | VS 2022 + 「MSVC v143 - VS 2022 C++ ARM64/ARM64EC 生成工具」+ Windows SDK arm64 库 | `python3 build/build.py doctor --arch arm64`（应显示 `generator Ninja`、`visual studio ...`，无 arm64 告警） |
 | Skia | `skia/out/llvm.arm64.release`（Debug 用 `llvm.arm64.debug`；DLL 模式 `.md`/`.mdd`）；缺失时由 `deps` 按 GN `target_cpu="arm64"` 自动构建 | `ls skia/out/llvm.arm64.*` |
-| CEF | `deps` 按 `windows/arm64` 下载并解压到 `<deps>/cef_binary/extract/{142,109}/arm64/`，再复制到 `bin/libcef_win[_109]/arm64/` | `dumpbin /headers bin\libcef_win\arm64\libcef.dll` 看 `AA64` |
+| CEF | `deps` 按 `windows/arm64` 下载并解压到 `<deps>/cef_binary/extract/{156,109}/arm64/`，再复制到 `bin/libcef_win[_109]/arm64/` | `dumpbin /headers bin\libcef_win\arm64\libcef.dll` 看 `AA64` |
 | 架构切换 | 必须先清理 `bin/` 与 `lib/<arch>/<Config>`，否则打包会因混合架构失败（预期保护）；切 CEF 版本时清理对应 `bin/libcef_win[_109]` 目录 | `git status`、`dumpbin` 抽查 |
 
 通用：
@@ -75,7 +75,7 @@ Phase 0 不通过则先修脚本，不要继续。
 | W-A03 | DLL 模式 | `python3 build/build.py --arch arm64 --dll` | 产出 `duilib.dll` / `duilib_d.dll`，架构为 AA64（`.md`/`.mdd` Skia 存在） |
 | W-A04 | Release 出包 | `python3 build/pack.py --arch arm64 [--with-examples]` | 生成 `nim_duilib-1.0.2026.1023-win-arm64[-examples].zip`；`pack.py --verify` 通过 |
 | W-A05 | Debug 出包 | `python3 build/pack.py --arch arm64 --config Debug --with-examples` | 包名含 `-debug`；`--verify` 通过 |
-| W-A06 | CEF 142 构建 + 出包 | `python3 build/build.py --arch arm64`（默认 CEF 142）；`python3 build/pack.py --arch arm64 --with-examples --with-cef` | 包名含 `-cef`；包内 `bin/libcef_win/arm64/libcef.dll` 与 `lib/libcef.lib` 齐全；PE 架构 AA64；`--verify` 通过 |
+| W-A06 | CEF 156 构建 + 出包 | `python3 build/build.py --arch arm64`（默认 CEF 156）；`python3 build/pack.py --arch arm64 --with-examples --with-cef` | 包名含 `-cef`；包内 `bin/libcef_win/arm64/libcef.dll` 与 `lib/libcef.lib` 齐全；PE 架构 AA64；`--verify` 通过 |
 | W-A07 | CEF 109 构建 + 出包 | 同 W-A06，换成 `--cef-version 109` | 包名含 `-cef109`；`bin/libcef_win_109/arm64/libcef.dll` 为 AA64；`--verify` 通过 |
 | W-A08 | 包测试（结构 + 编译校验） | `python3 build/sdk_package_test.py --package dist/<W-A04 产物> --out-dir ./temp` | P01–P08 通过；C01 用 VS ARM64 工具链编译运行（x64 主机可编译、不可运行，C10 会 SKIP）；C04 用 `-A x64` 构造相反架构并被拒绝 |
 | W-A09 | 启动示例（未测、不跟进：无 Windows on ARM 设备） | 同上加 `--run-examples` | 无设备，不执行、不列为待办 |

@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2026 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -33,7 +33,7 @@
 // by hand. See the translator.README.txt file in the tools directory for
 // more information.
 //
-// $hash=0a0b3e73342e72ae6aa846b67318516be5933bd9$
+// $hash=fa192d9521134c3155a7f37287ef55e8aed5c659$
 //
 
 #ifndef CEF_INCLUDE_CAPI_CEF_V8_CAPI_H_
@@ -48,11 +48,15 @@
 #include "include/capi/cef_browser_capi.h"
 #include "include/capi/cef_frame_capi.h"
 #include "include/capi/cef_task_capi.h"
+#include "include/cef_api_hash.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#if CEF_API_ADDED(14600)
+struct _cef_v8_backing_store_t;
+#endif
 struct _cef_v8_exception_t;
 struct _cef_v8_handler_t;
 struct _cef_v8_stack_frame_t;
@@ -389,6 +393,64 @@ typedef struct _cef_v8_array_buffer_release_callback_t {
       struct _cef_v8_array_buffer_release_callback_t* self,
       void* buffer);
 } cef_v8_array_buffer_release_callback_t;
+
+#if CEF_API_ADDED(14600)
+
+///
+/// Structure representing a V8 ArrayBuffer backing store. The backing store
+/// holds the memory that backs an ArrayBuffer. It must be created on a thread
+/// with a valid V8 isolate (renderer main thread or WebWorker thread). Once
+/// created, the data() pointer can be safely read/written from any thread. This
+/// allows expensive operations like memcpy to be performed on a background
+/// thread before creating the ArrayBuffer on the V8 thread.
+///
+/// The backing store is consumed when passed to
+/// cef_v8_value_t::cef_v8_value_create_array_buffer_from_backing_store(), after
+/// which is_valid() returns false (0).
+///
+/// NOTE: This struct is allocated DLL-side.
+///
+typedef struct _cef_v8_backing_store_t {
+  ///
+  /// Base structure.
+  ///
+  cef_base_ref_counted_t base;
+
+  ///
+  /// Returns a pointer to the allocated memory, or nullptr if the backing store
+  /// has been consumed or is otherwise invalid. The pointer is safe to
+  /// read/write from any thread. The caller must ensure all writes are complete
+  /// before passing this object to
+  /// cef_v8_value_create_array_buffer_from_backing_store(). Pointers obtained
+  /// from this function should not be retained after calling
+  /// cef_v8_value_create_array_buffer_from_backing_store(), as the memory will
+  /// then be owned by the ArrayBuffer and subject to V8 garbage collection.
+  ///
+  void*(CEF_CALLBACK* data)(struct _cef_v8_backing_store_t* self);
+
+  ///
+  /// Returns the size of the allocated memory in bytes, or 0 if the backing
+  /// store has been consumed.
+  ///
+  size_t(CEF_CALLBACK* byte_length)(struct _cef_v8_backing_store_t* self);
+
+  ///
+  /// Returns true (1) if this backing store has not yet been consumed by
+  /// cef_v8_value_create_array_buffer_from_backing_store().
+  ///
+  int(CEF_CALLBACK* is_valid)(struct _cef_v8_backing_store_t* self);
+} cef_v8_backing_store_t;
+
+///
+/// Create a new backing store with allocated memory of |byte_length| bytes. The
+/// memory is uninitialized. This function must be called on a thread with a
+/// valid V8 isolate. The returned object can safely be passed to other threads.
+/// Returns nullptr on failure.
+///
+CEF_EXPORT cef_v8_backing_store_t* cef_v8_backing_store_create(
+    size_t byte_length);
+
+#endif  // CEF_API_ADDED(14600)
 
 ///
 /// Structure representing a V8 value handle. V8 handles can only be accessed
@@ -869,6 +931,21 @@ CEF_EXPORT cef_v8_value_t* cef_v8_value_create_array_buffer_with_copy(
     void* buffer,
     size_t length);
 
+#if CEF_API_ADDED(14600)
+///
+/// Create a new cef_v8_value_t object of type ArrayBuffer from a backing store
+/// previously created with cef_v8_backing_store_t::cef_translator_test_scoped_l
+/// ibrary_child_child_create(). This is a zero-copy operation - the ArrayBuffer
+/// uses the memory already allocated by the backing store. The backing store is
+/// consumed and becomes invalid after this call. This function should only be
+/// called from within the scope of a cef_render_process_handler_t,
+/// cef_v8_handler_t or cef_v8_accessor_t callback, or in combination with
+/// calling enter() and exit() on a stored cef_v8_context_t reference.
+///
+CEF_EXPORT cef_v8_value_t* cef_v8_value_create_array_buffer_from_backing_store(
+    cef_v8_backing_store_t* backing_store);
+#endif
+
 ///
 /// Create a new cef_v8_value_t object of type function. This function should
 /// only be called from within the scope of a cef_render_process_handler_t,
@@ -997,6 +1074,7 @@ typedef struct _cef_v8_stack_frame_t {
   int(CEF_CALLBACK* is_constructor)(struct _cef_v8_stack_frame_t* self);
 } cef_v8_stack_frame_t;
 
+#if CEF_API_REMOVED(15400)
 ///
 /// Register a new V8 extension with the specified JavaScript extension code and
 /// handler. Functions implemented by the handler are prototyped using the
@@ -1058,6 +1136,7 @@ typedef struct _cef_v8_stack_frame_t {
 CEF_EXPORT int cef_register_extension(const cef_string_t* extension_name,
                                       const cef_string_t* javascript_code,
                                       cef_v8_handler_t* handler);
+#endif
 
 #ifdef __cplusplus
 }

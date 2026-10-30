@@ -88,7 +88,7 @@ def resolve_cef_version(requested: str | None, manifest: dict) -> str:
     """把 --cef-version 归一为版本清单中的键。
 
     109 表示旧版；latest 或未指定时取清单 cef.default，清单升级后自动跟随，
-    避免把当前版本号（如 142）硬编码进命令行与帮助文本。
+    避免把当前版本号（如 156）硬编码进命令行与帮助文本。
     """
     cef = manifest.get("cef", {}) if isinstance(manifest, dict) else {}
     default = str(cef.get("default", ""))

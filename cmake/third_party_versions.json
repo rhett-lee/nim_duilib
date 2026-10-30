@@ -36,7 +36,7 @@
     }
   },
   "cef": {
-    "default": "142",
+    "default": "156",
     "baseUrl": "https://cef-builds.spotifycdn.com",
     "versions": {
       "109": {
@@ -55,35 +55,35 @@
           }
         }
       },
-      "142": {
+      "156": {
         "archives": {
           "windows/x86": {
-            "file": "cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_windows32_minimal.tar.bz2",
-            "sha256": ""
+            "file": "cef_binary_156.0.14%2Bg4fa4ab5%2Bchromium-156.0.8078.48_windows32_minimal.tar.bz2",
+            "sha256": "24893ebe7cd2707b28f0a1e8b565f1e2e4b0b4548227d4a5093704e35618e53b"
           },
           "windows/x64": {
-            "file": "cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_windows64_minimal.tar.bz2",
-            "sha256": ""
+            "file": "cef_binary_156.0.14%2Bg4fa4ab5%2Bchromium-156.0.8078.48_windows64_minimal.tar.bz2",
+            "sha256": "99f8a6dffd47417e0caee7845a98c549b41f1d4246cd715dec843ca4b699ee57"
           },
           "windows/arm64": {
-            "file": "cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_windowsarm64_minimal.tar.bz2",
-            "sha256": ""
+            "file": "cef_binary_156.0.14%2Bg4fa4ab5%2Bchromium-156.0.8078.48_windowsarm64_minimal.tar.bz2",
+            "sha256": "0b8354b53983e6548300e56cfd2d7268665fdca34f3e0dcb508e4391bc8554b1"
           },
           "linux/x64": {
-            "file": "cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_linux64_minimal.tar.bz2",
-            "sha256": ""
+            "file": "cef_binary_156.0.14%2Bg4fa4ab5%2Bchromium-156.0.8078.48_linux64_minimal.tar.bz2",
+            "sha256": "4191ac920a91a052eba04afb6ed830d47aed46a3e246c434a2f062c23588dc8a"
           },
           "linux/arm64": {
-            "file": "cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_linuxarm64_minimal.tar.bz2",
-            "sha256": ""
+            "file": "cef_binary_156.0.14%2Bg4fa4ab5%2Bchromium-156.0.8078.48_linuxarm64_minimal.tar.bz2",
+            "sha256": "cdfcd5cafaa126bb7e103e3b6fbdef94a39bb791395eb21fe665ebecd008d995"
           },
           "macos/x64": {
-            "file": "cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_macosx64_minimal.tar.bz2",
-            "sha256": ""
+            "file": "cef_binary_156.0.14%2Bg4fa4ab5%2Bchromium-156.0.8078.48_macosx64_minimal.tar.bz2",
+            "sha256": "e584ade521802f8c2779d24996b32ddc183e8502743e5e3910b7247bb08f24f1"
           },
           "macos/arm64": {
-            "file": "cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_macosarm64_minimal.tar.bz2",
-            "sha256": ""
+            "file": "cef_binary_156.0.14%2Bg4fa4ab5%2Bchromium-156.0.8078.48_macosarm64_minimal.tar.bz2",
+            "sha256": "ed994b907ad596ca609a0542a1e2b22aa97e93e98b8141fed4c24aef39b9ccf6"
           }
         }
       }

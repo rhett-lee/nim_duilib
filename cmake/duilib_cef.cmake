@@ -5,7 +5,7 @@
 # DUILIB_CEF_ROOT。
 #
 # 版本一致性：下载包里的 include/cef_version.h 必须与仓库内跟踪的头文件一致，
-# 避免“头文件是 142、运行时是 109”这类难以定位的崩溃。
+# 避免“头文件与运行时版本不一致”（如默认版本头文件配 109 运行时）这类难以定位的崩溃。
 #
 # 清单统一使用 `_minimal` 发行包：包含 include/、Release/、Resources/ 等
 # 运行与校验所需文件，体积约为标准包的一半。
@@ -140,19 +140,20 @@ function(duilib_cef_prepare)
             return()
         endif()
 
-        # 迁移：已经存在运行时但没有 stamp 时，只要跟踪头文件的主版本与所选
-        # CEF 版本一致就直接采纳，避免为已有环境重复下载整包。
-        if(DUILIB_DEPS_PLATFORM STREQUAL "windows")
-            set(_runtime "${_dest}/libcef.dll")
-        elseif(DUILIB_DEPS_PLATFORM STREQUAL "linux")
+        # 迁移：已经存在运行时但没有 stamp 时，只采纳能读取到自身版本的运行时
+        # （Linux/macOS 解压在 CEF_ROOT，带 include/cef_version.h）。Windows 的
+        # 运行时目录只有二进制，无法校验版本：升级 CEF 后旧 libcef.dll 会被误标
+        # 成新版本，因此不采纳，按归档重新解压覆盖。
+        if(DUILIB_DEPS_PLATFORM STREQUAL "linux")
             set(_runtime "${_dest}/libcef.so")
-        else()
+        elseif(DUILIB_DEPS_PLATFORM STREQUAL "macos")
             set(_runtime "${_dest}/include/cef_version.h")
+        else()
+            set(_runtime "")
         endif()
-        if(EXISTS "${_runtime}")
-            _duilib_cef_tracked_dir(_tracked)
-            _duilib_cef_read_version("${_tracked}/include/cef_version.h" _tracked_version)
-            if(_tracked_version MATCHES "^${DUILIB_CEF_VERSION}\\.")
+        if(NOT _runtime STREQUAL "" AND EXISTS "${_runtime}")
+            _duilib_cef_read_version("${_dest}/include/cef_version.h" _runtime_version)
+            if(_runtime_version MATCHES "^${DUILIB_CEF_VERSION}\\.")
                 _duilib_cef_stamp_value(_stamp)
                 file(WRITE "${_dest}/.duilib-cef" "${_stamp}")
                 duilib_msg("deps.cef_ready" " (${DUILIB_CEF_VERSION}/${DUILIB_ARCH}, adopted existing runtime)")

@@ -1,4 +1,4 @@
-// Copyright (c) 2025 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2026 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=56aaf726b6ecdf7f128d4e4e40a9317da4f1748d$
+// $hash=c395174dfa9141a57337ace14c358005844ba7c0$
 //
 
 #ifndef CEF_LIBCEF_DLL_CTOCPP_BROWSER_HOST_CTOCPP_H_
@@ -142,6 +142,9 @@ class CefBrowserHostCToCpp : public CefCToCppRefCounted<CefBrowserHostCToCpp,
                             cef_window_open_disposition_t disposition) override;
   bool IsRenderProcessUnresponsive() override;
   cef_runtime_style_t GetRuntimeStyle() override;
+#if CEF_API_ADDED(CEF_EXPERIMENTAL)
+  void SetAxViewportCollapse(bool enabled) override;
+#endif
 };
 
 constexpr auto CefBrowserHostCToCpp_Wrap = CefBrowserHostCToCpp::Wrap;

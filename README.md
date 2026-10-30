@@ -24,7 +24,7 @@
 - **渲染**：Skia 是必需的后端，负责矢量绘制、文字与动画。构建脚本会按 [版本清单](cmake/third_party_versions.json) 自动准备并编译它，不需要手工编译；如果这一步失败，通常是网络或工具链问题，`doctor` 会指出缺少哪一项。
 - **开发方式**：以 XML + C++ 为主，仓库不包含可视化设计器；另有 `.claude` AI 技能辅助生成界面代码。
 - **平台专属**：WebView2 仅 Windows；"DPI 独立设置"仅 Windows；系统窗口阴影仅 Windows/macOS。
-- **CEF**：Windows/Linux/macOS 默认启用，FreeBSD 与 MinGW 不支持。默认使用 142（要求 Windows 10+）；要在 Windows 7 上运行网页控件，构建时加 `--cef-version 109`。
+- **CEF**：Windows/Linux/macOS 默认启用，FreeBSD 与 MinGW 不支持。默认使用 156（要求 Windows 10+）；要在 Windows 7 上运行网页控件，构建时加 `--cef-version 109`。
 - **动画**：GIF/APNG/WebP/Lottie 默认可用；PAG 默认关闭，仅在 Windows + MSVC 解决方案下可启用（需自行编译 libpag）。
 - **SDL3**：Windows 默认关闭（加 `--sdl` 开启），Linux/macOS/FreeBSD 强制开启，用于窗口管理与输入。
 - **运行库**：Windows 默认静态运行库（/MT、/MTd）；需要动态运行库时加 `--md`（/MD、/MDd）。
@@ -66,7 +66,7 @@
 | macOS | x64 / arm64 | Xcode 命令行工具 13.5+（AppleClang） | 最低系统版本待确认 |
 | FreeBSD | x64 | 系统自带 clang | |
 
-Windows 7 的兼容性来自库自身配置（[duilib/duilib_config.h](duilib/duilib_config.h) 默认兼容 Win7 以上）与 CEF 109；CEF 142 要求 Windows 10 及以上。
+Windows 7 的兼容性来自库自身配置（[duilib/duilib_config.h](duilib/duilib_config.h) 默认兼容 Win7 以上）与 CEF 109；CEF 156 要求 Windows 10 及以上。
 
 ### 构建工具
 

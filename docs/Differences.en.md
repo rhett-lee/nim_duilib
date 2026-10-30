@@ -21,7 +21,7 @@ These are architecture-level changes. They define how the code is organized and 
 | 7 | Removed the dependency on the base library; the message loop and thread communication are implemented in this project |
 | 8 | Integrated Skia and made it the default rendering engine |
 | 9 | Added SDL3 support for cross-platform windowing (Windows, Linux, macOS and FreeBSD are adapted) |
-| 10 | Moved the CEF component into the duilib project and upgraded CEF: libcef 109 (Windows 7 compatible) and libcef 142 (Windows 10 and later) |
+| 10 | Moved the CEF component into the duilib project and upgraded CEF: libcef 109 (Windows 7 compatible) and libcef 156 (Windows 10 and later) |
 | 11 | Redesigned the image management interfaces and loading flow (Image directory) to support multi-threaded image loading and make it easier to add more image formats |
 | 12 | Redesigned the XML structure of the global resource manager (global.xml), improved font management with font fallback for emoji, and added light/dark themes plus accent colors |
 

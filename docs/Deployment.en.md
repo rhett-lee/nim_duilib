@@ -150,10 +150,10 @@ On macOS a `.app` target can use `FRAMEWORKS` to copy `lib/libSDL3*.dylib` into
 | :--- | :--- |
 | Using the source tree → consuming an SDK package | Point the include path at `<SDK root>/include` and take the link list from `MANIFEST.txt`; let `nim_duilib.targets` or the CMake config define `DUILIB_SDL`/`DUILIB_CEF`/... instead of hand-writing them |
 | Static package → DLL package (`-dll`) | Switch to the `-dll` package and define `DUILIB_DLL` (the integration layer does this for you); ship `bin/duilib*.dll` and `bin/turbojpeg.dll` next to the program; `/MT` and `/MD` must not be mixed |
-| CEF 142 package → CEF 109 package | Replace the whole package with the `-cef109` one; the wrapper becomes `libcef_dll_wrapper_109` and the two wrappers must not be mixed; the runtime directory is `bin/libcef_win_109/<arch>` |
+| CEF 156 package → CEF 109 package | Replace the whole package with the `-cef109` one; the wrapper becomes `libcef_dll_wrapper_109` and the two wrappers must not be mixed; the runtime directory is `bin/libcef_win_109/<arch>` |
 | Building from source → consuming the package | No longer need to build Skia/SDL/CEF yourself; enable the macros of the third-party features (WebView2, CEF) that the package provides |
 | Single-configuration project → Debug and Release | Prepare two packages (`-debug` and the default Release) and import each per `Configuration`; with CMake, configure each prefix directory separately |
-| x64 → arm64 (Windows) | Use the arm64 package; it ships without SDL and libpag (no upstream binaries); CEF 142 and 109 packages are both available |
+| x64 → arm64 (Windows) | Use the arm64 package; it ships without SDL and libpag (no upstream binaries); CEF 156 and 109 packages are both available |
 
 ## 6. FAQ
 
@@ -165,7 +165,7 @@ On macOS a `.app` target can use `FRAMEWORKS` to copy `lib/libSDL3*.dylib` into
 | `LNK4098` (default libraries conflict) | A Debug project linked Release third-party libraries, or runtimes are mixed | Use the matching Debug package; the integration layer already adds `/NODEFAULTLIB:"libcmt.lib"` for static Debug |
 | `LNK2019` for many `duilib-*` / Skia symbols | Only `duilib.lib` was linked; Skia and the third-party libraries are missing | Follow the link list in `MANIFEST.txt`, or use `nim_duilib.targets` / `nim_duilib::duilib` |
 | WebView2 creation fails (`0x80070002` and similar) | The Edge WebView2 Evergreen Runtime is missing, or the dynamic loader is used without `WebView2Loader.dll` | Install the WebView2 Runtime; copy `bin/WebView2Loader.dll` next to the executable |
-| CEF page stays blank / `CefManager` initialization fails | The CEF runtime directory is missing, flattened, or 142/109 files are mixed | Copy `bin/libcef_win[_109]/<arch>/` as a whole next to the executable; keep a single CEF version per process |
+| CEF page stays blank / `CefManager` initialization fails | The CEF runtime directory is missing, flattened, or 156/109 files are mixed | Copy `bin/libcef_win[_109]/<arch>/` as a whole next to the executable; keep a single CEF version per process |
 | Unix examples cannot find `libSDL3.so.0` | The rpath was rewritten or no library search path is set | Use the bundled relative rpath (`$ORIGIN/../lib`) or set `LD_LIBRARY_PATH` (macOS: `DYLD_LIBRARY_PATH`) |
 | "The SDK is a MinGW build and cannot be used with VS" | A MinGW package is used with an MSVC project | Switch to the MSVC package, or use CMake with a MinGW toolchain |
 | `sdk_package_test.py` reports C01 as SKIP | An arm64 package is validated on an x64 host, so the artifact cannot run here | Expected; run-time verification needs an environment of the matching architecture |

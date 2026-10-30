@@ -51,6 +51,22 @@ int cef_load_library(const char* path);
 ///
 int cef_unload_library(void);
 
+///
+/// Load the CEF library from the expected app bundle location relative to the
+/// executable. Pass |helper| as 1 for helper processes or 0 for the main
+/// process. Returns an opaque handle on success or NULL on failure. The
+/// returned handle should be passed to cef_scoped_library_loader_free()
+/// immediately before process termination. This is a wrapper around
+/// CefScopedLibraryLoader for C API users.
+///
+void* cef_scoped_library_loader_create(int helper);
+
+///
+/// Destroy the specified library loader handle created by
+/// cef_scoped_library_loader_create().
+///
+void cef_scoped_library_loader_free(void* loader);
+
 #ifdef __cplusplus
 }
 #endif
@@ -152,7 +168,7 @@ class CefScopedLibraryLoader final {
 ///
 ///   int APIENTRY wWinMain(HINSTANCE hInstance,
 ///                         HINSTANCE hPrevInstance,
-///                         LPTSTR lpCmdLine,
+///                         LPWSTR lpCmdLine,
 ///                         int nCmdShow)
 ///     // Version that was used to compile the CEF client app.
 ///     cef_version_info_t version_info = {};
@@ -190,15 +206,22 @@ class CefScopedLibraryLoader final {
 
   ///
   /// Load the CEF library (libcef.dll) in the main process from the specified
-  /// absolute path. If libcef.dll is code signed then all signatures must be
-  /// valid. If |thumbprint| is a SHA1 hash (e.g. 40 character upper-case
-  /// hex-encoded value) then the primary signature must match that thumbprint.
-  /// If |allow_unsigned| is true and |thumbprint| is nullptr then libcef.dll
-  /// may be unsigned, otherwise it must be validly signed. Failure of code
-  /// signing requirements or DLL loading will result in a FATAL error and
-  /// application termination. If |version_info| is specified then the
-  /// libcef.dll version information must also match. Returns true if the load
-  /// succeeds. Usage must be protected by cef::logging::ScopedEarlySupport.
+  /// absolute path. The library is loaded using LOAD_WITH_ALTERED_SEARCH_PATH,
+  /// which ensures that libcef.dll's dependencies are loaded from the same
+  /// directory as libcef.dll rather than from the application directory. If
+  /// libcef.dll is code signed then all signatures must be valid. If
+  /// |thumbprint| is a SHA1 hash (e.g. 40 character upper-case hex-encoded
+  /// value) then the primary signature must match that thumbprint. If
+  /// |allow_unsigned| is true and |thumbprint| is nullptr then libcef.dll may
+  /// be unsigned, otherwise it must be validly signed. Failure of code signing
+  /// requirements or DLL loading will result in a FATAL error and application
+  /// termination. If |version_info| is specified then the libcef.dll version
+  /// information must also match. Returns true if the load succeeds. Usage must
+  /// be protected by cef::logging::ScopedEarlySupport. Bootstrap clients
+  /// should size-check and handle installer_error_code and
+  /// installer_error_message before calling this method so they can select an
+  /// adjacent fallback or present cancellation guidance instead of immediately
+  /// terminating.
   ///
   bool LoadInMainAssert(const wchar_t* dll_path,
                         const char* thumbprint,

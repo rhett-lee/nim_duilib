@@ -1,4 +1,4 @@
-// Copyright (c) 2025 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2026 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=cfc0b56031e809ddf9ed10fb443d44cfe3bba451$
+// $hash=4c5bdf0b03f8f9abda72996164210975076fe48c$
 //
 
 #ifndef CEF_LIBCEF_DLL_CTOCPP_DOWNLOAD_ITEM_CTOCPP_H_
@@ -39,6 +39,9 @@ class CefDownloadItemCToCpp : public CefCToCppRefCounted<CefDownloadItemCToCpp,
   bool IsComplete() override;
   bool IsCanceled() override;
   bool IsInterrupted() override;
+#if CEF_API_ADDED(14400)
+  bool IsPaused() override;
+#endif
   cef_download_interrupt_reason_t GetInterruptReason() override;
   int64_t GetCurrentSpeed() override;
   int GetPercentComplete() override;

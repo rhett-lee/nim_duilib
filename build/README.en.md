@@ -169,14 +169,16 @@ Exit codes: 0 some preset passed and none failed; 1 a failure; 2 all skipped.
 
 arm64 scope: integration files and package layout are ready and libjpeg-turbo ships an
 arm64 prebuilt library. All three platforms can ship CEF on arm64 (`windows/arm64` prebuilt
-archives exist for both CEF 142 and 109, with the import library taken from `lib/arm64` and
+archives exist for both CEF 156 and 109, with the import library taken from `lib/arm64` and
 the runtime from `bin/libcef_win[_109]/arm64`; Linux/macOS use the `linux/arm64` and
 `macos/arm64` archives). **This round validates Windows only** (macOS / Linux / FreeBSD have
 no real hardware and are out of scope; Windows on ARM run verification has no device and is
 untested, not followed up). Windows arm64 has passing Release and Debug builds, DLL mode,
 and four packages that were packed and package-tested (Release without CEF, Release with
-CEF 142, Release with CEF 109, Debug with CEF 142), all artifacts being PE `0xAA64`;
-steps and results are in the [arm64 test plan](arm64-test-plan.md) (Chinese).
+CEF, Release with CEF 109, Debug with CEF; all artifacts being PE `0xAA64`; packing was
+measured on 2026-10-28 when the default CEF version was 142, and arm64 packing has not been
+re-run after the 156 upgrade); steps and results are in the
+[arm64 test plan](arm64-test-plan.md) (Chinese).
 
 ### Downstream integration
 

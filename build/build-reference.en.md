@@ -90,7 +90,7 @@ otherwise Ninja sees `bin/` files newer than its own objects and skips the link 
 | `--dry-run` | print commands without executing them |
 | `--cmake-arg <arg>` / `--build-arg <arg>` | forwarded to configure/build (repeatable); use `--cmake-arg=-DFOO=1` when the value starts with `-` |
 | `--vs-version N` | pin the Visual Studio major version (for example `17`); Windows only |
-| `--cef-version 109\|latest` | CEF version: `109` is the legacy build, `latest` follows the manifest default (currently 142 and tracking manifest upgrades) |
+| `--cef-version 109\|latest` | CEF version: `109` is the legacy build, `latest` follows the manifest default (currently 156 and tracking manifest upgrades) |
 | `--skia-ref` / `--sdl-ref` | select a ref from the version manifest, e.g. `chrome/m142`, `main` or `release-3.4.18` |
 | `--sdl` / `--no-sdl` | Windows only; off by default on Windows, forced on elsewhere |
 | `--md` | use the MSVC dynamic runtime (/MD, /MDd); Windows only |
@@ -210,7 +210,7 @@ Versions are pinned in [third_party_versions.json](../cmake/third_party_versions
   The `_minimal` distributions are used everywhere (about half the size of the standard
   package; they contain `include/`, `Release/` and `Resources/`). Only
   `Release/*` and `Resources/*` are installed to:
-  - Windows: `bin/libcef_win/<arch>` (142) or `bin/libcef_win_109/<arch>` (109)
+  - Windows: `bin/libcef_win/<arch>` (156) or `bin/libcef_win_109/<arch>` (109)
   - Linux: `bin/libcef_linux`
   - macOS: `<deps-root>/cef_binary`
   Compilation uses the tracked headers and import libraries; the downloaded package's
@@ -302,7 +302,7 @@ no macOS CEF development files; build from the source tree as described in
 
 | Platform | Compiler | Skia | SDL3 | CEF | WebView2 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Windows | MSVC 2022+ | required | off by default, enable with `--sdl` | on by default (109/142) | supported |
+| Windows | MSVC 2022+ | required | off by default, enable with `--sdl` | on by default (109/156) | supported |
 | Windows | MSYS2 / MinGW-w64 gcc, clang | required | off by default, may enable | not supported | supported |
 | Linux | gcc 10+ / clang 12+ | required | forced on | on by default | not supported |
 | macOS | clang (Xcode) | required | forced on | on by default | not supported |

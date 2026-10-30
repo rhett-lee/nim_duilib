@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2026 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -33,7 +33,7 @@
 // by hand. See the translator.README.txt file in the tools directory for
 // more information.
 //
-// $hash=3f9182df1fe85fe89287c4260c60ce224fef6d27$
+// $hash=fda3b55235835896c2c6e388ab90f2829f22d10c$
 //
 
 #ifndef CEF_INCLUDE_CAPI_CEF_PROCESS_UTIL_CAPI_H_
@@ -44,7 +44,7 @@
 #error This file cannot be included DLL-side
 #endif
 
-#include "include/capi/cef_base_capi.h"
+#include "include/capi/cef_command_line_capi.h"
 
 #ifdef __cplusplus
 extern "C" {

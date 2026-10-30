@@ -23,6 +23,8 @@
 //   800-899 DNS resolver errors
 //   900-999 Blob errors
 
+// LINT.IfChange
+
 // An asynchronous IO operation is not yet complete.  This usually does not
 // indicate a fatal error.  Typically this error will be generated as a
 // notification to wait for some external notification that the IO operation
@@ -135,6 +137,21 @@ NET_ERROR(NETWORK_ACCESS_REVOKED, -33)
 // The request was blocked by fingerprinting protections.
 NET_ERROR(BLOCKED_BY_FINGERPRINTING_PROTECTION, -34)
 
+// The request was blocked by the Incognito Mode URL block list configured by
+// the domain administrator.
+NET_ERROR(BLOCKED_IN_INCOGNITO_BY_ADMINISTRATOR, -35)
+
+// The request was blocked because the local network permission is missing.
+// Note that this is different from BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS
+// which is specifically for a CORS error code.
+NET_ERROR(LOCAL_NETWORK_PERMISSION_MISSING, -36)
+
+// The request was blocked because ECH is strictly required, but:
+//  - The client could not obtain a valid ECH configuration.
+//  - The server rejected the ECH, and the client failed to establish a new ECH
+//    connection after retrying with retry_configs.
+NET_ERROR(STRICT_ECH_REQUIRED, -37)
+
 // A connection was closed (corresponding to a TCP FIN).
 NET_ERROR(CONNECTION_CLOSED, -100)
 
@@ -175,8 +192,8 @@ NET_ERROR(SSL_CLIENT_AUTH_CERT_NEEDED, -110)
 // see the comment on PROXY_UNABLE_TO_CONNECT_TO_DESTINATION.
 NET_ERROR(TUNNEL_CONNECTION_FAILED, -111)
 
-// No SSL protocol versions are enabled.
-NET_ERROR(NO_SSL_VERSIONS_ENABLED, -112)
+// Obsolete:
+// NET_ERROR(NO_SSL_VERSIONS_ENABLED, -112)
 
 // The client and server don't support a common SSL protocol version or
 // cipher suite.
@@ -268,13 +285,9 @@ NET_ERROR(NETWORK_ACCESS_DENIED, -138)
 // The request throttler module cancelled this request to avoid DDOS.
 NET_ERROR(TEMPORARILY_THROTTLED, -139)
 
-// A request to create an SSL tunnel connection through the HTTPS proxy
-// received a 302 (temporary redirect) response.  The response body might
-// include a description of why the request failed.
-//
-// TODO(crbug.com/40093955): This is deprecated and should not be used by
-// new code.
-NET_ERROR(HTTPS_PROXY_TUNNEL_RESPONSE_REDIRECT, -140)
+// Obsolete, since we now use the catch-all ERR_TUNNEL_CONNECTION_FAILED when a
+// proxy tried to redirect a request.
+// NET_ERROR(HTTPS_PROXY_TUNNEL_RESPONSE_REDIRECT, -140)
 
 // We were unable to sign the CertificateVerify data of an SSL client auth
 // handshake with the client certificate's private key.
@@ -302,11 +315,9 @@ NET_ERROR(WS_PROTOCOL_ERROR, -145)
 // Returned when attempting to bind an address that is already in use.
 NET_ERROR(ADDRESS_IN_USE, -147)
 
-// An operation failed because the SSL handshake has not completed.
-NET_ERROR(SSL_HANDSHAKE_NOT_COMPLETED, -148)
-
-// SSL peer's public key is invalid.
-NET_ERROR(SSL_BAD_PEER_PUBLIC_KEY, -149)
+// Obsolete:
+// NET_ERROR(SSL_HANDSHAKE_NOT_COMPLETED, -148)
+// NET_ERROR(SSL_BAD_PEER_PUBLIC_KEY, -149)
 
 // The certificate didn't match the built-in public key pins for the host name.
 // The pins are set in net/http/transport_security_state.cc and require that
@@ -461,6 +472,23 @@ NET_ERROR(ECH_FALLBACK_CERTIFICATE_INVALID, -184)
 // general purpose errors, but for other proxies this error does not cause the
 // proxy to be marked as bad.
 NET_ERROR(PROXY_UNABLE_TO_CONNECT_TO_DESTINATION, -186)
+
+// Some implementations of ProxyDelegate query a separate entity to know whether
+// it should cancel tunnel prior to:
+// - The HTTP CONNECT requests being sent out
+// - The HTTP CONNECT response being parsed by //net
+// An example is CronetProxyDelegate: Cronet allows developers to decide whether
+// the tunnel being established should be canceled.
+NET_ERROR(PROXY_DELEGATE_CANCELED_CONNECT_REQUEST, -187)
+NET_ERROR(PROXY_DELEGATE_CANCELED_CONNECT_RESPONSE, -188)
+
+// The control message was too large for the transport. (for example a UDP
+// message control data exceeds size threshold).
+NET_ERROR(CONTROL_MSG_TOO_BIG, -189)
+
+// Direct Sockets attempted to connect to or send a packet to a multicast
+// address without 'direct-sockets-multicast' permissions policy.
+NET_ERROR(MULTICAST_NOT_ALLOWED, -190)
 
 // Certificate error codes
 //
@@ -656,16 +684,14 @@ NET_ERROR(CONTENT_DECODING_FAILED, -330)
 // is suspended.
 NET_ERROR(NETWORK_IO_SUSPENDED, -331)
 
-// FLIP data received without receiving a SYN_REPLY on the stream.
-NET_ERROR(SYN_REPLY_NOT_RECEIVED, -332)
+// Obsolete. This was in earlier SPDY implementations.
+// NET_ERROR(SYN_REPLY_NOT_RECEIVED, -332)
 
-// Converting the response to target encoding failed.
-NET_ERROR(ENCODING_CONVERSION_FAILED, -333)
+// Obsolete. These were both used for FTP, which is no longer supported.
+// NET_ERROR(ENCODING_CONVERSION_FAILED, -333)
+// NET_ERROR(UNRECOGNIZED_FTP_DIRECTORY_LISTING_FORMAT, -334)
 
-// The server sent an FTP directory listing in a format we do not understand.
-NET_ERROR(UNRECOGNIZED_FTP_DIRECTORY_LISTING_FORMAT, -334)
-
-// Obsolete.  Was only logged in NetLog when an HTTP/2 pushed stream expired.
+// Obsolete. Was only logged in NetLog when an HTTP/2 pushed stream expired.
 // NET_ERROR(INVALID_SPDY_STREAM, -335)
 
 // There are no supported proxies in the provided list.
@@ -778,8 +804,9 @@ NET_ERROR(PROXY_HTTP_1_1_REQUIRED, -366)
 // The PAC script terminated fatally and must be reloaded.
 NET_ERROR(PAC_SCRIPT_TERMINATED, -367)
 
-// Signals that the request requires the IPP proxy.
-NET_ERROR(PROXY_REQUIRED, -368)
+// Obsolete. Support for CNAME record detection was never fully implemented and
+// is no longer needed since the IP Protection feature didn't launch.
+// NET_ERROR(PROXY_REQUIRED, -368)
 
 // Obsolete. Kept here to avoid reuse.
 // Request is throttled because of a Backoff header.
@@ -845,11 +872,10 @@ NET_ERROR(INCONSISTENT_IP_ADDRESS_SPACE, -383)
 
 // The IP address space of the cached remote endpoint is blocked by private
 // network access check.
-NET_ERROR(CACHED_IP_ADDRESS_SPACE_BLOCKED_BY_PRIVATE_NETWORK_ACCESS_POLICY,
-          -384)
+NET_ERROR(CACHED_IP_ADDRESS_SPACE_BLOCKED_BY_LOCAL_NETWORK_ACCESS_POLICY, -384)
 
 // The connection is blocked by private network access checks.
-NET_ERROR(BLOCKED_BY_PRIVATE_NETWORK_ACCESS_CHECKS, -385)
+NET_ERROR(BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS, -385)
 
 // Content decoding failed due to the zstd window size being too big (over 8MB).
 NET_ERROR(ZSTD_WINDOW_SIZE_TOO_BIG, -386)
@@ -913,6 +939,9 @@ NET_ERROR(CACHE_DOOM_FAILURE, -412)
 // The disk cache is unable to open or create this entry.
 NET_ERROR(CACHE_OPEN_OR_CREATE_FAILURE, -413)
 
+// Zstd compression of a cache entry body failed.
+NET_ERROR(CACHE_COMPRESSION_FAILURE, -414)
+
 // The server's response was insecure (e.g. there was a cert error).
 NET_ERROR(INSECURE_RESPONSE, -501)
 
@@ -939,6 +968,29 @@ NET_ERROR(TRUST_TOKEN_OPERATION_FAILED, -506)
 // in a local cache (for redemption) or the operation could have been diverted
 // to a local provider (for "platform-provided" issuance).
 NET_ERROR(TRUST_TOKEN_OPERATION_SUCCESS_WITHOUT_SENDING_REQUEST, -507)
+
+// This is a placeholder value that should never be used within //net.
+//
+// When Cronet APIs are being backed by HttpEngine (i.e., HttpEngineProvider is
+// being used), org.chromium.net.NetworkException#getCronetInternalErrorCode is
+// not supported (android.net.http.NetworkException#getCronetInternalErrorCode
+// does not exist). In this scenario, getCronetInternalErrorCode will always
+// return this error. This is a first step towards the deprecation of
+// getCronetInternalErrorCode.
+//
+// Temporarily terminate, then restart, ITTT to avoid unsupported nesting.
+// LINT.ThenChange(
+//      //tools/metrics/histograms/enums.xml:HTTPResponseAndNetErrorCodes,
+//      //tools/metrics/histograms/enums.xml:NetErrorCodes,
+// )
+// LINT.IfChange(HTTPENGINE_PROVIDER_IN_USE)
+NET_ERROR(HTTPENGINE_PROVIDER_IN_USE, -508)
+// LINT.ThenChange(
+//      //components/cronet/android/java/src/org/chromium/net/impl/AndroidNetworkExceptionWrapper.java:HTTPENGINE_PROVIDER_IN_USE,
+//      //tools/metrics/histograms/enums.xml:HTTPResponseAndNetErrorCodes,
+//      //tools/metrics/histograms/enums.xml:NetErrorCodes,
+// )
+// LINT.IfChange
 
 // *** Code -600 is reserved (was FTP_PASV_COMMAND_FAILED). ***
 // *** Code -601 is reserved (was FTP_FAILED). ***
@@ -1005,16 +1057,7 @@ NET_ERROR(DNS_MALFORMED_RESPONSE, -800)
 // DNS server requires TCP
 NET_ERROR(DNS_SERVER_REQUIRES_TCP, -801)
 
-// DNS server failed.  This error is returned for all of the following
-// error conditions:
-// 1 - Format error - The name server was unable to interpret the query.
-// 2 - Server failure - The name server was unable to process this query
-//     due to a problem with the name server.
-// 4 - Not Implemented - The name server does not support the requested
-//     kind of query.
-// 5 - Refused - The name server refuses to perform the specified
-//     operation for policy reasons.
-NET_ERROR(DNS_SERVER_FAILED, -802)
+// Error -802 was removed (DNS_SERVER_FAILED)
 
 // DNS transaction timed out.
 NET_ERROR(DNS_TIMED_OUT, -803)
@@ -1055,6 +1098,37 @@ NET_ERROR(DNS_NO_MATCHING_SUPPORTED_ALPN, -811)
 // requested probe record either had no answer or was invalid.
 NET_ERROR(DNS_SECURE_PROBE_RECORD_INVALID, -814)
 
+// Returned when DNS cache invalidation is in progress. This is a
+// transient error. Callers may want to retry later.
+NET_ERROR(DNS_CACHE_INVALIDATION_IN_PROGRESS, -815)
+
+// The DNS server responded with a format error response code.
+NET_ERROR(DNS_FORMAT_ERROR, -816)
+
+// The DNS server responded with a server failure response code.
+NET_ERROR(DNS_SERVER_FAILURE, -817)
+
+// The DNS server responded that the query type is not implemented.
+NET_ERROR(DNS_NOT_IMPLEMENTED, -818)
+
+// The DNS server responded that the request was refused.
+NET_ERROR(DNS_REFUSED, -819)
+
+// The DNS server responded with an rcode indicating that the request failed,
+// but the rcode is not one that we have a specific error code for. In other
+// words, the rcode was not one of the following:
+// - NOERR
+// - FORMERR
+// - SERVFAIL
+// - NXDOMAIN
+// - NOTIMP
+// - REFUSED
+NET_ERROR(DNS_OTHER_FAILURE, -820)
+
+// Declined to call DNS for a direct_only request of a hostname whose traffic
+// would be routed through a proxy.
+NET_ERROR(DNS_DIRECT_ONLY, -821)
+
 // The following errors are for mapped from a subset of invalid
 // storage::BlobStatus.
 
@@ -1086,3 +1160,8 @@ NET_ERROR(BLOB_REFERENCED_FILE_UNAVAILABLE, -906)
 
 // CAUTION: Before adding errors here, please check the ranges of errors written
 // in the top of this file.
+
+// LINT.ThenChange(
+//      //tools/metrics/histograms/enums.xml:HTTPResponseAndNetErrorCodes,
+//      //tools/metrics/histograms/enums.xml:NetErrorCodes,
+// )

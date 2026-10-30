@@ -64,6 +64,9 @@
     <ClCompile Include=".\libcef_dll\cpptoc\completion_callback_cpptoc.cc">
       <Filter>libcef_dll\cpptoc</Filter>
     </ClCompile>
+    <ClCompile Include=".\libcef_dll\cpptoc\component_update_callback_cpptoc.cc">
+      <Filter>libcef_dll\cpptoc</Filter>
+    </ClCompile>
     <ClCompile Include=".\libcef_dll\cpptoc\context_menu_handler_cpptoc.cc">
       <Filter>libcef_dll\cpptoc</Filter>
     </ClCompile>
@@ -292,6 +295,12 @@
     <ClCompile Include=".\libcef_dll\ctocpp\command_line_ctocpp.cc">
       <Filter>libcef_dll\ctocpp</Filter>
     </ClCompile>
+    <ClCompile Include=".\libcef_dll\ctocpp\component_ctocpp.cc">
+      <Filter>libcef_dll\ctocpp</Filter>
+    </ClCompile>
+    <ClCompile Include=".\libcef_dll\ctocpp\component_updater_ctocpp.cc">
+      <Filter>libcef_dll\ctocpp</Filter>
+    </ClCompile>
     <ClCompile Include=".\libcef_dll\ctocpp\context_menu_params_ctocpp.cc">
       <Filter>libcef_dll\ctocpp</Filter>
     </ClCompile>
@@ -446,6 +455,9 @@
       <Filter>libcef_dll\ctocpp</Filter>
     </ClCompile>
     <ClCompile Include=".\libcef_dll\ctocpp\urlrequest_ctocpp.cc">
+      <Filter>libcef_dll\ctocpp</Filter>
+    </ClCompile>
+    <ClCompile Include=".\libcef_dll\ctocpp\v8_backing_store_ctocpp.cc">
       <Filter>libcef_dll\ctocpp</Filter>
     </ClCompile>
     <ClCompile Include=".\libcef_dll\ctocpp\v8_context_ctocpp.cc">
@@ -630,6 +642,30 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include=".\include\cef_component_updater.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include=".\include\base\cef_is_complete.h">
+      <Filter>include\base</Filter>
+    </ClInclude>
+    <ClInclude Include=".\include\base\cef_is_instantiation.h">
+      <Filter>include\base</Filter>
+    </ClInclude>
+    <ClInclude Include=".\include\base\cef_to_address.h">
+      <Filter>include\base</Filter>
+    </ClInclude>
+    <ClInclude Include=".\include\base\internal\cef_always_false.h">
+      <Filter>include\base\internal</Filter>
+    </ClInclude>
+    <ClInclude Include=".\include\base\internal\cef_callback_tags.h">
+      <Filter>include\base\internal</Filter>
+    </ClInclude>
+    <ClInclude Include=".\include\capi\cef_component_updater_capi.h">
+      <Filter>include\capi</Filter>
+    </ClInclude>
+    <ClInclude Include=".\include\internal\cef_types_component.h">
+      <Filter>include\internal</Filter>
+    </ClInclude>
     <ClInclude Include=".\libcef_dll\shutdown_checker.h">
       <Filter>libcef_dll</Filter>
     </ClInclude>
@@ -667,6 +703,9 @@
       <Filter>libcef_dll\cpptoc</Filter>
     </ClInclude>
     <ClInclude Include=".\libcef_dll\cpptoc\completion_callback_cpptoc.h">
+      <Filter>libcef_dll\cpptoc</Filter>
+    </ClInclude>
+    <ClInclude Include=".\libcef_dll\cpptoc\component_update_callback_cpptoc.h">
       <Filter>libcef_dll\cpptoc</Filter>
     </ClInclude>
     <ClInclude Include=".\libcef_dll\cpptoc\context_menu_handler_cpptoc.h">
@@ -903,6 +942,12 @@
     <ClInclude Include=".\libcef_dll\ctocpp\command_line_ctocpp.h">
       <Filter>libcef_dll\ctocpp</Filter>
     </ClInclude>
+    <ClInclude Include=".\libcef_dll\ctocpp\component_ctocpp.h">
+      <Filter>libcef_dll\ctocpp</Filter>
+    </ClInclude>
+    <ClInclude Include=".\libcef_dll\ctocpp\component_updater_ctocpp.h">
+      <Filter>libcef_dll\ctocpp</Filter>
+    </ClInclude>
     <ClInclude Include=".\libcef_dll\ctocpp\context_menu_params_ctocpp.h">
       <Filter>libcef_dll\ctocpp</Filter>
     </ClInclude>
@@ -1063,6 +1108,9 @@
       <Filter>libcef_dll\ctocpp</Filter>
     </ClInclude>
     <ClInclude Include=".\libcef_dll\ctocpp\urlrequest_ctocpp.h">
+      <Filter>libcef_dll\ctocpp</Filter>
+    </ClInclude>
+    <ClInclude Include=".\libcef_dll\ctocpp\v8_backing_store_ctocpp.h">
       <Filter>libcef_dll\ctocpp</Filter>
     </ClInclude>
     <ClInclude Include=".\libcef_dll\ctocpp\v8_context_ctocpp.h">
@@ -1458,9 +1506,6 @@
     <ClInclude Include=".\include\base\cef_atomic_ref_count.h">
       <Filter>include\base</Filter>
     </ClInclude>
-    <ClInclude Include=".\include\base\cef_auto_reset.h">
-      <Filter>include\base</Filter>
-    </ClInclude>
     <ClInclude Include=".\include\base\cef_bind.h">
       <Filter>include\base</Filter>
     </ClInclude>
@@ -1474,12 +1519,6 @@
       <Filter>include\base</Filter>
     </ClInclude>
     <ClInclude Include=".\include\base\cef_callback_helpers.h">
-      <Filter>include\base</Filter>
-    </ClInclude>
-    <ClInclude Include=".\include\base\cef_callback_list.h">
-      <Filter>include\base</Filter>
-    </ClInclude>
-    <ClInclude Include=".\include\base\cef_cancelable_callback.h">
       <Filter>include\base</Filter>
     </ClInclude>
     <ClInclude Include=".\include\base\cef_compiler_specific.h">
@@ -1515,9 +1554,6 @@
     <ClInclude Include=".\include\base\cef_trace_event.h">
       <Filter>include\base</Filter>
     </ClInclude>
-    <ClInclude Include=".\include\base\cef_tuple.h">
-      <Filter>include\base</Filter>
-    </ClInclude>
     <ClInclude Include=".\include\base\cef_weak_ptr.h">
       <Filter>include\base</Filter>
     </ClInclude>
@@ -1528,12 +1564,6 @@
       <Filter>include\base\internal</Filter>
     </ClInclude>
     <ClInclude Include=".\include\base\internal\cef_lock_impl.h">
-      <Filter>include\base\internal</Filter>
-    </ClInclude>
-    <ClInclude Include=".\include\base\internal\cef_raw_scoped_refptr_mismatch_checker.h">
-      <Filter>include\base\internal</Filter>
-    </ClInclude>
-    <ClInclude Include=".\include\base\internal\cef_scoped_policy.h">
       <Filter>include\base\internal</Filter>
     </ClInclude>
     <ClInclude Include=".\include\base\internal\cef_thread_checker_impl.h">

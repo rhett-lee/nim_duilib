@@ -1,4 +1,4 @@
-// Copyright (c) 2025 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2026 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=cb87401efbd4ebe813beeb3c023776c506e74efc$
+// $hash=6700967c2931d9da661d948b3ff33df42437ec65$
 //
 
 #include "libcef_dll/ctocpp/request_context_ctocpp.h"
@@ -254,6 +254,25 @@ void CefRequestContextCToCpp::ClearCertificateExceptions(
   _struct->clear_certificate_exceptions(
       _struct, CefCompletionCallbackCppToC_Wrap(callback));
 }
+
+#if CEF_API_ADDED(14400)
+NO_SANITIZE("cfi-icall")
+void CefRequestContextCToCpp::ClearHttpCache(
+    CefRefPtr<CefCompletionCallback> callback) {
+  auto* _struct = GetStruct();
+  if (!_struct->clear_http_cache) {
+    return;
+  }
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Unverified params: callback
+
+  // Execute
+  _struct->clear_http_cache(_struct,
+                            CefCompletionCallbackCppToC_Wrap(callback));
+}
+#endif  // CEF_API_ADDED(14400)
 
 NO_SANITIZE("cfi-icall")
 void CefRequestContextCToCpp::ClearHttpAuthCredentials(

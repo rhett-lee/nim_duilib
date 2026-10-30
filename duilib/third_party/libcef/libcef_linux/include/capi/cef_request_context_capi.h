@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2026 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -33,7 +33,7 @@
 // by hand. See the translator.README.txt file in the tools directory for
 // more information.
 //
-// $hash=f2001cd5df8882c3f3a796dbf224b094c0d681f0$
+// $hash=22032394ed067849d95ef1b1832b6a1d3492c8b8$
 //
 
 #ifndef CEF_INCLUDE_CAPI_CEF_REQUEST_CONTEXT_CAPI_H_
@@ -358,6 +358,16 @@ typedef struct _cef_request_context_t {
   struct _cef_registration_t*(CEF_CALLBACK* add_setting_observer)(
       struct _cef_request_context_t* self,
       struct _cef_setting_observer_t* observer);
+#endif
+
+#if CEF_API_ADDED(14400)
+  ///
+  /// Clears the HTTP cache. If |callback| is non-NULL it will be executed on
+  /// the UI thread after completion.
+  ///
+  void(CEF_CALLBACK* clear_http_cache)(
+      struct _cef_request_context_t* self,
+      struct _cef_completion_callback_t* callback);
 #endif
 } cef_request_context_t;
 

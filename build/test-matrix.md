@@ -32,7 +32,7 @@
 | 独立 MinGW | `C:\mingw64\llvm-mingw-20250430-ucrt-x86_64` |
 | Skia | `e46ba84356043800523c401eaec9ecfd5cb67539` |
 | SDL3 | `main`（`release-3.4.18` tag 源码编译报错，已不再作为默认） |
-| CEF | 默认 142；109 可选（Windows 7） |
+| CEF | 默认 156（`156.0.14+g4fa4ab5+chromium-156.0.8078.48`）；109 可选（Windows 7） |
 
 Linux、FreeBSD 与 macOS 的本轮环境记录在各章开头（§3、§4、§5）。
 
@@ -512,6 +512,21 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
 | ARM64 链接 `duilib-webp.lib` 报 7 个 `*NEON` 符号 LNK2001（`VP8DspInitNEON`、`WebPInitUpsamplersNEON` 等） | libwebp 在 `_M_ARM64` 下定义 `WEBP_HAVE_NEON`，而 VCXPROJ 只列了 SSE/AVX 源；补入 `src\dsp\alpha_processing_neon.c`、`dec_neon.c`、`filters_neon.c`、`lossless_neon.c`、`rescaler_neon.c`、`upsampling_neon.c`、`yuv_neon.c`（非 NEON 平台由 `WEBP_DSP_INIT_STUB` 生成空实现，可无条件列出） | `examples.sln` ARM64 Release 不再出现该 LNK2001 |
 | `examples.sln` 链接 `cef.exe`/`CefBrowser.exe` 报 20 个 `cef_v8value_*`、`cef_create_context_shared` 等 LNK2001 | 解决方案把 `libcef_dll_wrapper_109` 声明为 `cef`/`duilib`/`CefBrowser` 的工程依赖，sln 构建会把依赖工程的输出注入链接行，且 109 封装库排在 142 之前被优先拉取；此时 `LibCefVersion109=0` 只提供 CEF 142 的 `libcef.lib`（已移除相关 C API）。移除 3 处（`examples.sln`）与 1 处（`duilib.sln`）冗余依赖；109 封装库仍随解决方案编译，`LibCefVersion109=1` 时由 `CEFSettings.props` 显式链接 | `cef.exe`、`CefBrowser.exe` 链接通过；`duilib.sln` ARM64 Release 增量构建 0 错误 |
 | 全并行 `/m` 构建示例并链接 LTCG 静态库时出现 `C1060 编译器堆空间不足` | 与平台无关的并行度/内存峰值问题（`duilib.lib` 828.5 MB，`/GL`）；文档建议示例解决方案用 `/m:2` 或在 VS 里降低“最大并行项目生成数” | `/m:2` 下 Release（`/GL`）与 Debug 的 23 个示例全部通过 |
+
+### 2026-10-30 CEF 156 升级（Windows 已验证）
+
+| 问题 / 验证点 | 处理 | 验证 |
+| :--- | :--- | :--- |
+| 156 发行包取消了 `lib/` 目录，导入库改放在 `Release/` | `duilib/third_party/libcef/libcef_win` 的 `include/`、`libcef_dll/`、`cmake/`、`CMakeLists.txt` 整体替换为 156；`lib/x64`、`lib/Win32`、`lib/arm64` 的 `libcef.lib` 分别取自各 Windows 包的 `Release/libcef.lib` | Release/Debug 构建均正常链接 `libcef.lib` 与 `libcef_dll_wrapper` |
+| 封装库源码有增减 | wrapper 新增 4 个 `.cc`（`component_update_callback_cpptoc`、`component_ctocpp`、`component_updater_ctocpp`、`v8_backing_store_ctocpp`）与 12 个头文件，删除 6 个已移除头文件 | `libcef_dll_wrapper.vcxproj` / `.filters` 按 CMake 156 包重新生成，文件集合与生成工程完全一致（cc 213、h 476），保留 `CEFSettings.props` 接入与 `CEF_USE_BOOTSTRAP` 定义 |
+| 156 wrapper 要求 C++20；Windows 沙箱路径定义 `CEF_API_VERSION_LAST=15600` | 根工程对 Windows 全部版本强制 `USE_SANDBOX=OFF`（109 另有迭代器调试冲突），wrapper 的 C++17 降级只保留给 `libcef_dll_wrapper_109` | Release/Debug 编译无错误；`/std:c++20` 与 wrapper 的 `-std=c++20` 一致 |
+| `CefRegisterExtension` 在 156 被移除（`CEF_API_REMOVED(15400)`），`CefClientAppRender.cpp` 编译报 `C3861` | `OnContextCreated` 中向页面全局对象绑定 native 函数 `__nimCefNativeCall` / `__nimCefNativeRegister`，再 `Eval` 注入与原扩展等价的 `NimCefWebInstance`（`call` / `register`）；109 分支保留原扩展注册 | `cef.exe --remote-debugging-port=9335` 通过 DevTools `Runtime.evaluate` 实测：`typeof NimCefWebInstance` = `object`、`typeof __nimCefNativeCall` = `function`；调用 `NimCefWebInstance.call('ShowMessageBox', {message}, cb)` 弹出标题为 `C++ receives the message sent by JavaScript.` 的对话框，JS 回调收到 `[false,{"message":"Success."}]`，Web 端调用方式未变 |
+| `deps` 把 142 运行时写成 `156|x64|windows` 指纹（Windows 无法从运行时读取版本） | 采纳规则收紧：仅 Linux/macOS 在 `include/cef_version.h` 版本匹配时采纳；Windows 一律按归档重新解压覆盖 | 删除 `bin/libcef_win/x64` 后 `deps --offline`：`libcef.dll` 294,670,848 字节、指纹 `156|x64|windows`；Win32/arm64 运行时同步刷新为 156（`156|x86|windows`、`156|arm64|windows`） |
+| Debug 构建链接报 `SkPathBuilder::addPolygon`、`SkDashPathEffect::Make`、`SkCanvas::drawGlyphs`、`SkFont::unicharsToGlyphs` 等 `LNK2019` | 与 CEF 升级无关：`E:\develop\skia\out\llvm.x64.debug` 仍是旧 Skia 提交的产物（Release 的 `llvm.x64.release` 已随 Skia 升级重编）；`build.py deps --config Debug --offline` 重编 `llvm.x64.debug`（1084/1084） | 重跑 Debug：23/23 链接通过，日志 0 告警 |
+| 完整构建回归 | Release / Debug 全量 `build.py build --no-deps` | Release 42/42 通过；Debug 23/23 通过；`bin/cef.exe`、`bin/CefBrowser.exe` 重新生成；日志无 warning；两个 CEF 示例启动后持续运行（冒烟正常） |
+| 单元测试与环境检查 | `build.py test` / `build.py doctor` | `test` 236 个用例通过（skipped=2）；`doctor` 显示 `cef default 156`、`cef runtime 156 ...bin\libcef_win\x64`，其余项 OK |
+
+辅助结果：版本清单、VS 工程文件列表、脚本默认版本提示（`pack.py` 的 arm64 文案、`sdk_package_test.py` 包名解析）与文档（README、`build/build-reference.md`、`docs/CEF.md`、`docs/Deployment.md`、`docs/Differences.md`、`duilib/third_party/README.md`、CHANGELOG）已同步到 156；109 仍保留。
 
 ### 2026-10-30 Skia 补丁归档机制（Windows 已验证）
 

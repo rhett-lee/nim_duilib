@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2026 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -33,7 +33,7 @@
 // by hand. See the translator.README.txt file in the tools directory for
 // more information.
 //
-// $hash=624529a008566fe513fa8689a49981fee9b67947$
+// $hash=24d75fec9771153753f998292fd7daf15d8e4883$
 //
 
 #ifndef CEF_INCLUDE_CAPI_VIEWS_CEF_BROWSER_VIEW_DELEGATE_CAPI_H_
@@ -163,6 +163,16 @@ typedef struct _cef_browser_view_delegate_t {
   /// popups.
   ///
   int(CEF_CALLBACK* allow_move_for_picture_in_picture)(
+      struct _cef_browser_view_delegate_t* self,
+      struct _cef_browser_view_t* browser_view);
+#endif
+
+#if CEF_API_ADDED(14400)
+  ///
+  /// Return true (1) to allow opening Document picture-in-picture without user
+  /// activation. Default is false (0) (user activation required).
+  ///
+  int(CEF_CALLBACK* allow_picture_in_picture_without_user_activation)(
       struct _cef_browser_view_delegate_t* self,
       struct _cef_browser_view_t* browser_view);
 #endif
