@@ -19,6 +19,9 @@
     <Filter Include="decode">
       <UniqueIdentifier>{c7129fd9-8554-43df-b85d-7d53f3109fdf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="dsp">
+      <UniqueIdentifier>{7346f1fd-849d-477f-b9c3-0b30ed41abf7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dec\alpha_dec.c">
@@ -152,6 +155,27 @@
     </ClCompile>
     <ClCompile Include="src\dsp\lossless_avx2.c">
       <Filter>dspdecode</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dsp\alpha_processing_neon.c">
+      <Filter>dsp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dsp\dec_neon.c">
+      <Filter>dsp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dsp\filters_neon.c">
+      <Filter>dsp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dsp\lossless_neon.c">
+      <Filter>dsp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dsp\rescaler_neon.c">
+      <Filter>dsp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dsp\upsampling_neon.c">
+      <Filter>dsp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dsp\yuv_neon.c">
+      <Filter>dsp</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

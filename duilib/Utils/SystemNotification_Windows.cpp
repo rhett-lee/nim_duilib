@@ -143,7 +143,12 @@ uint32_t SystemNotification::Show(const DString& title, const DString& content,
     nid.uID = trayId;
     nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
     nid.uCallbackMessage = WM_SYSTEM_NOTIFICATION_MESSAGE;
+#if defined(UNICODE) || defined(_UNICODE)
     nid.hIcon = ::LoadIconW(nullptr, IDI_APPLICATION);
+#else
+    //#define IDI_APPLICATION     MAKEINTRESOURCE(32512)
+    nid.hIcon = ::LoadIconW(nullptr, MAKEINTRESOURCEW(32512));
+#endif
     StringUtil::StringCopy(nid.szTip, _countof(nid.szTip), titleW.c_str());
 
     BOOL bRet = ::Shell_NotifyIconW(NIM_ADD, &nid);
