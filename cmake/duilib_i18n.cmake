@@ -14,7 +14,9 @@
 # -> Windows 注册表 LocaleName -> 英文。
 
 set(DUILIB_I18N_MESSAGES_FILE "${CMAKE_CURRENT_LIST_DIR}/i18n/messages.json")
-set(DUILIB_I18N_LANG "en")
+# 注意：本文件会被多个脚本重复 include（根 CMakeLists、preflight、deps 等）。
+# 默认语言只能在本进程首次初始化时设置，否则重复 include 会把已解析的
+# zh_CN 覆盖回 en，导致 project() 之后的消息全部变成英文。
 
 # 读取一条消息文本：先按当前语言，缺失时回退英文，再缺失时返回 key 本身。
 function(duilib_t key out_var)
@@ -148,6 +150,8 @@ function(duilib_i18n_init)
 endfunction()
 
 if(NOT DEFINED DUILIB_I18N_INITIALIZED)
+    # 首次初始化前才写入默认值（英文兜底），后续 include 不得覆盖解析结果
+    set(DUILIB_I18N_LANG "en")
     duilib_i18n_init()
     set(DUILIB_I18N_INITIALIZED TRUE)
     if(DUILIB_I18N_FELL_BACK)

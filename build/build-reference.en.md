@@ -137,27 +137,38 @@ Dependency directories live next to the repository by default (`--deps-root` ove
 
 ```
 <deps-root>/
-  skia/            # Skia source (patched by skia_compile)
-  skia_compile/    # skia_compile repository (cloned by deps when the patch is missing)
+  skia/            # Skia source (built after the patch is extracted)
   SDL/             # SDL3 source
   SDL3/            # SDL3 install prefix
   SDL3_build/      # SDL3 build directory
   cef_binary/      # CEF download/extract cache (full distribution on macOS)
 ```
 
-The Skia patch archive is obtained automatically by `build.py deps` (and the default
-`build`): when missing, the whole
-[skia_compile](https://github.com/rhett-lee/skia_compile) repository is cloned into
-`<deps-root>/skia_compile`; an existing checkout is checked against the current commit
-first (the same name may be committed more than once, e.g.
-`skia.2026-09-16.src.zip`), so a local copy that was replaced with an older version (or
-deleted) is restored from the checkout before `git pull` fetches the latest commit; a
-changed patch makes the matching Skia artifacts rebuild. A failed update keeps the local
-copy (matching the legacy script). Building directly with CMake
-(`DUILIB_DEPS_MODE=auto` or the `duilib_deps` target) performs the same logic through
-the dependency script. `--offline` never touches the network and only restores the local
-copy, so the archive must be prepared in advance; `doctor` reports whether it exists and
-whether it differs from the local checkout.
+The Skia patch archive ships with the repository in `build/skia_patch/` (set by the
+`skia.patchDir` entry of the manifest), and its `SHA1.txt` records the Skia commit it
+belongs to. `build.py deps` (and the default `build`) as well as the CMake dependency
+script verify that `SHA1.txt` matches `skia.default` in the manifest and stop with an
+error when it does not, so a patch never gets applied to the wrong Skia revision. A
+changed patch makes the matching Skia artifacts rebuild. This step needs no network
+access and no longer clones an external patch repository; when the archive is missing,
+restore it with `git checkout -- build/skia_patch` (a build with existing Skia
+artifacts only warns instead of failing). `doctor` reports whether the archive exists
+and whether its SHA1 matches the manifest.
+
+The archive also carries the Windows `bin/gn.exe` and `bin/ninja.exe`. On a fresh
+checkout, before the archive is extracted, the root-project preflight only points at
+`deps` for those tools instead of failing the configure; after extraction they are
+checked strictly.
+
+Some Visual Studio installations do not include ninja ("C++ CMake tools for Windows"
+is an optional component). `build.py` looks for ninja in PATH, the Visual Studio install
+directory, an already extracted `skia/bin/ninja.exe`, and finally the patch archive,
+extracting it to `out/.duilib-tools/bin/ninja.exe` so the Ninja generator and presets
+keep working. The root project performs the same bootstrap before `project()` (extracting
+to `<build-dir>/.duilib-tools/bin/ninja.exe` and setting `CMAKE_MAKE_PROGRAM`), so a
+direct `cmake --preset x64-release` does not require a system-wide ninja either. Neither
+path writes into the `skia/` source tree; use the `DUILIB_NINJA_EXECUTABLE` environment
+variable or cache entry to point at a different ninja.
 
 All network operations (git clone/fetch, CEF downloads) share one retry policy kept in
 the `retry` block of
@@ -297,8 +308,8 @@ no macOS CEF development files; build from the source tree as described in
 | macOS | clang (Xcode) | required | forced on | on by default | not supported |
 | FreeBSD | clang | required | forced on | not supported | not supported |
 
-Per-distribution system packages (fonts, GL, X11, ibus, ...) and Skia build guides are in
-[skia_compile](https://github.com/rhett-lee/skia_compile). macOS needs
+Per-distribution system packages are listed above; Skia is built automatically by
+`build.py deps`, so no manual preparation is needed. macOS needs
 `brew install cmake ninja` and `gn` built from source; FreeBSD uses
 `sudo pkg install git unzip python3 cmake ninja gn llvm fontconfig freetype2`.
 
@@ -379,7 +390,7 @@ sure the Skia libraries are the `mingw64-llvm.<arch>` variant.
 | :--- | :--- |
 | `Visual Studio not found` | install VS 2022+ with the C++ workload, or pass `--vs-version` |
 | `Skia not found` | run `python3 build/build.py deps` first, or check `--deps-root` |
-| `gn/ninja not found` | use VS's bundled tools on Windows; on Unix install `ninja` and `gn`. Unix ignores `gn.exe` inside the Skia tree (it cannot run there); install a native `gn` when only `gn.exe` exists |
+| `gn/ninja not found` | use VS's bundled tools on Windows, or run `python3 build/build.py deps` to extract the bundled `bin/gn.exe` from the Skia patch archive; without the optional VS ninja component, `build.py` and the root project extract the bundled `bin/ninja.exe` automatically (`out/.duilib-tools` or `<build-dir>/.duilib-tools`), so nothing needs to be installed. On Unix install `ninja` and `gn`. Unix ignores `gn.exe` inside the Skia tree (it cannot run there); install a native `gn` when only `gn.exe` exists |
 | `python: command not found` (macOS/Linux) | these systems usually provide only `python3`: run the same script as `python3 build/build.py ...` |
 | `python3 not found` (error while building Skia) | the Skia build scripts invoke `python3` and do not accept `python` / `py -3`; install Python 3 and make sure `python3 --version` works (on Windows add the Python install directory to PATH) |
 | `CMake version is too old` | upgrade to CMake 3.24+ |

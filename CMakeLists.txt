@@ -20,15 +20,57 @@ option(DUILIB_PREFLIGHT_ONLY "Run preflight and exit without configuring targets
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/duilib_i18n.cmake")
 
 # ---------------------------------------------------------------------------
+# 依赖归档位置（Skia 补丁 zip）：阶段 A 预检、Ninja 自举与依赖准备共用
+# ---------------------------------------------------------------------------
+if(NOT DUILIB_DEPS_ROOT)
+    set(DUILIB_DEPS_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/..")
+endif()
+if(NOT DUILIB_SKIA_ROOT)
+    set(DUILIB_SKIA_ROOT "${DUILIB_DEPS_ROOT}/skia")
+endif()
+# Skia 补丁归档随仓库分发；归档自带 bin/gn.exe、bin/ninja.exe。全新环境尚未
+# 解压时，预检不应因缺少 gn/ninja 而中断，需把归档位置传给阶段 A 预检判断。
+set(_duilib_patch_dir "")
+set(_duilib_patch_zip "")
+set(_duilib_versions_file "${CMAKE_CURRENT_SOURCE_DIR}/cmake/third_party_versions.json")
+if(EXISTS "${_duilib_versions_file}")
+    file(READ "${_duilib_versions_file}" _duilib_versions_json)
+    string(JSON _duilib_patch_dir ERROR_VARIABLE _duilib_json_err
+           GET "${_duilib_versions_json}" skia patchDir)
+    if(_duilib_json_err OR _duilib_patch_dir STREQUAL "")
+        set(_duilib_patch_dir "build/skia_patch")
+    endif()
+    get_filename_component(_duilib_patch_dir
+        "${CMAKE_CURRENT_SOURCE_DIR}/${_duilib_patch_dir}" ABSOLUTE)
+    string(JSON _duilib_skia_key ERROR_VARIABLE _duilib_json_err
+           GET "${_duilib_versions_json}" skia default)
+    if(NOT "${DUILIB_SKIA_REF}" STREQUAL "")
+        set(_duilib_skia_key "${DUILIB_SKIA_REF}")
+    endif()
+    if(NOT _duilib_json_err AND NOT _duilib_skia_key STREQUAL "")
+        string(JSON _duilib_patch_zip ERROR_VARIABLE _duilib_json_err
+               GET "${_duilib_versions_json}" skia refs "${_duilib_skia_key}" patchZip)
+        if(_duilib_json_err)
+            set(_duilib_patch_zip "")
+        endif()
+    endif()
+endif()
+if(NOT "${DUILIB_SKIA_PATCH_DIR}" STREQUAL "")
+    set(_duilib_patch_dir "${DUILIB_SKIA_PATCH_DIR}")
+endif()
+if(NOT "${DUILIB_SKIA_PATCH_ZIP}" STREQUAL "")
+    set(_duilib_patch_zip "${DUILIB_SKIA_PATCH_ZIP}")
+endif()
+
+# Ninja 生成器自举：VS 未安装 ninja（可选组件）时使用归档自带的 bin/ninja.exe。
+# 必须在 project() 之前执行，CMAKE_MAKE_PROGRAM 才会被 Ninja 生成器采用。
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/duilib_bootstrap.cmake")
+duilib_bootstrap_ninja("${_duilib_patch_dir}" "${_duilib_patch_zip}")
+
+# ---------------------------------------------------------------------------
 # 阶段 A：无编译器环境预检（独立 cmake -P，失败时不生成构建树）
 # ---------------------------------------------------------------------------
 if(DUILIB_PREFLIGHT)
-    if(NOT DUILIB_DEPS_ROOT)
-        set(DUILIB_DEPS_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/..")
-    endif()
-    if(NOT DUILIB_SKIA_ROOT)
-        set(DUILIB_SKIA_ROOT "${DUILIB_DEPS_ROOT}/skia")
-    endif()
     execute_process(
         COMMAND "${CMAKE_COMMAND}"
                 "-DDUILIB_LANG=${DUILIB_I18N_LANG}"
@@ -37,6 +79,9 @@ if(DUILIB_PREFLIGHT)
                 "-DDUILIB_DEPS_ROOT=${DUILIB_DEPS_ROOT}"
                 "-DDUILIB_SKIA_ROOT=${DUILIB_SKIA_ROOT}"
                 "-DDUILIB_GN_EXECUTABLE=${DUILIB_GN_EXECUTABLE}"
+                "-DDUILIB_NINJA_EXECUTABLE=${DUILIB_NINJA_EXECUTABLE}"
+                "-DDUILIB_SKIA_PATCH_DIR=${_duilib_patch_dir}"
+                "-DDUILIB_SKIA_PATCH_ZIP=${_duilib_patch_zip}"
                 -P "${CMAKE_CURRENT_LIST_DIR}/cmake/duilib_preflight_tools.cmake"
         RESULT_VARIABLE _duilib_preflight_rc)
     if(NOT _duilib_preflight_rc EQUAL 0)

@@ -12,21 +12,20 @@
 git clone https://github.com/rhett-lee/nim_duilib
 ```
 
-2. 获取skia代码的编译方法和修改的代码（nim_duilib使用skia作为绘制引擎，所以先要编译skia）
+2. 准备 Skia 绘制引擎（补丁归档随仓库提交在 `build/skia_patch/`，无需克隆外部仓库）
 
 ```bash
-git clone https://github.com/rhett-lee/skia_compile
+cd nim_duilib
+python3 build/build.py deps
 ```
 
-3. 编译skia源码：按照skia_compile项目文档[compile_skia_on_windows.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_windows.md)中的方法，编译出skia相关的lib文件    
-   注意事项：skia源码应该与nim_duilib源码位于相同的目录下。    
-   注意事项：skia源码编译的时候，应使用LLVM编译，程序运行比较流畅；如果使用VS编译，运行速度很慢，界面比较卡。    
-   检查方法：编译成功以后，在skia/out的子目录下，有生成skia.lib等lib文件。
-4. 在工作目录内，几个项目的源码目录的基本结构如下    
+依赖准备完成后，Skia 源码位于与 `nim_duilib` 同级的 `skia/` 目录，`skia/out` 下会生成 `skia.lib` 等库文件；使用现成的 VS 解决方案时，也必须先执行这一步。
+
+3. 在工作目录内，几个项目的源码目录的基本结构如下
 
 <img src="./Images/vs00.png"/>
 
-5. 编译nim_duilib：进入 `nim_duilib` 目录，使用 Visual Studio 打开 `examples.sln`，选择编译选项为Debug|x64或者Release|x64，按下 F7 即可编译所有示例程序（编译完成的示例程序位于bin目录中）。
+4. 编译nim_duilib：进入 `nim_duilib` 目录，使用 Visual Studio 打开 `examples.sln`，选择编译选项为Debug|x64或者Release|x64，按下 F7 即可编译所有示例程序（编译完成的示例程序位于bin目录中）。
 
 ## 创建基础工程
 

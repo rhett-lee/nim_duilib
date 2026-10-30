@@ -23,7 +23,7 @@ import re
 import shutil
 import subprocess
 import sys
-import time
+import zipfile
 from pathlib import Path
 
 from i18n import make_messages, set_console_utf8
@@ -58,8 +58,8 @@ VALID_CONFIGS = ("Debug", "Release")
 VALID_ARCHES = ("auto", "x86", "x64", "arm64")
 DEFAULT_CONFIG = "Release"
 DEFAULT_DEPS_MODE = "prepare"
-# Skia 补丁归档只随 skia_compile 仓库分发，版本清单里只有文件名。
-SKIA_COMPILE_REPO = "https://github.com/rhett-lee/skia_compile.git"
+# Skia 补丁归档随仓库分发（清单 skia.patchDir，缺省为 build/skia_patch）。
+DEFAULT_SKIA_PATCH_DIR = "build/skia_patch"
 
 
 class BuildError(Exception):
@@ -710,7 +710,48 @@ def _msvc_environment(arch: str, vs_version: str | None) -> tuple[dict, Path | N
     return env, install
 
 
-def _find_ninja(env: dict, vs_install: Path | None) -> Path | None:
+def _bundled_ninja_path() -> Path:
+    """归档自带的 ninja 解压后的落地位置（在 out/ 下，`build.py clean` 会一并删除）。"""
+    return REPO_ROOT / "out" / ".duilib-tools" / "bin" / "ninja.exe"
+
+
+def _ninja_from_patch_archive(args) -> Path | None:
+    """从 Skia 补丁归档解压自带的 bin/ninja.exe，供 VS 未安装 ninja 可选组件的环境使用。
+
+    归档随仓库分发；解压目标见 _bundled_ninja_path()，避免写入尚未 clone 的 skia
+    源码树。取到后仍使用 Ninja 生成器与预设，不必退回 MSBuild。
+    """
+    if sys.platform != "win32":
+        return None
+    try:
+        manifest = load_manifest(VERSIONS_FILE)
+    except (OSError, ValueError):
+        # 清单损坏时交给 configure 阶段统一报错
+        return None
+    patch = _skia_patch_archive(manifest, args)
+    if patch is None or not patch.is_file():
+        return None
+    target = _bundled_ninja_path()
+    if not target.is_file():
+        try:
+            with zipfile.ZipFile(patch) as archive:
+                if "bin/ninja.exe" not in archive.namelist():
+                    return None
+                target.parent.mkdir(parents=True, exist_ok=True)
+                with archive.open("bin/ninja.exe") as source:
+                    target.write_bytes(source.read())
+        except (OSError, KeyError, zipfile.BadZipFile):
+            return None
+    return target if target.is_file() else None
+
+
+def _find_ninja(env: dict, vs_install: Path | None, args=None) -> Path | None:
+    """查找 ninja：环境变量覆盖、PATH、VS 安装目录、已解压的 skia/bin、补丁归档自带的副本。"""
+    override = env.get("DUILIB_NINJA_EXECUTABLE", "")
+    if override:
+        path = Path(override).expanduser()
+        if path.is_file():
+            return path
     found = shutil.which("ninja", path=env.get("PATH"))
     if found:
         return Path(found)
@@ -718,6 +759,12 @@ def _find_ninja(env: dict, vs_install: Path | None) -> Path | None:
         candidate = vs_install / "Common7" / "IDE" / "CommonExtensions" / "Microsoft" / "CMake" / "Ninja" / "ninja.exe"
         if candidate.is_file():
             return candidate
+    if args is not None:
+        name = "ninja.exe" if sys.platform == "win32" else "ninja"
+        prepared = _deps_root(args) / "skia" / "bin" / name
+        if prepared.is_file():
+            return prepared
+        return _ninja_from_patch_archive(args)
     return None
 
 
@@ -772,7 +819,7 @@ def _require_mingw_toolchain(env: dict) -> None:
         "run from an MSYS2 MINGW64/UCRT64/CLANG64 shell, where gcc/clang target *mingw*")
 
 
-def detect_toolchain(arch: str, vs_version: str | None) -> Toolchain:
+def detect_toolchain(arch: str, vs_version: str | None, args=None) -> Toolchain:
     env = dict(os.environ)
     vs_install = None
     if sys.platform == "win32" and not env.get("MSYSTEM"):
@@ -786,7 +833,7 @@ def detect_toolchain(arch: str, vs_version: str | None) -> Toolchain:
     elif sys.platform != "win32" and not env.get("CC") and not env.get("CXX") and _is_uos():
         # 与旧脚本一致：UOS 上 clang++ 链接会失败，未显式指定编译器时固定 gcc
         env["CC"], env["CXX"] = "gcc", "g++"
-    ninja = _find_ninja(env, vs_install)
+    ninja = _find_ninja(env, vs_install, args)
     if ninja:
         env["PATH"] = str(ninja.parent) + os.pathsep + env.get("PATH", "")
         generator = "Ninja"
@@ -959,28 +1006,51 @@ def resolve_git_ref(repo: Path, ref: dict) -> str:
     return ""
 
 
-def patch_archive_stale(patch: Path, repo_dir: Path) -> bool:
-    """补丁归档与仓库当前提交不一致（被替换成旧版本或已删除）。
+def _skia_patch_dir(manifest) -> Path:
+    """补丁归档目录：清单 skia.patchDir（相对仓库根），缺省 build/skia_patch。"""
+    skia = manifest.get("skia", {}) if isinstance(manifest, dict) else {}
+    rel = str(skia.get("patchDir", "") or DEFAULT_SKIA_PATCH_DIR)
+    return (REPO_ROOT / rel).resolve()
 
-    同名归档可能在 skia_compile 里被重复提交（如 skia.2026-09-16.src.zip），
-    只判断“文件存在”会让看起来相同的旧归档一直产生同一份 Skia 产物。
-    """
-    if not (repo_dir / ".git").is_dir():
-        return False
-    code, status = _git_capture(repo_dir, ["status", "--porcelain",
-                                           "--untracked-files=no", "--", patch.name])
-    return code == 0 and bool(status)
+
+def _skia_patch_ref(manifest, args) -> dict:
+    """当前 Skia ref 在清单中的条目；未指定或找不到时返回空字典。"""
+    ref = getattr(args, "skia_ref", None) or manifest["skia"]["default"]
+    return manifest["skia"].get("refs", {}).get(ref, {})
 
 
 def _skia_patch_archive(manifest, args) -> Path | None:
     """当前 Skia ref 对应的补丁归档路径；该 ref 不需要补丁时返回 None。"""
-    ref = getattr(args, "skia_ref", None) or manifest["skia"]["default"]
-    patch_zip = manifest["skia"].get("refs", {}).get(ref, {}).get("patchZip", "")
-    return _deps_root(args) / "skia_compile" / patch_zip if patch_zip else None
+    patch_zip = _skia_patch_ref(manifest, args).get("patchZip", "")
+    return _skia_patch_dir(manifest) / patch_zip if patch_zip else None
+
+
+def skia_patch_sha1(patch: Path) -> str:
+    """读取补丁归档内 SHA1.txt 记录的目标提交；缺失或损坏时返回空串。"""
+    try:
+        with zipfile.ZipFile(patch) as archive:
+            text = archive.read("SHA1.txt").decode("utf-8", "replace")
+    except (OSError, KeyError, zipfile.BadZipFile):
+        return ""
+    for line in text.splitlines():
+        value = line.split(":", 1)[1].strip() if ":" in line else line.strip()
+        if value:
+            return value.lower()
+    return ""
+
+
+def skia_patch_matches(patch: Path, ref: dict) -> bool:
+    """补丁归档与清单 ref 是否配套：SHA1.txt 记录的提交应与清单提交一致。
+
+    tag / branch 等无法从 SHA1.txt 直接判断的 ref 不做校验。
+    """
+    if str(ref.get("type", "")) != "commit":
+        return True
+    return skia_patch_sha1(patch) == str(ref.get("value", "")).lower()
 
 
 def _skia_patch_needed(args) -> bool:
-    """已有 Skia 编译产物时由 CMake 判断是否复用，避免无谓的补丁下载。"""
+    """是否需要补丁才能继续：已有 Skia 编译产物时允许复用，不因归档缺失中断。"""
     if getattr(args, "force", False):
         return True
     skia_out = _deps_root(args) / "skia" / "out"
@@ -991,52 +1061,11 @@ def _skia_patch_needed(args) -> bool:
                    for name in ("skia.lib", "libskia.a"))
 
 
-def _retry_settings(manifest: dict) -> tuple[int, int]:
-    """清单 retry 段：最大次数（0 = 无限）与重试间隔秒数。"""
-    retry = manifest.get("retry", {}) if isinstance(manifest, dict) else {}
-    try:
-        attempts = int(retry.get("maxAttempts", 0))
-    except (TypeError, ValueError):
-        attempts = 0
-    try:
-        delay = int(retry.get("delaySeconds", 20))
-    except (TypeError, ValueError):
-        delay = 20
-    return max(attempts, 0), max(delay, 0)
-
-
-def _run_with_retry(runner: Runner, command, messages, what: str,
-                    attempts: int, delay: int) -> bool:
-    """执行网络命令；失败时按清单的统一参数重试（attempts=0 表示无限）。"""
-    attempt = 1
-    while True:
-        if runner.run(command) == 0:
-            return True
-        if attempts and attempt >= attempts:
-            return False
-        print(messages.t("deps.retry").format(what=what, attempt=attempt, delay=delay),
-              flush=True)
-        time.sleep(delay)
-        attempt += 1
-
-
-def _restore_skia_patch(patch: Path, messages, runner: Runner, args) -> None:
-    """把被替换成旧版本（或删掉）的补丁归档恢复成仓库当前提交里的版本。
-
-    不联网：git checkout 只用本地对象。
-    """
-    if getattr(args, "dry_run", False) or not patch_archive_stale(patch, patch.parent):
-        return
-    print(messages.t("deps.skia_patch_restoring") + f" ({patch.name})", flush=True)
-    if runner.run(["git", "-C", str(patch.parent), "checkout", "--", patch.name]) != 0:
-        _warn_line(messages.t("deps.skia_patch_restore_failed") + f" ({patch})")
-
-
 def _ensure_skia_patch(args, messages, runner: Runner) -> None:
-    """确保 Skia 补丁归档与 skia_compile 的当前版本一致。
+    """确认 Skia 补丁归档随仓库存在，且 SHA1.txt 与清单配置一致。
 
-    归档已存在时也要刷新：同名归档可能被重复提交，本地旧文件会让旧的 Skia
-    产物一直被复用。仓库不存在时按需克隆（已有 Skia 产物且归档齐备时不下载）。
+    归档位于 `build/skia_patch/`（清单 `skia.patchDir`），不再依赖外部 git 仓库，
+    因此这里只做本地检查；`runner` 参数保留以兼容现有调用。
     """
     try:
         manifest = load_manifest(VERSIONS_FILE)
@@ -1046,48 +1075,15 @@ def _ensure_skia_patch(args, messages, runner: Runner) -> None:
     patch = _skia_patch_archive(manifest, args)
     if patch is None:
         return
-    repo_dir = patch.parent
-    offline = getattr(args, "offline", False)
-
-    if (repo_dir / ".git").is_dir():
-        # 先恢复本地归档：带本地修改时 git pull 会被拒绝；恢复后 pull 才能取到
-        # 最新提交（同名归档的新版本）。
-        _restore_skia_patch(patch, messages, runner, args)
-        if not offline:
-            # 与旧脚本一致：更新失败只告警，继续使用本地已有内容
-            print(messages.t("deps.skia_patch_updating") + f" ({repo_dir})", flush=True)
-            if runner.run(["git", "-C", str(repo_dir), "pull", "--ff-only"]) != 0:
-                _warn_line(messages.t("deps.skia_patch_update_failed"))
-
-    if patch.is_file() or not _skia_patch_needed(args):
-        return
-    if offline:
-        raise BuildError(messages.t("deps.skia_patch_missing") + f": {patch}",
-                         messages.hint("deps.offline_missing_hint"))
-
-    repo_url = manifest.get("skiaCompileRepo") or SKIA_COMPILE_REPO
-    attempts, delay = _retry_settings(manifest)
-    if (repo_dir / ".git").is_dir():
-        # 仓库已存在但归档仍缺失（远端更新失败或离线拉取未成功）
-        if not args.dry_run and not patch.is_file():
-            raise BuildError(messages.t("deps.skia_patch_missing") + f": {patch}",
-                             messages.hint("deps.skia_patch_fetch_failed_hint"))
-        return
-    if repo_dir.exists() and any(repo_dir.iterdir()):
-        # 非 git 目录无法克隆进去，避免无限重试
-        raise BuildError(messages.t("deps.skia_patch_dir_invalid") + f": {repo_dir}",
-                         messages.hint("deps.skia_patch_dir_invalid_hint"))
-    print(messages.t("deps.skia_patch_fetching") + f" ({repo_dir})", flush=True)
-    repo_dir.parent.mkdir(parents=True, exist_ok=True)
-    if not _run_with_retry(
-            runner,
-            ["git", "clone", "--depth", "1", repo_url, str(repo_dir)],
-            messages, f"git clone {repo_url}", attempts, delay):
-        raise BuildError(messages.t("deps.skia_patch_missing") + f": {patch}",
-                         messages.hint("deps.skia_patch_fetch_failed_hint"))
-    if not args.dry_run and not patch.is_file():
-        raise BuildError(messages.t("deps.skia_patch_missing") + f": {patch}",
-                         messages.hint("deps.skia_patch_fetch_failed_hint"))
+    if not patch.is_file():
+        if not _skia_patch_needed(args):
+            _warn_line(messages.t("deps.skia_patch_missing_reuse") + f": {patch}")
+            return
+        message = messages.t("deps.skia_patch_missing") + f": {patch}"
+        raise BuildError(message, messages.hint("deps.skia_patch_missing_hint"))
+    if not skia_patch_matches(patch, _skia_patch_ref(manifest, args)):
+        raise BuildError(messages.t("deps.skia_patch_sha1_mismatch") + f": {patch.name}",
+                         messages.hint("deps.skia_patch_sha1_mismatch_hint"))
 
 
 def cmd_deps(args, messages) -> int:
@@ -1095,7 +1091,7 @@ def cmd_deps(args, messages) -> int:
     _check_cef_archive(args, messages)
     arch = resolve_arch(args.arch)
     build_dir = resolve_build_dir(REPO_ROOT, arch, args.config, args.build_dir)
-    toolchain = detect_toolchain(arch, args.vs_version)
+    toolchain = detect_toolchain(arch, args.vs_version, args)
     reset_stale_build_dir(build_dir, toolchain, messages, args.dry_run)
     reset_stale_build_mode(build_dir, args, messages, args.dry_run)
     sync_msvc_dll_flag(getattr(args, "dll", False), messages, args.dry_run)
@@ -1110,7 +1106,7 @@ def cmd_build(args, messages) -> int:
     _check_cef_archive(args, messages)
     arch = resolve_arch(args.arch)
     build_dir = resolve_build_dir(REPO_ROOT, arch, args.config, args.build_dir)
-    toolchain = detect_toolchain(arch, args.vs_version)
+    toolchain = detect_toolchain(arch, args.vs_version, args)
     reset_stale_build_dir(build_dir, toolchain, messages, args.dry_run)
     reset_stale_build_mode(build_dir, args, messages, args.dry_run)
     sync_msvc_dll_flag(getattr(args, "dll", False), messages, args.dry_run)
@@ -1187,7 +1183,7 @@ def cmd_doctor(args, messages) -> int:
 
     toolchain = None
     try:
-        toolchain = detect_toolchain(arch, args.vs_version)
+        toolchain = detect_toolchain(arch, args.vs_version, args)
     except BuildError as error:
         _warn_line(error.message)
     if toolchain:
@@ -1210,7 +1206,7 @@ def cmd_doctor(args, messages) -> int:
     offline = getattr(args, "offline", False)
     missing_hint = "offline: cannot fetch it" if offline else "build.py deps will fetch it"
 
-    # Skia 源码与补丁归档都由 build.py deps 自动获取。
+    # Skia 源码由 build.py deps 自动获取；补丁归档随仓库放在 build/skia_patch/。
     skia_root = deps_root / "skia"
     if skia_root.is_dir():
         _ok_line(f"skia source {skia_root}")
@@ -1223,14 +1219,16 @@ def cmd_doctor(args, messages) -> int:
     patch = _skia_patch_archive(manifest, args) if manifest else None
     if patch is not None:
         if patch.is_file():
-            if patch_archive_stale(patch, patch.parent):
-                # 同名归档可能被重复提交，旧的本地副本会让 Skia 产物一直不更新
-                _warn_line(f"skia patch differs from skia_compile HEAD: {patch.name} "
-                           "(build.py deps will restore it)")
-            else:
+            ref = _skia_patch_ref(manifest, args)
+            if skia_patch_matches(patch, ref):
                 _ok_line(f"skia patch {patch}")
+            else:
+                _warn_line(f"skia patch SHA-1 mismatch: {patch.name} "
+                           f"(expected {ref.get('value', '')}, "
+                           f"got {skia_patch_sha1(patch) or 'none'})")
         else:
-            _warn_line(f"skia patch missing: {patch} ({missing_hint})")
+            _warn_line(f"skia patch missing: {patch} (it ships with the repository; "
+                       "restore it with 'git checkout -- build/skia_patch')")
 
     # SDL 在 Windows 默认关闭，其他平台强制开启；只报告当前配置实际需要的依赖。
     sdl_enabled = args.sdl if args.sdl is not None else host != "windows"
@@ -1280,7 +1278,7 @@ def cmd_doctor(args, messages) -> int:
 
     if toolchain is None:
         try:
-            toolchain = detect_toolchain(arch, args.vs_version)
+            toolchain = detect_toolchain(arch, args.vs_version, args)
         except BuildError:
             toolchain = None
     env = toolchain.env if toolchain else dict(os.environ)
@@ -1292,6 +1290,7 @@ def cmd_doctor(args, messages) -> int:
                f"-DDUILIB_DEPS_ROOT={deps_root}",
                f"-DDUILIB_SKIA_ROOT={skia_root}",
                f"-DDUILIB_GN_EXECUTABLE={os.environ.get('DUILIB_GN_EXECUTABLE', '')}",
+               f"-DDUILIB_NINJA_EXECUTABLE={toolchain.ninja if toolchain and toolchain.ninja else os.environ.get('DUILIB_NINJA_EXECUTABLE', '')}",
                f"-DDUILIB_GENERATOR={toolchain.generator if toolchain else 'Ninja'}",
                "-P", str(PREFLIGHT_SCRIPT)]
     print("+ " + _format_command(command), flush=True)

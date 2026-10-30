@@ -16,7 +16,9 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 BUILD_DIR = Path(__file__).resolve().parent
@@ -102,6 +104,75 @@ class LayoutTests(unittest.TestCase):
         self.assertEqual(resolved, (Path.cwd() / "rel/out").resolve())
 
 
+class NinjaDiscoveryTests(unittest.TestCase):
+    """ninja 查找顺序：PATH → Visual Studio → skia/bin → 补丁归档自带的副本。
+
+    某些 Visual Studio 安装不含 ninja（可选组件），而 Skia 补丁归档自带
+    bin/ninja.exe：此时仍应使用 Ninja 生成器与预设，而不是退回 MSBuild。
+    """
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.tmp = Path(tmp.name)
+
+    def _fake_ninja(self, path: Path) -> Path:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"")
+        return path
+
+    def test_env_override(self):
+        expected = self._fake_ninja(self.tmp / "override" / "ninja.exe")
+        env = {"PATH": "", "DUILIB_NINJA_EXECUTABLE": str(expected)}
+        with mock.patch.object(entry.shutil, "which", return_value=None):
+            self.assertEqual(entry._find_ninja(env, None), expected)
+
+    def test_path_hit(self):
+        expected = self._fake_ninja(self.tmp / "path" / "ninja.exe")
+        with mock.patch.object(entry.shutil, "which", return_value=str(expected)):
+            self.assertEqual(entry._find_ninja({"PATH": ""}, None), expected)
+
+    def test_visual_studio_hit(self):
+        vs = self.tmp / "VS"
+        expected = self._fake_ninja(
+            vs / "Common7" / "IDE" / "CommonExtensions" / "Microsoft" / "CMake" / "Ninja" / "ninja.exe")
+        with mock.patch.object(entry.shutil, "which", return_value=None):
+            self.assertEqual(entry._find_ninja({"PATH": ""}, vs), expected)
+
+    def test_skia_bin_used_when_not_on_path(self):
+        deps = self.tmp / "deps"
+        name = "ninja.exe" if sys.platform == "win32" else "ninja"
+        expected = self._fake_ninja(deps / "skia" / "bin" / name)
+        args = SimpleNamespace(deps_root=str(deps), skia_ref=None)
+        with mock.patch.object(entry.shutil, "which", return_value=None):
+            self.assertEqual(entry._find_ninja({"PATH": ""}, None, args), expected)
+
+    def test_missing_everywhere(self):
+        with mock.patch.object(entry.shutil, "which", return_value=None):
+            self.assertIsNone(entry._find_ninja({"PATH": ""}, None))
+
+    @unittest.skipUnless(sys.platform == "win32", "归档内的 ninja 是 Windows 程序")
+    def test_archive_extract_when_nothing_else(self):
+        deps = self.tmp / "deps"
+        target = self.tmp / "tools" / "bin" / "ninja.exe"
+        args = SimpleNamespace(deps_root=str(deps), skia_ref=None)
+        with mock.patch.object(entry.shutil, "which", return_value=None), \
+                mock.patch.object(entry, "_bundled_ninja_path", return_value=target):
+            self.assertEqual(entry._find_ninja({"PATH": ""}, None, args), target)
+        self.assertTrue(target.is_file())
+
+    @unittest.skipUnless(sys.platform == "win32", "归档内的 ninja 是 Windows 程序")
+    def test_archive_missing_returns_none(self):
+        deps = self.tmp / "deps"
+        target = self.tmp / "tools" / "bin" / "ninja.exe"
+        args = SimpleNamespace(deps_root=str(deps), skia_ref=None)
+        with mock.patch.object(entry.shutil, "which", return_value=None), \
+                mock.patch.object(entry, "_bundled_ninja_path", return_value=target), \
+                mock.patch.object(entry, "_skia_patch_archive", return_value=None):
+            self.assertIsNone(entry._find_ninja({"PATH": ""}, None, args))
+        self.assertFalse(target.is_file())
+
+
 class ManifestTests(unittest.TestCase):
     def setUp(self):
         self.manifest = entry.load_manifest(entry.VERSIONS_FILE)
@@ -130,7 +201,8 @@ class ManifestTests(unittest.TestCase):
     def test_retry_defaults(self):
         self.assertEqual(self.manifest["retry"]["maxAttempts"], 0)
         self.assertEqual(self.manifest["retry"]["delaySeconds"], 20)
-        self.assertTrue(self.manifest["skiaCompileRepo"].endswith("skia_compile.git"))
+        self.assertEqual(self.manifest["skia"]["patchDir"], "build/skia_patch")
+        self.assertNotIn("skiaCompileRepo", self.manifest)
 
     def test_load_manifest_rejects_bad_schema(self):
         import json
@@ -642,169 +714,72 @@ class ToolchainSelectionTests(unittest.TestCase):
 
 
 class SkiaPatchTests(unittest.TestCase):
+    """Skia 补丁归档随仓库分发：路径、缺失处理与 SHA1.txt 校验。"""
+
     def _messages(self):
         return entry.make_messages("zh_CN")
 
-    def test_offline_reports_missing_patch(self):
-        with tempfile.TemporaryDirectory() as root:
-            args = entry.parse_args(["deps", "--deps-root", root, "--offline"])
-            with self.assertRaises(entry.BuildError):
-                entry._ensure_skia_patch(args, self._messages(), mock.Mock())
-            self.assertFalse((Path(root) / "skia_compile").exists())
+    def test_manifest_patch_dir(self):
+        manifest = entry.load_manifest(entry.VERSIONS_FILE)
+        self.assertEqual(manifest["skia"]["patchDir"], entry.DEFAULT_SKIA_PATCH_DIR)
 
-    def test_dry_run_prints_clone(self):
-        with tempfile.TemporaryDirectory() as root:
-            args = entry.parse_args(["deps", "--deps-root", root, "--dry-run"])
-            output = io.StringIO()
-            with contextlib.redirect_stdout(output):
-                entry._ensure_skia_patch(args, self._messages(), entry.Runner({}, True))
-            text = output.getvalue()
-            self.assertIn("git clone", text)
-            self.assertIn(entry.SKIA_COMPILE_REPO, text)
-            self.assertFalse((Path(root) / "skia_compile").exists())
+    def test_patch_archive_is_in_repository(self):
+        manifest = entry.load_manifest(entry.VERSIONS_FILE)
+        args = entry.parse_args(["deps"])
+        patch = entry._skia_patch_archive(manifest, args)
+        self.assertIsNotNone(patch)
+        self.assertEqual(patch.parent,
+                         (entry.REPO_ROOT / entry.DEFAULT_SKIA_PATCH_DIR).resolve())
+        self.assertTrue(patch.is_file(), patch)
 
-    def test_clone_writes_archive(self):
-        with tempfile.TemporaryDirectory() as root:
-            args = entry.parse_args(["deps", "--deps-root", root])
-            patch = entry._skia_patch_archive(
-                entry.load_manifest(entry.VERSIONS_FILE), args)
-            calls = []
+    def test_shipped_patch_matches_manifest(self):
+        manifest = entry.load_manifest(entry.VERSIONS_FILE)
+        args = entry.parse_args(["deps"])
+        patch = entry._skia_patch_archive(manifest, args)
+        ref = entry._skia_patch_ref(manifest, args)
+        self.assertEqual(entry.skia_patch_sha1(patch), manifest["skia"]["default"].lower())
+        self.assertTrue(entry.skia_patch_matches(patch, ref))
+        mismatch = dict(ref, value="0" * 40)
+        self.assertFalse(entry.skia_patch_matches(patch, mismatch))
 
-            def fake_run(command, cwd=None):
-                calls.append(command)
-                patch.parent.mkdir(parents=True, exist_ok=True)
-                patch.write_bytes(b"x")
-                return 0
-
-            runner = mock.Mock()
-            runner.run.side_effect = fake_run
-            entry._ensure_skia_patch(args, self._messages(), runner)
-            self.assertEqual(calls[0][:5], ["git", "clone", "--depth", "1",
-                                            entry.SKIA_COMPILE_REPO])
-            self.assertTrue(patch.is_file())
-
-    def test_clone_retries_until_success(self):
+    def test_missing_patch_raises_without_artifacts(self):
         with tempfile.TemporaryDirectory() as root:
             args = entry.parse_args(["deps", "--deps-root", root])
-            patch = entry._skia_patch_archive(
-                entry.load_manifest(entry.VERSIONS_FILE), args)
-            calls = []
+            missing = Path(root) / "skia.2026-10-30.src.zip"
+            with mock.patch.object(entry, "_skia_patch_archive", return_value=missing):
+                with self.assertRaises(entry.BuildError):
+                    entry._ensure_skia_patch(args, self._messages(), mock.Mock())
 
-            def fake_run(command, cwd=None):
-                calls.append(command)
-                if len(calls) == 1:
-                    return 128
-                patch.parent.mkdir(parents=True, exist_ok=True)
-                patch.write_bytes(b"x")
-                return 0
-
-            runner = mock.Mock()
-            runner.run.side_effect = fake_run
-            with mock.patch.object(entry.time, "sleep") as sleep:
-                entry._ensure_skia_patch(args, self._messages(), runner)
-            self.assertEqual(len(calls), 2)
-            sleep.assert_called_once()
-            self.assertTrue(patch.is_file())
-
-    def test_non_git_directory_is_rejected(self):
-        with tempfile.TemporaryDirectory() as root:
-            repo = Path(root) / "skia_compile"
-            repo.mkdir()
-            (repo / "stale.txt").write_text("x", encoding="utf-8")
-            args = entry.parse_args(["deps", "--deps-root", root])
-            with self.assertRaises(entry.BuildError):
-                entry._ensure_skia_patch(args, self._messages(), mock.Mock())
-
-    def test_existing_repo_is_pulled(self):
-        with tempfile.TemporaryDirectory() as root:
-            repo = Path(root) / "skia_compile"
-            (repo / ".git").mkdir(parents=True)
-            args = entry.parse_args(["deps", "--deps-root", root])
-            patch = entry._skia_patch_archive(
-                entry.load_manifest(entry.VERSIONS_FILE), args)
-            calls = []
-
-            def fake_run(command, cwd=None):
-                calls.append(command)
-                patch.write_bytes(b"x")
-                return 0
-
-            runner = mock.Mock()
-            runner.run.side_effect = fake_run
-            entry._ensure_skia_patch(args, self._messages(), runner)
-            # build.py 的 deps root 会 resolve() 成真实路径；macOS 上 /var 是
-            # /private/var 的符号链接，这里同样按真实路径比较。
-            self.assertEqual(calls[0],
-                             ["git", "-C", str(repo.resolve()), "pull", "--ff-only"])
-            self.assertTrue(patch.is_file())
-
-    def test_built_artifacts_skip_clone(self):
+    def test_missing_patch_is_only_a_warning_with_artifacts(self):
         with tempfile.TemporaryDirectory() as root:
             variant = Path(root) / "skia" / "out" / "llvm.x64.release"
             variant.mkdir(parents=True)
             (variant / "skia.lib").write_text("x", encoding="utf-8")
             args = entry.parse_args(["deps", "--deps-root", root])
-            runner = mock.Mock()
-            entry._ensure_skia_patch(args, self._messages(), runner)
-            runner.run.assert_not_called()
-            self.assertFalse((Path(root) / "skia_compile").exists())
+            missing = Path(root) / "skia.2026-10-30.src.zip"
+            with mock.patch.object(entry, "_skia_patch_archive", return_value=missing):
+                # 已有 Skia 产物：缺归档只告警，不中断构建
+                stream = io.StringIO()
+                with contextlib.redirect_stdout(stream):
+                    entry._ensure_skia_patch(args, self._messages(), mock.Mock())
+            output = stream.getvalue()
+            self.assertEqual(output.count("[WARN]"), 1)
+            # 告警路径不能复用 [ERROR] 文案，否则会输出 “[WARN]  [ERROR] …”
+            self.assertNotIn("[ERROR]", output)
 
-    def _existing_repo(self, root: str):
-        repo = Path(root) / "skia_compile"
-        (repo / ".git").mkdir(parents=True)
-        args = entry.parse_args(["deps", "--deps-root", root])
-        patch = entry._skia_patch_archive(entry.load_manifest(entry.VERSIONS_FILE), args)
-        patch.write_bytes(b"x")
-        return repo.resolve(), patch, args
-
-    def test_stale_patch_is_restored_before_pull(self):
-        """本地补丁是旧版本时，先 checkout 恢复，再 pull 取最新提交。"""
+    def test_sha1_mismatch_raises(self):
         with tempfile.TemporaryDirectory() as root:
-            repo, patch, args = self._existing_repo(root)
-            runner = mock.Mock()
-            runner.run.return_value = 0
-            with mock.patch.object(entry, "patch_archive_stale", return_value=True):
-                entry._ensure_skia_patch(args, self._messages(), runner)
-            calls = [call.args[0] for call in runner.run.call_args_list]
-            self.assertEqual(calls[0], ["git", "-C", str(repo), "checkout", "--", patch.name])
-            self.assertEqual(calls[1], ["git", "-C", str(repo), "pull", "--ff-only"])
-
-    def test_current_patch_is_not_restored(self):
-        with tempfile.TemporaryDirectory() as root:
-            repo, _, args = self._existing_repo(root)
-            runner = mock.Mock()
-            runner.run.return_value = 0
-            with mock.patch.object(entry, "patch_archive_stale", return_value=False):
-                entry._ensure_skia_patch(args, self._messages(), runner)
-            calls = [call.args[0] for call in runner.run.call_args_list]
-            self.assertEqual(calls, [["git", "-C", str(repo), "pull", "--ff-only"]])
-
-    def test_offline_restores_without_network(self):
-        """离线时仍可用本地仓库恢复旧归档，但不 pull。"""
-        with tempfile.TemporaryDirectory() as root:
-            repo, patch, _ = self._existing_repo(root)
-            args = entry.parse_args(["deps", "--deps-root", root, "--offline"])
-            runner = mock.Mock()
-            runner.run.return_value = 0
-            with mock.patch.object(entry, "patch_archive_stale", return_value=True):
-                entry._ensure_skia_patch(args, self._messages(), runner)
-            calls = [call.args[0] for call in runner.run.call_args_list]
-            self.assertEqual(calls, [["git", "-C", str(repo), "checkout", "--", patch.name]])
-
-    def test_pull_failure_keeps_existing_patch(self):
-        with tempfile.TemporaryDirectory() as root:
-            _, patch, args = self._existing_repo(root)
-            runner = mock.Mock()
-            runner.run.return_value = 128
-            with mock.patch.object(entry, "patch_archive_stale", return_value=False):
-                entry._ensure_skia_patch(args, self._messages(), runner)
-            self.assertTrue(patch.is_file())
+            patch = Path(root) / "skia-patch.zip"
+            with zipfile.ZipFile(patch, "w") as archive:
+                archive.writestr("SHA1.txt", "SHA-1:0000000000")
+            args = entry.parse_args(["deps", "--deps-root", root])
+            with mock.patch.object(entry, "_skia_patch_archive", return_value=patch):
+                with self.assertRaises(entry.BuildError):
+                    entry._ensure_skia_patch(args, self._messages(), mock.Mock())
 
 
 class GitRefTests(unittest.TestCase):
-    """依赖源码/补丁归档与清单 ref 的一致性检查（需要 git）。"""
-
-    PATCH = "skia.2026-09-16.src.zip"
+    """依赖源码与清单 ref 的一致性检查（需要 git）。"""
 
     def setUp(self):
         if not shutil.which("git"):
@@ -820,24 +795,10 @@ class GitRefTests(unittest.TestCase):
         repo = root / "repo"
         repo.mkdir()
         self._git(repo, "init", "-q")
-        (repo / self.PATCH).write_bytes(b"first")
+        (repo / "sample.txt").write_bytes(b"first")
         self._git(repo, "add", ".")
-        self._git(repo, "commit", "-q", "-m", "patch")
+        self._git(repo, "commit", "-q", "-m", "sample")
         return repo
-
-    def test_patch_archive_stale_detects_replaced_file(self):
-        with tempfile.TemporaryDirectory() as root:
-            repo = self._repo(Path(root))
-            patch = repo / self.PATCH
-            self.assertFalse(entry.patch_archive_stale(patch, repo))
-            patch.write_bytes(b"older-version")
-            self.assertTrue(entry.patch_archive_stale(patch, repo))
-
-    def test_patch_archive_stale_detects_deleted_file(self):
-        with tempfile.TemporaryDirectory() as root:
-            repo = self._repo(Path(root))
-            (repo / self.PATCH).unlink()
-            self.assertTrue(entry.patch_archive_stale(repo / self.PATCH, repo))
 
     def test_resolve_git_ref_commit_and_tag(self):
         with tempfile.TemporaryDirectory() as root:

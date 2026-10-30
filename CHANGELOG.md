@@ -14,12 +14,24 @@
   构建树统一为 `out/<arch>/<Config>`。
 - 依赖自动准备：版本清单 `cmake/third_party_versions.json` 锁定 Skia、SDL3 与 CEF，
   支持下载缓存、sha256 校验、断点续传与并发锁；已有产物可按 stamp 直接采纳。
-- 缺少 Skia 补丁归档时，`build.py deps` / `build` 自动克隆整个
-  [skia_compile](https://github.com/rhett-lee/skia_compile) 仓库到 `skia_compile/`；
-  仓库已存在时先核对本地归档与当前提交（同名归档可能被重复提交），把被替换成旧版本
-  的文件恢复后再 `git pull` 更新，失败时继续使用本地内容（与旧脚本一致）；
-  `--offline` 下不联网，只做本地恢复，离线使用需提前自备。直接用 CMake 构建
-  （`DUILIB_DEPS_MODE=auto` 或 `duilib_deps` 目标）时也会自动完成同样的处理。
+- Skia 升级到 2026-10-30 的提交，补丁归档为
+  `build/skia_patch/skia.2026-10-30.src.zip`。
+- Skia 补丁归档随仓库分发：`build/skia_patch/`（清单 `skia.patchDir`）内的归档带有
+  `SHA1.txt`，记录它对应的 Skia 提交；`build.py deps` / `build` 与 CMake 依赖脚本在
+  使用前校验其与清单 `skia.default` 一致，不一致直接报错。不再克隆外部补丁仓库，
+  也不需要联网；归档缺失时用
+  `git checkout -- build/skia_patch` 恢复。
+- 预检引导（全新环境）：`skia/bin/gn` 只由补丁归档提供，阶段 A 预检在归档尚未解压时
+  不再中断配置，改为提示由 `build.py deps` 解压自带工具（归档缺失且确需重建时仍报错）。
+- Ninja 自举（VS 未安装可选的 ninja 组件）：自动使用补丁归档自带的 `bin/ninja.exe`。
+  `build.py` 依次在 PATH、VS 安装目录、已解压的 `skia/bin/ninja.exe`、补丁归档中查找，
+  仍找不到时解压到 `out/.duilib-tools/bin/ninja.exe`；根工程在 `project()` 之前按同样
+  顺序自举并写入 `CMAKE_MAKE_PROGRAM`，因此 `cmake --preset` / `-G Ninja` 不再要求
+  系统装有 ninja。阶段 A 预检对 ninja 的处理与 gn 一致（归档存在时只提示，不再误报）。
+- 补丁校验错误统一：`build.py` 与 CMake 依赖脚本共用同一组 `SHA1.txt` 文案；归档内
+  缺少 `SHA1.txt` 时给出可读错误（此前 CMake 侧直接抛出 tar 错误）。
+- 旧构建树迁移：配置期清理已废弃的 `DUILIB_SKIA_COMPILE_ROOT` /
+  `DUILIB_SKIA_COMPILE_REPO` 缓存项，升级后 `CMakeCache.txt` 不再显示失效路径。
 - 网络操作统一重试：`git clone/fetch`、CEF 下载共用版本清单 `retry` 段
   （`maxAttempts=0` 无限重试、`delaySeconds=20`）。
 - 双语构建参考手册 `build/build-reference.md` / `.en.md`；`build/README.md` /
@@ -190,6 +202,11 @@
 
 ### 修复
 
+- 构建消息语言（中文环境）：`cmake/duilib_i18n.cmake` 被根 CMakeLists、preflight、
+  deps 等重复 include 时，文件开头的默认值 `DUILIB_I18N_LANG=en` 会覆盖已解析的
+  `zh_CN`，导致 `project()` 之后的配置与依赖准备消息（含新增的补丁校验提示）全变成
+  英文。现在默认值只在首次初始化时写入；复测 `[OK] 目标架构 x64`、`[OK] Skia 已就绪`
+  等消息恢复中文。
 - 构建（切换 Debug/Release）：示例程序都输出到共享的 `bin/`，目标文件却按配置
   分开存放；先编译 Debug 再编译 Release 时，`bin/` 中的文件比 Release 的目标
   文件新，Ninja 判定链接步骤已是最新（`ninja: no work to do`），`bin/` 一直是
@@ -259,11 +276,10 @@
   当成清单版本的产物复用。现在 `deps` 先按清单把工作区切到指定 tag/commit（本地
   已有该提交时不联网，`--offline` 同样可用），并在 `.duilib-sdl` 中记录源码提交；
   切换后旧产物自动重建（升级到本版本时会重建一次 SDL3）。
-- 依赖准备（Skia 补丁）：本地补丁归档此前只要文件名存在就直接复用，而
-  skia_compile 中同名归档可能被重复提交（如 `skia.2026-09-16.src.zip`），旧版本
-  补丁会让旧的 Skia 产物一直不更新。现在 `deps` 核对归档与仓库当前提交，把被替换
-  （或删除）的归档恢复成仓库版本，再 `git pull` 取最新提交；补丁指纹变化时重新
-  解压并编译 Skia。`--offline` 只做本地恢复；`doctor` 会提示归档与仓库不一致。
+- 依赖准备（Skia 补丁，机制后续已调整）：本地补丁归档此前只要文件名存在就直接复用，
+  外部仓库重复提交同名归档（旧版本）时，旧补丁会让旧的 Skia 产物一直不更新；旧实现
+  在使用前核对归档与外部仓库的提交。现在补丁归档随仓库提交到 `build/skia_patch/`，
+  以 `SHA1.txt` 与清单提交校验，见上文。
 - 依赖准备（Skia 源码）：`--skia-ref` 选中的 tag/branch 此前不会检查本地工作区，
   现在与 commit ref 一样按清单对齐（branch 只要求当前就在该分支上，不追远端新提交）。
 - 构建（Windows 链接依赖）：Skia 与 SDL3 的静态库此前只以库名（配合

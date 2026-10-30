@@ -123,23 +123,31 @@ Unix 上示例程序默认写入相对 rpath（`$ORIGIN/../lib`、`@loader_path/
 
 ```
 <deps-root>/
-  skia/            # Skia 源码（由 skia_compile 补丁构建）
-  skia_compile/    # skia_compile 仓库（缺少补丁归档时由 deps 自动克隆）
+  skia/            # Skia 源码（解压补丁后编译）
   SDL/             # SDL3 源码
   SDL3/            # SDL3 安装前缀
   SDL3_build/      # SDL3 构建目录
   cef_binary/      # CEF 下载/解压缓存（macOS 为完整分发目录）
 ```
 
-Skia 的补丁归档由 `build.py deps`（以及默认的 `build`）自动获取：缺少时克隆整个
-[skia_compile](https://github.com/rhett-lee/skia_compile) 仓库到
-`<deps-root>/skia_compile`；仓库已存在时先检查本地归档是否与当前提交一致
-（同名归档可能被重复提交，例如 `skia.2026-09-16.src.zip`），把被替换成旧版本
-（或删除）的文件恢复成仓库版本，再执行 `git pull` 取最新提交；补丁内容变化会让
-对应的 Skia 产物重新编译。更新失败时继续使用本地已有内容（与旧脚本一致）。
-直接用 CMake 构建（`DUILIB_DEPS_MODE=auto` 或 `duilib_deps` 目标）时由依赖脚本
-执行同样的逻辑。`--offline` 下不联网，只做本地恢复；需要提前自备补丁归档，
-`doctor` 会显示归档是否存在、以及是否与本地仓库不一致。
+Skia 的补丁归档随仓库提交，位于 `build/skia_patch/`（由清单 `skia.patchDir` 指定），
+归档内的 `SHA1.txt` 记录它对应的 Skia 提交。`build.py deps`（以及默认的 `build`）
+与 CMake 依赖脚本在使用前都会校验 `SHA1.txt` 与清单 `skia.default` 是否一致，
+不一致时直接报错，避免用错版本的补丁编译。补丁内容变化会让对应的 Skia 产物
+重新编译。这一步不需要联网，也不再克隆外部补丁仓库；归档缺失时用
+`git checkout -- build/skia_patch` 恢复（仅有 Skia 产物、无需重建时只告警，不中断）。
+`doctor` 会显示归档是否存在、SHA1 是否与清单一致。
+
+归档同时提供 Windows 版 `bin/gn.exe` 与 `bin/ninja.exe`：全新环境里归档尚未解压时，
+根工程预检只提示由 `deps` 解压这两个工具，不会中断配置；解压后仍是硬性检查。
+
+某些 Visual Studio 安装不含 ninja（“适用于 Windows 的 C++ CMake 工具”是可选组件）。
+`build.py` 依次在 PATH、VS 安装目录、已解压的 `skia/bin/ninja.exe`、补丁归档里查找
+ninja，仍找不到时从归档解压到 `out/.duilib-tools/bin/ninja.exe` 并继续使用 Ninja
+生成器；根工程在 `project()` 之前执行同样的自举（解压到
+`<构建树>/.duilib-tools/bin/ninja.exe` 并写入 `CMAKE_MAKE_PROGRAM`），因此直接运行
+`cmake --preset x64-release` 也不要求系统装有 ninja。两者都不会写入 `skia/` 源码树；
+需要指定其它 ninja 时用环境变量或缓存项 `DUILIB_NINJA_EXECUTABLE`。
 
 所有网络操作（git clone/fetch、CEF 下载）共用一套重试参数，维护在
 [third_party_versions.json](../cmake/third_party_versions.json) 的 `retry` 段：
@@ -278,7 +286,7 @@ Linux 各发行版所需的系统包（字体、GL、X11、ibus 等）参考下�
 | Fedora | GNOME (Wayland) | `sudo dnf install -y gcc g++ gdb make git ninja-build gn python cmake llvm clang unzip fontconfig-devel mesa-libGL-devel mesa-libGLU-devel mesa-libGLES-devel mesa-libEGL-devel vulkan-devel libXext-devel libXcursor-devel libXi-devel libXrandr-devel dbus-devel ibus-devel wayland-devel libxkbcommon-devel` |
 | OpenSuse | KDE (X11) | `sudo zypper install -y gcc gcc-c++ gdb make git ninja gn python cmake llvm clang unzip fontconfig-devel Mesa-libGL-devel Mesa-libEGL-devel Mesa-libGLESv3-devel glu-devel vulkan-devel libXext-devel libXcursor-devel libXi-devel libXrandr-devel dbus-1-devel ibus-devel` |
 
-各发行版的 Skia 编译细节见 skia_compile 仓库中的 `compile_skia_on_<platform>.md`。
+各发行版的系统包命令见上表；Skia 由 `build.py deps` 自动编译，无需手工准备。
 macOS 需要 `brew install cmake ninja` 并从源码安装 `gn`；FreeBSD 执行
 `sudo pkg install git unzip python3 cmake ninja gn llvm fontconfig freetype2`。
 
@@ -352,7 +360,7 @@ MINGW64 会优先选带 `.msvcrt` 的目录。两者的包名都是 `-mingw-gcc`
 | :--- | :--- |
 | `Visual Studio not found` | 安装 VS 2022+ 与 C++ 工作负载；或用 `--vs-version` 指定版本 |
 | `Skia not found` | 首次执行 `python3 build/build.py deps`，或检查 `--deps-root` |
-| `gn/ninja not found` | Windows 使用 VS 自带目录；Unix 安装 `ninja` 与 `gn`。Unix 不会使用 Skia 目录里的 `gn.exe`（Windows 版无法运行），只有 `gn.exe` 时必须另装原生 `gn` |
+| `gn/ninja not found` | Windows 使用 VS 自带目录，或执行 `python3 build/build.py deps` 从 Skia 补丁归档解压自带的 `bin/gn.exe`；VS 未装 ninja（可选组件）时 `build.py` 与根工程都会自动从归档解压自带的 `bin/ninja.exe`（`out/.duilib-tools` 或构建树 `.duilib-tools`），无需单独安装。Unix 安装 `ninja` 与 `gn`。Unix 不会使用 Skia 目录里的 `gn.exe`（Windows 版无法运行），只有 `gn.exe` 时必须另装原生 `gn` |
 | `python: command not found`（macOS/Linux） | 这些系统通常只有 `python3`：改用 `python3 build/build.py ...`，参数不变 |
 | `python3 not found`（编译 Skia 时报错） | Skia 构建脚本固定调用 `python3`，不认 `python` / `py -3`；安装 Python 3 并确认 `python3 --version` 可用（Windows 可把 Python 安装目录加入 PATH） |
 | `CMake version is too old` | 升级到 CMake 3.24+ |

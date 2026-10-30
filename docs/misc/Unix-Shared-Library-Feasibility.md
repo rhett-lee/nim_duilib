@@ -71,7 +71,7 @@ duilib 公开符号**，下游链接会出现大面积 undefined symbol。
 
 把静态库链接进 `.so` 要求所有静态库都是 PIC：
 
-- **Skia**：非 Windows 构建已带 `-fPIC`（`skia_compile` 的 `gn/skia/BUILD.gn` 非 Windows 分支），
+- **Skia**：非 Windows 构建已带 `-fPIC`（补丁归档的 `gn/skia/BUILD.gn` 非 Windows 分支），
   且带 `-fvisibility=hidden`，无 PIC 问题；
 - **CEF wrapper**：`libcef_linux/cmake/cef_variables.cmake` 已加 `-fPIC`；
 - **仓库内四个静态库**：`duilib-zlib`、`duilib-png`、`duilib-cximage`、`duilib-webp`

@@ -52,12 +52,18 @@ if("${DUILIB_SDL_REPO}" STREQUAL "")
         duilib_error("deps.versions_invalid" "deps.versions_invalid_hint")
     endif()
 endif()
-if("${DUILIB_SKIA_COMPILE_REPO}" STREQUAL "")
-    string(JSON DUILIB_SKIA_COMPILE_REPO ERROR_VARIABLE _duilib_json_err
-           GET "${DUILIB_VERSIONS_JSON}" skiaCompileRepo)
-    if(_duilib_json_err OR DUILIB_SKIA_COMPILE_REPO STREQUAL "")
-        duilib_error("deps.versions_invalid" "deps.versions_invalid_hint")
+if("${DUILIB_SKIA_PATCH_DIR}" STREQUAL "")
+    # 补丁归档随仓库分发，目录由清单 skia.patchDir 指定（缺省 build/skia_patch）
+    string(JSON _duilib_patch_dir ERROR_VARIABLE _duilib_json_err
+           GET "${DUILIB_VERSIONS_JSON}" skia patchDir)
+    if(_duilib_json_err OR _duilib_patch_dir STREQUAL "")
+        set(_duilib_patch_dir "build/skia_patch")
     endif()
+    if("${DUILIB_ROOT}" STREQUAL "")
+        get_filename_component(DUILIB_ROOT "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE)
+    endif()
+    get_filename_component(DUILIB_SKIA_PATCH_DIR
+        "${DUILIB_ROOT}/${_duilib_patch_dir}" ABSOLUTE)
 endif()
 
 # 统一重试参数：根工程会从清单读取后通过 -D 传入；脚本直接运行时在此兜底
@@ -360,98 +366,60 @@ function(_duilib_clone ref_type ref_value repo dest)
     endif()
 endfunction()
 
-# 本地补丁归档是否与 skia_compile 当前提交一致：被替换成旧版本或被删除时返回 TRUE。
-# 同名归档可能被重复提交（如 skia.2026-09-16.src.zip），只判断“文件存在”会让
-# 旧的 Skia 产物一直被判定为可复用。
-function(_duilib_skia_patch_stale patch out_stale)
-    set(_stale FALSE)
-    if(EXISTS "${DUILIB_SKIA_COMPILE_ROOT}/.git")
-        get_filename_component(_name "${patch}" NAME)
-        execute_process(
-            COMMAND git -C "${DUILIB_SKIA_COMPILE_ROOT}" status --porcelain
-                    --untracked-files=no -- "${_name}"
-            OUTPUT_VARIABLE _status OUTPUT_STRIP_TRAILING_WHITESPACE
-            ERROR_QUIET RESULT_VARIABLE _rc)
-        if(_rc EQUAL 0 AND NOT _status STREQUAL "")
-            set(_stale TRUE)
-        endif()
-    endif()
-    set(${out_stale} ${_stale} PARENT_SCOPE)
-endfunction()
-
-# 归档与仓库不一致时用本地对象恢复（不联网）。带本地修改时 git pull 会被拒绝，
-# 所以必须先恢复再更新。
-function(_duilib_skia_patch_restore patch)
-    _duilib_skia_patch_stale("${patch}" _stale)
-    if(NOT _stale)
-        return()
-    endif()
-    get_filename_component(_name "${patch}" NAME)
-    duilib_msg("deps.skia_patch_restoring" " (${_name})")
-    execute_process(COMMAND git -C "${DUILIB_SKIA_COMPILE_ROOT}" checkout -- "${_name}"
-                    RESULT_VARIABLE _rc)
-    if(NOT _rc EQUAL 0)
-        duilib_warn("deps.skia_patch_restore_failed")
-    endif()
-endfunction()
-
-# 仓库已存在时刷新补丁归档：恢复本地旧文件后 pull 取最新提交（离线只做恢复）。
-function(_duilib_skia_patch_refresh patch)
-    if(NOT EXISTS "${DUILIB_SKIA_COMPILE_ROOT}/.git")
-        return()
-    endif()
-    _duilib_skia_patch_restore("${patch}")
-    if(DUILIB_OFFLINE)
-        return()
-    endif()
-    # 与旧脚本一致：更新失败只告警，继续使用本地已有内容
-    duilib_msg("deps.skia_patch_updating" " (${DUILIB_SKIA_COMPILE_ROOT})")
-    execute_process(COMMAND git -C "${DUILIB_SKIA_COMPILE_ROOT}" pull --ff-only
-                    RESULT_VARIABLE _rc)
-    if(NOT _rc EQUAL 0)
-        duilib_warn("deps.skia_patch_update_failed")
-    endif()
-endfunction()
-
-# 确保补丁归档存在：仓库已存在时刷新，仍缺失才克隆。
-# 只在确实需要重建 Skia 时调用，复用已有产物时不会触发下载。
-function(_duilib_ensure_skia_patch out_patch)
-    set(_patch "${DUILIB_SKIA_COMPILE_ROOT}/${DUILIB_SKIA_PATCH_ZIP}")
-    _duilib_skia_patch_refresh("${_patch}")
-    if(EXISTS "${_patch}")
-        set(${out_patch} "${_patch}" PARENT_SCOPE)
-        return()
-    endif()
-    if(DUILIB_OFFLINE)
-        duilib_error("deps.offline_missing" "deps.offline_missing_hint")
-    endif()
-    if(NOT EXISTS "${DUILIB_SKIA_COMPILE_ROOT}/.git")
-        if(EXISTS "${DUILIB_SKIA_COMPILE_ROOT}")
-            file(GLOB _entries "${DUILIB_SKIA_COMPILE_ROOT}/*")
-            if(_entries)
-                duilib_error_values(
-                    "${DUILIB_SKIA_COMPILE_ROOT} exists but is not a git checkout"
-                    "remove that directory, or clone ${DUILIB_SKIA_COMPILE_REPO} into it manually")
+# 补丁归档内的 SHA1.txt 记录归档对应的 Skia 提交，用于发现 zip 与清单不配套。
+function(_duilib_skia_patch_sha1 patch out_sha1)
+    set(_sha1 "")
+    if(EXISTS "${patch}")
+        # 归档没有 SHA1.txt 时 file(ARCHIVE_EXTRACT) 会直接抛 tar 错误，
+        # 这里先列出条目判断；找不到就返回空 SHA-1，由校验函数给出统一的可读错误。
+        execute_process(COMMAND "${CMAKE_COMMAND}" -E tar tf "${patch}"
+                        OUTPUT_VARIABLE _duilib_patch_entries
+                        ERROR_QUIET
+                        RESULT_VARIABLE _duilib_list_rc)
+        if(_duilib_list_rc EQUAL 0 AND
+           _duilib_patch_entries MATCHES "(^|\r?\n)(\\./)?SHA1\\.txt(\r?\n|$)")
+            set(_probe "${CMAKE_CURRENT_BINARY_DIR}/.skia_patch_probe")
+            file(REMOVE_RECURSE "${_probe}")
+            file(MAKE_DIRECTORY "${_probe}")
+            file(ARCHIVE_EXTRACT INPUT "${patch}" DESTINATION "${_probe}" PATTERNS "SHA1.txt")
+            if(EXISTS "${_probe}/SHA1.txt")
+                file(STRINGS "${_probe}/SHA1.txt" _lines LIMIT_COUNT 1)
+                if(_lines)
+                    string(REGEX REPLACE "^[^:]*:" "" _sha1 "${_lines}")
+                    string(STRIP "${_sha1}" _sha1)
+                    string(TOLOWER "${_sha1}" _sha1)
+                endif()
             endif()
-        endif()
-        if(NOT DUILIB_DEPS_AUTO_CLONE)
-            duilib_error_values("${DUILIB_SKIA_COMPILE_ROOT} does not exist and automatic cloning is disabled"
-                                "clone ${DUILIB_SKIA_COMPILE_REPO} manually or enable DUILIB_DEPS_AUTO_CLONE")
-        endif()
-        duilib_msg("deps.skia_patch_fetching" " (${DUILIB_SKIA_COMPILE_ROOT})")
-        file(MAKE_DIRECTORY "${DUILIB_SKIA_COMPILE_ROOT}")
-        duilib_run_with_retry(_ok "git clone skia_compile"
-                              git clone --depth 1 "${DUILIB_SKIA_COMPILE_REPO}"
-                              "${DUILIB_SKIA_COMPILE_ROOT}")
-        if(NOT _ok)
-            file(REMOVE_RECURSE "${DUILIB_SKIA_COMPILE_ROOT}")
-            duilib_error("deps.skia_patch_missing" "deps.skia_patch_fetch_failed_hint")
+            file(REMOVE_RECURSE "${_probe}")
         endif()
     endif()
-    if(NOT EXISTS "${_patch}")
-        duilib_error("deps.skia_patch_missing" "deps.skia_patch_fetch_failed_hint")
+    set(${out_sha1} "${_sha1}" PARENT_SCOPE)
+endfunction()
+
+# 归档与清单提交不一致时说明补丁包与版本配置不配套（tag/branch ref 不校验）。
+# 错误文案与 build.py 共用同一组消息键，两个入口的输出保持一致。
+function(_duilib_skia_patch_verify patch)
+    if(NOT "${DUILIB_SKIA_REF_TYPE}" STREQUAL "commit")
+        return()
     endif()
-    set(${out_patch} "${_patch}" PARENT_SCOPE)
+    _duilib_skia_patch_sha1("${patch}" _sha1)
+    string(TOLOWER "${DUILIB_SKIA_REF_VALUE}" _ref_value)
+    duilib_t("deps.skia_patch_sha1_mismatch" _duilib_patch_what)
+    duilib_t("deps.skia_patch_sha1_mismatch_hint" _duilib_patch_hint)
+    if(_sha1 STREQUAL "")
+        message(FATAL_ERROR
+            "${_duilib_patch_what}: ${patch}\n  SHA1.txt missing\n  Hint: ${_duilib_patch_hint}")
+    endif()
+    if(NOT _sha1 STREQUAL _ref_value)
+        message(FATAL_ERROR
+            "${_duilib_patch_what}: ${patch}\n  ${_sha1} != ${_ref_value}\n  Hint: ${_duilib_patch_hint}")
+    endif()
+endfunction()
+
+# 归档缺失但已有产物可复用时只告警，与 build.py 的策略保持一致。
+function(_duilib_skia_warn_patch_missing patch)
+    duilib_t("deps.skia_patch_missing_reuse" _duilib_patch_warn)
+    message(STATUS "[WARN]  ${_duilib_patch_warn} (${patch})")
 endfunction()
 
 # 把本地依赖仓库切到清单指定的 ref：commit/tag 要求 HEAD 等于目标提交，
@@ -573,10 +541,10 @@ function(duilib_prepare_skia)
     set(_lib "${_out_dir}/${_lib_name}")
     _duilib_skia_stamp_value(_stamp_expected)
 
-    # 补丁归档先与 skia_compile 仓库同步：同名归档可能被重复提交（如
-    # skia.2026-09-16.src.zip），本地留着旧文件时，旧的 Skia 产物会被一直复用。
+    # 补丁归档随仓库分发（build/skia_patch），这里只校验它与清单配套。
     set(_patch "")
     set(_patch_key "")
+    set(_patch_missing FALSE)
     set(_patch_stamp "${DUILIB_SKIA_ROOT}/.duilib-patch")
     set(_stamp_old "")
     if(EXISTS "${_patch_stamp}")
@@ -584,11 +552,12 @@ function(duilib_prepare_skia)
         string(STRIP "${_stamp_old}" _stamp_old)
     endif()
     if(NOT "${DUILIB_SKIA_PATCH_ZIP}" STREQUAL "")
-        set(_patch "${DUILIB_SKIA_COMPILE_ROOT}/${DUILIB_SKIA_PATCH_ZIP}")
+        set(_patch "${DUILIB_SKIA_PATCH_DIR}/${DUILIB_SKIA_PATCH_ZIP}")
         if(EXISTS "${_patch}")
-            # 只在归档已存在时刷新，避免复用旧产物时无谓地下载
-            _duilib_skia_patch_refresh("${_patch}")
+            _duilib_skia_patch_verify("${_patch}")
             _duilib_skia_patch_key(_patch_key "${_patch}")
+        else()
+            set(_patch_missing TRUE)
         endif()
     elseif(DUILIB_SKIA_REQUIRE_PATCH)
         duilib_error("deps.skia_patch_missing" "deps.skia_patch_missing_hint")
@@ -599,6 +568,9 @@ function(duilib_prepare_skia)
             file(READ "${_out_dir}/.duilib-ref" _stamp)
             if(_stamp STREQUAL _stamp_expected AND
                ("${_patch_key}" STREQUAL "" OR _stamp_old STREQUAL _patch_key))
+                if(_patch_missing)
+                    _duilib_skia_warn_patch_missing("${_patch}")
+                endif()
                 _duilib_write_crt("${_out_dir}")
                 duilib_msg("deps.skia_ready" " (${_variant})")
                 return()
@@ -625,6 +597,9 @@ function(duilib_prepare_skia)
                 if(NOT "${_patch_key}" STREQUAL "" AND NOT _stamp_old STREQUAL _patch_key)
                     file(WRITE "${_patch_stamp}" "${_patch_key}")
                 endif()
+                if(_patch_missing)
+                    _duilib_skia_warn_patch_missing("${_patch}")
+                endif()
                 file(WRITE "${_out_dir}/.duilib-ref" "${_stamp_expected}")
                 _duilib_write_crt("${_out_dir}")
                 duilib_msg("deps.skia_ready" " (${_variant}, adopted existing build)")
@@ -648,12 +623,12 @@ function(duilib_prepare_skia)
                                "${DUILIB_SKIA_REF_VALUE}" "Skia")
     endif()
 
-    # 补丁包：需要重建时确保归档存在（缺仓库才克隆，已存在时只刷新）
+    # 补丁包：需要重建时确认归档存在并校验 SHA-1
     if(NOT "${DUILIB_SKIA_PATCH_ZIP}" STREQUAL "")
         if(NOT EXISTS "${_patch}")
-            _duilib_ensure_skia_patch(_patch)
-            _duilib_skia_patch_key(_patch_key "${_patch}")
+            duilib_error("deps.skia_patch_missing" "deps.skia_patch_missing_hint")
         endif()
+        _duilib_skia_patch_verify("${_patch}")
         _duilib_skia_patch_applied(_applied)
         # 补丁内容与基线提交未变且补丁确实在源码树中时跳过解压：重复解压会刷新
         # 源码 mtime，让 Ninja 认为全部目标过期而重编整个 Skia（多配置构建尤其浪费）。

@@ -37,12 +37,20 @@
       "zh_CN": "[ERROR] 未找到必需的工具"
     },
     "preflight.ninja_missing_hint": {
-      "en": "install Ninja, use build.py (it locates the Ninja bundled with Visual Studio), or use -G \"Visual Studio 17 2022\"",
-      "zh_CN": "安装 Ninja，使用 build.py（会自动定位 Visual Studio 自带的 Ninja），或改用 -G \"Visual Studio 17 2022\""
+      "en": "install Ninja or the Visual Studio 'C++ CMake tools for Windows' component, use build.py (it locates Ninja or extracts the bundled one), or use -G \"Visual Studio 17 2022\"",
+      "zh_CN": "安装 Ninja 或 Visual Studio 的“适用于 Windows 的 C++ CMake 工具”组件，使用 build.py（会自动定位 Ninja 或解压归档自带的版本），或改用 -G \"Visual Studio 17 2022\""
     },
     "preflight.gn_missing_hint": {
-      "en": "install gn, or use 'build.py deps' which prefers the gn bundled with the Skia tree",
-      "zh_CN": "安装 gn，或使用 'build.py deps'（优先使用 Skia 源码树自带的 gn）"
+      "en": "install gn, or run 'build.py deps' (it extracts the bundled gn from the Skia patch archive)",
+      "zh_CN": "安装 gn，或运行 'build.py deps'（它会从 Skia 补丁归档中解压自带的 gn）"
+    },
+    "preflight.gn_from_patch": {
+      "en": "[WARN]  gn not found; the dependency step extracts it from the Skia patch archive",
+      "zh_CN": "[WARN]  未找到 gn；依赖准备会从 Skia 补丁归档中解压"
+    },
+    "preflight.ninja_from_patch": {
+      "en": "[WARN]  ninja not found; the dependency step extracts it from the Skia patch archive to build Skia",
+      "zh_CN": "[WARN]  未找到 ninja；依赖准备会从 Skia 补丁归档中解压自带的 ninja（用于编译 Skia）"
     },
     "preflight.compiler_missing_hint": {
       "en": "install gcc/g++ or clang/clang++ (C++20 capable) and make sure both are in PATH",
@@ -180,29 +188,21 @@
       "en": "[ERROR] Skia patch archive not found",
       "zh_CN": "[ERROR] 未找到 Skia 补丁包"
     },
+    "deps.skia_patch_missing_reuse": {
+      "en": "Skia patch archive not found; reusing the existing Skia build",
+      "zh_CN": "未找到 Skia 补丁包；继续复用已有 Skia 产物"
+    },
     "deps.skia_patch_missing_hint": {
-      "en": "check DUILIB_SKIA_PATCH_ZIP / DUILIB_SKIA_COMPILE_ROOT in third_party_versions.json",
-      "zh_CN": "检查 third_party_versions.json 中的 DUILIB_SKIA_PATCH_ZIP / DUILIB_SKIA_COMPILE_ROOT"
+      "en": "the archive ships with the repository; restore build/skia_patch with 'git checkout -- build/skia_patch'",
+      "zh_CN": "补丁包随仓库提交，可用 'git checkout -- build/skia_patch' 恢复 build/skia_patch 目录"
     },
-    "deps.skia_patch_fetching": {
-      "en": "[deps] cloning the skia_compile repository",
-      "zh_CN": "[deps] 正在克隆 skia_compile 仓库"
+    "deps.skia_patch_sha1_mismatch": {
+      "en": "[ERROR] Skia patch SHA-1 does not match the manifest",
+      "zh_CN": "[ERROR] Skia 补丁包的 SHA1 与版本清单不一致"
     },
-    "deps.skia_patch_updating": {
-      "en": "[deps] updating the skia_compile repository",
-      "zh_CN": "[deps] 正在更新 skia_compile 仓库"
-    },
-    "deps.skia_patch_update_failed": {
-      "en": "skia_compile update failed, continuing with the local copy",
-      "zh_CN": "skia_compile 更新失败，继续使用本地已有内容"
-    },
-    "deps.skia_patch_restoring": {
-      "en": "[deps] restoring the patch archive from the skia_compile checkout",
-      "zh_CN": "[deps] 正在从 skia_compile 仓库恢复补丁包"
-    },
-    "deps.skia_patch_restore_failed": {
-      "en": "failed to restore the patch archive from skia_compile",
-      "zh_CN": "从 skia_compile 仓库恢复补丁包失败"
+    "deps.skia_patch_sha1_mismatch_hint": {
+      "en": "SHA1.txt inside the archive should record skia.default; replace the archive or update third_party_versions.json",
+      "zh_CN": "补丁包内 SHA1.txt 应记录 skia.default 的提交；请替换补丁包或更新 third_party_versions.json"
     },
     "deps.skia_patch_changed": {
       "en": "[deps] the Skia patch archive changed, rebuilding Skia",
@@ -211,18 +211,6 @@
     "deps.git_ref_switching": {
       "en": "[deps] local source is not at the manifest ref, switching",
       "zh_CN": "[deps] 本地源码与版本清单不一致，正在切换"
-    },
-    "deps.skia_patch_fetch_failed_hint": {
-      "en": "check network access, or clone https://github.com/rhett-lee/skia_compile.git into DUILIB_SKIA_COMPILE_ROOT manually",
-      "zh_CN": "检查网络连接，或手工把 https://github.com/rhett-lee/skia_compile.git 克隆到 DUILIB_SKIA_COMPILE_ROOT"
-    },
-    "deps.skia_patch_dir_invalid": {
-      "en": "[ERROR] the skia_compile directory exists but is not a git checkout",
-      "zh_CN": "[ERROR] skia_compile 目录已存在，但不是 git 仓库"
-    },
-    "deps.skia_patch_dir_invalid_hint": {
-      "en": "remove that directory, or clone https://github.com/rhett-lee/skia_compile.git into it manually",
-      "zh_CN": "删除该目录，或手工把 https://github.com/rhett-lee/skia_compile.git 克隆进去"
     },
     "deps.retry": {
       "en": "[deps] {what} failed (attempt {attempt}), retrying in {delay}s",

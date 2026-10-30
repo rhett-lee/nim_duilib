@@ -12,8 +12,8 @@ Skia 源码克隆与预编译、SDL 源码克隆与预编译、CEF 下载解压�
   各自是独立 `project()`，由 `build/*_build.sh|bat` 逐个
   `cmake -S <子目录> -B <构建目录>` 构建；
 - 第三方依赖的源码与预编译产物放在**仓库同级目录**：
-  `../skia/`（含 `out/<变体>/`）、`../skia_compile/`（补丁 zip）、
-  `../SDL3/`（安装前缀）、`../cef_binary/`（macOS）；
+  `../skia/`（含 `out/<变体>/`）、`../SDL3/`（安装前缀）、
+  `../cef_binary/`（macOS）；Skia 补丁归档随仓库提交在 `build/skia_patch/`；
 - 依赖准备逻辑目前只在 `build_duilib_all_in_one.sh/.bat` 中，且依赖
   `git`、`gn`、`ninja`、`unzip`、`curl`/`wget` 等外部工具；
 - 子项目普遍假设产物已经存在（Skia 库目录、SDL3 安装目录、CEF 运行时），
@@ -235,11 +235,11 @@ Git、生成器对应的构建工具（Ninja 生成器 → `ninja`；Makefiles �
 | :--- | :--- | :--- |
 | `DUILIB_DEPS_ROOT` | `${CMAKE_SOURCE_DIR}/..` | 与现有脚本一致的同级目录 |
 | `DUILIB_SKIA_ROOT` | `${DUILIB_DEPS_ROOT}/skia` | Skia 源码与 `out/` |
-| `DUILIB_SKIA_COMPILE_ROOT` | `${DUILIB_DEPS_ROOT}/skia_compile` | 补丁 zip 来源 |
+| `DUILIB_SKIA_PATCH_DIR` | `${CMAKE_SOURCE_DIR}/build/skia_patch` | 补丁归档目录（随仓库提交，可由清单 `skia.patchDir` 覆盖） |
 | `DUILIB_VERSIONS_FILE` | `${CMAKE_SOURCE_DIR}/cmake/third_party_versions.json` | Skia / SDL / CEF 版本清单（唯一维护点） |
 | `DUILIB_SKIA_REPO` | 清单 `skia.repo` | 可替换为镜像 |
 | `DUILIB_SKIA_REF` | 清单 `skia.default` | 清单中的键；支持 commit / branch / tag |
-| `DUILIB_SKIA_PATCH_ZIP` | 该 ref 的 `patchZip` | 相对 `skia_compile/`，按版本配套 |
+| `DUILIB_SKIA_PATCH_ZIP` | 该 ref 的 `patchZip` | 相对 `DUILIB_SKIA_PATCH_DIR`，按版本配套；归档内 `SHA1.txt` 与 ref 提交校验 |
 | `DUILIB_SDL_SRC` | `${DUILIB_DEPS_ROOT}/SDL` | SDL 源码 |
 | `DUILIB_SDL_REPO` | 清单 `sdl.repo` | 可替换为镜像 |
 | `DUILIB_SDL_REF` | 清单 `sdl.default` | 清单中的键；tag（推荐）或 branch |
@@ -283,7 +283,7 @@ Git、生成器对应的构建工具（Ninja 生成器 → `ninja`；Makefiles �
 1. **版本配置**：版本来自 `cmake/third_party_versions.json` 的 `skia` 段；
    `DUILIB_SKIA_REF` 是清单中的键，每个键给出 `type`（`commit` / `branch` / `tag`）、
    `value` 和配套的 `patchZip`。默认值取 `skia.default`（保持当前基线
-   `6f559bafbed4c8323a899df4008aa073df4eccc6`），可用
+   `e46ba84356043800523c401eaec9ecfd5cb67539`），可用
    `-DDUILIB_SKIA_REF=<键>` 临时切换；
 2. **就绪判定**：`out/<变体>/` 下存在 `libskia.a`（Unix）或 `skia.lib`（Windows），
    且 `out/<变体>/.duilib-ref` 记录与当前 ref + 补丁组合一致时跳过；不一致则重新
@@ -292,7 +292,8 @@ Git、生成器对应的构建工具（Ninja 生成器 → `ninja`；Makefiles �
    GIT_TAG <value>)`；`tag`/`branch` 用 `GIT_SHALLOW TRUE`，`commit` 用
    `GIT_SHALLOW FALSE`。已存在 `.git` 时先 `git fetch --tags --prune` 再
    `git checkout <value>`（固定 ref 不做 `pull`，避免漂移）；
-4. **补丁**：解压该 ref 配套的 `patchZip`（`cmake -E tar xf`，替代 `unzip`/`miniunz`），
+4. **补丁**：归档随仓库提交在 `build/skia_patch/`，解压该 ref 配套的 `patchZip`
+   （`cmake -E tar xf`），解压前用归档内 `SHA1.txt` 校验其与清单提交一致，不一致报错；
    沿用脚本幂等判断（`gn/is_mingw.py` 与 `gn/BUILDCONFIG.gn` 的 `is_mingw`），
    并在 `out/<变体>/.duilib-patch` 记录 zip 哈希；ref 没有配置 `patchZip` 且
    `DUILIB_SKIA_REQUIRE_PATCH=ON`（默认）时报错；
@@ -468,13 +469,14 @@ Windows 与 Linux 共用同一套实现，只是复制目标不同。
 
 ```json
 "skia": {
-  "default": "6f559baf...",
-  "repo": "https://skia.googlesource.com/skia.git",
+  "default": "e46ba84356043800523c401eaec9ecfd5cb67539",
+  "repo": "https://github.com/google/skia.git",
+  "patchDir": "build/skia_patch",
   "refs": {
-    "6f559baf...": {
+    "e46ba84356043800523c401eaec9ecfd5cb67539": {
       "type": "commit",
-      "value": "6f559bafbed4c8323a899df4008aa073df4eccc6",
-      "patchZip": "skia.2026-09-16.src.zip"
+      "value": "e46ba84356043800523c401eaec9ecfd5cb67539",
+      "patchZip": "skia.2026-10-30.src.zip"
     }
   }
 },

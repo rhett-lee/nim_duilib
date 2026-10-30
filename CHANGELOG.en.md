@@ -16,16 +16,32 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 - Automatic dependency preparation driven by `cmake/third_party_versions.json`
   (Skia, SDL3, CEF), with download caches, sha256 checks, resume and a process lock;
   existing artifacts are adopted through stamp files.
-- When the Skia patch archive is missing, `build.py deps` / `build` clones the whole
-  [skia_compile](https://github.com/rhett-lee/skia_compile) repository into
-  `skia_compile/`; an existing checkout is checked against its current commit first
-  (the same name may be committed more than once, e.g. `skia.2026-09-16.src.zip`), so a
-  local copy that was replaced with an older version is restored before `git pull`
-  fetches the latest commit; a changed patch makes the matching Skia artifacts rebuild.
-  A failed update keeps the local copy (matching the legacy script); `--offline` never
-  touches the network and only restores the local copy. Building directly with CMake
-  (`DUILIB_DEPS_MODE=auto` or the `duilib_deps` target) performs the same logic through
-  the dependency script.
+- Skia upgraded to the 2026-10-30 commit, with the patch archive
+  `build/skia_patch/skia.2026-10-30.src.zip`.
+- The Skia patch archive now ships with the repository: the archive in
+  `build/skia_patch/` (manifest `skia.patchDir`) contains `SHA1.txt`, which records the
+  Skia commit it belongs to. `build.py deps` / `build` and the CMake dependency script
+  verify it against `skia.default` before use and stop with an error on a mismatch. The
+  external patch repository is no longer cloned and no network access is
+  needed; restore a missing archive with `git checkout -- build/skia_patch`.
+- Preflight bootstrapping (fresh checkout): `skia/bin/gn` is provided only by the patch
+  archive. Stage A no longer aborts while the archive is still packed; it points at
+  `build.py deps`, which extracts the bundled tools (a missing archive that really needs
+  a rebuild still fails).
+- Ninja bootstrapping (Visual Studio installed without the optional ninja component):
+  the `bin/ninja.exe` bundled in the patch archive is used automatically. `build.py`
+  looks in PATH, the Visual Studio install directory, an already extracted
+  `skia/bin/ninja.exe` and the patch archive, extracting it to
+  `out/.duilib-tools/bin/ninja.exe` as a last resort. The root project bootstraps in the
+  same order before `project()` and writes `CMAKE_MAKE_PROGRAM`, so `cmake --preset` /
+  `-G Ninja` no longer require a system-wide ninja. Stage A treats ninja like gn (it
+  only warns while the archive is still packed instead of failing).
+- Unified patch-check errors: `build.py` and the CMake dependency script share the same
+  `SHA1.txt` messages; an archive without `SHA1.txt` now reports a readable error instead
+  of a raw tar error on the CMake side.
+- Migrating old build trees: the obsolete `DUILIB_SKIA_COMPILE_ROOT` /
+  `DUILIB_SKIA_COMPILE_REPO` cache entries are removed at configure time, so an upgraded
+  `CMakeCache.txt` no longer lists dead paths.
 - Unified network retries: `git clone/fetch` and CEF downloads share the `retry` block in
   the version manifest (`maxAttempts=0` = unlimited, `delaySeconds=20`).
 - Bilingual build reference `build/build-reference.md` / `.en.md`; `build/README.md`
@@ -243,6 +259,12 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Fixed
 
+- Build messages (Chinese locale): `cmake/duilib_i18n.cmake` is included several times
+  (root CMakeLists, preflight, deps). The file reset `DUILIB_I18N_LANG` to `en` on every
+  include, overwriting the already-resolved `zh_CN`, so configuration and dependency
+  messages after `project()` (including the new patch checks) came out in English. The
+  default is now written only during the first initialization; `[OK] 目标架构 x64` and
+  `[OK] Skia 已就绪` are back to Chinese.
 - Build (switching Debug/Release): examples share the `bin/` output directory but
   their objects live in per-configuration trees. After building Debug, the files in
   `bin/` are newer than Release's objects, so Ninja considered the link steps up to
@@ -337,14 +359,12 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   already exists locally, so `--offline` works too) and records the source commit
   in `.duilib-sdl`; stale artifacts are rebuilt after the switch (SDL3 is rebuilt
   once when upgrading to this version).
-- Dependency preparation (Skia patch): an existing patch archive was reused as long
-  as the file name matched, but skia_compile may commit the same name several times
-  (`skia.2026-09-16.src.zip`); an outdated local copy kept the old Skia artifacts
-  from ever updating. `deps` now checks the archive against the checkout's current
-  commit, restores a replaced (or deleted) archive from the checkout and then runs
-  `git pull` for the latest commit; a changed patch fingerprint triggers a rebuild.
-  `--offline` only restores the local copy, and `doctor` warns when the archive
-  differs from the checkout.
+- Dependency preparation (Skia patch, mechanism superseded later): an existing patch
+  archive was reused as long as the file name matched, so an outdated copy committed
+  under the same name by an external repository kept the old Skia artifacts from ever
+  updating; the old implementation checked the archive against that repository's
+  commit before use. The archive now ships with this repository in `build/skia_patch/`
+  and is verified against the manifest through `SHA1.txt` (see above).
 - Dependency preparation (Skia source): tag/branch refs selected with `--skia-ref`
   were not checked against the local worktree; they are now aligned like commit
   refs (a branch only requires being on that branch, without chasing new remote

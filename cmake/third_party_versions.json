@@ -4,10 +4,10 @@
     "maxAttempts": 0,
     "delaySeconds": 20
   },
-  "skiaCompileRepo": "https://github.com/rhett-lee/skia_compile.git",
   "skia": {
     "default": "e46ba84356043800523c401eaec9ecfd5cb67539",
     "repo": "https://github.com/google/skia.git",
+    "patchDir": "build/skia_patch",
     "refs": {
       "e46ba84356043800523c401eaec9ecfd5cb67539": {
         "type": "commit",

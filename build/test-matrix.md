@@ -4,7 +4,7 @@
 全部测试组合，供后续版本回归测试直接参照。矩阵按平台、工具链、架构、配置和功能开关
 划分，并记录当前验证状态。
 
-- 更新日期：2026-10-29
+- 更新日期：2026-10-30
 - 适用版本：新构建系统（`out/<arch>/<Config>` + `lib/<arch>/<Config>` + `bin/`）
 - 命令示例统一使用 `python3 build/build.py`
 - 每个组合出包后都必须执行 `pack.py --verify <包>` 校验条目数、文件 SHA 与文档链接
@@ -13,7 +13,7 @@
 
 | 标记 | 含义 |
 | :--- | :--- |
-| 通过 | 2026-10-26 ~ 29 本轮实际执行并通过 |
+| 通过 | 2026-10-26 ~ 30 本轮实际执行并通过 |
 | 历史通过 | 新构建系统验证阶段（2026-10-23 ~ 25）执行并通过，本轮未复测 |
 | 部分 | 已执行但存在已知限制，或仅完成构建/打包中的一项 |
 | 未测 | 尚未验证 |
@@ -30,7 +30,7 @@
 | Python | 3.14.4 |
 | MSYS2 | `E:\msys64`（MINGW64、UCRT64、CLANG64；MINGW32 缺 gcc/make，未测、不跟进） |
 | 独立 MinGW | `C:\mingw64\llvm-mingw-20250430-ucrt-x86_64` |
-| Skia | `6f559bafbed4c8323a899df4008aa073df4eccc6` |
+| Skia | `e46ba84356043800523c401eaec9ecfd5cb67539` |
 | SDL3 | `main`（`release-3.4.18` tag 源码编译报错，已不再作为默认） |
 | CEF | 默认 142；109 可选（Windows 7） |
 
@@ -513,6 +513,26 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
 | `examples.sln` 链接 `cef.exe`/`CefBrowser.exe` 报 20 个 `cef_v8value_*`、`cef_create_context_shared` 等 LNK2001 | 解决方案把 `libcef_dll_wrapper_109` 声明为 `cef`/`duilib`/`CefBrowser` 的工程依赖，sln 构建会把依赖工程的输出注入链接行，且 109 封装库排在 142 之前被优先拉取；此时 `LibCefVersion109=0` 只提供 CEF 142 的 `libcef.lib`（已移除相关 C API）。移除 3 处（`examples.sln`）与 1 处（`duilib.sln`）冗余依赖；109 封装库仍随解决方案编译，`LibCefVersion109=1` 时由 `CEFSettings.props` 显式链接 | `cef.exe`、`CefBrowser.exe` 链接通过；`duilib.sln` ARM64 Release 增量构建 0 错误 |
 | 全并行 `/m` 构建示例并链接 LTCG 静态库时出现 `C1060 编译器堆空间不足` | 与平台无关的并行度/内存峰值问题（`duilib.lib` 828.5 MB，`/GL`）；文档建议示例解决方案用 `/m:2` 或在 VS 里降低“最大并行项目生成数” | `/m:2` 下 Release（`/GL`）与 Debug 的 23 个示例全部通过 |
 
+### 2026-10-30 Skia 补丁归档机制（Windows 已验证）
+
+| 问题 / 验证点 | 处理 | 验证 |
+| :--- | :--- | :--- |
+| 全新环境里阶段 A 预检在补丁解压前要求 `skia/bin/gn`，配置直接失败 | 预检读取清单 `skia.patchDir` / `patchZip`，归档存在时把缺失 gn 降级为告警，由 `deps` 解压后校验 | 归档存在、gn 缺失：`[WARN] 未找到 gn；依赖准备会从 Skia 补丁归档中解压 (skia.2026-10-30.src.zip)`，rc=0；归档缺失：仍报 `[ERROR] 未找到必需的工具: gn` + Hint，rc=1；`DUILIB_DEPS_MODE=off`：`[WARN] gn not found (deps: off)`。直接 `cmake -S . -B`（不传 `-DDUILIB_SKIA_REF`）时发现未加引号的 `if(NOT DUILIB_SKIA_REF STREQUAL "")` 在变量未定义时按字面量比较，导致 `patchZip` 传空、预检误报；改为带引号比较后复测通过（配置成功且输出上述告警） |
+| Skia 源码停在旧基线 `6f559baf`，需要真实切换提交、打补丁并编译 | `build.py deps` 按清单切换提交、校验 `SHA1.txt`、解压补丁，再用归档自带的 gn/ninja 编译 | HEAD `6f559baf` → `e46ba84`（本地已有该提交，未走镜像）；归档 66 条目解压后 `bin/gn.exe`、`bin/ninja.exe` 就绪；`llvm.x64.release` 1084 个目标编译完成，`out/llvm.x64.release` 生成 `skia.lib` 等 10 个静态库；`.duilib-patch` 为 `e46ba84...:fbe0d0...`（zip 的 sha256），`.duilib-ref` 为 `e46ba84...|e46ba84...|msvc-mt|x64` |
+| 二次执行是否重复解压/编译 | 补丁指纹与 ref 未变时直接复用 | 再跑 `deps` 只有 `[OK] Skia 已就绪 (llvm.x64.release)`，无解压与编译输出 |
+| 归档缺失时 CMake 侧此前静默复用，与 build.py 的策略不一致 | 按“需重建 / 已有产物”区分：需要重建时报错，已有产物时告警复用 | 临时移走归档后 `deps`：Python 与 CMake 各输出一次 `[WARN] 未找到 Skia 补丁包；继续复用已有 Skia 产物`，rc=0；恢复归档后 sha256 仍为 `fbe0d0...` |
+| 归档与清单不配套（`SHA1.txt` 记录的提交不一致） | 两个入口都在解压前校验 | 用记录旧提交的副本替换归档：`build.py deps` 报 `[ERROR] Skia 补丁包的 SHA1 与版本清单不一致` + Hint（rc=1）；`cmake --build --target duilib_deps` 同样报错，两侧已共用同一组消息键 |
+| 归档内缺少 `SHA1.txt` 时 CMake 侧直接抛出 `tar: SHA1.txt: Not found in archive` | 提取前先用 `cmake -E tar tf` 列出条目，缺失则按空 SHA-1 走统一错误 | Python 报同一错误；CMake 改为 `[ERROR] Skia 补丁包的 SHA1 与版本清单不一致` + `SHA1.txt missing` + Hint |
+| 旧构建树缓存残留 `DUILIB_SKIA_COMPILE_ROOT` / `DUILIB_SKIA_COMPILE_REPO` | 配置期清理（对应选项已删除） | 重新配置后 `CMakeCache.txt` 只剩 `DUILIB_SKIA_PATCH_DIR=E:/develop/nim_duilib/build/skia_patch` |
+| 中文环境下 `project()` 之后的构建消息变成英文（重复 include 把语言重置为 en） | 默认语言只在首次初始化时写入 | 重新配置：`[OK] 目标架构  x64`、`[OK] Skia 已就绪`、`[OK] 依赖已就绪` 均为中文，`build.ninja` 中 `duilib_deps` 命令为 `-DDUILIB_LANG=zh_CN` |
+| 新机制下的完整编译回归 | `build.py clean` 后全量 `build.py build` | 802/802 目标完成，23 个示例 exe 重新链接（含 cef/CefBrowser），无告警，`[OK] 编译完成` |
+| VS 未安装可选组件 ninja 时，`-G Ninja` / `cmake --preset` 配置直接失败（归档里已有 `bin/ninja.exe`） | 根工程在 `project()` 之前自举：按 `DUILIB_NINJA_EXECUTABLE` → `skia/bin` → PATH → 补丁归档取用，解压到 `<构建树>/.duilib-tools/bin/ninja.exe` 并写入 `CMAKE_MAKE_PROGRAM`；`build.py` 查找链加入 `skia/bin` 与归档（解压到 `out/.duilib-tools`） | 探针项目（PATH 无 ninja 且 `skia/bin/ninja.exe` 临时改名）：`cmake -G Ninja` 输出 `[OK] ninja .../build/.duilib-tools/bin/ninja.exe (from skia.2026-10-30.src.zip)`，随后 `cmake --build` 实际执行成功（rc=0）；恢复 `skia/bin/ninja.exe` 后同一探针输出 `[OK] ninja E:/develop/skia/bin/ninja.exe (skia/bin)`，重复配置直接走缓存；真实工程 `cmake -S . -B <临时目录> -G Ninja`（PATH 无 ninja、`skia/bin/ninja.exe` 缺失）同样先输出自举成功行，预检随后 `[OK] ninja <同一路径>`（该次未进入 vcvars 环境，`project()` 因找不到 cl 失败，属探针预期） |
+| 阶段 A 预检只按 PATH 查 ninja，与 gn 的归档引导不一致 | 预检按 `DUILIB_NINJA_EXECUTABLE` → `skia/bin` → PATH 查找；Ninja 生成器且确实没有 ninja 时报错并提示 VS 组件，VS 生成器且归档存在时降级为告警 | VS 生成器、PATH 与 `skia/bin` 均无 ninja：`[WARN] 未找到 ninja；依赖准备会从 Skia 补丁归档中解压自带的 ninja（用于编译 Skia） (skia.2026-10-30.src.zip)`，rc=0；Ninja 生成器同样条件：`[ERROR] 未找到必需的工具: ninja` + 新 Hint，rc=1 |
+| `build.py` 找不到 ninja 时退回 MSBuild 生成器，丢失 Ninja 预设与 Skia 工具链 | `_find_ninja` 增加“已解压的 `skia/bin`”与“补丁归档解压到 `out/.duilib-tools/bin/ninja.exe`”两个来源，并支持 `DUILIB_NINJA_EXECUTABLE` 环境变量覆盖 | 新增 7 项单元测试（环境变量 / PATH / VS / skia/bin / 归档解压 / 归档缺失 / 全部缺失）；`build.py test` 236 个用例通过（skipped=2）；按覆盖方式指定归档解压出的 ninja 后 `build.py deps --build-dir <临时目录>` 配置 + 依赖目标成功（`CMAKE_GENERATOR=Ninja`，`CMAKE_MAKE_PROGRAM` 指向该副本） |
+
+辅助结果：`build.py test` 236 个用例通过（skipped=2）；`build.py doctor` 显示
+`[OK] skia patch ...skia.2026-10-30.src.zip`、`[OK] gn`，其余检查项全部 OK。
+
 ### 2026-10-29 libjpeg-turbo 3.2.x 与 duilib-zlib 的 `z_errmsg` 冲突（Windows 已验证）
 
 | 问题 | 处理 | 验证 |
@@ -525,7 +545,7 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
 | :--- | :--- | :--- |
 | `<deps-root>/SDL` 停在 `main`，清单为 `release-3.4.18`，脚本仍编译本地源码并复用旧 stamp | `deps` 先按清单切换 tag/commit（本地已有提交不联网，`--offline` 可用）；`.duilib-sdl` 记录源码提交，切换后旧产物重建 | 当时清单为 `release-3.4.18`：`build.py deps --sdl --offline` 使 HEAD `3b2bc95` → `829a65d`，SDL3 重建，stamp 含 `829a65d...`；二次运行 `[OK] SDL3 is ready` |
 | 清单默认 ref 为 `release-3.4.18` tag，但其源码编译报错 | 默认 ref 改为 `main` 分支；`release-3.4.18` 保留在 `refs` 中，需要时用 `--sdl-ref` 选择 | `build.py deps --sdl --offline`：HEAD `829a65d`（tag）→ `3b2bc95`（main），SDL3 重建，stamp 为 `main|3b2bc95...`；二次运行 `[OK] SDL3 is ready`，未再重建 |
-| `skia_compile` 同名补丁归档被替换成旧版本后仍直接复用，Skia 产物不更新 | 先 `git status` 核对归档与当前提交，必要时 `git checkout -- <zip>` 恢复，再 `git pull`；补丁指纹变化时重新解压并重建 Skia | 篡改本地 zip 后 `doctor` 输出 `[WARN] skia patch differs from skia_compile HEAD`；`deps --offline` 恢复归档（`hash-object` 与 `HEAD:zip` 一致），Skia 未无谓重建 |
+| 补丁归档与清单 Skia 提交不配套时仍被使用 | 归档改为随仓库提交到 `build/skia_patch/`，`SHA1.txt` 记录对应提交；`deps` / CMake 依赖脚本解压前校验，不一致直接报错 | `doctor` 输出 `[OK] skia patch ...`；`test_build.py` 覆盖 SHA1 不一致与归档缺失的报错路径 |
 | `--skia-ref` 选中的 tag/branch 不检查本地工作区 | 与 commit ref 一样按清单对齐；branch 只要求当前在该分支，不追远端 | 临时仓库隔离验证：tag、branch 均可切换；离线缺 ref 时明确报错 |
 
 ### 已知缺口与风险
@@ -566,15 +586,16 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
      按平台返回（Windows 为 `libcef_win[_109]`，Unix 为 `libcef_linux`）。
    - 第 11 条 SDL ref 对齐：已确认 `_duilib_ensure_git_ref()` 在构建前把本地仓库切到清单
      ref（本地已有分支/远端跟踪分支时不联网），stamp 含源码提交，切换后必然重建一次。
-   - 第 12 条补丁归档刷新：已确认 `_duilib_skia_patch_stale/restore/refresh` 先按
-     `git status --porcelain -- <zip>` 恢复被替换的归档，再 `git pull --ff-only`
-     （`--offline` 只做恢复，拉取失败仅告警）。
+   - 第 12 条补丁归档刷新：补丁归档改为随仓库提交（`build/skia_patch/`），不再从
+     外部仓库恢复或拉取；`_duilib_skia_patch_sha1()` 读取归档内 `SHA1.txt`，
+     `_duilib_skia_patch_verify()` 与清单 Skia 提交比对，不一致直接报错；归档缺失且
+     需要重建时报错并提示用 `git checkout -- build/skia_patch` 恢复（已有产物时仅告警）。
    - 第 13 条 `--skia-ref` 分支：已确认 `build.py doctor` 的 `_check_source_ref()` 只读
      `rev-parse` 做状态报告，不 fetch、不 checkout；实际切换只在 `deps`/构建阶段由
      `_duilib_ensure_git_ref()` 完成，不会留在 detached HEAD。
    说明：2026-10-28 的 Linux 虚拟机、macOS 真机复测跑过 Release/Debug 双配置构建与出包
    （第 8/9 条的运行场景已被覆盖），但当时没有单独记录「第二次 `deps` 不重建 SDL3」
-   「改 Skia 后示例重新链接」这两个观测点；Windows 侧对应逻辑（补丁归档恢复、ref 切换、
+   「改 Skia 后示例重新链接」这两个观测点；Windows 侧对应逻辑（补丁归档校验、ref 切换、
    stamp 复用）已在 §7 的回归中实测。本轮起不再把这几条列入待办，后续有 Unix 环境时
    可按上述命令顺带复测。
 9. **Windows 示例包的包内启动冒烟（C10）**：已关闭。2026-10-29 的 6 个示例包
@@ -591,7 +612,7 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
     `zh_TW`/`zh_HK`/`zh_Hant`）显示英文；文案集中在 `cmake/i18n/messages.json`，
     五个入口均支持 `--lang`，语言在 argparse 之前解析。`PYTHONIOENCODING=ascii`
     下 `--help` 与列表命令（加 `--lang en`）无中文，`python3 build/build.py test`
-    236 个用例通过；原任务中的两个 `.sh` 已随 `build/legacy/` 清理删除。
+    229 个用例通过（补丁机制调整后移除 7 个旧用例）；原任务中的两个 `.sh` 已随 `build/legacy/` 清理删除。
     `release.py` 的 `check`/`package`/`finalize`/`clean` 全流程已于 2026-10-29 实测
     通过（含失败路径，P3-5 完成，记录见 `Packaging-Follow-Up-Items.md`）。
 

@@ -206,7 +206,7 @@ API 变动频率高 |
   | `docs/WindowShadow.md` / `.en.md` | `../../bin/...` 多了一级，文档在 `docs/` 下 | ✅ 改为 `../bin/...`（各 2 处） |
   | `docs/Summary.md` / `.en.md` | 基类写作 `nbase::SupportWeakCallback`，全仓已无 `nbase` | ✅ 改为 `SupportWeakCallback`（`PlaceHolder.h:15` 确认为虚继承基类） |
   | `docs/Menu.md:29` / `.en.md:31` | 样式类 `slider_green` 不存在 | ✅ 改为 `slider_horizontal_green`（`global.xml:151` 有 Alias） |
-  | `README.md` / `.en.md` 4 个表格 | 「参考文档（本地文件）」列 22 处指向仓库外 `skia_compile` 的相对链接 | ✅ 整列删除（`skia_compile` 是仓库外独立仓库，任何只 clone 本库的环境都是死链，且与相邻「网络链接」列内容完全重复） |
+  | `README.md` / `.en.md` 4 个表格 | 「参考文档（本地文件）」列 22 处指向仓库外独立仓库的相对链接 | ✅ 整列删除（该仓库不属于本库，任何只 clone 本库的环境都是死链，且与相邻「网络链接」列内容完全重复） |
   | ~~`docs/Global.md` 字体 ID `roboto_mono_12` 不存在~~ | ❌ **原审计误判** | 该 ID 是文档演示 `FontFile` 自定义字体时**由用户自行定义**的 ID（`Global.md:76` 的 `<Font id=... name="Roboto Mono">`），字体文件 `bin/resources/fonts/RobotoMono-*.ttf` 确实存在。已改为白名单 |
 - **追加修复**（原清单未列，全量扫链接时发现）：
   | 位置 | 问题 | 处理 |

@@ -76,7 +76,8 @@ set(DUILIB_VERSIONS_FILE "${CMAKE_CURRENT_LIST_DIR}/third_party_versions.json"
     CACHE FILEPATH "Third-party version manifest")
 
 set(DUILIB_SKIA_ROOT "${DUILIB_DEPS_ROOT}/skia" CACHE PATH "Skia source tree")
-set(DUILIB_SKIA_COMPILE_ROOT "${DUILIB_DEPS_ROOT}/skia_compile" CACHE PATH "Skia patch archives")
+set(DUILIB_SKIA_PATCH_DIR "${CMAKE_CURRENT_LIST_DIR}/../build/skia_patch"
+    CACHE PATH "Skia patch archives shipped with the repository")
 set(DUILIB_SDL_SRC "${DUILIB_DEPS_ROOT}/SDL" CACHE PATH "SDL3 source tree")
 set(DUILIB_SDL_ROOT "${DUILIB_DEPS_ROOT}/SDL3" CACHE PATH "SDL3 installation prefix")
 set(DUILIB_SDL_BUILD_ROOT "${DUILIB_DEPS_ROOT}/SDL3_build" CACHE PATH "SDL3 build directory")
@@ -155,7 +156,7 @@ endif()
 # 依赖脚本据此把本地源码切到清单指定的提交（tag / branch / commit）
 set(DUILIB_SDL_REF_TYPE "${_duilib_sdl_ref_type}")
 
-# Skia 补丁包（相对 skia_compile/）
+# Skia 补丁包（相对 DUILIB_SKIA_PATCH_DIR，缺省 build/skia_patch）
 set(DUILIB_SKIA_PATCH_ZIP "")
 string(JSON _duilib_skia_patch ERROR_VARIABLE _duilib_json_err
        GET "${DUILIB_VERSIONS_JSON}" skia refs "${DUILIB_SKIA_REF}" patchZip)
@@ -163,14 +164,21 @@ if(NOT _duilib_json_err)
     set(DUILIB_SKIA_PATCH_ZIP "${_duilib_skia_patch}")
 endif()
 
-# skia_compile 仓库（补丁归档来源）
-string(JSON DUILIB_SKIA_COMPILE_REPO ERROR_VARIABLE _duilib_json_err
-       GET "${DUILIB_VERSIONS_JSON}" skiaCompileRepo)
-if(_duilib_json_err OR DUILIB_SKIA_COMPILE_REPO STREQUAL "")
-    duilib_error("deps.versions_invalid" "deps.versions_invalid_hint")
+# 补丁归档目录由清单 skia.patchDir 指定（相对仓库根），归档随仓库提交。
+string(JSON _duilib_skia_patch_dir ERROR_VARIABLE _duilib_json_err
+       GET "${DUILIB_VERSIONS_JSON}" skia patchDir)
+if(NOT _duilib_json_err AND NOT _duilib_skia_patch_dir STREQUAL "")
+    get_filename_component(_duilib_skia_patch_dir_abs
+        "${CMAKE_CURRENT_LIST_DIR}/../${_duilib_skia_patch_dir}" ABSOLUTE)
+    set(DUILIB_SKIA_PATCH_DIR "${_duilib_skia_patch_dir_abs}" CACHE PATH
+        "Skia patch archives shipped with the repository" FORCE)
 endif()
-set(DUILIB_SKIA_COMPILE_REPO "${DUILIB_SKIA_COMPILE_REPO}" CACHE STRING
-    "skia_compile repository URL (patch archives)" FORCE)
+
+# 旧机制（仓库外 skia_compile）留下的缓存项已没有任何选项对应，复用的构建树里
+# 会一直显示失效路径；在配置期清掉，避免用户误以为仍在使用它们。
+foreach(_duilib_stale_cache DUILIB_SKIA_COMPILE_ROOT DUILIB_SKIA_COMPILE_REPO)
+    unset(${_duilib_stale_cache} CACHE)
+endforeach()
 
 # 统一网络重试参数（0 = 无限重试）；单一维护点在清单的 retry 段
 string(JSON _duilib_retry_max ERROR_VARIABLE _duilib_json_err

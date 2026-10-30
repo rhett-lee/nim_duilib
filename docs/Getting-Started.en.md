@@ -14,21 +14,20 @@ This example will guide you to quickly deploy a basic application based on nim_d
 git clone https://github.com/rhett-lee/nim_duilib
 ```
 
-2. Get the build method and modified code for skia (nim_duilib uses skia as its rendering engine, so skia must be built first)
+2. Prepare the Skia rendering engine (the patch archive ships with the repository in `build/skia_patch/`, so no external repository is cloned)
 
 ```bash
-git clone https://github.com/rhett-lee/skia_compile
+cd nim_duilib
+python3 build/build.py deps
 ```
 
-3. Compile the skia source code: build the skia-related lib files according to the method in the skia_compile project documentation [compile_skia_on_windows.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_windows.en.md).    
-   Note: the skia source code should be located in the same directory as the nim_duilib source code.    
-   Note: when compiling the skia source code, LLVM should be used so that the program runs smoothly; if compiled with VS, the running speed is very slow and the UI is laggy.    
-   Check method: after a successful build, the skia.lib and other lib files are generated in a subdirectory of skia/out.
-4. The basic structure of the source code directories of several projects within the working directory is as follows    
+When dependency preparation finishes, the Skia source is in the `skia/` directory next to `nim_duilib`, and `skia.lib` and related libraries are generated under `skia/out`. This step is also required when using the existing Visual Studio solution.
+
+3. The basic structure of the source code directories of several projects within the working directory is as follows
 
 <img src="./Images/vs00.png"/>
 
-5. Compile nim_duilib: enter the `nim_duilib` directory, open `examples.sln` with Visual Studio, select the build option Debug|x64 or Release|x64, and press F7 to build all example programs (the built example programs are located in the bin directory).
+4. Compile nim_duilib: enter the `nim_duilib` directory, open `examples.sln` with Visual Studio, select the build option Debug|x64 or Release|x64, and press F7 to build all example programs (the built example programs are located in the bin directory).
 
 ## Create a basic project
 
