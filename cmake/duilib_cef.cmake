@@ -112,11 +112,39 @@ function(_duilib_cef_is_ready dest out_ready)
                     set(_ready TRUE)
                 endif()
             else()
-                set(_ready TRUE)
+                # macOS 的运行时是完整发行包：必须同时存在框架，否则只凭指纹会
+                # 判定“已就绪”，构建期才发现框架缺失
+                if(EXISTS "${dest}/Release/Chromium Embedded Framework.framework"
+                   OR EXISTS "${dest}/Debug/Chromium Embedded Framework.framework")
+                    set(_ready TRUE)
+                endif()
             endif()
         endif()
     endif()
     set(${out_ready} ${_ready} PARENT_SCOPE)
+endfunction()
+
+# 清理 CEF 发行包目录（macOS 的 CEF_ROOT）中的旧内容。
+# 默认情况下 DUILIB_CEF_ROOT 与 DUILIB_CEF_CACHE 是同一个目录（<deps_root>/cef_binary），
+# 所以只清理发行包自带的条目，保留 downloads/、extract/ 等缓存目录。
+# 目的：升级 CEF 后目录里不会同时留有上一版本（如 142）的文件。
+function(_duilib_cef_clean_distribution dest)
+    set(_entries
+        include libcef_dll cmake Debug Release Resources tests bazel
+        BUILD.bazel CMakeLists.txt Doxyfile LICENSE.txt MODULE.bazel README.md
+        README.txt WORKSPACE cef_paths.gypi cef_paths2.gypi)
+    foreach(_entry IN LISTS _entries)
+        if(EXISTS "${dest}/${_entry}")
+            file(REMOVE_RECURSE "${dest}/${_entry}")
+        endif()
+    endforeach()
+    # 旧版本直接解压出来的目录（如 cef_binary_142.../）同样清掉
+    file(GLOB _subdirs LIST_DIRECTORIES true "${dest}/*")
+    foreach(_dir IN LISTS _subdirs)
+        if(IS_DIRECTORY "${_dir}" AND EXISTS "${_dir}/include/cef_version.h")
+            file(REMOVE_RECURSE "${_dir}")
+        endif()
+    endforeach()
 endfunction()
 
 function(duilib_cef_prepare)
@@ -140,24 +168,22 @@ function(duilib_cef_prepare)
             return()
         endif()
 
-        # 迁移：已经存在运行时但没有 stamp 时，只采纳能读取到自身版本的运行时
-        # （Linux/macOS 解压在 CEF_ROOT，带 include/cef_version.h）。Windows 的
-        # 运行时目录只有二进制，无法校验版本：升级 CEF 后旧 libcef.dll 会被误标
-        # 成新版本，因此不采纳，按归档重新解压覆盖。
-        if(DUILIB_DEPS_PLATFORM STREQUAL "linux")
-            set(_runtime "${_dest}/libcef.so")
-        elseif(DUILIB_DEPS_PLATFORM STREQUAL "macos")
+        # 迁移：已经手动解压过、但没有指纹的运行时，只有能读到自身版本时才采纳。
+        # Windows/Linux 的运行时目录只放二进制（没有 include/cef_version.h），读不到
+        # 版本：升级 CEF 后旧 libcef.dll/libcef.so 会被误标成新版本，因此不采纳，
+        # 按归档重新解压覆盖（见下方“清理旧版本残留”）。
+        if(DUILIB_DEPS_PLATFORM STREQUAL "macos")
             set(_runtime "${_dest}/include/cef_version.h")
-        else()
-            set(_runtime "")
-        endif()
-        if(NOT _runtime STREQUAL "" AND EXISTS "${_runtime}")
-            _duilib_cef_read_version("${_dest}/include/cef_version.h" _runtime_version)
-            if(_runtime_version MATCHES "^${DUILIB_CEF_VERSION}\\.")
-                _duilib_cef_stamp_value(_stamp)
-                file(WRITE "${_dest}/.duilib-cef" "${_stamp}")
-                duilib_msg("deps.cef_ready" " (${DUILIB_CEF_VERSION}/${DUILIB_ARCH}, adopted existing runtime)")
-                return()
+            if(EXISTS "${_runtime}"
+               AND (EXISTS "${_dest}/Release/Chromium Embedded Framework.framework"
+                    OR EXISTS "${_dest}/Debug/Chromium Embedded Framework.framework"))
+                _duilib_cef_read_version("${_runtime}" _runtime_version)
+                if(_runtime_version MATCHES "^${DUILIB_CEF_VERSION}\\.")
+                    _duilib_cef_stamp_value(_stamp)
+                    file(WRITE "${_dest}/.duilib-cef" "${_stamp}")
+                    duilib_msg("deps.cef_ready" " (${DUILIB_CEF_VERSION}/${DUILIB_ARCH}, adopted existing runtime)")
+                    return()
+                endif()
             endif()
         endif()
     endif()
@@ -225,19 +251,16 @@ function(duilib_cef_prepare)
         endif()
     endif()
 
-    # 2) 解压（macOS：完整发行包；其他平台：临时目录后取 Release/Resources）
+    # 2) 解压到缓存下的临时目录，校验版本后再同步到运行时目录。
+    #    macOS 不能直接解压到 CEF_ROOT：默认它与缓存目录是同一个（<deps_root>/cef_binary），
+    #    --force 时会连带删掉刚校验过的归档，且旧版本（142）的残留文件不会被清理。
+    set(_extract "${DUILIB_CEF_CACHE}/extract/${DUILIB_CEF_VERSION}/${DUILIB_ARCH}")
     if(DUILIB_DEPS_PLATFORM STREQUAL "macos")
-        set(_extract "${DUILIB_CEF_ROOT}")
-        if(DUILIB_DEPS_FORCE)
-            file(REMOVE_RECURSE "${_extract}")
-        endif()
-    else()
-        set(_extract "${DUILIB_CEF_CACHE}/extract/${DUILIB_CEF_VERSION}/${DUILIB_ARCH}")
-        if(DUILIB_DEPS_FORCE)
-            file(REMOVE_RECURSE "${_extract}")
-        endif()
-        file(MAKE_DIRECTORY "${_extract}")
+        set(_extract "${_extract}-macos")
     endif()
+    # 每次解压前清空临时目录，避免上次中断留下的半截产物混进本次结果
+    file(REMOVE_RECURSE "${_extract}")
+    file(MAKE_DIRECTORY "${_extract}")
 
     message(STATUS "[deps] extracting ${_archive}")
     execute_process(
@@ -248,46 +271,67 @@ function(duilib_cef_prepare)
         duilib_error("deps.cef_extract_failed" "deps.cef_extract_failed_hint")
     endif()
 
-    # 3) 找到发行包根目录并校验版本
+    # 3) 找到发行包根目录并校验版本（优先选与跟踪头文件版本完全一致的目录，
+    #    避免临时目录里残留的其他版本解压结果导致误报）
+    _duilib_cef_tracked_dir(_tracked)
+    _duilib_cef_read_version("${_tracked}/include/cef_version.h" _tracked_version)
     file(GLOB _entries "${_extract}/*")
     set(_top "")
+    set(_archive_version "")
     foreach(_entry IN LISTS _entries)
         if(IS_DIRECTORY "${_entry}" AND EXISTS "${_entry}/include/cef_version.h")
-            set(_top "${_entry}")
-            break()
+            _duilib_cef_read_version("${_entry}/include/cef_version.h" _entry_version)
+            if(_archive_version STREQUAL "")
+                set(_archive_version "${_entry_version}")
+            endif()
+            if(_entry_version STREQUAL _tracked_version)
+                set(_top "${_entry}")
+                break()
+            endif()
         endif()
     endforeach()
     if(_top STREQUAL "" AND EXISTS "${_extract}/include/cef_version.h")
         set(_top "${_extract}")
+        _duilib_cef_read_version("${_extract}/include/cef_version.h" _archive_version)
     endif()
     if(_top STREQUAL "")
-        duilib_error("deps.cef_extract_failed" "deps.cef_extract_failed_hint")
-    endif()
-
-    _duilib_cef_tracked_dir(_tracked)
-    _duilib_cef_read_version("${_tracked}/include/cef_version.h" _tracked_version)
-    _duilib_cef_read_version("${_top}/include/cef_version.h" _archive_version)
-    if(_tracked_version STREQUAL "" OR NOT _archive_version STREQUAL _tracked_version)
+        if(_archive_version STREQUAL "")
+            duilib_error("deps.cef_extract_failed" "deps.cef_extract_failed_hint")
+        endif()
         duilib_error_values(
             "tracked CEF_VERSION='${_tracked_version}' but archive CEF_VERSION='${_archive_version}'"
             "use a matching DUILIB_CEF_VERSION, or update the tracked libcef headers")
     endif()
 
-    # 4) 复制运行时
+    # 4) 同步运行时：先清理旧版本残留，保证从 142 之类的旧版本升级后目录里
+    #    只有当前版本的文件（否则旧 DLL/旧 .so 会被一起打包或干扰加载）
     if(DUILIB_DEPS_PLATFORM STREQUAL "macos")
-        # 完整发行包已解压到 CEF_ROOT；找到根目录后把内容上移一层
-        if(NOT _top STREQUAL _extract)
-            file(COPY "${_top}/" DESTINATION "${_extract}")
-            file(REMOVE_RECURSE "${_top}")
-        endif()
-        set(_dest "${_extract}")
+        # 完整发行包：清理 CEF_ROOT 下的旧内容（保留下载/解压缓存）后覆盖复制
+        file(MAKE_DIRECTORY "${_dest}")
+        _duilib_cef_clean_distribution("${_dest}")
+        file(COPY "${_top}/" DESTINATION "${_dest}")
     else()
+        file(REMOVE_RECURSE "${_dest}")
         file(MAKE_DIRECTORY "${_dest}")
         if(EXISTS "${_top}/Release/")
             file(COPY "${_top}/Release/" DESTINATION "${_dest}")
         endif()
         if(EXISTS "${_top}/Resources/")
             file(COPY "${_top}/Resources/" DESTINATION "${_dest}")
+        endif()
+        # 校验复制结果：目标文件被占用（CEF 程序还在运行）时复制会失败，此时必须
+        # 报错，否则旧版本的 libcef 会被写入新版本指纹，运行时行为不可预期
+        if(DUILIB_DEPS_PLATFORM STREQUAL "windows")
+            set(_runtime_file "libcef.dll")
+        else()
+            set(_runtime_file "libcef.so")
+        endif()
+        file(SIZE "${_top}/Release/${_runtime_file}" _cef_src_size)
+        file(SIZE "${_dest}/${_runtime_file}" _cef_dst_size)
+        if(_cef_src_size EQUAL 0 OR NOT _cef_dst_size EQUAL _cef_src_size)
+            message(STATUS "[deps] failed to refresh ${_dest}/${_runtime_file}: "
+                           "the file may be in use by a running CEF program")
+            duilib_error("deps.cef_extract_failed" "deps.cef_extract_failed_hint")
         endif()
     endif()
 

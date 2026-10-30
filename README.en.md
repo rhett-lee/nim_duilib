@@ -63,7 +63,7 @@ The build has two parts: you provide the compiler and basic tools, while third-p
 | :--- | :--- | :--- | :--- |
 | Windows | x86 / x64 / arm64 | Visual Studio 2022 (v143), Visual Studio 2026 (v145), MSYS2 / MinGW-w64 (gcc or clang) | Supports Windows 7 and later; for VS2017/2019 use the `develop-cpp17` branch |
 | Linux | x64 | gcc 10+, clang 12+ | arm64: see "pending confirmation" below |
-| macOS | x64 / arm64 | Xcode Command Line Tools 13.5+ (AppleClang) | Minimum OS version pending confirmation |
+| macOS | x64 / arm64 | Xcode 16+ (AppleClang; the CEF wrapper uses C++20) | Build host needs macOS 14.5+; binaries target macOS 13.0 (CEF 156 deployment target) |
 | FreeBSD | x64 | system clang | |
 
 Windows 7 compatibility comes from the library configuration ([duilib/duilib_config.h](duilib/duilib_config.h) targets Windows 7+ by default) plus CEF 109; CEF 156 requires Windows 10 or later.

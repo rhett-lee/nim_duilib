@@ -13,10 +13,13 @@
 # 用于编译 libcef_dll_wrapper）不是同一个目录，两者用途不同。
 #
 # 默认值为 nim_duilib 源码树的同级目录 cef_binary（与 build/build.py deps 的目录约定一致）
-# 优先顺序：-DCEF_ROOT=... > 环境变量 CEF_ROOT > 默认目录
+# 优先顺序：-DCEF_ROOT=... > 环境变量 CEF_ROOT > DUILIB_CEF_ROOT（deps 实际落地目录，
+# 跟随 -DDUILIB_DEPS_ROOT/--deps-root）> 默认目录
 if(NOT DEFINED CEF_ROOT OR NOT IS_DIRECTORY "${CEF_ROOT}")
     if(DEFINED ENV{CEF_ROOT} AND IS_DIRECTORY "$ENV{CEF_ROOT}")
         file(TO_CMAKE_PATH "$ENV{CEF_ROOT}" CEF_ROOT)
+    elseif(DEFINED DUILIB_CEF_ROOT AND IS_DIRECTORY "${DUILIB_CEF_ROOT}")
+        set(CEF_ROOT "${DUILIB_CEF_ROOT}")
     else()
         get_filename_component(CEF_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../cef_binary" ABSOLUTE)
     endif()

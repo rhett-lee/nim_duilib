@@ -207,7 +207,8 @@ if(DUILIB_ENABLE_CEF)
     elseif(DUILIB_OS_MACOS)
         set(DUILIB_CEF_LIBS ${DUILIB_CEF_WRAPPER_LIB_NAME})
     else()
-        set(DUILIB_CEF_LIBS libcef.so ${DUILIB_CEF_WRAPPER_LIB_NAME} X11)
+        # 与上游 156 的 CEF_STANDARD_LIBS（X11 + ${CMAKE_DL_LIBS}）保持一致
+        set(DUILIB_CEF_LIBS libcef.so ${DUILIB_CEF_WRAPPER_LIB_NAME} X11 ${CMAKE_DL_LIBS})
     endif()
 endif()
 

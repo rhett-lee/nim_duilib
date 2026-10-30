@@ -63,7 +63,7 @@
 | :--- | :--- | :--- | :--- |
 | Windows | x86 / x64 / arm64 | Visual Studio 2022（v143）、Visual Studio 2026（v145）、MSYS2 / MinGW-w64（gcc 或 clang） | 支持 Windows 7 及以上；VS2017/2019 请用 `develop-cpp17` 分支 |
 | Linux | x64 | gcc 10+、clang 12+ | arm64 见下方“待确认” |
-| macOS | x64 / arm64 | Xcode 命令行工具 13.5+（AppleClang） | 最低系统版本待确认 |
+| macOS | x64 / arm64 | Xcode 16+（AppleClang，CEF wrapper 使用 C++20） | 构建机需 macOS 14.5+；产物最低支持 macOS 13.0（CEF 156 的部署目标） |
 | FreeBSD | x64 | 系统自带 clang | |
 
 Windows 7 的兼容性来自库自身配置（[duilib/duilib_config.h](duilib/duilib_config.h) 默认兼容 Win7 以上）与 CEF 109；CEF 156 要求 Windows 10 及以上。

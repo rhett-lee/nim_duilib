@@ -15,7 +15,7 @@ trigger: 当用户要求升级 CEF/libcef 版本、deps 运行时版本不对、
 | 位置 | 作用 |
 |------|------|
 | `cmake/third_party_versions.json` | `cef.default` + `cef.versions.<版本>.archives."<平台>/<arch>"` 的 `file`/`sha256`；平台键 7 个（`windows/x86|x64|arm64`、`linux/x64|arm64`、`macos/x64|arm64`，109 仅 windows 三项） |
-| `cmake/duilib_cef.cmake` | 下载 `_minimal` 包 → 校验（优先官方 `.sha1`，回退清单 sha256）→ Windows 解压到 `bin/libcef_win[_109]/<arch>`，Linux `bin/libcef_linux`，macOS `DUILIB_CEF_ROOT`；写指纹 `.duilib-cef` = `版本\|arch\|平台` |
+| `cmake/duilib_cef.cmake` | 下载 `_minimal` 包 → 校验（优先官方 `.sha1`，回退清单 sha256）→ 解压到 `<CEF_CACHE>/extract/<版本>/<arch>[-macos]` 临时目录并校验版本 → 清理目标目录后复制（Windows `bin/libcef_win[_109]/<arch>`、Linux `bin/libcef_linux`、macOS `DUILIB_CEF_ROOT`）；写指纹 `.duilib-cef` = `版本\|arch\|平台` |
 | 根 `CMakeLists.txt` | 按 `DUILIB_CEF_VERSION` 选 vendored 目录并编译 `libcef_dll_wrapper`；Windows `USE_SANDBOX=OFF`；仅 109 降级 C++17 |
 | `duilib/third_party/libcef/libcef_{win,linux,macos}` | 跟踪的 `include/`、`libcef_dll/`、`cmake/`、`CMakeLists.txt`、`LICENSE.txt`；Windows 另有 `lib/<arch>/libcef.lib`、`libcef_dll_wrapper.vcxproj(.filters)`（`libcef_win_109` 为遗留目录，升级时不动） |
 | `duilib/CEFControl/internal/CefClientAppRender.cpp` | JS 桥与 `CEF_VERSION_MAJOR` 分支 |
@@ -44,8 +44,12 @@ trigger: 当用户要求升级 CEF/libcef 版本、deps 运行时版本不对、
    在 `OnContextCreated` 用 `global->SetValue("__nimCefNativeXxx", CefV8Value::CreateFunction(...), DONTENUM)`
    绑定 native 函数，再 `context->Eval(...)` 注入等价的 `NimCefWebInstance.call/register`；
    `#if CEF_VERSION_MAJOR <= 109` 保留原实现。
-7. **修 deps 采纳规则**：Windows 读不到运行时版本，必须按归档重新解压覆盖；仅 Linux/macOS 在
-   `include/cef_version.h` 匹配时才采纳，避免旧运行时被写成新指纹。
+7. **收紧 deps 采纳规则 + 清理旧运行时**：只有 macOS（`include/cef_version.h` 匹配且
+   framework 存在）才采纳已有运行时；Windows/Linux 读不到运行时版本，一律按归档重建，
+   目标目录整体删除后复制，142 遗留的 `libEGL*`/`libGLESv2*`/`dxil.dll` 不会残留。
+   macOS 先把归档解压到 `<CEF_CACHE>/extract/...` 并校验，再清理 CEF_ROOT 的发行包条目
+   （保留 `downloads/`、`extract/`）后复制；`--force` 不能删除整个 CEF_ROOT，否则会连带
+   删掉刚校验的归档；复制后校验 libcef 大小，目标文件被占用时直接报错。
 8. **脚本/文档同步**：`build/pack.py`、`build/sdk_package_test.py` 的默认版本从清单读取；
    `test_build.py`/`test_pack.py` 断言跟随清单；README/docs/CHANGELOG/test-matrix 更新默认版本；
    历史记录不改。
@@ -62,6 +66,8 @@ git diff --check
 ```
 
 - Debug 链接报 Skia `LNK2019` 时先 `deps --config Debug`（Debug Skia 变体落后，与 CEF 无关）。
+- 换 CEF 版本后 `deps` 会自动清理 `bin/libcef_win[_109]/<arch>`、`bin/libcef_linux`、
+  macOS `CEF_ROOT` 里的旧版本残留文件；需要强制重建时用 `deps --force`（macOS 的归档缓存不会被删）。
 - 构建前结束 `cef.exe`/`CefBrowser.exe` 残留进程，否则占用 bin 产物导致链接失败。
 - JS 桥端到端（156 起必做）：
 
@@ -80,7 +86,7 @@ git diff --check
 
 | 现象 | 处理 |
 |------|------|
-| 仍加载旧 DLL、指纹却是新版本 | deps 旧“采纳”逻辑；删运行时目录重跑（Windows 一律重新解压） |
+| 仍加载旧 DLL、指纹却是新版本 | deps 旧“采纳”逻辑；删运行时目录重跑（Windows/Linux 一律重建并清理旧文件） |
 | `C3861: CefRegisterExtension 找不到标识符` | 按第 6 步绑定 native 函数 + `Eval` |
 | LNK2038 / LNK2005 | `CEF_RUNTIME_LIBRARY_FLAG` 与主工程 CRT 不一致，检查 `DUILIB_MD` 补丁 |
 | D9025 选项覆盖 | 156 起不要再给 wrapper 设 C++17 |

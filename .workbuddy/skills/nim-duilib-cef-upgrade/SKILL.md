@@ -104,11 +104,14 @@ description: nim_duilib 的 CEF（libcef）依赖升级手册。用于把仓库�
 
 ### 7. 收紧 deps 的“采纳已有运行时”规则
 
-升级后最隐蔽的坑：Windows 运行时目录只有二进制，读不到版本，旧 `libcef.dll` 会被**误写成新版本指纹**（142 运行时被标成 `156|x64|windows` 就是这样发生的）。
+升级后最隐蔽的坑：Windows/Linux 运行时目录只有二进制，读不到版本，旧 `libcef.dll` 会被**误写成新版本指纹**（142 运行时被标成 `156|x64|windows` 就是这样发生的）。
 
-- 规则：只有 Linux/macOS 在 `bin/libcef_linux`（或 `DUILIB_CEF_ROOT`）的 `include/cef_version.h` 与清单版本前缀匹配时才“采纳”；Windows 一律按归档重新解压覆盖。
+- 规则：只有 macOS 在 `DUILIB_CEF_ROOT` 的 `include/cef_version.h`（且 `Release|Debug/Chromium Embedded Framework.framework` 存在）与清单版本前缀匹配时才“采纳”；Windows/Linux 一律按归档重新解压覆盖。
+- 解压/同步顺序（避免升级后目录里混着旧版本文件）：归档先解压到 `<CEF_CACHE>/extract/<版本>/<arch>[-macos]` 临时目录（每次先清空）→ 校验 `cef_version.h` 与跟踪头文件完全一致 → 清理目标目录 → 复制。
+  - Windows/Linux：目标目录（`bin/libcef_win[_109]/<arch>`、`bin/libcef_linux`）整体删除后重建，142 遗留的 `libEGL.dll`/`libEGL.so`/`libGLESv2.*`/`dxil.dll` 不会残留。
+  - macOS：默认 `DUILIB_CEF_ROOT` 与 `DUILIB_CEF_CACHE` 是同一个目录（`<deps_root>/cef_binary`），因此只清理发行包条目（`include Release Resources cmake libcef_dll ...` 及旧版本解压目录），保留 `downloads/`、`extract/`；**不要把 `--force` 实现成删除整个 CEF_ROOT**，否则会把刚校验过的归档一起删掉导致解压失败。
 - 判据：删掉 `bin/libcef_win/x64` 后 `python3 build/build.py deps --offline`，检查 `libcef.dll` 的 `FileVersionInfo`、文件大小与 `.duilib-cef` 内容一致。
-- 换版本后 `bin/libcef_win/{Win32,arm64}`、`bin/libcef_linux` 里的旧运行时也要刷新，否则出包会静默带上旧 DLL（可先删目录再让 deps 重建）。
+- 换版本后 `bin/libcef_win/{Win32,arm64}`、`bin/libcef_linux` 里的旧运行时也会被自动清理并刷新；如仍担心残留，可先删目录再让 deps 重建。
 
 ### 8. 脚本与文档同步（禁止硬编码版本号）
 

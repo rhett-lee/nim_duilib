@@ -171,6 +171,16 @@ if(DUILIB_ENABLE_CEF)
     if(_duilib_cef_subdir AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/duilib/third_party/libcef/${_duilib_cef_subdir}/CMakeLists.txt")
         add_subdirectory("duilib/third_party/libcef/${_duilib_cef_subdir}")
 
+        # CEF 156 的 CMakeLists 用 `set(CMAKE_CONFIGURATION_TYPES ... CACHE ... FORCE)`
+        # 写缓存。单配置生成器（Ninja/Make）上这会污染根缓存，使后续逻辑把本工程
+        # 误判为多配置（Skia 路径退化成 $<IF:$<CONFIG:Debug>,...> 生成器表达式）。
+        # 用生成器属性判断（不依赖缓存值），配置完 libcef 后复原。
+        get_property(_duilib_generator_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+        if(NOT _duilib_generator_multi_config)
+            unset(CMAKE_CONFIGURATION_TYPES CACHE)
+            unset(CMAKE_CONFIGURATION_TYPES)
+        endif()
+
         # CEF 109 的 wrapper 按上游固定使用 C++17，而本工程是 C++20。若不做目标级
         # 降级，编译命令会同时带 /std:c++20（MSVC）或 -std=c++20（clang）与 CEF
         # 自带的 /std:c++17，触发 D9025（或 clang 的选项覆盖警告）。wrapper 是独立

@@ -65,10 +65,7 @@ The basic organization structure of the libcef binary files and resource files i
 chrome_elf.dll
 d3dcompiler_47.dll
 dxcompiler.dll
-dxil.dll
 libcef.dll
-libEGL.dll
-libGLESv2.dll
 vulkan-1.dll
 vk_swiftshader.dll
 v8_context_snapshot.bin
@@ -126,8 +123,6 @@ The basic usage steps are as follows (all directories only write the subdirector
 ```
 chrome-sandbox
 libcef.so
-libEGL.so
-libGLESv2.so
 libvk_swiftshader.so
 libvulkan.so.1
 v8_context_snapshot.bin

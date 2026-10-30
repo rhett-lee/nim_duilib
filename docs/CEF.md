@@ -62,10 +62,7 @@ libcef二进制文件和资源文件的基本组织结构为（以64位版本为
 chrome_elf.dll
 d3dcompiler_47.dll
 dxcompiler.dll
-dxil.dll
 libcef.dll
-libEGL.dll
-libGLESv2.dll
 vulkan-1.dll
 vk_swiftshader.dll
 v8_context_snapshot.bin
@@ -123,8 +120,6 @@ libcef 109版本支持Win7及以上版本的操作系统（Win7/Win10/Win11等�
 ```
 chrome-sandbox
 libcef.so
-libEGL.so
-libGLESv2.so
 libvk_swiftshader.so
 libvulkan.so.1
 v8_context_snapshot.bin
