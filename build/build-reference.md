@@ -51,7 +51,7 @@ Windows 与 Unix 使用同一条命令；Windows 上的 `python3`
 | `build.py`（默认） | 等价于 `build.py build`：先确保依赖就绪，再编译一个配置 |
 | `build.py deps` | 只准备当前配置所需的 Skia / SDL3 / CEF |
 | `build.py build` | 编译一个配置；默认先准备依赖，`--no-deps` 跳过 |
-| `build.py test` | 运行 `build/` 下的标准库 unittest（含 `test_build.py`） |
+| `build.py test` | 运行 `build/` 下的标准库 unittest（含 `test_build.py`、`test_pack.py`、`test_sdk_package.py`，以及覆盖 CMake 依赖脚本的 `test_cmake_scripts.py`） |
 | `build.py pack` | 调用 `pack.py` 出 SDK 包 |
 | `build.py doctor` | 环境自检：工具链、版本清单、依赖目录、根工程预检（含编译器、`gn`） |
 | `build.py clean` | 清理构建树；`--deps` 同时清理依赖产物 |

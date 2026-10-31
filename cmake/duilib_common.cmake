@@ -265,72 +265,21 @@ function(_duilib_check_deps_crt what dir)
 endfunction()
 
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_skia_toolchain.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_skia_variants.cmake")
 
 # 生成指定配置下的 Skia 子目录候选（按优先级排列）
+# 规则实现在 duilib_skia_variants.cmake，与 deps 的 off 模式检查和依赖准备共用；
+# 这里只负责把本工程作用域的变量名映射成共享函数的参数。
 function(_duilib_skia_candidate_subdirs config out_var)
-    set(_candidates "")
     if(DUILIB_OS_WINDOWS)
-        if(NOT DUILIB_MINGW)
-            # MSVC / clang-cl：Debug 必须使用 debug 变体，不做 release 回退。
-            # 动态运行库（DUILIB_MD）必须使用 /MD 编译的变体：
-            # Debug -> llvm.<arch>.debug.mdd，Release -> llvm.<arch>.release.md
-            if(config STREQUAL "debug")
-                if(DUILIB_MD)
-                    list(APPEND _candidates "llvm.${DUILIB_SKIA_CPU_ARCH}.debug.mdd")
-                else()
-                    list(APPEND _candidates "llvm.${DUILIB_SKIA_CPU_ARCH}.debug")
-                endif()
-            else()
-                if(DUILIB_MD)
-                    list(APPEND _candidates "llvm.${DUILIB_SKIA_CPU_ARCH}.release.md")
-                else()
-                    list(APPEND _candidates "llvm.${DUILIB_SKIA_CPU_ARCH}.release")
-                endif()
-            endif()
-        else()
-            # MinGW：MSYS2 使用无前缀目录（gcc./llvm.），独立 MinGW-w64 使用 mingw64- 前缀。
-            # 优先本工具链的前缀，另一组作为回退，避免用户只准备了一份 Skia 时无法构建。
-            # 库与 Skia 必须同源：gcc(libstdc++) 与 llvm-mingw(libc++) 的 C++ 运行时不兼容，
-            # 混用会在链接阶段出现 std 符号重复定义，因此不做跨编译器回退
-            if(DUILIB_MINGW_NAME STREQUAL "")
-                set(_prefixes "" "mingw64-")
-            else()
-                set(_prefixes "mingw64-" "")
-            endif()
-            if(DUILIB_COMPILER_GCC)
-                set(_compilers "gcc")
-                # MSYS2 的 MINGW64 环境使用 msvcrt，与 UCRT64 的 gcc 静态库不能混用：
-                # 该环境的 Skia 放在独立的 gcc.msvcrt.<arch>.release 目录，优先匹配。
-                if(DUILIB_MSYS2_ENV STREQUAL "mingw64")
-                    # MINGW64 暂无 debug 变体，Debug 构建同样复用 release Skia
-                    list(APPEND _candidates "gcc.msvcrt.${DUILIB_SKIA_CPU_ARCH}.release")
-                endif()
-            else()
-                set(_compilers "llvm")
-            endif()
-            foreach(_prefix IN LISTS _prefixes)
-                foreach(_compiler IN LISTS _compilers)
-                    if(config STREQUAL "debug")
-                        # Debug 变体优先；缺失时回退同编译器的 release 变体
-                        list(APPEND _candidates
-                            "${_prefix}${_compiler}.${DUILIB_SKIA_CPU_ARCH}.debug"
-                            "${_prefix}${_compiler}.${DUILIB_SKIA_CPU_ARCH}.release")
-                    else()
-                        list(APPEND _candidates
-                            "${_prefix}${_compiler}.${DUILIB_SKIA_CPU_ARCH}.release")
-                    endif()
-                endforeach()
-            endforeach()
-        endif()
+        set(_duilib_skia_platform "windows")
+        set(_duilib_skia_arch "${DUILIB_SKIA_CPU_ARCH}")
     else()
-        # 非Windows平台：Skia 只提供 release 变体（D-3）
-        # 优先 clang 版（GCC 版运行性能较差）；未准备时允许复用已有 gcc 版
-        duilib_skia_toolchain(_duilib_skia_variant _duilib_skia_cc _duilib_skia_cxx)
-        list(APPEND _candidates "${_duilib_skia_variant}.${DUILIB_SYSTEM_PROCESSOR}.release")
-        if(_duilib_skia_variant STREQUAL "llvm")
-            list(APPEND _candidates "gcc.${DUILIB_SYSTEM_PROCESSOR}.release")
-        endif()
+        set(_duilib_skia_platform "other")
+        set(_duilib_skia_arch "${DUILIB_SYSTEM_PROCESSOR}")
     endif()
+    duilib_skia_variant_candidates("${config}" "${_duilib_skia_platform}"
+                                   "${_duilib_skia_arch}" "${DUILIB_MINGW}" _candidates)
     set(${out_var} "${_candidates}" PARENT_SCOPE)
 endfunction()
 

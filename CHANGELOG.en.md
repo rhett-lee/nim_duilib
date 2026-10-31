@@ -277,6 +277,17 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Fixed
 
+- Build-system review: the Skia variant directory rule now lives in one place,
+  `cmake/duilib_skia_variants.cmake` (it used to be duplicated in
+  `duilib_common.cmake`, `duilib_deps.cmake` and `duilib_deps_run.cmake`, and had
+  already drifted once). With a multi-config generator (Visual Studio) dependency
+  preparation now builds both the Debug and the Release Skia variant
+  (`duilib_common.cmake` selects one per `$<CONFIG>`, so a missing variant broke the
+  Debug solution), and the `DUILIB_DEPS_MODE=off` check validates every configuration
+  (both are required for multi-config generators; MinGW also rejects a directory without
+  `.a` libraries). `build/test_cmake_scripts.py` and `build/tests/skia_variants_check.cmake`
+  were added so `build.py test` now covers the CMake dependency scripts (MSVC/MinGW/
+  non-Windows, `/MT` and `/MD`, single- and multi-config generators).
 - Dependency check for Debug configurations: with `DUILIB_DEPS_MODE=off`,
   `cmake/duilib_deps.cmake` selected the Skia variant from `DUILIB_BUILD_TYPE`, but that
   variable is defined in `duilib_common.cmake`, which is only included by the example

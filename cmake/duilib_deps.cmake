@@ -10,6 +10,7 @@
 
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_i18n.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_skia_toolchain.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_skia_variants.cmake")
 # 函数体内不能依赖 CMAKE_CURRENT_LIST_DIR（那是调用者的目录），先固化本文件所在目录
 set(DUILIB_CMAKE_DIR "${CMAKE_CURRENT_LIST_DIR}")
 
@@ -25,8 +26,8 @@ endfunction()
 # 构造传给脚本模式的 -D 参数列表
 function(_duilib_deps_script_args out_var)
     _duilib_deps_config(_duilib_deps_cfg)
-    # 多配置生成器（Visual Studio）无法在配置期区分目标配置：SDL3 只能构建
-    # Debug/Release 两份并让 Release 覆盖安装，脚本据此给出提示。
+    # 多配置生成器（Visual Studio）无法在配置期区分目标配置：Skia 的 Debug/Release
+    # 变体、SDL3 的两个配置都由脚本准备（SDL3 安装到同一前缀，Release 会覆盖 Debug）。
     if(CMAKE_CONFIGURATION_TYPES)
         set(_duilib_deps_multi ON)
     else()
@@ -129,89 +130,73 @@ function(duilib_configure_dependencies)
         duilib_error("deps.skia_source_missing" "deps.skia_source_missing_hint")
     endif()
 
-    # Skia 库目录按配置检查（与 duilib_common.cmake 的规则一致）。
-    # DUILIB_BUILD_TYPE 由 duilib_common.cmake 定义，而该文件只在示例子工程里才被包含，
-    # 根工程执行到这里时它还是空值；直接用它会把 Debug 配置当成 Release，在只有
-    # llvm.<arch>.debug 时误报“no usable Skia library directory”。因此按 CMAKE_BUILD_TYPE
-    # 自行推导（与 duilib_common.cmake、duilib_deps_run.cmake 的判定规则一致）。
-    set(_duilib_deps_build_type "")
-    if(DEFINED DUILIB_BUILD_TYPE AND NOT DUILIB_BUILD_TYPE STREQUAL "")
-        set(_duilib_deps_build_type "${DUILIB_BUILD_TYPE}")
+    # Skia 库目录按配置检查（与 duilib_common.cmake 共用 duilib_skia_variants.cmake
+    # 的规则，两处必须一致）。
+    # 注意：DUILIB_BUILD_TYPE 由 duilib_common.cmake 定义，而该文件只在示例子工程里
+    # 才被包含，根工程执行到这里时它还是空值；直接用它会把 Debug 配置当成 Release，
+    # 在只有 llvm.<arch>.debug 时误报“no usable Skia library directory”。
+    # 多配置生成器（Visual Studio）没有 CMAKE_BUILD_TYPE，且 duilib_common.cmake 会
+    # 逐个配置校验（Debug 用 debug 变体、Release 用 release 变体），这里同样逐配置检查。
+    set(_duilib_skia_configs "")
+    if(CMAKE_CONFIGURATION_TYPES)
+        foreach(_duilib_skia_generator_cfg IN LISTS CMAKE_CONFIGURATION_TYPES)
+            string(TOLOWER "${_duilib_skia_generator_cfg}" _duilib_skia_generator_cfg_lower)
+            if(_duilib_skia_generator_cfg_lower STREQUAL "debug")
+                list(APPEND _duilib_skia_configs "debug")
+            else()
+                list(APPEND _duilib_skia_configs "release")
+            endif()
+        endforeach()
+        list(REMOVE_DUPLICATES _duilib_skia_configs)
+    elseif(DEFINED DUILIB_BUILD_TYPE AND NOT DUILIB_BUILD_TYPE STREQUAL "")
+        list(APPEND _duilib_skia_configs "${DUILIB_BUILD_TYPE}")
     else()
         _duilib_deps_config(_duilib_deps_cfg)
         if(_duilib_deps_cfg STREQUAL "Debug")
-            set(_duilib_deps_build_type "debug")
+            list(APPEND _duilib_skia_configs "debug")
         else()
-            set(_duilib_deps_build_type "release")
+            list(APPEND _duilib_skia_configs "release")
         endif()
     endif()
 
-    set(_duilib_skia_candidates "")
+    set(_duilib_skia_platform "other")
     if(DUILIB_OS_WINDOWS)
-        if(NOT MINGW)
-            # 动态运行库（DUILIB_MD）使用独立变体：Debug -> .debug.mdd，Release -> .release.md
-            set(_duilib_skia_suffix "")
-            if(DUILIB_MD)
-                if(_duilib_deps_build_type STREQUAL "debug")
-                    set(_duilib_skia_suffix ".mdd")
-                else()
-                    set(_duilib_skia_suffix ".md")
-                endif()
-            endif()
-            list(APPEND _duilib_skia_candidates
-                "llvm.${DUILIB_TARGET_ARCH_RESOLVED}.${_duilib_deps_build_type}${_duilib_skia_suffix}")
-        else()
-            if(DUILIB_COMPILER_GCC)
-                set(_duilib_skia_compilers "gcc")
-                if(DUILIB_MSYS2_ENV STREQUAL "mingw64")
-                    list(APPEND _duilib_skia_candidates
-                        "gcc.msvcrt.${DUILIB_TARGET_ARCH_RESOLVED}.release")
-                endif()
-            else()
-                set(_duilib_skia_compilers "llvm")
-            endif()
-            if(DUILIB_MINGW_NAME STREQUAL "")
-                set(_duilib_skia_prefixes "" "mingw64-")
-            else()
-                set(_duilib_skia_prefixes "mingw64-" "")
-            endif()
-            foreach(_prefix IN LISTS _duilib_skia_prefixes)
-                foreach(_compiler IN LISTS _duilib_skia_compilers)
-                    if(_duilib_deps_build_type STREQUAL "debug")
-                        list(APPEND _duilib_skia_candidates
-                            "${_prefix}${_compiler}.${DUILIB_TARGET_ARCH_RESOLVED}.debug"
-                            "${_prefix}${_compiler}.${DUILIB_TARGET_ARCH_RESOLVED}.release")
-                    else()
-                        list(APPEND _duilib_skia_candidates
-                            "${_prefix}${_compiler}.${DUILIB_TARGET_ARCH_RESOLVED}.release")
-                    endif()
-                endforeach()
-            endforeach()
-        endif()
-    else()
-        # 与 duilib_skia_toolchain.cmake 保持一致：非 Windows 优先 clang 版 Skia，
-        # 未准备时允许复用已有的 gcc 版本（-DDUILIB_DEPS_MODE=off）
-        duilib_skia_toolchain(_duilib_skia_variant _duilib_skia_cc _duilib_skia_cxx)
-        list(APPEND _duilib_skia_candidates
-            "${_duilib_skia_variant}.${DUILIB_TARGET_ARCH_RESOLVED}.release")
-        if(_duilib_skia_variant STREQUAL "llvm")
-            list(APPEND _duilib_skia_candidates
-                "gcc.${DUILIB_TARGET_ARCH_RESOLVED}.release")
-        endif()
+        set(_duilib_skia_platform "windows")
     endif()
 
-    set(_duilib_skia_found FALSE)
-    foreach(_candidate IN LISTS _duilib_skia_candidates)
-        if(EXISTS "${DUILIB_SKIA_ROOT}/out/${_candidate}")
-            set(_duilib_skia_found TRUE)
-            break()
+    set(_duilib_skia_missing "")
+    foreach(_duilib_skia_cfg IN LISTS _duilib_skia_configs)
+        duilib_skia_variant_candidates("${_duilib_skia_cfg}" "${_duilib_skia_platform}"
+                                       "${DUILIB_TARGET_ARCH_RESOLVED}" "${MINGW}"
+                                       _duilib_skia_candidates)
+        set(_duilib_skia_found FALSE)
+        foreach(_candidate IN LISTS _duilib_skia_candidates)
+            if(EXISTS "${DUILIB_SKIA_ROOT}/out/${_candidate}")
+                # MinGW 的目录名可能与 MSVC 产物重名（如 llvm.x64.debug 存放的是 .lib），
+                # 只有包含 .a 静态库的目录才算可用，与 duilib_common.cmake 的判定一致。
+                set(_duilib_skia_candidate_ok TRUE)
+                if(MINGW)
+                    file(GLOB _duilib_skia_a_files "${DUILIB_SKIA_ROOT}/out/${_candidate}/*.a")
+                    if(NOT _duilib_skia_a_files)
+                        set(_duilib_skia_candidate_ok FALSE)
+                    endif()
+                endif()
+                if(_duilib_skia_candidate_ok)
+                    set(_duilib_skia_found TRUE)
+                    break()
+                endif()
+            endif()
+        endforeach()
+        if(NOT _duilib_skia_found)
+            string(REPLACE ";" "\n    " _duilib_skia_candidates_text "${_duilib_skia_candidates}")
+            string(APPEND _duilib_skia_missing
+                "  ${_duilib_skia_cfg} 配置：\n    ${_duilib_skia_candidates_text}\n")
         endif()
     endforeach()
-    if(NOT _duilib_skia_found)
-        string(REPLACE ";" "\n    " _duilib_skia_candidates_text "${_duilib_skia_candidates}")
+    if(NOT _duilib_skia_missing STREQUAL "")
         message(FATAL_ERROR
             "[ERROR] no usable Skia library directory in ${DUILIB_SKIA_ROOT}/out\n"
-            "  Tried:\n    ${_duilib_skia_candidates_text}\n"
+            "  Tried:\n${_duilib_skia_missing}"
             "  Hint: run 'build.py deps', or pass -DDUILIB_DEPS_MODE=auto")
     endif()
 

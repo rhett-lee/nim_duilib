@@ -216,6 +216,15 @@
 
 ### 修复
 
+- 构建系统复核：把 Skia 变体目录规则统一到 `cmake/duilib_skia_variants.cmake`
+  （此前 `duilib_common.cmake`、`duilib_deps.cmake`、`duilib_deps_run.cmake` 各有一份
+  实现，已经漂移过一次）；多配置生成器（Visual Studio）下依赖准备现在同时编译 Debug
+  与 Release 两个 Skia 变体（`duilib_common.cmake` 按 `$<CONFIG>` 选择，缺一个就会在
+  VS 的 Debug 解决方案里配置失败），`DUILIB_DEPS_MODE=off` 的检查也改为逐配置校验
+  （多配置时 Debug/Release 都要求存在，MinGW 还会拒绝没有 `.a` 的 MSVC 目录）。
+  新增 `build/test_cmake_scripts.py` 与 `build/tests/skia_variants_check.cmake`，把
+  CMake 依赖脚本纳入 `build.py test` 的自动验证（覆盖 MSVC/MinGW/非 Windows、
+  `/MT` 与 `/MD`、单配置与多配置生成器）。
 - Debug 配置的依赖检查：`cmake/duilib_deps.cmake` 在 `DUILIB_DEPS_MODE=off` 时用
   `DUILIB_BUILD_TYPE` 判断 Skia 变体，但该变量由 `duilib_common.cmake` 定义、只在
   示例子工程里才被包含，根工程执行检查时仍为空，于是 Debug 被当成 Release：

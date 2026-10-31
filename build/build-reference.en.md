@@ -56,7 +56,7 @@ assets always go to `bin/`; libraries go to `lib/<arch>/<Config>/` (`lib/<Config
 | `build.py` (default) | same as `build.py build`: prepare deps, then build one configuration |
 | `build.py deps` | prepare Skia / SDL3 / CEF for the current configuration |
 | `build.py build` | build one configuration; prepares deps unless `--no-deps` |
-| `build.py test` | run the standard-library unittests under `build/` |
+| `build.py test` | run the standard-library unittests under `build/` (`test_build.py`, `test_pack.py`, `test_sdk_package.py`, and `test_cmake_scripts.py`, which covers the CMake dependency scripts) |
 | `build.py pack` | package an SDK via `pack.py` |
 | `build.py doctor` | environment check: toolchain, version manifest, dependency dirs, preflight (including compiler, `gn`) |
 | `build.py clean` | remove the build tree; `--deps` also removes dependency artifacts |
