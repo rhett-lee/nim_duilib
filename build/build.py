@@ -745,6 +745,36 @@ def _ninja_from_patch_archive(args) -> Path | None:
     return target if target.is_file() else None
 
 
+def find_cmake(env: dict | None = None, vs_install: Path | None = None) -> str | None:
+    """定位 cmake 可执行文件。
+
+    查找顺序：DUILIB_CMAKE_EXECUTABLE（显式覆盖）-> PATH -> Visual Studio 自带
+    的 CMake（VS 安装目录、VSINSTALLDIR 或 vswhere 推导）。后两级用于“cmake 不在
+    PATH、但装过 Visual Studio”的环境；`build.py test` 与各子命令共用这一套判定，
+    避免测试只因为 PATH 里没有 cmake 就被跳过。
+    """
+    env = os.environ if env is None else env
+    override = env.get("DUILIB_CMAKE_EXECUTABLE") or os.environ.get("DUILIB_CMAKE_EXECUTABLE", "")
+    if override:
+        path = Path(override).expanduser()
+        if path.is_file():
+            return str(path)
+    found = shutil.which("cmake", path=env.get("PATH"))
+    if found:
+        return found
+    install = vs_install
+    if install is None and env.get("VSINSTALLDIR"):
+        install = Path(env["VSINSTALLDIR"])
+    if install is None and sys.platform == "win32":
+        install = _vswhere_installation(None)
+    if install:
+        candidate = (install / "Common7" / "IDE" / "CommonExtensions" / "Microsoft"
+                     / "CMake" / "CMake" / "bin" / "cmake.exe")
+        if candidate.is_file():
+            return str(candidate)
+    return None
+
+
 def _find_ninja(env: dict, vs_install: Path | None, args=None) -> Path | None:
     """查找 ninja：环境变量覆盖、PATH、VS 安装目录、已解压的 skia/bin、补丁归档自带的副本。"""
     override = env.get("DUILIB_NINJA_EXECUTABLE", "")
@@ -900,7 +930,7 @@ def _cmake_defines(args, arch: str, deps_mode: str, force: bool) -> list:
 def _configure_command(args, toolchain: Toolchain, arch: str, config: str,
                        build_dir: Path, deps_mode: str, force: bool) -> list:
     defines, _ = _cmake_defines(args, arch, deps_mode, force)
-    command = [shutil.which("cmake") or "cmake"]
+    command = [find_cmake(toolchain.env, toolchain.vs_install) or "cmake"]
     if toolchain.use_preset and not args.build_dir:
         command += ["--preset", preset_name(arch, config)]
     else:
@@ -916,7 +946,7 @@ def _configure_command(args, toolchain: Toolchain, arch: str, config: str,
 
 def _build_command(args, toolchain: Toolchain, build_dir: Path, config: str,
                    target: str | None = None) -> list:
-    cmake = shutil.which("cmake") or "cmake"
+    cmake = find_cmake(toolchain.env, toolchain.vs_install) or "cmake"
     command = [cmake, "--build", str(build_dir)]
     if toolchain.generator.startswith("Visual Studio"):
         command += ["--config", config]
@@ -934,7 +964,7 @@ def _build_command(args, toolchain: Toolchain, build_dir: Path, config: str,
 # 命令实现
 # ---------------------------------------------------------------------------
 def _require_cmake(messages) -> str:
-    cmake = shutil.which("cmake")
+    cmake = find_cmake()
     if not cmake:
         raise BuildError(messages.t("build.cmake_missing"), messages.hint("build.cmake_missing_hint"))
     return cmake
@@ -1173,7 +1203,7 @@ def cmd_doctor(args, messages) -> int:
     _ok_line(f"{Path(sys.executable).stem} {platform.python_version()} ({sys.executable})")
     _ok_line(f"repository {REPO_ROOT}")
 
-    cmake = shutil.which("cmake")
+    cmake = find_cmake()
     if not cmake:
         _warn_line(messages.t("doctor.cmake_missing"))
     else:

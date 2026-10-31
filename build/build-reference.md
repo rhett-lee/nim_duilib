@@ -51,7 +51,7 @@ Windows 与 Unix 使用同一条命令；Windows 上的 `python3`
 | `build.py`（默认） | 等价于 `build.py build`：先确保依赖就绪，再编译一个配置 |
 | `build.py deps` | 只准备当前配置所需的 Skia / SDL3 / CEF |
 | `build.py build` | 编译一个配置；默认先准备依赖，`--no-deps` 跳过 |
-| `build.py test` | 运行 `build/` 下的标准库 unittest（含 `test_build.py`、`test_pack.py`、`test_sdk_package.py`，以及覆盖 CMake 依赖脚本的 `test_cmake_scripts.py`） |
+| `build.py test` | 运行 `build/` 下的标准库 unittest（含 CMake 规则用例与一次真实 configure 冒烟）；PATH 上没有 cmake 时自动使用 `DUILIB_CMAKE_EXECUTABLE` 或 VS 自带 CMake |
 | `build.py pack` | 调用 `pack.py` 出 SDK 包 |
 | `build.py doctor` | 环境自检：工具链、版本清单、依赖目录、根工程预检（含编译器、`gn`） |
 | `build.py clean` | 清理构建树；`--deps` 同时清理依赖产物 |
@@ -323,14 +323,18 @@ MSYS2 各环境使用各自目录下的工具链（MSYS2 终端中 `MSYSTEM` 与
 
 | 环境 | `MSYSTEM` | 工具链目录 | 建议的 `CC`/`CXX` | Skia 目录候选（`skia/out/`，按顺序取第一个） | 包名后缀 |
 | --- | --- | --- | --- | --- | --- |
-| MINGW64（msvcrt） | `MINGW64` | `E:\msys64\mingw64\bin` | `gcc` / `g++` | `gcc.msvcrt.<arch>.release` → `mingw64-gcc.<arch>.release` → `gcc.<arch>.release` | `-mingw-gcc` |
-| UCRT64 | `UCRT64` | `E:\msys64\ucrt64\bin` | `gcc` / `g++` | `mingw64-gcc.<arch>.release` → `gcc.<arch>.release` → `gcc.msvcrt.<arch>.release` | `-mingw-gcc` |
-| CLANG64 | `CLANG64` | `E:\msys64\clang64\bin` | `clang` / `clang++` | `mingw64-llvm.<arch>.release` → `llvm.<arch>.release` | `-mingw-llvm` |
+| MINGW64（msvcrt） | `MINGW64` | `E:\msys64\mingw64\bin` | `gcc` / `g++` | `gcc.msvcrt.<arch>.release` → `gcc.<arch>.release` → `mingw64-gcc.<arch>.release` | `-mingw-gcc` |
+| UCRT64 | `UCRT64` | `E:\msys64\ucrt64\bin` | `gcc` / `g++` | `gcc.<arch>.release` → `mingw64-gcc.<arch>.release` | `-mingw-gcc` |
+| CLANG64 | `CLANG64` | `E:\msys64\clang64\bin` | `clang` / `clang++` | `llvm.<arch>.release` → `mingw64-llvm.<arch>.release` | `-mingw-llvm` |
 
 MINGW64（msvcrt）与 UCRT64（ucrt）的 gcc 静态库 C 运行库不同，Skia 也必须用同源目录；
-MINGW64 会优先选带 `.msvcrt` 的目录。两者的包名都是 `-mingw-gcc`，**不能归档到同一目录**。
+MINGW64 会优先选带 `.msvcrt` 的目录（只在该环境提供，其他环境不会误选）。
+两者的包名都是 `-mingw-gcc`，**不能归档到同一目录**。
 独立版 llvm-mingw 使用 `mingw64-llvm.<arch>.release`（libc++），与 MSYS2 CLANG64 的
 `llvm.<arch>.release` 也不是同一份产物，`pack.py` 会按库内符号（`libstdc++` / `libc++`）区分。
+上表规则由 `cmake/duilib_skia_variants.cmake` 统一实现（配置期解析、off 模式检查、
+依赖准备共用），`build/pack.py` 的打包侧候选与之保持一致，并由
+`build/test_cmake_scripts.py` 逐项比对。
 需要强制指定某个 Skia 目录时用 `--skia-lib-dir <目录>`（编译侧对应
 `-DDUILIB_SKIA_LIB_SUBPATH=<目录>`）。
 

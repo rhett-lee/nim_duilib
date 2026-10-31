@@ -6,6 +6,7 @@
 cmake_minimum_required(VERSION 3.24)
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_i18n.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_skia_toolchain.cmake")
+# Skia 变体目录名的唯一规则（与 duilib_common.cmake、duilib_deps.cmake 共用）
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_skia_variants.cmake")
 
 # ---------------------------------------------------------------------------
@@ -22,9 +23,7 @@ if(DUILIB_CONFIG STREQUAL "Debug")
 else()
     set(DUILIB_BUILD_TYPE "release")
 endif()
-# 多配置生成器（Visual Studio）在配置期无法确定目标配置：Skia 的 Debug/Release
-# 变体与 SDL3 的两个配置都会准备（见 duilib_prepare_skia / duilib_prepare_sdl），
-# 这里的 DUILIB_CONFIG 只作为脚本直接运行时的缺省配置。
+# 多配置生成器（Visual Studio）在配置期无法确定目标配置，依赖按 Release 处理。
 if("${DUILIB_MULTI_CONFIG}" STREQUAL "")
     set(DUILIB_MULTI_CONFIG OFF)
 endif()
@@ -105,11 +104,15 @@ include("${CMAKE_CURRENT_LIST_DIR}/duilib_cef.cmake")
 # ---------------------------------------------------------------------------
 # Skia
 # ---------------------------------------------------------------------------
+# 候选目录名统一由 cmake/duilib_skia_variants.cmake 生成，这里只映射变量名与参数。
 function(_duilib_skia_candidates out_var)
-    # 规则实现在 duilib_skia_variants.cmake（与 duilib_common.cmake 的配置期解析、
-    # duilib_deps.cmake 的 off 模式检查共用），这里只传入脚本模式的变量。
-    duilib_skia_variant_candidates("${DUILIB_BUILD_TYPE}" "${DUILIB_DEPS_PLATFORM}"
-                                   "${DUILIB_ARCH}" "${DUILIB_MINGW}" _candidates)
+    if(DUILIB_DEPS_PLATFORM STREQUAL "windows")
+        set(_platform "windows")
+    else()
+        set(_platform "other")
+    endif()
+    duilib_skia_variant_candidates("${DUILIB_CONFIG}" "${_platform}" "${DUILIB_ARCH}"
+                                   "${DUILIB_MINGW}" _candidates)
     set(${out_var} "${_candidates}" PARENT_SCOPE)
 endfunction()
 
@@ -604,10 +607,9 @@ function(_duilib_skia_patch_key out_key patch)
     set(${out_key} "${DUILIB_SKIA_REF_VALUE}:${_hash}" PARENT_SCOPE)
 endfunction()
 
-# 准备单个配置的 Skia 变体。多配置生成器下会按配置调用多次（见下方
-# duilib_prepare_skia）：本函数把配置写回局部作用域，供 _duilib_skia_candidates
-# 选变体、_duilib_skia_gn_args 选运行库（/MT(d)、/MD(d)）。
 function(_duilib_prepare_skia_config config)
+    # 单个配置的 Skia 变体：目录名与 gn 参数都依赖当前配置，先把本配置写进局部变量，
+    # 供 _duilib_skia_candidates / _duilib_skia_gn_args 读取。
     set(DUILIB_CONFIG "${config}")
     if(config STREQUAL "Debug")
         set(DUILIB_BUILD_TYPE "debug")
@@ -771,13 +773,9 @@ function(_duilib_prepare_skia_config config)
     duilib_msg("deps.skia_ready" " (${_variant})")
 endfunction()
 
-# 依赖准备入口。
-# 单配置生成器（Ninja / Makefiles）只准备当前配置的变体。
-# 多配置生成器（Visual Studio）在配置期无法确定目标配置，duilib_common.cmake 会
-# 通过 $<CONFIG> 在 Debug/Release 两个变体之间选择，因此这里必须两个都准备，
-# 否则 VS 的 Debug 解决方案配置阶段（DUILIB_DEPS_MODE=off）会报
-# "no usable Skia library directory"。MinGW 的 Debug 可以直接链接 release 变体
-# （候选列表已包含回退），无需额外编译一份。
+# 准备 Skia：多配置生成器（Visual Studio）下 Debug/Release 目标各自链接对应变体，
+# 配置期会按配置逐一校验，因此两份都要准备。MinGW 的 Debug 目标可以回退到同编译器
+# 的 release 变体，不需要重复编译；非 Windows 平台只有 release 变体。
 function(duilib_prepare_skia)
     set(_configs "${DUILIB_CONFIG}")
     if(DUILIB_MULTI_CONFIG AND DUILIB_DEPS_PLATFORM STREQUAL "windows" AND NOT DUILIB_MINGW)

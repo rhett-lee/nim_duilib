@@ -216,15 +216,26 @@
 
 ### 修复
 
-- 构建系统复核：把 Skia 变体目录规则统一到 `cmake/duilib_skia_variants.cmake`
-  （此前 `duilib_common.cmake`、`duilib_deps.cmake`、`duilib_deps_run.cmake` 各有一份
-  实现，已经漂移过一次）；多配置生成器（Visual Studio）下依赖准备现在同时编译 Debug
-  与 Release 两个 Skia 变体（`duilib_common.cmake` 按 `$<CONFIG>` 选择，缺一个就会在
-  VS 的 Debug 解决方案里配置失败），`DUILIB_DEPS_MODE=off` 的检查也改为逐配置校验
-  （多配置时 Debug/Release 都要求存在，MinGW 还会拒绝没有 `.a` 的 MSVC 目录）。
-  新增 `build/test_cmake_scripts.py` 与 `build/tests/skia_variants_check.cmake`，把
-  CMake 依赖脚本纳入 `build.py test` 的自动验证（覆盖 MSVC/MinGW/非 Windows、
-  `/MT` 与 `/MD`、单配置与多配置生成器）。
+- Skia 变体目录名的规则统一到 `cmake/duilib_skia_variants.cmake`：配置期解析
+  （`duilib_common.cmake`）、off 模式检查（`duilib_deps.cmake`）、依赖准备
+  （`duilib_deps_run.cmake`）共用同一函数，不再各自拼目录名。`build/pack.py`
+  的打包侧候选目录名也改为同一规则，并新增一致性用例逐一比对两侧
+  （`build/test_cmake_scripts.py`），防止再次漂移。顺带修正 MinGW Debug 打包
+  会漏掉 `.debug` 变体；`gcc.msvcrt` 只在 MSYS2 MINGW64 作为候选，不再把
+  不兼容的 msvcrt 库打进 UCRT64/独立 MinGW 包。
+- CRT 标识推导统一：新增 `cmake/duilib_crt.cmake` 的 `duilib_crt_id()`，
+  `duilib_root_options.cmake`（写入依赖 stamp 的 `DUILIB_CRT_ID`）与
+  `duilib_common.cmake`（读取依赖目录 `.duilib-crt` 后比对）共用同一实现，
+  不再有两份可能分叉的判定。
+- 多配置生成的 Debug 目标找不到 Skia：依赖准备此前只按 `DUILIB_CONFIG`
+  （默认 Release）准备一份 Skia，而配置期会按 Debug/Release 逐一校验；
+  现在多配置生成器下两份都准备（单配置仍只准备当前配置），并新增
+  `deps.skia_multi_config` 提示。
+- 构建测试不再依赖 PATH 上有 cmake：`build/build.py` 新增 `find_cmake()`
+  （`DUILIB_CMAKE_EXECUTABLE` → PATH → Visual Studio 自带 CMake），配置/构建/
+  `doctor`/测试共用；缺少 cmake 时相关用例不再被跳过。`build.py test` 除脚本级
+  单元测试外，还通过 `build/test_cmake_scripts.py` 执行一次真实 configure 冒烟
+  （prepare 模式，不依赖 Skia）。
 - Debug 配置的依赖检查：`cmake/duilib_deps.cmake` 在 `DUILIB_DEPS_MODE=off` 时用
   `DUILIB_BUILD_TYPE` 判断 Skia 变体，但该变量由 `duilib_common.cmake` 定义、只在
   示例子工程里才被包含，根工程执行检查时仍为空，于是 Debug 被当成 Release：

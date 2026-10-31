@@ -56,7 +56,7 @@ assets always go to `bin/`; libraries go to `lib/<arch>/<Config>/` (`lib/<Config
 | `build.py` (default) | same as `build.py build`: prepare deps, then build one configuration |
 | `build.py deps` | prepare Skia / SDL3 / CEF for the current configuration |
 | `build.py build` | build one configuration; prepares deps unless `--no-deps` |
-| `build.py test` | run the standard-library unittests under `build/` (`test_build.py`, `test_pack.py`, `test_sdk_package.py`, and `test_cmake_scripts.py`, which covers the CMake dependency scripts) |
+| `build.py test` | run the standard-library unittests under `build/` (including CMake rule cases and a real configure smoke test); when cmake is not on PATH, `DUILIB_CMAKE_EXECUTABLE` or the CMake bundled with Visual Studio is used |
 | `build.py pack` | package an SDK via `pack.py` |
 | `build.py doctor` | environment check: toolchain, version manifest, dependency dirs, preflight (including compiler, `gn`) |
 | `build.py clean` | remove the build tree; `--deps` also removes dependency artifacts |
@@ -350,18 +350,23 @@ terminal `MSYSTEM` and `PATH` are already set):
 
 | Environment | `MSYSTEM` | toolchain directory | `CC`/`CXX` | Skia directory candidates (`skia/out/`, first match wins) | Package suffix |
 | --- | --- | --- | --- | --- | --- |
-| MINGW64 (msvcrt) | `MINGW64` | `E:\msys64\mingw64\bin` | `gcc` / `g++` | `gcc.msvcrt.<arch>.release` → `mingw64-gcc.<arch>.release` → `gcc.<arch>.release` | `-mingw-gcc` |
-| UCRT64 | `UCRT64` | `E:\msys64\ucrt64\bin` | `gcc` / `g++` | `mingw64-gcc.<arch>.release` → `gcc.<arch>.release` → `gcc.msvcrt.<arch>.release` | `-mingw-gcc` |
-| CLANG64 | `CLANG64` | `E:\msys64\clang64\bin` | `clang` / `clang++` | `mingw64-llvm.<arch>.release` → `llvm.<arch>.release` | `-mingw-llvm` |
+| MINGW64 (msvcrt) | `MINGW64` | `E:\msys64\mingw64\bin` | `gcc` / `g++` | `gcc.msvcrt.<arch>.release` → `gcc.<arch>.release` → `mingw64-gcc.<arch>.release` | `-mingw-gcc` |
+| UCRT64 | `UCRT64` | `E:\msys64\ucrt64\bin` | `gcc` / `g++` | `gcc.<arch>.release` → `mingw64-gcc.<arch>.release` | `-mingw-gcc` |
+| CLANG64 | `CLANG64` | `E:\msys64\clang64\bin` | `clang` / `clang++` | `llvm.<arch>.release` → `mingw64-llvm.<arch>.release` | `-mingw-llvm` |
 
 MINGW64 (msvcrt) and UCRT64 (ucrt) gcc static libraries use different C runtimes, so
 Skia must come from a matching directory; MINGW64 therefore prefers the `.msvcrt`
-variant. Both use the `-mingw-gcc` suffix, so their packages **must not be archived
-into the same directory**. A standalone llvm-mingw uses
+variant (it is offered only in that environment, so other environments never pick it
+by accident). Both use the `-mingw-gcc` suffix, so their packages **must not be
+archived into the same directory**. A standalone llvm-mingw uses
 `mingw64-llvm.<arch>.release` (libc++), which is also not the same artifact as MSYS2
 CLANG64's `llvm.<arch>.release`; `pack.py` tells them apart by library symbols
-(`libstdc++` / `libc++`). Use `--skia-lib-dir <dir>` to force a specific Skia
-directory (the build equivalent is `-DDUILIB_SKIA_LIB_SUBPATH=<dir>`).
+(`libstdc++` / `libc++`). The rules above live in
+`cmake/duilib_skia_variants.cmake` (shared by configuration-time resolution, off-mode
+checks and dependency preparation); `build/pack.py` keeps the same candidates and
+`build/test_cmake_scripts.py` compares them case by case. Use
+`--skia-lib-dir <dir>` to force a specific Skia directory (the build equivalent is
+`-DDUILIB_SKIA_LIB_SUBPATH=<dir>`).
 
 When invoking from PowerShell, export `MSYSTEM` yourself and prepend the matching
 `bin` directory to `PATH`; `build.py` skips vcvars whenever `MSYSTEM` is set and

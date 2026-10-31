@@ -277,17 +277,31 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Fixed
 
-- Build-system review: the Skia variant directory rule now lives in one place,
-  `cmake/duilib_skia_variants.cmake` (it used to be duplicated in
-  `duilib_common.cmake`, `duilib_deps.cmake` and `duilib_deps_run.cmake`, and had
-  already drifted once). With a multi-config generator (Visual Studio) dependency
-  preparation now builds both the Debug and the Release Skia variant
-  (`duilib_common.cmake` selects one per `$<CONFIG>`, so a missing variant broke the
-  Debug solution), and the `DUILIB_DEPS_MODE=off` check validates every configuration
-  (both are required for multi-config generators; MinGW also rejects a directory without
-  `.a` libraries). `build/test_cmake_scripts.py` and `build/tests/skia_variants_check.cmake`
-  were added so `build.py test` now covers the CMake dependency scripts (MSVC/MinGW/
-  non-Windows, `/MT` and `/MD`, single- and multi-config generators).
+- The Skia variant directory naming rule is now centralized in
+  `cmake/duilib_skia_variants.cmake`: configuration-time resolution
+  (`duilib_common.cmake`), off-mode checks (`duilib_deps.cmake`) and dependency
+  preparation (`duilib_deps_run.cmake`) all call the same function instead of
+  assembling names themselves. `build/pack.py` now derives its packaging candidates
+  from the same rule, and `build/test_cmake_scripts.py` compares both sides case by
+  case to prevent future drift. This also fixes MinGW Debug packaging missing the
+  `.debug` variant; `gcc.msvcrt` is now a candidate only under MSYS2 MINGW64, so an
+  incompatible msvcrt library is no longer picked for UCRT64 / standalone MinGW.
+- CRT identification is now derived in one place: `duilib_crt_id()` in
+  `cmake/duilib_crt.cmake` is shared by `duilib_root_options.cmake` (the
+  `DUILIB_CRT_ID` written into dependency stamps) and `duilib_common.cmake` (the
+  `.duilib-crt` comparison when reading dependency directories), removing the two
+  implementations that could diverge.
+- Debug targets with a multi-config generator could not find Skia: dependency
+  preparation used only `DUILIB_CONFIG` (Release by default) while configuration
+  checks every Debug/Release variant. Multi-config generators now prepare both
+  variants (single-config still prepares only the current one), with a new
+  `deps.skia_multi_config` notice.
+- Build tests no longer require cmake on PATH: `build/build.py` gained
+  `find_cmake()` (`DUILIB_CMAKE_EXECUTABLE` → PATH → Visual Studio's bundled CMake),
+  shared by configure/build/`doctor`/tests, so tests are no longer skipped when cmake
+  is not on PATH. Besides script-level unit tests, `build.py test` now also performs
+  a real configure smoke test via `build/test_cmake_scripts.py` (prepare mode, no
+  Skia required).
 - Dependency check for Debug configurations: with `DUILIB_DEPS_MODE=off`,
   `cmake/duilib_deps.cmake` selected the Skia variant from `DUILIB_BUILD_TYPE`, but that
   variable is defined in `duilib_common.cmake`, which is only included by the example

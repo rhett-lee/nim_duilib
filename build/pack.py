@@ -946,17 +946,74 @@ def _msys2_env_name():
     return os.environ.get('MSYSTEM', '').lower()
 
 
+def _skia_candidate_names(config, arch_tag, toolchain=None, mingw_variant=None,
+                          dll_mode=False, msys2_env=None, windows=None):
+    """给出 Skia 库候选目录名（顺序即优先级）。
+
+    MinGW 的 gcc 与 llvm-mingw（以及 MSYS2 的 gcc/clang）各自使用不同的 Skia
+    静态库，不能混用。目录名分两种前缀：
+      独立 MinGW-w64 : mingw64-gcc.<arch>.<debug|release> / mingw64-llvm.<arch>.<...>
+      MSYS2          : gcc.<arch>.<debug|release> / llvm.<arch>.<debug|release>
+      MSYS2 MINGW64  : gcc.msvcrt.<arch>.release（msvcrt，与 UCRT64 的 gcc 产物不兼容）
+    MSVC DLL 模式使用 /MD 动态运行库，必须链接同 CRT 的 Skia：
+      llvm.<arch>.release.md / llvm.<arch>.debug.mdd
+
+    这些名字必须与 CMake 侧 cmake/duilib_skia_variants.cmake 的规则一致
+    （build/test_cmake_scripts.py 用同一组用例比对两侧，防止再次漂移）。
+    msys2_env 为空时按当前环境推断（_msys2_env_name）；windows 为空时按宿主判断
+    （显式传入只为测试可在任意平台跑）。
+    """
+    if not (is_windows_host() if windows is None else windows):
+        return ['llvm.%s.release' % arch_tag, 'gcc.%s.release' % arch_tag]
+
+    is_debug = config == 'Debug'
+    # MSVC：llvm.<arch>.debug / release（MSYS2 CLANG64 也用这个目录名，按内容区分）
+    msvc_name = 'llvm.%s.%s' % (arch_tag, 'debug' if is_debug else 'release')
+    if dll_mode:
+        # DLL 模式：duilib 用 /MD，必须匹配同 CRT 的 Skia 变体
+        msvc_name += '.mdd' if is_debug else '.md'
+    env = msys2_env if msys2_env is not None else _msys2_env_name()
+    # MSYS2 MINGW64 的 gcc 产物使用 msvcrt，目录名带 .msvcrt 后缀
+    msvcrt_name = 'gcc.msvcrt.%s.release' % arch_tag
+    # 独立 MinGW-w64 优先 mingw64- 前缀，MSYS2 环境优先无前缀目录
+    # （与 CMake 侧按 DUILIB_MINGW_NAME 判定的顺序一致）
+    prefixes = ['', 'mingw64-'] if env else ['mingw64-', '']
+
+    def _compiler_names(compiler):
+        names = []
+        for prefix in prefixes:
+            base = '%s%s.%s.' % (prefix, compiler, arch_tag)
+            if is_debug:
+                names.append(base + 'debug')
+            # Debug 也保留 release 兜底（CMake 侧同样允许）
+            names.append(base + 'release')
+        return names
+
+    def _mingw_names(compilers):
+        names = []
+        if env == 'mingw64' and 'gcc' in compilers:
+            names.append(msvcrt_name)
+        for compiler in compilers:
+            names.extend(_compiler_names(compiler))
+        return names
+
+    if toolchain == 'mingw':
+        if mingw_variant in MINGW_VARIANTS:
+            names = _mingw_names([mingw_variant])
+        else:
+            names = _mingw_names(list(MINGW_VARIANTS))
+    elif toolchain == 'msvc':
+        names = [msvc_name]
+    else:
+        # 工具链未知：先按 MSVC 再按 MinGW 依次尝试
+        names = [msvc_name] + _mingw_names(list(MINGW_VARIANTS))
+    return names
+
+
 def resolve_skia_lib_dir(explicit_dir, config, arch_tag, toolchain=None,
                          mingw_variant=None, dll_mode=False):
     """解析 Skia 库目录。显式指定优先，否则按平台/配置/工具链探测。
 
-    MinGW 的 gcc 与 llvm-mingw（以及 MSYS2 的 gcc/clang）各自使用不同的 Skia
-    静态库，不能混用。目录名分两种前缀：
-      独立 MinGW-w64 : mingw64-gcc.<arch>.release / mingw64-llvm.<arch>.release
-      MSYS2          : gcc.<arch>.release / llvm.<arch>.release
-      MSYS2 MINGW64  : gcc.msvcrt.<arch>.release（msvcrt，与 UCRT64 的 gcc 产物不兼容）
-    MSVC DLL 模式使用 /MD 动态运行库，必须链接同 CRT 的 Skia：
-      llvm.<arch>.release.md / llvm.<arch>.debug.mdd
     MSYS2 的 llvm.<arch>.release 与 MSVC 目录同名，因此除目录名外还要检查目录
     内容（.a / .lib），否则会把 MSVC 的 Skia 打进 MinGW 包。
     """
@@ -979,46 +1036,9 @@ def resolve_skia_lib_dir(explicit_dir, config, arch_tag, toolchain=None,
         return path
 
     out_dir = os.path.join(SKIA_SRC_ROOT, 'out')
-    is_windows = is_windows_host()
-    if is_windows:
-        # MSVC：llvm.<arch>.debug / release（MSYS2 CLANG64 也用这个目录名，按内容区分）
-        msvc_name = 'llvm.%s.%s' % (
-            arch_tag, 'debug' if config == 'Debug' else 'release')
-        if dll_mode:
-            # DLL 模式：duilib 用 /MD，必须匹配同 CRT 的 Skia 变体
-            msvc_name += '.mdd' if config == 'Debug' else '.md'
-        # MinGW：Skia 只有 release 变体；独立 MinGW-w64 带 mingw64- 前缀，MSYS2 无前缀
-        mingw_names = []
-        for variant in MINGW_VARIANTS:
-            mingw_names.append('mingw64-%s.%s.release' % (variant, arch_tag))
-            mingw_names.append('%s.%s.release' % (variant, arch_tag))
-        # MSYS2 MINGW64 的 gcc 产物使用 msvcrt，目录名带 .msvcrt 后缀
-        msvcrt_name = 'gcc.msvcrt.%s.release' % arch_tag
-        if toolchain == 'mingw':
-            if mingw_variant in MINGW_VARIANTS:
-                # 同一变体的独立 MinGW 与 MSYS2 目录可能同时存在，优先独立 MinGW 命名；
-                # 需要强制使用 MSYS2 产物时用 --skia-lib-dir 指定
-                names = ['mingw64-%s.%s.release' % (mingw_variant, arch_tag),
-                         '%s.%s.release' % (mingw_variant, arch_tag)]
-                if mingw_variant == 'gcc':
-                    # MINGW64 环境下优先 msvcrt 目录；其他环境放在最后，
-                    # 只有前两个目录都不存在时才会选中，避免误用 msvcrt 库
-                    if _msys2_env_name() == 'mingw64':
-                        names.insert(0, msvcrt_name)
-                    else:
-                        names.append(msvcrt_name)
-            else:
-                names = mingw_names + [msvcrt_name]
-        elif toolchain == 'msvc':
-            names = [msvc_name]
-        else:
-            names = [msvc_name] + mingw_names + [msvcrt_name]
-        candidates = [os.path.join(out_dir, name) for name in names]
-    else:
-        candidates = [
-            os.path.join(out_dir, 'llvm.%s.release' % arch_tag),
-            os.path.join(out_dir, 'gcc.%s.release' % arch_tag),
-        ]
+    candidates = [os.path.join(out_dir, name) for name in
+                  _skia_candidate_names(config, arch_tag, toolchain, mingw_variant,
+                                        dll_mode)]
 
     # 按目录内容过滤：目录名相同但库类型不符的候选（如 MSVC 的 .lib）直接跳过
     for path in candidates:

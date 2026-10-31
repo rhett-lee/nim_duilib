@@ -10,6 +10,7 @@
 
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_i18n.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_skia_toolchain.cmake")
+# Skia 变体目录名的唯一规则（与 duilib_common.cmake、依赖准备共用）
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_skia_variants.cmake")
 # 函数体内不能依赖 CMAKE_CURRENT_LIST_DIR（那是调用者的目录），先固化本文件所在目录
 set(DUILIB_CMAKE_DIR "${CMAKE_CURRENT_LIST_DIR}")
@@ -23,11 +24,38 @@ function(_duilib_deps_config out_var)
     endif()
 endfunction()
 
+# 需要检查 Skia 的配置（小写、去重）：多配置生成器按 CMAKE_CONFIGURATION_TYPES 逐个检查，
+# 与 duilib_common.cmake 的 _duilib_skia_configs 使用同一口径；单配置只看当前构建类型。
+function(_duilib_deps_skia_configs out_var)
+    set(_configs "")
+    if(CMAKE_CONFIGURATION_TYPES)
+        foreach(_config IN LISTS CMAKE_CONFIGURATION_TYPES)
+            string(TOLOWER "${_config}" _config_lower)
+            if(_config_lower STREQUAL "debug")
+                list(APPEND _configs "debug")
+            else()
+                list(APPEND _configs "release")
+            endif()
+        endforeach()
+        list(REMOVE_DUPLICATES _configs)
+    elseif(DEFINED DUILIB_BUILD_TYPE AND NOT DUILIB_BUILD_TYPE STREQUAL "")
+        set(_configs "${DUILIB_BUILD_TYPE}")
+    else()
+        _duilib_deps_config(_config)
+        if(_config STREQUAL "Debug")
+            set(_configs "debug")
+        else()
+            set(_configs "release")
+        endif()
+    endif()
+    set(${out_var} "${_configs}" PARENT_SCOPE)
+endfunction()
+
 # 构造传给脚本模式的 -D 参数列表
 function(_duilib_deps_script_args out_var)
     _duilib_deps_config(_duilib_deps_cfg)
-    # 多配置生成器（Visual Studio）无法在配置期区分目标配置：Skia 的 Debug/Release
-    # 变体、SDL3 的两个配置都由脚本准备（SDL3 安装到同一前缀，Release 会覆盖 Debug）。
+    # 多配置生成器（Visual Studio）无法在配置期区分目标配置：SDL3 只能构建
+    # Debug/Release 两份并让 Release 覆盖安装，脚本据此给出提示。
     if(CMAKE_CONFIGURATION_TYPES)
         set(_duilib_deps_multi ON)
     else()
@@ -106,6 +134,57 @@ function(duilib_add_dependency_targets)
         COMMENT "Preparing duilib dependencies (Skia/SDL3/CEF)")
 endfunction()
 
+# 配置期检查 Skia 库目录（off 模式）：按每个目标配置解析候选目录，全部缺失时统一报错。
+# 候选目录名的规则在 duilib_skia_variants.cmake，与 duilib_common.cmake、依赖准备共用。
+function(_duilib_check_skia)
+    set(_duilib_skia_error "")
+    _duilib_deps_skia_configs(_duilib_deps_skia_configs)
+    foreach(_duilib_skia_cfg IN LISTS _duilib_deps_skia_configs)
+        if(DUILIB_OS_WINDOWS)
+            set(_duilib_skia_platform "windows")
+            set(_duilib_skia_arch "${DUILIB_TARGET_ARCH_RESOLVED}")
+        else()
+            set(_duilib_skia_platform "other")
+            set(_duilib_skia_arch "${DUILIB_SYSTEM_PROCESSOR}")
+        endif()
+        duilib_skia_variant_candidates("${_duilib_skia_cfg}" "${_duilib_skia_platform}"
+                                       "${_duilib_skia_arch}" "${MINGW}" _duilib_skia_candidates)
+        set(_duilib_skia_resolved "")
+        set(_duilib_skia_notes "")
+        foreach(_candidate IN LISTS _duilib_skia_candidates)
+            set(_candidate_path "${DUILIB_SKIA_ROOT}/out/${_candidate}")
+            if(NOT EXISTS "${_candidate_path}")
+                continue()
+            endif()
+            # MinGW 的目录名可能与 MSVC 产物重名（如 llvm.<arch>.debug 存放的是 .lib），
+            # 只有包含 .a 静态库的目录才可用于 MinGW，否则继续尝试后续候选。
+            if(MINGW)
+                file(GLOB _candidate_a_files "${_candidate_path}/*.a")
+                if(NOT _candidate_a_files)
+                    string(APPEND _duilib_skia_notes
+                        "    ${_candidate}（缺少 .a 静态库，可能是 MSVC 构建产物）\n")
+                    continue()
+                endif()
+            endif()
+            set(_duilib_skia_resolved "${_candidate}")
+            break()
+        endforeach()
+        if(_duilib_skia_resolved STREQUAL "")
+            string(REPLACE ";" "\n    " _duilib_skia_candidates_text
+                          "${_duilib_skia_candidates}")
+            string(APPEND _duilib_skia_error
+                "  ${_duilib_skia_cfg}:\n    ${_duilib_skia_candidates_text}\n"
+                "${_duilib_skia_notes}")
+        endif()
+    endforeach()
+    if(NOT _duilib_skia_error STREQUAL "")
+        message(FATAL_ERROR
+            "[ERROR] no usable Skia library directory in ${DUILIB_SKIA_ROOT}/out\n"
+            "  Tried:\n${_duilib_skia_error}"
+            "  Hint: run 'build.py deps', or pass -DDUILIB_DEPS_MODE=auto")
+    endif()
+endfunction()
+
 # 配置期依赖检查（off 模式）：只检查，不准备
 function(_duilib_check_dependency_exists what path hint)
     if(NOT EXISTS "${path}")
@@ -130,75 +209,7 @@ function(duilib_configure_dependencies)
         duilib_error("deps.skia_source_missing" "deps.skia_source_missing_hint")
     endif()
 
-    # Skia 库目录按配置检查（与 duilib_common.cmake 共用 duilib_skia_variants.cmake
-    # 的规则，两处必须一致）。
-    # 注意：DUILIB_BUILD_TYPE 由 duilib_common.cmake 定义，而该文件只在示例子工程里
-    # 才被包含，根工程执行到这里时它还是空值；直接用它会把 Debug 配置当成 Release，
-    # 在只有 llvm.<arch>.debug 时误报“no usable Skia library directory”。
-    # 多配置生成器（Visual Studio）没有 CMAKE_BUILD_TYPE，且 duilib_common.cmake 会
-    # 逐个配置校验（Debug 用 debug 变体、Release 用 release 变体），这里同样逐配置检查。
-    set(_duilib_skia_configs "")
-    if(CMAKE_CONFIGURATION_TYPES)
-        foreach(_duilib_skia_generator_cfg IN LISTS CMAKE_CONFIGURATION_TYPES)
-            string(TOLOWER "${_duilib_skia_generator_cfg}" _duilib_skia_generator_cfg_lower)
-            if(_duilib_skia_generator_cfg_lower STREQUAL "debug")
-                list(APPEND _duilib_skia_configs "debug")
-            else()
-                list(APPEND _duilib_skia_configs "release")
-            endif()
-        endforeach()
-        list(REMOVE_DUPLICATES _duilib_skia_configs)
-    elseif(DEFINED DUILIB_BUILD_TYPE AND NOT DUILIB_BUILD_TYPE STREQUAL "")
-        list(APPEND _duilib_skia_configs "${DUILIB_BUILD_TYPE}")
-    else()
-        _duilib_deps_config(_duilib_deps_cfg)
-        if(_duilib_deps_cfg STREQUAL "Debug")
-            list(APPEND _duilib_skia_configs "debug")
-        else()
-            list(APPEND _duilib_skia_configs "release")
-        endif()
-    endif()
-
-    set(_duilib_skia_platform "other")
-    if(DUILIB_OS_WINDOWS)
-        set(_duilib_skia_platform "windows")
-    endif()
-
-    set(_duilib_skia_missing "")
-    foreach(_duilib_skia_cfg IN LISTS _duilib_skia_configs)
-        duilib_skia_variant_candidates("${_duilib_skia_cfg}" "${_duilib_skia_platform}"
-                                       "${DUILIB_TARGET_ARCH_RESOLVED}" "${MINGW}"
-                                       _duilib_skia_candidates)
-        set(_duilib_skia_found FALSE)
-        foreach(_candidate IN LISTS _duilib_skia_candidates)
-            if(EXISTS "${DUILIB_SKIA_ROOT}/out/${_candidate}")
-                # MinGW 的目录名可能与 MSVC 产物重名（如 llvm.x64.debug 存放的是 .lib），
-                # 只有包含 .a 静态库的目录才算可用，与 duilib_common.cmake 的判定一致。
-                set(_duilib_skia_candidate_ok TRUE)
-                if(MINGW)
-                    file(GLOB _duilib_skia_a_files "${DUILIB_SKIA_ROOT}/out/${_candidate}/*.a")
-                    if(NOT _duilib_skia_a_files)
-                        set(_duilib_skia_candidate_ok FALSE)
-                    endif()
-                endif()
-                if(_duilib_skia_candidate_ok)
-                    set(_duilib_skia_found TRUE)
-                    break()
-                endif()
-            endif()
-        endforeach()
-        if(NOT _duilib_skia_found)
-            string(REPLACE ";" "\n    " _duilib_skia_candidates_text "${_duilib_skia_candidates}")
-            string(APPEND _duilib_skia_missing
-                "  ${_duilib_skia_cfg} 配置：\n    ${_duilib_skia_candidates_text}\n")
-        endif()
-    endforeach()
-    if(NOT _duilib_skia_missing STREQUAL "")
-        message(FATAL_ERROR
-            "[ERROR] no usable Skia library directory in ${DUILIB_SKIA_ROOT}/out\n"
-            "  Tried:\n${_duilib_skia_missing}"
-            "  Hint: run 'build.py deps', or pass -DDUILIB_DEPS_MODE=auto")
-    endif()
+    _duilib_check_skia()
 
     if(DUILIB_ENABLE_SDL AND NOT EXISTS "${DUILIB_SDL_LIB_DIR}")
         duilib_error("deps.sdl_missing" "deps.sdl_missing_hint")

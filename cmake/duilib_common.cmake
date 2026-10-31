@@ -219,30 +219,9 @@ else()
     get_filename_component(DUILIB_SKIA_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../skia/" ABSOLUTE)
 endif()
 
-# 当前工具链的 CRT 标识（与 cmake/duilib_root_options.cmake 的规则保持一致）
-function(_duilib_expected_crt out_var)
-    if(MSVC)
-        if(DUILIB_MD)
-            set(_crt "msvc-md")
-        else()
-            set(_crt "msvc-mt")
-        endif()
-    elseif(MINGW)
-        if(DEFINED ENV{MSYSTEM} AND "$ENV{MSYSTEM}" STREQUAL "MINGW64")
-            set(_crt "mingw64-msvcrt")
-        elseif(DEFINED ENV{MSYSTEM} AND NOT "$ENV{MSYSTEM}" STREQUAL "")
-            string(TOLOWER "$ENV{MSYSTEM}" _msys)
-            set(_crt "${_msys}")
-        else()
-            set(_crt "mingw-unknown")
-        endif()
-    else()
-        set(_crt "system")
-    endif()
-    set(${out_var} "${_crt}" PARENT_SCOPE)
-endfunction()
-
 # 依赖目录的 CRT 标记比对：没有标记的旧产物允许迁移，有标记则必须一致
+# 当前工具链的 CRT 标识统一由 cmake/duilib_crt.cmake 推导（与
+# duilib_root_options.cmake 的 DUILIB_CRT_ID 同源）。
 function(_duilib_check_deps_crt what dir)
     if("${dir}" STREQUAL "" OR "${dir}" MATCHES "\\$<")
         return()
@@ -252,7 +231,7 @@ function(_duilib_check_deps_crt what dir)
     endif()
     file(READ "${dir}/.duilib-crt" _stamp_crt)
     string(STRIP "${_stamp_crt}" _stamp_crt)
-    _duilib_expected_crt(_expected_crt)
+    duilib_crt_id(_expected_crt)
     if(NOT _stamp_crt STREQUAL _expected_crt)
         message(FATAL_ERROR
             "[ERROR] CRT mismatch (${what}):\n"
@@ -266,6 +245,7 @@ endfunction()
 
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_skia_toolchain.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_skia_variants.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_crt.cmake")
 
 # 生成指定配置下的 Skia 子目录候选（按优先级排列）
 # 规则实现在 duilib_skia_variants.cmake，与 deps 的 off 模式检查和依赖准备共用；

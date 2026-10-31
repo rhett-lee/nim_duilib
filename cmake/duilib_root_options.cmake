@@ -375,24 +375,9 @@ else()
 endif()
 
 # CRT 标识：写入依赖 stamp，配置期比对
-if(DUILIB_COMPILER_MSVC)
-    if(DUILIB_MD)
-        set(DUILIB_CRT_ID "msvc-md")
-    else()
-        set(DUILIB_CRT_ID "msvc-mt")
-    endif()
-elseif(MINGW)
-    if(DEFINED ENV{MSYSTEM} AND "$ENV{MSYSTEM}" STREQUAL "MINGW64")
-        set(DUILIB_CRT_ID "mingw64-msvcrt")
-    elseif(DEFINED ENV{MSYSTEM} AND NOT "$ENV{MSYSTEM}" STREQUAL "")
-        string(TOLOWER "$ENV{MSYSTEM}" _duilib_msystem)
-        set(DUILIB_CRT_ID "${_duilib_msystem}")
-    else()
-        set(DUILIB_CRT_ID "mingw-unknown")
-    endif()
-else()
-    set(DUILIB_CRT_ID "system")
-endif()
+# 规则统一在 cmake/duilib_crt.cmake（duilib_common.cmake 的比对共用同一实现）
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_crt.cmake")
+duilib_crt_id(DUILIB_CRT_ID)
 
 # 构建类型：单配置生成器必须显式给出；多配置生成器保留为空
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
