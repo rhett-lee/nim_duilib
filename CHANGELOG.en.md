@@ -277,6 +277,21 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Fixed
 
+- Skia builds with MinGW-w64 GCC 16: upgrading the toolchain from 15.1.0 (mingw-w64 v12) to
+  16.2.0 (mingw-w64 v14) broke two places. The Skia sources inside the patch archive now
+  handle both (GCC 15 and MSVC behavior is unchanged):
+  - The newer `dwrite_3.h` defines `NTDDI_WIN11_ZN` and ships an early revision of
+    `IDWritePaintReader` (interface with `struct_size` parameters, different
+    `DWRITE_PAINT_ELEMENT` layout). That made the COLRv1 code in
+    `SkScalerContext_win_dw.cpp`, written against the final Windows SDK, be selected and fail
+    (`MoveToFirstChild` / `GetGradientStop` argument mismatches); MinGW now takes the existing
+    fallback implementation (the same behavior as with the older mingw-w64 headers).
+  - GCC 16 fails to compile the `ml3` / `ml4` variants (AVX2 / AVX512 lowp stages) with
+    `internal compiler error: in convert_move, at expr.cc:226`: a 32-byte pixel value produced
+    by `__builtin_convertvector` from a 16-byte memory load is passed by value to the next
+    stage, and under the MS x64 ABI expand performs a cross-mode move. `SkRasterPipeline_opts.h`
+    now materializes the converted value in a vector register (empty `asm` constraint) for the
+    MinGW + GCC 16 AVX2/ML4 variants, so the build and the runtime are back to normal.
 - Dependency preparation (Skia upgrade): when the local Skia checkout still carried the
   previous patch's edits, `git checkout` aborted with "Your local changes to the
   following files would be overwritten by checkout" and dependency preparation stopped.

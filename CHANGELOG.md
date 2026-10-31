@@ -216,6 +216,17 @@
 
 ### 修复
 
+- MinGW-w64 GCC 16 编译 Skia：把工具链从 15.1.0（mingw-w64 v12）升到 16.2.0（mingw-w64 v14）
+  后出现两处编译失败，补丁归档内的 Skia 源码已做兼容（GCC 15 与 MSVC 行为不变）：
+  - 新版 `dwrite_3.h` 定义了 `NTDDI_WIN11_ZN`，同时提供的是早期版本的 `IDWritePaintReader`
+    （接口带 `struct_size` 参数、`DWRITE_PAINT_ELEMENT` 布局也不同）。`SkScalerContext_win_dw.cpp`
+    里按最终 Windows SDK 写的 COLRv1 代码因此被条件编译选中并报错（`MoveToFirstChild` /
+    `GetGradientStop` 等参数不匹配）；现在 MinGW 下统一走原有的降级实现（与旧版 mingw-w64 一致）。
+  - GCC 16 编译 `ml3` / `ml4` 变体（AVX2 / AVX512 的 lowp stage）时报
+    `internal compiler error: in convert_move, at expr.cc:226`：由 16 字节内存加载经
+    `__builtin_convertvector` 得到的 32 字节像素值在 MS x64 ABI 下按值传给下一个 stage 时，
+    expand 阶段做了跨模式移动。`SkRasterPipeline_opts.h` 在 MinGW + GCC 16 的 AVX2/ML4 变体里
+    让转换结果先物化到向量寄存器（空 `asm` 约束），编译与运行恢复正常。
 - 依赖准备（Skia 升级）：本地 Skia 源码仍带着旧版本补丁在工作区里的修改时，
   `git checkout` 会因“本地修改将被检出操作覆盖”直接失败（依赖准备中断）。
   `cmake/duilib_deps_run.cmake` 在切换版本、重新解压补丁前先用 `git stash` 保存
