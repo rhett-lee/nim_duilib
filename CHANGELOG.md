@@ -216,6 +216,12 @@
 
 ### 修复
 
+- 依赖准备（Skia 补丁重新解压）：Windows 上补丁归档更新后需要整体重新解压时，
+  归档内的 `bin/ninja.exe` 正被当前构建使用，解压会报
+  `archive_write_header(): Can't unlink already-existing object` 并中断依赖准备。
+  `cmake/duilib_deps_run.cmake` 现在把 `bin/` 下的构建工具从常规解压中排除：
+  目标缺失时补上，内容与归档一致时原样保留，内容不同时先解到临时目录再替换
+  （仍被占用时只告警并继续使用现有文件），源码文件照旧覆盖。
 - MinGW-w64 GCC 16 编译 Skia：把工具链从 15.1.0（mingw-w64 v12）升到 16.2.0（mingw-w64 v14）
   后出现两处编译失败，补丁归档内的 Skia 源码已做兼容（GCC 15 与 MSVC 行为不变）：
   - 新版 `dwrite_3.h` 定义了 `NTDDI_WIN11_ZN`，同时提供的是早期版本的 `IDWritePaintReader`

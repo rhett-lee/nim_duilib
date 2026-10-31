@@ -277,6 +277,14 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Fixed
 
+- Dependency preparation (re-extracting the Skia patch): after the patch archive is updated
+  on Windows, a full re-extraction failed with
+  `archive_write_header(): Can't unlink already-existing object` because the archive's
+  `bin/ninja.exe` is in use by the running build, aborting dependency preparation.
+  `cmake/duilib_deps_run.cmake` now keeps `bin/` build tools out of the regular extraction:
+  a missing tool is added, an identical one is kept untouched, and a different one is staged
+  and then replaced (if it is still in use, only a warning is printed and the existing file is
+  kept). Source files are still overwritten as before.
 - Skia builds with MinGW-w64 GCC 16: upgrading the toolchain from 15.1.0 (mingw-w64 v12) to
   16.2.0 (mingw-w64 v14) broke two places. The Skia sources inside the patch archive now
   handle both (GCC 15 and MSVC behavior is unchanged):

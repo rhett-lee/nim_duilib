@@ -422,6 +422,81 @@ function(_duilib_skia_warn_patch_missing patch)
     message(STATUS "[WARN]  ${_duilib_patch_warn} (${patch})")
 endfunction()
 
+# 解压 Skia 补丁归档。归档里同时带 bin/gn.exe、bin/ninja.exe 等构建工具，而 Windows
+# 上正在运行的 ninja.exe 无法被解压覆盖（libarchive 写条目前先 unlink 目标，失败就中止
+# 整个解压），所以 bin/ 下的文件不参与常规解压：目标缺失时补上，与归档内容一致时原样
+# 保留，内容不同时先解到临时目录再尝试替换（被占用则告警并继续用现有工具）。
+function(_duilib_extract_skia_patch patch dest)
+    execute_process(COMMAND "${CMAKE_COMMAND}" -E tar tf "${patch}"
+                    OUTPUT_VARIABLE _entries
+                    ERROR_QUIET
+                    RESULT_VARIABLE _list_rc)
+    if(NOT _list_rc EQUAL 0)
+        duilib_error_values("failed to extract ${patch}" "check the patch archive integrity")
+    endif()
+    string(REPLACE "\r" "" _entries "${_entries}")
+    string(REPLACE "\n" ";" _entries "${_entries}")
+    set(_patterns "")
+    set(_tools "")
+    foreach(_entry IN LISTS _entries)
+        if(_entry STREQUAL "")
+            continue()
+        endif()
+        if(_entry MATCHES "^bin/")
+            # 目录条目（以 / 结尾）留给工具文件解压时自动创建
+            if(NOT _entry MATCHES "/$")
+                list(APPEND _tools "${_entry}")
+            endif()
+        else()
+            list(APPEND _patterns "${_entry}")
+        endif()
+    endforeach()
+
+    if(_patterns)
+        file(ARCHIVE_EXTRACT INPUT "${patch}" DESTINATION "${dest}" PATTERNS ${_patterns})
+    endif()
+    if(NOT _tools)
+        return()
+    endif()
+
+    set(_stage "${CMAKE_CURRENT_BINARY_DIR}/.skia_patch_tools")
+    file(REMOVE_RECURSE "${_stage}")
+    file(MAKE_DIRECTORY "${_stage}")
+    file(ARCHIVE_EXTRACT INPUT "${patch}" DESTINATION "${_stage}" PATTERNS ${_tools})
+    foreach(_tool IN LISTS _tools)
+        set(_src "${_stage}/${_tool}")
+        set(_dst "${dest}/${_tool}")
+        if(NOT EXISTS "${_src}")
+            continue()
+        endif()
+        file(SHA256 "${_src}" _src_hash)
+        set(_dst_hash "")
+        if(EXISTS "${_dst}")
+            # 用 cmake -E sha256sum 读取目标：被占用时读取可能失败，这里按“内容不同”
+            # 处理（随后复制失败会给出告警），避免哈希读取失败直接中止解压。
+            execute_process(COMMAND "${CMAKE_COMMAND}" -E sha256sum "${_dst}"
+                            OUTPUT_VARIABLE _dst_hash_out
+                            ERROR_QUIET
+                            RESULT_VARIABLE _dst_rc)
+            if(_dst_rc EQUAL 0)
+                string(SUBSTRING "${_dst_hash_out}" 0 64 _dst_hash)
+            endif()
+        endif()
+        if(NOT _dst_hash STREQUAL "" AND _dst_hash STREQUAL _src_hash)
+            continue()
+        endif()
+        get_filename_component(_dst_dir "${_dst}" DIRECTORY)
+        file(MAKE_DIRECTORY "${_dst_dir}")
+        file(COPY_FILE "${_src}" "${_dst}" RESULT _copy_rc)
+        if(NOT _copy_rc STREQUAL "0")
+            duilib_t("deps.skia_patch_tool_in_use" _tool_warn)
+            string(REPLACE "{file}" "${_tool}" _tool_warn "${_tool_warn}")
+            message(STATUS "[WARN]  ${_tool_warn}")
+        endif()
+    endforeach()
+    file(REMOVE_RECURSE "${_stage}")
+endfunction()
+
 # 把本地依赖仓库切到清单指定的 ref：commit/tag 要求 HEAD 等于目标提交，
 # branch 要求当前就在该分支上（不主动追远端新提交，避免每次全量重编依赖）。
 # 本地仓库停在别的分支（如 SDL 源码停在 main）时，stamp 只记录 ref 名称会把
@@ -684,12 +759,7 @@ function(duilib_prepare_skia)
                 message(STATUS "[deps] Skia patch missing in source tree, re-applying")
             endif()
             message(STATUS "[deps] applying Skia patch ${_patch}")
-            execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf "${_patch}"
-                            WORKING_DIRECTORY "${DUILIB_SKIA_ROOT}"
-                            RESULT_VARIABLE _tar_rc)
-            if(NOT _tar_rc EQUAL 0)
-                duilib_error_values("failed to extract ${_patch}" "check the patch archive integrity")
-            endif()
+            _duilib_extract_skia_patch("${_patch}" "${DUILIB_SKIA_ROOT}")
             file(WRITE "${_patch_stamp}" "${_patch_key}")
         endif()
         file(REMOVE_RECURSE "${_out_dir}")

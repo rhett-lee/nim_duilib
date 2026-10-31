@@ -143,6 +143,9 @@ Skia 的补丁归档随仓库提交，位于 `build/skia_patch/`（由清单 `sk
 
 归档同时提供 Windows 版 `bin/gn.exe` 与 `bin/ninja.exe`：全新环境里归档尚未解压时，
 根工程预检只提示由 `deps` 解压这两个工具，不会中断配置；解压后仍是硬性检查。
+重新解压补丁时，源码树里已存在且与归档内容一致的 `bin/gn.exe`、`bin/ninja.exe`
+会原样保留（正在运行的 `ninja.exe` 无法被覆盖）；内容不同时先解到临时目录再替换，
+仍被占用则只告警并继续使用现有文件，源码文件照旧覆盖。
 
 某些 Visual Studio 安装不含 ninja（“适用于 Windows 的 C++ CMake 工具”是可选组件）。
 `build.py` 依次在 PATH、VS 安装目录、已解压的 `skia/bin/ninja.exe`、补丁归档里查找

@@ -162,7 +162,11 @@ and whether its SHA1 matches the manifest.
 The archive also carries the Windows `bin/gn.exe` and `bin/ninja.exe`. On a fresh
 checkout, before the archive is extracted, the root-project preflight only points at
 `deps` for those tools instead of failing the configure; after extraction they are
-checked strictly.
+checked strictly. When the patch is re-extracted, existing `bin/gn.exe` /
+`bin/ninja.exe` files that match the archive are left untouched (a running
+`ninja.exe` cannot be overwritten); a different tool is staged and then replaced,
+and if it is still in use only a warning is printed while source files are always
+overwritten.
 
 Some Visual Studio installations do not include ninja ("C++ CMake tools for Windows"
 is an optional component). `build.py` looks for ninja in PATH, the Visual Studio install

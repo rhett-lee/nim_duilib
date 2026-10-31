@@ -208,6 +208,10 @@
       "en": "[deps] the Skia patch archive changed, rebuilding Skia",
       "zh_CN": "[deps] Skia 补丁包已更新，重新编译 Skia"
     },
+    "deps.skia_patch_tool_in_use": {
+      "en": "[deps] cannot replace {file} (it is in use by the running build); keeping the existing copy, delete it and re-run to update",
+      "zh_CN": "[deps] 无法替换 {file}（正被当前构建占用）；已保留现有文件，需要更新时删除该文件后重新执行"
+    },
     "deps.git_ref_switching": {
       "en": "[deps] local source is not at the manifest ref, switching",
       "zh_CN": "[deps] 本地源码与版本清单不一致，正在切换"
