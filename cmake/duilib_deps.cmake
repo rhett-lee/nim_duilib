@@ -129,15 +129,37 @@ function(duilib_configure_dependencies)
         duilib_error("deps.skia_source_missing" "deps.skia_source_missing_hint")
     endif()
 
-    # Skia 库目录按配置检查（与 duilib_common.cmake 的规则一致）
+    # Skia 库目录按配置检查（与 duilib_common.cmake 的规则一致）。
+    # DUILIB_BUILD_TYPE 由 duilib_common.cmake 定义，而该文件只在示例子工程里才被包含，
+    # 根工程执行到这里时它还是空值；直接用它会把 Debug 配置当成 Release，在只有
+    # llvm.<arch>.debug 时误报“no usable Skia library directory”。因此按 CMAKE_BUILD_TYPE
+    # 自行推导（与 duilib_common.cmake、duilib_deps_run.cmake 的判定规则一致）。
+    set(_duilib_deps_build_type "")
+    if(DEFINED DUILIB_BUILD_TYPE AND NOT DUILIB_BUILD_TYPE STREQUAL "")
+        set(_duilib_deps_build_type "${DUILIB_BUILD_TYPE}")
+    else()
+        _duilib_deps_config(_duilib_deps_cfg)
+        if(_duilib_deps_cfg STREQUAL "Debug")
+            set(_duilib_deps_build_type "debug")
+        else()
+            set(_duilib_deps_build_type "release")
+        endif()
+    endif()
+
     set(_duilib_skia_candidates "")
     if(DUILIB_OS_WINDOWS)
         if(NOT MINGW)
-            if(DUILIB_BUILD_TYPE STREQUAL "debug")
-                list(APPEND _duilib_skia_candidates "llvm.${DUILIB_TARGET_ARCH_RESOLVED}.debug")
-            else()
-                list(APPEND _duilib_skia_candidates "llvm.${DUILIB_TARGET_ARCH_RESOLVED}.release")
+            # 动态运行库（DUILIB_MD）使用独立变体：Debug -> .debug.mdd，Release -> .release.md
+            set(_duilib_skia_suffix "")
+            if(DUILIB_MD)
+                if(_duilib_deps_build_type STREQUAL "debug")
+                    set(_duilib_skia_suffix ".mdd")
+                else()
+                    set(_duilib_skia_suffix ".md")
+                endif()
             endif()
+            list(APPEND _duilib_skia_candidates
+                "llvm.${DUILIB_TARGET_ARCH_RESOLVED}.${_duilib_deps_build_type}${_duilib_skia_suffix}")
         else()
             if(DUILIB_COMPILER_GCC)
                 set(_duilib_skia_compilers "gcc")
@@ -155,7 +177,7 @@ function(duilib_configure_dependencies)
             endif()
             foreach(_prefix IN LISTS _duilib_skia_prefixes)
                 foreach(_compiler IN LISTS _duilib_skia_compilers)
-                    if(DUILIB_BUILD_TYPE STREQUAL "debug")
+                    if(_duilib_deps_build_type STREQUAL "debug")
                         list(APPEND _duilib_skia_candidates
                             "${_prefix}${_compiler}.${DUILIB_TARGET_ARCH_RESOLVED}.debug"
                             "${_prefix}${_compiler}.${DUILIB_TARGET_ARCH_RESOLVED}.release")
@@ -186,9 +208,10 @@ function(duilib_configure_dependencies)
         endif()
     endforeach()
     if(NOT _duilib_skia_found)
+        string(REPLACE ";" "\n    " _duilib_skia_candidates_text "${_duilib_skia_candidates}")
         message(FATAL_ERROR
             "[ERROR] no usable Skia library directory in ${DUILIB_SKIA_ROOT}/out\n"
-            "  Tried: ${_duilib_skia_candidates}\n"
+            "  Tried:\n    ${_duilib_skia_candidates_text}\n"
             "  Hint: run 'build.py deps', or pass -DDUILIB_DEPS_MODE=auto")
     endif()
 

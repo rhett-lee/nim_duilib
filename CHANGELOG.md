@@ -216,6 +216,14 @@
 
 ### 修复
 
+- Debug 配置的依赖检查：`cmake/duilib_deps.cmake` 在 `DUILIB_DEPS_MODE=off` 时用
+  `DUILIB_BUILD_TYPE` 判断 Skia 变体，但该变量由 `duilib_common.cmake` 定义、只在
+  示例子工程里才被包含，根工程执行检查时仍为空，于是 Debug 被当成 Release：
+  `skia/out` 下只有刚编译好的 `llvm.x64.debug` 时报
+  `no usable Skia library directory ... Tried: llvm.x64.release`，Windows MSVC 的
+  `build.py --config Debug` 因此无法完成配置。现在按 `CMAKE_BUILD_TYPE` 自行推导
+  Debug/Release（与 `duilib_common.cmake`、`duilib_deps_run.cmake` 一致），并补上
+  `--md` 对应的 `.debug.mdd` / `.release.md` 变体名；报错信息里的候选目录改为逐行列出。
 - 依赖准备（Skia 补丁重新解压）：Windows 上补丁归档更新后需要整体重新解压时，
   归档内的 `bin/ninja.exe` 正被当前构建使用，解压会报
   `archive_write_header(): Can't unlink already-existing object` 并中断依赖准备。

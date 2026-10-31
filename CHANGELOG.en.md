@@ -277,6 +277,16 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Fixed
 
+- Dependency check for Debug configurations: with `DUILIB_DEPS_MODE=off`,
+  `cmake/duilib_deps.cmake` selected the Skia variant from `DUILIB_BUILD_TYPE`, but that
+  variable is defined in `duilib_common.cmake`, which is only included by the example
+  subprojects. The root project runs the check earlier, so the variable was empty and Debug
+  was treated as Release: when `skia/out` only held the freshly built `llvm.x64.debug`,
+  configuring failed with `no usable Skia library directory ... Tried: llvm.x64.release`,
+  breaking `build.py --config Debug` for Windows MSVC. The check now derives Debug/Release
+  from `CMAKE_BUILD_TYPE` (matching `duilib_common.cmake` and `duilib_deps_run.cmake`) and
+  also knows the `--md` variants (`.debug.mdd` / `.release.md`); the error message lists the
+  candidates one per line.
 - Dependency preparation (re-extracting the Skia patch): after the patch archive is updated
   on Windows, a full re-extraction failed with
   `archive_write_header(): Can't unlink already-existing object` because the archive's
