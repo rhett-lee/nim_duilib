@@ -88,7 +88,7 @@ otherwise Ninja sees `bin/` files newer than its own objects and skips the link 
 | `--deps-root <dir>` | dependency source/install root, defaults to the repo's parent (next to `nim_duilib`); Skia, SDL3 and CEF are installed here. A relative path is resolved against the current directory, and `build.py pack` forwards it to `pack.py` |
 | `--jobs N` | parallel build jobs, defaulting to the CPU logical core count |
 | `--offline` | use cached dependency sources/archives only |
-| `--dry-run` | print commands without executing them |
+| `--dry-run` | print commands without executing them; with `deps` it also prints the actual Skia/SDL3 command lines (see section 5) |
 | `--cmake-arg <arg>` / `--build-arg <arg>` | forwarded to configure/build (repeatable); use `--cmake-arg=-DFOO=1` when the value starts with `-` |
 | `--vs-version N` | pin the Visual Studio major version (for example `17`); Windows only |
 | `--cef-version 109\|latest` | CEF version: `109` is the legacy build, `latest` follows the manifest default (currently 156 and tracking manifest upgrades) |
@@ -180,6 +180,44 @@ to `<build-dir>/.duilib-tools/bin/ninja.exe` and setting `CMAKE_MAKE_PROGRAM`), 
 direct `cmake --preset x64-release` does not require a system-wide ninja either. Neither
 path writes into the `skia/` source tree; use the `DUILIB_NINJA_EXECUTABLE` environment
 variable or cache entry to point at a different ninja.
+
+Besides the two top-level configure/build commands, `build.py deps --dry-run` runs the
+read-only `duilib_deps_plan` target and prints the actual command lines used for Skia
+(`gn gen` + `ninja`) and SDL3 (configure / build / install), which makes manual
+reproduction and troubleshooting easier:
+
+```text
+[build] building (deps)
++ "C:\Program Files\CMake\bin\cmake.EXE" --build ... --target duilib_deps
++ "C:\Program Files\CMake\bin\cmake.EXE" --build ... --target duilib_deps_plan
+-- [plan] Skia/SDL3 build commands (printed only, not executed):
+-- [plan]   cd E:/develop/skia
+-- [plan]   E:/develop/skia/bin/gn.exe gen out/llvm.x64.release.md "--args=target_cpu=\"x64\" ..."
+-- [plan]   .../ninja.exe -C out/llvm.x64.release.md -j 6
+-- [plan]   ".../cmake.exe" -S E:/develop/SDL -B E:/develop/SDL3_build/x64-release -DCMAKE_INSTALL_PREFIX=... -G Ninja ...
+-- [plan]   ".../cmake.exe" --build E:/develop/SDL3_build/x64-release --parallel 6
+-- [plan]   ".../cmake.exe" --install E:/develop/SDL3_build/x64-release --config Release
+```
+
+Notes:
+
+- Arguments come from the same source as the real preparation (the same configure-time
+  `-D` values), so documentation and execution cannot drift apart.
+- The plan target is read-only: it creates no dependency directory, takes no file lock,
+  does not clone/switch sources, compile or write stamps. Already-ready variants are
+  labelled "skipped when actually running", but their commands are still listed.
+- The build tree must already be configured (`out/<arch>/<Config>/CMakeCache.txt`
+  exists); `--dry-run` never configures, and prints `deps.plan_unconfigured` otherwise.
+  The commands therefore reflect the **last real configuration** cache (`--md`/`--dll`,
+  `--sdl`, `--deps-root`, ...). When the current options differ from the cache, a
+  `[WARN] the plan commands come from the last configuration ... DUILIB_MD=ON (now OFF)`
+  warning is printed first; run `build.py deps` once without `--dry-run`, then repeat
+  the dry-run.
+- Equivalent direct invocation: `cmake -P cmake/duilib_deps_run.cmake
+  -DDUILIB_DEPS_PLAN=ON ...`, or `cmake --build . --target duilib_deps_plan` inside the
+  build directory.
+- The CEF runtime is handled by download/extract, so plan mode prints a single hint
+  instead of the download commands.
 
 All network operations (git clone/fetch, CEF downloads) share one retry policy kept in
 the `retry` block of

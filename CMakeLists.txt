@@ -103,6 +103,10 @@ endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/duilib_deps.cmake")
 
+# 只打印依赖构建命令的目标（build.py deps --dry-run 使用）；任何模式都创建，
+# 保证 off/prepare/auto 的构建目录都能列出 Skia/SDL3 的实际命令行
+duilib_add_dependency_plan_target()
+
 # prepare 模式只生成 duilib_deps 目标，供 `cmake --build --target duilib_deps` 使用
 if(DUILIB_DEPS_MODE STREQUAL "prepare")
     duilib_add_dependency_targets()

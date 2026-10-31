@@ -144,6 +144,66 @@
       "en": "add the key under '{section}.refs' in the manifest, or pass a valid --skia-ref/--sdl-ref",
       "zh_CN": "在该清单的 '{section}.refs' 下补充对应键，或传入有效的 --skia-ref/--sdl-ref"
     },
+    "deps.plan_title": {
+      "en": "[plan] Skia/SDL3 build commands (print only, nothing is executed):",
+      "zh_CN": "[plan] Skia/SDL3 构建命令（仅打印，不执行）："
+    },
+    "deps.plan_skia": {
+      "en": "[plan] Skia",
+      "zh_CN": "[plan] Skia"
+    },
+    "deps.plan_sdl": {
+      "en": "[plan] SDL3",
+      "zh_CN": "[plan] SDL3"
+    },
+    "deps.plan_ready": {
+      "en": "[plan] already prepared; a real run would skip this step",
+      "zh_CN": "[plan] 已就绪；实际运行会跳过该步骤"
+    },
+    "deps.plan_rebuild": {
+      "en": "[plan] not prepared (or out of date); a real run would rebuild and install it",
+      "zh_CN": "[plan] 未就绪（或已过期）；实际运行会重新编译并安装"
+    },
+    "deps.plan_source_missing": {
+      "en": "[plan] source tree not found yet; a real run would clone or update it:",
+      "zh_CN": "[plan] 源码目录尚不存在；实际运行会克隆或更新："
+    },
+    "deps.plan_tool_missing": {
+      "en": "[plan] required tool not found; a placeholder is shown below",
+      "zh_CN": "[plan] 缺少必需工具；下方以占位符显示"
+    },
+    "deps.plan_cef": {
+      "en": "[plan] the CEF runtime is downloaded/extracted by duilib_deps; its commands are not expanded here",
+      "zh_CN": "[plan] CEF 运行时由 duilib_deps 下载/解压，计划模式不展开其命令"
+    },
+    "deps.plan_done": {
+      "en": "[plan] done (nothing was executed)",
+      "zh_CN": "[plan] 完成（未执行任何操作）"
+    },
+    "deps.plan_unconfigured": {
+      "en": "[deps] the build directory is not configured yet, so the exact Skia/SDL3 commands are unknown",
+      "zh_CN": "[deps] 构建目录尚未配置，无法列出 Skia/SDL3 的实际命令"
+    },
+    "deps.plan_unconfigured_hint": {
+      "en": "run 'build.py deps' once, then re-run with --dry-run to print the exact commands",
+      "zh_CN": "先执行一次 'build.py deps'，再用 --dry-run 即可打印实际命令"
+    },
+    "deps.plan_failed": {
+      "en": "[deps] failed to print the dependency build commands",
+      "zh_CN": "[deps] 打印依赖构建命令失败"
+    },
+    "deps.plan_failed_hint": {
+      "en": "the configured build directory may be stale; run 'build.py deps' to refresh it and try again",
+      "zh_CN": "已配置的构建目录可能已过期；执行 'build.py deps' 刷新后重试"
+    },
+    "deps.plan_cache_stale": {
+      "en": "[WARN] the plan commands come from the last configuration cached in the build tree, which differs from the current options: ",
+      "zh_CN": "[WARN] 计划命令按构建目录中的上次配置生成，与本次参数不一致："
+    },
+    "deps.plan_cache_stale_hint": {
+      "en": "run 'build.py deps' once without --dry-run (it reconfigures with the current options), then repeat the dry-run to see the matching commands",
+      "zh_CN": "先执行一次不带 --dry-run 的 'build.py deps'（会按本次参数重新配置），再重新查看计划命令"
+    },
     "deps.skia_source_missing": {
       "en": "[ERROR] Skia source tree not found",
       "zh_CN": "[ERROR] 未找到 Skia 源码树"

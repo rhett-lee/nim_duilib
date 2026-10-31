@@ -80,7 +80,7 @@ Debug 与 Release 的示例输出同名，都写在共享的 `bin/`，而目标�
 | `--deps-root <dir>` | 依赖源码/安装根目录，默认仓库同级目录（与 `nim_duilib` 平级）；Skia、SDL3、CEF 都安装到这里。相对路径按当前目录解析，且 `build.py pack` 会原样转给 `pack.py` |
 | `--jobs N` | 并行编译任务数，默认 CPU 逻辑核心数 |
 | `--offline` | 只使用已缓存的依赖源码/归档，不联网 |
-| `--dry-run` | 只打印将执行的命令 |
+| `--dry-run` | 只打印将执行的命令；`deps` 模式下还会打印 Skia/SDL3 的实际命令行（见第 5 节） |
 | `--cmake-arg <arg>` / `--build-arg <arg>` | 透传给 configure / build（可重复）；值以 `-` 开头时写成 `--cmake-arg=-DFOO=1` |
 | `--vs-version N` | 显式指定 Visual Studio 主版本（如 `17`）；仅 Windows 有效 |
 | `--cef-version 109\|latest` | CEF 版本：`109` 为旧版，`latest` 取版本清单默认值（当前为 156，清单升级后自动跟随） |
@@ -157,6 +157,37 @@ ninja，仍找不到时从归档解压到 `out/.duilib-tools/bin/ninja.exe` 并�
 `<构建树>/.duilib-tools/bin/ninja.exe` 并写入 `CMAKE_MAKE_PROGRAM`），因此直接运行
 `cmake --preset x64-release` 也不要求系统装有 ninja。两者都不会写入 `skia/` 源码树；
 需要指定其它 ninja 时用环境变量或缓存项 `DUILIB_NINJA_EXECUTABLE`。
+
+`build.py deps --dry-run` 除打印 configure/build 两条顶层命令外，还会执行只读目标
+`duilib_deps_plan`，把 Skia（`gn gen` + `ninja`）与 SDL3（configure / build / install）
+实际会用的命令行逐条打印出来，便于手工复现或排查问题：
+
+```text
+[build] 正在编译 (deps)
++ "C:\Program Files\CMake\bin\cmake.EXE" --build ... --target duilib_deps
++ "C:\Program Files\CMake\bin\cmake.EXE" --build ... --target duilib_deps_plan
+-- [plan] Skia/SDL3 构建命令（仅打印，不执行）：
+-- [plan]   cd E:/develop/skia
+-- [plan]   E:/develop/skia/bin/gn.exe gen out/llvm.x64.release.md "--args=target_cpu=\"x64\" ..."
+-- [plan]   .../ninja.exe -C out/llvm.x64.release.md -j 6
+-- [plan]   ".../cmake.exe" -S E:/develop/SDL -B E:/develop/SDL3_build/x64-release -DCMAKE_INSTALL_PREFIX=... -G Ninja ...
+-- [plan]   ".../cmake.exe" --build E:/develop/SDL3_build/x64-release --parallel 6
+-- [plan]   ".../cmake.exe" --install E:/develop/SDL3_build/x64-release --config Release
+```
+
+要点：
+
+- 参数与真实准备同源（都是配置期生成的同一组 `-D` 值），不会出现“文档里一套、执行另一套”。
+- 计划目标是只读的：不创建依赖目录、不加文件锁、不 clone/切换源码、不编译、不写 stamp；
+  已就绪的变体会标注“实际运行会跳过该步骤”，命令仍完整列出。
+- 需要构建目录已经配置过（`out/<arch>/<Config>/CMakeCache.txt` 存在）；`--dry-run`
+  本身不会配置，未配置时只打印 `deps.plan_unconfigured` 提示。因此命令反映的是
+  **上次真实配置**的缓存（`--md`/`--dll`、`--sdl`、`--deps-root` 等）；本次参数与缓存
+  不一致时会先打印 `[WARN] 计划命令按构建目录中的上次配置生成…DUILIB_MD=ON (now OFF)`
+  警告，此时先执行一次不带 `--dry-run` 的 `build.py deps` 再看计划命令。
+- 直接调用等价写法：`cmake -P cmake/duilib_deps_run.cmake -DDUILIB_DEPS_PLAN=ON ...`
+  （或在构建目录执行 `cmake --build . --target duilib_deps_plan`）。
+- CEF 运行时由下载/解压完成，计划模式只给一行提示，不展开下载命令。
 
 所有网络操作（git clone/fetch、CEF 下载）共用一套重试参数，维护在
 [third_party_versions.json](../cmake/third_party_versions.json) 的 `retry` 段：

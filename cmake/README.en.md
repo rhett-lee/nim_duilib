@@ -41,7 +41,7 @@ cmake/
 │  ├── duilib_preflight_tools.cmake        # phase A preflight (no compiler): tools and system libs, read-only
 │  ├── duilib_preflight.cmake              # phase B preflight (with compiler): deterministic checks
 │  ├── duilib_deps.cmake                   # dependency check/prepare targets (DUILIB_DEPS_MODE=off/prepare/auto)
-│  ├── duilib_deps_run.cmake               # dependency script (cmake -P): download, build, install Skia/SDL3/CEF
+│  ├── duilib_deps_run.cmake               # dependency script (cmake -P): download, build, install Skia/SDL3/CEF (plan mode prints commands only)
 │  ├── duilib_download.cmake               # download helpers (curl first, resume/retry, file(DOWNLOAD) fallback)
 │  └── duilib_cef.cmake                    # CEF runtime download/verify/extract/copy (Windows and Linux)
 │
@@ -516,8 +516,8 @@ shared layer through `duilib_example.cmake`). In execution order:
 | `duilib_preflight_tools.cmake` | before `project()` (`cmake -P`) | Phase A preflight: probes tools (cmake/ninja/git/python, `vswhere`) and system libraries only — no downloads, no installs, no file changes |
 | `duilib_root_options.cmake` | after `project()` | Platform/compiler/architecture detection and the unified cache options (they override the subprojects' `option()` defaults); also hoists `DUILIB_MINGW`/`DUILIB_MSYS2_ENV` and resolves the SDL3 variant prefix per configuration |
 | `duilib_preflight.cmake` | after `project()` | Phase B preflight: deterministic checks once the compiler is known (architecture, toolchain, system libraries), all errors reported together |
-| `duilib_deps.cmake` | after `project()` | Creates the dependency check/prepare targets (`duilib_configure_dependencies()` / `duilib_link_dependency_targets()`); `DUILIB_DEPS_MODE=off/prepare/auto` |
-| `duilib_deps_run.cmake` | build time (`cmake -P`) | The actual preparation: download, verify, build and install Skia/SDL3/CEF; each SDL3 variant is installed into its own prefix and stamped with `.duilib-sdl`/`.duilib-crt`; shared by the `duilib_deps` target and `build.py deps` |
+| `duilib_deps.cmake` | after `project()` | Creates the dependency check/prepare targets (`duilib_configure_dependencies()` / `duilib_link_dependency_targets()`); `DUILIB_DEPS_MODE=off/prepare/auto`. Also provides the read-only `duilib_deps_plan` target (`duilib_add_dependency_plan_target()`), created in every mode |
+| `duilib_deps_run.cmake` | build time (`cmake -P`) | The actual preparation: download, verify, build and install Skia/SDL3/CEF; each SDL3 variant is installed into its own prefix and stamped with `.duilib-sdl`/`.duilib-crt`; shared by the `duilib_deps` target and `build.py deps`. With `-DDUILIB_DEPS_PLAN=ON` it only prints the actual Skia/SDL3 command lines (no directories, no lock, no clone, no compile) |
 | `duilib_download.cmake` | `cmake -P` | Download helpers: curl first (resume and retries), otherwise `file(DOWNLOAD)`; entry points `duilib_download_file()` / `duilib_verify_sha256()` / `duilib_verify_sha1()` |
 | `duilib_cef.cmake` | `cmake -P` | Downloads, verifies, extracts and copies the CEF runtime (Release/Resources) per platform; writes the `.duilib-cef` fingerprint |
 
@@ -531,6 +531,35 @@ Dependency directories (`<deps-root>` defaults to the repository's parent; overr
 | `<deps-root>/SDL3/<variant>/` | Complete install prefix of each SDL3 variant (`include/`, `lib/`, `share/licenses`); a single `<deps-root>/SDL3/` prefix on non-Windows |
 | `<deps-root>/SDL3_build/` | SDL3 build trees (per architecture/configuration; rebuilt from scratch when the stamp does not match) |
 | `<deps-root>/cef_binary/` | CEF download cache and extracted runtime |
+
+**Plan mode (print dependency commands only, execute nothing):** `build.py deps
+--dry-run` additionally runs the read-only `duilib_deps_plan` target (equivalent to
+`cmake -P duilib_deps_run.cmake -DDUILIB_DEPS_PLAN=ON`) and prints the real Skia and
+SDL3 command lines, which makes manual reproduction and troubleshooting easier:
+
+```text
+[plan]   cd <deps-root>/skia
+[plan]   <gn> gen out/<variant> "--args=<gn args>"
+[plan]   <ninja> -C out/<variant> -j <jobs>
+[plan]   <cmake> -S <SDL sources> -B <SDL3_build>/<arch>-<cfg> -DCMAKE_INSTALL_PREFIX=...
+[plan]   <cmake> --build <SDL3_build>/<arch>-<cfg> --parallel <jobs>
+[plan]   <cmake> --install <SDL3_build>/<arch>-<cfg> --config <cfg>
+```
+
+- The arguments are identical to the real preparation (both come from the same set
+  of configure-time `-D` values); no naming rule is duplicated.
+- Plan mode is read-only: it does not create the dependency directory, lock a file,
+  clone/switch sources, compile anything or write stamps. Already-ready variants are
+  labelled "skipped when actually running", but their commands are still listed.
+- It works even when the build tree was configured with `DUILIB_DEPS_MODE=off`
+  (plan mode ignores that mode).
+- Values come from the **last real configuration** cached in the build tree
+  (`DUILIB_MD`, `DUILIB_SDL_ROOT`, ...); `--dry-run` does not reconfigure. When the
+  current command line differs from the cache, `deps.plan_cache_stale` is printed with
+  the differences (e.g. `DUILIB_MD=ON (now OFF)`), along with a hint to run `build.py
+  deps` once without `--dry-run` first.
+- The CEF runtime is handled by download/extract, so plan mode only prints a hint
+  instead of the download commands.
 
 **Build message catalog (`i18n/messages.json`):** both the CMake side
 (`duilib_i18n.cmake`) and the Python side (`build/i18n.py`, used by `build.py`,
@@ -724,6 +753,7 @@ because they are needed before `project()`):**
 | `DUILIB_EXAMPLES` | STRING | derived per platform | Examples to build (semicolon/comma separated, `all` = every one); re-derived when the CEF switch changes so stale cache values cannot keep CEF-only examples in the list |
 | `DUILIB_MACOS_BUNDLE_EXAMPLES` | STRING | empty | Examples built as `.app` bundles (macOS only; `all`/`*` = every one) |
 | `DUILIB_DEPS_MODE` | STRING | off | `off` checks only; `prepare` creates dependency targets only (the recommended two-phase flow); `auto` prepares during the build |
+| `DUILIB_DEPS_PLAN` | BOOL | OFF | Internal switch (not a user option): the `duilib_deps_plan` target uses it to print the Skia/SDL3 commands without doing anything |
 | `DUILIB_DEPS_ROOT` | PATH | `<source root>/..` | Dependency root (Skia/SDL3/CEF live below it) |
 | `DUILIB_SDL_ROOT` | PATH | `<deps-root>/SDL3` | SDL3 install root; on Windows the prefix is chosen as `<root>/<variant>` (rule above) |
 | `DUILIB_SDL_BUILD_ROOT` | PATH | `<deps-root>/SDL3_build` | SDL3 build trees (per architecture/configuration) |

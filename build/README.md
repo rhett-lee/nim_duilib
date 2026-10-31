@@ -19,8 +19,8 @@
 | `autotest.py` | 本地自动化：环境检测 → 构建 → 打包 → 校验 → 结构断言 |
 | `test_build.py` | 构建入口自身的单元测试 |
 | `test_pack.py` / `test_autotest.py` | 打包与自动化测试 |
-| `test_cmake_scripts.py` | CMake 脚本测试：Skia/SDL3 变体、CRT 推导、MSYS2 判定与打包侧口径逐项比对（PATH 上没有 cmake 时相关用例跳过） |
-| `tests/skia_variants_check.cmake` | 规则脚本夹具（由 `test_cmake_scripts.py` 以 `cmake -P` 执行：变体命名、候选回退、多配置准备、CRT 推导） |
+| `test_cmake_scripts.py` | CMake 脚本测试：Skia/SDL3 变体、CRT 推导、MSYS2 判定与打包侧口径逐项比对，以及依赖准备计划模式（`deps --dry-run` 打印的 Skia/SDL3 命令、只读约束）（PATH 上没有 cmake 时相关用例跳过） |
+| `tests/skia_variants_check.cmake` | 规则脚本夹具（由 `test_cmake_scripts.py` 以 `cmake -P` 执行：变体命名、候选回退、多配置准备、CRT 推导、计划模式命令打印） |
 | `test_sdk_package.py` | SDK 包测试编排器的纯函数单元测试 |
 | `sdk_package_test.py` | 发布 SDK 包测试编排器（结构校验 + 消费者编译运行 + 负向用例） |
 | `sdk_test/` | SDK 消费者用例工程（仅依赖解包后的 SDK） |

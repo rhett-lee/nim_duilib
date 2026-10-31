@@ -43,6 +43,11 @@
 #     同上，但不预置假前缀：真实构建与 git 对齐用桩替代，走“安装 → 写 stamp →
 #     再次校验就绪”的路径，防止构建成功路径漏传变体参数而误报失败。
 #
+#   DUILIB_TEST_MODE=deps_plan
+#     验证 cmake/duilib_deps_run.cmake 的计划模式（build.py deps --dry-run /
+#     duilib_deps_plan）：只打印 Skia/SDL3 的命令、不写文件，并确认依赖根目录
+#     没有被创建。
+#
 # 注意：写 .duilib-ref 必须使用 file(WRITE)（无 BOM），否则 stamp 比较会失配。
 
 cmake_minimum_required(VERSION 3.24)
@@ -399,6 +404,66 @@ elseif("${DUILIB_TEST_MODE}" STREQUAL "prepare_sdl_build")
         list(APPEND _sdl_variants "${_variant}")
     endforeach()
     message(STATUS "RESULT:${_sdl_variants}")
+
+elseif("${DUILIB_TEST_MODE}" STREQUAL "deps_plan")
+    # 计划模式（build.py deps --dry-run / duilib_deps_plan）：只打印 Skia/SDL3 的
+    # 实际命令行，不建目录、不加锁、不克隆、不编译。命令内容由 Python 侧检查 stdout；
+    # 这里只负责把两条依赖的必要参数喂进去，并确认依赖根目录没有被写入。
+    set(DUILIB_DEPS_MODE "off")   # 计划模式不看 deps 模式，这里故意用 off
+    set(DUILIB_DEPS_PLAN ON)
+    set(DUILIB_DEPS_FORCE OFF)
+    set(DUILIB_DEPS_ROOT "${DUILIB_TEST_DEPS_ROOT}")
+    set(DUILIB_SKIA_ROOT "${DUILIB_TEST_SKIA_ROOT}")
+    set(DUILIB_SDL_ROOT "${DUILIB_TEST_SDL_ROOT}")
+    set(DUILIB_SDL_SRC "${DUILIB_TEST_DEPS_ROOT}/SDL")
+    set(DUILIB_SDL_BUILD_ROOT "${DUILIB_TEST_DEPS_ROOT}/SDL3_build")
+    set(DUILIB_ARCH "${DUILIB_TEST_ARCH}")
+    set(DUILIB_CONFIG "${DUILIB_TEST_CONFIG}")
+    set(DUILIB_MULTI_CONFIG "${DUILIB_TEST_MULTI_CONFIG}")
+    set(DUILIB_DEPS_PLATFORM "windows")
+    set(DUILIB_MINGW "${DUILIB_TEST_MINGW}")
+    set(DUILIB_MD "${DUILIB_TEST_MD}")
+    set(DUILIB_COMPILER_GCC "${DUILIB_TEST_GCC}")
+    set(DUILIB_MSYS2_ENV "${DUILIB_TEST_MSYS2_ENV}")
+    set(DUILIB_MINGW_NAME "${DUILIB_TEST_MINGW_NAME}")
+    set(DUILIB_CRT_ID "${DUILIB_TEST_CRT_ID}")
+    set(DUILIB_SKIA_REF "test-ref")
+    set(DUILIB_SKIA_REF_VALUE "test-value")
+    set(DUILIB_SKIA_PATCH_ZIP "")
+    set(DUILIB_SKIA_REQUIRE_PATCH OFF)
+    set(DUILIB_SDL_REF "test-ref")
+    set(DUILIB_SDL_REF_VALUE "test-value")
+    set(DUILIB_SDL_REF_TYPE "commit")
+    set(DUILIB_ENABLE_SDL ON)
+    set(DUILIB_ENABLE_CEF OFF)
+    set(DUILIB_CMAKE_COMMAND "${CMAKE_COMMAND}")
+    set(DUILIB_VERSIONS_FILE "${DUILIB_TEST_REPO_ROOT}/cmake/third_party_versions.json")
+    set(DUILIB_DEPS_JOBS 2)
+    set(DUILIB_DEPS_LOCK_TIMEOUT 5)
+
+    # 假的 gn/ninja 占位文件：让打印的命令优先使用 <skia>/bin 下的路径
+    if(WIN32)
+        set(_plan_tool_suffix ".exe")
+    else()
+        set(_plan_tool_suffix "")
+    endif()
+    file(MAKE_DIRECTORY "${DUILIB_SKIA_ROOT}/bin")
+    file(WRITE "${DUILIB_SKIA_ROOT}/bin/gn${_plan_tool_suffix}" "")
+    file(WRITE "${DUILIB_SKIA_ROOT}/bin/ninja${_plan_tool_suffix}" "")
+
+    include("${DUILIB_TEST_REPO_ROOT}/cmake/duilib_deps_run.cmake")
+
+    # 计划模式必须保持只读：依赖根目录既不该被创建，也不该出现锁文件
+    if(EXISTS "${DUILIB_DEPS_ROOT}")
+        file(GLOB _plan_deps_root_entries "${DUILIB_DEPS_ROOT}/*")
+    else()
+        set(_plan_deps_root_entries "")
+    endif()
+    if(_plan_deps_root_entries)
+        message(STATUS "RESULT:WRITTEN")
+    else()
+        message(STATUS "RESULT:OK")
+    endif()
 
 else()
     message(FATAL_ERROR "unknown DUILIB_TEST_MODE: '${DUILIB_TEST_MODE}'")

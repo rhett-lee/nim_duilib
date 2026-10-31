@@ -39,7 +39,7 @@ cmake/
 │  ├── duilib_preflight_tools.cmake        # 阶段 A 预检（无编译器）：检查工具与系统库，不改文件
 │  ├── duilib_preflight.cmake              # 阶段 B 预检（有编译器）：确定性的工具链/架构校验
 │  ├── duilib_deps.cmake                   # 依赖检查与准备目标（DUILIB_DEPS_MODE=off/prepare/auto）
-│  ├── duilib_deps_run.cmake               # 依赖准备脚本（cmake -P）：Skia/SDL3/CEF 下载、构建与安装
+│  ├── duilib_deps_run.cmake               # 依赖准备脚本（cmake -P）：Skia/SDL3/CEF 下载、构建与安装（计划模式只打印命令）
 │  ├── duilib_download.cmake               # 下载工具（curl 优先、断点续传与重试，回退 file(DOWNLOAD)）
 │  └── duilib_cef.cmake                    # CEF 运行时下载/校验/解压/复制（Windows 与 Linux 共用）
 │
@@ -501,8 +501,8 @@ check_cxx_source_compiles("
 | `duilib_preflight_tools.cmake` | `project()` 之前（`cmake -P`） | 阶段 A 预检：只探测工具（cmake/ninja/git/python、`vswhere`）与系统库，不下载、不安装、不改文件 |
 | `duilib_root_options.cmake` | `project()` 之后 | 平台/编译器/架构识别，写入统一缓存选项（覆盖子项目 `option()` 的默认值）；同时前移 `DUILIB_MINGW`/`DUILIB_MSYS2_ENV`，并按配置解析 SDL3 变体前缀 |
 | `duilib_preflight.cmake` | `project()` 之后 | 阶段 B 预检：编译器确定后的确定性校验（架构、工具链、系统库），错误一次性汇总输出 |
-| `duilib_deps.cmake` | `project()` 之后 | 建立依赖检查与准备目标（`duilib_configure_dependencies()` / `duilib_link_dependency_targets()`）；`DUILIB_DEPS_MODE=off/prepare/auto` 三档 |
-| `duilib_deps_run.cmake` | 构建期（`cmake -P`） | 真正的依赖准备：Skia/SDL3/CEF 的下载、校验、构建与安装；SDL3 每个变体装到自己的前缀并写 `.duilib-sdl`/`.duilib-crt` 标记；`duilib_deps` 目标与 `build.py deps` 共用 |
+| `duilib_deps.cmake` | `project()` 之后 | 建立依赖检查与准备目标（`duilib_configure_dependencies()` / `duilib_link_dependency_targets()`）；`DUILIB_DEPS_MODE=off/prepare/auto` 三档。另提供只读的 `duilib_deps_plan` 目标（`duilib_add_dependency_plan_target()`），任何模式都创建 |
+| `duilib_deps_run.cmake` | 构建期（`cmake -P`） | 真正的依赖准备：Skia/SDL3/CEF 的下载、校验、构建与安装；SDL3 每个变体装到自己的前缀并写 `.duilib-sdl`/`.duilib-crt` 标记；`duilib_deps` 目标与 `build.py deps` 共用。`-DDUILIB_DEPS_PLAN=ON` 时只打印 Skia/SDL3 的实际命令行（不建目录、不加锁、不 clone、不编译） |
 | `duilib_download.cmake` | `cmake -P` | 下载工具函数：curl 优先（支持断点续传与重试），不存在时回退 `file(DOWNLOAD)`；入口 `duilib_download_file()` / `duilib_verify_sha256()` / `duilib_verify_sha1()` |
 | `duilib_cef.cmake` | `cmake -P` | CEF 运行时（Release/Resources）的下载、校验、解压与按平台复制；写指纹 `.duilib-cef` |
 
@@ -516,6 +516,30 @@ check_cxx_source_compiles("
 | `<deps-root>/SDL3/<变体>/` | SDL3 每个变体的完整安装前缀（`include/`、`lib/`、`share/licenses`）；非 Windows 为 `<deps-root>/SDL3/` 单前缀 |
 | `<deps-root>/SDL3_build/` | SDL3 构建目录（按架构/配置；stamp 不匹配时清空重建） |
 | `<deps-root>/cef_binary/` | CEF 下载缓存与解压结果 |
+
+**计划模式（只打印依赖命令，不执行）：** `build.py deps --dry-run` 会额外执行
+只读目标 `duilib_deps_plan`（等价于 `cmake -P duilib_deps_run.cmake
+-DDUILIB_DEPS_PLAN=ON`），把 Skia 与 SDL3 的真实命令行打印出来，便于手工复现或
+排查问题：
+
+```text
+[plan]   cd <deps-root>/skia
+[plan]   <gn> gen out/<变体> "--args=<gn 参数>"
+[plan]   <ninja> -C out/<变体> -j <jobs>
+[plan]   <cmake> -S <SDL 源码> -B <SDL3_build>/<arch>-<cfg> -DCMAKE_INSTALL_PREFIX=...
+[plan]   <cmake> --build <SDL3_build>/<arch>-<cfg> --parallel <jobs>
+[plan]   <cmake> --install <SDL3_build>/<arch>-<cfg> --config <cfg>
+```
+
+- 命令行参数与真实准备完全一致（都取自配置期生成的同一组 `-D` 值），不另写规则。
+- 计划模式只读：不创建依赖目录、不加文件锁、不 clone/切换源码、不编译、不写 stamp；
+  已就绪的变体会标注“实际运行会跳过该步骤”，命令仍完整列出。
+- 即使当前构建目录是 `DUILIB_DEPS_MODE=off` 也能列出命令（计划模式不看该模式）。
+- 参数来自**上次真实配置**的缓存（`DUILIB_MD`、`DUILIB_SDL_ROOT` 等），`--dry-run`
+  不会重新配置；若本次命令行参数与缓存不同，脚本会先打印 `deps.plan_cache_stale`
+  警告并列出差异（如 `DUILIB_MD=ON (now OFF)`），提示先执行一次不带 `--dry-run` 的
+  `build.py deps`。
+- CEF 运行时由下载/解压完成，计划模式只给出一行提示，不展开下载命令。
 
 **构建消息目录（`i18n/messages.json`）：** CMake 侧（`duilib_i18n.cmake`）与 Python
 侧（`build/i18n.py`，供 `build.py`、`pack.py`、`release.py` 等使用）都从这一份
@@ -700,6 +724,7 @@ cmake --build ./build_llvm
 | `DUILIB_EXAMPLES` | STRING | 按平台推导 | 参与构建的示例名（分号/逗号分隔，`all` 表示全部）；被 CEF 开关变化改写时会重新推导，避免旧缓存值把已关闭的 CEF 示例留在列表里 |
 | `DUILIB_MACOS_BUNDLE_EXAMPLES` | STRING | 空 | 编译为 `.app` 的示例（仅 macOS；`all`/`*` 为全部） |
 | `DUILIB_DEPS_MODE` | STRING | off | `off` 只检查；`prepare` 只建依赖目标（两阶段推荐流程）；`auto` 构建期先准备 |
+| `DUILIB_DEPS_PLAN` | BOOL | OFF | 内部开关（非用户选项）：`duilib_deps_plan` 目标用它只打印 Skia/SDL3 命令，不执行任何操作 |
 | `DUILIB_DEPS_ROOT` | PATH | `<源根>/..` | 依赖根目录（Skia/SDL3/CEF 都在其下） |
 | `DUILIB_SDL_ROOT` | PATH | `<deps-root>/SDL3` | SDL3 安装根；Windows 下按 `<根>/<变体>` 选择前缀，见上一节规则 |
 | `DUILIB_SDL_BUILD_ROOT` | PATH | `<deps-root>/SDL3_build` | SDL3 构建目录（按架构/配置） |

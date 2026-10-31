@@ -1116,6 +1116,75 @@ def _ensure_skia_patch(args, messages, runner: Runner) -> None:
                          messages.hint("deps.skia_patch_sha1_mismatch_hint"))
 
 
+# 计划命令由构建目录中上次配置生成的 -D 参数决定；这些缓存项变了，命令就过时了
+_PLAN_CACHE_FLAGS = ("DUILIB_MD", "DUILIB_DLL", "DUILIB_ENABLE_SDL")
+
+
+def _requested_plan_flags(args) -> dict:
+    """本次命令行对应的关键缓存项取值（与 _cmake_defines 的解析规则保持一致）。"""
+    if getattr(args, "sdl", None) is not None:
+        sdl_enabled = args.sdl
+    else:
+        sdl_enabled = sys.platform != "win32"
+    flags = {
+        "DUILIB_MD": "ON" if getattr(args, "md", False) else "OFF",
+        "DUILIB_DLL": "ON" if getattr(args, "dll", False) else "OFF",
+        "DUILIB_ENABLE_SDL": "ON" if sdl_enabled else "OFF",
+    }
+    # -D 参数按顺序生效，后面的覆盖前面的（与 CMake 行为一致）
+    for item in getattr(args, "cmake_arg", None) or []:
+        if not item.startswith("-D"):
+            continue
+        name, sep, value = item[2:].partition("=")
+        if sep and name in flags and value in ("ON", "OFF"):
+            flags[name] = value
+    return flags
+
+
+def _plan_cache_stale(args, build_dir: Path) -> list:
+    """找出与本次参数不一致的缓存项，返回 (名称, 缓存值, 本次值) 列表。
+
+    dry-run 不会重新配置，计划目标的 -D 参数取自构建目录里的上次配置，
+    因此本次命令行改变 MD/DLL/SDL 后，打印的命令与真正运行时执行的不同。
+    """
+    try:
+        text = (build_dir / "CMakeCache.txt").read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return []
+    requested = _requested_plan_flags(args)
+    stale = []
+    for name in _PLAN_CACHE_FLAGS:
+        # 缓存项的类型可能是 BOOL，也可能仍是 UNINITIALIZED（首次配置前用 -D 传入过）
+        match = re.search(rf"^{name}:[^=]+=(ON|OFF)$", text, re.MULTILINE)
+        if not match or match.group(1) == requested[name]:
+            continue
+        stale.append((name, match.group(1), requested[name]))
+    return stale
+
+
+def _print_deps_plan(args, messages, toolchain: "Toolchain", build_dir: Path) -> None:
+    """--dry-run 时额外打印 Skia/SDL3 的实际编译命令。
+
+    这些命令由配置期生成的 -D 参数决定（变体目录名等规则都在 CMake 侧），因此需要
+    已存在的构建目录；未配置时只给出提示，避免在 dry-run 里触发真正的配置。
+    计划目标本身只读（不写文件、不联网、不编译），所以 dry-run 中可以直接执行。
+    """
+    if not (build_dir / "CMakeCache.txt").is_file():
+        print(messages.t("deps.plan_unconfigured"), flush=True)
+        print(messages.hint("deps.plan_unconfigured_hint"), flush=True)
+        return
+    stale = _plan_cache_stale(args, build_dir)
+    if stale:
+        detail = ", ".join(f"{name}={cached} (now {requested})"
+                           for name, cached, requested in stale)
+        print(messages.t("deps.plan_cache_stale") + detail, flush=True)
+        print(messages.hint("deps.plan_cache_stale_hint"), flush=True)
+    command = _build_command(args, toolchain, build_dir, args.config, "duilib_deps_plan")
+    if Runner(toolchain.env, dry_run=False).run(command, cwd=REPO_ROOT) != 0:
+        print(messages.t("deps.plan_failed"), flush=True)
+        print(messages.hint("deps.plan_failed_hint"), flush=True)
+
+
 def cmd_deps(args, messages) -> int:
     _require_cmake(messages)
     _check_cef_archive(args, messages)
@@ -1128,6 +1197,8 @@ def cmd_deps(args, messages) -> int:
     runner = Runner(toolchain.env, args.dry_run)
     _ensure_skia_patch(args, messages, runner)
     _prepare(args, messages, runner, toolchain, arch, build_dir, "prepare", args.force)
+    if args.dry_run:
+        _print_deps_plan(args, messages, toolchain, build_dir)
     return 0
 
 

@@ -358,6 +358,7 @@ class SdlIncludeDirTests(unittest.TestCase):
 
 
 class _SdlRootMixin:
+
     """在临时目录里造 SDL3 安装根与依赖目录。"""
 
     def setUp(self):
@@ -949,6 +950,68 @@ class PrepareSkiaConfigTests(_SkiaRootMixin, unittest.TestCase):
         self.assertEqual(rc, 0, output)
         self.assertIn("llvm.x64.release", output)
         self.assertNotIn("(llvm.x64.debug)", output)
+
+
+class DepsPlanTests(_SkiaRootMixin, unittest.TestCase):
+    """计划模式（build.py deps --dry-run / duilib_deps_plan）：只打印命令。
+
+    回归点：计划模式必须保持只读（不建目录/不加锁/不写 stamp），并且打印出的
+    Skia/SDL3 命令与真实准备一致（含 gn 参数、SDL3 的 configure/build/install）。
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.sdl_root = os.path.join(self.tmp, "SDL3")
+        self.deps_root = os.path.join(self.tmp, "deps")
+
+    def _plan(self, config="Release", multi_config="0", md="1"):
+        return _run_harness(
+            "deps_plan",
+            DUILIB_TEST_SKIA_ROOT=self.skia_root,
+            DUILIB_TEST_SDL_ROOT=self.sdl_root,
+            DUILIB_TEST_DEPS_ROOT=self.deps_root,
+            DUILIB_TEST_CONFIG=config,
+            DUILIB_TEST_MULTI_CONFIG=multi_config,
+            DUILIB_TEST_ARCH="x64",
+            DUILIB_TEST_MINGW="0",
+            DUILIB_TEST_GCC="0",
+            DUILIB_TEST_MD=md,
+            DUILIB_TEST_MSYS2_ENV="",
+            DUILIB_TEST_MINGW_NAME="mingw64-",
+            DUILIB_TEST_CRT_ID="msvc-md" if md == "1" else "msvc-mt")
+
+    def test_plan_prints_skia_and_sdl_commands(self):
+        _require_cmake(self)
+        rc, output = self._plan()
+        self.assertEqual(rc, 0, output)
+        self.assertEqual(_result(output), "OK", output)
+        plan_lines = [line for line in output.splitlines() if "[plan]" in line]
+        self.assertTrue(plan_lines, output)
+        joined = "\n".join(plan_lines)
+        # Skia：gn gen + ninja，且变体目录名与 gn 参数都在
+        self.assertIn("gen out/llvm.x64.release.md", joined)
+        self.assertIn("--args=", joined)
+        self.assertIn("ninja", joined)
+        self.assertIn("-j 2", joined)
+        # SDL3：configure / build / install 三条命令都要列出（含静态库与运行库）
+        self.assertIn("-DSDL_STATIC=ON", joined)
+        self.assertIn("--build", joined)
+        self.assertIn("--install", joined)
+        self.assertIn("msvc.x64.release.md", joined)
+        # 嵌套引号已转义，命令可直接复制执行
+        self.assertIn('\\"x64\\"', joined)
+        # 计划模式是只读的：依赖根目录下不应出现锁文件等任何内容
+        self.assertFalse(os.path.exists(self.deps_root), output)
+
+    def test_plan_multi_config_lists_both_variants(self):
+        _require_cmake(self)
+        rc, output = self._plan(config="Release", multi_config="1")
+        self.assertEqual(rc, 0, output)
+        self.assertIn("llvm.x64.debug", output)
+        self.assertIn("llvm.x64.release", output)
+        self.assertIn("msvc.x64.debug", output)
+        self.assertIn("msvc.x64.release", output)
+        self.assertFalse(os.path.exists(self.deps_root), output)
 
 
 class FindCmakeTests(unittest.TestCase):

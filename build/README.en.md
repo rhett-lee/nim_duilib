@@ -20,8 +20,8 @@ and troubleshooting, see [build-reference.en.md](build-reference.en.md).
 | `autotest.py` | local automation: environment check → build → package → verify → assertions |
 | `test_build.py` | unit tests for the build entry point |
 | `test_pack.py` / `test_autotest.py` | packaging and automation tests |
-| `test_cmake_scripts.py` | CMake script tests: Skia/SDL3 variants, CRT derivation, MSYS2 detection and a case-by-case comparison with the packaging side (cases are skipped when cmake is not on PATH) |
-| `tests/skia_variants_check.cmake` | fixture run by `test_cmake_scripts.py` through `cmake -P`: variant names, candidate fallback, multi-configuration preparation, CRT derivation |
+| `test_cmake_scripts.py` | CMake script tests: Skia/SDL3 variants, CRT derivation, MSYS2 detection and a case-by-case comparison with the packaging side, plus the dependency plan mode (the Skia/SDL3 commands printed by `deps --dry-run` and its read-only guarantee) (cases are skipped when cmake is not on PATH) |
+| `tests/skia_variants_check.cmake` | fixture run by `test_cmake_scripts.py` through `cmake -P`: variant names, candidate fallback, multi-configuration preparation, CRT derivation, plan-mode command printing |
 | `test_sdk_package.py` | unit tests for the pure functions of the SDK package test orchestrator |
 | `sdk_package_test.py` | released-SDK package test orchestrator (structure checks + consumer build/run + negative cases) |
 | `sdk_test/` | SDK consumer test projects (depend only on the unpacked SDK) |

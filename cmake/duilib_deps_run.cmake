@@ -35,6 +35,27 @@ endif()
 if("${DUILIB_DEPS_LOCK_TIMEOUT}" STREQUAL "")
     set(DUILIB_DEPS_LOCK_TIMEOUT 5)
 endif()
+# 计划模式（`build.py deps --dry-run` / duilib_deps_plan 目标）：只打印 Skia/SDL3
+# 实际会执行的命令行，不写文件、不联网、不编译，便于手工复现与排查问题。
+if("${DUILIB_DEPS_PLAN}" STREQUAL "")
+    set(DUILIB_DEPS_PLAN OFF)
+endif()
+
+# 计划模式的命令输出：拼接成一行并缩进；含空格的参数加引号，便于直接复制执行。
+# Skia 的 gn 参数自带引号（如 target_cpu="x64"），外层加引号时需转义为 \"，
+# 否则复制到 cmd/PowerShell 后引号嵌套会导致参数被截断。
+function(_duilib_plan_command)
+    set(_line "")
+    foreach(_item IN LISTS ARGV)
+        if(_item MATCHES " ")
+            string(REPLACE "\"" "\\\"" _item "${_item}")
+            set(_item "\"${_item}\"")
+        endif()
+        string(APPEND _line "${_item} ")
+    endforeach()
+    string(STRIP "${_line}" _line)
+    message(STATUS "[plan]   ${_line}")
+endfunction()
 
 if(NOT EXISTS "${DUILIB_VERSIONS_FILE}")
     duilib_error("deps.versions_invalid" "deps.versions_invalid_hint")
@@ -90,14 +111,17 @@ if("${DUILIB_DOWNLOAD_RETRIES}" STREQUAL "" OR "${DUILIB_DOWNLOAD_RETRY_DELAY}" 
     endif()
 endif()
 
-# 依赖根目录与锁（并发 deps 只允许一个进程写入）
+# 依赖根目录与锁（并发 deps 只允许一个进程写入；计划模式只读，不建目录也不加锁）
 get_filename_component(DUILIB_DEPS_ROOT "${DUILIB_DEPS_ROOT}" ABSOLUTE)
-file(MAKE_DIRECTORY "${DUILIB_DEPS_ROOT}")
-set(_duilib_lock_file "${DUILIB_DEPS_ROOT}/.duilib_deps.lock")
-file(LOCK "${_duilib_lock_file}" GUARD PROCESS TIMEOUT "${DUILIB_DEPS_LOCK_TIMEOUT}"
-     RESULT_VARIABLE _duilib_lock_rc)
-if(NOT _duilib_lock_rc EQUAL 0)
-    duilib_error("deps.lock_failed" "deps.lock_failed_hint")
+set(_duilib_lock_file "")
+if(NOT DUILIB_DEPS_PLAN)
+    file(MAKE_DIRECTORY "${DUILIB_DEPS_ROOT}")
+    set(_duilib_lock_file "${DUILIB_DEPS_ROOT}/.duilib_deps.lock")
+    file(LOCK "${_duilib_lock_file}" GUARD PROCESS TIMEOUT "${DUILIB_DEPS_LOCK_TIMEOUT}"
+         RESULT_VARIABLE _duilib_lock_rc)
+    if(NOT _duilib_lock_rc EQUAL 0)
+        duilib_error("deps.lock_failed" "deps.lock_failed_hint")
+    endif()
 endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_download.cmake")
@@ -609,6 +633,54 @@ function(_duilib_skia_patch_key out_key patch)
     set(${out_key} "${DUILIB_SKIA_REF_VALUE}:${_hash}" PARENT_SCOPE)
 endfunction()
 
+# 计划模式：只打印该配置的 Skia 编译命令（gn gen + ninja），不执行任何操作。
+# 已就绪与否只用于标注“实际运行会跳过”，命令仍完整列出，方便手工复现。
+function(_duilib_plan_skia_config config variant out_dir stamp_expected)
+    set(DUILIB_CONFIG "${config}")
+    if(config STREQUAL "Debug")
+        set(DUILIB_BUILD_TYPE "debug")
+    else()
+        set(DUILIB_BUILD_TYPE "release")
+    endif()
+    _duilib_skia_lib_name(_lib_name)
+
+    duilib_msg("deps.plan_skia" " (${variant})")
+    set(_ready FALSE)
+    if(NOT DUILIB_DEPS_FORCE AND EXISTS "${out_dir}/${_lib_name}"
+       AND EXISTS "${out_dir}/.duilib-ref")
+        file(READ "${out_dir}/.duilib-ref" _stamp)
+        if(_stamp STREQUAL stamp_expected)
+            set(_ready TRUE)
+        endif()
+    endif()
+    if(_ready)
+        duilib_msg("deps.plan_ready" " (${variant})")
+    else()
+        duilib_msg("deps.plan_rebuild" " (${variant})")
+    endif()
+    if(NOT EXISTS "${DUILIB_SKIA_ROOT}")
+        duilib_msg("deps.plan_source_missing" " (${DUILIB_SKIA_ROOT})")
+    endif()
+
+    _duilib_find_gn(_gn)
+    _duilib_find_ninja(_ninja)
+    _duilib_find_python3(_python3)
+    if(_gn STREQUAL "" OR _ninja STREQUAL "" OR _python3 STREQUAL "")
+        duilib_msg("deps.plan_tool_missing")
+    endif()
+    if(_gn STREQUAL "")
+        set(_gn "<gn>")
+    endif()
+    if(_ninja STREQUAL "")
+        set(_ninja "<ninja>")
+    endif()
+
+    _duilib_skia_gn_args(_args "${variant}")
+    _duilib_plan_command("cd" "${DUILIB_SKIA_ROOT}")
+    _duilib_plan_command("${_gn}" gen "out/${variant}" "--args=${_args}")
+    _duilib_plan_command("${_ninja}" -C "out/${variant}" -j "${DUILIB_DEPS_JOBS}")
+endfunction()
+
 function(_duilib_prepare_skia_config config)
     # 单个配置的 Skia 变体：目录名与 gn 参数都依赖当前配置，先把本配置写进局部变量，
     # 供 _duilib_skia_candidates / _duilib_skia_gn_args 读取。
@@ -624,6 +696,11 @@ function(_duilib_prepare_skia_config config)
     set(_out_dir "${DUILIB_SKIA_ROOT}/out/${_variant}")
     set(_lib "${_out_dir}/${_lib_name}")
     _duilib_skia_stamp_value(_stamp_expected)
+
+    if(DUILIB_DEPS_PLAN)
+        _duilib_plan_skia_config("${config}" "${_variant}" "${_out_dir}" "${_stamp_expected}")
+        return()
+    endif()
 
     # 补丁归档随仓库分发（build/skia_patch），这里只校验它与清单配套。
     set(_patch "")
@@ -857,7 +934,8 @@ function(_duilib_run_checked what hint)
     endif()
 endfunction()
 
-function(_duilib_sdl_build_one build_dir config install_prefix)
+# SDL3 的 cmake 配置参数：构建与计划模式共用，保证打印的命令与实际执行一致。
+function(_duilib_sdl_configure_args out_var build_dir config install_prefix)
     set(_args
         -S "${DUILIB_SDL_SRC}"
         -B "${build_dir}"
@@ -887,6 +965,11 @@ function(_duilib_sdl_build_one build_dir config install_prefix)
         list(APPEND _args -DCMAKE_BUILD_TYPE=Release -DSDL_SHARED=ON -DSDL_STATIC=OFF
              -DSDL_X11_XSCRNSAVER=OFF -DSDL_X11_XTEST=OFF)
     endif()
+    set(${out_var} "${_args}" PARENT_SCOPE)
+endfunction()
+
+function(_duilib_sdl_build_one build_dir config install_prefix)
+    _duilib_sdl_configure_args(_args "${build_dir}" "${config}" "${install_prefix}")
 
     _duilib_run_checked("SDL3 configure (${config})"
                         "check the SDL3 source tree and the compiler environment"
@@ -905,11 +988,49 @@ function(_duilib_sdl_build_one build_dir config install_prefix)
     endif()
 endfunction()
 
+# 计划模式：只打印该配置的 SDL3 配置/编译/安装命令，不执行任何操作。
+function(_duilib_plan_sdl_config config prefix build_dir ready)
+    duilib_msg("deps.plan_sdl" " (${prefix})")
+    if(ready)
+        duilib_msg("deps.plan_ready" " (${prefix})")
+    else()
+        duilib_msg("deps.plan_rebuild" " (${prefix})")
+    endif()
+    if(NOT EXISTS "${DUILIB_SDL_SRC}")
+        duilib_msg("deps.plan_source_missing" " (${DUILIB_SDL_SRC})")
+    endif()
+
+    _duilib_sdl_configure_args(_args "${build_dir}" "${config}" "${prefix}")
+    set(_cmake "${DUILIB_CMAKE_COMMAND}")
+    if(_cmake STREQUAL "")
+        set(_cmake "cmake")
+    endif()
+    _duilib_plan_command("${_cmake}" ${_args})
+    _duilib_plan_command("${_cmake}" --build "${build_dir}"
+                         --parallel "${DUILIB_DEPS_JOBS}")
+    if(DUILIB_DEPS_PLATFORM STREQUAL "windows")
+        _duilib_plan_command("${_cmake}" --install "${build_dir}"
+                             --config "${config}")
+    else()
+        _duilib_plan_command("${_cmake}" --install "${build_dir}")
+    endif()
+endfunction()
+
 # 为单个配置准备 SDL3：安装到该配置的变体前缀（已就绪则直接跳过）
 function(_duilib_prepare_sdl_config config)
     _duilib_sdl_variant_for("${config}" _variant)
     _duilib_sdl_prefix_for("${config}" _prefix)
     _duilib_sdl_ready("${_prefix}" "${_variant}" _ready)
+
+    # 计划模式：走完路径解析后只打印命令（即使是就绪的变体也列出，便于对照）
+    if(DUILIB_DEPS_PLAN)
+        string(TOLOWER "${config}" _cfg_lower)
+        _duilib_plan_sdl_config("${config}" "${_prefix}"
+                                "${DUILIB_SDL_BUILD_ROOT}/${DUILIB_ARCH}-${_cfg_lower}"
+                                "${_ready}")
+        return()
+    endif()
+
     if(_ready AND NOT DUILIB_DEPS_FORCE)
         _duilib_write_crt("${_prefix}")
         duilib_msg("deps.sdl_ready" " (${_prefix})")
@@ -950,7 +1071,8 @@ endfunction()
 function(duilib_prepare_sdl)
     # 本地源码可能停在别的分支/标签（如 main），先按清单对齐；stamp 里包含源码
     # 提交，切换后旧版本的安装产物不会被当成清单版本的产物复用。
-    if(EXISTS "${DUILIB_SDL_SRC}/.git")
+    # 计划模式只读：不切换工作区。
+    if(EXISTS "${DUILIB_SDL_SRC}/.git" AND NOT DUILIB_DEPS_PLAN)
         _duilib_ensure_git_ref("${DUILIB_SDL_SRC}" "${DUILIB_SDL_REF_TYPE}"
                                "${DUILIB_SDL_REF_VALUE}" "SDL3")
     endif()
@@ -982,7 +1104,8 @@ function(duilib_prepare_sdl)
         endif()
     endforeach()
 
-    if(_duilib_sdl_pending)
+    # 计划模式只读：不克隆/更新源码，各变体的计划行会标注源码缺失与是否需要重建
+    if(_duilib_sdl_pending AND NOT DUILIB_DEPS_PLAN)
         if(EXISTS "${DUILIB_SDL_SRC}" AND NOT EXISTS "${DUILIB_SDL_SRC}/.git")
             # 没有 .git 的残留目录无法更新，避免在无限重试下卡死
             duilib_error_values("${DUILIB_SDL_SRC} exists but is not a git checkout"
@@ -1003,17 +1126,32 @@ endfunction()
 # ---------------------------------------------------------------------------
 # 主流程
 # ---------------------------------------------------------------------------
-if(DUILIB_DEPS_MODE STREQUAL "prepare" OR DUILIB_DEPS_MODE STREQUAL "auto")
+if(DUILIB_DEPS_PLAN OR DUILIB_DEPS_MODE STREQUAL "prepare" OR DUILIB_DEPS_MODE STREQUAL "auto")
+    if(DUILIB_DEPS_PLAN)
+        # Ninja 的进度行（如 "[0/1] Printing ..."）不带换行，先空一行避免和标题粘连
+        message("")
+        duilib_msg("deps.plan_title")
+    endif()
     duilib_prepare_skia()
     if(DUILIB_ENABLE_SDL)
         duilib_prepare_sdl()
     endif()
     if(DUILIB_ENABLE_CEF)
-        duilib_cef_prepare()
+        if(DUILIB_DEPS_PLAN)
+            duilib_msg("deps.plan_cef")
+        else()
+            duilib_cef_prepare()
+        endif()
     endif()
-    duilib_msg("deps.done")
+    if(DUILIB_DEPS_PLAN)
+        duilib_msg("deps.plan_done")
+    else()
+        duilib_msg("deps.done")
+    endif()
 else()
     message(STATUS "[deps] mode=${DUILIB_DEPS_MODE}: nothing to prepare")
 endif()
 
-file(LOCK "${_duilib_lock_file}" RELEASE)
+if(NOT _duilib_lock_file STREQUAL "")
+    file(LOCK "${_duilib_lock_file}" RELEASE)
+endif()

@@ -136,6 +136,19 @@ function(duilib_add_dependency_targets)
         COMMENT "Preparing duilib dependencies (Skia/SDL3/CEF)")
 endfunction()
 
+# 计划目标：只打印 Skia/SDL3 实际会执行的命令行（build.py deps --dry-run 使用），
+# 不写文件、不联网、不编译；参数与 duilib_deps 完全相同，保证打印的就是实际命令。
+# 与 DUILIB_DEPS_MODE 无关地总是创建：off 模式下的构建目录也能列出命令，
+# 脚本在计划模式下会按 prepare 流程展开（不看 DUILIB_DEPS_MODE）。
+function(duilib_add_dependency_plan_target)
+    _duilib_deps_script_args(_duilib_deps_args)
+    add_custom_target(duilib_deps_plan
+        COMMAND "${CMAKE_COMMAND}" ${_duilib_deps_args} -DDUILIB_DEPS_PLAN=ON
+                -P "${DUILIB_CMAKE_DIR}/duilib_deps_run.cmake"
+        USES_TERMINAL
+        COMMENT "Printing duilib dependency build commands (plan only, no changes)")
+endfunction()
+
 # 配置期检查 Skia 库目录（off 模式）：按每个目标配置解析候选目录，全部缺失时统一报错。
 # 候选目录名的规则在 duilib_skia_variants.cmake，与 duilib_common.cmake、依赖准备共用。
 function(_duilib_check_skia)

@@ -432,7 +432,7 @@ Skia `llvm.x64.release`、SDL3 `main`、CEF 142/x64。
 | G-03 | `build.py clean` | 删除整个 `out/`；`--build-dir` 可只清理指定构建目录 | 通过 | dry-run 仅打印路径 |
 | G-04 | `build.py clean --deps --dry-run` | 展示依赖清理范围 | 通过 | 不会删除源码克隆 |
 | G-05 | `build.py build/pack/test --dry-run` | 只打印命令 | 通过 | build/clean 不再误报完成 |
-| G-06 | `build.py test` | 构建/打包单元测试 | 通过 | 2026-10-31 Windows 复测：323 项通过、2 项按平台跳过（POSIX 权限位相关）；含 `test_cmake_scripts.py` 的 CMake 规则用例（Skia/SDL3 变体命名与候选回退、CMake 与 `pack.py` 口径一致性、CRT 推导、MSYS2 判定、依赖准备、多配置准备）与一次真实 configure 冒烟（PATH 无 cmake 时回退 `DUILIB_CMAKE_EXECUTABLE` / VS 自带 CMake）；macOS 2026-10-28 与 FreeBSD 2026-10-29 复测 `build.py test`、`test_build.py`、`test_pack.py`、`test_sdk_package.py`、`test_autotest.py` 均通过 |
+| G-06 | `build.py test` | 构建/打包单元测试 | 通过 | 2026-10-31 Windows 复测：330 项通过、2 项按平台跳过（POSIX 权限位相关）；含 `test_cmake_scripts.py` 的 CMake 规则用例（Skia/SDL3 变体命名与候选回退、CMake 与 `pack.py` 口径一致性、CRT 推导、MSYS2 判定、依赖准备、多配置准备、计划模式（`deps --dry-run` 的 Skia/SDL3 命令与只读约束））与一次真实 configure 冒烟（PATH 无 cmake 时回退 `DUILIB_CMAKE_EXECUTABLE` / VS 自带 CMake）；macOS 2026-10-28 与 FreeBSD 2026-10-29 复测 `build.py test`、`test_build.py`、`test_pack.py`、`test_sdk_package.py`、`test_autotest.py` 均通过 |
 | G-07 | 负向校验 | 混合库、架构不一致、CEF 版本不匹配、错误 ref/archive | 通过 | 均在配置/打包阶段明确报错 |
 
 ## 7. 当前测试进展（2026-10-29）

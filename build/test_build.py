@@ -437,6 +437,91 @@ class StaleCacheTests(unittest.TestCase):
         self.assertTrue(root.exists())
 
 
+class DepsPlanPrintTests(unittest.TestCase):
+    """build.py _print_deps_plan：deps --dry-run 额外打印 Skia/SDL3 的实际命令。"""
+
+    class _Messages:
+        @staticmethod
+        def t(key):
+            return "[" + key + "]"
+
+        @staticmethod
+        def hint(key):
+            return "Hint: [" + key + "]"
+
+    def _run(self, build_dir, runner_returns=0, md=False, dll=False):
+        """调用 _print_deps_plan 并返回它打印的内容；Runner 用桩替代，不真的执行 cmake。"""
+        args = SimpleNamespace(jobs=2, config="Release", build_arg=[],
+                               md=md, dll=dll, sdl=None, cmake_arg=[])
+        toolchain = entry.Toolchain({"CXX": sys.executable}, "Ninja", None, None)
+        stream = io.StringIO()
+        calls = []
+
+        class _StubRunner:
+            def __init__(self, _env, dry_run):
+                pass
+
+            def run(self, command, cwd=None):
+                calls.append(command)
+                return runner_returns
+
+        with mock.patch.object(entry, "Runner", _StubRunner), \
+                contextlib.redirect_stdout(stream):
+            entry._print_deps_plan(args, self._Messages(), toolchain, build_dir)
+        return stream.getvalue(), calls
+
+    def test_unconfigured_build_dir_prints_hint(self):
+        """构建目录还没配置时只给提示，不能在 dry-run 里触发真正的配置。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            output, calls = self._run(Path(tmp))
+        self.assertIn("[deps.plan_unconfigured]", output)
+        self.assertIn("Hint: [deps.plan_unconfigured_hint]", output)
+        self.assertEqual(calls, [])
+
+    def test_configured_build_dir_runs_plan_target(self):
+        """已配置的构建目录：执行只读的 duilib_deps_plan 目标。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "CMakeCache.txt").write_text("# cache\n", encoding="utf-8")
+            output, calls = self._run(root)
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0][-1], "duilib_deps_plan")
+        self.assertNotIn("[deps.plan_unconfigured]", output)
+
+    def test_stale_cache_options_print_warning(self):
+        """缓存里的 MD/DLL 与本次参数不同：提示计划命令反映的是上次配置。"""
+        cache = ("DUILIB_MD:BOOL=ON\nDUILIB_DLL:BOOL=ON\n"
+                 "DUILIB_ENABLE_SDL:UNINITIALIZED=ON\n")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "CMakeCache.txt").write_text(cache, encoding="utf-8")
+            output, _ = self._run(root)
+        self.assertIn("[deps.plan_cache_stale]", output)
+        self.assertIn("Hint: [deps.plan_cache_stale_hint]", output)
+        self.assertIn("DUILIB_MD=ON (now OFF)", output)
+        self.assertIn("DUILIB_DLL=ON (now OFF)", output)
+        if sys.platform == "win32":
+            # Windows 默认关闭 SDL；非 Windows 默认开启，因此只在 Windows 上断言
+            self.assertIn("DUILIB_ENABLE_SDL=ON (now OFF)", output)
+
+    def test_matching_cache_options_print_no_warning(self):
+        """缓存与本次参数一致时不要误报（例如 --dll 与缓存 DUILIB_DLL=ON）。"""
+        cache = "DUILIB_MD:BOOL=ON\nDUILIB_DLL:BOOL=ON\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "CMakeCache.txt").write_text(cache, encoding="utf-8")
+            output, _ = self._run(root, md=True, dll=True)
+        self.assertNotIn("[deps.plan_cache_stale]", output)
+
+    def test_plan_target_failure_prints_hint(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "CMakeCache.txt").write_text("# cache\n", encoding="utf-8")
+            output, calls = self._run(root, runner_returns=1)
+        self.assertIn("[deps.plan_failed]", output)
+        self.assertIn("Hint: [deps.plan_failed_hint]", output)
+
+
 class ConfigSwitchTests(unittest.TestCase):
     """切换 Debug/Release 时，共享 bin/ 中另一种配置的示例产物要被清理。
 
