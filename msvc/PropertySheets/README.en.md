@@ -36,6 +36,7 @@ PropertySheets/
 **Main content:**
 
 - **Platform toolset selection:** Automatically select the corresponding toolset based on the VS version
+  - VS2026 (18.0) → v145
   - VS2022 (17.0) → v143
   - VS2019 (16.0) → v142
   - VS2017 (15.0) → v141

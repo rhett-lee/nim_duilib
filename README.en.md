@@ -1,6 +1,6 @@
 English | [简体中文](README.md)
 
-> Last synced: 2026-10-29
+> Last synced: 2026-10-31
 
 # nim_duilib
 
@@ -22,13 +22,13 @@ Confirming up front what the library covers, and what still needs extra work, av
 **Scope** (the points that matter most when getting started):
 
 - **Rendering**: Skia is the required backend for vector drawing, text and animation. The build script prepares and compiles it automatically from the [version manifest](cmake/third_party_versions.json), so no manual build is needed; if that step fails it is usually a network or toolchain issue, and `doctor` points out which item is missing.
-- **Development workflow**: XML + C++ is the primary approach; the repository ships no visual designer. The `.claude` AI skills can help generate UI code.
+- **Development workflow**: XML + C++ is the primary approach; the repository ships no visual designer. Bundled Claude, WorkBuddy and TRAE AI skills (same content) can help generate UI code; see "Advanced Usage".
 - **Platform-specific features**: WebView2 is Windows only; "independent DPI settings" is Windows only; system window shadows are Windows/macOS only.
 - **CEF**: enabled by default on Windows/Linux/macOS; not supported on FreeBSD or MinGW. Version 156 is the default (requires Windows 10+); to run web controls on Windows 7, build with `--cef-version 109`.
 - **Animation**: GIF/APNG/WebP/Lottie work out of the box; PAG is disabled by default and can only be enabled on Windows with the MSVC solution (libpag must be compiled yourself).
 - **SDL3**: off by default on Windows (enable with `--sdl`), mandatory on Linux/macOS/FreeBSD for window management and input.
 - **Runtime library**: static runtime (/MT, /MTd) is the Windows default; add `--md` for the dynamic runtime (/MD, /MDd).
-- **DLL mode**: with `--dll` on Windows MSVC the library is built as a dynamic library, producing `bin/duilib.dll` (`bin/duilib_d.dll` for Debug) with the import library at `lib/<arch>/<Config>/duilib.lib`. It suits dynamic loading, smaller executables, or sharing one library between several programs; a program can use either the static library or the DLL, and the DLL must be shipped with it.
+- **DLL mode**: with `--dll` on Windows MSVC the library is built as a dynamic library, producing `bin/duilib.dll` (`bin/duilib_d.dll` for Debug, `duilib32*.dll` on x86) with the import library at `lib/<arch>/<Config>/duilib.lib`. It suits dynamic loading, smaller executables, or sharing one library between several programs; a program can use either the static library or the DLL, and the DLL must be shipped with it.
 
 ## Key Features
 
@@ -75,7 +75,7 @@ Windows 7 compatibility comes from the library configuration ([duilib/duilib_con
 | CMake | 3.24+ | Generates build files; the root project uses CMakePresets |
 | Python | 3.8+ | Runs `build/build.py`; the Skia build scripts additionally require `python3` on PATH |
 | Git | any recent version | Fetches Skia/SDL3 sources and CEF archives |
-| Ninja | build backend | Windows uses the copy bundled with Visual Studio |
+| Ninja | build backend | Located automatically by `build.py`: PATH → the copy bundled with Visual Studio → the copy bundled in the Skia patch archive, so installing it separately is usually unnecessary; manual CMake invocations need it on PATH |
 | macOS extras | `brew install cmake ninja`, and build `gn` from source | The Skia build needs `gn` |
 | FreeBSD extras | `sudo pkg install git unzip python3 cmake ninja gn llvm fontconfig freetype2` | Installs the toolchain and font dependencies in one go |
 
@@ -93,11 +93,11 @@ The table records only results for which evidence exists in the repository; comb
 | Windows 10/11 x64 | VS 2022 17.14 (MSVC 14.44), VS 2026, CMake 4.3, Python 3.14; MSYS2, llvm-mingw and x86 also tested | verified |
 | Windows arm64 | VS 2022 cross toolchain; build, DLL mode and packaging | build/packaging verified; no arm64 machine available, so startup not verified |
 | macOS x64 | AppleClang 21, CMake 4.0.2, Python 3.13 | verified |
-| macOS arm64 | Apple Silicon physical machine | verified |
+| macOS arm64 | no arm64 machine (not scheduled) | not verified |
 | Linux x64 | VMware virtual machine, CMake 3.31, gcc (clang also tested) | verified; distributions other than Ubuntu pending confirmation |
 | FreeBSD x64 | FreeBSD virtual machine, system clang | verified |
 
-Items still marked **pending confirmation**: Linux arm64, actual verification on Linux distributions other than Ubuntu, and the minimum macOS version. Detailed cases, commands and results are in [build/test-matrix.md](build/test-matrix.md) (Chinese).
+Items still marked **pending confirmation**: Linux arm64, macOS arm64, actual verification on Linux distributions other than Ubuntu, and the minimum macOS version. Detailed cases, commands and results are in [build/test-matrix.md](build/test-matrix.md) (Chinese).
 
 ## Quick Start
 
@@ -178,7 +178,7 @@ Understanding the layout helps locate sources and documents quickly; the generat
 | `examples/` | Several ready-to-run examples covering basic windows, control demos, rendering, layouts and WebView; the list is in [docs/Examples.en.md](docs/Examples.en.md) |
 | `bin/` | Output directory for example programs, including the `resources/` skins and language resources and the CEF runtime (after building) |
 | `docs/` | Documents and screenshots for controls, layouts, events and deployment; index in [docs/Summary.en.md](docs/Summary.en.md) |
-| `build/` | Unified build entry `build.py`, packaging and release scripts, VS solutions, [build reference](build/build-reference.en.md), [Linux system dependencies](build/linux-dependencies.en.md) |
+| `build/` | Unified build entry `build.py`, packaging and release scripts, VS solutions, [build reference](build/build-reference.en.md), [Linux system dependencies](build/linux-dependencies.en.md), [platform test matrix](build/test-matrix.md) |
 | `cmake/` | Shared CMake modules and the third-party version manifest |
 | `msvc/` | Windows manifest files and shared VS project settings (such as the libpag switch) |
 | `packaging/` | SDK integration layer (CMake package and MSVC props/targets) |
@@ -186,7 +186,9 @@ Understanding the layout helps locate sources and documents quickly; the generat
 | `out/<arch>/<Config>` | Build tree (generated) |
 | `lib/<arch>/<Config>` | Library output (generated) |
 | `dist/<version>` | Release packages (generated by `pack`) |
-| `.claude/` | AI skill definitions and registration scripts |
+| `.claude/` | Claude AI skill definitions and registration scripts |
+| `.workbuddy/` | WorkBuddy project-level AI skills (same source as `.claude`) |
+| `.trae/` | TRAE project-level AI skills (same source as `.claude`) |
 
 ## Common Build and Run Commands
 
@@ -198,6 +200,7 @@ All commands run from the repository root, and one invocation builds one archite
 | Build Release (library + examples) | `python3 build/build.py` |
 | Build Debug | `python3 build/build.py --config Debug` |
 | Prepare dependencies only (Skia/SDL3/CEF) | `python3 build/build.py deps` |
+| Print dependency build commands only | `python3 build/build.py deps --dry-run` (prints Skia's `gn gen`/`ninja` and SDL3's configure/build/install commands, useful for manual reproduction and troubleshooting) |
 | Library only | `python3 build/build.py build --no-examples --target duilib` |
 | Run unit tests | `python3 build/build.py test` |
 | Build an SDK package | `python3 build/build.py pack --with-cef` (add `--with-examples` for examples) |
@@ -218,7 +221,7 @@ The following paths cover deeper development scenarios; consult them as needed. 
 - **UI development documents**: [Windows](docs/Window.en.md), [containers/layouts](docs/Box.en.md), [controls](docs/Control.en.md), [menus](docs/Menu.en.md), [global styles](docs/Global.en.md), [events](docs/Events.en.md), [XML nodes](docs/XmlNode.en.md), [XML events](docs/XmlEvents.en.md).
 - **Building and releasing**: full parameters in [build/build-reference.en.md](build/build-reference.en.md); dependency directories and release packaging in [build/README.en.md](build/README.en.md).
 - **Built-in dialogs and notifications**: [MessageBoxWnd](docs/MessageBox.en.md), [ToastWnd](docs/Toast.en.md), [SystemNotification](docs/SystemNotification.en.md).
-- **Web controls**: [CEF control](docs/CEF.en.md), [WebView2 example](examples/WebView2); running CEF examples requires the runtime under `bin/libcef_win/<arch>`.
+- **Web controls**: [CEF control](docs/CEF.en.md), [WebView2 example](examples/WebView2); running CEF examples requires the matching runtime directory: `bin/libcef_win/<arch>` on Windows, `bin/libcef_linux` on Linux, and the App Bundle on macOS (see [build/macos-app-bundle.en.md](build/macos-app-bundle.en.md)).
 - **SDK integration**: [docs/Deployment.en.md](docs/Deployment.en.md), [cmake/README.en.md](cmake/README.en.md) (CMake package integration and troubleshooting).
 - **macOS App Bundle**: [build/macos-app-bundle.en.md](build/macos-app-bundle.en.md).
 - **Enabling PAG**: Windows + the MSVC solution only. Set `LibPagEnabled` to `1` in [msvc/PropertySheets/LibPagSettings.props](msvc/PropertySheets/LibPagSettings.props) and build libpag as described in [libpag-build.md](duilib/third_party/libpag/windows/libpag-build.md) (Chinese); CMake builds do not include PAG.
@@ -236,7 +239,7 @@ The table lists the most common symptoms and their fixes; for anything else, the
 | CMake version too old | Upgrade to 3.24+ |
 | `python3` command not found | Install Python 3 and make sure `python3` is on PATH; see "Why Always `python3 build/build.py`" for the Windows special case |
 | `bin/` still holds old examples after switching Debug/Release | `build.py` removes the examples of the other configuration automatically; when invoking CMake by hand, clean `bin/` yourself |
-| CEF examples do not run | Check that `bin/libcef_win/<arch>` (on Linux `bin/libcef_linux`) contains the runtime; package with `pack --with-cef`, and keep the CEF version used for building and packaging identical |
+| CEF examples do not run | Check that the runtime directory exists: `bin/libcef_win/<arch>` on Windows (`bin/libcef_win_109/<arch>` for CEF 109), `bin/libcef_linux` on Linux, and the App Bundle on macOS (see [build/macos-app-bundle.en.md](build/macos-app-bundle.en.md)); package with `pack --with-cef`, and keep the CEF version used for building and packaging identical |
 | No text on Linux | Install fontconfig and a CJK font, see [build/linux-dependencies.en.md](build/linux-dependencies.en.md) |
 | WebView2 example fails to start | Check that `bin/WebView2Loader.dll` was generated; see the FAQ in [cmake/README.en.md](cmake/README.en.md) |
 | Other build problems | [build/build-reference.en.md §10 Troubleshooting](build/build-reference.en.md) |

@@ -1,6 +1,6 @@
 简体中文 | [English](README.en.md)
 
-> 英文版 `README.en.md` 最近同步于 2026-10-29。
+> 英文版 `README.en.md` 最近同步于 2026-10-31。
 
 # nim_duilib
 
@@ -22,13 +22,13 @@
 **能力边界**（与上手直接相关的几点）：
 
 - **渲染**：Skia 是必需的后端，负责矢量绘制、文字与动画。构建脚本会按 [版本清单](cmake/third_party_versions.json) 自动准备并编译它，不需要手工编译；如果这一步失败，通常是网络或工具链问题，`doctor` 会指出缺少哪一项。
-- **开发方式**：以 XML + C++ 为主，仓库不包含可视化设计器；另有 `.claude` AI 技能辅助生成界面代码。
+- **开发方式**：以 XML + C++ 为主，仓库不包含可视化设计器；另内置 Claude、WorkBuddy、TRAE 三套 AI 技能（内容同源）辅助生成界面代码，见“进阶用法”。
 - **平台专属**：WebView2 仅 Windows；"DPI 独立设置"仅 Windows；系统窗口阴影仅 Windows/macOS。
 - **CEF**：Windows/Linux/macOS 默认启用，FreeBSD 与 MinGW 不支持。默认使用 156（要求 Windows 10+）；要在 Windows 7 上运行网页控件，构建时加 `--cef-version 109`。
 - **动画**：GIF/APNG/WebP/Lottie 默认可用；PAG 默认关闭，仅在 Windows + MSVC 解决方案下可启用（需自行编译 libpag）。
 - **SDL3**：Windows 默认关闭（加 `--sdl` 开启），Linux/macOS/FreeBSD 强制开启，用于窗口管理与输入。
 - **运行库**：Windows 默认静态运行库（/MT、/MTd）；需要动态运行库时加 `--md`（/MD、/MDd）。
-- **DLL 模式**：Windows MSVC 下加 `--dll` 可把库编译为动态库，产物为 `bin/duilib.dll`（Debug 为 `bin/duilib_d.dll`），导入库在 `lib/<arch>/<Config>/duilib.lib`。适合需要动态加载、缩小可执行体量，或让多个程序共享同一份库的场景；同一程序只能选用静态库或 DLL 中的一种，发布时必须随包分发 DLL。
+- **DLL 模式**：Windows MSVC 下加 `--dll` 可把库编译为动态库，产物为 `bin/duilib.dll`（Debug 为 `bin/duilib_d.dll`；x86 为 `duilib32*.dll`），导入库在 `lib/<arch>/<Config>/duilib.lib`。适合需要动态加载、缩小可执行体量，或让多个程序共享同一份库的场景；同一程序只能选用静态库或 DLL 中的一种，发布时必须随包分发 DLL。
 
 ## 主要特性
 
@@ -75,7 +75,7 @@ Windows 7 的兼容性来自库自身配置（[duilib/duilib_config.h](duilib/du
 | CMake | 3.24+ | 生成构建文件；根工程使用 CMakePresets |
 | Python | 3.8+ | 运行 `build/build.py`；Skia 的构建脚本还要求 PATH 中存在 `python3` |
 | Git | 任意较新版本 | 获取 Skia/SDL3 源码与 CEF 归档 |
-| Ninja | 构建后端 | Windows 使用 Visual Studio 自带的版本 |
+| Ninja | 构建后端 | 由 `build.py` 自动定位：PATH → Visual Studio 自带 → Skia 补丁归档自带的副本，通常无需单独安装；手工调用 CMake 时需在 PATH 中 |
 | macOS 额外 | `brew install cmake ninja`，并从源码安装 `gn` | Skia 构建需要 `gn` |
 | FreeBSD 额外 | `sudo pkg install git unzip python3 cmake ninja gn llvm fontconfig freetype2` | 一次性装齐工具链与字体依赖 |
 
@@ -93,11 +93,11 @@ Linux 上还需要发行版提供的 X11、字体、OpenGL/EGL、DBus/ibus 等�
 | Windows 10/11 x64 | VS 2022 17.14（MSVC 14.44）、VS 2026、CMake 4.3、Python 3.14；另测 MSYS2、llvm-mingw、x86 | 已验证 |
 | Windows arm64 | VS 2022 交叉工具链；构建、DLL 模式与出包 | 构建/出包已验证；无 arm64 真机，未做启动验证 |
 | macOS x64 | AppleClang 21、CMake 4.0.2、Python 3.13 | 已验证 |
-| macOS arm64 | Apple Silicon 真机 | 已验证 |
+| macOS arm64 | 无 arm64 真机（不安排） | 未验证 |
 | Linux x64 | VMware 虚拟机、CMake 3.31、gcc（另测 clang） | 已验证；Ubuntu 之外的发行版待确认 |
 | FreeBSD x64 | FreeBSD 虚拟机、系统 clang | 已验证 |
 
-仍标注 **待确认** 的项目：Linux arm64、Ubuntu 之外 Linux 发行版的实际验证、macOS 最低系统版本。详细用例、命令与结果见 [build/test-matrix.md](build/test-matrix.md)。
+仍标注 **待确认** 的项目：Linux arm64、macOS arm64、Ubuntu 之外 Linux 发行版的实际验证、macOS 最低系统版本。详细用例、命令与结果见 [build/test-matrix.md](build/test-matrix.md)。
 
 ## 快速开始
 
@@ -178,7 +178,7 @@ python3 build/build.py --dll --config Release
 | `examples/` | 仓库附带多个可直接运行的示例，覆盖基础窗口、控件演示、渲染、布局与 WebView 等场景；清单见 [docs/Examples.md](docs/Examples.md) |
 | `bin/` | 示例程序输出目录，包含 `resources/` 皮肤与语言资源、CEF 运行时（构建后） |
 | `docs/` | 控件、布局、事件、部署等文档与截图，索引见 [docs/Summary.md](docs/Summary.md) |
-| `build/` | 统一构建入口 `build.py`、出包与发布脚本、VS 解决方案、[构建参考手册](build/build-reference.md)、[Linux 系统依赖](build/linux-dependencies.md) |
+| `build/` | 统一构建入口 `build.py`、出包与发布脚本、VS 解决方案、[构建参考手册](build/build-reference.md)、[Linux 系统依赖](build/linux-dependencies.md)、[平台测试矩阵](build/test-matrix.md) |
 | `cmake/` | 公共 CMake 模块与第三方版本清单 |
 | `msvc/` | Windows 清单文件与 VS 工程公共配置（如 libpag 开关） |
 | `packaging/` | SDK 接入层（CMake 包与 MSVC props/targets） |
@@ -186,7 +186,9 @@ python3 build/build.py --dll --config Release
 | `out/<arch>/<Config>` | 构建树（生成） |
 | `lib/<arch>/<Config>` | 库产物（生成） |
 | `dist/<版本>` | 发布包（`pack` 生成） |
-| `.claude/` | AI 技能定义与注册脚本 |
+| `.claude/` | Claude 的 AI 技能定义与注册脚本 |
+| `.workbuddy/` | WorkBuddy 的项目级 AI 技能（与 `.claude` 同源） |
+| `.trae/` | TRAE 的项目级 AI 技能（与 `.claude` 同源） |
 
 ## 常用构建与运行命令
 
@@ -198,6 +200,7 @@ python3 build/build.py --dll --config Release
 | 构建 Release（库 + 示例） | `python3 build/build.py` |
 | 构建 Debug | `python3 build/build.py --config Debug` |
 | 只准备依赖（Skia/SDL3/CEF） | `python3 build/build.py deps` |
+| 只打印依赖构建命令（不执行） | `python3 build/build.py deps --dry-run`（输出 Skia 的 `gn gen`/`ninja` 与 SDL3 的 configure/build/install 命令，便于手工复现与排障） |
 | 只编译库 | `python3 build/build.py build --no-examples --target duilib` |
 | 运行单元测试 | `python3 build/build.py test` |
 | 生成 SDK 包 | `python3 build/build.py pack --with-cef`（需要示例时再加 `--with-examples`） |
@@ -218,7 +221,7 @@ python3 build/build.py --dll --config Release
 - **界面开发文档**：[窗口](docs/Window.md)、[容器/布局](docs/Box.md)、[控件](docs/Control.md)、[菜单](docs/Menu.md)、[全局样式](docs/Global.md)、[事件](docs/Events.md)、[XML 节点](docs/XmlNode.md)、[XML 事件](docs/XmlEvents.md)。
 - **构建与发布**：完整参数见 [build/build-reference.md](build/build-reference.md)；依赖目录与发布打包说明见 [build/README.md](build/README.md)。
 - **内置对话框与通知**：[MessageBoxWnd](docs/MessageBox.md)、[ToastWnd](docs/Toast.md)、[SystemNotification](docs/SystemNotification.md)。
-- **网页控件**：[CEF 控件](docs/CEF.md)、[WebView2 示例](examples/WebView2)；CEF 示例运行需要 `bin/libcef_win/<arch>` 下的运行时。
+- **网页控件**：[CEF 控件](docs/CEF.md)、[WebView2 示例](examples/WebView2)；CEF 示例运行需要对应的运行时目录：Windows 为 `bin/libcef_win/<arch>`，Linux 为 `bin/libcef_linux`，macOS 由 App Bundle 自动携带（见 [build/macos-app-bundle.md](build/macos-app-bundle.md)）。
 - **接入 SDK**：[docs/Deployment.md](docs/Deployment.md)、[cmake/README.md](cmake/README.md)（CMake 包接入与排障，含英文版）。
 - **macOS App Bundle**：[build/macos-app-bundle.md](build/macos-app-bundle.md)。
 - **启用 PAG**：仅 Windows + MSVC 解决方案。将 [msvc/PropertySheets/LibPagSettings.props](msvc/PropertySheets/LibPagSettings.props) 中的 `LibPagEnabled` 改为 `1`，并按 [libpag-build.md](duilib/third_party/libpag/windows/libpag-build.md) 编译 libpag；CMake 构建不包含 PAG。
@@ -236,7 +239,7 @@ python3 build/build.py --dll --config Release
 | 报 CMake 版本过低 | 升级到 3.24+ |
 | 找不到 `python3` 命令 | 安装 Python 3 并确保 `python3` 在 PATH 中；Windows 的特殊处理见「为什么统一使用 `python3 build/build.py`」 |
 | 切换 Debug/Release 后 `bin/` 仍是旧示例 | `build.py` 会自动清理另一种配置的示例；手工调用 CMake 时需自行清理 `bin/` |
-| CEF 示例无法运行 | 确认 `bin/libcef_win/<arch>`（Linux 为 `bin/libcef_linux`）包含运行时；出包用 `pack --with-cef`，且编译与打包的 CEF 版本要一致 |
+| CEF 示例无法运行 | 确认运行时目录存在：Windows 为 `bin/libcef_win/<arch>`（CEF 109 为 `bin/libcef_win_109/<arch>`），Linux 为 `bin/libcef_linux`，macOS 由 App Bundle 自动携带（见 [build/macos-app-bundle.md](build/macos-app-bundle.md)）；出包用 `pack --with-cef`，且编译与打包的 CEF 版本要一致 |
 | Linux 下界面文字不显示 | 安装 fontconfig 与中文字体，见 [build/linux-dependencies.md](build/linux-dependencies.md) |
 | WebView2 示例启动失败 | 确认 `bin/WebView2Loader.dll` 已生成，详见 [cmake/README.md](cmake/README.md) 的常见问题 |
 | 其他构建问题 | [build/build-reference.md §10 排障](build/build-reference.md) |
