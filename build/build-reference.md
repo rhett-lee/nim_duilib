@@ -76,7 +76,7 @@ Debug 与 Release 的示例输出同名，都写在共享的 `bin/`，而目标�
 | `--arch auto\|x86\|x64\|arm64` | 目标架构，默认主机架构；Windows + Ninja 交叉编译 arm64 时必须显式指定 |
 | `--lang auto\|zh_CN\|en` | 交互语言，默认跟随系统；也读取环境变量 `DUILIB_LANG` |
 | `--build-dir <dir>` | 覆盖构建目录，允许放到仓库外 |
-| `--deps-root <dir>` | 依赖源码/安装根目录，默认仓库同级目录（与 `nim_duilib` 平级）；Skia、SDL3、CEF 都安装到这里 |
+| `--deps-root <dir>` | 依赖源码/安装根目录，默认仓库同级目录（与 `nim_duilib` 平级）；Skia、SDL3、CEF 都安装到这里。相对路径按当前目录解析，且 `build.py pack` 会原样转给 `pack.py` |
 | `--jobs N` | 并行编译任务数，默认 CPU 逻辑核心数 |
 | `--offline` | 只使用已缓存的依赖源码/归档，不联网 |
 | `--dry-run` | 只打印将执行的命令 |
@@ -125,7 +125,9 @@ Unix 上示例程序默认写入相对 rpath（`$ORIGIN/../lib`、`@loader_path/
 <deps-root>/
   skia/            # Skia 源码（解压补丁后编译）
   SDL/             # SDL3 源码
-  SDL3/            # SDL3 安装前缀
+  SDL3/            # SDL3 安装根目录（Windows 下按变体分出子目录，见下）
+  SDL3/msvc.x64.debug/     # Windows 变体前缀（完整安装：include/、lib/、share/licenses）
+  SDL3/msvc.x64.release/   # 每个“架构 × 配置 × 运行库”一份，Debug/Release 不再覆盖
   SDL3_build/      # SDL3 构建目录
   cef_binary/      # CEF 下载/解压缓存（macOS 为完整分发目录）
 ```
@@ -179,12 +181,26 @@ ninja，仍找不到时从归档解压到 `out/.duilib-tools/bin/ninja.exe` 并�
   不会每次都去追远端新提交。
 - **SDL3**：默认 ref 为 `main` 分支（`sdl.default`；`refs` 中也保留
   `release-3.4.18` tag，源码编译报错时不要选用，需要时可用 `--sdl-ref` 切换）。
-  Windows 默认不启用；显式启用时由 `deps` 自动构建 Debug + Release 静态库。
+  Windows 默认不启用；显式启用时由 `deps` 按“架构 × 配置 × 运行库”安装到
+  `<deps-root>/SDL3/<变体>`（MSVC 为 `msvc.<arch>.<debug|release>[.mdd|.md]`，
+  `/MD`/DLL 模式带后缀；MinGW 复用 Skia 的 release 变体名，Debug/Release 共用
+  一份静态库）。SDL3 不设置 `DEBUG_POSTFIX`，Debug/Release 静态库同名，因此
+  只能靠变体目录区分；MT/MTd 与 MD/MDd 混链会在链接期报 LNK2038。
   Unix 构建动态库，并写入 rpath（相对条目在前，绝对兜底由
   `DUILIB_RPATH_ABSOLUTE` 控制）。本地 `SDL/` 源码停在别的分支/标签时，`deps`
   会先切到清单指定的 ref 再编译（branch ref 只要求当前就在该分支上，不追远端）；
-  SDL3 的安装 stamp 记录源码提交，切到清单版本后旧产物会自动重建（升级到本版本
-  时会重建一次）。
+  SDL3 的安装 stamp 记录源码提交与变体名，切到清单版本或换配置/运行库后旧产物
+  会自动重建（升级到本版本时会重建一次）。
+  变体目录缺失时 `duilib_common.cmake` 会回退到 `<deps-root>/SDL3` 单前缀并给出
+  告警（兼容旧布局或自备产物）；显式 `-DDUILIB_SDL_ROOT=<目录>` / `pack.py --sdl-dir`
+  同样把该目录当作单前缀回退。`pack.py` 按 `--config`、`--arch` 与运行库选择变体：
+  DLL 模式或 `--msvc-runtime md` 取 `.md`（Debug 为 `.mdd`），否则取无后缀变体，
+  与构建侧的 `DUILIB_MD` 语义一致（Skia 目录同样按此规则选择）。
+  MinGW 的 MSYS2 判定同样依据编译器安装位置（`CC`/`CXX` 或 `PATH` 上的编译器），
+  与构建侧口径一致；探测不到编译器的配置下才会回退 `MSYSTEM`，且 `pack.py` 的
+  候选列表末尾始终带有 `gcc.msvcrt.<arch>.release` 兜底。`pack.py` 与
+  `build.py doctor --sdl` 仍按候选顺序逐个探测（首个为规范变体名，最后回退
+  `<deps-root>/SDL3` 单前缀），命中任一已安装变体即可。
 - **CEF**：固定版本分支（`cef.default`，可选 `109` 兼容 Windows 7）。统一使用
   `_minimal` 发行包（体积约为标准包的一半，含 `include/`、`Release/`、
   `Resources/`），只安装 `Release/*` 与 `Resources/*` 运行时，放到：
@@ -338,6 +354,16 @@ MINGW64 会优先选带 `.msvcrt` 的目录（只在该环境提供，其他环�
 需要强制指定某个 Skia 目录时用 `--skia-lib-dir <目录>`（编译侧对应
 `-DDUILIB_SKIA_LIB_SUBPATH=<目录>`）。
 
+MSYS2 判定（决定是否用 `.msvcrt` 变体、SDL3 变体前缀的 `mingw64-` 前缀是否存在，
+以及依赖目录的 CRT 标识）在构建侧与打包侧都**依据编译器安装位置**
+（`<root>/<env>/bin` 且存在 `<root>/usr/bin/pacman.exe`），而不是 `MSYSTEM`
+—— Git Bash 同样会设置 `MSYSTEM=MINGW64`，照搬会让同一个构建在不同 shell
+（cmd / MSYS2 / Git Bash）里得到不同的结论。打包侧（`pack.py`）没有编译器配置时
+依次尝试 `CC`/`CXX`、`PATH` 上的 gcc/clang、Python 解释器所在目录，最后才回退
+`MSYSTEM`；若仍无法确定（例如从 cmd 打包 MSYS2 产物且 PATH 上没有 MSYS2 编译器），
+`gcc.msvcrt.<arch>.release` 会作为**最后一个**候选兜底，既不会盖过独立 MinGW-w64 /
+UCRT64 的产物，也不会漏掉实际存在的 msvcrt 变体。
+
 从 PowerShell 调用时同样导出 `MSYSTEM`，并把对应 `bin` 目录放到 `PATH` 最前面；
 只要设置了 `MSYSTEM`，`build.py` 就不会执行 vcvars，而是使用 `CC`/`CXX` 指定的编译器。
 独立版 llvm-mingw 也可用同样方式：设置 `MSYSTEM`，`CC`/`CXX` 指向其 `clang.exe` /
@@ -395,6 +421,7 @@ MINGW64 会优先选带 `.msvcrt` 的目录（只在该环境提供，其他环�
 | MinGW 编译或链接（尤其 Debug）报 `out of memory allocating ...` | 降低并行度：`--jobs 2`；链接阶段 GNU ld 已追加 `-Wl,--no-keep-memory`（clang/CLANG64 的 lld 不需要该参数） |
 | MinGW 关闭静态链接（`DUILIB_MINGW_STATIC=OFF`）后示例启动缺 `libstdc++-6.dll` 等 | 该模式依赖编译器运行库，需把 `libstdc++-6.dll`、`libgcc_s_seh-1.dll`（x86 为 `libgcc_s_dw2-1.dll`）、`libwinpthread-1.dll` 复制到 exe 同级；默认静态链接无此问题 |
 | `deps` 构建 SDL3 时出现 `cl.exe`/`LNK1104`，或切换 MSVC/MinGW 后 `--sdl` 失败 | SDL3 构建目录被其它工具链或运行库使用过；依赖准备会在 CRT 不一致时自动清理，直接重试即可 |
+| MSVC 链接 SDL3 报 LNK2038（`RuntimeLibrary` 值不匹配） | Debug/Release 的 SDL3 静态库同名，新版按变体前缀安装。若 `SDL3/` 下只有旧的单前缀，执行 `python3 build.py deps --force` 生成 `msvc.<arch>.debug`/`msvc.<arch>.release` 等变体；不要手工把 Release 库复制进 Debug 前缀 |
 | MinGW Debug 链接报 `No space left on device` | MinGW Debug 示例单个约 200–280 MB，全部示例约 10 GB；清理 `bin/` 后重试，或改用 Release 配置 |
 
 更细的旧脚本时代问题排查记录保留在 [build/README.md](README.md)。

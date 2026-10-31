@@ -192,9 +192,19 @@ BinCommonSettingsWebView2.props
 
 **配置项：**
 - `SDLEnabled`：SDL 支持开关（0=禁用，1=启用）
-- `SDLIncludeDir`：SDL include 目录（`$(SolutionDir)\..\..\SDL3\include`）
-- `SDLLibDir`：SDL lib 目录（根据平台和配置选择）
-- `SDLLibs`：SDL 依赖库列表（`SDL3-static.lib;Version.lib;Winmm.lib;Setupapi.lib`）
+- `SDL3RootDir`：SDL3 安装根目录（`$(SolutionDir)\..\..\SDL3`）
+- `SDLVariant`：按 `$(Configuration)|$(Platform)` 选中的变体目录名
+  （`msvc.x64.debug`/`msvc.x64.release` 等；存在 `duilib_dll.flag` 时追加
+  `.mdd`/`.md`）；变体目录不存在时为空，回退根目录
+- `SDLIncludeDir`：`$(SDL3RootDir)\$(SDLVariant)\include`（无变体时
+  `$(SDL3RootDir)\include`）
+- `SDLLibDir`：`$(SDL3RootDir)\$(SDLVariant)\lib`（无变体时 `$(SDL3RootDir)\lib`）
+- `SDLLibs`：SDL 依赖库列表（`SDL3-static.lib;Version.lib;Winmm.lib;Imm32.lib;Setupapi.lib`）
+
+**注意：** SDL3 源码不设置 `DEBUG_POSTFIX`，Debug/Release 静态库同名，且
+`MT/MTd/MD/MDd` 的 `RuntimeLibrary` 互斥（混链报 LNK2038），因此按配置与
+运行库分别安装到 `<SDLSettings 根目录>/<变体>`，由 `build.py deps` 生成
+（规则见 `cmake/duilib_sdl_variants.cmake`，与 CMake 侧一致）。
 
 **宏定义：** `DUILIB_SDL=$(SDLEnabled)`
 
@@ -477,7 +487,8 @@ BinCommonSettingsWebView2.props
 - Debug 模式下，可执行程序的目标名称仍会自动添加 `_d` 后缀（仅 exe，库不适用）
 - Debug 模式下会禁用 `libcmt.lib` 默认库
 - Skia 在 Debug/Release 下使用不同目录（`llvm.<arch>.debug` / `llvm.<arch>.release`）；
-  SDL 与 libjpeg-turbo 只有一套库路径，不区分配置
+  SDL 按配置与运行库使用不同变体前缀（`SDL3\msvc.<arch>.<debug|release>[.md|.mdd]`），
+  libjpeg-turbo 只有一套库路径，不区分配置
 
 ### 6. Windows ARM64 平台
 
@@ -498,9 +509,10 @@ msbuild build\examples.sln /p:Configuration=Release /p:Platform=ARM64 /m:2
 - 依赖的 arm64 预编译库：Skia（`skia/out/llvm.arm64.release|debug`）、
   CEF（`libcef_win{,_109}/lib/arm64`）、WebView2（`build/native/arm64`）、
   libjpeg-turbo（`libjpeg-turbo6-win-vc-arm64`）。
-- 仓库内 SDL3、libpag 只有 x64/x86 库，`SDLSettings.props` 与 `LibPagSettings.props`
-  在 ARM64 下强制 `SDLEnabled=0` / `LibPagEnabled=0`；libpag 的 ARM64 支持未测、
-  不跟进（不再列入待办）；SDL3 需要时先用 `build/build.py` 构建 arm64 依赖后调整。
+- 仓库内 libpag 只有 x64/x86 库，`LibPagSettings.props` 在 ARM64 下保持
+  `LibPagEnabled=0`；libpag 的 ARM64 支持未测、不跟进。SDL3 也不随仓库提供预编译库，
+  但 `build.py deps --arch arm64 --sdl` 会生成 `SDL3\msvc.arm64.release`，且
+  `SDLSettings.props` 已按 ARM64 选择变体。
 - ARM64 无 WGL：`duilib\RenderSkia\SkGLWindowContext_Windows.cpp` 在
   `Debug|ARM64` / `Release|ARM64` 下通过 `ExcludedFromBuild` 排除编译。
 - `libwebp.vcxproj` 已包含 NEON 源文件（`src\dsp\*_neon.c`）；这些文件在

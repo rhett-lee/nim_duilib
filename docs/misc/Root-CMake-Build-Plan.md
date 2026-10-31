@@ -12,7 +12,8 @@ Skia 源码克隆与预编译、SDL 源码克隆与预编译、CEF 下载解压�
   各自是独立 `project()`，由 `build/*_build.sh|bat` 逐个
   `cmake -S <子目录> -B <构建目录>` 构建；
 - 第三方依赖的源码与预编译产物放在**仓库同级目录**：
-  `../skia/`（含 `out/<变体>/`）、`../SDL3/`（安装前缀）、
+  `../skia/`（含 `out/<变体>/`）、`../SDL3/`（安装根目录；Windows 下再按
+  “架构 × 配置 × 运行库”分出 `<变体>/` 完整前缀）、
   `../cef_binary/`（macOS）；Skia 补丁归档随仓库提交在 `build/skia_patch/`；
 - 依赖准备逻辑目前只在 `build_duilib_all_in_one.sh/.bat` 中，且依赖
   `git`、`gn`、`ninja`、`unzip`、`curl`/`wget` 等外部工具；
@@ -61,7 +62,7 @@ Skia 源码克隆与预编译、SDL 源码克隆与预编译、CEF 下载解压�
 | 依赖 | x86 | x64 | arm64 | 处理 |
 | :--- | :--- | :--- | :--- | :--- |
 | Skia | Windows | 全平台 | 全平台 | 必须有对应变体；缺失时报错并提示用 `deps` 目标预编译 |
-| SDL3 | 可选（仅 Windows） | Windows 可选；Unix 必选 | Windows 可选；Unix 必选 | 非 Windows 平台强制启用；版本按清单固定（tag 优先）；**Windows 也由 `deps` 自动构建（Debug+Release 静态库）**，不再依赖手工产物；交叉编译时 `DUILIB_SDL_ROOT` 按架构分目录 |
+| SDL3 | 可选（仅 Windows） | Windows 可选；Unix 必选 | Windows 可选；Unix 必选 | 非 Windows 平台强制启用；版本按清单固定（tag 优先）；**Windows 也由 `deps` 自动构建**，按变体前缀安装（MSVC `msvc.<arch>.<debug\|release>[.md\|.mdd]`；MinGW 复用 Skia 的 release 变体名），Debug/Release 与 MT/MD 互不覆盖 |
 | libjpeg-turbo | Windows MSVC | Windows MSVC | Windows MSVC | 仅 MSVC 预编译包；MinGW 不收集 |
 | CEF | Windows MSVC | Windows MSVC / Linux / macOS | Windows MSVC / macOS | Windows 三架构由构建期按清单自动下载 `Release/*` + `Resources/*` 到 `bin/`，编译期仍用仓库头文件；MinGW/MSYS2 默认关闭（MSVC ABI 不兼容）；Linux arm64 以分发包实际可用性为准 |
 | WebView2 | Windows | Windows | Windows | arm64 模块已提供，默认启用 |
@@ -243,7 +244,7 @@ Git、生成器对应的构建工具（Ninja 生成器 → `ninja`；Makefiles �
 | `DUILIB_SDL_SRC` | `${DUILIB_DEPS_ROOT}/SDL` | SDL 源码 |
 | `DUILIB_SDL_REPO` | 清单 `sdl.repo` | 可替换为镜像 |
 | `DUILIB_SDL_REF` | 清单 `sdl.default` | 清单中的键；tag（推荐）或 branch |
-| `DUILIB_SDL_ROOT` | `${DUILIB_DEPS_ROOT}/SDL3` | SDL 安装前缀（脚本同名） |
+| `DUILIB_SDL_ROOT` | `${DUILIB_DEPS_ROOT}/SDL3` | SDL 安装根目录（Windows 下按变体选出 `<根>/<变体>`，变体缺失时回退根目录；显式传入的值同样作为根） |
 | `DUILIB_SDL_BUILD_ROOT` | `${DUILIB_DEPS_ROOT}/SDL3_build` | Windows 自动构建 SDL 的中间目录（按工具链/架构/配置分） |
 | `DUILIB_CEF_ROOT` | `${DUILIB_DEPS_ROOT}/cef_binary` | macOS 分发包根目录 |
 | `DUILIB_CEF_VERSION` | 清单 `cef.default` | 可选 `109` / `142` |
@@ -369,9 +370,9 @@ extra_cflags=["-DSK_DISABLE_LEGACY_PNG_WRITEBUFFER"]
   `DUILIB_SDL_REF` 可临时切换；
 - **源码获取**：`ExternalProject_Add(sdl_ext GIT_REPOSITORY ${DUILIB_SDL_REPO}
   GIT_TAG <value>)`，tag/branch 用 `GIT_SHALLOW TRUE`；固定 tag 时不做 `git pull`；
-- **就绪判定**：`${DUILIB_SDL_ROOT}/include/SDL3/SDL.h` 存在，且
-  `${DUILIB_SDL_ROOT}/.duilib-ref`（ref + 架构）与 `.duilib-crt`（运行库/配置）均与
-  当前配置一致时跳过；不一致则重新配置、构建并安装到同一前缀；
+- **就绪判定**：选中前缀下 `include/SDL3/SDL.h` 存在、库文件存在，且
+  `<前缀>/.duilib-sdl`（ref + 源码提交 + 架构 + CRT + 平台 + **变体名**）与
+  当前配置一致时跳过；不一致则重新配置、构建并安装到该变体前缀；
 - **构建参数**：
 
   | 平台 / 工具链 | 关键参数 | 说明 |
@@ -379,7 +380,7 @@ extra_cflags=["-DSK_DISABLE_LEGACY_PNG_WRITEBUFFER"]
   | Windows MSVC | `SDL_SHARED=OFF`、`SDL_STATIC=ON`、`SDL_TEST_LIBRARY=OFF` | 静态库，不产生 DLL，无需复制运行库 |
   | Windows MinGW/MSYS2 | 同上 | 与 duilib 使用同一编译器前缀 |
   | Linux / macOS / FreeBSD | `SDL_SHARED=ON`、`SDL_STATIC=OFF`、`SDL_TEST_LIBRARY=OFF` | 安装到 `${DUILIB_SDL_ROOT}`；沿用现有 `SDL_X11_XSCRNSAVER=OFF`、`SDL_X11_XTEST=OFF`，X11/Wayland/音频后端保持上游默认 |
-  | 交叉编译 | 每架构独立 `DUILIB_SDL_ROOT`（如 `SDL3-<arch>`） | 避免架构间污染 |
+  | 交叉编译 | 每架构独立变体前缀（`SDL3/msvc.<arch>.<config>` 等） | 避免架构、配置与运行库互相污染 |
 
 **Windows 自动构建（新增能力）**：
 
@@ -387,22 +388,37 @@ extra_cflags=["-DSK_DISABLE_LEGACY_PNG_WRITEBUFFER"]
   `.sh` 里构建 Release 版，MSVC/MinGW 的 SDL 一直是手工构建。根工程把这条流程补齐；
 - **触发条件**：`DUILIB_ENABLE_SDL=ON` 时，Windows（MSVC / MinGW / MSYS2）由
   `duilib_deps` 自动获取源码、构建并安装；默认 `OFF` 时跳过（保持现状）；
-- **中间目录**：`${DUILIB_SDL_BUILD_ROOT}/<toolchain>/<arch>/<config>`，
-  与安装前缀分开，避免源树/安装目录混用；
-- **配置覆盖**：一次 `deps` 同时构建 **Release 与 Debug**（`CMAKE_DEBUG_POSTFIX=d`），
-  产物为 `SDL3-static.lib` / `SDL3-staticd.lib`（MSVC）或 `libSDL3.a` / `libSDL3d.a`
-  （MinGW），避免 Debug 误链 Release 库导致的 CRT 冲突；
+- **中间目录**：`${DUILIB_SDL_BUILD_ROOT}/<arch>-<config>`（如 `x64-debug`），
+  与安装变体前缀分开，避免源树/安装目录混用；切换工具链或运行库时若 stamp 的
+  变体名不一致，先清空该目录再重新配置，防止复用旧编译器的 CMake 缓存；
+- **安装前缀**：每个“架构 × 配置 × MSVC 运行库”组合各装一份**完整前缀**
+  （`${DUILIB_SDL_ROOT}/<变体>`，目录名规则见 `cmake/duilib_sdl_variants.cmake`）：
+  MSVC 为 `msvc.<arch>.<debug|release>`，`DUILIB_MD=ON` 时追加 `.mdd`/`.md`；
+  MinGW/MSYS2 直接复用 Skia 的 release 变体名。SDL3 源码不设 `DEBUG_POSTFIX`，
+  库文件名在各变体内保持不变（MSVC `SDL3-static.lib`、MinGW `libSDL3.a`），
+  配置与运行库只靠前缀区分，因此 Debug/Release、MT/MD 不再互相覆盖；
+- **配置覆盖**：多配置生成器（Visual Studio）下一次 `deps` 为 **Debug 与 Release
+  各装一份**（变体前缀不同，`SDL3/msvc.x64.debug` 与 `SDL3/msvc.x64.release`）；
+  MinGW 的 Debug/Release 共用 release 变体，只装一次；
 - **运行库**：MSVC 通过 `CMAKE_MSVC_RUNTIME_LIBRARY` 与 `DUILIB_MD` 保持一致
-  （`MultiThreaded[Debug]` 或 `MultiThreaded[Debug]DLL`）；MinGW/MSYS2 必须使用与
-  主工程相同的 MSYS2 前缀（`mingw64`/`ucrt64`/`clang64`），msvcrt 与 ucrt 不可混用，
-  `deps` 把 `MSYSTEM` 与编译器 triple 写入 stamp 供配置期比对；
+  （`MultiThreaded[Debug]` 或 `MultiThreaded[Debug]DLL`），并体现在变体名后缀；
+  MinGW/MSYS2 必须使用与主工程相同的 MSYS2 前缀（`mingw64`/`ucrt64`/`clang64`），
+  msvcrt 与 ucrt 不可混用，`deps` 把 `MSYSTEM` 与编译器 triple 写入 stamp 供配置期比对；
+- **头文件目录**：多配置生成器下 `DUILIB_SDL_INCLUDE_DIR` 与库目录一样按配置切换
+  （`$<$<CONFIG:Debug>:<debug 变体>/include>$<$<NOT:$<CONFIG:Debug>>:<release 变体>/include>`）。
+  头文件内容在各变体中相同，但目录必须与链接的库变体一致，否则 IDE 会把 Debug
+  变体的 include 写进所有配置；规则由 `duilib_sdl_include_dir()` 统一给出，
+  根工程（`duilib_root_options.cmake`）与示例子工程（`duilib_common.cmake`）共用；
 - **生成器**：沿用根工程生成器与工具链；MSYS2 固定 `Ninja`（原生 CMake 默认 VS
   生成器会静默忽略 `-DCMAKE_C_COMPILER`）；
 - **其他参数**：`SDL_SHARED=OFF`、`SDL_STATIC=ON`、`SDL_TEST_LIBRARY=OFF`，
   X11/Wayland/音频选项在 Windows 上无意义，不再传入；
-- **就绪判定**：`${DUILIB_SDL_ROOT}/include/SDL3/SDL.h`、当前配置对应库文件、
-  `.duilib-ref`（ref + 架构）与 `.duilib-crt`（运行库/`MSYSTEM`）同时匹配才跳过；
-  缺 Debug 库时提示重新执行 `deps`，不静默回退到 Release 库。
+- **就绪判定**：选中变体前缀下的 `include/SDL3/SDL.h`、库文件存在，且
+  `<前缀>/.duilib-sdl`（ref + 源码提交 + 架构 + CRT + 平台 + **变体名**）与当前
+  配置一致才跳过；不一致时清空该配置的构建目录并重新安装；
+  旧单前缀布局、或显式 `-DDUILIB_SDL_ROOT=<目录>` 找不到变体时回退 `<根>`，
+  配置期输出 `[WARN]`（MSVC 下可能触发 LNK2038；MinGW 共用一份静态库，不受影响），
+  并提示用 `build.py deps` 生成变体。
 
 - **运行库搜索路径（rpath）**：Unix 默认开启（`DUILIB_SDL_RPATH=ON`），
   先写入相对条目（macOS `@loader_path`、其他 `$ORIGIN`；Linux 另含 CEF 的
@@ -730,10 +746,13 @@ endif()
 1. `cmake/duilib_common.cmake`：新增
    `if(DUILIB_SKIA_AUTOBUILD)` 分支，跳过 Skia 库目录存在性校验，直接使用
    预期的变体路径；其余逻辑不变；
-2. `cmake/duilib_common.cmake` 的 SDL 段：按配置选择
-   `SDL3-static.lib` / `SDL3-staticd.lib`（MSVC）或 `SDL3` / `SDL3d`（MinGW），
-   并把 `DUILIB_SDL_LIB_PATH` 的 `lib64`/`lib` 探测保持现状；
-3. `duilib/CMakeLists.txt`、`examples/*/CMakeLists.txt` 无需改动（`project()` 可嵌套，
+2. `cmake/duilib_common.cmake` 的 SDL 段：按配置解析变体前缀
+   （`<根>/<变体>` 优先、`<根>` 回退，规则见 `cmake/duilib_sdl_variants.cmake`），
+   多配置生成器用 `$<CONFIG:Debug>` 切换 `DUILIB_SDL_LIB_PATH` / `DUILIB_SDL_LIBS`；
+   库文件名保持不变，`lib64`/`lib` 探测保持现状；
+3. `duilib/CMakeLists.txt` 只需把头文件目录改用根工程解析出的
+   `DUILIB_SDL_INCLUDE_DIR`（多配置生成器下为按配置切换的生成器表达式）；
+   `examples/*/CMakeLists.txt` 无需改动（`project()` 可嵌套，
    `duilib_common` 的 `DUILIB_ROOT` 由 `CMAKE_CURRENT_LIST_DIR` 推导，仍正确）；
 4. `cmake/duilib_root_options.cmake` 负责在 `add_subdirectory` 之前把
    `DUILIB_ENABLE_CEF/SDL`、`DUILIB_SKIA_REF`、`DUILIB_SDL_REF`、`DUILIB_CEF_VERSION`、
@@ -779,16 +798,19 @@ libjpeg-turbo/WebView2 沿用仓库既有配置（见 3.4.4）。
 **一致性规则**：
 
 1. 同一构建树内 `DUILIB_MD` 不可切换；切换视为不同配置，需使用新的构建目录；
-2. Skia 的 `out/<变体>` 与 SDL 安装前缀各写一份 `.duilib-crt`
-   （内容如 `msvc-mt` / `msvc-md` / `mingw64-msvcrt` / `ucrt64-ucrt` / `system`），
+2. Skia 的 `out/<变体>` 写一份 `.duilib-crt`
+   （内容如 `msvc-mt` / `msvc-md` / `mingw64-msvcrt` / `ucrt64-ucrt` / `system`）；
+   SDL 的每个变体前缀写一份 `.duilib-crt` 加 `.duilib-sdl`（后者含变体名），
    配置期与当前 `DUILIB_MD`、`MSYSTEM`、编译器 triple 比对；
 3. 不一致时报 `[ERROR] CRT mismatch`，`Hint:` 指向用相同 `DUILIB_MD` 重新执行
    `build.py deps`（或改用匹配的构建目录），而不是静默链接；
-4. Windows 下 Debug 配置找不到 Debug 版 SDL 库时同样报错（旧手工包只有 Release），
-   提示 `build.py deps` 生成 Debug 库；
-5. `cmake/duilib_common.cmake` 按配置选择库名：MSVC `SDL3-static.lib` /
-   `SDL3-staticd.lib`，MinGW `SDL3` / `SDL3d`；多配置生成器用 `$<CONFIG:Debug>`
-   表达式，单配置用 `CMAKE_BUILD_TYPE`；
+4. Windows MSVC 下 Debug 配置优先解析 `SDL3/msvc.<arch>.debug`，缺失时才回退
+   `<根>` 并输出 `[WARN]`（旧手工包只有 Release 库，直接链接会报 LNK2038），
+   提示 `build.py deps` 生成该变体；MinGW 的 Debug/Release 共用 release 变体，
+   回退根目录只提示路径，不涉及 CRT 冲突；
+5. `cmake/duilib_common.cmake` 按配置解析变体前缀，库名在各变体内不变
+   （MSVC `SDL3-static.lib`、MinGW `libSDL3.a`）；多配置生成器用 `$<CONFIG:Debug>`
+   表达式切换前缀，单配置用 `CMAKE_BUILD_TYPE`；
 6. 渲染/窗口后端只要 CRT 与编译器一致即可，不额外校验 STL 版本（Skia 为 C++ 库，
    跨 CRT 混用会直接触发链接器 `LNK2038`，无需重复检测）。
 
@@ -969,7 +991,7 @@ cmake --build --preset x64-release
 | Skia 全量重编 | 构建时长急剧上升 | 固定 commit、补丁 stamp、跳过 update、Ninja 增量 |
 | macOS CEF 配置期依赖 | 单命令模式不可用 | 明确两阶段，`prepare` 为默认推荐 |
 | Visual Studio 多配置 | Skia 变体与 `/MT`、`/MD` 选择错误 | P0/P1 仅支持 Ninja 单配置；VS 多配置在 P2 补齐后再删除旧脚本 |
-| Windows 手工 SDL 包只有 Release | Debug 链接 `/MT` 版 SDL 与 `/MTd` 主工程冲突（`LNK2038`） | 新流程 `deps` 自动构建 Debug 库；stamp 记录 CRT，缺失或失配时报错 |
+| Windows 手工 SDL 包只有 Release | Debug 链接 `/MT` 版 SDL 与 `/MTd` 主工程冲突（`LNK2038`） | 新流程 `deps` 按变体前缀（`msvc.<arch>.<config>[.md\|.mdd]`）各装一份；`.duilib-sdl` 记录变体名，缺失时回退根目录并 `[WARN]`，提示重新 `deps` |
 | 根构建树使用 `out/<arch>/<Config>` | 与仓库内 `build/` 混淆；`.gitignore` 漏配导致误提交 | `out/` 整体忽略；`build/` 保持只放已跟踪脚本；README 明确“构建树在 `out/`，运行时在 `bin/`” |
 | Windows + Ninja 交叉编译架构误判 | arm64 被当作 x64，链接到错误 Skia/JPEG | 强制显式 `DUILIB_TARGET_ARCH`，配置期校验 Skia 变体与指针宽度 |
 | 多架构共用构建目录 / 依赖前缀 | 错误架构的库混入产物 | 每架构独立构建目录；`DUILIB_SDL_ROOT` 按架构分目录并在配置期校验 |
@@ -1045,9 +1067,10 @@ cmake --build --preset x64-release
 
 13. **CRT 与配置矩阵**（已决策）：**CEF 无 CRT 约束**，不参与校验；Skia 与 SDL
     必须与 nim_duilib 一致。矩阵与校验规则见 4.6（`/MT`、`/MTd` 或 `/MD`、`/MDd`；
-    MinGW 按 msvcrt/ucrt 前缀；stamp `.duilib-crt` 在配置期比对）。
-    **补充能力**：Windows 的 SDL 自动构建流程已写入 3.3（MSVC/MinGW/MSYS2，
-    Debug+Release 静态库，`CMAKE_MSVC_RUNTIME_LIBRARY` 跟随 `DUILIB_MD`）。
+    MinGW 按 msvcrt/ucrt 前缀；stamp `.duilib-crt` / `.duilib-sdl` 在配置期比对）。
+    **补充能力**：Windows 的 SDL 自动构建流程已写入 3.3（MSVC/MinGW/MSYS2），
+    Debug/Release 各装到独立变体前缀（`msvc.<arch>.<config>[.md|.mdd]`），
+    `CMAKE_MSVC_RUNTIME_LIBRARY` 跟随 `DUILIB_MD`，库名不再靠 `DEBUG_POSTFIX` 区分。
 14. **`build.py` 配置语义**（已决策）：用 `--config Debug|Release`，**一次只构建
     一个配置**，默认 `Release`；不再提供 `--debug` 别名（文档统一写 `--config`）。
     默认构建示例（`--no-examples` 可关）、`--target` 透传；`--jobs` 默认 CPU 核数；

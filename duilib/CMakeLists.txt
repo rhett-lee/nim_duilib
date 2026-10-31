@@ -81,13 +81,22 @@ if(DUILIB_SDL_ROOT)
 else()
     get_filename_component(SDL_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../SDL3/" ABSOLUTE)
 endif()
+# Windows 上 SDL3 按配置安装到不同的变体前缀（<root>/<variant>），头文件在各变体
+# 中内容相同但目录按配置切换：根工程由 duilib_root_options.cmake 解析出目录
+# （多配置生成器下是 $<CONFIG:Debug> 生成器表达式，与链接的变体一一对应）。
+if(DEFINED DUILIB_SDL_INCLUDE_DIR AND NOT DUILIB_SDL_INCLUDE_DIR STREQUAL "")
+    set(_duilib_sdl_include_dir "${DUILIB_SDL_INCLUDE_DIR}")
+else()
+    set(_duilib_sdl_include_dir "${SDL_SRC_ROOT_DIR}/include")
+endif()
 
 # Always include these directories（收集到列表，等库目标创建后应用到目标上，见 CM-17）
 list(APPEND DUILIB_TARGET_INCLUDE_DIRS
     "${DUILIB_SRC_ROOT_DIR}"
     "${SKIA_SRC_ROOT_DIR}"
-    "${SDL_SRC_ROOT_DIR}/include"
+    "${_duilib_sdl_include_dir}"
 )
+unset(_duilib_sdl_include_dir)
 
 # Conditionally include CEF directory（仅在开启CEF功能时添加）
 if(DUILIB_ENABLE_CEF)

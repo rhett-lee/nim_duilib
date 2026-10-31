@@ -84,7 +84,7 @@ otherwise Ninja sees `bin/` files newer than its own objects and skips the link 
 | `--arch auto\|x86\|x64\|arm64` | target architecture, default host; required for Windows+Ninja arm64 |
 | `--lang auto\|zh_CN\|en` | UI language, defaults to the system; also reads `DUILIB_LANG` |
 | `--build-dir <dir>` | override the build directory (may be outside the repo) |
-| `--deps-root <dir>` | dependency source/install root, defaults to the repo's parent (next to `nim_duilib`); Skia, SDL3 and CEF are installed here |
+| `--deps-root <dir>` | dependency source/install root, defaults to the repo's parent (next to `nim_duilib`); Skia, SDL3 and CEF are installed here. A relative path is resolved against the current directory, and `build.py pack` forwards it to `pack.py` |
 | `--jobs N` | parallel build jobs, defaulting to the CPU logical core count |
 | `--offline` | use cached dependency sources/archives only |
 | `--dry-run` | print commands without executing them |
@@ -139,7 +139,9 @@ Dependency directories live next to the repository by default (`--deps-root` ove
 <deps-root>/
   skia/            # Skia source (built after the patch is extracted)
   SDL/             # SDL3 source
-  SDL3/            # SDL3 install prefix
+  SDL3/            # SDL3 installation root (Windows splits it into variant subdirectories, see below)
+  SDL3/msvc.x64.debug/     # Windows variant prefix (complete installation: include/, lib/, share/licenses)
+  SDL3/msvc.x64.release/   # one per arch × configuration × runtime, so Debug/Release no longer overwrite each other
   SDL3_build/      # SDL3 build directory
   cef_binary/      # CEF download/extract cache (full distribution on macOS)
 ```
@@ -207,13 +209,33 @@ Versions are pinned in [third_party_versions.json](../cmake/third_party_versions
 - **SDL3**: the default ref is the `main` branch (`sdl.default`; the
   `release-3.4.18` tag remains in `refs` but does not compile, so do not select it
   unless you need it via `--sdl-ref`). Disabled on Windows by default; when enabled,
-  `deps` builds Debug and Release static libraries. Unix builds shared libraries and
-  writes rpath entries (relative entries first; the absolute fallback is controlled
-  by `DUILIB_RPATH_ABSOLUTE`). If the local `SDL/` checkout is on another
-  branch/tag, `deps` switches to the manifest ref before building (a branch ref
-  only requires being on that branch, without chasing the remote tip); the SDL3
-  install stamp records the source commit, so artifacts built from the wrong
-  revision are rebuilt automatically (once when upgrading to this version).
+  `deps` installs one prefix per arch × configuration × runtime under
+  `<deps-root>/SDL3/<variant>` (MSVC: `msvc.<arch>.<debug|release>[.mdd|.md]`, with
+  the suffix under `/MD` or DLL mode; MinGW reuses the Skia release variant names and
+  shares one static library between Debug and Release). SDL3 does not set
+  `DEBUG_POSTFIX`, so Debug and Release static libraries have the same file name and
+  only the variant directory separates them; mixing `/MT` with `/MD` fails at link
+  time with LNK2038. Unix builds shared libraries and writes rpath entries (relative
+  entries first; the absolute fallback is controlled by `DUILIB_RPATH_ABSOLUTE`). If
+  the local `SDL/` checkout is on another branch/tag, `deps` switches to the manifest
+  ref before building (a branch ref only requires being on that branch, without
+  chasing the remote tip); the SDL3 install stamp records the source commit and the
+  variant name, so artifacts from a wrong revision or another configuration/runtime
+  are rebuilt automatically (once when upgrading to this version).
+  When a variant directory is missing, `duilib_common.cmake` falls back to the
+  `<deps-root>/SDL3` single prefix with a warning (legacy layouts and self-built
+  artifacts); an explicit `-DDUILIB_SDL_ROOT=<dir>` / `pack.py --sdl-dir` is also
+  treated as a single-prefix fallback. `pack.py` selects the variant from
+  `--config`, `--arch` and the runtime: DLL mode or `--msvc-runtime md` uses `.md`
+  (`.mdd` for Debug), otherwise the unsuffixed variant, matching `DUILIB_MD`
+  on the build side (the Skia directory follows the same rule).
+  For MinGW the MSYS2 detection also follows the compiler install location (`CC`/`CXX`
+  or a compiler on `PATH`), matching the build side; only when no compiler can be found
+  does it fall back to `MSYSTEM`, and `pack.py` always appends
+  `gcc.msvcrt.<arch>.release` as the last candidate. `pack.py` and
+  `build.py doctor --sdl` still probe the candidates in order (the canonical variant
+  name first, ending with the `<deps-root>/SDL3` single prefix) and accept any installed
+  variant.
 - **CEF**: fixed version branch (`cef.default`; `109` is available for Windows 7).
   The `_minimal` distributions are used everywhere (about half the size of the standard
   package; they contain `include/`, `Release/` and `Resources/`). Only
@@ -368,6 +390,19 @@ checks and dependency preparation); `build/pack.py` keeps the same candidates an
 `--skia-lib-dir <dir>` to force a specific Skia directory (the build equivalent is
 `-DDUILIB_SKIA_LIB_SUBPATH=<dir>`).
 
+The MSYS2 detection (which decides whether to use the `.msvcrt` variant, whether the
+SDL3 variant prefix carries the `mingw64-` prefix, and the CRT id of dependency
+directories) is based on the **compiler install location** on both the build and the
+packaging side (`<root>/<env>/bin` plus `<root>/usr/bin/pacman.exe`), not on `MSYSTEM`
+— Git Bash also exports `MSYSTEM=MINGW64`, so trusting it would make the same build
+report different results in different shells (cmd / MSYS2 / Git Bash). When `pack.py`
+has no compiler configured, it tries `CC`/`CXX`, then gcc/clang on `PATH`, then the
+Python interpreter directory, and only then `MSYSTEM`; if the environment still cannot
+be determined (for example packing MSYS2 artifacts from cmd with no MSYS2 compiler on
+`PATH`), `gcc.msvcrt.<arch>.release` is appended as the **last** candidate so that it
+never shadows a standalone MinGW-w64 / UCRT64 artifact but still finds an installed
+msvcrt variant.
+
 When invoking from PowerShell, export `MSYSTEM` yourself and prepend the matching
 `bin` directory to `PATH`; `build.py` skips vcvars whenever `MSYSTEM` is set and
 uses the `CC`/`CXX` compilers. A standalone llvm-mingw works the same way: set
@@ -426,6 +461,7 @@ sure the Skia libraries are the `mingw64-llvm.<arch>` variant.
 | MinGW examples fail to start after disabling static linking (`DUILIB_MINGW_STATIC=OFF`) | that mode depends on compiler runtime DLLs; copy `libstdc++-6.dll`, `libgcc_s_seh-1.dll` (x86: `libgcc_s_dw2-1.dll`) and `libwinpthread-1.dll` next to the exe; the default static build does not need them |
 | MinGW Debug link fails with `No space left on device` | a Debug example is roughly 200–280 MB and all examples take about 10 GB; clean `bin/` and retry, or use the Release configuration |
 | `deps` fails building SDL3 with `cl.exe`/`LNK1104`, or `--sdl` fails after switching MSVC/MinGW | the SDL3 build directory was used by another toolchain or runtime; dependency preparation clears it automatically when the CRT does not match, so simply retry |
+| MSVC fails to link SDL3 with LNK2038 (`RuntimeLibrary` mismatch) | Debug and Release SDL3 static libraries share the same file name and are now installed into variant prefixes. If `SDL3/` still holds only a legacy single prefix, run `python3 build.py deps --force` to create `msvc.<arch>.debug`/`msvc.<arch>.release` variants; do not copy Release libraries into a Debug prefix |
 
 Legacy troubleshooting notes from the script era remain in [build/README.en.md](README.en.md).
 

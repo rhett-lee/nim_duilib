@@ -65,6 +65,7 @@ DUILIB_BUILD_TYPE        # "debug" or "release"
 | `DUILIB_LOG` | OFF | Print duilib debug logs |
 | `DUILIB_SKIA_LIB_SUBPATH` | empty | Skia library subdirectory; empty means auto-concatenated per platform and configuration (see below) |
 | `DUILIB_ENABLE_SDL` | Windows=OFF, others=ON | Enable SDL input support |
+| `DUILIB_SDL_AUTOBUILD` | OFF | Dependency auto-prepare mode (`DUILIB_DEPS_MODE=auto`): skip the SDL3 existence check and predict the variant path |
 | `DUILIB_ENABLE_CEF` | OFF | Enable CEF browser support (library compiles CEF control sources) |
 | `DUILIB_EXAMPLE_CEF` | OFF | Example links CEF (set only by `cef`/`CefBrowser`) |
 | `DUILIB_CEF_109` | OFF | Use CEF 109 version (supports Win7) |
@@ -80,8 +81,10 @@ DUILIB_BUILD_TYPE        # "debug" or "release"
 | `DUILIB_BIN_PATH` | duilib executable program output directory |
 | `DUILIB_SKIA_SRC_ROOT_DIR` | Skia source directory |
 | `DUILIB_SKIA_LIB_PATH` | Skia library file directory |
-| `DUILIB_SDL_SRC_ROOT_DIR` | SDL3 source directory |
-| `DUILIB_SDL_LIB_PATH` | SDL3 library file directory |
+| `DUILIB_SDL_ROOT` | SDL3 installation root; on Windows prefixes are selected as `<root>/<variant>`, and an explicit value still acts as the root with a single-prefix fallback |
+| `DUILIB_SDL_INCLUDE_DIR` | SDL3 include directory (taken from the selected variant prefix) |
+| `DUILIB_SDL_SRC_ROOT_DIR` | SDL3 installation prefix directory (derived from the selected variant prefix) |
+| `DUILIB_SDL_LIB_PATH` | SDL3 library directory (a configuration-dependent generator expression for multi-config generators) |
 | `DUILIB_CEF_SRC_ROOT_DIR` | libCEF source directory |
 | `DUILIB_CEF_LIB_PATH` | libCEF library file directory |
 
@@ -139,6 +142,28 @@ ${DUILIB_SKIA_SRC_ROOT_DIR}/out/<subdirectory>
 # -DDUILIB_SKIA_LIB_SUBPATH=llvm.x64.release -> both configurations use that fixed directory
 #                                              (its existence is validated as well)
 # MinGW pointing at an MSVC-only directory (.lib, e.g. the MSVC llvm.x64.release) -> configure error
+```
+
+**SDL3 installation prefix rule:**
+
+On Windows the SDL3 static libraries must be separated by architecture × configuration ×
+MSVC runtime; otherwise Debug/Release overwrite each other (same file names) and mixing
+`/MT` with `/MD` fails at link time with LNK2038. `duilib_deps` installs each combination
+into its own complete prefix (`<deps-root>/SDL3/<variant>`, with `include/`, `lib/` and
+`share/licenses`). The naming lives in
+[duilib_sdl_variants.cmake](duilib_sdl_variants.cmake) and is reused by
+`duilib_common.cmake`, the dependency checks, `build/pack.py` and the VS property sheet:
+
+```cmake
+#   Windows MSVC  : msvc.<arch>.debug / msvc.<arch>.release
+#                   plus .mdd / .md when /MD, /MDd is used (DUILIB_MD, implied by DLL mode)
+#   Windows MinGW : reuses the Skia release variant names (mingw64-<gcc|llvm>.<arch>.release, ...);
+#                   Debug/Release share one static library (the CRT comes from the toolchain)
+#   non-Windows   : a single <deps-root>/SDL3 prefix (Release shared library only)
+
+# Candidate order: <root>/<variant> first, then <root> as the legacy/self-built single prefix;
+# build.py deps installs as described above and pack.py selects in the same order;
+# an explicit --sdl-dir is treated as a single prefix (no variant derivation)
 ```
 
 ---
@@ -632,9 +657,11 @@ endif()
 Ensure the Skia build output is in the correct directory:
 ```
 skia/out/
-├── msvc.x64.release/
-├── mingw64-gcc.x64.release/
-├── mingw64-llvm.x64.release/
+├── llvm.x64.debug/             # MSVC / clang-cl (adds .mdd for /MD)
+├── llvm.x64.release/           # MSVC / clang-cl (adds .md for /MD)
+├── gcc.msvcrt.x64.release/     # MSYS2 MINGW64
+├── gcc.x64.release/            # MSYS2 UCRT64 and friends
+├── mingw64-gcc.x64.release/    # standalone MinGW-w64
 └── ...
 ```
 

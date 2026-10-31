@@ -197,9 +197,24 @@ BinCommonSettingsWebView2.props
 
 **Configuration items:**
 - `SDLEnabled`: SDL support switch (0=disabled, 1=enabled)
-- `SDLIncludeDir`: SDL include directory (`$(SolutionDir)\..\..\SDL3\include`)
-- `SDLLibDir`: SDL lib directory (selected based on platform and configuration)
-- `SDLLibs`: SDL dependency library list (`SDL3-static.lib;Version.lib;Winmm.lib;Setupapi.lib`)
+- `SDL3RootDir`: SDL3 installation root directory (`$(SolutionDir)\..\..\SDL3`)
+- `SDLVariant`: variant directory selected by `$(Configuration)|$(Platform)`
+  (`msvc.x64.debug`/`msvc.x64.release` and so on; `.mdd`/`.md` is appended when
+  `duilib_dll.flag` exists); it stays empty and falls back to the root directory
+  when the variant directory does not exist
+- `SDLIncludeDir`: `$(SDL3RootDir)\$(SDLVariant)\include` (`$(SDL3RootDir)\include`
+  when there is no variant)
+- `SDLLibDir`: `$(SDL3RootDir)\$(SDLVariant)\lib` (`$(SDL3RootDir)\lib` when there
+  is no variant)
+- `SDLLibs`: SDL dependency library list
+  (`SDL3-static.lib;Version.lib;Winmm.lib;Imm32.lib;Setupapi.lib`)
+
+**Note:** SDL3 does not set `DEBUG_POSTFIX`, so the Debug and Release static
+libraries share the same file name, and the `RuntimeLibrary` of `MT/MTd/MD/MDd`
+is mutually exclusive (mixing them fails with LNK2038). Each configuration and
+runtime is therefore installed into `<SDLSettings root>/<variant>` by
+`build.py deps` (rules in `cmake/duilib_sdl_variants.cmake`, identical to the
+CMake side).
 
 **Macro definition:** `DUILIB_SDL=$(SDLEnabled)`
 

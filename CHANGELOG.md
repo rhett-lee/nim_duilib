@@ -216,6 +216,95 @@
 
 ### 修复
 
+- Windows 多配置下 SDL3 的 Debug/Release 互相覆盖：SDL3 不设置 `DEBUG_POSTFIX`，
+  Debug/Release 静态库同名，此前两次 install 到 `<deps-root>/SDL3` 同一前缀，
+  后安装的 Release 覆盖 Debug；`/MT`、`/MD` 混链还会报 LNK2038。现在按
+  “架构 × 配置 × 运行库”安装到独立变体前缀 `SDL3/<variant>`（MSVC 为
+  `msvc.<arch>.<debug|release>[.mdd|.md]`，MinGW 复用 Skia 的 release 变体名、
+  Debug/Release 共用一份），命名规则集中在 `cmake/duilib_sdl_variants.cmake`，
+  配置期解析、依赖检查与准备、`build/pack.py`、`msvc/PropertySheets/SDLSettings.props`
+  共用同一实现；安装 stamp 改记录变体名，多配置生成器下两个配置不再互相判为过期。
+  变体缺失时仍回退单前缀并告警（兼容旧布局或显式传入的目录），`doctor` 会按配置
+  报告实际使用的 SDL3 前缀。
+- 打包在 `--md`（静态库 + 动态运行库）时选错 Skia/SDL3 变体：`pack.py` 此前只按
+  `bin/` 是否存在 `duilib*.dll` 判断 `.md`/`.mdd`，`--msvc-runtime md` 未出 DLL
+  时仍会打包 `/MT` 变体，下游链接会报 LNK2038。现在按运行库解析
+  （`resolve_md_mode`：DLL 模式或 `--msvc-runtime md` 用 `.md`，Debug 为 `.mdd`），
+  Skia 与 SDL3 目录规则一致，并补充对应单元测试。
+- Visual Studio 多配置生成器下 SDL3 头文件目录未按配置切换：`duilib.vcxproj`
+  的 Debug/Release 都写入了 Debug 变体的 `include` 目录，Release 目标看到的
+  头文件目录与实际链接的库前缀不一致。现在头文件目录与库目录一样按配置解析
+  （`$<$<CONFIG:Debug>:<debug 变体>/include>$<$<NOT:$<CONFIG:Debug>>:<release 变体>/include>`），
+  规则由新增的 `duilib_sdl_include_dir()`（`cmake/duilib_sdl_variants.cmake`）
+  统一给出，根工程（`duilib_root_options.cmake`）与示例子工程
+  （`duilib_common.cmake`、`duilib_example.cmake`）共用；单配置、MinGW 共用
+  变体与单前缀回退仍退化为普通目录，并补充对应单元测试。
+- Review 修正（与变体方案配套）：
+  1. 根工程 `duilib_root_options.cmake` 解析 SDL3 变体前缀时引用了
+     `duilib_common.cmake` 才定义的 `DUILIB_MINGW`，MinGW 被当成 MSVC，
+     include/前缀解析成 `msvc.<arch>.*`（MinGW 构建里实际写入了
+     `-I.../SDL3/msvc.x64.release/include`）。根工程现已自行定义 `DUILIB_MINGW`，
+     并补充静态检查用例；
+  2. `DUILIB_DEPS_MODE=auto` 时 `duilib_configure_dependencies()` 里的
+     `DUILIB_SDL_AUTOBUILD` 只是函数局部变量，子目录看不到；首次配置（变体尚未
+     安装）会误报“未找到可用的 SDL3 安装前缀”。改为写到父作用域，并补充夹具用例；
+  3. `build.py doctor --sdl` 以 `dll_mode=` 调用已改名的
+     `pack._sdl_variant_name`，运行即 TypeError；改为 `md_mode=`，并加入调用点
+     关键字与函数签名一致性检查；
+  4. 非 Windows 的 SDL3 安装 stamp 不再追加空的变体分隔符，避免升级后无谓重编；
+  5. `build.py doctor --sdl` 在 MSYS2 CLANG64 / clangarm64 下按 `gcc.*` 变体检查
+     （CMake 侧 clang 走 `llvm.*`）；现在按 `CC` 推导 `llvm` / `gcc` 后再生成变体名
+     （CLANG64 → `llvm.x64.release`，UCRT64 → `gcc.x64.release`，
+     MINGW64 → `gcc.msvcrt.x64.release`）；
+  6. MinGW 回退单前缀的告警照搬了 MSVC 文案（提示“Debug 目标会报 LNK2038”），
+     MinGW 的 Debug/Release 共用一份静态库，不会发生 CRT 冲突；改为按
+     `DUILIB_MINGW` 输出不同告警；
+  7. 多配置生成器下 `DUILIB_SDL_SRC_ROOT_DIR` 由含 `$<CONFIG:...>` 的 include 目录
+     推导，`get_filename_component` 会得到被表达式截断的无效路径；现在遇到生成器
+     表达式时直接取已解析的变体前缀（该变量只作为示例子工程的兜底值）；
+  8. `pack.py` 的 `_sdl_variant_name()`（MinGW 分支）调用 `_skia_candidate_names`
+     时未透传 `windows`：显式 `windows=True` 的调用（`doctor`、测试）在非 Windows
+     宿主上会退回非 Windows 的名字；已透传，测试也显式传入
+     `windows=True` / `msys2_env=''`；
+  9. `pack.py` / `doctor` 原先只按“规范变体名”解析 SDL3 前缀：打包侧的 MSYS2 判定
+     只能依据 `sys.executable` / `MSYSTEM`（Git Bash 也会设置 `MSYSTEM`），与 CMake
+     侧（编译器安装位置）可能不一致，导致找不到依赖脚本实际安装的变体目录。
+     两者现在都按候选顺序逐个探测（首个为规范变体名，最后为 `<root>` 单前缀回退），
+     并补充单元测试；
+  10. MSYS2 判定在 `duilib_root_options.cmake` 与 `duilib_common.cmake` 各有一份
+     实现；统一为 `duilib_skia_toolchain.cmake` 的 `duilib_detect_msys2()`，
+     避免两处口径漂移；
+  11. 打包侧的 MSYS2 判定与编译侧补齐同一口径：`pack.py` 的 `_msys2_env_name()`
+     此前只看 `sys.executable` 与 `MSYSTEM`，从 cmd/PowerShell 打包 MSYS2 MINGW64
+     产物时得到空环境名，候选里缺 `gcc.msvcrt.<arch>.release`，Skia 直接报
+     “Skia lib dir not found”、`--with-sdl` 找不到 SDL3。现在依次尝试 `CC`/`CXX`、
+     `PATH` 上的 gcc/clang、Python 解释器所在目录（判定方式与 `duilib_detect_msys2`
+     相同：`<root>/<env>/bin` 且存在 `<root>/usr/bin/pacman.exe`），最后才回退
+     `MSYSTEM`；仍无法确定时把 `gcc.msvcrt.<arch>.release` 作为候选**末尾兜底**，
+     不影响独立 MinGW-w64 / UCRT64 的优先级；
+  12. `duilib_crt_id()` 此前只看 `$ENV{MSYSTEM}`：Git Bash 同样设置
+     `MSYSTEM=MINGW64`，同一个构建在不同 shell 里会得到不同 CRT 标识，进而误报
+     `CRT mismatch`（FATAL）或无谓重编。现在有编译器路径时一律按
+     `duilib_detect_msys2()` 的安装位置判定（MINGW64/MINGW32 → `<env>-msvcrt`，
+     其余 → `<env>`，非 MSYS2 → `mingw-unknown`），仅在脱离配置直接调用时才回退
+     `MSYSTEM`。升级后独立 MinGW-w64 若在 Git Bash 下配置过，旧 stamp 与
+     `mingw-unknown` 不符，会要求用相同工具链重建一次依赖；
+  13. `build.py doctor --sdl` 的报告口径：此前把“已安装但不是首个候选”的变体
+     也报成 `[WARN] … missing; using …`。现在区分“变体目录命中”（`[OK]`）、
+     “回退 `<deps-root>/SDL3` 单前缀”（`[WARN]`）与“尚未构建”（`[INFO]`）；
+  14. `build.py pack` 不转发 `--deps-root`：用自定义依赖根编译后打包仍去读仓库同级
+     的 `skia/`、`SDL3/`，可能打进旧产物或直接报找不到。`pack.py` 新增
+     `--deps-root`（映射为 `<root>/skia`、`<root>/SDL3`，显式
+     `--skia-lib-dir`/`--sdl-dir` 仍优先），`build.py pack` 总是传入解析后的依赖根；
+  15. 同名参数的相对路径语义不一致：`build.py --deps-root` 按当前目录解析，
+     `pack.py --deps-root` 却按仓库根解析，直接运行 `pack.py` 且工作目录不是仓库根
+     时会指向另一个目录。`pack.py` 改为与 `build.py` 相同的“按当前目录解析”
+     （`os.path.abspath(os.path.expanduser(...))`），并补充对应用例与帮助文案。
+  文档同步：`CM-5` 的 I-5 与 D-4b 条目更新为“Debug/Release 各自变体前缀”，
+  `msvc/PropertySheets/README.en.md` 的 SDLSettings 说明补齐 `SDL3RootDir`/`SDLVariant`，
+  中英文属性表文档补上 `Imm32.lib`，`docs/misc/Root-CMake-Build-Plan.md` 的就绪判定
+  改为按工具链区分（MinGW 不涉及 LNK2038），`cmake/README(.en).md` 的 Skia 输出目录
+  列表改为真实变体名（`llvm.<arch>.<config>` 等）。
 - Skia 变体目录名的规则统一到 `cmake/duilib_skia_variants.cmake`：配置期解析
   （`duilib_common.cmake`）、off 模式检查（`duilib_deps.cmake`）、依赖准备
   （`duilib_deps_run.cmake`）共用同一函数，不再各自拼目录名。`build/pack.py`

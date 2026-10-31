@@ -99,6 +99,11 @@ $env:CXX='E:\msys64\mingw64\bin\g++.exe'
   （Release）/.mdd（Debug）变体，无需手工转运行库。SDL 在 Windows 上默认关闭，
   `--dll` 也不自动开启；关闭时 `deps` 不下载 SDL 源码、不构建 SDL3，需要时显式
   `--sdl`。
+- Windows 下 SDL3 按“架构 × 配置 × 运行库”安装到 `<deps-root>/SDL3/<变体>`
+  （如 `msvc.x64.debug`、`msvc.x64.release.md`；MinGW 复用 Skia 的 release 变体名，
+  Debug/Release 共用一份）。表中历史条目（如 W-B07、W-B30）记录的“安装到 `../SDL3`”
+  属于旧布局；回归时 `doctor --sdl` 会按变体前缀逐配置检查，缺失时回退单前缀并告警
+  （回退可能触发 LNK2038，建议先跑 `deps --force` 生成变体）。
 - 本轮 DLL 回归结束后恢复静态基线：删除 `msvc/PropertySheets/duilib_dll.flag`、
   `bin/duilib*.dll` 及对应 `.pdb/.ilk`，并用测试前备份覆盖
   `lib/x64/Release`、`lib/x86/Release`、`lib/x86/Debug`；随后
@@ -591,7 +596,8 @@ macOS x64 的 6 个包保留在仓库 `dist/`，包名与包测试结果见 5.2 
 8. Unix 台账第 8～13 条（2026-10-29 复核）：**代码修复均已就位，运行期验证缺少 Unix 环境
    （未测、不跟进，不再列入待办）**。逐条结论：
    - 第 8 条 SDL3 stamp 去掉配置分量：已确认 `cmake/duilib_deps_run.cmake`
-     `_duilib_sdl_stamp_value()` 仅 Windows 追加 `${DUILIB_CONFIG}`，Unix 分支不带配置；
+     `_duilib_sdl_stamp_value()` 只在变体名非空时（Windows）追加 `|<变体名>`，不再单独
+     记录配置；Unix 变体名为空，stamp 连分隔符都不追加（与升级前的旧 stamp 一致）。
      Unix 的 SDL3 固定按 Release 构建共享库，产物与 duilib 的 Debug/Release 无关。
    - 第 9 条 Skia 绝对路径链接：已确认 `cmake/duilib_common.cmake` 在库目录不含生成器
      表达式时（含 Unix 单配置）调用 `_duilib_resolve_static_libs()`，把

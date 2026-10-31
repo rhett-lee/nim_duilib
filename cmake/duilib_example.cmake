@@ -42,8 +42,14 @@ if(DUILIB_OS_WINDOWS AND DUILIB_SRC_SUB_DIRS_WINDOWS)
 endif()
 
 # SDL库的头文件所在路径（只对需要直接使用SDL头文件的示例开放）
+# 优先使用已解析的 include 目录（多配置生成器下是随配置切换的生成器表达式），
+# 保证示例与它链接的 SDL3 变体前缀一致。
 if(DUILIB_EXAMPLE_SDL_INCLUDE AND DUILIB_ENABLE_SDL)
-    include_directories("${DUILIB_SDL_SRC_ROOT_DIR}/include")
+    if(DEFINED DUILIB_SDL_INCLUDE_DIR AND NOT DUILIB_SDL_INCLUDE_DIR STREQUAL "")
+        include_directories("${DUILIB_SDL_INCLUDE_DIR}")
+    else()
+        include_directories("${DUILIB_SDL_SRC_ROOT_DIR}/include")
+    endif()
 endif()
 
 # macOS App Bundle 开关（仅 macOS 生效，其他平台强制关闭）：

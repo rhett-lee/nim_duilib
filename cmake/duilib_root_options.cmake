@@ -4,6 +4,8 @@
 # 默认值，避免子项目覆盖根工程的决策。
 
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_i18n.cmake")
+# 共享工具：MSYS2 判定（duilib_detect_msys2，与 duilib_common.cmake 共用）
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_skia_toolchain.cmake")
 
 get_filename_component(DUILIB_ROOT "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE)
 
@@ -43,26 +45,20 @@ else()
     duilib_error("preflight.compiler_unsupported" "preflight.compiler_unsupported_hint")
 endif()
 
-# MinGW：区分 MSYS2 与独立 MinGW-w64（决定 Skia 子目录前缀）
+# MinGW：区分 MSYS2 与独立 MinGW-w64（决定 Skia/SDL3 的变体目录前缀）
+# DUILIB_MINGW 必须在这里定义：根工程解析 SDL3 变体前缀时就会用到它
+# （duilib_common.cmake 里的同名变量要等到 add_subdirectory 才生效）。
+# MSYS2 判定只有一份实现（duilib_detect_msys2），与 duilib_common.cmake 共用。
 set(DUILIB_MSYS2_ENV "")
 set(DUILIB_MINGW_NAME "")
+set(DUILIB_MINGW FALSE)
 if(MINGW)
-    set(_duilib_cc "${CMAKE_CXX_COMPILER}")
-    if(_duilib_cc STREQUAL "")
-        set(_duilib_cc "${CMAKE_C_COMPILER}")
-    endif()
-    if(NOT _duilib_cc STREQUAL "")
-        get_filename_component(_duilib_cc_dir "${_duilib_cc}" DIRECTORY)
-        get_filename_component(_duilib_env_dir "${_duilib_cc_dir}" DIRECTORY)
-        get_filename_component(_duilib_msys_root "${_duilib_env_dir}" DIRECTORY)
-        if(EXISTS "${_duilib_msys_root}/usr/bin/pacman.exe")
-            get_filename_component(DUILIB_MSYS2_ENV "${_duilib_env_dir}" NAME)
-        endif()
-    endif()
-    if(NOT DUILIB_MSYS2_ENV STREQUAL "")
-        set(DUILIB_MINGW_NAME "")
-    else()
+    set(DUILIB_MINGW TRUE)
+    duilib_detect_msys2(DUILIB_MSYS2_ENV)
+    if(DUILIB_MSYS2_ENV STREQUAL "")
         set(DUILIB_MINGW_NAME "mingw64-")
+    else()
+        set(DUILIB_MINGW_NAME "")
     endif()
 endif()
 
@@ -79,8 +75,11 @@ set(DUILIB_SKIA_ROOT "${DUILIB_DEPS_ROOT}/skia" CACHE PATH "Skia source tree")
 set(DUILIB_SKIA_PATCH_DIR "${CMAKE_CURRENT_LIST_DIR}/../build/skia_patch"
     CACHE PATH "Skia patch archives shipped with the repository")
 set(DUILIB_SDL_SRC "${DUILIB_DEPS_ROOT}/SDL" CACHE PATH "SDL3 source tree")
-set(DUILIB_SDL_ROOT "${DUILIB_DEPS_ROOT}/SDL3" CACHE PATH "SDL3 installation prefix")
-set(DUILIB_SDL_BUILD_ROOT "${DUILIB_DEPS_ROOT}/SDL3_build" CACHE PATH "SDL3 build directory")
+# SDL3 安装根目录：Windows 下每个“架构 × 配置 × 运行库”的产物安装到
+# <root>/<variant> 子目录（变体名见 cmake/duilib_sdl_variants.cmake）；
+# 其他平台与显式指定的自备单前缀仍使用 <root> 本身。
+set(DUILIB_SDL_ROOT "${DUILIB_DEPS_ROOT}/SDL3" CACHE PATH "SDL3 installation root (Windows: one <variant> subdirectory per configuration)")
+set(DUILIB_SDL_BUILD_ROOT "${DUILIB_DEPS_ROOT}/SDL3_build" CACHE PATH "SDL3 build directory (per architecture/configuration)")
 set(DUILIB_CEF_ROOT "${DUILIB_DEPS_ROOT}/cef_binary" CACHE PATH "CEF binary distribution root (macOS)")
 set(DUILIB_CEF_CACHE "${DUILIB_DEPS_ROOT}/cef_binary" CACHE PATH "CEF download/extract cache")
 
@@ -431,6 +430,93 @@ set(DUILIB_EXAMPLES_AUTO "${_duilib_examples_auto}" CACHE INTERNAL
     "Platform default example list (derived, used to detect stale cache)")
 
 # ---------------------------------------------------------------------------
+# SDL3 安装前缀：Windows 按“架构 × 配置 × 运行库”的变体目录
+#
+# 每个变体目录都是完整安装前缀（<root>/<variant>），库文件名保持不变
+# （MSVC 为 SDL3-static.lib，MinGW 为 libSDL3.a），由目录区分配置与运行库：
+#   * SDL3 源码不设置 DEBUG_POSTFIX，Debug/Release 的静态库同名；
+#   * MT/MTd/MD/MDd 的 RuntimeLibrary 互斥，混链会在链接期报 LNK2038；
+#   * x86 / x64 / arm64 的目标文件不能混用。
+# 规则统一在 cmake/duilib_sdl_variants.cmake；其他平台只有一份 Release 共享库，
+# 继续使用单前缀。显式 -DDUILIB_SDL_ROOT=<已安装的单前缀> 时，若变体目录不存在，
+# duilib_common.cmake 会回退该前缀并给出告警。
+# ---------------------------------------------------------------------------
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_sdl_variants.cmake")
+set(DUILIB_SDL_PREFIX "${DUILIB_SDL_ROOT}")
+# 头文件在各变体中内容相同，这里取一个确定存在的目录（见下方逻辑）
+set(DUILIB_SDL_INCLUDE_DIR "${DUILIB_SDL_ROOT}/include")
+if(DUILIB_OS_WINDOWS)
+    duilib_sdl_variant_name("Debug" "windows" "${DUILIB_TARGET_ARCH_RESOLVED}"
+                            "${DUILIB_MINGW}" _duilib_sdl_variant_debug)
+    duilib_sdl_variant_name("Release" "windows" "${DUILIB_TARGET_ARCH_RESOLVED}"
+                            "${DUILIB_MINGW}" _duilib_sdl_variant_release)
+    if(NOT _duilib_sdl_variant_debug STREQUAL _duilib_sdl_variant_release)
+        if(CMAKE_CONFIGURATION_TYPES)
+            # 多配置生成器：Debug/Release 链接各自的变体前缀
+            set(DUILIB_SDL_PREFIX
+                "$<IF:$<CONFIG:Debug>,${DUILIB_SDL_ROOT}/${_duilib_sdl_variant_debug},${DUILIB_SDL_ROOT}/${_duilib_sdl_variant_release}>")
+        elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+            set(DUILIB_SDL_PREFIX "${DUILIB_SDL_ROOT}/${_duilib_sdl_variant_debug}")
+        else()
+            set(DUILIB_SDL_PREFIX "${DUILIB_SDL_ROOT}/${_duilib_sdl_variant_release}")
+        endif()
+    else()
+        # MinGW 的 Debug/Release 共用同一份静态库（CRT 由工具链决定）
+        set(DUILIB_SDL_PREFIX "${DUILIB_SDL_ROOT}/${_duilib_sdl_variant_release}")
+    endif()
+    # 是否已安装任一变体（仅看头文件即可；库是否齐备由链接路径的解析负责）
+    set(_duilib_sdl_any_variant_header FALSE)
+    foreach(_duilib_sdl_variant IN ITEMS "${_duilib_sdl_variant_debug}"
+                                         "${_duilib_sdl_variant_release}")
+        if(EXISTS "${DUILIB_SDL_ROOT}/${_duilib_sdl_variant}/include/SDL3/SDL.h")
+            set(_duilib_sdl_any_variant_header TRUE)
+            break()
+        endif()
+    endforeach()
+    if(CMAKE_CONFIGURATION_TYPES AND
+       NOT _duilib_sdl_variant_debug STREQUAL _duilib_sdl_variant_release AND
+       (_duilib_sdl_any_variant_header
+        OR NOT EXISTS "${DUILIB_SDL_ROOT}/include/SDL3/SDL.h"))
+        # 多配置生成器：头文件目录与库目录一样按配置切换，否则 IDE 会把 Debug
+        # 变体的 include 目录写进所有配置，Release 目标看到的目录与实际链接的
+        # 库前缀不一致。deps 准备模式下变体尚未安装时也先按规则写入。
+        duilib_sdl_include_dir("${DUILIB_SDL_ROOT}/${_duilib_sdl_variant_debug}"
+                               "${DUILIB_SDL_ROOT}/${_duilib_sdl_variant_release}"
+                               DUILIB_SDL_INCLUDE_DIR)
+    else()
+        # 单配置 / MinGW 共用变体 / 显式单前缀：取一个确定存在的目录
+        if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+            set(_duilib_sdl_variant_first "${_duilib_sdl_variant_debug}")
+            set(_duilib_sdl_variant_second "${_duilib_sdl_variant_release}")
+        else()
+            set(_duilib_sdl_variant_first "${_duilib_sdl_variant_release}")
+            set(_duilib_sdl_variant_second "${_duilib_sdl_variant_debug}")
+        endif()
+        set(DUILIB_SDL_INCLUDE_DIR "")
+        foreach(_duilib_sdl_variant IN ITEMS "${_duilib_sdl_variant_first}"
+                                             "${_duilib_sdl_variant_second}")
+            if(EXISTS "${DUILIB_SDL_ROOT}/${_duilib_sdl_variant}/include/SDL3/SDL.h")
+                set(DUILIB_SDL_INCLUDE_DIR "${DUILIB_SDL_ROOT}/${_duilib_sdl_variant}/include")
+                break()
+            endif()
+        endforeach()
+        if(DUILIB_SDL_INCLUDE_DIR STREQUAL "")
+            if(EXISTS "${DUILIB_SDL_ROOT}/include/SDL3/SDL.h")
+                # 兼容显式指定的单前缀（旧布局或自备产物）
+                set(DUILIB_SDL_INCLUDE_DIR "${DUILIB_SDL_ROOT}/include")
+            else()
+                # 尚未准备：deps 随后安装到 release 变体（Debug 变体的头文件内容相同）
+                set(DUILIB_SDL_INCLUDE_DIR
+                    "${DUILIB_SDL_ROOT}/${_duilib_sdl_variant_release}/include")
+            endif()
+        endif()
+        unset(_duilib_sdl_variant_first)
+        unset(_duilib_sdl_variant_second)
+    endif()
+    unset(_duilib_sdl_any_variant_header)
+endif()
+
+# ---------------------------------------------------------------------------
 # Unix rpath：优先加载包内的 SDL3 与 CEF 运行时，构建树用依赖前缀兜底
 #
 # 相对条目必须排在绝对条目之前：打包后的示例程序与库的相对位置是
@@ -461,10 +547,10 @@ if(NOT DUILIB_OS_WINDOWS AND DUILIB_SDL_RPATH)
         list(APPEND _duilib_rpath "${_duilib_origin}/../lib")
         if(DUILIB_RPATH_ABSOLUTE)
             # 构建树没有 lib/libSDL3*.dylib 时，用依赖前缀兜底
-            if(EXISTS "${DUILIB_SDL_ROOT}/lib64")
-                list(APPEND _duilib_rpath "${DUILIB_SDL_ROOT}/lib64")
+            if(EXISTS "${DUILIB_SDL_PREFIX}/lib64")
+                list(APPEND _duilib_rpath "${DUILIB_SDL_PREFIX}/lib64")
             else()
-                list(APPEND _duilib_rpath "${DUILIB_SDL_ROOT}/lib")
+                list(APPEND _duilib_rpath "${DUILIB_SDL_PREFIX}/lib")
             endif()
         endif()
     endif()
@@ -482,11 +568,12 @@ if(NOT DUILIB_OS_WINDOWS AND DUILIB_SDL_RPATH)
     endif()
 endif()
 
-# SDL 库目录（供子项目链接使用）
-if(EXISTS "${DUILIB_SDL_ROOT}/lib64")
-    set(DUILIB_SDL_LIB_DIR "${DUILIB_SDL_ROOT}/lib64")
+# SDL 库目录（供子项目链接使用）：Windows 上随配置指向变体前缀，可能含生成器
+# 表达式（链接库本身由 duilib_common.cmake 按配置解析为绝对路径）。
+if(DUILIB_OS_WINDOWS)
+    duilib_sdl_lib_dir("${DUILIB_SDL_PREFIX}" "windows" DUILIB_SDL_LIB_DIR)
 else()
-    set(DUILIB_SDL_LIB_DIR "${DUILIB_SDL_ROOT}/lib")
+    duilib_sdl_lib_dir("${DUILIB_SDL_PREFIX}" "other" DUILIB_SDL_LIB_DIR)
 endif()
 
 # MSVC 运行库：在创建任何目标之前写入，子项目会继承

@@ -1274,12 +1274,53 @@ def cmd_doctor(args, messages) -> int:
                                   manifest["sdl"]["refs"])
         else:
             _warn_line(f"sdl source missing: {sdl_src} ({missing_hint})")
-        if sdl_root.is_dir():
-            _ok_line(f"sdl prefix {sdl_root}")
+        if host != "windows":
+            # 非 Windows 只有一份 Release 共享库，沿用 <deps-root>/SDL3 单前缀
+            if sdl_root.is_dir():
+                _ok_line(f"sdl prefix {sdl_root}")
+            else:
+                _info_line(f"sdl prefix not built yet: {sdl_root} ("
+                           f"{'offline: cannot build it' if offline else 'build.py deps will build it'})")
         else:
-            # 首次构建前 SDL3 前缀必然不存在，由 deps 生成
-            _info_line(f"sdl prefix not built yet: {sdl_root} ("
-                       f"{'offline: cannot build it' if offline else 'build.py deps will build it'})")
+            # Windows 下按“架构 × 配置 × 运行库”安装到 <root>/<variant> 变体前缀。
+            # 变体命名只有一份规则（cmake/duilib_sdl_variants.cmake），这里复用
+            # pack.py 中的同一实现，避免医生检查与实际安装/打包口径不一致。
+            import pack
+            adapt = "mingw" if os.environ.get("MSYSTEM") else "msvc"
+            # MinGW 的 SDL3 变体名复用 Skia 的目录名，gcc 与 clang 各自一套：
+            # MSYS2 CLANG64 / clangarm64 下 CMake 侧（DUILIB_COMPILER_GCC）走
+            # llvm.*，这里若不区分就会检查到 gcc.* 的目录。
+            mingw_variant = None
+            if adapt == "mingw":
+                cc = (toolchain.env.get("CC") if toolchain else os.environ.get("CC")) or ""
+                mingw_variant = "llvm" if "clang" in Path(cc).name.lower() else "gcc"
+            # /MD（含 DLL 模式）的 SDL3 与 /MT 不可混链，变体名带 .md/.mdd
+            md_mode = bool(getattr(args, "md", False) or getattr(args, "dll", False)
+                           or MSVC_DLL_FLAG.is_file())
+            configs = [args.config]
+            if toolchain and toolchain.generator.startswith("Visual Studio"):
+                # 多配置生成器一次准备 Debug 与 Release 两个变体前缀
+                configs = ["Debug", "Release"]
+            for config in configs:
+                # 候选顺序与 pack.py 一致（首个为规范变体名，最后为 <root> 回退）：
+                # MinGW 的 MSYS2 判定在两侧口径可能不同，逐个探测才不会漏报。
+                candidates = [Path(p) for p in pack._sdl_prefix_candidates(
+                    config, arch, adapt, mingw_variant, md_mode, root=sdl_root)]
+                prefix = candidates[0]
+                found = next((p for p in candidates
+                              if pack._sdl_prefix_lib(p, adapt)
+                              and (p / "include" / "SDL3" / "SDL.h").is_file()), None)
+                if found is None:
+                    # 首次构建前变体前缀必然不存在，由 deps 生成
+                    _info_line(f"sdl prefix {config} not built yet: {prefix} ("
+                               f"{'offline: cannot build it' if offline else 'build.py deps will build it'})")
+                elif found == sdl_root:
+                    # CMake 侧同样允许回退到 <root>（旧布局、自备产物）
+                    _warn_line(f"sdl prefix {config} {prefix} missing; using {found} "
+                               f"(single-prefix fallback, build.py deps installs the variant)")
+                else:
+                    # 变体目录命中（含非首个候选：MSYS2 判定口径不同时的兜底）
+                    _ok_line(f"sdl prefix {config} {found}")
 
     # CEF 运行时由 deps 下载；MinGW 与 FreeBSD 不支持 CEF。
     cef_supported = host in ("linux", "macos") or (host == "windows" and not os.environ.get("MSYSTEM"))
@@ -1350,6 +1391,9 @@ def cmd_pack(args, messages) -> int:
         print(messages.t("pack.sdl_flag_hint"), flush=True)
     command = [sys.executable, str(BUILD_DIR / "pack.py"),
                "--config", args.config, "--arch", arch]
+    # 依赖根必须跟着编译时用的根走：--deps-root 指定的 skia/SDL3 与默认的
+    # 仓库同级目录不同，不转发会让打包去读另一份（或缺失的）依赖产物。
+    command += ["--deps-root", str(_deps_root(args))]
     if args.with_cef:
         command.append("--with-cef")
         # pack.py 只区分 109 与最新版；latest/未指定/清单默认版本都不传。

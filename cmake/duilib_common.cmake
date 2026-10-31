@@ -20,34 +20,17 @@ option(DUILIB_MINGW_STATIC "MINGW Static Link" ON)
 
 # Skia的lib子目录名：默认值在下方按平台/工具链自动推导，不写缓存；可用 -DDUILIB_SKIA_LIB_SUBPATH 覆盖
 
-# 判断 MinGW 工具链是否来自 MSYS2，并返回环境名（决定 Skia 子目录前缀）：
-#   MSYS2 的编译器位于 <root>/<env>/bin（env = mingw64/ucrt64/clang64/clangarm64），
-#   安装根目录下存在 usr/bin/pacman.exe；独立 MinGW-w64 不满足该特征。
-# 不能用 MSYSTEM 环境变量判断：Git Bash 同样会设置 MSYSTEM=MINGW64。
-# 输出为空表示不是 MSYS2；否则输出 mingw64 / ucrt64 / clang64 / clangarm64。
-function(_duilib_detect_msys2 out_var)
-    set(_duilib_env_name "")
-    set(_duilib_cc "${CMAKE_CXX_COMPILER}")
-    if(_duilib_cc STREQUAL "")
-        set(_duilib_cc "${CMAKE_C_COMPILER}")
-    endif()
-    if(NOT _duilib_cc STREQUAL "")
-        get_filename_component(_duilib_cc_dir "${_duilib_cc}" DIRECTORY)
-        get_filename_component(_duilib_env_dir "${_duilib_cc_dir}" DIRECTORY)
-        get_filename_component(_duilib_msys_root "${_duilib_env_dir}" DIRECTORY)
-        if(EXISTS "${_duilib_msys_root}/usr/bin/pacman.exe")
-            get_filename_component(_duilib_env_name "${_duilib_env_dir}" NAME)
-        endif()
-    endif()
-    set(${out_var} "${_duilib_env_name}" PARENT_SCOPE)
-endfunction()
+# 判断 MinGW 工具链是否来自 MSYS2（决定 Skia/SDL3 的变体目录前缀）：
+# 只有一份实现（duilib_detect_msys2，与 duilib_root_options.cmake 共用），
+# 判定细节见 cmake/duilib_skia_toolchain.cmake。
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_skia_toolchain.cmake")
 
 # MINGW 开发环境
 set(DUILIB_MSYS2_ENV "")
 if(MINGW)
     set(DUILIB_MINGW 1)
     # Skia 目录前缀：MSYS2 无前缀（gcc./llvm.），独立 MinGW-w64 为 mingw64-
-    _duilib_detect_msys2(_duilib_msys2_env)
+    duilib_detect_msys2(_duilib_msys2_env)
     set(DUILIB_MSYS2_ENV "${_duilib_msys2_env}")
     if(_duilib_msys2_env)
         set(DUILIB_MINGW_NAME "")
@@ -132,7 +115,7 @@ endif()
 #   Windows MinGW llvm      -> mingw64-llvm.<arch>.debug|release（MSYS2 为 llvm.<arch>.xxx）
 #     Debug 变体缺失时回退 release 变体
 #   其他平台                -> <编译器名>.<arch>.release（Skia 只有 release 变体，见 D-3）
-# MSYS2 与独立 MinGW-w64 由编译器安装位置判断（见 _duilib_detect_msys2），
+# MSYS2 与独立 MinGW-w64 由编译器安装位置判断（见 duilib_detect_msys2），
 # 本工具链的前缀优先，另一组前缀作为回退。
 # 解析结果必须真实存在，且 MinGW 构建要求目录内存在 *.a 静态库；
 # 否则在配置阶段直接报错，避免进入编译后才出现难以定位的链接错误。
@@ -245,6 +228,8 @@ endfunction()
 
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_skia_toolchain.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_skia_variants.cmake")
+# SDL3 变体前缀目录名与布局判定（与依赖准备、off 模式检查共用）
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_sdl_variants.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_crt.cmake")
 
 # 生成指定配置下的 Skia 子目录候选（按优先级排列）
@@ -476,42 +461,225 @@ if(NOT DUILIB_SKIA_LIB_PATH MATCHES "\\$<")
     set(DUILIB_SKIA_LIBS "${_duilib_skia_abs_libs}")
 endif()
 
-#SDL库根目录，lib文件目录（Windows系统可选，其他平台必选）
-if(DUILIB_ENABLE_SDL)
-    if(DUILIB_SDL_ROOT)
-        get_filename_component(DUILIB_SDL_SRC_ROOT_DIR "${DUILIB_SDL_ROOT}" ABSOLUTE)
-    else()
-        get_filename_component(DUILIB_SDL_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../SDL3/" ABSOLUTE)
-    endif()
-    _duilib_check_deps_crt("SDL3" "${DUILIB_SDL_SRC_ROOT_DIR}")
-    if(EXISTS "${DUILIB_SDL_SRC_ROOT_DIR}/lib64/")
-        set(DUILIB_SDL_LIB_PATH "${DUILIB_SDL_SRC_ROOT_DIR}/lib64")
-    else()
-        set(DUILIB_SDL_LIB_PATH "${DUILIB_SDL_SRC_ROOT_DIR}/lib")
-    endif()
-    if(DUILIB_OS_WINDOWS AND NOT MINGW)
-        # MSVC：Debug/Release 使用各自的静态库；只准备了一份时退回同一份。
-        # 这里写绝对路径，Ninja 才能把库文件记为链接依赖（SDL3 重新编译后会重新链接）。
-        if(EXISTS "${DUILIB_SDL_LIB_PATH}/SDL3-staticd.lib" AND
-           EXISTS "${DUILIB_SDL_LIB_PATH}/SDL3-static.lib")
-            set(DUILIB_SDL_LIBS
-                "$<$<CONFIG:Debug>:${DUILIB_SDL_LIB_PATH}/SDL3-staticd.lib>$<$<NOT:$<CONFIG:Debug>>:${DUILIB_SDL_LIB_PATH}/SDL3-static.lib>")
-        elseif(EXISTS "${DUILIB_SDL_LIB_PATH}/SDL3-staticd.lib")
-            set(DUILIB_SDL_LIBS "${DUILIB_SDL_LIB_PATH}/SDL3-staticd.lib")
-        elseif(EXISTS "${DUILIB_SDL_LIB_PATH}/SDL3-static.lib")
-            set(DUILIB_SDL_LIBS "${DUILIB_SDL_LIB_PATH}/SDL3-static.lib")
-        else()
-            message(FATAL_ERROR
-                "SDL3 静态库不存在：${DUILIB_SDL_LIB_PATH}\n"
-                "请执行 'build.py deps'（Windows 会按 Debug/Release 分别编译），"
-                "或传入 -DDUILIB_SDL_ROOT=<已安装的 SDL3 前缀>。")
+# 把某个 SDL3 安装前缀转换为链接项：
+# Windows 静态库写绝对路径（Ninja 才会把库文件记为链接依赖，SDL3 重新编译后
+# 会重新链接）；Unix 仍使用库名，避免把构建机路径写进 dylib 的 install_name。
+function(_duilib_sdl_link_items prefix platform mingw out_var)
+    if("${platform}" STREQUAL "windows")
+        duilib_sdl_lib_dir("${prefix}" "${platform}" _lib_dir)
+        duilib_sdl_static_lib_names("${mingw}" _lib_names)
+        set(_found "")
+        foreach(_lib_name IN LISTS _lib_names)
+            if(EXISTS "${_lib_dir}/${_lib_name}")
+                set(_found "${_lib_dir}/${_lib_name}")
+                break()
+            endif()
+        endforeach()
+        if(_found STREQUAL "")
+            # 尚未准备（auto/prepare 模式）：按规范名给出 deps 随后会创建的路径
+            list(GET _lib_names 0 _canonical)
+            set(_found "${_lib_dir}/${_canonical}")
         endif()
-    elseif(DUILIB_OS_WINDOWS AND EXISTS "${DUILIB_SDL_LIB_PATH}/libSDL3.a")
-        # MinGW：静态库用绝对路径，理由同上。
-        set(DUILIB_SDL_LIBS "${DUILIB_SDL_LIB_PATH}/libSDL3.a")
+        set(${out_var} "${_found}" PARENT_SCOPE)
     else()
-        set(DUILIB_SDL_LIBS SDL3)
+        set(${out_var} SDL3 PARENT_SCOPE)
     endif()
+endfunction()
+
+#SDL库根目录，lib文件目录（Windows系统可选，其他平台必选）
+#
+# Windows 上 SDL3 按“架构 × 配置 × MSVC 运行库”安装到各自的前缀
+# （<root>/<variant>，规则见 cmake/duilib_sdl_variants.cmake）：SDL3 不设置
+# DEBUG_POSTFIX，Debug/Release 的静态库同名；MT/MTd/MD/MDd 的 RuntimeLibrary
+# 又互斥，混链会在链接期报 LNK2038。这里按配置解析各自的变体前缀；变体目录
+# 不存在时回退到 <root>（兼容显式传入的单前缀）并给出告警。
+if(DUILIB_ENABLE_SDL)
+    set(_duilib_sdl_platform "other")
+    if(DUILIB_OS_WINDOWS)
+        set(_duilib_sdl_platform "windows")
+    endif()
+    if(DUILIB_SDL_ROOT)
+        get_filename_component(_duilib_sdl_root "${DUILIB_SDL_ROOT}" ABSOLUTE)
+    else()
+        get_filename_component(_duilib_sdl_root "${CMAKE_CURRENT_LIST_DIR}/../../SDL3/" ABSOLUTE)
+    endif()
+    if(DUILIB_OS_WINDOWS)
+        set(_duilib_sdl_arch "${DUILIB_SKIA_CPU_ARCH}")
+    else()
+        set(_duilib_sdl_arch "${DUILIB_SYSTEM_PROCESSOR}")
+    endif()
+
+    # 需要解析的配置（与 Skia 相同的口径）：多配置生成器逐个配置，单配置只看当前
+    set(_duilib_sdl_configs "")
+    if(CMAKE_CONFIGURATION_TYPES)
+        foreach(_duilib_cfg IN LISTS CMAKE_CONFIGURATION_TYPES)
+            string(TOLOWER "${_duilib_cfg}" _duilib_cfg_lower)
+            if(_duilib_cfg_lower STREQUAL "debug")
+                list(APPEND _duilib_sdl_configs "debug")
+            else()
+                list(APPEND _duilib_sdl_configs "release")
+            endif()
+        endforeach()
+        list(REMOVE_DUPLICATES _duilib_sdl_configs)
+    else()
+        set(_duilib_sdl_configs "${DUILIB_BUILD_TYPE}")
+    endif()
+
+    set(_duilib_sdl_debug_prefix "")
+    set(_duilib_sdl_release_prefix "")
+    set(_duilib_sdl_missing "")
+    foreach(_duilib_sdl_cfg IN LISTS _duilib_sdl_configs)
+        if(_duilib_sdl_cfg STREQUAL "debug")
+            set(_duilib_sdl_cfg_cap "Debug")
+        else()
+            set(_duilib_sdl_cfg_cap "Release")
+        endif()
+        duilib_sdl_prefix_candidates("${_duilib_sdl_cfg_cap}" "${_duilib_sdl_platform}"
+                                     "${_duilib_sdl_arch}" "${DUILIB_MINGW}"
+                                     "${_duilib_sdl_root}" _duilib_sdl_candidates)
+        set(_duilib_sdl_resolved "")
+        foreach(_duilib_sdl_candidate IN LISTS _duilib_sdl_candidates)
+            duilib_sdl_prefix_ready("${_duilib_sdl_candidate}" "${_duilib_sdl_platform}"
+                                    "${DUILIB_MINGW}" _duilib_sdl_candidate_ok)
+            if(_duilib_sdl_candidate_ok)
+                set(_duilib_sdl_resolved "${_duilib_sdl_candidate}")
+                break()
+            endif()
+        endforeach()
+        if(_duilib_sdl_resolved STREQUAL "")
+            if(DUILIB_SDL_AUTOBUILD)
+                # 依赖自动准备模式：deps 在编译前安装，这里只按规则预判路径
+                list(GET _duilib_sdl_candidates 0 _duilib_sdl_resolved)
+            else()
+                string(REPLACE ";" "\n    " _duilib_sdl_candidates_text
+                       "${_duilib_sdl_candidates}")
+                string(APPEND _duilib_sdl_missing
+                    "  ${_duilib_sdl_cfg}:\n    ${_duilib_sdl_candidates_text}\n")
+                continue()
+            endif()
+        elseif(DUILIB_OS_WINDOWS AND _duilib_sdl_resolved STREQUAL _duilib_sdl_root)
+            # 只有单前缀可用：MSVC 的 Debug 目标可能链接 Release 版 SDL3（LNK2038）；
+            # MinGW 的 Debug/Release 本来就共用一份静态库，不存在 CRT 冲突。
+            duilib_sdl_variant_name("${_duilib_sdl_cfg_cap}" "windows"
+                                    "${_duilib_sdl_arch}" "${DUILIB_MINGW}" _variant)
+            if(DUILIB_MINGW)
+                message(WARNING
+                    "SDL3: 未找到变体目录 ${_duilib_sdl_root}/${_variant}，回退到单前缀 "
+                    "${_duilib_sdl_root}（${_duilib_sdl_cfg}）。\n"
+                    "建议执行 'python3 build/build.py deps' 按变体安装 SDL3。")
+            else()
+                message(WARNING
+                    "SDL3: 未找到变体目录 ${_duilib_sdl_root}/${_variant}，回退到单前缀 "
+                    "${_duilib_sdl_root}（${_duilib_sdl_cfg}）。\n"
+                    "若该前缀中是 Release 版静态库，Debug 目标会因 RuntimeLibrary "
+                    "不一致而链接失败（LNK2038）。\n"
+                    "建议执行 'python3 build/build.py deps' 按变体安装 SDL3。")
+            endif()
+        endif()
+        if(_duilib_sdl_cfg STREQUAL "debug")
+            set(_duilib_sdl_debug_prefix "${_duilib_sdl_resolved}")
+        else()
+            set(_duilib_sdl_release_prefix "${_duilib_sdl_resolved}")
+        endif()
+    endforeach()
+
+    if(NOT _duilib_sdl_missing STREQUAL "")
+        message(FATAL_ERROR
+            "未找到可用的 SDL3 安装前缀（${_duilib_sdl_root} 下）：\n"
+            "${_duilib_sdl_missing}"
+            "请执行 'build.py deps'（Windows 会按 Debug/Release 安装到各自的变体目录），"
+            "或用 -DDUILIB_SDL_ROOT=<已安装的 SDL3 前缀> 指定。")
+    endif()
+
+    # CRT 标记比对：没有标记的旧产物允许迁移，有标记则必须与当前工具链一致
+    foreach(_duilib_sdl_prefix IN ITEMS "${_duilib_sdl_debug_prefix}"
+                                        "${_duilib_sdl_release_prefix}")
+        if(NOT _duilib_sdl_prefix STREQUAL "" AND EXISTS "${_duilib_sdl_prefix}")
+            _duilib_check_deps_crt("SDL3" "${_duilib_sdl_prefix}")
+        endif()
+    endforeach()
+
+    # 头文件在各变体中内容相同，但目录必须与各自链接的库变体一致：多配置生成器下
+    # Debug/Release 使用各自的变体前缀（否则 IDE 会把 Debug 的 include 写进所有配置）。
+    if(NOT _duilib_sdl_debug_prefix STREQUAL "" AND
+       NOT _duilib_sdl_release_prefix STREQUAL "" AND
+       NOT _duilib_sdl_debug_prefix STREQUAL _duilib_sdl_release_prefix)
+        duilib_sdl_include_dir("${_duilib_sdl_debug_prefix}"
+                               "${_duilib_sdl_release_prefix}"
+                               DUILIB_SDL_INCLUDE_DIR)
+        # 供 duilib_example.cmake 拼出示例自己的 SDL include（内容与配置无关）
+        set(DUILIB_SDL_SRC_ROOT_DIR "${_duilib_sdl_release_prefix}")
+    else()
+        # 单配置或单前缀回退：优先使用 root_options 解析出的目录（根工程构建），
+        # 独立构建示例时按已解析的前缀推导。
+        if(NOT DEFINED DUILIB_SDL_INCLUDE_DIR OR DUILIB_SDL_INCLUDE_DIR STREQUAL "")
+            duilib_sdl_include_dir("${_duilib_sdl_debug_prefix}"
+                                   "${_duilib_sdl_release_prefix}"
+                                   DUILIB_SDL_INCLUDE_DIR)
+        endif()
+        # 多配置生成器下 include 目录可能含 $<CONFIG:...> 表达式，无法在配置期
+        # 拆出目录名；此时直接取已解析的前缀，避免 get_filename_component 得到
+        # 被表达式截断的无效路径（该变量只作为示例的兜底值）。
+        if(DUILIB_SDL_INCLUDE_DIR MATCHES "\\$<")
+            if(NOT _duilib_sdl_release_prefix STREQUAL "")
+                set(DUILIB_SDL_SRC_ROOT_DIR "${_duilib_sdl_release_prefix}")
+            elseif(NOT _duilib_sdl_debug_prefix STREQUAL "")
+                set(DUILIB_SDL_SRC_ROOT_DIR "${_duilib_sdl_debug_prefix}")
+            endif()
+        else()
+            get_filename_component(DUILIB_SDL_SRC_ROOT_DIR
+                                   "${DUILIB_SDL_INCLUDE_DIR}" DIRECTORY)
+        endif()
+    endif()
+
+    if(NOT _duilib_sdl_debug_prefix STREQUAL "" AND
+       NOT _duilib_sdl_release_prefix STREQUAL "" AND
+       NOT _duilib_sdl_debug_prefix STREQUAL _duilib_sdl_release_prefix)
+        # 多配置生成器：Debug/Release 指向不同变体，用生成器表达式按配置选择
+        _duilib_sdl_link_items("${_duilib_sdl_debug_prefix}" "${_duilib_sdl_platform}"
+                               "${DUILIB_MINGW}" _duilib_sdl_debug_lib)
+        _duilib_sdl_link_items("${_duilib_sdl_release_prefix}" "${_duilib_sdl_platform}"
+                               "${DUILIB_MINGW}" _duilib_sdl_release_lib)
+        set(DUILIB_SDL_LIBS
+            "$<$<CONFIG:Debug>:${_duilib_sdl_debug_lib}>$<$<NOT:$<CONFIG:Debug>>:${_duilib_sdl_release_lib}>")
+        duilib_sdl_lib_dir("${_duilib_sdl_debug_prefix}" "${_duilib_sdl_platform}"
+                           _duilib_sdl_debug_lib_dir)
+        duilib_sdl_lib_dir("${_duilib_sdl_release_prefix}" "${_duilib_sdl_platform}"
+                           _duilib_sdl_release_lib_dir)
+        set(DUILIB_SDL_LIB_PATH
+            "$<IF:$<CONFIG:Debug>,${_duilib_sdl_debug_lib_dir},${_duilib_sdl_release_lib_dir}>")
+    elseif(NOT _duilib_sdl_debug_prefix STREQUAL "")
+        _duilib_sdl_link_items("${_duilib_sdl_debug_prefix}" "${_duilib_sdl_platform}"
+                               "${DUILIB_MINGW}" DUILIB_SDL_LIBS)
+        duilib_sdl_lib_dir("${_duilib_sdl_debug_prefix}" "${_duilib_sdl_platform}"
+                           DUILIB_SDL_LIB_PATH)
+    else()
+        _duilib_sdl_link_items("${_duilib_sdl_release_prefix}" "${_duilib_sdl_platform}"
+                               "${DUILIB_MINGW}" DUILIB_SDL_LIBS)
+        duilib_sdl_lib_dir("${_duilib_sdl_release_prefix}" "${_duilib_sdl_platform}"
+                           DUILIB_SDL_LIB_PATH)
+    endif()
+    unset(_duilib_sdl_candidates)
+    unset(_duilib_sdl_candidates_text)
+    unset(_duilib_sdl_candidate)
+    unset(_duilib_sdl_candidate_ok)
+    unset(_duilib_sdl_configs)
+    unset(_duilib_sdl_cfg)
+    unset(_duilib_sdl_cfg_cap)
+    unset(_duilib_sdl_cfg_lower)
+    unset(_duilib_sdl_resolved)
+    unset(_duilib_sdl_platform)
+    unset(_duilib_sdl_arch)
+    unset(_duilib_sdl_prefix)
+    if(NOT DUILIB_OS_WINDOWS)
+        unset(_duilib_sdl_debug_prefix)
+        unset(_duilib_sdl_release_prefix)
+    endif()
+    unset(_duilib_sdl_debug_lib)
+    unset(_duilib_sdl_release_lib)
+    unset(_duilib_sdl_debug_lib_dir)
+    unset(_duilib_sdl_release_lib_dir)
+    unset(_variant)
 endif()
 
 # 记录目标的构建配置：写 bin/.build-config/<目标>（见 duilib_write_build_stamp.cmake）。

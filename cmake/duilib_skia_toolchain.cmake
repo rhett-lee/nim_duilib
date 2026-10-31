@@ -11,6 +11,32 @@
 
 include_guard(GLOBAL)
 
+# MSYS2 判定（决定 Skia/SDL3 的变体目录前缀）
+#
+# 判断 MinGW 工具链是否来自 MSYS2，并输出环境名（mingw64/ucrt64/clang64/clangarm64）：
+#    MSYS2 的编译器位于 <root>/<env>/bin，安装根目录下存在 usr/bin/pacman.exe；
+#    独立 MinGW-w64 不满足该特征。
+# 不能用 MSYSTEM 环境变量判断：Git Bash 同样会设置 MSYSTEM=MINGW64。
+# 输出为空表示不是 MSYS2。根工程（duilib_root_options.cmake）与子项目
+# （duilib_common.cmake）共用本实现，避免两处口径漂移。
+# duilib_detect_msys2(<out_var>)
+function(duilib_detect_msys2 out_var)
+    set(_duilib_env_name "")
+    set(_duilib_cc "${CMAKE_CXX_COMPILER}")
+    if(_duilib_cc STREQUAL "")
+        set(_duilib_cc "${CMAKE_C_COMPILER}")
+    endif()
+    if(NOT _duilib_cc STREQUAL "")
+        get_filename_component(_duilib_cc_dir "${_duilib_cc}" DIRECTORY)
+        get_filename_component(_duilib_env_dir "${_duilib_cc_dir}" DIRECTORY)
+        get_filename_component(_duilib_msys_root "${_duilib_env_dir}" DIRECTORY)
+        if(EXISTS "${_duilib_msys_root}/usr/bin/pacman.exe")
+            get_filename_component(_duilib_env_name "${_duilib_env_dir}" NAME)
+        endif()
+    endif()
+    set(${out_var} "${_duilib_env_name}" PARENT_SCOPE)
+endfunction()
+
 # duilib_skia_toolchain(<out_variant> <out_cc> <out_cxx>)
 function(duilib_skia_toolchain out_variant out_cc out_cxx)
     set(_variant "llvm")

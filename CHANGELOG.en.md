@@ -277,6 +277,118 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Fixed
 
+- SDL3 Debug/Release overwrote each other with multi-config generators on Windows:
+  SDL3 does not set `DEBUG_POSTFIX`, so both configurations produce the same static
+  library names and the two installs landed in the same `<deps-root>/SDL3` prefix,
+  letting Release replace Debug; mixing `/MT` and `/MD` also failed with LNK2038.
+  Each arch × configuration × runtime now installs into its own variant prefix
+  `SDL3/<variant>` (MSVC: `msvc.<arch>.<debug|release>[.mdd|.md]`; MinGW reuses the
+  Skia release variant names and shares one library between Debug and Release).
+  The naming rule lives in `cmake/duilib_sdl_variants.cmake` and is shared by
+  configuration-time resolution, the dependency checks and preparation,
+  `build/pack.py` and `msvc/PropertySheets/SDLSettings.props`; the install stamp
+  records the variant name, so the two configurations no longer invalidate each
+  other under a multi-config generator. A missing variant still falls back to the
+  single prefix with a warning (legacy layouts or an explicitly passed directory),
+  and `doctor` reports the SDL3 prefix actually used per configuration.
+- Packaging picked the wrong Skia/SDL3 variant for `--md` (static library with the
+  dynamic runtime): `pack.py` previously inferred `.md`/`.mdd` only from the presence
+  of `duilib*.dll` in `bin/`, so `--msvc-runtime md` without a DLL still packaged the
+  `/MT` variants and downstream links failed with LNK2038. The runtime is now
+  resolved explicitly (`resolve_md_mode`: DLL mode or `--msvc-runtime md` selects
+  `.md`, `.mdd` for Debug) for both Skia and SDL3, with unit tests covering it.
+- The SDL3 include directory did not follow the configuration under multi-config
+  generators: both Debug and Release in `duilib.vcxproj` pointed at the Debug variant's
+  `include`, so Release saw a directory that did not match the library prefix it
+  linked. The include directory is now resolved per configuration just like the
+  library directory
+  (`$<$<CONFIG:Debug>:<debug variant>/include>$<$<NOT:$<CONFIG:Debug>>:<release variant>/include>`)
+  through the new `duilib_sdl_include_dir()` helper in
+  `cmake/duilib_sdl_variants.cmake`, shared by the root project
+  (`duilib_root_options.cmake`) and subtargets (`duilib_common.cmake`,
+  `duilib_example.cmake`). Single-config builds, the shared MinGW variant and the
+  single-prefix fallback still collapse to a plain directory; unit tests cover the
+  new helper.
+- Review fixes accompanying the variant work:
+  1. `duilib_root_options.cmake` resolved the SDL3 variant with `DUILIB_MINGW`,
+     which is only defined later in `duilib_common.cmake`; MinGW was treated as MSVC
+     and the include/library prefix resolved to `msvc.<arch>.*` (MinGW builds
+     recorded `-I.../SDL3/msvc.x64.release/include`). The root project now defines
+     `DUILIB_MINGW` itself, with a static test guarding the wiring;
+  2. with `DUILIB_DEPS_MODE=auto`, `DUILIB_SDL_AUTOBUILD` set inside the
+     `duilib_configure_dependencies()` function never reached subdirectories, so the
+     first configure (variants not installed yet) failed with "no usable SDL3
+     installation prefix"; it is now exported to the parent scope, with a fixture test;
+  3. `build.py doctor --sdl` called the renamed `pack._sdl_variant_name` with
+     `dll_mode=`, raising TypeError; it now passes `md_mode=`, and a call-site
+     keyword/signature check was added;
+  4. the non-Windows SDL3 install stamp no longer appends an empty variant separator,
+     avoiding a needless rebuild after the upgrade;
+  5. `build.py doctor --sdl` checked `gcc.*` variants under MSYS2 CLANG64 /
+     clangarm64, while CMake uses `llvm.*` for clang; the variant is now derived from
+     `CC` first (CLANG64 -> `llvm.x64.release`, UCRT64 -> `gcc.x64.release`,
+     MINGW64 -> `gcc.msvcrt.x64.release`);
+  6. the MinGW single-prefix fallback warning reused the MSVC text ("Debug targets
+     fail with LNK2038"); MinGW shares one static library between Debug and Release
+     and cannot hit a CRT mismatch, so the warning now depends on `DUILIB_MINGW`;
+  7. with a multi-config generator, `DUILIB_SDL_SRC_ROOT_DIR` was derived from an
+     include directory containing `$<CONFIG:...>`, so `get_filename_component`
+     produced a truncated invalid path; it now uses the resolved variant prefix when
+     a generator expression is present (that variable is only a fallback for
+     example subprojects);
+  8. `pack.py`'s `_sdl_variant_name()` (MinGW branch) did not forward `windows` to
+     `_skia_candidate_names`, so explicit `windows=True` callers (`doctor`, tests)
+     fell back to non-Windows names on a non-Windows host; it is forwarded now, and
+     the test passes `windows=True` / `msys2_env=''` explicitly;
+  9. `pack.py` / `doctor` resolved the SDL3 prefix from the canonical variant name
+     only: the packaging side can infer MSYS2 solely from `sys.executable` /
+     `MSYSTEM` (Git Bash sets `MSYSTEM` too), which may disagree with CMake (compiler
+     install location), so the variant directory actually installed by the dependency
+     script could be missed. Both now probe the candidate list in order (the canonical
+     variant name first, the `<root>` single prefix last), with a unit test;
+  10. MSYS2 detection had one implementation in `duilib_root_options.cmake` and
+     another in `duilib_common.cmake`; it is now the shared
+     `duilib_detect_msys2()` in `duilib_skia_toolchain.cmake` (see also item 12);
+  11. the packaging-side MSYS2 detection now matches the build side: `pack.py`'s
+     `_msys2_env_name()` only looked at `sys.executable` and `MSYSTEM`, so packing
+     MSYS2 MINGW64 artifacts from cmd/PowerShell yielded an empty environment name,
+     `gcc.msvcrt.<arch>.release` was missing from the candidates, and Skia failed
+     with "Skia lib dir not found" (likewise `--with-sdl` could not find SDL3). It now
+     tries `CC`/`CXX`, then gcc/clang on `PATH`, then the Python interpreter directory
+     (using the same rule as `duilib_detect_msys2`: `<root>/<env>/bin` plus
+     `<root>/usr/bin/pacman.exe`), and only then `MSYSTEM`; when the environment is
+     still unknown, `gcc.msvcrt.<arch>.release` is appended as the **last** candidate
+     so standalone MinGW-w64 / UCRT64 keep priority;
+  12. `duilib_crt_id()` relied on `$ENV{MSYSTEM}` only: Git Bash also exports
+     `MSYSTEM=MINGW64`, so the same build produced different CRT ids in different
+     shells, causing spurious `CRT mismatch` (FATAL) failures or needless rebuilds.
+     With a compiler path it now always uses `duilib_detect_msys2()` (MINGW64/MINGW32
+     -> `<env>-msvcrt`, other environments -> `<env>`, non-MSYS2 -> `mingw-unknown`)
+     and falls back to `MSYSTEM` only when called outside a configure. After the
+     upgrade, a standalone MinGW-w64 tree configured from Git Bash keeps the old
+     stamp and asks for one dependency rebuild with the same toolchain;
+  13. `build.py doctor --sdl` reported an installed-but-not-first candidate as
+     `[WARN] ... missing; using ...`; it now distinguishes an installed variant
+     directory (`[OK]`), the `<deps-root>/SDL3` single-prefix fallback (`[WARN]`) and
+     "not built yet" (`[INFO]`);
+  14. `build.py pack` did not forward `--deps-root`, so packing after a build with a
+     custom dependency root still read `skia/` / `SDL3/` next to the repository and
+     could ship stale artifacts (or fail to find them). `pack.py` gained
+     `--deps-root` (maps to `<root>/skia` and `<root>/SDL3`; explicit
+     `--skia-lib-dir` / `--sdl-dir` still win), and `build.py pack` always passes the
+     resolved dependency root;
+  15. the same option resolved relative paths differently: `build.py --deps-root`
+     resolved against the current directory while `pack.py --deps-root` resolved
+     against the repository root, so running `pack.py` directly from another working
+     directory pointed at a different tree. `pack.py` now resolves like `build.py`
+     (`os.path.abspath(os.path.expanduser(...))`), with a matching test and help text.
+  Documentation sync: the `CM-5` I-5 / D-4b entries now state that Debug and Release
+  use their own variant prefixes, the SDLSettings section of
+  `msvc/PropertySheets/README.en.md` was rewritten to document `SDL3RootDir` /
+  `SDLVariant`, both property-sheet docs list `Imm32.lib`, the readiness wording in
+  `docs/misc/Root-CMake-Build-Plan.md` now depends on the toolchain (MinGW is not
+  affected by LNK2038), and the Skia output-directory listing in
+  `cmake/README(.en).md` now shows the real variant names (`llvm.<arch>.<config>` etc.).
 - The Skia variant directory naming rule is now centralized in
   `cmake/duilib_skia_variants.cmake`: configuration-time resolution
   (`duilib_common.cmake`), off-mode checks (`duilib_deps.cmake`) and dependency

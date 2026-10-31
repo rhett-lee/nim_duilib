@@ -172,7 +172,7 @@ def check_prereq(preset):
             variant = pack.resolve_mingw_variant(lib_dir, 'auto')
         pack.resolve_skia_lib_dir(
             None, preset['config'], preset['arch'], toolchain, variant,
-            dll_mode=(toolchain == 'msvc' and pack.detect_dll_mode()))
+            md_mode=(toolchain == 'msvc' and pack.detect_dll_mode()))
     except pack.PackageError as exc:
         return False, str(exc)
     return True, ''

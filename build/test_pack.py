@@ -1065,5 +1065,373 @@ class ConsoleLanguageTest(unittest.TestCase):
         self.assertIn('示例程序', texts[2])
 
 
+class Msys2EnvDetectionTests(_TempDirTest):
+    """MSYS2 环境判定：优先依据编译器安装位置，MSYSTEM 只在无法探测时兜底。
+
+    与 CMake 侧 duilib_detect_msys2 同一口径（<root>/<env>/bin 且存在
+    <root>/usr/bin/pacman.exe）；Git Bash 也会设置 MSYSTEM=MINGW64，不能照搬。
+    """
+
+    def _msys_tree(self, env_name):
+        """伪造 MSYS2 安装树，返回 <root>/<env>/bin/g++.exe 绝对路径。"""
+        root = os.path.join(self.tmp, 'msys2')
+        env = os.path.join(root, env_name, 'bin')
+        os.makedirs(env, exist_ok=True)
+        os.makedirs(os.path.join(root, 'usr', 'bin'), exist_ok=True)
+        self._touch(os.path.relpath(os.path.join(root, 'usr', 'bin', 'pacman.exe'),
+                                    self.tmp).replace(os.sep, '/'))
+        compiler = os.path.join(env, 'g++.exe')
+        self._touch(os.path.relpath(compiler, self.tmp).replace(os.sep, '/'))
+        return compiler
+
+    def _standalone_compiler(self):
+        compiler = os.path.join(self.tmp, 'mingw64', 'bin', 'g++.exe')
+        self._touch(os.path.relpath(compiler, self.tmp).replace(os.sep, '/'))
+        return compiler
+
+    def test_compiler_in_msys2_env(self):
+        self.assertEqual(
+            pack._msys2_env_from_compiler(self._msys_tree('ucrt64')), 'ucrt64')
+
+    def test_compiler_outside_msys2(self):
+        self.assertEqual(pack._msys2_env_from_compiler(self._standalone_compiler()), '')
+        self.assertEqual(pack._msys2_env_from_compiler(''), '')
+
+    def test_env_name_prefers_compiler_over_msystem(self):
+        old = dict(os.environ)
+        old_which = pack.shutil.which
+        old_exe = pack.sys.executable
+
+        def _restore():
+            os.environ.clear()
+            os.environ.update(old)
+            pack.shutil.which = old_which
+            pack.sys.executable = old_exe
+
+        self.addCleanup(_restore)
+        try:
+            os.environ['MSYSTEM'] = 'MINGW64'
+            # 1) CC 指向 MSYS2 里的编译器：以编译器为准
+            os.environ['CC'] = self._msys_tree('mingw64')
+            self.assertEqual(pack._msys2_env_name(), 'mingw64')
+            # 2) CC 指向独立 MinGW-w64（Git Bash 的 MSYSTEM 不可信）：空串
+            os.environ['CC'] = self._standalone_compiler()
+            self.assertEqual(pack._msys2_env_name(), '')
+        finally:
+            os.environ.clear()
+            os.environ.update(old)
+
+    def test_env_name_falls_back_to_msystem(self):
+        """探测不到任何编译器时才用 MSYSTEM，且只认已知的 MSYS2 环境名。"""
+        old = dict(os.environ)
+        old_which = pack.shutil.which
+        old_exe = pack.sys.executable
+
+        def _restore():
+            os.environ.clear()
+            os.environ.update(old)
+            pack.shutil.which = old_which
+            pack.sys.executable = old_exe
+
+        self.addCleanup(_restore)
+        try:
+            os.environ.pop('CC', None)
+            os.environ.pop('CXX', None)
+            os.environ['MSYSTEM'] = 'MINGW64'
+            pack.shutil.which = lambda name, *args, **kwargs: None
+            pack.sys.executable = os.path.join(self.tmp, 'python.exe')
+            self.assertEqual(pack._msys2_env_name(), 'mingw64')
+            # 非 MSYS2 的 MSYSTEM 值（如 MSYS / 未知）不当成环境名
+            os.environ['MSYSTEM'] = 'MSYS'
+            self.assertEqual(pack._msys2_env_name(), '')
+        finally:
+            os.environ.clear()
+            os.environ.update(old)
+
+
+class Msys2FallbackCandidateTests(_TempDirTest):
+    """推断不出 MSYS2 环境时，末尾兜底的 gcc.msvcrt 变体仍能被解析到。"""
+
+    def test_skia_candidates_end_with_msvcrt_fallback(self):
+        names = pack._skia_candidate_names('Release', 'x64', 'mingw', 'gcc',
+                                           msys2_env='', windows=True)
+        self.assertEqual(names[-1], 'gcc.msvcrt.x64.release')
+        # 兜底只追加在末尾：前面的候选顺序不受影响（独立 MinGW/UCRT64 优先）
+        self.assertEqual(names[0], 'mingw64-gcc.x64.release')
+        self.assertEqual(names[1], 'gcc.x64.release')
+
+    def test_msys2_env_known_keeps_msvcrt_first(self):
+        names = pack._skia_candidate_names('Release', 'x64', 'mingw', 'gcc',
+                                           msys2_env='mingw64', windows=True)
+        self.assertEqual(names[0], 'gcc.msvcrt.x64.release')
+        self.assertNotIn('gcc.msvcrt.x64.release', names[1:])
+
+    def test_resolve_skia_msvcrt_variant_when_env_unknown(self):
+        old_root = pack.SKIA_SRC_ROOT
+        old_env = pack._msys2_env_name
+        try:
+            pack.SKIA_SRC_ROOT = self.tmp
+            pack._msys2_env_name = lambda: ''
+            self._touch('out/gcc.msvcrt.x64.release/libSkia.a')
+            self.assertEqual(
+                pack.resolve_skia_lib_dir(None, 'Release', 'x64', 'mingw', 'gcc'),
+                os.path.join(self.tmp, 'out', 'gcc.msvcrt.x64.release'))
+        finally:
+            pack.SKIA_SRC_ROOT = old_root
+            pack._msys2_env_name = old_env
+
+    def test_resolve_sdl_msvcrt_variant_when_env_unknown(self):
+        old_root = pack.SDL3_SRC_ROOT
+        old_env = pack._msys2_env_name
+        try:
+            pack.SDL3_SRC_ROOT = self.tmp
+            pack._msys2_env_name = lambda: ''
+            variant = 'gcc.msvcrt.x64.release'
+            self._touch(variant + '/lib/libSDL3.a')
+            self.assertEqual(
+                pack.resolve_sdl_prefix(None, 'Release', 'x64', 'mingw', 'gcc'),
+                os.path.join(self.tmp, variant))
+        finally:
+            pack.SDL3_SRC_ROOT = old_root
+            pack._msys2_env_name = old_env
+
+
+class DepsRootTests(_TempDirTest):
+    """`--deps-root` 把 Skia / SDL3 的探测目录改到该根下（与 build.py 一致）。"""
+
+    def _apply(self, root):
+        old = (pack.SKIA_SRC_ROOT, pack.SDL3_SRC_ROOT)
+        self.addCleanup(setattr, pack, 'SKIA_SRC_ROOT', old[0])
+        self.addCleanup(setattr, pack, 'SDL3_SRC_ROOT', old[1])
+        pack.set_deps_root(root)
+
+    def test_absolute_root(self):
+        self._apply(self.tmp)
+        self.assertEqual(pack.SKIA_SRC_ROOT, os.path.join(self.tmp, 'skia'))
+        self.assertEqual(pack.SDL3_SRC_ROOT, os.path.join(self.tmp, 'SDL3'))
+
+    def test_relative_root_is_cwd_relative(self):
+        # 相对路径按当前工作目录解析（与 build.py --deps-root 相同）；在临时目录下
+        # 运行才能证明不是“相对仓库根”，否则仓库根恰好等于 cwd 时两种实现都通过。
+        old_cwd = os.getcwd()
+        self.addCleanup(os.chdir, old_cwd)
+        os.chdir(self.tmp)
+        self._apply('custom_deps')
+        expected = os.path.join(self.tmp, 'custom_deps')
+        self.assertEqual(pack.SKIA_SRC_ROOT, os.path.join(expected, 'skia'))
+        self.assertEqual(pack.SDL3_SRC_ROOT, os.path.join(expected, 'SDL3'))
+
+
+class MsvcMdModeTests(unittest.TestCase):
+    """`--msvc-runtime md` 也必须选 .md/.mdd 变体，不能只看是否有 duilib DLL。"""
+
+    def test_static_md_runtime_selects_md(self):
+        self.assertTrue(pack.resolve_md_mode('msvc', False, 'md'))
+        self.assertTrue(pack.resolve_md_mode('msvc', False, 'MD'))
+
+    def test_dll_forces_md(self):
+        self.assertTrue(pack.resolve_md_mode('msvc', True, 'auto'))
+        self.assertTrue(pack.resolve_md_mode('msvc', True, 'mt'))
+
+    def test_mt_runtime_without_dll_is_mt(self):
+        self.assertFalse(pack.resolve_md_mode('msvc', False, 'mt'))
+        self.assertFalse(pack.resolve_md_mode('msvc', False, 'auto'))
+
+    def test_mingw_never_uses_md_variant(self):
+        self.assertFalse(pack.resolve_md_mode('mingw', True, 'md'))
+        # windows=True / msys2_env='' 显式声明目标平台与环境：测试在任意宿主
+        # （含 MSYS2 MINGW64，否则会推断成 msvcrt 目录）上都应得到同一结果
+        self.assertEqual(
+            pack._sdl_variant_name('Release', 'x64', 'mingw',
+                                   mingw_variant='gcc', md_mode=True,
+                                   msys2_env='', windows=True),
+            'mingw64-gcc.x64.release')
+
+    def test_skia_candidates_follow_md_mode(self):
+        self.assertEqual(
+            pack._skia_candidate_names('Release', 'x64', md_mode=True,
+                                       msys2_env='', windows=True)[0],
+            'llvm.x64.release.md')
+        self.assertEqual(
+            pack._skia_candidate_names('Debug', 'x64', md_mode=True,
+                                       msys2_env='', windows=True)[0],
+            'llvm.x64.debug.mdd')
+
+
+class SdlPrefixSelectionTests(_TempDirTest):
+    """SDL3 安装前缀解析：Windows 按变体子目录，显式 --sdl-dir 视为单前缀。"""
+
+    def _resolve(self, config='Release', toolchain='msvc', mingw_variant=None,
+                 md_mode=False, windows=True, explicit=None):
+        old_root = pack.SDL3_SRC_ROOT
+        old_win = pack.is_windows_host
+        try:
+            pack.SDL3_SRC_ROOT = self.tmp
+            pack.is_windows_host = lambda: windows
+            return pack.resolve_sdl_prefix(explicit, config, 'x64', toolchain,
+                                           mingw_variant, md_mode)
+        finally:
+            pack.SDL3_SRC_ROOT = old_root
+            pack.is_windows_host = old_win
+
+    def _prefix(self, variant, lib_name='SDL3-static.lib'):
+        prefix = os.path.join(self.tmp, variant) if variant else self.tmp
+        for rel in (('lib', lib_name), ('include', 'SDL3', 'SDL.h')):
+            self._touch(os.path.relpath(os.path.join(prefix, *rel), self.tmp)
+                        .replace(os.sep, '/'))
+        return prefix
+
+    def test_variant_prefix_wins_over_root(self):
+        self._prefix('')
+        variant = self._prefix('msvc.x64.release')
+        self.assertEqual(self._resolve(config='Release'), variant)
+
+    def test_debug_uses_debug_variant(self):
+        self._prefix('msvc.x64.release')
+        variant = self._prefix('msvc.x64.debug')
+        self.assertEqual(self._resolve(config='Debug'), variant)
+
+    def test_md_suffix_follows_md_mode(self):
+        variant = self._prefix('msvc.x64.release.md')
+        self.assertEqual(self._resolve(config='Release', md_mode=True), variant)
+
+    def test_fallback_to_single_prefix(self):
+        self._prefix('')
+        self.assertEqual(self._resolve(config='Debug'), self.tmp)
+
+    def test_mingw_shares_release_variant(self):
+        variant = self._prefix('mingw64-gcc.x64.release', lib_name='libSDL3.a')
+        self.assertEqual(
+            self._resolve(config='Debug', toolchain='mingw', mingw_variant='gcc'),
+            variant)
+
+    def test_non_windows_uses_root(self):
+        self._prefix('')
+        self.assertEqual(self._resolve(config='Release', windows=False), self.tmp)
+
+    def test_explicit_dir_is_single_prefix(self):
+        explicit = os.path.join(self.tmp, 'custom')
+        os.makedirs(explicit, exist_ok=True)
+        self.assertEqual(self._resolve(explicit=explicit), explicit)
+
+    def test_missing_prefix_raises(self):
+        with self.assertRaises(pack.PackageError) as ctx:
+            self._resolve(config='Debug')
+        self.assertIn('msvc.x64.debug', str(ctx.exception))
+
+    def test_toolchain_library_filter(self):
+        """MinGW 只认 .a：只有 .lib 的变体目录不可用，回退 <root>。"""
+        self._prefix('mingw64-gcc.x64.release', lib_name='SDL3-static.lib')
+        self._prefix('', lib_name='libSDL3.a')
+        self.assertEqual(
+            self._resolve(config='Release', toolchain='mingw', mingw_variant='gcc'),
+            self.tmp)
+
+    def test_mingw_msys2_guess_mismatch_still_resolves(self):
+        """打包侧的 MSYS2 判定与 CMake 不同时，仍按候选顺序找到已安装变体。
+
+        Python 侧只能依据 sys.executable / MSYSTEM 推断 MSYS2 环境（Git Bash
+        也会设置 MSYSTEM），CMake 侧依据编译器安装位置；两侧不一致时规范变体名
+        可能指向 CMake 并未安装的目录（如 gcc.msvcrt.*），此时应继续尝试同组
+        的其他候选，而不是直接判定为缺少 SDL3。
+        """
+        variant = self._prefix('mingw64-gcc.x64.release', lib_name='libSDL3.a')
+        old_env = pack._msys2_env_name
+        pack._msys2_env_name = lambda: 'mingw64'
+        try:
+            self.assertNotEqual(
+                pack._sdl_variant_name('Release', 'x64', 'mingw', 'gcc',
+                                       windows=True),
+                'mingw64-gcc.x64.release')
+            self.assertEqual(
+                self._resolve(config='Release', toolchain='mingw',
+                              mingw_variant='gcc'),
+                variant)
+        finally:
+            pack._msys2_env_name = old_env
+
+
+class CollectSdlVariantTests(_TempDirTest):
+    """collect_sdl 从选中的变体前缀收集库、头文件与许可证。"""
+
+    def _collect(self, config='Debug'):
+        old_root = pack.SDL3_SRC_ROOT
+        old_win = pack.is_windows_host
+        try:
+            pack.SDL3_SRC_ROOT = self.tmp
+            pack.is_windows_host = lambda: True
+            collector = pack.Collector()
+            pack.collect_sdl(collector, None, config, True, arch_tag='x64',
+                             toolchain='msvc')
+            return collector
+        finally:
+            pack.SDL3_SRC_ROOT = old_root
+            pack.is_windows_host = old_win
+
+    def test_debug_variant_library_is_packaged(self):
+        prefix = 'msvc.x64.debug'
+        self._touch(prefix + '/lib/SDL3-static.lib')
+        self._touch(prefix + '/include/SDL3/SDL.h')
+        self._touch(prefix + '/share/licenses/SDL3/LICENSE.txt')
+        collector = self._collect(config='Debug')
+        rels = [rel for rel, _abs in collector.items]
+        self.assertIn('lib/SDL3-static.lib', rels)
+        self.assertIn('include/SDL3/SDL.h', rels)
+        self.assertIn('LICENSES/SDL3/LICENSE.txt', rels)
+        abs_lib = dict(collector.items)['lib/SDL3-static.lib']
+        self.assertIn(os.path.normcase(os.path.join(self.tmp, prefix)),
+                      os.path.normcase(abs_lib))
+
+    def test_dynamic_import_library_requires_dll(self):
+        prefix = 'msvc.x64.release'
+        self._touch(prefix + '/lib/SDL3.lib')
+        collector = self._collect(config='Release')
+        self.assertTrue(any('SDL3' in item and 'DLL' in item
+                            for item in collector.critical))
+
+    def test_dynamic_import_library_with_dll(self):
+        prefix = 'msvc.x64.release'
+        self._touch(prefix + '/lib/SDL3.lib')
+        self._touch(prefix + '/bin/SDL3.dll')
+        collector = self._collect(config='Release')
+        rels = [rel for rel, _abs in collector.items]
+        self.assertIn('lib/SDL3.lib', rels)
+        self.assertIn('bin/SDL3.dll', rels)
+        self.assertEqual(collector.critical, [])
+
+
+class SdlVariantCallSiteTests(unittest.TestCase):
+    """调用 `pack._sdl_variant_name` 的关键字参数必须与函数签名一致。
+
+    回归：`build.py doctor --sdl` 曾用 `dll_mode=` 调用（签名已经改成 md_mode），
+    运行期直接 TypeError；这里在源码层提前拦住同类问题。
+    """
+
+    def test_keywords_match_signature(self):
+        import ast
+        import inspect
+        signature = inspect.signature(pack._sdl_variant_name)
+        build_dir = os.path.dirname(os.path.abspath(__file__))
+        problems = []
+        for name in ('build.py', 'test_pack.py', 'test_cmake_scripts.py'):
+            path = os.path.join(build_dir, name)
+            with open(path, 'r', encoding='utf-8') as fp:
+                tree = ast.parse(fp.read(), filename=path)
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Call):
+                    continue
+                func = node.func
+                if not (isinstance(func, ast.Attribute)
+                        and func.attr == '_sdl_variant_name'):
+                    continue
+                for keyword in node.keywords:
+                    if keyword.arg and keyword.arg not in signature.parameters:
+                        problems.append(
+                            '%s:%d 关键字 %s 不在签名（%s）中'
+                            % (name, node.lineno, keyword.arg,
+                               ', '.join(signature.parameters)))
+        self.assertEqual(problems, [], '\n'.join(problems))
+
+
 if __name__ == '__main__':
     unittest.main()

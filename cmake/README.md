@@ -63,6 +63,7 @@ DUILIB_BUILD_TYPE        # "debug" 或 "release"
 | `DUILIB_LOG` | OFF | 打印 duilib 调试日志 |
 | `DUILIB_SKIA_LIB_SUBPATH` | 空 | Skia 库子目录；空表示按平台/配置自动拼接（见下方规则） |
 | `DUILIB_ENABLE_SDL` | Windows=OFF, 其他=ON | 启用 SDL 输入支持 |
+| `DUILIB_SDL_AUTOBUILD` | OFF | 依赖自动准备模式（`DUILIB_DEPS_MODE=auto`）：跳过 SDL3 存在性校验，按变体规则预判路径 |
 | `DUILIB_ENABLE_CEF` | OFF | 启用 CEF 浏览器支持（库编译 CEF 控件源码） |
 | `DUILIB_EXAMPLE_CEF` | OFF | 示例程序链接 CEF（仅 `cef`/`CefBrowser` 设置） |
 | `DUILIB_CEF_109` | OFF | 使用 CEF 109 版本（支持 Win7） |
@@ -78,8 +79,10 @@ DUILIB_BUILD_TYPE        # "debug" 或 "release"
 | `DUILIB_BIN_PATH` | duilib 可执行程序输出目录 |
 | `DUILIB_SKIA_SRC_ROOT_DIR` | Skia 源码目录 |
 | `DUILIB_SKIA_LIB_PATH` | Skia 库文件目录 |
-| `DUILIB_SDL_SRC_ROOT_DIR` | SDL3 源码目录 |
-| `DUILIB_SDL_LIB_PATH` | SDL3 库文件目录 |
+| `DUILIB_SDL_ROOT` | SDL3 安装根目录；Windows 下按 `<根>/<变体>` 选择前缀，显式传入的值仍作为根与单前缀回退 |
+| `DUILIB_SDL_INCLUDE_DIR` | SDL3 头文件目录（取实际选中的变体前缀下的 `include/`） |
+| `DUILIB_SDL_SRC_ROOT_DIR` | SDL3 安装前缀目录（由实际选中的变体前缀推导） |
+| `DUILIB_SDL_LIB_PATH` | SDL3 库文件目录（多配置生成器下为按配置切换的生成器表达式） |
 | `DUILIB_CEF_SRC_ROOT_DIR` | libCEF 源码目录 |
 | `DUILIB_CEF_LIB_PATH` | libCEF 库文件目录 |
 
@@ -130,6 +133,26 @@ ${DUILIB_SKIA_SRC_ROOT_DIR}/out/<子目录名>
 # MSYS2 Windows + Debug        -> skia/out/gcc.<arch>.debug 优先，缺失时回退 gcc.<arch>.release
 # 外部指定 -DDUILIB_SKIA_LIB_SUBPATH=llvm.x64.release -> 两个配置都固定用该目录（同样校验存在性）
 # MinGW 指向只有 .lib 的 MSVC 目录（如 llvm.x64.release 的 MSVC 产物） -> 配置期报错
+```
+
+**SDL3 安装前缀拼接规则：**
+
+Windows 上 SDL3 的静态库必须按“架构 × 配置 × MSVC 运行库”分开存放，否则 Debug/Release
+同名覆盖、`/MT` 与 `/MD` 混链报 LNK2038。`duilib_deps` 把每种组合安装到自己的完整前缀
+（`<deps-root>/SDL3/<变体>`，含 `include/`、`lib/`、`share/licenses`），规则集中在
+[duilib_sdl_variants.cmake](duilib_sdl_variants.cmake)，`duilib_common.cmake`、依赖检查、
+`build/pack.py` 与 VS 属性表都复用同一套命名：
+
+```cmake
+#   Windows MSVC  : msvc.<arch>.debug / msvc.<arch>.release
+#                   /MD、/MDd（DUILIB_MD，DLL 模式隐含）时追加 .mdd / .md
+#   Windows MinGW : 复用 Skia 的 release 变体名（mingw64-<gcc|llvm>.<arch>.release 等），
+#                   Debug/Release 共用同一份静态库（CRT 由工具链决定）
+#   非 Windows    : <deps-root>/SDL3 单前缀（只有 Release 共享库）
+
+# 候选顺序：<root>/<变体> 优先，<root> 作为旧布局或自备单前缀的回退；
+# build.py deps 按上表安装，pack.py 默认也按同一顺序选择；
+# 显式 --sdl-dir 视为单前缀（不派生变体目录）
 ```
 
 ---
@@ -618,9 +641,11 @@ endif()
 确保 Skia 编译输出在正确目录：
 ```
 skia/out/
-├── msvc.x64.release/
-├── mingw64-gcc.x64.release/
-├── mingw64-llvm.x64.release/
+├── llvm.x64.debug/             # MSVC / clang-cl（/MD 时追加 .mdd）
+├── llvm.x64.release/           # MSVC / clang-cl（/MD 时追加 .md）
+├── gcc.msvcrt.x64.release/     # MSYS2 MINGW64
+├── gcc.x64.release/            # MSYS2 UCRT64 等
+├── mingw64-gcc.x64.release/    # 独立 MinGW-w64
 └── ...
 ```
 

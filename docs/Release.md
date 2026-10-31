@@ -453,8 +453,9 @@ SDK 模式下被排除的是各示例的私有主题目录，共 22 个：
 | `--config Release\|Debug` | 选择库配置，默认 `Release`（大小写不敏感） |
 | `--arch x64\|x86\|arm64` | 库架构；Windows 决定库目录，所有平台影响包名 |
 | `--lib-dir <路径>` | 完全显式指定库目录，覆盖 `--arch`/`--config` 的路径计算 |
+| `--deps-root <路径>` | 依赖根目录（其下为 `skia/` 与 `SDL3/`，与 `build.py --deps-root` 相同）；默认仓库同级目录，相对路径按当前目录解析。`build.py pack` 会自动转发 |
 | `--skia-lib-dir <路径>` | Skia 静态库目录，默认按平台/工具链探测（MSVC `../skia/out/llvm.<arch>.<config>`；MinGW 为 `mingw64-gcc\|llvm.<arch>.release`（独立 MinGW-w64）或 `gcc\|llvm.<arch>.release`（MSYS2），并按目录内是否存在 `.a` 校验） |
-| `--sdl-dir <路径>` | SDL3 根目录，默认 `../SDL3` |
+| `--sdl-dir <路径>` | 显式指定 SDL3 安装前缀（不派生变体）；默认取 `../SDL3` 根目录，按 `--arch`/`--config`/运行库（MT、MD、DLL）选择 `<根>/<变体>`，变体缺失时回退 `<根>` |
 | `--with-sdl` | Windows 下额外打包 SDL3（Unix 始终打包） |
 | `--with-cef` | 打包 CEF：头文件 + `libcef.lib` + wrapper + 运行时（体积大） |
 | `--cef-version latest\|109` | 配合 `--with-cef` 选择版本，默认 `latest` |

@@ -100,6 +100,7 @@ DLL 模式（运行期目录 bin/ 中有 duilib*.dll）自动追加 -dll，避�
     python3 build/pack.py --list               # 只打印将收集的文件，不打包
     python3 build/pack.py --format tgz         # 强制 tgz（默认 Windows 用 zip）
     python3 build/pack.py --lib-dir lib/x86/Debug  # 显式指定库目录
+    python3 build/pack.py --deps-root D:/deps     # 依赖根不是仓库同级目录时
     python3 build/pack.py --with-sdl           # Windows 额外打包 SDL3（包名带 -sdl）
     python3 build/pack.py --with-cef           # 打包 CEF 开发文件 + 运行时（包名带 -cef）
     python3 build/pack.py --msvc-runtime md    # 指定 MSVC 运行库（默认按模式推断）
@@ -123,6 +124,7 @@ import json
 import os
 import platform
 import re
+import shutil
 import stat
 import struct
 import sys
@@ -170,6 +172,22 @@ MSVC_MANIFEST_DIR = os.path.join(REPO_ROOT, 'msvc', 'manifest')
 # 外部依赖（与仓库同级），可用命令行参数覆盖
 SKIA_SRC_ROOT = os.path.join(os.path.dirname(REPO_ROOT), 'skia')
 SDL3_SRC_ROOT = os.path.join(os.path.dirname(REPO_ROOT), 'SDL3')
+
+
+def set_deps_root(root):
+    """`--deps-root`：把依赖根映射为 <root>/skia 与 <root>/SDL3。
+
+    与 build.py 的 `-DDUILIB_DEPS_ROOT=<root>` 同一目录约定（依赖源码/产物都在
+    该根下），避免用自定义依赖根编译后打包仍去读仓库同级目录，拿到过期或缺失的
+    Skia / SDL3。显式 --skia-lib-dir / --sdl-dir 仍然优先。
+    相对路径按当前工作目录解析（与 build.py --deps-root 完全相同），避免两个脚本
+    对同一个参数给出不同目录。
+    """
+    global SKIA_SRC_ROOT, SDL3_SRC_ROOT
+    path = os.path.abspath(os.path.expanduser(root))
+    SKIA_SRC_ROOT = os.path.join(path, 'skia')
+    SDL3_SRC_ROOT = os.path.join(path, 'SDL3')
+
 
 # --------------------------------------------------------------------------
 # 收集规则
@@ -283,6 +301,9 @@ LIB_BASENAMES = (
 
 # MinGW 的两种编译器：静态库绑定不同 C++ 运行时，产物不可互换。
 MINGW_VARIANTS = ('gcc', 'llvm')
+
+# MSYS2 的 MINGW 环境目录名（<msys-root>/<env>/bin 下是编译器）。
+MSYS2_ENVS = ('mingw64', 'mingw32', 'ucrt64', 'clang64', 'clangarm64', 'clang32')
 
 # CEF wrapper / 源码目录：--with-cef 时按版本只收集一套。
 CEF_WRAPPER_BY_VERSION = {
@@ -460,6 +481,18 @@ def is_windows_host():
     Python 与 mingw-w64 Python 返回 Windows。
     """
     return platform.system().lower().startswith(('win', 'msys', 'cygwin'))
+
+
+def resolve_md_mode(toolchain, is_dll, msvc_runtime):
+    """Skia / SDL3 是否应使用 /MD 运行库变体（目录名带 .md / .mdd）。
+
+    DLL 模式必然是 /MD；静态库模式下由 `--msvc-runtime md` 显式声明，
+    与 CMake 侧 `DUILIB_MD` 的语义一致（`DUILIB_DLL` 会强制它打开）。
+    MinGW 由工具链决定 CRT，不存在 .md 变体。
+    """
+    if toolchain != 'msvc':
+        return False
+    return bool(is_dll or (msvc_runtime or '').lower() == 'md')
 
 
 def detect_dll_mode():
@@ -932,22 +965,69 @@ def collect_skia_libs(collector, skia_lib_dir, toolchain=None):
     return count
 
 
+def _msys2_env_from_dir(bin_dir):
+    """按 MSYS2 目录特征判定环境名：<root>/<env>/bin 且 <root>/usr/bin/pacman.exe。
+
+    bin_dir 是该环境的 bin 目录（编译器或 python 所在目录）。与 CMake 侧
+    cmake/duilib_skia_toolchain.cmake 的 duilib_detect_msys2() 同一口径（依据
+    安装目录，不看 MSYSTEM 环境变量）。不是 MSYS2 时返回空字符串。
+    """
+    if not bin_dir:
+        return ''
+    env_dir = os.path.dirname(os.path.normpath(bin_dir))
+    root = os.path.dirname(env_dir)
+    if not os.path.isfile(os.path.join(root, 'usr', 'bin', 'pacman.exe')):
+        return ''
+    name = os.path.basename(env_dir).lower()
+    return name if name in MSYS2_ENVS else ''
+
+
+def _msys2_env_from_compiler(compiler):
+    """从编译器路径（<root>/<env>/bin/xxx.exe）推断 MSYS2 环境名。"""
+    if not compiler:
+        return ''
+    path = compiler if os.path.isabs(compiler) else (shutil.which(compiler) or '')
+    if not path:
+        return ''
+    return _msys2_env_from_dir(os.path.dirname(os.path.abspath(path)))
+
+
 def _msys2_env_name():
-    """当前运行的 Python 所属 MSYS2 环境名（mingw64/ucrt64/clang64/...）。
+    """当前工具链是否来自 MSYS2，以及环境名（mingw64/ucrt64/clang64/...）。
 
     MSYS2 的 MINGW64 使用 msvcrt，而 UCRT64 使用 ucrt：两者编译出的 gcc 静态库
     引用的 CRT 符号不同，不能混用。MINGW64 的 Skia 目录因此带 .msvcrt 后缀。
     非 MSYS2 环境返回空字符串。
+
+    判定顺序（与 CMake 侧一致，优先依据编译器安装位置）：
+      1. CC / CXX 指向的编译器；
+      2. PATH 上的 gcc/g++/clang/clang++；
+      3. 当前 Python 解释器所在目录（MSYS2 的 python 位于 <root>/<env>/bin）；
+      4. MSYSTEM（仅已知环境名，最后的兜底）。
+    只要第 1、2 步找到了编译器，它的位置就是权威结论：不在 MSYS2 里就返回空串，
+    不再看 MSYSTEM —— Git Bash 也会设置 MSYSTEM=MINGW64，照搬会误判成 MSYS2，
+    进而选中 UCRT64 不兼容的 gcc.msvcrt 产物。
     """
-    prefix = os.path.basename(os.path.dirname(os.path.dirname(sys.executable)))
-    name = prefix.lower()
-    if name in ('mingw64', 'ucrt64', 'clang64', 'clangarm64'):
+    for var in ('CC', 'CXX'):
+        compiler = os.environ.get(var, '')
+        if compiler:
+            return _msys2_env_from_compiler(compiler)
+    for name in ('gcc', 'g++', 'clang', 'clang++'):
+        compiler = shutil.which(name)
+        if compiler:
+            return _msys2_env_from_compiler(compiler)
+
+    python_dir = os.path.dirname(os.path.abspath(sys.executable))
+    name = os.path.basename(python_dir).lower()
+    if name in MSYS2_ENVS and _msys2_env_from_dir(python_dir):
         return name
-    return os.environ.get('MSYSTEM', '').lower()
+
+    name = os.environ.get('MSYSTEM', '').lower()
+    return name if name in MSYS2_ENVS else ''
 
 
 def _skia_candidate_names(config, arch_tag, toolchain=None, mingw_variant=None,
-                          dll_mode=False, msys2_env=None, windows=None):
+                          md_mode=False, msys2_env=None, windows=None):
     """给出 Skia 库候选目录名（顺序即优先级）。
 
     MinGW 的 gcc 与 llvm-mingw（以及 MSYS2 的 gcc/clang）各自使用不同的 Skia
@@ -955,13 +1035,15 @@ def _skia_candidate_names(config, arch_tag, toolchain=None, mingw_variant=None,
       独立 MinGW-w64 : mingw64-gcc.<arch>.<debug|release> / mingw64-llvm.<arch>.<...>
       MSYS2          : gcc.<arch>.<debug|release> / llvm.<arch>.<debug|release>
       MSYS2 MINGW64  : gcc.msvcrt.<arch>.release（msvcrt，与 UCRT64 的 gcc 产物不兼容）
-    MSVC DLL 模式使用 /MD 动态运行库，必须链接同 CRT 的 Skia：
+    MSVC 的 /MD 运行库模式（DLL 模式或 --msvc-runtime md）必须链接同 CRT 的 Skia：
       llvm.<arch>.release.md / llvm.<arch>.debug.mdd
 
     这些名字必须与 CMake 侧 cmake/duilib_skia_variants.cmake 的规则一致
     （build/test_cmake_scripts.py 用同一组用例比对两侧，防止再次漂移）。
     msys2_env 为空时按当前环境推断（_msys2_env_name）；windows 为空时按宿主判断
-    （显式传入只为测试可在任意平台跑）。
+    （显式传入只为测试可在任意平台跑）。无法推断出 MSYS2 环境（env 为空）且编译器
+    是 gcc 时，末尾额外追加 gcc.msvcrt.<arch>.release 兜底：CMake 侧依据编译器
+    安装位置可能装成了该变体，而打包侧推不出来（差异仅允许出现在列表末尾）。
     """
     if not (is_windows_host() if windows is None else windows):
         return ['llvm.%s.release' % arch_tag, 'gcc.%s.release' % arch_tag]
@@ -969,8 +1051,8 @@ def _skia_candidate_names(config, arch_tag, toolchain=None, mingw_variant=None,
     is_debug = config == 'Debug'
     # MSVC：llvm.<arch>.debug / release（MSYS2 CLANG64 也用这个目录名，按内容区分）
     msvc_name = 'llvm.%s.%s' % (arch_tag, 'debug' if is_debug else 'release')
-    if dll_mode:
-        # DLL 模式：duilib 用 /MD，必须匹配同 CRT 的 Skia 变体
+    if md_mode:
+        # /MD 运行库模式（DLL 模式或显式 --msvc-runtime md）：必须匹配同 CRT 的 Skia 变体
         msvc_name += '.mdd' if is_debug else '.md'
     env = msys2_env if msys2_env is not None else _msys2_env_name()
     # MSYS2 MINGW64 的 gcc 产物使用 msvcrt，目录名带 .msvcrt 后缀
@@ -995,6 +1077,11 @@ def _skia_candidate_names(config, arch_tag, toolchain=None, mingw_variant=None,
             names.append(msvcrt_name)
         for compiler in compilers:
             names.extend(_compiler_names(compiler))
+        if not env and 'gcc' in compilers:
+            # 无法确定是否 MSYS2（从 cmd/PowerShell 打包，PATH 上也没有 MSYS2
+            # 编译器）：最后再试 MINGW64 的 msvcrt 产物，避免漏掉实际存在的变体。
+            # 放在末尾是有意的——独立 MinGW-w64 与 UCRT64 的候选优先命中。
+            names.append(msvcrt_name)
         return names
 
     if toolchain == 'mingw':
@@ -1010,8 +1097,36 @@ def _skia_candidate_names(config, arch_tag, toolchain=None, mingw_variant=None,
     return names
 
 
+def _sdl_variant_name(config, arch_tag, toolchain=None, mingw_variant=None,
+                      md_mode=False, msys2_env=None, windows=None):
+    """SDL3 变体前缀目录名（Windows），与 cmake/duilib_sdl_variants.cmake 一致。
+
+    每个变体目录都是完整安装前缀（<deps-root>/SDL3/<variant>）：MSVC 按
+    架构/配置/运行库区分（msvc.<arch>.<debug|release>[.mdd|.md]）；MinGW
+    复用 Skia 的 release 变体名（MinGW 的 CRT 由工具链决定，Debug/Release
+    共用同一份静态库）。非 Windows 返回空串，表示沿用 <deps-root>/SDL3 单前缀。
+
+    该规则必须与 CMake 侧同步（build/test_cmake_scripts.py 逐项比对）。
+    """
+    if not (is_windows_host() if windows is None else windows):
+        return ''
+    if toolchain == 'mingw':
+        # SDL3 的 MinGW 静态库只有 release 一份：取 Skia release 候选的第一项，
+        # 保证 msvcrt / UCRT64 / 独立 MinGW 的目录命名与 Skia 完全一致。
+        # windows 必须一路传下去：调用方显式传入 windows=True（跨宿主判断/测试）时，
+        # is_windows_host() 仍返回 False，否则会取到非 Windows 的 llvm/gcc 名字。
+        names = _skia_candidate_names('Release', arch_tag, 'mingw', mingw_variant,
+                                      False, msys2_env, windows=True)
+        return names[0]
+    is_debug = str(config).lower() == 'debug'
+    name = 'msvc.%s.%s' % (arch_tag, 'debug' if is_debug else 'release')
+    if md_mode:
+        name += '.mdd' if is_debug else '.md'
+    return name
+
+
 def resolve_skia_lib_dir(explicit_dir, config, arch_tag, toolchain=None,
-                         mingw_variant=None, dll_mode=False):
+                         mingw_variant=None, md_mode=False):
     """解析 Skia 库目录。显式指定优先，否则按平台/配置/工具链探测。
 
     MSYS2 的 llvm.<arch>.release 与 MSVC 目录同名，因此除目录名外还要检查目录
@@ -1038,7 +1153,7 @@ def resolve_skia_lib_dir(explicit_dir, config, arch_tag, toolchain=None,
     out_dir = os.path.join(SKIA_SRC_ROOT, 'out')
     candidates = [os.path.join(out_dir, name) for name in
                   _skia_candidate_names(config, arch_tag, toolchain, mingw_variant,
-                                        dll_mode)]
+                                        md_mode)]
 
     # 按目录内容过滤：目录名相同但库类型不符的候选（如 MSVC 的 .lib）直接跳过
     for path in candidates:
@@ -1054,42 +1169,116 @@ def resolve_skia_lib_dir(explicit_dir, config, arch_tag, toolchain=None,
                           ', '.join(available) if available else T('pkg.none')))
 
 
-def collect_sdl(collector, sdl_dir, config, with_sdl):
+# Windows SDL3 库文件 → 是否还需要同前缀的 bin/SDL3.dll（动态导入库）
+_SDL_LIB_FILES = {
+    'msvc': (('SDL3-static.lib', False), ('SDL3.lib', True)),
+    'mingw': (('libSDL3.dll.a', True), ('libSDL3.a', False)),
+}
+_SDL_LIB_FILES_ANY = (('SDL3-static.lib', False), ('SDL3.lib', True),
+                      ('libSDL3.dll.a', True), ('libSDL3.a', False))
+
+
+def _sdl_lib_files(toolchain):
+    return _SDL_LIB_FILES.get(toolchain, _SDL_LIB_FILES_ANY)
+
+
+def _sdl_prefix_lib(prefix, toolchain):
+    """在安装前缀里找一个可打包的 SDL3 库，返回 (名称, 是否需要 DLL, 完整路径) 或 None。"""
+    lib_dir = os.path.join(prefix, 'lib')
+    for name, needs_dll in _sdl_lib_files(toolchain):
+        full = os.path.join(lib_dir, name)
+        if os.path.isfile(full):
+            return name, needs_dll, full
+    return None
+
+
+def _sdl_prefix_candidates(config, arch_tag, toolchain=None, mingw_variant=None,
+                           md_mode=False, root=None):
+    """SDL3 安装前缀候选（顺序即优先级，最后一项为 <root> 单前缀回退）。
+
+    MSVC 只有一个变体名（msvc.<arch>.<debug|release>[.mdd|.md]）；MinGW 的变体
+    名来自 Skia 的 release 候选（deps 按同一规则安装）。两侧的 MSYS2 判定口径
+    已统一（都依据编译器安装位置），但仍逐个尝试候选：直接运行 pack.py 时
+    PATH 上可能没有 MSYS2 编译器（从 cmd/PowerShell 打包），候选末尾的
+    gcc.msvcrt.<arch>.release 兜底才能命中 deps 实际安装的 msvcrt 变体。
+    """
+    names = []
+    if toolchain == 'mingw':
+        names = _skia_candidate_names('Release', arch_tag, 'mingw', mingw_variant,
+                                      False, None, windows=True)
+    else:
+        variant = _sdl_variant_name(config, arch_tag, toolchain, mingw_variant,
+                                    md_mode, windows=True)
+        if variant:
+            names = [variant]
+    root = SDL3_SRC_ROOT if root is None else str(root)
+    dirs = []
+    for name in names:
+        path = os.path.join(root, name)
+        if path not in dirs:
+            dirs.append(path)
+    dirs.append(root)
+    return dirs
+
+
+def resolve_sdl_prefix(explicit_dir, config, arch_tag, toolchain=None,
+                       mingw_variant=None, md_mode=False, windows=None):
+    """解析 SDL3 安装前缀（完整安装目录：include/、lib/、share/licenses）。
+
+    显式 --sdl-dir 视为自备的单前缀；默认在 <deps-root>/SDL3 下按 Windows 的
+    “架构 × 配置 × 运行库”变体子目录解析（<root>/<variant>），变体不完整时
+    回退 <root>（兼容旧布局与单前缀）。命名规则与
+    cmake/duilib_sdl_variants.cmake 一致（build/test_cmake_scripts.py 逐项比对）。
+    """
+    if explicit_dir:
+        path = explicit_dir if os.path.isabs(explicit_dir) \
+            else os.path.join(REPO_ROOT, explicit_dir)
+        if not os.path.isdir(path):
+            raise PackageError(T('pkg.sdl_dir_missing') % path)
+        return path
+
+    windows = is_windows_host() if windows is None else windows
+    root = SDL3_SRC_ROOT
+    if not os.path.isdir(root):
+        raise PackageError(T('pkg.sdl_dir_missing') % root)
+    # 非 Windows 与未知架构（如测试直接调用）沿用单前缀
+    if not windows or not arch_tag:
+        return root
+
+    candidates = _sdl_prefix_candidates(config, arch_tag, toolchain,
+                                        mingw_variant, md_mode)
+    for path in candidates:
+        if _sdl_prefix_lib(path, toolchain):
+            return path
+    raise PackageError(T('pkg.sdl_libs_missing')
+                       % (' / '.join(_rel(path) for path in candidates),
+                          ', '.join(n for n, _ in _sdl_lib_files(toolchain))))
+
+
+def collect_sdl(collector, sdl_dir, config, with_sdl, arch_tag=None,
+                toolchain=None, mingw_variant=None, md_mode=False):
     """收集 SDL3 库、头文件与许可证（P4-B3/B4）。
 
     Windows 默认不打包，仅 --with-sdl 时收集；Unix 始终收集。
+    默认在 <deps-root>/SDL3 下按“架构 × 配置 × 运行库”的变体前缀解析
+    （<root>/<variant>，每个变体都是完整安装前缀）；--sdl-dir 视为显式单前缀。
     """
     is_windows = is_windows_host()
     if is_windows and not with_sdl:
         return 0
 
-    root = sdl_dir if sdl_dir else SDL3_SRC_ROOT
-    if sdl_dir and not os.path.isabs(sdl_dir):
-        root = os.path.join(REPO_ROOT, sdl_dir)
-    if not os.path.isdir(root):
-        raise PackageError(T('pkg.sdl_dir_missing') % root)
+    root = resolve_sdl_prefix(sdl_dir, config, arch_tag, toolchain,
+                              mingw_variant, md_mode)
 
     count = 0
     if is_windows:
         # 按工具链产物依次探测：MSVC 静态 SDL3-static.lib；MSVC 动态 SDL3.lib；
         # MinGW 动态导入库 libSDL3.dll.a；MinGW 静态库 libSDL3.a。
-        lib_root = os.path.join(root, 'lib')
-        candidates = (
-            ('SDL3-static.lib', False),
-            ('SDL3.lib', True),
-            ('libSDL3.dll.a', True),
-            ('libSDL3.a', False),
-        )
-        chosen = None
-        for name, needs_dll in candidates:
-            full = os.path.join(lib_root, name)
-            if os.path.isfile(full):
-                chosen = (name, needs_dll, full)
-                break
+        chosen = _sdl_prefix_lib(root, toolchain)
         if chosen is None:
             raise PackageError(T('pkg.sdl_libs_missing')
-                               % (_rel(lib_root),
-                                  ', '.join(n for n, _ in candidates)))
+                               % (_rel(root),
+                                  ', '.join(n for n, _ in _sdl_lib_files(toolchain))))
         name, needs_dll, full = chosen
         if collector.add('lib/' + name, full):
             count += 1
@@ -2753,6 +2942,8 @@ def main(argv=None):
                         help=T('pkg.help_arch'))
     parser.add_argument('--lib-dir', default=None,
                         help=T('pkg.help_lib_dir'))
+    parser.add_argument('--deps-root', default=None,
+                        help=T('pkg.help_deps_root'))
     parser.add_argument('--skia-lib-dir', default=None,
                         help=T('pkg.help_skia_lib_dir'))
     parser.add_argument('--mingw-variant', choices=('auto', 'gcc', 'llvm'),
@@ -2782,6 +2973,9 @@ def main(argv=None):
     parser.add_argument('--lang', choices=('auto', 'zh_CN', 'en'), default='auto',
                         help=T('pkg.help_lang'))
     args = parser.parse_args(argv)
+
+    if args.deps_root:
+        set_deps_root(args.deps_root)
 
     if args.verify:
         return 0 if verify_package(args.verify) else 1
@@ -2814,9 +3008,12 @@ def main(argv=None):
         if args.with_cef and sys_tag != 'win' and args.cef_version != 'latest':
             raise PackageError(T('pkg.cef109_windows_only'))
         dll_mode = toolchain == 'msvc' and detect_dll_mode()
+        # Skia / SDL3 的 .md / .mdd 变体取决于 /MD 运行库，而不只是 DLL 模式：
+        # `--msvc-runtime md`（静态库）同样必须选 .md/.mdd，否则下游 LNK2038。
+        md_mode = resolve_md_mode(toolchain, dll_mode, args.msvc_runtime)
         skia_dir = resolve_skia_lib_dir(args.skia_lib_dir, config, arch_tag,
                                         toolchain, mingw_variant,
-                                        dll_mode=dll_mode)
+                                        md_mode=md_mode)
 
         collector = Collector(allow_missing=args.allow_missing)
         n_headers = collect_headers(collector, args.with_cef, args.with_sdl,
@@ -2824,7 +3021,9 @@ def main(argv=None):
         n_libs = collect_libs(collector, lib_dir, config,
                               args.with_cef, args.cef_version, sys_tag)
         n_skia = collect_skia_libs(collector, skia_dir, toolchain)
-        n_sdl = collect_sdl(collector, args.sdl_dir, config, args.with_sdl)
+        n_sdl = collect_sdl(collector, args.sdl_dir, config, args.with_sdl,
+                            arch_tag=arch_tag, toolchain=toolchain,
+                            mingw_variant=mingw_variant, md_mode=md_mode)
         n_wv2 = collect_webview2_loader(collector, arch_tag, toolchain)
         n_dll = collect_duilib_runtime_dll(collector, arch_tag, config)
         n_jpeg = collect_jpeg_turbo(collector, arch_tag, toolchain,

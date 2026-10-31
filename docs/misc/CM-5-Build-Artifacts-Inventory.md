@@ -97,7 +97,7 @@
 | 组件 | Windows | Linux / macOS / FreeBSD |
 | :--- | :--- | :--- |
 | **Skia** | **不提供"真正的 Debug"**，但**必须编译两个变体**：`llvm.<arch>.debug` 与 `llvm.<arch>.release`。两者都是 release 模式代码（`is_debug=false`），仅运行库不同（`/MTd` vs `/MT`）。原因：Skia 是 C++ 库，Debug 目标若链接 `/MT` 版本会因运行库不匹配而链接失败 | **不提供 Debug，只编译一个 release 版本** |
-| **SDL3** | ~~不提供 Debug，只有一个 release 版本~~ **已更新（2026-10-26）**：新 CMake 构建（`cmake/duilib_deps_run.cmake`）按配置构建并安装 SDL3，Debug 产出 `SDL3-staticd.lib`、Release 产出 `SDL3-static.lib`，不再共用同一份 Release 库 | 同左（Unix 仍只有 Release 版） |
+| **SDL3** | ~~不提供 Debug，只有一个 release 版本~~ **最新（2026-10-31）**：SDL3 源码不设 `DEBUG_POSTFIX`，Debug/Release 同名，因此 `cmake/duilib_deps_run.cmake` 改为按变体前缀安装（`SDL3/msvc.<arch>.<debug\|release>[.md\|.mdd]`），每个前缀是完整安装（include/lib/license），库名在各前缀内不变（MSVC `SDL3-static.lib`、MinGW `libSDL3.a`）。同日之前的“Debug 产出 `SDL3-staticd.lib`”结论已作废 | 同左（Unix 仍只有 Release 版） |
 | **nim_duilib（库与示例）** | **提供 Debug** | **提供 Debug**（链接 release 版 Skia/SDL；Unix 无 MSVC 的 CRT 标记机制，不产生 `LNK2038`） |
 
 > 现状与目标的差距：Windows 已有 `llvm.x64.debug`，符合 D-3；Unix 侧 `build_duilib_all_in_one.sh` 目前的 Skia/SDL 只建 release，**这也符合 D-3**——需要补的是"允许 `nim_duilib` 自身在 Unix 上按 Debug 配置构建"，而不是补建 Skia/SDL 的 debug 版。
@@ -214,7 +214,7 @@ Release : duilib-zlib.lib;duilib-cximage.lib;duilib-png.lib;duilib-webp.lib
 | **I-2** | CMake 可执行程序 `bin/<name>` 不区分配置、无 `_d` | 单配置生成器下分别构建 Debug 与 Release | 后构建者覆盖前者。**D-2 明确 exe 保持现状**，本项为已知遗留，不在 CM-5 范围（VS 用 `_d` 区分，不受影响） |
 | **I-3** | CMake 库输出到 `lib/<Config>/` 且无 `_d`；VS 输出到 `lib/x64/` 且有 `_d` | 两套体系混用同一 `lib/` 根 | **已定（D-2，方案 B）解决**：两套统一为 `lib/<arch>/<Configuration>/`，库名不再带 `_d`。CMake 侧已实施（P1）；VS 侧已实施（P3，2026-10-21） |
 | **I-4** | 第三方库命名两套并存（`duilib-zlib` vs `zlib[_d]`） | 修改任一命名 | 需同步 `duilib_common.cmake`（`DUILIB_LIBS`）与 `CommonSettings.props`（`DuilibThirdLibs`），遗漏即链接失败。**已解决（P1 + P3，2026-10-21）**：两套均使用 `duilib-*` 且无 `_d`，`DuilibThirdLibs` 已同步 |
-| **I-5** | SDL3 只有 Release 版（不提供 Debug 版） | Windows Debug 构建启用 SDL 的目标 | **不是阻塞项**：实测 VS Debug 已正常链接并产出 `bin/ChildWindow_d.exe`。**已定（D-4b）：保持现状，不补 Debug 版**。**后续更新（2026-10-26）：新 CMake 构建改为按配置构建 SDL3**（Debug/Release 各自的静态库），仅多配置生成器仍共用同一前缀 |
+| **I-5** | SDL3 只有 Release 版（不提供 Debug 版） | Windows Debug 构建启用 SDL 的目标 | **不是阻塞项**：实测 VS Debug 已正常链接并产出 `bin/ChildWindow_d.exe`。**已定（D-4b）：保持现状，不补 Debug 版**。**后续更新（2026-10-26）：新 CMake 构建改为按配置构建 SDL3**（Debug/Release 各自的静态库）。**再更新（2026-10-31）**：包括多配置生成器在内，Debug/Release 都安装到各自的变体前缀，不再共用同一前缀（见第 3 点） |
 | **I-6** | libjpeg-turbo 只有 Release 预编译库（`/MT`），且当前无项目导入其属性表 | 项目显式导入 `JpegTurboSettings.props` 后做 Debug 构建 | 链接该 Release 静态库会 `LNK2038`。**已定（D-4a）：不提供 Debug 版，保持现状**；即 Debug 下不启用该特性 |
 | **I-7** | 非 Windows 平台 Skia 仅 Release | 在这些平台构建 Debug | **按 D-3 不是阻塞项**：`nim_duilib` 提供 Debug，直接链接 release 版 Skia/SDL（Unix 无 MSVC CRT 标记机制）。需要放开脚本里固定 `Release` 的限制 |
 | **I-8** | 单配置生成器（Ninja/Makefile）下 Debug/Release 都写 `lib/` 根 | Linux/macOS/FreeBSD 分别构建两种配置 | 同名库互相覆盖。**已定（D-2，方案 B）解决**：单配置显式设置 `CMAKE_*_OUTPUT_DIRECTORY_<CONFIG>`，落到 `lib/Debug`、`lib/Release`。**已实施（P1，2026-10-21）** |
@@ -230,14 +230,16 @@ Release : duilib-zlib.lib;duilib-cximage.lib;duilib-png.lib;duilib-webp.lib
    - 详细布局与连带改动见 5.2 / 5.3。
 2. **Debug 的适用范围（已定 D-3，2026-10-21）**：
    - **Skia**：Windows 下不提供"真正的 Debug"，但**必须同时编译 debug / release 两个变体**（两者均为 release 模式代码，仅 CRT 不同：`/MTd` vs `/MT`），否则 Debug 目标链接失败；Linux/macOS/FreeBSD 只编译一个 release 版本；
-   - **SDL**：所有系统都只编译一个 release 版本（见 D-4b）；**后续更新（2026-10-26）**：Windows 的 CMake 构建已按配置构建 SDL3，见下方第 3 点；
+   - **SDL**：所有系统都只编译一个 release 版本（见 D-4b）；**后续更新（2026-10-31）**：Windows 的 CMake 构建按变体前缀安装 SDL3，见下方第 3 点；
    - **nim_duilib（库与示例）**：Windows / Linux / macOS / FreeBSD **均提供 Debug**。
 3. **SDL 的 Debug 版本**：**已定（D-4b，2026-10-21）不提供**，只保留现有 Release 版（Windows `SDL3-static.lib`，Unix 侧现有 `.so`/`.dylib`），保持现状；Debug 构建直接使用该 Release 库（VS Debug 实测可行）。
-   **后续更新（2026-10-26，D-4b 在新 CMake 构建中已不适用）**：`cmake/duilib_deps_run.cmake`
-   在 Windows 下按配置构建并安装 SDL3——单配置生成器（Ninja/Makefiles）只构建当前配置，
-   Debug 得到 `SDL3-staticd.lib`、Release 得到 `SDL3-static.lib`；多配置生成器（VS）仍会依次构建
-   两种配置但安装到同一前缀（同名覆盖，构建日志会给出提示）。选择依据仍写在
-   `cmake/duilib_common.cmake`（优先 `SDL3-staticd.lib`，否则退回 `SDL3-static.lib`）。
+   **后续更新（2026-10-31，最终方案）**：SDL3 源码不设 `DEBUG_POSTFIX`，
+   无法靠库名区分配置，因此 `cmake/duilib_deps_run.cmake` 在 Windows 下把每个
+   “架构 × 配置 × MSVC 运行库”组合安装到独立变体前缀
+   （`SDL3/msvc.<arch>.<debug|release>[.md|.mdd]`，规则见 `cmake/duilib_sdl_variants.cmake`）；
+   多配置生成器（VS）依次构建并安装到各自前缀，不再同名覆盖。库名在各前缀内保持不变，
+   `cmake/duilib_common.cmake` 按配置解析前缀（变体优先、根目录回退）。
+   （2026-10-26 记录中的 `SDL3-staticd.lib` / 同前缀覆盖结论已作废。）
    **libjpeg-turbo 已定（D-4a，2026-10-21）**：不提供 Debug 版，只保留现有 Release 预编译库，保持现状；Debug 构建下不启用该特性。
 4. **libcef wrapper 的命名**：**已定（D-5，2026-10-21）不纳入 `duilib-*` 前缀，保持名称 `libcef_dll_wrapper[_109]`**。各平台 `libcef_*/CMakeLists.txt` 只保留输出目录定制（按 D-2 落到 `lib/<Configuration>/`）；`_d` 后缀随 D-2 取消；CEF 导入库 `libcef.lib` 的链接名不变。
 5. **是否保留两套体系**：**已定（D-6，2026-10-21）长期并存**。保留 VS 解决方案的原因是大量 Windows 开发者习惯 VS 而非 CMake；CM-22 的顶层聚合只服务于 CMake 入口，不替代 VS 工程。

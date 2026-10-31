@@ -228,14 +228,6 @@
       "en": "[OK] SDL3 is ready",
       "zh_CN": "[OK] SDL3 已就绪"
     },
-    "deps.sdl_missing": {
-      "en": "[ERROR] SDL3 installation not found",
-      "zh_CN": "[ERROR] 未找到 SDL3 安装目录"
-    },
-    "deps.sdl_missing_hint": {
-      "en": "run 'build.py deps', or pass -DDUILIB_SDL_ROOT=<installed SDL3 prefix>",
-      "zh_CN": "执行 'build.py deps'，或传入 -DDUILIB_SDL_ROOT=<已安装的 SDL3 前缀>"
-    },
     "deps.sdl_building": {
       "en": "[deps] building SDL3",
       "zh_CN": "[deps] 正在编译 SDL3"
@@ -249,8 +241,8 @@
       "zh_CN": "查看上面的 SDL3 输出，然后执行 'build.py deps --force'"
     },
     "deps.sdl_multi_config": {
-      "en": "[deps] multi-config generator: building SDL3 for Debug and Release; Release is installed last, so Debug targets link the Release static library (use Ninja for per-config SDL3)",
-      "zh_CN": "[deps] 多配置生成器：Debug 与 Release 都会编译 SDL3；Release 最后安装，因此 Debug 目标链接的是 Release 静态库（需要按配置区分时请改用 Ninja）"
+      "en": "[deps] multi-config generator: installing SDL3 for Debug and Release into separate variant prefixes under SDL3/ (they no longer overwrite each other)",
+      "zh_CN": "[deps] 多配置生成器：Debug 与 Release 分别安装到 SDL3/ 下的独立变体前缀，不再互相覆盖"
     },
     "deps.skia_multi_config": {
       "en": "[deps] multi-config generator: preparing Skia for both Debug and Release (configuration checks each variant)",
@@ -445,8 +437,8 @@
       "zh_CN": "覆盖构建目录（默认 out/<arch>/<Config>）"
     },
     "help.deps_root": {
-      "en": "dependency source/install root (default: next to the repo, i.e. peer of nim_duilib; Skia, SDL3 and CEF are installed there)",
-      "zh_CN": "依赖源码/安装根目录（默认仓库同级，即与 nim_duilib 平级；Skia、SDL3、CEF 都安装到这里）"
+      "en": "dependency source/install root (default: next to the repo, i.e. peer of nim_duilib; Skia, SDL3 and CEF are installed there; a relative path is resolved against the current directory)",
+      "zh_CN": "依赖源码/安装根目录（默认仓库同级，即与 nim_duilib 平级；Skia、SDL3、CEF 都安装到这里；相对路径按当前目录解析）"
     },
     "help.jobs": {
       "en": "parallel compile jobs (default: CPU logical cores)",
@@ -733,8 +725,8 @@
       "zh_CN": "SDL3 目录不存在：%s（可用 --sdl-dir 指定）"
     },
     "pkg.sdl_libs_missing": {
-      "en": "--with-sdl was requested but no SDL3 static/import library exists under %s (tried: %s)",
-      "zh_CN": "启用了 --with-sdl，但 %s 下没有 SDL3 静态库或导入库（尝试过：%s）"
+      "en": "--with-sdl was requested but none of these SDL3 installation prefixes has a static/import library: %s (expected one of: %s)",
+      "zh_CN": "启用了 --with-sdl，但下列 SDL3 安装前缀都没有静态库或导入库：%s（期望其一：%s）"
     },
     "pkg.sdl_dll_missing": {
       "en": "missing SDL3 runtime DLL: %s (downstream programs will fail to run)",
@@ -873,8 +865,8 @@
       "zh_CN": "duilib.dll 以 SDL 支持编译，但打包未加 --with-sdl：下游缺少 SDL 头文件且 DUILIB_SDL 宏与 DLL 不一致，会破坏 Control/WindowBase 的类布局。请补 --with-sdl 后重新打包"
     },
     "pkg.dll_sdl_libs_missing": {
-      "en": "duilib.dll was built with SDL support but the package has no SDL3 libraries or headers; check that --sdl-dir points to a valid SDL3 source tree",
-      "zh_CN": "duilib.dll 以 SDL 支持编译，但包内没有 SDL3 库/头文件，请确认 --sdl-dir 指向有效的 SDL3 源码目录"
+      "en": "duilib.dll was built with SDL support but the package has no SDL3 libraries or headers; check that --sdl-dir (default: ../SDL3) contains a usable installation prefix for the selected configuration",
+      "zh_CN": "duilib.dll 以 SDL 支持编译，但包内没有 SDL3 库/头文件，请确认 --sdl-dir（默认 ../SDL3）下有与所选配置匹配的可用安装前缀"
     },
     "pkg.dll_sdl_not_used": {
       "en": "duilib.dll was built without SDL support; packaged SDL3 content is not used in the metadata (HAS_SDL=0) and downstream macros match the DLL",
@@ -976,6 +968,10 @@
       "en": "explicit duilib library directory; --arch/--config no longer select the path but still decide the package name and example filtering",
       "zh_CN": "显式指定 duilib 库目录，此时 --arch/--config 不再参与路径计算，但仍决定包名与示例过滤"
     },
+    "pkg.help_deps_root": {
+      "en": "dependency root (holds skia/ and SDL3/, same as build.py --deps-root); default: the directory next to the repository; a relative path is resolved against the current directory",
+      "zh_CN": "依赖根目录（其下为 skia/ 与 SDL3/，与 build.py 的 --deps-root 相同）；默认取仓库同级目录；相对路径按当前目录解析"
+    },
     "pkg.help_skia_lib_dir": {
       "en": "Skia static library directory (auto-detected per platform/toolchain, e.g. ../skia/out/llvm.<arch>.<config>, mingw64-gcc.<arch>.release (standalone MinGW-w64) or gcc.<arch>.release (MSYS2); DLL mode uses llvm.<arch>.release.md; MinGW variants are validated by the .a files inside)",
       "zh_CN": "Skia 静态库目录（默认按平台/工具链探测，如 ../skia/out/llvm.<arch>.<config>、mingw64-gcc.<arch>.release（独立 MinGW-w64）或 gcc.<arch>.release（MSYS2）；DLL 模式为 llvm.<arch>.release.md；MinGW 会按目录内是否存在 .a 校验）"
@@ -985,8 +981,8 @@
       "zh_CN": "MinGW 编译器变体（仅 Windows 的 MinGW 包；默认从静态库符号自动判断）；gcc 与 llvm-mingw 产物绑定不同 C++ 运行时，包名会追加 -mingw-gcc / -mingw-llvm（MSYS2 CLANG64 使用 libc++，归为 llvm）"
     },
     "pkg.help_sdl_dir": {
-      "en": "SDL3 root directory (default: ../SDL3)",
-      "zh_CN": "SDL3 根目录（默认 ../SDL3）"
+      "en": "explicit SDL3 installation prefix; default: ../SDL3 root, selecting <root>/<variant> per arch/config/runtime (an explicit value is treated as a single prefix)",
+      "zh_CN": "显式指定 SDL3 安装前缀；默认取 ../SDL3 根目录并按架构/配置/运行库选择 <根>/<变体>（显式传入时视为单前缀）"
     },
     "pkg.help_with_sdl": {
       "en": "also package SDL3 on Windows (Unix always packages it; this flag is unnecessary there)",

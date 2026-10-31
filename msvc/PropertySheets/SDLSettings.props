@@ -6,16 +6,40 @@
         <!-- 是否支持SDL的宏定义： 0表示不支持；1 表示支持，同时设置SDLLibs的值 -->
         <SDLEnabled>0</SDLEnabled>
 
-        <!-- SDL的include目录 -->
-        <SDLIncludeDir Condition="'$(SDLEnabled)' == '0'"></SDLIncludeDir>
-        <SDLIncludeDir Condition="'$(SDLEnabled)' != '0'">$(SolutionDir)\..\..\SDL3\include</SDLIncludeDir>
+        <!-- SDL3 安装根目录。Windows 下每个“架构 × 配置 × 运行库”都是完整安装
+             前缀（<root>/<variant>，规则见 cmake/duilib_sdl_variants.cmake）：
+             SDL3 源码不设置 DEBUG_POSTFIX，Debug/Release 的静态库同名；MT/MTd/
+             MD/MDd 的 RuntimeLibrary 互斥，混链会报 LNK2038。
+             变体目录不存在时回退 <root>（兼容自备的单前缀安装）。 -->
+        <SDL3RootDir>$(SolutionDir)\..\..\SDL3</SDL3RootDir>
 
-        <!-- SDL的lib目录 -->
+        <!-- 变体目录名（MSVC）：msvc.<arch>.<debug|release>[.mdd|.md] -->
+        <SDLVariant Condition="'$(Configuration)|$(Platform)'=='Release|x64' And Exists('$(SDL3RootDir)\msvc.x64.release')">msvc.x64.release</SDLVariant>
+        <SDLVariant Condition="'$(Configuration)|$(Platform)'=='Debug|x64' And Exists('$(SDL3RootDir)\msvc.x64.debug')">msvc.x64.debug</SDLVariant>
+        <SDLVariant Condition="'$(Configuration)|$(Platform)'=='Release|Win32' And Exists('$(SDL3RootDir)\msvc.x86.release')">msvc.x86.release</SDLVariant>
+        <SDLVariant Condition="'$(Configuration)|$(Platform)'=='Debug|Win32' And Exists('$(SDL3RootDir)\msvc.x86.debug')">msvc.x86.debug</SDLVariant>
+        <SDLVariant Condition="'$(Configuration)|$(Platform)'=='Release|ARM64' And Exists('$(SDL3RootDir)\msvc.arm64.release')">msvc.arm64.release</SDLVariant>
+        <SDLVariant Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64' And Exists('$(SDL3RootDir)\msvc.arm64.debug')">msvc.arm64.debug</SDLVariant>
+
+        <!-- DLL模式（存在 duilib_dll.flag 时）：duilib 用 /MD 动态运行库，
+             必须链接同样使用 /MD 编译的 SDL3，否则 LNK2038(RuntimeLibrary 不匹配)。
+             Release 对应 msvc.<arch>.release.md，Debug 对应 msvc.<arch>.debug.mdd -->
+        <SDLVariant Condition="'$(Configuration)|$(Platform)'=='Release|x64' And Exists('$(MSBuildThisFileDirectory)duilib_dll.flag') And Exists('$(SDL3RootDir)\msvc.x64.release.md')">msvc.x64.release.md</SDLVariant>
+        <SDLVariant Condition="'$(Configuration)|$(Platform)'=='Debug|x64' And Exists('$(MSBuildThisFileDirectory)duilib_dll.flag') And Exists('$(SDL3RootDir)\msvc.x64.debug.mdd')">msvc.x64.debug.mdd</SDLVariant>
+        <SDLVariant Condition="'$(Configuration)|$(Platform)'=='Release|Win32' And Exists('$(MSBuildThisFileDirectory)duilib_dll.flag') And Exists('$(SDL3RootDir)\msvc.x86.release.md')">msvc.x86.release.md</SDLVariant>
+        <SDLVariant Condition="'$(Configuration)|$(Platform)'=='Debug|Win32' And Exists('$(MSBuildThisFileDirectory)duilib_dll.flag') And Exists('$(SDL3RootDir)\msvc.x86.debug.mdd')">msvc.x86.debug.mdd</SDLVariant>
+        <SDLVariant Condition="'$(Configuration)|$(Platform)'=='Release|ARM64' And Exists('$(MSBuildThisFileDirectory)duilib_dll.flag') And Exists('$(SDL3RootDir)\msvc.arm64.release.md')">msvc.arm64.release.md</SDLVariant>
+        <SDLVariant Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64' And Exists('$(MSBuildThisFileDirectory)duilib_dll.flag') And Exists('$(SDL3RootDir)\msvc.arm64.debug.mdd')">msvc.arm64.debug.mdd</SDLVariant>
+
+        <!-- SDL的include目录（变体优先，缺失时回退根目录） -->
+        <SDLIncludeDir Condition="'$(SDLEnabled)' == '0'"></SDLIncludeDir>
+        <SDLIncludeDir Condition="'$(SDLEnabled)' != '0' And '$(SDLVariant)' != ''">$(SDL3RootDir)\$(SDLVariant)\include</SDLIncludeDir>
+        <SDLIncludeDir Condition="'$(SDLEnabled)' != '0' And '$(SDLVariant)' == ''">$(SDL3RootDir)\include</SDLIncludeDir>
+
+        <!-- SDL的lib目录（变体优先，缺失时回退根目录） -->
         <SDLLibDir Condition="'$(SDLEnabled)' == '0'"></SDLLibDir>
-        <SDLLibDir Condition="'$(SDLEnabled)' != '0' And '$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\..\..\SDL3\lib</SDLLibDir>
-        <SDLLibDir Condition="'$(SDLEnabled)' != '0' And '$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\..\..\SDL3\lib</SDLLibDir>
-        <SDLLibDir Condition="'$(SDLEnabled)' != '0' And '$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\..\..\SDL3\lib</SDLLibDir>
-        <SDLLibDir Condition="'$(SDLEnabled)' != '0' And '$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\..\..\SDL3\lib</SDLLibDir>
+        <SDLLibDir Condition="'$(SDLEnabled)' != '0' And '$(SDLVariant)' != ''">$(SDL3RootDir)\$(SDLVariant)\lib</SDLLibDir>
+        <SDLLibDir Condition="'$(SDLEnabled)' != '0' And '$(SDLVariant)' == ''">$(SDL3RootDir)\lib</SDLLibDir>
 
         <!-- SDL的lib列表 -->
         <SDLLibs Condition="'$(SDLEnabled)' != '0'">SDL3-static.lib;Version.lib;Winmm.lib;Imm32.lib;Setupapi.lib</SDLLibs>

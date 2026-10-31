@@ -8,6 +8,8 @@ include("${CMAKE_CURRENT_LIST_DIR}/duilib_i18n.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_skia_toolchain.cmake")
 # Skia 变体目录名的唯一规则（与 duilib_common.cmake、duilib_deps.cmake 共用）
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_skia_variants.cmake")
+# SDL3 变体前缀目录名与布局判定（与 duilib_common.cmake、duilib_deps.cmake 共用）
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_sdl_variants.cmake")
 
 # ---------------------------------------------------------------------------
 # 参数校验
@@ -789,53 +791,59 @@ endfunction()
 
 # ---------------------------------------------------------------------------
 # SDL3
+#
+# Windows 上每个“架构 × 配置 × MSVC 运行库”组合都安装到独立前缀
+# （<root>/<variant>，规则见 cmake/duilib_sdl_variants.cmake）：SDL3 源码不设置
+# DEBUG_POSTFIX，Debug/Release 的静态库同名；MT/MTd/MD/MDd 的 RuntimeLibrary
+# 又互斥（混链报 LNK2038）。多配置生成器下两份都安装到各自的前缀，不会再出现
+# “Release 覆盖 Debug”。MinGW 的 CRT 由工具链决定，Debug/Release 共用 release
+# 变体；其他平台只有一份 Release 共享库，继续使用单前缀。
 # ---------------------------------------------------------------------------
-function(_duilib_sdl_stamp_value out_var)
+function(_duilib_sdl_stamp_value out_var variant)
     # 源码提交参与 stamp：本地仓库可能停在别的分支/标签（例如 SDL 源码停在
     # main），只记录 ref 名称会把“用错版本编译出来的库”当成清单版本的产物复用。
     _duilib_git_head("${DUILIB_SDL_SRC}" _sdl_commit)
-    # Windows：stamp 带上目标配置。Debug 与 Release 生成的 SDL3-static.lib 同名
-    # 且安装到同一个前缀，最终只保留最近一次安装的那一份；切换配置必须重建，
-    # 否则 Debug 会链接 Release 版静态库（/MTd 与 /MT、/MDd 与 /MD 混用）。
-    # Unix：SDL3 固定按 Release 构建共享库（见下方 ${DUILIB_ARCH}-release 目录），
-    # 产物与 duilib 的 Debug/Release 无关；stamp 不含配置分量，避免切换配置时
+    # 变体名已经包含架构/配置/运行库（MinGW 下 Debug/Release 同名），因此 stamp
+    # 不再单独记录配置，避免同一前缀的两份产物互相判为过期。
+    # 非 Windows 没有变体名：不追加分隔符，保持与旧 stamp 完全一致，避免升级后
     # 无谓地重新编译 SDL3。
-    if(DUILIB_DEPS_PLATFORM STREQUAL "windows")
-        set(${out_var}
-            "${DUILIB_SDL_REF_VALUE}|${_sdl_commit}|${DUILIB_ARCH}|${DUILIB_CRT_ID}|${DUILIB_DEPS_PLATFORM}|${DUILIB_CONFIG}"
-            PARENT_SCOPE)
+    set(_stamp
+        "${DUILIB_SDL_REF_VALUE}|${_sdl_commit}|${DUILIB_ARCH}|${DUILIB_CRT_ID}|${DUILIB_DEPS_PLATFORM}")
+    if(NOT "${variant}" STREQUAL "")
+        string(APPEND _stamp "|${variant}")
+    endif()
+    set(${out_var} "${_stamp}" PARENT_SCOPE)
+endfunction()
+
+# 配置 -> 变体目录名（非 Windows 为空串，表示沿用单前缀）
+function(_duilib_sdl_variant_for config out_var)
+    duilib_sdl_variant_name("${config}" "${DUILIB_DEPS_PLATFORM}" "${DUILIB_ARCH}"
+                            "${DUILIB_MINGW}" _variant)
+    set(${out_var} "${_variant}" PARENT_SCOPE)
+endfunction()
+
+# 配置 -> 安装前缀
+function(_duilib_sdl_prefix_for config out_var)
+    _duilib_sdl_variant_for("${config}" _variant)
+    if(_variant STREQUAL "")
+        set(${out_var} "${DUILIB_SDL_ROOT}" PARENT_SCOPE)
     else()
-        set(${out_var}
-            "${DUILIB_SDL_REF_VALUE}|${_sdl_commit}|${DUILIB_ARCH}|${DUILIB_CRT_ID}|${DUILIB_DEPS_PLATFORM}"
-            PARENT_SCOPE)
+        set(${out_var} "${DUILIB_SDL_ROOT}/${_variant}" PARENT_SCOPE)
     endif()
 endfunction()
 
-function(_duilib_sdl_ready out_ready)
+# 前缀是否已就绪：stamp 必须与“本次配置对应的变体”一致。显式传入变体而不是
+# 读取调用者的 DUILIB_CONFIG，避免多配置循环里漏设 DUILIB_CONFIG 时误判。
+function(_duilib_sdl_ready prefix variant out_ready)
     set(_ok FALSE)
-    if(EXISTS "${DUILIB_SDL_ROOT}/.duilib-sdl" AND EXISTS "${DUILIB_SDL_ROOT}/include/SDL3/SDL.h")
-        file(READ "${DUILIB_SDL_ROOT}/.duilib-sdl" _stamp)
-        _duilib_sdl_stamp_value(_expected)
-        if(_stamp STREQUAL _expected)
-            if(DUILIB_DEPS_PLATFORM STREQUAL "windows")
-                if(DUILIB_MINGW)
-                    if(EXISTS "${DUILIB_SDL_ROOT}/lib/libSDL3.a" OR
-                       EXISTS "${DUILIB_SDL_ROOT}/lib/libSDL3d.a")
-                        set(_ok TRUE)
-                    endif()
-                elseif(EXISTS "${DUILIB_SDL_ROOT}/lib/SDL3-static.lib")
-                    set(_ok TRUE)
-                endif()
-            else()
-                if(DUILIB_DEPS_PLATFORM STREQUAL "macos")
-                    # macOS 安装产物是 .dylib；用 .so 判断会把已完成的构建误判为失败。
-                    if(EXISTS "${DUILIB_SDL_ROOT}/lib/libSDL3.dylib")
-                        set(_ok TRUE)
-                    endif()
-                elseif(EXISTS "${DUILIB_SDL_ROOT}/lib/libSDL3.so" OR
-                       EXISTS "${DUILIB_SDL_ROOT}/lib64/libSDL3.so")
-                    set(_ok TRUE)
-                endif()
+    if(EXISTS "${prefix}/.duilib-sdl")
+        duilib_sdl_prefix_ready("${prefix}" "${DUILIB_DEPS_PLATFORM}"
+                                "${DUILIB_MINGW}" _prefix_ok)
+        if(_prefix_ok)
+            _duilib_sdl_stamp_value(_expected "${variant}")
+            file(READ "${prefix}/.duilib-sdl" _stamp)
+            if(_stamp STREQUAL _expected)
+                set(_ok TRUE)
             endif()
         endif()
     endif()
@@ -849,11 +857,11 @@ function(_duilib_run_checked what hint)
     endif()
 endfunction()
 
-function(_duilib_sdl_build_one build_dir config)
+function(_duilib_sdl_build_one build_dir config install_prefix)
     set(_args
         -S "${DUILIB_SDL_SRC}"
         -B "${build_dir}"
-        "-DCMAKE_INSTALL_PREFIX=${DUILIB_SDL_ROOT}"
+        "-DCMAKE_INSTALL_PREFIX=${install_prefix}"
         "-DSDL_TEST_LIBRARY=OFF")
     if(DUILIB_DEPS_PLATFORM STREQUAL "windows")
         list(APPEND _args -G Ninja "-DCMAKE_BUILD_TYPE=${config}")
@@ -897,6 +905,48 @@ function(_duilib_sdl_build_one build_dir config)
     endif()
 endfunction()
 
+# 为单个配置准备 SDL3：安装到该配置的变体前缀（已就绪则直接跳过）
+function(_duilib_prepare_sdl_config config)
+    _duilib_sdl_variant_for("${config}" _variant)
+    _duilib_sdl_prefix_for("${config}" _prefix)
+    _duilib_sdl_ready("${_prefix}" "${_variant}" _ready)
+    if(_ready AND NOT DUILIB_DEPS_FORCE)
+        _duilib_write_crt("${_prefix}")
+        duilib_msg("deps.sdl_ready" " (${_prefix})")
+        return()
+    endif()
+
+    # 构建目录按“架构-配置”命名、与工具链无关。若上次用别的方式（MSVC / MinGW /
+    # 不同运行库）构建过，目录里的 CMake 缓存仍指向旧编译器，直接复用会失败
+    # （例如 MinGW 配置时仍调用 cl.exe）。stamp 记录上次成功构建的变体，与本次
+    # 不一致时清空该配置的构建目录重新配置。
+    string(TOLOWER "${config}" _cfg_lower)
+    set(_build_dir "${DUILIB_SDL_BUILD_ROOT}/${DUILIB_ARCH}-${_cfg_lower}")
+    _duilib_sdl_stamp_value(_stamp_expected "${_variant}")
+    set(_cache_reusable FALSE)
+    if(EXISTS "${_prefix}/.duilib-sdl")
+        file(READ "${_prefix}/.duilib-sdl" _old_stamp)
+        if(_old_stamp STREQUAL _stamp_expected)
+            set(_cache_reusable TRUE)
+        endif()
+    endif()
+    if(DUILIB_DEPS_FORCE OR NOT _cache_reusable)
+        file(REMOVE_RECURSE "${_build_dir}")
+    endif()
+
+    _duilib_sdl_build_one("${_build_dir}" "${config}" "${_prefix}")
+
+    # 先写入 stamp 再校验：_duilib_sdl_ready 以 stamp + 头文件 + 库三者判断，
+    # 首次安装前不存在 stamp，若先校验会导致构建成功后仍报失败。
+    file(WRITE "${_prefix}/.duilib-sdl" "${_stamp_expected}")
+    _duilib_sdl_ready("${_prefix}" "${_variant}" _ready)
+    if(NOT _ready)
+        duilib_error("deps.sdl_failed" "deps.sdl_failed_hint")
+    endif()
+    _duilib_write_crt("${_prefix}")
+    duilib_msg("deps.sdl_ready" " (${_prefix})")
+endfunction()
+
 function(duilib_prepare_sdl)
     # 本地源码可能停在别的分支/标签（如 main），先按清单对齐；stamp 里包含源码
     # 提交，切换后旧版本的安装产物不会被当成清单版本的产物复用。
@@ -904,68 +954,50 @@ function(duilib_prepare_sdl)
         _duilib_ensure_git_ref("${DUILIB_SDL_SRC}" "${DUILIB_SDL_REF_TYPE}"
                                "${DUILIB_SDL_REF_VALUE}" "SDL3")
     endif()
-    _duilib_sdl_ready(_ready)
-    if(_ready AND NOT DUILIB_DEPS_FORCE)
-        _duilib_write_crt("${DUILIB_SDL_ROOT}")
-        duilib_msg("deps.sdl_ready" " (${DUILIB_SDL_ROOT})")
-        return()
-    endif()
 
-    if(EXISTS "${DUILIB_SDL_SRC}" AND NOT EXISTS "${DUILIB_SDL_SRC}/.git")
-        # 没有 .git 的残留目录无法更新，避免在无限重试下卡死
-        duilib_error_values("${DUILIB_SDL_SRC} exists but is not a git checkout"
-                            "remove that directory, or clone the repository manually")
-    endif()
-    if(NOT EXISTS "${DUILIB_SDL_SRC}")
-        _duilib_clone("${DUILIB_SDL_REF_TYPE}" "${DUILIB_SDL_REF_VALUE}"
-                      "${DUILIB_SDL_REPO}" "${DUILIB_SDL_SRC}")
-    endif()
-
-    duilib_msg("deps.sdl_building" " (${DUILIB_SDL_REF_VALUE})")
+    # 需要安装的配置：Windows 多配置生成器下 Debug/Release 各装一份（变体前缀
+    # 不同，不再互相覆盖）；MinGW 的 Debug/Release 共用 release 变体，只装一次；
+    # 其他平台只用 release 共享库。
+    set(_duilib_sdl_configs "${DUILIB_CONFIG}")
     if(DUILIB_DEPS_PLATFORM STREQUAL "windows")
-        # SDL3 的构建目录按“架构-配置”命名、与工具链无关。若上次用别的方式
-        # （MSVC / MinGW / 不同运行库）构建过，目录里的 CMake 缓存仍指向旧编译器，
-        # 直接复用会失败（例如 MinGW 配置时仍调用 cl.exe）。stamp 记录上次成功
-        # 构建的 CRT，与本次不一致时清空构建目录重新配置。
-        _duilib_sdl_stamp_value(_stamp_expected)
-        set(_sdl_cache_reusable FALSE)
-        if(EXISTS "${DUILIB_SDL_ROOT}/.duilib-sdl")
-            file(READ "${DUILIB_SDL_ROOT}/.duilib-sdl" _sdl_old_stamp)
-            if(_sdl_old_stamp STREQUAL _stamp_expected)
-                set(_sdl_cache_reusable TRUE)
+        if(DUILIB_MULTI_CONFIG)
+            duilib_msg("deps.sdl_multi_config" "")
+            if(NOT DUILIB_MINGW)
+                set(_duilib_sdl_configs "Debug" "Release")
+            else()
+                set(_duilib_sdl_configs "Release")
             endif()
         endif()
-        if(DUILIB_DEPS_FORCE OR NOT _sdl_cache_reusable)
-            file(REMOVE_RECURSE "${DUILIB_SDL_BUILD_ROOT}")
-        endif()
-        if(DUILIB_MULTI_CONFIG)
-            # 多配置生成器在配置期不知道目标配置，只能把两个配置都构建一遍；
-            # 两者安装到同一前缀、库同名，最后安装的 Release 会覆盖 Debug，
-            # 因此 Debug 目标实际链接的是 Release 版 SDL3 静态库。
-            # 需要严格的 Debug/Release 一致时请使用单配置生成器（Ninja/Makefiles）。
-            duilib_msg("deps.sdl_multi_config" "")
-            _duilib_sdl_build_one("${DUILIB_SDL_BUILD_ROOT}/${DUILIB_ARCH}-debug" "Debug")
-            _duilib_sdl_build_one("${DUILIB_SDL_BUILD_ROOT}/${DUILIB_ARCH}-release" "Release")
-        else()
-            # 单配置生成器（build.py 默认的 Ninja）：只构建并安装当前配置，
-            # 保证 Debug 使用 /MTd、/MDd 编译的 SDL3，Release 使用 /MT、/MD。
-            _duilib_sdl_build_one("${DUILIB_SDL_BUILD_ROOT}/${DUILIB_ARCH}-${DUILIB_BUILD_TYPE}"
-                                  "${DUILIB_CONFIG}")
-        endif()
     else()
-        _duilib_sdl_build_one("${DUILIB_SDL_BUILD_ROOT}/${DUILIB_ARCH}-release" "Release")
+        set(_duilib_sdl_configs "Release")
     endif()
 
-    # 先写入 stamp 再校验：_duilib_sdl_ready 以 stamp + 头文件 + 库三者判断，
-    # 首次安装前不存在 stamp，若先校验会导致构建成功后仍报失败。
-    _duilib_sdl_stamp_value(_stamp)
-    file(WRITE "${DUILIB_SDL_ROOT}/.duilib-sdl" "${_stamp}")
-    _duilib_sdl_ready(_ready)
-    if(NOT _ready)
-        duilib_error("deps.sdl_failed" "deps.sdl_failed_hint")
+    set(_duilib_sdl_pending FALSE)
+    foreach(_config IN LISTS _duilib_sdl_configs)
+        _duilib_sdl_variant_for("${_config}" _variant)
+        _duilib_sdl_prefix_for("${_config}" _prefix)
+        _duilib_sdl_ready("${_prefix}" "${_variant}" _ready)
+        if(NOT _ready OR DUILIB_DEPS_FORCE)
+            set(_duilib_sdl_pending TRUE)
+        endif()
+    endforeach()
+
+    if(_duilib_sdl_pending)
+        if(EXISTS "${DUILIB_SDL_SRC}" AND NOT EXISTS "${DUILIB_SDL_SRC}/.git")
+            # 没有 .git 的残留目录无法更新，避免在无限重试下卡死
+            duilib_error_values("${DUILIB_SDL_SRC} exists but is not a git checkout"
+                                "remove that directory, or clone the repository manually")
+        endif()
+        if(NOT EXISTS "${DUILIB_SDL_SRC}")
+            _duilib_clone("${DUILIB_SDL_REF_TYPE}" "${DUILIB_SDL_REF_VALUE}"
+                          "${DUILIB_SDL_REPO}" "${DUILIB_SDL_SRC}")
+        endif()
+        duilib_msg("deps.sdl_building" " (${DUILIB_SDL_REF_VALUE})")
     endif()
-    _duilib_write_crt("${DUILIB_SDL_ROOT}")
-    duilib_msg("deps.sdl_ready" " (${DUILIB_SDL_ROOT})")
+
+    foreach(_config IN LISTS _duilib_sdl_configs)
+        _duilib_prepare_sdl_config("${_config}")
+    endforeach()
 endfunction()
 
 # ---------------------------------------------------------------------------

@@ -684,6 +684,36 @@ class DryRunOutputTests(unittest.TestCase):
             self.assertIn(str(target), lines[0])
 
 
+class PackCommandTests(unittest.TestCase):
+    """`build.py pack` 必须把依赖根转发给 pack.py。"""
+
+    def _command(self, argv):
+        captured = []
+
+        def fake_run(command, **_kwargs):
+            captured.append([str(part) for part in command])
+            return SimpleNamespace(returncode=0)
+
+        with mock.patch.object(entry.subprocess, "run", side_effect=fake_run), \
+                contextlib.redirect_stdout(io.StringIO()):
+            code = entry.main(["--lang", "en"] + argv)
+        self.assertEqual(code, 0)
+        self.assertTrue(captured)
+        return captured[-1]
+
+    def test_default_deps_root_is_forwarded(self):
+        command = self._command(["pack"])
+        self.assertIn("--deps-root", command)
+        index = command.index("--deps-root")
+        self.assertEqual(command[index + 1], str(entry.REPO_ROOT.parent.resolve()))
+
+    def test_explicit_deps_root_is_forwarded(self):
+        with tempfile.TemporaryDirectory() as root:
+            command = self._command(["pack", "--deps-root", root])
+            index = command.index("--deps-root")
+            self.assertEqual(command[index + 1], str(Path(root).resolve()))
+
+
 class ToolchainSelectionTests(unittest.TestCase):
     def test_uos_detected_from_os_release(self):
         with mock.patch.object(entry.Path, "read_text", return_value='NAME="UOS"\nID=uos\n'):

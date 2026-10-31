@@ -12,6 +12,8 @@ include("${CMAKE_CURRENT_LIST_DIR}/duilib_i18n.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_skia_toolchain.cmake")
 # Skia 变体目录名的唯一规则（与 duilib_common.cmake、依赖准备共用）
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_skia_variants.cmake")
+# SDL3 变体前缀目录名与布局判定（与 duilib_common.cmake、依赖准备共用）
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_sdl_variants.cmake")
 # 函数体内不能依赖 CMAKE_CURRENT_LIST_DIR（那是调用者的目录），先固化本文件所在目录
 set(DUILIB_CMAKE_DIR "${CMAKE_CURRENT_LIST_DIR}")
 
@@ -54,8 +56,8 @@ endfunction()
 # 构造传给脚本模式的 -D 参数列表
 function(_duilib_deps_script_args out_var)
     _duilib_deps_config(_duilib_deps_cfg)
-    # 多配置生成器（Visual Studio）无法在配置期区分目标配置：SDL3 只能构建
-    # Debug/Release 两份并让 Release 覆盖安装，脚本据此给出提示。
+    # 多配置生成器（Visual Studio）无法在配置期区分目标配置：SDL3 按变体前缀
+    # 分别安装 Debug/Release（<root>/<variant>），两份互不覆盖。
     if(CMAKE_CONFIGURATION_TYPES)
         set(_duilib_deps_multi ON)
     else()
@@ -185,6 +187,52 @@ function(_duilib_check_skia)
     endif()
 endfunction()
 
+# 配置期检查 SDL3 安装前缀（off 模式）：逐个目标配置解析变体前缀
+# （<root>/<variant>），变体目录缺失时回退 <root>（兼容显式传入的单前缀）。
+function(_duilib_check_sdl)
+    set(_duilib_sdl_platform "other")
+    if(DUILIB_OS_WINDOWS)
+        set(_duilib_sdl_platform "windows")
+        set(_duilib_sdl_arch "${DUILIB_TARGET_ARCH_RESOLVED}")
+    else()
+        set(_duilib_sdl_arch "${DUILIB_SYSTEM_PROCESSOR}")
+    endif()
+    _duilib_deps_skia_configs(_duilib_sdl_configs)
+    set(_duilib_sdl_error "")
+    foreach(_duilib_sdl_cfg IN LISTS _duilib_sdl_configs)
+        if(_duilib_sdl_cfg STREQUAL "debug")
+            set(_duilib_sdl_cfg_cap "Debug")
+        else()
+            set(_duilib_sdl_cfg_cap "Release")
+        endif()
+        duilib_sdl_prefix_candidates("${_duilib_sdl_cfg_cap}" "${_duilib_sdl_platform}"
+                                     "${_duilib_sdl_arch}" "${MINGW}"
+                                     "${DUILIB_SDL_ROOT}" _duilib_sdl_candidates)
+        set(_duilib_sdl_resolved "")
+        foreach(_duilib_sdl_candidate IN LISTS _duilib_sdl_candidates)
+            duilib_sdl_prefix_ready("${_duilib_sdl_candidate}" "${_duilib_sdl_platform}"
+                                    "${MINGW}" _duilib_sdl_candidate_ok)
+            if(_duilib_sdl_candidate_ok)
+                set(_duilib_sdl_resolved "${_duilib_sdl_candidate}")
+                break()
+            endif()
+        endforeach()
+        if(_duilib_sdl_resolved STREQUAL "")
+            string(REPLACE ";" "\n    " _duilib_sdl_candidates_text
+                   "${_duilib_sdl_candidates}")
+            string(APPEND _duilib_sdl_error
+                "  ${_duilib_sdl_cfg}:\n    ${_duilib_sdl_candidates_text}\n")
+        endif()
+    endforeach()
+    if(NOT _duilib_sdl_error STREQUAL "")
+        message(FATAL_ERROR
+            "[ERROR] no usable SDL3 installation prefix under ${DUILIB_SDL_ROOT}\n"
+            "  Tried:\n${_duilib_sdl_error}"
+            "  Hint: run 'build.py deps' (Windows installs one prefix per configuration), "
+            "or pass -DDUILIB_SDL_ROOT=<installed SDL3 prefix>")
+    endif()
+endfunction()
+
 # 配置期依赖检查（off 模式）：只检查，不准备
 function(_duilib_check_dependency_exists what path hint)
     if(NOT EXISTS "${path}")
@@ -200,6 +248,11 @@ function(duilib_configure_dependencies)
 
     if(DUILIB_DEPS_MODE STREQUAL "auto")
         set(DUILIB_SKIA_AUTOBUILD ON CACHE BOOL "Skip the Skia existence check (deps builds it first)" FORCE)
+        # SDL3 同样由 duilib_deps 在编译前安装：配置期只按规则预判变体路径。
+        # 与 Skia 的 AUTOBUILD 不同，这里不写缓存（避免切换回 off 模式后残留）；
+        # 但必须写到父作用域：函数内的 set() 不会传出去，子目录里的
+        # duilib_common.cmake 看不到，首次配置（变体尚未安装）会误报缺少 SDL3。
+        set(DUILIB_SDL_AUTOBUILD ON PARENT_SCOPE)
         duilib_msg("deps.done" " (auto: prepared before compiling)")
         return()
     endif()
@@ -211,8 +264,8 @@ function(duilib_configure_dependencies)
 
     _duilib_check_skia()
 
-    if(DUILIB_ENABLE_SDL AND NOT EXISTS "${DUILIB_SDL_LIB_DIR}")
-        duilib_error("deps.sdl_missing" "deps.sdl_missing_hint")
+    if(DUILIB_ENABLE_SDL)
+        _duilib_check_sdl()
     endif()
 
     if(DUILIB_ENABLE_CEF)
