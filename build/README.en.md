@@ -9,7 +9,10 @@ and troubleshooting, see [build-reference.en.md](build-reference.en.md).
 | File | Purpose |
 | :--- | :--- |
 | `build.py` | **the single command-line entry**: deps, build, test, pack, clean |
+| `build.bat` | thin Windows wrapper: locates Python 3 (`py -3` / `python` / `python3`); all logic lives in `build.py` |
+| `i18n.py` | shared language resolution and message catalog for the build entry points (single source: `cmake/i18n/messages.json`, same order as `cmake/duilib_i18n.cmake`) |
 | `build-reference.md` / `.en.md` | build reference manual (commands, deps, outputs, troubleshooting) |
+| `test-matrix.md` | build/packaging verification matrix and measured results (platforms, toolchains, architectures, configurations, features) |
 | `linux-dependencies.md` / `.en.md` | system dependency commands for Linux distributions and how to verify them |
 | `macos-app-bundle.md` / `.en.md` | reference for building examples as macOS `.app` bundles |
 | `pack.py` | produces SDK packages (collects existing artifacts, never builds) |
@@ -17,6 +20,8 @@ and troubleshooting, see [build-reference.en.md](build-reference.en.md).
 | `autotest.py` | local automation: environment check → build → package → verify → assertions |
 | `test_build.py` | unit tests for the build entry point |
 | `test_pack.py` / `test_autotest.py` | packaging and automation tests |
+| `test_cmake_scripts.py` | CMake script tests: Skia/SDL3 variants, CRT derivation, MSYS2 detection and a case-by-case comparison with the packaging side (cases are skipped when cmake is not on PATH) |
+| `tests/skia_variants_check.cmake` | fixture run by `test_cmake_scripts.py` through `cmake -P`: variant names, candidate fallback, multi-configuration preparation, CRT derivation |
 | `test_sdk_package.py` | unit tests for the pure functions of the SDK package test orchestrator |
 | `sdk_package_test.py` | released-SDK package test orchestrator (structure checks + consumer build/run + negative cases) |
 | `sdk_test/` | SDK consumer test projects (depend only on the unpacked SDK) |
@@ -142,10 +147,12 @@ python3 build/build.py pack --config Debug --out-dir dist
 ```
 
 Package name: `nim_duilib-<version>-<system>-<arch>[-sdl][-cef|-cef109][-examples][-debug]`.
-It contains `include/duilib/`, `lib/<arch>/<Config>/`, `bin/` (runtime DLLs and
-`bin/resources/`), `lib/cmake/nim_duilib/`, `LICENSES/`, `docs/`, `MANIFEST.txt` and
-`SHA256SUMS`. `LICENSES/`, `THIRD-PARTY-NOTICES.md` and `THIRD-PARTY-NOTICES.en.md`
-must be kept when redistributing.
+It contains `include/duilib/`, `lib/` (flat layout; architecture and configuration
+are distinguished by the package name), `bin/` (runtime DLLs and `bin/resources/`),
+`msvc/` (Windows MSVC integration layer), `lib/cmake/nim_duilib/`, `LICENSES/`,
+`docs/`, `THIRD-PARTY-NOTICES*.md`, `VERSION`, `MANIFEST.txt` and `SHA256SUMS`.
+`LICENSES/`, `THIRD-PARTY-NOTICES.md` and `THIRD-PARTY-NOTICES.en.md` must be kept
+when redistributing.
 
 ### Local packaging automation
 
@@ -248,12 +255,18 @@ See [docs/Release.en.md](../docs/Release.en.md) for the complete guide.
 2. Register the name in the example list of `cmake/duilib_root_options.cmake`.
 3. Examples that need CEF follow the default CEF switch.
 
-### Skia variants and runtime
+### Skia/SDL3 variants and runtime
 
 The Skia variant directory is derived from architecture, toolchain and runtime
 (e.g. `llvm.x64.release`, `llvm.x64.debug`, `mingw64-gcc.x64.release`). Switching
 `--md` or the toolchain makes `deps` produce the matching variant; `pack.py` detects
 it from the directory contents.
+
+On Windows, SDL3 is installed per architecture × configuration × runtime into
+`<deps-root>/SDL3/<variant>` (`msvc.<arch>.<debug|release>[.mdd|.md]`; MinGW reuses
+the Skia release variant name). The rule lives in
+`cmake/duilib_sdl_variants.cmake`; a missing variant falls back to the single prefix
+with a warning.
 
 ### Supported compilers
 

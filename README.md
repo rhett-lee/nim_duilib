@@ -107,7 +107,7 @@ Linux 上还需要发行版提供的 X11、字体、OpenGL/EGL、DBus/ibus 等�
 
 仓库不再为各平台提供不同的构建脚本，文档里的命令也统一写成 `python3 build/build.py`。这样做的原因有三点：Skia 的构建脚本固定调用 `python3`，缺少 `python3` 时会在编译 Skia 前直接失败，`python` 不能替代；macOS/Linux 的常见环境只提供 `python3`，命令若写成 `python` 会报 command not found；统一成同一条命令后，文档只需维护一套命令，新用户不必先判断自己该用哪个脚本，参数、子命令与产物路径在各平台完全一致，学习成本最低。`build.py` 会自动识别当前平台与编译器、选择生成器、准备依赖，并附带 `doctor`（环境自检）、`deps`（只准备依赖）、`test`（单元测试）、`pack`（出包）、`clean`（清理）等子命令。
 
-Windows 上如果没有 `python3` 命令，可以把命令开头的 `python3` 换成 `py -3`，或换成环境里指向 Python 3 的 `python`（先用 `--version` 确认版本）；这两种写法只适用于 Windows，本文其他命令示例一律使用 `python3`。需要注意，它们只改变 `build.py` 的启动方式，Skia 构建阶段仍要求 PATH 中存在 `python3`，否则会在编译 Skia 前报错终止。
+Windows 上如果没有 `python3` 命令，可以把命令开头的 `python3` 换成 `py -3`，或换成环境里指向 Python 3 的 `python`（先用 `--version` 确认版本）；也可以直接用薄封装 `build\build.bat`（它按 `py -3` → `python` → `python3` 的顺序找解释器），参数与 `build.py` 完全相同，例如 `build\build.bat deps`。前两种写法只适用于 Windows，本文其他命令示例一律使用 `python3`。需要注意，它们只改变 `build.py` 的启动方式，Skia 构建阶段仍要求 PATH 中存在 `python3`，否则会在编译 Skia 前报错终止。
 
 ### Windows（已验证：Windows 10/11 x64 + VS 2022/VS 2026）
 

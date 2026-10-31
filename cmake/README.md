@@ -8,16 +8,58 @@
 
 ```
 cmake/
-├── duilib_common.cmake        # 公共配置（操作系统/编译器/CPU检测，路径设置）
-├── duilib_bin.cmake           # 可执行程序基础配置（C++标准，路径配置）
-├── duilib_bin_windows.cmake   # Windows 平台特定配置
-├── duilib_bin_linux.cmake     # Linux 平台特定配置
-├── duilib_bin_macos.cmake     # macOS 平台特定配置
-├── duilib_bin_freebsd.cmake   # FreeBSD 平台特定配置
-├── duilib_compiles.cmake      # 编译选项检测（AVX/AVX2）
-├── duilib_cef_macos.cmake     # macOS CEF 特殊配置
-└── duilib_macos_bundle.cmake  # macOS 普通示例的 App Bundle 配置
+├── README.md / README.en.md        # 本文件（目录说明、开关汇总与排障）
+├── third_party_versions.json       # Skia / SDL3 / CEF 版本清单（唯一维护点）
+├── i18n/messages.json              # 构建消息目录（中英文，唯一维护点）
+├── macos/Info.plist.in             # macOS App Bundle 的 Info.plist 模板
+│
+├─ 公共层（库子项目、示例与根工程共用）
+│  ├── duilib_common.cmake                 # 公共配置（操作系统/编译器/CPU检测，路径设置）
+│  ├── duilib_bin.cmake                    # 可执行程序基础配置（C++20 标准、路径与输出目录）
+│  ├── duilib_bin_windows.cmake            # Windows 平台特定配置（运行库、manifest、WebView2）
+│  ├── duilib_bin_linux.cmake              # Linux 平台特定配置
+│  ├── duilib_bin_macos.cmake              # macOS 平台特定配置（框架与 App Bundle 入口）
+│  ├── duilib_bin_freebsd.cmake            # FreeBSD 平台特定配置
+│  ├── duilib_compiles.cmake               # 编译选项检测（AVX/AVX2）
+│  ├── duilib_compiler_flags.cmake         # GCC/Clang 公共编译参数（Unix 库与示例共用）
+│  ├── duilib_unix_font_libs.cmake         # Linux/FreeBSD 字体依赖（Freetype、Fontconfig）
+│  ├── duilib_lib_output.cmake             # 库输出目录规则（lib/<arch>/<Config>，配置只由目录表达）
+│  ├── duilib_log_variables.cmake          # DUILIB_LOG 变量打印（由 duilib_common.cmake 末尾包含）
+│  ├── duilib_example.cmake                # 示例公共实现：示例只需「声明开关 + include 一次」
+│  ├── duilib_write_build_stamp.cmake      # POST_BUILD 写 bin/.build-config/<目标>（识别配置切换）
+│  ├── duilib_cef_macos.cmake              # macOS CEF 特殊配置（Framework、Helper、资源、rpath）
+│  ├── duilib_macos_bundle.cmake           # macOS 普通示例的 App Bundle 配置
+│  ├── duilib_copy_bundle_resources.cmake  # App Bundle 资源按清单增量同步（每次构建执行）
+│  └── duilib_copy_sdl_bundle.cmake        # 复制 SDL3 动态库到 Contents/Frameworks 并设置 rpath
+│
+├─ 根工程编排（仓库根 CMakeLists.txt 使用）
+│  ├── duilib_i18n.cmake                   # 语言解析与消息目录（include 与 cmake -P 均可用）
+│  ├── duilib_bootstrap.cmake              # 工具自举：PATH 上没有 ninja 时取用 VS 目录或补丁归档
+│  ├── duilib_root_options.cmake           # 平台/编译器/架构识别与统一缓存选项（project() 之后）
+│  ├── duilib_preflight_tools.cmake        # 阶段 A 预检（无编译器）：检查工具与系统库，不改文件
+│  ├── duilib_preflight.cmake              # 阶段 B 预检（有编译器）：确定性的工具链/架构校验
+│  ├── duilib_deps.cmake                   # 依赖检查与准备目标（DUILIB_DEPS_MODE=off/prepare/auto）
+│  ├── duilib_deps_run.cmake               # 依赖准备脚本（cmake -P）：Skia/SDL3/CEF 下载、构建与安装
+│  ├── duilib_download.cmake               # 下载工具（curl 优先、断点续传与重试，回退 file(DOWNLOAD)）
+│  └── duilib_cef.cmake                    # CEF 运行时下载/校验/解压/复制（Windows 与 Linux 共用）
+│
+└─ 目录名规则（依赖准备、配置期解析、off 模式检查与打包共用）
+   ├── duilib_skia_variants.cmake         # Skia 变体目录名唯一规则
+   ├── duilib_skia_toolchain.cmake        # Skia 编译工具链选择 + duilib_detect_msys2()（MSYS2 判定）
+   ├── duilib_sdl_variants.cmake          # SDL3 变体前缀唯一规则（架构 × 配置 × 运行库）
+   └── duilib_crt.cmake                   # CRT 标识唯一推导（msvc-md / msvc-mt / <env>[-msvcrt] / system）
 ```
+
+最后一组里，`duilib_skia_variants.cmake`、`duilib_sdl_variants.cmake`、
+`duilib_crt.cmake` 这三个「目录名规则」文件是**唯一实现点**：配置期解析
+（`duilib_common.cmake`、`duilib_root_options.cmake`）与依赖检查/准备
+（`duilib_deps*.cmake`）都必须复用它们，禁止在其他 CMake 文件里再拼目录名；
+`duilib_skia_toolchain.cmake` 负责 Skia 编译工具链选择和 `duilib_detect_msys2()`
+（MSYS2 与独立 MinGW-w64 判定），同样只有这一处实现。
+打包侧（`build/pack.py`）与 VS 属性表（`msvc/PropertySheets/*.props`）无法直接
+include CMake 脚本，只能按同一套规则实现；`build/tests/skia_variants_check.cmake`
+（`cmake -P` 夹具）与 `build/test_cmake_scripts.py`（Python 侧实现）用同一组用例
+逐项比对，防止两侧再次漂移。
 
 ---
 
@@ -64,9 +106,9 @@ DUILIB_BUILD_TYPE        # "debug" 或 "release"
 | `DUILIB_SKIA_LIB_SUBPATH` | 空 | Skia 库子目录；空表示按平台/配置自动拼接（见下方规则） |
 | `DUILIB_ENABLE_SDL` | Windows=OFF, 其他=ON | 启用 SDL 输入支持 |
 | `DUILIB_SDL_AUTOBUILD` | OFF | 依赖自动准备模式（`DUILIB_DEPS_MODE=auto`）：跳过 SDL3 存在性校验，按变体规则预判路径 |
-| `DUILIB_ENABLE_CEF` | OFF | 启用 CEF 浏览器支持（库编译 CEF 控件源码） |
+| `DUILIB_ENABLE_CEF` | Windows MSVC/Linux/macOS=ON，MinGW/FreeBSD=OFF | 启用 CEF 浏览器支持（库编译 CEF 控件源码）；不支持的平台会被强制关闭并告警 |
 | `DUILIB_EXAMPLE_CEF` | OFF | 示例程序链接 CEF（仅 `cef`/`CefBrowser` 设置） |
-| `DUILIB_CEF_109` | OFF | 使用 CEF 109 版本（支持 Win7） |
+| `DUILIB_CEF_109` | OFF | 使用 CEF 109 版本（支持 Win7）；已弃用，等价于 `-DDUILIB_CEF_VERSION=109`，设置时会打印告警 |
 | `DUILIB_WEBVIEW2_EXE` | OFF | WebView2 可执行程序（仅 Windows） |
 | `DUILIB_MINGW_STATIC` | ON | MinGW 静态链接 |
 
@@ -446,6 +488,60 @@ check_cxx_source_compiles("
 
 ---
 
+## 根工程脚本（依赖准备与公共设施）
+
+下面这些文件由**仓库根 `CMakeLists.txt`** 使用，库子项目（`duilib/`）与示例
+（`examples/*`）不需要关心（示例通过 `duilib_example.cmake` 间接使用公共层）。
+按执行顺序：
+
+| 文件 | 何时执行 | 职责与关键入口 |
+| :--- | :--- | :--- |
+| `duilib_i18n.cmake` | `project()` 之前 | 语言解析（`--lang`/`DUILIB_LANG` → `LC_ALL`/`LC_MESSAGES`/`LANG` → 系统区域 → en；只有 `zh`/`zh_CN`/`zh_Hans` 用中文）与消息目录加载。`include` 与 `cmake -P` 均可用，入口 `duilib_t()` / `duilib_msg()` / `duilib_warn()` / `duilib_error()` |
+| `duilib_bootstrap.cmake` | `project()` 之前 | 工具自举：PATH 上没有 ninja 时由 `duilib_bootstrap_ninja(<patch_dir> <patch_zip>)` 依次从 VS 安装目录与 Skia 补丁归档的 `bin/ninja.exe` 取用 |
+| `duilib_preflight_tools.cmake` | `project()` 之前（`cmake -P`） | 阶段 A 预检：只探测工具（cmake/ninja/git/python、`vswhere`）与系统库，不下载、不安装、不改文件 |
+| `duilib_root_options.cmake` | `project()` 之后 | 平台/编译器/架构识别，写入统一缓存选项（覆盖子项目 `option()` 的默认值）；同时前移 `DUILIB_MINGW`/`DUILIB_MSYS2_ENV`，并按配置解析 SDL3 变体前缀 |
+| `duilib_preflight.cmake` | `project()` 之后 | 阶段 B 预检：编译器确定后的确定性校验（架构、工具链、系统库），错误一次性汇总输出 |
+| `duilib_deps.cmake` | `project()` 之后 | 建立依赖检查与准备目标（`duilib_configure_dependencies()` / `duilib_link_dependency_targets()`）；`DUILIB_DEPS_MODE=off/prepare/auto` 三档 |
+| `duilib_deps_run.cmake` | 构建期（`cmake -P`） | 真正的依赖准备：Skia/SDL3/CEF 的下载、校验、构建与安装；SDL3 每个变体装到自己的前缀并写 `.duilib-sdl`/`.duilib-crt` 标记；`duilib_deps` 目标与 `build.py deps` 共用 |
+| `duilib_download.cmake` | `cmake -P` | 下载工具函数：curl 优先（支持断点续传与重试），不存在时回退 `file(DOWNLOAD)`；入口 `duilib_download_file()` / `duilib_verify_sha256()` / `duilib_verify_sha1()` |
+| `duilib_cef.cmake` | `cmake -P` | CEF 运行时（Release/Resources）的下载、校验、解压与按平台复制；写指纹 `.duilib-cef` |
+
+依赖目录（默认 `<deps-root>` 为仓库同级目录，可用 `-DDUILIB_DEPS_ROOT=` 或
+`build.py --deps-root` 指定）：
+
+| 目录 | 内容 |
+| :--- | :--- |
+| `<deps-root>/skia/` | Skia 源码与 `out/<变体>/`（规则见 `duilib_skia_variants.cmake`） |
+| `<deps-root>/SDL/` | SDL3 源码（Windows 默认不启用 SDL 时不下载） |
+| `<deps-root>/SDL3/<变体>/` | SDL3 每个变体的完整安装前缀（`include/`、`lib/`、`share/licenses`）；非 Windows 为 `<deps-root>/SDL3/` 单前缀 |
+| `<deps-root>/SDL3_build/` | SDL3 构建目录（按架构/配置；stamp 不匹配时清空重建） |
+| `<deps-root>/cef_binary/` | CEF 下载缓存与解压结果 |
+
+**构建消息目录（`i18n/messages.json`）：** CMake 侧（`duilib_i18n.cmake`）与 Python
+侧（`build/i18n.py`，供 `build.py`、`pack.py`、`release.py` 等使用）都从这一份
+文件取文案，新增或修改提示时只改这里：
+
+- 结构为 `{"messages": {"<键>": {"en": "...", "zh_CN": "..."}}}`，每个键**必须同时
+  提供 `en` 与 `zh_CN`；英文是兜底语言，缺 `zh_CN` 时两侧都会回退到 `en`。
+- 键名用 `区域.用途` 形式（如 `preflight.cmake_too_old`、
+  `preflight.cmake_too_old_hint`），错误文案配套一个 `_hint` 键，
+  `duilib_error()` / `Messages.hint()` 会拼成第二行 `Hint:`。
+- CMake 侧用 `duilib_msg()` / `duilib_warn()` 输出，动态内容作为第二个参数追加在
+  文案之后（这类文案不要留 `%s` 占位符）；Python 侧（`Messages.t()`）沿用
+  `%s` 占位符，由调用方 `% (...)` 插值（如 `pkg.cef_lib_version_hint`）。查不到
+  键时两侧都直接输出键名本身，便于发现漏配。
+- 语言判定顺序两侧一致：`--lang`/`DUILIB_LANG` → `LC_ALL`/`LC_MESSAGES`/`LANG`
+  → 系统区域 → `en`；只有 `zh`/`zh_CN`/`zh_Hans` 用中文，`zh_TW`/`zh_HK`/
+  `zh_Hant` 用英文。Windows 控制台不是 UTF-8（`chcp 65001`）时回退英文并打印
+  `lang.non_utf8_fallback`；Python 侧入口会先调用 `set_console_utf8()` 把控制台
+  代码页切到 65001 再输出（它只改编码、不改语言判定；切换失败时中文可能显示为
+  乱码，可先执行 `chcp 65001`）。
+
+命令行统一走 `python3 build/build.py`（`deps` 完成准备），参数与排障见
+[build/build-reference.md](../build/build-reference.md)。
+
+---
+
 ## CMake 使用示例
 
 ### 基本使用方法
@@ -582,12 +678,47 @@ cmake --build ./build_llvm
 | `DUILIB_LOG` | BOOL | OFF | 打印调试日志 |
 | `DUILIB_SKIA_LIB_SUBPATH` | STRING | 空 | Skia 库子目录；空表示按平台/配置自动拼接 |
 | `DUILIB_ENABLE_SDL` | BOOL | Windows=OFF, 其他=ON | 启用 SDL 支持 |
-| `DUILIB_ENABLE_CEF` | BOOL | OFF | 启用 CEF 支持 |
-| `DUILIB_CEF_109` | BOOL | OFF | CEF 109 版本（Win7） |
+| `DUILIB_ENABLE_CEF` | BOOL | Windows MSVC/Linux/macOS=ON，MinGW/FreeBSD=OFF | 启用 CEF 支持 |
+| `DUILIB_CEF_109` | BOOL | OFF | CEF 109 版本（Win7）；已弃用，等价于 `DUILIB_CEF_VERSION=109` |
 | `DUILIB_WEBVIEW2_EXE` | BOOL | OFF | WebView2 可执行程序 |
 | `DUILIB_MD` | BOOL | OFF | MSVC 动态运行库（/MD） |
 | `DUILIB_DLL` | BOOL | OFF | duilib 编译为 DLL（仅 Windows MSVC，隐含 `DUILIB_MD=ON`） |
 | `DUILIB_MINGW_STATIC` | BOOL | ON | MinGW 静态链接 |
+| `DUILIB_SDL_AUTOBUILD` | BOOL | OFF | 内部信号（非用户选项）：`DUILIB_DEPS_MODE=auto` 时由 `duilib_deps.cmake` 置位，跳过 SDL3 存在性校验 |
+
+**根工程选项（`cmake/duilib_root_options.cmake`；`DUILIB_LANG`、`DUILIB_PREFLIGHT`、
+`DUILIB_PREFLIGHT_ONLY` 在根 `CMakeLists.txt` 中声明，因为 `project()` 之前就要用）：**
+
+| 选项名称 | 类型 | 默认值 | 说明 |
+|----------|------|--------|------|
+| `DUILIB_LANG` | STRING | auto | 交互语言：`auto`/`zh_CN`/`en`（`auto` 先看同名环境变量，再按 `LC_ALL`/`LC_MESSAGES`/`LANG` 与系统区域判定） |
+| `DUILIB_PREFLIGHT` | BOOL | ON | 两阶段环境预检（阶段 A/B）；关闭可跳过命令探测，但架构与编译器校验仍会执行 |
+| `DUILIB_PREFLIGHT_ONLY` | BOOL | OFF | 只跑预检后退出，不生成构建目标 |
+| `DUILIB_TARGET_ARCH` | STRING | auto | 目标架构：`auto`/`x86`/`x64`/`arm64`（`auto` 取当前工具链） |
+| `DUILIB_BUILD_THIRD_PARTY` | BOOL | ON | 编译 zlib/libpng/cximage/libwebp |
+| `DUILIB_BUILD_EXAMPLES` | BOOL | ON | 是否编译示例程序 |
+| `DUILIB_EXAMPLES` | STRING | 按平台推导 | 参与构建的示例名（分号/逗号分隔，`all` 表示全部）；被 CEF 开关变化改写时会重新推导，避免旧缓存值把已关闭的 CEF 示例留在列表里 |
+| `DUILIB_MACOS_BUNDLE_EXAMPLES` | STRING | 空 | 编译为 `.app` 的示例（仅 macOS；`all`/`*` 为全部） |
+| `DUILIB_DEPS_MODE` | STRING | off | `off` 只检查；`prepare` 只建依赖目标（两阶段推荐流程）；`auto` 构建期先准备 |
+| `DUILIB_DEPS_ROOT` | PATH | `<源根>/..` | 依赖根目录（Skia/SDL3/CEF 都在其下） |
+| `DUILIB_SDL_ROOT` | PATH | `<deps-root>/SDL3` | SDL3 安装根；Windows 下按 `<根>/<变体>` 选择前缀，见上一节规则 |
+| `DUILIB_SDL_BUILD_ROOT` | PATH | `<deps-root>/SDL3_build` | SDL3 构建目录（按架构/配置） |
+| `DUILIB_SKIA_REF` / `DUILIB_SDL_REF` | STRING | 清单默认 | `cmake/third_party_versions.json` 中的版本键（commit/branch/tag） |
+| `DUILIB_CEF_VERSION` | STRING | 清单默认 | `109` / `156`；`DUILIB_CEF_109=ON` 等价于选 109 |
+| `DUILIB_OFFLINE` | BOOL | OFF | 只用已缓存的依赖源码/归档（不联网） |
+| `DUILIB_DEPS_AUTO_CLONE` | BOOL | ON | 准备依赖时允许 `git clone` |
+| `DUILIB_DEPS_FORCE` | BOOL | OFF | 忽略 stamp 强制重建依赖 |
+| `DUILIB_DEPS_JOBS` | STRING | 6 | Skia/SDL3 依赖构建的并行数 |
+| `DUILIB_DEPS_LOCK_TIMEOUT` | STRING | 5 | 依赖准备文件锁超时（秒），避免多进程同时准备 |
+| `DUILIB_DOWNLOAD_RETRIES` / `DUILIB_DOWNLOAD_RETRY_DELAY` | STRING | 清单 `retry` 段（0=不限 / 20） | 网络重试次数与间隔；每次配置都按 `third_party_versions.json` 的 `retry` 强制写入，改清单即可 |
+| `DUILIB_DOWNLOAD_CONNECT_TIMEOUT` | STRING | 30 | 下载连接超时（秒） |
+| `DUILIB_SKIA_REQUIRE_PATCH` | BOOL | ON | 选中的 Skia ref 必须有配套 `patchZip` |
+| `DUILIB_SKIA_AUTOBUILD` | BOOL | OFF | 跳过 Skia 存在性校验（`deps` 先构建时使用） |
+| `DUILIB_SDL_RPATH` / `DUILIB_RPATH_ABSOLUTE` | BOOL | ON | Unix rpath：先写相对路径，另含绝对路径回退 |
+| `DUILIB_LLVM_ROOT` | PATH | 自动探测 | Skia 在 Windows 使用的 LLVM 根（`gn` 的 `clang_win`） |
+| `DUILIB_GN_EXECUTABLE` / `DUILIB_NINJA_EXECUTABLE` | FILEPATH | 空 | 覆盖 `gn`/`ninja` 的位置 |
+| `DUILIB_CEF_ARCHIVE` | FILEPATH | 空 | 本地 CEF 归档（跳过下载） |
+| `DUILIB_CEF_REQUIRED` | BOOL | ON | CEF 运行时准备失败即报错 |
 
 ---
 
@@ -649,6 +780,12 @@ skia/out/
 └── ...
 ```
 
+SDL3 安装前缀（Windows）由同一套架构/配置/运行库规则决定：
+`<deps-root>/SDL3/msvc.<arch>.<debug|release>[.mdd|.md]`（每个变体是完整安装
+前缀），MinGW 复用 Skia 的 release 变体名，非 Windows 为 `<deps-root>/SDL3` 单前缀。
+两类依赖都由 `python3 build/build.py deps` 生成，规则见
+[duilib_sdl_variants.cmake](duilib_sdl_variants.cmake)。
+
 ### 4. 第三方库依赖
 
 编译前确保以下依赖可用：
@@ -677,8 +814,9 @@ skia/out/
 **原因：** Skia 未编译或路径不正确。
 
 **解决方案：**
-1. 确认 Skia 已编译：`ls skia/out/`
-2. 使用 `DUILIB_SKIA_LIB_SUBPATH` 指定正确路径
+1. 先执行 `python3 build/build.py deps`（或 `build.py deps --force`）重新准备依赖
+2. 确认 Skia 已编译：`ls skia/out/`
+3. 使用 `DUILIB_SKIA_LIB_SUBPATH` 指定正确路径
 
 ---
 

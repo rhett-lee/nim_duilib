@@ -8,7 +8,10 @@
 | 文件 | 说明 |
 | :--- | :--- |
 | `build.py` | **唯一命令行入口**：生成依赖、编译、测试、出包、清理 |
+| `build.bat` | Windows 薄封装：只负责定位 Python 3（`py -3` / `python` / `python3`），逻辑全部在 `build.py` |
+| `i18n.py` | 构建入口共用的语言解析与消息目录（唯一维护点 `cmake/i18n/messages.json`，判定顺序与 `cmake/duilib_i18n.cmake` 一致） |
 | `build-reference.md` / `.en.md` | 编译参考手册（命令、依赖、产物、排障） |
+| `test-matrix.md` | 构建/打包验证矩阵与实测结论（平台、工具链、架构、配置、特性组合） |
 | `linux-dependencies.md` / `.en.md` | Linux 各发行版系统依赖安装命令与验证方法 |
 | `macos-app-bundle.md` / `.en.md` | 把示例编译为 macOS `.app` 的参考文档 |
 | `pack.py` | 生成 SDK 包（只收集已构建产物，不参与编译） |
@@ -16,6 +19,8 @@
 | `autotest.py` | 本地自动化：环境检测 → 构建 → 打包 → 校验 → 结构断言 |
 | `test_build.py` | 构建入口自身的单元测试 |
 | `test_pack.py` / `test_autotest.py` | 打包与自动化测试 |
+| `test_cmake_scripts.py` | CMake 脚本测试：Skia/SDL3 变体、CRT 推导、MSYS2 判定与打包侧口径逐项比对（PATH 上没有 cmake 时相关用例跳过） |
+| `tests/skia_variants_check.cmake` | 规则脚本夹具（由 `test_cmake_scripts.py` 以 `cmake -P` 执行：变体命名、候选回退、多配置准备、CRT 推导） |
 | `test_sdk_package.py` | SDK 包测试编排器的纯函数单元测试 |
 | `sdk_package_test.py` | 发布 SDK 包测试编排器（结构校验 + 消费者编译运行 + 负向用例） |
 | `sdk_test/` | SDK 消费者用例工程（仅依赖解包后的 SDK） |
@@ -147,9 +152,10 @@ python3 build/build.py pack --config Debug --out-dir dist
 ```
 
 包名为 `nim_duilib-<版本>-<系统>-<架构>[-sdl][-cef|-cef109][-examples][-debug]`，
-内含 `include/duilib/`、`lib/<arch>/<Config>/`、`bin/`（运行期 DLL 与
-`bin/resources/`）、`lib/cmake/nim_duilib/`、`LICENSES/`、`docs/`、`MANIFEST.txt`
-与 `SHA256SUMS`。分发时必须保留 `LICENSES/` 与中英文两份 `THIRD-PARTY-NOTICES`
+内含 `include/duilib/`、`lib/`（平面结构，配置与架构由包名区分）、`bin/`（运行期
+DLL 与 `bin/resources/`）、`msvc/`（Windows MSVC 接入层）、`lib/cmake/nim_duilib/`、
+`LICENSES/`、`docs/`、`THIRD-PARTY-NOTICES*.md`、`VERSION`、`MANIFEST.txt` 与
+`SHA256SUMS`。分发时必须保留 `LICENSES/` 与中英文两份 `THIRD-PARTY-NOTICES`
 （`.md` / `.en.md`）。
 
 ### 打包自动化（本地）
@@ -242,11 +248,15 @@ Debug CEF；产物均为 PE `0xAA64`；出包实测于 2026-10-28，当时默认
 2. 在 `cmake/duilib_root_options.cmake` 的示例列表中登记名称；
 3. 需要 CEF 的示例与 CEF 默认开关保持一致。
 
-### Skia 变体与运行库
+### Skia/SDL3 变体与运行库
 
 Skia 变体目录由架构、工具链与运行库共同决定（如 `llvm.x64.release`、
 `llvm.x64.debug`、`mingw64-gcc.x64.release`）。切换 `--md` 或工具链时 `deps`
 会生成对应变体，`pack.py` 按目录内容自动识别。
+
+SDL3 在 Windows 下按“架构 × 配置 × 运行库”安装到 `<deps-root>/SDL3/<变体>`
+（`msvc.<arch>.<debug|release>[.mdd|.md]`；MinGW 复用 Skia 的 release 变体名），
+规则统一在 `cmake/duilib_sdl_variants.cmake`；变体缺失时回退单前缀并告警。
 
 ### 支持的编译器版本
 

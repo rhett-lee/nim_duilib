@@ -1,6 +1,6 @@
 English | [简体中文](README.md)
 
-> Last synced: 2026-10-27
+> Last synced: 2026-10-31
 
 # nim_duilib CMake Project Configuration Guide
 
@@ -10,16 +10,60 @@ This document details the purpose and usage of the CMake configuration files (*.
 
 ```
 cmake/
-├── duilib_common.cmake        # Common configuration (OS/compiler/CPU detection, path settings)
-├── duilib_bin.cmake           # Executable program base configuration (C++ standard, path config)
-├── duilib_bin_windows.cmake   # Windows platform-specific configuration
-├── duilib_bin_linux.cmake     # Linux platform-specific configuration
-├── duilib_bin_macos.cmake     # macOS platform-specific configuration
-├── duilib_bin_freebsd.cmake   # FreeBSD platform-specific configuration
-├── duilib_compiles.cmake      # Compile option detection (AVX/AVX2)
-├── duilib_cef_macos.cmake     # macOS CEF special configuration
-└── duilib_macos_bundle.cmake  # macOS App Bundle configuration for plain examples
+├── README.md / README.en.md        # this document (overview, options, troubleshooting)
+├── third_party_versions.json       # Skia / SDL3 / CEF version manifest (single source of truth)
+├── i18n/messages.json              # build message catalog (English + Chinese, single source)
+├── macos/Info.plist.in             # Info.plist template for macOS app bundles
+│
+├─ Shared layer (library subprojects, examples and the root project)
+│  ├── duilib_common.cmake                 # common configuration (OS/compiler/CPU detection, paths)
+│  ├── duilib_bin.cmake                    # executable base configuration (C++20, paths, output dirs)
+│  ├── duilib_bin_windows.cmake            # Windows specifics (runtime library, manifest, WebView2)
+│  ├── duilib_bin_linux.cmake              # Linux specifics
+│  ├── duilib_bin_macos.cmake              # macOS specifics (frameworks, app-bundle entry)
+│  ├── duilib_bin_freebsd.cmake            # FreeBSD specifics
+│  ├── duilib_compiles.cmake               # compile feature detection (AVX/AVX2)
+│  ├── duilib_compiler_flags.cmake         # shared GCC/Clang flags (Unix libraries and examples)
+│  ├── duilib_unix_font_libs.cmake         # Linux/FreeBSD font dependencies (Freetype, Fontconfig)
+│  ├── duilib_lib_output.cmake             # library output rule (lib/<arch>/<Config>; config in the path)
+│  ├── duilib_log_variables.cmake          # DUILIB_LOG variable dump (included at the end of common)
+│  ├── duilib_example.cmake                # shared example implementation ("declare + include once")
+│  ├── duilib_write_build_stamp.cmake      # POST_BUILD stamp in bin/.build-config/<target>
+│  ├── duilib_cef_macos.cmake              # macOS CEF specifics (framework, helpers, resources, rpath)
+│  ├── duilib_macos_bundle.cmake           # macOS app-bundle setup for plain examples
+│  ├── duilib_copy_bundle_resources.cmake  # incremental resource sync into the bundle (every build)
+│  └── duilib_copy_sdl_bundle.cmake        # copy SDL3 dylibs into Contents/Frameworks and set rpath
+│
+├─ Root project orchestration (used by the repository-root CMakeLists.txt)
+│  ├── duilib_i18n.cmake                   # language resolution + message catalog (include or cmake -P)
+│  ├── duilib_bootstrap.cmake              # tool bootstrap: find ninja in VS dirs or the patch archive
+│  ├── duilib_root_options.cmake           # platform/compiler/arch detection + cached options (after project())
+│  ├── duilib_preflight_tools.cmake        # phase A preflight (no compiler): tools and system libs, read-only
+│  ├── duilib_preflight.cmake              # phase B preflight (with compiler): deterministic checks
+│  ├── duilib_deps.cmake                   # dependency check/prepare targets (DUILIB_DEPS_MODE=off/prepare/auto)
+│  ├── duilib_deps_run.cmake               # dependency script (cmake -P): download, build, install Skia/SDL3/CEF
+│  ├── duilib_download.cmake               # download helpers (curl first, resume/retry, file(DOWNLOAD) fallback)
+│  └── duilib_cef.cmake                    # CEF runtime download/verify/extract/copy (Windows and Linux)
+│
+└─ Naming rules (dependency preparation, configure-time resolution, off-mode checks, packaging)
+   ├── duilib_skia_variants.cmake         # single rule for Skia variant directory names
+   ├── duilib_skia_toolchain.cmake        # Skia toolchain selection + duilib_detect_msys2() (MSYS2 detection)
+   ├── duilib_sdl_variants.cmake          # single rule for SDL3 variant prefixes (arch × config × runtime)
+   └── duilib_crt.cmake                   # single rule for the CRT id (msvc-md / msvc-mt / <env>[-msvcrt] / system)
 ```
+
+In the last group, the three "naming rules" files `duilib_skia_variants.cmake`,
+`duilib_sdl_variants.cmake` and `duilib_crt.cmake` are the **only implementations**:
+configure-time resolution (`duilib_common.cmake`, `duilib_root_options.cmake`) and
+dependency checks/preparation (`duilib_deps*.cmake`) must reuse them — do not build
+directory names anywhere else. `duilib_skia_toolchain.cmake` is likewise the single
+implementation point for Skia build-toolchain selection and `duilib_detect_msys2()`
+(distinguishing MSYS2 from standalone MinGW-w64). The packaging side (`build/pack.py`)
+and the VS property sheets (`msvc/PropertySheets/*.props`) cannot include CMake
+scripts directly, so they mirror the same rules;
+`build/tests/skia_variants_check.cmake` (a `cmake -P` fixture)
+together with `build/test_cmake_scripts.py` (the Python implementation) compare both
+sides case by case so they cannot drift apart again.
 
 ---
 
@@ -66,9 +110,9 @@ DUILIB_BUILD_TYPE        # "debug" or "release"
 | `DUILIB_SKIA_LIB_SUBPATH` | empty | Skia library subdirectory; empty means auto-concatenated per platform and configuration (see below) |
 | `DUILIB_ENABLE_SDL` | Windows=OFF, others=ON | Enable SDL input support |
 | `DUILIB_SDL_AUTOBUILD` | OFF | Dependency auto-prepare mode (`DUILIB_DEPS_MODE=auto`): skip the SDL3 existence check and predict the variant path |
-| `DUILIB_ENABLE_CEF` | OFF | Enable CEF browser support (library compiles CEF control sources) |
+| `DUILIB_ENABLE_CEF` | Windows MSVC/Linux/macOS=ON, MinGW/FreeBSD=OFF | Enable CEF browser support (the library compiles CEF control sources); unsupported platforms are forced off with a warning |
 | `DUILIB_EXAMPLE_CEF` | OFF | Example links CEF (set only by `cef`/`CefBrowser`) |
-| `DUILIB_CEF_109` | OFF | Use CEF 109 version (supports Win7) |
+| `DUILIB_CEF_109` | OFF | Use CEF 109 (supports Win7); deprecated, equivalent to `-DDUILIB_CEF_VERSION=109` and prints a warning when set |
 | `DUILIB_WEBVIEW2_EXE` | OFF | WebView2 executable program (Windows only) |
 | `DUILIB_MINGW_STATIC` | ON | MinGW static linking |
 
@@ -459,6 +503,65 @@ check_cxx_source_compiles("
 
 ---
 
+## Root Project Scripts (dependency preparation and shared infrastructure)
+
+These files are used by the **repository-root `CMakeLists.txt`**; library subprojects
+(`duilib/`) and examples (`examples/*`) do not need them directly (examples reach the
+shared layer through `duilib_example.cmake`). In execution order:
+
+| File | When | Responsibilities and entry points |
+| :--- | :--- | :--- |
+| `duilib_i18n.cmake` | before `project()` | Language resolution (`--lang`/`DUILIB_LANG` → `LC_ALL`/`LC_MESSAGES`/`LANG` → system locale → en; only `zh`/`zh_CN`/`zh_Hans` are Chinese) and message catalog loading. Works with `include` and with `cmake -P`; entry points `duilib_t()` / `duilib_msg()` / `duilib_warn()` / `duilib_error()` |
+| `duilib_bootstrap.cmake` | before `project()` | Tool bootstrap: when ninja is not on PATH, `duilib_bootstrap_ninja(<patch_dir> <patch_zip>)` picks it up from the Visual Studio install or the Skia patch archive's `bin/ninja.exe` |
+| `duilib_preflight_tools.cmake` | before `project()` (`cmake -P`) | Phase A preflight: probes tools (cmake/ninja/git/python, `vswhere`) and system libraries only — no downloads, no installs, no file changes |
+| `duilib_root_options.cmake` | after `project()` | Platform/compiler/architecture detection and the unified cache options (they override the subprojects' `option()` defaults); also hoists `DUILIB_MINGW`/`DUILIB_MSYS2_ENV` and resolves the SDL3 variant prefix per configuration |
+| `duilib_preflight.cmake` | after `project()` | Phase B preflight: deterministic checks once the compiler is known (architecture, toolchain, system libraries), all errors reported together |
+| `duilib_deps.cmake` | after `project()` | Creates the dependency check/prepare targets (`duilib_configure_dependencies()` / `duilib_link_dependency_targets()`); `DUILIB_DEPS_MODE=off/prepare/auto` |
+| `duilib_deps_run.cmake` | build time (`cmake -P`) | The actual preparation: download, verify, build and install Skia/SDL3/CEF; each SDL3 variant is installed into its own prefix and stamped with `.duilib-sdl`/`.duilib-crt`; shared by the `duilib_deps` target and `build.py deps` |
+| `duilib_download.cmake` | `cmake -P` | Download helpers: curl first (resume and retries), otherwise `file(DOWNLOAD)`; entry points `duilib_download_file()` / `duilib_verify_sha256()` / `duilib_verify_sha1()` |
+| `duilib_cef.cmake` | `cmake -P` | Downloads, verifies, extracts and copies the CEF runtime (Release/Resources) per platform; writes the `.duilib-cef` fingerprint |
+
+Dependency directories (`<deps-root>` defaults to the repository's parent; override with
+`-DDUILIB_DEPS_ROOT=` or `build.py --deps-root`):
+
+| Directory | Contents |
+| :--- | :--- |
+| `<deps-root>/skia/` | Skia sources and `out/<variant>/` (rules in `duilib_skia_variants.cmake`) |
+| `<deps-root>/SDL/` | SDL3 sources (not downloaded when SDL is off, the Windows default) |
+| `<deps-root>/SDL3/<variant>/` | Complete install prefix of each SDL3 variant (`include/`, `lib/`, `share/licenses`); a single `<deps-root>/SDL3/` prefix on non-Windows |
+| `<deps-root>/SDL3_build/` | SDL3 build trees (per architecture/configuration; rebuilt from scratch when the stamp does not match) |
+| `<deps-root>/cef_binary/` | CEF download cache and extracted runtime |
+
+**Build message catalog (`i18n/messages.json`):** both the CMake side
+(`duilib_i18n.cmake`) and the Python side (`build/i18n.py`, used by `build.py`,
+`pack.py`, `release.py`, ...) read messages from this single file; add or change
+a message here only:
+
+- Layout: `{"messages": {"<key>": {"en": "...", "zh_CN": "..."}}}`. Every key **must
+  provide both `en` and `zh_CN`; English is the fallback language, so a missing
+  `zh_CN` entry falls back to `en` on both sides.
+- Keys use the `area.purpose` form (e.g. `preflight.cmake_too_old`,
+  `preflight.cmake_too_old_hint`); an error message comes with a `_hint` key, and
+  `duilib_error()` / `Messages.hint()` render it as a second `Hint:` line.
+- On the CMake side `duilib_msg()` / `duilib_warn()` append dynamic content as their
+  second argument (such messages must not contain `%s`); on the Python side
+  (`Messages.t()`) messages keep `%s` placeholders and the caller interpolates with
+  `% (...)` (e.g. `pkg.cef_lib_version_hint`). A missing key prints the key itself
+  on both sides, which makes gaps easy to spot.
+- Language resolution is identical on both sides: `--lang`/`DUILIB_LANG` →
+  `LC_ALL`/`LC_MESSAGES`/`LANG` → system locale → `en`; only `zh`/`zh_CN`/`zh_Hans`
+  use Chinese, while `zh_TW`/`zh_HK`/`zh_Hant` use English. A non-UTF-8 Windows
+  console (no `chcp 65001`) falls back to English and prints
+  `lang.non_utf8_fallback`; the Python entry points call `set_console_utf8()` first
+  to switch the console code page to 65001 (this only changes the encoding, not the
+  language; if the switch fails Chinese may render as mojibake, so run `chcp 65001`
+  beforehand).
+
+The command line is always `python3 build/build.py` (`deps` prepares everything); see
+[build/build-reference.md](../build/build-reference.md) for options and troubleshooting.
+
+---
+
 ## CMake Usage Examples
 
 ### Basic usage
@@ -598,12 +701,48 @@ cmake --build ./build_llvm
 | `DUILIB_LOG` | BOOL | OFF | Print debug logs |
 | `DUILIB_SKIA_LIB_SUBPATH` | STRING | empty | Skia library subdirectory; empty means auto-concatenated per platform/configuration |
 | `DUILIB_ENABLE_SDL` | BOOL | Windows=OFF, others=ON | Enable SDL support |
-| `DUILIB_ENABLE_CEF` | BOOL | OFF | Enable CEF support |
-| `DUILIB_CEF_109` | BOOL | OFF | CEF 109 version (Win7) |
+| `DUILIB_ENABLE_CEF` | BOOL | Windows MSVC/Linux/macOS=ON, MinGW/FreeBSD=OFF | Enable CEF support |
+| `DUILIB_CEF_109` | BOOL | OFF | CEF 109 (Win7); deprecated, equivalent to `DUILIB_CEF_VERSION=109` |
 | `DUILIB_WEBVIEW2_EXE` | BOOL | OFF | WebView2 executable program |
 | `DUILIB_MD` | BOOL | OFF | MSVC dynamic runtime (/MD) |
 | `DUILIB_DLL` | BOOL | OFF | Build duilib as a DLL (Windows MSVC only, implies `DUILIB_MD=ON`) |
 | `DUILIB_MINGW_STATIC` | BOOL | ON | MinGW static linking |
+| `DUILIB_SDL_AUTOBUILD` | BOOL | OFF | Internal signal (not a user option): set by `duilib_deps.cmake` when `DUILIB_DEPS_MODE=auto` to skip the SDL3 existence check |
+
+**Root project options (`cmake/duilib_root_options.cmake`; `DUILIB_LANG`,
+`DUILIB_PREFLIGHT` and `DUILIB_PREFLIGHT_ONLY` are declared in the root `CMakeLists.txt`
+because they are needed before `project()`):**
+
+| Option | Type | Default value | Description |
+|----------|------|--------|------|
+| `DUILIB_LANG` | STRING | auto | Interaction language: `auto`/`zh_CN`/`en` (`auto` reads the environment variable of the same name, then falls back to `LC_ALL`/`LC_MESSAGES`/`LANG` and the system locale) |
+| `DUILIB_PREFLIGHT` | BOOL | ON | Two-stage environment preflight (phases A/B); turning it off skips tool probing, but architecture and compiler checks still run |
+| `DUILIB_PREFLIGHT_ONLY` | BOOL | OFF | Run the preflight only, then exit without generating build targets |
+| `DUILIB_TARGET_ARCH` | STRING | auto | Target architecture: `auto`/`x86`/`x64`/`arm64` (`auto` follows the current toolchain) |
+| `DUILIB_BUILD_THIRD_PARTY` | BOOL | ON | Build zlib/libpng/cximage/libwebp |
+| `DUILIB_BUILD_EXAMPLES` | BOOL | ON | Build the example applications |
+| `DUILIB_EXAMPLES` | STRING | derived per platform | Examples to build (semicolon/comma separated, `all` = every one); re-derived when the CEF switch changes so stale cache values cannot keep CEF-only examples in the list |
+| `DUILIB_MACOS_BUNDLE_EXAMPLES` | STRING | empty | Examples built as `.app` bundles (macOS only; `all`/`*` = every one) |
+| `DUILIB_DEPS_MODE` | STRING | off | `off` checks only; `prepare` creates dependency targets only (the recommended two-phase flow); `auto` prepares during the build |
+| `DUILIB_DEPS_ROOT` | PATH | `<source root>/..` | Dependency root (Skia/SDL3/CEF live below it) |
+| `DUILIB_SDL_ROOT` | PATH | `<deps-root>/SDL3` | SDL3 install root; on Windows the prefix is chosen as `<root>/<variant>` (rule above) |
+| `DUILIB_SDL_BUILD_ROOT` | PATH | `<deps-root>/SDL3_build` | SDL3 build trees (per architecture/configuration) |
+| `DUILIB_SKIA_REF` / `DUILIB_SDL_REF` | STRING | manifest default | Version keys in `cmake/third_party_versions.json` (commit/branch/tag) |
+| `DUILIB_CEF_VERSION` | STRING | manifest default | `109` / `156`; `DUILIB_CEF_109=ON` is equivalent to selecting 109 |
+| `DUILIB_OFFLINE` | BOOL | OFF | Use only cached dependency sources/archives (no network) |
+| `DUILIB_DEPS_AUTO_CLONE` | BOOL | ON | Allow `git clone` while preparing dependencies |
+| `DUILIB_DEPS_FORCE` | BOOL | OFF | Rebuild dependencies even when the stamps match |
+| `DUILIB_DEPS_JOBS` | STRING | 6 | Parallel jobs for the Skia/SDL3 dependency builds |
+| `DUILIB_DEPS_LOCK_TIMEOUT` | STRING | 5 | Dependency lock timeout in seconds (prevents concurrent preparation) |
+| `DUILIB_DOWNLOAD_RETRIES` / `DUILIB_DOWNLOAD_RETRY_DELAY` | STRING | manifest `retry` (0 = unlimited / 20) | Network retry count and interval; forced from the `retry` section of `third_party_versions.json` on every configure |
+| `DUILIB_DOWNLOAD_CONNECT_TIMEOUT` | STRING | 30 | Download connect timeout (seconds) |
+| `DUILIB_SKIA_REQUIRE_PATCH` | BOOL | ON | Require the manifest `patchZip` for the selected Skia ref |
+| `DUILIB_SKIA_AUTOBUILD` | BOOL | OFF | Skip the Skia existence check (used when `deps` builds it first) |
+| `DUILIB_SDL_RPATH` / `DUILIB_RPATH_ABSOLUTE` | BOOL | ON | Unix rpath: relative paths first, plus an absolute fallback |
+| `DUILIB_LLVM_ROOT` | PATH | auto-detected | LLVM root used by Skia on Windows (`gn`'s `clang_win`) |
+| `DUILIB_GN_EXECUTABLE` / `DUILIB_NINJA_EXECUTABLE` | FILEPATH | empty | Override the `gn`/`ninja` location |
+| `DUILIB_CEF_ARCHIVE` | FILEPATH | empty | Local CEF archive (skips the download) |
+| `DUILIB_CEF_REQUIRED` | BOOL | ON | Fail when the CEF runtime cannot be prepared |
 
 ---
 
@@ -665,6 +804,13 @@ skia/out/
 └── ...
 ```
 
+SDL3 install prefixes on Windows follow the same architecture/configuration/runtime
+rule: `<deps-root>/SDL3/msvc.<arch>.<debug|release>[.mdd|.md]` (each variant is a
+complete prefix); MinGW reuses the Skia release variant name, and non-Windows keeps
+the single `<deps-root>/SDL3` prefix. Both are produced by
+`python3 build/build.py deps`; the rule lives in
+[duilib_sdl_variants.cmake](duilib_sdl_variants.cmake).
+
 ### 4. Third-party library dependencies
 
 Ensure the following dependencies are available before building:
@@ -693,8 +839,9 @@ Ensure the following dependencies are available before building:
 **Cause:** Skia is not built or the path is incorrect.
 
 **Solution:**
-1. Confirm Skia is built: `ls skia/out/`
-2. Use `DUILIB_SKIA_LIB_SUBPATH` to specify the correct path
+1. Run `python3 build/build.py deps` (or `build.py deps --force`) to prepare the dependencies again
+2. Confirm Skia is built: `ls skia/out/`
+3. Use `DUILIB_SKIA_LIB_SUBPATH` to specify the correct path
 
 ---
 

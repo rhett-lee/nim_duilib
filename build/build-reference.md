@@ -37,8 +37,9 @@ python3 build/build.py doctor           # 环境自检（无副作用）
 python3 build/build.py pack --with-cef  # 出 SDK 包
 ```
 
-Windows 与 Unix 使用同一条命令；Windows 上的 `python3`
-替代写法见根 README 的「为什么统一使用 `python3 build/build.py`」。
+Windows 与 Unix 使用同一条命令；Windows 上没有 `python3` 时可改用 `py -3`、指向
+Python 3 的 `python`，或直接用薄封装 `build\build.bat`（参数与 `build.py` 相同），
+详见根 README 的「为什么统一使用 `python3 build/build.py`」。
 
 构建目录固定为 `out/<arch>/<Config>`（例如 `out/x64/Debug`），与 `build/` 平级，
 不写入 `build/build_temp`。可执行文件与运行时资源始终输出到仓库根 `bin/`，
@@ -74,7 +75,7 @@ Debug 与 Release 的示例输出同名，都写在共享的 `bin/`，而目标�
 | :--- | :--- |
 | `--config Release\|Debug` | 构建配置，默认 `Release`；不提供 `--debug` 别名 |
 | `--arch auto\|x86\|x64\|arm64` | 目标架构，默认主机架构；Windows + Ninja 交叉编译 arm64 时必须显式指定 |
-| `--lang auto\|zh_CN\|en` | 交互语言，默认跟随系统；也读取环境变量 `DUILIB_LANG` |
+| `--lang auto\|zh_CN\|en` | 交互语言，默认跟随系统；也读取环境变量 `DUILIB_LANG`。全部文案集中在 [cmake/i18n/messages.json](../cmake/i18n/messages.json)，维护方式见 [cmake/README.md](../cmake/README.md) 的「构建消息目录」 |
 | `--build-dir <dir>` | 覆盖构建目录，允许放到仓库外 |
 | `--deps-root <dir>` | 依赖源码/安装根目录，默认仓库同级目录（与 `nim_duilib` 平级）；Skia、SDL3、CEF 都安装到这里。相对路径按当前目录解析，且 `build.py pack` 会原样转给 `pack.py` |
 | `--jobs N` | 并行编译任务数，默认 CPU 逻辑核心数 |
@@ -266,9 +267,15 @@ python3 build/build.py pack --with-examples    # 包含示例程序
 python3 build/build.py pack --out-dir dist     # 指定输出目录
 ```
 
-包内包含 `include/`、`lib/<arch>/<Config>/`、`bin/`、`lib/cmake/nim_duilib/`、
-`LICENSES/`、`THIRD-PARTY-NOTICES.md` 与 `THIRD-PARTY-NOTICES.en.md`。合规要求：
-分发 SDK 时必须保留 `LICENSES/` 与中英文两份第三方声明。
+`build.py pack` 只转发通用参数；`pack.py` 自身的 `--list`、`--verify`、
+`--msvc-runtime`、`--skia-lib-dir`、`--sdl-dir`、`--allow-missing`、`--deps-root`
+等选项见 [docs/Release.md 的命令行参数](../docs/Release.md#命令行参数)。
+
+包内包含 `include/duilib/`、`lib/`（平面结构，配置与架构由包名区分）、`bin/`
+（运行期 DLL 与 `bin/resources/`）、`msvc/`（Windows MSVC 接入层）、
+`lib/cmake/nim_duilib/`、`docs/`、`LICENSES/`、`THIRD-PARTY-NOTICES*.md`、
+`VERSION`、`MANIFEST.txt` 与 `SHA256SUMS`。合规要求：分发 SDK 时必须保留
+`LICENSES/` 与中英文两份第三方声明。
 
 只给 `--with-examples` 而不给 `--with-cef` 时，会自动跳过 `cef` 与 `CefBrowser`
 （Windows 为 `cef.exe`/`CefBrowser.exe`），避免包内留下缺少 libcef 运行时、
@@ -376,6 +383,9 @@ UCRT64 的产物，也不会漏掉实际存在的 msvcrt 变体。
 - Skia 与 nim_duilib 的运行库必须一致；`deps` 会按配置构建对应的 Skia 变体：
   `/MT` 使用 `llvm.<arch>.debug` / `llvm.<arch>.release`，`/MD` 使用
   `llvm.<arch>.debug.mdd` / `llvm.<arch>.release.md`。
+- SDL3 同样按运行库分变体（仅 Windows MSVC）：`--md`/`--dll` 时安装并链接
+  `.mdd`/`.md` 前缀；`deps` 发现目标变体不存在或 CRT stamp 不一致时会重新构建
+  （见第 5 节）。MinGW 没有 MT/MD 之分，始终复用 release 变体。
 - 若 nim_duilib 最终编译为 DLL，必须使用动态运行库。
 - `--dll` = `--md` + `DUILIB_DLL=ON`：duilib 目标改为 `SHARED`，输出
   `bin/duilib*.dll`（x86 为 `duilib32*.dll`，Debug 带 `_d`）与
@@ -410,7 +420,7 @@ UCRT64 的产物，也不会漏掉实际存在的 msvcrt 变体。
 | `clean` 删除失败（权限/占用） | 关闭占用构建树的程序（编辑器、运行中的示例、杀毒软件）后重试；错误信息会给出无法删除的具体路径 |
 | 切换编译器后配置失败（如 cl.exe 找不到 `kernel32.lib`） | 无需手动清理：`build.py` 检测到 `out/<arch>/<Config>` 缓存中的编译器变化会自动清空该目录 |
 | 先编译 Debug 再编译 Release 时直接结束（`ninja: no work to do`），`bin/` 仍是 Debug 示例 | 两个配置的示例都写到共享的 `bin/`，切换配置时 `build.py` 会删除另一种配置的示例产物与 `bin/.build-config` 标记后重新链接；macOS 的 `.app` 只删 `Contents/MacOS` 下的可执行文件，保留 configure 阶段生成的 `Contents/Info.plist`；手工调用 CMake 时需自行清理 `bin/` 中的同名示例 |
-| macOS 切换 Debug/Release 后第一次启动即崩溃，栈顶为 `+[UNUserNotificationCenter currentNotificationCenter]` 断言 | 旧版 `build.py` 在 configure 之后整个删除 `bin/<目标>.app`，重新链接只重建可执行文件，`Contents/Info.plist` 缺失导致 LaunchServices 无法解析进程的 bundle | 已修复：切换配置时只删 `.app` 内的可执行文件。已有产物可 `rm -rf bin/<目标>.app` 后重新构建（configure 会重新生成 `Info.plist`），用 `plutil -p bin/<目标>.app/Contents/Info.plist` 确认 |
+| macOS 切换 Debug/Release 后第一次启动即崩溃，栈顶为 `+[UNUserNotificationCenter currentNotificationCenter]` 断言 | 旧版 `build.py` 在 configure 之后整个删除 `bin/<目标>.app`，重新链接只重建可执行文件，`Contents/Info.plist` 缺失导致 LaunchServices 无法解析进程的 bundle。现已修复：切换配置时只删 `.app` 内的可执行文件。已有产物可 `rm -rf bin/<目标>.app` 后重新构建（configure 会重新生成 `Info.plist`），用 `plutil -p bin/<目标>.app/Contents/Info.plist` 确认 |
 | `Visual Studio C++ tools for <arch> are not installed` | 在 Visual Studio Installer 中为对应架构安装 MSVC 生成工具（如 ARM64）；仅有 x64/x86 工具集时不要构建 arm64 |
 | MSYS2 CLANG64 配置期报 Skia 目录没有 `.a` | 已按候选顺序自动回退到 `mingw64-llvm.<arch>.release`；若仍无可用的 `.a` 目录，请用 `-DDUILIB_SKIA_LIB_SUBPATH=<目录>` 指定 clang64 编译的 Skia |
 | `--cef-version 109` 构建报找不到 `libcef_dll_wrapper_109` | 已修复：wrapper 的源码目录与目标名现在跟随 `DUILIB_CEF_VERSION`；旧构建树需 `build.py clean` 后重新配置 |

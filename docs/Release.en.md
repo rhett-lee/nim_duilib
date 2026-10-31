@@ -514,10 +514,10 @@ Excluded in SDK mode are the 22 per-example private theme directories:
 | :--- | :--- |
 | `--config Release\|Debug` | Library configuration; defaults to `Release` (case-insensitive) |
 | `--arch x64\|x86\|arm64` | Library architecture; selects the library directory on Windows and affects the package name everywhere |
-| `--lib-dir <path>` | Fully explicit library directory, overriding `--arch`/`--config` path computation |
+| `--lib-dir <path>` | Fully explicit library directory, overriding `--arch`/`--config` path computation; a relative path is resolved against the **repository root** |
 | `--deps-root <path>` | Dependency root (holds `skia/` and `SDL3/`; same as `build.py --deps-root`); defaults to the directory next to the repository, and a relative path is resolved against the current directory. `build.py pack` forwards it automatically |
-| `--skia-lib-dir <path>` | Skia static library directory; auto-probed per platform/toolchain (MSVC `../skia/out/llvm.<arch>.<config>`; MinGW `mingw64-gcc\|llvm.<arch>.release` for standalone MinGW-w64 or `gcc\|llvm.<arch>.release` for MSYS2, validated by the presence of `.a` files) |
-| `--sdl-dir <path>` | Explicit SDL3 installation prefix (no variant derivation); by default the `../SDL3` root is used and `<root>/<variant>` is selected from `--arch`/`--config`/runtime (MT, MD, DLL), falling back to `<root>` when the variant is missing |
+| `--skia-lib-dir <path>` | Skia static library directory; auto-probed per platform/toolchain (MSVC `../skia/out/llvm.<arch>.<config>`; MinGW `mingw64-gcc\|llvm.<arch>.release` for standalone MinGW-w64 or `gcc\|llvm.<arch>.release` for MSYS2, validated by the presence of `.a` files); a relative path is resolved against the **repository root** |
+| `--sdl-dir <path>` | Explicit SDL3 installation prefix (no variant derivation); by default the `../SDL3` root is used and `<root>/<variant>` is selected from `--arch`/`--config`/runtime (MT, MD, DLL), falling back to `<root>` when the variant is missing; a relative path is resolved against the **repository root** |
 | `--with-sdl` | Additionally package SDL3 on Windows (Unix always packages it) |
 | `--with-cef` | Package CEF: headers + import library/wrapper + runtime (large); Windows and Linux only |
 | `--cef-version latest\|109` | CEF version for `--with-cef`; defaults to `latest`; `109` is Windows-only (Linux has only `latest`) |
