@@ -12,25 +12,6 @@ namespace ui
 
 namespace
 {
-/** 将文本中的 XML 特殊字符转义，用于动态生成卡片的 XML 文本
-*/
-DString EscapeXmlText(const DString& strText)
-{
-    DString strResult;
-    strResult.reserve(strText.size() + 16);
-    for (DString::value_type ch : strText) {
-        switch (ch) {
-        case _T('&'):  strResult += _T("&amp;");  break;
-        case _T('<'):  strResult += _T("&lt;");   break;
-        case _T('>'):  strResult += _T("&gt;");   break;
-        case _T('\"'): strResult += _T("&quot;"); break;
-        case _T('\''): strResult += _T("&apos;"); break;
-        default:       strResult += ch;           break;
-        }
-    }
-    return strResult;
-}
-
 /** 归一化方位字符串：忽略大小写、下划线与连字符（"top_left"/"topLeft" 均等价于 "topleft"）
 */
 DString NormalizePlacement(const DString& strValue)
@@ -437,14 +418,25 @@ void Popover::Show()
 
 void Popover::Hide()
 {
+    HideWithReason(PopoverCloseReason::kManual);
+}
+
+void Popover::HideWithReason(PopoverCloseReason reason)
+{
     Flyout* pFlyout = GetOpenFlyout();
     if (pFlyout != nullptr) {
+        //关闭原因先暂存：Dismiss() 会同步回调 OnFlyoutClosed，由它取用并随事件派发给外部
+        m_pendingCloseReason = reason;
+        m_bCloseReasonPending = true;
         pFlyout->Dismiss();
+        //正常流程中 OnFlyoutClosed 已清除该标记；这里兜底清理，避免遗留到下一次关闭
+        m_bCloseReasonPending = false;
         return;
     }
     if (m_bOpen) {
         //浮层已不在（例如被其它浮层替换），仅同步状态
         m_bOpen = false;
+        m_bCloseReasonPending = false;
         CancelAllTasks();
         Invalidate();
     }
@@ -563,9 +555,25 @@ Flyout* Popover::GetOpenFlyout() const
     return nullptr;
 }
 
-DString Popover::BuildCardXml(PopoverPlacement placement) const
+DString Popover::EscapeXmlText(const DString& strText)
 {
-    const int32_t nCardWidth = std::max(120, m_nCardWidth);
+    DString strResult;
+    strResult.reserve(strText.size() + 16);
+    for (DString::value_type ch : strText) {
+        switch (ch) {
+        case _T('&'):  strResult += _T("&amp;");  break;
+        case _T('<'):  strResult += _T("&lt;");   break;
+        case _T('>'):  strResult += _T("&gt;");   break;
+        case _T('\"'): strResult += _T("&quot;"); break;
+        case _T('\''): strResult += _T("&apos;"); break;
+        default:       strResult += ch;           break;
+        }
+    }
+    return strResult;
+}
+
+DString Popover::BuildCardBodyXml() const
+{
     const bool bHasContent = !m_strContentXml.empty() || !m_strContent.empty() || !m_strContentId.empty();
 
     //卡片内容（标题 + 正文）
@@ -606,6 +614,14 @@ DString Popover::BuildCardXml(PopoverPlacement placement) const
         }
         strCardBody += _T("/>");
     }
+    return strCardBody;
+}
+
+DString Popover::BuildCardXml(PopoverPlacement placement) const
+{
+    const int32_t nCardWidth = std::max(120, m_nCardWidth);
+    //卡片内容由派生类可重写的钩子提供（默认"标题 + 正文"）
+    const DString strCardBody = BuildCardBodyXml();
 
     //卡片相对锚点的方位：箭头朝向与"箭头带"所在的边由它决定
     const PopoverSide side = GetPlacementSide(placement);
@@ -858,6 +874,7 @@ void Popover::OnFlyoutClosed(int32_t nCloseReason)
 {
     if (m_bDestroying) {
         m_bOpen = false;
+        m_bCloseReasonPending = false;
         return;
     }
     if (m_bRebuilding) {
@@ -865,12 +882,19 @@ void Popover::OnFlyoutClosed(int32_t nCloseReason)
         return;
     }
     if (!m_bOpen) {
+        m_bCloseReasonPending = false;
         return;
     }
+    //HideWithReason() 指定的原因优先（例如卡片内的"确定"/"取消"按钮触发的关闭）
+    const PopoverCloseReason closeReason = m_bCloseReasonPending
+        ? m_pendingCloseReason
+        : static_cast<PopoverCloseReason>(static_cast<uint32_t>(nCloseReason));
+    m_bCloseReasonPending = false;
+
     m_bOpen = false;
     CancelAllTasks();
     Invalidate();
-    EmitOpenChanged(false, static_cast<PopoverCloseReason>(static_cast<uint32_t>(nCloseReason)));
+    EmitOpenChanged(false, closeReason);
 }
 
 bool Popover::IsMouseOverAnchorOrCard() const

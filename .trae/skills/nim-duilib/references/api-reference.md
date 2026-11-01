@@ -239,6 +239,7 @@ NavigationViewItem（继承 Control）属性：
 | TreeGrid | VBox | 树表格（同一控件内呈现"可展开/收起的层级行 + 多列表格"；表头固定不滚动、列表体自带纵向滚动条，表头与行复用同一列宽天然对齐；`column_title`/`column_width`/`column_align`/`tree_column`/`indent`；`multi_select` 多选、`check_mode`+`check_cascade` 行首复选框父子三态级联；节点名 `TreeGrid`），`duilib/Control/TreeGrid.h` |
 | CircleProgress | Progress | 环形进度条（渐变/指示图标/逆时针/indeterminate 转圈，`duilib/Control/CircleProgress.h`），XML 节点名 `CircleProgress` |
 | Popover | Label | 气泡卡片（控件自身即锚点：click/hover/focus/manual 四种触发；`placement` 12 方位、越界自动翻转；标题 `title(_id)` + 正文 `content(_id)` 或 `content_xml` 富内容；`card_width`/`gap`/`hover_delay`/`close_delay`/`auto_dismiss`；`Show`/`Hide`/`Toggle`/`IsOpen`/`GetCardWindow`/`FindCardControl`/`AttachOpenChanged`（`kEventPopoverOpenChanged`：wParam=1/0、lParam=关闭原因）；锚点皮肤 `popover_trigger`(链接) / `popover_anchor`(按钮) / `popover_anchor_primary`(主色按钮)；节点名 `Popover`），`duilib/Control/Popover.h` |
+| Popconfirm | Popover | 确认气泡卡片（继承 Popover；卡片由控件生成"图标 + 标题 + 描述 + 取消/确定"按钮行；`description(_id)`（`content(_id)` 为兼容别名）/`icon`(warning/info/success/error/none)/`ok_text(_id)`/`cancel_text(_id)`/`show_cancel`/`ok_type`(primary/default/danger)/`close_on_ok`；`Confirm()`/`Cancel()`、`AttachConfirm`/`AttachCancel`（`kEventPopconfirmConfirm`/`kEventPopconfirmCancel`）；皮肤 `popconfirm_icon_*`/`popconfirm_title`/`popconfirm_description`/`popconfirm_btn`/`popconfirm_cancel`/`popconfirm_ok_*`；节点名 `Popconfirm`），`duilib/Control/Popconfirm.h` |
 | Chart | Control | 轻量图表（折线/柱状/饼图自绘；多系列/坐标轴/负值/堆叠/曲线/面积/环形；悬停Tooltip/点击选中/缩放平移；圆角/渐变/发光/动画，`duilib/Control/Chart.h`），XML 节点名 `Chart` |
 | Timeline | Control | 垂直时间轴（节点+连接线+内容，数据驱动、4态配色、正序/倒序、多语言 `item_*_id` 绑定、节点点击事件、空/加载状态、滚动条 hover 显隐可拖动，`duilib/Control/Timeline.h`），XML 节点名 `Timeline` |
 | DateTime | HBox | 日期时间选择器（`LabelTemplate<HBox>`） |
@@ -824,12 +825,32 @@ C++ 接口：`SetItems/SetItemIds/AddPath/ClearItems/GetDepth/GetItemCount/GetIt
 | close_delay | 200 | int | `trigger="hover"` 时移出后关闭延迟（毫秒），期间可移入卡片 |
 
 C++ 接口：`SetTitle/GetTitle`、`SetTitleId/GetTitleId`、`SetContent/GetContent`、`SetContentId/GetContentId`、`SetContentXml/GetContentXml`、`SetTrigger/GetTrigger`、`SetPlacement/GetPlacement`、`SetGap/GetGap`、`SetCardWidth/GetCardWidth`、`SetArrow/IsArrow`、`SetAutoDismiss/IsAutoDismiss`、`SetHoverDelay/GetHoverDelay`、`SetCloseDelay/GetCloseDelay`、`Show/Hide/Toggle/IsOpen`、`GetCardWindow`（返回显示中的卡片窗口，未显示为 nullptr）、`FindCardControl(name)`（在卡片内按名称查控件，用于绑定卡片内按钮/链接，需在 `AttachOpenChanged` 打开回调里取）、`AttachOpenChanged(cb, id = 0)`。
-枚举：`PopoverTrigger{kClick,kHover,kFocus,kManual}`、`PopoverPlacement`（12 值，与 `placement` 取值一一对应）、`PopoverCloseReason{kManual,kClickOutside,kEscape,kAnchorLost}`。
-事件：`AttachOpenChanged`——打开/关闭时触发，事件编码 `kEventPopoverOpenChanged`，`wParam = 1`（打开）/ `0`（关闭），`lParam = PopoverCloseReason`（关闭原因）。
+枚举：`PopoverTrigger{kClick,kHover,kFocus,kManual}`、`PopoverPlacement`（12 值，与 `placement` 取值一一对应）、`PopoverCloseReason{kManual,kClickOutside,kEscape,kAnchorLost,kConfirm,kCancel}`（后两项为 `Popconfirm` 卡片内按钮触发的关闭）。
+事件：`AttachOpenChanged`——打开/关闭时触发，事件编码 `kEventPopoverOpenChanged`，`wParam = 1`（打开）/ `0`（关闭），`lParam = PopoverCloseReason`（关闭原因；卡片内按钮触发时为 4/5）。
 默认皮肤类（global.xml）：`popover_trigger`（锚点链接色 + 手型光标）、`popover_anchor`（锚点按钮外观：`bg_btn_*` 底色 + `border_btn_*` 描边 + 圆角 6 + 96×28）、`popover_anchor_primary`（主色实心按钮锚点，继承 `popover_anchor`，112 宽）、`popover_card`（`bg_window_card` + `border_window` + 圆角 8 + padding 12）、`popover_arrow_up`/`popover_arrow_down`/`popover_arrow_left`/`popover_arrow_right`（尖角箭头，16×9 / 9×16（含 1 像素压入卡片的重叠区，覆盖该处卡片边线），图片在 `public/popover/`，`svg_replace_colors` 映射填充→`bg_window_card`、描边→`border_window`）、`popover_title`（system_bold_14 + text_default）、`popover_content`（system_regular_14 + text_muted + 多行）。
 注意：卡片 XML 在打开时生成，语言切换会先关闭卡片、重新打开即为新文案；同一时刻全局只有一张卡片（切换锚点会替换旧卡片）；卡片默认绘制尖角箭头（`arrow="true"`），因空间不足翻转到对侧时按 `Flyout::GetActualPlacement()` 重建一次使箭头始终指向锚点；箭头在浮层首帧布局完成后（`Flyout::AttachLayouted`）按卡片实际矩形定位到锚点中心（过窄时夹持、避开卡片圆角）；卡片窗口使用 `shadow_type="custom"`，按箭头方位选择 `public/shadow/shadow_popover_arrow_{up,down,left,right}.svg`（无箭头用 `shadow_popover.svg`），阴影主体在箭头一侧内缩 8 像素以与卡片边缘对齐（箭头带内只有阴影渐变，无白带）、阴影不拦截鼠标。
 受控场景（`trigger="manual"`）：`auto_dismiss` 未显式设置时卡片不因点击外部关闭，否则鼠标按在外部受控按钮上时卡片会先关闭，按钮 Click 里读到的 `IsOpen()` 已是 false（表现为 Toggle 永远打开、重建卡片无效）；Esc 仍按 `auto_dismiss` 生效。
 滚动跟随：卡片打开时自动 `SetFollowAnchor(true)`——锚点在滚动容器内滚动（或被布局变化推动）时，卡片约 50ms 内重新定位、尖角继续指向锚点中心（保持打开时的方位不翻转，空间不足时夹持工作区）；锚点被滚出滚动区域（窗口客户区或 `ScrollBox` 可视区域）时卡片窗口暂时隐藏（`IsOpen()` 仍为 `true`），锚点重新可见后按新位置恢复显示；按下锚点所在滚动容器的滚动条属于滚动操作、不按点击外部关闭；`trigger="focus"` 的锚点在已持有焦点时再次点击会重新打开已关闭的卡片。
+
+### Popconfirm 属性(继承 Popover)
+
+确认气泡卡片：点击锚点后在它周围弹出"图标 + 标题 + 描述 + 取消/确定"按钮行的卡片，语义对齐 Ant Design 的 Popconfirm；除 `Popover` 的全部属性/接口外，新增：
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| description / description_id | 空 | string | 卡片描述（字面 / 多语言 ID，ID 优先，可省略）；`content` / `content_id` 为其兼容别名 |
+| icon | warning | string | 图标语义：`warning` / `info` / `success` / `error` / `none`（不显示图标） |
+| ok_text / ok_text_id | 空 | string | "确定"按钮文案（默认取框架语言键 `STRID_PUBLIC_STRING_OK`，空串回退默认） |
+| cancel_text / cancel_text_id | 空 | string | "取消"按钮文案（默认取框架语言键 `STRID_PUBLIC_STRING_CANCEL`，空串回退默认） |
+| show_cancel | true | bool | 是否显示"取消"按钮 |
+| ok_type | primary | string | "确定"按钮外观：`primary`（主色）/ `default`（次要，与取消同外观）/ `danger`（红色危险） |
+| close_on_ok | true | bool | 点击"确定"后是否关闭卡片 |
+
+C++ 接口：`SetDescription/GetDescription`、`SetDescriptionId/GetDescriptionId`、`SetIcon/GetIcon`、`SetOkText/GetOkText`、`SetOkTextId/GetOkTextId`、`SetCancelText/GetCancelText`、`SetCancelTextId/GetCancelTextId`、`SetShowCancel/IsShowCancel`、`SetOkType/GetOkType`、`SetCloseOnOk/IsCloseOnOk`、`Confirm()`（等同点击确定）、`Cancel()`（等同点击取消）、`AttachConfirm(cb, id = 0)` / `AttachCancel(cb, id = 0)`。
+枚举：`PopconfirmIcon{kWarning,kInfo,kSuccess,kError,kNone}`、`PopconfirmOkType{kPrimary,kDefault,kDanger}`。
+事件：`kEventPopconfirmConfirm`（点击确定或 `Confirm()`）、`kEventPopconfirmCancel`（点击取消或 `Cancel()`）；顺序为**先**按钮事件**再** `kEventPopoverOpenChanged(wParam=0, lParam=kConfirm/kCancel)`，因此按钮回调里 `IsOpen()` 仍为 `true`。
+默认皮肤类（global.xml）：`popconfirm_icon_warning`/`_info`/`_success`/`_error`（16×16，图片在 `public/popconfirm/`，`svg_replace_colors` 圆形→`color_warning`/`color_accent`/`color_success`/`color_error`、字形→`color_white`）、`popconfirm_title`（继承 `popover_title`，`multi_line` 超长标题自动换行不截断）、`popconfirm_description`（继承 `popover_content`，12 号字）、`popconfirm_btn`（高 28/圆角 6/13 号字/手型，`width="auto"` + `padding="10,0,10,0"` + `min_width="64"` 按文案自适应宽度）、`popconfirm_cancel`（继承 `btn_global` 并覆盖尺寸，宽度自适应）、`popconfirm_ok_default`（继承 `popconfirm_cancel`）、`popconfirm_ok_primary`（继承 `btn_primary_global` 并覆盖尺寸，宽度自适应）、`popconfirm_ok_danger`（红底固定配色，与 `btn_global_color_red` 约定一致）。
+注意：不使用继承来的 `content_xml`（卡片内容由 `BuildCardBodyXml()` 生成，派生类可重写）；图标/`show_cancel`/`ok_type`/`close_on_ok` 在卡片打开时生成，运行期修改对下次打开生效；卡片不抢焦点，"确定"/"取消"只响应鼠标点击（Esc 按 Popover 语义关闭，原因为 `kEscape`）。
 
 ### TreeGrid 属性(继承 VBox)
 

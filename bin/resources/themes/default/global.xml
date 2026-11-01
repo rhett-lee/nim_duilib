@@ -39,6 +39,7 @@
     <Var name="PATH_MENU" value="public/menu"/>
     <Var name="PATH_SEARCHBOX" value="public/searchbox"/>
     <Var name="PATH_POPOVER" value="public/popover"/>
+    <Var name="PATH_POPCONFIRM" value="public/popconfirm"/>
     
     <!-- 字体文件（放在资源根目录的fonts目录中），程序启动时加载，加载后可以按照使用系统字体相同的方式使用 -->
     <!-- 注意事项：该RobotoMono字体只能用于显示英文字母，不支持中文 -->
@@ -1098,6 +1099,32 @@
     <Class name="popover_content" width="stretch" height="auto" font="system_regular_14"
                                   normal_text_color="text_muted" multi_line="true" replace_newline="true"
                                   text_align="hleft,vcenter" mouse_enabled="false" tab_stop="false"/>
+
+    <!-- Popconfirm确认气泡卡片：图标（16×16 彩色圆 + 白色字形，颜色随主题切换） -->
+    <Class name="popconfirm_icon_warning" width="16" height="16" mouse_enabled="false" tab_stop="false"
+                                         bkimage="file='${PATH_POPCONFIRM}/popconfirm_icon_warning.svg' svg_replace_colors='#0078D4|color_warning;#FFFFFF|color_white'"/>
+    <Class name="popconfirm_icon_info" width="16" height="16" mouse_enabled="false" tab_stop="false"
+                                      bkimage="file='${PATH_POPCONFIRM}/popconfirm_icon_info.svg' svg_replace_colors='#0078D4|color_accent;#FFFFFF|color_white'"/>
+    <Class name="popconfirm_icon_success" width="16" height="16" mouse_enabled="false" tab_stop="false"
+                                         bkimage="file='${PATH_POPCONFIRM}/popconfirm_icon_success.svg' svg_replace_colors='#0078D4|color_success;#FFFFFF|color_white'"/>
+    <Class name="popconfirm_icon_error" width="16" height="16" mouse_enabled="false" tab_stop="false"
+                                       bkimage="file='${PATH_POPCONFIRM}/popconfirm_icon_error.svg' svg_replace_colors='#0078D4|color_error;#FFFFFF|color_white'"/>
+    <!-- Popconfirm确认气泡卡片：标题（主问句；超长标题自动换行，避免不同语言下被截断成省略号） -->
+    <Class name="popconfirm_title" class="popover_title" multi_line="true" replace_newline="true"/>
+    <!-- Popconfirm确认气泡卡片：描述（补充说明，自动换行） -->
+    <Class name="popconfirm_description" class="popover_content" font="system_regular_12" normal_text_color="text_muted"/>
+    <!-- Popconfirm确认气泡卡片：按钮（高度/圆角/字体统一；宽度按文案自适应，min_width 保证短文案时按钮不过窄） -->
+    <Class name="popconfirm_btn" width="auto" min_width="64" height="28" padding="10,0,10,0" border_round="6,6"
+                                 font="system_regular_13" cursor_type="hand"/>
+    <Class name="popconfirm_cancel" class="btn_global" width="auto" min_width="64" height="28" padding="10,0,10,0"
+                                    border_round="6,6" font="system_regular_13" cursor_type="hand"/>
+    <Class name="popconfirm_ok_default" class="popconfirm_cancel"/>
+    <Class name="popconfirm_ok_primary" class="btn_primary_global" width="auto" min_width="64" height="28" padding="10,0,10,0"
+                                       border_round="6,6" font="system_regular_13" cursor_type="hand"/>
+    <!-- 危险操作按钮：复用框架既有的固定红色按钮配色（主题体系没有 danger 系列背景色） -->
+    <Class name="popconfirm_ok_danger" class="popconfirm_btn" normal_text_color="color_white"
+                                      disabled_text_color="color_gray" border_size="0"
+                                      normal_color="color_red_dark" hovered_color="#E0393E" pressed_color="#B71D22"/>
 
     <!-- Calendar日历面板：整体容器 -->
     <Class name="calendar" width="280" height="240" bkcolor="bg_window_card"/>

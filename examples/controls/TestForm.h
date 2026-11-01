@@ -62,6 +62,10 @@ private:
     */
     void ShowPopoverWindow();
 
+    /** 显示 Popconfirm 确认气泡卡片演示窗口
+    */
+    void ShowPopconfirmWindow();
+
     /** 显示 Switch 开关演示窗口
     */
     void ShowSwitchWindow();

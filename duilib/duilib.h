@@ -113,6 +113,7 @@
 #include "Control/Breadcrumb.h"
 #include "Control/CascadingSelect.h"
 #include "Control/Popover.h"
+#include "Control/Popconfirm.h"
 #include "Control/TreeGrid.h"
 #include "Control/Slider.h"
 #include "Control/RangeSlider.h"

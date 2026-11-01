@@ -245,6 +245,7 @@
     <ClInclude Include="BreadcrumbForm.h" />
     <ClInclude Include="CascadingSelectForm.h" />
     <ClInclude Include="PopoverForm.h" />
+    <ClInclude Include="PopconfirmForm.h" />
     <ClInclude Include="SwitchForm.h" />
     <ClInclude Include="ButtonCheckBoxForm.h" />
     <ClInclude Include="ProgressForm.h" />
@@ -275,6 +276,7 @@
     <ClCompile Include="BreadcrumbForm.cpp" />
     <ClCompile Include="CascadingSelectForm.cpp" />
     <ClCompile Include="PopoverForm.cpp" />
+    <ClCompile Include="PopconfirmForm.cpp" />
     <ClCompile Include="SwitchForm.cpp" />
     <ClCompile Include="ButtonCheckBoxForm.cpp" />
     <ClCompile Include="ProgressForm.cpp" />

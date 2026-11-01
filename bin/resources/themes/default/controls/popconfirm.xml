@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="900,800" text="Popconfirm Test" use_system_caption="false" caption="0,0,0,36"
+        shadow_type="default" size_box="4,4,4,4" min_size="820,620">
+    <VBox bkcolor="bg_window_main">
+        <!-- 标题栏 -->
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
+            <Label name="label_title" text_id="STRID_POPCONFIRM_WINDOW_TITLE" valign="center" margin="8" mouse_enabled="false"/>
+            <Control/>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+        </HBox>
+
+        <!-- 提示区 -->
+        <HBox height="34" padding="12,6,12,0">
+            <Label text_id="STRID_POPCONFIRM_HINT" text_color="text_muted" valign="center"
+                   text_align="left,vcenter" width="stretch" auto_tooltip="true"/>
+        </HBox>
+
+        <!-- 内容区 -->
+        <VScrollBox width="stretch" height="stretch" vscrollbar="true" hscrollbar="false">
+            <VBox padding="12,8,12,12" width="stretch" height="auto">
+                <!-- 基本用法：点击锚点弹出确认卡片，点击确定/取消后关闭 -->
+                <VBox bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6"
+                      padding="16,16,16,16" width="stretch" height="auto">
+                    <Label text_id="STRID_POPCONFIRM_BASIC_TITLE" font="system_bold_15" text_color="text_default"
+                           valign="center" margin="0,0,0,4"/>
+                    <Label text_id="STRID_POPCONFIRM_BASIC_DESC" font="system_regular_12" text_color="text_muted"
+                           valign="center" margin="0,0,0,12" auto_tooltip="true"/>
+                    <HBox height="40">
+                        <Popconfirm class="popover_anchor" name="popconfirm_basic" placement="top"
+                                    valign="center" width="auto" padding="12,0,12,0"
+                                    text_id="STRID_POPCONFIRM_ANCHOR_BASIC"
+                                    title_id="STRID_POPCONFIRM_QUESTION"
+                                    description_id="STRID_POPCONFIRM_DESCRIPTION"/>
+                        <Control width="stretch" height="stretch" mouse_enabled="false"/>
+                    </HBox>
+                    <HBox height="30" margin="0,8,0,0">
+                        <Label name="popconfirm_state" text_id="STRID_POPCONFIRM_STATE_NONE" text_color="text_default"
+                               valign="center" width="stretch" auto_tooltip="true"/>
+                    </HBox>
+                </VBox>
+
+                <!-- 四种图标 + 无图标：icon="warning"（默认）/ info / success / error / none -->
+                <VBox bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6"
+                      padding="16,16,16,16" width="stretch" height="auto" margin="0,12,0,0">
+                    <Label text_id="STRID_POPCONFIRM_ICON_TITLE" font="system_bold_15" text_color="text_default"
+                           valign="center" margin="0,0,0,4"/>
+                    <Label text_id="STRID_POPCONFIRM_ICON_DESC" font="system_regular_12" text_color="text_muted"
+                           valign="center" margin="0,0,0,12" auto_tooltip="true"/>
+                    <HBox height="40" child_margin_x="8">
+                        <Popconfirm class="popover_anchor" name="popconfirm_icon_warning" placement="top"
+                                    valign="center" width="auto" padding="12,0,12,0"
+                                    text_id="STRID_POPCONFIRM_ANCHOR_WARNING"
+                                    title_id="STRID_POPCONFIRM_QUESTION" icon="warning"/>
+                        <Popconfirm class="popover_anchor" name="popconfirm_icon_info" placement="top"
+                                    valign="center" width="auto" padding="12,0,12,0"
+                                    text_id="STRID_POPCONFIRM_ANCHOR_INFO"
+                                    title_id="STRID_POPCONFIRM_QUESTION" icon="info"/>
+                        <Popconfirm class="popover_anchor" name="popconfirm_icon_success" placement="top"
+                                    valign="center" width="auto" padding="12,0,12,0"
+                                    text_id="STRID_POPCONFIRM_ANCHOR_SUCCESS"
+                                    title_id="STRID_POPCONFIRM_QUESTION" icon="success"/>
+                        <Popconfirm class="popover_anchor" name="popconfirm_icon_error" placement="top"
+                                    valign="center" width="auto" padding="12,0,12,0"
+                                    text_id="STRID_POPCONFIRM_ANCHOR_ERROR"
+                                    title_id="STRID_POPCONFIRM_QUESTION" icon="error"/>
+                        <Popconfirm class="popover_anchor" name="popconfirm_icon_none" placement="top"
+                                    valign="center" width="auto" padding="12,0,12,0"
+                                    text_id="STRID_POPCONFIRM_ANCHOR_NONE"
+                                    title_id="STRID_POPCONFIRM_QUESTION" icon="none"/>
+                        <Control width="stretch" height="stretch" mouse_enabled="false"/>
+                    </HBox>
+                </VBox>
+
+                <!-- 确定按钮的样式 + 无取消按钮：ok_type="primary"（默认）/ default / danger，show_cancel="false" -->
+                <VBox bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6"
+                      padding="16,16,16,16" width="stretch" height="auto" margin="0,12,0,0">
+                    <Label text_id="STRID_POPCONFIRM_OKTYPE_TITLE" font="system_bold_15" text_color="text_default"
+                           valign="center" margin="0,0,0,4"/>
+                    <Label text_id="STRID_POPCONFIRM_OKTYPE_DESC" font="system_regular_12" text_color="text_muted"
+                           valign="center" margin="0,0,0,12" auto_tooltip="true"/>
+                    <HBox height="40" child_margin_x="8">
+                        <Popconfirm class="popover_anchor" name="popconfirm_ok_primary" placement="top"
+                                    valign="center" width="auto" padding="12,0,12,0"
+                                    text_id="STRID_POPCONFIRM_ANCHOR_PRIMARY"
+                                    title_id="STRID_POPCONFIRM_QUESTION" description_id="STRID_POPCONFIRM_DESCRIPTION"
+                                    ok_type="primary"/>
+                        <Popconfirm class="popover_anchor" name="popconfirm_ok_default" placement="top"
+                                    valign="center" width="auto" padding="12,0,12,0"
+                                    text_id="STRID_POPCONFIRM_ANCHOR_DEFAULT"
+                                    title_id="STRID_POPCONFIRM_QUESTION" description_id="STRID_POPCONFIRM_DESCRIPTION"
+                                    ok_type="default"/>
+                        <Popconfirm class="popover_anchor" name="popconfirm_ok_danger" placement="top"
+                                    valign="center" width="auto" padding="12,0,12,0"
+                                    text_id="STRID_POPCONFIRM_ANCHOR_DANGER"
+                                    title_id="STRID_POPCONFIRM_QUESTION_DANGER"
+                                    description_id="STRID_POPCONFIRM_DESCRIPTION_DANGER"
+                                    icon="error" ok_type="danger"
+                                    ok_text_id="STRID_POPCONFIRM_OK_DELETE"/>
+                        <Popconfirm class="popover_anchor" name="popconfirm_no_cancel" placement="top"
+                                    valign="center" width="auto" padding="12,0,12,0"
+                                    text_id="STRID_POPCONFIRM_ANCHOR_NO_CANCEL"
+                                    title_id="STRID_POPCONFIRM_QUESTION" icon="info"
+                                    show_cancel="false"/>
+                        <Control width="stretch" height="stretch" mouse_enabled="false"/>
+                    </HBox>
+                </VBox>
+
+                <!-- 较长描述：卡片宽度由 card_width 决定，描述自动换行 -->
+                <VBox bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6"
+                      padding="16,16,16,16" width="stretch" height="auto" margin="0,12,0,0">
+                    <Label text_id="STRID_POPCONFIRM_LONG_TITLE" font="system_bold_15" text_color="text_default"
+                           valign="center" margin="0,0,0,4"/>
+                    <Label text_id="STRID_POPCONFIRM_LONG_DESC" font="system_regular_12" text_color="text_muted"
+                           valign="center" margin="0,0,0,12" auto_tooltip="true"/>
+                    <HBox height="40">
+                        <Popconfirm class="popover_anchor" name="popconfirm_long" placement="top"
+                                    valign="center" width="auto" padding="12,0,12,0"
+                                    text_id="STRID_POPCONFIRM_ANCHOR_LONG"
+                                    title_id="STRID_POPCONFIRM_QUESTION"
+                                    description_id="STRID_POPCONFIRM_DESCRIPTION_LONG"
+                                    card_width="300"/>
+                        <Control width="stretch" height="stretch" mouse_enabled="false"/>
+                    </HBox>
+                </VBox>
+
+                <!-- 保持打开：close_on_ok="false" 时点确定不关闭，由业务调用 Confirm() / Cancel() 控制 -->
+                <VBox bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6"
+                      padding="16,16,16,16" width="stretch" height="auto" margin="0,12,0,0">
+                    <Label text_id="STRID_POPCONFIRM_KEEP_TITLE" font="system_bold_15" text_color="text_default"
+                           valign="center" margin="0,0,0,4"/>
+                    <Label text_id="STRID_POPCONFIRM_KEEP_DESC" font="system_regular_12" text_color="text_muted"
+                           valign="center" margin="0,0,0,12" auto_tooltip="true"/>
+                    <HBox height="40" child_margin_x="8">
+                        <Popconfirm class="popover_anchor" name="popconfirm_keep" placement="top"
+                                    valign="center" width="auto" padding="12,0,12,0"
+                                    text_id="STRID_POPCONFIRM_ANCHOR_KEEP"
+                                    title_id="STRID_POPCONFIRM_QUESTION"
+                                    description_id="STRID_POPCONFIRM_DESCRIPTION"
+                                    close_on_ok="false"/>
+                        <Button class="btn_global" name="btn_popconfirm_confirm" text_id="STRID_POPCONFIRM_BTN_CONFIRM"
+                                width="auto" min_width="96" padding="12,0,12,0" height="28" border_round="3,3" valign="center"/>
+                        <Button class="btn_global" name="btn_popconfirm_cancel" text_id="STRID_POPCONFIRM_BTN_CANCEL"
+                                width="auto" min_width="96" padding="12,0,12,0" height="28" border_round="3,3" valign="center"/>
+                        <Control width="stretch" height="stretch" mouse_enabled="false"/>
+                    </HBox>
+                    <HBox height="30" margin="0,8,0,0">
+                        <Label name="popconfirm_result" text_id="STRID_POPCONFIRM_RESULT_NONE" text_color="text_default"
+                               valign="center" width="stretch" auto_tooltip="true"/>
+                    </HBox>
+                </VBox>
+
+                <!-- 占位：把剩余空间留在底部 -->
+                <Control height="stretch" mouse_enabled="false"/>
+            </VBox>
+        </VScrollBox>
+    </VBox>
+</Window>

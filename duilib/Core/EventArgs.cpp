@@ -180,7 +180,9 @@ static void InitEventStringMap(std::unordered_map<EventType, DString>* typeMap,
         {kEventViewModeChanged, _T("kEventViewModeChanged"), _T("ViewModeChanged"), _T("view_mode_changed")},
         {kEventDisplayDateChanged, _T("kEventDisplayDateChanged"), _T("DisplayDateChanged"), _T("display_date_changed")},
         {kEventTreeGridCheckChanged, _T("kEventTreeGridCheckChanged"), _T("TreeGridCheckChanged"), _T("tree_grid_check_changed")},
-        {kEventPopoverOpenChanged, _T("kEventPopoverOpenChanged"), _T("PopoverOpenChanged"), _T("popover_open_changed")}
+        {kEventPopoverOpenChanged, _T("kEventPopoverOpenChanged"), _T("PopoverOpenChanged"), _T("popover_open_changed")},
+        {kEventPopconfirmConfirm, _T("kEventPopconfirmConfirm"), _T("PopconfirmConfirm"), _T("popconfirm_confirm")},
+        {kEventPopconfirmCancel, _T("kEventPopconfirmCancel"), _T("PopconfirmCancel"), _T("popconfirm_cancel")}
     };
 
     for (const EventTypeString& typeString : eventTypeStringList) {

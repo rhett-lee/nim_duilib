@@ -42,6 +42,7 @@
 #include "duilib/Control/Breadcrumb.h"
 #include "duilib/Control/CascadingSelect.h"
 #include "duilib/Control/Popover.h"
+#include "duilib/Control/Popconfirm.h"
 #include "duilib/Control/TreeGrid.h"
 #include "duilib/Control/Split.h"
 #include "duilib/Control/GroupBox.h"
@@ -198,6 +199,7 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_BREADCRUMB, [](Window* pWindow) { return new Breadcrumb(pWindow); }},
         {DUI_CTR_CASCADING_SELECT, [](Window* pWindow) { return new CascadingSelect(pWindow); }},
         {DUI_CTR_POPOVER, [](Window* pWindow) { return new Popover(pWindow); }},
+        {DUI_CTR_POPCONFIRM, [](Window* pWindow) { return new Popconfirm(pWindow); }},
         {DUI_CTR_TREE_GRID, [](Window* pWindow) { return new TreeGrid(pWindow); }},
         {DUI_CTR_COLOR_CONTROL, [](Window* pWindow) { return new ColorControl(pWindow); }},
         {DUI_CTR_COLOR_SLIDER, [](Window* pWindow) { return new ColorSlider(pWindow); }},

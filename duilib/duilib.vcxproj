@@ -397,6 +397,7 @@
     <ClCompile Include="Control\Breadcrumb.cpp" />
     <ClCompile Include="Control\CascadingSelect.cpp" />
     <ClCompile Include="Control\Popover.cpp" />
+    <ClCompile Include="Control\Popconfirm.cpp" />
     <ClCompile Include="Control\TreeGrid.cpp" />
     <ClCompile Include="Core\Box.cpp" />
     <ClCompile Include="Core\BoxShadow.cpp" />
@@ -829,6 +830,7 @@
     <ClInclude Include="Control\Breadcrumb.h" />
     <ClInclude Include="Control\CascadingSelect.h" />
     <ClInclude Include="Control\Popover.h" />
+    <ClInclude Include="Control\Popconfirm.h" />
     <ClInclude Include="Control\TreeGrid.h" />
     <ClInclude Include="Core\Box.h" />
     <ClInclude Include="Core\BoxShadow.h" />

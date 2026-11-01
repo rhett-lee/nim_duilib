@@ -2492,11 +2492,12 @@ Popover是"锚点自身即触发元素"的气泡卡片控件，继承自`Label`�
 枚举：
 - `PopoverTrigger`：`kClick`（点击锚点打开，再次点击或点击外部关闭，默认）、`kHover`（移入打开，移出锚点与卡片后延迟关闭）、`kFocus`（锚点获得焦点打开，失去焦点关闭）、`kManual`（仅`Show()`/`Hide()`/`Toggle()`生效）。
 - `PopoverPlacement`：`kTop`（上方水平居中，默认）、`kTopLeft`、`kTopRight`、`kBottom`、`kBottomLeft`、`kBottomRight`、`kLeft`（左侧垂直居中）、`kLeftTop`、`kLeftBottom`、`kRight`、`kRightTop`、`kRightBottom`。
-- `PopoverCloseReason`：`kManual`（主动关闭/再次点击/悬停移出）、`kClickOutside`（点击卡片与锚点以外区域）、`kEscape`（按Esc）、`kAnchorLost`（锚点控件或其窗口失效）。
+- `PopoverCloseReason`：`kManual`（主动关闭/再次点击/悬停移出）、`kClickOutside`（点击卡片与锚点以外区域）、`kEscape`（按Esc）、`kAnchorLost`（锚点控件或其窗口失效）、`kConfirm`（点击卡片内的"确定"按钮，`Popconfirm`使用）、`kCancel`（点击卡片内的"取消"按钮，`Popconfirm`使用）。
 
 ### 事件
 
 `kEventPopoverOpenChanged`：卡片打开状态变化时触发。`wParam`为`1`（已打开）/`0`（已关闭），`lParam`为关闭原因（`PopoverCloseReason`，打开时为0）。
+卡片内的按钮触发的关闭同样会派发本事件，原因为`kConfirm`（4）/`kCancel`（5）。
 
 XML内联事件写法：
 
@@ -2605,6 +2606,166 @@ pPopover->AttachOpenChanged([pAnchor](const ui::EventArgs& args) {
 - `trigger="focus"`的锚点在已持有键盘焦点时再次点击仍可打开卡片（点击已获得焦点的控件不会再触发获得焦点事件，控件内部按"未打开+已聚焦"补充打开）。
 
 完整演示见controls示例（"Popover"分组，与Ant Design的示例结构一一对应：基本用法、三种触发方式、12个位置、受控模式Show/Hide/Toggle、复杂内容与"从浮层内关闭"）。
+
+<a name="popconfirm"></a>
+## Popconfirm 控件（确认气泡卡片）
+
+Popconfirm是"就地确认"的锚点式控件，继承自`Popover`（XML节点为`Popconfirm`），对应头文件`duilib/Control/Popconfirm.h`。
+点击锚点后在它周围弹出"图标 + 标题 + 描述 + 取消/确定"的卡片，用户点击按钮后卡片关闭并把选择结果通知外部。语义对齐Ant Design的Popconfirm组件。
+
+与Popover的差异：Popover用于展示信息（标题 + 正文）；Popconfirm用于确认交互，卡片带按钮行并在关闭时区分"确定/取消"。
+与MessageBoxWnd的差异：MessageBoxWnd是模态对话框、居中显示；Popconfirm是贴着触发控件弹出的非模态浮层，不打断用户视线、不抢焦点。
+
+核心特性：
+- 继承`Popover`的全部能力：12个方位、尖角箭头、`click`/`hover`/`focus`/`manual`四种触发、跟随锚点滚动、锚点滚出可视区域时挂起与恢复、点击外部/按Esc自动关闭；
+- 卡片内容由控件生成：图标（可选）+ 标题（`title`/`title_id`）+ 描述（`description`/`description_id`）+ 右对齐的"取消/确定"按钮行；
+- 点击"确定"派发`kEventPopconfirmConfirm`并关闭卡片（可用`close_on_ok="false"`保持打开），点击"取消"派发`kEventPopconfirmCancel`并关闭卡片；
+- 关闭原因扩展`PopoverCloseReason::kConfirm`（4）/`kCancel`（5），因此`kEventPopoverOpenChanged`能区分"按钮触发的关闭"；
+- 默认按钮文案取框架语言键`STRID_PUBLIC_STRING_OK` / `STRID_PUBLIC_STRING_CANCEL`，随语言切换自动生效。
+
+### XML属性
+
+除`Popover`的全部属性（`trigger`、`placement`、`gap`、`card_width`、`arrow`、`auto_dismiss`、`hover_delay`、`close_delay`、`title`、`title_id`等）外，`Popconfirm`支持：
+
+| 属性名称 | 默认值 | 参数类型 | 关联[Popconfirm.h](../duilib/Control/Popconfirm.h)中的函数 | 用途 |
+| :--- | :--- | :--- | :--- | :--- |
+| description | | string | SetDescription | 卡片描述（字面文本，`\n`表示换行，可省略） |
+| description_id | | string | SetDescriptionId | 卡片描述的多语言ID（与description互斥，优先生效） |
+| content / content_id | | string | SetDescription / SetDescriptionId | `description`的兼容别名（便于从Popover迁移） |
+| icon | warning | string | SetIcon | 图标语义：`warning` / `info` / `success` / `error` / `none`（不显示图标） |
+| ok_text | | string | SetOkText | "确定"按钮的字面文本（默认为语言键`STRID_PUBLIC_STRING_OK`） |
+| ok_text_id | | string | SetOkTextId | "确定"按钮的多语言ID（优先于`ok_text`） |
+| cancel_text | | string | SetCancelText | "取消"按钮的字面文本（默认为语言键`STRID_PUBLIC_STRING_CANCEL`） |
+| cancel_text_id | | string | SetCancelTextId | "取消"按钮的多语言ID（优先于`cancel_text`） |
+| show_cancel | true | bool | SetShowCancel | 是否显示"取消"按钮 |
+| ok_type | primary | string | SetOkType | "确定"按钮样式：`primary` / `default` / `danger` |
+| close_on_ok | true | bool | SetCloseOnOk | 点击"确定"后是否关闭卡片 |
+
+### C++接口
+
+| 接口 | 说明 |
+| :--- | :--- |
+| `SetDescription(text)` / `GetDescription()` | 设置/获取卡片描述（多语言ID优先） |
+| `SetDescriptionId(id)` / `GetDescriptionId()` | 设置/获取卡片描述的多语言ID |
+| `SetIcon(PopconfirmIcon)` / `GetIcon()` | 图标语义，见`PopconfirmIcon`枚举 |
+| `SetOkText(text)` / `GetOkText()` | 设置/获取"确定"按钮文本（空串表示改用默认语言键） |
+| `SetOkTextId(id)` / `GetOkTextId()` | 设置/获取"确定"按钮的多语言ID |
+| `SetCancelText(text)` / `GetCancelText()` | 设置/获取"取消"按钮文本（空串表示改用默认语言键） |
+| `SetCancelTextId(id)` / `GetCancelTextId()` | 设置/获取"取消"按钮的多语言ID |
+| `SetShowCancel(bool)` / `IsShowCancel()` | 是否显示"取消"按钮（默认`true`） |
+| `SetOkType(PopconfirmOkType)` / `GetOkType()` | "确定"按钮样式，见`PopconfirmOkType`枚举 |
+| `SetCloseOnOk(bool)` / `IsCloseOnOk()` | 点击"确定"后是否关闭卡片（默认`true`） |
+| `Confirm()` | 等同点击"确定"：派发`kEventPopconfirmConfirm`，并按`close_on_ok`关闭卡片 |
+| `Cancel()` | 等同点击"取消"：派发`kEventPopconfirmCancel`，并关闭卡片 |
+| `AttachConfirm(callback, id)` / `AttachCancel(callback, id)` | 监听"确定"/"取消"事件 |
+| `Show()` / `Hide()` / `Toggle()` / `IsOpen()` / `GetCardWindow()` / `FindCardControl(name)` / `AttachOpenChanged(...)` | 继承自`Popover`，语义不变 |
+
+枚举：
+- `PopconfirmIcon`：`kWarning`（警告色圆形感叹号，默认）、`kInfo`（主题色）、`kSuccess`（成功色）、`kError`（错误色）、`kNone`（不显示图标）。
+- `PopconfirmOkType`：`kPrimary`（主色按钮，默认）、`kDefault`（次要按钮，与"取消"同外观）、`kDanger`（危险操作按钮，红色）。
+
+### 事件
+
+| 事件 | 派发时机 | 参数 |
+| :--- | :--- | :--- |
+| `kEventPopconfirmConfirm` | 点击卡片内"确定"，或调用`Confirm()` | 无 |
+| `kEventPopconfirmCancel` | 点击卡片内"取消"，或调用`Cancel()` | 无 |
+| `kEventPopoverOpenChanged`（继承） | 卡片打开/关闭 | `wParam`为`1`/`0`；`lParam`为关闭原因（按钮触发时为`kConfirm`/`kCancel`） |
+
+事件顺序：先`kEventPopconfirmConfirm`，再`kEventPopoverOpenChanged(wParam=0, lParam=kConfirm)`；
+即在`Confirm`回调里读到的`IsOpen()`仍为`true`，适合在回调里做"关闭前的二次校验"。
+
+XML内联事件写法：
+
+```xml
+<Popconfirm class="popover_anchor" name="delete_btn" placement="top"
+            text="删除" title="确定要删除吗？" description="删除后无法恢复。"
+            icon="error" ok_type="danger" ok_text="删除"
+            event="popconfirm_confirm='OnConfirm' popconfirm_cancel='OnCancel'"/>
+```
+
+C++绑定：
+
+```cpp
+ui::Popconfirm* pConfirm = dynamic_cast<ui::Popconfirm*>(FindControl(_T("delete_btn")));
+if (pConfirm != nullptr) {
+    pConfirm->AttachConfirm([](const ui::EventArgs& /*args*/) {
+        //用户点击了"确定"（此时卡片已关闭）
+        return true;
+        });
+    pConfirm->AttachCancel([](const ui::EventArgs& /*args*/) {
+        return true;
+        });
+    //也可以区分"确定/取消"以外的关闭方式（点击外部、Esc、主动关闭）
+    pConfirm->AttachOpenChanged([](const ui::EventArgs& args) {
+        if (static_cast<int32_t>(args.wParam) == 0) {
+            const ui::PopoverCloseReason reason =
+                static_cast<ui::PopoverCloseReason>(static_cast<uint32_t>(args.lParam));
+            (void)reason;
+        }
+        return true;
+        });
+}
+```
+
+### 皮肤Class与图标资源
+
+默认皮肤在`global.xml`中提供11个Class：
+
+| Class | 用途 |
+| :--- | :--- |
+| `popconfirm_icon_warning` | 警告图标（16×16，警告色圆 + 白色感叹号） |
+| `popconfirm_icon_info` | 信息图标（主题色圆 + 白色字母i） |
+| `popconfirm_icon_success` | 成功图标（成功色圆 + 白色对勾） |
+| `popconfirm_icon_error` | 错误/危险图标（错误色圆 + 白色叉号） |
+| `popconfirm_title` | 标题（继承`popover_title`：14号粗体、`text_default`；超长标题自动换行，不会截断成省略号） |
+| `popconfirm_description` | 描述（继承`popover_content`，字号12、`text_muted`、多行自动换行） |
+| `popconfirm_btn` | 按钮尺寸基类（高度28、圆角6、13号字、手型光标；宽度按文案自适应，`min_width=64`） |
+| `popconfirm_cancel` | "取消"按钮（次要按钮配色，继承`btn_global`；宽度自适应，`min_width=64`） |
+| `popconfirm_ok_default` | "确定"按钮（次要按钮外观，与"取消"一致） |
+| `popconfirm_ok_primary` | "确定"按钮（主色外观，继承`btn_primary_global`；宽度自适应，`min_width=64`） |
+| `popconfirm_ok_danger` | "确定"按钮（危险操作外观，红色固定配色，与`btn_global_color_red`的约定一致） |
+
+图标资源位于`public/popconfirm/`（`popconfirm_icon_{warning,info,success,error}.svg`），
+颜色通过`svg_replace_colors`映射到语义色（圆形填充→`color_warning`/`color_accent`/`color_success`/`color_error`，字形→`color_white`），深浅色主题自动适配。
+卡片的底框、阴影与尖角箭头完全复用`popover_card` / `popover_arrow_*`与`public/shadow/`下的方位阴影。
+
+### 使用示例
+
+```xml
+<!-- 基本用法：点击锚点弹出确认卡片，标题/描述来自多语言ID，按钮文案用框架默认值 -->
+<Popconfirm class="popover_anchor" name="confirm_basic" placement="top"
+            text_id="STRID_POPCONFIRM_ANCHOR_BASIC"
+            title_id="STRID_POPCONFIRM_QUESTION"
+            description_id="STRID_POPCONFIRM_DESCRIPTION"/>
+
+<!-- 危险操作：红色图标 + 红色确定按钮 + 自定义按钮文案 -->
+<Popconfirm class="popover_anchor" name="confirm_danger" placement="top"
+            text="删除" title="确定要删除这条记录吗？" description="删除后无法恢复。"
+            icon="error" ok_type="danger" ok_text="删除"/>
+
+<!-- 只有一个"确定"按钮；点击确定后保持打开（由业务自行关闭） -->
+<Popconfirm class="popover_anchor" name="confirm_keep" placement="top"
+            text="提交" title="确认提交？" show_cancel="false" close_on_ok="false"/>
+```
+
+```cpp
+//受控调用：由外部按钮触发"确定"/"取消"
+ui::Popconfirm* pConfirm = dynamic_cast<ui::Popconfirm*>(FindControl(_T("confirm_keep")));
+if (pConfirm != nullptr) {
+    pConfirm->Confirm();   //等同点击"确定"
+    pConfirm->Cancel();    //等同点击"取消"
+}
+```
+
+完整演示见controls示例（"Popconfirm"分组：基本用法、四种图标 + 无图标、确定按钮样式与无取消按钮、较长描述、保持打开与受控调用）。
+
+注意事项：
+- `Popconfirm`不使用继承来的`content_xml`（卡片内容由控件生成）；需要富内容请改用`Popover`，或在业务侧派生`Popconfirm`并重写`BuildCardBodyXml()`；
+- `content` / `content_id` 是`description` / `description_id`的兼容别名，两者都设置时以`description`系列为准；
+- 图标、`show_cancel`、`ok_type`、`close_on_ok`在卡片打开时生成，运行期修改对下一次打开生效；
+- 按钮宽度按文案自适应（`width="auto"` + `padding="10,0,10,0"` + `min_width="64"`），短文案时保持 64 的最小宽度，长文案（如外语的"Delete"/"确定"）不会被截断；如需固定宽度请自定义主题Class（`popconfirm_cancel` / `popconfirm_ok_*`）；
+- 卡片窗口不抢焦点，因此"确定"/"取消"只响应鼠标点击，不支持键盘回车/Esc选择（Esc按`Popover`的语义关闭卡片，原因为`kEscape`）。
 
 ## Mask的属性
 Mask（遮罩/蒙版层）是继承自`Box`的容器控件（XML节点为`Mask`），用于覆盖在其它控件之上形成半透明蒙层，覆盖弹层体系的三种典型场景：

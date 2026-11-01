@@ -2,7 +2,7 @@
 # nim_duilib 开发执行规划（Development Plan）
 
 > 本文档是**可跟踪执行**的开发规划，与其它规划类文档的分工见下表。
-> 基线日期：**2026-11-01**（已完成 A-1、A-2、A-4、A-5、B-3、C-1、C-2、C-3、C-5、C-6、C-7、D-10、D-14；**明确不做、后续不再跟进**：A-3、B-1（含 B-1.1 ~ B-1.3）、B-2、B-4、C-4、D-2、D-4、D-8、E-6①、E-8、E-9、E-11 ②④、F-2（含 F-2.1 ~ F-2.3）、F-3，以及 Control-Roadmap 的无障碍、安装/签名/公证剩余项、应用内更新 / 文件关联 / 开机自启 + 托盘菜单。另有下游专项 CM-5「CMake/VS 布局统一」的 P1~P5 已于 2026-10-21 完成，见 [CMake-Improvement-Plan.md](CMake-Improvement-Plan.md)）
+> 基线日期：**2026-11-01**（已完成 A-1、A-2、A-4、A-5、B-3、C-1、C-2、C-3、C-5、C-6、C-7、D-10、D-14、D-15；**明确不做、后续不再跟进**：A-3、B-1（含 B-1.1 ~ B-1.3）、B-2、B-4、C-4、D-2、D-4、D-8、E-6①、E-8、E-9、E-11 ②④、F-2（含 F-2.1 ~ F-2.3）、F-3，以及 Control-Roadmap 的无障碍、安装/签名/公证剩余项、应用内更新 / 文件关联 / 开机自启 + 托盘菜单。另有下游专项 CM-5「CMake/VS 布局统一」的 P1~P5 已于 2026-10-21 完成，见 [CMake-Improvement-Plan.md](CMake-Improvement-Plan.md)）
 > 更新规则：每完成一项把 `- [ ]` 改为 `- [x]` 并填写「完成日期」；新增项追加到对应小节末尾，不要重排既有编号。
 
 ## 与其它文档的关系
@@ -719,6 +719,7 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 | **D-12** | **原生系统通知** ✅ 已完成（2026-10-21） | `Control-Roadmap.md` 第 19 项；Toast 仅应用内自绘。已新增独立类 `SystemNotification`（`duilib/Utils/SystemNotification.h`）：SDL 构建走 SDL 系统通知（全平台），非 SDL 的 Windows 构建走 `Shell_NotifyIcon` 托盘气泡（Win7+）；与 Toast 实现完全独立 | 已完成 |
 | **D-13** | **TreeGrid 树表格** ✅ 已完成（2026-10-19，提交 `27b9a497`） | 原审计 B9 的落地方式：**不改 `ListCtrl`，新增独立控件** `duilib/Control/TreeGrid.h/.cpp`（继承 `VBox`，固定表头 + 自带滚动条的列表体，表头与数据行复用同一列宽数组）；`tree_column`+`indent` 层级缩进、`multi_select` 多选、`check_mode`+`check_cascade` 父子三态级联。**ListCtrl 内嵌树 / 分组折叠 / L3 列筛选仍不做**（见第八节） | 已完成 |
 | **D-14** | **Popover 气泡卡片** ✅ 已完成（2026-11-01） | D-2 富内容 Tooltip 明确不做后，卡片浮层仍缺"锚点即触发器"的封装。已新增独立控件 `duilib/Control/Popover.h/.cpp`（`Popover : public Label`，锚点自身即触发元素）：4 种触发（click/hover/focus/manual）、12 方位（`Flyout::Placement` 向后兼容追加 4 个居中方位 + `FlipPlacement()` 统一翻转）、标题/正文/`content_xml` 富内容、`Show/Hide/Toggle` 受控 + `kEventPopoverOpenChanged`（带关闭原因）；示例 `examples/controls/PopoverForm.*` + `controls/popover.xml`，详见 [D-14 spec](specs/D-14-Popover/spec.md) | 已完成 |
+| **D-15** | **Popconfirm 确认气泡卡片** ✅ 已完成（2026-11-01） | 在 D-14 Popover 之上补齐"就地确认"场景：**新增独立控件** `duilib/Control/Popconfirm.h/.cpp`（`Popconfirm : public Popover`，卡片内容由控件生成的"图标 + 标题 + 描述 + 取消/确定"按钮行）；四种图标语义、三种确定按钮样式、`show_cancel`/`close_on_ok` 开关、`kEventPopconfirmConfirm`/`kEventPopconfirmCancel` 事件，并把关闭原因扩展为 `PopoverCloseReason::kConfirm`(4)/`kCancel`(5)；`Popover` 侧做钩子化重构（`BuildCardBodyXml`/`InitializeCard`/`OnFlyoutClosed`/`EscapeXmlText`）且行为不变；示例 `examples/controls/PopconfirmForm.*` + `controls/popconfirm.xml`，详见 [D-15 spec](specs/D-15-Popconfirm/spec.md) | 已完成 |
 
 ### 现有控件的补强点（不新增控件，只补 API）
 
@@ -844,7 +845,7 @@ A 组 5 项中已完成 4 项（A-1、A-2、A-4、A-5）；A-3（SDL3 版本锁�
 
 ### P2 — 一致性与控件（目标：25–35 人天）
 
-> **实际进展（截至 2026-11-01）**：C 组（跨平台一致性）**7 项中完成 6 项**（C-1 `ASSERT` 统一，方案 B；C-2 IME 组合输入补齐；C-3 主题/语言切换变更广播；C-5 非 Windows 气泡通知；C-6 文件对话框参数补齐；C-7 CMake 平台判定健壮化），C-4 明确不做；D / E 组（控件）**已完成 21 项**、E-6① / E-8 / E-9 明确不做。剩余集中在 D 组 0 项（D-10 于 2026-10-22 完成、D-14 Popover 于 2026-11-01 完成；D-4、D-8 明确不做）、F 组 2 项与 H 组 10 项；F-2 无障碍明确不做；测试 / CI / 日志已明确不做，回归仍依赖 24 个示例 + `verify_docs.py`。
+> **实际进展（截至 2026-11-01）**：C 组（跨平台一致性）**7 项中完成 6 项**（C-1 `ASSERT` 统一，方案 B；C-2 IME 组合输入补齐；C-3 主题/语言切换变更广播；C-5 非 Windows 气泡通知；C-6 文件对话框参数补齐；C-7 CMake 平台判定健壮化），C-4 明确不做；D / E 组（控件）**已完成 22 项**、E-6① / E-8 / E-9 明确不做。剩余集中在 D 组 0 项（D-10 于 2026-10-22 完成、D-14 Popover 与 D-15 Popconfirm 于 2026-11-01 完成；D-4、D-8 明确不做）、F 组 2 项与 H 组 10 项；F-2 无障碍明确不做；测试 / CI / 日志已明确不做，回归仍依赖 24 个示例 + `verify_docs.py`。
 
 - [x] **C-1** `ASSERT` 跨平台行为统一　｜ 0.5 天（方案 B）｜ 依赖：无　｜ 完成日期：2026-10-20（Windows 侧加 `#ifdef _DEBUG` 包裹，方案 A 双宏未采纳）
 - [x] **C-2** IME 组合输入非 Windows 平台补齐　｜ 约 1 人天（原估 3–5）｜ 依赖：无（原标 M1，本次以逻辑探针替代）｜ 完成日期：2026-10-20
@@ -877,6 +878,7 @@ A 组 5 项中已完成 4 项（A-1、A-2、A-4、A-5）；A-3（SDL3 版本锁�
 - [x] **D-12** 原生系统通知三平台通道　｜ 中高 ｜ 完成日期：2026-10-21（新增 `SystemNotification`：SDL 构建走 SDL 系统通知，非 SDL 的 Windows 构建走 `Shell_NotifyIcon` 托盘气泡并兼容 Win7+；Toast 保持应用内自绘，未改动）
 - [x] **D-13** TreeGrid 树表格独立控件（B9，提交 `27b9a497`）　｜ 中 ｜ 完成日期：2026-10-19（ListCtrl 内嵌树 / 分组折叠 / L3 列筛选仍不做）
 - [x] **D-14** Popover 气泡卡片（纯控件，见 `duilib/Control/Popover.h`；示例 `examples/controls/PopoverForm.*` + `controls/popover.xml`）　｜ 约 500 行 ｜ 完成日期：2026-11-01（`Popover : public Label`，锚点即触发器；4 种触发 + 12 方位 + 标题/正文/`content_xml` + `kEventPopoverOpenChanged`；`Flyout::Placement` 向后兼容追加 4 个居中方位）
+- [x] **D-15** Popconfirm 确认气泡卡片（纯控件，见 `duilib/Control/Popconfirm.h`；示例 `examples/controls/PopconfirmForm.*` + `controls/popconfirm.xml`）　｜ 约 350 行 ｜ 完成日期：2026-11-01（`Popconfirm : public Popover`，卡片由控件生成"图标 + 标题 + 描述 + 取消/确定"按钮行；四种图标 + 三种确定按钮外观 + `show_cancel`/`close_on_ok`；`kEventPopconfirmConfirm`/`kEventPopconfirmCancel`，关闭原因扩展 `PopoverCloseReason::kConfirm`(4)/`kCancel`(5)；`Popover` 钩子化重构且行为不变，详见 [D-15 spec](specs/D-15-Popconfirm/spec.md)）
 - [~] **E-9** DateTime 编辑器抽象泄漏修正　｜ 中 ｜ 状态：❌ 明确不做（2026-10-21 决策，不再跟进；架构债留待后续重构）
 - [x] **E-10** SearchBox 防抖 + 建议/历史下拉整合（已完成 2026-10-18）　｜ 中低 ｜ 完成日期：2026-10-18
 - [x] **E-11** Chart ①增量数据 API + ③坐标轴格式化回调（提交 `0d987cb6`）　｜ 约 600 行 ｜ 完成日期：2026-10-18（②导出 PNG/SVG、④拆分单文件，经用户决定不做）

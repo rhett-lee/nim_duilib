@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Popconfirm 卡片图标：错误 / 危险（圆形叉号）
+     颜色占位：#0078D4 映射为错误色（color_error），#FFFFFF 映射为白色（color_white） -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16px" height="16px">
+  <circle cx="8" cy="8" r="7.5" fill="#0078D4"/>
+  <path d="M4.9,4.9 L11.1,11.1 M11.1,4.9 L4.9,11.1" fill="none" stroke="#FFFFFF" stroke-width="1.8"
+        stroke-linecap="round"/>
+</svg>

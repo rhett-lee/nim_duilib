@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Popconfirm 卡片图标：信息（圆形字母 i）
+     颜色占位：#0078D4 映射为主题色（color_accent），#FFFFFF 映射为白色（color_white） -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16px" height="16px">
+  <circle cx="8" cy="8" r="7.5" fill="#0078D4"/>
+  <circle cx="8" cy="4.4" r="1.1" fill="#FFFFFF"/>
+  <rect x="7.1" y="6.6" width="1.8" height="5.4" rx="0.9" fill="#FFFFFF"/>
+</svg>

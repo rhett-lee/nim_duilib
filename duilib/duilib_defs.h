@@ -150,6 +150,7 @@ namespace ui
     #define  DUI_CTR_BREADCRUMB                      (_T("Breadcrumb"))
     #define  DUI_CTR_CASCADING_SELECT                (_T("CascadingSelect"))
     #define  DUI_CTR_POPOVER                         (_T("Popover"))
+    #define  DUI_CTR_POPCONFIRM                      (_T("Popconfirm"))
     #define  DUI_CTR_TREE_GRID                       (_T("TreeGrid"))
     #define  DUI_CTR_CEF                             (_T("CefControl"))
     #define  DUI_CTR_WEBVIEW2                        (_T("WebView2Control"))
@@ -533,6 +534,9 @@ namespace ui
 
         kEventPopoverOpenChanged,       //Popover类：气泡卡片的打开状态发生变化时触发, wParam为新状态(1=已打开, 0=已关闭)，
                                         //           lParam为关闭原因(参见 ui::PopoverCloseReason，打开时为0)
+
+        kEventPopconfirmConfirm,        //Popconfirm类：点击卡片内的"确定"按钮（或调用 Confirm()）时触发，无参数
+        kEventPopconfirmCancel,         //Popconfirm类：点击卡片内的"取消"按钮（或调用 Cancel()）时触发，无参数
 
         kEventLast,                     //控件的最后一个消息
 

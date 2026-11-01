@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Popconfirm 卡片图标：警告（圆形感叹号）
+     颜色占位：#0078D4 映射为警告色（color_warning），#FFFFFF 映射为白色（color_white），
+     由引用处的 svg_replace_colors 完成替换，以适配不同的颜色主题 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16px" height="16px">
+  <circle cx="8" cy="8" r="7.5" fill="#0078D4"/>
+  <rect x="7.1" y="3.4" width="1.8" height="5.6" rx="0.9" fill="#FFFFFF"/>
+  <circle cx="8" cy="11.5" r="1.1" fill="#FFFFFF"/>
+</svg>

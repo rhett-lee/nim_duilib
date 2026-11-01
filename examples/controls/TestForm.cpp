@@ -11,6 +11,7 @@
 #include "BreadcrumbForm.h"
 #include "CascadingSelectForm.h"
 #include "PopoverForm.h"
+#include "PopconfirmForm.h"
 #include "SwitchForm.h"
 #include "ButtonCheckBoxForm.h"
 #include "duilib/Control/SearchBox.h"
@@ -122,6 +123,15 @@ void TestForm::OnInitWindow()
     if (pPopoverBtn != nullptr) {
         pPopoverBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
             ShowPopoverWindow();
+            return true;
+            });
+    }
+
+    //Popconfirm 确认气泡卡片测试窗口
+    ui::Button* pPopconfirmBtn = dynamic_cast<ui::Button*>(FindControl(_T("popconfirm_btn")));
+    if (pPopconfirmBtn != nullptr) {
+        pPopconfirmBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
+            ShowPopconfirmWindow();
             return true;
             });
     }
@@ -558,6 +568,18 @@ void TestForm::ShowPopoverWindow()
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("PopoverWindow");
+    createParam.m_bCenterWindow = true;
+    testForm->CreateWnd(this, createParam);
+    testForm->ShowModalFake();
+}
+
+void TestForm::ShowPopconfirmWindow()
+{
+    PopconfirmForm* testForm = new PopconfirmForm();
+    ui::WindowCreateParam createParam;
+    createParam.m_dwStyle = ui::kWS_POPUP;
+    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    createParam.m_windowTitle = _T("PopconfirmWindow");
     createParam.m_bCenterWindow = true;
     testForm->CreateWnd(this, createParam);
     testForm->ShowModalFake();

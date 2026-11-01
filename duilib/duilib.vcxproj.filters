@@ -1002,6 +1002,9 @@
     <ClCompile Include="Control\Popover.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Control\Popconfirm.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
     <ClCompile Include="Control\TreeGrid.cpp">
       <Filter>Control</Filter>
     </ClCompile>
@@ -2082,6 +2085,9 @@
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\Popover.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\Popconfirm.h">
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\TreeGrid.h">

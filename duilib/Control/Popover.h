@@ -35,14 +35,16 @@ enum class PopoverPlacement : uint8_t
     kRightBottom = 11   //右侧，下边缘对齐
 };
 
-/** Popover 卡片的关闭原因（与 Flyout::CloseReason 的取值保持一致）
+/** Popover 卡片的关闭原因（前 4 项与 Flyout::CloseReason 的取值保持一致）
  */
 enum class PopoverCloseReason : uint32_t
 {
     kManual        = 0,    //主动关闭（Hide()、再次点击锚点、hover 移出）
     kClickOutside  = 1,    //点击卡片与锚点以外的区域
     kEscape        = 2,    //按下 Esc 键
-    kAnchorLost    = 3     //锚点控件或其窗口失效（销毁/隐藏/最小化/DPI 变化）
+    kAnchorLost    = 3,    //锚点控件或其窗口失效（销毁/隐藏/最小化/DPI 变化）
+    kConfirm       = 4,    //点击卡片内的"确定"按钮（Popconfirm 使用，见 HideWithReason）
+    kCancel        = 5     //点击卡片内的"取消"按钮（Popconfirm 使用，见 HideWithReason）
 };
 
 /** Popover 气泡卡片（继承 Label，锚点自身显示文本，卡片在独立浮层窗口中显示）
@@ -225,6 +227,7 @@ public:
      * 参数说明：
      *   wParam: 1 = 已打开，0 = 已关闭
      *   lParam: 关闭原因（PopoverCloseReason；打开时为 0）
+     * @note 卡片内的按钮触发的关闭同样会派发本事件，原因分别为 kConfirm / kCancel
      */
     void AttachOpenChanged(const EventCallback& callback, EventCallbackID callbackID = 0)
     {
@@ -244,6 +247,35 @@ protected:
     bool OnKillFocus(const EventArgs& msg) override;
     void OnSetVisible(bool bChanged) override;
 
+    /** 构造卡片的内容 XML（作为卡片根容器 class="popover_card" 的子控件插入）
+     * @return 返回卡片内容的 XML 片段
+     * @note 基类实现为"标题 + 正文/富内容"；派生类可重写以提供自定义卡片内容
+     */
+    virtual DString BuildCardBodyXml() const;
+
+    /** 卡片创建完成后初始化（在浮层首次显示之前调用）
+     * @param [in] pFlyout 卡片浮层；可在此绑定卡片内控件的事件
+     * @note 基类在此绑定卡片自身的鼠标进入/离开事件（hover 触发的关闭判定）；
+     *       派生类重写时应先绑定自己的控件，再调用基类实现
+     */
+    virtual void InitializeCard(Flyout* pFlyout);
+
+    /** 浮层关闭回调（更新状态并派发事件）
+     * @param [in] nCloseReason 浮层的关闭原因（Flyout::CloseReason 的取值）
+     * @note 派生类重写时应调用基类实现，以保证打开状态与事件正常派发
+     */
+    virtual void OnFlyoutClosed(int32_t nCloseReason);
+
+    /** 关闭卡片，并指定关闭原因
+     * @param [in] reason 关闭原因，会通过 kEventPopoverOpenChanged 的 lParam 传给外部
+     * @note 卡片内的按钮触发的关闭应使用本函数，使外部能区分"按钮触发的关闭"
+     */
+    void HideWithReason(PopoverCloseReason reason);
+
+    /** 将文本中的 XML 特殊字符转义（用于动态生成卡片的 XML 文本）
+     */
+    static DString EscapeXmlText(const DString& strText);
+
 private:
     /** 获取当前正在显示、且锚点为本控件的浮层（没有时返回 nullptr）
      */
@@ -254,10 +286,6 @@ private:
      */
     DString BuildCardXml(PopoverPlacement placement) const;
 
-    /** 卡片创建完成后初始化：绑定卡片自身的鼠标进入/离开事件（hover 触发的关闭判定）
-     */
-    void InitializeCard(Flyout* pFlyout);
-
     /** 按卡片的实际布局矩形定位尖角箭头（在浮层布局完成后调用）
      *   箭头沿卡片边移动到锚点中心对应的位置，并压入卡片边线一侧，覆盖卡片边线
      */
@@ -265,10 +293,6 @@ private:
 
     /** 派发打开状态变化事件 */
     void EmitOpenChanged(bool bOpen, PopoverCloseReason reason);
-
-    /** 浮层关闭回调（更新状态并派发事件）
-     */
-    void OnFlyoutClosed(int32_t nCloseReason);
 
     /** 判断鼠标当前是否位于本控件或卡片窗口内（物理像素坐标）
      */
@@ -332,6 +356,12 @@ private:
 
     /** 是否正在因"方位翻转"重建卡片（重建期间忽略旧浮层的关闭回调） */
     bool m_bRebuilding = false;
+
+    /** 是否已为本次关闭指定了原因（见 HideWithReason）：浮层关闭回调优先采用该原因，
+     *   使 kEventPopoverOpenChanged 的 lParam 能返回 kConfirm / kCancel 等自定义原因
+     */
+    bool m_bCloseReasonPending = false;
+    PopoverCloseReason m_pendingCloseReason = PopoverCloseReason::kManual;
 
     /** 延时任务 ID */
     size_t m_nOpenTaskId = 0;
