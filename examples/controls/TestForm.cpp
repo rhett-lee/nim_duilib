@@ -12,6 +12,7 @@
 #include "CascadingSelectForm.h"
 #include "PopoverForm.h"
 #include "PopconfirmForm.h"
+#include "AvatarForm.h"
 #include "SwitchForm.h"
 #include "ButtonCheckBoxForm.h"
 #include "duilib/Control/SearchBox.h"
@@ -132,6 +133,15 @@ void TestForm::OnInitWindow()
     if (pPopconfirmBtn != nullptr) {
         pPopconfirmBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
             ShowPopconfirmWindow();
+            return true;
+            });
+    }
+
+    //Avatar 头像测试窗口
+    ui::Button* pAvatarBtn = dynamic_cast<ui::Button*>(FindControl(_T("avatar_btn")));
+    if (pAvatarBtn != nullptr) {
+        pAvatarBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
+            ShowAvatarWindow();
             return true;
             });
     }
@@ -580,6 +590,18 @@ void TestForm::ShowPopconfirmWindow()
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("PopconfirmWindow");
+    createParam.m_bCenterWindow = true;
+    testForm->CreateWnd(this, createParam);
+    testForm->ShowModalFake();
+}
+
+void TestForm::ShowAvatarWindow()
+{
+    AvatarForm* testForm = new AvatarForm();
+    ui::WindowCreateParam createParam;
+    createParam.m_dwStyle = ui::kWS_POPUP;
+    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    createParam.m_windowTitle = _T("AvatarWindow");
     createParam.m_bCenterWindow = true;
     testForm->CreateWnd(this, createParam);
     testForm->ShowModalFake();

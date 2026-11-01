@@ -957,6 +957,9 @@
     <ClCompile Include="Control\Badge.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Control\Avatar.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
     <ClCompile Include="Control\Mask.cpp">
       <Filter>Control</Filter>
     </ClCompile>
@@ -2040,6 +2043,9 @@
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\Badge.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\Avatar.h">
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\Mask.h">

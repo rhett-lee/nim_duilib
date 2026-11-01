@@ -66,6 +66,10 @@ private:
     */
     void ShowPopconfirmWindow();
 
+    /** 显示 Avatar 头像演示窗口
+    */
+    void ShowAvatarWindow();
+
     /** 显示 Switch 开关演示窗口
     */
     void ShowSwitchWindow();

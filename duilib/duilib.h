@@ -93,6 +93,7 @@
 
 #include "Control/Label.h"
 #include "Control/Badge.h"
+#include "Control/Avatar.h"
 #include "Control/TagInput.h"
 #include "Control/AutoComplete.h"
 #include "Control/Button.h"

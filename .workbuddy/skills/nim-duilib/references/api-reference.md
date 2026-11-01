@@ -852,6 +852,31 @@ C++ 接口：`SetDescription/GetDescription`、`SetDescriptionId/GetDescriptionI
 默认皮肤类（global.xml）：`popconfirm_icon_warning`/`_info`/`_success`/`_error`（16×16，图片在 `public/popconfirm/`，`svg_replace_colors` 圆形→`color_warning`/`color_accent`/`color_success`/`color_error`、字形→`color_white`）、`popconfirm_title`（继承 `popover_title`，`multi_line` 超长标题自动换行不截断）、`popconfirm_description`（继承 `popover_content`，12 号字）、`popconfirm_btn`（高 28/圆角 6/13 号字/手型，`width="auto"` + `padding="10,0,10,0"` + `min_width="64"` 按文案自适应宽度）、`popconfirm_cancel`（继承 `btn_global` 并覆盖尺寸，宽度自适应）、`popconfirm_ok_default`（继承 `popconfirm_cancel`）、`popconfirm_ok_primary`（继承 `btn_primary_global` 并覆盖尺寸，宽度自适应）、`popconfirm_ok_danger`（红底固定配色，与 `btn_global_color_red` 约定一致）。
 注意：不使用继承来的 `content_xml`（卡片内容由 `BuildCardBodyXml()` 生成，派生类可重写）；图标/`show_cancel`/`ok_type`/`close_on_ok` 在卡片打开时生成，运行期修改对下次打开生效；卡片不抢焦点，"确定"/"取消"只响应鼠标点击（Esc 按 Popover 语义关闭，原因为 `kEscape`）。
 
+### Avatar 属性(继承 Control)
+
+头像控件：在圆形/圆角方形内渲染"图片 / 图标 / 文字"，语义对齐 Ant Design 的 Avatar；叶子自绘控件，无子控件、无专用事件（需要点击时在外部挂 `kEventClick`）。
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| size | 32 | string | `small`(24) / `default`或`medium`(32) / `large`(40) / 数值像素；同时设置固定宽高并随 DPI 缩放 |
+| shape | circle | string | `circle`（正圆/正椭圆）/ `square`（圆角方形，兼容 `rect`/`rounded`） |
+| corner | 8 | int | 方形圆角半径 |
+| image | 空 | string | 图片属性串，等比 cover 填充并按形状裁剪 |
+| icon | 空 | string | 图标属性串，等比 contain 居中 |
+| icon_scale | 50 | int | 图标边长占控件短边的百分比（1~100） |
+| text / text_id | 空 | string | 文字（字面 / 多语言 ID，`text` 优先） |
+| font / font_id | system_regular_14 | string | 字体 ID（只决定字体族与粗斜体，字号由 `text_scale` 换算） |
+| text_color | text_avatar | string | 文字语义色 |
+| text_scale | 50 | int | 字号占短边百分比（1~100），超宽时先缩小（下限为初始字号的 30%）再省略 |
+| color / avatar_color | 空 | string | 头像底色（语义色名），优先级最高 |
+| palette | true | bool | 文字头像是否按文本哈希自动取 `bg_avatar_1..6` |
+
+C++ 接口：`SetSize/GetSize`、`SetShape/GetShape`、`SetCorner/GetCorner`、`SetImage/GetImage`、`SetIcon/GetIcon`、`SetIconScale/GetIconScale`、`SetText/GetText/SetTextId/GetTextId`、`SetFontId/GetFontId`、`SetTextColor/GetTextColor`、`SetTextScale/GetTextScale`、`SetColor/GetColor`、`SetAutoPalette/IsAutoPalette`、`ClearImageCache()`。
+枚举：`AvatarShape{kCircle,kSquare}`。
+内容优先级：`image` > `icon` > `text`/`text_id` > 空；底色优先级：`color` > `bkcolor` > 自动调色板 > `bg_avatar`。
+默认皮肤类（global.xml）：`avatar`（32×32、圆形、圆角 8、14 号字、`text_avatar`）、`avatar_small`(24)、`avatar_large`(40)、`avatar_xlarge`(64)、`avatar_square`/`avatar_square_large`（圆角方形）、`avatar_user`/`avatar_user_large`（内置用户图标，图片在 `public/avatar/`）、`avatar_photo`（示例图片）、`avatar_text`（粗体文字）。语义色：`bg_avatar`/`bg_avatar_1..6`/`text_avatar`（定义在 `color_light` 与 `color_dark`）。
+注意：头像按正方形固定宽高布局，不要设置 `width="stretch"`/`height="stretch"`（需要椭圆头像时显式设置 `width`/`height`）；主题 Class 不要加 `bkcolor`（会压过自动调色板）；运行期 `SetSize` 会同步固定宽高并触发父容器重排；不支持 `Avatar.Group`、`srcSet`、远程 URL、`fallback`；`text_id` 随语言切换自动刷新重绘。
+
 ### TreeGrid 属性(继承 VBox)
 
 | 属性 | 默认值 | 类型 | 说明 |

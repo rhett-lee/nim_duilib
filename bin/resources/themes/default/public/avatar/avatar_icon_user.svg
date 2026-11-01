@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Avatar 头像图标：人像（头像 + 肩膀）
+     颜色占位：#0078D4 由 svg_replace_colors 映射为主题语义色 text_avatar（浅色主题为白色，深色主题同样为白色） -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16px" height="16px">
+  <circle cx="8" cy="4.7" r="3.1" fill="#0078D4"/>
+  <path d="M8 9.1c-3.1 0-5.6 1.9-5.6 4.2 0 0.4 0.3 0.7 0.7 0.7h9.8c0.4 0 0.7-0.3 0.7-0.7 0-2.3-2.5-4.2-5.6-4.2z" fill="#0078D4"/>
+</svg>

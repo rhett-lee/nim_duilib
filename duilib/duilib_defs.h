@@ -115,6 +115,7 @@ namespace ui
     #define  DUI_CTR_SEARCH_BOX                      (_T("SearchBox"))
     #define  DUI_CTR_SWITCH                          (_T("Switch"))
     #define  DUI_CTR_BADGE                           (_T("Badge"))
+    #define  DUI_CTR_AVATAR                          (_T("Avatar"))
     #define  DUI_CTR_TAG_INPUT                       (_T("TagInput"))
     #define  DUI_CTR_AUTO_COMPLETE                   (_T("AutoComplete"))
     #define  DUI_CTR_MASK                            (_T("Mask"))

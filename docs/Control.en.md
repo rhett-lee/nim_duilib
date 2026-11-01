@@ -2764,6 +2764,131 @@ Notes:
 - Buttons size themselves to their label (`width="auto"` + `padding="10,0,10,0"` + `min_width="64"`), so short labels keep a 64px minimum and longer labels (e.g. a localized "Delete") are not clipped; set a fixed width by customizing the skin classes (`popconfirm_cancel` / `popconfirm_ok_*`);
 - The card window does not take focus, so "OK"/"Cancel" only react to mouse clicks (keyboard Enter/Esc are not supported; Esc closes the card as a `Popover` with reason `kEscape`).
 
+<a name="avatar"></a>
+## Avatar Control (avatar)
+
+Avatar is a circular / rounded-square avatar control (XML node `Avatar`), header `duilib/Control/Avatar.h`.
+One control renders image, icon and text avatars with shape clipping and centering; the semantics follow Ant Design's Avatar.
+
+Division of labor: use `Button` for clickable icons with per-state images, `BitmapControl` for a standalone image of any size, and `Label` for rich text.
+Avatar only renders an avatar inside a fixed square area and raises no dedicated events (attach `kEventClick` outside if you need clicks).
+
+Key features:
+- Shape: `shape="circle"` (default) draws a circle or an ellipse inside the control rect, `shape="square"` draws a rounded square whose radius follows `corner`;
+- Size: `size` accepts the `small`(24), `default`/`medium`(32) and `large`(40) presets or a pixel value (e.g. 64); the control applies a fixed square size that scales with the DPI;
+- Content priority: `image` (cover fill clipped by the shape) -> `icon` (contained and centered) -> `text`/`text_id` -> empty (background only);
+- Text: the font size is derived from the short side percentage (`text_scale`); when the text is too wide the font shrinks first (down to 30% of the initial size) and finally an ellipsis is used;
+- Colors: background priority is `color` (explicit) > `bkcolor` (generic attribute) > auto palette (text avatars pick `bg_avatar_1..6` from a text hash) > `bg_avatar`; light and dark themes adapt automatically;
+- Localization: `text_id` repaints automatically after a language switch.
+
+### XML attributes
+
+| Attribute | Default | Type | Maps to [Avatar.h](../duilib/Control/Avatar.h) | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| size | 32 | string | SetSize | Avatar size: `small`(24) / `default` or `medium`(32) / `large`(40) / numeric pixels; also sets the fixed width and height |
+| shape | circle | string | SetShape | Shape: `circle` (default) / `square` (also accepts `rect`, `rounded`) |
+| corner | 8 | int | SetCorner | Corner radius of square avatars (DPI aware) |
+| image | | string | SetImage | Avatar image (a full image attribute string such as `file='xxx.png' svg_replace_colors='...'`), filled with cover and clipped |
+| icon | | string | SetIcon | Avatar icon (a full image attribute string), contained and centered |
+| icon_scale | 50 | int | SetIconScale | Icon edge length as a percentage of the short side (1~100) |
+| text | | string | SetText | Text content (wins over `text_id`) |
+| text_id | | string | SetTextId | Localization ID of the text content |
+| font / font_id | system_regular_14 | string | SetFontId | Font ID (selects the family and bold/italic; the size comes from `text_scale`) |
+| text_color | text_avatar | string | SetTextColor | Text color (semantic color name) |
+| text_scale | 50 | int | SetTextScale | Font size as a percentage of the short side (1~100) |
+| color / avatar_color | | string | SetColor | Avatar background (semantic color name) with the highest priority |
+| palette | true | bool | SetAutoPalette | Whether text avatars use the automatic palette (`bg_avatar_1..6`) |
+
+### C++ interface
+
+| API | Description |
+| :--- | :--- |
+| `SetSize(nSize)` / `GetSize()` | Set/get the avatar size in raw pixels; setting it also updates the fixed width/height and triggers a parent re-layout |
+| `SetShape(shape)` / `GetShape()` | Set/get the shape, see `AvatarShape` |
+| `SetCorner(nCorner)` / `GetCorner()` | Set/get the square corner radius |
+| `SetImage(strImage)` / `GetImage()` | Set/get the avatar image (image attribute string) |
+| `SetIcon(strIcon)` / `GetIcon()` | Set/get the avatar icon (image attribute string) |
+| `SetIconScale(nPercent)` / `GetIconScale()` | Set/get the icon edge percentage |
+| `SetText(text)` / `GetText()` | Set/get the text (`GetText()` returns `text` first, then the resolved `text_id`) |
+| `SetTextId(id)` / `GetTextId()` | Set/get the localization ID of the text |
+| `SetFontId(fontId)` / `GetFontId()` | Set/get the font ID |
+| `SetTextColor(colorName)` / `GetTextColor()` | Set/get the semantic text color name |
+| `SetTextScale(nPercent)` / `GetTextScale()` | Set/get the font size percentage |
+| `SetColor(colorName)` / `GetColor()` | Set/get the background color (semantic name; empty falls back to the priority chain) |
+| `SetAutoPalette(bool)` / `IsAutoPalette()` | Set/get whether text avatars use the auto palette (default `true`) |
+| `ClearImageCache()` | Clears the image cache (reloads the avatar image and icon after a theme switch) |
+| `GetEstimateImage()` | Returns the image used to estimate the control size (image > icon > base) |
+
+Enums:
+- `AvatarShape`: `kCircle` (circle/ellipse, default), `kSquare` (rounded square).
+
+### Skin classes and resources
+
+The default skin provides 10 classes in `global.xml`:
+
+| Class | Purpose |
+| :--- | :--- |
+| `avatar` | Base style: 32x32, circle, radius 8, 14px font, `text_avatar`, `text_scale=50`, `icon_scale=50`, auto palette |
+| `avatar_small` | Small size (24x24) |
+| `avatar_large` | Large size (40x40) |
+| `avatar_xlarge` | Extra-large size (64x64) |
+| `avatar_square` | Rounded square (radius 8) |
+| `avatar_square_large` | Rounded square, large (40x40) |
+| `avatar_user` | Built-in user icon (SVG glyph color mapped to `text_avatar`, follows the theme) |
+| `avatar_user_large` | Built-in user icon, large (40x40) |
+| `avatar_photo` | Built-in sample image (demonstrates cover fill and shape clipping for `image`) |
+| `avatar_text` | Bold text avatar (`system_bold_14`) |
+
+Semantic colors (defined in the `color_light` / `color_dark` theme `global.xml`):
+- `bg_avatar`: default background of text avatars (fallback when the palette is off, also the empty-content background);
+- `bg_avatar_1`~`bg_avatar_6`: the six palette colors, chosen by a stable text hash;
+- `text_avatar`: the text color inside avatars (`contrast_bg` lists every `bg_avatar*`).
+
+Resources live in `public/avatar/`: `avatar_icon_user.svg` (built-in user icon) and `avatar_picture_demo.svg` (sample image).
+
+### Example
+
+```xml
+<!-- Text avatar: auto palette by default, the same text keeps the same color -->
+<Avatar class="avatar" text="Zhang Wei"/>
+
+<!-- Large + user icon (icon is contained and centered) -->
+<Avatar class="avatar_user_large"/>
+
+<!-- Image avatar: cover fill clipped by the shape -->
+<Avatar class="avatar_photo"/>
+
+<!-- Rounded square with a custom radius; an explicit background overrides the palette -->
+<Avatar class="avatar_large" shape="square" corner="12" text="A" color="color_accent"/>
+
+<!-- Localized text + icon scaled to 80% of the short side -->
+<Avatar class="avatar_large" text_id="STRID_AVATAR_SAMPLE_TEXT"/>
+<Avatar class="avatar_large" icon="file='public/avatar/avatar_icon_user.svg'" icon_scale="80"/>
+```
+
+```cpp
+//Runtime changes: size / shape / text / image / palette toggle
+ui::Avatar* pAvatar = dynamic_cast<ui::Avatar*>(FindControl(_T("avatar_dynamic")));
+if (pAvatar != nullptr) {
+    pAvatar->SetSize(64);                                    //switch to 64x64
+    pAvatar->SetShape(ui::AvatarShape::kSquare);             //rounded square
+    pAvatar->SetText(_T("Lucy"));                            //text avatar
+    pAvatar->SetImage(_T("file='public/avatar/avatar_picture_demo.svg'")); //image wins over text
+    pAvatar->SetAutoPalette(false);                          //turn the palette off, fall back to bg_avatar
+}
+```
+
+See the controls demo (the "Avatar" group: size, shape, content types, auto palette, custom colors, dynamic changes).
+
+Notes:
+- Avatars are laid out with a fixed square size, so never set `width="stretch"` / `height="stretch"` on an `Avatar`; for a rectangle (ellipse avatar) set `width`/`height` explicitly (when both `size` and width/height are present, the last one wins);
+- Do not set `bkcolor` on the `avatar` skin classes, otherwise it overrides the auto palette (background priority: `color` > `bkcolor` > palette > `bg_avatar`);
+- `image` uses cover clipping (keeps the ratio, fills and center-crops); use `icon` (contain) when the whole picture must stay visible;
+- Text size is converted to a font zoom percentage from `text_scale`, so it is not limited by the 22px theme font cap; `font` only selects the family and bold/italic;
+- `text_id` repaints automatically after a language switch, whereas a literal `text` does not change with the language;
+- `size` scales with the DPI, so corners, clipping and text proportions stay identical at 100% / 150% / 200%;
+- This is a leaf self-drawn control with no children; `Avatar.Group` (stacked/expandable avatars), `srcSet`, remote URLs and `fallback` are not supported.
+
 ## Mask Attributes
 Mask (the mask/overlay layer) is a container control derived from `Box` (XML node `Mask`) used to overlay a semi-transparent mask on top of other controls. It covers three typical popup-system scenarios:
 

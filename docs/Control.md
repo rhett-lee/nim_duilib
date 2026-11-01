@@ -2767,6 +2767,131 @@ if (pConfirm != nullptr) {
 - 按钮宽度按文案自适应（`width="auto"` + `padding="10,0,10,0"` + `min_width="64"`），短文案时保持 64 的最小宽度，长文案（如外语的"Delete"/"确定"）不会被截断；如需固定宽度请自定义主题Class（`popconfirm_cancel` / `popconfirm_ok_*`）；
 - 卡片窗口不抢焦点，因此"确定"/"取消"只响应鼠标点击，不支持键盘回车/Esc选择（Esc按`Popover`的语义关闭卡片，原因为`kEscape`）。
 
+<a name="avatar"></a>
+## Avatar 控件（头像）
+
+Avatar是"圆形/圆角方形"的头像控件（XML节点为`Avatar`），对应头文件`duilib/Control/Avatar.h`。
+它用一个控件统一展示"图片 / 图标 / 文字"三类头像内容，并按形状裁剪与居中，语义对齐Ant Design的Avatar组件。
+
+与其它控件的分工：需要"可点击、带多状态图片"的图标请用`Button`；需要任意尺寸的独立图片请用`BitmapControl`；需要富文本请用`Label`；
+Avatar只负责"固定正方形区域内的头像渲染"，自身不派发专用事件（需要点击时在外部挂`kEventClick`）。
+
+核心特性：
+- 形状：`shape="circle"`（默认）在控件矩形内绘制正圆/正椭圆，`shape="square"`绘制圆角方形（圆角由`corner`控制）；
+- 尺寸：`size`支持`small`(24)、`default`/`medium`(32)、`large`(40)预设，也可直接写数值（如64），控件按正方形自动设置固定宽高，随DPI缩放；
+- 内容优先级：`image`（等比cover填满并按形状裁剪）→ `icon`（等比contain居中）→ `text`/`text_id`（文字）→ 空（只画底色）；
+- 文字：字号按控件短边的百分比（`text_scale`）自动换算，超出宽度时先缩小字号（下限为初始字号的30%），最后用省略号收尾；
+- 配色：背景优先级为`color`（显式）> `bkcolor`（通用属性）> 自动调色板（文字头像按文本哈希取`bg_avatar_1..6`）> `bg_avatar`，深浅色主题自动适配；
+- 多语言：`text_id`在语言切换后自动刷新重绘。
+
+### XML属性
+
+| 属性名称 | 默认值 | 参数类型 | 关联[Avatar.h](../duilib/Control/Avatar.h)中的函数 | 用途 |
+| :--- | :--- | :--- | :--- | :--- |
+| size | 32 | string | SetSize | 头像尺寸：`small`(24) / `default`或`medium`(32) / `large`(40) / 数值（像素）；同时设置固定宽高 |
+| shape | circle | string | SetShape | 形状：`circle`（默认）/ `square`（兼容`rect`、`rounded`） |
+| corner | 8 | int | SetCorner | 方形头像的圆角半径（DPI自适应） |
+| image | | string | SetImage | 头像图片（完整图片属性串，如`file='xxx.png' svg_replace_colors='...'`），按cover填充并裁剪 |
+| icon | | string | SetIcon | 头像图标（完整图片属性串），按contain居中 |
+| icon_scale | 50 | int | SetIconScale | 图标边长占控件短边的百分比（1~100） |
+| text | | string | SetText | 文字内容（优先于`text_id`） |
+| text_id | | string | SetTextId | 文字内容的多语言ID |
+| font / font_id | system_regular_14 | string | SetFontId | 字体ID（决定字体族与粗斜体，字号由`text_scale`换算） |
+| text_color | text_avatar | string | SetTextColor | 文字颜色（语义色名） |
+| text_scale | 50 | int | SetTextScale | 字号占控件短边的百分比（1~100） |
+| color / avatar_color | | string | SetColor | 头像底色（语义色名），优先级最高 |
+| palette | true | bool | SetAutoPalette | 文字头像是否按文本自动配色（取`bg_avatar_1..6`） |
+
+### C++接口
+
+| 接口 | 说明 |
+| :--- | :--- |
+| `SetSize(nSize)` / `GetSize()` | 设置/获取头像尺寸（原始像素），设置时同步更新固定宽高并触发父容器重新布局 |
+| `SetShape(shape)` / `GetShape()` | 设置/获取形状，见`AvatarShape`枚举 |
+| `SetCorner(nCorner)` / `GetCorner()` | 设置/获取方形圆角半径 |
+| `SetImage(strImage)` / `GetImage()` | 设置/获取头像图片（图片属性串） |
+| `SetIcon(strIcon)` / `GetIcon()` | 设置/获取头像图标（图片属性串） |
+| `SetIconScale(nPercent)` / `GetIconScale()` | 设置/获取图标边长百分比 |
+| `SetText(text)` / `GetText()` | 设置/获取文字内容（`GetText()`返回`text`优先、其次`text_id`解析后的结果） |
+| `SetTextId(id)` / `GetTextId()` | 设置/获取文字的多语言ID |
+| `SetFontId(fontId)` / `GetFontId()` | 设置/获取字体ID |
+| `SetTextColor(colorName)` / `GetTextColor()` | 设置/获取文字语义色名 |
+| `SetTextScale(nPercent)` / `GetTextScale()` | 设置/获取字号百分比 |
+| `SetColor(colorName)` / `GetColor()` | 设置/获取头像底色（语义色名，空串表示按优先级回退） |
+| `SetAutoPalette(bool)` / `IsAutoPalette()` | 设置/获取文字头像是否自动配色（默认`true`） |
+| `ClearImageCache()` | 清理图片缓存（主题切换后重新加载头像图片与图标） |
+| `GetEstimateImage()` | 返回用于估算控件大小的图片接口（图片 > 图标 > 基类） |
+
+枚举：
+- `AvatarShape`：`kCircle`（圆形/椭圆，默认）、`kSquare`（圆角方形）。
+
+### 皮肤Class与资源
+
+默认皮肤在`global.xml`中提供10个Class：
+
+| Class | 用途 |
+| :--- | :--- |
+| `avatar` | 基础样式：32×32、圆形、圆角8、14号字、`text_avatar`、`text_scale=50`、`icon_scale=50`、自动调色板 |
+| `avatar_small` | 小尺寸（24×24） |
+| `avatar_large` | 大尺寸（40×40） |
+| `avatar_xlarge` | 超大尺寸（64×64） |
+| `avatar_square` | 圆角方形（圆角8） |
+| `avatar_square_large` | 圆角方形大尺寸（40×40） |
+| `avatar_user` | 内置用户图标（SVG字形颜色映射到`text_avatar`，随主题切换） |
+| `avatar_user_large` | 内置用户图标大尺寸（40×40） |
+| `avatar_photo` | 内置示例图片（演示`image`形态的cover填充与形状裁剪） |
+| `avatar_text` | 粗体文字头像（`system_bold_14`） |
+
+语义色（在颜色主题`color_light` / `color_dark`的`global.xml`中定义）：
+- `bg_avatar`：文字头像的默认底色（未启用调色板时的回退色，也是空内容的底色）；
+- `bg_avatar_1`~`bg_avatar_6`：自动调色板的6种底色，按文本哈希稳定选取；
+- `text_avatar`：头像内的文字颜色（`contrast_bg`列出全部`bg_avatar*`）。
+
+资源位于`public/avatar/`：`avatar_icon_user.svg`（内置用户图标）、`avatar_picture_demo.svg`（示例图片）。
+
+### 使用示例
+
+```xml
+<!-- 文字头像：默认自动配色，同一文字颜色稳定 -->
+<Avatar class="avatar" text="张伟"/>
+
+<!-- 大尺寸 + 用户图标（图标按contain居中） -->
+<Avatar class="avatar_user_large"/>
+
+<!-- 图片头像：等比cover填满并按形状裁剪 -->
+<Avatar class="avatar_photo"/>
+
+<!-- 圆角方形 + 自定义圆角；显式底色覆盖自动配色 -->
+<Avatar class="avatar_large" shape="square" corner="12" text="A" color="color_accent"/>
+
+<!-- 多语言文字 + 图标放大到短边的80% -->
+<Avatar class="avatar_large" text_id="STRID_AVATAR_SAMPLE_TEXT"/>
+<Avatar class="avatar_large" icon="file='public/avatar/avatar_icon_user.svg'" icon_scale="80"/>
+```
+
+```cpp
+//运行期修改：尺寸 / 形状 / 文字 / 图片 / 调色板开关
+ui::Avatar* pAvatar = dynamic_cast<ui::Avatar*>(FindControl(_T("avatar_dynamic")));
+if (pAvatar != nullptr) {
+    pAvatar->SetSize(64);                                    //改用64×64
+    pAvatar->SetShape(ui::AvatarShape::kSquare);             //圆角方形
+    pAvatar->SetText(_T("Lucy"));                            //文字头像
+    pAvatar->SetImage(_T("file='public/avatar/avatar_picture_demo.svg'")); //图片优先于文字
+    pAvatar->SetAutoPalette(false);                          //关闭自动调色板，回退bg_avatar
+}
+```
+
+完整演示见controls示例（"Avatar"分组：尺寸、形状、内容类型、自动调色板、自定义颜色、动态修改）。
+
+注意事项：
+- 头像按正方形固定宽高布局，因此不要给`Avatar`设置`width="stretch"`/`height="stretch"`；需要长方形（椭圆头像）时显式设置`width`/`height`（尺寸与`size`属性同时存在时以最后设置的为准）；
+- 主题Class中不要给`avatar`系列同时设置`bkcolor`，否则会压过自动调色板（背景优先级：`color` > `bkcolor` > 调色板 > `bg_avatar`）；
+- `image`按cover裁剪（保持比例、填满、居中裁切），需要完整显示图片请改用`icon`（contain）；
+- 文字字号按`text_scale`换算为字体放大百分比，因此不受主题字体22px上限的限制；`font`只决定字体族与粗斜体；
+- `text_id`在语言切换后自动刷新重绘，`text`（字面文本）不随语言变化；
+- `size`按DPI缩放，切换DPI后圆角、裁剪与文字比例保持一致；
+- 本控件为叶子自绘控件，不含子控件，也不支持`Avatar.Group`（多头像叠加/展开）、`srcSet`、远程URL与`fallback`。
+
 ## Mask的属性
 Mask（遮罩/蒙版层）是继承自`Box`的容器控件（XML节点为`Mask`），用于覆盖在其它控件之上形成半透明蒙层，覆盖弹层体系的三种典型场景：
 

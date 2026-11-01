@@ -24,6 +24,7 @@
 #include "duilib/Control/SearchBox.h"
 #include "duilib/Control/Switch.h"
 #include "duilib/Control/Badge.h"
+#include "duilib/Control/Avatar.h"
 #include "duilib/Control/TagInput.h"
 #include "duilib/Control/AutoComplete.h"
 #include "duilib/Control/Mask.h"
@@ -182,6 +183,7 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_SEARCH_BOX, [](Window* pWindow) { return new SearchBox(pWindow); }},
         {DUI_CTR_SWITCH, [](Window* pWindow) { return new Switch(pWindow); }},
         {DUI_CTR_BADGE, [](Window* pWindow) { return new Badge(pWindow); }},
+        {DUI_CTR_AVATAR, [](Window* pWindow) { return new Avatar(pWindow); }},
         {DUI_CTR_TAG_INPUT, [](Window* pWindow) { return new TagInput(pWindow); }},
         {DUI_CTR_AUTO_COMPLETE, [](Window* pWindow) { return new AutoComplete(pWindow); }},
         {DUI_CTR_MASK, [](Window* pWindow) { return new Mask(pWindow); }},

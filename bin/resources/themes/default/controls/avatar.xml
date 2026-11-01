@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="900,760" text="Avatar Test" use_system_caption="false" caption="0,0,0,36"
+        shadow_type="default" size_box="4,4,4,4" min_size="820,620">
+    <VBox bkcolor="bg_window_main">
+        <!-- 标题栏 -->
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
+            <Label name="label_title" text_id="STRID_AVATAR_WINDOW_TITLE" valign="center" margin="8" mouse_enabled="false"/>
+            <Control/>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+        </HBox>
+
+        <!-- 提示区 -->
+        <HBox height="34" padding="12,6,12,0">
+            <Label text_id="STRID_AVATAR_HINT" text_color="text_muted" valign="center"
+                   text_align="left,vcenter" width="stretch" auto_tooltip="true"/>
+        </HBox>
+
+        <!-- 内容区 -->
+        <VScrollBox width="stretch" height="stretch" vscrollbar="true" hscrollbar="false">
+            <VBox padding="12,8,12,12" width="stretch" height="auto">
+                <!-- 尺寸：size 支持 small(24) / default(32) / large(40) 预设与数值 -->
+                <VBox bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6"
+                      padding="16,16,16,16" width="stretch" height="auto">
+                    <Label text_id="STRID_AVATAR_SIZE_TITLE" font="system_bold_15" text_color="text_default"
+                           valign="center" margin="0,0,0,4"/>
+                    <Label text_id="STRID_AVATAR_SIZE_DESC" font="system_regular_12" text_color="text_muted"
+                           valign="center" margin="0,0,0,12" auto_tooltip="true"/>
+                    <HBox height="88" child_margin_x="20" valign="bottom">
+                        <VBox width="72" height="auto" valign="bottom">
+                            <Avatar class="avatar_small" text="A" halign="center" margin="0,0,0,8"/>
+                            <Label text="24" font="system_regular_12" text_color="text_muted"
+                                   text_align="hcenter" width="stretch" mouse_enabled="false"/>
+                        </VBox>
+                        <VBox width="72" height="auto" valign="bottom">
+                            <Avatar class="avatar" text="B" halign="center" margin="0,0,0,8"/>
+                            <Label text="32" font="system_regular_12" text_color="text_muted"
+                                   text_align="hcenter" width="stretch" mouse_enabled="false"/>
+                        </VBox>
+                        <VBox width="72" height="auto" valign="bottom">
+                            <Avatar class="avatar_large" text="C" halign="center" margin="0,0,0,8"/>
+                            <Label text="40" font="system_regular_12" text_color="text_muted"
+                                   text_align="hcenter" width="stretch" mouse_enabled="false"/>
+                        </VBox>
+                        <VBox width="72" height="auto" valign="bottom">
+                            <Avatar class="avatar_xlarge" text="D" halign="center" margin="0,0,0,8"/>
+                            <Label text="64" font="system_regular_12" text_color="text_muted"
+                                   text_align="hcenter" width="stretch" mouse_enabled="false"/>
+                        </VBox>
+                        <Control width="stretch" height="stretch" mouse_enabled="false"/>
+                    </HBox>
+                </VBox>
+
+                <!-- 形状：circle（默认）/ square（圆角由 corner 决定）；非正方形时为椭圆 -->
+                <VBox bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6"
+                      padding="16,16,16,16" width="stretch" height="auto" margin="0,12,0,0">
+                    <Label text_id="STRID_AVATAR_SHAPE_TITLE" font="system_bold_15" text_color="text_default"
+                           valign="center" margin="0,0,0,4"/>
+                    <Label text_id="STRID_AVATAR_SHAPE_DESC" font="system_regular_12" text_color="text_muted"
+                           valign="center" margin="0,0,0,12" auto_tooltip="true"/>
+                    <HBox height="88" child_margin_x="20" valign="bottom">
+                        <VBox width="72" height="auto" valign="bottom">
+                            <Avatar class="avatar_large" text="B" halign="center" margin="0,0,0,8"/>
+                            <Label text_id="STRID_AVATAR_LABEL_CIRCLE" font="system_regular_12" text_color="text_muted"
+                                   text_align="hcenter" width="stretch" mouse_enabled="false"/>
+                        </VBox>
+                        <VBox width="72" height="auto" valign="bottom">
+                            <Avatar class="avatar_large" shape="square" text="B" halign="center" margin="0,0,0,8"/>
+                            <Label text_id="STRID_AVATAR_LABEL_SQUARE" font="system_regular_12" text_color="text_muted"
+                                   text_align="hcenter" width="stretch" mouse_enabled="false"/>
+                        </VBox>
+                        <VBox width="72" height="auto" valign="bottom">
+                            <Avatar class="avatar_large" shape="square" corner="20" text="B" halign="center" margin="0,0,0,8"/>
+                            <Label text_id="STRID_AVATAR_LABEL_CORNER" font="system_regular_12" text_color="text_muted"
+                                   text_align="hcenter" width="stretch" mouse_enabled="false"/>
+                        </VBox>
+                        <VBox width="72" height="auto" valign="bottom">
+                            <Avatar class="avatar_large" width="56" height="32" text="B" halign="center" margin="0,0,0,8"/>
+                            <Label text_id="STRID_AVATAR_LABEL_ELLIPSE" font="system_regular_12" text_color="text_muted"
+                                   text_align="hcenter" width="stretch" mouse_enabled="false"/>
+                        </VBox>
+                        <Control width="stretch" height="stretch" mouse_enabled="false"/>
+                    </HBox>
+                </VBox>
+
+                <!-- 内容类型：image（cover）/ icon（contain）/ text / text_id / 空 -->
+                <VBox bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6"
+                      padding="16,16,16,16" width="stretch" height="auto" margin="0,12,0,0">
+                    <Label text_id="STRID_AVATAR_CONTENT_TITLE" font="system_bold_15" text_color="text_default"
+                           valign="center" margin="0,0,0,4"/>
+                    <Label text_id="STRID_AVATAR_CONTENT_DESC" font="system_regular_12" text_color="text_muted"
+                           valign="center" margin="0,0,0,12" auto_tooltip="true"/>
+                    <HBox height="88" child_margin_x="16" valign="bottom">
+                        <VBox width="88" height="auto" valign="bottom">
+                            <Avatar class="avatar_photo" halign="center" margin="0,0,0,8"/>
+                            <Label text_id="STRID_AVATAR_LABEL_IMAGE" font="system_regular_12" text_color="text_muted"
+                                   text_align="hcenter" width="stretch" mouse_enabled="false"/>
+                        </VBox>
+                        <VBox width="88" height="auto" valign="bottom">
+                            <Avatar class="avatar_user_large" halign="center" margin="0,0,0,8"/>
+                            <Label text_id="STRID_AVATAR_LABEL_ICON" font="system_regular_12" text_color="text_muted"
+                                   text_align="hcenter" width="stretch" mouse_enabled="false"/>
+                        </VBox>
+                        <VBox width="88" height="auto" valign="bottom">
+                            <Avatar class="avatar_large" text="Tom" halign="center" margin="0,0,0,8"/>
+                            <Label text_id="STRID_AVATAR_LABEL_TEXT" font="system_regular_12" text_color="text_muted"
+                                   text_align="hcenter" width="stretch" mouse_enabled="false"/>
+                        </VBox>
+                        <VBox width="88" height="auto" valign="bottom">
+                            <Avatar class="avatar_large" text_id="STRID_AVATAR_SAMPLE_TEXT" halign="center" margin="0,0,0,8"/>
+                            <Label text_id="STRID_AVATAR_LABEL_TEXT_ID" font="system_regular_12" text_color="text_muted"
+                                   text_align="hcenter" width="stretch" mouse_enabled="false"/>
+                        </VBox>
+                        <VBox width="88" height="auto" valign="bottom">
+                            <Avatar class="avatar_text" text="Tom" halign="center" margin="0,0,0,8"/>
+                            <Label text_id="STRID_AVATAR_LABEL_BOLD" font="system_regular_12" text_color="text_muted"
+                                   text_align="hcenter" width="stretch" mouse_enabled="false"/>
+                        </VBox>
+                        <VBox width="88" height="auto" valign="bottom">
+                            <Avatar class="avatar_large" halign="center" margin="0,0,0,8"/>
+                            <Label text_id="STRID_AVATAR_LABEL_EMPTY" font="system_regular_12" text_color="text_muted"
+                                   text_align="hcenter" width="stretch" mouse_enabled="false"/>
+                        </VBox>
+                        <Control width="stretch" height="stretch" mouse_enabled="false"/>
+                    </HBox>
+                </VBox>
+
+                <!-- 自动调色板：同一文字颜色稳定；palette="false" 时回退 bg_avatar -->
+                <VBox bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6"
+                      padding="16,16,16,16" width="stretch" height="auto" margin="0,12,0,0">
+                    <Label text_id="STRID_AVATAR_PALETTE_TITLE" font="system_bold_15" text_color="text_default"
+                           valign="center" margin="0,0,0,4"/>
+                    <Label text_id="STRID_AVATAR_PALETTE_DESC" font="system_regular_12" text_color="text_muted"
+                           valign="center" margin="0,0,0,12" auto_tooltip="true"/>
+                    <HBox height="48" child_margin_x="16" valign="center">
+                        <Avatar class="avatar_large" text="张伟" valign="center"/>
+                        <Avatar class="avatar_large" text="张伟" valign="center"/>
+                        <Avatar class="avatar_large" text="李娜" valign="center"/>
+                        <Avatar class="avatar_large" text="王强" valign="center"/>
+                        <Avatar class="avatar_large" text="赵敏" valign="center"/>
+                        <Avatar class="avatar_large" text="Alice" valign="center"/>
+                        <Avatar class="avatar_large" text="Bob" valign="center"/>
+                        <Avatar class="avatar_large" text="Ann" palette="false" valign="center"/>
+                        <Control width="stretch" height="stretch" mouse_enabled="false"/>
+                    </HBox>
+                </VBox>
+
+                <!-- 自定义颜色：color 属性（语义色名），优先级高于自动调色板 -->
+                <VBox bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6"
+                      padding="16,16,16,16" width="stretch" height="auto" margin="0,12,0,0">
+                    <Label text_id="STRID_AVATAR_COLOR_TITLE" font="system_bold_15" text_color="text_default"
+                           valign="center" margin="0,0,0,4"/>
+                    <Label text_id="STRID_AVATAR_COLOR_DESC" font="system_regular_12" text_color="text_muted"
+                           valign="center" margin="0,0,0,12" auto_tooltip="true"/>
+                    <HBox height="88" child_margin_x="20" valign="bottom">
+                        <VBox width="100" height="auto" valign="bottom">
+                            <Avatar class="avatar_large" text="A" color="color_accent" halign="center" margin="0,0,0,8"/>
+                            <Label text="color_accent" font="system_regular_12" text_color="text_muted"
+                                   text_align="hcenter" width="stretch" mouse_enabled="false"/>
+                        </VBox>
+                        <VBox width="100" height="auto" valign="bottom">
+                            <Avatar class="avatar_large" text="A" color="color_success" halign="center" margin="0,0,0,8"/>
+                            <Label text="color_success" font="system_regular_12" text_color="text_muted"
+                                   text_align="hcenter" width="stretch" mouse_enabled="false"/>
+                        </VBox>
+                        <VBox width="100" height="auto" valign="bottom">
+                            <Avatar class="avatar_large" text="A" color="color_warning" halign="center" margin="0,0,0,8"/>
+                            <Label text="color_warning" font="system_regular_12" text_color="text_muted"
+                                   text_align="hcenter" width="stretch" mouse_enabled="false"/>
+                        </VBox>
+                        <VBox width="100" height="auto" valign="bottom">
+                            <Avatar class="avatar_large" text="A" color="color_red" halign="center" margin="0,0,0,8"/>
+                            <Label text="color_red" font="system_regular_12" text_color="text_muted"
+                                   text_align="hcenter" width="stretch" mouse_enabled="false"/>
+                        </VBox>
+                        <VBox width="100" height="auto" valign="bottom">
+                            <Avatar class="avatar_large" text_id="STRID_AVATAR_SAMPLE_TEXT" color="color_blue_dark"
+                                    halign="center" margin="0,0,0,8"/>
+                            <Label text="color_blue_dark" font="system_regular_12" text_color="text_muted"
+                                   text_align="hcenter" width="stretch" mouse_enabled="false"/>
+                        </VBox>
+                        <Control width="stretch" height="stretch" mouse_enabled="false"/>
+                    </HBox>
+                </VBox>
+
+                <!-- 动态修改：SetSize / SetShape / SetText / SetImage / SetAutoPalette -->
+                <VBox bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6"
+                      padding="16,16,16,16" width="stretch" height="auto" margin="0,12,0,0">
+                    <Label text_id="STRID_AVATAR_DYNAMIC_TITLE" font="system_bold_15" text_color="text_default"
+                           valign="center" margin="0,0,0,4"/>
+                    <Label text_id="STRID_AVATAR_DYNAMIC_DESC" font="system_regular_12" text_color="text_muted"
+                           valign="center" margin="0,0,0,12" auto_tooltip="true"/>
+                    <HBox height="auto" child_margin_x="16">
+                        <Avatar class="avatar_large" name="avatar_dynamic" text="Tom" valign="top"/>
+                        <VBox width="stretch" height="auto">
+                            <HBox height="30" child_margin_x="8">
+                                <Button class="btn_global" name="btn_avatar_size" text_id="STRID_AVATAR_BTN_SIZE"
+                                        width="auto" min_width="96" padding="12,0,12,0" height="28" border_round="3,3"/>
+                                <Button class="btn_global" name="btn_avatar_shape" text_id="STRID_AVATAR_BTN_SHAPE"
+                                        width="auto" min_width="96" padding="12,0,12,0" height="28" border_round="3,3"/>
+                                <Button class="btn_global" name="btn_avatar_text" text_id="STRID_AVATAR_BTN_TEXT"
+                                        width="auto" min_width="96" padding="12,0,12,0" height="28" border_round="3,3"/>
+                                <Control width="stretch" height="stretch" mouse_enabled="false"/>
+                            </HBox>
+                            <HBox height="30" child_margin_x="8" margin="0,8,0,0">
+                                <Button class="btn_global" name="btn_avatar_image" text_id="STRID_AVATAR_BTN_IMAGE"
+                                        width="auto" min_width="96" padding="12,0,12,0" height="28" border_round="3,3"/>
+                                <Button class="btn_global" name="btn_avatar_clear" text_id="STRID_AVATAR_BTN_CLEAR"
+                                        width="auto" min_width="96" padding="12,0,12,0" height="28" border_round="3,3"/>
+                                <Button class="btn_global" name="btn_avatar_palette" text_id="STRID_AVATAR_BTN_PALETTE"
+                                        width="auto" min_width="96" padding="12,0,12,0" height="28" border_round="3,3"/>
+                                <Control width="stretch" height="stretch" mouse_enabled="false"/>
+                            </HBox>
+                            <HBox height="30" margin="0,8,0,0">
+                                <Label name="avatar_state" text_id="STRID_AVATAR_STATE_INIT" text_color="text_default"
+                                       valign="bottom" width="stretch" auto_tooltip="true"/>
+                            </HBox>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- 占位：把剩余空间留在底部 -->
+                <Control height="stretch" mouse_enabled="false"/>
+            </VBox>
+        </VScrollBox>
+    </VBox>
+</Window>

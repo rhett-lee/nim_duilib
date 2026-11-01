@@ -382,6 +382,7 @@
     <ClCompile Include="Control\SpinBox.cpp" />
     <ClCompile Include="Control\Switch.cpp" />
     <ClCompile Include="Control\Badge.cpp" />
+    <ClCompile Include="Control\Avatar.cpp" />
     <ClCompile Include="Control\Mask.cpp" />
     <ClCompile Include="Control\Calendar.cpp" />
     <ClCompile Include="Control\CalendarFlyout.cpp" />
@@ -815,6 +816,7 @@
     <ClInclude Include="Control\Split.h" />
     <ClInclude Include="Control\Switch.h" />
     <ClInclude Include="Control\Badge.h" />
+    <ClInclude Include="Control\Avatar.h" />
     <ClInclude Include="Control\Mask.h" />
     <ClInclude Include="Control\Flyout.h" />
     <ClInclude Include="Control\Calendar.h" />

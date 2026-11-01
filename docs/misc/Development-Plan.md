@@ -720,6 +720,7 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 | **D-13** | **TreeGrid 树表格** ✅ 已完成（2026-10-19，提交 `27b9a497`） | 原审计 B9 的落地方式：**不改 `ListCtrl`，新增独立控件** `duilib/Control/TreeGrid.h/.cpp`（继承 `VBox`，固定表头 + 自带滚动条的列表体，表头与数据行复用同一列宽数组）；`tree_column`+`indent` 层级缩进、`multi_select` 多选、`check_mode`+`check_cascade` 父子三态级联。**ListCtrl 内嵌树 / 分组折叠 / L3 列筛选仍不做**（见第八节） | 已完成 |
 | **D-14** | **Popover 气泡卡片** ✅ 已完成（2026-11-01） | D-2 富内容 Tooltip 明确不做后，卡片浮层仍缺"锚点即触发器"的封装。已新增独立控件 `duilib/Control/Popover.h/.cpp`（`Popover : public Label`，锚点自身即触发元素）：4 种触发（click/hover/focus/manual）、12 方位（`Flyout::Placement` 向后兼容追加 4 个居中方位 + `FlipPlacement()` 统一翻转）、标题/正文/`content_xml` 富内容、`Show/Hide/Toggle` 受控 + `kEventPopoverOpenChanged`（带关闭原因）；示例 `examples/controls/PopoverForm.*` + `controls/popover.xml`，详见 [D-14 spec](specs/D-14-Popover/spec.md) | 已完成 |
 | **D-15** | **Popconfirm 确认气泡卡片** ✅ 已完成（2026-11-01） | 在 D-14 Popover 之上补齐"就地确认"场景：**新增独立控件** `duilib/Control/Popconfirm.h/.cpp`（`Popconfirm : public Popover`，卡片内容由控件生成的"图标 + 标题 + 描述 + 取消/确定"按钮行）；四种图标语义、三种确定按钮样式、`show_cancel`/`close_on_ok` 开关、`kEventPopconfirmConfirm`/`kEventPopconfirmCancel` 事件，并把关闭原因扩展为 `PopoverCloseReason::kConfirm`(4)/`kCancel`(5)；`Popover` 侧做钩子化重构（`BuildCardBodyXml`/`InitializeCard`/`OnFlyoutClosed`/`EscapeXmlText`）且行为不变；示例 `examples/controls/PopconfirmForm.*` + `controls/popconfirm.xml`，详见 [D-15 spec](specs/D-15-Popconfirm/spec.md) | 已完成 |
+| **D-16** | **Avatar 头像** ✅ 已完成（2026-11-01） | 新增独立控件 `duilib/Control/Avatar.h/.cpp`（`Avatar : public Control`，叶子自绘）：圆形/圆角方形展示"图片 / 图标 / 文字"三类头像内容，`size` 预设与数值（随 DPI 缩放）、`shape`（circle/square）、`corner`、`image`（cover 裁剪）、`icon`（contain 居中 + `icon_scale`）、`text`/`text_id`（字号按短边 `text_scale` 换算，超宽先缩小再省略）、`color` 显式底色与文字头像自动调色板（`bg_avatar_1..6` 按文本哈希），新增语义色 `bg_avatar`/`bg_avatar_1..6`/`text_avatar` 与 10 个皮肤 Class；示例 `examples/controls/AvatarForm.*` + `controls/avatar.xml`，详见 [D-16 spec](specs/D-16-Avatar/spec.md) | 已完成 |
 
 ### 现有控件的补强点（不新增控件，只补 API）
 
@@ -845,7 +846,7 @@ A 组 5 项中已完成 4 项（A-1、A-2、A-4、A-5）；A-3（SDL3 版本锁�
 
 ### P2 — 一致性与控件（目标：25–35 人天）
 
-> **实际进展（截至 2026-11-01）**：C 组（跨平台一致性）**7 项中完成 6 项**（C-1 `ASSERT` 统一，方案 B；C-2 IME 组合输入补齐；C-3 主题/语言切换变更广播；C-5 非 Windows 气泡通知；C-6 文件对话框参数补齐；C-7 CMake 平台判定健壮化），C-4 明确不做；D / E 组（控件）**已完成 22 项**、E-6① / E-8 / E-9 明确不做。剩余集中在 D 组 0 项（D-10 于 2026-10-22 完成、D-14 Popover 与 D-15 Popconfirm 于 2026-11-01 完成；D-4、D-8 明确不做）、F 组 2 项与 H 组 10 项；F-2 无障碍明确不做；测试 / CI / 日志已明确不做，回归仍依赖 24 个示例 + `verify_docs.py`。
+> **实际进展（截至 2026-11-01）**：C 组（跨平台一致性）**7 项中完成 6 项**（C-1 `ASSERT` 统一，方案 B；C-2 IME 组合输入补齐；C-3 主题/语言切换变更广播；C-5 非 Windows 气泡通知；C-6 文件对话框参数补齐；C-7 CMake 平台判定健壮化），C-4 明确不做；D / E 组（控件）**已完成 22 项**、E-6① / E-8 / E-9 明确不做。剩余集中在 D 组 0 项（D-10 于 2026-10-22 完成、D-14 Popover 与 D-15 Popconfirm 于 2026-11-01 完成、D-16 Avatar 于 2026-11-01 完成；D-4、D-8 明确不做）、F 组 2 项与 H 组 10 项；F-2 无障碍明确不做；测试 / CI / 日志已明确不做，回归仍依赖 24 个示例 + `verify_docs.py`。
 
 - [x] **C-1** `ASSERT` 跨平台行为统一　｜ 0.5 天（方案 B）｜ 依赖：无　｜ 完成日期：2026-10-20（Windows 侧加 `#ifdef _DEBUG` 包裹，方案 A 双宏未采纳）
 - [x] **C-2** IME 组合输入非 Windows 平台补齐　｜ 约 1 人天（原估 3–5）｜ 依赖：无（原标 M1，本次以逻辑探针替代）｜ 完成日期：2026-10-20
@@ -879,6 +880,7 @@ A 组 5 项中已完成 4 项（A-1、A-2、A-4、A-5）；A-3（SDL3 版本锁�
 - [x] **D-13** TreeGrid 树表格独立控件（B9，提交 `27b9a497`）　｜ 中 ｜ 完成日期：2026-10-19（ListCtrl 内嵌树 / 分组折叠 / L3 列筛选仍不做）
 - [x] **D-14** Popover 气泡卡片（纯控件，见 `duilib/Control/Popover.h`；示例 `examples/controls/PopoverForm.*` + `controls/popover.xml`）　｜ 约 500 行 ｜ 完成日期：2026-11-01（`Popover : public Label`，锚点即触发器；4 种触发 + 12 方位 + 标题/正文/`content_xml` + `kEventPopoverOpenChanged`；`Flyout::Placement` 向后兼容追加 4 个居中方位）
 - [x] **D-15** Popconfirm 确认气泡卡片（纯控件，见 `duilib/Control/Popconfirm.h`；示例 `examples/controls/PopconfirmForm.*` + `controls/popconfirm.xml`）　｜ 约 350 行 ｜ 完成日期：2026-11-01（`Popconfirm : public Popover`，卡片由控件生成"图标 + 标题 + 描述 + 取消/确定"按钮行；四种图标 + 三种确定按钮外观 + `show_cancel`/`close_on_ok`；`kEventPopconfirmConfirm`/`kEventPopconfirmCancel`，关闭原因扩展 `PopoverCloseReason::kConfirm`(4)/`kCancel`(5)；`Popover` 钩子化重构且行为不变，详见 [D-15 spec](specs/D-15-Popconfirm/spec.md)）
+- [x] **D-16** Avatar 头像（纯控件，见 `duilib/Control/Avatar.h`；示例 `examples/controls/AvatarForm.*` + `controls/avatar.xml`）　｜ 约 500 行 ｜ 完成日期：2026-11-01（`Avatar : public Control`，叶子自绘；圆形/圆角方形 + `size`/`shape`/`corner`；内容优先级 image(cover) > icon(contain) > text/text_id，文字字号按短边 `text_scale` 换算并自动缩小/省略；底色优先级 `color` > `bkcolor` > 自动调色板（`bg_avatar_1..6`）> `bg_avatar`；新增语义色 `bg_avatar`/`bg_avatar_1..6`/`text_avatar`，详见 [D-16 spec](specs/D-16-Avatar/spec.md)）
 - [~] **E-9** DateTime 编辑器抽象泄漏修正　｜ 中 ｜ 状态：❌ 明确不做（2026-10-21 决策，不再跟进；架构债留待后续重构）
 - [x] **E-10** SearchBox 防抖 + 建议/历史下拉整合（已完成 2026-10-18）　｜ 中低 ｜ 完成日期：2026-10-18
 - [x] **E-11** Chart ①增量数据 API + ③坐标轴格式化回调（提交 `0d987cb6`）　｜ 约 600 行 ｜ 完成日期：2026-10-18（②导出 PNG/SVG、④拆分单文件，经用户决定不做）

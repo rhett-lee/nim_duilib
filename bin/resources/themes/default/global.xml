@@ -40,6 +40,7 @@
     <Var name="PATH_SEARCHBOX" value="public/searchbox"/>
     <Var name="PATH_POPOVER" value="public/popover"/>
     <Var name="PATH_POPCONFIRM" value="public/popconfirm"/>
+    <Var name="PATH_AVATAR" value="public/avatar"/>
     
     <!-- 字体文件（放在资源根目录的fonts目录中），程序启动时加载，加载后可以按照使用系统字体相同的方式使用 -->
     <!-- 注意事项：该RobotoMono字体只能用于显示英文字母，不支持中文 -->
@@ -1125,6 +1126,33 @@
     <Class name="popconfirm_ok_danger" class="popconfirm_btn" normal_text_color="color_white"
                                       disabled_text_color="color_gray" border_size="0"
                                       normal_color="color_red_dark" hovered_color="#E0393E" pressed_color="#B71D22"/>
+
+    <!-- Avatar头像：基础样式（圆形 32×32，文字字号取控件短边的 50%，文字头像按文本自动配色）
+         注意：这里不设置 bkcolor，否则会压过自动调色板（背景优先级：color > bkcolor > 调色板 > bg_avatar） -->
+    <Class name="avatar" size="32" width="32" height="32" shape="circle" corner="8"
+                              font="system_regular_14" text_color="text_avatar"
+                              text_scale="50" icon_scale="50" palette="true"/>
+    <!-- Avatar头像：小尺寸（24×24） -->
+    <Class name="avatar_small" class="avatar" size="24" width="24" height="24"/>
+    <!-- Avatar头像：大尺寸（40×40） -->
+    <Class name="avatar_large" class="avatar" size="40" width="40" height="40"/>
+    <!-- Avatar头像：超大尺寸（64×64） -->
+    <Class name="avatar_xlarge" class="avatar" size="64" width="64" height="64"/>
+    <!-- Avatar头像：圆角方形（圆角半径 8） -->
+    <Class name="avatar_square" class="avatar" shape="square" corner="8"/>
+    <!-- Avatar头像：圆角方形大尺寸 -->
+    <Class name="avatar_square_large" class="avatar_square" size="40" width="40" height="40"/>
+    <!-- Avatar头像：内置用户图标（SVG 字形颜色映射到 text_avatar，随主题切换） -->
+    <Class name="avatar_user" class="avatar"
+                              icon="file='${PATH_AVATAR}/avatar_icon_user.svg' svg_replace_colors='#0078D4|text_avatar'"/>
+    <!-- Avatar头像：内置用户图标大尺寸 -->
+    <Class name="avatar_user_large" class="avatar_large"
+                              icon="file='${PATH_AVATAR}/avatar_icon_user.svg' svg_replace_colors='#0078D4|text_avatar'"/>
+    <!-- Avatar头像：内置示例图片（演示 image 形态的 cover 填充 + 形状裁剪） -->
+    <Class name="avatar_photo" class="avatar_large"
+                              image="file='${PATH_AVATAR}/avatar_picture_demo.svg'"/>
+    <!-- Avatar头像：粗体文字头像 -->
+    <Class name="avatar_text" class="avatar" font="system_bold_14"/>
 
     <!-- Calendar日历面板：整体容器 -->
     <Class name="calendar" width="280" height="240" bkcolor="bg_window_card"/>

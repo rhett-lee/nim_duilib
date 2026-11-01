@@ -1830,3 +1830,43 @@ STRID_TABCTRL_TIP_CARD_BADGE = ui::TabCtrl + ui::TabCtrlItem (badge)
 STRID_CONTROLS_TABCTRL_FULL = TabCtrl: Vertical / Fixed / Overflow / Badge
 STRID_CONTROLS_TABCTRL_TEST_BTN = TabCtrl Test
 STRID_CONTROLS_TABCTRL_TEST_TIP = Vertical tabs / Fixed tabs / Overflow scroll / Badges / Programmatic add-remove
+
+# Avatar control (controls/avatar.xml)
+STRID_CONTROLS_AVATAR_TEST = Avatar Test
+STRID_AVATAR_WINDOW_TITLE = Avatar Control Test
+STRID_AVATAR_HINT = Hint: an avatar shows an image / icon / text in a circle or rounded square; the buttons in "Dynamic changes" change size, shape and content at runtime
+STRID_AVATAR_SIZE_TITLE = Size
+STRID_AVATAR_SIZE_DESC = size accepts the small(24) / default(32) / large(40) presets or a pixel value (e.g. 64); avatars always keep a square layout and are never stretched by the parent box.
+STRID_AVATAR_SHAPE_TITLE = Shape
+STRID_AVATAR_SHAPE_DESC = shape="circle" (default) draws a circle or an ellipse inside the control rect; shape="square" draws a rounded square whose radius follows corner.
+STRID_AVATAR_CONTENT_TITLE = Content types
+STRID_AVATAR_CONTENT_DESC = image fills the avatar with cover scaling and is clipped by the shape; icon is contained and centered; text / text_id renders text; with no content only the background is painted.
+STRID_AVATAR_PALETTE_TITLE = Auto palette
+STRID_AVATAR_PALETTE_DESC = Text avatars pick one of bg_avatar_1..6 from a stable hash of the text (the same text keeps the same color); palette="false" falls back to bg_avatar.
+STRID_AVATAR_COLOR_TITLE = Custom colors
+STRID_AVATAR_COLOR_DESC = The color attribute takes a semantic color name with the highest priority and overrides the auto palette; the glyph color comes from text_color.
+STRID_AVATAR_DYNAMIC_TITLE = Dynamic changes
+STRID_AVATAR_DYNAMIC_DESC = Change the avatar at runtime with SetSize / SetShape / SetText / SetImage / SetAutoPalette; the control repaints immediately.
+STRID_AVATAR_LABEL_CIRCLE = Circle
+STRID_AVATAR_LABEL_SQUARE = Rounded square
+STRID_AVATAR_LABEL_CORNER = Large radius
+STRID_AVATAR_LABEL_ELLIPSE = Ellipse
+STRID_AVATAR_LABEL_IMAGE = Image (cover)
+STRID_AVATAR_LABEL_ICON = Icon (contain)
+STRID_AVATAR_LABEL_TEXT = Text
+STRID_AVATAR_LABEL_TEXT_ID = Text (text_id)
+STRID_AVATAR_LABEL_BOLD = Bold text
+STRID_AVATAR_LABEL_EMPTY = Empty
+STRID_AVATAR_SAMPLE_TEXT = i18n
+STRID_AVATAR_BTN_SIZE = Change size
+STRID_AVATAR_BTN_SHAPE = Change shape
+STRID_AVATAR_BTN_TEXT = Change text
+STRID_AVATAR_BTN_IMAGE = Toggle image
+STRID_AVATAR_BTN_CLEAR = Clear content
+STRID_AVATAR_BTN_PALETTE = Toggle palette
+STRID_AVATAR_STATE_INIT = Size 40px · Shape Circle · Content Text(Tom) · Palette on
+STRID_AVATAR_STATE_FORMAT = Size {0}px · Shape {1} · Content {2} · Palette {3}
+STRID_AVATAR_STATE_CONTENT_TEXT = Text({0})
+STRID_AVATAR_STATE_CONTENT_EMPTY = empty
+STRID_AVATAR_STATE_PALETTE_ON = on
+STRID_AVATAR_STATE_PALETTE_OFF = off

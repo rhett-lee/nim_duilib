@@ -1835,3 +1835,43 @@ STRID_TABCTRL_TIP_CARD_BADGE = ui::TabCtrl + ui::TabCtrlItem (badge)
 STRID_CONTROLS_TABCTRL_FULL = TabCtrl：垂直 / 固定 / 溢出滚动 / 角标
 STRID_CONTROLS_TABCTRL_TEST_BTN = TabCtrl Test
 STRID_CONTROLS_TABCTRL_TEST_TIP = 垂直标签 / 固定标签 / 溢出滚动 / 标签角标 / 程序化增删标签
+
+# Avatar 头像（controls/avatar.xml）
+STRID_CONTROLS_AVATAR_TEST = 头像测试
+STRID_AVATAR_WINDOW_TITLE = Avatar 头像控件测试
+STRID_AVATAR_HINT = 提示：头像用圆形或圆角方形展示图片 / 图标 / 文字；点击"动态修改"里的按钮可在运行期切换尺寸、形状与内容
+STRID_AVATAR_SIZE_TITLE = 尺寸
+STRID_AVATAR_SIZE_DESC = size 支持 small(24) / default(32) / large(40) 预设，也可直接写数值（例如 64）；头像始终按正方形布局，不会被父容器拉伸变形。
+STRID_AVATAR_SHAPE_TITLE = 形状
+STRID_AVATAR_SHAPE_DESC = shape="circle"（默认）按控件矩形绘制正圆或椭圆；shape="square" 时为圆角方形，圆角大小由 corner 控制。
+STRID_AVATAR_CONTENT_TITLE = 内容类型
+STRID_AVATAR_CONTENT_DESC = image 等比 cover 填满头像并按形状裁剪；icon 等比 contain 居中；text / text_id 显示文字；不设置内容时只显示底色。
+STRID_AVATAR_PALETTE_TITLE = 自动调色板
+STRID_AVATAR_PALETTE_DESC = 文字头像默认按文本哈希取 bg_avatar_1..6 中的一种底色（同一文字颜色稳定）；palette="false" 时回退到 bg_avatar。
+STRID_AVATAR_COLOR_TITLE = 自定义颜色
+STRID_AVATAR_COLOR_DESC = color 属性使用语义色名，优先级最高，可覆盖自动配色；文字颜色由 text_color 指定。
+STRID_AVATAR_DYNAMIC_TITLE = 动态修改
+STRID_AVATAR_DYNAMIC_DESC = 通过 SetSize / SetShape / SetText / SetImage / SetAutoPalette 在运行期修改头像，调用后立即重绘。
+STRID_AVATAR_LABEL_CIRCLE = 圆形
+STRID_AVATAR_LABEL_SQUARE = 圆角方形
+STRID_AVATAR_LABEL_CORNER = 大圆角
+STRID_AVATAR_LABEL_ELLIPSE = 椭圆
+STRID_AVATAR_LABEL_IMAGE = 图片 cover
+STRID_AVATAR_LABEL_ICON = 图标 contain
+STRID_AVATAR_LABEL_TEXT = 文字
+STRID_AVATAR_LABEL_TEXT_ID = text_id 文字
+STRID_AVATAR_LABEL_BOLD = 粗体文字
+STRID_AVATAR_LABEL_EMPTY = 空内容
+STRID_AVATAR_SAMPLE_TEXT = 多语言
+STRID_AVATAR_BTN_SIZE = 切换尺寸
+STRID_AVATAR_BTN_SHAPE = 切换形状
+STRID_AVATAR_BTN_TEXT = 换文字
+STRID_AVATAR_BTN_IMAGE = 切换图片
+STRID_AVATAR_BTN_CLEAR = 清空内容
+STRID_AVATAR_BTN_PALETTE = 调色板开关
+STRID_AVATAR_STATE_INIT = 尺寸 40px · 形状 圆形 · 内容 文字(Tom) · 调色板 开
+STRID_AVATAR_STATE_FORMAT = 尺寸 {0}px · 形状 {1} · 内容 {2} · 调色板 {3}
+STRID_AVATAR_STATE_CONTENT_TEXT = 文字({0})
+STRID_AVATAR_STATE_CONTENT_EMPTY = 空
+STRID_AVATAR_STATE_PALETTE_ON = 开
+STRID_AVATAR_STATE_PALETTE_OFF = 关
