@@ -262,6 +262,35 @@ antd 的 Popover 卡片在朝向锚点的那条边上带一个尖角（arrow）�
 该修复对 `bkimage` / `shadow_image` 等所有经 `ImageAttribute::ModifyAttribute()` 解析的 `corner` 生效，
 对称 `corner` 的行为不变。
 
+#### 3.9.2 跟随锚点与滚出可视区域时关闭（T15）
+
+实测：卡片打开后滚动窗口滚动条（锚点位于 `ScrollBox` 内），锚点在屏幕上移动（例如从 y≈200 移到 y≈115），
+但卡片停在原位置，尖角随之指向了错误的地方；继续滚动后锚点被滚出滚动区域，卡片仍留在屏幕上。
+
+两个问题一起处理：
+
+1. **卡片跟随锚点**：`Flyout` 新增 `SetFollowAnchor(bool)`（默认 `false`，`Popover` 打开卡片时开启）/
+   `IsFollowAnchor()`。开启后复用已有的外部输入检测定时器（约 50 ms 周期，`OnDetectTick`）：
+   - 每次 tick 用 `GetAnchorScreenRect()`（锚点布局矩形扣除各级滚动偏移后换算到屏幕物理像素）
+     与上一次记录的 `m_rcAnchorScreenLast` 比较，发生位移就调用 `UpdateAnchorPosition()`
+     （= `PositionAroundAnchor()` + 触发 `AttachLayouted` 回调），把窗口移到新位置；
+   - 重新定位时**临时关闭翻转**（`m_bAllowFlip`）：卡片内容（尖角箭头、方位专用阴影）是按打开时的
+     方位生成的，翻转到另一侧会与内容不一致；该侧空间不足时由 `PositionAroundAnchor()` 夹持在
+     显示器工作区内；
+   - `AttachLayouted` 回调现在在重新定位后也会触发（由 `InvokeLayoutCallbacks()` 统一派发），
+     于是 `Popover::PositionCardArrow()` 会用新的锚点中心重新摆放尖角，尖角始终指向锚点。
+2. **锚点滚出可视区域时关闭**：`Flyout` 新增 `IsAnchorVisible()` —— 把锚点在窗口客户区视觉坐标下的
+   矩形依次与窗口客户区、以及每一级 `ScrollBox`（含派生类）祖先的可视矩形求交，交集为空即视为不可见；
+   tick 中判定不可见就按 `CloseReason::kAnchorLost` 关闭浮层（`Popover` 侧表现为关闭事件 +
+   关闭原因"锚点失效"），避免卡片继续指向一个已经看不到的控件。
+
+同时把轮询任务的启动时机从"仅 no-focus 模式"放宽为 `m_bNoFocus || m_bFollowAnchor`
+（`StartDetectTimer()` 的 `PostDelayedTask` 移出 Windows 宏，Windows 专用的按键状态初始化仍在宏内），
+使跟随能力在非 Windows 平台也可用；Windows 的"外部点击检测"逻辑本身不变。
+
+已知限制：跟随是周期轮询（约 50 ms），滚动时卡片会有轻微的跟随延迟；卡片内控件动态增减导致的重排
+仍不会重新定位尖角（与 3.9 的已知限制一致）。
+
 ## 4. 精确改动清单
 
 ### 4.1 控件
@@ -289,7 +318,8 @@ antd 的 Popover 卡片在朝向锚点的那条边上带一个尖角（arrow）�
 2. 新增 `duilib/Control/Popover.cpp`
    - 属性解析（主名 + 无下划线别名，含 `arrow`）、方位/触发方式解析与归一化（忽略大小写与 `_`/`-`）、
      XML 转义、卡片生成（卡片按方位留箭头带 + 方位专用阴影 + 浮动箭头）、打开/关闭生命周期、翻转重建、
-     布局完成后的箭头定位（`PositionCardArrow`）、悬停延迟任务、DPI 与屏幕坐标换算；
+     布局完成后的箭头定位（`PositionCardArrow`）、打开卡片时开启跟随锚点（`SetFollowAnchor(true)`）、
+     悬停延迟任务、DPI 与屏幕坐标换算；
    - 匿名命名空间辅助：`FromFlyoutPlacement()`（`Flyout::Placement` → `PopoverPlacement`）、
      `PopoverSide` / `GetPlacementSide()`（按主方位归类）、`ClampArrowOffset()`（箭头落点钳位），
      常量 `kArrowLength`(16) / `kArrowDepth`(8) / `kArrowOverlap`(1) / `kArrowMinEdgeMargin`(12) / `kArrowBand`(8)。
@@ -309,6 +339,12 @@ antd 的 Popover 卡片在朝向锚点的那条边上带一个尖角（arrow）�
      返回 `HTTRANSPARENT`；`OnFinalMessage()` 卸载并释放；
    - `OnKillFocusMsg()` 与 `OnDetectTick()` 的"点击外部"判定改受 `m_bClickOutsideDismiss` 控制，
      落点判定改走 `GetVisualRect()`。
+   - 跟随锚点（T15）：新增 `SetFollowAnchor(bool)` / `IsFollowAnchor()`（默认 `false`）、
+     `IsAnchorVisible()`（窗口客户区 + 各级 `ScrollBox` 祖先裁剪判定）、
+     `UpdateAnchorPosition()`（重新定位并触发 `AttachLayouted` 回调，返回实际方位是否变化）；
+     `OnDetectTick()` 中比较锚点屏幕矩形与 `m_rcAnchorScreenLast`，位移则重新定位（临时关闭翻转），
+     锚点不可见则按 `kAnchorLost` 关闭；`StartDetectTimer()` 的轮询任务改为在
+     `m_bNoFocus || m_bFollowAnchor` 时启动；新增成员 `m_bFollowAnchor` / `m_rcAnchorScreenLast`。
 
 ### 4.2 注册（5 处）
 

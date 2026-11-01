@@ -56,5 +56,17 @@
       ③ 影响面：`bkimage` / `shadow_image` 等所有经 `ImageAttribute::ModifyAttribute()` 解析的 `corner` 属性，
       支持非对称九宫格（窗口阴影在箭头一侧多留 8 像素）；原对称 corner 行为不变。
       同步本 spec / checklist（框架行为说明，其余文档无 `corner` 语义条目需改动）。
+- [x] T15 修复实测的滚动跟随问题（卡片弹出后滚动滚动条，锚点位置变化但卡片不跟随；锚点滚出滚动区域后卡片残留）：
+      ① `Flyout` 新增跟随能力：`SetFollowAnchor(bool)` / `IsFollowAnchor()`（默认 `false`）、
+      `IsAnchorVisible()`（锚点矩形与窗口客户区、各级 `ScrollBox` 祖先可视矩形求交）、
+      `UpdateAnchorPosition()`（`PositionAroundAnchor()` + 触发 `AttachLayouted` 回调，返回实际方位是否变化）；
+      ② `OnDetectTick()`（约 50ms）中比较 `GetAnchorScreenRect()` 与 `m_rcAnchorScreenLast`：位移则重新定位
+      （重新定位时临时关闭翻转，保持打开时的方位，内容不足时由定位逻辑夹持工作区），锚点不可见则按
+      `CloseReason::kAnchorLost` 关闭；
+      ③ 布局完成回调 `AttachLayouted` 改为由 `InvokeLayoutCallbacks()` 统一派发，首帧布局后与重新定位后都会触发，
+      `Popover::PositionCardArrow()` 因此能用新的锚点中心重新定位尖角；
+      ④ `StartDetectTimer()` 的轮询任务移出 Windows 宏，启动条件放宽为 `m_bNoFocus || m_bFollowAnchor`；
+      `Popover::Show()` 打开卡片时调用 `SetFollowAnchor(true)`。
+      同步 Control.md / Control.en.md / 两份 api-reference / `.claude` 速查 / 本 spec / checklist。
 
 > T8 的编译结果与文档校验记录见 `checklist.md` 第 6 节；验收剩下的手工运行项见第 7 节。

@@ -129,6 +129,27 @@ public:
     */
     bool IsPointInVisualArea(const UiPoint& ptScreen) const;
 
+    /** 设置浮层是否跟随锚点移动（锚点因滚动/布局变化而位移时，浮层自动重新定位），默认 false
+    * @note 开启后浮层按外部输入检测的周期（约 50 毫秒）检查锚点位置，发现位移即重新定位；
+    *       重新定位时保持打开时的方位、不做翻转（浮层内容例如尖角箭头与阴影是按该方位生成的），
+    *       该侧空间不足时由定位逻辑把窗口夹持在显示器工作区内；
+    *       锚点被滚动出窗口客户区或滚动容器（ScrollBox 及其派生类）的可视区域时，
+    *       浮层按 CloseReason::kAnchorLost 自动关闭
+    */
+    void SetFollowAnchor(bool bFollow);
+    bool IsFollowAnchor() const;
+
+    /** 判断锚点控件当前是否可见（未被窗口客户区或滚动容器裁剪掉）
+    * @return 锚点已不可见（例如被滚动出滚动区域）时返回 false
+    */
+    bool IsAnchorVisible() const;
+
+    /** 按锚点当前位置重新定位浮层（锚点移动后调用，复用当前窗口，不重建）
+    *   重新定位后会触发"布局完成"回调，供子类按新的窗口位置调整内容（例如尖角箭头）
+    * @return 重新定位后的实际方位是否发生了变化
+    */
+    bool UpdateAnchorPosition();
+
     /** 设置弹出后是否不抢焦点，默认 true
     *   设为 false 时浮层会获取焦点，此时通过失去焦点来感知外部点击
     * @note 非 Windows 平台：不抢焦点模式（true）下外部点击检测暂不支持（见 StartDetectTimer），
@@ -172,7 +193,7 @@ public:
     */
     void AttachClosed(const FlyoutEvent& callback);
 
-    /** 注册浮层布局完成后的回调（在首次绘制前触发，只触发一次）
+    /** 注册浮层布局完成后的回调（在首次绘制前触发；跟随锚点重新定位后也会触发）
     *   用于按控件的实际布局矩形调整内容的位置（例如把指示尖角定位到锚点中心）；
     *   回调中设置的浮动控件（float="true" keep_float_pos="true"）位置在后续布局中会被保持
     */
@@ -211,11 +232,16 @@ protected:
     void PositionAroundAnchor();
 
 private:
-    /** 启动/停止外部输入检测（不抢焦点模式下通过定时器轮询全局鼠标与 Esc 状态）
+    /** 启动/停止外部输入检测（不抢焦点模式下通过定时器轮询全局鼠标与 Esc 状态；
+    *   跟随锚点时也依赖该定时器轮询锚点位置）
     */
     void StartDetectTimer();
     void StopDetectTimer();
     void OnDetectTick();
+
+    /** 触发"布局完成"回调（首次布局完成后、以及跟随锚点重新定位后调用）
+    */
+    void InvokeLayoutCallbacks();
 
     /** 执行关闭流程（只生效一次）
     */
@@ -258,6 +284,12 @@ private:
 
     //鼠标落在窗口阴影区域时是否穿透到浮层下面的窗口
     bool m_bShadowClickThrough;
+
+    //是否跟随锚点移动（锚点位移时重新定位，滚出可视区域时关闭）
+    bool m_bFollowAnchor;
+
+    //上一次记录的锚点屏幕矩形（物理像素），用于检测锚点是否发生位移
+    UiRect m_rcAnchorScreenLast;
 
     //窗口阴影区域的命中测试过滤器（Windows 平台，把阴影上的鼠标消息交给下层窗口）
     std::unique_ptr<IUIMessageFilter> m_pShadowHitTestFilter;

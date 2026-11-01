@@ -2349,6 +2349,9 @@ Key features:
 | `SetClickOutsideDismiss(bool)` / `IsClickOutsideDismiss()` | Whether clicking outside the flyout closes it, default true (Esc is still controlled by `SetAutoDismiss`); disable it in controlled scenarios so the flyout is not closed when the mouse goes down on an outside button |
 | `SetShadowClickThrough(bool)` / `IsShadowClickThrough()` | Whether mouse input over the window shadow passes through to the window below (Windows only), default true |
 | `GetVisualRect(rcVisual)` / `IsPointInVisualArea(pt)` | Gets/tests the visual rect of the flyout (screen physical pixels, shadow excluded) |
+| `SetFollowAnchor(bool)` / `IsFollowAnchor()` | Whether the flyout follows the anchor, default false. When enabled, the anchor position is checked about every 50ms: the flyout is repositioned when the anchor moves (scrolling/layout changes) keeping the original placement (no flip, clamped into the work area), and is closed with `kAnchorLost` when the anchor is scrolled out of the window client area or the scroll container (`ScrollBox`) visual area |
+| `IsAnchorVisible()` | Tests whether the anchor control is currently visible (not clipped by the window client area or a scroll container) |
+| `UpdateAnchorPosition()` | Repositions the flyout according to the anchor's current position (reuses the window and re-triggers the `AttachLayouted` callbacks); returns whether the actual placement changed |
 | `SetNoFocus(bool)` / `IsNoFocus()` | Whether to avoid taking focus, default true; when false, focus loss is used to detect outside clicks |
 | `SetGap(int)` / `GetGap()` | Gap between the flyout and the anchor (unscaled logical pixels), default 6 |
 | `SetAllowFlip(bool)` / `IsAllowFlip()` | Whether flipping to the opposite side is allowed, default true |
@@ -2595,7 +2598,7 @@ Notes:
 - The hover close decision checks whether the cursor is still inside the anchor or the card's **visual rect** (the window shadow is excluded), so the pointer can move from the anchor into the card and keep interacting; moving out closes it after `close_delay`;
 - In no-focus mode, non-Windows platforms cannot detect outside clicks (same limitation as `Flyout`); use `trigger="manual"` or `auto_dismiss="false"` there;
 - For `trigger="manual"` (controlled mode) the outside-click close is off by default: otherwise the card would be closed at the moment the mouse goes down on an outside controlled button, and that button's `Click` handler would read a stale (closed) state (making `Toggle()` always open the card and card rebuilds appear ineffective). Set `auto_dismiss="true"` explicitly if outside-click closing is wanted;
-- When the anchor sits inside scrollable containers, the card position removes the accumulated scroll offset; the card does not follow live scrolling, so closing it while scrolling is recommended.
+- When the anchor sits inside scrollable containers, the card position removes the accumulated scroll offset; the card follows the anchor (`SetFollowAnchor(true)`): when the scroll container scrolls or the anchor moves due to layout changes, the card is repositioned within about 50ms and its arrow keeps pointing at the anchor center (the placement used at open time is kept without flipping; the window is clamped into the work area when space is insufficient); when the anchor is scrolled out of the scroll area (window client area or `ScrollBox` visual area), the card is closed automatically with `kAnchorLost`.
 
 See the controls demo (the "Popover" group mirrors the Ant Design demos: basic usage, three trigger modes, 12 placements, controlled Show/Hide/Toggle, rich content with "close from inside").
 

@@ -53,6 +53,20 @@
 - [x] 非对称 `corner` 不再误报断言：`ImageAttribute::ModifyAttribute()` 的 `corner` 解析改为
       `ParseRectValue(value, *m_rcCorner, false)`（`corner` 的 4 个值是四条边各自的内缩量，不是矩形），
       四边仍各自钳到 `>= 0`；`src` / `dest` / `size_box` / `caption` 等矩形语义属性保持尺寸校验。
+- [x] 跟随锚点：`Flyout` 新增 `SetFollowAnchor(bool)` / `IsFollowAnchor()`（默认 `false`）与成员
+      `m_bFollowAnchor` / `m_rcAnchorScreenLast`；`ShowAt()` 定位后记录锚点屏幕矩形（物理像素）。
+- [x] 锚点可见性判定：`IsAnchorVisible()` 用"锚点布局矩形扣除 `GetScrollOffsetInScrollBox()` 累计滚动偏移"后的
+      矩形，与窗口客户区、各级 `ScrollBox` 祖先的可视矩形依次求交，任一为空即视为不可见。
+- [x] 重新定位：`UpdateAnchorPosition()` 在已打开状态下复用当前窗口调用 `PositionAroundAnchor()`，刷新
+      `m_rcAnchorScreenLast` 并派发布局完成回调，返回实际方位是否变化（不重建窗口、不派发打开事件）。
+- [x] 布局完成回调可重复触发：`AttachLayouted()` 的回调改由 `InvokeLayoutCallbacks()` 统一派发，
+      `OnInitLayout()`（首帧）与 `UpdateAnchorPosition()`（重定位后）都会触发，`Popover::PositionCardArrow()`
+      因此按新的锚点中心重新定位尖角。
+- [x] `OnDetectTick()` 的跟随分支（约 50ms）：锚点不可见 → `DoClose(CloseReason::kAnchorLost)`；
+      锚点屏幕矩形变化 → 临时 `m_bAllowFlip = false` 后 `UpdateAnchorPosition()`（保持打开时的方位，
+      该侧空间不足时由定位逻辑夹持到显示器工作区），避免滚动时卡片突然翻转或消失。
+- [x] `StartDetectTimer()` 的 `PostDelayedTask` 移出 Windows 宏（跨平台可用），启动条件放宽为
+      `m_bNoFocus || m_bFollowAnchor`；`Popover::Show()` 打开卡片时调用 `SetFollowAnchor(true)`。
 
 ## 3. 注册
 
@@ -128,6 +142,9 @@
 - [x] T13 复查：`verify_docs.py` 退出码 0（234 个文档全部命中，未发现文档漂移）；`git diff --check` 退出码 0。
 - [x] T14 复查：`duilib.vcxproj` 与 `controls.vcxproj`（Debug|x64）在修改 `ImageAttribute::ModifyAttribute()`
       后重新编译，退出码均为 0。
+- [x] T15 复查：`duilib.vcxproj` 与 `controls.vcxproj`（Debug|x64）在新增跟随锚点能力后重新编译，退出码均为 0。
+- [x] T15 复查：`verify_docs.py`（`--extra docs examples/controls bin/resources/themes/default/controls bin/resources/lang`）
+      退出码 0；`git diff --check` 退出码 0。
 - [x] 未执行 `git commit`（由用户手动提交）。
 
 ## 7. 功能验收（手工）
@@ -192,3 +209,11 @@
 - [ ] 点击箭头区域不会误触发卡片内控件（箭头 Class 的 `mouse_enabled="false"`）。
 - [ ] 显示箭头时 `gap` 感觉为"尖角尖端到锚点"的距离（默认 6），箭头未插入锚点区域。
 - [ ] 100% / 150% / 200% DPI 下箭头宽度、压入卡片的 1 像素重叠区与箭头带比例正确（无错位、无空隙）。
+
+### 滚动跟随（T15）
+- [ ] 卡片打开后滚动锚点所在的滚动容器（滚轮或拖动滚动条）：卡片在约 50ms 内跟随锚点重新定位，不出现明显脱节。
+- [ ] 跟随过程中尖角箭头仍指向锚点中心（水平方位对锚点中心 X、左右方位对锚点中心 Y），阴影与卡片边线不错位。
+- [ ] 跟随过程中卡片方位保持不变（不因锚点靠近边缘而翻转成另一侧），锚点滚到接近窗口边缘时卡片被夹持在显示器工作区内。
+- [ ] 锚点被滚出滚动容器的可视区域（或滚出窗口客户区）后，卡片按"锚点失效"自动关闭，不残留浮层窗口。
+- [ ] 状态文本 / `AttachOpenChanged` 在自动关闭时回显的关闭原因为 `kAnchorLost`（`wParam == 0`），后续点击可正常重新打开。
+- [ ] 卡片不随锚点滚动时误触发重复的打开事件；反复滚动、滚出、重新打开均不崩溃、不出现悬垂回调。

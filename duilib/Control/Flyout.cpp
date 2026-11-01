@@ -1,6 +1,7 @@
 #include "duilib/Control/Flyout.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Core/Control.h"
+#include "duilib/Box/ScrollBox.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/WindowCreateParam.h"
 #include "duilib/Core/WindowMessage.h"
@@ -75,6 +76,7 @@ Flyout::Flyout(Window* pParentWindow) :
     m_bAutoDismiss(true),
     m_bClickOutsideDismiss(true),
     m_bShadowClickThrough(true),
+    m_bFollowAnchor(false),
     m_bNoFocus(true),
     m_nGap(6),
     m_bAllowFlip(true),
@@ -170,6 +172,8 @@ bool Flyout::ShowAt(Control* pAnchor, const DString& xmlFile, Placement placemen
 
     //计算锚点位置
     PositionAroundAnchor();
+    //记录锚点的初始屏幕矩形，供跟随锚点时检测位移
+    GetAnchorScreenRect(m_rcAnchorScreenLast, true);
 
     if (!m_bNoFocus) {
         //显示窗口，并且需要设置焦点
@@ -199,7 +203,8 @@ bool Flyout::ShowAt(Control* pAnchor, const DString& xmlFile, Placement placemen
     m_bOpen = true;
     s_pActiveFlyout = this;
 
-    if (m_bNoFocus) {
+    if (m_bNoFocus || m_bFollowAnchor) {
+        //不抢焦点模式需要检测外部点击；跟随锚点需要轮询锚点位置
         StartDetectTimer();
     }
 
@@ -266,6 +271,91 @@ bool Flyout::IsPointInVisualArea(const UiPoint& ptScreen) const
     UiRect rcVisual;
     GetVisualRect(rcVisual);
     return !rcVisual.IsEmpty() && rcVisual.ContainsPt(ptScreen);
+}
+
+void Flyout::SetFollowAnchor(bool bFollow)
+{
+    if (m_bFollowAnchor == bFollow) {
+        return;
+    }
+    m_bFollowAnchor = bFollow;
+    if (m_bFollowAnchor && m_bOpen && (m_nDetectTaskId == 0)) {
+        //运行中开启跟随：补启动轮询任务
+        StartDetectTimer();
+    }
+}
+
+bool Flyout::IsFollowAnchor() const
+{
+    return m_bFollowAnchor;
+}
+
+bool Flyout::IsAnchorVisible() const
+{
+    Control* pAnchor = m_pAnchor.get();
+    if (pAnchor == nullptr) {
+        return false;
+    }
+    Window* pAnchorWindow = pAnchor->GetWindow();
+    if (pAnchorWindow == nullptr) {
+        return false;
+    }
+    if (!pAnchor->IsVisible()) {
+        return false;
+    }
+
+    //锚点在窗口客户区视觉坐标（DIP）下的矩形：布局坐标扣除各级滚动容器累计的滚动偏移
+    UiRect rcAnchor = pAnchor->GetPos();
+    const UiPoint ptScrollOffset = pAnchor->GetScrollOffsetInScrollBox();
+    rcAnchor.Offset(-ptScrollOffset.x, -ptScrollOffset.y);
+    if (rcAnchor.IsEmpty()) {
+        return false;
+    }
+
+    //被窗口客户区裁剪（例如滚动到客户区外）
+    UiRect rcClient;
+    pAnchorWindow->GetClientRect(rcClient);
+    pAnchorWindow->Dpi().WindowSizeToClientSize(rcClient);
+    UiRect rcVisible = rcAnchor;
+    if (!rcVisible.Intersect(rcClient)) {
+        return false;
+    }
+
+    //被滚动容器裁剪：锚点被滚出滚动区域后应当视为不可见
+    Control* pParent = pAnchor->GetParent();
+    while (pParent != nullptr) {
+        if (dynamic_cast<ScrollBox*>(pParent) != nullptr) {
+            //滚动容器自身在客户区视觉坐标下的矩形（还需扣除其上层滚动容器的偏移）
+            UiRect rcParent = pParent->GetPos();
+            const UiPoint ptParentScrollOffset = pParent->GetScrollOffsetInScrollBox();
+            rcParent.Offset(-ptParentScrollOffset.x, -ptParentScrollOffset.y);
+            if (!rcVisible.Intersect(rcParent)) {
+                return false;
+            }
+        }
+        pParent = pParent->GetParent();
+    }
+    return true;
+}
+
+bool Flyout::UpdateAnchorPosition()
+{
+    if (!m_bOpen || m_bClosing || (m_pAnchor == nullptr) || (GetRoot() == nullptr)) {
+        return false;
+    }
+    const Placement oldPlacement = m_actualPlacement;
+    PositionAroundAnchor();
+    GetAnchorScreenRect(m_rcAnchorScreenLast, true);
+    InvokeLayoutCallbacks();
+    return m_actualPlacement != oldPlacement;
+}
+
+void Flyout::InvokeLayoutCallbacks()
+{
+    std::vector<FlyoutLayoutEvent> callbacks = m_layoutedCallbacks;
+    for (const FlyoutLayoutEvent& callback : callbacks) {
+        callback();
+    }
 }
 
 void Flyout::SetNoFocus(bool bNoFocus)
@@ -377,10 +467,7 @@ void Flyout::OnInitLayout()
 {
     BaseClass::OnInitLayout();
     //布局已完成（首次绘制前）：通知回调按控件的实际布局矩形调整内容位置
-    std::vector<FlyoutLayoutEvent> callbacks = m_layoutedCallbacks;
-    for (const FlyoutLayoutEvent& callback : callbacks) {
-        callback();
-    }
+    InvokeLayoutCallbacks();
 }
 
 void Flyout::OnFinalMessage()
@@ -665,7 +752,9 @@ void Flyout::StartDetectTimer()
     //以当前按键状态为初始值，避免触发浮层的那次点击在抬起前被误判为新的外部按下
     m_bPointerDownLast = (::GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
     m_bEscapeDownLast = (::GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0;
+#endif
 
+    //该轮询任务同时用于：不抢焦点模式下的外部点击检测（仅 Windows）、跟随锚点时的位置检测
     m_nDetectTaskId = GlobalManager::Instance().Thread().PostDelayedTask(
         kThreadUI,
         UiBind(this, [this]() {
@@ -673,9 +762,6 @@ void Flyout::StartDetectTimer()
             OnDetectTick();
         }),
         kDetectIntervalMs);
-#else
-    //非 Windows 平台暂不支持不抢焦点模式下的外部点击检测，可通过 SetNoFocus(false) 使用焦点模式
-#endif
 }
 
 void Flyout::StopDetectTimer()
@@ -707,6 +793,24 @@ void Flyout::OnDetectTick()
     if (m_pAnchor == nullptr) {
         DoClose(CloseReason::kAnchorLost);
         return;
+    }
+
+    //跟随锚点：锚点因滚动/布局变化而位移时重新定位浮层；锚点被裁剪（滚出可视区域）时关闭
+    if (m_bFollowAnchor) {
+        if (!IsAnchorVisible()) {
+            //锚点已不可见（例如被滚出滚动容器的可视区域）：浮层没有可指向的锚点，直接关闭
+            DoClose(CloseReason::kAnchorLost);
+            return;
+        }
+        UiRect rcAnchorNow;
+        if (GetAnchorScreenRect(rcAnchorNow, true) && (rcAnchorNow != m_rcAnchorScreenLast)) {
+            //重新定位时保持打开时的方位、不做翻转：浮层内容（例如尖角箭头与阴影）是按该方位生成的，
+            //翻转到另一侧会与内容不一致；方位这一侧空间不足时由 PositionAroundAnchor 夹持到工作区内
+            const bool bAllowFlipOld = m_bAllowFlip;
+            m_bAllowFlip = false;
+            UpdateAnchorPosition();
+            m_bAllowFlip = bAllowFlipOld;
+        }
     }
 
 #if defined(DUILIB_BUILD_FOR_WIN) && !defined(DUILIB_BUILD_FOR_SDL)
