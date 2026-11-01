@@ -1,7 +1,15 @@
-cmake_minimum_required(VERSION 3.18)
+# 最低版本 3.19：构建消息目录（cmake/i18n/messages.json）用 string(JSON) 解析。
+# 根工程整体仍要求 CMake 3.24+（见 build/build-reference.md）。
+cmake_minimum_required(VERSION 3.19)
+
+# 构建消息（中英文唯一维护点）：cmake/i18n/messages.json；本文件既被根工程
+# add_subdirectory() 引入，也支持单独配置，因此在这里独立 include 一次。
+include("${CMAKE_CURRENT_LIST_DIR}/../cmake/duilib_i18n.cmake")
 
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
-  message(FATAL_ERROR "Prevented in-tree build. Please create a build directory outside of the source code and run \"cmake -S ${CMAKE_SOURCE_DIR} -B .\" from there")
+  duilib_t("cmake.in_tree_build" _duilib_in_tree_what)
+  duilib_tf(_duilib_in_tree_hint "cmake.in_tree_build_hint" "source=${CMAKE_SOURCE_DIR}")
+  message(FATAL_ERROR "${_duilib_in_tree_what}\n  Hint: ${_duilib_in_tree_hint}")
 endif()
 
 # duilib
@@ -51,10 +59,13 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")  # Windows
         set(CEF_LIB_DIR "libcef_win")
     endif()
 elseif(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")  # FreeBSD
-    message(WARNING "CEF is not supported on FreeBSD - building without CEF support")
+    duilib_warn("cmake.cef_freebsd_unsupported")
     set(CEF_LIB_DIR "")  # Empty or set to a dummy value
 else()
-    message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_NAME}")
+    duilib_tf(_duilib_platform_what "cmake.platform_unsupported"
+              "platform=${CMAKE_SYSTEM_NAME}")
+    duilib_t("cmake.platform_unsupported_hint" _duilib_platform_hint)
+    message(FATAL_ERROR "${_duilib_platform_what}\n  Hint: ${_duilib_platform_hint}")
 endif()
 
 # CEF功能开关：默认开启（与加入本开关前的行为一致）
@@ -65,7 +76,9 @@ else()
     option(DUILIB_ENABLE_CEF "Enable CEF" OFF)
 endif()
 if(DUILIB_ENABLE_CEF AND NOT CEF_LIB_DIR)
-    message(WARNING "DUILIB_ENABLE_CEF is ON, but CEF is not supported on ${CMAKE_SYSTEM_NAME}: CEF is disabled")
+    duilib_tf(_duilib_cef_forced_line "cmake.cef_force_disabled"
+              "platform=${CMAKE_SYSTEM_NAME}")
+    message(STATUS "${_duilib_cef_forced_line}")
     set(DUILIB_ENABLE_CEF OFF)
 endif()
 
@@ -102,9 +115,9 @@ unset(_duilib_sdl_include_dir)
 if(DUILIB_ENABLE_CEF)
     get_filename_component(CEF_INCLUDE_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/third_party/libcef/${CEF_LIB_DIR}/" ABSOLUTE)
     list(APPEND DUILIB_TARGET_INCLUDE_DIRS "${CEF_INCLUDE_ROOT_DIR}")
-    message(STATUS "CEF include path: ${CEF_INCLUDE_ROOT_DIR}")
+    duilib_msg("cmake.cef_include_path" "${CEF_INCLUDE_ROOT_DIR}")
 else()
-    message(STATUS "CEF includes disabled (DUILIB_ENABLE_CEF=OFF)")
+    duilib_msg("cmake.cef_includes_disabled")
 endif()
 
 #设置库文件的输出目录（D-2：按平台/配置分目录，规则见 cmake/duilib_lib_output.cmake）
@@ -132,7 +145,9 @@ aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Utils UTILS_SRC)
 if(DUILIB_ENABLE_CEF)
     aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/CEFControl CEF_CONTROL_SRC)
     aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/CEFControl/internal CEF_CONTROL_INTERNAL_SRC)
-    message(STATUS "CEF sources enabled (${CMAKE_SYSTEM_NAME})")
+    duilib_tf(_duilib_cef_src_line "cmake.cef_sources_enabled"
+              "platform=${CMAKE_SYSTEM_NAME}")
+    message(STATUS "${_duilib_cef_src_line}")
 
     # Windows平台专有的CEF源文件
     if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -142,10 +157,12 @@ if(DUILIB_ENABLE_CEF)
     # 非macOS平台，删除macOS专有的CEF源文件(*.mm)，避免出现编译错误
     if(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         list(REMOVE_ITEM CEF_CONTROL_SRC ${CMAKE_CURRENT_LIST_DIR}/CEFControl/CefWindowUtils_MacOS.mm)
-        message(STATUS "CEF macOS-only sources removed (${CMAKE_SYSTEM_NAME} is not Darwin)")
+        duilib_tf(_duilib_cef_mac_line "cmake.cef_macos_sources_removed"
+                  "platform=${CMAKE_SYSTEM_NAME}")
+        message(STATUS "${_duilib_cef_mac_line}")
     endif()
 else()
-    message(STATUS "CEF sources disabled (DUILIB_ENABLE_CEF=OFF)")
+    duilib_msg("cmake.cef_sources_disabled")
 endif()
 
 # 非macOS平台，删除macOS专有的源文件(*.mm/*.h)，避免出现编译错误
@@ -154,7 +171,9 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     list(REMOVE_ITEM CORE_SRC ${CMAKE_CURRENT_LIST_DIR}/Core/SDL_MacOS.h)
     list(REMOVE_ITEM CORE_SRC ${CMAKE_CURRENT_LIST_DIR}/Core/ClickThrough_MacOS.mm)
     list(REMOVE_ITEM UTILS_SRC ${CMAKE_CURRENT_LIST_DIR}/Utils/ScreenCapture_MacOS.mm)
-    message(STATUS "macOS-only sources removed (${CMAKE_SYSTEM_NAME} is not Darwin)")
+    duilib_tf(_duilib_mac_src_line "cmake.macos_sources_removed"
+              "platform=${CMAKE_SYSTEM_NAME}")
+    message(STATUS "${_duilib_mac_src_line}")
 endif()
 
 aux_source_directory(${DUILIB_SRC_ROOT_DIR}/duilib/third_party/apng APNG_SRC)

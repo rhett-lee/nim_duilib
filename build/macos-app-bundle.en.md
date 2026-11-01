@@ -115,14 +115,16 @@ the framework's path handling needs no special case. On macOS,
 `GlobalManager::GetResourceRootPath(bool bMacOsAppBundle)` behaves as follows:
 
 1. `bMacOsAppBundle == true` (the default) returns
-   `<App>.app/Contents/Resources/duilib/resources/` (`resources.zip` in the same
-   directory for zip mode);
+   `<App>.app/Contents/Resources/duilib/resources/`; when that directory is missing it
+   falls back to case 2;
 2. `bMacOsAppBundle == false` returns "executable directory + `resources/`", which
    keeps non-bundle executables and manually placed resources working.
 
-Example code therefore works unchanged with `GetResourceRootPath()` or an explicit
-`GetResourceRootPath(true)`. SDK consumers using
-`nim_duilib_copy_runtime(... RESOURCES)` copy into the same layout.
+Zip mode is resolved by `GlobalManager::GetResourceZipPath(bool bMacOsAppBundle)`: inside
+a bundle it is `<App>.app/Contents/Resources/duilib/resources.zip`, outside a bundle it
+is "executable directory + `resources.zip`". Example code therefore works unchanged with
+`GetResourceRootPath()` / `GetResourceZipPath()` (or the explicit `true` variants).
+SDK consumers using `nim_duilib_copy_runtime(... RESOURCES)` copy into the same layout.
 
 ## 3. What the build does
 
@@ -224,8 +226,9 @@ set(DUILIB_MACOS_BUNDLE_RESOURCES
 ```
 
 A missing path in an explicit list fails at configure time and prints the missing
-path. With either the default or an explicit list, `Contents/Resources/duilib/resources`
-is cleared first, so stale theme directories from a previous build do not survive.
+path. With either the default or an explicit list, the sync deletes files outside the
+list under `Contents/Resources/duilib/resources` (empty directories may remain), so
+stale theme content from a previous build does not survive.
 
 The icon must be `.icns`; a Windows `.ico` is not accepted. Include 16, 32, 128,
 256, 512 and matching `@2x` sizes. A typical conversion:

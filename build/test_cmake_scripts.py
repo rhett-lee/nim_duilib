@@ -31,7 +31,6 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
-from unittest import mock
 
 BUILD_DIR = Path(__file__).resolve().parent
 REPO_ROOT = BUILD_DIR.parent
@@ -100,35 +99,33 @@ class SkiaVariantCandidateTests(unittest.TestCase):
         dict(name="msvc-arm64-release", config="Release", platform="windows", arch="arm64",
              mingw="0", md="0", gcc="0",
              expected="llvm.arm64.release"),
-        # 独立 MinGW-w64：本工具链前缀优先，另一组前缀回退
+        # 独立 MinGW-w64：本工具链前缀优先，另一组前缀回退；
+        # MinGW 的 Skia 没有 CRT 变体，Debug/Release 候选相同（详见
+        # cmake/duilib_skia_variants.cmake 的说明）
         dict(name="mingw-gcc-debug", config="Debug", platform="windows", arch="x64",
              mingw="1", md="0", gcc="1", msys2_env="", mingw_name="mingw64-",
-             expected="mingw64-gcc.x64.debug;mingw64-gcc.x64.release;"
-                      "gcc.x64.debug;gcc.x64.release"),
+             expected="mingw64-gcc.x64.release;gcc.x64.release"),
         dict(name="mingw-gcc-release", config="Release", platform="windows", arch="x64",
              mingw="1", md="0", gcc="1", msys2_env="", mingw_name="mingw64-",
              expected="mingw64-gcc.x64.release;gcc.x64.release"),
         dict(name="mingw-llvm-debug", config="Debug", platform="windows", arch="x64",
              mingw="1", md="0", gcc="0", msys2_env="", mingw_name="mingw64-",
-             expected="mingw64-llvm.x64.debug;mingw64-llvm.x64.release;"
-                      "llvm.x64.debug;llvm.x64.release"),
+             expected="mingw64-llvm.x64.release;llvm.x64.release"),
         dict(name="mingw-llvm-release", config="Release", platform="windows", arch="x64",
              mingw="1", md="0", gcc="0", msys2_env="", mingw_name="mingw64-",
              expected="mingw64-llvm.x64.release;llvm.x64.release"),
         # MSYS2 MINGW64：msvcrt 变体优先（与 UCRT64 的 gcc 产物不兼容），无前缀优先
         dict(name="msys2-mingw64-gcc-debug", config="Debug", platform="windows", arch="x64",
              mingw="1", md="0", gcc="1", msys2_env="mingw64", mingw_name="",
-             expected="gcc.msvcrt.x64.release;gcc.x64.debug;gcc.x64.release;"
-                      "mingw64-gcc.x64.debug;mingw64-gcc.x64.release"),
+             expected="gcc.msvcrt.x64.release;gcc.x64.release;"
+                      "mingw64-gcc.x64.release"),
         dict(name="msys2-mingw64-llvm-debug", config="Debug", platform="windows", arch="x64",
              mingw="1", md="0", gcc="0", msys2_env="mingw64", mingw_name="",
-             expected="llvm.x64.debug;llvm.x64.release;"
-                      "mingw64-llvm.x64.debug;mingw64-llvm.x64.release"),
+             expected="llvm.x64.release;mingw64-llvm.x64.release"),
         # MSYS2 UCRT64：没有 msvcrt 变体
         dict(name="mingw-gcc-ucrt64-debug", config="Debug", platform="windows", arch="x64",
              mingw="1", md="0", gcc="1", msys2_env="ucrt64", mingw_name="",
-             expected="gcc.x64.debug;gcc.x64.release;"
-                      "mingw64-gcc.x64.debug;mingw64-gcc.x64.release"),
+             expected="gcc.x64.release;mingw64-gcc.x64.release"),
         dict(name="mingw-gcc-ucrt64-release", config="Release", platform="windows", arch="x64",
              mingw="1", md="0", gcc="1", msys2_env="ucrt64", mingw_name="",
              expected="gcc.x64.release;mingw64-gcc.x64.release"),
@@ -591,6 +588,36 @@ class RootOptionsSdlWiringTests(unittest.TestCase):
                       "解析 SDL3 变体时没有传入 DUILIB_MINGW")
 
 
+class BinStandaloneTests(unittest.TestCase):
+    """cmake/duilib_bin.cmake：独立工程只 include 本文件时必须能自洽配置。
+
+    cmake/README.md 的「基本使用方法」只 include `duilib_bin.cmake`。若它不先
+    include `duilib_common.cmake`，DUILIB_OS_* / DUILIB_ROOT / DUILIB_BIN_PATH
+    全部未定义，配置会直接以 “Unknown OS!” 失败（实测过）。
+    """
+
+    def setUp(self):
+        self.text = (REPO_ROOT / "cmake" / "duilib_bin.cmake").read_text(
+            encoding="utf-8")
+
+    def test_common_included_when_missing(self):
+        guard = "if(NOT DEFINED DUILIB_OS_WINDOWS)"
+        self.assertIn(guard, self.text, "duilib_bin.cmake 没有独立自举的判定")
+        include = 'include("${CMAKE_CURRENT_LIST_DIR}/duilib_common.cmake")'
+        include_at = self.text.find(include)
+        self.assertNotEqual(include_at, -1, "duilib_bin.cmake 没有引入公共检测")
+        self.assertLess(self.text.find(guard), include_at,
+                        "公共检测必须在判定之后 include")
+
+    def test_messages_available_before_first_error(self):
+        """首行的 in-tree 报错用 duilib_tf，i18n 必须先于它 include。"""
+        i18n_at = self.text.find("duilib_i18n.cmake")
+        tree_at = self.text.find("cmake.in_tree_build")
+        self.assertNotEqual(i18n_at, -1, "duilib_bin.cmake 没有引入消息目录")
+        self.assertNotEqual(tree_at, -1, "in-tree 报错没有走消息目录")
+        self.assertLess(i18n_at, tree_at, "消息目录必须在首行报错之前引入")
+
+
 class SdlReadyStampTests(_SdlRootMixin, unittest.TestCase):
     """_duilib_sdl_ready：stamp 与变体绑定，Release 产物不能被视为 Debug 就绪。"""
 
@@ -882,19 +909,23 @@ class DependenciesOffModeTests(_SkiaRootMixin, unittest.TestCase):
         self.assertIn("llvm.x64.debug", output)
 
     def test_mingw_requires_a_static_library(self):
-        """MinGW 只接受包含 .a 的目录：.lib 目录跳过并回退到 release 变体。"""
+        """MinGW 只接受包含 .a 的目录：同名的 .lib 目录跳过并回退到下一个候选。"""
         _require_cmake(self)
-        self.make_variant("mingw64-gcc.x64.debug", lib_name="skia.lib")
-        self.make_variant("mingw64-gcc.x64.release", lib_name="libskia.a")
+        self.make_variant("mingw64-gcc.x64.release", lib_name="skia.lib")
+        self.make_variant("gcc.x64.release", lib_name="libskia.a")
         rc, output = self._check(config="Debug", mingw="1", gcc="1")
         self.assertEqual(rc, 0, output)
+        self.assertEqual(_result(output), "OK")
 
     def test_mingw_reports_lib_only_directory(self):
+        """MinGW Debug 与 Release 候选相同；没有 .a 时报错并列出具名目录。"""
         _require_cmake(self)
-        self.make_variant("mingw64-gcc.x64.debug", lib_name="skia.lib")
-        rc, output = self._check(config="Debug", mingw="1", gcc="1")
+        self.make_variant("llvm.x64.release", lib_name="skia.lib")
+        rc, output = self._check(config="Debug", mingw="1", gcc="0", mingw_name="")
         self.assertNotEqual(rc, 0, output)
-        self.assertIn("缺少 .a 静态库", output)
+        # 夹具固定 DUILIB_LANG=en，因此断言英文文案（见 cmake/i18n/messages.json）
+        self.assertIn("no .a static library", output)
+        self.assertIn("llvm.x64.release", output)
 
     def test_non_windows_fallback_to_gcc(self):
         _require_cmake(self)
@@ -1103,7 +1134,8 @@ class CommonCandidateTests(_SkiaRootMixin, unittest.TestCase):
             DUILIB_TEST_CXX_COMPILER=compiler,
             DUILIB_TEST_CONFIG="Debug", DUILIB_TEST_CONFIGURATION_TYPES="")
         self.assertEqual(rc, 0, output)
-        self.assertEqual(_result(output), "gcc.x64.debug")
+        # MinGW 的 Skia 没有 CRT 变体，Debug 同样使用 release 目录
+        self.assertEqual(_result(output), "gcc.x64.release")
 
     def _common_with_crt_stamp(self, stamp):
         stamp_dir = os.path.join(self.tmp, "dep")

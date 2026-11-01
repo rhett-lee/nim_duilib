@@ -16,18 +16,26 @@
 # 目标目录按「完全由构建管理」处理：清单之外的文件会被删除，因此裁剪清单后
 # 不会残留旧资源；重复构建时不会改写未变化文件的 mtime。
 
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_i18n.cmake")
+
 if(NOT DUILIB_RES_SRC)
-    message(FATAL_ERROR "duilib_copy_bundle_resources: 缺少 DUILIB_RES_SRC")
+    duilib_tf(_duilib_res_msg "bundle.missing_arg"
+              "script=duilib_copy_bundle_resources" "arg=DUILIB_RES_SRC")
+    message(FATAL_ERROR "${_duilib_res_msg}")
 endif()
 if(NOT DUILIB_RES_DST)
-    message(FATAL_ERROR "duilib_copy_bundle_resources: 缺少 DUILIB_RES_DST")
+    duilib_tf(_duilib_res_msg "bundle.missing_arg"
+              "script=duilib_copy_bundle_resources" "arg=DUILIB_RES_DST")
+    message(FATAL_ERROR "${_duilib_res_msg}")
 endif()
 if(NOT DUILIB_RES_ENTRIES)
-    message(FATAL_ERROR "duilib_copy_bundle_resources: 缺少 DUILIB_RES_ENTRIES")
+    duilib_tf(_duilib_res_msg "bundle.missing_arg"
+              "script=duilib_copy_bundle_resources" "arg=DUILIB_RES_ENTRIES")
+    message(FATAL_ERROR "${_duilib_res_msg}")
 endif()
 if(NOT IS_DIRECTORY "${DUILIB_RES_SRC}")
-    message(FATAL_ERROR
-        "duilib_copy_bundle_resources: 源资源目录不存在：${DUILIB_RES_SRC}")
+    duilib_tf(_duilib_res_msg "bundle.res_source_missing" "path=${DUILIB_RES_SRC}")
+    message(FATAL_ERROR "${_duilib_res_msg}")
 endif()
 
 string(REPLACE "|" ";" _duilib_res_entries "${DUILIB_RES_ENTRIES}")
@@ -91,8 +99,9 @@ foreach(_duilib_res_entry IN LISTS _duilib_res_entries)
     else()
         # 与 configure 期的默认清单逻辑一致：条目不存在时跳过（例如某示例没有
         # 自己的主题目录），显式清单写错已在 configure 阶段报错。
-        message(STATUS
-            "duilib_copy_bundle_resources: 跳过不存在的资源条目：${_duilib_res_entry}")
+        duilib_tf(_duilib_res_msg "bundle.res_entry_skipped"
+                  "entry=${_duilib_res_entry}")
+        message(STATUS "${_duilib_res_msg}")
     endif()
 endforeach()
 
@@ -112,7 +121,8 @@ if(IS_DIRECTORY "${DUILIB_RES_DST}")
 endif()
 
 if(_duilib_res_copied GREATER 0 OR _duilib_res_removed GREATER 0)
-    message(STATUS
-        "Bundle 资源已同步：${DUILIB_RES_DST}（更新 ${_duilib_res_copied} 个，"
-        "删除 ${_duilib_res_removed} 个）")
+    duilib_tf(_duilib_res_msg "bundle.res_synced"
+              "dst=${DUILIB_RES_DST}" "copied=${_duilib_res_copied}"
+              "removed=${_duilib_res_removed}")
+    message(STATUS "${_duilib_res_msg}")
 endif()

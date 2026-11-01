@@ -30,7 +30,7 @@ python3 build/build.py deps            # 只准备 Skia/SDL3/CEF
 python3 build/build.py doctor          # 环境自检
 ```
 
-- 前置软件：`git`、Python 3、CMake 3.24+、Ninja；Windows 另需 Visual Studio 2022+
+- 前置软件：`git`、Python 3.8+、CMake 3.24+、Ninja；Windows 另需 Visual Studio 2022+
   （Skia 使用 VS 自带 clang/ninja），Linux/macOS/FreeBSD 使用系统 LLVM。
 - `deps` 按 `cmake/third_party_versions.json` 锁定版本，自动下载/编译 Skia 与 CEF
   运行时；SDL3 在 Windows 默认关闭（`--sdl` 启用），其他平台自动构建。
@@ -236,6 +236,8 @@ cmake --build build/build_temp/hello_button --config Release
 ```
 
 `-A Win32` 时 Skia 子目录自动取 `llvm.x86.release`；也可用 `-DDUILIB_SKIA_LIB_SUBPATH=...` 覆盖。
+生成器名按本机安装的 VS 版本（VS 2022 为 `Visual Studio 17 2022`，VS 2026 为
+`Visual Studio 18 2026`）。
 
 ### 6.3 Visual Studio
 

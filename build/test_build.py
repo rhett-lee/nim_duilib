@@ -10,7 +10,9 @@ from __future__ import annotations
 import contextlib
 import importlib.util
 import io
+import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -79,6 +81,40 @@ class MsvcVcvarsTests(unittest.TestCase):
 
     def test_arm64_native(self):
         self.assertEqual(self._platform("arm64", "arm64"), "arm64")
+
+
+class VsGeneratorTests(unittest.TestCase):
+    """没有 Ninja 时的 VS 生成器名：必须随实际安装的 VS 版本变化。"""
+
+    def test_install_layouts(self):
+        root = Path("C:/Program Files/Microsoft Visual Studio")
+        cases = {
+            "2017": "Visual Studio 15 2017",
+            "2019": "Visual Studio 16 2019",
+            "2022": "Visual Studio 17 2022",
+            "2026": "Visual Studio 18 2026",
+            "15": "Visual Studio 15 2017",
+            "17": "Visual Studio 17 2022",
+            "18": "Visual Studio 18 2026",
+        }
+        for folder, expected in cases.items():
+            install = root / folder / "Community"
+            self.assertEqual(entry.vs_generator_name(install), expected, folder)
+
+    def test_unknown_install_falls_back_to_2022(self):
+        self.assertEqual(entry.vs_generator_name(None), "Visual Studio 17 2022")
+        self.assertEqual(entry.vs_generator_name(Path("C:/VS/BuildTools")),
+                         "Visual Studio 17 2022")
+
+    def test_windows_without_ninja_uses_installed_vs_generator(self):
+        install = Path("C:/Program Files/Microsoft Visual Studio/18/Community")
+        with mock.patch.object(entry.sys, "platform", "win32"), \
+                mock.patch.object(entry, "_msvc_environment",
+                                  return_value=({"PATH": ""}, install)), \
+                mock.patch.object(entry, "_find_ninja", return_value=None):
+            toolchain = entry.detect_toolchain("x64", None)
+        self.assertEqual(toolchain.generator, "Visual Studio 18 2026")
+        self.assertEqual(toolchain.vs_install, install)
 
 
 class LayoutTests(unittest.TestCase):
@@ -403,12 +439,12 @@ class StaleCacheTests(unittest.TestCase):
         return root
 
     def _reset(self, root, dry_run=False):
-        """执行清理逻辑并捕获它打印的提示。"""
+        """执行清理逻辑并捕获它打印的提示，返回 (输出, 是否检测到切换)。"""
         stream = io.StringIO()
         toolchain = entry.Toolchain({"CXX": sys.executable}, "Ninja", None, None)
         with contextlib.redirect_stdout(stream):
-            entry.reset_stale_build_dir(root, toolchain, self._Messages(), dry_run=dry_run)
-        return stream.getvalue()
+            switched = entry.reset_stale_build_dir(root, toolchain, self._Messages(), dry_run=dry_run)
+        return stream.getvalue(), switched
 
     def test_cached_compiler_reads_cache(self):
         root = self._make_dir(self.OLD_COMPILER)
@@ -420,21 +456,107 @@ class StaleCacheTests(unittest.TestCase):
 
     def test_reset_on_compiler_change(self):
         root = self._make_dir(self.OLD_COMPILER)
-        output = self._reset(root)
+        output, switched = self._reset(root)
+        self.assertTrue(switched)
         self.assertIn(str(self.OLD_COMPILER), output)
         self.assertFalse(root.exists())
 
     def test_keep_when_compiler_matches(self):
         root = self._make_dir(sys.executable)
-        output = self._reset(root)
+        output, switched = self._reset(root)
+        self.assertFalse(switched)
         self.assertEqual(output, "")
         self.assertTrue(root.exists())
 
     def test_dry_run_keeps_directory(self):
         root = self._make_dir(self.OLD_COMPILER)
-        output = self._reset(root, dry_run=True)
+        output, switched = self._reset(root, dry_run=True)
+        self.assertTrue(switched)
         self.assertIn(str(self.OLD_COMPILER), output)
         self.assertTrue(root.exists())
+
+
+class CompilerOutputTests(unittest.TestCase):
+    """切换编译器后清理 lib/、build_temp 与 bin/ 中的产物，保留运行时资源。"""
+
+    class _Messages:
+        @staticmethod
+        def t(key):
+            return "[" + key + "]"
+
+        @staticmethod
+        def hint(key):
+            return "Hint: [" + key + "]"
+
+    RUNTIME_FILES = ("resources.zip", "WebView2Loader.dll")
+    RUNTIME_DIRS = ("resources", "libcef_win", "libcef_win_109", "cef_cache", "webview2_cache")
+
+    def _make_repo(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        root = Path(temp.name)
+        for relative in ("lib/x64/Release", "build/build_temp/x64"):
+            (root / relative).mkdir(parents=True)
+        (root / "lib/x64/Release/duilib.lib").write_bytes(b"lib")
+        (root / "lib/x64/Release/libcef_dll_wrapper.lib").write_bytes(b"lib")
+        (root / "build/build_temp/x64/duilib.obj").write_bytes(b"obj")
+        bin_dir = root / "bin"
+        bin_dir.mkdir()
+        for name in ("basic.exe", "basic.pdb", "duilib_d.ilk", "duilib_d.pdb", "CefBrowser_d.ilk"):
+            (bin_dir / name).write_bytes(b"bin")
+        (bin_dir / "duilib.dll").write_bytes(b"dll")
+        for name in self.RUNTIME_FILES:
+            (bin_dir / name).write_bytes(b"runtime")
+        for name in self.RUNTIME_DIRS:
+            (bin_dir / name).mkdir()
+            (bin_dir / name / "keep.txt").write_text("runtime", encoding="utf-8")
+        stamp_dir = bin_dir / entry.STAMP_DIR_NAME
+        stamp_dir.mkdir()
+        (stamp_dir / "basic").write_text("Release\n", encoding="utf-8")
+        (bin_dir / "basic.build-config").write_text("Release\n", encoding="utf-8")
+        return root
+
+    def _clean(self, root, dry_run=False):
+        stream = io.StringIO()
+        with contextlib.redirect_stdout(stream):
+            removed = entry.clean_compiler_outputs(root, self._Messages(), dry_run)
+        return removed, stream.getvalue()
+
+    def test_paths_exclude_runtime_assets(self):
+        root = self._make_repo()
+        names = {path.name for path in entry.compiler_output_paths(root)}
+        self.assertIn("lib", names)
+        self.assertIn("build_temp", names)
+        self.assertIn("basic.exe", names)
+        self.assertIn("duilib.dll", names)
+        for name in self.RUNTIME_FILES + self.RUNTIME_DIRS:
+            self.assertNotIn(name, names)
+
+    def test_clean_removes_compiler_outputs(self):
+        root = self._make_repo()
+        removed, output = self._clean(root)
+        self.assertIn("[build.compiler_outputs]", output)
+        self.assertFalse((root / "lib").exists())
+        self.assertFalse((root / "build/build_temp").exists())
+        bin_dir = root / "bin"
+        for name in ("basic.exe", "basic.pdb", "duilib_d.ilk", "duilib_d.pdb",
+                     "CefBrowser_d.ilk", "duilib.dll", "basic.build-config"):
+            self.assertFalse((bin_dir / name).exists(), name)
+        self.assertFalse((bin_dir / entry.STAMP_DIR_NAME).exists())
+        for name in self.RUNTIME_FILES:
+            self.assertTrue((bin_dir / name).is_file(), name)
+        for name in self.RUNTIME_DIRS:
+            self.assertTrue((bin_dir / name / "keep.txt").is_file(), name)
+        self.assertGreater(len(removed), 0)
+
+    def test_dry_run_keeps_outputs(self):
+        root = self._make_repo()
+        removed, output = self._clean(root, dry_run=True)
+        self.assertIn("[build.compiler_outputs]", output)
+        self.assertTrue((root / "lib/x64/Release/duilib.lib").is_file())
+        self.assertTrue((root / "build/build_temp/x64/duilib.obj").is_file())
+        self.assertTrue((root / "bin/basic.exe").is_file())
+        self.assertTrue((root / "bin/.build-config/basic").is_file())
 
 
 class DepsPlanPrintTests(unittest.TestCase):
@@ -449,7 +571,8 @@ class DepsPlanPrintTests(unittest.TestCase):
         def hint(key):
             return "Hint: [" + key + "]"
 
-    def _run(self, build_dir, runner_returns=0, md=False, dll=False):
+    def _run(self, build_dir, runner_returns=0, md=False, dll=False,
+             reset_pending=False):
         """调用 _print_deps_plan 并返回它打印的内容；Runner 用桩替代，不真的执行 cmake。"""
         args = SimpleNamespace(jobs=2, config="Release", build_arg=[],
                                md=md, dll=dll, sdl=None, cmake_arg=[])
@@ -467,8 +590,20 @@ class DepsPlanPrintTests(unittest.TestCase):
 
         with mock.patch.object(entry, "Runner", _StubRunner), \
                 contextlib.redirect_stdout(stream):
-            entry._print_deps_plan(args, self._Messages(), toolchain, build_dir)
+            entry._print_deps_plan(args, self._Messages(), toolchain, build_dir,
+                                   reset_pending)
         return stream.getvalue(), calls
+
+    def test_reset_pending_skips_plan(self):
+        """构建树要重建（编译器切换/运行库模式切换）时，不按旧缓存展开计划命令。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "CMakeCache.txt").write_text("# cache\n", encoding="utf-8")
+            output, calls = self._run(root, reset_pending=True)
+        self.assertIn("[deps.plan_reset]", output)
+        self.assertIn("Hint: [deps.plan_reset_hint]", output)
+        self.assertNotIn("[deps.plan_cache_stale]", output)
+        self.assertEqual(calls, [])
 
     def test_unconfigured_build_dir_prints_hint(self):
         """构建目录还没配置时只给提示，不能在 dry-run 里触发真正的配置。"""
@@ -752,6 +887,224 @@ class LanguageTests(unittest.TestCase):
         self.assertEqual([ch for ch in text if ord(ch) > 127], [])
 
 
+class MessageCatalogTests(unittest.TestCase):
+    """cmake/i18n/messages.json 的键必须与代码里的引用一致。
+
+    两侧语言目录查不到键时会把键名原样输出（CMake 的 duilib_t/duilib_msg/
+    duilib_warn/duilib_error/duilib_tf 与 Python 的 T()/Messages.t()/hint()），
+    用户看到的是一串英文键名。这里静态扫描调用点，把“引用了不存在的键”
+    或“只提供一种语言”挡在提交前。
+    """
+
+    # 键名形如 `区域.用途`，区域是 messages.json 里已有的前缀
+    KEY_RE = re.compile(
+        r"^(?:sdk|pkg|rel|deps|auto|help|preflight|build|options|pack|test|doctor|lang"
+        r"|cmake|bundle)\.[a-z0-9_.]+$")
+    CMAKE_CALL_RE = (
+        re.compile(r'duilib_t\(\s*"([^"]+)"'),
+        # duilib_tf 的第一个参数是输出变量，键名在第二个位置
+        re.compile(r'duilib_tf\(\s*[^"\s]+\s*\n?\s*"([^"]+)"'),
+        re.compile(r'duilib_msg\(\s*"([^"]+)"'),
+        re.compile(r'duilib_warn\(\s*"([^"]+)"'),
+        re.compile(r'duilib_error\(\s*"([^"]+)"\s+"([^"]+)"'),
+    )
+    PYTHON_CALL_RE = (
+        re.compile(r"T\(\s*'([^']+)'\s*[%),]"),
+        re.compile(r'T\(\s*"([^"]+)"\s*[%),]'),
+        re.compile(r"\.t\(\s*'([^']+)'\s*\)"),
+        re.compile(r'\.t\(\s*"([^"]+)"\s*\)'),
+        re.compile(r"\.hint\(\s*'([^']+)'\s*\)"),
+        re.compile(r'\.hint\(\s*"([^"]+)"\s*\)'),
+    )
+
+    @staticmethod
+    def catalog():
+        data = json.loads((REPO_ROOT / "cmake" / "i18n" / "messages.json")
+                          .read_text(encoding="utf-8"))
+        return data["messages"]
+
+    def _sources(self):
+        """CMake 脚本、根 CMakeLists 与构建入口（不含单元测试本身）。"""
+        files = sorted((REPO_ROOT / "cmake").rglob("*.cmake"))
+        for name in ("CMakeLists.txt", "duilib/CMakeLists.txt"):
+            path = REPO_ROOT / name
+            if path.is_file():
+                files.append(path)
+        files += [path for path in sorted(BUILD_DIR.glob("*.py"))
+                  if path.name != "test_build.py" and not path.name.startswith("test_")]
+        return files
+
+    def _referenced_keys(self):
+        """扫描调用点，返回 {键名: 出现位置}。"""
+        found = {}
+        for path in self._sources():
+            text = path.read_text(encoding="utf-8", errors="replace")
+            patterns = (self.CMAKE_CALL_RE if path.suffix == ".cmake"
+                        or path.name == "CMakeLists.txt" else self.PYTHON_CALL_RE)
+            for pattern in patterns:
+                for match in pattern.finditer(text):
+                    for group in match.groups():
+                        if not group or not self.KEY_RE.match(group):
+                            continue
+                        line = text.count("\n", 0, match.start()) + 1
+                        found.setdefault(group, "%s:%d" % (path.relative_to(REPO_ROOT), line))
+        return found
+
+    def test_catalog_is_bilingual(self):
+        catalog = self.catalog()
+        self.assertTrue(catalog)
+        missing = []
+        for key, entry in catalog.items():
+            if not self.KEY_RE.match(key):
+                missing.append("%s: 键名不符合 `区域.用途`" % key)
+                continue
+            for language in ("en", "zh_CN"):
+                if not isinstance(entry, dict) or not str(entry.get(language, "")).strip():
+                    missing.append("%s: 缺少 %s" % (key, language))
+        self.assertEqual(missing, [], "消息目录不完整：\n" + "\n".join(missing))
+
+    def test_placeholders_single_style(self):
+        """同一条消息不要混用两种插值风格（%s 与 {name}）。"""
+        problems = []
+        for key, entry in self.catalog().items():
+            for language, text in entry.items():
+                if "%s" in text and re.search(r"\{[a-z0-9_]+\}", text):
+                    problems.append("%s/%s: %s" % (key, language, text))
+        self.assertEqual(problems, [], "同一条消息混用了 %s 与 {name}：\n" + "\n".join(problems))
+
+    def test_referenced_keys_exist(self):
+        catalog = self.catalog()
+        referenced = self._referenced_keys()
+        self.assertTrue(referenced, "没有扫描到任何消息键引用，检查扫描规则")
+        missing = ["%s (%s)" % (key, where) for key, where in sorted(referenced.items())
+                   if key not in catalog]
+        self.assertEqual(missing, [],
+                         "代码引用了消息目录中不存在的键：\n" + "\n".join(missing))
+
+    def test_placeholders_substituted(self):
+        """占位符必须真的被替换：duilib_t/msg/warn/error 不替换，duilib_tf 要传值。
+
+        `duilib_tf` 只替换调用方给出的 `name=value`；漏传时用户会看到字面量
+        `{source}`（in-tree 报错曾这样）。反过来，不带占位符替换的接口一旦遇到
+        含 `{name}` 的文案，也会原样输出。
+        """
+        catalog = self.catalog()
+        placeholder_re = re.compile(r"\{([a-z0-9_]+)\}")
+        provided_re = re.compile(r'"([a-z0-9_]+)=')
+        # duilib_tf 的参数可能跨行，取到本次调用的右括号为止
+        tf_re = re.compile(r'duilib_tf\(\s*[^"\s]+\s*\n?\s*"([^"]+)"(.*?)\)',
+                           re.S)
+        plain_re = (
+            re.compile(r'duilib_t\(\s*"([^"]+)"'),
+            re.compile(r'duilib_msg\(\s*"([^"]+)"'),
+            re.compile(r'duilib_warn\(\s*"([^"]+)"'),
+            re.compile(r'duilib_error\(\s*"([^"]+)"'),
+        )
+
+        def text_of(key, language):
+            entry = catalog.get(key) or {}
+            return str(entry.get(language, entry.get("en", "")))
+
+        problems = []
+        for path in self._sources():
+            if path.suffix != ".cmake" and path.name != "CMakeLists.txt":
+                continue
+            text = path.read_text(encoding="utf-8", errors="replace")
+            for match in tf_re.finditer(text):
+                key = match.group(1)
+                if key not in catalog:
+                    continue
+                needed = set(placeholder_re.findall(text_of(key, "en")))
+                needed |= set(placeholder_re.findall(text_of(key, "zh_CN")))
+                given = set(provided_re.findall(match.group(2)))
+                for missing in sorted(needed - given):
+                    line = text.count("\n", 0, match.start()) + 1
+                    problems.append("%s:%d: %s 缺少参数 %s=" % (
+                        path.relative_to(REPO_ROOT), line, key, missing))
+            for pattern in plain_re:
+                for match in pattern.finditer(text):
+                    key = match.group(1)
+                    if key not in catalog:
+                        continue
+                    for language in ("en", "zh_CN"):
+                        if placeholder_re.search(text_of(key, language)):
+                            line = text.count("\n", 0, match.start()) + 1
+                            problems.append("%s:%d: %s 含占位符但用了不替换的接口" % (
+                                path.relative_to(REPO_ROOT), line, key))
+                            break
+        self.assertEqual(problems, [], "占位符没有被正确替换：\n" + "\n".join(problems))
+
+    MARKER_RE = re.compile(r"^\[[A-Za-z0-9]+\]")
+
+    def test_markers_not_duplicated(self):
+        """状态标记只出现一次。
+
+        `_ok_line` / `_warn_line` / `_info_line` 自己会加 `[OK]`/`[WARN]`/`[INFO]`
+        前缀，CMake 里的 `message(STATUS "[WARN]  ${_t}")` 同理：这类调用里的文案
+        不能再以标记开头，否则用户会看到 `[WARN]  [WARN] ...`（doctor 的
+        cmake_missing 曾这样）。
+        """
+        catalog = self.catalog()
+        problems = []
+
+        def text_of(key, language):
+            entry = catalog.get(key) or {}
+            return str(entry.get(language, ""))
+
+        def check(key, where):
+            for language in ("en", "zh_CN"):
+                if self.MARKER_RE.match(text_of(key, language)):
+                    problems.append("%s: %s 的文案自带 %s 标记" % (
+                        where, key, language))
+                    return
+
+        # Python：包装函数会加前缀
+        py_wrap_re = re.compile(r"_(?:ok|warn|info)_line\(")
+        py_key_re = re.compile(r"messages\.t\(\s*\"([^\"]+)\"\s*\)")
+        for path in sorted(BUILD_DIR.glob("*.py")):
+            if path.name.startswith("test_"):
+                continue
+            for number, line in enumerate(path.read_text(encoding="utf-8",
+                                                         errors="replace").splitlines(), 1):
+                if not py_wrap_re.search(line):
+                    continue
+                for key in py_key_re.findall(line):
+                    if key in catalog:
+                        check(key, "%s:%d" % (path.relative_to(REPO_ROOT), number))
+
+        # CMake：`message(STATUS "[TOKEN]  ${var}")`，var 取自上一条 duilib_t/duilib_tf
+        cmake_msg_re = re.compile(
+            r'message\s*\(\s*(?:STATUS|WARNING)\s*"[^"]*\[[A-Za-z0-9]+\][^"]*\$\{([A-Za-z0-9_]+)\}"')
+        for path in sorted((REPO_ROOT / "cmake").rglob("*.cmake")):
+            text = path.read_text(encoding="utf-8", errors="replace")
+            for match in cmake_msg_re.finditer(text):
+                var = match.group(1)
+                before = text[:match.start()]
+                assigns = list(re.finditer(
+                    r'duilib_t\(\s*"([^"]+)"\s*%s\)|duilib_tf\(\s*%s\s*"([^"]+)"' % (var, var),
+                    before))
+                if not assigns:
+                    continue
+                key = assigns[-1].group(1) or assigns[-1].group(2)
+                if key in catalog:
+                    line = text.count("\n", 0, match.start()) + 1
+                    check(key, "%s:%d" % (path.relative_to(REPO_ROOT), line))
+        self.assertEqual(problems, [], "状态标记被重复添加：\n" + "\n".join(problems))
+
+    def test_no_orphan_keys(self):
+        """目录里的每个键都必须在源码中出现，避免留下无人引用的死文案。
+
+        这里只要求键名作为字符串出现过（键名也可能作为数据传递，例如
+        `SCENARIO_ORDER` 里的 `sdk.scn_p01`），因此不能复用“调用点”正则：
+        文案被删除时调用点也会一起消失，检查仍然有效。
+        """
+        catalog = self.catalog()
+        texts = [path.read_text(encoding="utf-8", errors="replace")
+                 for path in self._sources()]
+        orphans = [key for key in catalog if not any(key in text for text in texts)]
+        self.assertEqual(orphans, [], "消息目录中有未被引用的键：\n" + "\n".join(orphans))
+
+
 class DryRunOutputTests(unittest.TestCase):
     def test_clean_dry_run_does_not_report_deletion(self):
         with tempfile.TemporaryDirectory() as root:
@@ -797,6 +1150,16 @@ class PackCommandTests(unittest.TestCase):
             command = self._command(["pack", "--deps-root", root])
             index = command.index("--deps-root")
             self.assertEqual(command[index + 1], str(Path(root).resolve()))
+
+    def test_language_is_forwarded_to_pack(self):
+        """pack.py 不会继承 --lang，必须显式转发解析后的语言。"""
+        command = self._command(["pack"])
+        index = command.index("--lang")
+        self.assertEqual(command[index + 1], "en")
+        # 命令行里后出现的 --lang 生效，转发的是解析后的值而不是字面量 auto
+        command = self._command(["pack", "--lang", "zh_CN"])
+        index = command.index("--lang")
+        self.assertEqual(command[index + 1], "zh_CN")
 
 
 class ToolchainSelectionTests(unittest.TestCase):

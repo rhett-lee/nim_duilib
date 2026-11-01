@@ -123,17 +123,35 @@ FilePath GlobalManager::GetResourceZipPath(bool bMacOsAppBundle)
     UNUSED_VARIABLE(bMacOsAppBundle); //该参数仅在macOS使用
     FilePath resourcePath;
 #ifdef DUILIB_BUILD_FOR_MACOS
-    FilePath resourceRootPath = GlobalManager::GetResourceRootPath(bMacOsAppBundle);
-    if (!resourceRootPath.IsEmpty()) {
-        DString resourcePathString = resourceRootPath.ToString();
-        StringUtil::TrimRight(resourcePathString);
-        if (!resourcePathString.empty() && resourcePathString.back() == FilePath::GetPathSeparator()) {
-            resourcePathString.pop_back();
+    if (bMacOsAppBundle) {
+        // Bundle 布局：<App>.app/Contents/Resources/duilib/resources.zip
+        // 不能从 GetResourceRootPath() 派生：zip 模式下 Bundle 内没有 resources 目录，
+        // 根路径会回退到“可执行文件目录 + resources/”，父目录就成了 bin/，
+        // 结果会去 Bundle 外面找压缩包。
+        ui::FilePath bundleResourcePath = ui::FilePathUtil::GetBundleResourcesPath();
+        if (!bundleResourcePath.IsEmpty()) {
+            bundleResourcePath.NormalizeDirectoryPath();
+            bundleResourcePath += _T("duilib/");
+            bundleResourcePath += DUILIB_RESOURCE_ZIP;
+            if (bundleResourcePath.IsExistsFile()) {
+                bundleResourcePath.NormalizeFilePath();
+                resourcePath = bundleResourcePath;
+            }
         }
-        FilePath parentPath = FilePath(resourcePathString).GetParentPath();
-        if (!parentPath.IsEmpty()) {
-            resourcePath = parentPath;
-            resourcePath.JoinFilePath(FilePath(DUILIB_RESOURCE_ZIP));
+    }
+    if (resourcePath.IsEmpty()) {
+        FilePath resourceRootPath = GlobalManager::GetResourceRootPath(bMacOsAppBundle);
+        if (!resourceRootPath.IsEmpty()) {
+            DString resourcePathString = resourceRootPath.ToString();
+            StringUtil::TrimRight(resourcePathString);
+            if (!resourcePathString.empty() && resourcePathString.back() == FilePath::GetPathSeparator()) {
+                resourcePathString.pop_back();
+            }
+            FilePath parentPath = FilePath(resourcePathString).GetParentPath();
+            if (!parentPath.IsEmpty()) {
+                resourcePath = parentPath;
+                resourcePath.JoinFilePath(FilePath(DUILIB_RESOURCE_ZIP));
+            }
         }
     }
 #endif

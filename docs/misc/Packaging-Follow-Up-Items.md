@@ -493,6 +493,22 @@
 - 重新评估条件：多程序共享同一份库、插件热更新、分发包体积或链接时间有明确收益，
   或下游明确要求动态库形态。
 
+#### P2-6 SDK 包内 CMake 提示的语言
+
+- [-] **暂不实施**（2026-11-01 决策：包配置的提示固定为中文）。
+- 现状：`packaging/cmake/nim_duilibConfig.cmake` 与 `packaging/cmake/nim_duilibHelpers.cmake`
+  会被复制进 `<SDK>/lib/cmake/nim_duilib/`，配置失败时的提示（如
+  `nim_duilib SDK 不完整：找不到 …`、`…不能混用`、`nim_duilib_copy_runtime: 目标不存在：…`）
+  只有中文。源码树的 `cmake/i18n/messages.json` **不随包分发**，包内无法用
+  `duilib_i18n.cmake` 的 `duilib_t()` 取文案；若要在下游按语言选择提示，需要把
+  语言判定与中英文文案一起带进包，属于新增特性而非修补。
+- 为什么不影响现有渠道：CMake 侧的构建入口提示（`preflight.*`、`cmake.*`）已中英
+  双语；`docs/Release.en.md` 只给出 `find_package` / `nim_duilib_copy_runtime` 的
+  用法，不引用包配置的报错原文，因此不存在“英文文档承诺英文报错”的不一致。
+- 重新评估条件：出现英文用户反馈看不懂配置期报错，或发布包开始对外提供英文为主的
+  下载渠道；届时的做法是把 `cmake/duilib_i18n.cmake` 与 `messages.json` 一并打进
+  `<SDK>/lib/cmake/nim_duilib/` 并改为按同一套规则取文案。
+
 ### P3：本轮剩余跟进项（2026-10-29）
 
 > 建立依据：对 P0～P2 的逐项复核。功能与验证层面只剩以下 6 项，其余条目均已

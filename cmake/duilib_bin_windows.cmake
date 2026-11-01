@@ -39,7 +39,10 @@ else()
     set(DUILIB_WIN_MANIFEST "${DUILIB_ROOT}/msvc/manifest/duilib.x86.manifest")
 endif()
 if(NOT EXISTS "${DUILIB_WIN_MANIFEST}")
-    message(FATAL_ERROR "manifest file not found: ${DUILIB_WIN_MANIFEST}")
+    duilib_tf(_duilib_win_manifest_what "cmake.manifest_missing"
+              "path=${DUILIB_WIN_MANIFEST}")
+    duilib_t("cmake.manifest_missing_hint" _duilib_win_manifest_hint)
+    message(FATAL_ERROR "${_duilib_win_manifest_what}\n  Hint: ${_duilib_win_manifest_hint}")
 endif()
 
 if(MSVC)
@@ -62,7 +65,10 @@ endif()
 if(DUILIB_WEBVIEW2_EXE)    
     #WEBVIEW2库所在路径（.lib对应的路径）
     if(NOT EXISTS "${DUILIB_WEBVIEW2_NATIVE_DIR}")
-        message(FATAL_ERROR "WebView2 native directory not found: ${DUILIB_WEBVIEW2_NATIVE_DIR}")
+        duilib_tf(_duilib_win_webview_what "cmake.webview2_missing"
+                  "path=${DUILIB_WEBVIEW2_NATIVE_DIR}")
+        duilib_t("cmake.webview2_missing_hint" _duilib_win_webview_hint)
+        message(FATAL_ERROR "${_duilib_win_webview_what}\n  Hint: ${_duilib_win_webview_hint}")
     endif()
     list(APPEND DUILIB_TARGET_LINK_DIRS "${DUILIB_WEBVIEW2_NATIVE_DIR}")
 endif()

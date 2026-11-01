@@ -17,7 +17,7 @@ different distribution.
 | Category | Content | Purpose |
 | :--- | :--- | :--- |
 | Compiler | gcc/g++ 10+ or clang/clang++ 12+ | Compile the UI library, examples and Skia |
-| Build tools | CMake 3.24+, Ninja, gn (package name `generate-ninja` on Ubuntu-based distributions), make, Git, Python 3, unzip (some distributions also need bzip2 and wget) | Generate and run the build; Skia requires gn/ninja |
+| Build tools | CMake 3.24+, Ninja, gn (package name `generate-ninja` on Ubuntu-based distributions), make, Git, Python 3.8+, unzip (some distributions also need bzip2 and wget) | Generate and run the build; Skia requires gn/ninja |
 | Windowing and fonts | Development packages for X11, Freetype and Fontconfig | Looked up during the CMake configure step through `find_package(X11 REQUIRED)`, `find_package(Freetype REQUIRED)` and `find_package(Fontconfig REQUIRED)`, see [cmake/duilib_bin_linux.cmake](../cmake/duilib_bin_linux.cmake) and [cmake/duilib_unix_font_libs.cmake](../cmake/duilib_unix_font_libs.cmake) |
 | Graphics and input | Development packages for OpenGL/GLES/EGL, Vulkan, DBus and ibus | Rendering backend and input method support |
 | Wayland (optional) | Development packages for wayland and libxkbcommon | Building and running on Wayland desktops |
@@ -60,6 +60,10 @@ configure step. Typical messages:
 
 - `Could not find X11`, `Could not find Freetype` or `Could not find Fontconfig`:
   install the matching `-dev` / `-devel` development package.
+- `[ERROR] required tool not found: fontconfig freetype2 x11 ...`: the root
+  project preflight (`cmake/duilib_preflight_tools.cmake`) lists every missing
+  system library found through `pkg-config`; install them and configure again.
+  Without `pkg-config` the check only prints `[WARN]` and is skipped.
 - `gn`, `ninja` or `clang` not found during the Skia configure or compile step:
   install the missing build tool; the package is named `generate-ninja` on
   Ubuntu-based distributions and `gn` on Fedora/openSUSE.

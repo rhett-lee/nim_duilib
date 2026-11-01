@@ -15,6 +15,15 @@ ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 （`ui::FilePathUtil::GetCurrentModuleDirectory()` + 手工拼 `"resources\\"` 只在 Windows 下碰巧能用，
 在 Linux/macOS 上分隔符不对，不要照抄。）
 
+macOS `.app` 的构建方式、资源放置位置与签名/打包见
+`build/macos-app-bundle.md`；basic 示例默认编译为 `bin/basic.app`，资源位于
+`Contents/Resources/duilib/resources/`（与普通程序的 `resources/` 同构），
+因此不需要改 C++ 代码。
+Bundle 内的资源清单由构建脚本按示例名（`project()` 名称）自动推导：
+`themes/default/global.xml` + `themes/default/public` + 示例自己的目录 +
+`themes/color_light|color_dark/global.xml` + `fonts` + `lang`，示例的
+`CMakeLists.txt` 无需配置；需要额外资源时用 `DUILIB_MACOS_BUNDLE_RESOURCES` 覆盖。
+
 目录结构：
 
 ```

@@ -4,7 +4,12 @@
 #include "duilib/duilib_defs.h"
 
 //功能开关（如果不定义该宏，则关闭功能）
-#define DUILIB_ENABLE_INLINE_HOOK 1
+//当前实现基于 x86/x64 指令编码（E9 rel32 跳转 + libudis86 反汇编），
+//ARM64 的跳转指令与寻址方式完全不同，直接复用会被截断为 32 位地址并写入
+//非法机器码，因此 ARM64 上自动关闭该功能（接口保留，调用返回失败）。
+#if defined(_M_IX86) || defined(_M_X64)
+    #define DUILIB_ENABLE_INLINE_HOOK 1
+#endif
 
 #ifdef DUILIB_BUILD_FOR_WIN
 #include "duilib/duilib_config_windows.h"

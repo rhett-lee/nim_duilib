@@ -36,7 +36,7 @@ cmake/
 │
 ├─ Root project orchestration (used by the repository-root CMakeLists.txt)
 │  ├── duilib_i18n.cmake                   # language resolution + message catalog (include or cmake -P)
-│  ├── duilib_bootstrap.cmake              # tool bootstrap: find ninja in VS dirs or the patch archive
+│  ├── duilib_bootstrap.cmake              # tool bootstrap: DUILIB_NINJA_EXECUTABLE → skia/bin → PATH → patch archive
 │  ├── duilib_root_options.cmake           # platform/compiler/arch detection + cached options (after project())
 │  ├── duilib_preflight_tools.cmake        # phase A preflight (no compiler): tools and system libs, read-only
 │  ├── duilib_preflight.cmake              # phase B preflight (with compiler): deterministic checks
@@ -157,12 +157,12 @@ from the platform and configuration, so individual projects no longer need to se
 #   Windows MSVC / clang-cl : llvm.<CPU_ARCH>.debug / llvm.<CPU_ARCH>.release
 #             Debug must match the debug variant (a Debug build cannot link release
 #             Skia); a missing directory is a hard error
-#   Windows MinGW gcc       : mingw64-gcc.<CPU_ARCH>.debug / .release (gcc.<arch>.* on MSYS2)
-#             falls back to the same compiler's release variant when debug is missing;
+#   Windows MinGW gcc       : mingw64-gcc.<CPU_ARCH>.release (gcc.<arch>.release on MSYS2)
+#             MinGW has no runtime switch, so Debug and Release share one release variant;
 #             gcc- and llvm-built Skia cannot be mixed (libstdc++/libc++ are incompatible
 #             at link time)
-#   Windows MinGW llvm      : mingw64-llvm.<CPU_ARCH>.debug / .release (llvm.<arch>.* on MSYS2)
-#             falls back to the release variant
+#   Windows MinGW llvm      : mingw64-llvm.<CPU_ARCH>.release (llvm.<arch>.release on MSYS2)
+#             same as above, Debug and Release share the release variant
 #   Linux/macOS/FreeBSD : <compiler>.<CPU_ARCH>.release
 #             Skia is only built as release on Unix (D-3)
 
@@ -178,11 +178,11 @@ ${DUILIB_SKIA_SRC_ROOT_DIR}/out/<subdirectory>
 # Windows x64 + Debug      -> skia/out/llvm.x64.debug
 # Windows x64 + Release    -> skia/out/llvm.x64.release
 # Windows -A Win32 + Debug -> skia/out/llvm.x86.debug
-# MinGW gcc + Debug (no gcc debug)  -> skia/out/mingw64-gcc.x64.release
+# MinGW gcc + Debug        -> skia/out/mingw64-gcc.x64.release (shared with Release, no .debug variant)
 # MinGW gcc + Debug (no gcc Skia)   -> configuration error (llvm-built Skia cannot be linked)
 # Linux/macOS/FreeBSD      -> skia/out/llvm.x64.release (clang)
 #                            skia/out/gcc.x64.release (gcc)
-# MSYS2 Windows + Debug    -> skia/out/gcc.<arch>.debug first, then gcc.<arch>.release
+# MSYS2 Windows + Debug    -> same candidates as Release (gcc.<arch>.release, then mingw64-gcc.<arch>.release)
 # -DDUILIB_SKIA_LIB_SUBPATH=llvm.x64.release -> both configurations use that fixed directory
 #                                              (its existence is validated as well)
 # MinGW pointing at an MSVC-only directory (.lib, e.g. the MSVC llvm.x64.release) -> configure error
@@ -226,11 +226,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)    # Force C++20
 
 #### 2.2 Path configuration
 ```cmake
-include_directories(${DUILIB_ROOT})              # duilib root directory
-include_directories(${DUILIB_PROJECT_SRC_DIR})   # Project source directory
-link_directories("${DUILIB_LIB_PATH}")           # duilib library directory
-link_directories("${DUILIB_SKIA_LIB_PATH}")      # Skia library directory
-link_directories("${DUILIB_SDL_LIB_PATH}")       # SDL library directory (if enabled)
+# Collected into lists first, then applied to the target by the platform script
+# through duilib_apply_target_directories() after add_executable()
+# (CM-17: no directory-wide global settings)
+list(APPEND DUILIB_TARGET_INCLUDE_DIRS
+    "${DUILIB_ROOT}"              # duilib root directory
+    "${DUILIB_PROJECT_SRC_DIR}"   # project source directory
+)
+list(APPEND DUILIB_TARGET_LINK_DIRS
+    "${DUILIB_LIB_PATH}"          # duilib library directory
+    "${DUILIB_SKIA_LIB_PATH}"     # Skia library directory
+)
+# append "${DUILIB_SDL_LIB_PATH}" when SDL is enabled
 ```
 
 #### 2.3 Output directory
@@ -260,7 +267,9 @@ aux_source_directory(${DUILIB_PROJECT_SRC_DIR} SRC_FILES)
 ```
 
 #### 2.5 Platform dispatch
-Automatically include the corresponding platform configuration file based on the operating system:
+Automatically include the corresponding platform configuration file based on the
+operating system (the platform script creates the executable
+`add_executable(${PROJECT_NAME} ${SRC_FILES})`, so callers must not add one):
 ```cmake
 if(DUILIB_OS_WINDOWS)
     include("${CMAKE_CURRENT_LIST_DIR}/duilib_bin_windows.cmake")
@@ -270,6 +279,8 @@ elseif(DUILIB_OS_MACOS)
     include("${CMAKE_CURRENT_LIST_DIR}/duilib_bin_macos.cmake")
 elseif(DUILIB_OS_FREEBSD)
     include("${CMAKE_CURRENT_LIST_DIR}/duilib_bin_freebsd.cmake")
+else()
+    # unsupported platform: fail with the supported list (cmake.platform_unsupported)
 endif()
 ```
 
@@ -511,11 +522,11 @@ shared layer through `duilib_example.cmake`). In execution order:
 
 | File | When | Responsibilities and entry points |
 | :--- | :--- | :--- |
-| `duilib_i18n.cmake` | before `project()` | Language resolution (`--lang`/`DUILIB_LANG` → `LC_ALL`/`LC_MESSAGES`/`LANG` → system locale → en; only `zh`/`zh_CN`/`zh_Hans` are Chinese) and message catalog loading. Works with `include` and with `cmake -P`; entry points `duilib_t()` / `duilib_msg()` / `duilib_warn()` / `duilib_error()` |
-| `duilib_bootstrap.cmake` | before `project()` | Tool bootstrap: when ninja is not on PATH, `duilib_bootstrap_ninja(<patch_dir> <patch_zip>)` picks it up from the Visual Studio install or the Skia patch archive's `bin/ninja.exe` |
-| `duilib_preflight_tools.cmake` | before `project()` (`cmake -P`) | Phase A preflight: probes tools (cmake/ninja/git/python, `vswhere`) and system libraries only — no downloads, no installs, no file changes |
+| `duilib_i18n.cmake` | before `project()` | Language resolution (`--lang`/`DUILIB_LANG` → `LC_ALL`/`LC_MESSAGES`/`LANG` → system locale → en; only `zh`/`zh_CN`/`zh_Hans` are Chinese) and message catalog loading. Works with `include` and with `cmake -P`; entry points `duilib_t()` / `duilib_tf()` / `duilib_msg()` / `duilib_warn()` / `duilib_error()` |
+| `duilib_bootstrap.cmake` | before `project()` | Tool bootstrap: for the Ninja generator without a usable ninja, `duilib_bootstrap_ninja(<patch_dir> <patch_zip>)` tries `DUILIB_NINJA_EXECUTABLE`, `skia/bin` and PATH first, then extracts `bin/ninja.exe` from the Skia patch archive into the build tree (Windows) |
+| `duilib_preflight_tools.cmake` | before `project()` (`cmake -P`) | Phase A preflight: probes tools (cmake, python, git, `vswhere`, make, cc/cxx or gcc/clang, gn, ninja, curl/wget) and Linux system libraries only — no downloads, no installs, no file changes |
 | `duilib_root_options.cmake` | after `project()` | Platform/compiler/architecture detection and the unified cache options (they override the subprojects' `option()` defaults); also hoists `DUILIB_MINGW`/`DUILIB_MSYS2_ENV` and resolves the SDL3 variant prefix per configuration |
-| `duilib_preflight.cmake` | after `project()` | Phase B preflight: deterministic checks once the compiler is known (architecture, toolchain, system libraries), all errors reported together |
+| `duilib_preflight.cmake` | after `project()` | Phase B preflight: deterministic checks once the compiler is known (minimum MSVC/GCC/Clang version, target architecture matching Skia's CPU architecture, CEF + MinGW incompatibility); the first hit ends configuration with `FATAL_ERROR` |
 | `duilib_deps.cmake` | after `project()` | Creates the dependency check/prepare targets (`duilib_configure_dependencies()` / `duilib_link_dependency_targets()`); `DUILIB_DEPS_MODE=off/prepare/auto`. Also provides the read-only `duilib_deps_plan` target (`duilib_add_dependency_plan_target()`), created in every mode |
 | `duilib_deps_run.cmake` | build time (`cmake -P`) | The actual preparation: download, verify, build and install Skia/SDL3/CEF; each SDL3 variant is installed into its own prefix and stamped with `.duilib-sdl`/`.duilib-crt`; shared by the `duilib_deps` target and `build.py deps`. With `-DDUILIB_DEPS_PLAN=ON` it only prints the actual Skia/SDL3 command lines (no directories, no lock, no clone, no compile) |
 | `duilib_download.cmake` | `cmake -P` | Download helpers: curl first (resume and retries), otherwise `file(DOWNLOAD)`; entry points `duilib_download_file()` / `duilib_verify_sha256()` / `duilib_verify_sha1()` |
@@ -573,10 +584,32 @@ a message here only:
   `preflight.cmake_too_old_hint`); an error message comes with a `_hint` key, and
   `duilib_error()` / `Messages.hint()` render it as a second `Hint:` line.
 - On the CMake side `duilib_msg()` / `duilib_warn()` append dynamic content as their
-  second argument (such messages must not contain `%s`); on the Python side
-  (`Messages.t()`) messages keep `%s` placeholders and the caller interpolates with
-  `% (...)` (e.g. `pkg.cef_lib_version_hint`). A missing key prints the key itself
-  on both sides, which makes gaps easy to spot.
+  second argument (such messages must not contain `%s`); values that belong inside a
+  sentence use `{name}` placeholders and `duilib_tf()` (e.g. `deps.retry`,
+  `cmake.sdl_variant_fallback`). On the Python side (`Messages.t()`) messages keep
+  `%s` placeholders and the caller interpolates with `% (...)` (e.g.
+  `pkg.cef_lib_version_hint`). A single message must not mix `%s` and `{name}`
+  (enforced by `build/test_build.py`). A missing key prints the key itself on both
+  sides, which makes gaps easy to spot; `MessageCatalogTests` statically checks that
+  every key referenced by CMake scripts or the build entry points exists in both
+  languages, and that placeholders are really substituted (a `duilib_tf` call that
+  misses a `name=` value fails, as does a message with `{name}` passed to an
+  interface that does not substitute).
+- These places **deliberately bypass the catalog** (do not treat them as gaps when
+  adding messages): the `NOT DUILIB_OS_XXX!` guards at the top of
+  `cmake/duilib_bin_{windows,linux,macos,freebsd}.cmake` (they only appear when the
+  internal include order is wrong, i.e. a developer-side contract error);
+  `cmake/duilib_write_build_stamp.cmake` (a hot path that runs `cmake -P` on every
+  build, fixed English); the `DUILIB_ROOT:` / `CEF_ROOT:` style key/value dumps in
+  `cmake/duilib_log_variables.cmake` and `duilib_cef_macos.cmake` (variables only,
+  no sentences); and `packaging/cmake/nim_duilibConfig.cmake` /
+  `nim_duilibHelpers.cmake`, which ship inside the release package where
+  `i18n/messages.json` is absent (their messages stay Chinese; see P2-6 in
+  [Packaging-Follow-Up-Items.md](../docs/misc/Packaging-Follow-Up-Items.md)).
+- The library project `duilib/CMakeLists.txt` also includes this file (it is both
+  pulled in by the root project's `add_subdirectory()` and configurable on its own),
+  so its `cmake_minimum_required` is **3.19** (the catalog is parsed with
+  `string(JSON)`); the root entry point still requires CMake 3.24+.
 - Language resolution is identical on both sides: `--lang`/`DUILIB_LANG` →
   `LC_ALL`/`LC_MESSAGES`/`LANG` → system locale → `en`; only `zh`/`zh_CN`/`zh_Hans`
   use Chinese, while `zh_TW`/`zh_HK`/`zh_Hant` use English. A non-UTF-8 Windows
@@ -601,13 +634,18 @@ Create `CMakeLists.txt` in the project root directory:
 
 ```cmake
 cmake_minimum_required(VERSION 3.21)
-project(my_duilib_app)
+project(my_duilib_app CXX)
 
-# Set the project source directory
+# nim_duilib repository root
+set(DUILIB_ROOT "<nim_duilib repository root>")
+
+# Project source directory: duilib_bin.cmake collects the sources and the
+# platform script creates the my_duilib_app target, so no add_executable here
 set(DUILIB_PROJECT_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
-# Include the duilib CMake configuration
-include(${DUILIB_ROOT}/cmake/duilib_bin.cmake)
+# Include the duilib CMake configuration (it includes duilib_common.cmake first for
+# OS/compiler/path detection, then the platform-specific duilib_bin_<platform>.cmake)
+include("${DUILIB_ROOT}/cmake/duilib_bin.cmake")
 ```
 
 #### 2. Build commands
@@ -813,13 +851,20 @@ rm -rf CMakeCache.txt CMakeFiles/
 
 ### 2. In-tree build is prohibited
 
-The duilib CMake configuration forcibly prohibits building in the source directory:
+The duilib CMake configuration forcibly prohibits building in the source directory
+(see `cmake/duilib_bin.cmake`):
 
 ```cmake
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
-  message(FATAL_ERROR "Prevented in-tree build...")
+    duilib_tf(_duilib_bin_tree_what "cmake.in_tree_build")
+    duilib_tf(_duilib_bin_tree_hint "cmake.in_tree_build_hint"
+              "source=${CMAKE_SOURCE_DIR}")
+    message(FATAL_ERROR "${_duilib_bin_tree_what}\n  Hint: ${_duilib_bin_tree_hint}")
 endif()
 ```
+
+The error looks like `[ERROR] in-tree builds are not supported ...` plus a `Hint:`
+line (text lives in `cmake/i18n/messages.json`, key `cmake.in_tree_build`).
 
 ### 3. Skia library path requirement
 
@@ -856,9 +901,9 @@ Ensure the following dependencies are available before building:
 
 ## Common Issues / Troubleshooting
 
-### Q1: CMake reports "Unknown OS"
+### Q1: CMake reports "unsupported platform"
 
-**Cause:** The operating system is not supported.
+**Cause:** The operating system is not Windows, Linux, macOS (Darwin) or FreeBSD.
 
 **Solution:** Check the OS detection logic in `duilib_common.cmake`.
 

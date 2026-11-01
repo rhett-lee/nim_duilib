@@ -126,7 +126,7 @@ description: nim_duilib 的 CEF（libcef）依赖升级手册。用于把仓库�
 python3 build/build.py deps --offline          # 运行时：确认版本、指纹、DLL 版本
 python3 build/build.py build --config Release --no-deps
 python3 build/build.py build --config Debug --no-deps
-python3 build/build.py test                    # 236 用例（skipped=2）基线
+python3 build/build.py test                    # 全部用例通过（skipped=2；用例数随新增用例变化）
 python3 build/build.py doctor                  # cef default / cef runtime 行必须为新版本
 git diff --check                               # 空白错误；同时检查 CRLF 一致性
 ```

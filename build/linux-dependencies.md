@@ -9,7 +9,7 @@
 | 类别 | 内容 | 用途 |
 | :--- | :--- | :--- |
 | 编译器 | gcc/g++ 10+ 或 clang/clang++ 12+ | 编译界面库、示例与 Skia |
-| 构建工具 | CMake 3.24+、Ninja、gn（Ubuntu 系包名为 `generate-ninja`）、make、Git、Python 3、unzip（部分发行版还需 bzip2、wget） | 生成并执行构建；Skia 依赖 gn/ninja |
+| 构建工具 | CMake 3.24+、Ninja、gn（Ubuntu 系包名为 `generate-ninja`）、make、Git、Python 3.8+、unzip（部分发行版还需 bzip2、wget） | 生成并执行构建；Skia 依赖 gn/ninja |
 | 窗口与字体 | X11、Freetype、Fontconfig 的开发包 | CMake 配置阶段通过 `find_package(X11 REQUIRED)`、`find_package(Freetype REQUIRED)`、`find_package(Fontconfig REQUIRED)` 查找，见 [cmake/duilib_bin_linux.cmake](../cmake/duilib_bin_linux.cmake) 与 [cmake/duilib_unix_font_libs.cmake](../cmake/duilib_unix_font_libs.cmake) |
 | 图形与输入 | OpenGL/GLES/EGL、Vulkan、DBus、ibus 开发包 | 渲染后端与输入法支持 |
 | Wayland（可选） | wayland、libxkbcommon 开发包 | Wayland 桌面环境下构建与运行 |
@@ -47,6 +47,7 @@
 如果缺少系统包，问题通常会在 CMake 配置阶段暴露，典型报错如下：
 
 - `Could not find X11`、`Could not find Freetype`、`Could not find Fontconfig`：补装对应的 `-dev` / `-devel` 开发包。
+- `[ERROR] 未找到必需的工具：fontconfig freetype2 x11 ...`：根工程预检（`cmake/duilib_preflight_tools.cmake`）用 `pkg-config` 一次性列出缺失的系统库，补装后重新配置即可；没有 `pkg-config` 时该检查只输出 `[WARN]` 并跳过。
 - Skia 配置或编译阶段找不到 `gn` / `ninja` / `clang`：补装构建工具；Ubuntu 系包名为 `generate-ninja`，Fedora/openSUSE 为 `gn`。
 - 构建成功但界面文字不显示：这不是构建依赖问题，通常需要安装 fontconfig 与中文字体，见根目录 README 的“常见问题”。
 

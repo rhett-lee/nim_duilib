@@ -48,7 +48,8 @@ PropertySheets/
   - VS2019/VS2017: Use C++17 standard
 
 - **Runtime library configuration:** Automatically switch between MT/MTd or MD/MDd mode by detecting the `duilib_dll.flag` file.
-  Each project records `duilib_crt_mode.txt` in `IntDir`; after a mode change the next
+  Each project records `duilib_crt_mode.txt` in `IntDir` (content: `<PlatformToolset>/<mode>`);
+  after a runtime-mode change or a Visual Studio version switch (e.g. v143 ↔ v145), the next
   build deletes stale `.obj/.pch` files (including the CEF wrapper), so there is no
   need to clean `build_temp/` manually
 
@@ -379,12 +380,15 @@ instead of the static library in DLL packages.
    - Reopen the solution file (*.sln)
    - Wait for the properties to finish reloading
 
-4. **Mode switches rebuild automatically:**
+4. **Mode or Visual Studio version switches rebuild automatically:**
    - `CommonSettings.props` writes `duilib_crt_mode.txt` into each project's
-     `IntDir`;
-   - if the mode differs on the next build, that project's `.obj`/`.pch` files
-     are deleted, including `libcef_dll_wrapper`; no manual `build_temp/`
+     `IntDir`, recording `<PlatformToolset>/<static|dll>`;
+   - if the toolset or mode differs on the next build, that project's `.obj`/`.pch`
+     files are deleted, including `libcef_dll_wrapper`; no manual `build_temp/`
      cleanup is needed;
+   - when the command-line build (`build.py`) detects a compiler switch it also
+     removes stale outputs from `lib/`, `build/build_temp` and `bin/` (runtime
+     assets in `bin/` are kept);
    - the solution's project dependencies already build the wrapper before
      duilib.
 

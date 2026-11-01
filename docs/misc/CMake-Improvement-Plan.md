@@ -405,7 +405,7 @@
 | 第三方上游自带的 CMake 文件 | `third_party/zlib/contrib/**`、`libpng/contrib/**`、`libcef/**`、`libjpeg-turbo/**` 的 CMake 文件保持原样，不纳入改进范围 |
 | 手写 `.vcxproj` / `.sln` 工程 | `build/*.sln` 与 `examples/*/*.vcxproj` 是另一套构建通道，本文档不涉及（但 CM-5 / CM-21 的命名约定需与其保持一致） |
 | macOS / Linux / FreeBSD 上的对应环境验证 | 相关项在对应平台标记"需平台核实"，本机（Windows）只做配置级与逻辑级验证 |
-| 不追求 CMake 版本升级 | 保持 `cmake_minimum_required` 现状（3.18），不引入仅高版本可用的特性 |
+| 不追求 CMake 版本升级 | 保持 `cmake_minimum_required` 现状（3.18），不引入仅高版本可用的特性（2026-11-01 例外：`duilib/CMakeLists.txt` 提为 3.19，因为构建消息目录用 `string(JSON)` 解析；根工程入口本身要求 3.24，见 [cmake/README.md](../../cmake/README.md) 的「构建消息目录」） |
 
 ---
 

@@ -10,6 +10,8 @@ import sys
 import tempfile
 import unittest
 import zipfile
+from types import SimpleNamespace
+from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -109,6 +111,43 @@ class PackCommandTest(unittest.TestCase):
                             for item in cmd))
         self.assertTrue(any(str(item).endswith(os.path.join('fake', 'skia'))
                             for item in cmd))
+
+
+class ChildEnvironmentTest(unittest.TestCase):
+    """子进程（build.py / pack.py）必须收到本进程解析后的语言。"""
+
+    def _run(self, name, env=None):
+        captured = {}
+
+        def fake_run(command, **kwargs):
+            captured['env'] = kwargs.get('env')
+            return SimpleNamespace(returncode=0, stdout='ok', stderr='')
+
+        with tempfile.TemporaryDirectory() as tmp:
+            log_path = os.path.join(tmp, 'log.txt')
+            with open(log_path, 'w', encoding='utf-8') as log_fp:
+                with mock.patch.object(autotest.subprocess, 'run',
+                                       side_effect=fake_run):
+                    step = autotest._run_step(name, ['python'], log_fp, 10,
+                                              env=env)
+        return step, captured['env']
+
+    def test_child_steps_inherit_language(self):
+        old = autotest.MESSAGES
+        autotest.MESSAGES = autotest.make_messages('en')
+        try:
+            step, env = self._run('pack')
+        finally:
+            autotest.MESSAGES = old
+        self.assertEqual(step['status'], 'passed')
+        self.assertEqual(env.get('DUILIB_LANG'), 'en')
+
+    def test_explicit_env_is_kept(self):
+        step, env = self._run('build', env=dict(os.environ,
+                                                DUILIB_BUILD_TYPE='Release'))
+        self.assertEqual(step['status'], 'passed')
+        self.assertEqual(env.get('DUILIB_BUILD_TYPE'), 'Release')
+        self.assertEqual(env.get('DUILIB_LANG'), autotest.MESSAGES.language)
 
 
 class PackageInspectionTest(unittest.TestCase):

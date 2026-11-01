@@ -51,7 +51,7 @@
 | WindowImplBase | [duilib/Utils/WinImplBase.h](../duilib/Utils/WinImplBase.h) | 提供给应用层的窗口基类，实现一个带有标题栏的窗体，带有最大化、最小化、还原按钮的支持，提供带有 WS_EX_LAYERED 属性窗口阴影|
 | EventType | [duilib/duilib_defs.h](../duilib/duilib_defs.h) | 定义所有消息类型|
 | EventArgs | [duilib/Core/EventArgs.h](../duilib/Core/EventArgs.h) | 窗口消息与控件事件通知的参数|
-| WindowDropTarget | [duilib/Core/WindowDropTarget.h](../duilib/Core/WindowDropTarget.h) | 窗口中控件的拖放支持|
+| WindowDropTarget | [duilib/Core/WindowDropTarget_Windows.h](../duilib/Core/WindowDropTarget_Windows.h) | 窗口中控件的拖放支持（Windows；SDL 构建为 [WindowDropTarget_SDL.h](../duilib/Core/WindowDropTarget_SDL.h)）|
 | Windows版本兼容性 | [duilib/duilib_config.h](../duilib/duilib_config.h) | Windows版本兼容性定义，默认配置兼容Win7以上操作系统|
 
 * 控件与容器的基类
@@ -221,7 +221,7 @@
 | RichEdit | ScrollBox| [duilib/Control/RichEdit.h](../duilib/Control/RichEdit.h) | 富文本编辑框控件 |
 | RichEdit实现类 | | [duilib/Control/RichEditCtrl_Windows.h](../duilib/Control/RichEditCtrl_Windows.h) | 富文本编辑框的主要功能封装（Windows） |
 | RichEdit实现类 | | [duilib/Control/RichEditHost_Windows.h](../duilib/Control/RichEditHost_Windows.h) | 富文本编辑框的主要功能实现（Windows） |
-| RichEdit实现类 | | [duilib/Control/RichEdit_SDL.h](../duilib/Control/RichEdit_SDL.h) | 富文本编辑框的主要功能封装（SDL） |
+| RichEdit实现类 | | [duilib/Control/RichEdit2.h](../duilib/Control/RichEdit2.h) | 跨平台自绘的富文本编辑框实现（所有平台；Windows 非 SDL 构建另用 [RichEdit_Windows.h](../duilib/Control/RichEdit_Windows.h)） |
 | RichText | Control| [duilib/Control/RichText.h](../duilib/Control/RichText.h) | 格式化文本（类HTML格式） |
 | Split | Control| [duilib/Control/Split.h](../duilib/Control/Split.h) | 分割条控件 |
 | SplitBox | Box| [duilib/Control/Split.h](../duilib/Control/Split.h) | 分割条容器 |
@@ -255,10 +255,10 @@
 | Dialog | WindowImplBase | [duilib/Utils/Dialog.h](../duilib/Utils/Dialog.h) | 通用模态对话框：内容区接受任意 XML 片段，底部按钮由调用方自定义，`DoModal` 返回按钮索引 |
 | ToastWnd | WindowImplBase | [duilib/Utils/ToastWnd.h](../duilib/Utils/ToastWnd.h) | 自绘皮肤的非模态通知框，独立窗口，自动消失、可堆叠，详见[Toast.md](Toast.md) |
 | SystemNotification | 静态工具类 | [duilib/Utils/SystemNotification.h](../duilib/Utils/SystemNotification.h) | 系统原生通知：SDL 构建走 SDL 系统通知，非 SDL 的 Windows 构建走托盘气泡（Win7+），与 ToastWnd 相互独立，详见[SystemNotification.md](SystemNotification.md) |
-| ControlDragable | Control | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
-| BoxDragable | Box | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
-| HBoxDragable | HBox | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
-| VBoxDragable | VBoxDragable | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
+| ControlDragable | Control | [duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
+| BoxDragable | Box | [duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
+| HBoxDragable | HBox | [duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
+| VBoxDragable | VBoxDragable | [duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
 | IconControl | Control | [duilib/Control/IconControl.h](../duilib/Control/IconControl.h) | 用于显示图标的控件，如果不设置图标数据，则兼容基类Control的所有功能|
 | AddressBar | HBox | [duilib/Control/AddressBar.h](../duilib/Control/AddressBar.h) | 地址栏控件，用于显示本地文件系统的路径 |
 | StatusBar | HBox | [duilib/Control/StatusBar.h](../duilib/Control/StatusBar.h) | 状态栏控件，相邻状态面板之间自动绘制分隔线；支持按索引读写状态面板（GetPanelCount/GetPanel/SetPanelText）；右下角尺寸手柄可真正拖拽调整窗口大小（size_grip_resize），详见[Control.md](Control.md#statusbar-控件继承-hbox-属性) |

@@ -581,6 +581,9 @@ bool WindowBuilder::ParseWindowCreateAttributes(Window* pWindow, WindowCreateAtt
         createAttributes.m_bIsLayeredWindowDefined = true;
         createAttributes.m_bIsLayeredWindow = true;
     }
+#else
+    //仅SDL构建使用该变量（XML中是否定义了分层窗口属性），非SDL构建时显式标记为未使用
+    UNUSED_VARIABLE(bIsLayeredWindowDefined);
 #endif
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)

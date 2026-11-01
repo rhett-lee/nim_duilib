@@ -22,10 +22,10 @@ runtime files, upgrade to a newer package, and migrate from the old layout.
 | `bin/libcef_win[_109]/<arch>/` | CEF runtime of a `--with-cef` package (`libcef.dll`, `*.pak`, `icudtl.dat`, `locales/`) |
 | `bin/libcef_linux/` | CEF runtime of a Linux package (`libcef.so` and friends) |
 | `bin/*.exe`, `bin/*.app` | Example programs of an `-examples` package (`.app` on macOS) |
-| `msvc/` | Windows + MSVC integration: `nim_duilib.props`, `nim_duilib.targets`, manifests |
+| `msvc/` | Windows + MSVC integration: `nim_duilib.props`, `nim_duilib.targets`, `nim_duilib.sdk.props` (package metadata), manifests |
 | `lib/cmake/nim_duilib/` | Cross-platform CMake integration: `find_package(nim_duilib CONFIG)` |
 | `docs/` | Bundled documentation (relative links rewritten for the package layout) |
-| `LICENSES/`, `THIRD-PARTY-NOTICES.md` / `.en.md` | Third-party licenses and notices (Chinese / English) |
+| `LICENSES/`, `THIRD-PARTY-NOTICES.md` / `.en.md`, `LICENSE` | Third-party licenses and notices (Chinese / English), plus the repository's own license |
 | `VERSION`, `MANIFEST.txt`, `SHA256SUMS` | Version, manifest, per-file checksums |
 
 Package name segments: `-mingw-gcc` / `-mingw-llvm` (the two MinGW C++ runtime

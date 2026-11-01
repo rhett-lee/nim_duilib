@@ -57,13 +57,18 @@ def T(key):
 
 
 def _requested_lang(argv):
-    """预扫描 --lang：让 --help 与参数错误也按所选语言输出。"""
+    """预扫描 --lang：让 --help 与参数错误也按所选语言输出。
+
+    与 argparse 一致，重复给出时以最后一个为准（--lang 同时挂在主命令与
+    子命令上，`--lang en package --lang zh_CN` 最终用中文）。
+    """
+    requested = 'auto'
     for index, arg in enumerate(argv):
         if arg.startswith('--lang='):
-            return arg.split('=', 1)[1]
-        if arg == '--lang' and index + 1 < len(argv):
-            return argv[index + 1]
-    return 'auto'
+            requested = arg.split('=', 1)[1]
+        elif arg == '--lang' and index + 1 < len(argv):
+            requested = argv[index + 1]
+    return requested
 
 
 CHANGELOG_FILES = ('CHANGELOG.md', 'CHANGELOG.en.md')
@@ -236,6 +241,23 @@ def cmd_check(args):
 # package
 # --------------------------------------------------------------------------
 
+def _expected_runtime_dll(sys_tag, arch_tag, config):
+    """按 pack.py 的规则预判本次是否为 DLL 模式（包名要追加 -dll）。
+
+    规则与 pack.collect_duilib_runtime_dll() 一致：x86 为 duilib32[_d].dll，
+    x64/arm64 为 duilib[_d].dll，Debug 带 `_d` 后缀。交叉出包时 PE 架构不符会
+    被 pack.py 跳过，这里不做 PE 校验——包名只用于展示，实际产物以打包后
+    “输出目录新增的归档”为准（见 cmd_package）。
+    """
+    if sys_tag != 'win':
+        return None
+    base = 'duilib32' if arch_tag == 'x86' else 'duilib'
+    if config == 'Debug':
+        base += '_d'
+    path = os.path.join(pack.BIN_DIR, base + '.dll')
+    return path if os.path.isfile(path) else None
+
+
 def cmd_package(args):
     version = pack.read_version()
     if version is None:
@@ -261,6 +283,9 @@ def cmd_package(args):
         cmd.extend(['--mingw-variant', args.mingw_variant])
     if args.format:
         cmd.extend(['--format', args.format])
+    # 子进程语言跟本进程一致：pack.py 不会继承 --lang，只能自己按环境变量与
+    # 系统区域判定，中文系统上 `release.py --lang en` 会混出中文提示。
+    cmd.extend(['--lang', MESSAGES.language])
 
     mingw_variant = None
     if sys_tag == 'win':
@@ -275,12 +300,17 @@ def cmd_package(args):
             except pack.PackageError:
                 mingw_variant = None
 
+    # DLL 模式与静态库模式的包名不同（pack.py 按包内实际收集的 bin/duilib*.dll
+    # 决定是否追加 -dll）；这里用同一份按架构/配置取运行期 DLL 的规则预先算出，
+    # 否则 dry-run 显示的包名与实际产物不一致。
+    is_dll = _expected_runtime_dll(sys_tag, arch_tag, args.config) is not None
+
     fmt = args.format or ('zip' if sys_tag == 'win' else 'tgz')
     ext = {'zip': '.zip', 'tgz': '.tar.gz', 'tarbz2': '.tar.bz2'}[fmt]
     pkg_name = pack.build_package_name(
         version, sys_tag, arch_tag, args.config,
         args.with_sdl, args.with_cef, args.cef_version, args.with_examples,
-        mingw_variant=mingw_variant)
+        mingw_variant=mingw_variant, is_dll=is_dll)
     out_path = os.path.join(out_dir, pkg_name + ext)
 
     print(T('rel.version') % version)
@@ -294,14 +324,27 @@ def cmd_package(args):
         return 0
 
     print('-' * 60)
+    before = set(_find_archives(out_dir)) if os.path.isdir(out_dir) else set()
     code = subprocess.call(cmd, cwd=REPO_ROOT)
     if code != 0:
         eprint(T('rel.pack_exit') % code)
         return code
-    # 出包后立即对归档做一次体检（布局 / SHA / 文档链接），坏包不进入发布目录
-    if not pack.verify_package(out_path):
-        eprint(T('rel.pack_check_failed') % os.path.relpath(out_path, REPO_ROOT))
+    # 出包后立即对归档做一次体检（布局 / SHA / 文档链接），坏包不进入发布目录。
+    # 体检对象取“本次新增的归档”，而不是上面预测的文件名：macOS 的 -cef 只在
+    # 确实收集到 CEF 示例 App Bundle 时才追加，交叉出包时 PE 架构不符的 duilib
+    # DLL 也不会收进包，预测名都可能与实际包名不同。
+    produced = [path for path in _find_archives(out_dir) if path not in before]
+    if not produced and os.path.isfile(out_path):
+        produced = [out_path]
+    if not produced:
+        eprint(T('rel.pack_output_missing')
+               % os.path.relpath(out_path, REPO_ROOT))
         return 1
+    for archive in produced:
+        if not pack.verify_package(archive):
+            eprint(T('rel.pack_check_failed')
+                   % os.path.relpath(archive, REPO_ROOT))
+            return 1
     return 0
 
 
@@ -666,6 +709,9 @@ def main(argv=None):
     global MESSAGES
     argv = sys.argv[1:] if argv is None else list(argv)
     MESSAGES = make_messages(_requested_lang(argv))
+    # 进程内复用的 pack.py 函数（verify_package 等）用的是 pack 模块自己的
+    # MESSAGES，这里同步一次，否则 --lang 只影响本脚本的文案。
+    pack.MESSAGES = MESSAGES
     set_console_utf8()
 
     parser = build_parser()

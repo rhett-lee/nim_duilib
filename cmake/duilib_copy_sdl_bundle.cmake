@@ -13,24 +13,30 @@
 # FOLLOW_SYMLINK_CHAIN 会把 libSDL3.dylib -> libSDL3.<abi>.dylib 这类版本链接链
 # 一并还原到目标目录，可执行文件无论记录的是哪个名字都能被 dyld 找到。
 
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_i18n.cmake")
+
 if(NOT SDL3_LIB_DIR)
-    message(FATAL_ERROR "duilib_copy_sdl_bundle: 缺少 SDL3_LIB_DIR")
+    duilib_tf(_duilib_sdl_msg "bundle.missing_arg"
+              "script=duilib_copy_sdl_bundle" "arg=SDL3_LIB_DIR")
+    message(FATAL_ERROR "${_duilib_sdl_msg}")
 endif()
 if(NOT BUNDLE_FRAMEWORKS_DIR)
-    message(FATAL_ERROR "duilib_copy_sdl_bundle: 缺少 BUNDLE_FRAMEWORKS_DIR")
+    duilib_tf(_duilib_sdl_msg "bundle.missing_arg"
+              "script=duilib_copy_sdl_bundle" "arg=BUNDLE_FRAMEWORKS_DIR")
+    message(FATAL_ERROR "${_duilib_sdl_msg}")
 endif()
 
 file(GLOB _duilib_sdl3_dylibs "${SDL3_LIB_DIR}/libSDL3*.dylib")
 if(NOT _duilib_sdl3_dylibs)
     # 用户自备静态 SDL3（libSDL3.a）时不需要随 Bundle 分发动态库
     if(EXISTS "${SDL3_LIB_DIR}/libSDL3.a")
-        message(STATUS
-            "duilib_copy_sdl_bundle: ${SDL3_LIB_DIR} 中是静态 SDL3，跳过 dylib 复制。")
+        duilib_tf(_duilib_sdl_msg "bundle.sdl_static_skip" "dir=${SDL3_LIB_DIR}")
+        message(STATUS "${_duilib_sdl_msg}")
         return()
     endif()
-    message(FATAL_ERROR
-        "未找到 SDL3 动态库：${SDL3_LIB_DIR}/libSDL3*.dylib\n"
-        "请先执行 'build.py deps'，或传入 -DDUILIB_SDL_ROOT=<SDL3 安装前缀>。")
+    duilib_tf(_duilib_sdl_missing "bundle.sdl_dylib_missing" "dir=${SDL3_LIB_DIR}")
+    duilib_t("bundle.sdl_dylib_missing_hint" _duilib_sdl_missing_hint)
+    message(FATAL_ERROR "${_duilib_sdl_missing}\n  Hint: ${_duilib_sdl_missing_hint}")
 endif()
 
 file(MAKE_DIRECTORY "${BUNDLE_FRAMEWORKS_DIR}")
@@ -56,10 +62,9 @@ if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
     string(STRIP "${_duilib_sdl3_install_name}" _duilib_sdl3_install_name)
     if(_duilib_sdl3_install_name AND
        NOT _duilib_sdl3_install_name MATCHES "^@rpath/")
-        message(WARNING
-            "SDL3 的 install_name 不是 @rpath（${_duilib_sdl3_install_name}）："
-            "复制进 Bundle 后仍会按绝对路径加载。请重新安装带 MACOSX_RPATH 的 "
-            "SDL3，或对该 dylib 执行 install_name_tool -id @rpath/<文件名>，"
-            "并对 .app 内的可执行文件执行 install_name_tool -change。")
+        duilib_tf(_duilib_sdl_warn "bundle.sdl_install_name"
+                  "name=${_duilib_sdl3_install_name}")
+        duilib_t("bundle.sdl_install_name_hint" _duilib_sdl_warn_hint)
+        message(WARNING "${_duilib_sdl_warn}\n  Hint: ${_duilib_sdl_warn_hint}")
     endif()
 endif()

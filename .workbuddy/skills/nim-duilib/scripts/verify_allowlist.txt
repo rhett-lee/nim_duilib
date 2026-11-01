@@ -28,12 +28,13 @@ docs/XmlEvents.md docs/XmlEvents.en.md :: kEventReportViewSubItemFilled
 docs/misc/ListCtrl-Roadmap.md docs/misc/ListCtrl-Roadmap.en.md :: kEventReportViewSubItemFilled ListCtrlSubItemSortFlag
 docs/misc/ListCtrl单元格交互与结构升级设计方案.md :: kEventCurrentCellChanged kEventCellSelectionChanged kEventCellsCopied kEventCellEditBegin kEventCellEditCommit kEventCellEditCancel kEventCellsMerged kEventCellsUnmerged kEventItemExpandedChanged kEventGroupCollapsedChanged kEventRowMoved kEventSubItemCustomPaint kEventReportViewSubItemFilled AttachReportViewSubItemFilled
 docs/misc/workbuddy-nim-duilib-guide.md :: bg_statusbar
-docs/misc/Development-Plan.md :: bg_selected_inactive bg_text_highlight
+docs/misc/Development-Plan.md :: bg_selected_inactive bg_text_highlight color_picker_new_color_edit
 
 # ---------------------------------------------------------------------------
 # Skill 文档 / LLM 参考中的举例名
 # ---------------------------------------------------------------------------
 api-reference.md nim-duilib-llm-reference.md :: btn_default
+new-control.md :: DUI_CTR_XXX
 event-handler.md nim-duilib-event-handler.md :: kEventResize
 theme.md nim-duilib-theme.md :: my_card my_title_font my_font_16 bk_main_wnd_title
 pitfalls.md :: kEventResize kEventChecked kEventTextChange kEventSelChange kEventValueChange kEventVisibleChange kEventStateChange kEventXxx

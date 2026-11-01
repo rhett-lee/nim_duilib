@@ -19,9 +19,11 @@
 | `autotest.py` | 本地自动化：环境检测 → 构建 → 打包 → 校验 → 结构断言 |
 | `test_build.py` | 构建入口自身的单元测试 |
 | `test_pack.py` / `test_autotest.py` | 打包与自动化测试 |
-| `test_cmake_scripts.py` | CMake 脚本测试：Skia/SDL3 变体、CRT 推导、MSYS2 判定与打包侧口径逐项比对，以及依赖准备计划模式（`deps --dry-run` 打印的 Skia/SDL3 命令、只读约束）（PATH 上没有 cmake 时相关用例跳过） |
+| `test_cmake_scripts.py` | CMake 脚本测试：Skia/SDL3 变体、CRT 推导、MSYS2 判定与打包侧口径逐项比对，以及依赖准备计划模式（`deps --dry-run` 打印的 Skia/SDL3 命令、只读约束）（cmake 按 `DUILIB_CMAKE_EXECUTABLE` → PATH → Visual Studio 自带的顺序查找，都找不到时相关用例跳过） |
 | `tests/skia_variants_check.cmake` | 规则脚本夹具（由 `test_cmake_scripts.py` 以 `cmake -P` 执行：变体命名、候选回退、多配置准备、CRT 推导、计划模式命令打印） |
+| `test_docs.py` | 文档一致性回归测试：维护范围内的 Markdown 相对链接必须指向存在的文件（代码块与行内代码不计），`docs/` 下每篇文档必须有中英文对照（`X.md` ↔ `X.en.md` 双向检查；`docs/misc/` 历史记录不参与） |
 | `test_sdk_package.py` | SDK 包测试编排器的纯函数单元测试 |
+| `test_release.py` | `release.py` 的单元测试：DLL 模式包名预判、出包命令的语言转发、输出目录归档筛选、`git status` 路径解析与 `dist/` 忽略规则、CHANGELOG 条目提取 |
 | `sdk_package_test.py` | 发布 SDK 包测试编排器（结构校验 + 消费者编译运行 + 负向用例） |
 | `sdk_test/` | SDK 消费者用例工程（仅依赖解包后的 SDK） |
 | `sdk-package-test.md` | SDK 包测试方法与用途说明 |
@@ -35,7 +37,7 @@
 
 ## 前置依赖
 
-- CMake 3.24+、Python 3（必需；命令统一使用 `python3`）、Git、Ninja。
+- CMake 3.24+、Python 3.8+（必需；命令统一使用 `python3`）、Git、Ninja。
 - Windows：Visual Studio 2022+（C++ 工作负载），或 MSYS2 / MinGW-w64。
 - Linux/macOS/FreeBSD：gcc 10+/clang 12+，以及字体、GL、X11 等开发包；这些系统
   通常只提供 `python3`。
@@ -151,7 +153,7 @@ python3 build/build.py pack --with-cef
 python3 build/build.py pack --config Debug --out-dir dist
 ```
 
-包名为 `nim_duilib-<版本>-<系统>-<架构>[-sdl][-cef|-cef109][-examples][-debug]`，
+包名为 `nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109][-examples][-dll][-debug]`，
 内含 `include/duilib/`、`lib/`（平面结构，配置与架构由包名区分）、`bin/`（运行期
 DLL 与 `bin/resources/`）、`msvc/`（Windows MSVC 接入层）、`lib/cmake/nim_duilib/`、
 `LICENSES/`、`docs/`、`THIRD-PARTY-NOTICES*.md`、`VERSION`、`MANIFEST.txt` 与
@@ -171,10 +173,19 @@ python3 build/autotest.py --preset arm64-synthetic         # 无 arm64 真机时
 python3 build/autotest.py --preset all-ready               # 全部前置条件满足的预设
 python3 build/autotest.py --preset pack-msvc-x64-release --build  # 先构建再打包
 python3 build/autotest.py --preset arm64-synthetic --dry-run      # 只打印命令
+python3 build/autotest.py --preset pack-msvc-x64-release --with-examples --smoke  # 解包后启动 basic.exe
 ```
 
 退出码：0 有预设通过且无失败；1 存在失败；2 全部跳过。`--list-presets` 可查看
 预设与前置条件；报告写入 `report.json`，完整输出写入 `autotest.log`。
+`--build` 的超时由 `--build-timeout` 控制（默认 3600 秒），`--with-sdl` /
+`--with-examples` 原样传给 `pack.py`；`--smoke` 需要包内带示例，只对 Release 预设执行
+（解包后启动 `bin/basic.exe` 观察 8 秒，示例架构与主机不一致时跳过）。
+
+`build.py`、`pack.py`、`release.py`、`autotest.py`、`sdk_package_test.py` 都支持
+`--lang auto|zh_CN|en`（默认跟随系统，也读取 `DUILIB_LANG`；重复给出时以最后一个为准），
+控制台提示与 `--help` 文案随之切换，`autotest.py` 还会把语言传给它启动的
+`build.py` / `pack.py`，避免日志里中英文混排。
 
 `arm64` 支持范围：接入文件与包结构已就绪，libjpeg-turbo 提供 arm64 预编译库，
 Windows / Linux / macOS 的 arm64 都能按对应归档随包 CEF（Windows 156 与 109 均有
@@ -235,7 +246,7 @@ Debug CEF；产物均为 PE `0xAA64`；出包实测于 2026-10-28，当时默认
 | :--- | :--- |
 | `Visual Studio not found` | 安装 VS 2022+ 与 C++ 工作负载，或用 `--vs-version` |
 | `Skia not found` | 先运行 `python3 build/build.py deps` |
-| `gn/ninja not found` | Windows 使用 VS 自带目录；其他平台安装 `ninja`、`gn` |
+| `gn/ninja not found` | Windows 使用 VS 自带目录，或先 `python3 build/build.py deps` 从补丁归档解压自带的 `bin/gn.exe` / `bin/ninja.exe`；其他平台安装 `ninja`、`gn`（详见 [build-reference.md](build-reference.md) 第 10 节） |
 | CEF 示例无法运行 | 确认 `bin/libcef_win/<arch>` 或 `bin/libcef_linux` 含运行时 |
 | Linux 文本不显示 | 安装 fontconfig 与中文字体，确认 `bin/resources/fonts` |
 | 构建目录异常 | `python3 build/build.py clean` 后重试 |
@@ -252,7 +263,8 @@ Debug CEF；产物均为 PE `0xAA64`；出包实测于 2026-10-28，当时默认
 
 Skia 变体目录由架构、工具链与运行库共同决定（如 `llvm.x64.release`、
 `llvm.x64.debug`、`mingw64-gcc.x64.release`）。切换 `--md` 或工具链时 `deps`
-会生成对应变体，`pack.py` 按目录内容自动识别。
+会生成对应变体，`pack.py` 按目录内容自动识别。MinGW 的 Skia 只有 release
+变体，Debug 与 Release 共用 `<前缀><gcc|llvm>.<arch>.release`。
 
 SDL3 在 Windows 下按“架构 × 配置 × 运行库”安装到 `<deps-root>/SDL3/<变体>`
 （`msvc.<arch>.<debug|release>[.mdd|.md]`；MinGW 复用 Skia 的 release 变体名），

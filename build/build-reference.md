@@ -10,16 +10,16 @@
 
 | 项目 | 要求 |
 | :--- | :--- |
-| CMake | 3.24 及以上（根工程使用 CMakePresets） |
-| Python | **Python 3（必需）**；Skia 的构建脚本固定调用 `python3`，`python` / `py -3` 不能替代 |
+| CMake | 3.24 及以上（根工程使用 CMakePresets）；单独配置 `duilib/` 子工程时要求 3.19 及以上（解析构建消息目录用 `string(JSON)`） |
+| Python | **Python 3.8+（必需）**；Skia 的构建脚本固定调用 `python3`，`python` / `py -3` 不能替代 |
 | Git | 用于获取依赖源码 |
-| Ninja | Windows 由 Visual Studio 自带；其他平台用包管理器安装 |
+| Ninja | Windows 由 Visual Studio 自带（未安装该可选组件时自动使用补丁归档自带的 `bin/ninja.exe`，见第 5 节）；其他平台用包管理器安装 |
 | Windows | Visual Studio 2022 及以上（含 C++ 工作负载），或 MSYS2 / MinGW-w64 |
 | Linux | gcc 10+ 或 clang 12+，以及 X11/字体等开发包 |
 | macOS | Xcode 命令行工具 13.5+，Homebrew 安装 cmake/ninja/gn |
 | FreeBSD | clang、cmake、ninja、gn、fontconfig、freetype2 |
 
-Python 3 缺失时 `build.py` 会直接报错并给出安装提示，不提供绕过 Python 的构建
+Python 3.8+ 缺失时 `build.py` 会直接报错并给出安装提示，不提供绕过 Python 的构建
 路径。Skia 的构建脚本固定调用 `python3`；若 PATH 中只有 `python` / `py -3` 而没有
 `python3`，预检会给出告警，并在实际编译 Skia 前报错终止。
 
@@ -52,7 +52,7 @@ Python 3 的 `python`，或直接用薄封装 `build\build.bat`（参数与 `bui
 | `build.py`（默认） | 等价于 `build.py build`：先确保依赖就绪，再编译一个配置 |
 | `build.py deps` | 只准备当前配置所需的 Skia / SDL3 / CEF |
 | `build.py build` | 编译一个配置；默认先准备依赖，`--no-deps` 跳过 |
-| `build.py test` | 运行 `build/` 下的标准库 unittest（含 CMake 规则用例与一次真实 configure 冒烟）；PATH 上没有 cmake 时自动使用 `DUILIB_CMAKE_EXECUTABLE` 或 VS 自带 CMake |
+| `build.py test` | 运行 `build/` 下的标准库 unittest（含 CMake 规则用例、一次真实 configure 冒烟，以及文档一致性检查：Markdown 相对链接与 `docs/` 中英成对）；PATH 上没有 cmake 时自动使用 `DUILIB_CMAKE_EXECUTABLE` 或 VS 自带 CMake |
 | `build.py pack` | 调用 `pack.py` 出 SDK 包 |
 | `build.py doctor` | 环境自检：工具链、版本清单、依赖目录、根工程预检（含编译器、`gn`） |
 | `build.py clean` | 清理构建树；`--deps` 同时清理依赖产物 |
@@ -75,14 +75,14 @@ Debug 与 Release 的示例输出同名，都写在共享的 `bin/`，而目标�
 | :--- | :--- |
 | `--config Release\|Debug` | 构建配置，默认 `Release`；不提供 `--debug` 别名 |
 | `--arch auto\|x86\|x64\|arm64` | 目标架构，默认主机架构；Windows + Ninja 交叉编译 arm64 时必须显式指定 |
-| `--lang auto\|zh_CN\|en` | 交互语言，默认跟随系统；也读取环境变量 `DUILIB_LANG`。全部文案集中在 [cmake/i18n/messages.json](../cmake/i18n/messages.json)，维护方式见 [cmake/README.md](../cmake/README.md) 的「构建消息目录」 |
+| `--lang auto\|zh_CN\|en` | 交互语言，默认跟随系统；也读取环境变量 `DUILIB_LANG`，重复给出时以最后一个为准。`build.py pack` 调用的 `pack.py` 会收到同一个语言，子进程输出与本进程一致。全部文案集中在 [cmake/i18n/messages.json](../cmake/i18n/messages.json)，维护方式见 [cmake/README.md](../cmake/README.md) 的「构建消息目录」 |
 | `--build-dir <dir>` | 覆盖构建目录，允许放到仓库外 |
 | `--deps-root <dir>` | 依赖源码/安装根目录，默认仓库同级目录（与 `nim_duilib` 平级）；Skia、SDL3、CEF 都安装到这里。相对路径按当前目录解析，且 `build.py pack` 会原样转给 `pack.py` |
 | `--jobs N` | 并行编译任务数，默认 CPU 逻辑核心数 |
 | `--offline` | 只使用已缓存的依赖源码/归档，不联网 |
 | `--dry-run` | 只打印将执行的命令；`deps` 模式下还会打印 Skia/SDL3 的实际命令行（见第 5 节） |
 | `--cmake-arg <arg>` / `--build-arg <arg>` | 透传给 configure / build（可重复）；值以 `-` 开头时写成 `--cmake-arg=-DFOO=1` |
-| `--vs-version N` | 显式指定 Visual Studio 主版本（如 `17`）；仅 Windows 有效 |
+| `--vs-version N` | 显式指定 Visual Studio 主版本（如 `17`、`18`）；仅 Windows 有效；未指定时取机器上最新安装的版本 |
 | `--cef-version 109\|latest` | CEF 版本：`109` 为旧版，`latest` 取版本清单默认值（当前为 156，清单升级后自动跟随） |
 | `--skia-ref` / `--sdl-ref` | 选择版本清单中的 ref，如 `chrome/m142`、`main`、`release-3.4.18` |
 | `--sdl` / `--no-sdl` | 仅 Windows 有效；Windows 默认关闭，其他平台强制开启 |
@@ -96,6 +96,7 @@ Debug 与 Release 的示例输出同名，都写在共享的 `bin/`，而目标�
 | `--force`（deps） | 忽略完成标记，强制重建依赖 |
 | `--with-cef` / `--with-sdl` / `--with-examples`（pack） | 包内包含对应内容（Unix 始终打包 SDL3，无需 `--with-sdl`） |
 | `--out-dir`（pack） | 指定包输出目录（默认 `dist/`） |
+| `--pack-arg <arg>`（pack） | 原样追加到 `pack.py` 命令行（可重复），例如只看文件清单用 `--pack-arg=--list`、排查时用 `--pack-arg=--allow-missing`；值以 `-` 开头时同样写在等号后 |
 
 `--sdl` 只是编译开关；`pack` 要在包内包含 SDL3 时必须另加 `--with-sdl`
 （只写 `--sdl` 时 `build.py` 会打印提示，打包内容保持不变）。
@@ -180,11 +181,17 @@ ninja，仍找不到时从归档解压到 `out/.duilib-tools/bin/ninja.exe` 并�
 - 参数与真实准备同源（都是配置期生成的同一组 `-D` 值），不会出现“文档里一套、执行另一套”。
 - 计划目标是只读的：不创建依赖目录、不加文件锁、不 clone/切换源码、不编译、不写 stamp；
   已就绪的变体会标注“实际运行会跳过该步骤”，命令仍完整列出。
-- 需要构建目录已经配置过（`out/<arch>/<Config>/CMakeCache.txt` 存在）；`--dry-run`
-  本身不会配置，未配置时只打印 `deps.plan_unconfigured` 提示。因此命令反映的是
+- 计划目标通过 `cmake --build --target duilib_deps_plan` 执行；`CMakeLists.txt` 或
+  `cmake/*.cmake` 比构建系统新时，CMake 会先按常规重跑一次配置（只更新 `out/` 下的
+  构建目录，不做依赖准备、不联网、不编译），这是 CMake 自身的行为。
+- 需要构建目录已经配置过（`out/<arch>/<Config>/CMakeCache.txt` 存在）；未配置时只打印
+  `deps.plan_unconfigured` 提示，`--dry-run` 不会主动配置。命令反映的是
   **上次真实配置**的缓存（`--md`/`--dll`、`--sdl`、`--deps-root` 等）；本次参数与缓存
   不一致时会先打印 `[WARN] 计划命令按构建目录中的上次配置生成…DUILIB_MD=ON (now OFF)`
   警告，此时先执行一次不带 `--dry-run` 的 `build.py deps` 再看计划命令。
+- 编译工具链（MSVC ↔ MinGW）或运行库/DLL 模式（`--md`/`--dll`）发生切换时，真正的
+  `deps` 会先清空构建树再重新配置，因此 `--dry-run` 只打印 `deps.plan_reset` 提示，
+  不按即将被丢弃的旧缓存展开命令（否则会列出旧编译器/旧模式的 `gn`、`ninja` 参数）。
 - 直接调用等价写法：`cmake -P cmake/duilib_deps_run.cmake -DDUILIB_DEPS_PLAN=ON ...`
   （或在构建目录执行 `cmake --build . --target duilib_deps_plan`）。
 - CEF 运行时由下载/解压完成，计划模式只给一行提示，不展开下载命令。
@@ -206,8 +213,10 @@ ninja，仍找不到时从归档解压到 `out/.duilib-tools/bin/ninja.exe` 并�
 - **Skia**：固定 commit（`skia.default`）+ 对应补丁 zip；Windows 使用 VS 自带
   clang/ninja。非 Windows 平台优先用 clang/clang++ 编译（GCC 版 Skia 运行性能明显
   较差），只有 clang 不可用时才回退 gcc/g++；产物目录相应为
-  `out/llvm.<arch>.release` 或 `out/gcc.<arch>.release`。Debug 复用 Release 编译
-  模式，仅切换运行库（`/MTd` 或 `/MDd`），因此每种配置需要各自的 Skia 变体目录。
+  `out/llvm.<arch>.release` 或 `out/gcc.<arch>.release`。Windows MSVC 的 Debug
+  复用 Release 编译模式，仅切换运行库（`/MTd` 或 `/MDd`），因此每种配置需要各自的
+  Skia 变体目录；MinGW 没有这种运行库切换，Debug 与 Release 共用同一份
+  `<前缀><gcc|llvm>.<arch>.release`（`deps` 也只编译这一份）。
   本地 `skia/` 源码不在清单 commit（或 `--skia-ref` 指定的 tag/branch）上时，
   `deps` 会把工作区切到清单指定的提交；branch ref 只要求当前就在该分支上，
   不会每次都去追远端新提交。
@@ -248,8 +257,11 @@ ninja，仍找不到时从归档解压到 `out/.duilib-tools/bin/ninja.exe` 并�
 缓存，离线时可复用；拿不到时 `deps` 回退版本清单中的 `sha256`，两者都没有时
 只告警并跳过校验。
 
-已有依赖产物但没有 stamp 文件时，`deps` 会校验版本后直接采纳（Skia 校验源码
-HEAD，CEF 校验跟踪头文件主版本），避免重复编译或重复下载。
+已有依赖产物但没有 stamp 文件时，`deps` 会校验版本后直接采纳，避免重复编译或重复
+下载：Skia 校验源码 HEAD 与补丁指纹，CEF 仅在 macOS 采纳（能读到
+`include/cef_version.h` 且与该版本匹配）；Windows/Linux 的 CEF 运行时目录只放
+二进制、读不到版本号，为避免把上一版本的 `libcef.dll`/`libcef.so` 标成新版本，
+每次都按归档重新解压覆盖。
 
 依赖模式由 `DUILIB_DEPS_MODE` 控制：`off`（只检查）、`prepare`（由构建目标
 准备）、`auto`（配置阶段准备）。`build.py` 默认使用 `prepare`，`clean` 默认
@@ -367,7 +379,9 @@ python3 build/build.py --cmake-arg -DCMAKE_C_COMPILER=gcc   -DCMAKE_CXX_COMPILER
 
 - 非 Windows 平台的 `build.py doctor` 会按 `CC`/`CXX` 报告实际将使用的编译器。
 - 切换编译器后无需手动删目录：`build.py` 发现 `out/<arch>/<Config>` 缓存中的编译器
-  变化时，会自动清空该构建目录后重新配置。
+  变化时，会自动清空该构建目录后重新配置，并删除 `lib/`、`build/build_temp` 与
+  `bin/` 中的旧编译器产物（`bin/` 的运行时资源保留）。VS 版本切换（如 `--vs-version 17`
+  与默认最新版互切）同样适用；不同工具集的产物无需共存。
 - Windows/MSVC 不使用 `CC`/`CXX`，工具链由 vcvars 提供；MSYS2 中可用
   `CC=gcc CXX=g++` 或 `CC=clang CXX=clang++` 指定。
 - 非 Windows 的 Skia 与主工程工具链解耦：Skia 始终优先 clang/clang++（GCC 版 Skia
@@ -380,6 +394,9 @@ MSYS2 各环境使用各自目录下的工具链（MSYS2 终端中 `MSYSTEM` 与
 | MINGW64（msvcrt） | `MINGW64` | `E:\msys64\mingw64\bin` | `gcc` / `g++` | `gcc.msvcrt.<arch>.release` → `gcc.<arch>.release` → `mingw64-gcc.<arch>.release` | `-mingw-gcc` |
 | UCRT64 | `UCRT64` | `E:\msys64\ucrt64\bin` | `gcc` / `g++` | `gcc.<arch>.release` → `mingw64-gcc.<arch>.release` | `-mingw-gcc` |
 | CLANG64 | `CLANG64` | `E:\msys64\clang64\bin` | `clang` / `clang++` | `llvm.<arch>.release` → `mingw64-llvm.<arch>.release` | `-mingw-llvm` |
+
+表中的候选与 `--config` 无关：MinGW 的 Skia 只有 release 变体，Debug 构建同样使用
+`.<arch>.release` 目录，`deps` 也不会为 Debug 另编一份。
 
 MINGW64（msvcrt）与 UCRT64（ucrt）的 gcc 静态库 C 运行库不同，Skia 也必须用同源目录；
 MINGW64 会优先选带 `.msvcrt` 的目录（只在该环境提供，其他环境不会误选）。
@@ -440,23 +457,23 @@ UCRT64 的产物，也不会漏掉实际存在的 msvcrt 变体。
 | `gn/ninja not found` | Windows 使用 VS 自带目录，或执行 `python3 build/build.py deps` 从 Skia 补丁归档解压自带的 `bin/gn.exe`；VS 未装 ninja（可选组件）时 `build.py` 与根工程都会自动从归档解压自带的 `bin/ninja.exe`（`out/.duilib-tools` 或构建树 `.duilib-tools`），无需单独安装。Unix 安装 `ninja` 与 `gn`。Unix 不会使用 Skia 目录里的 `gn.exe`（Windows 版无法运行），只有 `gn.exe` 时必须另装原生 `gn` |
 | `python: command not found`（macOS/Linux） | 这些系统通常只有 `python3`：改用 `python3 build/build.py ...`，参数不变 |
 | `python3 not found`（编译 Skia 时报错） | Skia 构建脚本固定调用 `python3`，不认 `python` / `py -3`；安装 Python 3 并确认 `python3 --version` 可用（Windows 可把 Python 安装目录加入 PATH） |
-| `CMake version is too old` | 升级到 CMake 3.24+ |
+| `CMake 3.24 or higher is required` | 根工程要求 CMake 3.24+（单独配置 `duilib/` 子工程为 3.19+）：升级 CMake 后重试 |
 | CEF 示例无法运行 | 确认 `bin/libcef_win/<arch>`（或 `bin/libcef_linux`）包含运行时；`pack --with-cef` 会带上 |
-| macOS Debug 构建复制 `Chromium Embedded Framework.framework` 失败 | CEF 分发包通常只带 Release 框架；现已在配置期检测并自动回退到 `Release/`，日志会打印 `CEF Debug framework not found; using Release framework`。若 Debug/Release 都没有框架，配置期会直接报错并提示检查 `CEF_ROOT` |
+| macOS Debug 构建复制 `Chromium Embedded Framework.framework` 失败 | CEF 分发包通常只带 Release 框架；现已在配置期检测并自动回退到 `Release/`，日志会打印 `[WARN] 未找到 CEF 的 Debug 框架；改用 Release 框架：<Release 框架路径>`（英文环境为 `[WARN] CEF Debug framework not found; using the Release framework: <path>`）。若 Debug/Release 都没有框架，配置期会直接报错并提示检查 `CEF_ROOT` |
 | 打包的示例程序加载了构建机的 `.so` | 示例程序已写入相对 rpath（`$ORIGIN/../lib`、`$ORIGIN/libcef_linux`），优先使用包内库；Linux 示例依赖 libcef 时请用 `pack --with-cef`，否则包内缺少 CEF 运行时 |
 | 产物中仍有构建机绝对路径（`otool`/`readelf` 可见） | 这些路径来自 `DUILIB_RPATH_ABSOLUTE=ON` 的 SDL3 兜底；发布构建可加 `--cmake-arg=-DDUILIB_RPATH_ABSOLUTE=OFF`，或改用 `DUILIB_SDL_RPATH=OFF` 完全关闭 rpath |
 | CEF 下载失败 | 用 `--cef-archive <file>` 指定本地归档，或 `--offline` 使用缓存 |
 | Linux 文本不显示 | 安装 fontconfig 与中文字体，确认 `bin/resources/fonts` 存在 |
 | 构建目录损坏 | `python3 build/build.py clean` 后重试 |
 | `clean` 删除失败（权限/占用） | 关闭占用构建树的程序（编辑器、运行中的示例、杀毒软件）后重试；错误信息会给出无法删除的具体路径 |
-| 切换编译器后配置失败（如 cl.exe 找不到 `kernel32.lib`） | 无需手动清理：`build.py` 检测到 `out/<arch>/<Config>` 缓存中的编译器变化会自动清空该目录 |
+| 切换编译器后配置失败（如 cl.exe 找不到 `kernel32.lib`） | 无需手动清理：`build.py` 检测到 `out/<arch>/<Config>` 缓存中的编译器变化会自动清空该目录，并删除 `lib/`、`build/build_temp` 与 `bin/` 中的旧编译器产物 |
 | 先编译 Debug 再编译 Release 时直接结束（`ninja: no work to do`），`bin/` 仍是 Debug 示例 | 两个配置的示例都写到共享的 `bin/`，切换配置时 `build.py` 会删除另一种配置的示例产物与 `bin/.build-config` 标记后重新链接；macOS 的 `.app` 只删 `Contents/MacOS` 下的可执行文件，保留 configure 阶段生成的 `Contents/Info.plist`；手工调用 CMake 时需自行清理 `bin/` 中的同名示例 |
 | macOS 切换 Debug/Release 后第一次启动即崩溃，栈顶为 `+[UNUserNotificationCenter currentNotificationCenter]` 断言 | 旧版 `build.py` 在 configure 之后整个删除 `bin/<目标>.app`，重新链接只重建可执行文件，`Contents/Info.plist` 缺失导致 LaunchServices 无法解析进程的 bundle。现已修复：切换配置时只删 `.app` 内的可执行文件。已有产物可 `rm -rf bin/<目标>.app` 后重新构建（configure 会重新生成 `Info.plist`），用 `plutil -p bin/<目标>.app/Contents/Info.plist` 确认 |
 | `Visual Studio C++ tools for <arch> are not installed` | 在 Visual Studio Installer 中为对应架构安装 MSVC 生成工具（如 ARM64）；仅有 x64/x86 工具集时不要构建 arm64 |
 | MSYS2 CLANG64 配置期报 Skia 目录没有 `.a` | 已按候选顺序自动回退到 `mingw64-llvm.<arch>.release`；若仍无可用的 `.a` 目录，请用 `-DDUILIB_SKIA_LIB_SUBPATH=<目录>` 指定 clang64 编译的 Skia |
 | `--cef-version 109` 构建报找不到 `libcef_dll_wrapper_109` | 已修复：wrapper 的源码目录与目标名现在跟随 `DUILIB_CEF_VERSION`；旧构建树需 `build.py clean` 后重新配置 |
 | `--cef-version 109` Debug 链接报 `_ITERATOR_DEBUG_LEVEL` 0 vs 2（LNK2038） | 已修复：109 配置期强制 `USE_SANDBOX=OFF`，避免 wrapper 的 `_HAS_ITERATOR_DEBUGGING=0` 与 Debug 主工程冲突 |
-| `pack` 报“库目录同时包含 MSVC（.lib）与 MinGW（.a）产物” | 切换工具链后旧库仍留在 `lib/<arch>/<Config>`；删除该目录（或 `build.py clean`）后用单一工具链重新构建 |
+| `pack` 报“库目录同时包含 MSVC（.lib）与 MinGW（.a）产物” | 编译器切换时 `build.py` 已自动删除 `lib/`、`build/build_temp` 与 `bin/` 中的旧产物；若构建目录被手动删除（无法检测切换），请删除该库目录（或 `build.py clean`）后用单一工具链重新构建 |
 | `pack --with-cef` 报缺少所选版本的 wrapper | 编译与打包的 CEF 版本必须一致（如 `build --cef-version 109` 对应 `pack --with-cef --cef-version 109`）；错误信息会指出库目录中实际存在的版本 |
 | `pack --with-examples` 报“bin 的架构与目标 x86/x64 不一致” | Windows 的 `bin/` 被多个架构共用；清理 `bin/` 中其它架构的 exe/dll，或只保留目标架构的构建产物后重新打包 |
 | MinGW 编译或链接（尤其 Debug）报 `out of memory allocating ...` | 降低并行度：`--jobs 2`；链接阶段 GNU ld 已追加 `-Wl,--no-keep-memory`（clang/CLANG64 的 lld 不需要该参数） |
@@ -465,7 +482,8 @@ UCRT64 的产物，也不会漏掉实际存在的 msvcrt 变体。
 | MSVC 链接 SDL3 报 LNK2038（`RuntimeLibrary` 值不匹配） | Debug/Release 的 SDL3 静态库同名，新版按变体前缀安装。若 `SDL3/` 下只有旧的单前缀，执行 `python3 build.py deps --force` 生成 `msvc.<arch>.debug`/`msvc.<arch>.release` 等变体；不要手工把 Release 库复制进 Debug 前缀 |
 | MinGW Debug 链接报 `No space left on device` | MinGW Debug 示例单个约 200–280 MB，全部示例约 10 GB；清理 `bin/` 后重试，或改用 Release 配置 |
 
-更细的旧脚本时代问题排查记录保留在 [build/README.md](README.md)。
+历史验证记录（各平台、工具链、架构与特性组合的实测结论）见 [test-matrix.md](test-matrix.md)；
+已修复问题的来龙去脉见根目录 [CHANGELOG.md](../CHANGELOG.md)。
 
 ## 11. 与旧脚本的差异
 

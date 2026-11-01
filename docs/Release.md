@@ -251,7 +251,22 @@ SDL/WebView2/JPEG/CEF、MSVC 运行库、运行期 DLL），无需手工抄写�
 | `NimDuilibCopyRuntime` | `1` | 构建后复制 `bin/*.dll` |
 | `NimDuilibCopyResources` | `0` | 构建后复制 `bin/resources/` 到输出目录 `resources/` |
 | `NimDuilibForceRuntimeLibrary` | `1` | 对齐 MSVC 运行库；`0` 可退出 |
+| `NimDuilibUseManifest` | `1` | 按工程 Platform 嵌入 `msvc/manifest/duilib.<arch>.manifest`；`0` 不嵌入 |
 | `NimDuilibSkipValidation` | `0` | 跳过工具链/架构/配置/库存在性校验 |
+
+属性表还会按包元数据自动补齐链接项。这些是**属性表内部赋值**，在 Import 之前设置同名的
+`NimDuilibSystemLibs` / `NimDuilibLinkLibs` 会被覆盖（要额外链接的库请在自己工程里追加
+`AdditionalDependencies`）：
+
+- 系统库：`Comctl32`、`Imm32`、`Opengl32`、`User32`、`shlwapi`；SDL 包再加
+  `Version`/`Winmm`/`Setupapi`/`Hid`/`Mincore`/`Dinput8`，WebView2 包再加 `WinInet`；
+- 静态包：Skia 全套（`skia`/`svg`/`skshaper`/`skottie`/`sksg`/`jsonreader`，包内存在时
+  再补 `bentleyottmann`/`expat`/`skcms`/`skresources`）、可选的 `SDL3-static` /
+  `turbojpeg-static` / `WebView2LoaderStatic` / `libcef` + `libcef_dll_wrapper[_109]`，
+  以及 `duilib`/`duilib-cximage`/`duilib-png`/`duilib-webp`/`duilib-zlib`；
+- DLL 包：只链导入库 `duilib.lib` + 系统库，其余依赖已在 `duilib.dll` 内；
+- 静态 + CEF 包自动加 `/DELAYLOAD:libcef.dll`；静态 Debug 包自动加
+  `/NODEFAULTLIB:"libcmt.lib"`，避免第三方预编译库触发 LNK4098。
 
 常见报错：
 
@@ -342,7 +357,8 @@ Helper 可执行文件位于 `Contents/Frameworks/<Helper>.app/Contents/MacOS`�
 
 **多配置生成器（VS）注意**：发布包是单配置的。用 VS 生成器时 `CMAKE_BUILD_TYPE`
 不生效，构建非包配置（例如 Release 包构建 Debug）会链接到不匹配的运行库。
-建议每个配置使用独立的构建目录和对应的包：
+建议每个配置使用独立的构建目录和对应的包（生成器名按本机安装的 VS 版本，
+如 `Visual Studio 17 2022`、`Visual Studio 18 2026`）：
 
 ```
 cmake -S . -B build-debug   -G "Visual Studio 17 2022" -A x64 ^
@@ -454,11 +470,11 @@ SDK 模式下被排除的是各示例的私有主题目录，共 22 个：
 | `--arch x64\|x86\|arm64` | 库架构；Windows 决定库目录，所有平台影响包名 |
 | `--lib-dir <路径>` | 完全显式指定库目录，覆盖 `--arch`/`--config` 的路径计算；相对路径按**仓库根目录**解析 |
 | `--deps-root <路径>` | 依赖根目录（其下为 `skia/` 与 `SDL3/`，与 `build.py --deps-root` 相同）；默认仓库同级目录，相对路径按当前目录解析。`build.py pack` 会自动转发 |
-| `--skia-lib-dir <路径>` | Skia 静态库目录，默认按平台/工具链探测（MSVC `../skia/out/llvm.<arch>.<config>`；MinGW 为 `mingw64-gcc\|llvm.<arch>.release`（独立 MinGW-w64）或 `gcc\|llvm.<arch>.release`（MSYS2），并按目录内是否存在 `.a` 校验）；相对路径按**仓库根目录**解析 |
+| `--skia-lib-dir <路径>` | Skia 静态库目录，默认按平台/工具链探测（MSVC `../skia/out/llvm.<arch>.<config>`，`--md`/DLL 模式追加 `.md`（Debug 为 `.mdd`）；MinGW 为 `mingw64-gcc\|llvm.<arch>.release`（独立 MinGW-w64）或 `gcc\|llvm.<arch>.release`（MSYS2），MSYS2 MINGW64 另备 `gcc.msvcrt.<arch>.release`，并按目录内是否存在 `.a` 校验）；相对路径按**仓库根目录**解析 |
 | `--sdl-dir <路径>` | 显式指定 SDL3 安装前缀（不派生变体）；默认取 `../SDL3` 根目录，按 `--arch`/`--config`/运行库（MT、MD、DLL）选择 `<根>/<变体>`，变体缺失时回退 `<根>`；相对路径按**仓库根目录**解析 |
 | `--with-sdl` | Windows 下额外打包 SDL3（Unix 始终打包） |
-| `--with-cef` | 打包 CEF：头文件 + `libcef.lib` + wrapper + 运行时（体积大） |
-| `--cef-version latest\|109` | 配合 `--with-cef` 选择版本，默认 `latest` |
+| `--with-cef` | 打包 CEF：头文件 + 链接库（Windows 为 `libcef.lib`）+ wrapper + 运行时（体积大）；macOS 只决定 CEF 示例 App Bundle 是否随包（SDK 不含 macOS CEF 开发文件），FreeBSD 不支持 |
+| `--cef-version latest\|109` | 配合 `--with-cef` 选择版本，默认 `latest`；`109` 仅 Windows 提供 |
 | `--msvc-runtime auto\|mt\|md` | 写入包元数据的 MSVC 运行库；默认 `auto`（DLL 模式 MD，否则 MT） |
 | `--with-examples` | 包含示例程序与全部示例私有资源 |
 | `--format zip\|tgz\|tarbz2` | 压缩格式，默认 Windows 用 `zip`、其它用 `tgz` |
@@ -466,6 +482,7 @@ SDK 模式下被排除的是各示例的私有主题目录，共 22 个：
 | `--list` | 只打印将收集的文件清单，不实际打包 |
 | `--allow-missing` | 关键产物缺失时仍继续出包（仅用于排查，发布流程不要使用） |
 | `--verify <包路径>` | 只校验已有包：单根目录、`MANIFEST.txt`/`SHA256SUMS` 存在性、头文件与静态库布局、全部 SHA256、SDK 文档相对链接；通过返回 0，出错返回 1 |
+| `--lang auto\|zh_CN\|en` | 提示语言，默认 `auto`（按 `DUILIB_LANG` → `LC_ALL`/`LC_MESSAGES`/`LANG` → 系统区域 → 英文的顺序判定，重复给出时以最后一个为准）；`release.py` 各子命令同样支持，写在子命令之后也生效，并会把它转发给调用的 `pack.py`。全部文案见 [cmake/i18n/messages.json](../cmake/i18n/messages.json) |
 
 ## Debug 包
 
@@ -779,7 +796,9 @@ git tag 建议用 `v<版本号>` 格式，便于与包名对应。
    ```
 
    产物输出到 `dist/<版本>/`；其它特性包按需追加 `--with-sdl`、`--with-cef`、
-   `--with-examples` 等参数。
+   `--with-examples` 等参数。包名按**实际产物**决定：DLL 模式下 `release.py`
+   与 `pack.py` 同样追加 `-dll`；打包完成后 `release.py` 会立即对本次新增的
+   压缩包做一次体检（布局、SHA256、包内文档链接），不通过时以非零退出码结束。
 4. 校验全部压缩包并生成发布说明：
 
    ```

@@ -25,7 +25,10 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
     set(DUILIB_OS_FREEBSD TRUE)
 else()
-    message(FATAL_ERROR "[ERROR] unsupported platform: ${CMAKE_SYSTEM_NAME}")
+    duilib_tf(_duilib_root_platform_what "cmake.platform_unsupported"
+              "platform=${CMAKE_SYSTEM_NAME}")
+    duilib_t("cmake.platform_unsupported_hint" _duilib_root_platform_hint)
+    message(FATAL_ERROR "${_duilib_root_platform_what}\n  Hint: ${_duilib_root_platform_hint}")
 endif()
 
 # 编译器
@@ -119,21 +122,17 @@ set(DUILIB_SDL_REF "${_duilib_default_sdl}" CACHE STRING "SDL3 ref key from thir
 string(JSON _duilib_unused ERROR_VARIABLE _duilib_json_err
        GET "${DUILIB_VERSIONS_JSON}" skia refs "${DUILIB_SKIA_REF}")
 if(_duilib_json_err)
-    duilib_t("deps.ref_unknown" _duilib_ref_msg)
-    string(REPLACE "{section}" "skia" _duilib_ref_msg "${_duilib_ref_msg}")
-    string(REPLACE "{key}" "${DUILIB_SKIA_REF}" _duilib_ref_msg "${_duilib_ref_msg}")
-    duilib_t("deps.ref_unknown_hint" _duilib_ref_hint)
-    string(REPLACE "{section}" "skia" _duilib_ref_hint "${_duilib_ref_hint}")
+    duilib_tf(_duilib_ref_msg "deps.ref_unknown"
+              "section=skia" "key=${DUILIB_SKIA_REF}")
+    duilib_tf(_duilib_ref_hint "deps.ref_unknown_hint" "section=skia")
     duilib_error_values("${_duilib_ref_msg}" "${_duilib_ref_hint}")
 endif()
 string(JSON _duilib_unused ERROR_VARIABLE _duilib_json_err
        GET "${DUILIB_VERSIONS_JSON}" sdl refs "${DUILIB_SDL_REF}")
 if(_duilib_json_err)
-    duilib_t("deps.ref_unknown" _duilib_ref_msg)
-    string(REPLACE "{section}" "sdl" _duilib_ref_msg "${_duilib_ref_msg}")
-    string(REPLACE "{key}" "${DUILIB_SDL_REF}" _duilib_ref_msg "${_duilib_ref_msg}")
-    duilib_t("deps.ref_unknown_hint" _duilib_ref_hint)
-    string(REPLACE "{section}" "sdl" _duilib_ref_hint "${_duilib_ref_hint}")
+    duilib_tf(_duilib_ref_msg "deps.ref_unknown"
+              "section=sdl" "key=${DUILIB_SDL_REF}")
+    duilib_tf(_duilib_ref_hint "deps.ref_unknown_hint" "section=sdl")
     duilib_error_values("${_duilib_ref_msg}" "${_duilib_ref_hint}")
 endif()
 string(JSON _duilib_skia_ref_type ERROR_VARIABLE _duilib_json_err
@@ -298,10 +297,10 @@ option(DUILIB_MD "Use the MSVC dynamic runtime (/MD, /MDd)" OFF)
 option(DUILIB_DLL "Build duilib as a shared library (Windows MSVC, implies /MD)" OFF)
 if(DUILIB_DLL)
     if(NOT DUILIB_OS_WINDOWS OR NOT DUILIB_COMPILER_MSVC)
-        message(FATAL_ERROR
-            "[ERROR] DUILIB_DLL=ON only supports Windows with MSVC "
-            "(current: ${CMAKE_SYSTEM_NAME}, ${CMAKE_CXX_COMPILER_ID}).\n"
-            "Use the static build, or a Windows MSVC toolchain.")
+        duilib_tf(_duilib_root_dll_what "options.dll_unsupported"
+                  "os=${CMAKE_SYSTEM_NAME}" "compiler=${CMAKE_CXX_COMPILER_ID}")
+        duilib_t("options.dll_unsupported_hint" _duilib_root_dll_hint)
+        message(FATAL_ERROR "${_duilib_root_dll_what}\n  Hint: ${_duilib_root_dll_hint}")
     endif()
     set(DUILIB_MD ON CACHE BOOL "Use the MSVC dynamic runtime (/MD, /MDd)" FORCE)
 endif()

@@ -1,3 +1,6 @@
+# 构建消息（中英文）按需引入：独立工程只 include 本文件时也能解析 cmake.* 文案。
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_i18n.cmake")
+
 # 操作系统：Windows,Linux,MacOS
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(DUILIB_OS_WINDOWS 1)
@@ -7,9 +10,9 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(DUILIB_OS_MACOS 1)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
     set(DUILIB_OS_FREEBSD 1)
-    message(STATUS "Building for FreeBSD")
+    duilib_msg("cmake.freebsd")
 else()
-    message(WARNING "Unknown OS: ${CMAKE_SYSTEM_NAME}")
+    duilib_warn("cmake.os_unknown" "${CMAKE_SYSTEM_NAME}")
 endif()
 
 # 定义开关变量（修改后，需要清除camke生成目录才能生效，如果未清除则会从缓存中读取旧值）
@@ -68,7 +71,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(DUILIB_COMPILER_NAME "${DUILIB_MINGW_NAME}llvm")
 else()
     set(DUILIB_COMPILER_NAME "unknown")
-    message(WARNING "Unknown CMAKE_CXX_COMPILER_ID: ${CMAKE_CXX_COMPILER_ID}")
+    duilib_warn("cmake.compiler_unknown" "${CMAKE_CXX_COMPILER_ID}")
 endif() 
 
 # CPU类型
@@ -87,7 +90,7 @@ if(NOT DUILIB_SYSTEM_PROCESSOR)
         set(DUILIB_SYSTEM_PROCESSOR "x64")
     else()
         set(DUILIB_SYSTEM_PROCESSOR "unknown")
-        message(WARNING "Unknown CMAKE_SYSTEM_PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR}")
+        duilib_warn("cmake.processor_unknown" "${CMAKE_SYSTEM_PROCESSOR}")
     endif()
 endif()
 
@@ -109,11 +112,11 @@ endif()
 # 自动规则：
 #   Windows MSVC / clang-cl -> llvm.<arch>.debug|release
 #     Debug 必须匹配 debug 变体（Debug 版本无法链接 release Skia），缺失直接报错。
-#   Windows MinGW gcc       -> mingw64-gcc.<arch>.debug|release（MSYS2 为 gcc.<arch>.xxx）
-#     Debug 变体缺失时回退同编译器的 release 变体（MinGW 的 Debug 可以链接 release Skia）；
+#   Windows MinGW gcc       -> mingw64-gcc.<arch>.release（MSYS2 为 gcc.<arch>.release）
+#     MinGW 没有 /MTd 之类的运行库切换，Debug 与 Release 共用 release 变体（与配置无关）；
 #     gcc 与 llvm 的 Skia 不能混用：libstdc++ 与 libc++ 会重复定义 std 符号，链接失败
-#   Windows MinGW llvm      -> mingw64-llvm.<arch>.debug|release（MSYS2 为 llvm.<arch>.xxx）
-#     Debug 变体缺失时回退 release 变体
+#   Windows MinGW llvm      -> mingw64-llvm.<arch>.release（MSYS2 为 llvm.<arch>.release）
+#     同上，Debug/Release 共用 release 变体
 #   其他平台                -> <编译器名>.<arch>.release（Skia 只有 release 变体，见 D-3）
 # MSYS2 与独立 MinGW-w64 由编译器安装位置判断（见 duilib_detect_msys2），
 # 本工具链的前缀优先，另一组前缀作为回退。
@@ -216,13 +219,14 @@ function(_duilib_check_deps_crt what dir)
     string(STRIP "${_stamp_crt}" _stamp_crt)
     duilib_crt_id(_expected_crt)
     if(NOT _stamp_crt STREQUAL _expected_crt)
+        duilib_t("deps.crt_mismatch" _duilib_crt_what)
+        duilib_t("deps.crt_mismatch_hint" _duilib_crt_hint)
+        # 细节三行用"已构建 -> 当前"箭头表达，避免再引入一组标签消息键
         message(FATAL_ERROR
-            "[ERROR] CRT mismatch (${what}):\n"
+            "${_duilib_crt_what} (${what}):\n"
             "  ${dir}\n"
-            "  已构建: ${_stamp_crt}\n"
-            "  当前:   ${_expected_crt}\n"
-            "Hint: 用相同的 DUILIB_MD 重新执行 'python3 build/build.py deps'，"
-            "或改用与依赖匹配的构建目录。")
+            "  ${_stamp_crt} -> ${_expected_crt}\n"
+            "  Hint: ${_duilib_crt_hint}")
     endif()
 endfunction()
 
@@ -257,13 +261,9 @@ function(_duilib_check_mingw_skia_lib dir)
     endif()
     file(GLOB _duilib_skia_a_files "${dir}/*.a")
     if(NOT _duilib_skia_a_files)
-        message(FATAL_ERROR
-            "Skia 库目录中没有 .a 静态库，无法用于 MinGW 构建：\n"
-            "  ${dir}\n"
-            "该目录可能存放的是 MSVC 构建的 .lib 文件。\n"
-            "请用与当前工具链相同的编译器重新编译 Skia（MSYS2 用 gcc 或 CLANG64 的 clang，"
-            "独立 MinGW 用 gcc 或 llvm-mingw），"
-            "或用 -DDUILIB_SKIA_LIB_SUBPATH=<子目录名> 指定正确的目录。")
+        duilib_t("cmake.mingw_skia_no_static_lib" _duilib_skia_a_what)
+        duilib_t("cmake.mingw_skia_no_static_lib_hint" _duilib_skia_a_hint)
+        message(FATAL_ERROR "${_duilib_skia_a_what}\n  ${dir}\n  Hint: ${_duilib_skia_a_hint}")
     endif()
 endfunction()
 
@@ -322,13 +322,12 @@ elseif(_duilib_skia_user_subpath)
     set(DUILIB_SKIA_LIB_PATH "${DUILIB_SKIA_SRC_ROOT_DIR}/out/${_duilib_skia_user_subpath}")
     if(DUILIB_SKIA_LIB_PATH MATCHES "\\$<")
         # 含生成器表达式时无法在配置阶段确定最终路径，交由生成器展开
-        message(STATUS "DUILIB_SKIA_LIB_SUBPATH 含生成器表达式，跳过配置期存在性校验：${DUILIB_SKIA_LIB_SUBPATH}")
+        duilib_msg("cmake.skia_subpath_generated" "${DUILIB_SKIA_LIB_SUBPATH}")
     elseif(NOT EXISTS "${DUILIB_SKIA_LIB_PATH}")
-        message(FATAL_ERROR
-            "指定的 Skia 库目录不存在：\n"
-            "  ${DUILIB_SKIA_LIB_PATH}\n"
-            "请检查 -DDUILIB_SKIA_LIB_SUBPATH=${DUILIB_SKIA_LIB_SUBPATH} 是否正确，"
-            "或先编译 Skia。")
+        duilib_t("cmake.skia_subpath_missing" _duilib_skia_sub_what)
+        duilib_t("cmake.skia_subpath_missing_hint" _duilib_skia_sub_hint)
+        message(FATAL_ERROR "${_duilib_skia_sub_what} ${DUILIB_SKIA_LIB_PATH}\n"
+                            "  Hint: ${_duilib_skia_sub_hint}")
     else()
         _duilib_check_mingw_skia_lib("${DUILIB_SKIA_LIB_PATH}")
     endif()
@@ -371,10 +370,12 @@ else()
     endforeach()
 
     if(NOT _duilib_skia_error STREQUAL "")
-        message(FATAL_ERROR
-            "未找到可用的 Skia 库目录（${DUILIB_SKIA_SRC_ROOT_DIR}/out 下）：\n"
-            "${_duilib_skia_error}"
-            "请先编译 Skia，或用 -DDUILIB_SKIA_LIB_SUBPATH=<子目录名> 指定。")
+        duilib_tf(_duilib_skia_missing_what "cmake.skia_dir_missing"
+                  "root=${DUILIB_SKIA_SRC_ROOT_DIR}")
+        duilib_t("cmake.skia_dir_missing_hint" _duilib_skia_missing_hint)
+        message(FATAL_ERROR "${_duilib_skia_missing_what}:\n"
+                            "${_duilib_skia_error}"
+                            "  Hint: ${_duilib_skia_missing_hint}")
     endif()
 
     # MinGW 构建逐个配置校验目录内的 .a 静态库（多配置下两种配置可能指向不同目录）
@@ -562,19 +563,12 @@ if(DUILIB_ENABLE_SDL)
             # MinGW 的 Debug/Release 本来就共用一份静态库，不存在 CRT 冲突。
             duilib_sdl_variant_name("${_duilib_sdl_cfg_cap}" "windows"
                                     "${_duilib_sdl_arch}" "${DUILIB_MINGW}" _variant)
-            if(DUILIB_MINGW)
-                message(WARNING
-                    "SDL3: 未找到变体目录 ${_duilib_sdl_root}/${_variant}，回退到单前缀 "
-                    "${_duilib_sdl_root}（${_duilib_sdl_cfg}）。\n"
-                    "建议执行 'python3 build/build.py deps' 按变体安装 SDL3。")
-            else()
-                message(WARNING
-                    "SDL3: 未找到变体目录 ${_duilib_sdl_root}/${_variant}，回退到单前缀 "
-                    "${_duilib_sdl_root}（${_duilib_sdl_cfg}）。\n"
-                    "若该前缀中是 Release 版静态库，Debug 目标会因 RuntimeLibrary "
-                    "不一致而链接失败（LNK2038）。\n"
-                    "建议执行 'python3 build/build.py deps' 按变体安装 SDL3。")
-            endif()
+            duilib_tf(_duilib_sdl_fallback "cmake.sdl_variant_fallback"
+                      "variant=${_variant}"
+                      "root=${_duilib_sdl_root}"
+                      "config=${_duilib_sdl_cfg}")
+            duilib_t("cmake.sdl_variant_fallback_hint" _duilib_sdl_fallback_hint)
+            message(STATUS "${_duilib_sdl_fallback}\n  Hint: ${_duilib_sdl_fallback_hint}")
         endif()
         if(_duilib_sdl_cfg STREQUAL "debug")
             set(_duilib_sdl_debug_prefix "${_duilib_sdl_resolved}")
@@ -584,11 +578,11 @@ if(DUILIB_ENABLE_SDL)
     endforeach()
 
     if(NOT _duilib_sdl_missing STREQUAL "")
-        message(FATAL_ERROR
-            "未找到可用的 SDL3 安装前缀（${_duilib_sdl_root} 下）：\n"
-            "${_duilib_sdl_missing}"
-            "请执行 'build.py deps'（Windows 会按 Debug/Release 安装到各自的变体目录），"
-            "或用 -DDUILIB_SDL_ROOT=<已安装的 SDL3 前缀> 指定。")
+        duilib_tf(_duilib_sdl_missing_what "cmake.sdl_prefix_missing" "root=${_duilib_sdl_root}")
+        duilib_t("cmake.sdl_prefix_missing_hint" _duilib_sdl_missing_hint)
+        message(FATAL_ERROR "${_duilib_sdl_missing_what}:\n"
+                            "${_duilib_sdl_missing}"
+                            "  Hint: ${_duilib_sdl_missing_hint}")
     endif()
 
     # CRT 标记比对：没有标记的旧产物允许迁移，有标记则必须与当前工具链一致

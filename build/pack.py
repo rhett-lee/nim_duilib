@@ -588,26 +588,6 @@ def sha256_of(path):
     return h.hexdigest()
 
 
-# PE 文件头里的 Machine 字段值（IMAGE_FILE_MACHINE_*）。
-PE_MACHINE_BY_ARCH = {'x86': 0x014c, 'x64': 0x8664, 'arm64': 0xaa64}
-
-
-def pe_machine(path):
-    """读取 PE 文件的 Machine 字段；不是 PE 或读取失败时返回 None。"""
-    try:
-        with open(path, 'rb') as fp:
-            if fp.read(2) != b'MZ':
-                return None
-            fp.seek(0x3C)
-            offset = struct.unpack('<I', fp.read(4))[0]
-            fp.seek(offset)
-            if fp.read(4) != b'PE\0\0':
-                return None
-            return struct.unpack('<H', fp.read(2))[0]
-    except (OSError, struct.error):
-        return None
-
-
 def iter_files(root):
     """遍历 root 下的文件与符号链接，返回 (绝对路径, 相对 root 的路径)。
 
@@ -1031,9 +1011,10 @@ def _skia_candidate_names(config, arch_tag, toolchain=None, mingw_variant=None,
     """给出 Skia 库候选目录名（顺序即优先级）。
 
     MinGW 的 gcc 与 llvm-mingw（以及 MSYS2 的 gcc/clang）各自使用不同的 Skia
-    静态库，不能混用。目录名分两种前缀：
-      独立 MinGW-w64 : mingw64-gcc.<arch>.<debug|release> / mingw64-llvm.<arch>.<...>
-      MSYS2          : gcc.<arch>.<debug|release> / llvm.<arch>.<debug|release>
+    静态库，不能混用。目录名分两种前缀（与配置无关，Debug/Release 共用
+    release 变体，MinGW 没有 /MTd 之类的 CRT 切换）：
+      独立 MinGW-w64 : mingw64-gcc.<arch>.release / mingw64-llvm.<arch>.release
+      MSYS2          : gcc.<arch>.release / llvm.<arch>.release
       MSYS2 MINGW64  : gcc.msvcrt.<arch>.release（msvcrt，与 UCRT64 的 gcc 产物不兼容）
     MSVC 的 /MD 运行库模式（DLL 模式或 --msvc-runtime md）必须链接同 CRT 的 Skia：
       llvm.<arch>.release.md / llvm.<arch>.debug.mdd
@@ -1064,11 +1045,8 @@ def _skia_candidate_names(config, arch_tag, toolchain=None, mingw_variant=None,
     def _compiler_names(compiler):
         names = []
         for prefix in prefixes:
-            base = '%s%s.%s.' % (prefix, compiler, arch_tag)
-            if is_debug:
-                names.append(base + 'debug')
-            # Debug 也保留 release 兜底（CMake 侧同样允许）
-            names.append(base + 'release')
+            # MinGW 的 Skia 只有 release 变体（Debug 与 Release 共用一份）
+            names.append('%s%s.%s.release' % (prefix, compiler, arch_tag))
         return names
 
     def _mingw_names(compilers):
@@ -2915,13 +2893,17 @@ def _parse_config(value):
 
 
 def _requested_lang(argv):
-    """预扫描 --lang：让 --help 与参数错误也按所选语言输出。"""
+    """预扫描 --lang：让 --help 与参数错误也按所选语言输出。
+
+    与 argparse 一致，重复给出时以最后一个为准。
+    """
+    requested = 'auto'
     for index, arg in enumerate(argv):
         if arg.startswith('--lang='):
-            return arg.split('=', 1)[1]
-        if arg == '--lang' and index + 1 < len(argv):
-            return argv[index + 1]
-    return 'auto'
+            requested = arg.split('=', 1)[1]
+        elif arg == '--lang' and index + 1 < len(argv):
+            requested = argv[index + 1]
+    return requested
 
 
 def main(argv=None):

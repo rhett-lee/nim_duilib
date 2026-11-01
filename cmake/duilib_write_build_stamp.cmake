@@ -5,11 +5,14 @@
 # 有两种配置的产物；build/pack.py 通过该标记文件判断并跳过/提示，避免打出的
 # Debug 包混入 Release 示例（或反之）。标记集中放在隐藏目录，避免 bin/ 根目录
 # 散落大量同名附属文件。
+# 该脚本每个目标、每次构建都会以 `cmake -P` 运行一次，属于热路径：文案固定为
+# 英文，不走 duilib_i18n.cmake（避免为一句内部契约错误在 Windows 上反复查询
+# 注册表判定语言）。正常情况下构建者看不到这里的报错。
 if(NOT DEFINED STAMP_FILE OR "${STAMP_FILE}" STREQUAL "")
-    message(FATAL_ERROR "duilib_write_build_stamp: 未指定 STAMP_FILE")
+    message(FATAL_ERROR "duilib_write_build_stamp: STAMP_FILE is not set")
 endif()
 if(NOT DEFINED STAMP_CONFIG OR "${STAMP_CONFIG}" STREQUAL "")
-    message(FATAL_ERROR "duilib_write_build_stamp: 未指定 STAMP_CONFIG")
+    message(FATAL_ERROR "duilib_write_build_stamp: STAMP_CONFIG is not set")
 endif()
 get_filename_component(_stamp_dir "${STAMP_FILE}" DIRECTORY)
 get_filename_component(_stamp_name "${STAMP_FILE}" NAME)

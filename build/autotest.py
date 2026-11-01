@@ -45,13 +45,17 @@ def T(key):
 
 
 def _requested_lang(argv):
-    """预扫描 --lang：让 --help 与参数错误也按所选语言输出。"""
+    """预扫描 --lang：让 --help 与参数错误也按所选语言输出。
+
+    与 argparse 一致，重复给出时以最后一个为准。
+    """
+    requested = 'auto'
     for index, arg in enumerate(argv):
         if arg.startswith('--lang='):
-            return arg.split('=', 1)[1]
-        if arg == '--lang' and index + 1 < len(argv):
-            return argv[index + 1]
-    return 'auto'
+            requested = arg.split('=', 1)[1]
+        elif arg == '--lang' and index + 1 < len(argv):
+            requested = argv[index + 1]
+    return requested
 
 
 BUILD_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -251,8 +255,14 @@ def _run_step(name, cmd, log_fp, timeout, dry_run=False, env=None):
     log_fp.write('\n=== %s ===\n%s\n' % (name, ' '.join(cmd)))
     log_fp.flush()
     start = time.time()
+    # 子进程（build.py / pack.py / 单元测试脚本）不会继承 --lang，只能自己按
+    # 环境变量与系统区域判定；用 DUILIB_LANG 把本进程的语言传下去，避免日志
+    # 里中英文混排。
+    child_env = dict(os.environ, DUILIB_LANG=MESSAGES.language)
+    if env:
+        child_env.update(env)
     try:
-        proc = subprocess.run(cmd, cwd=REPO_ROOT, env=env,
+        proc = subprocess.run(cmd, cwd=REPO_ROOT, env=child_env,
                               capture_output=True, text=True,
                               timeout=timeout)
         output = (proc.stdout or '') + (proc.stderr or '')

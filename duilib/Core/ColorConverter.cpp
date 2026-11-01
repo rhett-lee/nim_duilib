@@ -200,7 +200,10 @@ int ColorConverter::RGBToOKLCH(double red, double green, double blue, double* L,
 
 std::string ColorConverter::OKLCHToARGB(double L, double C, double H, uint8_t alpha)
 {
-    uint8_t r, g, b;
+    //默认使用黑色，避免转换失败时使用未初始化的颜色分量
+    uint8_t r = 0;
+    uint8_t g = 0;
+    uint8_t b = 0;
     OKLCHToRGB(L, C, H, r, g, b);
     return RGBToHex(alpha, r, g, b);
 }

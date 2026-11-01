@@ -16,6 +16,8 @@
 #   DUILIB_MACOS_BUNDLE_RESOURCES   可选：覆盖默认资源清单（相对 bin/resources，
 #                                   分号或逗号分隔）；不设置时按示例名自动推导
 
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_i18n.cmake")
+
 # 从 duilib_version.h 读取版本宏，生成 CFBundleVersion / CFBundleShortVersionString。
 function(_duilib_macos_bundle_version out_version out_short)
     set(_header "${DUILIB_ROOT}/duilib/duilib_version.h")
@@ -94,10 +96,10 @@ function(_duilib_macos_bundle_theme_dir target out_dir)
     if(_theme_dir_explicit)
         set(_theme_dir_path "${DUILIB_ROOT}/bin/resources/themes/default/${_theme_dir}")
         if(NOT IS_DIRECTORY "${_theme_dir_path}")
-            message(FATAL_ERROR
-                "DUILIB_THEME_DIR_NAME='${_theme_dir}' is not a directory: ${_theme_dir_path}\n"
-                "Target '${target}': set DUILIB_THEME_DIR_NAME to a subdirectory name of "
-                "bin/resources/themes/default, or remove it to auto-derive from the target name.")
+            duilib_tf(_what "bundle.theme_dir_missing"
+                      "name=${_theme_dir}" "path=${_theme_dir_path}")
+            duilib_tf(_hint "bundle.theme_dir_missing_hint" "target=${target}")
+            message(FATAL_ERROR "${_what}\n  Hint: ${_hint}")
         endif()
     endif()
     set(${out_dir} "${_theme_dir}" PARENT_SCOPE)
@@ -120,9 +122,8 @@ function(_duilib_macos_bundle_default_resources target out_list)
     else()
         # 没有自己的主题目录（如 ColorPicker），只复制公共资源；
         # 新示例若目录名与项目名差异较大，可显式设置 DUILIB_THEME_DIR_NAME。
-        message(STATUS
-            "No example theme directory matched '${target}' in themes/default; "
-            "copying shared resources only")
+        duilib_tf(_line "bundle.no_theme_dir" "target=${target}")
+        message(STATUS "${_line}")
     endif()
     list(APPEND _list
         "themes/color_light/global.xml"
@@ -137,7 +138,8 @@ function(duilib_configure_macos_bundle target)
         return()
     endif()
     if(NOT TARGET ${target})
-        message(FATAL_ERROR "duilib_configure_macos_bundle: target not found: ${target}")
+        duilib_tf(_what "bundle.target_missing" "target=${target}")
+        message(FATAL_ERROR "${_what}")
     endif()
 
     _duilib_macos_bundle_version(_duilib_bundle_version _duilib_bundle_short)
@@ -167,8 +169,8 @@ function(duilib_configure_macos_bundle target)
             get_filename_component(_duilib_bundle_icon_name
                                    "${_duilib_bundle_icon_path}" NAME)
         else()
-            message(WARNING
-                "DUILIB_MACOS_BUNDLE_ICON not found: ${_duilib_bundle_icon_path}")
+            duilib_tf(_line "bundle.icon_missing" "path=${_duilib_bundle_icon_path}")
+            message(WARNING "${_line}")
             set(_duilib_bundle_icon_path "")
         endif()
     endif()
@@ -200,9 +202,9 @@ function(duilib_configure_macos_bundle target)
     # 用于补充额外资源或去掉默认条目。
     set(_duilib_resources_from "${DUILIB_ROOT}/bin/resources")
     if(NOT EXISTS "${_duilib_resources_from}")
-        message(FATAL_ERROR
-            "macOS bundle resources not found: ${_duilib_resources_from}\n"
-            "Restore bin/resources in the source tree before building a bundle.")
+        duilib_tf(_what "bundle.macos_res_dir_missing" "path=${_duilib_resources_from}")
+        duilib_t("bundle.macos_res_dir_missing_hint" _hint)
+        message(FATAL_ERROR "${_what}\n  Hint: ${_hint}")
     endif()
     # 这里刻意不用 $<TARGET_BUNDLE_DIR:${target}>：目标相关的生成表达式会给
     # <目标>_bundle_resources 隐式加上“依赖 ${target}”的边（CMP0112），与
@@ -242,12 +244,15 @@ function(duilib_configure_macos_bundle target)
             "${_duilib_resources_from}/${_duilib_resource}")
         if(NOT EXISTS "${_duilib_resource_src}")
             if(_duilib_resources_explicit)
-                message(FATAL_ERROR
-                    "macOS bundle resource not found: ${_duilib_resource_src}\n"
-                    "Check DUILIB_MACOS_BUNDLE_RESOURCES in ${CMAKE_CURRENT_SOURCE_DIR}")
+                duilib_tf(_what "bundle.macos_res_item_missing"
+                          "path=${_duilib_resource_src}")
+                duilib_tf(_hint "bundle.macos_res_item_missing_hint"
+                          "dir=${CMAKE_CURRENT_SOURCE_DIR}")
+                message(FATAL_ERROR "${_what}\n  Hint: ${_hint}")
             endif()
-            message(STATUS
-                "Skipping macOS bundle resource (not found): ${_duilib_resource}")
+            duilib_tf(_line "bundle.macos_res_entry_skipped"
+                      "entry=${_duilib_resource}")
+            message(STATUS "${_line}")
             continue()
         endif()
         list(APPEND _duilib_resource_sync_entries "${_duilib_resource}")

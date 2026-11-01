@@ -111,7 +111,7 @@ Windows 上如果没有 `python3` 命令，可以把命令开头的 `python3` �
 
 ### Windows（已验证：Windows 10/11 x64 + VS 2022/VS 2026）
 
-前置：已安装 Visual Studio 2022 或 2026（含“使用 C++ 的桌面开发”工作负载）、Git、Python 3。
+前置：已安装 Visual Studio 2022 或 2026（含“使用 C++ 的桌面开发”工作负载）、Git、Python 3.8+。
 
 ```bat
 git clone https://github.com/rhett-lee/nim_duilib.git
@@ -130,7 +130,7 @@ bin\basic.exe
 
 ### Linux / macOS / FreeBSD
 
-前置：按上文安装编译器、CMake、Ninja、Git、Python 3；Linux 还需按 [build/linux-dependencies.md](build/linux-dependencies.md) 安装系统开发包。
+前置：按上文安装编译器、CMake、Ninja、Git、Python 3.8+；Linux 还需按 [build/linux-dependencies.md](build/linux-dependencies.md) 安装系统开发包。
 
 ```bash
 git clone https://github.com/rhett-lee/nim_duilib.git

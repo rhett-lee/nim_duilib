@@ -112,12 +112,14 @@ Bundle 内的资源清单由公共脚本按示例名自动推导（见 §4），
 `GlobalManager::GetResourceRootPath(bool bMacOsAppBundle)` 在 macOS 下的行为：
 
 1. `bMacOsAppBundle == true`（默认值）：返回
-   `<App>.app/Contents/Resources/duilib/resources/`（zip 模式为同目录的
-   `resources.zip`）；
+   `<App>.app/Contents/Resources/duilib/resources/`，该目录不存在时回退到第 2 种；
 2. `bMacOsAppBundle == false`：返回“可执行文件同目录 + `resources/`”，
    兼容非 Bundle 程序和手动放置资源的场景。
 
-因此示例代码保持 `GetResourceRootPath()` 或写 `GetResourceRootPath(true)` 都能正确加载；
+zip 模式由 `GlobalManager::GetResourceZipPath(bool bMacOsAppBundle)` 定位：Bundle 内为
+`<App>.app/Contents/Resources/duilib/resources.zip`，Bundle 外为“可执行文件同目录 +
+`resources.zip`”。因此示例代码保持 `GetResourceRootPath()` / `GetResourceZipPath()`，
+或写显式的 `GetResourceRootPath(true)` / `GetResourceZipPath(true)` 都能正确加载；
 SDK 消费者使用 `nim_duilib_copy_runtime(... RESOURCES)` 时也复制到相同布局。
 
 ## 3. 构建时的自动处理
@@ -209,8 +211,8 @@ set(DUILIB_MACOS_BUNDLE_RESOURCES
 ```
 
 显式清单里的路径不存在会在配置阶段直接报错并打印缺失路径，便于定位。
-无论使用默认清单还是显式清单，复制前都会清空 `Contents/Resources/duilib/resources`，
-不会残留上一次的旧主题目录。
+无论使用默认清单还是显式清单，同步时都会删除 `Contents/Resources/duilib/resources`
+下清单之外的文件（空目录可能保留），不会残留上一次的旧主题内容。
 
 图标要求：
 

@@ -266,6 +266,16 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   --run-examples` reports PASS=16 / FAIL=0 / SKIP=3 including
   `[PASS] C10 examples.smoke`. This closes the last gap in packaging matrix P0-1;
   the x64 static baseline and x64 `SDL3-static.lib` were restored afterwards.
+- Build message coverage completed (2026-11-01): the remaining English messages in
+  `duilib_preflight_tools.cmake`, `duilib_cef.cmake`, `duilib_cef_macos.cmake`,
+  `duilib_macos_bundle.cmake`, `duilib_deps_run.cmake` and the root `CMakeLists.txt`
+  now come from the catalog (`cmake/i18n/messages.json`, with new `preflight.*`,
+  `deps.*`, `cmake.*` and `bundle.*` keys); the library project
+  `duilib/CMakeLists.txt` is wired to the catalog too (CEF include path, source
+  filtering, CEF switch and platform messages), so its output follows
+  `DUILIB_LANG`. Because the catalog is parsed with `string(JSON)`, that file's
+  `cmake_minimum_required` moves from 3.18 to 3.19 (the root entry point still
+  requires 3.24); see "Build message catalog" in `cmake/README.en.md`.
 
 ### Removed
 
@@ -277,6 +287,34 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Fixed
 
+- The inline hook reused an x86/x64-only instruction encoding (`E9 rel32` jump plus
+  libudis86) on ARM64: the build reported `C4311` pointer truncation and the runtime
+  would install invalid machine code. `DUILIB_ENABLE_INLINE_HOOK` is now defined only
+  for `_M_IX86` / `_M_X64`; ARM64 uses the existing fallback stubs instead (the API
+  stays available and `Install()` / `Uninstall()` return `false`). x86/x64 behaviour
+  is unchanged.
+- Warnings from our own code in MinGW (gcc 14) builds: `r`/`g`/`b` in
+  `ColorConverter::OKLCHToARGB` were passed to the conversion helper uninitialized
+  (`-Wmaybe-uninitialized`), `bIsLayeredWindowDefined` in
+  `WindowBuilder::ParseWindowCreateAttributes` is only used by the SDL branch
+  (`-Wunused-but-set-variable` in non-SDL builds), and
+  `ListCtrl::ExportToCsvFile` wrote the BOM byte by byte with `push_back`, which
+  triggers a GCC `-Wfree-nonheap-object` false positive. They now use default
+  initialization, an explicit `UNUSED_VARIABLE` in the non-SDL branch, and a
+  `std::vector` built from a BOM constant, leaving no warnings from our own code.
+- With several Visual Studio versions installed, the `doctor` preflight reported the
+  newest version instead of the compiler actually in use: the preflight always ran
+  `vswhere -latest`. It now reads the `VSINSTALLDIR` / `VisualStudioVersion` exported
+  by vcvars and filters by that major version, so `--vs-version 17` reports VS 2022.
+- Stale artifacts from the previous toolset survived a compiler switch (VS 2022 ↔
+  VS 2026, MSVC ↔ MinGW) in `lib/`, `build/build_temp` and `bin/` (old `.lib` files
+  were linked into new targets): `build.py` now removes `lib/`, `build/build_temp`,
+  the exe/pdb/ilk/dll files and `.build-config` stamps in `bin/` when a switch is
+  detected (`bin/resources*`, `libcef_win*`, cache directories and
+  `WebView2Loader.dll` are kept), and `deps` performs the same cleanup before it
+  deletes the build tree; the VS project stamp `duilib_crt_mode.txt` now records
+  `<PlatformToolset>/<static|dll>`, so switching the VS version also drops stale
+  `.obj`/`.pch` files.
 - SDL3 Debug/Release overwrote each other with multi-config generators on Windows:
   SDL3 does not set `DEBUG_POSTFIX`, so both configurations produce the same static
   library names and the two installs landed in the same `<deps-root>/SDL3` prefix,
@@ -863,6 +901,176 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   the fix commit and still carried the original symbol): `PASS=15 FAIL=0 SKIP=4`.
   The x86 and arm64 `duilib-zlib.lib` archives were rebuilt as well; all three
   Windows architectures now export `duilib_z_errmsg` and no bare `z_errmsg`.
+- Build messages (duplicate status markers): when cmake was missing,
+  `build.py doctor` printed `[WARN]  [WARN] cmake not found ...` because the
+  wrapper adds the marker while the message already carried one, and
+  `deps.skia_patch_tool_in_use` carried its own `[deps]` marker on top of the
+  `[WARN]  ` prefix. Catalog messages no longer carry markers, and the new
+  `test_build.MessageCatalogTests.test_markers_not_duplicated` statically scans
+  the CMake and Python call sites, failing when a message starting with
+  `[OK]`/`[WARN]`/`[INFO]` would be emitted through a wrapper that prefixes one.
+- Build docs aligned with the implementation: the in-tree build snippet in
+  `cmake/README.md` / `README.en.md` now shows the current
+  `cmake.in_tree_build` message plus its Hint, the Q1 platform error reads
+  `unsupported platform` (it was `Unknown OS`), the macOS CEF fallback line in
+  `build/build-reference.md` is rendered in Chinese with the English original in
+  parentheses (`build-reference.en.md` stays English), and
+  `build/sdk-package-test.md` notes that the test project's messages are fixed
+  Chinese. The "Build message catalog" sections of `cmake/README*.md` also list
+  the places that deliberately bypass the catalog (internal guards, the build
+  stamp script, key/value dumps, the packaged `packaging/cmake/*` files), and
+  `Packaging-Follow-Up-Items.md` gained P2-6 recording the decision on the
+  language of in-package messages.
+- macOS App Bundle zip resource mode could not find the archive:
+  `GetResourceZipPath()` derived the path from the parent of
+  `GetResourceRootPath()`, but in zip mode the bundle has no `resources`
+  directory, so the root path falls back to "executable directory + resources/"
+  and the parent becomes `bin/`, making the lookup happen outside the bundle.
+  On macOS it now looks for `<App>.app/Contents/Resources/duilib/resources.zip`
+  first and only uses it when it exists; otherwise the previous fallback is
+  kept. Non-bundle programs are unchanged.
+- Build docs aligned again with the implementation: `preflight.dev_packages_hint`
+  now points to `build/linux-dependencies.md` (package lists are in
+  `build/build-reference.md`, section 8); the Linux system-library comment in
+  `duilib_preflight_tools.cmake` now matches the behaviour (`pkg-config` missing
+  only warns, missing libraries fail once) and its unused variable is gone; the
+  ninja bootstrap and phase B preflight rows in `cmake/README*.md` describe the
+  actual lookup order and checks; `build/README(.en).md`,
+  `build-reference(.en).md`, `linux-dependencies(.en).md`, the root
+  `README(.en).md` and the AI guides all state Python 3.8+ (matching `build.py`).
+- New `build/test_docs.py`: `build.py test` now checks relative Markdown links
+  inside the maintained scope (code blocks and inline code are ignored) and
+  Chinese/English pairing for top-level `docs/` documents; the historical
+  `docs/misc/` tree is excluded. Links in `docs/Summary(.en).md` that pointed to
+  moved headers were fixed as well.
+- Test documentation now matches the implementation: `build/sdk-package-test.md`
+  lists the current default CEF 156 instead of CEF 142 (`pack.py --cef-version`
+  still accepts `latest`/`109`), states Python 3.8+, and describes the 11 required
+  files that `check_layout()` really verifies instead of 10; the previously
+  undocumented `--lang` option is listed as well, and `--keep` now describes the
+  real `<out>/<NN>` directory name. The status table in
+  `build/arm64-test-plan.md` no longer says CEF 109 packaging is untested
+  (W-A07/W-P25 passed) and notes that 142 was the manifest default at the time,
+  while 156 is the current default.
+- Build documentation completed: the package-name rule in `build/README(.en).md`
+  now includes `-mingw-gcc|-mingw-llvm` and `-dll` (matching
+  `pack.py:build_package_name()` and `docs/Release(.en).md`); the
+  `duilib_bootstrap.cmake` line in the `cmake/README(.en).md` tree now shows the
+  real lookup order (the VS install directory is looked up by `build.py`, not by
+  that script), and the phase A preflight tool list also names make, cc/cxx, gn
+  and curl/wget.
+- The Visual Studio generator name was still hard-coded for machines that only
+  have VS 2026 (or both VS 2022 and VS 2026): `build.py` always fell back to
+  `Visual Studio 17 2022` when no Ninja was found, and `sdk_package_test.py`
+  used the same literal to decide "no MinGW compiler in this environment" and
+  passed it explicitly in the negative architecture scenario, so a VS 2026-only
+  machine failed to configure and MinGW packages turned from SKIP into FAIL.
+  New `build.py:vs_generator_name()` maps the install directory
+  (`...\Microsoft Visual Studio\{2017|2019|2022|18}\...`) to
+  `Visual Studio 15 2017` … `Visual Studio 18 2026`, falling back to the 2022
+  name when unknown, and is used by `detect_toolchain()`, `build_block_reason()`
+  (now testing `startswith("Visual Studio")`) and `check_negative_arch()`; new
+  `test_build.VsGeneratorTests` (3 cases) and
+  `test_sdk_package.BuildBlockReasonTest` (4 cases). The Visual Studio generator
+  examples in `docs/Release(.en).md`, `build/sdk-package-test.md` and
+  `TRAE.md`/`WORKBUDDY.md` now note that the generator name follows the installed
+  VS version (VS 2022: `Visual Studio 17 2022`, VS 2026: `Visual Studio 18 2026`).
+- The message catalog only checked for references to missing keys; dead keys
+  (`messages.json` entries no source uses any more) went unnoticed. New
+  `MessageCatalogTests.test_no_orphan_keys` requires every key name to appear as a
+  string in `cmake/**/*.cmake`, the root and `duilib/CMakeLists.txt` and
+  `build/*.py` (tests excluded); keys passed as data (for example
+  `sdk.scn_p01` in `SCENARIO_ORDER`) count as references too. All 706 keys are
+  currently referenced.
+- Build reference gap filled: the common-options table in
+  `build/build-reference(.en).md` now documents the `pack` subcommand's
+  `--pack-arg` (appended verbatim to the `pack.py` command line), with
+  `--pack-arg=--list` and `--pack-arg=--allow-missing` as examples, matching
+  `build.py`.
+- `build/release.py` now predicts and verifies package names correctly:
+  `package` did not pass `is_dll`, so `--dry-run` omitted `-dll` in DLL mode, and
+  the post-packaging check opened that predicted file name only. The macOS `-cef`
+  suffix requires CEF example app bundles to actually be collected, and a duilib
+  DLL whose PE architecture does not match is not collected during a cross-arch
+  package, so the predicted name could differ from the real one and the check
+  failed with "package does not exist". New `_expected_runtime_dll()` (same rules
+  as `pack.collect_duilib_runtime_dll()`: `duilib32[_d].dll` for x86, `_d` for
+  Debug) feeds `build_package_name(is_dll=...)`, and the check now verifies the
+  archives newly created in the output directory, reporting the new
+  `rel.pack_output_missing` message only when nothing new appeared. New
+  `build/test_release.py` (15 cases covering package-name prediction, archive
+  discovery, `git status` path parsing and `dist/` ignore rules, and CHANGELOG
+  section extraction); the file table in `build/README(.en).md` and the release
+  process in `docs/Release(.en).md` document it.
+- SDK integration docs completed: the Visual Studio property table in
+  `docs/Release(.en).md` now lists `NimDuilibUseManifest` (default `1`; `0` skips
+  embedding `msvc/manifest/duilib.<arch>.manifest` for the project Platform), and
+  the autotest section of `build/README(.en).md` documents `--smoke` and
+  `--build-timeout` (smoke runs only for Release presets and is skipped when the
+  example architecture differs from the host; the build timeout defaults to
+  3600 seconds).
+- `--lang` documentation gaps: the `pack.py` option table in
+  `docs/Release(.en).md` and the autotest section of `build/README(.en).md` did not
+  mention the option although all five entry points support it. They now document
+  the resolution order (`--lang` / `DUILIB_LANG` -> `LC_ALL`/`LC_MESSAGES`/`LANG`
+  -> system locale -> `en`), that the last occurrence wins, and that `release.py`
+  subcommands accept it as well.
+- Console language was inconsistent between scripts: the `pack.py` / `build.py` /
+  unit-test processes started by `build.py pack`, `release.py package` and
+  `autotest.py` did not inherit the resolved `--lang` and fell back to the
+  environment and system locale, so `--lang en` on a Chinese system printed a mix
+  of languages; the in-process `pack.verify_package()` call from `release.py` also
+  used the `pack` module's own `MESSAGES`. `build.py pack` and
+  `release.py package` now forward `--lang <resolved>` explicitly, `autotest.py`
+  passes `DUILIB_LANG` to every child process, and `release.py` syncs
+  `pack.MESSAGES` in `main()`. In addition, the `_requested_lang()` prescan of all
+  five entry points returned the first `--lang` while argparse uses the last one
+  (`--lang en build --lang zh_CN` made `--help`, the previewed command and the
+  parsed arguments disagree); it now returns the last occurrence. New 4 cases
+  (`test_build.PackCommandTests.test_language_is_forwarded_to_pack`,
+  `test_release.PackageLanguageTest`, `test_autotest.ChildEnvironmentTest` 2 cases).
+- MinGW built Skia once per configuration: `deps` uses the same GN arguments for
+  MinGW Debug and Release (`is_debug=false`, no `/MTd` style runtime switch), but the
+  candidate list put `<prefix><gcc|llvm>.<arch>.debug` first, so Debug and Release
+  each built a copy (about 6 minutes and one extra copy on disk per configuration)
+  and the copy built for Debug was never picked up by Release builds. MinGW Skia
+  candidates no longer depend on the configuration and are now
+  `<prefix><gcc|llvm>.<arch>.release`, matching the SDL3 variant naming and
+  `pack.py`. Existing `.<arch>.debug` directories are no longer selected
+  automatically (point at one explicitly with `--skia-lib-dir` /
+  `-DDUILIB_SKIA_LIB_SUBPATH`). The notes in `build/build-reference(.en).md`,
+  `build/README(.en).md` and `cmake/README(.en).md`, plus the expected values in
+  `build/test_cmake_scripts.py`, were updated accordingly.
+- `deps --dry-run` expanded the plan from a stale cache while the build tree was about
+  to be re-created: after a compiler switch (MSVC ↔ MinGW) or a runtime/DLL mode switch
+  (`--md`/`--dll`) a real `deps` run clears and reconfigures the build tree first, yet the
+  dry-run still ran `duilib_deps_plan` and printed the old toolchain's or old mode's
+  `gn`/`ninja` arguments. `cmd_deps()` now forwards the results of
+  `reset_stale_build_dir()` and `reset_stale_build_mode()` to `_print_deps_plan()`, which
+  prints the new `deps.plan_reset` message plus a hint instead of running the plan target
+  (new case `test_build.DepsPlanPrintTests.test_reset_pending_skips_plan`).
+- State messages printed by `--dry-run` used completed-action wording ("removing",
+  "synchronized") although a dry-run removes and writes nothing: `build.compiler_outputs`,
+  `build.config_switch`, `build.dll_flag`, `build.toolchain_changed` and
+  `build.mode_changed` now say "will remove / will be discarded / will be synchronized",
+  which holds for both real runs and dry-runs (Chinese and English kept in sync).
+- `build/build-reference(.en).md` claimed that `--dry-run` never configures, which does
+  not match the code: the plan target runs through `cmake --build`, so when a
+  `CMakeLists.txt` or a `cmake/*.cmake` file is newer than the build system, CMake re-runs
+  the configure step first (it only updates the build tree under `out/`; no dependency
+  preparation, no network access, no compilation). The docs now separate "the dry-run
+  never configures on its own" from "CMake regenerates because the configuration is out
+  of date".
+- The Visual Studio integration note in `docs/Release(.en).md` only said "the full static
+  set or the DLL import library plus system libraries", without listing what the property
+  sheet derives from the package metadata: it now lists the system libraries (SDL packages
+  add `Version`/`Winmm`/`Setupapi`/`Hid`/`Mincore`/`Dinput8`, WebView2 packages add
+  `WinInet`), the Skia and optional plus `duilib*` set for static packages, the single
+  `duilib.lib` import library for DLL packages, `/DELAYLOAD:libcef.dll` for static + CEF
+  packages and `/NODEFAULTLIB:"libcmt.lib"` for static Debug packages. It also states that
+  `NimDuilibSystemLibs` / `NimDuilibLinkLibs` are assigned inside the property sheet, so
+  overriding them before the import has no effect; append extra libraries through
+  `AdditionalDependencies`.
 
 ## [1.0.2026.1023] - 2026-10-23
 

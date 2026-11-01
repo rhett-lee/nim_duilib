@@ -14,12 +14,12 @@ Windows on ARM 真机运行验证同样不具备条件（无设备），相关�
 | 脚本支持 | `build.py --arch auto\|x86\|x64\|arm64`；库目录 `lib/<arch>/<Config>` | 构建入口已就绪 |
 | Windows 工具链 | VS 2022 17.14.37710.0 已装 MSVC 14.44.35207「ARM64 生成工具」；`Hostx64\arm64\cl.exe` 与 Windows SDK 10.0.26100.0 的 `um/arm64`、`ucrt/arm64` 齐全；`python3 build/build.py doctor --arch arm64` 通过（Ninja + VS + gn + curl 全 OK） | Windows arm64 可交叉编译 |
 | vcvars 平台参数 | 原先对 `vcvarsall.bat` 传 `arm64`，要求 x64 主机也装 `Hostarm64` 原生工具集，导致误报 `Visual Studio C++ tools for arm64 are not installed`；已改为按主机选择 `amd64_arm64` / `x86_arm64` / `arm64`（2026-10-28 修复） | 交叉编译不再需要额外组件 |
-| 打包支持 | `pack.py --arch arm64`；库目录映射 `lib/arm64/...`；PE 架构校验（`0xAA64`）；随包三份 manifest（含 `duilib.arm64.manifest`）；`NIM_DUILIB_PACKAGE_ARCH=arm64` | 已生成 Release 无 CEF、Release CEF142 与 Debug CEF142 三个包并通过校验 |
+| 打包支持 | `pack.py --arch arm64`；库目录映射 `lib/arm64/...`；PE 架构校验（`0xAA64`）；随包三份 manifest（含 `duilib.arm64.manifest`）；`NIM_DUILIB_PACKAGE_ARCH=arm64` | 已生成 Release 无 CEF、Release CEF142 与 Debug CEF142 三个包并通过校验（生成时清单默认版本为 142；2026-10-30 起默认升至 156，109 仍可选） |
 | 无真机校验 | `autotest.py --preset arm64-synthetic` 用临时假库出包并体检 | 不依赖 arm64 机器即可回归包结构 |
 | Windows + CEF | 上游提供 Windows arm64 预编译包（156 与 109）；`third_party_versions.json` 两个版本都登记了 `windows/arm64`；CMake 按 `lib/arm64` 取 `libcef.lib`，`pack.py` 按 `bin/libcef_win[_109]/arm64` 收集运行时 | CEF 构建、出包与包测试都纳入 Windows 矩阵 |
 | Skia | `deps` 已按 GN `target_cpu="arm64"` + clang 构建出 `skia/out/llvm.arm64.release` 与 `llvm.arm64.debug`（各 1078 个目标，约 6 分钟）；DLL 模式所需的 `llvm.arm64.release.md` 与 `debug.mdd` 也已构建 | Release/Debug 与 DLL 模式均可直接用对应 Skia 目录 |
 | SDL3 | Windows 默认 `DUILIB_ENABLE_SDL=OFF`；只有 `--sdl` 才需要 arm64 SDL3 | 默认组合不依赖 SDL3 |
-| 现有矩阵 | W-B18/W-B18b（arm64 Release/Debug 构建）、W-A03（arm64 DLL 模式）、W-P23/W-P24（arm64 出包）已回填为「通过」；CEF109 仍「未测」；L-B04、M-B03 因无真机改为「不安排」；示例启动等真机项「未测、不跟进」 | 见文末「本轮执行结果」 |
+| 现有矩阵 | W-B18/W-B18b（arm64 Release/Debug 构建）、W-A03（arm64 DLL 模式）、W-P23/W-P24（arm64 出包）、W-P25（arm64 CEF 109 出包）已回填为「通过」；L-B04、M-B03 因无真机改为「不安排」；示例启动等真机项「未测、不跟进」 | 见文末「本轮执行结果」 |
 
 ## 1. 范围
 
@@ -58,8 +58,7 @@ python3 build/autotest.py --preset arm64-synthetic
 
 期望：
 
-- 单元测试全部通过（当前基线：227 项通过、2 项按平台跳过；其中新增 4 项
-  `_vcvars_platform` 映射用例与 5 项 `_can_run_arch` 用例）。
+- 单元测试全部通过（当前基线：369 项通过、2 项按平台跳过；用例数随新增用例变化）。
 - `arm64-synthetic` 生成一个 arm64 包且 `inspect_package` 校验通过：包名含 `-arm64`、
   `lib/arm64/<Config>/`、三份 manifest 齐全且 `duilib.arm64.manifest` 为 `ARM64`、
   `nim_duilibConfig.cmake` 含 `CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64"`。
@@ -133,7 +132,7 @@ W-A08 的 C01 若因工具链缺失 SKIP，说明 arm64 工具集未装好，回
 
 | 位置 | 回填内容 |
 | :--- | :--- |
-| `build/test-matrix.md` | W-B18、W-P23、W-P24 按结果更新（通过 / 部分 / 未测）；§0 基线补 arm64 工具链；L-B04、M-B03 改为「不安排（无真机）」；Windows on ARM 真机运行项标记「未测、不跟进」；§7 进展表与已知缺口同步 |
+| `build/test-matrix.md` | W-B18、W-P23、W-P24、W-P25、W-P26 按结果更新（通过 / 部分 / 未测）；§0 基线补 arm64 工具链；L-B04、M-B03 改为「不安排（无真机）」；Windows on ARM 真机运行项标记「未测、不跟进」；§7 进展表与已知缺口同步 |
 | `build/README.md` / `README.en.md` | arm64 支持范围注明「仅 Windows 实测，其他平台无真机」 |
 | `CHANGELOG.md` / `.en.md` | 工具链探测、Skia 路径等修复按「修复」条目记录 |
 | `build/test-matrix.md` §7 | 本轮新发现的问题按「本轮发现与修复」表格记录 |

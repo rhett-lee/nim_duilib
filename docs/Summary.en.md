@@ -53,7 +53,7 @@ For detailed interface descriptions of each class, please refer to the associate
 | WindowImplBase | [duilib/Utils/WinImplBase.h](../duilib/Utils/WinImplBase.h) | The window base class provided to the application layer; implements a window with a title bar, with support for maximize, minimize, and restore buttons, and provides a window shadow with the WS_EX_LAYERED attribute |
 | EventType | [duilib/duilib_defs.h](../duilib/duilib_defs.h) | Defines all message types |
 | EventArgs | [duilib/Core/EventArgs.h](../duilib/Core/EventArgs.h) | Parameters for window messages and control event notifications |
-| WindowDropTarget | [duilib/Core/WindowDropTarget.h](../duilib/Core/WindowDropTarget.h) | Drag-and-drop support for controls in a window |
+| WindowDropTarget | [duilib/Core/WindowDropTarget_Windows.h](../duilib/Core/WindowDropTarget_Windows.h) | Drag-and-drop support for controls in a window (Windows; SDL builds use [WindowDropTarget_SDL.h](../duilib/Core/WindowDropTarget_SDL.h)) |
 | Windows Version Compatibility | [duilib/duilib_config.h](../duilib/duilib_config.h) | Windows version compatibility definition; the default configuration is compatible with Windows 7 and above operating systems |
 
 * Base Classes of Controls and Containers
@@ -223,7 +223,7 @@ For detailed interface descriptions of each class, please refer to the associate
 | RichEdit | ScrollBox | [duilib/Control/RichEdit.h](../duilib/Control/RichEdit.h) | Rich text edit box control |
 | RichEdit Implementation Class | | [duilib/Control/RichEditCtrl_Windows.h](../duilib/Control/RichEditCtrl_Windows.h) | Main function wrapper of the rich text edit box (Windows) |
 | RichEdit Implementation Class | | [duilib/Control/RichEditHost_Windows.h](../duilib/Control/RichEditHost_Windows.h) | Main function implementation of the rich text edit box (Windows) |
-| RichEdit Implementation Class | | [duilib/Control/RichEdit_SDL.h](../duilib/Control/RichEdit_SDL.h) | Main function wrapper of the rich text edit box (SDL) |
+| RichEdit Implementation Class | | [duilib/Control/RichEdit2.h](../duilib/Control/RichEdit2.h) | Cross-platform self-drawn rich text edit implementation (all platforms; non-SDL Windows builds also use [RichEdit_Windows.h](../duilib/Control/RichEdit_Windows.h)) |
 | RichText | Control | [duilib/Control/RichText.h](../duilib/Control/RichText.h) | Formatted text (HTML-like format) |
 | Split | Control | [duilib/Control/Split.h](../duilib/Control/Split.h) | Splitter control |
 | SplitBox | Box | [duilib/Control/Split.h](../duilib/Control/Split.h) | Splitter container |
@@ -257,10 +257,10 @@ For detailed interface descriptions of each class, please refer to the associate
 | Dialog | WindowImplBase | [duilib/Utils/Dialog.h](../duilib/Utils/Dialog.h) | Generic modal dialog: the content area accepts any XML fragment, footer buttons are caller-defined, `DoModal` returns the button index |
 | ToastWnd | WindowImplBase | [duilib/Utils/ToastWnd.h](../duilib/Utils/ToastWnd.h) | Owner-drawn skin non-modal toast notification, independent window, auto-dismiss and stackable; see [Toast.en.md](Toast.en.md) for details |
 | SystemNotification | Static utility | [duilib/Utils/SystemNotification.h](../duilib/Utils/SystemNotification.h) | Native system notifications: SDL builds use SDL system notifications, non-SDL Windows builds use a tray balloon (Windows 7+); independent of ToastWnd. See [SystemNotification.en.md](SystemNotification.en.md) for details |
-| ControlDragable | Control | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | Supports adjusting the order of child controls within the same Box by dragging |
-| BoxDragable | Box | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | Supports adjusting the order of child controls within the same Box by dragging |
-| HBoxDragable | HBox | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | Supports adjusting the order of child controls within the same Box by dragging |
-| VBoxDragable | VBoxDragable | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | Supports adjusting the order of child controls within the same Box by dragging |
+| ControlDragable | Control | [duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | Supports adjusting the order of child controls within the same Box by dragging |
+| BoxDragable | Box | [duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | Supports adjusting the order of child controls within the same Box by dragging |
+| HBoxDragable | HBox | [duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | Supports adjusting the order of child controls within the same Box by dragging |
+| VBoxDragable | VBoxDragable | [duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | Supports adjusting the order of child controls within the same Box by dragging |
 | IconControl | Control | [duilib/Control/IconControl.h](../duilib/Control/IconControl.h) | Control used to display icons; if icon data is not set, it is compatible with all functions of the base class Control |
 | AddressBar | HBox | [duilib/Control/AddressBar.h](../duilib/Control/AddressBar.h) | Address bar control, used to display the path of the local file system |
 | StatusBar | HBox | [duilib/Control/StatusBar.h](../duilib/Control/StatusBar.h) | Status bar control; draws separators automatically between adjacent status panes; panes can be read/written by index (GetPanelCount/GetPanel/SetPanelText); the bottom-right size grip can really drag-resize the window (size_grip_resize). See [Control.en.md](Control.en.md#attributes-of-statusbar-inherits-hbox-attributes) |

@@ -5,10 +5,14 @@
 #
 # 对外接口：
 #   duilib_t(<key> <out_var>)        读取当前语言的消息文本（缺失时回退英文）
+#   duilib_tf(<out_var> <key> [<name>=<value>...])  读取文本并替换 {name} 占位符
 #   duilib_msg(<key> [<value>])      输出 [OK] 风格的状态行
 #   duilib_warn(<key> [<value>])     输出 [WARN] 行
 #   duilib_error(<key> <hint_key>)   FATAL_ERROR，固定两行：[ERROR] + Hint:
 #   duilib_error_values(<key> <hint_key> <what> <hint>)  带动态内容的错误
+#
+# 文案里的动态内容有两种写法：多数状态行把值直接追加在文案之后（duilib_msg 的
+# 第二个参数），需要把值嵌进句子中间时用 {name} 占位符并调用 duilib_tf()。
 #
 # 语言判定顺序：DUILIB_LANG -> 环境变量 DUILIB_LANG -> LC_ALL/LC_MESSAGES/LANG
 # -> Windows 注册表 LocaleName -> 英文。
@@ -40,7 +44,26 @@ function(duilib_t key out_var)
     set(${out_var} "${_duilib_i18n_text}" PARENT_SCOPE)
 endfunction()
 
-# 输出 [OK]/[check] 等状态行；value 为可选动态内容（命令、路径、版本号）。
+# 读取一条消息并把 {name} 占位符替换为给定值：
+#   duilib_tf(<out_var> <key> "name=value" ...)
+# 只替换实际给出的占位符；值里含分号时请调用方先转义（列表分隔符会拆参数）。
+function(duilib_tf out_var key)
+    duilib_t("${key}" _duilib_i18n_text)
+    foreach(_duilib_i18n_pair IN LISTS ARGN)
+        string(FIND "${_duilib_i18n_pair}" "=" _duilib_i18n_eq)
+        if(_duilib_i18n_eq GREATER -1)
+            string(SUBSTRING "${_duilib_i18n_pair}" 0 ${_duilib_i18n_eq} _duilib_i18n_name)
+            math(EXPR _duilib_i18n_start "${_duilib_i18n_eq} + 1")
+            string(SUBSTRING "${_duilib_i18n_pair}" ${_duilib_i18n_start} -1
+                   _duilib_i18n_value)
+            string(REPLACE "{${_duilib_i18n_name}}" "${_duilib_i18n_value}"
+                   _duilib_i18n_text "${_duilib_i18n_text}")
+        endif()
+    endforeach()
+    set(${out_var} "${_duilib_i18n_text}" PARENT_SCOPE)
+endfunction()
+
+# 输出状态行（文案自带 [OK]/[INFO]/[WARN] 等标记）；value 为可选动态内容（命令、路径、版本号）。
 function(duilib_msg key)
     duilib_t("${key}" _duilib_i18n_line)
     set(_duilib_i18n_extra "")

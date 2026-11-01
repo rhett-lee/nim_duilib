@@ -34,7 +34,7 @@ cmake/
 │
 ├─ 根工程编排（仓库根 CMakeLists.txt 使用）
 │  ├── duilib_i18n.cmake                   # 语言解析与消息目录（include 与 cmake -P 均可用）
-│  ├── duilib_bootstrap.cmake              # 工具自举：PATH 上没有 ninja 时取用 VS 目录或补丁归档
+│  ├── duilib_bootstrap.cmake              # 工具自举：Ninja 生成器下依次取 DUILIB_NINJA_EXECUTABLE、skia/bin、PATH、补丁归档
 │  ├── duilib_root_options.cmake           # 平台/编译器/架构识别与统一缓存选项（project() 之后）
 │  ├── duilib_preflight_tools.cmake        # 阶段 A 预检（无编译器）：检查工具与系统库，不改文件
 │  ├── duilib_preflight.cmake              # 阶段 B 预检（有编译器）：确定性的工具链/架构校验
@@ -149,11 +149,11 @@ DUILIB_BUILD_TYPE        # "debug" 或 "release"
 # MinGW 构建还要求目录内存在 *.a 静态库，避免把同名目录中的 MSVC .lib 误判为可用库）：
 #   Windows MSVC / clang-cl : llvm.<CPU_ARCH>.debug / llvm.<CPU_ARCH>.release
 #             Debug 必须匹配 debug 变体（Debug 版本无法链接 release Skia），缺失直接报错
-#   Windows MinGW gcc       : mingw64-gcc.<CPU_ARCH>.debug / .release（MSYS2 为 gcc.<arch>.*）
-#             Debug 变体缺失时回退同编译器的 release 变体；
+#   Windows MinGW gcc       : mingw64-gcc.<CPU_ARCH>.release（MSYS2 为 gcc.<arch>.release）
+#             MinGW 没有运行库切换，Debug 与 Release 共用同一份 release 变体；
 #             gcc 与 llvm 的 Skia 不能混用（libstdc++/libc++ 运行时不兼容，链接会失败）
-#   Windows MinGW llvm      : mingw64-llvm.<CPU_ARCH>.debug / .release（MSYS2 为 llvm.<arch>.*）
-#             Debug 变体缺失时回退 release 变体
+#   Windows MinGW llvm      : mingw64-llvm.<CPU_ARCH>.release（MSYS2 为 llvm.<arch>.release）
+#             同上，Debug/Release 共用 release 变体
 #   Linux/macOS/FreeBSD : <编译器>.<CPU_ARCH>.release
 #             Skia 在 Unix 只编译 release 变体（D-3）
 
@@ -168,11 +168,11 @@ ${DUILIB_SKIA_SRC_ROOT_DIR}/out/<子目录名>
 # Windows x64 + Debug          -> skia/out/llvm.x64.debug
 # Windows x64 + Release        -> skia/out/llvm.x64.release
 # Windows -A Win32 + Debug     -> skia/out/llvm.x86.debug
-# MinGW gcc + Debug（无 gcc debug） -> skia/out/mingw64-gcc.x64.release
+# MinGW gcc + Debug            -> skia/out/mingw64-gcc.x64.release（与 Release 共用，无 .debug 变体）
 # MinGW gcc + Debug（无 gcc Skia）  -> 配置期报错（不能链接 llvm 版 Skia）
 # Linux/macOS/FreeBSD          -> skia/out/llvm.x64.release（clang）
 #                                skia/out/gcc.x64.release（gcc）
-# MSYS2 Windows + Debug        -> skia/out/gcc.<arch>.debug 优先，缺失时回退 gcc.<arch>.release
+# MSYS2 Windows + Debug        -> 与 Release 相同的候选（gcc.<arch>.release 优先，其次 mingw64-gcc.<arch>.release）
 # 外部指定 -DDUILIB_SKIA_LIB_SUBPATH=llvm.x64.release -> 两个配置都固定用该目录（同样校验存在性）
 # MinGW 指向只有 .lib 的 MSVC 目录（如 llvm.x64.release 的 MSVC 产物） -> 配置期报错
 ```
@@ -213,11 +213,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)    # 强制要求 C++20
 
 #### 2.2 路径配置
 ```cmake
-include_directories(${DUILIB_ROOT})              # duilib 根目录
-include_directories(${DUILIB_PROJECT_SRC_DIR})   # 项目源码目录
-link_directories("${DUILIB_LIB_PATH}")           # duilib 库目录
-link_directories("${DUILIB_SKIA_LIB_PATH}")      # Skia 库目录
-link_directories("${DUILIB_SDL_LIB_PATH}")       # SDL 库目录（如果启用）
+# 先收集到列表，由各平台脚本在 add_executable() 之后调用
+# duilib_apply_target_directories() 应用到目标（CM-17：不用目录级的全局设置）
+list(APPEND DUILIB_TARGET_INCLUDE_DIRS
+    "${DUILIB_ROOT}"              # duilib 根目录
+    "${DUILIB_PROJECT_SRC_DIR}"   # 项目源码目录
+)
+list(APPEND DUILIB_TARGET_LINK_DIRS
+    "${DUILIB_LIB_PATH}"          # duilib 库目录
+    "${DUILIB_SKIA_LIB_PATH}"     # Skia 库目录
+)
+# 启用 SDL 时追加 "${DUILIB_SDL_LIB_PATH}"
 ```
 
 #### 2.3 输出目录
@@ -246,7 +252,8 @@ aux_source_directory(${DUILIB_PROJECT_SRC_DIR} SRC_FILES)
 ```
 
 #### 2.5 平台分发
-自动根据操作系统包含对应的平台配置文件：
+自动根据操作系统包含对应的平台配置文件（平台脚本内部创建可执行目标
+`add_executable(${PROJECT_NAME} ${SRC_FILES})`，调用方无需再自己 `add_executable`）：
 ```cmake
 if(DUILIB_OS_WINDOWS)
     include("${CMAKE_CURRENT_LIST_DIR}/duilib_bin_windows.cmake")
@@ -256,6 +263,8 @@ elseif(DUILIB_OS_MACOS)
     include("${CMAKE_CURRENT_LIST_DIR}/duilib_bin_macos.cmake")
 elseif(DUILIB_OS_FREEBSD)
     include("${CMAKE_CURRENT_LIST_DIR}/duilib_bin_freebsd.cmake")
+else()
+    # 不支持的系统：报错并提示支持的平台（cmake.platform_unsupported）
 endif()
 ```
 
@@ -496,11 +505,11 @@ check_cxx_source_compiles("
 
 | 文件 | 何时执行 | 职责与关键入口 |
 | :--- | :--- | :--- |
-| `duilib_i18n.cmake` | `project()` 之前 | 语言解析（`--lang`/`DUILIB_LANG` → `LC_ALL`/`LC_MESSAGES`/`LANG` → 系统区域 → en；只有 `zh`/`zh_CN`/`zh_Hans` 用中文）与消息目录加载。`include` 与 `cmake -P` 均可用，入口 `duilib_t()` / `duilib_msg()` / `duilib_warn()` / `duilib_error()` |
-| `duilib_bootstrap.cmake` | `project()` 之前 | 工具自举：PATH 上没有 ninja 时由 `duilib_bootstrap_ninja(<patch_dir> <patch_zip>)` 依次从 VS 安装目录与 Skia 补丁归档的 `bin/ninja.exe` 取用 |
-| `duilib_preflight_tools.cmake` | `project()` 之前（`cmake -P`） | 阶段 A 预检：只探测工具（cmake/ninja/git/python、`vswhere`）与系统库，不下载、不安装、不改文件 |
+| `duilib_i18n.cmake` | `project()` 之前 | 语言解析（`--lang`/`DUILIB_LANG` → `LC_ALL`/`LC_MESSAGES`/`LANG` → 系统区域 → en；只有 `zh`/`zh_CN`/`zh_Hans` 用中文）与消息目录加载。`include` 与 `cmake -P` 均可用，入口 `duilib_t()` / `duilib_tf()` / `duilib_msg()` / `duilib_warn()` / `duilib_error()` |
+| `duilib_bootstrap.cmake` | `project()` 之前 | 工具自举：Ninja 生成器下没有可用的 ninja 时，由 `duilib_bootstrap_ninja(<patch_dir> <patch_zip>)` 依次尝试 `DUILIB_NINJA_EXECUTABLE`、`skia/bin`、PATH，最后从 Skia 补丁归档解压 `bin/ninja.exe` 到构建树（Windows） |
+| `duilib_preflight_tools.cmake` | `project()` 之前（`cmake -P`） | 阶段 A 预检：只探测工具（cmake、python、git、`vswhere`、make、cc/cxx 或 gcc/clang、gn、ninja、curl/wget）与 Linux 系统库，不下载、不安装、不改文件 |
 | `duilib_root_options.cmake` | `project()` 之后 | 平台/编译器/架构识别，写入统一缓存选项（覆盖子项目 `option()` 的默认值）；同时前移 `DUILIB_MINGW`/`DUILIB_MSYS2_ENV`，并按配置解析 SDL3 变体前缀 |
-| `duilib_preflight.cmake` | `project()` 之后 | 阶段 B 预检：编译器确定后的确定性校验（架构、工具链、系统库），错误一次性汇总输出 |
+| `duilib_preflight.cmake` | `project()` 之后 | 阶段 B 预检：编译器确定后的确定性校验（MSVC/GCC/Clang 最低版本、目标架构与 Skia CPU 架构一致、CEF 与 MinGW 不兼容），命中即以 `FATAL_ERROR` 结束配置 |
 | `duilib_deps.cmake` | `project()` 之后 | 建立依赖检查与准备目标（`duilib_configure_dependencies()` / `duilib_link_dependency_targets()`）；`DUILIB_DEPS_MODE=off/prepare/auto` 三档。另提供只读的 `duilib_deps_plan` 目标（`duilib_add_dependency_plan_target()`），任何模式都创建 |
 | `duilib_deps_run.cmake` | 构建期（`cmake -P`） | 真正的依赖准备：Skia/SDL3/CEF 的下载、校验、构建与安装；SDL3 每个变体装到自己的前缀并写 `.duilib-sdl`/`.duilib-crt` 标记；`duilib_deps` 目标与 `build.py deps` 共用。`-DDUILIB_DEPS_PLAN=ON` 时只打印 Skia/SDL3 的实际命令行（不建目录、不加锁、不 clone、不编译） |
 | `duilib_download.cmake` | `cmake -P` | 下载工具函数：curl 优先（支持断点续传与重试），不存在时回退 `file(DOWNLOAD)`；入口 `duilib_download_file()` / `duilib_verify_sha256()` / `duilib_verify_sha1()` |
@@ -551,9 +560,26 @@ check_cxx_source_compiles("
   `preflight.cmake_too_old_hint`），错误文案配套一个 `_hint` 键，
   `duilib_error()` / `Messages.hint()` 会拼成第二行 `Hint:`。
 - CMake 侧用 `duilib_msg()` / `duilib_warn()` 输出，动态内容作为第二个参数追加在
-  文案之后（这类文案不要留 `%s` 占位符）；Python 侧（`Messages.t()`）沿用
-  `%s` 占位符，由调用方 `% (...)` 插值（如 `pkg.cef_lib_version_hint`）。查不到
-  键时两侧都直接输出键名本身，便于发现漏配。
+  文案之后（这类文案不要留 `%s` 占位符）；需要把值嵌进句子中间时用 `{name}`
+  占位符并调用 `duilib_tf()`（如 `deps.retry`、`cmake.sdl_variant_fallback`）。
+   Python 侧（`Messages.t()`）沿用 `%s` 占位符，由调用方 `% (...)` 插值（如
+  `pkg.cef_lib_version_hint`）。同一条文案不得混用 `%s` 与 `{name}`
+  （`build/test_build.py` 会校验）。查不到键时两侧都直接输出键名本身，便于发现漏配；
+  `MessageCatalogTests` 会静态扫描 CMake 脚本与构建入口的引用，确认每个键在中英
+  两份文案里都存在；还会检查占位符是否真的被替换（`duilib_tf` 漏传 `name=`
+  时报错，含 `{name}` 的文案误用不替换的接口也报错）。
+- 以下位置**有意不接入消息目录**，新增提示时不要当成漏配：
+  `cmake/duilib_bin_{windows,linux,macos,freebsd}.cmake` 顶部的 `NOT DUILIB_OS_XXX!`
+  守卫（只在内部调用顺序出错时出现，属于开发期契约错误）；
+  `cmake/duilib_write_build_stamp.cmake`（每次构建都以 `cmake -P` 运行的热路径，
+  固定英文）；`cmake/duilib_log_variables.cmake` 与 `duilib_cef_macos.cmake` 里的
+  `DUILIB_ROOT:` / `CEF_ROOT:` 之类键值 dump（只有变量没有句子）；以及随发布包分发
+  的 `packaging/cmake/nim_duilibConfig.cmake`、`nim_duilibHelpers.cmake`（包里没有
+  `i18n/messages.json`，文案固定为中文，理由见
+  [Packaging-Follow-Up-Items.md](../docs/misc/Packaging-Follow-Up-Items.md) 的 P2-6）。
+- 库工程 `duilib/CMakeLists.txt` 也会 include 本文件（它既可被根工程
+  `add_subdirectory()` 引入，也支持单独配置），因此该文件的 `cmake_minimum_required`
+  为 **3.19**（消息目录用 `string(JSON)` 解析）；根工程入口仍要求 CMake 3.24+。
 - 语言判定顺序两侧一致：`--lang`/`DUILIB_LANG` → `LC_ALL`/`LC_MESSAGES`/`LANG`
   → 系统区域 → `en`；只有 `zh`/`zh_CN`/`zh_Hans` 用中文，`zh_TW`/`zh_HK`/
   `zh_Hant` 用英文。Windows 控制台不是 UTF-8（`chcp 65001`）时回退英文并打印
@@ -576,13 +602,18 @@ check_cxx_source_compiles("
 
 ```cmake
 cmake_minimum_required(VERSION 3.21)
-project(my_duilib_app)
+project(my_duilib_app CXX)
 
-# 设置项目源码目录
+# nim_duilib 仓库根目录
+set(DUILIB_ROOT "<nim_duilib 仓库根目录>")
+
+# 设置项目源码目录：源码由 duilib_bin.cmake 自动收集，
+# 目标 my_duilib_app 也由平台脚本创建，调用方不需要自己 add_executable
 set(DUILIB_PROJECT_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
-# 包含 duilib CMake 配置
-include(${DUILIB_ROOT}/cmake/duilib_bin.cmake)
+# 包含 duilib CMake 配置（内部会先 include duilib_common.cmake 做操作系统/编译器/
+# 路径检测，再按平台包含 duilib_bin_<平台>.cmake）
+include("${DUILIB_ROOT}/cmake/duilib_bin.cmake")
 ```
 
 #### 2. 编译命令
@@ -784,13 +815,19 @@ rm -rf CMakeCache.txt CMakeFiles/
 
 ### 2. 禁止在源码目录编译
 
-duilib CMake 配置强制禁止在源码目录编译：
+duilib CMake 配置强制禁止在源码目录编译（`cmake/duilib_bin.cmake`）：
 
 ```cmake
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
-  message(FATAL_ERROR "Prevented in-tree build...")
+    duilib_tf(_duilib_bin_tree_what "cmake.in_tree_build")
+    duilib_tf(_duilib_bin_tree_hint "cmake.in_tree_build_hint"
+              "source=${CMAKE_SOURCE_DIR}")
+    message(FATAL_ERROR "${_duilib_bin_tree_what}\n  Hint: ${_duilib_bin_tree_hint}")
 endif()
 ```
+
+报错形如 `[ERROR] 不允许在源码目录内直接构建…` + `Hint:`（文案见
+`cmake/i18n/messages.json` 的 `cmake.in_tree_build`）。
 
 ### 3. Skia 库路径要求
 
@@ -826,9 +863,9 @@ SDL3 安装前缀（Windows）由同一套架构/配置/运行库规则决定：
 
 ## 常见问题排查
 
-### Q1: CMake 报 "Unknown OS"
+### Q1: CMake 报 "unsupported platform"（旧版本为 "Unknown OS"）
 
-**原因：** 操作系统不被支持。
+**原因：** 操作系统不是 Windows / Linux / macOS(Darwin) / FreeBSD 之一。
 
 **解决方案：** 检查 `duilib_common.cmake` 中的操作系统检测逻辑。
 

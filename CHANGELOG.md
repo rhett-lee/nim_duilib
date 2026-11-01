@@ -206,6 +206,14 @@
   `clean --list` 正确列出版本目录且不删除文件；`check` 的脏工作区、已存在 tag、
   版本未严格递增、缺少 CHANGELOG、版本无条目 5 类失败路径，`finalize` 的目录缺失与
   坏压缩包，`clean` 的拒绝删除当前版本、缺少 `--yes`、目录不存在均按预期退出 1。
+- 构建消息覆盖补全（2026-11-01）：CMake 侧的 `duilib_preflight_tools.cmake`、
+  `duilib_cef.cmake`、`duilib_cef_macos.cmake`、`duilib_macos_bundle.cmake`、
+  `duilib_deps_run.cmake` 与根 `CMakeLists.txt` 里剩余的英文提示全部改为消息目录
+  （`cmake/i18n/messages.json`，新增 `preflight.*`、`deps.*`、`cmake.*`、`bundle.*`
+  等键）；库工程 `duilib/CMakeLists.txt` 也接入消息目录（CEF 头文件目录、源码裁剪、
+  CEF 开关与平台提示），其中文/英文输出随 `DUILIB_LANG` 切换。由于消息目录用
+  `string(JSON)` 解析，该文件的 `cmake_minimum_required` 由 3.18 提为 3.19（根工程
+  入口仍要求 3.24），见 `cmake/README.md` 的「构建消息目录」。
 
 ### 移除
 
@@ -216,6 +224,26 @@
 
 ### 修复
 
+- ARM64 上 inline hook 复用了仅适用于 x86/x64 的指令编码（`E9 rel32` 跳转 + libudis86），
+  编译期报 `C4311` 指针截断，运行期还会写入非法机器码：`DUILIB_ENABLE_INLINE_HOOK`
+  改为只在 `_M_IX86` / `_M_X64` 下定义，ARM64 走原有 fallback 桩（接口保留，
+  `Install()` / `Uninstall()` 返回 `false`），x86/x64 行为不变。
+- MinGW（gcc 14）构建中自有代码的告警：`ColorConverter::OKLCHToARGB` 的 `r/g/b`
+  未初始化即传入转换函数（`-Wmaybe-uninitialized`）、`WindowBuilder::ParseWindowCreateAttributes`
+  的 `bIsLayeredWindowDefined` 仅在 SDL 分支使用（非 SDL 构建报
+  `-Wunused-but-set-variable`）、`ListCtrl::ExportToCsvFile` 用 `push_back` 逐字节写
+  BOM 触发 GCC 的 `-Wfree-nonheap-object` 误报；分别改为默认初始化、非 SDL 分支显式
+  `UNUSED_VARIABLE`、以及用 BOM 常量构造 `std::vector`，重新编译后自有代码 0 告警。
+- 同时安装多个 Visual Studio 时 `doctor` 的预检显示最新版本、与实际编译器不一致：
+  预检此前固定使用 `vswhere -latest`；现在识别 `vcvars` 导出的 `VSINSTALLDIR` /
+  `VisualStudioVersion` 并按该主版本过滤，`--vs-version 17` 时显示的是 VS 2022。
+- 切换编译器（包括 VS 2022 ↔ VS 2026、MSVC ↔ MinGW）后 `lib/`、`build/build_temp`
+  与 `bin/` 中仍残留旧工具集的产物（旧 `.lib` 会被新工具链接入）：`build.py` 现在
+  在检测到切换时同时删除 `lib/`、`build/build_temp`、`bin/` 中的 exe/pdb/ilk/dll
+  与 `.build-config` 标记（保留 `bin/resources*`、`libcef_win*`、缓存目录与
+  `WebView2Loader.dll`），`deps` 在删除构建树之前也会完成清理；VS 工程的
+  `duilib_crt_mode.txt` 改为记录 `<PlatformToolset>/<static|dll>`，切换 VS 版本后
+  同样删除旧 `.obj/.pch`。
 - Windows 多配置下 SDL3 的 Debug/Release 互相覆盖：SDL3 不设置 `DEBUG_POSTFIX`，
   Debug/Release 静态库同名，此前两次 install 到 `<deps-root>/SDL3` 同一前缀，
   后安装的 Release 覆盖 Debug；`/MT`、`/MD` 混链还会报 LNK2038。现在按
@@ -675,6 +703,130 @@
   C01 消费者用例复验（重新构建 `lib/x64/Release/duilib-zlib.lib`——旧库早于修复提交，
   仍带原符号）：`PASS=15 FAIL=0 SKIP=4`；x86 与 arm64 的 `duilib-zlib.lib` 也已重新
   构建，三个架构的符号表均为 `duilib_z_errmsg`、无裸 `z_errmsg`。
+- 构建消息（重复状态标记）：`build.py doctor` 缺 cmake 时输出成
+  `[WARN]  [WARN] 未找到 cmake ...`（包装函数自己加前缀，文案又带了一次）；
+  `deps.skia_patch_tool_in_use` 也自带 `[deps]` 标记，与 `[WARN]  ` 前缀重复。
+  现在文案统一不带标记，并由新增单元测试
+  `test_build.MessageCatalogTests.test_markers_not_duplicated` 静态扫描 CMake 与
+  Python 调用点，发现“文案自带 `[OK]/[WARN]/[INFO]` 且由包装接口输出”即失败。
+- 构建文档与实现对齐：`cmake/README.md` / `README.en.md` 的 in-tree 编译片段改为
+  当前实现（`cmake.in_tree_build` + Hint），Q1 的平台报错改为
+  `unsupported platform`（旧版为 `Unknown OS`）；`build/build-reference.md` 的
+  macOS CEF 回退日志改为中文渲染并在括号内注明英文原文，`build-reference.en.md`
+  保持英文；`build/sdk-package-test.md` 补充说明该用例工程的提示固定为中文。
+  另外在 `cmake/README*.md` 的「构建消息目录」中列出有意不接入目录的位置
+  （内部守卫、构建标记脚本、键值 dump、随包分发的 `packaging/cmake/*`），
+  并在 `Packaging-Follow-Up-Items.md` 新增 P2-6 记录包内提示语言的决策。
+- macOS App Bundle 的 zip 资源模式找不到压缩包：`GetResourceZipPath()` 由
+  `GetResourceRootPath()` 的父目录派生，而 zip 模式下 Bundle 内没有 `resources`
+  目录，根路径会回退到“可执行文件目录 + resources/”，父目录就成了 `bin/`，
+  结果去 Bundle 外面找 `resources.zip`。现在 macOS 下先按
+  `<App>.app/Contents/Resources/duilib/resources.zip` 定位，存在才采用，否则保留
+  原有回退逻辑；非 Bundle 程序行为不变。
+- 构建文档与实现继续对齐：`preflight.dev_packages_hint` 改指
+  `build/linux-dependencies.md`（系统包清单见 `build/build-reference.md` 第 8 节）；
+  `duilib_preflight_tools.cmake` 的 Linux 系统库注释由“可选，缺失只告警”改为
+  实际行为（`pkg-config` 缺失只告警，库缺失一次性报错）并删除未使用的变量；
+  `cmake/README*.md` 的 ninja 自举与阶段 B 预检描述改为实际查找顺序与校验项；
+  `build/README(.en).md`、`build-reference(.en).md`、`linux-dependencies(.en).md`、
+  根 `README(.en).md` 及 AI 指南统一把 Python 要求写为 3.8+（与 `build.py` 一致）。
+- 新增 `build/test_docs.py`：`build.py test` 现在会校验维护范围内 Markdown 的相对
+  链接（先剔除代码块与行内代码）以及 `docs/` 顶层文档的中英成对，历史目录
+  `docs/misc/` 不参与；`docs/Summary(.en).md` 中指向已迁移头文件的链接同步修正。
+- 测试文档与实现对齐：`build/sdk-package-test.md` 的 CEF 维度取值由 CEF 142 改为
+  当前默认 156（`pack.py --cef-version` 仍提供 `latest`/`109`），前置表的 Python
+  要求写为 3.8+，P02 的“必需文件”由 10 项改为 `check_layout()` 实际的 11 项，
+  并补上遗漏的 `--lang` 参数说明、把 `--keep` 的删除目录写法改为实际使用的
+  `<out>/<NN>`；`build/arm64-test-plan.md` 的现状表不再把
+  CEF 109 出包记为“未测”（W-A07/W-P25 已通过），并注明 142 是出包当时清单的
+  默认版本、当前默认已升至 156。
+- 构建文档补全：`build/README(.en).md` 的包名规则补上 `-mingw-gcc|-mingw-llvm`
+  与 `-dll`（与 `pack.py:build_package_name()`、`docs/Release(.en).md` 一致）；
+  `cmake/README(.en).md` 目录树里 `duilib_bootstrap.cmake` 的说明改为实际查找顺序
+  （VS 安装目录由 `build.py` 查找，脚本本身不含该来源），阶段 A 预检的工具清单
+  补全 make / cc/cxx / gn / curl-wget。
+- 只装 VS 2026（或同时装 VS 2022 与 VS 2026）时 Visual Studio 生成器名仍写死：
+  `build.py` 在没有 Ninja 时固定回退 `Visual Studio 17 2022`，`sdk_package_test.py`
+  也用同一字面量判断“本机没有 MinGW 编译器”，并在负向架构用例里显式传入该生成器名；
+  只装 VS 2026 的机器会配置失败，MinGW 包也从 SKIP 变成 FAIL。新增
+  `build.py:vs_generator_name()`，按安装路径
+  （`...\Microsoft Visual Studio\{2017|2019|2022|18}\...`）映射
+  `Visual Studio 15 2017` … `Visual Studio 18 2026`，无法识别时沿用 2022 的名字；
+  `detect_toolchain()`、`build_block_reason()`（改用 `startswith("Visual Studio")`）
+  与 `check_negative_arch()` 统一使用它，并新增 `test_build.VsGeneratorTests` 3 项、
+  `test_sdk_package.BuildBlockReasonTest` 4 项；`docs/Release(.en).md`、
+  `build/sdk-package-test.md`、`TRAE.md`/`WORKBUDDY.md` 里的 VS 生成器示例也注明
+  生成器名随本机 VS 版本变化（VS 2022 为 `Visual Studio 17 2022`，VS 2026 为
+  `Visual Studio 18 2026`）。
+- 消息目录只有“引用了不存在的键”检查，反向的“死键”（`messages.json` 里留下但
+  源码不再引用的条目）不会被发现：新增 `MessageCatalogTests.test_no_orphan_keys`，
+  要求每个键名都作为字符串出现在 `cmake/**/*.cmake`、根与 `duilib/CMakeLists.txt`、
+  `build/*.py`（不含测试）；键名经表格等数据传递（如 `SCENARIO_ORDER` 的
+  `sdk.scn_p01`）同样算作引用。当前 706 个键全部有引用。
+- 构建参考手册补漏：`build/build-reference(.en).md` 的“常用参数”表新增 pack 子命令的
+  `--pack-arg`（原样追加到 `pack.py` 命令行），示例为 `--pack-arg=--list` 与
+  `--pack-arg=--allow-missing`，与 `build.py` 的实现一致。
+- 发布编排脚本 `build/release.py` 的包名与体检口径修正：`package` 预判包名时没有传
+  `is_dll`，DLL 模式下 `--dry-run` 显示的包名缺 `-dll`；打包后的体检又只按这个预测
+  文件名打开归档，而 macOS 的 `-cef` 需要真的收集到 CEF 示例 App Bundle、交叉出包时
+  PE 架构不符的 DLL 也不会入包，预测名与实际包名可能不同，体检会以“包不存在”失败。
+  新增 `_expected_runtime_dll()`（与 `pack.collect_duilib_runtime_dll()` 同规则：
+  x86 为 `duilib32[_d].dll`、Debug 带 `_d`）把 DLL 模式传给
+  `build_package_name(is_dll=...)`；体检改为检查“输出目录中本次新增的归档”，仍无
+  新增时才报新消息 `rel.pack_output_missing`。新增 `build/test_release.py`（15 项，
+  覆盖包名预判、归档筛选、`git status` 路径解析与 `dist/` 忽略规则、CHANGELOG 条目
+  提取），并在 `build/README(.en).md` 文件表与 `docs/Release(.en).md` 发布流程中
+  同步说明。
+- SDK 接入文档补漏：`docs/Release(.en).md` 的 VS 属性表新增 `NimDuilibUseManifest`
+  （默认 `1`，`0` 时不按工程 Platform 嵌入 `msvc/manifest/duilib.<arch>.manifest`）；
+  `build/README(.en).md` 的 autotest 段落补充 `--smoke` 与 `--build-timeout`
+  （冒烟只对 Release 预设执行、示例架构与主机不一致时跳过；构建超时默认 3600 秒）。
+- `--lang` 说明补漏：`docs/Release(.en).md` 的 `pack.py` 参数表与
+  `build/README(.en).md` 的 autotest 段落都未提到该选项（五个入口实际都支持）；
+  现补充语言判定顺序（`--lang` / `DUILIB_LANG` → `LC_ALL`/`LC_MESSAGES`/`LANG` →
+  系统区域 → `en`）、重复给出时以最后一个为准，以及 `release.py` 的子命令同样支持。
+- 控制台语言在脚本间不一致：`build.py pack`、`release.py package` 与 `autotest.py`
+  启动的 `pack.py` / `build.py` / 单元测试不继承已解析的 `--lang`，只能自己按环境变量
+  与系统区域判定，中文系统上 `--lang en` 会中英混排；`release.py` 进程内复用的
+  `pack.verify_package()` 也读 `pack` 模块自己的 `MESSAGES`。现由 `build.py pack`
+  与 `release.py package` 显式转发 `--lang <已解析语言>`，`autotest.py` 通过
+  `DUILIB_LANG` 传给每个子进程，`release.py` 在 `main()` 中同步 `pack.MESSAGES`。
+  另外五个入口的 `_requested_lang()` 预扫描原先取第一个 `--lang`，而 argparse 以
+  最后一个为准（`--lang en build --lang zh_CN` 时 `--help`、预览命令与实际解析结果
+  不一致），现统一改为“最后一个生效”；新增 4 项用例
+  （`test_build.PackCommandTests.test_language_is_forwarded_to_pack`、
+  `test_release.PackageLanguageTest`、`test_autotest.ChildEnvironmentTest` 2 项）。
+- MinGW 的 Skia 变体按配置各编一份：`deps` 对 MinGW 的 Debug/Release 使用同一组
+  GN 参数（`is_debug=false`，没有 `/MTd` 之类的运行库切换），而候选列表又把
+  `<前缀><gcc|llvm>.<arch>.debug` 排在前面，于是 Debug 先编一份、Release 再编一份
+  （每种各约 6 分钟与一份额外磁盘占用），Debug 编出的那一份 Release 也认不出来。
+  现在 MinGW 的 Skia 候选与配置无关，统一为 `<前缀><gcc|llvm>.<arch>.release`，
+  配置期、`deps`、`pack.py` 与 SDL3 变体命名口径一致；已有的 `.<arch>.debug` 目录
+  不再被自动选用（需要时用 `--skia-lib-dir` / `-DDUILIB_SKIA_LIB_SUBPATH` 显式指定）。
+  `build/build-reference(.en).md`、`build/README(.en).md`、`cmake/README(.en).md`
+  的说明与 `build/test_cmake_scripts.py` 的期望值同步更新。
+- `deps --dry-run` 在构建树即将重建时仍按旧缓存展开计划：编译器切换（MSVC ↔ MinGW）
+  或运行库/DLL 模式切换（`--md`/`--dll`）时，真正的 `deps` 会先清空构建树再重新配置，
+  而 dry-run 仍会调用 `duilib_deps_plan`，打印出即将被丢弃的旧工具链/旧模式的
+  `gn`、`ninja` 参数。现在 `cmd_deps()` 把 `reset_stale_build_dir()` 与
+  `reset_stale_build_mode()` 的结果传给 `_print_deps_plan()`，构建树要重建时只打印
+  新键 `deps.plan_reset` 与提示，不再进入计划目标（新增
+  `test_build.DepsPlanPrintTests.test_reset_pending_skips_plan`）。
+- `--dry-run` 的状态消息原来用完成态措辞（“正在清理”“已同步”），但 dry-run 并不删除/写入：
+  `build.compiler_outputs`、`build.config_switch`、`build.dll_flag`、
+  `build.toolchain_changed`、`build.mode_changed` 改为“将清理/将删除/将同步”，
+  真实运行与 dry-run 都成立（中英同步）。
+- `build/build-reference(.en).md` 的“`--dry-run` 本身不会配置”与实际不符：计划目标经
+  `cmake --build` 执行，`CMakeLists.txt`/`cmake/*.cmake` 比构建系统新时 CMake 会先重跑
+  一次配置（只更新 `out/` 构建目录，不做依赖准备、不联网、不编译）。
+  文档改为区分“dry-run 不主动配置”与“CMake 自身因配置过期而重跑配置”。
+- `docs/Release(.en).md` 的 VS 接入只写了“静态库全套或 DLL 导入库 + 系统库”，没有列出
+  属性表按包元数据自动补齐的链接项：现在补上系统库清单（SDL 包再加
+  `Version`/`Winmm`/`Setupapi`/`Hid`/`Mincore`/`Dinput8`，WebView2 包加 `WinInet`）、
+  静态包的 Skia 与可选库及 `duilib*` 全套、DLL 包只链 `duilib.lib`，以及静态 + CEF 的
+  `/DELAYLOAD:libcef.dll` 与静态 Debug 的 `/NODEFAULTLIB:"libcmt.lib"`。同时说明
+  `NimDuilibSystemLibs` / `NimDuilibLinkLibs` 是属性表内部赋值，Import 前覆盖无效，
+  额外库请用 `AdditionalDependencies` 追加。
 
 ## [1.0.2026.1023] - 2026-10-23
 

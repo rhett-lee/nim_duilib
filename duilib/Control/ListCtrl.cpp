@@ -1493,11 +1493,9 @@ bool ListCtrl::ExportToCsvFile(const DString& strFilePath, bool bSelectedOnly)
     }
     //写入 UTF-8 BOM 头 + UTF-8 正文，便于 Excel 直接识别编码（避免中文乱码）
     const DStringA strUtf8Text = StringConvert::TToUTF8(strText);
-    std::vector<uint8_t> fileData;
-    fileData.reserve(3 + strUtf8Text.size());
-    fileData.push_back((uint8_t)0xEF);
-    fileData.push_back((uint8_t)0xBB);
-    fileData.push_back((uint8_t)0xBF);
+    static const uint8_t kUtf8Bom[] = { 0xEF, 0xBB, 0xBF };
+    std::vector<uint8_t> fileData(kUtf8Bom, kUtf8Bom + sizeof(kUtf8Bom));
+    fileData.reserve(sizeof(kUtf8Bom) + strUtf8Text.size());
     fileData.insert(fileData.end(), strUtf8Text.begin(), strUtf8Text.end());
     return FileUtil::WriteFileData(FilePath(strFilePath), fileData);
 }

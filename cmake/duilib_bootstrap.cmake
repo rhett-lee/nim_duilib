@@ -19,6 +19,9 @@
 
 cmake_minimum_required(VERSION 3.24)
 
+# 构建消息（中英文）：根 CMakeLists 已先 include，这里保证单独使用本文件时也能解析。
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_i18n.cmake")
+
 # 归档里是否有指定条目（先列条目，避免 file(ARCHIVE_EXTRACT) 因条目缺失直接报错）
 function(_duilib_archive_has_entry archive entry out_var)
     set(_has FALSE)
@@ -44,7 +47,9 @@ function(_duilib_bootstrap_use_ninja ninja source)
         "Ninja executable (bundled with the nim_duilib toolchain)" FORCE)
     set(DUILIB_NINJA_EXECUTABLE "${ninja}" CACHE FILEPATH
         "Override the ninja executable" FORCE)
-    message(STATUS "[OK]    ninja ${ninja} (${source})")
+    duilib_tf(_duilib_bootstrap_ninja_line "cmake.ninja_ready"
+              "ninja=${ninja}" "source=${source}")
+    message(STATUS "${_duilib_bootstrap_ninja_line}")
 endfunction()
 
 function(duilib_bootstrap_ninja patch_dir patch_zip)

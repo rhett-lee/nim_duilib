@@ -36,6 +36,14 @@
       "en": "[ERROR] required tool not found",
       "zh_CN": "[ERROR] 未找到必需的工具"
     },
+    "preflight.item": {
+      "en": "{message}: {item}",
+      "zh_CN": "{message}：{item}"
+    },
+    "preflight.failed": {
+      "en": "[ERROR] environment preflight failed; see the messages above",
+      "zh_CN": "[ERROR] 环境预检失败；请查看上面的提示"
+    },
     "preflight.ninja_missing_hint": {
       "en": "install Ninja or the Visual Studio 'C++ CMake tools for Windows' component, use build.py (it locates Ninja or extracts the bundled one), or use -G \"Visual Studio 17 2022\"",
       "zh_CN": "安装 Ninja 或 Visual Studio 的“适用于 Windows 的 C++ CMake 工具”组件，使用 build.py（会自动定位 Ninja 或解压归档自带的版本），或改用 -G \"Visual Studio 17 2022\""
@@ -77,8 +85,8 @@
       "zh_CN": "使用 -DDUILIB_TARGET_ARCH=x64（或 arm64；x86 仅支持 Windows）"
     },
     "preflight.arch_mismatch": {
-      "en": "[ERROR] DUILIB_TARGET_ARCH does not match the configured toolchain",
-      "zh_CN": "[ERROR] DUILIB_TARGET_ARCH 与当前工具链不一致"
+      "en": "[ERROR] DUILIB_TARGET_ARCH={target} does not match DUILIB_SKIA_CPU_ARCH={skia}",
+      "zh_CN": "[ERROR] DUILIB_TARGET_ARCH={target} 与 DUILIB_SKIA_CPU_ARCH={skia} 不一致"
     },
     "preflight.arch_mismatch_hint": {
       "en": "reconfigure with a matching -A/-DCMAKE_CXX_COMPILER, or change DUILIB_TARGET_ARCH",
@@ -87,6 +95,30 @@
     "preflight.compiler_unsupported": {
       "en": "[ERROR] unsupported compiler",
       "zh_CN": "[ERROR] 不支持的编译器"
+    },
+    "preflight.msvc_too_old": {
+      "en": "[ERROR] MSVC {version} is too old (19.30+ / VS 2022 required)",
+      "zh_CN": "[ERROR] MSVC {version} 版本过旧（需要 19.30+ / VS 2022）"
+    },
+    "preflight.msvc_too_old_hint": {
+      "en": "install Visual Studio 2022 or newer with 'Desktop development with C++'",
+      "zh_CN": "安装 Visual Studio 2022 或更新版本，并勾选“使用 C++ 的桌面开发”"
+    },
+    "preflight.gcc_too_old": {
+      "en": "[ERROR] gcc {version} is too old (10.0+ required)",
+      "zh_CN": "[ERROR] gcc {version} 版本过旧（需要 10.0+）"
+    },
+    "preflight.gcc_too_old_hint": {
+      "en": "upgrade gcc, or use clang 12+",
+      "zh_CN": "升级 gcc，或改用 clang 12+"
+    },
+    "preflight.clang_too_old": {
+      "en": "[ERROR] clang {version} is too old (12.0+ required)",
+      "zh_CN": "[ERROR] clang {version} 版本过旧（需要 12.0+）"
+    },
+    "preflight.clang_too_old_hint": {
+      "en": "upgrade clang",
+      "zh_CN": "升级 clang"
     },
     "preflight.compiler_unsupported_hint": {
       "en": "use MSVC 2022+, gcc/g++, or clang/clang++",
@@ -104,6 +136,46 @@
       "en": "[OK] preflight finished (DUILIB_PREFLIGHT_ONLY=ON)",
       "zh_CN": "[OK] 预检完成（DUILIB_PREFLIGHT_ONLY=ON）"
     },
+    "preflight.skia_toolchain": {
+      "en": "[OK]    Skia toolchain {cc} ({cxx})",
+      "zh_CN": "[OK]    Skia 工具链 {cc}（{cxx}）"
+    },
+    "preflight.skia_toolchain_gcc": {
+      "en": "[WARN]  Skia uses the gcc toolchain (clang/clang++ not found; Skia will be slower)",
+      "zh_CN": "[WARN]  Skia 使用 gcc 工具链（未找到 clang/clang++；Skia 性能会较低）"
+    },
+    "preflight.gn_deps_off": {
+      "en": "[WARN]  gn not found (deps: off)",
+      "zh_CN": "[WARN]  未找到 gn（deps: off）"
+    },
+    "preflight.ninja_deps_off": {
+      "en": "[WARN]  ninja not found (deps: off)",
+      "zh_CN": "[WARN]  未找到 ninja（deps: off）"
+    },
+    "preflight.curl_wget_missing": {
+      "en": "[WARN]  curl/wget not found; CEF downloads fall back to CMake's file(DOWNLOAD) without resume",
+      "zh_CN": "[WARN]  未找到 curl/wget；下载 CEF 时改用 CMake 的 file(DOWNLOAD)，不支持断点续传"
+    },
+    "preflight.pkgconfig_missing": {
+      "en": "[WARN]  pkg-config not found; skipping the system library checks",
+      "zh_CN": "[WARN]  未找到 pkg-config；跳过系统库检查"
+    },
+    "preflight.compilers_missing": {
+      "en": "gcc/g++ or clang/clang++",
+      "zh_CN": "gcc/g++ 或 clang/clang++"
+    },
+    "preflight.make_missing_hint": {
+      "en": "install make (gmake on FreeBSD)",
+      "zh_CN": "安装 make（FreeBSD 上为 gmake）"
+    },
+    "preflight.dev_packages_hint": {
+      "en": "install the -dev packages listed in build/linux-dependencies.md (package lists: build/build-reference.md, section 8)",
+      "zh_CN": "安装 build/linux-dependencies.md 中列出的 -dev 软件包（系统包清单见 build/build-reference.md 第 8 节）"
+    },
+    "preflight.vs_found_suffix": {
+      "en": "(found {version})",
+      "zh_CN": "（发现 {version}）"
+    },
     "options.sdl_forced_on": {
       "en": "[WARN] SDL is mandatory on this platform; DUILIB_ENABLE_SDL=OFF is ignored",
       "zh_CN": "[WARN] 当前平台必须启用 SDL；DUILIB_ENABLE_SDL=OFF 已被忽略"
@@ -119,6 +191,14 @@
     "options.arch_resolved": {
       "en": "[OK] target architecture",
       "zh_CN": "[OK] 目标架构"
+    },
+    "options.dll_unsupported": {
+      "en": "[ERROR] DUILIB_DLL=ON only supports Windows with MSVC (current: {os}, {compiler})",
+      "zh_CN": "[ERROR] DUILIB_DLL=ON 仅支持 Windows + MSVC（当前：{os}、{compiler}）"
+    },
+    "options.dll_unsupported_hint": {
+      "en": "use the static build, or configure with a Windows MSVC toolchain",
+      "zh_CN": "请使用静态库构建，或改用 Windows MSVC 工具链配置"
     },
     "deps.lock_failed": {
       "en": "[ERROR] another dependency preparation is already running",
@@ -188,6 +268,14 @@
       "en": "run 'build.py deps' once, then re-run with --dry-run to print the exact commands",
       "zh_CN": "先执行一次 'build.py deps'，再用 --dry-run 即可打印实际命令"
     },
+    "deps.plan_reset": {
+      "en": "[deps] the build tree will be re-created for the current compiler/options, so the Skia/SDL3 commands are not expanded from the old cache",
+      "zh_CN": "[deps] 构建树将按当前编译器/选项重建，不按旧缓存展开 Skia/SDL3 的实际命令"
+    },
+    "deps.plan_reset_hint": {
+      "en": "run 'build.py deps' once (it resets and reconfigures the build tree), then repeat the dry-run to see the matching commands",
+      "zh_CN": "先执行一次 'build.py deps'（会清空并按当前参数重新配置构建树），再重新查看计划命令"
+    },
     "deps.plan_failed": {
       "en": "[deps] failed to print the dependency build commands",
       "zh_CN": "[deps] 打印依赖构建命令失败"
@@ -215,6 +303,10 @@
     "deps.skia_ready": {
       "en": "[OK] Skia is ready",
       "zh_CN": "[OK] Skia 已就绪"
+    },
+    "deps.skia_ready_adopted": {
+      "en": "[OK] Skia is ready ({variant}, adopted existing build)",
+      "zh_CN": "[OK] Skia 已就绪（{variant}，沿用已有构建产物）"
     },
     "deps.skia_building": {
       "en": "[deps] building Skia with gn/ninja",
@@ -264,13 +356,17 @@
       "en": "SHA1.txt inside the archive should record skia.default; replace the archive or update third_party_versions.json",
       "zh_CN": "补丁包内 SHA1.txt 应记录 skia.default 的提交；请替换补丁包或更新 third_party_versions.json"
     },
+    "deps.skia_patch_sha1_file_missing": {
+      "en": "SHA1.txt is missing from the patch archive",
+      "zh_CN": "补丁归档内缺少 SHA1.txt"
+    },
     "deps.skia_patch_changed": {
       "en": "[deps] the Skia patch archive changed, rebuilding Skia",
       "zh_CN": "[deps] Skia 补丁包已更新，重新编译 Skia"
     },
     "deps.skia_patch_tool_in_use": {
-      "en": "[deps] cannot replace {file} (it is in use by the running build); keeping the existing copy, delete it and re-run to update",
-      "zh_CN": "[deps] 无法替换 {file}（正被当前构建占用）；已保留现有文件，需要更新时删除该文件后重新执行"
+      "en": "cannot replace {file} (it is in use by the running build); keeping the existing copy, delete it and re-run to update",
+      "zh_CN": "无法替换 {file}（正被当前构建占用）；已保留现有文件，需要更新时删除该文件后重新执行"
     },
     "deps.git_ref_switching": {
       "en": "[deps] local source is not at the manifest ref, switching",
@@ -344,17 +440,33 @@
       "en": "[WARN] no SHA1 (and no sha256 in the manifest) is available for this CEF archive; integrity check skipped",
       "zh_CN": "[WARN] 未能获取该 CEF 下载包的 SHA1（版本清单也未配置 sha256）；已跳过完整性校验"
     },
-    "deps.cef_version_mismatch": {
-      "en": "[ERROR] CEF runtime/header version mismatch",
-      "zh_CN": "[ERROR] CEF 运行时与仓库头文件版本不一致"
-    },
-    "deps.cef_version_mismatch_hint": {
-      "en": "use a matching DUILIB_CEF_VERSION, or update the tracked libcef headers",
-      "zh_CN": "改用匹配的 DUILIB_CEF_VERSION，或更新仓库内的 libcef 头文件"
-    },
     "deps.cef_ready": {
       "en": "[OK] CEF runtime is ready",
       "zh_CN": "[OK] CEF 运行时已就绪"
+    },
+    "deps.cef_ready_adopted": {
+      "en": "[OK] CEF runtime is ready ({version}/{arch}, adopted an existing runtime)",
+      "zh_CN": "[OK] CEF 运行时已就绪（{version}/{arch}，沿用已有运行时）"
+    },
+    "deps.cef_sha1_unavailable": {
+      "en": "[deps] SHA1 unavailable for {file}; falling back to the sha256 in the manifest",
+      "zh_CN": "[deps] 未能获取 {file} 的 SHA1；改用版本清单中的 sha256"
+    },
+    "deps.cef_cache_mismatch": {
+      "en": "[deps] cached archive checksum mismatch, re-downloading {file}",
+      "zh_CN": "[deps] 缓存的下载包校验值不匹配，正在重新下载 {file}"
+    },
+    "deps.cef_retry_checksum": {
+      "en": "[deps] checksum mismatch for {file}, retrying ({attempt}/3)",
+      "zh_CN": "[deps] {file} 校验值不匹配，正在重试（{attempt}/3）"
+    },
+    "deps.cef_extracting": {
+      "en": "[deps] extracting {archive}",
+      "zh_CN": "[deps] 正在解压 {archive}"
+    },
+    "deps.cef_refresh_failed": {
+      "en": "[deps] failed to refresh {file}: the file may be in use by a running CEF program",
+      "zh_CN": "[deps] 刷新 {file} 失败：该文件可能被正在运行的 CEF 程序占用"
     },
     "deps.cef_extract_failed": {
       "en": "[ERROR] failed to extract the CEF archive",
@@ -378,27 +490,31 @@
     },
     "deps.crt_mismatch": {
       "en": "[ERROR] CRT mismatch between the current build and prepared dependencies",
-      "zh_CN": "[ERROR] 当前构建与已准备依赖的 CRT 不一致"
+      "zh_CN": "[ERROR] CRT mismatch：当前构建与已准备依赖的 CRT 标识不一致"
     },
     "deps.crt_mismatch_hint": {
       "en": "re-run 'build.py deps' with the same DUILIB_MD/toolchain, or use a separate build directory",
       "zh_CN": "使用相同的 DUILIB_MD/工具链重新执行 'build.py deps'，或改用独立的构建目录"
     },
     "build.toolchain_changed": {
-      "en": "[build] compiler changed in {dir}: {cached} -> {expected}; discarding the stale CMake cache",
+      "en": "[build] compiler changed in {dir}: {cached} -> {expected}; the stale CMake cache will be discarded",
       "zh_CN": "[build] 检测到 {dir} 的编译器已切换：{cached} → {expected}，将清理旧的 CMake 缓存"
     },
+    "build.compiler_outputs": {
+      "en": "[build] will remove {count} stale compiler output(s) from lib/, build_temp and bin/ (runtime assets in bin/ are kept)",
+      "zh_CN": "[build] 将清理旧编译器产物 {count} 项（lib/、build_temp 以及 bin/ 中的可执行/调试文件；bin/ 的运行时资源保留）"
+    },
     "build.config_switch": {
-      "en": "[build] bin/ holds {stale} example outputs from another configuration; removing {count} target(s) so {config} relinks",
-      "zh_CN": "[build] bin/ 中是 {stale} 配置的示例产物；删除 {count} 个目标，强制 {config} 重新链接"
+      "en": "[build] bin/ holds {stale} example outputs from another configuration; {count} target(s) will be removed so {config} relinks",
+      "zh_CN": "[build] bin/ 中是 {stale} 配置的示例产物；将删除 {count} 个目标，强制 {config} 重新链接"
     },
     "build.mode_changed": {
-      "en": "[build] CRT/DLL mode changed in {dir} ({previous} -> {mode}); cleaning the build tree so the CEF wrapper and every target rebuild in the new mode",
+      "en": "[build] CRT/DLL mode changed in {dir} ({previous} -> {mode}); the build tree will be cleaned so the CEF wrapper and every target rebuild in the new mode",
       "zh_CN": "[build] 检测到 {dir} 的运行库/DLL 模式已切换（{previous} → {mode}），将清理构建树，确保 CEF wrapper 与全部目标按新模式重编"
     },
     "build.dll_flag": {
-      "en": "[build] synchronized msvc/PropertySheets/duilib_dll.flag (DLL mode {state})",
-      "zh_CN": "[build] 已同步 msvc/PropertySheets/duilib_dll.flag（DLL 模式 {state}）"
+      "en": "[build] msvc/PropertySheets/duilib_dll.flag will be synchronized (DLL mode {state})",
+      "zh_CN": "[build] 将同步 msvc/PropertySheets/duilib_dll.flag（DLL 模式 {state}）"
     },
     "build.configuring": {
       "en": "[build] configuring",
@@ -407,6 +523,14 @@
     "build.building": {
       "en": "[build] building",
       "zh_CN": "[build] 正在编译"
+    },
+    "build.example_cef_off": {
+      "en": "[INFO] example '{name}' skipped: DUILIB_ENABLE_CEF=OFF",
+      "zh_CN": "[INFO] 示例 '{name}' 已跳过：DUILIB_ENABLE_CEF=OFF"
+    },
+    "build.example_not_found": {
+      "en": "[WARN] example '{name}' not found; skipped",
+      "zh_CN": "[WARN] 未找到示例 '{name}'；已跳过"
     },
     "build.done": {
       "en": "[OK] build finished",
@@ -443,18 +567,6 @@
     "build.cmake_missing_hint": {
       "en": "install CMake 3.24+ and add it to PATH",
       "zh_CN": "安装 CMake 3.24+ 并加入 PATH"
-    },
-    "build.invalid_config": {
-      "en": "[ERROR] invalid configuration; expected Debug or Release",
-      "zh_CN": "[ERROR] 配置无效；应为 Debug 或 Release"
-    },
-    "build.invalid_arch": {
-      "en": "[ERROR] invalid architecture",
-      "zh_CN": "[ERROR] 架构无效"
-    },
-    "build.no_products": {
-      "en": "[ERROR] no build products found; run 'build.py build' first",
-      "zh_CN": "[ERROR] 未找到构建产物；请先执行 'build.py build'"
     },
     "build.clean_done": {
       "en": "[OK] build tree removed",
@@ -1307,6 +1419,10 @@
     "rel.pack_check_failed": {
       "en": "[ERROR] package check failed: %s",
       "zh_CN": "[ERROR] 包体检未通过：%s"
+    },
+    "rel.pack_output_missing": {
+      "en": "[ERROR] pack.py finished but no new archive appeared in the output directory (expected %s)",
+      "zh_CN": "[ERROR] pack.py 已结束，但输出目录里没有新增压缩包（预计 %s）"
     },
     "rel.sums_missing": {
       "en": "missing SHA256SUMS",
@@ -2431,6 +2547,290 @@
     "sdk.lbl_name_root": {
       "en": "MANIFEST package name vs package root",
       "zh_CN": "MANIFEST 包名 vs 包根目录"
+    },
+    "cmake.freebsd": {
+      "en": "[build] building for FreeBSD",
+      "zh_CN": "[build] 正在为 FreeBSD 构建"
+    },
+    "cmake.in_tree_build": {
+      "en": "[ERROR] in-tree builds are not supported (the source directory cannot be the build directory)",
+      "zh_CN": "[ERROR] 不允许在源码目录内直接构建（源码目录不能同时是构建目录）"
+    },
+    "cmake.in_tree_build_hint": {
+      "en": "create a build directory outside the source tree and run \"cmake -S {source} -B <build-dir>\" there, or just use 'python3 build/build.py'",
+      "zh_CN": "请在源码目录之外新建构建目录，在其中执行 \"cmake -S {source} -B <构建目录>\"，或直接使用 'python3 build/build.py'"
+    },
+    "cmake.platform_unsupported": {
+      "en": "[ERROR] unsupported platform: {platform}",
+      "zh_CN": "[ERROR] 不支持的平台：{platform}"
+    },
+    "cmake.platform_unsupported_hint": {
+      "en": "supported platforms are Windows, Linux, macOS (Darwin) and FreeBSD",
+      "zh_CN": "支持的平台为 Windows、Linux、macOS（Darwin）与 FreeBSD"
+    },
+    "cmake.manifest_missing": {
+      "en": "[ERROR] Windows manifest not found: {path}",
+      "zh_CN": "[ERROR] 未找到 Windows 清单文件：{path}"
+    },
+    "cmake.manifest_missing_hint": {
+      "en": "restore msvc/manifest/duilib.<arch>.manifest, or check DUILIB_ROOT",
+      "zh_CN": "请恢复 msvc/manifest/duilib.<arch>.manifest，或检查 DUILIB_ROOT 是否正确"
+    },
+    "cmake.webview2_missing": {
+      "en": "[ERROR] WebView2 native directory not found: {path}",
+      "zh_CN": "[ERROR] 未找到 WebView2 原生库目录：{path}"
+    },
+    "cmake.webview2_missing_hint": {
+      "en": "DUILIB_WEBVIEW2_EXE requires duilib/third_party/Microsoft.Web.WebView2/build/native/<arch>; remove the option if WebView2 is not used",
+      "zh_CN": "DUILIB_WEBVIEW2_EXE 需要 duilib/third_party/Microsoft.Web.WebView2/build/native/<arch> 目录；不使用 WebView2 时请去掉该选项"
+    },
+    "cmake.ninja_ready": {
+      "en": "[OK]    ninja {ninja} ({source})",
+      "zh_CN": "[OK]    ninja {ninja}（来源：{source}）"
+    },
+    "cmake.os_unknown": {
+      "en": "[WARN] unknown operating system:",
+      "zh_CN": "[WARN] 未知的操作系统："
+    },
+    "cmake.compiler_unknown": {
+      "en": "[WARN] unknown compiler ID:",
+      "zh_CN": "[WARN] 未知的编译器 ID："
+    },
+    "cmake.processor_unknown": {
+      "en": "[WARN] unknown system processor:",
+      "zh_CN": "[WARN] 未知的系统处理器："
+    },
+    "cmake.mingw_skia_no_static_lib": {
+      "en": "[ERROR] no static Skia library (.a) for MinGW in the directory:",
+      "zh_CN": "[ERROR] Skia 库目录中没有 .a 静态库，无法用于 MinGW 构建："
+    },
+    "cmake.mingw_skia_no_static_lib_hint": {
+      "en": "that directory probably holds MSVC .lib files; rebuild Skia with the same toolchain (MSYS2 gcc/clang or standalone MinGW), or pass -DDUILIB_SKIA_LIB_SUBPATH=<subdir>",
+      "zh_CN": "该目录可能存放的是 MSVC 构建的 .lib 文件；请用与当前工具链相同的编译器重新编译 Skia（MSYS2 用 gcc 或 CLANG64 的 clang，独立 MinGW 用 gcc 或 llvm-mingw），或用 -DDUILIB_SKIA_LIB_SUBPATH=<子目录名> 指定正确的目录"
+    },
+    "cmake.skia_subpath_generated": {
+      "en": "[build] DUILIB_SKIA_LIB_SUBPATH contains a generator expression; skipping the configure-time existence check:",
+      "zh_CN": "[build] DUILIB_SKIA_LIB_SUBPATH 含生成器表达式，跳过配置期存在性校验："
+    },
+    "cmake.skia_subpath_missing": {
+      "en": "[ERROR] the Skia library directory does not exist:",
+      "zh_CN": "[ERROR] 指定的 Skia 库目录不存在："
+    },
+    "cmake.skia_subpath_missing_hint": {
+      "en": "check -DDUILIB_SKIA_LIB_SUBPATH=<subdir> (a directory name under <skia>/out), or build Skia first",
+      "zh_CN": "请检查 -DDUILIB_SKIA_LIB_SUBPATH=<子目录名>（<skia>/out 下的目录名）是否正确，或先编译 Skia"
+    },
+    "cmake.skia_dir_missing": {
+      "en": "[ERROR] no usable Skia library directory under {root}/out",
+      "zh_CN": "[ERROR] 未找到可用的 Skia 库目录（{root}/out 下）"
+    },
+    "cmake.skia_dir_missing_hint": {
+      "en": "build Skia first ('python3 build/build.py deps'), or pass -DDUILIB_SKIA_LIB_SUBPATH=<subdir>",
+      "zh_CN": "请先编译 Skia（'python3 build/build.py deps'），或用 -DDUILIB_SKIA_LIB_SUBPATH=<子目录名> 指定"
+    },
+    "cmake.sdl_variant_fallback": {
+      "en": "[WARN] SDL3 variant directory not found: {variant}; falling back to the single prefix {root} ({config})",
+      "zh_CN": "[WARN] SDL3: 未找到变体目录 {variant}，回退到单前缀 {root}（{config}）"
+    },
+    "cmake.sdl_variant_fallback_hint": {
+      "en": "Debug targets fail to link (LNK2038) when that prefix holds Release static libraries; run 'python3 build/build.py deps' to install SDL3 per variant (MinGW shares one static library between Debug and Release)",
+      "zh_CN": "若该前缀中是 Release 版静态库，Debug 目标会因 RuntimeLibrary 不一致而链接失败（LNK2038）；建议执行 'python3 build/build.py deps' 按变体安装 SDL3（MinGW 的 Debug/Release 共用同一份静态库，可直接使用该前缀）"
+    },
+    "cmake.sdl_prefix_missing": {
+      "en": "[ERROR] no usable SDL3 installation prefix under {root}",
+      "zh_CN": "[ERROR] 未找到可用的 SDL3 安装前缀（{root} 下）"
+    },
+    "cmake.sdl_prefix_missing_hint": {
+      "en": "run 'build.py deps' (on Windows it installs SDL3 per Debug/Release variant), or pass -DDUILIB_SDL_ROOT=<installed prefix>",
+      "zh_CN": "请执行 'build.py deps'（Windows 会按 Debug/Release 安装到各自的变体目录），或用 -DDUILIB_SDL_ROOT=<已安装的 SDL3 前缀> 指定"
+    },
+    "deps.downloaded": {
+      "en": "[deps] downloaded {name}",
+      "zh_CN": "[deps] 已下载 {name}"
+    },
+    "deps.retry_optional": {
+      "en": "[deps] optional download failed (attempt {attempt}): {url}; retrying in {delay}s",
+      "zh_CN": "[deps] 可选下载失败（第 {attempt} 次）：{url}，{delay} 秒后重试"
+    },
+    "deps.tried": {
+      "en": "  Tried:",
+      "zh_CN": "  尝试的候选目录："
+    },
+    "deps.off_missing_hint": {
+      "en": "run 'python3 build/build.py deps', or pass -DDUILIB_DEPS_MODE=auto so the dependencies are prepared before compiling",
+      "zh_CN": "请执行 'python3 build/build.py deps'，或用 -DDUILIB_DEPS_MODE=auto 让依赖在编译前自动准备"
+    },
+    "deps.cef_runtime_missing": {
+      "en": "[ERROR] CEF runtime not found: {path}",
+      "zh_CN": "[ERROR] 未找到 CEF 运行时：{path}"
+    },
+    "deps.skia_msvc_lib_note": {
+      "en": "{candidate} (no .a static library; probably an MSVC build output)",
+      "zh_CN": "{candidate}（缺少 .a 静态库，可能是 MSVC 构建产物）"
+    },
+    "deps.auto_ready": {
+      "en": "[OK] dependencies are prepared before compiling (auto mode)",
+      "zh_CN": "[OK] 依赖会在编译前自动准备（auto 模式）"
+    },
+    "deps.skia_patch_applied": {
+      "en": "[deps] Skia patch already applied, skip extraction",
+      "zh_CN": "[deps] Skia 补丁已应用，跳过解压"
+    },
+    "deps.skia_patch_reapply": {
+      "en": "[deps] Skia patch missing in source tree, re-applying",
+      "zh_CN": "[deps] 源码树中缺少 Skia 补丁，重新应用"
+    },
+    "deps.skia_patch_applying": {
+      "en": "[deps] applying Skia patch {patch}",
+      "zh_CN": "[deps] 正在应用 Skia 补丁 {patch}"
+    },
+    "deps.nothing_to_prepare": {
+      "en": "[deps] mode={mode}: nothing to prepare",
+      "zh_CN": "[deps] mode={mode}：无需准备依赖"
+    },
+    "bundle.missing_arg": {
+      "en": "{script}: missing required argument {arg}",
+      "zh_CN": "{script}: 缺少必需参数 {arg}"
+    },
+    "bundle.res_source_missing": {
+      "en": "duilib_copy_bundle_resources: source resource directory does not exist: {path}",
+      "zh_CN": "duilib_copy_bundle_resources: 源资源目录不存在：{path}"
+    },
+    "bundle.res_entry_skipped": {
+      "en": "duilib_copy_bundle_resources: skipping missing resource entry: {entry}",
+      "zh_CN": "duilib_copy_bundle_resources: 跳过不存在的资源条目：{entry}"
+    },
+    "bundle.res_synced": {
+      "en": "Bundle resources synced: {dst} (updated {copied}, removed {removed})",
+      "zh_CN": "Bundle 资源已同步：{dst}（更新 {copied} 个，删除 {removed} 个）"
+    },
+    "bundle.sdl_static_skip": {
+      "en": "duilib_copy_sdl_bundle: {dir} holds a static SDL3; skipping dylib copy",
+      "zh_CN": "duilib_copy_sdl_bundle: {dir} 中是静态 SDL3，跳过 dylib 复制"
+    },
+    "bundle.sdl_dylib_missing": {
+      "en": "[ERROR] SDL3 dylib not found: {dir}/libSDL3*.dylib",
+      "zh_CN": "[ERROR] 未找到 SDL3 动态库：{dir}/libSDL3*.dylib"
+    },
+    "bundle.sdl_dylib_missing_hint": {
+      "en": "run 'build.py deps' first, or pass -DDUILIB_SDL_ROOT=<installed SDL3 prefix>",
+      "zh_CN": "请先执行 'build.py deps'，或传入 -DDUILIB_SDL_ROOT=<已安装的 SDL3 前缀>"
+    },
+    "bundle.sdl_install_name": {
+      "en": "[WARN] SDL3 install_name is not @rpath ({name}); the copy inside the bundle still loads by absolute path",
+      "zh_CN": "[WARN] SDL3 的 install_name 不是 @rpath（{name}），复制进 Bundle 后仍会按绝对路径加载"
+    },
+    "bundle.sdl_install_name_hint": {
+      "en": "reinstall SDL3 with MACOSX_RPATH, or run install_name_tool -id @rpath/<file> on that dylib and install_name_tool -change on the executable inside the .app",
+      "zh_CN": "请重新安装带 MACOSX_RPATH 的 SDL3，或对该 dylib 执行 install_name_tool -id @rpath/<文件名>，并对 .app 内的可执行文件执行 install_name_tool -change"
+    },
+    "cmake.cef_root_missing": {
+      "en": "[ERROR] CEF_ROOT not found: {root}",
+      "zh_CN": "[ERROR] 未找到 CEF_ROOT：{root}"
+    },
+    "cmake.cef_root_missing_hint": {
+      "en": "download the CEF binary distribution (see build/build-reference.md), or pass -DCEF_ROOT=<path-to-cef_binary>",
+      "zh_CN": "请下载 CEF 二进制分发包（见 build/build-reference.md），或用 -DCEF_ROOT=<cef_binary 目录> 指定"
+    },
+    "cmake.cef_framework_release_fallback": {
+      "en": "[WARN] CEF Debug framework not found; using the Release framework: {path}",
+      "zh_CN": "[WARN] 未找到 CEF 的 Debug 框架；改用 Release 框架：{path}"
+    },
+    "cmake.cef_framework_debug_fallback": {
+      "en": "[WARN] CEF Release framework not found; using the Debug framework: {path}",
+      "zh_CN": "[WARN] 未找到 CEF 的 Release 框架；改用 Debug 框架：{path}"
+    },
+    "cmake.cef_framework_missing": {
+      "en": "[ERROR] CEF framework not found under {root}/Debug or {root}/Release",
+      "zh_CN": "[ERROR] 未找到 CEF 框架（{root}/Debug 与 {root}/Release 下都没有）"
+    },
+    "cmake.cef_framework_missing_hint": {
+      "en": "check that CEF_ROOT points to an extracted CEF binary distribution",
+      "zh_CN": "请确认 CEF_ROOT 指向已解压的 CEF 二进制分发包"
+    },
+    "cmake.cef_freebsd_unsupported": {
+      "en": "[WARN] CEF is not supported on FreeBSD; building without CEF",
+      "zh_CN": "[WARN] FreeBSD 不支持 CEF；将在不带 CEF 的情况下构建"
+    },
+    "cmake.cef_force_disabled": {
+      "en": "[WARN] DUILIB_ENABLE_CEF is ON, but CEF is not supported on {platform}; CEF is disabled",
+      "zh_CN": "[WARN] DUILIB_ENABLE_CEF 已开启，但 {platform} 不支持 CEF；已关闭 CEF"
+    },
+    "cmake.cef_include_path": {
+      "en": "[INFO] CEF include path:",
+      "zh_CN": "[INFO] CEF 头文件目录："
+    },
+    "cmake.cef_includes_disabled": {
+      "en": "[INFO] CEF include directories are not used (DUILIB_ENABLE_CEF=OFF)",
+      "zh_CN": "[INFO] 未使用 CEF 头文件目录（DUILIB_ENABLE_CEF=OFF）"
+    },
+    "cmake.cef_sources_enabled": {
+      "en": "[INFO] CEF sources enabled ({platform})",
+      "zh_CN": "[INFO] 已启用 CEF 源码（{platform}）"
+    },
+    "cmake.cef_sources_disabled": {
+      "en": "[INFO] CEF sources disabled (DUILIB_ENABLE_CEF=OFF)",
+      "zh_CN": "[INFO] 未启用 CEF 源码（DUILIB_ENABLE_CEF=OFF）"
+    },
+    "cmake.cef_macos_sources_removed": {
+      "en": "[INFO] CEF macOS-only sources removed ({platform} is not Darwin)",
+      "zh_CN": "[INFO] 已移除 CEF 的 macOS 专用源码（{platform} 不是 Darwin）"
+    },
+    "cmake.macos_sources_removed": {
+      "en": "[INFO] macOS-only sources removed ({platform} is not Darwin)",
+      "zh_CN": "[INFO] 已移除 macOS 专用源码（{platform} 不是 Darwin）"
+    },
+    "bundle.theme_dir_missing": {
+      "en": "[ERROR] DUILIB_THEME_DIR_NAME='{name}' is not a directory: {path}",
+      "zh_CN": "[ERROR] DUILIB_THEME_DIR_NAME='{name}' 不是目录：{path}"
+    },
+    "bundle.theme_dir_missing_hint": {
+      "en": "Target '{target}': set DUILIB_THEME_DIR_NAME to a subdirectory of bin/resources/themes/default, or remove it to derive from the target name",
+      "zh_CN": "目标 '{target}'：请把 DUILIB_THEME_DIR_NAME 设为 bin/resources/themes/default 下的子目录名，或删除该选项让其按目标名自动推导"
+    },
+    "bundle.no_theme_dir": {
+      "en": "duilib_configure_macos_bundle: no example theme directory matched '{target}' in themes/default; copying shared resources only",
+      "zh_CN": "duilib_configure_macos_bundle: themes/default 下没有与 '{target}' 匹配的示例主题目录；只复制公共资源"
+    },
+    "bundle.target_missing": {
+      "en": "[ERROR] duilib_configure_macos_bundle: target not found: {target}",
+      "zh_CN": "[ERROR] duilib_configure_macos_bundle: 未找到目标：{target}"
+    },
+    "bundle.icon_missing": {
+      "en": "[WARN] DUILIB_MACOS_BUNDLE_ICON not found: {path}",
+      "zh_CN": "[WARN] 未找到 DUILIB_MACOS_BUNDLE_ICON 指定的图标：{path}"
+    },
+    "bundle.macos_res_dir_missing": {
+      "en": "[ERROR] macOS bundle resources not found: {path}",
+      "zh_CN": "[ERROR] 未找到 macOS Bundle 资源目录：{path}"
+    },
+    "bundle.macos_res_dir_missing_hint": {
+      "en": "restore bin/resources in the source tree before building a bundle",
+      "zh_CN": "请先恢复源码树中的 bin/resources 再构建 Bundle"
+    },
+    "bundle.macos_res_item_missing": {
+      "en": "[ERROR] macOS bundle resource not found: {path}",
+      "zh_CN": "[ERROR] 未找到 macOS Bundle 资源条目：{path}"
+    },
+    "bundle.macos_res_item_missing_hint": {
+      "en": "check DUILIB_MACOS_BUNDLE_RESOURCES in {dir}",
+      "zh_CN": "请检查 {dir} 中的 DUILIB_MACOS_BUNDLE_RESOURCES"
+    },
+    "bundle.cef_theme_dir_unset": {
+      "en": "[ERROR] DUILIB_THEME_DIR_NAME is not set for target '{target}'",
+      "zh_CN": "[ERROR] 目标 '{target}' 没有设置 DUILIB_THEME_DIR_NAME"
+    },
+    "bundle.cef_theme_dir_unset_hint": {
+      "en": "set it to the example's subdirectory name under bin/resources/themes/default (for example \"cef\" or \"cef_browser\")",
+      "zh_CN": "请设为示例在 bin/resources/themes/default 下的子目录名（例如 \"cef\" 或 \"cef_browser\"）"
+    },
+    "bundle.cef_theme_dir_missing_hint": {
+      "en": "Target '{target}': fix the name or create that theme directory",
+      "zh_CN": "目标 '{target}'：请修正名称或创建该主题目录"
+    },
+    "bundle.macos_res_entry_skipped": {
+      "en": "duilib_configure_macos_bundle: skipping macOS bundle resource (not found): {entry}",
+      "zh_CN": "duilib_configure_macos_bundle: 跳过不存在的 macOS Bundle 资源条目：{entry}"
     }
   }
 }

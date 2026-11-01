@@ -39,13 +39,18 @@ def T(key):
 
 
 def _requested_lang(argv):
-    """预扫描 --lang：让 --help 与参数错误也按所选语言输出。"""
+    """预扫描 --lang：让 --help 与参数错误也按所选语言输出。
+
+    与 argparse 一致，重复给出时以最后一个为准（`--lang en build --lang zh_CN`
+    最终用中文）；返回第一个会让预扫描得到的语言与实际解析结果不同。
+    """
+    requested = 'auto'
     for index, arg in enumerate(argv):
         if arg.startswith('--lang='):
-            return arg.split('=', 1)[1]
-        if arg == '--lang' and index + 1 < len(argv):
-            return argv[index + 1]
-    return 'auto'
+            requested = arg.split('=', 1)[1]
+        elif arg == '--lang' and index + 1 < len(argv):
+            requested = argv[index + 1]
+    return requested
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -155,27 +160,31 @@ def _cached_compiler(build_dir: Path) -> Path | None:
     return Path(match.group(1).strip())
 
 
-def reset_stale_build_dir(build_dir: Path, toolchain: "Toolchain", messages, dry_run: bool) -> None:
+def reset_stale_build_dir(build_dir: Path, toolchain: "Toolchain", messages, dry_run: bool) -> bool:
     """编译器切换后丢弃旧缓存。
 
     同一 out/<arch>/<Config> 在 MSVC 与 MinGW 之间切换时，旧 CMakeCache 仍指向
     原编译器：configure 会用新环境调用旧编译器（典型现象是 cl.exe 找不到
     kernel32.lib）。目标文件本身也不兼容，因此直接清空生成目录。
+
+    返回是否检测到编译器切换（dry-run 时只提示、不删除），调用方据此清理
+    lib/ 与 bin/ 中旧编译器的产物。
     """
     expected = _expected_compiler(toolchain)
     cached = _cached_compiler(build_dir)
     if not expected or not cached:
-        return
+        return False
     try:
         same = os.path.normcase(str(expected)) == os.path.normcase(str(cached.resolve()))
     except OSError:
         same = False
     if same:
-        return
+        return False
     print(messages.t("build.toolchain_changed").format(dir=build_dir, cached=cached, expected=expected),
           flush=True)
     if not dry_run:
         shutil.rmtree(build_dir)
+    return True
 
 
 STAMP_DIR_NAME = ".build-config"
@@ -313,6 +322,73 @@ def clear_stale_build_outputs(bin_dir: Path, config: str, target: str | None,
                 messages.t("build.clean_failed").format(path=stamp_path, error=exc),
                 messages.hint("build.clean_failed_hint"))
     return [entry[0] for entry in stale]
+
+
+# 编译器（VS 版本/工具集）切换后要整体删除的生成目录：
+#   lib/             全部库产物；VS 解决方案同样输出到这里（见 msvc/PropertySheets）
+#   build/build_temp VS 解决方案的中间目录（IntDir 不含工具集，切换后会复用旧 .obj）
+COMPILER_OUTPUT_DIRS = ("lib", "build/build_temp")
+
+# bin/ 中由编译器生成的产物；用白名单模式而非删除整个 bin/，
+# 以便保留 resources/、libcef_win*/、缓存目录、WebView2Loader.dll 等运行时资源。
+COMPILER_BIN_PATTERNS = ("*.exe", "*.pdb", "*.ilk", "*.exp", "*.dSYM", "*.dylib",
+                         "*.so", "*.so.*", "duilib*.dll")
+
+
+def compiler_output_paths(repo_root: Path) -> list[Path]:
+    """列出编译器切换后应删除的产物路径。
+
+    lib/ 与 build/build_temp 整个删除；bin/ 中删除可执行文件与调试文件，并按
+    构建配置标记补充删除无后缀可执行文件（Unix）与 macOS App Bundle。
+    """
+    paths: list[Path] = []
+    for relative in COMPILER_OUTPUT_DIRS:
+        path = repo_root / relative
+        if path.exists():
+            paths.append(path)
+    bin_dir = repo_root / "bin"
+    if bin_dir.is_dir():
+        for pattern in COMPILER_BIN_PATTERNS:
+            paths.extend(sorted(bin_dir.glob(pattern)))
+        for stem in build_config_stamps(bin_dir):
+            paths.extend(target_bin_outputs(bin_dir, stem))
+        stamp_dir = bin_dir / STAMP_DIR_NAME
+        if stamp_dir.is_dir():
+            paths.append(stamp_dir)
+        paths.extend(sorted(bin_dir.glob("*" + LEGACY_STAMP_SUFFIX)))
+    unique: list[Path] = []
+    seen: set[str] = set()
+    for path in paths:
+        key = os.path.normcase(str(path))
+        if key not in seen:
+            seen.add(key)
+            unique.append(path)
+    return unique
+
+
+def clean_compiler_outputs(repo_root: Path, messages, dry_run: bool) -> list[Path]:
+    """切换编译器后删除旧编译器的产物，不同工具集的产物无需共存。
+
+    构建树（out/）由 reset_stale_build_dir 清空，但 lib/ 与 bin/ 不在构建树内：
+    旧的 .lib 会被新工具链接进目标，旧的 .exe/.pdb 也无法判断出自哪个工具集。
+    这里直接删除编译产物（bin/ 的运行时资源保留），让新编译器重新生成。
+    """
+    paths = compiler_output_paths(repo_root)
+    if not paths:
+        return []
+    print(messages.t("build.compiler_outputs").format(count=len(paths)), flush=True)
+    if dry_run:
+        return paths
+    for path in paths:
+        try:
+            _remove_stale_output(path)
+        except FileNotFoundError:
+            continue
+        except OSError as exc:
+            raise BuildError(
+                messages.t("build.clean_failed").format(path=path, error=exc),
+                messages.hint("build.clean_failed_hint"))
+    return paths
 
 
 BUILD_MODE_STAMP_NAME = ".duilib-build-mode"
@@ -661,6 +737,35 @@ def _vswhere_installation(vs_version: str | None) -> Path | None:
     return path if path.is_dir() else None
 
 
+# CMake 的 Visual Studio 生成器名随 VS 版本变化（VS 2026 起为 18）。
+_VS_GENERATOR_BY_MAJOR = {
+    15: "Visual Studio 15 2017",
+    16: "Visual Studio 16 2019",
+    17: "Visual Studio 17 2022",
+    18: "Visual Studio 18 2026",
+}
+# VS 安装布局：<root>\Microsoft Visual Studio\<版本目录>\<Edition>，
+# 版本目录为年份（2017/2019/2022）或 2026 起的主版本号（18）。
+_VS_MAJOR_BY_INSTALL_DIR = {
+    "2017": 15, "2019": 16, "2022": 17, "2026": 18,
+    "15": 15, "16": 16, "17": 17, "18": 18,
+}
+
+
+def vs_generator_name(install: Path | None) -> str:
+    """由 VS 安装路径推断对应的 CMake 生成器名。
+
+    没有 Ninja 时要退回多配置的 VS 生成器，生成器名必须与实际安装的 VS 版本
+    一致：只装了 VS 2026（目录 `18`）的机器用 "Visual Studio 17 2022" 会配置失败。
+    无法识别版本目录（或没有安装路径）时沿用 VS 2022 的名字。
+    """
+    if install is not None:
+        major = _VS_MAJOR_BY_INSTALL_DIR.get(install.parent.name.strip().lower())
+        if major is not None:
+            return _VS_GENERATOR_BY_MAJOR[major]
+    return _VS_GENERATOR_BY_MAJOR[17]
+
+
 def _vcvars_platform(arch: str) -> str:
     """vcvarsall.bat 的平台参数（`主机_目标` 形式，单段表示原生工具）。
 
@@ -868,7 +973,9 @@ def detect_toolchain(arch: str, vs_version: str | None, args=None) -> Toolchain:
         env["PATH"] = str(ninja.parent) + os.pathsep + env.get("PATH", "")
         generator = "Ninja"
     elif sys.platform == "win32" and not env.get("MSYSTEM"):
-        generator = "Visual Studio 17 2022"
+        # 没有 Ninja 时退回多配置的 VS 生成器；名字按实际安装的 VS 版本取，
+        # 固定写 17 2022 会让只装了 VS 2026 的机器配置失败。
+        generator = vs_generator_name(vs_install)
     else:
         generator = "Unix Makefiles"
     return Toolchain(env, generator, vs_install, ninja)
@@ -1162,13 +1269,22 @@ def _plan_cache_stale(args, build_dir: Path) -> list:
     return stale
 
 
-def _print_deps_plan(args, messages, toolchain: "Toolchain", build_dir: Path) -> None:
+def _print_deps_plan(args, messages, toolchain: "Toolchain", build_dir: Path,
+                     reset_pending: bool = False) -> None:
     """--dry-run 时额外打印 Skia/SDL3 的实际编译命令。
 
     这些命令由配置期生成的 -D 参数决定（变体目录名等规则都在 CMake 侧），因此需要
     已存在的构建目录；未配置时只给出提示，避免在 dry-run 里触发真正的配置。
     计划目标本身只读（不写文件、不联网、不编译），所以 dry-run 中可以直接执行。
+
+    reset_pending 表示本次 dry-run 已判定构建树要重建（编译器切换、运行库/DLL 模式
+    切换）：此时缓存里的编译器与选项都不再有效，按它展开的计划命令只会误导，因此
+    直接给出提示；真正的 deps 运行会先清空并重新配置，之后再 dry-run 才是准确的。
     """
+    if reset_pending:
+        print(messages.t("deps.plan_reset"), flush=True)
+        print(messages.hint("deps.plan_reset_hint"), flush=True)
+        return
     if not (build_dir / "CMakeCache.txt").is_file():
         print(messages.t("deps.plan_unconfigured"), flush=True)
         print(messages.hint("deps.plan_unconfigured_hint"), flush=True)
@@ -1191,14 +1307,17 @@ def cmd_deps(args, messages) -> int:
     arch = resolve_arch(args.arch)
     build_dir = resolve_build_dir(REPO_ROOT, arch, args.config, args.build_dir)
     toolchain = detect_toolchain(arch, args.vs_version, args)
-    reset_stale_build_dir(build_dir, toolchain, messages, args.dry_run)
-    reset_stale_build_mode(build_dir, args, messages, args.dry_run)
+    reset_pending = reset_stale_build_dir(build_dir, toolchain, messages, args.dry_run)
+    if reset_pending:
+        clean_compiler_outputs(REPO_ROOT, messages, args.dry_run)
+    if reset_stale_build_mode(build_dir, args, messages, args.dry_run) is not None:
+        reset_pending = True
     sync_msvc_dll_flag(getattr(args, "dll", False), messages, args.dry_run)
     runner = Runner(toolchain.env, args.dry_run)
     _ensure_skia_patch(args, messages, runner)
     _prepare(args, messages, runner, toolchain, arch, build_dir, "prepare", args.force)
     if args.dry_run:
-        _print_deps_plan(args, messages, toolchain, build_dir)
+        _print_deps_plan(args, messages, toolchain, build_dir, reset_pending)
     return 0
 
 
@@ -1208,7 +1327,10 @@ def cmd_build(args, messages) -> int:
     arch = resolve_arch(args.arch)
     build_dir = resolve_build_dir(REPO_ROOT, arch, args.config, args.build_dir)
     toolchain = detect_toolchain(arch, args.vs_version, args)
-    reset_stale_build_dir(build_dir, toolchain, messages, args.dry_run)
+    # 编译器切换必须在 configure 前处理：deps 会先删除 out/，之后再构建时已无法
+    # 从 CMakeCache 判断切换，因此这里同时清掉 lib/ 与 bin/ 中旧编译器的产物。
+    if reset_stale_build_dir(build_dir, toolchain, messages, args.dry_run):
+        clean_compiler_outputs(REPO_ROOT, messages, args.dry_run)
     reset_stale_build_mode(build_dir, args, messages, args.dry_run)
     sync_msvc_dll_flag(getattr(args, "dll", False), messages, args.dry_run)
     runner = Runner(toolchain.env, args.dry_run)
@@ -1276,7 +1398,8 @@ def cmd_doctor(args, messages) -> int:
 
     cmake = find_cmake()
     if not cmake:
-        _warn_line(messages.t("doctor.cmake_missing"))
+        # 文案本身带 [WARN] 标记，不能再交给 _warn_line（会重复前缀）
+        print(messages.t("doctor.cmake_missing"), flush=True)
     else:
         completed = subprocess.run([cmake, "--version"], capture_output=True, text=True,
                                    errors="replace")
@@ -1478,6 +1601,9 @@ def cmd_pack(args, messages) -> int:
         command += ["--out-dir", args.out_dir]
     if args.md:
         command += ["--msvc-runtime", "md"]
+    # 子进程语言必须与本进程一致：--lang 只影响本进程的文案，pack.py 会按
+    # 环境变量与系统区域重新判定，中文系统上 `--lang en` 会混出中文提示。
+    command += ["--lang", messages.language]
     command += args.pack_arg
     print("+ " + _format_command(command), flush=True)
     if args.dry_run:

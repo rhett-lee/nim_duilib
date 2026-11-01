@@ -176,8 +176,9 @@ function(_duilib_check_skia)
             if(MINGW)
                 file(GLOB _candidate_a_files "${_candidate_path}/*.a")
                 if(NOT _candidate_a_files)
-                    string(APPEND _duilib_skia_notes
-                        "    ${_candidate}（缺少 .a 静态库，可能是 MSVC 构建产物）\n")
+                    duilib_tf(_duilib_skia_note "deps.skia_msvc_lib_note"
+                              "candidate=${_candidate}")
+                    string(APPEND _duilib_skia_notes "    ${_duilib_skia_note}\n")
                     continue()
                 endif()
             endif()
@@ -193,10 +194,13 @@ function(_duilib_check_skia)
         endif()
     endforeach()
     if(NOT _duilib_skia_error STREQUAL "")
+        duilib_tf(_duilib_skia_what "cmake.skia_dir_missing" "root=${DUILIB_SKIA_ROOT}")
+        duilib_t("deps.tried" _duilib_skia_tried)
+        duilib_t("deps.off_missing_hint" _duilib_skia_hint)
         message(FATAL_ERROR
-            "[ERROR] no usable Skia library directory in ${DUILIB_SKIA_ROOT}/out\n"
-            "  Tried:\n${_duilib_skia_error}"
-            "  Hint: run 'build.py deps', or pass -DDUILIB_DEPS_MODE=auto")
+            "${_duilib_skia_what}\n"
+            "${_duilib_skia_tried}\n${_duilib_skia_error}"
+            "  Hint: ${_duilib_skia_hint}")
     endif()
 endfunction()
 
@@ -238,18 +242,13 @@ function(_duilib_check_sdl)
         endif()
     endforeach()
     if(NOT _duilib_sdl_error STREQUAL "")
+        duilib_tf(_duilib_sdl_what "cmake.sdl_prefix_missing" "root=${DUILIB_SDL_ROOT}")
+        duilib_t("deps.tried" _duilib_sdl_tried)
+        duilib_t("cmake.sdl_prefix_missing_hint" _duilib_sdl_hint)
         message(FATAL_ERROR
-            "[ERROR] no usable SDL3 installation prefix under ${DUILIB_SDL_ROOT}\n"
-            "  Tried:\n${_duilib_sdl_error}"
-            "  Hint: run 'build.py deps' (Windows installs one prefix per configuration), "
-            "or pass -DDUILIB_SDL_ROOT=<installed SDL3 prefix>")
-    endif()
-endfunction()
-
-# 配置期依赖检查（off 模式）：只检查，不准备
-function(_duilib_check_dependency_exists what path hint)
-    if(NOT EXISTS "${path}")
-        message(FATAL_ERROR "[ERROR] ${what} not found:\n  ${path}\n  Hint: ${hint}")
+            "${_duilib_sdl_what}\n"
+            "${_duilib_sdl_tried}\n${_duilib_sdl_error}"
+            "  Hint: ${_duilib_sdl_hint}")
     endif()
 endfunction()
 
@@ -266,7 +265,7 @@ function(duilib_configure_dependencies)
         # 但必须写到父作用域：函数内的 set() 不会传出去，子目录里的
         # duilib_common.cmake 看不到，首次配置（变体尚未安装）会误报缺少 SDL3。
         set(DUILIB_SDL_AUTOBUILD ON PARENT_SCOPE)
-        duilib_msg("deps.done" " (auto: prepared before compiling)")
+        duilib_msg("deps.auto_ready")
         return()
     endif()
 
@@ -302,9 +301,9 @@ function(duilib_configure_dependencies)
             set(_duilib_cef_runtime "")
         endif()
         if(NOT _duilib_cef_runtime STREQUAL "" AND NOT EXISTS "${_duilib_cef_runtime}")
-            message(FATAL_ERROR
-                "[ERROR] CEF runtime not found:\n  ${_duilib_cef_runtime}\n"
-                "  Hint: run 'build.py deps', or pass -DDUILIB_DEPS_MODE=auto")
+            duilib_tf(_duilib_cef_what "deps.cef_runtime_missing" "path=${_duilib_cef_runtime}")
+            duilib_t("deps.off_missing_hint" _duilib_cef_hint)
+            message(FATAL_ERROR "${_duilib_cef_what}\n  Hint: ${_duilib_cef_hint}")
         endif()
     endif()
 endfunction()

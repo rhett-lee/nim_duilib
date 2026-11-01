@@ -45,7 +45,7 @@ nim_duilib 自身；它验证的是下游用户实际拿到的东西。
 
 | 项目 | 要求 | 说明 |
 | :--- | :--- | :--- |
-| Python | Python 3 | 脚本仅用标准库；P07/C07/C08/C09 会用当前 Python 解释器调用 `pack.py` |
+| Python | Python 3.8+ | 脚本仅用标准库；P07/C07/C08/C09 会用当前 Python 解释器调用 `pack.py` |
 | 待测包 | 已由 `build.py pack` 或 `build/pack.py` 生成 | 支持 zip、tgz、tar.bz2 等 `shutil.unpack_archive` 可解格式；归档必须只有一个顶层目录 |
 | 磁盘空间 | 至少能容纳解包内容与消费者构建树 | 带示例/CEF 的包可达数百 MB，Debug 消费者构建还会额外占用空间；C07/C08/C09 只写几 KB 的代表性小归档。编译器的临时文件写在 `--out-dir` 下的 `tmp/`，不占用系统临时目录；启动时会按包大小估算并在空间不足时打印 `[WARN]` |
 | CMake | 3.18+（`build/sdk_test/CMakeLists.txt` 的最低版本） | 只影响 C01–C06、C11；找不到 `cmake` 时记为 SKIP |
@@ -74,7 +74,9 @@ nim_duilib 自身；它验证的是下游用户实际拿到的东西。
 
 平台与工具链的前置判断集中在 `build_block_reason()`：包平台与本机不同、MSVC 包不在
 Windows、MinGW 包未设置 `MSYSTEM`、`mingw-llvm` 包的 `CC`/`CXX` 不含 `clang`、
-工具链探测失败，都会让 C01/C02/C10/C11 直接 SKIP。C03–C06 在此基础上还有各自的额外门禁。
+工具链探测失败，以及 MinGW 包只探测到 Visual Studio 生成器（本机没有 MinGW 编译器，
+生成器名随 VS 版本变化，按 `Visual Studio` 前缀判断），都会让 C01/C02/C10/C11 直接
+SKIP。C03–C06 在此基础上还有各自的额外门禁。
 
 ## 3. 快速开始
 
@@ -145,6 +147,7 @@ nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109
 | `--jobs N` | CPU 数，取不到时 4 | 传给 `cmake --build --parallel` |
 | `--dry-run` | 关 | 跳过编译类场景；包级场景照常执行；保留输出目录 |
 | `--list-scenarios` | 关 | 打印场景表后以 0 退出，不需要 `--package` |
+| `--lang auto\|zh_CN\|en` | `auto` | 交互语言；`auto` 依次取 `DUILIB_LANG`、`LC_ALL`/`LC_MESSAGES`/`LANG`、系统区域，最后回退英文；文案集中在 `cmake/i18n/messages.json` |
 
 三个开关的准确行为：
 
@@ -158,8 +161,8 @@ nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109
 - **`--run-examples`**：只是 C10 的开关门禁。未指定时 C10 SKIP “未指定
   --run-examples”；指定后还必须满足“包内含示例”和平台/工具链前置条件。
 - **`--keep`**：不加时，每个包跑完会删除 `extract/` 与 `work/`，写报告后还会删除
-  `<out>/<NN>-<包名>` 整个目录，最终只留下 `report.json`；`--keep` 时才保留日志和
-  构建目录。`--dry-run` 同样保留。
+  `<out>/<NN>` 整个目录（目录名只用两位序号，见第 6.3 节），最终只留下 `report.json`；
+  `--keep` 时才保留日志和构建目录。`--dry-run` 同样保留。
 
 ## 4. 场景说明
 
@@ -169,7 +172,7 @@ nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109
 | 编号 | 名称 | 类型 | 适用条件 | 判定依据 | 常见 SKIP 原因 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | P01 | `package.extract` | 包级 | 任意可加载的包 | 归档只有一个顶层目录；解包后恰好得到一个根目录；报告文件数与根目录名 | 无；失败通常在加载阶段变成 P00 FAIL |
-| P02 | `package.layout` | 包级 | 任意包 | 必需文件 10 项齐全；`lib/` 下有 `duilib` 主库；静态包还需 `duilib-cximage`、`duilib-webp`、`duilib-png`、`duilib-zlib`、`skia`；`bin/resources/themes/default/global.xml` 存在 | 无 |
+| P02 | `package.layout` | 包级 | 任意包 | 必需文件 11 项齐全（`include/duilib/duilib.h`、`MANIFEST.txt`、`SHA256SUMS`、`VERSION`、`LICENSE`、`THIRD-PARTY-NOTICES.md`/`.en.md`、`lib/cmake/nim_duilib/` 下的 `nim_duilibConfig.cmake`、`nim_duilibHelpers.cmake`、`nim_duilibPackageInfo.cmake`、`nim_duilibConfigVersion.cmake`）；`lib/` 下有 `duilib` 主库；静态包还需 `duilib-cximage`、`duilib-webp`、`duilib-png`、`duilib-zlib`、`skia`；`bin/resources/themes/default/global.xml` 存在 | 无 |
 | P03 | `package.checksums` | 包级 | 任意包 | `SHA256SUMS` 每行可解析；除 `MANIFEST.txt`、`VERSION`、`SHA256SUMS` 外的普通文件全部在册且无多余条目；实际 SHA256 与登记值一致 | 无 |
 | P04 | `package.metadata` | 包级 | 包名符合命名规则 | 包名中的版本/平台/架构/配置与 CMake、`VERSION`、`MANIFEST.txt` 一致；`IS_DLL`/`HAS_SDL`/`HAS_CEF`/`HAS_WEBVIEW2`/`HAS_JPEG` 在包名、CMake 元数据、实际文件三处一致；示例标志；MinGW 变体；MSVC 运行库规则。macOS 例外：`-cef` 表示 CEF 示例 App Bundle（内嵌 Framework）随包，`HAS_CEF` 必须为 0（SDK 不提供 CEF 开发文件） | 无；包名无法解析也判 FAIL |
 | P05 | `package.integration` | 包级 | 任意包 | `*.cmake` 无未替换的 `@...@` 占位符；`nim_duilibConfigVersion.cmake` 含 `PACKAGE_VERSION`；Windows 包有 `msvc/manifest/duilib.{x64,x86,arm64}.manifest` 且 XML 可解析；MSVC 包还有 `msvc/nim_duilib.props`、`.targets`、`.sdk.props` 及 4 个属性键 | 无 |
@@ -339,7 +342,8 @@ Studio 是多配置生成器，而发布包是单配置的，配置阶段会打�
 
 使用源码树里的 `build/sdk_test`（不在 SDK 根目录内）时要显式给出 SDK 根目录：
 
-Visual Studio 生成器：
+Visual Studio 生成器（生成器名取本机安装的 VS 版本，如 `Visual Studio 17 2022`、
+`Visual Studio 18 2026`；脚本内部用 `build.py:vs_generator_name()` 自动选择）：
 
 ```bash
 cmake -S build/sdk_test -B <临时目录>/sdk_consumer -G "Visual Studio 17 2022" -A x64 -DNIM_DUILIB_SDK_DIR=<解包后的 SDK 根目录> -DSDK_EXPECT_ARCH=x64 -DSDK_EXPECT_CONFIG=Debug
@@ -393,7 +397,11 @@ cp -R <临时目录>/sdk_bundle/sdk_bundle.app /tmp/ && /tmp/sdk_bundle.app/Cont
 - 变量未定义或为空字符串时不做校验；
 - 定义了就按字符串精确比较，不一致时配置阶段直接 `FATAL_ERROR`，
   消息形如 `SDK 测试失败：<变量> 期望 '<期望值>'，实际 '<实际值>'`；
-- 它比较的是 **CMake 元数据**，不是包内实际文件；三者一致性由 P04 负责。
+- 它比较的是 **CMake 元数据**，不是包内实际文件；三者一致性由 P04 负责；
+- 这个用例工程的提示文案**固定为中文**（它随发布包分发，包内没有源码树的
+  `cmake/i18n/messages.json`），因此探测 `NIM_DUILIB_SDK_DIR` 的 `STATUS` 行和
+  上述校验报错在英文环境下同样是中文；理由与重新评估条件见
+  [Packaging-Follow-Up-Items.md](../docs/misc/Packaging-Follow-Up-Items.md) 的 P2-6。
 
 ### 5.3 输出与退出码
 
@@ -676,7 +684,7 @@ P01–P08、C07–C09 对任何可加载的包都会执行（其中 P02/P04/P05 
 | :--- | :--- | :--- |
 | 归档格式 | zip / tgz / tar.bz2 | P07 校验原始归档；C09 额外验证由代表性小文件生成的 tgz/tar.bz2 |
 | 库形态 | 静态 / DLL | P02 的库清单、P04 的 `IS_DLL` 与运行库规则；C01 与 C02 互斥 |
-| CEF | 无 / CEF 142 / CEF 109 | P04 的 `HAS_CEF`、P06 的反向检查；消费者编译 `header_cef.cpp`，`FEATURES cef=1` |
+| CEF | 无 / CEF 156（默认）/ CEF 109 | P04 的 `HAS_CEF`、P06 的反向检查；消费者编译 `header_cef.cpp`，`FEATURES cef=1` |
 | SDL | 无 / 静态 / 动态 | P04 的 `HAS_SDL`、P06 的反向检查；消费者链接 SDL，`FEATURES sdl=1` |
 | 配置 | Debug / Release | P04 的配置一致性；C03 的相反配置；消费者 `CMAKE_BUILD_TYPE` 或 `--config` |
 | 工具链 | MSVC / MinGW gcc / MinGW llvm / Unix | P04 的工具链与 MinGW 变体；P05 的 MSVC 接入文件；C06 的对立面；消费者编译环境 |

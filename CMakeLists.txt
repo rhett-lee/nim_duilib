@@ -85,7 +85,8 @@ if(DUILIB_PREFLIGHT)
                 -P "${CMAKE_CURRENT_LIST_DIR}/cmake/duilib_preflight_tools.cmake"
         RESULT_VARIABLE _duilib_preflight_rc)
     if(NOT _duilib_preflight_rc EQUAL 0)
-        message(FATAL_ERROR "[ERROR] environment preflight failed; see the messages above")
+        duilib_t("preflight.failed" _duilib_preflight_what)
+        message(FATAL_ERROR "${_duilib_preflight_what}")
     endif()
 endif()
 
@@ -211,13 +212,17 @@ if(DUILIB_BUILD_EXAMPLES)
         # 造成构建失败。
         if(NOT DUILIB_ENABLE_CEF AND (_duilib_example STREQUAL "cef"
                                       OR _duilib_example STREQUAL "CefBrowser"))
-            message(STATUS "[INFO] example '${_duilib_example}' skipped: DUILIB_ENABLE_CEF=OFF")
+            duilib_tf(_duilib_example_line "build.example_cef_off"
+                      "name=${_duilib_example}")
+            message(STATUS "${_duilib_example_line}")
             continue()
         endif()
         if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/examples/${_duilib_example}/CMakeLists.txt")
             add_subdirectory("examples/${_duilib_example}")
         else()
-            message(STATUS "[WARN] example '${_duilib_example}' not found; skipped")
+            duilib_tf(_duilib_example_line "build.example_not_found"
+                      "name=${_duilib_example}")
+            message(STATUS "${_duilib_example_line}")
         endif()
     endforeach()
 endif()

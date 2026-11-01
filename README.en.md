@@ -111,7 +111,7 @@ On Windows, if there is no `python3` command, replace the leading `python3` with
 
 ### Windows (verified: Windows 10/11 x64 + VS 2022/VS 2026)
 
-Prerequisites: Visual Studio 2022 or 2026 with the "Desktop development with C++" workload, Git and Python 3.
+Prerequisites: Visual Studio 2022 or 2026 with the "Desktop development with C++" workload, Git and Python 3.8+.
 
 ```bat
 git clone https://github.com/rhett-lee/nim_duilib.git
@@ -130,7 +130,7 @@ bin\basic.exe
 
 ### Linux / macOS / FreeBSD
 
-Prerequisites: the compiler, CMake, Ninja, Git and Python 3 as described above; on Linux also install the system development packages listed in [build/linux-dependencies.en.md](build/linux-dependencies.en.md).
+Prerequisites: the compiler, CMake, Ninja, Git and Python 3.8+ as described above; on Linux also install the system development packages listed in [build/linux-dependencies.en.md](build/linux-dependencies.en.md).
 
 ```bash
 git clone https://github.com/rhett-lee/nim_duilib.git

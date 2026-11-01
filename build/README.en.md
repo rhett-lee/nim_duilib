@@ -20,9 +20,11 @@ and troubleshooting, see [build-reference.en.md](build-reference.en.md).
 | `autotest.py` | local automation: environment check → build → package → verify → assertions |
 | `test_build.py` | unit tests for the build entry point |
 | `test_pack.py` / `test_autotest.py` | packaging and automation tests |
-| `test_cmake_scripts.py` | CMake script tests: Skia/SDL3 variants, CRT derivation, MSYS2 detection and a case-by-case comparison with the packaging side, plus the dependency plan mode (the Skia/SDL3 commands printed by `deps --dry-run` and its read-only guarantee) (cases are skipped when cmake is not on PATH) |
+| `test_cmake_scripts.py` | CMake script tests: Skia/SDL3 variants, CRT derivation, MSYS2 detection and a case-by-case comparison with the packaging side, plus the dependency plan mode (the Skia/SDL3 commands printed by `deps --dry-run` and its read-only guarantee) (cases are skipped when cmake cannot be located through `DUILIB_CMAKE_EXECUTABLE` → PATH → Visual Studio's bundled CMake) |
 | `tests/skia_variants_check.cmake` | fixture run by `test_cmake_scripts.py` through `cmake -P`: variant names, candidate fallback, multi-configuration preparation, CRT derivation, plan-mode command printing |
+| `test_docs.py` | documentation consistency regression tests: relative Markdown links inside the maintained scope must point to existing files (code blocks and inline code are ignored), and every document under `docs/` needs a Chinese/English counterpart (`X.md` ↔ `X.en.md`, checked in both directions; `docs/misc/` history is excluded) |
 | `test_sdk_package.py` | unit tests for the pure functions of the SDK package test orchestrator |
+| `test_release.py` | unit tests for `release.py`: DLL-mode package-name prediction, language forwarding of the packaging command, archive discovery in the output directory, `git status` path parsing and `dist/` ignore rules, CHANGELOG section extraction |
 | `sdk_package_test.py` | released-SDK package test orchestrator (structure checks + consumer build/run + negative cases) |
 | `sdk_test/` | SDK consumer test projects (depend only on the unpacked SDK) |
 | `sdk-package-test.md` | SDK package test methods and purpose (Chinese) |
@@ -36,7 +38,7 @@ verified with the new entry point); use `python3 build/build.py`.
 
 ## Prerequisites
 
-- CMake 3.24+, Python 3 (required; commands use `python3` throughout), Git, Ninja.
+- CMake 3.24+, Python 3.8+ (required; commands use `python3` throughout), Git, Ninja.
 - Windows: Visual Studio 2022+ with the C++ workload, or MSYS2 / MinGW-w64.
 - Linux/macOS/FreeBSD: gcc 10+/clang 12+, plus font/GL/X11 development packages; these
   systems usually provide only `python3`.
@@ -146,7 +148,7 @@ python3 build/build.py pack --with-cef
 python3 build/build.py pack --config Debug --out-dir dist
 ```
 
-Package name: `nim_duilib-<version>-<system>-<arch>[-sdl][-cef|-cef109][-examples][-debug]`.
+Package name: `nim_duilib-<version>-<system>-<arch>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109][-examples][-dll][-debug]`.
 It contains `include/duilib/`, `lib/` (flat layout; architecture and configuration
 are distinguished by the package name), `bin/` (runtime DLLs and `bin/resources/`),
 `msvc/` (Windows MSVC integration layer), `lib/cmake/nim_duilib/`, `LICENSES/`,
@@ -168,11 +170,22 @@ python3 build/autotest.py --preset arm64-synthetic
 python3 build/autotest.py --preset all-ready
 python3 build/autotest.py --preset pack-msvc-x64-release --build
 python3 build/autotest.py --preset arm64-synthetic --dry-run
+python3 build/autotest.py --preset pack-msvc-x64-release --with-examples --smoke
 ```
 
 Exit codes: 0 some preset passed and none failed; 1 a failure; 2 all skipped.
 `--list-presets` lists presets and preconditions; results go to `report.json` and
-`autotest.log`.
+`autotest.log`. The `--build` timeout is controlled by `--build-timeout`
+(default 3600 seconds), `--with-sdl` / `--with-examples` are passed through to
+`pack.py`, and `--smoke` requires examples inside the package and runs only for
+Release presets (it unpacks and launches `bin/basic.exe` for 8 seconds, skipping
+when the example architecture differs from the host).
+
+`build.py`, `pack.py`, `release.py`, `autotest.py` and `sdk_package_test.py` all accept
+`--lang auto|zh_CN|en` (default follows the system, also reads `DUILIB_LANG`, and a
+repeated option uses the last value), which switches both console messages and
+`--help`; `autotest.py` passes the language to the `build.py` / `pack.py` it spawns,
+so logs do not mix languages.
 
 arm64 scope: integration files and package layout are ready and libjpeg-turbo ships an
 arm64 prebuilt library. All three platforms can ship CEF on arm64 (`windows/arm64` prebuilt
@@ -242,7 +255,7 @@ See [docs/Release.en.md](../docs/Release.en.md) for the complete guide.
 | :--- | :--- |
 | `Visual Studio not found` | install VS 2022+ with the C++ workload, or pass `--vs-version` |
 | `Skia not found` | run `python3 build/build.py deps` first |
-| `gn/ninja not found` | use VS's bundled tools on Windows; install `ninja`/`gn` elsewhere |
+| `gn/ninja not found` | use VS's bundled tools on Windows, or run `python3 build/build.py deps` first to extract the bundled `bin/gn.exe` / `bin/ninja.exe` from the patch archive; install `ninja`/`gn` elsewhere (see section 10 of [build-reference.en.md](build-reference.en.md)) |
 | CEF example does not start | ensure `bin/libcef_win/<arch>` or `bin/libcef_linux` has the runtime |
 | No text on Linux | install fontconfig and CJK fonts; check `bin/resources/fonts` |
 | Broken build tree | `python3 build/build.py clean` and retry |
@@ -260,7 +273,8 @@ See [docs/Release.en.md](../docs/Release.en.md) for the complete guide.
 The Skia variant directory is derived from architecture, toolchain and runtime
 (e.g. `llvm.x64.release`, `llvm.x64.debug`, `mingw64-gcc.x64.release`). Switching
 `--md` or the toolchain makes `deps` produce the matching variant; `pack.py` detects
-it from the directory contents.
+it from the directory contents. MinGW Skia only has release variants, so Debug and
+Release share `<prefix><gcc|llvm>.<arch>.release`.
 
 On Windows, SDL3 is installed per architecture × configuration × runtime into
 `<deps-root>/SDL3/<variant>` (`msvc.<arch>.<debug|release>[.mdd|.md]`; MinGW reuses

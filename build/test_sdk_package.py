@@ -13,6 +13,7 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 MODULE_PATH = Path(__file__).resolve().parent / "sdk_package_test.py"
@@ -377,6 +378,59 @@ class ApplicabilityTest(unittest.TestCase):
                 "C11", caps, {}, no_build=True)
         self.assertFalse(ok)
         self.assertIn("--no-build", reason)
+
+
+class BuildBlockReasonTest(unittest.TestCase):
+    """C01/C02/C10 的前置判断：工具链不可用时 SKIP，而不是配置/编译后 FAIL。"""
+
+    def _info(self, **meta):
+        info = {
+            "NIM_DUILIB_PACKAGE_SYSTEM": "win",
+            "NIM_DUILIB_PACKAGE_ARCH": "x64",
+            "NIM_DUILIB_PACKAGE_TOOLCHAIN": "mingw",
+        }
+        info.update({"NIM_DUILIB_PACKAGE_" + key.upper(): value
+                     for key, value in meta.items()})
+        return sdk.PackageInfo(
+            archive=Path("nim_duilib-1.0-win-x64-mingw-gcc.zip"),
+            root=Path("."),
+            files=[],
+            name_parts={},
+            info=info,
+            manifest={},
+            caps={},
+            version_text="1.0")
+
+    def _reason(self, info, generator, env=None):
+        toolchain = SimpleNamespace(generator=generator, env={}, vs_install=None)
+        with mock.patch.object(sdk, "host_system", return_value="win"), \
+                mock.patch.dict(os.environ, env or {}), \
+                mock.patch.object(sdk, "detect_toolchain", return_value=(toolchain, "")):
+            return sdk.build_block_reason(info)
+
+    def test_mingw_package_with_vs_generator_is_skipped(self):
+        # VS 生成器名随版本变化（VS 2026 为 "Visual Studio 18 2026"），
+        # 两种版本名都必须判定为“本机没有 MinGW 编译器”。
+        for generator in ("Visual Studio 17 2022", "Visual Studio 18 2026"):
+            reason = self._reason(self._info(), generator,
+                                  {"MSYSTEM": "MINGW64"})
+            self.assertEqual(reason, "当前环境没有 MinGW 编译器", generator)
+
+    def test_mingw_package_with_ninja_is_allowed(self):
+        reason = self._reason(self._info(), "Ninja", {"MSYSTEM": "MINGW64"})
+        self.assertEqual(reason, "")
+
+    def test_msvc_package_with_vs_generator_is_allowed(self):
+        reason = self._reason(self._info(TOOLCHAIN="msvc"), "Visual Studio 18 2026")
+        self.assertEqual(reason, "")
+
+    def test_missing_toolchain_is_skipped(self):
+        with mock.patch.object(sdk, "host_system", return_value="win"), \
+                mock.patch.dict(os.environ, {"MSYSTEM": "MINGW64"}), \
+                mock.patch.object(sdk, "detect_toolchain",
+                                  return_value=(None, "BuildError: no compiler")):
+            reason = sdk.build_block_reason(self._info())
+        self.assertIn("工具链不可用", reason)
 
 
 class CanRunArchTest(unittest.TestCase):

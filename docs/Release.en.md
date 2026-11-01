@@ -296,7 +296,25 @@ Available properties:
 | `NimDuilibCopyRuntime` | `1` | Copy `bin/*.dll` after build |
 | `NimDuilibCopyResources` | `0` | Copy `bin/resources/` to `resources/` after build |
 | `NimDuilibForceRuntimeLibrary` | `1` | Align MSVC runtime; set `0` to opt out |
+| `NimDuilibUseManifest` | `1` | Embed `msvc/manifest/duilib.<arch>.manifest` for the project Platform; `0` disables it |
 | `NimDuilibSkipValidation` | `0` | Skip toolchain/arch/config/library checks |
+
+The property sheet also derives the link inputs from the package metadata. These are
+**assigned inside the property sheet**, so setting `NimDuilibSystemLibs` /
+`NimDuilibLinkLibs` before the import has no effect (append your extra libraries through
+`AdditionalDependencies` in your own project instead):
+
+- system libraries: `Comctl32`, `Imm32`, `Opengl32`, `User32`, `shlwapi`; SDL packages add
+  `Version`/`Winmm`/`Setupapi`/`Hid`/`Mincore`/`Dinput8`, WebView2 packages add `WinInet`;
+- static packages: the whole Skia set (`skia`/`svg`/`skshaper`/`skottie`/`sksg`/`jsonreader`,
+  plus `bentleyottmann`/`expat`/`skcms`/`skresources` when present in the package), the
+  optional `SDL3-static` / `turbojpeg-static` / `WebView2LoaderStatic` / `libcef` +
+  `libcef_dll_wrapper[_109]`, and `duilib`/`duilib-cximage`/`duilib-png`/`duilib-webp`/
+  `duilib-zlib`;
+- DLL packages link only the `duilib.lib` import library plus the system libraries; every
+  other dependency already lives inside `duilib.dll`;
+- static + CEF packages add `/DELAYLOAD:libcef.dll`; static Debug packages add
+  `/NODEFAULTLIB:"libcmt.lib"` so third-party prebuilt libraries do not trigger LNK4098.
 
 Common errors:
 
@@ -393,7 +411,9 @@ architecture, configuration and the MSVC runtime, and fails with
 `CMAKE_BUILD_TYPE` has no effect with the Visual Studio generator, so
 building a configuration other than the package's (for example Debug with a
 Release package) links an incompatible runtime. Use a separate build
-directory and the matching package per configuration:
+directory and the matching package per configuration (the generator name
+follows the installed Visual Studio version, for example
+`Visual Studio 17 2022` or `Visual Studio 18 2026`):
 
 ```
 cmake -S . -B build-debug   -G "Visual Studio 17 2022" -A x64 ^
@@ -516,11 +536,11 @@ Excluded in SDK mode are the 22 per-example private theme directories:
 | `--arch x64\|x86\|arm64` | Library architecture; selects the library directory on Windows and affects the package name everywhere |
 | `--lib-dir <path>` | Fully explicit library directory, overriding `--arch`/`--config` path computation; a relative path is resolved against the **repository root** |
 | `--deps-root <path>` | Dependency root (holds `skia/` and `SDL3/`; same as `build.py --deps-root`); defaults to the directory next to the repository, and a relative path is resolved against the current directory. `build.py pack` forwards it automatically |
-| `--skia-lib-dir <path>` | Skia static library directory; auto-probed per platform/toolchain (MSVC `../skia/out/llvm.<arch>.<config>`; MinGW `mingw64-gcc\|llvm.<arch>.release` for standalone MinGW-w64 or `gcc\|llvm.<arch>.release` for MSYS2, validated by the presence of `.a` files); a relative path is resolved against the **repository root** |
+| `--skia-lib-dir <path>` | Skia static library directory; auto-probed per platform/toolchain (MSVC `../skia/out/llvm.<arch>.<config>`, with `.md` added in `--md`/DLL mode and `.mdd` for Debug; MinGW `mingw64-gcc\|llvm.<arch>.release` for standalone MinGW-w64 or `gcc\|llvm.<arch>.release` for MSYS2, plus `gcc.msvcrt.<arch>.release` for MSYS2 MINGW64, validated by the presence of `.a` files); a relative path is resolved against the **repository root** |
 | `--sdl-dir <path>` | Explicit SDL3 installation prefix (no variant derivation); by default the `../SDL3` root is used and `<root>/<variant>` is selected from `--arch`/`--config`/runtime (MT, MD, DLL), falling back to `<root>` when the variant is missing; a relative path is resolved against the **repository root** |
 | `--with-sdl` | Additionally package SDL3 on Windows (Unix always packages it) |
-| `--with-cef` | Package CEF: headers + import library/wrapper + runtime (large); Windows and Linux only |
-| `--cef-version latest\|109` | CEF version for `--with-cef`; defaults to `latest`; `109` is Windows-only (Linux has only `latest`) |
+| `--with-cef` | Package CEF: headers + link library (`libcef.lib` on Windows) + wrapper + runtime (large). On macOS it only decides whether CEF example App Bundles are shipped (the SDK has no macOS CEF development files); FreeBSD is not supported |
+| `--cef-version latest\|109` | CEF version for `--with-cef`; defaults to `latest`; `109` is Windows-only |
 | `--msvc-runtime auto\|mt\|md` | MSVC runtime recorded in package metadata; `auto` (MD for DLL mode, otherwise MT) by default |
 | `--with-examples` | Include example programs and all per-example resources |
 | `--format zip\|tgz\|tarbz2` | Archive format; defaults to `zip` on Windows, `tgz` elsewhere |
@@ -528,6 +548,7 @@ Excluded in SDK mode are the 22 per-example private theme directories:
 | `--list` | Print the file list that would be collected without packaging |
 | `--allow-missing` | Keep packaging even when critical artifacts are missing (troubleshooting only; do not use for releases) |
 | `--verify <package>` | Only verify an existing package: single root directory, presence of `MANIFEST.txt`/`SHA256SUMS`, header and static-library layout, every SHA256, and relative links in SDK docs; returns 0 on success, 1 on errors |
+| `--lang auto\|zh_CN\|en` | Message language, default `auto` (`DUILIB_LANG` → `LC_ALL`/`LC_MESSAGES`/`LANG` → system locale → English; a repeated option uses the last value); every `release.py` subcommand accepts it too, including after the subcommand name, and it is forwarded to the `pack.py` it spawns. All messages live in [cmake/i18n/messages.json](../cmake/i18n/messages.json) |
 
 ## Debug packages
 
@@ -886,7 +907,11 @@ push**.
    ```
 
    Artifacts go to `dist/<version>/`; add `--with-sdl`, `--with-cef`,
-   `--with-examples` as needed.
+   `--with-examples` as needed. The package name follows the **actual artifacts**:
+   in DLL mode `release.py` appends `-dll` just like the packaging script, and
+   once packaging finishes it immediately checks the archives created by this run
+   (layout, SHA256, documentation links inside the package), exiting non-zero on
+   failure.
 4. Verify every archive and generate release notes:
 
    ```

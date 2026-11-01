@@ -20,10 +20,10 @@
 | `bin/libcef_win[_109]/<arch>/` | `--with-cef` 包的 CEF 运行时（`libcef.dll`、`*.pak`、`icudtl.dat`、`locales/`） |
 | `bin/libcef_linux/` | Linux 包的 CEF 运行时（`libcef.so` 等） |
 | `bin/*.exe`、`bin/*.app` | `-examples` 包的示例程序（macOS 为 `.app`） |
-| `msvc/` | Windows + MSVC 接入：`nim_duilib.props`、`nim_duilib.targets`、manifest |
+| `msvc/` | Windows + MSVC 接入：`nim_duilib.props`、`nim_duilib.targets`、`nim_duilib.sdk.props`（包元数据）、manifest |
 | `lib/cmake/nim_duilib/` | 全平台 CMake 接入：`find_package(nim_duilib CONFIG)` |
 | `docs/` | 随包使用文档（相对链接已按包内布局重写） |
-| `LICENSES/`、`THIRD-PARTY-NOTICES.md` / `.en.md` | 第三方组件许可证与声明（中英文） |
+| `LICENSES/`、`THIRD-PARTY-NOTICES.md` / `.en.md`、`LICENSE` | 第三方组件许可证与声明（中英文），以及仓库自身的许可证 |
 | `VERSION`、`MANIFEST.txt`、`SHA256SUMS` | 版本号、包清单、逐文件校验和 |
 
 包名各段含义：`-mingw-gcc` / `-mingw-llvm`（MinGW 的两个 C++ 运行时变体）、

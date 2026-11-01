@@ -1,5 +1,18 @@
+# 构建消息（中英文）：独立工程只 include 本文件时也要能解析首行的报错文案。
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_i18n.cmake")
+
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
-  message(FATAL_ERROR "Prevented in-tree build. Please create a build directory outside of the source code and run \"cmake -S ${CMAKE_SOURCE_DIR} -B .\" from there")
+  duilib_tf(_duilib_bin_tree_what "cmake.in_tree_build")
+  duilib_tf(_duilib_bin_tree_hint "cmake.in_tree_build_hint"
+            "source=${CMAKE_SOURCE_DIR}")
+  message(FATAL_ERROR "${_duilib_bin_tree_what}\n  Hint: ${_duilib_bin_tree_hint}")
+endif()
+
+# 独立工程（只 include 本文件，见 cmake/README.md 的「基本使用方法」）时先做公共
+# 检测：DUILIB_OS_*/DUILIB_ROOT/DUILIB_BIN_PATH 等都在 duilib_common.cmake 里。
+# 示例工程已由 duilib_example.cmake 先 include 过，这里不会重复执行。
+if(NOT DEFINED DUILIB_OS_WINDOWS)
+    include("${CMAKE_CURRENT_LIST_DIR}/duilib_common.cmake")
 endif()
 
 #启用C++20
@@ -112,5 +125,8 @@ elseif(DUILIB_OS_FREEBSD)
     # FreeBSD平台
     include("${CMAKE_CURRENT_LIST_DIR}/duilib_bin_freebsd.cmake") 
 else()
-    message(FATAL_ERROR "Unknown OS!")
+    duilib_tf(_duilib_bin_os_what "cmake.platform_unsupported"
+              "platform=${CMAKE_SYSTEM_NAME}")
+    duilib_t("cmake.platform_unsupported_hint" _duilib_bin_os_hint)
+    message(FATAL_ERROR "${_duilib_bin_os_what}\n  Hint: ${_duilib_bin_os_hint}")
 endif()

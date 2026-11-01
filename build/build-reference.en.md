@@ -12,16 +12,20 @@ Chinese version: [build-reference.md](build-reference.md)
 
 | Item | Requirement |
 | :--- | :--- |
-| CMake | 3.24 or newer (the root project uses CMakePresets) |
-| Python | **Python 3 is required**; the Skia build scripts invoke `python3`, so `python` / `py -3` are not a substitute |
+| CMake | 3.24 or newer (the root project uses CMakePresets); configuring the `duilib/`
+  subproject on its own requires 3.19 or newer (the build message catalog is parsed
+  with `string(JSON)`) |
+| Python | **Python 3.8+ is required**; the Skia build scripts invoke `python3`, so `python` / `py -3` are not a substitute |
 | Git | to fetch dependency sources |
-| Ninja | bundled with Visual Studio on Windows; install via package manager elsewhere |
+| Ninja | bundled with Visual Studio on Windows (when that optional component is missing,
+  the `bin/ninja.exe` shipped in the patch archive is used automatically, see section 5);
+  install via package manager elsewhere |
 | Windows | Visual Studio 2022+ with the C++ workload, or MSYS2 / MinGW-w64 |
 | Linux | gcc 10+ or clang 12+, plus X11/font development packages |
 | macOS | Xcode command line tools 13.5+, cmake/ninja/gn via Homebrew |
 | FreeBSD | clang, cmake, ninja, gn, fontconfig, freetype2 |
 
-Without Python 3, `build.py` fails immediately and prints installation hints; there
+Without Python 3.8+, `build.py` fails immediately and prints installation hints; there
 is no Python-free build path. The Skia build scripts invoke `python3`; if PATH provides
 only `python` / `py -3` and no `python3`, the preflight warns and the Skia build aborts
 with an error before compiling.
@@ -57,7 +61,7 @@ assets always go to `bin/`; libraries go to `lib/<arch>/<Config>/` (`lib/<Config
 | `build.py` (default) | same as `build.py build`: prepare deps, then build one configuration |
 | `build.py deps` | prepare Skia / SDL3 / CEF for the current configuration |
 | `build.py build` | build one configuration; prepares deps unless `--no-deps` |
-| `build.py test` | run the standard-library unittests under `build/` (including CMake rule cases and a real configure smoke test); when cmake is not on PATH, `DUILIB_CMAKE_EXECUTABLE` or the CMake bundled with Visual Studio is used |
+| `build.py test` | run the standard-library unittests under `build/` (including CMake rule cases, a real configure smoke test and documentation consistency checks: Markdown relative links and `docs/` Chinese/English pairing); when cmake is not on PATH, `DUILIB_CMAKE_EXECUTABLE` or the CMake bundled with Visual Studio is used |
 | `build.py pack` | package an SDK via `pack.py` |
 | `build.py doctor` | environment check: toolchain, version manifest, dependency dirs, preflight (including compiler, `gn`) |
 | `build.py clean` | remove the build tree; `--deps` also removes dependency artifacts |
@@ -83,14 +87,14 @@ otherwise Ninja sees `bin/` files newer than its own objects and skips the link 
 | :--- | :--- |
 | `--config Release\|Debug` | configuration, default `Release`; no `--debug` alias |
 | `--arch auto\|x86\|x64\|arm64` | target architecture, default host; required for Windows+Ninja arm64 |
-| `--lang auto\|zh_CN\|en` | UI language, defaults to the system; also reads `DUILIB_LANG`. All messages live in [cmake/i18n/messages.json](../cmake/i18n/messages.json); see the "Build message catalog" section of [cmake/README.en.md](../cmake/README.en.md) |
+| `--lang auto\|zh_CN\|en` | UI language, defaults to the system; also reads `DUILIB_LANG`, and a repeated option uses the last value. `pack.py` spawned by `build.py pack` receives the same language, so child output matches. All messages live in [cmake/i18n/messages.json](../cmake/i18n/messages.json); see the "Build message catalog" section of [cmake/README.en.md](../cmake/README.en.md) |
 | `--build-dir <dir>` | override the build directory (may be outside the repo) |
 | `--deps-root <dir>` | dependency source/install root, defaults to the repo's parent (next to `nim_duilib`); Skia, SDL3 and CEF are installed here. A relative path is resolved against the current directory, and `build.py pack` forwards it to `pack.py` |
 | `--jobs N` | parallel build jobs, defaulting to the CPU logical core count |
 | `--offline` | use cached dependency sources/archives only |
 | `--dry-run` | print commands without executing them; with `deps` it also prints the actual Skia/SDL3 command lines (see section 5) |
 | `--cmake-arg <arg>` / `--build-arg <arg>` | forwarded to configure/build (repeatable); use `--cmake-arg=-DFOO=1` when the value starts with `-` |
-| `--vs-version N` | pin the Visual Studio major version (for example `17`); Windows only |
+| `--vs-version N` | pin the Visual Studio major version (for example `17` or `18`); Windows only; without it the newest installed version is used |
 | `--cef-version 109\|latest` | CEF version: `109` is the legacy build, `latest` follows the manifest default (currently 156 and tracking manifest upgrades) |
 | `--skia-ref` / `--sdl-ref` | select a ref from the version manifest, e.g. `chrome/m142`, `main` or `release-3.4.18` |
 | `--sdl` / `--no-sdl` | Windows only; off by default on Windows, forced on elsewhere |
@@ -104,6 +108,7 @@ otherwise Ninja sees `bin/` files newer than its own objects and skips the link 
 | `--force` (deps) | ignore completion stamps and rebuild dependencies |
 | `--with-cef` / `--with-sdl` / `--with-examples` (pack) | include the given content (Unix always packages SDL3, so `--with-sdl` is unnecessary) |
 | `--out-dir` (pack) | package output directory (default `dist/`) |
+| `--pack-arg <arg>` (pack) | appended verbatim to the `pack.py` command line (repeatable), e.g. `--pack-arg=--list` to only print the file list or `--pack-arg=--allow-missing` while troubleshooting; values starting with `-` also go after the equals sign |
 
 `--sdl` is a build switch only; a package includes SDL3 only when `--with-sdl`
 is also given (using `--sdl` alone now prints a hint and leaves package contents
@@ -206,13 +211,23 @@ Notes:
 - The plan target is read-only: it creates no dependency directory, takes no file lock,
   does not clone/switch sources, compile or write stamps. Already-ready variants are
   labelled "skipped when actually running", but their commands are still listed.
+- The plan target runs through `cmake --build --target duilib_deps_plan`; when a
+  `CMakeLists.txt` or a `cmake/*.cmake` file is newer than the build system, CMake
+  re-runs the configure step first as it always does (it only updates the build tree
+  under `out/`; no dependency preparation, no network access, no compilation).
 - The build tree must already be configured (`out/<arch>/<Config>/CMakeCache.txt`
-  exists); `--dry-run` never configures, and prints `deps.plan_unconfigured` otherwise.
+  exists); `--dry-run` never configures it on its own, and prints
+  `deps.plan_unconfigured` otherwise.
   The commands therefore reflect the **last real configuration** cache (`--md`/`--dll`,
   `--sdl`, `--deps-root`, ...). When the current options differ from the cache, a
   `[WARN] the plan commands come from the last configuration ... DUILIB_MD=ON (now OFF)`
   warning is printed first; run `build.py deps` once without `--dry-run`, then repeat
   the dry-run.
+- When the compiler (MSVC ↔ MinGW) or the runtime/DLL mode (`--md`/`--dll`) changes,
+  a real `deps` run clears the build tree and reconfigures it first, so `--dry-run`
+  prints only the `deps.plan_reset` hint instead of expanding commands from the stale
+  cache that is about to be discarded (that would list the old compiler's or old
+  mode's `gn`/`ninja` arguments).
 - Equivalent direct invocation: `cmake -P cmake/duilib_deps_run.cmake
   -DDUILIB_DEPS_PLAN=ON ...`, or `cmake --build . --target duilib_deps_plan` inside the
   build directory.
@@ -239,12 +254,15 @@ Versions are pinned in [third_party_versions.json](../cmake/third_party_versions
   clang/ninja are used on Windows. On non-Windows platforms Skia is built with
   clang/clang++ whenever available (GCC-built Skia performs noticeably worse) and only
   falls back to gcc/g++ when clang is missing; the artifact directory is
-  `out/llvm.<arch>.release` or `out/gcc.<arch>.release` accordingly. Debug reuses the
-  release build mode and only changes the runtime (`/MTd` or `/MDd`), so each
-  configuration needs its own Skia variant directory. If the local `skia/` checkout is
-  not at the manifest commit (or the tag/branch selected by `--skia-ref`), `deps`
-  switches it to the manifest revision; a branch ref only requires the checkout to be
-  on that branch and does not chase remote tip on every run.
+  `out/llvm.<arch>.release` or `out/gcc.<arch>.release` accordingly. MSVC Debug on
+  Windows reuses the release build mode and only changes the runtime (`/MTd` or
+  `/MDd`), so each configuration needs its own Skia variant directory; MinGW has no
+  such runtime switch, so Debug and Release share one
+  `<prefix><gcc|llvm>.<arch>.release` directory (`deps` builds it only once). If the
+  local `skia/` checkout is not at the manifest commit (or the tag/branch selected by
+  `--skia-ref`), `deps` switches it to the manifest revision; a branch ref only
+  requires the checkout to be on that branch and does not chase remote tip on every
+  run.
 - **SDL3**: the default ref is the `main` branch (`sdl.default`; the
   `release-3.4.18` tag remains in `refs` but does not compile, so do not select it
   unless you need it via `--sdl-ref`). Disabled on Windows by default; when enabled,
@@ -294,8 +312,11 @@ it cannot be fetched, `deps` falls back to the manifest's `sha256`; when both ar
 unavailable it only warns and skips the check.
 
 When dependency artifacts exist without a stamp file, `deps` validates and adopts them
-(Skia: source HEAD; CEF: tracked header major version) instead of rebuilding or
-re-downloading.
+instead of rebuilding or re-downloading: Skia checks the source HEAD plus the patch
+fingerprint, and CEF is adopted on macOS only (it reads `include/cef_version.h` and
+requires a matching version). The Windows/Linux CEF runtime directories contain
+binaries only, so the version cannot be read there; to avoid stamping the previous
+`libcef.dll`/`libcef.so` as the new version, the archive is re-extracted every time.
 
 `DUILIB_DEPS_MODE` controls dependency handling: `off` (check only), `prepare` (prepare
 from the build target), `auto` (prepare at configure time). `build.py` uses `prepare`;
@@ -407,7 +428,11 @@ python3 build/build.py --cmake-arg -DCMAKE_C_COMPILER=gcc   -DCMAKE_CXX_COMPILER
 
 - On non-Windows platforms `build.py doctor` reports the compiler selected from `CC`/`CXX`.
 - No manual cleanup is needed after switching compilers: `build.py` detects the
-  changed compiler in the `out/<arch>/<Config>` cache and clears that build directory.
+  changed compiler in the `out/<arch>/<Config>` cache, clears that build directory,
+  and removes stale compiler outputs from `lib/`, `build/build_temp` and `bin/`
+  (runtime assets in `bin/` are kept). This also covers Visual Studio version
+  switches (e.g. `--vs-version 17` versus the newest installed version); artifacts
+  from different toolsets never coexist.
 - Windows/MSVC ignores `CC`/`CXX` (the toolchain comes from vcvars); in MSYS2 use
   `CC=gcc CXX=g++` or `CC=clang CXX=clang++`.
 - On non-Windows platforms Skia's toolchain is decoupled from the main build: Skia
@@ -422,6 +447,10 @@ terminal `MSYSTEM` and `PATH` are already set):
 | MINGW64 (msvcrt) | `MINGW64` | `E:\msys64\mingw64\bin` | `gcc` / `g++` | `gcc.msvcrt.<arch>.release` → `gcc.<arch>.release` → `mingw64-gcc.<arch>.release` | `-mingw-gcc` |
 | UCRT64 | `UCRT64` | `E:\msys64\ucrt64\bin` | `gcc` / `g++` | `gcc.<arch>.release` → `mingw64-gcc.<arch>.release` | `-mingw-gcc` |
 | CLANG64 | `CLANG64` | `E:\msys64\clang64\bin` | `clang` / `clang++` | `llvm.<arch>.release` → `mingw64-llvm.<arch>.release` | `-mingw-llvm` |
+
+The candidates do not depend on `--config`: MinGW Skia only has release variants, so
+Debug builds use the same `.<arch>.release` directory and `deps` never builds a
+second copy for Debug.
 
 MINGW64 (msvcrt) and UCRT64 (ucrt) gcc static libraries use different C runtimes, so
 Skia must come from a matching directory; MINGW64 therefore prefers the `.msvcrt`
@@ -494,20 +523,20 @@ sure the Skia libraries are the `mingw64-llvm.<arch>` variant.
 | `gn/ninja not found` | use VS's bundled tools on Windows, or run `python3 build/build.py deps` to extract the bundled `bin/gn.exe` from the Skia patch archive; without the optional VS ninja component, `build.py` and the root project extract the bundled `bin/ninja.exe` automatically (`out/.duilib-tools` or `<build-dir>/.duilib-tools`), so nothing needs to be installed. On Unix install `ninja` and `gn`. Unix ignores `gn.exe` inside the Skia tree (it cannot run there); install a native `gn` when only `gn.exe` exists |
 | `python: command not found` (macOS/Linux) | these systems usually provide only `python3`: run the same script as `python3 build/build.py ...` |
 | `python3 not found` (error while building Skia) | the Skia build scripts invoke `python3` and do not accept `python` / `py -3`; install Python 3 and make sure `python3 --version` works (on Windows add the Python install directory to PATH) |
-| `CMake version is too old` | upgrade to CMake 3.24+ |
+| `CMake 3.24 or higher is required` | the root project needs CMake 3.24+ (configuring the `duilib/` subproject alone needs 3.19+): upgrade CMake and retry |
 | CEF example does not start | ensure `bin/libcef_win/<arch>` (or `bin/libcef_linux`) contains the runtime; `pack --with-cef` includes it |
-| macOS Debug build fails to copy `Chromium Embedded Framework.framework` | CEF distributions usually ship only the Release framework; CMake now detects this and falls back to `Release/`, printing `CEF Debug framework not found; using Release framework`. If neither exists, configuration fails early with a `CEF_ROOT` hint |
+| macOS Debug build fails to copy `Chromium Embedded Framework.framework` | CEF distributions usually ship only the Release framework; CMake now detects this and falls back to `Release/`, printing `[WARN] CEF Debug framework not found; using the Release framework: <path>`. If neither exists, configuration fails early with a `CEF_ROOT` hint |
 | Packaged examples load the builder's `.so` | examples carry a relative rpath (`$ORIGIN/../lib`, `$ORIGIN/libcef_linux`) so bundled libraries win; use `pack --with-cef` when examples depend on libcef |
 | Build-machine absolute paths remain in the binary (`otool`/`readelf`) | They come from the `DUILIB_RPATH_ABSOLUTE=ON` SDL3 fallback; build packages with `--cmake-arg=-DDUILIB_RPATH_ABSOLUTE=OFF`, or disable rpath entirely with `DUILIB_SDL_RPATH=OFF` |
 | CEF download fails | pass `--cef-archive <file>` or use `--offline` with a cache |
 | No text on Linux | install fontconfig and CJK fonts; check `bin/resources/fonts` |
 | Corrupted build tree | `python3 build/build.py clean` and retry |
-| Configure fails after switching compilers (e.g. `cl.exe` cannot find `kernel32.lib`) | no manual cleanup needed: `build.py` detects the compiler change in the `out/<arch>/<Config>` cache and clears that directory |
+| Configure fails after switching compilers (e.g. `cl.exe` cannot find `kernel32.lib`) | no manual cleanup needed: `build.py` detects the compiler change in the `out/<arch>/<Config>` cache, clears that directory, and also removes stale compiler outputs from `lib/`, `build/build_temp` and `bin/` (runtime assets in `bin/` are kept) |
 | Building Debug and then Release finishes immediately (`ninja: no work to do`) and `bin/` still holds Debug examples | both configurations write examples into the shared `bin/`; `build.py` removes the other configuration's outputs and `bin/.build-config` stamps before relinking. On macOS the `.app` keeps `Contents/Info.plist` (generated by configure) and only its executable is removed. When invoking CMake directly, remove the same-named examples from `bin/` yourself |
 | macOS crashes on the first launch after switching Debug/Release, with `+[UNUserNotificationCenter currentNotificationCenter]` at the top of the stack | older `build.py` deleted the whole `bin/<target>.app` after configure, and relinking only recreated the executable, so `Contents/Info.plist` was missing and LaunchServices could not resolve the process bundle. Fixed: only the executable inside the `.app` is removed now. For an existing bundle, `rm -rf bin/<target>.app` and rebuild (configure regenerates `Info.plist`); verify with `plutil -p bin/<target>.app/Contents/Info.plist` |
 | `--cef-version 109` cannot find `libcef_dll_wrapper_109` | fixed: the wrapper source directory and target name now follow `DUILIB_CEF_VERSION`; run `build.py clean` and reconfigure an old build tree |
 | `--cef-version 109` Debug link fails with `_ITERATOR_DEBUG_LEVEL` 0 vs 2 (LNK2038) | fixed: 109 configurations force `USE_SANDBOX=OFF`, so the wrapper's `_HAS_ITERATOR_DEBUGGING=0` no longer conflicts with a Debug project |
-| `pack` reports that `lib/<arch>/<Config>` mixes MSVC `.lib` and MinGW `.a` | old libraries survive a toolchain switch; delete that directory (or run `build.py clean`) and rebuild with a single toolchain |
+| `pack` reports that `lib/<arch>/<Config>` mixes MSVC `.lib` and MinGW `.a` | a compiler switch makes `build.py` remove the old artifacts from `lib/`, `build/build_temp` and `bin/`; if the build tree was deleted by hand (so the switch cannot be detected), delete that directory (or run `build.py clean`) and rebuild with a single toolchain |
 | `pack --with-cef` reports the wrapper for the selected CEF version is missing | the build and pack CEF versions must match (e.g. `build --cef-version 109` with `pack --with-cef --cef-version 109`); the error names the version actually present in the lib directory |
 | `pack --with-examples` reports that `bin` does not match the target x86/x64 architecture | on Windows `bin/` is shared by all architectures; remove the other architecture's exe/dll files (or keep only the target build's artifacts) and repack |
 | MinGW build or link (especially Debug) fails with `out of memory allocating ...` | reduce parallelism with `--jobs 2`; GNU ld already gets `-Wl,--no-keep-memory` (lld on clang/CLANG64 does not need it) |
@@ -516,7 +545,9 @@ sure the Skia libraries are the `mingw64-llvm.<arch>` variant.
 | `deps` fails building SDL3 with `cl.exe`/`LNK1104`, or `--sdl` fails after switching MSVC/MinGW | the SDL3 build directory was used by another toolchain or runtime; dependency preparation clears it automatically when the CRT does not match, so simply retry |
 | MSVC fails to link SDL3 with LNK2038 (`RuntimeLibrary` mismatch) | Debug and Release SDL3 static libraries share the same file name and are now installed into variant prefixes. If `SDL3/` still holds only a legacy single prefix, run `python3 build.py deps --force` to create `msvc.<arch>.debug`/`msvc.<arch>.release` variants; do not copy Release libraries into a Debug prefix |
 
-Legacy troubleshooting notes from the script era remain in [build/README.en.md](README.en.md).
+Historical verification records (measured results per platform, toolchain, architecture and
+feature combination) live in [test-matrix.md](test-matrix.md); the background of fixed
+issues is in the root [CHANGELOG.en.md](../CHANGELOG.en.md).
 
 ## 11. Differences from the legacy scripts
 

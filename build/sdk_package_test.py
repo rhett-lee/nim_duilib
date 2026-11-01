@@ -59,13 +59,17 @@ def T(key):
 
 
 def _requested_lang(argv):
-    """预扫描 --lang：让 --help 与参数错误也按所选语言输出。"""
+    """预扫描 --lang：让 --help 与参数错误也按所选语言输出。
+
+    与 argparse 一致，重复给出时以最后一个为准。
+    """
+    requested = 'auto'
     for index, arg in enumerate(argv):
         if arg.startswith('--lang='):
-            return arg.split('=', 1)[1]
-        if arg == '--lang' and index + 1 < len(argv):
-            return argv[index + 1]
-    return 'auto'
+            requested = arg.split('=', 1)[1]
+        elif arg == '--lang' and index + 1 < len(argv):
+            requested = argv[index + 1]
+    return requested
 
 
 DEFAULT_OUT_ROOT = Path(tempfile.gettempdir()) / "nim_duilib_sdk_test"
@@ -1059,7 +1063,10 @@ def build_block_reason(info: PackageInfo) -> str:
     tc, reason = detect_toolchain(info)
     if tc is None:
         return T('sdk.toolchain_unavailable') % reason
-    if toolchain == "mingw" and tc.generator == "Visual Studio 17 2022":
+    # MinGW 包却探测到 VS 生成器：说明本机只有 MSVC 编译器（没有 Ninja/MSYS2
+    # 工具链），不能编译 MinGW 包。生成器名按 VS 版本变化（VS 2026 为 18），
+    # 因此用前缀判断，不能写死某个版本。
+    if toolchain == "mingw" and tc.generator.startswith("Visual Studio"):
         return T('sdk.no_mingw_compiler')
     return ""
 
@@ -1358,8 +1365,12 @@ def check_negative_arch(info: PackageInfo, work_dir: Path, log_dir: Path,
     package_arch = info.meta("ARCH")
     opposite = {"x64": "x86", "x86": "x64", "arm64": "x64"}.get(package_arch, "x86")
     if toolchain.vs_install is not None:
+        # 用多配置生成器才能通过 -A 指定不匹配的架构；生成器名按实际安装的
+        # VS 版本取（VS 2026 为 18），写死 17 2022 在只装 VS 2026 时找不到
+        # 对应安装，配置会以“生成器不可用”而不是“架构不匹配”失败。
         command = configure_command(info, work_dir / "neg-arch", toolchain,
-                                    generator="Visual Studio 17 2022",
+                                    generator=load_builder_module().vs_generator_name(
+                                        toolchain.vs_install),
                                     arch=opposite)
         return _expect_configure_failure(
             info, work_dir, log_dir, options, log_name="neg-arch.log",

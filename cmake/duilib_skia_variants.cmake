@@ -4,9 +4,11 @@
 #   Windows MSVC / clang-cl：
 #     llvm.<arch>.<debug|release>，/MD（DUILIB_MD）时追加 .mdd / .md
 #   Windows MinGW（独立 MinGW-w64 带 mingw64- 前缀；MSYS2 无前缀）：
-#     <prefix><gcc|llvm>.<arch>.<debug|release>
-#     Debug 优先 debug 变体、缺失时回退同编译器的 release 变体；
-#     MSYS2 MINGW64 环境额外提供 gcc.msvcrt.<arch>.release（msvcrt 与 UCRT64 不兼容）
+#     <prefix><gcc|llvm>.<arch>.release（与配置无关）
+#     MinGW 没有 /MTd 之类的 CRT 切换，deps 对 Debug/Release 使用同一份 GN 参数
+#     （is_debug=false），再按配置各编一份只会得到两份相同的产物；因此 Debug 直接用
+#     release 变体名，Debug/Release 共用一份 Skia。
+#     MSYS2 MINGW64 环境额外优先 gcc.msvcrt.<arch>.release（msvcrt 与 UCRT64 不兼容）
 #   非 Windows：
 #     <llvm|gcc>.<arch>.release（Skia 只有 release 变体），clang 版优先
 #
@@ -62,15 +64,9 @@ function(duilib_skia_variant_candidates config platform arch mingw out_var)
             endif()
             foreach(_prefix IN LISTS _prefixes)
                 foreach(_compiler IN LISTS _compilers)
-                    if(_cfg STREQUAL "debug")
-                        # Debug 变体优先；缺失时回退同编译器的 release 变体
-                        list(APPEND _candidates
-                            "${_prefix}${_compiler}.${arch}.debug"
-                            "${_prefix}${_compiler}.${arch}.release")
-                    else()
-                        list(APPEND _candidates
-                            "${_prefix}${_compiler}.${arch}.release")
-                    endif()
+                    # MinGW 的 Skia 没有 CRT 变体，Debug 与 Release 用同一份产物，
+                    # 候选名与配置无关（避免 deps 为两种配置各编一份相同的库）。
+                    list(APPEND _candidates "${_prefix}${_compiler}.${arch}.release")
                 endforeach()
             endforeach()
         endif()

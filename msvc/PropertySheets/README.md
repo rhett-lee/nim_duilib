@@ -46,7 +46,8 @@ PropertySheets/
   - VS2019/VS2017：使用 C++17 标准
 
 - **运行库配置**：通过检测 `duilib_dll.flag` 文件自动切换 MT/MTd 或 MD/MDd 模式。
-  每个工程会在 `IntDir` 记录 `duilib_crt_mode.txt`；切换模式后下次构建自动删除
+  每个工程会在 `IntDir` 记录 `duilib_crt_mode.txt`（内容为 `<PlatformToolset>/<模式>`）；
+  切换运行库模式或切换 VS 版本（如 v143 ↔ v145）后，下次构建自动删除
   旧的 `.obj/.pch`（含 CEF wrapper），无需手工清理 `build_temp/`
 
 - **基础库列表**（CM-5 后库名统一，Debug 不再加 `_d`，配置由输出目录区分）：
@@ -367,10 +368,13 @@ BinCommonSettingsWebView2.props
    - 重新打开解决方案文件（*.sln）
    - 等待属性重新加载完成
 
-4. **切换模式会自动全量重编相关目标**：
-   - `CommonSettings.props` 在每个工程的 `IntDir` 写入 `duilib_crt_mode.txt`；
-   - 下次构建发现模式不一致时，自动删除该工程的 `.obj/.pch`，
+4. **切换模式或 VS 版本会自动全量重编相关目标**：
+   - `CommonSettings.props` 在每个工程的 `IntDir` 写入 `duilib_crt_mode.txt`，
+     内容为 `<PlatformToolset>/<static|dll>`；
+   - 下次构建发现工具集/模式不一致时，自动删除该工程的 `.obj/.pch`，
      包括 `libcef_dll_wrapper`，不再需要手工清理 `build_temp/`；
+   - 命令行构建（`build.py`）检测到编译器切换时，还会删除 `lib/`、`build/build_temp`
+     与 `bin/` 中的旧产物（`bin/` 的运行时资源保留）；
    - 解决方案中的工程依赖已保证 wrapper 先于 duilib 构建。
 
 ---

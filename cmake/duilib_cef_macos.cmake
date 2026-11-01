@@ -15,6 +15,7 @@
 # 默认值为 nim_duilib 源码树的同级目录 cef_binary（与 build/build.py deps 的目录约定一致）
 # 优先顺序：-DCEF_ROOT=... > 环境变量 CEF_ROOT > DUILIB_CEF_ROOT（deps 实际落地目录，
 # 跟随 -DDUILIB_DEPS_ROOT/--deps-root）> 默认目录
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_i18n.cmake")
 if(NOT DEFINED CEF_ROOT OR NOT IS_DIRECTORY "${CEF_ROOT}")
     if(DEFINED ENV{CEF_ROOT} AND IS_DIRECTORY "$ENV{CEF_ROOT}")
         file(TO_CMAKE_PATH "$ENV{CEF_ROOT}" CEF_ROOT)
@@ -25,10 +26,9 @@ if(NOT DEFINED CEF_ROOT OR NOT IS_DIRECTORY "${CEF_ROOT}")
     endif()
 endif()
 if(NOT IS_DIRECTORY "${CEF_ROOT}")
-    message(FATAL_ERROR
-        "CEF_ROOT not found: ${CEF_ROOT}\n"
-        "Please download the CEF binary distribution (see build/build-reference.md), "
-        "or pass -DCEF_ROOT=<path-to-cef_binary>.")
+    duilib_tf(_duilib_cef_root_what "cmake.cef_root_missing" "root=${CEF_ROOT}")
+    duilib_t("cmake.cef_root_missing_hint" _duilib_cef_root_hint)
+    message(FATAL_ERROR "${_duilib_cef_root_what}\n  Hint: ${_duilib_cef_root_hint}")
 endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CEF_ROOT}/cmake")
 
@@ -136,14 +136,18 @@ if(OS_MAC)
         # 两种配置的框架都存在，使用 CEF 默认的按配置选择
     elseif(EXISTS "${_cef_framework_release}")
         set(_cef_binary_dir "${CEF_ROOT}/Release")
-        message(STATUS "CEF Debug framework not found; using Release framework: ${_cef_framework_release}")
+        duilib_tf(_duilib_cef_fw_line "cmake.cef_framework_release_fallback"
+                  "path=${_cef_framework_release}")
+        message(STATUS "${_duilib_cef_fw_line}")
     elseif(EXISTS "${_cef_framework_debug}")
         set(_cef_binary_dir "${CEF_ROOT}/Debug")
-        message(STATUS "CEF Release framework not found; using Debug framework: ${_cef_framework_debug}")
+        duilib_tf(_duilib_cef_fw_line "cmake.cef_framework_debug_fallback"
+                  "path=${_cef_framework_debug}")
+        message(STATUS "${_duilib_cef_fw_line}")
     else()
-        message(FATAL_ERROR
-            "CEF framework not found under ${CEF_ROOT}/Debug or ${CEF_ROOT}/Release.\n"
-            "Please check that CEF_ROOT points to an extracted CEF binary distribution.")
+        duilib_tf(_duilib_cef_fw_what "cmake.cef_framework_missing" "root=${CEF_ROOT}")
+        duilib_t("cmake.cef_framework_missing_hint" _duilib_cef_fw_hint)
+        message(FATAL_ERROR "${_duilib_cef_fw_what}\n  Hint: ${_duilib_cef_fw_hint}")
     endif()
     COPY_MAC_FRAMEWORK("${CEF_TARGET}" "${_cef_binary_dir}" "${CEF_APP}")
 
@@ -247,19 +251,21 @@ if(OS_MAC)
 
     # Copy duilib resources into the Resources directory.
     if("${DUILIB_THEME_DIR_NAME}" STREQUAL "")
-        message(FATAL_ERROR
-            "DUILIB_THEME_DIR_NAME is not set for target '${CEF_TARGET}'.\n"
-            "Set it to the example's subdirectory name under bin/resources/themes/default "
-            "(for example \"cef\" or \"cef_browser\").")
+        duilib_tf(_duilib_cef_theme_what "bundle.cef_theme_dir_unset"
+                  "target=${CEF_TARGET}")
+        duilib_t("bundle.cef_theme_dir_unset_hint" _duilib_cef_theme_hint)
+        message(FATAL_ERROR "${_duilib_cef_theme_what}\n  Hint: ${_duilib_cef_theme_hint}")
     endif()
 
     set(DUILIB_RES_FROM "${DUILIB_ROOT}/bin/resources")
     set(DUILIB_RES_TO "${CEF_APP}/Contents/Resources/duilib/resources")
     if(NOT IS_DIRECTORY "${DUILIB_RES_FROM}/themes/default/${DUILIB_THEME_DIR_NAME}")
-        message(FATAL_ERROR
-            "DUILIB_THEME_DIR_NAME='${DUILIB_THEME_DIR_NAME}' is not a directory: "
-            "${DUILIB_RES_FROM}/themes/default/${DUILIB_THEME_DIR_NAME}\n"
-            "Target '${CEF_TARGET}': fix the name or create the theme directory.")
+        duilib_tf(_duilib_cef_theme_what "bundle.theme_dir_missing"
+                  "name=${DUILIB_THEME_DIR_NAME}"
+                  "path=${DUILIB_RES_FROM}/themes/default/${DUILIB_THEME_DIR_NAME}")
+        duilib_tf(_duilib_cef_theme_hint "bundle.cef_theme_dir_missing_hint"
+                  "target=${CEF_TARGET}")
+        message(FATAL_ERROR "${_duilib_cef_theme_what}\n  Hint: ${_duilib_cef_theme_hint}")
     endif()
     # 颜色主题（themes/color_light|color_dark）也必须在包内：启动时按系统深浅色
     # 加载语义色值，缺失会导致界面无色。
