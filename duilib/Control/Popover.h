@@ -70,8 +70,11 @@ enum class PopoverCloseReason : uint32_t
  *    trigger        触发方式：click（默认）/ hover / focus / manual
  *    placement      弹出方位：top（默认）/ top_left / top_right / bottom / bottom_left /
  *                   bottom_right / left / left_top / left_bottom / right / right_top / right_bottom
- *    gap            卡片与锚点的间距（像素，DPI 缩放），默认 6
+ *    gap            卡片与锚点的间距（像素，DPI 缩放），默认 6；
+ *                   显示尖角箭头时，该间距是"尖角尖端"到锚点的距离
  *    card_width     卡片宽度（像素，DPI 缩放），默认 240；正文自动换行
+ *    arrow          是否显示指向锚点的尖角箭头，默认 true
+ *                   （空间不足导致卡片翻转到锚点另一侧时，箭头朝向随之改变）
  *    auto_dismiss   是否自动关闭，默认 true：
  *                   点击卡片与锚点以外的区域关闭（trigger="manual" 时该行为默认关闭，
  *                   避免鼠标按在外部受控按钮上时卡片先被关闭、导致按钮逻辑失效；
@@ -84,9 +87,11 @@ enum class PopoverCloseReason : uint32_t
  *  - kEventPopoverOpenChanged：打开状态变化时触发，wParam 为 1（打开）/ 0（关闭），
  *    lParam 为关闭原因（PopoverCloseReason，打开时为 0）
  *
- *  皮肤类（global.xml 中定义）：popover_trigger / popover_card / popover_title / popover_content
+ *  皮肤类（global.xml 中定义）：popover_trigger / popover_card / popover_arrow_up /
+ *  popover_arrow_down / popover_arrow_left / popover_arrow_right / popover_title / popover_content
  *
- *  说明：卡片不绘制指向锚点的小三角（arrow）；语言切换时若卡片正在显示，会自动关闭。
+ *  说明：尖角箭头默认开启（arrow="true"），颜色取卡片背景与卡片边线的语义色，随主题切换；
+ *        语言切换时若卡片正在显示，会自动关闭。
  */
 class DUILIB_API Popover : public Label
 {
@@ -158,6 +163,13 @@ public:
     void SetCardWidth(int32_t nWidth);
     /** 获取卡片宽度（未缩放原始值） */
     int32_t GetCardWidth() const { return m_nCardWidth; }
+
+    /** 设置是否显示指向锚点的尖角箭头，默认 true
+     * @note 箭头朝向随弹出方位自动调整；卡片因空间不足翻转到锚点另一侧时，箭头也会随之转向
+     */
+    void SetArrow(bool bArrow);
+    /** 是否显示尖角箭头 */
+    bool IsArrow() const { return m_bArrow; }
 
     /** 设置点击外部/按 Esc 是否自动关闭，默认 true
      * @note trigger="manual" 时，"点击外部关闭"默认不生效（Esc 仍按此属性控制），
@@ -236,12 +248,18 @@ private:
     Flyout* GetOpenFlyout() const;
 
     /** 构造卡片浮层的 XML 文本
+     * @param [in] placement 卡片实际使用的弹出方位（翻转后可能与 m_placement 不同，用于决定箭头朝向与位置）
      */
-    DString BuildCardXml() const;
+    DString BuildCardXml(PopoverPlacement placement) const;
 
     /** 卡片创建完成后初始化：绑定卡片自身的鼠标进入/离开事件（hover 触发的关闭判定）
      */
     void InitializeCard(Flyout* pFlyout);
+
+    /** 按卡片的实际布局矩形定位尖角箭头（在浮层布局完成后调用）
+     *   箭头沿卡片边移动到锚点中心对应的位置，并压入卡片边线一侧，覆盖卡片边线
+     */
+    void PositionCardArrow(Flyout* pFlyout);
 
     /** 派发打开状态变化事件 */
     void EmitOpenChanged(bool bOpen, PopoverCloseReason reason);
@@ -288,6 +306,9 @@ private:
     /** 卡片宽度（未经 DPI 缩放） */
     int32_t m_nCardWidth = 240;
 
+    /** 是否显示指向锚点的尖角箭头 */
+    bool m_bArrow = true;
+
     /** 是否点击外部/按 Esc 自动关闭 */
     bool m_bAutoDismiss = true;
 
@@ -306,6 +327,9 @@ private:
 
     /** 是否正在析构（析构期间忽略浮层关闭回调） */
     bool m_bDestroying = false;
+
+    /** 是否正在因"方位翻转"重建卡片（重建期间忽略旧浮层的关闭回调） */
+    bool m_bRebuilding = false;
 
     /** 延时任务 ID */
     size_t m_nOpenTaskId = 0;

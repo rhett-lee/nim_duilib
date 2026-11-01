@@ -250,7 +250,10 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
             if (imageAttribute.m_rcCorner == nullptr) {
                 imageAttribute.m_rcCorner = new UiRect;
             }
-            AttributeUtil::ParseRectValue(value.c_str(), *imageAttribute.m_rcCorner);
+            //corner 的 4 个值是四条边各自的内缩量，互相独立（如 corner='28,20,22,22' 表示左边 28、上边 20、
+            //右边 22、下边 22），不能按普通矩形做 "right - left >= 0" 的尺寸校验，
+            //否则非对称的九宫格（比如窗口阴影在箭头一侧多留 8 像素）会触发断言
+            AttributeUtil::ParseRectValue(value.c_str(), *imageAttribute.m_rcCorner, false);
             imageAttribute.m_rcCorner->left = std::max(imageAttribute.m_rcCorner->left, 0);
             imageAttribute.m_rcCorner->top = std::max(imageAttribute.m_rcCorner->top, 0);
             imageAttribute.m_rcCorner->right = std::max(imageAttribute.m_rcCorner->right, 0);

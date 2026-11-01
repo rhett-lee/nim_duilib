@@ -67,6 +67,10 @@ public:
     */
     typedef std::function<void(CloseReason reason)> FlyoutEvent;
 
+    /** 浮层布局完成后的回调函数原型（在首次绘制前触发，此时各个控件的实际布局矩形已确定）
+    */
+    typedef std::function<void()> FlyoutLayoutEvent;
+
 public:
     /** 构造函数
     * @param [in] pParentWindow 父窗口（锚点控件必须属于该窗口），浮层作为其 owned window 随其一起销毁
@@ -151,6 +155,11 @@ public:
     */
     Placement GetPlacement() const;
 
+    /** 获取实际的弹出方位（主方位空间不足、自动翻转到对侧后，该值可能与 GetPlacement() 不同）
+    * @note 该值在 ShowAt 定位时更新；子类可据此判断是否需要调整内容（例如箭头朝向）
+    */
+    Placement GetActualPlacement() const;
+
     /** 浮层是否处于打开状态
     */
     bool IsOpen() const;
@@ -162,6 +171,12 @@ public:
     /** 注册浮层关闭时的回调（在窗口实际关闭前触发）
     */
     void AttachClosed(const FlyoutEvent& callback);
+
+    /** 注册浮层布局完成后的回调（在首次绘制前触发，只触发一次）
+    *   用于按控件的实际布局矩形调整内容的位置（例如把指示尖角定位到锚点中心）；
+    *   回调中设置的浮动控件（float="true" keep_float_pos="true"）位置在后续布局中会被保持
+    */
+    void AttachLayouted(const FlyoutLayoutEvent& callback);
 
     /** 获取当前活动中的浮层（同一时刻只保留一个），没有时返回 nullptr
     */
@@ -176,6 +191,7 @@ public:
     virtual DString GetSkinFolder() override;
     virtual DString GetSkinFile() override;
     virtual void OnInitWindow() override;
+    virtual void OnInitLayout() override;
     virtual void OnFinalMessage() override;
 
     /** 抢焦点模式下：失去焦点即关闭；Esc 键关闭
@@ -269,6 +285,9 @@ private:
     //打开/关闭回调
     std::vector<FlyoutEvent> m_openedCallbacks;
     std::vector<FlyoutEvent> m_closedCallbacks;
+
+    //布局完成回调
+    std::vector<FlyoutLayoutEvent> m_layoutedCallbacks;
 
 private:
     //当前活动中的浮层（同一时刻只保留一个）

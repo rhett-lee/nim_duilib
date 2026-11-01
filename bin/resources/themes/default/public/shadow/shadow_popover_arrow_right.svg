@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Popover 卡片窗口阴影（卡片在锚点左侧、尖角在卡片右边时使用）
+     与 shadow_popover.svg 的差异：阴影主体的右边内缩 8 像素（箭头带），
+     使阴影主体的右边缘正好落在卡片右边缘上，箭头带内只保留阴影渐变。
+     对应的 corner 为 20,20,30,22（右边 = 14 阴影 + 8 箭头带 + 8 卡片圆角） -->
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 226 226" width="226px" height="226px" preserveAspectRatio="xMidYMid meet">
+  <!-- 定义阴影滤镜 -->
+  <defs>
+    <filter id="naturalShadow" x="-14%" y="-14%" width="128%" height="128%">
+      <!-- dx:水平偏移，dy:垂直偏移（模拟光源从左上角照射） -->
+      <feOffset dx="2" dy="2" in="SourceAlpha" result="offset"/>
+      <!-- 适度的模糊效果：stdDeviation为模糊半径 -->
+      <feGaussianBlur in="offset" stdDeviation="4" result="blur"/>
+      <!-- 带透明度的阴影：最后一行最后一个数字是透明度，0.2 代表透明度 20% -->
+      <feColorMatrix in="blur" type="matrix"
+                    values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.2 0"/>
+    </filter>
+  </defs>
+
+  <!-- 带阴影的主体矩形：rx 与卡片圆角（8）保持一致；右边内缩 8（箭头带） -->
+  <rect x="12" y="12" width="192" height="200" rx="8"
+        fill="#FFFF00" filter="url(#naturalShadow)"/>
+
+  <!-- 描边层（与主体分离，避免阴影干扰描边；颜色与卡片背景一致，用于覆盖主体内部的模糊阴影） -->
+  <rect x="12" y="12" width="192" height="200" rx="8"
+        fill="#FFFFFF" stroke="none"/>
+</svg>
+
+<!-- 图片尺寸的计算方法（与 shadow_popover.svg 一致，仅主体宽度变化） -->
+<!-- 左侧扩展：3 * stdDeviation = 12；上侧扩展：12；右侧扩展：12 + 2(偏移) + 8(箭头带) = 22；下侧扩展：14 -->
+<!-- 主体宽度 = 226 - 左边距 12 - 右边距(14 阴影 + 8 箭头带) = 192 -->

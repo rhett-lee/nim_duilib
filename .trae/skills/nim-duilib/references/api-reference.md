@@ -815,17 +815,18 @@ C++ 接口：`SetItems/SetItemIds/AddPath/ClearItems/GetDepth/GetItemCount/GetIt
 | content_xml | 空 | string | 富内容：直接插入卡片的 XML 片段（优先于 `content`），如多行 Label、按钮 |
 | trigger | click | string | click / hover / focus / manual |
 | placement | top | string | top / top_left / top_right / bottom / bottom_left / bottom_right / left / left_top / left_bottom / right / right_top / right_bottom（忽略大小写与 `_`/`-`） |
-| gap | 6 | int | 卡片与锚点的间距（DIP） |
+| gap | 6 | int | 卡片与锚点的间距（DIP）；显示尖角箭头时指"尖角尖端到锚点"的距离 |
 | card_width | 240 | int | 卡片宽度（DIP，最小 120）；高度自适应内容 |
+| arrow | true | bool | 是否绘制指向锚点的尖角箭头；朝向随 `placement` 自动调整，卡片翻转时按实际方位重建 |
 | auto_dismiss | true | bool | 是否自动关闭（点击卡片外 / Esc）。`trigger="manual"` 时"点击外部关闭"默认不生效（Esc 仍受控），显式设置后按显式值生效 |
 | hover_delay | 100 | int | `trigger="hover"` 时移入后弹出延迟（毫秒） |
 | close_delay | 200 | int | `trigger="hover"` 时移出后关闭延迟（毫秒），期间可移入卡片 |
 
-C++ 接口：`SetTitle/GetTitle`、`SetTitleId/GetTitleId`、`SetContent/GetContent`、`SetContentId/GetContentId`、`SetContentXml/GetContentXml`、`SetTrigger/GetTrigger`、`SetPlacement/GetPlacement`、`SetGap/GetGap`、`SetCardWidth/GetCardWidth`、`SetAutoDismiss/IsAutoDismiss`、`SetHoverDelay/GetHoverDelay`、`SetCloseDelay/GetCloseDelay`、`Show/Hide/Toggle/IsOpen`、`GetCardWindow`（返回显示中的卡片窗口，未显示为 nullptr）、`FindCardControl(name)`（在卡片内按名称查控件，用于绑定卡片内按钮/链接，需在 `AttachOpenChanged` 打开回调里取）、`AttachOpenChanged(cb, id = 0)`。
+C++ 接口：`SetTitle/GetTitle`、`SetTitleId/GetTitleId`、`SetContent/GetContent`、`SetContentId/GetContentId`、`SetContentXml/GetContentXml`、`SetTrigger/GetTrigger`、`SetPlacement/GetPlacement`、`SetGap/GetGap`、`SetCardWidth/GetCardWidth`、`SetArrow/IsArrow`、`SetAutoDismiss/IsAutoDismiss`、`SetHoverDelay/GetHoverDelay`、`SetCloseDelay/GetCloseDelay`、`Show/Hide/Toggle/IsOpen`、`GetCardWindow`（返回显示中的卡片窗口，未显示为 nullptr）、`FindCardControl(name)`（在卡片内按名称查控件，用于绑定卡片内按钮/链接，需在 `AttachOpenChanged` 打开回调里取）、`AttachOpenChanged(cb, id = 0)`。
 枚举：`PopoverTrigger{kClick,kHover,kFocus,kManual}`、`PopoverPlacement`（12 值，与 `placement` 取值一一对应）、`PopoverCloseReason{kManual,kClickOutside,kEscape,kAnchorLost}`。
 事件：`AttachOpenChanged`——打开/关闭时触发，事件编码 `kEventPopoverOpenChanged`，`wParam = 1`（打开）/ `0`（关闭），`lParam = PopoverCloseReason`（关闭原因）。
-默认皮肤类（global.xml）：`popover_trigger`（锚点链接色 + 手型光标）、`popover_anchor`（锚点按钮外观：`bg_btn_*` 底色 + `border_btn_*` 描边 + 圆角 6 + 96×28）、`popover_anchor_primary`（主色实心按钮锚点，继承 `popover_anchor`，112 宽）、`popover_card`（`bg_window_card` + `border_window` + 圆角 8 + padding 12）、`popover_title`（system_bold_14 + text_default）、`popover_content`（system_regular_14 + text_muted + 多行）。
-注意：卡片 XML 在打开时生成，语言切换会先关闭卡片、重新打开即为新文案；同一时刻全局只有一张卡片（切换锚点会替换旧卡片）；不绘制箭头（卡片窗口默认 `shadow_type="small_round"`，阴影不拦截鼠标）。
+默认皮肤类（global.xml）：`popover_trigger`（锚点链接色 + 手型光标）、`popover_anchor`（锚点按钮外观：`bg_btn_*` 底色 + `border_btn_*` 描边 + 圆角 6 + 96×28）、`popover_anchor_primary`（主色实心按钮锚点，继承 `popover_anchor`，112 宽）、`popover_card`（`bg_window_card` + `border_window` + 圆角 8 + padding 12）、`popover_arrow_up`/`popover_arrow_down`/`popover_arrow_left`/`popover_arrow_right`（尖角箭头，16×9 / 9×16（含 1 像素压入卡片的重叠区，覆盖该处卡片边线），图片在 `public/popover/`，`svg_replace_colors` 映射填充→`bg_window_card`、描边→`border_window`）、`popover_title`（system_bold_14 + text_default）、`popover_content`（system_regular_14 + text_muted + 多行）。
+注意：卡片 XML 在打开时生成，语言切换会先关闭卡片、重新打开即为新文案；同一时刻全局只有一张卡片（切换锚点会替换旧卡片）；卡片默认绘制尖角箭头（`arrow="true"`），因空间不足翻转到对侧时按 `Flyout::GetActualPlacement()` 重建一次使箭头始终指向锚点；箭头在浮层首帧布局完成后（`Flyout::AttachLayouted`）按卡片实际矩形定位到锚点中心（过窄时夹持、避开卡片圆角）；卡片窗口使用 `shadow_type="custom"`，按箭头方位选择 `public/shadow/shadow_popover_arrow_{up,down,left,right}.svg`（无箭头用 `shadow_popover.svg`），阴影主体在箭头一侧内缩 8 像素以与卡片边缘对齐（箭头带内只有阴影渐变，无白带）、阴影不拦截鼠标。
 受控场景（`trigger="manual"`）：`auto_dismiss` 未显式设置时卡片不因点击外部关闭，否则鼠标按在外部受控按钮上时卡片会先关闭，按钮 Click 里读到的 `IsOpen()` 已是 false（表现为 Toggle 永远打开、重建卡片无效）；Esc 仍按 `auto_dismiss` 生效。
 
 ### TreeGrid 属性(继承 VBox)

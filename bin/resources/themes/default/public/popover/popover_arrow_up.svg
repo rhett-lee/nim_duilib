@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Popover 卡片尖角：卡片在锚点下方时使用，尖角向上指向锚点
+     图片尺寸 16×9：y=7.2..9 为压入卡片的重叠区（覆盖卡片在该宽度内的边线，避免边线横穿尖角），
+     卡片边线位于 y=8，尖角尖端位于 y≈0.5
+     颜色占位：#FFFFFF 映射为卡片背景色（bg_window_card），#D5D5D5 映射为卡片边线（border_window），
+     由引用处的 svg_replace_colors 完成替换，以适配不同颜色主题 -->
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 16 9" width="16px" height="9px" preserveAspectRatio="none">
+  <!-- 压入卡片的部分：与卡片背景一致，覆盖卡片在尖角宽度内的水平边线 -->
+  <rect x="0" y="7.2" width="16" height="1.8" fill="#FFFFFF" stroke="none"/>
+  <!-- 尖角填充：与卡片背景一致 -->
+  <polygon points="0,7.2 16,7.2 8,0.5" fill="#FFFFFF" stroke="none"/>
+  <!-- 两条斜边描边：起点落在卡片边线上，与卡片边线自然衔接 -->
+  <path d="M0.5,8 L8,0.9 L15.5,8" fill="none" stroke="#D5D5D5" stroke-width="1"
+        stroke-linejoin="miter" stroke-linecap="butt"/>
+</svg>

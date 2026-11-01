@@ -38,6 +38,7 @@
     <Var name="PATH_COMBO" value="public/combo"/>
     <Var name="PATH_MENU" value="public/menu"/>
     <Var name="PATH_SEARCHBOX" value="public/searchbox"/>
+    <Var name="PATH_POPOVER" value="public/popover"/>
     
     <!-- 字体文件（放在资源根目录的fonts目录中），程序启动时加载，加载后可以按照使用系统字体相同的方式使用 -->
     <!-- 注意事项：该RobotoMono字体只能用于显示英文字母，不支持中文 -->
@@ -1078,6 +1079,17 @@
     <Class name="popover_card" width="240" height="auto" bkcolor="bg_window_card"
                                border_size="1" border_color="border_window" border_round="8,8"
                                padding="12,12,12,12"/>
+    <!-- Popover气泡卡片：尖角箭头（4 个方向，颜色取卡片背景与卡片边线的语义色，随主题切换）
+         箭头为独立控件，由 Popover 按弹出方位定位到卡片对应边的"箭头条"中；
+         尺寸包含压入卡片的 1 像素重叠区（用于覆盖该处的卡片边线），所以水平方向为 16×9、竖直方向为 9×16 -->
+    <Class name="popover_arrow_up" width="16" height="9" mouse_enabled="false" tab_stop="false"
+                                bkimage="file='${PATH_POPOVER}/popover_arrow_up.svg' svg_replace_colors='#FFFFFF|bg_window_card;#D5D5D5|border_window'"/>
+    <Class name="popover_arrow_down" width="16" height="9" mouse_enabled="false" tab_stop="false"
+                                bkimage="file='${PATH_POPOVER}/popover_arrow_down.svg' svg_replace_colors='#FFFFFF|bg_window_card;#D5D5D5|border_window'"/>
+    <Class name="popover_arrow_left" width="9" height="16" mouse_enabled="false" tab_stop="false"
+                                bkimage="file='${PATH_POPOVER}/popover_arrow_left.svg' svg_replace_colors='#FFFFFF|bg_window_card;#D5D5D5|border_window'"/>
+    <Class name="popover_arrow_right" width="9" height="16" mouse_enabled="false" tab_stop="false"
+                                bkimage="file='${PATH_POPOVER}/popover_arrow_right.svg' svg_replace_colors='#FFFFFF|bg_window_card;#D5D5D5|border_window'"/>
     <!-- Popover气泡卡片：标题 -->
     <Class name="popover_title" width="stretch" height="auto" font="system_bold_14"
                                 normal_text_color="text_default" text_align="hleft,vcenter"

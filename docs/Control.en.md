@@ -2457,8 +2457,9 @@ Besides the common `Label` attributes (`text`, `text_id`, `font`, `text_align`, 
 | content_xml | | string | SetContentXml | Rich-content XML fragment inserted as children of the card root container |
 | trigger | click | string | SetTrigger | Trigger mode: `click` / `hover` / `focus` / `manual` |
 | placement | top | string | SetPlacement | Placement: `top` / `top_left` / `top_right` / `bottom` / `bottom_left` / `bottom_right` / `left` / `left_top` / `left_bottom` / `right` / `right_top` / `right_bottom` (underscores are optional; `topLeft` also works) |
-| gap | 6 | int | SetGap | Gap between card and anchor (pixels, DPI-scaled) |
+| gap | 6 | int | SetGap | Gap between card and anchor (pixels, DPI-scaled); with the pointed arrow shown, this is the distance from the arrow tip to the anchor |
 | card_width | 240 | int | SetCardWidth | Card width (pixels, DPI-scaled, minimum 120); the body wraps automatically |
+| arrow | true | bool | SetArrow | Whether to draw the pointed arrow aiming at the anchor; the arrow direction follows the placement and turns with the card when it flips |
 | auto_dismiss | true | bool | SetAutoDismiss | Whether the card dismisses on outside click / Esc. For `trigger="manual"`, the outside-click behavior is off by default (Esc still follows this attribute); set it explicitly to restore |
 | hover_delay | 100 | int | SetHoverDelay | Open delay in ms for `trigger="hover"` after the pointer enters the anchor |
 | close_delay | 200 | int | SetCloseDelay | Close delay in ms for `trigger="hover"` after the pointer leaves both anchor and card |
@@ -2476,6 +2477,7 @@ Besides the common `Label` attributes (`text`, `text_id`, `font`, `text_align`, 
 | `SetPlacement(PopoverPlacement)` / `GetPlacement()` | Placement, see `PopoverPlacement` |
 | `SetGap(int)` / `GetGap()` | Gap between card and anchor (unscaled logical pixels) |
 | `SetCardWidth(int)` / `GetCardWidth()` | Card width (unscaled logical pixels, minimum 120) |
+| `SetArrow(bool)` / `IsArrow()` | Whether to draw the pointed arrow aiming at the anchor (default `true`) |
 | `SetAutoDismiss(bool)` / `IsAutoDismiss()` | Whether outside click / Esc closes the card (outside click is off by default for `trigger="manual"` until this API is called) |
 | `SetHoverDelay(int)` / `GetHoverDelay()` | Hover open delay in ms |
 | `SetCloseDelay(int)` / `GetCloseDelay()` | Hover close delay in ms |
@@ -2513,7 +2515,7 @@ pPopover->AttachOpenChanged([](const ui::EventArgs& args) {
 
 ### Skin Classes
 
-The default skin provides 6 classes in `global.xml`:
+The default skin provides 10 classes in `global.xml`:
 
 | Class | Purpose |
 | :--- | :--- |
@@ -2521,8 +2523,19 @@ The default skin provides 6 classes in `global.xml`:
 | `popover_anchor` | Anchor appearance as a button (`bg_btn_*` background, 1px `border_btn_*` border, radius 6, 96x28, centered text) |
 | `popover_anchor_primary` | Anchor appearance as a filled primary button (derives from `popover_anchor`, 112 wide; matches the Ant Design basic demo) |
 | `popover_card` | Card root container (`bg_window_card` background, `border_window` border, radius 8, padding 12) |
+| `popover_arrow_up` | Pointed arrow aiming up (16x9, filled with the card background color and stroked with the card border color; includes a 1px overlap that covers the card border line there) |
+| `popover_arrow_down` | Pointed arrow aiming down (16x9) |
+| `popover_arrow_left` | Pointed arrow aiming left (9x16) |
+| `popover_arrow_right` | Pointed arrow aiming right (9x16) |
 | `popover_title` | Card title (14px bold, `text_default`) |
 | `popover_content` | Card body (14px, `text_muted`, multi-line wrapping, `\n` line breaks) |
+
+The arrow images live in `public/popover/` (`popover_arrow_up.svg`, `popover_arrow_down.svg`, `popover_arrow_left.svg`, `popover_arrow_right.svg`);
+their colors are mapped to semantic colors through `svg_replace_colors` (fill -> `bg_window_card`, stroke -> `border_window`), so light and dark themes adapt automatically.
+The card window shadow picks `public/shadow/shadow_popover_arrow_{up,down,left,right}.svg` according to the arrow side (`shadow_popover.svg` when the arrow is off):
+the shadow body is inset by 8px on that side (matching the arrow band the card reserves), so the shadow body edge coincides with the card edge;
+the arrow band then only shows the shadow gradient, with no white solid band and no hard cut between the arrow band and the window shadow band.
+The shadow itself still uses blur radius 4, offset 2 and 12/14 margins, tighter than the generic `small_round` shadow.
 
 ### Example
 
@@ -2576,7 +2589,9 @@ pPopover->AttachOpenChanged([pAnchor](const ui::EventArgs& args) {
 
 Notes:
 - The card XML is generated when it opens, so a language change closes a currently visible card; the next open rebuilds it with the new language;
-- The card does not draw an arrow pointing to the anchor; draw one yourself via `content_xml` if needed;
+- The card draws a pointed arrow aiming at the anchor by default (`arrow="true"`): the point sits on the card edge facing the anchor and aims at the anchor center. The arrow is positioned after the flyout layout using the card's actual rect (clamped into the valid range and kept clear of the card corners) and overlaps the card border by 1px to cover the border line there;
+  when the card flips to the opposite side because of insufficient space, it is rebuilt for the actual placement so the arrow keeps aiming at the anchor (`arrow="false"` turns the arrow off);
+- The card window shadow is tighter than the generic window shadow (12/14 margins); with the arrow visible the card reserves an 8px arrow band on the arrow side, and the shadow area does not intercept the mouse, so the pointer can move from the anchor into the card and keep interacting;
 - The hover close decision checks whether the cursor is still inside the anchor or the card's **visual rect** (the window shadow is excluded), so the pointer can move from the anchor into the card and keep interacting; moving out closes it after `close_delay`;
 - In no-focus mode, non-Windows platforms cannot detect outside clicks (same limitation as `Flyout`); use `trigger="manual"` or `auto_dismiss="false"` there;
 - For `trigger="manual"` (controlled mode) the outside-click close is off by default: otherwise the card would be closed at the moment the mouse goes down on an outside controlled button, and that button's `Click` handler would read a stale (closed) state (making `Toggle()` always open the card and card rebuilds appear ineffective). Set `auto_dismiss="true"` explicitly if outside-click closing is wanted;

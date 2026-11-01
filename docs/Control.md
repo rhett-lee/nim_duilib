@@ -2456,8 +2456,9 @@ Popover是"锚点自身即触发元素"的气泡卡片控件，继承自`Label`�
 | content_xml | | string | SetContentXml | 富内容XML片段（作为卡片根容器的子控件插入；与content互斥） |
 | trigger | click | string | SetTrigger | 触发方式：`click` / `hover` / `focus` / `manual` |
 | placement | top | string | SetPlacement | 弹出方位：`top` / `top_left` / `top_right` / `bottom` / `bottom_left` / `bottom_right` / `left` / `left_top` / `left_bottom` / `right` / `right_top` / `right_bottom`（下划线可省略，也接受`topLeft`写法） |
-| gap | 6 | int | SetGap | 卡片与锚点的间距（像素，DPI缩放） |
+| gap | 6 | int | SetGap | 卡片与锚点的间距（像素，DPI缩放）；显示尖角箭头时，指"尖角尖端"到锚点的距离 |
 | card_width | 240 | int | SetCardWidth | 卡片宽度（像素，DPI缩放，最小120），正文自动换行 |
+| arrow | true | bool | SetArrow | 是否显示指向锚点的尖角箭头；箭头朝向随弹出方位自动调整，卡片翻转时随之转向 |
 | auto_dismiss | true | bool | SetAutoDismiss | 是否自动关闭：点击卡片与锚点以外的区域、按Esc是否关闭。`trigger="manual"`时"点击外部关闭"默认不生效（Esc仍受该属性控制），显式设置该属性可恢复 |
 | hover_delay | 100 | int | SetHoverDelay | `trigger="hover"`时移入锚点后打开前的延迟（毫秒） |
 | close_delay | 200 | int | SetCloseDelay | `trigger="hover"`时移出锚点与卡片后关闭前的延迟（毫秒） |
@@ -2475,6 +2476,7 @@ Popover是"锚点自身即触发元素"的气泡卡片控件，继承自`Label`�
 | `SetPlacement(PopoverPlacement)` / `GetPlacement()` | 弹出方位，见`PopoverPlacement`枚举 |
 | `SetGap(int)` / `GetGap()` | 卡片与锚点的间距（未缩放逻辑像素） |
 | `SetCardWidth(int)` / `GetCardWidth()` | 卡片宽度（未缩放逻辑像素，最小120） |
+| `SetArrow(bool)` / `IsArrow()` | 是否显示指向锚点的尖角箭头（默认`true`） |
 | `SetAutoDismiss(bool)` / `IsAutoDismiss()` | 点击外部/Esc是否自动关闭（`trigger="manual"`时点击外部默认不关闭，调用本接口后按显式值生效） |
 | `SetHoverDelay(int)` / `GetHoverDelay()` | 悬停打开延迟（毫秒） |
 | `SetCloseDelay(int)` / `GetCloseDelay()` | 悬停关闭延迟（毫秒） |
@@ -2512,7 +2514,7 @@ pPopover->AttachOpenChanged([](const ui::EventArgs& args) {
 
 ### 皮肤Class
 
-默认皮肤在`global.xml`中提供6个Class：
+默认皮肤在`global.xml`中提供10个Class：
 
 | Class | 用途 |
 | :--- | :--- |
@@ -2520,8 +2522,19 @@ pPopover->AttachOpenChanged([](const ui::EventArgs& args) {
 | `popover_anchor` | 锚点控件外观（按钮样式：`bg_btn_*`底色、1px `border_btn_*`边框、圆角6、96×28、文字居中） |
 | `popover_anchor_primary` | 锚点控件外观（主色实心按钮，继承`popover_anchor`，112宽，对应Ant Design基本示例的入口外观） |
 | `popover_card` | 卡片根容器（`bg_window_card`底色、`border_window`边框、圆角8、内边距12） |
+| `popover_arrow_up` | 尖角箭头（尖角向上，16×9，卡片背景色填充 + 卡片边线描边；含1像素压入卡片的重叠区，用于覆盖该处的卡片边线） |
+| `popover_arrow_down` | 尖角箭头（尖角向下，16×9） |
+| `popover_arrow_left` | 尖角箭头（尖角向左，9×16） |
+| `popover_arrow_right` | 尖角箭头（尖角向右，9×16） |
 | `popover_title` | 卡片标题（14号粗体、`text_default`） |
 | `popover_content` | 卡片正文（14号、`text_muted`、多行自动换行、支持`\n`换行） |
+
+箭头的图片资源位于`public/popover/`（`popover_arrow_up.svg`、`popover_arrow_down.svg`、`popover_arrow_left.svg`、`popover_arrow_right.svg`），
+颜色通过`svg_replace_colors`映射到语义色（填充→`bg_window_card`，描边→`border_window`），深浅色主题自动适配。
+卡片窗口的阴影按箭头方位选择`public/shadow/shadow_popover_arrow_{up,down,left,right}.svg`（无箭头时使用`shadow_popover.svg`）：
+阴影主体在箭头一侧内缩8像素（与卡片在该侧预留的箭头带一致），使阴影主体的边缘与卡片边缘重合，
+箭头带内只保留阴影渐变，不会出现白色实心带、也不会在箭头带与窗口阴影带之间出现硬裁切的边界；
+阴影本身仍是模糊半径4、偏移2、边距12/14，比通用的`small_round`阴影更紧凑。
 
 ### 使用示例
 
@@ -2579,7 +2592,9 @@ pPopover->AttachOpenChanged([pAnchor](const ui::EventArgs& args) {
 
 注意事项：
 - 卡片在打开时才生成XML，因此语言切换时若卡片正在显示，控件会自动关闭它，下次打开按新语言重建；
-- 卡片不绘制指向锚点的小三角（arrow），需要时请使用`content_xml`自行绘制；
+- 卡片默认绘制指向锚点的尖角箭头（`arrow="true"`），尖角位于卡片朝向锚点的那条边上，并指向锚点中心：箭头在浮层布局完成后按卡片的实际矩形定位（卡片过窄时夹持在有效范围内，避开卡片圆角），并压入卡片边线1像素以覆盖该处的边线；
+  卡片因空间不足翻转到锚点另一侧时，会自动按实际方位重建卡片，使箭头始终指向锚点（`arrow="false"`可关闭该箭头）；
+- 卡片窗口阴影比通用窗口更紧凑（边距12/14），显示箭头时卡片在箭头一侧留出8像素箭头带，阴影区域不拦截鼠标，因此鼠标可以从锚点移入卡片继续交互；
 - `trigger="hover"`的关闭判定基于"光标是否仍在锚点或卡片可视区域内"（不含卡片窗口的阴影），因此鼠标可以从锚点移入卡片继续交互，移出则按`close_delay`关闭；
 - 不抢焦点模式下，非Windows平台无法检测外部点击（与`Flyout`的限制一致），此时请用`trigger="manual"`或`auto_dismiss="false"`自行控制关闭；
 - `trigger="manual"`（受控模式）下，"点击外部关闭"默认不生效：否则鼠标按在外部受控按钮的那一刻卡片会先被关闭，该按钮的`Click`逻辑会读到错误的打开状态（表现为`Toggle()`永远打开卡片、重建卡片不生效）。需要外部点击关闭时显式设置`auto_dismiss="true"`；

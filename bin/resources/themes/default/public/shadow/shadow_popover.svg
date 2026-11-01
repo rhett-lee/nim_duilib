@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Popover 卡片窗口阴影（比 shadow_small_round.svg 更紧凑，用于气泡卡片这类小窗口） -->
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 226 226" width="226px" height="226px" preserveAspectRatio="xMidYMid meet">
+  <!-- 定义阴影滤镜 -->
+  <defs>
+    <filter id="naturalShadow" x="-14%" y="-14%" width="128%" height="128%">
+      <!-- dx:水平偏移，dy:垂直偏移（模拟光源从左上角照射） -->
+      <feOffset dx="2" dy="2" in="SourceAlpha" result="offset"/>
+      <!-- 适度的模糊效果：stdDeviation为模糊半径 -->
+      <feGaussianBlur in="offset" stdDeviation="4" result="blur"/>
+      <!-- 带透明度的阴影：第二行最后一个数字的是透明度，0.2代表透明度20% -->
+      <feColorMatrix in="blur" type="matrix"
+                    values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.2 0"/>
+    </filter>
+  </defs>
+
+  <!-- 带阴影的主体矩形：rx 与卡片圆角（8）保持一致，保证圆角处的阴影贴合 -->
+  <rect x="12" y="12" width="200" height="200" rx="8"
+        fill="#FFFF00" filter="url(#naturalShadow)"/>
+
+  <!-- 描边层（与主体分离，避免阴影干扰描边） -->
+  <rect x="12" y="12" width="200" height="200" rx="8"
+        fill="white" stroke="none" stroke-width="1.6"/>
+</svg>
+
+<!-- 图片尺寸的计算方法 -->
+<!-- 左侧扩展：[3 * stdDeviation = 12 (模糊)] = 12px -->
+<!-- 右侧扩展：[3 * stdDeviation = 12 (模糊)] + 2 (偏移) = 14px -->
+<!-- 上方扩展：[3 * stdDeviation = 12 (模糊)] = 12px -->
+<!-- 下方扩展：[3 * stdDeviation = 12 (模糊)] + 2 (偏移) = 14px -->
+<!-- 总宽度 = 200 + 12 + 14 = 226 -->
+<!-- 总高度 = 200 + 12 + 14 = 226 -->

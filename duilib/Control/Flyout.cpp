@@ -308,6 +308,11 @@ Flyout::Placement Flyout::GetPlacement() const
     return m_placement;
 }
 
+Flyout::Placement Flyout::GetActualPlacement() const
+{
+    return m_actualPlacement;
+}
+
 bool Flyout::IsOpen() const
 {
     return m_bOpen;
@@ -324,6 +329,13 @@ void Flyout::AttachClosed(const FlyoutEvent& callback)
 {
     if (callback) {
         m_closedCallbacks.push_back(callback);
+    }
+}
+
+void Flyout::AttachLayouted(const FlyoutLayoutEvent& callback)
+{
+    if (callback) {
+        m_layoutedCallbacks.push_back(callback);
     }
 }
 
@@ -359,6 +371,16 @@ void Flyout::OnInitWindow()
         AddMessageFilter(m_pShadowHitTestFilter.get());
     }
 #endif
+}
+
+void Flyout::OnInitLayout()
+{
+    BaseClass::OnInitLayout();
+    //布局已完成（首次绘制前）：通知回调按控件的实际布局矩形调整内容位置
+    std::vector<FlyoutLayoutEvent> callbacks = m_layoutedCallbacks;
+    for (const FlyoutLayoutEvent& callback : callbacks) {
+        callback();
+    }
 }
 
 void Flyout::OnFinalMessage()
