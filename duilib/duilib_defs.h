@@ -149,6 +149,7 @@ namespace ui
     #define  DUI_CTR_PAGINATION                      (_T("Pagination"))
     #define  DUI_CTR_BREADCRUMB                      (_T("Breadcrumb"))
     #define  DUI_CTR_CASCADING_SELECT                (_T("CascadingSelect"))
+    #define  DUI_CTR_POPOVER                         (_T("Popover"))
     #define  DUI_CTR_TREE_GRID                       (_T("TreeGrid"))
     #define  DUI_CTR_CEF                             (_T("CefControl"))
     #define  DUI_CTR_WEBVIEW2                        (_T("WebView2Control"))
@@ -529,6 +530,9 @@ namespace ui
         kEventDisplayDateChanged,       //Calendar类：当显示周期（月视图的月份、年/十年视图的年份）发生变化时触发，标题栏等需据此刷新；wParam/lParam 暂未使用
 
         kEventTreeGridCheckChanged,     //TreeGrid类：当节点的复选框状态（含父子级联）发生变化时触发，wParam 为节点指针(TreeGridNode*)，pEventData 为 TreeGridCheckValue*
+
+        kEventPopoverOpenChanged,       //Popover类：气泡卡片的打开状态发生变化时触发, wParam为新状态(1=已打开, 0=已关闭)，
+                                        //           lParam为关闭原因(参见 ui::PopoverCloseReason，打开时为0)
 
         kEventLast,                     //控件的最后一个消息
 

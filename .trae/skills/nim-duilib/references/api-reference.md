@@ -238,6 +238,7 @@ NavigationViewItem（继承 Control）属性：
 | CascadingSelect | Control | 级联选择器（内嵌多列 / 下拉列表框两种形态，父项变更自动过滤子列、深层旧选择自动重置；`items`/`items_id` 路径数据（`\|` 分路径、`path_separator` 分层级，相同前缀自动合并）、任意层级、`disabled_paths` 禁用子树、`column_width`/`row_height`/`text_padding`、列内滚轮滚动 + 比例滚动条；下拉形态支持 `dropdown`/`placeholder(_id)`/`allow_clear`/`expand_on_hover`/`popup_width`/`popup_max_rows`/`popup_class` 与自定义显示 `AttachDisplayText`；事件 `AttachSelectionChanged`（`wParam=4`，pEventData 为 CascadingSelectValue）；节点名 `CascadingSelect`），`duilib/Control/CascadingSelect.h` |
 | TreeGrid | VBox | 树表格（同一控件内呈现"可展开/收起的层级行 + 多列表格"；表头固定不滚动、列表体自带纵向滚动条，表头与行复用同一列宽天然对齐；`column_title`/`column_width`/`column_align`/`tree_column`/`indent`；`multi_select` 多选、`check_mode`+`check_cascade` 行首复选框父子三态级联；节点名 `TreeGrid`），`duilib/Control/TreeGrid.h` |
 | CircleProgress | Progress | 环形进度条（渐变/指示图标/逆时针/indeterminate 转圈，`duilib/Control/CircleProgress.h`），XML 节点名 `CircleProgress` |
+| Popover | Label | 气泡卡片（控件自身即锚点：click/hover/focus/manual 四种触发；`placement` 12 方位、越界自动翻转；标题 `title(_id)` + 正文 `content(_id)` 或 `content_xml` 富内容；`card_width`/`gap`/`hover_delay`/`close_delay`/`auto_dismiss`；`Show`/`Hide`/`Toggle`/`IsOpen`/`GetCardWindow`/`FindCardControl`/`AttachOpenChanged`（`kEventPopoverOpenChanged`：wParam=1/0、lParam=关闭原因）；锚点皮肤 `popover_trigger`(链接) / `popover_anchor`(按钮) / `popover_anchor_primary`(主色按钮)；节点名 `Popover`），`duilib/Control/Popover.h` |
 | Chart | Control | 轻量图表（折线/柱状/饼图自绘；多系列/坐标轴/负值/堆叠/曲线/面积/环形；悬停Tooltip/点击选中/缩放平移；圆角/渐变/发光/动画，`duilib/Control/Chart.h`），XML 节点名 `Chart` |
 | Timeline | Control | 垂直时间轴（节点+连接线+内容，数据驱动、4态配色、正序/倒序、多语言 `item_*_id` 绑定、节点点击事件、空/加载状态、滚动条 hover 显隐可拖动，`duilib/Control/Timeline.h`），XML 节点名 `Timeline` |
 | DateTime | HBox | 日期时间选择器（`LabelTemplate<HBox>`） |
@@ -495,11 +496,11 @@ C++ 接口（无 XML 控件属性）：
 - `Flyout(Window* pParentWindow)`：构造，锚点控件必须属于父窗口；
 - `SetSkinFolder(path)`：内容 XML 资源文件夹，默认用父窗口 GetResourcePath()；
 - `bool ShowAt(Control* anchor, const DString& xmlFile, Placement = Bottom)`：弹出；**xmlFile 只传文件名不带子目录前缀**（SkinFolder 已含子目录）；失败时内部已 `delete this`，返回 false 后不可再访问；
-- `Dismiss()` 主动关闭；`SetAutoDismiss/IsAutoDismiss`（默认 true）、`SetNoFocus/IsNoFocus`（默认 true）、`SetGap/GetGap`（默认 6 DIP）、`SetAllowFlip/IsAllowFlip`（默认 true）；
+- `Dismiss()` 主动关闭；`SetAutoDismiss/IsAutoDismiss`（默认 true，控制点击外部+Esc）、`SetClickOutsideDismiss/IsClickOutsideDismiss`（默认 true，仅控制"点击外部"关闭，Esc 仍由 `SetAutoDismiss` 控制；受控场景可关闭）、`SetShadowClickThrough/IsShadowClickThrough`（默认 true，鼠标落在窗口阴影时穿透给下层窗口，仅 Windows）、`GetVisualRect(rcVisual)` / `IsPointInVisualArea(ptScreen)`（取/判可视区域：屏幕物理像素、已扣除窗口阴影）、`SetNoFocus/IsNoFocus`（默认 true）、`SetGap/GetGap`（默认 6 DIP）、`SetAllowFlip/IsAllowFlip`（默认 true）；
 - `GetAnchor()`、`GetPlacement()`、`IsOpen()`；`AttachOpened(cb)` / `AttachClosed(cb)`（`typedef std::function<void(CloseReason)> FlyoutEvent`）；
 - 静态 `GetActiveFlyout()` / `DismissActive()`。
 
-`enum class Placement {Bottom,BottomEnd,Top,TopEnd,Right,RightEnd,Left,LeftEnd}`（8 方位，空间不足自动翻转对侧并夹持工作区）；
+`enum class Placement {Bottom,BottomEnd,Top,TopEnd,Right,RightEnd,Left,LeftEnd,BottomCenter,TopCenter,RightCenter,LeftCenter}`（12 方位，前 8 个为旧值保持不变、后 4 个为居中方位；空间不足时由 `FlipPlacement()` 自动翻转到对侧并夹持工作区）；
 `enum class CloseReason {kManual,kClickOutside,kEscape,kAnchorLost}`（父窗口销毁/隐藏/最小化、锚点失效、跨屏 DPI 变化→kAnchorLost）。
 
 内容 XML 默认皮肤类（global.xml）：`flyout`（240 宽卡片，`bg_window_card`/`border_window`/圆角 8/padding 12）、`flyout_title`（system_bold_14 + text_default）、`flyout_desc`（system_regular_12 + text_muted，多行）。
@@ -513,6 +514,7 @@ pOk->AttachClick([p](const ui::EventArgs&){ p->Dismiss(); return true; });
 ```
 
 注意：noFocus 模式外部点击检测仅 Windows（全局鼠标按键 50ms 轮询，非 Win 平台用 `SetNoFocus(false)` 焦点模式）；浮层内控件可正常点击但键盘焦点不进入，需要输入文字时 SetNoFocus(false)；同锚点再次点击切换关闭需调用方自行比较 `GetActiveFlyout()->GetAnchor()`；锚点在滚动容器内时自动扣除累计滚动偏移；父窗口通过 `OpenColorTheme` 使用私有颜色主题时浮层自动继承该主题（新增 `Window::GetColorThemeXmlData()` 暴露私有主题 XML 数据）。
+阴影不拦截鼠标：`OnInitWindow` 中通过 `AddMessageFilter` 安装私有 `IUIMessageFilter`，对 `WM_NCHITTEST` 落在阴影（`GetVisualRect` 之外）时返回 `HTTRANSPARENT`，鼠标消息由下层窗口（同线程父窗口）处理；"点击外部"与 hover 判定也一律用 `GetVisualRect`（`GetWindowRect` 含阴影，会把阴影当成浮层内部）。
 
 ### Mask 属性(继承 Box，遮罩/蒙版层)
 
@@ -801,6 +803,30 @@ C++ 接口：`AddItem/InsertItem/RemoveItemAt/ClearItems/SetItems/GetItemCount/G
 C++ 接口：`SetItems/SetItemIds/AddPath/ClearItems/GetDepth/GetItemCount/GetItemText`、`GetSelection/SetSelection/SetSelectionByText/ClearSelection/GetSelectionText/GetSelectionPath`、`SetDisabledPaths/GetDisabledPaths/IsItemDisabled`、`SetPathSeparator/GetPathSeparator`、`SetValueSeparator/GetValueSeparator`、`SetColumnWidth/GetColumnWidth`、`SetRowHeight/GetRowHeight`、`SetTextPadding/GetTextPadding`、各颜色 Set/Get、`SetFont/GetFont`；下拉形态另有 `SetDropdown/IsDropdown`、`SetPlaceholder/SetPlaceholderId/GetPlaceholder`、`SetExpandOnHover/IsExpandOnHover`、`SetAllowClear/IsAllowClear`、`SetPopupWidth/GetPopupWidth`、`SetPopupMaxRows/GetPopupMaxRows`、`SetPopupClass/GetPopupClass`、`AttachDisplayText/GetDisplayText` 及选择框样式 Set/Get。
 事件：`AttachSelectionChanged`——选择实际变化时触发一次，事件编码 `kEventValueChanged`（`wParam=4`），`indexes`/`text`/`path` 由 `EventArgs::pEventData`（指向 `ui::CascadingSelectValue`）携带，仅在回调派发期间有效；`SetSelection(..., false)` / `ClearSelection(false)` 不派发。
 默认皮肤 `cascading_select`（内嵌）/ `cascader`（下拉）/ `cascading_select_popup`（浮层列表）类只定义颜色、字体与尺寸，无图片资源。
+
+### Popover 属性(继承 Label)
+
+气泡卡片：**控件自身即锚点**（锚点文本走 `Label` 的 `text`/`text_id`/`font`/`text_align`），点击/悬停/聚焦后在它周围用 `Flyout` 弹出带标题与正文的卡片。
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| title / title_id | 空 | string | 卡片标题（字面 / 多语言 ID，ID 优先）；为空则不显示标题行 |
+| content / content_id | 空 | string | 卡片正文（字面 / 多语言 ID，ID 优先） |
+| content_xml | 空 | string | 富内容：直接插入卡片的 XML 片段（优先于 `content`），如多行 Label、按钮 |
+| trigger | click | string | click / hover / focus / manual |
+| placement | top | string | top / top_left / top_right / bottom / bottom_left / bottom_right / left / left_top / left_bottom / right / right_top / right_bottom（忽略大小写与 `_`/`-`） |
+| gap | 6 | int | 卡片与锚点的间距（DIP） |
+| card_width | 240 | int | 卡片宽度（DIP，最小 120）；高度自适应内容 |
+| auto_dismiss | true | bool | 是否自动关闭（点击卡片外 / Esc）。`trigger="manual"` 时"点击外部关闭"默认不生效（Esc 仍受控），显式设置后按显式值生效 |
+| hover_delay | 100 | int | `trigger="hover"` 时移入后弹出延迟（毫秒） |
+| close_delay | 200 | int | `trigger="hover"` 时移出后关闭延迟（毫秒），期间可移入卡片 |
+
+C++ 接口：`SetTitle/GetTitle`、`SetTitleId/GetTitleId`、`SetContent/GetContent`、`SetContentId/GetContentId`、`SetContentXml/GetContentXml`、`SetTrigger/GetTrigger`、`SetPlacement/GetPlacement`、`SetGap/GetGap`、`SetCardWidth/GetCardWidth`、`SetAutoDismiss/IsAutoDismiss`、`SetHoverDelay/GetHoverDelay`、`SetCloseDelay/GetCloseDelay`、`Show/Hide/Toggle/IsOpen`、`GetCardWindow`（返回显示中的卡片窗口，未显示为 nullptr）、`FindCardControl(name)`（在卡片内按名称查控件，用于绑定卡片内按钮/链接，需在 `AttachOpenChanged` 打开回调里取）、`AttachOpenChanged(cb, id = 0)`。
+枚举：`PopoverTrigger{kClick,kHover,kFocus,kManual}`、`PopoverPlacement`（12 值，与 `placement` 取值一一对应）、`PopoverCloseReason{kManual,kClickOutside,kEscape,kAnchorLost}`。
+事件：`AttachOpenChanged`——打开/关闭时触发，事件编码 `kEventPopoverOpenChanged`，`wParam = 1`（打开）/ `0`（关闭），`lParam = PopoverCloseReason`（关闭原因）。
+默认皮肤类（global.xml）：`popover_trigger`（锚点链接色 + 手型光标）、`popover_anchor`（锚点按钮外观：`bg_btn_*` 底色 + `border_btn_*` 描边 + 圆角 6 + 96×28）、`popover_anchor_primary`（主色实心按钮锚点，继承 `popover_anchor`，112 宽）、`popover_card`（`bg_window_card` + `border_window` + 圆角 8 + padding 12）、`popover_title`（system_bold_14 + text_default）、`popover_content`（system_regular_14 + text_muted + 多行）。
+注意：卡片 XML 在打开时生成，语言切换会先关闭卡片、重新打开即为新文案；同一时刻全局只有一张卡片（切换锚点会替换旧卡片）；不绘制箭头（卡片窗口默认 `shadow_type="small_round"`，阴影不拦截鼠标）。
+受控场景（`trigger="manual"`）：`auto_dismiss` 未显式设置时卡片不因点击外部关闭，否则鼠标按在外部受控按钮上时卡片会先关闭，按钮 Click 里读到的 `IsOpen()` 已是 false（表现为 Toggle 永远打开、重建卡片无效）；Esc 仍按 `auto_dismiss` 生效。
 
 ### TreeGrid 属性(继承 VBox)
 

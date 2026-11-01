@@ -147,6 +147,7 @@
 | Progress | Label | 进度条 |
 | Slider | Progress | 滑块 |
 | CircleProgress | Progress | 圆形进度条 |
+| Popover | Label | 气泡卡片（控件自身即锚点）：trigger=click/hover/focus/manual；placement 12 方位（越界自动翻转）；title(_id) + content(_id) 或 content_xml 富内容；gap/card_width(≥120)/hover_delay/close_delay/auto_dismiss（manual 时"点击外部关闭"默认不生效，Esc 仍受控）；Show/Hide/Toggle/IsOpen；GetCardWindow/FindCardControl（卡片内按钮需在 AttachOpenChanged 打开回调里绑定）；事件 AttachOpenChanged（kEventPopoverOpenChanged：wParam=1/0、lParam=关闭原因）；锚点皮肤 popover_trigger(链接)/popover_anchor(按钮)/popover_anchor_primary(主色按钮)；卡片窗口 shadow_type="small_round"，阴影不拦截鼠标（Flyout 用 WM_NCHITTEST→HTTRANSPARENT 穿透，"浮层内/外"按 GetVisualRect 去阴影判定） |
 | Stepper | Control | 向导步骤条（水平/垂直、节点序号/对勾、4态派生、连接线着色、Next/Back/GoTo与点击跳转、节点 hover/按下态图标） |
 | Rating | Control | 星级评分（value/max/allow_half/read_only/star_size/star_gap；星形内容图：实心/半星/空心 SVG 图片驱动、svg_replace_colors 主题色自适应；悬停/按下态图标叠加；悬停预览 + 点击/拖拽打分） |
 | Carousel | Control | 图片轮播（item_image 幻灯片列表、左右导航按钮 + 底部页码指示点，SVG 图片驱动、svg_replace_colors 主题色自适应；loop 无限循环 / auto_play + hover_pause / transition_ms 滑动动画 / 鼠标拖拽翻页） |
@@ -353,11 +354,11 @@ C++ 接口：`SetCount/GetCount`、`SetMaxCount/GetMaxCount`、`SetDotMode/IsDot
 TabCtrlItem 内置角标（`duilib/Control/TabCtrl.h`，懒创建 Badge 子控件，排在标题后）：属性 `badge_count`（0，>0 显示 <=0 隐藏）、`badge_max_count`（99）、`badge_dot`（false）、`badge_class`（空则不创建）。皮肤类 `tab_ctrl_item_badge`（数字，已挂在 `tab_ctrl_item`）/ `tab_ctrl_item_badge_dot`（8x8 红点，dot 模式须用此类）。C++：`SetBadgeCount/GetBadgeCount`、`SetBadgeMaxCount/GetBadgeMaxCount`、`SetBadgeDot/IsBadgeDot`、`SetBadgeClass/GetBadgeClass`、`GetBadgeControl`。示例：`<TabCtrlItem class="tab_ctrl_item" title="消息" badge_count="5"/>`。
 
 ### Flyout 浮层窗口(继承 WindowImplBase)
-`duilib/Control/Flyout.h`（duilib.h 已 include）。锚点周围浮出任意 Box 内容；非模态、关闭后框架自动 delete；默认不抢焦点（WS_EX_NOACTIVATE）、点击外部/Esc 自动关闭、8 方位空间不足自动翻转+工作区夹持、全局单活。
-C++：`Flyout(Window*)` → `SetSkinFolder(path)`（默认父窗口 GetResourcePath）→ `bool ShowAt(Control* anchor, xmlFile, Placement=Bottom)`（**xmlFile 只传文件名**；失败内部已 delete this 返回 false）；`Dismiss()`、`SetAutoDismiss`(true)、`SetNoFocus`(true)、`SetGap`(6 DIP)、`SetAllowFlip`(true)、`GetAnchor/GetPlacement/IsOpen`、`AttachOpened/AttachClosed`（`std::function<void(CloseReason)>`）、静态 `GetActiveFlyout/DismissActive`。
-`Placement{Bottom,BottomEnd,Top,TopEnd,Right,RightEnd,Left,LeftEnd}`；`CloseReason{kManual,kClickOutside,kEscape,kAnchorLost}`（父窗口销毁/隐藏/最小化、锚点失效、DPI 变化）。
+`duilib/Control/Flyout.h`（duilib.h 已 include）。锚点周围浮出任意 Box 内容；非模态、关闭后框架自动 delete；默认不抢焦点（WS_EX_NOACTIVATE）、点击外部/Esc 自动关闭、12 方位（8 个边角 + BottomCenter/TopCenter/RightCenter/LeftCenter 居中）空间不足自动翻转+工作区夹持、全局单活。
+C++：`Flyout(Window*)` → `SetSkinFolder(path)`（默认父窗口 GetResourcePath）→ `bool ShowAt(Control* anchor, xmlFile, Placement=Bottom)`（**xmlFile 只传文件名**；失败内部已 delete this 返回 false）；`Dismiss()`、`SetAutoDismiss`(true)、`SetClickOutsideDismiss`(true，仅控制"点击外部"关闭，Esc 仍由 SetAutoDismiss 控制)、`SetShadowClickThrough`(true，阴影上的鼠标穿透给下层窗口，仅 Windows)、`GetVisualRect/IsPointInVisualArea`（可视区域：屏幕物理像素、已去阴影）、`SetNoFocus`(true)、`SetGap`(6 DIP)、`SetAllowFlip`(true)、`GetAnchor/GetPlacement/IsOpen`、`AttachOpened/AttachClosed`（`std::function<void(CloseReason)>`）、静态 `GetActiveFlyout/DismissActive`。
+`Placement{Bottom,BottomEnd,Top,TopEnd,Right,RightEnd,Left,LeftEnd,BottomCenter,TopCenter,RightCenter,LeftCenter}`（前 8 个为旧值不变）；`CloseReason{kManual,kClickOutside,kEscape,kAnchorLost}`（父窗口销毁/隐藏/最小化、锚点失效、DPI 变化）。
 内容 XML：`<Window size="240,210" caption="0,0,0,0" use_system_caption="false" shadow_type="default" shadow_attached="true" layered_window="true" size_box="0,0,0,0">`，固定 DIP 尺寸（内容超出会画进阴影区）。皮肤类 `flyout`（240 宽 bg_window_card/border_window/圆角8/padding12）、`flyout_title`（bold14）、`flyout_desc`（regular12 text_muted 多行）。
-ShowAt 成功后再 `FindControl` 绑事件；同锚点切换关闭由调用方比较 `GetActiveFlyout()->GetAnchor()`；外部点击检测仅 Windows（50ms 轮询），非 Win 平台 SetNoFocus(false)；锚点在滚动容器内自动扣除累计滚动偏移；父窗口 OpenColorTheme 私有颜色主题自动继承（Window::GetColorThemeXmlData）。
+ShowAt 成功后再 `FindControl` 绑事件；同锚点切换关闭由调用方比较 `GetActiveFlyout()->GetAnchor()`；外部点击检测仅 Windows（50ms 轮询），非 Win 平台 SetNoFocus(false)；锚点在滚动容器内自动扣除累计滚动偏移；父窗口 OpenColorTheme 私有颜色主题自动继承（Window::GetColorThemeXmlData）；窗口阴影不拦截鼠标（OnInitWindow 装 IUIMessageFilter，WM_NCHITTEST 落在 GetVisualRect 之外返回 HTTRANSPARENT），"浮层内/外"判定一律用 GetVisualRect 而非 GetWindowRect（后者含阴影）。
 
 ### Mask 属性(继承 Box，遮罩/蒙版层)
 `duilib/Control/Mask.h`，XML 节点 `Mask`。模态遮罩/新手引导蒙层/加载遮罩；半透明蒙层 + 可镂空高亮指定控件 + 镂空区域内点击穿透。跨平台通用。

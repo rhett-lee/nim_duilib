@@ -244,6 +244,7 @@
     <ClInclude Include="TreeGridForm.h" />
     <ClInclude Include="BreadcrumbForm.h" />
     <ClInclude Include="CascadingSelectForm.h" />
+    <ClInclude Include="PopoverForm.h" />
     <ClInclude Include="SwitchForm.h" />
     <ClInclude Include="ButtonCheckBoxForm.h" />
     <ClInclude Include="ProgressForm.h" />
@@ -273,6 +274,7 @@
     <ClCompile Include="TreeGridForm.cpp" />
     <ClCompile Include="BreadcrumbForm.cpp" />
     <ClCompile Include="CascadingSelectForm.cpp" />
+    <ClCompile Include="PopoverForm.cpp" />
     <ClCompile Include="SwitchForm.cpp" />
     <ClCompile Include="ButtonCheckBoxForm.cpp" />
     <ClCompile Include="ProgressForm.cpp" />

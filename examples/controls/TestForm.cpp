@@ -10,6 +10,7 @@
 #include "TreeGridForm.h"
 #include "BreadcrumbForm.h"
 #include "CascadingSelectForm.h"
+#include "PopoverForm.h"
 #include "SwitchForm.h"
 #include "ButtonCheckBoxForm.h"
 #include "duilib/Control/SearchBox.h"
@@ -112,6 +113,15 @@ void TestForm::OnInitWindow()
     if (pCascadingSelectBtn != nullptr) {
         pCascadingSelectBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
             ShowCascadingSelectWindow();
+            return true;
+            });
+    }
+
+    //Popover 气泡卡片测试窗口
+    ui::Button* pPopoverBtn = dynamic_cast<ui::Button*>(FindControl(_T("popover_btn")));
+    if (pPopoverBtn != nullptr) {
+        pPopoverBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
+            ShowPopoverWindow();
             return true;
             });
     }
@@ -536,6 +546,18 @@ void TestForm::ShowCascadingSelectWindow()
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("CascadingSelectWindow");
+    createParam.m_bCenterWindow = true;
+    testForm->CreateWnd(this, createParam);
+    testForm->ShowModalFake();
+}
+
+void TestForm::ShowPopoverWindow()
+{
+    PopoverForm* testForm = new PopoverForm();
+    ui::WindowCreateParam createParam;
+    createParam.m_dwStyle = ui::kWS_POPUP;
+    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    createParam.m_windowTitle = _T("PopoverWindow");
     createParam.m_bCenterWindow = true;
     testForm->CreateWnd(this, createParam);
     testForm->ShowModalFake();

@@ -58,6 +58,10 @@ private:
     */
     void ShowCascadingSelectWindow();
 
+    /** 显示 Popover 气泡卡片演示窗口
+    */
+    void ShowPopoverWindow();
+
     /** 显示 Switch 开关演示窗口
     */
     void ShowSwitchWindow();

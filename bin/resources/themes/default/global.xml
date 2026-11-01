@@ -1052,6 +1052,41 @@
                                   normal_text_color="text_muted" multi_line="true"
                                   text_align="hleft,vcenter" mouse_enabled="false" tab_stop="false"/>
 
+    <!-- Popover气泡卡片：锚点控件样式（以链接文本外观呈现，鼠标手型） -->
+    <Class name="popover_trigger" width="auto" height="auto" font="system_regular_14"
+                                  normal_text_color="text_link_normal" hot_text_color="text_link_hovered"
+                                  pushed_text_color="text_link_pressed" disabled_text_color="text_disabled"
+                                  text_align="hleft,vcenter" cursor_type="hand"/>
+    <!-- Popover气泡卡片：锚点控件样式（按钮外观，适合示例与表单中的"点击查看"类入口） -->
+    <Class name="popover_anchor" width="96" height="28" font="system_regular_14"
+                                  border_size="1" border_round="6,6"
+                                  normal_color="bg_btn_normal" hovered_color="bg_btn_hovered" pressed_color="bg_btn_pressed"
+                                  normal_border_color="border_btn_normal" hovered_border_color="border_btn_hovered"
+                                  pressed_border_color="border_btn_pressed" disabled_border_color="border_btn_disabled"
+                                  normal_text_color="text_btn_normal" hovered_text_color="text_btn_normal"
+                                  pressed_text_color="text_btn_normal" disabled_text_color="text_btn_disabled"
+                                  text_align="hcenter,vcenter" cursor_type="hand"/>
+    <!-- Popover气泡卡片：锚点控件样式（主色实心按钮，对应 Ant Design 基本示例的入口外观） -->
+    <Class name="popover_anchor_primary" class="popover_anchor" width="112"
+                                  normal_color="bg_primary_btn_normal" hovered_color="bg_primary_btn_hovered"
+                                  pressed_color="bg_primary_btn_pressed" disabled_color="bg_primary_btn_disabled"
+                                  normal_border_color="border_primary_btn_normal" hovered_border_color="border_primary_btn_hovered"
+                                  pressed_border_color="border_primary_btn_pressed" disabled_border_color="border_primary_btn_disabled"
+                                  normal_text_color="text_primary_btn_normal" hovered_text_color="text_primary_btn_normal"
+                                  pressed_text_color="text_primary_btn_normal" disabled_text_color="text_primary_btn_disabled"/>
+    <!-- Popover气泡卡片：卡片根容器（窗口级阴影由XML根节点 shadow_attached="true" 配置） -->
+    <Class name="popover_card" width="240" height="auto" bkcolor="bg_window_card"
+                               border_size="1" border_color="border_window" border_round="8,8"
+                               padding="12,12,12,12"/>
+    <!-- Popover气泡卡片：标题 -->
+    <Class name="popover_title" width="stretch" height="auto" font="system_bold_14"
+                                normal_text_color="text_default" text_align="hleft,vcenter"
+                                mouse_enabled="false" tab_stop="false"/>
+    <!-- Popover气泡卡片：正文（自动换行，支持 '\n' 换行） -->
+    <Class name="popover_content" width="stretch" height="auto" font="system_regular_14"
+                                  normal_text_color="text_muted" multi_line="true" replace_newline="true"
+                                  text_align="hleft,vcenter" mouse_enabled="false" tab_stop="false"/>
+
     <!-- Calendar日历面板：整体容器 -->
     <Class name="calendar" width="280" height="240" bkcolor="bg_window_card"/>
     <!-- Calendar星期标题 -->

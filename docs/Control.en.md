@@ -2334,7 +2334,8 @@ Key features:
 - Automatically closed by clicking outside or pressing Esc by default; `Dismiss` closes it manually;
 - Modeless window: the framework deletes the object automatically after the window closes, callers do not need to delete it;
 - Only one active flyout at a time: showing a new flyout closes the previous one;
-- The flyout is a layered popup window with shadow (`WS_POPUP | WS_EX_LAYERED`); the content XML is drawn with current-theme semantic colors, adapting to light/dark themes automatically.
+- The flyout is a layered popup window with shadow (`WS_POPUP | WS_EX_LAYERED`); the content XML is drawn with current-theme semantic colors, adapting to light/dark themes automatically;
+- The window shadow does not intercept the mouse (Windows only): mouse messages over the shadow are passed through to the window below, and the shadow is excluded from "is the pointer inside the flyout" checks (see `GetVisualRect`).
 
 ### C++ Interfaces
 
@@ -2345,6 +2346,9 @@ Key features:
 | `bool ShowAt(Control* anchor, const DString& xmlFile, Placement = Bottom)` | Shows the flyout around the anchor; on failure the object is already deleted and must not be accessed |
 | `Dismiss()` | Closes the flyout manually (reason kManual) |
 | `SetAutoDismiss(bool)` / `IsAutoDismiss()` | Whether click-outside/Esc closes automatically, default true |
+| `SetClickOutsideDismiss(bool)` / `IsClickOutsideDismiss()` | Whether clicking outside the flyout closes it, default true (Esc is still controlled by `SetAutoDismiss`); disable it in controlled scenarios so the flyout is not closed when the mouse goes down on an outside button |
+| `SetShadowClickThrough(bool)` / `IsShadowClickThrough()` | Whether mouse input over the window shadow passes through to the window below (Windows only), default true |
+| `GetVisualRect(rcVisual)` / `IsPointInVisualArea(pt)` | Gets/tests the visual rect of the flyout (screen physical pixels, shadow excluded) |
 | `SetNoFocus(bool)` / `IsNoFocus()` | Whether to avoid taking focus, default true; when false, focus loss is used to detect outside clicks |
 | `SetGap(int)` / `GetGap()` | Gap between the flyout and the anchor (unscaled logical pixels), default 6 |
 | `SetAllowFlip(bool)` / `IsAllowFlip()` | Whether flipping to the opposite side is allowed, default true |
@@ -2355,7 +2359,7 @@ Key features:
 | `static GetActiveFlyout()` | Returns the current active flyout, or nullptr |
 | `static DismissActive()` | Dismisses the current active flyout (no-op if none) |
 
-`Placement` enum: `Bottom` (below, start-aligned, default), `BottomEnd` (below, end-aligned), `Top`, `TopEnd`, `Right`, `RightEnd`, `Left`, `LeftEnd`.
+`Placement` enum: `Bottom` (below, start-aligned, default), `BottomEnd` (below, end-aligned), `Top`, `TopEnd`, `Right`, `RightEnd`, `Left`, `LeftEnd`, `BottomCenter`, `TopCenter`, `RightCenter`, `LeftCenter`.
 
 `CloseReason` enum: `kManual` (manual close), `kClickOutside` (click outside / focus loss), `kEscape` (Esc key), `kAnchorLost` (anchor or parent window invalidated: destroyed/hidden/minimized/DPI changed).
 
@@ -2422,6 +2426,163 @@ Remarks:
 - When the display DPI changes (e.g. moving across monitors), the flyout closes automatically with reason `kAnchorLost` to avoid wrong position/size.
 
 See the controls demo (the "Flyout" group with 4 placement buttons) and the ColorTheme demo for complete examples.
+
+<a name="popover"></a>
+## Popover Control (bubble card)
+
+`Popover` is a bubble-card control whose anchor is the trigger element itself. It derives from `Label` (XML node `Popover`) and lives in `duilib/Control/Popover.h`.
+After the anchor text is clicked, hovered or focused, a card with a title and a body pops up around it. The semantics follow the Ant Design Popover component.
+
+Difference from Flyout: `Flyout` is a generic overlay that the caller creates and feeds with a whole-window XML; `Popover` wraps "the control is the anchor, the card content is described by properties/APIs, and the lifetime is managed by the control" into a single leaf control.
+Difference from Tooltip: a tooltip only shows plain text and follows the mouse; `Popover` is a structured card with a title that can host rich content.
+
+Key features:
+- The card can be placed in 12 positions around the anchor (same semantics as Ant Design `placement`); when space is not enough it flips to the opposite side and is clamped into the monitor work area;
+- 4 trigger modes: click, hover, focus and manual;
+- The card is a separate layered window (`WS_POPUP | WS_EX_LAYERED`, no focus stealing); the anchor window stays interactive and clicking outside the card or pressing Esc dismisses the card;
+- The card body is either plain text (`title` / `content`) or a rich-content XML fragment (`content_xml`);
+- The card window is released by the framework after it closes; the control holds no pointer and closes the card when the anchor is destroyed or hidden;
+- All colors and fonts come from semantic color names, so light and dark themes adapt automatically.
+
+### XML Attributes
+
+Besides the common `Label` attributes (`text`, `text_id`, `font`, `text_align`, `cursor_type`, ...), `Popover` supports:
+
+| Attribute | Default | Type | Function in [Popover.h](../duilib/Control/Popover.h) | Purpose |
+| :--- | :--- | :--- | :--- | :--- |
+| title | | string | SetTitle | Card title (literal text, optional) |
+| title_id | | string | SetTitleId | Localization ID of the card title (wins over `title`) |
+| content | | string | SetContent | Card body (literal text, `\n` means a line break, optional) |
+| content_id | | string | SetContentId | Localization ID of the card body (wins over `content`) |
+| content_xml | | string | SetContentXml | Rich-content XML fragment inserted as children of the card root container |
+| trigger | click | string | SetTrigger | Trigger mode: `click` / `hover` / `focus` / `manual` |
+| placement | top | string | SetPlacement | Placement: `top` / `top_left` / `top_right` / `bottom` / `bottom_left` / `bottom_right` / `left` / `left_top` / `left_bottom` / `right` / `right_top` / `right_bottom` (underscores are optional; `topLeft` also works) |
+| gap | 6 | int | SetGap | Gap between card and anchor (pixels, DPI-scaled) |
+| card_width | 240 | int | SetCardWidth | Card width (pixels, DPI-scaled, minimum 120); the body wraps automatically |
+| auto_dismiss | true | bool | SetAutoDismiss | Whether the card dismisses on outside click / Esc. For `trigger="manual"`, the outside-click behavior is off by default (Esc still follows this attribute); set it explicitly to restore |
+| hover_delay | 100 | int | SetHoverDelay | Open delay in ms for `trigger="hover"` after the pointer enters the anchor |
+| close_delay | 200 | int | SetCloseDelay | Close delay in ms for `trigger="hover"` after the pointer leaves both anchor and card |
+
+### C++ API
+
+| API | Description |
+| :--- | :--- |
+| `SetTitle(text)` / `GetTitle()` | Sets/gets the card title (localization ID wins) |
+| `SetTitleId(id)` / `GetTitleId()` | Sets/gets the title localization ID |
+| `SetContent(text)` / `GetContent()` | Sets/gets the card body (localization ID wins) |
+| `SetContentId(id)` / `GetContentId()` | Sets/gets the body localization ID |
+| `SetContentXml(xml)` / `GetContentXml()` | Sets/gets the rich-content XML fragment (empty string disables rich content) |
+| `SetTrigger(PopoverTrigger)` / `GetTrigger()` | Trigger mode, see `PopoverTrigger` |
+| `SetPlacement(PopoverPlacement)` / `GetPlacement()` | Placement, see `PopoverPlacement` |
+| `SetGap(int)` / `GetGap()` | Gap between card and anchor (unscaled logical pixels) |
+| `SetCardWidth(int)` / `GetCardWidth()` | Card width (unscaled logical pixels, minimum 120) |
+| `SetAutoDismiss(bool)` / `IsAutoDismiss()` | Whether outside click / Esc closes the card (outside click is off by default for `trigger="manual"` until this API is called) |
+| `SetHoverDelay(int)` / `GetHoverDelay()` | Hover open delay in ms |
+| `SetCloseDelay(int)` / `GetCloseDelay()` | Hover close delay in ms |
+| `Show()` / `Hide()` / `Toggle()` | Opens/closes/toggles the card (the only entry point for `trigger="manual"`) |
+| `IsOpen()` | Whether the card is currently shown |
+| `GetCardWindow()` | Returns the card window when shown (`nullptr` otherwise; the card is rebuilt on every open) |
+| `FindCardControl(name)` | Finds a control inside the shown card by name, to bind events of buttons/links in the card |
+| `AttachOpenChanged(callback, id)` | Listens to the open-state change event |
+
+Enums:
+- `PopoverTrigger`: `kClick` (click the anchor to open, click again or click outside to close, default), `kHover` (open on enter, close with a delay after leaving both anchor and card), `kFocus` (open when the anchor gets focus, close on focus loss), `kManual` (only `Show()` / `Hide()` / `Toggle()` apply).
+- `PopoverPlacement`: `kTop` (above, horizontally centered, default), `kTopLeft`, `kTopRight`, `kBottom`, `kBottomLeft`, `kBottomRight`, `kLeft` (left, vertically centered), `kLeftTop`, `kLeftBottom`, `kRight`, `kRightTop`, `kRightBottom`.
+- `PopoverCloseReason`: `kManual` (closed by API / anchor click / hover leave), `kClickOutside` (clicked outside card and anchor), `kEscape` (Esc pressed), `kAnchorLost` (anchor control or its window became invalid).
+
+### Event
+
+`kEventPopoverOpenChanged`: fired when the open state changes. `wParam` is `1` (opened) or `0` (closed); `lParam` is the close reason (`PopoverCloseReason`, 0 when opening).
+
+Inline XML event:
+
+```xml
+<Popover class="popover_trigger" name="anchor" trigger="click" placement="top"
+         text="Click me" title="Card title" content="Card body"
+         event="popover_open_changed='OnPopoverOpenChanged'"/>
+```
+
+C++ binding:
+
+```cpp
+pPopover->AttachOpenChanged([](const ui::EventArgs& args) {
+    //args.wParam: 1=opened, 0=closed; args.lParam: close reason
+    return true;
+    });
+```
+
+### Skin Classes
+
+The default skin provides 6 classes in `global.xml`:
+
+| Class | Purpose |
+| :--- | :--- |
+| `popover_trigger` | Anchor appearance (link-colored text, hand cursor; good for "learn more" entries) |
+| `popover_anchor` | Anchor appearance as a button (`bg_btn_*` background, 1px `border_btn_*` border, radius 6, 96x28, centered text) |
+| `popover_anchor_primary` | Anchor appearance as a filled primary button (derives from `popover_anchor`, 112 wide; matches the Ant Design basic demo) |
+| `popover_card` | Card root container (`bg_window_card` background, `border_window` border, radius 8, padding 12) |
+| `popover_title` | Card title (14px bold, `text_default`) |
+| `popover_content` | Card body (14px, `text_muted`, multi-line wrapping, `\n` line breaks) |
+
+### Example
+
+```xml
+<!-- Click the anchor button to open the card; title and body come from localization IDs -->
+<Popover class="popover_anchor" name="popover_click" trigger="click" placement="right"
+         text_id="STRID_POPOVER_ANCHOR_CLICK"
+         title_id="STRID_POPOVER_TITLE" content_id="STRID_POPOVER_CLICK_CONTENT"/>
+```
+
+Rich `content_xml` fragments are easier to build in C++ (quotes must be escaped in an XML attribute):
+
+```cpp
+//Card body made of two text lines plus an in-card button ("close from inside")
+DString strContentXml;
+strContentXml += _T("<VBox width=\"stretch\" height=\"auto\">");
+strContentXml += _T("<Label class=\"popover_content\" width=\"stretch\" height=\"auto\" text=\"First line\"/>");
+strContentXml += _T("<Label class=\"popover_content\" width=\"stretch\" height=\"auto\" margin=\"0,6,0,0\" text=\"Second line\"/>");
+strContentXml += _T("<Button class=\"btn_global\" name=\"popover_close\" width=\"120\" height=\"28\" text=\"Close\"/>");
+strContentXml += _T("</VBox>");
+pPopover->SetContentXml(strContentXml);
+```
+
+```cpp
+//Controlled mode: the card is driven by buttons and reports its state
+ui::Popover* pPopover = dynamic_cast<ui::Popover*>(FindControl(_T("popover_controlled")));
+if (pPopover != nullptr) {
+    pPopover->SetTrigger(ui::PopoverTrigger::kManual);
+    pPopover->SetContentXml(_T("<Label class=\"popover_content\" text=\"Rich content\" width=\"stretch\" height=\"auto\"/>"));
+    pPopover->AttachOpenChanged([](const ui::EventArgs& args) {
+        return true;
+        });
+}
+
+//Close from inside: the card is rebuilt on every open, so bind the in-card button in the open event
+ui::Popover* pAnchor = pPopover;
+pPopover->AttachOpenChanged([pAnchor](const ui::EventArgs& args) {
+    if (static_cast<int32_t>(args.wParam) == 0) {
+        return true;
+    }
+    ui::Button* pCloseBtn = dynamic_cast<ui::Button*>(pAnchor->FindCardControl(_T("popover_close")));
+    if (pCloseBtn != nullptr) {
+        pCloseBtn->AttachClick([pAnchor](const ui::EventArgs& /*args*/) {
+            pAnchor->Hide();
+            return true;
+            });
+    }
+    return true;
+    });
+```
+
+Notes:
+- The card XML is generated when it opens, so a language change closes a currently visible card; the next open rebuilds it with the new language;
+- The card does not draw an arrow pointing to the anchor; draw one yourself via `content_xml` if needed;
+- The hover close decision checks whether the cursor is still inside the anchor or the card's **visual rect** (the window shadow is excluded), so the pointer can move from the anchor into the card and keep interacting; moving out closes it after `close_delay`;
+- In no-focus mode, non-Windows platforms cannot detect outside clicks (same limitation as `Flyout`); use `trigger="manual"` or `auto_dismiss="false"` there;
+- For `trigger="manual"` (controlled mode) the outside-click close is off by default: otherwise the card would be closed at the moment the mouse goes down on an outside controlled button, and that button's `Click` handler would read a stale (closed) state (making `Toggle()` always open the card and card rebuilds appear ineffective). Set `auto_dismiss="true"` explicitly if outside-click closing is wanted;
+- When the anchor sits inside scrollable containers, the card position removes the accumulated scroll offset; the card does not follow live scrolling, so closing it while scrolling is recommended.
+
+See the controls demo (the "Popover" group mirrors the Ant Design demos: basic usage, three trigger modes, 12 placements, controlled Show/Hide/Toggle, rich content with "close from inside").
 
 ## Mask Attributes
 Mask (the mask/overlay layer) is a container control derived from `Box` (XML node `Mask`) used to overlay a semi-transparent mask on top of other controls. It covers three typical popup-system scenarios:

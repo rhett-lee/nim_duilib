@@ -999,6 +999,9 @@
     <ClCompile Include="Control\CascadingSelect.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Control\Popover.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
     <ClCompile Include="Control\TreeGrid.cpp">
       <Filter>Control</Filter>
     </ClCompile>
@@ -2076,6 +2079,9 @@
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\CascadingSelect.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\Popover.h">
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\TreeGrid.h">

@@ -3,7 +3,9 @@
 
 #include "duilib/Utils/WinImplBase.h"
 #include "duilib/Core/ControlPtrT.h"
+#include "duilib/Core/INativeWindow.h"
 #include <functional>
+#include <memory>
 #include <vector>
 
 namespace ui
@@ -13,9 +15,11 @@ namespace ui
 *   功能：
 *   1. 锚定宿主控件周围弹出，支持 8 个方位；主方位空间不足时自动翻转到对侧，并夹持在显示器工作区内
 *   2. 默认不抢焦点（WS_EX_NOACTIVATE），浮层显示期间父窗口保持激活，可继续操作
-*   3. 默认点击浮层外部、按 Esc 自动关闭（可通过 SetAutoDismiss 关闭该行为）
+*   3. 默认点击浮层外部、按 Esc 自动关闭（可通过 SetAutoDismiss / SetClickOutsideDismiss 分别控制）
 *   4. 可承载任意 Box 内容（由 XML 描述），按主题色自绘，支持窗口阴影
 *   5. 非模态窗口：对象在窗口关闭后由框架自动 delete，调用方不需要手动释放
+*   6. 窗口阴影不拦截鼠标：阴影区域上的鼠标操作会穿透到浮层下面的窗口（Windows 平台），
+*      阴影也不参与"鼠标是否在浮层内"的判定（见 GetVisualRect）
 *
 *   使用方式：
 *   @code
@@ -41,7 +45,11 @@ public:
         Right       = 4,    //锚点右侧，上边缘对齐
         RightEnd    = 5,    //锚点右侧，下边缘对齐
         Left        = 6,    //锚点左侧，上边缘对齐
-        LeftEnd     = 7     //锚点左侧，下边缘对齐
+        LeftEnd     = 7,    //锚点左侧，下边缘对齐
+        BottomCenter= 8,    //锚点下方，水平居中对齐
+        TopCenter   = 9,    //锚点上方，水平居中对齐
+        RightCenter = 10,   //锚点右侧，垂直居中对齐
+        LeftCenter  = 11    //锚点左侧，垂直居中对齐
     };
 
     /** 浮层关闭原因
@@ -90,6 +98,32 @@ public:
     */
     void SetAutoDismiss(bool bAutoDismiss);
     bool IsAutoDismiss() const;
+
+    /** 设置"点击浮层外部"时是否自动关闭，默认 true
+    * @note 该选项与 SetAutoDismiss 的区别：它只控制"外部点击"这一种关闭方式，
+    *       按 Esc 关闭仍由 SetAutoDismiss 控制。
+    *       用于受控场景（例如浮层由外部按钮控制显隐）时，避免鼠标按在外部按钮上的
+    *       那一刻浮层就被关闭，导致该按钮的 Click 逻辑读到"浮层已关闭"的错误状态；
+    *       关闭该选项后，外部点击（含阴影区域）不会关闭浮层，Esc 仍然有效。
+    */
+    void SetClickOutsideDismiss(bool bDismiss);
+    bool IsClickOutsideDismiss() const;
+
+    /** 设置鼠标落在窗口阴影区域时是否穿透到浮层下面的窗口（仅 Windows 平台），默认 true
+    * @note 浮层窗口的阴影区域本身不显示内容，却会拦截鼠标消息，导致其下方控件无法悬停、
+    *       无法点击。开启后阴影区域上的鼠标消息交由下层窗口处理（与"点击浮层外部"判定一致）。
+    */
+    void SetShadowClickThrough(bool bClickThrough);
+    bool IsShadowClickThrough() const;
+
+    /** 获取浮层的可视区域（屏幕坐标、物理像素；已扣除窗口阴影占据的边缘）
+    * @param [out] rcVisual 返回可视区域的屏幕矩形；窗口无效时为空矩形
+    */
+    void GetVisualRect(UiRect& rcVisual) const;
+
+    /** 判断屏幕坐标点（物理像素）是否落在浮层的可视区域内（不含阴影）
+    */
+    bool IsPointInVisualArea(const UiPoint& ptScreen) const;
 
     /** 设置弹出后是否不抢焦点，默认 true
     *   设为 false 时浮层会获取焦点，此时通过失去焦点来感知外部点击
@@ -202,6 +236,15 @@ private:
 
     //是否自动关闭
     bool m_bAutoDismiss;
+
+    //点击浮层外部（含阴影区域）时是否关闭
+    bool m_bClickOutsideDismiss;
+
+    //鼠标落在窗口阴影区域时是否穿透到浮层下面的窗口
+    bool m_bShadowClickThrough;
+
+    //窗口阴影区域的命中测试过滤器（Windows 平台，把阴影上的鼠标消息交给下层窗口）
+    std::unique_ptr<IUIMessageFilter> m_pShadowHitTestFilter;
 
     //是否不抢焦点
     bool m_bNoFocus;

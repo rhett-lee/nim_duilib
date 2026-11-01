@@ -10,6 +10,60 @@
 namespace ui
 {
 
+namespace
+{
+#if defined(DUILIB_BUILD_FOR_WIN) && !defined(DUILIB_BUILD_FOR_SDL)
+/** 阴影区域的命中测试过滤器（仅 Windows 平台）
+*   浮层窗口的阴影区域不显示内容，却会拦截鼠标消息，导致其下方控件无法悬停、无法点击；
+*   该过滤器把落在阴影（可视区域之外）上的 WM_NCHITTEST 返回为 HTTRANSPARENT，
+*   使系统把鼠标消息派发给浮层下面的窗口（父窗口与其在同一线程，可正常接收）。
+*/
+class ShadowHitTestFilter : public IUIMessageFilter
+{
+public:
+    explicit ShadowHitTestFilter(Flyout* pFlyout) : m_pFlyout(pFlyout) {}
+
+    virtual LRESULT FilterMessage(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, bool& bHandled) override
+    {
+        if ((uMsg == WM_NCHITTEST) && (m_pFlyout != nullptr) && m_pFlyout->IsShadowClickThrough()) {
+            const int32_t xPos = (int32_t)GET_X_LPARAM(lParam);
+            const int32_t yPos = (int32_t)GET_Y_LPARAM(lParam);
+            if (!m_pFlyout->IsPointInVisualArea(UiPoint(xPos, yPos))) {
+                bHandled = true;
+                return HTTRANSPARENT;
+            }
+        }
+        return 0;
+    }
+
+private:
+    //所属浮层（本过滤器由该浮层持有，生命周期与其一致）
+    Flyout* m_pFlyout;
+};
+#endif // DUILIB_BUILD_FOR_WIN && !DUILIB_BUILD_FOR_SDL
+
+/** 获取与给定方位相反主方位的方位（用于空间不足时翻转，保留对齐方式）
+*/
+Flyout::Placement FlipPlacement(Flyout::Placement placement)
+{
+    switch (placement) {
+    case Flyout::Placement::Bottom:       return Flyout::Placement::Top;
+    case Flyout::Placement::BottomCenter: return Flyout::Placement::TopCenter;
+    case Flyout::Placement::BottomEnd:    return Flyout::Placement::TopEnd;
+    case Flyout::Placement::Top:          return Flyout::Placement::Bottom;
+    case Flyout::Placement::TopCenter:    return Flyout::Placement::BottomCenter;
+    case Flyout::Placement::TopEnd:       return Flyout::Placement::BottomEnd;
+    case Flyout::Placement::Right:        return Flyout::Placement::Left;
+    case Flyout::Placement::RightCenter:  return Flyout::Placement::LeftCenter;
+    case Flyout::Placement::RightEnd:     return Flyout::Placement::LeftEnd;
+    case Flyout::Placement::Left:         return Flyout::Placement::Right;
+    case Flyout::Placement::LeftCenter:   return Flyout::Placement::RightCenter;
+    case Flyout::Placement::LeftEnd:      return Flyout::Placement::RightEnd;
+    default:                              return placement;
+    }
+}
+} // namespace
+
 //静态成员初始化
 Flyout* Flyout::s_pActiveFlyout = nullptr;
 const int32_t Flyout::kDetectIntervalMs = 50;
@@ -19,6 +73,8 @@ Flyout::Flyout(Window* pParentWindow) :
     m_placement(Placement::Bottom),
     m_actualPlacement(Placement::Bottom),
     m_bAutoDismiss(true),
+    m_bClickOutsideDismiss(true),
+    m_bShadowClickThrough(true),
     m_bNoFocus(true),
     m_nGap(6),
     m_bAllowFlip(true),
@@ -170,6 +226,48 @@ bool Flyout::IsAutoDismiss() const
     return m_bAutoDismiss;
 }
 
+void Flyout::SetClickOutsideDismiss(bool bDismiss)
+{
+    m_bClickOutsideDismiss = bDismiss;
+}
+
+bool Flyout::IsClickOutsideDismiss() const
+{
+    return m_bClickOutsideDismiss;
+}
+
+void Flyout::SetShadowClickThrough(bool bClickThrough)
+{
+    m_bShadowClickThrough = bClickThrough;
+}
+
+bool Flyout::IsShadowClickThrough() const
+{
+    return m_bShadowClickThrough;
+}
+
+void Flyout::GetVisualRect(UiRect& rcVisual) const
+{
+    rcVisual.Clear();
+    UiRect rcWindow;
+    GetWindowRect(rcWindow);
+    if (rcWindow.IsEmpty()) {
+        return;
+    }
+
+    //窗口阴影占据的边缘区域不显示内容，也不参与命中判断
+    UiRect rcTemp = rcWindow;
+    rcTemp.Deflate(GetCurrentShadowCorner());
+    rcVisual = rcTemp.IsEmpty() ? rcWindow : rcTemp;
+}
+
+bool Flyout::IsPointInVisualArea(const UiPoint& ptScreen) const
+{
+    UiRect rcVisual;
+    GetVisualRect(rcVisual);
+    return !rcVisual.IsEmpty() && rcVisual.ContainsPt(ptScreen);
+}
+
 void Flyout::SetNoFocus(bool bNoFocus)
 {
     m_bNoFocus = bNoFocus;
@@ -254,10 +352,21 @@ DString Flyout::GetSkinFile()
 void Flyout::OnInitWindow()
 {
     BaseClass::OnInitWindow();
+#if defined(DUILIB_BUILD_FOR_WIN) && !defined(DUILIB_BUILD_FOR_SDL)
+    //窗口阴影区域不拦截鼠标：安装命中测试过滤器，把阴影上的鼠标消息交给浮层下面的窗口
+    if (m_pShadowHitTestFilter == nullptr) {
+        m_pShadowHitTestFilter = std::make_unique<ShadowHitTestFilter>(this);
+        AddMessageFilter(m_pShadowHitTestFilter.get());
+    }
+#endif
 }
 
 void Flyout::OnFinalMessage()
 {
+    if (m_pShadowHitTestFilter != nullptr) {
+        RemoveMessageFilter(m_pShadowHitTestFilter.get());
+        m_pShadowHitTestFilter.reset();
+    }
     StopDetectTimer();
     m_bOpen = false;
     if (s_pActiveFlyout == this) {
@@ -275,7 +384,7 @@ LRESULT Flyout::OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nat
     //不抢焦点模式（m_bNoFocus）下，浮层不持有键盘焦点，收到失去焦点消息属于正常运行状态
     //（例如父窗口重新成为前台窗口时），此时不应关闭浮层；
     //该模式下的外部点击关闭由 OnDetectTick 的定时检测负责
-    if (!m_bNoFocus && m_bAutoDismiss && (pSetFocusWindow != this)) {
+    if (!m_bNoFocus && m_bAutoDismiss && m_bClickOutsideDismiss && (pSetFocusWindow != this)) {
         DoClose(CloseReason::kClickOutside);
     }
     return lResult;
@@ -400,12 +509,20 @@ void Flyout::PositionAroundAnchor()
         nClientX = rcAnchor.left;
         nClientY = rcAnchor.bottom + nGap;
         break;
+    case Placement::BottomCenter:
+        nClientX = (rcAnchor.left + rcAnchor.right - nClientWidth) / 2;
+        nClientY = rcAnchor.bottom + nGap;
+        break;
     case Placement::BottomEnd:
         nClientX = rcAnchor.right - nClientWidth;
         nClientY = rcAnchor.bottom + nGap;
         break;
     case Placement::Top:
         nClientX = rcAnchor.left;
+        nClientY = rcAnchor.top - nGap - nClientHeight;
+        break;
+    case Placement::TopCenter:
+        nClientX = (rcAnchor.left + rcAnchor.right - nClientWidth) / 2;
         nClientY = rcAnchor.top - nGap - nClientHeight;
         break;
     case Placement::TopEnd:
@@ -416,6 +533,10 @@ void Flyout::PositionAroundAnchor()
         nClientX = rcAnchor.right + nGap;
         nClientY = rcAnchor.top;
         break;
+    case Placement::RightCenter:
+        nClientX = rcAnchor.right + nGap;
+        nClientY = (rcAnchor.top + rcAnchor.bottom - nClientHeight) / 2;
+        break;
     case Placement::RightEnd:
         nClientX = rcAnchor.right + nGap;
         nClientY = rcAnchor.bottom - nClientHeight;
@@ -423,6 +544,10 @@ void Flyout::PositionAroundAnchor()
     case Placement::Left:
         nClientX = rcAnchor.left - nGap - nClientWidth;
         nClientY = rcAnchor.top;
+        break;
+    case Placement::LeftCenter:
+        nClientX = rcAnchor.left - nGap - nClientWidth;
+        nClientY = (rcAnchor.top + rcAnchor.bottom - nClientHeight) / 2;
         break;
     case Placement::LeftEnd:
         nClientX = rcAnchor.left - nGap - nClientWidth;
@@ -434,17 +559,25 @@ void Flyout::PositionAroundAnchor()
 
     //空间不足时翻转到对侧
     if (m_bAllowFlip) {
-        const bool bBottomSide = (m_placement == Placement::Bottom) || (m_placement == Placement::BottomEnd);
-        const bool bTopSide = (m_placement == Placement::Top) || (m_placement == Placement::TopEnd);
-        const bool bRightSide = (m_placement == Placement::Right) || (m_placement == Placement::RightEnd);
-        const bool bLeftSide = (m_placement == Placement::Left) || (m_placement == Placement::LeftEnd);
+        const bool bBottomSide = (m_placement == Placement::Bottom) ||
+                                 (m_placement == Placement::BottomCenter) ||
+                                 (m_placement == Placement::BottomEnd);
+        const bool bTopSide = (m_placement == Placement::Top) ||
+                              (m_placement == Placement::TopCenter) ||
+                              (m_placement == Placement::TopEnd);
+        const bool bRightSide = (m_placement == Placement::Right) ||
+                                (m_placement == Placement::RightCenter) ||
+                                (m_placement == Placement::RightEnd);
+        const bool bLeftSide = (m_placement == Placement::Left) ||
+                               (m_placement == Placement::LeftCenter) ||
+                               (m_placement == Placement::LeftEnd);
 
         if (bBottomSide && (nClientY + nClientHeight > rcWork.bottom)) {
             //下方放不下：尝试翻转到上方
             int32_t nFlippedY = rcAnchor.top - nGap - nClientHeight;
             if (nFlippedY >= rcWork.top) {
                 nClientY = nFlippedY;
-                actual = (m_placement == Placement::BottomEnd) ? Placement::TopEnd : Placement::Top;
+                actual = FlipPlacement(m_placement);
             }
         }
         else if (bTopSide && (nClientY < rcWork.top)) {
@@ -452,7 +585,7 @@ void Flyout::PositionAroundAnchor()
             int32_t nFlippedY = rcAnchor.bottom + nGap;
             if (nFlippedY + nClientHeight <= rcWork.bottom) {
                 nClientY = nFlippedY;
-                actual = (m_placement == Placement::TopEnd) ? Placement::BottomEnd : Placement::Bottom;
+                actual = FlipPlacement(m_placement);
             }
         }
         else if (bRightSide && (nClientX + nClientWidth > rcWork.right)) {
@@ -460,7 +593,7 @@ void Flyout::PositionAroundAnchor()
             int32_t nFlippedX = rcAnchor.left - nGap - nClientWidth;
             if (nFlippedX >= rcWork.left) {
                 nClientX = nFlippedX;
-                actual = (m_placement == Placement::RightEnd) ? Placement::LeftEnd : Placement::Left;
+                actual = FlipPlacement(m_placement);
             }
         }
         else if (bLeftSide && (nClientX < rcWork.left)) {
@@ -468,7 +601,7 @@ void Flyout::PositionAroundAnchor()
             int32_t nFlippedX = rcAnchor.right + nGap;
             if (nFlippedX + nClientWidth <= rcWork.right) {
                 nClientX = nFlippedX;
-                actual = (m_placement == Placement::LeftEnd) ? Placement::RightEnd : Placement::Right;
+                actual = FlipPlacement(m_placement);
             }
         }
     }
@@ -563,13 +696,14 @@ void Flyout::OnDetectTick()
                                     ::GetAsyncKeyState(VK_MBUTTON)) & 0x8000) != 0;
         const bool bPointerPressed = bPointerDown && !m_bPointerDownLast;
         m_bPointerDownLast = bPointerDown;
-        if (bPointerPressed) {
+        if (bPointerPressed && m_bClickOutsideDismiss) {
             UiPoint ptCursor;
             GetCursorPos(ptCursor);
 
-            UiRect rcFlyout;
-            GetWindowRect(rcFlyout);
-            const bool bInsideFlyout = rcFlyout.ContainsPt(ptCursor);
+            //落点判定使用可视区域（不含窗口阴影），阴影区域按"外部"处理
+            UiRect rcVisual;
+            GetVisualRect(rcVisual);
+            const bool bInsideFlyout = rcVisual.ContainsPt(ptCursor);
 
             if (!bInsideFlyout && !IsPointInAnchor(ptCursor)) {
                 DoClose(CloseReason::kClickOutside);

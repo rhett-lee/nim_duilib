@@ -1,0 +1,143 @@
+# Checklist: D-14 Popover 气泡卡片
+
+> 全部勾选才视为完成（DoD）。
+
+## 1. 源码
+
+- [x] `duilib/Control/Popover.h` / `.cpp` 已新增，命名空间 `ui`。
+- [x] `GetType()` 返回 `DUI_CTR_POPOVER`。
+- [x] 基类为 `Label`（`typedef Label BaseClass`），锚点文本走 `Label` 的 `text` / `text_id` / `font` / `text_align`。
+- [x] 构造函数初始化全部成员：`m_trigger = PopoverTrigger::kClick`、`m_placement = PopoverPlacement::kTop`、`m_nGap = 6`、`m_nCardWidth = 240`、`m_bAutoDismiss = true`、`m_nHoverDelayMs = 100`、`m_nCloseDelayMs = 200`。
+- [x] XML 属性齐全：`title` / `title_id` / `content` / `content_id` / `content_xml` / `trigger` / `placement` / `gap` / `card_width` / `auto_dismiss` / `hover_delay` / `close_delay`，均支持无下划线别名，未知属性回退 `BaseClass::SetAttribute()`。
+- [x] `placement` 解析忽略大小写与 `_` / `-`（`top_left`、`topLeft`、`top-left` 等价）。
+- [x] `card_width` 钳到最小 120；`gap` / `hover_delay` / `close_delay` 负值归零。
+- [x] 卡片 XML 由 `BuildCardXml()` 动态生成；标题/正文经 `EscapeXmlText()` 转义 `& < > " '`。
+- [x] 卡片浮层复用 `Flyout`（非模态、不抢焦点、点外部/Esc 自动关闭、关闭后框架自动 `delete`）。
+- [x] 12 方位映射到 `Flyout::Placement`（`ToFlyoutPlacement()`），越界翻转由 `Flyout::FlipPlacement()` 统一处理。
+- [x] 不自持 `Flyout*`：用 `Flyout::GetActiveFlyout()` + `GetAnchor() == this` 查询，`AttachClosed` 回写状态。
+- [x] 悬停延迟任务 `PostDelayedTask` + `CancelTask`，`m_nOpenTaskId` / `m_nCloseTaskId` 在析构、语言切换、浮层关闭时统一取消。
+- [x] `m_bDestroying` 守卫：析构期间浮层关闭回调不回派事件。
+- [x] `OnLanguageChanged()` 先走基类再 `Hide()`（卡片 XML 在打开时生成，切换语言后重新打开即新文案）。
+- [x] `OnSetVisible(false)` / 锚点失效时关闭卡片，不残留浮层。
+- [x] 跨窗口悬停判定用屏幕物理坐标（`GetPos()` + `GetScrollOffsetInScrollBox()` + `Dpi().ClientSizeToWindowSize()` + `ClientToScreen()`）。
+- [x] 卡片内控件访问：`GetCardWindow()` 返回当前显示中的卡片窗口（未显示为 `nullptr`），`FindCardControl(name)` 在其上
+      `FindControl`，卡片未显示时返回 `nullptr`；两个 API 均为 `const`，不引入额外状态。
+
+## 2. Flyout 地基扩展
+
+- [x] `Placement` 追加 `BottomCenter` / `TopCenter` / `RightCenter` / `LeftCenter`，原 8 个枚举值不变（向后兼容）。
+- [x] 翻转判定抽成匿名命名空间函数 `FlipPlacement()`，`PositionAroundAnchor()` 的翻转与目标方位统一走该函数。
+- [x] `PositionAroundAnchor()` 覆盖 12 个方位（含新增 4 个居中方位）。
+- [x] 阴影交互：`SetClickOutsideDismiss` / `IsClickOutsideDismiss`（默认 true）、`SetShadowClickThrough` / `IsShadowClickThrough`
+      （默认 true）、`GetVisualRect` / `IsPointInVisualArea` 已实现；`GetVisualRect()` = 窗口矩形 `Deflate(GetCurrentShadowCorner())`。
+- [x] `OnInitWindow()` 安装 `ShadowHitTestFilter`（`IUIMessageFilter`，Windows 非 SDL 宏保护），`WM_NCHITTEST` 落在可视区域外返回
+      `HTTRANSPARENT`；`OnFinalMessage()` `RemoveMessageFilter()` 并释放。
+- [x] `OnKillFocusMsg()` / `OnDetectTick()` 的"点击外部"判定受 `m_bClickOutsideDismiss` 控制且改用 `GetVisualRect()`；
+      Esc 关闭仍受 `m_bAutoDismiss` 控制。
+- [x] `Popover` 新增 `m_bAutoDismissDefined`：`trigger="manual"` 且未显式设置 `auto_dismiss` 时，`Show()` 传
+      `SetClickOutsideDismiss(false)`（受控模式默认只由 API/Esc 关闭）；`IsMouseOverAnchorOrCard()` 改用 `GetVisualRect()`。
+- [x] 卡片窗口 `shadow_type="small_round"`（`default` 即 `big_round`，四边 30~36 过重）。
+
+## 3. 注册
+
+- [x] `duilib_defs.h` 新增 `DUI_CTR_POPOVER` 与 `kEventPopoverOpenChanged`（置于 `kEventLast` 之前）。
+- [x] `WindowBuilder.cpp` 新增 include 与工厂 map 项。
+- [x] `duilib.vcxproj` 登记 `.h/.cpp`。
+- [x] `duilib.vcxproj.filters` 登记并归入 `Control`。
+- [x] `duilib.h` 新增 include。
+- [x] `EventArgs.cpp` 的 `InitEventStringMap` 追加 `kEventPopoverOpenChanged` / `PopoverOpenChanged` / `popover_open_changed`。
+
+## 4. 主题与示例
+
+- [x] `global.xml` 新增 6 个 Class：`popover_trigger` / `popover_anchor` / `popover_anchor_primary` / `popover_card` / `popover_title` / `popover_content`。
+- [x] 全部颜色为语义色名（`text_link_*` / `text_disabled` / `bg_btn_*` / `border_btn_*` / `bg_primary_btn_*` / `border_primary_btn_*` /
+      `text_btn_*` / `text_primary_btn_*` / `bg_window_card` / `border_window` / `text_default` / `text_muted`），无写死色值；
+      字体为 `system_regular_14` / `system_bold_14`。
+- [x] 锚点按钮 Class 的普通 / 悬停 / 按下 / 禁用四态配色分别来自 `bg_*` / `border_*` / `text_*` 语义色，`cursor_type="hand"`、`text_align="hcenter,vcenter"`。
+- [x] `examples/controls/PopoverForm.h/.cpp` 存在，`OnInitWindow` 依次调用
+      `BindBasicPopover()` / `BindTriggerPopovers()` / `BindControlledPopover()` / `BindRichPopover()`。
+- [x] `BindBasicPopover()` 用 `content_xml` 拼两行正文；`BindTriggerPopovers()` 为 `manual` 锚点配"打开卡片"按钮；
+      `BindControlledPopover()` 回显状态文本（含关闭原因映射）+ 显示/隐藏/切换/换样式 4 个按钮；
+      `BindRichPopover()` 在 `AttachOpenChanged`（`wParam == 1`）里用 `FindCardControl()` 绑定卡片内"从浮层内关闭"按钮。
+- [x] `bin/resources/themes/default/controls/popover.xml` 存在；`class` 属性写在最前；5 张卡片与 Ant Design 演示结构一致
+      （基本用法 / 三种触发方式 + 手动 / 12 方位 / 受控模式 / 复杂内容）。
+- [x] 12 方位用 5 行 `HBox` + `stretch` 占位组成环形布局（TL/Top/TR → LT/RT → Left/Right → LB/RB → BL/Bottom/BR），
+      每个锚点的 `placement` 与文案一一对应。
+- [x] `test.xml` 有 Popover 分组与 `popover_btn` 入口。
+- [x] 按钮间距用 `child_margin_x`（三种触发行 8、12 方位行 6）：`child_margin` 只解析单个整数（会把 Y 方向一起设上），不采用。
+- [x] 长文案按钮（`popover_manual` / `popover_controlled` / `popover_rich` / `btn_popover_style`）为
+      `width="auto" padding="12,0,12,0"`，文字不被截断。
+- [x] `TestForm.h/.cpp` 有 `ShowPopoverWindow()` 与入口绑定。
+- [x] `controls.vcxproj` / `.filters` 登记新示例文件。
+- [x] 中英 examples 语言文件键集合一致（`STRID_POPOVER_*` 段各 57 个键），UTF-8 无 BOM、中文无乱码。
+
+## 5. 文档与计划
+
+- [x] `docs/Control.md` 新增 `## Popover 控件（气泡卡片）`（属性表 / C++ 接口表 / 枚举 / 事件 / 皮肤 Class / 示例 / 注意事项）。
+- [x] `docs/Control.md` 的 C++ 接口表含 `GetCardWindow()` / `FindCardControl(name)`，皮肤 Class 段为 6 个 Class 的表格（含 `popover_anchor` / `popover_anchor_primary`）。
+- [x] `docs/Control.en.md` 新增对应英文章节（锚点 `#popover-control-bubble-card`），内容与中文版保持一致。
+- [x] `docs/Control*.md` 的 `Flyout::Placement` 枚举行补全 4 个新值。
+- [x] `docs/Summary.md` / `Summary.en.md` 新增 Popover 行与有效锚点。
+- [x] `docs/misc/specs/D-14-Popover/{spec,tasks,checklist}.md` 已创建并随示例改造更新（T9 / T10、6 个 Class、示例结构验收项）。
+- [x] `Development-Plan.md` P2 进展汇总、D 组表格 D-14 行、P2 任务行已回写。
+- [x] `Project-Audit.md` 的 B8（富内容 Tooltip）已注明改由 `Popover` 覆盖。
+- [x] `docs/Control*.md` 的 Flyout 章节补"阴影不拦截鼠标"说明与新增 API（`SetClickOutsideDismiss` / `SetShadowClickThrough` /
+      `GetVisualRect` / `IsPointInVisualArea`）；Popover 章节说明 manual 默认不因外部点击关闭、hover 判定用可视区域。
+- [x] `.trae` / `.workbuddy` 两份 `api-reference.md` 内容一致（`Get-FileHash` 相同，均含新增 2 个 API 与 3 个锚点 Class），`.claude/docs/nim-duilib-llm-reference.md` 速查行与 `Placement` 已同步。
+- [x] `.trae` / `.workbuddy` 两份 `api-reference.md` 同步 T11 的 Flyout 新 API（`SetClickOutsideDismiss` / `SetShadowClickThrough` /
+      `GetVisualRect` / `IsPointInVisualArea`）与 `shadow_type="small_round"` 说明。
+- [x] `README.md` / `README.en.md` 无逐控件清单条目（与最近新增控件一致），未改动。
+
+## 6. 验证命令
+
+- [x] `MSBuild "build\examples.sln" /t:duilib /p:Configuration=Debug /p:Platform=x64 /clp:ErrorsOnly /m:1 /nologo` 退出码 0。
+- [x] `MSBuild "examples\controls\controls.vcxproj" /p:Configuration=Debug /p:Platform=x64 /p:SolutionDir=<repo>\build\ /clp:ErrorsOnly /m:1 /nologo` 退出码 0（`bin\controls_d.exe` 已重新链接）。
+- [x] `python .trae/skills/nim-duilib/scripts/verify_docs.py --repo . --extra docs examples/controls bin/resources/themes/default/controls bin/resources/lang` 退出码 0。
+- [x] 未执行 `git commit`（由用户手动提交）。
+
+## 7. 功能验收（手工）
+
+> 以下为运行时人工验收项，由用户在示例程序中确认。
+
+### 示例演示（对齐 Ant Design 演示页）
+- [ ] 基本用法卡片：主色实心按钮"悬停我"，悬停弹出"标题 + 两行正文"卡片（对应 antd 的 Title + Content + Content）。
+- [ ] 三种触发方式卡片：`Hover me` / `Focus me` / `Click me` 三个描边按钮行为各自正确；`Manual (API)` 锚点点击无反应，右侧"打开卡片"按钮可 Show/Toggle。
+- [ ] 位置卡片：12 个按钮按环形排布（TL/Top/TR → LT/RT → Left/Right → LB/RB → BL/Bottom/BR），每个按钮的卡片相对锚点的方位与其文案一致。
+- [ ] 受控模式卡片：显示 / 隐藏 / 切换 / 切换宽度方位 四个按钮可用；切换宽度方位后卡片按新配置重建；状态文本含关闭原因。
+- [ ] 复杂内容卡片：卡片内多行文本 + 链接色文本 + "从浮层内关闭"按钮，按钮点击后卡片关闭（即 `FindCardControl()` 绑定生效）。
+- [ ] 锚点按钮三态配色（普通 / 悬停 / 按下）与禁用态配色正确，配色来自语义色（`bg_btn_*` / `bg_primary_btn_*` 等），主题切换后同步变化。
+- [ ] 语言切换：整页文案（含卡片标题、正文、状态文本）随语言切换更新；卡片若已打开会被关闭，重新打开为新语言文案。
+
+### 创建与属性
+- [ ] XML 创建成功，`FindControl("popover_click")` 可取到；无 `class` 时正常显示锚点文本。
+- [ ] `title` / `title_id` 与 `content` / `content_id` 均生效（后者按 STRID 解析）。
+- [ ] `content_xml` 富内容（多行 `Label`、按钮）渲染且按钮可点击。
+- [ ] `gap` / `card_width` / `hover_delay` / `close_delay` 生效；`card_width` 小于 120 时按 120 渲染。
+- [ ] 全部颜色属性与 `font` 实际生效；未知属性不崩。
+
+### 交互与事件
+- [ ] `trigger="click"`：点击锚点弹出，再点锚点关闭。
+- [ ] `trigger="hover"`：移入 `hover_delay` 后弹出；移出后可从锚点移进卡片继续操作；离开两者 `close_delay` 后关闭。
+- [ ] `trigger="focus"`：Tab 聚焦弹出，失焦关闭。
+- [ ] `trigger="manual"`：点击锚点无反应，仅 `Show()` / `Toggle()` 生效。
+- [ ] 12 方位均正确；靠近屏幕边缘时翻转到对侧且卡片完整可见。
+- [ ] `AttachOpenChanged` 的 `wParam`（1/0）与 `lParam`（关闭原因）正确，状态文本回显一致。
+- [ ] 点击卡片外部 / 按 Esc 关闭；`auto_dismiss="false"` 时点外部不关闭（仍可按 Esc 或 `Hide()` 关闭）。
+
+### 阴影交互（T11 修复项）
+- [ ] 卡片打开时，点在卡片阴影上的相邻按钮可正常点击（阴影区 `HTTRANSPARENT` 穿透，`WM_NCHITTEST` 过滤生效）。
+- [ ] `trigger="hover"` 的锚点：卡片弹出后鼠标离开锚点，`close_delay` 后卡片消失（阴影覆盖不再让卡片常驻）。
+- [ ] 卡片显示时鼠标移入卡片正文，卡片保持打开（可视区域内仍视为"在卡片内"）。
+- [ ] 受控模式"切换"按钮：点一次打开、再点一次关闭；状态文本与 `IsOpen()` 一致。
+- [ ] 受控模式"切换宽度/方位"按钮：卡片按新宽度与方位重建（关闭后重新打开可见变化）。
+- [ ] `trigger="manual"` 且未显式配置 `auto_dismiss` 时，点击卡片外部不关闭（Esc 仍可关闭）；显式 `auto_dismiss="true"` 可恢复点外部关闭。
+
+### 边界与生命周期
+- [ ] 同一锚点重复 `Show()` 不产生第二张卡片；切换锚点会替换旧卡片。
+- [ ] 锚点控件所在窗口关闭 / 滚动 / 移动 / DPI 变化时卡片位置正确且不残留。
+- [ ] 卡片打开状态下切换语言：卡片关闭，重新点击得到新语言文案。
+- [ ] 反复打开/关闭、销毁锚点控件均不崩溃、不出现悬垂回调。
+
+### 主题与 DPI
+- [ ] 浅色与深色主题下卡片描边、圆角、标题/正文配色正常。
+- [ ] 100% / 125% / 150% / 200% DPI 下 `gap`、卡片圆角与文字内边距一致。

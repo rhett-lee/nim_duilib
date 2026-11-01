@@ -2332,7 +2332,8 @@ Flyout是通用浮层（弹出卡片）窗口，继承自WindowImplBase，对应
 - 默认点击浮层外部、按Esc键自动关闭；也可调用`Dismiss`主动关闭；
 - 非模态窗口：窗口关闭后框架自动释放对象，调用方不需要手动delete；
 - 同一时刻只保留一个活动浮层，弹出新浮层时旧浮层自动关闭；
-- 浮层为带阴影的层窗口（`WS_POPUP | WS_EX_LAYERED`），内容XML按当前主题语义色自绘，深浅色主题自动适配。
+- 浮层为带阴影的层窗口（`WS_POPUP | WS_EX_LAYERED`），内容XML按当前主题语义色自绘，深浅色主题自动适配；
+- 窗口阴影区域不拦截鼠标（仅Windows平台）：落在阴影上的鼠标消息会穿透给浮层下面的窗口，阴影也不参与"鼠标是否在浮层内"的判定（见`GetVisualRect`）。
 
 ### C++接口
 
@@ -2343,6 +2344,9 @@ Flyout是通用浮层（弹出卡片）窗口，继承自WindowImplBase，对应
 | `bool ShowAt(Control* anchor, const DString& xmlFile, Placement = Bottom)` | 在锚点周围显示浮层；返回false时对象已自动销毁，不可再访问 |
 | `Dismiss()` | 主动关闭浮层（关闭原因kManual） |
 | `SetAutoDismiss(bool)` / `IsAutoDismiss()` | 点击外部/Esc是否自动关闭，默认true |
+| `SetClickOutsideDismiss(bool)` / `IsClickOutsideDismiss()` | "点击浮层外部"是否关闭，默认true（Esc仍由`SetAutoDismiss`控制）；受控场景可关闭，避免鼠标按在外部按钮上时浮层先被关闭 |
+| `SetShadowClickThrough(bool)` / `IsShadowClickThrough()` | 鼠标落在窗口阴影区域时是否穿透给下层窗口（仅Windows平台），默认true |
+| `GetVisualRect(rcVisual)` / `IsPointInVisualArea(pt)` | 获取/判断浮层的可视区域（屏幕物理像素，已扣除窗口阴影） |
 | `SetNoFocus(bool)` / `IsNoFocus()` | 是否不抢焦点，默认true；设为false后通过失去焦点感知外部点击 |
 | `SetGap(int)` / `GetGap()` | 浮层与锚点的间距（未缩放逻辑像素），默认6 |
 | `SetAllowFlip(bool)` / `IsAllowFlip()` | 空间不足时是否允许翻转到对侧，默认true |
@@ -2353,7 +2357,7 @@ Flyout是通用浮层（弹出卡片）窗口，继承自WindowImplBase，对应
 | `static GetActiveFlyout()` | 获取当前活动浮层，没有时返回nullptr |
 | `static DismissActive()` | 关闭当前活动浮层（无活动浮层时为空操作） |
 
-`Placement`枚举：`Bottom`（下方左对齐，默认）、`BottomEnd`（下方右对齐）、`Top`、`TopEnd`、`Right`、`RightEnd`、`Left`、`LeftEnd`。
+`Placement`枚举：`Bottom`（下方左对齐，默认）、`BottomEnd`（下方右对齐）、`Top`、`TopEnd`、`Right`、`RightEnd`、`Left`、`LeftEnd`、`BottomCenter`、`TopCenter`、`RightCenter`、`LeftCenter`。
 
 `CloseReason`枚举：`kManual`（主动关闭）、`kClickOutside`（点击外部/失去焦点）、`kEscape`（Esc键）、`kAnchorLost`（锚点或父窗口失效：销毁/隐藏/最小化/DPI变化）。
 
@@ -2417,9 +2421,171 @@ void ShowFlyout(ui::Control* pAnchor)
 - 外部点击检测基于全局鼠标按键轮询（仅Windows平台），非Windows平台请使用`SetNoFocus(false)`的焦点模式；
 - 锚点位于滚动容器内时定位会自动扣除各级滚动偏移，滚动后点击仍在控件视觉位置弹出；
 - 父窗口通过`OpenColorTheme`使用私有颜色主题（如ColorTheme示例的深色窗口）时，浮层自动继承同一套配色，无需额外设置；
-- 跨显示器DPI变化时浮层会自动关闭（原因`kAnchorLost`），避免位置与尺寸错位。
+- 跨显示器DPI变化时浮层会自动关闭（原因`kAnchorLost`），避免位置与尺寸错位；
+- 窗口阴影（四边约24~36像素）本身不显示内容，默认不拦截鼠标：阴影上的悬停与点击会穿透到浮层下面的控件；"浮层内/外"的判定也使用不含阴影的可视区域，因此鼠标移出浮层即判定为外部。
 
 完整演示见controls示例（"浮层"分组，4个方位按钮）与ColorTheme示例。
+
+<a name="popover"></a>
+## Popover 控件（气泡卡片）
+
+Popover是"锚点自身即触发元素"的气泡卡片控件，继承自`Label`（XML节点为`Popover`），对应头文件`duilib/Control/Popover.h`。
+点击/悬停/聚焦一段文字后，在它周围弹出带标题与正文的卡片浮层。语义对齐Ant Design的Popover组件。
+
+与Flyout的差异：Flyout是"调用方自己创建、自己提供整窗XML"的通用浮层；Popover把"控件即锚点、卡片内容由属性/API描述、生命周期由控件自身管理"封装成一个叶子控件。
+与Tooltip的差异：Tooltip只有纯文本且跟随鼠标；Popover是带标题的结构化卡片，可以承载富内容。
+
+核心特性：
+- 卡片显示在锚点周围的12个方位（与Ant Design的`placement`语义一致），空间不足时自动翻转到对侧，并整体夹持在显示器工作区内；
+- 4种触发方式：点击、悬停、聚焦、手动；
+- 卡片是独立层窗口（`WS_POPUP | WS_EX_LAYERED`，不抢焦点），锚点所在窗口保持可操作，点击卡片外或按Esc自动关闭；
+- 卡片内容可由`title`/`content`纯文本，或由`content_xml`富内容片段描述；
+- 卡片窗口在关闭后由框架自动释放，控件自身不持有指针，锚点销毁/隐藏时自动关闭卡片；
+- 颜色与字体全部来自语义色名，深浅色主题自动适配。
+
+### XML属性
+
+除`Label`的通用属性（`text`、`text_id`、`font`、`text_align`、`cursor_type`等）外，`Popover`支持：
+
+| 属性名称 | 默认值 | 参数类型 | 关联[Popover.h](../duilib/Control/Popover.h)中的函数 | 用途 |
+| :--- | :--- | :--- | :--- | :--- |
+| title | | string | SetTitle | 卡片标题（字面文本，可省略） |
+| title_id | | string | SetTitleId | 卡片标题的多语言ID（与title互斥，优先生效） |
+| content | | string | SetContent | 卡片正文（字面文本，`\n`表示换行，可省略） |
+| content_id | | string | SetContentId | 卡片正文的多语言ID（与content互斥，优先生效） |
+| content_xml | | string | SetContentXml | 富内容XML片段（作为卡片根容器的子控件插入；与content互斥） |
+| trigger | click | string | SetTrigger | 触发方式：`click` / `hover` / `focus` / `manual` |
+| placement | top | string | SetPlacement | 弹出方位：`top` / `top_left` / `top_right` / `bottom` / `bottom_left` / `bottom_right` / `left` / `left_top` / `left_bottom` / `right` / `right_top` / `right_bottom`（下划线可省略，也接受`topLeft`写法） |
+| gap | 6 | int | SetGap | 卡片与锚点的间距（像素，DPI缩放） |
+| card_width | 240 | int | SetCardWidth | 卡片宽度（像素，DPI缩放，最小120），正文自动换行 |
+| auto_dismiss | true | bool | SetAutoDismiss | 是否自动关闭：点击卡片与锚点以外的区域、按Esc是否关闭。`trigger="manual"`时"点击外部关闭"默认不生效（Esc仍受该属性控制），显式设置该属性可恢复 |
+| hover_delay | 100 | int | SetHoverDelay | `trigger="hover"`时移入锚点后打开前的延迟（毫秒） |
+| close_delay | 200 | int | SetCloseDelay | `trigger="hover"`时移出锚点与卡片后关闭前的延迟（毫秒） |
+
+### C++接口
+
+| 接口 | 说明 |
+| :--- | :--- |
+| `SetTitle(text)` / `GetTitle()` | 设置/获取卡片标题（多语言ID优先） |
+| `SetTitleId(id)` / `GetTitleId()` | 设置/获取卡片标题的多语言ID |
+| `SetContent(text)` / `GetContent()` | 设置/获取卡片正文（多语言ID优先） |
+| `SetContentId(id)` / `GetContentId()` | 设置/获取卡片正文的多语言ID |
+| `SetContentXml(xml)` / `GetContentXml()` | 设置/获取富内容XML片段（设空串表示不使用富内容） |
+| `SetTrigger(PopoverTrigger)` / `GetTrigger()` | 触发方式，见`PopoverTrigger`枚举 |
+| `SetPlacement(PopoverPlacement)` / `GetPlacement()` | 弹出方位，见`PopoverPlacement`枚举 |
+| `SetGap(int)` / `GetGap()` | 卡片与锚点的间距（未缩放逻辑像素） |
+| `SetCardWidth(int)` / `GetCardWidth()` | 卡片宽度（未缩放逻辑像素，最小120） |
+| `SetAutoDismiss(bool)` / `IsAutoDismiss()` | 点击外部/Esc是否自动关闭（`trigger="manual"`时点击外部默认不关闭，调用本接口后按显式值生效） |
+| `SetHoverDelay(int)` / `GetHoverDelay()` | 悬停打开延迟（毫秒） |
+| `SetCloseDelay(int)` / `GetCloseDelay()` | 悬停关闭延迟（毫秒） |
+| `Show()` / `Hide()` / `Toggle()` | 打开/关闭/切换卡片（`trigger="manual"`时唯一入口） |
+| `IsOpen()` | 卡片是否处于显示状态 |
+| `GetCardWindow()` | 获取当前显示中的卡片窗口（未显示时返回`nullptr`；卡片每次打开都会重建） |
+| `FindCardControl(name)` | 在当前显示中的卡片内按名称查找控件，用于绑定卡片内的按钮/链接事件 |
+| `AttachOpenChanged(callback, id)` | 监听打开状态变化事件 |
+
+枚举：
+- `PopoverTrigger`：`kClick`（点击锚点打开，再次点击或点击外部关闭，默认）、`kHover`（移入打开，移出锚点与卡片后延迟关闭）、`kFocus`（锚点获得焦点打开，失去焦点关闭）、`kManual`（仅`Show()`/`Hide()`/`Toggle()`生效）。
+- `PopoverPlacement`：`kTop`（上方水平居中，默认）、`kTopLeft`、`kTopRight`、`kBottom`、`kBottomLeft`、`kBottomRight`、`kLeft`（左侧垂直居中）、`kLeftTop`、`kLeftBottom`、`kRight`、`kRightTop`、`kRightBottom`。
+- `PopoverCloseReason`：`kManual`（主动关闭/再次点击/悬停移出）、`kClickOutside`（点击卡片与锚点以外区域）、`kEscape`（按Esc）、`kAnchorLost`（锚点控件或其窗口失效）。
+
+### 事件
+
+`kEventPopoverOpenChanged`：卡片打开状态变化时触发。`wParam`为`1`（已打开）/`0`（已关闭），`lParam`为关闭原因（`PopoverCloseReason`，打开时为0）。
+
+XML内联事件写法：
+
+```xml
+<Popover class="popover_trigger" name="anchor" trigger="click" placement="top"
+         text="点击查看" title="卡片标题" content="卡片正文"
+         event="popover_open_changed='OnPopoverOpenChanged'"/>
+```
+
+C++绑定：
+
+```cpp
+pPopover->AttachOpenChanged([](const ui::EventArgs& args) {
+    //args.wParam: 1=打开, 0=关闭；args.lParam: 关闭原因
+    return true;
+    });
+```
+
+### 皮肤Class
+
+默认皮肤在`global.xml`中提供6个Class：
+
+| Class | 用途 |
+| :--- | :--- |
+| `popover_trigger` | 锚点控件外观（链接色文本、手型光标，适合"了解更多"类入口） |
+| `popover_anchor` | 锚点控件外观（按钮样式：`bg_btn_*`底色、1px `border_btn_*`边框、圆角6、96×28、文字居中） |
+| `popover_anchor_primary` | 锚点控件外观（主色实心按钮，继承`popover_anchor`，112宽，对应Ant Design基本示例的入口外观） |
+| `popover_card` | 卡片根容器（`bg_window_card`底色、`border_window`边框、圆角8、内边距12） |
+| `popover_title` | 卡片标题（14号粗体、`text_default`） |
+| `popover_content` | 卡片正文（14号、`text_muted`、多行自动换行、支持`\n`换行） |
+
+### 使用示例
+
+```xml
+<!-- 点击锚点按钮弹出卡片；卡片标题与正文来自多语言ID -->
+<Popover class="popover_anchor" name="popover_click" trigger="click" placement="right"
+         text_id="STRID_POPOVER_ANCHOR_CLICK"
+         title_id="STRID_POPOVER_TITLE" content_id="STRID_POPOVER_CLICK_CONTENT"/>
+```
+
+富内容（`content_xml`）片段较长时建议在C++中设置（XML属性里需要转义引号，可读性差）：
+
+```cpp
+//卡片正文由多行文本 + 卡片内按钮组成（"从浮层内关闭"）
+DString strContentXml;
+strContentXml += _T("<VBox width=\"stretch\" height=\"auto\">");
+strContentXml += _T("<Label class=\"popover_content\" width=\"stretch\" height=\"auto\" text=\"第一行正文\"/>");
+strContentXml += _T("<Label class=\"popover_content\" width=\"stretch\" height=\"auto\" margin=\"0,6,0,0\" text=\"第二行正文\"/>");
+strContentXml += _T("<Button class=\"btn_global\" name=\"popover_close\" width=\"120\" height=\"28\" text=\"关闭\"/>");
+strContentXml += _T("</VBox>");
+pPopover->SetContentXml(strContentXml);
+```
+
+```cpp
+//受控模式：卡片由按钮控制，并回显状态
+ui::Popover* pPopover = dynamic_cast<ui::Popover*>(FindControl(_T("popover_controlled")));
+if (pPopover != nullptr) {
+    pPopover->SetTrigger(ui::PopoverTrigger::kManual);
+    pPopover->SetContentXml(_T("<Label class=\"popover_content\" text=\"富内容\" width=\"stretch\" height=\"auto\"/>"));
+    pPopover->AttachOpenChanged([](const ui::EventArgs& args) {
+        return true;
+        });
+}
+
+//从浮层内关闭：卡片每次打开都会重建，因此在打开事件里取得卡片内的按钮并绑定事件
+pPopover->SetContentXml(_T("<VBox width=\"stretch\" height=\"auto\">")
+                        _T("<Label class=\"popover_content\" text=\"正文\" width=\"stretch\" height=\"auto\"/>")
+                        _T("<Button class=\"btn_global\" name=\"popover_close\" text=\"关闭\" width=\"120\" height=\"28\"/>")
+                        _T("</VBox>"));
+ui::Popover* pAnchor = pPopover;
+pPopover->AttachOpenChanged([pAnchor](const ui::EventArgs& args) {
+    if (static_cast<int32_t>(args.wParam) == 0) {
+        return true;
+    }
+    ui::Button* pCloseBtn = dynamic_cast<ui::Button*>(pAnchor->FindCardControl(_T("popover_close")));
+    if (pCloseBtn != nullptr) {
+        pCloseBtn->AttachClick([pAnchor](const ui::EventArgs& /*args*/) {
+            pAnchor->Hide();
+            return true;
+            });
+    }
+    return true;
+    });
+```
+
+注意事项：
+- 卡片在打开时才生成XML，因此语言切换时若卡片正在显示，控件会自动关闭它，下次打开按新语言重建；
+- 卡片不绘制指向锚点的小三角（arrow），需要时请使用`content_xml`自行绘制；
+- `trigger="hover"`的关闭判定基于"光标是否仍在锚点或卡片可视区域内"（不含卡片窗口的阴影），因此鼠标可以从锚点移入卡片继续交互，移出则按`close_delay`关闭；
+- 不抢焦点模式下，非Windows平台无法检测外部点击（与`Flyout`的限制一致），此时请用`trigger="manual"`或`auto_dismiss="false"`自行控制关闭；
+- `trigger="manual"`（受控模式）下，"点击外部关闭"默认不生效：否则鼠标按在外部受控按钮的那一刻卡片会先被关闭，该按钮的`Click`逻辑会读到错误的打开状态（表现为`Toggle()`永远打开卡片、重建卡片不生效）。需要外部点击关闭时显式设置`auto_dismiss="true"`；
+- 锚点位于滚动容器内时，卡片位置自动扣除各级滚动偏移；滚动后锚点仍在视觉位置，卡片位置不会跟随滚动实时更新，建议滚动时关闭卡片。
+
+完整演示见controls示例（"Popover"分组，与Ant Design的示例结构一一对应：基本用法、三种触发方式、12个位置、受控模式Show/Hide/Toggle、复杂内容与"从浮层内关闭"）。
 
 ## Mask的属性
 Mask（遮罩/蒙版层）是继承自`Box`的容器控件（XML节点为`Mask`），用于覆盖在其它控件之上形成半透明蒙层，覆盖弹层体系的三种典型场景：
