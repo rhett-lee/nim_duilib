@@ -398,7 +398,7 @@ void Popover::Show()
         pFlyout->SetClickOutsideDismiss(bClickOutsideDismiss);
         pFlyout->SetAllowFlip(bAllowFlip);
         //跟随锚点：滚动容器滚动（或锚点因布局变化位移）时卡片重新定位，尖角继续保持指向锚点中心；
-        //锚点被滚出滚动区域（不再可见）时由浮层自动关闭，避免卡片指向一个已经看不到的控件
+        //锚点被滚出滚动区域（不再可见）时卡片窗口暂时隐藏、滚回后自动恢复，避免卡片指向一个看不到的控件
         pFlyout->SetFollowAnchor(true);
         pFlyout->AttachClosed(UiBind(this, [this](Flyout::CloseReason reason) {
             OnFlyoutClosed(static_cast<int32_t>(reason));
@@ -514,9 +514,15 @@ bool Popover::ButtonDown(const EventArgs& msg)
 bool Popover::ButtonUp(const EventArgs& msg)
 {
     bool bRet = BaseClass::ButtonUp(msg);
-    if ((m_trigger == PopoverTrigger::kClick) && IsEnabled() && IsMouseEnabled() &&
-        IsPointInWithScrollOffset(msg.ptMouse)) {
-        Toggle();
+    if (IsEnabled() && IsMouseEnabled() && IsPointInWithScrollOffset(msg.ptMouse)) {
+        if (m_trigger == PopoverTrigger::kClick) {
+            Toggle();
+        }
+        else if ((m_trigger == PopoverTrigger::kFocus) && !m_bOpen && IsFocused()) {
+            //焦点触发：锚点已持有键盘焦点时再次点击不会触发 OnSetFocus（例如卡片此前因点击外部/Esc
+            //等原因关闭过），此时点击锚点应重新打开卡片
+            Show();
+        }
     }
     return bRet;
 }

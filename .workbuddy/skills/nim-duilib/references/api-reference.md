@@ -498,7 +498,7 @@ C++ 接口（无 XML 控件属性）：
 - `bool ShowAt(Control* anchor, const DString& xmlFile, Placement = Bottom)`：弹出；**xmlFile 只传文件名不带子目录前缀**（SkinFolder 已含子目录）；失败时内部已 `delete this`，返回 false 后不可再访问；
 - `Dismiss()` 主动关闭；`SetAutoDismiss/IsAutoDismiss`（默认 true，控制点击外部+Esc）、`SetClickOutsideDismiss/IsClickOutsideDismiss`（默认 true，仅控制"点击外部"关闭，Esc 仍由 `SetAutoDismiss` 控制；受控场景可关闭）、`SetShadowClickThrough/IsShadowClickThrough`（默认 true，鼠标落在窗口阴影时穿透给下层窗口，仅 Windows）、`GetVisualRect(rcVisual)` / `IsPointInVisualArea(ptScreen)`（取/判可视区域：屏幕物理像素、已扣除窗口阴影）、`SetNoFocus/IsNoFocus`（默认 true）、`SetGap/GetGap`（默认 6 DIP）、`SetAllowFlip/IsAllowFlip`（默认 true）；
 - `GetAnchor()`、`GetPlacement()`、`IsOpen()`；`AttachOpened(cb)` / `AttachClosed(cb)`（`typedef std::function<void(CloseReason)> FlyoutEvent`）；`AttachLayouted(cb)`（布局完成回调：首帧绘制前一次，跟随锚点重新定位后也会触发）；
-- 跟随锚点：`SetFollowAnchor/IsFollowAnchor`（默认 false；开启后约 50ms 轮询锚点位置，锚点因滚动/布局变化位移时重新定位——保持打开时的方位不翻转、空间不足时夹持工作区；锚点被滚出窗口客户区或 `ScrollBox` 可视区域时按 `kAnchorLost` 关闭）、`IsAnchorVisible()`（锚点当前是否可见）、`UpdateAnchorPosition()`（按锚点当前位置重新定位并触发 `AttachLayouted`，返回实际方位是否变化）；`Popover` 打开卡片时自动开启该跟随；
+- 跟随锚点：`SetFollowAnchor/IsFollowAnchor`（默认 false；开启后约 50ms 轮询锚点位置，锚点因滚动/布局变化位移时重新定位——保持打开时的方位不翻转、空间不足时夹持工作区；锚点被滚出窗口客户区或 `ScrollBox` 可视区域时浮层窗口暂时隐藏、打开状态保留，锚点重新可见后按新位置恢复显示；按下"锚点所在滚动容器的滚动条"视为滚动操作、不按点击外部关闭）、`IsAnchorVisible()`（锚点当前是否可见）、`UpdateAnchorPosition()`（按锚点当前位置重新定位并触发 `AttachLayouted`，返回实际方位是否变化）；`Popover` 打开卡片时自动开启该跟随；
 - 静态 `GetActiveFlyout()` / `DismissActive()`。
 
 `enum class Placement {Bottom,BottomEnd,Top,TopEnd,Right,RightEnd,Left,LeftEnd,BottomCenter,TopCenter,RightCenter,LeftCenter}`（12 方位，前 8 个为旧值保持不变、后 4 个为居中方位；空间不足时由 `FlipPlacement()` 自动翻转到对侧并夹持工作区）；
@@ -829,7 +829,7 @@ C++ 接口：`SetTitle/GetTitle`、`SetTitleId/GetTitleId`、`SetContent/GetCont
 默认皮肤类（global.xml）：`popover_trigger`（锚点链接色 + 手型光标）、`popover_anchor`（锚点按钮外观：`bg_btn_*` 底色 + `border_btn_*` 描边 + 圆角 6 + 96×28）、`popover_anchor_primary`（主色实心按钮锚点，继承 `popover_anchor`，112 宽）、`popover_card`（`bg_window_card` + `border_window` + 圆角 8 + padding 12）、`popover_arrow_up`/`popover_arrow_down`/`popover_arrow_left`/`popover_arrow_right`（尖角箭头，16×9 / 9×16（含 1 像素压入卡片的重叠区，覆盖该处卡片边线），图片在 `public/popover/`，`svg_replace_colors` 映射填充→`bg_window_card`、描边→`border_window`）、`popover_title`（system_bold_14 + text_default）、`popover_content`（system_regular_14 + text_muted + 多行）。
 注意：卡片 XML 在打开时生成，语言切换会先关闭卡片、重新打开即为新文案；同一时刻全局只有一张卡片（切换锚点会替换旧卡片）；卡片默认绘制尖角箭头（`arrow="true"`），因空间不足翻转到对侧时按 `Flyout::GetActualPlacement()` 重建一次使箭头始终指向锚点；箭头在浮层首帧布局完成后（`Flyout::AttachLayouted`）按卡片实际矩形定位到锚点中心（过窄时夹持、避开卡片圆角）；卡片窗口使用 `shadow_type="custom"`，按箭头方位选择 `public/shadow/shadow_popover_arrow_{up,down,left,right}.svg`（无箭头用 `shadow_popover.svg`），阴影主体在箭头一侧内缩 8 像素以与卡片边缘对齐（箭头带内只有阴影渐变，无白带）、阴影不拦截鼠标。
 受控场景（`trigger="manual"`）：`auto_dismiss` 未显式设置时卡片不因点击外部关闭，否则鼠标按在外部受控按钮上时卡片会先关闭，按钮 Click 里读到的 `IsOpen()` 已是 false（表现为 Toggle 永远打开、重建卡片无效）；Esc 仍按 `auto_dismiss` 生效。
-滚动跟随：卡片打开时自动 `SetFollowAnchor(true)`——锚点在滚动容器内滚动（或被布局变化推动）时，卡片约 50ms 内重新定位、尖角继续指向锚点中心（保持打开时的方位不翻转，空间不足时夹持工作区）；锚点被滚出滚动区域（窗口客户区或 `ScrollBox` 可视区域）时卡片按 `kAnchorLost` 自动关闭。
+滚动跟随：卡片打开时自动 `SetFollowAnchor(true)`——锚点在滚动容器内滚动（或被布局变化推动）时，卡片约 50ms 内重新定位、尖角继续指向锚点中心（保持打开时的方位不翻转，空间不足时夹持工作区）；锚点被滚出滚动区域（窗口客户区或 `ScrollBox` 可视区域）时卡片窗口暂时隐藏（`IsOpen()` 仍为 `true`），锚点重新可见后按新位置恢复显示；按下锚点所在滚动容器的滚动条属于滚动操作、不按点击外部关闭；`trigger="focus"` 的锚点在已持有焦点时再次点击会重新打开已关闭的卡片。
 
 ### TreeGrid 属性(继承 VBox)
 

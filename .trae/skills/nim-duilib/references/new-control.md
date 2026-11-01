@@ -224,6 +224,7 @@ VS 工程必须手工登记，否则链接/编译找不到文件。
 |------|----------|
 | `docs/Control.md` / `docs/Control.en.md` | 新增控件小节：属性表（名称/默认值/类型/用途）、XML 示例、C++ 接口、事件说明；两文标题保持对应（中文 `## Xxx 控件（...）`，英文 `## Attributes of Xxx (...)`） |
 | `docs/Summary.md` / `docs/Summary.en.md` | 控件总表新增一行：类名、基类、头文件链接、能力摘要、指向 Control 锚点 |
+| `docs/Differences.md` / `docs/Differences.en.md` | **必须**在"3. 新增控件/容器"表格追加一行（序号接尾）：名称、源码路径、一句话用途 + 关键能力，与 Control.md 的属性/接口保持一致，中英同步；该表是"相对上游 duilib 的能力增量"清单，新控件漏登记会让迁移评估失真 |
 | `README.md` / `README.en.md` | 功能列表新增条目（保持编号连续）与首页描述/计数同步 |
 | `docs/misc/Control-Roadmap.md` / `.en.md` | 若来自路线图，更新对应项状态与"现有能力盘点" |
 | `docs/misc/Project-Audit.md` | 对应审计编号改为 ✅ 已完成，列源码/节点名/示例 |
@@ -326,6 +327,7 @@ MSBuild "c:\develop\nim_duilib\build\examples.sln" /p:Configuration=Debug /p:Pla
 [ ] 中英语言资源 STRID_* 齐全
 [ ] docs/Control.md + .en.md（属性表/示例/API/事件）
 [ ] docs/Summary.md + .en.md
+[ ] docs/Differences.md + .en.md（"新增控件/容器"表格追加一行，序号接尾）
 [ ] README.md + .en.md
 [ ] Control-Roadmap / Project-Audit / Development-Plan 状态回写
 [ ] 三份技能参考（.trae / .workbuddy / .claude）同步
@@ -352,6 +354,7 @@ MSBuild "c:\develop\nim_duilib\build\examples.sln" /p:Configuration=Debug /p:Pla
 | 改了头文件后示例崩溃 0xC0000005 | duilib 库未重建，ODR 布局冲突 | 先重建 `duilib`，再重建示例 |
 | 文档检查报"不存在" | 文档名与源码不一致，或引用了控件内部 name | 改文档；确属有意引用才进 allowlist |
 | 英文文档链接 404 | Summary 用了中文锚点 | 英文锚点按英文标题生成 |
+| 新控件在"差异清单"里查不到 | 只更新了 Control.md / Summary | 每个新控件都必须在 `docs/Differences.md` / `.en.md` 的"新增控件/容器"表格追加一行（长期项目约定） |
 | 扩展控件时 `value` 被格式属性舍入 | XML 属性按声明顺序生效，`value` 先于 `decimals` | 格式类属性写在数值之前（详见 `framework-extend.md` 6.5） |
 | 删除子控件时重复 `delete` | `Box::RemoveItem` 在 `AutoDestroyChild=true` 时会销毁控件 | 先判断 `IsAutoDestroyChild()`，仅在 false 时手动 delete（详见 `framework-extend.md` 第七节） |
 | 编译通过但一操作就崩溃 | 只验证了编译，未执行实际交互路径 | 增删/事件类改动必须实际点击一次，不能只看编译结果 |

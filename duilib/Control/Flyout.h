@@ -134,7 +134,8 @@ public:
     *       重新定位时保持打开时的方位、不做翻转（浮层内容例如尖角箭头与阴影是按该方位生成的），
     *       该侧空间不足时由定位逻辑把窗口夹持在显示器工作区内；
     *       锚点被滚动出窗口客户区或滚动容器（ScrollBox 及其派生类）的可视区域时，
-    *       浮层按 CloseReason::kAnchorLost 自动关闭
+    *       浮层窗口暂时隐藏（浮层对象与打开状态保留，不触发关闭回调），锚点重新可见后
+    *       自动按新位置恢复显示；因此滚动往返后浮层不会丢失
     */
     void SetFollowAnchor(bool bFollow);
     bool IsFollowAnchor() const;
@@ -257,6 +258,11 @@ private:
     */
     bool IsPointInAnchor(const UiPoint& ptScreen) const;
 
+    /** 判断屏幕坐标点是否落在"锚点所在滚动容器的滚动条"上
+    *   拖动/点击滚动条属于滚动操作，此时不应按"点击外部"关闭跟随锚点的浮层
+    */
+    bool IsPointOnAnchorScrollBar(const UiPoint& ptScreen) const;
+
 private:
     //父窗口（不持有引用，仅用于定位；父窗口销毁时本窗口作为其 owned window 一并销毁）
     Window* m_pParentWindow;
@@ -285,8 +291,11 @@ private:
     //鼠标落在窗口阴影区域时是否穿透到浮层下面的窗口
     bool m_bShadowClickThrough;
 
-    //是否跟随锚点移动（锚点位移时重新定位，滚出可视区域时关闭）
+    //是否跟随锚点移动（锚点位移时重新定位，滚出可视区域时暂时隐藏窗口）
     bool m_bFollowAnchor;
+
+    //浮层窗口是否因锚点不可见而暂时隐藏（锚点重新可见后恢复显示）
+    bool m_bAnchorSuspended;
 
     //上一次记录的锚点屏幕矩形（物理像素），用于检测锚点是否发生位移
     UiRect m_rcAnchorScreenLast;

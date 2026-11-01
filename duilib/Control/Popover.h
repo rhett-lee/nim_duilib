@@ -60,6 +60,8 @@ enum class PopoverCloseReason : uint32_t
  *  - trigger="focus"：锚点获得焦点打开，失去焦点关闭；
  *  - trigger="manual"：仅 Show()/Hide()/Toggle() 生效。
  *  卡片显示期间不抢焦点（WS_EX_NOACTIVATE），锚点所在窗口保持可操作。
+ *  锚点位于滚动容器内时，卡片随锚点位置移动；锚点被滚出可视区域时卡片窗口暂时隐藏
+ *  （打开状态保留），锚点重新可见后自动恢复显示。
  *
  *  XML 属性（除 Label 通用属性外）：
  *    title          卡片标题（字面文本，可省略）

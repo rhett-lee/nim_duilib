@@ -2347,7 +2347,7 @@ Flyout是通用浮层（弹出卡片）窗口，继承自WindowImplBase，对应
 | `SetClickOutsideDismiss(bool)` / `IsClickOutsideDismiss()` | "点击浮层外部"是否关闭，默认true（Esc仍由`SetAutoDismiss`控制）；受控场景可关闭，避免鼠标按在外部按钮上时浮层先被关闭 |
 | `SetShadowClickThrough(bool)` / `IsShadowClickThrough()` | 鼠标落在窗口阴影区域时是否穿透给下层窗口（仅Windows平台），默认true |
 | `GetVisualRect(rcVisual)` / `IsPointInVisualArea(pt)` | 获取/判断浮层的可视区域（屏幕物理像素，已扣除窗口阴影） |
-| `SetFollowAnchor(bool)` / `IsFollowAnchor()` | 是否跟随锚点移动，默认false。开启后按约50ms周期检测锚点位置：锚点因滚动/布局变化位移时浮层重新定位（保持打开时的方位、不翻转，空间不足时夹持在工作区内），锚点被滚出窗口客户区或滚动容器（`ScrollBox`）可视区域时按`kAnchorLost`关闭 |
+| `SetFollowAnchor(bool)` / `IsFollowAnchor()` | 是否跟随锚点移动，默认false。开启后按约50ms周期检测锚点位置：锚点因滚动/布局变化位移时浮层重新定位（保持打开时的方位、不翻转，空间不足时夹持在工作区内）；锚点被滚出窗口客户区或滚动容器（`ScrollBox`）可视区域时浮层窗口暂时隐藏（对象与打开状态保留、不触发关闭回调），锚点重新可见后按新位置恢复显示；开启后按下"锚点所在滚动容器的滚动条"视为滚动操作，不按点击外部关闭 |
 | `IsAnchorVisible()` | 判断锚点控件当前是否可见（未被窗口客户区或滚动容器裁剪掉） |
 | `UpdateAnchorPosition()` | 按锚点当前位置重新定位浮层（复用当前窗口，同时触发`AttachLayouted`回调）；返回实际方位是否发生变化 |
 | `SetNoFocus(bool)` / `IsNoFocus()` | 是否不抢焦点，默认true；设为false后通过失去焦点感知外部点击 |
@@ -2601,7 +2601,8 @@ pPopover->AttachOpenChanged([pAnchor](const ui::EventArgs& args) {
 - `trigger="hover"`的关闭判定基于"光标是否仍在锚点或卡片可视区域内"（不含卡片窗口的阴影），因此鼠标可以从锚点移入卡片继续交互，移出则按`close_delay`关闭；
 - 不抢焦点模式下，非Windows平台无法检测外部点击（与`Flyout`的限制一致），此时请用`trigger="manual"`或`auto_dismiss="false"`自行控制关闭；
 - `trigger="manual"`（受控模式）下，"点击外部关闭"默认不生效：否则鼠标按在外部受控按钮的那一刻卡片会先被关闭，该按钮的`Click`逻辑会读到错误的打开状态（表现为`Toggle()`永远打开卡片、重建卡片不生效）。需要外部点击关闭时显式设置`auto_dismiss="true"`；
-- 锚点位于滚动容器内时，卡片位置自动扣除各级滚动偏移；卡片跟随锚点（`SetFollowAnchor(true)`）：滚动容器滚动或锚点因布局变化位移时，约50ms内卡片自动重新定位、尖角继续保持指向锚点中心（保持打开时的方位不翻转，空间不足时夹持在屏幕工作区内）；锚点被滚出滚动区域（窗口客户区或`ScrollBox`可视区域）时，卡片按`kAnchorLost`自动关闭。
+- 锚点位于滚动容器内时，卡片位置自动扣除各级滚动偏移；卡片跟随锚点（`SetFollowAnchor(true)`）：滚动容器滚动或锚点因布局变化位移时，约50ms内卡片自动重新定位、尖角继续保持指向锚点中心（保持打开时的方位不翻转，空间不足时夹持在屏幕工作区内）；锚点被滚出滚动区域（窗口客户区或`ScrollBox`可视区域）时卡片窗口暂时隐藏（`IsOpen()`仍为true），锚点重新可见后按新位置恢复显示，因此滚动往返后卡片不会丢失；拖动/点击锚点所在滚动容器的滚动条属于滚动操作，不会因"点击外部"关闭卡片；
+- `trigger="focus"`的锚点在已持有键盘焦点时再次点击仍可打开卡片（点击已获得焦点的控件不会再触发获得焦点事件，控件内部按"未打开+已聚焦"补充打开）。
 
 完整演示见controls示例（"Popover"分组，与Ant Design的示例结构一一对应：基本用法、三种触发方式、12个位置、受控模式Show/Hide/Toggle、复杂内容与"从浮层内关闭"）。
 

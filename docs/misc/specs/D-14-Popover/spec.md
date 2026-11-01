@@ -262,7 +262,7 @@ antd 的 Popover 卡片在朝向锚点的那条边上带一个尖角（arrow）�
 该修复对 `bkimage` / `shadow_image` 等所有经 `ImageAttribute::ModifyAttribute()` 解析的 `corner` 生效，
 对称 `corner` 的行为不变。
 
-#### 3.9.2 跟随锚点与滚出可视区域时关闭（T15）
+#### 3.9.2 跟随锚点与滚出可视区域时的挂起/恢复（T15 / T16）
 
 实测：卡片打开后滚动窗口滚动条（锚点位于 `ScrollBox` 内），锚点在屏幕上移动（例如从 y≈200 移到 y≈115），
 但卡片停在原位置，尖角随之指向了错误的地方；继续滚动后锚点被滚出滚动区域，卡片仍留在屏幕上。
@@ -279,17 +279,35 @@ antd 的 Popover 卡片在朝向锚点的那条边上带一个尖角（arrow）�
      显示器工作区内；
    - `AttachLayouted` 回调现在在重新定位后也会触发（由 `InvokeLayoutCallbacks()` 统一派发），
      于是 `Popover::PositionCardArrow()` 会用新的锚点中心重新摆放尖角，尖角始终指向锚点。
-2. **锚点滚出可视区域时关闭**：`Flyout` 新增 `IsAnchorVisible()` —— 把锚点在窗口客户区视觉坐标下的
-   矩形依次与窗口客户区、以及每一级 `ScrollBox`（含派生类）祖先的可视矩形求交，交集为空即视为不可见；
-   tick 中判定不可见就按 `CloseReason::kAnchorLost` 关闭浮层（`Popover` 侧表现为关闭事件 +
-   关闭原因"锚点失效"），避免卡片继续指向一个已经看不到的控件。
+2. **锚点滚出可视区域时挂起、重新可见后恢复（T16）**：`Flyout` 新增 `IsAnchorVisible()` —— 把锚点在
+   窗口客户区视觉坐标下的矩形依次与窗口客户区、以及每一级 `ScrollBox`（含派生类）祖先的可视矩形求交，
+   交集为空即视为不可见。T15 的做法是直接按 `CloseReason::kAnchorLost` 关闭浮层，实测不符合预期：
+   - 滚出后滚回，卡片不再出现（焦点仍持有的锚点本应继续显示卡片）；
+   - 关闭后即使锚点重新可见，再次点击（`trigger="focus"` 的锚点已持有键盘焦点，点击不再触发
+     `OnSetFocus`）也无法打开卡片，表现为"多次点击都没有浮层"。
+
+   改为**挂起/恢复**：锚点不可见时只把浮层窗口隐藏（`ShowWindow(kSW_HIDE)`，新增成员
+   `m_bAnchorSuspended`），浮层对象、打开状态与关闭回调都不受影响；锚点重新可见时先
+   `UpdateAnchorPosition()`（按新位置定位、刷新尖角）再 `ShowWindow(kSW_SHOW_NA / kSW_SHOW_NORMAL)`
+   恢复显示，避免"先显示后跳动"。同时：
+   - `OnDetectTick()` 的"窗口失效"判定跳过主动隐藏的挂起状态
+     （`(!m_bAnchorSuspended && !IsWindowVisible())`），否则挂起后立刻会被当成窗口失效而关闭；
+   - `CloseReason::kAnchorLost` 仍用于窗口/父窗口销毁、隐藏、最小化与锚点控件销毁等真实失效场景；
+   - `Popover::ButtonUp()` 补充焦点触发分支：`trigger="focus"` 且卡片未打开、锚点已持有焦点时再次点击
+     锚点直接 `Show()`（卡片此前因点击外部/Esc 等原因关闭后，用户仍能通过点击恢复）；
+   - `OnDetectTick()` 的"点击外部"判定增加**滚动条例外**（`IsPointOnAnchorScrollBar()`）：按下落在
+     "锚点所在滚动容器的滚动条"上时视为滚动操作，不按点击外部关闭（否则拖动滚动条会把正在跟随的卡片
+     关掉）。实现为 `Window::FindControl()` 定位光标下的控件（屏幕物理坐标 → 客户区布局坐标），
+     判定 `dynamic_cast<ScrollBar*>` 后确认其父控件（即所属 `ScrollBox`）位于锚点的祖先链中；
+     该例外仅在使用跟随（`m_bFollowAnchor` 为 `true`）时生效，普通 `Flyout` 的点击外部行为不变。
 
 同时把轮询任务的启动时机从"仅 no-focus 模式"放宽为 `m_bNoFocus || m_bFollowAnchor`
 （`StartDetectTimer()` 的 `PostDelayedTask` 移出 Windows 宏，Windows 专用的按键状态初始化仍在宏内），
 使跟随能力在非 Windows 平台也可用；Windows 的"外部点击检测"逻辑本身不变。
 
 已知限制：跟随是周期轮询（约 50 ms），滚动时卡片会有轻微的跟随延迟；卡片内控件动态增减导致的重排
-仍不会重新定位尖角（与 3.9 的已知限制一致）。
+仍不会重新定位尖角（与 3.9 的已知限制一致）；挂起期间点击卡片以外区域（`auto_dismiss` 生效时）
+仍会关闭卡片，之后不再随锚点回归而恢复。
 
 ## 4. 精确改动清单
 
@@ -425,6 +443,7 @@ antd 的 Popover 卡片在朝向锚点的那条边上带一个尖角（arrow）�
 | `docs/Control.md` | Flyout 章节之后新增 `## Popover 控件（气泡卡片）`；Flyout 的 `Placement` 枚举行补 4 个新值 |
 | `docs/Control.en.md` | 新增 `## Popover Control (bubble card)`；同步 `Placement` 枚举行 |
 | `docs/Summary.md` / `.en.md` | 控件表新增一行（锚点指向新章节） |
+| `docs/Differences.md` / `docs/Differences.en.md` | "3. 新增控件/容器"表格追加 `Popover` 行（序号 53），中英同步（新增控件的固定动作） |
 | `README.md` / `README.en.md` | 功能列表条目 |
 | `.trae/skills/nim-duilib/references/api-reference.md` | 速查行 + 属性小节 |
 | `.workbuddy/skills/nim-duilib/references/api-reference.md` | 与 `.trae` 版本同文本覆盖 |

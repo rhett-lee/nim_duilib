@@ -2,6 +2,7 @@
 #include "duilib/Core/Box.h"
 #include "duilib/Core/Control.h"
 #include "duilib/Box/ScrollBox.h"
+#include "duilib/Core/ScrollBar.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/WindowCreateParam.h"
 #include "duilib/Core/WindowMessage.h"
@@ -77,6 +78,7 @@ Flyout::Flyout(Window* pParentWindow) :
     m_bClickOutsideDismiss(true),
     m_bShadowClickThrough(true),
     m_bFollowAnchor(false),
+    m_bAnchorSuspended(false),
     m_bNoFocus(true),
     m_nGap(6),
     m_bAllowFlip(true),
@@ -129,6 +131,7 @@ bool Flyout::ShowAt(Control* pAnchor, const DString& xmlFile, Placement placemen
     m_actualPlacement = placement;
     m_bClosing = false;
     m_bOpen = false;
+    m_bAnchorSuspended = false;
 
     //不抢焦点模式下，记录创建浮层前父窗口是否处于前台：
     //浮层窗口的创建过程可能使其意外成为前台窗口，从而使父窗口失去激活状态与键盘焦点
@@ -557,6 +560,42 @@ bool Flyout::IsPointInAnchor(const UiPoint& ptScreen) const
     return rcAnchor.ContainsPt(ptScreen);
 }
 
+bool Flyout::IsPointOnAnchorScrollBar(const UiPoint& ptScreen) const
+{
+    if ((m_pParentWindow == nullptr) || (m_pAnchor == nullptr)) {
+        return false;
+    }
+    Control* pAnchor = m_pAnchor.get();
+    if (pAnchor == nullptr) {
+        return false;
+    }
+
+    //屏幕物理坐标 -> 父窗口客户区布局坐标（与 FindControl 的入参坐标系一致）
+    UiPoint ptClient = ptScreen;
+    m_pParentWindow->ScreenToClient(ptClient);
+    m_pParentWindow->Dpi().WindowSizeToClientSize(ptClient);
+    Control* pControl = m_pParentWindow->FindControl(ptClient);
+    if (pControl == nullptr) {
+        return false;
+    }
+
+    //鼠标落点必须在滚动条上；滚动条的父控件即它所属的滚动容器
+    Control* pScrollBox = pControl->GetParent();
+    if ((dynamic_cast<ScrollBar*>(pControl) == nullptr) || (pScrollBox == nullptr)) {
+        return false;
+    }
+
+    //该滚动容器必须是锚点的祖先，才属于"锚点所在滚动容器"的滚动条
+    Control* pParent = pAnchor->GetParent();
+    while (pParent != nullptr) {
+        if (pParent == pScrollBox) {
+            return true;
+        }
+        pParent = pParent->GetParent();
+    }
+    return false;
+}
+
 void Flyout::PositionAroundAnchor()
 {
     Box* pRoot = GetRoot();
@@ -779,7 +818,8 @@ void Flyout::OnDetectTick()
     }
 
     //窗口或父窗口失效（销毁/隐藏/最小化）时关闭
-    if (!IsWindow() || !IsWindowVisible()) {
+    //（因锚点不可见而挂起时，窗口是本模块主动隐藏的，不能按"窗口失效"关闭）
+    if (!IsWindow() || (!m_bAnchorSuspended && !IsWindowVisible())) {
         DoClose(CloseReason::kAnchorLost);
         return;
     }
@@ -795,21 +835,32 @@ void Flyout::OnDetectTick()
         return;
     }
 
-    //跟随锚点：锚点因滚动/布局变化而位移时重新定位浮层；锚点被裁剪（滚出可视区域）时关闭
+    //跟随锚点：锚点因滚动/布局变化而位移时重新定位浮层；锚点被裁剪（滚出可视区域）时挂起浮层
     if (m_bFollowAnchor) {
         if (!IsAnchorVisible()) {
-            //锚点已不可见（例如被滚出滚动容器的可视区域）：浮层没有可指向的锚点，直接关闭
-            DoClose(CloseReason::kAnchorLost);
-            return;
+            //锚点已不可见（例如被滚出滚动容器的可视区域）：暂时隐藏浮层窗口，但保留浮层对象与打开状态；
+            //锚点重新可见后自动恢复显示（若在此直接关闭，滚回后卡片不会重新出现，状态也会与用户预期不一致）
+            if (!m_bAnchorSuspended) {
+                m_bAnchorSuspended = true;
+                ShowWindow(kSW_HIDE);
+            }
         }
-        UiRect rcAnchorNow;
-        if (GetAnchorScreenRect(rcAnchorNow, true) && (rcAnchorNow != m_rcAnchorScreenLast)) {
-            //重新定位时保持打开时的方位、不做翻转：浮层内容（例如尖角箭头与阴影）是按该方位生成的，
-            //翻转到另一侧会与内容不一致；方位这一侧空间不足时由 PositionAroundAnchor 夹持到工作区内
-            const bool bAllowFlipOld = m_bAllowFlip;
-            m_bAllowFlip = false;
+        else if (m_bAnchorSuspended) {
+            //锚点重新可见：先按新位置重新定位，再显示窗口，避免"先显示后跳动"
+            m_bAnchorSuspended = false;
             UpdateAnchorPosition();
-            m_bAllowFlip = bAllowFlipOld;
+            ShowWindow(m_bNoFocus ? kSW_SHOW_NA : kSW_SHOW_NORMAL);
+        }
+        else {
+            UiRect rcAnchorNow;
+            if (GetAnchorScreenRect(rcAnchorNow, true) && (rcAnchorNow != m_rcAnchorScreenLast)) {
+                //重新定位时保持打开时的方位、不做翻转：浮层内容（例如尖角箭头与阴影）是按该方位生成的，
+                //翻转到另一侧会与内容不一致；方位这一侧空间不足时由 PositionAroundAnchor 夹持到工作区内
+                const bool bAllowFlipOld = m_bAllowFlip;
+                m_bAllowFlip = false;
+                UpdateAnchorPosition();
+                m_bAllowFlip = bAllowFlipOld;
+            }
         }
     }
 
@@ -832,8 +883,13 @@ void Flyout::OnDetectTick()
             const bool bInsideFlyout = rcVisual.ContainsPt(ptCursor);
 
             if (!bInsideFlyout && !IsPointInAnchor(ptCursor)) {
-                DoClose(CloseReason::kClickOutside);
-                return;
+                //跟随锚点时，按下落在"锚点所在滚动容器的滚动条"上属于滚动操作（滚动过程中浮层会跟随锚点移动），
+                //此时不按"点击外部"关闭，否则拖动滚动条会把正在跟随的卡片关掉
+                const bool bScrollOperation = m_bFollowAnchor && IsPointOnAnchorScrollBar(ptCursor);
+                if (!bScrollOperation) {
+                    DoClose(CloseReason::kClickOutside);
+                    return;
+                }
             }
         }
 

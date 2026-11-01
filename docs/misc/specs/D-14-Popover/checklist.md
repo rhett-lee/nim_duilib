@@ -62,9 +62,19 @@
 - [x] 布局完成回调可重复触发：`AttachLayouted()` 的回调改由 `InvokeLayoutCallbacks()` 统一派发，
       `OnInitLayout()`（首帧）与 `UpdateAnchorPosition()`（重定位后）都会触发，`Popover::PositionCardArrow()`
       因此按新的锚点中心重新定位尖角。
-- [x] `OnDetectTick()` 的跟随分支（约 50ms）：锚点不可见 → `DoClose(CloseReason::kAnchorLost)`；
+- [x] `OnDetectTick()` 的跟随分支（约 50ms）：锚点不可见 → 挂起（`ShowWindow(kSW_HIDE)`，见 T16）；
       锚点屏幕矩形变化 → 临时 `m_bAllowFlip = false` 后 `UpdateAnchorPosition()`（保持打开时的方位，
       该侧空间不足时由定位逻辑夹持到显示器工作区），避免滚动时卡片突然翻转或消失。
+- [x] 挂起/恢复（T16）：`Flyout` 新增成员 `m_bAnchorSuspended`；锚点不可见时不再关闭，而是隐藏浮层窗口
+      （对象、打开状态与关闭回调都不变），锚点重新可见时先 `UpdateAnchorPosition()` 再
+      `ShowWindow(m_bNoFocus ? kSW_SHOW_NA : kSW_SHOW_NORMAL)` 恢复显示（不会出现"先显示后跳动"）。
+- [x] 挂起状态的窗口失效判定：`OnDetectTick()` 改为 `!IsWindow() || (!m_bAnchorSuspended && !IsWindowVisible())`，
+      避免主动隐藏的窗口被当成"窗口失效"而关闭；`kAnchorLost` 仍用于窗口/父窗口失效与锚点销毁。
+- [x] `Popover::ButtonUp()` 补焦点触发分支：`trigger="focus"` 且卡片未打开、锚点已持有焦点时点击锚点直接
+      `Show()`（点击已聚焦控件不会再触发 `OnSetFocus`）；点击触发的 `Toggle()` 逻辑不变。
+- [x] 滚动条例外（T16）：`Flyout` 新增 `IsPointOnAnchorScrollBar()`（`Window::FindControl()` 定位光标下的控件，
+      判 `dynamic_cast<ScrollBar*>` 且其所属 `ScrollBox` 在锚点祖先链中）；开启跟随时按在该滚动条上视为滚动操作，
+      不按点击外部关闭（普通 `Flyout` 的点击外部行为不变）。
 - [x] `StartDetectTimer()` 的 `PostDelayedTask` 移出 Windows 宏（跨平台可用），启动条件放宽为
       `m_bNoFocus || m_bFollowAnchor`；`Popover::Show()` 打开卡片时调用 `SetFollowAnchor(true)`。
 
@@ -114,6 +124,8 @@
 - [x] `docs/Control.en.md` 新增对应英文章节（锚点 `#popover-control-bubble-card`），内容与中文版保持一致。
 - [x] `docs/Control*.md` 的 `Flyout::Placement` 枚举行补全 4 个新值。
 - [x] `docs/Summary.md` / `Summary.en.md` 新增 Popover 行与有效锚点。
+- [x] `docs/Differences.md` / `Differences.en.md` 的"3. 新增控件/容器"表格追加 `Popover` 行（序号 53，中英同步）；
+      同时把"新增控件必须登记该表"写入 `.trae` / `.workbuddy` 的 `references/new-control.md`（文档清单、一页检查清单、高频遗漏）。
 - [x] `docs/misc/specs/D-14-Popover/{spec,tasks,checklist}.md` 已创建并随示例改造更新（T9 / T10、6 个 Class、示例结构验收项）。
 - [x] `Development-Plan.md` P2 进展汇总、D 组表格 D-14 行、P2 任务行已回写。
 - [x] `Project-Audit.md` 的 B8（富内容 Tooltip）已注明改由 `Popover` 覆盖。
@@ -145,6 +157,8 @@
 - [x] T15 复查：`duilib.vcxproj` 与 `controls.vcxproj`（Debug|x64）在新增跟随锚点能力后重新编译，退出码均为 0。
 - [x] T15 复查：`verify_docs.py`（`--extra docs examples/controls bin/resources/themes/default/controls bin/resources/lang`）
       退出码 0；`git diff --check` 退出码 0。
+- [x] T16 复查：`duilib.vcxproj` 与 `controls.vcxproj`（Debug|x64）在改为"挂起/恢复"并补焦点触发分支后
+      重新编译，退出码均为 0；`verify_docs.py` 退出码 0；`git diff --check` 退出码 0；两份 api-reference 哈希一致。
 - [x] 未执行 `git commit`（由用户手动提交）。
 
 ## 7. 功能验收（手工）
@@ -210,10 +224,13 @@
 - [ ] 显示箭头时 `gap` 感觉为"尖角尖端到锚点"的距离（默认 6），箭头未插入锚点区域。
 - [ ] 100% / 150% / 200% DPI 下箭头宽度、压入卡片的 1 像素重叠区与箭头带比例正确（无错位、无空隙）。
 
-### 滚动跟随（T15）
+### 滚动跟随（T15 / T16）
 - [ ] 卡片打开后滚动锚点所在的滚动容器（滚轮或拖动滚动条）：卡片在约 50ms 内跟随锚点重新定位，不出现明显脱节。
 - [ ] 跟随过程中尖角箭头仍指向锚点中心（水平方位对锚点中心 X、左右方位对锚点中心 Y），阴影与卡片边线不错位。
 - [ ] 跟随过程中卡片方位保持不变（不因锚点靠近边缘而翻转成另一侧），锚点滚到接近窗口边缘时卡片被夹持在显示器工作区内。
-- [ ] 锚点被滚出滚动容器的可视区域（或滚出窗口客户区）后，卡片按"锚点失效"自动关闭，不残留浮层窗口。
-- [ ] 状态文本 / `AttachOpenChanged` 在自动关闭时回显的关闭原因为 `kAnchorLost`（`wParam == 0`），后续点击可正常重新打开。
-- [ ] 卡片不随锚点滚动时误触发重复的打开事件；反复滚动、滚出、重新打开均不崩溃、不出现悬垂回调。
+- [ ] 锚点被滚出滚动容器的可视区域（或滚出窗口客户区）后，卡片窗口暂时隐藏，`IsOpen()` 仍为 `true`，不派发关闭事件。
+- [ ] 反向滚动、锚点重新可见后，卡片自动按新位置恢复显示（尖角仍指向锚点中心），无需重新点击锚点。
+- [ ] `trigger="focus"` 的锚点在持有键盘焦点时再次点击能够打开卡片（此前因点击外部/Esc 关闭后仍可恢复）。
+- [ ] 拖动/点击锚点所在滚动容器的滚动条时卡片不关闭（视为滚动操作），滚动过程中卡片持续跟随锚点。
+- [ ] 挂起期间点击卡片以外区域（`auto_dismiss` 生效）会关闭卡片，之后滚回锚点不再自动恢复（符合点击外部关闭的语义）。
+- [ ] 反复滚动、滚出、滚回、重新打开均不崩溃；不出现重复的打开事件，也不出现悬垂回调。

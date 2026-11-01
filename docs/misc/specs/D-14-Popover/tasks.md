@@ -62,11 +62,25 @@
       `UpdateAnchorPosition()`（`PositionAroundAnchor()` + 触发 `AttachLayouted` 回调，返回实际方位是否变化）；
       ② `OnDetectTick()`（约 50ms）中比较 `GetAnchorScreenRect()` 与 `m_rcAnchorScreenLast`：位移则重新定位
       （重新定位时临时关闭翻转，保持打开时的方位，内容不足时由定位逻辑夹持工作区），锚点不可见则按
-      `CloseReason::kAnchorLost` 关闭；
+      `CloseReason::kAnchorLost` 关闭（该处置在 T16 改为"挂起/恢复"）；
       ③ 布局完成回调 `AttachLayouted` 改为由 `InvokeLayoutCallbacks()` 统一派发，首帧布局后与重新定位后都会触发，
       `Popover::PositionCardArrow()` 因此能用新的锚点中心重新定位尖角；
       ④ `StartDetectTimer()` 的轮询任务移出 Windows 宏，启动条件放宽为 `m_bNoFocus || m_bFollowAnchor`；
       `Popover::Show()` 打开卡片时调用 `SetFollowAnchor(true)`。
+      同步 Control.md / Control.en.md / 两份 api-reference / `.claude` 速查 / 本 spec / checklist。
+- [x] T16 修复 T15 的滚出处置不符合预期（滚出后滚回卡片不出现；关闭后 `trigger="focus"` 的锚点已持有焦点，
+      再次点击不触发 `OnSetFocus`，多次点击都没有浮层）：
+      ① `Flyout` 新增成员 `m_bAnchorSuspended`：锚点不可见时不再关闭，而是 `ShowWindow(kSW_HIDE)` 把浮层窗口
+      暂时隐藏（对象、打开状态、关闭回调都不变）；锚点重新可见时先 `UpdateAnchorPosition()` 定位、再
+      `ShowWindow(m_bNoFocus ? kSW_SHOW_NA : kSW_SHOW_NORMAL)` 恢复显示，避免"先显示后跳动"；
+      ② `OnDetectTick()` 的窗口失效判定改为 `!IsWindow() || (!m_bAnchorSuspended && !IsWindowVisible())`，
+      避免挂起窗口被当成"窗口失效"立刻关闭；`CloseReason::kAnchorLost` 仍保留给窗口/父窗口失效与锚点销毁；
+      ③ `Popover::ButtonUp()` 补焦点触发分支：`trigger="focus"` 且卡片未打开、锚点已持有焦点时，点击锚点直接
+      `Show()`（点击已聚焦控件不会再触发获得焦点事件）；点击触发的 `Toggle()` 逻辑不变；
+      ④ `Popover.h` 类注释补充"锚点滚出可视区域时卡片窗口暂时隐藏、重新可见后自动恢复"；
+      ⑤ 滚动条例外：`Flyout` 新增 `IsPointOnAnchorScrollBar()`（`Window::FindControl()` 定位光标下的控件，
+      `dynamic_cast<ScrollBar*>` 且其所属 `ScrollBox` 在锚点祖先链中即为真），`OnDetectTick()` 的点击外部判定在
+      "开启跟随 + 按在锚点所在滚动容器的滚动条上"时不关闭浮层，避免拖动滚动条把正在跟随的卡片关掉。
       同步 Control.md / Control.en.md / 两份 api-reference / `.claude` 速查 / 本 spec / checklist。
 
 > T8 的编译结果与文档校验记录见 `checklist.md` 第 6 节；验收剩下的手工运行项见第 7 节。
