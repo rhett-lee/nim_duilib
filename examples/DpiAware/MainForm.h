@@ -49,6 +49,12 @@ private:
     /** 刷新界面
     */
     void UpdateUI();
+
+    /** 设置指定名称 Label 的文本（控件不存在时忽略）
+    * @param [in] strName 控件名称
+    * @param [in] strText 需要显示的文本
+    */
+    void SetLabelText(const DString& strName, const DString& strText);
 };
 
 #endif //EXAMPLES_MAIN_FORM_H_

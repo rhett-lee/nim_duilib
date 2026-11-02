@@ -63,16 +63,25 @@ STRID_CHILDWINDOW_PAINT  = Paint
 STRID_CHILDWINDOW_FULLSCREEN  = Fullscreen
 
 # examples/DpiAware
-STRID_DPIAWARE_TITLE  = Examples of applications that support DPI awareness
-STRID_DPIAWARE_CURRENT_AWARENESS  = Current DPI awareness:
-STRID_DPIAWARE_CURRENT_DPI_SCALE  = Primary monitor display scale:
-STRID_DPIAWARE_WINDOW_DISPLAY_SCALE  = Window display scale:
-STRID_DPIAWARE_WINDOW_SIZE  = Window size:
-STRID_DPIAWARE_WINDOW_CLIENT_SIZE  = Window client size:
+STRID_DPIAWARE_TITLE  = DPI-aware application example (high-DPI support)
+STRID_DPIAWARE_CURRENT_AWARENESS  = DPI awareness
+STRID_DPIAWARE_CURRENT_DPI_SCALE  = Monitor scale
+STRID_DPIAWARE_WINDOW_DISPLAY_SCALE  = Window scale
+STRID_DPIAWARE_WINDOW_SIZE  = Window (px)
+STRID_DPIAWARE_WINDOW_CLIENT_SIZE  = Client (px)
 STRID_DPIAWARE_RICHTEXT  = RichText：<b>Bold, <font color="#FF0000">Red Font</font></b>
-STRID_DPIAWARE_MODIFY_DPI  = Adjust DPI scale (60-500):
-STRID_DPIAWARE_MODIFY_DPI_BTN  = DPI Scale
-STRID_DPIAWARE_NEW_WINDOW  = New Window
+STRID_DPIAWARE_MODIFY_DPI  = Display scale
+STRID_DPIAWARE_MODIFY_DPI_BTN  = Apply
+STRID_DPIAWARE_NEW_WINDOW  = New window
+STRID_DPIAWARE_CONTENT_SIZE  = Content (dip)
+STRID_DPIAWARE_RICHTEXT_TITLE  = Rich text scaling
+STRID_DPIAWARE_RICHTEXT_TIP  = Fonts, line spacing and markup all scale with DPI.
+STRID_DPIAWARE_IMAGE_TITLE  = Multi-resolution source
+STRID_DPIAWARE_IMAGE_TIP  = 8 sources from 100% to 300%; the closest one is used for the current scale. The number in the picture shows which source.
+STRID_DPIAWARE_AWARENESS_UNAWARE  = (DPI unaware)
+STRID_DPIAWARE_AWARENESS_SYSTEM  = (system aware)
+STRID_DPIAWARE_AWARENESS_PER_MONITOR  = (per-monitor aware)
+STRID_DPIAWARE_AWARENESS_PER_MONITOR_V2  = (per-monitor aware V2)
 
 # examples/ListBox
 STRID_LISTBOX_TITLE  = ListBox

@@ -71,7 +71,7 @@ Code entry: [MainThread.cpp](../examples/MultiLang/MainThread.cpp), [MainForm.cp
 <img width="432" src="./Images/MultiLang.png"/>
 
 ## 13. examples/DpiAware
-A program demonstrating how to use the DPI awareness feature and how to dynamically set the window's DPI.    
+A program demonstrating how to use the DPI awareness feature and how to dynamically set the window's DPI: the layout shows the DPI awareness mode, the monitor and window scale factors, and the window (physical pixels) versus content area (logical pixels) sizes; the right-hand panel demonstrates how the framework automatically picks the closest source image when 8 variants from 100% to 300% are provided; the bottom bar dynamically changes the display scale (60-500) and can open extra windows for comparison.    
 Code entry: [MainThread.cpp](../examples/DpiAware/MainThread.cpp), [MainForm.cpp](../examples/DpiAware/MainForm.cpp); skin resources: `bin/resources/themes/default/dpi_aware/DpiAware.xml`; related docs: the Window C++ interfaces (DPI-related) in [Window.en.md](Window.en.md).    
 <img width="700" src="./Images/DpiAware.png"/>
 

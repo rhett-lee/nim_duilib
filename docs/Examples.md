@@ -69,7 +69,7 @@ macOS 下默认编译为 `bin/basic.app`，C++ 代码无需修改；配置方法
 <img width="432" src="./Images/MultiLang.png"/>
 
 ## 13. examples/DpiAware
-演示如何使用DPI感知功能，如何动态设置窗口的DPI。    
+演示如何使用DPI感知功能，如何动态设置窗口的DPI：界面分栏展示 DPI 感知模式、主显示器与窗口的缩放百分比、窗口（物理像素）与内容区（逻辑像素）的大小；右侧演示同一张图片准备 100%~300% 共 8 份图源时，框架如何按当前缩放自动选用最接近的一份；底部可输入 60~500 的比例动态修改界面缩放，也可新建窗口做对比。    
 代码入口：[MainThread.cpp](../examples/DpiAware/MainThread.cpp)、[MainForm.cpp](../examples/DpiAware/MainForm.cpp)；界面资源：`bin/resources/themes/default/dpi_aware/DpiAware.xml`；相关文档：[Window.md](Window.md) 中的窗口 C++ 接口（DPI 相关）。    
 <img width="700" src="./Images/DpiAware.png"/>
 
