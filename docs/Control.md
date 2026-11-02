@@ -3712,16 +3712,33 @@ ui::ColorPicker* pColorPicker = new ui::ColorPicker;
 ui::WindowCreateParam createParam;
 createParam.m_dwStyle = ui::kWS_POPUP;
 createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-createParam.m_bCenterWindow = true;
+// 默认按创建参数决定是否居中（m_bCenterWindow 的语义见 Window 文档），窗口定位沿用原有逻辑
 pColorPicker->CreateWnd(this, createParam);   // 非模态窗口，随后可调用 ShowModalFake()
 // pColorPicker->DoModal(this, createParam); // 模态窗口
 ```
+
+窗口在创建时**默认不会**自动调整位置，完全按创建参数（如 `m_bCenterWindow`）决定定位，以保持对其他调用方（如 PropertyGrid 颜色属性、`examples/controls` 示例）的原有行为不变。
+
+如果希望窗口自动贴到父窗口旁边显示、**避免完全遮挡父窗口**，可在 `CreateWnd` 之前调用 `SetAdjustWindowPos(true)` 开启该开关（仅示例程序 `examples/ColorPicker` 开启了此开关）：
+
+```cpp
+pColorPicker->SetAdjustWindowPos(true);       // 开启"不遮挡父窗口"的贴边定位
+createParam.m_bCenterWindow = false;          // 同时关闭居中，使贴边定位成为最终位置、避免先居中再移开的闪烁
+pColorPicker->CreateWnd(this, createParam);
+```
+
+开启后，窗口会自动贴到父窗口旁边：优先放在右侧，右侧放不下时放左侧；
+当父窗口居中、两侧都不足以完整放下本窗口时，会先把父窗口向左挪动一小段距离、再放在其右侧，
+从而做到**完全不遮挡**父窗口（仅在父窗口居中且空间偏窄时才会触发，属于最小幅度位移；屏幕过小时则贴到工作区边缘、尽量少遮挡）。
+注意：开启开关时必须把 `m_bCenterWindow` 设为 `false`，否则框架会在窗口创建完成后再居中一次，
+调色板随后会再校正一次位置（表现为窗口先出现在中间、再移到旁边）。
 
 主要接口：
 
 | 接口 | 说明 |
 | :--- | :--- |
-| SetSelectedColor / GetSelectedColor | 设置初始颜色 / 获取最终选择的颜色 |
+| SetAdjustWindowPos | 设置是否开启"不遮挡父窗口"的贴边定位（默认 `false`，沿用原有定位逻辑；设为 `true` 时窗口创建后会贴到父窗口旁边显示，避免遮挡父窗口内容） |
+| SetSelectedColor / GetSelectedColor | 设置初始颜色（可在窗口创建前调用，创建完成后自动应用） / 获取最终选择的颜色 |
 | AttachSelectColor | 颜色变化回调，`wParam` 为新颜色、`lParam` 为旧颜色（可用 `UiColor((uint32_t)wParam)` 转换） |
 | AttachWindowClose | 窗口关闭回调，`wParam` 为关闭方式（`kWindowCloseNormal`、`kWindowCloseOK`、`kWindowCloseCancel`） |
 

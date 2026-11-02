@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="560,430" min_size="480,360" caption="0,0,0,36" shadow_attached="true" size_box="4,4,4,4">
+    <VBox bkcolor="bg_window_main" visible="true">
+        <!-- 标题栏区域 -->
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <Label name="title" text_id="STRID_COLORPICKER_DEMO_TITLE" font="system_regular_14" width="100%" height="100%" mouse_enabled="false" text_padding="10,0,0,0" text_align="vcenter"/>
+            <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
+            <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>
+            <Button class="btn_wnd_min_11" height="32" width="40" name="btn_window_min" margin="0,2,0,2"/>
+            <Box height="stretch" width="40" margin="0,2,0,2">
+                <Button class="btn_wnd_max_11" height="32" width="stretch" name="btn_window_max"/>
+                <Button class="btn_wnd_restore_11" height="32" width="stretch" name="btn_window_restore" visible="false"/>
+            </Box>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+        </HBox>
+
+        <VBox width="stretch" height="stretch" padding="16,14,16,14">
+            <!-- 当前颜色 -->
+            <HBox width="stretch" height="auto" bkcolor="bg_window_card"
+                  border_size="1" border_color="border_control_normal" border_round="8,8"
+                  padding="14,12,14,12">
+                <Control name="color_block" width="88" height="88" bkcolor="bg_container"
+                         border_size="1" border_color="border_control_normal" border_round="8,8"
+                         valign="center" mouse_enabled="false"/>
+                <VBox width="stretch" height="auto" margin="14,0,0,0" valign="center">
+                    <Label text_id="STRID_COLORPICKER_DEMO_CURRENT" width="stretch" height="auto"
+                           font="system_regular_12" text_color="color_gray" text_align="left,vcenter"/>
+                    <Label name="color_text" text="#FFFFFFFF" width="stretch" height="auto"
+                           font="system_bold_16" text_align="left,vcenter" margin="0,2,0,0"/>
+                    <Label name="color_rgba" text="-" width="stretch" height="auto"
+                           font="system_regular_12" text_color="color_gray"
+                           text_align="left,vcenter" margin="0,2,0,0"/>
+                    <Button class="btn_global_blue_80x30" name="open_picker" height="30" width="120"
+                            text_id="STRID_COLORPICKER_DEMO_OPEN" halign="left" margin="0,10,0,0"/>
+                </VBox>
+            </HBox>
+
+            <!-- 事件日志 -->
+            <HBox width="stretch" height="28" margin="0,12,0,0">
+                <Label text_id="STRID_COLORPICKER_DEMO_LOG" width="auto" height="100%" text_align="left,vcenter"/>
+                <Control width="stretch" mouse_enabled="false"/>
+                <Button class="btn_global" name="clear_log" text_id="STRID_COLORPICKER_DEMO_CLEAR" width="72" height="26"/>
+            </HBox>
+            <RichEdit class="simple simple_border" name="log_view" text_align="left,top" width="stretch" height="stretch"
+                      hide_selection="true" multi_line="true" vscrollbar="true" auto_vscroll="true" hscrollbar="false" word_wrap="true"
+                      want_return_msg="true" rich_text="false" default_context_menu="true" margin="0,6,0,0"/>
+
+            <!-- 提示行按 3 行预留高度：英文文案比中文长，2 行会被截断 -->
+            <Label text_id="STRID_COLORPICKER_DEMO_HINT" width="stretch" height="50" multi_line="true"
+                   font="system_regular_12" text_color="color_gray" text_align="left,top" margin="0,8,0,0"/>
+        </VBox>
+    </VBox>
+</Window>

@@ -188,6 +188,7 @@
     <Manifest />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="MainForm.h" />
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
@@ -200,6 +201,7 @@
     <Image Include="ColorPicker.ico" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="MainForm.cpp" />
     <ClCompile Include="MainThread.cpp" />
     <ClCompile Include="main_windows.cpp" />
     <ClCompile Include="TestApplication.cpp" />

@@ -13,8 +13,8 @@ Code entry: [MainThread.cpp](../examples/basic/MainThread.cpp), [MainForm.cpp](.
 <img width="700" src="./Images/basic.png"/>
 
 ## 2. examples/ColorPicker
-A program demonstrating how to use the color picker control.    
-Code entry: [MainThread.cpp](../examples/ColorPicker/MainThread.cpp); skin resources: `bin/resources/themes/default/public/color/color_picker.xml` (the color picker is a standalone window and its skin folder is `public`); related docs: the ColorPicker section in [Control.en.md](Control.en.md).    
+A program demonstrating how to use the color picker control: the main window shows the current color (swatch, #AARRGGBB and the R/G/B/A components); the "Open picker" button opens the real color picker, AttachSelectColor previews the color while dragging, and AttachWindowClose delivers the final color only on OK (Cancel or Esc discards it); an event log records every callback.    
+Code entry: [MainThread.cpp](../examples/ColorPicker/MainThread.cpp), [MainForm.cpp](../examples/ColorPicker/MainForm.cpp); skin resources: `bin/resources/themes/default/color_picker_demo/ColorPickerDemo.xml` (demo window) and `bin/resources/themes/default/public/color/color_picker.xml` (the color picker itself is a standalone window whose skin folder is `public`); related docs: the ColorPicker section in [Control.en.md](Control.en.md).    
 <img width="700" src="./Images/ColorPicker.png"/>
 
 ## 3. examples/controls

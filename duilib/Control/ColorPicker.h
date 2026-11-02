@@ -31,6 +31,9 @@ public:
 
 public:
     /** 设置所选颜色
+    * @param[in] color 需要显示的颜色
+    * 说明：该接口既可以在窗口创建之前调用，也可以在窗口创建之后调用；
+    *       在窗口创建之前调用时，颜色值会暂存，在窗口创建完成(OnInitWindow)后再应用。
     */
     void SetSelectedColor(const UiColor& color);
 
@@ -55,6 +58,15 @@ public:
      */
     void AttachWindowClose(const EventCallback& callback);
 
+    /** 设置是否在窗口创建时自动调整位置，避免完全遮挡父窗口
+    * @param[in] bAdjust 是否启用"不遮挡父窗口"的贴边定位：
+    *             true  - 窗口创建后会自动贴到父窗口的右侧或左侧显示，避免遮挡父窗口内容；
+    *             false - 默认值，沿用原有逻辑（按创建参数决定是否居中显示），不改变窗口定位。
+    *   说明：默认关闭，避免影响 ColorPicker 的其他调用方（如 PropertyGrid 颜色属性）；
+    *        仅示例程序 ColorPickerDemo 显式开启本开关。
+    */
+    void SetAdjustWindowPos(bool bAdjust);
+
 protected:
     /** 当要创建的控件不是标准的控件名称时会调用该函数
     * @param [in] strClass 控件名称
@@ -75,9 +87,37 @@ private:
     */
     virtual LRESULT OnWindowCloseMsg(uint32_t wParam, const NativeMsg& nativeMsg, bool& bHandled) override;
 
+    /** 键盘按下消息（WM_KEYDOWN）
+    *   用于支持对话框的常用键盘操作：Esc 取消、Enter 确认
+    * @param [in] vkCode 虚拟键盘代码
+    * @param [in] modifierKey 按键状态键(Shift, Ctrl, Alt等，不包括左右键)
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
+
     /** 内部选择了新颜色
     */
     void OnSelectColor(const UiColor& newColor);
+
+    /** 调整窗口位置，避免完全遮挡父窗口
+    *   窗口创建时默认在父窗口上居中显示，会盖住父窗口的内容；
+    *   这里改为优先贴在父窗口的右侧或左侧显示，两侧都放不下时贴到工作区边缘，
+    *   父窗口不存在时保持原有位置不变。
+    */
+    void AdjustWindowPos();
+
+    /** 把颜色应用到"新颜色"和"原颜色"两个预览控件，以及各个选色控件
+    * @param[in] color 需要显示的颜色
+    */
+    void ApplyColor(const UiColor& color);
+
+    /** 设置颜色预览控件(Label)的背景色与文字颜色
+    * @param[in] pLabel 需要设置的控件
+    * @param[in] color 需要显示的颜色
+    */
+    static void SetColorLabel(Label* pLabel, const UiColor& color);
 
     /** 根据背景色计算对比度最佳的前景文本颜色（黑或白）
     *   使用 YIQ 公式: Y = 0.299R + 0.587G + 0.114B
@@ -118,9 +158,21 @@ private:
     */
     UiColor m_selectedColor;
 
+    /** 窗口创建之前，通过SetSelectedColor接口设置的颜色值(暂存，OnInitWindow时应用)
+    */
+    UiColor m_initColor;
+
+    /** m_initColor是否有效
+    */
+    bool m_bInitColorValid;
+
     /** 选择颜色的监听事件
     */
     EventCallback m_colorCallback;
+
+    /** 是否启用"不遮挡父窗口"的贴边定位（默认false，沿用原有逻辑）
+    */
+    bool m_bAdjustWindowPos;
 };
 
 } // namespace ui

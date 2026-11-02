@@ -61,7 +61,9 @@ ColorPicker::ColorPicker():
     m_pRegularPicker(nullptr),
     m_pStandardPicker(nullptr),
     m_pStandardGrayPicker(nullptr),
-    m_pCustomPicker(nullptr)
+    m_pCustomPicker(nullptr),
+    m_bInitColorValid(false),
+    m_bAdjustWindowPos(false)
 {
 }
 
@@ -93,6 +95,22 @@ LRESULT ColorPicker::OnWindowCloseMsg(uint32_t wParam, const NativeMsg& nativeMs
     }    
     m_selectedColor = selectedColor;
     return BaseClass::OnWindowCloseMsg(wParam, nativeMsg, bHandled);
+}
+
+LRESULT ColorPicker::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
+{
+    //对话框的通用键盘操作：Esc 取消、Enter 确认
+    if (vkCode == kVK_ESCAPE) {
+        CloseWnd(kWindowCloseCancel);
+        bHandled = true;
+        return 0;
+    }
+    if (vkCode == kVK_RETURN) {
+        CloseWnd(kWindowCloseOK);
+        bHandled = true;
+        return 0;
+    }
+    return BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
 }
 
 void ColorPicker::AttachSelectColor(const EventCallback& callback)
@@ -255,49 +273,128 @@ void ColorPicker::OnInitWindow()
             return true;
             });
     }
+
+    //应用窗口创建前通过 SetSelectedColor 设置的颜色(此时控件才创建完成，之前设置的值只是暂存)
+    if (m_bInitColorValid) {
+        ApplyColor(m_initColor);
+    }
+
+    //仅在显式开启"不遮挡父窗口"开关时，才调整窗口位置并贴在父窗口旁边显示；
+    //否则沿用原有逻辑（按创建参数决定是否居中），不对窗口定位做任何改动。
+    //注意：窗口创建流程中，框架还会在 OnInitWindow 返回后按居中参数再设置一次位置，
+    //      所以这里立即调整一次(调用方未启用居中时就是最终位置)，再投递一次作为兜底。
+    if (m_bAdjustWindowPos) {
+        AdjustWindowPos();
+        GlobalManager::Instance().Thread().PostTask(kThreadUI, [pThis]() {
+            if (pThis != nullptr) {
+                pThis->AdjustWindowPos();
+            }
+        });
+    }
 }
 
-void ColorPicker::OnSelectColor(const UiColor& newColor)
+void ColorPicker::SetAdjustWindowPos(bool bAdjust)
 {
-    UiColor oldColor;
-    if (m_pNewColor != nullptr) {
-        DString colorString = m_pNewColor->GetBkColor();
-        if (!colorString.empty()) {
-            oldColor = m_pNewColor->GetUiColor(colorString);
+    m_bAdjustWindowPos = bAdjust;
+}
+
+void ColorPicker::AdjustWindowPos()
+{
+    //目标：不遮挡父窗口，让用户能同时看到父窗口与调色板。
+    //窗口区(含阴影)与可见区域(不含阴影)之间有一圈透明边距，做坐标换算时要把这部分扣除，
+    //否则"贴边显示"会看起来离得很远，贴上工作区边缘时也会被误判为超出。
+    WindowBase* pOwner = GetParentWindow();
+    if ((pOwner == nullptr) || !pOwner->IsWindow() || !IsWindow()) {
+        return;
+    }
+
+    UiRect rcSelf;                          //本窗口的窗口区(含阴影)，逻辑像素
+    GetWindowRect(rcSelf);
+    const UiRect rcSelfVisible = GetWindowPos(false);
+    if (rcSelf.IsEmpty() || rcSelfVisible.IsEmpty()) {
+        return;
+    }
+
+    UiRect rcOwner;                         //父窗口的窗口区(含阴影)，逻辑像素
+    pOwner->GetWindowRect(rcOwner);
+    const UiRect rcOwnerVisible = pOwner->GetWindowPos(false);
+
+    UiRect rcWork;                          //父窗口所在显示器的工作区
+    if (!pOwner->GetMonitorWorkRect(rcWork)) {
+        return;
+    }
+
+    const int32_t nShadowLeft   = rcSelfVisible.left - rcSelf.left;
+    const int32_t nShadowTop    = rcSelfVisible.top - rcSelf.top;
+    const int32_t nWidth        = rcSelf.Width();
+    const int32_t nHeight       = rcSelf.Height();
+    const int32_t nVisibleWidth = rcSelfVisible.Width();
+    const int32_t nVisibleHeight = rcSelfVisible.Height();
+    const int32_t nGap          = Dpi().GetScaleInt(8);
+
+    //优先放在父窗口右侧；右侧放不下则放左侧；两侧都不够宽时，
+    //若父窗口+本窗口的总宽度不超过工作区，就把父窗口向左挪一点，给本窗口腾出完整的右侧空间，
+    //从而做到完全不遮挡父窗口(仅在父窗口居中、两侧都偏窄时才会触发，属于最小幅度位移)。
+    int32_t nX = rcOwnerVisible.right + nGap;
+    if (nX + nVisibleWidth > rcWork.right) {
+        const int32_t nLeftX = rcOwnerVisible.left - nGap - nVisibleWidth;
+        if (nLeftX >= rcWork.left) {
+            //左侧放得下
+            nX = nLeftX;
         }
-        m_pNewColor->SetBkColor(newColor);
-        m_pNewColor->SetText(m_pNewColor->GetBkColor());
+        else {
+            //两侧都放不下，尝试把父窗口向左挪，让本窗口能完整放在右侧
+            const int32_t nOverflow = (rcOwnerVisible.right + nGap + nVisibleWidth) - rcWork.right;
+            const int32_t nNewOwnerLeft = rcOwnerVisible.left - nOverflow;
+            if (nNewOwnerLeft >= rcWork.left) {
+                const int32_t nOwnerShadowLeft = rcOwner.left - rcOwnerVisible.left;
+                pOwner->MoveWindow(nNewOwnerLeft - nOwnerShadowLeft,
+                                  rcOwner.top,
+                                  rcOwner.Width(), rcOwner.Height(), true);
+                nX = nNewOwnerLeft + rcOwnerVisible.Width() + nGap;
+            }
+            else {
+                //连父窗口左移都不够(屏幕太小)：贴到空间较大的一侧，尽量少遮挡父窗口
+                if ((rcWork.right - rcOwnerVisible.right) >= (rcOwnerVisible.left - rcWork.left)) {
+                    nX = rcWork.right - nVisibleWidth;
+                }
+                else {
+                    nX = rcWork.left;
+                }
+            }
+        }
+    }
 
-        // 使用 YIQ 公式选择黑/白文本，得到更好的可读性对比度
-        UiColor textColor = GetContrastTextColor(newColor);
-        m_pNewColor->SetStateTextColor(kControlStateNormal, m_pNewColor->GetColorString(textColor));
+    int32_t nY = rcOwnerVisible.top;            //与父窗口顶部对齐
+    if (nY + nVisibleHeight > rcWork.bottom) {
+        nY = rcWork.bottom - nVisibleHeight;
     }
-    if (m_colorCallback != nullptr) {
-        EventArgs args;
-        args.wParam = newColor.GetARGB();
-        args.lParam = oldColor.GetARGB();
-        m_colorCallback(args);
+    if (nY < rcWork.top) {
+        nY = rcWork.top;
     }
+
+    MoveWindow(nX - nShadowLeft, nY - nShadowTop, nWidth, nHeight, true);
 }
 
-void ColorPicker::SetSelectedColor(const UiColor& color)
+void ColorPicker::SetColorLabel(Label* pLabel, const UiColor& color)
 {
-    if (m_pNewColor != nullptr) {
-        m_pNewColor->SetBkColor(color);
-        m_pNewColor->SetText(m_pNewColor->GetBkColor());
-
-        // 使用 YIQ 公式选择黑/白文本，得到更好的可读性对比度
-        UiColor textColor = GetContrastTextColor(color);
-        m_pNewColor->SetStateTextColor(kControlStateNormal, m_pNewColor->GetColorString(textColor));
+    if (pLabel == nullptr) {
+        return;
     }
-    if (m_pOldColor != nullptr) {
-        m_pOldColor->SetBkColor(color);
-        m_pOldColor->SetText(m_pOldColor->GetBkColor());
+    pLabel->SetBkColor(color);
+    pLabel->SetText(pLabel->GetBkColor());
 
-        // 使用 YIQ 公式选择黑/白文本，得到更好的可读性对比度
-        UiColor textColor = GetContrastTextColor(color);
-        m_pOldColor->SetStateTextColor(kControlStateNormal, m_pOldColor->GetColorString(textColor));
-    }
+    // 使用 YIQ 公式选择黑/白文本，得到更好的可读性对比度
+    UiColor textColor = GetContrastTextColor(color);
+    pLabel->SetStateTextColor(kControlStateNormal, pLabel->GetColorString(textColor));
+}
+
+void ColorPicker::ApplyColor(const UiColor& color)
+{
+    //新颜色与原来的颜色都设置为该颜色(此时两者是相同的)
+    SetColorLabel(m_pNewColor.get(), color);
+    SetColorLabel(m_pOldColor.get(), color);
+
     if (m_pCustomPicker != nullptr) {
         m_pCustomPicker->SelectColor(color);
     }
@@ -310,6 +407,42 @@ void ColorPicker::SetSelectedColor(const UiColor& color)
     if (m_pStandardGrayPicker != nullptr) {
         m_pStandardGrayPicker->SelectColor(color);
     }
+}
+
+void ColorPicker::OnSelectColor(const UiColor& newColor)
+{
+    UiColor oldColor;
+    if (m_pNewColor != nullptr) {
+        DString colorString = m_pNewColor->GetBkColor();
+        if (!colorString.empty()) {
+            oldColor = m_pNewColor->GetUiColor(colorString);
+        }
+    }
+    if (oldColor == newColor) {
+        //颜色没有变化(例如初始化时把暂存的颜色同步到各个选色控件过程产生的事件)，不需要重复处理
+        return;
+    }
+
+    SetColorLabel(m_pNewColor.get(), newColor);
+    if (m_colorCallback != nullptr) {
+        EventArgs args;
+        args.wParam = newColor.GetARGB();
+        args.lParam = oldColor.GetARGB();
+        m_colorCallback(args);
+    }
+}
+
+void ColorPicker::SetSelectedColor(const UiColor& color)
+{
+    //先暂存：该接口允许在窗口创建之前调用，此时控件还不存在
+    m_initColor = color;
+    m_bInitColorValid = true;
+
+    if ((m_pNewColor == nullptr) && (m_pOldColor == nullptr)) {
+        //窗口还未创建完成，等OnInitWindow中再应用
+        return;
+    }
+    ApplyColor(color);
 }
 
 UiColor ColorPicker::GetSelectedColor() const

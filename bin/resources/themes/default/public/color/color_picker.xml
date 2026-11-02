@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="600,520" min_size="80,50" caption="0,0,0,35" shadow_attached="true" size_box="4,4,4,4">
+<Window size="600,520" min_size="560,500" caption="0,0,0,35" shadow_attached="true" size_box="4,4,4,4">
     <Class name="color_picker_tab_option" width="72" height="32" font="system_regular_14" text_align="hcenter,vcenter"
                                           normal_color="bg_tab_ctrl"
                                           hovered_color="bg_tab_ctrl_item_hovered"
@@ -11,6 +11,21 @@
                                           bkcolor="bg_container" value="0" valign="center"
                                           thumb_size="20,20" min="0" max="255" progress_bar_padding="0,2,0,2"
                                           thumb_normal_image="file='public/color/slider_thumb.svg' valign='center'"/>
+    <!-- 复制颜色值的图标按钮：ARGB 行与颜色预览区的两个入口共用同一套外观 -->
+    <Class name="color_picker_copy_btn" class="btn_global" width="20" height="20" border_round="2,2" text=""
+                                          valign="center" halign="center"
+                                          normal_color="" disabled_color=""
+                                          normal_border_color="" disabled_border_color=""
+                                          bkimage="file='copy_color.svg' width='14' height='14' halign='center' valign='center' svg_replace_colors='#333333|border_svg_image'"
+                                          tooltip_text_id="STRID_PUBLIC_COLORPICKER_COPY_COLOR"/>
+    <!-- RGB/HSV/HSL 分组：control_padding="false" 表示边线与标题用控件自身的矩形绘制，
+         padding 只作用于子控件（左侧 8px 避开边线、顶部 20px 留给分组标题），
+         与 color_theme.xml 中 group_box_round 的用法一致 -->
+    <Class name="color_picker_color_group" width="stretch" height="auto" margin="2,4,2,2" padding="8,20,2,6" control_padding="false"/>
+    <!-- 组内一行：标签 + 数值输入框 + 滑动条（滑动条自适应剩余宽度），2px 为行间距 -->
+    <Class name="color_picker_color_row" height="26" margin="0,2,0,0"/>
+    <!-- 行首标签（A:/R:/G:/B: 等）：宽度按文字自适应，固定成 14px 会把冒号裁掉 -->
+    <Class name="color_picker_color_axis" width="auto" min_width="16" height="26" text_align="vcenter" margin="0,0,2,0"/>
 
     <VBox bkcolor="bg_window_main" visible="true">
         <!-- 标题栏区域 -->
@@ -45,7 +60,9 @@
                     <VBox>
                         <TabBox name="color_picker_tab" bkcolor="bg_container" fade_switch="true" margin="1,1,1,1" selected_id="2">
                             <VBox name="color_picker_tab_page_1">
-                                <!-- 常用颜色 -->
+                                <!-- 常用颜色：141 个颜色，10 列。
+                                     注意：ColorPickerRegular::SetPos() 会按可用面积重算每个色块的尺寸以填满区域，
+                                     item_size 仅在可用面积为零时作为兜底值，不用于控制最终显示大小。 -->
                                 <ColorPickerRegular name="color_picker_regular" color_type="default" item_size="40,20" columns="10" child_margin="2" padding="2,2,2,2" halign="center" valign="center"/>
                             </VBox>
                             <VBox name="color_picker_tab_page_2">
@@ -61,71 +78,69 @@
                                             <GroupBox margin="2,2,2,2" text="">
                                                 <VBox margin="0,2,0,0">
                                                     <ColorControl name="color_picker_custom_spectrum" bkcolor="blue" height="60%" width="stretch" margin="2,2,4,2"/>
-                                                    <ColorPickerRegular name="color_picker_custom_regular" color_type="basic" height="40%" width="stretch" item_size="20,10" columns="6" child_margin="2" padding="1,1,1,1" halign="center" valign="center"/>
+                                                    <!-- 基础色共 48 个，按每组 12 色分 4 组，6 列正好每组 2 行 -->
+                                                    <ColorPickerRegular name="color_picker_custom_regular" color_type="basic" height="stretch" width="stretch" item_size="20,10" columns="6" child_margin="2" padding="1,1,1,1" halign="center" valign="center"/>
                                                 </VBox>
                                             </GroupBox>
                                         </HBox>
-                                        <VBox width="204">
+                                        <VBox width="214">
                                             <HBox height="28" margin="0,2,0,0">
                                                 <Label text_id="STRID_PUBLIC_COLORPICKER_COLOR_ARGB" height="28" text_align="vcenter" margin="2,0,0,0"/>
                                                 <RichEdit class="simple color_picker_color_edit" name="color_picker_new_color_edit" height="28" width="90" halign="center" text_align="left,vcenter" readonly="false" number_only="false" limit_text="9" limit_chars="#0123456789ABCDEFabcdef" text="#FFFFFFFF"/>
-                                                <Button class="btn_global" name="color_picker_copy" width="22" height="22" border_round="2,2" 
-                                                        text="" valign="center" halign="center" margin="2,0,0,0"
-                                                        bkimage="file='copy_color.svg' width='14' height='14' halign='center' valign='center' svg_replace_colors='#333333|border_svg_image'"
-                                                        tooltip_text_id="STRID_PUBLIC_COLORPICKER_COPY_COLOR"/>
+                                                <Button class="color_picker_copy_btn" name="color_picker_copy" margin="4,0,0,0"/>
                                             </HBox>
-                                            <GroupVBox margin="2,0,2,2" height="auto" text=" RGB ">
-                                                <HBox height="28" margin="4,22,0,0">
-                                                    <Label text="A:" width="14" height="28" text_align="vcenter" tooltip_text_id="STRID_PUBLIC_COLORPICKER_TRANSPARENCY"/>
+                                            <GroupVBox class="color_picker_color_group" text=" RGB ">
+                                                <HBox class="color_picker_color_row" margin="0,0,0,0">
+                                                    <Label class="color_picker_color_axis" text="A:" tooltip_text_id="STRID_PUBLIC_COLORPICKER_TRANSPARENCY"/>
                                                     <RichEdit class="simple color_picker_color_edit" name="color_picker_edit_RGB_A"/>
                                                     <ColorSlider class="color_picker_slider_horizontal" name="color_picker_slider_RGB_A"/>
                                                 </HBox>
-                                                <HBox height="28" margin="4,2,0,0">
-                                                    <Label text="R:" width="14" height="28" text_align="vcenter" tooltip_text_id="STRID_PUBLIC_COLORPICKER_RED"/>
+                                                <HBox class="color_picker_color_row">
+                                                    <Label class="color_picker_color_axis" text="R:" tooltip_text_id="STRID_PUBLIC_COLORPICKER_RED"/>
                                                     <RichEdit class="simple color_picker_color_edit" name="color_picker_edit_RGB_R"/>
                                                     <ColorSlider class="color_picker_slider_horizontal" name="color_picker_slider_RGB_R" bkcolor="red"/>
                                                 </HBox>
-                                                <HBox height="28" margin="4,2,0,0">
-                                                    <Label text="G:" width="14" height="28" text_align="vcenter" tooltip_text_id="STRID_PUBLIC_COLORPICKER_GREEN"/>
+                                                <HBox class="color_picker_color_row">
+                                                    <Label class="color_picker_color_axis" text="G:" tooltip_text_id="STRID_PUBLIC_COLORPICKER_GREEN"/>
                                                     <RichEdit class="simple color_picker_color_edit" name="color_picker_edit_RGB_G"/>
                                                     <ColorSlider class="color_picker_slider_horizontal" name="color_picker_slider_RGB_G" bkcolor="green" />
                                                 </HBox>
-                                                <HBox height="28" margin="4,2,0,4">
-                                                    <Label text="B:" width="14" height="28" text_align="vcenter" tooltip_text_id="STRID_PUBLIC_COLORPICKER_BLUE"/>
+                                                <HBox class="color_picker_color_row">
+                                                    <Label class="color_picker_color_axis" text="B:" tooltip_text_id="STRID_PUBLIC_COLORPICKER_BLUE"/>
                                                     <RichEdit class="simple color_picker_color_edit" name="color_picker_edit_RGB_B"/>
                                                     <ColorSlider class="color_picker_slider_horizontal" name="color_picker_slider_RGB_B" bkcolor="blue" />
                                                 </HBox>
                                             </GroupVBox>
-                                            <GroupVBox margin="2,4,2,2" height="auto" text=" HSV ">
-                                                <HBox height="28" margin="4,22,0,0">
-                                                    <Label text="H:" width="14" height="28" text_align="vcenter" tooltip_text_id="STRID_PUBLIC_COLORPICKER_HUE"/>
+                                            <GroupVBox class="color_picker_color_group" text=" HSV ">
+                                                <HBox class="color_picker_color_row" margin="0,0,0,0">
+                                                    <Label class="color_picker_color_axis" text="H:" tooltip_text_id="STRID_PUBLIC_COLORPICKER_HUE"/>
                                                     <RichEdit class="simple color_picker_color_edit" name="color_picker_edit_HSV_H"/>
                                                     <ColorSlider class="color_picker_slider_horizontal" name="color_picker_slider_HSV_H"/>
                                                 </HBox>
-                                                <HBox height="28" margin="4,2,0,0">
-                                                    <Label text="S:" width="14" height="28" text_align="vcenter" tooltip_text_id="STRID_PUBLIC_COLORPICKER_SATURATION"/>
+                                                <HBox class="color_picker_color_row">
+                                                    <Label class="color_picker_color_axis" text="S:" tooltip_text_id="STRID_PUBLIC_COLORPICKER_SATURATION"/>
                                                     <RichEdit class="simple color_picker_color_edit" name="color_picker_edit_HSV_S"/>
                                                     <ColorSlider class="color_picker_slider_horizontal" name="color_picker_slider_HSV_S"/>
                                                 </HBox>
-                                                <HBox height="28" margin="4,2,0,4">
-                                                    <Label text="V:" width="14" height="28" text_align="vcenter" tooltip_text_id="STRID_PUBLIC_COLORPICKER_VALUE"/>
+                                                <HBox class="color_picker_color_row">
+                                                    <Label class="color_picker_color_axis" text="V:" tooltip_text_id="STRID_PUBLIC_COLORPICKER_VALUE"/>
                                                     <RichEdit class="simple color_picker_color_edit" name="color_picker_edit_HSV_V"/>
                                                     <ColorSlider class="color_picker_slider_horizontal" name="color_picker_slider_HSV_V"/>
                                                 </HBox>
                                             </GroupVBox>
-                                            <GroupVBox margin="2,4,2,2" height="auto" text=" HSL ">
-                                                <HBox height="28" margin="4,22,0,0">
-                                                    <Label text="H:" width="14" height="28" text_align="vcenter" tooltip_text_id="STRID_PUBLIC_COLORPICKER_HUE"/>
+                                            <GroupVBox class="color_picker_color_group" text=" HSL ">
+                                                <HBox class="color_picker_color_row" margin="0,0,0,0">
+                                                    <Label class="color_picker_color_axis" text="H:" tooltip_text_id="STRID_PUBLIC_COLORPICKER_HUE"/>
                                                     <RichEdit class="simple color_picker_color_edit" name="color_picker_edit_HSL_H"/>
                                                     <ColorSlider class="color_picker_slider_horizontal" name="color_picker_slider_HSL_H"/>
                                                 </HBox>
-                                                <HBox height="28" margin="4,2,0,0">
-                                                    <Label text="S:" width="14" height="28" text_align="vcenter" tooltip_text_id="STRID_PUBLIC_COLORPICKER_SATURATION"/>
+                                                <HBox class="color_picker_color_row">
+                                                    <Label class="color_picker_color_axis" text="S:" tooltip_text_id="STRID_PUBLIC_COLORPICKER_SATURATION"/>
                                                     <RichEdit class="simple color_picker_color_edit" name="color_picker_edit_HSL_S"/>
                                                     <ColorSlider class="color_picker_slider_horizontal" name="color_picker_slider_HSL_S"/>
                                                 </HBox>
-                                                <HBox height="28" margin="4,2,0,4">
-                                                    <Label text="L:" width="14" height="28" text_align="vcenter" tooltip_text_id="STRID_PUBLIC_COLORPICKER_LIGHTNESS"/>
+                                                <HBox class="color_picker_color_row">
+                                                    <Label class="color_picker_color_axis" text="L:" tooltip_text_id="STRID_PUBLIC_COLORPICKER_LIGHTNESS"/>
                                                     <RichEdit class="simple color_picker_color_edit" name="color_picker_edit_HSL_L"/>
                                                     <ColorSlider class="color_picker_slider_horizontal" name="color_picker_slider_HSL_L"/>
                                                 </HBox>
@@ -136,30 +151,37 @@
                             </VBox>
                         </TabBox>
                     </VBox>
-                    <VBox width="110">
-                        <VBox margin="2,2,2,2" height="150">
+                    <!-- 右侧操作列：宽度需要容纳英文文案（如 "Hide window"），110 时英文会被窗口边缘裁掉 -->
+                    <VBox width="122" height="stretch">
+                        <!-- 操作按钮 -->
+                        <VBox margin="2,2,2,2" height="auto">
                             <Button class="btn_global" name="color_picker_ok" width="80" height="30" border_round="3,3" text_id="STRID_PUBLIC_STRING_OK" halign="center" margin="2,6,2,2"/>
                             <Button class="btn_global" name="color_picker_cancel" width="80" height="30" border_round="3,3" text_id="STRID_PUBLIC_STRING_CANCEL" halign="center" margin="2,2,2,2"/>
                             <Button class="btn_global" name="color_picker_choose" width="80" height="30" border_round="3,3" text_id="STRID_PUBLIC_STRING_CHOOSE" halign="center" margin="2,2,2,2" bkimage="file='public/color/dropper.svg' halign='left' valign='center' width='18' height='18' margin='4,0,0,0'"/>
                             <CheckBox class="checkbox_1" name="color_picker_choose_hide" height="20" border_round="3,3" text_id="STRID_PUBLIC_COLORPICKER_HIDE_WND" halign="center" margin="2,2,2,2" selected="true"/>
                         </VBox>
-                        <VBox margin="2,6,2,2">
-                            <HBox height="28">
-                                <Label text_id="STRID_PUBLIC_COLORPICKER_NEW_COLOR" width="100%" height="28" text_align="hcenter"/>
-                                <Button class="btn_global" name="color_picker_copy2" width="20" height="20" border_round="2,2" 
-                                                        text="" valign="center" halign="center" margin="0,0,0,2"
-                                                        normal_color="" disabled_color=""
-                                                        normal_border_color="" disabled_border_color=""
-                                                        bkimage="file='copy_color.svg' width='14' height='14' halign='center' valign='center' svg_replace_colors='#333333|border_svg_image'"
-                                                        tooltip_text_id="STRID_PUBLIC_COLORPICKER_COPY_COLOR"/>
-                            </HBox>                            
-                            <Box height="50%" bkcolor="bg_container">
-                                <ColorPreviewLabel name="color_picker_new_color" width="stretch" height="stretch" text_align="hcenter,bottom"/>
+                        <!-- 颜色预览：新颜色在上、原颜色在下，各自带标题和 1px 边框，同色时也能分出两块区域 -->
+                        <VBox margin="2,8,2,2" height="stretch">
+                            <HBox height="24">
+                                <Label text_id="STRID_PUBLIC_COLORPICKER_NEW_COLOR" width="stretch" height="24" font="system_regular_12"
+                                       text_color="color_gray" text_align="left,vcenter"/>
+                                <Button class="color_picker_copy_btn" name="color_picker_copy2"/>
+                            </HBox>
+                            <Control height="4" mouse_enabled="false"/>
+                            <Box height="stretch" bkcolor="bg_container" border_size="1" border_color="border_control_normal"
+                                 borders_on_top="true" padding="1,1,1,1">
+                                <ColorPreviewLabel name="color_picker_new_color" width="stretch" height="stretch" text_align="hcenter,vcenter"/>
                             </Box>
-                            <Box height="50%" bkcolor="bg_container">
-                                <ColorPreviewLabel name="color_picker_old_color" width="stretch" height="stretch" text_align="hcenter,top"/>
+                            <Control height="10" mouse_enabled="false"/>
+                            <HBox height="24">
+                                <Label text_id="STRID_PUBLIC_COLORPICKER_OLD_COLOR" width="stretch" height="24" font="system_regular_12"
+                                       text_color="color_gray" text_align="left,vcenter"/>
+                            </HBox>
+                            <Control height="4" mouse_enabled="false"/>
+                            <Box height="stretch" bkcolor="bg_container" border_size="1" border_color="border_control_normal"
+                                 borders_on_top="true" padding="1,1,1,1">
+                                <ColorPreviewLabel name="color_picker_old_color" width="stretch" height="stretch" text_align="hcenter,vcenter"/>
                             </Box>
-                            <Label text_id="STRID_PUBLIC_COLORPICKER_OLD_COLOR" width="120" height="28" text_align="hcenter"/>
                         </VBox>
                     </VBox>
                 </HBox>

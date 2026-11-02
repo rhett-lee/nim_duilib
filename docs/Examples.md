@@ -11,8 +11,8 @@ macOS 下默认编译为 `bin/basic.app`，C++ 代码无需修改；配置方法
 <img width="700" src="./Images/basic.png"/>
 
 ## 2. examples/ColorPicker
-演示如何使用拾色器控件的程序。    
-代码入口：[MainThread.cpp](../examples/ColorPicker/MainThread.cpp)；界面资源：`bin/resources/themes/default/public/color/color_picker.xml`（拾色器是独立窗口，皮肤目录为 `public`）；相关文档：[Control.md](Control.md) 中的 ColorPicker 章节。    
+演示如何使用拾色器控件的程序：主窗口显示当前颜色（色块 + #AARRGGBB + R/G/B/A 分量），点「打开调色板」弹出真彩拾色器；拖动拾色器时通过 AttachSelectColor 实时预览，点「确定」后由 AttachWindowClose 得到最终颜色，点「取消」或按 Esc 不采用，事件日志逐条记录回调。    
+代码入口：[MainThread.cpp](../examples/ColorPicker/MainThread.cpp)、[MainForm.cpp](../examples/ColorPicker/MainForm.cpp)；界面资源：`bin/resources/themes/default/color_picker_demo/ColorPickerDemo.xml`（示例窗口）与 `bin/resources/themes/default/public/color/color_picker.xml`（拾色器本身是独立窗口，皮肤目录为 `public`）；相关文档：[Control.md](Control.md) 中的 ColorPicker 章节。    
 <img width="700" src="./Images/ColorPicker.png"/>
 
 ## 3. examples/controls

@@ -3709,16 +3709,40 @@ ui::ColorPicker* pColorPicker = new ui::ColorPicker;
 ui::WindowCreateParam createParam;
 createParam.m_dwStyle = ui::kWS_POPUP;
 createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-createParam.m_bCenterWindow = true;
+// By default the window is positioned according to the create param (see m_bCenterWindow in the Window doc),
+// keeping the original positioning behavior unchanged
 pColorPicker->CreateWnd(this, createParam);   // Non-modal window; ShowModalFake() can be called afterwards
 // pColorPicker->DoModal(this, createParam); // Modal window
 ```
+
+By default the window does **not** adjust its position automatically; it is positioned entirely according to the
+create param (e.g. `m_bCenterWindow`), so the original behavior for other callers (such as the PropertyGrid color
+property and the `examples/controls` sample) is preserved.
+
+If you want the window to attach itself next to the parent window and **avoid fully covering it**, call
+`SetAdjustWindowPos(true)` before `CreateWnd` to enable the switch (only the `examples/ColorPicker` sample enables it):
+
+```cpp
+pColorPicker->SetAdjustWindowPos(true);       // Enable the "do not cover the parent" side-placement
+createParam.m_bCenterWindow = false;          // Also disable centering so the side-placement is final (no center-then-move flicker)
+pColorPicker->CreateWnd(this, createParam);
+```
+
+When enabled, the window attaches next to the parent: on the right when it fits, otherwise on the left.
+When the parent is centered and there is not enough room on either side, ColorPicker nudges
+the parent window a little to the left first and then sits on its right, so the parent is **not covered at all**
+(this only triggers when the parent is centered with tight space, and is a minimal move; on very small screens it
+falls back to the work-area edge, covering as little as possible).
+Note: when the switch is enabled you must set `m_bCenterWindow` to `false`; otherwise the framework centers the
+window once more after creation and the picker corrects its position afterwards (the window briefly appears in the
+middle before moving aside).
 
 Main interfaces:
 
 | Interface | Description |
 | :--- | :--- |
-| SetSelectedColor / GetSelectedColor | Set the initial color / get the finally selected color |
+| SetAdjustWindowPos | Enable/disable the "do not cover the parent" side-placement (default `false`, keeps the original positioning logic; set to `true` so the window attaches next to the parent after creation to avoid covering it) |
+| SetSelectedColor / GetSelectedColor | Set the initial color (may also be called before the window is created; it is applied once creation finishes) / get the finally selected color |
 | AttachSelectColor | Color change callback; `wParam` is the new color and `lParam` is the old color (convert with `UiColor((uint32_t)wParam)`) |
 | AttachWindowClose | Window close callback; `wParam` is the close reason (`kWindowCloseNormal`, `kWindowCloseOK`, `kWindowCloseCancel`) |
 
