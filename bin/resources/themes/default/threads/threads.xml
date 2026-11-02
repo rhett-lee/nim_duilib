@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="800,600" min_size="80,60" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" size_box="4,4,4,4" icon="public/caption/logo.ico">
+<Window size="1140,720" min_size="920,680" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" size_box="4,4,4,4" icon="public/caption/logo.ico">
     <VBox bkcolor="bg_window_main" visible="true">
         <!-- 标题栏区域 -->
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
@@ -17,19 +17,149 @@
         </HBox>
 
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
-        <VBox padding="6,6,6,6">
-            <HBox margin="0,0,0,0" valign="center" halign="center" height="48">
-                <Button class="btn_global" width="100" height="30" name="start_threads" text_id="STRID_THREADS_START" margin="2,8,2,2"/>
-                <Button class="btn_global" width="100" height="30" name="stop_threads" text_id="STRID_THREADS_STOP" margin="2,8,2,2"/>
-                <Label text_id="STRID_THREADS_EXECUTE_IN_THREAD_INFO" height="100%" width="auto" text_align="right,vcenter" margin="8,0,0,0"/>
-                <RichEdit class="simple simple_border rich_edit_spin" name="threads_identifier" text="1" valign="center"/>
-                <Button class="btn_global" name="run_task_in_threads" width="180" height="30" text_id="STRID_THREADS_EXECUTE_IN_THREAD" margin="8,8,2,2"/>
-                <Label text="00:00:00" name="running_time" height="100%" width="100%" text_align="hcenter,vcenter" margin="8,0,0,0"/>
+        <VBox padding="10,8,10,10">
+
+            <!-- 顶部：线程池控制条 -->
+            <HBox height="46" bkcolor="bg_window_card" border_size="1" border_color="border_control_normal"
+                  border_round="6,6" padding="12,0,12,0" valign="center">
+                <Label text_id="STRID_THREADS_POOL_SIZE" width="auto" height="100%" text_align="left,vcenter"/>
+                <RichEdit class="simple simple_border rich_edit_spin" name="pool_size" text="4" width="66" height="26" valign="center" margin="8,0,0,0"/>
+                <Button class="btn_primary_global" name="start_threads" text_id="STRID_THREADS_START" width="96" height="28" valign="center" margin="12,0,0,0"/>
+                <Button class="btn_global" name="stop_threads" text_id="STRID_THREADS_STOP" width="96" height="28" valign="center" margin="8,0,0,0"/>
+                <Control width="stretch" mouse_enabled="false"/>
+                <Label text_id="STRID_THREADS_RUNNING_TIME" width="auto" height="100%" text_align="right,vcenter" text_color="color_gray"/>
+                <Label text="00:00:00" name="running_time" width="86" height="100%" text_align="right,vcenter" margin="6,0,0,0"/>
             </HBox>
-            <Line height="1" margin="0,0,0,2"/>
-            <RichEdit class="simple simple_border" name="log_view" text_align="left,top" width="stretch" height="stretch"
-                        hide_selection="true" multi_line="true" vscrollbar="true" auto_vscroll="true" hscrollbar="false"
-                        want_return_msg="true" rich_text="false" default_context_menu="true"/>
+
+            <!-- 主体：左侧测试面板 + 右侧日志 -->
+            <HBox height="stretch" margin="0,8,0,0">
+
+                <!-- 左侧：线程状态、线程任务测试、定时器测试 -->
+                <VBox width="420">
+
+                    <!-- 线程状态 -->
+                    <VBox bkcolor="bg_window_card" border_size="1" border_color="border_control_normal"
+                          border_round="6,6" padding="12,10,12,10" height="300">
+                        <Label text_id="STRID_THREADS_THREAD_LIST" height="22" text_align="left,vcenter"/>
+                        <HBox height="20" padding="6,0,6,0" margin="0,4,0,0">
+                            <Label text_id="STRID_THREADS_COL_ID" width="46" height="100%" text_align="left,vcenter" text_color="color_gray"/>
+                            <Label text_id="STRID_THREADS_COL_NAME" width="132" height="100%" text_align="left,vcenter" text_color="color_gray"/>
+                            <Label text_id="STRID_THREADS_COL_STATE" width="58" height="100%" text_align="left,vcenter" text_color="color_gray"/>
+                            <Label text_id="STRID_THREADS_COL_OSTID" width="84" height="100%" text_align="left,vcenter" text_color="color_gray"/>
+                            <Label text_id="STRID_THREADS_COL_TASKS" width="stretch" height="100%" text_align="right,vcenter" text_color="color_gray"/>
+                        </HBox>
+                        <VBox name="thread_rows" width="stretch" margin="0,4,0,0">
+                            <HBox name="thread_row_0" height="26" padding="6,0,6,0" border_round="3,3" mouse_enabled="true">
+                                <Label name="thread_tid_0" width="46" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_name_0" width="132" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_state_0" width="58" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_ostid_0" width="84" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_tasks_0" width="stretch" height="100%" mouse_enabled="false" text_align="right,vcenter"/>
+                            </HBox>
+                            <HBox name="thread_row_1" height="26" padding="6,0,6,0" border_round="3,3" mouse_enabled="true" margin="0,2,0,0">
+                                <Label name="thread_tid_1" width="46" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_name_1" width="132" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_state_1" width="58" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_ostid_1" width="84" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_tasks_1" width="stretch" height="100%" mouse_enabled="false" text_align="right,vcenter"/>
+                            </HBox>
+                            <HBox name="thread_row_2" height="26" padding="6,0,6,0" border_round="3,3" mouse_enabled="true" margin="0,2,0,0">
+                                <Label name="thread_tid_2" width="46" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_name_2" width="132" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_state_2" width="58" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_ostid_2" width="84" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_tasks_2" width="stretch" height="100%" mouse_enabled="false" text_align="right,vcenter"/>
+                            </HBox>
+                            <HBox name="thread_row_3" height="26" padding="6,0,6,0" border_round="3,3" mouse_enabled="true" margin="0,2,0,0">
+                                <Label name="thread_tid_3" width="46" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_name_3" width="132" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_state_3" width="58" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_ostid_3" width="84" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_tasks_3" width="stretch" height="100%" mouse_enabled="false" text_align="right,vcenter"/>
+                            </HBox>
+                            <HBox name="thread_row_4" height="26" padding="6,0,6,0" border_round="3,3" mouse_enabled="true" margin="0,2,0,0" visible="false">
+                                <Label name="thread_tid_4" width="46" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_name_4" width="132" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_state_4" width="58" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_ostid_4" width="84" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_tasks_4" width="stretch" height="100%" mouse_enabled="false" text_align="right,vcenter"/>
+                            </HBox>
+                            <HBox name="thread_row_5" height="26" padding="6,0,6,0" border_round="3,3" mouse_enabled="true" margin="0,2,0,0" visible="false">
+                                <Label name="thread_tid_5" width="46" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_name_5" width="132" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_state_5" width="58" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_ostid_5" width="84" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_tasks_5" width="stretch" height="100%" mouse_enabled="false" text_align="right,vcenter"/>
+                            </HBox>
+                            <HBox name="thread_row_6" height="26" padding="6,0,6,0" border_round="3,3" mouse_enabled="true" margin="0,2,0,0" visible="false">
+                                <Label name="thread_tid_6" width="46" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_name_6" width="132" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_state_6" width="58" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_ostid_6" width="84" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_tasks_6" width="stretch" height="100%" mouse_enabled="false" text_align="right,vcenter"/>
+                            </HBox>
+                            <HBox name="thread_row_7" height="26" padding="6,0,6,0" border_round="3,3" mouse_enabled="true" margin="0,2,0,0" visible="false">
+                                <Label name="thread_tid_7" width="46" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_name_7" width="132" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_state_7" width="58" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_ostid_7" width="84" height="100%" mouse_enabled="false" text_align="left,vcenter"/>
+                                <Label name="thread_tasks_7" width="stretch" height="100%" mouse_enabled="false" text_align="right,vcenter"/>
+                            </HBox>
+                        </VBox>
+                    </VBox>
+
+                    <!-- 线程任务测试 -->
+                    <VBox bkcolor="bg_window_card" border_size="1" border_color="border_control_normal"
+                          border_round="6,6" padding="12,10,12,10" margin="0,8,0,0">
+                        <HBox height="22">
+                            <Label text_id="STRID_THREADS_TASK_GROUP" width="auto" height="100%" text_align="left,vcenter"/>
+                            <Control width="stretch" mouse_enabled="false"/>
+                            <Label name="target_thread" width="auto" height="100%" text_align="right,vcenter" text_color="color_gray"/>
+                        </HBox>
+                        <HBox height="28" margin="0,6,0,0">
+                            <Button class="btn_global" name="task_now" text_id="STRID_THREADS_TASK_NOW" width="stretch" height="28"/>
+                            <Button class="btn_global" name="task_delayed" text_id="STRID_THREADS_TASK_DELAYED" width="stretch" height="28" margin="6,0,0,0"/>
+                            <Button class="btn_global" name="task_repeated" text_id="STRID_THREADS_TASK_REPEATED" width="stretch" height="28" margin="6,0,0,0"/>
+                        </HBox>
+                        <HBox height="28" margin="0,6,0,0">
+                            <Button class="btn_global" name="task_long" text_id="STRID_THREADS_TASK_LONG" width="stretch" height="28"/>
+                            <Button class="btn_global" name="task_concurrent" text_id="STRID_THREADS_TASK_CONCURRENT" tooltip_text_id="STRID_THREADS_TASK_CONCURRENT_TIP" tooltip_width="320" width="stretch" height="28" margin="6,0,0,0"/>
+                            <Button class="btn_global" name="task_cancel" text_id="STRID_THREADS_TASK_CANCEL" width="stretch" height="28" margin="6,0,0,0"/>
+                        </HBox>
+                    </VBox>
+
+                    <!-- 定时器测试 -->
+                    <VBox bkcolor="bg_window_card" border_size="1" border_color="border_control_normal"
+                          border_round="6,6" padding="12,10,12,10" margin="0,8,0,0">
+                        <Label text_id="STRID_THREADS_TIMER_GROUP" height="22" text_align="left,vcenter"/>
+                        <HBox height="28" margin="0,6,0,0" valign="center">
+                            <Label text_id="STRID_THREADS_TIMER_INTERVAL" width="auto" height="100%" text_align="left,vcenter"/>
+                            <RichEdit class="simple simple_border rich_edit_spin" name="timer_interval" text="1000" width="70" height="26" valign="center" margin="8,0,0,0"/>
+                            <Label text_id="STRID_THREADS_TIMER_TIMES" width="auto" height="100%" text_align="left,vcenter" margin="14,0,0,0"/>
+                            <RichEdit class="simple simple_border rich_edit_spin" name="timer_times" text="5" width="70" height="26" valign="center" margin="8,0,0,0"/>
+                            <Control width="stretch" mouse_enabled="false"/>
+                        </HBox>
+                        <HBox height="28" margin="0,6,0,0">
+                            <Button class="btn_global" name="timer_add" text_id="STRID_THREADS_TIMER_ADD" width="stretch" height="28"/>
+                            <Button class="btn_global" name="timer_remove" text_id="STRID_THREADS_TIMER_REMOVE" width="stretch" height="28" margin="6,0,0,0"/>
+                            <Button class="btn_global" name="timer_clear" text_id="STRID_THREADS_TIMER_CLEAR" width="stretch" height="28" margin="6,0,0,0"/>
+                        </HBox>
+                        <Label name="timer_state" height="20" text_align="left,vcenter" margin="0,6,0,0" text_color="color_gray"/>
+                    </VBox>
+                </VBox>
+
+                <!-- 右侧：运行日志 -->
+                <VBox width="stretch" margin="8,0,0,0">
+                    <HBox height="28">
+                        <Label text_id="STRID_THREADS_LOG_TITLE" width="auto" height="100%" text_align="left,vcenter"/>
+                        <Control width="stretch" mouse_enabled="false"/>
+                        <Button class="btn_global" name="clear_log" text_id="STRID_THREADS_LOG_CLEAR" width="72" height="26"/>
+                    </HBox>
+                    <RichEdit class="simple simple_border" name="log_view" text_align="left,top" width="stretch" height="stretch"
+                                hide_selection="true" multi_line="true" vscrollbar="true" auto_vscroll="true" hscrollbar="false" word_wrap="true"
+                                want_return_msg="true" rich_text="false" default_context_menu="true" margin="0,6,0,0"/>
+                </VBox>
+            </HBox>
         </VBox>
     </VBox>
 </Window>

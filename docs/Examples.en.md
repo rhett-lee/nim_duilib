@@ -76,7 +76,7 @@ Code entry: [MainThread.cpp](../examples/DpiAware/MainThread.cpp), [MainForm.cpp
 <img width="700" src="./Images/DpiAware.png"/>
 
 ## 14. examples/threads
-A program demonstrating how to use the multi-threading feature, including multi-thread communication, etc.    
+A program demonstrating the multi-threading feature: configurable thread pool size, live running state, OS thread ID and task counters of each worker thread, immediate/delayed/repeated/long-running tasks, a concurrency check that reports measured time and speedup against the serial baseline, and task cancellation; the pool stops in the background without blocking the UI and the log is timestamped. Timer (TimerManager) add/stop/tick observation is also included.    
 Code entry: [MainThread.cpp](../examples/threads/MainThread.cpp), [MainForm.cpp](../examples/threads/MainForm.cpp), [WorkerThread.cpp](../examples/threads/WorkerThread.cpp); skin resources: `bin/resources/themes/default/threads/threads.xml`; related docs: the "Introducing the thread library" section in [Getting-Started.en.md](Getting-Started.en.md).    
 <img width="800" src="./Images/threads.png"/>
 

@@ -74,7 +74,7 @@ macOS 下默认编译为 `bin/basic.app`，C++ 代码无需修改；配置方法
 <img width="700" src="./Images/DpiAware.png"/>
 
 ## 14. examples/threads
-演示如何使用多线程功能，包含多线程通信等。    
+演示如何使用多线程功能：可配置线程池的线程个数，实时查看各工作线程的运行状态、操作系统线程ID与已执行任务次数；支持立即执行、延迟执行、重复执行、长耗时任务、并发验证（给出实测耗时与串行基线的加速比）与任务取消；停止线程池在后台完成、不阻塞界面，日志带时间戳，并集成了定时器（TimerManager）的添加、停止与触发观察。    
 代码入口：[MainThread.cpp](../examples/threads/MainThread.cpp)、[MainForm.cpp](../examples/threads/MainForm.cpp)、[WorkerThread.cpp](../examples/threads/WorkerThread.cpp)；界面资源：`bin/resources/themes/default/threads/threads.xml`；相关文档：[Getting-Started.md](Getting-Started.md) 中的“引入线程库”。    
 <img width="800" src="./Images/threads.png"/>
 
