@@ -17,7 +17,7 @@
                 <Label name="toast_text" width="296" height="auto" min_height="20"
                        mouse_enabled="false" tab_stop="false" auto_tooltip="true"
                        multi_line="true" font="system_regular_14"
-                       normal_text_color="text_tooltip" text_align="hleft,vcenter"/>
+                       normal_text_color="text_tooltip" text_align="left,vcenter"/>
             </HBox>
             <!-- 操作按钮区：默认隐藏；仅当 Show 传入 actions 时由代码动态创建按钮并设为可见。
                  按钮 mouse_enabled=true 可点击，且不会冒泡到根容器（根容器的"整条点击关闭"仅对

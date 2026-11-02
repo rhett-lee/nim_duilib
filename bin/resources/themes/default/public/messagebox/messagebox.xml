@@ -19,7 +19,7 @@
             <Control name="msg_icon" width="32" height="32" valign="top" margin="0,0,14,0" tab_stop="false"/>
             <Label name="msg_text" width="stretch" height="auto" min_height="32"
                    multi_line="true" font="system_regular_14" tab_stop="false"
-                   normal_text_color="text_default" text_align="hleft,vcenter"/>
+                   normal_text_color="text_default" text_align="left,vcenter"/>
         </HBox>
 
         <!-- 按钮区：右对齐，默认全部隐藏，由 MessageBoxForm 按按钮组合显示 -->

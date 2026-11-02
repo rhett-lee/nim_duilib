@@ -1048,18 +1048,18 @@
                             padding="12,12,12,12"/>
     <!-- Flyout标题文本 -->
     <Class name="flyout_title" width="stretch" height="auto" font="system_bold_14"
-                                   normal_text_color="text_default" text_align="hleft,vcenter"
+                                   normal_text_color="text_default" text_align="left,vcenter"
                                    mouse_enabled="false" tab_stop="false"/>
     <!-- Flyout辅助说明文本 -->
     <Class name="flyout_desc" width="stretch" height="auto" font="system_regular_12"
                                   normal_text_color="text_muted" multi_line="true"
-                                  text_align="hleft,vcenter" mouse_enabled="false" tab_stop="false"/>
+                                  text_align="left,vcenter" mouse_enabled="false" tab_stop="false"/>
 
     <!-- Popover气泡卡片：锚点控件样式（以链接文本外观呈现，鼠标手型） -->
     <Class name="popover_trigger" width="auto" height="auto" font="system_regular_14"
                                   normal_text_color="text_link_normal" hot_text_color="text_link_hovered"
                                   pushed_text_color="text_link_pressed" disabled_text_color="text_disabled"
-                                  text_align="hleft,vcenter" cursor_type="hand"/>
+                                  text_align="left,vcenter" cursor_type="hand"/>
     <!-- Popover气泡卡片：锚点控件样式（按钮外观，适合示例与表单中的"点击查看"类入口） -->
     <Class name="popover_anchor" width="96" height="28" font="system_regular_14"
                                   border_size="1" border_round="6,6"
@@ -1094,12 +1094,12 @@
                                 bkimage="file='${PATH_POPOVER}/popover_arrow_right.svg' svg_replace_colors='#FFFFFF|bg_window_card;#D5D5D5|border_window'"/>
     <!-- Popover气泡卡片：标题 -->
     <Class name="popover_title" width="stretch" height="auto" font="system_bold_14"
-                                normal_text_color="text_default" text_align="hleft,vcenter"
+                                normal_text_color="text_default" text_align="left,vcenter"
                                 mouse_enabled="false" tab_stop="false"/>
     <!-- Popover气泡卡片：正文（自动换行，支持 '\n' 换行） -->
     <Class name="popover_content" width="stretch" height="auto" font="system_regular_14"
                                   normal_text_color="text_muted" multi_line="true" replace_newline="true"
-                                  text_align="hleft,vcenter" mouse_enabled="false" tab_stop="false"/>
+                                  text_align="left,vcenter" mouse_enabled="false" tab_stop="false"/>
 
     <!-- Popconfirm确认气泡卡片：图标（16×16 彩色圆 + 白色字形，颜色随主题切换） -->
     <Class name="popconfirm_icon_warning" width="16" height="16" mouse_enabled="false" tab_stop="false"
