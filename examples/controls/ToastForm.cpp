@@ -44,7 +44,16 @@ void ToastForm::OnInitWindow()
           ui::ToastWnd::kTypeInfo,    6000, ui::ToastWnd::kPosTop },
         { _T("btn_demo_manual"),  _T("STRID_TOAST_DEMO_MANUAL_TEXT"),
           ui::ToastWnd::kTypeWarning, 0,    ui::ToastWnd::kPosTop },
-        { _T("btn_demo_position"),_T("STRID_TOAST_DEMO_POSITION_TEXT"),
+        //位置演示：覆盖 ToastPosition 的全部取值
+        { _T("btn_demo_pos_top"),_T("STRID_TOAST_BTN_POS_TOP"),
+          ui::ToastWnd::kTypeInfo,    3000, ui::ToastWnd::kPosTop },
+        { _T("btn_demo_pos_center"),_T("STRID_TOAST_BTN_POS_CENTER"),
+          ui::ToastWnd::kTypeInfo,    3000, ui::ToastWnd::kPosCenter },
+        { _T("btn_demo_pos_bottom"),_T("STRID_TOAST_BTN_POS_BOTTOM"),
+          ui::ToastWnd::kTypeInfo,    3000, ui::ToastWnd::kPosBottom },
+        { _T("btn_demo_pos_topright"),_T("STRID_TOAST_BTN_POS_TOPRIGHT"),
+          ui::ToastWnd::kTypeInfo,    3000, ui::ToastWnd::kPosTopRight },
+        { _T("btn_demo_pos_bottomright"),_T("STRID_TOAST_BTN_POS_BOTTOMRIGHT"),
           ui::ToastWnd::kTypeInfo,    3000, ui::ToastWnd::kPosBottomRight }
     };
 

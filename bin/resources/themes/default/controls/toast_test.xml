@@ -39,8 +39,19 @@
                     width="320" height="34" halign="center" margin="0,0,0,10"/>
             <Button class="btn_global" name="btn_demo_manual" text_id="STRID_TOAST_BTN_MANUAL"
                     width="320" height="34" halign="center" margin="0,0,0,10"/>
-            <Button class="btn_global" name="btn_demo_position" text_id="STRID_TOAST_BTN_POSITION"
-                    width="320" height="34" halign="center" margin="0,0,0,10"/>
+            <!-- 位置演示：覆盖 ToastPosition 全部取值（顶部/垂直居中/底部/右上/右下） -->
+            <HBox width="stretch" height="auto" margin="0,0,0,10" halign="center">
+                <Button class="btn_global" name="btn_demo_pos_top" text_id="STRID_TOAST_BTN_POS_TOP"
+                        width="stretch" height="34" margin="2,0,2,0"/>
+                <Button class="btn_global" name="btn_demo_pos_center" text_id="STRID_TOAST_BTN_POS_CENTER"
+                        width="stretch" height="34" margin="2,0,2,0"/>
+                <Button class="btn_global" name="btn_demo_pos_bottom" text_id="STRID_TOAST_BTN_POS_BOTTOM"
+                        width="stretch" height="34" margin="2,0,2,0"/>
+                <Button class="btn_global" name="btn_demo_pos_topright" text_id="STRID_TOAST_BTN_POS_TOPRIGHT"
+                        width="stretch" height="34" margin="2,0,2,0"/>
+                <Button class="btn_global" name="btn_demo_pos_bottomright" text_id="STRID_TOAST_BTN_POS_BOTTOMRIGHT"
+                        width="stretch" height="34" margin="2,0,2,0"/>
+            </HBox>
             <Button class="btn_global" name="btn_demo_action" text_id="STRID_TOAST_BTN_ACTION"
                     width="320" height="34" halign="center" margin="0,0,0,10"/>
         </VBox>

@@ -570,6 +570,26 @@ namespace ui
             rcAnchor = rcWork;
         }
 
+        //父窗口带"自绘阴影"时，GetClientRect 返回的是整窗矩形（内容 + 阴影），
+        //若直接以整窗为锚点，Toast 会从阴影上沿开始算边距，从而压住父窗口的阴影。
+        //这里把锚点向内收缩父窗口阴影，得到"可见内容区"，确保 Toast 不覆盖父窗口阴影。
+        //注：系统阴影（DWM）由 OS 绘制在窗口之外，整窗即内容区，无需收缩；
+        //    未启用阴影或窗口最大化时，GetCurrentShadowCorner 返回全 0，收缩为无效操作。
+        if (pParent != nullptr) {
+            UiPadding rcParentShadow = pParent->GetCurrentShadowCorner();
+            rcAnchor.left   += rcParentShadow.left;
+            rcAnchor.top    += rcParentShadow.top;
+            rcAnchor.right  -= rcParentShadow.right;
+            rcAnchor.bottom -= rcParentShadow.bottom;
+            if ((rcAnchor.left >= rcAnchor.right) || (rcAnchor.top >= rcAnchor.bottom)) {
+                //防御：阴影异常（远大于窗口）时回退为不收缩，避免锚点矩形失效
+                rcAnchor.left   -= rcParentShadow.left;
+                rcAnchor.top    -= rcParentShadow.top;
+                rcAnchor.right  += rcParentShadow.right;
+                rcAnchor.bottom += rcParentShadow.bottom;
+            }
+        }
+
         //2. 统计同一锚点上、排在本通知之前的通知总高度（堆叠偏移）
         int32_t nStackOffset = 0;
         for (ToastWnd* pOther : s_toasts) {
