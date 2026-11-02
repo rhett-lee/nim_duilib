@@ -497,7 +497,7 @@ Panel/PanelHBox/PanelVBox are three instances of the same template class (`Panel
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |
 | title | | string | Title bar text |
-| title_id | | string | Language resource ID of the title text (alias: titleid); when set, the title is immediately resolved from the current language and is automatically refreshed after a language switch; if the ID is not found in the language file, the existing title is kept. Its usage matches the Label's text_id |
+| title_id | | string | Language resource ID of the title text; when set, the title is immediately resolved from the current language and is automatically refreshed after a language switch; if the ID is not found in the language file, the existing title is kept. Its usage matches the Label's text_id |
 | title_height | 28 | int | Title bar height in pixels (automatically DPI scaled) |
 | title_bk_color | | string | Title bar background color (semantic color name; if not set, no background is painted) |
 | title_text_color | text_default | string | Title text color (semantic color name) |
@@ -511,12 +511,12 @@ Panel/PanelHBox/PanelVBox are three instances of the same template class (`Panel
 | group | | string | Accordion group name: within the same window, only one panel of a group may be expanded at a time (all may be collapsed); empty string means no group |
 | title_slot | | string | Title bar slot: the name of a child control (recommended to set float="true") which is automatically positioned at the right side of the title bar (left of the arrow); it stays visible and clickable when collapsed |
 | arrow_expanded_normal_image | | string | Image of the expanded-state (▼) arrow in the normal state |
-| arrow_expanded_hovered_image | | string | Image of the expanded-state arrow in the hovered state (alias: arrow_expanded_hot_image) |
-| arrow_expanded_pushed_image | | string | Image of the expanded-state arrow in the pushed state (alias: arrow_expanded_pressed_image) |
+| arrow_expanded_hovered_image | | string | Image of the expanded-state arrow in the hovered state |
+| arrow_expanded_pushed_image | | string | Image of the expanded-state arrow in the pushed state |
 | arrow_expanded_disabled_image | | string | Image of the expanded-state arrow in the disabled state |
 | arrow_collapsed_normal_image | | string | Image of the collapsed-state (▶) arrow in the normal state |
-| arrow_collapsed_hovered_image | | string | Image of the collapsed-state arrow in the hovered state (alias: arrow_collapsed_hot_image) |
-| arrow_collapsed_pushed_image | | string | Image of the collapsed-state arrow in the pushed state (alias: arrow_collapsed_pressed_image) |
+| arrow_collapsed_hovered_image | | string | Image of the collapsed-state arrow in the hovered state |
+| arrow_collapsed_pushed_image | | string | Image of the collapsed-state arrow in the pushed state |
 | arrow_collapsed_disabled_image | | string | Image of the collapsed-state arrow in the disabled state |
 | padding | 0,0,0,0 | rect | Padding of the content area; the title bar space is automatically reserved at the top, so padding only applies to the content area below the title bar |
 

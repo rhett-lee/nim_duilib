@@ -1,3 +1,7 @@
+English | [简体中文](Release.md)
+
+> Last synced: 2026-11-02
+
 # Release and Packaging
 
 This document explains how to package nim_duilib into a distributable

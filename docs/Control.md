@@ -467,6 +467,8 @@ OptionHBox 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的�
 OptionVBox与Option是基于相同模板的类，请参考 `Option`的属性    
 OptionVBox 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的属性
 
+> **注意**：`OptionHBox`、`OptionVBox` 只有 C++ 模板类型（`OptionTemplate<HBox>`、`OptionTemplate<VBox>`），没有注册为 XML 节点；XML 中请使用 `Option`、`OptionBox` 或 `CheckBoxHBox`、`CheckBoxVBox`。
+
 ## GroupBox的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
@@ -711,8 +713,67 @@ IPAddress 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的�
 Line 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
 
 ## Menu的属性
-Menu是一个窗口，具体用法请参考示例程序中的菜单    
+Menu 是一个独立窗口（基于 `WindowImplBase` 实现），具体用法请参考 [Menu 菜单](Menu.md) 与示例程序中的菜单。
+
+菜单 XML 中常用的节点如下（节点名称与 C++ 类的对应关系见 [XML节点名称](XmlNode.md)）：
+
+| 节点名称 | 说明 |
+| :--- | :--- |
+| MenuListBox | 菜单的根容器（`MenuListBox` 继承 `VListBox`），用于承载菜单项 |
+| MenuItem | 菜单项（`MenuItem` 继承 `ListBoxItem`），内部可放置图标、文本、勾选框等任意控件 |
+| SubMenu | 子菜单容器，放在 `MenuItem` 内部，用于组织多级菜单 |
+
+菜单也常与 `MenuBar` 配合使用：`MenuBar` 负责显示顶级菜单，点击后弹出由菜单 XML 描述的菜单窗口。
+
 Menu 控件继承了 `Window` 属性，更多可用属性请参考`Window`的属性
+
+## MenuBar 控件（继承 HBox 属性）
+MenuBar 是窗口内的菜单栏控件，用于显示顶级菜单项；鼠标移入或点击顶级菜单后，弹出对应的菜单窗口。菜单项被激活（鼠标点击或键盘回车）后，通过 `AttachMenuBarItemActivated` 注册的回调通知应用层。
+
+XML 中的 `MenuBarItem` 节点只能作为 `MenuBar` 的子节点，支持的属性如下：
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| id | | string | 顶级菜单项的ID，回调函数中用于标识菜单来源 |
+| text | | string | 顶级菜单项显示的文本 |
+| text_id | | string | 顶级菜单项文本的多语言ID（`text` 为空时使用） |
+| xml_path | | string | 该顶级菜单对应的菜单XML资源路径 |
+
+`MenuBarItem` 节点也可以用内嵌的 `<Menu>` 节点直接定义菜单内容（此时无需设置 `xml_path`）。示例：
+
+```xml
+<MenuBar name="menu_bar_test" bkcolor="bg_menu_bar" height="36" margin="6,0,20,0" padding="4,0,0,0" border_round="4,4">
+    <MenuBarItem id="menu_file" text="File">
+        <Menu class="menu" bkcolor="bg_menu" height="auto" width="auto">
+            <MenuItem class="menu_element" text="New" height="28" width="auto" />
+            <MenuItem class="menu_element" text="Open" height="28" width="auto" />
+        </Menu>
+    </MenuBarItem>
+</MenuBar>
+```
+
+顶级菜单文本默认使用 `global.xml` 中的 `menu_bar_button` 样式，也可以在 C++ 接口中为每个顶级菜单指定样式类和附加属性。
+
+C++ 常用接口：
+
+| 接口 | 说明 |
+| :--- | :--- |
+| AddTopMenu / InsertTopMenu | 添加（或在指定位置插入）一个顶级菜单，成功返回索引号 |
+| GetTopMenu / RemoveTopMenu | 获取/移除指定索引号的顶级菜单 |
+| SetActiveTopMenuIndex / GetActiveTopMenuIndex | 设置/获取当前激活（已展开子菜单）的顶级菜单索引 |
+| AttachMenuBarItemActivated / ClearMenuBarItemActivated | 注册/清空菜单项激活回调 |
+
+回调函数原型：
+
+```cpp
+typedef std::function<void (const DString& menuItemId,
+                            const DString& menuName, int32_t nMenuLevel,
+                            const DString& itemName, size_t nItemIndex)> MenuBarItemActivatedEvent;
+```
+
+其中 `menuItemId` 为 `MenuBarItem` 的 `id`，`menuName` 为菜单XML中根节点的 `name`，`nMenuLevel` 为菜单层级（0 表示一级菜单），`itemName` 为被激活菜单项的 `name`，`nItemIndex` 为菜单项索引（从 0 开始）。
+
+完整示例可参考 `examples/render` 示例程序，以及 [Menu 菜单](Menu.md) 的“菜单栏（MenuBar）”一节。
 
 ## Progress的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
@@ -874,10 +935,10 @@ pSlider->SetTickLabelCallback([](double value, int32_t /*index*/) {
 | high_thumb_normal_image / high_thumb_hovered_image / high_thumb_pressed_image / high_thumb_disabled_image |  | string | 上限滑块各状态图片（为空时回退使用下限滑块的图片）|
 | tooltip_open | false | bool | 是否始终显示两个滑块的值气泡（false 时：拖动中与悬停该滑块时显示，松开鼠标后延迟 1 秒自动消失）|
 | tooltip_format / tooltip_format_id |  | string | 值气泡文本格式（如 `%.0f`）/ 其多语言 ID（优先，语言切换时自动刷新）|
-| tooltip_bkcolor（别名 tooltip_bg_color） | bg_tooltip | string | 值气泡背景色 |
+| tooltip_bkcolor | bg_tooltip | string | 值气泡背景色 |
 | tooltip_text_color | text_tooltip | string | 值气泡文本颜色 |
 | marks |  | string | 刻度列表，语法 `value=label@color\|value=label\|value`，多个刻度用 `\|` 分隔，如 `0=0°C\|100=100°C@color_error` |
-| mark_color（别名 mark_dot_color） | text_disabled | string | 刻度点的颜色 |
+| mark_color | text_disabled | string | 刻度点的颜色 |
 | mark_label_color | text_muted | string | 刻度标签的默认颜色（`marks` 中 `@color` 可覆盖单个标签）|
 | mark_dot_size | 6 | int | 刻度点直径（像素，DPI 缩放）|
 | mark_label_gap | 6 | int | 刻度标签与轨道之间的距离（像素，DPI 缩放）|
@@ -985,8 +1046,8 @@ pRange->AttachRangeChanged([](const ui::EventArgs& msg) {
 | title_color_active / title_color_completed / title_color_pending | text_default / color_success / text_muted | string | 各状态标题颜色 |
 | desc_color | text_muted | string | 描述文本颜色 |
 | title_font / desc_font | system_bold_14 / system_regular_12 | string | 标题 / 描述字体 ID |
-| node_hovered_image（别名 node_hot_image） |  | string | 节点悬停态图片，可选；鼠标悬停于可点击步骤上时显示（绘制在节点圆形下层） |
-| node_pressed_image（别名 node_pushed_image） |  | string | 节点按下态图片，可选；鼠标按下可点击步骤时显示，未配置时回退悬停态图片 |
+| node_hovered_image |  | string | 节点悬停态图片，可选；鼠标悬停于可点击步骤上时显示（绘制在节点圆形下层） |
+| node_pressed_image |  | string | 节点按下态图片，可选；鼠标按下可点击步骤时显示，未配置时回退悬停态图片 |
 
 Stepper 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性。
 
@@ -1053,16 +1114,16 @@ pStepper->AttachStepChanged([](const ui::EventArgs& msg) {
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | value | 0 | double | 当前评分值，钳位到 `[0, max]`，按 `allow_half` 对齐步长 |
-| max（别名 star_count） | 5 | int | 星星数量 |
+| max | 5 | int | 星星数量 |
 | allow_half | false | bool | 是否允许半星（步长 0.5，否则 1） |
-| read_only（别名 readonly） | false | bool | 只读展示模式，禁止鼠标交互 |
+| read_only | false | bool | 只读展示模式，禁止鼠标交互 |
 | star_size | 20 | int | 单颗星绘制直径（像素，自动 DPI 缩放） |
 | star_gap | 4 | int | 星星间距（像素，自动 DPI 缩放） |
-| star_filled_image（别名 star_full_image） |  | string | 实心星图片 |
+| star_filled_image |  | string | 实心星图片 |
 | star_half_image |  | string | 半星图片（可选，未配置时对实心星做左半裁剪绘制） |
 | star_empty_image |  | string | 空心星图片 |
-| star_hovered_image（别名 star_hover_image） |  | string | 星悬停态图标，可选（绘制在星形下层，形成外圈光晕 / 描边） |
-| star_pressed_image（别名 star_pushed_image） |  | string | 星按下态图标，可选；未配置时回退悬停态图标 |
+| star_hovered_image |  | string | 星悬停态图标，可选（绘制在星形下层，形成外圈光晕 / 描边） |
+| star_pressed_image |  | string | 星按下态图标，可选；未配置时回退悬停态图标 |
 
 Rating 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性。
 
@@ -1083,7 +1144,7 @@ XML 示例：
 double GetValue() const;
 void SetValue(double fValue);                  //钳位 + 步长对齐，变化触发事件
 void SetValueNoEvent(double fValue);           //设置值（不触发事件）
-int32_t GetMax() const;                        //星星数量（别名 GetStarCount）
+int32_t GetMax() const;                        //星星数量
 void SetMax(int32_t nMax);                     //调小 max 时同步钳位 value
 bool IsAllowHalf() const;  void SetAllowHalf(bool bAllow);
 bool IsReadOnly() const;   void SetReadOnly(bool bReadOnly);
@@ -1119,7 +1180,7 @@ pRating->AttachRatingChanged([](const ui::EventArgs& msg) {
 | item_image |  | string | 幻灯片图片列表，`\|` 分隔的图片属性串，每项如 `file='.../slide1.png'` |
 | current_index | 0 | int | 当前幻灯片索引（0 起），钳位到 `[0, count-1]` |
 | loop | true | bool | 是否循环（首尾相接，无限滚动） |
-| auto_play（别名 autoplay） | false | bool | 是否自动播放 |
+| auto_play | false | bool | 是否自动播放 |
 | interval | 3000 | int | 自动播放间隔（毫秒） |
 | hover_pause | true | bool | 鼠标悬停时暂停自动播放 |
 | transition_ms | 300 | int | 切换动画时长（毫秒，0 = 立即切换） |
@@ -1189,8 +1250,8 @@ pCarousel->AttachCarouselChanged([](const ui::EventArgs& msg) {
 
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
-| page_count（别名 total_page） | 0 | int | 总页数 |
-| current_page（别名 page） | 1 | int | 当前页码（1 起），钳位到 `[1, page_count]` |
+| page_count | 0 | int | 总页数 |
+| current_page | 1 | int | 当前页码（1 起），钳位到 `[1, page_count]` |
 | total_count | 0 | int | 总记录数（与 `page_size` 配合推导 `page_count`，可选） |
 | page_size | 0 | int | 每页记录数（可选；`total_count` + `page_size` > 0 时优先推导） |
 | show_page_size | false | bool | 是否显示“每页条数”选择器（可选功能，默认关闭） |
@@ -1255,8 +1316,8 @@ Breadcrumb 是面包屑导航控件，继承自 `Control`，纯自绘实现（�
 | :--- | :--- | :--- | :--- |
 | item_text | 空 | string | 条目文本，`\|` 分隔多条，如 `首页\|产品\|文档` |
 | item_text_id | 空 | string | 条目文本的多语言 ID，`\|` 分隔多条；语言切换时自动刷新 |
-| current（别名 current_index） | -1 | int | 当前项索引（0 起）；-1 表示自动跟随最后一项 |
-| separator（别名 separator_text） | › | string | 条目之间的分隔符 |
+| current | -1 | int | 当前项索引（0 起）；-1 表示自动跟随最后一项 |
+| separator | › | string | 条目之间的分隔符 |
 | spacing | 4 | int | 分隔符两侧的间距（像素，自动 DPI 缩放） |
 | item_padding | 6 | int | 条目点击区域左右内边距（像素，自动 DPI 缩放） |
 | item_round | 4 | int | 悬停 / 按下胶囊背景的圆角半径（像素，自动 DPI 缩放） |
@@ -1748,10 +1809,10 @@ SpinBox是数字输入框控件，继承自RichEdit，默认开启`number_only`�
 | decimals | 0 | int(0~10) | 小数位数；0 时与普通整数 SpinBox 行为一致 |
 | step | 1 | double | 步长值（必须大于 0），步进按钮和上下方向键每次调整的数值 |
 | value | 0 | double | 初始数值（超出min/max范围时会被修正到边界值，并按 decimals 四舍五入） |
-| min_number / max_number | 无限制 | double | 数值范围（别名 `min_value` / `max_value`） |
+| min_number / max_number | 无限制 | double | 数值范围 |
 | prefix | "" | string | 显示前缀（如 `"$ "`） |
 | suffix | "" | string | 显示后缀（如 `" kg"`） |
-| group_separator | "" | string | 千分位分隔符（如 `","`），空表示不分组；别名 `thousand_separator` |
+| group_separator | "" | string | 千分位分隔符（如 `","`），空表示不分组 |
 
 对应C++接口：`SetStep/GetStep/GetStepDouble`、`SetValue/GetValue/GetValueDouble`、`SetRange(min, max)`、`SetMinValue/GetMinValue`、`SetMaxValue/GetMaxValue`、`SetDecimals/GetDecimals`、`SetPrefix/GetPrefix`、`SetSuffix/GetSuffix`、`SetGroupSeparator/GetGroupSeparator`。    
 数值变化时触发`kEventTextChanged`事件（与RichEdit一致）。    
@@ -1969,7 +2030,7 @@ Switch是滑块开关控件，继承自CheckBox，用于开关状态的切换。
 ```
 
 默认皮肤在global.xml中定义了4套Class（SVG资源在`public/switch/`目录）：
-- `switch`（别名`switch_ios`）：iOS风格，51x31，白色大滑块带柔和投影，轨道颜色随主题色；
+- `switch`：iOS风格，51x31，白色大滑块带柔和投影，轨道颜色随主题色；
 - `switch_fluent`：Windows 11 Fluent风格，48x24（padding=2，轨道44x20），描边小轨道+14px小滑块；
 - `switch_material`：Material Design 3风格，52x32，未选中为描边轨道+16px小滑块，选中为主题色轨道+24px带对勾大滑块；
 - `switch_small`：小号尺寸，40x20，字形`system_regular_12`，其余样式沿用iOS皮肤。
@@ -2631,7 +2692,6 @@ Popconfirm是"就地确认"的锚点式控件，继承自`Popover`（XML节点�
 | :--- | :--- | :--- | :--- | :--- |
 | description | | string | SetDescription | 卡片描述（字面文本，`\n`表示换行，可省略） |
 | description_id | | string | SetDescriptionId | 卡片描述的多语言ID（与description互斥，优先生效） |
-| content / content_id | | string | SetDescription / SetDescriptionId | `description`的兼容别名（便于从Popover迁移） |
 | icon | warning | string | SetIcon | 图标语义：`warning` / `info` / `success` / `error` / `none`（不显示图标） |
 | ok_text | | string | SetOkText | "确定"按钮的字面文本（默认为语言键`STRID_PUBLIC_STRING_OK`） |
 | ok_text_id | | string | SetOkTextId | "确定"按钮的多语言ID（优先于`ok_text`） |
@@ -2762,7 +2822,6 @@ if (pConfirm != nullptr) {
 
 注意事项：
 - `Popconfirm`不使用继承来的`content_xml`（卡片内容由控件生成）；需要富内容请改用`Popover`，或在业务侧派生`Popconfirm`并重写`BuildCardBodyXml()`；
-- `content` / `content_id` 是`description` / `description_id`的兼容别名，两者都设置时以`description`系列为准；
 - 图标、`show_cancel`、`ok_type`、`close_on_ok`在卡片打开时生成，运行期修改对下一次打开生效；
 - 按钮宽度按文案自适应（`width="auto"` + `padding="10,0,10,0"` + `min_width="64"`），短文案时保持 64 的最小宽度，长文案（如外语的"Delete"/"确定"）不会被截断；如需固定宽度请自定义主题Class（`popconfirm_cancel` / `popconfirm_ok_*`）；
 - 卡片窗口不抢焦点，因此"确定"/"取消"只响应鼠标点击，不支持键盘回车/Esc选择（Esc按`Popover`的语义关闭卡片，原因为`kEscape`）。
@@ -2789,7 +2848,7 @@ Avatar只负责"固定正方形区域内的头像渲染"，自身不派发专用
 | 属性名称 | 默认值 | 参数类型 | 关联[Avatar.h](../duilib/Control/Avatar.h)中的函数 | 用途 |
 | :--- | :--- | :--- | :--- | :--- |
 | size | 32 | string | SetSize | 头像尺寸：`small`(24) / `default`或`medium`(32) / `large`(40) / 数值（像素）；同时设置固定宽高 |
-| shape | circle | string | SetShape | 形状：`circle`（默认）/ `square`（兼容`rect`、`rounded`） |
+| shape | circle | string | SetShape | 形状：`circle`（默认）/ `square` |
 | corner | 8 | int | SetCorner | 方形头像的圆角半径（DPI自适应） |
 | image | | string | SetImage | 头像图片（完整图片属性串，如`file='xxx.png' svg_replace_colors='...'`），按cover填充并裁剪 |
 | icon | | string | SetIcon | 头像图标（完整图片属性串），按contain居中 |
@@ -3645,7 +3704,80 @@ XML 中可直接配置并绑定内联事件：`<ListCtrl class="list_ctrl" selec
 PropertyGrid 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的属性
 
 ## ColorPicker 控件（继承 Window 属性）
-ColorPicker是一个窗口，具体用法请参考示例程序中的菜单    
+ColorPicker 是一个独立窗口（基于 `WindowImplBase` 实现），用于选择颜色。默认皮肤目录为 `public`，皮肤文件为 `public/color/color_picker.xml`。
+示例程序 `examples/ColorPicker` 和 `examples/controls` 演示了非模态与模态两种用法：
+
+```cpp
+ui::ColorPicker* pColorPicker = new ui::ColorPicker;
+ui::WindowCreateParam createParam;
+createParam.m_dwStyle = ui::kWS_POPUP;
+createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+createParam.m_bCenterWindow = true;
+pColorPicker->CreateWnd(this, createParam);   // 非模态窗口，随后可调用 ShowModalFake()
+// pColorPicker->DoModal(this, createParam); // 模态窗口
+```
+
+主要接口：
+
+| 接口 | 说明 |
+| :--- | :--- |
+| SetSelectedColor / GetSelectedColor | 设置初始颜色 / 获取最终选择的颜色 |
+| AttachSelectColor | 颜色变化回调，`wParam` 为新颜色、`lParam` 为旧颜色（可用 `UiColor((uint32_t)wParam)` 转换） |
+| AttachWindowClose | 窗口关闭回调，`wParam` 为关闭方式（`kWindowCloseNormal`、`kWindowCloseOK`、`kWindowCloseCancel`） |
+
+ColorPicker 窗口由以下子控件组合而成，这些子控件也可以单独在 XML 中使用。
+
+### ColorControl（继承 Control 属性）
+显示颜色光谱位图的取色控件，鼠标点击或拖动时选择颜色。无专属 XML 属性，外观由 `Control` 属性控制。
+
+```cpp
+void SelectColor(const UiColor& color); // 设置当前颜色
+void AttachSelectColor(const EventCallback& callback, EventCallbackID callbackID = 0); // 选择颜色变化
+```
+
+选择颜色时触发 `kEventSelectColor` 事件：`wParam` 为新颜色值，`lParam` 为旧颜色值。
+
+### ColorSlider（继承 Slider 属性）
+颜色通道滑块，用于调整 ARGB / HSV / HSL 中某个通道的值。无专属 XML 属性，外观与行为继承 `Slider`，渐变背景由控件内部按当前颜色绘制。
+
+```cpp
+void SetColorInfo(const UiColor& color, ColorAdjustMode adjustMode);
+void SetColorInfo(const ColorHSV& color, ColorAdjustMode adjustMode);
+void SetColorInfo(const ColorHSL& color, ColorAdjustMode adjustMode);
+```
+
+### ColorPickerRegular（继承 VirtualVTileListBox 属性）
+按规则排列的常用颜色面板。支持的属性：
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| color_type | "default" | string | 颜色数据来源："default" 使用默认颜色表，"basic" 使用基本颜色表 |
+| item_size | | size | 每个颜色块的大小，如"40,20"（继承 VirtualVTileListBox 属性） |
+| columns | | int | 显示的列数，如"10"（继承 VirtualVTileListBox 属性） |
+
+C++ 接口：`SelectColor`、`GetSelectedColor`、`SetColumns`、`AttachSelectColor`；选择颜色时触发 `kEventSelectColor` 事件。
+
+### ColorPickerStandard（继承 Control 属性）
+标准色图（六边形色域）取色面板。无专属 XML 属性。C++ 接口：`SelectColor`、`AttachSelectColor`。
+
+### ColorPickerStandardGray（继承 Control 属性）
+标准灰色图（明度六边形色域）取色面板。无专属 XML 属性。C++ 接口：`SelectColor`、`AttachSelectColor`。
+
+### ColorPickerCustom（继承 Box 属性）
+自定义颜色面板，组合了光谱取色、常用颜色、ARGB/HSV/HSL 数值编辑与滑块。无专属 XML 属性，但内部按固定名称查找子控件，因此子控件的 `name` 必须与下面一致：
+
+| 用途 | 子控件名称 |
+| :--- | :--- |
+| 光谱取色 | color_picker_custom_spectrum（`ColorControl`） |
+| 常用颜色 | color_picker_custom_regular（`ColorPickerRegular`） |
+| 颜色文本 | color_picker_new_color_edit（`RichEdit`） |
+| ARGB 通道 | color_picker_edit_RGB_A / color_picker_slider_RGB_A |
+| RGB 通道 | color_picker_edit_RGB_R/G/B 与 color_picker_slider_RGB_R/G/B |
+| HSV 通道 | color_picker_edit_HSV_H/S/V 与 color_picker_slider_HSV_H/S/V |
+| HSL 通道 | color_picker_edit_HSL_H/S/L 与 color_picker_slider_HSL_H/S/L |
+
+C++ 接口：`SelectColor`、`AttachSelectColor`。完整布局可参考 `public/color/color_picker.xml`。
+
 ColorPicker 控件继承了 `Window` 属性，更多可用属性请参考`Window`的属性
 
 ## ControlDragable 控件（继承 Control 属性）

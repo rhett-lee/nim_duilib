@@ -1,6 +1,6 @@
 English | [简体中文](XmlEvents.md)
 
-> Last synced: 2026-09-29
+> Last synced: 2026-11-02
 
 ## Documentation on Responding to Control Events Directly in XML Files
 ### I. Usage Examples    
@@ -226,6 +226,10 @@ The available event list is defined in the `InitEventStringMap` function in the 
 |kEventImageDecode|"ImageDecode"|"image_decode"|
 |kEventViewModeChanged|"ViewModeChanged"|"view_mode_changed"|
 |kEventDisplayDateChanged|"DisplayDateChanged"|"display_date_changed"|
+|kEventTreeGridCheckChanged|"TreeGridCheckChanged"|"tree_grid_check_changed"|
+|kEventPopoverOpenChanged|"PopoverOpenChanged"|"popover_open_changed"|
+|kEventPopconfirmConfirm|"PopconfirmConfirm"|"popconfirm_confirm"|
+|kEventPopconfirmCancel|"PopconfirmCancel"|"popconfirm_cancel"|
 
 In the list above, either "XML name 1 of the event" or "XML name 2 of the event" can be used in XML; both names are recognized.
 

@@ -5,6 +5,8 @@
 
 | 事件(eventType)           | 参数(wParam)  | 参数(lParam) | 参数(ptMouse) | 参数(vkCode) | 参数(modifierKey) |参数(eventData) | 备注     |
 | :---                      | :---          | :---         |:---           |:---          |:---               |:---            |:---      |
+|kEventAll                  |     |     |     |     |       |     | 无参数；通过`AttachAllEvents`注册的回调可收到所有事件 |
+|kEventDestroy              |     |     |     |     |       |     | 无参数；控件销毁时派发的最后一条事件 |
 |kEventKeyDown              |原始值|原始值|     |   关联的按键  |  按键标志  |     |     |
 |kEventKeyUp                |原始值|原始值 |     |   关联的按键  |  按键标志  |     |     |
 |kEventChar                 |原始值|原始值|     |   关联的按键  |  按键标志  |     |     |
@@ -19,6 +21,9 @@
 |kEventMouseRButtonDown     |原始值|原始值|鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
 |kEventMouseRButtonUp       |原始值|原始值|鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
 |kEventMouseRDoubleClick    |原始值|原始值|鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
+|kEventMouseMButtonDown     |原始值|原始值|鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     | 鼠标中键按下 |
+|kEventMouseMButtonUp       |原始值|原始值|鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     | 鼠标中键抬起 |
+|kEventMouseMDoubleClick    |原始值|原始值|鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     | 鼠标中键双击 |
 |kEventContextMenu          |     |Control*<br> 鼠标所在位置的控件| 鼠标所在位置<br>的客户区坐标    |     |       |     | 如果用户键入 SHIFT+F10，<br> 则ptMouse为(-1,-1)，lParam为0 |
 |kEventClick                |     |     |鼠标所在位置<br>的客户区坐标   | 参数(vkCode)   | 按键标志   | 旧的事件类型  | 参数可能性较多，需要检测  |
 |kEventRClick               |     |     |鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
@@ -30,11 +35,17 @@
 |kEventSetFocus             |     |     |     |     |       |     | 无参数 |
 |kEventKillFocus            |     |Control*<br> 新的焦点控件<br>或者为nullptr |     |     |       |     |     |
 |kEventSetCursor            |     |     | 鼠标的<br>客户区坐标   |     |       |     |   |
+|kEventCaptureChanged       |     |     |     |     |       |     | 无参数；鼠标捕获状态发生变化时派发 |
+|kEventImeSetContext        |原始值|原始值|     |     |       |     | 输入法上下文消息（WM_IME_SETCONTEXT） |
 |kEventImeStartComposition  |     |     |     |     |       |     |无参数|
+|kEventImeComposition       |原始值|原始值|     |     |       |     | 输入法组合消息（WM_IME_COMPOSITION） |
 |kEventImeEndComposition    |     |     |     |     |       |     |无参数|
+|kEventWindowSetFocus       |     |     |     |     |       |     | 无参数；当前焦点控件所在窗口获得焦点时派发 |
 |kEventWindowKillFocus      |     |     |     |     |       |     |无参数 |
 |kEventWindowSize           |     |     |     |     |       |窗口大小变化类型：<br>WindowSizeType|     |
 |kEventWindowMove           |     |     | 窗口的<br>左上角坐标    |     |       |     |     |
+|kEventWindowPosChanged     |     |     |     |     |       |     | 无参数；窗口位置变化后，向当前焦点控件派发 |
+|kEventWindowCreate         |     |     |     |     |       |     | 无参数；Combo/ComboButton/CheckCombo的下拉窗口创建完成后派发 |
 |kEventWindowClose          |0: 正常关闭 <br> 1: 取消关闭|     |     |     |       |     |     |
 |kEventSelect               |ListBox/Combo: <br>新选择的索引号 | ListBox/Combo: <br>旧选项择索引号|     |     |       |     | 其他类无参数 |
 |kEventUnSelect             |ListBox: <br>新选择的索引号 | ListBox：<br>旧选项择索引号|     |     |       |     |  其他类无参数   |
@@ -63,6 +74,7 @@
 |kEventSelChanged           |     |     |     |     |       |     | 无参数 |
 |kEventReturn               |     |     |     |     |       |     | 无参数    |
 |kEventTab                  |     |     |     |     |       |     | 无参数   |
+|kEventEsc                  |     |     |     |     |       |     | 无参数；RichEdit、AddressBar等输入类控件收到ESC键时派发 |
 |kEventLinkClick            | DString.c_str()<br> URL字符串    |     |     |     |       |     |     |
 |kEventScrollPosChanged     | 0: cy无变化<br> 1: cy有变化   | 0: cx无变化<br> 1: cx有变化    |     |     |       |     |     |
 |kEventValueChanged         |新值 | 旧值 |     |     |       |     | Slider类：值发生变化时触发 |
@@ -72,6 +84,12 @@
 |kEventVisibleChanged       |新状态（1可见/0不可见）|     |     |     |       |     | 无参数 |
 |kEventStateChanged         | 新状态 | 旧状态   |     |     |       |     | ControlStateType |
 |kEventSelectColor          | 所选颜色 |     |     |     |       |     | newColor.GetARGB() |
+|kEventViewModeChanged      | 新的视图模式：<br>0=月视图<br>1=年视图<br>2=十年视图 | 旧的视图模式 |     |     |       |     | Calendar：视图模式变化时派发 |
+|kEventDisplayDateChanged   |     |     |     |     |       |     | 无参数；Calendar：显示的日期（年月）变化时派发 |
+|kEventTreeGridCheckChanged | TreeGridNode*<br>复选状态变化的节点 | 0（保留） |     |     |       | TreeGridCheckValue*：<br>节点与新复选状态 | TreeGrid：节点复选状态变化时派发 |
+|kEventPopoverOpenChanged   | 1=打开<br>0=关闭 | PopoverCloseReason：<br>关闭原因 |     |     |       |     | Popover：浮层打开/关闭时派发 |
+|kEventPopconfirmConfirm     |     |     |     |     |       |     | 无参数；Popconfirm：点击确认按钮时派发 |
+|kEventPopconfirmCancel      |     |     |     |     |       |     | 无参数；Popconfirm：点击取消按钮时派发 |
 |kEventSplitDraged          | Control*: <br>第1个控件接口| Control*:<br>第2个控件接口|     |     |       |     |  可能是nullptr  |
 |kEventEnterEdit            | ListCtrlEditParam*:<br>进入编辑状态的数据  |     |     |     |       |     | ListCtrl 单元格编辑：进入编辑状态时派发（行模式单击进入编辑、kCell 模式按 F2 立即进入编辑）；pEventData 指向 ListCtrlEditParam（行索引 / 列ID / 原文本等）；可在此回调中否决（cancel）以阻止进入编辑；kEditCombo 弹出候选浮层前也会派发本事件（同样可在此回调中 cancel 阻止进入编辑） |
 |kEventLeaveEdit            | ListCtrlEditParam*:<br>离开编辑状态的数据    |     |     |     |       |     | ListCtrl 单元格编辑：离开编辑状态时派发（Enter 提交 / 失焦提交 / Esc 取消）；pEventData 指向 ListCtrlEditParam；提交时若输入不合法（数值/日期列）则不派发本事件且不写回数据；Enter 提交成功后 kCell 模式当前格下移一行、kRow 行模式提交候选不移动选中行/不设置当前格/不滚动视图（应用可在事件回调的 bCancelled 上判断是否被取消） |
@@ -81,6 +99,18 @@
 |kEventColumnSorted         | 列ID(size_t)  | 新状态(1升序/0降序) |     |     |       |     | ListCtrl: 列的排序状态发生变化 |
 |kEventCurrentCellChanged   | 行的显示索引(size_t) | 列ID(size_t) |     |     |       |     | ListCtrl: 当前单元格发生变化（单元格选择模式） |
 |kEventCellSelectionChanged | 选中区域个数(size_t) | 0（保留） |     |     |       | std::vector<ui::ListCtrlCellRange>*:<br>选中的区域列表（可能多项；无选择时为 nullptr） | ListCtrl: 单元格的选择区域发生变化（支持不连续选择，故为区域列表；无有效选择时该指针为 nullptr，wParam 为 0） |
+|kEventElementFilled        | 数据项索引<br>（从0开始） | UI元素索引<br>（从0开始） |     |     |       | Control*:<br>填充的元素控件 | VirtualListBox：元素填充完成时派发；不支持冒泡到父控件 |
+|kEventDataItemCountChanged | 新的数据项个数 | 旧的数据项个数 |     |     |       |     | ListCtrl：数据项个数变化时派发 |
+|kEventItemMouseEnter       | 数据项索引<br>（无效时为Box::InvalidIndex） | 0（保留） |鼠标所在位置<br>的客户区坐标 |     | 按键标志 |     | ListBox：鼠标进入某个数据项时派发，sender为ListBox |
+|kEventItemMouseLeave       | 数据项索引<br>（无效时为Box::InvalidIndex） | 0（保留） |鼠标所在位置<br>的客户区坐标 |     | 按键标志 |     | ListBox：鼠标离开某个数据项时派发，sender为ListBox |
+|kEventSubItemMouseEnter    | 行(ListBox)索引 | 子项数据索引 |鼠标所在位置<br>的客户区坐标 |     | 按键标志 | ListCtrlSubItem*:<br>子项控件 | ListCtrl（Report视图）：鼠标进入某个子项时派发 |
+|kEventSubItemMouseLeave    | 行(ListBox)索引 | 子项数据索引 |鼠标所在位置<br>的客户区坐标 |     | 按键标志 | ListCtrlSubItem*:<br>子项控件 | ListCtrl（Report视图）：鼠标离开某个子项时派发 |
+|kEventReportViewItemFilled | ListBox索引 | 元素索引 |     |     |       | ListCtrlItem*:<br>整行填充时为nullptr | ListCtrl（Report视图）：整行或单个单元格填充完成时派发 |
+|kEventListViewItemFilled   | ListBox索引 | 数据项索引 |     |     |       | ListCtrlListViewItem*:<br>填充的列表项 | ListCtrl（ListView视图）：列表项填充完成时派发 |
+|kEventIconViewItemFilled   | ListBox索引 | 数据项索引 |     |     |       | ListCtrlIconViewItem*:<br>填充的图标项 | ListCtrl（IconView视图）：图标项填充完成时派发 |
+|kEventViewTypeChanged      | 新的视图类型 | 旧的视图类型 |     |     |       | Control*:<br>当前视图指针 | ListCtrl：视图类型切换时派发 |
+|kEventViewPosChanged       |     |     |     |     |       | Control*:<br>当前视图指针 | ListCtrl：视图的位置变化时派发 |
+|kEventViewSizeChanged      |     |     |     |     |       | Control*:<br>当前视图指针 | ListCtrl：视图的大小变化时派发 |
 
 | 事件(eventType)           | 参数(wParam)  | 参数(lParam) | 参数(ptMouse) | 参数(vkCode) | 参数(modifierKey) |参数(eventData) | 备注     |
 | :---                      | :---          | :---         |:---           |:---          |:---               |:---            |:---      |
@@ -98,4 +128,9 @@
 |kEventLoadingStop          | wParam 为数据指针：ui::ControlLoadingStatus*|     |     |     |       |     |  无参数   |
 |kEventImageLoad            | wParam 为数据指针：ui::ImageDecodeResult*   |     |     |     |       |     |  无参数   |
 |kEventImageDecode          | wParam 为数据指针：ui::ImageDecodeResult*   |     |     |     |       |     |  无参数   |
+|kEventNone                 |     |     |     |     |       |     | 无参数；无效事件值（内部边界值） |
+|kEventKeyBegin             |     |     |     |     |       |     | 无参数；键盘事件区间的起始值（内部边界值） |
+|kEventKeyEnd               |     |     |     |     |       |     | 无参数；键盘事件区间的结束值（内部边界值） |
+|kEventMouseBegin           |     |     |     |     |       |     | 无参数；鼠标事件区间的起始值（内部边界值） |
+|kEventMouseEnd             |     |     |     |     |       |     | 无参数；鼠标事件区间的结束值（内部边界值） |
 |kEventLast                 |     |     |     |     |       |     |  无参数   |

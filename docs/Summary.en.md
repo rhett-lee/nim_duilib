@@ -1,10 +1,12 @@
 English | [简体中文](Summary.md)
 
-> Last synced: 2026-09-29
+> Last synced: 2026-11-02
 
 ## Project Related Content Links
 
 * [Global Styles: Fonts, Colors, Images, and Other Resources](Global.en.md)
+* [Getting Started (Windows + Visual Studio)](Getting-Started.en.md)
+* [Sample Programs](Examples.en.md)
 * [Window Styles](Window.en.md)
 * [Window Shadow Reference Document](WindowShadow.en.md)
 * [Container Styles](Box.en.md)
@@ -17,8 +19,11 @@ English | [简体中文](Summary.md)
 * [Node Names of Each Control in XML Files](XmlNode.en.md)
 * [Directly Responding to Control Events in XML Files](XmlEvents.en.md)
 * [Theme Reference Document](Theme.en.md)
+* [Theme Color Configuration Specification](ThemeColor.en.md)
 * [CEF Control](CEF.en.md)
 * [SDK Guide: Installation, Upgrade, Migration and FAQ](Deployment.en.md)
+* [Differences from Legacy DuiLib](Differences.en.md)
+* [Release and Packaging](Release.en.md)
 
 ## Brief Table of Main Classes in the Project
 For detailed interface descriptions of each class, please refer to the associated header file, which has detailed comments.    
@@ -86,6 +91,7 @@ For detailed interface descriptions of each class, please refer to the associate
 | Class Name | Base Class Name | Layout Type | Associated Header File | Name / Purpose |
 | :--- | :--- | :--- | :--- | :--- |
 | Box | Control | [Layout](../duilib/Layout/Layout.h) | [duilib/Core/Box.h](../duilib/Core/Box.h) | Free-layout container; the base class of all containers; encapsulates the position, size, appearance shape, and child control management (add, delete, modify, draw, operate, drag-and-drop, layout, etc.) of a container |
+| XmlBox | Box | [Layout](../duilib/Layout/Layout.h) | [duilib/Box/XmlBox.h](../duilib/Box/XmlBox.h) | Container that loads XML content from the xml_file_path/res_path attribute as its child controls |
 | VBox | Box | [VLayout](../duilib/Layout/VLayout.h) | [duilib/Box/VBox.h](../duilib/Box/VBox.h) | Vertical layout container |
 | HBox | Box | [HLayout](../duilib/Layout/HLayout.h) | [duilib/Box/HBox.h](../duilib/Box/HBox.h) | Horizontal layout container |
 | VFlowBox | Box | [VFlowLayout](../duilib/Layout/VFlowLayout.h) | [duilib/Box/VBox.h](../duilib/Box/VBox.h) | Vertical flow layout container |
@@ -96,6 +102,8 @@ For detailed interface descriptions of each class, please refer to the associate
 | ScrollBox | Box | [Layout](../duilib/Layout/Layout.h) | [duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | Free-layout scrollable container, with vertical or horizontal scroll bars |
 | VScrollBox | ScrollBox | [VLayout](../duilib/Layout/VLayout.h) | [duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | Vertical layout scrollable container, with vertical or horizontal scroll bars |
 | HScrollBox | ScrollBox | [HLayout](../duilib/Layout/HLayout.h) | [duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | Horizontal layout scrollable container, with vertical or horizontal scroll bars |
+| VFlowScrollBox | ScrollBox | [VFlowLayout](../duilib/Layout/VFlowLayout.h) | [duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | Vertical flow layout scrollable container |
+| HFlowScrollBox | ScrollBox | [HFlowLayout](../duilib/Layout/HFlowLayout.h) | [duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | Horizontal flow layout scrollable container |
 | VTileScrollBox | ScrollBox | [VTileLayout](../duilib/Layout/VTileLayout.h) | [duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | Vertical tile layout scrollable container, with vertical or horizontal scroll bars |
 | HTileScrollBox | ScrollBox | [HTileLayout](../duilib/Layout/HTileLayout.h) | [duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | Horizontal tile layout scrollable container, with vertical or horizontal scroll bars |
 | ListBox | ScrollBox | [Layout](../duilib/Layout/Layout.h) | [duilib/Box/ListBox.h](../duilib/Box/ListBox.h) | Free-layout list container |
@@ -108,11 +116,19 @@ For detailed interface descriptions of each class, please refer to the associate
 | VirtualHListBox | VirtualListBox | [VirtualHLayout](../duilib/Layout/VirtualHLayout.h) | [duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | Virtual-list implemented horizontal layout list container |
 | VirtualVTileListBox | VirtualListBox | [VirtualVTileLayout](../duilib/Layout/VirtualVTileLayout.h) | [duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | Virtual-list implemented vertical tile layout list container |
 | VirtualHTileListBox | VirtualListBox | [VirtualHTileLayout](../duilib/Layout/VirtualHTileLayout.h) | [duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | Virtual-list implemented horizontal layout list container |
+| MenuListBox | VListBox | [VLayout](../duilib/Layout/VLayout.h) | [duilib/Control/MenuListBox.h](../duilib/Control/MenuListBox.h) | Menu list container created at runtime by Menu to host menu items |
 | GridBox | Box | [GridLayout](../duilib/Layout/GridLayout.h) | [duilib/Box/GridBox.h](../duilib/Box/GridBox.h) | Grid layout container |
 | GridScrollBox | ScrollBox | [GridLayout](../duilib/Layout/GridLayout.h) | [duilib/Box/GridBox.h](../duilib/Box/GridBox.h) | Grid layout container (supports scroll bars) |
 | Panel | Box | [Layout](../duilib/Layout/Layout.h) | [duilib/Box/Panel.h](../duilib/Box/Panel.h) | Titled panel container (PanelTemplate instance), supporting title bar styling, collapse/expand animation and accordion groups |
 | PanelHBox | HBox | [HLayout](../duilib/Layout/HLayout.h) | [duilib/Box/Panel.h](../duilib/Box/Panel.h) | Titled panel container with horizontal layout |
 | PanelVBox | VBox | [VLayout](../duilib/Layout/VLayout.h) | [duilib/Box/Panel.h](../duilib/Box/Panel.h) | Titled panel container with vertical layout |
+| BoxMovable | Box | [Layout](../duilib/Layout/Layout.h) | [duilib/Core/ControlMovable.h](../duilib/Core/ControlMovable.h) | Container that can be moved by dragging (`ControlMovableT<Box>`) |
+| HBoxMovable | HBox | [HLayout](../duilib/Layout/HLayout.h) | [duilib/Core/ControlMovable.h](../duilib/Core/ControlMovable.h) | Container that can be moved by dragging (`ControlMovableT<HBox>`) |
+| VBoxMovable | VBox | [VLayout](../duilib/Layout/VLayout.h) | [duilib/Core/ControlMovable.h](../duilib/Core/ControlMovable.h) | Container that can be moved by dragging (`ControlMovableT<VBox>`) |
+| BoxResizable | Box | [Layout](../duilib/Layout/Layout.h) | [duilib/Core/ControlResizable.h](../duilib/Core/ControlResizable.h) | Container resizable by dragging (`ControlResizableT<Box>`) |
+| HBoxResizable | HBox | [HLayout](../duilib/Layout/HLayout.h) | [duilib/Core/ControlResizable.h](../duilib/Core/ControlResizable.h) | Container resizable by dragging (`ControlResizableT<HBox>`) |
+| VBoxResizable | VBox | [VLayout](../duilib/Layout/VLayout.h) | [duilib/Core/ControlResizable.h](../duilib/Core/ControlResizable.h) | Container resizable by dragging (`ControlResizableT<VBox>`) |
+| ChildWindow | Box | [Layout](../duilib/Layout/Layout.h) | [duilib/Control/ChildWindow.h](../duilib/Control/ChildWindow.h) | Child window container used to embed the content of another window into the control tree |
 | NavigationView | HBox | [HLayout](../duilib/Layout/HLayout.h) | [duilib/Control/NavigationView.h](../duilib/Control/NavigationView.h) | Sidebar navigation container (left nav pane + right content area); supports grouped items, a bottom settings item and pane collapse/expand |
 
 * Image
@@ -189,11 +205,19 @@ For detailed interface descriptions of each class, please refer to the associate
 | ScrollBar | Control | [duilib/Core/ScrollBar.h](../duilib/Core/ScrollBar.h) | Scroll bar control |
 | Label | Control | [duilib/Control/Label.h](../duilib/Control/Label.h) | Label control (template), used to display text |
 | LabelBox | Box | [duilib/Control/Label.h](../duilib/Control/Label.h) | Label container (template), used to display text |
+| LabelHBox | HBox | [duilib/Control/Label.h](../duilib/Control/Label.h) | Horizontal layout label container (`LabelTemplate<HBox>`) |
+| LabelVBox | VBox | [duilib/Control/Label.h](../duilib/Control/Label.h) | Vertical layout label container (`LabelTemplate<VBox>`) |
+| Badge | Label | [duilib/Control/Badge.h](../duilib/Control/Badge.h) | Badge control for unread counts/red dots; shows "99+" when exceeding the limit and hides automatically when count<=0 |
 | Marquee | Label | [duilib/Control/Marquee.h](../duilib/Control/Marquee.h) | Text marquee control (horizontal/vertical loop scroll, speed/direction/pause/hover-pause), see [Control.en.md](Control.en.md#attributes-of-marquee) |
 | Button | Control | [duilib/Control/Button.h](../duilib/Control/Button.h) | Button control (template implementation) |
 | ButtonBox | Box | [duilib/Control/Button.h](../duilib/Control/Button.h) | Button container control (template implementation) |
+| ButtonHBox | HBox | [duilib/Control/Button.h](../duilib/Control/Button.h) | Horizontal layout button container (`ButtonTemplate<HBox>`) |
+| ButtonVBox | VBox | [duilib/Control/Button.h](../duilib/Control/Button.h) | Vertical layout button container (`ButtonTemplate<VBox>`) |
 | CheckBox | Control | [duilib/Control/CheckBox.h](../duilib/Control/CheckBox.h) | Check box control (template implementation) |
 | CheckBoxBox | Box | [duilib/Control/CheckBox.h](../duilib/Control/CheckBox.h) | Check box container (template implementation) |
+| CheckBoxHBox | HBox | [duilib/Control/CheckBox.h](../duilib/Control/CheckBox.h) | Horizontal layout check box container (`CheckBoxTemplate<HBox>`) |
+| CheckBoxVBox | VBox | [duilib/Control/CheckBox.h](../duilib/Control/CheckBox.h) | Vertical layout check box container (`CheckBoxTemplate<VBox>`) |
+| Switch | CheckBox | [duilib/Control/Switch.h](../duilib/Control/Switch.h) | Toggle switch control with sliding animation and color transition |
 | Option | Control | [duilib/Control/Option.h](../duilib/Control/Option.h) | Radio button control |
 | OptionBox | Box | [duilib/Control/Option.h](../duilib/Control/Option.h) | Radio button container |
 | GroupBox | Box | [duilib/Control/GroupBox.h](../duilib/Control/GroupBox.h) | Group container (template) |
@@ -204,12 +228,14 @@ For detailed interface descriptions of each class, please refer to the associate
 | CheckCombo | Control | [duilib/Control/CheckCombo.h](../duilib/Control/CheckCombo.h) | Combo box with a check box |
 | FilterCombo | Combo | [duilib/Control/FilterCombo.h](../duilib/Control/FilterCombo.h) | Combo box with filter function |
 | DateTime | Label | [duilib/Control/DateTime.h](../duilib/Control/DateTime.h) | Date-time picker control |
+| Calendar | Control | [duilib/Control/Calendar.h](../duilib/Control/Calendar.h) | Calendar control with month/year/decade view switching and date selection |
 | HotKey | HBox | [duilib/Control/HotKey.h](../duilib/Control/HotKey.h) | Hot key control |
 | HyperLink | Label | [duilib/Control/HyperLink.h](../duilib/Control/HyperLink.h) | Text with a hyperlink; if the URL is empty, it can be used as a normal text button |
 | IPAddress | HBox | [duilib/Control/IPAddress.h](../duilib/Control/IPAddress.h) | IP address control |
 | Line | Control | [duilib/Control/Line.h](../duilib/Control/Line.h) | Line drawing control |
 | NavigationViewItem | Control | [duilib/Control/NavigationView.h](../duilib/Control/NavigationView.h) | Navigation item of NavigationView; supports item/header/separator forms |
 | Menu | WindowImplBase | [duilib/Control/Menu.h](../duilib/Control/Menu.h) | Menu, independent window |
+| MenuBar | HBox | [duilib/Control/MenuBar.h](../duilib/Control/MenuBar.h) | Menu bar control that hosts top-level menus; see [Menu.en.md](Menu.en.md) |
 | Progress | Label | [duilib/Control/Progress.h](../duilib/Control/Progress.h) | Progress bar control (horizontal/vertical, floating-point value, radius, buffer, percentage, value animation, marquee), see [Control.en.md](Control.en.md#attributes-of-progress) |
 | Slider | Progress | [duilib/Control/Slider.h](../duilib/Control/Slider.h) | Slider control (draggable, step, keyboard accessibility, tick ruler, track click-to-jump, value-change event), see [Control.en.md](Control.en.md#attributes-of-slider) |
 | RangeSlider | Progress | [duilib/Control/RangeSlider.h](../duilib/Control/RangeSlider.h) | Range slider with two thumbs and a highlighted selected range (minimum range, range color/radius, track click-to-jump, value tooltips, marks with labels, `included` outer highlighting, `snap_to_marks`; the `AttachRangeChanged` event carries low/high in `pEventData`), see [Control.en.md](Control.en.md#attributes-of-rangeslider-inherits-progress-attributes) |
@@ -222,21 +248,33 @@ For detailed interface descriptions of each class, please refer to the associate
 | Avatar | Control | [duilib/Control/Avatar.h](../duilib/Control/Avatar.h) | Avatar control (circle or rounded square; `size` presets or pixels, `corner` radius; content priority image (cover-clipped) > icon (contained and centered) > text/text_id; the text font is derived from a percentage of the short side, shrinking first and then ellipsizing when too wide; text avatars pick `bg_avatar_1..6` from a text hash and `color` overrides it; `text_id` repaints on language switch), see [Control.en.md](Control.en.md#avatar) |
 | Chart | Control | [duilib/Control/Chart.h](../duilib/Control/Chart.h) | Lightweight chart control (self-drawn line/bar/pie charts with data binding), see [Control.en.md](Control.en.md#chart-attributes) |
 | Timeline | Control | [duilib/Control/Timeline.h](../duilib/Control/Timeline.h) | Vertical timeline control (nodes + connector lines + content, data-driven, status colors, forward/reverse, multi-language binding, scrollbar), see [Control.en.md](Control.en.md#timeline-attributes) |
+| Carousel | Control | [duilib/Control/Carousel.h](../duilib/Control/Carousel.h) | Carousel control |
+| Rating | Control | [duilib/Control/Rating.h](../duilib/Control/Rating.h) | Rating control |
+| Pagination | HBox | [duilib/Control/Pagination.h](../duilib/Control/Pagination.h) | Pagination control |
 | ControlLoading and skeleton screens | Control base capability | [duilib/Core/ControlLoading.h](../duilib/Core/ControlLoading.h) | Available on every control: the `loading` attribute plus `StartLoading` / `StopLoading` for loading placeholders; the four skeleton-screen rules and the timeout fallback, see [Control.en.md](Control.en.md#controlloading-and-skeleton-screens) |
 | RichEdit | ScrollBox | [duilib/Control/RichEdit.h](../duilib/Control/RichEdit.h) | Rich text edit box control |
+| SpinBox | RichEdit | [duilib/Control/SpinBox.h](../duilib/Control/SpinBox.h) | Numeric input box with step, range and spin buttons |
+| SearchBox | HBox | [duilib/Control/SearchBox.h](../duilib/Control/SearchBox.h) | Composite search box with left icon, edit box and clear button |
 | RichEdit Implementation Class | | [duilib/Control/RichEditCtrl_Windows.h](../duilib/Control/RichEditCtrl_Windows.h) | Main function wrapper of the rich text edit box (Windows) |
 | RichEdit Implementation Class | | [duilib/Control/RichEditHost_Windows.h](../duilib/Control/RichEditHost_Windows.h) | Main function implementation of the rich text edit box (Windows) |
 | RichEdit Implementation Class | | [duilib/Control/RichEdit2.h](../duilib/Control/RichEdit2.h) | Cross-platform self-drawn rich text edit implementation (all platforms; non-SDL Windows builds also use [RichEdit_Windows.h](../duilib/Control/RichEdit_Windows.h)) |
 | RichText | Control | [duilib/Control/RichText.h](../duilib/Control/RichText.h) | Formatted text (HTML-like format) |
+| RichTextBox | Box | [duilib/Control/RichText.h](../duilib/Control/RichText.h) | Rich text container (`RichTextT<Box>`) |
+| RichTextHBox | HBox | [duilib/Control/RichText.h](../duilib/Control/RichText.h) | Rich text container (`RichTextT<HBox>`) |
+| RichTextVBox | VBox | [duilib/Control/RichText.h](../duilib/Control/RichText.h) | Rich text container (`RichTextT<VBox>`) |
 | Split | Control | [duilib/Control/Split.h](../duilib/Control/Split.h) | Splitter control |
 | SplitBox | Box | [duilib/Control/Split.h](../duilib/Control/Split.h) | Splitter container |
 | TabCtrl | ListBox | [duilib/Control/TabCtrl.h](../duilib/Control/TabCtrl.h) | Multi-tab control (similar to the multi-tabs of a browser) |
+| TabCtrlItem | ListBoxItemH | [duilib/Control/TabCtrl.h](../duilib/Control/TabCtrl.h) | Tab item of the multi-tab control (`ControlDragableT<ListBoxItemH>`) |
 | TagInput | Box | [duilib/Control/TagInput.h](../duilib/Control/TagInput.h) | Composite tag input (flow tags + RichEdit; commits tags on Enter/delimiter, removable, duplicate/max-count limits, auto wrapping), see [Control.en.md](Control.en.md#attributes-of-taginput) |
 | AutoComplete | Box | [duilib/Control/AutoComplete.h](../duilib/Control/AutoComplete.h) | Auto-complete input (edit box + following popup, live suggestions while typing, prefix/contains matching, keyboard navigation, fill-back without reopening), see [Control.en.md](Control.en.md#attributes-of-autocomplete) |
 | Mask | Box | [duilib/Control/Mask.h](../duilib/Control/Mask.h) | Mask/overlay layer control (modal dimming / onboarding mask / loading overlay; punch out a highlight and click-through inside it), see [Control.md](Control.en.md#mask-attributes) |
 | TreeView | ListBox | [duilib/Control/TreeView.h](../duilib/Control/TreeView.h) | Tree control |
 | TreeNode | ListBoxItem | [duilib/Control/TreeView.h](../duilib/Control/TreeView.h) | Node of the tree control |
+| ListBoxItemH | HBox | [duilib/Box/ListBoxItem.h](../duilib/Box/ListBoxItem.h) | Horizontal layout list item (`ListBoxItemTemplate<HBox>`) |
+| ListBoxItemV | VBox | [duilib/Box/ListBoxItem.h](../duilib/Box/ListBoxItem.h) | Vertical layout list item (`ListBoxItemTemplate<VBox>`) |
 | DirectoryTree | TreeView | [duilib/Control/DirectoryTree.h](../duilib/Control/DirectoryTree.h) | Directory tree control, used to display the directory structure of the file system |
+| TreeGrid | VBox | [duilib/Control/TreeGrid.h](../duilib/Control/TreeGrid.h) | Tree grid control with check boxes and multiple columns |
 | ListCtrl | VBox | [duilib/Control/ListCtrl.h](../duilib/Control/ListCtrl.h) | List control |
 | ListCtrl Implementation Class | | [duilib/Control/ListCtrlDefs.h](../duilib/Control/ListCtrlDefs.h) | Basic type definition of the list control |
 | ListCtrl Implementation Class | | [duilib/Control/ListCtrlHeader.h](../duilib/Control/ListCtrlHeader.h) | Header of the list control |
@@ -261,10 +299,13 @@ For detailed interface descriptions of each class, please refer to the associate
 | ToastWnd | WindowImplBase | [duilib/Utils/ToastWnd.h](../duilib/Utils/ToastWnd.h) | Owner-drawn skin non-modal toast notification, independent window, auto-dismiss and stackable; see [Toast.en.md](Toast.en.md) for details |
 | SystemNotification | Static utility | [duilib/Utils/SystemNotification.h](../duilib/Utils/SystemNotification.h) | Native system notifications: SDL builds use SDL system notifications, non-SDL Windows builds use a tray balloon (Windows 7+); independent of ToastWnd. See [SystemNotification.en.md](SystemNotification.en.md) for details |
 | ControlDragable | Control | [duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | Supports adjusting the order of child controls within the same Box by dragging |
+| ControlMovable | Control | [duilib/Core/ControlMovable.h](../duilib/Core/ControlMovable.h) | Control that can be moved by dragging with the mouse |
+| ControlResizable | Control | [duilib/Core/ControlResizable.h](../duilib/Core/ControlResizable.h) | Control whose size can be changed by dragging with the mouse |
 | BoxDragable | Box | [duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | Supports adjusting the order of child controls within the same Box by dragging |
 | HBoxDragable | HBox | [duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | Supports adjusting the order of child controls within the same Box by dragging |
 | VBoxDragable | VBoxDragable | [duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | Supports adjusting the order of child controls within the same Box by dragging |
 | IconControl | Control | [duilib/Control/IconControl.h](../duilib/Control/IconControl.h) | Control used to display icons; if icon data is not set, it is compatible with all functions of the base class Control |
+| BitmapControl | Box | [duilib/Control/BitmapControl.h](../duilib/Control/BitmapControl.h) | Bitmap control used to display bitmap content |
 | AddressBar | HBox | [duilib/Control/AddressBar.h](../duilib/Control/AddressBar.h) | Address bar control, used to display the path of the local file system |
 | StatusBar | HBox | [duilib/Control/StatusBar.h](../duilib/Control/StatusBar.h) | Status bar control; draws separators automatically between adjacent status panes; panes can be read/written by index (GetPanelCount/GetPanel/SetPanelText); the bottom-right size grip can really drag-resize the window (size_grip_resize). See [Control.en.md](Control.en.md#attributes-of-statusbar-inherits-hbox-attributes) |
 | ToolBar | HBox | [duilib/Control/ToolBar.h](../duilib/Control/ToolBar.h) | Toolbar control holding tool buttons and separators; automatically collapses trailing children and shows a "more" button at the right end when the width is insufficient. See [Control.en.md](Control.en.md#attributes-of-toolbar-inherits-hbox-attributes) |

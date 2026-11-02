@@ -204,3 +204,35 @@ typedef std::function<void (Menu* pMenu, Control* pSender)> ContextMenuCreatingE
 2. 重复调用 `AttachPopupMenu` 会直接覆盖上一次的绑定配置（菜单 XML 与两个回调均以最后一次为准），不会叠加；如需解除绑定，调用 `DetachPopupMenu()`，解除后右键不再弹菜单。`DetachPopupMenu()` 只注销本接口注册的回调，不影响通过 `AttachContextMenu` 单独注册的 `kEventContextMenu` 回调。
 3. 需要根据右键位置动态调整菜单内容（如增删菜单项、设置勾选/禁用状态）时，使用 `creatingCallback`：此时菜单已加载完成，可通过 `pMenu->FindControl(name)` 获取菜单项。
 4. `examples/controls` 示例程序的 `test.xml` 中，已内置演示控件 `context_menu_btn`，可参考 [TestForm.cpp](../examples/controls/TestForm.cpp) 的实现。
+
+7. 菜单栏（MenuBar）
+`MenuBar`（[MenuBar.h](../duilib/Control/MenuBar.h)）是窗口内的菜单栏控件（继承 `HBox`），用于显示顶级菜单。XML 中每个 `MenuBarItem` 描述一个顶级菜单，菜单内容可以通过 `xml_path` 指定菜单 XML，也可以在内嵌的 `<Menu>` 节点中直接定义（可参考 `color_theme.xml` 中“Menu Bar”部分的写法）：
+```xml
+<MenuBar name="menu_bar_test" bkcolor="bg_menu_bar" height="36">
+    <MenuBarItem id="menu_file" text="File">
+        <Menu class="menu" bkcolor="bg_menu" height="auto" width="auto">
+            <MenuItem class="menu_element" text="New" height="28" width="auto"/>
+            <MenuItem class="menu_element" text="Open" height="28" width="auto"/>
+        </Menu>
+    </MenuBarItem>
+</MenuBar>
+```
+`MenuBarItem` 节点支持的属性：`id`（顶级菜单项ID）、`text`（显示文本）、`text_id`（文本多语言ID）、`xml_path`（菜单XML资源路径）。
+
+也可以在代码中添加顶级菜单并注册菜单项激活的回调函数：
+```cpp
+ui::MenuBar* pMenuBar = dynamic_cast<ui::MenuBar*>(FindControl(_T("menu_bar_test")));
+if (pMenuBar != nullptr) {
+    pMenuBar->AddTopMenu(_T("1"), _T("File"), _T(""), _T("controls/menu/settings_menu.xml"));
+    pMenuBar->AddTopMenu(_T("2"), _T("Edit"), _T(""), _T("public/menu/rich_edit_menu.xml"));
+    pMenuBar->AttachMenuBarItemActivated([](const DString& menuItemId,
+                                            const DString& menuName, int32_t nMenuLevel,
+                                            const DString& itemName, size_t nItemIndex) {
+        // menuItemId：MenuBarItem的id；menuName：菜单XML根节点的name
+        // nMenuLevel：菜单层级（0表示一级菜单）；itemName：被激活菜单项的name；nItemIndex：菜单项索引
+    });
+}
+```
+`AddTopMenu`/`InsertTopMenu` 返回顶级菜单的索引号（失败返回 -1）；此外还提供 `GetTopMenu`、`RemoveTopMenu`、`SetActiveTopMenuIndex`、`GetActiveTopMenuIndex`、`ClearMenuBarItemActivated` 等接口。顶级菜单按钮默认使用 `global.xml` 中的 `menu_bar_button` 样式，可以通过 `AddTopMenu` 的 `menuTextButtonClass`、`menuTextButtonAttributes` 参数覆盖。
+
+完整示例可参考 `examples/render` 示例程序（[RenderForm.cpp](../examples/render/RenderForm.cpp)）。

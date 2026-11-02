@@ -133,7 +133,7 @@ ui::MessageBoxWnd::Show(this,
 * **ESC**：取消，返回 `kResultCancel(2)`。
 * **焦点矩形**：窗口初始弹出时不显示按钮的焦点虚线框；用户首次按 TAB 进行键盘导航后，
   才由 `MessageBoxWnd::OnKeyDownMsg` 调用 `SetShowFocusedRect(true)` 开启，避免界面一弹出就显示焦点环。
-  该属性的 XML 名称为 `show_focused_rect`（别名 `show_focus_rect`），详见 [Control.md](Control.md)。
+  该属性的 XML 名称为 `show_focused_rect`，详见 [Control.md](Control.md)。
 
 ### 9. 模态对话框的键盘消息机制（Windows 平台）
 
@@ -183,3 +183,64 @@ void MyModalWnd::OnPreCloseWindow()
 签名为 `DoModal(pParentWindow, createParam, bCloseByEsc = true, bCloseByEnter = false)`，
 即默认 ESC 关窗、Enter 不关窗；`MessageBoxWnd` 内部以 `(true, true)` 调用，两者都允许关窗。
 模态返回值中 ESC/`IDCANCEL` 对应 `kWindowCloseCancel(2)`，Enter/`IDOK` 对应 `kWindowCloseOK(1)`。
+
+## 通用模态对话框（Dialog）
+
+当 `MessageBoxWnd` 的固定按钮组合不能满足需求时，可以使用通用模态对话框
+[Dialog](../duilib/Utils/Dialog.h)：它支持任意 XML 内容区、任意数量与文字的底部按钮，
+并且不需要额外的 XML 文件（窗口布局由 `Dialog` 在运行时组装）。
+
+### 1. 主要接口
+
+| 接口 | 说明 |
+| :--- | :--- |
+| SetTitle / SetTextIdMode | 设置标题；`SetTextIdMode(true)` 后标题与按钮文字按多语言 ID 解析 |
+| SetSkinFolder | 设置资源目录（相对资源根目录），默认 `public` |
+| SetSize | 设置窗口大小（不含阴影），默认 480 x 360，最小 160 x 120 |
+| SetTitleBarVisible | 是否显示标题栏，默认 `true` |
+| SetContentXml | 设置内容区的 XML 片段（如 `"<VBox>...</VBox>"`），为空时内容区留空 |
+| AddButton | 添加底部按钮：`id` 必须非空且唯一，`bDefault` 为 true 时是默认按钮并获得初始焦点 |
+| AttachInit | 窗口初始化完成后的回调，用于向内容区填充数据 |
+| AttachButtonClick | 按钮点击回调，返回 `true` 关闭对话框，返回 `false` 保持打开（可用于校验输入） |
+| DoModal | 模态显示；返回被点击按钮的索引（含 Enter 触发的默认按钮），取消/关闭返回 `kResultCancel(-1)`，创建失败返回 `kResultFailed(-2)` |
+| GetClickedButtonIndex / GetClickedButtonId | 获取被点击按钮的索引/标识（取消或关闭时分别为 -1 和空字符串） |
+
+### 2. 用法示例
+
+```cpp
+#include "duilib/Utils/Dialog.h"
+
+ui::Dialog dlg;
+dlg.SetTitle(_T("重命名"));
+dlg.SetSize(420, 200);
+dlg.SetContentXml(_T("<VBox><Label text=\"请输入新名称：\"/>")
+                  _T("<RichEdit name=\"edit_name\" height=\"28\"/></VBox>"));
+dlg.AddButton(_T("ok"), _T("确定"), true);
+dlg.AddButton(_T("cancel"), _T("取消"));
+dlg.AttachInit([](ui::Dialog* pDialog) {
+    ui::RichEdit* pEdit = dynamic_cast<ui::RichEdit*>(pDialog->FindControl(_T("edit_name")));
+    if (pEdit != nullptr) {
+        pEdit->SetText(_T("旧名称"));
+    }
+});
+dlg.AttachButtonClick([](ui::Dialog* pDialog, int32_t nButtonIndex) {
+    if (nButtonIndex == 0) {
+        ui::RichEdit* pEdit = dynamic_cast<ui::RichEdit*>(pDialog->FindControl(_T("edit_name")));
+        if ((pEdit != nullptr) && pEdit->GetText().empty()) {
+            ui::MessageBoxWnd::Show(pDialog, _T("名称不能为空。"), _T("提示"),
+                                    ui::MessageBoxWnd::kButtonsOK, ui::MessageBoxWnd::kIconWarning);
+            return false; //校验失败，保持对话框打开
+        }
+    }
+    return true;
+});
+
+int32_t nButtonIndex = dlg.DoModal(this);
+if (nButtonIndex >= 0) {
+    DString buttonId = dlg.GetClickedButtonId();
+    //根据 buttonId 处理业务逻辑
+}
+```
+
+说明：ESC 键与标题栏关闭按钮统一按“取消”处理，返回 `kResultCancel`；默认按钮在窗口打开时
+获得初始焦点，按 Enter 即触发它。

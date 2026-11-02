@@ -306,6 +306,20 @@ bool MainThread::OnInit()
 ## 在程序中使用libCEF
 可以参考相关的文档[CEF.md](CEF.md)
 
+## 统一构建入口与跨平台编译
+Windows / Linux / macOS 使用同一个构建脚本 `build/build.py`（并非只适用于 Windows）：
+
+```bash
+python3 build/build.py doctor   # 环境自检（检查编译器、CMake、依赖等）
+python3 build/build.py deps     # 只准备依赖（Skia / SDL3 / CEF）
+python3 build/build.py          # 准备依赖并编译（默认 Release）
+```
+
+常用参数：`--config Debug|Release`、`--arch auto|x86|x64|arm64`、`--dll`、`--sdl`、`--jobs N`；完整参数说明见 [build/build-reference.md](../build/build-reference.md)。
+- Linux 系统依赖安装：见 [build/linux-dependencies.md](../build/linux-dependencies.md)
+- macOS 应用打包（App Bundle）：见 [build/macos-app-bundle.md](../build/macos-app-bundle.md)
+- Windows 上没有 `python3` 命令时，可以使用 `python build/build.py`。
+
 ## 关于Visual Studio的工程配置
 项目中关于Visual Studio的工程配置是使用属性文件，保存在以下目录：`nim_duilib\msvc\PropertySheets`
     

@@ -139,8 +139,8 @@ ui::MessageBoxWnd::Show(this,
 * **Focus rectangle**: When the window first pops up, the button focus dotted rectangle is not shown;
   it is enabled only after the user presses TAB for keyboard navigation, via
   `MessageBoxWnd::OnKeyDownMsg` calling `SetShowFocusedRect(true)`, to avoid showing a focus ring
-  immediately when the UI appears. The XML attribute name is `show_focused_rect`
-  (alias `show_focus_rect`); see [Control.en.md](Control.en.md) for details.
+  immediately when the UI appears. The XML attribute name is `show_focused_rect`;
+  see [Control.en.md](Control.en.md) for details.
 
 ### 9. Keyboard Message Mechanism of Modal Dialogs (Windows Platform)
 
@@ -198,3 +198,65 @@ signature is `DoModal(pParentWindow, createParam, bCloseByEsc = true, bCloseByEn
 i.e. by default ESC closes the window while Enter does not. `MessageBoxWnd` internally calls it
 with `(true, true)`, allowing both. Among the modal return values, ESC/`IDCANCEL` corresponds to
 `kWindowCloseCancel(2)`, and Enter/`IDOK` corresponds to `kWindowCloseOK(1)`.
+
+## Generic modal dialog (Dialog)
+
+When the fixed button combinations of `MessageBoxWnd` are not sufficient, use the generic modal
+dialog [Dialog](../duilib/Utils/Dialog.h): it supports an arbitrary XML content area and any
+number of bottom buttons with custom text, and requires no extra XML file (the window layout is
+assembled by `Dialog` at runtime).
+
+### 1. Main interfaces
+
+| Interface | Description |
+| :--- | :--- |
+| SetTitle / SetTextIdMode | Set the title; after `SetTextIdMode(true)`, the title and button texts are resolved as multi-language IDs |
+| SetSkinFolder | Set the resource folder (relative to the resource root), `public` by default |
+| SetSize | Set the window size (excluding shadow), 480 x 360 by default, minimum 160 x 120 |
+| SetTitleBarVisible | Whether to show the title bar, `true` by default |
+| SetContentXml | Set the XML snippet of the content area (e.g. `"<VBox>...</VBox>"`); empty leaves it blank |
+| AddButton | Add a bottom button: `id` must be non-empty and unique; when `bDefault` is true it is the default button and gets the initial focus |
+| AttachInit | Callback after the window is initialized, for filling data into the content area |
+| AttachButtonClick | Button click callback; return `true` to close the dialog, `false` to keep it open (e.g. for input validation) |
+| DoModal | Show modally; returns the clicked button index (including the default button triggered by Enter); cancel/close returns `kResultCancel(-1)`, creation failure returns `kResultFailed(-2)` |
+| GetClickedButtonIndex / GetClickedButtonId | Get the clicked button index/id (-1 and an empty string on cancel/close) |
+
+### 2. Usage example
+
+```cpp
+#include "duilib/Utils/Dialog.h"
+
+ui::Dialog dlg;
+dlg.SetTitle(_T("Rename"));
+dlg.SetSize(420, 200);
+dlg.SetContentXml(_T("<VBox><Label text=\"Enter a new name:\"/>")
+                  _T("<RichEdit name=\"edit_name\" height=\"28\"/></VBox>"));
+dlg.AddButton(_T("ok"), _T("OK"), true);
+dlg.AddButton(_T("cancel"), _T("Cancel"));
+dlg.AttachInit([](ui::Dialog* pDialog) {
+    ui::RichEdit* pEdit = dynamic_cast<ui::RichEdit*>(pDialog->FindControl(_T("edit_name")));
+    if (pEdit != nullptr) {
+        pEdit->SetText(_T("Old name"));
+    }
+});
+dlg.AttachButtonClick([](ui::Dialog* pDialog, int32_t nButtonIndex) {
+    if (nButtonIndex == 0) {
+        ui::RichEdit* pEdit = dynamic_cast<ui::RichEdit*>(pDialog->FindControl(_T("edit_name")));
+        if ((pEdit != nullptr) && pEdit->GetText().empty()) {
+            ui::MessageBoxWnd::Show(pDialog, _T("The name cannot be empty."), _T("Notice"),
+                                    ui::MessageBoxWnd::kButtonsOK, ui::MessageBoxWnd::kIconWarning);
+            return false; // Validation failed; keep the dialog open
+        }
+    }
+    return true;
+});
+
+int32_t nButtonIndex = dlg.DoModal(this);
+if (nButtonIndex >= 0) {
+    DString buttonId = dlg.GetClickedButtonId();
+    // Handle business logic according to buttonId
+}
+```
+
+Note: ESC and the title-bar close button are treated as "cancel" and return `kResultCancel`;
+the default button gets the initial focus when the window opens, and pressing Enter triggers it.

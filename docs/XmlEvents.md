@@ -224,6 +224,10 @@ if (msg.eventType == eventType) {
 |kEventImageDecode|"ImageDecode"|"image_decode"|
 |kEventViewModeChanged|"ViewModeChanged"|"view_mode_changed"|
 |kEventDisplayDateChanged|"DisplayDateChanged"|"display_date_changed"|
+|kEventTreeGridCheckChanged|"TreeGridCheckChanged"|"tree_grid_check_changed"|
+|kEventPopoverOpenChanged|"PopoverOpenChanged"|"popover_open_changed"|
+|kEventPopconfirmConfirm|"PopconfirmConfirm"|"popconfirm_confirm"|
+|kEventPopconfirmCancel|"PopconfirmCancel"|"popconfirm_cancel"|
 
 以上列表中，在XML中使用"事件的XML名称1"或者"事件的XML名称2"均可，两个名称都认。
 

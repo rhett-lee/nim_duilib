@@ -19,6 +19,8 @@
 # 文档正文中的示例占位符
 # ---------------------------------------------------------------------------
 docs/Control.md docs/Control.en.md :: kEventReportViewSubItemFilled
+# 拾色器控件/属性名（不是语义色名，被 color_* 正则误判）
+docs/Control.md docs/Control.en.md :: color_type color_picker_custom_spectrum color_picker_custom_regular color_picker_new_color_edit
 docs/ThemeColor.md docs/ThemeColor.en.md :: bg_selected_inactive bg_text_highlight
 docs/XmlEvents.md docs/XmlEvents.en.md :: kEventReportViewSubItemFilled
 

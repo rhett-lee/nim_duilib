@@ -491,7 +491,7 @@ Panel/PanelHBox/PanelVBox 是同一个模板类（`PanelTemplate`）的三个实
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | title | | string | 标题栏文字 |
-| title_id | | string | 标题栏文字的多语言资源ID（兼容别名 titleid）；设置后立即按当前语言解析为标题，切换语言时自动刷新；语言文件中找不到该ID时保留原标题。与 Label 的 text_id 用法一致 |
+| title_id | | string | 标题栏文字的多语言资源ID；设置后立即按当前语言解析为标题，切换语言时自动刷新；语言文件中找不到该ID时保留原标题。与 Label 的 text_id 用法一致 |
 | title_height | 28 | int | 标题栏高度（像素，自动DPI缩放）|
 | title_bk_color | | string | 标题栏背景色（语义色名，不设置则不绘制背景）|
 | title_text_color | text_default | string | 标题文字颜色（语义色名）|
@@ -505,12 +505,12 @@ Panel/PanelHBox/PanelVBox 是同一个模板类（`PanelTemplate`）的三个实
 | group | | string | 手风琴分组名：同一窗口内同组面板同时只允许一个展开（允许全部折叠）；空字符串表示不分组 |
 | title_slot | | string | 标题栏槽位：值为一个子控件的 name，该控件（建议设置 float="true"）会被自动定位到标题栏右侧（箭头左侧），折叠后仍显示且可点击 |
 | arrow_expanded_normal_image | | string | 展开状态（▼）箭头在普通态下的图片属性 |
-| arrow_expanded_hovered_image | | string | 展开状态箭头在悬停态下的图片属性（兼容别名 arrow_expanded_hot_image）|
-| arrow_expanded_pushed_image | | string | 展开状态箭头在按下态下的图片属性（兼容别名 arrow_expanded_pressed_image）|
+| arrow_expanded_hovered_image | | string | 展开状态箭头在悬停态下的图片属性|
+| arrow_expanded_pushed_image | | string | 展开状态箭头在按下态下的图片属性|
 | arrow_expanded_disabled_image | | string | 展开状态箭头在禁用态下的图片属性 |
 | arrow_collapsed_normal_image | | string | 折叠状态（▶）箭头在普通态下的图片属性 |
-| arrow_collapsed_hovered_image | | string | 折叠状态箭头在悬停态下的图片属性（兼容别名 arrow_collapsed_hot_image）|
-| arrow_collapsed_pushed_image | | string | 折叠状态箭头在按下态下的图片属性（兼容别名 arrow_collapsed_pressed_image）|
+| arrow_collapsed_hovered_image | | string | 折叠状态箭头在悬停态下的图片属性|
+| arrow_collapsed_pushed_image | | string | 折叠状态箭头在按下态下的图片属性|
 | arrow_collapsed_disabled_image | | string | 折叠状态箭头在禁用态下的图片属性 |
 | padding | 0,0,0,0 | rect | 内容区的内边距；标题栏空间由控件在顶部自动额外预留，padding 只作用于标题栏下方的内容区 |
 

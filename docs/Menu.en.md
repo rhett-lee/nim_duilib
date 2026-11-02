@@ -1,6 +1,6 @@
 English | [简体中文](Menu.md)
 
-> Last synced: 2026-10-12
+> Last synced: 2026-11-02
 
 ## Menu
 The implementation of the menu is based on the window ([WindowImplBase](../duilib/Utils/WinImplBase.h)), and mainly consists of two classes: [Menu](../duilib/Control/Menu.h) and [MenuItem](../duilib/Control/Menu.h).
@@ -210,3 +210,35 @@ Notes:
 2. Calling `AttachPopupMenu` again overwrites the previous binding (both the menu XML and the two callbacks take the last values); it does not stack. Call `DetachPopupMenu()` to unbind, after which right-clicking no longer pops up the menu. `DetachPopupMenu()` only unregisters the callback registered by this interface and does not affect a `kEventContextMenu` callback registered separately via `AttachContextMenu`.
 3. To dynamically adjust the menu contents based on the right-click position (add/remove items, set checked/enabled states), use `creatingCallback`: at that moment the menu is already loaded, and menu items can be fetched via `pMenu->FindControl(name)`.
 4. The `examples/controls` sample already contains a demo control `context_menu_btn` in `test.xml`; see [TestForm.cpp](../examples/controls/TestForm.cpp).
+
+7. Menu bar (MenuBar)
+`MenuBar` ([MenuBar.h](../duilib/Control/MenuBar.h)) is a menu bar control inside a window (inherits `HBox`) used to display top-level menus. In XML, each `MenuBarItem` describes one top-level menu. Its menu content can be specified by `xml_path`, or defined inline with a `<Menu>` child node (see the "Menu Bar" section of `color_theme.xml`):
+```xml
+<MenuBar name="menu_bar_test" bkcolor="bg_menu_bar" height="36">
+    <MenuBarItem id="menu_file" text="File">
+        <Menu class="menu" bkcolor="bg_menu" height="auto" width="auto">
+            <MenuItem class="menu_element" text="New" height="28" width="auto"/>
+            <MenuItem class="menu_element" text="Open" height="28" width="auto"/>
+        </Menu>
+    </MenuBarItem>
+</MenuBar>
+```
+The `MenuBarItem` node supports the following attributes: `id` (top-level menu item ID), `text` (display text), `text_id` (multi-language ID of the text), and `xml_path` (menu XML resource path).
+
+You can also add top-level menus in code and register the menu item activation callback:
+```cpp
+ui::MenuBar* pMenuBar = dynamic_cast<ui::MenuBar*>(FindControl(_T("menu_bar_test")));
+if (pMenuBar != nullptr) {
+    pMenuBar->AddTopMenu(_T("1"), _T("File"), _T(""), _T("controls/menu/settings_menu.xml"));
+    pMenuBar->AddTopMenu(_T("2"), _T("Edit"), _T(""), _T("public/menu/rich_edit_menu.xml"));
+    pMenuBar->AttachMenuBarItemActivated([](const DString& menuItemId,
+                                            const DString& menuName, int32_t nMenuLevel,
+                                            const DString& itemName, size_t nItemIndex) {
+        // menuItemId: the id of the MenuBarItem; menuName: the name of the menu XML root node
+        // nMenuLevel: menu level (0 = top-level); itemName: name of the activated item; nItemIndex: item index
+    });
+}
+```
+`AddTopMenu`/`InsertTopMenu` return the index of the top-level menu (-1 on failure). Other available interfaces include `GetTopMenu`, `RemoveTopMenu`, `SetActiveTopMenuIndex`, `GetActiveTopMenuIndex`, and `ClearMenuBarItemActivated`. The top-level menu button uses the `menu_bar_button` style in `global.xml` by default; the `menuTextButtonClass` and `menuTextButtonAttributes` parameters of `AddTopMenu` can override it.
+
+For a complete example, see the `examples/render` sample program ([RenderForm.cpp](../examples/render/RenderForm.cpp)).

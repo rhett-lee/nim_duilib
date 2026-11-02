@@ -3,6 +3,8 @@
 ## 项目关联内容链接
 
 * [全局样式：字体、颜色、图片等资源](Global.md)
+* [快速上手（Windows + Visual Studio）](Getting-Started.md)
+* [示例程序说明](Examples.md)
 * [窗口的样式](Window.md)
 * [窗口阴影参考文档](WindowShadow.md)
 * [容器的样式](Box.md)
@@ -15,8 +17,11 @@
 * [XML文件中各控件的节点名称](XmlNode.md)
 * [XML文件中直接响应控件的事件](XmlEvents.md)
 * [主题参考文档](Theme.md)
+* [主题颜色配置规范](ThemeColor.md)
 * [CEF控件](CEF.md)
 * [SDK 使用说明：安装、升级、迁移与常见问题](Deployment.md)
+* [与旧版 DuiLib 的差异](Differences.md)
+* [发布与打包](Release.md)
 
 ## 项目中主要类的简表
 各个类的详细接口说明请参考关联头文件，有较详细的注释。    
@@ -84,6 +89,7 @@
 | 类名称 | 基类名称 |布局类型|关联头文件| 名称/用途 |
 | :--- | :--- |:--- |:--- | :--- |
 | Box | Control|[Layout](../duilib/Layout/Layout.h)|[duilib/Core/Box.h](../duilib/Core/Box.h) | 自由布局容器，所有容器的基类，封装了容器的位置、大小、外观形状、子控件管理（添加、删除、修改、绘制、操作、拖放、布局等）|
+| XmlBox | Box|[Layout](../duilib/Layout/Layout.h)|[duilib/Box/XmlBox.h](../duilib/Box/XmlBox.h) | 按 xml_file_path/res_path 属性加载 XML 内容作为子控件的容器 |
 | VBox | Box|[VLayout](../duilib/Layout/VLayout.h)| [duilib/Box/VBox.h](../duilib/Box/VBox.h) | 垂直布局容器 |
 | HBox | Box|[HLayout](../duilib/Layout/HLayout.h)|[duilib/Box/HBox.h](../duilib/Box/HBox.h) | 水平布局容器 |
 | VFlowBox | Box|[VFlowLayout](../duilib/Layout/VFlowLayout.h)| [duilib/Box/VBox.h](../duilib/Box/VBox.h) | 垂直流式布局容器 |
@@ -94,6 +100,8 @@
 | ScrollBox | Box|[Layout](../duilib/Layout/Layout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 自由布局可滚动容器，带有垂直或水平滚动条|
 | VScrollBox | ScrollBox|[VLayout](../duilib/Layout/VLayout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 垂直布局可滚动容器，带有垂直或水平滚动条|
 | HScrollBox | ScrollBox|[HLayout](../duilib/Layout/HLayout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 水平布局可滚动容器，带有垂直或水平滚动条|
+| VFlowScrollBox | ScrollBox|[VFlowLayout](../duilib/Layout/VFlowLayout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 垂直流式布局可滚动容器|
+| HFlowScrollBox | ScrollBox|[HFlowLayout](../duilib/Layout/HFlowLayout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 水平流式布局可滚动容器|
 | VTileScrollBox |ScrollBox|[VTileLayout](../duilib/Layout/VTileLayout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 垂直瓦片布局可滚动容器，带有垂直或水平滚动条|
 | HTileScrollBox |ScrollBox|[HTileLayout](../duilib/Layout/HTileLayout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 水平瓦片布局可滚动容器，带有垂直或水平滚动条|
 | ListBox | ScrollBox|[Layout](../duilib/Layout/Layout.h)|[duilib/Box/ListBox.h](../duilib/Box/ListBox.h) | 自由布局的列表容器|
@@ -106,11 +114,19 @@
 | VirtualHListBox | VirtualListBox|[VirtualHLayout](../duilib/Layout/VirtualHLayout.h)|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 虚表实现的水平布局的列表容器|
 | VirtualVTileListBox | VirtualListBox|[VirtualVTileLayout](../duilib/Layout/VirtualVTileLayout.h)|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 虚表实现的垂直瓦片布局的列表容器|
 | VirtualHTileListBox | VirtualListBox|[VirtualHTileLayout](../duilib/Layout/VirtualHTileLayout.h)|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 虚表实现的水平布局的列表容器|
+| MenuListBox | VListBox|[VLayout](../duilib/Layout/VLayout.h)|[duilib/Control/MenuListBox.h](../duilib/Control/MenuListBox.h) | 菜单列表容器，由 Menu 在运行时创建，用于承载菜单项 |
 | GridBox | Box|[GridLayout](../duilib/Layout/GridLayout.h)|[duilib/Box/GridBox.h](../duilib/Box/GridBox.h) | 网格布局容器 |
 | GridScrollBox | ScrollBox|[GridLayout](../duilib/Layout/GridLayout.h)|[duilib/Box/GridBox.h](../duilib/Box/GridBox.h) | 网格布局容器（支持滚动条） |
 | Panel | Box|[Layout](../duilib/Layout/Layout.h)|[duilib/Box/Panel.h](../duilib/Box/Panel.h) | 带标题栏的面板容器（PanelTemplate模板实例），支持标题栏样式、折叠/展开动画与手风琴分组 |
 | PanelHBox | HBox|[HLayout](../duilib/Layout/HLayout.h)|[duilib/Box/Panel.h](../duilib/Box/Panel.h) | 带标题栏的水平布局面板容器 |
 | PanelVBox | VBox|[VLayout](../duilib/Layout/VLayout.h)|[duilib/Box/Panel.h](../duilib/Box/Panel.h) | 带标题栏的垂直布局面板容器 |
+| BoxMovable | Box|[Layout](../duilib/Layout/Layout.h)|[duilib/Core/ControlMovable.h](../duilib/Core/ControlMovable.h) | 支持拖动移动位置的容器（`ControlMovableT<Box>`） |
+| HBoxMovable | HBox|[HLayout](../duilib/Layout/HLayout.h)|[duilib/Core/ControlMovable.h](../duilib/Core/ControlMovable.h) | 支持拖动移动位置的容器（`ControlMovableT<HBox>`） |
+| VBoxMovable | VBox|[VLayout](../duilib/Layout/VLayout.h)|[duilib/Core/ControlMovable.h](../duilib/Core/ControlMovable.h) | 支持拖动移动位置的容器（`ControlMovableT<VBox>`） |
+| BoxResizable | Box|[Layout](../duilib/Layout/Layout.h)|[duilib/Core/ControlResizable.h](../duilib/Core/ControlResizable.h) | 支持拖动改变大小的容器（`ControlResizableT<Box>`） |
+| HBoxResizable | HBox|[HLayout](../duilib/Layout/HLayout.h)|[duilib/Core/ControlResizable.h](../duilib/Core/ControlResizable.h) | 支持拖动改变大小的容器（`ControlResizableT<HBox>`） |
+| VBoxResizable | VBox|[VLayout](../duilib/Layout/VLayout.h)|[duilib/Core/ControlResizable.h](../duilib/Core/ControlResizable.h) | 支持拖动改变大小的容器（`ControlResizableT<VBox>`） |
+| ChildWindow | Box|[Layout](../duilib/Layout/Layout.h)|[duilib/Control/ChildWindow.h](../duilib/Control/ChildWindow.h) | 子窗口容器，用于在控件树中嵌入其他窗口的内容 |
 | NavigationView | HBox|[HLayout](../duilib/Layout/HLayout.h)|[duilib/Control/NavigationView.h](../duilib/Control/NavigationView.h) | 侧边栏导航容器（左侧导航窗格+右侧内容区），支持导航项分组、底部设置项、窗格收起/展开 |
 
 * 图片
@@ -187,11 +203,19 @@
 | ScrollBar | Control| [duilib/Core/ScrollBar.h](../duilib/Core/ScrollBar.h) | 滚动条控件 |
 | Label | Control| [duilib/Control/Label.h](../duilib/Control/Label.h) | 标签控件（模板），用于显示文本 |
 | LabelBox | Box| [duilib/Control/Label.h](../duilib/Control/Label.h) | 标签容器（模板），用于显示文本 |
+| LabelHBox | HBox| [duilib/Control/Label.h](../duilib/Control/Label.h) | 水平布局的标签容器（`LabelTemplate<HBox>`） |
+| LabelVBox | VBox| [duilib/Control/Label.h](../duilib/Control/Label.h) | 垂直布局的标签容器（`LabelTemplate<VBox>`） |
+| Badge | Label| [duilib/Control/Badge.h](../duilib/Control/Badge.h) | 角标控件，支持未读数/小红点，数量超限显示"99+"，count<=0 自动隐藏 |
 | Marquee | Label| [duilib/Control/Marquee.h](../duilib/Control/Marquee.h) | 文本跑马灯控件（横向/纵向循环滚动，支持速度/方向/暂停/悬停暂停），详见[Control.md](Control.md#marquee的属性) |
 | Button | Control| [duilib/Control/Button.h](../duilib/Control/Button.h) | 按钮控件（模板实现） |
 | ButtonBox | Box| [duilib/Control/Button.h](../duilib/Control/Button.h) | 按钮容器控件（模板实现） |
+| ButtonHBox | HBox| [duilib/Control/Button.h](../duilib/Control/Button.h) | 水平布局的按钮容器（`ButtonTemplate<HBox>`） |
+| ButtonVBox | VBox| [duilib/Control/Button.h](../duilib/Control/Button.h) | 垂直布局的按钮容器（`ButtonTemplate<VBox>`） |
 | CheckBox | Control| [duilib/Control/CheckBox.h](../duilib/Control/CheckBox.h) | 复选框控件（模板实现） |
 | CheckBoxBox | Box| [duilib/Control/CheckBox.h](../duilib/Control/CheckBox.h) | 复选框容器（模板实现） |
+| CheckBoxHBox | HBox| [duilib/Control/CheckBox.h](../duilib/Control/CheckBox.h) | 水平布局的复选框容器（`CheckBoxTemplate<HBox>`） |
+| CheckBoxVBox | VBox| [duilib/Control/CheckBox.h](../duilib/Control/CheckBox.h) | 垂直布局的复选框容器（`CheckBoxTemplate<VBox>`） |
+| Switch | CheckBox| [duilib/Control/Switch.h](../duilib/Control/Switch.h) | 滑块开关控件，自带滑动动画与颜色过渡 |
 | Option | Control| [duilib/Control/Option.h](../duilib/Control/Option.h) | 单选按钮控件|
 | OptionBox | Box| [duilib/Control/Option.h](../duilib/Control/Option.h) | 单选按钮容器|
 | GroupBox | Box| [duilib/Control/GroupBox.h](../duilib/Control/GroupBox.h) | 分组容器（模板） |
@@ -202,12 +226,14 @@
 | CheckCombo | Control| [duilib/Control/CheckCombo.h](../duilib/Control/CheckCombo.h) | 带复选框的组合框 |
 | FilterCombo | Combo| [duilib/Control/FilterCombo.h](../duilib/Control/FilterCombo.h) | 带有过滤功能的组合框 |
 | DateTime | Label| [duilib/Control/DateTime.h](../duilib/Control/DateTime.h) | 日期时间选择控件 |
+| Calendar | Control| [duilib/Control/Calendar.h](../duilib/Control/Calendar.h) | 日历控件，支持月/年/十年视图切换与日期选择 |
 | HotKey | HBox| [duilib/Control/HotKey.h](../duilib/Control/HotKey.h) | 热键控件 |
 | HyperLink | Label| [duilib/Control/HyperLink.h](../duilib/Control/HyperLink.h) | 带有超级链接的文字, 如果URL为空的话，可以当作普通的文字按钮使用 |
 | IPAddress | HBox| [duilib/Control/IPAddress.h](../duilib/Control/IPAddress.h) | IP地址控件 |
 | Line | Control| [duilib/Control/Line.h](../duilib/Control/Line.h) | 画线控件 |
 | NavigationViewItem | Control| [duilib/Control/NavigationView.h](../duilib/Control/NavigationView.h) | NavigationView的导航项，支持item/header/separator三种形态 |
 | Menu | WindowImplBase| [duilib/Control/Menu.h](../duilib/Control/Menu.h) | 菜单，独立窗口 |
+| MenuBar | HBox| [duilib/Control/MenuBar.h](../duilib/Control/MenuBar.h) | 菜单栏控件，可挂载顶级菜单，详见[Menu.md](Menu.md) |
 | Progress | Label| [duilib/Control/Progress.h](../duilib/Control/Progress.h) | 进度条控件（水平/垂直、浮点值、圆角、缓冲 buffer、百分比、值动画、marquee），详见[Control.md](Control.md#progress的属性) |
 | Slider | Progress| [duilib/Control/Slider.h](../duilib/Control/Slider.h) | 滑块控件（可拖动、步长、键盘无障碍操作、刻度标尺、点击轨道跳转、值变化事件），详见[Control.md](Control.md#slider的属性) |
 | RangeSlider | Progress| [duilib/Control/RangeSlider.h](../duilib/Control/RangeSlider.h) | 双滑块范围选择控件（下限/上限两个滑块 + 高亮选中区间，支持最小间距、区间颜色/圆角、点击轨道跳值、值气泡 Tooltip、marks 刻度与标签、`included` 外侧高亮、`snap_to_marks` 刻度吸附；范围变化事件 `AttachRangeChanged` 的 `pEventData` 携带 low/high），详见[Control.md](Control.md#rangeslider-控件继承-progress-属性) |
@@ -220,21 +246,33 @@
 | Avatar | Control | [duilib/Control/Avatar.h](../duilib/Control/Avatar.h) | 头像控件（圆形/圆角方形，`size` 预设或数值、`corner` 圆角；内容优先级 image（cover 裁剪）> icon（contain 居中）> text/text_id；文字按控件短边百分比自动换算字号，超宽先缩小再省略；文字头像按文本哈希取 `bg_avatar_1..6` 自动配色，可用 `color` 覆盖；`text_id` 随语言切换刷新），详见[Control.md](Control.md#avatar) |
 | Chart | Control| [duilib/Control/Chart.h](../duilib/Control/Chart.h) | 轻量图表控件（折线/柱状/饼图自绘，支持数据绑定），详见[Control.md](Control.md#chart的属性) |
 | Timeline | Control| [duilib/Control/Timeline.h](../duilib/Control/Timeline.h) | 垂直时间轴控件（节点+连接线+内容，数据驱动、状态配色、正序/倒序、多语言绑定、滚动条），详见[Control.md](Control.md#timeline的属性) |
+| Carousel | Control| [duilib/Control/Carousel.h](../duilib/Control/Carousel.h) | 轮播控件 |
+| Rating | Control| [duilib/Control/Rating.h](../duilib/Control/Rating.h) | 评分控件 |
+| Pagination | HBox| [duilib/Control/Pagination.h](../duilib/Control/Pagination.h) | 分页控件 |
 | ControlLoading 与骨架屏 | Control 基类能力| [duilib/Core/ControlLoading.h](../duilib/Core/ControlLoading.h) | 所有控件通用：`loading` 属性 + `StartLoading`/`StopLoading` 加载占位；骨架屏（列表/卡片）四要点与超时兜底，详见[Control.md](Control.md#controlloading-与骨架屏) |
 | RichEdit | ScrollBox| [duilib/Control/RichEdit.h](../duilib/Control/RichEdit.h) | 富文本编辑框控件 |
+| SpinBox | RichEdit| [duilib/Control/SpinBox.h](../duilib/Control/SpinBox.h) | 数字输入框，支持步长、范围与步进按钮 |
+| SearchBox | HBox| [duilib/Control/SearchBox.h](../duilib/Control/SearchBox.h) | 搜索框组合控件，左侧图标+编辑框+清除按钮 |
 | RichEdit实现类 | | [duilib/Control/RichEditCtrl_Windows.h](../duilib/Control/RichEditCtrl_Windows.h) | 富文本编辑框的主要功能封装（Windows） |
 | RichEdit实现类 | | [duilib/Control/RichEditHost_Windows.h](../duilib/Control/RichEditHost_Windows.h) | 富文本编辑框的主要功能实现（Windows） |
 | RichEdit实现类 | | [duilib/Control/RichEdit2.h](../duilib/Control/RichEdit2.h) | 跨平台自绘的富文本编辑框实现（所有平台；Windows 非 SDL 构建另用 [RichEdit_Windows.h](../duilib/Control/RichEdit_Windows.h)） |
 | RichText | Control| [duilib/Control/RichText.h](../duilib/Control/RichText.h) | 格式化文本（类HTML格式） |
+| RichTextBox | Box| [duilib/Control/RichText.h](../duilib/Control/RichText.h) | 富文本容器（`RichTextT<Box>`） |
+| RichTextHBox | HBox| [duilib/Control/RichText.h](../duilib/Control/RichText.h) | 富文本容器（`RichTextT<HBox>`） |
+| RichTextVBox | VBox| [duilib/Control/RichText.h](../duilib/Control/RichText.h) | 富文本容器（`RichTextT<VBox>`） |
 | Split | Control| [duilib/Control/Split.h](../duilib/Control/Split.h) | 分割条控件 |
 | SplitBox | Box| [duilib/Control/Split.h](../duilib/Control/Split.h) | 分割条容器 |
 | TabCtrl | ListBox| [duilib/Control/TabCtrl.h](../duilib/Control/TabCtrl.h) | 多标签控件（类似浏览器的多标签） |
+| TabCtrlItem | ListBoxItemH| [duilib/Control/TabCtrl.h](../duilib/Control/TabCtrl.h) | 多标签控件的标签项（`ControlDragableT<ListBoxItemH>`） |
 | TagInput | Box| [duilib/Control/TagInput.h](../duilib/Control/TagInput.h) | 标签输入框组合控件（流式标签+RichEdit，回车/分隔符成标签、可删除、去重与数量限制、自动换行），详见[Control.md](Control.md#taginput的属性) |
 | AutoComplete | Box| [duilib/Control/AutoComplete.h](../duilib/Control/AutoComplete.h) | 自动完成输入框组合控件（编辑框+跟随浮层，边输入边联想，前缀/包含匹配、键盘导航、回填不重弹），详见[Control.md](Control.md#autocomplete的属性) |
 | Mask | Box| [duilib/Control/Mask.h](../duilib/Control/Mask.h) | 遮罩/蒙版层控件（模态遮罩/新手引导蒙层/加载遮罩，镂空高亮指定控件、镂空区点击穿透），详见[Control.md](Control.md#mask的属性) |
 | TreeView | ListBox| [duilib/Control/TreeView.h](../duilib/Control/TreeView.h) | 树控件 |
 | TreeNode | ListBoxItem| [duilib/Control/TreeView.h](../duilib/Control/TreeView.h) | 树控件的节点 |
+| ListBoxItemH | HBox| [duilib/Box/ListBoxItem.h](../duilib/Box/ListBoxItem.h) | 水平布局的列表项（`ListBoxItemTemplate<HBox>`） |
+| ListBoxItemV | VBox| [duilib/Box/ListBoxItem.h](../duilib/Box/ListBoxItem.h) | 垂直布局的列表项（`ListBoxItemTemplate<VBox>`） |
 | DirectoryTree | TreeView| [duilib/Control/DirectoryTree.h](../duilib/Control/DirectoryTree.h) | 目录树控件，用于显示文件系统的目录结构 |
+| TreeGrid | VBox| [duilib/Control/TreeGrid.h](../duilib/Control/TreeGrid.h) | 树形表格控件，支持复选与多列 |
 | ListCtrl | VBox| [duilib/Control/ListCtrl.h](../duilib/Control/ListCtrl.h) | 列表控件 |
 | ListCtrl实现类 | | [duilib/Control/ListCtrlDefs.h](../duilib/Control/ListCtrlDefs.h) | 列表控件的基本类型定义 |
 | ListCtrl实现类 | | [duilib/Control/ListCtrlHeader.h](../duilib/Control/ListCtrlHeader.h) | 列表控件的表头 |
@@ -259,10 +297,13 @@
 | ToastWnd | WindowImplBase | [duilib/Utils/ToastWnd.h](../duilib/Utils/ToastWnd.h) | 自绘皮肤的非模态通知框，独立窗口，自动消失、可堆叠，详见[Toast.md](Toast.md) |
 | SystemNotification | 静态工具类 | [duilib/Utils/SystemNotification.h](../duilib/Utils/SystemNotification.h) | 系统原生通知：SDL 构建走 SDL 系统通知，非 SDL 的 Windows 构建走托盘气泡（Win7+），与 ToastWnd 相互独立，详见[SystemNotification.md](SystemNotification.md) |
 | ControlDragable | Control | [duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
+| ControlMovable | Control | [duilib/Core/ControlMovable.h](../duilib/Core/ControlMovable.h) | 支持用鼠标拖动移动位置的控件 |
+| ControlResizable | Control | [duilib/Core/ControlResizable.h](../duilib/Core/ControlResizable.h) | 支持用鼠标拖动改变大小的控件 |
 | BoxDragable | Box | [duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
 | HBoxDragable | HBox | [duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
 | VBoxDragable | VBoxDragable | [duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
 | IconControl | Control | [duilib/Control/IconControl.h](../duilib/Control/IconControl.h) | 用于显示图标的控件，如果不设置图标数据，则兼容基类Control的所有功能|
+| BitmapControl | Box | [duilib/Control/BitmapControl.h](../duilib/Control/BitmapControl.h) | 位图控件，用于显示位图内容 |
 | AddressBar | HBox | [duilib/Control/AddressBar.h](../duilib/Control/AddressBar.h) | 地址栏控件，用于显示本地文件系统的路径 |
 | StatusBar | HBox | [duilib/Control/StatusBar.h](../duilib/Control/StatusBar.h) | 状态栏控件，相邻状态面板之间自动绘制分隔线；支持按索引读写状态面板（GetPanelCount/GetPanel/SetPanelText）；右下角尺寸手柄可真正拖拽调整窗口大小（size_grip_resize），详见[Control.md](Control.md#statusbar-控件继承-hbox-属性) |
 | ToolBar | HBox | [duilib/Control/ToolBar.h](../duilib/Control/ToolBar.h) | 工具条（工具栏）控件，承载工具按钮与分隔线，宽度不足时自动收纳尾部子控件并在右端显示"更多"按钮，详见[Control.md](Control.md#toolbar-控件继承-hbox-属性) |

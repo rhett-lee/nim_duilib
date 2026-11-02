@@ -469,6 +469,8 @@ The OptionHBox control inherits the `HBox` attributes. For more available attrib
 OptionVBox and Option are classes based on the same template; please refer to the `Option` attributes.    
 The OptionVBox control inherits the `VBox` attributes. For more available attributes, please refer to the `VBox` attributes.
 
+> **Note**: `OptionHBox` and `OptionVBox` only exist as C++ template types (`OptionTemplate<HBox>`, `OptionTemplate<VBox>`) and are not registered as XML nodes; in XML use `Option`, `OptionBox`, `CheckBoxHBox`, or `CheckBoxVBox` instead.
+
 ## Attributes of GroupBox
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |
@@ -713,8 +715,67 @@ The IPAddress control inherits the `HBox` attributes. For more available attribu
 The Line control inherits the `Control` attributes. For more available attributes, please refer to the `Control` attributes.
 
 ## Attributes of Menu
-Menu is a window; for specific usage, please refer to the menu in the example program.    
+Menu is a standalone window (based on `WindowImplBase`); for specific usage, please refer to [Menu](Menu.en.md) and the menu in the example program.
+
+Common nodes in a menu XML (for the mapping between node names and C++ classes, see [XML node names](XmlNode.en.md)):
+
+| Node name | Description |
+| :--- | :--- |
+| MenuListBox | Root container of a menu (`MenuListBox` inherits `VListBox`), used to host menu items |
+| MenuItem | Menu item (`MenuItem` inherits `ListBoxItem`); can host icons, text, check boxes, and other controls |
+| SubMenu | Sub-menu container placed inside a `MenuItem` to organize multi-level menus |
+
+Menus are also commonly used together with `MenuBar`: `MenuBar` displays the top-level menus, and clicking one pops up the menu window described by the menu XML.
+
 The Menu control inherits the `Window` attributes. For more available attributes, please refer to the `Window` attributes.
+
+## Attributes of MenuBar (inherits HBox attributes)
+MenuBar is a menu bar control inside a window. It displays top-level menu items; hovering over or clicking a top-level menu pops up the corresponding menu window. After a menu item is activated (by mouse click or Enter key), the callback registered with `AttachMenuBarItemActivated` is invoked.
+
+The `MenuBarItem` node in XML can only be a child of `MenuBar`. Its supported attributes are:
+
+| Attribute name | Default value | Parameter type | Purpose |
+| :--- | :--- | :--- | :--- |
+| id | | string | ID of the top-level menu item, used in the callback to identify the menu source |
+| text | | string | Text displayed by the top-level menu item |
+| text_id | | string | Multi-language ID for the top-level menu text (used when `text` is empty) |
+| xml_path | | string | Resource path of the menu XML for this top-level menu |
+
+A `MenuBarItem` node can also define its menu content inline with a child `<Menu>` node (in that case `xml_path` is not needed). Example:
+
+```xml
+<MenuBar name="menu_bar_test" bkcolor="bg_menu_bar" height="36" margin="6,0,20,0" padding="4,0,0,0" border_round="4,4">
+    <MenuBarItem id="menu_file" text="File">
+        <Menu class="menu" bkcolor="bg_menu" height="auto" width="auto">
+            <MenuItem class="menu_element" text="New" height="28" width="auto" />
+            <MenuItem class="menu_element" text="Open" height="28" width="auto" />
+        </Menu>
+    </MenuBarItem>
+</MenuBar>
+```
+
+Top-level menu text uses the `menu_bar_button` style in `global.xml` by default; the C++ interface also allows specifying a style class and extra attributes for each top-level menu.
+
+Common C++ interfaces:
+
+| Interface | Description |
+| :--- | :--- |
+| AddTopMenu / InsertTopMenu | Add (or insert at the specified position) a top-level menu; returns its index on success |
+| GetTopMenu / RemoveTopMenu | Get/remove the top-level menu at the specified index |
+| SetActiveTopMenuIndex / GetActiveTopMenuIndex | Set/get the index of the currently active (expanded) top-level menu |
+| AttachMenuBarItemActivated / ClearMenuBarItemActivated | Register/clear the menu item activation callback |
+
+Callback prototype:
+
+```cpp
+typedef std::function<void (const DString& menuItemId,
+                            const DString& menuName, int32_t nMenuLevel,
+                            const DString& itemName, size_t nItemIndex)> MenuBarItemActivatedEvent;
+```
+
+`menuItemId` is the `id` of the `MenuBarItem`, `menuName` is the `name` of the root node in the menu XML, `nMenuLevel` is the menu level (0 means the top-level menu), `itemName` is the `name` of the activated menu item, and `nItemIndex` is the menu item index (starting from 0).
+
+For a complete example, see the `examples/render` sample program and the "Menu bar (MenuBar)" section of [Menu](Menu.en.md).
 
 ## Attributes of Progress
 | Attribute name | Default value | Parameter type | Purpose |
@@ -874,10 +935,10 @@ pSlider->SetTickLabelCallback([](double value, int32_t /*index*/) {
 | high_thumb_normal_image / high_thumb_hovered_image / high_thumb_pressed_image / high_thumb_disabled_image |  | string | State images of the high thumb (fall back to the low thumb images when empty) |
 | tooltip_open | false | bool | Whether the value tooltip of both thumbs is always shown (false = shown while dragging or hovering that thumb, and hidden automatically 1 second after the mouse is released) |
 | tooltip_format / tooltip_format_id |  | string | Value tooltip text format (e.g. `%.0f`) / its multi-language ID (takes precedence, refreshed on language change) |
-| tooltip_bkcolor (alias tooltip_bg_color) | bg_tooltip | string | Tooltip background color |
+| tooltip_bkcolor | bg_tooltip | string | Tooltip background color |
 | tooltip_text_color | text_tooltip | string | Tooltip text color |
 | marks |  | string | Mark list, syntax `value=label@color\|value=label\|value`, separated by `\|`, e.g. `0=0°C\|100=100°C@color_error` |
-| mark_color (alias mark_dot_color) | text_disabled | string | Color of the mark dots |
+| mark_color | text_disabled | string | Color of the mark dots |
 | mark_label_color | text_muted | string | Default color of the mark labels (`@color` in `marks` overrides a single label) |
 | mark_dot_size | 6 | int | Mark dot diameter (pixels, DPI scaled) |
 | mark_label_gap | 6 | int | Distance between a mark label and the track (pixels, DPI scaled) |
@@ -985,8 +1046,8 @@ pRange->AttachRangeChanged([](const ui::EventArgs& msg) {
 | title_color_active / title_color_completed / title_color_pending | text_default / color_success / text_muted | string | Title color of each state |
 | desc_color | text_muted | string | Description text color |
 | title_font / desc_font | system_bold_14 / system_regular_12 | string | Title / description font ID |
-| node_hovered_image (alias node_hot_image) |  | string | Hovered-state image of the node, optional; shown when the mouse hovers a clickable step (painted below the node circle) |
-| node_pressed_image (alias node_pushed_image) |  | string | Pressed-state image of the node, optional; shown when the mouse presses a clickable step, falls back to the hovered image when unset |
+| node_hovered_image |  | string | Hovered-state image of the node, optional; shown when the mouse hovers a clickable step (painted below the node circle) |
+| node_pressed_image |  | string | Pressed-state image of the node, optional; shown when the mouse presses a clickable step, falls back to the hovered image when unset |
 
 Stepper inherits the `Control` attributes; for more available attributes, please refer to the `Control` attributes.
 
@@ -1053,16 +1114,16 @@ pStepper->AttachStepChanged([](const ui::EventArgs& msg) {
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |
 | value | 0 | double | Current rating value, clamped to `[0, max]` and aligned to the step |
-| max (alias star_count) | 5 | int | Number of stars |
+| max | 5 | int | Number of stars |
 | allow_half | false | bool | Whether half stars are allowed (step 0.5, otherwise 1) |
-| read_only (alias readonly) | false | bool | Read-only display mode, mouse interaction disabled |
+| read_only | false | bool | Read-only display mode, mouse interaction disabled |
 | star_size | 20 | int | Diameter of a single star in pixels (auto DPI scaled) |
 | star_gap | 4 | int | Gap between stars in pixels (auto DPI scaled) |
-| star_filled_image (alias star_full_image) |  | string | Filled star image |
+| star_filled_image |  | string | Filled star image |
 | star_half_image |  | string | Half star image (optional; when absent, the filled star is drawn clipped to its left half) |
 | star_empty_image |  | string | Empty star image |
-| star_hovered_image (alias star_hover_image) |  | string | Star hover-state icon, optional (drawn under the star as an outer glow / outline) |
-| star_pressed_image (alias star_pushed_image) |  | string | Star pressed-state icon, optional; falls back to the hovered-state icon when absent |
+| star_hovered_image |  | string | Star hover-state icon, optional (drawn under the star as an outer glow / outline) |
+| star_pressed_image |  | string | Star pressed-state icon, optional; falls back to the hovered-state icon when absent |
 
 The Rating control inherits the `Control` attributes; for more available attributes, please refer to the `Control` attributes.
 
@@ -1083,7 +1144,7 @@ Corresponding C++ interfaces:
 double GetValue() const;
 void SetValue(double fValue);                  //clamp + step alignment, fires the event on change
 void SetValueNoEvent(double fValue);           //set value (no event)
-int32_t GetMax() const;                        //star count (alias GetStarCount)
+int32_t GetMax() const;                        //star count
 void SetMax(int32_t nMax);                     //smaller max also clamps the value
 bool IsAllowHalf() const;  void SetAllowHalf(bool bAllow);
 bool IsReadOnly() const;   void SetReadOnly(bool bReadOnly);
@@ -1119,7 +1180,7 @@ pRating->AttachRatingChanged([](const ui::EventArgs& msg) {
 | item_image |  | string | Slide image list: `\|`-separated image attribute strings, each item like `file='.../slide1.png'` |
 | current_index | 0 | int | Current slide index (0-based), clamped to `[0, count-1]` |
 | loop | true | bool | Whether to loop (wrap around for infinite scrolling) |
-| auto_play (alias autoplay) | false | bool | Whether to auto-play |
+| auto_play | false | bool | Whether to auto-play |
 | interval | 3000 | int | Auto-play interval (milliseconds) |
 | hover_pause | true | bool | Pause auto-play while the mouse hovers over the control |
 | transition_ms | 300 | int | Transition animation duration (milliseconds; 0 = switch immediately) |
@@ -1189,8 +1250,8 @@ pCarousel->AttachCarouselChanged([](const ui::EventArgs& msg) {
 
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |
-| page_count (alias total_page) | 0 | int | Total number of pages |
-| current_page (alias page) | 1 | int | Current page number (1-based), clamped to `[1, page_count]` |
+| page_count | 0 | int | Total number of pages |
+| current_page | 1 | int | Current page number (1-based), clamped to `[1, page_count]` |
 | total_count | 0 | int | Total number of records (combined with `page_size` to derive `page_count`; optional) |
 | page_size | 0 | int | Records per page (optional; when `total_count` + `page_size` > 0, derived from them first) |
 | show_page_size | false | bool | Whether to show the "records per page" selector (optional feature, off by default) |
@@ -1255,8 +1316,8 @@ Breadcrumb is a breadcrumb navigation control derived from `Control`, fully self
 | :--- | :--- | :--- | :--- |
 | item_text | empty | string | Item texts separated by `\|`, e.g. `Home\|Products\|Docs` |
 | item_text_id | empty | string | Multi-language IDs of item texts separated by `\|`; refreshed automatically on language change |
-| current (alias current_index) | -1 | int | Current item index (0-based); -1 means follow the last item automatically |
-| separator (alias separator_text) | › | string | Text placed between items |
+| current | -1 | int | Current item index (0-based); -1 means follow the last item automatically |
+| separator | › | string | Text placed between items |
 | spacing | 4 | int | Gap on both sides of the separator (pixels, auto DPI scaled) |
 | item_padding | 6 | int | Horizontal padding of each item's clickable area (pixels, auto DPI scaled) |
 | item_round | 4 | int | Corner radius of the hover/pressed pill background (pixels, auto DPI scaled) |
@@ -1748,10 +1809,10 @@ In addition to RichEdit's common attributes (`spin_class`, `limit_text`, etc.), 
 | decimals | 0 | int(0~10) | Number of decimal places; 0 keeps the plain integer SpinBox behavior |
 | step | 1 | double | Step value (must be > 0); the amount added/subtracted by each spin button click or up/down arrow key press |
 | value | 0 | double | Initial value (clamped to the min/max range and rounded to `decimals`) |
-| min_number / max_number | unlimited | double | Value range (aliases: `min_value` / `max_value`) |
+| min_number / max_number | unlimited | double | Value range |
 | prefix | "" | string | Display prefix (e.g. `"$ "`) |
 | suffix | "" | string | Display suffix (e.g. `" kg"`) |
-| group_separator | "" | string | Thousands separator (e.g. `","`); empty means no grouping. Alias: `thousand_separator` |
+| group_separator | "" | string | Thousands separator (e.g. `","`); empty means no grouping |
 
 Corresponding C++ interfaces: `SetStep/GetStep/GetStepDouble`, `SetValue/GetValue/GetValueDouble`, `SetRange(min, max)`, `SetMinValue/GetMinValue`, `SetMaxValue/GetMaxValue`, `SetDecimals/GetDecimals`, `SetPrefix/GetPrefix`, `SetSuffix/GetSuffix`, `SetGroupSeparator/GetGroupSeparator`.    
 The `kEventTextChanged` event is fired when the value changes (same as RichEdit).    
@@ -1969,7 +2030,7 @@ Selection state changes trigger `kEventSelect`/`kEventUnSelect` events (same as 
 ```
 
 Four skin classes are defined in global.xml by default (SVG assets are in the `public/switch/` directory):
-- `switch` (alias `switch_ios`): iOS style, 51x31, large white thumb with soft shadow, track color follows the theme accent color;
+- `switch`: iOS style, 51x31, large white thumb with soft shadow, track color follows the theme accent color;
 - `switch_fluent`: Windows 11 Fluent style, 48x24 (padding=2, track 44x20), outlined small track + 14px small thumb;
 - `switch_material`: Material Design 3 style, 52x32; unselected shows an outlined track with a 16px small thumb, selected shows an accent-filled track with a 24px large thumb carrying a check mark;
 - `switch_small`: small size, 40x20, font `system_regular_12`, other styles follow the iOS skin.
@@ -2628,7 +2689,6 @@ Besides all `Popover` attributes (`trigger`, `placement`, `gap`, `card_width`, `
 | :--- | :--- | :--- | :--- | :--- |
 | description | | string | SetDescription | Card description (literal text, `\n` means a line break, optional) |
 | description_id | | string | SetDescriptionId | Localization ID of the card description (wins over `description`) |
-| content / content_id | | string | SetDescription / SetDescriptionId | Compatibility alias for `description` (eases migrating from `Popover`) |
 | icon | warning | string | SetIcon | Icon kind: `warning` / `info` / `success` / `error` / `none` (no icon) |
 | ok_text | | string | SetOkText | Literal label of the "OK" button (defaults to the language ID `STRID_PUBLIC_STRING_OK`) |
 | ok_text_id | | string | SetOkTextId | Localization ID of the "OK" button (wins over `ok_text`) |
@@ -2759,7 +2819,6 @@ See the controls demo (the "Popconfirm" group: basic usage, the four icons plus 
 
 Notes:
 - `Popconfirm` does not use the inherited `content_xml` (the card body is generated by the control); use `Popover` for rich content, or derive from `Popconfirm` and override `BuildCardBodyXml()`;
-- `content` / `content_id` are compatibility aliases for `description` / `description_id`; when both are set, the `description` family wins;
 - The icon, `show_cancel`, `ok_type` and `close_on_ok` are applied when the card opens, so runtime changes take effect on the next open;
 - Buttons size themselves to their label (`width="auto"` + `padding="10,0,10,0"` + `min_width="64"`), so short labels keep a 64px minimum and longer labels (e.g. a localized "Delete") are not clipped; set a fixed width by customizing the skin classes (`popconfirm_cancel` / `popconfirm_ok_*`);
 - The card window does not take focus, so "OK"/"Cancel" only react to mouse clicks (keyboard Enter/Esc are not supported; Esc closes the card as a `Popover` with reason `kEscape`).
@@ -2786,7 +2845,7 @@ Key features:
 | Attribute | Default | Type | Maps to [Avatar.h](../duilib/Control/Avatar.h) | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | size | 32 | string | SetSize | Avatar size: `small`(24) / `default` or `medium`(32) / `large`(40) / numeric pixels; also sets the fixed width and height |
-| shape | circle | string | SetShape | Shape: `circle` (default) / `square` (also accepts `rect`, `rounded`) |
+| shape | circle | string | SetShape | Shape: `circle` (default) / `square` |
 | corner | 8 | int | SetCorner | Corner radius of square avatars (DPI aware) |
 | image | | string | SetImage | Avatar image (a full image attribute string such as `file='xxx.png' svg_replace_colors='...'`), filled with cover and clipped |
 | icon | | string | SetIcon | Avatar icon (a full image attribute string), contained and centered |
@@ -3642,7 +3701,80 @@ See the ListCtrl example program for a full demo (the table freezes the first co
 The PropertyGrid control inherits the `VBox` attributes. For more available attributes, please refer to the `VBox` attributes.
 
 ## Attributes of ColorPicker (inherits Window attributes)
-ColorPicker is a window; for specific usage, please refer to the menu in the example program.    
+ColorPicker is a standalone window (based on `WindowImplBase`) used to select a color. Its default skin folder is `public` and its skin file is `public/color/color_picker.xml`.
+The `examples/ColorPicker` and `examples/controls` sample programs demonstrate both non-modal and modal usage:
+
+```cpp
+ui::ColorPicker* pColorPicker = new ui::ColorPicker;
+ui::WindowCreateParam createParam;
+createParam.m_dwStyle = ui::kWS_POPUP;
+createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+createParam.m_bCenterWindow = true;
+pColorPicker->CreateWnd(this, createParam);   // Non-modal window; ShowModalFake() can be called afterwards
+// pColorPicker->DoModal(this, createParam); // Modal window
+```
+
+Main interfaces:
+
+| Interface | Description |
+| :--- | :--- |
+| SetSelectedColor / GetSelectedColor | Set the initial color / get the finally selected color |
+| AttachSelectColor | Color change callback; `wParam` is the new color and `lParam` is the old color (convert with `UiColor((uint32_t)wParam)`) |
+| AttachWindowClose | Window close callback; `wParam` is the close reason (`kWindowCloseNormal`, `kWindowCloseOK`, `kWindowCloseCancel`) |
+
+The ColorPicker window is composed of the following child controls, which can also be used separately in XML.
+
+### ColorControl (inherits Control attributes)
+A color-spectrum picker that displays a color bitmap; clicking or dragging the mouse selects a color. It has no dedicated XML attributes; its appearance is controlled by the `Control` attributes.
+
+```cpp
+void SelectColor(const UiColor& color); // Set the current color
+void AttachSelectColor(const EventCallback& callback, EventCallbackID callbackID = 0); // Color selection changed
+```
+
+Selecting a color sends the `kEventSelectColor` event: `wParam` is the new color value and `lParam` is the old color value.
+
+### ColorSlider (inherits Slider attributes)
+A color channel slider used to adjust one channel of ARGB / HSV / HSL. It has no dedicated XML attributes; its appearance and behavior inherit from `Slider`, and the gradient background is drawn internally according to the current color.
+
+```cpp
+void SetColorInfo(const UiColor& color, ColorAdjustMode adjustMode);
+void SetColorInfo(const ColorHSV& color, ColorAdjustMode adjustMode);
+void SetColorInfo(const ColorHSL& color, ColorAdjustMode adjustMode);
+```
+
+### ColorPickerRegular (inherits VirtualVTileListBox attributes)
+A regularly arranged common-color panel. Supported attributes:
+
+| Attribute name | Default value | Parameter type | Purpose |
+| :--- | :--- | :--- | :--- |
+| color_type | "default" | string | Color data source: "default" uses the default color table, "basic" uses the basic color table |
+| item_size | | size | Size of each color block, e.g. "40,20" (inherited from VirtualVTileListBox) |
+| columns | | int | Number of displayed columns, e.g. "10" (inherited from VirtualVTileListBox) |
+
+C++ interfaces: `SelectColor`, `GetSelectedColor`, `SetColumns`, `AttachSelectColor`; selecting a color sends the `kEventSelectColor` event.
+
+### ColorPickerStandard (inherits Control attributes)
+A standard color map (hexagonal color gamut) picker. It has no dedicated XML attributes. C++ interfaces: `SelectColor`, `AttachSelectColor`.
+
+### ColorPickerStandardGray (inherits Control attributes)
+A standard gray map (lightness hexagonal gamut) picker. It has no dedicated XML attributes. C++ interfaces: `SelectColor`, `AttachSelectColor`.
+
+### ColorPickerCustom (inherits Box attributes)
+A custom color panel combining spectrum picking, common colors, ARGB/HSV/HSL numeric editing, and sliders. It has no dedicated XML attributes, but it looks up child controls by fixed names, so the child controls' `name` values must match the following:
+
+| Purpose | Child control names |
+| :--- | :--- |
+| Spectrum picking | color_picker_custom_spectrum (`ColorControl`) |
+| Common colors | color_picker_custom_regular (`ColorPickerRegular`) |
+| Color text | color_picker_new_color_edit (`RichEdit`) |
+| ARGB channels | color_picker_edit_RGB_A / color_picker_slider_RGB_A |
+| RGB channels | color_picker_edit_RGB_R/G/B and color_picker_slider_RGB_R/G/B |
+| HSV channels | color_picker_edit_HSV_H/S/V and color_picker_slider_HSV_H/S/V |
+| HSL channels | color_picker_edit_HSL_H/S/L and color_picker_slider_HSL_H/S/L |
+
+C++ interfaces: `SelectColor`, `AttachSelectColor`. For the complete layout, see `public/color/color_picker.xml`.
+
 The ColorPicker control inherits the `Window` attributes. For more available attributes, please refer to the `Window` attributes.
 
 ## Attributes of ControlDragable (inherits Control attributes)

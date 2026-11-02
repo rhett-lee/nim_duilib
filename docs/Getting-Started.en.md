@@ -310,6 +310,20 @@ In this way, a simple window with minimize, maximize, restore and close buttons,
 ## Using libCEF in the program
 You can refer to the related documentation [CEF.md](CEF.en.md)
 
+## Unified build entry and cross-platform builds
+Windows / Linux / macOS all use the same build script `build/build.py` (it is not Windows-only):
+
+```bash
+python3 build/build.py doctor   # Environment self-check (compiler, CMake, dependencies)
+python3 build/build.py deps     # Prepare dependencies only (Skia / SDL3 / CEF)
+python3 build/build.py          # Prepare dependencies and build (Release by default)
+```
+
+Common options: `--config Debug|Release`, `--arch auto|x86|x64|arm64`, `--dll`, `--sdl`, `--jobs N`; see [build/build-reference.en.md](../build/build-reference.en.md) for the full reference.
+- Linux system dependencies: see [build/linux-dependencies.en.md](../build/linux-dependencies.en.md)
+- macOS App Bundle packaging: see [build/macos-app-bundle.en.md](../build/macos-app-bundle.en.md)
+- If the `python3` command is unavailable on Windows, use `python build/build.py`.
+
 ## About Visual Studio project configuration
 The Visual Studio project configuration in the project uses property sheets, stored in the following directory: `nim_duilib\msvc\PropertySheets`
     
