@@ -75,8 +75,18 @@ STRID_DPIAWARE_MODIFY_DPI_BTN  = DPI Scale
 STRID_DPIAWARE_NEW_WINDOW  = New Window
 
 # examples/ListBox
-STRID_LISTBOX_TITLE  = ListBox（VTileListBox | HTileListBox | VListBox | HListBox）
+STRID_LISTBOX_TITLE  = ListBox
 STRID_LISTBOX_DELETE  = Delete
+STRID_LISTBOX_TYPE  = Type:
+STRID_LISTBOX_ITEM_COUNT  = Items:
+STRID_LISTBOX_SEL_COUNT  = Selected:
+STRID_LISTBOX_MULTI  = Multi-select
+STRID_LISTBOX_LOG_TITLE  = Event log
+STRID_LISTBOX_LOG_CLEAR  = Clear
+STRID_LISTBOX_SHOW_LOG  = Show log
+STRID_LISTBOX_MULTI_ON  = Multi-select: enabled
+STRID_LISTBOX_MULTI_OFF  = Multi-select: disabled
+STRID_LISTBOX_LOG_HINT  = Change the container tag in list_box.xml (VListBox / HListBox / VTileListBox / HTileListBox) to switch the layout; no code changes needed
 
 # examples/MoveControl
 STRID_MOVECONTROL_APP_LIST  = Application List

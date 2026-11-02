@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="540,720" min_size="400,100" caption="0,0,0,36" shadow_attached="true" size_box="4,4,4,4">
+<Window size="540,700" min_size="480,420" caption="0,0,0,36" shadow_attached="true" size_box="4,4,4,4">
+    <!-- 列表窗口：标题栏 + 状态栏 + 列表 + 事件日志（默认隐藏，由状态栏的"显示日志"控制）。
+         列表容器的类型由 list_box.xml 中第 <VListBox> 这一行决定，
+         换成 HListBox / VTileListBox / HTileListBox 即可看到另一种布局，代码无需改动 -->
     <VBox bkcolor="bg_window_main">
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
             <Label text_id="STRID_LISTBOX_TITLE" font="system_regular_14" valign="center" margin="8" width="stretch" mouse_enabled="false"/>
@@ -14,8 +17,37 @@
                 <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
             </HBox>
         </HBox>
-        <Box>
-            <VListBox bkcolor="bg_container" vscrollbar="true" hscrollbar="true" multi_select="false" scroll_select="false" name="list"/>
+        <Control class="splitline_hor_level1" width="stretch"/>
+
+        <!-- 状态栏：当前容器类型、项数、已选数量、多选开关、日志区显示开关 -->
+        <HBox height="34" bkcolor="bg_container" padding="12,0,12,0">
+            <Label text_id="STRID_LISTBOX_TYPE" width="auto" height="100%" text_align="left,vcenter" text_color="color_gray" mouse_enabled="false"/>
+            <Label name="list_type" width="auto" height="100%" text_align="left,vcenter" margin="6,0,0,0" mouse_enabled="false"/>
+            <Label text_id="STRID_LISTBOX_ITEM_COUNT" width="auto" height="100%" text_align="left,vcenter" text_color="color_gray" margin="14,0,0,0" mouse_enabled="false"/>
+            <Label name="item_count" width="auto" height="100%" text_align="left,vcenter" margin="6,0,0,0" mouse_enabled="false"/>
+            <Label text_id="STRID_LISTBOX_SEL_COUNT" width="auto" height="100%" text_align="left,vcenter" text_color="color_gray" margin="14,0,0,0" mouse_enabled="false"/>
+            <Label name="sel_count" width="auto" height="100%" text_align="left,vcenter" margin="6,0,0,0" mouse_enabled="false"/>
+            <Control width="stretch" mouse_enabled="false"/>
+            <CheckBox class="checkbox_1" name="chk_multi" text_id="STRID_LISTBOX_MULTI" width="auto" height="28" valign="center" margin="0,0,16,0"/>
+            <CheckBox class="checkbox_1" name="chk_log" text_id="STRID_LISTBOX_SHOW_LOG" width="auto" height="28" valign="center"/>
+        </HBox>
+        <Control class="splitline_hor_level1" width="stretch"/>
+
+        <Box height="stretch">
+            <VListBox bkcolor="bg_container" vscrollbar="true" hscrollbar="false" multi_select="false" scroll_select="false" name="list" padding="4,0,4,0"/>
         </Box>
+
+        <!-- 事件日志：默认隐藏，勾选状态栏的"显示日志"后显示 -->
+        <VBox name="log_panel" height="150" bkcolor="bg_container" padding="12,0,12,10" visible="false">
+            <Control class="splitline_hor_level1" width="stretch"/>
+            <HBox height="30">
+                <Label text_id="STRID_LISTBOX_LOG_TITLE" width="auto" height="100%" text_align="left,vcenter" mouse_enabled="false"/>
+                <Control width="stretch" mouse_enabled="false"/>
+                <Button class="btn_global" name="clear_log" text_id="STRID_LISTBOX_LOG_CLEAR" width="72" height="24" valign="center"/>
+            </HBox>
+            <RichEdit class="simple simple_border" name="log_view" text_align="left,top" width="stretch" height="stretch"
+                      hide_selection="true" multi_line="true" vscrollbar="true" auto_vscroll="true" hscrollbar="false" word_wrap="true"
+                      want_return_msg="true" rich_text="false" default_context_menu="true" margin="0,0,0,0"/>
+        </VBox>
     </VBox>
 </Window>

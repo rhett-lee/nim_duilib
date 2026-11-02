@@ -76,8 +76,18 @@ STRID_DPIAWARE_MODIFY_DPI_BTN  = 修改界面显示比例
 STRID_DPIAWARE_NEW_WINDOW  = 创建新窗口
 
 # examples/ListBox
-STRID_LISTBOX_TITLE  = 列表（VTileListBox | HTileListBox | VListBox | HListBox）
+STRID_LISTBOX_TITLE  = 列表（ListBox）
 STRID_LISTBOX_DELETE  = 删除
+STRID_LISTBOX_TYPE  = 容器类型：
+STRID_LISTBOX_ITEM_COUNT  = 项数：
+STRID_LISTBOX_SEL_COUNT  = 已选：
+STRID_LISTBOX_MULTI  = 多选
+STRID_LISTBOX_LOG_TITLE  = 事件日志
+STRID_LISTBOX_LOG_CLEAR  = 清空
+STRID_LISTBOX_SHOW_LOG  = 显示日志
+STRID_LISTBOX_MULTI_ON  = 多选模式：已开启
+STRID_LISTBOX_MULTI_OFF  = 多选模式：已关闭
+STRID_LISTBOX_LOG_HINT  = 修改 list_box.xml 中的容器标签（VListBox / HListBox / VTileListBox / HTileListBox）即可切换布局，代码无需改动
 
 # examples/MoveControl
 STRID_MOVECONTROL_APP_LIST  = 应用列表

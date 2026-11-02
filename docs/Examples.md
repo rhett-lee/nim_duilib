@@ -26,7 +26,7 @@ macOS 下默认编译为 `bin/basic.app`，C++ 代码无需修改；配置方法
 <img width="800" src="./Images/chat.png"/>
 
 ## 5. examples/ListBox
-演示如何使用ListBox容器的程序。    
+演示如何使用ListBox容器的程序：状态栏显示当前容器类型、项数与已选数量，可勾选切换多选模式；底部事件日志实时显示 Select/UnSelect/SelChanged/Click/DoubleClick/RClick/Return 及键盘事件与索引参数；列表项支持图标、进度条与逐项删除。修改 list_box.xml 中的容器标签（VListBox / HListBox / VTileListBox / HTileListBox）即可切换布局，代码无需改动。    
 代码入口：[MainThread.cpp](../examples/ListBox/MainThread.cpp)、[ListBoxForm.cpp](../examples/ListBox/ListBoxForm.cpp)；界面资源：`bin/resources/themes/default/list_box/list_box.xml`、`list_box/item.xml`；相关文档：[Control.md](Control.md)。    
 <img width="600" src="./Images/ListBox.png"/>
     

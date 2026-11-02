@@ -30,12 +30,70 @@ private:
     */
     DString GetEventDisplayInfo(const ui::EventArgs& args, ui::ListBox* pListBox);
 
-    /** 输出测试日志
+    /** 输出测试日志（显示在窗口底部的日志区）
     */
     void OutputDebugLog(const DString& logMsg);
 
+    /** 追加一行日志到日志区
+    */
+    void PrintLog(const DString& logMsg);
+
+    /** 清空日志区
+    */
+    void ClearLog();
+
+    /** 刷新状态栏（项数、已选数量）
+    */
+    void RefreshStatus();
+
+    /** 列表项被删除后，刷新状态栏
+    */
+    void OnItemRemoved();
+
+    /** 多选开关的勾选状态变化
+    */
+    bool OnMultiSelectChanged(const ui::EventArgs& args);
+
+    /** "显示日志"开关的勾选状态变化
+    */
+    bool OnShowLogChanged(const ui::EventArgs& args);
+
 private:
+    /** 列表容器
+    */
     ui::ListBox* m_pListBox;
+
+    /** 容器类型显示
+    */
+    ui::Label* m_pTypeLabel;
+
+    /** 项数显示
+    */
+    ui::Label* m_pItemCountLabel;
+
+    /** 已选数量显示
+    */
+    ui::Label* m_pSelCountLabel;
+
+    /** 多选开关
+    */
+    ui::CheckBox* m_pMultiCheck;
+
+    /** "显示日志"开关
+    */
+    ui::CheckBox* m_pLogCheck;
+
+    /** 日志区容器（用于整体显示/隐藏）
+    */
+    ui::Box* m_pLogPanel;
+
+    /** 日志区
+    */
+    ui::RichEdit* m_pLogView;
+
+    /** 日志序号
+    */
+    int32_t m_nLogId;
 };
 
 #endif //EXAMPLES_LISTBOX_FORM_H_

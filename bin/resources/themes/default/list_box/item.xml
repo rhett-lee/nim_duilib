@@ -5,21 +5,26 @@
                 pressed_color="bg_list_item_selected"
                 selected_normal_color="bg_list_item_selected"
                 fade_hovered="false"/>
+    <!-- text_padding 只影响文本控件的文字位置，对 ListBoxItem 内部子控件的布局不起作用；
+         复选框与本项图标之间的间距由下面 HBox 的 padding 左侧值控制 -->
     <Class name="list_box_item_checkbox_1" height="20" text_padding="20,0,0,0" font="system_regular_14"
                 normal_image="file='public/checkbox/checkbox-outline-unchecked.svg' margin='2,0,0,0' valign='center'"
                 disabled_image="file='public/checkbox/checkbox-outline-unchecked.svg' margin='2,0,0,0' valign='center' fade='80'"
                 selected_normal_image="file='public/checkbox/checkbox-outline-checked.svg' margin='2,0,0,0' valign='center'"
                 selected_disabled_image="file='public/checkbox/checkbox-outline-checked.svg' margin='2,0,0,0' valign='center' fade='80'"/>
+    <!-- 列表项：左侧复选框（由控件自身绘制）+ 图标 + 标题（百分比右对齐、删除按钮）+ 进度条。
+         HBox 左侧 padding 需要大于复选框的宽度，否则图标会压住复选框 -->
     <ListBoxItem class="list_box_item_test list_box_item_checkbox_1" height="auto">
-        <HBox height="auto" mouse_enabled="false" padding="18,5,10,5">
-            <Control name="control_img" width="auto" height="auto" margin="0,0,10" mouse_enabled="false"/>
-            <VBox margin="0,3,0,5" mouse_enabled="false">
-                <HBox height="auto" mouse_enabled="false">
-                    <Label name="label_title" width="stretch" mouse_enabled="false"/>
+        <HBox height="auto" mouse_enabled="false" padding="26,6,10,6">
+            <Control name="control_img" width="40" height="40" valign="center" margin="0,0,10,0" mouse_enabled="false"/>
+            <VBox width="stretch" mouse_enabled="false">
+                <HBox height="22" mouse_enabled="false">
+                    <Label name="label_title" width="stretch" font="system_regular_14" text_align="left,vcenter" mouse_enabled="false"/>
+                    <Label name="label_pct" width="auto" font="system_regular_13" text_align="right,vcenter"
+                           text_color="color_gray" margin="0,0,8,0" mouse_enabled="false"/>
                     <Button class="btn_recycle" name="btn_del" width="auto" height="auto" tooltip_text_id="STRID_LISTBOX_DELETE" margin="0,0,4,0"/>
                 </HBox>
-                <Control height="stretch" mouse_enabled="false"/>
-                <Progress class="progress_horizontal_blue" name="progress" value="30" mouse_enabled="false"/>
+                <Progress class="progress_horizontal_blue" name="progress" value="30" height="8" margin="0,6,0,0" mouse_enabled="false"/>
             </VBox>
         </HBox>
     </ListBoxItem>

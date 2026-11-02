@@ -28,7 +28,7 @@ Code entry: [MainThread.cpp](../examples/chat/MainThread.cpp), [ChatForm.cpp](..
 <img width="800" src="./Images/chat.png"/>
 
 ## 5. examples/ListBox
-A program demonstrating how to use the ListBox container.    
+A program demonstrating how to use the ListBox container: the status bar shows the container type, item count and selection count, with a multi-select toggle; the event log at the bottom shows Select/UnSelect/SelChanged/Click/DoubleClick/RClick/Return and keyboard events with their item index; items carry an icon, a progress bar and a per-item delete button. Change the container tag in list_box.xml (VListBox / HListBox / VTileListBox / HTileListBox) to switch layout with no code changes.    
 Code entry: [MainThread.cpp](../examples/ListBox/MainThread.cpp), [ListBoxForm.cpp](../examples/ListBox/ListBoxForm.cpp); skin resources: `bin/resources/themes/default/list_box/list_box.xml`, `list_box/item.xml`; related docs: [Control.en.md](Control.en.md).    
 <img width="600" src="./Images/ListBox.png"/>
     
