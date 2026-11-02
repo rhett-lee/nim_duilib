@@ -36,7 +36,7 @@ macOS 下默认编译为 `bin/basic.app`，C++ 代码无需修改；配置方法
 <img width="1000" src="./Images/ListCtrl.png"/>
 
 ## 7. examples/MoveControl
-演示如何使用Box容器的"drag_out_id"和"drop_in_id"属性来实现控件在不同容器之间的移动效果。    
+演示如何使用Box容器的"drag_out_id"和"drop_in_id"属性来实现控件在不同容器之间的移动效果：应用图标为 SVG 矢量图（缩放不失真），拖动后"常用应用"的状态会记录到 AppDb 中（示例用内存模拟数据库）。    
 代码入口：[MainThread.cpp](../examples/MoveControl/MainThread.cpp)、[MoveControlForm.cpp](../examples/MoveControl/MoveControlForm.cpp)；界面资源：`bin/resources/themes/default/move_control/main.xml`、`move_control/app_item.xml`；相关文档：[Control.md](Control.md)、[XmlNode.md](XmlNode.md)。    
 <img width="600" src="./Images/MoveControl.png"/>
    

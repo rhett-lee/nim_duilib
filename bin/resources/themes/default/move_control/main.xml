@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="540,535" caption="0,0,0,36" shadow_attached="true">
-    <!-- 聊天区域 -->
+<Window size="540,490" min_size="460,485" caption="0,0,0,36" shadow_attached="true">
+    <!-- 应用列表窗口：标题栏 + "常用应用" + "我的应用"，两个区域之间可以互相拖拽图标 -->
     <VBox bkcolor="bg_window_main">
         <!-- 标题栏区域 -->
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
@@ -17,18 +17,28 @@
             <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
         </HBox>
         <Control class="splitline_hor_level1"/>
-        <VBox height="200" bkcolor="bg_container">
-            <HBox bkcolor="bg_window_main" height="35" >
-                <Label text_id="STRID_MOVECONTROL_APP_COMMON" font="system_regular_14" margin="10,10"/>
-            </HBox>
-            <VTileBox name="frequent_app" child_halign="left" drop_in_id="1" drag_out_id="1" bkcolor="bg_container"/>
+
+        <!-- 常用应用：固定容纳 2 行图标（28 + 2 * 90 = 208）。
+             不能用 height="auto"：VTileBox 的高度估算取的是"子控件高度的最大值"，不会按行数累加，
+             自适应只会得到一行的高度，第二行会被裁掉 -->
+        <VBox height="208" bkcolor="bg_container">
+            <Label text_id="STRID_MOVECONTROL_APP_COMMON" font="system_regular_12" height="28"
+                   margin="10,0,10,0" text_align="left,vcenter" text_color="color_gray" mouse_enabled="false"/>
+            <VTileBox name="frequent_app" width="stretch" height="stretch" child_halign="left" drop_in_id="1" drag_out_id="1" bkcolor="bg_container"/>
         </VBox>
         <Control class="splitline_hor_level1"/>
-        <VBox bkcolor="bg_container">
-            <HBox bkcolor="bg_window_main" height="35" >
-                <Label text_id="STRID_MOVECONTROL_MY_APP" font="system_regular_14" margin="10,10"/>
-            </HBox>
-            <VTileBox name="my_app" child_halign="left" drop_in_id="1" drag_out_id="1" bkcolor="bg_container"/>
+
+        <!-- 我的应用：占用剩余空间。两个分区都要能容纳 2 行图标，
+             所以窗口最小高度按 36+1+208+1+28+180+1+30 = 485 计算，低于此值第二行会被裁切 -->
+        <VBox height="stretch" bkcolor="bg_container">
+            <Label text_id="STRID_MOVECONTROL_MY_APP" font="system_regular_12" height="28"
+                   margin="10,0,10,0" text_align="left,vcenter" text_color="color_gray" mouse_enabled="false"/>
+            <VTileBox name="my_app" width="stretch" height="stretch" child_halign="left" drop_in_id="1" drag_out_id="1" bkcolor="bg_container"/>
         </VBox>
+
+        <!-- 底部操作提示：说明本示例的交互方式 -->
+        <Control class="splitline_hor_level1"/>
+        <Label text_id="STRID_MOVECONTROL_HINT_DRAG" font="system_regular_12" height="30" bkcolor="bg_container"
+               margin="10,0,10,0" text_align="left,vcenter" text_color="color_gray" mouse_enabled="false"/>
     </VBox>
 </Window>

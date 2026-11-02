@@ -38,7 +38,7 @@ Code entry: [MainThread.cpp](../examples/ListCtrl/MainThread.cpp), [MainForm.cpp
 <img width="1000" src="./Images/ListCtrl.png"/>
 
 ## 7. examples/MoveControl
-A program demonstrating how to use the "drag_out_id" and "drop_in_id" attributes of the Box container to move controls between different containers.    
+A program demonstrating how to use the "drag_out_id" and "drop_in_id" attributes of the Box container to move controls between different containers: the app icons are SVG vector images (sharp at any scale), and the frequent-app state is saved to AppDb after dragging (simulated with in-memory storage).    
 Code entry: [MainThread.cpp](../examples/MoveControl/MainThread.cpp), [MoveControlForm.cpp](../examples/MoveControl/MoveControlForm.cpp); skin resources: `bin/resources/themes/default/move_control/main.xml`, `move_control/app_item.xml`; related docs: [Control.en.md](Control.en.md), [XmlNode.en.md](XmlNode.en.md).    
 <img width="600" src="./Images/MoveControl.png"/>
    
