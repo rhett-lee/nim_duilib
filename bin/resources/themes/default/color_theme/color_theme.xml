@@ -293,14 +293,14 @@
                         </VBox>
                         <VBox width="250" height="auto">
                             <Label text="Normal Combo(drop_down):" valign="center" height="auto"/>
-                            <Combo class="combo" name="combo_normal" combo_type="drop_down" dropbox_size="0,150" height="30">
+                            <Combo class="combo" name="combo_normal_drop_down" combo_type="drop_down" dropbox_size="0,150" height="30">
                                 <TreeNode class="tree_node" padding="4" text="Option 1"/>
                                 <TreeNode class="tree_node" padding="4" text="Option 2" selected="true"/>
                                 <TreeNode class="tree_node" padding="4" text="Option 3"/>
                                 <TreeNode class="tree_node" padding="4" text="Option 4"/>
                             </Combo>
                             <Label text="Disabled Combo(drop_down):" valign="center" margin="0,10,0,0" height="auto"/>
-                            <Combo class="combo" name="combo_disabled" combo_type="drop_down" dropbox_size="0,150" height="30" enabled="false">
+                            <Combo class="combo" name="combo_disabled_drop_down" combo_type="drop_down" dropbox_size="0,150" height="30" enabled="false">
                                 <TreeNode class="tree_node" padding="4" text="Option 1"/>
                                 <TreeNode class="tree_node" padding="4" text="Option 2"/>
                             </Combo>
@@ -314,7 +314,7 @@
                                 <TreeNode class="tree_node" padding="4" text="Option 4"/>
                             </FilterCombo>
                             <Label text="Filter Combo: Disabled" valign="center" margin="0,10,0,0" height="auto"/>
-                            <FilterCombo class="filter_combo" name="filter_combo" dropbox_size="0,150" height="30" enabled="false">
+                            <FilterCombo class="filter_combo" name="filter_combo_disabled" dropbox_size="0,150" height="30" enabled="false">
                                 <TreeNode class="tree_node" padding="4" text="Option 1"/>
                                 <TreeNode class="tree_node" padding="4" text="Option 2" selected="true"/>
                                 <TreeNode class="tree_node" padding="4" text="Option 3"/>
@@ -329,7 +329,7 @@
                                 <CheckComboText text="Text 3" selected="true"></CheckComboText>
                             </CheckCombo>
                             <Label text="Check Combo: Disabled" valign="center" margin="0,10,0,0" height="auto"/>
-                            <CheckCombo class="check_combo" name="check_combo" height="30" enabled="false">
+                            <CheckCombo class="check_combo" name="check_combo_disabled" height="30" enabled="false">
                                 <CheckComboText text="Text 1" selected="true"></CheckComboText>
                                 <CheckComboText text="Text 2"></CheckComboText>
                                 <CheckComboText text="Text 3" selected="true"></CheckComboText>
@@ -337,9 +337,9 @@
                         </VBox>
                         <VBox width="auto" height="auto">
                             <Label text="ComboButton:" valign="center" height="auto"/>
-                            <ComboButton class="combo_button" name="check_combo" width="120" height="30"/>
+                            <ComboButton class="combo_button" name="combo_button" width="120" height="30"/>
                             <Label text="ComboButton: Disabled" valign="center" margin="0,10,0,0" height="auto"/>
-                            <ComboButton class="combo_button" name="check_combo" width="120" height="30" enabled="false"/>
+                            <ComboButton class="combo_button" name="combo_button_disabled" width="120" height="30" enabled="false"/>
                         </VBox>
                     </HBox>
                 </GroupVBox>
@@ -900,9 +900,9 @@
                 <!-- Section 16: Tooltip -->
                 <GroupVBox class="group_box_round" text="Tooltips - All States" height="auto" margin="0,4,0,0" padding="10,24,6,10" control_padding="false">
                     <HBox child_margin="10" height="auto">
-                        <Label text="Hover over controls to see tooltips:" valign="center" height="auto" valign="center"/>
+                        <Label text="Hover over controls to see tooltips:" valign="center" height="auto"/>
                         <Button class="btn_global" text="Button with Tooltip" tooltip_text="This is a tooltip - hover over controls to preview color changes" padding="10,4,10,4" valign="center"/>
-                        <Label text="Tooltips Text color and background color" valign="center" height="auto" text_padding="10,10,10,10" bkcolor="bg_tooltip" normal_text_color="text_tooltip" valign="center"/>
+                        <Label text="Tooltips Text color and background color" valign="center" height="auto" text_padding="10,10,10,10" bkcolor="bg_tooltip" normal_text_color="text_tooltip"/>
                     </HBox>
                 </GroupVBox>
                 

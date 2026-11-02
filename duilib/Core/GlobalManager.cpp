@@ -1248,6 +1248,8 @@ Box* GlobalManager::CreateBoxForXmlPreview(Window* pWindow,
     if (pWindow == nullptr) {
         return nullptr;
     }
+    m_lastXmlPreviewError.clear();
+    const DString xmlPathForError = xmlFilePath.IsEmpty() ? DString(_T("<XML data from memory>")) : xmlFilePath.ToString();
     bool bParseXmlResult = false;
     Box* pBox = nullptr;
     WindowBuilder builder;
@@ -1260,6 +1262,9 @@ Box* GlobalManager::CreateBoxForXmlPreview(Window* pWindow,
         if (builder.ParseXmlFile(xmlFilePath, pWindow->GetResourcePath())) {
             bParseXmlResult = true;
         }
+    }
+    else {
+        m_lastXmlPreviewError = _T("XML data is empty and XML file path is empty");
     }
     if (bParseXmlResult) {
         Control* pControl = builder.CreateControls(pWindow, nullptr);
@@ -1279,8 +1284,22 @@ Box* GlobalManager::CreateBoxForXmlPreview(Window* pWindow,
             xmlPreviewAttributes.m_windowThemeColorList = builder.GetWindowThemeColorList();
             xmlPreviewAttributes.m_globalFontIdList = builder.GetGlobalFontIdList();
         }
+        else {
+            m_lastXmlPreviewError = StringUtil::Printf(_T("Create controls failed: %s"), xmlPathForError.c_str());
+        }
+    }
+    else if (m_lastXmlPreviewError.empty()) {
+        m_lastXmlPreviewError = builder.GetLastError();
+        if (m_lastXmlPreviewError.empty()) {
+            m_lastXmlPreviewError = StringUtil::Printf(_T("XML parse failed: %s"), xmlPathForError.c_str());
+        }
     }
     return pBox;
+}
+
+const DString& GlobalManager::GetLastXmlPreviewError() const
+{
+    return m_lastXmlPreviewError;
 }
 
 bool GlobalManager::IsInUIThread() const

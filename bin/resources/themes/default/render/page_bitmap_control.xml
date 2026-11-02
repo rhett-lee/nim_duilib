@@ -12,7 +12,7 @@
         <VBox width="auto" height="auto">
             <BitmapControl class="bitmap_control_image" width="100" height="100" bitmap_file="render/autumn.png"/>
             <Label class="bitmap_control_case" text="Case No.(1.1)"/>
-            <Label class="bitmap_control_text" text="rect < image size" text_align="hcenter,vcenter"/>
+            <Label class="bitmap_control_text" text="rect &lt; image size" text_align="hcenter,vcenter"/>
         </VBox>
         <VBox width="auto" height="auto">
             <BitmapControl class="bitmap_control_image" width="auto" height="auto" bitmap_file="render/autumn.png"/>

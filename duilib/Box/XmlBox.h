@@ -49,6 +49,11 @@ public:
     */
     const FilePath& GetXmlFileFullPath() const;
 
+    /** 获取最近一次加载XML失败的错误信息（包含文件路径、行号、列号和失败原因）
+    *   加载成功时，该信息为空字符串
+    */
+    const DString& GetLastError() const;
+
 public:
     /** 加载XML完成事件的回调函数
      * @param [in] xmlPath XML文件的路径
@@ -123,6 +128,10 @@ private:
     /** 已加载XML文件的完整路径（如果为磁盘文件，则为绝对路径）
     */
     FilePath m_xmlFileFullPath;
+
+    /** 最近一次加载XML失败的错误信息（为空字符串表示加载成功）
+    */
+    DString m_lastError;
 
     /** 关联的窗口公共属性和全局属性，切换XML时需要从窗口对象中移除这些属性，避免相互干扰
     */

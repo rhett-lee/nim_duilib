@@ -86,12 +86,68 @@
 #include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Utils/FileUtil.h"
+#include "duilib/Utils/LogUtil.h"
 
 #include "duilib/third_party/xml/pugixml.hpp"
 #include <set>
 
 namespace ui 
 {
+
+namespace
+{
+    /** 计算XML数据中某个字节偏移对应的行号和列号（行号、列号均从1开始计数）
+    * @param [in] data XML数据（UTF-8 或者 UTF-16 编码）
+    * @param [in] dataSize XML数据的字节数
+    * @param [in] offsetBytes 解析失败位置的字节偏移
+    * @param [out] nLine 行号
+    * @param [out] nColumn 列号
+    */
+    template<typename CharType>
+    void CalcXmlParseErrorPosition(const CharType* data, size_t dataSize, size_t offsetBytes, uint32_t& nLine, uint32_t& nColumn)
+    {
+        nLine = 1;
+        nColumn = 1;
+        if ((data == nullptr) || (dataSize == 0)) {
+            return;
+        }
+        const size_t charCount = dataSize / sizeof(CharType);
+        size_t nIndex = offsetBytes / sizeof(CharType);
+        if (nIndex > charCount) {
+            nIndex = charCount;
+        }
+        for (size_t i = 0; i < nIndex; ++i) {
+            const CharType ch = data[i];
+            if (ch == static_cast<CharType>('\n')) {
+                ++nLine;
+                nColumn = 1;
+            }
+            else if (ch == static_cast<CharType>('\r')) {
+                //换行符(\r\n)中的'\r'，不单独计数
+            }
+            else if constexpr (sizeof(CharType) == 1) {
+                if ((static_cast<unsigned char>(ch) & 0xC0) == 0x80) {
+                    //UTF-8 编码中的后续字节，不单独计数
+                    continue;
+                }
+                ++nColumn;
+            }
+            else {
+                ++nColumn;
+            }
+        }
+    }
+
+    /** 生成XML解析失败的错误信息（包含文件路径、行号、列号和失败原因）
+    */
+    DString MakeXmlParseError(const FilePath& xmlFilePath, const pugi::xml_parse_result& result, uint32_t nLine, uint32_t nColumn)
+    {
+        const DString strDescription = StringConvert::UTF8ToT(std::string(result.description()));
+        return StringUtil::Printf(_T("XML parse failed: %s, line %u, column %u: %s"),
+                                  xmlFilePath.ToString().c_str(), nLine, nColumn, strDescription.c_str());
+    }
+}
+
 
 WindowBuilder::WindowBuilder()
 {
@@ -255,8 +311,11 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
 
 bool WindowBuilder::ParseXmlData(const DString& xmlFileData, const FilePath& xmlFilePath)
 {
+    m_lastError.clear();
     ASSERT(!xmlFileData.empty() && _T("xmlFileData is empty!"));
     if (xmlFileData.empty()) {
+        m_lastError = StringUtil::Printf(_T("XML data is empty, file: %s"), xmlFilePath.ToString().c_str());
+        LogUtil::OutputLine(m_lastError, false);
         return false;
     }
     bool isLoaded = false;
@@ -272,6 +331,18 @@ bool WindowBuilder::ParseXmlData(const DString& xmlFileData, const FilePath& xml
                                                            xmlFileData.size() * sizeof(DString::value_type),
                                                            pugi::parse_default, encoding);
         isLoaded = result.status == pugi::status_ok;
+        if (!isLoaded) {
+            uint32_t nLine = 1;
+            uint32_t nColumn = 1;
+            CalcXmlParseErrorPosition(xmlFileData.data(), xmlFileData.size() * sizeof(DString::value_type),
+                                      (size_t)result.offset, nLine, nColumn);
+            m_lastError = MakeXmlParseError(xmlFilePath, result, nLine, nColumn);
+            LogUtil::OutputLine(m_lastError, false);
+        }
+    }
+    else {
+        m_lastError = StringUtil::Printf(_T("XML data does not start with '<', file: %s"), xmlFilePath.ToString().c_str());
+        LogUtil::OutputLine(m_lastError, false);
     }
     if (!isLoaded) {
         ASSERT(!_T("WindowBuilder::ParseXmlData load xmlFileData failed!"));
@@ -283,8 +354,11 @@ bool WindowBuilder::ParseXmlData(const DString& xmlFileData, const FilePath& xml
 
 bool WindowBuilder::ParseXmlData(const std::vector<unsigned char>& xmlFileData, const FilePath& xmlFilePath)
 {
+    m_lastError.clear();
     ASSERT(!xmlFileData.empty() && _T("xmlFileData is empty!"));
     if (xmlFileData.empty()) {
+        m_lastError = StringUtil::Printf(_T("XML data is empty, file: %s"), xmlFilePath.ToString().c_str());
+        LogUtil::OutputLine(m_lastError, false);
         return false;
     }
     pugi::xml_encoding encoding = pugi::xml_encoding::encoding_auto;
@@ -293,6 +367,11 @@ bool WindowBuilder::ParseXmlData(const std::vector<unsigned char>& xmlFileData, 
                                                        pugi::parse_default, encoding);
     bool isLoaded = result.status == pugi::status_ok;
     if (!isLoaded) {
+        uint32_t nLine = 1;
+        uint32_t nColumn = 1;
+        CalcXmlParseErrorPosition(xmlFileData.data(), xmlFileData.size(), (size_t)result.offset, nLine, nColumn);
+        m_lastError = MakeXmlParseError(xmlFilePath, result, nLine, nColumn);
+        LogUtil::OutputLine(m_lastError, false);
         ASSERT(!_T("WindowBuilder::ParseXmlData load xmlFileData failed!"));
         return false;
     }
@@ -302,8 +381,11 @@ bool WindowBuilder::ParseXmlData(const std::vector<unsigned char>& xmlFileData, 
 
 bool WindowBuilder::ParseXmlFile(const FilePath& xmlFilePath, const FilePath& windowResPath)
 {
+    m_lastError.clear();
     ASSERT(!xmlFilePath.IsEmpty() && _T("xmlFilePath is empty!"));
     if (xmlFilePath.IsEmpty()) {
+        m_lastError = _T("XML file path is empty");
+        LogUtil::OutputLine(m_lastError, false);
         return false;
     }
 
@@ -315,6 +397,11 @@ bool WindowBuilder::ParseXmlFile(const FilePath& xmlFilePath, const FilePath& wi
         if (!xmlFileData.empty()) {
             pugi::xml_parse_result result = m_xml->load_buffer(xmlFileData.data(), xmlFileData.size());
             if (result.status != pugi::status_ok) {
+                uint32_t nLine = 1;
+                uint32_t nColumn = 1;
+                CalcXmlParseErrorPosition(xmlFileData.data(), xmlFileData.size(), (size_t)result.offset, nLine, nColumn);
+                m_lastError = MakeXmlParseError(xmlFilePath, result, nLine, nColumn);
+                LogUtil::OutputLine(m_lastError, false);
                 ASSERT(!_T("WindowBuilder::ParseXmlFile load xml from zip data failed!"));
                 return false;
             }
@@ -323,6 +410,15 @@ bool WindowBuilder::ParseXmlFile(const FilePath& xmlFilePath, const FilePath& wi
         else if (!xmlFileFullPath.IsEmpty()) {
             pugi::xml_parse_result result = m_xml->load_file(xmlFileFullPath.NativePathA().c_str());
             if (result.status != pugi::status_ok) {
+                //解析磁盘文件失败：重新读取文件内容，用于计算错误位置的行号和列号
+                uint32_t nLine = 1;
+                uint32_t nColumn = 1;
+                std::vector<uint8_t> fileData;
+                if (FileUtil::ReadFileData(xmlFileFullPath, fileData) && !fileData.empty()) {
+                    CalcXmlParseErrorPosition(fileData.data(), fileData.size(), (size_t)result.offset, nLine, nColumn);
+                }
+                m_lastError = MakeXmlParseError(xmlFileFullPath, result, nLine, nColumn);
+                LogUtil::OutputLine(m_lastError, false);
                 ASSERT(!_T("WindowBuilder::ParseXmlFile load xml file failed!"));
                 return false;
             }
@@ -330,12 +426,21 @@ bool WindowBuilder::ParseXmlFile(const FilePath& xmlFilePath, const FilePath& wi
         }
     }
     if (!isLoaded) {
+        m_lastError = StringUtil::Printf(_T("XML file not found: %s, windowResPath: %s"),
+                                         xmlFilePath.ToString().c_str(), windowResPath.ToString().c_str());
+        LogUtil::OutputLine(m_lastError, false);
         ASSERT(!_T("WindowBuilder::ParseXmlFile load xmlFilePath failed!"));
         return false;
     }
     m_xmlFilePath = xmlFilePath;
     return true;
 }
+
+const DString& WindowBuilder::GetLastError() const
+{
+    return m_lastError;
+}
+
 
 std::string WindowBuilder::ReadXmlFileData(const FilePath& xmlFilePath, const FilePath& windowResPath) const
 {
@@ -1551,6 +1656,8 @@ Control* WindowBuilder::ParseIncludeXmlNode(const pugi::xml_node& node, Control*
     }
     ASSERT(!sourceXmlFilePath.IsEmpty());
     if (sourceXmlFilePath.IsEmpty()) {
+        LogUtil::OutputLine(StringUtil::Printf(_T("Include node has no 'src' attribute, included from: %s"),
+                                               m_xmlFilePath.ToString().c_str()), false);
         return nullptr;
     }
     Control* pReturn = nullptr;
@@ -1565,6 +1672,11 @@ Control* WindowBuilder::ParseIncludeXmlNode(const pugi::xml_node& node, Control*
             if (pReturn == nullptr) {
                 pReturn = pControl;
             }
+        }
+        else {
+            LogUtil::OutputLine(StringUtil::Printf(_T("Include XML load failed: %s, included from: %s"),
+                                                   sourceXmlFilePath.ToString().c_str(),
+                                                   m_xmlFilePath.ToString().c_str()), false);
         }
     }
     return pReturn;

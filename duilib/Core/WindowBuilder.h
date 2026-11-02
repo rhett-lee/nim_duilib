@@ -113,6 +113,11 @@ public:
     */
     std::string ReadXmlFileData(const FilePath& xmlFilePath, const FilePath& windowResPath = FilePath()) const;
 
+    /** 获取最近一次解析失败的错误信息（包含文件路径、行号、列号和失败原因）
+    *  解析成功时，该信息为空字符串
+    */
+    const DString& GetLastError() const;
+
 public:
     /** 解析出窗口的属性(属性名称保存在Map的Key中，属性的值保存在属性的Value中)
     */
@@ -247,6 +252,10 @@ private:
     /** 当前解析的XML文件路径
     */
     FilePath m_xmlFilePath;
+
+    /** 最近一次解析失败的错误信息（为空字符串表示解析成功）
+    */
+    DString m_lastError;
 
 private:
     /** 本次解析在窗口下添加的Class属性列表

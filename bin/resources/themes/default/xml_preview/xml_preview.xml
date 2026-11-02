@@ -34,10 +34,10 @@
                 </HBox>
                 <HBox height="auto">
                     <Label text_id="STRID_XMLPREVIEW_XML_LOAD_RESULT" valign="center"/>
-                    <Label name="xml_file_load_result" text="" valign="center" width="100%" />
+                    <Label name="xml_file_load_result" text="" valign="center" width="100%" single_line="true" path_ellipsis="true" auto_tooltip="true" />
                 </HBox>
                 <HBox height="auto">
-                    <Label name="xml_file_path" text_id="STRID_XMLPREVIEW_XML_DRAG_PROMPT" text_align="vcenter" valign="center" height="30"/>
+                    <Label name="xml_drag_prompt" text_id="STRID_XMLPREVIEW_XML_DRAG_PROMPT" text_align="vcenter" valign="center" height="30"/>
                     <Control />
                     <CheckBox class="checkbox_2" name="checkbox_auto_refresh" text_id="STRID_XMLPREVIEW_XML_AUTO_REFRESH" margin="0,0,8,0" selected="false"/>
                     <Label text_id="STRID_XMLPREVIEW_XML_REFRESH_MS" text_align="vcenter" valign="center"/>

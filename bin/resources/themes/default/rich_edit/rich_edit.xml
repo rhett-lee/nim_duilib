@@ -104,7 +104,7 @@
                     </HBox>
                     <HBox height="48" margin="8,0,8,0">
                         <Label text_id="STRID_RICHEDIT_TEXT_ALIGN" valign="center"/>
-                        <RichEdit class="simple simple_border" text="text_align={left/hcenter/right,top/vcenter/bottom}" text_align="hcenter,vcenter" valign="center" text_align="vcenter" margin="4,6,4,4"/>
+                        <RichEdit class="simple simple_border" text="text_align={left/hcenter/right,top/vcenter/bottom}" valign="center" text_align="vcenter" margin="4,6,4,4"/>
                     </HBox>
                     <HBox height="36" margin="8,0,8,8">
                         <Label text_id="STRID_RICHEDIT_MAX_CHAR_8" valign="center"/>
@@ -237,7 +237,7 @@
                 <!-- 横向分割条，用于调整上下区域大小 -->
                 <Split class="split_horizontal"/>
                 <HBox bkcolor="Pink" border_size="1" border_color="border_window" border_round="4,4" min_width="60">
-                    <RichEdit name="rich_edit" enable_drag_drop="true" zoom="0,0" wheel_zoom="true" multi_line="true" want_return="true" word_wrap="true" rich_text="false" default_context_menu="true" save_selection="true" hide_selection="false" word_wrap="true" vscrollbar="true" auto_vscroll="true" bkcolor="bg_richedit"/>
+                    <RichEdit name="rich_edit" enable_drag_drop="true" zoom="0,0" wheel_zoom="true" multi_line="true" want_return="true" word_wrap="true" rich_text="false" default_context_menu="true" save_selection="true" hide_selection="false" vscrollbar="true" auto_vscroll="true" bkcolor="bg_richedit"/>
                 </HBox>
             </VBox>
         </HBox>

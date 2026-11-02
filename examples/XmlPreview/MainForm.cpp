@@ -51,7 +51,11 @@ void MainForm::OnInitWindow()
             }
             else {
                 if (pXmlFileLoadResult != nullptr) {
-                    DString errMsg = ui::StringUtil::Printf(_T("Failed [%s]"), xmlPath.ToString().c_str());
+                    //显示详细的错误信息（包含文件路径、行号、列号和失败原因）
+                    DString errMsg = pXmlBox->GetLastError();
+                    if (errMsg.empty()) {
+                        errMsg = ui::StringUtil::Printf(_T("Failed [%s]"), xmlPath.ToString().c_str());
+                    }
                     pXmlFileLoadResult->SetText(errMsg);
                 }
             }

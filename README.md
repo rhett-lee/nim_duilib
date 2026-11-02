@@ -218,7 +218,7 @@ python3 build/build.py --dll --config Release
 下面这些路径对应更深入的开发场景，按需查阅即可；新手先按“快速开始”跑通再深入会更顺畅。
 
 - **写第一个窗口**：[examples/basic](examples/basic) 是最小工程；分步教程见 [docs/Getting-Started.md](docs/Getting-Started.md)。该教程以 VS 解决方案为例，依赖准备请以 `python3 build/build.py deps` 为准，构建入口以本文“快速开始”为准。
-- **界面开发文档**：[窗口](docs/Window.md)、[容器/布局](docs/Box.md)、[控件](docs/Control.md)、[菜单](docs/Menu.md)、[全局样式](docs/Global.md)、[事件](docs/Events.md)、[XML 节点](docs/XmlNode.md)、[XML 事件](docs/XmlEvents.md)。
+- **界面开发文档**：[窗口](docs/Window.md)、[容器/布局](docs/Box.md)、[控件](docs/Control.md)、[菜单](docs/Menu.md)、[全局样式](docs/Global.md)、[事件](docs/Events.md)、[XML 节点](docs/XmlNode.md)、[XML 事件](docs/XmlEvents.md)、[XML 编辑辅助工具](docs/XmlTools.md)（解析错误定位、静态检查、编辑器补全与校验）。
 - **构建与发布**：完整参数见 [build/build-reference.md](build/build-reference.md)；依赖目录与发布打包说明见 [build/README.md](build/README.md)。
 - **内置对话框与通知**：[MessageBoxWnd](docs/MessageBox.md)、[ToastWnd](docs/Toast.md)、[SystemNotification](docs/SystemNotification.md)。
 - **网页控件**：[CEF 控件](docs/CEF.md)、[WebView2 示例](examples/WebView2)；CEF 示例运行需要对应的运行时目录：Windows 为 `bin/libcef_win/<arch>`，Linux 为 `bin/libcef_linux`，macOS 由 App Bundle 自动携带（见 [build/macos-app-bundle.md](build/macos-app-bundle.md)）。

@@ -112,7 +112,7 @@ Code entry: [MainThread.cpp](../examples/ChildWindow/MainThread.cpp), [MainForm.
     
 ## 21. examples/XmlPreview    
 A demonstration example of the XML file interface preview feature.    
-Code entry: [MainThread.cpp](../examples/XmlPreview/MainThread.cpp), [MainForm.cpp](../examples/XmlPreview/MainForm.cpp); skin resources: `bin/resources/themes/default/xml_preview/xml_preview.xml`; related docs: [XmlNode.en.md](XmlNode.en.md), [XmlEvents.en.md](XmlEvents.en.md).    
+Code entry: [MainThread.cpp](../examples/XmlPreview/MainThread.cpp), [MainForm.cpp](../examples/XmlPreview/MainForm.cpp); skin resources: `bin/resources/themes/default/xml_preview/xml_preview.xml`; related docs: [XmlNode.en.md](XmlNode.en.md), [XmlEvents.en.md](XmlEvents.en.md), [XmlTools.en.md](XmlTools.en.md).    
 <img width="800" src="./Images/XmlPreview.png"/>
     
 ## 22. examples/ColorTheme    

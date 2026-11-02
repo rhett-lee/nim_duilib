@@ -110,7 +110,7 @@ macOS 下默认编译为 `bin/basic.app`，C++ 代码无需修改；配置方法
     
 ## 21. examples/XmlPreview    
 XML文件的界面效果预览功能演示示例。    
-代码入口：[MainThread.cpp](../examples/XmlPreview/MainThread.cpp)、[MainForm.cpp](../examples/XmlPreview/MainForm.cpp)；界面资源：`bin/resources/themes/default/xml_preview/xml_preview.xml`；相关文档：[XmlNode.md](XmlNode.md)、[XmlEvents.md](XmlEvents.md)。    
+代码入口：[MainThread.cpp](../examples/XmlPreview/MainThread.cpp)、[MainForm.cpp](../examples/XmlPreview/MainForm.cpp)；界面资源：`bin/resources/themes/default/xml_preview/xml_preview.xml`；相关文档：[XmlNode.md](XmlNode.md)、[XmlEvents.md](XmlEvents.md)、[XmlTools.md](XmlTools.md)。    
 <img width="800" src="./Images/XmlPreview.png"/>
     
 ## 22. examples/ColorTheme    

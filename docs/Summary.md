@@ -16,6 +16,7 @@
 * [控件的事件/消息](Events.md)
 * [XML文件中各控件的节点名称](XmlNode.md)
 * [XML文件中直接响应控件的事件](XmlEvents.md)
+* [XML 界面编辑辅助工具（错误定位、静态检查、编辑器补全）](XmlTools.md)
 * [主题参考文档](Theme.md)
 * [主题颜色配置规范](ThemeColor.md)
 * [CEF控件](CEF.md)

@@ -4,6 +4,7 @@
 #include "duilib/Core/Shadow.h"
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Utils/FileUtil.h"
+#include "duilib/Utils/StringUtil.h"
 #include <set>
 
 namespace ui
@@ -131,6 +132,7 @@ void XmlBox::OnInit()
 
 bool XmlBox::LoadXmlData(const FilePath& xmlPath)
 {
+    m_lastError.clear();
     if (xmlPath.IsEmpty()) {
         //清除数据，返回成功
         XmlPreviewAttributes xmlPreviewAttributes;
@@ -141,6 +143,7 @@ bool XmlBox::LoadXmlData(const FilePath& xmlPath)
     Window* pWindow = GetWindow();
     ASSERT(pWindow != nullptr);
     if (pWindow == nullptr) {
+        m_lastError = StringUtil::Printf(_T("XML preview failed: the window is null, file: %s"), xmlPath.ToString().c_str());
         return bRet;
     }
 
@@ -150,6 +153,7 @@ bool XmlBox::LoadXmlData(const FilePath& xmlPath)
     FilePath xmlResPath;
     if (!ReadXmlFileData(xmlPath, pWindow->GetResourcePath(), xmlFileData, xmlOutputPath, xmlResPath)) {
         //读取XML文件数据失败
+        m_lastError = StringUtil::Printf(_T("XML file not found or can't be read: %s"), xmlPath.ToString().c_str());
         return bRet;
     }
     FilePath oldXmlResPath = m_xmlResPath;
@@ -194,6 +198,10 @@ bool XmlBox::LoadXmlData(const FilePath& xmlPath)
         bRet = true;
     }
     else {
+        m_lastError = GlobalManager::Instance().GetLastXmlPreviewError();
+        if (m_lastError.empty()) {
+            m_lastError = StringUtil::Printf(_T("Load XML failed: %s"), xmlPath.ToString().c_str());
+        }
         m_xmlResPath.Swap(oldXmlResPath);
     }
     return bRet;
@@ -423,6 +431,11 @@ void XmlBox::OnXmlDataLoaded(const FilePath& xmlPath, bool bSuccess)
 const FilePath& XmlBox::GetXmlFileFullPath() const
 {
     return m_xmlFileFullPath;
+}
+
+const DString& XmlBox::GetLastError() const
+{
+    return m_lastError;
 }
 
 } //namespace ui

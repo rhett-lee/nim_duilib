@@ -360,6 +360,11 @@ public:
                                 XmlPreviewAttributes& xmlPreviewAttributes,
                                 const FilePath& xmlFilePath = FilePath());
 
+    /** 获取最近一次调用 CreateBoxForXmlPreview 失败时的错误信息
+     *  错误信息中包含XML文件路径、行号、列号和失败原因，解析成功时为空字符串
+     */
+    const DString& GetLastXmlPreviewError() const;
+
 public:
     /** 判断当前是否在UI线程
     */
@@ -523,6 +528,10 @@ private:
     /** 控件创建函数，用于用户自定义控件的创建
     */
     std::vector<CreateControlCallback> m_pfnCreateControlCallbackList;
+
+    /** 最近一次XML预览解析失败的错误信息（为空字符串表示最近一次解析成功）
+    */
+    DString m_lastXmlPreviewError;
 
     /** 每个Class的名称(KEY)和属性列表(VALUE)（比如global.xml中定义的Class）
     */

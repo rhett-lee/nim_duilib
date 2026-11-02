@@ -14,7 +14,7 @@
                 <Event type="mouse_leave" receiver="box_shadow_test" apply_attribute="visible='false'" />
             </Button>
         </HBox>
-        <HBox margin="20,20,0,0" height="70" box_shadow="color='red' offset='1,1' blur_radius='4' spread_radius='1'" margin="6,6,6,6">
+        <HBox height="70" box_shadow="color='red' offset='1,1' blur_radius='4' spread_radius='1'" margin="6,6,6,6">
             <Control width="80" height="60" margin="10,0,0,0" border_size="2" border_color="gray" valign="center"/>
             <Control width="80" height="60" margin="10,0,0,0" border_size="2" border_color="gray" border_dash_style="solid" valign="center"/>
             <Control width="80" height="60" margin="10,0,0,0" border_size="2" border_color="gray" border_dash_style="dash" valign="center"/>

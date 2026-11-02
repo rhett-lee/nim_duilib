@@ -2,7 +2,7 @@
 <Box>
     <VBox bkcolor="bg_container">
         <HBox child_margin_x="8">
-            <VBox height="auto" border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
+            <VBox border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
                 <Button class="btn_global" width="180" height="32" border_round="3,3" halign="center" valign='center'
                         text_id="STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL" tooltip_text="fade_alpha='true'">
                     <Event type="mouse_enter" receiver="fade_alpha_1" apply_attribute="fade_visible='true'" />
@@ -10,7 +10,7 @@
                 </Button>
                 <Control name="fade_alpha_1" halign="center" margin="30,30,30,30" width="160" height="100" bkcolor="red" border_round="4,4" visible="false" fade_alpha="true"/>
             </VBox>
-            <VBox height="auto" border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
+            <VBox border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
                 <Button class="btn_global" width="180" height="32" border_round="3,3" halign="center" valign='center'
                         text_id="STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL" tooltip_text="fade_alpha='true'">
                     <Event type="mouse_enter" receiver="fade_alpha_2" apply_attribute="fade_visible='true'" />
@@ -18,7 +18,7 @@
                 </Button>
                 <Control name="fade_alpha_2"  halign="center" margin="30,30,30,30" width="160" height="100" bkcolor="red" border_round="4,4" border_size="2" border_color="blue" visible="false" fade_alpha="true"/>
             </VBox>
-            <VBox height="auto" border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
+            <VBox border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
                 <Button class="btn_global" width="180" height="32" border_round="3,3" halign="center" valign='center'
                         text_id="STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL" tooltip_text="fade_alpha='true'">
                     <Event type="mouse_enter" receiver="fade_alpha_3" apply_attribute="fade_visible='true'" />
@@ -28,7 +28,7 @@
             </VBox>
         </HBox>
         <HBox child_margin_x="8">
-            <VBox height="auto" border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
+            <VBox border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
                 <Button class="btn_global" width="260" height="32" border_round="3,3" halign="center" valign='center'
                         text_id="STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL_LEFT_SLIDE" tooltip_text="fade_in_out_x_from_left='true'">
                     <Event type="mouse_enter" receiver="fade_in_out_x_from_left_1" apply_attribute="fade_visible='true'" />
@@ -36,7 +36,7 @@
                 </Button>
                 <Control name="fade_in_out_x_from_left_1" halign="center" margin="30,30,30,30" width="160" height="100" bkcolor="red" border_round="4,4" visible="false" fade_in_out_x_from_left="true"/>
             </VBox>
-            <VBox height="auto" border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
+            <VBox border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
                 <Button class="btn_global" width="260" height="32" border_round="3,3" halign="center" valign='center'
                         text_id="STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL_RIGHT_SLIDE" tooltip_text="fade_in_out_x_from_right='true'">
                     <Event type="mouse_enter" receiver="fade_in_out_x_from_right_1" apply_attribute="fade_visible='true'" />
@@ -44,7 +44,7 @@
                 </Button>
                 <Control name="fade_in_out_x_from_right_1" halign="center" margin="30,30,30,30" width="160" height="100" bkcolor="red" border_round="4,4" visible="false" fade_in_out_x_from_right="true"/>
             </VBox>
-            <VBox height="auto" border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
+            <VBox border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
                 <Button class="btn_global" width="260" height="32" border_round="3,3" halign="center" valign='center'
                         text_id="STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL_TOP_SLIDE" tooltip_text="fade_in_out_y_from_top='true'">
                     <Event type="mouse_enter" receiver="fade_in_out_y_from_top_1" apply_attribute="fade_visible='true'" />
@@ -52,7 +52,7 @@
                 </Button>
                 <Control name="fade_in_out_y_from_top_1" halign="center" margin="30,30,30,30" width="160" height="100" bkcolor="red" border_round="4,4" visible="false" fade_in_out_y_from_top="true"/>
             </VBox>
-            <VBox height="auto" border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
+            <VBox border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
                 <Button class="btn_global" width="260" height="32" border_round="3,3" halign="center" valign='center'
                         text_id="STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL_BOTTOM_SLIDE" tooltip_text="fade_in_out_y_from_bottom='true'">
                     <Event type="mouse_enter" receiver="fade_in_out_y_from_bottom_1" apply_attribute="fade_visible='true'" />
@@ -62,7 +62,7 @@
             </VBox>
         </HBox>
         <HBox child_margin_x="8">
-            <VBox height="auto" border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
+            <VBox border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
                 <Button class="btn_global" width="260" height="32" border_round="3,3" halign="center" valign='center'
                         text_id="STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL_WIDTH_FADE" tooltip_text="fade_width='true'">
                     <Event type="mouse_enter" receiver="fade_width_1" apply_attribute="fade_visible='true'" />
@@ -70,7 +70,7 @@
                 </Button>
                 <Control name="fade_width_1" halign="center" margin="30,30,30,30" width="160" height="100" bkcolor="red" border_round="4,4" visible="false" fade_width="true"/>
             </VBox>
-            <VBox height="auto" border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
+            <VBox border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
                 <Button class="btn_global" width="260" height="32" border_round="3,3" halign="center" valign='center'
                         text_id="STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL_HEIGHT_FADE" tooltip_text="fade_height='true'">
                     <Event type="mouse_enter" receiver="fade_height_1" apply_attribute="fade_visible='true'" />
@@ -78,7 +78,7 @@
                 </Button>
                 <Control name="fade_height_1" halign="center" margin="30,30,30,30" width="160" height="100" bkcolor="red" border_round="4,4" visible="false" fade_height="true"/>
             </VBox>
-            <VBox height="auto" border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
+            <VBox border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
                 <Button class="btn_global" width="260" height="32" border_round="3,3" halign="center" valign='center'
                         text_id="STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL_SIZE_FADE" tooltip_text="fade_size='true'">
                     <Event type="mouse_enter" receiver="fade_size_1" apply_attribute="fade_visible='true'" />
@@ -89,7 +89,7 @@
             </VBox>
         </HBox>
         <HBox child_margin_x="8">
-            <VBox margin="4,0,0,0" height="auto" border_size="1" width="320" height="184" border_color="gray" padding="2,2,2,2">
+            <VBox margin="4,0,0,0" border_size="1" width="320" height="184" border_color="gray" padding="2,2,2,2">
                 <Label halign="center" text_id="STRID_RENDER_CTRL_ANI_HOT_STATE_ANIM" tooltip_text="fade_hovered='true'"/>
                 <HBox>
                     <VBox child_margin_y="8" padding="10,6,10,6">
