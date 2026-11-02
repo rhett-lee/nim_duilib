@@ -129,6 +129,13 @@ private:
     */
     void OnPickColorFromScreen();
 
+    /** 复制颜色值到剪贴板，并弹出 Toast 提示作为反馈
+    * @param[in] colorValue 需要复制的颜色文本（如 "#AARRGGBB"）；为空时不做任何操作
+    *   说明：Toast 为非模态提示，不抢占父窗口焦点，约 1.5 秒后自动消失；
+    *        文本由"已复制"多语言文案与颜色值拼接而成。
+    */
+    void CopyColorToClipboard(const DString& colorValue);
+
 private:
     /** 新选择的颜色控件接口
     */

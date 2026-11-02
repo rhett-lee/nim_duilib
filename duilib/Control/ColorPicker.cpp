@@ -8,6 +8,8 @@
 #include "duilib/Core/WindowCreateParam.h"
 #include "duilib/Utils/ScreenCapture.h"
 #include "duilib/Utils/Clipboard.h"
+#include "duilib/Utils/ToastWnd.h"
+#include "duilib/Control/RichEdit.h"
 
 namespace ui
 {
@@ -259,16 +261,30 @@ void ColorPicker::OnInitWindow()
             });
     }
 
-    //复制颜色值按钮
+    //复制颜色值按钮：新颜色预览区（color_picker_copy2），复制"新颜色"预览文本
     ui::Button* pCopyBtn = dynamic_cast<Button*>(FindControl(_T("color_picker_copy2")));
     if (pCopyBtn != nullptr) {
         ControlPtrT<Label> pNewColorLabel = m_pNewColor;
-        pCopyBtn->AttachClick([pNewColorLabel](const ui::EventArgs&) {
-            if (pNewColorLabel != nullptr) {
-                DString colorValue = pNewColorLabel->GetText();
-                if (!colorValue.empty()) {
-                    Clipboard::SetClipboardText(colorValue);
+        pCopyBtn->AttachClick([pThis, pNewColorLabel](const ui::EventArgs&) {
+            if ((pThis != nullptr) && (pNewColorLabel != nullptr)) {
+                pThis->CopyColorToClipboard(pNewColorLabel->GetText());
+            }
+            return true;
+            });
+    }
+
+    //复制颜色值按钮：ARGB 输入框行（color_picker_copy），复制当前编辑框中的颜色文本。
+    //此前该按钮未绑定任何逻辑（死按钮），这里补齐复制功能并给出反馈。
+    pCopyBtn = dynamic_cast<Button*>(FindControl(_T("color_picker_copy")));
+    if (pCopyBtn != nullptr) {
+        ControlPtrT<RichEdit> pNewColorEdit(dynamic_cast<RichEdit*>(FindControl(_T("color_picker_new_color_edit"))));
+        pCopyBtn->AttachClick([pThis, pNewColorEdit](const ui::EventArgs&) {
+            if (pThis != nullptr) {
+                DString colorValue;
+                if (pNewColorEdit != nullptr) {
+                    colorValue = pNewColorEdit->GetText();
                 }
+                pThis->CopyColorToClipboard(colorValue);
             }
             return true;
             });
@@ -296,6 +312,25 @@ void ColorPicker::OnInitWindow()
 void ColorPicker::SetAdjustWindowPos(bool bAdjust)
 {
     m_bAdjustWindowPos = bAdjust;
+}
+
+void ColorPicker::CopyColorToClipboard(const DString& colorValue)
+{
+    if (colorValue.empty()) {
+        return;
+    }
+    Clipboard::SetClipboardText(colorValue);
+
+    //复制成功反馈：非模态 Toast，不抢父窗口焦点，约 1.5 秒后自动消失；
+    //文本由"已复制"多语言文案与颜色值拼接而成，切换语言后下次点击即生效。
+    //位置用 kPosTop：ColorPicker 是自绘标题栏窗口，
+    //标题栏属于客户区内部（<Window caption="0,0,0,35"> 且标题栏 HBox 高 36px），
+    //默认的 kPosTop（客户区.top + 24）会落进标题栏区域，压住“选择颜色”文字与关闭等按钮；
+    //kPosCenter 居中显示，既不压标题栏、也不压底部确定/取消按钮，反馈最醒目。
+    DString tip = ui::StringUtil::Printf(_T("%s  %s"),
+        ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_PUBLIC_COLORPICKER_COPIED")).c_str(),
+        colorValue.c_str());
+    ui::ToastWnd::Show(this, tip, ui::ToastWnd::kTypeSuccess, 1500, ui::ToastWnd::kPosTop);
 }
 
 void ColorPicker::AdjustWindowPos()

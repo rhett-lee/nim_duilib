@@ -3742,6 +3742,8 @@ pColorPicker->CreateWnd(this, createParam);
 | AttachSelectColor | 颜色变化回调，`wParam` 为新颜色、`lParam` 为旧颜色（可用 `UiColor((uint32_t)wParam)` 转换） |
 | AttachWindowClose | 窗口关闭回调，`wParam` 为关闭方式（`kWindowCloseNormal`、`kWindowCloseOK`、`kWindowCloseCancel`） |
 
+窗口内置两个"复制颜色值"按钮（位于 ARGB 输入框行与新颜色预览区）：点击后将当前颜色文本（如 `#AARRGGBB`）写入系统剪贴板，并弹出非模态 Toast 提示"已复制"作为反馈，提示约 1.5 秒后自动消失，且不会抢占父窗口焦点。
+
 ColorPicker 窗口由以下子控件组合而成，这些子控件也可以单独在 XML 中使用。
 
 ### ColorControl（继承 Control 属性）

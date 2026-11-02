@@ -3746,6 +3746,8 @@ Main interfaces:
 | AttachSelectColor | Color change callback; `wParam` is the new color and `lParam` is the old color (convert with `UiColor((uint32_t)wParam)`) |
 | AttachWindowClose | Window close callback; `wParam` is the close reason (`kWindowCloseNormal`, `kWindowCloseOK`, `kWindowCloseCancel`) |
 
+The window has two built-in "Copy color value" buttons (on the ARGB input row and in the new-color preview area). Clicking one writes the current color text (e.g. `#AARRGGBB`) to the system clipboard and shows a non-modal Toast ("Copied") as feedback; the toast disappears after about 1.5 seconds and never steals focus from the parent window.
+
 The ColorPicker window is composed of the following child controls, which can also be used separately in XML.
 
 ### ColorControl (inherits Control attributes)
