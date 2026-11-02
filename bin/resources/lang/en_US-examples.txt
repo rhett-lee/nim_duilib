@@ -38,9 +38,17 @@ STRID_WEBVIEW2_BROWSER_NEW_TAB           =    New Tab
 STRID_WEBVIEW2_BROWSER_MULTI_TAB         =    Multi Tab Browser
 
 # examples/MultiLang
-MULTI_LANG_WINDOW_TEXT               =   Support for multilingual windows
-MULTI_LANG_LABEL_TEXT                =   This is a program that supports multiple languages.
-MULTI_LANG_RICH_TEXT                 =   <font color="#8B0000">This is</font> a <b>program </b>that <bgcolor color="#6495ED">supports multiple languages </bgcolor>.
+MULTI_LANG_WINDOW_TEXT              = Support for multilingual windows
+MULTI_LANG_LABEL_TEXT               =   This is a program that supports multiple languages.
+MULTI_LANG_RICH_TEXT                =   <font color="#C0392B">This is</font> a <b>program </b>that <bgcolor color="#3A6FA8">supports multiple languages </bgcolor>.
+MULTI_LANG_SECTION_CURRENT          = Current language
+MULTI_LANG_FIELD_NAME               = Display name
+MULTI_LANG_FIELD_FILE               = Language file
+MULTI_LANG_SECTION_RENDER           = Three ways to render the same text
+MULTI_LANG_ITEM_LABEL               = Label (plain text)
+MULTI_LANG_ITEM_RICHTEXT            = RichText control
+MULTI_LANG_ITEM_LABEL_RICH          = Label (rich_text)
+MULTI_LANG_HINT                     = Click the globe icon at the top right to switch languages: every language file in the language folder is listed in the menu, and all windows refresh their text immediately, no restart needed.
 
 # examples/chat
 STRID_CHAT_SIGN_UP  = Sign Up

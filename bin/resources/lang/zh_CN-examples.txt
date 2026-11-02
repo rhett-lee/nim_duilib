@@ -39,9 +39,17 @@ STRID_WEBVIEW2_BROWSER_NEW_TAB           =    新建标签页
 STRID_WEBVIEW2_BROWSER_MULTI_TAB         =    可拖拽多标签浏览器
 
 # examples/MultiLang
-MULTI_LANG_WINDOW_TEXT              =    支持多语版的窗口
+MULTI_LANG_WINDOW_TEXT              = 支持多语言的窗口
 MULTI_LANG_LABEL_TEXT               =    这是一个支持多语言的程序。
-MULTI_LANG_RICH_TEXT                =    <font color="#8B0000">这是</font>一个<bgcolor color="#6495ED">支持多语言</bgcolor>的<b>程序</b>。
+MULTI_LANG_RICH_TEXT                =    <font color="#C0392B">这是</font>一个<bgcolor color="#3A6FA8">支持多语言</bgcolor>的<b>程序</b>。
+MULTI_LANG_SECTION_CURRENT          = 当前语言
+MULTI_LANG_FIELD_NAME               = 显示名称
+MULTI_LANG_FIELD_FILE               = 语言文件
+MULTI_LANG_SECTION_RENDER           = 同一段文案的三种渲染方式
+MULTI_LANG_ITEM_LABEL               = Label（普通文本）
+MULTI_LANG_ITEM_RICHTEXT            = RichText（富文本控件）
+MULTI_LANG_ITEM_LABEL_RICH          = Label（rich_text 属性）
+MULTI_LANG_HINT                     = 点击右上角的地球图标可以切换语言：菜单中会列出语言目录下的全部语言文件，切换后所有窗口的文本立即刷新，无需重启程序。
 
 # examples/chat
 STRID_CHAT_SIGN_UP  = 注册

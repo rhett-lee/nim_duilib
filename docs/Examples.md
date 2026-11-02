@@ -64,7 +64,7 @@ macOS 下默认编译为 `bin/basic.app`，C++ 代码无需修改；配置方法
 <img width="900" src="./Images/VirtualListBox.png"/>
     
 ## 12. examples/MultiLang
-演示如何使用多语言功能，支持多语言的动态切换。    
+演示如何使用多语言功能：展示当前语言名称与语言文件，以及同一段文案的三种渲染方式（Label、RichText 控件、Label 的 rich_text 属性）；点击标题栏的语言按钮可动态切换语言，切换后所有窗口的文本立即刷新。    
 代码入口：[MainThread.cpp](../examples/MultiLang/MainThread.cpp)、[MainForm.cpp](../examples/MultiLang/MainForm.cpp)；界面资源：`bin/resources/themes/default/MultiLang/MultiLang.xml`；相关文档：[Global.md](Global.md)。    
 <img width="432" src="./Images/MultiLang.png"/>
 

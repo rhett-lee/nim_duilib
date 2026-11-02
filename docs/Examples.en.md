@@ -66,7 +66,7 @@ Code entry: [MainThread.cpp](../examples/VirtualListBox/MainThread.cpp), [MainFo
 <img width="900" src="./Images/VirtualListBox.png"/>
     
 ## 12. examples/MultiLang
-A program demonstrating how to use the multi-language feature, supporting dynamic switching between multiple languages.    
+A program demonstrating the multi-language feature: shows the current language name and language file, and renders the same text in three ways (Label, RichText control, and the rich_text property of Label); the language button in the title bar switches languages dynamically, refreshing every window immediately.    
 Code entry: [MainThread.cpp](../examples/MultiLang/MainThread.cpp), [MainForm.cpp](../examples/MultiLang/MainForm.cpp); skin resources: `bin/resources/themes/default/MultiLang/MultiLang.xml`; related docs: [Global.en.md](Global.en.md).    
 <img width="432" src="./Images/MultiLang.png"/>
 
