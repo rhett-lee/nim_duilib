@@ -1,5 +1,15 @@
 #include "LoginForm.h"
+#include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/ThemeManager.h"
 #include "duilib/Utils/ToastWnd.h"
+
+namespace
+{
+    /** 登录窗口的背景图（深浅色主题各一张）
+    */
+    const TCHAR* kLoginSceneLight = _T("file='glass_login_scene.svg'");
+    const TCHAR* kLoginSceneDark = _T("file='glass_login_scene_dark.svg'");
+}
 
 LoginForm::LoginForm() :
     m_loginCallback(nullptr)
@@ -49,6 +59,29 @@ void LoginForm::OnInitWindow()
             return true;
             });
     }
+
+    //背景图跟随主题（启动时也应用一次，避免与上一次运行的主题不一致）
+    UpdateBackgroundImage();
+}
+
+bool LoginForm::OnThemeChanged()
+{
+    const bool bRet = ui::WindowImplBase::OnThemeChanged();
+    UpdateBackgroundImage();
+    return bRet;
+}
+
+void LoginForm::UpdateBackgroundImage()
+{
+    ui::Box* pRoot = dynamic_cast<ui::Box*>(FindControl(_T("login_root")));
+    if (pRoot == nullptr) {
+        return;
+    }
+    //登录窗口的背景是一张整幅图片（不是半透明装饰），深色主题下必须换成深色版本，
+    //否则浅色背景上叠加深色主题的白色文字会看不清
+    const ui::ThemeInfo& themeInfo = ui::GlobalManager::Instance().Theme().GetCurrentColorThemeInfo();
+    const bool bDark = (themeInfo.m_themeStyle == ui::ThemeStyle::kDark);
+    pRoot->SetBkImage(bDark ? kLoginSceneDark : kLoginSceneLight);
 }
 
 void LoginForm::SetLoginCallback(const std::function<void(const DString&)>& callback)

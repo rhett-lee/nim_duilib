@@ -19,6 +19,13 @@
                 <Label class="menu_text_shortcut my_menu_shortcut" name="edit_menu_sel_all_shortcut" text="Ctrl+A"/>
             </HBox>
         </MenuItem>
+        <!-- 引用：引用被右键的那条消息，可用状态由应用层按命中的消息刷新 -->
+        <MenuItem class="menu_element my_menu_element" name="chat_menu_quote">
+            <HBox class="my_menu_text_hbox">
+                <Label class="menu_text my_menu_text" name="chat_menu_quote_text" text_id="STRID_CHAT_MENU_QUOTE"/>
+                <Label class="menu_text_shortcut my_menu_shortcut" name="chat_menu_quote_shortcut" text=""/>
+            </HBox>
+        </MenuItem>
         <!-- 撤回：只能撤回自己发送的消息，可用状态由应用层按命中的消息刷新 -->
         <MenuItem class="menu_element my_menu_element" name="chat_menu_recall">
             <HBox class="my_menu_text_hbox">

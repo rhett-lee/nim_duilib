@@ -120,6 +120,64 @@
   目录、MSVC/MinGW 运行库）、升级步骤、迁移表（源码树 → SDK、静态 → DLL、
   CEF142 → CEF109、单配置 → Debug/Release、x64 → arm64）与 11 条常见问题；
   包内自动生成的 `MANIFEST.txt` 仍是权威清单。
+- 新增控件与容器（相对 NIM_Duilib_Framework 的能力增量，属性与用法见 `docs/Control.md`）：
+  - `GroupBox`：分组框容器，在左上角显示分组标题，边框圆角、线宽与颜色可配，适合把一组相关控件在视觉上归为一块（示例：`examples/ColorTheme`）
+  - `HotKey`：热键输入控件，按下组合键即记录热键，支持与 `Ctrl + C` 形式的显示名互转，用于快捷键设置界面（示例：`examples/controls`）
+  - `HyperLink`：超链接文字，可显示链接地址作为 ToolTip，点击时派发 `kEventLinkClick` 事件（示例：`examples/controls`）
+  - `IPAddress`：IP 地址输入控件，由 4 段编辑框组成并自动跳转焦点，按 `192.168.0.1` 形式编辑整串地址（示例：`examples/render`）
+  - `Line`：画线控件，横线/竖线可选，颜色、宽度与五种线型（solid/dash/dot/dash_dot/dash_dot_dot）可配（示例：`examples/render`）
+  - `RichText`：富文本显示控件，支持 `<a href>`、`<b>`、`<i>`、`<s>`、`<u>`、`<bgcolor>`、`<font>`、`<br/>` 等类 HTML 标签（示例：`examples/controls`）
+  - `Split`：分割条控件/容器，放在 HBox 中左右拖动、VBox 中上下拖动，改变相邻控件的宽高（示例：`examples/ColorTheme`）
+  - `TabCtrl`：浏览器式多标签控件，支持图标、关闭按钮、固定标签、内置角标、拖动排序、水平/垂直标签栏与溢出滚动（示例：`examples/controls`）
+  - `ListCtrl`：列表/报表控件，提供 Report/Icon/List 三种视图；Report 视图支持表头拖动换序、拖动或双击调整列宽、冻结列、单元格编辑器与列级排序（示例：`examples/ListCtrl`）
+  - `PropertyGrid`：属性表控件，按分组展示属性名与属性值，值编辑器覆盖文本、数字、下拉框、字体、颜色、日期时间、IP 地址、热键与文件路径（示例：`examples/render`）
+  - `ColorPicker`：拾色器窗口，含标准色、灰色标准色、自定义颜色与屏幕取色，可按背景色求最佳黑白对比前景色（示例：`examples/ColorPicker`）
+  - `ComboButton`：带下拉组合框的按钮，左侧主按钮可配上下两行文字，右侧按钮点击弹出下拉组合框（示例：`examples/RichEdit`）
+  - `DirectoryTree`：目录树控件，目录枚举在子线程执行避免界面卡死，支持隐藏/系统文件、按路径异步选中展开与异步刷新（示例：`examples/TreeView`）
+  - `AddressBar`：地址栏控件，把本地路径拆成可点击的层级按钮，编辑框支持回车/Esc/失焦自动更新显示（示例：`examples/TreeView`）
+  - `WebView2Control`：WebView2 浏览器控件，`url` 指定初始地址（可为本地文件），支持页面全屏、开发者工具与导航/后退/前进/刷新等回调（示例：`examples/WebView2`）
+  - `GridBox/GridScrollBox`：网格布局容器，`rows`/`columns` 定义网格、子控件可用 `row_span`/`col_span` 合并单元格，GridScrollBox 额外带滚动条（示例：`examples/layout`）
+  - `HFlowBox/VFlowBox/HFlowScrollBox/VFlowScrollBox`：流式布局容器，子控件沿水平/垂直方向排列、超出时自动换行，带 ScrollBox 变体还提供滚动条（示例：`examples/layout`）
+  - `MenuBar`：菜单栏控件，管理顶级菜单并与对应 Menu 窗口 XML 联动，菜单文本支持多语言 ID（示例：`examples/render`）
+  - `IconControl/BitmapControl`：内存位图显示控件：IconControl 直接显示 32 位像素数据，BitmapControl 支持目标/源矩形、等比适应或拉伸与透明度（示例：`examples/render`）
+  - `ChildWindow`：子窗口控件，Windows 平台为系统原生子窗口（`WS_CHILD`），其他平台为 SDL 弹出式窗口（示例：`examples/ChildWindow`）
+  - `ControlDragableT`：模板类，提供 ControlDragable/BoxDragable/HBoxDragable/VBoxDragable 四个标准控件，支持容器内拖动排序与跨容器拖动（示例：`examples/MoveControl`）
+  - `ControlMovableT`：模板类，提供 ControlMovable/BoxMovable/HBoxMovable/VBoxMovable 四个标准控件，支持拖动控件与父容器位置（示例：`examples/MoveControl`）
+  - `ControlResizableT`：模板类，提供 ControlResizable/BoxResizable/HBoxResizable/VBoxResizable 四个标准控件，支持拖动调整控件大小（示例：`examples/MoveControl`）
+  - `XmlBox`：XML 预览容器，按 `xml_file_path` 加载界面 XML 并在容器内直接渲染，用于界面预览（示例：`examples/XmlPreview`）
+  - `Pane/PanelHBox/PanelVBox`：带标题栏的面板容器，标题栏支持多语言与自定义样式，可折叠展开（含动画、手风琴分组）并派发折叠/展开事件（示例：`examples/panel`）
+  - `MessageBoxWnd`：自绘皮肤的模态消息框，按位组合确定/取消/是/否/重试按钮，支持多种图标与多语言文本，返回值与 Win32 的 `IDOK`/`IDCANCEL` 等保持一致（示例：`examples/controls`）
+  - `ToastWnd`：自绘皮肤的非模态通知窗口，四种图标与五种位置，默认 3000ms 自动关闭，带淡入淡出与上移动画，多条通知自动堆叠（示例：`examples/controls`）
+  - `SearchBox`：搜索框组合控件，含搜索图标、编辑框与清除按钮，空态提示、`debounce_interval` 防抖、内置候选项自动完成与搜索历史（示例：`examples/controls`）
+  - `SpinBox`：数字输入框，支持步长、范围、小数位、前后缀与千分位分组，可用步进按钮或方向键调整，失焦时按格式重排文本（示例：`examples/RichEdit`）
+  - `Switch`：滑块开关，既可用语义色自绘也可配置 SVG 图片皮肤，支持切换动画、轨道内文字/图标与加载中态（示例：`examples/controls`）
+  - `Badge`：角标控件，数字角标超过上限显示 `99+`、红点角标可显隐，背景走语义色自动适配深浅色主题，可悬浮在宿主控件角上（示例：`examples/controls`）
+  - `Flyout`：通用浮层窗口，可在锚点周围的 12 个方位浮出任意 Box 内容，空间不足自动翻转，也是 CalendarFlyout、AutoComplete 等浮层的公共基座（示例：`examples/controls`）
+  - `Calendar`：日历控件，支持单选与范围选择、每周起始日、最小/最大日期与业务禁用日期，提供月/年/十年三级视图与完整键盘导航（示例：`examples/ColorTheme`）
+  - `NavigationView`：侧边栏导航容器，左侧导航窗格可在展开与图标条收起宽度之间切换，支持分组/分隔线、底部设置项并与 TabBox 内容页联动（示例：`examples/controls`）
+  - `Chart`：轻量图表控件，纯自绘不依赖第三方图表库，支持折线/柱状/饼图三种形态、多系列绑定、增量更新、滚轮缩放拖拽平移与悬停 Tooltip（示例：`examples/controls`）
+  - `Marquee`：文本跑马灯，文本超出显示区域时按四个方向无缝循环滚动，支持速度、帧间隔、悬停暂停与手动暂停（示例：`examples/controls`）
+  - `Timeline`：垂直时间轴控件，纯自绘不创建子控件，节点支持 pending/inprogress/completed/failed 四态，内容由数据驱动并支持多语言（示例：`examples/controls`）
+  - `TagInput`：标签输入框组合控件，内部以流式布局排列标签与编辑框，回车生成标签、点关闭按钮或在空编辑框按退格删除，标签过多自动换行（示例：`examples/controls`）
+  - `AutoComplete`：自动完成输入框组合控件，输入达到阈值后在编辑框下方弹出候选浮层，支持前缀/包含匹配、大小写忽略、方向键选择与回车确认（示例：`examples/controls`）
+  - `Mask`：遮罩/蒙版层容器，可按控件名在窗口内镂空高亮目标控件并让点击穿透，用于模态背景、新手引导与加载遮罩（示例：`examples/controls`）
+  - `StatusBar`：状态栏控件，每个子控件即一个状态面板，相邻面板间自动绘制分隔线，右下角可选尺寸手柄并可参与窗口拖拽缩放（示例：`examples/controls`）
+  - `ToolBar`：工具条控件，承载工具按钮与分隔线，可用宽度不足时自动收纳尾部控件并在右端显示"更多"按钮，宽度恢复后自动还原（示例：`examples/controls`）
+  - `RangeSlider`：双滑块范围选择控件，在一条轨道上放置下限与上限两个滑块并高亮选中区间，支持最小间距、刻度吸附与点击跳值（示例：`examples/controls`）
+  - `Stepper`：向导步骤条控件，节点显示序号或对勾并按当前索引派生状态，支持水平/垂直方向、点击跳转与禁用步骤（示例：`examples/controls`）
+  - `Rating`：星级评分控件，支持只读展示、半星、悬停预览与点击/拖拽打分，星形外观由 SVG 图片驱动并随主题换色（示例：`examples/controls`）
+  - `Carousel`：图片轮播控件，同一时刻显示一张幻灯片，支持无限循环、自动播放与悬停暂停、切换动画、页码指示点与左右切换按钮（示例：`examples/controls`）
+  - `Pagination`：分页器控件，上一页/下一页与页码按钮按数据动态创建，页码超出可见数时以"…"收纳并始终保留首尾与当前页附近（示例：`examples/controls`）
+  - `TreeGrid`：树表格控件，在同一控件内呈现可展开的层级行与多列表格，表头固定不滚动并与数据行逐列对齐，支持多选与父子三态级联勾选（示例：`examples/controls`）
+  - `Dialog`：通用模态对话框，布局由类在运行时组装而不依赖额外 XML 文件，内容区可指定任意 XML 片段，按钮可标记默认按钮并在关闭前回调校验（示例：`examples/controls`）
+  - `SystemNotification`：系统原生通知，SDL3 构建下经 SDL 系统通知 API 发送到系统通知中心，其他平台用 `Shell_NotifyIcon` 托盘气泡实现（示例：`examples/controls`）
+  - `Breadcrumb`：面包屑导航控件，一行显示可点击的祖先路径与当前项，点击祖先项切换当前项并派发 `AttachCurrentChanged` 事件（示例：`examples/controls`）
+  - `CascadingSelect`：级联选择器，支持"内嵌多列"与"下拉列表框"两种形态，点击某列某行后子列立即过滤为该节点子集并支持任意层级（示例：`examples/controls`）
+  - `Popover`：气泡卡片，控件自身即锚点，按 click/hover/focus/manual 四种触发方式弹出带标题与正文的卡片，12 种方位越界自动翻转（示例：`examples/controls`）
+  - `Popconfirm`：确认气泡卡片，继承 Popover，点击锚点弹出"图标 + 标题 + 描述 + 取消/确定"按钮行的卡片浮层（示例：`examples/controls`）
+  - `Avatar`：头像控件，用圆形或圆角方形展示图片/图标/文字三类头像内容，支持尺寸预设、形状、内容优先级与语义色配色（示例：`examples/controls`）
+  - `ChatMessageList`：聊天消息列表控件，消息区纯自绘：气泡左右分栏、宽度自适应换行、文字/图片头像、拖选复制、发送状态与点击重试，并支持图片消息、引用消息（双击引用块跳转高亮）与消息撤回（示例：`examples/chat`）
+- 新增示例程序 `examples/chat`：模拟 IM 客户端的完整演示，含登录窗口（提示任意用户名密码即可登录、标题栏可切换主题与语言）与聊天主窗口（会话列表与未读角标、搜索过滤、图片头像、图片/引用/撤回消息、拖选复制、右键菜单），中英双语且随语言切换实时刷新。
 
 ### 变更
 

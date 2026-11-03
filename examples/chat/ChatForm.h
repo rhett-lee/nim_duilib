@@ -280,11 +280,35 @@ private:
 
     /** 发送一条图片消息（演示用：发送内置的示例图片资源）
     */
-    void SendImageMessage();
+    void SendImageMessage(const DString& strImagePath, int32_t nWidth, int32_t nHeight);
 
-    /** 引用最近一条消息，再发一条带引用的消息
+    /** 弹出示例图片的选择菜单（输入区工具栏的图片按钮）
+    */
+    void ShowImageMenu(const ui::UiPoint& point);
+
+    /** 处理图片菜单中选中的菜单项
+    */
+    void OnImageMenuItemActivated(const DString& strMenuItemName);
+
+    /** 引用最近一条消息，再发一条带引用的消息（输入区工具栏的"引用"按钮）
     */
     void SendQuoteMessage();
+
+    /** 引用指定的消息并发送一条引用消息（消息右键菜单的"引用"项）
+    */
+    bool QuoteMessage(int64_t nMessageId);
+
+    /** 查询某条消息是否可以引用（系统提示、已撤回、空消息不可引用）
+    */
+    bool IsQuotableMessage(int64_t nMessageId) const;
+
+    /** 获取消息默认使用的头像图片（自己用通用头像，对方用会话头像）
+    */
+    DString GetDefaultAvatarImage(ui::ChatMessageSide side, int nSessionIndex) const;
+
+    /** 点击头像：在文字头像与图片头像之间切换（演示图片头像的用法）
+    */
+    void ToggleMessageAvatar(int64_t nMessageId);
 
     /** 模拟消息状态变化：发送中 → 已送达 → 已读（失败时停在发送失败）
     */

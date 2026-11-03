@@ -282,6 +282,9 @@
                         <Button class="btn_chat_tool" name="btn_chat_image"
                                 normal_image="file='glass_icon_image.svg' width='22' height='22' valign='center' halign='center' svg_replace_colors='#51657E|border_svg_image'"
                                 tooltip_text_id="STRID_CHAT_TOOL_IMAGE"/>
+                        <Button class="btn_chat_tool" name="btn_chat_quote"
+                                normal_image="file='glass_icon_quote.svg' width='22' height='22' valign='center' halign='center' svg_replace_colors='#51657E|border_svg_image'"
+                                tooltip_text_id="STRID_CHAT_TOOL_QUOTE"/>
                         <Button class="btn_chat_tool" name="btn_chat_history"
                                 normal_image="file='glass_icon_history.svg' width='22' height='22' valign='center' halign='center' svg_replace_colors='#51657E|border_svg_image'"
                                 tooltip_text_id="STRID_CHAT_TOOL_HISTORY"/>

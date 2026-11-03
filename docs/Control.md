@@ -2418,6 +2418,7 @@ ChatMessageList是聊天消息列表控件，继承自ScrollBox，消息区为�
 | status_font | system_regular_12 | string | 消息状态文字字体 |
 | status_text_color | text_muted | string | 消息状态文字颜色（语义色名或颜色值） |
 | status_failed_color | color_error | string | 发送失败时状态文字颜色（语义色名或颜色值） |
+| image_folder | (空) | string | 图片消息与图片头像的资源目录（相对窗口 xml 所在目录）；为空时直接按消息里的路径解析（与其它控件的 `normal_image` 一致） |
 | image_max_width | 180 | int | 图片消息的最大显示宽度（像素，自动DPI缩放） |
 | image_max_height | 180 | int | 图片消息的最大显示高度（像素，自动DPI缩放） |
 | quote_text_color | text_muted | string | 引用块文字颜色（语义色名或颜色值） |
@@ -2452,7 +2453,7 @@ ChatMessageList是聊天消息列表控件，继承自ScrollBox，消息区为�
 - **定位高亮**：`ScrollToMessage` 滚动定位到指定消息，并给该消息绘制一圈 `highlight_color` 描边（约 1.5 秒后自动消失），便于用户看清跳到了哪一条。
 - **命中区域**：`ChatMessageHitArea` 枚举包含 `kNone`、`kBubble`（气泡）、`kAvatar`（头像）、`kStatus`（状态文字）与 `kQuote`（引用块）。
 
-对应C++接口：`AddMessage`（含便捷重载）、`InsertMessage`、`UpdateMessage`、`RemoveMessage`、`GetMessageById`、`ClearMessages`、`GetMessageCount`、`GetMessageAt`、`ScrollToBottom`、`GetChatScrollPos/SetChatScrollPos`、`SetAutoScrollToBottom/IsAutoScrollToBottom`、`IsNearBottom`、`GetUnreadBelowCount/ClearUnreadBelowCount`、`SetShowNewMessageTip/IsShowNewMessageTip`、`SetAvatarSize/GetAvatarSize`、`SetBubbleMaxWidth/GetBubbleMaxWidth`、`SetBubbleRadius/GetBubbleRadius`、`SetShowTime/IsShowTime`、`SetBubbleColor`、`SetTextColor`、`SetAvatarTextColor`、`SetSystemTextColor`、`SetSelectionBkColor`、`SetSelectionTextColor`、`SetScrollbarTrackColor`、`SetScrollbarThumbColor`、`SetAutoHideScrollbar/IsAutoHideScrollbar`、`SetEnableSelection/IsEnableSelection`、`SetShowStatus/IsShowStatus`、`SetMessageStatus`、`SetMessageStatusAt`、`GetMessageStatus`、`SetStatusText`、`GetStatusText`、`AttachMessageClick`、`AttachMessageDoubleClick`、`AttachMessageRightClick`、`HasSelection`、`GetSelectedText`、`ClearSelection`、`SelectAll`、`SelectMessageText`、`CopySelectedText`、`CopyAllText`、`AttachPopupMenu`。
+对应C++接口：`AddMessage`（含便捷重载）、`InsertMessage`、`UpdateMessage`、`RemoveMessage`、`GetMessageById`、`ClearMessages`、`GetMessageCount`、`GetMessageAt`、`ScrollToBottom`、`GetChatScrollPos/SetChatScrollPos`、`SetAutoScrollToBottom/IsAutoScrollToBottom`、`IsNearBottom`、`GetUnreadBelowCount/ClearUnreadBelowCount`、`SetShowNewMessageTip/IsShowNewMessageTip`、`SetAvatarSize/GetAvatarSize`、`SetBubbleMaxWidth/GetBubbleMaxWidth`、`SetBubbleRadius/GetBubbleRadius`、`SetShowTime/IsShowTime`、`SetBubbleColor`、`SetTextColor`、`SetAvatarTextColor`、`SetSystemTextColor`、`SetSelectionBkColor`、`SetSelectionTextColor`、`SetScrollbarTrackColor`、`SetScrollbarThumbColor`、`SetAutoHideScrollbar/IsAutoHideScrollbar`、`SetEnableSelection/IsEnableSelection`、`SetShowStatus/IsShowStatus`、`SetMessageStatus`、`SetMessageStatusAt`、`GetMessageStatus`、`SetStatusText`、`GetStatusText`、`AttachMessageClick`、`AttachMessageDoubleClick`、`AttachMessageRightClick`、`HasSelection`、`GetSelectedText`、`ClearSelection`、`SelectAll`、`SelectMessageText`、`CopySelectedText`、`CopyAllText`、`AttachPopupMenu`、`SetImageFolder`/<wbr/>`GetImageFolder`、`SetImageMaxSize`/<wbr/>`GetImageMaxSize`、`SetQuoteTextColor`、`SetQuoteBkColor`、`SetRecalledTextColor`、`SetHighlightColor`、`RecallMessage`、`IsMessageRecalled`、`ScrollToMessage`、`GetMessageIdAtCursor`、`GetContextMenuMessageId`。
 
 ### XML使用示例
 

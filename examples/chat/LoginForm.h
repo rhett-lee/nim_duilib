@@ -26,10 +26,19 @@ public:
     */
     virtual void OnInitWindow() override;
 
+    /** 主题切换：背景图需要跟着深浅色主题更换（否则深色主题下文字看不清）
+    */
+    virtual bool OnThemeChanged() override;
+
 public:
     /** 登录成功回调（参数为登录的用户名）
     */
     void SetLoginCallback(const std::function<void(const DString&)>& callback);
+
+private:
+    /** 按当前主题（深色/浅色）切换登录窗口的背景图
+    */
+    void UpdateBackgroundImage();
 
 private:
     /** 处理登录按钮点击

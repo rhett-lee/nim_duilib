@@ -10,9 +10,15 @@
            disabled_color="bg_btn_disabled" disabled_text_color="text_btn_disabled"
            border_round="8,8,8,8"/>
 
-    <Box width="360" height="486" bkimage="file='glass_login_scene.svg'" border_round="16,16,16,16">
-        <!-- 窗口标题栏：右上角最小化/关闭按钮 -->
-        <HBox width="auto" height="36" margin="288,0,0,0" halign="left" valign="top">
+    <Box name="login_root" width="360" height="486" bkimage="file='glass_login_scene.svg'" border_round="16,16,16,16">
+        <!-- 窗口标题栏：主题/语言切换按钮 + 最小化/关闭按钮
+             btn_window_theme 与 btn_window_language 由框架 WindowImplBase 自动识别，
+             点击后弹出框架内置的主题/语言菜单，无需应用层写任何代码 -->
+        <HBox width="auto" height="36" halign="right" valign="top">
+            <Button class="btn_switch_theme" name="btn_window_theme" height="30" width="30" margin="0,0,4,0"
+                    tooltip_text_id="STRID_PUBLIC_TIP_BTN_THEME"/>
+            <Button class="btn_switch_lang" name="btn_window_language" height="30" width="30" margin="0,0,4,0"
+                    tooltip_text_id="STRID_PUBLIC_TIP_BTN_LANGUAGE"/>
             <Button class="btn_wnd_min_11" name="btn_window_min" height="30" width="30" margin="0,0,4,0"/>
             <Button class="btn_wnd_close_11" name="btn_window_close" height="30" width="30"/>
         </HBox>
@@ -28,9 +34,12 @@
                font="system_bold_20" text_align="hcenter" text_color="text_default" mouse_enabled="false"/>
         <Label text_id="STRID_CHAT_LOGIN_SUBTITLE" width="360" height="20" margin="0,200,0,0"
                font="system_regular_13" text_align="hcenter" text_color="text_muted" mouse_enabled="false"/>
+        <!-- 演示提示：告诉用户账号密码可以随便填 -->
+        <Label text_id="STRID_CHAT_LOGIN_HINT" width="360" height="18" margin="0,222,0,0"
+               font="system_regular_12" text_align="hcenter" text_color="text_muted" mouse_enabled="false"/>
 
         <!-- 表单卡片 -->
-        <VBox width="300" height="auto" margin="30,236,0,0" halign="left" valign="top"
+        <VBox width="300" height="auto" margin="30,246,0,0" halign="left" valign="top"
               bkcolor="bg_window_card" border_round="14,14,14,14" padding="24,20,24,20">
             <!-- 帐号输入框 -->
             <HBox width="stretch" height="40" bkcolor="bg_container" border_round="8,8,8,8"
@@ -63,7 +72,7 @@
         </VBox>
 
         <!-- 底部版权 -->
-        <Label text_id="STRID_CHAT_LOGIN_FOOTER" width="360" height="20" margin="0,432,0,0"
+        <Label text_id="STRID_CHAT_LOGIN_FOOTER" width="360" height="20" margin="0,448,0,0"
                font="system_regular_12" text_align="hcenter" text_color="text_muted" mouse_enabled="false"/>
     </Box>
 </Window>

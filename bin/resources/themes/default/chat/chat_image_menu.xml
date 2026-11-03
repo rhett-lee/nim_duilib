@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 图片选择菜单：点击输入区的图片按钮后弹出，选择一张示例图片发送 -->
+<Window shadow_type="menu_round" shadow_border_size="1" shadow_border_color="border_window">
+    <Class name="my_menu_element" height="28" width="180" padding="10,0,10,0" />
+    <Class name="my_menu_text" text_align="vcenter,left" disabled_text_color="text_disabled"/>
+    <Class name="my_menu_text_hbox" margin="16,0,16,0"/>
+    <MenuListBox class="menu" name="chat_image_menu" padding="0,4,0,4">
+        <MenuItem class="menu_element my_menu_element" name="chat_image_item_1">
+            <HBox class="my_menu_text_hbox">
+                <Label class="menu_text my_menu_text" name="chat_image_item_1_text" text_id="STRID_CHAT_IMAGE_ITEM_1"/>
+            </HBox>
+        </MenuItem>
+        <MenuItem class="menu_element my_menu_element" name="chat_image_item_2">
+            <HBox class="my_menu_text_hbox">
+                <Label class="menu_text my_menu_text" name="chat_image_item_2_text" text_id="STRID_CHAT_IMAGE_ITEM_2"/>
+            </HBox>
+        </MenuItem>
+    </MenuListBox>
+</Window>

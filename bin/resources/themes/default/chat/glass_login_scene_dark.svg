@@ -1,0 +1,29 @@
+<svg width="1600" height="1000" viewBox="0 0 1600 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="140" y1="60" x2="1440" y2="920" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1E2634"/>
+      <stop offset="0.46" stop-color="#232C3D"/>
+      <stop offset="1" stop-color="#19212F"/>
+    </linearGradient>
+    <radialGradient id="orbA" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1210 230) rotate(145) scale(360 260)">
+      <stop stop-color="#4C8FD6" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#4C8FD6" stop-opacity="0.000"/>
+    </radialGradient>
+    <radialGradient id="orbB" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(360 830) rotate(25) scale(420 300)">
+      <stop stop-color="#7B62C9" stop-opacity="0.40"/>
+      <stop offset="1" stop-color="#7B62C9" stop-opacity="0.000"/>
+    </radialGradient>
+    <radialGradient id="orbC" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1350 760) rotate(35) scale(300 220)">
+      <stop stop-color="#A45FC4" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#A45FC4" stop-opacity="0.000"/>
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="1000" rx="42" fill="url(#bg)"/>
+  <circle cx="1208" cy="236" r="252" fill="url(#orbA)"/>
+  <circle cx="358" cy="832" r="280" fill="url(#orbB)"/>
+  <circle cx="1350" cy="762" r="200" fill="url(#orbC)"/>
+  <path d="M972 120C1122 188 1198 278 1210 420C1222 564 1136 702 958 790" stroke="#FFFFFF" stroke-opacity="0.120" stroke-width="2"/>
+  <path d="M1040 146C1180 226 1236 330 1216 488" stroke="#FFFFFF" stroke-opacity="0.090" stroke-width="2"/>
+  <path d="M230 146C440 130 648 194 836 332" stroke="#FFFFFF" stroke-opacity="0.100" stroke-width="2"/>
+  <path d="M122 224C284 312 370 404 382 566" stroke="#FFFFFF" stroke-opacity="0.065" stroke-width="2"/>
+</svg>

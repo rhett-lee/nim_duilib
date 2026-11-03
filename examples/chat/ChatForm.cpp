@@ -255,6 +255,29 @@ void ChatForm::BindChatButtons()
             });
     }
 
+    //图片按钮：弹出示例图片的选择菜单，选中后发送一条图片消息
+    ui::Button* pImageBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_chat_image")));
+    if (pImageBtn != nullptr) {
+        pImageBtn->AttachClick([this, pImageBtn](const ui::EventArgs& /*args*/) {
+            ui::UiRect rect = pImageBtn->GetPos();
+            ui::UiPoint point;
+            point.x = rect.left;
+            point.y = rect.top;
+            ClientToScreen(point);
+            ShowImageMenu(point);
+            return true;
+            });
+    }
+
+    //引用按钮：引用最近一条消息并发送
+    ui::Button* pQuoteBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_chat_quote")));
+    if (pQuoteBtn != nullptr) {
+        pQuoteBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
+            SendQuoteMessage();
+            return true;
+            });
+    }
+
     //其余工具按钮：给出明确的提示，避免点击后毫无反应
     struct ToolButton
     {
@@ -266,7 +289,6 @@ void ChatForm::BindChatButtons()
         {_T("btn_chat_video"),  _T("STRID_CHAT_TIP_VIDEO")},
         {_T("btn_chat_phone"),  _T("STRID_CHAT_TIP_PHONE")},
         {_T("btn_chat_more"),   _T("STRID_CHAT_TIP_MORE")},
-        {_T("btn_chat_image"),  _T("STRID_CHAT_TIP_IMAGE")},
         {_T("btn_chat_history"),_T("STRID_CHAT_TIP_HISTORY")},
     };
     for (const ToolButton& item : toolButtons) {
@@ -388,6 +410,16 @@ void ChatForm::BindMessageListMenu()
                 pThis->RecallMessageAtCursor();
                 return;
             }
+            if (strItemName == _T("chat_menu_quote")) {
+                //引用被右键的那条消息
+                ui::ChatMessageList* pList = dynamic_cast<ui::ChatMessageList*>(pThis->FindControl(_T("message_list")));
+                if (pList != nullptr) {
+                    if (pThis->QuoteMessage(pList->GetContextMenuMessageId())) {
+                        pThis->ShowTip(_T("STRID_CHAT_TIP_QUOTE_DONE"));
+                    }
+                }
+                return;
+            }
             ui::ChatMessageList* pList = dynamic_cast<ui::ChatMessageList*>(pThis->FindControl(_T("message_list")));
             if (pList != nullptr) {
                 pList->OnContextMenuAction(strItemName);
@@ -395,7 +427,7 @@ void ChatForm::BindMessageListMenu()
         },
         [pThis](ui::Menu* pMenu, ui::Control* /*pSender*/) {
             //菜单是在右键事件派发之前创建的，这里按鼠标位置命中的消息
-            //刷新"撤回"的可用状态（只有自己发送的消息才能撤回）
+            //刷新"引用/撤回"的可用状态（引用只对普通消息可用，撤回只对自己发送的消息可用）
             if ((pThis == nullptr) || (pMenu == nullptr)) {
                 return;
             }
@@ -403,13 +435,31 @@ void ChatForm::BindMessageListMenu()
             if (pList == nullptr) {
                 return;
             }
-            const bool bEnable = pThis->IsRecallableMessage(pList->GetContextMenuMessageId());
-            const TCHAR* names[] = { _T("chat_menu_recall"), _T("chat_menu_recall_text"),
-                                     _T("chat_menu_recall_shortcut") };
-            for (const TCHAR* name : names) {
-                ui::Control* pControl = pMenu->FindControl(name);
-                if (pControl != nullptr) {
-                    pControl->SetEnabled(bEnable);
+            const int64_t nMessageId = pList->GetContextMenuMessageId();
+            const bool bEnableRecall = pThis->IsRecallableMessage(nMessageId);
+            const bool bEnableQuote = pThis->IsQuotableMessage(nMessageId);
+            struct ItemState
+            {
+                const TCHAR* itemName;
+                const TCHAR* textName;
+                const TCHAR* shortcutName;
+                bool bEnabled;
+            };
+            const ItemState items[] = {
+                {_T("chat_menu_recall"), _T("chat_menu_recall_text"), _T("chat_menu_recall_shortcut"), bEnableRecall},
+                {_T("chat_menu_quote"),  _T("chat_menu_quote_text"),  _T("chat_menu_quote_shortcut"),  bEnableQuote},
+            };
+            for (const ItemState& item : items) {
+                if (item.bEnabled) {
+                    //菜单每次都是新建的，默认即为可用状态，这里不需要再"重新启用"一遍
+                    continue;
+                }
+                const TCHAR* names[] = { item.itemName, item.textName, item.shortcutName };
+                for (const TCHAR* name : names) {
+                    ui::Control* pControl = pMenu->FindControl(name);
+                    if (pControl != nullptr) {
+                        pControl->SetEnabled(false);
+                    }
                 }
             }
         });
@@ -446,7 +496,8 @@ void ChatForm::OnMessageClick(const ui::ChatMessageEvent& messageEvent)
         return;
     }
     if (messageEvent.hitArea == ui::ChatMessageHitArea::kAvatar) {
-        ShowTip(_T("STRID_CHAT_TIP_AVATAR_CLICK"));
+        //点击头像：在文字头像与图片头像之间切换，演示图片头像的用法
+        ToggleMessageAvatar(messageEvent.id);
     }
 }
 
@@ -956,9 +1007,10 @@ void ChatForm::SendInputMessage()
     }
 
     //演示指令：/img 发送图片消息，/quote 引用上一条消息
+    //（工具栏的图片按钮与引用按钮是同一套功能的可视化入口）
     if (strContent == _T("/img")) {
         pInput->SetText(_T(""));
-        SendImageMessage();
+        SendImageMessage(_T("chat_photo_demo.svg"), 160, 100);
         return;
     }
     if (strContent == _T("/quote")) {
@@ -985,7 +1037,7 @@ void ChatForm::SendInputMessage()
     SimulateReply(nSessionIndex);
 }
 
-void ChatForm::SendImageMessage()
+void ChatForm::SendImageMessage(const DString& strImagePath, int32_t nWidth, int32_t nHeight)
 {
     if (!IsCurrentSessionValid()) {
         return;
@@ -993,11 +1045,35 @@ void ChatForm::SendImageMessage()
     //演示用：发送一张内置的示例图片
     ChatMessageExtra extra;
     extra.avatarImage = _T("avatar_user.svg");
-    extra.imagePath = _T("chat_photo_demo.svg");
-    extra.imageWidth = 160;
-    extra.imageHeight = 100;
+    extra.imagePath = strImagePath;
+    extra.imageWidth = nWidth;
+    extra.imageHeight = nHeight;
     AppendMessage(ui::ChatMessageSide::kSelf, DString(), GetLangText(_T("STRID_CHAT_AVATAR_SELF")),
                   DString(), extra);
+}
+
+void ChatForm::ShowImageMenu(const ui::UiPoint& point)
+{
+    ui::Menu* pMenu = new ui::Menu(this, nullptr);
+    pMenu->SetSkinFolder(GetResourcePath().ToString());
+    //图片按钮在输入区左下角，菜单向上展开，避免超出窗口底部
+    pMenu->ShowMenu(_T("chat/chat_image_menu.xml"), point, ui::MenuPopupPosType::LEFT_BOTTOM);
+    pMenu->AttachMenuItemActivated([this](const DString& /*menuName*/, int32_t /*nMenuLevel*/,
+                                          const DString& strItemName, size_t /*nItemIndex*/) {
+        OnImageMenuItemActivated(strItemName);
+        });
+}
+
+void ChatForm::OnImageMenuItemActivated(const DString& strMenuItemName)
+{
+    if (strMenuItemName == _T("chat_image_item_1")) {
+        SendImageMessage(_T("chat_photo_demo.svg"), 160, 100);
+        return;
+    }
+    if (strMenuItemName == _T("chat_image_item_2")) {
+        SendImageMessage(_T("chat_photo_demo_2.svg"), 160, 100);
+        return;
+    }
 }
 
 void ChatForm::SendQuoteMessage()
@@ -1007,33 +1083,128 @@ void ChatForm::SendQuoteMessage()
     }
     //引用最近一条可以引用的消息（系统提示与已撤回的消息不参与引用）
     int64_t nQuoteId = 0;
-    DString strQuoteText;
-    DString strQuoteName;
     const ChatSession& session = m_sessions[m_nCurrentSession];
     for (auto it = session.history.rbegin(); it != session.history.rend(); ++it) {
-        if (it->bRecalled || it->message.text.empty()) {
-            continue;
+        if (IsQuotableMessage(it->message.id)) {
+            nQuoteId = it->message.id;
+            break;
         }
-        if (it->message.side == ui::ChatMessageSide::kSystem) {
-            continue;
-        }
-        nQuoteId = it->message.id;
-        strQuoteText = it->message.text;
-        strQuoteName = (it->message.side == ui::ChatMessageSide::kSelf)
-                       ? GetLangText(_T("STRID_CHAT_AVATAR_SELF")) : DString(session.name.c_str());
-        break;
     }
     if (nQuoteId == 0) {
         ShowTip(_T("STRID_CHAT_TIP_NO_QUOTE"));
         return;
     }
+    if (QuoteMessage(nQuoteId)) {
+        ShowTip(_T("STRID_CHAT_TIP_QUOTE_DONE"));
+    }
+}
+
+bool ChatForm::QuoteMessage(int64_t nMessageId)
+{
+    if (!IsCurrentSessionValid()) {
+        return false;
+    }
+    int nSessionIndex = -1;
+    ChatMessage* pMessage = FindMessage(nMessageId, &nSessionIndex);
+    if ((pMessage == nullptr) || (nSessionIndex != m_nCurrentSession)) {
+        return false;
+    }
+    if (!IsQuotableMessage(nMessageId)) {
+        return false;
+    }
+    //被引用的是图片消息时没有文本，用"[图片]"占位
+    DString strQuoteText = pMessage->message.text;
+    if (strQuoteText.empty()) {
+        strQuoteText = GetLangText(_T("STRID_CHAT_MSG_IMAGE_PLACEHOLDER"));
+    }
+    const DString strQuoteName = (pMessage->message.side == ui::ChatMessageSide::kSelf)
+                                 ? GetLangText(_T("STRID_CHAT_AVATAR_SELF"))
+                                 : DString(m_sessions[nSessionIndex].name.c_str());
+
     ChatMessageExtra extra;
     extra.avatarImage = _T("avatar_user.svg");
     extra.quoteText = strQuoteText;
     extra.quoteName = strQuoteName;
-    extra.quoteId = nQuoteId;
+    extra.quoteId = nMessageId;
     AppendMessage(ui::ChatMessageSide::kSelf, GetLangText(_T("STRID_CHAT_MSG_QUOTE_BODY")),
                   GetLangText(_T("STRID_CHAT_AVATAR_SELF")), DString(), extra);
+    return true;
+}
+
+bool ChatForm::IsQuotableMessage(int64_t nMessageId) const
+{
+    if (nMessageId == 0) {
+        return false;
+    }
+    for (const ChatSession& session : m_sessions) {
+        for (const ChatMessage& chatMessage : session.history) {
+            if (chatMessage.message.id != nMessageId) {
+                continue;
+            }
+            //系统提示与已撤回的消息不能引用
+            if (chatMessage.bRecalled) {
+                return false;
+            }
+            if (chatMessage.message.side == ui::ChatMessageSide::kSystem) {
+                return false;
+            }
+            //文字与图片消息都可以引用，空消息没有可引用的内容
+            if (chatMessage.message.text.empty() && chatMessage.imagePath.empty()) {
+                return false;
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+DString ChatForm::GetDefaultAvatarImage(ui::ChatMessageSide side, int nSessionIndex) const
+{
+    //自己发送的消息用通用头像，对方发来的消息用会话头像
+    if (side == ui::ChatMessageSide::kSelf) {
+        return DString(_T("avatar_user.svg"));
+    }
+    if ((nSessionIndex >= 0) && (nSessionIndex < static_cast<int>(m_sessions.size()))) {
+        return m_sessions[nSessionIndex].avatarImage;
+    }
+    return DString();
+}
+
+void ChatForm::ToggleMessageAvatar(int64_t nMessageId)
+{
+    ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(FindControl(_T("message_list")));
+    if (pMsgList == nullptr) {
+        return;
+    }
+    const ui::ChatMessageList::Message* pMessage = pMsgList->GetMessageById(nMessageId);
+    if (pMessage == nullptr) {
+        return;
+    }
+    int nSessionIndex = -1;
+    ChatMessage* pHistory = FindMessage(nMessageId, &nSessionIndex);
+    if (pHistory == nullptr) {
+        return;
+    }
+
+    //当前是图片头像则切回文字头像，当前是文字头像则切换成图片头像
+    ui::ChatMessageList::Message newMessage = *pMessage;
+    if (newMessage.avatarImage.empty()) {
+        newMessage.avatarImage = GetDefaultAvatarImage(newMessage.side, nSessionIndex);
+    }
+    else {
+        newMessage.avatarImage.clear();
+    }
+    if (newMessage.avatarImage.empty() && pMessage->avatarImage.empty()) {
+        //没有可用的图片头像，保持原样
+        return;
+    }
+
+    //视图
+    pMsgList->UpdateMessage(nMessageId, newMessage);
+    //历史：切换会话后重新加载时仍保持切换后的头像
+    pHistory->avatarImage = newMessage.avatarImage;
+    pHistory->message.avatarImage = newMessage.avatarImage;
+    ShowTip(_T("STRID_CHAT_TIP_AVATAR_CLICK"));
 }
 
 bool ChatForm::RecallMessage(int64_t nMessageId)

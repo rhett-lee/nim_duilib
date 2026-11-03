@@ -248,7 +248,7 @@
 | Chart | Control| [duilib/Control/Chart.h](../duilib/Control/Chart.h) | 轻量图表控件（折线/柱状/饼图自绘，支持数据绑定），详见[Control.md](Control.md#chart的属性) |
 | Timeline | Control| [duilib/Control/Timeline.h](../duilib/Control/Timeline.h) | 垂直时间轴控件（节点+连接线+内容，数据驱动、状态配色、正序/倒序、多语言绑定、滚动条），详见[Control.md](Control.md#timeline的属性) |
 | Carousel | Control| [duilib/Control/Carousel.h](../duilib/Control/Carousel.h) | 轮播控件 |
-| ChatMessageList | Control| [duilib/Control/ChatMessageList.h](../duilib/Control/ChatMessageList.h) | 聊天消息列表控件（气泡左右分栏、宽度自适应并自动换行、彩色文字头像、时间分隔条、滚动并自动滚到底部），详见[Control.md](Control.md#chatmessagelist的属性) |
+| ChatMessageList | Control| [duilib/Control/ChatMessageList.h](../duilib/Control/ChatMessageList.h) | 聊天消息列表控件（气泡左右分栏、宽度自适应并自动换行、文字/图片头像、时间分隔条、滚动并自动滚到底部；支持图片消息、引用消息与消息撤回），详见[Control.md](Control.md#chatmessagelist的属性) |
 | Rating | Control| [duilib/Control/Rating.h](../duilib/Control/Rating.h) | 评分控件 |
 | Pagination | HBox| [duilib/Control/Pagination.h](../duilib/Control/Pagination.h) | 分页控件 |
 | ControlLoading 与骨架屏 | Control 基类能力| [duilib/Core/ControlLoading.h](../duilib/Core/ControlLoading.h) | 所有控件通用：`loading` 属性 + `StartLoading`/`StopLoading` 加载占位；骨架屏（列表/卡片）四要点与超时兜底，详见[Control.md](Control.md#controlloading-与骨架屏) |
