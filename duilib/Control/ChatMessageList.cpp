@@ -27,6 +27,33 @@ namespace
     /** 气泡与滚动条之间的间距（像素，未做 DPI 缩放）
     */
     constexpr int32_t kContentScrollbarGap = 10;
+
+    /** 拖选自动滚动的间隔（毫秒）与单次滚动距离（像素，未做 DPI 缩放）
+    */
+    constexpr uint32_t kDragScrollIntervalMs = 40;
+    constexpr int32_t kDragScrollStep = 24;
+
+    /** 把字符索引调整到完整的码点边界
+     *
+     *  UTF-16 编码下（Windows），emoji 等字符由代理对表示，
+     *  按宽度二分得到的索引可能落在代理对中间，校验时需要退回到码点开头。
+    */
+    int32_t AdjustToCodePointBoundary(const DString& strText, int32_t nIndex)
+    {
+        if constexpr (sizeof(DString::value_type) == 2) {
+            const int32_t nLen = static_cast<int32_t>(strText.length());
+            if ((nIndex > 0) && (nIndex < nLen)) {
+                const uint32_t uPrev = static_cast<uint32_t>(strText[nIndex - 1]);
+                const uint32_t uCur = static_cast<uint32_t>(strText[nIndex]);
+                const bool bPrevIsHigh = (uPrev >= 0xD800) && (uPrev <= 0xDBFF);
+                const bool bCurIsLow = (uCur >= 0xDC00) && (uCur <= 0xDFFF);
+                if (bPrevIsHigh && bCurIsLow) {
+                    return nIndex - 1;
+                }
+            }
+        }
+        return nIndex;
+    }
 }
 
 ChatMessageList::ChatMessageList(Window* pWindow) :
@@ -70,12 +97,15 @@ ChatMessageList::ChatMessageList(Window* pWindow) :
     m_bPendingSelect(false),
     m_bHasSelection(false),
     m_ptMouseDown(),
+    m_ptSelectEnd(),
     m_nAnchorIndex(0),
     m_nAnchorChar(0),
     m_nSelStartIndex(0),
     m_nSelEndIndex(0),
     m_nSelStartChar(0),
     m_nSelEndChar(0),
+    m_nDragScrollDir(0),
+    m_bDragScrollPosted(false),
     m_pContentPlaceholder(nullptr)
 {
 }
@@ -1375,6 +1405,11 @@ void ChatMessageList::WrapTextLines(IRender* pRender, const DString& strText, in
                         }
                     }
                 }
+                //折行点对齐到完整的码点，避免把代理对（emoji）拆到两行
+                const int32_t nAdjustedEnd = AdjustToCodePointBoundary(strText, nLineEnd);
+                if (nAdjustedEnd > nLineStart) {
+                    nLineEnd = nAdjustedEnd;
+                }
                 lines.push_back(TextLine{ nLineStart, nLineEnd });
                 nLineStart = nLineEnd;
             }
@@ -1433,7 +1468,8 @@ int32_t ChatMessageList::HitTestTextChar(IRender* pRender, const DString& strTex
             nHigh = nMid;
         }
     }
-    return nLow;
+    //避免落在代理对中间（emoji 等），退回到码点起始位置
+    return AdjustToCodePointBoundary(strText, nLow);
 }
 
 void ChatMessageList::DrawChatText(IRender* pRender, const DString& strText, const UiRect& rc,
@@ -1505,30 +1541,6 @@ bool ChatMessageList::HitTestMessageClamped(const UiPoint& ptMouse, size_t& nMes
     return true;
 }
 
-bool ChatMessageList::GetMessageTextRect(IRender* pRender, size_t nMessageIndex, UiRect& rcText)
-{
-    if ((pRender == nullptr) || (nMessageIndex >= m_messages.size())) {
-        return false;
-    }
-    const Message& message = m_messages[nMessageIndex];
-    if (message.side == ChatMessageSide::kSystem || message.type == ChatMessageType::kSystem) {
-        return false;
-    }
-    if (!EnsureLayout(pRender, CalcContentWidth())) {
-        return false;
-    }
-    UiRect rcMessage;
-    if (!GetMessageRect(nMessageIndex, rcMessage)) {
-        return false;
-    }
-    BubbleLayout layout;
-    if (!CalcBubbleLayout(pRender, message, rcMessage, layout)) {
-        return false;
-    }
-    rcText = layout.rcText;
-    return true;
-}
-
 bool ChatMessageList::HitTestMessage(const UiPoint& ptMouse, size_t& nMessageIndex,
                                      ChatMessageHitArea& hitArea, int32_t& nCharIndex)
 {
@@ -1589,13 +1601,19 @@ bool ChatMessageList::HitTestMessage(const UiPoint& ptMouse, size_t& nMessageInd
     }
     if (layout.rcBubble.ContainsPt(ptMouse)) {
         hitArea = ChatMessageHitArea::kBubble;
-        if (layout.rcText.ContainsPt(ptMouse)) {
-            //按行定位字符索引（UTF-16 码元，用于选区）
-            nCharIndex = HitTestTextChar(pRender, message.text, layout, ptMouse);
-        }
+        //字符索引按行定位并做钳位：点在气泡内边距、末行右侧空白处时，
+        //同样能定位到最近的字符，这样从文本两侧开始拖选也能正常选中
+        nCharIndex = HitTestTextChar(pRender, message.text, layout, ptMouse);
         return true;
     }
-    //消息矩形内但不在气泡/头像上（左右留白），不算命中
+    if (rcMessage.ContainsPt(ptMouse)) {
+        //气泡同一行的留白（左对齐气泡的右侧、右对齐气泡的左侧）：
+        //不触发点击回调，但允许从这里按下开始拖选，锚点钳位到最近的字符
+        hitArea = ChatMessageHitArea::kNone;
+        nCharIndex = HitTestTextChar(pRender, message.text, layout, ptMouse);
+        return true;
+    }
+    //消息之外（间距/时间分隔条）
     hitArea = ChatMessageHitArea::kNone;
     return false;
 }
@@ -1614,7 +1632,11 @@ bool ChatMessageList::ButtonDown(const EventArgs& msg)
         m_nClickIndex = nMessageIndex;
         m_eClickArea = hitArea;
 
-        if (m_bEnableSelection && bHit && (hitArea == ChatMessageHitArea::kBubble) && (nCharIndex >= 0)) {
+        //只要按下的位置能定位到字符（气泡内、以及同一行的留白处都可以），就开始一次新的拖选。
+        //注意：不能要求"必须按在文字上"，否则从文字左侧或右侧按下时无法选中任何内容；
+        //也不能要求"当前没有选区"，否则已有选区时再拖选不会生效。
+        if (m_bEnableSelection && bHit && (nCharIndex >= 0) &&
+            (hitArea != ChatMessageHitArea::kStatus) && (hitArea != ChatMessageHitArea::kAvatar)) {
             //记录鼠标按下位置，移动超过阈值后才开始拖选，避免把普通点击误判为拖选
             m_ptMouseDown = pt;
             m_bSelecting = false;
@@ -1630,12 +1652,14 @@ bool ChatMessageList::ButtonDown(const EventArgs& msg)
             //获取焦点，这样 Ctrl+C / Ctrl+A 等快捷键可以派发到本控件
             SetFocus();
             Invalidate();
+            //交给基类维护按下状态（SetMouseFocused 等），与 ButtonUp 成对处理
+            BaseClass::ButtonDown(msg);
             return true;
         }
         m_bPendingSelect = false;
         m_bSelecting = false;
-        //点击空白处清除选区
-        if (m_bHasSelection && !bHit) {
+        //按下位置无法定位字符（时间分隔条、消息间距、头像、状态文字以外的空白）时清除选区
+        if (m_bHasSelection && ((!bHit) || (hitArea == ChatMessageHitArea::kNone))) {
             ClearSelection();
             Invalidate();
         }
@@ -1650,6 +1674,7 @@ bool ChatMessageList::ButtonUp(const EventArgs& msg)
         const bool bWasSelecting = m_bSelecting;
         m_bPendingSelect = false;
         m_bSelecting = false;
+        StopDragAutoScroll();
 
         if (m_bPendingClick && !bWasSelecting) {
             m_bPendingClick = false;
@@ -1688,32 +1713,106 @@ bool ChatMessageList::MouseMove(const EventArgs& msg)
             m_bSelecting = true;
         }
 
+        m_ptSelectEnd = pt;
+        //拖选使用钳位版本：鼠标穿过消息之间的间隙时，选区仍然连续
         size_t nMessageIndex = 0;
         int32_t nCharIndex = 0;
-        //拖选使用钳位版本：鼠标穿过消息之间的间隙时，选区仍然连续
         if (HitTestMessageClamped(pt, nMessageIndex, nCharIndex)) {
-            //锚点保持不变，每次按"锚点 + 当前位置"重算选区区间。
-            //注意：不能把移动端交换成锚点，否则来回拖动时选区会被越拖越小。
-            if ((nMessageIndex < m_nAnchorIndex) ||
-                ((nMessageIndex == m_nAnchorIndex) && (nCharIndex < m_nAnchorChar))) {
-                m_nSelStartIndex = nMessageIndex;
-                m_nSelStartChar = nCharIndex;
-                m_nSelEndIndex = m_nAnchorIndex;
-                m_nSelEndChar = m_nAnchorChar;
-            }
-            else {
-                m_nSelStartIndex = m_nAnchorIndex;
-                m_nSelStartChar = m_nAnchorChar;
-                m_nSelEndIndex = nMessageIndex;
-                m_nSelEndChar = nCharIndex;
-            }
-            m_bHasSelection = (m_nSelStartIndex != m_nSelEndIndex) ||
-                              (m_nSelStartChar != m_nSelEndChar);
-            Invalidate();
+            ApplySelectionRange(nMessageIndex, nCharIndex);
         }
+        //鼠标拖出可视区域时自动滚动，否则长列表只能选中可见范围内的一段
+        UpdateDragAutoScroll(pt);
         return true;
     }
     return BaseClass::MouseMove(msg);
+}
+
+void ChatMessageList::ApplySelectionRange(size_t nMessageIndex, int32_t nCharIndex)
+{
+    //锚点保持不变，每次按"锚点 + 当前位置"重算选区区间。
+    //注意：不能把移动端交换成锚点，否则来回拖动时选区会被越拖越小。
+    if ((nMessageIndex < m_nAnchorIndex) ||
+        ((nMessageIndex == m_nAnchorIndex) && (nCharIndex < m_nAnchorChar))) {
+        m_nSelStartIndex = nMessageIndex;
+        m_nSelStartChar = nCharIndex;
+        m_nSelEndIndex = m_nAnchorIndex;
+        m_nSelEndChar = m_nAnchorChar;
+    }
+    else {
+        m_nSelStartIndex = m_nAnchorIndex;
+        m_nSelStartChar = m_nAnchorChar;
+        m_nSelEndIndex = nMessageIndex;
+        m_nSelEndChar = nCharIndex;
+    }
+    m_bHasSelection = (m_nSelStartIndex != m_nSelEndIndex) ||
+                      (m_nSelStartChar != m_nSelEndChar);
+    Invalidate();
+}
+
+void ChatMessageList::UpdateDragAutoScroll(const UiPoint& ptMouse)
+{
+    UiRect rc = GetRect();
+    rc.Deflate(GetControlPadding());
+    int32_t nDir = 0;
+    if (ptMouse.y < rc.top) {
+        nDir = -1;
+    }
+    else if (ptMouse.y > rc.bottom) {
+        nDir = 1;
+    }
+    if (nDir == 0) {
+        StopDragAutoScroll();
+        return;
+    }
+    m_nDragScrollDir = nDir;
+    if (!m_bDragScrollPosted) {
+        m_bDragScrollPosted = true;
+        PostDragScrollTask();
+    }
+}
+
+void ChatMessageList::StopDragAutoScroll()
+{
+    //只清方向：已经排队的任务在执行时发现方向为 0 会自行结束
+    m_nDragScrollDir = 0;
+}
+
+void ChatMessageList::PostDragScrollTask()
+{
+    std::weak_ptr<WeakFlag> flag = GetWeakFlag();
+    ChatMessageList* pThis = this;
+    GlobalManager::Instance().Thread().PostDelayedTask(kThreadUI, [pThis, flag]() {
+        if (flag.expired() || (pThis == nullptr)) {
+            return;
+        }
+        pThis->OnDragScrollTask();
+    }, kDragScrollIntervalMs);
+}
+
+void ChatMessageList::OnDragScrollTask()
+{
+    m_bDragScrollPosted = false;
+    if (!m_bSelecting || (m_nDragScrollDir == 0)) {
+        return;
+    }
+    //滚动一帧
+    const int32_t nOldPos = m_nScrollPos;
+    const int32_t nStep = Dpi().GetScaleInt(kDragScrollStep);
+    SetChatScrollPos(m_nScrollPos + m_nDragScrollDir * nStep);
+    if (m_nScrollPos == nOldPos) {
+        //已经滚到边界，本次拖选不再滚动
+        m_nDragScrollDir = 0;
+        return;
+    }
+    //内容滚动后，同一个鼠标位置对应的字符变了，需要重算选区终点
+    size_t nMessageIndex = 0;
+    int32_t nCharIndex = 0;
+    if (HitTestMessageClamped(m_ptSelectEnd, nMessageIndex, nCharIndex)) {
+        ApplySelectionRange(nMessageIndex, nCharIndex);
+    }
+    //继续滚动，直到鼠标离开边缘或松开按键
+    m_bDragScrollPosted = true;
+    PostDragScrollTask();
 }
 
 bool ChatMessageList::MouseWheel(const EventArgs& msg)
@@ -1740,6 +1839,7 @@ bool ChatMessageList::MouseLeave(const EventArgs& msg)
     if (m_bSelecting || m_bPendingSelect) {
         m_bSelecting = false;
         m_bPendingSelect = false;
+        StopDragAutoScroll();
     }
     const bool bRet = BaseClass::MouseLeave(msg);
     //鼠标离开时隐藏滚动条（auto_hide 模式）；鼠标在滚动条上时不隐藏
@@ -1894,6 +1994,7 @@ void ChatMessageList::ClearSelection()
 {
     m_bSelecting = false;
     m_bPendingSelect = false;
+    StopDragAutoScroll();
     m_bHasSelection = false;
     m_nAnchorIndex = 0;
     m_nAnchorChar = 0;

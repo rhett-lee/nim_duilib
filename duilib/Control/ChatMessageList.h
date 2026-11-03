@@ -510,6 +510,26 @@ private:
      */
     bool HitTestMessageClamped(const UiPoint& ptMouse, size_t& nMessageIndex, int32_t& nCharIndex);
 
+    /** 按"锚点 + 拖选终点"重算选区区间并刷新绘制
+    */
+    void ApplySelectionRange(size_t nMessageIndex, int32_t nCharIndex);
+
+    /** 拖选时更新自动滚动状态：鼠标拖出可视区域后按固定间隔滚动内容
+    */
+    void UpdateDragAutoScroll(const UiPoint& ptMouse);
+
+    /** 提交一次自动滚动任务
+    */
+    void PostDragScrollTask();
+
+    /** 自动滚动任务：滚动一帧并重新计算选区，需要时继续排队
+    */
+    void OnDragScrollTask();
+
+    /** 停止拖选自动滚动
+    */
+    void StopDragAutoScroll();
+
     /** 绘制消息状态文字（发送中/发送失败/已送达/已读）
     */
     void PaintStatus(IRender* pRender, const Message& message, const BubbleLayout& layout);
@@ -517,10 +537,6 @@ private:
     /** 获取状态文字颜色（语义色名）
     */
     DString GetStatusColor(ChatMessageStatus status) const;
-
-    /** 获取某条消息的文本区域（用于命中测试与选择绘制）
-    */
-    bool GetMessageTextRect(IRender* pRender, size_t nMessageIndex, UiRect& rcText);
 
     /** 计算文本前缀的宽度（用于字符定位）
     */
@@ -710,12 +726,18 @@ private:
     bool m_bPendingSelect;       //鼠标已按下，等待移动超过阈值后开始选择
     bool m_bHasSelection;        //当前是否有选区
     UiPoint m_ptMouseDown;       //鼠标按下位置
+    UiPoint m_ptSelectEnd;       //拖选过程中最后一次鼠标位置（用于自动滚动后重算选区）
     size_t m_nAnchorIndex;       //拖选锚点所在的消息索引（按下时的位置，拖选过程中不变）
     int32_t m_nAnchorChar;       //拖选锚点所在的字符索引
     size_t m_nSelStartIndex;     //选区起始消息索引
     size_t m_nSelEndIndex;       //选区结束消息索引
     int32_t m_nSelStartChar;     //选区起始字符索引
     int32_t m_nSelEndChar;       //选区结束字符索引
+
+    /** 拖选时的自动滚动状态：鼠标拖出可视区域后，按固定间隔滚动内容
+    */
+    int32_t m_nDragScrollDir;    //滚动方向：-1 向上，1 向下，0 不滚动
+    bool m_bDragScrollPosted;    //是否已提交滚动任务（避免重复排队）
 };
 
 } // namespace ui
