@@ -11,12 +11,38 @@
  *
  *  除消息本身外还记录文案的资源 id：文案来自多语言资源时，切换语言可以重新取值，
  *  这样"按会话保存的历史"不会因为切换语言而变成另一种语言的残留。
+ *
+ *  图片相关字段与 ChatMessageList::Message 一一对应：
+ *  avatarImage 为头像图片路径，imagePath 为图片消息的图片路径，
+ *  quoteText/quoteName/quoteId 为引用消息的被引用信息，
+ *  bRecalled 表示消息已被撤回。
 */
 struct ChatMessage
 {
     ui::ChatMessageList::Message message;   //消息内容
     DString textId;                         //文案的资源 id（为空表示不可翻译）
     DString timeId;                         //时间戳的资源 id（为空表示时间不随语言变化）
+    DString avatarImage;                    //头像图片路径（为空则用头像文字）
+    DString imagePath;                      //图片消息的图片路径
+    int32_t imageWidth = 0;                 //图片显示宽度（<=0 表示按原始尺寸）
+    int32_t imageHeight = 0;                //图片显示高度（<=0 表示按原始尺寸）
+    DString quoteText;                      //引用消息：被引用的文本摘要
+    DString quoteName;                      //引用消息：被引用者昵称
+    int64_t quoteId = 0;                    //引用消息：被引用的消息 id
+    bool bRecalled = false;                 //消息是否已撤回
+};
+
+/** 追加消息时携带的附加信息（图片、引用等）
+*/
+struct ChatMessageExtra
+{
+    DString avatarImage;        //头像图片路径
+    DString imagePath;          //图片消息的图片路径
+    int32_t imageWidth = 0;     //图片显示宽度
+    int32_t imageHeight = 0;    //图片显示高度
+    DString quoteText;          //引用消息：被引用的文本摘要
+    DString quoteName;          //引用消息：被引用者昵称
+    int64_t quoteId = 0;        //引用消息：被引用的消息 id
 };
 
 /** 聊天会话数据（含完整消息历史）
@@ -30,6 +56,7 @@ struct ChatSession
     DString nameId;                         //名称的资源 id（为空表示名称不随语言变化）
     DString timeId;                         //时间的资源 id（为空表示时间固定）
     DString previewId;                      //预览的资源 id（会话尚未生成消息时用）
+    DString avatarImage;                    //会话头像图片路径（为空则用头像文字）
     int32_t unread = 0;                     //未读消息条数（0 表示不显示角标）
     bool seeded = false;                    //初始消息是否已经生成
     std::vector<ChatMessage> history;       //会话消息历史
@@ -196,13 +223,40 @@ private:
     */
     int64_t AppendMessageToSession(int nSessionIndex, ui::ChatMessageSide side, const DString& strText,
                                    const DString& strAvatarText, const DString& strTextId,
-                                   ui::ChatMessageStatus status = ui::ChatMessageStatus::kNone);
+                                   ui::ChatMessageStatus status = ui::ChatMessageStatus::kNone,
+                                   const ChatMessageExtra& extra = ChatMessageExtra());
 
     /** 追加一条消息到当前会话
      *  @return 消息 id
     */
     int64_t AppendMessage(ui::ChatMessageSide side, const DString& strText, const DString& strAvatarText,
-                          const DString& strTextId);
+                          const DString& strTextId, const ChatMessageExtra& extra = ChatMessageExtra());
+
+    /** 撤回一条消息（只能撤回自己发送的消息）
+     *
+     *  撤回后视图与历史同时更新：气泡变成一行灰色提示文字，且不再参与文本选中。
+    */
+    bool RecallMessage(int64_t nMessageId);
+
+    /** 撤回鼠标位置命中的消息（右键菜单项"撤回"调用）
+    */
+    void RecallMessageAtCursor();
+
+    /** 查询某条消息是否可以撤回（自己发送的、未撤回的、非系统提示的消息）
+    */
+    bool IsRecallableMessage(int64_t nMessageId) const;
+
+    /** 跳转到指定消息（用于双击引用块定位到原消息）
+    */
+    bool JumpToMessage(int64_t nMessageId);
+
+    /** 查找消息（返回nullptr表示没有找到）
+    */
+    ChatMessage* FindMessage(int64_t nMessageId, int* pSessionIndex = nullptr);
+
+    /** 生成消息 id（全局唯一，跨会话）
+    */
+    int64_t GenerateMessageId();
 
     /** 按 id 修改某个会话历史中的消息状态
     */
@@ -223,6 +277,14 @@ private:
     /** 发送输入框中的消息
     */
     void SendInputMessage();
+
+    /** 发送一条图片消息（演示用：发送内置的示例图片资源）
+    */
+    void SendImageMessage();
+
+    /** 引用最近一条消息，再发一条带引用的消息
+    */
+    void SendQuoteMessage();
 
     /** 模拟消息状态变化：发送中 → 已送达 → 已读（失败时停在发送失败）
     */
@@ -280,6 +342,10 @@ private:
     /** 搜索关键字（已转小写；为空表示不过滤）
     */
     std::wstring m_strSearchKey;
+
+    /** 最近一条消息的 id（用于"引用上一条消息"）
+    */
+    int64_t m_nLastMessageId;
 };
 
 #endif // EXAMPLES_CHAT_CHATFORM_H_

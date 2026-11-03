@@ -2385,7 +2385,7 @@ if (pTimeline != nullptr) {
 ```
 
 ## ChatMessageList的属性
-ChatMessageList是聊天消息列表控件，继承自ScrollBox，消息区为纯自绘实现，对应头文件`duilib/Control/ChatMessageList.h`。用于模拟真实IM客户端的消息区：消息气泡按左右方向分栏、气泡宽度随文本自适应并自动换行、头像为按文字内容生成稳定配色的圆形、可选时间分隔条，内容超出时使用框架滚动条并自动滚动到底部；支持鼠标拖选文本、双击选词、Ctrl+C复制；自己发送的消息可显示发送状态（发送中/发送失败/已送达/已读），并提供点击、双击、右键事件回调。
+ChatMessageList是聊天消息列表控件，继承自ScrollBox，消息区为纯自绘实现，对应头文件`duilib/Control/ChatMessageList.h`。用于模拟真实IM客户端的消息区：消息气泡按左右方向分栏、气泡宽度随文本自适应并自动换行、头像支持文字头像与图片头像两种、可选时间分隔条，内容超出时使用框架滚动条并自动滚动到底部；支持鼠标拖选文本、双击选词、Ctrl+C复制；自己发送的消息可显示发送状态（发送中/发送失败/已送达/已读），并提供点击、双击、右键事件回调。除文本消息外，还支持图片消息、引用消息与消息撤回。
 
 除Control的通用属性外，新增以下属性：
 
@@ -2418,6 +2418,12 @@ ChatMessageList是聊天消息列表控件，继承自ScrollBox，消息区为�
 | status_font | system_regular_12 | string | 消息状态文字字体 |
 | status_text_color | text_muted | string | 消息状态文字颜色（语义色名或颜色值） |
 | status_failed_color | color_error | string | 发送失败时状态文字颜色（语义色名或颜色值） |
+| image_max_width | 180 | int | 图片消息的最大显示宽度（像素，自动DPI缩放） |
+| image_max_height | 180 | int | 图片消息的最大显示高度（像素，自动DPI缩放） |
+| quote_text_color | text_muted | string | 引用块文字颜色（语义色名或颜色值） |
+| quote_bk_color | bg_window_main | string | 引用块背景颜色（语义色名或颜色值） |
+| recalled_text_color | text_muted | string | 撤回提示文字颜色（语义色名或颜色值） |
+| highlight_color | color_accent | string | 定位高亮的描边颜色（语义色名或颜色值） |
 
 说明：
 - **消息方向**：`ChatMessageSide` 枚举包含 `kOther`（对方，左侧）、`kSelf`（自己，右侧）、`kSystem`（系统提示，居中小字）。
@@ -2438,7 +2444,13 @@ ChatMessageList是聊天消息列表控件，继承自ScrollBox，消息区为�
 - **双击事件**：`AttachMessageDoubleClick` 回调返回 `true` 表示应用层已处理，控件不再执行默认的"选中该次点击位置所在的词"。
 - **右键事件**：`AttachMessageRightClick` 回调返回 `true` 表示应用层自行处理右键，控件不再弹出默认菜单。
 - **布局缓存**：单条消息的高度按消息独立缓存（标记为脏的消息才重新测量），并维护消息顶部偏移表；绘制、命中测试与滚动定位都通过偏移表二分查找，长列表下不会每帧遍历全部消息。
-- **消息标识**：每条消息可指定 `id`（0 表示自动生成），便于后续按 id 更新或删除；`ChatMessageType` 枚举包含 `kText`（普通消息）与 `kSystem`（系统提示）。
+- **消息标识**：每条消息可指定 `id`（0 表示自动生成），便于后续按 id 更新或删除；`ChatMessageType` 枚举包含 `kText`（普通消息）、`kSystem`（系统提示）与 `kImage`（图片消息）。
+- **图片消息**：消息类型为 `kImage` 且填写了 `imagePath` 时，气泡内直接绘制该图片（不再叠加气泡底色）。图片路径为绝对路径，或相对"图片目录"的相对路径；图片目录为空时相对窗口 xml 所在目录解析（与其它控件的 `normal_image` 一致），可通过 `SetImageFolder` 指定。显示尺寸优先取消息里的 `imageWidth`/`imageHeight`（逻辑像素），未指定时按图片原始尺寸显示并受 `image_max_width`/`image_max_height` 限制；矢量图（SVG）无法读取原始尺寸，建议显式指定显示尺寸。
+- **图片头像**：消息的 `avatarImage` 非空时用图片绘制头像，为空时才回退到按文字内容配色的圆形头像；图片路径的解析规则与图片消息一致。
+- **引用消息**：消息的 `quoteText` 非空时，气泡内顶部绘制引用块（浅色底 + 左侧竖线 + "昵称：内容"摘要，超宽自动省略）。`quoteId` 记录被引用消息的 id，双击引用块时回调的命中区域为 `kQuote`，应用层可据此跳转到原消息（配合 `ScrollToMessage`）。
+- **消息撤回**：`RecallMessage` 把消息标记为已撤回并替换为提示文字，撤回后不绘制气泡底色、只用 `recalled_text_color` 显示提示，且不再参与文本选中与复制；`IsMessageRecalled` 可查询撤回状态。
+- **定位高亮**：`ScrollToMessage` 滚动定位到指定消息，并给该消息绘制一圈 `highlight_color` 描边（约 1.5 秒后自动消失），便于用户看清跳到了哪一条。
+- **命中区域**：`ChatMessageHitArea` 枚举包含 `kNone`、`kBubble`（气泡）、`kAvatar`（头像）、`kStatus`（状态文字）与 `kQuote`（引用块）。
 
 对应C++接口：`AddMessage`（含便捷重载）、`InsertMessage`、`UpdateMessage`、`RemoveMessage`、`GetMessageById`、`ClearMessages`、`GetMessageCount`、`GetMessageAt`、`ScrollToBottom`、`GetChatScrollPos/SetChatScrollPos`、`SetAutoScrollToBottom/IsAutoScrollToBottom`、`IsNearBottom`、`GetUnreadBelowCount/ClearUnreadBelowCount`、`SetShowNewMessageTip/IsShowNewMessageTip`、`SetAvatarSize/GetAvatarSize`、`SetBubbleMaxWidth/GetBubbleMaxWidth`、`SetBubbleRadius/GetBubbleRadius`、`SetShowTime/IsShowTime`、`SetBubbleColor`、`SetTextColor`、`SetAvatarTextColor`、`SetSystemTextColor`、`SetSelectionBkColor`、`SetSelectionTextColor`、`SetScrollbarTrackColor`、`SetScrollbarThumbColor`、`SetAutoHideScrollbar/IsAutoHideScrollbar`、`SetEnableSelection/IsEnableSelection`、`SetShowStatus/IsShowStatus`、`SetMessageStatus`、`SetMessageStatusAt`、`GetMessageStatus`、`SetStatusText`、`GetStatusText`、`AttachMessageClick`、`AttachMessageDoubleClick`、`AttachMessageRightClick`、`HasSelection`、`GetSelectedText`、`ClearSelection`、`SelectAll`、`SelectMessageText`、`CopySelectedText`、`CopyAllText`、`AttachPopupMenu`。
 

@@ -2,8 +2,12 @@
 #define UI_CONTROL_CHATMESSAGELIST_H_
 
 #include "duilib/Box/ScrollBox.h"
+#include "duilib/Image/Image.h"
 #include <vector>
 #include <functional>
+#include <map>
+#include <memory>
+#include <chrono>
 
 namespace ui {
 
@@ -22,6 +26,7 @@ enum class ChatMessageType
 {
     kText = 0,    //普通文本消息
     kSystem = 1,  //系统提示（居中小字，不带头像）
+    kImage = 2    //图片消息（气泡内绘制一张图片）
 };
 
 /** 消息状态
@@ -45,7 +50,8 @@ enum class ChatMessageHitArea
     kNone = 0,     //未命中任何消息
     kBubble = 1,   //气泡区域（含气泡内文本）
     kAvatar = 2,   //头像区域
-    kStatus = 3    //状态文字区域（发送中/发送失败/已送达/已读）
+    kStatus = 3,   //状态文字区域（发送中/发送失败/已送达/已读）
+    kQuote = 4     //引用块区域（双击可跳转到被引用的消息）
 };
 
 /** 消息事件参数：点击、右键、双击回调的回调参数
@@ -112,6 +118,16 @@ class DUILIB_API ChatMessageList : public ScrollBox
 public:
     /** 单条消息
     */
+    /** 一条消息
+    *
+    *  图片资源协议：
+    *  - avatarImage / imagePath 为图片资源路径，可以是绝对路径，
+    *    也可以是相对于"图片目录"（SetImageFolder）的相对路径；
+    *    图片目录为空时，路径相对于窗口 xml 所在目录（与其它控件的 normal_image 一致）。
+    *  - 图片消息的显示尺寸由 imageWidth / imageHeight 指定（逻辑像素，DPI 缩放）；
+    *    两者都为 0 时按图片原始尺寸显示，并受 image_max_width / image_max_height 限制。
+    *  - SVG 等矢量图片无法读取原始尺寸，建议显式指定显示尺寸。
+    */
     struct Message
     {
         ChatMessageSide side = ChatMessageSide::kOther;
@@ -121,6 +137,14 @@ public:
         DString text;              //消息文本
         DString avatarText;        //头像文字（通常为姓名首字）
         DString time;              //时间文本（用于时间分隔条）
+        DString avatarImage;       //头像图片路径（为空则用头像文字绘制）
+        DString imagePath;         //图片消息的图片路径（type 为 kImage 时有效）
+        int32_t imageWidth = 0;    //图片显示宽度（<=0 表示按原始尺寸）
+        int32_t imageHeight = 0;   //图片显示高度（<=0 表示按原始尺寸）
+        DString quoteText;         //引用消息：被引用的文本摘要
+        DString quoteName;         //引用消息：被引用者昵称
+        int64_t quoteId = 0;       //引用消息：被引用的消息 id（>0 时可双击引用块跳转）
+        bool bRecalled = false;    //消息是否已撤回（撤回后只显示提示文字，不可选中复制）
     };
 
 public:
@@ -317,6 +341,61 @@ public:
     */
     void SetShowTime(bool bShowTime);
     bool IsShowTime() const { return m_bShowTime; }
+
+    /** 设置图片资源目录（相对窗口 xml 所在目录），为空表示直接使用消息里的路径
+    */
+    void SetImageFolder(const DString& strFolder);
+    const DString& GetImageFolder() const { return m_strImageFolder; }
+
+    /** 设置图片消息的最大显示尺寸（像素，自动 DPI 缩放）
+    */
+    void SetImageMaxSize(int32_t nWidth, int32_t nHeight);
+    UiSize GetImageMaxSize() const { return UiSize(m_nImageMaxWidth, m_nImageMaxHeight); }
+
+    /** 设置引用块文字色（语义色名）
+    */
+    void SetQuoteTextColor(const DString& strColor);
+
+    /** 设置引用块背景色（语义色名）
+    */
+    void SetQuoteBkColor(const DString& strColor);
+
+    /** 设置撤回提示文字色（语义色名）
+    */
+    void SetRecalledTextColor(const DString& strColor);
+
+    /** 设置定位高亮描边颜色（语义色名）
+    */
+    void SetHighlightColor(const DString& strColor);
+
+    /** 撤回一条消息（消息 id 不存在时返回 false）
+    *
+     *  撤回后该消息只显示提示文字（提示文案由应用层通过 strRecallText 传入，
+     *  为空时保持消息原有文本不变），不再显示原内容，且不参与文本选中与复制。
+    */
+    bool RecallMessage(int64_t id, const DString& strRecallText = DString());
+
+    /** 查询某条消息是否已撤回
+    */
+    bool IsMessageRecalled(int64_t id) const;
+
+    /** 滚动定位到指定消息（消息 id 不存在时返回 false）
+    */
+    bool ScrollToMessage(int64_t id);
+
+    /** 查询鼠标当前位置命中的消息（消息 id，0 表示没有命中）
+     *
+     *  右键菜单是在右键回调之前创建的，应用层想在菜单里按"点到的是哪条消息"
+     *  决定菜单项是否可用时，可以调用这个接口。
+    */
+    int64_t GetMessageIdAtCursor();
+
+    /** 获取右键菜单创建时命中的消息 id（0 表示没有命中）
+     *
+     *  菜单项被点击时鼠标已经移到菜单上，这时再按鼠标位置命中消息就不准了，
+     *  应用层处理菜单项时应该用这个接口拿到的 id。
+    */
+    int64_t GetContextMenuMessageId() const { return m_nContextMenuMessageId; }
 
     /** 设置气泡底色（语义色名）
     */
@@ -516,11 +595,16 @@ private:
         UiRect rcText;        //气泡内文本矩形
         UiRect rcAvatar;      //头像矩形
         UiRect rcStatus;      //状态文字矩形（bShowStatus 为 false 时无意义）
+        UiRect rcQuote;       //引用块矩形（bHasQuote 为 false 时无意义）
+        UiRect rcImage;       //图片消息的图片矩形（bHasImage 为 false 时无意义）
         int32_t nTextWidth = 0;
         int32_t nTextHeight = 0;
         int32_t nLineHeight = 0;            //单行文本的行高
         std::vector<TextLine> lines;        //换行后各行的字符区间
         bool bShowStatus = false;
+        bool bHasQuote = false;             //是否为引用消息
+        bool bHasImage = false;             //是否为图片消息
+        bool bRecalled = false;             //消息是否已撤回
         bool bValid = false;
     };
 
@@ -565,9 +649,49 @@ private:
     void DrawMessageText(IRender* pRender, size_t nMessageIndex, const Message& message,
                          const BubbleLayout& layout, const DString& strTextColor);
 
-    /** 绘制头像（彩色圆形 + 首字母）
+    /** 绘制头像（彩色圆形 + 首字母，或头像图片）
     */
     void PaintAvatar(IRender* pRender, const UiRect& rcAvatar, const DString& strText);
+
+    /** 绘制头像图片（avatarImage 非空时使用）
+    */
+    void PaintAvatarImage(IRender* pRender, const UiRect& rcAvatar, const Message& message);
+
+    /** 绘制引用块（被引用消息的摘要）
+    */
+    void PaintQuote(IRender* pRender, const Message& message, const BubbleLayout& layout);
+
+    /** 绘制图片消息
+    */
+    void PaintChatImage(IRender* pRender, const Message& message, const BubbleLayout& layout);
+
+    /** 获取图片的完整资源路径（拼接图片目录）
+    */
+    DString GetChatImagePath(const DString& strPath) const;
+
+    /** 获取（并缓存）图片对象
+    */
+    std::shared_ptr<Image> GetChatImage(const DString& strPath);
+
+    /** 准备图片的源区域（图片原始尺寸区域）
+     *
+     *  Image::GetCurrentBitmap 要求源区域非空，否则直接返回nullptr。
+    */
+    void PrepareImageSource(const std::shared_ptr<Image>& pImage, UiRect& rcSource);
+
+    /** 获取图片消息的显示尺寸
+     *
+     *  优先使用消息里指定的尺寸；未指定时按图片原始尺寸显示，并受最大尺寸限制。
+    */
+    UiSize GetChatImageSize(const Message& message);
+
+    /** 获取图片的原始尺寸（矢量图无法获取时返回空尺寸）
+    */
+    UiSize GetChatImageOriginSize(const DString& strPath);
+
+    /** 消息是否参与文本选中（图片消息与撤回消息没有可选中的文本）
+    */
+    bool IsSelectableMessage(const Message& message) const;
 
     /** 根据头像文字生成稳定的配色
     */
@@ -758,6 +882,30 @@ private:
     */
     bool m_bAutoHideScrollbar;
 
+    /** 图片资源目录（相对窗口 xml 所在目录），为空表示直接使用消息里的路径
+    */
+    DString m_strImageFolder;
+
+    /** 图片消息的最大显示尺寸（像素，DPI 缩放）
+    */
+    int32_t m_nImageMaxWidth;
+    int32_t m_nImageMaxHeight;
+
+    /** 引用块与撤回提示的颜色（语义色名）
+    */
+    DString m_strQuoteTextColor;
+    DString m_strQuoteBkColor;
+    DString m_strRecalledTextColor;
+    DString m_strHighlightColor;
+
+    /** 图片对象缓存（路径 -> 图片对象），避免每帧重复加载
+    */
+    std::map<DString, std::shared_ptr<Image>> m_chatImages;
+
+    /** 图片原始尺寸缓存（路径 -> 尺寸）
+    */
+    std::map<DString, UiSize> m_chatImageSizes;
+
     /** 是否自动滚动到底部
     */
     bool m_bAutoScrollToBottom;
@@ -807,6 +955,15 @@ private:
     bool m_bPendingClick;
     size_t m_nClickIndex;
     ChatMessageHitArea m_eClickArea;
+
+    /** 右键菜单创建时命中的消息 id（菜单项被点击时用它定位消息）
+    */
+    int64_t m_nContextMenuMessageId;
+
+    /** 定位高亮：跳转到某条消息时短暂描边提示
+    */
+    int64_t m_nLocateHighlightId;
+    std::chrono::steady_clock::time_point m_tpLocateHighlightExpire;
 
     /** 文本选择状态
     */

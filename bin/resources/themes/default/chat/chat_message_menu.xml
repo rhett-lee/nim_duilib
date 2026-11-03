@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window shadow_type="menu_round" shadow_border_size="1" shadow_border_color="border_window">
+    <Class name="my_menu_element" height="28" width="160" padding="10,0,10,0" />
+    <Class name="my_menu_text" text_align="vcenter,left" disabled_text_color="text_disabled"/>
+    <Class name="my_menu_shortcut" width="100%" text_align="vcenter,right" disabled_text_color="text_disabled"/>
+    <Class name="my_menu_text_hbox" margin="16,0,16,0"/>
+    <MenuListBox class="menu" name="chat_message_menu" padding="0,4,0,4">
+        <!-- 复制：无选区时置灰（由 ChatMessageList 统一处理） -->
+        <MenuItem class="menu_element my_menu_element" name="edit_menu_copy">
+            <HBox class="my_menu_text_hbox">
+                <Label class="menu_text my_menu_text" name="edit_menu_copy_text" text_id="STRID_PUBLIC_MENU_TEXT_COPY"/>
+                <Label class="menu_text_shortcut my_menu_shortcut" name="edit_menu_copy_shortcut" text="Ctrl+C"/>
+            </HBox>
+        </MenuItem>
+        <!-- 全选：无消息时置灰（由 ChatMessageList 统一处理） -->
+        <MenuItem class="menu_element my_menu_element" name="edit_menu_sel_all">
+            <HBox class="my_menu_text_hbox">
+                <Label class="menu_text my_menu_text" name="edit_menu_sel_all_text" text_id="STRID_PUBLIC_MENU_TEXT_SEL_ALL"/>
+                <Label class="menu_text_shortcut my_menu_shortcut" name="edit_menu_sel_all_shortcut" text="Ctrl+A"/>
+            </HBox>
+        </MenuItem>
+        <!-- 撤回：只能撤回自己发送的消息，可用状态由应用层按命中的消息刷新 -->
+        <MenuItem class="menu_element my_menu_element" name="chat_menu_recall">
+            <HBox class="my_menu_text_hbox">
+                <Label class="menu_text my_menu_text" name="chat_menu_recall_text" text_id="STRID_CHAT_MENU_RECALL"/>
+                <Label class="menu_text_shortcut my_menu_shortcut" name="chat_menu_recall_shortcut" text=""/>
+            </HBox>
+        </MenuItem>
+    </MenuListBox>
+</Window>

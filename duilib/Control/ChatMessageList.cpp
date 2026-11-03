@@ -7,6 +7,7 @@
 #include "duilib/Utils/Clipboard.h"
 #include "duilib/Control/Menu.h"
 #include <algorithm>
+#include <chrono>
 
 namespace ui
 {
@@ -21,6 +22,15 @@ namespace
     /** 状态文字与气泡之间的间距（像素，未做 DPI 缩放）
     */
     constexpr int32_t kStatusGap = 4;
+
+    /** 引用块的上下内边距、与正文之间的间距（像素，未做 DPI 缩放）
+    */
+    constexpr int32_t kQuotePadV = 4;
+    constexpr int32_t kQuoteGap = 6;
+
+    /** 引用块左侧竖线的宽度（像素，未做 DPI 缩放）
+    */
+    constexpr int32_t kQuoteBarWidth = 3;
 
     /** 拖选判定阈值（像素）：鼠标移动超过该距离才认为开始拖选，避免把点击误判为拖选
     */
@@ -94,6 +104,12 @@ ChatMessageList::ChatMessageList(Window* pWindow) :
     m_strScrollbarThumbColor(_T("bg_scrollbar_thumb_normal")),
     m_bAutoHideScrollbar(true),
     m_bAutoScrollToBottom(true),
+    m_nImageMaxWidth(180),
+    m_nImageMaxHeight(180),
+    m_strQuoteTextColor(_T("text_muted")),
+    m_strQuoteBkColor(_T("bg_window_main")),
+    m_strRecalledTextColor(_T("text_muted")),
+    m_strHighlightColor(_T("color_accent")),
     m_nReadPos(0),
     m_bShowNewMessageTip(true),
     m_bEnableSelection(true),
@@ -106,6 +122,8 @@ ChatMessageList::ChatMessageList(Window* pWindow) :
     m_bPendingClick(false),
     m_nClickIndex(0),
     m_eClickArea(ChatMessageHitArea::kNone),
+    m_nContextMenuMessageId(0),
+    m_nLocateHighlightId(0),
     m_bSelecting(false),
     m_bPendingSelect(false),
     m_bHasSelection(false),
@@ -229,6 +247,32 @@ void ChatMessageList::SetAttribute(const DString& strName, const DString& strVal
     else if (strName == _T("show_new_message_tip")) {
         m_bShowNewMessageTip = (strValue != _T("false"));
         Invalidate();
+    }
+    else if (strName == _T("image_folder")) {
+        m_strImageFolder = strValue;
+        m_chatImages.clear();
+        m_chatImageSizes.clear();
+        InvalidateWidthCache();
+    }
+    else if (strName == _T("image_max_width")) {
+        m_nImageMaxWidth = _wtoi(strValue.c_str());
+        InvalidateWidthCache();
+    }
+    else if (strName == _T("image_max_height")) {
+        m_nImageMaxHeight = _wtoi(strValue.c_str());
+        InvalidateWidthCache();
+    }
+    else if (strName == _T("quote_text_color")) {
+        m_strQuoteTextColor = strValue;
+    }
+    else if (strName == _T("quote_bk_color")) {
+        m_strQuoteBkColor = strValue;
+    }
+    else if (strName == _T("recalled_text_color")) {
+        m_strRecalledTextColor = strValue;
+    }
+    else if (strName == _T("highlight_color")) {
+        m_strHighlightColor = strValue;
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
@@ -798,6 +842,139 @@ void ChatMessageList::SetShowTime(bool bShowTime)
     InvalidateLayoutCache();
 }
 
+void ChatMessageList::SetImageFolder(const DString& strFolder)
+{
+    if (m_strImageFolder == strFolder) {
+        return;
+    }
+    m_strImageFolder = strFolder;
+    //图片路径变了，缓存的图片对象与尺寸都不再有效
+    m_chatImages.clear();
+    m_chatImageSizes.clear();
+    InvalidateWidthCache();
+}
+
+void ChatMessageList::SetImageMaxSize(int32_t nWidth, int32_t nHeight)
+{
+    m_nImageMaxWidth = std::max(0, nWidth);
+    m_nImageMaxHeight = std::max(0, nHeight);
+    InvalidateWidthCache();
+}
+
+void ChatMessageList::SetQuoteTextColor(const DString& strColor)
+{
+    m_strQuoteTextColor = strColor;
+    Invalidate();
+}
+
+void ChatMessageList::SetQuoteBkColor(const DString& strColor)
+{
+    m_strQuoteBkColor = strColor;
+    Invalidate();
+}
+
+void ChatMessageList::SetRecalledTextColor(const DString& strColor)
+{
+    m_strRecalledTextColor = strColor;
+    Invalidate();
+}
+
+void ChatMessageList::SetHighlightColor(const DString& strColor)
+{
+    m_strHighlightColor = strColor;
+    Invalidate();
+}
+
+bool ChatMessageList::RecallMessage(int64_t id, const DString& strRecallText)
+{
+    if (id == 0) {
+        return false;
+    }
+    for (size_t nIndex = 0; nIndex < m_messages.size(); ++nIndex) {
+        Message& message = m_messages[nIndex];
+        if (message.id != id) {
+            continue;
+        }
+        if (message.bRecalled) {
+            return true;
+        }
+        message.bRecalled = true;
+        //撤回后原来的内容不再显示，只保留提示文字（提示文案由应用层给出）
+        if (!strRecallText.empty()) {
+            message.text = strRecallText;
+        }
+        message.quoteText.clear();
+        message.quoteName.clear();
+        message.quoteId = 0;
+        //撤回的消息不参与文本选中，换行结果与高度需要重新计算
+        InvalidateLineCache(nIndex);
+        MarkMessageHeightDirty(nIndex);
+        InvalidateLayoutCache();
+        return true;
+    }
+    return false;
+}
+
+bool ChatMessageList::IsMessageRecalled(int64_t id) const
+{
+    const Message* pMessage = GetMessageById(id);
+    return (pMessage != nullptr) && pMessage->bRecalled;
+}
+
+bool ChatMessageList::ScrollToMessage(int64_t id)
+{
+    const Message* pMessage = GetMessageById(id);
+    if (pMessage == nullptr) {
+        return false;
+    }
+    IRender* pRender = (GetWindow() != nullptr) ? GetWindow()->GetRender() : nullptr;
+    if (pRender == nullptr) {
+        return false;
+    }
+    if (!EnsureLayout(pRender, CalcContentWidth())) {
+        return false;
+    }
+    size_t nIndex = static_cast<size_t>(pMessage - m_messages.data());
+    if ((nIndex >= m_msgOffsets.size()) || (nIndex >= m_msgHeights.size())) {
+        return false;
+    }
+    //定位到消息顶部，并留一点余量，避免消息紧贴控件边缘
+    const int32_t nTarget = std::max(0, m_msgOffsets[nIndex] - Dpi().GetScaleInt(12));
+    SetChatScrollPos(nTarget);
+    //目标消息短暂高亮，便于用户看清跳到了哪一条
+    m_nLocateHighlightId = id;
+    m_tpLocateHighlightExpire = std::chrono::steady_clock::now() + std::chrono::milliseconds(1500);
+    Invalidate();
+    return true;
+}
+
+int64_t ChatMessageList::GetMessageIdAtCursor()
+{
+    if (GetWindow() == nullptr) {
+        return 0;
+    }
+    POINT ptCursor = { 0, 0 };
+    if (!::GetCursorPos(&ptCursor)) {
+        return 0;
+    }
+    UiPoint point;
+    point.x = ptCursor.x;
+    point.y = ptCursor.y;
+    if (!ScreenToClient(point)) {
+        return 0;
+    }
+    size_t nIndex = 0;
+    ChatMessageHitArea hitArea = ChatMessageHitArea::kNone;
+    int32_t nCharIndex = -1;
+    if (!HitTestMessage(point, nIndex, hitArea, nCharIndex)) {
+        return 0;
+    }
+    if (nIndex >= m_messages.size()) {
+        return 0;
+    }
+    return m_messages[nIndex].id;
+}
+
 void ChatMessageList::SetBubbleColor(ChatMessageSide side, const DString& strColor)
 {
     if (side == ChatMessageSide::kSelf) {
@@ -1016,6 +1193,11 @@ void ChatMessageList::PaintStateImages(IRender* pRender)
         return;
     }
 
+    //定位高亮到期后自动清除
+    if ((m_nLocateHighlightId != 0) && (std::chrono::steady_clock::now() > m_tpLocateHighlightExpire)) {
+        m_nLocateHighlightId = 0;
+    }
+
     //内容区宽度固定预留滚动条宽度（见 CalcContentWidth 的说明）
     const int32_t nContentWidth = CalcContentWidth();
     if (nContentWidth <= 0) {
@@ -1077,37 +1259,64 @@ bool ChatMessageList::CalcBubbleLayout(IRender* pRender, const Message& message,
     const int32_t nMaxBubbleWidth = CalcMaxBubbleWidth(rcMessage.Width());
     const int32_t nMaxTextWidth = std::max(1, nMaxBubbleWidth - 2 * nPadH);
 
-    //文本宽度：取自然宽度与最大宽度的较小值
-    int32_t nTextWidth = MeasureNaturalTextWidth(pRender, message.text, m_strTextFont);
-    if (nTextWidth > nMaxTextWidth) {
-        nTextWidth = nMaxTextWidth;
-    }
-    if (nTextWidth < 1) {
-        nTextWidth = 1;
-    }
+    //消息形态：引用块、图片消息、撤回消息
+    layout.bRecalled = message.bRecalled;
+    layout.bHasQuote = !message.quoteText.empty() && !message.bRecalled;
+    layout.bHasImage = (message.type == ChatMessageType::kImage) &&
+                       !message.imagePath.empty() && !message.bRecalled;
 
-    //按文本宽度换行：绘制、选区高亮、命中测试都复用这份行数据，
-    //避免三方各自推算换行位置导致文字与高亮框错位。
-    //同一条消息在相同文本宽度下的换行结果会被缓存，
-    //否则滚动时每条可见消息的每一帧都要重做 O(log n) 次文本测量。
-    LineCache* pLineCache = (nMessageIndex < m_msgLineCache.size()) ? &m_msgLineCache[nMessageIndex] : nullptr;
-    if ((pLineCache != nullptr) && (pLineCache->nMaxTextWidth == nTextWidth) && (pLineCache->nLineHeight > 0)) {
-        layout.lines = pLineCache->lines;
-        layout.nLineHeight = pLineCache->nLineHeight;
+    int32_t nTextWidth = 0;
+    int32_t nTextHeight = 0;
+    int32_t nBubbleWidth = 0;
+    int32_t nBubbleHeight = 0;
+    if (layout.bHasImage) {
+        //图片消息：气泡就是图片本身（图片不再额外加气泡内边距）
+        const UiSize imgSize = GetChatImageSize(message);
+        nTextWidth = imgSize.cx;
+        nTextHeight = imgSize.cy;
+        nBubbleWidth = imgSize.cx;
+        nBubbleHeight = imgSize.cy;
+        layout.nLineHeight = 0;
     }
     else {
-        WrapTextLines(pRender, message.text, nTextWidth, m_strTextFont, layout.lines);
-        layout.nLineHeight = GetTextLineHeight(pRender, m_strTextFont);
-        if (pLineCache != nullptr) {
-            pLineCache->nMaxTextWidth = nTextWidth;
-            pLineCache->nLineHeight = layout.nLineHeight;
-            pLineCache->lines = layout.lines;
+        //文本宽度：取自然宽度与最大宽度的较小值
+        nTextWidth = MeasureNaturalTextWidth(pRender, message.text, m_strTextFont);
+        if (nTextWidth > nMaxTextWidth) {
+            nTextWidth = nMaxTextWidth;
         }
-    }
-    const int32_t nTextHeight = static_cast<int32_t>(layout.lines.size()) * layout.nLineHeight;
+        if (nTextWidth < 1) {
+            nTextWidth = 1;
+        }
 
-    const int32_t nBubbleHeight = nTextHeight + 2 * nPadV;
-    const int32_t nBubbleWidth = nTextWidth + 2 * nPadH;
+        //按文本宽度换行：绘制、选区高亮、命中测试都复用这份行数据，
+        //避免三方各自推算换行位置导致文字与高亮框错位。
+        //同一条消息在相同文本宽度下的换行结果会被缓存，
+        //否则滚动时每条可见消息的每一帧都要重做 O(log n) 次文本测量。
+        LineCache* pLineCache = (nMessageIndex < m_msgLineCache.size()) ? &m_msgLineCache[nMessageIndex] : nullptr;
+        if ((pLineCache != nullptr) && (pLineCache->nMaxTextWidth == nTextWidth) && (pLineCache->nLineHeight > 0)) {
+            layout.lines = pLineCache->lines;
+            layout.nLineHeight = pLineCache->nLineHeight;
+        }
+        else {
+            WrapTextLines(pRender, message.text, nTextWidth, m_strTextFont, layout.lines);
+            layout.nLineHeight = GetTextLineHeight(pRender, m_strTextFont);
+            if (pLineCache != nullptr) {
+                pLineCache->nMaxTextWidth = nTextWidth;
+                pLineCache->nLineHeight = layout.nLineHeight;
+                pLineCache->lines = layout.lines;
+            }
+        }
+        nTextHeight = static_cast<int32_t>(layout.lines.size()) * layout.nLineHeight;
+        nBubbleWidth = nTextWidth + 2 * nPadH;
+        nBubbleHeight = nTextHeight + 2 * nPadV;
+    }
+
+    //引用块：位于气泡内顶部，高度为单行摘要高度
+    int32_t nQuoteHeight = 0;
+    if (layout.bHasQuote) {
+        nQuoteHeight = GetTextLineHeight(pRender, m_strTimeFont) + 2 * Dpi().GetScaleInt(kQuotePadV);
+        nBubbleHeight += nQuoteHeight + Dpi().GetScaleInt(kQuoteGap);
+    }
 
     //气泡水平位置：自己在右侧，对方在左侧
     int32_t nBubbleLeft = rcMessage.left;
@@ -1119,8 +1328,21 @@ bool ChatMessageList::CalcBubbleLayout(IRender* pRender, const Message& message,
     }
 
     layout.rcBubble = UiRect(nBubbleLeft, rcMessage.top, nBubbleLeft + nBubbleWidth, rcMessage.top + nBubbleHeight);
-    layout.rcText = UiRect(layout.rcBubble.left + nPadH, layout.rcBubble.top + nPadV,
-                            layout.rcBubble.right - nPadH, layout.rcBubble.bottom - nPadV);
+    if (layout.bHasImage) {
+        //图片消息：整块气泡就是图片区域
+        layout.rcImage = layout.rcBubble;
+        layout.rcText = layout.rcBubble;
+    }
+    else {
+        int32_t nContentTop = layout.rcBubble.top + nPadV;
+        if (layout.bHasQuote) {
+            layout.rcQuote = UiRect(layout.rcBubble.left + nPadH, nContentTop,
+                                    layout.rcBubble.right - nPadH, nContentTop + nQuoteHeight);
+            nContentTop = layout.rcQuote.bottom + Dpi().GetScaleInt(kQuoteGap);
+        }
+        layout.rcText = UiRect(layout.rcBubble.left + nPadH, nContentTop,
+                               layout.rcBubble.right - nPadH, nContentTop + nTextHeight);
+    }
     //头像位置：自己在右侧，对方在左侧
     if (message.side == ChatMessageSide::kSelf) {
         layout.rcAvatar = UiRect(rcMessage.right - nAvatarSize, rcMessage.top,
@@ -1277,8 +1499,26 @@ void ChatMessageList::PaintMessage(IRender* pRender, size_t nMessageIndex, const
         return;
     }
 
-    //头像
-    PaintAvatar(pRender, layout.rcAvatar, message.avatarText);
+    //头像：有图片时优先画图片
+    if (!message.avatarImage.empty()) {
+        PaintAvatarImage(pRender, layout.rcAvatar, message);
+    }
+    else {
+        PaintAvatar(pRender, layout.rcAvatar, message.avatarText);
+    }
+
+    if (layout.bHasImage) {
+        //图片消息：不画气泡底色，直接画图片
+        PaintChatImage(pRender, message, layout);
+        return;
+    }
+
+    if (layout.bRecalled) {
+        //撤回消息：不画气泡底色，只用灰色文字显示提示
+        DrawChatText(pRender, message.text, layout.rcText,
+                     TEXT_LEFT | TEXT_TOP | TEXT_SINGLELINE, m_strRecalledTextColor, m_strTextFont);
+        return;
+    }
 
     //气泡底色
     UiColor colorBubble = GetUiColor(message.side == ChatMessageSide::kSelf ?
@@ -1291,6 +1531,11 @@ void ChatMessageList::PaintMessage(IRender* pRender, size_t nMessageIndex, const
                                    static_cast<float>(layout.rcBubble.right), static_cast<float>(layout.rcBubble.bottom)),
                             static_cast<float>(nRadius), static_cast<float>(nRadius), colorBubble);
 
+    //引用块：位于气泡内顶部
+    if (layout.bHasQuote) {
+        PaintQuote(pRender, message, layout);
+    }
+
     //选中区域背景：必须画在气泡底色之上，否则会被气泡盖住
     PaintSelection(pRender, nMessageIndex, layout);
 
@@ -1298,6 +1543,20 @@ void ChatMessageList::PaintMessage(IRender* pRender, size_t nMessageIndex, const
     DString strTextColor = (message.side == ChatMessageSide::kSelf) ?
                            m_strTextColorSelf : m_strTextColorOther;
     DrawMessageText(pRender, nMessageIndex, message, layout, strTextColor);
+
+    //定位高亮：跳转到某条消息时短暂描边提示
+    if (message.id == m_nLocateHighlightId) {
+        UiColor colorHighlight = GetUiColor(m_strHighlightColor);
+        if (!colorHighlight.IsEmpty()) {
+            const float fWidth = static_cast<float>(Dpi().GetScaleInt(2));
+            pRender->DrawRoundRect(UiRectF(static_cast<float>(layout.rcBubble.left),
+                                       static_cast<float>(layout.rcBubble.top),
+                                       static_cast<float>(layout.rcBubble.right),
+                                       static_cast<float>(layout.rcBubble.bottom)),
+                                  static_cast<float>(nRadius), static_cast<float>(nRadius),
+                                  colorHighlight, fWidth);
+        }
+    }
 
     //状态文字：发送中/发送失败/已送达/已读
     if (layout.bShowStatus) {
@@ -1561,6 +1820,234 @@ UiColor ChatMessageList::GetAvatarColor(const DString& strText) const
     return s_colors[uHash % (sizeof(s_colors) / sizeof(s_colors[0]))];
 }
 
+void ChatMessageList::PaintAvatarImage(IRender* pRender, const UiRect& rcAvatar, const Message& message)
+{
+    std::shared_ptr<Image> pImage = GetChatImage(message.avatarImage);
+    if (pImage == nullptr) {
+        //图片加载失败时退回文字头像
+        PaintAvatar(pRender, rcAvatar, message.avatarText);
+        return;
+    }
+    pImage->SetDrawDestRect(rcAvatar);
+    UiRect rcSource, rcSourceCorners;
+    PrepareImageSource(pImage, rcSource);
+    bool bDecodeError = false;
+    std::shared_ptr<IBitmap> pBitmap = pImage->GetCurrentBitmap(true, rcAvatar, rcSource, rcSourceCorners,
+                                                                 &bDecodeError);
+    if (pBitmap == nullptr) {
+        PaintAvatar(pRender, rcAvatar, message.avatarText);
+        return;
+    }
+    pRender->DrawImageRect(GetRect(), pBitmap.get(), rcAvatar, rcSource);
+}
+
+void ChatMessageList::PaintQuote(IRender* pRender, const Message& message, const BubbleLayout& layout)
+{
+    if (!layout.bHasQuote) {
+        return;
+    }
+    //引用块底色
+    UiColor colorBk = GetUiColor(m_strQuoteBkColor);
+    if (!colorBk.IsEmpty()) {
+        const int32_t nRadius = Dpi().GetScaleInt(4);
+        pRender->FillRoundRect(UiRectF(static_cast<float>(layout.rcQuote.left), static_cast<float>(layout.rcQuote.top),
+                                       static_cast<float>(layout.rcQuote.right), static_cast<float>(layout.rcQuote.bottom)),
+                                static_cast<float>(nRadius), static_cast<float>(nRadius), colorBk);
+    }
+    //左侧竖线
+    const int32_t nBarWidth = Dpi().GetScaleInt(kQuoteBarWidth);
+    UiColor colorBar = GetUiColor(m_strQuoteTextColor);
+    if (colorBar.IsEmpty()) {
+        colorBar = UiColor(0xFF999999);
+    }
+    pRender->FillRect(UiRectF(static_cast<float>(layout.rcQuote.left), static_cast<float>(layout.rcQuote.top),
+                              static_cast<float>(layout.rcQuote.left + nBarWidth),
+                              static_cast<float>(layout.rcQuote.bottom)), colorBar);
+
+    //摘要文字："昵称：内容"，超出宽度时省略
+    const int32_t nTextLeft = layout.rcQuote.left + nBarWidth + Dpi().GetScaleInt(6);
+    UiRect rcText(layout.rcQuote.left, layout.rcQuote.top, layout.rcQuote.right, layout.rcQuote.bottom);
+    rcText.left = nTextLeft;
+    DString strQuote = message.quoteText;
+    if (!message.quoteName.empty()) {
+        strQuote = message.quoteName + _T(": ") + strQuote;
+    }
+    DrawChatText(pRender, strQuote, rcText, TEXT_LEFT | TEXT_VCENTER | TEXT_SINGLELINE | TEXT_END_ELLIPSIS,
+                 m_strQuoteTextColor, m_strTimeFont);
+}
+
+void ChatMessageList::PaintChatImage(IRender* pRender, const Message& message, const BubbleLayout& layout)
+{
+    if (!layout.bHasImage) {
+        return;
+    }
+    std::shared_ptr<Image> pImage = GetChatImage(message.imagePath);
+    if (pImage == nullptr) {
+        //图片加载失败时画一个占位框，避免消息区域出现空白
+        UiColor colorBk = GetUiColor(m_strBubbleColorOther);
+        if (colorBk.IsEmpty()) {
+            colorBk = UiColor(0xFFFFFFFF);
+        }
+        pRender->FillRoundRect(UiRectF(static_cast<float>(layout.rcImage.left), static_cast<float>(layout.rcImage.top),
+                                       static_cast<float>(layout.rcImage.right), static_cast<float>(layout.rcImage.bottom)),
+                                static_cast<float>(Dpi().GetScaleInt(m_nBubbleRadius)),
+                                static_cast<float>(Dpi().GetScaleInt(m_nBubbleRadius)), colorBk);
+        return;
+    }
+    pImage->SetDrawDestRect(layout.rcImage);
+    UiRect rcSource, rcSourceCorners;
+    PrepareImageSource(pImage, rcSource);
+    bool bDecodeError = false;
+    std::shared_ptr<IBitmap> pBitmap = pImage->GetCurrentBitmap(true, layout.rcImage, rcSource, rcSourceCorners,
+                                                                 &bDecodeError);
+    if (pBitmap == nullptr) {
+        return;
+    }
+    pRender->DrawImageRect(GetRect(), pBitmap.get(), layout.rcImage, rcSource);
+}
+
+DString ChatMessageList::GetChatImagePath(const DString& strPath) const
+{
+    if (strPath.empty() || m_strImageFolder.empty()) {
+        return strPath;
+    }
+    //绝对路径直接使用
+    if ((strPath.length() > 1) && ((strPath[1] == _T(':')) || (strPath[0] == _T('/')) ||
+                                    (strPath[0] == _T('\\')))) {
+        return strPath;
+    }
+    DString strFullPath = m_strImageFolder;
+    if (!strFullPath.empty() && (strFullPath[strFullPath.length() - 1] != _T('/')) &&
+        (strFullPath[strFullPath.length() - 1] != _T('\\'))) {
+        strFullPath += _T("/");
+    }
+    strFullPath += strPath;
+    return strFullPath;
+}
+
+std::shared_ptr<Image> ChatMessageList::GetChatImage(const DString& strPath)
+{
+    if (strPath.empty()) {
+        return nullptr;
+    }
+    const DString strFullPath = GetChatImagePath(strPath);
+    if (strFullPath.empty()) {
+        return nullptr;
+    }
+    auto it = m_chatImages.find(strFullPath);
+    if (it != m_chatImages.end()) {
+        return it->second;
+    }
+    std::shared_ptr<Image> pImage = std::make_shared<Image>();
+    pImage->SetControl(this);
+    pImage->SetImageString(strFullPath, Dpi());
+    //图片信息会进入全局缓存，重复加载不会反复解码
+    LoadImageInfo(*pImage, true);
+    m_chatImages[strFullPath] = pImage;
+    return pImage;
+}
+
+void ChatMessageList::PrepareImageSource(const std::shared_ptr<Image>& pImage, UiRect& rcSource)
+{
+    rcSource = UiRect();
+    if (pImage == nullptr) {
+        return;
+    }
+    std::shared_ptr<ImageInfo> pImageInfo = pImage->GetImageInfo();
+    if (pImageInfo == nullptr) {
+        return;
+    }
+    //Image::GetCurrentBitmap 要求源区域非空，否则直接返回nullptr
+    const int32_t nWidth = pImageInfo->GetWidth();
+    const int32_t nHeight = pImageInfo->GetHeight();
+    if ((nWidth > 0) && (nHeight > 0)) {
+        rcSource = UiRect(0, 0, nWidth, nHeight);
+    }
+}
+
+UiSize ChatMessageList::GetChatImageSize(const Message& message)
+{
+    const int32_t nMaxWidth = Dpi().GetScaleInt(m_nImageMaxWidth);
+    const int32_t nMaxHeight = Dpi().GetScaleInt(m_nImageMaxHeight);
+    int32_t nWidth = Dpi().GetScaleInt(message.imageWidth);
+    int32_t nHeight = Dpi().GetScaleInt(message.imageHeight);
+    if ((nWidth <= 0) || (nHeight <= 0)) {
+        //未指定完整尺寸：按图片原始尺寸等比换算
+        const UiSize orgSize = GetChatImageOriginSize(message.imagePath);
+        if ((orgSize.cx <= 0) || (orgSize.cy <= 0)) {
+            //取不到原始尺寸（例如 SVG 矢量图）：退化为最大尺寸
+            nWidth = (nMaxWidth > 0) ? nMaxWidth : Dpi().GetScaleInt(120);
+            nHeight = (nMaxHeight > 0) ? nMaxHeight : Dpi().GetScaleInt(120);
+        }
+        else if ((nWidth > 0) && (nHeight <= 0)) {
+            nHeight = orgSize.cy * nWidth / std::max(1, orgSize.cx);
+        }
+        else if ((nHeight > 0) && (nWidth <= 0)) {
+            nWidth = orgSize.cx * nHeight / std::max(1, orgSize.cy);
+        }
+        else {
+            nWidth = orgSize.cx;
+            nHeight = orgSize.cy;
+        }
+    }
+    //限制在最大尺寸内（按比例缩放）
+    if ((nMaxWidth > 0) && (nWidth > nMaxWidth)) {
+        nHeight = nHeight * nMaxWidth / std::max(1, nWidth);
+        nWidth = nMaxWidth;
+    }
+    if ((nMaxHeight > 0) && (nHeight > nMaxHeight)) {
+        nWidth = nWidth * nMaxHeight / std::max(1, nHeight);
+        nHeight = nMaxHeight;
+    }
+    return UiSize(std::max(1, nWidth), std::max(1, nHeight));
+}
+
+UiSize ChatMessageList::GetChatImageOriginSize(const DString& strPath)
+{
+    if (strPath.empty()) {
+        return UiSize();
+    }
+    const DString strFullPath = GetChatImagePath(strPath);
+    auto it = m_chatImageSizes.find(strFullPath);
+    if (it != m_chatImageSizes.end()) {
+        return it->second;
+    }
+    UiSize size;
+    std::shared_ptr<Image> pImage = GetChatImage(strFullPath);
+    if (pImage != nullptr) {
+        std::shared_ptr<ImageInfo> pImageInfo = pImage->GetImageInfo();
+        //SVG 等矢量图无法读取原始尺寸，需要由应用层显式指定显示尺寸
+        if ((pImageInfo != nullptr) && !pImageInfo->IsSvgImage()) {
+            UiRect rcDest, rcSource, rcSourceCorners;
+            PrepareImageSource(pImage, rcSource);
+            bool bDecodeError = false;
+            std::shared_ptr<IBitmap> pBitmap = pImage->GetCurrentBitmap(false, rcDest, rcSource, rcSourceCorners,
+                                                                         &bDecodeError);
+            if (pBitmap != nullptr) {
+                //位图像素尺寸换算到控件坐标：像素数 * 窗口缩放 / 图片自身的DPI缩放
+                const int32_t nDpiScale = Dpi().GetScaleInt(100);
+                const uint32_t nFileScale = std::max(1u, pImageInfo->GetImageFileDpiScale());
+                size.cx = static_cast<int32_t>(pBitmap->GetWidth()) * nDpiScale / static_cast<int32_t>(nFileScale);
+                size.cy = static_cast<int32_t>(pBitmap->GetHeight()) * nDpiScale / static_cast<int32_t>(nFileScale);
+            }
+        }
+    }
+    m_chatImageSizes[strFullPath] = size;
+    return size;
+}
+
+bool ChatMessageList::IsSelectableMessage(const Message& message) const
+{
+    //图片消息没有文本；撤回消息只剩提示语，都不参与文本选中与复制
+    if (message.bRecalled) {
+        return false;
+    }
+    if ((message.type == ChatMessageType::kImage) && message.text.empty()) {
+        return false;
+    }
+    return !message.text.empty();
+}
+
 int32_t ChatMessageList::MeasureTextHeight(IRender* pRender, const DString& strText, int32_t nWidth,
                                            const DString& strFontId)
 {
@@ -1766,7 +2253,8 @@ bool ChatMessageList::HitTestMessageClamped(const UiPoint& ptMouse, size_t& nMes
         //在最后一条消息之后：钳位到最后一条消息的末尾
         index = m_messages.size() - 1;
         nMessageIndex = index;
-        nCharIndex = static_cast<int32_t>(m_messages[index].text.length());
+        nCharIndex = IsSelectableMessage(m_messages[index]) ?
+                     static_cast<int32_t>(m_messages[index].text.length()) : 0;
         return true;
     }
     if (nOffset < m_msgOffsets[index]) {
@@ -1778,7 +2266,8 @@ bool ChatMessageList::HitTestMessageClamped(const UiPoint& ptMouse, size_t& nMes
         }
         --index;
         nMessageIndex = index;
-        nCharIndex = static_cast<int32_t>(m_messages[index].text.length());
+        nCharIndex = IsSelectableMessage(m_messages[index]) ?
+                     static_cast<int32_t>(m_messages[index].text.length()) : 0;
         return true;
     }
 
@@ -1791,6 +2280,11 @@ bool ChatMessageList::HitTestMessageClamped(const UiPoint& ptMouse, size_t& nMes
     UiRect rcMessage;
     BubbleLayout layout;
     if (!GetMessageRect(index, rcMessage) || !CalcBubbleLayout(pRender, message, rcMessage, layout, index)) {
+        return true;
+    }
+    if (!IsSelectableMessage(message)) {
+        //图片消息与撤回消息没有可选中的字符
+        nCharIndex = 0;
         return true;
     }
     nCharIndex = HitTestTextChar(pRender, message.text, layout, ptMouse);
@@ -1845,7 +2339,6 @@ bool ChatMessageList::HitTestMessage(const UiPoint& ptMouse, size_t& nMessageInd
     if (!CalcBubbleLayout(pRender, message, rcMessage, layout, index)) {
         return true;
     }
-
     //状态文字区域优先级最高：发送失败时点击这里是"重试"
     if (layout.bShowStatus && layout.rcStatus.ContainsPt(ptMouse)) {
         hitArea = ChatMessageHitArea::kStatus;
@@ -1855,8 +2348,18 @@ bool ChatMessageList::HitTestMessage(const UiPoint& ptMouse, size_t& nMessageInd
         hitArea = ChatMessageHitArea::kAvatar;
         return true;
     }
+    //引用块：双击可以跳转到被引用的消息
+    if (layout.bHasQuote && layout.rcQuote.ContainsPt(ptMouse)) {
+        hitArea = ChatMessageHitArea::kQuote;
+        return true;
+    }
     if (layout.rcBubble.ContainsPt(ptMouse)) {
         hitArea = ChatMessageHitArea::kBubble;
+        if (!IsSelectableMessage(message)) {
+            //图片消息与撤回消息没有可选择的文本
+            nCharIndex = -1;
+            return true;
+        }
         //字符索引按行定位并做钳位：点在气泡内边距、末行右侧空白处时，
         //同样能定位到最近的字符，这样从文本两侧开始拖选也能正常选中
         nCharIndex = HitTestTextChar(pRender, message.text, layout, ptMouse);
@@ -2230,6 +2733,10 @@ DString ChatMessageList::GetSelectedText() const
     }
     DString strResult;
     for (size_t index = m_nSelStartIndex; index <= m_nSelEndIndex && index < m_messages.size(); ++index) {
+        //图片消息与撤回消息没有可复制的文本
+        if (!IsSelectableMessage(m_messages[index])) {
+            continue;
+        }
         const DString& strText = m_messages[index].text;
         int32_t nStart = 0;
         int32_t nEnd = static_cast<int32_t>(strText.length());
@@ -2279,7 +2786,7 @@ void ChatMessageList::SelectAll()
     size_t nFirst = m_messages.size();
     size_t nLast = 0;
     for (size_t index = 0; index < m_messages.size(); ++index) {
-        if (m_messages[index].text.empty()) {
+        if (!IsSelectableMessage(m_messages[index])) {
             continue;
         }
         if (nFirst == m_messages.size()) {
@@ -2305,10 +2812,10 @@ bool ChatMessageList::SelectMessageText(size_t nIndex)
     if (nIndex >= m_messages.size()) {
         return false;
     }
-    const DString& strText = m_messages[nIndex].text;
-    if (strText.empty()) {
+    if (!IsSelectableMessage(m_messages[nIndex])) {
         return false;
     }
+    const DString& strText = m_messages[nIndex].text;
     m_bHasSelection = true;
     m_nAnchorIndex = nIndex;
     m_nAnchorChar = 0;
@@ -2339,7 +2846,7 @@ bool ChatMessageList::CopyAllText()
     }
     DString strText;
     for (size_t index = 0; index < m_messages.size(); ++index) {
-        if (m_messages[index].text.empty()) {
+        if (!IsSelectableMessage(m_messages[index])) {
             continue;
         }
         if (!strText.empty()) {
@@ -2385,6 +2892,9 @@ bool ChatMessageList::AttachPopupMenu(const DString& menuXml,
             //因此这里由控件自己按鼠标位置补上选中，菜单项的可用状态才是正确的。
             pThis->PrepareContextMenuSelection();
             pThis->UpdateContextMenuItemEnabled(pMenu);
+            //记录右键命中的消息：菜单项被点击时鼠标已经移到菜单上，
+            //这时再按鼠标位置去命中消息，找到的就不是原来那条了。
+            pThis->m_nContextMenuMessageId = pThis->GetMessageIdAtCursor();
         }
         if (creatingCallback != nullptr) {
             creatingCallback(pMenu, pSender);

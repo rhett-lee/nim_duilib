@@ -49,11 +49,31 @@ namespace
     {
         return ui::GlobalManager::Instance().Lang().GetStringByID(strTextId);
     }
+
+    /** 把会话历史里的消息转换成消息列表的消息对象
+    *
+     *  历史是唯一数据源，视图里的消息由历史生成，
+     *  这样图片、引用、撤回等信息在切换会话后不会丢失。
+    */
+    ui::ChatMessageList::Message ToListMessage(const ChatMessage& chatMessage)
+    {
+        ui::ChatMessageList::Message message = chatMessage.message;
+        message.avatarImage = chatMessage.avatarImage;
+        message.imagePath = chatMessage.imagePath;
+        message.imageWidth = chatMessage.imageWidth;
+        message.imageHeight = chatMessage.imageHeight;
+        message.quoteText = chatMessage.quoteText;
+        message.quoteName = chatMessage.quoteName;
+        message.quoteId = chatMessage.quoteId;
+        message.bRecalled = chatMessage.bRecalled;
+        return message;
+    }
 }
 
 ChatForm::ChatForm() :
     m_curNavTab(NavTab::kChats),
-    m_nCurrentSession(0)
+    m_nCurrentSession(0),
+    m_nLastMessageId(0)
 {
 }
 
@@ -352,13 +372,47 @@ void ChatForm::ExitApp()
 
 void ChatForm::BindMessageListMenu()
 {
-    //消息列表的右键菜单：使用 ChatMessageList 内置的"复制/全选"菜单
+    //消息列表的右键菜单：使用示例专用的菜单（复制/全选/撤回）
     ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(FindControl(_T("message_list")));
     if (pMsgList == nullptr) {
         return;
     }
-    //不指定菜单XML时，控件内部使用框架自带的通用编辑菜单（文案已国际化）
-    pMsgList->AttachPopupMenu();
+    ChatForm* pThis = this;
+    //复制/全选由控件内置处理，撤回交给应用层（消息列表本身不知道撤回的业务规则）
+    pMsgList->AttachPopupMenu(_T("chat/chat_message_menu.xml"),
+        [pThis](const DString& strItemName, size_t /*nItemIndex*/) {
+            if (pThis == nullptr) {
+                return;
+            }
+            if (strItemName == _T("chat_menu_recall")) {
+                pThis->RecallMessageAtCursor();
+                return;
+            }
+            ui::ChatMessageList* pList = dynamic_cast<ui::ChatMessageList*>(pThis->FindControl(_T("message_list")));
+            if (pList != nullptr) {
+                pList->OnContextMenuAction(strItemName);
+            }
+        },
+        [pThis](ui::Menu* pMenu, ui::Control* /*pSender*/) {
+            //菜单是在右键事件派发之前创建的，这里按鼠标位置命中的消息
+            //刷新"撤回"的可用状态（只有自己发送的消息才能撤回）
+            if ((pThis == nullptr) || (pMenu == nullptr)) {
+                return;
+            }
+            ui::ChatMessageList* pList = dynamic_cast<ui::ChatMessageList*>(pThis->FindControl(_T("message_list")));
+            if (pList == nullptr) {
+                return;
+            }
+            const bool bEnable = pThis->IsRecallableMessage(pList->GetContextMenuMessageId());
+            const TCHAR* names[] = { _T("chat_menu_recall"), _T("chat_menu_recall_text"),
+                                     _T("chat_menu_recall_shortcut") };
+            for (const TCHAR* name : names) {
+                ui::Control* pControl = pMenu->FindControl(name);
+                if (pControl != nullptr) {
+                    pControl->SetEnabled(bEnable);
+                }
+            }
+        });
 }
 
 void ChatForm::BindMessageListEvents()
@@ -402,6 +456,17 @@ bool ChatForm::OnMessageDoubleClick(const ui::ChatMessageEvent& messageEvent)
     if (pMsgList == nullptr) {
         return false;
     }
+    //双击引用块：跳转到被引用的那条消息
+    if (messageEvent.hitArea == ui::ChatMessageHitArea::kQuote) {
+        const ui::ChatMessageList::Message* pMessage = pMsgList->GetMessageAt(messageEvent.nIndex);
+        if ((pMessage != nullptr) && (pMessage->quoteId != 0)) {
+            if (JumpToMessage(pMessage->quoteId)) {
+                ShowTip(_T("STRID_CHAT_TIP_JUMP_QUOTE"));
+                return true;
+            }
+        }
+        return false;
+    }
     const ui::ChatMessageList::Message* pMessage = pMsgList->GetMessageAt(messageEvent.nIndex);
     if ((pMessage == nullptr) || pMessage->text.empty()) {
         return false;
@@ -438,6 +503,8 @@ void ChatForm::InitSessionData()
         session.time = GetLangText(session.timeId).c_str();
         session.previewId = _T("STRID_CHAT_SESSION_MSG_") + strIndex;
         session.preview = GetLangText(session.previewId).c_str();
+        //会话头像使用图片资源（图片头像与文字头像二选一，这里用图片）
+        session.avatarImage = _T("chat_avatar_") + strIndex + _T(".svg");
         session.avatarText = session.name.substr(0, 1);
         session.unread = 0;
         session.seeded = false;
@@ -630,10 +697,13 @@ void ChatForm::EnsureSessionSeeded(int nSessionIndex)
     session.seeded = true;
 
     //初始消息全部来自多语言资源，记下资源 id 以便切换语言时重建
-    auto addMessage = [&session](ui::ChatMessageSide side, const DString& strTextId,
-                                 ui::ChatMessageStatus status) {
+    auto addMessage = [this, &session](ui::ChatMessageSide side, const DString& strTextId,
+                                       ui::ChatMessageStatus status) {
         ChatMessage chatMessage;
         chatMessage.textId = strTextId;
+        //消息 id 由会话历史统一分配：历史是唯一数据源，
+        //视图加载历史时沿用同一个 id，引用与撤回才能准确对应到某一条消息
+        chatMessage.message.id = GenerateMessageId();
         chatMessage.message.side = side;
         chatMessage.message.type = (side == ui::ChatMessageSide::kSystem) ? ui::ChatMessageType::kSystem
                                                                         : ui::ChatMessageType::kText;
@@ -642,6 +712,9 @@ void ChatForm::EnsureSessionSeeded(int nSessionIndex)
         chatMessage.message.avatarText = (side == ui::ChatMessageSide::kSelf)
                                          ? GetLangText(_T("STRID_CHAT_AVATAR_SELF"))
                                          : DString(session.avatarText.c_str());
+        //头像图片：自己用通用头像，对方用会话头像
+        chatMessage.avatarImage = (side == ui::ChatMessageSide::kSelf)
+                                 ? DString(_T("avatar_user.svg")) : session.avatarImage;
         chatMessage.message.time = DString(session.time.c_str());
         chatMessage.message.status = status;
         session.history.push_back(chatMessage);
@@ -687,7 +760,7 @@ void ChatForm::LoadSessionMessages(int nSessionIndex)
 
     //把会话历史逐条放回消息列表：消息 id 与状态都会保留
     for (const ChatMessage& chatMessage : m_sessions[nSessionIndex].history) {
-        pMsgList->AddMessage(chatMessage.message);
+        pMsgList->AddMessage(ToListMessage(chatMessage));
     }
     pMsgList->ScrollToBottom();
 }
@@ -720,6 +793,14 @@ void ChatForm::SaveSessionMessages(int nSessionIndex)
         if (i < session.history.size()) {
             chatMessage.textId = session.history[i].textId;
             chatMessage.timeId = session.history[i].timeId;
+            chatMessage.avatarImage = session.history[i].avatarImage;
+            chatMessage.imagePath = session.history[i].imagePath;
+            chatMessage.imageWidth = session.history[i].imageWidth;
+            chatMessage.imageHeight = session.history[i].imageHeight;
+            chatMessage.quoteText = session.history[i].quoteText;
+            chatMessage.quoteName = session.history[i].quoteName;
+            chatMessage.quoteId = session.history[i].quoteId;
+            chatMessage.bRecalled = session.history[i].bRecalled;
         }
         history.push_back(chatMessage);
     }
@@ -728,7 +809,7 @@ void ChatForm::SaveSessionMessages(int nSessionIndex)
 
 int64_t ChatForm::AppendMessageToSession(int nSessionIndex, ui::ChatMessageSide side, const DString& strText,
                                          const DString& strAvatarText, const DString& strTextId,
-                                         ui::ChatMessageStatus status)
+                                         ui::ChatMessageStatus status, const ChatMessageExtra& extra)
 {
     if ((nSessionIndex < 0) || (nSessionIndex >= static_cast<int>(m_sessions.size()))) {
         return 0;
@@ -745,26 +826,50 @@ int64_t ChatForm::AppendMessageToSession(int nSessionIndex, ui::ChatMessageSide 
     chatMessage.message.time = GetCurrentTimeText();
     chatMessage.message.status = status;
 
+    //图片消息：带图片路径的消息按图片消息处理
+    if (!extra.imagePath.empty()) {
+        chatMessage.message.type = ui::ChatMessageType::kImage;
+    }
+    chatMessage.avatarImage = extra.avatarImage;
+    chatMessage.imagePath = extra.imagePath;
+    chatMessage.imageWidth = extra.imageWidth;
+    chatMessage.imageHeight = extra.imageHeight;
+    chatMessage.quoteText = extra.quoteText;
+    chatMessage.quoteName = extra.quoteName;
+    chatMessage.quoteId = extra.quoteId;
+
     int64_t nMessageId = 0;
+    //消息 id 先由历史分配，视图沿用同一个 id：
+    //这样"撤回/引用/改状态"在视图与历史之间不会出现两套 id
+    chatMessage.message.id = GenerateMessageId();
+    nMessageId = chatMessage.message.id;
     if (nSessionIndex == m_nCurrentSession) {
         //当前会话：直接追加到消息列表，用户马上能看到
         ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(FindControl(_T("message_list")));
         if (pMsgList != nullptr) {
-            nMessageId = pMsgList->AddMessage(chatMessage.message);
-            chatMessage.message.id = nMessageId;
+            pMsgList->AddMessage(ToListMessage(chatMessage));
         }
     }
     m_sessions[nSessionIndex].history.push_back(chatMessage);
+    if (nMessageId != 0) {
+        m_nLastMessageId = nMessageId;
+    }
 
     //更新会话预览/时间，并刷新列表（非当前会话的未读角标也在这里更新）
-    UpdateSessionPreview(nSessionIndex, strText);
+    //图片消息没有文本，预览用"[图片]"占位
+    DString strPreview = strText;
+    if (strPreview.empty() && !extra.imagePath.empty()) {
+        strPreview = GetLangText(_T("STRID_CHAT_MSG_IMAGE_PLACEHOLDER"));
+    }
+    UpdateSessionPreview(nSessionIndex, strPreview);
     return nMessageId;
 }
 
 int64_t ChatForm::AppendMessage(ui::ChatMessageSide side, const DString& strText, const DString& strAvatarText,
-                                const DString& strTextId)
+                                const DString& strTextId, const ChatMessageExtra& extra)
 {
-    return AppendMessageToSession(m_nCurrentSession, side, strText, strAvatarText, strTextId);
+    return AppendMessageToSession(m_nCurrentSession, side, strText, strAvatarText, strTextId,
+                                  ui::ChatMessageStatus::kNone, extra);
 }
 
 void ChatForm::SetHistoryMessageStatus(int nSessionIndex, int64_t nMessageId, ui::ChatMessageStatus status)
@@ -850,6 +955,18 @@ void ChatForm::SendInputMessage()
         return;
     }
 
+    //演示指令：/img 发送图片消息，/quote 引用上一条消息
+    if (strContent == _T("/img")) {
+        pInput->SetText(_T(""));
+        SendImageMessage();
+        return;
+    }
+    if (strContent == _T("/quote")) {
+        pInput->SetText(_T(""));
+        SendQuoteMessage();
+        return;
+    }
+
     //新消息先以"发送中"状态插入，随后由 SimulateSendStatus 推进状态
     const int nSessionIndex = m_nCurrentSession;
     const int64_t nMessageId = AppendMessageToSession(
@@ -866,6 +983,171 @@ void ChatForm::SendInputMessage()
 
     //模拟对方稍后回复
     SimulateReply(nSessionIndex);
+}
+
+void ChatForm::SendImageMessage()
+{
+    if (!IsCurrentSessionValid()) {
+        return;
+    }
+    //演示用：发送一张内置的示例图片
+    ChatMessageExtra extra;
+    extra.avatarImage = _T("avatar_user.svg");
+    extra.imagePath = _T("chat_photo_demo.svg");
+    extra.imageWidth = 160;
+    extra.imageHeight = 100;
+    AppendMessage(ui::ChatMessageSide::kSelf, DString(), GetLangText(_T("STRID_CHAT_AVATAR_SELF")),
+                  DString(), extra);
+}
+
+void ChatForm::SendQuoteMessage()
+{
+    if (!IsCurrentSessionValid()) {
+        return;
+    }
+    //引用最近一条可以引用的消息（系统提示与已撤回的消息不参与引用）
+    int64_t nQuoteId = 0;
+    DString strQuoteText;
+    DString strQuoteName;
+    const ChatSession& session = m_sessions[m_nCurrentSession];
+    for (auto it = session.history.rbegin(); it != session.history.rend(); ++it) {
+        if (it->bRecalled || it->message.text.empty()) {
+            continue;
+        }
+        if (it->message.side == ui::ChatMessageSide::kSystem) {
+            continue;
+        }
+        nQuoteId = it->message.id;
+        strQuoteText = it->message.text;
+        strQuoteName = (it->message.side == ui::ChatMessageSide::kSelf)
+                       ? GetLangText(_T("STRID_CHAT_AVATAR_SELF")) : DString(session.name.c_str());
+        break;
+    }
+    if (nQuoteId == 0) {
+        ShowTip(_T("STRID_CHAT_TIP_NO_QUOTE"));
+        return;
+    }
+    ChatMessageExtra extra;
+    extra.avatarImage = _T("avatar_user.svg");
+    extra.quoteText = strQuoteText;
+    extra.quoteName = strQuoteName;
+    extra.quoteId = nQuoteId;
+    AppendMessage(ui::ChatMessageSide::kSelf, GetLangText(_T("STRID_CHAT_MSG_QUOTE_BODY")),
+                  GetLangText(_T("STRID_CHAT_AVATAR_SELF")), DString(), extra);
+}
+
+bool ChatForm::RecallMessage(int64_t nMessageId)
+{
+    if (!IsRecallableMessage(nMessageId)) {
+        return false;
+    }
+    const DString strRecallText = GetLangText(_T("STRID_CHAT_MSG_RECALLED_SELF"));
+    //视图：撤回后只显示一行灰色提示文字
+    ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(FindControl(_T("message_list")));
+    if (pMsgList != nullptr) {
+        pMsgList->RecallMessage(nMessageId, strRecallText);
+    }
+    //历史：同步更新，切换会话后仍然保持撤回状态
+    int nSessionIndex = -1;
+    ChatMessage* pMessage = FindMessage(nMessageId, &nSessionIndex);
+    if (pMessage == nullptr) {
+        return false;
+    }
+    pMessage->bRecalled = true;
+    pMessage->message.text = strRecallText;
+    pMessage->message.type = ui::ChatMessageType::kText;
+    pMessage->quoteText.clear();
+    pMessage->quoteName.clear();
+    pMessage->quoteId = 0;
+    if (nSessionIndex == m_nCurrentSession) {
+        //会话预览同步更新
+        UpdateSessionPreview(nSessionIndex, strRecallText);
+    }
+    return true;
+}
+
+void ChatForm::RecallMessageAtCursor()
+{
+    ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(FindControl(_T("message_list")));
+    if (pMsgList == nullptr) {
+        return;
+    }
+    //菜单项被点击时鼠标已经移到菜单上，要用菜单创建时记录的命中消息，
+    //不能按当前鼠标位置去找
+    const int64_t nMessageId = pMsgList->GetContextMenuMessageId();
+    if (nMessageId == 0) {
+        return;
+    }
+    if (RecallMessage(nMessageId)) {
+        ShowTip(_T("STRID_CHAT_TIP_RECALL_DONE"));
+    }
+}
+
+bool ChatForm::IsRecallableMessage(int64_t nMessageId) const
+{
+    if (nMessageId == 0) {
+        return false;
+    }
+    for (const ChatSession& session : m_sessions) {
+        for (const ChatMessage& chatMessage : session.history) {
+            if (chatMessage.message.id != nMessageId) {
+                continue;
+            }
+            //只能撤回自己发送的、尚未撤回的、非系统提示的消息
+            if (chatMessage.bRecalled) {
+                return false;
+            }
+            if (chatMessage.message.side != ui::ChatMessageSide::kSelf) {
+                return false;
+            }
+            if (chatMessage.message.type == ui::ChatMessageType::kSystem) {
+                return false;
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+bool ChatForm::JumpToMessage(int64_t nMessageId)
+{
+    int nSessionIndex = -1;
+    ChatMessage* pMessage = FindMessage(nMessageId, &nSessionIndex);
+    if ((pMessage == nullptr) || (nSessionIndex < 0)) {
+        return false;
+    }
+    //被引用的消息可能在别的会话里：先切到对应会话，再定位到消息
+    if (nSessionIndex != m_nCurrentSession) {
+        SelectSession(nSessionIndex);
+    }
+    ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(FindControl(_T("message_list")));
+    if (pMsgList == nullptr) {
+        return false;
+    }
+    return pMsgList->ScrollToMessage(nMessageId);
+}
+
+ChatMessage* ChatForm::FindMessage(int64_t nMessageId, int* pSessionIndex)
+{
+    for (size_t i = 0; i < m_sessions.size(); ++i) {
+        for (ChatMessage& chatMessage : m_sessions[i].history) {
+            if (chatMessage.message.id != nMessageId) {
+                continue;
+            }
+            if (pSessionIndex != nullptr) {
+                *pSessionIndex = static_cast<int>(i);
+            }
+            return &chatMessage;
+        }
+    }
+    return nullptr;
+}
+
+int64_t ChatForm::GenerateMessageId()
+{
+    //消息 id 全局递增（跨会话唯一），历史与视图共用同一套 id
+    static int64_t s_nNextMessageId = 1;
+    return s_nNextMessageId++;
 }
 
 void ChatForm::SimulateSendStatus(int64_t nMessageId, int nSessionIndex, bool bFail)

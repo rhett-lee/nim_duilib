@@ -2420,6 +2420,12 @@ In addition to the common Control properties, the following properties are added
 | status_font | system_regular_12 | string | Font of the message status text |
 | status_text_color | text_muted | string | Color of the message status text (semantic color name or color value) |
 | status_failed_color | color_error | string | Color of the status text when sending failed (semantic color name or color value) |
+| image_max_width | 180 | int | Maximum display width of an image message (pixels, DPI scaled) |
+| image_max_height | 180 | int | Maximum display height of an image message (pixels, DPI scaled) |
+| quote_text_color | text_muted | string | Color of the quote block text (semantic color name or color value) |
+| quote_bk_color | bg_window_main | string | Background color of the quote block (semantic color name or color value) |
+| recalled_text_color | text_muted | string | Color of the recall notice text (semantic color name or color value) |
+| highlight_color | color_accent | string | Outline color of the locate highlight (semantic color name or color value) |
 
 Notes:
 - **Message side**: the `ChatMessageSide` enum contains `kOther` (peer, left column), `kSelf` (own, right column) and `kSystem` (system notice, centered small text).
@@ -2440,7 +2446,13 @@ Notes:
 - **Double-click event**: returning `true` from `AttachMessageDoubleClick` means the application handled it, so the default "select the word under the cursor" is skipped.
 - **Right-click event**: returning `true` from `AttachMessageRightClick` means the application handles the right click itself, so the default menu is not shown.
 - **Layout cache**: each message height is cached per message (only dirty messages are measured again) and a message-top offset table is maintained; painting, hit testing and scroll positioning all use a binary search over that table, so a long list never iterates every message per frame.
-- **Message identity**: each message can carry an `id` (0 means auto-generated) so it can be updated or removed later; the `ChatMessageType` enum contains `kText` (normal message) and `kSystem` (system hint).
+- **Message identity**: each message can carry an `id` (0 means auto-generated) so it can be updated or removed later; the `ChatMessageType` enum contains `kText` (normal message), `kSystem` (system hint) and `kImage` (image message).
+- **Image message**: when the type is `kImage` and `imagePath` is set, the image is drawn inside the bubble (no bubble background). The image path can be absolute or relative to the image folder; when the folder is empty the path is resolved relative to the folder of the window XML (same rule as `normal_image` on other controls), and `SetImageFolder` can set it explicitly. The display size comes from `imageWidth`/`imageHeight` (logical pixels) first; when they are not given the original image size is used, limited by `image_max_width`/`image_max_height`. Vector images (SVG) have no readable original size, so give the display size explicitly.
+- **Image avatar**: when `avatarImage` is not empty the avatar is drawn from that image, otherwise the control falls back to the colored circle generated from the avatar text; the path is resolved like an image message.
+- **Quoted message**: when `quoteText` is not empty a quote block is drawn at the top of the bubble (light background + left bar + "name: content" summary, truncated with an ellipsis). `quoteId` records the id of the quoted message; double-clicking the quote block reports the hit area `kQuote` so the application can jump to the original message (together with `ScrollToMessage`).
+- **Recalled message**: `RecallMessage` marks a message as recalled and replaces it with the notice text; the bubble background is no longer drawn, the notice uses `recalled_text_color`, and the message is no longer selectable or copyable. `IsMessageRecalled` reports the state.
+- **Locate highlight**: `ScrollToMessage` scrolls to the given message and draws a `highlight_color` outline around it (it fades away automatically after about 1.5 seconds).
+- **Hit areas**: the `ChatMessageHitArea` enum contains `kNone`, `kBubble` (bubble), `kAvatar` (avatar), `kStatus` (status text) and `kQuote` (quote block).
 
 Corresponding C++ interfaces: `AddMessage` (plus a convenience overload), `InsertMessage`, `UpdateMessage`, `RemoveMessage`, `GetMessageById`, `ClearMessages`, `GetMessageCount`, `GetMessageAt`, `ScrollToBottom`, `GetChatScrollPos/SetChatScrollPos`, `SetAutoScrollToBottom/IsAutoScrollToBottom`, `IsNearBottom`, `GetUnreadBelowCount/ClearUnreadBelowCount`, `SetShowNewMessageTip/IsShowNewMessageTip`, `SetAvatarSize/GetAvatarSize`, `SetBubbleMaxWidth/GetBubbleMaxWidth`, `SetBubbleRadius/GetBubbleRadius`, `SetShowTime/IsShowTime`, `SetBubbleColor`, `SetTextColor`, `SetAvatarTextColor`, `SetSystemTextColor`, `SetSelectionBkColor`, `SetSelectionTextColor`, `SetScrollbarTrackColor`, `SetScrollbarThumbColor`, `SetAutoHideScrollbar/IsAutoHideScrollbar`, `SetEnableSelection/IsEnableSelection`, `SetShowStatus/IsShowStatus`, `SetMessageStatus`, `SetMessageStatusAt`, `GetMessageStatus`, `SetStatusText`, `GetStatusText`, `AttachMessageClick`, `AttachMessageDoubleClick`, `AttachMessageRightClick`, `HasSelection`, `GetSelectedText`, `ClearSelection`, `SelectAll`, `SelectMessageText`, `CopySelectedText`, `CopyAllText`, `AttachPopupMenu`.
 
