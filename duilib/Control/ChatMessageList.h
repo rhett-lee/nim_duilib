@@ -272,7 +272,8 @@ public:
     /** 是否自动滚动到底部（追加消息时生效），默认 true
      *
      *  仅在当前视图已经位于底部时才会自动滚动；用户向上翻看历史时，
-     *  新消息不会把视图拽走，而是累加到"新消息"计数（见 GetUnreadBelowCount）。
+     *  新消息不会把视图拽走，而是计入"未读"（见 GetUnreadBelowCount）。
+     *  自己发送的消息（ChatMessageSide::kSelf）不受此限制：追加后始终滚动到底部。
     */
     void SetAutoScrollToBottom(bool bAutoScroll);
     bool IsAutoScrollToBottom() const { return m_bAutoScrollToBottom; }
@@ -281,11 +282,14 @@ public:
     */
     bool IsNearBottom() const;
 
-    /** 获取视图下方尚未查看的新消息条数（滚动到底部后清零）
+    /** 获取视图下方尚未看过的消息条数
+     *
+     *  未读数由"已读位置"推导：消息完全进入视野即视为已看过，因此向下滚动时
+     *  未读数会自动减少，滚动到底部后为 0；向上滚动不会让它重新变大。
     */
-    int32_t GetUnreadBelowCount() const { return m_nUnreadBelow; }
+    int32_t GetUnreadBelowCount() const;
 
-    /** 清零未读新消息计数（不改变滚动位置）
+    /** 把当前所有消息标记为已读（不改变滚动位置）
     */
     void ClearUnreadBelowCount();
 
@@ -453,6 +457,13 @@ private:
     /** 消息插入后同步选区索引，避免选区错位到别的消息上
     */
     void SyncSelectionOnInsert(size_t nInsertIndex);
+
+    /** 按当前滚动位置推进"已读位置"：消息完全进入视野即视为已看过
+     *
+     *  只在布局数据可用时计算；已读位置单调前进，向上滚动不会回退，
+     *  这样才能区分"新到达但还没看到"与"看过了又滚上去"两种情况。
+    */
+    void UpdateReadPos();
 
     /** 让某条消息的换行缓存失效（nIndex 超出范围时全部失效）
     */
@@ -751,9 +762,9 @@ private:
     */
     bool m_bAutoScrollToBottom;
 
-    /** 视图下方尚未查看的新消息条数（不在底部时累加，滚到底部清零）
+    /** 已读位置：前 m_nReadPos 条消息已经看过（只增不减，结构变化时同步调整）
     */
-    int32_t m_nUnreadBelow;
+    int32_t m_nReadPos;
 
     /** 是否显示"回到最新消息"提示
     */

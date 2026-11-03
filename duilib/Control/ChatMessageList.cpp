@@ -94,7 +94,7 @@ ChatMessageList::ChatMessageList(Window* pWindow) :
     m_strScrollbarThumbColor(_T("bg_scrollbar_thumb_normal")),
     m_bAutoHideScrollbar(true),
     m_bAutoScrollToBottom(true),
-    m_nUnreadBelow(0),
+    m_nReadPos(0),
     m_bShowNewMessageTip(true),
     m_bEnableSelection(true),
     m_nScrollPos(0),
@@ -316,10 +316,8 @@ void ChatMessageList::OnScrollOffsetChanged(const UiSize& oldScrollOffset, const
     const int32_t nPos = static_cast<int32_t>(newScrollOffset.cy);
     if (nPos != m_nScrollPos) {
         m_nScrollPos = nPos;
-        //滚动到底部后，"新消息"就都看过了
-        if ((m_nUnreadBelow > 0) && IsNearBottom()) {
-            m_nUnreadBelow = 0;
-        }
+        //滚动可能让新消息进入视野，同步推进"已读位置"
+        UpdateReadPos();
         Invalidate();
     }
 }
@@ -504,9 +502,11 @@ int64_t ChatMessageList::InsertMessageInternal(size_t index, const Message& mess
 
     //插入前记录视图是否位于底部：只有用户正在看最新消息时才自动跟随滚动。
     //否则用户向上翻看历史时，一条新消息就会把视图拽走，历史记录等于白翻。
-    const bool bStickToBottom = m_bAutoScrollToBottom && IsNearBottom();
-
+    //自己发送的消息例外：刚发出去的内容一定想马上看到，直接滚到底部。
     const size_t nOldCount = m_messages.size();
+    const bool bAppendToEnd = (index >= nOldCount);
+    const bool bSelfMessage = (msg.side == ChatMessageSide::kSelf);
+    const bool bStickToBottom = m_bAutoScrollToBottom && (IsNearBottom() || (bAppendToEnd && bSelfMessage));
     m_messages.insert(m_messages.begin() + static_cast<std::ptrdiff_t>(index), msg);
 
     //高度缓存、偏移表与换行缓存同步插入（先补齐到插入前的数量，避免 insert 越界）
@@ -528,6 +528,13 @@ int64_t ChatMessageList::InsertMessageInternal(size_t index, const Message& mess
     //否则选区会错位到别的消息上（例如复制到相邻的一条）。
     SyncSelectionOnInsert(index);
 
+    //已读位置是"前 N 条已看过"的前缀：在它之前插入消息时前缀长度也要 +1，
+    //否则这条老消息会被当成未读，未读条数就会凭空多出来。
+    //注意必须是严格小于：追加到末尾时 index == m_nReadPos，新消息本身还未读过，前缀不能后移。
+    if (index < static_cast<size_t>(std::max(0, m_nReadPos))) {
+        ++m_nReadPos;
+    }
+
     if (bStickToBottom) {
         //延迟到下一轮消息循环再滚动，此时控件已完成布局、内容高度才准确
         Window* pWindow = GetWindow();
@@ -542,10 +549,8 @@ int64_t ChatMessageList::InsertMessageInternal(size_t index, const Message& mess
                 });
         }
     }
-    else if (index >= nOldCount) {
-        //追加到末尾且用户不在底部：累加"新消息"提示，而不是强行滚动
-        ++m_nUnreadBelow;
-    }
+    //追加到末尾且用户不在底部时不强行滚动：未读数由"已读位置"自动算出，
+    //这里不需要维护计数器（见 UpdateReadPos / GetUnreadBelowCount）。
     Invalidate();
     return msg.id;
 }
@@ -605,6 +610,10 @@ bool ChatMessageList::RemoveMessage(int64_t id)
             }
             //删除后清理选区，避免索引失效
             ClearSelection();
+            //删掉一条已看过的消息时，已读前缀长度同步减一
+            if (static_cast<int32_t>(index) < m_nReadPos) {
+                --m_nReadPos;
+            }
             InvalidateLayoutCache();
             return true;
         }
@@ -640,7 +649,7 @@ void ChatMessageList::ClearMessages()
     m_nLayoutWidth = -1;
     m_nScrollPos = 0;
     m_nContentHeight = 0;
-    m_nUnreadBelow = 0;
+    m_nReadPos = 0;
     m_bPendingClick = false;
     ClearSelection();
     InvalidateLayoutCache();
@@ -701,11 +710,59 @@ bool ChatMessageList::IsNearBottom() const
     return (nRange - nPos) <= Dpi().GetScaleInt(kNearBottomTolerance);
 }
 
+int32_t ChatMessageList::GetUnreadBelowCount() const
+{
+    //未读数 = 已读位置之后的消息条数：把消息看成"前 N 条已看过"的前缀，
+    //这样未读数只由"已读位置"和消息总数决定，不会因为漏加/多加而漂移。
+    const int32_t nCount = static_cast<int32_t>(m_messages.size());
+    const int32_t nReadPos = std::clamp(m_nReadPos, 0, nCount);
+    return nCount - nReadPos;
+}
+
 void ChatMessageList::ClearUnreadBelowCount()
 {
-    if (m_nUnreadBelow != 0) {
-        m_nUnreadBelow = 0;
+    const int32_t nCount = static_cast<int32_t>(m_messages.size());
+    if (m_nReadPos != nCount) {
+        m_nReadPos = nCount;
         Invalidate();
+    }
+}
+
+void ChatMessageList::UpdateReadPos()
+{
+    const int32_t nCount = static_cast<int32_t>(m_messages.size());
+    if (nCount <= 0) {
+        m_nReadPos = 0;
+        return;
+    }
+    //布局数据不全时不做判断，等下一次绘制（EnsureLayout 之后）再算
+    if (m_bLayoutDirty || (m_msgOffsets.size() != m_messages.size()) ||
+        (m_msgHeights.size() != m_messages.size())) {
+        return;
+    }
+    UiRect rc = GetRect();
+    rc.Deflate(GetControlPadding());
+    if ((rc.Width() <= 0) || (rc.Height() <= 0)) {
+        return;
+    }
+    //视野底部在内容坐标系中的位置，与绘制时的裁剪范围保持一致
+    const int32_t nViewBottom = m_nScrollPos + rc.Height();
+
+    int32_t nReadPos = std::clamp(m_nReadPos, 0, nCount);
+    while (nReadPos < nCount) {
+        const int32_t nHeight = m_msgHeights[nReadPos];
+        if (nHeight <= 0) {
+            break;
+        }
+        //整条消息都在视野内，才算看过；只露出半截的仍算未读
+        if ((m_msgOffsets[nReadPos] + nHeight) > nViewBottom) {
+            break;
+        }
+        ++nReadPos;
+    }
+    if (nReadPos != m_nReadPos) {
+        //已读位置只前进不后退：向上滚动时不能让"看过"的消息重新变成未读
+        m_nReadPos = nReadPos;
     }
 }
 
@@ -969,6 +1026,8 @@ void ChatMessageList::PaintStateImages(IRender* pRender)
     if ((m_msgOffsets.size() != m_messages.size()) || (m_msgHeights.size() != m_messages.size())) {
         return;
     }
+    //布局数据刚重建过，此时才能判断哪些消息已经进入视野
+    UpdateReadPos();
 
     const UiRect rcContent(rc.left, rc.top, rc.left + nContentWidth, rc.bottom);
     //裁剪到控件区域，避免消息超出边界
@@ -1383,7 +1442,7 @@ void ChatMessageList::PaintTimeDivider(IRender* pRender, const DString& strTime,
 
 DString ChatMessageList::GetNewMessageTipText() const
 {
-    if (m_nUnreadBelow <= 0) {
+    if (GetUnreadBelowCount() <= 0) {
         return DString();
     }
     //文案模板来自多语言资源，%d 替换为未读条数
@@ -1391,13 +1450,13 @@ DString ChatMessageList::GetNewMessageTipText() const
     if (strTemplate.empty()) {
         strTemplate = _T("New messages: %d");
     }
-    const std::wstring strText = StringUtil::Printf(strTemplate.c_str(), static_cast<int>(m_nUnreadBelow));
+    const std::wstring strText = StringUtil::Printf(strTemplate.c_str(), static_cast<int>(GetUnreadBelowCount()));
     return DString(strText.c_str());
 }
 
 UiRect ChatMessageList::GetNewMessageTipRect(IRender* pRender)
 {
-    if (!m_bShowNewMessageTip || (m_nUnreadBelow <= 0) || (pRender == nullptr)) {
+    if (!m_bShowNewMessageTip || (GetUnreadBelowCount() <= 0) || (pRender == nullptr)) {
         return UiRect();
     }
     const DString strText = GetNewMessageTipText();
@@ -1444,9 +1503,11 @@ void ChatMessageList::PaintNewMessageTip(IRender* pRender)
     if (strText.empty()) {
         return;
     }
-    UiColor colorBk = GetUiColor(_T("color_accent"));
+    //提示浮在消息内容之上，底色不能与气泡同色（自己消息的气泡就是 color_accent，
+    //用强调色会让胶囊和气泡糊成一片），这里用中性深灰 + 白色文字，浅色/深色主题都能看清。
+    UiColor colorBk = GetUiColor(_T("color_gray_dark"));
     if (colorBk.IsEmpty()) {
-        colorBk = UiColor(0xFF3399FF);
+        colorBk = UiColor(0xFF4D4D4D);
     }
     //胶囊形状：圆角取高度的一半
     const float fRadius = static_cast<float>(rcTip.Height()) / 2.0f;
@@ -1817,7 +1878,7 @@ bool ChatMessageList::ButtonDown(const EventArgs& msg)
 {
     if (msg.eventType == kEventMouseButtonDown) {
         //"回到最新消息"提示优先响应：点击后滚到底部
-        if (m_nUnreadBelow > 0) {
+        if (GetUnreadBelowCount() > 0) {
             IRender* pRender = (GetWindow() != nullptr) ? GetWindow()->GetRender() : nullptr;
             const UiRect rcTip = GetNewMessageTipRect(pRender);
             if (!rcTip.IsEmpty() && rcTip.ContainsPt(msg.ptMouse)) {
