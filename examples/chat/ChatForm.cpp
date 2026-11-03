@@ -4,6 +4,52 @@
 #include "duilib/Utils/ToastWnd.h"
 #include "duilib/Utils/StringUtil.h"
 #include <ctime>
+#include <cwctype>
+
+namespace
+{
+    /** 会话列表在 XML 中预置的条目数量（session_1 ... session_4）
+     *
+     *  XML 里预留的槽位是固定的：前三个是初始会话，第四个用于"联系人发起的新会话"。
+    */
+    constexpr int32_t kSessionSlots = 4;
+
+    /** 转小写（用于搜索匹配，中英文都能工作）
+    */
+    std::wstring ToLower(const std::wstring& strText)
+    {
+        std::wstring strRet = strText;
+        for (wchar_t& ch : strRet) {
+            ch = static_cast<wchar_t>(::towlower(ch));
+        }
+        return strRet;
+    }
+
+    /** 大小写不敏感的子串匹配（strKey 为空时视为匹配）
+    */
+    bool ContainsNoCase(const std::wstring& strText, const std::wstring& strLowerKey)
+    {
+        if (strLowerKey.empty()) {
+            return true;
+        }
+        return ToLower(strText).find(strLowerKey) != std::wstring::npos;
+    }
+
+    /** 拼出会话条目的控件名，如 session_1_name
+    */
+    DString MakeSessionControlName(int32_t nIndex, const TCHAR* szSuffix)
+    {
+        const std::wstring strName = _T("session_") + std::to_wstring(nIndex + 1) + szSuffix;
+        return DString(strName.c_str());
+    }
+
+    /** 按资源 id 取当前语言的文案
+    */
+    DString GetLangText(const DString& strTextId)
+    {
+        return ui::GlobalManager::Instance().Lang().GetStringByID(strTextId);
+    }
+}
 
 ChatForm::ChatForm() :
     m_curNavTab(NavTab::kChats),
@@ -32,40 +78,65 @@ void ChatForm::SetLoginUser(const DString& strUser)
 
 void ChatForm::OnInitWindow()
 {
-    //会话数据
+    //会话与联系人数据
     InitSessionData();
 
     BindNavButtons();
     BindSessionItems();
+    BindContactItems();
     BindChatButtons();
+    BindSearchBox();
     BindSettingsButton();
     BindMessageListMenu();
     BindMessageListEvents();
     RefreshSessionList();
-    InitMessages();
+    RefreshContactList();
+    SelectSession(0);
     UpdatePanelVisibility();
-
-    //标题栏显示登录用户
-    ui::Label* pTitle = dynamic_cast<ui::Label*>(FindControl(_T("chat_title")));
-    if ((pTitle != nullptr) && !m_strLoginUser.empty()) {
-        DString strTitle = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_CHAT_TITLE")).c_str();
-        pTitle->SetText((strTitle + _T("  -  ") + m_strLoginUser).c_str());
-    }
 }
 
 bool ChatForm::OnLanguageChanged()
 {
     const bool bRet = ui::WindowImplBase::OnLanguageChanged();
-    //XML 里的 text_id 由框架自动刷新；代码生成的会话数据与消息文本需要自己重建
-    InitSessionData();
-    RefreshSessionList();
-    InitMessages();
-    //标题栏带有登录用户名，同样需要重建
-    ui::Label* pTitle = dynamic_cast<ui::Label*>(FindControl(_T("chat_title")));
-    if ((pTitle != nullptr) && !m_strLoginUser.empty()) {
-        const DString strTitle = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_CHAT_TITLE"));
-        pTitle->SetText((strTitle + _T("  -  ") + m_strLoginUser).c_str());
+
+    //先把当前视图存回历史，避免重建视图时丢掉刚发的消息
+    if (IsCurrentSessionValid()) {
+        SaveSessionMessages(m_nCurrentSession);
     }
+
+    //会话/联系人名称与消息文案都记录了资源 id，按新语言重新取值
+    for (ChatSession& session : m_sessions) {
+        if (!session.nameId.empty()) {
+            session.name = GetLangText(session.nameId).c_str();
+            session.avatarText = session.name.substr(0, 1);
+        }
+        if (!session.timeId.empty()) {
+            session.time = GetLangText(session.timeId).c_str();
+        }
+        for (ChatMessage& chatMessage : session.history) {
+            ApplyMessageText(chatMessage);
+        }
+        //预览统一由"最后一条消息"派生；会话还没有消息时回退到预览资源 id。
+        //两者都要按新语言重新取值，否则未打开过的会话会留着上一种语言的文案。
+        if (!session.history.empty()) {
+            session.preview = session.history.back().message.text.c_str();
+        }
+        else if (!session.previewId.empty()) {
+            session.preview = GetLangText(session.previewId).c_str();
+        }
+    }
+    for (size_t i = 0; i < m_contacts.size(); ++i) {
+        const DString strIndex = std::to_wstring(i + 1).c_str();
+        m_contacts[i].name = GetLangText(_T("STRID_CHAT_CONTACT_") + strIndex).c_str();
+        m_contacts[i].desc = GetLangText(_T("STRID_CHAT_CONTACT_") + strIndex + _T("_DESC")).c_str();
+        m_contacts[i].avatarText = m_contacts[i].name.substr(0, 1);
+    }
+
+    RefreshSessionList();
+    RefreshContactList();
+    LoadSessionMessages(m_nCurrentSession);
+    UpdateChatTitle();
+    UpdatePanelVisibility();
     return bRet;
 }
 
@@ -96,26 +167,34 @@ void ChatForm::BindNavButtons()
 
 void ChatForm::BindSessionItems()
 {
-    //会话条目数量与数据保持一致
-    const size_t nCount = (m_sessions.size() < 3) ? m_sessions.size() : 3;
-    for (size_t i = 0; i < nCount; ++i) {
-        const DString strName = _T("session_") + std::to_wstring(i + 1);
+    //会话条目是 XML 里预置的固定槽位，点击后切换到对应的会话
+    //注意：kEventClick 只有 Button 一类的控件才会派发，普通 Box 收不到该事件，
+    //这里改用鼠标抬起事件（事件会从命中的子控件向上冒泡到条目本身）。
+    for (int32_t i = 0; i < kSessionSlots; ++i) {
+        const DString strName = MakeSessionControlName(i, _T(""));
         ui::HBox* pItem = dynamic_cast<ui::HBox*>(FindControl(strName.c_str()));
         if (pItem == nullptr) {
             continue;
         }
-        const int nIndex = static_cast<int>(i);
-        pItem->AttachClick([this, nIndex](const ui::EventArgs& /*args*/) {
-            if (m_nCurrentSession != nIndex) {
-                m_nCurrentSession = nIndex;
-                InitMessages();
-                //更新标题
-                ui::Label* pTitle = dynamic_cast<ui::Label*>(FindControl(_T("chat_title")));
-                if (pTitle != nullptr) {
-                    DString strTitle = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_CHAT_TITLE")).c_str();
-                    pTitle->SetText((strTitle + _T("  -  ") + m_sessions[nIndex].name).c_str());
-                }
-            }
+        pItem->AttachButtonUp([this, i](const ui::EventArgs& /*args*/) {
+            SelectSession(i);
+            return true;
+            });
+    }
+}
+
+void ChatForm::BindContactItems()
+{
+    //点击联系人即发起会话：已有同名会话时切过去，否则新建一个会话
+    for (size_t i = 0; i < m_contacts.size(); ++i) {
+        const DString strName = _T("contact_") + std::to_wstring(i + 1);
+        ui::HBox* pItem = dynamic_cast<ui::HBox*>(FindControl(strName.c_str()));
+        if (pItem == nullptr) {
+            continue;
+        }
+        const int nContactIndex = static_cast<int>(i);
+        pItem->AttachButtonUp([this, nContactIndex](const ui::EventArgs& /*args*/) {
+            StartChatWithContact(nContactIndex);
             return true;
             });
     }
@@ -148,7 +227,7 @@ void ChatForm::BindChatButtons()
             ui::RichEdit2* pEdit = dynamic_cast<ui::RichEdit2*>(FindControl(_T("input_edit")));
             if (pEdit != nullptr) {
                 const DString strText = pEdit->GetText().c_str();
-                const DString strEmoji = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_CHAT_MSG_EMOJI_SMILE")).c_str();
+                const DString strEmoji = GetLangText(_T("STRID_CHAT_MSG_EMOJI_SMILE"));
                 pEdit->SetText((strText + strEmoji).c_str());
                 pEdit->SetFocus();
             }
@@ -164,7 +243,6 @@ void ChatForm::BindChatButtons()
     };
     const ToolButton toolButtons[] = {
         {_T("btn_add_session"), _T("STRID_CHAT_TIP_NEW_SESSION")},
-        {_T("btn_search_icon"), _T("STRID_CHAT_TIP_SEARCH")},
         {_T("btn_chat_video"),  _T("STRID_CHAT_TIP_VIDEO")},
         {_T("btn_chat_phone"),  _T("STRID_CHAT_TIP_PHONE")},
         {_T("btn_chat_more"),   _T("STRID_CHAT_TIP_MORE")},
@@ -178,8 +256,37 @@ void ChatForm::BindChatButtons()
         }
         const DString strTipId = item.tipId;
         pBtn->AttachClick([this, strTipId](const ui::EventArgs& /*args*/) {
-            const DString strText = ui::GlobalManager::Instance().Lang().GetStringByID(strTipId).c_str();
-            ui::ToastWnd::Show(this, strText, ui::ToastWnd::kTypeInfo, 2000, ui::ToastWnd::kPosBottom);
+            ShowTip(strTipId);
+            return true;
+            });
+    }
+}
+
+void ChatForm::BindSearchBox()
+{
+    ui::RichEdit2* pSearch = dynamic_cast<ui::RichEdit2*>(FindControl(_T("search_edit")));
+    if (pSearch == nullptr) {
+        return;
+    }
+    //输入即过滤：会话与联系人按名称/预览做大小写不敏感匹配
+    pSearch->AttachTextChanged([this](const ui::EventArgs& /*args*/) {
+        ui::RichEdit2* pEdit = dynamic_cast<ui::RichEdit2*>(FindControl(_T("search_edit")));
+        if (pEdit != nullptr) {
+            const DString strText = pEdit->GetText().c_str();
+            const DString strTrim(ui::StringUtil::Trim(strText.c_str()).c_str());
+            m_strSearchKey = ToLower(strTrim.c_str());
+        }
+        RefreshSessionList();
+        RefreshContactList();
+        UpdateSearchEmptyTip();
+        return true;
+        });
+
+    //搜索图标：点击后把焦点交给搜索框
+    ui::Button* pIcon = dynamic_cast<ui::Button*>(FindControl(_T("btn_search_icon")));
+    if (pIcon != nullptr) {
+        pIcon->AttachClick([pSearch](const ui::EventArgs& /*args*/) {
+            pSearch->SetFocus();
             return true;
             });
     }
@@ -222,10 +329,8 @@ void ChatForm::OnSettingsMenuItemActivated(const DString& strMenuItemName)
         return;
     }
     if (strMenuItemName == _T("menu_new_chat")) {
-        SwitchNavTab(NavTab::kChats);
-        ui::ToastWnd::Show(this,
-            ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_CHAT_TIP_NEW_SESSION")),
-            ui::ToastWnd::kTypeInfo, 2000, ui::ToastWnd::kPosBottom);
+        SwitchNavTab(NavTab::kContacts);
+        ShowTip(_T("STRID_CHAT_TIP_NEW_SESSION"));
         return;
     }
     if (strMenuItemName == _T("menu_contacts")) {
@@ -233,9 +338,7 @@ void ChatForm::OnSettingsMenuItemActivated(const DString& strMenuItemName)
         return;
     }
     if (strMenuItemName == _T("menu_about")) {
-        ui::ToastWnd::Show(this,
-            ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_CHAT_TIP_ABOUT")),
-            ui::ToastWnd::kTypeInfo, 2500, ui::ToastWnd::kPosBottom);
+        ShowTip(_T("STRID_CHAT_TIP_ABOUT"));
         return;
     }
 }
@@ -285,7 +388,7 @@ void ChatForm::OnMessageClick(const ui::ChatMessageEvent& messageEvent)
         (messageEvent.status == ui::ChatMessageStatus::kFailed)) {
         //点击"发送失败，点击重试"：重新走一遍发送流程
         pMsgList->SetMessageStatus(messageEvent.id, ui::ChatMessageStatus::kSending);
-        SimulateSendStatus(messageEvent.id, false);
+        SimulateSendStatus(messageEvent.id, m_nCurrentSession, false);
         return;
     }
     if (messageEvent.hitArea == ui::ChatMessageHitArea::kAvatar) {
@@ -318,93 +421,121 @@ bool ChatForm::OnMessageRightClick(const ui::ChatMessageEvent& /*messageEvent*/)
 
 void ChatForm::ShowTip(const DString& strTextId)
 {
-    ui::ToastWnd::Show(this,
-        ui::GlobalManager::Instance().Lang().GetStringByID(strTextId),
-        ui::ToastWnd::kTypeInfo, 2000, ui::ToastWnd::kPosBottom);
+    ui::ToastWnd::Show(this, GetLangText(strTextId), ui::ToastWnd::kTypeInfo, 2000, ui::ToastWnd::kPosBottom);
 }
 
 void ChatForm::InitSessionData()
 {
-    auto getText = [](const DString& strId) -> DString {
-        return ui::GlobalManager::Instance().Lang().GetStringByID(strId);
-        };
-
+    //三个初始会话
+    m_sessions.clear();
     m_sessions.resize(3);
     for (size_t i = 0; i < m_sessions.size(); ++i) {
         const DString strIndex = std::to_wstring(i + 1).c_str();
-        m_sessions[i].name = getText(_T("STRID_CHAT_SESSION_NAME_") + strIndex);
-        m_sessions[i].time = getText(_T("STRID_CHAT_SESSION_TIME_") + strIndex);
-        m_sessions[i].preview = getText(_T("STRID_CHAT_SESSION_MSG_") + strIndex);
-        //头像文字取名称首字符，中英文都可用
-        m_sessions[i].avatarText = m_sessions[i].name.substr(0, 1);
-        m_sessions[i].unread = false;
+        ChatSession& session = m_sessions[i];
+        session.nameId = _T("STRID_CHAT_SESSION_NAME_") + strIndex;
+        session.timeId = _T("STRID_CHAT_SESSION_TIME_") + strIndex;
+        session.name = GetLangText(session.nameId).c_str();
+        session.time = GetLangText(session.timeId).c_str();
+        session.previewId = _T("STRID_CHAT_SESSION_MSG_") + strIndex;
+        session.preview = GetLangText(session.previewId).c_str();
+        session.avatarText = session.name.substr(0, 1);
+        session.unread = 0;
+        session.seeded = false;
+        session.history.clear();
     }
-    m_sessions[2].unread = true;
+    //第三个会话预置一条未读，用来演示未读角标
+    m_sessions[2].unread = 1;
+
+    //三个联系人（其中"王强"没有会话，用来演示点击联系人发起新会话）
+    m_contacts.clear();
+    m_contacts.resize(3);
+    for (size_t i = 0; i < m_contacts.size(); ++i) {
+        const DString strIndex = std::to_wstring(i + 1).c_str();
+        m_contacts[i].name = GetLangText(_T("STRID_CHAT_CONTACT_") + strIndex).c_str();
+        m_contacts[i].desc = GetLangText(_T("STRID_CHAT_CONTACT_") + strIndex + _T("_DESC")).c_str();
+        m_contacts[i].avatarText = m_contacts[i].name.substr(0, 1);
+    }
+    m_nCurrentSession = 0;
 }
 
 void ChatForm::RefreshSessionList()
 {
-    //把会话数据同步到列表控件（名称/时间/预览/头像）
-    for (size_t i = 0; i < m_sessions.size(); ++i) {
-        const size_t nIndex = i;
-        const DString strPrefix = _T("session_") + std::to_wstring(i + 1);
-        ui::Label* pName = dynamic_cast<ui::Label*>(FindControl((strPrefix + _T("_name")).c_str()));
+    for (int32_t i = 0; i < kSessionSlots; ++i) {
+        const DString strItemName = MakeSessionControlName(i, _T(""));
+        ui::HBox* pItem = dynamic_cast<ui::HBox*>(FindControl(strItemName.c_str()));
+        if (pItem == nullptr) {
+            continue;
+        }
+        const bool bHasSession = (i < static_cast<int32_t>(m_sessions.size()));
+        if (!bHasSession) {
+            //没有数据的槽位直接隐藏，不占布局空间
+            pItem->SetVisible(false);
+            continue;
+        }
+        ChatSession& session = m_sessions[i];
+        pItem->SetVisible(IsSessionMatchFilter(session));
+
+        ui::Label* pName = dynamic_cast<ui::Label*>(FindControl(MakeSessionControlName(i, _T("_name")).c_str()));
         if (pName != nullptr) {
-            pName->SetText(m_sessions[nIndex].name.c_str());
+            pName->SetText(session.name.c_str());
         }
-        ui::Label* pTime = dynamic_cast<ui::Label*>(FindControl((strPrefix + _T("_time")).c_str()));
+        ui::Label* pTime = dynamic_cast<ui::Label*>(FindControl(MakeSessionControlName(i, _T("_time")).c_str()));
         if (pTime != nullptr) {
-            pTime->SetText(m_sessions[nIndex].time.c_str());
+            pTime->SetText(session.time.c_str());
         }
-        ui::Label* pMsg = dynamic_cast<ui::Label*>(FindControl((strPrefix + _T("_msg")).c_str()));
+        ui::Label* pMsg = dynamic_cast<ui::Label*>(FindControl(MakeSessionControlName(i, _T("_msg")).c_str()));
         if (pMsg != nullptr) {
-            pMsg->SetText(m_sessions[nIndex].preview.c_str());
+            pMsg->SetText(session.preview.c_str());
         }
-        ui::Avatar* pAvatar = dynamic_cast<ui::Avatar*>(FindControl((strPrefix + _T("_avatar")).c_str()));
+        ui::Avatar* pAvatar = dynamic_cast<ui::Avatar*>(FindControl(MakeSessionControlName(i, _T("_avatar")).c_str()));
         if (pAvatar != nullptr) {
-            pAvatar->SetText(m_sessions[nIndex].avatarText.c_str());
+            pAvatar->SetText(session.avatarText.c_str());
+        }
+        ui::Badge* pBadge = dynamic_cast<ui::Badge*>(FindControl(MakeSessionControlName(i, _T("_badge")).c_str()));
+        if (pBadge != nullptr) {
+            //Badge 在数量 <= 0 时会自己隐藏，这里直接同步条数即可
+            pBadge->SetCount(session.unread);
         }
     }
 }
 
-void ChatForm::InitMessages()
+void ChatForm::RefreshContactList()
 {
-    ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(FindControl(_T("message_list")));
-    if (pMsgList == nullptr) {
-        return;
+    for (size_t i = 0; i < m_contacts.size(); ++i) {
+        const DString strName = _T("contact_") + std::to_wstring(i + 1);
+        ui::HBox* pItem = dynamic_cast<ui::HBox*>(FindControl(strName.c_str()));
+        if (pItem == nullptr) {
+            continue;
+        }
+        pItem->SetVisible(IsContactMatchFilter(m_contacts[i]));
     }
-    pMsgList->ClearMessages();
-    if (!IsCurrentSessionValid()) {
-        return;
-    }
-    const ChatSession& session = m_sessions[m_nCurrentSession];
-    const DString strTime = GetCurrentTimeText();
-    const DString strAvatarSelf = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_CHAT_AVATAR_SELF"));
-    auto getText = [](const DString& strId) -> DString {
-        return ui::GlobalManager::Instance().Lang().GetStringByID(strId);
-        };
+}
 
-    if (m_nCurrentSession == 0) {
-        pMsgList->AddMessage(ui::ChatMessageSide::kOther, getText(_T("STRID_CHAT_MSG_RECV_1")), session.avatarText, strTime);
-        //自己发出的消息带状态：演示"已读"
-        ui::ChatMessageList::Message sent;
-        sent.side = ui::ChatMessageSide::kSelf;
-        sent.status = ui::ChatMessageStatus::kRead;
-        sent.text = getText(_T("STRID_CHAT_MSG_SENT_1"));
-        sent.avatarText = strAvatarSelf;
-        sent.time = strTime;
-        pMsgList->AddMessage(sent);
-        pMsgList->AddMessage(ui::ChatMessageSide::kOther, getText(_T("STRID_CHAT_MSG_RECV_2")), session.avatarText, strTime);
+void ChatForm::UpdateSearchEmptyTip()
+{
+    bool bAnyMatch = true;
+    if (m_curNavTab == NavTab::kChats) {
+        bAnyMatch = false;
+        for (const ChatSession& session : m_sessions) {
+            if (IsSessionMatchFilter(session)) {
+                bAnyMatch = true;
+                break;
+            }
+        }
     }
-    else if (m_nCurrentSession == 1) {
-        pMsgList->AddMessage(ui::ChatMessageSide::kOther, getText(_T("STRID_CHAT_MSG_RECV_3")), session.avatarText, strTime);
-        pMsgList->AddMessage(ui::ChatMessageSide::kSystem, getText(_T("STRID_CHAT_MSG_SYSTEM_1")), _T(""), _T(""));
+    else if (m_curNavTab == NavTab::kContacts) {
+        bAnyMatch = false;
+        for (const ChatContact& contact : m_contacts) {
+            if (IsContactMatchFilter(contact)) {
+                bAnyMatch = true;
+                break;
+            }
+        }
     }
-    else {
-        pMsgList->AddMessage(ui::ChatMessageSide::kOther, getText(_T("STRID_CHAT_MSG_RECV_4")), session.avatarText, strTime);
-        pMsgList->AddMessage(ui::ChatMessageSide::kSelf, getText(_T("STRID_CHAT_MSG_SENT_2")), strAvatarSelf, strTime);
+    ui::Label* pTip = dynamic_cast<ui::Label*>(FindControl(_T("search_empty")));
+    if (pTip != nullptr) {
+        pTip->SetVisible(!m_strSearchKey.empty() && !bAnyMatch);
     }
-    pMsgList->ScrollToBottom();
 }
 
 void ChatForm::SwitchNavTab(NavTab tab)
@@ -448,7 +579,258 @@ void ChatForm::UpdatePanelVisibility()
         const int nIndex = static_cast<int>(m_curNavTab);
         pPanelTitle->SetTextId(titleIds[nIndex]);
     }
+    //过滤结果为空时的提示只在"会话/联系人"两个栏目有意义
+    UpdateSearchEmptyTip();
+}
 
+void ChatForm::SelectSession(int nSessionIndex)
+{
+    if ((nSessionIndex < 0) || (nSessionIndex >= static_cast<int>(m_sessions.size()))) {
+        return;
+    }
+    //切换前把当前视图的消息存回历史，否则切回来时会丢失
+    if (IsCurrentSessionValid()) {
+        SaveSessionMessages(m_nCurrentSession);
+    }
+    m_nCurrentSession = nSessionIndex;
+
+    //进入会话即视为已读
+    m_sessions[nSessionIndex].unread = 0;
+    LoadSessionMessages(nSessionIndex);
+    RefreshSessionList();
+
+    //更新标题栏
+    UpdateChatTitle();
+}
+
+void ChatForm::UpdateChatTitle()
+{
+    ui::Label* pTitle = dynamic_cast<ui::Label*>(FindControl(_T("chat_title")));
+    if (pTitle == nullptr) {
+        return;
+    }
+    //标题由两部分组成，两部分都来自多语言资源，切换语言后需要整体重建
+    DString strTitle = GetLangText(_T("STRID_CHAT_TITLE"));
+    if (IsCurrentSessionValid()) {
+        strTitle += _T("  -  ");
+        strTitle += m_sessions[m_nCurrentSession].name.c_str();
+    }
+    pTitle->SetText(strTitle.c_str());
+}
+
+void ChatForm::EnsureSessionSeeded(int nSessionIndex)
+{
+    if ((nSessionIndex < 0) || (nSessionIndex >= static_cast<int>(m_sessions.size()))) {
+        return;
+    }
+    ChatSession& session = m_sessions[nSessionIndex];
+    if (session.seeded) {
+        return;
+    }
+    session.seeded = true;
+
+    //初始消息全部来自多语言资源，记下资源 id 以便切换语言时重建
+    auto addMessage = [&session](ui::ChatMessageSide side, const DString& strTextId,
+                                 ui::ChatMessageStatus status) {
+        ChatMessage chatMessage;
+        chatMessage.textId = strTextId;
+        chatMessage.message.side = side;
+        chatMessage.message.type = (side == ui::ChatMessageSide::kSystem) ? ui::ChatMessageType::kSystem
+                                                                        : ui::ChatMessageType::kText;
+        chatMessage.message.text = GetLangText(strTextId);
+        chatMessage.timeId = session.timeId;
+        chatMessage.message.avatarText = (side == ui::ChatMessageSide::kSelf)
+                                         ? GetLangText(_T("STRID_CHAT_AVATAR_SELF"))
+                                         : DString(session.avatarText.c_str());
+        chatMessage.message.time = DString(session.time.c_str());
+        chatMessage.message.status = status;
+        session.history.push_back(chatMessage);
+        };
+
+    if (nSessionIndex == 0) {
+        addMessage(ui::ChatMessageSide::kOther, _T("STRID_CHAT_MSG_RECV_1"), ui::ChatMessageStatus::kNone);
+        //自己发出的消息带状态：演示"已读"
+        addMessage(ui::ChatMessageSide::kSelf, _T("STRID_CHAT_MSG_SENT_1"), ui::ChatMessageStatus::kRead);
+        addMessage(ui::ChatMessageSide::kOther, _T("STRID_CHAT_MSG_RECV_2"), ui::ChatMessageStatus::kNone);
+    }
+    else if (nSessionIndex == 1) {
+        addMessage(ui::ChatMessageSide::kOther, _T("STRID_CHAT_MSG_RECV_3"), ui::ChatMessageStatus::kNone);
+        addMessage(ui::ChatMessageSide::kSystem, _T("STRID_CHAT_MSG_SYSTEM_1"), ui::ChatMessageStatus::kNone);
+    }
+    else if (nSessionIndex == 2) {
+        addMessage(ui::ChatMessageSide::kOther, _T("STRID_CHAT_MSG_RECV_4"), ui::ChatMessageStatus::kNone);
+        addMessage(ui::ChatMessageSide::kSelf, _T("STRID_CHAT_MSG_SENT_2"), ui::ChatMessageStatus::kNone);
+    }
+    else {
+        //由联系人新建的会话：先给一条系统提示，避免空白页
+        addMessage(ui::ChatMessageSide::kSystem, _T("STRID_CHAT_MSG_SESSION_START"), ui::ChatMessageStatus::kNone);
+    }
+
+    //种子消息生成后，预览与"最后一条消息"保持一致：
+    //预览的取值规则只有一条（最后一条消息），切换语言前后才不会变样。
+    if (!session.history.empty()) {
+        session.preview = session.history.back().message.text.c_str();
+    }
+}
+
+void ChatForm::LoadSessionMessages(int nSessionIndex)
+{
+    ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(FindControl(_T("message_list")));
+    if (pMsgList == nullptr) {
+        return;
+    }
+    pMsgList->ClearMessages();
+    if ((nSessionIndex < 0) || (nSessionIndex >= static_cast<int>(m_sessions.size()))) {
+        return;
+    }
+    EnsureSessionSeeded(nSessionIndex);
+
+    //把会话历史逐条放回消息列表：消息 id 与状态都会保留
+    for (const ChatMessage& chatMessage : m_sessions[nSessionIndex].history) {
+        pMsgList->AddMessage(chatMessage.message);
+    }
+    pMsgList->ScrollToBottom();
+}
+
+void ChatForm::SaveSessionMessages(int nSessionIndex)
+{
+    ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(FindControl(_T("message_list")));
+    if ((pMsgList == nullptr) || (nSessionIndex < 0) ||
+        (nSessionIndex >= static_cast<int>(m_sessions.size()))) {
+        return;
+    }
+    ChatSession& session = m_sessions[nSessionIndex];
+
+    //消息列表与历史按顺序一一对应（只会追加，不会插入或删除），
+    //因此下标对齐即可把视图快照存回历史，同时保留每条消息的文案资源 id。
+    //视图为空时不覆盖历史，避免把尚未加载出来的内容清掉。
+    const size_t nCount = pMsgList->GetMessageCount();
+    if (nCount == 0) {
+        return;
+    }
+    std::vector<ChatMessage> history;
+    history.reserve(nCount);
+    for (size_t i = 0; i < nCount; ++i) {
+        const ui::ChatMessageList::Message* pMessage = pMsgList->GetMessageAt(i);
+        if (pMessage == nullptr) {
+            continue;
+        }
+        ChatMessage chatMessage;
+        chatMessage.message = *pMessage;
+        if (i < session.history.size()) {
+            chatMessage.textId = session.history[i].textId;
+            chatMessage.timeId = session.history[i].timeId;
+        }
+        history.push_back(chatMessage);
+    }
+    session.history = history;
+}
+
+int64_t ChatForm::AppendMessageToSession(int nSessionIndex, ui::ChatMessageSide side, const DString& strText,
+                                         const DString& strAvatarText, const DString& strTextId,
+                                         ui::ChatMessageStatus status)
+{
+    if ((nSessionIndex < 0) || (nSessionIndex >= static_cast<int>(m_sessions.size()))) {
+        return 0;
+    }
+    EnsureSessionSeeded(nSessionIndex);
+
+    ChatMessage chatMessage;
+    chatMessage.textId = strTextId;
+    chatMessage.message.side = side;
+    chatMessage.message.type = (side == ui::ChatMessageSide::kSystem) ? ui::ChatMessageType::kSystem
+                                                                     : ui::ChatMessageType::kText;
+    chatMessage.message.text = strText;
+    chatMessage.message.avatarText = strAvatarText;
+    chatMessage.message.time = GetCurrentTimeText();
+    chatMessage.message.status = status;
+
+    int64_t nMessageId = 0;
+    if (nSessionIndex == m_nCurrentSession) {
+        //当前会话：直接追加到消息列表，用户马上能看到
+        ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(FindControl(_T("message_list")));
+        if (pMsgList != nullptr) {
+            nMessageId = pMsgList->AddMessage(chatMessage.message);
+            chatMessage.message.id = nMessageId;
+        }
+    }
+    m_sessions[nSessionIndex].history.push_back(chatMessage);
+
+    //更新会话预览/时间，并刷新列表（非当前会话的未读角标也在这里更新）
+    UpdateSessionPreview(nSessionIndex, strText);
+    return nMessageId;
+}
+
+int64_t ChatForm::AppendMessage(ui::ChatMessageSide side, const DString& strText, const DString& strAvatarText,
+                                const DString& strTextId)
+{
+    return AppendMessageToSession(m_nCurrentSession, side, strText, strAvatarText, strTextId);
+}
+
+void ChatForm::SetHistoryMessageStatus(int nSessionIndex, int64_t nMessageId, ui::ChatMessageStatus status)
+{
+    if ((nSessionIndex < 0) || (nSessionIndex >= static_cast<int>(m_sessions.size())) || (nMessageId == 0)) {
+        return;
+    }
+    for (ChatMessage& chatMessage : m_sessions[nSessionIndex].history) {
+        if (chatMessage.message.id == nMessageId) {
+            chatMessage.message.status = status;
+            return;
+        }
+    }
+}
+
+void ChatForm::StartChatWithContact(int nContactIndex)
+{
+    if ((nContactIndex < 0) || (nContactIndex >= static_cast<int>(m_contacts.size()))) {
+        return;
+    }
+    const ChatContact contact = m_contacts[nContactIndex];
+
+    int nSessionIndex = FindSessionByName(contact.name);
+    if (nSessionIndex < 0) {
+        nSessionIndex = AllocateSessionSlot();
+        if (nSessionIndex < 0) {
+            ShowTip(_T("STRID_CHAT_TIP_NO_SESSION_SLOT"));
+            return;
+        }
+        ChatSession session;
+        session.name = contact.name;
+        session.avatarText = contact.avatarText;
+        session.nameId = _T("STRID_CHAT_CONTACT_") + std::to_wstring(nContactIndex + 1);
+        session.time = GetCurrentTimeText();
+        session.unread = 0;
+        session.seeded = false;
+        if (nSessionIndex < static_cast<int>(m_sessions.size())) {
+            m_sessions[nSessionIndex] = session;
+        }
+        else {
+            m_sessions.push_back(session);
+        }
+        ShowTip(_T("STRID_CHAT_TIP_START_CHAT"));
+    }
+
+    //发起会话后切到"会话"栏目，并选中该会话
+    SwitchNavTab(NavTab::kChats);
+    SelectSession(nSessionIndex);
+    RefreshSessionList();
+}
+
+int ChatForm::FindSessionByName(const std::wstring& strName) const
+{
+    for (size_t i = 0; i < m_sessions.size(); ++i) {
+        if (m_sessions[i].name == strName) {
+            return static_cast<int>(i);
+        }
+    }
+    return -1;
+}
+
+int ChatForm::AllocateSessionSlot()
+{
+    //会话在 vector 中始终是连续的，下一个空位就是 size()，同时受 XML 槽位数限制
+    const int nIndex = static_cast<int>(m_sessions.size());
+    return (nIndex < kSessionSlots) ? nIndex : -1;
 }
 
 void ChatForm::SendInputMessage()
@@ -464,20 +846,15 @@ void ChatForm::SendInputMessage()
     if (strContent.empty()) {
         return;
     }
-
-    ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(FindControl(_T("message_list")));
-    int64_t nMessageId = 0;
-    if (pMsgList != nullptr) {
-        //新消息先以"发送中"状态插入，随后由 SimulateSendStatus 推进状态
-        ui::ChatMessageList::Message message;
-        message.side = ui::ChatMessageSide::kSelf;
-        message.status = ui::ChatMessageStatus::kSending;
-        message.text = strContent;
-        message.avatarText = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_CHAT_AVATAR_SELF"));
-        message.time = GetCurrentTimeText();
-        nMessageId = pMsgList->AddMessage(message);
+    if (!IsCurrentSessionValid()) {
+        return;
     }
-    UpdateSessionPreview(strContent);
+
+    //新消息先以"发送中"状态插入，随后由 SimulateSendStatus 推进状态
+    const int nSessionIndex = m_nCurrentSession;
+    const int64_t nMessageId = AppendMessageToSession(
+        nSessionIndex, ui::ChatMessageSide::kSelf, strContent,
+        GetLangText(_T("STRID_CHAT_AVATAR_SELF")), DString(), ui::ChatMessageStatus::kSending);
 
     //清空输入框
     pInput->SetText(_T(""));
@@ -485,94 +862,98 @@ void ChatForm::SendInputMessage()
 
     //以 /fail 开头的文本用于演示"发送失败 + 点击重试"
     const bool bFail = (strContent.size() >= 5) && (strContent.substr(0, 5) == _T("/fail"));
-    SimulateSendStatus(nMessageId, bFail);
+    SimulateSendStatus(nMessageId, nSessionIndex, bFail);
 
     //模拟对方稍后回复
-    SimulateReply();
+    SimulateReply(nSessionIndex);
 }
 
-int64_t ChatForm::AppendMessage(ui::ChatMessageSide side, const DString& strText, const DString& strAvatarText)
-{
-    ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(FindControl(_T("message_list")));
-    if (pMsgList == nullptr) {
-        return 0;
-    }
-    return pMsgList->AddMessage(side, strText, strAvatarText, GetCurrentTimeText());
-}
-
-void ChatForm::SimulateSendStatus(int64_t nMessageId, bool bFail)
+void ChatForm::SimulateSendStatus(int64_t nMessageId, int nSessionIndex, bool bFail)
 {
     if (nMessageId == 0) {
         return;
     }
     //延时模拟发送过程：先"发送中"，随后变为"已送达"或"发送失败"，已送达后再变"已读"
     ChatForm* pThis = this;
-    ui::GlobalManager::Instance().Thread().PostDelayedTask(ui::kThreadUI, [pThis, nMessageId, bFail]() {
+    ui::GlobalManager::Instance().Thread().PostDelayedTask(ui::kThreadUI,
+        [pThis, nMessageId, nSessionIndex, bFail]() {
         //延时任务执行时窗口可能已被关闭，此时不能再操作控件
         if ((pThis == nullptr) || pThis->IsClosingWnd()) {
             return;
         }
-        ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(pThis->FindControl(_T("message_list")));
-        if (pMsgList == nullptr) {
-            return;
+        const ui::ChatMessageStatus status = bFail ? ui::ChatMessageStatus::kFailed
+                                                   : ui::ChatMessageStatus::kDelivered;
+        if (pThis->m_nCurrentSession == nSessionIndex) {
+            ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(
+                pThis->FindControl(_T("message_list")));
+            if (pMsgList != nullptr) {
+                pMsgList->SetMessageStatus(nMessageId, status);
+            }
         }
-        pMsgList->SetMessageStatus(nMessageId, bFail ? ui::ChatMessageStatus::kFailed
-                                                     : ui::ChatMessageStatus::kDelivered);
+        else {
+            //用户已经切到别的会话：状态只更新数据，等切回来时再显示
+            pThis->SetHistoryMessageStatus(nSessionIndex, nMessageId, status);
+        }
         if (bFail) {
             return;
         }
-        ui::GlobalManager::Instance().Thread().PostDelayedTask(ui::kThreadUI, [pThis, nMessageId]() {
+        ui::GlobalManager::Instance().Thread().PostDelayedTask(ui::kThreadUI,
+            [pThis, nMessageId, nSessionIndex]() {
             if ((pThis == nullptr) || pThis->IsClosingWnd()) {
                 return;
             }
-            ui::ChatMessageList* pList = dynamic_cast<ui::ChatMessageList*>(pThis->FindControl(_T("message_list")));
-            if (pList != nullptr) {
-                pList->SetMessageStatus(nMessageId, ui::ChatMessageStatus::kRead);
+            if (pThis->m_nCurrentSession == nSessionIndex) {
+                ui::ChatMessageList* pList = dynamic_cast<ui::ChatMessageList*>(
+                    pThis->FindControl(_T("message_list")));
+                if (pList != nullptr) {
+                    pList->SetMessageStatus(nMessageId, ui::ChatMessageStatus::kRead);
+                }
+            }
+            else {
+                pThis->SetHistoryMessageStatus(nSessionIndex, nMessageId, ui::ChatMessageStatus::kRead);
             }
             }, 1400);
         }, 700);
 }
 
-void ChatForm::SimulateReply()
+void ChatForm::SimulateReply(int nSessionIndex)
 {
-    if (!IsCurrentSessionValid()) {
+    if ((nSessionIndex < 0) || (nSessionIndex >= static_cast<int>(m_sessions.size()))) {
         return;
     }
-    const ChatSession& session = m_sessions[m_nCurrentSession];
     //延时1.5秒后回复，模拟真实聊天节奏
     //本类继承自 ui::Window，this 即为窗口对象
     ChatForm* pThis = this;
-    const DString strAvatar = session.avatarText;
-    ui::GlobalManager::Instance().Thread().PostDelayedTask(ui::kThreadUI, [pThis, strAvatar]() {
+    ui::GlobalManager::Instance().Thread().PostDelayedTask(ui::kThreadUI, [pThis, nSessionIndex]() {
         //延时任务执行时窗口可能已被关闭，此时不能再操作控件
         if ((pThis == nullptr) || pThis->IsClosingWnd()) {
             return;
         }
+        if ((nSessionIndex < 0) || (nSessionIndex >= static_cast<int>(pThis->m_sessions.size()))) {
+            return;
+        }
         //回复文案走多语言资源：取文案放在延时任务里，保证切换语言后回复也用当前语言
-        const DString strReply = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_CHAT_MSG_REPLY_AUTO")).c_str();
-        pThis->AppendMessage(ui::ChatMessageSide::kOther, strReply, strAvatar);
+        const DString strTextId(_T("STRID_CHAT_MSG_REPLY_AUTO"));
+        const DString strReply = GetLangText(strTextId);
+        const DString strAvatar(pThis->m_sessions[nSessionIndex].avatarText.c_str());
+        pThis->AppendMessageToSession(nSessionIndex, ui::ChatMessageSide::kOther, strReply, strAvatar, strTextId);
+
+        //用户已经切到别的会话：这条回复计入该会话的未读数（会话列表出现角标）
+        if (pThis->m_nCurrentSession != nSessionIndex) {
+            ++pThis->m_sessions[nSessionIndex].unread;
+            pThis->RefreshSessionList();
+        }
         }, 1500);
 }
 
-void ChatForm::UpdateSessionPreview(const DString& strText)
+void ChatForm::UpdateSessionPreview(int nSessionIndex, const DString& strText)
 {
-    if (!IsCurrentSessionValid()) {
+    if ((nSessionIndex < 0) || (nSessionIndex >= static_cast<int>(m_sessions.size()))) {
         return;
     }
-    m_sessions[m_nCurrentSession].preview = strText;
-    m_sessions[m_nCurrentSession].time = GetCurrentTimeText();
-
-    //更新会话列表中对应条目的预览文本
-    const DString strName = _T("session_") + std::to_wstring(m_nCurrentSession + 1) + _T("_msg");
-    ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(strName.c_str()));
-    if (pLabel != nullptr) {
-        pLabel->SetText(strText.c_str());
-    }
-    const DString strTimeName = _T("session_") + std::to_wstring(m_nCurrentSession + 1) + _T("_time");
-    ui::Label* pTimeLabel = dynamic_cast<ui::Label*>(FindControl(strTimeName.c_str()));
-    if (pTimeLabel != nullptr) {
-        pTimeLabel->SetText(m_sessions[m_nCurrentSession].time.c_str());
-    }
+    m_sessions[nSessionIndex].preview = strText.c_str();
+    m_sessions[nSessionIndex].time = GetCurrentTimeText().c_str();
+    RefreshSessionList();
 }
 
 DString ChatForm::GetCurrentTimeText() const
@@ -587,5 +968,32 @@ DString ChatForm::GetCurrentTimeText() const
 
 bool ChatForm::IsCurrentSessionValid() const
 {
-    return (m_nCurrentSession >= 0) && (m_nCurrentSession < (int)m_sessions.size());
+    return (m_nCurrentSession >= 0) && (m_nCurrentSession < static_cast<int>(m_sessions.size()));
+}
+
+bool ChatForm::IsSessionMatchFilter(const ChatSession& session) const
+{
+    if (m_strSearchKey.empty()) {
+        return true;
+    }
+    return ContainsNoCase(session.name, m_strSearchKey) || ContainsNoCase(session.preview, m_strSearchKey);
+}
+
+bool ChatForm::IsContactMatchFilter(const ChatContact& contact) const
+{
+    if (m_strSearchKey.empty()) {
+        return true;
+    }
+    return ContainsNoCase(contact.name, m_strSearchKey) || ContainsNoCase(contact.desc, m_strSearchKey);
+}
+
+void ChatForm::ApplyMessageText(ChatMessage& chatMessage) const
+{
+    if (!chatMessage.textId.empty()) {
+        chatMessage.message.text = GetLangText(chatMessage.textId);
+    }
+    //时间戳也可能带语言成分（如"上午 10:24"），同样按新语言重建
+    if (!chatMessage.timeId.empty()) {
+        chatMessage.message.time = GetLangText(chatMessage.timeId);
+    }
 }

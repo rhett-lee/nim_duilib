@@ -96,7 +96,7 @@
                     <Box width="stretch" height="32" bkcolor="bg_container" border_round="16,16,16,16"
                          border_size="1" border_color="border_control_normal">
                         <Button class="btn_chat_tool" name="btn_search_icon" width="16" height="16"
-                                margin="12,0,0,0" valign="center" mouse_enabled="false" no_focus="true"
+                                margin="12,0,0,0" valign="center" no_focus="true"
                                 normal_image="file='glass_icon_search.svg' width='16' height='16' valign='center' halign='center' svg_replace_colors='#51657E|border_svg_image'"/>
                         <RichEdit2 class="simple prompt" name="search_edit" width="stretch" height="stretch"
                                   font="system_regular_14" text_padding="8,0,10,0" valign="center"
@@ -104,50 +104,77 @@
                     </Box>
                 </HBox>
 
+                <!-- 搜索无结果提示：默认隐藏，由代码按过滤结果显示 -->
+                <Label name="search_empty" width="stretch" height="auto" margin="16,10,16,0" visible="false"
+                       font="system_regular_13" text_align="left,vcenter" text_color="text_muted"
+                       text_id="STRID_CHAT_SEARCH_EMPTY" mouse_enabled="false"/>
+
                 <!-- 面板一：会话列表 -->
                 <!-- 三个面板由 TabBox 承载，切换时框架自动重排 -->
                 <TabBox name="panel_box" width="stretch" height="stretch">
                 <VBox name="panel_chats" width="stretch" height="stretch">
                     <HBox class="chat_session_item" name="session_1" width="stretch" height="auto" padding="12,10,12,10">
                         <Avatar class="avatar_large" name="session_1_avatar" text="张" valign="center" mouse_enabled="false"/>
-                        <VBox width="stretch" height="auto" margin="10,0,0,0">
+                        <VBox width="stretch" height="auto" margin="10,0,0,0" mouse_enabled="false">
                             <HBox height="20" mouse_enabled="false">
                                 <Label name="session_1_name" width="stretch" font="system_bold_14"
                                        text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
                                 <Label name="session_1_time" width="auto" font="system_regular_12"
                                        text_align="right,vcenter" text_color="text_muted" mouse_enabled="false"/>
                             </HBox>
-                            <Label name="session_1_msg" width="stretch" height="auto"
-                                   margin="0,3,0,0" font="system_regular_12" text_align="left,vcenter"
-                                   text_color="text_muted" mouse_enabled="false"/>
+                            <HBox height="auto" margin="0,3,0,0" mouse_enabled="false">
+                                <Label name="session_1_msg" width="stretch" height="auto" font="system_regular_12"
+                                       text_align="left,vcenter" text_color="text_muted" mouse_enabled="false"/>
+                                <Badge class="badge" name="session_1_badge" count="0" margin="6,0,0,0"/>
+                            </HBox>
                         </VBox>
                     </HBox>
                     <HBox class="chat_session_item" name="session_2" width="stretch" height="auto" padding="12,10,12,10">
                         <Avatar class="avatar_large" name="session_2_avatar" text="设" valign="center" mouse_enabled="false"/>
-                        <VBox width="stretch" height="auto" margin="10,0,0,0">
+                        <VBox width="stretch" height="auto" margin="10,0,0,0" mouse_enabled="false">
                             <HBox height="20" mouse_enabled="false">
                                 <Label name="session_2_name" width="stretch" font="system_bold_14"
                                        text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
                                 <Label name="session_2_time" width="auto" font="system_regular_12"
                                        text_align="right,vcenter" text_color="text_muted" mouse_enabled="false"/>
                             </HBox>
-                            <Label name="session_2_msg" width="stretch" height="auto"
-                                   margin="0,3,0,0" font="system_regular_12" text_align="left,vcenter"
-                                   text_color="text_muted" mouse_enabled="false"/>
+                            <HBox height="auto" margin="0,3,0,0" mouse_enabled="false">
+                                <Label name="session_2_msg" width="stretch" height="auto" font="system_regular_12"
+                                       text_align="left,vcenter" text_color="text_muted" mouse_enabled="false"/>
+                                <Badge class="badge" name="session_2_badge" count="0" margin="6,0,0,0"/>
+                            </HBox>
                         </VBox>
                     </HBox>
                     <HBox class="chat_session_item" name="session_3" width="stretch" height="auto" padding="12,10,12,10">
                         <Avatar class="avatar_large" name="session_3_avatar" text="李" valign="center" mouse_enabled="false"/>
-                        <VBox width="stretch" height="auto" margin="10,0,0,0">
+                        <VBox width="stretch" height="auto" margin="10,0,0,0" mouse_enabled="false">
                             <HBox height="20" mouse_enabled="false">
                                 <Label name="session_3_name" width="stretch" font="system_bold_14"
                                        text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
                                 <Label name="session_3_time" width="auto" font="system_regular_12"
                                        text_align="right,vcenter" text_color="text_muted" mouse_enabled="false"/>
                             </HBox>
-                            <Label name="session_3_msg" width="stretch" height="auto"
-                                   margin="0,3,0,0" font="system_regular_12" text_align="left,vcenter"
-                                   text_color="text_muted" mouse_enabled="false"/>
+                            <HBox height="auto" margin="0,3,0,0" mouse_enabled="false">
+                                <Label name="session_3_msg" width="stretch" height="auto" font="system_regular_12"
+                                       text_align="left,vcenter" text_color="text_muted" mouse_enabled="false"/>
+                                <Badge class="badge" name="session_3_badge" count="0" margin="6,0,0,0"/>
+                            </HBox>
+                        </VBox>
+                    </HBox>
+                    <HBox class="chat_session_item" name="session_4" width="stretch" height="auto" padding="12,10,12,10" visible="false">
+                        <Avatar class="avatar_large" name="session_4_avatar" text="新" valign="center" mouse_enabled="false"/>
+                        <VBox width="stretch" height="auto" margin="10,0,0,0" mouse_enabled="false">
+                            <HBox height="20" mouse_enabled="false">
+                                <Label name="session_4_name" width="stretch" font="system_bold_14"
+                                       text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
+                                <Label name="session_4_time" width="auto" font="system_regular_12"
+                                       text_align="right,vcenter" text_color="text_muted" mouse_enabled="false"/>
+                            </HBox>
+                            <HBox height="auto" margin="0,3,0,0" mouse_enabled="false">
+                                <Label name="session_4_msg" width="stretch" height="auto" font="system_regular_12"
+                                       text_align="left,vcenter" text_color="text_muted" mouse_enabled="false"/>
+                                <Badge class="badge" name="session_4_badge" count="0" margin="6,0,0,0"/>
+                            </HBox>
                         </VBox>
                     </HBox>
                 </VBox>
@@ -156,7 +183,7 @@
                 <VBox name="panel_contacts" width="stretch" height="stretch">
                     <HBox class="chat_session_item" name="contact_1" width="stretch" height="auto" padding="12,10,12,10">
                         <Avatar class="avatar_large" name="contact_1_avatar" text="张" valign="center" mouse_enabled="false"/>
-                        <VBox width="stretch" height="auto" margin="10,0,0,0">
+                        <VBox width="stretch" height="auto" margin="10,0,0,0" mouse_enabled="false">
                             <Label text_id="STRID_CHAT_CONTACT_1" width="stretch" font="system_bold_14"
                                    text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
                             <Label text_id="STRID_CHAT_CONTACT_1_DESC" width="stretch" height="auto"
@@ -166,7 +193,7 @@
                     </HBox>
                     <HBox class="chat_session_item" name="contact_2" width="stretch" height="auto" padding="12,10,12,10">
                         <Avatar class="avatar_large" name="contact_2_avatar" text="李" valign="center" mouse_enabled="false"/>
-                        <VBox width="stretch" height="auto" margin="10,0,0,0">
+                        <VBox width="stretch" height="auto" margin="10,0,0,0" mouse_enabled="false">
                             <Label text_id="STRID_CHAT_CONTACT_2" width="stretch" font="system_bold_14"
                                    text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
                             <Label text_id="STRID_CHAT_CONTACT_2_DESC" width="stretch" height="auto"
@@ -176,7 +203,7 @@
                     </HBox>
                     <HBox class="chat_session_item" name="contact_3" width="stretch" height="auto" padding="12,10,12,10">
                         <Avatar class="avatar_large" name="contact_3_avatar" text="王" valign="center" mouse_enabled="false"/>
-                        <VBox width="stretch" height="auto" margin="10,0,0,0">
+                        <VBox width="stretch" height="auto" margin="10,0,0,0" mouse_enabled="false">
                             <Label text_id="STRID_CHAT_CONTACT_3" width="stretch" font="system_bold_14"
                                    text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
                             <Label text_id="STRID_CHAT_CONTACT_3_DESC" width="stretch" height="auto"
@@ -190,7 +217,7 @@
                 <VBox name="panel_favorites" width="stretch" height="stretch">
                     <HBox class="chat_session_item" name="favorite_1" width="stretch" height="auto" padding="12,10,12,10">
                         <Avatar class="avatar_large" name="favorite_1_avatar" text="设" valign="center" mouse_enabled="false"/>
-                        <VBox width="stretch" height="auto" margin="10,0,0,0">
+                        <VBox width="stretch" height="auto" margin="10,0,0,0" mouse_enabled="false">
                             <Label text_id="STRID_CHAT_FAVORITE_1" width="stretch" font="system_bold_14"
                                    text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
                             <Label text_id="STRID_CHAT_FAVORITE_1_DESC" width="stretch" height="auto"
@@ -200,7 +227,7 @@
                     </HBox>
                     <HBox class="chat_session_item" name="favorite_2" width="stretch" height="auto" padding="12,10,12,10">
                         <Avatar class="avatar_large" name="favorite_2_avatar" text="文" valign="center" mouse_enabled="false"/>
-                        <VBox width="stretch" height="auto" margin="10,0,0,0">
+                        <VBox width="stretch" height="auto" margin="10,0,0,0" mouse_enabled="false">
                             <Label text_id="STRID_CHAT_FAVORITE_2" width="stretch" font="system_bold_14"
                                    text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
                             <Label text_id="STRID_CHAT_FAVORITE_2_DESC" width="stretch" height="auto"

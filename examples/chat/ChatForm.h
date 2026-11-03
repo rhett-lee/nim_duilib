@@ -7,21 +7,51 @@
 #include <string>
 #include <vector>
 
-/** 聊天会话数据
+/** 会话中的一条消息
+ *
+ *  除消息本身外还记录文案的资源 id：文案来自多语言资源时，切换语言可以重新取值，
+ *  这样"按会话保存的历史"不会因为切换语言而变成另一种语言的残留。
+*/
+struct ChatMessage
+{
+    ui::ChatMessageList::Message message;   //消息内容
+    DString textId;                         //文案的资源 id（为空表示不可翻译）
+    DString timeId;                         //时间戳的资源 id（为空表示时间不随语言变化）
+};
+
+/** 聊天会话数据（含完整消息历史）
 */
 struct ChatSession
 {
-    std::wstring name;        //会话名称
-    std::wstring avatarText;  //头像文字
-    std::wstring preview;     //最后一条消息预览
-    std::wstring time;        //时间
-    bool unread = false;      //是否有未读消息
+    std::wstring name;                      //会话名称
+    std::wstring avatarText;                //头像文字
+    std::wstring preview;                   //最后一条消息预览
+    std::wstring time;                      //时间
+    DString nameId;                         //名称的资源 id（为空表示名称不随语言变化）
+    DString timeId;                         //时间的资源 id（为空表示时间固定）
+    DString previewId;                      //预览的资源 id（会话尚未生成消息时用）
+    int32_t unread = 0;                     //未读消息条数（0 表示不显示角标）
+    bool seeded = false;                    //初始消息是否已经生成
+    std::vector<ChatMessage> history;       //会话消息历史
+};
+
+/** 联系人数据
+*/
+struct ChatContact
+{
+    std::wstring name;                      //联系人名称
+    std::wstring desc;                      //描述
+    std::wstring avatarText;                //头像文字
 };
 
 /** 聊天主窗口（模拟 PC 版 IM 客户端）
  *
  *  界面结构：左侧导航栏 + 中间列表面板（会话/联系人/收藏可切换） + 右侧聊天区。
  *  消息区使用框架的 ChatMessageList 控件，支持动态追加消息、气泡左右分栏、自动滚动到底部。
+ *
+ *  数据流：会话数据（ChatSession::history）是唯一数据源，消息列表只是它的视图：
+ *  切换会话时先把视图内容存回历史，再把目标会话的历史加载进去，因此每个会话的
+ *  消息、发送状态都会保留；联系人点击可发起会话，会话列表顶部的搜索框按名称/预览过滤。
 */
 class ChatForm : public ui::WindowImplBase
 {
@@ -61,13 +91,21 @@ private:
     */
     void BindNavButtons();
 
-    /** 绑定会话条目
+    /** 绑定会话条目（点击切换会话）
     */
     void BindSessionItems();
+
+    /** 绑定联系人条目（点击发起会话）
+    */
+    void BindContactItems();
 
     /** 绑定聊天区按钮
     */
     void BindChatButtons();
+
+    /** 绑定会话列表顶部的搜索框（输入即过滤）
+    */
+    void BindSearchBox();
 
     /** 绑定消息列表的右键菜单（复制/全选）
     */
@@ -89,7 +127,7 @@ private:
     */
     bool OnMessageRightClick(const ui::ChatMessageEvent& messageEvent);
 
-    /** 初始化会话数据（文案来自多语言资源，切换语言后需要重新调用）
+    /** 初始化会话与联系人数据（文案来自多语言资源，切换语言后需要重新调用）
     */
     void InitSessionData();
 
@@ -113,15 +151,19 @@ private:
     */
     void ExitApp();
 
-    /** 把会话数据同步到左侧列表控件（名称/时间/预览/头像）
+    /** 刷新会话列表控件（名称/时间/预览/头像/未读角标），并按搜索关键字过滤
     */
     void RefreshSessionList();
 
-    /** 初始化消息列表内容
+    /** 刷新联系人列表控件的显示状态（按搜索关键字过滤）
     */
-    void InitMessages();
+    void RefreshContactList();
 
-    /** 切换左侧导航选中的栏目
+    /** 更新"没有找到相关结果"的提示
+    */
+    void UpdateSearchEmptyTip();
+
+    /** 切换导航栏目的选中项
     */
     void SwitchNavTab(NavTab tab);
 
@@ -129,26 +171,70 @@ private:
     */
     void UpdatePanelVisibility();
 
+    /** 刷新聊天区标题（"界面演示 - 会话名"，两部分都随语言变化）
+    */
+    void UpdateChatTitle();
+
+    /** 切换当前会话：保存当前视图到历史，再加载目标会话的历史
+    */
+    void SelectSession(int nSessionIndex);
+
+    /** 生成会话的初始消息（只生成一次）
+    */
+    void EnsureSessionSeeded(int nSessionIndex);
+
+    /** 把某个会话的历史加载到消息列表（视图）
+    */
+    void LoadSessionMessages(int nSessionIndex);
+
+    /** 把消息列表当前内容存回会话历史
+    */
+    void SaveSessionMessages(int nSessionIndex);
+
+    /** 追加一条消息到指定会话（当前会话直接追加到视图，其他会话只更新数据）
+     *  @return 消息 id
+    */
+    int64_t AppendMessageToSession(int nSessionIndex, ui::ChatMessageSide side, const DString& strText,
+                                   const DString& strAvatarText, const DString& strTextId,
+                                   ui::ChatMessageStatus status = ui::ChatMessageStatus::kNone);
+
+    /** 追加一条消息到当前会话
+     *  @return 消息 id
+    */
+    int64_t AppendMessage(ui::ChatMessageSide side, const DString& strText, const DString& strAvatarText,
+                          const DString& strTextId);
+
+    /** 按 id 修改某个会话历史中的消息状态
+    */
+    void SetHistoryMessageStatus(int nSessionIndex, int64_t nMessageId, ui::ChatMessageStatus status);
+
+    /** 点击联系人：已有同名会话则切换过去，否则新建会话并发起聊天
+    */
+    void StartChatWithContact(int nContactIndex);
+
+    /** 查找名称相同的会话（没有时返回 -1）
+    */
+    int FindSessionByName(const std::wstring& strName) const;
+
+    /** 申请一个空闲的会话条目标题槽位（返回会话索引，没有可用槽位时返回 -1）
+    */
+    int AllocateSessionSlot();
+
     /** 发送输入框中的消息
     */
     void SendInputMessage();
 
-    /** 追加一条消息到消息列表
-     *  @return 消息 id
-    */
-    int64_t AppendMessage(ui::ChatMessageSide side, const DString& strText, const DString& strAvatarText);
-
     /** 模拟消息状态变化：发送中 → 已送达 → 已读（失败时停在发送失败）
     */
-    void SimulateSendStatus(int64_t nMessageId, bool bFail);
+    void SimulateSendStatus(int64_t nMessageId, int nSessionIndex, bool bFail);
 
-    /** 模拟对方回复
+    /** 模拟对方回复（回复落在指定会话上，用户已切走时计入该会话的未读数）
     */
-    void SimulateReply();
+    void SimulateReply(int nSessionIndex);
 
-    /** 更新当前会话的预览文本与时间
+    /** 更新指定会话的预览文本与时间
     */
-    void UpdateSessionPreview(const DString& strText);
+    void UpdateSessionPreview(int nSessionIndex, const DString& strText);
 
     /** 获取当前时间文本
     */
@@ -157,6 +243,18 @@ private:
     /** 当前会话索引是否有效
     */
     bool IsCurrentSessionValid() const;
+
+    /** 会话是否匹配当前搜索关键字
+    */
+    bool IsSessionMatchFilter(const ChatSession& session) const;
+
+    /** 联系人是否匹配当前搜索关键字
+    */
+    bool IsContactMatchFilter(const ChatContact& contact) const;
+
+    /** 复制一份消息，并按当前语言刷新其中的文案
+    */
+    void ApplyMessageText(ChatMessage& chatMessage) const;
 
 private:
     /** 登录用户名称
@@ -171,9 +269,17 @@ private:
     */
     std::vector<ChatSession> m_sessions;
 
+    /** 联系人列表数据
+    */
+    std::vector<ChatContact> m_contacts;
+
     /** 当前会话索引
     */
     int m_nCurrentSession;
+
+    /** 搜索关键字（已转小写；为空表示不过滤）
+    */
+    std::wstring m_strSearchKey;
 };
 
 #endif // EXAMPLES_CHAT_CHATFORM_H_
