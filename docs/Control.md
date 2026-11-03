@@ -2398,7 +2398,7 @@ ChatMessageList是聊天消息列表控件，继承自ScrollBox，消息区为�
 | bubble_radius | 10 | int | 气泡圆角半径（像素，自动DPI缩放） |
 | bubble_spacing | 14 | int | 相邻消息间距（像素，自动DPI缩放） |
 | show_time | true | bool | 是否显示时间分隔条 |
-| time_format | HH:mm | string | 时间分隔条格式 |
+| show_new_message_tip | true | bool | 是否在未滚动到底部时显示"N 条新消息"提示 |
 | avatar_font | system_bold_14 | string | 头像文字字体 |
 | text_font | system_regular_14 | string | 消息正文字体 |
 | time_font | system_regular_12 | string | 时间文字字体 |
@@ -2425,12 +2425,14 @@ ChatMessageList是聊天消息列表控件，继承自ScrollBox，消息区为�
 - **折行与选区对齐**：换行结果（行数、每行的字符区间）由控件统一计算，文本绘制、选区高亮与命中测试共用同一份行数据，因此多行消息的选中高亮逐行对齐，不会出现跨行色块、文字错位或高亮超出气泡的情况。
 - **头像配色**：头像文字内容经哈希后映射到固定的8色调色板，同一个人始终显示同色。
 - **时间分隔条**：相邻消息的 `time` 不同才插入分隔条，避免同一时刻反复显示。
-- **滚动与自动滚动**：内容超出控件高度时使用框架的垂直滚动条（支持滚轮、拖动滑块、轨道点击、键盘滚动）；`AddMessage` 追加消息后自动滚动到底部（可通过 `SetAutoScrollToBottom` 关闭）。
+- **滚动与自动滚动**：内容超出控件高度时使用框架的垂直滚动条（支持滚轮、拖动滑块、轨道点击、键盘滚动）；`AddMessage` 追加消息时**只有当前视图已经位于底部**才会自动滚动到底部，用户向上翻看历史时新消息不会把视图拽走（可通过 `SetAutoScrollToBottom` 关闭自动滚动）。
+- **新消息提示**：不在底部时收到新消息，控件在内容区底部居中绘制"N 条新消息"胶囊提示，点击即回到最新消息；滚动回底部或调用 `ClearUnreadBelowCount` 后提示消失。文案取自多语言资源 `STRID_PUBLIC_CHAT_NEW_MESSAGES`（`%d` 为条数），可用 `SetShowNewMessageTip(false)` 关闭显示。
+- **插入消息与选区**：`InsertMessage` 在选区之前或中间插入消息时，选区与拖选锚点的消息索引会自动后移，保证选中的仍是原来那段文字。
 - **追加可见**：`AddMessage` 后会延迟到下一轮消息循环再执行滚动，确保此时布局已完成、内容高度准确。
 - **文本选择**：按住鼠标左键拖动即可选中文本，**按下的位置不要求落在文字上**——气泡内边距、同一行文字左/右两侧的空白都会钳位到最近的字符，因此可以从文字两侧开始拖选；已有选区时再次按下会重新开始一次选择，按下后不移动则视为点击并清除选区。
 - **跨消息与自动滚动**：鼠标经过消息之间的空白或时间分隔条时，选区会钳位到最近的字符位置而不会中断；鼠标拖出消息区上下边界时会按固定间隔自动滚动内容，选区终点跟随滚动继续延伸，滚到边界后停止。
 - **快捷键**：拖选时控件获取焦点，`Ctrl+C` 复制选中文本，`Ctrl+A` 全选，`Esc` 清除选区。双击选中一个词（应用层可通过 `AttachMessageDoubleClick` 回调返回 true 覆盖该行为）。
-- **右键菜单**：调用 `AttachPopupMenu` 绑定右键菜单，不指定菜单文件时使用消息列表专用菜单 `public/menu/chat_message_menu.xml`（仅"复制/全选"两项，文案已国际化）；消息列表是只读的，不提供剪切/粘贴/删除等富文本菜单项；不传 `actionCallback` 时，菜单项由控件内部处理（复制/全选），应用层无需接线。
+- **右键菜单**：调用 `AttachPopupMenu` 绑定右键菜单，不指定菜单文件时使用消息列表专用菜单 `public/menu/chat_message_menu.xml`（仅"复制/全选"两项，文案已国际化）；消息列表是只读的，不提供剪切/粘贴/删除等富文本菜单项；不传 `actionCallback` 时，菜单项由控件内部处理（复制/全选），应用层无需接线；没有选区时"复制"置灰、没有消息时"全选"置灰，避免点了没反应或误复制全部内容。菜单弹出时若当前没有选区且右键落在某条消息上，控件会先选中该条消息。
 - **消息状态**：`ChatMessageStatus` 枚举包含 `kNone`（不显示）、`kSending`（发送中）、`kFailed`（发送失败）、`kDelivered`（已送达）、`kRead`（已读）。状态文字绘制在自己消息气泡下方并与气泡右边缘对齐，参与消息高度计算；默认文案取自多语言资源（`STRID_PUBLIC_CHAT_STATUS_*`），可用 `SetStatusText` 覆盖。
 - **点击事件**：`AttachMessageClick` 在左键抬起且期间没有拖动选择文本时触发，回调参数包含消息索引、id、状态、命中区域（气泡/头像/状态文字）与鼠标位置；点到发送失败消息的状态文字时命中区域为 `kStatus`，可实现"点击重试"。
 - **双击事件**：`AttachMessageDoubleClick` 回调返回 `true` 表示应用层已处理，控件不再执行默认的"选中该次点击位置所在的词"。
@@ -2438,7 +2440,7 @@ ChatMessageList是聊天消息列表控件，继承自ScrollBox，消息区为�
 - **布局缓存**：单条消息的高度按消息独立缓存（标记为脏的消息才重新测量），并维护消息顶部偏移表；绘制、命中测试与滚动定位都通过偏移表二分查找，长列表下不会每帧遍历全部消息。
 - **消息标识**：每条消息可指定 `id`（0 表示自动生成），便于后续按 id 更新或删除；`ChatMessageType` 枚举包含 `kText`（普通消息）与 `kSystem`（系统提示）。
 
-对应C++接口：`AddMessage`（含便捷重载）、`InsertMessage`、`UpdateMessage`、`RemoveMessage`、`GetMessageById`、`ClearMessages`、`GetMessageCount`、`GetMessageAt`、`ScrollToBottom`、`GetChatScrollPos/SetChatScrollPos`、`SetAutoScrollToBottom/IsAutoScrollToBottom`、`SetAvatarSize/GetAvatarSize`、`SetBubbleMaxWidth/GetBubbleMaxWidth`、`SetBubbleRadius/GetBubbleRadius`、`SetShowTime/IsShowTime`、`SetBubbleColor`、`SetTextColor`、`SetAvatarTextColor`、`SetSystemTextColor`、`SetSelectionBkColor`、`SetSelectionTextColor`、`SetScrollbarTrackColor`、`SetScrollbarThumbColor`、`SetAutoHideScrollbar/IsAutoHideScrollbar`、`SetEnableSelection/IsEnableSelection`、`SetShowStatus/IsShowStatus`、`SetMessageStatus`、`SetMessageStatusAt`、`GetMessageStatus`、`SetStatusText`、`GetStatusText`、`AttachMessageClick`、`AttachMessageDoubleClick`、`AttachMessageRightClick`、`HasSelection`、`GetSelectedText`、`ClearSelection`、`SelectAll`、`SelectMessageText`、`CopySelectedText`、`CopyAllText`、`AttachPopupMenu`。
+对应C++接口：`AddMessage`（含便捷重载）、`InsertMessage`、`UpdateMessage`、`RemoveMessage`、`GetMessageById`、`ClearMessages`、`GetMessageCount`、`GetMessageAt`、`ScrollToBottom`、`GetChatScrollPos/SetChatScrollPos`、`SetAutoScrollToBottom/IsAutoScrollToBottom`、`IsNearBottom`、`GetUnreadBelowCount/ClearUnreadBelowCount`、`SetShowNewMessageTip/IsShowNewMessageTip`、`SetAvatarSize/GetAvatarSize`、`SetBubbleMaxWidth/GetBubbleMaxWidth`、`SetBubbleRadius/GetBubbleRadius`、`SetShowTime/IsShowTime`、`SetBubbleColor`、`SetTextColor`、`SetAvatarTextColor`、`SetSystemTextColor`、`SetSelectionBkColor`、`SetSelectionTextColor`、`SetScrollbarTrackColor`、`SetScrollbarThumbColor`、`SetAutoHideScrollbar/IsAutoHideScrollbar`、`SetEnableSelection/IsEnableSelection`、`SetShowStatus/IsShowStatus`、`SetMessageStatus`、`SetMessageStatusAt`、`GetMessageStatus`、`SetStatusText`、`GetStatusText`、`AttachMessageClick`、`AttachMessageDoubleClick`、`AttachMessageRightClick`、`HasSelection`、`GetSelectedText`、`ClearSelection`、`SelectAll`、`SelectMessageText`、`CopySelectedText`、`CopyAllText`、`AttachPopupMenu`。
 
 ### XML使用示例
 

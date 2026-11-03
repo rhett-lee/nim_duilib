@@ -309,18 +309,10 @@ bool ChatForm::OnMessageDoubleClick(const ui::ChatMessageEvent& messageEvent)
     return true;
 }
 
-bool ChatForm::OnMessageRightClick(const ui::ChatMessageEvent& messageEvent)
+bool ChatForm::OnMessageRightClick(const ui::ChatMessageEvent& /*messageEvent*/)
 {
-    ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(FindControl(_T("message_list")));
-    if (pMsgList == nullptr) {
-        return false;
-    }
-    //仅在当前没有选区时，才选中该条消息的全文；
-    //已有部分选区时保持用户选中的内容，否则右键会把拖选的结果覆盖掉。
-    if (!pMsgList->HasSelection()) {
-        pMsgList->SelectMessageText(messageEvent.nIndex);
-    }
-    //返回 false：继续弹出控件绑定的默认右键菜单（复制/全选）
+    //右键菜单弹出时，控件已经按鼠标位置处理好选区（没有选区则选中该条消息），
+    //这里只演示回调本身：返回 false 表示继续使用控件绑定的默认右键菜单。
     return false;
 }
 

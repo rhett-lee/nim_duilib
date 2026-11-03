@@ -5,10 +5,12 @@
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/Clipboard.h"
+#include "duilib/Control/Menu.h"
 #include <algorithm>
 
 namespace ui
 {
+
 
 namespace
 {
@@ -32,6 +34,16 @@ namespace
     */
     constexpr uint32_t kDragScrollIntervalMs = 40;
     constexpr int32_t kDragScrollStep = 24;
+
+    /** 判定"已经位于底部"的容差（像素，未做 DPI 缩放）
+    */
+    constexpr int32_t kNearBottomTolerance = 2;
+
+    /** "回到最新消息"提示的内边距、距控件底部的间距（像素，未做 DPI 缩放）
+    */
+    constexpr int32_t kNewMessageTipPaddingH = 14;
+    constexpr int32_t kNewMessageTipPaddingV = 7;
+    constexpr int32_t kNewMessageTipMargin = 12;
 
     /** 把字符索引调整到完整的码点边界
      *
@@ -67,7 +79,6 @@ ChatMessageList::ChatMessageList(Window* pWindow) :
     m_nBubbleRadius(10),
     m_nBubbleSpacing(14),
     m_bShowTime(true),
-    m_strTimeFormat(_T("HH:mm")),
     m_strAvatarFont(_T("system_bold_14")),
     m_strTextFont(_T("system_regular_14")),
     m_strTimeFont(_T("system_regular_12")),
@@ -83,6 +94,8 @@ ChatMessageList::ChatMessageList(Window* pWindow) :
     m_strScrollbarThumbColor(_T("bg_scrollbar_thumb_normal")),
     m_bAutoHideScrollbar(true),
     m_bAutoScrollToBottom(true),
+    m_nUnreadBelow(0),
+    m_bShowNewMessageTip(true),
     m_bEnableSelection(true),
     m_nScrollPos(0),
     m_nContentHeight(0),
@@ -150,9 +163,6 @@ void ChatMessageList::SetAttribute(const DString& strName, const DString& strVal
         m_bShowTime = (strValue != _T("false"));
         InvalidateLayoutCache();
     }
-    else if (strName == _T("time_format")) {
-        m_strTimeFormat = strValue;
-    }
     else if (strName == _T("avatar_font")) {
         m_strAvatarFont = strValue;
     }
@@ -215,6 +225,10 @@ void ChatMessageList::SetAttribute(const DString& strName, const DString& strVal
         if (!m_bEnableSelection) {
             ClearSelection();
         }
+    }
+    else if (strName == _T("show_new_message_tip")) {
+        m_bShowNewMessageTip = (strValue != _T("false"));
+        Invalidate();
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
@@ -302,6 +316,10 @@ void ChatMessageList::OnScrollOffsetChanged(const UiSize& oldScrollOffset, const
     const int32_t nPos = static_cast<int32_t>(newScrollOffset.cy);
     if (nPos != m_nScrollPos) {
         m_nScrollPos = nPos;
+        //滚动到底部后，"新消息"就都看过了
+        if ((m_nUnreadBelow > 0) && IsNearBottom()) {
+            m_nUnreadBelow = 0;
+        }
         Invalidate();
     }
 }
@@ -324,12 +342,31 @@ void ChatMessageList::InvalidateLayoutCache()
 
 void ChatMessageList::InvalidateWidthCache()
 {
-    //宽度或字体变化：所有消息的高度都需要重新测量
+    //宽度或字体变化：所有消息的高度与换行结果都需要重新计算
     m_msgHeights.clear();
     m_msgOffsets.clear();
+    InvalidateLineCache(m_messages.size());
     m_nLayoutWidth = -1;
     m_bLayoutDirty = true;
     Invalidate();
+}
+
+void ChatMessageList::InvalidateLineCache(size_t nIndex)
+{
+    if (nIndex < m_msgLineCache.size()) {
+        //只让指定消息的换行结果失效
+        m_msgLineCache[nIndex].nMaxTextWidth = -1;
+        m_msgLineCache[nIndex].nLineHeight = 0;
+        m_msgLineCache[nIndex].lines.clear();
+    }
+    else {
+        //越界表示全部失效
+        for (LineCache& lineCache : m_msgLineCache) {
+            lineCache.nMaxTextWidth = -1;
+            lineCache.nLineHeight = 0;
+            lineCache.lines.clear();
+        }
+    }
 }
 
 void ChatMessageList::MarkMessageHeightDirty(size_t nIndex)
@@ -337,6 +374,8 @@ void ChatMessageList::MarkMessageHeightDirty(size_t nIndex)
     if (nIndex < m_msgHeights.size()) {
         m_msgHeights[nIndex] = -1;
     }
+    //消息内容变化后，该条消息的换行结果也不能再复用
+    InvalidateLineCache(nIndex);
     m_bLayoutDirty = true;
     Invalidate();
 }
@@ -388,7 +427,7 @@ bool ChatMessageList::EnsureLayout(IRender* pRender, int32_t nContentWidth)
         }
         m_msgOffsets[index] = nOffset;
         if (m_msgHeights[index] < 0) {
-            m_msgHeights[index] = CalcMessageHeight(pRender, m_messages[index], nContentWidth);
+            m_msgHeights[index] = CalcMessageHeight(pRender, m_messages[index], nContentWidth, index);
         }
         nOffset += m_msgHeights[index] + nSpacing;
     }
@@ -462,21 +501,34 @@ int64_t ChatMessageList::InsertMessageInternal(size_t index, const Message& mess
     if (index > m_messages.size()) {
         index = m_messages.size();
     }
+
+    //插入前记录视图是否位于底部：只有用户正在看最新消息时才自动跟随滚动。
+    //否则用户向上翻看历史时，一条新消息就会把视图拽走，历史记录等于白翻。
+    const bool bStickToBottom = m_bAutoScrollToBottom && IsNearBottom();
+
     const size_t nOldCount = m_messages.size();
     m_messages.insert(m_messages.begin() + static_cast<std::ptrdiff_t>(index), msg);
 
-    //高度缓存与偏移表同步插入（先补齐到插入前的数量，避免 insert 越界）
+    //高度缓存、偏移表与换行缓存同步插入（先补齐到插入前的数量，避免 insert 越界）
     if (m_msgHeights.size() < nOldCount) {
         m_msgHeights.resize(nOldCount, -1);
     }
     if (m_msgOffsets.size() < nOldCount) {
         m_msgOffsets.resize(nOldCount, 0);
     }
+    if (m_msgLineCache.size() < nOldCount) {
+        m_msgLineCache.resize(nOldCount);
+    }
     m_msgHeights.insert(m_msgHeights.begin() + static_cast<std::ptrdiff_t>(index), -1);
     m_msgOffsets.insert(m_msgOffsets.begin() + static_cast<std::ptrdiff_t>(index), 0);
+    m_msgLineCache.insert(m_msgLineCache.begin() + static_cast<std::ptrdiff_t>(index), LineCache());
     InvalidateLayoutCache();
 
-    if (m_bAutoScrollToBottom && (index >= m_messages.size() - 1)) {
+    //在选区之前或中间插入消息时，选区的消息索引需要跟着后移，
+    //否则选区会错位到别的消息上（例如复制到相邻的一条）。
+    SyncSelectionOnInsert(index);
+
+    if (bStickToBottom) {
         //延迟到下一轮消息循环再滚动，此时控件已完成布局、内容高度才准确
         Window* pWindow = GetWindow();
         if (pWindow != nullptr) {
@@ -490,8 +542,28 @@ int64_t ChatMessageList::InsertMessageInternal(size_t index, const Message& mess
                 });
         }
     }
+    else if (index >= nOldCount) {
+        //追加到末尾且用户不在底部：累加"新消息"提示，而不是强行滚动
+        ++m_nUnreadBelow;
+    }
     Invalidate();
     return msg.id;
+}
+
+void ChatMessageList::SyncSelectionOnInsert(size_t nInsertIndex)
+{
+    if (!m_bHasSelection && !m_bSelecting && !m_bPendingSelect) {
+        return;
+    }
+    if (nInsertIndex <= m_nSelStartIndex) {
+        ++m_nSelStartIndex;
+    }
+    if (nInsertIndex <= m_nSelEndIndex) {
+        ++m_nSelEndIndex;
+    }
+    if (nInsertIndex <= m_nAnchorIndex) {
+        ++m_nAnchorIndex;
+    }
 }
 
 bool ChatMessageList::UpdateMessage(int64_t id, const Message& message)
@@ -528,6 +600,9 @@ bool ChatMessageList::RemoveMessage(int64_t id)
             if (index < m_msgOffsets.size()) {
                 m_msgOffsets.erase(m_msgOffsets.begin() + static_cast<std::ptrdiff_t>(index));
             }
+            if (index < m_msgLineCache.size()) {
+                m_msgLineCache.erase(m_msgLineCache.begin() + static_cast<std::ptrdiff_t>(index));
+            }
             //删除后清理选区，避免索引失效
             ClearSelection();
             InvalidateLayoutCache();
@@ -561,9 +636,11 @@ void ChatMessageList::ClearMessages()
     m_messages.clear();
     m_msgHeights.clear();
     m_msgOffsets.clear();
+    m_msgLineCache.clear();
     m_nLayoutWidth = -1;
     m_nScrollPos = 0;
     m_nContentHeight = 0;
+    m_nUnreadBelow = 0;
     m_bPendingClick = false;
     ClearSelection();
     InvalidateLayoutCache();
@@ -614,6 +691,30 @@ int32_t ChatMessageList::GetVisibleHeight() const
 void ChatMessageList::SetAutoScrollToBottom(bool bAutoScroll)
 {
     m_bAutoScrollToBottom = bAutoScroll;
+}
+
+bool ChatMessageList::IsNearBottom() const
+{
+    const int32_t nRange = static_cast<int32_t>(BaseClass::GetScrollRange().cy);
+    const int32_t nPos = static_cast<int32_t>(BaseClass::GetScrollPos().cy);
+    //留一点容差：滚动条位置是整数像素，末尾常有几像素的取整误差
+    return (nRange - nPos) <= Dpi().GetScaleInt(kNearBottomTolerance);
+}
+
+void ChatMessageList::ClearUnreadBelowCount()
+{
+    if (m_nUnreadBelow != 0) {
+        m_nUnreadBelow = 0;
+        Invalidate();
+    }
+}
+
+void ChatMessageList::SetShowNewMessageTip(bool bShow)
+{
+    if (m_bShowNewMessageTip != bShow) {
+        m_bShowNewMessageTip = bShow;
+        Invalidate();
+    }
 }
 
 void ChatMessageList::SetAvatarSize(int32_t nSize)
@@ -894,11 +995,14 @@ void ChatMessageList::PaintStateImages(IRender* pRender)
         const UiRect rcMessage(rcContent.left, nTop, rcContent.right, nTop + m_msgHeights[index]);
         PaintMessage(pRender, index, message, rcMessage);
     }
+
+    //"回到最新消息"提示绘制在最上层
+    PaintNewMessageTip(pRender);
     spClip.reset();
 }
 
 bool ChatMessageList::CalcBubbleLayout(IRender* pRender, const Message& message, const UiRect& rcMessage,
-                                       BubbleLayout& layout)
+                                       BubbleLayout& layout, size_t nMessageIndex)
 {
     layout = BubbleLayout();
     if (pRender == nullptr) {
@@ -925,8 +1029,22 @@ bool ChatMessageList::CalcBubbleLayout(IRender* pRender, const Message& message,
 
     //按文本宽度换行：绘制、选区高亮、命中测试都复用这份行数据，
     //避免三方各自推算换行位置导致文字与高亮框错位。
-    WrapTextLines(pRender, message.text, nTextWidth, m_strTextFont, layout.lines);
-    layout.nLineHeight = GetTextLineHeight(pRender, m_strTextFont);
+    //同一条消息在相同文本宽度下的换行结果会被缓存，
+    //否则滚动时每条可见消息的每一帧都要重做 O(log n) 次文本测量。
+    LineCache* pLineCache = (nMessageIndex < m_msgLineCache.size()) ? &m_msgLineCache[nMessageIndex] : nullptr;
+    if ((pLineCache != nullptr) && (pLineCache->nMaxTextWidth == nTextWidth) && (pLineCache->nLineHeight > 0)) {
+        layout.lines = pLineCache->lines;
+        layout.nLineHeight = pLineCache->nLineHeight;
+    }
+    else {
+        WrapTextLines(pRender, message.text, nTextWidth, m_strTextFont, layout.lines);
+        layout.nLineHeight = GetTextLineHeight(pRender, m_strTextFont);
+        if (pLineCache != nullptr) {
+            pLineCache->nMaxTextWidth = nTextWidth;
+            pLineCache->nLineHeight = layout.nLineHeight;
+            pLineCache->lines = layout.lines;
+        }
+    }
     const int32_t nTextHeight = static_cast<int32_t>(layout.lines.size()) * layout.nLineHeight;
 
     const int32_t nBubbleHeight = nTextHeight + 2 * nPadV;
@@ -1005,7 +1123,8 @@ int32_t ChatMessageList::MeasureNaturalTextWidth(IRender* pRender, const DString
     return pRender->MeasureString(strText, measureParam).Width();
 }
 
-int32_t ChatMessageList::CalcMessageHeight(IRender* pRender, const Message& message, int32_t nContentWidth)
+int32_t ChatMessageList::CalcMessageHeight(IRender* pRender, const Message& message, int32_t nContentWidth,
+                                          size_t nMessageIndex)
 {
     if (pRender == nullptr) {
         return 0;
@@ -1018,7 +1137,7 @@ int32_t ChatMessageList::CalcMessageHeight(IRender* pRender, const Message& mess
     const int32_t nAvatarSize = Dpi().GetScaleInt(m_nAvatarSize);
     UiRect rcMessage(0, 0, nContentWidth, 0);
     BubbleLayout layout;
-    if (!CalcBubbleLayout(pRender, message, rcMessage, layout)) {
+    if (!CalcBubbleLayout(pRender, message, rcMessage, layout, nMessageIndex)) {
         return nAvatarSize;
     }
     int32_t nHeight = std::max(nAvatarSize, layout.rcBubble.Height());
@@ -1095,7 +1214,7 @@ void ChatMessageList::PaintMessage(IRender* pRender, size_t nMessageIndex, const
     }
 
     BubbleLayout layout;
-    if (!CalcBubbleLayout(pRender, message, rcMessage, layout)) {
+    if (!CalcBubbleLayout(pRender, message, rcMessage, layout, nMessageIndex)) {
         return;
     }
 
@@ -1260,6 +1379,82 @@ void ChatMessageList::PaintTimeDivider(IRender* pRender, const DString& strTime,
     }
     DrawChatText(pRender, strTime, rcDivider, TEXT_HCENTER | TEXT_VCENTER | TEXT_SINGLELINE,
                  m_strSystemTextColor, m_strTimeFont);
+}
+
+DString ChatMessageList::GetNewMessageTipText() const
+{
+    if (m_nUnreadBelow <= 0) {
+        return DString();
+    }
+    //文案模板来自多语言资源，%d 替换为未读条数
+    DString strTemplate = GlobalManager::Instance().Lang().GetStringByID(_T("STRID_PUBLIC_CHAT_NEW_MESSAGES")).c_str();
+    if (strTemplate.empty()) {
+        strTemplate = _T("New messages: %d");
+    }
+    const std::wstring strText = StringUtil::Printf(strTemplate.c_str(), static_cast<int>(m_nUnreadBelow));
+    return DString(strText.c_str());
+}
+
+UiRect ChatMessageList::GetNewMessageTipRect(IRender* pRender)
+{
+    if (!m_bShowNewMessageTip || (m_nUnreadBelow <= 0) || (pRender == nullptr)) {
+        return UiRect();
+    }
+    const DString strText = GetNewMessageTipText();
+    if (strText.empty()) {
+        return UiRect();
+    }
+    const int32_t nTextWidth = MeasureNaturalTextWidth(pRender, strText, m_strStatusFont);
+    const int32_t nTextHeight = MeasureTextHeight(pRender, strText, nTextWidth, m_strStatusFont);
+    if ((nTextWidth <= 0) || (nTextHeight <= 0)) {
+        return UiRect();
+    }
+
+    UiRect rc = GetRect();
+    rc.Deflate(GetControlPadding());
+    if ((rc.Width() <= 0) || (rc.Height() <= 0)) {
+        return UiRect();
+    }
+    const int32_t nPadH = Dpi().GetScaleInt(kNewMessageTipPaddingH);
+    const int32_t nPadV = Dpi().GetScaleInt(kNewMessageTipPaddingV);
+    const int32_t nTipWidth = nTextWidth + 2 * nPadH;
+    const int32_t nTipHeight = nTextHeight + 2 * nPadV;
+
+    //水平方向在内容区居中，垂直方向贴近控件底部
+    const int32_t nContentWidth = CalcContentWidth();
+    int32_t nLeft = rc.left + (std::max(0, nContentWidth) - nTipWidth) / 2;
+    if (nLeft < rc.left) {
+        nLeft = rc.left;
+    }
+    const int32_t nBottomMargin = Dpi().GetScaleInt(kNewMessageTipMargin);
+    int32_t nTop = rc.bottom - nBottomMargin - nTipHeight;
+    if (nTop < rc.top) {
+        nTop = rc.top;
+    }
+    return UiRect(nLeft, nTop, nLeft + nTipWidth, nTop + nTipHeight);
+}
+
+void ChatMessageList::PaintNewMessageTip(IRender* pRender)
+{
+    const UiRect rcTip = GetNewMessageTipRect(pRender);
+    if (rcTip.IsEmpty()) {
+        return;
+    }
+    const DString strText = GetNewMessageTipText();
+    if (strText.empty()) {
+        return;
+    }
+    UiColor colorBk = GetUiColor(_T("color_accent"));
+    if (colorBk.IsEmpty()) {
+        colorBk = UiColor(0xFF3399FF);
+    }
+    //胶囊形状：圆角取高度的一半
+    const float fRadius = static_cast<float>(rcTip.Height()) / 2.0f;
+    pRender->FillRoundRect(UiRectF(static_cast<float>(rcTip.left), static_cast<float>(rcTip.top),
+                                   static_cast<float>(rcTip.right), static_cast<float>(rcTip.bottom)),
+                            fRadius, fRadius, colorBk);
+    DrawChatText(pRender, strText, rcTip, TEXT_HCENTER | TEXT_VCENTER | TEXT_SINGLELINE,
+                 _T("color_white"), m_strStatusFont);
 }
 
 void ChatMessageList::PaintAvatar(IRender* pRender, const UiRect& rcAvatar, const DString& strText)
@@ -1534,7 +1729,7 @@ bool ChatMessageList::HitTestMessageClamped(const UiPoint& ptMouse, size_t& nMes
 
     UiRect rcMessage;
     BubbleLayout layout;
-    if (!GetMessageRect(index, rcMessage) || !CalcBubbleLayout(pRender, message, rcMessage, layout)) {
+    if (!GetMessageRect(index, rcMessage) || !CalcBubbleLayout(pRender, message, rcMessage, layout, index)) {
         return true;
     }
     nCharIndex = HitTestTextChar(pRender, message.text, layout, ptMouse);
@@ -1586,7 +1781,7 @@ bool ChatMessageList::HitTestMessage(const UiPoint& ptMouse, size_t& nMessageInd
         return false;
     }
     BubbleLayout layout;
-    if (!CalcBubbleLayout(pRender, message, rcMessage, layout)) {
+    if (!CalcBubbleLayout(pRender, message, rcMessage, layout, index)) {
         return true;
     }
 
@@ -1621,6 +1816,16 @@ bool ChatMessageList::HitTestMessage(const UiPoint& ptMouse, size_t& nMessageInd
 bool ChatMessageList::ButtonDown(const EventArgs& msg)
 {
     if (msg.eventType == kEventMouseButtonDown) {
+        //"回到最新消息"提示优先响应：点击后滚到底部
+        if (m_nUnreadBelow > 0) {
+            IRender* pRender = (GetWindow() != nullptr) ? GetWindow()->GetRender() : nullptr;
+            const UiRect rcTip = GetNewMessageTipRect(pRender);
+            if (!rcTip.IsEmpty() && rcTip.ContainsPt(msg.ptMouse)) {
+                ScrollToBottom();
+                ClearUnreadBelowCount();
+                return true;
+            }
+        }
         const UiPoint pt = msg.ptMouse;
         size_t nMessageIndex = 0;
         ChatMessageHitArea hitArea = ChatMessageHitArea::kNone;
@@ -2109,17 +2314,90 @@ bool ChatMessageList::AttachPopupMenu(const DString& menuXml,
             }
             };
     }
-    return BaseClass::AttachPopupMenu(strXml, callback, creatingCallback);
+
+    //菜单弹出后按当前状态刷新菜单项可用性：无选区时"复制"禁用，无消息时"全选"禁用。
+    //应用层若传入 creatingCallback，则先刷新内置项，再执行应用层回调。
+    ChatMessageList* pThis = this;
+    ContextMenuCreatingEvent creating = [pThis, creatingCallback](Menu* pMenu, Control* pSender) {
+        if ((pThis != nullptr) && (pMenu != nullptr)) {
+            //菜单是在右键消息派发到应用层之前创建的，此时应用层还没来得及"选中该条消息"，
+            //因此这里由控件自己按鼠标位置补上选中，菜单项的可用状态才是正确的。
+            pThis->PrepareContextMenuSelection();
+            pThis->UpdateContextMenuItemEnabled(pMenu);
+        }
+        if (creatingCallback != nullptr) {
+            creatingCallback(pMenu, pSender);
+        }
+        };
+    return BaseClass::AttachPopupMenu(strXml, callback, creating);
+}
+
+void ChatMessageList::PrepareContextMenuSelection()
+{
+    if (m_bHasSelection || !m_bEnableSelection) {
+        //已经有选区时保持用户当前的选择，不要改成"选中整条"
+        return;
+    }
+    Window* pWindow = GetWindow();
+    if (pWindow == nullptr) {
+        return;
+    }
+    //菜单刚弹出，鼠标仍在右键位置，用它反推用户右键的是哪条消息
+    UiPoint pt;
+    pWindow->GetCursorPos(pt);
+    pWindow->ScreenToClient(pt);
+
+    size_t nMessageIndex = 0;
+    ChatMessageHitArea hitArea = ChatMessageHitArea::kNone;
+    int32_t nCharIndex = -1;
+    if (!HitTestMessage(pt, nMessageIndex, hitArea, nCharIndex)) {
+        return;
+    }
+    if (hitArea == ChatMessageHitArea::kNone) {
+        return;
+    }
+    SelectMessageText(nMessageIndex);
+}
+
+void ChatMessageList::UpdateContextMenuItemEnabled(Menu* pMenu)
+{
+    if (pMenu == nullptr) {
+        return;
+    }
+    struct ItemState
+    {
+        const TCHAR* itemName;      //菜单项控件名
+        const TCHAR* textName;      //菜单项文本控件名（禁用时需要同时置灰）
+        const TCHAR* shortcutName;  //快捷键文本控件名
+        bool bEnabled;              //是否可用
+    };
+    const ItemState items[] = {
+        { _T("edit_menu_copy"),    _T("edit_menu_copy_text"),    _T("edit_menu_copy_shortcut"),    m_bHasSelection },
+        { _T("edit_menu_sel_all"), _T("edit_menu_sel_all_text"), _T("edit_menu_sel_all_shortcut"), !m_messages.empty() }
+    };
+    for (const ItemState& item : items) {
+        if (item.bEnabled) {
+            //菜单每次都是新建的，默认即为可用状态，这里不需要再"重新启用"一遍
+            continue;
+        }
+        //菜单项本身置为禁用后不再响应鼠标；文本控件单独置灰，才能看到"不可用"的视觉反馈
+        const TCHAR* names[] = { item.itemName, item.textName, item.shortcutName };
+        for (const TCHAR* name : names) {
+            Control* pControl = pMenu->FindControl(name);
+            if (pControl != nullptr) {
+                pControl->SetEnabled(false);
+            }
+        }
+    }
 }
 
 void ChatMessageList::OnContextMenuAction(const DString& strItemName)
 {
     if (strItemName == _T("edit_menu_copy")) {
+        //只复制当前选区。没有选区时菜单项已被禁用，这里再兜一层，
+        //避免"复制"变成悄悄复制全部消息这种意外行为。
         if (m_bHasSelection) {
             CopySelectedText();
-        }
-        else {
-            CopyAllText();
         }
         return;
     }

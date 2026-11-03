@@ -84,7 +84,6 @@ typedef std::function<bool (const ChatMessageEvent& messageEvent)> ChatMessageAc
  *  - bubble_radius：气泡圆角半径（像素，DPI 缩放），默认 10
  *  - bubble_spacing：相邻消息间距（像素，DPI 缩放），默认 14
  *  - show_time：是否显示时间分隔条，默认 true
- *  - time_format：时间分隔条格式，默认 "HH:mm"
  *  - avatar_font：头像文字字体，默认 system_bold_14
  *  - text_font：消息正文字体，默认 system_regular_14
  *  - time_font：时间文字字体，默认 system_regular_12
@@ -104,6 +103,7 @@ typedef std::function<bool (const ChatMessageEvent& messageEvent)> ChatMessageAc
  *  - scrollbar_thumb_color：滚动条滑块颜色，默认 bg_scrollbar_thumb_normal
  *  - auto_hide_scrollbar：是否仅在鼠标悬停时显示滚动条，默认 true
  *  - enable_selection：是否允许鼠标拖选文本，默认 true
+ *  - show_new_message_tip：是否在未滚动到底部时显示"N 条新消息"提示，默认 true
  */
 class DUILIB_API ChatMessageList : public ScrollBox
 {
@@ -270,9 +270,29 @@ public:
     void SetChatScrollPos(int32_t nPos);
 
     /** 是否自动滚动到底部（追加消息时生效），默认 true
+     *
+     *  仅在当前视图已经位于底部时才会自动滚动；用户向上翻看历史时，
+     *  新消息不会把视图拽走，而是累加到"新消息"计数（见 GetUnreadBelowCount）。
     */
     void SetAutoScrollToBottom(bool bAutoScroll);
     bool IsAutoScrollToBottom() const { return m_bAutoScrollToBottom; }
+
+    /** 当前视图是否已经位于底部（允许少量像素误差）
+    */
+    bool IsNearBottom() const;
+
+    /** 获取视图下方尚未查看的新消息条数（滚动到底部后清零）
+    */
+    int32_t GetUnreadBelowCount() const { return m_nUnreadBelow; }
+
+    /** 清零未读新消息计数（不改变滚动位置）
+    */
+    void ClearUnreadBelowCount();
+
+    /** 是否显示"回到最新消息"提示，默认 true
+    */
+    void SetShowNewMessageTip(bool bShow);
+    bool IsShowNewMessageTip() const { return m_bShowNewMessageTip; }
 
     /** 设置头像直径（像素，自动 DPI 缩放）
     */
@@ -379,6 +399,20 @@ public:
      */
     void OnContextMenuAction(const DString& strItemName);
 
+    /** 按当前状态刷新右键菜单项的可用性
+     *
+     *  消息列表是只读的：没有选区时"复制"没有意义，没有消息时"全选"没有意义，
+     *  这里把对应菜单项置为禁用，避免点了没反应或误复制全部内容。
+     */
+    void UpdateContextMenuItemEnabled(Menu* pMenu);
+
+    /** 右键菜单弹出时，若当前没有选区且右键点落在某条消息上，则选中该条
+     *
+     *  框架是"先创建菜单、再把右键事件派发给应用层"的，应用层在回调里再选中消息已经太晚，
+     *  菜单项的可用状态会停留在"没有选区"上，因此控件自己补这一步。
+     */
+    void PrepareContextMenuSelection();
+
 private:
     /** 获取可见内容区高度（控件高度扣除内边距）
     */
@@ -404,9 +438,31 @@ private:
     */
     void PaintTimeDivider(IRender* pRender, const DString& strTime, const UiRect& rcDivider);
 
-    /** 计算单条消息占用的高度（含状态文字，不含上方时间分隔条）
+    /** 获取"回到最新消息"提示的矩形（未显示时返回空矩形）
     */
-    int32_t CalcMessageHeight(IRender* pRender, const Message& message, int32_t nContentWidth);
+    UiRect GetNewMessageTipRect(IRender* pRender);
+
+    /** 获取"回到最新消息"提示的文案（含未读条数）
+    */
+    DString GetNewMessageTipText() const;
+
+    /** 绘制"回到最新消息"提示
+    */
+    void PaintNewMessageTip(IRender* pRender);
+
+    /** 消息插入后同步选区索引，避免选区错位到别的消息上
+    */
+    void SyncSelectionOnInsert(size_t nInsertIndex);
+
+    /** 让某条消息的换行缓存失效（nIndex 超出范围时全部失效）
+    */
+    void InvalidateLineCache(size_t nIndex);
+
+    /** 计算单条消息占用的高度（含状态文字，不含上方时间分隔条）
+     *  @param [in] nMessageIndex 消息索引（用于复用换行结果缓存）
+    */
+    int32_t CalcMessageHeight(IRender* pRender, const Message& message, int32_t nContentWidth,
+                             size_t nMessageIndex);
 
     /** 是否需要为该消息绘制时间分隔条
     */
@@ -457,11 +513,24 @@ private:
         bool bValid = false;
     };
 
+    /** 换行结果缓存：同一条消息在相同文本宽度下的行数据只需计算一次
+     *
+     *  绘制、命中测试与高度计算都会用到行数据，若不缓存，滚动时每条可见消息
+     *  每一帧都要重新做 O(log n) 次文本测量。
+    */
+    struct LineCache
+    {
+        int32_t nMaxTextWidth = -1;   //缓存对应的文本最大宽度，-1 表示尚未缓存
+        int32_t nLineHeight = 0;      //单行行高
+        std::vector<TextLine> lines;  //换行后的各行字符区间
+    };
+
     /** 计算消息的气泡布局（气泡宽度自适应文本，高度按换行结果）
      *  @param [out] layout 计算结果（含换行后的行数据）
+     *  @param [in] nMessageIndex 消息索引（用于复用换行结果缓存）
     */
     bool CalcBubbleLayout(IRender* pRender, const Message& message, const UiRect& rcMessage,
-                          BubbleLayout& layout);
+                          BubbleLayout& layout, size_t nMessageIndex);
 
     /** 计算气泡最大宽度
     */
@@ -618,6 +687,10 @@ private:
     */
     std::vector<int32_t> m_msgOffsets;
 
+    /** 每条消息的换行结果缓存（与消息数量一一对应）
+    */
+    std::vector<LineCache> m_msgLineCache;
+
     /** 布局缓存是否失效（消息增删改、间距或时间分隔条配置变化时置位）
     */
     bool m_bLayoutDirty;
@@ -651,10 +724,6 @@ private:
     */
     bool m_bShowTime;
 
-    /** 时间分隔条格式
-    */
-    DString m_strTimeFormat;
-
     /** 字体
     */
     DString m_strAvatarFont;
@@ -681,6 +750,14 @@ private:
     /** 是否自动滚动到底部
     */
     bool m_bAutoScrollToBottom;
+
+    /** 视图下方尚未查看的新消息条数（不在底部时累加，滚到底部清零）
+    */
+    int32_t m_nUnreadBelow;
+
+    /** 是否显示"回到最新消息"提示
+    */
+    bool m_bShowNewMessageTip;
 
     /** 是否允许鼠标拖选文本
     */
