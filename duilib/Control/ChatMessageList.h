@@ -3,6 +3,7 @@
 
 #include "duilib/Box/ScrollBox.h"
 #include <vector>
+#include <functional>
 
 namespace ui {
 
@@ -23,11 +24,58 @@ enum class ChatMessageType
     kSystem = 1,  //系统提示（居中小字，不带头像）
 };
 
+/** 消息状态
+ *
+ *  仅自己发送的消息（ChatMessageSide::kSelf）会绘制状态文字，
+ *  显示在气泡下方、与气泡右边缘对齐。
+ */
+enum class ChatMessageStatus
+{
+    kNone = 0,       //无状态（默认，不绘制状态文字）
+    kSending = 1,    //发送中
+    kFailed = 2,     //发送失败（点击状态区域可重试）
+    kDelivered = 3,  //已送达
+    kRead = 4        //已读
+};
+
+/** 消息命中区域（点击/右键回调中用于区分点到的是哪一部分）
+*/
+enum class ChatMessageHitArea
+{
+    kNone = 0,     //未命中任何消息
+    kBubble = 1,   //气泡区域（含气泡内文本）
+    kAvatar = 2,   //头像区域
+    kStatus = 3    //状态文字区域（发送中/发送失败/已送达/已读）
+};
+
+/** 消息事件参数：点击、右键、双击回调的回调参数
+*/
+struct ChatMessageEvent
+{
+    size_t nIndex = 0;                                       //消息在列表中的索引
+    int64_t id = 0;                                          //消息 id
+    ChatMessageStatus status = ChatMessageStatus::kNone;     //消息状态
+    ChatMessageHitArea hitArea = ChatMessageHitArea::kNone;  //命中的区域
+    UiPoint ptMouse;                                         //鼠标位置（控件客户区坐标）
+};
+
+/** 消息点击回调原型：仅用于通知，返回值无意义
+*/
+typedef std::function<void (const ChatMessageEvent& messageEvent)> ChatMessageClickEvent;
+
+/** 消息双击/右键回调原型
+ *  @return 返回 true 表示应用层已处理，控件跳过默认行为：
+ *          双击时不再选中该次点击位置所在的词；右键时不再弹出默认上下文菜单。
+ */
+typedef std::function<bool (const ChatMessageEvent& messageEvent)> ChatMessageActionEvent;
+
 /** 聊天消息列表控件（继承 ScrollBox，自绘消息 + 框架滚动条）
  *
  *  模拟真实 IM 聊天界面：消息气泡按左右方向分栏、气泡宽度随文本自适应、
  *  头像为彩色圆形（可用首字母）、可选时间分隔条，支持滚动与自动滚动到底部。
  *  支持鼠标拖选文本、双击选词、Ctrl+C 复制、右键菜单。
+ *  自己发送的消息可显示发送状态（发送中/发送失败/已送达/已读），
+ *  并提供点击/右键/双击事件回调。
  *
  *  XML 属性：
  *  - avatar_size：头像直径（像素，DPI 缩放），默认 36
@@ -48,9 +96,13 @@ enum class ChatMessageType
  *  - system_text_color：系统提示文字色（语义色名），默认 text_muted
  *  - selection_bk_color：文本选中背景色（语义色名），默认 bg_control_selected
  *  - selection_text_color：文本选中文字色（语义色名），默认 text_default
+ *  - show_status：是否显示消息状态文字，默认 true
+ *  - status_font：状态文字字体，默认 system_regular_12
+ *  - status_text_color：状态文字颜色（语义色名），默认 text_muted
+ *  - status_failed_color：发送失败时状态文字颜色（语义色名），默认 color_error
  *  - scrollbar_track_color：滚动条轨道颜色，默认 bg_scrollbar_normal
  *  - scrollbar_thumb_color：滚动条滑块颜色，默认 bg_scrollbar_thumb_normal
- *  - auto_hide_scrollbar：是否仅在鼠标悬停时显示滚动条，默认 false（常显）
+ *  - auto_hide_scrollbar：是否仅在鼠标悬停时显示滚动条，默认 true
  *  - enable_selection：是否允许鼠标拖选文本，默认 true
  */
 class DUILIB_API ChatMessageList : public ScrollBox
@@ -64,6 +116,7 @@ public:
     {
         ChatMessageSide side = ChatMessageSide::kOther;
         ChatMessageType type = ChatMessageType::kText;
+        ChatMessageStatus status = ChatMessageStatus::kNone;
         int64_t id = 0;            //消息唯一标识（0 表示未指定）
         DString text;              //消息文本
         DString avatarText;        //头像文字（通常为姓名首字）
@@ -92,6 +145,10 @@ public:
     */
     void SetWindow(Window* pWindow) override;
 
+    /** 滚动偏移变化：自绘内容需要跟随框架滚动条同步偏移量
+    */
+    void OnScrollOffsetChanged(const UiSize& oldScrollOffset, const UiSize& newScrollOffset) override;
+
     /** 绘制消息列表
     */
     void PaintStateImages(IRender* pRender) override;
@@ -112,17 +169,20 @@ public:
 
 public:
     /** 追加一条消息
+     *  @return 消息 id（可用于后续 SetMessageStatus / UpdateMessage / RemoveMessage）
     */
-    void AddMessage(const Message& message);
+    int64_t AddMessage(const Message& message);
 
     /** 追加一条消息（便捷重载）
+     *  @return 消息 id
     */
-    void AddMessage(ChatMessageSide side, const DString& strText,
-                    const DString& strAvatarText = _T(""), const DString& strTime = _T(""));
+    int64_t AddMessage(ChatMessageSide side, const DString& strText,
+                       const DString& strAvatarText = _T(""), const DString& strTime = _T(""));
 
     /** 在指定位置插入一条消息
+     *  @return 消息 id
     */
-    void InsertMessage(size_t index, const Message& message);
+    int64_t InsertMessage(size_t index, const Message& message);
 
     /** 按消息 id 更新消息内容（找不到 id 时不做任何事）
     */
@@ -147,6 +207,55 @@ public:
     /** 获取指定消息
     */
     const Message* GetMessageAt(size_t index) const;
+
+public:
+    /** 消息状态相关接口
+    */
+    /** 按消息 id 设置状态（找不到 id 时返回 false）
+    */
+    bool SetMessageStatus(int64_t id, ChatMessageStatus status);
+
+    /** 按消息索引设置状态（索引越界时返回 false）
+    */
+    bool SetMessageStatusAt(size_t index, ChatMessageStatus status);
+
+    /** 获取指定消息的状态（索引越界时返回 kNone）
+    */
+    ChatMessageStatus GetMessageStatus(size_t index) const;
+
+    /** 自定义某个状态显示的文字（传空字符串表示恢复默认文案）
+     *
+     *  默认文案通过多语言资源获取（STRID_PUBLIC_CHAT_STATUS_*），
+     *  在语言切换后会自动更新。
+     */
+    void SetStatusText(ChatMessageStatus status, const DString& strText);
+
+    /** 获取某个状态当前显示的文字（已按多语言解析）
+    */
+    DString GetStatusText(ChatMessageStatus status) const;
+
+    /** 设置是否显示消息状态文字
+    */
+    void SetShowStatus(bool bShowStatus);
+    bool IsShowStatus() const { return m_bShowStatus; }
+
+public:
+    /** 消息事件回调
+    */
+    /** 点击消息（左键按下后抬起，且期间没有拖动选择文本）
+     *
+     *  点到发送失败的消息状态区域时，hitArea 为 kStatus 且 status 为 kFailed，
+     *  应用层可据此执行重发。
+     */
+    void AttachMessageClick(const ChatMessageClickEvent& callback);
+
+    /** 双击消息：默认行为是选中鼠标位置所在的词，回调返回 true 则跳过
+    */
+    void AttachMessageDoubleClick(const ChatMessageActionEvent& callback);
+
+    /** 右键消息：默认行为是弹出 AttachPopupMenu 绑定的菜单，回调返回 true 则跳过
+    */
+    void AttachMessageRightClick(const ChatMessageActionEvent& callback);
 
     /** 滚动到底部（显示最新消息）
     */
@@ -246,6 +355,10 @@ public:
     */
     void SelectAll();
 
+    /** 选中某条消息的全部文本（索引越界或文本为空时返回 false）
+    */
+    bool SelectMessageText(size_t nIndex);
+
     /** 复制选中文本到剪贴板（无选区时返回 false）
     */
     bool CopySelectedText();
@@ -281,17 +394,27 @@ private:
     */
     void PaintTimeDivider(IRender* pRender, const DString& strTime, const UiRect& rcDivider);
 
-    /** 计算单条消息占用的高度（含上方时间分隔条）
+    /** 计算单条消息占用的高度（含状态文字，不含上方时间分隔条）
     */
     int32_t CalcMessageHeight(IRender* pRender, const Message& message, int32_t nContentWidth);
 
-    /** 计算单条消息占用的高度（带缓存，宽度变化时失效）
+    /** 是否需要为该消息绘制时间分隔条
     */
-    int32_t CalcMessageHeightCached(IRender* pRender, size_t nIndex, int32_t nContentWidth);
+    bool IsTimeDividerShown(size_t nIndex) const;
 
-    /** 计算全部消息总高度
+    /** 确保布局缓存有效：按需重算高度、重建消息偏移表
+     *  @param [in] nContentWidth 内容区宽度（与缓存宽度不同时，所有消息高度失效）
+     *  @return 布局是否可用
     */
-    int32_t CalcTotalHeight(IRender* pRender, int32_t nContentWidth);
+    bool EnsureLayout(IRender* pRender, int32_t nContentWidth);
+
+    /** 获取某条消息的矩形（需先调用 EnsureLayout）
+    */
+    bool GetMessageRect(size_t nIndex, UiRect& rcMessage) const;
+
+    /** 查找指定内容偏移处（相对内容顶部）的第一条可见消息（需先调用 EnsureLayout）
+    */
+    size_t FindFirstVisibleIndex(int32_t nContentOffset) const;
 
     /** 更新滚动范围
     */
@@ -304,8 +427,10 @@ private:
         UiRect rcBubble;      //气泡矩形
         UiRect rcText;        //气泡内文本矩形
         UiRect rcAvatar;      //头像矩形
+        UiRect rcStatus;      //状态文字矩形（bShowStatus 为 false 时无意义）
         int32_t nTextWidth = 0;
         int32_t nTextHeight = 0;
+        bool bShowStatus = false;
         bool bValid = false;
     };
 
@@ -346,11 +471,30 @@ private:
     */
     UiColor GetAvatarColor(const DString& strText) const;
 
-    /** 文本命中测试：找到鼠标位置对应的消息与字符索引
-     *  @param [out] nCharIndex 字符索引（UTF-16 码元索引）
-     *  @return 是否命中某条消息的文本
+    /** 消息命中测试：找到鼠标位置对应的消息、命中区域与字符索引
+     *  @param [out] nMessageIndex 消息索引
+     *  @param [out] hitArea 命中区域
+     *  @param [out] nCharIndex 文本字符索引（UTF-16 码元索引），未命中文本区时为 -1
+     *  @return 是否命中某条消息
     */
-    bool HitTestText(const UiPoint& ptMouse, size_t& nMessageIndex, int32_t& nCharIndex);
+    bool HitTestMessage(const UiPoint& ptMouse, size_t& nMessageIndex,
+                        ChatMessageHitArea& hitArea, int32_t& nCharIndex);
+
+    /** 消息命中测试（拖选专用）：始终返回最近的字符位置
+     *
+     *  与 HitTestMessage 的区别：鼠标落在消息之间的间距、时间分隔条或消息两侧空白时，
+     *  会把位置钳位到最近的字符（上一条消息末尾/本条消息首尾），
+     *  这样跨消息拖选时选区可以连续延伸，不会因为穿过间隙而中断。
+     */
+    bool HitTestMessageClamped(const UiPoint& ptMouse, size_t& nMessageIndex, int32_t& nCharIndex);
+
+    /** 绘制消息状态文字（发送中/发送失败/已送达/已读）
+    */
+    void PaintStatus(IRender* pRender, const Message& message, const BubbleLayout& layout);
+
+    /** 获取状态文字颜色（语义色名）
+    */
+    DString GetStatusColor(ChatMessageStatus status) const;
 
     /** 获取某条消息的文本区域（用于命中测试与选择绘制）
     */
@@ -366,12 +510,17 @@ private:
     void PaintSelection(IRender* pRender, size_t nMessageIndex, const BubbleLayout& layout);
 
     /** 追加一条消息的内部实现
+     *  @return 消息 id
     */
-    void InsertMessageInternal(size_t index, const Message& message);
+    int64_t InsertMessageInternal(size_t index, const Message& message);
 
     /** 生成唯一消息 id
     */
     int64_t GenerateMessageId();
+
+    /** 标记某条消息的高度缓存失效（下次布局时重新测量）
+    */
+    void MarkMessageHeightDirty(size_t nIndex);
 
     /** 更新内容高度缓存（消息变化或宽度变化时调用）
     */
@@ -389,10 +538,6 @@ private:
      */
     void UpdateContentPlaceholder(int32_t nContentHeight);
 
-    /** 同步消息高度缓存与消息数量
-    */
-    void SyncMessageHeightCache();
-
 private:
     /** 消息数据
     */
@@ -402,13 +547,21 @@ private:
     */
     Control* m_pContentPlaceholder;
 
-    /** 单条消息的缓存高度（含上方时间分隔条），宽度变化时失效
+    /** 单条消息的缓存高度（含状态文字），-1 表示待计算
     */
     std::vector<int32_t> m_msgHeights;
 
-    /** 缓存对应的内容宽度，-1 表示无效
+    /** 消息顶部相对内容顶部的偏移（单调递增），布局变化时重建
     */
-    int32_t m_nCachedLayoutWidth;
+    std::vector<int32_t> m_msgOffsets;
+
+    /** 布局缓存是否失效（消息增删改、间距或时间分隔条配置变化时置位）
+    */
+    bool m_bLayoutDirty;
+
+    /** 布局缓存对应的内容宽度，-1 表示尚未布局
+    */
+    int32_t m_nLayoutWidth;
 
     /** 头像直径（像素，DPI 缩放）
     */
@@ -478,16 +631,40 @@ private:
     */
     int32_t m_nContentHeight;
 
-    /** 内容总高度缓存（宽度变化时失效）
+    /** 状态文字配置
     */
-    int32_t m_nCachedContentHeight;
-    int32_t m_nCachedContentWidth;
+    bool m_bShowStatus;
+    DString m_strStatusFont;
+    DString m_strStatusTextColor;
+    DString m_strStatusFailedColor;
+
+    /** 自定义状态文案（空字符串表示使用多语言资源中的默认文案）
+    */
+    DString m_strStatusTextSending;
+    DString m_strStatusTextFailed;
+    DString m_strStatusTextDelivered;
+    DString m_strStatusTextRead;
+
+    /** 消息事件回调
+    */
+    ChatMessageClickEvent m_msgClickCallback;
+    ChatMessageActionEvent m_msgDoubleClickCallback;
+    ChatMessageActionEvent m_msgRightClickCallback;
+
+    /** 点击状态：按下时记录命中的消息与区域，抬起时若未发生拖选则触发点击回调
+    */
+    bool m_bPendingClick;
+    size_t m_nClickIndex;
+    ChatMessageHitArea m_eClickArea;
+
     /** 文本选择状态
     */
     bool m_bSelecting;          //正在拖动选择
     bool m_bPendingSelect;       //鼠标已按下，等待移动超过阈值后开始选择
     bool m_bHasSelection;        //当前是否有选区
     UiPoint m_ptMouseDown;       //鼠标按下位置
+    size_t m_nAnchorIndex;       //拖选锚点所在的消息索引（按下时的位置，拖选过程中不变）
+    int32_t m_nAnchorChar;       //拖选锚点所在的字符索引
     size_t m_nSelStartIndex;     //选区起始消息索引
     size_t m_nSelEndIndex;       //选区结束消息索引
     int32_t m_nSelStartChar;     //选区起始字符索引

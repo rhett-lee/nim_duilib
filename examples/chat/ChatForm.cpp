@@ -1,5 +1,6 @@
 #include "ChatForm.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Utils/Clipboard.h"
 #include "duilib/Utils/ToastWnd.h"
 #include "duilib/Utils/StringUtil.h"
 #include <ctime>
@@ -32,26 +33,14 @@ void ChatForm::SetLoginUser(const DString& strUser)
 void ChatForm::OnInitWindow()
 {
     //会话数据
-    m_sessions.resize(3);
-    m_sessions[0].name = L"张伟";
-    m_sessions[0].avatarText = L"张";
-    m_sessions[0].preview = L"新的设计稿已经发到邮箱了，记得看一下";
-    m_sessions[0].time = L"上午 10:24";
-    m_sessions[1].name = L"产品设计组";
-    m_sessions[1].avatarText = L"设";
-    m_sessions[1].preview = L"[图片]";
-    m_sessions[1].time = L"昨天";
-    m_sessions[2].name = L"李娜";
-    m_sessions[2].avatarText = L"李";
-    m_sessions[2].preview = L"好的，周三下午的会议我准时参加";
-    m_sessions[2].time = L"星期一";
-    m_sessions[2].unread = true;
+    InitSessionData();
 
     BindNavButtons();
     BindSessionItems();
     BindChatButtons();
     BindSettingsButton();
     BindMessageListMenu();
+    BindMessageListEvents();
     RefreshSessionList();
     InitMessages();
     UpdatePanelVisibility();
@@ -62,6 +51,22 @@ void ChatForm::OnInitWindow()
         DString strTitle = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_CHAT_TITLE")).c_str();
         pTitle->SetText((strTitle + _T("  -  ") + m_strLoginUser).c_str());
     }
+}
+
+bool ChatForm::OnLanguageChanged()
+{
+    const bool bRet = ui::WindowImplBase::OnLanguageChanged();
+    //XML 里的 text_id 由框架自动刷新；代码生成的会话数据与消息文本需要自己重建
+    InitSessionData();
+    RefreshSessionList();
+    InitMessages();
+    //标题栏带有登录用户名，同样需要重建
+    ui::Label* pTitle = dynamic_cast<ui::Label*>(FindControl(_T("chat_title")));
+    if ((pTitle != nullptr) && !m_strLoginUser.empty()) {
+        const DString strTitle = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_CHAT_TITLE"));
+        pTitle->SetText((strTitle + _T("  -  ") + m_strLoginUser).c_str());
+    }
+    return bRet;
 }
 
 void ChatForm::BindNavButtons()
@@ -250,6 +255,95 @@ void ChatForm::BindMessageListMenu()
     pMsgList->AttachPopupMenu();
 }
 
+void ChatForm::BindMessageListEvents()
+{
+    ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(FindControl(_T("message_list")));
+    if (pMsgList == nullptr) {
+        return;
+    }
+    pMsgList->AttachMessageClick([this](const ui::ChatMessageEvent& messageEvent) {
+        OnMessageClick(messageEvent);
+        });
+    pMsgList->AttachMessageDoubleClick([this](const ui::ChatMessageEvent& messageEvent) {
+        return OnMessageDoubleClick(messageEvent);
+        });
+    pMsgList->AttachMessageRightClick([this](const ui::ChatMessageEvent& messageEvent) {
+        return OnMessageRightClick(messageEvent);
+        });
+}
+
+void ChatForm::OnMessageClick(const ui::ChatMessageEvent& messageEvent)
+{
+    ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(FindControl(_T("message_list")));
+    if (pMsgList == nullptr) {
+        return;
+    }
+    if ((messageEvent.hitArea == ui::ChatMessageHitArea::kStatus) &&
+        (messageEvent.status == ui::ChatMessageStatus::kFailed)) {
+        //点击"发送失败，点击重试"：重新走一遍发送流程
+        pMsgList->SetMessageStatus(messageEvent.id, ui::ChatMessageStatus::kSending);
+        SimulateSendStatus(messageEvent.id, false);
+        return;
+    }
+    if (messageEvent.hitArea == ui::ChatMessageHitArea::kAvatar) {
+        ShowTip(_T("STRID_CHAT_TIP_AVATAR_CLICK"));
+    }
+}
+
+bool ChatForm::OnMessageDoubleClick(const ui::ChatMessageEvent& messageEvent)
+{
+    ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(FindControl(_T("message_list")));
+    if (pMsgList == nullptr) {
+        return false;
+    }
+    const ui::ChatMessageList::Message* pMessage = pMsgList->GetMessageAt(messageEvent.nIndex);
+    if ((pMessage == nullptr) || pMessage->text.empty()) {
+        return false;
+    }
+    //双击复制该条消息，不再执行默认的"选中该词"
+    ui::Clipboard::SetClipboardText(pMessage->text);
+    ShowTip(_T("STRID_CHAT_TIP_COPY_MESSAGE"));
+    return true;
+}
+
+bool ChatForm::OnMessageRightClick(const ui::ChatMessageEvent& messageEvent)
+{
+    ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(FindControl(_T("message_list")));
+    if (pMsgList == nullptr) {
+        return false;
+    }
+    //右键时先选中该条消息的文本，这样默认菜单里的"复制"直接可用
+    pMsgList->SelectMessageText(messageEvent.nIndex);
+    //返回 false：继续弹出控件绑定的默认右键菜单（复制/全选）
+    return false;
+}
+
+void ChatForm::ShowTip(const DString& strTextId)
+{
+    ui::ToastWnd::Show(this,
+        ui::GlobalManager::Instance().Lang().GetStringByID(strTextId),
+        ui::ToastWnd::kTypeInfo, 2000, ui::ToastWnd::kPosBottom);
+}
+
+void ChatForm::InitSessionData()
+{
+    auto getText = [](const DString& strId) -> DString {
+        return ui::GlobalManager::Instance().Lang().GetStringByID(strId);
+        };
+
+    m_sessions.resize(3);
+    for (size_t i = 0; i < m_sessions.size(); ++i) {
+        const DString strIndex = std::to_wstring(i + 1).c_str();
+        m_sessions[i].name = getText(_T("STRID_CHAT_SESSION_NAME_") + strIndex);
+        m_sessions[i].time = getText(_T("STRID_CHAT_SESSION_TIME_") + strIndex);
+        m_sessions[i].preview = getText(_T("STRID_CHAT_SESSION_MSG_") + strIndex);
+        //头像文字取名称首字符，中英文都可用
+        m_sessions[i].avatarText = m_sessions[i].name.substr(0, 1);
+        m_sessions[i].unread = false;
+    }
+    m_sessions[2].unread = true;
+}
+
 void ChatForm::RefreshSessionList()
 {
     //把会话数据同步到列表控件（名称/时间/预览/头像）
@@ -287,19 +381,30 @@ void ChatForm::InitMessages()
     }
     const ChatSession& session = m_sessions[m_nCurrentSession];
     const DString strTime = GetCurrentTimeText();
+    const DString strAvatarSelf = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_CHAT_AVATAR_SELF"));
+    auto getText = [](const DString& strId) -> DString {
+        return ui::GlobalManager::Instance().Lang().GetStringByID(strId);
+        };
 
     if (m_nCurrentSession == 0) {
-        pMsgList->AddMessage(ui::ChatMessageSide::kOther, _T("下午好，新版本的界面已经整理好了"), session.avatarText, strTime);
-        pMsgList->AddMessage(ui::ChatMessageSide::kSelf, _T("好的，我来看看"), _T("我"), strTime);
-        pMsgList->AddMessage(ui::ChatMessageSide::kOther, _T("收到，辛苦"), session.avatarText, strTime);
+        pMsgList->AddMessage(ui::ChatMessageSide::kOther, getText(_T("STRID_CHAT_MSG_RECV_1")), session.avatarText, strTime);
+        //自己发出的消息带状态：演示"已读"
+        ui::ChatMessageList::Message sent;
+        sent.side = ui::ChatMessageSide::kSelf;
+        sent.status = ui::ChatMessageStatus::kRead;
+        sent.text = getText(_T("STRID_CHAT_MSG_SENT_1"));
+        sent.avatarText = strAvatarSelf;
+        sent.time = strTime;
+        pMsgList->AddMessage(sent);
+        pMsgList->AddMessage(ui::ChatMessageSide::kOther, getText(_T("STRID_CHAT_MSG_RECV_2")), session.avatarText, strTime);
     }
     else if (m_nCurrentSession == 1) {
-        pMsgList->AddMessage(ui::ChatMessageSide::kOther, _T("新版设计稿已经上传到共享目录了"), session.avatarText, strTime);
-        pMsgList->AddMessage(ui::ChatMessageSide::kSystem, _T("你已加入“产品设计组”"), _T(""), _T(""));
+        pMsgList->AddMessage(ui::ChatMessageSide::kOther, getText(_T("STRID_CHAT_MSG_RECV_3")), session.avatarText, strTime);
+        pMsgList->AddMessage(ui::ChatMessageSide::kSystem, getText(_T("STRID_CHAT_MSG_SYSTEM_1")), _T(""), _T(""));
     }
     else {
-        pMsgList->AddMessage(ui::ChatMessageSide::kOther, _T("好的，周三下午的会议我准时参加"), session.avatarText, strTime);
-        pMsgList->AddMessage(ui::ChatMessageSide::kSelf, _T("收到，到时候见"), _T("我"), strTime);
+        pMsgList->AddMessage(ui::ChatMessageSide::kOther, getText(_T("STRID_CHAT_MSG_RECV_4")), session.avatarText, strTime);
+        pMsgList->AddMessage(ui::ChatMessageSide::kSelf, getText(_T("STRID_CHAT_MSG_SENT_2")), strAvatarSelf, strTime);
     }
     pMsgList->ScrollToBottom();
 }
@@ -362,24 +467,72 @@ void ChatForm::SendInputMessage()
         return;
     }
 
-    AppendMessage(ui::ChatMessageSide::kSelf, strContent, _T("我"));
+    ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(FindControl(_T("message_list")));
+    int64_t nMessageId = 0;
+    if (pMsgList != nullptr) {
+        //新消息先以"发送中"状态插入，随后由 SimulateSendStatus 推进状态
+        ui::ChatMessageList::Message message;
+        message.side = ui::ChatMessageSide::kSelf;
+        message.status = ui::ChatMessageStatus::kSending;
+        message.text = strContent;
+        message.avatarText = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_CHAT_AVATAR_SELF"));
+        message.time = GetCurrentTimeText();
+        nMessageId = pMsgList->AddMessage(message);
+    }
     UpdateSessionPreview(strContent);
 
     //清空输入框
     pInput->SetText(_T(""));
     pInput->SetFocus();
 
+    //以 /fail 开头的文本用于演示"发送失败 + 点击重试"
+    const bool bFail = (strContent.size() >= 5) && (strContent.substr(0, 5) == _T("/fail"));
+    SimulateSendStatus(nMessageId, bFail);
+
     //模拟对方稍后回复
     SimulateReply();
 }
 
-void ChatForm::AppendMessage(ui::ChatMessageSide side, const DString& strText, const DString& strAvatarText)
+int64_t ChatForm::AppendMessage(ui::ChatMessageSide side, const DString& strText, const DString& strAvatarText)
 {
     ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(FindControl(_T("message_list")));
     if (pMsgList == nullptr) {
+        return 0;
+    }
+    return pMsgList->AddMessage(side, strText, strAvatarText, GetCurrentTimeText());
+}
+
+void ChatForm::SimulateSendStatus(int64_t nMessageId, bool bFail)
+{
+    if (nMessageId == 0) {
         return;
     }
-    pMsgList->AddMessage(side, strText, strAvatarText, GetCurrentTimeText());
+    //延时模拟发送过程：先"发送中"，随后变为"已送达"或"发送失败"，已送达后再变"已读"
+    ChatForm* pThis = this;
+    ui::GlobalManager::Instance().Thread().PostDelayedTask(ui::kThreadUI, [pThis, nMessageId, bFail]() {
+        //延时任务执行时窗口可能已被关闭，此时不能再操作控件
+        if ((pThis == nullptr) || pThis->IsClosingWnd()) {
+            return;
+        }
+        ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(pThis->FindControl(_T("message_list")));
+        if (pMsgList == nullptr) {
+            return;
+        }
+        pMsgList->SetMessageStatus(nMessageId, bFail ? ui::ChatMessageStatus::kFailed
+                                                     : ui::ChatMessageStatus::kDelivered);
+        if (bFail) {
+            return;
+        }
+        ui::GlobalManager::Instance().Thread().PostDelayedTask(ui::kThreadUI, [pThis, nMessageId]() {
+            if ((pThis == nullptr) || pThis->IsClosingWnd()) {
+                return;
+            }
+            ui::ChatMessageList* pList = dynamic_cast<ui::ChatMessageList*>(pThis->FindControl(_T("message_list")));
+            if (pList != nullptr) {
+                pList->SetMessageStatus(nMessageId, ui::ChatMessageStatus::kRead);
+            }
+            }, 1400);
+        }, 700);
 }
 
 void ChatForm::SimulateReply()

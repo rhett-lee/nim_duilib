@@ -38,6 +38,10 @@ public:
     */
     virtual void OnInitWindow() override;
 
+    /** 语言切换：XML 里的 text_id 由框架刷新，代码生成的文案需要自己重建
+    */
+    virtual bool OnLanguageChanged() override;
+
     /** 通知栏目的选中项
     */
     enum class NavTab
@@ -68,6 +72,30 @@ private:
     /** 绑定消息列表的右键菜单（复制/全选）
     */
     void BindMessageListMenu();
+
+    /** 绑定消息列表的点击/双击/右键回调
+    */
+    void BindMessageListEvents();
+
+    /** 消息列表：点击事件（点击发送失败的状态区域时重发）
+    */
+    void OnMessageClick(const ui::ChatMessageEvent& messageEvent);
+
+    /** 消息列表：双击事件（复制该条消息文本）
+    */
+    bool OnMessageDoubleClick(const ui::ChatMessageEvent& messageEvent);
+
+    /** 消息列表：右键事件（先选中该条消息的文本，再弹出默认菜单）
+    */
+    bool OnMessageRightClick(const ui::ChatMessageEvent& messageEvent);
+
+    /** 初始化会话数据（文案来自多语言资源，切换语言后需要重新调用）
+    */
+    void InitSessionData();
+
+    /** 按多语言键弹出提示（Toast）
+    */
+    void ShowTip(const DString& strTextId);
 
     /** 绑定左下角的设置按钮，弹出设置菜单
     */
@@ -106,8 +134,13 @@ private:
     void SendInputMessage();
 
     /** 追加一条消息到消息列表
+     *  @return 消息 id
     */
-    void AppendMessage(ui::ChatMessageSide side, const DString& strText, const DString& strAvatarText);
+    int64_t AppendMessage(ui::ChatMessageSide side, const DString& strText, const DString& strAvatarText);
+
+    /** 模拟消息状态变化：发送中 → 已送达 → 已读（失败时停在发送失败）
+    */
+    void SimulateSendStatus(int64_t nMessageId, bool bFail);
 
     /** 模拟对方回复
     */

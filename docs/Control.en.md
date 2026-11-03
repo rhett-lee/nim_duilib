@@ -2387,7 +2387,7 @@ if (pTimeline != nullptr) {
 ```
 
 ## ChatMessageList properties
-ChatMessageList is a chat message list control, derived from ScrollBox with custom painting for the message area. The corresponding header file is `duilib/Control/ChatMessageList.h`. It simulates the message area of a real IM client: message bubbles are laid out in left/right columns, bubble width adapts to the text and wraps automatically, avatars are circles whose color is derived deterministically from the avatar text, and an optional time divider can be shown. The framework scrollbar is used when the content overflows and the view scrolls to the bottom automatically; mouse text selection, double-click word selection and Ctrl+C copy are supported.
+ChatMessageList is a chat message list control, derived from ScrollBox with custom painting for the message area. The corresponding header file is `duilib/Control/ChatMessageList.h`. It simulates the message area of a real IM client: message bubbles are laid out in left/right columns, bubble width adapts to the text and wraps automatically, avatars are circles whose color is derived deterministically from the avatar text, and an optional time divider can be shown. The framework scrollbar is used when the content overflows and the view scrolls to the bottom automatically; mouse text selection, double-click word selection and Ctrl+C copy are supported; messages sent by the user can show a status (sending / failed / delivered / read) and click, double-click and right-click callbacks are provided.
 
 In addition to the common Control properties, the following properties are added:
 
@@ -2416,6 +2416,10 @@ In addition to the common Control properties, the following properties are added
 | selection_bk_color | bg_list_item_selected | string | Background color of the selected text region (semantic color name or color value) |
 | selection_text_color | text_selected | string | Text color of the selected text region (semantic color name or color value) |
 | enable_selection | true | bool | Whether mouse text selection is allowed |
+| show_status | true | bool | Whether the message status text is shown |
+| status_font | system_regular_12 | string | Font of the message status text |
+| status_text_color | text_muted | string | Color of the message status text (semantic color name or color value) |
+| status_failed_color | color_error | string | Color of the status text when sending failed (semantic color name or color value) |
 
 Notes:
 - **Message side**: the `ChatMessageSide` enum contains `kOther` (peer, left column), `kSelf` (own, right column) and `kSystem` (system notice, centered small text).
@@ -2424,11 +2428,16 @@ Notes:
 - **Time divider**: a divider is inserted only when two adjacent messages have different `time` values, so the same moment is not repeated.
 - **Scrolling and auto-scroll**: when the content exceeds the control height, the framework vertical scrollbar is used (wheel scrolling, dragging the thumb, clicking the track and keyboard scrolling); after `AddMessage` the control scrolls to the bottom automatically (can be turned off with `SetAutoScrollToBottom`).
 - **Keep visible**: `AddMessage` defers the scroll to the next message loop iteration, ensuring that the layout has completed and the content height is accurate by then.
-- **Text selection**: drag with the left mouse button over message text to select it, double-click to select a whole word; the selected region gets a background color and the selected text uses `selection_text_color`. The control takes focus while dragging, so `Ctrl+C` copies the selected text, `Ctrl+A` selects all and `Esc` clears the selection.
-- **Context menu**: call `AttachPopupMenu` to bind a right-click menu; when no menu file is given the framework generic edit menu (copy / select all, already localized) is used.
+- **Text selection**: drag with the left mouse button over message text to select it, double-click to select a whole word; the selected region gets a background color and the selected text uses `selection_text_color`. A drag can span several messages: when the pointer crosses the blank space or the time divider between messages, the selection is clamped to the nearest character instead of breaking; the control takes focus while dragging, so `Ctrl+C` copies the selected text, `Ctrl+A` selects all and `Esc` clears the selection.
+- **Context menu**: call `AttachPopupMenu` to bind a right-click menu; when no menu file is given the message-list menu `public/menu/chat_message_menu.xml` is used (only copy / select all, already localized). The message list is read-only, so cut / paste / delete are not offered.
+- **Message status**: the `ChatMessageStatus` enum contains `kNone` (not shown), `kSending`, `kFailed`, `kDelivered` and `kRead`. The status text is painted below the bubble of the user message, right aligned with the bubble edge, and it participates in the message height calculation. Default texts come from the language resources (`STRID_PUBLIC_CHAT_STATUS_*`) and can be overridden with `SetStatusText`.
+- **Click event**: `AttachMessageClick` fires on left-button release when no text drag happened during the press. The callback receives the message index, id, status, hit area (bubble / avatar / status text) and mouse position. Clicking the status text of a failed message reports hit area `kStatus`, which allows a "click to retry" flow.
+- **Double-click event**: returning `true` from `AttachMessageDoubleClick` means the application handled it, so the default "select the word under the cursor" is skipped.
+- **Right-click event**: returning `true` from `AttachMessageRightClick` means the application handles the right click itself, so the default menu is not shown.
+- **Layout cache**: each message height is cached per message (only dirty messages are measured again) and a message-top offset table is maintained; painting, hit testing and scroll positioning all use a binary search over that table, so a long list never iterates every message per frame.
 - **Message identity**: each message can carry an `id` (0 means auto-generated) so it can be updated or removed later; the `ChatMessageType` enum contains `kText` (normal message) and `kSystem` (system hint).
 
-Corresponding C++ interfaces: `AddMessage` (plus a convenience overload), `InsertMessage`, `UpdateMessage`, `RemoveMessage`, `GetMessageById`, `ClearMessages`, `GetMessageCount`, `GetMessageAt`, `ScrollToBottom`, `GetScrollPos/SetScrollPos`, `SetAutoScrollToBottom/IsAutoScrollToBottom`, `SetAvatarSize/GetAvatarSize`, `SetBubbleMaxWidth/GetBubbleMaxWidth`, `SetBubbleRadius/GetBubbleRadius`, `SetShowTime/IsShowTime`, `SetBubbleColor`, `SetTextColor`, `SetAvatarTextColor`, `SetSystemTextColor`, `SetSelectionBkColor`, `SetSelectionTextColor`, `SetScrollbarTrackColor`, `SetScrollbarThumbColor`, `SetAutoHideScrollbar/IsAutoHideScrollbar`, `SetEnableSelection/IsEnableSelection`, `HasSelection`, `GetSelectedText`, `ClearSelection`, `SelectAll`, `CopySelectedText`, `CopyAllText`, `AttachPopupMenu`.
+Corresponding C++ interfaces: `AddMessage` (plus a convenience overload), `InsertMessage`, `UpdateMessage`, `RemoveMessage`, `GetMessageById`, `ClearMessages`, `GetMessageCount`, `GetMessageAt`, `ScrollToBottom`, `GetChatScrollPos/SetChatScrollPos`, `SetAutoScrollToBottom/IsAutoScrollToBottom`, `SetAvatarSize/GetAvatarSize`, `SetBubbleMaxWidth/GetBubbleMaxWidth`, `SetBubbleRadius/GetBubbleRadius`, `SetShowTime/IsShowTime`, `SetBubbleColor`, `SetTextColor`, `SetAvatarTextColor`, `SetSystemTextColor`, `SetSelectionBkColor`, `SetSelectionTextColor`, `SetScrollbarTrackColor`, `SetScrollbarThumbColor`, `SetAutoHideScrollbar/IsAutoHideScrollbar`, `SetEnableSelection/IsEnableSelection`, `SetShowStatus/IsShowStatus`, `SetMessageStatus`, `SetMessageStatusAt`, `GetMessageStatus`, `SetStatusText`, `GetStatusText`, `AttachMessageClick`, `AttachMessageDoubleClick`, `AttachMessageRightClick`, `HasSelection`, `GetSelectedText`, `ClearSelection`, `SelectAll`, `SelectMessageText`, `CopySelectedText`, `CopyAllText`, `AttachPopupMenu`.
 
 ### XML example
 
@@ -2461,9 +2470,26 @@ if (pMsgList != nullptr) {
     // Update a message by id (e.g. turn "sending" into "failed")
     ui::ChatMessageList::Message msg;
     msg.side = ui::ChatMessageSide::kSelf;
+    msg.status = ui::ChatMessageStatus::kFailed;
     msg.text = _T("Failed to send, click to retry");
     msg.avatarText = _T("Me");
     pMsgList->UpdateMessage(nMsgId, msg);
+
+    // Change only the status (only this message height cache is invalidated)
+    pMsgList->SetMessageStatus(nMsgId, ui::ChatMessageStatus::kRead);
+
+    // Click: resend when the failed status text is hit
+    pMsgList->AttachMessageClick([pMsgList](const ui::ChatMessageEvent& e) {
+        if ((e.hitArea == ui::ChatMessageHitArea::kStatus) &&
+            (e.status == ui::ChatMessageStatus::kFailed)) {
+            pMsgList->SetMessageStatus(e.id, ui::ChatMessageStatus::kSending);
+        }
+        });
+
+    // Right click: return false to keep the default menu
+    pMsgList->AttachMessageRightClick([](const ui::ChatMessageEvent& /*e*/) {
+        return false;
+        });
 
     // Bind the right-click menu (framework copy/select-all menu when no file is given)
     pMsgList->AttachPopupMenu();

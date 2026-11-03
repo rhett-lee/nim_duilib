@@ -425,3 +425,8 @@ STRID_MSGBOX_YES     = Yes
 STRID_MSGBOX_NO      = No
 STRID_MSGBOX_RETRY   = Retry
 
+# ChatMessageList message status
+STRID_PUBLIC_CHAT_STATUS_SENDING   = Sending
+STRID_PUBLIC_CHAT_STATUS_FAILED    = Failed to send, click to retry
+STRID_PUBLIC_CHAT_STATUS_DELIVERED = Delivered
+STRID_PUBLIC_CHAT_STATUS_READ      = Read

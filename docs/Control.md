@@ -2385,7 +2385,7 @@ if (pTimeline != nullptr) {
 ```
 
 ## ChatMessageList的属性
-ChatMessageList是聊天消息列表控件，继承自ScrollBox，消息区为纯自绘实现，对应头文件`duilib/Control/ChatMessageList.h`。用于模拟真实IM客户端的消息区：消息气泡按左右方向分栏、气泡宽度随文本自适应并自动换行、头像为按文字内容生成稳定配色的圆形、可选时间分隔条，内容超出时使用框架滚动条并自动滚动到底部；支持鼠标拖选文本、双击选词、Ctrl+C复制。
+ChatMessageList是聊天消息列表控件，继承自ScrollBox，消息区为纯自绘实现，对应头文件`duilib/Control/ChatMessageList.h`。用于模拟真实IM客户端的消息区：消息气泡按左右方向分栏、气泡宽度随文本自适应并自动换行、头像为按文字内容生成稳定配色的圆形、可选时间分隔条，内容超出时使用框架滚动条并自动滚动到底部；支持鼠标拖选文本、双击选词、Ctrl+C复制；自己发送的消息可显示发送状态（发送中/发送失败/已送达/已读），并提供点击、双击、右键事件回调。
 
 除Control的通用属性外，新增以下属性：
 
@@ -2414,6 +2414,10 @@ ChatMessageList是聊天消息列表控件，继承自ScrollBox，消息区为�
 | selection_bk_color | bg_list_item_selected | string | 文本选中区域背景色（语义色名或颜色值） |
 | selection_text_color | text_selected | string | 文本选中区域文字颜色（语义色名或颜色值） |
 | enable_selection | true | bool | 是否允许鼠标拖选文本 |
+| show_status | true | bool | 是否显示消息状态文字 |
+| status_font | system_regular_12 | string | 消息状态文字字体 |
+| status_text_color | text_muted | string | 消息状态文字颜色（语义色名或颜色值） |
+| status_failed_color | color_error | string | 发送失败时状态文字颜色（语义色名或颜色值） |
 
 说明：
 - **消息方向**：`ChatMessageSide` 枚举包含 `kOther`（对方，左侧）、`kSelf`（自己，右侧）、`kSystem`（系统提示，居中小字）。
@@ -2422,11 +2426,16 @@ ChatMessageList是聊天消息列表控件，继承自ScrollBox，消息区为�
 - **时间分隔条**：相邻消息的 `time` 不同才插入分隔条，避免同一时刻反复显示。
 - **滚动与自动滚动**：内容超出控件高度时使用框架的垂直滚动条（支持滚轮、拖动滑块、轨道点击、键盘滚动）；`AddMessage` 追加消息后自动滚动到底部（可通过 `SetAutoScrollToBottom` 关闭）。
 - **追加可见**：`AddMessage` 后会延迟到下一轮消息循环再执行滚动，确保此时布局已完成、内容高度准确。
-- **文本选择**：在消息文本上按住鼠标左键拖动可选中文本，双击选中整个词，选中区域绘制背景色且选中文字改用 `selection_text_color`；拖选时控件获取焦点，因此 `Ctrl+C` 可复制选中文本，`Ctrl+A` 全选，`Esc` 清除选区。
-- **右键菜单**：调用 `AttachPopupMenu` 绑定右键菜单，不指定菜单文件时使用框架自带的通用编辑菜单（复制/全选，文案已国际化）。
+- **文本选择**：在消息文本上按住鼠标左键拖动可选中文本，双击选中整个词，选中区域绘制背景色且选中文字改用 `selection_text_color`；拖选可跨越多条消息：鼠标经过消息之间的空白或时间分隔条时，选区会钳位到最近的字符位置而不会中断；拖选时控件获取焦点，因此 `Ctrl+C` 可复制选中文本，`Ctrl+A` 全选，`Esc` 清除选区。
+- **右键菜单**：调用 `AttachPopupMenu` 绑定右键菜单，不指定菜单文件时使用消息列表专用菜单 `public/menu/chat_message_menu.xml`（仅"复制/全选"两项，文案已国际化）；消息列表是只读的，不提供剪切/粘贴/删除等富文本菜单项。
+- **消息状态**：`ChatMessageStatus` 枚举包含 `kNone`（不显示）、`kSending`（发送中）、`kFailed`（发送失败）、`kDelivered`（已送达）、`kRead`（已读）。状态文字绘制在自己消息气泡下方并与气泡右边缘对齐，参与消息高度计算；默认文案取自多语言资源（`STRID_PUBLIC_CHAT_STATUS_*`），可用 `SetStatusText` 覆盖。
+- **点击事件**：`AttachMessageClick` 在左键抬起且期间没有拖动选择文本时触发，回调参数包含消息索引、id、状态、命中区域（气泡/头像/状态文字）与鼠标位置；点到发送失败消息的状态文字时命中区域为 `kStatus`，可实现"点击重试"。
+- **双击事件**：`AttachMessageDoubleClick` 回调返回 `true` 表示应用层已处理，控件不再执行默认的"选中该次点击位置所在的词"。
+- **右键事件**：`AttachMessageRightClick` 回调返回 `true` 表示应用层自行处理右键，控件不再弹出默认菜单。
+- **布局缓存**：单条消息的高度按消息独立缓存（标记为脏的消息才重新测量），并维护消息顶部偏移表；绘制、命中测试与滚动定位都通过偏移表二分查找，长列表下不会每帧遍历全部消息。
 - **消息标识**：每条消息可指定 `id`（0 表示自动生成），便于后续按 id 更新或删除；`ChatMessageType` 枚举包含 `kText`（普通消息）与 `kSystem`（系统提示）。
 
-对应C++接口：`AddMessage`（含便捷重载）、`InsertMessage`、`UpdateMessage`、`RemoveMessage`、`GetMessageById`、`ClearMessages`、`GetMessageCount`、`GetMessageAt`、`ScrollToBottom`、`GetScrollPos/SetScrollPos`、`SetAutoScrollToBottom/IsAutoScrollToBottom`、`SetAvatarSize/GetAvatarSize`、`SetBubbleMaxWidth/GetBubbleMaxWidth`、`SetBubbleRadius/GetBubbleRadius`、`SetShowTime/IsShowTime`、`SetBubbleColor`、`SetTextColor`、`SetAvatarTextColor`、`SetSystemTextColor`、`SetSelectionBkColor`、`SetSelectionTextColor`、`SetScrollbarTrackColor`、`SetScrollbarThumbColor`、`SetAutoHideScrollbar/IsAutoHideScrollbar`、`SetEnableSelection/IsEnableSelection`、`HasSelection`、`GetSelectedText`、`ClearSelection`、`SelectAll`、`CopySelectedText`、`CopyAllText`、`AttachPopupMenu`。
+对应C++接口：`AddMessage`（含便捷重载）、`InsertMessage`、`UpdateMessage`、`RemoveMessage`、`GetMessageById`、`ClearMessages`、`GetMessageCount`、`GetMessageAt`、`ScrollToBottom`、`GetChatScrollPos/SetChatScrollPos`、`SetAutoScrollToBottom/IsAutoScrollToBottom`、`SetAvatarSize/GetAvatarSize`、`SetBubbleMaxWidth/GetBubbleMaxWidth`、`SetBubbleRadius/GetBubbleRadius`、`SetShowTime/IsShowTime`、`SetBubbleColor`、`SetTextColor`、`SetAvatarTextColor`、`SetSystemTextColor`、`SetSelectionBkColor`、`SetSelectionTextColor`、`SetScrollbarTrackColor`、`SetScrollbarThumbColor`、`SetAutoHideScrollbar/IsAutoHideScrollbar`、`SetEnableSelection/IsEnableSelection`、`SetShowStatus/IsShowStatus`、`SetMessageStatus`、`SetMessageStatusAt`、`GetMessageStatus`、`SetStatusText`、`GetStatusText`、`AttachMessageClick`、`AttachMessageDoubleClick`、`AttachMessageRightClick`、`HasSelection`、`GetSelectedText`、`ClearSelection`、`SelectAll`、`SelectMessageText`、`CopySelectedText`、`CopyAllText`、`AttachPopupMenu`。
 
 ### XML使用示例
 
@@ -2459,9 +2468,26 @@ if (pMsgList != nullptr) {
     // 按 id 更新消息（例如把“发送中”改为“发送失败”）
     ui::ChatMessageList::Message msg;
     msg.side = ui::ChatMessageSide::kSelf;
+    msg.status = ui::ChatMessageStatus::kFailed;
     msg.text = _T("发送失败，点击重试");
     msg.avatarText = _T("我");
     pMsgList->UpdateMessage(nMsgId, msg);
+
+    // 只改状态（内部仅让这一条消息的高度缓存失效）
+    pMsgList->SetMessageStatus(nMsgId, ui::ChatMessageStatus::kRead);
+
+    // 点击：命中发送失败的状态文字时重发
+    pMsgList->AttachMessageClick([pMsgList](const ui::ChatMessageEvent& e) {
+        if ((e.hitArea == ui::ChatMessageHitArea::kStatus) &&
+            (e.status == ui::ChatMessageStatus::kFailed)) {
+            pMsgList->SetMessageStatus(e.id, ui::ChatMessageStatus::kSending);
+        }
+        });
+
+    // 右键：返回 false 表示继续使用默认菜单
+    pMsgList->AttachMessageRightClick([](const ui::ChatMessageEvent& /*e*/) {
+        return false;
+        });
 
     // 绑定右键菜单（不传菜单文件时使用框架自带的复制/全选菜单）
     pMsgList->AttachPopupMenu();
