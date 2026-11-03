@@ -1,4 +1,4 @@
-# String resources in English 
+﻿# String resources in English 
 # comment symbol："#"
 
 # The following are the texts used by each example program
@@ -55,6 +55,52 @@ STRID_CHAT_SIGN_UP  = Sign Up
 STRID_CHAT_SIGN_IN  = Sign In
 STRID_CHAT_ACCOUNT  = Account
 STRID_CHAT_PASSWORD = Password
+STRID_CHAT_SEARCH_PLACEHOLDER = Search
+STRID_CHAT_NAV_CHAT       = Chats
+STRID_CHAT_NAV_CONTACTS   = Contacts
+STRID_CHAT_NAV_FAVORITES  = Favorites
+STRID_CHAT_NAV_SETTINGS   = Settings
+STRID_CHAT_TOOL_VIDEO     = Video call
+STRID_CHAT_TOOL_PHONE     = Voice call
+STRID_CHAT_TOOL_MORE      = More
+STRID_CHAT_TOOL_EMOJI     = Emoji
+STRID_CHAT_TOOL_IMAGE     = Image
+STRID_CHAT_TOOL_HISTORY   = History
+STRID_CHAT_SEND           = Send
+STRID_CHAT_TITLE          = UI Demo
+STRID_CHAT_SESSION_NAME_1 = Alex Chen
+STRID_CHAT_SESSION_NAME_2 = Design Team
+STRID_CHAT_SESSION_NAME_3 = Nina Li
+STRID_CHAT_SESSION_TIME_1 = 10:24 AM
+STRID_CHAT_SESSION_TIME_2 = Yesterday
+STRID_CHAT_SESSION_TIME_3 = Monday
+STRID_CHAT_SESSION_MSG_1  = The new mockups are in your inbox, please take a look
+STRID_CHAT_SESSION_MSG_2 = [Image]
+STRID_CHAT_SESSION_MSG_3  = Sure, I will join the meeting on Wednesday afternoon
+STRID_CHAT_MSG_RECV_1     = Good afternoon, the new interface is ready
+STRID_CHAT_MSG_SENT_1     = Great, I will take a look now
+STRID_CHAT_MSG_RECV_2     = Got it, thanks for your work
+STRID_CHAT_LOGIN_TITLE    = Welcome back
+STRID_CHAT_LOGIN_SUBTITLE = Sign in to start chatting with friends
+STRID_CHAT_LOGIN_FOOTER   = nim_duilib · UI layout demo
+STRID_CHAT_APP_NAME         = nim_duilib Chat Demo
+STRID_CHAT_PANEL_CHATS      = Chats
+STRID_CHAT_PANEL_CONTACTS   = Contacts
+STRID_CHAT_PANEL_FAVORITES  = Favorites
+STRID_CHAT_TOOL_ADD         = New chat
+STRID_CHAT_INPUT_HINT       = Enter to send, Ctrl+Enter for a new line
+STRID_CHAT_LOGIN_EMPTY      = Please enter both account and password
+STRID_CHAT_REGISTER_TIP     = The sign-up feature is under development, please stay tuned
+STRID_CHAT_CONTACT_1        = Alex Chen
+STRID_CHAT_CONTACT_1_DESC   = Colleague: Design
+STRID_CHAT_CONTACT_2        = Nina Li
+STRID_CHAT_CONTACT_2_DESC   = Product Manager
+STRID_CHAT_CONTACT_3        = Daniel Wang
+STRID_CHAT_CONTACT_3_DESC   = Development Team
+STRID_CHAT_FAVORITE_1       = Design Team
+STRID_CHAT_FAVORITE_1_DESC  = 12 members
+STRID_CHAT_FAVORITE_2       = Design Docs
+STRID_CHAT_FAVORITE_2_DESC  = Updated yesterday
 
 # examples/ChildWindow
 STRID_CHILDWINDOW_TITLE  = ChildWindow Test Program
@@ -1966,3 +2012,15 @@ STRID_COLORPICKER_DEMO_CLOSED  = [close]
 STRID_COLORPICKER_DEMO_RESULT_OK  = OK
 STRID_COLORPICKER_DEMO_RESULT_CANCEL  = Cancel
 STRID_COLORPICKER_DEMO_RESULT_CLOSE  = close button
+STRID_CHAT_MENU_NEW_CHAT          = New Chat
+STRID_CHAT_MENU_CONTACTS          = Contacts
+STRID_CHAT_MENU_ABOUT             = About This Demo
+STRID_CHAT_MENU_LOGOUT            = Sign Out
+STRID_CHAT_TIP_NEW_SESSION        = Creating a new session is not supported in this demo
+STRID_CHAT_TIP_SEARCH             = Search is not supported in this demo
+STRID_CHAT_TIP_VIDEO              = Video calls are not supported in this demo
+STRID_CHAT_TIP_PHONE              = Voice calls are not supported in this demo
+STRID_CHAT_TIP_MORE               = More actions are not supported in this demo
+STRID_CHAT_TIP_IMAGE              = Sending images is not supported in this demo
+STRID_CHAT_TIP_HISTORY            = Chat history is not supported in this demo
+STRID_CHAT_TIP_ABOUT              = nim_duilib chat layout demo

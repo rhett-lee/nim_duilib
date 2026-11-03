@@ -18,6 +18,9 @@
     <ClInclude Include="ChatForm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LoginForm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="MainThread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -33,6 +36,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ChatForm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LoginForm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main_windows.cpp">

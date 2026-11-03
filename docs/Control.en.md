@@ -2386,6 +2386,73 @@ if (pTimeline != nullptr) {
 }
 ```
 
+## ChatMessageList properties
+ChatMessageList is a chat message list control, derived from Control and implemented with custom painting only. The corresponding header file is `duilib/Control/ChatMessageList.h`. It simulates the message area of a real IM client: message bubbles are laid out in left/right columns, bubble width adapts to the text and wraps automatically, avatars are circles whose color is derived deterministically from the avatar text, and an optional time divider can be shown. The content supports scrolling and scrolls to the bottom automatically.
+
+In addition to the common Control properties, the following properties are added:
+
+| Property | Default | Type | Description |
+| :--- | :--- | :--- | :--- |
+| avatar_size | 36 | int | Avatar diameter (pixels, DPI scaled) |
+| bubble_max_width | 480 | int | Maximum bubble width (pixels, DPI scaled); longer text wraps |
+| bubble_padding_h | 12 | int | Bubble horizontal padding (pixels, DPI scaled) |
+| bubble_padding_v | 8 | int | Bubble vertical padding (pixels, DPI scaled) |
+| bubble_radius | 10 | int | Bubble corner radius (pixels, DPI scaled) |
+| bubble_spacing | 14 | int | Spacing between adjacent messages (pixels, DPI scaled) |
+| show_time | true | bool | Whether the time divider is shown |
+| time_format | HH:mm | string | Time divider format |
+| avatar_font | system_bold_14 | string | Avatar text font |
+| text_font | system_regular_14 | string | Message body font |
+| time_font | system_regular_12 | string | Time text font |
+| bubble_color_self | color_accent | string | Bubble background of own messages (semantic color name or color value) |
+| bubble_color_other | bg_window_card | string | Bubble background of peer messages (semantic color name or color value) |
+| text_color_self | color_white | string | Text color of own messages (semantic color name or color value) |
+| text_color_other | text_default | string | Text color of peer messages (semantic color name or color value) |
+| avatar_text_color | color_white | string | Avatar text color (semantic color name or color value) |
+| system_text_color | text_muted | string | System notice text color (semantic color name or color value) |
+| scrollbar_track_color | bg_scrollbar_normal | string | Scrollbar track color (semantic color name or color value) |
+| scrollbar_thumb_color | bg_scrollbar_thumb_normal | string | Scrollbar thumb color (semantic color name or color value) |
+| auto_hide_scrollbar | true | bool | Whether the scrollbar is shown only while the mouse hovers |
+
+Notes:
+- **Message side**: the `ChatMessageSide` enum contains `kOther` (peer, left column), `kSelf` (own, right column) and `kSystem` (system notice, centered small text).
+- **Bubble adaptation**: the bubble width is computed from the natural text width and wraps by word when it exceeds `bubble_max_width`; the bubble height is computed from the actual text height after wrapping.
+- **Avatar color**: the avatar text is hashed and mapped to a fixed palette of 8 colors, so the same person always shows the same color.
+- **Time divider**: a divider is inserted only when two adjacent messages have different `time` values, so the same moment is not repeated.
+- **Scrolling and auto-scroll**: when the content exceeds the control height, it supports wheel scrolling and scrollbar dragging; after `AddMessage` the control scrolls to the bottom automatically (can be turned off with `SetAutoScrollToBottom`).
+- **Keep visible**: `AddMessage` defers the scroll to the next message loop iteration, ensuring that the layout has completed and the content height is accurate by then.
+
+Corresponding C++ interfaces: `AddMessage` (plus a convenience overload), `ClearMessages`, `GetMessageCount`, `GetMessageAt`, `ScrollToBottom`, `GetScrollPos/SetScrollPos`, `SetAutoScrollToBottom/IsAutoScrollToBottom`, `SetAvatarSize/GetAvatarSize`, `SetBubbleMaxWidth/GetBubbleMaxWidth`, `SetBubbleRadius/GetBubbleRadius`, `SetShowTime/IsShowTime`, `SetBubbleColor`, `SetTextColor`, `SetAvatarTextColor`, `SetSystemTextColor`, `SetScrollbarTrackColor`, `SetScrollbarThumbColor`, `SetAutoHideScrollbar/IsAutoHideScrollbar`.
+
+### XML example
+
+```xml
+<!-- Chat message area: accent bubble on the right (own messages), card bubble on the left (peer messages) -->
+<ChatMessageList name="message_list" width="stretch" height="stretch" bkcolor="bg_window_main"
+                 padding="16,14,16,14"
+                 avatar_size="36" bubble_max_width="460" bubble_radius="10"
+                 bubble_spacing="14" show_time="true"
+                 bubble_color_self="color_accent" bubble_color_other="bg_window_card"
+                 text_color_self="color_white" text_color_other="text_default"/>
+```
+
+### C++ example
+
+```cpp
+ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(pWindow->FindControl(_T("message_list")));
+if (pMsgList != nullptr) {
+    // Peer message (left bubble)
+    pMsgList->AddMessage(ui::ChatMessageSide::kOther, _T("Good afternoon, the new interface is ready"), _T("A"), _T("10:24"));
+    // Own message (right bubble)
+    pMsgList->AddMessage(ui::ChatMessageSide::kSelf, _T("Great, I will take a look now"), _T("Me"), _T("10:24"));
+    // System notice (centered small text)
+    pMsgList->AddMessage(ui::ChatMessageSide::kSystem, _T("You have joined the Design Team"), _T(""), _T(""));
+
+    // Scroll to the bottom after appending messages
+    pMsgList->ScrollToBottom();
+}
+```
+
 ## Flyout Window
 Flyout is a general-purpose popup (flying card) window derived from WindowImplBase. Header file: `duilib/Control/Flyout.h`. It is used to pop up arbitrary Box content around an anchor control (action panels, confirmation cards, rich-content tips, etc.), and serves as the common base for calendar popups, search suggestions and settings bubbles.
 

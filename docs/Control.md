@@ -2384,6 +2384,73 @@ if (pTimeline != nullptr) {
 }
 ```
 
+## ChatMessageList的属性
+ChatMessageList是聊天消息列表控件，继承自Control，纯自绘实现，对应头文件`duilib/Control/ChatMessageList.h`。用于模拟真实IM客户端的消息区：消息气泡按左右方向分栏、气泡宽度随文本自适应并自动换行、头像为按文字内容生成稳定配色的圆形、可选时间分隔条，内容超出时支持滚动并自动滚动到底部。
+
+除Control的通用属性外，新增以下属性：
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| avatar_size | 36 | int | 头像直径（像素，自动DPI缩放） |
+| bubble_max_width | 480 | int | 气泡最大宽度（像素，自动DPI缩放），超出则自动换行 |
+| bubble_padding_h | 12 | int | 气泡左右内边距（像素，自动DPI缩放） |
+| bubble_padding_v | 8 | int | 气泡上下内边距（像素，自动DPI缩放） |
+| bubble_radius | 10 | int | 气泡圆角半径（像素，自动DPI缩放） |
+| bubble_spacing | 14 | int | 相邻消息间距（像素，自动DPI缩放） |
+| show_time | true | bool | 是否显示时间分隔条 |
+| time_format | HH:mm | string | 时间分隔条格式 |
+| avatar_font | system_bold_14 | string | 头像文字字体 |
+| text_font | system_regular_14 | string | 消息正文字体 |
+| time_font | system_regular_12 | string | 时间文字字体 |
+| bubble_color_self | color_accent | string | 自己消息的气泡底色（语义色名或颜色值） |
+| bubble_color_other | bg_window_card | string | 对方消息的气泡底色（语义色名或颜色值） |
+| text_color_self | color_white | string | 自己消息的文字颜色（语义色名或颜色值） |
+| text_color_other | text_default | string | 对方消息的文字颜色（语义色名或颜色值） |
+| avatar_text_color | color_white | string | 头像文字颜色（语义色名或颜色值） |
+| system_text_color | text_muted | string | 系统提示文字颜色（语义色名或颜色值） |
+| scrollbar_track_color | bg_scrollbar_normal | string | 滚动条轨道颜色（语义色名或颜色值） |
+| scrollbar_thumb_color | bg_scrollbar_thumb_normal | string | 滚动条滑块颜色（语义色名或颜色值） |
+| auto_hide_scrollbar | true | bool | 是否仅在鼠标悬停时显示滚动条 |
+
+说明：
+- **消息方向**：`ChatMessageSide` 枚举包含 `kOther`（对方，左侧）、`kSelf`（自己，右侧）、`kSystem`（系统提示，居中小字）。
+- **气泡自适应**：气泡宽度按文本自然宽度计算，超过 `bubble_max_width` 后按词换行；气泡高度按换行后的实际文本高度计算。
+- **头像配色**：头像文字内容经哈希后映射到固定的8色调色板，同一个人始终显示同色。
+- **时间分隔条**：相邻消息的 `time` 不同才插入分隔条，避免同一时刻反复显示。
+- **滚动与自动滚动**：内容超出控件高度时支持滚轮滚动与滚动条拖动；`AddMessage` 追加消息后自动滚动到底部（可通过 `SetAutoScrollToBottom` 关闭）。
+- **追加可见**：`AddMessage` 后会延迟到下一轮消息循环再执行滚动，确保此时布局已完成、内容高度准确。
+
+对应C++接口：`AddMessage`（含便捷重载）、`ClearMessages`、`GetMessageCount`、`GetMessageAt`、`ScrollToBottom`、`GetScrollPos/SetScrollPos`、`SetAutoScrollToBottom/IsAutoScrollToBottom`、`SetAvatarSize/GetAvatarSize`、`SetBubbleMaxWidth/GetBubbleMaxWidth`、`SetBubbleRadius/GetBubbleRadius`、`SetShowTime/IsShowTime`、`SetBubbleColor`、`SetTextColor`、`SetAvatarTextColor`、`SetSystemTextColor`、`SetScrollbarTrackColor`、`SetScrollbarThumbColor`、`SetAutoHideScrollbar/IsAutoHideScrollbar`。
+
+### XML使用示例
+
+```xml
+<!-- 聊天消息区：右侧为强调色气泡（自己），左侧为卡片色气泡（对方） -->
+<ChatMessageList name="message_list" width="stretch" height="stretch" bkcolor="bg_window_main"
+                 padding="16,14,16,14"
+                 avatar_size="36" bubble_max_width="460" bubble_radius="10"
+                 bubble_spacing="14" show_time="true"
+                 bubble_color_self="color_accent" bubble_color_other="bg_window_card"
+                 text_color_self="color_white" text_color_other="text_default"/>
+```
+
+### C++使用示例
+
+```cpp
+ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(pWindow->FindControl(_T("message_list")));
+if (pMsgList != nullptr) {
+    // 对方消息（左侧气泡）
+    pMsgList->AddMessage(ui::ChatMessageSide::kOther, _T("下午好，新版本的界面已经整理好了"), _T("张"), _T("10:24"));
+    // 自己消息（右侧气泡）
+    pMsgList->AddMessage(ui::ChatMessageSide::kSelf, _T("好的，我来看看"), _T("我"), _T("10:24"));
+    // 系统提示（居中小字）
+    pMsgList->AddMessage(ui::ChatMessageSide::kSystem, _T("你已加入“产品设计组”"), _T(""), _T(""));
+
+    // 追加消息后自动滚动到底部
+    pMsgList->ScrollToBottom();
+}
+```
+
 ## Flyout浮层窗口
 Flyout是通用浮层（弹出卡片）窗口，继承自WindowImplBase，对应头文件`duilib/Control/Flyout.h`。用于在锚点控件周围浮出任意Box内容（操作面板、确认卡片、富内容提示等），是日历弹层、搜索建议、气泡设置等控件的公共基座。
 

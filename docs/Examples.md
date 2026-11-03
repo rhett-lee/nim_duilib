@@ -21,8 +21,8 @@ macOS 下默认编译为 `bin/basic.app`，C++ 代码无需修改；配置方法
 <img width="900" src="./Images/controls.png"/>
 
 ## 4. examples/chat
-包含一个登录窗口和一个模拟 PC 聊天布局的窗口示例。    
-代码入口：[MainThread.cpp](../examples/chat/MainThread.cpp)、[ChatForm.cpp](../examples/chat/ChatForm.cpp)；界面资源：`bin/resources/themes/default/chat/wechat.xml`、`bin/resources/themes/default/chat/login.xml`；相关文档：[Box.md](Box.md)、[Control.md](Control.md)。    
+包含一个登录窗口和一个模拟 PC 聊天布局的窗口示例：登录成功后进入聊天主界面（不退出程序），主界面含标题栏、左侧导航栏、可切换的会话/联系人/收藏面板、消息区与输入区，支持发送消息与模拟自动回复；消息区使用框架的 ChatMessageList 控件渲染气泡。左下角设置按钮弹出菜单（发起聊天/联系人/关于本示例/退出登录），菜单中的“退出登录”会关闭主界面并结束程序；输入框回车发送、Ctrl+回车换行；未接线的工具按钮以 Toast 提示给出反馈。    
+代码入口：[MainThread.cpp](../examples/chat/MainThread.cpp)、[LoginForm.cpp](../examples/chat/LoginForm.cpp)、[ChatForm.cpp](../examples/chat/ChatForm.cpp)；界面资源：`bin/resources/themes/default/chat/wechat.xml`、`bin/resources/themes/default/chat/login.xml`、`bin/resources/themes/default/chat/menu_settings.xml`；相关文档：[Box.md](Box.md)、[Control.md](Control.md)、[Menu.md](Menu.md)。    
 <img width="800" src="./Images/chat.png"/>
 
 ## 5. examples/ListBox

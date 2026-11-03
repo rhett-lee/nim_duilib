@@ -4,6 +4,9 @@
 // duilib
 #include "duilib/duilib.h"
 
+class LoginForm;
+class ChatForm;
+
 /** @class MainThread
 * @brief 主线程（UI线程）类
 * @copyright (c) 2015, NetEase Inc. All rights reserved
@@ -25,6 +28,20 @@ private:
     /** 退出时清理，在退出消息循环后调用
     */
     virtual void OnCleanup() override;
+
+    /** 登录成功后创建并显示聊天主界面
+    * @param [in] strUser 登录的用户名
+    */
+    void ShowChatWindow(const DString& strUser);
+
+private:
+    /** 登录窗口
+    */
+    LoginForm* m_pLoginForm = nullptr;
+
+    /** 聊天主界面
+    */
+    ChatForm* m_pChatForm = nullptr;
 };
 
 #endif //EXAMPLES_MAIN_THREAD_H_

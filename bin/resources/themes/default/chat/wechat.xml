@@ -1,29 +1,261 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="1024,768" caption="0,0,0,35" shadow_attached="true">
-    <HBox>
-        <!-- 左侧菜单栏 -->
-        <VBox width="60" bkcolor="darkcolor">
-            <Control bkimage="head.png" width="40" height="40" margin="10,10"/>
-        </VBox>
-        <!-- 好友列表 -->
-        <VBox width="270" bkcolor="light_gray">
-            <Box padding="10,8,10,8" height="auto">
-                <RichEdit class="simple simple_border prompt" name="nickname" width="stretch" height="35" font="system_regular_14" text_align="vcenter" text_padding="25,8,8,8" border_round="5,5" prompt_text="Search"/>
-                <Control width="auto" height="auto" margin="6,9" bkimage="search_icon.png"/>
-            </Box>
-            <VBox>
-                <!-- Firends -->
+<Window size="1180,760" min_size="960,620" caption="0,0,0,40" use_system_caption="false" shadow_attached="true">
+    <!-- 聊天窗口专用样式（窗口私有，不影响其他示例程序）
+         注意：窗口私有样式无法跨文件共享，若 login.xml 中同名样式有调整，需同步修改 -->
+    <Class name="btn_chat_nav" width="44" height="44" halign="center" valign="center"
+           normal_color="bg_titlebar" hovered_color="bg_list_item_hovered"
+           pressed_color="bg_list_item_selected" border_round="8,8,8,8"/>
+    <Class name="option_chat_nav" width="44" height="44" halign="center" valign="center"
+           normal_color="bg_titlebar" hovered_color="bg_list_item_hovered"
+           pressed_color="bg_list_item_selected" border_round="8,8,8,8"
+           selected_normal_color="bg_list_item_selected" selected_hovered_color="bg_list_item_selected"
+           selected_pressed_color="bg_list_item_selected"/>
+    <Class name="btn_chat_tool" width="32" height="32" halign="center" valign="center"
+           normal_color="bg_window_card" hovered_color="bg_list_item_hovered"
+           pressed_color="bg_list_item_selected" border_round="6,6,6,6"/>
+    <Class name="chat_session_item" hovered_color="bg_list_item_hovered"
+           pressed_color="bg_list_item_selected" border_round="8,8,8,8"/>
+    <Class name="btn_chat_send" halign="center" valign="center" text_align="hcenter,vcenter"
+           normal_text_color="color_white" normal_color="color_accent"
+           hovered_color="color_blue_light" pressed_color="color_blue_dark"
+           disabled_color="bg_btn_disabled" disabled_text_color="text_btn_disabled"
+           border_round="8,8,8,8"/>
+
+    <VBox bkimage="file='glass_main_scene.svg'">
+        <!-- ===================== 标题栏 ===================== -->
+        <HBox name="window_title_bar" width="stretch" height="40" bkcolor="bg_titlebar">
+            <!-- 标题栏 Logo：使用正方形控件居中显示，避免非等比拉伸导致图标变形 -->
+            <Control width="26" height="26" halign="left" valign="center" mouse_enabled="false"
+                     margin="12,0,8,0" bkimage="file='logo.svg'"/>
+            <Label text_id="STRID_CHAT_APP_NAME" width="stretch" height="stretch"
+                   font="system_bold_14" text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
+            <Button class="btn_wnd_min_11" name="btn_window_min" height="stretch" width="40" margin="0,0,0,0"/>
+            <Button class="btn_wnd_close_11" name="btn_window_close" height="stretch" width="40"/>
+        </HBox>
+
+        <!-- ===================== 主体 ===================== -->
+        <HBox width="stretch" height="stretch">
+            <!-- 左侧导航栏 -->
+            <VBox width="64" bkcolor="bg_titlebar" padding="0,10,0,0">
+                <!-- 用户头像 -->
+                <Control width="40" height="40" halign="center" valign="top" mouse_enabled="false"
+                         bkimage="file='avatar_user.svg'"/>
+                <!-- 导航图标：会话 / 联系人 / 收藏 -->
+                <VBox width="stretch" height="stretch" margin="0,24,0,0">
+                    <Option class="option_chat_nav" name="nav_chat" width="stretch" height="44" group="chat_nav"
+                            normal_image="file='glass_icon_chat.svg' width='24' height='24' valign='center' halign='center' svg_replace_colors='#51657E|border_svg_image'"
+                            selected_normal_image="file='glass_icon_chat.svg' width='24' height='24' valign='center' halign='center' svg_replace_colors='#51657E|color_accent'"
+                            tooltip_text_id="STRID_CHAT_NAV_CHAT"/>
+                    <Option class="option_chat_nav" name="nav_contacts" width="stretch" height="44" group="chat_nav"
+                            normal_image="file='glass_icon_contacts.svg' width='24' height='24' valign='center' halign='center' svg_replace_colors='#51657E|border_svg_image'"
+                            selected_normal_image="file='glass_icon_contacts.svg' width='24' height='24' valign='center' halign='center' svg_replace_colors='#51657E|color_accent'"
+                            tooltip_text_id="STRID_CHAT_NAV_CONTACTS"/>
+                    <Option class="option_chat_nav" name="nav_favorites" width="stretch" height="44" group="chat_nav"
+                            normal_image="file='glass_icon_favorite.svg' width='24' height='24' valign='center' halign='center' svg_replace_colors='#51657E|border_svg_image'"
+                            selected_normal_image="file='glass_icon_favorite.svg' width='24' height='24' valign='center' halign='center' svg_replace_colors='#51657E|color_accent'"
+                            tooltip_text_id="STRID_CHAT_NAV_FAVORITES"/>
+                </VBox>
+                <!-- 底部设置 -->
+                <Button class="btn_chat_nav" name="nav_settings" width="stretch" height="44"
+                        normal_image="file='public/button/btn_setting.svg' width='22' height='22' valign='center' halign='center' svg_replace_colors='#333333|border_svg_image'"
+                        tooltip_text_id="STRID_CHAT_NAV_SETTINGS"/>
             </VBox>
-        </VBox>
-        <!-- 聊天区域 -->
-        <VBox>
-            <HBox height="80" bkcolor="bg_window_main">
-            </HBox>
-            <Control class="splitline_hor_level1"/>
-            <VBox bkcolor="bg_window_main">
+
+            <Control width="1" bkcolor="border_split_level1"/>
+
+            <!-- ===================== 中间列表面板 ===================== -->
+            <VBox width="280" bkcolor="bg_window_card">
+                <!-- 面板标题 -->
+                <HBox height="48" padding="16,0,8,0">
+                    <Label name="panel_title" text_id="STRID_CHAT_PANEL_CHATS" width="stretch" height="stretch"
+                           font="system_bold_15" text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
+                    <Button class="btn_chat_tool" name="btn_add_session"
+                            normal_image="file='glass_icon_add.svg' width='20' height='20' valign='center' halign='center' svg_replace_colors='#51657E|border_svg_image'"
+                            tooltip_text_id="STRID_CHAT_TOOL_ADD"/>
+                </HBox>
+                <Control width="stretch" height="1" bkcolor="border_split_level1"/>
+
+                <!-- 搜索框 -->
+                <HBox height="52" padding="12,10,12,6">
+                    <Box width="stretch" height="32" bkcolor="bg_container" border_round="16,16,16,16"
+                         border_size="1" border_color="border_control_normal">
+                        <Button class="btn_chat_tool" name="btn_search_icon" width="16" height="16"
+                                margin="12,0,0,0" valign="center" mouse_enabled="false" no_focus="true"
+                                normal_image="file='glass_icon_search.svg' width='16' height='16' valign='center' halign='center' svg_replace_colors='#51657E|border_svg_image'"/>
+                        <RichEdit2 class="simple prompt" name="search_edit" width="stretch" height="stretch"
+                                  font="system_regular_14" text_padding="8,0,10,0" valign="center"
+                                  prompt_text_id="STRID_CHAT_SEARCH_PLACEHOLDER"/>
+                    </Box>
+                </HBox>
+
+                <!-- 面板一：会话列表 -->
+                <!-- 三个面板由 TabBox 承载，切换时框架自动重排 -->
+                <TabBox name="panel_box" width="stretch" height="stretch">
+                <VBox name="panel_chats" width="stretch" height="stretch">
+                    <HBox class="chat_session_item" name="session_1" width="stretch" height="auto" padding="12,10,12,10">
+                        <Avatar class="avatar_large" name="session_1_avatar" text="张" valign="center" mouse_enabled="false"/>
+                        <VBox width="stretch" height="auto" margin="10,0,0,0">
+                            <HBox height="20" mouse_enabled="false">
+                                <Label name="session_1_name" width="stretch" font="system_bold_14"
+                                       text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
+                                <Label name="session_1_time" width="auto" font="system_regular_12"
+                                       text_align="right,vcenter" text_color="text_muted" mouse_enabled="false"/>
+                            </HBox>
+                            <Label name="session_1_msg" width="stretch" height="auto"
+                                   margin="0,3,0,0" font="system_regular_12" text_align="left,vcenter"
+                                   text_color="text_muted" mouse_enabled="false"/>
+                        </VBox>
+                    </HBox>
+                    <HBox class="chat_session_item" name="session_2" width="stretch" height="auto" padding="12,10,12,10">
+                        <Avatar class="avatar_large" name="session_2_avatar" text="设" valign="center" mouse_enabled="false"/>
+                        <VBox width="stretch" height="auto" margin="10,0,0,0">
+                            <HBox height="20" mouse_enabled="false">
+                                <Label name="session_2_name" width="stretch" font="system_bold_14"
+                                       text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
+                                <Label name="session_2_time" width="auto" font="system_regular_12"
+                                       text_align="right,vcenter" text_color="text_muted" mouse_enabled="false"/>
+                            </HBox>
+                            <Label name="session_2_msg" width="stretch" height="auto"
+                                   margin="0,3,0,0" font="system_regular_12" text_align="left,vcenter"
+                                   text_color="text_muted" mouse_enabled="false"/>
+                        </VBox>
+                    </HBox>
+                    <HBox class="chat_session_item" name="session_3" width="stretch" height="auto" padding="12,10,12,10">
+                        <Avatar class="avatar_large" name="session_3_avatar" text="李" valign="center" mouse_enabled="false"/>
+                        <VBox width="stretch" height="auto" margin="10,0,0,0">
+                            <HBox height="20" mouse_enabled="false">
+                                <Label name="session_3_name" width="stretch" font="system_bold_14"
+                                       text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
+                                <Label name="session_3_time" width="auto" font="system_regular_12"
+                                       text_align="right,vcenter" text_color="text_muted" mouse_enabled="false"/>
+                            </HBox>
+                            <Label name="session_3_msg" width="stretch" height="auto"
+                                   margin="0,3,0,0" font="system_regular_12" text_align="left,vcenter"
+                                   text_color="text_muted" mouse_enabled="false"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- 面板二：联系人列表 -->
+                <VBox name="panel_contacts" width="stretch" height="stretch">
+                    <HBox class="chat_session_item" name="contact_1" width="stretch" height="auto" padding="12,10,12,10">
+                        <Avatar class="avatar_large" name="contact_1_avatar" text="张" valign="center" mouse_enabled="false"/>
+                        <VBox width="stretch" height="auto" margin="10,0,0,0">
+                            <Label text_id="STRID_CHAT_CONTACT_1" width="stretch" font="system_bold_14"
+                                   text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
+                            <Label text_id="STRID_CHAT_CONTACT_1_DESC" width="stretch" height="auto"
+                                   margin="0,3,0,0" font="system_regular_12" text_align="left,vcenter"
+                                   text_color="text_muted" mouse_enabled="false"/>
+                        </VBox>
+                    </HBox>
+                    <HBox class="chat_session_item" name="contact_2" width="stretch" height="auto" padding="12,10,12,10">
+                        <Avatar class="avatar_large" name="contact_2_avatar" text="李" valign="center" mouse_enabled="false"/>
+                        <VBox width="stretch" height="auto" margin="10,0,0,0">
+                            <Label text_id="STRID_CHAT_CONTACT_2" width="stretch" font="system_bold_14"
+                                   text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
+                            <Label text_id="STRID_CHAT_CONTACT_2_DESC" width="stretch" height="auto"
+                                   margin="0,3,0,0" font="system_regular_12" text_align="left,vcenter"
+                                   text_color="text_muted" mouse_enabled="false"/>
+                        </VBox>
+                    </HBox>
+                    <HBox class="chat_session_item" name="contact_3" width="stretch" height="auto" padding="12,10,12,10">
+                        <Avatar class="avatar_large" name="contact_3_avatar" text="王" valign="center" mouse_enabled="false"/>
+                        <VBox width="stretch" height="auto" margin="10,0,0,0">
+                            <Label text_id="STRID_CHAT_CONTACT_3" width="stretch" font="system_bold_14"
+                                   text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
+                            <Label text_id="STRID_CHAT_CONTACT_3_DESC" width="stretch" height="auto"
+                                   margin="0,3,0,0" font="system_regular_12" text_align="left,vcenter"
+                                   text_color="text_muted" mouse_enabled="false"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- 面板三：收藏列表 -->
+                <VBox name="panel_favorites" width="stretch" height="stretch">
+                    <HBox class="chat_session_item" name="favorite_1" width="stretch" height="auto" padding="12,10,12,10">
+                        <Avatar class="avatar_large" name="favorite_1_avatar" text="设" valign="center" mouse_enabled="false"/>
+                        <VBox width="stretch" height="auto" margin="10,0,0,0">
+                            <Label text_id="STRID_CHAT_FAVORITE_1" width="stretch" font="system_bold_14"
+                                   text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
+                            <Label text_id="STRID_CHAT_FAVORITE_1_DESC" width="stretch" height="auto"
+                                   margin="0,3,0,0" font="system_regular_12" text_align="left,vcenter"
+                                   text_color="text_muted" mouse_enabled="false"/>
+                        </VBox>
+                    </HBox>
+                    <HBox class="chat_session_item" name="favorite_2" width="stretch" height="auto" padding="12,10,12,10">
+                        <Avatar class="avatar_large" name="favorite_2_avatar" text="文" valign="center" mouse_enabled="false"/>
+                        <VBox width="stretch" height="auto" margin="10,0,0,0">
+                            <Label text_id="STRID_CHAT_FAVORITE_2" width="stretch" font="system_bold_14"
+                                   text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
+                            <Label text_id="STRID_CHAT_FAVORITE_2_DESC" width="stretch" height="auto"
+                                   margin="0,3,0,0" font="system_regular_12" text_align="left,vcenter"
+                                   text_color="text_muted" mouse_enabled="false"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+                </TabBox>
             </VBox>
-            <VBox height="150" bkcolor="bg_container">
+
+            <Control width="1" bkcolor="border_split_level1"/>
+
+            <!-- ===================== 聊天区 ===================== -->
+            <VBox width="stretch" bkcolor="bg_window_main">
+                <!-- 会话标题栏 -->
+                <HBox height="56" bkcolor="bg_window_card" padding="16,0,12,0">
+                    <Label name="chat_title" text_id="STRID_CHAT_TITLE" width="stretch" font="system_bold_16"
+                           text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
+                    <HBox width="auto" height="stretch">
+                        <Button class="btn_chat_tool" name="btn_chat_video"
+                                normal_image="file='glass_icon_video.svg' width='22' height='22' valign='center' halign='center' svg_replace_colors='#51657E|border_svg_image'"
+                                tooltip_text_id="STRID_CHAT_TOOL_VIDEO"/>
+                        <Button class="btn_chat_tool" name="btn_chat_phone"
+                                normal_image="file='glass_icon_phone.svg' width='22' height='22' valign='center' halign='center' svg_replace_colors='#51657E|border_svg_image'"
+                                tooltip_text_id="STRID_CHAT_TOOL_PHONE"/>
+                        <Button class="btn_chat_tool" name="btn_chat_more"
+                                normal_image="file='glass_icon_more.svg' width='22' height='22' valign='center' halign='center' svg_replace_colors='#51657E|border_svg_image'"
+                                tooltip_text_id="STRID_CHAT_TOOL_MORE"/>
+                    </HBox>
+                </HBox>
+                <Control width="stretch" height="1" bkcolor="border_split_level1"/>
+
+                <!-- 消息列表（ChatMessageList 控件：气泡左右分栏、自动滚动到底部） -->
+                <ChatMessageList name="message_list" width="stretch" height="stretch" bkcolor="bg_window_main"
+                                 padding="16,14,16,14"
+                                 avatar_size="36" bubble_max_width="460" bubble_radius="10"
+                                 bubble_spacing="14" show_time="true"
+                                 bubble_color_self="color_accent" bubble_color_other="bg_window_card"
+                                 text_color_self="color_white" text_color_other="text_default"/>
+
+                <!-- 输入区 -->
+                <VBox width="stretch" height="168" bkcolor="bg_window_card">
+                    <Control width="stretch" height="1" bkcolor="border_split_level1"/>
+                    <!-- 工具栏 -->
+                    <HBox height="36" padding="12,0,12,0">
+                        <Button class="btn_chat_tool" name="btn_chat_emoji"
+                                normal_image="file='glass_icon_emoji.svg' width='22' height='22' valign='center' halign='center' svg_replace_colors='#51657E|border_svg_image'"
+                                tooltip_text_id="STRID_CHAT_TOOL_EMOJI"/>
+                        <Button class="btn_chat_tool" name="btn_chat_image"
+                                normal_image="file='glass_icon_image.svg' width='22' height='22' valign='center' halign='center' svg_replace_colors='#51657E|border_svg_image'"
+                                tooltip_text_id="STRID_CHAT_TOOL_IMAGE"/>
+                        <Button class="btn_chat_tool" name="btn_chat_history"
+                                normal_image="file='glass_icon_history.svg' width='22' height='22' valign='center' halign='center' svg_replace_colors='#51657E|border_svg_image'"
+                                tooltip_text_id="STRID_CHAT_TOOL_HISTORY"/>
+                        <Control width="stretch" height="stretch" mouse_enabled="false"/>
+                        <Label text_id="STRID_CHAT_INPUT_HINT" width="auto" height="stretch"
+                               font="system_regular_12" text_align="right,vcenter" text_color="text_muted" mouse_enabled="false"/>
+                    </HBox>
+                    <!-- 输入框 + 发送按钮 -->
+                    <HBox width="stretch" height="stretch" padding="12,0,12,12">
+                        <RichEdit2 class="simple" name="input_edit" width="stretch" height="stretch"
+                                  font="system_regular_14" text_padding="6,4,6,4" border_round="6,6,6,6"
+                                  multi_line="true" auto_vscroll="true" vscrollbar="false"
+                                  want_ctrl_return="true"
+                                  bkcolor="bg_container" border_size="1" border_color="border_control_normal"/>
+                        <Button class="btn_chat_send" name="btn_send" width="96" height="36" valign="bottom"
+                                margin="10,0,0,0" text_id="STRID_CHAT_SEND" font="system_bold_14"/>
+                    </HBox>
+                </VBox>
             </VBox>
-        </VBox>
-    </HBox>
+        </HBox>
+    </VBox>
 </Window>

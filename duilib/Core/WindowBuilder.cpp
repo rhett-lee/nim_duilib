@@ -36,6 +36,7 @@
 #include "duilib/Control/Chart.h"
 #include "duilib/Control/Marquee.h"
 #include "duilib/Control/Timeline.h"
+#include "duilib/Control/ChatMessageList.h"
 #include "duilib/Control/Stepper.h"
 #include "duilib/Control/Rating.h"
 #include "duilib/Control/Carousel.h"
@@ -250,6 +251,7 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_CHART, [](Window* pWindow) { return new Chart(pWindow); }},
         {DUI_CTR_MARQUEE, [](Window* pWindow) { return new Marquee(pWindow); }},
         {DUI_CTR_TIMELINE, [](Window* pWindow) { return new Timeline(pWindow); }},
+        {DUI_CTR_CHATMESSAGELIST, [](Window* pWindow) { return new ChatMessageList(pWindow); }},
         {DUI_CTR_STEPPER, [](Window* pWindow) { return new Stepper(pWindow); }},
         {DUI_CTR_RATING, [](Window* pWindow) { return new Rating(pWindow); }},
         {DUI_CTR_CAROUSEL, [](Window* pWindow) { return new Carousel(pWindow); }},

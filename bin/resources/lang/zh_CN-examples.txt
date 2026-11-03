@@ -1,4 +1,4 @@
-# 中文简体字符资源
+﻿# 中文简体字符资源
 # 注释符号："#"
 
 # 以下为各个示例程序使用的文本
@@ -56,6 +56,52 @@ STRID_CHAT_SIGN_UP  = 注册
 STRID_CHAT_SIGN_IN  = 登录
 STRID_CHAT_ACCOUNT  = 帐号
 STRID_CHAT_PASSWORD = 密码
+STRID_CHAT_SEARCH_PLACEHOLDER = 搜索
+STRID_CHAT_NAV_CHAT       = 会话
+STRID_CHAT_NAV_CONTACTS   = 联系人
+STRID_CHAT_NAV_FAVORITES  = 收藏
+STRID_CHAT_NAV_SETTINGS   = 设置
+STRID_CHAT_TOOL_VIDEO     = 视频通话
+STRID_CHAT_TOOL_PHONE     = 语音通话
+STRID_CHAT_TOOL_MORE      = 更多
+STRID_CHAT_TOOL_EMOJI     = 表情
+STRID_CHAT_TOOL_IMAGE     = 图片
+STRID_CHAT_TOOL_HISTORY   = 历史消息
+STRID_CHAT_SEND           = 发送
+STRID_CHAT_TITLE          = 界面演示
+STRID_CHAT_SESSION_NAME_1 = 张伟
+STRID_CHAT_SESSION_NAME_2 = 产品设计组
+STRID_CHAT_SESSION_NAME_3 = 李娜
+STRID_CHAT_SESSION_TIME_1 = 上午 10:24
+STRID_CHAT_SESSION_TIME_2 = 昨天
+STRID_CHAT_SESSION_TIME_3 = 星期一
+STRID_CHAT_SESSION_MSG_1  = 新的设计稿已经发到邮箱了，记得看一下
+STRID_CHAT_SESSION_MSG_2 = [图片]
+STRID_CHAT_SESSION_MSG_3  = 好的，周三下午的会议我准时参加
+STRID_CHAT_MSG_RECV_1     = 下午好，新版本的界面已经整理好了
+STRID_CHAT_MSG_SENT_1     = 好的，我来看看
+STRID_CHAT_MSG_RECV_2     = 收到，辛苦
+STRID_CHAT_LOGIN_TITLE    = 欢迎回来
+STRID_CHAT_LOGIN_SUBTITLE = 登录后即可与好友聊天
+STRID_CHAT_LOGIN_FOOTER   = nim_duilib · 界面布局示例
+STRID_CHAT_APP_NAME         = nim_duilib 聊天演示
+STRID_CHAT_PANEL_CHATS      = 会话
+STRID_CHAT_PANEL_CONTACTS   = 联系人
+STRID_CHAT_PANEL_FAVORITES  = 收藏
+STRID_CHAT_TOOL_ADD         = 新建会话
+STRID_CHAT_INPUT_HINT       = 回车发送，Ctrl+回车换行
+STRID_CHAT_LOGIN_EMPTY      = 请输入账号和密码
+STRID_CHAT_REGISTER_TIP     = 注册功能正在开发中，请稍候
+STRID_CHAT_CONTACT_1        = 张伟
+STRID_CHAT_CONTACT_1_DESC   = 同事：设计部
+STRID_CHAT_CONTACT_2        = 李娜
+STRID_CHAT_CONTACT_2_DESC   = 产品经理
+STRID_CHAT_CONTACT_3        = 王强
+STRID_CHAT_CONTACT_3_DESC   = 开发团队
+STRID_CHAT_FAVORITE_1       = 产品设计组
+STRID_CHAT_FAVORITE_1_DESC  = 12 人
+STRID_CHAT_FAVORITE_2       = 设计文档
+STRID_CHAT_FAVORITE_2_DESC  = 更新于昨天
 
 # examples/ChildWindow
 STRID_CHILDWINDOW_TITLE  = 子窗口控件(ChildWindow)测试程序
@@ -1971,3 +2017,15 @@ STRID_COLORPICKER_DEMO_CLOSED  = [关闭]
 STRID_COLORPICKER_DEMO_RESULT_OK  = 确定
 STRID_COLORPICKER_DEMO_RESULT_CANCEL  = 取消
 STRID_COLORPICKER_DEMO_RESULT_CLOSE  = 关闭按钮
+STRID_CHAT_MENU_NEW_CHAT          = 发起聊天
+STRID_CHAT_MENU_CONTACTS          = 联系人
+STRID_CHAT_MENU_ABOUT             = 关于本示例
+STRID_CHAT_MENU_LOGOUT            = 退出登录
+STRID_CHAT_TIP_NEW_SESSION        = 演示程序暂不支持新建会话
+STRID_CHAT_TIP_SEARCH             = 演示程序暂不支持搜索
+STRID_CHAT_TIP_VIDEO              = 演示程序暂不支持视频通话
+STRID_CHAT_TIP_PHONE              = 演示程序暂不支持语音通话
+STRID_CHAT_TIP_MORE               = 演示程序暂不支持更多功能
+STRID_CHAT_TIP_IMAGE              = 演示程序暂不支持发送图片
+STRID_CHAT_TIP_HISTORY            = 演示程序暂不支持聊天记录
+STRID_CHAT_TIP_ABOUT              = nim_duilib 聊天界面布局示例

@@ -23,8 +23,8 @@ Code entry: [MainThread.cpp](../examples/controls/MainThread.cpp), [ControlForm.
 <img width="900" src="./Images/controls.png"/>
 
 ## 4. examples/chat
-Includes a login window and a window example simulating a PC chat layout.    
-Code entry: [MainThread.cpp](../examples/chat/MainThread.cpp), [ChatForm.cpp](../examples/chat/ChatForm.cpp); skin resources: `bin/resources/themes/default/chat/wechat.xml`, `bin/resources/themes/default/chat/login.xml`; related docs: [Box.en.md](Box.en.md), [Control.en.md](Control.en.md).    
+Includes a login window and a window example simulating a PC chat layout: after signing in the chat main window is shown (the program keeps running), and the main window has a title bar, a navigation rail, switchable conversation/contacts/favorites panels, a message area and an input area, supporting sending messages and simulated auto replies; the message area is rendered with the framework's ChatMessageList control. The settings button in the bottom-left corner pops up a menu (New Chat / Contacts / About This Demo / Sign Out), and "Sign Out" closes the main window and ends the program; press Enter in the input area to send and Ctrl+Enter for a new line; tool buttons that are not wired up report back with a Toast message.    
+Code entry: [MainThread.cpp](../examples/chat/MainThread.cpp), [LoginForm.cpp](../examples/chat/LoginForm.cpp), [ChatForm.cpp](../examples/chat/ChatForm.cpp); skin resources: `bin/resources/themes/default/chat/wechat.xml`, `bin/resources/themes/default/chat/login.xml`, `bin/resources/themes/default/chat/menu_settings.xml`; related docs: [Box.en.md](Box.en.md), [Control.en.md](Control.en.md), [Menu.en.md](Menu.en.md).    
 <img width="800" src="./Images/chat.png"/>
 
 ## 5. examples/ListBox

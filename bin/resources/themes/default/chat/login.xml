@@ -1,44 +1,69 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window caption="0,0,0,160" shadow_attached="false" layered_window="true" shadow_corner="20,70,20,20">
-    <Box width="304" height="auto">
-        <Box width="130" height="130" margin="0,10,0,0" halign="center">
-            <Control width="auto" height="auto" halign="center" valign="center" bkimage="head_shadow.png" mouse_enabled="false"/>
+<!-- 登录窗口：圆角无阴影，卡片式表单布局 -->
+<Window size="360,486" caption="0,0,0,36" shadow_type="none_round" shadow_attached="false"
+        layered_window="true" shadow_corner="24,24,24,24" shadow_border_round="16,16">
+    <!-- 登录窗口专用样式（窗口私有，不影响其他示例程序）
+         注意：窗口私有样式无法跨文件共享，若 wechat.xml 中同名样式有调整，需同步修改 -->
+    <Class name="btn_chat_send" halign="center" valign="center" text_align="hcenter,vcenter"
+           normal_text_color="color_white" normal_color="color_accent"
+           hovered_color="color_blue_light" pressed_color="color_blue_dark"
+           disabled_color="bg_btn_disabled" disabled_text_color="text_btn_disabled"
+           border_round="8,8,8,8"/>
+
+    <Box width="360" height="486" bkimage="file='glass_login_scene.svg'" border_round="16,16,16,16">
+        <!-- 窗口标题栏：右上角最小化/关闭按钮 -->
+        <HBox width="auto" height="36" margin="288,0,0,0" halign="left" valign="top">
+            <Button class="btn_wnd_min_11" name="btn_window_min" height="30" width="30" margin="0,0,4,0"/>
+            <Button class="btn_wnd_close_11" name="btn_window_close" height="30" width="30"/>
+        </HBox>
+
+        <!-- 品牌 Logo -->
+        <Box width="104" height="104" margin="128,52,0,0" halign="left" valign="top">
+            <Control width="104" height="104" halign="center" valign="center" mouse_enabled="false"
+                     bkimage="file='logo.svg'"/>
         </Box>
-        <Box height="auto" margin="0,50,0,0" padding="14,14,14,14" bkimage="file='bk_shadow.png' corner='30,30,30,30'">
-            <VBox height="auto" bkcolor="bg_container" border_round="3,3,3,3">
-                <VBox height="auto">
-                    <HBox height="40" margin="0,6,5,40">
-                        <Control />
-                        <Button class="btn_wnd_min_11" name="btn_window_min" height="32" width="32" margin="4,0,4,0"/>
-                        <Button class="btn_wnd_close_11" height="32" width="32" name="btn_window_close"/>
-                    </HBox>
-                    <HBox height="auto">
-                        <Control />
-                        <Button name="register_account" margin="0,5,15,10" halign="right" text_id="STRID_CHAT_SIGN_UP" cursor_type="hand" font="system_underline_12" normal_text_color="light_green"/>
-                    </HBox>
-                    <!--帐号和密码-->
-                    <VBox name="enter_panel" width="240" height="auto" margin="20,0,20,0" bkimage="">
-                        <HBox height="41" padding="14,1,10,0">
-                            <Control name="usericon" width="16" height="16" valign="center" normal_image="user_1.png"/>
-                            <RichEdit class="simple simple_border prompt" name="username" width="stretch" height="auto" margin="10,0,10,0" valign="center" font="system_regular_14" prompt_text_id="STRID_CHAT_ACCOUNT"/>
-                        </HBox>
-                        <HBox height="41" padding="14,0,10,1" margin="0,2,0,0">
-                            <Control name="passwordicon" width="16" height="16" valign="center" normal_image="password_1.png"/>
-                            <RichEdit class="simple simple_border prompt" name="password" width="stretch" height="auto" margin="10,0,10,0" valign="center" font="system_regular_14" password="true" prompt_text_id="STRID_CHAT_PASSWORD"/>
-                        </HBox>
-                    </VBox>
-                </VBox>
-                <!--登录-->
-                <Box width="240" height="40" margin="20,20,20,20">
-                    <Button class="btn_global_blue_80x30" name="btn_login" width="240" height="40" font="system_bold_16" text_id="STRID_CHAT_SIGN_IN"/>
-                </Box>
-            </VBox>
-        </Box>
-        <!--头像-->
-        <Box margin="0,10,0,0" mouse_enabled="false" width="130" height="130" halign="center">
-            <Control width="auto" height="auto" halign="center" valign="center" bkimage="logo.png"/>
-            <Button name="headicon" width="106" height="106" border_round="106,106,106,106" halign="center" valign="center" mouse_enabled="false" fade_alpha="true"/>
-            <Control width="auto" height="auto" bkimage="mask.png" halign="center" valign="center" mouse_enabled="false"/>
-        </Box>
+
+        <!-- 标题与副标题 -->
+        <Label text_id="STRID_CHAT_LOGIN_TITLE" width="360" height="28" margin="0,168,0,0"
+               font="system_bold_20" text_align="hcenter" text_color="text_default" mouse_enabled="false"/>
+        <Label text_id="STRID_CHAT_LOGIN_SUBTITLE" width="360" height="20" margin="0,200,0,0"
+               font="system_regular_13" text_align="hcenter" text_color="text_muted" mouse_enabled="false"/>
+
+        <!-- 表单卡片 -->
+        <VBox width="300" height="auto" margin="30,236,0,0" halign="left" valign="top"
+              bkcolor="bg_window_card" border_round="14,14,14,14" padding="24,20,24,20">
+            <!-- 帐号输入框 -->
+            <HBox width="stretch" height="40" bkcolor="bg_container" border_round="8,8,8,8"
+                  border_size="1" border_color="border_control_normal" padding="12,0,12,0">
+                <Control width="16" height="16" valign="center" mouse_enabled="false"
+                         bkimage="file='icon_user.svg' width='16' height='16' valign='center' halign='center'"/>
+                <RichEdit2 class="simple prompt" name="username" width="stretch" height="stretch"
+                          font="system_regular_14" text_padding="10,0,0,0" valign="center"
+                          prompt_text_id="STRID_CHAT_ACCOUNT"/>
+            </HBox>
+            <!-- 密码输入框 -->
+            <HBox width="stretch" height="40" margin="0,12,0,0" bkcolor="bg_container" border_round="8,8,8,8"
+                  border_size="1" border_color="border_control_normal" padding="12,0,12,0">
+                <Control width="16" height="16" valign="center" mouse_enabled="false"
+                         bkimage="file='icon_password.svg' width='16' height='16' valign='center' halign='center'"/>
+                <RichEdit2 class="simple prompt" name="password" width="stretch" height="stretch"
+                          font="system_regular_14" text_padding="10,0,0,0" valign="center"
+                          password="true" prompt_text_id="STRID_CHAT_PASSWORD"/>
+            </HBox>
+            <!-- 登录 / 注册 -->
+            <HBox width="stretch" height="42" margin="0,20,0,0">
+                <Button class="btn_chat_send" name="btn_login" width="stretch" height="42"
+                        text_id="STRID_CHAT_SIGN_IN" font="system_bold_15"/>
+                <Button name="register_account" width="64" height="42" margin="12,0,0,0"
+                        text_id="STRID_CHAT_SIGN_UP" cursor_type="hand"
+                        font="system_regular_14" normal_text_color="text_link_normal"
+                        hovered_text_color="text_link_hovered" pressed_text_color="text_link_pressed"
+                        text_align="hcenter,vcenter"/>
+            </HBox>
+        </VBox>
+
+        <!-- 底部版权 -->
+        <Label text_id="STRID_CHAT_LOGIN_FOOTER" width="360" height="20" margin="0,432,0,0"
+               font="system_regular_12" text_align="hcenter" text_color="text_muted" mouse_enabled="false"/>
     </Box>
 </Window>

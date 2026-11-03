@@ -107,6 +107,7 @@
 #include "Control/Chart.h"
 #include "Control/Marquee.h"
 #include "Control/Timeline.h"
+#include "Control/ChatMessageList.h"
 #include "Control/Stepper.h"
 #include "Control/Rating.h"
 #include "Control/Carousel.h"

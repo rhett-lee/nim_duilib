@@ -391,6 +391,7 @@
     <ClCompile Include="Control\TabCtrl.cpp" />
     <ClCompile Include="Control\TextDrawer.cpp" />
     <ClCompile Include="Control\Timeline.cpp" />
+    <ClCompile Include="Control\ChatMessageList.cpp" />
     <ClCompile Include="Control\Stepper.cpp" />
     <ClCompile Include="Control\Rating.cpp" />
     <ClCompile Include="Control\Carousel.cpp" />
@@ -825,6 +826,7 @@
     <ClInclude Include="Control\TabCtrl.h" />
     <ClInclude Include="Control\TextDrawer.h" />
     <ClInclude Include="Control\Timeline.h" />
+    <ClInclude Include="Control\ChatMessageList.h" />
     <ClInclude Include="Control\Stepper.h" />
     <ClInclude Include="Control\Rating.h" />
     <ClInclude Include="Control\Carousel.h" />

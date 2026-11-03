@@ -49,3 +49,16 @@ examples/controls/TreeGridForm.cpp :: TreeGridLangText
 # ---------------------------------------------------------------------------
 bin/resources/themes/default/controls/controls.xml :: Buttons Checkbox
 bin/resources/themes/default/controls/menu/settings_menu.xml :: Checkbox
+
+# ---------------------------------------------------------------------------
+# ChatMessageList 控件的 XML 属性名（非语义色名，校验脚本按色名规则误判）
+# ---------------------------------------------------------------------------
+docs/Control.md docs/Control.en.md :: text_font text_color_self text_color_other
+
+# ---------------------------------------------------------------------------
+# ColorPicker 的 XML 属性名 / 控件 name / 皮肤目录名
+# （color_type 是属性名，color_picker_custom_* 与 color_picker_new_color_edit
+#   是 XML 控件 name，color_picker_demo 是皮肤目录名——均非语义色名）
+# ---------------------------------------------------------------------------
+docs/Control.md docs/Control.en.md :: color_type color_picker_custom_spectrum color_picker_custom_regular color_picker_new_color_edit
+docs/Examples.md docs/Examples.en.md :: color_picker_demo
