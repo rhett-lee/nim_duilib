@@ -2387,7 +2387,7 @@ if (pTimeline != nullptr) {
 ```
 
 ## ChatMessageList properties
-ChatMessageList is a chat message list control, derived from Control and implemented with custom painting only. The corresponding header file is `duilib/Control/ChatMessageList.h`. It simulates the message area of a real IM client: message bubbles are laid out in left/right columns, bubble width adapts to the text and wraps automatically, avatars are circles whose color is derived deterministically from the avatar text, and an optional time divider can be shown. The content supports scrolling and scrolls to the bottom automatically.
+ChatMessageList is a chat message list control, derived from ScrollBox with custom painting for the message area. The corresponding header file is `duilib/Control/ChatMessageList.h`. It simulates the message area of a real IM client: message bubbles are laid out in left/right columns, bubble width adapts to the text and wraps automatically, avatars are circles whose color is derived deterministically from the avatar text, and an optional time divider can be shown. The framework scrollbar is used when the content overflows and the view scrolls to the bottom automatically; mouse text selection, double-click word selection and Ctrl+C copy are supported.
 
 In addition to the common Control properties, the following properties are added:
 
@@ -2413,16 +2413,22 @@ In addition to the common Control properties, the following properties are added
 | scrollbar_track_color | bg_scrollbar_normal | string | Scrollbar track color (semantic color name or color value) |
 | scrollbar_thumb_color | bg_scrollbar_thumb_normal | string | Scrollbar thumb color (semantic color name or color value) |
 | auto_hide_scrollbar | true | bool | Whether the scrollbar is shown only while the mouse hovers |
+| selection_bk_color | bg_list_item_selected | string | Background color of the selected text region (semantic color name or color value) |
+| selection_text_color | text_selected | string | Text color of the selected text region (semantic color name or color value) |
+| enable_selection | true | bool | Whether mouse text selection is allowed |
 
 Notes:
 - **Message side**: the `ChatMessageSide` enum contains `kOther` (peer, left column), `kSelf` (own, right column) and `kSystem` (system notice, centered small text).
 - **Bubble adaptation**: the bubble width is computed from the natural text width and wraps by word when it exceeds `bubble_max_width`; the bubble height is computed from the actual text height after wrapping.
 - **Avatar color**: the avatar text is hashed and mapped to a fixed palette of 8 colors, so the same person always shows the same color.
 - **Time divider**: a divider is inserted only when two adjacent messages have different `time` values, so the same moment is not repeated.
-- **Scrolling and auto-scroll**: when the content exceeds the control height, it supports wheel scrolling and scrollbar dragging; after `AddMessage` the control scrolls to the bottom automatically (can be turned off with `SetAutoScrollToBottom`).
+- **Scrolling and auto-scroll**: when the content exceeds the control height, the framework vertical scrollbar is used (wheel scrolling, dragging the thumb, clicking the track and keyboard scrolling); after `AddMessage` the control scrolls to the bottom automatically (can be turned off with `SetAutoScrollToBottom`).
 - **Keep visible**: `AddMessage` defers the scroll to the next message loop iteration, ensuring that the layout has completed and the content height is accurate by then.
+- **Text selection**: drag with the left mouse button over message text to select it, double-click to select a whole word; the selected region gets a background color and the selected text uses `selection_text_color`. The control takes focus while dragging, so `Ctrl+C` copies the selected text, `Ctrl+A` selects all and `Esc` clears the selection.
+- **Context menu**: call `AttachPopupMenu` to bind a right-click menu; when no menu file is given the framework generic edit menu (copy / select all, already localized) is used.
+- **Message identity**: each message can carry an `id` (0 means auto-generated) so it can be updated or removed later; the `ChatMessageType` enum contains `kText` (normal message) and `kSystem` (system hint).
 
-Corresponding C++ interfaces: `AddMessage` (plus a convenience overload), `ClearMessages`, `GetMessageCount`, `GetMessageAt`, `ScrollToBottom`, `GetScrollPos/SetScrollPos`, `SetAutoScrollToBottom/IsAutoScrollToBottom`, `SetAvatarSize/GetAvatarSize`, `SetBubbleMaxWidth/GetBubbleMaxWidth`, `SetBubbleRadius/GetBubbleRadius`, `SetShowTime/IsShowTime`, `SetBubbleColor`, `SetTextColor`, `SetAvatarTextColor`, `SetSystemTextColor`, `SetScrollbarTrackColor`, `SetScrollbarThumbColor`, `SetAutoHideScrollbar/IsAutoHideScrollbar`.
+Corresponding C++ interfaces: `AddMessage` (plus a convenience overload), `InsertMessage`, `UpdateMessage`, `RemoveMessage`, `GetMessageById`, `ClearMessages`, `GetMessageCount`, `GetMessageAt`, `ScrollToBottom`, `GetScrollPos/SetScrollPos`, `SetAutoScrollToBottom/IsAutoScrollToBottom`, `SetAvatarSize/GetAvatarSize`, `SetBubbleMaxWidth/GetBubbleMaxWidth`, `SetBubbleRadius/GetBubbleRadius`, `SetShowTime/IsShowTime`, `SetBubbleColor`, `SetTextColor`, `SetAvatarTextColor`, `SetSystemTextColor`, `SetSelectionBkColor`, `SetSelectionTextColor`, `SetScrollbarTrackColor`, `SetScrollbarThumbColor`, `SetAutoHideScrollbar/IsAutoHideScrollbar`, `SetEnableSelection/IsEnableSelection`, `HasSelection`, `GetSelectedText`, `ClearSelection`, `SelectAll`, `CopySelectedText`, `CopyAllText`, `AttachPopupMenu`.
 
 ### XML example
 
@@ -2430,8 +2436,9 @@ Corresponding C++ interfaces: `AddMessage` (plus a convenience overload), `Clear
 <!-- Chat message area: accent bubble on the right (own messages), card bubble on the left (peer messages) -->
 <ChatMessageList name="message_list" width="stretch" height="stretch" bkcolor="bg_window_main"
                  padding="16,14,16,14"
+                 vscrollbar="true" vscrollbar_class="chat_vscrollbar"
                  avatar_size="36" bubble_max_width="460" bubble_radius="10"
-                 bubble_spacing="14" show_time="true"
+                 bubble_spacing="14" show_time="true" enable_selection="true"
                  bubble_color_self="color_accent" bubble_color_other="bg_window_card"
                  text_color_self="color_white" text_color_other="text_default"/>
 ```
@@ -2449,6 +2456,17 @@ if (pMsgList != nullptr) {
     pMsgList->AddMessage(ui::ChatMessageSide::kSystem, _T("You have joined the Design Team"), _T(""), _T(""));
 
     // Scroll to the bottom after appending messages
+    pMsgList->ScrollToBottom();
+
+    // Update a message by id (e.g. turn "sending" into "failed")
+    ui::ChatMessageList::Message msg;
+    msg.side = ui::ChatMessageSide::kSelf;
+    msg.text = _T("Failed to send, click to retry");
+    msg.avatarText = _T("Me");
+    pMsgList->UpdateMessage(nMsgId, msg);
+
+    // Bind the right-click menu (framework copy/select-all menu when no file is given)
+    pMsgList->AttachPopupMenu();
     pMsgList->ScrollToBottom();
 }
 ```

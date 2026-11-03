@@ -2385,7 +2385,7 @@ if (pTimeline != nullptr) {
 ```
 
 ## ChatMessageList的属性
-ChatMessageList是聊天消息列表控件，继承自Control，纯自绘实现，对应头文件`duilib/Control/ChatMessageList.h`。用于模拟真实IM客户端的消息区：消息气泡按左右方向分栏、气泡宽度随文本自适应并自动换行、头像为按文字内容生成稳定配色的圆形、可选时间分隔条，内容超出时支持滚动并自动滚动到底部。
+ChatMessageList是聊天消息列表控件，继承自ScrollBox，消息区为纯自绘实现，对应头文件`duilib/Control/ChatMessageList.h`。用于模拟真实IM客户端的消息区：消息气泡按左右方向分栏、气泡宽度随文本自适应并自动换行、头像为按文字内容生成稳定配色的圆形、可选时间分隔条，内容超出时使用框架滚动条并自动滚动到底部；支持鼠标拖选文本、双击选词、Ctrl+C复制。
 
 除Control的通用属性外，新增以下属性：
 
@@ -2411,16 +2411,22 @@ ChatMessageList是聊天消息列表控件，继承自Control，纯自绘实现�
 | scrollbar_track_color | bg_scrollbar_normal | string | 滚动条轨道颜色（语义色名或颜色值） |
 | scrollbar_thumb_color | bg_scrollbar_thumb_normal | string | 滚动条滑块颜色（语义色名或颜色值） |
 | auto_hide_scrollbar | true | bool | 是否仅在鼠标悬停时显示滚动条 |
+| selection_bk_color | bg_list_item_selected | string | 文本选中区域背景色（语义色名或颜色值） |
+| selection_text_color | text_selected | string | 文本选中区域文字颜色（语义色名或颜色值） |
+| enable_selection | true | bool | 是否允许鼠标拖选文本 |
 
 说明：
 - **消息方向**：`ChatMessageSide` 枚举包含 `kOther`（对方，左侧）、`kSelf`（自己，右侧）、`kSystem`（系统提示，居中小字）。
 - **气泡自适应**：气泡宽度按文本自然宽度计算，超过 `bubble_max_width` 后按词换行；气泡高度按换行后的实际文本高度计算。
 - **头像配色**：头像文字内容经哈希后映射到固定的8色调色板，同一个人始终显示同色。
 - **时间分隔条**：相邻消息的 `time` 不同才插入分隔条，避免同一时刻反复显示。
-- **滚动与自动滚动**：内容超出控件高度时支持滚轮滚动与滚动条拖动；`AddMessage` 追加消息后自动滚动到底部（可通过 `SetAutoScrollToBottom` 关闭）。
+- **滚动与自动滚动**：内容超出控件高度时使用框架的垂直滚动条（支持滚轮、拖动滑块、轨道点击、键盘滚动）；`AddMessage` 追加消息后自动滚动到底部（可通过 `SetAutoScrollToBottom` 关闭）。
 - **追加可见**：`AddMessage` 后会延迟到下一轮消息循环再执行滚动，确保此时布局已完成、内容高度准确。
+- **文本选择**：在消息文本上按住鼠标左键拖动可选中文本，双击选中整个词，选中区域绘制背景色且选中文字改用 `selection_text_color`；拖选时控件获取焦点，因此 `Ctrl+C` 可复制选中文本，`Ctrl+A` 全选，`Esc` 清除选区。
+- **右键菜单**：调用 `AttachPopupMenu` 绑定右键菜单，不指定菜单文件时使用框架自带的通用编辑菜单（复制/全选，文案已国际化）。
+- **消息标识**：每条消息可指定 `id`（0 表示自动生成），便于后续按 id 更新或删除；`ChatMessageType` 枚举包含 `kText`（普通消息）与 `kSystem`（系统提示）。
 
-对应C++接口：`AddMessage`（含便捷重载）、`ClearMessages`、`GetMessageCount`、`GetMessageAt`、`ScrollToBottom`、`GetScrollPos/SetScrollPos`、`SetAutoScrollToBottom/IsAutoScrollToBottom`、`SetAvatarSize/GetAvatarSize`、`SetBubbleMaxWidth/GetBubbleMaxWidth`、`SetBubbleRadius/GetBubbleRadius`、`SetShowTime/IsShowTime`、`SetBubbleColor`、`SetTextColor`、`SetAvatarTextColor`、`SetSystemTextColor`、`SetScrollbarTrackColor`、`SetScrollbarThumbColor`、`SetAutoHideScrollbar/IsAutoHideScrollbar`。
+对应C++接口：`AddMessage`（含便捷重载）、`InsertMessage`、`UpdateMessage`、`RemoveMessage`、`GetMessageById`、`ClearMessages`、`GetMessageCount`、`GetMessageAt`、`ScrollToBottom`、`GetScrollPos/SetScrollPos`、`SetAutoScrollToBottom/IsAutoScrollToBottom`、`SetAvatarSize/GetAvatarSize`、`SetBubbleMaxWidth/GetBubbleMaxWidth`、`SetBubbleRadius/GetBubbleRadius`、`SetShowTime/IsShowTime`、`SetBubbleColor`、`SetTextColor`、`SetAvatarTextColor`、`SetSystemTextColor`、`SetSelectionBkColor`、`SetSelectionTextColor`、`SetScrollbarTrackColor`、`SetScrollbarThumbColor`、`SetAutoHideScrollbar/IsAutoHideScrollbar`、`SetEnableSelection/IsEnableSelection`、`HasSelection`、`GetSelectedText`、`ClearSelection`、`SelectAll`、`CopySelectedText`、`CopyAllText`、`AttachPopupMenu`。
 
 ### XML使用示例
 
@@ -2428,8 +2434,9 @@ ChatMessageList是聊天消息列表控件，继承自Control，纯自绘实现�
 <!-- 聊天消息区：右侧为强调色气泡（自己），左侧为卡片色气泡（对方） -->
 <ChatMessageList name="message_list" width="stretch" height="stretch" bkcolor="bg_window_main"
                  padding="16,14,16,14"
+                 vscrollbar="true" vscrollbar_class="chat_vscrollbar"
                  avatar_size="36" bubble_max_width="460" bubble_radius="10"
-                 bubble_spacing="14" show_time="true"
+                 bubble_spacing="14" show_time="true" enable_selection="true"
                  bubble_color_self="color_accent" bubble_color_other="bg_window_card"
                  text_color_self="color_white" text_color_other="text_default"/>
 ```
@@ -2447,6 +2454,17 @@ if (pMsgList != nullptr) {
     pMsgList->AddMessage(ui::ChatMessageSide::kSystem, _T("你已加入“产品设计组”"), _T(""), _T(""));
 
     // 追加消息后自动滚动到底部
+    pMsgList->ScrollToBottom();
+
+    // 按 id 更新消息（例如把“发送中”改为“发送失败”）
+    ui::ChatMessageList::Message msg;
+    msg.side = ui::ChatMessageSide::kSelf;
+    msg.text = _T("发送失败，点击重试");
+    msg.avatarText = _T("我");
+    pMsgList->UpdateMessage(nMsgId, msg);
+
+    // 绑定右键菜单（不传菜单文件时使用框架自带的复制/全选菜单）
+    pMsgList->AttachPopupMenu();
     pMsgList->ScrollToBottom();
 }
 ```

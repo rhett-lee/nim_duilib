@@ -51,6 +51,7 @@ void ChatForm::OnInitWindow()
     BindSessionItems();
     BindChatButtons();
     BindSettingsButton();
+    BindMessageListMenu();
     RefreshSessionList();
     InitMessages();
     UpdatePanelVisibility();
@@ -236,6 +237,17 @@ void ChatForm::ExitApp()
     //异步关闭主窗口；主窗口设置了 PostQuitMsgWhenClosed(true)，关闭后消息循环结束
     //这里用 CloseWnd 而非 Close：菜单回调执行期间同步销毁窗口不安全
     CloseWnd();
+}
+
+void ChatForm::BindMessageListMenu()
+{
+    //消息列表的右键菜单：使用 ChatMessageList 内置的"复制/全选"菜单
+    ui::ChatMessageList* pMsgList = dynamic_cast<ui::ChatMessageList*>(FindControl(_T("message_list")));
+    if (pMsgList == nullptr) {
+        return;
+    }
+    //不指定菜单XML时，控件内部使用框架自带的通用编辑菜单（文案已国际化）
+    pMsgList->AttachPopupMenu();
 }
 
 void ChatForm::RefreshSessionList()

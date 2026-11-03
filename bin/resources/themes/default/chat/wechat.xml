@@ -20,6 +20,13 @@
            hovered_color="color_blue_light" pressed_color="color_blue_dark"
            disabled_color="bg_btn_disabled" disabled_text_color="text_btn_disabled"
            border_round="8,8,8,8"/>
+    <!-- 消息列表的垂直滚动条：全局 vscrollbar 的滑块色(bg_scrollbar_thumb_normal #E6E6E6)
+         与消息区背景(bg_window_main #F4F4F4)对比度过低，几乎不可见，这里改用中性灰 -->
+    <Class name="chat_vscrollbar" class="vscrollbar"
+           thumb_normal_image="file='public/scrollbar01/vscrollbar/thumb_normal.svg' width='12' corner='0,8,0,8' svg_replace_colors='#C0C0C0|color_gray'"
+           thumb_hovered_image="file='public/scrollbar01/vscrollbar/thumb_hovered.svg' width='12' corner='0,8,0,8' svg_replace_colors='#A0A0A0|color_gray_dark'"
+           bk_hovered_image="file='public/scrollbar01/vscrollbar/bk_hovered.svg' width='12' corner='0,8,0,8' svg_replace_colors='rgba(100,100,100,0.18)|bg_scrollbar_hovered'"
+           show_button1="false" show_button2="false"/>
 
     <VBox bkimage="file='glass_main_scene.svg'">
         <!-- ===================== 标题栏 ===================== -->
@@ -221,6 +228,7 @@
                 <!-- 消息列表（ChatMessageList 控件：气泡左右分栏、自动滚动到底部） -->
                 <ChatMessageList name="message_list" width="stretch" height="stretch" bkcolor="bg_window_main"
                                  padding="16,14,16,14"
+                                 vscrollbar="true" vscrollbar_class="chat_vscrollbar"
                                  avatar_size="36" bubble_max_width="460" bubble_radius="10"
                                  bubble_spacing="14" show_time="true"
                                  bubble_color_self="color_accent" bubble_color_other="bg_window_card"

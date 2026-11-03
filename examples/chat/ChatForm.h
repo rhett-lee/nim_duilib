@@ -65,6 +65,10 @@ private:
     */
     void BindChatButtons();
 
+    /** 绑定消息列表的右键菜单（复制/全选）
+    */
+    void BindMessageListMenu();
+
     /** 绑定左下角的设置按钮，弹出设置菜单
     */
     void BindSettingsButton();
