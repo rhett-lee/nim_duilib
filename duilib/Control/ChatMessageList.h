@@ -374,7 +374,9 @@ public:
                          const ContextMenuCreatingEvent& creatingCallback = nullptr);
 
     /** 处理上下文菜单项被激活
-    */
+     *
+     *  AttachPopupMenu 未指定回调时，控件内置菜单（复制/全选）的点击会转到这里。
+     */
     void OnContextMenuAction(const DString& strItemName);
 
 private:
@@ -385,6 +387,14 @@ private:
     /** 获取内容区宽度（固定预留滚动条宽度，保持恒定，避免与滚动范围互相影响）
     */
     int32_t CalcContentWidth() const;
+
+    /** 按指定的控件矩形计算内容区宽度（用于布局开始前预先算出内容尺寸）
+    */
+    int32_t CalcContentWidthFor(const UiRect& rcControl) const;
+
+    /** 按控件矩形更新消息布局与占位控件高度，使 ScrollBox 能推导出正确的滚动范围
+    */
+    void UpdateContentSize(const UiRect& rcControl);
 
     /** 绘制一条消息
     */
@@ -420,6 +430,17 @@ private:
     */
     void UpdateScrollRange(IRender* pRender);
 
+    /** 文本行：按气泡宽度自动换行后的一行
+     *
+     *  控件的文本绘制、选区高亮与命中测试都基于这份行数据，
+     *  这样文字的排版结果与高亮框能够严格对齐。
+    */
+    struct TextLine
+    {
+        int32_t nStart = 0;   //起始字符索引（含）
+        int32_t nEnd = 0;     //结束字符索引（不含，换行符不计入）
+    };
+
     /** 消息布局信息：气泡与文本的矩形
     */
     struct BubbleLayout
@@ -430,16 +451,17 @@ private:
         UiRect rcStatus;      //状态文字矩形（bShowStatus 为 false 时无意义）
         int32_t nTextWidth = 0;
         int32_t nTextHeight = 0;
+        int32_t nLineHeight = 0;            //单行文本的行高
+        std::vector<TextLine> lines;        //换行后各行的字符区间
         bool bShowStatus = false;
         bool bValid = false;
     };
 
     /** 计算消息的气泡布局（气泡宽度自适应文本，高度按换行结果）
-     *  @param [out] layout 计算结果
-     *  @param [in] bCalcTextHeight 是否需要计算文本高度（绘制时为true，仅算高度时可按需跳过）
+     *  @param [out] layout 计算结果（含换行后的行数据）
     */
     bool CalcBubbleLayout(IRender* pRender, const Message& message, const UiRect& rcMessage,
-                          BubbleLayout& layout, bool bCalcTextHeight);
+                          BubbleLayout& layout);
 
     /** 计算气泡最大宽度
     */
@@ -504,6 +526,31 @@ private:
     */
     int32_t MeasureTextPrefixWidth(IRender* pRender, const DString& strText, int32_t nCharCount,
                                     const DString& strFontId);
+
+    /** 计算文本区间 [nStart, nEnd) 的宽度（用于行内字符定位）
+    */
+    int32_t MeasureTextRangeWidth(IRender* pRender, const DString& strText, int32_t nStart, int32_t nEnd,
+                                  const DString& strFontId);
+
+    /** 获取文本的单行行高
+     *
+     *  注意：不能用整段文本去测量（那样得到的是多行文本的总高度），
+     *  这里用几个典型字符测量单行高度，多行文本的行距统一使用该值。
+    */
+    int32_t GetTextLineHeight(IRender* pRender, const DString& strFontId);
+
+    /** 按最大宽度对文本换行，输出每一行的字符区间
+     *
+     *  文本里显式的换行符（'\n' 或 '\r'）会强制换行，其余部分按宽度贪心折行，
+     *  折行时优先在空格/连字符处断开，避免把英文单词从中间截断。
+    */
+    void WrapTextLines(IRender* pRender, const DString& strText, int32_t nMaxWidth,
+                       const DString& strFontId, std::vector<TextLine>& lines);
+
+    /** 文本区域内的命中测试：由鼠标坐标定位字符索引（按行定位，支持多行文本）
+    */
+    int32_t HitTestTextChar(IRender* pRender, const DString& strText, const BubbleLayout& layout,
+                            const UiPoint& ptMouse);
 
     /** 绘制选中区域背景
     */

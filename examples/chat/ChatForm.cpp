@@ -148,7 +148,8 @@ void ChatForm::BindChatButtons()
             ui::RichEdit2* pEdit = dynamic_cast<ui::RichEdit2*>(FindControl(_T("input_edit")));
             if (pEdit != nullptr) {
                 const DString strText = pEdit->GetText().c_str();
-                pEdit->SetText((strText + _T("[微笑]")).c_str());
+                const DString strEmoji = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_CHAT_MSG_EMOJI_SMILE")).c_str();
+                pEdit->SetText((strText + strEmoji).c_str());
                 pEdit->SetFocus();
             }
             return true;
@@ -194,7 +195,7 @@ void ChatForm::BindSettingsButton()
         ui::UiRect rect = pSettingsBtn->GetPos();
         ui::UiPoint point;
         point.x = rect.left;
-        point.y = rect.bottom;
+        point.y = rect.top;
         ClientToScreen(point);
         ShowSettingsMenu(point);
         return true;
@@ -205,7 +206,9 @@ void ChatForm::ShowSettingsMenu(const ui::UiPoint& point)
 {
     ui::Menu* pMenu = new ui::Menu(this, nullptr);
     pMenu->SetSkinFolder(GetResourcePath().ToString());
-    pMenu->ShowMenu(_T("chat/menu_settings.xml"), point);
+    //设置按钮在左下角，菜单改为底边对齐按钮顶边、向上展开，
+    //否则菜单会盖住按钮并超出窗口/屏幕底部。
+    pMenu->ShowMenu(_T("chat/menu_settings.xml"), point, ui::MenuPopupPosType::LEFT_BOTTOM);
     pMenu->AttachMenuItemActivated([this](const DString& /*menuName*/, int32_t /*nMenuLevel*/,
                                           const DString& strItemName, size_t /*nItemIndex*/) {
         OnSettingsMenuItemActivated(strItemName);
@@ -312,8 +315,11 @@ bool ChatForm::OnMessageRightClick(const ui::ChatMessageEvent& messageEvent)
     if (pMsgList == nullptr) {
         return false;
     }
-    //右键时先选中该条消息的文本，这样默认菜单里的"复制"直接可用
-    pMsgList->SelectMessageText(messageEvent.nIndex);
+    //仅在当前没有选区时，才选中该条消息的全文；
+    //已有部分选区时保持用户选中的内容，否则右键会把拖选的结果覆盖掉。
+    if (!pMsgList->HasSelection()) {
+        pMsgList->SelectMessageText(messageEvent.nIndex);
+    }
     //返回 false：继续弹出控件绑定的默认右键菜单（复制/全选）
     return false;
 }
@@ -550,7 +556,9 @@ void ChatForm::SimulateReply()
         if ((pThis == nullptr) || pThis->IsClosingWnd()) {
             return;
         }
-        pThis->AppendMessage(ui::ChatMessageSide::kOther, _T("好的，收到，我看一下再回复你"), strAvatar);
+        //回复文案走多语言资源：取文案放在延时任务里，保证切换语言后回复也用当前语言
+        const DString strReply = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_CHAT_MSG_REPLY_AUTO")).c_str();
+        pThis->AppendMessage(ui::ChatMessageSide::kOther, strReply, strAvatar);
         }, 1500);
 }
 

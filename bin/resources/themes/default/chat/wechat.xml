@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="1180,760" min_size="960,620" caption="0,0,0,40" use_system_caption="false" shadow_attached="true">
+<Window size="1180,760" min_size="960,620" caption="0,0,0,40" use_system_caption="false" shadow_attached="true"
+        size_box="4,4,4,4">
     <!-- 聊天窗口专用样式（窗口私有，不影响其他示例程序）
          注意：窗口私有样式无法跨文件共享，若 login.xml 中同名样式有调整，需同步修改 -->
     <Class name="btn_chat_nav" width="44" height="44" halign="center" valign="center"
@@ -36,7 +37,15 @@
                      margin="12,0,8,0" bkimage="file='logo.svg'"/>
             <Label text_id="STRID_CHAT_APP_NAME" width="stretch" height="stretch"
                    font="system_bold_14" text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
-            <Button class="btn_wnd_min_11" name="btn_window_min" height="stretch" width="40" margin="0,0,0,0"/>
+            <!-- 主题切换 / 多语言切换：控件名由 WindowImplBase 识别，点击后弹出框架内置菜单 -->
+            <Button class="btn_switch_theme" name="btn_window_theme" height="32" width="40" margin="0,4,0,4"/>
+            <Button class="btn_switch_lang" name="btn_window_language" height="32" width="40" margin="0,4,0,4"/>
+            <Button class="btn_wnd_min_11" name="btn_window_min" height="stretch" width="40"/>
+            <!-- 最大化/还原按钮：两个按钮叠放在同一位置，由框架按窗口状态切换显示 -->
+            <Box height="stretch" width="40">
+                <Button class="btn_wnd_max_11" name="btn_window_max" height="stretch" width="stretch"/>
+                <Button class="btn_wnd_restore_11" name="btn_window_restore" height="stretch" width="stretch" visible="false"/>
+            </Box>
             <Button class="btn_wnd_close_11" name="btn_window_close" height="stretch" width="40"/>
         </HBox>
 
@@ -257,7 +266,7 @@
                         <RichEdit2 class="simple" name="input_edit" width="stretch" height="stretch"
                                   font="system_regular_14" text_padding="6,4,6,4" border_round="6,6,6,6"
                                   multi_line="true" auto_vscroll="true" vscrollbar="false"
-                                  want_ctrl_return="true"
+                                  want_ctrl_return="true" default_context_menu="true"
                                   bkcolor="bg_container" border_size="1" border_color="border_control_normal"/>
                         <Button class="btn_chat_send" name="btn_send" width="96" height="36" valign="bottom"
                                 margin="10,0,0,0" text_id="STRID_CHAT_SEND" font="system_bold_14"/>

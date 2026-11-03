@@ -21,7 +21,7 @@ macOS 下默认编译为 `bin/basic.app`，C++ 代码无需修改；配置方法
 <img width="900" src="./Images/controls.png"/>
 
 ## 4. examples/chat
-包含一个登录窗口和一个模拟 PC 聊天布局的窗口示例：登录成功后进入聊天主界面（不退出程序），主界面含标题栏、左侧导航栏、可切换的会话/联系人/收藏面板、消息区与输入区，支持发送消息与模拟自动回复；消息区使用框架的 ChatMessageList 控件渲染气泡。左下角设置按钮弹出菜单（发起聊天/联系人/关于本示例/退出登录），菜单中的“退出登录”会关闭主界面并结束程序；输入框回车发送、Ctrl+回车换行；发送的消息依次显示"发送中/已送达/已读"，输入以 `/fail` 开头的文本可模拟发送失败，点击"发送失败，点击重试"即重发；双击消息复制该条文本，右键先选中该条消息再弹出"复制/全选"菜单；未接线的工具按钮以 Toast 提示给出反馈。    
+包含一个登录窗口和一个模拟 PC 聊天布局的窗口示例：登录成功后进入聊天主界面（不退出程序），主界面含标题栏、左侧导航栏、可切换的会话/联系人/收藏面板、消息区与输入区，支持发送消息与模拟自动回复；消息区使用框架的 ChatMessageList 控件渲染气泡。左下角设置按钮弹出菜单（发起聊天/联系人/关于本示例/退出登录），菜单中的“退出登录”会关闭主界面并结束程序；输入框回车发送、Ctrl+回车换行；发送的消息依次显示"发送中/已送达/已读"，输入以 `/fail` 开头的文本可模拟发送失败，点击"发送失败，点击重试"即重发；双击消息复制该条文本，右键保留当前选区（无选区时选中该条消息）并弹出"复制/全选"菜单；未接线的工具按钮以 Toast 提示给出反馈；标题栏右侧的主题切换、多语言切换按钮弹出框架内置菜单，切换后立即生效；窗口支持最大化/还原，也可拖动窗口边缘调整大小，布局随尺寸自适应（与 examples/controls 等其他示例保持一致）。    
 代码入口：[MainThread.cpp](../examples/chat/MainThread.cpp)、[LoginForm.cpp](../examples/chat/LoginForm.cpp)、[ChatForm.cpp](../examples/chat/ChatForm.cpp)；界面资源：`bin/resources/themes/default/chat/wechat.xml`、`bin/resources/themes/default/chat/login.xml`、`bin/resources/themes/default/chat/menu_settings.xml`；相关文档：[Box.md](Box.md)、[Control.md](Control.md)、[Menu.md](Menu.md)。    
 <img width="800" src="./Images/chat.png"/>
 

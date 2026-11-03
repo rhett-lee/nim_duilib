@@ -23,6 +23,10 @@ namespace
     /** 拖选判定阈值（像素）：鼠标移动超过该距离才认为开始拖选，避免把点击误判为拖选
     */
     constexpr int32_t kSelectMinMovePixels = 8;
+
+    /** 气泡与滚动条之间的间距（像素，未做 DPI 缩放）
+    */
+    constexpr int32_t kContentScrollbarGap = 10;
 }
 
 ChatMessageList::ChatMessageList(Window* pWindow) :
@@ -189,26 +193,47 @@ void ChatMessageList::SetAttribute(const DString& strName, const DString& strVal
 
 void ChatMessageList::SetPos(UiRect rc)
 {
+    //先用新尺寸算好消息布局与占位控件高度，
+    //这样 ScrollBox 在本次布局里就能用正确的内容高度推导滚动范围。
+    UpdateContentSize(rc);
     BaseClass::SetPos(rc);
-    //本控件为纯自绘内容，没有子控件来驱动滚动条，
-    //因此在布局完成后主动计算内容高度、滚动范围，并设置滚动条的位置。
-    IRender* pRender = (GetWindow() != nullptr) ? GetWindow()->GetRender() : nullptr;
-    UpdateScrollRange(pRender);
 
+    //滚动条位置：贴内容区右边缘，高度固定为内容区高度。
+    //纯自绘容器里没有子控件驱动滚动条尺寸，不固定高度的话，
+    //ScrollBox 重排时会把它压成一小段，看起来像"浮在消息区中间"。
     ScrollBar* pVScrollBar = GetVScrollBar();
     if (pVScrollBar != nullptr) {
         UiRect rcBar = rc;
         rcBar.Deflate(GetPadding());
         rcBar.Deflate(GetScrollBarPadding());
         const int32_t nBarWidth = pVScrollBar->GetFixedWidth().GetInt32();
-        if (nBarWidth > 0) {
-            UiRect rcBarPos(rcBar.right - nBarWidth, rcBar.top, rcBar.right, rcBar.bottom);
-            pVScrollBar->SetPos(rcBarPos);
+        if ((nBarWidth > 0) && (rcBar.Height() > 0)) {
+            pVScrollBar->SetFixedHeight(UiFixedInt(rcBar.Height()), false, false);
+            pVScrollBar->SetPos(UiRect(rcBar.right - nBarWidth, rcBar.top, rcBar.right, rcBar.bottom));
         }
         //注意：这里不修改滚动条的可见性。
         //本控件为纯自绘内容，没有子控件来驱动 ScrollBox 的滚动条可见性，
         //可见性改由框架的 ScrollBox::MouseEnter 机制处理（auto_hide 模式悬停显示）。
     }
+
+    //布局后 ScrollBox 可能钳位了滚动位置，同步自绘偏移量
+    m_nScrollPos = static_cast<int32_t>(BaseClass::GetScrollPos().cy);
+}
+
+void ChatMessageList::UpdateContentSize(const UiRect& rc)
+{
+    IRender* pRender = (GetWindow() != nullptr) ? GetWindow()->GetRender() : nullptr;
+    if (pRender == nullptr) {
+        return;
+    }
+    const int32_t nContentWidth = CalcContentWidthFor(rc);
+    if (nContentWidth <= 0) {
+        return;
+    }
+    if (!EnsureLayout(pRender, nContentWidth)) {
+        return;
+    }
+    UpdateContentPlaceholder(m_nContentHeight);
 }
 
 void ChatMessageList::SetWindow(Window* pWindow)
@@ -524,29 +549,27 @@ const ChatMessageList::Message* ChatMessageList::GetMessageAt(size_t index) cons
 
 void ChatMessageList::ScrollToBottom()
 {
-    UpdateScrollRange(GetWindow() != nullptr ? GetWindow()->GetRender() : nullptr);
-    const int32_t nMax = std::max(0, m_nContentHeight - GetVisibleHeight());
-    SetChatScrollPos(nMax);
+    IRender* pRender = (GetWindow() != nullptr) ? GetWindow()->GetRender() : nullptr;
+    UpdateScrollRange(pRender);
+    //占位控件高度可能刚刚变化，需要让 ScrollBox 立即重算滚动范围。
+    //这里调用基类实现、绕过本类的 SetPos 覆写，避免"布局->更新尺寸->布局"的重入。
+    const UiRect rc = GetRect();
+    if ((rc.Width() > 0) && (rc.Height() > 0)) {
+        BaseClass::SetPos(rc);
+    }
+    //滚动范围由 ScrollBox 维护，这里直接滚到范围末端
+    BaseClass::SetScrollPos(UiSize64(0, BaseClass::GetScrollRange().cy));
+    m_nScrollPos = static_cast<int32_t>(BaseClass::GetScrollPos().cy);
+    Invalidate();
 }
 
 void ChatMessageList::SetChatScrollPos(int32_t nPos)
 {
-    const int32_t nMax = std::max(0, m_nContentHeight - GetVisibleHeight());
     if (nPos < 0) {
         nPos = 0;
     }
-    if (nPos > nMax) {
-        nPos = nMax;
-    }
-    if (nPos == m_nScrollPos) {
-        return;
-    }
-    m_nScrollPos = nPos;
-    //同步到框架滚动条，保证两者一致
-    ScrollBar* pVScrollBar = GetVScrollBar();
-    if (pVScrollBar != nullptr) {
-        pVScrollBar->SetScrollPos(nPos);
-    }
+    BaseClass::SetScrollPos(UiSize64(0, nPos));
+    m_nScrollPos = static_cast<int32_t>(BaseClass::GetScrollPos().cy);
     Invalidate();
 }
 
@@ -845,7 +868,7 @@ void ChatMessageList::PaintStateImages(IRender* pRender)
 }
 
 bool ChatMessageList::CalcBubbleLayout(IRender* pRender, const Message& message, const UiRect& rcMessage,
-                                       BubbleLayout& layout, bool bCalcTextHeight)
+                                       BubbleLayout& layout)
 {
     layout = BubbleLayout();
     if (pRender == nullptr) {
@@ -870,14 +893,11 @@ bool ChatMessageList::CalcBubbleLayout(IRender* pRender, const Message& message,
         nTextWidth = 1;
     }
 
-    int32_t nTextHeight = 0;
-    if (bCalcTextHeight) {
-        nTextHeight = MeasureTextHeight(pRender, message.text, nTextWidth, m_strTextFont);
-    }
-    else {
-        //仅计算高度时也要拿到文本高度，用于确定气泡高度
-        nTextHeight = MeasureTextHeight(pRender, message.text, nTextWidth, m_strTextFont);
-    }
+    //按文本宽度换行：绘制、选区高亮、命中测试都复用这份行数据，
+    //避免三方各自推算换行位置导致文字与高亮框错位。
+    WrapTextLines(pRender, message.text, nTextWidth, m_strTextFont, layout.lines);
+    layout.nLineHeight = GetTextLineHeight(pRender, m_strTextFont);
+    const int32_t nTextHeight = static_cast<int32_t>(layout.lines.size()) * layout.nLineHeight;
 
     const int32_t nBubbleHeight = nTextHeight + 2 * nPadV;
     const int32_t nBubbleWidth = nTextWidth + 2 * nPadH;
@@ -968,7 +988,7 @@ int32_t ChatMessageList::CalcMessageHeight(IRender* pRender, const Message& mess
     const int32_t nAvatarSize = Dpi().GetScaleInt(m_nAvatarSize);
     UiRect rcMessage(0, 0, nContentWidth, 0);
     BubbleLayout layout;
-    if (!CalcBubbleLayout(pRender, message, rcMessage, layout, true)) {
+    if (!CalcBubbleLayout(pRender, message, rcMessage, layout)) {
         return nAvatarSize;
     }
     int32_t nHeight = std::max(nAvatarSize, layout.rcBubble.Height());
@@ -981,7 +1001,12 @@ int32_t ChatMessageList::CalcMessageHeight(IRender* pRender, const Message& mess
 
 int32_t ChatMessageList::CalcContentWidth() const
 {
-    UiRect rc = GetRect();
+    return CalcContentWidthFor(GetRect());
+}
+
+int32_t ChatMessageList::CalcContentWidthFor(const UiRect& rcControl) const
+{
+    UiRect rc = rcControl;
     UiPadding rcPadding = GetControlPadding();
     rc.Deflate(rcPadding);
     int32_t nWidth = rc.Width();
@@ -990,6 +1015,8 @@ int32_t ChatMessageList::CalcContentWidth() const
     if ((pVScrollBar != nullptr) && !GetScrollBarFloat()) {
         nWidth -= pVScrollBar->GetFixedWidth().GetInt32();
     }
+    //气泡与滚动条之间留出间距，否则气泡会紧贴滚动条，视觉上过于拥挤
+    nWidth -= Dpi().GetScaleInt(kContentScrollbarGap);
     return std::max(0, nWidth);
 }
 
@@ -1015,27 +1042,14 @@ void ChatMessageList::UpdateScrollRange(IRender* pRender)
         return;
     }
 
-    //把滚动范围设置到框架滚动条上
-    ScrollBar* pVScrollBar = GetVScrollBar();
-    if (pVScrollBar != nullptr) {
-        const int64_t nRange = std::max<int64_t>(0, m_nContentHeight - rc.Height());
-        if (pVScrollBar->GetScrollRange() != nRange) {
-            pVScrollBar->SetScrollRange(nRange);
-        }
-        if (pVScrollBar->GetScrollPos() != m_nScrollPos) {
-            pVScrollBar->SetScrollPos(m_nScrollPos);
-        }
-    }
-    //同步占位控件高度，使 ScrollBox 能推导出正确的滚动范围
+    //只同步占位控件高度。滚动范围与滑块位置统一由 ScrollBox 根据占位控件推导，
+    //这里不再手动设置，避免两套范围互相覆盖导致滑块位置和实际内容对不上。
     UpdateContentPlaceholder(m_nContentHeight);
 
-    //钳位滚动位置
-    const int32_t nMax = std::max(0, m_nContentHeight - rc.Height());
-    if (m_nScrollPos > nMax) {
-        m_nScrollPos = nMax;
-    }
-    if (m_nScrollPos < 0) {
-        m_nScrollPos = 0;
+    //框架可能已经钳位过滚动位置，自绘偏移量跟随它
+    const int32_t nScrollPos = static_cast<int32_t>(BaseClass::GetScrollPos().cy);
+    if (nScrollPos != m_nScrollPos) {
+        m_nScrollPos = nScrollPos;
     }
 }
 
@@ -1051,7 +1065,7 @@ void ChatMessageList::PaintMessage(IRender* pRender, size_t nMessageIndex, const
     }
 
     BubbleLayout layout;
-    if (!CalcBubbleLayout(pRender, message, rcMessage, layout, true)) {
+    if (!CalcBubbleLayout(pRender, message, rcMessage, layout)) {
         return;
     }
 
@@ -1100,88 +1114,87 @@ void ChatMessageList::DrawMessageText(IRender* pRender, size_t nMessageIndex, co
                                        const BubbleLayout& layout, const DString& strTextColor)
 {
     const DString& strText = message.text;
-    if (strText.empty()) {
+    if (strText.empty() || layout.lines.empty() || (layout.nLineHeight <= 0)) {
         return;
     }
-    //无选区时整段绘制
-    if (!m_bHasSelection || (nMessageIndex < m_nSelStartIndex) || (nMessageIndex > m_nSelEndIndex)) {
-        DrawChatText(pRender, strText, layout.rcText, TEXT_LEFT | TEXT_TOP, strTextColor, m_strTextFont);
-        return;
-    }
-
     const int32_t nTextLen = static_cast<int32_t>(strText.length());
-    int32_t nSelStart = 0;
+
+    //本消息中被选中的字符区间（没有选中内容时按空区间处理）
+    bool bHasSel = m_bHasSelection && (nMessageIndex >= m_nSelStartIndex) && (nMessageIndex <= m_nSelEndIndex);
+    int32_t nSelStart = nTextLen;
     int32_t nSelEnd = nTextLen;
-    if (nMessageIndex == m_nSelStartIndex) {
-        nSelStart = m_nSelStartChar;
-    }
-    if (nMessageIndex == m_nSelEndIndex) {
-        nSelEnd = m_nSelEndChar;
-    }
-    if (nSelStart < 0) {
-        nSelStart = 0;
-    }
-    if (nSelEnd > nTextLen) {
-        nSelEnd = nTextLen;
-    }
-    if (nSelStart >= nSelEnd) {
-        DrawChatText(pRender, strText, layout.rcText, TEXT_LEFT | TEXT_TOP, strTextColor, m_strTextFont);
-        return;
+    if (bHasSel) {
+        nSelStart = (nMessageIndex == m_nSelStartIndex) ? std::max(0, m_nSelStartChar) : 0;
+        nSelEnd = (nMessageIndex == m_nSelEndIndex) ? std::min(nTextLen, m_nSelEndChar) : nTextLen;
+        bHasSel = (nSelEnd > nSelStart);
     }
 
-    //选中前段（普通色）
-    if (nSelStart > 0) {
-        const DString strHead = strText.substr(0, static_cast<size_t>(nSelStart));
-        UiRect rcHead = layout.rcText;
-        rcHead.right = rcHead.left + MeasureTextPrefixWidth(pRender, strText, nSelStart, m_strTextFont);
-        DrawChatText(pRender, strHead, rcHead, TEXT_LEFT | TEXT_TOP | TEXT_SINGLELINE, strTextColor, m_strTextFont);
-    }
-    //选中段（选中色）
-    {
-        const DString strSel = strText.substr(static_cast<size_t>(nSelStart),
-                                               static_cast<size_t>(nSelEnd - nSelStart));
-        const int32_t nX = MeasureTextPrefixWidth(pRender, strText, nSelStart, m_strTextFont);
-        UiRect rcSel(layout.rcText.left + nX, layout.rcText.top,
-                     layout.rcText.left + nX + MeasureTextPrefixWidth(pRender, strText, nSelEnd, m_strTextFont),
-                     layout.rcText.bottom);
-        DrawChatText(pRender, strSel, rcSel, TEXT_LEFT | TEXT_TOP | TEXT_SINGLELINE,
-                     m_strSelectionTextColor, m_strTextFont);
-    }
-    //选中后段（普通色）
-    if (nSelEnd < nTextLen) {
-        const DString strTail = strText.substr(static_cast<size_t>(nSelEnd));
-        const int32_t nX = MeasureTextPrefixWidth(pRender, strText, nSelEnd, m_strTextFont);
-        UiRect rcTail(layout.rcText.left + nX, layout.rcText.top, layout.rcText.right, layout.rcText.bottom);
-        DrawChatText(pRender, strTail, rcTail, TEXT_LEFT | TEXT_TOP | TEXT_SINGLELINE, strTextColor, m_strTextFont);
+    //逐行绘制：每行的首尾两段用普通文字色，选中段用选中文字色。
+    //注意：必须按行绘制，不能把整段文本当单行文本绘制，否则多行文本会被画乱。
+    const int32_t nLineCount = static_cast<int32_t>(layout.lines.size());
+    for (int32_t nLineIndex = 0; nLineIndex < nLineCount; ++nLineIndex) {
+        const TextLine& line = layout.lines[nLineIndex];
+        if (line.nEnd <= line.nStart) {
+            continue;
+        }
+        const int32_t nTop = layout.rcText.top + nLineIndex * layout.nLineHeight;
+        const UiRect rcLine(layout.rcText.left, nTop, layout.rcText.right, nTop + layout.nLineHeight);
+
+        //本行与选区的交集
+        const int32_t nLineSelStart = bHasSel ? std::max(line.nStart, nSelStart) : line.nEnd;
+        const int32_t nLineSelEnd = bHasSel ? std::min(line.nEnd, nSelEnd) : line.nEnd;
+        if (nLineSelEnd <= nLineSelStart) {
+            DrawChatText(pRender, strText.substr(static_cast<size_t>(line.nStart),
+                                                 static_cast<size_t>(line.nEnd - line.nStart)),
+                         rcLine, TEXT_LEFT | TEXT_TOP | TEXT_SINGLELINE, strTextColor, m_strTextFont);
+            continue;
+        }
+
+        const int32_t nX1 = MeasureTextRangeWidth(pRender, strText, line.nStart, nLineSelStart, m_strTextFont);
+        const int32_t nX2 = MeasureTextRangeWidth(pRender, strText, line.nStart, nLineSelEnd, m_strTextFont);
+
+        //选中前段（普通色）
+        if (nLineSelStart > line.nStart) {
+            UiRect rcHead = rcLine;
+            rcHead.right = rcHead.left + nX1;
+            DrawChatText(pRender, strText.substr(static_cast<size_t>(line.nStart),
+                                                 static_cast<size_t>(nLineSelStart - line.nStart)),
+                         rcHead, TEXT_LEFT | TEXT_TOP | TEXT_SINGLELINE, strTextColor, m_strTextFont);
+        }
+        //选中段（选中文字色）
+        {
+            const UiRect rcSel(rcLine.left + nX1, rcLine.top, rcLine.left + nX2 + 1, rcLine.bottom);
+            DrawChatText(pRender, strText.substr(static_cast<size_t>(nLineSelStart),
+                                                 static_cast<size_t>(nLineSelEnd - nLineSelStart)),
+                         rcSel, TEXT_LEFT | TEXT_TOP | TEXT_SINGLELINE,
+                         m_strSelectionTextColor, m_strTextFont);
+        }
+        //选中后段（普通色）
+        if (nLineSelEnd < line.nEnd) {
+            const UiRect rcTail(rcLine.left + nX2, rcLine.top, rcLine.right, rcLine.bottom);
+            DrawChatText(pRender, strText.substr(static_cast<size_t>(nLineSelEnd),
+                                                 static_cast<size_t>(line.nEnd - nLineSelEnd)),
+                         rcTail, TEXT_LEFT | TEXT_TOP | TEXT_SINGLELINE, strTextColor, m_strTextFont);
+        }
     }
 }
 
 void ChatMessageList::PaintSelection(IRender* pRender, size_t nMessageIndex, const BubbleLayout& layout)
 {
-    if (!m_bHasSelection || !layout.bValid) {
+    if (!m_bHasSelection || !layout.bValid || layout.lines.empty() || (layout.nLineHeight <= 0)) {
         return;
     }
-    if (nMessageIndex < m_nSelStartIndex || nMessageIndex > m_nSelEndIndex) {
+    if ((nMessageIndex < m_nSelStartIndex) || (nMessageIndex > m_nSelEndIndex)) {
         return;
     }
 
     //当前消息中被选中的字符区间
     const DString& strText = m_messages[nMessageIndex].text;
     const int32_t nTextLen = static_cast<int32_t>(strText.length());
-    int32_t nStart = 0;
-    int32_t nEnd = nTextLen;
-    if (nMessageIndex == m_nSelStartIndex) {
-        nStart = m_nSelStartChar;
-    }
-    if (nMessageIndex == m_nSelEndIndex) {
-        nEnd = m_nSelEndChar;
-    }
-    if (nStart < 0) {
-        nStart = 0;
-    }
-    if (nEnd > nTextLen) {
-        nEnd = nTextLen;
-    }
+    int32_t nStart = (nMessageIndex == m_nSelStartIndex) ? m_nSelStartChar : 0;
+    int32_t nEnd = (nMessageIndex == m_nSelEndIndex) ? m_nSelEndChar : nTextLen;
+    nStart = std::max(0, nStart);
+    nEnd = std::min(nTextLen, nEnd);
     if (nStart >= nEnd) {
         return;
     }
@@ -1191,71 +1204,22 @@ void ChatMessageList::PaintSelection(IRender* pRender, size_t nMessageIndex, con
         colorBk = UiColor(0xFF3399FF);
     }
 
-    //按显示行分段处理：文本按气泡宽度换行，需要逐行计算选区与行内字符范围
-    const int32_t nTextWidth = std::max(1, layout.nTextWidth);
-    int32_t nLineStart = 0;      //当前行在全文中的起始字符索引
-    int32_t nLineIndex = 0;     //当前行序号
-    int32_t nLineHeight = 0;    //行高
-    {
-        //行高：文本总高度除以总行数（总行数在下面统计），这里先用单行高度兜底
-        const int32_t nSingle = MeasureTextHeight(pRender, strText, nTextWidth, m_strTextFont);
-        nLineHeight = nSingle > 0 ? nSingle : Dpi().GetScaleInt(16);
-    }
-
-    int32_t nCharPos = 0;
-    while (nCharPos <= nTextLen) {
-        //找到本行的结束位置：换行符，或达到宽度上限
-        int32_t nLineEnd = nCharPos;
-        while (nLineEnd < nTextLen && strText[nLineEnd] != L'\n') {
-            ++nLineEnd;
+    //逐行绘制高亮背景：行数据与文字绘制共用 layout.lines，
+    //这样高亮框与文字行严格对齐，不会出现跨行或超出气泡的色块。
+    const int32_t nLineCount = static_cast<int32_t>(layout.lines.size());
+    for (int32_t nLineIndex = 0; nLineIndex < nLineCount; ++nLineIndex) {
+        const TextLine& line = layout.lines[nLineIndex];
+        const int32_t nLineSelStart = std::max(line.nStart, nStart);
+        const int32_t nLineSelEnd = std::min(line.nEnd, nEnd);
+        if (nLineSelEnd <= nLineSelStart) {
+            continue;
         }
-        //按宽度计算本行实际能容纳的字符数
-        int32_t nFitEnd = nLineEnd;
-        if (nLineEnd < nTextLen) {
-            //存在换行符，宽度限制也生效时取较小者
-            const int32_t nWidthLimit = MeasureTextPrefixWidth(pRender, strText, nTextLen, m_strTextFont);
-            if (nWidthLimit > nTextWidth && nLineEnd - nCharPos > 0) {
-                //二分找出在 nTextWidth 内能容纳的字符数
-                int32_t nLow = nCharPos;
-                int32_t nHigh = nLineEnd;
-                while (nLow < nHigh) {
-                    const int32_t nMid = (nLow + nHigh + 1) / 2;
-                    const int32_t nW = MeasureTextPrefixWidth(pRender, strText, nMid, m_strTextFont) -
-                        MeasureTextPrefixWidth(pRender, strText, nCharPos, m_strTextFont);
-                    if (nW <= nTextWidth) {
-                        nLow = nMid;
-                    }
-                    else {
-                        nHigh = nMid - 1;
-                    }
-                }
-                nFitEnd = nLow;
-            }
-        }
-
-        //本行与选区的交集
-        const int32_t nSelStart = std::max(nStart, nCharPos);
-        const int32_t nSelEnd = std::min(nEnd, nFitEnd);
-        if (nSelEnd > nSelStart) {
-            const int32_t nX1 = MeasureTextPrefixWidth(pRender, strText, nSelStart, m_strTextFont) -
-                MeasureTextPrefixWidth(pRender, strText, nCharPos, m_strTextFont);
-            int32_t nX2 = MeasureTextPrefixWidth(pRender, strText, nSelEnd, m_strTextFont) -
-                MeasureTextPrefixWidth(pRender, strText, nCharPos, m_strTextFont);
-            if (nX2 < nX1) {
-                nX2 = nX1 + 1;
-            }
-            UiRectF rcSel(static_cast<float>(layout.rcText.left + nX1),
-                          static_cast<float>(layout.rcText.top + nLineIndex * nLineHeight),
-                          static_cast<float>(layout.rcText.left + nX2),
-                          static_cast<float>(layout.rcText.top + (nLineIndex + 1) * nLineHeight));
-            pRender->FillRect(rcSel, colorBk);
-        }
-
-        ++nLineIndex;
-        if (nLineEnd >= nTextLen) {
-            break;
-        }
-        nCharPos = nLineEnd + 1;   //跳过换行符
+        const int32_t nX1 = MeasureTextRangeWidth(pRender, strText, line.nStart, nLineSelStart, m_strTextFont);
+        const int32_t nX2 = MeasureTextRangeWidth(pRender, strText, line.nStart, nLineSelEnd, m_strTextFont);
+        const int32_t nTop = layout.rcText.top + nLineIndex * layout.nLineHeight;
+        const UiRectF rcSel(static_cast<float>(layout.rcText.left + nX1), static_cast<float>(nTop),
+                            static_cast<float>(layout.rcText.left + nX2), static_cast<float>(nTop + layout.nLineHeight));
+        pRender->FillRect(rcSel, colorBk);
     }
 }
 
@@ -1340,6 +1304,138 @@ int32_t ChatMessageList::MeasureTextPrefixWidth(IRender* pRender, const DString&
     return pRender->MeasureString(strPrefix, param).Width();
 }
 
+int32_t ChatMessageList::MeasureTextRangeWidth(IRender* pRender, const DString& strText, int32_t nStart, int32_t nEnd,
+                                                const DString& strFontId)
+{
+    if ((pRender == nullptr) || strText.empty() || (nEnd <= nStart)) {
+        return 0;
+    }
+    const int32_t nStartWidth = MeasureTextPrefixWidth(pRender, strText, nStart, strFontId);
+    const int32_t nEndWidth = MeasureTextPrefixWidth(pRender, strText, nEnd, strFontId);
+    return std::max(0, nEndWidth - nStartWidth);
+}
+
+int32_t ChatMessageList::GetTextLineHeight(IRender* pRender, const DString& strFontId)
+{
+    if (pRender == nullptr) {
+        return 0;
+    }
+    //用几个典型字符测量单行高度（不能用整段文本测量，那样得到的是多行文本的总高度）
+    const int32_t nHeight = MeasureTextHeight(pRender, _T("国Ag"), 4096, strFontId);
+    return (nHeight > 0) ? nHeight : Dpi().GetScaleInt(16);
+}
+
+void ChatMessageList::WrapTextLines(IRender* pRender, const DString& strText, int32_t nMaxWidth,
+                                     const DString& strFontId, std::vector<TextLine>& lines)
+{
+    lines.clear();
+    if ((pRender == nullptr) || strText.empty()) {
+        return;
+    }
+    const int32_t nTextLen = static_cast<int32_t>(strText.length());
+    const int32_t nWidth = std::max(1, nMaxWidth);
+
+    int32_t nParaStart = 0;
+    while (nParaStart <= nTextLen) {
+        //先按显式换行符切出段落
+        int32_t nParaEnd = nParaStart;
+        while ((nParaEnd < nTextLen) && (strText[nParaEnd] != L'\n') && (strText[nParaEnd] != L'\r')) {
+            ++nParaEnd;
+        }
+
+        if (nParaEnd == nParaStart) {
+            //空行（含文本以换行开头/结尾的情况）
+            lines.push_back(TextLine{ nParaStart, nParaStart });
+        }
+        else {
+            int32_t nLineStart = nParaStart;
+            while (nLineStart < nParaEnd) {
+                //二分查找本行最多能容纳的字符数
+                int32_t nLow = nLineStart + 1;
+                int32_t nHigh = nParaEnd;
+                int32_t nBest = nLineStart + 1;
+                while (nLow <= nHigh) {
+                    const int32_t nMid = (nLow + nHigh) / 2;
+                    if (MeasureTextRangeWidth(pRender, strText, nLineStart, nMid, strFontId) <= nWidth) {
+                        nBest = nMid;
+                        nLow = nMid + 1;
+                    }
+                    else {
+                        nHigh = nMid - 1;
+                    }
+                }
+                int32_t nLineEnd = nBest;
+                //需要折行时优先在空格/连字符处断开，避免把英文单词从中间截断
+                if (nLineEnd < nParaEnd) {
+                    for (int32_t nIndex = nLineEnd; nIndex > nLineStart; --nIndex) {
+                        const wchar_t ch = strText[nIndex - 1];
+                        if ((ch == L' ') || (ch == L'\t') || (ch == L'-')) {
+                            nLineEnd = nIndex;
+                            break;
+                        }
+                    }
+                }
+                lines.push_back(TextLine{ nLineStart, nLineEnd });
+                nLineStart = nLineEnd;
+            }
+        }
+
+        if (nParaEnd >= nTextLen) {
+            break;
+        }
+        //跳过换行符（兼容 CRLF）
+        int32_t nNext = nParaEnd;
+        while ((nNext < nTextLen) && ((strText[nNext] == L'\n') || (strText[nNext] == L'\r'))) {
+            ++nNext;
+        }
+        if (nNext >= nTextLen) {
+            //文本以换行结尾：补一个空行，与常见编辑器的行为一致
+            lines.push_back(TextLine{ nTextLen, nTextLen });
+            break;
+        }
+        nParaStart = nNext;
+    }
+}
+
+int32_t ChatMessageList::HitTestTextChar(IRender* pRender, const DString& strText, const BubbleLayout& layout,
+                                          const UiPoint& ptMouse)
+{
+    if ((pRender == nullptr) || strText.empty() || layout.lines.empty() || (layout.nLineHeight <= 0)) {
+        return 0;
+    }
+    const int32_t nLineCount = static_cast<int32_t>(layout.lines.size());
+
+    //先按纵向位置定位到行，再在行内按横向位置二分定位字符
+    int32_t nLineIndex = (ptMouse.y - layout.rcText.top) / layout.nLineHeight;
+    if (nLineIndex < 0) {
+        nLineIndex = 0;
+    }
+    if (nLineIndex >= nLineCount) {
+        nLineIndex = nLineCount - 1;
+    }
+    const TextLine& line = layout.lines[nLineIndex];
+
+    const int32_t nOffsetX = ptMouse.x - layout.rcText.left;
+    if (nOffsetX <= 0) {
+        return line.nStart;
+    }
+    if (nOffsetX >= MeasureTextRangeWidth(pRender, strText, line.nStart, line.nEnd, m_strTextFont)) {
+        return line.nEnd;
+    }
+    int32_t nLow = line.nStart;
+    int32_t nHigh = line.nEnd;
+    while (nLow < nHigh) {
+        const int32_t nMid = (nLow + nHigh) / 2;
+        if (MeasureTextRangeWidth(pRender, strText, line.nStart, nMid, m_strTextFont) < nOffsetX) {
+            nLow = nMid + 1;
+        }
+        else {
+            nHigh = nMid;
+        }
+    }
+    return nLow;
+}
+
 void ChatMessageList::DrawChatText(IRender* pRender, const DString& strText, const UiRect& rc,
                                    uint32_t uFormat, const DString& strColor, const DString& strFontId)
 {
@@ -1402,33 +1498,10 @@ bool ChatMessageList::HitTestMessageClamped(const UiPoint& ptMouse, size_t& nMes
 
     UiRect rcMessage;
     BubbleLayout layout;
-    if (!GetMessageRect(index, rcMessage) || !CalcBubbleLayout(pRender, message, rcMessage, layout, true)) {
+    if (!GetMessageRect(index, rcMessage) || !CalcBubbleLayout(pRender, message, rcMessage, layout)) {
         return true;
     }
-    const DString& strText = message.text;
-    const int32_t nTextLen = static_cast<int32_t>(strText.length());
-    if (ptMouse.x <= layout.rcText.left) {
-        return true;
-    }
-    if (ptMouse.x >= layout.rcText.right) {
-        nCharIndex = nTextLen;
-        return true;
-    }
-
-    const int32_t nOffsetX = ptMouse.x - layout.rcText.left;
-    int32_t nLow = 0;
-    int32_t nHigh = nTextLen;
-    while (nLow < nHigh) {
-        const int32_t nMid = (nLow + nHigh) / 2;
-        const int32_t nWidth = MeasureTextPrefixWidth(pRender, strText, nMid, m_strTextFont);
-        if (nWidth < nOffsetX) {
-            nLow = nMid + 1;
-        }
-        else {
-            nHigh = nMid;
-        }
-    }
-    nCharIndex = nLow;
+    nCharIndex = HitTestTextChar(pRender, message.text, layout, ptMouse);
     return true;
 }
 
@@ -1449,7 +1522,7 @@ bool ChatMessageList::GetMessageTextRect(IRender* pRender, size_t nMessageIndex,
         return false;
     }
     BubbleLayout layout;
-    if (!CalcBubbleLayout(pRender, message, rcMessage, layout, true)) {
+    if (!CalcBubbleLayout(pRender, message, rcMessage, layout)) {
         return false;
     }
     rcText = layout.rcText;
@@ -1501,7 +1574,7 @@ bool ChatMessageList::HitTestMessage(const UiPoint& ptMouse, size_t& nMessageInd
         return false;
     }
     BubbleLayout layout;
-    if (!CalcBubbleLayout(pRender, message, rcMessage, layout, true)) {
+    if (!CalcBubbleLayout(pRender, message, rcMessage, layout)) {
         return true;
     }
 
@@ -1517,23 +1590,8 @@ bool ChatMessageList::HitTestMessage(const UiPoint& ptMouse, size_t& nMessageInd
     if (layout.rcBubble.ContainsPt(ptMouse)) {
         hitArea = ChatMessageHitArea::kBubble;
         if (layout.rcText.ContainsPt(ptMouse)) {
-            //二分查找：定位字符索引（UTF-16 码元，用于选区）
-            const DString& strText = message.text;
-            const int32_t nTextLen = static_cast<int32_t>(strText.length());
-            const int32_t nOffsetX = ptMouse.x - layout.rcText.left;
-            int32_t nLow = 0;
-            int32_t nHigh = nTextLen;
-            while (nLow < nHigh) {
-                const int32_t nMid = (nLow + nHigh) / 2;
-                const int32_t nWidth = MeasureTextPrefixWidth(pRender, strText, nMid, m_strTextFont);
-                if (nWidth < nOffsetX) {
-                    nLow = nMid + 1;
-                }
-                else {
-                    nHigh = nMid;
-                }
-            }
-            nCharIndex = nLow;
+            //按行定位字符索引（UTF-16 码元，用于选区）
+            nCharIndex = HitTestTextChar(pRender, message.text, layout, ptMouse);
         }
         return true;
     }
@@ -1938,7 +1996,19 @@ bool ChatMessageList::AttachPopupMenu(const DString& menuXml,
     if (strXml.empty()) {
         strXml = _T("public/menu/chat_message_menu.xml");
     }
-    return BaseClass::AttachPopupMenu(strXml, actionCallback, creatingCallback);
+    //未指定回调时，交给本控件的 OnContextMenuAction 处理内置菜单项：
+    //框架只在actionCallback非空时才会把菜单点击转给应用层，
+    //不包一层的话"复制/全选"点了不会有任何反应。
+    ContextMenuActionEvent callback = actionCallback;
+    if (callback == nullptr) {
+        ChatMessageList* pThis = this;
+        callback = [pThis](const DString& strItemName, size_t /*nItemIndex*/) {
+            if (pThis != nullptr) {
+                pThis->OnContextMenuAction(strItemName);
+            }
+            };
+    }
+    return BaseClass::AttachPopupMenu(strXml, callback, creatingCallback);
 }
 
 void ChatMessageList::OnContextMenuAction(const DString& strItemName)
