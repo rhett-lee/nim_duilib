@@ -15,6 +15,16 @@ MainForm::MainForm():
     m_pTabBox(nullptr),
     m_pBtnViewListType(nullptr),
     m_pBtnViewSort(nullptr),
+    m_pSearchBox(nullptr),
+    m_pStatusPath(nullptr),
+    m_pStatusInfo(nullptr),
+    m_pStatusMode(nullptr),
+    m_bComputerView(false),
+    m_nDiskCount(0),
+    m_nFolderCount(0),
+    m_nFileCount(0),
+    m_nTotalItemCount(0),
+    m_nShowItemCount(0),
     m_dataViewType(DataViewType::kReprortView),
     m_tabBoxViewType(TabBoxViewType::kComputerView)
 {
@@ -53,6 +63,17 @@ void MainForm::OnInitWindow()
     m_pSimpleFileView = std::make_unique<SimpleFileView>(this, pListBox);
     ui::ListCtrl* pExplorerListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(_T("explorer_view")));
     m_pExplorerView = std::make_unique<ExplorerView>(this, pExplorerListCtrl);
+
+    //搜索框：在当前目录中按名称过滤文件夹和文件
+    m_pSearchBox = dynamic_cast<ui::SearchBox*>(FindControl(_T("search_box")));
+    if (m_pSearchBox != nullptr) {
+        m_pSearchBox->AttachEvent(ui::kEventTextChanged, UiBind(&MainForm::OnSearchTextChanged, this, std::placeholders::_1), 0);
+    }
+
+    //状态栏
+    m_pStatusPath = dynamic_cast<ui::Label*>(FindControl(_T("status_path")));
+    m_pStatusInfo = dynamic_cast<ui::Label*>(FindControl(_T("status_info")));
+    m_pStatusMode = dynamic_cast<ui::Label*>(FindControl(_T("status_mode")));
 
     //刷新按钮
     ui::Button* pRefreshBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_view_refresh")));
@@ -168,7 +189,7 @@ void MainForm::SetShowTreeNode(ui::TreeNode* pTreeNode)
     if (!m_pTree->IsValidTreeNode(pTreeNode)) {
         return;
     }
-    if (m_bCanAddBackForward && m_pTree->IsValidTreeNode(m_pTreeNode)) {
+    if (m_bCanAddBackForward && m_pTree->IsValidTreeNode(m_pTreeNode) && (m_pTreeNode != pTreeNode)) {
         m_backStack.push(m_pTreeNode);
         m_forwardStack = std::stack<ui::TreeNode*>();
     }
@@ -197,23 +218,52 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
     ui::GlobalManager::Instance().AssertUIThread();
     if ((pTreeNode == nullptr) || (m_pTree == nullptr) || !m_pTree->IsValidTreeNode(pTreeNode)) {
         if (folderList != nullptr) {
-            ui::DirectoryTree::ClearPathInfoList(*fileList);
+            ui::DirectoryTree::ClearPathInfoList(*folderList);
         }
-        if (folderList != nullptr) {
+        if (fileList != nullptr) {
             ui::DirectoryTree::ClearPathInfoList(*fileList);
         }
         return;
     }
+    if (pTreeNode != m_pTreeNode) {
+        //切换到其它目录时，清除搜索条件
+        ClearSearchText();
+    }
+    m_bComputerView = false;
+    m_currentPath = currentPath;
     if (m_pAddressBar != nullptr) {
         m_pAddressBar->SetAddressPath(currentPath.ToString());
     }
+
+    //汇总文件夹和文件，并按搜索条件过滤
+    m_nFolderCount = (folderList != nullptr) ? (int32_t)folderList->size() : 0;
+    m_nFileCount = (fileList != nullptr) ? (int32_t)fileList->size() : 0;
+    m_nTotalItemCount = m_nFolderCount + m_nFileCount;
     std::vector<ui::DirectoryTree::PathInfo> pathList;
-    if (folderList != nullptr) {
-        pathList = *folderList;
+    pathList.reserve((size_t)m_nTotalItemCount);
+    std::vector<ui::DirectoryTree::PathInfo> unusedList;//被搜索条件过滤掉的，尚未使用的项目
+    const bool bFilter = !m_searchText.empty();
+    auto addItems = [this, &pathList, &unusedList, bFilter](const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& pathInfoList) {
+        if (pathInfoList == nullptr) {
+            return;
+        }
+        for (const ui::DirectoryTree::PathInfo& pathInfo : *pathInfoList) {
+            if (bFilter && (ui::StringUtil::MakeLowerString(pathInfo.m_displayName).find(m_searchText) == DString::npos)) {
+                //不匹配搜索条件
+                unusedList.push_back(pathInfo);
+                continue;
+            }
+            pathList.push_back(pathInfo);
+        }
+    };
+    addItems(folderList);
+    addItems(fileList);
+    m_nShowItemCount = (int32_t)pathList.size();
+    if (!unusedList.empty()) {
+        //释放未被使用的项目的图标资源
+        ui::DirectoryTree::ClearPathInfoList(unusedList);
     }
-    if (fileList != nullptr) {
-        pathList.insert(pathList.end(), fileList->begin(), fileList->end());
-    }
+
     if (!m_pTree->IsMultiSelect()) {
         //单选，进行校验
         if (pTreeNode->IsSelected()) {
@@ -225,6 +275,15 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
         SetShowTreeNode(pTreeNode);
     }
 
+    ShowFileList(currentPath, pathList);
+
+    //更新界面状态
+    UpdateCommandUI();
+    UpdateStatusBar();
+}
+
+void MainForm::ShowFileList(const ui::FilePath& currentPath, const std::vector<ui::DirectoryTree::PathInfo>& pathList)
+{
     if (m_dataViewType == kPictureView) {
         SwitchToTabBoxViewType(TabBoxViewType::kFileView);
         if (m_pSimpleFileView != nullptr) {
@@ -261,8 +320,165 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
             m_pExplorerView->SetFileList(currentPath, pathList, selectedPath);
         }
     }
-    //更新界面状态
-    UpdateCommandUI();
+}
+
+bool MainForm::OnSearchTextChanged(const ui::EventArgs& msg)
+{
+    DString text;
+    if (m_pSearchBox != nullptr) {
+        text = m_pSearchBox->GetSearchText();
+    }
+    ui::StringUtil::Trim(text);
+    DString keyword = ui::StringUtil::MakeLowerString(text);
+    if (keyword == m_searchText) {
+        //搜索条件未发生变化
+        return true;
+    }
+    m_searchText = keyword;
+    ApplySearchFilter();
+    return true;
+}
+
+void MainForm::ApplySearchFilter()
+{
+    if ((m_pTree == nullptr) || (m_pTreeNode == nullptr)) {
+        return;
+    }
+    //重新加载当前节点对应目录的内容：回调中会按最新的搜索条件过滤后显示
+    //（不缓存原始列表，避免列表中的图标资源被文件视图释放后无法再次使用）
+    m_pTree->RefreshFolderContents(m_pTreeNode, nullptr);
+}
+
+void MainForm::ClearSearchText()
+{
+    m_searchText.clear();
+    if (m_pSearchBox != nullptr) {
+        if (!m_pSearchBox->GetSearchText().empty()) {
+            m_pSearchBox->SetSearchText(DString());
+        }
+    }
+}
+
+DString MainForm::GetCurrentViewName() const
+{
+    DString strId;
+    switch (m_dataViewType) {
+    case kIconViewBig:
+        strId = _T("STRID_TREEVIEW_ICON_VIEW_BIG");
+        break;
+    case kIconViewMedium:
+        strId = _T("STRID_TREEVIEW_ICON_VIEW_MEDIUM");
+        break;
+    case kIconViewSmall:
+        strId = _T("STRID_TREEVIEW_ICON_VIEW_SMALL");
+        break;
+    case kListViewBig:
+        strId = _T("STRID_TREEVIEW_LIST_VIEW_BIG");
+        break;
+    case kListViewMedium:
+        strId = _T("STRID_TREEVIEW_LIST_VIEW_MEDIUM");
+        break;
+    case kListViewSmall:
+        strId = _T("STRID_TREEVIEW_LIST_VIEW_SMALL");
+        break;
+    case kReprortView:
+        strId = _T("STRID_TREEVIEW_DETAIL_VIEW");
+        break;
+    case kPictureView:
+        strId = _T("STRID_TREEVIEW_IMAGE_LIST_VIEW");
+        break;
+    default:
+        break;
+    }
+    if (strId.empty()) {
+        return DString();
+    }
+    return ui::GlobalManager::Instance().Lang().GetStringByID(strId);
+}
+
+DString MainForm::GetCurrentSortInfo() const
+{
+    if ((m_pExplorerView == nullptr) || (m_dataViewType == kPictureView)) {
+        return DString();
+    }
+    ExplorerView::ExplorerViewColumn sortColumn = ExplorerView::ExplorerViewColumn::kName;
+    bool bSortUp = false;
+    if (!m_pExplorerView->GetSortColumnInfo(sortColumn, bSortUp)) {
+        return DString();
+    }
+    DString strNameId;
+    switch (sortColumn) {
+    case ExplorerView::ExplorerViewColumn::kName:
+        strNameId = _T("STRID_TREEVIEW_FILE_NAME");
+        break;
+    case ExplorerView::ExplorerViewColumn::kModifyDateTime:
+        strNameId = _T("STRID_TREEVIEW_FILE_MODIFY_TIME");
+        break;
+    case ExplorerView::ExplorerViewColumn::kType:
+        strNameId = _T("STRID_TREEVIEW_FILE_TYPE");
+        break;
+    case ExplorerView::ExplorerViewColumn::kSize:
+        strNameId = _T("STRID_TREEVIEW_FILE_SIZE");
+        break;
+    default:
+        break;
+    }
+    DString sortInfo = ui::GlobalManager::Instance().Lang().GetStringByID(strNameId);
+    sortInfo += _T(" ");
+    if (bSortUp) {
+        sortInfo += ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_STATUS_ASC"));
+    }
+    else {
+        sortInfo += ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_STATUS_DESC"));
+    }
+    return sortInfo;
+}
+
+void MainForm::UpdateStatusBar()
+{
+    //当前路径
+    if (m_pStatusPath != nullptr) {
+        if (m_bComputerView) {
+            m_pStatusPath->SetText(ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_STATUS_COMPUTER")));
+        }
+        else {
+            m_pStatusPath->SetText(m_currentPath.ToString());
+        }
+    }
+
+    //项目统计
+    if (m_pStatusInfo != nullptr) {
+        DString strInfo;
+        if (m_bComputerView) {
+            const DString strFormat = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_STATUS_DISKS"));
+            strInfo = ui::StringUtil::Printf(strFormat.c_str(), m_nShowItemCount);
+        }
+        else if (m_searchText.empty()) {
+            const DString strFormat = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_STATUS_ITEMS"));
+            strInfo = ui::StringUtil::Printf(strFormat.c_str(), m_nTotalItemCount, m_nFolderCount, m_nFileCount);
+        }
+        else {
+            const DString strFormat = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_STATUS_FILTERED"));
+            strInfo = ui::StringUtil::Printf(strFormat.c_str(), m_nTotalItemCount, m_nShowItemCount);
+        }
+        m_pStatusInfo->SetText(strInfo);
+    }
+
+    //视图与排序方式
+    if (m_pStatusMode != nullptr) {
+        DString strMode;
+        if (!m_bComputerView) {
+            strMode = GetCurrentViewName();
+            const DString strSortInfo = GetCurrentSortInfo();
+            if (!strSortInfo.empty()) {
+                if (!strMode.empty()) {
+                    strMode += _T(" · ");
+                }
+                strMode += strSortInfo;
+            }
+        }
+        m_pStatusMode->SetText(strMode);
+    }
 }
 
 void MainForm::OnShowMyComputerContents(ui::TreeNode* pTreeNode,
@@ -274,21 +490,50 @@ void MainForm::OnShowMyComputerContents(ui::TreeNode* pTreeNode,
         ui::DirectoryTree::ClearDiskInfoList(tempDiskInfoList);
         return;
     }
+    if (pTreeNode != m_pTreeNode) {
+        //切换到其它节点时，清除搜索条件
+        ClearSearchText();
+    }
     SwitchToTabBoxViewType(TabBoxViewType::kComputerView);
     if (m_pAddressBar != nullptr) {
         m_pAddressBar->SetAddressPath(_T(""));
     }
+    m_bComputerView = true;
+    m_currentPath = ui::FilePath();
+    m_nDiskCount = (int32_t)diskInfoList.size();
 
-    //显示计算机视图的内容
+    //显示计算机视图的内容（按搜索条件过滤磁盘）
     if (m_pComputerView != nullptr) {
-        m_pComputerView->ShowMyComputerContents(diskInfoList);
-    }   
+        if (m_searchText.empty()) {
+            m_nShowItemCount = m_nDiskCount;
+            m_pComputerView->ShowMyComputerContents(diskInfoList);
+        }
+        else {
+            std::vector<ui::DirectoryTree::DiskInfo> filteredDiskList;
+            std::vector<ui::DirectoryTree::DiskInfo> unusedDiskList;//被搜索条件过滤掉的磁盘
+            for (const ui::DirectoryTree::DiskInfo& diskInfo : diskInfoList) {
+                if (ui::StringUtil::MakeLowerString(diskInfo.m_displayName).find(m_searchText) != DString::npos) {
+                    filteredDiskList.push_back(diskInfo);
+                }
+                else {
+                    unusedDiskList.push_back(diskInfo);
+                }
+            }
+            m_nShowItemCount = (int32_t)filteredDiskList.size();
+            m_pComputerView->ShowMyComputerContents(filteredDiskList);
+            if (!unusedDiskList.empty()) {
+                //释放未被使用的磁盘的图标资源
+                ui::DirectoryTree::ClearDiskInfoList(unusedDiskList);
+            }
+        }
+    }
 
     //保存显示的树节点
     SetShowTreeNode(pTreeNode);   
 
     //更新界面状态
     UpdateCommandUI();
+    UpdateStatusBar();
 }
 
 void MainForm::SelectSubPath(const ui::FilePath& filePath)
@@ -601,6 +846,8 @@ void MainForm::SwithSortMode(const ui::UiPoint& point, ui::Control* pRelatedCont
                     }
                 }
             }
+            //排序方式变化后，同步更新状态栏
+            UpdateStatusBar();
         });
 }
 

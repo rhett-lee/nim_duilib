@@ -380,6 +380,14 @@ STRID_TREEVIEW_FILE_TYPE = File Type
 STRID_TREEVIEW_FILE_SIZE = File Size
 STRID_TREEVIEW_SORT_ASCENDING = Sort Ascending
 STRID_TREEVIEW_SORT_DESCENDING = Sort Descending
+STRID_TREEVIEW_SEARCH_PROMPT = Search in current folder
+STRID_TREEVIEW_EMPTY_TIP = Select a folder or drive to view its contents
+STRID_TREEVIEW_STATUS_COMPUTER = This PC
+STRID_TREEVIEW_STATUS_ITEMS = %d items (%d folders, %d files)
+STRID_TREEVIEW_STATUS_FILTERED = %d items, %d matched
+STRID_TREEVIEW_STATUS_DISKS = %d drives
+STRID_TREEVIEW_STATUS_ASC = Ascending
+STRID_TREEVIEW_STATUS_DESC = Descending
 
 # examples/RichEdit
 # Window Title/Basic Controls

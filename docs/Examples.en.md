@@ -56,7 +56,7 @@ Code entry: [MainThread.cpp](../examples/RichEdit/MainThread.cpp), [MainForm.cpp
 <img width="900" src="./Images/RichEdit.png"/>
 
 ## 10. examples/TreeView
-A program demonstrating how to use the TreeView control.    
+A program demonstrating how to use the TreeView (directory tree) control, implementing a File Explorer-like browser: a directory tree on the left and a file list on the right (list view / icon views), with view switching, column sorting, back/forward/up navigation, address-bar path jumping, name-based filtering within the current folder, and a status bar showing the current path, item statistics and the view/sort mode.    
 Code entry: [MainThread.cpp](../examples/TreeView/MainThread.cpp), [MainForm.cpp](../examples/TreeView/MainForm.cpp); skin resources: `bin/resources/themes/default/tree_view/tree_view.xml`, `tree_view/tree_node.xml`; related docs: [Control.en.md](Control.en.md).    
 <img width="900" src="./Images/TreeView.png"/>
     

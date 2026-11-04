@@ -90,6 +90,36 @@ private:
     */
     void UpdateCommandUI();
 
+    /** 更新状态栏显示（当前路径、项目统计、视图与排序方式）
+    */
+    void UpdateStatusBar();
+
+    /** 用文件列表刷新右侧的文件显示区域
+    * @param [in] currentPath 当前显示内容所在路径
+    * @param [in] pathList 需要显示的文件和文件夹列表
+    */
+    void ShowFileList(const ui::FilePath& currentPath, const std::vector<ui::DirectoryTree::PathInfo>& pathList);
+
+    /** 搜索框中的文本发生变化
+    */
+    bool OnSearchTextChanged(const ui::EventArgs& msg);
+
+    /** 应用当前的搜索条件（重新加载当前目录的内容）
+    */
+    void ApplySearchFilter();
+
+    /** 清除搜索条件（切换目录时调用）
+    */
+    void ClearSearchText();
+
+    /** 获取当前数据视图的名称（用于状态栏显示）
+    */
+    DString GetCurrentViewName() const;
+
+    /** 获取当前排序方式的显示字符串（用于状态栏显示）
+    */
+    DString GetCurrentSortInfo() const;
+
 private:
     /** 设置当前选择的树节点
     */
@@ -214,6 +244,55 @@ private:
     /** 切换排序模式
     */
     ui::ButtonHBox* m_pBtnViewSort;
+
+private:
+    /** 搜索框
+    */
+    ui::SearchBox* m_pSearchBox;
+
+    /** 状态栏：当前路径
+    */
+    ui::Label* m_pStatusPath;
+
+    /** 状态栏：项目统计信息
+    */
+    ui::Label* m_pStatusInfo;
+
+    /** 状态栏：视图与排序方式
+    */
+    ui::Label* m_pStatusMode;
+
+    /** 当前搜索关键字（已转换为小写，为空表示未搜索）
+    */
+    DString m_searchText;
+
+    /** 当前显示内容所在路径
+    */
+    ui::FilePath m_currentPath;
+
+    /** 当前是否为"计算机"视图
+    */
+    bool m_bComputerView;
+
+    /** "计算机"视图中的磁盘总数
+    */
+    int32_t m_nDiskCount;
+
+    /** 当前目录中的文件夹总数
+    */
+    int32_t m_nFolderCount;
+
+    /** 当前目录中的文件总数
+    */
+    int32_t m_nFileCount;
+
+    /** 当前目录中的项目总数（未过滤）
+    */
+    int32_t m_nTotalItemCount;
+
+    /** 当前显示区域的项目总数（过滤后）
+    */
+    int32_t m_nShowItemCount;
 };
 
 #endif //EXAMPLES_MAIN_FORM_H_

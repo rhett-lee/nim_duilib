@@ -54,7 +54,7 @@ macOS 下默认编译为 `bin/basic.app`，C++ 代码无需修改；配置方法
 <img width="900" src="./Images/RichEdit.png"/>
 
 ## 10. examples/TreeView
-演示如何使用TreeView控件。    
+演示如何使用TreeView（目录树）控件，实现一个类似资源管理器的文件浏览程序：左侧目录树、右侧文件列表（列表视图/图标视图/大图标视图等），支持视图切换、按列排序、前进/后退/向上导航、地址栏路径跳转、当前目录内按名称搜索过滤，底部状态栏实时显示当前路径、项目统计与视图/排序方式。    
 代码入口：[MainThread.cpp](../examples/TreeView/MainThread.cpp)、[MainForm.cpp](../examples/TreeView/MainForm.cpp)；界面资源：`bin/resources/themes/default/tree_view/tree_view.xml`、`tree_view/tree_node.xml`；相关文档：[Control.md](Control.md)。    
 <img width="900" src="./Images/TreeView.png"/>
     

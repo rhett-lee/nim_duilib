@@ -1,7 +1,7 @@
 ﻿<Window size="80%,80%" shadow_attached="true" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" 
         caption="0,0,0,36" size_box="4,4,4,4" text_id="STRID_TREEVIEW_TITLE">
     <!-- 该窗口下的Class定义 -->
-    <Class name="btn_view_common" width="32" height="24" border_round="4,4" valign="center"
+    <Class name="btn_view_common" width="32" height="26" border_round="6,6" valign="center"
                                   normal_color="" hovered_color="bg_btn_hovered" pressed_color="bg_btn_pressed"/>
     <Class name="btn_view_up" normal_image="file='../tree_view/arrow-up.svg' width='16' height='16' 
                                             valign='center' halign='center' svg_replace_colors='#1E1E1E|border_svg_image'"
@@ -19,6 +19,9 @@
                                                  valign='center' halign='center' svg_replace_colors='#1E1E1E|border_svg_image'"
                                    disabled_image="file='../tree_view/refresh.svg' width='16' height='16' 
                                                  valign='center' halign='center' fade='128' svg_replace_colors='#1E1E1E|border_svg_image'"/>
+    <!-- 卡片容器：内容区域分组显示 -->
+    <Class name="panel_card" bkcolor="bg_window_card" border_size="1" border_color="border_split_level1"
+                             border_round="8,8"/>
 
     <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->
     <VBox bkcolor="bg_window_main">
@@ -46,64 +49,72 @@
         <!-- 标题栏区域结束 -->
 
         <!-- 显示区域 -->
-        <VBox bkcolor="bg_window_main">
-            <HBox minheight="18" height="auto">
-                <Label text_id="STRID_TREEVIEW_FUNCTION_CONTROL" valign="center" margin="12,0,10,0"/>
-                <CheckBox class="checkbox_2" text_id="STRID_TREEVIEW_SHOW_EXPAND_ICON" selected="true" valign="center" margin="10,4,0,2">
+        <VBox bkcolor="bg_window_main" padding="10,10,10,10">
+            <!-- 导航与搜索工具条 -->
+            <HBox class="panel_card" height="46" padding="8,0,8,0" child_margin="2">
+                <Button class="btn_view_common btn_view_up" name="btn_view_up" tooltip_text_id="STRID_TREEVIEW_VIEW_UP"/>
+                <Button class="btn_view_common btn_view_left" name="btn_view_left" tooltip_text_id="STRID_TREEVIEW_VIEW_LEFT"/>
+                <Button class="btn_view_common btn_view_right" name="btn_view_right" tooltip_text_id="STRID_TREEVIEW_VIEW_RIGHT"/>
+                <Button class="btn_view_common btn_view_refresh" name="btn_view_refresh" tooltip_text_id="STRID_TREEVIEW_VIEW_REFRESH"/>
+                <Control width="1" height="18" bkcolor="border_split_level1" margin="6,0,6,0"/>
+                <ButtonHBox name="btn_view_sort" width="auto" height="26" border_round="6,6" padding="6,0,6,0" valign="center" halign="center" tooltip_text_id="STRID_TREEVIEW_VIEW_SORT_MODE" hovered_color="bg_btn_hovered" pressed_color="bg_btn_pressed">
+                    <Control width="auto" bkimage="file='../tree_view/view-sort.svg' width='16' height='16' svg_replace_colors='#5d656b|border_svg_image'
+                                                   valign='center' halign='center'" mouse_enabled="false" keyboard_enabled="false"/>
+                    <Label text_id="STRID_TREEVIEW_VIEW_SORT" width="auto" height="26" margin="4,0,4,0" font="system_regular_12" text_align="hcenter,vcenter" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+                    <Control width="auto" bkimage="file='../tree_view/chevron-bottom.svg' width='8' height='8' svg_replace_colors='#1E1E1E|border_svg_image'
+                                                   valign='center' halign='center'" mouse_enabled="false" keyboard_enabled="false"/>
+                </ButtonHBox>
+                <ButtonHBox name="btn_view_list_type" width="auto" height="26" border_round="6,6" padding="6,0,6,0" valign="center" halign="center" tooltip_text_id="STRID_TREEVIEW_VIEW_SWITCH_MODE" hovered_color="bg_btn_hovered" pressed_color="bg_btn_pressed">
+                    <Control width="auto" bkimage="file='../tree_view/view-list-symbolic.svg' width='16' height='16' svg_replace_colors='#5d656b|border_svg_image'
+                                                   valign='center' halign='center'" mouse_enabled="false" keyboard_enabled="false"/>
+                    <Label text_id="STRID_TREEVIEW_VIEW_MODE" width="auto" height="26" margin="4,0,4,0" font="system_regular_12" text_align="hcenter,vcenter" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+                    <Control width="auto" bkimage="file='../tree_view/chevron-bottom.svg' width='8' height='8' svg_replace_colors='#1E1E1E|border_svg_image'
+                                                   valign='center' halign='center'" mouse_enabled="false" keyboard_enabled="false"/>
+                </ButtonHBox>
+                <AddressBar class="address_bar" name="file_path" width="stretch" height="28" valign="center" margin="8,0,8,0"
+                                                kill_focus_update_ui="false" tooltip_text_id="STRID_TREEVIEW_VIEW_PATH"/>
+                <SearchBox class="search_box" name="search_box" width="220" height="28" valign="center"
+                           prompt_text_id="STRID_TREEVIEW_SEARCH_PROMPT" debounce_interval="250"
+                           history_enabled="false" tooltip_text_id="STRID_TREEVIEW_SEARCH_PROMPT"/>
+            </HBox>
+
+            <!-- 显示选项 -->
+            <HBox class="panel_card" height="38" padding="10,0,10,0" margin="0,8,0,0">
+                <Label text_id="STRID_TREEVIEW_FUNCTION_CONTROL" valign="center" font="system_bold_12" margin="0,0,8,0"/>
+                <CheckBox class="checkbox_2" text_id="STRID_TREEVIEW_SHOW_EXPAND_ICON" selected="true" valign="center" margin="0,0,12,0">
                     <Event type="select" receiver="tree" apply_attribute="expand_image_class={tree_node_expand}" />
                     <Event type="unselect" receiver="tree" apply_attribute="expand_image_class={}" />
                 </CheckBox>
-                <CheckBox class="checkbox_2" text_id="STRID_TREEVIEW_SHOW_CHECKBOX" selected="true" valign="center" margin="10,4,0,2">
+                <CheckBox class="checkbox_2" text_id="STRID_TREEVIEW_SHOW_CHECKBOX" selected="true" valign="center" margin="0,0,12,0">
                     <Event type="select" receiver="tree" apply_attribute="check_box_class={tree_node_checkbox}" />
                     <Event type="unselect" receiver="tree" apply_attribute="check_box_class={}" />
                 </CheckBox>
-                <CheckBox class="checkbox_2" text_id="STRID_TREEVIEW_SHOW_ICON" selected="true" valign="center" margin="10,4,0,2">
+                <CheckBox class="checkbox_2" text_id="STRID_TREEVIEW_SHOW_ICON" selected="true" valign="center" margin="0,0,12,0">
                     <Event type="select" receiver="tree" apply_attribute="show_icon={true}" />
                     <Event type="unselect" receiver="tree" apply_attribute="show_icon={false}" />
                 </CheckBox>
-                <CheckBox class="checkbox_2" text_id="STRID_TREEVIEW_MULTI_SELECT" selected="false" valign="center" margin="10,4,0,2">
+                <CheckBox class="checkbox_2" text_id="STRID_TREEVIEW_MULTI_SELECT" selected="false" valign="center" margin="0,0,12,0">
                     <Event type="select" receiver="tree" apply_attribute="multi_select={true}" />
                     <Event type="unselect" receiver="tree" apply_attribute="multi_select={false}" />
                 </CheckBox>
-                <CheckBox class="checkbox_2" text_id="STRID_TREEVIEW_SHOW_HIDEN_FILES" selected="false" valign="center" margin="10,4,0,2">
+                <CheckBox class="checkbox_2" text_id="STRID_TREEVIEW_SHOW_HIDEN_FILES" selected="false" valign="center" margin="0,0,12,0">
                     <Event type="select" receiver="tree" apply_attribute="show_hiden_files={true}" />
                     <Event type="unselect" receiver="tree" apply_attribute="show_hiden_files={false}" />
                 </CheckBox>
-                <CheckBox class="checkbox_2" text_id="STRID_TREEVIEW_SHOW_SYSTEM_FILES" selected="false" valign="center" margin="10,4,0,2">
+                <CheckBox class="checkbox_2" text_id="STRID_TREEVIEW_SHOW_SYSTEM_FILES" selected="false" valign="center">
                     <Event type="select" receiver="tree" apply_attribute="show_system_files={true}" />
                     <Event type="unselect" receiver="tree" apply_attribute="show_system_files={false}" />
                 </CheckBox>
             </HBox>
-            <HBox width="stretch" height="32">
-                <Button class="btn_view_common btn_view_up" name="btn_view_up" margin="4,0,0,0" tooltip_text_id="STRID_TREEVIEW_VIEW_UP"/>
-                <Button class="btn_view_common btn_view_left" name="btn_view_left" tooltip_text_id="STRID_TREEVIEW_VIEW_LEFT" margin="2,0,0,0"/>
-                <Button class="btn_view_common btn_view_right" name="btn_view_right" tooltip_text_id="STRID_TREEVIEW_VIEW_RIGHT" margin="2,0,0,0"/>
-                <Button class="btn_view_common btn_view_refresh" name="btn_view_refresh" margin="2,0,0,0" tooltip_text_id="STRID_TREEVIEW_VIEW_REFRESH"/>
-                <ButtonHBox name="btn_view_sort" width="auto" height="26" border_round="5,5" padding="6,0,6,0" margin="2,0,0,0" valign="center" halign="center" tooltip_text_id="STRID_TREEVIEW_VIEW_SORT_MODE" hovered_color="bg_btn_hovered" pressed_color="bg_btn_pressed">
-                    <Control width="auto" bkimage="file='../tree_view/view-sort.svg' width='16' height='16' svg_replace_colors='#5d656b|border_svg_image'
-                                                   valign='center' halign='center'" mouse_enabled="false" keyboard_enabled="false"/>
-                    <Label text_id="STRID_TREEVIEW_VIEW_SORT" width="auto" height="28" margin="4,0,4,0" font="system_regular_12" text_align="hcenter,vcenter" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
-                    <Control width="auto" bkimage="file='../tree_view/chevron-bottom.svg' width='8' height='8' svg_replace_colors='#1E1E1E|border_svg_image'
-                                                   valign='center' halign='center'" mouse_enabled="false" keyboard_enabled="false"/>
-                </ButtonHBox>
-                <ButtonHBox name="btn_view_list_type" width="auto" height="26" border_round="5,5" padding="6,0,6,0" margin="2,0,0,0" valign="center" halign="center" tooltip_text_id="STRID_TREEVIEW_VIEW_SWITCH_MODE" hovered_color="bg_btn_hovered" pressed_color="bg_btn_pressed">
-                    <Control width="auto" bkimage="file='../tree_view/view-list-symbolic.svg' width='16' height='16' svg_replace_colors='#5d656b|border_svg_image'
-                                                   valign='center' halign='center'" mouse_enabled="false" keyboard_enabled="false"/>
-                    <Label text_id="STRID_TREEVIEW_VIEW_MODE" width="auto" height="28" margin="4,0,4,0" font="system_regular_12" text_align="hcenter,vcenter" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
-                    <Control width="auto" bkimage="file='../tree_view/chevron-bottom.svg' width='8' height='8' svg_replace_colors='#1E1E1E|border_svg_image'
-                                                   valign='center' halign='center'" mouse_enabled="false" keyboard_enabled="false"/>
-                </ButtonHBox>
-                <Label text_id="STRID_TREEVIEW_VIEW_PATH" valign="center" margin="10,0,0,0"/>
-                <AddressBar class="address_bar" name="file_path" width="stretch" height="28" valign="center" margin="8,0,10,0"
-                                                kill_focus_update_ui="false"/>
-            </HBox>
-            <HBox minheight="60" bkcolor="bg_container" border_size="0,1,0,0" border_color="border_address_bar" padding="0,2,0,0">
-                <HBox width="300" minwidth="60">
-                    <DirectoryTree class="tree_view" name="tree" multi_select="false" check_box_class="tree_node_checkbox" expand_image_class="tree_node_expand" padding="5,3,5,3" indent="20"/>
+
+            <!-- 目录树 + 文件列表 -->
+            <HBox class="panel_card" height="stretch" margin="0,8,0,0" padding="4,4,4,4">
+                <HBox width="280" minwidth="60">
+                    <DirectoryTree class="tree_view" name="tree" multi_select="false" check_box_class="tree_node_checkbox" expand_image_class="tree_node_expand" padding="6,4,6,4" indent="20"/>
                 </HBox>
                 <!-- 纵向分割条，用于调整左右区域大小 -->
                 <Split class="split_vertical"/>
-                <TabBox name="main_view_tab_box" bkcolor="bg_container" selected_id="0">
+                <TabBox name="main_view_tab_box" width="stretch" height="stretch" bkcolor="bg_window_card" selected_id="0">
                     <VirtualVTileListBox class="list" name="simple_file_view" columns="auto" item_size="200,120" multi_select="false" vscrollbar="true" hscrollbar="true" child_halign="left"/>
                     <ListCtrl class="list_ctrl" name="explorer_view"
                               show_header_checkbox="false" show_data_item_checkbox="false" enable_item_edit="false"
@@ -111,8 +122,21 @@
                     <ListCtrl class="list_ctrl" name="computer_view"
                               show_header_checkbox="false" show_data_item_checkbox="false" enable_item_edit="false"
                               row_grid_line_width="0" column_grid_line_width="0"/>
-                    <Box name="error_view" bkcolor="red"/>
+                    <Box name="error_view" bkcolor="bg_window_card">
+                        <VBox width="stretch" height="stretch" valign="center" halign="center">
+                            <Label text_id="STRID_TREEVIEW_EMPTY_TIP" text_color="text_muted" font="system_regular_12"
+                                   text_align="hcenter,vcenter" valign="center" halign="center" width="stretch" height="auto"/>
+                        </VBox>
+                    </Box>
                 </TabBox>
+            </HBox>
+
+            <!-- 状态栏 -->
+            <HBox class="panel_card" height="28" margin="0,8,0,0" padding="10,0,10,0" border_round="6,6">
+                <Label name="status_path" font="system_regular_12" text_color="text_muted" valign="center" width="auto"/>
+                <Control width="stretch"/>
+                <Label name="status_info" font="system_regular_12" text_color="text_muted" valign="center" width="auto"/>
+                <Label name="status_mode" font="system_regular_12" text_color="text_muted" valign="center" width="auto" margin="12,0,0,0"/>
             </HBox>
         </VBox>
     </VBox>
