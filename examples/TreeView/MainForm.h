@@ -4,8 +4,13 @@
 // duilib
 #include "duilib/duilib.h"
 
+// 示例
+#include "DirectoryWatcher.h"
+
 #include <stack>
 #include <unordered_map>
+#include <map>
+#include <string>
 
 class ComputerView;
 class SimpleFileView;
@@ -32,6 +37,10 @@ public:
      * Enter/Backspace/F5/Ctrl+A/Ctrl+F/Ctrl+C/Esc/Alt+Left/Alt+Right/Alt+Up
      */
     virtual LRESULT OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled) override;
+
+    /** 窗口关闭之前调用（此时控件仍然有效）：保存用户设置，并停止目录监听
+     */
+    virtual void OnPreCloseWindow() override;
 
     /** 触发树节点点击事件, 选择对应的目录
      */
@@ -219,6 +228,47 @@ private:
     bool OnShowAddressPath(const DString& newFilePath);
 
 private:
+    /** 开始监听指定目录的内容变化（当前平台不支持目录监听时不做任何处理）
+    */
+    void StartDirectoryWatcher(const ui::FilePath& directory);
+
+    /** 停止监听目录的内容变化
+    */
+    void StopDirectoryWatcher();
+
+    /** 当前目录的内容发生了变化（在UI线程中回调）：自动刷新当前目录
+    */
+    void OnDirectoryChanged();
+
+private:
+    /** 用户设置文件的路径（保存在程序目录下的user子目录中）
+    */
+    ui::FilePath GetSettingsFilePath() const;
+
+    /** 读取并应用用户设置（视图模式、排序列、列宽、树宽）
+    */
+    void LoadSettings();
+
+    /** 保存用户设置（在窗口关闭之前调用）
+    */
+    void SaveSettings() const;
+
+    /** 恢复列表各列的宽度
+    * @param [in] pListCtrl 列表控件
+    * @param [in] settings 设置项（键为"前缀+列序号"）
+    * @param [in] keyPrefix 设置项的键前缀
+    */
+    void RestoreColumnWidths(ui::ListCtrl* pListCtrl, const std::map<std::string, std::string>& settings,
+                             const std::string& keyPrefix);
+
+    /** 保存列表各列的宽度
+    * @param [in] pListCtrl 列表控件
+    * @param [in,out] settingsText 设置文本（每行一个"键=值"）
+    * @param [in] keyPrefix 设置项的键前缀
+    */
+    void SaveColumnWidths(ui::ListCtrl* pListCtrl, std::string& settingsText, const std::string& keyPrefix) const;
+
+private:
     /** TabBox的视图类型(枚举值与XML中定义的顺序相同)
     */
     enum TabBoxViewType
@@ -402,6 +452,11 @@ private:
     /** 当前显示区域的项目总数（过滤后）
     */
     int32_t m_nShowItemCount;
+
+private:
+    /** 当前目录的内容变化监听器（仅Windows平台生效，其他平台自动降级为手动刷新）
+    */
+    DirectoryWatcher m_directoryWatcher;
 };
 
 #endif //EXAMPLES_MAIN_FORM_H_

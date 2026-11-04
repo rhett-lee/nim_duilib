@@ -4,6 +4,11 @@
 #include "SimpleFileView.h"
 #include "ExplorerView.h"
 
+#include <algorithm>
+#include <list>
+#include <map>
+#include <string>
+
 #if defined (DUILIB_BUILD_FOR_WIN)
 #include <windows.h>
 #include <shellapi.h>
@@ -87,6 +92,84 @@ void OpenWithSystem(const ui::FilePath& filePath)
 * （避免输入第一个字符时就重建整个列表：单字符的匹配范围过大，过滤意义不大）
 */
 const size_t kMinSearchTextLength = 2;
+
+/** 用户设置文件中的键值对
+*/
+typedef std::map<std::string, std::string> SettingsMap;
+
+/** 用户设置文本中的一行：键=值（以'#'或者';'开头的行为注释行）
+*/
+void ParseSettingsText(const std::string& text, SettingsMap& settings)
+{
+    settings.clear();
+    std::list<std::string> lines = ui::StringUtil::Split(text, "\n");
+    for (std::string& line : lines) {
+        ui::StringUtil::Trim(line);
+        if (line.empty() || (line[0] == '#') || (line[0] == ';')) {
+            continue;
+        }
+        const size_t nPos = line.find('=');
+        if (nPos == std::string::npos) {
+            continue;
+        }
+        std::string key = line.substr(0, nPos);
+        std::string value = line.substr(nPos + 1);
+        ui::StringUtil::Trim(key);
+        ui::StringUtil::Trim(value);
+        if (!key.empty()) {
+            settings[key] = value;
+        }
+    }
+}
+
+/** 读取用户设置文件（文本格式：每行一个"键=值"，UTF-8编码）
+* @param [in] filePath 设置文件的路径
+* @param [out] settings 读取到的设置项
+*/
+void ReadSettingsFile(const ui::FilePath& filePath, SettingsMap& settings)
+{
+    settings.clear();
+    std::vector<uint8_t> fileData;
+    if (!ui::FileUtil::ReadFileData(filePath, fileData) || fileData.empty()) {
+        return;
+    }
+    std::string text(fileData.begin(), fileData.end());
+    //去除UTF-8 BOM
+    if ((text.size() >= 3) &&
+        (static_cast<uint8_t>(text[0]) == 0xEF) &&
+        (static_cast<uint8_t>(text[1]) == 0xBB) &&
+        (static_cast<uint8_t>(text[2]) == 0xBF)) {
+        text.erase(0, 3);
+    }
+    ParseSettingsText(text, settings);
+}
+
+/** 从用户设置中读取一个整数
+* @param [in] settings 设置项
+* @param [in] key 设置项的键
+* @param [in] nDefault 设置项不存在时返回的默认值
+*/
+int32_t GetSettingInt(const SettingsMap& settings, const std::string& key, int32_t nDefault)
+{
+    auto iter = settings.find(key);
+    if (iter == settings.end()) {
+        return nDefault;
+    }
+    return ui::StringUtil::StringToInt32(iter->second.c_str());
+}
+
+/** 把整数写入用户设置文本（每行一个"键=值"）
+* @param [in,out] settingsText 设置文本
+* @param [in] key 设置项的键
+* @param [in] nValue 设置项的值
+*/
+void AppendSettingInt(std::string& settingsText, const std::string& key, int32_t nValue)
+{
+    settingsText += key;
+    settingsText += '=';
+    settingsText += std::to_string(nValue);
+    settingsText += '\n';
+}
 }//namespace
 
 MainForm::MainForm():
@@ -118,8 +201,19 @@ MainForm::MainForm():
 
 MainForm::~MainForm()
 {
+    //停止目录监听（等待监听线程退出，避免回调在对象销毁后被执行）
+    StopDirectoryWatcher();
     //释放缓存的目录内容（含图标资源）
     ClearCachedContents();
+}
+
+void MainForm::OnPreCloseWindow()
+{
+    //窗口关闭前保存用户设置（此时控件仍然有效）
+    SaveSettings();
+    //停止目录监听，等待监听线程退出
+    StopDirectoryWatcher();
+    ui::WindowImplBase::OnPreCloseWindow();
 }
 
 DString MainForm::GetSkinFolder()
@@ -235,6 +329,9 @@ void MainForm::OnInitWindow()
             });
     }
 
+    //恢复上次关闭时保存的用户设置（视图模式、排序列、列宽、树宽）
+    LoadSettings();
+
     UpdateCommandUI();
 
     //挂载事件
@@ -338,6 +435,9 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
 
     //按搜索条件过滤后显示
     ShowCachedContents(pTreeNode);
+
+    //监听当前目录的内容变化：外部增删文件后自动刷新（当前平台不支持目录监听时，该调用无效果）
+    StartDirectoryWatcher(currentPath);
 }
 
 void MainForm::ShowCachedContents(ui::TreeNode* pTreeNode)
@@ -768,6 +868,8 @@ void MainForm::OnShowMyComputerContents(ui::TreeNode* pTreeNode,
     }
     m_bComputerView = true;
     m_currentPath = ui::FilePath();
+    //"计算机"视图不需要监听目录内容的变化
+    StopDirectoryWatcher();
     //"计算机"视图没有缓存的目录内容，释放缓存的目录内容（含图标资源）
     ClearCachedContents();
     m_nDiskCount = (int32_t)diskInfoList.size();
@@ -1591,4 +1693,162 @@ void MainForm::SwitchToDataViewType(DataViewType dataViewType)
 MainForm::DataViewType MainForm::GetDataViewType() const
 {
     return m_dataViewType;
+}
+
+void MainForm::StartDirectoryWatcher(const ui::FilePath& directory)
+{
+    //回调在UI线程中执行（已做防抖处理）
+    m_directoryWatcher.Start(directory, ToWeakCallback([this]() {
+        OnDirectoryChanged();
+        }));
+}
+
+void MainForm::StopDirectoryWatcher()
+{
+    m_directoryWatcher.Stop();
+}
+
+void MainForm::OnDirectoryChanged()
+{
+    if (m_bComputerView || (m_pTree == nullptr)) {
+        //"计算机"视图没有监听目录内容的变化
+        return;
+    }
+    ui::TreeNode* pTreeNode = m_pTreeNode;
+    if ((pTreeNode == nullptr) || !m_pTree->IsValidTreeNode(pTreeNode)) {
+        return;
+    }
+    //只刷新当前目录的树节点：文件列表按路径做增量更新，不会全量重建
+    m_pTree->RefreshTreeNode(pTreeNode, nullptr);
+}
+
+ui::FilePath MainForm::GetSettingsFilePath() const
+{
+    //保存在程序目录下的user子目录中（跨平台，且不依赖系统的用户配置目录）
+    ui::FilePath filePath = ui::FilePathUtil::GetCurrentModuleDirectory();
+    filePath.JoinFilePath(ui::FilePath(_T("user")));
+    filePath.JoinFilePath(ui::FilePath(_T("TreeView_settings.ini")));
+    return filePath;
+}
+
+void MainForm::LoadSettings()
+{
+    SettingsMap settings;
+    ReadSettingsFile(GetSettingsFilePath(), settings);
+    if (settings.empty()) {
+        return;
+    }
+
+    //1. 视图模式（图标视图、列表视图、详细信息视图、图片列表视图）
+    const int32_t nDataViewType = GetSettingInt(settings, "view_type", -1);
+    if ((nDataViewType >= (int32_t)DataViewType::kIconViewBig) &&
+        (nDataViewType <= (int32_t)DataViewType::kPictureView)) {
+        SwitchToDataViewType((DataViewType)nDataViewType);
+    }
+
+    //2. 左侧目录树的宽度
+    const int32_t nTreeWidth = GetSettingInt(settings, "tree_width", -1);
+    if (nTreeWidth > 0) {
+        ui::Control* pTreePanel = FindControl(_T("tree_panel"));
+        if (pTreePanel != nullptr) {
+            //限制在合理范围内，避免窗口很小时保存下来的宽度导致目录树不可见
+            const int32_t nMinTreeWidth = 60;
+            const int32_t nMaxTreeWidth = 1024;
+            const int32_t nWidth = std::max(nMinTreeWidth, std::min(nTreeWidth, nMaxTreeWidth));
+            pTreePanel->SetFixedWidth(ui::UiFixedInt(nWidth), true, true);
+        }
+    }
+
+    //3. 列表中各列的宽度
+    if (m_pExplorerView != nullptr) {
+        RestoreColumnWidths(m_pExplorerView->GetListCtrl(), settings, "explorer_col_");
+    }
+    if (m_pComputerView != nullptr) {
+        RestoreColumnWidths(m_pComputerView->GetListCtrl(), settings, "computer_col_");
+    }
+
+    //4. 排序列（只对文件列表视图有效）
+    const int32_t nSortColumn = GetSettingInt(settings, "sort_column", -1);
+    const int32_t nSortUp = GetSettingInt(settings, "sort_up", 1);
+    if ((nSortColumn >= (int32_t)ExplorerView::ExplorerViewColumn::kName) &&
+        (nSortColumn <= (int32_t)ExplorerView::ExplorerViewColumn::kSize)) {
+        if (m_pExplorerView != nullptr) {
+            m_pExplorerView->SortByColumn((ExplorerView::ExplorerViewColumn)nSortColumn, nSortUp != 0);
+        }
+    }
+}
+
+void MainForm::SaveSettings() const
+{
+    std::string settingsText;
+    settingsText += "# TreeView 示例的用户设置（程序自动生成，删除该文件后恢复默认设置）\n";
+
+    //视图模式
+    AppendSettingInt(settingsText, "view_type", (int32_t)m_dataViewType);
+
+    //排序列
+    int32_t nSortColumn = -1;
+    int32_t nSortUp = 1;
+    if (m_pExplorerView != nullptr) {
+        ExplorerView::ExplorerViewColumn viewColumn = ExplorerView::ExplorerViewColumn::kName;
+        bool bSortUp = true;
+        if (m_pExplorerView->GetSortColumnInfo(viewColumn, bSortUp)) {
+            nSortColumn = (int32_t)viewColumn;
+            nSortUp = bSortUp ? 1 : 0;
+        }
+    }
+    AppendSettingInt(settingsText, "sort_column", nSortColumn);
+    AppendSettingInt(settingsText, "sort_up", nSortUp);
+
+    //左侧目录树的宽度
+    int32_t nTreeWidth = -1;
+    ui::Control* pTreePanel = FindControl(_T("tree_panel"));
+    if (pTreePanel != nullptr) {
+        nTreeWidth = Dpi().GetUnscaleInt(pTreePanel->GetWidth());
+    }
+    AppendSettingInt(settingsText, "tree_width", nTreeWidth);
+
+    //列表中各列的宽度
+    if (m_pExplorerView != nullptr) {
+        SaveColumnWidths(m_pExplorerView->GetListCtrl(), settingsText, "explorer_col_");
+    }
+    if (m_pComputerView != nullptr) {
+        SaveColumnWidths(m_pComputerView->GetListCtrl(), settingsText, "computer_col_");
+    }
+
+    const ui::FilePath filePath = GetSettingsFilePath();
+    //创建设置文件所在的目录（不存在时自动创建）
+    ui::FilePathUtil::CreateDirectories(filePath.GetParentPath().ToString());
+    const std::vector<uint8_t> fileData(settingsText.begin(), settingsText.end());
+    ui::FileUtil::WriteFileData(filePath, fileData);
+}
+
+void MainForm::RestoreColumnWidths(ui::ListCtrl* pListCtrl, const SettingsMap& settings,
+                                   const std::string& keyPrefix)
+{
+    if (pListCtrl == nullptr) {
+        return;
+    }
+    const size_t nColumnCount = pListCtrl->GetColumnCount();
+    for (size_t nColumnIndex = 0; nColumnIndex < nColumnCount; ++nColumnIndex) {
+        const int32_t nWidth = GetSettingInt(settings, keyPrefix + std::to_string(nColumnIndex), -1);
+        if (nWidth > 0) {
+            //限制最小宽度，避免列宽过小导致内容不可见
+            const int32_t nMinColumnWidth = 40;
+            pListCtrl->SetColumnWidth(nColumnIndex, std::max(nWidth, nMinColumnWidth), true);
+        }
+    }
+}
+
+void MainForm::SaveColumnWidths(ui::ListCtrl* pListCtrl, std::string& settingsText, const std::string& keyPrefix) const
+{
+    if (pListCtrl == nullptr) {
+        return;
+    }
+    const size_t nColumnCount = pListCtrl->GetColumnCount();
+    for (size_t nColumnIndex = 0; nColumnIndex < nColumnCount; ++nColumnIndex) {
+        //列宽保存为未缩放的值，恢复时再按当前DPI进行缩放
+        const int32_t nWidth = Dpi().GetUnscaleInt(pListCtrl->GetColumnWidth(nColumnIndex));
+        AppendSettingInt(settingsText, keyPrefix + std::to_string(nColumnIndex), nWidth);
+    }
 }

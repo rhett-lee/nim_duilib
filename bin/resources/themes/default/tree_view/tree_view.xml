@@ -109,7 +109,7 @@
 
             <!-- 目录树 + 文件列表 -->
             <HBox class="panel_card" height="stretch" margin="0,8,0,0" padding="4,4,4,4">
-                <HBox width="280" minwidth="60">
+                <HBox name="tree_panel" width="280" minwidth="60">
                     <DirectoryTree class="tree_view" name="tree" multi_select="false" check_box_class="tree_node_checkbox" expand_image_class="tree_node_expand" padding="6,4,6,4" indent="20"/>
                 </HBox>
                 <!-- 纵向分割条，用于调整左右区域大小 -->

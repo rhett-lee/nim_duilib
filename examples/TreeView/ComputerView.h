@@ -55,6 +55,10 @@ public:
     */
     DString FormatDiskSpace(uint64_t nSpace) const;
 
+    /** 获取计算机视图的列表接口
+    */
+    ui::ListCtrl* GetListCtrl() const;
+
 private:
     /** 初始化
     */

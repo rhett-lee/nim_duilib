@@ -232,6 +232,11 @@ size_t ComputerView::GetColumnId(ComputerViewColumn nOriginIndex) const
     return nColumnIndex;
 }
 
+ui::ListCtrl* ComputerView::GetListCtrl() const
+{
+    return m_pComputerListCtrl.get();
+}
+
 DString ComputerView::FormatDiskSpace(uint64_t nSpace) const
 {
     DString value;

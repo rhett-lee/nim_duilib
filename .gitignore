@@ -16,6 +16,8 @@
 # Build results
 [Bb]in/*.exe
 [Bb]in/cef_temp
+# 示例程序运行时生成的用户设置（如TreeView示例的界面布局设置）
+[Bb]in/user/
 [Ll]ibs/
 [Tt]mp/
 [Dd]ebug/
