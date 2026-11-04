@@ -140,9 +140,18 @@ private:
     */
     bool MatchDiskSearchText(const ui::DirectoryTree::DiskInfo& diskInfo) const;
 
-    /** 应用当前的搜索条件（重新加载当前目录的内容）
+    /** 应用当前的搜索条件（按缓存的目录内容过滤，不重新枚举目录）
     */
     void ApplySearchFilter();
+
+    /** 显示缓存的目录内容：按最新的搜索条件过滤后，刷新右侧文件区域和状态栏
+    * @param [in] pTreeNode 需要显示的树节点
+    */
+    void ShowCachedContents(ui::TreeNode* pTreeNode);
+
+    /** 清除缓存的目录内容（释放缓存的图标资源）
+    */
+    void ClearCachedContents();
 
     /** 清除搜索条件（切换目录时调用）
     */
@@ -345,6 +354,18 @@ private:
     /** 搜索关键字列表（支持空格分隔的多个关键字，每个关键字都已转换为小写）
     */
     std::vector<DString> m_searchKeywords;
+
+    /** 缓存的目录内容：目录中的子目录列表（图标资源所有权归本对象，显示列表只使用共享图标）
+    */
+    std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>> m_cachedFolderList;
+
+    /** 缓存的目录内容：目录中的文件列表（图标资源所有权归本对象，显示列表只使用共享图标）
+    */
+    std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>> m_cachedFileList;
+
+    /** 缓存内容对应的路径（为空表示没有可用的缓存）
+    */
+    ui::FilePath m_cachedPath;
 
     /** 当前显示内容所在路径
     */

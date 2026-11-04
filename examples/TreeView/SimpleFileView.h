@@ -103,6 +103,29 @@ private:
      */
     bool OnItemRClick(const ui::EventArgs& args);
 
+    /** 判断图片项是否需要延迟加载缩略图（大图片的加载开销较大，延迟到界面空闲时按需加载）
+    * @param [in] fileInfo 需要显示的路径信息
+    * @return true表示延迟加载（填充阶段只显示占位图片）
+    */
+    bool IsThumbnailDeferred(const PathInfo& fileInfo) const;
+
+    /** 启动缩略图延迟加载定时器
+    */
+    void StartThumbnailTimer();
+
+    /** 停止缩略图延迟加载定时器
+    */
+    void StopThumbnailTimer();
+
+    /** 缩略图延迟加载定时器触发：为当前可见的项目加载缩略图
+    */
+    void OnThumbnailTimer();
+
+    /** 为指定的数据元素加载缩略图（该元素不可见时，不加载）
+    * @param [in] nElementIndex 数据元素的索引ID
+    */
+    void LoadThumbnail(size_t nElementIndex);
+
 private:
     /** 关联的MainForm
     */
@@ -127,6 +150,22 @@ private:
     /** 出错的图片路径（包括加载图片失败或者图片数据解码失败）
     */
     std::unordered_set<DString> m_errorImagePathSet;
+
+    /** 等待加载缩略图的数据元素索引
+    */
+    std::unordered_set<size_t> m_pendingThumbIndexs;
+
+    /** 缩略图延迟加载定时器的ID（0表示未启动）
+    */
+    size_t m_nThumbTimerId;
+
+    /** 缩略图延迟加载定时器的取消标志
+    */
+    ui::WeakCallbackFlag m_thumbTimerFlag;
+
+    /** 缩略图延迟加载定时器连续没有加载到缩略图的次数（达到上限时停止定时器）
+    */
+    size_t m_nThumbIdleCount;
 };
 
 #endif //EXAMPLES_SIMPLE_FILE_VIEW_H_

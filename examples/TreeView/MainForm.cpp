@@ -112,6 +112,8 @@ MainForm::MainForm():
 
 MainForm::~MainForm()
 {
+    //释放缓存的目录内容（含图标资源）
+    ClearCachedContents();
 }
 
 DString MainForm::GetSkinFolder()
@@ -319,34 +321,50 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
         m_pAddressBar->SetAddressPath(currentPath.ToString());
     }
 
+    //缓存本次枚举的目录内容：后续按搜索条件过滤时直接使用缓存，不再重新枚举目录
+    //（缓存接管列表及图标资源的所有权；显示列表中只使用共享图标，由本对象负责释放）
+    ClearCachedContents();
+    m_cachedPath = currentPath;
+    m_cachedFolderList = folderList;
+    m_cachedFileList = fileList;
+
+    //按搜索条件过滤后显示
+    ShowCachedContents(pTreeNode);
+}
+
+void MainForm::ShowCachedContents(ui::TreeNode* pTreeNode)
+{
+    if ((m_pTree == nullptr) || (pTreeNode == nullptr)) {
+        return;
+    }
+    const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& folderList = m_cachedFolderList;
+    const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& fileList = m_cachedFileList;
+
     //汇总文件夹和文件，并按搜索条件过滤
     m_nFolderCount = (folderList != nullptr) ? (int32_t)folderList->size() : 0;
     m_nFileCount = (fileList != nullptr) ? (int32_t)fileList->size() : 0;
     m_nTotalItemCount = m_nFolderCount + m_nFileCount;
     std::vector<ui::DirectoryTree::PathInfo> pathList;
     pathList.reserve((size_t)m_nTotalItemCount);
-    std::vector<ui::DirectoryTree::PathInfo> unusedList;//被搜索条件过滤掉的，尚未使用的项目
     const bool bFilter = !m_searchKeywords.empty();
-    auto addItems = [this, &pathList, &unusedList, bFilter](const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& pathInfoList) {
+    auto addItems = [this, &pathList, bFilter](const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& pathInfoList) {
         if (pathInfoList == nullptr) {
             return;
         }
         for (const ui::DirectoryTree::PathInfo& pathInfo : *pathInfoList) {
             if (bFilter && !MatchSearchText(pathInfo)) {
-                //不匹配搜索条件
-                unusedList.push_back(pathInfo);
+                //不匹配搜索条件（图标资源归缓存所有，这里不释放）
                 continue;
             }
-            pathList.push_back(pathInfo);
+            ui::DirectoryTree::PathInfo item = pathInfo;
+            //显示列表中的图标资源由目录内容缓存统一管理，视图不负责释放，避免重复释放
+            item.m_bIconShared = true;
+            pathList.push_back(item);
         }
     };
     addItems(folderList);
     addItems(fileList);
     m_nShowItemCount = (int32_t)pathList.size();
-    if (!unusedList.empty()) {
-        //释放未被使用的项目的图标资源
-        ui::DirectoryTree::ClearPathInfoList(unusedList);
-    }
 
     if (!m_pTree->IsMultiSelect()) {
         //单选，进行校验
@@ -359,11 +377,24 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
         SetShowTreeNode(pTreeNode);
     }
 
-    ShowFileList(currentPath, std::move(pathList));
+    ShowFileList(m_cachedPath, std::move(pathList));
 
     //更新界面状态
     UpdateCommandUI();
     UpdateStatusBar();
+}
+
+void MainForm::ClearCachedContents()
+{
+    if (m_cachedFolderList != nullptr) {
+        ui::DirectoryTree::ClearPathInfoList(*m_cachedFolderList);
+        m_cachedFolderList.reset();
+    }
+    if (m_cachedFileList != nullptr) {
+        ui::DirectoryTree::ClearPathInfoList(*m_cachedFileList);
+        m_cachedFileList.reset();
+    }
+    m_cachedPath.Clear();
 }
 
 void MainForm::ShowFileList(const ui::FilePath& currentPath, std::vector<ui::DirectoryTree::PathInfo> pathList)
@@ -420,6 +451,8 @@ bool MainForm::OnSearchTextChanged(const ui::EventArgs& msg)
     }
     m_searchText = keyword;
     UpdateSearchKeywords();
+    //搜索框已通过"debounce_interval"属性做了输入防抖（见皮肤文件tree_view.xml），
+    //这里只按缓存的目录内容过滤，不重新枚举目录，开销很小
     ApplySearchFilter();
     return true;
 }
@@ -475,9 +508,14 @@ void MainForm::ApplySearchFilter()
     if ((m_pTree == nullptr) || (m_pTreeNode == nullptr)) {
         return;
     }
-    //重新加载当前节点对应目录的内容：回调中会按最新的搜索条件过滤后显示
-    //（不缓存原始列表，避免列表中的图标资源被文件视图释放后无法再次使用）
-    m_pTree->RefreshFolderContents(m_pTreeNode, nullptr);
+    if (m_cachedPath.IsEmpty() || (m_cachedPath != m_currentPath)) {
+        //没有可用的缓存（或缓存的内容不是当前目录的）：重新枚举当前目录的内容，
+        //由 OnShowFolderContents 更新缓存后，再按最新的搜索条件过滤显示
+        m_pTree->RefreshFolderContents(m_pTreeNode, nullptr);
+        return;
+    }
+    //按缓存的目录内容过滤后显示：避免每次搜索都重新枚举整个目录
+    ShowCachedContents(m_pTreeNode);
 }
 
 void MainForm::ClearSearchText()
@@ -674,6 +712,8 @@ void MainForm::OnShowMyComputerContents(ui::TreeNode* pTreeNode,
     }
     m_bComputerView = true;
     m_currentPath = ui::FilePath();
+    //"计算机"视图没有缓存的目录内容，释放缓存的目录内容（含图标资源）
+    ClearCachedContents();
     m_nDiskCount = (int32_t)diskInfoList.size();
 
     //显示计算机视图的内容（按搜索条件过滤磁盘）
