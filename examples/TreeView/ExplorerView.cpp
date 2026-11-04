@@ -1,6 +1,8 @@
 #include "ExplorerView.h"
 #include "MainForm.h"
 
+#include <algorithm>
+
 ExplorerView::ExplorerView(MainForm* pMainForm, ui::ListCtrl* pListCtrl):
     m_pMainForm(pMainForm),
     m_pListCtrl(pListCtrl),
@@ -253,13 +255,13 @@ void ExplorerView::SetFileList(const ui::FilePath& currentPath, std::vector<Path
     const size_t kMaxIconCacheSize = 1024;
     const size_t nOldItemCount = m_pListCtrl->GetDataItemCount();
     ui::ImageListPtr pImageList = m_pListCtrl->GetImageList(m_pListCtrl->GetListCtrlType());
-    bool bFullRebuild = false;
+    bool bRebuildAllRows = false;
     if ((pImageList != nullptr) && (nOldItemCount > 0) && (m_iconToImageMap.size() > kMaxIconCacheSize)) {
         //图标缓存过多：整体清空后重建，避免占用过多的内存
         pImageList->Clear();
         //图片列表已清空，之前的IconID与ImageID的映射关系已经失效
         m_iconToImageMap.clear();
-        bFullRebuild = true;
+        bRebuildAllRows = true;
     }
 
     //刷新一个列表项的内容：pOldInfo为空表示新增的列表项（所有列都需要设置）
@@ -331,7 +333,7 @@ void ExplorerView::SetFileList(const ui::FilePath& currentPath, std::vector<Path
     //统计旧列表中可以直接复用的列表项（按文件路径匹配）
     std::vector<size_t> removedItems;
     size_t nKeptCount = 0;
-    if (!bFullRebuild) {
+    if (!bRebuildAllRows) {
         removedItems.reserve(nOldItemCount);
         for (size_t nItemIndex = 0; nItemIndex < nOldItemCount; ++nItemIndex) {
             const size_t nOldIndex = m_pListCtrl->GetDataItemUserData(nItemIndex);
@@ -345,26 +347,58 @@ void ExplorerView::SetFileList(const ui::FilePath& currentPath, std::vector<Path
             }
         }
         if ((nOldItemCount > 0) && (nKeptCount == 0)) {
-            //没有可复用的列表项，直接全量重建
-            bFullRebuild = true;
+            //没有可复用的列表项（如切换目录），按新的文件列表重建所有行
+            bRebuildAllRows = true;
         }
         else if ((nKeptCount > 0) && (nKeptCount * 4 < m_pathInfoList.size())) {
-            //可复用的比例过低时，增量更新时的插入开销高于全量重建，直接全量重建
-            bFullRebuild = true;
+            //可复用的比例过低时，增量更新的插入开销高于重建所有行，按新的文件列表重建所有行
+            bRebuildAllRows = true;
         }
     }
 
-    if (bFullRebuild) {
+    //按文件列表的顺序重建列表内容：复用已有的列表项（就地重写每行的内容），
+    //只增、删差异的行，避免"删除全部列表项后逐条添加"带来的行数据分配与释放开销
+    auto rebuildRowsInOrder = [&]() {
         removedItems.clear();
-        //全量重建：先删除所有列表项，再按新的文件列表添加
-        m_pListCtrl->DeleteAllDataItems();
-        for (size_t nIndex = 0; nIndex < m_pathInfoList.size(); ++nIndex) {
-            const size_t nItemIndex = m_pListCtrl->AddDataItem(itemData);
-            if (!ui::Box::IsValidItemIndex(nItemIndex)) {
-                continue;
-            }
-            updateDataItem(nItemIndex, nIndex, nullptr);
+        //已重建的行会在下面重新填充索引映射，这里先清空（避免选择恢复时用到已失效的索引）
+        std::fill(newIndexToItem.begin(), newIndexToItem.end(), ui::Box::InvalidIndex);
+
+        const size_t nItemCount = m_pListCtrl->GetDataItemCount();
+        const size_t nNewCount = m_pathInfoList.size();
+        //1. 复用已有的列表项：第i行直接显示新列表中的第i项
+        const size_t nReuseCount = (std::min)(nItemCount, nNewCount);
+        for (size_t nIndex = 0; nIndex < nReuseCount; ++nIndex) {
+            updateDataItem(nIndex, nIndex, nullptr);
         }
+        //2. 行数多于新列表时，删除末尾多余的列表项；行数少于新列表时，为新增的条目添加列表项
+        if (nItemCount > nNewCount) {
+            std::vector<size_t> surplusItems;
+            surplusItems.reserve(nItemCount - nNewCount);
+            for (size_t nItemIndex = nNewCount; nItemIndex < nItemCount; ++nItemIndex) {
+                surplusItems.push_back(nItemIndex);
+            }
+            m_pListCtrl->DeleteDataItems(surplusItems);
+        }
+        else {
+            for (size_t nIndex = nItemCount; nIndex < nNewCount; ++nIndex) {
+                const size_t nItemIndex = m_pListCtrl->AddDataItem(itemData);
+                if (!ui::Box::IsValidItemIndex(nItemIndex)) {
+                    continue;
+                }
+                updateDataItem(nItemIndex, nIndex, nullptr);
+            }
+        }
+        //3. 保持用户选择的排序方式（列表处于排序状态时，显示顺序与文件列表的顺序不同）
+        size_t nSortColumnId = ui::Box::InvalidIndex;
+        bool bSortUp = false;
+        if (m_pListCtrl->GetSortColumn(nSortColumnId, bSortUp)) {
+            const uint8_t nSortFlag = m_pListCtrl->GetColumnSortFlagById(nSortColumnId);
+            m_pListCtrl->SortDataItemsById(nSortColumnId, bSortUp, nSortFlag);
+        }
+    };
+
+    if (bRebuildAllRows) {
+        rebuildRowsInOrder();
     }
     else {
         //增量更新：先删除已经不存在于新列表中的列表项（删除后，剩余列表项的索引号会前移）
@@ -427,15 +461,8 @@ void ExplorerView::SetFileList(const ui::FilePath& currentPath, std::vector<Path
             m_pListCtrl->SortDataItemsById(nSortColumnId, bSortUp, nSortFlag);
         }
         else if (!bKeptOrdered) {
-            //出现乱序，退化为全量重建（保证列表的显示顺序与文件列表一致）
-            m_pListCtrl->DeleteAllDataItems();
-            for (size_t nIndex = 0; nIndex < m_pathInfoList.size(); ++nIndex) {
-                const size_t nItemIndex = m_pListCtrl->AddDataItem(itemData);
-                if (!ui::Box::IsValidItemIndex(nItemIndex)) {
-                    continue;
-                }
-                updateDataItem(nItemIndex, nIndex, nullptr);
-            }
+            //出现乱序：按文件列表的顺序重写所有行（复用已有的列表项，保证显示顺序与文件列表一致）
+            rebuildRowsInOrder();
         }
         else {
             //按文件列表的顺序，把新增的列表项插入到对应的显示位置

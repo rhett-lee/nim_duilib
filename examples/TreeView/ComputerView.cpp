@@ -336,21 +336,37 @@ void ComputerView::ShowMyComputerContents(const std::vector<ui::DirectoryTree::D
         return;
     }
 
-    m_pComputerListCtrl->DeleteAllDataItems();
-    ui::ImageListPtr pImageList;
-    if (m_pComputerListCtrl != nullptr) {
-        pImageList = m_pComputerListCtrl->GetImageList(ui::ListCtrlType::Report);
-    }
-    if (pImageList != nullptr) {
-        pImageList->Clear();
-        //图片列表已清空，之前的IconID与ImageID的映射关系已经失效
-        m_iconToImageMap.clear();
-    }
+    //复用已有的列表项（按位置就地更新每行的内容），不再删除全部列表项后重新添加；
+    //图片列表在多次刷新之间复用，避免每次刷新都重新解码磁盘图标
+    //更新期间禁止刷新，全部更新完成后再统一刷新
+    const bool bOldEnableRefresh = m_pComputerListCtrl->SetEnableRefresh(false);
+    ui::ImageListPtr pImageList = m_pComputerListCtrl->GetImageList(ui::ListCtrlType::Report);
 #if defined (DUILIB_BUILD_FOR_WIN)
     ShowMyComputerContents_Win(pImageList, diskInfoList);
 #elif defined (DUILIB_BUILD_FOR_LINUX)
     ShowMyComputerContents_Linux(pImageList, diskInfoList);
 #endif
+
+    //磁盘数量减少时，删除末尾多余的列表项
+    const size_t nItemCount = m_pComputerListCtrl->GetDataItemCount();
+    if (nItemCount > diskInfoList.size()) {
+        std::vector<size_t> surplusItems;
+        surplusItems.reserve(nItemCount - diskInfoList.size());
+        for (size_t nItemIndex = diskInfoList.size(); nItemIndex < nItemCount; ++nItemIndex) {
+            surplusItems.push_back(nItemIndex);
+        }
+        m_pComputerListCtrl->DeleteDataItems(surplusItems);
+    }
+
+    //保持用户选择的排序方式（列表处于排序状态时，各列的排序键变化后需要重新排序）
+    size_t nSortColumnId = ui::Box::InvalidIndex;
+    bool bSortUp = false;
+    if (m_pComputerListCtrl->GetSortColumn(nSortColumnId, bSortUp)) {
+        const uint8_t nSortFlag = m_pComputerListCtrl->GetColumnSortFlagById(nSortColumnId);
+        m_pComputerListCtrl->SortDataItemsById(nSortColumnId, bSortUp, nSortFlag);
+    }
+    m_pComputerListCtrl->SetEnableRefresh(bOldEnableRefresh);
+    m_pComputerListCtrl->Refresh(true);
     ui::DirectoryTree::ClearDiskInfoList(oldDiskInfoList);
 }
 
@@ -404,11 +420,18 @@ void ComputerView::ShowMyComputerContents_Win(ui::ImageListPtr pImageList, const
     ui::ListCtrlSubItemData itemData;
     size_t nItemIndex = 0;
     size_t nColumnId = 0;
+    //已有的列表项按位置复用，只在不足时添加新的列表项
+    const size_t nExistingCount = m_pComputerListCtrl->GetDataItemCount();
     for (size_t nIndex = 0; nIndex < diskInfoList.size(); ++nIndex) {
         const ui::DirectoryTree::DiskInfo& diskInfo = diskInfoList[nIndex];
-        nItemIndex = m_pComputerListCtrl->AddDataItem(itemData);
-        if (!ui::Box::IsValidItemIndex(nItemIndex)) {
-            continue;
+        if (nIndex < nExistingCount) {
+            nItemIndex = nIndex;
+        }
+        else {
+            nItemIndex = m_pComputerListCtrl->AddDataItem(itemData);
+            if (!ui::Box::IsValidItemIndex(nItemIndex)) {
+                continue;
+            }
         }
         //记录关联关系
         m_pComputerListCtrl->SetDataItemUserData(nItemIndex, nIndex);
@@ -528,11 +551,18 @@ void ComputerView::ShowMyComputerContents_Linux(ui::ImageListPtr pImageList, con
     ui::ListCtrlSubItemData itemData;
     size_t nItemIndex = 0;
     size_t nColumnId = 0;
+    //已有的列表项按位置复用，只在不足时添加新的列表项
+    const size_t nExistingCount = m_pComputerListCtrl->GetDataItemCount();
     for (size_t nIndex = 0; nIndex < diskInfoList.size(); ++nIndex) {
         const ui::DirectoryTree::DiskInfo& diskInfo = diskInfoList[nIndex];
-        nItemIndex = m_pComputerListCtrl->AddDataItem(itemData);
-        if (!ui::Box::IsValidItemIndex(nItemIndex)) {
-            continue;
+        if (nIndex < nExistingCount) {
+            nItemIndex = nIndex;
+        }
+        else {
+            nItemIndex = m_pComputerListCtrl->AddDataItem(itemData);
+            if (!ui::Box::IsValidItemIndex(nItemIndex)) {
+                continue;
+            }
         }
         //记录关联关系
         m_pComputerListCtrl->SetDataItemUserData(nItemIndex, nIndex);
