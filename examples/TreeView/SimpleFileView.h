@@ -63,6 +63,12 @@ public:
     virtual void SetMultiSelect(bool bMultiSelect) override;
 
 public:
+    /** 设置文件列表是否支持多选（同时同步到关联的虚表控件）
+    * @param [in] bMultiSelect true表示支持多选，false表示不支持多选
+    */
+    void ApplyMultiSelect(bool bMultiSelect);
+
+public:
     /** 用新的文件列表，替换原来的列表
     * @param [in] currentPath 当前显示内容所在路径
     * @param [in] pathList 文件列表（调用后不再使用，内部会移动数据）

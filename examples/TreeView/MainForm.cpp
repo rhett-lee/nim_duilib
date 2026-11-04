@@ -93,6 +93,11 @@ void OpenWithSystem(const ui::FilePath& filePath)
 */
 const size_t kMinSearchTextLength = 2;
 
+/** "正在加载"提示的超时时间（毫秒）：正常情况下目录加载完成后会隐藏该提示，
+*  这里只用于异常情况下的保护（避免提示一直显示在状态栏）
+*/
+const uint32_t kLoadingTimeoutMs = 8000;
+
 /** 用户设置文件中的键值对
 */
 typedef std::map<std::string, std::string> SettingsMap;
@@ -195,12 +200,22 @@ MainForm::MainForm():
     m_nTotalItemCount(0),
     m_nShowItemCount(0),
     m_dataViewType(DataViewType::kReprortView),
-    m_tabBoxViewType(TabBoxViewType::kComputerView)
+    m_tabBoxViewType(TabBoxViewType::kComputerView),
+    m_pStatusLoading(nullptr),
+    m_bLoading(false),
+    m_nLoadingSerial(0),
+    m_nLoadingTimerId(0)
 {
 }
 
 MainForm::~MainForm()
 {
+    //停止"正在加载"提示的超时定时器
+    m_loadingTimerFlag.Cancel();
+    if (m_nLoadingTimerId != 0) {
+        ui::GlobalManager::Instance().Timer().RemoveTimer(m_nLoadingTimerId);
+        m_nLoadingTimerId = 0;
+    }
     //停止目录监听（等待监听线程退出，避免回调在对象销毁后被执行）
     StopDirectoryWatcher();
     //释放缓存的目录内容（含图标资源）
@@ -258,6 +273,8 @@ void MainForm::OnInitWindow()
         //路径比较长时，鼠标悬停显示完整的路径（状态栏空间不足时）
         m_pStatusPath->SetAutoToolTip(true);
     }
+    //"正在加载"提示（目录内容在后台线程中枚举期间显示）
+    m_pStatusLoading = dynamic_cast<ui::Label*>(FindControl(_T("status_loading")));
     m_pStatusInfo = dynamic_cast<ui::Label*>(FindControl(_T("status_info")));
     m_pStatusMode = dynamic_cast<ui::Label*>(FindControl(_T("status_mode")));
     //空视图中的提示文字（搜索没有匹配到任何项目时显示）
@@ -329,6 +346,15 @@ void MainForm::OnInitWindow()
             });
     }
 
+    //"多选"复选框：同时控制左侧目录树和右侧文件列表的多选状态
+    ui::CheckBox* pMultiSelectCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("check_multi_select")));
+    if (pMultiSelectCheckBox != nullptr) {
+        pMultiSelectCheckBox->AttachSelect(UiBind(&MainForm::OnMultiSelectChanged, this, std::placeholders::_1));
+        pMultiSelectCheckBox->AttachUnSelect(UiBind(&MainForm::OnMultiSelectChanged, this, std::placeholders::_1));
+        //按复选框的初始状态，同步目录树和文件列表的多选设置
+        SetMultiSelect(pMultiSelectCheckBox->IsSelected());
+    }
+
     //恢复上次关闭时保存的用户设置（视图模式、排序列、列宽、树宽）
     LoadSettings();
 
@@ -337,6 +363,15 @@ void MainForm::OnInitWindow()
     //挂载事件
     m_pTree->AttachShowMyComputerContents(ui::UiBind(&MainForm::OnShowMyComputerContents, this, std::placeholders::_1, std::placeholders::_2));
     m_pTree->AttachShowFolderContents(ui::UiBind(&MainForm::OnShowFolderContents, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+
+    //点击目录树中的节点时，目录内容是在后台线程中枚举的：先显示"正在加载"提示
+    //（节点的事件会冒泡到目录树控件，所以这里用AttachBubbledEvent监听）
+    m_pTree->AttachBubbledEvent(ui::kEventClick, [this](const ui::EventArgs& args) {
+        if (dynamic_cast<ui::TreeNode*>(args.GetSender()) != nullptr) {
+            BeginLoading();
+        }
+        return true;
+        }, 0);
     ui::StdClosure finishCallback = ToWeakCallback([this]() {
         OnRefresh();
         });
@@ -372,7 +407,11 @@ void MainForm::Refresh()
     ui::StdClosure finishCallback = ToWeakCallback([this]() {
             OnRefresh();
         });
-    m_pTree->RefreshTree(finishCallback);
+    BeginLoading();
+    if (!m_pTree->RefreshTree(finishCallback)) {
+        //没有需要刷新的节点：结束加载状态
+        EndLoading();
+    }
 }
 
 void MainForm::SetShowTreeNode(ui::TreeNode* pTreeNode)
@@ -407,6 +446,8 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
                                     const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& fileList)
 {
     ui::GlobalManager::Instance().AssertUIThread();
+    //目录内容已经加载完成（失败时也结束加载状态，避免提示一直显示）
+    EndLoading();
     if ((pTreeNode == nullptr) || (m_pTree == nullptr) || !m_pTree->IsValidTreeNode(pTreeNode)) {
         if (folderList != nullptr) {
             ui::DirectoryTree::ClearPathInfoList(*folderList);
@@ -853,6 +894,8 @@ void MainForm::OnShowMyComputerContents(ui::TreeNode* pTreeNode,
                                         const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList)
 {
     ui::GlobalManager::Instance().AssertUIThread();
+    //目录内容已经加载完成（失败时也结束加载状态，避免提示一直显示）
+    EndLoading();
     if ((pTreeNode == nullptr) || (m_pTree == nullptr) || !m_pTree->IsValidTreeNode(pTreeNode)) {
         std::vector<ui::DirectoryTree::DiskInfo> tempDiskInfoList(diskInfoList);
         ui::DirectoryTree::ClearDiskInfoList(tempDiskInfoList);
@@ -925,7 +968,10 @@ void MainForm::SelectSubPath(const ui::FilePath& filePath)
     }
 
     if (m_pTree != nullptr) {
-        m_pTree->SelectSubPath(m_pTreeNode, filePath, nullptr);
+        BeginLoading();
+        if (!m_pTree->SelectSubPath(m_pTreeNode, filePath, nullptr)) {
+            EndLoading();
+        }
     }
 }
 
@@ -1347,7 +1393,10 @@ void MainForm::ShowUp()
         return;
     }
     m_bCanAddBackForward = true;
-    m_pTree->SelectTreeNode(pParentNode);
+    BeginLoading();
+    if (!m_pTree->SelectTreeNode(pParentNode)) {
+        EndLoading();
+    }
 }
 
 void MainForm::ShowBack()
@@ -1375,7 +1424,10 @@ void MainForm::ShowBack()
         m_forwardStack.push(m_pTreeNode);
     }
     m_bCanAddBackForward = false;
-    m_pTree->SelectTreeNode(pTargetNode);
+    BeginLoading();
+    if (!m_pTree->SelectTreeNode(pTargetNode)) {
+        EndLoading();
+    }
     UpdateCommandUI();
 }
 
@@ -1403,7 +1455,10 @@ void MainForm::ShowForward()
         m_backStack.push(m_pTreeNode);
     }
     m_bCanAddBackForward = false;
-    m_pTree->SelectTreeNode(pTargetNode);
+    BeginLoading();
+    if (!m_pTree->SelectTreeNode(pTargetNode)) {
+        EndLoading();
+    }
     UpdateCommandUI();
 }
 
@@ -1719,7 +1774,86 @@ void MainForm::OnDirectoryChanged()
         return;
     }
     //只刷新当前目录的树节点：文件列表按路径做增量更新，不会全量重建
-    m_pTree->RefreshTreeNode(pTreeNode, nullptr);
+    BeginLoading();
+    if (!m_pTree->RefreshTreeNode(pTreeNode, nullptr)) {
+        EndLoading();
+    }
+}
+
+void MainForm::BeginLoading()
+{
+    if ((m_pStatusLoading == nullptr) || m_bLoading) {
+        //控件不存在，或者已经处于加载状态时，不重复处理
+        return;
+    }
+    m_bLoading = true;
+    ++m_nLoadingSerial;
+    m_pStatusLoading->SetVisible(true);
+
+    //启动超时定时器（异常情况下自动隐藏提示，避免提示一直显示在状态栏）
+    const uint32_t nSerial = m_nLoadingSerial;
+    m_loadingTimerFlag.Cancel();
+    m_nLoadingTimerId = ui::GlobalManager::Instance().Timer().AddTimer(m_loadingTimerFlag.GetWeakFlag(),
+        [this, nSerial]() {
+            OnLoadingTimeout(nSerial);
+        }, kLoadingTimeoutMs, 1);
+}
+
+void MainForm::EndLoading()
+{
+    if (!m_bLoading) {
+        return;
+    }
+    m_bLoading = false;
+    ++m_nLoadingSerial;
+    m_loadingTimerFlag.Cancel();
+    if (m_nLoadingTimerId != 0) {
+        ui::GlobalManager::Instance().Timer().RemoveTimer(m_nLoadingTimerId);
+        m_nLoadingTimerId = 0;
+    }
+    if (m_pStatusLoading != nullptr) {
+        m_pStatusLoading->SetVisible(false);
+    }
+}
+
+void MainForm::OnLoadingTimeout(uint32_t nSerial)
+{
+    if (!m_bLoading || (nSerial != m_nLoadingSerial)) {
+        //加载已经结束（或者已经开始了新的加载），忽略本次超时回调
+        return;
+    }
+    m_nLoadingTimerId = 0;
+    EndLoading();
+}
+
+void MainForm::SetMultiSelect(bool bMultiSelect)
+{
+    //目录树（多选模式下，节点显示复选框）
+    if (m_pTree != nullptr) {
+        m_pTree->SetMultiSelect(bMultiSelect);
+    }
+    //详细信息视图的文件列表
+    if (m_pExplorerView != nullptr) {
+        ui::ListCtrl* pListCtrl = m_pExplorerView->GetListCtrl();
+        if (pListCtrl != nullptr) {
+            pListCtrl->SetMultiSelect(bMultiSelect);
+        }
+    }
+    //图标视图/列表视图的文件列表（虚表控件会同时同步数据源的多选状态）
+    if (m_pSimpleFileView != nullptr) {
+        m_pSimpleFileView->ApplyMultiSelect(bMultiSelect);
+    }
+    //切换为单选模式时，多余的选择项会被取消，这里刷新状态栏中的选中项统计
+    UpdateStatusBar();
+}
+
+bool MainForm::OnMultiSelectChanged(const ui::EventArgs& msg)
+{
+    ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(msg.GetSender());
+    if (pCheckBox != nullptr) {
+        SetMultiSelect(pCheckBox->IsSelected());
+    }
+    return true;
 }
 
 ui::FilePath MainForm::GetSettingsFilePath() const

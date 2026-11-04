@@ -454,6 +454,50 @@ private:
     int32_t m_nShowItemCount;
 
 private:
+    /** 开始加载目录内容：在状态栏显示"正在加载"提示
+    * （加载完成时调用EndLoading隐藏该提示）
+    */
+    void BeginLoading();
+
+    /** 结束加载目录内容：隐藏状态栏中的"正在加载"提示
+    */
+    void EndLoading();
+
+    /** 加载提示的显示超时（异常情况下自动隐藏，避免提示一直显示）
+    */
+    void OnLoadingTimeout(uint32_t nSerial);
+
+    /** 设置目录树和文件列表的多选状态（由"多选"复选框控制）
+    * @param [in] bMultiSelect true表示支持多选，false表示单选
+    */
+    void SetMultiSelect(bool bMultiSelect);
+
+    /** "多选"复选框的选择状态发生变化
+    */
+    bool OnMultiSelectChanged(const ui::EventArgs& msg);
+
+private:
+    /** 状态栏：正在加载提示
+    */
+    ui::Label* m_pStatusLoading;
+
+    /** 是否正在加载目录内容
+    */
+    bool m_bLoading;
+
+    /** 加载请求序号（用于区分过期的超时回调）
+    */
+    uint32_t m_nLoadingSerial;
+
+    /** 加载提示超时定时器的ID
+    */
+    size_t m_nLoadingTimerId;
+
+    /** 加载提示超时定时器的弱回调标志（窗口销毁时自动失效）
+    */
+    ui::WeakCallbackFlag m_loadingTimerFlag;
+
+private:
     /** 当前目录的内容变化监听器（仅Windows平台生效，其他平台自动降级为手动刷新）
     */
     DirectoryWatcher m_directoryWatcher;

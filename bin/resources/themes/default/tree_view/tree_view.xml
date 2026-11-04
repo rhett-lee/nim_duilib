@@ -93,10 +93,8 @@
                     <Event type="select" receiver="tree" apply_attribute="show_icon={true}" />
                     <Event type="unselect" receiver="tree" apply_attribute="show_icon={false}" />
                 </CheckBox>
-                <CheckBox class="checkbox_2" text_id="STRID_TREEVIEW_MULTI_SELECT" selected="false" valign="center" margin="0,0,12,0">
-                    <Event type="select" receiver="tree" apply_attribute="multi_select={true}" />
-                    <Event type="unselect" receiver="tree" apply_attribute="multi_select={false}" />
-                </CheckBox>
+                <!-- 多选开关：同时作用于左侧目录树和右侧文件列表（在代码中处理该事件） -->
+                <CheckBox class="checkbox_2" name="check_multi_select" text_id="STRID_TREEVIEW_MULTI_SELECT" selected="false" valign="center" margin="0,0,12,0"/>
                 <CheckBox class="checkbox_2" text_id="STRID_TREEVIEW_SHOW_HIDEN_FILES" selected="false" valign="center" margin="0,0,12,0">
                     <Event type="select" receiver="tree" apply_attribute="show_hiden_files={true}" />
                     <Event type="unselect" receiver="tree" apply_attribute="show_hiden_files={false}" />
@@ -115,9 +113,9 @@
                 <!-- 纵向分割条，用于调整左右区域大小 -->
                 <Split class="split_vertical"/>
                 <TabBox name="main_view_tab_box" width="stretch" height="stretch" bkcolor="bg_window_card" selected_id="0">
-                    <!-- 文件列表支持多选（Ctrl/Shift+单击、Ctrl+A 全选），与Windows资源管理器的操作习惯一致 -->
-                    <VirtualVTileListBox class="list" name="simple_file_view" columns="auto" item_size="200,120" multi_select="true" vscrollbar="true" hscrollbar="true" child_halign="left"/>
-                    <ListCtrl class="list_ctrl" name="explorer_view" multi_select="true"
+                    <!-- 文件列表的多选由"多选"复选框控制（勾选后支持Ctrl/Shift+单击、Ctrl+A 全选） -->
+                    <VirtualVTileListBox class="list" name="simple_file_view" columns="auto" item_size="200,120" multi_select="false" vscrollbar="true" hscrollbar="true" child_halign="left"/>
+                    <ListCtrl class="list_ctrl" name="explorer_view" multi_select="false"
                               show_header_checkbox="false" show_data_item_checkbox="false" enable_item_edit="false"
                               row_grid_line_width="0" column_grid_line_width="0"/>
                     <ListCtrl class="list_ctrl" name="computer_view"
@@ -135,6 +133,9 @@
             <!-- 状态栏 -->
             <HBox class="panel_card" height="28" margin="0,8,0,0" padding="10,0,10,0" border_round="6,6">
                 <Label name="status_path" font="system_regular_12" text_color="text_muted" valign="center" width="stretch"/>
+                <!-- 目录内容加载过程中显示的提示（加载完成后自动隐藏） -->
+                <Label name="status_loading" text_id="STRID_TREEVIEW_STATUS_LOADING" font="system_regular_12" text_color="text_muted"
+                       valign="center" width="auto" margin="12,0,0,0" visible="false"/>
                 <Label name="status_info" font="system_regular_12" text_color="text_muted" valign="center" width="auto" margin="12,0,0,0"/>
                 <Label name="status_mode" font="system_regular_12" text_color="text_muted" valign="center" width="auto" margin="12,0,0,0"/>
             </HBox>
