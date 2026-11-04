@@ -115,16 +115,17 @@
                 <!-- 纵向分割条，用于调整左右区域大小 -->
                 <Split class="split_vertical"/>
                 <TabBox name="main_view_tab_box" width="stretch" height="stretch" bkcolor="bg_window_card" selected_id="0">
-                    <VirtualVTileListBox class="list" name="simple_file_view" columns="auto" item_size="200,120" multi_select="false" vscrollbar="true" hscrollbar="true" child_halign="left"/>
-                    <ListCtrl class="list_ctrl" name="explorer_view"
+                    <!-- 文件列表支持多选（Ctrl/Shift+单击、Ctrl+A 全选），与Windows资源管理器的操作习惯一致 -->
+                    <VirtualVTileListBox class="list" name="simple_file_view" columns="auto" item_size="200,120" multi_select="true" vscrollbar="true" hscrollbar="true" child_halign="left"/>
+                    <ListCtrl class="list_ctrl" name="explorer_view" multi_select="true"
                               show_header_checkbox="false" show_data_item_checkbox="false" enable_item_edit="false"
                               row_grid_line_width="0" column_grid_line_width="0"/>
                     <ListCtrl class="list_ctrl" name="computer_view"
                               show_header_checkbox="false" show_data_item_checkbox="false" enable_item_edit="false"
                               row_grid_line_width="0" column_grid_line_width="0"/>
                     <Box name="error_view" bkcolor="bg_window_card">
-                        <VBox width="stretch" height="stretch" valign="center" halign="center">
-                            <Label text_id="STRID_TREEVIEW_EMPTY_TIP" text_color="text_muted" font="system_regular_12"
+                        <VBox width="stretch" height="auto" valign="center" halign="center">
+                            <Label name="empty_tip" text_id="STRID_TREEVIEW_EMPTY_TIP" text_color="text_muted" font="system_regular_12"
                                    text_align="hcenter,vcenter" valign="center" halign="center" width="stretch" height="auto"/>
                         </VBox>
                     </Box>

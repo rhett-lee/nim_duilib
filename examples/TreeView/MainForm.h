@@ -124,6 +124,10 @@ private:
     */
     void ShowFileList(const ui::FilePath& currentPath, std::vector<ui::DirectoryTree::PathInfo> pathList);
 
+    /** 显示空视图（搜索条件没有匹配到任何项目时，提示用户）
+    */
+    void ShowEmptyView();
+
     /** 搜索框中的文本发生变化
     */
     bool OnSearchTextChanged(const ui::EventArgs& msg);
@@ -346,6 +350,10 @@ private:
     /** 状态栏：视图与排序方式
     */
     ui::Label* m_pStatusMode;
+
+    /** 空视图（搜索没有匹配到任何项目时显示）中的提示文字
+    */
+    ui::Label* m_pEmptyTip;
 
     /** 当前搜索关键字（已转换为小写，为空表示未搜索）
     */

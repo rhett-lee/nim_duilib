@@ -135,6 +135,10 @@ private:
     */
     ui::ControlPtrT<ui::VirtualListBox> m_pListBox;
 
+    /** 是否支持多选（由关联的虚表控件设置，与界面控件保持一致）
+    */
+    bool m_bMultiSelect;
+
     /** 当前显示内容所在的路径
     */
     ui::FilePath m_currentPath;

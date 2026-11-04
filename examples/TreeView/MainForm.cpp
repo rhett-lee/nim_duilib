@@ -82,6 +82,11 @@ void OpenWithSystem(const ui::FilePath& filePath)
     ui::SystemUtil::OpenUrl(MakeFileUrl(filePath.ToString()));
 #endif
 }
+
+/** 搜索过滤的最小输入长度：输入长度达到该值后才开始过滤
+* （避免输入第一个字符时就重建整个列表：单字符的匹配范围过大，过滤意义不大）
+*/
+const size_t kMinSearchTextLength = 2;
 }//namespace
 
 MainForm::MainForm():
@@ -99,6 +104,7 @@ MainForm::MainForm():
     m_pStatusPath(nullptr),
     m_pStatusInfo(nullptr),
     m_pStatusMode(nullptr),
+    m_pEmptyTip(nullptr),
     m_bComputerView(false),
     m_nDiskCount(0),
     m_nFolderCount(0),
@@ -160,6 +166,8 @@ void MainForm::OnInitWindow()
     }
     m_pStatusInfo = dynamic_cast<ui::Label*>(FindControl(_T("status_info")));
     m_pStatusMode = dynamic_cast<ui::Label*>(FindControl(_T("status_mode")));
+    //空视图中的提示文字（搜索没有匹配到任何项目时显示）
+    m_pEmptyTip = dynamic_cast<ui::Label*>(FindControl(_T("empty_tip")));
 
     //刷新按钮
     ui::Button* pRefreshBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_view_refresh")));
@@ -435,6 +443,20 @@ void MainForm::ShowFileList(const ui::FilePath& currentPath, std::vector<ui::Dir
             m_pExplorerView->SetFileList(currentPath, std::move(pathList), selectedPath);
         }
     }
+
+    //搜索没有匹配到任何项目时，切换到空结果提示视图
+    if (!m_searchKeywords.empty() && (m_nShowItemCount == 0)) {
+        ShowEmptyView();
+    }
+}
+
+void MainForm::ShowEmptyView()
+{
+    //空结果提示：搜索条件没有匹配到任何项目
+    if (m_pEmptyTip != nullptr) {
+        m_pEmptyTip->SetText(ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_SEARCH_NO_MATCH")));
+    }
+    SwitchToTabBoxViewType(TabBoxViewType::kErrorView);
 }
 
 bool MainForm::OnSearchTextChanged(const ui::EventArgs& msg)
@@ -450,7 +472,14 @@ bool MainForm::OnSearchTextChanged(const ui::EventArgs& msg)
         return true;
     }
     m_searchText = keyword;
+    const bool bOldFilter = !m_searchKeywords.empty();
     UpdateSearchKeywords();
+    const bool bNewFilter = !m_searchKeywords.empty();
+    if (!bOldFilter && !bNewFilter) {
+        //过滤条件未生效（输入长度不足）：列表保持原样，只更新状态栏中的提示
+        UpdateStatusBar();
+        return true;
+    }
     //搜索框已通过"debounce_interval"属性做了输入防抖（见皮肤文件tree_view.xml），
     //这里只按缓存的目录内容过滤，不重新枚举目录，开销很小
     ApplySearchFilter();
@@ -461,6 +490,10 @@ void MainForm::UpdateSearchKeywords()
 {
     m_searchKeywords.clear();
     if (m_searchText.empty()) {
+        return;
+    }
+    if (m_searchText.size() < kMinSearchTextLength) {
+        //输入长度不足时不触发过滤：此时不生成关键字，列表显示全部项目
         return;
     }
     //支持以空格分隔的多个关键字：每个关键字都需要匹配
@@ -650,6 +683,15 @@ void MainForm::UpdateStatusBar()
             strInfo = ui::StringUtil::Printf(strFormat.c_str(), m_nTotalItemCount, m_nShowItemCount);
         }
 
+        if (!bFilter && !m_searchText.empty()) {
+            //搜索框中有内容，但输入长度不足，暂未开始过滤：提示用户继续输入
+            if (!strInfo.empty()) {
+                strInfo += _T(" · ");
+            }
+            const DString strFormat = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_SEARCH_TOO_SHORT"));
+            strInfo += ui::StringUtil::Printf(strFormat.c_str(), (int32_t)kMinSearchTextLength);
+        }
+
         //选中项信息：数量与文件总大小
         int32_t nSelectedCount = 0;
         uint64_t nSelectedFileSize = 0;
@@ -744,6 +786,11 @@ void MainForm::OnShowMyComputerContents(ui::TreeNode* pTreeNode,
 
     //保存显示的树节点
     SetShowTreeNode(pTreeNode);   
+
+    //搜索没有匹配到任何磁盘时，切换到空结果提示视图
+    if (!m_searchKeywords.empty() && (m_nShowItemCount == 0)) {
+        ShowEmptyView();
+    }
 
     //更新界面状态
     UpdateCommandUI();

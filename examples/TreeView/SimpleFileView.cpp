@@ -225,6 +225,7 @@ private:
 SimpleFileView::SimpleFileView(MainForm* pMainForm, ui::VirtualListBox* pListBox):
     m_pMainForm(pMainForm),
     m_pListBox(pListBox),
+    m_bMultiSelect(false),
     m_nThumbTimerId(0),
     m_nThumbIdleCount(0)
 {
@@ -416,13 +417,13 @@ void SimpleFileView::GetSelectedElements(std::vector<size_t>& selectedIndexs) co
 
 bool SimpleFileView::IsMultiSelect() const
 {
-    //不支持多选
-    return false;
+    //与关联的虚表控件保持一致（由控件在关联数据源时同步过来）
+    return m_bMultiSelect;
 }
 
-void SimpleFileView::SetMultiSelect(bool /*bMultiSelect*/)
+void SimpleFileView::SetMultiSelect(bool bMultiSelect)
 {
-    //禁止切换单选和多选，固定为单选模式
+    m_bMultiSelect = bMultiSelect;
 }
 
 void SimpleFileView::SetFileList(const ui::FilePath& currentPath, std::vector<PathInfo> pathList, const ui::FilePath& selectedPath)
