@@ -44,6 +44,17 @@ public:
     */
     void SelectAll();
 
+    /** 获取当前显示的磁盘的容量合计信息（受搜索过滤的影响，只统计当前显示的磁盘）
+    * @param [out] nTotalBytes 所有磁盘的总容量（字节）
+    * @param [out] nFreeBytes 所有磁盘的可用容量（字节）
+    * @return true表示有磁盘数据，false表示暂无磁盘数据
+    */
+    bool GetDiskSpaceInfo(uint64_t& nTotalBytes, uint64_t& nFreeBytes) const;
+
+    /** 磁盘空间大小转换为显示字符串
+    */
+    DString FormatDiskSpace(uint64_t nSpace) const;
+
 private:
     /** 初始化
     */
@@ -66,10 +77,6 @@ private:
     */
     void OnRemoveIcon(uint32_t nIconId);
 
-    /** 磁盘空间大小转换为显示字符串
-    */
-    DString FormatDiskSpace(uint64_t nSpace) const;
-
     /** 将图标添加到图片列表中（同一个IconID只添加一次）
     * @param [in] pImageList 图片列表
     * @param [in] nIconId 图标ID
@@ -81,6 +88,11 @@ private:
     /** 获取已用百分比显示字符串
     */
     DString FormatUsedPercent(uint64_t nTotalSpace, uint64_t nFreeSpace) const;
+
+    /** 判断两个磁盘信息列表是否完全相同（用于避免内容没有变化时重建列表）
+    */
+    bool IsDiskInfoListEqual(const std::vector<ui::DirectoryTree::DiskInfo>& lhs,
+                             const std::vector<ui::DirectoryTree::DiskInfo>& rhs) const;
 
 #if defined (DUILIB_BUILD_FOR_WIN)
     /** 初始化表头

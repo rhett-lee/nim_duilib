@@ -203,31 +203,28 @@ size_t ExplorerView::GetColumnId(ExplorerViewColumn nOriginIndex) const
     return nColumnIndex;
 }
 
-void ExplorerView::SetFileList(const ui::FilePath& currentPath, std::vector<PathInfo> pathList, const ui::FilePath& selectedPath)
+void ExplorerView::SetFileList(const ui::FilePath& currentPath, std::vector<PathInfo> pathList, const ui::FilePath& selectedPath,
+                               const std::vector<DString>& searchKeywords)
 {
     //在主线程中执行
     ui::GlobalManager::Instance().AssertUIThread();
-    ui::DirectoryTree::ClearPathInfoList(m_pathInfoList);
-    //移动数据，避免大量路径信息的深拷贝
-    m_pathInfoList = std::move(pathList);
     ASSERT(m_pMainForm != nullptr);
     ASSERT(m_pListCtrl != nullptr);
     if ((m_pMainForm == nullptr) || (m_pListCtrl == nullptr)) {
+        ui::DirectoryTree::ClearPathInfoList(m_pathInfoList);
+        m_pathInfoList = std::move(pathList);
         return;
     }
     m_currentPath = currentPath;
+
+    //保存旧的文件列表（用于按路径比较，识别可以复用的列表项），新列表替换原有列表
+    std::vector<PathInfo> oldPathInfoList;
+    oldPathInfoList.swap(m_pathInfoList);
+    //移动数据，避免大量路径信息的深拷贝
+    m_pathInfoList = std::move(pathList);
+
     //首先禁止刷新（避免每条数据更新均刷新，导致文件多的时候速度很慢）
     bool bOldEnableRefresh = m_pListCtrl->SetEnableRefresh(false);
-    m_pListCtrl->DeleteAllDataItems();
-    ui::ImageListPtr pImageList;
-    if (m_pListCtrl != nullptr) {
-        pImageList = m_pListCtrl->GetImageList(m_pListCtrl->GetListCtrlType());
-    }
-    if (pImageList != nullptr) {
-        pImageList->Clear();
-        //图片列表已清空，之前的IconID与ImageID的映射关系已经失效
-        m_iconToImageMap.clear();
-    }
 
     //各列的列ID与排序方式固定不变，在循环外设置一次即可
     const size_t nNameColumnId = GetColumnId(ExplorerViewColumn::kName);
@@ -244,27 +241,40 @@ void ExplorerView::SetFileList(const ui::FilePath& currentPath, std::vector<Path
     m_pListCtrl->SetColumnSortFlagById(nTypeColumnId, ui::kSortByGroup);
     m_pListCtrl->SetColumnSortFlagById(nSizeColumnId, ui::kSortByUserDataN | ui::kSortByGroup);
 
-    //选择的子项元素索引号
-    size_t nSelectedItemIndex = ui::Box::InvalidIndex;
-
-    ui::ListCtrlSubItemData itemData;
-    size_t nItemIndex = 0;
+    //"文件路径 -> 新列表下标"的映射表：用于按路径做增量更新
+    std::map<DString, size_t> pathToNewIndex;
     for (size_t nIndex = 0; nIndex < m_pathInfoList.size(); ++nIndex) {
-        const ui::DirectoryTree::PathInfo& pathInfo = m_pathInfoList[nIndex];
-        nItemIndex = m_pListCtrl->AddDataItem(itemData);
-        if (!ui::Box::IsValidItemIndex(nItemIndex)) {
-            continue;
-        }
-        //记录关联关系
-        m_pListCtrl->SetDataItemUserData(nItemIndex, nIndex);
+        pathToNewIndex[m_pathInfoList[nIndex].m_filePath.ToString()] = nIndex;
+    }
+    //"新列表下标 -> 数据项索引号"的映射表（用于定位需要选择的列表项）
+    std::vector<size_t> newIndexToItem(m_pathInfoList.size(), ui::Box::InvalidIndex);
 
-        if ((nSelectedItemIndex == ui::Box::InvalidIndex) && !selectedPath.IsEmpty() && (selectedPath == pathInfo.m_filePath)) {
-            //保存选择状态
-            nSelectedItemIndex = nItemIndex;
-        }
+    //图标列表在多次刷新之间复用，避免每次切换目录都重新解码所有图标；仅当缓存过大时才整体清空
+    const size_t kMaxIconCacheSize = 1024;
+    const size_t nOldItemCount = m_pListCtrl->GetDataItemCount();
+    ui::ImageListPtr pImageList = m_pListCtrl->GetImageList(m_pListCtrl->GetListCtrlType());
+    bool bFullRebuild = false;
+    if ((pImageList != nullptr) && (nOldItemCount > 0) && (m_iconToImageMap.size() > kMaxIconCacheSize)) {
+        //图标缓存过多：整体清空后重建，避免占用过多的内存
+        pImageList->Clear();
+        //图片列表已清空，之前的IconID与ImageID的映射关系已经失效
+        m_iconToImageMap.clear();
+        bFullRebuild = true;
+    }
+
+    //刷新一个列表项的内容：pOldInfo为空表示新增的列表项（所有列都需要设置）
+    ui::ListCtrlSubItemData itemData;
+    auto updateDataItem = [&](size_t nItemIndex, size_t nIndex, const PathInfo* pOldInfo) {
+        const PathInfo& pathInfo = m_pathInfoList[nIndex];
+        //记录数据项与路径列表的关联关系
+        m_pListCtrl->SetDataItemUserData(nItemIndex, nIndex);
+        newIndexToItem[nIndex] = nItemIndex;
 
         //设置图标：同一个图标ID只加载一次
-        if (pImageList != nullptr) {
+        if ((pOldInfo != nullptr) && (pOldInfo->m_nIconID == pathInfo.m_nIconID)) {
+            //图标没有变化，无需更新
+        }
+        else if (pImageList != nullptr) {
             auto iter = m_iconToImageMap.find(pathInfo.m_nIconID);
             if (iter != m_iconToImageMap.end()) {
                 m_pListCtrl->SetDataItemImageId(nItemIndex, iter->second);
@@ -276,40 +286,202 @@ void ExplorerView::SetFileList(const ui::FilePath& currentPath, std::vector<Path
                     m_iconToImageMap[pathInfo.m_nIconID] = nImageId;
                     m_pListCtrl->SetDataItemImageId(nItemIndex, nImageId);
                 }
+                else {
+                    m_pListCtrl->SetDataItemImageId(nItemIndex, -1);
+                }
             }
         }
+
         ui::ListCtrlSubItemData subItemData;
         subItemData.nSortGroup = pathInfo.m_bFolder ? SortGroup::kFolder : SortGroup::kFile; //排序分组
         subItemData.nTextFormat = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_VCENTER;
-        subItemData.text = pathInfo.m_displayName;
-        m_pListCtrl->SetSubItemDataById(nItemIndex, nNameColumnId, subItemData); //文件名称
 
+        //文件名称列
+        if ((pOldInfo == nullptr) || (pOldInfo->m_displayName != pathInfo.m_displayName) || (pOldInfo->m_bFolder != pathInfo.m_bFolder)) {
+            subItemData.text = pathInfo.m_displayName;
+            m_pListCtrl->SetSubItemDataById(nItemIndex, nNameColumnId, subItemData);
+        }
+
+        //修改日期列
         subItemData.nTextFormat = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_VCENTER;
         subItemData.text = FormatFileTime(pathInfo.m_lastWriteTime);
-        m_pListCtrl->SetSubItemDataById(nItemIndex, nTimeColumnId, subItemData); //修改日期
+        if ((pOldInfo == nullptr) || (pOldInfo->m_lastWriteTime.GetValue() != pathInfo.m_lastWriteTime.GetValue())) {
+            m_pListCtrl->SetSubItemDataById(nItemIndex, nTimeColumnId, subItemData);
+            //设置"修改日期"列的排序方式
+            m_pListCtrl->SetSubItemUserDataNById(nItemIndex, nTimeColumnId, pathInfo.m_lastWriteTime.GetValue());
+        }
 
-        //设置"修改日期"列的排序方式
-        m_pListCtrl->SetSubItemUserDataNById(nItemIndex, nTimeColumnId, pathInfo.m_lastWriteTime.GetValue());
-
+        //文件类型列
         subItemData.nTextFormat = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_VCENTER;
         subItemData.text = pathInfo.m_typeName;
-        m_pListCtrl->SetSubItemDataById(nItemIndex, nTypeColumnId, subItemData); //文件类型
+        if ((pOldInfo == nullptr) || (pOldInfo->m_typeName != pathInfo.m_typeName)) {
+            m_pListCtrl->SetSubItemDataById(nItemIndex, nTypeColumnId, subItemData);
+        }
 
+        //文件大小列
         subItemData.nTextFormat = ui::DrawStringFormat::TEXT_RIGHT | ui::DrawStringFormat::TEXT_VCENTER;
         subItemData.text = FormatFileSize(pathInfo.m_bFolder, pathInfo.m_fileSize);
-        m_pListCtrl->SetSubItemDataById(nItemIndex, nSizeColumnId, subItemData); //文件大小
+        if ((pOldInfo == nullptr) || (pOldInfo->m_fileSize != pathInfo.m_fileSize) || (pOldInfo->m_bFolder != pathInfo.m_bFolder)) {
+            m_pListCtrl->SetSubItemDataById(nItemIndex, nSizeColumnId, subItemData);
+            //设置"文件大小"列的排序方式
+            m_pListCtrl->SetSubItemUserDataNById(nItemIndex, nSizeColumnId, pathInfo.m_fileSize);
+        }
+    };
 
-        //设置"文件大小"列的排序方式
-        m_pListCtrl->SetSubItemUserDataNById(nItemIndex, nSizeColumnId, pathInfo.m_fileSize);
+    //统计旧列表中可以直接复用的列表项（按文件路径匹配）
+    std::vector<size_t> removedItems;
+    size_t nKeptCount = 0;
+    if (!bFullRebuild) {
+        removedItems.reserve(nOldItemCount);
+        for (size_t nItemIndex = 0; nItemIndex < nOldItemCount; ++nItemIndex) {
+            const size_t nOldIndex = m_pListCtrl->GetDataItemUserData(nItemIndex);
+            const bool bKept = (nOldIndex < oldPathInfoList.size()) &&
+                (pathToNewIndex.find(oldPathInfoList[nOldIndex].m_filePath.ToString()) != pathToNewIndex.end());
+            if (bKept) {
+                ++nKeptCount;
+            }
+            else {
+                removedItems.push_back(nItemIndex);
+            }
+        }
+        if ((nOldItemCount > 0) && (nKeptCount == 0)) {
+            //没有可复用的列表项，直接全量重建
+            bFullRebuild = true;
+        }
+        else if ((nKeptCount > 0) && (nKeptCount * 4 < m_pathInfoList.size())) {
+            //可复用的比例过低时，增量更新时的插入开销高于全量重建，直接全量重建
+            bFullRebuild = true;
+        }
     }
+
+    if (bFullRebuild) {
+        removedItems.clear();
+        //全量重建：先删除所有列表项，再按新的文件列表添加
+        m_pListCtrl->DeleteAllDataItems();
+        for (size_t nIndex = 0; nIndex < m_pathInfoList.size(); ++nIndex) {
+            const size_t nItemIndex = m_pListCtrl->AddDataItem(itemData);
+            if (!ui::Box::IsValidItemIndex(nItemIndex)) {
+                continue;
+            }
+            updateDataItem(nItemIndex, nIndex, nullptr);
+        }
+    }
+    else {
+        //增量更新：先删除已经不存在于新列表中的列表项（删除后，剩余列表项的索引号会前移）
+        if (!removedItems.empty()) {
+            m_pListCtrl->DeleteDataItems(removedItems);
+        }
+
+        //重新建立"数据项索引号 -> 新列表下标"的关联，并刷新内容有变化的列
+        std::vector<uint8_t> usedNewIndex(m_pathInfoList.size(), 0);
+        std::vector<size_t> keptNewIndexList;           //已复用的列表项，按显示顺序记录其对应的新列表下标
+        const size_t nItemCount = m_pListCtrl->GetDataItemCount();
+        keptNewIndexList.reserve(nItemCount);
+        for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+            const size_t nOldIndex = m_pListCtrl->GetDataItemUserData(nItemIndex);
+            if (nOldIndex >= oldPathInfoList.size()) {
+                continue;
+            }
+            auto iter = pathToNewIndex.find(oldPathInfoList[nOldIndex].m_filePath.ToString());
+            if (iter == pathToNewIndex.end()) {
+                continue;
+            }
+            const size_t nNewIndex = iter->second;
+            if ((nNewIndex >= usedNewIndex.size()) || (usedNewIndex[nNewIndex] != 0)) {
+                //异常数据（路径重复）：不在此处处理
+                continue;
+            }
+            usedNewIndex[nNewIndex] = 1;
+            keptNewIndexList.push_back(nNewIndex);
+            updateDataItem(nItemIndex, nNewIndex, &oldPathInfoList[nOldIndex]);
+        }
+
+        //判断列表当前是否处于排序状态（用户点击表头排序后，显示顺序与文件列表的顺序不同）
+        size_t nSortColumnId = ui::Box::InvalidIndex;
+        bool bSortUp = false;
+        const bool bSorted = m_pListCtrl->GetSortColumn(nSortColumnId, bSortUp);
+
+        //判断已复用的列表项在新列表中的顺序是否保持递增：递增时才能按位置插入新增的列表项
+        bool bKeptOrdered = true;
+        if (!bSorted) {
+            for (size_t nIndex = 1; nIndex < keptNewIndexList.size(); ++nIndex) {
+                if (keptNewIndexList[nIndex] < keptNewIndexList[nIndex - 1]) {
+                    bKeptOrdered = false;
+                    break;
+                }
+            }
+        }
+        if (bSorted) {
+            //保持用户选择的排序方式：先把新增的列表项追加到末尾，再对完整数据重新排序
+            for (size_t nNewIndex = 0; nNewIndex < m_pathInfoList.size(); ++nNewIndex) {
+                if (usedNewIndex[nNewIndex] != 0) {
+                    continue;
+                }
+                const size_t nItemIndex = m_pListCtrl->AddDataItem(itemData);
+                if (!ui::Box::IsValidItemIndex(nItemIndex)) {
+                    continue;
+                }
+                updateDataItem(nItemIndex, nNewIndex, nullptr);
+            }
+            const uint8_t nSortFlag = m_pListCtrl->GetColumnSortFlagById(nSortColumnId);
+            m_pListCtrl->SortDataItemsById(nSortColumnId, bSortUp, nSortFlag);
+        }
+        else if (!bKeptOrdered) {
+            //出现乱序，退化为全量重建（保证列表的显示顺序与文件列表一致）
+            m_pListCtrl->DeleteAllDataItems();
+            for (size_t nIndex = 0; nIndex < m_pathInfoList.size(); ++nIndex) {
+                const size_t nItemIndex = m_pListCtrl->AddDataItem(itemData);
+                if (!ui::Box::IsValidItemIndex(nItemIndex)) {
+                    continue;
+                }
+                updateDataItem(nItemIndex, nIndex, nullptr);
+            }
+        }
+        else {
+            //按文件列表的顺序，把新增的列表项插入到对应的显示位置
+            size_t nInsertPos = 0;      //插入位置（显示顺序）
+            for (size_t nNewIndex = 0; nNewIndex < m_pathInfoList.size(); ++nNewIndex) {
+                if (usedNewIndex[nNewIndex] != 0) {
+                    ++nInsertPos;
+                    continue;
+                }
+                if (!m_pListCtrl->InsertDataItem(nInsertPos, itemData)) {
+                    continue;
+                }
+                updateDataItem(nInsertPos, nNewIndex, nullptr);
+                ++nInsertPos;
+            }
+        }
+    }
+
+    //应用视觉效果：斑马纹背景、搜索命中高亮
+    ApplyRowStyle(searchKeywords);
 
     m_pListCtrl->SetEnableRefresh(bOldEnableRefresh);
     m_pListCtrl->Refresh(true);
 
+    //恢复选择状态：只选择selectedPath对应的列表项，其余选择状态清除（避免保留已失效的选择）
+    size_t nSelectedItemIndex = ui::Box::InvalidIndex;
+    if (!selectedPath.IsEmpty()) {
+        auto iter = pathToNewIndex.find(selectedPath.ToString());
+        if (iter != pathToNewIndex.end()) {
+            nSelectedItemIndex = newIndexToItem[iter->second];
+        }
+    }
+    std::vector<size_t> selectedItemIndexs;
+    m_pListCtrl->GetSelectedDataItems(selectedItemIndexs);
+    for (size_t nItemIndex : selectedItemIndexs) {
+        if (nItemIndex != nSelectedItemIndex) {
+            m_pListCtrl->SetDataItemSelected(nItemIndex, false);
+        }
+    }
     if (nSelectedItemIndex != ui::Box::InvalidIndex) {
         m_pListCtrl->SetDataItemSelected(nSelectedItemIndex, true);
         m_pListCtrl->EnsureDataItemVisible(nSelectedItemIndex, false);
     }
+
+    //旧的文件列表不再使用，释放其占用的图标资源（共享的图标资源由目录内容缓存负责释放）
+    ui::DirectoryTree::ClearPathInfoList(oldPathInfoList);
 }
 
 void ExplorerView::GetCurrentPath(ui::FilePath& currentPath, ui::FilePath& selectedPath) const
@@ -386,6 +558,78 @@ void ExplorerView::SelectAll()
 {
     if (m_pListCtrl != nullptr) {
         m_pListCtrl->SetSelectAll();
+    }
+}
+
+ui::UiColor ExplorerView::GetStripeColor() const
+{
+    //斑马纹的背景色：由主题定义（半透明色，不覆盖选中行/悬停行的状态底色）
+    ui::UiColor stripeColor = ui::GlobalManager::Instance().Color().GetColor(_T("bg_list_ctrl_item_stripe"));
+    if (!stripeColor.IsEmpty()) {
+        return stripeColor;
+    }
+    //主题中没有定义该颜色时，由列表项的悬停背景色派生（自动适配深色/浅色主题）
+    const ui::UiColor hoveredColor = ui::GlobalManager::Instance().Color().GetColor(_T("bg_list_ctrl_item_hovered"));
+    if (hoveredColor.IsEmpty()) {
+        return ui::UiColor();
+    }
+    return ui::UiColor(32, hoveredColor.GetR(), hoveredColor.GetG(), hoveredColor.GetB());
+}
+
+void ExplorerView::ApplyRowStyle(const std::vector<DString>& searchKeywords)
+{
+    if (m_pListCtrl == nullptr) {
+        return;
+    }
+    //视觉效果仅在"详细信息"视图中生效：图标视图和列表视图显示的是名称列的纯文本，不适合显示高亮色
+    const bool bReportView = (m_pListCtrl->GetListCtrlType() == ui::ListCtrlType::Report);
+    const size_t nNameColumnId = GetColumnId(ExplorerViewColumn::kName);
+    const size_t columnIds[] = { nNameColumnId,
+                                 GetColumnId(ExplorerViewColumn::kModifyDateTime),
+                                 GetColumnId(ExplorerViewColumn::kType),
+                                 GetColumnId(ExplorerViewColumn::kSize) };
+
+    //斑马纹背景色（仅详细信息视图）
+    const ui::UiColor stripeColor = bReportView ? GetStripeColor() : ui::UiColor();
+    //搜索命中高亮色（仅详细信息视图，并且搜索过滤生效时才启用）
+    ui::UiColor highlightColor;
+    if (bReportView && !searchKeywords.empty()) {
+        highlightColor = ui::GlobalManager::Instance().Color().GetColor(_T("color_accent"));
+    }
+
+    //预先计算每个路径的"文件名称"是否命中搜索关键字（关键字已转换为小写，多个关键字之间是"或"的关系）
+    std::vector<uint8_t> nameHits(m_pathInfoList.size(), 0);
+    if (!highlightColor.IsEmpty()) {
+        for (size_t nIndex = 0; nIndex < m_pathInfoList.size(); ++nIndex) {
+            const DString displayName = ui::StringUtil::MakeLowerString(m_pathInfoList[nIndex].m_displayName);
+            for (const DString& keyword : searchKeywords) {
+                if (!keyword.empty() && (displayName.find(keyword) != DString::npos)) {
+                    nameHits[nIndex] = 1;
+                    break;
+                }
+            }
+        }
+    }
+
+    //逐行应用视觉效果
+    const size_t nItemCount = m_pListCtrl->GetDataItemCount();
+    for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+        const size_t nIndex = m_pListCtrl->GetDataItemUserData(nItemIndex);
+        if (nIndex >= m_pathInfoList.size()) {
+            continue;
+        }
+        //斑马纹：按行的显示顺序（奇数行显示背景色）
+        const ui::UiColor rowBkColor = ((nItemIndex % 2) == 1) ? stripeColor : ui::UiColor();
+        for (size_t nColumnId : columnIds) {
+            m_pListCtrl->SetSubItemBkColorById(nItemIndex, nColumnId, rowBkColor);
+        }
+        //搜索命中高亮：命中的文件名称使用高亮色显示
+        if (!highlightColor.IsEmpty() && (nameHits[nIndex] != 0)) {
+            m_pListCtrl->SetSubItemTextColorById(nItemIndex, nNameColumnId, highlightColor);
+        }
+        else {
+            m_pListCtrl->SetSubItemTextColorById(nItemIndex, nNameColumnId, ui::UiColor());
+        }
     }
 }
 

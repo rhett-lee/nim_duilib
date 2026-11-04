@@ -153,6 +153,48 @@ void ComputerView::SelectAll()
     }
 }
 
+bool ComputerView::GetDiskSpaceInfo(uint64_t& nTotalBytes, uint64_t& nFreeBytes) const
+{
+    nTotalBytes = 0;
+    nFreeBytes = 0;
+    for (const auto& diskInfo : m_diskInfoList) {
+        nTotalBytes += diskInfo.m_totalBytes;
+        nFreeBytes += diskInfo.m_freeBytes;
+    }
+    return !m_diskInfoList.empty();
+}
+
+bool ComputerView::IsDiskInfoListEqual(const std::vector<ui::DirectoryTree::DiskInfo>& lhs,
+                                       const std::vector<ui::DirectoryTree::DiskInfo>& rhs) const
+{
+    if (lhs.size() != rhs.size()) {
+        return false;
+    }
+    for (size_t nIndex = 0; nIndex < lhs.size(); ++nIndex) {
+        const ui::DirectoryTree::DiskInfo& a = lhs[nIndex];
+        const ui::DirectoryTree::DiskInfo& b = rhs[nIndex];
+        if ((a.m_filePath != b.m_filePath) ||
+            (a.m_displayName != b.m_displayName) ||
+            (a.m_nIconID != b.m_nIconID) ||
+            (a.m_volumeName != b.m_volumeName) ||
+            (a.m_fileSystem != b.m_fileSystem) ||
+            (a.m_totalBytes != b.m_totalBytes) ||
+            (a.m_freeBytes != b.m_freeBytes)) {
+            return false;
+        }
+#if defined (DUILIB_BUILD_FOR_WIN)
+        if (a.m_volumeType != b.m_volumeType) {
+            return false;
+        }
+#elif defined (DUILIB_BUILD_FOR_LINUX)
+        if ((a.m_deviceType != b.m_deviceType) || (a.m_mountOn != b.m_mountOn)) {
+            return false;
+        }
+#endif
+    }
+    return true;
+}
+
 void ComputerView::OnRemoveIcon(uint32_t nIconId)
 {
     if (!ui::GlobalManager::Instance().IsInUIThread()) {
@@ -271,11 +313,24 @@ void ComputerView::ShowMyComputerContents(const std::vector<ui::DirectoryTree::D
         return;
     }
     ui::GlobalManager::Instance().AssertUIThread();
-    ui::DirectoryTree::ClearDiskInfoList(m_diskInfoList);
+
+    //保存旧的磁盘信息列表（用于判断内容是否发生变化），并替换为新的磁盘信息列表
+    std::vector<ui::DirectoryTree::DiskInfo> oldDiskInfoList;
+    oldDiskInfoList.swap(m_diskInfoList);
     m_diskInfoList = diskInfoList;
     if ((m_pComputerListCtrl == nullptr)) {
+        ui::DirectoryTree::ClearDiskInfoList(oldDiskInfoList);
         return;
     }
+
+    //磁盘信息没有发生变化时，不重建列表（避免每次刷新"计算机"视图时都删除并重新添加列表项）
+    if (IsDiskInfoListEqual(oldDiskInfoList, m_diskInfoList) &&
+        (m_pComputerListCtrl->GetDataItemCount() == m_diskInfoList.size()) &&
+        !m_diskInfoList.empty()) {
+        ui::DirectoryTree::ClearDiskInfoList(oldDiskInfoList);
+        return;
+    }
+
     m_pComputerListCtrl->DeleteAllDataItems();
     ui::ImageListPtr pImageList;
     if (m_pComputerListCtrl != nullptr) {
@@ -291,6 +346,7 @@ void ComputerView::ShowMyComputerContents(const std::vector<ui::DirectoryTree::D
 #elif defined (DUILIB_BUILD_FOR_LINUX)
     ShowMyComputerContents_Linux(pImageList, diskInfoList);
 #endif
+    ui::DirectoryTree::ClearDiskInfoList(oldDiskInfoList);
 }
 
 #if defined (DUILIB_BUILD_FOR_WIN)
@@ -365,10 +421,9 @@ void ComputerView::ShowMyComputerContents_Win(ui::ImageListPtr pImageList, const
         subItemData.text = diskInfo.m_displayName;
         nColumnId = GetColumnId(ComputerViewColumn::kName);
         m_pComputerListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //名称
-        //设置"名称"列的排序方式
-        m_pComputerListCtrl->SetSubItemUserDataNById(nItemIndex, nColumnId, nIndex);
+        //设置"名称"列的排序方式：按盘符（挂载点）文本排序，避免使用过滤后的列表下标作为排序键
         m_pComputerListCtrl->SetSubItemUserDataSById(nItemIndex, nColumnId, diskInfo.m_filePath.ToString());
-        m_pComputerListCtrl->SetColumnSortFlagById(nColumnId, ui::ListCtrlSubItemSortFlag::kSortByUserDataN);
+        m_pComputerListCtrl->SetColumnSortFlagById(nColumnId, ui::ListCtrlSubItemSortFlag::kSortByUserDataS);
 
         subItemData.nTextFormat = ui::DrawStringFormat::TEXT_HCENTER | ui::DrawStringFormat::TEXT_VCENTER;
 
@@ -490,6 +545,9 @@ void ComputerView::ShowMyComputerContents_Linux(ui::ImageListPtr pImageList, con
         subItemData.text = diskInfo.m_displayName;
         nColumnId = GetColumnId(ComputerViewColumn::kName);
         m_pComputerListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //文件系统
+        //设置"名称"列的排序方式：按挂载点文本排序
+        m_pComputerListCtrl->SetSubItemUserDataSById(nItemIndex, nColumnId, diskInfo.m_filePath.ToString());
+        m_pComputerListCtrl->SetColumnSortFlagById(nColumnId, ui::ListCtrlSubItemSortFlag::kSortByUserDataS);
 
         subItemData.nTextFormat = ui::DrawStringFormat::TEXT_HCENTER | ui::DrawStringFormat::TEXT_VCENTER;
 

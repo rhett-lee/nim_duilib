@@ -1,9 +1,6 @@
 <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-  <!-- 左侧矩形块（代表当前主题） -->
-  <rect x="4" y="7" width="6" height="10" stroke="#333333" stroke-width="1.6" fill="none" rx="1"/>
-  <!-- 右侧矩形块（代表切换后的主题） -->
-  <rect x="14" y="7" width="6" height="10" stroke="#333333" stroke-width="1.6" fill="none" rx="1"/>
-  <!-- 双向切换箭头（核心交互符号） -->
-  <path d="M10 10 L12 12 L10 14 M14 14 L12 12 L14 10" 
-        stroke="#333333" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 主题切换图标：圆形中左半透明、右半实心，表示"深色/浅色"的对比关系
+       图形在 18px 尺寸下仍然清晰可辨（旧的"两个圆角矩形 + 小箭头"方案在 18px 下会看成 "00"） -->
+  <circle cx="12" cy="12" r="8" stroke="#333333" stroke-width="1.5" fill="none"/>
+  <path d="M12 4 C16.4 4 20 7.6 20 12 C20 16.4 16.4 20 12 20 Z" fill="#333333"/>
 </svg>

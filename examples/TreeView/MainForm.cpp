@@ -440,7 +440,7 @@ void MainForm::ShowFileList(const ui::FilePath& currentPath, std::vector<ui::Dir
             if (iter != m_selectedPathInfo.end()) {
                 selectedPath = iter->second;
             }
-            m_pExplorerView->SetFileList(currentPath, std::move(pathList), selectedPath);
+            m_pExplorerView->SetFileList(currentPath, std::move(pathList), selectedPath, m_searchKeywords);
         }
     }
 
@@ -715,7 +715,21 @@ void MainForm::UpdateStatusBar()
     //视图与排序方式
     if (m_pStatusMode != nullptr) {
         DString strMode;
-        if (!m_bComputerView) {
+        if (m_bComputerView) {
+            //"计算机"视图：显示"磁盘视图"以及所有磁盘的容量合计
+            uint64_t nTotalBytes = 0;
+            uint64_t nFreeBytes = 0;
+            if ((m_pComputerView != nullptr) && m_pComputerView->GetDiskSpaceInfo(nTotalBytes, nFreeBytes)) {
+                const DString strFormat = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_STATUS_DISK_SPACE"));
+                strMode = ui::StringUtil::Printf(strFormat.c_str(),
+                                                m_pComputerView->FormatDiskSpace(nTotalBytes).c_str(),
+                                                m_pComputerView->FormatDiskSpace(nFreeBytes).c_str());
+            }
+            else {
+                strMode = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_VIEW_TYPE_DISK"));
+            }
+        }
+        else {
             strMode = GetCurrentViewName();
             const DString strSortInfo = GetCurrentSortInfo();
             if (!strSortInfo.empty()) {

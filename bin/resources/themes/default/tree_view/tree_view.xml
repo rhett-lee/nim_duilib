@@ -73,7 +73,7 @@
                 </ButtonHBox>
                 <AddressBar class="address_bar" name="file_path" width="stretch" height="28" valign="center" margin="8,0,8,0"
                                                 kill_focus_update_ui="false" tooltip_text_id="STRID_TREEVIEW_VIEW_PATH"/>
-                <SearchBox class="search_box" name="search_box" width="220" height="28" valign="center"
+                <SearchBox class="search_box" name="search_box" width="stretch" min_width="120" max_width="220" height="28" valign="center"
                            prompt_text_id="STRID_TREEVIEW_SEARCH_PROMPT" debounce_interval="250"
                            history_enabled="false" tooltip_text_id="STRID_TREEVIEW_SEARCH_PROMPT"/>
             </HBox>

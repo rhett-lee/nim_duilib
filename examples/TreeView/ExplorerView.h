@@ -27,11 +27,15 @@ public:
 
 public:
     /** 用新的文件列表，替换原来的列表
+    *   说明：这里按文件路径做增量更新（复用已有的列表项，只增、删差异项），
+    *         不再每次删除全部列表项后重新添加，以降低刷新目录或搜索过滤时的开销
     * @param [in] currentPath 当前显示内容所在路径
     * @param [in] pathList 文件和文件夹列表（调用后不再使用，内部会移动数据）
     * @param [in] selectedPath 需要选择的路径
+    * @param [in] searchKeywords 当前的搜索关键字（小写，空列表表示未启用搜索过滤），用于高亮显示命中的文件名
     */
-    void SetFileList(const ui::FilePath& currentPath, std::vector<PathInfo> pathList, const ui::FilePath& selectedPath);
+    void SetFileList(const ui::FilePath& currentPath, std::vector<PathInfo> pathList, const ui::FilePath& selectedPath,
+                     const std::vector<DString>& searchKeywords = {});
 
     /** 获取当前显示内容所在路径和所选择的路径
     * @param [out] currentPath 当前显示内容所在路径
@@ -124,6 +128,16 @@ private:
         kFolder = 0, //文件夹
         kFile   = 1, //文件
     };
+
+    /** 应用列表项的视觉效果：斑马纹背景、搜索命中高亮
+    *   说明：仅在"详细信息"视图生效，避免影响图标视图和列表视图的纯文本显示
+    * @param [in] searchKeywords 当前的搜索关键字（小写，空列表表示未启用搜索过滤）
+    */
+    void ApplyRowStyle(const std::vector<DString>& searchKeywords);
+
+    /** 获取斑马纹的背景颜色（由主题中的悬停颜色派生，自动适配深色/浅色主题）
+    */
+    ui::UiColor GetStripeColor() const;
 
 private:
     /** 关联的MainForm
