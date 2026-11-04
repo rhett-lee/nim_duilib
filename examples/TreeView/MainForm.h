@@ -28,9 +28,28 @@ public:
     */
     virtual void OnInitWindow() override;
 
+    /** 窗口级按键消息：处理快捷键（Enter/Backspace/F5/Ctrl+A/Ctrl+F/Esc）
+    */
+    virtual LRESULT OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled) override;
+
     /** 触发树节点点击事件, 选择对应的目录
      */
     void SelectSubPath(const ui::FilePath& filePath);
+
+    /** 打开文件或目录：目录则进入其中，文件则用系统默认程序打开
+    * @param [in] filePath 需要打开的文件或目录
+    */
+    void OpenPath(const ui::FilePath& filePath);
+
+    /** 显示视图区域的右键菜单（由各视图在收到右键事件时调用）
+    * @param [in] pView 接收右键事件的视图控件
+    * @param [in] targetPath 右键选中的文件或目录，为空表示右键点在空白区域
+    */
+    void ShowViewContextMenu(ui::Control* pView, const ui::FilePath& targetPath);
+
+    /** 列表的排序列发生变化（点击表头排序时由视图调用），同步更新状态栏
+    */
+    void OnColumnSorted();
 
 private:
     /** 已获取指定目录的内容
@@ -119,6 +138,18 @@ private:
     /** 获取当前排序方式的显示字符串（用于状态栏显示）
     */
     DString GetCurrentSortInfo() const;
+
+    /** 打开当前视图中选择的项目
+    */
+    void OpenSelectedItem();
+
+    /** 选择当前视图中的所有项目
+    */
+    void SelectAllItems();
+
+    /** 获取当前视图中选择的路径（无选择时返回空）
+    */
+    ui::FilePath GetSelectedPath() const;
 
 private:
     /** 设置当前选择的树节点

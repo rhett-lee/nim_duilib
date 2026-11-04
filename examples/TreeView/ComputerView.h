@@ -28,6 +28,14 @@ public:
     */
     void ShowMyComputerContents(const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList);
 
+    /** 获取当前选择的磁盘路径（无选择时返回空）
+    */
+    ui::FilePath GetSelectedPath() const;
+
+    /** 选择列表中的所有磁盘
+    */
+    void SelectAll();
+
 private:
     /** 初始化
     */
@@ -40,6 +48,10 @@ private:
     /** 在"计算机"视图中双击
     */
     bool OnComuterViewDoubleClick(const ui::EventArgs& msg);    
+
+    /** 计算机视图的右键菜单
+    */
+    bool OnComputerViewRClick(const ui::EventArgs& msg);
 
     /** 图标被移除时，同步Image List中也要移除（不移除的话，会存在加载不到图标的情况）
     * @param [in] nIconId 图标ID（在IconManager中）

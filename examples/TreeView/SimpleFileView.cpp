@@ -155,6 +155,8 @@ SimpleFileView::SimpleFileView(MainForm* pMainForm, ui::VirtualListBox* pListBox
 {
     if (m_pListBox != nullptr) {
         m_pListBox->SetDataProvider(this);
+        //右键菜单
+        m_pListBox->AttachRClick(UiBind(&SimpleFileView::OnItemRClick, this, std::placeholders::_1));
     }
 }
 
@@ -299,11 +301,31 @@ bool SimpleFileView::OnDoubleClickItem(const ui::EventArgs& args)
         size_t nElementIndex = pItem->GetUserDataID();
         if (nElementIndex < m_pathList.size()) {
             const PathInfo& fileInfo = m_pathList[nElementIndex];
-            if (fileInfo.m_bFolder) {
-                //双击在一个目录上
-                m_pMainForm->SelectSubPath(fileInfo.m_filePath);
+            if (!fileInfo.m_filePath.IsEmpty()) {
+                //双击目录则进入其中，双击文件则用系统默认程序打开
+                m_pMainForm->OpenPath(fileInfo.m_filePath);
             }
         }
     }
     return true;
+}
+
+bool SimpleFileView::OnItemRClick(const ui::EventArgs& args)
+{
+    if ((m_pMainForm == nullptr) || (m_pListBox == nullptr)) {
+        return true;
+    }
+    ui::FilePath targetPath;
+    if (((size_t)args.lParam != ui::Box::InvalidIndex) && ((size_t)args.lParam < m_pathList.size())) {
+        targetPath = m_pathList[(size_t)args.lParam].m_filePath;
+    }
+    m_pMainForm->ShowViewContextMenu(m_pListBox.get(), targetPath);
+    return true;
+}
+
+void SimpleFileView::SelectAll()
+{
+    if (m_pListBox != nullptr) {
+        m_pListBox->SetSelectAll();
+    }
 }

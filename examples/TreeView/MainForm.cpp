@@ -4,6 +4,86 @@
 #include "SimpleFileView.h"
 #include "ExplorerView.h"
 
+#if defined (DUILIB_BUILD_FOR_WIN)
+#include <windows.h>
+#include <shellapi.h>
+#endif
+
+namespace
+{
+#if !defined (DUILIB_BUILD_FOR_WIN)
+/** 将本地路径转换为 file:// URL（SDL_OpenURL 需要 URL 形式，而不是本地路径）
+*/
+DString MakeFileUrl(const DString& nativePath)
+{
+    DString url(_T("file://"));
+    const auto utf8Path = ui::StringConvert::TToUTF8(nativePath);
+    for (char ch : utf8Path) {
+        const bool bKeep = ((ch >= 'a') && (ch <= 'z')) ||
+                           ((ch >= 'A') && (ch <= 'Z')) ||
+                           ((ch >= '0') && (ch <= '9')) ||
+                           (ch == '/') || (ch == '-') || (ch == '_') || (ch == '.') || (ch == '~');
+        if (bKeep) {
+            url += ch;
+        }
+        else {
+            url += ui::StringUtil::Printf(_T("%%%02X"), (int32_t)(unsigned char)ch);
+        }
+    }
+    return url;
+}
+#endif
+
+/** 在文件管理器中显示指定的文件或目录
+*/
+void RevealInFileManager(const ui::FilePath& filePath)
+{
+    if (filePath.IsEmpty()) {
+        return;
+    }
+#if defined (DUILIB_BUILD_FOR_WIN)
+    DString param(_T("/select,\""));
+    param += filePath.ToString();
+    param += _T("\"");
+    ::ShellExecuteW(nullptr, L"open", L"explorer.exe", param.c_str(), nullptr, SW_SHOWNORMAL);
+#else
+    //其他平台（SDL）：打开文件所在的目录
+    ui::FilePath parentPath = filePath.GetParentPath();
+    if (parentPath.IsEmpty()) {
+        parentPath = filePath;
+    }
+    ui::SystemUtil::OpenUrl(MakeFileUrl(parentPath.ToString()));
+#endif
+}
+
+/** 判断控件是否位于指定父控件的子树中（含父控件自身）
+*/
+bool IsControlInSubTree(const ui::Control* pControl, const ui::Control* pParent)
+{
+    while (pControl != nullptr) {
+        if (pControl == pParent) {
+            return true;
+        }
+        pControl = pControl->GetParent();
+    }
+    return false;
+}
+
+/** 用系统默认程序打开文件或目录
+*/
+void OpenWithSystem(const ui::FilePath& filePath)
+{
+    if (filePath.IsEmpty()) {
+        return;
+    }
+#if defined (DUILIB_BUILD_FOR_WIN)
+    ui::SystemUtil::OpenUrl(filePath.ToString());
+#else
+    ui::SystemUtil::OpenUrl(MakeFileUrl(filePath.ToString()));
+#endif
+}
+}//namespace
+
 MainForm::MainForm():
     m_pTree(nullptr),
     m_pAddressBar(nullptr),
@@ -351,11 +431,17 @@ void MainForm::ApplySearchFilter()
 
 void MainForm::ClearSearchText()
 {
+    const bool bHasSearchText = !m_searchText.empty();
     m_searchText.clear();
     if (m_pSearchBox != nullptr) {
         if (!m_pSearchBox->GetSearchText().empty()) {
+            //清空搜索框中的文本（关键字已经相同，OnSearchTextChanged 不会重复刷新）
             m_pSearchBox->SetSearchText(DString());
         }
+    }
+    if (bHasSearchText) {
+        //搜索条件已清除，需要重新加载当前目录的内容，去掉过滤效果
+        ApplySearchFilter();
     }
 }
 
@@ -549,6 +635,177 @@ void MainForm::SelectSubPath(const ui::FilePath& filePath)
     if (m_pTree != nullptr) {
         m_pTree->SelectSubPath(m_pTreeNode, filePath, nullptr);
     }
+}
+
+void MainForm::OpenPath(const ui::FilePath& filePath)
+{
+    if (filePath.IsEmpty()) {
+        return;
+    }
+    if (filePath.IsExistsDirectory()) {
+        //目录：进入该目录
+        SelectSubPath(filePath);
+        return;
+    }
+    if (filePath.IsExistsFile()) {
+        //文件：用系统默认程序打开（Windows使用ShellExecute，其他平台使用SDL_OpenURL）
+        OpenWithSystem(filePath);
+    }
+}
+
+void MainForm::ShowViewContextMenu(ui::Control* pView, const ui::FilePath& targetPath)
+{
+    //使用系统光标位置作为菜单的弹出位置（避免DPI缩放时客户区坐标换算出错）
+    ui::UiPoint point;
+    GetCursorPos(point);
+
+    ui::Menu* menu = new ui::Menu(this, pView);//需要设置父窗口，否则菜单弹出时程序状态栏会变成非激活状态
+    menu->SetSkinFolder(GetResourcePath().ToString());
+    DString xml(_T("menu/context_menu.xml"));
+    menu->ShowMenu(xml, point);
+
+    //右键点在空白区域时，只保留"刷新"可用
+    const bool bHasTarget = !targetPath.IsEmpty();
+    ui::MenuItem* pOpenItem = menu->GetMenuItemByName(_T("menu_item_open"));
+    if (pOpenItem != nullptr) {
+        pOpenItem->SetEnabled(bHasTarget);
+    }
+    ui::MenuItem* pRevealItem = menu->GetMenuItemByName(_T("menu_item_reveal"));
+    if (pRevealItem != nullptr) {
+        pRevealItem->SetEnabled(bHasTarget);
+    }
+    ui::MenuItem* pCopyItem = menu->GetMenuItemByName(_T("menu_item_copy_path"));
+    if (pCopyItem != nullptr) {
+        pCopyItem->SetEnabled(bHasTarget);
+    }
+
+    menu->AttachMenuItemActivated([this, targetPath, bHasTarget](const DString& /*menuName*/, int32_t /*nMenuLevel*/,
+                                                                 const DString& itemName, size_t /*nItemIndex*/) {
+        if (itemName == _T("menu_item_refresh")) {
+            Refresh();
+            return;
+        }
+        if (!bHasTarget) {
+            return;
+        }
+        if (itemName == _T("menu_item_open")) {
+            OpenPath(targetPath);
+        }
+        else if (itemName == _T("menu_item_reveal")) {
+            RevealInFileManager(targetPath);
+        }
+        else if (itemName == _T("menu_item_copy_path")) {
+            ui::Clipboard::SetClipboardText(ui::StringConvert::TToUTF8(targetPath.ToString()));
+        }
+    });
+}
+
+void MainForm::OnColumnSorted()
+{
+    //点击表头排序后，同步更新状态栏中的排序信息
+    UpdateStatusBar();
+}
+
+LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled)
+{
+    LRESULT lResult = ui::Window::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
+    if (bHandled) {
+        return lResult;
+    }
+    //快捷键在窗口级处理：焦点可能在目录树、文件列表或按钮上，按键不应因焦点变化而失效
+
+    //Esc：清除搜索条件（任何焦点下都生效，避免搜索后无法快速清除）
+    if (vkCode == ui::kVK_ESCAPE) {
+        if (!m_searchText.empty()) {
+            ClearSearchText();
+            bHandled = true;
+        }
+        return lResult;
+    }
+    //F5：刷新
+    if (vkCode == ui::kVK_F5) {
+        Refresh();
+        bHandled = true;
+        return lResult;
+    }
+    //Ctrl+F：聚焦搜索框
+    if (((modifierKey & ui::kControl) != 0) && (vkCode == ui::kVK_F)) {
+        if (m_pSearchBox != nullptr) {
+            m_pSearchBox->SetFocus();
+            bHandled = true;
+        }
+        return lResult;
+    }
+
+    //以下快捷键只在目录树和文件列表中有焦点时生效，避免干扰输入框、按钮等控件
+    ui::Control* pFocus = GetFocusControl();
+    const bool bViewFocus = (pFocus == nullptr) || IsControlInSubTree(pFocus, m_pTabBox);
+    const bool bTreeFocus = (pFocus == nullptr) || IsControlInSubTree(pFocus, m_pTree);
+
+    //Enter：打开选中的文件或目录
+    if (bViewFocus && (vkCode == ui::kVK_RETURN)) {
+        OpenSelectedItem();
+        bHandled = true;
+        return lResult;
+    }
+    //Backspace：返回上级目录（目录树有焦点时也生效，因为切换目录后焦点可能落在树节点上）
+    if ((bViewFocus || bTreeFocus) && (vkCode == ui::kVK_BACK)) {
+        ShowUp();
+        bHandled = true;
+        return lResult;
+    }
+    //Ctrl+A：全选当前视图中的所有项目
+    if (bViewFocus && ((modifierKey & ui::kControl) != 0) && (vkCode == ui::kVK_A)) {
+        SelectAllItems();
+        bHandled = true;
+        return lResult;
+    }
+    return lResult;
+}
+
+void MainForm::OpenSelectedItem()
+{
+    const ui::FilePath selectedPath = GetSelectedPath();
+    if (!selectedPath.IsEmpty()) {
+        OpenPath(selectedPath);
+    }
+}
+
+void MainForm::SelectAllItems()
+{
+    if (m_bComputerView) {
+        if (m_pComputerView != nullptr) {
+            m_pComputerView->SelectAll();
+        }
+    }
+    else if (m_dataViewType == kPictureView) {
+        if (m_pSimpleFileView != nullptr) {
+            m_pSimpleFileView->SelectAll();
+        }
+    }
+    else if (m_pExplorerView != nullptr) {
+        m_pExplorerView->SelectAll();
+    }
+}
+
+ui::FilePath MainForm::GetSelectedPath() const
+{
+    ui::FilePath currentPath;
+    ui::FilePath selectedPath;
+    if (m_bComputerView) {
+        if (m_pComputerView != nullptr) {
+            selectedPath = m_pComputerView->GetSelectedPath();
+        }
+    }
+    else if (m_dataViewType == kPictureView) {
+        if (m_pSimpleFileView != nullptr) {
+            m_pSimpleFileView->GetCurrentPath(currentPath, selectedPath);
+        }
+    }
+    else if (m_pExplorerView != nullptr) {
+        selectedPath = m_pExplorerView->GetSelectedPath();
+    }
+    return selectedPath;
 }
 
 bool MainForm::OnAddressBarPathChanged(const ui::EventArgs& msg)

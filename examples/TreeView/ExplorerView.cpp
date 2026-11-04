@@ -26,28 +26,18 @@ bool ExplorerView::GetSortColumnInfo(ExplorerViewColumn& viewColumn, bool& bSort
     if (m_pListCtrl == nullptr) {
         return false;
     }
-    bool bRet = false;
     size_t nSortColumnId = ui::Box::InvalidIndex;
-    if (m_pListCtrl->GetSortColumn(nSortColumnId, bSortUp)) {
-        bRet = true;
-        size_t nColumnIndex = m_pListCtrl->GetColumnIndex(nSortColumnId);
-        if (nColumnIndex == (size_t)ExplorerViewColumn::kName) {
-            viewColumn = ExplorerViewColumn::kName;
-        }
-        else if (nColumnIndex == (size_t)ExplorerViewColumn::kModifyDateTime) {
-            viewColumn = ExplorerViewColumn::kModifyDateTime;
-        }
-        else if (nColumnIndex == (size_t)ExplorerViewColumn::kType) {
-            viewColumn = ExplorerViewColumn::kType;
-        }
-        else if (nColumnIndex == (size_t)ExplorerViewColumn::kSize) {
-            viewColumn = ExplorerViewColumn::kSize;
-        }
-        else {
-            bRet = false;
+    if (!m_pListCtrl->GetSortColumn(nSortColumnId, bSortUp)) {
+        return false;
+    }
+    //用列ID反查列的含义：用户拖动表头调整列顺序后，列索引会变化，不能再用列索引判断
+    for (const auto& item : m_columnIdMap) {
+        if (item.second == nSortColumnId) {
+            viewColumn = item.first;
+            return true;
         }
     }
-    return bRet;
+    return false;
 }
 
 void ExplorerView::SortByColumn(ExplorerViewColumn viewColumn, bool bSortUp)
@@ -82,6 +72,17 @@ void ExplorerView::Initialize()
 
         //挂载列表项鼠标双击事件
         m_pListCtrl->AttachDoubleClick(UiBind(&ExplorerView::OnExplorerViewDoubleClick, this, std::placeholders::_1));
+
+        //挂载列表项鼠标右键事件（弹出右键菜单）
+        m_pListCtrl->AttachRClick(UiBind(&ExplorerView::OnExplorerViewRClick, this, std::placeholders::_1));
+
+        //点击表头排序后，同步更新状态栏中的排序信息
+        m_pListCtrl->AttachColumnSorted([this](const ui::EventArgs&) {
+            if (m_pMainForm != nullptr) {
+                m_pMainForm->OnColumnSorted();
+            }
+            return true;
+            });
     }
 }
 
@@ -92,12 +93,29 @@ bool ExplorerView::OnExplorerViewDoubleClick(const ui::EventArgs& msg)
         size_t nIndex = m_pListCtrl->GetDataItemUserData(nItemIndex);
         if (nIndex < m_pathInfoList.size()) {
             const ui::DirectoryTree::PathInfo& pathInfo = m_pathInfoList[nIndex];
-            if (!pathInfo.m_filePath.IsEmpty() && pathInfo.m_filePath.IsExistsDirectory()) {
-                //进入所选的目录
-                m_pMainForm->SelectSubPath(pathInfo.m_filePath);
+            if (!pathInfo.m_filePath.IsEmpty()) {
+                //双击目录则进入其中，双击文件则用系统默认程序打开
+                m_pMainForm->OpenPath(pathInfo.m_filePath);
             }
         }
     }
+    return true;
+}
+
+bool ExplorerView::OnExplorerViewRClick(const ui::EventArgs& msg)
+{
+    if ((m_pListCtrl == nullptr) || (m_pMainForm == nullptr)) {
+        return true;
+    }
+    ui::FilePath targetPath;
+    ui::ListCtrlItem* pItem = static_cast<ui::ListCtrlItem*>(msg.pEventData);
+    if (pItem != nullptr) {
+        size_t nIndex = pItem->GetDataItemIndex();
+        if (nIndex < m_pathInfoList.size()) {
+            targetPath = m_pathInfoList[nIndex].m_filePath;
+        }
+    }
+    m_pMainForm->ShowViewContextMenu(m_pListCtrl.get(), targetPath);
     return true;
 }
 
@@ -289,6 +307,21 @@ void ExplorerView::GetCurrentPath(ui::FilePath& currentPath, ui::FilePath& selec
             }
         }
     }       
+}
+
+ui::FilePath ExplorerView::GetSelectedPath() const
+{
+    ui::FilePath currentPath;
+    ui::FilePath selectedPath;
+    GetCurrentPath(currentPath, selectedPath);
+    return selectedPath;
+}
+
+void ExplorerView::SelectAll()
+{
+    if (m_pListCtrl != nullptr) {
+        m_pListCtrl->SetSelectAll();
+    }
 }
 
 DString ExplorerView::FormatFileSize(bool bFolder, uint64_t nFileSize) const

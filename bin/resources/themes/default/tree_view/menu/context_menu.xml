@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window shadow_type="menu_round" shadow_border_size="2" shadow_border_color="border_window">
+    <MenuListBox class="menu" name="context_menu">
+        <!-- 一级菜单 -->
+        <MenuItem class="menu_element" name="menu_item_open" width="220">
+            <Label class="menu_text" text_id="STRID_TREEVIEW_MENU_OPEN" mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+        <MenuItem class="menu_element" name="menu_item_reveal" width="220">
+            <Label class="menu_text" text_id="STRID_TREEVIEW_MENU_REVEAL" mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+        <MenuItem class="menu_element" name="menu_item_copy_path" width="220">
+            <Label class="menu_text" text_id="STRID_TREEVIEW_MENU_COPY_PATH" mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+
+        <!-- 菜单项之间的分割线 -->
+        <Box class="menu_split_box" margin="0,4,0,4">
+            <Control class="menu_split_line" mouse_enabled="false" keyboard_enabled="false"/>
+        </Box>
+
+        <MenuItem class="menu_element" name="menu_item_refresh" width="220">
+            <Label class="menu_text" text_id="STRID_TREEVIEW_MENU_REFRESH" mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+    </MenuListBox>
+</Window>

@@ -43,6 +43,14 @@ public:
     */
     ui::ListCtrl* GetListCtrl() const;
 
+    /** 获取当前选择的文件或目录路径（无选择时返回空）
+    */
+    ui::FilePath GetSelectedPath() const;
+
+    /** 选择列表中的所有项目
+    */
+    void SelectAll();
+
 public:
     /** 视图的表头
     */
@@ -76,6 +84,10 @@ private:
     /** 在"计算机"视图中双击
     */
     bool OnExplorerViewDoubleClick(const ui::EventArgs& msg);
+
+    /** 文件列表的右键菜单
+    */
+    bool OnExplorerViewRClick(const ui::EventArgs& msg);
 
     /** 图标被移除时，同步Image List中也要移除（不移除的话，会存在加载不到图标的情况）
     * @param [in] nIconId 图标ID（在IconManager中）

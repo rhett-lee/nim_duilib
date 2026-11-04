@@ -38,6 +38,17 @@ void ComputerView::Initialize()
 
         //挂载列表项鼠标双击事件
         m_pComputerListCtrl->AttachDoubleClick(UiBind(&ComputerView::OnComuterViewDoubleClick, this, std::placeholders::_1));
+
+        //挂载列表项鼠标右键事件（弹出右键菜单）
+        m_pComputerListCtrl->AttachRClick(UiBind(&ComputerView::OnComputerViewRClick, this, std::placeholders::_1));
+
+        //点击表头排序后，同步更新状态栏中的排序信息
+        m_pComputerListCtrl->AttachColumnSorted([this](const ui::EventArgs&) {
+            if (m_pMainForm != nullptr) {
+                m_pMainForm->OnColumnSorted();
+            }
+            return true;
+            });
     }
 }
 
@@ -48,13 +59,54 @@ bool ComputerView::OnComuterViewDoubleClick(const ui::EventArgs& msg)
         size_t nIndex = m_pComputerListCtrl->GetDataItemUserData(nItemIndex);
         if (nIndex < m_diskInfoList.size()) {
             const ui::DirectoryTree::DiskInfo& diskInfo = m_diskInfoList[nIndex];
-            if (!diskInfo.m_filePath.IsEmpty() && diskInfo.m_filePath.IsExistsDirectory()) {
-                //进入所选的目录
-                m_pMainForm->SelectSubPath(diskInfo.m_filePath);
+            if (!diskInfo.m_filePath.IsEmpty()) {
+                //进入所选的磁盘目录
+                m_pMainForm->OpenPath(diskInfo.m_filePath);
             }
         }
     }
     return true;
+}
+
+bool ComputerView::OnComputerViewRClick(const ui::EventArgs& msg)
+{
+    if ((m_pComputerListCtrl == nullptr) || (m_pMainForm == nullptr)) {
+        return true;
+    }
+    ui::FilePath targetPath;
+    ui::ListCtrlItem* pItem = static_cast<ui::ListCtrlItem*>(msg.pEventData);
+    if (pItem != nullptr) {
+        size_t nIndex = pItem->GetDataItemIndex();
+        if (nIndex < m_diskInfoList.size()) {
+            targetPath = m_diskInfoList[nIndex].m_filePath;
+        }
+    }
+    m_pMainForm->ShowViewContextMenu(m_pComputerListCtrl.get(), targetPath);
+    return true;
+}
+
+ui::FilePath ComputerView::GetSelectedPath() const
+{
+    ui::FilePath selectedPath;
+    if (m_pComputerListCtrl != nullptr) {
+        std::vector<size_t> itemIndexs;
+        m_pComputerListCtrl->GetSelectedDataItems(itemIndexs);
+        for (size_t nItemIndex : itemIndexs) {
+            size_t nIndex = m_pComputerListCtrl->GetDataItemUserData(nItemIndex);
+            if (nIndex < m_diskInfoList.size()) {
+                selectedPath = m_diskInfoList[nIndex].m_filePath;
+                break;
+            }
+        }
+    }
+    return selectedPath;
+}
+
+void ComputerView::SelectAll()
+{
+    if (m_pComputerListCtrl != nullptr) {
+        m_pComputerListCtrl->SetSelectAll();
+    }
 }
 
 void ComputerView::OnRemoveIcon(uint32_t nIconId)

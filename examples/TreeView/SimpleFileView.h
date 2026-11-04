@@ -76,12 +76,22 @@ public:
     */
     void GetCurrentPath(ui::FilePath& currentPath, ui::FilePath& selectedPath) const;
 
+    /** 选择列表中的所有项目（本视图为单选模式时，调用无效）
+    */
+    void SelectAll();
+
 private:
     /** 子项被双击时触发
      * @param[in] args 消息体
      * @return 始终返回 true
      */
     bool OnDoubleClickItem(const ui::EventArgs& args);
+
+    /** 文件列表的右键菜单
+     * @param[in] args 消息体
+     * @return 始终返回 true
+     */
+    bool OnItemRClick(const ui::EventArgs& args);
 
 private:
     /** 关联的MainForm
