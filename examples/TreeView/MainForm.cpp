@@ -205,7 +205,7 @@ void MainForm::OnInitWindow()
             point.y = rect.bottom;
             ClientToScreen(point);
             point.y += Dpi().GetScaleInt(4);
-            SwithListType(point, m_pBtnViewListType);
+            SwitchListType(point, m_pBtnViewListType);
             return true;
             });
     }
@@ -220,7 +220,7 @@ void MainForm::OnInitWindow()
             point.y = rect.bottom;
             ClientToScreen(point);
             point.y += Dpi().GetScaleInt(4);
-            SwithSortMode(point, m_pBtnViewSort);
+            SwitchSortMode(point, m_pBtnViewSort);
             return true;
             });
     }
@@ -310,8 +310,8 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
         return;
     }
     if (pTreeNode != m_pTreeNode) {
-        //切换到其它目录时，清除搜索条件
-        ClearSearchText();
+        //切换到其它目录时，清除搜索条件（这里不重新加载旧目录，避免重复刷新）
+        ResetSearchText();
     }
     m_bComputerView = false;
     m_currentPath = currentPath;
@@ -483,6 +483,15 @@ void MainForm::ApplySearchFilter()
 void MainForm::ClearSearchText()
 {
     const bool bHasSearchText = !m_searchText.empty();
+    ResetSearchText();
+    if (bHasSearchText) {
+        //搜索条件已清除，需要重新加载当前目录的内容，去掉过滤效果
+        ApplySearchFilter();
+    }
+}
+
+void MainForm::ResetSearchText()
+{
     m_searchText.clear();
     m_searchKeywords.clear();
     if (m_pSearchBox != nullptr) {
@@ -490,10 +499,6 @@ void MainForm::ClearSearchText()
             //清空搜索框中的文本（关键字已经相同，OnSearchTextChanged 不会重复刷新）
             m_pSearchBox->SetSearchText(DString());
         }
-    }
-    if (bHasSearchText) {
-        //搜索条件已清除，需要重新加载当前目录的内容，去掉过滤效果
-        ApplySearchFilter();
     }
 }
 
@@ -660,8 +665,8 @@ void MainForm::OnShowMyComputerContents(ui::TreeNode* pTreeNode,
         return;
     }
     if (pTreeNode != m_pTreeNode) {
-        //切换到其它节点时，清除搜索条件
-        ClearSearchText();
+        //切换到其它节点时，清除搜索条件（这里不重新加载旧目录，避免重复刷新）
+        ResetSearchText();
     }
     SwitchToTabBoxViewType(TabBoxViewType::kComputerView);
     if (m_pAddressBar != nullptr) {
@@ -709,9 +714,10 @@ void MainForm::SelectSubPath(const ui::FilePath& filePath)
 {
     if (!filePath.IsExistsDirectory()) {
         //如果文件夹不存在，报错
-        DString errMsg = _T("Path not exists:");
-        errMsg += filePath.ToString();
-        ui::SystemUtil::ShowMessageBox(this, errMsg.c_str(), _T("Error"));
+        const DString strFormat = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_PATH_NOT_EXISTS"));
+        const DString errMsg = ui::StringUtil::Printf(strFormat.c_str(), filePath.ToString().c_str());
+        const DString title = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_ERROR_TITLE"));
+        ui::SystemUtil::ShowMessageBox(this, errMsg.c_str(), title.c_str());
         return;
     }
 
@@ -801,19 +807,7 @@ void MainForm::ShowViewContextMenu(ui::Control* pView, const ui::FilePath& targe
         }
         else if (itemName == _T("menu_item_copy_path")) {
             //多选时，每行一个完整路径
-#if defined (DUILIB_BUILD_FOR_WIN)
-            const DString lineBreak(_T("\r\n"));
-#else
-            const DString lineBreak(_T("\n"));
-#endif
-            DString text;
-            for (const ui::FilePath& path : actionPaths) {
-                if (!text.empty()) {
-                    text += lineBreak;
-                }
-                text += path.ToString();
-            }
-            ui::Clipboard::SetClipboardText(ui::StringConvert::TToUTF8(text));
+            CopyPathsToClipboard(actionPaths);
         }
     });
 }
@@ -860,6 +854,24 @@ LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, 
         }
         return lResult;
     }
+    //Alt+Left / Alt+Right / Alt+Up：后退、前进、返回上级目录（与Windows资源管理器的习惯一致）
+    if ((modifierKey & ui::kAlt) != 0) {
+        if (vkCode == ui::kVK_LEFT) {
+            ShowBack();
+            bHandled = true;
+            return lResult;
+        }
+        if (vkCode == ui::kVK_RIGHT) {
+            ShowForward();
+            bHandled = true;
+            return lResult;
+        }
+        if (vkCode == ui::kVK_UP) {
+            ShowUp();
+            bHandled = true;
+            return lResult;
+        }
+    }
 
     //以下快捷键只在目录树和文件列表中有焦点时生效，避免干扰输入框、按钮等控件
     ui::Control* pFocus = GetFocusControl();
@@ -881,6 +893,14 @@ LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, 
     //Ctrl+A：全选当前视图中的所有项目
     if (bViewFocus && ((modifierKey & ui::kControl) != 0) && (vkCode == ui::kVK_A)) {
         SelectAllItems();
+        bHandled = true;
+        return lResult;
+    }
+    //Ctrl+C：复制选中项的完整路径（多选时每行一个路径）
+    if (bViewFocus && ((modifierKey & ui::kControl) != 0) && (vkCode == ui::kVK_C)) {
+        std::vector<ui::FilePath> selectedPaths;
+        GetSelectedPaths(selectedPaths);
+        CopyPathsToClipboard(selectedPaths);
         bHandled = true;
         return lResult;
     }
@@ -980,6 +1000,32 @@ void MainForm::GetSelectedItemInfo(int32_t& nSelectedCount, uint64_t& nSelectedF
     }
 }
 
+void MainForm::CopyPathsToClipboard(const std::vector<ui::FilePath>& paths) const
+{
+    if (paths.empty()) {
+        return;
+    }
+#if defined (DUILIB_BUILD_FOR_WIN)
+    const DString lineBreak(_T("\r\n"));
+#else
+    const DString lineBreak(_T("\n"));
+#endif
+    DString text;
+    for (const ui::FilePath& path : paths) {
+        if (path.IsEmpty()) {
+            continue;
+        }
+        if (!text.empty()) {
+            text += lineBreak;
+        }
+        text += path.ToString();
+    }
+    if (!text.empty()) {
+        //剪贴板使用UTF8编码的文本
+        ui::Clipboard::SetClipboardText(ui::StringConvert::TToUTF8(text));
+    }
+}
+
 bool MainForm::OnAddressBarPathChanged(const ui::EventArgs& msg)
 {
     if (m_pAddressBar != nullptr) {
@@ -1039,9 +1085,10 @@ bool MainForm::OnShowAddressPath(const DString& newFilePath)
     }
     else {
         //如果文件夹不存在，报错
-        DString errMsg = _T("Path not exists:");
-        errMsg += text;
-        ui::SystemUtil::ShowMessageBox(this, errMsg.c_str(), _T("Error"));
+        const DString strFormat = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_PATH_NOT_EXISTS"));
+        const DString errMsg = ui::StringUtil::Printf(strFormat.c_str(), text.c_str());
+        const DString title = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_ERROR_TITLE"));
+        ui::SystemUtil::ShowMessageBox(this, errMsg.c_str(), title.c_str());
         return false;
     }
 }
@@ -1085,13 +1132,19 @@ void MainForm::OnRefresh()
 
 void MainForm::ShowUp()
 {
-    if (m_pTreeNode != nullptr) {
-        ui::TreeNode* pTreeNode = m_pTreeNode->GetParentNode();
-        if ((m_pTree != nullptr) && (pTreeNode != nullptr)) {
-            m_bCanAddBackForward = true;
-            m_pTree->SelectTreeNode(pTreeNode);
-        }
+    if ((m_pTree == nullptr) || (m_pTreeNode == nullptr)) {
+        return;
     }
+    ui::TreeNode* pParentNode = m_pTreeNode->GetParentNode();
+    if (pParentNode == nullptr) {
+        return;
+    }
+    if (pParentNode == m_pTree->GetRootNode()) {
+        //已经是顶层节点（父节点是根节点），不需要再向上
+        return;
+    }
+    m_bCanAddBackForward = true;
+    m_pTree->SelectTreeNode(pParentNode);
 }
 
 void MainForm::ShowBack()
@@ -1100,19 +1153,27 @@ void MainForm::ShowBack()
     if (m_pTree == nullptr) {
         return;
     }
-    if (m_pTree->IsValidTreeNode(m_pTreeNode)) {
-        m_forwardStack.push(m_pTreeNode);
-    }
-
+    //从后退栈中查找一个有效的节点（跳过已经被删除的节点）
+    ui::TreeNode* pTargetNode = nullptr;
     while (!m_backStack.empty()) {
         ui::TreeNode* pTreeNode = m_backStack.top();
         m_backStack.pop();
         if (m_pTree->IsValidTreeNode(pTreeNode)) {
-            m_bCanAddBackForward = false;
-            m_pTree->SelectTreeNode(pTreeNode);
+            pTargetNode = pTreeNode;
             break;
         }
     }
+    if (pTargetNode == nullptr) {
+        //没有可以后退的节点时，不修改前进栈，只刷新按钮状态
+        UpdateCommandUI();
+        return;
+    }
+    if (m_pTree->IsValidTreeNode(m_pTreeNode)) {
+        m_forwardStack.push(m_pTreeNode);
+    }
+    m_bCanAddBackForward = false;
+    m_pTree->SelectTreeNode(pTargetNode);
+    UpdateCommandUI();
 }
 
 void MainForm::ShowForward()
@@ -1120,22 +1181,30 @@ void MainForm::ShowForward()
     if (m_pTree == nullptr) {
         return;
     }
-    if (m_pTree->IsValidTreeNode(m_pTreeNode)) {
-        m_backStack.push(m_pTreeNode);
-    }
-
+    //从前进栈中查找一个有效的节点（跳过已经被删除的节点）
+    ui::TreeNode* pTargetNode = nullptr;
     while (!m_forwardStack.empty()) {
         ui::TreeNode* pTreeNode = m_forwardStack.top();
         m_forwardStack.pop();
         if (m_pTree->IsValidTreeNode(pTreeNode)) {
-            m_bCanAddBackForward = false;
-            m_pTree->SelectTreeNode(pTreeNode);
+            pTargetNode = pTreeNode;
             break;
         }
     }
+    if (pTargetNode == nullptr) {
+        //没有可以前进的节点时，不修改后退栈，只刷新按钮状态
+        UpdateCommandUI();
+        return;
+    }
+    if (m_pTree->IsValidTreeNode(m_pTreeNode)) {
+        m_backStack.push(m_pTreeNode);
+    }
+    m_bCanAddBackForward = false;
+    m_pTree->SelectTreeNode(pTargetNode);
+    UpdateCommandUI();
 }
 
-void MainForm::SwithListType(const ui::UiPoint& point, ui::Control* pRelatedControl)
+void MainForm::SwitchListType(const ui::UiPoint& point, ui::Control* pRelatedControl)
 {
     ui::Menu* menu = new ui::Menu(this, pRelatedControl);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
     menu->SetSkinFolder(GetResourcePath().ToString());
@@ -1181,7 +1250,7 @@ void MainForm::SwithListType(const ui::UiPoint& point, ui::Control* pRelatedCont
         });
 }
 
-void MainForm::SwithSortMode(const ui::UiPoint& point, ui::Control* pRelatedControl)
+void MainForm::SwitchSortMode(const ui::UiPoint& point, ui::Control* pRelatedControl)
 {
     if (m_pExplorerView == nullptr) {
         return;

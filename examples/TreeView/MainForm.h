@@ -28,8 +28,9 @@ public:
     */
     virtual void OnInitWindow() override;
 
-    /** 窗口级按键消息：处理快捷键（Enter/Backspace/F5/Ctrl+A/Ctrl+F/Esc）
-    */
+    /** 窗口级按键消息：处理快捷键
+     * Enter/Backspace/F5/Ctrl+A/Ctrl+F/Ctrl+C/Esc/Alt+Left/Alt+Right/Alt+Up
+     */
     virtual LRESULT OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled) override;
 
     /** 触发树节点点击事件, 选择对应的目录
@@ -103,11 +104,11 @@ private:
 
     /** 切换视图模式
     */
-    void SwithListType(const ui::UiPoint& point, ui::Control* pRelatedControl);
+    void SwitchListType(const ui::UiPoint& point, ui::Control* pRelatedControl);
 
     /** 切换排序方式
     */
-    void SwithSortMode(const ui::UiPoint& point, ui::Control* pRelatedControl);
+    void SwitchSortMode(const ui::UiPoint& point, ui::Control* pRelatedControl);
 
     /** 更新界面状态
     */
@@ -147,6 +148,11 @@ private:
     */
     void ClearSearchText();
 
+    /** 清除搜索条件，但不重新加载当前目录的内容
+     * （调用方正在展示新目录的内容时使用，避免重复刷新旧目录）
+     */
+    void ResetSearchText();
+
     /** 获取当前数据视图的名称（用于状态栏显示）
     */
     DString GetCurrentViewName() const;
@@ -174,6 +180,11 @@ private:
     /** 获取当前视图中选择的所有路径
     */
     void GetSelectedPaths(std::vector<ui::FilePath>& paths) const;
+
+    /** 将路径列表复制到剪贴板（每行一个完整路径）
+    * @param [in] paths 需要复制的路径列表
+    */
+    void CopyPathsToClipboard(const std::vector<ui::FilePath>& paths) const;
 
     /** 获取当前视图选择的项目统计信息
     * @param [out] nSelectedCount 选中的项目数
