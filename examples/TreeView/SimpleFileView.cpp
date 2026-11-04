@@ -157,6 +157,19 @@ SimpleFileView::SimpleFileView(MainForm* pMainForm, ui::VirtualListBox* pListBox
         m_pListBox->SetDataProvider(this);
         //右键菜单
         m_pListBox->AttachRClick(UiBind(&SimpleFileView::OnItemRClick, this, std::placeholders::_1));
+        //选择项发生变化时，同步更新状态栏中的选中项信息
+        m_pListBox->AttachSelect([this](const ui::EventArgs&) {
+            if (m_pMainForm != nullptr) {
+                m_pMainForm->OnViewSelectionChanged();
+            }
+            return true;
+            });
+        m_pListBox->AttachSelChanged([this](const ui::EventArgs&) {
+            if (m_pMainForm != nullptr) {
+                m_pMainForm->OnViewSelectionChanged();
+            }
+            return true;
+            });
     }
 }
 
@@ -236,14 +249,15 @@ void SimpleFileView::SetMultiSelect(bool /*bMultiSelect*/)
     //禁止切换单选和多选，固定为单选模式
 }
 
-void SimpleFileView::SetFileList(const ui::FilePath& currentPath, const std::vector<PathInfo>& pathList, const ui::FilePath& selectedPath)
+void SimpleFileView::SetFileList(const ui::FilePath& currentPath, std::vector<PathInfo> pathList, const ui::FilePath& selectedPath)
 {
     m_errorImagePathSet.clear(); //清除错误图片列表
     m_currentPath = currentPath;
     std::vector<PathInfo> oldPathList;
     oldPathList.swap(m_pathList);
 
-    m_pathList = pathList;
+    //移动数据，避免大量路径信息的深拷贝
+    m_pathList = std::move(pathList);
     m_pathSelectList.clear();
     m_pathSelectList.resize(m_pathList.size(), false); //初始状态均为未选择
 
@@ -256,8 +270,8 @@ void SimpleFileView::SetFileList(const ui::FilePath& currentPath, const std::vec
     //选择子项
     size_t nSelectedItemIndex = ui::Box::InvalidIndex;
     if (!selectedPath.IsEmpty()) {
-        for (size_t nIndex = 0; nIndex < pathList.size(); ++nIndex) {
-            const ui::DirectoryTree::PathInfo& pathInfo = pathList[nIndex];
+        for (size_t nIndex = 0; nIndex < m_pathList.size(); ++nIndex) {
+            const ui::DirectoryTree::PathInfo& pathInfo = m_pathList[nIndex];
             if (selectedPath == pathInfo.m_filePath) {
                 //保存选择状态
                 m_pathSelectList[nIndex] = true;
@@ -285,6 +299,38 @@ void SimpleFileView::GetCurrentPath(ui::FilePath& currentPath, ui::FilePath& sel
                 //记录当前所选的目录
                 selectedPath = pathInfo.m_filePath;
                 break;
+            }
+        }
+    }
+}
+
+void SimpleFileView::GetSelectedPaths(std::vector<ui::FilePath>& paths) const
+{
+    paths.clear();
+    std::vector<size_t> selectedIndexs;
+    GetSelectedElements(selectedIndexs);
+    for (size_t nIndex : selectedIndexs) {
+        if (nIndex < m_pathList.size()) {
+            const ui::DirectoryTree::PathInfo& pathInfo = m_pathList[nIndex];
+            if (!pathInfo.m_filePath.IsEmpty()) {
+                paths.push_back(pathInfo.m_filePath);
+            }
+        }
+    }
+}
+
+void SimpleFileView::GetSelectedItemInfo(int32_t& nSelectedCount, uint64_t& nSelectedFileSize) const
+{
+    nSelectedCount = 0;
+    nSelectedFileSize = 0;
+    std::vector<size_t> selectedIndexs;
+    GetSelectedElements(selectedIndexs);
+    for (size_t nIndex : selectedIndexs) {
+        if (nIndex < m_pathList.size()) {
+            const ui::DirectoryTree::PathInfo& pathInfo = m_pathList[nIndex];
+            ++nSelectedCount;
+            if (!pathInfo.m_bFolder) {
+                nSelectedFileSize += pathInfo.m_fileSize;
             }
         }
     }

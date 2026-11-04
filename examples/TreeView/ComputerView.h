@@ -32,6 +32,14 @@ public:
     */
     ui::FilePath GetSelectedPath() const;
 
+    /** 获取当前选择的所有磁盘路径
+    */
+    void GetSelectedPaths(std::vector<ui::FilePath>& paths) const;
+
+    /** 获取当前选择的项目统计信息（磁盘没有文件大小的概念，nSelectedFileSize始终为0）
+    */
+    void GetSelectedItemInfo(int32_t& nSelectedCount, uint64_t& nSelectedFileSize) const;
+
     /** 选择列表中的所有磁盘
     */
     void SelectAll();
@@ -61,6 +69,14 @@ private:
     /** 磁盘空间大小转换为显示字符串
     */
     DString FormatDiskSpace(uint64_t nSpace) const;
+
+    /** 将图标添加到图片列表中（同一个IconID只添加一次）
+    * @param [in] pImageList 图片列表
+    * @param [in] nIconId 图标ID
+    * @param [in] bUseSize 是否按图片列表的尺寸进行缩放
+    * @return 返回图片ID，失败时返回-1
+    */
+    int32_t GetImageIdForIcon(ui::ImageListPtr pImageList, uint32_t nIconId, bool bUseSize);
 
     /** 获取已用百分比显示字符串
     */

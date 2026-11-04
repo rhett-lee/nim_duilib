@@ -65,16 +65,26 @@ public:
 public:
     /** 用新的文件列表，替换原来的列表
     * @param [in] currentPath 当前显示内容所在路径
-    * @param [in] pathList 文件列表
+    * @param [in] pathList 文件列表（调用后不再使用，内部会移动数据）
     * @param [in] selectedPath 需要选择的路径
     */
-    void SetFileList(const ui::FilePath& currentPath, const std::vector<PathInfo>& pathList, const ui::FilePath& selectedPath);
+    void SetFileList(const ui::FilePath& currentPath, std::vector<PathInfo> pathList, const ui::FilePath& selectedPath);
 
     /** 获取当前显示内容所在路径和所选择的路径
     * @param [out] currentPath 当前显示内容所在路径
     * @param [out] selectedPath 当前视图中选择的路径
     */
     void GetCurrentPath(ui::FilePath& currentPath, ui::FilePath& selectedPath) const;
+
+    /** 获取当前选择的所有路径
+    */
+    void GetSelectedPaths(std::vector<ui::FilePath>& paths) const;
+
+    /** 获取当前选择的项目统计信息
+    * @param [out] nSelectedCount 选中的项目数
+    * @param [out] nSelectedFileSize 选中的文件总大小（不包含文件夹）
+    */
+    void GetSelectedItemInfo(int32_t& nSelectedCount, uint64_t& nSelectedFileSize) const;
 
     /** 选择列表中的所有项目（本视图为单选模式时，调用无效）
     */

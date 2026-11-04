@@ -49,6 +49,20 @@ void ComputerView::Initialize()
             }
             return true;
             });
+
+        //选择项发生变化时，同步更新状态栏中的选中项信息
+        m_pComputerListCtrl->AttachSelChanged([this](const ui::EventArgs&) {
+            if (m_pMainForm != nullptr) {
+                m_pMainForm->OnViewSelectionChanged();
+            }
+            return true;
+            });
+        m_pComputerListCtrl->AttachSelect([this](const ui::EventArgs&) {
+            if (m_pMainForm != nullptr) {
+                m_pMainForm->OnViewSelectionChanged();
+            }
+            return true;
+            });
     }
 }
 
@@ -76,7 +90,8 @@ bool ComputerView::OnComputerViewRClick(const ui::EventArgs& msg)
     ui::FilePath targetPath;
     ui::ListCtrlItem* pItem = static_cast<ui::ListCtrlItem*>(msg.pEventData);
     if (pItem != nullptr) {
-        size_t nIndex = pItem->GetDataItemIndex();
+        //通过UserData反查磁盘列表的索引（数据项索引与磁盘列表索引不一定相同）
+        size_t nIndex = m_pComputerListCtrl->GetDataItemUserData(pItem->GetDataItemIndex());
         if (nIndex < m_diskInfoList.size()) {
             targetPath = m_diskInfoList[nIndex].m_filePath;
         }
@@ -87,19 +102,48 @@ bool ComputerView::OnComputerViewRClick(const ui::EventArgs& msg)
 
 ui::FilePath ComputerView::GetSelectedPath() const
 {
-    ui::FilePath selectedPath;
-    if (m_pComputerListCtrl != nullptr) {
-        std::vector<size_t> itemIndexs;
-        m_pComputerListCtrl->GetSelectedDataItems(itemIndexs);
-        for (size_t nItemIndex : itemIndexs) {
-            size_t nIndex = m_pComputerListCtrl->GetDataItemUserData(nItemIndex);
-            if (nIndex < m_diskInfoList.size()) {
-                selectedPath = m_diskInfoList[nIndex].m_filePath;
-                break;
+    std::vector<ui::FilePath> paths;
+    GetSelectedPaths(paths);
+    if (!paths.empty()) {
+        return paths.front();
+    }
+    return ui::FilePath();
+}
+
+void ComputerView::GetSelectedPaths(std::vector<ui::FilePath>& paths) const
+{
+    paths.clear();
+    if (m_pComputerListCtrl == nullptr) {
+        return;
+    }
+    std::vector<size_t> itemIndexs;
+    m_pComputerListCtrl->GetSelectedDataItems(itemIndexs);
+    for (size_t nItemIndex : itemIndexs) {
+        size_t nIndex = m_pComputerListCtrl->GetDataItemUserData(nItemIndex);
+        if (nIndex < m_diskInfoList.size()) {
+            const ui::DirectoryTree::DiskInfo& diskInfo = m_diskInfoList[nIndex];
+            if (!diskInfo.m_filePath.IsEmpty()) {
+                paths.push_back(diskInfo.m_filePath);
             }
         }
     }
-    return selectedPath;
+}
+
+void ComputerView::GetSelectedItemInfo(int32_t& nSelectedCount, uint64_t& nSelectedFileSize) const
+{
+    nSelectedCount = 0;
+    nSelectedFileSize = 0;
+    if (m_pComputerListCtrl == nullptr) {
+        return;
+    }
+    std::vector<size_t> itemIndexs;
+    m_pComputerListCtrl->GetSelectedDataItems(itemIndexs);
+    for (size_t nItemIndex : itemIndexs) {
+        size_t nIndex = m_pComputerListCtrl->GetDataItemUserData(nItemIndex);
+        if (nIndex < m_diskInfoList.size()) {
+            ++nSelectedCount;
+        }
+    }
 }
 
 void ComputerView::SelectAll()
@@ -184,6 +228,33 @@ DString ComputerView::FormatUsedPercent(uint64_t nTotalSpace, uint64_t nFreeSpac
     return value;
 }
 
+int32_t ComputerView::GetImageIdForIcon(ui::ImageListPtr pImageList, uint32_t nIconId, bool bUseSize)
+{
+    if (pImageList == nullptr) {
+        return -1;
+    }
+    //同一个图标ID只加载一次，避免重复加载图片
+    auto iter = m_iconToImageMap.find(nIconId);
+    if (iter != m_iconToImageMap.end()) {
+        return iter->second;
+    }
+    DString iconString = ui::GlobalManager::Instance().Icon().GetIconString(nIconId);
+    if (iconString.empty()) {
+        return -1;
+    }
+    int32_t nImageId = -1;
+    if (bUseSize) {
+        nImageId = pImageList->AddImageStringWithSize(iconString, m_pMainForm->Dpi());
+    }
+    else {
+        nImageId = pImageList->AddImageString(iconString, m_pMainForm->Dpi());
+    }
+    if (nImageId >= 0) {
+        m_iconToImageMap[nIconId] = nImageId;
+    }
+    return nImageId;
+}
+
 void ComputerView::InitComputerViewHeader()
 {
 #if defined (DUILIB_BUILD_FOR_WIN)
@@ -212,6 +283,8 @@ void ComputerView::ShowMyComputerContents(const std::vector<ui::DirectoryTree::D
     }
     if (pImageList != nullptr) {
         pImageList->Clear();
+        //图片列表已清空，之前的IconID与ImageID的映射关系已经失效
+        m_iconToImageMap.clear();
     }
 #if defined (DUILIB_BUILD_FOR_WIN)
     ShowMyComputerContents_Win(pImageList, diskInfoList);
@@ -280,10 +353,8 @@ void ComputerView::ShowMyComputerContents_Win(ui::ImageListPtr pImageList, const
         m_pComputerListCtrl->SetDataItemUserData(nItemIndex, nIndex);
         //设置图标
         if (pImageList != nullptr) {
-            DString iconString = ui::GlobalManager::Instance().Icon().GetIconString(diskInfo.m_nIconID);
-            if (!iconString.empty()) {
-                int32_t nImageId = pImageList->AddImageString(iconString, m_pMainForm->Dpi());
-                m_iconToImageMap[diskInfo.m_nIconID] = nImageId;
+            int32_t nImageId = GetImageIdForIcon(pImageList, diskInfo.m_nIconID, true);
+            if (nImageId >= 0) {
                 m_pComputerListCtrl->SetDataItemImageId(nItemIndex, nImageId);
             }
         }
@@ -408,10 +479,8 @@ void ComputerView::ShowMyComputerContents_Linux(ui::ImageListPtr pImageList, con
 
         //设置图标
         if (pImageList != nullptr) {
-            DString iconString = ui::GlobalManager::Instance().Icon().GetIconString(diskInfo.m_nIconID);
-            if (!iconString.empty()) {
-                int32_t nImageId = pImageList->AddImageString(iconString, m_pMainForm->Dpi());
-                m_iconToImageMap[diskInfo.m_nIconID] = nImageId;
+            int32_t nImageId = GetImageIdForIcon(pImageList, diskInfo.m_nIconID, false);
+            if (nImageId >= 0) {
                 m_pComputerListCtrl->SetDataItemImageId(nItemIndex, nImageId);
             }
         }

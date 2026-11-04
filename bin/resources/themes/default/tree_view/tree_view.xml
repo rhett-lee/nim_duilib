@@ -133,9 +133,8 @@
 
             <!-- 状态栏 -->
             <HBox class="panel_card" height="28" margin="0,8,0,0" padding="10,0,10,0" border_round="6,6">
-                <Label name="status_path" font="system_regular_12" text_color="text_muted" valign="center" width="auto"/>
-                <Control width="stretch"/>
-                <Label name="status_info" font="system_regular_12" text_color="text_muted" valign="center" width="auto"/>
+                <Label name="status_path" font="system_regular_12" text_color="text_muted" valign="center" width="stretch"/>
+                <Label name="status_info" font="system_regular_12" text_color="text_muted" valign="center" width="auto" margin="12,0,0,0"/>
                 <Label name="status_mode" font="system_regular_12" text_color="text_muted" valign="center" width="auto" margin="12,0,0,0"/>
             </HBox>
         </VBox>

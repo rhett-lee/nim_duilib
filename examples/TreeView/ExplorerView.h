@@ -28,14 +28,14 @@ public:
 public:
     /** 用新的文件列表，替换原来的列表
     * @param [in] currentPath 当前显示内容所在路径
-    * @param [in] pathList 文件和文件夹列表
+    * @param [in] pathList 文件和文件夹列表（调用后不再使用，内部会移动数据）
+    * @param [in] selectedPath 需要选择的路径
     */
-    void SetFileList(const ui::FilePath& currentPath, const std::vector<PathInfo>& pathList, const ui::FilePath& selectedPath);
+    void SetFileList(const ui::FilePath& currentPath, std::vector<PathInfo> pathList, const ui::FilePath& selectedPath);
 
     /** 获取当前显示内容所在路径和所选择的路径
     * @param [out] currentPath 当前显示内容所在路径
     * @param [out] selectedPath 当前视图中选择的路径
-    * @param [in] selectedPath 需要选择的路径
     */
     void GetCurrentPath(ui::FilePath& currentPath, ui::FilePath& selectedPath) const;
 
@@ -47,9 +47,23 @@ public:
     */
     ui::FilePath GetSelectedPath() const;
 
+    /** 获取当前选择的所有文件或目录路径
+    */
+    void GetSelectedPaths(std::vector<ui::FilePath>& paths) const;
+
+    /** 获取当前选择的项目统计信息
+    * @param [out] nSelectedCount 选中的项目数
+    * @param [out] nSelectedFileSize 选中的文件总大小（不包含文件夹）
+    */
+    void GetSelectedItemInfo(int32_t& nSelectedCount, uint64_t& nSelectedFileSize) const;
+
     /** 选择列表中的所有项目
     */
     void SelectAll();
+
+    /** 文件大小转换为显示字符串
+    */
+    static DString FormatFileSize(bool bFolder, uint64_t nFileSize);
 
 public:
     /** 视图的表头
@@ -93,10 +107,6 @@ private:
     * @param [in] nIconId 图标ID（在IconManager中）
     */
     void OnRemoveIcon(uint32_t nIconId);
-
-    /** 文件大小转换为显示字符串
-    */
-    DString FormatFileSize(bool bFolder, uint64_t nFileSize) const;
 
     /** 文件修改时间转换为显示字符串
     */

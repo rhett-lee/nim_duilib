@@ -51,6 +51,10 @@ public:
     */
     void OnColumnSorted();
 
+    /** 视图中的选择项发生变化（由各视图的选择事件调用），同步更新状态栏
+    */
+    void OnViewSelectionChanged();
+
 private:
     /** 已获取指定目录的内容
     * @param [in] pTreeNode 当前的节点
@@ -115,13 +119,25 @@ private:
 
     /** 用文件列表刷新右侧的文件显示区域
     * @param [in] currentPath 当前显示内容所在路径
-    * @param [in] pathList 需要显示的文件和文件夹列表
+    * @param [in] pathList 需要显示的文件和文件夹列表（调用后不再使用，内部会移动数据）
     */
-    void ShowFileList(const ui::FilePath& currentPath, const std::vector<ui::DirectoryTree::PathInfo>& pathList);
+    void ShowFileList(const ui::FilePath& currentPath, std::vector<ui::DirectoryTree::PathInfo> pathList);
 
     /** 搜索框中的文本发生变化
     */
     bool OnSearchTextChanged(const ui::EventArgs& msg);
+
+    /** 根据当前搜索文本，更新搜索关键字列表（支持空格分隔的多个关键字）
+    */
+    void UpdateSearchKeywords();
+
+    /** 判断路径信息是否匹配当前的搜索条件
+    */
+    bool MatchSearchText(const ui::DirectoryTree::PathInfo& pathInfo) const;
+
+    /** 判断磁盘信息是否匹配当前的搜索条件
+    */
+    bool MatchDiskSearchText(const ui::DirectoryTree::DiskInfo& diskInfo) const;
 
     /** 应用当前的搜索条件（重新加载当前目录的内容）
     */
@@ -143,6 +159,10 @@ private:
     */
     void OpenSelectedItem();
 
+    /** 打开多个文件或目录（目录只进入第一个，文件全部打开）
+    */
+    void OpenPaths(const std::vector<ui::FilePath>& paths);
+
     /** 选择当前视图中的所有项目
     */
     void SelectAllItems();
@@ -150,6 +170,20 @@ private:
     /** 获取当前视图中选择的路径（无选择时返回空）
     */
     ui::FilePath GetSelectedPath() const;
+
+    /** 获取当前视图中选择的所有路径
+    */
+    void GetSelectedPaths(std::vector<ui::FilePath>& paths) const;
+
+    /** 获取当前视图选择的项目统计信息
+    * @param [out] nSelectedCount 选中的项目数
+    * @param [out] nSelectedFileSize 选中的文件总大小（不包含文件夹）
+    */
+    void GetSelectedItemInfo(int32_t& nSelectedCount, uint64_t& nSelectedFileSize) const;
+
+    /** 文件大小转换为显示字符串（与文件列表中的显示格式一致）
+    */
+    DString FormatItemSize(uint64_t nFileSize) const;
 
 private:
     /** 设置当前选择的树节点
@@ -296,6 +330,10 @@ private:
     /** 当前搜索关键字（已转换为小写，为空表示未搜索）
     */
     DString m_searchText;
+
+    /** 搜索关键字列表（支持空格分隔的多个关键字，每个关键字都已转换为小写）
+    */
+    std::vector<DString> m_searchKeywords;
 
     /** 当前显示内容所在路径
     */

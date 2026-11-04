@@ -152,6 +152,10 @@ void MainForm::OnInitWindow()
 
     //状态栏
     m_pStatusPath = dynamic_cast<ui::Label*>(FindControl(_T("status_path")));
+    if (m_pStatusPath != nullptr) {
+        //路径比较长时，鼠标悬停显示完整的路径（状态栏空间不足时）
+        m_pStatusPath->SetAutoToolTip(true);
+    }
     m_pStatusInfo = dynamic_cast<ui::Label*>(FindControl(_T("status_info")));
     m_pStatusMode = dynamic_cast<ui::Label*>(FindControl(_T("status_mode")));
 
@@ -322,13 +326,13 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
     std::vector<ui::DirectoryTree::PathInfo> pathList;
     pathList.reserve((size_t)m_nTotalItemCount);
     std::vector<ui::DirectoryTree::PathInfo> unusedList;//被搜索条件过滤掉的，尚未使用的项目
-    const bool bFilter = !m_searchText.empty();
+    const bool bFilter = !m_searchKeywords.empty();
     auto addItems = [this, &pathList, &unusedList, bFilter](const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& pathInfoList) {
         if (pathInfoList == nullptr) {
             return;
         }
         for (const ui::DirectoryTree::PathInfo& pathInfo : *pathInfoList) {
-            if (bFilter && (ui::StringUtil::MakeLowerString(pathInfo.m_displayName).find(m_searchText) == DString::npos)) {
+            if (bFilter && !MatchSearchText(pathInfo)) {
                 //不匹配搜索条件
                 unusedList.push_back(pathInfo);
                 continue;
@@ -355,14 +359,14 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
         SetShowTreeNode(pTreeNode);
     }
 
-    ShowFileList(currentPath, pathList);
+    ShowFileList(currentPath, std::move(pathList));
 
     //更新界面状态
     UpdateCommandUI();
     UpdateStatusBar();
 }
 
-void MainForm::ShowFileList(const ui::FilePath& currentPath, const std::vector<ui::DirectoryTree::PathInfo>& pathList)
+void MainForm::ShowFileList(const ui::FilePath& currentPath, std::vector<ui::DirectoryTree::PathInfo> pathList)
 {
     if (m_dataViewType == kPictureView) {
         SwitchToTabBoxViewType(TabBoxViewType::kFileView);
@@ -379,7 +383,7 @@ void MainForm::ShowFileList(const ui::FilePath& currentPath, const std::vector<u
             if (iter != m_selectedPathInfo.end()) {
                 selectedPath = iter->second;
             }
-            m_pSimpleFileView->SetFileList(currentPath, pathList, selectedPath);
+            m_pSimpleFileView->SetFileList(currentPath, std::move(pathList), selectedPath);
         }
     }
     else {
@@ -397,7 +401,7 @@ void MainForm::ShowFileList(const ui::FilePath& currentPath, const std::vector<u
             if (iter != m_selectedPathInfo.end()) {
                 selectedPath = iter->second;
             }
-            m_pExplorerView->SetFileList(currentPath, pathList, selectedPath);
+            m_pExplorerView->SetFileList(currentPath, std::move(pathList), selectedPath);
         }
     }
 }
@@ -415,7 +419,54 @@ bool MainForm::OnSearchTextChanged(const ui::EventArgs& msg)
         return true;
     }
     m_searchText = keyword;
+    UpdateSearchKeywords();
     ApplySearchFilter();
+    return true;
+}
+
+void MainForm::UpdateSearchKeywords()
+{
+    m_searchKeywords.clear();
+    if (m_searchText.empty()) {
+        return;
+    }
+    //支持以空格分隔的多个关键字：每个关键字都需要匹配
+    auto keywordList = ui::StringUtil::Split(m_searchText, _T(" "));
+    for (DString& keyword : keywordList) {
+        ui::StringUtil::Trim(keyword);
+        if (!keyword.empty()) {
+            m_searchKeywords.push_back(keyword);
+        }
+    }
+}
+
+bool MainForm::MatchSearchText(const ui::DirectoryTree::PathInfo& pathInfo) const
+{
+    if (m_searchKeywords.empty()) {
+        return true;
+    }
+    //匹配范围：显示名称、文件类型名称
+    const DString displayName = ui::StringUtil::MakeLowerString(pathInfo.m_displayName);
+    const DString typeName = ui::StringUtil::MakeLowerString(pathInfo.m_typeName);
+    for (const DString& keyword : m_searchKeywords) {
+        if ((displayName.find(keyword) == DString::npos) && (typeName.find(keyword) == DString::npos)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool MainForm::MatchDiskSearchText(const ui::DirectoryTree::DiskInfo& diskInfo) const
+{
+    if (m_searchKeywords.empty()) {
+        return true;
+    }
+    const DString displayName = ui::StringUtil::MakeLowerString(diskInfo.m_displayName);
+    for (const DString& keyword : m_searchKeywords) {
+        if (displayName.find(keyword) == DString::npos) {
+            return false;
+        }
+    }
     return true;
 }
 
@@ -433,6 +484,7 @@ void MainForm::ClearSearchText()
 {
     const bool bHasSearchText = !m_searchText.empty();
     m_searchText.clear();
+    m_searchKeywords.clear();
     if (m_pSearchBox != nullptr) {
         if (!m_pSearchBox->GetSearchText().empty()) {
             //清空搜索框中的文本（关键字已经相同，OnSearchTextChanged 不会重复刷新）
@@ -534,18 +586,43 @@ void MainForm::UpdateStatusBar()
 
     //项目统计
     if (m_pStatusInfo != nullptr) {
+        const bool bFilter = !m_searchKeywords.empty();
         DString strInfo;
         if (m_bComputerView) {
-            const DString strFormat = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_STATUS_DISKS"));
-            strInfo = ui::StringUtil::Printf(strFormat.c_str(), m_nShowItemCount);
+            if (bFilter) {
+                const DString strFormat = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_STATUS_FILTERED_DISKS"));
+                strInfo = ui::StringUtil::Printf(strFormat.c_str(), m_nDiskCount, m_nShowItemCount);
+            }
+            else {
+                const DString strFormat = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_STATUS_DISKS"));
+                strInfo = ui::StringUtil::Printf(strFormat.c_str(), m_nShowItemCount);
+            }
         }
-        else if (m_searchText.empty()) {
+        else if (!bFilter) {
             const DString strFormat = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_STATUS_ITEMS"));
             strInfo = ui::StringUtil::Printf(strFormat.c_str(), m_nTotalItemCount, m_nFolderCount, m_nFileCount);
         }
         else {
             const DString strFormat = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_STATUS_FILTERED"));
             strInfo = ui::StringUtil::Printf(strFormat.c_str(), m_nTotalItemCount, m_nShowItemCount);
+        }
+
+        //选中项信息：数量与文件总大小
+        int32_t nSelectedCount = 0;
+        uint64_t nSelectedFileSize = 0;
+        GetSelectedItemInfo(nSelectedCount, nSelectedFileSize);
+        if (nSelectedCount > 0) {
+            if (!strInfo.empty()) {
+                strInfo += _T(" · ");
+            }
+            if (!m_bComputerView && (nSelectedFileSize > 0)) {
+                const DString strFormat = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_STATUS_SELECTED_SIZE"));
+                strInfo += ui::StringUtil::Printf(strFormat.c_str(), nSelectedCount, FormatItemSize(nSelectedFileSize).c_str());
+            }
+            else {
+                const DString strFormat = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_STATUS_SELECTED"));
+                strInfo += ui::StringUtil::Printf(strFormat.c_str(), nSelectedCount);
+            }
         }
         m_pStatusInfo->SetText(strInfo);
     }
@@ -565,6 +642,12 @@ void MainForm::UpdateStatusBar()
         }
         m_pStatusMode->SetText(strMode);
     }
+}
+
+DString MainForm::FormatItemSize(uint64_t nFileSize) const
+{
+    //与文件列表中的"文件大小"列显示格式保持一致
+    return ExplorerView::FormatFileSize(false, nFileSize);
 }
 
 void MainForm::OnShowMyComputerContents(ui::TreeNode* pTreeNode,
@@ -590,7 +673,7 @@ void MainForm::OnShowMyComputerContents(ui::TreeNode* pTreeNode,
 
     //显示计算机视图的内容（按搜索条件过滤磁盘）
     if (m_pComputerView != nullptr) {
-        if (m_searchText.empty()) {
+        if (m_searchKeywords.empty()) {
             m_nShowItemCount = m_nDiskCount;
             m_pComputerView->ShowMyComputerContents(diskInfoList);
         }
@@ -598,7 +681,7 @@ void MainForm::OnShowMyComputerContents(ui::TreeNode* pTreeNode,
             std::vector<ui::DirectoryTree::DiskInfo> filteredDiskList;
             std::vector<ui::DirectoryTree::DiskInfo> unusedDiskList;//被搜索条件过滤掉的磁盘
             for (const ui::DirectoryTree::DiskInfo& diskInfo : diskInfoList) {
-                if (ui::StringUtil::MakeLowerString(diskInfo.m_displayName).find(m_searchText) != DString::npos) {
+                if (MatchDiskSearchText(diskInfo)) {
                     filteredDiskList.push_back(diskInfo);
                 }
                 else {
@@ -659,13 +742,31 @@ void MainForm::ShowViewContextMenu(ui::Control* pView, const ui::FilePath& targe
     ui::UiPoint point;
     GetCursorPos(point);
 
+    //右键点在已选中的项目上时，菜单对全部选中项生效；否则只对右键的项目生效
+    std::vector<ui::FilePath> selectedPaths;
+    GetSelectedPaths(selectedPaths);
+    bool bTargetSelected = false;
+    for (const ui::FilePath& path : selectedPaths) {
+        if (path == targetPath) {
+            bTargetSelected = true;
+            break;
+        }
+    }
+    std::vector<ui::FilePath> actionPaths;
+    if (bTargetSelected) {
+        actionPaths = selectedPaths;
+    }
+    else if (!targetPath.IsEmpty()) {
+        actionPaths.push_back(targetPath);
+    }
+    const bool bHasTarget = !actionPaths.empty();
+
     ui::Menu* menu = new ui::Menu(this, pView);//需要设置父窗口，否则菜单弹出时程序状态栏会变成非激活状态
     menu->SetSkinFolder(GetResourcePath().ToString());
     DString xml(_T("menu/context_menu.xml"));
     menu->ShowMenu(xml, point);
 
     //右键点在空白区域时，只保留"刷新"可用
-    const bool bHasTarget = !targetPath.IsEmpty();
     ui::MenuItem* pOpenItem = menu->GetMenuItemByName(_T("menu_item_open"));
     if (pOpenItem != nullptr) {
         pOpenItem->SetEnabled(bHasTarget);
@@ -679,8 +780,8 @@ void MainForm::ShowViewContextMenu(ui::Control* pView, const ui::FilePath& targe
         pCopyItem->SetEnabled(bHasTarget);
     }
 
-    menu->AttachMenuItemActivated([this, targetPath, bHasTarget](const DString& /*menuName*/, int32_t /*nMenuLevel*/,
-                                                                 const DString& itemName, size_t /*nItemIndex*/) {
+    menu->AttachMenuItemActivated([this, actionPaths, targetPath, bHasTarget](const DString& /*menuName*/, int32_t /*nMenuLevel*/,
+                                                                              const DString& itemName, size_t /*nItemIndex*/) {
         if (itemName == _T("menu_item_refresh")) {
             Refresh();
             return;
@@ -689,13 +790,30 @@ void MainForm::ShowViewContextMenu(ui::Control* pView, const ui::FilePath& targe
             return;
         }
         if (itemName == _T("menu_item_open")) {
-            OpenPath(targetPath);
+            //打开所有选中项：目录只进入第一个，文件全部用系统默认程序打开
+            OpenPaths(actionPaths);
         }
         else if (itemName == _T("menu_item_reveal")) {
-            RevealInFileManager(targetPath);
+            //"在文件资源管理器中显示"只针对右键的项目
+            if (!targetPath.IsEmpty()) {
+                RevealInFileManager(targetPath);
+            }
         }
         else if (itemName == _T("menu_item_copy_path")) {
-            ui::Clipboard::SetClipboardText(ui::StringConvert::TToUTF8(targetPath.ToString()));
+            //多选时，每行一个完整路径
+#if defined (DUILIB_BUILD_FOR_WIN)
+            const DString lineBreak(_T("\r\n"));
+#else
+            const DString lineBreak(_T("\n"));
+#endif
+            DString text;
+            for (const ui::FilePath& path : actionPaths) {
+                if (!text.empty()) {
+                    text += lineBreak;
+                }
+                text += path.ToString();
+            }
+            ui::Clipboard::SetClipboardText(ui::StringConvert::TToUTF8(text));
         }
     });
 }
@@ -703,6 +821,12 @@ void MainForm::ShowViewContextMenu(ui::Control* pView, const ui::FilePath& targe
 void MainForm::OnColumnSorted()
 {
     //点击表头排序后，同步更新状态栏中的排序信息
+    UpdateStatusBar();
+}
+
+void MainForm::OnViewSelectionChanged()
+{
+    //选择项变化后，同步更新状态栏中的选中项信息
     UpdateStatusBar();
 }
 
@@ -765,9 +889,28 @@ LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, 
 
 void MainForm::OpenSelectedItem()
 {
-    const ui::FilePath selectedPath = GetSelectedPath();
-    if (!selectedPath.IsEmpty()) {
-        OpenPath(selectedPath);
+    std::vector<ui::FilePath> selectedPaths;
+    GetSelectedPaths(selectedPaths);
+    if (!selectedPaths.empty()) {
+        //多选时：打开所有选中的文件；如果有目录，只进入第一个目录
+        OpenPaths(selectedPaths);
+    }
+}
+
+void MainForm::OpenPaths(const std::vector<ui::FilePath>& paths)
+{
+    bool bFolderOpened = false;
+    for (const ui::FilePath& path : paths) {
+        if (path.IsExistsDirectory()) {
+            if (!bFolderOpened) {
+                OpenPath(path);
+                bFolderOpened = true;
+            }
+        }
+        else if (path.IsExistsFile()) {
+            //文件：全部用系统默认程序打开
+            OpenWithSystem(path);
+        }
     }
 }
 
@@ -786,26 +929,55 @@ void MainForm::SelectAllItems()
     else if (m_pExplorerView != nullptr) {
         m_pExplorerView->SelectAll();
     }
+    //ListCtrl的全选不会触发选择事件，这里主动更新状态栏中的选中项信息
+    UpdateStatusBar();
 }
 
 ui::FilePath MainForm::GetSelectedPath() const
 {
-    ui::FilePath currentPath;
-    ui::FilePath selectedPath;
+    std::vector<ui::FilePath> paths;
+    GetSelectedPaths(paths);
+    if (!paths.empty()) {
+        return paths.front();
+    }
+    return ui::FilePath();
+}
+
+void MainForm::GetSelectedPaths(std::vector<ui::FilePath>& paths) const
+{
+    paths.clear();
     if (m_bComputerView) {
         if (m_pComputerView != nullptr) {
-            selectedPath = m_pComputerView->GetSelectedPath();
+            m_pComputerView->GetSelectedPaths(paths);
         }
     }
     else if (m_dataViewType == kPictureView) {
         if (m_pSimpleFileView != nullptr) {
-            m_pSimpleFileView->GetCurrentPath(currentPath, selectedPath);
+            m_pSimpleFileView->GetSelectedPaths(paths);
         }
     }
     else if (m_pExplorerView != nullptr) {
-        selectedPath = m_pExplorerView->GetSelectedPath();
+        m_pExplorerView->GetSelectedPaths(paths);
     }
-    return selectedPath;
+}
+
+void MainForm::GetSelectedItemInfo(int32_t& nSelectedCount, uint64_t& nSelectedFileSize) const
+{
+    nSelectedCount = 0;
+    nSelectedFileSize = 0;
+    if (m_bComputerView) {
+        if (m_pComputerView != nullptr) {
+            m_pComputerView->GetSelectedItemInfo(nSelectedCount, nSelectedFileSize);
+        }
+    }
+    else if (m_dataViewType == kPictureView) {
+        if (m_pSimpleFileView != nullptr) {
+            m_pSimpleFileView->GetSelectedItemInfo(nSelectedCount, nSelectedFileSize);
+        }
+    }
+    else if (m_pExplorerView != nullptr) {
+        m_pExplorerView->GetSelectedItemInfo(nSelectedCount, nSelectedFileSize);
+    }
 }
 
 bool MainForm::OnAddressBarPathChanged(const ui::EventArgs& msg)
