@@ -1,104 +1,132 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="75%,75%" caption="0,0,0,36" use_system_caption="false" shadow_attached="true" min_size="750,500" size_box="4,4,4,4">
+<Window size="75%,88%" caption="0,0,0,40" use_system_caption="false" shadow_attached="true" min_size="920,640" size_box="4,4,4,4">
     <VBox bkcolor="bg_window_main">
         <!-- 标题栏区域 -->
-        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
-            <Label text_id="STRID_VIRTUALLISTBOX_TITLE" font="system_regular_14" valign="center" margin="8" mouse_enabled="false" width="stretch"/>
-            <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
-            <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>
-            <Button class="btn_wnd_fullscreen_11" height="32" width="40" name="btn_window_fullscreen" margin="0,2,0,2"/>
-            <Button class="btn_wnd_min_11" height="32" width="40" name="btn_window_min" margin="0,2,0,2"/>
-            <Box height="stretch" width="40" margin="0,2,0,2">
-                <Button class="btn_wnd_max_11" height="32" width="stretch" name="btn_window_max"/>
-                <Button class="btn_wnd_restore_11" height="32" width="stretch" name="btn_window_restore" visible="false"/>
+        <HBox name="window_title_bar" width="stretch" height="40" bkcolor="bg_titlebar">
+            <Label text_id="STRID_VIRTUALLISTBOX_TITLE" font="system_bold_14" valign="center" margin="16,0,8,0" mouse_enabled="false" width="stretch" single_line="true"/>
+            <Button class="btn_switch_theme" height="34" width="40" name="btn_window_theme" margin="0,3,0,3"/>
+            <Button class="btn_switch_lang" height="34" width="40" name="btn_window_language" margin="0,3,0,3"/>
+            <Button class="btn_wnd_fullscreen_11" height="34" width="40" name="btn_window_fullscreen" margin="0,3,0,3"/>
+            <Button class="btn_wnd_min_11" height="34" width="40" name="btn_window_min" margin="0,3,0,3"/>
+            <Box height="stretch" width="40" margin="0,3,0,3">
+                <Button class="btn_wnd_max_11" height="34" width="stretch" name="btn_window_max"/>
+                <Button class="btn_wnd_restore_11" height="34" width="stretch" name="btn_window_restore" visible="false"/>
             </Box>
-            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,3"/>
         </HBox>
 
-        <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
-        <HBox height="30">
-            <Label text_id="STRID_VIRTUALLISTBOX_BOX_TYPE" font="system_regular_14" valign="center" margin="8,0,8,0"/>
-            <Label name="list_box_type" text="VirtualHTileListBox" font="system_regular_14" valign="center"/>
-        </HBox>
-        <HBox child_margin="5" padding="5,5,5,10" bkcolor="bg_container">
-            <VBox width="300" border_size="1" border_color="border_split_level1" padding="5,10,5,10" child_margin="10">
-                <VBox height="80">
-                    <Label name="label_column_row" font="system_bold_14" text_id="STRID_VIRTUALLISTBOX_ROW_COLS"  width="auto" height="auto" valign="center" />
-                    <Option class="option_1" name="option_column_auto" group="option_group" text_id="STRID_VIRTUALLISTBOX_AUTO_CALC" height="28" margin="80,0,0,0" selected="true"/>
-                    <HBox height="30" >
-                        <Option class="option_1" name="option_column_fix" group="option_group" text_id="STRID_VIRTUALLISTBOX_FIX_COLS" margin="80,0,0,0">
-                            <Event type="select" receiver="edit_column" apply_attribute="visible='true'" />
-                            <Event type="unselect" receiver="edit_column" apply_attribute="visible='false'" />
-                        </Option>
-                        <RichEdit class="simple rich_edit_spin" name="edit_column" text="3" min_number="1" max_number="12" visible="false" text_padding="1,0,8,0" width="50" height="28" margin="6,0,0,0" default_context_menu="true" number_only="true" limit_text="3" valign="center" text_align="vcenter" bkcolor="bg_richedit" border_size="1" border_color="border_richedit_normal"/>
+        <!-- 工作区域 -->
+        <VBox width="stretch" height="stretch" padding="16,12,16,16" child_margin="12">
+            <!-- 顶部标题与快捷操作 -->
+            <HBox width="stretch" height="auto" child_margin="8">
+                <VBox width="stretch" height="auto" child_margin="2">
+                    <HBox height="26" child_margin="8" valign="center">
+                        <Label text_id="STRID_VIRTUALLISTBOX_BOX_TYPE" font="system_regular_12" text_color="text_muted" valign="center" margin="0,4,0,0"/>
+                        <Label name="list_box_type" text="VirtualVTileListBox" font="system_bold_18" text_color="text_default" valign="center" single_line="true"/>
+                    </HBox>
+                    <Label text_id="STRID_VIRTUALLISTBOX_SUBTITLE" font="system_regular_12" text_color="text_muted" height="20" single_line="true" mouse_enabled="false"/>
+                </VBox>
+            </HBox>
+
+            <HBox height="stretch" child_margin="12">
+                <!-- 左侧设置面板 -->
+                <VScrollBox width="300" height="stretch" bkcolor="bg_window_card" border_size="1" border_color="border_split_level1" border_round="10,10" padding="16,14,16,14" vscrollbar="true">
+                    <VBox width="stretch" height="auto" child_margin="10">
+                    <VBox height="auto" child_margin="4">
+                        <Label font="system_bold_14" text_id="STRID_VIRTUALLISTBOX_ROW_COLS" text_color="text_default" height="20" valign="center"/>
+                        <Option class="option_1" name="option_column_auto" group="option_group" text_id="STRID_VIRTUALLISTBOX_AUTO_CALC" height="28" margin="12,0,0,0" selected="true"/>
+                        <HBox height="30" child_margin="6">
+                            <Option class="option_1" name="option_column_fix" group="option_group" text_id="STRID_VIRTUALLISTBOX_FIX_COLS" height="28" margin="12,0,0,0">
+                                <Event type="select" receiver="edit_column" apply_attribute="visible='true'" />
+                                <Event type="unselect" receiver="edit_column" apply_attribute="visible='false'" />
+                            </Option>
+                            <RichEdit class="simple rich_edit_spin" name="edit_column" text="3" min_number="1" max_number="12" visible="false" text_padding="1,0,8,0" width="60" height="28" margin="6,0,0,0" border_size="1" border_color="border_richedit_normal" border_round="4,4" default_context_menu="true" number_only="true" limit_text="3" valign="center" text_align="vcenter" bkcolor="bg_richedit"/>
+                        </HBox>
+                    </VBox>
+
+                    <Control height="1" bkcolor="border_split_level1"/>
+
+                    <VBox height="auto" child_margin="2">
+                        <Label font="system_bold_14" text_id="STRID_VIRTUALLISTBOX_ALIGN_TYPE" text_color="text_default" height="20" valign="center"/>
+                        <Option class="option_1" name="option_align1" group="option_group_align" text_id="STRID_VIRTUALLISTBOX_ALIGN_LEFT" height="26" margin="12,0,0,0" selected="true"/>
+                        <Option class="option_1" name="option_align2" group="option_group_align" text_id="STRID_VIRTUALLISTBOX_ALIGN_CENTER" height="26" margin="12,0,0,0" selected="false"/>
+                        <Option class="option_1" name="option_align3" group="option_group_align" text_id="STRID_VIRTUALLISTBOX_ALIGN_RIGHT" height="26" margin="12,0,0,0" selected="false"/>
+                    </VBox>
+
+                    <Control height="1" bkcolor="border_split_level1"/>
+
+                    <VBox height="auto" child_margin="4">
+                        <Label font="system_bold_14" text_id="STRID_VIRTUALLISTBOX_CHILD_MARGIN" text_color="text_default" height="20" valign="center"/>
+                        <HBox height="28" child_margin="8">
+                            <Label font="system_regular_12" text_id="STRID_VIRTUALLISTBOX_CHILD_MARGIN_X" text_color="text_muted" width="96" valign="center" single_line="true"/>
+                            <RichEdit class="simple" name="edit_child_margin_x" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="26" valign="center" multi_line="false" text_align="vcenter" text="" text_padding="4,0,4,0" auto_hscroll="true" border_size="1" border_color="border_richedit_normal" border_round="4,4" prompt_mode="true" prompt_text_id="STRID_VIRTUALLISTBOX_INPUT_MARGIN" prompt_color="text_richedit_prompt"/>
+                        </HBox>
+                        <HBox height="28" child_margin="8">
+                            <Label font="system_regular_12" name="label_child_margin_y" text_id="STRID_VIRTUALLISTBOX_CHILD_MARGIN_Y" text_color="text_muted" width="96" valign="center" single_line="true"/>
+                            <RichEdit class="simple" name="edit_child_margin_y" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="26" valign="center" multi_line="false" text_align="vcenter" text="" text_padding="4,0,4,0" auto_hscroll="true" border_size="1" border_color="border_richedit_normal" border_round="4,4" prompt_mode="true" prompt_text_id="STRID_VIRTUALLISTBOX_INPUT_MARGIN" prompt_color="text_richedit_prompt"/>
+                        </HBox>
+                    </VBox>
+
+                    <Control height="1" bkcolor="border_split_level1"/>
+
+                    <VBox height="auto" child_margin="4">
+                        <Label font="system_bold_14" text_id="STRID_VIRTUALLISTBOX_DATA_SETTINGS" text_color="text_default" height="20" valign="center"/>
+                        <HBox height="28" child_margin="8">
+                            <Label font="system_regular_12" text_id="STRID_VIRTUALLISTBOX_DATA_COUNT" text_color="text_muted" width="96" valign="center" single_line="true"/>
+                            <RichEdit class="simple" name="edit_total" bkcolor="bg_richedit" text="10000" number_only="true" min_number="1" font="system_regular_14" width="stretch" height="26" valign="center" multi_line="false" text_align="vcenter" text_padding="4,0,4,0" auto_hscroll="true" border_size="1" border_color="border_richedit_normal" border_round="4,4"/>
+                        </HBox>
+                        <Button class="btn_primary_global" name="btn_set_total" text_id="STRID_VIRTUALLISTBOX_CHANGE" height="30" width="stretch" border_round="4,4"/>
+                    </VBox>
+
+                    <Control height="1" bkcolor="border_split_level1"/>
+
+                    <VBox height="auto" child_margin="4">
+                        <Label font="system_bold_14" text_id="STRID_VIRTUALLISTBOX_DATA_MODIFY" text_color="text_default" height="20" valign="center"/>
+                        <HBox height="28" child_margin="8">
+                            <RichEdit class="simple" name="edit_update" number_only="true" min_number="0" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="26" valign="center" multi_line="false" text_align="vcenter" text_padding="4,0,4,0" prompt_mode="true" prompt_text_id="STRID_VIRTUALLISTBOX_INPUT_INDEX" prompt_color="text_richedit_prompt" auto_hscroll="true" border_size="1" border_color="border_richedit_normal" border_round="4,4"/>
+                            <RichEdit class="simple" name="edit_task_name" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="26" valign="center" multi_line="false" text_align="vcenter" text_padding="4,0,4,0" prompt_mode="true" prompt_text_id="STRID_VIRTUALLISTBOX_INPUT_NAME" prompt_color="text_richedit_prompt" auto_hscroll="true" border_size="1" border_color="border_richedit_normal" border_round="4,4"/>
+                        </HBox>
+                        <HBox height="30" child_margin="8">
+                            <Button class="btn_primary_global" name="btn_update" text_id="STRID_VIRTUALLISTBOX_DATA_UPDATE" width="stretch" height="30" border_round="4,4"/>
+                            <Button class="btn_global" name="btn_add_task" text_id="STRID_VIRTUALLISTBOX_ADD_TASK" width="stretch" height="30" border_round="4,4"/>
+                        </HBox>
+                    </VBox>
+
+                    <Control height="1" bkcolor="border_split_level1"/>
+
+                    <VBox height="auto" child_margin="4">
+                        <Label font="system_bold_14" text_id="STRID_VIRTUALLISTBOX_DATA_DELETE" text_color="text_default" height="20" valign="center"/>
+                        <HBox height="28" child_margin="8">
+                            <RichEdit class="simple" name="edit_delete" number_only="true" min_number="0" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="26" valign="center" text_align="vcenter" text_padding="4,0,4,0" multi_line="false" prompt_mode="true" prompt_text_id="STRID_VIRTUALLISTBOX_INPUT_INDEX" prompt_color="text_richedit_prompt" auto_hscroll="true" border_size="1" border_color="border_richedit_normal" border_round="4,4"/>
+                            <Button class="btn_global_red_80x30" name="btn_delete" text_id="STRID_VIRTUALLISTBOX_BTN_DELETE" width="96" height="30" border_round="4,4"/>
+                        </HBox>
+                    </VBox>
+                    </VBox>
+                </VScrollBox>
+
+                <!-- 右侧虚表预览与事件日志 -->
+                <VBox width="stretch" height="stretch" bkcolor="bg_window_card" border_size="1" border_color="border_split_level1" border_round="10,10" padding="14,12,14,12" child_margin="8">
+                    <HBox height="32" child_margin="8">
+                        <Label text_id="STRID_VIRTUALLISTBOX_LIST_PANEL_TITLE" font="system_bold_14" text_color="text_default" width="stretch" valign="center" single_line="true"/>
+                        <CheckBox class="checkbox_1" name="check_show_log" text_id="STRID_VIRTUALLISTBOX_SHOW_LOG" width="auto" height="26" valign="center" selected="false"/>
+                        <Label name="label_selection" font="system_regular_12" text_color="text_muted" width="auto" valign="center" single_line="true"/>
+                        <Button class="btn_global" name="btn_select_all" text_id="STRID_VIRTUALLISTBOX_SELECT_ALL" width="80" height="26" border_round="4,4"/>
+                        <Button class="btn_global" name="btn_select_none" text_id="STRID_VIRTUALLISTBOX_SELECT_NONE" width="80" height="26" border_round="4,4"/>
+                    </HBox>
+                    <!-- VirtualHTileListBox | VirtualVTileListBox | VirtualHListBox | VirtualVListBox -->
+                    <VirtualVTileListBox class="list" name="list" height="stretch" bkcolor="bg_list" frame_selection="true" select_none_when_click_blank="true" select_like_list_ctrl="true" multi_select="true" scroll_select="false" item_size="248,72" auto_calc_item_size="false" vscrollbar="true" hscrollbar="true" border_size="1" border_color="border_split_level1" border_round="8,8" padding="3,3,3,3" child_margin_x="6" child_margin_y="6"/>
+                    <!-- 事件日志：默认隐藏，勾选“显示日志”后显示 -->
+                    <HBox name="log_panel" height="118" bkcolor="bg_container" border_size="1" border_color="border_split_level1" border_round="6,6" padding="10,8,10,8" visible="false">
+                        <VBox width="stretch" height="stretch" child_margin="4">
+                            <HBox height="24" child_margin="8">
+                                <Label text_id="STRID_VIRTUALLISTBOX_EVENT_LOG" font="system_bold_12" text_color="text_default" width="stretch" valign="center" single_line="true"/>
+                                <Button class="btn_global" name="btn_clear_log" text_id="STRID_VIRTUALLISTBOX_CLEAR_LOG" width="76" height="22" border_round="3,3"/>
+                            </HBox>
+                            <RichEdit class="simple" name="edit_event_log" width="stretch" height="stretch" font="system_regular_12" multi_line="true" readonly="true" auto_vscroll="true" bkcolor="bg_container" text_padding="2,0,2,0" text_color="text_default" border_size="0" want_tab="false"/>
+                        </VBox>
                     </HBox>
                 </VBox>
-                <Control height="1" bkcolor="border_split_level1" />
-
-                <VBox height="auto">
-                    <Label font="system_bold_14" text_id="STRID_VIRTUALLISTBOX_ALIGN_TYPE"  width="auto" height="auto" valign="center" />
-                    <Option class="option_1" name="option_align1" group="option_group_align" text_id="STRID_VIRTUALLISTBOX_ALIGN_LEFT" height="28" margin="80,0,0,0" selected="true"/>
-                    <Option class="option_1" name="option_align2" group="option_group_align" text_id="STRID_VIRTUALLISTBOX_ALIGN_CENTER" height="28" margin="80,0,0,0" selected="false"/>
-                    <Option class="option_1" name="option_align3" group="option_group_align" text_id="STRID_VIRTUALLISTBOX_ALIGN_RIGHT" height="28" margin="80,0,0,0" selected="false"/>
-                </VBox>
-
-                <Control height="1" bkcolor="border_split_level1" />
-                <VBox height="auto">
-                    <HBox height="30" child_margin="10">
-                        <Label name="label_child_margin_x" font="system_bold_14" text_id="STRID_VIRTUALLISTBOX_CHILD_MARGIN_X"  width="auto" height="auto" valign="center" />
-                        <Box border_size="1" border_color="border_split_level1" width="90" height="26" valign="center">
-                            <RichEdit name="edit_child_margin_x" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="stretch" valign="center" multi_line="false" text_align="vcenter" text="" text_padding="2,0,0,0" auto_hscroll="true" />
-                        </Box>
-                    </HBox>
-                    <HBox height="30" child_margin="10">
-                        <Label font="system_bold_14" name="label_child_margin_y" text_id="STRID_VIRTUALLISTBOX_CHILD_MARGIN_Y"  width="auto" height="auto" valign="center" />
-                        <Box border_size="1" border_color="border_split_level1" width="90" height="26" valign="center">
-                            <RichEdit name="edit_child_margin_y" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="stretch" valign="center" multi_line="false" text_align="vcenter" text="" text_padding="2,0,0,0" auto_hscroll="true" />
-                        </Box>
-                    </HBox>
-                </VBox>
-
-                <HBox height="30" child_margin="10">
-                    <Label font="system_bold_14" text_id="STRID_VIRTUALLISTBOX_DATA_COUNT" width="auto" height="auto" valign="center" />
-                    <Box border_size="1" border_color="border_split_level1" width="180" height="26" valign="center">
-                        <RichEdit name="edit_total" bkcolor="bg_richedit" text="10000" number_only="true" min_number="1" font="system_regular_14" width="stretch" height="stretch" valign="center" multi_line="false" text_align="vcenter" text_padding="2,0,0,0"  auto_hscroll="true"  />
-                    </Box>
-                </HBox>
-
-                <Box height="30" child_margin="10" width="stretch">
-                    <Button class="btn_global_blue_80x30" halign="center" valign="center" name="btn_set_total" text_id="STRID_VIRTUALLISTBOX_CHANGE" />
-                </Box>
-
-                <Control height="1" bkcolor="border_split_level1" />
-
-                <HBox height="30" child_margin="10">
-                    <Label font="system_bold_14" text_id="STRID_VIRTUALLISTBOX_DATA_MODIFY"  width="auto" height="auto" valign="center" />
-                    <Box border_size="1" border_color="border_split_level1" height="26" valign="center">
-                        <RichEdit name="edit_update" number_only="true" min_number="0" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="stretch" valign="center" multi_line="false" text_align="vcenter" text_padding="2,0,0,0" prompt_mode="true" prompt_text_id="STRID_VIRTUALLISTBOX_INPUT_INDEX" prompt_color="text_richedit_prompt" auto_hscroll="true"/>
-                    </Box>
-                    <Box border_size="1" border_color="border_split_level1" height="26" valign="center">
-                        <RichEdit name="edit_task_name" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="stretch" valign="center" multi_line="false" text_align="vcenter" text_padding="2,0,0,0" prompt_mode="true" prompt_text_id="STRID_VIRTUALLISTBOX_INPUT_NAME" prompt_color="text_richedit_prompt" auto_hscroll="true" />
-                    </Box>
-                </HBox>
-
-                <Box height="30" child_margin="10" width="stretch">
-                    <Button class="btn_global_blue_80x30" halign="center" valign="center" name="btn_update" text_id="STRID_VIRTUALLISTBOX_DATA_UPDATE" />
-                </Box>
-
-                <Control height="1" bkcolor="border_split_level1" />
-
-                <HBox height="30" child_margin="10">
-                    <Label font="system_bold_14" text_id="STRID_VIRTUALLISTBOX_DATA_DELETE"  width="auto" height="auto" valign="center" />
-                    <Box border_size="1" border_color="border_split_level1" height="26" valign="center">
-                        <RichEdit name="edit_delete" number_only="true" min_number="0" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="stretch" valign="center" text_align="vcenter" text_padding="2,0,0,0" multi_line="false" prompt_mode="true" prompt_text_id="STRID_VIRTUALLISTBOX_INPUT_INDEX" prompt_color="text_richedit_prompt" auto_hscroll="true"/>
-                    </Box>
-                    <Button class="btn_global_red_80x30" halign="center" valign="center" name="btn_delete" text_id="STRID_VIRTUALLISTBOX_BTN_DELETE" />
-                </HBox>
-            </VBox>
-            <Box>
-                <!-- VirtualHTileListBox | VirtualVTileListBox | VirtualHListBox | VirtualVListBox -->
-                <VirtualVTileListBox class="list" name="list" bkcolor="bg_container" frame_selection="true" select_none_when_click_blank="true" select_like_list_ctrl="true" multi_select="true" scroll_select="false" item_size="240,64" auto_calc_item_size="false" vscrollbar="true" hscrollbar="true" border_size="1" border_color="border_split_level1" padding="1,1,1,1"/>
-            </Box>
-        </HBox>
+            </HBox>
+        </VBox>
     </VBox>
 </Window>

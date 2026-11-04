@@ -1,15 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
-    <ListBoxItem class="list_item">
-        <HBox mouse_enabled="false" padding="10,5,10,5">
-            <Control name="control_img" width="auto" height="auto" margin="0,0,10,0" mouse_enabled="false"/>
-            <VBox margin="0,3,0,5" mouse_enabled="false">
-                <HBox height="auto" mouse_enabled="false">
-                    <Label name="label_title" width="stretch" mouse_enabled="false"/>
+    <ListBoxItem class="list_item" border_round="8,8" border_size="1" border_color="border_split_level1">
+        <HBox mouse_enabled="false" padding="10,8,10,8">
+            <Box width="42" height="42" bkcolor="bg_container" border_round="21,21" valign="center" margin="0,0,10,0" mouse_enabled="false">
+                <Control name="control_img" width="28" height="28" halign="center" valign="center" mouse_enabled="false"/>
+            </Box>
+            <VBox width="stretch" height="stretch" valign="center" mouse_enabled="false">
+                <HBox height="22" mouse_enabled="false">
+                    <Label name="label_title" font="system_regular_14" text_color="text_default" width="stretch" single_line="true" mouse_enabled="false"/>
                     <Button class="btn_recycle" name="btn_del" width="auto" height="auto" tooltip_text_id="STRID_VIRTUALLISTBOX_DELETE"/>
                 </HBox>
                 <Control height="stretch" mouse_enabled="false"/>
-                <Progress class="progress_horizontal_blue" name="progress" value="30" mouse_enabled="false"/>
+                <HBox height="16" child_margin="6" mouse_enabled="false">
+                    <Progress class="progress_horizontal" name="progress" width="stretch" height="4" value="30" mouse_enabled="false"/>
+                    <Label name="label_percent" font="system_regular_12" text_color="text_muted" width="38" text_align="right,vcenter" mouse_enabled="false" single_line="true"/>
+                </HBox>
             </VBox>
         </HBox>
     </ListBoxItem>

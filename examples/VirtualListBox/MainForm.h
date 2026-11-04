@@ -45,6 +45,34 @@ private:
     */
     void OutputDebugLog(const DString& logMsg);
 
+    /** 把事件信息追加到界面的事件日志中
+    */
+    void AppendEventLog(const DString& logMsg);
+
+    /** 清空界面的事件日志
+    */
+    void ClearEventLog();
+
+    /** 刷新当前已选择项的数量显示
+    */
+    void UpdateSelectionStats();
+
+    /** 从编辑框读取数据元素索引号，无效时返回 false
+    */
+    bool GetElementIndexFromEdit(ui::RichEdit* pEdit, size_t nElementCount, size_t& nIndex) const;
+
+    /** 记录一条非法的索引输入日志
+    */
+    void LogInvalidIndex(ui::RichEdit* pEdit, size_t nElementCount);
+
+    /** 事件日志显示开关状态变化
+    */
+    bool OnShowLogChanged(const ui::EventArgs& args);
+
+    /** 获取语言字符串
+    */
+    DString GetLangString(const DString& stringId) const;
+
 private:
     ui::VirtualListBox* m_pTileList;
     DataProvider* m_pDataProvider;
@@ -58,6 +86,13 @@ private:
     ui::RichEdit* m_pEditDelete;
     ui::RichEdit* m_pEditChildMarginX;
     ui::RichEdit* m_pEditChildMarginY;
+
+private:
+    ui::Label* m_pLabelSelection;
+    ui::CheckBox* m_pLogCheck;
+    ui::Box* m_pLogPanel;
+    ui::RichEdit* m_pEditEventLog;
+    int32_t m_nEventLogLines;
 };
 
 #endif //EXAMPLES_MAIN_FORM_H_

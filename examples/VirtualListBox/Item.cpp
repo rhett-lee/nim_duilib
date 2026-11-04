@@ -1,15 +1,15 @@
 #include "Item.h"
 #include "DataProvider.h"
-#include <chrono>
 
 Item::Item(ui::Window* pWindow):
     ui::ListBoxItem(pWindow),
     m_pImageControl(nullptr),
     m_pTitleLabel(nullptr),
     m_pProgressControl(nullptr),
+    m_pPercentLabel(nullptr),
     m_pDelBtn(nullptr),
-    t_time(0),
-    m_nDataIndex(0)
+    m_nDataIndex(0),
+    m_bSubControlsInited(false)
 {
 }
 
@@ -17,23 +17,34 @@ Item::Item(ui::Window* pWindow):
 Item::~Item()
 = default;
 
-void Item::InitSubControls(const DString& img, const DString& title, size_t nDataIndex)
+void Item::InitSubControls(const DString& img, const DString& title, size_t nDataIndex, int32_t nProgress)
 {
-    // 查找 Item 下的控件
-    if (m_pImageControl == nullptr) {
+    // 查找 Item 下的控件（只在第一次显示时查找）
+    if (!m_bSubControlsInited) {
+        m_bSubControlsInited = true;
         m_pImageControl = dynamic_cast<ui::Control*>(FindSubControl(_T("control_img")));
         m_pTitleLabel = dynamic_cast<ui::Label*>(FindSubControl(_T("label_title")));
         m_pProgressControl = dynamic_cast<ui::Progress*>(FindSubControl(_T("progress")));
+        m_pPercentLabel = dynamic_cast<ui::Label*>(FindSubControl(_T("label_percent")));
         m_pDelBtn = dynamic_cast<ui::Button*>(FindSubControl(_T("btn_del")));
-        // 模拟进度条进度
-        t_time = std::chrono::steady_clock::now().time_since_epoch().count() / 1000;
-        m_pProgressControl->SetValue((double)(t_time % 100));
-        // 设置图标和任务名称
-        m_pImageControl->SetBkImage(img);
-        // 绑定删除任务处理函数
-        m_pDelBtn->AttachClick(UiBind(&Item::OnRemove, this, std::placeholders::_1));
+        if (m_pDelBtn != nullptr) {
+            // 绑定删除任务处理函数
+            m_pDelBtn->AttachClick(UiBind(&Item::OnRemove, this, std::placeholders::_1));
+        }
     }
-    m_pTitleLabel->SetText(ui::StringUtil::Printf(_T("%s %d%%"), title.c_str(), t_time % 100));
+
+    if (m_pImageControl != nullptr) {
+        m_pImageControl->SetBkImage(img);
+    }
+    if (m_pTitleLabel != nullptr) {
+        m_pTitleLabel->SetText(title);
+    }
+    if (m_pProgressControl != nullptr) {
+        m_pProgressControl->SetValue(nProgress);
+    }
+    if (m_pPercentLabel != nullptr) {
+        m_pPercentLabel->SetText(ui::StringUtil::Printf(_T("%d%%"), nProgress));
+    }
     m_nDataIndex = nDataIndex;
 }
 
@@ -51,5 +62,5 @@ bool Item::OnRemove(const ui::EventArgs& args)
             return true;
         }
     }
-    return false;    
+    return false;
 }

@@ -1,15 +1,57 @@
 #include "DataProvider.h"
 #include "Item.h"
 
+DownloadTask::DownloadTask(int nIdValue, const DString& taskName) :
+    nId(nIdValue)
+{
+    SetName(taskName);
+}
 
-int g_index = 1;
+DownloadTask::~DownloadTask()
+{
+    delete[] sName;
+}
+
+DownloadTask::DownloadTask(DownloadTask&& other) noexcept :
+    nId(other.nId),
+    bSelected(other.bSelected),
+    sName(other.sName)
+{
+    other.nId = 0;
+    other.bSelected = false;
+    other.sName = nullptr;
+}
+
+DownloadTask& DownloadTask::operator=(DownloadTask&& other) noexcept
+{
+    if (this != &other) {
+        delete[] sName;
+        nId = other.nId;
+        bSelected = other.bSelected;
+        sName = other.sName;
+
+        other.nId = 0;
+        other.bSelected = false;
+        other.sName = nullptr;
+    }
+    return *this;
+}
+
+void DownloadTask::SetName(const DString& taskName)
+{
+    delete[] sName;
+    sName = nullptr;
+    sName = new DString::value_type[taskName.size() + 1];
+    ui::StringUtil::StringCopy(sName, taskName.size() + 1, taskName.c_str());
+}
 
 DataProvider::DataProvider():
     m_nTotal(0),
+    m_nNextId(0),
     m_bMultiSelect(true)
 {
+    m_pfnDataChangedNotify = nullptr;
 }
-
 
 DataProvider::~DataProvider()
 = default;
@@ -21,6 +63,9 @@ ui::Control* DataProvider::CreateElement(ui::VirtualListBox* pVirtualListBox)
         return nullptr;
     }
     ASSERT(pVirtualListBox->GetWindow() != nullptr);
+    if (pVirtualListBox->GetWindow() == nullptr) {
+        return nullptr;
+    }
     Item* item = new Item(pVirtualListBox->GetWindow());
     ui::GlobalManager::Instance().FillBoxWithCache(item, ui::FilePath(_T("virtual_list_box/item.xml")));
     return item;
@@ -38,13 +83,14 @@ bool DataProvider::FillElement(ui::Control* pControl, size_t nElementIndex)
     const DownloadTask& task = m_vTasks[nElementIndex];
     DString img = _T("icon.png");
     DString title = ui::StringUtil::Printf(_T("%s [%02d]"), task.sName, task.nId);
-    pItem->InitSubControls(img, title, nElementIndex);
+    //进度由任务ID计算，保证滚动或刷新后保持不变
+    int32_t nProgress = (int32_t)((task.nId * 37) % 101);
+    pItem->InitSubControls(img, title, nElementIndex, nProgress);
     return true;
 }
 
 size_t DataProvider::GetElementCount() const
 {
-    // 加锁
     std::lock_guard<std::mutex> guard(m_lock);
     return m_vTasks.size();
 }
@@ -89,86 +135,123 @@ void DataProvider::GetSelectedElements(std::vector<size_t>& selectedIndexs) cons
 
 bool DataProvider::IsMultiSelect() const
 {
+    std::lock_guard<std::mutex> guard(m_lock);
     return m_bMultiSelect;
 }
 
 void DataProvider::SetMultiSelect(bool bMultiSelect)
 {
+    std::lock_guard<std::mutex> guard(m_lock);
     m_bMultiSelect = bMultiSelect;
 }
 
 void DataProvider::SetTotal(int nTotal)
 {
-    if (nTotal == m_nTotal) {
-        return;
-    }
     if (nTotal <= 0) {
         return;
     }
-    m_nTotal = nTotal;
+    {
+        std::lock_guard<std::mutex> guard(m_lock);
+        if ((nTotal == m_nTotal) && !m_vTasks.empty()) {
+            return;
+        }
+        m_nTotal = nTotal;
+    }
     Refresh();
 }
 
 void DataProvider::Refresh()
 {
-    // 加锁
-    if (m_nTotal < 1) {
-        m_nTotal = 1;
-    }
-    int nTotal = m_nTotal;
-    m_lock.lock();
-    for (auto task : m_vTasks) {
-        delete [] task.sName;
-    }
-    m_vTasks.clear();
-    DString name = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_VIRTUALLISTBOX_TASK_NAME"));
-    m_vTasks.reserve(nTotal);
-    for (auto i=0; i < nTotal; i++)
+    int nTotal = 0;
     {
-        DownloadTask task;
-        task.nId = i;
-        //不适用DString，因为它占用的内存很多，当数据量达到千万级别以上时，占的内存太多
-        task.sName = new DString::value_type[name.size() + 1];
-        ui::StringUtil::StringCopy(task.sName, name.size() + 1, name.c_str());
-        m_vTasks.emplace_back(std::move(task));
+        std::lock_guard<std::mutex> guard(m_lock);
+        if (m_nTotal < 1) {
+            m_nTotal = 1;
+        }
+        nTotal = m_nTotal;
     }
-    m_lock.unlock();
+
+    DString name = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_VIRTUALLISTBOX_TASK_NAME"));
+    std::vector<DownloadTask> tasks;
+    tasks.reserve((size_t)nTotal);
+    for (int i = 0; i < nTotal; ++i) {
+        tasks.emplace_back(i, name);
+    }
+
+    {
+        std::lock_guard<std::mutex> guard(m_lock);
+        m_vTasks.swap(tasks);
+        m_nNextId = nTotal;
+    }
 
     // 通知TileBox数据总数变动
     EmitCountChanged();
+    NotifyDataChanged();
+}
+
+void DataProvider::AddTask(const DString& sName)
+{
+    {
+        std::lock_guard<std::mutex> guard(m_lock);
+        m_vTasks.emplace_back(m_nNextId, sName);
+        ++m_nNextId;
+        m_nTotal = (int)m_vTasks.size();
+    }
+
+    // 通知TileBox数据总数变动
+    EmitCountChanged();
+    NotifyDataChanged();
 }
 
 void DataProvider::RemoveTask(size_t nIndex)
-{    
-    m_lock.lock();
+{
     bool bUpdated = false;
-    if (nIndex < m_vTasks.size()) {
-        auto iter = m_vTasks.begin() + nIndex;
-        m_vTasks.erase(iter);
-        bUpdated = true;
+    {
+        std::lock_guard<std::mutex> guard(m_lock);
+        if (nIndex < m_vTasks.size()) {
+            m_vTasks.erase(m_vTasks.begin() + nIndex);
+            m_nTotal = (int)m_vTasks.size();
+            bUpdated = true;
+        }
     }
-    m_lock.unlock();
 
     if (bUpdated) {
         // 通知TileBox数据总数变动
         EmitCountChanged();
-    }    
+        NotifyDataChanged();
+    }
 }
 
 void DataProvider::ChangeTaskName(size_t nIndex, const DString& sName)
 {
-    m_lock.lock();
     bool bUpdated = false;
-    if (nIndex < m_vTasks.size()) {
-        delete m_vTasks[nIndex].sName;
-        m_vTasks[nIndex].sName = new DString::value_type[sName.size() + 1];
-        ui::StringUtil::StringCopy(m_vTasks[nIndex].sName, sName.size() + 1, sName.c_str());
-        bUpdated = true;
+    {
+        std::lock_guard<std::mutex> guard(m_lock);
+        if (nIndex < m_vTasks.size()) {
+            m_vTasks[nIndex].SetName(sName);
+            bUpdated = true;
+        }
     }
-    m_lock.unlock();
 
     // 发送数据变动通知
     if (bUpdated) {
         EmitDataChanged(nIndex, nIndex);
-    }    
+    }
+}
+
+void DataProvider::SetDataChangedNotify(const std::function<void()>& notify)
+{
+    m_pfnDataChangedNotify = notify;
+}
+
+void DataProvider::ClearDataChangedNotify()
+{
+    m_pfnDataChangedNotify = nullptr;
+}
+
+void DataProvider::NotifyDataChanged()
+{
+    if (m_pfnDataChangedNotify) {
+        m_pfnDataChangedNotify();
+    }
 }

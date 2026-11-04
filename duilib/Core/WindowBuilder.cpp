@@ -1571,7 +1571,7 @@ Control* WindowBuilder::ParseXmlNodeChildren(const pugi::xml_node& xmlNode, Cont
                 // 约束class必须是第一个属性,否则可能会出现属性的值被class中的同名属性覆盖的问题
                 // 仅在Debug版本进行校验
                 if ((StringUtil::StringCompare(attr.name(), _T("class")) == 0) && (i != 0)) {
-                    ASSERT(i == 0);
+                    ASSERT((i == 0) && "The class attribute ‌must be the first attribute‌ in the element.");
                 }
                 ++i;
 #endif

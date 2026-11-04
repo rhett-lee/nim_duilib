@@ -4,12 +4,29 @@
 // duilib
 #include "duilib/duilib.h"
 
-#include <map>
+#include <functional>
 #include <mutex>
+#include <vector>
 
 struct DownloadTask
 {
-    int nId; //唯一ID
+public:
+    DownloadTask() = default;
+    explicit DownloadTask(int nIdValue, const DString& taskName);
+    ~DownloadTask();
+
+    // 名称使用裸指针存储，避免大数据量时每个元素都带一个 DString 的开销
+    DownloadTask(const DownloadTask&) = delete;
+    DownloadTask& operator=(const DownloadTask&) = delete;
+    DownloadTask(DownloadTask&& other) noexcept;
+    DownloadTask& operator=(DownloadTask&& other) noexcept;
+
+    /** 设置任务名称（内部会释放旧的名称内存）
+    */
+    void SetName(const DString& taskName);
+
+public:
+    int nId = 0; //唯一ID
     bool bSelected = false;//选择状态
     DString::value_type* sName = nullptr;//名称
 };
@@ -65,13 +82,43 @@ public:
     virtual void SetMultiSelect(bool bMultiSelect) override;
 
 public:
+    /** 设置任务总数（变化时会刷新数据）
+    */
     void SetTotal(int nTotal);
+
+    /** 重建全部任务数据
+    */
     void Refresh();
+
+    /** 新增一个任务
+    */
+    void AddTask(const DString& sName);
+
+    /** 删除指定任务
+    */
     void RemoveTask(size_t nIndex);
+
+    /** 修改指定任务的名称
+    */
     void ChangeTaskName(size_t nIndex, const DString& sName);
+
+    /** 设置数据数量变化后的通知函数
+    */
+    void SetDataChangedNotify(const std::function<void()>& notify);
+
+    /** 清除数据数量变化后的通知函数
+    */
+    void ClearDataChangedNotify();
+
+private:
+    /** 触发数据数量变化后的通知
+    */
+    void NotifyDataChanged();
 
 private:
     int m_nTotal;
+    int m_nNextId;
+    std::function<void()> m_pfnDataChangedNotify;
     std::vector<DownloadTask> m_vTasks;
     bool m_bMultiSelect; //是否支持多选
     mutable std::mutex m_lock;

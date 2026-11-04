@@ -1,6 +1,8 @@
 #include "MainForm.h"
 #include "DataProvider.h"
 
+#include <vector>
+
 MainForm::MainForm():
     m_pTileList(nullptr),
     m_pDataProvider(nullptr),
@@ -11,13 +13,25 @@ MainForm::MainForm():
     m_pEditTaskName(nullptr),
     m_pEditDelete(nullptr),
     m_pEditChildMarginX(nullptr),
-    m_pEditChildMarginY(nullptr)
+    m_pEditChildMarginY(nullptr),
+    m_pLabelSelection(nullptr),
+    m_pLogCheck(nullptr),
+    m_pLogPanel(nullptr),
+    m_pEditEventLog(nullptr),
+    m_nEventLogLines(0)
 {
 
 }
 
 MainForm::~MainForm()
 {
+    if (m_pDataProvider != nullptr) {
+        //避免数据提供者在界面销毁后回调已销毁的窗口
+        m_pDataProvider->ClearDataChangedNotify();
+        //数据提供者由窗口管理生命周期，窗口销毁时统一释放
+        delete m_pDataProvider;
+        m_pDataProvider = nullptr;
+    }
 }
 
 DString MainForm::GetSkinFolder()
@@ -41,14 +55,38 @@ void MainForm::OnInitWindow()
     m_pEditDelete = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit_delete")));
     m_pEditChildMarginX = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit_child_margin_x")));
     m_pEditChildMarginY = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit_child_margin_y")));
+    m_pLabelSelection = dynamic_cast<ui::Label*>(FindControl(_T("label_selection")));
+    m_pLogCheck = dynamic_cast<ui::CheckBox*>(FindControl(_T("check_show_log")));
+    m_pLogPanel = dynamic_cast<ui::Box*>(FindControl(_T("log_panel")));
+    m_pEditEventLog = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit_event_log")));
+
+    if (m_pTileList == nullptr) {
+        return;
+    }
+
+    //事件日志默认隐藏，勾选“显示日志”后才显示
+    if (m_pLogCheck != nullptr) {
+        m_pLogCheck->Selected((m_pLogPanel != nullptr) && m_pLogPanel->IsVisible(), false);
+        m_pLogCheck->AttachSelect([this](const ui::EventArgs& args) {
+            return OnShowLogChanged(args);
+            });
+        m_pLogCheck->AttachUnSelect([this](const ui::EventArgs& args) {
+            return OnShowLogChanged(args);
+            });
+    }
 
     GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&MainForm::OnClicked, this, std::placeholders::_1), 0);
 
     // 设置提供者
     m_pDataProvider = new DataProvider;
+    m_pDataProvider->SetDataChangedNotify([this]() {
+        //数据数量变化时刷新已选择数量的显示
+        UpdateSelectionStats();
+        });
     m_pTileList->SetDataProvider(m_pDataProvider);
 
-    const ui::LayoutType layoutType = m_pTileList->GetLayout()->GetLayoutType();
+    ui::Layout* pLayout = m_pTileList->GetLayout();
+    const ui::LayoutType layoutType = (pLayout != nullptr) ? pLayout->GetLayoutType() : ui::LayoutType::VirtualVTileLayout;
     if ((layoutType != ui::LayoutType::VirtualHTileLayout) &&
         (layoutType != ui::LayoutType::VirtualVTileLayout)){
         //隐藏列的设置，其他的不支持设置列
@@ -58,21 +96,23 @@ void MainForm::OnInitWindow()
         }
     }
 
-    if (layoutType == ui::LayoutType::VirtualHTileLayout) {
-        m_pOptionColumnFix->SetTextId(_T("STRID_VIRTUALLISTBOX_FIX_ROWS"));
-    }
-    else if (layoutType == ui::LayoutType::VirtualVTileLayout) {
-        m_pOptionColumnFix->SetTextId(_T("STRID_VIRTUALLISTBOX_FIX_COLS"));
-    }
-    else {
-        m_pOptionColumnFix->SetEnabled(false);
-        ui::Control* pControl = FindControl(_T("option_column_auto"));
-        if (pControl) {
-            pControl->SetEnabled(false);
+    if (m_pOptionColumnFix != nullptr) {
+        if (layoutType == ui::LayoutType::VirtualHTileLayout) {
+            m_pOptionColumnFix->SetTextId(_T("STRID_VIRTUALLISTBOX_FIX_ROWS"));
         }
-        pControl = FindControl(_T("label_column_row"));
-        if (pControl) {
-            pControl->SetEnabled(false);
+        else if (layoutType == ui::LayoutType::VirtualVTileLayout) {
+            m_pOptionColumnFix->SetTextId(_T("STRID_VIRTUALLISTBOX_FIX_COLS"));
+        }
+        else {
+            m_pOptionColumnFix->SetEnabled(false);
+            ui::Control* pControl = FindControl(_T("option_column_auto"));
+            if (pControl) {
+                pControl->SetEnabled(false);
+            }
+            pControl = FindControl(_T("label_column_row"));
+            if (pControl) {
+                pControl->SetEnabled(false);
+            }
         }
     }
 
@@ -156,6 +196,10 @@ void MainForm::OnInitWindow()
         else if (m_pTileList->GetType() == DUI_CTR_VIRTUAL_VTILE_LISTBOX) {
             pListType->SetText(_T("VirtualVTileListBox"));
         }
+        else {
+            //其他容器类型直接显示控件的实际类型名
+            pListType->SetText(m_pTileList->GetType());
+        }
     }
 
     //更新子项间隙的状态
@@ -185,9 +229,13 @@ void MainForm::OnInitWindow()
             m_pDataProvider->SetTotal(nTotal);
         }
     }
+    UpdateSelectionStats();
 
     //测试虚表的事件
     TestVirtualListBoxEvents(m_pTileList);
+
+    ClearEventLog();
+    AppendEventLog(GetLangString(_T("STRID_VIRTUALLISTBOX_LOG_READY")));
 }
 
 bool MainForm::OnLanguageChanged()
@@ -196,22 +244,38 @@ bool MainForm::OnLanguageChanged()
     if (m_pDataProvider != nullptr) {
         //语言变化时，刷新数据
         m_pDataProvider->Refresh();
+        UpdateSelectionStats();
+        ClearEventLog();
+        AppendEventLog(GetLangString(_T("STRID_VIRTUALLISTBOX_LOG_READY")));
     }
     return bRet;
 }
 
 bool MainForm::OnClicked(const ui::EventArgs& args)
 {
-    auto sName = args.GetSender()->GetName();
+    ui::Control* pSender = args.GetSender();
+    if (pSender == nullptr) {
+        return true;
+    }
+    DString sName = pSender->GetName();
     if (sName == _T("btn_set_total"))
     {
-        if (!m_pEditChildMarginX->GetText().empty())    {
-            m_pTileList->SetAttribute(_T("child_margin_x"), m_pEditChildMarginX->GetText());
+        if (m_pTileList == nullptr || m_pDataProvider == nullptr) {
+            return true;
         }
-        if (!m_pEditChildMarginY->GetText().empty()) {
-            m_pTileList->SetAttribute(_T("child_margin_y"), m_pEditChildMarginY->GetText());
+        if ((m_pEditChildMarginX != nullptr) && !m_pEditChildMarginX->GetText().empty()) {
+            int32_t nMarginX = ui::StringUtil::StringToInt32(m_pEditChildMarginX->GetText().c_str());
+            if (nMarginX >= 0) {
+                m_pTileList->SetAttribute(_T("child_margin_x"), m_pEditChildMarginX->GetText());
+            }
         }
-        if (m_pOptionColumnFix->IsSelected()) {
+        if ((m_pEditChildMarginY != nullptr) && !m_pEditChildMarginY->GetText().empty()) {
+            int32_t nMarginY = ui::StringUtil::StringToInt32(m_pEditChildMarginY->GetText().c_str());
+            if (nMarginY >= 0) {
+                m_pTileList->SetAttribute(_T("child_margin_y"), m_pEditChildMarginY->GetText());
+            }
+        }
+        if ((m_pOptionColumnFix != nullptr) && m_pOptionColumnFix->IsSelected() && (m_pEditColumn != nullptr)) {
             //固定列数/行数
             ui::LayoutType layoutType = m_pTileList->GetLayout()->GetLayoutType();
             if (layoutType == ui::LayoutType::VirtualVTileLayout) {
@@ -219,7 +283,7 @@ bool MainForm::OnClicked(const ui::EventArgs& args)
             }
             if (layoutType == ui::LayoutType::VirtualHTileLayout) {
                 m_pTileList->SetAttribute(_T("rows"), m_pEditColumn->GetText());
-            }            
+            }
         }
         else {
             //自动计算列数
@@ -233,20 +297,77 @@ bool MainForm::OnClicked(const ui::EventArgs& args)
             }
         }
 
-        int nTotal = ui::StringUtil::StringToInt32(m_pEditTotal->GetText().c_str());
-        if (nTotal > 0) {
-            m_pDataProvider->SetTotal(nTotal);
+        if (m_pEditTotal != nullptr) {
+            int nTotal = ui::StringUtil::StringToInt32(m_pEditTotal->GetText().c_str());
+            if (nTotal > 0) {
+                m_pDataProvider->SetTotal(nTotal);
+            }
         }
+        m_pTileList->Refresh();
+        UpdateSelectionStats();
     }
     else if (sName == _T("btn_update")) {
-        size_t nIndex = (size_t)ui::StringUtil::StringToInt32(m_pEditUpdate->GetText().c_str());
-        ASSERT(nIndex < m_pDataProvider->GetElementCount());
-        m_pDataProvider->ChangeTaskName(nIndex, m_pEditTaskName->GetText());
+        if ((m_pDataProvider == nullptr) || (m_pEditUpdate == nullptr) || (m_pEditTaskName == nullptr)) {
+            return true;
+        }
+        size_t nElementCount = m_pDataProvider->GetElementCount();
+        size_t nIndex = 0;
+        if (!GetElementIndexFromEdit(m_pEditUpdate, nElementCount, nIndex)) {
+            LogInvalidIndex(m_pEditUpdate, nElementCount);
+            return true;
+        }
+        DString sTaskName = m_pEditTaskName->GetText();
+        if (sTaskName.empty()) {
+            sTaskName = GetLangString(_T("STRID_VIRTUALLISTBOX_TASK_NAME"));
+        }
+        m_pDataProvider->ChangeTaskName(nIndex, sTaskName);
+        if (m_pTileList != nullptr) {
+            m_pTileList->EnsureVisible(nIndex, false);
+        }
+    }
+    else if (sName == _T("btn_add_task")) {
+        if ((m_pDataProvider == nullptr) || (m_pTileList == nullptr)) {
+            return true;
+        }
+        DString sTaskName = (m_pEditTaskName != nullptr) ? m_pEditTaskName->GetText() : DString();
+        if (sTaskName.empty()) {
+            sTaskName = GetLangString(_T("STRID_VIRTUALLISTBOX_TASK_NAME"));
+        }
+        m_pDataProvider->AddTask(sTaskName);
+        size_t nElementCount = m_pDataProvider->GetElementCount();
+        if (nElementCount > 0) {
+            m_pTileList->EnsureVisible(nElementCount - 1, false);
+        }
+        UpdateSelectionStats();
     }
     else if (sName == _T("btn_delete")) {
-        size_t nIndex = (size_t)ui::StringUtil::StringToInt32(m_pEditDelete->GetText().c_str());
-        ASSERT(nIndex < m_pDataProvider->GetElementCount());
+        if ((m_pDataProvider == nullptr) || (m_pEditDelete == nullptr)) {
+            return true;
+        }
+        size_t nElementCount = m_pDataProvider->GetElementCount();
+        size_t nIndex = 0;
+        if (!GetElementIndexFromEdit(m_pEditDelete, nElementCount, nIndex)) {
+            LogInvalidIndex(m_pEditDelete, nElementCount);
+            return true;
+        }
         m_pDataProvider->RemoveTask(nIndex);
+        UpdateSelectionStats();
+    }
+    else if (sName == _T("btn_select_all")) {
+        if (m_pTileList != nullptr) {
+            m_pTileList->SetSelectAll();
+        }
+        UpdateSelectionStats();
+    }
+    else if (sName == _T("btn_select_none")) {
+        if (m_pTileList != nullptr) {
+            m_pTileList->SetSelectNone();
+        }
+        UpdateSelectionStats();
+    }
+    else if (sName == _T("btn_clear_log")) {
+        ClearEventLog();
+        AppendEventLog(GetLangString(_T("STRID_VIRTUALLISTBOX_LOG_READY")));
     }
     return true;
 }
@@ -261,6 +382,10 @@ void MainForm::TestVirtualListBoxEvents(ui::VirtualListBox* pListBox)
         ASSERT(pListBox == args.GetSender());
         DString sInfo = GetEventDisplayInfo(args, pListBox);
         OutputDebugLog(sInfo);
+        AppendEventLog(sInfo);
+        if ((args.eventType == ui::kEventSelect) || (args.eventType == ui::kEventSelChanged)) {
+            UpdateSelectionStats();
+        }
         };
 
     //挂载事件
@@ -319,14 +444,16 @@ DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args, ui::VirtualList
     if (args.eventType == ui::kEventSelect) {
         size_t nNewItemIndex = (size_t)args.wParam;
         size_t nOldItemIndex = (size_t)args.lParam;
-        size_t nNewElementID = pListBox->GetDisplayItemElementIndex(nNewItemIndex);
-        if (nOldItemIndex != ui::Box::InvalidIndex) {
-            size_t nOldElementID = pListBox->GetDisplayItemElementIndex(nOldItemIndex);
-            sInfo += ui::StringUtil::Printf(_T("NewItemIndex=%zu, NewElementID=%zu; OldItemIndex=%zu, OldElementID=%zu"),
-                                            nNewItemIndex, nNewElementID, nOldItemIndex, nOldElementID);
+        if (nNewItemIndex == ui::Box::InvalidIndex) {
+            sInfo += _T("NewItemIndex=Invalid");
         }
         else {
+            size_t nNewElementID = pListBox->GetDisplayItemElementIndex(nNewItemIndex);
             sInfo += ui::StringUtil::Printf(_T("NewItemIndex=%zu, NewElementID=%zu"), nNewItemIndex, nNewElementID);
+        }
+        if (nOldItemIndex != ui::Box::InvalidIndex) {
+            size_t nOldElementID = pListBox->GetDisplayItemElementIndex(nOldItemIndex);
+            sInfo += ui::StringUtil::Printf(_T("; OldItemIndex=%zu, OldElementID=%zu"), nOldItemIndex, nOldElementID);
         }
     }
     else if (args.eventType == ui::kEventSelChanged) {
@@ -346,7 +473,7 @@ DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args, ui::VirtualList
         else {
             size_t nCalcElementID = pListBox->GetDisplayItemElementIndex(nItemIndex);
             ASSERT(nElementID == nCalcElementID);
-            sInfo += ui::StringUtil::Printf(_T("ItemIndex=%zu, ElementID=%zu"), nItemIndex, nElementID);
+            sInfo += ui::StringUtil::Printf(_T("ItemIndex=%zu, ElementID=%zu"), nItemIndex, nCalcElementID);
         }
     }
     else if ((args.eventType == ui::kEventKeyDown) || (args.eventType == ui::kEventKeyUp)) {
@@ -382,7 +509,7 @@ DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args, ui::VirtualList
         else {
             size_t nCalcElementID = pListBox->GetDisplayItemElementIndex(nItemIndex);
             ASSERT(nElementID == nCalcElementID);
-            sInfo += ui::StringUtil::Printf(_T("ItemIndex=%zu, ElementID=%zu"), nItemIndex, nElementID);
+            sInfo += ui::StringUtil::Printf(_T("ItemIndex=%zu, ElementID=%zu"), nItemIndex, nCalcElementID);
         }
     }
     else if (args.eventType == ui::kEventElementFilled) {
@@ -390,13 +517,7 @@ DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args, ui::VirtualList
         size_t nElementID = (size_t)args.lParam;
         size_t nCalcElementID = pListBox->GetDisplayItemElementIndex(nItemIndex);
         ASSERT(nElementID == nCalcElementID);
-        sInfo += ui::StringUtil::Printf(_T("ItemIndex=%zu, ElementID=%zu, ListBoxItem: 0x%p"), nItemIndex, nElementID, args.pEventData);
-        ui::IListBoxItem* pListBoxItem = dynamic_cast<ui::IListBoxItem*>((ui::Control*)args.pEventData);
-        ASSERT(pListBoxItem != nullptr);
-        if ((pListBoxItem != nullptr)) {
-            ASSERT(pListBoxItem->GetListBoxIndex() == nItemIndex);
-            ASSERT(pListBoxItem->GetElementIndex() == nElementID);
-        }
+        sInfo += ui::StringUtil::Printf(_T("ItemIndex=%zu, ElementID=%zu"), nItemIndex, nCalcElementID);
     }
     else {
         ASSERT(0);
@@ -407,7 +528,104 @@ DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args, ui::VirtualList
 void MainForm::OutputDebugLog(const DString& logMsg)
 {
 #if defined DUILIB_BUILD_FOR_WIN && defined _DEBUG
-    //::OutputDebugString(logMsg.c_str());
+    ::OutputDebugString(logMsg.c_str());
+#else
+    (void)logMsg;
 #endif
 }
 
+void MainForm::AppendEventLog(const DString& logMsg)
+{
+    if (m_pEditEventLog == nullptr) {
+        return;
+    }
+    //限制日志行数，避免长时间操作后内容过多
+    const int32_t nMaxLogLines = 40;
+    if (m_nEventLogLines >= nMaxLogLines) {
+        m_pEditEventLog->SetText(_T(""));
+        m_nEventLogLines = 0;
+    }
+    m_pEditEventLog->AppendText(logMsg + _T("\r\n"), false, true);
+    ++m_nEventLogLines;
+}
+
+void MainForm::ClearEventLog()
+{
+    if (m_pEditEventLog != nullptr) {
+        m_pEditEventLog->SetText(_T(""));
+    }
+    m_nEventLogLines = 0;
+}
+
+void MainForm::UpdateSelectionStats()
+{
+    if ((m_pLabelSelection == nullptr) || (m_pTileList == nullptr)) {
+        return;
+    }
+    std::vector<size_t> selectedIndexs;
+    m_pTileList->GetSelectedElements(selectedIndexs);
+    size_t nSelected = selectedIndexs.size();
+    size_t nTotal = m_pTileList->GetElementCount();
+
+    DString format = GetLangString(_T("STRID_VIRTUALLISTBOX_SELECTION_STATS"));
+    if (format.empty()) {
+        format = _T("Selected %zu / %zu");
+    }
+    m_pLabelSelection->SetText(ui::StringUtil::Printf(format.c_str(), nSelected, nTotal));
+}
+
+bool MainForm::GetElementIndexFromEdit(ui::RichEdit* pEdit, size_t nElementCount, size_t& nIndex) const
+{
+    if (pEdit == nullptr) {
+        return false;
+    }
+    DString sText = pEdit->GetText();
+    if (sText.empty()) {
+        return false;
+    }
+    int32_t nValue = ui::StringUtil::StringToInt32(sText.c_str());
+    if ((nValue < 0) || ((size_t)nValue >= nElementCount)) {
+        return false;
+    }
+    nIndex = (size_t)nValue;
+    return true;
+}
+
+void MainForm::LogInvalidIndex(ui::RichEdit* pEdit, size_t nElementCount)
+{
+    if (pEdit == nullptr) {
+        return;
+    }
+    DString sText = pEdit->GetText();
+    if (sText.empty()) {
+        DString format = GetLangString(_T("STRID_VIRTUALLISTBOX_INVALID_INPUT"));
+        if (format.empty()) {
+            format = _T("Please enter a valid item index");
+        }
+        AppendEventLog(format);
+        return;
+    }
+
+    int32_t nValue = ui::StringUtil::StringToInt32(sText.c_str());
+    size_t nInvalidValue = (nValue < 0) ? 0 : (size_t)nValue;
+    DString format = GetLangString(_T("STRID_VIRTUALLISTBOX_INVALID_INDEX"));
+    if (format.empty()) {
+        format = _T("Index %zu is out of range (total %zu)");
+    }
+    AppendEventLog(ui::StringUtil::Printf(format.c_str(), nInvalidValue, nElementCount));
+}
+
+bool MainForm::OnShowLogChanged(const ui::EventArgs& /*args*/)
+{
+    if ((m_pLogPanel == nullptr) || (m_pLogCheck == nullptr)) {
+        return true;
+    }
+    //日志区显示时占用界面底部空间，隐藏后列表自动占满剩余区域
+    m_pLogPanel->SetVisible(m_pLogCheck->IsSelected());
+    return true;
+}
+
+DString MainForm::GetLangString(const DString& stringId) const
+{
+    return ui::GlobalManager::Instance().Lang().GetStringByID(stringId);
+}
