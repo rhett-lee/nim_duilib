@@ -5,6 +5,7 @@
 
 #include "duilib/Core/NativeWindow_Windows.h"
 #include "duilib/Core/Control.h"
+#include "duilib/Core/Box.h"
 
 namespace ui 
 {
@@ -240,8 +241,15 @@ ControlPtrT<ControlDropTarget_Windows> WindowDropTarget::GetControlDropTarget(co
     UiPoint pt = screenPt;
     m_pNativeWindow->ScreenToClient(pt);
     ControlPtr pNewHover = ControlPtr(m_pNativeWindow->FindControl(pt));
-    if (pNewHover != nullptr) {
-        return ControlPtrT<ControlDropTarget_Windows>(pNewHover->GetControlDropTarget());
+    //鼠标下如果是最上层的子控件，且该控件不支持拖放，则继续向上查找父控件：
+    //这样容器控件（比如XmlBox）设置支持拖放后，其内部子控件所在的区域也能接收到拖放操作
+    Control* pControl = pNewHover.get();
+    while (pControl != nullptr) {
+        ControlDropTarget_Windows* pDropTarget = pControl->GetControlDropTarget();
+        if (pDropTarget != nullptr) {
+            return ControlPtrT<ControlDropTarget_Windows>(pDropTarget);
+        }
+        pControl = pControl->GetParent();
     }
     return ControlPtrT<ControlDropTarget_Windows>();
 }

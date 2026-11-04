@@ -1,55 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="75%,85%" min_size="300,200"
-        caption="0,0,0,36" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36"
+<Window size="75%,85%" min_size="860,560"
+        caption="0,0,0,40" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,40,40"
         shadow_type="default" size_box="4,4,4,4" icon="public/caption/logo.ico">
-    <VBox bkcolor="bg_window_main" visible="true">
+    <VBox bkcolor="bg_window_main">
         <!-- 标题栏区域 -->
-        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
-            <!-- 标题栏：窗口左上角显示区域 -->
-            <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
-                <Label text_id="STRID_XMLPREVIEW_TITLE" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
-            </HBox>
-            <Control mouse_enabled="false"/>
-            <!-- 标题栏：右侧窗口控制区域，窗口最小化、最大化、还原、关闭按钮 -->
-            <HBox margin="0,0,0,0" valign="center" width="auto" height="36">
-                <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
-                <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>
-                <Button class="btn_wnd_fullscreen_11" height="32" width="40" name="btn_window_fullscreen" margin="0,2,0,2"/>
-                <Button class="btn_wnd_min_11" height="32" width="40" name="btn_window_min" margin="0,2,0,2"/>
-                <Box height="stretch" width="40" margin="0,2,0,2">
-                    <Button class="btn_wnd_max_11" height="32" width="stretch" name="btn_window_max"/>
-                    <Button class="btn_wnd_restore_11" height="32" width="stretch" name="btn_window_restore" visible="false"/>
-                </Box>
-                <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
-            </HBox>
+        <HBox name="window_title_bar" width="stretch" height="40" bkcolor="bg_titlebar">
+            <Label text_id="STRID_XMLPREVIEW_TITLE" font="system_bold_14" valign="center" margin="16,0,8,0" mouse_enabled="false" width="stretch" single_line="true"/>
+            <Button class="btn_switch_theme" height="34" width="40" name="btn_window_theme" margin="0,3,0,3"/>
+            <Button class="btn_switch_lang" height="34" width="40" name="btn_window_language" margin="0,3,0,3"/>
+            <Button class="btn_wnd_fullscreen_11" height="34" width="40" name="btn_window_fullscreen" margin="0,3,0,3"/>
+            <Button class="btn_wnd_min_11" height="34" width="40" name="btn_window_min" margin="0,3,0,3"/>
+            <Box height="stretch" width="40" margin="0,3,0,3">
+                <Button class="btn_wnd_max_11" height="34" width="stretch" name="btn_window_max"/>
+                <Button class="btn_wnd_restore_11" height="34" width="stretch" name="btn_window_restore" visible="false"/>
+            </Box>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,3"/>
         </HBox>
-        <!-- 标题栏区域结束 -->
 
-        <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
-        <VBox padding="10,10,10,10" bkcolor="bg_container">
-            <VBox height="auto">
-                <HBox height="auto">
-                    <Label text_id="STRID_XMLPREVIEW_XML_PATH" valign="center"/>
-                    <Label name="xml_file_path" text="" valign="center" width="100%" path_ellipsis="true" single_line="true" auto_tooltip="true"/>
+        <!-- 工作区域 -->
+        <VBox width="stretch" height="stretch" padding="16,12,16,16" child_margin="12">
+            <!-- 顶部标题与主要操作 -->
+            <HBox width="stretch" height="auto" child_margin="8">
+                <VBox width="stretch" height="auto" child_margin="2">
+                    <Label text_id="STRID_XMLPREVIEW_HEADLINE" font="system_bold_18" text_color="text_default" height="26" valign="center" single_line="true"/>
+                    <Label text_id="STRID_XMLPREVIEW_SUBTITLE" font="system_regular_12" text_color="text_muted" height="20" valign="center" single_line="true"/>
+                </VBox>
+                <Button class="btn_primary_global" name="btn_browse_xml_file" text_id="STRID_XMLPREVIEW_XML_OPEN_XML" width="132" height="32" border_round="4,4" valign="center"/>
+                <Button class="btn_global" name="btn_reload_xml_file" text_id="STRID_XMLPREVIEW_RELOAD" width="96" height="32" border_round="4,4" valign="center"/>
+                <Button class="btn_global" name="btn_clear_xml_file" text_id="STRID_XMLPREVIEW_XML_CLEAR_PREVIEW" width="96" height="32" border_round="4,4" valign="center"/>
+            </HBox>
+
+            <!-- 文件信息与加载状态卡片 -->
+            <VBox width="stretch" height="auto" bkcolor="bg_window_card" border_size="1" border_color="border_split_level1" border_round="10,10" padding="14,10,14,10" child_margin="6">
+                <HBox height="24" child_margin="8">
+                    <Label text_id="STRID_XMLPREVIEW_XML_PATH" font="system_regular_12" text_color="text_muted" width="auto" valign="center" single_line="true"/>
+                    <Label name="xml_file_path" font="system_regular_13" text_color="text_default" width="stretch" valign="center" single_line="true" path_ellipsis="true" auto_tooltip="true"/>
+                    <Label name="xml_file_load_result" font="system_bold_12" text_color="text_muted" width="auto" valign="center" single_line="true"/>
                 </HBox>
-                <HBox height="auto">
-                    <Label text_id="STRID_XMLPREVIEW_XML_LOAD_RESULT" valign="center"/>
-                    <Label name="xml_file_load_result" text="" valign="center" width="100%" single_line="true" path_ellipsis="true" auto_tooltip="true" />
-                </HBox>
-                <HBox height="auto">
-                    <Label name="xml_drag_prompt" text_id="STRID_XMLPREVIEW_XML_DRAG_PROMPT" text_align="vcenter" valign="center" height="30"/>
-                    <Control />
-                    <CheckBox class="checkbox_2" name="checkbox_auto_refresh" text_id="STRID_XMLPREVIEW_XML_AUTO_REFRESH" margin="0,0,8,0" selected="false"/>
-                    <Label text_id="STRID_XMLPREVIEW_XML_REFRESH_MS" text_align="vcenter" valign="center"/>
-                    <RichEdit class="simple simple_border rich_edit_spin" name="auto_refresh_interval" min_number="1" max_number="60" limit_text="2" text="5" height="30" margin="0,0,8,0"/>
-                    <Button class="btn_global" name="btn_clear_xml_file" text_id="STRID_XMLPREVIEW_XML_CLEAR_PREVIEW" width="120" height="30" border_round="3,3" margin="0,0,8,0"/>
-                    <Button class="btn_global" name="btn_browse_xml_file" text_id="STRID_XMLPREVIEW_XML_OPEN_XML" width="120" height="30" border_round="3,3" margin="0,0,10,0"/>
+                <!-- 加载失败时的详细信息（默认隐藏） -->
+                <Label name="xml_file_error" font="system_regular_12" text_color="color_error" width="stretch" height="32" single_line="false" text_align="left,top" auto_tooltip="true" visible="false"/>
+                <HBox height="30" child_margin="8">
+                    <Label name="xml_drag_prompt" text_id="STRID_XMLPREVIEW_XML_DRAG_PROMPT" font="system_regular_12" text_color="text_muted" width="auto" valign="center" single_line="true"/>
+                    <Control width="stretch"/>
+                    <CheckBox class="checkbox_2" name="checkbox_auto_refresh" text_id="STRID_XMLPREVIEW_XML_AUTO_REFRESH" height="26" valign="center" selected="false"/>
+                    <Label text_id="STRID_XMLPREVIEW_XML_REFRESH_MS" font="system_regular_12" text_color="text_muted" valign="center" single_line="true"/>
+                    <RichEdit class="simple simple_border rich_edit_spin" name="auto_refresh_interval" min_number="1" max_number="60" limit_text="2" text="5" width="56" height="26" valign="center" border_size="1" border_color="border_richedit_normal" border_round="4,4" bkcolor="bg_richedit"/>
                 </HBox>
             </VBox>
-            <XmlBox name="xml_box_test" bkcolor="bg_container" border_color="blue" border_size="1" border_dash_style="dash" margin="4,4,4,4"
-                    mouse_child="true"
-                    res_path="controls"
-                    xml_file_path="controls.xml"/>
+
+            <!-- 预览区域卡片 -->
+            <VBox width="stretch" height="stretch" bkcolor="bg_window_card" border_size="1" border_color="border_split_level1" border_round="10,10" padding="12,10,12,12" child_margin="8">
+                <HBox height="24" child_margin="8">
+                    <Label text_id="STRID_XMLPREVIEW_PREVIEW_AREA" font="system_bold_14" text_color="text_default" valign="center" single_line="true"/>
+                    <Label text_id="STRID_XMLPREVIEW_PREVIEW_HINT" font="system_regular_12" text_color="text_muted" width="stretch" valign="center" single_line="true"/>
+                </HBox>
+                <XmlBox name="xml_box_test" width="stretch" height="stretch" bkcolor="bg_container" border_color="border_split_level1" border_size="1" border_round="8,8"
+                        mouse_child="true" res_path="controls" xml_file_path="controls.xml"/>
+            </VBox>
         </VBox>
     </VBox>
 </Window>

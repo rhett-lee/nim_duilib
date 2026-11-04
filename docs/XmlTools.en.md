@@ -53,16 +53,18 @@ if (pXmlBox != nullptr) {
 Main features:
 
 * **Browse for a file**: click the "Open XML file" button to choose any XML file;
-* **Drop a file**: drop a `.xml` file onto the preview area (implemented with `SetEnableDragDrop`, `SetEnableDropFile`, `SetDropFileTypes`);
+* **Drop a file**: drop a `.xml` file onto the preview area to load it. The controls inside the preview come from the previewed XML and have no drop target of their own, which makes Windows show the "no-drop" cursor. The sample therefore handles drop events at the **window level** (overriding `OnDropEnterMsg/OnDropOverMsg/OnDropMsg/OnDropLeaveMsg`): when the drop point is inside the `XmlBox` rectangle and the dragged file is `.xml`, it sets `m_dwEffect = DROPEFFECT_COPY` and `m_bHandled = true` to take over the event, and highlights the preview border with the accent color; control-level drop support on `XmlBox` (`SetEnableDragDrop`, `SetEnableDropFile`, `SetDropFileTypes(_T(".xml"))`) is kept as a fallback;
 * **Auto refresh**: after enabling "auto refresh", the file content is checked periodically at the configured interval (1~60 seconds) and reloaded when it changes — a good fit for the "save in the editor, preview updates automatically" workflow;
-* **Clear preview**: click "Clear preview" to return to the empty state;
-* **Result display**: the XML path and the load result each take one line; on failure the line shows `XML parse failed: ... line ..., column ...: ...`; long text is ellipsized and the full message appears on hover (`path_ellipsis="true"`, `auto_tooltip="true"` on the Label).
+* **Clear preview**: click "Clear preview" to return to the empty state; auto refresh is turned off as well;
+* **Reload**: click "Reload" to parse the current path again without choosing the file again;
+* **Result display**: the info card shows the full file path and a status badge (Loaded / Load failed / Waiting); on failure the error details are expanded below (parse errors include `line ..., column ...`); long text is ellipsized and the full message appears on hover (`path_ellipsis="true"`, `auto_tooltip="true"` on the Label).
 
 Notes:
 
 * Images, fonts and colors referenced by the previewed XML are resolved with the **current theme**, so it is recommended to place the previewed XML under `bin/resources/themes/default/<skin folder>/*.xml` (the `res_path` can then be derived automatically);
 * The preview container `XmlBox` supports the `res_path` attribute, which specifies the image resource root for relative-path XML (the sample uses `res_path="controls"`);
-* `XmlBox` loads its own `Class`, `ThemeColor` and `Font` for the previewed content; when switching files the previous temporary definitions are cleaned up automatically, so the global styles are not polluted.
+* `XmlBox` loads its own `Class`, `ThemeColor` and `Font` for the previewed content; when switching files the previous temporary definitions are cleaned up automatically, so the global styles are not polluted;
+* The framework was improved as well: when the window-level drop handler does not take over the event and the topmost control under the cursor has no drop target, the lookup now walks up to its parent controls (`WindowDropTarget::GetControlDropTarget`), so a container with drag-drop enabled also accepts files dropped over its children.
 
 ## 3. lint_xml.py: Static Checks for Layout XML
 

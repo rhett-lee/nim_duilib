@@ -111,7 +111,7 @@ Code entry: [MainThread.cpp](../examples/ChildWindow/MainThread.cpp), [MainForm.
 <img width="800" src="./Images/ChildWindow.png"/>
     
 ## 21. examples/XmlPreview    
-A demonstration example of the XML file interface preview feature.    
+A demonstration example of the XML file interface preview feature: open an XML file, drop an XML file into the preview area, reload, and clear the preview; the info card on top shows the full path, the load status (Loaded / Load failed / Waiting) and failure details (file, line and column); enabling "Auto Refresh" re-previews the file whenever it changes, using the configured interval (1–60 seconds).    
 Code entry: [MainThread.cpp](../examples/XmlPreview/MainThread.cpp), [MainForm.cpp](../examples/XmlPreview/MainForm.cpp); skin resources: `bin/resources/themes/default/xml_preview/xml_preview.xml`; related docs: [XmlNode.en.md](XmlNode.en.md), [XmlEvents.en.md](XmlEvents.en.md), [XmlTools.en.md](XmlTools.en.md).    
 <img width="800" src="./Images/XmlPreview.png"/>
     

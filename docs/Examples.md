@@ -109,7 +109,7 @@ macOS 下默认编译为 `bin/basic.app`，C++ 代码无需修改；配置方法
 <img width="800" src="./Images/ChildWindow.png"/>
     
 ## 21. examples/XmlPreview    
-XML文件的界面效果预览功能演示示例。    
+XML文件的界面效果预览功能演示示例：支持打开 XML 文件、把 XML 文件拖入预览区域、重新加载与清空预览；顶部信息卡片显示完整路径、加载状态（加载成功/加载失败/等待加载）与失败详情（文件、行号、列号）；勾选“自动刷新”后按设定间隔（1–60 秒）检测文件变化并自动重新预览。    
 代码入口：[MainThread.cpp](../examples/XmlPreview/MainThread.cpp)、[MainForm.cpp](../examples/XmlPreview/MainForm.cpp)；界面资源：`bin/resources/themes/default/xml_preview/xml_preview.xml`；相关文档：[XmlNode.md](XmlNode.md)、[XmlEvents.md](XmlEvents.md)、[XmlTools.md](XmlTools.md)。    
 <img width="800" src="./Images/XmlPreview.png"/>
     

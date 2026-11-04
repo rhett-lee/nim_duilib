@@ -51,16 +51,18 @@ if (pXmlBox != nullptr) {
 主要功能：
 
 * **浏览文件**：点击“打开XML文件”按钮选择任意 XML 文件；
-* **拖入文件**：直接把 `.xml` 文件拖到预览区（可设置 `SetEnableDragDrop`、`SetEnableDropFile`、`SetDropFileTypes`）；
+* **拖入文件**：直接把 `.xml` 文件拖到预览区即可加载。预览区内的控件来自被预览的 XML（它们本身没有拖放目标，会导致鼠标显示“禁止拖入”），因此示例在**窗口级**统一处理拖放事件（重写 `OnDropEnterMsg/OnDropOverMsg/OnDropMsg/OnDropLeaveMsg`）：落点在 `XmlBox` 矩形内且拖入的是 `.xml` 文件时，设置 `m_dwEffect = DROPEFFECT_COPY`、`m_bHandled = true` 截获事件，并把预览区边框切换为强调色作为拖入提示；同时仍为 `XmlBox` 设置了控件级拖放（`SetEnableDragDrop`、`SetEnableDropFile`、`SetDropFileTypes(_T(".xml"))`）作为兜底；
 * **自动刷新**：勾选“自动刷新”后，按设定秒数（1~60）定时检测文件内容，内容变化时重新加载，适合“编辑器保存 → 预览自动更新”的工作流；
-* **清空预览**：点击“清空预览”恢复空白状态；
-* **结果显示**：XML 路径和加载结果各占一行，加载失败时显示 `XML parse failed: ... line ..., column ...: ...`，文本过长时自动省略，鼠标悬浮可看到完整信息（Label 的 `path_ellipsis="true"`、`auto_tooltip="true"`）。
+* **清空预览**：点击“清空预览”恢复空白状态，同时取消“自动刷新”；
+* **重新加载**：点击“重新加载”按当前路径重新解析，无需重新选择文件；
+* **结果显示**：顶部信息卡片显示文件完整路径与状态徽标（加载成功/加载失败/等待加载）；加载失败时在下方展开显示错误详情（解析错误包含 `line ..., column ...`），文本过长时自动省略，鼠标悬浮可看到完整信息（Label 的 `path_ellipsis="true"`、`auto_tooltip="true"`）。
 
 注意事项：
 
 * 预览 XML 中引用的图片、字体、颜色等都按**当前主题**解析，因此被预览的 XML 建议放在 `bin/resources/themes/default/<皮肤目录>/*.xml` 下（这样 `res_path` 能自动推导出资源目录）；
 * 预览容器 `XmlBox` 支持 `res_path` 属性，用于指定相对路径 XML 的图片资源根目录（示例中为 `res_path="controls"`）；
-* `XmlBox` 会为预览内容加载独立的 `Class`、`ThemeColor`、`Font`，切换文件时会自动清理上一次加载的临时定义，不会污染全局样式。
+* `XmlBox` 会为预览内容加载独立的 `Class`、`ThemeColor`、`Font`，切换文件时会自动清理上一次加载的临时定义，不会污染全局样式；
+* 框架侧同步做了改进：窗口级拖放未被截获时，如果鼠标下最上层的子控件不支持拖放，会继续向上查找父控件（`WindowDropTarget::GetControlDropTarget`），因此给容器控件设置拖放后，其内部子控件所在的区域也能接收拖入的文件。
 
 ## 三、lint_xml.py：布局 XML 静态检查
 
