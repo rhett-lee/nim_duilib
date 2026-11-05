@@ -19,11 +19,23 @@ void Check(bool condition, const std::function<std::string()>& message)
     }
 }
 
+/** 将 DString 转换为 std::string，用于输出断言信息
+*   Windows 下 DString 是 Unicode 字符串，需要转换为本地编码；Unix 下 DString 即为 UTF-8 的 std::string
+*/
+std::string ToDisplayString(const DString& text)
+{
+#ifdef DUILIB_BUILD_FOR_WIN
+    return ui::StringConvert::TToMBCS(text);
+#else
+    return text;
+#endif
+}
+
 #define CHECK(condition) Check((condition), []() { return std::string(#condition); })
 #define CHECK_EQ(actual, expected) \
     Check((actual) == (expected), [&]() { \
-        return std::string(#actual) + ": expected <" + ui::StringConvert::TToMBCS(DString(expected)) \
-             + ">, actual <" + ui::StringConvert::TToMBCS(DString(actual)) + ">"; \
+        return std::string(#actual) + ": expected <" + ToDisplayString(DString(expected)) \
+             + ">, actual <" + ToDisplayString(DString(actual)) + ">"; \
     })
 
 /** 断言路径段的显示名、完整路径与根标记
@@ -131,12 +143,22 @@ void TestUncPath()
 void TestRelativePath()
 {
     std::vector<ui::AddressBarPathSegment> segments;
+#ifdef DUILIB_BUILD_FOR_WIN
     ui::BuildAddressBarPathSegments(_T("a\\b\\c"), _T("此电脑"), segments);
+#else
+    ui::BuildAddressBarPathSegments(_T("a/b/c"), _T("此电脑"), segments);
+#endif
     CHECK(segments.size() == 3);
     if (segments.size() == 3) {
+#ifdef DUILIB_BUILD_FOR_WIN
         CheckSegment(segments[0], _T("a"), _T("a"), false, false);
         CheckSegment(segments[1], _T("b"), _T("a\\b"), false, false);
         CheckSegment(segments[2], _T("c"), _T("a\\b\\c"), false, false);
+#else
+        CheckSegment(segments[0], _T("a"), _T("a"), false, false);
+        CheckSegment(segments[1], _T("b"), _T("a/b"), false, false);
+        CheckSegment(segments[2], _T("c"), _T("a/b/c"), false, false);
+#endif
     }
 
     //单段相对路径
@@ -168,8 +190,13 @@ void TestNormalizeHistoryPath()
     CHECK_EQ(ui::NormalizeAddressBarHistoryPath(_T("   ")), _T(""));
 
     //去掉首尾空白与末尾多余的路径分隔符
+#ifdef DUILIB_BUILD_FOR_WIN
     CHECK_EQ(ui::NormalizeAddressBarHistoryPath(_T("  C:\\LLVM\\  ")), _T("C:\\LLVM"));
     CHECK_EQ(ui::NormalizeAddressBarHistoryPath(_T("C:\\LLVM\\\\")), _T("C:\\LLVM"));
+#else
+    CHECK_EQ(ui::NormalizeAddressBarHistoryPath(_T("  /home/user/  ")), _T("/home/user"));
+    CHECK_EQ(ui::NormalizeAddressBarHistoryPath(_T("/home/user//")), _T("/home/user"));
+#endif
 
 #ifdef DUILIB_BUILD_FOR_WIN
     //盘符根必须保留末尾分隔符
