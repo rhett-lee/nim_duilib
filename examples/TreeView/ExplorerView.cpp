@@ -104,7 +104,9 @@ void ExplorerView::Initialize()
 
 bool ExplorerView::OnExplorerViewDoubleClick(const ui::EventArgs& msg)
 {
-    if ((m_pListCtrl != nullptr) && (msg.wParam != 0) && (m_pMainForm != nullptr)) {
+    //Icon/List视图没有表头，视图中的第0项也是有效数据项，不能用wParam != 0过滤，
+    //否则大图标/列表模式下第一项的双击没有响应；表头行由ListCtrl内部过滤，不会派发该事件
+    if ((m_pListCtrl != nullptr) && (msg.pEventData != nullptr) && (m_pMainForm != nullptr)) {
         size_t nItemIndex = msg.lParam;
         size_t nIndex = m_pListCtrl->GetDataItemUserData(nItemIndex);
         if (nIndex < m_pathInfoList.size()) {

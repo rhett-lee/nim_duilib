@@ -68,7 +68,9 @@ void ComputerView::Initialize()
 
 bool ComputerView::OnComuterViewDoubleClick(const ui::EventArgs& msg)
 {
-    if ((m_pComputerListCtrl != nullptr) && (msg.wParam != 0) && (m_pMainForm != nullptr)) {
+    //Icon/List视图没有表头，视图中的第0项也是有效数据项，不能用wParam != 0过滤，
+    //否则第一项的双击没有响应；表头行由ListCtrl内部过滤，不会派发该事件
+    if ((m_pComputerListCtrl != nullptr) && (msg.pEventData != nullptr) && (m_pMainForm != nullptr)) {
         size_t nItemIndex = msg.lParam;
         size_t nIndex = m_pComputerListCtrl->GetDataItemUserData(nItemIndex);
         if (nIndex < m_diskInfoList.size()) {
