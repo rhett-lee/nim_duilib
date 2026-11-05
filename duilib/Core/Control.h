@@ -1020,6 +1020,7 @@ public:
     /** 监听右键菜单事件
      * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
      * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+     * @note 绑定该事件后，控件会自动响应上下文菜单消息(等同于调用 SetContextMenuUsed(true))
      */
     void AttachContextMenu(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventContextMenu, callback, callbackID); }
 

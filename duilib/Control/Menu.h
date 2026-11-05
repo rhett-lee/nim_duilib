@@ -137,6 +137,10 @@ public:
     //获取菜单关联的控件
     Control* GetRelatedControl() const;
 
+    /** 动态添加/删除菜单项后，重新计算菜单的大小与位置
+    */
+    void RefreshMenuLayout();
+
 private:
     friend MenuItem; //需要访问部分私有成员函数
 

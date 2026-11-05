@@ -91,6 +91,23 @@ private:
     */
     bool OnAddressBarPathClick(const ui::EventArgs& msg);
 
+    /** 地址栏预提交：校验/规范化用户输入的路径（不直接导航）
+     * 返回false时地址栏保持原路径；回调中可把文件路径规范化为其父目录
+    */
+    bool OnAddressBarPathChanging(DString& newPath);
+
+    /** 树节点选中事件：在目录内容加载完成前即时更新地址栏
+    */
+    bool OnTreeNodeSelect(const ui::EventArgs& msg);
+
+    /** 根据树节点更新地址栏路径（"计算机"节点显示为空路径）
+    */
+    void SetAddressBarPathFromTreeNode(ui::TreeNode* pTreeNode);
+
+    /** 显示地址栏面包屑的右键菜单
+    */
+    void ShowAddressBarContextMenu();
+
     /** 刷新
     */
     void Refresh();
@@ -371,6 +388,10 @@ private:
     /** 保存每个路径下选择的文件或者目录，在前进后退时保持原选择，改善体验
     */
     std::unordered_map<ui::FilePath, ui::FilePath> m_selectedPathInfo;
+
+    /** 地址栏输入的文件路径：跳转到父目录后需要在列表中选中该文件
+    */
+    ui::FilePath m_pendingLocateFile;
 
     /** 是否可以添加到前进后退列表
     */

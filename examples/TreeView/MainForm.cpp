@@ -61,6 +61,20 @@ void RevealInFileManager(const ui::FilePath& filePath)
 #endif
 }
 
+/** 在新窗口中打开指定的目录（Windows使用资源管理器，其他平台打开文件URL）
+*/
+void OpenInNewFileManagerWindow(const ui::FilePath& directoryPath)
+{
+    if (directoryPath.IsEmpty()) {
+        return;
+    }
+#if defined (DUILIB_BUILD_FOR_WIN)
+    ::ShellExecuteW(nullptr, L"open", L"explorer.exe", directoryPath.ToString().c_str(), nullptr, SW_SHOWNORMAL);
+#else
+    ui::SystemUtil::OpenUrl(MakeFileUrl(directoryPath.ToString()));
+#endif
+}
+
 /** 判断控件是否位于指定父控件的子树中（含父控件自身）
 */
 bool IsControlInSubTree(const ui::Control* pControl, const ui::Control* pParent)
@@ -248,10 +262,21 @@ void MainForm::OnInitWindow()
     if (m_pTree == nullptr) {
         return;
     }
+    //树节点选中时立即更新地址栏（目录内容枚举完成前也不滞后）
+    m_pTree->AttachEvent(ui::kEventSelect, UiBind(&MainForm::OnTreeNodeSelect, this, std::placeholders::_1), 0);
     m_pAddressBar = dynamic_cast<ui::AddressBar*>(FindControl(_T("file_path")));
     if (m_pAddressBar != nullptr) {
         m_pAddressBar->AttachPathChanged(UiBind(&MainForm::OnAddressBarPathChanged, this, std::placeholders::_1));
         m_pAddressBar->AttachPathClick(UiBind(&MainForm::OnAddressBarPathClick, this, std::placeholders::_1));
+        //预提交：先校验路径，校验失败时地址栏保持原路径（不会先显示错误路径再回滚）
+        m_pAddressBar->AttachPathChanging([this](DString& newPath) {
+            return OnAddressBarPathChanging(newPath);
+            });
+        //面包屑右键菜单：复制路径/在资源管理器中显示/在新窗口中打开
+        m_pAddressBar->AttachContextMenu([this](const ui::EventArgs&) {
+            ShowAddressBarContextMenu();
+            return true;
+            });
     }
     m_pTabBox = dynamic_cast<ui::TabBox*>(FindControl(_T("main_view_tab_box")));
     ui::ListCtrl* pComputerListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(_T("computer_view")));
@@ -968,9 +993,16 @@ void MainForm::SelectSubPath(const ui::FilePath& filePath)
     }
 
     if (m_pTree != nullptr) {
+        //导航开始时即更新地址栏，避免目录枚举完成前地址栏仍显示旧路径
+        if (m_pAddressBar != nullptr) {
+            m_pAddressBar->SetAddressPath(filePath.ToString());
+        }
         BeginLoading();
         if (!m_pTree->SelectSubPath(m_pTreeNode, filePath, nullptr)) {
             EndLoading();
+            if (m_pAddressBar != nullptr) {
+                m_pAddressBar->SetAddressPath(m_pAddressBar->GetPreviousAddressPath());
+            }
         }
     }
 }
@@ -1099,6 +1131,15 @@ LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, 
     if (((modifierKey & ui::kControl) != 0) && (vkCode == ui::kVK_F)) {
         if (m_pSearchBox != nullptr) {
             m_pSearchBox->SetFocus();
+            bHandled = true;
+        }
+        return lResult;
+    }
+    //Ctrl+L / Alt+D：聚焦地址栏（与浏览器、Windows资源管理器的习惯一致）
+    if ((((modifierKey & ui::kControl) != 0) && (vkCode == ui::kVK_L)) ||
+        (((modifierKey & ui::kAlt) != 0) && (vkCode == ui::kVK_D))) {
+        if (m_pAddressBar != nullptr) {
+            m_pAddressBar->SetFocus();
             bHandled = true;
         }
         return lResult;
@@ -1295,6 +1336,99 @@ bool MainForm::OnAddressBarPathClick(const ui::EventArgs& msg)
     return true;
 }
 
+bool MainForm::OnAddressBarPathChanging(DString& newPath)
+{
+    ui::StringUtil::Trim(newPath);
+    if (newPath.empty()) {
+        return false;
+    }
+    ui::FilePath inputFilePath(newPath);
+    if (!inputFilePath.IsAbsolutePath()) {
+        //相对路径与当前树节点的路径拼接
+        ui::FilePath curFilePath;
+        if ((m_pTree != nullptr) && (m_pTreeNode != nullptr)) {
+            curFilePath = m_pTree->FindTreeNodePath(m_pTreeNode);
+        }
+        if (!curFilePath.IsEmpty()) {
+            inputFilePath = curFilePath.JoinFilePath(inputFilePath);
+        }
+        newPath = inputFilePath.ToString();
+    }
+    if (inputFilePath.IsExistsDirectory()) {
+        m_pendingLocateFile = ui::FilePath();
+        return true;
+    }
+    if (inputFilePath.IsExistsFile()) {
+        //输入的是文件路径：转换为父目录，并记录需要在列表中选中的文件
+        ui::FilePath parentPath = inputFilePath.GetParentPath();
+        if (parentPath.IsExistsDirectory()) {
+            m_pendingLocateFile = inputFilePath;
+            newPath = parentPath.ToString();
+            return true;
+        }
+    }
+    //路径不存在：提示用户，地址栏保持原路径
+    const DString strFormat = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_PATH_NOT_EXISTS"));
+    const DString errMsg = ui::StringUtil::Printf(strFormat.c_str(), newPath.c_str());
+    const DString title = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_ERROR_TITLE"));
+    ui::SystemUtil::ShowMessageBox(this, errMsg.c_str(), title.c_str());
+    return false;
+}
+
+bool MainForm::OnTreeNodeSelect(const ui::EventArgs& msg)
+{
+    ui::TreeNode* pTreeNode = (ui::TreeNode*)msg.wParam;
+    if ((pTreeNode != nullptr) && (m_pTree != nullptr) && m_pTree->IsValidTreeNode(pTreeNode)) {
+        SetAddressBarPathFromTreeNode(pTreeNode);
+    }
+    return true;
+}
+
+void MainForm::SetAddressBarPathFromTreeNode(ui::TreeNode* pTreeNode)
+{
+    if ((m_pAddressBar == nullptr) || (m_pTree == nullptr) || (pTreeNode == nullptr)) {
+        return;
+    }
+    if (m_pTree->IsMyComputerNode(pTreeNode)) {
+        m_pAddressBar->SetAddressPath(_T(""));
+        return;
+    }
+    ui::FilePath filePath = m_pTree->FindTreeNodePath(pTreeNode);
+    if (!filePath.IsEmpty()) {
+        m_pAddressBar->SetAddressPath(filePath.ToString());
+    }
+}
+
+void MainForm::ShowAddressBarContextMenu()
+{
+    if (m_pAddressBar == nullptr) {
+        return;
+    }
+    ui::FilePath targetPath(m_pAddressBar->GetClickedAddressPath());
+    if (targetPath.IsEmpty()) {
+        return;
+    }
+    //使用系统光标位置作为菜单的弹出位置（避免DPI缩放时客户区坐标换算出错）
+    ui::UiPoint point;
+    GetCursorPos(point);
+
+    ui::Menu* menu = new ui::Menu(this, m_pAddressBar);
+    menu->SetSkinFolder(GetResourcePath().ToString());
+    menu->ShowMenu(_T("menu/address_bar_menu.xml"), point);
+    menu->AttachMenuItemActivated([this, targetPath](const DString& /*menuName*/, int32_t /*nMenuLevel*/,
+                                                      const DString& itemName, size_t /*nItemIndex*/) {
+        if (itemName == _T("menu_item_copy_path")) {
+            CopyPathsToClipboard(std::vector<ui::FilePath>(1, targetPath));
+        }
+        else if (itemName == _T("menu_item_reveal")) {
+            RevealInFileManager(targetPath);
+        }
+        else if (itemName == _T("menu_item_open_new_window")) {
+            OpenInNewFileManagerWindow(targetPath);
+        }
+    });
+}
+
 bool MainForm::OnShowAddressPath(const DString& newFilePath)
 {
     DString text = newFilePath;
@@ -1321,6 +1455,17 @@ bool MainForm::OnShowAddressPath(const DString& newFilePath)
         pParentTreeNode = m_pTreeNode;
     }
     if (inputFilePath.IsAbsolutePath() && inputFilePath.IsExistsDirectory()) {
+        //如果地址栏输入的是一个文件路径，则定位到其父目录并在列表中选择该文件
+        if (!m_pendingLocateFile.IsEmpty()) {
+            ui::FilePath pendingParent = m_pendingLocateFile.GetParentPath();
+            if (pendingParent == inputFilePath) {
+                //键值与ShowFileList中使用的目录路径格式保持一致（目录路径以路径分隔符结尾），否则无法匹配到选择项
+                ui::FilePath locateKey = inputFilePath;
+                locateKey.FormatPathAsDirectory();
+                m_selectedPathInfo[locateKey] = m_pendingLocateFile;
+            }
+            m_pendingLocateFile = ui::FilePath();
+        }
         //地址栏上面的是有效路径，让左树展开对应的路径，并选择
         if (m_pTree != nullptr) {
             if (pParentTreeNode != nullptr) {
@@ -1393,9 +1538,11 @@ void MainForm::ShowUp()
         return;
     }
     m_bCanAddBackForward = true;
+    SetAddressBarPathFromTreeNode(pParentNode);
     BeginLoading();
     if (!m_pTree->SelectTreeNode(pParentNode)) {
         EndLoading();
+        SetAddressBarPathFromTreeNode(m_pTreeNode);
     }
 }
 
@@ -1424,6 +1571,7 @@ void MainForm::ShowBack()
         m_forwardStack.push(m_pTreeNode);
     }
     m_bCanAddBackForward = false;
+    SetAddressBarPathFromTreeNode(pTargetNode);
     BeginLoading();
     if (!m_pTree->SelectTreeNode(pTargetNode)) {
         EndLoading();
@@ -1455,6 +1603,7 @@ void MainForm::ShowForward()
         m_backStack.push(m_pTreeNode);
     }
     m_bCanAddBackForward = false;
+    SetAddressBarPathFromTreeNode(pTargetNode);
     BeginLoading();
     if (!m_pTree->SelectTreeNode(pTargetNode)) {
         EndLoading();

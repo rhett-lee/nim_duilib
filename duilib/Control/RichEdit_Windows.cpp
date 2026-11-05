@@ -2637,25 +2637,18 @@ void RichEdit::PaintRichEdit(IRender* pRender, const UiRect& rcPaint)
     }
 
     if (!clipRects.empty()) {
-        bool bHasIntersect = false;
-        std::vector<UiRect> intersectClipRects;
+        //clipRects 是裁剪区域拆分的多个矩形（如圆角矩形会拆分为多行矩形），
+        //这里只需与本控件的更新区域求交集，必须按所有矩形的包围盒计算，
+        //不能逐一求交集，否则更新区域会被裁剪为空，导致文字无法绘制
+        UiRect rcClipBound;
         for (const UiRect& clipRect : clipRects) {
-            UiRect rcCheck = rcUpdate;
-            if (rcCheck.Intersect(clipRect)) {
-                bHasIntersect = true;
-                intersectClipRects.push_back(clipRect);
+            if (clipRect.IsEmpty()) {
+                continue;
             }
+            rcClipBound.Union(clipRect);
         }
-        if (!bHasIntersect) {
-            //脏区域矩形与裁剪区域矩形无交集，无需绘制
-            return;
-        }
-
-        //去剪辑区域的交集，避免出现绘制溢出的现象
-        for (const UiRect& clipRect : intersectClipRects) {
-            rcUpdate.Intersect(clipRect);
-        }
-        if (rcUpdate.IsEmpty()) {
+        if (!rcUpdate.Intersect(rcClipBound)) {
+            //脏区域矩形与裁剪区域无交集，无需绘制
             return;
         }
     }

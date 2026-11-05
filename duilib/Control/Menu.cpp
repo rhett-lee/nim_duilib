@@ -680,6 +680,16 @@ Control* Menu::GetRelatedControl() const
     return m_pRelatedControl.get();
 }
 
+void Menu::RefreshMenuLayout()
+{
+    if (m_pOwner != nullptr) {
+        ResizeSubMenu();
+    }
+    else {
+        ResizeMenu();
+    }
+}
+
 ListBox* Menu::GetLayoutListBox() const
 {
     return m_pListBox.get();

@@ -942,37 +942,92 @@
     <Class name="tab_ctrl_item_badge_dot" width="8" height="8" dot="true" valign="center" margin="0,0,10,0" mouse_enabled="false"/>
 
     <!-- AddressBar控件 -->
-    <Class name="address_bar" width="stretch" height="36" border_size="1" border_color="border_address_bar" disabled_border_color="border_address_bar_disabled" border_round="4,4" 
+    <Class name="address_bar" width="stretch" height="28" border_size="1" border_color="border_address_bar" disabled_border_color="border_address_bar_disabled" border_round="6,6" 
                               bkcolor="bg_address_bar" disabled_color="bg_address_bar_disabled"
                               path_tooltip="true" return_update_ui="true" esc_update_ui="true" kill_focus_update_ui="true"
-                              rich_edit_class="address_bar_edit" 
-                              rich_edit_clear_btn_class="rich_edit_clear_btn"
+                              rich_edit_class="address_bar_edit"
+                              reset_button_class="address_bar_reset_button"
                               sub_path_hbox_class="address_bar_sub_path_hbox"
                               sub_path_button_class="address_bar_sub_path_button"
                               sub_path_root_class="address_bar_sub_path_root"
-                              path_separator_class="address_bar_path_separator"/>
-    <Class name="address_bar_edit" multi_line="false" auto_hscroll="true" rich_text="false" 
+                              sub_path_drive_class="address_bar_sub_path_drive"
+                              sub_path_current_class="address_bar_sub_path_button_current"
+                              collapse_button_class="address_bar_sub_path_collapse"
+                              path_separator_class="address_bar_path_separator"
+                              right_padding="16" history_enabled="true" max_history="20" drop_navigation="true"/>
+    <Class name="address_bar_edit" class="richedit_base" bkcolor="bg_address_bar"
                                    default_context_menu="true" select_all_on_focused="true"
                                    want_return="false" want_ctrl_return="false" want_tab="false"
-                                   normal_text_color="text_default" 
+                                   padding="0,0,0,0"
+                                   normal_text_color="text_default"
                                    disabled_text_color="text_disabled"
-                                   text_align="left,vcenter" text_padding="4,2,4,2"/>
+                                   text_align="left,vcenter" text_padding="6,2,6,2"/>
     <Class name="address_bar_sub_path_hbox" width="auto" height="100%"/>
     <Class name="address_bar_sub_path_button" width="auto" height="100%" 
-                                              text_align="hcenter,vcenter" text_padding="4,2,4,2"
+                                              text_align="hcenter,vcenter" text_padding="6,2,6,2"
+                                              border_round="6,6"
                                               normal_text_color="text_default" 
                                               disabled_text_color="text_disabled"
                                               hovered_color="bg_address_bar_btn_hovered" 
                                               pressed_color="bg_address_bar_btn_pressed"/>
-    <Class name="address_bar_sub_path_root" padding="2,0,2,0" 
-                                            normal_image="file='${PATH_ADDRESS_BAR}/folder-root.svg' width='22' height='22' 
+    <Class name="address_bar_sub_path_button_current" text_align="hcenter,vcenter" text_padding="6,2,6,2"
+                                              border_round="6,6"
+                                              normal_text_color="color_accent"
+                                              hovered_text_color="color_accent"
+                                              pressed_text_color="color_accent"
+                                              disabled_text_color="text_disabled"
+                                              hovered_color="bg_address_bar_btn_hovered"
+                                              pressed_color="bg_address_bar_btn_pressed"/>
+    <Class name="address_bar_sub_path_root" width="auto" height="100%" text_align="left,vcenter"
+                                            text_padding="28,2,6,2" border_round="6,6"
+                                            normal_text_color="text_default"
+                                            disabled_text_color="text_disabled"
+                                            hovered_color="bg_address_bar_btn_hovered"
+                                            pressed_color="bg_address_bar_btn_pressed"
+                                            normal_image="file='${PATH_ADDRESS_BAR}/folder-root.svg' width='16' height='16' 
+                                                          halign='left' valign='center' margin='6,0,0,0' svg_replace_colors='#5d656b|border_svg_image'"
+                                            disabled_image="file='${PATH_ADDRESS_BAR}/folder-root.svg' width='16' height='16' 
+                                                            halign='left' valign='center' margin='6,0,0,0' svg_replace_colors='#5d656b|border_svg_image_disabled'"/>
+    <Class name="address_bar_sub_path_drive" width="auto" height="100%" text_align="left,vcenter"
+                                            text_padding="28,2,6,2" border_round="6,6"
+                                            normal_text_color="text_default"
+                                            disabled_text_color="text_disabled"
+                                            hovered_color="bg_address_bar_btn_hovered"
+                                            pressed_color="bg_address_bar_btn_pressed"
+                                            normal_image="file='public/filesystem/drive-harddisk.svg' width='16' height='16' 
+                                                          halign='left' valign='center' margin='6,0,0,0' svg_replace_colors='#5d656b|border_svg_image'"
+                                            disabled_image="file='public/filesystem/drive-harddisk.svg' width='16' height='16' 
+                                                            halign='left' valign='center' margin='6,0,0,0' svg_replace_colors='#5d656b|border_svg_image_disabled'"/>
+    <Class name="address_bar_sub_path_computer" width="auto" height="100%" text_align="left,vcenter"
+                                            text_padding="28,2,6,2" border_round="6,6"
+                                            normal_text_color="text_link_normal"
+                                            hovered_text_color="text_link_hovered"
+                                            pressed_text_color="text_link_pressed"
+                                            disabled_text_color="text_disabled"
+                                            hovered_color="bg_address_bar_btn_hovered"
+                                            pressed_color="bg_address_bar_btn_pressed"
+                                            normal_image="file='public/filesystem/computer.svg' width='16' height='16' 
+                                                          halign='left' valign='center' margin='6,0,0,0' svg_replace_colors='#5d656b|border_svg_image'"
+                                            disabled_image="file='public/filesystem/computer.svg' width='16' height='16' 
+                                                            halign='left' valign='center' margin='6,0,0,0' svg_replace_colors='#5d656b|border_svg_image_disabled'"/>
+    <Class name="address_bar_sub_path_collapse" width="24" height="100%" border_round="6,6" valign="center"
+                                            normal_image="file='${PATH_ADDRESS_BAR}/more-horizontal.svg' width='14' height='14' 
                                                           halign='center' valign='center' svg_replace_colors='#5d656b|border_svg_image'"
-                                            disabled_image="file='${PATH_ADDRESS_BAR}/folder-root.svg' width='22' height='22' 
-                                                            halign='center' valign='center' svg_replace_colors='#5d656b|border_svg_image_disabled'"/>
-    <Class name="address_bar_path_separator" width="auto" height="100%" margin="0,0,0,0"
-                                             normal_image="file='${PATH_ADDRESS_BAR}/filename-slash.svg' width='22' height='22' 
+                                            disabled_image="file='${PATH_ADDRESS_BAR}/more-horizontal.svg' width='14' height='14' 
+                                                            halign='center' valign='center' svg_replace_colors='#5d656b|border_svg_image_disabled'"
+                                            hovered_color="bg_address_bar_btn_hovered"
+                                            pressed_color="bg_address_bar_btn_pressed"/>
+    <Class name="address_bar_reset_button" width="24" height="24" border_round="4,4" margin="0,0,4,0" valign="center"
+                                            normal_image="file='${PATH_ADDRESS_BAR}/reset.svg' width='14' height='14' 
+                                                          halign='center' valign='center' svg_replace_colors='#5d656b|border_svg_image'"
+                                            disabled_image="file='${PATH_ADDRESS_BAR}/reset.svg' width='14' height='14' 
+                                                            halign='center' valign='center' svg_replace_colors='#5d656b|border_svg_image_disabled'"
+                                            hovered_color="bg_address_bar_btn_hovered"
+                                            pressed_color="bg_address_bar_btn_pressed"/>
+    <Class name="address_bar_path_separator" width="12" height="100%" margin="0,0,0,0" mouse_enabled="false"
+                                             normal_image="file='${PATH_ADDRESS_BAR}/chevron-right.svg' width='12' height='12' 
                                                            halign='center' valign='center' svg_replace_colors='#5d656b|border_svg_image'"
-                                             disabled_image="file='${PATH_ADDRESS_BAR}/filename-slash.svg' width='22' height='22' 
+                                             disabled_image="file='${PATH_ADDRESS_BAR}/chevron-right.svg' width='12' height='12' 
                                                              halign='center' valign='center' svg_replace_colors='#5d656b|border_svg_image_disabled'"/>
 
     <!-- Property Grid控件，部分属性在default/public/property_grid/property_grid.xml中定义-->

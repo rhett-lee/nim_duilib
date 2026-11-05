@@ -1239,8 +1239,13 @@ bool DirectoryTree::SelectTreeNode(TreeNode* pTreeNode)
     }
     bool bRet = BaseClass::SelectTreeNode(pTreeNode);
     if (bRet) {
+        //选中节点后派发事件，供业务层在目录内容加载完成前即时更新地址栏等界面
+        std::weak_ptr<WeakFlag> nodeFlag = pTreeNode->GetWeakFlag();
+        SendEvent(kEventSelect, (WPARAM)pTreeNode);
         //主动选择时，激活该节点
-        pTreeNode->Activate(nullptr);
+        if (!nodeFlag.expired()) {
+            pTreeNode->Activate(nullptr);
+        }
     }
     return bRet;
 }

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window shadow_type="menu_round" shadow_border_size="2" shadow_border_color="border_window">
+    <MenuListBox class="menu" name="address_bar_menu">
+        <!-- 面包屑右键菜单 -->
+        <MenuItem class="menu_element" name="menu_item_copy_path" width="220">
+            <Label class="menu_text" text_id="STRID_TREEVIEW_MENU_COPY_PATH" mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+        <MenuItem class="menu_element" name="menu_item_reveal" width="220">
+            <Label class="menu_text" text_id="STRID_TREEVIEW_MENU_REVEAL" mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+        <MenuItem class="menu_element" name="menu_item_open_new_window" width="220">
+            <Label class="menu_text" text_id="STRID_TREEVIEW_MENU_OPEN_NEW_WINDOW" mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+    </MenuListBox>
+</Window>
