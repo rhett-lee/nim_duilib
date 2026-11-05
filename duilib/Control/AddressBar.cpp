@@ -10,7 +10,6 @@
 #include "duilib/Utils/FilePath.h"
 #include "duilib/Utils/StringUtil.h"
 #include <algorithm>
-#include <numeric>
 #ifdef DUILIB_BUILD_FOR_WIN
     #include "duilib/Utils/DiskUtils_Windows.h"
 #endif
@@ -943,7 +942,11 @@ void AddressBar::UpdateAddressBarControlsStatus()
         return;
     }
 
-    //宽度不足：保留根段与末尾段，中间段折叠为"…"
+    //宽度不足：按优先级决定各段的可见性
+    //  1) 当前段（最后一段）优先完整显示；
+    //  2) 其次保证"…"折叠入口可见，否则被折叠的父目录无从访问；
+    //  3) 剩余宽度从末尾向前依次显示非当前段（越靠近当前段越优先）；
+    //  4) 根段优先级最低，放不下时与中间段一起折叠进"…"菜单。
     std::vector<bool> showFlags(m_pathSegments.size(), false);
     showFlags[nLastIndex] = true;
 
@@ -954,133 +957,98 @@ void AddressBar::UpdateAddressBarControlsStatus()
         UiMargin collapseMargin = pCollapseBtn->GetMargin();
         nCollapseWidth += (collapseMargin.left + collapseMargin.right);
     }
-
-    const int32_t nMinLastWidth = 48;
-    int32_t nAvailable = nBarWidth;
-    if ((m_pathSegments.size() > 1) && (nAvailable >= widths[0] + nCollapseWidth + nMinLastWidth)) {
-        showFlags[0] = true;
-        nAvailable -= widths[0];
-    }
-    //从末尾向前，尽量保留更多的中间段
-    if (m_pathSegments.size() > 2) {
-        for (size_t i = m_pathSegments.size() - 2; i >= 1; --i) {
-            if (nAvailable >= widths[i] + nCollapseWidth + nMinLastWidth) {
-                showFlags[i] = true;
-                nAvailable -= widths[i];
-            }
-            else {
-                break;
-            }
-        }
-    }
+    const int32_t nMinLastWidth = Dpi().GetScaleInt(28);//当前段的最小可用宽度（DIP）
 
     bool bShowCollapse = false;
     int32_t nLastWidth = widths[nLastIndex];
-    if ((m_pathSegments.size() > 1) && (nAvailable >= nCollapseWidth + nMinLastWidth)) {
-        bShowCollapse = true;
-        if (nLastWidth > nAvailable - nCollapseWidth) {
-            nLastWidth = nAvailable - nCollapseWidth;
+    int32_t nRemain = nBarWidth - nLastWidth;
+    if (nRemain >= 0) {
+        //当前段可以完整显示：统计其余各段的总宽度
+        int32_t nOthersWidth = 0;
+        for (int32_t i = 0; i < nLastIndex; ++i) {
+            nOthersWidth += widths[i];
         }
+        if (nOthersWidth <= nRemain) {
+            //其余各段也能全部显示（正常情况下已被上面的分支覆盖，这里做兜底）
+            for (int32_t i = 0; i < nLastIndex; ++i) {
+                showFlags[i] = true;
+            }
+        }
+        else if (nRemain >= nCollapseWidth) {
+            //需要"…"：预留其宽度后，从末尾向前尽量多显示非当前段
+            bShowCollapse = true;
+            int32_t nAvailable = nRemain - nCollapseWidth;
+            for (int32_t i = nLastIndex - 1; i >= 0; --i) {
+                if (nAvailable >= widths[i]) {
+                    showFlags[i] = true;
+                    nAvailable -= widths[i];
+                }
+                else {
+                    break;
+                }
+            }
+        }
+        else if (nBarWidth >= nCollapseWidth + nMinLastWidth) {
+            //当前段完整显示时放不下"…"：收缩当前段，为折叠入口让出空间（仍能显示部分目录名）
+            bShowCollapse = true;
+            nLastWidth = nBarWidth - nCollapseWidth;
+        }
+        //否则：连"…"都放不下，只显示当前段
+    }
+    else if ((nLastIndex > 0) && (nBarWidth >= nCollapseWidth + nMinLastWidth)) {
+        //当前段本身就超出地址栏宽度：收缩当前段，保留"…"折叠入口
+        bShowCollapse = true;
+        nLastWidth = nBarWidth - nCollapseWidth;
     }
     else {
-        //放不下"…"与末尾段：隐藏根段，末尾段占满可用宽度
-        for (size_t i = 0; i < m_pathSegments.size(); ++i) {
-            showFlags[i] = (i == (size_t)nLastIndex);
-        }
-        nLastWidth = std::min(widths[nLastIndex], nBarWidth);
+        //只显示当前段，占满可用宽度
+        nLastWidth = nBarWidth;
     }
 
     m_collapsedSegments.clear();
     for (size_t i = 0; i < m_pathSegments.size(); ++i) {
         HBox* pBox = m_subPathBoxes[i];
-        pBox->SetVisible(showFlags[i]);
         bool bCurrent = (i == (size_t)nLastIndex);
+        pBox->SetVisible(showFlags[i]);
         UpdateSubPathControls(i, m_pathSegments[i], !bCurrent, bCurrent);
         Button* pNameBtn = dynamic_cast<Button*>(pBox->GetItemAt(0));
         if (pNameBtn != nullptr) {
-            pNameBtn->SetMaxWidth(bCurrent ? nLastWidth : INT32_MAX, false);
+            if (bCurrent) {
+                //当前段占用的最大宽度需扣除容器内边距与外边距，超出部分由文本省略号截断
+                UiPadding boxPadding = pBox->GetPadding();
+                UiMargin boxMargin = pBox->GetMargin();
+                UiMargin nameMargin = pNameBtn->GetMargin();
+                int32_t nMaxWidth = nLastWidth - (boxPadding.left + boxPadding.right)
+                                  - (boxMargin.left + boxMargin.right)
+                                  - (nameMargin.left + nameMargin.right);
+                pNameBtn->SetMaxWidth(std::max(nMaxWidth, 0), false);
+            }
+            else {
+                pNameBtn->SetMaxWidth(INT32_MAX, false);
+            }
         }
         if (!showFlags[i] && !bCurrent) {
             m_collapsedSegments.push_back(m_pathSegments[i]);
         }
     }
 
-    if ((pCollapseBtn != nullptr) && bShowCollapse) {
-        //把折叠按钮放到第一个显示的中间段（或末尾段）之前
-        size_t nInsertIndex = (size_t)nLastIndex;
-        for (size_t i = 1; i < (size_t)nLastIndex; ++i) {
-            if (showFlags[i]) {
-                nInsertIndex = i;
-                break;
+    if (pCollapseBtn != nullptr) {
+        if (bShowCollapse) {
+            //把折叠按钮放到第一个显示的非当前段（或当前段）之前
+            size_t nInsertIndex = (size_t)nLastIndex;
+            for (size_t i = 1; i < (size_t)nLastIndex; ++i) {
+                if (showFlags[i]) {
+                    nInsertIndex = i;
+                    break;
+                }
             }
-        }
-        pCollapseBtn->SetVisible(true);
-        m_pBarBox->SetItemIndex(pCollapseBtn, nInsertIndex);
-    }
-}
-
-std::vector<int32_t> AddressBar::AdjustControlsWidth(const std::vector<int32_t>& originalWidths, int32_t totalWidth)
-{
-    std::vector<int32_t> adjustedWidths;
-    if (originalWidths.empty()) {
-        return adjustedWidths;
-    }
-    const int32_t nMinWidth = 32; //最小宽度（物理像素）
-    if (totalWidth < (int32_t)originalWidths.size() * nMinWidth) {
-        //控件不足，按最小宽度设置
-        adjustedWidths.assign(originalWidths.size(), nMinWidth);
-        return adjustedWidths;
-    }
-
-    // 计算平均宽度
-    int32_t avgWidth = totalWidth / static_cast<int32_t>(originalWidths.size());
-
-    // 找出需要调整的控件(大于平均宽度的)
-    std::vector<size_t> adjustIndices;
-    for (size_t i = 0; i < originalWidths.size(); ++i) {
-        if (originalWidths[i] > avgWidth) {
-            adjustIndices.push_back(i);
-        }
-    }
-
-    // 计算需要从大控件中缩减的总宽度
-    int32_t reduceTotal = std::accumulate(originalWidths.begin(), originalWidths.end(), 0) - totalWidth;
-    if (reduceTotal <= 0) {
-        return originalWidths;  // 不需要缩减
-    }
-
-    // 计算大控件的原始总宽度
-    int32_t largeSum = 0;
-    for (auto idx : adjustIndices) {
-        largeSum += originalWidths[idx];
-    }
-    if (largeSum <= 0) {
-        return originalWidths;  // 不需要缩减
-    }
-
-    // 按比例缩减大控件
-    adjustedWidths = originalWidths;
-    int32_t reduced = 0;
-    for (size_t i = 0; i < adjustIndices.size(); ++i) {
-        size_t idx = adjustIndices[i];
-        if (i == adjustIndices.size() - 1) {
-            // 最后一个控件吸收舍入误差
-            adjustedWidths[idx] = originalWidths[idx] - (reduceTotal - reduced);
+            pCollapseBtn->SetVisible(true);
+            m_pBarBox->SetItemIndex(pCollapseBtn, nInsertIndex);
         }
         else {
-            int32_t reduce = (originalWidths[idx] * reduceTotal) / largeSum;
-            adjustedWidths[idx] = originalWidths[idx] - reduce;
-            reduced += reduce;
+            pCollapseBtn->SetVisible(false);
         }
     }
-
-    for (int32_t& v : adjustedWidths) {
-        //限制最小值，避免出现0或者负值
-        if (v < nMinWidth) {
-            v = nMinWidth;
-        }
-    }
-    return adjustedWidths;
 }
 
 void AddressBar::OnClickedSubPath(const DString& filePath)
@@ -1256,6 +1224,8 @@ void AddressBar::ShowCollapsedPathMenu()
                     MenuPopupPosType::LEFT_TOP_N);
     std::vector<MenuItem*> menuItems;
     int32_t nMaxItemWidth = 0;
+    //菜单项的最小宽度（DIP，按DPI换算为布局使用的尺寸）
+    const int32_t nMinItemWidth = Dpi().GetScaleInt(120);
     for (const PathSegment& segment : collapsed) {
         MenuItem* pMenuItem = new MenuItem(GetWindow());
         pMenuItem->SetClass(_T("menu_element"));
@@ -1274,7 +1244,7 @@ void AddressBar::ShowCollapsedPathMenu()
         const UiSize szText = pLabel->EstimateText(UiSize(INT32_MAX, INT32_MAX));
         const UiPadding rcItemPadding = pMenuItem->GetControlPadding();
         int32_t nItemWidth = szText.cx + rcItemPadding.left + rcItemPadding.right;
-        nItemWidth = std::max(nItemWidth, 220);
+        nItemWidth = std::max(nItemWidth, nMinItemWidth);
         pMenuItem->SetFixedWidth(UiFixedInt(nItemWidth), true, false);
         nMaxItemWidth = std::max(nMaxItemWidth, nItemWidth);
 

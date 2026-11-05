@@ -337,10 +337,6 @@ private:
     */
     void UpdateAddressBarControlsStatus();
 
-    /** 按可用宽度等比缩减各控件宽度（保证每个控件不小于最小宽度）
-    */
-    std::vector<int32_t> AdjustControlsWidth(const std::vector<int32_t>& originalWidths, int32_t totalWidth);
-
     /** 提交路径（回车/失焦/拖放共用的入口）
     * @param [in] rawPath 用户输入或拖放得到的路径
     * @param [in] bHideEdit true表示提交后退出编辑状态
