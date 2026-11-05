@@ -81,7 +81,7 @@
                            history_enabled="false" tooltip_text_id="STRID_TREEVIEW_SEARCH_PROMPT"/>
             </HBox>
 
-            <!-- 显示选项 -->
+            <!-- 显示选项：左侧目录树的功能控制与右侧文件列表的功能控制分开 -->
             <HBox class="panel_card" height="38" padding="10,0,10,0" margin="0,8,0,0">
                 <Label text_id="STRID_TREEVIEW_FUNCTION_CONTROL" valign="center" font="system_bold_12" margin="0,0,8,0"/>
                 <CheckBox class="checkbox_2" text_id="STRID_TREEVIEW_SHOW_EXPAND_ICON" selected="true" valign="center" margin="0,0,12,0">
@@ -96,8 +96,11 @@
                     <Event type="select" receiver="tree" apply_attribute="show_icon={true}" />
                     <Event type="unselect" receiver="tree" apply_attribute="show_icon={false}" />
                 </CheckBox>
-                <!-- 多选开关：同时作用于左侧目录树和右侧文件列表（在代码中处理该事件） -->
-                <CheckBox class="checkbox_2" name="check_multi_select" text_id="STRID_TREEVIEW_MULTI_SELECT" selected="false" valign="center" margin="0,0,12,0"/>
+                <!-- 多选开关：仅作用于左侧目录树（右侧文件列表固定支持多选） -->
+                <CheckBox class="checkbox_2" name="check_tree_multi_select" text_id="STRID_TREEVIEW_MULTI_SELECT" selected="false" valign="center" margin="0,0,12,0"/>
+                <Control width="1" height="18" bkcolor="border_split_level1" margin="4,0,12,0"/>
+                <!-- 文件列表的功能控制 -->
+                <Label text_id="STRID_TREEVIEW_FILE_LIST_FUNCTION_CONTROL" valign="center" font="system_bold_12" margin="0,0,8,0"/>
                 <CheckBox class="checkbox_2" text_id="STRID_TREEVIEW_SHOW_HIDEN_FILES" selected="false" valign="center" margin="0,0,12,0">
                     <Event type="select" receiver="tree" apply_attribute="show_hiden_files={true}" />
                     <Event type="unselect" receiver="tree" apply_attribute="show_hiden_files={false}" />
@@ -116,12 +119,12 @@
                 <!-- 纵向分割条，用于调整左右区域大小 -->
                 <Split class="split_vertical"/>
                 <TabBox name="main_view_tab_box" width="stretch" height="stretch" bkcolor="bg_window_card" selected_id="0">
-                    <!-- 文件列表的多选由"多选"复选框控制（勾选后支持Ctrl/Shift+单击、Ctrl+A 全选） -->
-                    <VirtualVTileListBox class="list" name="simple_file_view" columns="auto" item_size="200,120" multi_select="false" vscrollbar="true" hscrollbar="true" child_halign="left"/>
-                    <ListCtrl class="list_ctrl" name="explorer_view" multi_select="false"
+                    <!-- 文件列表固定支持多选（Ctrl/Shift+单击、Ctrl+A 全选），不再提供开关 -->
+                    <VirtualVTileListBox class="list" name="simple_file_view" columns="auto" item_size="200,120" multi_select="true" vscrollbar="true" hscrollbar="true" child_halign="left"/>
+                    <ListCtrl class="list_ctrl" name="explorer_view" multi_select="true"
                               show_header_checkbox="false" show_data_item_checkbox="false" enable_item_edit="false"
                               row_grid_line_width="0" column_grid_line_width="0"/>
-                    <ListCtrl class="list_ctrl" name="computer_view"
+                    <ListCtrl class="list_ctrl" name="computer_view" multi_select="true"
                               show_header_checkbox="false" show_data_item_checkbox="false" enable_item_edit="false"
                               row_grid_line_width="0" column_grid_line_width="0"/>
                     <Box name="error_view" bkcolor="bg_window_card">

@@ -484,14 +484,14 @@ private:
     */
     void OnLoadingTimeout(uint32_t nSerial);
 
-    /** 设置目录树和文件列表的多选状态（由"多选"复选框控制）
+    /** 设置目录树的多选状态（由"支持多选"复选框控制；文件列表固定支持多选）
     * @param [in] bMultiSelect true表示支持多选，false表示单选
     */
-    void SetMultiSelect(bool bMultiSelect);
+    void SetTreeMultiSelect(bool bMultiSelect);
 
-    /** "多选"复选框的选择状态发生变化
+    /** 目录树的"支持多选"复选框的选择状态发生变化
     */
-    bool OnMultiSelectChanged(const ui::EventArgs& msg);
+    bool OnTreeMultiSelectChanged(const ui::EventArgs& msg);
 
 private:
     /** 状态栏：正在加载提示

@@ -359,13 +359,13 @@ void MainForm::OnInitWindow()
             });
     }
 
-    //"多选"复选框：同时控制左侧目录树和右侧文件列表的多选状态
-    ui::CheckBox* pMultiSelectCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("check_multi_select")));
-    if (pMultiSelectCheckBox != nullptr) {
-        pMultiSelectCheckBox->AttachSelect(UiBind(&MainForm::OnMultiSelectChanged, this, std::placeholders::_1));
-        pMultiSelectCheckBox->AttachUnSelect(UiBind(&MainForm::OnMultiSelectChanged, this, std::placeholders::_1));
-        //按复选框的初始状态，同步目录树和文件列表的多选设置
-        SetMultiSelect(pMultiSelectCheckBox->IsSelected());
+    //"支持多选"复选框：仅控制左侧目录树的多选状态（右侧文件列表固定支持多选）
+    ui::CheckBox* pTreeMultiSelectCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("check_tree_multi_select")));
+    if (pTreeMultiSelectCheckBox != nullptr) {
+        pTreeMultiSelectCheckBox->AttachSelect(UiBind(&MainForm::OnTreeMultiSelectChanged, this, std::placeholders::_1));
+        pTreeMultiSelectCheckBox->AttachUnSelect(UiBind(&MainForm::OnTreeMultiSelectChanged, this, std::placeholders::_1));
+        //按复选框的初始状态，同步目录树的多选设置
+        SetTreeMultiSelect(pTreeMultiSelectCheckBox->IsSelected());
     }
 
     //恢复上次关闭时保存的用户设置（视图模式、排序列、列宽、树宽）
@@ -1938,32 +1938,21 @@ void MainForm::OnLoadingTimeout(uint32_t nSerial)
     EndLoading();
 }
 
-void MainForm::SetMultiSelect(bool bMultiSelect)
+void MainForm::SetTreeMultiSelect(bool bMultiSelect)
 {
     //目录树（多选模式下，节点显示复选框）
     if (m_pTree != nullptr) {
         m_pTree->SetMultiSelect(bMultiSelect);
     }
-    //详细信息视图的文件列表
-    if (m_pExplorerView != nullptr) {
-        ui::ListCtrl* pListCtrl = m_pExplorerView->GetListCtrl();
-        if (pListCtrl != nullptr) {
-            pListCtrl->SetMultiSelect(bMultiSelect);
-        }
-    }
-    //图标视图/列表视图的文件列表（虚表控件会同时同步数据源的多选状态）
-    if (m_pSimpleFileView != nullptr) {
-        m_pSimpleFileView->ApplyMultiSelect(bMultiSelect);
-    }
     //切换为单选模式时，多余的选择项会被取消，这里刷新状态栏中的选中项统计
     UpdateStatusBar();
 }
 
-bool MainForm::OnMultiSelectChanged(const ui::EventArgs& msg)
+bool MainForm::OnTreeMultiSelectChanged(const ui::EventArgs& msg)
 {
     ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(msg.GetSender());
     if (pCheckBox != nullptr) {
-        SetMultiSelect(pCheckBox->IsSelected());
+        SetTreeMultiSelect(pCheckBox->IsSelected());
     }
     return true;
 }

@@ -426,17 +426,6 @@ void SimpleFileView::SetMultiSelect(bool bMultiSelect)
     m_bMultiSelect = bMultiSelect;
 }
 
-void SimpleFileView::ApplyMultiSelect(bool bMultiSelect)
-{
-    if (m_pListBox != nullptr) {
-        //控件在设置多选状态时，会回调SetMultiSelect，从而保持内部状态一致
-        m_pListBox->SetMultiSelect(bMultiSelect);
-    }
-    else {
-        m_bMultiSelect = bMultiSelect;
-    }
-}
-
 void SimpleFileView::SetFileList(const ui::FilePath& currentPath, std::vector<PathInfo> pathList, const ui::FilePath& selectedPath)
 {
     //新的文件列表：取消尚未加载完成的缩略图任务
