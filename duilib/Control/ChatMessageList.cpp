@@ -155,26 +155,26 @@ DString ChatMessageList::GetType() const
 void ChatMessageList::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("avatar_size")) {
-        m_nAvatarSize = _wtoi(strValue.c_str());
+        m_nAvatarSize = StringUtil::StringToInt32(strValue);
         InvalidateWidthCache();
     }
     else if (strName == _T("bubble_max_width")) {
-        m_nBubbleMaxWidth = _wtoi(strValue.c_str());
+        m_nBubbleMaxWidth = StringUtil::StringToInt32(strValue);
         InvalidateWidthCache();
     }
     else if (strName == _T("bubble_padding_h")) {
-        m_nBubblePaddingH = _wtoi(strValue.c_str());
+        m_nBubblePaddingH = StringUtil::StringToInt32(strValue);
         InvalidateWidthCache();
     }
     else if (strName == _T("bubble_padding_v")) {
-        m_nBubblePaddingV = _wtoi(strValue.c_str());
+        m_nBubblePaddingV = StringUtil::StringToInt32(strValue);
         InvalidateWidthCache();
     }
     else if (strName == _T("bubble_radius")) {
-        m_nBubbleRadius = _wtoi(strValue.c_str());
+        m_nBubbleRadius = StringUtil::StringToInt32(strValue);
     }
     else if (strName == _T("bubble_spacing")) {
-        m_nBubbleSpacing = _wtoi(strValue.c_str());
+        m_nBubbleSpacing = StringUtil::StringToInt32(strValue);
         InvalidateLayoutCache();
     }
     else if (strName == _T("show_time")) {
@@ -255,11 +255,11 @@ void ChatMessageList::SetAttribute(const DString& strName, const DString& strVal
         InvalidateWidthCache();
     }
     else if (strName == _T("image_max_width")) {
-        m_nImageMaxWidth = _wtoi(strValue.c_str());
+        m_nImageMaxWidth = StringUtil::StringToInt32(strValue);
         InvalidateWidthCache();
     }
     else if (strName == _T("image_max_height")) {
-        m_nImageMaxHeight = _wtoi(strValue.c_str());
+        m_nImageMaxHeight = StringUtil::StringToInt32(strValue);
         InvalidateWidthCache();
     }
     else if (strName == _T("quote_text_color")) {
@@ -953,13 +953,8 @@ int64_t ChatMessageList::GetMessageIdAtCursor()
     if (GetWindow() == nullptr) {
         return 0;
     }
-    POINT ptCursor = { 0, 0 };
-    if (!::GetCursorPos(&ptCursor)) {
-        return 0;
-    }
     UiPoint point;
-    point.x = ptCursor.x;
-    point.y = ptCursor.y;
+    GetWindow()->GetCursorPos(point);
     if (!ScreenToClient(point)) {
         return 0;
     }
@@ -1129,7 +1124,7 @@ DString ChatMessageList::GetStatusText(ChatMessageStatus status) const
 {
     //优先使用应用层自定义的文案，未设置时取多语言资源中的默认文案
     const DString* pCustomText = nullptr;
-    const wchar_t* pDefaultId = nullptr;
+    const DString::value_type* pDefaultId = nullptr;
     switch (status) {
     case ChatMessageStatus::kSending:
         pCustomText = &m_strStatusTextSending;
@@ -1709,8 +1704,8 @@ DString ChatMessageList::GetNewMessageTipText() const
     if (strTemplate.empty()) {
         strTemplate = _T("New messages: %d");
     }
-    const std::wstring strText = StringUtil::Printf(strTemplate.c_str(), static_cast<int>(GetUnreadBelowCount()));
-    return DString(strText.c_str());
+    const DString strText = StringUtil::Printf(strTemplate.c_str(), static_cast<int>(GetUnreadBelowCount()));
+    return strText;
 }
 
 UiRect ChatMessageList::GetNewMessageTipRect(IRender* pRender)
@@ -2141,8 +2136,8 @@ void ChatMessageList::WrapTextLines(IRender* pRender, const DString& strText, in
                 //需要折行时优先在空格/连字符处断开，避免把英文单词从中间截断
                 if (nLineEnd < nParaEnd) {
                     for (int32_t nIndex = nLineEnd; nIndex > nLineStart; --nIndex) {
-                        const wchar_t ch = strText[nIndex - 1];
-                        if ((ch == L' ') || (ch == L'\t') || (ch == L'-')) {
+                        const DString::value_type ch = strText[nIndex - 1];
+                        if ((ch == _T(' ')) || (ch == _T('\t')) || (ch == _T('-'))) {
                             nLineEnd = nIndex;
                             break;
                         }
@@ -2650,8 +2645,8 @@ bool ChatMessageList::ButtonDoubleClick(const EventArgs& msg)
             const int32_t nTextLen = static_cast<int32_t>(strText.length());
             int32_t nStart = nCharIndex;
             int32_t nEnd = nCharIndex;
-            auto isWordChar = [](wchar_t ch) {
-                return (ch != L' ') && (ch != L'\t') && (ch != L'\n') && (ch != L'\r');
+            auto isWordChar = [](DString::value_type ch) {
+                return (ch != _T(' ')) && (ch != _T('\t')) && (ch != _T('\n')) && (ch != _T('\r'));
             };
             while ((nStart > 0) && isWordChar(strText[nStart - 1])) {
                 --nStart;
@@ -2937,9 +2932,9 @@ void ChatMessageList::UpdateContextMenuItemEnabled(Menu* pMenu)
     }
     struct ItemState
     {
-        const TCHAR* itemName;      //菜单项控件名
-        const TCHAR* textName;      //菜单项文本控件名（禁用时需要同时置灰）
-        const TCHAR* shortcutName;  //快捷键文本控件名
+        const DString::value_type* itemName;      //菜单项控件名
+        const DString::value_type* textName;      //菜单项文本控件名（禁用时需要同时置灰）
+        const DString::value_type* shortcutName;  //快捷键文本控件名
         bool bEnabled;              //是否可用
     };
     const ItemState items[] = {
@@ -2952,8 +2947,8 @@ void ChatMessageList::UpdateContextMenuItemEnabled(Menu* pMenu)
             continue;
         }
         //菜单项本身置为禁用后不再响应鼠标；文本控件单独置灰，才能看到"不可用"的视觉反馈
-        const TCHAR* names[] = { item.itemName, item.textName, item.shortcutName };
-        for (const TCHAR* name : names) {
+        const DString::value_type* names[] = { item.itemName, item.textName, item.shortcutName };
+        for (const DString::value_type* name : names) {
             Control* pControl = pMenu->FindControl(name);
             if (pControl != nullptr) {
                 pControl->SetEnabled(false);
