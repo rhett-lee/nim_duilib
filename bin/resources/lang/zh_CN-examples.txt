@@ -4,7 +4,16 @@
 # 以下为各个示例程序使用的文本
 # ========================================================
 # examples/basic
-STRID_BASIC_TEXT = 一个简单窗口，带有标题栏和常规按钮。
+STRID_BASIC_TITLE      = 基础示例
+STRID_BASIC_HEADLINE   = 基础窗口示例
+STRID_BASIC_TEXT       = 一个简单窗口，带有标题栏和常规按钮。
+STRID_BASIC_CARD1_TITLE = 标准标题栏
+STRID_BASIC_CARD1_DESC  = 包含应用图标、标题，以及最小化、最大化、还原、关闭等窗口按钮。
+STRID_BASIC_CARD2_TITLE = 主题与语言切换
+STRID_BASIC_CARD2_DESC  = 通过标题栏右侧的按钮，可实时切换明暗主题与界面语言。
+STRID_BASIC_CARD3_TITLE = 跨平台示例
+STRID_BASIC_CARD3_DESC  = 同一份代码与 XML 皮肤资源，可在 Windows、Linux、macOS 上编译运行。
+STRID_BASIC_FOOTER     = 这是最简单的示例程序，适合作为新建项目的起点。
 
 # cef/cef_browser 浏览器
 STRID_CEF_BROWSER_DEV_TOOL          =    开发者工具

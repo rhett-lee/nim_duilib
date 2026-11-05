@@ -4,7 +4,16 @@
 # The following are the texts used by each example program
 # ========================================================
 # examples/basic
-STRID_BASIC_TEXT = A simple window with a title bar and standard control buttons.
+STRID_BASIC_TITLE      = Basic Sample
+STRID_BASIC_HEADLINE   = Basic Window Sample
+STRID_BASIC_TEXT       = A simple window with a title bar and standard control buttons.
+STRID_BASIC_CARD1_TITLE = Standard title bar
+STRID_BASIC_CARD1_DESC  = Includes the app icon, title, and minimize, maximize, restore and close buttons.
+STRID_BASIC_CARD2_TITLE = Theme and language switching
+STRID_BASIC_CARD2_DESC  = Buttons on the right of the title bar switch between light/dark themes and UI languages in real time.
+STRID_BASIC_CARD3_TITLE = Cross-platform sample
+STRID_BASIC_CARD3_DESC  = The same code and XML skin resources build and run on Windows, Linux and macOS.
+STRID_BASIC_FOOTER     = This is the simplest sample; use it as the starting point for a new project.
 
 # cef/cef_browser Browser
 STRID_CEF_BROWSER_DEV_TOOL           =    Developer Tools
