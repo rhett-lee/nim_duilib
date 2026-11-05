@@ -51,9 +51,10 @@
   - 自动化验证：输入 `E:\de` 浮层出现且前缀 `E:\de` 强调色、剩余 `velop` 默认色；按 Tab 得到 `E:\develop\` 并刷新为子目录候选
 - [x] 6 最近路径下拉按钮 + 历史持久化
   - 新增 `address_bar_history_button` 主题类与 `history.svg`；`ShowAddressEdit` 末尾调用 `UpdateHistoryButtonVisible`（编辑态隐藏）
-  - `SetHistoryFile/LoadPathHistory/SavePathHistory`：UTF-8 按行读写；`AddPathHistory` 归一化去末尾分隔符并去重、最多 `max_history` 条
+  - `SetHistoryFile/LoadPathHistory/SavePathHistory`：UTF-8 按行读写；相对路径（如 `user/address_bar_history.txt`）基于可执行程序所在目录解析，写入前自动创建父目录，与 `TreeView_settings.ini` 的保存逻辑一致；`AddPathHistory` 归一化去末尾分隔符并去重、最多 `max_history` 条
   - `ShowPathHistoryMenu`：点击弹出最近路径菜单（≤10 项、统一宽度、`RIGHT_TOP`）
-  - 自动化验证：导航后右侧时钟按钮出现，点击弹出含 `E:\develop` 的菜单（tooltip“最近访问的路径”）；编辑态按钮隐藏
+  - 自动化验证：导航后右侧时钟按钮出现，点击弹出含 `E:\develop` 的菜单（tooltip“最近访问的路径”）；编辑态按钮隐藏；Debug/Release 实测历史文件写入 `bin/user/address_bar_history.txt`（由 `bin/user` 加载并在导航后写回）
+  - 附：同步修复 `public/filesystem/computer.svg`、`drive-harddisk.svg` 的 `svg_replace_colors` 配置（彩色图标不随主题变色，原配置的 `#5d656b` 在 SVG 中不存在，Debug 会触发断言），现已移除该属性
 - [x] 7 内置右键菜单（`default_context_menu`）
   - `ShowDefaultContextMenu`：复制路径 / 在文件资源管理器中显示（`/select,"path"`）/ 打开上级目录；`AttachContextMenu` 中内置菜单处理时返回 `false` 阻断外部派发
   - TreeView 示例改用内置菜单（`default_context_menu="true"`），移除示例自定义菜单与 `address_bar_menu.xml`

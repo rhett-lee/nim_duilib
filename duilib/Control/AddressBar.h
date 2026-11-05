@@ -394,6 +394,10 @@ private:
     */
     void UpdateHistoryButtonVisible();
 
+    /** 获取路径历史文件的完整路径：相对路径基于可执行程序所在目录解析
+    */
+    DString GetHistoryFilePath() const;
+
     /** 从持久化文件加载路径历史
     */
     void LoadPathHistory();

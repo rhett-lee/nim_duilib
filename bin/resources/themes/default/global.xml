@@ -1000,9 +1000,9 @@
                                             hovered_color="bg_address_bar_btn_hovered"
                                             pressed_color="bg_address_bar_btn_pressed"
                                             normal_image="file='public/filesystem/drive-harddisk.svg' width='16' height='16' 
-                                                          halign='left' valign='center' margin='6,0,0,0' svg_replace_colors='#5d656b|border_svg_image'"
+                                                          halign='left' valign='center' margin='6,0,0,0'"
                                             disabled_image="file='public/filesystem/drive-harddisk.svg' width='16' height='16' 
-                                                            halign='left' valign='center' margin='6,0,0,0' svg_replace_colors='#5d656b|border_svg_image_disabled'"/>
+                                                            halign='left' valign='center' margin='6,0,0,0'"/>
     <Class name="address_bar_sub_path_computer" width="auto" height="100%" text_align="left,vcenter"
                                             text_padding="28,2,6,2" border_round="6,6"
                                             normal_text_color="text_link_normal"
@@ -1012,9 +1012,9 @@
                                             hovered_color="bg_address_bar_btn_hovered"
                                             pressed_color="bg_address_bar_btn_pressed"
                                             normal_image="file='public/filesystem/computer.svg' width='16' height='16' 
-                                                          halign='left' valign='center' margin='6,0,0,0' svg_replace_colors='#5d656b|border_svg_image'"
+                                                          halign='left' valign='center' margin='6,0,0,0'"
                                             disabled_image="file='public/filesystem/computer.svg' width='16' height='16' 
-                                                            halign='left' valign='center' margin='6,0,0,0' svg_replace_colors='#5d656b|border_svg_image_disabled'"/>
+                                                            halign='left' valign='center' margin='6,0,0,0'"/>
     <Class name="address_bar_sub_path_collapse" width="24" height="100%" border_round="6,6" valign="center"
                                             normal_image="file='${PATH_ADDRESS_BAR}/more-horizontal.svg' width='14' height='14' 
                                                           halign='center' valign='center' svg_replace_colors='#5d656b|border_svg_image'"

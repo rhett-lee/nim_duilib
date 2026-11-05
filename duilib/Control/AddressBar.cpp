@@ -8,6 +8,7 @@
 #include "duilib/Core/Keycode.h"
 #include "duilib/Core/ControlDropTarget.h"
 #include "duilib/Utils/FilePath.h"
+#include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Utils/FileUtil.h"
 #include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/StringUtil.h"
@@ -442,8 +443,9 @@ void AddressBar::LoadPathHistory()
     if (!m_bHistoryEnabled || m_historyFile.empty()) {
         return;
     }
+    const DString historyFilePath = GetHistoryFilePath();
     std::vector<uint8_t> fileData;
-    if (!FileUtil::ReadFileData(FilePath(m_historyFile.c_str()), fileData) || fileData.empty()) {
+    if (!FileUtil::ReadFileData(FilePath(historyFilePath.c_str()), fileData) || fileData.empty()) {
         return;
     }
     DStringA utf8Data(fileData.begin(), fileData.end());
@@ -495,7 +497,26 @@ void AddressBar::SavePathHistory()
         utf8Data += StringConvert::TToUTF8(path.c_str());
         utf8Data += '\n';
     }
-    FileUtil::WriteFileData(FilePath(m_historyFile.c_str()), utf8Data);
+    FilePath historyFilePath(GetHistoryFilePath().c_str());
+    if (historyFilePath.IsEmpty()) {
+        return;
+    }
+    //确保历史文件所在目录存在（如 "user" 目录首次使用时可能尚不存在）
+    FilePathUtil::CreateDirectories(historyFilePath.GetParentPath().ToString());
+    FileUtil::WriteFileData(historyFilePath, utf8Data);
+}
+
+DString AddressBar::GetHistoryFilePath() const
+{
+    if (m_historyFile.empty()) {
+        return DString();
+    }
+    FilePath historyFilePath(m_historyFile.c_str());
+    if (historyFilePath.IsRelativePath()) {
+        //相对路径：拼接可执行程序所在目录（与 TreeView_settings.ini 的存放逻辑保持一致）
+        historyFilePath = FilePathUtil::JoinFilePath(FilePathUtil::GetCurrentModuleDirectory(), historyFilePath);
+    }
+    return historyFilePath.ToString();
 }
 
 void AddressBar::UpdateHistoryButtonVisible()

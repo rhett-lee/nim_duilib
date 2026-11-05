@@ -75,7 +75,7 @@
                                                 kill_focus_update_ui="false" tooltip_text_id="STRID_TREEVIEW_VIEW_PATH"
                                                 empty_display_text_id="STRID_TREEVIEW_MY_COMPUTER" right_padding="12"
                                                 reset_button_class="address_bar_reset_button"
-                                                default_context_menu="true" history_file="address_bar_history.txt"/>
+                                                default_context_menu="true" history_file="user/address_bar_history.txt"/>
                 <SearchBox class="search_box" name="search_box" width="stretch" min_width="120" max_width="220" height="28" valign="center"
                            prompt_text_id="STRID_TREEVIEW_SEARCH_PROMPT" debounce_interval="250"
                            history_enabled="false" tooltip_text_id="STRID_TREEVIEW_SEARCH_PROMPT"/>
