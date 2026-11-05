@@ -33,16 +33,20 @@ public:
     */
     void GetRootPathInfoList(bool bLargeIcon, std::vector<DirectoryTree::PathInfo>& pathInfoList);
 
-    /** 获取指定路径下的子目录和文件列表
+    /** 获取指定路径下的子目录和文件列表（本函数在工作线程中调用，禁止访问控件成员变量）
     * @param [in] path 目录
     * @param [in] weakFlag 取消标记，关联的控件已经失效则表示操作已经取消
     * @param [in] bLargeIcon 是否为大图标，大图标为32*32，小图标为16*16
+    * @param [in] bShowHiddenFiles 是否显示隐藏文件（由界面线程传入的快照值）
+    * @param [in] bShowSystemFiles 是否显示系统文件（由界面线程传入的快照值）
     * @param [out] folderList 返回path目录中的所有子目录列表
-    * @param [out] fileList 返回path目录中的所有文件列表
+    * @param [out] fileList 返回path目录中的所有文件列表（可为nullptr，表示不需要文件列表）
     */
     void GetFolderContents(const FilePath& path,
                            const std::weak_ptr<WeakFlag>& weakFlag,
                            bool bLargeIcon,
+                           bool bShowHiddenFiles,
+                           bool bShowSystemFiles,
                            std::vector<DirectoryTree::PathInfo>& folderList,
                            std::vector<DirectoryTree::PathInfo>* fileList);
 
@@ -55,13 +59,37 @@ public:
                          bool bLargeIcon,
                          std::vector<DirectoryTree::DiskInfo>& diskInfoList);
 
-    /** 是否需要显示此目录（根据属性设置判断）
+    /** 是否需要显示此目录（根据属性设置判断，本函数在工作线程中调用）
+    * @param [in] path 目录路径
+    * @param [in] bShowHiddenFiles 是否显示隐藏文件（由界面线程传入的快照值）
+    * @param [in] bShowSystemFiles 是否显示系统文件（由界面线程传入的快照值）
     */
-    bool NeedShowDirPath(const FilePath& path) const;
+    bool NeedShowDirPath(const FilePath& path, bool bShowHiddenFiles, bool bShowSystemFiles) const;
 
     /** 获取计算机的图标ID
     */
     uint32_t GetMyComputerIconID() const;
+
+private:
+    /** 获取共享的文件夹图标ID
+    * @param [in] bLargeIcon 是否为大图标
+    */
+    uint32_t GetFolderIconID(bool bLargeIcon);
+
+    /** 获取共享的文件图标ID（按扩展名缓存）
+    * @param [in] filePath 文件的完整路径
+    * @param [in] fileName 文件名（用于提取扩展名）
+    * @param [in] bLargeIcon 是否为大图标
+    * @param [out] pTypeName 返回文件类型显示名称，可为nullptr
+    */
+    uint32_t GetFileIconID(const FilePath& filePath, const DString& fileName, bool bLargeIcon, DString* pTypeName);
+
+#ifndef DUILIB_BUILD_FOR_WIN
+    /** 获取共享的磁盘图标ID（按设备类型缓存）
+    * @param [in] deviceType 设备类型
+    */
+    uint32_t GetDriveIconID(DirectoryTree::DeviceType deviceType);
+#endif
 
 private:
     /** 目录树UI接口

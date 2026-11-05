@@ -102,7 +102,7 @@ Window::OnPreparePaint → ArrangeRoot → ColorPickerCustom::SetPos → InitPic
 | 文件对话框 | `FileDialog_Windows` | `FileDialog_SDL` | `FileDialog_SDL` | 同左 | SDL 多选返回值有上游 Bug |
 | 托盘图标 | `TrayIcon_Windows` | `TrayIcon_SDL` | `TrayIcon_SDL` | 同左 | 已完成 |
 | 屏幕截图 / 取色 | `ScreenCapture_Windows` | `ScreenCapture_MacOS.mm` | `ScreenCapture_X11/Wayland/Linux` | 复用 X11 | **已有非 Windows 实现，旧文档描述过期** |
-| 目录树 | `DirectoryTreeImpl_Windows` | `DirectoryTreeImpl_MacOS` | `DirectoryTreeImpl_Linux` | 复用 Linux | 已完成 |
+| 目录树 | `DirectoryTreeImpl_Windows` | `DirectoryTreeImpl_Unix` | `DirectoryTreeImpl_Unix` | `DirectoryTreeImpl_Unix` | macOS/FreeBSD 用 `getmntinfo`，Linux 用 `/proc/mounts`；同一份 POSIX 实现（2026-11-05 合并） |
 | 系统提示框 | `ToolTip_Windows` | `ToolTip_SDL` | `ToolTip_SDL` | 同左 | 已完成 |
 | 文件拖放（窗口级） | `WindowDropTarget_Windows` | `WindowDropTarget_SDL` | 同左 | 同左 | 已完成 |
 | 线程间消息 | `ThreadMessage_Windows` | `ThreadMessage_SDL` | 同左 | 同左 | 已完成 |
@@ -132,7 +132,7 @@ Window::OnPreparePaint → ArrangeRoot → ColorPickerCustom::SetPos → InitPic
 
 ### 3.4 macOS 与 FreeBSD
 
-* 代码层面已有 SDL 实现（含 `ScreenCapture_MacOS.mm`、`DirectoryTreeImpl_MacOS`），但**没有任何实测记录**：平台测试表仅覆盖 Linux 发行版；
+* 代码层面已有 SDL 实现（含 `ScreenCapture_MacOS.mm`、`DirectoryTreeImpl_Unix`），但**没有任何实测记录**：平台测试表仅覆盖 Linux 发行版；
 * FreeBSD 无专属实现文件，复用 Linux / X11 分支，同样无构建与运行验证记录；
 * 建议：把 macOS / FreeBSD 纳入构建 + 冒烟测试矩阵后再对外声明支持。
 

@@ -108,15 +108,15 @@ private:
     */
     void ShowMyComputerContents_Win(ui::ImageListPtr pImageList, const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList);
 
-#elif defined (DUILIB_BUILD_FOR_LINUX)
+#else
     /** 初始化表头
     */
-    void InitComputerViewHeader_Linux();
+    void InitComputerViewHeader_Unix();
 
     /** 显示"计算机"节点的内容
     * @param [in] diskInfoList 所有磁盘的信息列表
     */
-    void ShowMyComputerContents_Linux(ui::ImageListPtr pImageList, const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList);
+    void ShowMyComputerContents_Unix(ui::ImageListPtr pImageList, const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList);
 
     /** 设备类型转换为字符串（返回资源字符串Id，支持多国语言版）
     */

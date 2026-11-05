@@ -564,10 +564,10 @@
     <ClCompile Include="Core\IconManager.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Control\DirectoryTreeImpl_Windows.cpp">
-      <Filter>Control\Windows</Filter>
+    <ClCompile Include="Control\DirectoryTreeImpl_Unix.cpp">
+      <Filter>Control</Filter>
     </ClCompile>
-    <ClCompile Include="Control\DirectoryTreeImpl_Linux.cpp">
+    <ClCompile Include="Control\DirectoryTreeImpl_Windows.cpp">
       <Filter>Control\Windows</Filter>
     </ClCompile>
     <ClCompile Include="Utils\FileTime.cpp">

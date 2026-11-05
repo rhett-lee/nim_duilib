@@ -4,6 +4,8 @@
 #include "duilib/Control/TreeView.h"
 #include "duilib/Utils/FileTime.h"
 #include <vector>
+#include <map>
+#include <unordered_map>
 #include <atomic>
 
 namespace ui
@@ -50,31 +52,12 @@ public:
                                 const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& folderList,
                                 const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& fileList)> ShowFolderContentsEvent;
 
-#ifdef DUILIB_BUILD_FOR_WIN
-    /** 磁盘属性信息
-    */
-    struct DiskInfo
-    {
-        DString m_displayName;  //显示名称
-        uint32_t m_nIconID = 0; //关联图标ID（GlobalManager::Instance().Icon().AddIcon的返回值，图标需要实现类添加到管理器）
-        bool m_bIconShared = false; //该图标ID关联的图标是否为共享图标（共享图标不允许释放）
-        FilePath m_filePath;        //对应的路径
-
-        DString m_volumeName;   //分区卷标
-        DString m_volumeType;   //分区类型，如"本地磁盘"
-        DString m_fileSystem;   //文件系统类型，如"NTFS"
-
-        uint64_t m_totalBytes = 0; //总空间大小（字节）
-        uint64_t m_freeBytes = 0;  //可用空间大小（字节）
-    };
-#else
-    //其他平台
-    /** 设备类型枚举
+    /** 设备类型枚举（所有平台通用）
     */
     enum class DeviceType
     {
         UNKNOWN,    // 未知设备
-        HDD,        // 机械硬盘 (如/dev/sdX)
+        HDD,        // 机械硬盘 (Windows本地磁盘，如/dev/sdX)
         SSD,        // SATA固态硬盘
         NVME,       // NVMe协议固态硬盘 (如/dev/nvmeXn1)
         USB,        // USB存储设备
@@ -84,10 +67,10 @@ public:
         VIRT_DISK,  // 虚拟设备
         RAMDISK,    // 内存盘 (如/dev/ramX)
         NFS,        // NFS
-        SHARE       //共享文件夹
+        SHARE       // 共享文件夹
     };
 
-    /** 磁盘属性信息
+    /** 磁盘属性信息（所有平台统一结构，各平台按需填充字段）
     */
     struct DiskInfo
     {
@@ -96,15 +79,15 @@ public:
         bool m_bIconShared = false; //该图标ID关联的图标是否为共享图标（共享图标不允许释放）
         FilePath m_filePath;        //对应的路径
 
-        DString m_volumeName;   //文件系统，如"/dev/sda2"
-        DeviceType m_deviceType = DeviceType::UNKNOWN;   //设备类型，参见枚举值
-        DString m_fileSystem;   //文件系统类型，如"ext3"
-        DString m_mountOn;      //挂载点，如"/"
+        DString m_volumeName;       //分区卷标(Windows)，或设备名(其他平台，如"/dev/sda2")
+        DString m_volumeType;       //分区类型的显示文案(Windows，如"本地磁盘")；其他平台为空
+        DeviceType m_deviceType = DeviceType::UNKNOWN; //设备类型，参见枚举值
+        DString m_fileSystem;       //文件系统类型，如"NTFS"、"ext3"、"apfs"
+        DString m_mountOn;          //挂载点(其他平台，如"/")；Windows平台为驱动器根路径
 
-        uint64_t m_totalBytes = 0; //总空间大小（字节）
-        uint64_t m_freeBytes = 0;  //可用空间大小（字节）
+        uint64_t m_totalBytes = 0;  //总空间大小（字节）
+        uint64_t m_freeBytes = 0;   //可用空间大小（字节）
     };
-#endif
 
     /** 回调函数的原型: 用于显示计算机视图的数据
     */
@@ -303,8 +286,9 @@ private:
     /** 显示指定目录的子目录(异步完成)
     * @param [in] pTreeNode 当前的节点
     * @param [in] path 路径
+    * @return 参数校验失败时返回false，异步任务提交成功返回true
     */
-    void ShowSubFolders(TreeNode* pTreeNode, const FilePath& path, StdClosure finishCallback);
+    bool ShowSubFolders(TreeNode* pTreeNode, const FilePath& path, StdClosure finishCallback);
 
     /** 显示指定目录的内容(异步完成)
     * @param [in] pTreeNode 当前的节点
@@ -370,9 +354,29 @@ private:
     */
     bool OnSelectSubPath(TreeNode* pTreeNode, std::vector<FilePath> filePathList, StdClosure finishCallback);
 
-    /** 比较两个路径是否相同
+    /** 比较两个路径是否相同（按平台的大小写规则比较）
     */
-    bool IsSamePath(const UiString& p1, const UiString& p2) const;
+    bool IsSamePath(const DString& p1, const DString& p2) const;
+
+    /** 生成路径索引使用的规范化Key（目录路径 + 平台大小写规则）
+    */
+    DString NormalizePathKey(const FilePath& path) const;
+
+    /** 调用刷新完成回调函数（统一异步操作的结束通知）
+    */
+    void NotifyFinish(const StdClosure& finishCallback) const;
+
+    /** 在路径链中查找树里已经存在的、最深的节点
+    * @param [in] chain 从顶层到目标的路径链（包含目标自身）
+    * @param [in] pBaseNode 基准节点，只在该节点的子树中查找；为nullptr时在整棵树中查找
+    * @param [out] pBaseOut 返回找到的基准节点
+    * @param [out] remaining 返回基准节点之后、需要继续展开的路径
+    * @return 找到返回true，否则返回false
+    */
+    bool FindBaseNodeInChain(const std::vector<FilePath>& chain,
+                             TreeNode* pBaseNode,
+                             TreeNode*& pBaseOut,
+                             std::vector<FilePath>& remaining) const;
 
 private:
 
@@ -380,7 +384,7 @@ private:
     */
     struct FolderStatus
     {
-        UiString m_filePath;                //规则的文件路径
+        FilePath m_filePath;                //规则的目录路径
         TreeNode* m_pTreeNode = nullptr;    //关联的树节点指针
         uint32_t m_nIconID = 0;             //关联的图标ID
         bool m_bContentLoaded = false;      //当前目录的子目录是否已经加载过
@@ -407,9 +411,12 @@ private:
         TreeNode* m_pTreeNode = nullptr;            //树节点
         std::weak_ptr<WeakFlag> m_weakFlag;         //树节点生命周期
         bool m_bContentLoaded = false;              //当前目录的子目录是否已经加载过
+        bool m_bMyComputer = false;                 //当前节点是否为"计算机"节点
+        bool m_bShowHiddenFiles = false;            //是否显示隐藏文件（界面线程快照）
+        bool m_bShowSystemFiles = false;            //是否显示系统文件（界面线程快照）
         FilePath m_dirPath;                         //树节点对应的目录
         size_t m_nParentIndex = 0;                  //父节点在容器中的索引号
-        std::vector<FilePath> m_childPaths;         //子节点和子目录数据，用于比较是否有增加的目录
+        std::vector<FilePath> m_childPaths;         //子节点和子目录数据，用于比较是否有增加/删除的目录
 
         //当前路径是否被删除
         bool m_bDeleted = false;
@@ -462,6 +469,22 @@ private:
     /** 目录树（左侧树显示）
     */
     std::map<size_t, FolderStatus*> m_folderMap;
+
+    /** 目录路径到目录数据的索引（Key由NormalizePathKey生成）
+    */
+    std::unordered_map<DString, FolderStatus*> m_folderIndex;
+
+    /** 最近一次点击并加载内容的树节点（用于避免同一节点重复枚举）
+    */
+    TreeNode* m_pLastLoadedTreeNode = nullptr;
+
+    /** 是否有刷新操作正在进行
+    */
+    bool m_bRefreshing = false;
+
+    /** 刷新进行期间收到的刷新请求（用于合并连续的刷新请求）
+    */
+    bool m_bNeedRefresh = false;
 
     /** 用于显示关联的文件夹数据的回调函数
     */

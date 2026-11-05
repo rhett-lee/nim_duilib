@@ -181,18 +181,12 @@ bool ComputerView::IsDiskInfoListEqual(const std::vector<ui::DirectoryTree::Disk
             (a.m_volumeName != b.m_volumeName) ||
             (a.m_fileSystem != b.m_fileSystem) ||
             (a.m_totalBytes != b.m_totalBytes) ||
-            (a.m_freeBytes != b.m_freeBytes)) {
+            (a.m_freeBytes != b.m_freeBytes) ||
+            (a.m_volumeType != b.m_volumeType) ||
+            (a.m_deviceType != b.m_deviceType) ||
+            (a.m_mountOn != b.m_mountOn)) {
             return false;
         }
-#if defined (DUILIB_BUILD_FOR_WIN)
-        if (a.m_volumeType != b.m_volumeType) {
-            return false;
-        }
-#elif defined (DUILIB_BUILD_FOR_LINUX)
-        if ((a.m_deviceType != b.m_deviceType) || (a.m_mountOn != b.m_mountOn)) {
-            return false;
-        }
-#endif
     }
     return true;
 }
@@ -308,8 +302,8 @@ void ComputerView::InitComputerViewHeader()
 {
 #if defined (DUILIB_BUILD_FOR_WIN)
     InitComputerViewHeader_Win();
-#elif defined (DUILIB_BUILD_FOR_LINUX)
-    InitComputerViewHeader_Linux();
+#else
+    InitComputerViewHeader_Unix();
 #endif
 }
 
@@ -345,8 +339,8 @@ void ComputerView::ShowMyComputerContents(const std::vector<ui::DirectoryTree::D
     ui::ImageListPtr pImageList = m_pComputerListCtrl->GetImageList(ui::ListCtrlType::Report);
 #if defined (DUILIB_BUILD_FOR_WIN)
     ShowMyComputerContents_Win(pImageList, diskInfoList);
-#elif defined (DUILIB_BUILD_FOR_LINUX)
-    ShowMyComputerContents_Linux(pImageList, diskInfoList);
+#else
+    ShowMyComputerContents_Unix(pImageList, diskInfoList);
 #endif
 
     //磁盘数量减少时，删除末尾多余的列表项
@@ -497,8 +491,8 @@ void ComputerView::ShowMyComputerContents_Win(ui::ImageListPtr pImageList, const
 
 #endif //DUILIB_BUILD_FOR_WIN
 
-#if defined (DUILIB_BUILD_FOR_LINUX)
-void ComputerView::InitComputerViewHeader_Linux()
+#if !defined (DUILIB_BUILD_FOR_WIN)
+void ComputerView::InitComputerViewHeader_Unix()
 {
     if (m_pComputerListCtrl == nullptr) {
         return;
@@ -548,7 +542,7 @@ void ComputerView::InitComputerViewHeader_Linux()
     m_columnIdMap[ComputerViewColumn::kMountOn] = pHeaderItem->GetColumnId();
 }
 
-void ComputerView::ShowMyComputerContents_Linux(ui::ImageListPtr pImageList, const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList)
+void ComputerView::ShowMyComputerContents_Unix(ui::ImageListPtr pImageList, const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList)
 {
     ui::ListCtrlSubItemData itemData;
     size_t nItemIndex = 0;
@@ -674,4 +668,4 @@ DString ComputerView::GetDeviceTypeStringId(ui::DirectoryTree::DeviceType device
     return deviceTypeString;
 }
 
-#endif //DUILIB_BUILD_FOR_LINUX
+#endif //DUILIB_BUILD_FOR_WIN
