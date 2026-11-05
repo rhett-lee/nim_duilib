@@ -120,7 +120,14 @@
                 <Split class="split_vertical"/>
                 <TabBox name="main_view_tab_box" width="stretch" height="stretch" bkcolor="bg_window_card" selected_id="0">
                     <!-- 文件列表固定支持多选（Ctrl/Shift+单击、Ctrl+A 全选），不再提供开关 -->
-                    <VirtualVTileListBox class="list" name="simple_file_view" columns="auto" item_size="200,120" multi_select="true" vscrollbar="true" hscrollbar="true" child_halign="left"/>
+                    <VirtualVTileListBox class="list" name="simple_file_view" columns="auto" item_size="200,120" child_halign="left"
+                                         vscrollbar="true" hscrollbar="true"
+                                         multi_select="true" select_like_list_ctrl="true"
+                                         frame_selection="true" 
+                                         frame_selection_color="bg_list_ctrl_frame_selected" 
+                                         frame_selection_alpha="128" 
+                                         frame_selection_border_size="1" 
+                                         frame_selection_border_color="border_list_ctrl_frame_selected"/>
                     <ListCtrl class="list_ctrl" name="explorer_view" multi_select="true"
                               show_header_checkbox="false" show_data_item_checkbox="false" enable_item_edit="false"
                               row_grid_line_width="0" column_grid_line_width="0"/>
