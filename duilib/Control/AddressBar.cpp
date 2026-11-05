@@ -432,7 +432,8 @@ void AddressBar::AddPathHistory(const DString& path)
     }
     UiString historyPath = normalizedPath.c_str();
     for (auto it = m_pathHistory.begin(); it != m_pathHistory.end(); ++it) {
-        if (*it == historyPath) {
+        //Windows路径不区分大小写，避免同一路径以不同大小写重复记录
+        if (StringUtil::IsEqualNoCase(it->c_str(), historyPath.c_str())) {
             m_pathHistory.erase(it);
             break;
         }
@@ -482,6 +483,8 @@ void AddressBar::SetHistoryFile(const DString& historyFile)
     if (IsInited()) {
         //切换持久化文件后重新加载历史（Initialize前只记录路径，由OnInit统一加载）
         m_pathHistory.clear();
+        //旧文件中尚未落盘的变更不再写入新文件
+        m_bHistoryDirty = false;
         LoadPathHistory();
         UpdateHistoryButtonVisible();
     }
@@ -530,7 +533,8 @@ void AddressBar::LoadPathHistory()
     for (const UiString& path : paths) {
         bool bExists = false;
         for (const UiString& item : m_pathHistory) {
-            if (item == path) {
+            //Windows路径不区分大小写
+            if (StringUtil::IsEqualNoCase(item.c_str(), path.c_str())) {
                 bExists = true;
                 break;
             }
@@ -961,6 +965,10 @@ void AddressBar::ShowAddressEdit(bool bShow)
     }
     //编辑态隐藏“最近路径”按钮，面包屑态按历史记录情况显示
     UpdateHistoryButtonVisible();
+    if (!bShow) {
+        //编辑框隐藏后焦点会变为空，恢复到面包屑，保证键盘操作仍可用
+        RestoreBreadcrumbFocus();
+    }
 }
 
 void AddressBar::EnterAddressEdit()
@@ -979,12 +987,38 @@ bool AddressBar::IsEditing() const
     return (m_pRichEdit != nullptr) && m_pRichEdit->IsVisible();
 }
 
-void AddressBar::ResetEditText()
+void AddressBar::ResetEditText(bool bSetFocus)
 {
     if (m_pRichEdit != nullptr) {
         m_pRichEdit->SetTextNoEvent(GetAddressPath());
         m_pRichEdit->SetSel(0, -1);
-        m_pRichEdit->SetFocus();
+        if (bSetFocus) {
+            m_pRichEdit->SetFocus();
+        }
+    }
+}
+
+void AddressBar::RestoreBreadcrumbFocus()
+{
+    Window* pWindow = GetWindow();
+    if ((pWindow == nullptr) || !pWindow->IsWindowFocused() || (pWindow->GetFocusControl() != nullptr)) {
+        //窗口未激活，或焦点已经落到其他控件上：不抢占焦点
+        return;
+    }
+    if (m_pBarBox == nullptr) {
+        return;
+    }
+    //取最后一个可见的路径段按钮（通常是当前目录）
+    for (size_t i = m_subPathBoxes.size(); i > 0; --i) {
+        HBox* pBox = m_subPathBoxes[i - 1];
+        if ((pBox == nullptr) || !pBox->IsVisible()) {
+            continue;
+        }
+        Control* pBtn = pBox->GetItemAt(0);
+        if ((pBtn != nullptr) && pBtn->IsVisible() && pBtn->IsEnabled()) {
+            pBtn->SetFocus();
+            return;
+        }
     }
 }
 
@@ -1533,19 +1567,20 @@ void AddressBar::OnAddressBarKillFocus(Control* pNewFocus)
     }
     bool bAccepted = false;
     bool bChanged = false;
-    //pNewFocus为空表示窗口失去激活（如Alt+Tab）：此时保留编辑态与输入内容，与资源管理器一致；
+    //窗口失去激活（如Alt+Tab）时保留编辑态与输入内容，与资源管理器一致；
     //焦点移到窗口内其他控件时则退出编辑态，恢复面包屑显示
-    const bool bWindowDeactivated = (pNewFocus == nullptr);
+    //注意：不能用pNewFocus是否为空判断（控件隐藏/禁用同样会产生空焦点）
+    Window* pWindow = GetWindow();
+    const bool bWindowDeactivated = (pWindow == nullptr) || !pWindow->IsWindowFocused();
     if (IsEditing()) {
         DString addressPath = m_pRichEdit->GetText();
         if (m_bKillFocusUpdateUI) {
             bAccepted = CommitAddressPath(addressPath, !bWindowDeactivated);
         }
-        else {
-            ResetEditText();
-            if (!bWindowDeactivated) {
-                ShowAddressEdit(false);
-            }
+        else if (!bWindowDeactivated) {
+            //失焦后恢复文本为当前路径（不抢焦点），并退出编辑态
+            ResetEditText(false);
+            ShowAddressEdit(false);
         }
     }
     else {
@@ -1601,7 +1636,7 @@ bool AddressBar::CommitAddressPath(const DString& rawPath, bool bHideEdit)
         if (!bAccept) {
             //拒绝提交：显示控件级错误状态（红色边框），恢复编辑框并退出编辑状态，不派发kEventPathChanged
             SetPathError(true);
-            ResetEditText();
+            ResetEditText(false);
             if (bHideEdit) {
                 ShowAddressEdit(false);
             }
@@ -1843,6 +1878,10 @@ void AddressBar::ShowDefaultContextMenu(const UiPoint& ptMouse)
 
 bool AddressBar::HandleEditKeyDown(const EventArgs& msg)
 {
+    //编辑框隐藏后不应再处理导航类按键（消息延迟或焦点残留时仍可能收到按键事件）
+    if (!IsEditing()) {
+        return false;
+    }
     //编辑态下同样支持 Alt+Up 上一级、F6/Ctrl+L 全选（Home/End 留给编辑框移动光标）
     if (HandleNavigationKeyDown(msg)) {
         return true;
@@ -1877,7 +1916,9 @@ bool AddressBar::HandleEditKeyDown(const EventArgs& msg)
             CloseAutoCompletePopup();
         }
         else if (GetWindow() != nullptr) {
-            //没有可补全的候选项：保持Tab的默认行为（切换到下一个控件）
+            //没有可补全的候选项：丢弃当前输入并切换到下一个控件
+            //（先恢复为当前路径，避免失焦时提交半截路径而触发导航或显示错误态）
+            ResetEditText();
             GetWindow()->SetNextTabControl(true);
         }
         return true;
@@ -2005,7 +2046,8 @@ void AddressBar::BuildAutoCompleteCandidates(const DString& input)
     auto AddCandidate = [this](const DString& path) {
         const DString candidate = path;
         for (const UiString& exist : m_candidates) {
-            if (exist.c_str() == candidate) {
+            //Windows路径不区分大小写
+            if (StringUtil::IsEqualNoCase(exist.c_str(), candidate.c_str())) {
                 return;
             }
         }
@@ -2110,6 +2152,12 @@ bool AddressBar::ScanDirectoryNames(const DString& dirPath, std::vector<DString>
         else {
             fileNames.push_back(name);
         }
+    }
+    if (ec) {
+        //迭代中途失败：不缓存部分结果，交由调用方下次重新扫描
+        dirNames.clear();
+        fileNames.clear();
+        return false;
     }
     std::sort(dirNames.begin(), dirNames.end());
     std::sort(fileNames.begin(), fileNames.end());

@@ -415,8 +415,13 @@ private:
     bool CommitAddressPath(const DString& rawPath, bool bHideEdit);
 
     /** 恢复编辑框文本为当前显示路径
+    * @param [in] bSetFocus 是否同时把焦点设置到编辑框（失焦路径中不应抢焦点）
     */
-    void ResetEditText();
+    void ResetEditText(bool bSetFocus = true);
+
+    /** 隐藏编辑框后，若窗口内当前没有焦点控件，则把焦点恢复到当前路径段按钮
+    */
+    void RestoreBreadcrumbFocus();
 
     /** 显示折叠路径的下拉菜单
     */
