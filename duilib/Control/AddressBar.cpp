@@ -14,6 +14,7 @@
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/Clipboard.h"
 #include <algorithm>
+#include <cstdlib>
 #include <filesystem>
 #ifdef DUILIB_BUILD_FOR_WIN
     #include "duilib/Utils/DiskUtils_Windows.h"
@@ -79,6 +80,10 @@ AddressBar::AddressBar(Window* pWindow):
     m_bDefaultContextMenu(false),
     m_bPathError(false),
     m_bDropHighlight(false),
+    m_nLayoutWidth(-1),
+    m_nLayoutHeight(-1),
+    m_nPathVersion(0),
+    m_nLayoutPathVersion(0),
     m_editClass(_T("address_bar_edit")),
     m_resetBtnClass(_T("address_bar_reset_button")),
     m_subPathHBoxClass(_T("address_bar_sub_path_hbox")),
@@ -619,6 +624,13 @@ void AddressBar::SetPos(UiRect rc)
 bool AddressBar::OnKeyDown(const EventArgs& msg)
 {
     //焦点在面包屑按钮上时，由按钮自己的回调处理；这里处理焦点在AddressBar自身的情况
+    if (HandleNavigationKeyDown(msg)) {
+        return true;
+    }
+    if ((msg.vkCode == kVK_HOME) || (msg.vkCode == kVK_END)) {
+        FocusSubPathEdge(msg.vkCode == kVK_HOME);
+        return true;
+    }
     if ((msg.vkCode == kVK_RETURN) && IsEditing()) {
         OnAddressBarReturn();
         return true;
@@ -864,9 +876,14 @@ void AddressBar::EnsureSubPathControls(size_t nIndex)
         pDisplayNameBtn->SetTabStop(true);
 
         const size_t nSegmentIndex = m_subPathBoxes.size();
-        pDisplayNameBtn->AttachClick([this, nSegmentIndex](const EventArgs&) {
+        pDisplayNameBtn->AttachClick([this, nSegmentIndex, pDisplayNameBtn](const EventArgs&) {
             if (nSegmentIndex < m_pathSegments.size()) {
                 OnClickedSubPath(m_pathSegments[nSegmentIndex].m_fullPath);
+            }
+            //点击路径段后让面包屑获得焦点（导航过程中焦点可能被重置，因此放在导航之后），
+            //便于后续使用键盘（Home/End、Alt+Up、F6 等）
+            if (pDisplayNameBtn->IsVisible()) {
+                pDisplayNameBtn->SetFocus();
             }
             return true;
             });
@@ -878,10 +895,17 @@ void AddressBar::EnsureSubPathControls(size_t nIndex)
             }
             return true;
             });
-        //键盘：左右方向键在面包屑之间移动焦点，回车激活
+        //键盘：左右方向键在面包屑之间移动焦点，Home/End跳到首末段，回车激活
         pDisplayNameBtn->AttachEvent(kEventKeyDown, [this, nSegmentIndex](const EventArgs& msg) {
             if ((msg.vkCode == kVK_LEFT) || (msg.vkCode == kVK_RIGHT)) {
                 MoveSubPathFocus(nSegmentIndex, msg.vkCode == kVK_LEFT);
+                return true;
+            }
+            if ((msg.vkCode == kVK_HOME) || (msg.vkCode == kVK_END)) {
+                FocusSubPathEdge(msg.vkCode == kVK_HOME);
+                return true;
+            }
+            if (HandleNavigationKeyDown(msg)) {
                 return true;
             }
             if ((msg.vkCode == kVK_RETURN) || (msg.vkCode == kVK_SPACE)) {
@@ -935,6 +959,72 @@ void AddressBar::MoveSubPathFocus(size_t nIndex, bool bLeft)
     }
 }
 
+void AddressBar::FocusSubPathEdge(bool bFirst)
+{
+    size_t nTarget = Box::InvalidIndex;
+    if (bFirst) {
+        for (size_t i = 0; i < m_subPathBoxes.size(); ++i) {
+            if (m_subPathBoxes[i]->IsVisible()) {
+                nTarget = i;
+                break;
+            }
+        }
+    }
+    else {
+        for (size_t i = m_subPathBoxes.size(); i > 0; --i) {
+            if (m_subPathBoxes[i - 1]->IsVisible()) {
+                nTarget = i - 1;
+                break;
+            }
+        }
+    }
+    if (nTarget == Box::InvalidIndex) {
+        return;
+    }
+    Control* pBtn = m_subPathBoxes[nTarget]->GetItemAt(0);
+    if (pBtn != nullptr) {
+        pBtn->SetFocus();
+    }
+}
+
+bool AddressBar::NavigateToParentPath()
+{
+    if (m_pathSegments.size() < 2) {
+        //已经是根路径
+        return false;
+    }
+    const DString parentPath = m_pathSegments[m_pathSegments.size() - 2].m_fullPath;
+    if (parentPath.empty()) {
+        return false;
+    }
+    if (IsEditing()) {
+        ShowAddressEdit(false);
+    }
+    OnClickedSubPath(parentPath);
+    return true;
+}
+
+bool AddressBar::HandleNavigationKeyDown(const EventArgs& msg)
+{
+    const bool bCtrl = (msg.modifierKey & kControl) != 0;
+    const bool bAlt = (msg.modifierKey & kAlt) != 0;
+
+    //Alt+Up：导航到上一级目录
+    if ((msg.vkCode == kVK_UP) && bAlt && !bCtrl) {
+        return NavigateToParentPath();
+    }
+    //F6 / Ctrl+L：进入编辑状态并全选当前路径（与资源管理器的行为一致）
+    if ((msg.vkCode == kVK_F6) || ((msg.vkCode == kVK_L) && bCtrl && !bAlt)) {
+        ShowAddressEdit(true);
+        if (m_pRichEdit != nullptr) {
+            m_pRichEdit->SetSel(0, -1);
+            m_pRichEdit->SetFocus();
+        }
+        return true;
+    }
+    return false;
+}
+
 void AddressBar::UpdateSubPathControls(size_t nIndex, const PathSegment& segment, bool bShowSeparator, bool bCurrent)
 {
     ASSERT(nIndex < m_subPathBoxes.size());
@@ -976,6 +1066,84 @@ void AddressBar::UpdateSubPathControls(size_t nIndex, const PathSegment& segment
     }
 }
 
+namespace
+{
+/** 是否为目录分隔符（Windows下同时接受'/'与'\\'）
+*/
+bool IsDirSeparator(DString::value_type ch)
+{
+#ifdef DUILIB_BUILD_FOR_WIN
+    return (ch == _T('\\')) || (ch == _T('/'));
+#else
+    return ch == _T('/');
+#endif
+}
+
+/** 判断字符串是否以指定前缀开头（不区分大小写）
+*/
+bool StartsWithNoCase(const DString& text, const DString& prefix)
+{
+    if (text.size() < prefix.size()) {
+        return false;
+    }
+    const DString head(text.c_str(), prefix.size());
+    return StringUtil::MakeUpperString(head) == StringUtil::MakeUpperString(prefix);
+}
+
+/** 按目录分隔符拆分路径组件（跳过空组件）
+*/
+std::vector<DString> SplitPathComponents(const DString& path, size_t nStartIndex)
+{
+    std::vector<DString> parts;
+    size_t i = nStartIndex;
+    while (i < path.size()) {
+        while ((i < path.size()) && IsDirSeparator(path[i])) {
+            ++i;
+        }
+        if (i >= path.size()) {
+            break;
+        }
+        size_t j = i;
+        while ((j < path.size()) && !IsDirSeparator(path[j])) {
+            ++j;
+        }
+        parts.push_back(path.substr(i, j - i));
+        i = j;
+    }
+    return parts;
+}
+}
+
+DString AddressBar::ExpandUserPath(const DString& path) const
+{
+    if (path.empty() || (path[0] != _T('~'))) {
+        return path;
+    }
+    //仅处理"~"或者"~/..."、"~\\..."形式，避免把"~abc"这类普通文件名当作主目录
+    if ((path.size() > 1) && !IsDirSeparator(path[1])) {
+        return path;
+    }
+#ifdef DUILIB_BUILD_FOR_WIN
+    DStringW home;
+    const DWORD nLength = ::GetEnvironmentVariableW(L"USERPROFILE", nullptr, 0);
+    if (nLength > 0) {
+        home.resize(nLength + 1);
+        const DWORD nCopied = ::GetEnvironmentVariableW(L"USERPROFILE", &home[0], nLength + 1);
+        if (nCopied > 0) {
+            home.resize(nCopied);
+            return StringConvert::WStringToT(home) + path.substr(1);
+        }
+    }
+    return path;
+#else
+    const char* home = std::getenv("HOME");
+    if (home != nullptr) {
+        return DString(home) + path.substr(1);
+    }
+    return path;
+#endif
+}
+
 void AddressBar::BuildPathSegments(const DString& addressPath, std::vector<PathSegment>& segments) const
 {
     segments.clear();
@@ -992,59 +1160,182 @@ void AddressBar::BuildPathSegments(const DString& addressPath, std::vector<PathS
         return;
     }
 
-    FilePath filePath(addressPath);
+    //展开以"~"开头的用户主目录路径
+    DString pathText = ExpandUserPath(addressPath);
+    FilePath filePath(pathText);
     filePath.NormalizeFilePath();
     filePath.TrimRightPathSeparator();
+    pathText = filePath.ToString();
 
-    std::vector<FilePath> pathList;
-    filePath.GetParentPathList(pathList);
-    if (!pathList.empty()) {
-        if (pathList.back() != filePath) {
-            pathList.push_back(filePath);
+#ifdef DUILIB_BUILD_FOR_WIN
+    //盘符路径（C:、C:\\...）与UNC路径（\\\\server\\...）均视为绝对路径
+    const bool bAbsolutePath = ((pathText.size() >= 2) && (pathText[1] == _T(':'))) ||
+                               ((pathText.size() >= 2) && IsDirSeparator(pathText[0]) && IsDirSeparator(pathText[1]));
+#else
+    const bool bAbsolutePath = !pathText.empty() && (pathText[0] == _T('/'));
+#endif
+    if (!bAbsolutePath) {
+        //相对路径：仅按分隔符拆分为普通路径段，不生成根段
+        DString fullPath;
+        for (const DString& part : SplitPathComponents(pathText, 0)) {
+            if (fullPath.empty()) {
+                fullPath = part;
+            }
+            else {
+                fullPath += FilePath::GetPathSeparator();
+                fullPath += part;
+            }
+            PathSegment segment;
+            segment.m_fullPath = fullPath;
+            segment.m_displayName = part;
+            segment.m_bRoot = false;
+            segment.m_bDrive = false;
+            segment.m_bComputer = false;
+            segments.push_back(segment);
+        }
+        if (segments.empty()) {
+            PathSegment segment;
+            segment.m_fullPath = pathText;
+            segment.m_displayName = pathText;
+            segment.m_bRoot = false;
+            segment.m_bDrive = false;
+            segment.m_bComputer = false;
+            segments.push_back(segment);
+        }
+        return;
+    }
+
+#ifdef DUILIB_BUILD_FOR_WIN
+    //解析根路径：支持盘符、UNC(\\\\server\\share)、扩展长度路径(\\\\?\\、\\\\?\\UNC\\)
+    DString rootPath;
+    DString rootDisplay;
+    size_t nRootEnd = 0;
+    bool bDriveRoot = false;
+
+    if (StartsWithNoCase(pathText, _T("\\\\?\\UNC\\"))) {
+        //\\\\?\\UNC\\server\\share\\...
+        const size_t nPrefixLen = 8;
+        size_t nServerEnd = pathText.find_first_of(_T("\\/"), nPrefixLen);
+        if (nServerEnd == DString::npos) {
+            nRootEnd = pathText.size();
+            rootPath = pathText;
+            rootDisplay = pathText.substr(nPrefixLen);
+        }
+        else {
+            size_t nShareEnd = pathText.find_first_of(_T("\\/"), nServerEnd + 1);
+            if (nShareEnd == DString::npos) {
+                nShareEnd = pathText.size();
+            }
+            nRootEnd = nShareEnd;
+            rootPath = pathText.substr(0, nShareEnd);
+            //显示为普通的UNC根：\\\\server\\share
+            rootDisplay = DString(_T("\\\\")) + pathText.substr(nPrefixLen, nShareEnd - nPrefixLen);
+        }
+    }
+    else if (StartsWithNoCase(pathText, _T("\\\\?\\"))) {
+        //\\\\?\\C:\\... 或 \\\\?\\Volume{GUID}\\...
+        const size_t nPrefixLen = 4;
+        size_t nNameEnd = pathText.find_first_of(_T("\\/"), nPrefixLen);
+        if (nNameEnd == DString::npos) {
+            nNameEnd = pathText.size();
+        }
+        nRootEnd = nNameEnd;
+        rootPath = pathText.substr(0, nNameEnd);
+        rootDisplay = pathText.substr(nPrefixLen, nNameEnd - nPrefixLen);
+        if ((rootDisplay.size() == 2) && (rootDisplay[1] == _T(':'))) {
+            bDriveRoot = true;
+        }
+    }
+    else if (IsDirSeparator(pathText[0])) {
+        //UNC: \\\\server\\share\\...
+        size_t nServerEnd = pathText.find_first_of(_T("\\/"), 2);
+        if (nServerEnd == DString::npos) {
+            nRootEnd = pathText.size();
+            rootPath = pathText;
+            rootDisplay = pathText;
+        }
+        else {
+            size_t nShareEnd = pathText.find_first_of(_T("\\/"), nServerEnd + 1);
+            if (nShareEnd == DString::npos) {
+                nShareEnd = pathText.size();
+            }
+            nRootEnd = nShareEnd;
+            rootPath = pathText.substr(0, nShareEnd);
+            rootDisplay = rootPath;
         }
     }
     else {
-        pathList.push_back(filePath);
+        //盘符根：C:\\...
+        nRootEnd = 2;
+        rootPath = pathText.substr(0, 2);
+        rootDisplay = rootPath;
+        bDriveRoot = true;
     }
 
-    for (size_t i = 0; i < pathList.size(); ++i) {
-        const FilePath& subPath = pathList[i];
+    //根段
+    PathSegment rootSegment;
+    rootSegment.m_fullPath = rootPath;
+    if (!rootPath.empty() && !IsDirSeparator(rootPath.back())) {
+        rootSegment.m_fullPath += FilePath::GetPathSeparator();
+    }
+    if (bDriveRoot) {
+        //查询卷名（\\\\?\\ 前缀的盘符使用普通路径查询）
+        DString diskPath = rootPath;
+        if (StartsWithNoCase(diskPath, _T("\\\\?\\"))) {
+            diskPath = diskPath.substr(4);
+        }
+        if ((diskPath.size() == 2) && (diskPath[1] == _T(':'))) {
+            diskPath += FilePath::GetPathSeparator();
+        }
+        DiskUtils::DiskInfo diskInfo;
+        DiskUtils::GetLogicalDriveInfo(diskPath, diskInfo);
+        if (!diskInfo.m_volumeName.empty()) {
+            //卷名通常已包含盘符（如“本地磁盘 (C:)”），优先显示卷名
+            rootDisplay = diskInfo.m_volumeName;
+        }
+    }
+    rootSegment.m_displayName = rootDisplay;
+    rootSegment.m_bRoot = true;
+    rootSegment.m_bDrive = bDriveRoot;
+    rootSegment.m_bComputer = false;
+    segments.push_back(rootSegment);
+
+    //根路径下的各级子路径
+    DString currentPath = rootSegment.m_fullPath;
+    for (const DString& part : SplitPathComponents(pathText, nRootEnd)) {
+        currentPath += part;
         PathSegment segment;
-        segment.m_fullPath = subPath.ToString();
-        segment.m_displayName = subPath.GetFileName();
-        segment.m_bRoot = (i == 0);
+        segment.m_fullPath = currentPath;
+        segment.m_displayName = part;
+        segment.m_bRoot = false;
         segment.m_bDrive = false;
         segment.m_bComputer = false;
-
-        if (segment.m_displayName.empty()) {
-            //根目录：Windows盘符、UNC根、Unix根
-            segment.m_displayName = subPath.ToString();
-            while (!segment.m_displayName.empty() &&
-                   ((segment.m_displayName.back() == FilePath::GetPathSeparator()) ||
-                    (segment.m_displayName.back() == _T(':'))) &&
-                   (segment.m_displayName.size() > 1)) {
-                if ((segment.m_displayName.back() == _T(':')) && (segment.m_displayName.size() <= 2)) {
-                    break;
-                }
-                segment.m_displayName.pop_back();
-            }
-            if (segment.m_displayName.empty()) {
-                segment.m_displayName = FilePath::GetPathSeparator();
-            }
-#ifdef DUILIB_BUILD_FOR_WIN
-            if (!segment.m_displayName.empty() && (segment.m_displayName.back() == _T(':'))) {
-                segment.m_bDrive = true;
-                DiskUtils::DiskInfo diskInfo;
-                DiskUtils::GetLogicalDriveInfo(subPath.ToString(), diskInfo);
-                if (!diskInfo.m_volumeName.empty()) {
-                    //卷名通常已包含盘符（如“本地磁盘 (C:)”），优先显示卷名
-                    segment.m_displayName = diskInfo.m_volumeName;
-                }
-            }
-#endif
-        }
         segments.push_back(segment);
+        currentPath += FilePath::GetPathSeparator();
     }
+#else
+    //Unix：根为"/"
+    PathSegment rootSegment;
+    rootSegment.m_fullPath = _T("/");
+    rootSegment.m_displayName = _T("/");
+    rootSegment.m_bRoot = true;
+    rootSegment.m_bDrive = false;
+    rootSegment.m_bComputer = false;
+    segments.push_back(rootSegment);
+
+    DString currentPath = _T("/");
+    for (const DString& part : SplitPathComponents(pathText, 0)) {
+        currentPath += part;
+        PathSegment segment;
+        segment.m_fullPath = currentPath;
+        segment.m_displayName = part;
+        segment.m_bRoot = false;
+        segment.m_bDrive = false;
+        segment.m_bComputer = false;
+        segments.push_back(segment);
+        currentPath += FilePath::GetPathSeparator();
+    }
+#endif
 }
 
 bool AddressBar::UpdateAddressBarControls(const DString& addressPath, bool bForce)
@@ -1061,6 +1352,8 @@ bool AddressBar::UpdateAddressBarControls(const DString& addressPath, bool bForc
     std::vector<PathSegment> segments;
     BuildPathSegments(addressPath, segments);
     m_pathSegments.swap(segments);
+    //路径段内容变化，使布局缓存失效
+    ++m_nPathVersion;
 
     if (m_pBarBox != nullptr) {
         for (size_t i = 0; i < m_pathSegments.size(); ++i) {
@@ -1082,6 +1375,19 @@ void AddressBar::UpdateAddressBarControlsStatus()
     UiPadding rcPadding = m_pBarBox->GetPadding();
     nBarWidth -= (rcPadding.left + rcPadding.right);
 
+    //路径与可用宽高均未变化时，无需重新测量所有路径段（拖动窗口时的常见场景）
+    if ((m_nLayoutWidth == nBarWidth) && (m_nLayoutHeight == rc.Height()) &&
+        (m_nLayoutPathVersion == m_nPathVersion)) {
+        return;
+    }
+
+    //调整可见性或最大宽度后，需要重新排列容器内的子控件，否则宽度变化时旧位置会残留
+    auto reArrangeSubPaths = [this]() {
+        if (m_pBarBox != nullptr) {
+            m_pBarBox->SetPos(m_pBarBox->GetPos());
+        }
+    };
+
     const size_t nCount = m_subPathBoxes.size();
     if ((nCount == 0) || (m_pathSegments.empty())) {
         for (HBox* pBox : m_subPathBoxes) {
@@ -1090,6 +1396,10 @@ void AddressBar::UpdateAddressBarControlsStatus()
         if (m_pCollapseBtn != nullptr) {
             m_pCollapseBtn->SetVisible(false);
         }
+        reArrangeSubPaths();
+        m_nLayoutWidth = nBarWidth;
+        m_nLayoutHeight = rc.Height();
+        m_nLayoutPathVersion = m_nPathVersion;
         return;
     }
 
@@ -1146,7 +1456,14 @@ void AddressBar::UpdateAddressBarControlsStatus()
                 pNameBtn->SetMaxWidth(INT32_MAX, false);
             }
         }
+        if (m_pCollapseBtn != nullptr) {
+            m_pCollapseBtn->SetVisible(false);
+        }
         m_collapsedSegments.clear();
+        reArrangeSubPaths();
+        m_nLayoutWidth = nBarWidth;
+        m_nLayoutHeight = rc.Height();
+        m_nLayoutPathVersion = m_nPathVersion;
         return;
     }
 
@@ -1257,6 +1574,10 @@ void AddressBar::UpdateAddressBarControlsStatus()
             pCollapseBtn->SetVisible(false);
         }
     }
+    reArrangeSubPaths();
+    m_nLayoutWidth = nBarWidth;
+    m_nLayoutHeight = rc.Height();
+    m_nLayoutPathVersion = m_nPathVersion;
 }
 
 void AddressBar::OnClickedSubPath(const DString& filePath)
@@ -1350,6 +1671,8 @@ bool AddressBar::CommitAddressPath(const DString& rawPath, bool bHideEdit)
     }
     DString addressPath = rawPath;
     StringUtil::Trim(addressPath);
+    //展开"~"为用户主目录（业务层校验与后续显示都使用展开后的路径）
+    addressPath = ExpandUserPath(addressPath);
 
     //预提交：允许业务层校验/规范化路径（例如把文件路径转换为父目录）
     if ((m_pathChangingCallback != nullptr) && !addressPath.empty()) {
@@ -1390,15 +1713,17 @@ bool AddressBar::CommitAddressPath(const DString& rawPath, bool bHideEdit)
 
 void AddressBar::SetAddressPath(const DString& addressPath)
 {
-    m_addressPath = addressPath;
+    //展开"~"为用户主目录，保持显示路径与实际路径一致
+    const DString expandedPath = ExpandUserPath(addressPath);
+    m_addressPath = expandedPath;
     if ((m_pRichEdit != nullptr) && !IsEditing()) {
         //编辑状态下不覆盖用户输入
-        m_pRichEdit->SetTextNoEvent(addressPath);
+        m_pRichEdit->SetTextNoEvent(expandedPath);
     }
     if (m_pBarBox != nullptr) {
-        bool bChanged = UpdateAddressBarControls(addressPath, true);
+        bool bChanged = UpdateAddressBarControls(expandedPath, true);
         if (bChanged) {
-            AddPathHistory(addressPath);
+            AddPathHistory(expandedPath);
         }
     }
 }
@@ -1597,6 +1922,10 @@ void AddressBar::ShowDefaultContextMenu(const UiPoint& ptMouse)
 
 bool AddressBar::HandleEditKeyDown(const EventArgs& msg)
 {
+    //编辑态下同样支持 Alt+Up 上一级、F6/Ctrl+L 全选（Home/End 留给编辑框移动光标）
+    if (HandleNavigationKeyDown(msg)) {
+        return true;
+    }
     if (msg.vkCode == kVK_TAB) {
         //Tab补全：浮层打开时使用当前选中项（未导航时默认第一项），否则按当前输入重新生成候选并补全第一项
         size_t nIndex = Box::InvalidIndex;
@@ -1693,12 +2022,7 @@ void AddressBar::UpdateAutoCompletePopup()
         if (nWidth > 0) {
             Window* pOwnerWindow = GetWindow();
             if (pOwnerWindow != nullptr) {
-                if (pOwnerWindow->Dpi().HasPixelDensity()) {
-                    pOwnerWindow->Dpi().ClientSizeToWindowSize(nWidth);
-                }
-                else {
-                    nWidth = pOwnerWindow->Dpi().GetUnscaleWindowSize(nWidth);
-                }
+                nWidth = pOwnerWindow->Dpi().GetDipSizeFromClientSize(nWidth);
             }
             AutoCompleteFlyout* pFlyout = new AutoCompleteFlyout(GetWindow());
             pFlyout->SetHighlightChars(nHighlightChars);

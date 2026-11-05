@@ -525,6 +525,21 @@ void DpiManager::ClientSizeToWindowSize(UiMargin& margin) const
     ClientSizeToWindowSize(margin.bottom);
 }
 
+int32_t DpiManager::GetDipSizeFromClientSize(int32_t clientSize) const
+{
+    //客户区尺寸（物理像素） -> 窗口尺寸 -> DIP尺寸
+    ClientSizeToWindowSize(clientSize);
+    UnscaleInt(clientSize);
+    return clientSize;
+}
+
+UiSize DpiManager::GetDipSizeFromClientSize(UiSize clientSize) const
+{
+    clientSize.cx = GetDipSizeFromClientSize(clientSize.cx);
+    clientSize.cy = GetDipSizeFromClientSize(clientSize.cy);
+    return clientSize;
+}
+
 void DpiManager::WindowSizeToClientSize(int32_t& pt) const
 {
     if (HasPixelDensity()) {

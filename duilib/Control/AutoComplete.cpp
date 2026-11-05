@@ -610,12 +610,7 @@ void AutoComplete::OpenPopup()
     Window* pOwnerWindow = GetWindow();
     //GetPos 返回布局后的物理像素，而拼入 XML 的尺寸是 DIP，需按当前 DPI 反算
     if (pOwnerWindow != nullptr) {
-        if (pOwnerWindow->Dpi().HasPixelDensity()) {
-            pOwnerWindow->Dpi().ClientSizeToWindowSize(nWidth);
-        }
-        else {
-            nWidth = pOwnerWindow->Dpi().GetUnscaleWindowSize(nWidth);
-        }
+        nWidth = pOwnerWindow->Dpi().GetDipSizeFromClientSize(nWidth);
     }
 
     AutoCompleteFlyout* pFlyout = new AutoCompleteFlyout(GetWindow());

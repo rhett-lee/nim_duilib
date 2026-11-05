@@ -324,8 +324,27 @@ private:
     void UpdateSubPathControls(size_t nIndex, const PathSegment& segment, bool bShowSeparator, bool bCurrent);
 
     /** 根据路径构建路径段列表
+    *   支持UNC路径(\\\\server\\share)、扩展长度路径(\\\\?\\)、以"~"开头的用户主目录路径与相对路径
     */
     void BuildPathSegments(const DString& addressPath, std::vector<PathSegment>& segments) const;
+
+    /** 展开以"~"开头的用户主目录路径
+    */
+    DString ExpandUserPath(const DString& path) const;
+
+    /** 处理地址栏内置导航快捷键：Alt+Up上一级、F6/Ctrl+L进入编辑态
+    * @return true 表示按键已处理
+    */
+    bool HandleNavigationKeyDown(const EventArgs& msg);
+
+    /** 导航到上一级目录（基于面包屑分段计算，兼容UNC与\\\\?\\路径）
+    * @return true 表示已导航
+    */
+    bool NavigateToParentPath();
+
+    /** 将键盘焦点移动到第一个或者最后一个可见的路径段
+    */
+    void FocusSubPathEdge(bool bFirst);
 
     /** 面包屑按钮之间移动键盘焦点
     */
@@ -611,6 +630,22 @@ private:
     /** 高亮前的边框颜色（按控件状态保存，用于恢复）
     */
     std::vector<DString> m_savedBorderColors;
+
+    /** 上次计算布局时的可用宽度（物理像素，-1表示尚未计算）
+    */
+    int32_t m_nLayoutWidth;
+
+    /** 上次计算布局时的可用高度（物理像素）
+    */
+    int32_t m_nLayoutHeight;
+
+    /** 路径段版本号：路径或分段内容变化时自增
+    */
+    uint64_t m_nPathVersion;
+
+    /** 上次计算布局时对应的路径段版本号
+    */
+    uint64_t m_nLayoutPathVersion;
 };
 
 }//namespace ui

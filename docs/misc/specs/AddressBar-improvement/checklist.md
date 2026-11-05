@@ -76,3 +76,43 @@
 
 - [x] 删除临时调试日志（`AddressBar.cpp` 中的 `AbDropLog`）、`out/ab_drag_log.txt`、`out/ab_drag_src.txt`
 - [x] 删除临时自动化脚本与截图（`Temp/abtest` 目录）
+
+## 三、健壮性与细节（10~13）
+
+- [x] 10 UNC / `\\?\` 长路径 / `~` / 相对路径的分段处理
+  - `AddressBar::BuildPathSegments` 不再依赖 `FilePath::GetParentPathList`：先 `ExpandUserPath`（`~`、`~/...`、`~\...` → `USERPROFILE`/`HOME`）→ `NormalizeFilePath` → 去掉末尾分隔符，再按形态手工解析根段：
+    - `\\?\UNC\server\share\...`：根为 `\\?\UNC\server\share`，显示 `\\server\share`
+    - `\\?\C:\...`、`\\?\Volume{GUID}\...`：根为 `\\?\C:` 等，显示盘符（卷名查询时去掉 `\\?\` 前缀，纯盘符补 `\`）
+    - 普通 UNC `\\server\share\...`：根到 share 结束，显示完整 `\\server\share`
+    - 盘符 `C:\...`：根 `C:`，`m_bDrive=true`；卷名查询有结果时显示卷名
+    - 相对路径：逐段累加，`m_bRoot=false`（不生成根段）
+  - 子段统一用 `SplitPathComponents`（跳过空组件），根段 `m_fullPath` 补末尾分隔符
+  - 修复点：`std::filesystem` 的父链对 UNC 会返回无效的 `\\server\`、对 `\\?\` 会返回 `\\?\`、对 `\\?\UNC\` 会返回 `\\?\UNC\server` 等无效层，原实现点击后会导航到无效路径
+  - 自动化验证（Release，窗口 1400×900）：
+    - `\\?\E:\develop\nim_duilib\duilib\Control` → `新加卷 (E:) > develop > nim_duilib > duilib > Control`
+    - `\\?\UNC\localhost\e$\develop` 与 `\\localhost\e$\develop` → `\\localhost\e$ > develop`
+    - `~\nim_duilib` → `本地磁盘 (C:) > Users > lee > nim_duilib`
+    - `duilib\Control`（相对路径）→ 两段普通路径，无根段
+    - 空路径 → 计算机图标 + “此电脑”
+- [x] 11 `SetPos` 布局结果缓存
+  - 缓存键：可用宽度 + 可用高度 + 路径版本号（`m_nLayoutWidth/m_nLayoutHeight/m_nPathVersion/m_nLayoutPathVersion`）；`UpdateAddressBarControls` 重建路径段后 `++m_nPathVersion` 使缓存失效
+  - 命中缓存时直接返回，不再重复测量每段文本宽度、重设文本/Class/tooltip（拖动窗口时只有尺寸变化才重算）
+  - 顺带修复：调整子控件可见性/最大宽度后调用 `m_pBarBox->SetPos(GetPos())` 重新排列，避免加宽后旧位置残留导致文字重叠；宽度足够时同时隐藏“…”折叠按钮
+  - 自动化验证：1400 → 1000 → 1400 反复缩放，窄态折叠为“…”、恢复宽态后无重叠且折叠按钮消失
+- [x] 12 补全浮层宽度换算路径统一
+  - 新增 `DpiManager::GetDipSizeFromClientSize(int32_t/UiSize)`：客户区物理像素 → 窗口尺寸（`ClientSizeToWindowSize`）→ DIP（`UnscaleInt`），一次调用完成两步换算
+  - `AddressBar.cpp`、`AutoComplete.cpp` 两处原 `HasPixelDensity()` 分支统一改为调用该接口，跨 DPI 下浮层宽度不再只做第一步换算
+  - 说明：本次回归在系统 DPI 168（1.75x）下完成；其它 DPI 档位需人工切换系统缩放后回归
+- [x] 13 键盘快捷键
+  - 新增 `HandleNavigationKeyDown`（AddressBar、编辑框、面包屑按钮三处接入）：Alt+Up 上级、F6 / Ctrl+L 进入编辑态并全选
+  - `NavigateToParentPath`：基于 `m_pathSegments` 取倒数第二段（兼容 UNC/`\\?\` 根段），编辑态先退出编辑再导航
+  - Home/End：`FocusSubPathEdge` 在可见路径段之间跳到首/末段（编辑态不拦截，保留光标移动）
+  - 面包屑按钮点击后（导航之后）重新 `SetFocus`，保证点击段落后键盘仍可用（导航过程中焦点会被重置）
+  - 自动化验证（事件日志 + 截图）：点击路径段后 `focused=1`；F6 在面包屑按钮上收到 `vk=117` → 进入编辑态；Ctrl+L 聚焦地址栏并进入编辑态；点击当前段后 Home → `FocusSubPathEdge(target=3)` → 回车导航到 `E:\develop\nim_duilib\duilib`；End → `target=3`（末段）→ 回车停留当前段；Alt+Up 从 `...\Control` 回到 `...\duilib`
+  - 注：TreeView 示例本身已提供窗口级 Ctrl+L / Alt+Up 快捷键，与控件内置行为重叠但不冲突
+
+## 清理（健壮性阶段）
+
+- [x] 删除 `AddressBar.cpp` 临时事件日志（`LogAbEvent`）、`MainForm.cpp` 临时诊断与 `NIM_TEST_ADDRESS_PATH` 测试钩子
+- [x] Release / Debug x64 均编译通过（0 error）
+

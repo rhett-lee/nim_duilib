@@ -166,6 +166,11 @@ public:
     void ClientSizeToWindowSize(UiPadding& padding) const;
     void ClientSizeToWindowSize(UiMargin& margin) const;
 
+    /** 将客户区尺寸（物理像素）转换为DIP尺寸（同时处理像素密度与界面缩放比）
+    */
+    int32_t GetDipSizeFromClientSize(int32_t clientSize) const;
+    UiSize GetDipSizeFromClientSize(UiSize clientSize) const;
+
     //将屏幕坐标转换为客户区坐标(仅转换大小)
     void WindowSizeToClientSize(int32_t& pt) const;
     void WindowSizeToClientSize(UiPoint& pt) const;
