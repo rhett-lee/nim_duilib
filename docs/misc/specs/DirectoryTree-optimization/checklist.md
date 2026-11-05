@@ -61,6 +61,10 @@
 - [x] `GetShellIconID` 缺少 `SHGFI_ICON` 标志，`SHGetFileInfoW` 不返回 `hIcon`，导致文件夹/文件图标全部缺失（盘符图标因另走一条带该标志的调用而正常）。
   - 修复：在 `GetShellIconID` 的 flags 中补上 `SHGFI_ICON`。
   - 回归：树节点的文件夹图标、右侧大图标视图的文件夹/文件图标均恢复显示。
+- [x] 在右侧文件列表双击目录时触发断言 `pNextParentTreeNode != nullptr`（DirectoryTree.cpp:599）。
+  - 根因：`GetParentPathList` 对带尾部分隔符的目录路径（`E:\a\b\`）会把目录自身当成父路径返回，随后又补入目标自身，导致路径链中同一目录出现两次；第二遍在“目录自身的子节点”里找不到该目录，Debug 版触发断言，Release 版则静默中断并可能产生嵌套重复节点。
+  - 修复：`SelectPath`/`SelectSubPath` 构造路径链后按 `NormalizePathKey` 去除相邻重复项；`OnShowSubFoldersEx` 在找不到下一级节点时按路径直接创建节点（覆盖目录被过滤、无权限、枚举失败等情况），不再断言。
+  - 回归：双击右侧列表目录可正常进入；地址栏导航到联接点（Junction）等无法枚举的目录时，树中生成名称与缩进正确的单一节点，不再出现嵌套重复节点。
 
 ## 文档
 

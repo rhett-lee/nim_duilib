@@ -596,7 +596,22 @@ bool DirectoryTree::OnShowSubFoldersEx(TreeNode* pTreeNode, const std::vector<Fi
             }
         }
         if (!bLastNode) {
-            ASSERT(pNextParentTreeNode != nullptr);
+            if (pNextParentTreeNode == nullptr) {
+                //枚举结果中没有找到路径链上的下一级目录(例如目录被过滤、无访问权限或枚举失败)，
+                //按路径直接创建节点，保证路径链完整，避免导航中断
+                DString pathText = path.ToString();
+                size_t nEnd = pathText.size();
+                while ((nEnd > 0) && ((pathText[nEnd - 1] == _T('\\')) || (pathText[nEnd - 1] == _T('/')))) {
+                    --nEnd;
+                }
+                DString displayName = FilePath(pathText.substr(0, nEnd)).GetFileName();
+                if (displayName.empty()) {
+                    displayName = pathText;
+                }
+                uint32_t nIconID = m_impl->GetFolderIconID(false);
+                pNextParentTreeNode = InsertTreeNode(pParentTreeNode, displayName, false, path,
+                                                     true, false, nIconID, true);
+            }
             if (pNextParentTreeNode == nullptr) {
                 break;
             }
@@ -789,6 +804,16 @@ bool DirectoryTree::SelectSubPath(TreeNode* pTreeNode, FilePath subPath, StdClos
     for (FilePath& item : chain) {
         item.FormatPathAsDirectory();
     }
+    //GetParentPathList对"带尾部分隔符的目录路径"会把目录自身也作为父路径返回，
+    //这里按路径去重，避免同一目录在路径链中出现两次(否则会重复创建节点)
+    for (size_t index = 1; index < chain.size();) {
+        if (NormalizePathKey(chain[index]) == NormalizePathKey(chain[index - 1])) {
+            chain.erase(chain.begin() + index);
+        }
+        else {
+            ++index;
+        }
+    }
 
     TreeNode* pBaseNode = nullptr;
     std::vector<FilePath> remaining;
@@ -829,6 +854,16 @@ bool DirectoryTree::SelectPath(FilePath filePath, StdClosure finishCallback)
     chain.push_back(filePath);
     for (FilePath& item : chain) {
         item.FormatPathAsDirectory();
+    }
+    //GetParentPathList对"带尾部分隔符的目录路径"会把目录自身也作为父路径返回，
+    //这里按路径去重，避免同一目录在路径链中出现两次(否则会重复创建节点)
+    for (size_t index = 1; index < chain.size();) {
+        if (NormalizePathKey(chain[index]) == NormalizePathKey(chain[index - 1])) {
+            chain.erase(chain.begin() + index);
+        }
+        else {
+            ++index;
+        }
     }
 
     TreeNode* pBaseNode = nullptr;

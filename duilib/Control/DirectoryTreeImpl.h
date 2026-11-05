@@ -70,11 +70,12 @@ public:
     */
     uint32_t GetMyComputerIconID() const;
 
-private:
     /** 获取共享的文件夹图标ID
     * @param [in] bLargeIcon 是否为大图标
     */
     uint32_t GetFolderIconID(bool bLargeIcon);
+
+private:
 
     /** 获取共享的文件图标ID（按扩展名缓存）
     * @param [in] filePath 文件的完整路径
