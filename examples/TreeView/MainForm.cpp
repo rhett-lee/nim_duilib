@@ -61,20 +61,6 @@ void RevealInFileManager(const ui::FilePath& filePath)
 #endif
 }
 
-/** 在新窗口中打开指定的目录（Windows使用资源管理器，其他平台打开文件URL）
-*/
-void OpenInNewFileManagerWindow(const ui::FilePath& directoryPath)
-{
-    if (directoryPath.IsEmpty()) {
-        return;
-    }
-#if defined (DUILIB_BUILD_FOR_WIN)
-    ::ShellExecuteW(nullptr, L"open", L"explorer.exe", directoryPath.ToString().c_str(), nullptr, SW_SHOWNORMAL);
-#else
-    ui::SystemUtil::OpenUrl(MakeFileUrl(directoryPath.ToString()));
-#endif
-}
-
 /** 判断控件是否位于指定父控件的子树中（含父控件自身）
 */
 bool IsControlInSubTree(const ui::Control* pControl, const ui::Control* pParent)
@@ -271,11 +257,6 @@ void MainForm::OnInitWindow()
         //预提交：先校验路径，校验失败时地址栏保持原路径（不会先显示错误路径再回滚）
         m_pAddressBar->AttachPathChanging([this](DString& newPath) {
             return OnAddressBarPathChanging(newPath);
-            });
-        //面包屑右键菜单：复制路径/在资源管理器中显示/在新窗口中打开
-        m_pAddressBar->AttachContextMenu([this](const ui::EventArgs&) {
-            ShowAddressBarContextMenu();
-            return true;
             });
     }
     m_pTabBox = dynamic_cast<ui::TabBox*>(FindControl(_T("main_view_tab_box")));
@@ -1397,36 +1378,6 @@ void MainForm::SetAddressBarPathFromTreeNode(ui::TreeNode* pTreeNode)
     if (!filePath.IsEmpty()) {
         m_pAddressBar->SetAddressPath(filePath.ToString());
     }
-}
-
-void MainForm::ShowAddressBarContextMenu()
-{
-    if (m_pAddressBar == nullptr) {
-        return;
-    }
-    ui::FilePath targetPath(m_pAddressBar->GetClickedAddressPath());
-    if (targetPath.IsEmpty()) {
-        return;
-    }
-    //使用系统光标位置作为菜单的弹出位置（避免DPI缩放时客户区坐标换算出错）
-    ui::UiPoint point;
-    GetCursorPos(point);
-
-    ui::Menu* menu = new ui::Menu(this, m_pAddressBar);
-    menu->SetSkinFolder(GetResourcePath().ToString());
-    menu->ShowMenu(_T("menu/address_bar_menu.xml"), point);
-    menu->AttachMenuItemActivated([this, targetPath](const DString& /*menuName*/, int32_t /*nMenuLevel*/,
-                                                      const DString& itemName, size_t /*nItemIndex*/) {
-        if (itemName == _T("menu_item_copy_path")) {
-            CopyPathsToClipboard(std::vector<ui::FilePath>(1, targetPath));
-        }
-        else if (itemName == _T("menu_item_reveal")) {
-            RevealInFileManager(targetPath);
-        }
-        else if (itemName == _T("menu_item_open_new_window")) {
-            OpenInNewFileManagerWindow(targetPath);
-        }
-    });
 }
 
 bool MainForm::OnShowAddressPath(const DString& newFilePath)

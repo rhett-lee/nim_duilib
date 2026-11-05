@@ -8,10 +8,15 @@
 #include "duilib/Core/Keycode.h"
 #include "duilib/Core/ControlDropTarget.h"
 #include "duilib/Utils/FilePath.h"
+#include "duilib/Utils/FileUtil.h"
+#include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/Clipboard.h"
 #include <algorithm>
+#include <filesystem>
 #ifdef DUILIB_BUILD_FOR_WIN
     #include "duilib/Utils/DiskUtils_Windows.h"
+    #include <shellapi.h>
 #endif
 
 namespace ui
@@ -57,6 +62,7 @@ AddressBar::AddressBar(Window* pWindow):
     m_pBarBox(nullptr),
     m_pResetBtn(nullptr),
     m_pCollapseBtn(nullptr),
+    m_pHistoryBtn(nullptr),
     m_bEnableTooltip(true),
     m_bReturnUpdateUI(true),
     m_bEscUpdateUI(true),
@@ -69,6 +75,9 @@ AddressBar::AddressBar(Window* pWindow):
     m_pFlyout(nullptr),
     m_bUpdatingPopup(false),
     m_bUserNavigated(false),
+    m_bDefaultContextMenu(false),
+    m_bPathError(false),
+    m_bDropHighlight(false),
     m_editClass(_T("address_bar_edit")),
     m_resetBtnClass(_T("address_bar_reset_button")),
     m_subPathHBoxClass(_T("address_bar_sub_path_hbox")),
@@ -150,6 +159,12 @@ void AddressBar::SetAttribute(const DString& strName, const DString& strValue2)
     }
     else if (strName == _T("drop_navigation")) {
         SetEnableDropNavigation(StringUtil::IsValueTrue(strValue));
+    }
+    else if (strName == _T("default_context_menu")) {
+        SetDefaultContextMenuEnabled(StringUtil::IsValueTrue(strValue));
+    }
+    else if (strName == _T("history_file")) {
+        SetHistoryFile(strValue);
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
@@ -381,6 +396,8 @@ void AddressBar::AddPathHistory(const DString& path)
     while ((int32_t)m_pathHistory.size() > m_nMaxHistory) {
         m_pathHistory.pop_back();
     }
+    SavePathHistory();
+    UpdateHistoryButtonVisible();
 }
 
 std::vector<DString> AddressBar::GetPathHistory() const
@@ -396,6 +413,142 @@ std::vector<DString> AddressBar::GetPathHistory() const
 void AddressBar::ClearPathHistory()
 {
     m_pathHistory.clear();
+    SavePathHistory();
+    UpdateHistoryButtonVisible();
+}
+
+void AddressBar::SetDefaultContextMenuEnabled(bool bEnable)
+{
+    m_bDefaultContextMenu = bEnable;
+}
+
+bool AddressBar::IsDefaultContextMenuEnabled() const
+{
+    return m_bDefaultContextMenu;
+}
+
+void AddressBar::SetHistoryFile(const DString& historyFile)
+{
+    m_historyFile = historyFile.c_str();
+}
+
+DString AddressBar::GetHistoryFile() const
+{
+    return m_historyFile.c_str();
+}
+
+void AddressBar::LoadPathHistory()
+{
+    if (!m_bHistoryEnabled || m_historyFile.empty()) {
+        return;
+    }
+    std::vector<uint8_t> fileData;
+    if (!FileUtil::ReadFileData(FilePath(m_historyFile.c_str()), fileData) || fileData.empty()) {
+        return;
+    }
+    DStringA utf8Data(fileData.begin(), fileData.end());
+    std::vector<UiString> paths;
+    size_t nStart = 0;
+    while (nStart < utf8Data.size()) {
+        size_t nEnd = utf8Data.find('\n', nStart);
+        if (nEnd == DStringA::npos) {
+            nEnd = utf8Data.size();
+        }
+        std::string line = utf8Data.substr(nStart, nEnd - nStart);
+        if (!line.empty() && (line.back() == '\r')) {
+            line.pop_back();
+        }
+        if (!line.empty()) {
+            paths.push_back(StringConvert::UTF8ToT(line).c_str());
+        }
+        nStart = nEnd + 1;
+    }
+    if (paths.empty()) {
+        return;
+    }
+    m_pathHistory.clear();
+    for (const UiString& path : paths) {
+        bool bExists = false;
+        for (const UiString& item : m_pathHistory) {
+            if (item == path) {
+                bExists = true;
+                break;
+            }
+        }
+        if (!bExists) {
+            m_pathHistory.push_back(path);
+        }
+    }
+    while ((int32_t)m_pathHistory.size() > m_nMaxHistory) {
+        m_pathHistory.pop_back();
+    }
+    UpdateHistoryButtonVisible();
+}
+
+void AddressBar::SavePathHistory()
+{
+    if (m_historyFile.empty()) {
+        return;
+    }
+    DStringA utf8Data;
+    for (const UiString& path : m_pathHistory) {
+        utf8Data += StringConvert::TToUTF8(path.c_str());
+        utf8Data += '\n';
+    }
+    FileUtil::WriteFileData(FilePath(m_historyFile.c_str()), utf8Data);
+}
+
+void AddressBar::UpdateHistoryButtonVisible()
+{
+    if (m_pHistoryBtn == nullptr) {
+        return;
+    }
+    const bool bShow = m_bHistoryEnabled && !m_pathHistory.empty() && !IsEditing();
+    m_pHistoryBtn->SetVisible(bShow);
+}
+
+void AddressBar::SetPathError(bool bError)
+{
+    if (m_bPathError == bError) {
+        return;
+    }
+    m_bPathError = bError;
+    UpdateBorderHighlight();
+}
+
+bool AddressBar::IsPathError() const
+{
+    return m_bPathError;
+}
+
+void AddressBar::SetDropHighlight(bool bHighlight)
+{
+    if (m_bDropHighlight == bHighlight) {
+        return;
+    }
+    m_bDropHighlight = bHighlight;
+    UpdateBorderHighlight();
+}
+
+void AddressBar::UpdateBorderHighlight()
+{
+    if (m_bPathError || m_bDropHighlight) {
+        if (m_savedBorderColors.empty()) {
+            m_savedBorderColors.resize(4);
+            for (int32_t i = 0; i < 4; ++i) {
+                m_savedBorderColors[(size_t)i] = GetBorderColor((ControlStateType)i);
+            }
+        }
+        //错误状态优先于拖放高亮
+        SetBorderColor(m_bPathError ? DString(_T("color_error")) : DString(_T("color_accent")));
+    }
+    else if (!m_savedBorderColors.empty()) {
+        for (int32_t i = 0; i < 4; ++i) {
+            SetBorderColor((ControlStateType)i, m_savedBorderColors[(size_t)i]);
+        }
+        m_savedBorderColors.clear();
+    }
+    Invalidate();
 }
 
 void AddressBar::SetEnableDropNavigation(bool bEnable)
@@ -501,6 +654,8 @@ void AddressBar::OnInit()
             return true;
             });
         m_pRichEdit->AttachEvent(kEventTextChanged, [this](const EventArgs&) {
+            //用户重新输入后，清除上一次的路径错误提示
+            SetPathError(false);
             if (IsEditing()) {
                 UpdateAutoCompletePopup();
             }
@@ -555,6 +710,21 @@ void AddressBar::OnInit()
 
     m_pRichEdit->SetVisible(false);
 
+    //“最近路径”下拉按钮：点击后弹出历史路径菜单
+    if (m_pHistoryBtn == nullptr) {
+        m_pHistoryBtn = new Button(GetWindow());
+        AddItem(m_pHistoryBtn);
+        m_pHistoryBtn->SetClass(_T("address_bar_history_button"));
+        m_pHistoryBtn->SetFixedWidth(UiFixedInt(24), true, false);
+        m_pHistoryBtn->SetNoFocus();
+        m_pHistoryBtn->SetVisible(false);
+        m_pHistoryBtn->SetToolTipText(GlobalManager::Instance().Lang().GetStringByID(_T("STRID_ADDRESS_BAR_RECENT_PATHS")));
+        m_pHistoryBtn->AttachClick([this](const EventArgs&) {
+            ShowPathHistoryMenu();
+            return true;
+            });
+    }
+
     //获取焦点的时候，切换到编辑框
     AttachSetFocus([this](const EventArgs&) {
         ShowAddressEdit(true);
@@ -565,31 +735,46 @@ void AddressBar::OnInit()
         return true;
         });
 
-        //右键菜单：根据鼠标位置确定点击的面包屑路径（外部通过GetClickedAddressPath获取）
-        AttachContextMenu([this](const EventArgs& msg) {
-            if (m_clickedAddressPath.empty()) {
-                m_clickedAddressPath = m_addressPath;
-                for (size_t index = 0; (index < m_subPathBoxes.size()) && (index < m_pathSegments.size()); ++index) {
-                    Control* pBox = m_subPathBoxes[index];
-                    if ((pBox != nullptr) && pBox->IsVisible() && pBox->GetRect().ContainsPt(msg.ptMouse)) {
-                        m_clickedAddressPath = m_pathSegments[index].m_fullPath;
-                        break;
-                    }
-                }
+    //右键菜单：根据鼠标位置确定点击的面包屑路径（外部通过GetClickedAddressPath获取）
+    AttachContextMenu([this](const EventArgs& msg) {
+        //每次右键都按当前位置重新计算点击的路径段
+        m_clickedAddressPath = m_addressPath;
+        for (size_t index = 0; (index < m_subPathBoxes.size()) && (index < m_pathSegments.size()); ++index) {
+            Control* pBox = m_subPathBoxes[index];
+            if ((pBox != nullptr) && pBox->IsVisible() && pBox->GetRect().ContainsPt(msg.ptMouse)) {
+                m_clickedAddressPath = m_pathSegments[index].m_fullPath;
+                break;
             }
-            //返回true表示继续派发该事件，使外部绑定的右键菜单处理函数也能收到事件
-            return true;
-            });
+        }
+        if (m_bDefaultContextMenu) {
+            ShowDefaultContextMenu(msg.ptMouse);
+            //内置菜单已处理，终止后续派发，避免外部再弹出一个菜单
+            return false;
+        }
+        //返回true表示继续派发该事件，使外部绑定的右键菜单处理函数也能收到事件
+        return true;
+        });
 
-    //支持拖放目录到地址栏进行导航
+    //支持拖放目录到地址栏进行导航，并在拖动悬停时高亮边框
     SetAttribute(_T("enable_drag_drop"), _T("true"));
     AttachEvent(kEventDropData, [this](const EventArgs& args) {
+        SetDropHighlight(false);
         return OnDropData(args);
         }, 0);
+    AttachDropOver([this](const EventArgs&) {
+        SetDropHighlight(true);
+        return true;
+        });
+    AttachDropLeave([this](const EventArgs&) {
+        SetDropHighlight(false);
+        return true;
+        });
 
     //初始化地址栏显示内容（空路径时显示“此电脑”等占位文本）
     m_pRichEdit->SetTextNoEvent(m_addressPath.c_str());
     UpdateAddressBarControls(m_addressPath.c_str(), true);
+    LoadPathHistory();
+    UpdateHistoryButtonVisible();
 }
 
 void AddressBar::ShowAddressEdit(bool bShow)
@@ -618,6 +803,8 @@ void AddressBar::ShowAddressEdit(bool bShow)
             m_pRichEdit->SetFocus();
         }
     }
+    //编辑态隐藏“最近路径”按钮，面包屑态按历史记录情况显示
+    UpdateHistoryButtonVisible();
 }
 
 bool AddressBar::IsEditing() const
@@ -1148,7 +1335,8 @@ bool AddressBar::CommitAddressPath(const DString& rawPath, bool bHideEdit)
         DString newPath = addressPath;
         bool bAccept = m_pathChangingCallback(newPath);
         if (!bAccept) {
-            //拒绝提交：恢复编辑框并退出编辑状态，不派发kEventPathChanged
+            //拒绝提交：显示控件级错误状态（红色边框），恢复编辑框并退出编辑状态，不派发kEventPathChanged
+            SetPathError(true);
             ResetEditText();
             if (bHideEdit) {
                 ShowAddressEdit(false);
@@ -1173,6 +1361,8 @@ bool AddressBar::CommitAddressPath(const DString& rawPath, bool bHideEdit)
     if (!addressPath.empty()) {
         AddPathHistory(addressPath);
     }
+    //提交成功：清除错误状态
+    SetPathError(false);
     m_bUpdatingUI = false;
     return true;
 }
@@ -1259,8 +1449,167 @@ void AddressBar::ShowCollapsedPathMenu()
     pMenu->RefreshMenuLayout();
 }
 
+void AddressBar::ShowPathHistoryMenu()
+{
+    if (!m_bHistoryEnabled || m_pathHistory.empty() || (GetWindow() == nullptr)) {
+        return;
+    }
+    UiRect rcBtn(0, 0, 0, 0);
+    if (m_pHistoryBtn != nullptr) {
+        rcBtn = m_pHistoryBtn->GetPos();
+        GetWindow()->ClientToScreen(rcBtn);
+    }
+
+    Menu* pMenu = new Menu(GetWindow(), m_pHistoryBtn);
+    pMenu->SetSkinFolder(DString(DUILIB_PUBLIC_RES_DIR) + DString(_T("/address_bar/")));
+    std::vector<UiString> history = m_pathHistory;
+    pMenu->AttachMenuItemActivated([this, history](const DString& /*menuName*/, int32_t /*nMenuLevel*/,
+                                                   const DString& /*itemName*/, size_t nItemIndex) {
+        if (nItemIndex < history.size()) {
+            OnClickedSubPath(history[nItemIndex].c_str());
+        }
+    });
+    pMenu->ShowMenu(_T("address_bar_menu.xml"),
+                    UiPoint(rcBtn.left, rcBtn.bottom),
+                    MenuPopupPosType::RIGHT_TOP);
+
+    //最多显示最近使用的10条历史路径
+    const int32_t nMaxCount = 10;
+    const int32_t nMinItemWidth = Dpi().GetScaleInt(120);
+    int32_t nMaxItemWidth = 0;
+    std::vector<MenuItem*> menuItems;
+    for (size_t i = 0; (i < m_pathHistory.size()) && ((int32_t)i < nMaxCount); ++i) {
+        MenuItem* pMenuItem = new MenuItem(GetWindow());
+        pMenuItem->SetClass(_T("menu_element"));
+        Label* pLabel = new Label(GetWindow());
+        pLabel->SetClass(_T("menu_text"));
+        pLabel->SetText(m_pathHistory[i].c_str());
+        pLabel->SetMouseEnabled(false);
+        pLabel->SetKeyboardEnabled(false);
+        pMenuItem->AddItem(pLabel);
+
+        const UiSize szText = pLabel->EstimateText(UiSize(INT32_MAX, INT32_MAX));
+        const UiPadding rcItemPadding = pMenuItem->GetControlPadding();
+        int32_t nItemWidth = std::max(szText.cx + rcItemPadding.left + rcItemPadding.right, nMinItemWidth);
+        pMenuItem->SetFixedWidth(UiFixedInt(nItemWidth), true, false);
+        nMaxItemWidth = std::max(nMaxItemWidth, nItemWidth);
+
+        menuItems.push_back(pMenuItem);
+        pMenu->AddMenuItem(pMenuItem);
+    }
+    for (MenuItem* pMenuItem : menuItems) {
+        pMenuItem->SetFixedWidth(UiFixedInt(nMaxItemWidth), true, false);
+    }
+    pMenu->RefreshMenuLayout();
+}
+
+void AddressBar::ShowDefaultContextMenu(const UiPoint& ptMouse)
+{
+    if (GetWindow() == nullptr) {
+        return;
+    }
+    UiPoint ptScreen = ptMouse;
+    GetWindow()->ClientToScreen(ptScreen);
+
+    DString clickedPath = m_clickedAddressPath.c_str();
+    if (clickedPath.empty()) {
+        clickedPath = GetAddressPath();
+    }
+
+    Menu* pMenu = new Menu(GetWindow(), this);
+    pMenu->SetSkinFolder(DString(DUILIB_PUBLIC_RES_DIR) + DString(_T("/address_bar/")));
+    pMenu->AttachMenuItemActivated([this, clickedPath](const DString& /*menuName*/, int32_t /*nMenuLevel*/,
+                                                       const DString& /*itemName*/, size_t nItemIndex) {
+        if (nItemIndex == 0) {
+            //复制完整路径
+            Clipboard::SetClipboardText(StringConvert::TToUTF8(clickedPath));
+        }
+        else if (nItemIndex == 1) {
+            //在文件资源管理器中显示（Windows平台）
+#ifdef DUILIB_BUILD_FOR_WIN
+            DString params = _T("/select,\"");
+            params += clickedPath;
+            params += _T("\"");
+            ::ShellExecuteW(nullptr, _T("open"), _T("explorer.exe"), params.c_str(), nullptr, SW_SHOWNORMAL);
+#endif
+        }
+        else if (nItemIndex == 2) {
+            //打开上级目录
+            FilePath parentPath = FilePath(clickedPath).GetParentPath();
+            if (!parentPath.IsEmpty() && parentPath.IsExistsDirectory()) {
+                OnClickedSubPath(parentPath.ToString());
+            }
+        }
+    });
+    pMenu->ShowMenu(_T("address_bar_menu.xml"), ptScreen, MenuPopupPosType::LEFT_TOP_N);
+
+    const int32_t nMinItemWidth = Dpi().GetScaleInt(120);
+    const DString itemTexts[] = { _T("STRID_ADDRESS_BAR_COPY_PATH"),
+                                  _T("STRID_ADDRESS_BAR_REVEAL"),
+                                  _T("STRID_ADDRESS_BAR_OPEN_PARENT") };
+    int32_t nMaxItemWidth = 0;
+    std::vector<MenuItem*> menuItems;
+    for (const DString& textId : itemTexts) {
+        MenuItem* pMenuItem = new MenuItem(GetWindow());
+        pMenuItem->SetClass(_T("menu_element"));
+        Label* pLabel = new Label(GetWindow());
+        pLabel->SetClass(_T("menu_text"));
+        pLabel->SetTextId(textId);
+        pLabel->SetMouseEnabled(false);
+        pLabel->SetKeyboardEnabled(false);
+        pMenuItem->AddItem(pLabel);
+
+        const UiSize szText = pLabel->EstimateText(UiSize(INT32_MAX, INT32_MAX));
+        const UiPadding rcItemPadding = pMenuItem->GetControlPadding();
+        int32_t nItemWidth = std::max(szText.cx + rcItemPadding.left + rcItemPadding.right, nMinItemWidth);
+        pMenuItem->SetFixedWidth(UiFixedInt(nItemWidth), true, false);
+        nMaxItemWidth = std::max(nMaxItemWidth, nItemWidth);
+
+        menuItems.push_back(pMenuItem);
+        pMenu->AddMenuItem(pMenuItem);
+    }
+    for (MenuItem* pMenuItem : menuItems) {
+        pMenuItem->SetFixedWidth(UiFixedInt(nMaxItemWidth), true, false);
+    }
+    pMenu->RefreshMenuLayout();
+}
+
 bool AddressBar::HandleEditKeyDown(const EventArgs& msg)
 {
+    if (msg.vkCode == kVK_TAB) {
+        //Tab补全：浮层打开时使用当前选中项（未导航时默认第一项），否则按当前输入重新生成候选并补全第一项
+        size_t nIndex = Box::InvalidIndex;
+        if ((m_pFlyout != nullptr) && m_pFlyout->IsOpen()) {
+            nIndex = m_pFlyout->GetSelectedIndex();
+        }
+        else {
+            const DString editText = (m_pRichEdit != nullptr) ? m_pRichEdit->GetText() : DString();
+            BuildAutoCompleteCandidates(editText);
+            nIndex = 0;
+        }
+        if ((nIndex == Box::InvalidIndex) || (nIndex >= m_candidates.size())) {
+            nIndex = 0;
+        }
+        if (nIndex < m_candidates.size()) {
+            DString completedPath = m_candidates[nIndex].c_str();
+            //补全结果是已存在的目录时，追加路径分隔符，便于继续输入下一级路径
+            FilePath completedFilePath(completedPath);
+            if (completedFilePath.IsExistsDirectory()) {
+                completedFilePath.FormatPathAsDirectory();
+                completedPath = completedFilePath.ToString();
+            }
+            if (m_pRichEdit != nullptr) {
+                m_pRichEdit->SetTextNoEvent(completedPath);
+                m_pRichEdit->SetSel(m_pRichEdit->GetTextLength(), m_pRichEdit->GetTextLength());
+            }
+            UpdateAutoCompletePopup();
+        }
+        else if (GetWindow() != nullptr) {
+            //没有可补全的候选项：保持Tab的默认行为（切换到下一个控件）
+            GetWindow()->SetNextTabControl(true);
+        }
+        return true;
+    }
     if ((m_pFlyout == nullptr) || !m_pFlyout->IsOpen()) {
         return false;
     }
@@ -1307,11 +1656,14 @@ void AddressBar::UpdateAutoCompletePopup()
     }
     m_bUpdatingPopup = true;
     m_bUserNavigated = false;
-    BuildAutoCompleteCandidates(m_pRichEdit != nullptr ? m_pRichEdit->GetText() : DString());
+    const DString editText = (m_pRichEdit != nullptr) ? m_pRichEdit->GetText() : DString();
+    BuildAutoCompleteCandidates(editText);
+    const int32_t nHighlightChars = static_cast<int32_t>(editText.size());
     if (m_candidates.empty()) {
         CloseAutoCompletePopup();
     }
     else if ((m_pFlyout != nullptr) && m_pFlyout->IsOpen()) {
+        m_pFlyout->SetHighlightChars(nHighlightChars);
         m_pFlyout->UpdateItems(m_candidates, 0);
     }
     else {
@@ -1328,6 +1680,7 @@ void AddressBar::UpdateAutoCompletePopup()
                 }
             }
             AutoCompleteFlyout* pFlyout = new AutoCompleteFlyout(GetWindow());
+            pFlyout->SetHighlightChars(nHighlightChars);
             pFlyout->AttachItemSelect(UiBind(this, [this](size_t nIndex) {
                 if (nIndex < m_candidates.size()) {
                     if (m_pRichEdit != nullptr) {
@@ -1368,23 +1721,95 @@ void AddressBar::CloseAutoCompletePopup()
 void AddressBar::BuildAutoCompleteCandidates(const DString& input)
 {
     m_candidates.clear();
-    if (input.empty() || !m_bHistoryEnabled) {
+    if (input.empty()) {
         return;
     }
-    for (const UiString& historyPath : m_pathHistory) {
-        const DString historyText = historyPath.c_str();
-        bool bMatch = false;
-#ifdef DUILIB_BUILD_FOR_WIN
-        //Windows路径不区分大小写
-        bMatch = (historyText.size() >= input.size()) &&
-                 (_tcsnicmp(historyText.c_str(), input.c_str(), input.size()) == 0);
-#else
-        bMatch = (historyText.size() >= input.size()) &&
-                 (historyText.compare(0, input.size(), input.c_str()) == 0);
-#endif
-        if (bMatch) {
-            m_candidates.push_back(historyPath);
+    //前缀匹配（Windows路径不区分大小写）
+    auto MatchPrefix = [](const DString& text, const DString& prefix) {
+        if (text.size() < prefix.size()) {
+            return false;
         }
+#ifdef DUILIB_BUILD_FOR_WIN
+        return _tcsnicmp(text.c_str(), prefix.c_str(), prefix.size()) == 0;
+#else
+        return text.compare(0, prefix.size(), prefix.c_str()) == 0;
+#endif
+    };
+    auto AddCandidate = [this](const DString& path) {
+        const DString candidate = path;
+        for (const UiString& exist : m_candidates) {
+            if (exist.c_str() == candidate) {
+                return;
+            }
+        }
+        m_candidates.push_back(candidate.c_str());
+    };
+
+    //1. 历史记录匹配（最多10条）
+    if (m_bHistoryEnabled) {
+        int32_t nHistoryCount = 0;
+        for (const UiString& historyPath : m_pathHistory) {
+            if (nHistoryCount >= 10) {
+                break;
+            }
+            const DString historyText = historyPath.c_str();
+            if (MatchPrefix(historyText, input)) {
+                AddCandidate(historyText);
+                ++nHistoryCount;
+            }
+        }
+    }
+
+    //2. 文件系统补全：枚举“目录部分”下的同名子目录/文件（最多10条）
+    const size_t nSep = input.find_last_of(_T("\\/"));
+    if ((nSep == DString::npos) || (nSep == 0)) {
+        return;
+    }
+    const DString dirPart = input.substr(0, nSep + 1);
+    const DString namePart = input.substr(nSep + 1);
+    std::error_code ec;
+    const std::filesystem::path dirPath(dirPart.c_str());
+    if (!std::filesystem::is_directory(dirPath, ec)) {
+        return;
+    }
+    std::vector<DString> dirNames;
+    std::vector<DString> fileNames;
+    const auto options = std::filesystem::directory_options::skip_permission_denied;
+    std::filesystem::directory_iterator it(dirPath, options, ec);
+    const std::filesystem::directory_iterator end;
+    for (; !ec && (it != end); it.increment(ec)) {
+        DString name = it->path().filename().native();
+        if (name.empty() || !MatchPrefix(name, namePart)) {
+            continue;
+        }
+        std::error_code typeEc;
+        if (it->is_directory(typeEc)) {
+            dirNames.push_back(name);
+        }
+        else {
+            fileNames.push_back(name);
+        }
+        if ((dirNames.size() + fileNames.size()) >= 200) {
+            //目录项过多时限制扫描数量，避免影响输入流畅度
+            break;
+        }
+    }
+    std::sort(dirNames.begin(), dirNames.end());
+    std::sort(fileNames.begin(), fileNames.end());
+    int32_t nFileSystemCount = 0;
+    for (const DString& name : dirNames) {
+        if (nFileSystemCount >= 10) {
+            break;
+        }
+        AddCandidate(dirPart + name);
+        ++nFileSystemCount;
+    }
+    for (const DString& name : fileNames) {
+        if (nFileSystemCount >= 10) {
+            break;
+        }
+        AddCandidate(dirPart + name);
+        ++nFileSystemCount;
     }
 }
 
@@ -1393,52 +1818,63 @@ bool AddressBar::OnDropData(const EventArgs& msg)
     if (!m_bEnableDropNavigation || (msg.lParam == 0)) {
         return false;
     }
-    DString filePath;
+    std::vector<DString> fileList;
 #ifdef DUILIB_BUILD_FOR_WIN
     if (msg.wParam == kControlDropTypeWindows) {
         const ControlDropData_Windows* pData = (const ControlDropData_Windows*)msg.lParam;
-        if ((pData != nullptr) && !pData->m_fileList.empty()) {
-            filePath = pData->m_fileList[0].c_str();
+        if (pData != nullptr) {
+            fileList = pData->m_fileList;
         }
     }
 #endif
 #ifdef DUILIB_BUILD_FOR_SDL
-    if (filePath.empty() && (msg.wParam == kControlDropTypeSDL)) {
+    if (fileList.empty() && (msg.wParam == kControlDropTypeSDL)) {
         const ControlDropData_SDL* pData = (const ControlDropData_SDL*)msg.lParam;
-        if ((pData != nullptr) && !pData->m_fileList.empty()) {
-            filePath = pData->m_fileList[0].c_str();
+        if (pData != nullptr) {
+            fileList = pData->m_fileList;
         }
     }
 #endif
-    if (filePath.empty()) {
+    if (fileList.empty()) {
         return false;
     }
-    FilePath dropPath(filePath);
-    if (!dropPath.IsExistsPath()) {
+
+    //多文件拖放：优先导航到第一个存在的目录；没有目录时，导航到第一个存在文件的父目录
+    DString dropDirectory;
+    for (const DString& filePath : fileList) {
+        FilePath path(filePath);
+        if (path.IsExistsDirectory()) {
+            dropDirectory = path.ToString();
+            break;
+        }
+    }
+    if (dropDirectory.empty()) {
+        for (const DString& filePath : fileList) {
+            FilePath path(filePath);
+            if (!path.IsExistsPath()) {
+                continue;
+            }
+            FilePath parentPath = path.GetParentPath();
+            if (parentPath.IsExistsDirectory()) {
+                dropDirectory = parentPath.ToString();
+                break;
+            }
+        }
+    }
+    if (dropDirectory.empty()) {
         return false;
     }
-    if (dropPath.IsExistsDirectory()) {
-        ShowAddressEdit(true);
-        if (m_pRichEdit != nullptr) {
-            m_pRichEdit->SetTextNoEvent(dropPath.ToString());
-        }
-        bool bAccepted = CommitAddressPath(dropPath.ToString(), true);
-        SendEvent(kEventReturn);
-        if (bAccepted && (GetPreviousAddressPath() != GetAddressPath())) {
-            SendEvent(kEventPathChanged);
-        }
-        return true;
+
+    ShowAddressEdit(true);
+    if (m_pRichEdit != nullptr) {
+        m_pRichEdit->SetTextNoEvent(dropDirectory);
     }
-    FilePath parentPath = dropPath.GetParentPath();
-    if (parentPath.IsExistsDirectory()) {
-        bool bAccepted = CommitAddressPath(parentPath.ToString(), true);
-        SendEvent(kEventReturn);
-        if (bAccepted && (GetPreviousAddressPath() != GetAddressPath())) {
-            SendEvent(kEventPathChanged);
-        }
-        return true;
+    bool bAccepted = CommitAddressPath(dropDirectory, true);
+    SendEvent(kEventReturn);
+    if (bAccepted && (GetPreviousAddressPath() != GetAddressPath())) {
+        SendEvent(kEventPathChanged);
     }
-    return false;
+    return true;
 }
 
 }//namespace ui

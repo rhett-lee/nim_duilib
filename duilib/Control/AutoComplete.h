@@ -81,6 +81,16 @@ public:
     void SetMaxVisible(int32_t nMaxVisible);
     int32_t GetMaxVisible() const;
 
+    /** 设置候选项前缀高亮的字符数（0表示不高亮）
+    *   高亮的字符使用强调色显示，常用于提示与输入文本匹配的部分
+    * @param [in] nChars 高亮字符数
+    */
+    void SetHighlightChars(int32_t nChars);
+
+    /** 获取候选项前缀高亮的字符数
+    */
+    int32_t GetHighlightChars() const;
+
     /** 监听候选项选中事件（鼠标点击/键盘回车）
     */
     void AttachItemSelect(const ItemSelectEvent& callback);
@@ -116,6 +126,10 @@ private:
     /** 当前选中项序号
     */
     size_t m_nSelectedIndex;
+
+    /** 候选项前缀高亮的字符数（0表示不高亮）
+    */
+    int32_t m_nHighlightChars;
 
     /** 最多可见行数
     */

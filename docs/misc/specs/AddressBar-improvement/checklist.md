@@ -1,7 +1,7 @@
 # Checklist: AddressBar 改进验证
 
 > 验证方式：VS18 工具链编译 Release x64，PowerShell + Win32 消息模拟的 UI 自动化（1:1 物理像素截图，DPI 168 / 1.75x）。
-> 结论：全部通过。
+> 结论：功能项 5~9 已实现并编译通过；其中 5/6/7/9 通过 UI 自动化验证，8 的 OLE 拖放无法用模拟输入复现（详见文末说明）。
 
 ## 功能验证
 
@@ -41,3 +41,37 @@
 ## 清理
 
 - [x] 删除测试脚本与截图（`out/t*.ps1`、`out/*.png`、`out/ctx_debug.txt` 等调试产物）
+
+## 二、功能完整性（5~9）
+
+- [x] 5 自动补全支持文件系统子目录 + Tab 补全 + 匹配高亮
+  - `AddressBar::BuildAutoCompleteCandidates`：历史前缀匹配（≤10 条）→ 按 `find_last_of("\\/")` 拆分目录/文件名 → `std::filesystem::directory_iterator`（`skip_permission_denied`、最多扫描 200 项、目录优先、各 ≤10 条）
+  - `AutoCompleteFlyout::SetHighlightChars` + 前缀 Label（`auto_complete_item_match` 强调色）/ 剩余 Label（`auto_complete_item_text`）
+  - Tab 补全：`address_bar_edit` 的 `want_tab="true"`，`HandleEditKeyDown` 优先拦截 `kVK_TAB`；使用浮层当前选中项（未导航取第 0 项），目录自动追加路径分隔符；无候选时回退 `SetNextTabControl`
+  - 自动化验证：输入 `E:\de` 浮层出现且前缀 `E:\de` 强调色、剩余 `velop` 默认色；按 Tab 得到 `E:\develop\` 并刷新为子目录候选
+- [x] 6 最近路径下拉按钮 + 历史持久化
+  - 新增 `address_bar_history_button` 主题类与 `history.svg`；`ShowAddressEdit` 末尾调用 `UpdateHistoryButtonVisible`（编辑态隐藏）
+  - `SetHistoryFile/LoadPathHistory/SavePathHistory`：UTF-8 按行读写；`AddPathHistory` 归一化去末尾分隔符并去重、最多 `max_history` 条
+  - `ShowPathHistoryMenu`：点击弹出最近路径菜单（≤10 项、统一宽度、`RIGHT_TOP`）
+  - 自动化验证：导航后右侧时钟按钮出现，点击弹出含 `E:\develop` 的菜单（tooltip“最近访问的路径”）；编辑态按钮隐藏
+- [x] 7 内置右键菜单（`default_context_menu`）
+  - `ShowDefaultContextMenu`：复制路径 / 在文件资源管理器中显示（`/select,"path"`）/ 打开上级目录；`AttachContextMenu` 中内置菜单处理时返回 `false` 阻断外部派发
+  - TreeView 示例改用内置菜单（`default_context_menu="true"`），移除示例自定义菜单与 `address_bar_menu.xml`
+  - 自动化验证：右键面包屑弹出 3 项菜单，文字完整、可点击
+- [x] 8 拖放支持多文件 + 悬停高亮
+  - `OnDropData` 支持 `kControlDropTypeWindows/SDL` 的文件列表：优先导航到第一个存在的目录，否则导航到第一个存在文件的父目录
+  - `AttachDropOver/DropLeave` → `SetDropHighlight`；`UpdateBorderHighlight` 错误态优先于拖放高亮
+  - 自动化验证受限：用 WinForms `DoDragDrop`（CF_HDROP）模拟拖放源，`DoDragDrop` 在 1ms 内返回 `None`（合成鼠标输入下 OLE 拖放循环立即取消），地址栏未收到 `DragEnter/DragOver/Drop` 事件，故该项未完成端到端自动化验证，需人工从资源管理器拖拽确认
+- [x] 9 非法路径的控件级错误状态样式
+  - `SetPathError/IsPathError`；`CommitAddressPath` 预提交被拒 → 置错误态；提交成功 → 清除
+  - `UpdateBorderHighlight` 用 `color_error` 绘制地址栏边框，并保存/恢复原边框颜色
+  - 自动化验证：输入 `E:\no_such_dir_xyz` 回车弹出“路径不存在”对话框，关闭后地址栏显示红色错误边框
+
+### 关于第 8 项的自动化限制
+
+尝试过三种模拟拖放源：PowerShell `DoDragDrop`（`CO_E_NOTINITIALIZED`）、WinForms `Form.DoDragDrop`、带 `Application.OleRequired` 的 STA 线程 + `SendInput` 按住左键后启动 `DoDragDrop`。前两者未产生 OLE 拖放循环；第三种可进入 `DoDragDrop`，但 1ms 内返回 `None`，目标窗口收不到 `DragEnter`。这是模拟输入与 OLE 拖放循环交互的限制，非控件逻辑问题：控件的 `enable_drag_drop` 已开启（`IsEnableDropFile()` 走 `m_bDragDropEnabled` 为 true），`WindowDropTarget` 已注册到窗口，`kEventDropData/kEventDropOver/kEventDropLeave` 均已绑定。
+
+## 清理（新增）
+
+- [x] 删除临时调试日志（`AddressBar.cpp` 中的 `AbDropLog`）、`out/ab_drag_log.txt`、`out/ab_drag_src.txt`
+- [x] 删除临时自动化脚本与截图（`Temp/abtest` 目录）

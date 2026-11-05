@@ -49,6 +49,7 @@ private:
 AutoCompleteFlyout::AutoCompleteFlyout(Window* pParentWindow) :
     Flyout(pParentWindow),
     m_nSelectedIndex(Box::InvalidIndex),
+    m_nHighlightChars(0),
     m_nMaxVisible(8),
     m_nWidthDip(200),
     m_nGapDip(4),
@@ -191,11 +192,27 @@ void AutoCompleteFlyout::RebuildList()
         return;
     }
     m_pList->RemoveAllItems();
+    const size_t nHighlightChars = (m_nHighlightChars > 0) ? static_cast<size_t>(m_nHighlightChars) : 0;
     for (const UiString& text : m_items) {
-        ListBoxItem* pItem = new ListBoxItem(this);
+        ListBoxItemH* pItem = new ListBoxItemH(this);
         pItem->SetClass(_T("auto_complete_item"));
-        pItem->SetText(text.c_str());
         pItem->SetFixedHeight(UiFixedInt(GetItemHeight()), true, true);
+        const DString strText = text.c_str();
+        if ((nHighlightChars > 0) && (nHighlightChars < strText.size())) {
+            //拆分匹配前缀与剩余文本，匹配前缀使用强调色显示
+            Label* pMatchLabel = new Label(this);
+            pMatchLabel->SetClass(_T("auto_complete_item_match"));
+            pMatchLabel->SetText(strText.substr(0, nHighlightChars));
+            Label* pTextLabel = new Label(this);
+            pTextLabel->SetClass(_T("auto_complete_item_text"));
+            pTextLabel->SetText(strText.substr(nHighlightChars));
+            pTextLabel->SetFixedWidth(UiFixedInt::MakeStretch(), false, false);
+            pItem->AddItem(pMatchLabel);
+            pItem->AddItem(pTextLabel);
+        }
+        else {
+            pItem->SetText(text.c_str());
+        }
         m_pList->AddItem(pItem);
     }
     if (m_nSelectedIndex < m_items.size()) {
@@ -258,6 +275,16 @@ void AutoCompleteFlyout::SetMaxVisible(int32_t nMaxVisible)
 int32_t AutoCompleteFlyout::GetMaxVisible() const
 {
     return m_nMaxVisible;
+}
+
+void AutoCompleteFlyout::SetHighlightChars(int32_t nChars)
+{
+    m_nHighlightChars = std::max(nChars, 0);
+}
+
+int32_t AutoCompleteFlyout::GetHighlightChars() const
+{
+    return m_nHighlightChars;
 }
 
 void AutoCompleteFlyout::AttachItemSelect(const ItemSelectEvent& callback)

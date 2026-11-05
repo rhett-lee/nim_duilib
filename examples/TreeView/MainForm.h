@@ -104,10 +104,6 @@ private:
     */
     void SetAddressBarPathFromTreeNode(ui::TreeNode* pTreeNode);
 
-    /** 显示地址栏面包屑的右键菜单
-    */
-    void ShowAddressBarContextMenu();
-
     /** 刷新
     */
     void Refresh();

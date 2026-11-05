@@ -248,6 +248,35 @@ public:
     */
     void DetachPathChanging();
 
+    /** 启用/禁用内置右键菜单（复制路径、在资源管理器中显示、打开上级目录）
+    *   默认禁用；启用后点击右键会弹出内置菜单，并终止该事件的后续派发
+    * @param [in] bEnable true表示启用，false表示禁用
+    */
+    void SetDefaultContextMenuEnabled(bool bEnable);
+
+    /** 是否已启用内置右键菜单
+    */
+    bool IsDefaultContextMenuEnabled() const;
+
+    /** 设置路径历史的持久化文件（空字符串表示仅在内存中保存）
+    * @param [in] historyFile 文件路径（UTF-8或本地编码按平台约定）
+    */
+    void SetHistoryFile(const DString& historyFile);
+
+    /** 获取路径历史的持久化文件
+    */
+    DString GetHistoryFile() const;
+
+    /** 设置路径错误状态（业务层拒绝提交时可调用，输入变化或提交成功后自动清除）
+    *   错误状态通过红色边框提示，不改变路径内容
+    * @param [in] bError true表示处于错误状态
+    */
+    void SetPathError(bool bError);
+
+    /** 是否处于路径错误状态
+    */
+    bool IsPathError() const;
+
     /** 监听地址栏上的回车事件
     * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
@@ -352,6 +381,35 @@ private:
     */
     void ShowCollapsedPathMenu();
 
+    /** 显示最近路径的下拉菜单
+    */
+    void ShowPathHistoryMenu();
+
+    /** 显示内置右键菜单
+    * @param [in] ptMouse 右键点击位置（客户区坐标）
+    */
+    void ShowDefaultContextMenu(const UiPoint& ptMouse);
+
+    /** 根据历史记录与编辑状态更新“最近路径”按钮的可见性
+    */
+    void UpdateHistoryButtonVisible();
+
+    /** 从持久化文件加载路径历史
+    */
+    void LoadPathHistory();
+
+    /** 保存路径历史到持久化文件
+    */
+    void SavePathHistory();
+
+    /** 设置拖放悬停高亮
+    */
+    void SetDropHighlight(bool bHighlight);
+
+    /** 按错误状态/拖放高亮状态刷新边框颜色
+    */
+    void UpdateBorderHighlight();
+
     /** 更新自动补全浮层
     */
     void UpdateAutoCompletePopup();
@@ -393,6 +451,10 @@ private:
     /** 中间折叠段（"…"）按钮
     */
     Button* m_pCollapseBtn;
+
+    /** “最近路径”下拉按钮
+    */
+    Button* m_pHistoryBtn;
 
     /** 当前显示的路径段信息（与m_pBarBox中的HBox一一对应）
     */
@@ -525,6 +587,26 @@ private:
     /** 用户是否已用上下键导航候选
     */
     bool m_bUserNavigated;
+
+    /** 是否启用内置右键菜单
+    */
+    bool m_bDefaultContextMenu;
+
+    /** 路径历史的持久化文件
+    */
+    UiString m_historyFile;
+
+    /** 是否处于路径错误状态
+    */
+    bool m_bPathError;
+
+    /** 是否处于拖放悬停高亮状态
+    */
+    bool m_bDropHighlight;
+
+    /** 高亮前的边框颜色（按控件状态保存，用于恢复）
+    */
+    std::vector<DString> m_savedBorderColors;
 };
 
 }//namespace ui
