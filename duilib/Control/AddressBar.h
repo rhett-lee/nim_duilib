@@ -403,6 +403,10 @@ private:
     */
     void InvalidateLayoutCache();
 
+    /** 清空自动补全的目录项缓存
+    */
+    void ClearAutoCompleteCache();
+
     /** 提交路径（回车/失焦/拖放共用的入口）
     * @param [in] rawPath 用户输入或拖放得到的路径
     * @param [in] bHideEdit true表示提交后退出编辑状态
@@ -669,6 +673,14 @@ private:
     */
     int32_t m_nLayoutHeight;
 
+    /** 布局缓存代次：主题、字体、DPI变化时自增，使缓存键必然变化
+    */
+    uint64_t m_nLayoutEpoch;
+
+    /** 上次计算布局时对应的布局代次
+    */
+    uint64_t m_nLayoutEpochUsed;
+
     /** 路径段版本号：路径或分段内容变化时自增
     */
     uint64_t m_nPathVersion;
@@ -676,6 +688,19 @@ private:
     /** 上次计算布局时对应的路径段版本号
     */
     uint64_t m_nLayoutPathVersion;
+
+    /** 子路径按钮上次应用的视觉状态（避免每次布局都重新解析样式）
+    */
+    struct SubPathButtonState
+    {
+        DString m_className;    //上次应用的Class
+        DString m_displayText;  //上次应用的显示文本
+        DString m_toolTipText;  //上次应用的tooltip
+    };
+
+    /** 每个路径段按钮的视觉状态缓存（与m_subPathBoxes一一对应）
+    */
+    std::vector<SubPathButtonState> m_subPathButtonStates;
 
     /** 自动补全使用的目录项缓存（避免每次按键都重新枚举目录）
     */

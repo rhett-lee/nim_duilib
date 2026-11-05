@@ -94,6 +94,8 @@ AddressBar::AddressBar(Window* pWindow):
     m_bDropHighlight(false),
     m_nLayoutWidth(-1),
     m_nLayoutHeight(-1),
+    m_nLayoutEpoch(0),
+    m_nLayoutEpochUsed(0),
     m_nPathVersion(0),
     m_nLayoutPathVersion(0),
     m_nHistorySaveTimerId(0),
@@ -203,7 +205,11 @@ void AddressBar::SetAttribute(const DString& strName, const DString& strValue2)
 
 void AddressBar::SetEnablePathTooltip(bool bEnable)
 {
-    m_bEnableTooltip = bEnable;
+    if (m_bEnableTooltip != bEnable) {
+        m_bEnableTooltip = bEnable;
+        //tooltip缓存的取值方式已变化，需要重新应用
+        m_subPathButtonStates.clear();
+    }
 }
 
 bool AddressBar::IsEnablePathTooltip() const
@@ -277,6 +283,7 @@ DString AddressBar::GetSubPathHBoxClass() const
 void AddressBar::SetSubPathBtnClass(const DString& subPathBtnClass)
 {
     m_subPathBtnClass = subPathBtnClass;
+    m_subPathButtonStates.clear();
 }
 
 DString AddressBar::GetSubPathBtnClass() const
@@ -287,6 +294,7 @@ DString AddressBar::GetSubPathBtnClass() const
 void AddressBar::SetSubPathRootClass(const DString& subPathRootClass)
 {
     m_subPathRootClass = subPathRootClass;
+    m_subPathButtonStates.clear();
 }
 
 DString AddressBar::GetSubPathRootClass() const
@@ -297,6 +305,7 @@ DString AddressBar::GetSubPathRootClass() const
 void AddressBar::SetSubPathDriveClass(const DString& subPathDriveClass)
 {
     m_subPathDriveClass = subPathDriveClass;
+    m_subPathButtonStates.clear();
 }
 
 DString AddressBar::GetSubPathDriveClass() const
@@ -307,6 +316,7 @@ DString AddressBar::GetSubPathDriveClass() const
 void AddressBar::SetSubPathCurrentClass(const DString& subPathCurrentClass)
 {
     m_subPathCurrentClass = subPathCurrentClass;
+    m_subPathButtonStates.clear();
 }
 
 DString AddressBar::GetSubPathCurrentClass() const
@@ -383,6 +393,7 @@ DString AddressBar::GetEmptyDisplayTextId() const
 void AddressBar::SetHistoryEnabled(bool bEnable)
 {
     m_bHistoryEnabled = bEnable;
+    UpdateHistoryButtonVisible();
 }
 
 bool AddressBar::IsHistoryEnabled() const
@@ -393,9 +404,14 @@ bool AddressBar::IsHistoryEnabled() const
 void AddressBar::SetMaxHistory(int32_t nMax)
 {
     m_nMaxHistory = std::max(nMax, 1);
+    const size_t nOldSize = m_pathHistory.size();
     while ((int32_t)m_pathHistory.size() > m_nMaxHistory) {
         m_pathHistory.pop_back();
     }
+    if (m_pathHistory.size() != nOldSize) {
+        ScheduleSavePathHistory();
+    }
+    UpdateHistoryButtonVisible();
 }
 
 int32_t AddressBar::GetMaxHistory() const
@@ -408,12 +424,11 @@ void AddressBar::AddPathHistory(const DString& path)
     if (!m_bHistoryEnabled || path.empty()) {
         return;
     }
-    //路径归一化：去掉末尾多余的路径分隔符（如 "E:\dir\" 统一为 "E:\dir"），
+    //路径归一化：去首尾空白、展开"~"、去掉末尾多余的路径分隔符（如 "E:\dir\" 统一为 "E:\dir"），
     //避免自动补全的历史记录中出现重复项（"E:\dir\" 与 "E:\dir"）
-    DString normalizedPath = path;
-    while ((normalizedPath.size() > 3) &&
-           ((normalizedPath.back() == _T('\\')) || (normalizedPath.back() == _T('/')))) {
-        normalizedPath.pop_back();
+    const DString normalizedPath = NormalizeAddressBarHistoryPath(path);
+    if (normalizedPath.empty()) {
+        return;
     }
     UiString historyPath = normalizedPath.c_str();
     for (auto it = m_pathHistory.begin(); it != m_pathHistory.end(); ++it) {
@@ -459,7 +474,17 @@ bool AddressBar::IsDefaultContextMenuEnabled() const
 
 void AddressBar::SetHistoryFile(const DString& historyFile)
 {
-    m_historyFile = historyFile.c_str();
+    UiString newHistoryFile = historyFile.c_str();
+    if (m_historyFile == newHistoryFile) {
+        return;
+    }
+    m_historyFile = newHistoryFile;
+    if (IsInited()) {
+        //切换持久化文件后重新加载历史（Initialize前只记录路径，由OnInit统一加载）
+        m_pathHistory.clear();
+        LoadPathHistory();
+        UpdateHistoryButtonVisible();
+    }
 }
 
 DString AddressBar::GetHistoryFile() const
@@ -490,7 +515,11 @@ void AddressBar::LoadPathHistory()
             line.pop_back();
         }
         if (!line.empty()) {
-            paths.push_back(StringConvert::UTF8ToT(line).c_str());
+            //历史文件可能被手工编辑：与AddPathHistory使用同一套归一化规则，避免重复条目
+            const DString path = NormalizeAddressBarHistoryPath(StringConvert::UTF8ToT(line).c_str());
+            if (!path.empty()) {
+                paths.push_back(path.c_str());
+            }
         }
         nStart = nEnd + 1;
     }
@@ -627,7 +656,15 @@ void AddressBar::UpdateBorderHighlight()
 
 void AddressBar::SetEnableDropNavigation(bool bEnable)
 {
+    if (m_bEnableDropNavigation == bEnable) {
+        return;
+    }
     m_bEnableDropNavigation = bEnable;
+    //拖放能力跟随开关：关闭时不再接收拖放事件，并清除高亮
+    SetAttribute(_T("enable_drag_drop"), bEnable ? _T("true") : _T("false"));
+    if (!bEnable) {
+        SetDropHighlight(false);
+    }
 }
 
 bool AddressBar::IsEnableDropNavigation() const
@@ -660,11 +697,25 @@ void AddressBar::OnLanguageChanged(bool bRedraw)
     if (m_showAddressPath.empty()) {
         UpdateAddressBarControls(m_showAddressPath.c_str(), true);
     }
+    //按钮的tooltip在初始化时只取一次文本，语言切换后需要重新取
+    if (m_pResetBtn != nullptr) {
+        m_pResetBtn->SetToolTipText(GlobalManager::Instance().Lang().GetStringByID(_T("STRID_ADDRESS_BAR_RESET_PATH")));
+    }
+    if (m_pHistoryBtn != nullptr) {
+        m_pHistoryBtn->SetToolTipText(GlobalManager::Instance().Lang().GetStringByID(_T("STRID_ADDRESS_BAR_RECENT_PATHS")));
+    }
 }
 
 void AddressBar::OnThemeChanged(bool bRedraw)
 {
     BaseClass::OnThemeChanged(bRedraw);
+    //主题切换后，路径段按钮的Class需要重新解析样式
+    m_subPathButtonStates.clear();
+    if (m_bPathError || m_bDropHighlight) {
+        //错误/拖放高亮仍生效：丢弃旧主题的边框色备份，按新主题重新采样
+        m_savedBorderColors.clear();
+        UpdateBorderHighlight();
+    }
     //主题切换会更换字体与间距，文本测量结果随之变化，之前的布局缓存不再有效
     InvalidateLayoutCache();
 }
@@ -851,12 +902,16 @@ void AddressBar::OnInit()
         });
 
     //支持拖放目录到地址栏进行导航，并在拖动悬停时高亮边框
-    SetAttribute(_T("enable_drag_drop"), _T("true"));
+    //拖放能力跟随drop_navigation配置，避免XML中的enable_drag_drop设置被覆盖
+    SetAttribute(_T("enable_drag_drop"), m_bEnableDropNavigation ? _T("true") : _T("false"));
     AttachEvent(kEventDropData, [this](const EventArgs& args) {
         SetDropHighlight(false);
         return OnDropData(args);
         }, 0);
     AttachDropOver([this](const EventArgs&) {
+        if (!m_bEnableDropNavigation) {
+            return false;
+        }
         SetDropHighlight(true);
         return true;
         });
@@ -869,6 +924,10 @@ void AddressBar::OnInit()
     m_pRichEdit->SetTextNoEvent(m_addressPath.c_str());
     UpdateAddressBarControls(m_addressPath.c_str(), true);
     LoadPathHistory();
+    //初始路径（如XML配置的address_path）也要进入历史记录
+    if (!m_addressPath.empty()) {
+        AddPathHistory(m_addressPath.c_str());
+    }
     UpdateHistoryButtonVisible();
 }
 
@@ -892,6 +951,8 @@ void AddressBar::ShowAddressEdit(bool bShow)
     if (m_pRichEdit != nullptr) {
         m_pRichEdit->SetVisible(bShow);
         if (bShow) {
+            //进入编辑态时目录内容可能已经变化，清空自动补全的目录缓存
+            ClearAutoCompleteCache();
             //进入编辑状态时，用当前显示路径初始化编辑框
             m_pRichEdit->SetTextNoEvent(GetAddressPath());
             m_pRichEdit->SetSel(0, -1);
@@ -905,6 +966,8 @@ void AddressBar::ShowAddressEdit(bool bShow)
 void AddressBar::EnterAddressEdit()
 {
     ShowAddressEdit(true);
+    //已在编辑态时ShowAddressEdit会提前返回，这里同样保证缓存已刷新
+    ClearAutoCompleteCache();
     if (m_pRichEdit != nullptr) {
         m_pRichEdit->SetSel(0, -1);
         m_pRichEdit->SetFocus();
@@ -1105,28 +1168,40 @@ void AddressBar::UpdateSubPathControls(size_t nIndex, const PathSegment& segment
         return;
     }
 
-    pDisplayNameBtn->SetClass(GetSubPathBtnClass());
+    DString className = GetSubPathBtnClass();
     if (segment.m_bComputer) {
-        pDisplayNameBtn->SetClass(_T("address_bar_sub_path_computer"));
+        className = _T("address_bar_sub_path_computer");
     }
     else if (segment.m_bRoot) {
         if (segment.m_bDrive) {
-            pDisplayNameBtn->SetClass(GetSubPathDriveClass());
+            className = GetSubPathDriveClass();
         }
         else {
-            pDisplayNameBtn->SetClass(GetSubPathRootClass());
+            className = GetSubPathRootClass();
         }
     }
     //当前段使用强调样式；“此电脑”/根节点/盘符保留其图标样式，避免图标丢失
     if (bCurrent && !segment.m_bComputer && !segment.m_bRoot) {
-        pDisplayNameBtn->SetClass(GetSubPathCurrentClass());
+        className = GetSubPathCurrentClass();
     }
-    pDisplayNameBtn->SetText(segment.m_displayName);
-    if (m_bEnableTooltip) {
-        pDisplayNameBtn->SetToolTipText(segment.m_fullPath);
+    const DString toolTipText = m_bEnableTooltip ? segment.m_fullPath : DString();
+
+    //仅在视觉状态变化时写入，避免每次布局都重新解析Class与文本
+    if (nIndex >= m_subPathButtonStates.size()) {
+        m_subPathButtonStates.resize(nIndex + 1);
     }
-    else {
-        pDisplayNameBtn->SetToolTipText(DString());
+    SubPathButtonState& buttonState = m_subPathButtonStates[nIndex];
+    if (buttonState.m_className != className) {
+        pDisplayNameBtn->SetClass(className);
+        buttonState.m_className = className;
+    }
+    if (buttonState.m_displayText != segment.m_displayName) {
+        pDisplayNameBtn->SetText(segment.m_displayName);
+        buttonState.m_displayText = segment.m_displayName;
+    }
+    if (buttonState.m_toolTipText != toolTipText) {
+        pDisplayNameBtn->SetToolTipText(toolTipText);
+        buttonState.m_toolTipText = toolTipText;
     }
     if (pArrowBtn != nullptr) {
         pArrowBtn->SetVisible(bShowSeparator);
@@ -1167,9 +1242,7 @@ bool AddressBar::UpdateAddressBarControls(const DString& addressPath, bool bForc
     m_clickedAddressPath.clear();
     if (bChanged) {
         //路径变化后目录内容可能已改变，自动补全缓存失效
-        m_autoCompleteCache.m_dirPath.clear();
-        m_autoCompleteCache.m_dirNames.clear();
-        m_autoCompleteCache.m_fileNames.clear();
+        ClearAutoCompleteCache();
     }
 
     std::vector<PathSegment> segments;
@@ -1200,7 +1273,7 @@ void AddressBar::UpdateAddressBarControlsStatus()
 
     //路径与可用宽高均未变化时，无需重新测量所有路径段（拖动窗口时的常见场景）
     if ((m_nLayoutWidth == nBarWidth) && (m_nLayoutHeight == rc.Height()) &&
-        (m_nLayoutPathVersion == m_nPathVersion)) {
+        (m_nLayoutPathVersion == m_nPathVersion) && (m_nLayoutEpochUsed == m_nLayoutEpoch)) {
         return;
     }
 
@@ -1223,6 +1296,7 @@ void AddressBar::UpdateAddressBarControlsStatus()
         m_nLayoutWidth = nBarWidth;
         m_nLayoutHeight = rc.Height();
         m_nLayoutPathVersion = m_nPathVersion;
+        m_nLayoutEpochUsed = m_nLayoutEpoch;
         return;
     }
 
@@ -1287,6 +1361,7 @@ void AddressBar::UpdateAddressBarControlsStatus()
         m_nLayoutWidth = nBarWidth;
         m_nLayoutHeight = rc.Height();
         m_nLayoutPathVersion = m_nPathVersion;
+        m_nLayoutEpochUsed = m_nLayoutEpoch;
         return;
     }
 
@@ -1401,13 +1476,23 @@ void AddressBar::UpdateAddressBarControlsStatus()
     m_nLayoutWidth = nBarWidth;
     m_nLayoutHeight = rc.Height();
     m_nLayoutPathVersion = m_nPathVersion;
+    m_nLayoutEpochUsed = m_nLayoutEpoch;
 }
 
 void AddressBar::InvalidateLayoutCache()
 {
+    //自增布局代次：即使可用宽高与路径都未变，下次也会强制重新测量（字体/主题/DPI变化场景）
+    ++m_nLayoutEpoch;
     m_nLayoutWidth = -1;
     m_nLayoutHeight = -1;
     UpdateAddressBarControlsStatus();
+}
+
+void AddressBar::ClearAutoCompleteCache()
+{
+    m_autoCompleteCache.m_dirPath.clear();
+    m_autoCompleteCache.m_dirNames.clear();
+    m_autoCompleteCache.m_fileNames.clear();
 }
 
 void AddressBar::OnClickedSubPath(const DString& filePath)
@@ -1448,14 +1533,19 @@ void AddressBar::OnAddressBarKillFocus(Control* pNewFocus)
     }
     bool bAccepted = false;
     bool bChanged = false;
+    //pNewFocus为空表示窗口失去激活（如Alt+Tab）：此时保留编辑态与输入内容，与资源管理器一致；
+    //焦点移到窗口内其他控件时则退出编辑态，恢复面包屑显示
+    const bool bWindowDeactivated = (pNewFocus == nullptr);
     if (IsEditing()) {
         DString addressPath = m_pRichEdit->GetText();
         if (m_bKillFocusUpdateUI) {
-            bAccepted = CommitAddressPath(addressPath, false);
+            bAccepted = CommitAddressPath(addressPath, !bWindowDeactivated);
         }
         else {
             ResetEditText();
-            ShowAddressEdit(false);
+            if (!bWindowDeactivated) {
+                ShowAddressEdit(false);
+            }
         }
     }
     else {
@@ -1783,7 +1873,8 @@ bool AddressBar::HandleEditKeyDown(const EventArgs& msg)
                 m_pRichEdit->SetTextNoEvent(completedPath);
                 m_pRichEdit->SetSel(m_pRichEdit->GetTextLength(), m_pRichEdit->GetTextLength());
             }
-            UpdateAutoCompletePopup();
+            //补全后关闭候选浮层，避免刚补全又弹出下一级候选列表
+            CloseAutoCompletePopup();
         }
         else if (GetWindow() != nullptr) {
             //没有可补全的候选项：保持Tab的默认行为（切换到下一个控件）
@@ -1938,11 +2029,29 @@ void AddressBar::BuildAutoCompleteCandidates(const DString& input)
 
     //2. 文件系统补全：枚举“目录部分”下的同名子目录/文件（最多10条）
     const size_t nSep = input.find_last_of(_T("\\/"));
-    if ((nSep == DString::npos) || (nSep == 0)) {
+    DString dirPart;
+    DString namePart;
+    if (nSep == DString::npos) {
+#ifdef DUILIB_BUILD_FOR_WIN
+        //仅输入盘符（如"C:"）：以盘符根作为目录部分，补全根目录下的子项
+        if ((input.size() >= 2) && (input[1] == _T(':'))) {
+            dirPart = input.substr(0, 2) + _T("\\");
+            namePart = input.substr(2);
+        }
+        else {
+            return;
+        }
+#else
+        return;
+#endif
+    }
+    else if (nSep == 0) {
         return;
     }
-    const DString dirPart = input.substr(0, nSep + 1);
-    const DString namePart = input.substr(nSep + 1);
+    else {
+        dirPart = input.substr(0, nSep + 1);
+        namePart = input.substr(nSep + 1);
+    }
     if (m_autoCompleteCache.m_dirPath != dirPart) {
         //目录内容变化后重新枚举；同一目录内连续输入直接复用缓存，避免每次按键都扫描目录
         m_autoCompleteCache.m_dirPath = dirPart;

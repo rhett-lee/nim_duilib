@@ -161,6 +161,35 @@ void TestExpandUserPath()
     CHECK_EQ(ui::ExpandAddressBarUserPath(_T("~/docs")), home + DString(_T("/docs")));
 }
 
+void TestNormalizeHistoryPath()
+{
+    //空路径
+    CHECK_EQ(ui::NormalizeAddressBarHistoryPath(_T("")), _T(""));
+    CHECK_EQ(ui::NormalizeAddressBarHistoryPath(_T("   ")), _T(""));
+
+    //去掉首尾空白与末尾多余的路径分隔符
+    CHECK_EQ(ui::NormalizeAddressBarHistoryPath(_T("  C:\\LLVM\\  ")), _T("C:\\LLVM"));
+    CHECK_EQ(ui::NormalizeAddressBarHistoryPath(_T("C:\\LLVM\\\\")), _T("C:\\LLVM"));
+
+#ifdef DUILIB_BUILD_FOR_WIN
+    //盘符根必须保留末尾分隔符
+    CHECK_EQ(ui::NormalizeAddressBarHistoryPath(_T("C:\\")), _T("C:\\"));
+    CHECK_EQ(ui::NormalizeAddressBarHistoryPath(_T("C:\\\\")), _T("C:\\"));
+    //仅输入盘符时补齐根分隔符
+    CHECK_EQ(ui::NormalizeAddressBarHistoryPath(_T("C:")), _T("C:\\"));
+    //UNC共享根去掉末尾多余分隔符
+    CHECK_EQ(ui::NormalizeAddressBarHistoryPath(_T("\\\\server\\share\\")), _T("\\\\server\\share"));
+#else
+    //Unix根目录保留
+    CHECK_EQ(ui::NormalizeAddressBarHistoryPath(_T("/")), _T("/"));
+    CHECK_EQ(ui::NormalizeAddressBarHistoryPath(_T("/home/user/")), _T("/home/user"));
+#endif
+
+    //"~"开头的路径先展开主目录
+    const DString home = ui::ExpandAddressBarUserPath(_T("~"));
+    CHECK_EQ(ui::NormalizeAddressBarHistoryPath(_T("~")), home);
+}
+
 }//namespace
 
 int main()
@@ -170,6 +199,7 @@ int main()
     TestUncPath();
     TestRelativePath();
     TestExpandUserPath();
+    TestNormalizeHistoryPath();
 
     std::cout << "AddressBar path tests: " << (g_checkCount - g_failedCount)
               << "/" << g_checkCount << " checks passed" << std::endl;

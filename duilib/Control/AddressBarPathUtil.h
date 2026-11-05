@@ -21,6 +21,11 @@ struct DUILIB_API AddressBarPathSegment
 */
 DUILIB_API DString ExpandAddressBarUserPath(const DString& path);
 
+/** 归一化路径历史记录：去首尾空白、展开"~"、去掉末尾多余的路径分隔符
+*   （保留Windows盘符根"C:\"与Unix根"/"）
+*/
+DUILIB_API DString NormalizeAddressBarHistoryPath(const DString& path);
+
 /** 根据路径构建地址栏的路径段列表
 *   支持UNC路径(\\\\server\\share)、扩展长度路径(\\\\?\\)、以"~"开头的用户主目录路径与相对路径
 * @param [in] addressPath 需要解析的路径

@@ -325,6 +325,7 @@
     <ClCompile Include="CEFControl\internal\Windows\osr_ime_handler_win.cc" />
     <ClCompile Include="CEFControl\internal\Windows\util_win.cc" />
     <ClCompile Include="Control\AddressBar.cpp" />
+    <ClCompile Include="Control\AddressBarPathUtil.cpp" />
     <ClCompile Include="Control\BitmapControl.cpp" />
     <ClCompile Include="Control\Chart.cpp" />
     <ClCompile Include="Control\CheckCombo.cpp" />
@@ -750,6 +751,7 @@
     <ClInclude Include="CEFControl\internal\Windows\osr_ime_handler_win.h" />
     <ClInclude Include="CEFControl\internal\Windows\util_win.h" />
     <ClInclude Include="Control\AddressBar.h" />
+    <ClInclude Include="Control\AddressBarPathUtil.h" />
     <ClInclude Include="Control\BitmapControl.h" />
     <ClInclude Include="Control\Chart.h" />
     <ClInclude Include="Control\CheckCombo.h" />

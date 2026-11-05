@@ -89,6 +89,35 @@ DString ExpandAddressBarUserPath(const DString& path)
 #endif
 }
 
+DString NormalizeAddressBarHistoryPath(const DString& path)
+{
+    DString result = path;
+    StringUtil::Trim(result);
+    if (result.empty()) {
+        return result;
+    }
+    result = ExpandAddressBarUserPath(result);
+#ifdef DUILIB_BUILD_FOR_WIN
+    //去掉末尾多余的路径分隔符，保留盘符根（如"C:\"）
+    while ((result.size() >= 2) && IsDirSeparator(result.back())) {
+        if ((result.size() == 3) && (result[1] == _T(':'))) {
+            break;
+        }
+        result.pop_back();
+    }
+    //仅输入盘符时统一补上根分隔符（如"C:"归一化为"C:\"）
+    if ((result.size() == 2) && (result[1] == _T(':'))) {
+        result += _T('\\');
+    }
+#else
+    //Unix：保留根"/"，其余去掉末尾多余的'/'
+    while ((result.size() > 1) && (result.back() == _T('/'))) {
+        result.pop_back();
+    }
+#endif
+    return result;
+}
+
 void BuildAddressBarPathSegments(const DString& addressPath,
                                  const DString& emptyDisplayText,
                                  std::vector<AddressBarPathSegment>& segments)
