@@ -175,6 +175,13 @@ void AppendSettingInt(std::string& settingsText, const std::string& key, int32_t
     settingsText += std::to_string(nValue);
     settingsText += '\n';
 }
+
+/** 菜单中“当前选中项”的勾选图标描述（颜色替换为主题强调色）
+*/
+DString GetMenuCheckImage()
+{
+    return _T("file='ui-item-symbolic.svg' width='16' height='16' svg_replace_colors='#0078D4|color_accent'");
+}
 }//namespace
 
 MainForm::MainForm():
@@ -1587,7 +1594,7 @@ void MainForm::SwitchListType(const ui::UiPoint& point, ui::Control* pRelatedCon
     DString selectBtnName = btnNameMap[GetDataViewType()];
     ui::Button* pSelectBtn = dynamic_cast<ui::Button*>(menu->FindControl(selectBtnName));
     if (pSelectBtn != nullptr) {
-        pSelectBtn->SetBkImage(_T("ui-item-symbolic.svg"));
+        pSelectBtn->SetBkImage(GetMenuCheckImage());
     }
 
     //挂载选择菜单项事件
@@ -1652,10 +1659,10 @@ void MainForm::SwitchSortMode(const ui::UiPoint& point, ui::Control* pRelatedCon
             pSortBtn = dynamic_cast<ui::Button*>(menu->FindControl(_T("btn_sort_descending")));
         }
         if (pSortBtn != nullptr) {
-            pSortBtn->SetBkImage(_T("ui-item-symbolic.svg"));
+            pSortBtn->SetBkImage(GetMenuCheckImage());
         }
         if (pSortColumnBtn != nullptr) {
-            pSortColumnBtn->SetBkImage(_T("ui-item-symbolic.svg"));
+            pSortColumnBtn->SetBkImage(GetMenuCheckImage());
         }
     }
     else {

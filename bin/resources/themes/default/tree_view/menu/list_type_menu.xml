@@ -5,21 +5,21 @@
         <MenuItem class="menu_element" name="menu_item_icon_big" width="230">
             <HBox width="44" mouse_enabled="false" keyboard_enabled="false">
                 <Button name="btn_menu_item_icon_big" width="16" height="16" valign="center" margin="0,0,8,0" mouse_enabled="false" keyboard_enabled="false"/>
-                <Button bkimage="data_icons_display-symbolic.svg" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+                <Button bkimage="file='data_icons_display-symbolic.svg' width='16' height='16' svg_replace_colors='#5d656b|border_svg_image'" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
             </HBox>
             <Label class="menu_text" text_id="STRID_TREEVIEW_ICON_VIEW_BIG" margin="50,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
         <MenuItem class="menu_element" name="menu_item_icon_medium" width="220">
             <HBox width="44" mouse_enabled="false" keyboard_enabled="false">
                 <Button name="btn_menu_item_icon_medium" width="16" height="16" valign="center" margin="0,0,8,0" mouse_enabled="false" keyboard_enabled="false"/>
-                <Button bkimage="data_icons_display-symbolic.svg" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+                <Button bkimage="file='data_icons_display-symbolic.svg' width='16' height='16' svg_replace_colors='#5d656b|border_svg_image'" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
             </HBox>
             <Label class="menu_text" text_id="STRID_TREEVIEW_ICON_VIEW_MEDIUM" margin="50,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
         <MenuItem class="menu_element" name="menu_item_icon_small" width="220">
             <HBox width="44" mouse_enabled="false" keyboard_enabled="false">
                 <Button name="btn_menu_item_icon_small" width="16" height="16" valign="center" margin="0,0,8,0" mouse_enabled="false" keyboard_enabled="false"/>
-                <Button bkimage="data_icons_display-symbolic.svg" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+                <Button bkimage="file='data_icons_display-symbolic.svg' width='16' height='16' svg_replace_colors='#5d656b|border_svg_image'" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
             </HBox>
             <Label class="menu_text" text_id="STRID_TREEVIEW_ICON_VIEW_SMALL" margin="50,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
@@ -31,21 +31,21 @@
         <MenuItem class="menu_element" name="menu_item_list_big" width="220">
             <HBox width="44" mouse_enabled="false" keyboard_enabled="false">
                 <Button name="btn_menu_item_list_big" width="16" height="16" valign="center" margin="0,0,8,0" mouse_enabled="false" keyboard_enabled="false"/>
-                <Button bkimage="view-list-symbolic.svg" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+                <Button bkimage="file='view-list-symbolic.svg' width='16' height='16' svg_replace_colors='#5d656b|border_svg_image'" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
             </HBox>
             <Label class="menu_text" text_id="STRID_TREEVIEW_LIST_VIEW_BIG" margin="50,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
         <MenuItem class="menu_element" name="menu_item_list_medium" width="220">
             <HBox width="44" mouse_enabled="false" keyboard_enabled="false">
                 <Button name="btn_menu_item_list_medium" width="16" height="16" valign="center" margin="0,0,8,0" mouse_enabled="false" keyboard_enabled="false"/>
-                <Button bkimage="view-list-symbolic.svg" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+                <Button bkimage="file='view-list-symbolic.svg' width='16' height='16' svg_replace_colors='#5d656b|border_svg_image'" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
             </HBox>
             <Label class="menu_text" text_id="STRID_TREEVIEW_LIST_VIEW_MEDIUM" margin="50,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
         <MenuItem class="menu_element" name="menu_item_list_small" width="220">
             <HBox width="44" mouse_enabled="false" keyboard_enabled="false">
                 <Button name="btn_menu_item_list_small" width="16" height="16" valign="center" margin="0,0,8,0" mouse_enabled="false" keyboard_enabled="false"/>
-                <Button bkimage="view-list-symbolic.svg" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+                <Button bkimage="file='view-list-symbolic.svg' width='16' height='16' svg_replace_colors='#5d656b|border_svg_image'" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
             </HBox>
             <Label class="menu_text" text_id="STRID_TREEVIEW_LIST_VIEW_SMALL" margin="50,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
@@ -58,14 +58,14 @@
         <MenuItem class="menu_element" name="menu_item_report" width="220">
             <HBox width="44" mouse_enabled="false" keyboard_enabled="false">
                 <Button name="btn_menu_item_report" width="16" height="16" valign="center" margin="0,0,8,0" mouse_enabled="false" keyboard_enabled="false"/>
-                <Button bkimage="view-list-compact-symbolic.svg" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+                <Button bkimage="file='view-list-compact-symbolic.svg' width='16' height='16' svg_replace_colors='#5d656b|border_svg_image'" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
             </HBox>
             <Label class="menu_text" text_id="STRID_TREEVIEW_DETAIL_VIEW" margin="50,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
         <MenuItem class="menu_element" name="menu_item_picture" width="220">
             <HBox width="44" mouse_enabled="false" keyboard_enabled="false">
                 <Button name="btn_menu_item_picture" width="16" height="16" valign="center" margin="0,0,8,0" mouse_enabled="false" keyboard_enabled="false"/>
-                <Button bkimage="view-list-images-symbolic.svg" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+                <Button bkimage="file='view-list-images-symbolic.svg' width='16' height='16' svg_replace_colors='#5d656b|border_svg_image'" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
             </HBox>
             <Label class="menu_text" text_id="STRID_TREEVIEW_IMAGE_LIST_VIEW" margin="50,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>

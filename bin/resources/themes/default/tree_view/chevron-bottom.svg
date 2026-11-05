@@ -1,3 +1,4 @@
-<svg id="i-chevron-bottom" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="#1E1E1E" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-    <path d="M30 12 L16 24 2 12" />
+<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"
+     fill="none" stroke="#1E1E1E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M3.5 5.5L8 10L12.5 5.5"/>
 </svg>
