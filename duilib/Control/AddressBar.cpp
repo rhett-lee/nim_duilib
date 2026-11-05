@@ -1,4 +1,5 @@
 #include "AddressBar.h"
+#include "AddressBarPathUtil.h"
 #include "duilib/Control/RichEdit.h"
 #include "duilib/Control/Button.h"
 #include "duilib/Control/Label.h"
@@ -23,6 +24,17 @@
 
 namespace ui
 {
+
+namespace
+{
+/** 路径历史保存的防抖延迟（毫秒）：合并短时间内多次导航的写盘操作
+*/
+const uint32_t kPathHistorySaveDelayMs = 1000;
+
+/** 自动补全枚举目录时的最大扫描项数（避免超大目录首次扫描长时间阻塞输入）
+*/
+const size_t kMaxAutoCompleteScanCount = 2000;
+}//namespace
 
 /** AddressBar 内部使用的单行编辑框：联想浮层打开时拦截上下方向键、回车、Esc
 */
@@ -84,6 +96,8 @@ AddressBar::AddressBar(Window* pWindow):
     m_nLayoutHeight(-1),
     m_nPathVersion(0),
     m_nLayoutPathVersion(0),
+    m_nHistorySaveTimerId(0),
+    m_bHistoryDirty(false),
     m_editClass(_T("address_bar_edit")),
     m_resetBtnClass(_T("address_bar_reset_button")),
     m_subPathHBoxClass(_T("address_bar_sub_path_hbox")),
@@ -98,6 +112,16 @@ AddressBar::AddressBar(Window* pWindow):
 
 AddressBar::~AddressBar()
 {
+    //停止历史记录的防抖定时器，并写入尚未保存的变更
+    m_historySaveTimerFlag.Cancel();
+    if (m_nHistorySaveTimerId != 0) {
+        GlobalManager::Instance().Timer().RemoveTimer(m_nHistorySaveTimerId);
+        m_nHistorySaveTimerId = 0;
+    }
+    if (m_bHistoryDirty) {
+        m_bHistoryDirty = false;
+        SavePathHistory();
+    }
     CloseAutoCompletePopup();
 }
 
@@ -402,7 +426,7 @@ void AddressBar::AddPathHistory(const DString& path)
     while ((int32_t)m_pathHistory.size() > m_nMaxHistory) {
         m_pathHistory.pop_back();
     }
-    SavePathHistory();
+    ScheduleSavePathHistory();
     UpdateHistoryButtonVisible();
 }
 
@@ -511,6 +535,30 @@ void AddressBar::SavePathHistory()
     FileUtil::WriteFileData(historyFilePath, utf8Data);
 }
 
+void AddressBar::ScheduleSavePathHistory()
+{
+    m_bHistoryDirty = true;
+    //防抖：重新计时，避免用户在短时间内多次导航时反复写盘
+    if (m_nHistorySaveTimerId != 0) {
+        GlobalManager::Instance().Timer().RemoveTimer(m_nHistorySaveTimerId);
+        m_nHistorySaveTimerId = 0;
+    }
+    m_nHistorySaveTimerId = GlobalManager::Instance().Timer().AddTimer(
+        m_historySaveTimerFlag.GetWeakFlag(),
+        [this]() {
+            m_nHistorySaveTimerId = 0;
+            if (m_bHistoryDirty) {
+                m_bHistoryDirty = false;
+                SavePathHistory();
+            }
+        }, kPathHistorySaveDelayMs, 1);
+    if (m_nHistorySaveTimerId == 0) {
+        //定时器创建失败：直接保存，避免历史记录丢失
+        m_bHistoryDirty = false;
+        SavePathHistory();
+    }
+}
+
 DString AddressBar::GetHistoryFilePath() const
 {
     if (m_historyFile.empty()) {
@@ -612,6 +660,20 @@ void AddressBar::OnLanguageChanged(bool bRedraw)
     if (m_showAddressPath.empty()) {
         UpdateAddressBarControls(m_showAddressPath.c_str(), true);
     }
+}
+
+void AddressBar::OnThemeChanged(bool bRedraw)
+{
+    BaseClass::OnThemeChanged(bRedraw);
+    //主题切换会更换字体与间距，文本测量结果随之变化，之前的布局缓存不再有效
+    InvalidateLayoutCache();
+}
+
+void AddressBar::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    //DPI缩放变化后，即使可用宽度(DIP)未变，文本测量结果也会变化
+    InvalidateLayoutCache();
 }
 
 void AddressBar::SetPos(UiRect rc)
@@ -840,6 +902,15 @@ void AddressBar::ShowAddressEdit(bool bShow)
     UpdateHistoryButtonVisible();
 }
 
+void AddressBar::EnterAddressEdit()
+{
+    ShowAddressEdit(true);
+    if (m_pRichEdit != nullptr) {
+        m_pRichEdit->SetSel(0, -1);
+        m_pRichEdit->SetFocus();
+    }
+}
+
 bool AddressBar::IsEditing() const
 {
     return (m_pRichEdit != nullptr) && m_pRichEdit->IsVisible();
@@ -1015,11 +1086,7 @@ bool AddressBar::HandleNavigationKeyDown(const EventArgs& msg)
     }
     //F6 / Ctrl+L：进入编辑状态并全选当前路径（与资源管理器的行为一致）
     if ((msg.vkCode == kVK_F6) || ((msg.vkCode == kVK_L) && bCtrl && !bAlt)) {
-        ShowAddressEdit(true);
-        if (m_pRichEdit != nullptr) {
-            m_pRichEdit->SetSel(0, -1);
-            m_pRichEdit->SetFocus();
-        }
+        EnterAddressEdit();
         return true;
     }
     return false;
@@ -1066,276 +1133,26 @@ void AddressBar::UpdateSubPathControls(size_t nIndex, const PathSegment& segment
     }
 }
 
-namespace
-{
-/** 是否为目录分隔符（Windows下同时接受'/'与'\\'）
-*/
-bool IsDirSeparator(DString::value_type ch)
-{
-#ifdef DUILIB_BUILD_FOR_WIN
-    return (ch == _T('\\')) || (ch == _T('/'));
-#else
-    return ch == _T('/');
-#endif
-}
-
-/** 判断字符串是否以指定前缀开头（不区分大小写）
-*/
-bool StartsWithNoCase(const DString& text, const DString& prefix)
-{
-    if (text.size() < prefix.size()) {
-        return false;
-    }
-    const DString head(text.c_str(), prefix.size());
-    return StringUtil::MakeUpperString(head) == StringUtil::MakeUpperString(prefix);
-}
-
-/** 按目录分隔符拆分路径组件（跳过空组件）
-*/
-std::vector<DString> SplitPathComponents(const DString& path, size_t nStartIndex)
-{
-    std::vector<DString> parts;
-    size_t i = nStartIndex;
-    while (i < path.size()) {
-        while ((i < path.size()) && IsDirSeparator(path[i])) {
-            ++i;
-        }
-        if (i >= path.size()) {
-            break;
-        }
-        size_t j = i;
-        while ((j < path.size()) && !IsDirSeparator(path[j])) {
-            ++j;
-        }
-        parts.push_back(path.substr(i, j - i));
-        i = j;
-    }
-    return parts;
-}
-}
-
 DString AddressBar::ExpandUserPath(const DString& path) const
 {
-    if (path.empty() || (path[0] != _T('~'))) {
-        return path;
-    }
-    //仅处理"~"或者"~/..."、"~\\..."形式，避免把"~abc"这类普通文件名当作主目录
-    if ((path.size() > 1) && !IsDirSeparator(path[1])) {
-        return path;
-    }
-#ifdef DUILIB_BUILD_FOR_WIN
-    DStringW home;
-    const DWORD nLength = ::GetEnvironmentVariableW(L"USERPROFILE", nullptr, 0);
-    if (nLength > 0) {
-        home.resize(nLength + 1);
-        const DWORD nCopied = ::GetEnvironmentVariableW(L"USERPROFILE", &home[0], nLength + 1);
-        if (nCopied > 0) {
-            home.resize(nCopied);
-            return StringConvert::WStringToT(home) + path.substr(1);
-        }
-    }
-    return path;
-#else
-    const char* home = std::getenv("HOME");
-    if (home != nullptr) {
-        return DString(home) + path.substr(1);
-    }
-    return path;
-#endif
+    return ExpandAddressBarUserPath(path);
 }
 
 void AddressBar::BuildPathSegments(const DString& addressPath, std::vector<PathSegment>& segments) const
 {
+    std::vector<AddressBarPathSegment> utilSegments;
+    BuildAddressBarPathSegments(addressPath, GetEmptyDisplayText(), utilSegments);
     segments.clear();
-    if (addressPath.empty()) {
-        DString displayText = GetEmptyDisplayText();
-        if (!displayText.empty()) {
-            PathSegment segment;
-            segment.m_displayName = displayText;
-            segment.m_bRoot = false;
-            segment.m_bDrive = false;
-            segment.m_bComputer = true;
-            segments.push_back(segment);
-        }
-        return;
-    }
-
-    //展开以"~"开头的用户主目录路径
-    DString pathText = ExpandUserPath(addressPath);
-    FilePath filePath(pathText);
-    filePath.NormalizeFilePath();
-    filePath.TrimRightPathSeparator();
-    pathText = filePath.ToString();
-
-#ifdef DUILIB_BUILD_FOR_WIN
-    //盘符路径（C:、C:\\...）与UNC路径（\\\\server\\...）均视为绝对路径
-    const bool bAbsolutePath = ((pathText.size() >= 2) && (pathText[1] == _T(':'))) ||
-                               ((pathText.size() >= 2) && IsDirSeparator(pathText[0]) && IsDirSeparator(pathText[1]));
-#else
-    const bool bAbsolutePath = !pathText.empty() && (pathText[0] == _T('/'));
-#endif
-    if (!bAbsolutePath) {
-        //相对路径：仅按分隔符拆分为普通路径段，不生成根段
-        DString fullPath;
-        for (const DString& part : SplitPathComponents(pathText, 0)) {
-            if (fullPath.empty()) {
-                fullPath = part;
-            }
-            else {
-                fullPath += FilePath::GetPathSeparator();
-                fullPath += part;
-            }
-            PathSegment segment;
-            segment.m_fullPath = fullPath;
-            segment.m_displayName = part;
-            segment.m_bRoot = false;
-            segment.m_bDrive = false;
-            segment.m_bComputer = false;
-            segments.push_back(segment);
-        }
-        if (segments.empty()) {
-            PathSegment segment;
-            segment.m_fullPath = pathText;
-            segment.m_displayName = pathText;
-            segment.m_bRoot = false;
-            segment.m_bDrive = false;
-            segment.m_bComputer = false;
-            segments.push_back(segment);
-        }
-        return;
-    }
-
-#ifdef DUILIB_BUILD_FOR_WIN
-    //解析根路径：支持盘符、UNC(\\\\server\\share)、扩展长度路径(\\\\?\\、\\\\?\\UNC\\)
-    DString rootPath;
-    DString rootDisplay;
-    size_t nRootEnd = 0;
-    bool bDriveRoot = false;
-
-    if (StartsWithNoCase(pathText, _T("\\\\?\\UNC\\"))) {
-        //\\\\?\\UNC\\server\\share\\...
-        const size_t nPrefixLen = 8;
-        size_t nServerEnd = pathText.find_first_of(_T("\\/"), nPrefixLen);
-        if (nServerEnd == DString::npos) {
-            nRootEnd = pathText.size();
-            rootPath = pathText;
-            rootDisplay = pathText.substr(nPrefixLen);
-        }
-        else {
-            size_t nShareEnd = pathText.find_first_of(_T("\\/"), nServerEnd + 1);
-            if (nShareEnd == DString::npos) {
-                nShareEnd = pathText.size();
-            }
-            nRootEnd = nShareEnd;
-            rootPath = pathText.substr(0, nShareEnd);
-            //显示为普通的UNC根：\\\\server\\share
-            rootDisplay = DString(_T("\\\\")) + pathText.substr(nPrefixLen, nShareEnd - nPrefixLen);
-        }
-    }
-    else if (StartsWithNoCase(pathText, _T("\\\\?\\"))) {
-        //\\\\?\\C:\\... 或 \\\\?\\Volume{GUID}\\...
-        const size_t nPrefixLen = 4;
-        size_t nNameEnd = pathText.find_first_of(_T("\\/"), nPrefixLen);
-        if (nNameEnd == DString::npos) {
-            nNameEnd = pathText.size();
-        }
-        nRootEnd = nNameEnd;
-        rootPath = pathText.substr(0, nNameEnd);
-        rootDisplay = pathText.substr(nPrefixLen, nNameEnd - nPrefixLen);
-        if ((rootDisplay.size() == 2) && (rootDisplay[1] == _T(':'))) {
-            bDriveRoot = true;
-        }
-    }
-    else if (IsDirSeparator(pathText[0])) {
-        //UNC: \\\\server\\share\\...
-        size_t nServerEnd = pathText.find_first_of(_T("\\/"), 2);
-        if (nServerEnd == DString::npos) {
-            nRootEnd = pathText.size();
-            rootPath = pathText;
-            rootDisplay = pathText;
-        }
-        else {
-            size_t nShareEnd = pathText.find_first_of(_T("\\/"), nServerEnd + 1);
-            if (nShareEnd == DString::npos) {
-                nShareEnd = pathText.size();
-            }
-            nRootEnd = nShareEnd;
-            rootPath = pathText.substr(0, nShareEnd);
-            rootDisplay = rootPath;
-        }
-    }
-    else {
-        //盘符根：C:\\...
-        nRootEnd = 2;
-        rootPath = pathText.substr(0, 2);
-        rootDisplay = rootPath;
-        bDriveRoot = true;
-    }
-
-    //根段
-    PathSegment rootSegment;
-    rootSegment.m_fullPath = rootPath;
-    if (!rootPath.empty() && !IsDirSeparator(rootPath.back())) {
-        rootSegment.m_fullPath += FilePath::GetPathSeparator();
-    }
-    if (bDriveRoot) {
-        //查询卷名（\\\\?\\ 前缀的盘符使用普通路径查询）
-        DString diskPath = rootPath;
-        if (StartsWithNoCase(diskPath, _T("\\\\?\\"))) {
-            diskPath = diskPath.substr(4);
-        }
-        if ((diskPath.size() == 2) && (diskPath[1] == _T(':'))) {
-            diskPath += FilePath::GetPathSeparator();
-        }
-        DiskUtils::DiskInfo diskInfo;
-        DiskUtils::GetLogicalDriveInfo(diskPath, diskInfo);
-        if (!diskInfo.m_volumeName.empty()) {
-            //卷名通常已包含盘符（如“本地磁盘 (C:)”），优先显示卷名
-            rootDisplay = diskInfo.m_volumeName;
-        }
-    }
-    rootSegment.m_displayName = rootDisplay;
-    rootSegment.m_bRoot = true;
-    rootSegment.m_bDrive = bDriveRoot;
-    rootSegment.m_bComputer = false;
-    segments.push_back(rootSegment);
-
-    //根路径下的各级子路径
-    DString currentPath = rootSegment.m_fullPath;
-    for (const DString& part : SplitPathComponents(pathText, nRootEnd)) {
-        currentPath += part;
+    segments.reserve(utilSegments.size());
+    for (const AddressBarPathSegment& utilSegment : utilSegments) {
         PathSegment segment;
-        segment.m_fullPath = currentPath;
-        segment.m_displayName = part;
-        segment.m_bRoot = false;
-        segment.m_bDrive = false;
-        segment.m_bComputer = false;
+        segment.m_displayName = utilSegment.m_displayName;
+        segment.m_fullPath = utilSegment.m_fullPath;
+        segment.m_bRoot = utilSegment.m_bRoot;
+        segment.m_bDrive = utilSegment.m_bDrive;
+        segment.m_bComputer = utilSegment.m_bComputer;
         segments.push_back(segment);
-        currentPath += FilePath::GetPathSeparator();
     }
-#else
-    //Unix：根为"/"
-    PathSegment rootSegment;
-    rootSegment.m_fullPath = _T("/");
-    rootSegment.m_displayName = _T("/");
-    rootSegment.m_bRoot = true;
-    rootSegment.m_bDrive = false;
-    rootSegment.m_bComputer = false;
-    segments.push_back(rootSegment);
-
-    DString currentPath = _T("/");
-    for (const DString& part : SplitPathComponents(pathText, 0)) {
-        currentPath += part;
-        PathSegment segment;
-        segment.m_fullPath = currentPath;
-        segment.m_displayName = part;
-        segment.m_bRoot = false;
-        segment.m_bDrive = false;
-        segment.m_bComputer = false;
-        segments.push_back(segment);
-        currentPath += FilePath::GetPathSeparator();
-    }
-#endif
 }
 
 bool AddressBar::UpdateAddressBarControls(const DString& addressPath, bool bForce)
@@ -1348,6 +1165,12 @@ bool AddressBar::UpdateAddressBarControls(const DString& addressPath, bool bForc
     m_showAddressPath = addressPath;
     m_addressPath = addressPath;
     m_clickedAddressPath.clear();
+    if (bChanged) {
+        //路径变化后目录内容可能已改变，自动补全缓存失效
+        m_autoCompleteCache.m_dirPath.clear();
+        m_autoCompleteCache.m_dirNames.clear();
+        m_autoCompleteCache.m_fileNames.clear();
+    }
 
     std::vector<PathSegment> segments;
     BuildPathSegments(addressPath, segments);
@@ -1580,6 +1403,13 @@ void AddressBar::UpdateAddressBarControlsStatus()
     m_nLayoutPathVersion = m_nPathVersion;
 }
 
+void AddressBar::InvalidateLayoutCache()
+{
+    m_nLayoutWidth = -1;
+    m_nLayoutHeight = -1;
+    UpdateAddressBarControlsStatus();
+}
+
 void AddressBar::OnClickedSubPath(const DString& filePath)
 {
     m_clickedAddressPath = filePath;
@@ -1721,7 +1551,8 @@ void AddressBar::SetAddressPath(const DString& addressPath)
         m_pRichEdit->SetTextNoEvent(expandedPath);
     }
     if (m_pBarBox != nullptr) {
-        bool bChanged = UpdateAddressBarControls(expandedPath, true);
+        //路径未变化时不重建面包屑（重复设置同一路径是常见场景，例如刷新视图）
+        bool bChanged = UpdateAddressBarControls(expandedPath, false);
         if (bChanged) {
             AddPathHistory(expandedPath);
         }
@@ -2112,19 +1943,55 @@ void AddressBar::BuildAutoCompleteCandidates(const DString& input)
     }
     const DString dirPart = input.substr(0, nSep + 1);
     const DString namePart = input.substr(nSep + 1);
-    std::error_code ec;
-    const std::filesystem::path dirPath(dirPart.c_str());
-    if (!std::filesystem::is_directory(dirPath, ec)) {
-        return;
+    if (m_autoCompleteCache.m_dirPath != dirPart) {
+        //目录内容变化后重新枚举；同一目录内连续输入直接复用缓存，避免每次按键都扫描目录
+        m_autoCompleteCache.m_dirPath = dirPart;
+        m_autoCompleteCache.m_dirNames.clear();
+        m_autoCompleteCache.m_fileNames.clear();
+        if (!ScanDirectoryNames(dirPart, m_autoCompleteCache.m_dirNames, m_autoCompleteCache.m_fileNames)) {
+            //目录不存在或无法读取：不缓存结果，下次输入时重新尝试
+            m_autoCompleteCache.m_dirPath.clear();
+        }
     }
-    std::vector<DString> dirNames;
-    std::vector<DString> fileNames;
+    int32_t nFileSystemCount = 0;
+    for (const DString& name : m_autoCompleteCache.m_dirNames) {
+        if (nFileSystemCount >= 10) {
+            break;
+        }
+        if (MatchPrefix(name, namePart)) {
+            AddCandidate(dirPart + name);
+            ++nFileSystemCount;
+        }
+    }
+    for (const DString& name : m_autoCompleteCache.m_fileNames) {
+        if (nFileSystemCount >= 10) {
+            break;
+        }
+        if (MatchPrefix(name, namePart)) {
+            AddCandidate(dirPart + name);
+            ++nFileSystemCount;
+        }
+    }
+}
+
+bool AddressBar::ScanDirectoryNames(const DString& dirPath, std::vector<DString>& dirNames, std::vector<DString>& fileNames)
+{
+    std::error_code ec;
+    const std::filesystem::path path(dirPath.c_str());
+    if (!std::filesystem::is_directory(path, ec)) {
+        return false;
+    }
     const auto options = std::filesystem::directory_options::skip_permission_denied;
-    std::filesystem::directory_iterator it(dirPath, options, ec);
     const std::filesystem::directory_iterator end;
-    for (; !ec && (it != end); it.increment(ec)) {
+    size_t nScanned = 0;
+    for (std::filesystem::directory_iterator it(path, options, ec); !ec && (it != end); it.increment(ec)) {
+        if (nScanned >= kMaxAutoCompleteScanCount) {
+            //限制单次扫描数量，避免超大目录首次扫描长时间阻塞输入
+            break;
+        }
+        ++nScanned;
         DString name = it->path().filename().native();
-        if (name.empty() || !MatchPrefix(name, namePart)) {
+        if (name.empty()) {
             continue;
         }
         std::error_code typeEc;
@@ -2134,28 +2001,10 @@ void AddressBar::BuildAutoCompleteCandidates(const DString& input)
         else {
             fileNames.push_back(name);
         }
-        if ((dirNames.size() + fileNames.size()) >= 200) {
-            //目录项过多时限制扫描数量，避免影响输入流畅度
-            break;
-        }
     }
     std::sort(dirNames.begin(), dirNames.end());
     std::sort(fileNames.begin(), fileNames.end());
-    int32_t nFileSystemCount = 0;
-    for (const DString& name : dirNames) {
-        if (nFileSystemCount >= 10) {
-            break;
-        }
-        AddCandidate(dirPart + name);
-        ++nFileSystemCount;
-    }
-    for (const DString& name : fileNames) {
-        if (nFileSystemCount >= 10) {
-            break;
-        }
-        AddCandidate(dirPart + name);
-        ++nFileSystemCount;
-    }
+    return true;
 }
 
 bool AddressBar::OnDropData(const EventArgs& msg)

@@ -204,6 +204,15 @@ endif()
 # ---------------------------------------------------------------------------
 add_subdirectory(duilib)
 
+# ---------------------------------------------------------------------------
+# 单元测试：只校验与界面无关的纯逻辑，可在命令行直接运行（ctest）
+# ---------------------------------------------------------------------------
+option(DUILIB_BUILD_TESTS "Build duilib unit tests" ON)
+if(DUILIB_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
+
 if(DUILIB_BUILD_EXAMPLES)
     foreach(_duilib_example IN LISTS DUILIB_EXAMPLES)
         # CEF 示例依赖 duilib 中的 CefManager/CefControl 实现：关闭 DUILIB_ENABLE_CEF

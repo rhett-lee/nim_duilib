@@ -3,6 +3,7 @@
 
 #include "duilib/Box/HBox.h"
 #include "duilib/Control/Button.h"
+#include "duilib/Core/Callback.h"
 #include <functional>
 #include <vector>
 
@@ -46,6 +47,11 @@ public:
     * @param [in] bShow true表示显示编辑框，false表示隐藏编辑框
     */
     void ShowAddressEdit(bool bShow);
+
+    /** 进入路径编辑状态：显示编辑框、全选当前路径并设置焦点
+    *   等价于控件内置的 F6/Ctrl+L 快捷键行为，供外部命令（菜单、工具栏、窗口级快捷键）复用
+    */
+    void EnterAddressEdit();
 
     /** 最近一次用户在地址栏子路径按钮上点击的子路径
     */
@@ -303,6 +309,14 @@ protected:
     */
     virtual void OnLanguageChanged(bool bRedraw) override;
 
+    /** 主题切换：字体与间距可能变化，需使布局缓存失效并重新测量
+    */
+    virtual void OnThemeChanged(bool bRedraw) override;
+
+    /** DPI缩放变化：文本测量结果随缩放变化，需使布局缓存失效并重新测量
+    */
+    virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
+
 private:
     /** 路径分段信息
     */
@@ -385,6 +399,10 @@ private:
     */
     void UpdateAddressBarControlsStatus();
 
+    /** 使布局结果缓存失效（字体、主题、DPI变化后调用），并立即重新测量
+    */
+    void InvalidateLayoutCache();
+
     /** 提交路径（回车/失焦/拖放共用的入口）
     * @param [in] rawPath 用户输入或拖放得到的路径
     * @param [in] bHideEdit true表示提交后退出编辑状态
@@ -448,6 +466,18 @@ private:
     /** 生成自动补全候选列表
     */
     void BuildAutoCompleteCandidates(const DString& input);
+
+    /** 枚举目录下的子目录名与文件名（结果会被缓存，供自动补全使用）
+    * @param [in] dirPath 目录路径
+    * @param [out] dirNames 子目录名称（已按名称排序）
+    * @param [out] fileNames 文件名称（已按名称排序）
+    * @return 返回true表示目录存在且枚举成功
+    */
+    bool ScanDirectoryNames(const DString& dirPath, std::vector<DString>& dirNames, std::vector<DString>& fileNames);
+
+    /** 延迟保存路径历史（防抖：短时间内多次导航只写一次文件）
+    */
+    void ScheduleSavePathHistory();
 
     /** 编辑框按键预处理（浮层打开时拦截上下/回车/Esc）
     * @return true 表示按键已处理，不再传递给编辑框
@@ -646,6 +676,31 @@ private:
     /** 上次计算布局时对应的路径段版本号
     */
     uint64_t m_nLayoutPathVersion;
+
+    /** 自动补全使用的目录项缓存（避免每次按键都重新枚举目录）
+    */
+    struct AutoCompleteDirCache
+    {
+        DString m_dirPath;                //缓存的目录路径（空表示缓存无效）
+        std::vector<DString> m_dirNames;  //子目录名称（已按名称排序）
+        std::vector<DString> m_fileNames; //文件名称（已按名称排序）
+    };
+
+    /** 自动补全的目录项缓存（仅缓存最近一次枚举的目录）
+    */
+    AutoCompleteDirCache m_autoCompleteCache;
+
+    /** 路径历史保存的防抖定时器
+    */
+    WeakCallbackFlag m_historySaveTimerFlag;
+
+    /** 路径历史保存定时器的ID（0表示没有定时器）
+    */
+    size_t m_nHistorySaveTimerId;
+
+    /** 路径历史是否有尚未写入文件的变更
+    */
+    bool m_bHistoryDirty;
 };
 
 }//namespace ui

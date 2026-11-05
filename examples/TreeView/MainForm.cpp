@@ -1120,7 +1120,8 @@ LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, 
     if ((((modifierKey & ui::kControl) != 0) && (vkCode == ui::kVK_L)) ||
         (((modifierKey & ui::kAlt) != 0) && (vkCode == ui::kVK_D))) {
         if (m_pAddressBar != nullptr) {
-            m_pAddressBar->SetFocus();
+            //复用控件自身的编辑态入口，保证与控件内置的 F6/Ctrl+L 行为一致（含全选路径）
+            m_pAddressBar->EnterAddressEdit();
             bHandled = true;
         }
         return lResult;
@@ -1138,8 +1139,12 @@ LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, 
             return lResult;
         }
         if (vkCode == ui::kVK_UP) {
-            ShowUp();
-            bHandled = true;
+            //焦点在地址栏内时，Alt+Up 已由 AddressBar 内置逻辑处理，这里不再重复导航
+            ui::Control* pFocus = GetFocusControl();
+            if ((m_pAddressBar == nullptr) || (pFocus == nullptr) || !IsControlInSubTree(pFocus, m_pAddressBar)) {
+                ShowUp();
+                bHandled = true;
+            }
             return lResult;
         }
     }
