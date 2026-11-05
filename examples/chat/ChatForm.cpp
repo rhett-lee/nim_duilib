@@ -16,31 +16,26 @@ namespace
 
     /** 转小写（用于搜索匹配，中英文都能工作）
     */
-    std::wstring ToLower(const std::wstring& strText)
+    DString ToLower(const DString& strText)
     {
-        std::wstring strRet = strText;
-        for (wchar_t& ch : strRet) {
-            ch = static_cast<wchar_t>(::towlower(ch));
-        }
-        return strRet;
+        return ui::StringUtil::MakeLowerString(strText);
     }
 
     /** 大小写不敏感的子串匹配（strKey 为空时视为匹配）
     */
-    bool ContainsNoCase(const std::wstring& strText, const std::wstring& strLowerKey)
+    bool ContainsNoCase(const DString& strText, const DString& strLowerKey)
     {
         if (strLowerKey.empty()) {
             return true;
         }
-        return ToLower(strText).find(strLowerKey) != std::wstring::npos;
+        return ToLower(strText).find(strLowerKey) != DString::npos;
     }
 
     /** 拼出会话条目的控件名，如 session_1_name
     */
-    DString MakeSessionControlName(int32_t nIndex, const TCHAR* szSuffix)
+    DString MakeSessionControlName(int32_t nIndex, const DString::value_type* szSuffix)
     {
-        const std::wstring strName = _T("session_") + std::to_wstring(nIndex + 1) + szSuffix;
-        return DString(strName.c_str());
+        return DString(_T("session_")) + ui::StringUtil::Int32ToString(nIndex + 1) + szSuffix;
     }
 
     /** 按资源 id 取当前语言的文案
@@ -146,7 +141,7 @@ bool ChatForm::OnLanguageChanged()
         }
     }
     for (size_t i = 0; i < m_contacts.size(); ++i) {
-        const DString strIndex = std::to_wstring(i + 1).c_str();
+        const DString strIndex = ui::StringUtil::Int32ToString(static_cast<int32_t>(i + 1));
         m_contacts[i].name = GetLangText(_T("STRID_CHAT_CONTACT_") + strIndex).c_str();
         m_contacts[i].desc = GetLangText(_T("STRID_CHAT_CONTACT_") + strIndex + _T("_DESC")).c_str();
         m_contacts[i].avatarText = m_contacts[i].name.substr(0, 1);
@@ -164,7 +159,7 @@ void ChatForm::BindNavButtons()
 {
     struct NavItem
     {
-        const TCHAR* name;
+        const DString::value_type* name;
         NavTab tab;
     };
     const NavItem items[] = {
@@ -207,7 +202,7 @@ void ChatForm::BindContactItems()
 {
     //点击联系人即发起会话：已有同名会话时切过去，否则新建一个会话
     for (size_t i = 0; i < m_contacts.size(); ++i) {
-        const DString strName = _T("contact_") + std::to_wstring(i + 1);
+        const DString strName = DString(_T("contact_")) + ui::StringUtil::Int32ToString(static_cast<int32_t>(i + 1));
         ui::HBox* pItem = dynamic_cast<ui::HBox*>(FindControl(strName.c_str()));
         if (pItem == nullptr) {
             continue;
@@ -281,8 +276,8 @@ void ChatForm::BindChatButtons()
     //其余工具按钮：给出明确的提示，避免点击后毫无反应
     struct ToolButton
     {
-        const TCHAR* name;
-        const TCHAR* tipId;
+        const DString::value_type* name;
+        const DString::value_type* tipId;
     };
     const ToolButton toolButtons[] = {
         {_T("btn_add_session"), _T("STRID_CHAT_TIP_NEW_SESSION")},
@@ -440,9 +435,9 @@ void ChatForm::BindMessageListMenu()
             const bool bEnableQuote = pThis->IsQuotableMessage(nMessageId);
             struct ItemState
             {
-                const TCHAR* itemName;
-                const TCHAR* textName;
-                const TCHAR* shortcutName;
+                const DString::value_type* itemName;
+                const DString::value_type* textName;
+                const DString::value_type* shortcutName;
                 bool bEnabled;
             };
             const ItemState items[] = {
@@ -454,8 +449,8 @@ void ChatForm::BindMessageListMenu()
                     //菜单每次都是新建的，默认即为可用状态，这里不需要再"重新启用"一遍
                     continue;
                 }
-                const TCHAR* names[] = { item.itemName, item.textName, item.shortcutName };
-                for (const TCHAR* name : names) {
+                const DString::value_type* names[] = { item.itemName, item.textName, item.shortcutName };
+                for (const DString::value_type* name : names) {
                     ui::Control* pControl = pMenu->FindControl(name);
                     if (pControl != nullptr) {
                         pControl->SetEnabled(false);
@@ -546,7 +541,7 @@ void ChatForm::InitSessionData()
     m_sessions.clear();
     m_sessions.resize(3);
     for (size_t i = 0; i < m_sessions.size(); ++i) {
-        const DString strIndex = std::to_wstring(i + 1).c_str();
+        const DString strIndex = ui::StringUtil::Int32ToString(static_cast<int32_t>(i + 1));
         ChatSession& session = m_sessions[i];
         session.nameId = _T("STRID_CHAT_SESSION_NAME_") + strIndex;
         session.timeId = _T("STRID_CHAT_SESSION_TIME_") + strIndex;
@@ -568,7 +563,7 @@ void ChatForm::InitSessionData()
     m_contacts.clear();
     m_contacts.resize(3);
     for (size_t i = 0; i < m_contacts.size(); ++i) {
-        const DString strIndex = std::to_wstring(i + 1).c_str();
+        const DString strIndex = ui::StringUtil::Int32ToString(static_cast<int32_t>(i + 1));
         m_contacts[i].name = GetLangText(_T("STRID_CHAT_CONTACT_") + strIndex).c_str();
         m_contacts[i].desc = GetLangText(_T("STRID_CHAT_CONTACT_") + strIndex + _T("_DESC")).c_str();
         m_contacts[i].avatarText = m_contacts[i].name.substr(0, 1);
@@ -620,7 +615,7 @@ void ChatForm::RefreshSessionList()
 void ChatForm::RefreshContactList()
 {
     for (size_t i = 0; i < m_contacts.size(); ++i) {
-        const DString strName = _T("contact_") + std::to_wstring(i + 1);
+        const DString strName = DString(_T("contact_")) + ui::StringUtil::Int32ToString(static_cast<int32_t>(i + 1));
         ui::HBox* pItem = dynamic_cast<ui::HBox*>(FindControl(strName.c_str()));
         if (pItem == nullptr) {
             continue;
@@ -673,7 +668,7 @@ void ChatForm::UpdatePanelVisibility()
     //导航按钮的选中状态
     struct NavItem
     {
-        const TCHAR* name;
+        const DString::value_type* name;
         NavTab tab;
     };
     const NavItem items[] = {
@@ -690,7 +685,7 @@ void ChatForm::UpdatePanelVisibility()
     }
 
     //会话列表顶部的标题随栏目变化
-    const TCHAR* titleIds[] = {_T("STRID_CHAT_PANEL_CHATS"), _T("STRID_CHAT_PANEL_CONTACTS"),
+    const DString::value_type* titleIds[] = {_T("STRID_CHAT_PANEL_CHATS"), _T("STRID_CHAT_PANEL_CONTACTS"),
                                 _T("STRID_CHAT_PANEL_FAVORITES")};
     ui::Label* pPanelTitle = dynamic_cast<ui::Label*>(FindControl(_T("panel_title")));
     if (pPanelTitle != nullptr) {
@@ -953,7 +948,7 @@ void ChatForm::StartChatWithContact(int nContactIndex)
         ChatSession session;
         session.name = contact.name;
         session.avatarText = contact.avatarText;
-        session.nameId = _T("STRID_CHAT_CONTACT_") + std::to_wstring(nContactIndex + 1);
+        session.nameId = DString(_T("STRID_CHAT_CONTACT_")) + ui::StringUtil::Int32ToString(nContactIndex + 1);
         session.time = GetCurrentTimeText();
         session.unread = 0;
         session.seeded = false;
@@ -972,7 +967,7 @@ void ChatForm::StartChatWithContact(int nContactIndex)
     RefreshSessionList();
 }
 
-int ChatForm::FindSessionByName(const std::wstring& strName) const
+int ChatForm::FindSessionByName(const DString& strName) const
 {
     for (size_t i = 0; i < m_sessions.size(); ++i) {
         if (m_sessions[i].name == strName) {
@@ -1413,10 +1408,12 @@ DString ChatForm::GetCurrentTimeText() const
 {
     const std::time_t tNow = std::time(nullptr);
     std::tm tmNow = { 0 };
+#ifdef DUILIB_BUILD_FOR_WIN
     localtime_s(&tmNow, &tNow);
-    wchar_t szBuf[32] = { 0 };
-    swprintf_s(szBuf, 32, _T("%02d:%02d"), tmNow.tm_hour, tmNow.tm_min);
-    return DString(szBuf);
+#else
+    localtime_r(&tNow, &tmNow);
+#endif
+    return ui::StringUtil::Printf(_T("%02d:%02d"), tmNow.tm_hour, tmNow.tm_min);
 }
 
 bool ChatForm::IsCurrentSessionValid() const

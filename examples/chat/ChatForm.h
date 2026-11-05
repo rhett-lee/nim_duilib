@@ -49,10 +49,10 @@ struct ChatMessageExtra
 */
 struct ChatSession
 {
-    std::wstring name;                      //会话名称
-    std::wstring avatarText;                //头像文字
-    std::wstring preview;                   //最后一条消息预览
-    std::wstring time;                      //时间
+    DString name;                           //会话名称
+    DString avatarText;                     //头像文字
+    DString preview;                        //最后一条消息预览
+    DString time;                           //时间
     DString nameId;                         //名称的资源 id（为空表示名称不随语言变化）
     DString timeId;                         //时间的资源 id（为空表示时间固定）
     DString previewId;                      //预览的资源 id（会话尚未生成消息时用）
@@ -66,9 +66,9 @@ struct ChatSession
 */
 struct ChatContact
 {
-    std::wstring name;                      //联系人名称
-    std::wstring desc;                      //描述
-    std::wstring avatarText;                //头像文字
+    DString name;                           //联系人名称
+    DString desc;                           //描述
+    DString avatarText;                     //头像文字
 };
 
 /** 聊天主窗口（模拟 PC 版 IM 客户端）
@@ -268,7 +268,7 @@ private:
 
     /** 查找名称相同的会话（没有时返回 -1）
     */
-    int FindSessionByName(const std::wstring& strName) const;
+    int FindSessionByName(const DString& strName) const;
 
     /** 申请一个空闲的会话条目标题槽位（返回会话索引，没有可用槽位时返回 -1）
     */
@@ -365,7 +365,7 @@ private:
 
     /** 搜索关键字（已转小写；为空表示不过滤）
     */
-    std::wstring m_strSearchKey;
+    DString m_strSearchKey;
 
     /** 最近一条消息的 id（用于"引用上一条消息"）
     */

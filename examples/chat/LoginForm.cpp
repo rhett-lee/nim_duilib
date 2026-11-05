@@ -7,8 +7,8 @@ namespace
 {
     /** 登录窗口的背景图（深浅色主题各一张）
     */
-    const TCHAR* kLoginSceneLight = _T("file='glass_login_scene.svg'");
-    const TCHAR* kLoginSceneDark = _T("file='glass_login_scene_dark.svg'");
+    const DString::value_type* kLoginSceneLight = _T("file='glass_login_scene.svg'");
+    const DString::value_type* kLoginSceneDark = _T("file='glass_login_scene_dark.svg'");
 }
 
 LoginForm::LoginForm() :
