@@ -88,6 +88,7 @@ void ReplaceForm::OnReplace()
     if (m_pMainForm != nullptr) {
         m_pMainForm->ReplaceRichText(findText, replaceText, options.bFindDown, options.bMatchCase, options.bMatchWholeWord, this);
     }
+    UpdateFindResultLabel(true);
 }
 
 void ReplaceForm::OnReplaceAll()
@@ -109,4 +110,5 @@ void ReplaceForm::OnReplaceAll()
     if (m_pMainForm != nullptr) {
         m_pMainForm->ReplaceAllRichText(findText, replaceText, options.bFindDown, options.bMatchCase, options.bMatchWholeWord, this);
     }
+    UpdateFindResultLabel(true);
 }

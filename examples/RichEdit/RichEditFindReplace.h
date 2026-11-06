@@ -52,6 +52,12 @@ public:
     //上一次替换操作替换的处数
     int32_t GetLastReplaceCount() const;
 
+    /** 统计当前查找条件的匹配情况（不改变当前选区）
+    @param [out] nIndex 当前选区所在的匹配序号（从1开始；当前选区不是匹配项时为0）
+    @param [out] nTotal 全文匹配总数
+    */
+    void GetMatchInfo(int32_t& nIndex, int32_t& nTotal) const;
+
 protected:
     //没找到，回调函数
     virtual void OnTextNotFound(const DString& findText);

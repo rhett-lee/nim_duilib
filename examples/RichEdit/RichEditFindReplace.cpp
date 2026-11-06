@@ -182,6 +182,64 @@ int32_t RichEditFindReplace::GetLastReplaceCount() const
     return m_nLastReplaceCount;
 }
 
+void RichEditFindReplace::GetMatchInfo(int32_t& nIndex, int32_t& nTotal) const
+{
+    nIndex = 0;
+    nTotal = 0;
+    if ((m_pRichEdit == nullptr) || m_sFindNext.empty()) {
+        return;
+    }
+    const int32_t nTextLength = m_pRichEdit->GetTextLength();
+    if (nTextLength <= 0) {
+        return;
+    }
+    int32_t nSelStartChar = 0;
+    int32_t nSelEndChar = 0;
+    m_pRichEdit->GetSel(nSelStartChar, nSelEndChar);
+
+    //从头开始正向扫描，统计匹配总数以及当前选区之前（不含）的匹配个数
+    int32_t nBefore = 0;
+    int32_t nPos = 0;
+    while (nPos <= nTextLength) {
+        ui::FindTextParam findParam;
+        findParam.chrg.cpMin = nPos;
+        findParam.chrg.cpMax = nTextLength;
+        findParam.findText = m_sFindNext;
+        findParam.bFindDown = true;
+        findParam.bMatchCase = m_bMatchCase;
+        findParam.bMatchWholeWord = m_bMatchWholeWord;
+
+        ui::TextCharRange chrgText;
+        if (!m_pRichEdit->FindRichText(findParam, chrgText)) {
+            break;
+        }
+        if ((chrgText.cpMin < 0) || (chrgText.cpMax < chrgText.cpMin)) {
+            break;
+        }
+        ++nTotal;
+        if (chrgText.cpMin < nSelStartChar) {
+            ++nBefore;
+        }
+        //推进到本次匹配之后，避免重复统计或死循环
+        nPos = (chrgText.cpMax > chrgText.cpMin) ? chrgText.cpMax : (chrgText.cpMin + 1);
+    }
+
+    //当前选区是匹配项时，它位于第几个匹配
+    const DString selectedText = m_pRichEdit->GetSelText();
+    bool bSelectedIsMatch = false;
+    if (!selectedText.empty()) {
+        if (m_bMatchCase) {
+            bSelectedIsMatch = (selectedText == m_sFindNext);
+        }
+        else {
+            bSelectedIsMatch = ui::StringUtil::IsEqualNoCase(selectedText, m_sFindNext);
+        }
+    }
+    if (bSelectedIsMatch && ((nBefore + 1) <= nTotal)) {
+        nIndex = nBefore + 1;
+    }
+}
+
 bool RichEditFindReplace::FindTextSimple(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord)
 {
     if (m_pRichEdit == nullptr) {

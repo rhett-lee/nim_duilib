@@ -78,6 +78,12 @@ public:
     //设置上次查找/替换使用的选项
     void SetFindOptions(const RichEditFindOptions& options);
 
+    /** 获取当前查找条件的匹配情况
+    @param [out] nIndex 当前选区所在的匹配序号（从1开始；当前选区不是匹配项时为0）
+    @param [out] nTotal 全文匹配总数
+    */
+    void GetFindMatchInfo(int32_t& nIndex, int32_t& nTotal) const;
+
     //在状态栏显示一条提示信息
     void ShowStatusMessage(const DString& message);
 
@@ -150,6 +156,12 @@ private://设置字体相关
     //初始化字体大小的下拉列表（DPI变化时重建）
     void InitFontSizeCombo();
 
+    //是否勾选了"应用到全文"
+    bool IsApplyToAll();
+
+    //设置字体信息（勾选"应用到全文"时作用于整个文档，否则作用于当前选区）
+    bool SetRichEditFontInfo(const ui::UiFont& fontInfo);
+
     //设置字体名称
     void SetFontName(const DString& fontName);
 
@@ -187,6 +199,9 @@ private://缩放与视图
 
     //设置缩放百分比
     void SetZoomPercent(uint32_t nZoomPercent);
+
+    //解析缩放比例下拉框中输入的文本并应用（支持"150"与"150%"两种写法）
+    void ApplyZoomText();
 
     //初始化设置颜色的Combo按钮
     void InitColorCombo();
@@ -272,7 +287,7 @@ private:
     //上次查找/替换使用的选项
     RichEditFindOptions m_findOptions;
 
-    //行距相关的控件（富文本关闭时需要禁用）
+    //仅富文本模式下可用的控件（行距选项、应用到全文）
     std::vector<ui::Control*> m_rowSpacingControls;
 
     //查找

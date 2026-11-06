@@ -382,21 +382,44 @@ void MainForm::SetupViewTools()
 
     //富文本模式
     BindCheck(_T("btn_rich_text"), [this](bool bSelected) {
-        if (m_pRichEdit != nullptr) {
-            m_bUpdatingRichTextCheck = true;
-            m_bLoadingDocument = true;
-            m_pRichEdit->SetRichText(bSelected);
-            m_bLoadingDocument = false;
-            m_bUpdatingRichTextCheck = false;
-            UpdateSaveStatus();
-            UpdateStatusBar();
-            UpdateFontStatus();
-            UpdateEditButtonStatus();
-            UpdateRowSpacingEnabled();
+        if ((m_pRichEdit == nullptr) || m_bUpdatingRichTextCheck) {
+            return;
         }
+        if (!bSelected && m_pRichEdit->IsRichText()) {
+            //切换到纯文本模式会丢弃文档中的格式，必须先提示用户确认
+            int32_t nRet = ui::MessageBoxWnd::Show(this,
+                                _T("STRID_RICHEDIT_RICHTEXT_SWITCH_TEXT"),
+                                _T("STRID_RICHEDIT_RICHTEXT_SWITCH_TITLE"),
+                                ui::MessageBoxWnd::kButtonsYesNo,
+                                ui::MessageBoxWnd::kIconQuestion,
+                                nullptr, true);
+            if (nRet != ui::MessageBoxWnd::kResultYes) {
+                //用户取消切换：把复选框恢复为选中状态（设置标志位，避免再次触发本回调）
+                m_bUpdatingRichTextCheck = true;
+                ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_rich_text")));
+                if (pCheckBox != nullptr) {
+                    pCheckBox->SetSelected(true);
+                }
+                m_bUpdatingRichTextCheck = false;
+                return;
+            }
+        }
+        m_bUpdatingRichTextCheck = true;
+        m_bLoadingDocument = true;
+        m_pRichEdit->SetRichText(bSelected);
+        m_bLoadingDocument = false;
+        m_bUpdatingRichTextCheck = false;
+        UpdateSaveStatus();
+        UpdateStatusBar();
+        UpdateFontStatus();
+        UpdateEditButtonStatus();
+        UpdateRowSpacingEnabled();
         });
 
-    //行距相关控件：富文本关闭时禁用
+    //缩放比例复位
+    BindClick(_T("btn_zoom_reset"), [this]() { SetZoomPercent(100); });
+
+    //行距与"应用到全文"：富文本关闭时禁用
     m_rowSpacingControls.clear();
     const DString rowSpacingNames[] = {
         _T("line_spacing_label"),
@@ -405,7 +428,8 @@ void MainForm::SetupViewTools()
         _T("row_spacing_1_5"),
         _T("row_spacing_2_0"),
         _T("row_spacing_2_5"),
-        _T("row_spacing_3_0")
+        _T("row_spacing_3_0"),
+        _T("btn_apply_to_all")
     };
     for (const DString& name : rowSpacingNames) {
         ui::Control* pControl = FindControl(name);
@@ -578,6 +602,19 @@ void MainForm::InitZoomCombo()
         }
         return true;
         });
+
+    //下拉框为可编辑模式：支持直接输入自定义的缩放比例（回车或失去焦点时生效）
+    ui::RichEdit* pEdit = pCombo->GetEditControl();
+    if (pEdit != nullptr) {
+        pEdit->AttachReturn([this](const ui::EventArgs& /*args*/) {
+            ApplyZoomText();
+            return true;
+            });
+        pEdit->AttachKillFocus([this](const ui::EventArgs& /*args*/) {
+            ApplyZoomText();
+            return true;
+            });
+    }
     SyncZoomCombo();
 }
 
@@ -613,6 +650,35 @@ void MainForm::SetZoomPercent(uint32_t nZoomPercent)
         m_pRichEdit->SetZoomPercent(nZoomPercent);
     }
     UpdateZoomValue();
+}
+
+void MainForm::ApplyZoomText()
+{
+    if ((m_pRichEdit == nullptr) || m_bZoomComboSelecting) {
+        return;
+    }
+    ui::Combo* pCombo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_zoom")));
+    if (pCombo == nullptr) {
+        return;
+    }
+    DString text = pCombo->GetText();
+    ui::StringUtil::Trim(text);
+    if (!text.empty() && (text[text.size() - 1] == _T('%'))) {
+        text = text.substr(0, text.size() - 1);
+        ui::StringUtil::Trim(text);
+    }
+    int32_t nZoomPercent = 0;
+    if (!text.empty()) {
+        nZoomPercent = ui::StringUtil::StringToInt32(text.c_str());
+    }
+    if ((nZoomPercent >= 50) && (nZoomPercent <= 400)) {
+        if ((uint32_t)nZoomPercent != m_pRichEdit->GetZoomPercent()) {
+            SetZoomPercent((uint32_t)nZoomPercent);
+            return;
+        }
+    }
+    //输入无效或与当前缩放比例相同时，把编辑框的文本恢复为规范格式（如"150%"）
+    SyncZoomCombo();
 }
 
 void MainForm::InitColorCombo()
@@ -825,13 +891,37 @@ void MainForm::UpdateFontSizeStatus()
     }
 }
 
+bool MainForm::IsApplyToAll()
+{
+    ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_apply_to_all")));
+    return (pCheckBox != nullptr) && pCheckBox->IsSelected();
+}
+
+bool MainForm::SetRichEditFontInfo(const ui::UiFont& fontInfo)
+{
+    if (m_pRichEdit == nullptr) {
+        return false;
+    }
+    if (!IsApplyToAll()) {
+        return m_pRichEdit->SetFontInfo(fontInfo);
+    }
+    //应用到全文：临时全选，应用后再恢复原来的选区
+    int32_t nStartChar = 0;
+    int32_t nEndChar = 0;
+    m_pRichEdit->GetSel(nStartChar, nEndChar);
+    m_pRichEdit->SetSelAll();
+    bool bRet = m_pRichEdit->SetFontInfo(fontInfo);
+    m_pRichEdit->SetSel(nStartChar, nEndChar);
+    return bRet;
+}
+
 void MainForm::SetFontName(const DString& fontName)
 {
     m_lastFontName = fontName;
     if (m_pRichEdit != nullptr) {
         ui::UiFont fontInfo = m_pRichEdit->GetFontInfo();
         fontInfo.m_fontName = fontName;
-        m_pRichEdit->SetFontInfo(fontInfo);
+        SetRichEditFontInfo(fontInfo);
     }
 }
 
@@ -842,7 +932,7 @@ void MainForm::SetFontSize(const DString& fontSize)
             if (m_pRichEdit != nullptr) {
                 ui::UiFont fontInfo = m_pRichEdit->GetFontInfo();
                 fontInfo.m_fontSize = (int32_t)(std::roundf(fontSizeInfo.fDpiFontSize));
-                m_pRichEdit->SetFontInfo(fontInfo);
+                SetRichEditFontInfo(fontInfo);
             }
             break;
         }
@@ -907,7 +997,7 @@ void MainForm::AdjustFontSize(bool bIncreaseFontSize)
                 //增加字体
                 if (index < (fontCount - 1)) {                  
                     fontInfo.m_fontSize = Dpi().GetScaleInt(fontSizeList[index + 1]);
-                    if (m_pRichEdit->SetFontInfo(fontInfo)) {
+                    if (SetRichEditFontInfo(fontInfo)) {
                         UpdateFontSizeStatus();
                     }
                 }
@@ -916,7 +1006,7 @@ void MainForm::AdjustFontSize(bool bIncreaseFontSize)
                 //减小字体
                 if (index > 0) {
                     fontInfo.m_fontSize = Dpi().GetScaleInt(fontSizeList[index - 1]);
-                    if (m_pRichEdit->SetFontInfo(fontInfo)) {
+                    if (SetRichEditFontInfo(fontInfo)) {
                         UpdateFontSizeStatus();
                     }
                 }
@@ -931,7 +1021,7 @@ void MainForm::SetFontBold(bool bBold)
     if (m_pRichEdit != nullptr) {
         ui::UiFont fontInfo = m_pRichEdit->GetFontInfo();
         fontInfo.m_bBold = bBold;
-        m_pRichEdit->SetFontInfo(fontInfo);
+        SetRichEditFontInfo(fontInfo);
     }
 }
 
@@ -940,7 +1030,7 @@ void MainForm::SetFontItalic(bool bItalic)
     if (m_pRichEdit != nullptr) {
         ui::UiFont fontInfo = m_pRichEdit->GetFontInfo();
         fontInfo.m_bItalic = bItalic;
-        m_pRichEdit->SetFontInfo(fontInfo);
+        SetRichEditFontInfo(fontInfo);
     }
 }
 
@@ -949,7 +1039,7 @@ void MainForm::SetFontUnderline(bool bUnderline)
     if (m_pRichEdit != nullptr) {
         ui::UiFont fontInfo = m_pRichEdit->GetFontInfo();
         fontInfo.m_bUnderline = bUnderline;
-        m_pRichEdit->SetFontInfo(fontInfo);
+        SetRichEditFontInfo(fontInfo);
     }
 }
 
@@ -958,20 +1048,31 @@ void MainForm::SetFontStrikeOut(bool bStrikeOut)
     if (m_pRichEdit != nullptr) {
         ui::UiFont fontInfo = m_pRichEdit->GetFontInfo();
         fontInfo.m_bStrikeOut = bStrikeOut;
-        m_pRichEdit->SetFontInfo(fontInfo);
+        SetRichEditFontInfo(fontInfo);
     }
 }
 
 void MainForm::SetTextColor(const DString& newColor)
 {
-    if (m_pRichEdit != nullptr) {
-        if (m_pRichEdit->IsRichText()) {
-            m_pRichEdit->SetSelectionTextColor(newColor);
-        }
-        else {
-            m_pRichEdit->SetTextColor(newColor);
-        }        
+    if (m_pRichEdit == nullptr) {
+        return;
     }
+    if (!m_pRichEdit->IsRichText()) {
+        //纯文本模式下，文字颜色本身作用于整个控件
+        m_pRichEdit->SetTextColor(newColor);
+        return;
+    }
+    if (!IsApplyToAll()) {
+        m_pRichEdit->SetSelectionTextColor(newColor);
+        return;
+    }
+    //应用到全文：临时全选，应用后再恢复原来的选区
+    int32_t nStartChar = 0;
+    int32_t nEndChar = 0;
+    m_pRichEdit->GetSel(nStartChar, nEndChar);
+    m_pRichEdit->SetSelAll();
+    m_pRichEdit->SetSelectionTextColor(newColor);
+    m_pRichEdit->SetSel(nStartChar, nEndChar);
 }
 
 LRESULT MainForm::OnWindowCloseMsg(uint32_t wParam, const ui::NativeMsg& nativeMsg, bool& bHandled)
@@ -1450,6 +1551,11 @@ const RichEditFindOptions& MainForm::GetFindOptions() const
 void MainForm::SetFindOptions(const RichEditFindOptions& options)
 {
     m_findOptions = options;
+}
+
+void MainForm::GetFindMatchInfo(int32_t& nIndex, int32_t& nTotal) const
+{
+    m_findReplace.GetMatchInfo(nIndex, nTotal);
 }
 
 ui::FilePath MainForm::GetSettingsFilePath() const

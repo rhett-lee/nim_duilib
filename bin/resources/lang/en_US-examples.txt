@@ -495,6 +495,8 @@ STRID_RICHEDIT_FONT_STRIKEOUT = Strikeout: Draw a line through text
 STRID_RICHEDIT_INCREASE_FONT_SIZE = Increase font size
 STRID_RICHEDIT_DECREASE_FONT_SIZE = Decrease font size
 STRID_RICHEDIT_FONT_COLOR = Font color: Set the color of the text
+STRID_RICHEDIT_APPLY_TO_ALL = Apply to all
+STRID_RICHEDIT_APPLY_TO_ALL_TIPS = Apply the font settings to the whole document instead of the selection (rich text mode only)
 STRID_RICHEDIT_RICH_TEXT_FORMAT_TIPS = (Rich text mode sets format for selected text)
 STRID_RICHEDIT_RICH_TEXT_FORMAT_TIPS_DETAIL = Rich text mode sets format for selected text# plain text mode sets format for all text.
 
@@ -540,6 +542,8 @@ STRID_RICHEDIT_FIND_SEARCH_DOWN = Search Down
 STRID_RICHEDIT_FIND_CASE_SENSITIVE = Match Case
 STRID_RICHEDIT_FIND_MATCH_WHOLE_WORD = Match Whole Word
 STRID_RICHEDIT_FIND_CANCEL = Cancel
+STRID_RICHEDIT_FIND_RESULT_INDEX = Match %d of %d
+STRID_RICHEDIT_FIND_RESULT_TOTAL = %d matches
 
 STRID_RICHEDIT_ALL_FILES = All Files(*.*)
 STRID_RICHEDIT_TXT_FILES = Text Files(*.txt)

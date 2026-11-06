@@ -7,7 +7,8 @@ FindReplaceFormBase::FindReplaceFormBase(MainForm* pMainForm):
     m_pDirectionUp(nullptr),
     m_pCaseSensitive(nullptr),
     m_pMatchWholeWord(nullptr),
-    m_pFindText(nullptr)
+    m_pFindText(nullptr),
+    m_pFindResult(nullptr)
 {
 }
 
@@ -42,6 +43,10 @@ void FindReplaceFormBase::InitFindBase()
     m_pDirectionUp = dynamic_cast<ui::Option*>(FindControl(_T("option_direction_up")));
     m_pCaseSensitive = dynamic_cast<ui::CheckBox*>(FindControl(_T("check_box_case_sensitive")));
     m_pMatchWholeWord = dynamic_cast<ui::CheckBox*>(FindControl(_T("check_box_match_whole_word")));
+    m_pFindResult = dynamic_cast<ui::Label*>(FindControl(_T("find_result_label")));
+    if (m_pFindResult != nullptr) {
+        m_pFindResult->SetText(DString());
+    }
     ASSERT(m_pFindText != nullptr);
     ASSERT(m_pDirectionDown != nullptr);
     ASSERT(m_pDirectionUp != nullptr);
@@ -139,8 +144,39 @@ void FindReplaceFormBase::OnFindNext()
     }
     RichEditFindOptions options = GetFindOptionsFromControls();
     SaveFindOptionsFromControls(false, DString());
+    bool bFound = false;
     if (m_pMainForm != nullptr) {
-        m_pMainForm->FindRichText(options.findText, options.bFindDown, options.bMatchCase, options.bMatchWholeWord, this);
+        bFound = m_pMainForm->FindRichText(options.findText, options.bFindDown, options.bMatchCase, options.bMatchWholeWord, this);
+    }
+    UpdateFindResultLabel(bFound);
+}
+
+void FindReplaceFormBase::UpdateFindResultLabel(bool bFound)
+{
+    if (m_pFindResult == nullptr) {
+        return;
+    }
+    if (!bFound) {
+        m_pFindResult->SetText(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_FIND_NOT_FOUND")));
+        return;
+    }
+    int32_t nIndex = 0;
+    int32_t nTotal = 0;
+    if (m_pMainForm != nullptr) {
+        m_pMainForm->GetFindMatchInfo(nIndex, nTotal);
+    }
+    if (nTotal <= 0) {
+        m_pFindResult->SetText(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_FIND_NOT_FOUND")));
+    }
+    else if (nIndex > 0) {
+        //显示格式：第 2 处，共 8 处
+        m_pFindResult->SetText(ui::StringUtil::Printf(
+            ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_FIND_RESULT_INDEX")).c_str(), nIndex, nTotal));
+    }
+    else {
+        //显示格式：共 8 处
+        m_pFindResult->SetText(ui::StringUtil::Printf(
+            ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_FIND_RESULT_TOTAL")).c_str(), nTotal));
     }
 }
 

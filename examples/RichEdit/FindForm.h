@@ -36,6 +36,9 @@ protected:
     //查找下一个
     void OnFindNext();
 
+    //更新查找结果的计数显示（如"第 2 处，共 8 处"）
+    void UpdateFindResultLabel(bool bFound);
+
     //绑定取消按钮
     void BindCancelButton();
 
@@ -46,6 +49,7 @@ protected:
     ui::CheckBox* m_pCaseSensitive;
     ui::CheckBox* m_pMatchWholeWord;
     ui::RichEdit* m_pFindText;
+    ui::Label* m_pFindResult;
 };
 
 class FindForm : public FindReplaceFormBase

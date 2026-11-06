@@ -30,6 +30,7 @@
             </VBox>
             <Control />
             <HBox height="auto">
+                <Label name="find_result_label" font="system_regular_12" text_color="text_muted" valign="center" single_line="true"/>
                 <Control />
                 <Button class="btn_global" name="btn_cancel" text_id="STRID_RICHEDIT_FIND_CANCEL" width="88" height="28" padding="0,0,0,0" border_round="4,4" valign="center"/>
             </HBox>

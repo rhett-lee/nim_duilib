@@ -217,12 +217,14 @@
                             <Button class="font_size_button" name="btn_font_size_decrease" text="A-" font="system_regular_13" valign="center" margin="1,1,1,1" tooltip_text_id="STRID_RICHEDIT_DECREASE_FONT_SIZE"/>
                             <Control width="1" height="16" bkcolor="border_split_level1" valign="center" margin="6,0,6,0" mouse_enabled="false"/>
                             <ComboButton class="combo_button" name="color_combo_button" height="26" width="44" border_round="4,4" padding="0,0,0,0" dropbox_size="240,300" left_button_top_label_text="A" left_button_bottom_label_bkcolor="text_default" valign="center" tooltip_text_id="STRID_RICHEDIT_FONT_COLOR"/>
+                            <CheckBox class="checkbox_1" name="btn_apply_to_all" text_id="STRID_RICHEDIT_APPLY_TO_ALL" font="system_regular_12" valign="center" margin="10,0,0,0" selected="false" tooltip_text_id="STRID_RICHEDIT_APPLY_TO_ALL_TIPS"/>
                         </HBox>
                         <HBox height="auto" margin="0,0,0,4">
                             <Label text_id="STRID_RICHEDIT_ZOOM" width="56" text_align="right,vcenter" valign="center" font="system_bold_12" margin="0,0,10,0"/>
                             <Label text_id="STRID_RICHEDIT_CURRENT_ZOOM_RATIO" font="system_regular_12" valign="center"/>
                             <Label name="lavel_zoom_value" text_id="STRID_RICHEDIT_ZOOM_100_PERCENT" font="system_bold_12" valign="center" margin="0,0,10,0"/>
                             <Combo class="combo" name="combo_zoom" combo_icon_class="" combo_type="drop_down" dropbox_size="120,240" height="28" width="88" margin="2,0,2,0" tooltip_text_id="STRID_RICHEDIT_ZOOM_SELECT_TIPS"/>
+                            <Button class="btn_global" name="btn_zoom_reset" text_id="STRID_RICHEDIT_RESET_ZOOM" width="auto" height="26" padding="8,0,8,0" font="system_regular_12" border_round="4,4" valign="center" margin="6,0,0,0"/>
                         </HBox>
                         <HBox height="auto">
                             <Label text_id="STRID_RICHEDIT_OTHER" width="56" text_align="right,vcenter" valign="center" font="system_bold_12" margin="0,0,10,0"/>
