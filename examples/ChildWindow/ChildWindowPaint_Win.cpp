@@ -1,12 +1,46 @@
-#include "ChildWindowPaint.h"
+﻿#include "ChildWindowPaint.h"
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
 #include <math.h>
+#include <string.h>
+#include <cmath>
+#include <algorithm>
 #include <vector>
 
 namespace
 {
+
+constexpr double kTwoPi = 2.0 * 3.14159265358979323846;
+
+/** 正弦查找表的项数（取2的幂，便于用位运算取模）*/
+constexpr int32_t kSinTableSize = 2048;
+
+/** 正弦查找表：预先计算sin值，避免每帧对每个采样点调用sin函数
+ *  表中数值的范围是[0, 65535]，绘制时再除以65535换算为[-1.0, 1.0]
+ */
+struct SinTable
+{
+    uint16_t value[kSinTableSize];
+
+    SinTable()
+    {
+        for (int32_t nIndex = 0; nIndex < kSinTableSize; ++nIndex) {
+            double angle = kTwoPi * (double)nIndex / (double)kSinTableSize;
+            value[nIndex] = (uint16_t)((sin(angle) + 1.0) * 32767.5);
+        }
+    }
+};
+
+const SinTable g_sinTable;
+
+/** 使用查找表计算sin值
+ * @param [in] index 角度的查表索引（单位：1/kSinTableSize 弧度）
+ */
+inline double TableSin(int32_t index)
+{
+    return (double)g_sinTable.value[index & (kSinTableSize - 1)] / 32767.5 - 1.0;
+}
 
 /** 颜色定义（RGB）*/
 struct PaintColor
@@ -15,6 +49,12 @@ struct PaintColor
     uint8_t g;
     uint8_t b;
 };
+
+/** 将颜色转换为DIB中的像素值（32bpp的BI_RGB格式，内存字节顺序为B、G、R、A）*/
+inline uint32_t ToDibPixel(const PaintColor& color)
+{
+    return ((uint32_t)color.r << 16) | ((uint32_t)color.g << 8) | (uint32_t)color.b;
+}
 
 /** 计算两个颜色之间的插值（t: 0~1）*/
 PaintColor LerpColor(const PaintColor& from, const PaintColor& to, double t)
@@ -85,11 +125,16 @@ public:
      * @param width 绘制区域宽度
      * @param height 绘制区域高度
      * @param phase 动画相位（弧度），静态绘制时传入0
+     * @param pDestBits 目标位图的内存地址（32bpp、从上到下的DIB），
+     *                 不为空时用内存复制的方式填充背景，比BitBlt更快；
+     *                 为空时（普通窗口的绘制DC）使用BitBlt填充背景
      */
-    void PaintScene(HDC hdc, int32_t width, int32_t height, double phase);
+    void PaintScene(HDC hdc, int32_t width, int32_t height, double phase, void* pDestBits);
 
 private:
     /** 创建（或复用）背景缓存位图：渐变背景 + 网格线
+     *  说明：背景缓存使用32bpp、从上到下的DIB，可以直接用内存复制的方式填充目标位图，
+     *  比BitBlt（每次约129µs）快很多。
      */
     bool EnsureBackground(HDC hdc, int32_t width, int32_t height);
 
@@ -112,23 +157,45 @@ public:
     */
     HDC GetPaintDC(HWND hWnd);
 
-    /** 创建位图(仅在分层窗口绘制时使用)
+    /** 获取绘制位图的内存地址（32bpp、从上到下的DIB），配合PaintScene使用，实现零拷贝的背景填充
     */
-    HBITMAP CreateHBitmap(HWND hWnd, int32_t nWidth, int32_t nHeight, bool flipHeight) const;
+    void* GetPaintBits() const { return m_pBitmapBits; }
+
+    /** 获取波形覆盖的行区间（用于只需要更新这个区域，减少更新窗口的开销）
+    */
+    void GetPaintBand(int32_t& nTop, int32_t& nBottom) const { nTop = m_bandTop; nBottom = m_bandBottom; }
+
+    /** 是否需要完整更新窗口内容（首次绘制或尺寸变化后需要完整更新一次，否则行区间外的内容可能不正确）
+    */
+    bool IsFullUpdatePending() const { return m_bFullUpdatePending; }
+    void SetFullUpdateDone() { m_bFullUpdatePending = false; }
+
+    /** 创建位图(仅在分层窗口绘制时使用)
+     * @param [out] ppBits 返回位图的内存地址（可为nullptr）
+     */
+    HBITMAP CreateHBitmap(HWND hWnd, int32_t nWidth, int32_t nHeight, bool flipHeight, void** ppBits = nullptr) const;
 
 private:
     //背景缓存（渐变背景 + 网格线，仅在尺寸变化时重建）
     HDC m_bgDC;
     HBITMAP m_bgBitmap;
     HBITMAP m_bgOldBitmap;
+    void* m_bgBits;     //背景位图的内存地址（32bpp、从上到下的DIB）
     int32_t m_bgWidth;
     int32_t m_bgHeight;
+
+private:
+    //波形覆盖的行区间（只更新这个区域，减少内存复制和窗口更新的数据量）
+    int32_t m_bandTop;
+    int32_t m_bandBottom;
+    bool m_bFullUpdatePending;  //是否需要完整更新窗口内容
 
 private:
     //绘制DC/位图等(仅在分层窗口绘制时使用)
     HDC m_hPaintDC;     //绘制DC
     HGDIOBJ m_hOldObj;  //DC原来关联的对象
     HBITMAP m_hBitmap;  //绘制位图
+    void* m_pBitmapBits;    //绘制位图的内存地址（32bpp、从上到下的DIB）
     int32_t m_nBitmapWidth;  //位图宽度
     int32_t m_nBitmapHeight; //位图高度
 
@@ -142,11 +209,16 @@ ChildWindowPaint::TImpl::TImpl():
     m_bgDC(nullptr),
     m_bgBitmap(nullptr),
     m_bgOldBitmap(nullptr),
+    m_bgBits(nullptr),
     m_bgWidth(0),
     m_bgHeight(0),
+    m_bandTop(0),
+    m_bandBottom(0),
+    m_bFullUpdatePending(true),
     m_hPaintDC(nullptr),
     m_hOldObj(nullptr),
     m_hBitmap(nullptr),
+    m_pBitmapBits(nullptr),
     m_nBitmapWidth(0),
     m_nBitmapHeight(0)
 {
@@ -189,6 +261,7 @@ void ChildWindowPaint::TImpl::ReleaseBackground()
         ::DeleteObject(m_bgBitmap);
         m_bgBitmap = nullptr;
     }
+    m_bgBits = nullptr;
     m_bgWidth = 0;
     m_bgHeight = 0;
 }
@@ -227,7 +300,8 @@ void ChildWindowPaint::TImpl::ReleasePens()
 
 bool ChildWindowPaint::TImpl::EnsureBackground(HDC hdc, int32_t width, int32_t height)
 {
-    if ((m_bgDC != nullptr) && (m_bgBitmap != nullptr) && (m_bgWidth == width) && (m_bgHeight == height)) {
+    if ((m_bgDC != nullptr) && (m_bgBitmap != nullptr) && (m_bgBits != nullptr) &&
+        (m_bgWidth == width) && (m_bgHeight == height)) {
         return true;
     }
     ReleaseBackground();
@@ -236,40 +310,46 @@ bool ChildWindowPaint::TImpl::EnsureBackground(HDC hdc, int32_t width, int32_t h
     if (m_bgDC == nullptr) {
         return false;
     }
-    m_bgBitmap = ::CreateCompatibleBitmap(hdc, width, height);
-    if (m_bgBitmap == nullptr) {
-        ::DeleteDC(m_bgDC);
-        m_bgDC = nullptr;
+    //背景位图必须是32bpp、从上到下的DIB，才能与绘制位图的内存布局一致，直接用memcpy复制
+    BITMAPINFO bmi;
+    ::ZeroMemory(&bmi, sizeof(BITMAPINFO));
+    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    bmi.bmiHeader.biWidth = width;
+    bmi.bmiHeader.biHeight = -height;//负数表示位图方向：从上到下，左上角为原点
+    bmi.bmiHeader.biPlanes = 1;
+    bmi.bmiHeader.biBitCount = 32;
+    bmi.bmiHeader.biCompression = BI_RGB;
+    bmi.bmiHeader.biSizeImage = (DWORD)width * (DWORD)height * sizeof(uint32_t);
+    m_bgBitmap = ::CreateDIBSection(m_bgDC, &bmi, DIB_RGB_COLORS, &m_bgBits, nullptr, 0);
+    if ((m_bgBitmap == nullptr) || (m_bgBits == nullptr)) {
+        ReleaseBackground();
         return false;
     }
     m_bgOldBitmap = (HBITMAP)::SelectObject(m_bgDC, m_bgBitmap);
 
-    //垂直渐变背景
-    for (int32_t y = 0; y < height; y += 2) {
+    //直接写像素生成背景，比逐行创建画刷再FillRect快很多（这里只在尺寸变化时执行一次）
+    uint32_t* pBits = (uint32_t*)m_bgBits;
+    std::vector<uint32_t> rowPixels((size_t)width);
+    for (int32_t y = 0; y < height; ++y) {
         double t = (height > 1) ? ((double)y / (double)(height - 1)) : 0.0;
-        HBRUSH hBrush = ::CreateSolidBrush(ToColorRef(LerpColor(g_bgTopColor, g_bgBottomColor, t)));
-        if (hBrush != nullptr) {
-            RECT rcBand = { 0, y, width, y + 2 };
-            ::FillRect(m_bgDC, &rcBand, hBrush);
-            ::DeleteObject(hBrush);
-        }
+        const uint32_t nPixel = ToDibPixel(LerpColor(g_bgTopColor, g_bgBottomColor, t));
+        std::fill(rowPixels.begin(), rowPixels.end(), nPixel);
+        ::memcpy(pBits + (size_t)y * width, rowPixels.data(), (size_t)width * sizeof(uint32_t));
     }
 
     //淡色网格线
-    HPEN hGridPen = ::CreatePen(PS_SOLID, 1, ToColorRef(g_gridColor));
-    if (hGridPen != nullptr) {
-        HGDIOBJ hOldPen = ::SelectObject(m_bgDC, hGridPen);
-        const int32_t nGridSize = 32;
-        for (int32_t x = nGridSize; x < width; x += nGridSize) {
-            ::MoveToEx(m_bgDC, x, 0, nullptr);
-            ::LineTo(m_bgDC, x, height);
+    const uint32_t nGridPixel = ToDibPixel(g_gridColor);
+    const int32_t nGridSize = 32;
+    for (int32_t x = nGridSize; x < width; x += nGridSize) {
+        uint32_t* pPixel = pBits + x;
+        for (int32_t y = 0; y < height; ++y) {
+            *pPixel = nGridPixel;
+            pPixel += width;
         }
-        for (int32_t y = nGridSize; y < height; y += nGridSize) {
-            ::MoveToEx(m_bgDC, 0, y, nullptr);
-            ::LineTo(m_bgDC, width, y);
-        }
-        ::SelectObject(m_bgDC, hOldPen);
-        ::DeleteObject(hGridPen);
+    }
+    for (int32_t y = nGridSize; y < height; y += nGridSize) {
+        uint32_t* pRow = pBits + (size_t)y * width;
+        std::fill(pRow, pRow + width, nGridPixel);
     }
 
     m_bgWidth = width;
@@ -277,7 +357,7 @@ bool ChildWindowPaint::TImpl::EnsureBackground(HDC hdc, int32_t width, int32_t h
     return true;
 }
 
-void ChildWindowPaint::TImpl::PaintScene(HDC hdc, int32_t width, int32_t height, double phase)
+void ChildWindowPaint::TImpl::PaintScene(HDC hdc, int32_t width, int32_t height, double phase, void* pDestBits)
 {
     if ((hdc == nullptr) || (width <= 0) || (height <= 0)) {
         return;
@@ -285,28 +365,64 @@ void ChildWindowPaint::TImpl::PaintScene(HDC hdc, int32_t width, int32_t height,
     if (!EnsureBackground(hdc, width, height) || !EnsurePens()) {
         return;
     }
-    //先绘制背景（渐变 + 网格）
-    ::BitBlt(hdc, 0, 0, width, height, m_bgDC, 0, 0, SRCCOPY);
+    //先绘制背景（渐变 + 网格）：目标位图的内存布局与背景缓存一致时用memcpy，否则回退为BitBlt
+    //计算波形覆盖的行区间：区间外的背景内容不会变化，无需每帧重复复制
+    double maxAmplitudeRatio = 0.0;
+    for (int32_t nIndex = 0; nIndex < kWaveCount; ++nIndex) {
+        if (g_waveList[nIndex].amplitudeRatio > maxAmplitudeRatio) {
+            maxAmplitudeRatio = g_waveList[nIndex].amplitudeRatio;
+        }
+    }
+    m_bandTop = (int32_t)((double)height / 2.0 - maxAmplitudeRatio * (double)height) - 3;
+    m_bandBottom = (int32_t)((double)height / 2.0 + maxAmplitudeRatio * (double)height) + 3;
+    if (m_bandTop < 0) {
+        m_bandTop = 0;
+    }
+    if (m_bandBottom > height) {
+        m_bandBottom = height;
+    }
+    if ((pDestBits != nullptr) && (m_bgBits != nullptr)) {
+        //按行复制波形覆盖的行区间
+        const uint32_t* pSrc = (const uint32_t*)m_bgBits;
+        uint32_t* pDst = (uint32_t*)pDestBits;
+        for (int32_t y = m_bandTop; y < m_bandBottom; ++y) {
+            ::memcpy(pDst + (size_t)y * width, pSrc + (size_t)y * width, (size_t)width * sizeof(uint32_t));
+        }
+    }
+    else {
+        m_bandTop = 0;
+        m_bandBottom = height;
+        ::BitBlt(hdc, 0, 0, width, height, m_bgDC, 0, 0, SRCCOPY);
+    }
 
     //再绘制波形：每条波形由3条1像素线组成（上下为暗色边缘，中间为主色线）
     //说明：GDI绘制宽画笔的折线速度很慢，使用3条1像素线代替，速度可以提高数倍
     const double centerY = height / 2.0;
-    const double twoPi = 2.0 * 3.14159265358979323846;
-    const int32_t nStepX = 4;
+    //采样步长：步长越小越平滑，但折线的线段数量越多绘制越慢
+    const int32_t nStepX = 8;
     std::vector<POINT> upperPoints;
     std::vector<POINT> lowerPoints;
     std::vector<POINT> mainPoints;
     upperPoints.reserve(static_cast<size_t>(width / nStepX) + 2);
     lowerPoints.reserve(static_cast<size_t>(width / nStepX) + 2);
     mainPoints.reserve(static_cast<size_t>(width / nStepX) + 2);
+    //将相位归一化到[0, 2π)，避免运行时间增长后浮点精度下降（查表索引也不会溢出）
+    phase = std::fmod(phase, kTwoPi);
+    if (phase < 0.0) {
+        phase += kTwoPi;
+    }
     for (int32_t nIndex = 0; nIndex < kWaveCount; ++nIndex) {
         const WaveDesc& wave = g_waveList[nIndex];
+        const double amplitude = wave.amplitudeRatio * (double)height;
+        const double startIndex = (phase + wave.phaseOffset) * ((double)kSinTableSize / kTwoPi);
+        const double nIndexStep = wave.frequency * (double)kSinTableSize * (double)nStepX / (double)width;
+        double dIndex = startIndex;
         upperPoints.clear();
         lowerPoints.clear();
         mainPoints.clear();
         for (int32_t x = 0; x <= width; x += nStepX) {
-            double angle = (wave.frequency * twoPi * (double)x / (double)width) + phase + wave.phaseOffset;
-            int32_t y = (int32_t)(centerY + wave.amplitudeRatio * (double)height * sin(angle));
+            //查表计算sin值（dIndex的单位是查表索引值，即 1/kSinTableSize 弧度）
+            int32_t y = (int32_t)(centerY + amplitude * TableSin((int32_t)dIndex));
             if (y < 2) {
                 y = 2;
             }
@@ -319,6 +435,7 @@ void ChildWindowPaint::TImpl::PaintScene(HDC hdc, int32_t width, int32_t height,
             upperPoints.push_back(ptUpper);
             POINT ptLower = { x, y + 1 };
             lowerPoints.push_back(ptLower);
+            dIndex += nIndexStep;
         }
         if (mainPoints.size() < 2) {
             continue;
@@ -354,15 +471,23 @@ HDC ChildWindowPaint::TImpl::GetPaintDC(HWND hWnd)
         if (m_hBitmap != nullptr) {
             ::DeleteObject(m_hBitmap);
             m_hBitmap = nullptr;
+            m_pBitmapBits = nullptr;
         }
     }
     if (m_hBitmap == nullptr) {
-        m_hBitmap = CreateHBitmap(hWnd, nBitmapWidth, nBitmapHeight, true);
-        if (m_hBitmap == nullptr) {
+        m_hBitmap = CreateHBitmap(hWnd, nBitmapWidth, nBitmapHeight, true, &m_pBitmapBits);
+        if ((m_hBitmap == nullptr) || (m_pBitmapBits == nullptr)) {
+            if (m_hBitmap != nullptr) {
+                ::DeleteObject(m_hBitmap);
+                m_hBitmap = nullptr;
+            }
+            m_pBitmapBits = nullptr;
             return nullptr;
         }
         m_nBitmapWidth = nBitmapWidth;
         m_nBitmapHeight = nBitmapHeight;
+        //位图是新创建的，内容为空，需要完整更新窗口内容一次
+        m_bFullUpdatePending = true;
     }
     if (m_hPaintDC == nullptr) {
         HDC hWndDC = ::GetDC(hWnd);
@@ -381,9 +506,12 @@ HDC ChildWindowPaint::TImpl::GetPaintDC(HWND hWnd)
     return m_hPaintDC;
 }
 
-HBITMAP ChildWindowPaint::TImpl::CreateHBitmap(HWND hWnd, int32_t nWidth, int32_t nHeight, bool flipHeight) const
+HBITMAP ChildWindowPaint::TImpl::CreateHBitmap(HWND hWnd, int32_t nWidth, int32_t nHeight, bool flipHeight, void** ppBits) const
 {
     ASSERT((nWidth > 0) && (nHeight > 0));
+    if (ppBits != nullptr) {
+        *ppBits = nullptr;
+    }
     if (nWidth <= 0 || nHeight <= 0) {
         return nullptr;
     }
@@ -409,6 +537,9 @@ HBITMAP ChildWindowPaint::TImpl::CreateHBitmap(HWND hWnd, int32_t nWidth, int32_
     if (hdc != nullptr) {
         void* pBits = nullptr;
         hBitmap = ::CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, &pBits, nullptr, 0);
+        if ((hBitmap != nullptr) && (ppBits != nullptr)) {
+            *ppBits = pBits;
+        }
     }
     ::ReleaseDC(hWnd, hdc);
     return hBitmap;
@@ -484,7 +615,8 @@ bool ChildWindowPaint::PaintChildWindow(const ui::UiRect& rcPaint, const ui::Nat
         }
         RECT rcClient;
         ::GetClientRect(hWnd, &rcClient);
-        m_impl->PaintScene(hPaintDC, rcClient.right - rcClient.left, rcClient.bottom - rcClient.top, phase);
+        m_impl->PaintScene(hPaintDC, rcClient.right - rcClient.left, rcClient.bottom - rcClient.top,
+                           phase, m_impl->GetPaintBits());
 
         //结束绘制
         BYTE nLayeredWindowAlpha = 255;
@@ -492,7 +624,29 @@ bool ChildWindowPaint::PaintChildWindow(const ui::UiRect& rcPaint, const ui::Nat
         SIZE szWindow = { rcClient.right - rcClient.left, rcClient.bottom - rcClient.top };
         POINT ptSrc = { 0, 0 };
         BLENDFUNCTION bf = { AC_SRC_OVER, 0, nLayeredWindowAlpha, AC_SRC_OVER };
-        BOOL bUpdated = ::UpdateLayeredWindow(hWnd, nullptr, &pt, &szWindow, hPaintDC, &ptSrc, 0, &bf, ULW_ALPHA);
+        //只需要更新波形覆盖的行区间，减少提交到系统合成器的数据量
+        int32_t nBandTop = 0;
+        int32_t nBandBottom = 0;
+        m_impl->GetPaintBand(nBandTop, nBandBottom);
+        RECT rcDirty = { 0, nBandTop, szWindow.cx, nBandBottom };
+        if (m_impl->IsFullUpdatePending()) {
+            //首次绘制或者尺寸变化后，需要完整更新一次
+            rcDirty = { 0, 0, szWindow.cx, szWindow.cy };
+            m_impl->SetFullUpdateDone();
+        }
+        UPDATELAYEREDWINDOWINFO info = { 0 };
+        info.cbSize = sizeof(UPDATELAYEREDWINDOWINFO);
+        info.hdcDst = nullptr;
+        info.pptDst = &pt;
+        info.psize = &szWindow;
+        info.hdcSrc = hPaintDC;
+        info.pptSrc = &ptSrc;
+        info.crKey = 0;
+        info.pblend = &bf;
+        //使用ULW_OPAQUE：绘制内容完全不透明，不需要alpha混合，比ULW_ALPHA更快
+        info.dwFlags = ULW_OPAQUE;
+        info.prcDirty = &rcDirty;
+        BOOL bUpdated = ::UpdateLayeredWindowIndirect(hWnd, &info);
 
         //标记绘制区域为有效区域
         RECT rectUpdate2 = { 0, };
@@ -508,7 +662,8 @@ bool ChildWindowPaint::PaintChildWindow(const ui::UiRect& rcPaint, const ui::Nat
         if (hPaintDC != nullptr) {
             RECT rcClient;
             ::GetClientRect(hWnd, &rcClient);
-            m_impl->PaintScene(hPaintDC, rcClient.right - rcClient.left, rcClient.bottom - rcClient.top, phase);
+            //普通窗口的绘制DC不是32bpp的DIB，无法直接内存复制，传入nullptr时内部使用BitBlt
+            m_impl->PaintScene(hPaintDC, rcClient.right - rcClient.left, rcClient.bottom - rcClient.top, phase, nullptr);
             bPainted = (rcClient.right > rcClient.left) && (rcClient.bottom > rcClient.top);
         }
         ::EndPaint(hWnd, &ps);
