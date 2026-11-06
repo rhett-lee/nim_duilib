@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="75%,85%" min_size="240,100"
-        caption="0,0,0,36" snap_layout_menu="false" sys_menu="true" sys_menu_rect="0,0,36,36"
-        shadow_type="none" shadow_snap="true" layered_window="false"
-        size_box="4,4,4,4" icon="public/caption/logo.ico">
+<Window size="80%,85%" min_size="720,480"
+        caption="0,0,0,36" use_system_caption="false" snap_layout_menu="false" sys_menu="true" sys_menu_rect="0,0,36,36"
+        shadow_type="default" shadow_attached="true" shadow_snap="true" layered_window="false"
+        size_box="4,4,4,4" icon="public/caption/logo.ico" text_id="STRID_CHILDWINDOW_TITLE">
+    <!-- 卡片容器：内容区域分组显示，与 basic 等示例保持一致 -->
+    <Class name="panel_card" bkcolor="bg_window_card" border_size="1" border_color="border_split_level1"
+                             border_round="10,10"/>
     <VBox bkcolor="bg_window_main" visible="true">
         <!-- 标题栏区域 -->
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
@@ -27,11 +30,24 @@
         </HBox>
         <!-- 标题栏区域结束 -->
 
-        <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
-        <Box>
-            <GridBox name="child_window_box" valign="center" rows="3" columns="3" bkcolor="bg_container" >
+        <!-- 内容区域：说明卡片 + 3x3 子窗口网格 -->
+        <VBox bkcolor="bg_window_main" width="stretch" height="stretch" padding="16,12,16,16" child_margin="12">
+            <!-- 说明卡片：Logo + 标题 + 说明 -->
+            <HBox class="panel_card" width="stretch" height="auto" padding="14,10,14,10" child_margin="10" valign="center">
+                <Control width="18" height="18" valign="center"
+                         bkimage="file='public/caption/logo.svg' width='18' height='18' valign='center' halign='center'"/>
+                <VBox width="stretch" height="auto" child_margin="3">
+                    <Label text_id="STRID_CHILDWINDOW_HEADLINE" font="system_bold_14" text_color="text_default"
+                           width="stretch" height="auto" single_line="true"/>
+                    <Label text_id="STRID_CHILDWINDOW_DESC" font="system_regular_12" text_color="text_muted"
+                           width="stretch" height="auto" single_line="false"/>
+                </VBox>
+            </HBox>
+
+            <!-- 子窗口网格：每个单元格嵌入一个子窗口 -->
+            <GridBox name="child_window_box" rows="3" columns="3" width="stretch" height="stretch" child_margin="12">
                 <Include src="child_window_item.xml" count="9"/>
             </GridBox>
-        </Box>
+        </VBox>
     </VBox>
 </Window>

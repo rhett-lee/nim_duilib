@@ -138,6 +138,8 @@ STRID_CHILDWINDOW_TITLE  = ChildWindow Test Program
 STRID_CHILDWINDOW_FPS    = FPS
 STRID_CHILDWINDOW_PAINT  = Paint
 STRID_CHILDWINDOW_FULLSCREEN  = Fullscreen
+STRID_CHILDWINDOW_HEADLINE  = Child Window Rendering Demo
+STRID_CHILDWINDOW_DESC  = Native child windows are embedded in the window and painted in real time by the application; enable "Paint" to check the redraw performance.
 
 # examples/DpiAware
 STRID_DPIAWARE_TITLE  = DPI-aware application example (high-DPI support)

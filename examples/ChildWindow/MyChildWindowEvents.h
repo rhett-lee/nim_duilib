@@ -62,6 +62,9 @@ private:
     //FPS显示控件
     ui::ControlPtrT<ui::Label> m_pFpsLabel;
 
+    //窗口事件回调的ID，用于释放时解绑回调函数
+    ui::EventCallbackID m_eventCallbackID;
+
     //是否开始动态绘制
     bool m_bPaintFps;
 };

@@ -29,6 +29,13 @@ public:
         return m_currentFPS;
     }
 
+    void Reset()
+    {
+        m_frameCount = 0;
+        m_currentFPS = 0.0f;
+        m_lastTime = std::chrono::high_resolution_clock::now();
+    }
+
 private:
     size_t m_frameCount;//绘制了多少帧
     std::chrono::high_resolution_clock::time_point m_lastTime;
@@ -39,18 +46,22 @@ MyChildWindowEvents::MyChildWindowEvents(ui::ChildWindow* pChildWindow,
                                          size_t nChildWindowIndex,
                                          ChildWindowPaintScheduler* pPaintScheduler) :
     m_pChildWindow(pChildWindow),
-    m_pPaintScheduler(pPaintScheduler)
+    m_pPaintScheduler(pPaintScheduler),
+    m_eventCallbackID((ui::EventCallbackID)this),
+    m_bPaintFps(true)
 {
-    m_childWindowPaint = std::make_unique<ChildWindowPaint>(pChildWindow);
+    m_childWindowPaint = std::make_unique<ChildWindowPaint>(pChildWindow, nChildWindowIndex);
     m_fps = std::make_unique<FPSCounter>();
     m_lastPaintTime = std::chrono::high_resolution_clock::now();
+    if (pChildWindow == nullptr) {
+        return;
+    }
     m_pFpsLabel = dynamic_cast<ui::Label*>(pChildWindow->FindSubControl(_T("label_fps")));
-    m_bPaintFps = true;
 
     //更新子窗口名称
     ui::Label* pChildWindowName = dynamic_cast<ui::Label*>(pChildWindow->FindSubControl(_T("child_window_name")));
     if (pChildWindowName != nullptr) {
-        DString childWindowName = ui::StringUtil::Printf(_T("ChildWnd%d"), (int32_t)nChildWindowIndex);
+        DString childWindowName = ui::StringUtil::Printf(_T("ChildWnd %d"), (int32_t)nChildWindowIndex + 1);
         pChildWindowName->SetText(childWindowName);
     }
 
@@ -59,6 +70,13 @@ MyChildWindowEvents::MyChildWindowEvents(ui::ChildWindow* pChildWindow,
     if (pStartFpsPaint != nullptr) {
         pStartFpsPaint->AttachSelect([this](const ui::EventArgs&) {
             m_bPaintFps = true;
+            if (m_fps != nullptr) {
+                m_fps->Reset();
+            }
+            m_lastPaintTime = std::chrono::high_resolution_clock::now();
+            if (m_pFpsLabel != nullptr) {
+                m_pFpsLabel->SetText(_T("0"));
+            }
             if (m_pChildWindow != nullptr) {
                 m_pChildWindow->InvalidateChildWindow();
                 m_pChildWindow->Invalidate();
@@ -102,6 +120,7 @@ MyChildWindowEvents::MyChildWindowEvents(ui::ChildWindow* pChildWindow,
     if (m_pChildWindow != nullptr) {
         ui::Window* pWindow = m_pChildWindow->GetWindow();
         if (pWindow != nullptr) {
+            //关联回调ID，对象销毁时可以解绑该回调，避免窗口继续调用已销毁对象
             pWindow->AttachWindowExitFullscreenMsg([this](const ui::EventArgs&) {
                 if (m_pChildWindow != nullptr) {
                     ui::CheckBox* pFullscreen = dynamic_cast<ui::CheckBox*>(m_pChildWindow->FindSubControl(_T("child_fullscreen")));
@@ -110,13 +129,20 @@ MyChildWindowEvents::MyChildWindowEvents(ui::ChildWindow* pChildWindow,
                     }
                 }
                 return true;
-                });
+                }, m_eventCallbackID);
         }
     }
 }
 
 MyChildWindowEvents::~MyChildWindowEvents()
 {
+    //解绑窗口事件回调
+    if (m_pChildWindow != nullptr) {
+        ui::Window* pWindow = m_pChildWindow->GetWindow();
+        if (pWindow != nullptr) {
+            pWindow->DetachWindowEventCallbackByID(m_eventCallbackID);
+        }
+    }
 }
 
 ui::ChildWindow* MyChildWindowEvents::GetChildWindow() const
@@ -134,17 +160,19 @@ LRESULT MyChildWindowEvents::OnPaintMsg(const ui::UiRect& rcPaint, const ui::Nat
     bHandled = true;
 
     //绘制子窗口（用于演示功能）
-    m_childWindowPaint->PaintChildWindow(rcPaint, nativeMsg, m_bPaintFps);
+    bool bPainted = m_childWindowPaint->PaintChildWindow(rcPaint, nativeMsg, m_bPaintFps);
 
     if (m_bPaintFps) {
-        //更新FPS计数器
-        m_fps->Update();
+        if (bPainted) {
+            //只有真正完成一帧绘制时，才计入FPS，保证FPS反映真实的绘制速度
+            m_fps->Update();
+        }
 
         //更新UI绘制计时器
         auto currentTime = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - m_lastPaintTime);
-        if (duration.count() >= 500) {
-            //每秒更新2次
+        if (duration.count() >= 1000) {
+            //每秒更新1次
             m_lastPaintTime = currentTime;
             DString fps = ui::StringUtil::Printf(_T("%d"), (int32_t)m_fps->GetFPS());
             if (m_pFpsLabel != nullptr) {
@@ -165,7 +193,8 @@ LRESULT MyChildWindowEvents::OnPaintMsg(const ui::UiRect& rcPaint, const ui::Nat
         }
     }
     if (m_pPaintScheduler != nullptr) {
-        //持续绘制子窗口
+        //记录当前绘制的子窗口：消息循环进入Idle状态时，立即触发下一个子窗口绘制，
+        //实现连续绘制（每个子窗口绘制完成后马上绘制下一个，无额外等待）
         m_pPaintScheduler->PaintNextChildWindow(m_pChildWindow.get());
     }
     return 0;

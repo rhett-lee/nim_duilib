@@ -1,13 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 子窗口的结构模板，根节点的名称随意，符合XML规范即可 -->
 <ChildWindowTemplate>
-    <ChildWindow valign="center" halign="center" child_window_margin="12,36,12,12">
-        <HBox padding="12,0,0,0" valign="top" height="36">
-            <Label name="child_window_name" text="ChildWindow1" margin="2,0,2,0" valign="center" mouse_enabled="false"/>
-            <Label text_id="STRID_CHILDWINDOW_FPS" valign="center" mouse_enabled="false"/>
-            <Label name="label_fps" text="0000" width="42" margin="4,0,4,0" valign="center" mouse_enabled="false"/>
-            <CheckBox class="checkbox_1" name="fps_paint" height="28" width="auto" text_id="STRID_CHILDWINDOW_PAINT" valign="center" selected="true"/>
-            <CheckBox class="checkbox_1" name="child_fullscreen" height="28" width="auto" text_id="STRID_CHILDWINDOW_FULLSCREEN" valign="center" margin="8,0,0,0" selected="false"/>
-        </HBox>
+    <ChildWindow child_window_margin="12,64,12,12"
+                 bkcolor="bg_window_card" border_size="1" border_color="border_split_level1" border_round="10,10">
+        <!-- 顶部信息区：子窗口名称与帧率 -->
+        <VBox height="64" padding="12,0,12,0">
+            <HBox height="34" valign="center">
+                <Label name="child_window_name" text="ChildWindow" font="system_bold_14" text_color="text_default"
+                       valign="center" mouse_enabled="false"/>
+                <Control width="stretch" height="auto" mouse_enabled="false"/>
+                <Label text_id="STRID_CHILDWINDOW_FPS" font="system_regular_12" text_color="text_muted"
+                       valign="center" mouse_enabled="false"/>
+                <Label name="label_fps" text="0" width="42" font="system_bold_14" text_color="color_accent"
+                       text_align="hright,vcenter" margin="4,0,0,0" valign="center" mouse_enabled="false"/>
+            </HBox>
+            <!-- 操作选项：绘制（动态刷帧）/ 全屏显示 -->
+            <HBox height="30" valign="center" child_margin="12">
+                <CheckBox class="checkbox_1" name="fps_paint" height="28" width="auto"
+                          text_id="STRID_CHILDWINDOW_PAINT" valign="center" selected="true"/>
+                <CheckBox class="checkbox_1" name="child_fullscreen" height="28" width="auto"
+                          text_id="STRID_CHILDWINDOW_FULLSCREEN" valign="center" selected="false"/>
+            </HBox>
+        </VBox>
     </ChildWindow>
 </ChildWindowTemplate>

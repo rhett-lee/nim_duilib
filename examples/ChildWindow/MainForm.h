@@ -50,6 +50,10 @@ protected:
     */
     virtual void OnLayeredWindowChanged() override;
 
+    /** 窗口的阴影类型发生变化
+    */
+    virtual void OnWindowShadowTypeChanged() override;
+
 private:
     /** 创建子窗口，并保存关联关系
     */
@@ -58,6 +62,18 @@ private:
     /** 关闭子窗口，并取消关联关系
     */
     void CloseChildWindows();
+
+    /** 子窗口是否需要分层窗口属性
+    *  当主窗口是分层窗口，或者主窗口使用系统阴影时，子窗口必须使用分层窗口属性：
+    *  使用系统阴影时，窗口客户区被 DWM 合成（DwmExtendFrameIntoClientArea），
+    *  普通GDI子窗口的绘制结果不会被正确合成，表现为子窗口区域空白；
+    *  使用分层窗口属性后，由应用层调用 UpdateLayeredWindow 提交绘制结果，可正常显示。
+    */
+    bool IsChildWindowNeedLayered() const;
+
+    /** 将分层窗口属性同步到全部子窗口
+    */
+    void UpdateChildWindowsLayered();
 
     /** 立即绘制该子窗口的下一个子窗口（按顺序依次绘制每个子窗口）
     * @param [in] pChildWindow 子窗口的指针

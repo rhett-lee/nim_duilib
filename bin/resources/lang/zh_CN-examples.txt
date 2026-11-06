@@ -139,6 +139,8 @@ STRID_CHILDWINDOW_TITLE  = 子窗口控件(ChildWindow)测试程序
 STRID_CHILDWINDOW_FPS    = 帧率FPS
 STRID_CHILDWINDOW_PAINT  = 绘制
 STRID_CHILDWINDOW_FULLSCREEN  = 全屏显示
+STRID_CHILDWINDOW_HEADLINE  = 子窗口绘制演示
+STRID_CHILDWINDOW_DESC  = 在窗口内嵌入系统原生子窗口，并由应用层实时绘制动画；勾选“绘制”可查看刷帧性能。
 
 # examples/DpiAware
 STRID_DPIAWARE_TITLE  = 支持 DPI 感知的应用程序示例（高分屏适配）
