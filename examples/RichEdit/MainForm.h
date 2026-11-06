@@ -69,9 +69,9 @@ public:
     virtual LRESULT OnKeyUpMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled) override;
 
     //查找/替换接口
-    bool FindRichText(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog);
-    void ReplaceRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog);
-    void ReplaceAllRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog);
+    bool FindRichText(const RichEditFindOptions& options, ui::Window* pWndDialog);
+    void ReplaceRichText(const RichEditFindOptions& options, ui::Window* pWndDialog);
+    void ReplaceAllRichText(const RichEditFindOptions& options, ui::Window* pWndDialog);
 
     //获取上次查找/替换使用的选项
     const RichEditFindOptions& GetFindOptions() const;
@@ -316,9 +316,6 @@ private:
     RichEditFindReplace m_findReplace;
 
 private:
-    //字体名称列表
-    std::vector<DString> m_fontList;
-
     //字体大小列表
     std::vector<ui::FontSizeInfo> m_fontSizeList;
 };

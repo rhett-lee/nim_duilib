@@ -206,6 +206,9 @@
   <ItemGroup>
     <ClCompile Include="FindForm.cpp" />
     <ClCompile Include="MainForm.cpp" />
+    <ClCompile Include="MainFormFile.cpp" />
+    <ClCompile Include="MainFormFormat.cpp" />
+    <ClCompile Include="MainFormSettings.cpp" />
     <ClCompile Include="MainThread.cpp" />
     <ClCompile Include="main_windows.cpp" />
     <ClCompile Include="ReplaceForm.cpp" />

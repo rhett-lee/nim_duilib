@@ -27,11 +27,11 @@ protected:
     //初始化查找相关控件与公共事件
     void InitFindBase();
 
-    //从界面控件收集查找选项
-    RichEditFindOptions GetFindOptionsFromControls() const;
+    //从界面控件收集查找/替换选项（子类可覆盖以补充替换内容）
+    virtual RichEditFindOptions CollectSearchOptions() const;
 
     //保存查找选项到主窗口
-    void SaveFindOptionsFromControls(bool bUpdateReplaceText, const DString& replaceText);
+    void SaveFindOptions(const RichEditFindOptions& options);
 
     //查找下一个
     void OnFindNext();

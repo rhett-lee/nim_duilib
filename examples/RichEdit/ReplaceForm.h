@@ -14,6 +14,10 @@ public:
 
     virtual void OnInitWindow() override;
 
+protected:
+    //在查找选项的基础上补充替换内容
+    virtual RichEditFindOptions CollectSearchOptions() const override;
+
 private:
     void OnReplace();
     void OnReplaceAll();

@@ -69,46 +69,43 @@ void ReplaceForm::OnInitWindow()
     }
 }
 
+RichEditFindOptions ReplaceForm::CollectSearchOptions() const
+{
+    RichEditFindOptions options = BaseClass::CollectSearchOptions();
+    if (m_pReplaceText != nullptr) {
+        options.replaceText = m_pReplaceText->GetText();
+    }
+    return options;
+}
+
 void ReplaceForm::OnReplace()
 {
-    if (m_pFindText == nullptr) {
-        return;
-    }
-    DString findText = m_pFindText->GetText();
-    if (findText.empty()) {
-        return;
-    }
     if (m_pReplaceText == nullptr) {
         return;
     }
-    DString replaceText = m_pReplaceText->GetText();
-
-    RichEditFindOptions options = GetFindOptionsFromControls();
-    SaveFindOptionsFromControls(true, replaceText);
+    const RichEditFindOptions options = CollectSearchOptions();
+    if (options.findText.empty()) {
+        return;
+    }
+    SaveFindOptions(options);
     if (m_pMainForm != nullptr) {
-        m_pMainForm->ReplaceRichText(findText, replaceText, options.bFindDown, options.bMatchCase, options.bMatchWholeWord, this);
+        m_pMainForm->ReplaceRichText(options, this);
     }
     UpdateFindResultLabel(true);
 }
 
 void ReplaceForm::OnReplaceAll()
 {
-    if (m_pFindText == nullptr) {
-        return;
-    }
-    DString findText = m_pFindText->GetText();
-    if (findText.empty()) {
-        return;
-    }
     if (m_pReplaceText == nullptr) {
         return;
     }
-    DString replaceText = m_pReplaceText->GetText();
-
-    RichEditFindOptions options = GetFindOptionsFromControls();
-    SaveFindOptionsFromControls(true, replaceText);
+    const RichEditFindOptions options = CollectSearchOptions();
+    if (options.findText.empty()) {
+        return;
+    }
+    SaveFindOptions(options);
     if (m_pMainForm != nullptr) {
-        m_pMainForm->ReplaceAllRichText(findText, replaceText, options.bFindDown, options.bMatchCase, options.bMatchWholeWord, this);
+        m_pMainForm->ReplaceAllRichText(options, this);
     }
     UpdateFindResultLabel(true);
 }

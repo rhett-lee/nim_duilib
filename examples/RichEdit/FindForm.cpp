@@ -100,8 +100,9 @@ void FindReplaceFormBase::InitFindBase()
     BindCancelButton();
 }
 
-RichEditFindOptions FindReplaceFormBase::GetFindOptionsFromControls() const
+RichEditFindOptions FindReplaceFormBase::CollectSearchOptions() const
 {
+    //以主窗口保存的上次选项为基准，再用界面上的内容覆盖
     RichEditFindOptions options;
     if (m_pMainForm != nullptr) {
         options = m_pMainForm->GetFindOptions();
@@ -121,32 +122,24 @@ RichEditFindOptions FindReplaceFormBase::GetFindOptionsFromControls() const
     return options;
 }
 
-void FindReplaceFormBase::SaveFindOptionsFromControls(bool bUpdateReplaceText, const DString& replaceText)
+void FindReplaceFormBase::SaveFindOptions(const RichEditFindOptions& options)
 {
-    if (m_pMainForm == nullptr) {
-        return;
+    if (m_pMainForm != nullptr) {
+        m_pMainForm->SetFindOptions(options);
     }
-    RichEditFindOptions options = GetFindOptionsFromControls();
-    if (bUpdateReplaceText) {
-        options.replaceText = replaceText;
-    }
-    m_pMainForm->SetFindOptions(options);
 }
 
 void FindReplaceFormBase::OnFindNext()
 {
-    if (m_pFindText == nullptr) {
+    const RichEditFindOptions options = CollectSearchOptions();
+    if (options.findText.empty()) {
         return;
     }
-    DString findText = m_pFindText->GetText();
-    if (findText.empty()) {
-        return;
-    }
-    RichEditFindOptions options = GetFindOptionsFromControls();
-    SaveFindOptionsFromControls(false, DString());
+    SaveFindOptions(options);
+
     bool bFound = false;
     if (m_pMainForm != nullptr) {
-        bFound = m_pMainForm->FindRichText(options.findText, options.bFindDown, options.bMatchCase, options.bMatchWholeWord, this);
+        bFound = m_pMainForm->FindRichText(options, this);
     }
     UpdateFindResultLabel(bFound);
 }

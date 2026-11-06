@@ -35,7 +35,7 @@ public:
 
 public:
     //查找
-    bool FindRichText(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog);
+    bool FindRichText(const RichEditFindOptions& options, ui::Window* pWndDialog);
 
     //是否已有查找内容
     bool HasFindText() const;
@@ -44,10 +44,10 @@ public:
     bool FindNext();
 
     //替换
-    bool ReplaceRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog);
+    bool ReplaceRichText(const RichEditFindOptions& options, ui::Window* pWndDialog);
     
     //全部替换
-    bool ReplaceAllRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog);
+    bool ReplaceAllRichText(const RichEditFindOptions& options, ui::Window* pWndDialog);
 
     //上一次替换操作替换的处数
     int32_t GetLastReplaceCount() const;
@@ -69,8 +69,11 @@ protected:
     virtual void OnReplaceAllCoreEnd(int replaceCount);
 
 private:
-    //查找函数实现
-    bool FindTextSimple(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord);
+    //保存新的查找选项，返回选项是否发生变化（变化时重新开始查找）
+    bool ApplyOptions(const RichEditFindOptions& options);
+
+    //按当前保存的查找选项查找并选择，查找范围不包含当前选区
+    bool FindTextSimple();
 
     //查找并选择
     bool FindAndSelect(const ui::FindTextParam& findParam);
