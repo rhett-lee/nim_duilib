@@ -678,15 +678,17 @@ bool WindowBuilder::ParseWindowCreateAttributes(Window* pWindow, WindowCreateAtt
 
     //校验
 #ifdef _DEBUG
-    //使用系统标题栏时，不应该开启分层窗口属性
-    if (bUseSystemCaption) {
-        ASSERT(!createAttributes.m_bIsLayeredWindow);
-    }    
     //使用Opacity属性时，应该开启分层窗口属性
     if (createAttributes.m_bLayeredWindowOpacityDefined) {
         ASSERT(createAttributes.m_bIsLayeredWindow);
     }
 #endif
+    if (bUseSystemCaption && createAttributes.m_bIsLayeredWindow) {
+        //系统标题栏与分层窗口属性互斥，使用系统标题栏时必须关闭分层窗口属性：
+        //分层窗口由应用层调用UpdateLayeredWindow提交整个窗口的内容，系统标题栏无法正常显示；
+        //并且提交的尺寸与客户区尺寸不一致时，会导致窗口大小逐帧变小
+        createAttributes.m_bIsLayeredWindow = false;
+    }
 
 #if defined (DUILIB_BUILD_FOR_SDL)
     //默认开启支持透明度(SDL在Windows系统中，未使用分层窗口属性)
@@ -957,7 +959,10 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         else if ((strName == _T("layered_window")) || (strName == _T("layeredwindow"))) {
             knownNames.insert(strName);
             //设置是否设置分层窗口属性（分层窗口还是普通窗口）
-            pWindow->SetLayeredWindow(StringUtil::IsValueTrue(strValue), false);
+            //使用系统标题栏时，分层窗口属性无效（这两个属性互斥）
+            if (!pWindow->IsUseSystemCaption()) {
+                pWindow->SetLayeredWindow(StringUtil::IsValueTrue(strValue), false);
+            }
         }
         else if (strName == _T("alpha")) {
             knownNames.insert(strName);

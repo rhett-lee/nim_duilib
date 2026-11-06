@@ -237,10 +237,10 @@ bool SkRasterWindowContext_Windows::SwapPaintBuffers(HDC hPaintDC, const UiRect&
         if (!bLayeredWindowAttributes) {
             UiRect rcWindow;
             GetWindowRect(rcWindow);
-            UiRect rcClient;
-            GetClientRect(rcClient);
             POINT pt = { rcWindow.left, rcWindow.top };
-            SIZE szWindow = { rcClient.Width(), rcClient.Height() };
+            //UpdateLayeredWindow的psize参数表示窗口的整体尺寸（而不是客户区尺寸），
+            //如果传入客户区尺寸，窗口会被系统重新设置为该尺寸（使用系统标题栏等有非客户区时，窗口会逐帧变小）
+            SIZE szWindow = { rcWindow.Width(), rcWindow.Height() };
             POINT ptSrc = { 0, 0 };
             BLENDFUNCTION bf = { AC_SRC_OVER, 0, nLayeredWindowAlpha, AC_SRC_ALPHA };
             //按分层窗口模式绘制
