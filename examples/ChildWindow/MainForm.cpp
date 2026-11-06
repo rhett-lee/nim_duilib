@@ -14,6 +14,10 @@ MainForm::~MainForm()
     }    
 }
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+#include "duilib/Utils/ApiWrapper_Windows.h"
+#endif
+
 DString MainForm::GetSkinFolder()
 {
     return _T("child_window");
@@ -58,6 +62,13 @@ bool MainForm::IsChildWindowNeedLayered() const
         //父窗口是分层窗口时，子窗口也必须带有分层窗口属性，否则绘制流程有问题
         return true;
     }
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    if (ui::UiIsWindows7OrOlder()) {
+        //Windows 7及更早版本，只有顶级窗口支持WS_EX_LAYERED样式，子窗口不支持（Windows 8开始才支持），
+        //此时设置该属性无效，还会造成界面库内部状态与系统窗口样式不一致（触发断言）
+        return false;
+    }
+#endif
     //父窗口使用系统阴影时，客户区为 DWM 合成区域，普通GDI子窗口无法正常显示，需要分层窗口属性
     return IsShadowAttached() && ui::Shadow::IsSystemShadowType(GetShadowType());
 }

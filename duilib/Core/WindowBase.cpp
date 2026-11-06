@@ -148,9 +148,11 @@ uint8_t WindowBase::GetLayeredWindowOpacity() const
 
 bool WindowBase::SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
 {
-    m_bLayeredWindowSetFlag = true;
     bool bRet = m_pNativeWindow->SetLayeredWindow(bIsLayeredWindow, bRedraw);
     if (bRet) {
+        //设置成功后才标记外部设置过该属性，避免设置失败（如Windows 7的子窗口不支持分层属性）后，
+        //界面库内部无法再根据阴影等需求自动设置该属性
+        m_bLayeredWindowSetFlag = true;
         OnLayeredWindowChanged();
     }
     return bRet;

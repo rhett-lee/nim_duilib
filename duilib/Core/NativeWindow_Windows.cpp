@@ -727,9 +727,19 @@ int32_t NativeWindow_Windows::GetCloseParam() const
 
 bool NativeWindow_Windows::SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
 {
-    m_bIsLayeredWindow = bIsLayeredWindow;
+    if (bIsLayeredWindow && IsChildWindow() && !::IsWindows8OrGreater()) {
+        //Windows 7及更早版本，仅顶级窗口支持WS_EX_LAYERED样式，子窗口设置该样式无效。
+        //此时如果仍然更新内部状态，系统窗口样式与内部状态会不一致，导致IsLayeredWindow()的断言失败，
+        //并且绘制流程会按分层窗口处理（无法绘制到窗口上），因此这里直接拒绝该请求。
+        return false;
+    }
     bool bChanged = false;
     bool bRet = SetLayeredWindowStyle(bIsLayeredWindow, bChanged);
+    if (bRet || !IsWindow()) {
+        //只有在样式设置成功（或者窗口还未创建，样式已在窗口创建参数中指定）时，
+        //才更新内部状态，保证与系统窗口样式保持一致
+        m_bIsLayeredWindow = bIsLayeredWindow;
+    }
     if (bRedraw && bChanged && IsWindow()) {
         // 强制窗口重绘
         ::RedrawWindow(m_hWnd, NULL, NULL, RDW_FRAME | RDW_INTERNALPAINT | RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
