@@ -1184,7 +1184,9 @@ void MainForm::UpdateStatusBar()
     int32_t nColumn = nStartChar - nLineStart;
     ui::Label* pPositionLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_position")));
     if (pPositionLabel != nullptr) {
-        pPositionLabel->SetText(ui::StringUtil::Printf(_T("%d:%d"), nLine + 1, nColumn + 1));
+        //显示格式：行:列 3:12
+        pPositionLabel->SetText(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_STATUS_POSITION_LABEL")) +
+                                ui::StringUtil::Printf(_T(" %d:%d"), nLine + 1, nColumn + 1));
     }
 
     //字符数（含选中字符数）
@@ -1192,18 +1194,25 @@ void MainForm::UpdateStatusBar()
     uint32_t nSelLength = static_cast<uint32_t>(nEndChar - nStartChar);
     ui::Label* pCharsLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_chars")));
     if (pCharsLabel != nullptr) {
+        //显示格式：字符数 1289，有选中文本时为：字符数 1289 · 选中 12
+        const DString charsLabel = ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_STATUS_CHARS_LABEL"));
         if (nSelLength > 0) {
-            pCharsLabel->SetText(ui::StringUtil::Printf(_T("%u (%u)"), nTextLength, nSelLength));
+            pCharsLabel->SetText(charsLabel + ui::StringUtil::Printf(_T(" %u"), nTextLength) +
+                                 _T(" · ") +
+                                 ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_STATUS_SELECTED_LABEL")) +
+                                 ui::StringUtil::Printf(_T(" %u"), nSelLength));
         }
         else {
-            pCharsLabel->SetText(ui::StringUtil::Printf(_T("%u"), nTextLength));
+            pCharsLabel->SetText(charsLabel + ui::StringUtil::Printf(_T(" %u"), nTextLength));
         }
     }
 
     //缩放比例
     ui::Label* pZoomLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_zoom")));
     if (pZoomLabel != nullptr) {
-        pZoomLabel->SetText(ui::StringUtil::Printf(_T("%u%%"), m_pRichEdit->GetZoomPercent()));
+        //显示格式：缩放 100%
+        pZoomLabel->SetText(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_STATUS_ZOOM_LABEL")) +
+                            ui::StringUtil::Printf(_T(" %u%%"), m_pRichEdit->GetZoomPercent()));
     }
 
     //文本模式与换行状态
@@ -1217,7 +1226,9 @@ void MainForm::UpdateStatusBar()
     //编码
     ui::Label* pEncodingLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_encoding")));
     if (pEncodingLabel != nullptr) {
-        pEncodingLabel->SetText(m_encodingText);
+        //显示格式：编码 UTF-8
+        pEncodingLabel->SetText(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_STATUS_ENCODING_LABEL")) +
+                                _T(" ") + m_encodingText);
     }
 }
 
@@ -1458,24 +1469,7 @@ void MainForm::LoadSettings()
     //设置文件的版本号：版本号小于2时，使用新的默认界面布局与默认编辑模式
     const int32_t nSettingsVersion = GetSettingInt(settings, "settings_version", 0);
 
-    //1. 窗口位置与大小（保存的是物理像素）
-    const int32_t nLeft = GetSettingInt(settings, "window_left", 0);
-    const int32_t nTop = GetSettingInt(settings, "window_top", 0);
-    const int32_t nWidth = GetSettingInt(settings, "window_width", 0);
-    const int32_t nHeight = GetSettingInt(settings, "window_height", 0);
-    if ((nSettingsVersion >= 2) && (nWidth > 0) && (nHeight > 0)) {
-        ui::UiRect rcWork;
-        if (!GetMonitorWorkRect(ui::UiPoint(nLeft, nTop), rcWork)) {
-            GetMonitorWorkRect(rcWork);
-        }
-        const int32_t nWindowWidth = std::min(nWidth, rcWork.Width());
-        const int32_t nWindowHeight = std::min(nHeight, rcWork.Height());
-        const int32_t nWindowLeft = std::max(rcWork.left, std::min(nLeft, rcWork.right - nWindowWidth));
-        const int32_t nWindowTop = std::max(rcWork.top, std::min(nTop, rcWork.bottom - nWindowHeight));
-        SetWindowPos(ui::InsertAfterWnd(), nWindowLeft, nWindowTop, nWindowWidth, nWindowHeight, ui::kSWP_NOZORDER);
-    }
-
-    //2. 左侧面板的宽度
+    //1. 左侧面板的宽度（窗口的位置与大小不保存，始终使用XML中的默认值，便于修改XML后立即生效）
     const int32_t nLeftPanelWidth = GetSettingInt(settings, "left_panel_width", -1);
     if ((nSettingsVersion >= 2) && (nLeftPanelWidth > 0)) {
         ui::Control* pLeftPanel = FindControl(_T("left_panel"));
@@ -1487,13 +1481,13 @@ void MainForm::LoadSettings()
     }
 
     if (m_pRichEdit != nullptr) {
-        //3. 缩放比例
+        //2. 缩放比例
         const int32_t nZoomPercent = GetSettingInt(settings, "zoom_percent", 100);
         if ((nSettingsVersion >= 2) && (nZoomPercent > 0)) {
             m_pRichEdit->SetZoomPercent((uint32_t)nZoomPercent);
         }
 
-        //4. 自动换行
+        //3. 自动换行
         const int32_t nWordWrap = GetSettingInt(settings, "word_wrap", -1);
         if (nWordWrap >= 0) {
             m_pRichEdit->SetWordWrap(nWordWrap != 0);
@@ -1502,7 +1496,7 @@ void MainForm::LoadSettings()
 #endif
         }
 
-        //5. 富文本模式（该模式缺少跨平台兼容性，旧版本设置不恢复，默认关闭）
+        //4. 富文本模式（该模式缺少跨平台兼容性，旧版本设置不恢复，默认关闭）
         const int32_t nRichText = GetSettingInt(settings, "rich_text", -1);
         if ((nSettingsVersion >= 2) && (nRichText >= 0)) {
             m_bUpdatingRichTextCheck = true;
@@ -1523,7 +1517,7 @@ void MainForm::LoadSettings()
         }
     }
 
-    //6. 字体名称
+    //5. 字体名称
     const std::string fontNameUtf8 = GetSettingString(settings, "font_name", std::string());
     if (!fontNameUtf8.empty()) {
         SetFontName(ui::StringConvert::UTF8ToT(fontNameUtf8));
@@ -1536,15 +1530,7 @@ void MainForm::SaveSettings() const
     settingsText += "# RichEdit 示例的用户设置（程序自动生成，删除该文件后恢复默认设置）\n";
     AppendSettingInt(settingsText, "settings_version", 2);
 
-    //1. 窗口位置与大小
-    ui::UiRect rcWindow;
-    GetWindowRect(rcWindow);
-    AppendSettingInt(settingsText, "window_left", rcWindow.left);
-    AppendSettingInt(settingsText, "window_top", rcWindow.top);
-    AppendSettingInt(settingsText, "window_width", rcWindow.Width());
-    AppendSettingInt(settingsText, "window_height", rcWindow.Height());
-
-    //2. 左侧面板的宽度（保存未缩放的值）
+    //1. 左侧面板的宽度（保存未缩放的值；窗口的位置与大小不保存）
     int32_t nLeftPanelWidth = -1;
     ui::Control* pLeftPanel = FindControl(_T("left_panel"));
     if (pLeftPanel != nullptr) {
@@ -1553,17 +1539,17 @@ void MainForm::SaveSettings() const
     AppendSettingInt(settingsText, "left_panel_width", nLeftPanelWidth);
 
     if (m_pRichEdit != nullptr) {
-        //3. 缩放比例
+        //2. 缩放比例
         AppendSettingInt(settingsText, "zoom_percent", (int32_t)m_pRichEdit->GetZoomPercent());
 
-        //4. 自动换行
+        //3. 自动换行
         AppendSettingInt(settingsText, "word_wrap", m_pRichEdit->IsWordWrap() ? 1 : 0);
 
-        //5. 富文本模式
+        //4. 富文本模式
         AppendSettingInt(settingsText, "rich_text", m_pRichEdit->IsRichText() ? 1 : 0);
     }
 
-    //6. 字体名称
+    //5. 字体名称
     AppendSettingString(settingsText, "font_name", ui::StringConvert::TToUTF8(m_lastFontName));
 
     const ui::FilePath filePath = GetSettingsFilePath();
