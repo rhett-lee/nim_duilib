@@ -31,6 +31,21 @@ DString MainForm::GetSkinFile()
 void MainForm::OnInitWindow()
 {
     BaseClass::OnInitWindow();
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    if (ui::UiIsWindows7OrOlder()) {
+        //Windows 7及更早版本，子窗口不支持分层窗口属性（WS_EX_LAYERED仅顶级窗口支持），
+        //因此主窗口不能是分层窗口，也不能使用系统阴影：
+        //使用系统阴影时，窗口客户区被DWM扩展（DwmExtendFrameIntoClientArea），普通GDI子窗口无法显示；
+        //主窗口是分层窗口时，子窗口同样无法显示。
+        //这里强制主窗口按普通窗口模式运行，保证子窗口能够正常绘制
+        if (IsShadowAttached()) {
+            SetShadowType(ui::ShadowType::kShadowNone);
+        }
+        if (IsLayeredWindow()) {
+            SetLayeredWindow(false, true);
+        }
+    }
+#endif
     //创建子窗口，并关联处理接口
     CreateChildWindows();
 }
