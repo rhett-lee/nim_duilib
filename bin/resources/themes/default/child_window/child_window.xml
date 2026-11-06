@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window size="80%,85%" min_size="720,480"
         caption="0,0,0,36" use_system_caption="false" snap_layout_menu="false" sys_menu="true" sys_menu_rect="0,0,36,36"
-        shadow_type="default" shadow_attached="true" shadow_snap="true" layered_window="false"
+        shadow_type="default" shadow_attached="true" shadow_snap="true" layered_window="true"
         size_box="4,4,4,4" icon="public/caption/logo.ico" text_id="STRID_CHILDWINDOW_TITLE">
     <!-- 卡片容器：内容区域分组显示，与 basic 等示例保持一致 -->
     <Class name="panel_card" bkcolor="bg_window_card" border_size="1" border_color="border_split_level1"
