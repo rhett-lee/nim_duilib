@@ -58,8 +58,8 @@
             <HBox height="stretch">
                 <!-- 左侧区域：控件演示面板 -->
                 <VScrollBox class="panel_card" name="left_panel" width="360" height="stretch" min_width="60" vscrollbar="true" padding="4,4,4,4">
-                    <GroupVBox margin="2,2,2,6" text_id="STRID_RICHEDIT_PASSWORD_FUNC" height="auto" corner_size="4,4">
-                        <HBox height="36" margin="8,14,8,0">
+                    <GroupVBox name="group_password" margin="2,2,2,6" text_id="STRID_RICHEDIT_PASSWORD_FUNC" height="auto" corner_size="4,4" cursor_type="hand">
+                        <HBox height="36" margin="8,24,8,0">
                             <Label text_id="STRID_RICHEDIT_PASSWORD_INPUT" width="130" text_align="right,vcenter" valign="center"/>
                             <RichEdit class="simple simple_border" text="This is password!" password="true" valign="center" text_align="vcenter" margin="8,6,4,4"/>
                         </HBox>
@@ -76,13 +76,13 @@
                             <RichEdit class="simple" text="This is password!" password="true" password_char="#" valign="center" text_align="vcenter" margin="8,6,4,4"/>
                         </HBox>
                     </GroupVBox>
-                    <GroupVBox margin="2,2,2,6" text_id="STRID_RICHEDIT_BASIC_FUNC" height="auto" corner_size="4,4">
-                        <HBox height="36" margin="8,14,8,0">
+                    <GroupVBox name="group_basic" margin="2,2,2,6" text_id="STRID_RICHEDIT_BASIC_FUNC" height="auto" corner_size="4,4" cursor_type="hand">
+                        <HBox height="36" margin="8,24,8,0">
                             <Label text_id="STRID_RICHEDIT_SINGLE_LINE_EDIT" width="130" text_align="right,vcenter" valign="center"/>
                             <RichEdit class="simple simple_border" text="RichEdit: simple" default_context_menu="true" valign="center" text_align="vcenter" text_padding="2,0,0,0" margin="8,6,4,4"/>
                         </HBox>
                         <HBox height="44" margin="8,0,8,0">
-                            <Label text_id="STRID_RICHEDIT_SINGLE_LINE_EDIT" width="130" text_align="right,vcenter" valign="center"/>
+                            <Label text_id="STRID_RICHEDIT_SINGLE_LINE_EDIT_PADDING" width="130" text_align="right,vcenter" valign="center"/>
                             <RichEdit class="simple simple_border" text="RichEdit: edit" valign="center" text_align="vcenter" text_padding="4,4,4,4" margin="8,6,4,4"/>
                         </HBox>
                         <HBox height="36" margin="8,0,8,0">
@@ -123,8 +123,8 @@
                         </HBox>
                     </GroupVBox>
 
-                    <GroupVBox margin="2,2,2,6" text_id="STRID_RICHEDIT_COMMON_FUNC" height="auto" corner_size="4,4">
-                        <HBox height="36" margin="8,14,8,0">
+                    <GroupVBox name="group_common" margin="2,2,2,6" text_id="STRID_RICHEDIT_COMMON_FUNC" height="auto" corner_size="4,4" cursor_type="hand">
+                        <HBox height="36" margin="8,24,8,0">
                             <Label text_id="STRID_RICHEDIT_SPIN_FUNC" width="130" text_align="right,vcenter" valign="center"/>
                             <RichEdit class="simple simple_border rich_edit_spin" min_number="-64" max_number="64" limit_text="3" margin="8,6,4,4"/>
                             <Label text_id="STRID_RICHEDIT_NUMBER_RANGE_64" valign="center" margin="6,0,4,0"/>
@@ -153,8 +153,8 @@
                         </HBox>
                     </GroupVBox>
 
-                    <GroupVBox margin="2,2,2,6" text_id="STRID_RICHEDIT_SCROLLBAR_FUNC" height="auto" corner_size="4,4">
-                        <HBox height="48" margin="8,14,8,0">
+                    <GroupVBox name="group_scrollbar" margin="2,2,2,6" text_id="STRID_RICHEDIT_SCROLLBAR_FUNC" height="auto" corner_size="4,4" cursor_type="hand">
+                        <HBox height="48" margin="8,24,8,0">
                             <Label text_id="STRID_RICHEDIT_HORIZONTAL_SCROLLBAR" width="130" text_align="right,vcenter" valign="center"/>
                             <RichEdit class="simple_border" text="0123456789abcdefghigklmn" multi_line="true" word_wrap="false" hscrollbar="true" margin="8,6,4,4"/>
                         </HBox>
@@ -206,7 +206,7 @@
                         <HBox height="auto" margin="0,0,0,4">
                             <Label text_id="STRID_RICHEDIT_FONT" width="56" text_align="right,vcenter" valign="center" font="system_bold_12" margin="0,0,10,0"/>
                             <Button class="btn_global" name="set_font" width="auto" height="28" padding="8,0,8,0" font="system_regular_12" text_id="STRID_RICHEDIT_SET_FONT" border_round="4,4" valign="center" margin="0,0,4,0"/>
-                            <Combo class="combo" name="combo_font_name" combo_icon_class="" combo_type="drop_down" dropbox_size="0,300" height="28" width="140" tooltip_text_id="STRID_RICHEDIT_SELECT_FONT" margin="2,0,2,0"/>
+                            <Combo class="combo" name="combo_font_name" combo_icon_class="" combo_type="drop_down" dropbox_size="0,300" height="28" width="160" tooltip_text_id="STRID_RICHEDIT_SELECT_FONT" margin="2,0,2,0"/>
                             <Combo class="combo" name="combo_font_size" combo_icon_class="" combo_type="drop_down" dropbox_size="0,300" height="28" width="56" margin="2,0,2,0" tooltip_text_id="STRID_RICHEDIT_SELECT_FONT"/>
                             <CheckBox class="font_style_check" name="btn_font_bold" text="B" font="system_bold_14" valign="center" margin="4,1,1,1" tooltip_text_id="STRID_RICHEDIT_FONT_BOLD"/>
                             <CheckBox class="font_style_check_italic" name="btn_font_italic" valign="center" margin="1,1,1,1" tooltip_text_id="STRID_RICHEDIT_FONT_ITALIC"/>
@@ -221,10 +221,10 @@
                         </HBox>
                         <HBox height="auto" margin="0,0,0,4">
                             <Label text_id="STRID_RICHEDIT_ZOOM" width="56" text_align="right,vcenter" valign="center" font="system_bold_12" margin="0,0,10,0"/>
-                            <Label text_id="STRID_RICHEDIT_CURRENT_ZOOM_RATIO" font="system_regular_12" valign="center"/>
+                            <Label text_id="STRID_RICHEDIT_CURRENT_ZOOM_RATIO" font="system_regular_12" valign="center" tooltip_text_id="STRID_RICHEDIT_ZOOM_SELECT_TIPS"/>
                             <Label name="lavel_zoom_value" text_id="STRID_RICHEDIT_ZOOM_100_PERCENT" font="system_bold_12" valign="center" margin="0,0,10,0"/>
                             <Combo class="combo" name="combo_zoom" combo_icon_class="" combo_type="drop_down" dropbox_size="120,240" height="28" width="88" margin="2,0,2,0" tooltip_text_id="STRID_RICHEDIT_ZOOM_SELECT_TIPS"/>
-                            <Button class="btn_global" name="btn_zoom_reset" text_id="STRID_RICHEDIT_RESET_ZOOM" width="auto" height="26" padding="8,0,8,0" font="system_regular_12" border_round="4,4" valign="center" margin="6,0,0,0"/>
+                            <Button class="btn_global" name="btn_zoom_reset" text_id="STRID_RICHEDIT_RESET_ZOOM" tooltip_text_id="STRID_RICHEDIT_ZOOM_RESET_TIPS" width="auto" height="26" padding="8,0,8,0" font="system_regular_12" border_round="4,4" valign="center" margin="6,0,0,0"/>
                         </HBox>
                         <HBox height="auto">
                             <Label text_id="STRID_RICHEDIT_OTHER" width="56" text_align="right,vcenter" valign="center" font="system_bold_12" margin="0,0,10,0"/>

@@ -7,6 +7,7 @@
 #include "RichEditFindReplace.h"
 
 #include <functional>
+#include <map>
 
 class FindForm;
 class ReplaceForm;
@@ -100,6 +101,15 @@ private:
     void SetupViewTools();
     void SetupTextEvents();
     void SetupDropFile();
+
+    //初始化左侧演示面板的分组折叠功能（点击分组标题区域折叠/展开）
+    void SetupCollapsibleGroups();
+
+    //切换分组的折叠状态
+    void ToggleGroupCollapsed(ui::GroupVBox* pGroup);
+
+    //更新分组标题（显示折叠/展开标记）
+    void UpdateGroupTitle(ui::GroupVBox* pGroup);
 
     //绑定按钮的点击事件
     void BindClick(const DString& controlName, const std::function<void()>& onClick);
@@ -274,6 +284,12 @@ private:
 
     //状态栏提示信息
     DString m_statusMessage;
+
+    //状态栏提示信息的自动清除定时器ID（0表示没有定时器）
+    size_t m_statusMessageTimerId;
+
+    //分组标题的原始文本（用于追加折叠/展开标记）
+    std::map<ui::Control*, DString> m_groupTitleText;
 
     //当前文档编码说明
     DString m_encodingText;
