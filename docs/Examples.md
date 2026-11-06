@@ -49,8 +49,9 @@ macOS 下默认编译为 `bin/basic.app`，C++ 代码无需修改；配置方法
 <img width="900" src="./Images/render04.png"/>
 
 ## 9. examples/RichEdit
-演示如何使用RichEdit控件。    
-代码入口：[MainThread.cpp](../examples/RichEdit/MainThread.cpp)、[MainForm.cpp](../examples/RichEdit/MainForm.cpp)、[FindForm.cpp](../examples/RichEdit/FindForm.cpp)、[ReplaceForm.cpp](../examples/RichEdit/ReplaceForm.cpp)；界面资源：`bin/resources/themes/default/rich_edit/rich_edit.xml`、`rich_edit/find.xml`、`rich_edit/replace.xml`；相关文档：[Control.md](Control.md)。    
+演示如何使用RichEdit控件，实现一个简易记事本：新建、打开（TXT/RTF）、保存、查找与替换、字体名称与字号、粗体/斜体/下划线/删除线、文字颜色、缩放（下拉比例、Ctrl+滚轮）、自动换行、富文本模式与行距、复制/剪切/粘贴/撤销/重做/全选，支持拖入 `.txt`/`.rtf` 文件打开；底部状态栏显示光标位置、字符数、缩放比例、编辑模式与编码，并实时提示操作结果；窗口位置与大小、左侧分栏宽度、缩放、字体、换行与富文本状态在退出时保存，下次启动自动恢复。    
+快捷键：Ctrl+N 新建、Ctrl+O 打开、Ctrl+S 保存、Ctrl+Shift+S 另存为、Ctrl+F 查找、Ctrl+H 替换、F3 查找下一个、Ctrl+0 缩放复位为 100%、Ctrl+滚轮 缩放；查找/替换对话框中 Enter 执行、Esc 关闭、F3 查找下一个。    
+代码入口：[MainThread.cpp](../examples/RichEdit/MainThread.cpp)、[MainForm.cpp](../examples/RichEdit/MainForm.cpp)、[FindForm.cpp](../examples/RichEdit/FindForm.cpp)、[ReplaceForm.cpp](../examples/RichEdit/ReplaceForm.cpp)；界面资源：`bin/resources/themes/default/rich_edit/rich_edit.xml`、`rich_edit/find.xml`、`rich_edit/replace.xml`；用户设置文件：`user/RichEdit_settings.ini`；相关文档：[Control.md](Control.md)。    
 <img width="900" src="./Images/RichEdit.png"/>
 
 ## 10. examples/TreeView

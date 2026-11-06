@@ -5,6 +5,7 @@ RichEditFindReplace::RichEditFindReplace():
     m_bFindDown(true),
     m_bMatchCase(true),
     m_bMatchWholeWord(false),
+    m_nLastReplaceCount(0),
     m_bFirstSearch(true),
     m_nInitialSearchPos(0),
     m_nOldCursor(0)
@@ -113,6 +114,7 @@ bool RichEditFindReplace::ReplaceRichText(const DString& findText, const DString
         m_pRichEdit->ReplaceSel(m_sReplaceWith, false);
         bReplaced = true;
     }
+    m_nLastReplaceCount = bReplaced ? 1 : 0;
 
     if (!FindTextSimple(m_sFindNext, bFindDown, m_bMatchCase, m_bMatchWholeWord)) {
         TextNotFound(m_sFindNext);
@@ -171,7 +173,13 @@ bool RichEditFindReplace::ReplaceAllRichText(const DString& findText, const DStr
     } while (FindTextSimple(m_sFindNext, m_bFindDown, m_bMatchCase, m_bMatchWholeWord));
 
     OnReplaceAllCoreEnd(replaceCount);
+    m_nLastReplaceCount = replaceCount;
     return replaceCount > 0;
+}
+
+int32_t RichEditFindReplace::GetLastReplaceCount() const
+{
+    return m_nLastReplaceCount;
 }
 
 bool RichEditFindReplace::FindTextSimple(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord)

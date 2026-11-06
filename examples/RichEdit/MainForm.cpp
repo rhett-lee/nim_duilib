@@ -4,6 +4,8 @@
 #include "MainThread.h"
 #include "duilib/Utils/MessageBoxWnd.h"
 #include <fstream>
+#include <list>
+#include <map>
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 #include <ShellApi.h>
@@ -13,6 +15,97 @@
 #ifndef LY_PER_INCH
     #define LY_PER_INCH 1440
 #endif
+
+/** 用户设置文件中的键值对
+*/
+typedef std::map<std::string, std::string> SettingsMap;
+
+/** 解析用户设置文本中的一行：键=值（以'#'或者';'开头的行为注释行）
+*/
+void ParseSettingsText(const std::string& text, SettingsMap& settings)
+{
+    settings.clear();
+    std::list<std::string> lines = ui::StringUtil::Split(text, "\n");
+    for (std::string& line : lines) {
+        ui::StringUtil::Trim(line);
+        if (line.empty() || (line[0] == '#') || (line[0] == ';')) {
+            continue;
+        }
+        const size_t nPos = line.find('=');
+        if (nPos == std::string::npos) {
+            continue;
+        }
+        std::string key = line.substr(0, nPos);
+        std::string value = line.substr(nPos + 1);
+        ui::StringUtil::Trim(key);
+        ui::StringUtil::Trim(value);
+        if (!key.empty()) {
+            settings[key] = value;
+        }
+    }
+}
+
+/** 读取用户设置文件（文本格式：每行一个"键=值"，UTF-8编码）
+*/
+void ReadSettingsFile(const ui::FilePath& filePath, SettingsMap& settings)
+{
+    settings.clear();
+    std::vector<uint8_t> fileData;
+    if (!ui::FileUtil::ReadFileData(filePath, fileData) || fileData.empty()) {
+        return;
+    }
+    std::string text(fileData.begin(), fileData.end());
+    //去除UTF-8 BOM
+    if ((text.size() >= 3) &&
+        (static_cast<uint8_t>(text[0]) == 0xEF) &&
+        (static_cast<uint8_t>(text[1]) == 0xBB) &&
+        (static_cast<uint8_t>(text[2]) == 0xBF)) {
+        text.erase(0, 3);
+    }
+    ParseSettingsText(text, settings);
+}
+
+/** 从用户设置中读取一个整数
+*/
+int32_t GetSettingInt(const SettingsMap& settings, const std::string& key, int32_t nDefault)
+{
+    auto iter = settings.find(key);
+    if (iter == settings.end()) {
+        return nDefault;
+    }
+    return ui::StringUtil::StringToInt32(iter->second.c_str());
+}
+
+/** 从用户设置中读取一个字符串
+*/
+std::string GetSettingString(const SettingsMap& settings, const std::string& key, const std::string& defaultText)
+{
+    auto iter = settings.find(key);
+    if (iter == settings.end()) {
+        return defaultText;
+    }
+    return iter->second;
+}
+
+/** 把整数写入用户设置文本
+*/
+void AppendSettingInt(std::string& settingsText, const std::string& key, int32_t nValue)
+{
+    settingsText += key;
+    settingsText += '=';
+    settingsText += std::to_string(nValue);
+    settingsText += '\n';
+}
+
+/** 把字符串写入用户设置文本（需要先转换为UTF-8）
+*/
+void AppendSettingString(std::string& settingsText, const std::string& key, const std::string& value)
+{
+    settingsText += key;
+    settingsText += '=';
+    settingsText += value;
+    settingsText += '\n';
+}
 
 MainForm::MainForm():
     m_pRichEdit(nullptr),
@@ -41,185 +134,147 @@ DString MainForm::GetSkinFile()
 
 void MainForm::OnInitWindow()
 {
-    ui::RichEdit* pRichEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("test_url")));
-    if (pRichEdit != nullptr) {
-        pRichEdit->AttachLinkClick([this, pRichEdit](const ui::EventArgs& args) {
-                //点击了超级链接
-                if (args.GetSender() == pRichEdit) {
-                    const DString::value_type* pUrl = (const DString::value_type*)args.wParam;
-                    if (pUrl != nullptr) {
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-                        ::ShellExecuteW(NativeWnd()->GetHWND(), L"open", ui::StringConvert::TToWString(pUrl).c_str(), nullptr, nullptr, SW_SHOWNORMAL);
-#endif
-                    }
-                }
-                return true;
-            });
-    }
     m_pRichEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("rich_edit")));
     ASSERT(m_pRichEdit != nullptr);
     m_findReplace.SetRichEdit(m_pRichEdit);
+
+    ui::Button* pSaveButton = dynamic_cast<ui::Button*>(FindControl(_T("save_file")));
+    if (pSaveButton != nullptr) {
+        m_saveBtnText = pSaveButton->GetText();
+    }
+
+    SetupTestControls();
+    SetupFileTools();
+    SetupEditTools();
+    SetupFindTools();
+    SetupFontTools();
+    SetupViewTools();
+    SetupTextEvents();
+    SetupDropFile();
+
+    LoadSettings();
     LoadRichEditData();
 
-    //文件操作：打开、保存、另存
-    ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(_T("open_file")));
-    if (pButton != nullptr) {
-        pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-                if (args.GetSender() == pButton) {
-                    this->OnOpenFile();
-                }
-                return true;
-            });
-    }
-    pButton = dynamic_cast<ui::Button*>(FindControl(_T("save_file")));
-    if (pButton != nullptr) {
-        m_saveBtnText = pButton->GetText();
-        pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-                if (args.GetSender() == pButton) {
-                    this->OnSaveFile();
-                }
-                return true;
-            });
-    }
-    pButton = dynamic_cast<ui::Button*>(FindControl(_T("save_as_file")));
-    if (pButton != nullptr) {
-        pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-                if (args.GetSender() == pButton) {
-                    this->OnSaveAsFile();
-                }
-                return true;
-            });
-    }
+    UpdateSaveStatus();
+    UpdateStatusBar();
+    UpdateFontStatus();
+    UpdateEditButtonStatus();
+    UpdateRowSpacingEnabled();
+    UpdateZoomValue();
+}
 
-    //编辑操作
-    pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_copy")));
-    if (pButton != nullptr) {
-        pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-            if (args.GetSender() == pButton) {
-                if (m_pRichEdit != nullptr) {
-                    m_pRichEdit->Copy();
-                    UpdateSaveStatus();
-                }
-            }
-            return true;
-            });
-    }
-    pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_cut")));
-    if (pButton != nullptr) {
-        pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-            if (args.GetSender() == pButton) {
-                if (m_pRichEdit != nullptr) {
-                    m_pRichEdit->Cut();
-                    UpdateSaveStatus();
-                }
-            }
-            return true;
-            });
-    }
-    pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_paste")));
-    if (pButton != nullptr) {
-        pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-            if (args.GetSender() == pButton) {
-                if (m_pRichEdit != nullptr) {
-                    m_pRichEdit->Paste();
-                    UpdateSaveStatus();
-                }
-            }
-            return true;
-            });
-    }
-    pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_delete")));
-    if (pButton != nullptr) {
-        pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-            if (args.GetSender() == pButton) {
-                if (m_pRichEdit != nullptr) {
-                    m_pRichEdit->Clear();
-                    UpdateSaveStatus();
-                }
-            }
-            return true;
-            });
-    }
-    pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_sel_all")));
-    if (pButton != nullptr) {
-        pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-            if (args.GetSender() == pButton) {
-                if (m_pRichEdit != nullptr) {
-                    m_pRichEdit->SetSelAll();
-                    UpdateSaveStatus();
-                }
-            }
-            return true;
-            });
-    }
-    pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_sel_none")));
-    if (pButton != nullptr) {
-        pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-            if (args.GetSender() == pButton) {
-                if (m_pRichEdit != nullptr) {
-                    m_pRichEdit->SetSelNone();
-                    UpdateSaveStatus();
-                }
-            }
-            return true;
-            });
-    }
-    pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_undo")));
-    if (pButton != nullptr) {
-        pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-            if (args.GetSender() == pButton) {
-                if (m_pRichEdit != nullptr) {
-                    m_pRichEdit->Undo();
-                    UpdateSaveStatus();
-                }
-            }
-            return true;
-            });
-    }
-    pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_redo")));
-    if (pButton != nullptr) {
-        pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-            if (args.GetSender() == pButton) {
-                if (m_pRichEdit != nullptr) {
-                    m_pRichEdit->Redo();
-                    UpdateSaveStatus();
-                }
-            }
-            return true;
-            });
-    }
 
-    //查找操作
-    pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_find_text")));
+void MainForm::BindClick(const DString& controlName, const std::function<void()>& onClick)
+{
+    ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(controlName));
     if (pButton != nullptr) {
-        pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
+        pButton->AttachClick([pButton, onClick](const ui::EventArgs& args) {
             if (args.GetSender() == pButton) {
-                OnFindText();
+                onClick();
             }
             return true;
             });
     }
-    pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_find_next")));
-    if (pButton != nullptr) {
-        pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-            if (args.GetSender() == pButton) {
-                OnFindNext();
-            }
-            return true;
-            });
-    }
-    pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_replace_text")));
-    if (pButton != nullptr) {
-        pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-            if (args.GetSender() == pButton) {
-                OnReplaceText();
-            }
-            return true;
-            });
-    }
+}
 
+void MainForm::SetupTestControls()
+{
+    ui::RichEdit* pRichEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("test_url")));
+    if (pRichEdit != nullptr) {
+        pRichEdit->AttachLinkClick([this, pRichEdit](const ui::EventArgs& args) {
+            //点击了超级链接
+            if (args.GetSender() == pRichEdit) {
+                const DString::value_type* pUrl = (const DString::value_type*)args.wParam;
+                if (pUrl != nullptr) {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+                    ::ShellExecuteW(NativeWnd()->GetHWND(), L"open", ui::StringConvert::TToWString(pUrl).c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+#endif
+                }
+            }
+            return true;
+            });
+    }
+}
+
+void MainForm::SetupFileTools()
+{
+    BindClick(_T("new_file"), [this]() { OnNewFile(); });
+    BindClick(_T("open_file"), [this]() { OnOpenFile(); });
+    BindClick(_T("save_file"), [this]() { OnSaveFile(); });
+    BindClick(_T("save_as_file"), [this]() { OnSaveAsFile(); });
+}
+
+void MainForm::SetupEditTools()
+{
+    BindClick(_T("btn_copy"), [this]() {
+        if (m_pRichEdit != nullptr) {
+            m_pRichEdit->Copy();
+            UpdateSaveStatus();
+            UpdateEditButtonStatus();
+        }
+        });
+    BindClick(_T("btn_cut"), [this]() {
+        if (m_pRichEdit != nullptr) {
+            m_pRichEdit->Cut();
+            UpdateSaveStatus();
+            UpdateEditButtonStatus();
+        }
+        });
+    BindClick(_T("btn_paste"), [this]() {
+        if (m_pRichEdit != nullptr) {
+            m_pRichEdit->Paste();
+            UpdateSaveStatus();
+            UpdateEditButtonStatus();
+        }
+        });
+    BindClick(_T("btn_delete"), [this]() {
+        if (m_pRichEdit != nullptr) {
+            m_pRichEdit->ReplaceSel(DString(), false);
+            UpdateSaveStatus();
+            UpdateEditButtonStatus();
+        }
+        });
+    BindClick(_T("btn_sel_all"), [this]() {
+        if (m_pRichEdit != nullptr) {
+            m_pRichEdit->SetSelAll();
+            UpdateSaveStatus();
+            UpdateEditButtonStatus();
+        }
+        });
+    BindClick(_T("btn_sel_none"), [this]() {
+        if (m_pRichEdit != nullptr) {
+            m_pRichEdit->SetSelNone();
+            UpdateSaveStatus();
+            UpdateEditButtonStatus();
+        }
+        });
+    BindClick(_T("btn_undo"), [this]() {
+        if (m_pRichEdit != nullptr) {
+            m_pRichEdit->Undo();
+            UpdateSaveStatus();
+            UpdateEditButtonStatus();
+        }
+        });
+    BindClick(_T("btn_redo"), [this]() {
+        if (m_pRichEdit != nullptr) {
+            m_pRichEdit->Redo();
+            UpdateSaveStatus();
+            UpdateEditButtonStatus();
+        }
+        });
+}
+
+void MainForm::SetupFindTools()
+{
+    BindClick(_T("btn_find_text"), [this]() { OnFindText(); });
+    BindClick(_T("btn_find_next"), [this]() { OnFindNext(); });
+    BindClick(_T("btn_replace_text"), [this]() { OnReplaceText(); });
+}
+
+void MainForm::SetupFontTools()
+{
     //设置字体
-    pButton = dynamic_cast<ui::Button*>(FindControl(_T("set_font")));
+    ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(_T("set_font")));
     if (pButton != nullptr) {
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
@@ -233,8 +288,8 @@ void MainForm::OnInitWindow()
 #endif
     }
 
-    //初始化字体信息
-    ui::Combo* pFontNameCombo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_font_name"))); 
+    //初始化字体名称列表
+    ui::Combo* pFontNameCombo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_font_name")));
     if (pFontNameCombo != nullptr) {
         m_fontList.clear();
         ui::GlobalManager::Instance().Font().GetFontNameList(m_fontList);
@@ -245,372 +300,326 @@ void MainForm::OnInitWindow()
                 pFontNameCombo->SetItemData(nItemIndex, nIndex);
             }
         }
-        pFontNameCombo->AttachSelect([this, pFontNameCombo](const ui::EventArgs& args) {
+        pFontNameCombo->AttachSelect([this, pFontNameCombo](const ui::EventArgs& /*args*/) {
             DString fontName = pFontNameCombo->GetText();
             SetFontName(fontName);
             return true;
             });
-        pFontNameCombo->AttachWindowClose([this, pFontNameCombo](const ui::EventArgs& args) {
+        pFontNameCombo->AttachWindowClose([this, pFontNameCombo](const ui::EventArgs& /*args*/) {
             DString fontName = pFontNameCombo->GetText();
             SetFontName(fontName);
             return true;
             });
     }
+
+    //初始化字体大小列表
     ui::Combo* pFontSizeCombo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_font_size")));
     if (pFontSizeCombo != nullptr) {
-        ui::GlobalManager::Instance().Font().GetDpiFontSizeList(Dpi(), m_fontSizeList);
-        for (size_t nIndex = 0; nIndex < m_fontSizeList.size(); ++nIndex) {
-            const ui::FontSizeInfo& fontSize = m_fontSizeList[nIndex];
-            size_t nItemIndex = pFontSizeCombo->AddTextItem(fontSize.fontSizeName);
-            if (ui::Box::IsValidItemIndex(nItemIndex)) {
-                pFontSizeCombo->SetItemData(nItemIndex, nIndex);
-            }
-        }
-        pFontSizeCombo->AttachSelect([this, pFontSizeCombo](const ui::EventArgs& args) {
-            DString fontName = pFontSizeCombo->GetText();
-            SetFontSize(fontName);
+        pFontSizeCombo->AttachSelect([this, pFontSizeCombo](const ui::EventArgs& /*args*/) {
+            DString fontSize = pFontSizeCombo->GetText();
+            SetFontSize(fontSize);
             return true;
             });
-        pFontSizeCombo->AttachWindowClose([this, pFontSizeCombo](const ui::EventArgs& args) {
-            DString fontName = pFontSizeCombo->GetText();
-            SetFontSize(fontName);
+        pFontSizeCombo->AttachWindowClose([this, pFontSizeCombo](const ui::EventArgs& /*args*/) {
+            DString fontSize = pFontSizeCombo->GetText();
+            SetFontSize(fontSize);
             return true;
             });
     }
+    InitFontSizeCombo();
 
-    //更新是否粗体
+    //粗体、斜体、下划线、删除线
     ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_font_bold")));
     if (pCheckBox != nullptr) {
-        pCheckBox->AttachSelect([this, pCheckBox](const ui::EventArgs& args) {
-            SetFontBold(pCheckBox->IsSelected());
-            return true;
-            });
-        pCheckBox->AttachUnSelect([this, pCheckBox](const ui::EventArgs& args) {
+        pCheckBox->AttachClick([this, pCheckBox](const ui::EventArgs& /*args*/) {
             SetFontBold(pCheckBox->IsSelected());
             return true;
             });
     }
-
-    //更新是否斜体
     pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_font_italic")));
     if (pCheckBox != nullptr) {
-        pCheckBox->AttachSelect([this, pCheckBox](const ui::EventArgs& args) {
-            SetFontItalic(pCheckBox->IsSelected());
-            return true;
-            });
-        pCheckBox->AttachUnSelect([this, pCheckBox](const ui::EventArgs& args) {
+        pCheckBox->AttachClick([this, pCheckBox](const ui::EventArgs& /*args*/) {
             SetFontItalic(pCheckBox->IsSelected());
             return true;
             });
     }
-
-    //更新是否下划线
     pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_font_underline")));
     if (pCheckBox != nullptr) {
-        pCheckBox->AttachSelect([this, pCheckBox](const ui::EventArgs& args) {
-            SetFontUnderline(pCheckBox->IsSelected());
-            return true;
-            });
-        pCheckBox->AttachUnSelect([this, pCheckBox](const ui::EventArgs& args) {
+        pCheckBox->AttachClick([this, pCheckBox](const ui::EventArgs& /*args*/) {
             SetFontUnderline(pCheckBox->IsSelected());
             return true;
             });
     }
-
-    //更新是否删除线
     pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_font_strikeout")));
     if (pCheckBox != nullptr) {
-        pCheckBox->AttachSelect([this, pCheckBox](const ui::EventArgs& args) {
-            SetFontStrikeOut(pCheckBox->IsSelected());
-            return true;
-            });
-        pCheckBox->AttachUnSelect([this, pCheckBox](const ui::EventArgs& args) {
+        pCheckBox->AttachClick([this, pCheckBox](const ui::EventArgs& /*args*/) {
             SetFontStrikeOut(pCheckBox->IsSelected());
             return true;
             });
     }
 
-    //增加字体大小
-    ui::Button* pFontButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_font_size_increase")));
-    if (pFontButton != nullptr) {
-        pFontButton->AttachClick([this](const ui::EventArgs& args) {
-            AdjustFontSize(true);
-            return true;
-            });
-    }
-    //减小字体大小
-    pFontButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_font_size_decrease")));
-    if (pFontButton != nullptr) {
-        pFontButton->AttachClick([this](const ui::EventArgs& args) {
-            AdjustFontSize(false);
-            return true;
-            });
-    }
+    BindClick(_T("btn_font_size_increase"), [this]() { AdjustFontSize(true); });
+    BindClick(_T("btn_font_size_decrease"), [this]() { AdjustFontSize(false); });
 
-    //设置颜色
+    //初始化颜色选择
     InitColorCombo();
-    ui::ComboButton* pColorComboBtn = dynamic_cast<ui::ComboButton*>(FindControl(_T("color_combo_button")));
-    if (pColorComboBtn != nullptr) {
-        DString textColor;
-        if (m_pRichEdit != nullptr) {
-            textColor = m_pRichEdit->GetTextColor();
-        }
-        //设置选择后的颜色
-        ui::Label* pLeftColorLabel = pColorComboBtn->GetLabelBottom();
-        if (pLeftColorLabel != nullptr) {
-            pLeftColorLabel->SetBkColor(textColor);
-        }
+}
 
-        //左侧按钮点击事件
-        pColorComboBtn->AttachClick([this, pLeftColorLabel](const ui::EventArgs& args) {
-            if (pLeftColorLabel != nullptr) {
-                SetTextColor(pLeftColorLabel->GetBkColor());
-            }
-            return true;
-            });
-    }
-
+void MainForm::SetupViewTools()
+{
+    InitZoomCombo();
     UpdateZoomValue();
     if (m_pRichEdit != nullptr) {
-        m_pRichEdit->AttachZoom([this](const ui::EventArgs& args) {
+        m_pRichEdit->AttachZoom([this](const ui::EventArgs& /*args*/) {
             UpdateZoomValue();
             return true;
             });
     }
-    ui::Button* pZoomButtom = dynamic_cast<ui::Button*>(FindControl(_T("btn_zoom_in")));
-    if (pZoomButtom != nullptr) {
-        pZoomButtom->AttachClick([this](const ui::EventArgs& args) {
-            if (m_pRichEdit != nullptr) {
-                //放大：每次放大10%
-                uint32_t nZoomPercent = GetNextZoomPercent(m_pRichEdit->GetZoomPercent(), true);
-                m_pRichEdit->SetZoomPercent(nZoomPercent);
-                UpdateZoomValue();
-            }
-            return true;
-            });
-    }
-    pZoomButtom = dynamic_cast<ui::Button*>(FindControl(_T("btn_zoom_out")));
-    if (pZoomButtom != nullptr) {
-        pZoomButtom->AttachClick([this](const ui::EventArgs& args) {
-            if (m_pRichEdit != nullptr) {
-                //缩小：每次缩小10%
-                uint32_t nZoomPercent = GetNextZoomPercent(m_pRichEdit->GetZoomPercent(), false);
-                m_pRichEdit->SetZoomPercent(nZoomPercent);
-                UpdateZoomValue();
-            }
-            return true;
-            });
-    }
-    pZoomButtom = dynamic_cast<ui::Button*>(FindControl(_T("btn_zoom_off")));
-    if (pZoomButtom != nullptr) {
-        pZoomButtom->AttachClick([this](const ui::EventArgs& args) {
-            if (m_pRichEdit != nullptr) {
-                //恢复
-                m_pRichEdit->SetZoomPercent(100);
-                UpdateZoomValue();
-            }
-            return true;
-            });
-    }
 
-    //是否自动换行
-    pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_word_wrap")));
-    if ((pCheckBox != nullptr) && (m_pRichEdit != nullptr)) {
-        pCheckBox->SetSelected(m_pRichEdit->IsWordWrap());
-        pCheckBox->AttachSelect([this](const ui::EventArgs& args) {
+    //自动换行
+    ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_word_wrap")));
+    if (pCheckBox != nullptr) {
+        pCheckBox->AttachClick([this, pCheckBox](const ui::EventArgs& /*args*/) {
             if (m_pRichEdit != nullptr) {
-                m_pRichEdit->SetWordWrap(true);
-                m_pRichEdit->SetAttribute(_T("hscrollbar"), _T("false"));
-                UpdateStatusBar();
-            }
-            return true;
-            });
-        pCheckBox->AttachUnSelect([this](const ui::EventArgs& args) {
-            if (m_pRichEdit != nullptr) {
-                m_pRichEdit->SetWordWrap(false);
-                m_pRichEdit->SetAttribute(_T("hscrollbar"), _T("true"));
+                bool bWordWrap = pCheckBox->IsSelected();
+                m_pRichEdit->SetWordWrap(bWordWrap);
+                m_pRichEdit->SetAttribute(_T("hscrollbar"), bWordWrap ? _T("false") : _T("true"));
                 UpdateStatusBar();
             }
             return true;
             });
     }
 
-    //是否支持富文本格式
+    //富文本模式
     pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_rich_text")));
-    if ((pCheckBox != nullptr) && (m_pRichEdit != nullptr)) {
-        pCheckBox->SetSelected(m_pRichEdit->IsRichText());
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-        pCheckBox->AttachSelect([this](const ui::EventArgs& args) {
-            if (m_bUpdatingRichTextCheck) {
-                return true;
-            }
+    if (pCheckBox != nullptr) {
+        pCheckBox->AttachClick([this, pCheckBox](const ui::EventArgs& /*args*/) {
             if (m_pRichEdit != nullptr) {
-                m_pRichEdit->SetRichText(true);
-                UpdateSaveStatus();
-                UpdateStatusBar();
-                UpdateFontStatus();
-            }
-            return true;
-            });
-        pCheckBox->AttachUnSelect([this, pCheckBox](const ui::EventArgs& args) {
-            if (m_bUpdatingRichTextCheck) {
-                return true;
-            }
-            if (m_pRichEdit != nullptr) {
-                if (m_pRichEdit->IsRichText()) {
-                    //关闭富文本模式会丢失文本格式与撤销记录，需要确认
-                    int32_t nRet = ui::MessageBoxWnd::Show(this,
-                                        _T("STRID_RICHEDIT_RICHTEXT_SWITCH_TEXT"),
-                                        _T("STRID_RICHEDIT_RICHTEXT_SWITCH_TITLE"),
-                                        ui::MessageBoxWnd::kButtonsOKCancel,
-                                        ui::MessageBoxWnd::kIconWarning,
-                                        nullptr, true);
-                    if (nRet != ui::MessageBoxWnd::kResultOK) {
-                        m_bUpdatingRichTextCheck = true;
-                        pCheckBox->SetSelected(true);
-                        m_bUpdatingRichTextCheck = false;
-                        return true;
-                    }
-                }
+                bool bRichText = pCheckBox->IsSelected();
+                m_bUpdatingRichTextCheck = true;
                 m_bLoadingDocument = true;
-                m_pRichEdit->SetRichText(false);
+                m_pRichEdit->SetRichText(bRichText);
                 m_bLoadingDocument = false;
+                m_bUpdatingRichTextCheck = false;
                 UpdateSaveStatus();
                 UpdateStatusBar();
                 UpdateFontStatus();
+                UpdateEditButtonStatus();
+                UpdateRowSpacingEnabled();
             }
             return true;
             });
-#else
-        //SDL实现的时候，不支持富文本格式
-        pCheckBox->SetEnabled(false);
-#endif
     }
 
-    //文本变化：刷新保存状态与状态栏
+    //行距相关控件：富文本关闭时禁用
+    m_rowSpacingControls.clear();
+    const DString rowSpacingNames[] = {
+        _T("line_spacing_label"),
+        _T("row_spacing_1_0"),
+        _T("row_spacing_1_15"),
+        _T("row_spacing_1_5"),
+        _T("row_spacing_2_0"),
+        _T("row_spacing_2_5"),
+        _T("row_spacing_3_0")
+    };
+    for (const DString& name : rowSpacingNames) {
+        ui::Control* pControl = FindControl(name);
+        if (pControl != nullptr) {
+            m_rowSpacingControls.push_back(pControl);
+        }
+    }
+}
+
+void MainForm::SetupTextEvents()
+{
     if (m_pRichEdit != nullptr) {
-        m_pRichEdit->AttachTextChanged([this](const ui::EventArgs& args) {
+        m_pRichEdit->AttachTextChanged([this](const ui::EventArgs& /*args*/) {
             if (!m_bLoadingDocument) {
                 m_statusMessage.clear();
                 UpdateSaveStatus();
                 UpdateStatusBar();
+                UpdateEditButtonStatus();
             }
             return true;
             });
-    }
-
-    //更新字体按钮的状态
-    UpdateFontStatus();
-
-    //超链接
-    if (m_pRichEdit != nullptr) {
         m_pRichEdit->AttachLinkClick([this](const ui::EventArgs& args) {
-            const DString::value_type* url = (const DString::value_type*)args.wParam;
-            if (url != nullptr) {
+            //点击了超级链接
+            const DString::value_type* pUrl = (const DString::value_type*)args.wParam;
+            if (pUrl != nullptr) {
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-                ::MessageBoxW(NativeWnd()->GetHWND(), ui::StringConvert::TToWString(url).c_str(), L"RichEdit", MB_OK);
+                ::ShellExecuteW(NativeWnd()->GetHWND(), L"open", ui::StringConvert::TToWString(pUrl).c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 #endif
             }
             return true;
             });
-    }
-    //RichEdit文本选择变化
-    if (m_pRichEdit != nullptr) {
-        m_pRichEdit->AttachSelChanged([this](const ui::EventArgs& args) {
+        m_pRichEdit->AttachSelChanged([this](const ui::EventArgs& /*args*/) {
             if (m_pRichEdit != nullptr) {
                 UpdateFontStatus();
                 UpdateStatusBar();
+                UpdateEditButtonStatus();
             }
             return true;
             });
     }
-
-    //初始化状态显示
-    UpdateSaveStatus();
-    UpdateStatusBar();
 }
 
-uint32_t MainForm::GetNextZoomPercent(uint32_t nOldZoomPercent, bool bZoomIn) const
+void MainForm::SetupDropFile()
 {
-    //缩放百分比的最大值
-    const uint32_t MAX_ZOOM_PERCENT = 800;
-
-    //通过查表的方式设置缩放比例(放大和缩小的时候，能够按照原来的比例复原)
-    std::vector<uint32_t> zoomPercentList;
-    uint32_t nZoomPercent = 100;
-    while (nZoomPercent > 1) {
-        nZoomPercent = (uint32_t)(nZoomPercent * 0.90f);
-        zoomPercentList.insert(zoomPercentList.begin(), nZoomPercent);
+    if (m_pRichEdit == nullptr) {
+        return;
     }
-    nZoomPercent = 100;
-    while (nZoomPercent < MAX_ZOOM_PERCENT) {
-        zoomPercentList.insert(zoomPercentList.end(), nZoomPercent);
-        nZoomPercent = (uint32_t)(nZoomPercent * 1.10f);
-    }
-    zoomPercentList.insert(zoomPercentList.end(), MAX_ZOOM_PERCENT);
+    m_pRichEdit->SetEnableDragDrop(true);
+    m_pRichEdit->SetEnableDropFile(true);
+    m_pRichEdit->SetDropFileTypes(_T(".txt;.rtf"));
+    m_pRichEdit->AttachDropData([this](const ui::EventArgs& args) {
+        std::vector<DString> fileList;
+        if (args.wParam == ui::kControlDropTypeWindows) {
+            const ui::ControlDropData_Windows* pData = (const ui::ControlDropData_Windows*)args.lParam;
+            if (pData != nullptr) {
+                fileList = pData->m_fileList;
+            }
+        }
+        else if (args.wParam == ui::kControlDropTypeSDL) {
+            const ui::ControlDropData_SDL* pData = (const ui::ControlDropData_SDL*)args.lParam;
+            if (pData != nullptr) {
+                fileList = pData->m_fileList;
+            }
+        }
+        if (fileList.empty()) {
+            return true;
+        }
+        const ui::FilePath filePath(fileList[0]);
+        const DString fileExt = filePath.GetFileExtension();
+        if ((fileExt != _T(".txt")) && (fileExt != _T(".rtf"))) {
+            return true;
+        }
+        if (!ConfirmDiscardChanges()) {
+            return true;
+        }
+        if (LoadFile(filePath)) {
+            m_filePath = filePath;
+            m_bSampleDocument = false;
+            m_lastFileDir = filePath.GetParentPath();
+            if (m_pRichEdit != nullptr) {
+                m_pRichEdit->SetModify(false);
+            }
+            m_statusMessage.clear();
+            UpdateSaveStatus();
+            UpdateStatusBar();
+            UpdateEditButtonStatus();
+        }
+        else {
+            ShowErrorMessage(_T("STRID_RICHEDIT_OPEN_FILE_FAILED"), _T("STRID_RICHEDIT_OPEN_FILE"));
+        }
+        return true;
+        });
+}
 
+void MainForm::UpdateEditButtonStatus()
+{
+    ui::RichEdit* pRichEdit = GetRichEdit();
+    if (pRichEdit == nullptr) {
+        return;
+    }
+    const bool bHasSel = !pRichEdit->GetSelText().empty();
+
+    auto setEnabled = [this](const DString& controlName, bool bEnabled) {
+        ui::Control* pControl = FindControl(controlName);
+        if (pControl != nullptr) {
+            pControl->SetEnabled(bEnabled);
+        }
+        };
+    setEnabled(_T("btn_undo"), pRichEdit->CanUndo());
+    setEnabled(_T("btn_redo"), pRichEdit->CanRedo());
+    setEnabled(_T("btn_paste"), pRichEdit->CanPaste());
+    setEnabled(_T("btn_copy"), bHasSel);
+    setEnabled(_T("btn_cut"), bHasSel);
+    setEnabled(_T("btn_delete"), bHasSel);
+    setEnabled(_T("btn_sel_none"), bHasSel);
+    setEnabled(_T("btn_find_next"), m_findReplace.HasFindText());
+}
+
+void MainForm::UpdateRowSpacingEnabled()
+{
+    const bool bEnabled = (m_pRichEdit != nullptr) && m_pRichEdit->IsRichText();
+    for (ui::Control* pControl : m_rowSpacingControls) {
+        if (pControl != nullptr) {
+            pControl->SetEnabled(bEnabled);
+        }
+    }
+}
+
+void MainForm::InitFontSizeCombo()
+{
+    ui::Combo* pFontSizeCombo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_font_size")));
+    if (pFontSizeCombo == nullptr) {
+        return;
+    }
+    pFontSizeCombo->DeleteAllItems();
+    m_fontSizeList.clear();
+    ui::GlobalManager::Instance().Font().GetDpiFontSizeList(Dpi(), m_fontSizeList);
+    for (size_t nIndex = 0; nIndex < m_fontSizeList.size(); ++nIndex) {
+        const ui::FontSizeInfo& fontSize = m_fontSizeList[nIndex];
+        size_t nItemIndex = pFontSizeCombo->AddTextItem(fontSize.fontSizeName);
+        if (ui::Box::IsValidItemIndex(nItemIndex)) {
+            pFontSizeCombo->SetItemData(nItemIndex, nIndex);
+        }
+    }
+}
+
+void MainForm::InitZoomCombo()
+{
+    static const uint32_t zoomPercentList[] = { 50, 75, 100, 125, 150, 200, 300, 400 };
+    ui::Combo* pCombo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_zoom")));
+    if (pCombo == nullptr) {
+        return;
+    }
+    pCombo->DeleteAllItems();
+    for (uint32_t nZoomPercent : zoomPercentList) {
+        DString text = ui::StringUtil::Printf(_T("%u%%"), nZoomPercent);
+        size_t nItemIndex = pCombo->AddTextItem(text);
+        if (ui::Box::IsValidItemIndex(nItemIndex)) {
+            pCombo->SetItemData(nItemIndex, (size_t)nZoomPercent);
+        }
+    }
+    pCombo->AttachSelect([this, pCombo](const ui::EventArgs& /*args*/) {
+        const size_t nItemIndex = pCombo->GetCurSel();
+        const uint32_t nZoomPercent = (uint32_t)pCombo->GetItemData(nItemIndex);
+        if (nZoomPercent > 0) {
+            SetZoomPercent(nZoomPercent);
+        }
+        return true;
+        });
+    SyncZoomCombo();
+}
+
+void MainForm::SyncZoomCombo()
+{
+    ui::Combo* pCombo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_zoom")));
+    if ((pCombo == nullptr) || (m_pRichEdit == nullptr)) {
+        return;
+    }
+    const uint32_t nZoomPercent = m_pRichEdit->GetZoomPercent();
     bool bFound = false;
-    nZoomPercent = nOldZoomPercent;
-    const size_t nPercentCount = zoomPercentList.size();
-    for (size_t nPercentIndex = 0; nPercentIndex < nPercentCount; ++nPercentIndex) {
-        if ((zoomPercentList[nPercentIndex] > nZoomPercent) || (nPercentIndex == (nPercentCount - 1))) {
-            if (nPercentIndex <= 1) {
-                size_t nCurrentIndex = 0;//当前是第一个元素
-                if (bZoomIn) {
-                    //放大
-                    nZoomPercent = zoomPercentList[nCurrentIndex + 1];
-                }
-                else {
-                    //缩小（已经到达最小值，无法再缩小）
-                    nZoomPercent = zoomPercentList[nCurrentIndex];
-                }
-            }
-            else if (zoomPercentList[nPercentIndex] > nZoomPercent) {
-                size_t nCurrentIndex = nPercentIndex - 1;//中间元素
-                if (bZoomIn) {
-                    //放大
-                    nZoomPercent = zoomPercentList[nCurrentIndex + 1];
-                }
-                else {
-                    //缩小
-                    nZoomPercent = zoomPercentList[nCurrentIndex - 1];
-                }
-            }
-            else if (nPercentIndex == (nPercentCount - 1)) {
-                size_t nCurrentIndex = nPercentCount - 1;//当前是最后一个元素
-                if (bZoomIn) {
-                    //放大（已经到达最大值，无法再放大）
-                    nZoomPercent = zoomPercentList[nCurrentIndex];
-                }
-                else {
-                    //缩小
-                    nZoomPercent = zoomPercentList[nCurrentIndex - 1];
-                }
-            }
+    const size_t nItemCount = pCombo->GetItemCount();
+    for (size_t nIndex = 0; nIndex < nItemCount; ++nIndex) {
+        if ((uint32_t)pCombo->GetItemData(nIndex) == nZoomPercent) {
+            pCombo->SetCurSel(nIndex);
             bFound = true;
             break;
         }
     }
-
     if (!bFound) {
-        //如果查表得不到结果，则按比例放大或者缩小
-        if (bZoomIn) {
-            //放大
-            nZoomPercent = (uint32_t)(nZoomPercent * 1.10f);
-            if (nZoomPercent == nOldZoomPercent) {
-                //避免数值过小时无法放大
-                ++nZoomPercent;
-            }
-        }
-        else {
-            //缩小
-            nZoomPercent = (uint32_t)(nZoomPercent * 0.91f);
-        }
+        pCombo->SetCurSel(ui::Box::InvalidIndex);
     }
-    if (nZoomPercent < 1) {
-        nZoomPercent = 1;
+}
+
+void MainForm::SetZoomPercent(uint32_t nZoomPercent)
+{
+    if (m_pRichEdit != nullptr) {
+        m_pRichEdit->SetZoomPercent(nZoomPercent);
     }
-    return nZoomPercent;
+    UpdateZoomValue();
 }
 
 void MainForm::InitColorCombo()
@@ -825,6 +834,7 @@ void MainForm::UpdateFontSizeStatus()
 
 void MainForm::SetFontName(const DString& fontName)
 {
+    m_lastFontName = fontName;
     if (m_pRichEdit != nullptr) {
         ui::UiFont fontInfo = m_pRichEdit->GetFontInfo();
         fontInfo.m_fontName = fontName;
@@ -1000,6 +1010,7 @@ LRESULT MainForm::OnWindowCloseMsg(uint32_t wParam, const ui::NativeMsg& nativeM
 
 void MainForm::OnPreCloseWindow()
 {
+    SaveSettings();
     BaseClass::OnPreCloseWindow();
 }
 
@@ -1035,6 +1046,13 @@ bool MainForm::OnLanguageChanged()
     UpdateSaveStatus();
     UpdateZoomValue();
     UpdateStatusBar();
+    UpdateEditButtonStatus();
+    if (m_bSampleDocument && (m_pRichEdit != nullptr) && !m_pRichEdit->GetModify()) {
+        //示例文档未修改时，重新加载以刷新示例中的语言文本
+        LoadRichEditData();
+        UpdateFontStatus();
+        UpdateStatusBar();
+    }
     return bRet;
 }
 
@@ -1045,7 +1063,12 @@ LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, 
     bool bShiftDown = ui::Keyboard::IsKeyDown(ui::kVK_SHIFT);
     bool bShortcutHandled = false;
     if (bControlDown) {
-        if ((vkCode == 'O') && !bShiftDown){
+        if ((vkCode == 'N') && !bShiftDown) {
+            //新建
+            bShortcutHandled = true;
+            OnNewFile();
+        }
+        else if ((vkCode == 'O') && !bShiftDown){
             //打开
             bShortcutHandled = true;
             OnOpenFile();
@@ -1071,6 +1094,11 @@ LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, 
                 //替换
                 bShortcutHandled = true;
                 OnReplaceText();
+            }
+            else if (vkCode == '0') {
+                //缩放复位
+                bShortcutHandled = true;
+                SetZoomPercent(100);
             }
         }
     }
@@ -1241,48 +1269,68 @@ bool MainForm::SaveDocument()
 
 void MainForm::LoadRichEditData()
 {
-    ui::FilePath resFileFullPath;
-    std::vector<uint8_t> resFileData;
-    ui::FilePath windowResPath = GetResourcePath();
-    ui::FilePath xmlFilePath = ui::FilePath(GetSkinFile());
-    if (!ui::GlobalManager::Instance().Theme().GetResFile(xmlFilePath, windowResPath, resFileFullPath, resFileData)) {
+    if (m_pRichEdit == nullptr) {
         return;
     }
 
-    DString xmlU;
-    if (resFileData.empty()) {        
-        std::string xml;
-        std::ifstream ifs(resFileFullPath.NativePath().c_str(), std::ios::binary);
-        if (ifs.is_open()) {
-            ifs.seekg(0, std::ios_base::end);
-            std::streamoff length = ifs.tellg();
-            ifs.seekg(0, std::ios_base::beg);
+    const DString title = ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_SAMPLE_TITLE"));
+    const DString body = ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_SAMPLE_BODY"));
+    const DString shortcutsTitle = ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_SAMPLE_SHORTCUTS_TITLE"));
+    const DString shortcuts = ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_SAMPLE_SHORTCUTS"));
+    const DString spacingTitle = ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_SAMPLE_LINE_SPACING_TITLE"));
+    const DString spacing = ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_SAMPLE_LINE_SPACING"));
 
-            xml.resize(static_cast<unsigned int>(length));
-            ifs.read(&xml[0], length);
-            ifs.close();
-        }
-        xmlU = ui::StringConvert::UTF8ToT(xml);
-    }
-    else {
-        resFileData.push_back(0);
-        resFileData.push_back(0);
-        xmlU = ui::StringConvert::UTF8ToT((const char*)resFileData.data());
-    }
+    DString sampleText = title + _T("\n\n") + body + _T("\n\n") + shortcutsTitle + _T("\n") + shortcuts + _T("\n\n") + spacingTitle + _T("\n") + spacing;
+    const size_t posShortcutsTitle = title.size() + 2 + body.size() + 2;
+    const size_t posSpacingTitle = posShortcutsTitle + shortcutsTitle.size() + 1 + shortcuts.size() + 2;
 
-    if (m_pRichEdit != nullptr) {
-        m_bLoadingDocument = true;
-        m_pRichEdit->SetText(xmlU);
-        m_bLoadingDocument = false;
-        m_pRichEdit->SetFocus();
-        m_pRichEdit->SetSel(0, 0);
-        m_pRichEdit->HomeUp();
-        m_pRichEdit->SetModify(false);
-        //示例内容来自界面资源文件，不能直接保存回该文件，保存时应转为另存为
-        m_filePath.Clear();
-        m_bSampleDocument = true;
-        m_encodingText = _T("UTF-8");
+    m_bLoadingDocument = true;
+    m_pRichEdit->SetText(sampleText);
+    m_bLoadingDocument = false;
+    m_pRichEdit->SetFocus();
+    m_pRichEdit->SetSel(0, 0);
+    m_pRichEdit->HomeUp();
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    if (m_pRichEdit->IsRichText()) {
+        //标题：加粗、增大字号、强调色
+        ui::UiFont fontInfo = m_pRichEdit->GetFontInfo();
+        m_pRichEdit->SetSel(0, (int32_t)title.size());
+        fontInfo.m_bBold = true;
+        fontInfo.m_fontSize = Dpi().GetScaleInt(16);
+        m_pRichEdit->SetFontInfo(fontInfo);
+        m_pRichEdit->SetSelectionTextColor(_T("blue"));
+
+        //快捷键标题：加粗
+        fontInfo = m_pRichEdit->GetFontInfo();
+        m_pRichEdit->SetSel((int32_t)posShortcutsTitle, (int32_t)(posShortcutsTitle + shortcutsTitle.size()));
+        fontInfo.m_bBold = true;
+        m_pRichEdit->SetFontInfo(fontInfo);
+
+        //行间距示例标题：加粗
+        fontInfo = m_pRichEdit->GetFontInfo();
+        m_pRichEdit->SetSel((int32_t)posSpacingTitle, (int32_t)(posSpacingTitle + spacingTitle.size()));
+        fontInfo.m_bBold = true;
+        m_pRichEdit->SetFontInfo(fontInfo);
+
+        //行间距示例正文：斜体
+        fontInfo = m_pRichEdit->GetFontInfo();
+        m_pRichEdit->SetSel((int32_t)(posSpacingTitle + spacingTitle.size() + 1), (int32_t)sampleText.size());
+        fontInfo.m_bItalic = true;
+        m_pRichEdit->SetFontInfo(fontInfo);
+
+        //整篇示例的行间距为 1.25 倍
+        m_pRichEdit->SetRowSpacingMul(1.25f);
     }
+#endif
+
+    m_pRichEdit->SetSel(0, 0);
+    m_pRichEdit->HomeUp();
+    m_pRichEdit->SetModify(false);
+    //示例内容不是来自文件，保存时应转为另存为
+    m_filePath.Clear();
+    m_bSampleDocument = true;
+    m_encodingText = _T("UTF-8");
 }
 
 void MainForm::OnFindText()
@@ -1347,6 +1395,7 @@ bool MainForm::FindRichText(const DString& findText, bool bFindDown, bool bMatch
         m_statusMessage.clear();
         UpdateStatusBar();
     }
+    UpdateEditButtonStatus();
     return bFound;
 }
 
@@ -1358,11 +1407,13 @@ void MainForm::ReplaceRichText(const DString& findText, const DString& replaceTe
             UpdateSaveStatus();
             UpdateStatusBar();
         }
-        ShowStatusMessage(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_REPLACE_DONE")));
+        const int32_t nReplaceCount = m_findReplace.GetLastReplaceCount();
+        ShowStatusMessage(ui::StringUtil::Printf(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_REPLACE_DONE")).c_str(), (int32_t)nReplaceCount));
     }
     else {
         ShowStatusMessage(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_FIND_NOT_FOUND")));
     }
+    UpdateEditButtonStatus();
 }
 
 void MainForm::ReplaceAllRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog)
@@ -1373,16 +1424,162 @@ void MainForm::ReplaceAllRichText(const DString& findText, const DString& replac
             UpdateSaveStatus();
             UpdateStatusBar();
         }
-        ShowStatusMessage(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_REPLACE_ALL_DONE")));
+        const int32_t nReplaceCount = m_findReplace.GetLastReplaceCount();
+        ShowStatusMessage(ui::StringUtil::Printf(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_REPLACE_ALL_DONE")).c_str(), (int32_t)nReplaceCount));
     }
     else {
         ShowStatusMessage(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_FIND_NOT_FOUND")));
     }
+    UpdateEditButtonStatus();
 }
 
 ui::RichEdit* MainForm::GetRichEdit() const
 {
     return m_pRichEdit;
+}
+
+const RichEditFindOptions& MainForm::GetFindOptions() const
+{
+    return m_findOptions;
+}
+
+void MainForm::SetFindOptions(const RichEditFindOptions& options)
+{
+    m_findOptions = options;
+}
+
+ui::FilePath MainForm::GetSettingsFilePath() const
+{
+    //保存在程序目录下的user子目录中（跨平台，且不依赖系统的用户配置目录）
+    ui::FilePath filePath = ui::FilePathUtil::GetCurrentModuleDirectory();
+    filePath.JoinFilePath(ui::FilePath(_T("user")));
+    filePath.JoinFilePath(ui::FilePath(_T("RichEdit_settings.ini")));
+    return filePath;
+}
+
+void MainForm::LoadSettings()
+{
+    SettingsMap settings;
+    ReadSettingsFile(GetSettingsFilePath(), settings);
+
+    //1. 窗口位置与大小（保存的是物理像素）
+    const int32_t nLeft = GetSettingInt(settings, "window_left", 0);
+    const int32_t nTop = GetSettingInt(settings, "window_top", 0);
+    const int32_t nWidth = GetSettingInt(settings, "window_width", 0);
+    const int32_t nHeight = GetSettingInt(settings, "window_height", 0);
+    if ((nWidth > 0) && (nHeight > 0)) {
+        ui::UiRect rcWork;
+        if (!GetMonitorWorkRect(ui::UiPoint(nLeft, nTop), rcWork)) {
+            GetMonitorWorkRect(rcWork);
+        }
+        const int32_t nWindowWidth = std::min(nWidth, rcWork.Width());
+        const int32_t nWindowHeight = std::min(nHeight, rcWork.Height());
+        const int32_t nWindowLeft = std::max(rcWork.left, std::min(nLeft, rcWork.right - nWindowWidth));
+        const int32_t nWindowTop = std::max(rcWork.top, std::min(nTop, rcWork.bottom - nWindowHeight));
+        SetWindowPos(ui::InsertAfterWnd(), nWindowLeft, nWindowTop, nWindowWidth, nWindowHeight, ui::kSWP_NOZORDER);
+    }
+
+    //2. 左侧面板的宽度
+    const int32_t nLeftPanelWidth = GetSettingInt(settings, "left_panel_width", -1);
+    if (nLeftPanelWidth > 0) {
+        ui::Control* pLeftPanel = FindControl(_T("left_panel"));
+        if (pLeftPanel != nullptr) {
+            const int32_t nMinWidth = 60;
+            const int32_t nMaxWidth = 2048;
+            pLeftPanel->SetFixedWidth(ui::UiFixedInt(std::max(nMinWidth, std::min(nLeftPanelWidth, nMaxWidth))), true, true);
+        }
+    }
+
+    if (m_pRichEdit != nullptr) {
+        //3. 缩放比例
+        const int32_t nZoomPercent = GetSettingInt(settings, "zoom_percent", 100);
+        if (nZoomPercent > 0) {
+            m_pRichEdit->SetZoomPercent((uint32_t)nZoomPercent);
+        }
+
+        //4. 自动换行
+        const int32_t nWordWrap = GetSettingInt(settings, "word_wrap", -1);
+        if (nWordWrap >= 0) {
+            m_pRichEdit->SetWordWrap(nWordWrap != 0);
+            m_pRichEdit->SetAttribute(_T("hscrollbar"), (nWordWrap != 0) ? _T("false") : _T("true"));
+        }
+
+        //5. 富文本模式
+        const int32_t nRichText = GetSettingInt(settings, "rich_text", -1);
+        if (nRichText >= 0) {
+            m_bUpdatingRichTextCheck = true;
+            m_bLoadingDocument = true;
+            m_pRichEdit->SetRichText(nRichText != 0);
+            m_bLoadingDocument = false;
+            m_bUpdatingRichTextCheck = false;
+        }
+
+        //同步复选框的选中状态
+        ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_word_wrap")));
+        if (pCheckBox != nullptr) {
+            pCheckBox->SetSelected(m_pRichEdit->IsWordWrap());
+        }
+        pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_rich_text")));
+        if (pCheckBox != nullptr) {
+            pCheckBox->SetSelected(m_pRichEdit->IsRichText());
+        }
+    }
+
+    //6. 字体名称
+    const std::string fontNameUtf8 = GetSettingString(settings, "font_name", std::string());
+    if (!fontNameUtf8.empty()) {
+        SetFontName(ui::StringConvert::UTF8ToT(fontNameUtf8));
+    }
+}
+
+void MainForm::SaveSettings() const
+{
+    std::string settingsText;
+    settingsText += "# RichEdit 示例的用户设置（程序自动生成，删除该文件后恢复默认设置）\n";
+
+    //1. 窗口位置与大小
+    ui::UiRect rcWindow;
+    GetWindowRect(rcWindow);
+    AppendSettingInt(settingsText, "window_left", rcWindow.left);
+    AppendSettingInt(settingsText, "window_top", rcWindow.top);
+    AppendSettingInt(settingsText, "window_width", rcWindow.Width());
+    AppendSettingInt(settingsText, "window_height", rcWindow.Height());
+
+    //2. 左侧面板的宽度（保存未缩放的值）
+    int32_t nLeftPanelWidth = -1;
+    ui::Control* pLeftPanel = FindControl(_T("left_panel"));
+    if (pLeftPanel != nullptr) {
+        nLeftPanelWidth = Dpi().GetUnscaleInt(pLeftPanel->GetWidth());
+    }
+    AppendSettingInt(settingsText, "left_panel_width", nLeftPanelWidth);
+
+    if (m_pRichEdit != nullptr) {
+        //3. 缩放比例
+        AppendSettingInt(settingsText, "zoom_percent", (int32_t)m_pRichEdit->GetZoomPercent());
+
+        //4. 自动换行
+        AppendSettingInt(settingsText, "word_wrap", m_pRichEdit->IsWordWrap() ? 1 : 0);
+
+        //5. 富文本模式
+        AppendSettingInt(settingsText, "rich_text", m_pRichEdit->IsRichText() ? 1 : 0);
+    }
+
+    //6. 字体名称
+    AppendSettingString(settingsText, "font_name", ui::StringConvert::TToUTF8(m_lastFontName));
+
+    const ui::FilePath filePath = GetSettingsFilePath();
+    //创建设置文件所在的目录（不存在时自动创建）
+    ui::FilePathUtil::CreateDirectories(filePath.GetParentPath().ToString());
+    const std::vector<uint8_t> fileData(settingsText.begin(), settingsText.end());
+    ui::FileUtil::WriteFileData(filePath, fileData);
+}
+
+void MainForm::OnWindowDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewScaleFactor)
+{
+    BaseClass::OnWindowDisplayScaleChanged(nOldScaleFactor, nNewScaleFactor);
+    InitFontSizeCombo();
+    UpdateFontStatus();
+    UpdateZoomValue();
 }
 
 void MainForm::UpdateZoomValue()
@@ -1398,7 +1595,31 @@ void MainForm::UpdateZoomValue()
         DString strZoom = ui::StringUtil::Printf(_T("%u%%"), nZoomPercent);
         pZoomLabel->SetText(strZoom);
     }
+    SyncZoomCombo();
     UpdateStatusBar();
+}
+
+bool MainForm::OnNewFile()
+{
+    if (!ConfirmDiscardChanges()) {
+        return false;
+    }
+    if (m_pRichEdit != nullptr) {
+        m_bLoadingDocument = true;
+        m_pRichEdit->SetText(DString());
+        m_bLoadingDocument = false;
+        m_pRichEdit->SetModify(false);
+        m_pRichEdit->SetFocus();
+        m_pRichEdit->SetSel(0, 0);
+    }
+    m_filePath.Clear();
+    m_bSampleDocument = false;
+    m_encodingText = _T("UTF-8");
+    m_statusMessage.clear();
+    UpdateSaveStatus();
+    UpdateStatusBar();
+    UpdateEditButtonStatus();
+    return true;
 }
 
 bool MainForm::OnOpenFile()
@@ -1605,6 +1826,11 @@ bool MainForm::LoadFile(const ui::FilePath& filePath)
     }
     DString filePathLocal = filePath.NativePath();
 
+    //非富文本模式不支持读取RTF文件，避免把RTF二进制当成文本读取
+    if (!m_pRichEdit->IsRichText() && IsRtfFile(filePathLocal)) {
+        return false;
+    }
+
     //RTF文件使用RichEdit的流接口读取，可以保留格式
     if (m_pRichEdit->IsRichText() && IsRtfFile(filePathLocal)) {
         HANDLE hFile = ::CreateFile(filePathLocal.c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
@@ -1642,6 +1868,11 @@ bool MainForm::SaveFile(const ui::FilePath& filePath)
         return false;
     }
     DString filePathLocal = filePath.NativePath();
+
+    //非富文本模式不支持保存为RTF文件
+    if (!m_pRichEdit->IsRichText() && IsRtfFile(filePathLocal)) {
+        return false;
+    }
 
     //RTF文件使用RichEdit的流接口保存，可以保留格式
     if (m_pRichEdit->IsRichText() && IsRtfFile(filePathLocal)) {

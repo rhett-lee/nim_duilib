@@ -48,7 +48,7 @@
         <VBox bkcolor="bg_window_main" padding="10,10,10,10" width="stretch" height="stretch">
             <HBox height="stretch">
                 <!-- 左侧区域：控件演示面板 -->
-                <VScrollBox class="panel_card" width="360" height="stretch" min_width="60" vscrollbar="true" padding="4,4,4,4">
+                <VScrollBox class="panel_card" name="left_panel" width="360" height="stretch" min_width="60" vscrollbar="true" padding="4,4,4,4">
                     <GroupVBox margin="2,2,2,6" text_id="STRID_RICHEDIT_PASSWORD_FUNC" height="auto" corner_size="4,4">
                         <HBox height="36" margin="8,14,8,0">
                             <Label text_id="STRID_RICHEDIT_PASSWORD_INPUT" width="130" text_align="right,vcenter" valign="center"/>
@@ -169,6 +169,7 @@
                     <VBox class="panel_card" height="auto" padding="8,6,8,6">
                         <HBox height="auto" margin="0,0,0,4">
                             <Label text_id="STRID_RICHEDIT_FILE" width="56" text_align="right,vcenter" valign="center" font="system_bold_12" margin="0,0,10,0"/>
+                            <Button class="btn_global" name="new_file" width="auto" height="28" padding="8,0,8,0" font="system_regular_12" text_id="STRID_RICHEDIT_NEW_FILE" border_round="4,4" valign="center" margin="0,0,6,0" tooltip_text_id="STRID_RICHEDIT_NEW_FILE"/>
                             <Button class="btn_global" name="open_file" width="auto" height="28" padding="8,0,8,0" font="system_regular_12" text_id="STRID_RICHEDIT_OPEN_FILE" border_round="4,4" valign="center" margin="0,0,6,0" tooltip_text_id="STRID_RICHEDIT_OPEN_FILE"/>
                             <Button class="btn_global" name="save_file" width="auto" height="28" padding="8,0,8,0" font="system_regular_12" text_id="STRID_RICHEDIT_SAVE_FILE" border_round="4,4" valign="center" margin="0,0,6,0" tooltip_text_id="STRID_RICHEDIT_SAVE_FILE"/>
                             <Button class="btn_global" name="save_as_file" width="auto" height="28" padding="8,0,8,0" font="system_regular_12" text_id="STRID_RICHEDIT_SAVE_AS_FILE" border_round="4,4" valign="center" tooltip_text_id="STRID_RICHEDIT_SAVE_AS_FILE"/>
@@ -209,32 +210,30 @@
                         <HBox height="auto" margin="0,0,0,4">
                             <Label text_id="STRID_RICHEDIT_ZOOM" width="56" text_align="right,vcenter" valign="center" font="system_bold_12" margin="0,0,10,0"/>
                             <Label text_id="STRID_RICHEDIT_CURRENT_ZOOM_RATIO" font="system_regular_12" valign="center"/>
-                            <Label name="lavel_zoom_value" text_id="STRID_RICHEDIT_ZOOM_100_PERCENT" font="system_bold_12" valign="center" margin="0,0,12,0"/>
-                            <Button class="btn_font_class" name="btn_zoom_in" width="auto" height="24" padding="8,0,8,0" text_id="STRID_RICHEDIT_ZOOM_IN" font="system_regular_12" valign="center" margin="1,2,1,2" tooltip_text_id="STRID_RICHEDIT_ZOOM_IN"/>
-                            <Button class="btn_font_class" name="btn_zoom_out" width="auto" height="24" padding="8,0,8,0" text_id="STRID_RICHEDIT_ZOOM_OUT" font="system_regular_12" valign="center" margin="1,2,1,2" tooltip_text_id="STRID_RICHEDIT_ZOOM_OUT"/>
-                            <Button class="btn_font_class" name="btn_zoom_off" width="auto" height="24" padding="8,0,8,0" text_id="STRID_RICHEDIT_RESET_ZOOM" font="system_regular_12" valign="center" margin="1,2,1,2" tooltip_text_id="STRID_RICHEDIT_RESET_ZOOM"/>
+                            <Label name="lavel_zoom_value" text_id="STRID_RICHEDIT_ZOOM_100_PERCENT" font="system_bold_12" valign="center" margin="0,0,10,0"/>
+                            <Combo class="combo" name="combo_zoom" combo_type="drop_down" dropbox_size="120,240" height="28" width="88" margin="2,0,2,0" tooltip_text_id="STRID_RICHEDIT_ZOOM_SELECT_TIPS"/>
                         </HBox>
                         <HBox height="auto">
                             <Label text_id="STRID_RICHEDIT_OTHER" width="56" text_align="right,vcenter" valign="center" font="system_bold_12" margin="0,0,10,0"/>
                             <CheckBox class="checkbox_1" name="btn_word_wrap" text_id="STRID_RICHEDIT_AUTO_WRAP" font="system_regular_12" margin="0,0,0,0" selected="true" tooltip_text_id="STRID_RICHEDIT_AUTO_WRAP_TIPS"/>
                             <CheckBox class="checkbox_1" name="btn_rich_text" text_id="STRID_RICHEDIT_RICH_TEXT_MODE" font="system_regular_12" margin="10,0,0,0" selected="true" tooltip_text_id="STRID_RICHEDIT_RICH_TEXT_MODE_TIPS"/>
-                            <Label text_id="STRID_RICHEDIT_LINE_SPACING" font="system_regular_12" valign="center" margin="12,0,0,0" tooltip_text_id="STRID_RICHEDIT_LINE_SPACING_RICH_TEXT_ONLY"/>
-                            <Option class="option_1" group="richedit_row_spacing_group" text="1.0" margin="4,0,0,0" text_align="vcenter" selected="true">
+                            <Label name="line_spacing_label" text_id="STRID_RICHEDIT_LINE_SPACING" font="system_regular_12" valign="center" margin="12,0,0,0" tooltip_text_id="STRID_RICHEDIT_LINE_SPACING_RICH_TEXT_ONLY"/>
+                            <Option class="option_1" name="row_spacing_1_0" group="richedit_row_spacing_group" text="1.0" margin="4,0,0,0" text_align="vcenter" selected="true">
                                 <Event type="select" receiver="rich_edit" apply_attribute="row_spacing_mul='1.0'" />
                             </Option>
-                            <Option class="option_1" group="richedit_row_spacing_group" text="1.15" margin="4,0,0,0" text_align="vcenter">
+                            <Option class="option_1" name="row_spacing_1_15" group="richedit_row_spacing_group" text="1.15" margin="4,0,0,0" text_align="vcenter">
                                 <Event type="select" receiver="rich_edit" apply_attribute="row_spacing_mul='1.15'" />
                             </Option>
-                            <Option class="option_1" group="richedit_row_spacing_group" text="1.5" margin="4,0,0,0" text_align="vcenter">
+                            <Option class="option_1" name="row_spacing_1_5" group="richedit_row_spacing_group" text="1.5" margin="4,0,0,0" text_align="vcenter">
                                 <Event type="select" receiver="rich_edit" apply_attribute="row_spacing_mul='1.5'" />
                             </Option>
-                            <Option class="option_1" group="richedit_row_spacing_group" text="2.0" margin="4,0,0,0" text_align="vcenter">
+                            <Option class="option_1" name="row_spacing_2_0" group="richedit_row_spacing_group" text="2.0" margin="4,0,0,0" text_align="vcenter">
                                 <Event type="select" receiver="rich_edit" apply_attribute="row_spacing_mul='2.0'" />
                             </Option>
-                            <Option class="option_1" group="richedit_row_spacing_group" text="2.5" margin="4,0,0,0" text_align="vcenter">
+                            <Option class="option_1" name="row_spacing_2_5" group="richedit_row_spacing_group" text="2.5" margin="4,0,0,0" text_align="vcenter">
                                 <Event type="select" receiver="rich_edit" apply_attribute="row_spacing_mul='2.5'" />
                             </Option>
-                            <Option class="option_1" group="richedit_row_spacing_group" text="3.0" margin="4,0,0,0" text_align="vcenter">
+                            <Option class="option_1" name="row_spacing_3_0" group="richedit_row_spacing_group" text="3.0" margin="4,0,0,0" text_align="vcenter">
                                 <Event type="select" receiver="rich_edit" apply_attribute="row_spacing_mul='3.0'" />
                             </Option>
                         </HBox>
@@ -242,7 +241,7 @@
 
                     <!-- 编辑区 -->
                     <HBox class="panel_card" height="stretch" margin="0,8,0,0" padding="4,4,4,4" min_width="60">
-                        <RichEdit name="rich_edit" enable_drag_drop="true" zoom="0,0" wheel_zoom="true" multi_line="true" want_return="true" word_wrap="true" rich_text="false" default_context_menu="true" save_selection="true" hide_selection="false" vscrollbar="true" auto_vscroll="true" bkcolor="bg_richedit"/>
+                        <RichEdit name="rich_edit" enable_drag_drop="true" zoom="0,0" wheel_zoom="true" multi_line="true" want_return="true" word_wrap="true" rich_text="true" default_context_menu="true" save_selection="true" hide_selection="false" vscrollbar="true" auto_vscroll="true" bkcolor="bg_richedit"/>
                     </HBox>
                 </VBox>
             </HBox>

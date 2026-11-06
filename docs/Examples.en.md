@@ -51,8 +51,9 @@ Code entry: [MainThread.cpp](../examples/render/MainThread.cpp), [RenderForm.cpp
 <img width="900" src="./Images/render04.png"/>
 
 ## 9. examples/RichEdit
-A program demonstrating how to use the RichEdit control.    
-Code entry: [MainThread.cpp](../examples/RichEdit/MainThread.cpp), [MainForm.cpp](../examples/RichEdit/MainForm.cpp), [FindForm.cpp](../examples/RichEdit/FindForm.cpp), [ReplaceForm.cpp](../examples/RichEdit/ReplaceForm.cpp); skin resources: `bin/resources/themes/default/rich_edit/rich_edit.xml`, `rich_edit/find.xml`, `rich_edit/replace.xml`; related docs: [Control.en.md](Control.en.md).    
+A program demonstrating how to use the RichEdit control, implementing a simple text editor: new, open (TXT/RTF), save, find and replace, font name and size, bold/italic/underline/strikeout, text color, zoom (ratio combo, Ctrl+mouse wheel), word wrap, rich-text mode with row spacing, copy/cut/paste/undo/redo/select all, and opening files by dropping `.txt`/`.rtf` onto the window; the status bar shows the caret position, character count, zoom ratio, edit mode and encoding, plus operation results; window position and size, left panel width, zoom, font, word wrap and rich-text state are saved on exit and restored on the next start.    
+Shortcuts: Ctrl+N new, Ctrl+O open, Ctrl+S save, Ctrl+Shift+S save as, Ctrl+F find, Ctrl+H replace, F3 find next, Ctrl+0 reset zoom to 100%, Ctrl+mouse wheel zoom; in the find/replace dialogs, Enter executes, Esc closes and F3 finds the next match.    
+Code entry: [MainThread.cpp](../examples/RichEdit/MainThread.cpp), [MainForm.cpp](../examples/RichEdit/MainForm.cpp), [FindForm.cpp](../examples/RichEdit/FindForm.cpp), [ReplaceForm.cpp](../examples/RichEdit/ReplaceForm.cpp); skin resources: `bin/resources/themes/default/rich_edit/rich_edit.xml`, `rich_edit/find.xml`, `rich_edit/replace.xml`; user settings file: `user/RichEdit_settings.ini`; related docs: [Control.en.md](Control.en.md).    
 <img width="900" src="./Images/RichEdit.png"/>
 
 ## 10. examples/TreeView

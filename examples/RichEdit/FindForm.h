@@ -1,46 +1,63 @@
-#ifndef EXAMPLES_FIND_FORM_H_
-#define EXAMPLES_FIND_FORM_H_
+#ifndef EXAMPLES_RICHEDIT_FIND_FORM_H_
+#define EXAMPLES_RICHEDIT_FIND_FORM_H_
 
 // duilib
 #include "duilib/duilib.h"
 
+#include "RichEditFindReplace.h"
+
 class MainForm;
-class FindForm : public ui::WindowImplBase
+
+/** 查找/替换窗口的公共基类
+*/
+class FindReplaceFormBase : public ui::WindowImplBase
 {
+    typedef ui::WindowImplBase BaseClass;
+public:
+    explicit FindReplaceFormBase(MainForm* pMainForm);
+    virtual ~FindReplaceFormBase() override;
+
+    virtual DString GetSkinFolder() override;
+
+    /** 键盘按下：处理 Esc 关闭、F3 查找下一个
+    */
+    virtual LRESULT OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled) override;
+
+protected:
+    //初始化查找相关控件与公共事件
+    void InitFindBase();
+
+    //从界面控件收集查找选项
+    RichEditFindOptions GetFindOptionsFromControls() const;
+
+    //保存查找选项到主窗口
+    void SaveFindOptionsFromControls(bool bUpdateReplaceText, const DString& replaceText);
+
+    //查找下一个
+    void OnFindNext();
+
+    //绑定取消按钮
+    void BindCancelButton();
+
+protected:
+    MainForm* m_pMainForm;
+    ui::Option* m_pDirectionDown;
+    ui::Option* m_pDirectionUp;
+    ui::CheckBox* m_pCaseSensitive;
+    ui::CheckBox* m_pMatchWholeWord;
+    ui::RichEdit* m_pFindText;
+};
+
+class FindForm : public FindReplaceFormBase
+{
+    typedef FindReplaceFormBase BaseClass;
 public:
     explicit FindForm(MainForm* pMainForm);
     virtual ~FindForm() override;
 
-    /** 资源相关接口
-     * GetSkinFolder 接口设置你要绘制的窗口皮肤资源路径
-     * GetSkinFile 接口设置你要绘制的窗口的 xml 描述文件
-     */
-    virtual DString GetSkinFolder() override;
     virtual DString GetSkinFile() override;
 
-    /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
-    */
     virtual void OnInitWindow() override;
-
-private:
-    //查找下一个
-    void OnFindNext();
-
-private:
-    //查找接口
-    MainForm* m_pMainForm;
-
-    //搜索方向选项
-    ui::Option* m_pDirectionOption;
-
-    //是否区分大小写
-    ui::CheckBox* m_pCaseSensitive;
-
-    //是否全字匹配
-    ui::CheckBox* m_pMatchWholeWord;
-
-    //查找内容
-    ui::RichEdit* m_pFindText;
 };
 
-#endif //EXAMPLES_FIND_FORM_H_
+#endif //EXAMPLES_RICHEDIT_FIND_FORM_H_

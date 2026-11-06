@@ -6,8 +6,11 @@
 
 #include "RichEditFindReplace.h"
 
+#include <functional>
+
 class FindForm;
 class ReplaceForm;
+
 class MainForm : public ui::WindowImplBase
 {
     typedef ui::WindowImplBase BaseClass;
@@ -42,6 +45,10 @@ public:
     */
     virtual bool OnLanguageChanged() override;
 
+    /** 窗口的DPI缩放比发生变化时，重建字体大小列表
+    */
+    virtual void OnWindowDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewScaleFactor) override;
+
     /** 键盘按下(WM_KEYDOWN 或者 WM_SYSKEYDOWN)
     * @param [in] vkCode 虚拟键盘代码
     * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kFirstPress, ModifierKey::kAlt
@@ -65,14 +72,37 @@ public:
     void ReplaceRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog);
     void ReplaceAllRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog);
 
+    //获取上次查找/替换使用的选项
+    const RichEditFindOptions& GetFindOptions() const;
+
+    //设置上次查找/替换使用的选项
+    void SetFindOptions(const RichEditFindOptions& options);
+
+    //在状态栏显示一条提示信息
+    void ShowStatusMessage(const DString& message);
+
     //获取RichEdit接口
     ui::RichEdit* GetRichEdit() const;
 
 private:
-    //加载默认的文本内容
+    //界面初始化
+    void SetupTestControls();
+    void SetupFileTools();
+    void SetupEditTools();
+    void SetupFindTools();
+    void SetupFontTools();
+    void SetupViewTools();
+    void SetupTextEvents();
+    void SetupDropFile();
+
+    //绑定按钮的点击事件
+    void BindClick(const DString& controlName, const std::function<void()>& onClick);
+
+    //加载默认的示例内容
     void LoadRichEditData();
 
-    //打开文件、保存文件、另存为文件
+    //新建文档、打开文件、保存文件、另存为文件
+    bool OnNewFile();
     bool OnOpenFile();
     bool OnSaveFile();
     bool OnSaveAsFile();
@@ -92,11 +122,14 @@ private:
     //更新保存状态
     void UpdateSaveStatus();
 
+    //更新编辑按钮的可用状态
+    void UpdateEditButtonStatus();
+
+    //更新行距选项的可用状态
+    void UpdateRowSpacingEnabled();
+
     //更新状态栏
     void UpdateStatusBar();
-
-    //在状态栏显示一条提示信息
-    void ShowStatusMessage(const DString& message);
 
 private:
     //查找/替换
@@ -110,6 +143,9 @@ private://设置字体相关
 
     //更新字体大小的状态
     void UpdateFontSizeStatus();
+
+    //初始化字体大小的下拉列表（DPI变化时重建）
+    void InitFontSizeCombo();
 
     //设置字体名称
     void SetFontName(const DString& fontName);
@@ -136,9 +172,18 @@ private://设置字体相关
     */
     void SetTextColor(const DString& newColor);
 
-private:
+private://缩放与视图
     //更新缩放比例
     void UpdateZoomValue();
+
+    //初始化缩放比例下拉列表
+    void InitZoomCombo();
+
+    //同步缩放比例下拉列表与标签
+    void SyncZoomCombo();
+
+    //设置缩放百分比
+    void SetZoomPercent(uint32_t nZoomPercent);
 
     //初始化设置颜色的Combo按钮
     void InitColorCombo();
@@ -146,11 +191,15 @@ private:
     //显示拾色器窗口
     void ShowColorPicker();
 
-    /** 获取下一个缩放百分比值
-    * @param [in] nOldZoomPercent 当前的缩放百分比
-    * @param [in] bZoomIn true表示放大，false表示缩小
-    */
-    uint32_t GetNextZoomPercent(uint32_t nOldZoomPercent, bool bZoomIn) const;
+private://用户设置
+    //获取设置文件的路径
+    ui::FilePath GetSettingsFilePath() const;
+
+    //加载用户设置
+    void LoadSettings();
+
+    //保存用户设置
+    void SaveSettings() const;
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
@@ -210,6 +259,15 @@ private:
 
     //最近一次打开/保存的目录
     ui::FilePath m_lastFileDir;
+
+    //上次使用的字体名称
+    DString m_lastFontName;
+
+    //上次查找/替换使用的选项
+    RichEditFindOptions m_findOptions;
+
+    //行距相关的控件（富文本关闭时需要禁用）
+    std::vector<ui::Control*> m_rowSpacingControls;
 
     //查找
     FindForm* m_pFindForm;

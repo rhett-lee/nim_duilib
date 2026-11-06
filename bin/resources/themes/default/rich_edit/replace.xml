@@ -22,7 +22,7 @@
                 </HBox>
                 <GroupVBox margin="0,10,0,6" text_id="STRID_RICHEDIT_REPLACE_SEARCH_DIRECTION" height="auto" corner_size="4,4">
                     <HBox height="40" margin="16,12,8,6">
-                        <Option class="option_1" group="option_direction_group" text_id="STRID_RICHEDIT_REPLACE_SEARCH_UP" margin="0,6,0,0"/>
+                        <Option class="option_1" group="option_direction_group" text_id="STRID_RICHEDIT_REPLACE_SEARCH_UP" name="option_direction_up" margin="0,6,0,0"/>
                         <Option class="option_1" group="option_direction_group" text_id="STRID_RICHEDIT_REPLACE_SEARCH_DOWN" name="option_direction_down" margin="16,6,0,0" selected="true"/>
                     </HBox>
                 </GroupVBox>

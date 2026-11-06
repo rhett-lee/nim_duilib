@@ -4,6 +4,26 @@
 // duilib
 #include "duilib/duilib.h"
 
+/** 查找/替换使用的选项
+*/
+struct RichEditFindOptions
+{
+    //查找内容
+    DString findText;
+
+    //替换内容
+    DString replaceText;
+
+    //搜索方向：true表示向下搜索，false表示向上搜索
+    bool bFindDown = true;
+
+    //是否区分大小写
+    bool bMatchCase = true;
+
+    //是否全字匹配
+    bool bMatchWholeWord = false;
+};
+
 class RichEditFindReplace
 {
 public:
@@ -28,6 +48,9 @@ public:
     
     //全部替换
     bool ReplaceAllRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog);
+
+    //上一次替换操作替换的处数
+    int32_t GetLastReplaceCount() const;
 
 protected:
     //没找到，回调函数
@@ -73,6 +96,9 @@ private:
 
     //是否全字匹配
     bool m_bMatchWholeWord;
+
+    //上一次替换操作替换的处数
+    int32_t m_nLastReplaceCount;
 
 private:
     //查找状态: 是否为第一次搜索

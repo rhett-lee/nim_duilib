@@ -420,10 +420,6 @@ STRID_TREEVIEW_MENU_REFRESH = Refresh
 # examples/RichEdit
 # Window Title/Basic Controls
 STRID_RICHEDIT_TEST_TITLE = RichEdit Control Test Program
-STRID_RICHEDIT_MINIMIZE = Minimize
-STRID_RICHEDIT_MAXIMIZE = Maximize
-STRID_RICHEDIT_RESTORE = Restore
-STRID_RICHEDIT_CLOSE = Close
 
 # Password Related
 STRID_RICHEDIT_PASSWORD_FUNC = Password Related Functions
@@ -466,6 +462,7 @@ STRID_RICHEDIT_HORIZONTAL_VERTICAL_SCROLLBAR = Horizontal & Vertical Scrollbar:
 
 # File Operations
 STRID_RICHEDIT_FILE = File:
+STRID_RICHEDIT_NEW_FILE = New(Ctrl+N)
 STRID_RICHEDIT_OPEN_FILE = Open(Ctrl+O)
 STRID_RICHEDIT_SAVE_FILE = Save(Ctrl+S)
 STRID_RICHEDIT_SAVE_AS_FILE = Save As(Ctrl+Shift+S)
@@ -504,6 +501,7 @@ STRID_RICHEDIT_RICH_TEXT_FORMAT_TIPS_DETAIL = Rich text mode sets format for sel
 STRID_RICHEDIT_ZOOM = Zoom:
 STRID_RICHEDIT_CURRENT_ZOOM_RATIO = Current Zoom Ratio:
 STRID_RICHEDIT_ZOOM_100_PERCENT = 100.0%
+STRID_RICHEDIT_ZOOM_SELECT_TIPS = Zoom ratio (Ctrl+0 resets to 100%)
 STRID_RICHEDIT_ZOOM_IN = Zoom In+
 STRID_RICHEDIT_ZOOM_OUT = Zoom Out-
 STRID_RICHEDIT_RESET_ZOOM = Reset to 100%
@@ -567,8 +565,14 @@ STRID_RICHEDIT_SAVE_FAILED_TEXT = Unable to save the file. Please make sure the 
 STRID_RICHEDIT_RICHTEXT_SWITCH_TITLE = Disable rich text mode
 STRID_RICHEDIT_RICHTEXT_SWITCH_TEXT = Disabling rich text mode will remove all formatting and undo history from the current text. Continue?
 STRID_RICHEDIT_FIND_NOT_FOUND = The search text was not found
-STRID_RICHEDIT_REPLACE_DONE = Replaced 1 occurrence
-STRID_RICHEDIT_REPLACE_ALL_DONE = Replaced all occurrences
+STRID_RICHEDIT_REPLACE_DONE = Replaced %d occurrence(s)
+STRID_RICHEDIT_REPLACE_ALL_DONE = Replaced %d occurrence(s) in total
+STRID_RICHEDIT_SAMPLE_TITLE = RichEdit Control Demo
+STRID_RICHEDIT_SAMPLE_BODY = This demo shows common RichEdit features: file operations, editing, find/replace, font styles, colors, zoom, word wrap, rich text mode and line spacing. You can also drop a .txt or .rtf file here to open it.
+STRID_RICHEDIT_SAMPLE_SHORTCUTS_TITLE = Shortcuts
+STRID_RICHEDIT_SAMPLE_SHORTCUTS = Ctrl+N New    Ctrl+O Open    Ctrl+S Save    Ctrl+Shift+S Save As\nCtrl+Z Undo    Ctrl+Y Redo    Ctrl+A Select All    Del Delete\nCtrl+F Find    Ctrl+H Replace    F3 Find Next    Ctrl+0 Reset Zoom
+STRID_RICHEDIT_SAMPLE_LINE_SPACING_TITLE = Line spacing
+STRID_RICHEDIT_SAMPLE_LINE_SPACING = This paragraph demonstrates line spacing: the whole sample uses 1.25x line spacing. The UI refreshes immediately when you switch language, theme or zoom.
 
 # examples/ListCtrl
 # Window Basic
