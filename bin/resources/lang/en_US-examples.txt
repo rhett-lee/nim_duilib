@@ -494,6 +494,7 @@ STRID_RICHEDIT_FONT_UNDERLINE = Underline: Draw a line under text
 STRID_RICHEDIT_FONT_STRIKEOUT = Strikeout: Draw a line through text
 STRID_RICHEDIT_INCREASE_FONT_SIZE = Increase font size
 STRID_RICHEDIT_DECREASE_FONT_SIZE = Decrease font size
+STRID_RICHEDIT_FONT_COLOR = Font color: Set the color of the text
 STRID_RICHEDIT_RICH_TEXT_FORMAT_TIPS = (Rich text mode sets format for selected text)
 STRID_RICHEDIT_RICH_TEXT_FORMAT_TIPS_DETAIL = Rich text mode sets format for selected text# plain text mode sets format for all text.
 

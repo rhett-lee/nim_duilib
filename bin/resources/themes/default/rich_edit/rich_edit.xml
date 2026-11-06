@@ -1,20 +1,29 @@
 <Window size="1100,740" min_size="880,640" size_box="4,4,4,4" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" text_id="STRID_RICHEDIT_TEST_TITLE" icon="public/caption/logo.ico">
     <!-- 该窗口下的Class定义 -->
-    <Class name="checkbox_font_class" font="system_regular_14" text_align="hcenter,vcenter"
-                                      border_size="1"
-                                      hovered_border_color="border_btn_hovered"
-                                      pressed_border_color="border_btn_pressed"
-                                      selected_normal_color="bg_btn_pressed"
-                                      hovered_color="border_btn_hovered"
-                                      selected_hovered_color="border_btn_hovered"
-                                      pressed_color="bg_btn_pressed"
-                                      selected_pressed_color="bg_btn_pressed"/>
-    <Class name="btn_font_class" font="system_regular_14" text_align="hcenter,vcenter"
-                                      border_size="1"
-                                      hovered_border_color="border_btn_hovered"
-                                      pressed_border_color="border_btn_pressed"
-                                      hovered_color="border_btn_hovered"
-                                      pressed_color="bg_btn_pressed" />
+    <!-- 字体样式按钮（粗体/斜体/下划线/删除线）：圆角图标按钮，选中时文字使用强调色 -->
+    <Class name="font_style_check" width="26" height="26" border_round="4,4" cursor_type="hand"
+                                      text_align="hcenter,vcenter"
+                                      normal_text_color="text_default" hovered_text_color="text_default"
+                                      pressed_text_color="text_default" disabled_text_color="text_disabled"
+                                      selected_text_color="color_accent"
+                                      selected_hovered_text_color="color_accent"
+                                      selected_pressed_text_color="color_accent"
+                                      normal_color="" hovered_color="bg_list_item_hovered"
+                                      pressed_color="bg_list_item_selected"
+                                      selected_normal_color="bg_list_item_selected"
+                                      selected_hovered_color="bg_list_item_selected"
+                                      selected_pressed_color="bg_list_item_selected"/>
+    <!-- 斜体按钮：斜体大写 I 的字形在部分字体下形似斜杠，这里改用矢量图标 -->
+    <Class name="font_style_check_italic" class="font_style_check"
+                                      normal_image="file='rich_edit/format_italic.svg' width='16' height='16' valign='center' halign='center' svg_replace_colors='#1E1E1E|text_default'"
+                                      selected_normal_image="file='rich_edit/format_italic.svg' width='16' height='16' valign='center' halign='center' svg_replace_colors='#1E1E1E|color_accent'"/>
+    <!-- 调整字体大小的按钮（增大/减小）：圆角图标按钮 -->
+    <Class name="font_size_button" width="26" height="26" border_round="4,4" cursor_type="hand"
+                                      text_align="hcenter,vcenter"
+                                      normal_text_color="text_default" hovered_text_color="text_default"
+                                      pressed_text_color="text_default" disabled_text_color="text_disabled"
+                                      normal_color="" hovered_color="bg_list_item_hovered"
+                                      pressed_color="bg_list_item_selected"/>
     <!-- 卡片容器：内容区域分组显示 -->
     <Class name="panel_card" bkcolor="bg_window_card" border_size="1" border_color="border_split_level1"
                              border_round="8,8"/>
@@ -199,13 +208,15 @@
                             <Button class="btn_global" name="set_font" width="auto" height="28" padding="8,0,8,0" font="system_regular_12" text_id="STRID_RICHEDIT_SET_FONT" border_round="4,4" valign="center" margin="0,0,4,0"/>
                             <Combo class="combo" name="combo_font_name" combo_icon_class="" combo_type="drop_down" dropbox_size="0,300" height="28" width="140" tooltip_text_id="STRID_RICHEDIT_SELECT_FONT" margin="2,0,2,0"/>
                             <Combo class="combo" name="combo_font_size" combo_icon_class="" combo_type="drop_down" dropbox_size="0,300" height="28" width="56" margin="2,0,2,0" tooltip_text_id="STRID_RICHEDIT_SELECT_FONT"/>
-                            <CheckBox class="checkbox_font_class" name="btn_font_bold" width="24" height="24" text="B" font="system_bold_14" valign="center" margin="2,2,1,2" tooltip_text_id="STRID_RICHEDIT_FONT_BOLD"/>
-                            <CheckBox class="checkbox_font_class" name="btn_font_italic" width="24" height="24" text="I" font="system_italic_14" valign="center" margin="1,2,1,2" tooltip_text_id="STRID_RICHEDIT_FONT_ITALIC"/>
-                            <CheckBox class="checkbox_font_class" name="btn_font_underline" width="24" height="24" text="U" font="system_underline_14" valign="center" margin="1,2,1,2" tooltip_text_id="STRID_RICHEDIT_FONT_UNDERLINE"/>
-                            <CheckBox class="checkbox_font_class" name="btn_font_strikeout" width="30" height="24" text="abc" font="system_strikeout_14" valign="center" margin="1,2,1,2" tooltip_text_id="STRID_RICHEDIT_FONT_STRIKEOUT"/>
-                            <Button class="btn_font_class" name="btn_font_size_increase" width="28" height="24" text="A+" font="system_bold_14" valign="center" margin="1,2,1,2" tooltip_text_id="STRID_RICHEDIT_INCREASE_FONT_SIZE"/>
-                            <Button class="btn_font_class" name="btn_font_size_decrease" width="28" height="24" text="A-" font="system_bold_14" valign="center" margin="1,2,1,2" tooltip_text_id="STRID_RICHEDIT_DECREASE_FONT_SIZE"/>
-                            <ComboButton class="combo_button" name="color_combo_button" height="28" width="40" dropbox_size="240,300" left_button_top_label_text="A" left_button_bottom_label_bkcolor="text_default" tooltip_text_id="STRID_RICHEDIT_RICH_TEXT_FORMAT_TIPS_DETAIL"/>
+                            <CheckBox class="font_style_check" name="btn_font_bold" text="B" font="system_bold_14" valign="center" margin="4,1,1,1" tooltip_text_id="STRID_RICHEDIT_FONT_BOLD"/>
+                            <CheckBox class="font_style_check_italic" name="btn_font_italic" valign="center" margin="1,1,1,1" tooltip_text_id="STRID_RICHEDIT_FONT_ITALIC"/>
+                            <CheckBox class="font_style_check" name="btn_font_underline" text="U" font="system_underline_14" valign="center" margin="1,1,1,1" tooltip_text_id="STRID_RICHEDIT_FONT_UNDERLINE"/>
+                            <CheckBox class="font_style_check" name="btn_font_strikeout" text="S" font="system_strikeout_14" valign="center" margin="1,1,1,1" tooltip_text_id="STRID_RICHEDIT_FONT_STRIKEOUT"/>
+                            <Control width="1" height="16" bkcolor="border_split_level1" valign="center" margin="6,0,6,0" mouse_enabled="false"/>
+                            <Button class="font_size_button" name="btn_font_size_increase" text="A+" font="system_regular_13" valign="center" margin="0,1,1,1" tooltip_text_id="STRID_RICHEDIT_INCREASE_FONT_SIZE"/>
+                            <Button class="font_size_button" name="btn_font_size_decrease" text="A-" font="system_regular_13" valign="center" margin="1,1,1,1" tooltip_text_id="STRID_RICHEDIT_DECREASE_FONT_SIZE"/>
+                            <Control width="1" height="16" bkcolor="border_split_level1" valign="center" margin="6,0,6,0" mouse_enabled="false"/>
+                            <ComboButton class="combo_button" name="color_combo_button" height="26" width="44" border_round="4,4" padding="0,0,0,0" dropbox_size="240,300" left_button_top_label_text="A" left_button_bottom_label_bkcolor="text_default" valign="center" tooltip_text_id="STRID_RICHEDIT_FONT_COLOR"/>
                         </HBox>
                         <HBox height="auto" margin="0,0,0,4">
                             <Label text_id="STRID_RICHEDIT_ZOOM" width="56" text_align="right,vcenter" valign="center" font="system_bold_12" margin="0,0,10,0"/>
