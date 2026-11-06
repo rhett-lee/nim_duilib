@@ -20,8 +20,8 @@ ClickThrough::~ClickThrough()
 {
 }
 
-// 获取窗口对应的进程ID
-static pid_t GetWindowPID(Display* display, ::Window window)
+// 获取窗口对应的进程ID（调试辅助函数，当前仅在调试时使用）
+[[maybe_unused]] static pid_t GetWindowPID(Display* display, ::Window window)
 {
     if (!display) {
         return 0;
@@ -59,7 +59,8 @@ static pid_t GetWindowPID(Display* display, ::Window window)
     return pid;
 }
 
-static std::string GetWindowTitle(Display* display, ::Window window) 
+// 获取窗口标题（调试辅助函数，当前仅在调试时使用）
+[[maybe_unused]] static std::string GetWindowTitle(Display* display, ::Window window)
 {
     if (!display) {
         return "";

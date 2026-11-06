@@ -412,10 +412,18 @@ if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
             -Wno-cast-function-type
           )
           set_source_files_properties("${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libudis86/decode.c" PROPERTIES COMPILE_OPTIONS "-Wno-implicit-fallthrough")
+
+          #第三方giflib源码中的有符号/无符号比较告警：非本项目代码，定向关闭
+          set_source_files_properties(${GIFLIB_SRCS} PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare")
+
+          #Skia的SkTemplates.h使用了clang专属属性（clang::reinitializes），GCC下会产生-Wattributes警告
+          set_property(SOURCE "${SKIA_SRC_ROOT_DIR}/tools/window/WindowContext.cpp"
+                              "${SKIA_SRC_ROOT_DIR}/tools/window/GLWindowContext.cpp"
+                       APPEND PROPERTY COMPILE_OPTIONS "-Wno-attributes")
           if(DUILIB_HAVE_AVX2)
-            set_source_files_properties("${SKIA_SRC_ROOT_DIR}/tools/window/GLWindowContext.cpp" PROPERTIES COMPILE_OPTIONS "-mavx2")
+            set_property(SOURCE "${SKIA_SRC_ROOT_DIR}/tools/window/GLWindowContext.cpp" APPEND PROPERTY COMPILE_OPTIONS "-mavx2")
           elseif(DUILIB_HAVE_AVX)
-            set_source_files_properties("${SKIA_SRC_ROOT_DIR}/tools/window/GLWindowContext.cpp" PROPERTIES COMPILE_OPTIONS "-mavx")
+            set_property(SOURCE "${SKIA_SRC_ROOT_DIR}/tools/window/GLWindowContext.cpp" APPEND PROPERTY COMPILE_OPTIONS "-mavx")
           endif()
     endif()
 

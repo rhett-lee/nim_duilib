@@ -24,6 +24,7 @@ bool IsDirSeparator(DString::value_type ch)
 #endif
 }
 
+#ifdef DUILIB_BUILD_FOR_WIN
 /** 判断字符串是否以指定前缀开头（不区分大小写）
 */
 bool StartsWithNoCase(const DString& text, const DString& prefix)
@@ -34,6 +35,7 @@ bool StartsWithNoCase(const DString& text, const DString& prefix)
     const DString head(text.c_str(), prefix.size());
     return StringUtil::MakeUpperString(head) == StringUtil::MakeUpperString(prefix);
 }
+#endif
 
 /** 按目录分隔符拆分路径组件（跳过空组件）
 */

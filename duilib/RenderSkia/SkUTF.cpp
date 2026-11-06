@@ -306,21 +306,21 @@ size_t SkUTF::ToUTF8(SkUnichar uni, char utf8[SkUTF::kMaxBytesInUTF8Sequence]) {
         }
         return 1;
     }
-    char    tmp[4];
-    char*   p = tmp;
+    char    tmp[SkUTF::kMaxBytesInUTF8Sequence] = { 0 };
     size_t  count = 1;
     while (uni > 0x7F >> count) {
-        *p++ = (char)(0x80 | (uni & 0x3F));
+        //后续字节按“低位字节在前”的顺序暂存
+        tmp[count - 1] = (char)(0x80 | (uni & 0x3F));
         uni >>= 6;
         count += 1;
     }
     if (utf8) {
-        p = tmp;
-        utf8 += count;
-        while (p < tmp + count - 1) {
-            *--utf8 = *p++;
+        //写回首字节
+        utf8[0] = (char)(~(0xFF >> count) | uni);
+        //写回后续字节（按逆序排列）
+        for (size_t i = 1; i < count; ++i) {
+            utf8[i] = tmp[count - 1 - i];
         }
-        *--utf8 = (char)(~(0xFF >> count) | uni);
     }
     return count;
 }

@@ -35,6 +35,9 @@ set(DUILIB_CXX_COMPILER_FLAGS
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     list(APPEND DUILIB_CXX_COMPILER_FLAGS
         -Wno-reorder
+        #GCC 12的-Wrestrict对libstdc++ basic_string::_M_replace存在误报（会报出2^63级别的字节数），
+        #这些告警不可操作，因此定向关闭（仅C++）
+        -Wno-restrict
     )
 endif()
 
