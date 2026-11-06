@@ -2,6 +2,7 @@
 #include "FindForm.h"
 #include "ReplaceForm.h"
 #include "MainThread.h"
+#include "duilib/Utils/MessageBoxWnd.h"
 #include <fstream>
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
@@ -15,6 +16,10 @@
 
 MainForm::MainForm():
     m_pRichEdit(nullptr),
+    m_bSampleDocument(true),
+    m_bLoadingDocument(false),
+    m_bUpdatingRichTextCheck(false),
+    m_encodingText(_T("UTF-8")),
     m_pFindForm(nullptr),
     m_pReplaceForm(nullptr)
 {
@@ -416,6 +421,7 @@ void MainForm::OnInitWindow()
             if (m_pRichEdit != nullptr) {
                 m_pRichEdit->SetWordWrap(true);
                 m_pRichEdit->SetAttribute(_T("hscrollbar"), _T("false"));
+                UpdateStatusBar();
             }
             return true;
             });
@@ -423,6 +429,7 @@ void MainForm::OnInitWindow()
             if (m_pRichEdit != nullptr) {
                 m_pRichEdit->SetWordWrap(false);
                 m_pRichEdit->SetAttribute(_T("hscrollbar"), _T("true"));
+                UpdateStatusBar();
             }
             return true;
             });
@@ -434,14 +441,43 @@ void MainForm::OnInitWindow()
         pCheckBox->SetSelected(m_pRichEdit->IsRichText());
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
         pCheckBox->AttachSelect([this](const ui::EventArgs& args) {
+            if (m_bUpdatingRichTextCheck) {
+                return true;
+            }
             if (m_pRichEdit != nullptr) {
                 m_pRichEdit->SetRichText(true);
+                UpdateSaveStatus();
+                UpdateStatusBar();
+                UpdateFontStatus();
             }
             return true;
             });
-        pCheckBox->AttachUnSelect([this](const ui::EventArgs& args) {
+        pCheckBox->AttachUnSelect([this, pCheckBox](const ui::EventArgs& args) {
+            if (m_bUpdatingRichTextCheck) {
+                return true;
+            }
             if (m_pRichEdit != nullptr) {
+                if (m_pRichEdit->IsRichText()) {
+                    //关闭富文本模式会丢失文本格式与撤销记录，需要确认
+                    int32_t nRet = ui::MessageBoxWnd::Show(this,
+                                        _T("STRID_RICHEDIT_RICHTEXT_SWITCH_TEXT"),
+                                        _T("STRID_RICHEDIT_RICHTEXT_SWITCH_TITLE"),
+                                        ui::MessageBoxWnd::kButtonsOKCancel,
+                                        ui::MessageBoxWnd::kIconWarning,
+                                        nullptr, true);
+                    if (nRet != ui::MessageBoxWnd::kResultOK) {
+                        m_bUpdatingRichTextCheck = true;
+                        pCheckBox->SetSelected(true);
+                        m_bUpdatingRichTextCheck = false;
+                        return true;
+                    }
+                }
+                m_bLoadingDocument = true;
                 m_pRichEdit->SetRichText(false);
+                m_bLoadingDocument = false;
+                UpdateSaveStatus();
+                UpdateStatusBar();
+                UpdateFontStatus();
             }
             return true;
             });
@@ -451,12 +487,17 @@ void MainForm::OnInitWindow()
 #endif
     }
 
-#ifdef DUILIB_BUILD_FOR_SDL
-    ui::Control* pRowSpacingTips = FindControl(_T("row_spacing_tips"));
-    if (pRowSpacingTips != nullptr) {
-        pRowSpacingTips->SetVisible(false);
+    //文本变化：刷新保存状态与状态栏
+    if (m_pRichEdit != nullptr) {
+        m_pRichEdit->AttachTextChanged([this](const ui::EventArgs& args) {
+            if (!m_bLoadingDocument) {
+                m_statusMessage.clear();
+                UpdateSaveStatus();
+                UpdateStatusBar();
+            }
+            return true;
+            });
     }
-#endif
 
     //更新字体按钮的状态
     UpdateFontStatus();
@@ -476,12 +517,17 @@ void MainForm::OnInitWindow()
     //RichEdit文本选择变化
     if (m_pRichEdit != nullptr) {
         m_pRichEdit->AttachSelChanged([this](const ui::EventArgs& args) {
-            if ((m_pRichEdit != nullptr) && m_pRichEdit->IsRichText()) {
+            if (m_pRichEdit != nullptr) {
                 UpdateFontStatus();
+                UpdateStatusBar();
             }
             return true;
             });
     }
+
+    //初始化状态显示
+    UpdateSaveStatus();
+    UpdateStatusBar();
 }
 
 uint32_t MainForm::GetNextZoomPercent(uint32_t nOldZoomPercent, bool bZoomIn) const
@@ -654,7 +700,7 @@ void MainForm::ShowColorPicker()
             }
             else {
                 //如果是"取消"或者关闭窗口，则恢复原来的颜色
-                pLeftColorLabel->SetBkColor(newColor);
+                pLeftColorLabel->SetBkColor(oldTextColor);
                 SetTextColor(oldTextColor);
             }
             return true;
@@ -673,7 +719,14 @@ void MainForm::UpdateFontStatus()
     //更新字体名称
     ui::Combo* pFontNameCombo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_font_name")));
     if (pFontNameCombo != nullptr) {
-        pFontNameCombo->SelectTextItem(fontInfo.m_fontName.c_str(), false);
+        size_t nItemIndex = pFontNameCombo->SelectTextItem(fontInfo.m_fontName.c_str(), false);
+        if ((nItemIndex == ui::Box::InvalidIndex) && !fontInfo.m_fontName.empty()) {
+            //字体列表中不存在时，将该字体名称添加到列表中并选中，避免下拉框中显示空白
+            nItemIndex = pFontNameCombo->AddTextItem(fontInfo.m_fontName.c_str());
+            if (ui::Box::IsValidItemIndex(nItemIndex)) {
+                pFontNameCombo->SetCurSel(nItemIndex);
+            }
+        }
     }
 
     //更新字体大小
@@ -918,10 +971,71 @@ void MainForm::SetTextColor(const DString& newColor)
     }
 }
 
+LRESULT MainForm::OnWindowCloseMsg(uint32_t wParam, const ui::NativeMsg& nativeMsg, bool& bHandled)
+{
+    //有未保存的修改时，先提示用户处理，避免直接退出导致数据丢失
+    if ((m_pRichEdit != nullptr) && m_pRichEdit->GetModify()) {
+        int32_t nRet = ui::MessageBoxWnd::Show(this,
+                            _T("STRID_RICHEDIT_UNSAVED_TEXT"),
+                            _T("STRID_RICHEDIT_UNSAVED_TITLE"),
+                            ui::MessageBoxWnd::kButtonsYesNoCancel,
+                            ui::MessageBoxWnd::kIconQuestion,
+                            nullptr, true);
+        if (nRet == ui::MessageBoxWnd::kResultCancel) {
+            //取消关闭
+            bHandled = true;
+            return 0;
+        }
+        if (nRet == ui::MessageBoxWnd::kResultYes) {
+            if (!SaveDocument()) {
+                //保存失败或用户取消了另存为，则不关闭窗口
+                bHandled = true;
+                return 0;
+            }
+        }
+    }
+    bHandled = false;
+    return BaseClass::OnWindowCloseMsg(wParam, nativeMsg, bHandled);
+}
+
+void MainForm::OnPreCloseWindow()
+{
+    BaseClass::OnPreCloseWindow();
+}
+
 void MainForm::OnCloseWindow()
 {
+    //关闭查找/替换窗口，避免遗留窗口
+    if (m_pFindForm != nullptr) {
+        m_pFindForm->CloseWnd();
+        m_pFindForm = nullptr;
+    }
+    if (m_pReplaceForm != nullptr) {
+        m_pReplaceForm->CloseWnd();
+        m_pReplaceForm = nullptr;
+    }
+
     //关闭窗口后，退出主线程的消息循环，关闭程序
     PostQuitMsg(0);
+}
+
+bool MainForm::OnLanguageChanged()
+{
+    bool bRet = BaseClass::OnLanguageChanged();
+
+    //界面语言切换后，按钮文字的 text_id 会被框架重新设置，需要重新记录基准文字
+    ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(_T("save_file")));
+    if (pButton != nullptr) {
+        m_saveBtnText = pButton->GetText();
+        DString::size_type nPos = m_saveBtnText.find(_T("*"));
+        if (nPos != DString::npos) {
+            m_saveBtnText = m_saveBtnText.substr(0, nPos);
+        }
+    }
+    UpdateSaveStatus();
+    UpdateZoomValue();
+    UpdateStatusBar();
+    return bRet;
 }
 
 LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled)
@@ -929,12 +1043,15 @@ LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, 
     LRESULT lResult = BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
     bool bControlDown = ui::Keyboard::IsKeyDown(ui::kVK_CONTROL);
     bool bShiftDown = ui::Keyboard::IsKeyDown(ui::kVK_SHIFT);
+    bool bShortcutHandled = false;
     if (bControlDown) {
         if ((vkCode == 'O') && !bShiftDown){
             //打开
+            bShortcutHandled = true;
             OnOpenFile();
         }
         else if (vkCode == 'S') {
+            bShortcutHandled = true;
             if (bShiftDown) {
                 //另存为
                 OnSaveAsFile();                
@@ -947,25 +1064,47 @@ LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, 
         if (!bShiftDown) {
             if (vkCode == 'F') {
                 //查找
+                bShortcutHandled = true;
                 OnFindText();
             }
             else if (vkCode == 'H') {
                 //替换
+                bShortcutHandled = true;
                 OnReplaceText();
             }
         }
     }
     if (!bControlDown && !bShiftDown && (vkCode == ui::kVK_F3)) {
         //查找下一个
+        bShortcutHandled = true;
         OnFindNext();
     }
+    if (bShortcutHandled) {
+        bHandled = true;
+        return 0;
+    }
     return lResult;
+}
+
+void MainForm::OnFindNext()
+{
+    if (!m_findReplace.HasFindText()) {
+        //尚未设置查找内容时，打开查找窗口
+        OnFindText();
+        return;
+    }
+    if (!m_findReplace.FindNext()) {
+        ShowStatusMessage(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_FIND_NOT_FOUND")));
+    }
+    else {
+        m_statusMessage.clear();
+        UpdateStatusBar();
+    }
 }
 
 LRESULT MainForm::OnKeyUpMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled)
 {
     LRESULT lResult = BaseClass::OnKeyUpMsg(vkCode, modifierKey, nativeMsg, bHandled);
-    UpdateSaveStatus();
     return lResult;
 }
 
@@ -984,6 +1123,120 @@ void MainForm::UpdateSaveStatus()
             }
         }
     }
+}
+
+void MainForm::UpdateStatusBar()
+{
+    if (m_pRichEdit == nullptr) {
+        return;
+    }
+
+    //文件路径与修改标记
+    ui::Label* pPathLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_path")));
+    if (pPathLabel != nullptr) {
+        DString filePath;
+        if (m_bSampleDocument || m_filePath.IsEmpty()) {
+            filePath = ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_UNTITLED"));
+        }
+        else {
+            filePath = m_filePath.NativePath();
+        }
+        if (m_pRichEdit->GetModify()) {
+            filePath += _T(" *");
+        }
+        pPathLabel->SetText(filePath);
+    }
+
+    //提示信息
+    ui::Label* pHintLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_hint")));
+    if (pHintLabel != nullptr) {
+        pHintLabel->SetText(m_statusMessage);
+        pHintLabel->SetVisible(!m_statusMessage.empty());
+    }
+
+    //行号与列号
+    int32_t nStartChar = 0;
+    int32_t nEndChar = 0;
+    m_pRichEdit->GetSel(nStartChar, nEndChar);
+    int32_t nLine = m_pRichEdit->LineFromChar(nStartChar);
+    int32_t nLineStart = m_pRichEdit->LineIndex(nLine);
+    int32_t nColumn = nStartChar - nLineStart;
+    ui::Label* pPositionLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_position")));
+    if (pPositionLabel != nullptr) {
+        pPositionLabel->SetText(ui::StringUtil::Printf(_T("%d:%d"), nLine + 1, nColumn + 1));
+    }
+
+    //字符数（含选中字符数）
+    uint32_t nTextLength = m_pRichEdit->GetTextLength();
+    uint32_t nSelLength = static_cast<uint32_t>(nEndChar - nStartChar);
+    ui::Label* pCharsLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_chars")));
+    if (pCharsLabel != nullptr) {
+        if (nSelLength > 0) {
+            pCharsLabel->SetText(ui::StringUtil::Printf(_T("%u (%u)"), nTextLength, nSelLength));
+        }
+        else {
+            pCharsLabel->SetText(ui::StringUtil::Printf(_T("%u"), nTextLength));
+        }
+    }
+
+    //缩放比例
+    ui::Label* pZoomLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_zoom")));
+    if (pZoomLabel != nullptr) {
+        pZoomLabel->SetText(ui::StringUtil::Printf(_T("%u%%"), m_pRichEdit->GetZoomPercent()));
+    }
+
+    //文本模式与换行状态
+    ui::Label* pModeLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_mode")));
+    if (pModeLabel != nullptr) {
+        DString modeText = ui::GlobalManager::GetTextById(m_pRichEdit->IsRichText() ? _T("STRID_RICHEDIT_MODE_RICH_TEXT") : _T("STRID_RICHEDIT_MODE_PLAIN_TEXT"));
+        DString wrapText = ui::GlobalManager::GetTextById(m_pRichEdit->IsWordWrap() ? _T("STRID_RICHEDIT_WRAP_ON") : _T("STRID_RICHEDIT_WRAP_OFF"));
+        pModeLabel->SetText(modeText + _T(" · ") + wrapText);
+    }
+
+    //编码
+    ui::Label* pEncodingLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_encoding")));
+    if (pEncodingLabel != nullptr) {
+        pEncodingLabel->SetText(m_encodingText);
+    }
+}
+
+void MainForm::ShowStatusMessage(const DString& message)
+{
+    m_statusMessage = message;
+    UpdateStatusBar();
+}
+
+void MainForm::ShowErrorMessage(const DString& textId, const DString& titleId)
+{
+    ui::MessageBoxWnd::Show(this, textId, titleId,
+                            ui::MessageBoxWnd::kButtonsOK,
+                            ui::MessageBoxWnd::kIconError,
+                            nullptr, true);
+}
+
+bool MainForm::ConfirmDiscardChanges()
+{
+    if ((m_pRichEdit == nullptr) || !m_pRichEdit->GetModify()) {
+        return true;
+    }
+    int32_t nRet = ui::MessageBoxWnd::Show(this,
+                        _T("STRID_RICHEDIT_UNSAVED_TEXT"),
+                        _T("STRID_RICHEDIT_UNSAVED_TITLE"),
+                        ui::MessageBoxWnd::kButtonsYesNoCancel,
+                        ui::MessageBoxWnd::kIconQuestion,
+                        nullptr, true);
+    if (nRet == ui::MessageBoxWnd::kResultCancel) {
+        return false;
+    }
+    if (nRet == ui::MessageBoxWnd::kResultYes) {
+        return SaveDocument();
+    }
+    return true;
+}
+
+bool MainForm::SaveDocument()
+{
+    return OnSaveFile();
 }
 
 void MainForm::LoadRichEditData()
@@ -1018,11 +1271,17 @@ void MainForm::LoadRichEditData()
     }
 
     if (m_pRichEdit != nullptr) {
+        m_bLoadingDocument = true;
         m_pRichEdit->SetText(xmlU);
+        m_bLoadingDocument = false;
         m_pRichEdit->SetFocus();
+        m_pRichEdit->SetSel(0, 0);
         m_pRichEdit->HomeUp();
         m_pRichEdit->SetModify(false);
-        m_filePath = resFileFullPath;
+        //示例内容来自界面资源文件，不能直接保存回该文件，保存时应转为另存为
+        m_filePath.Clear();
+        m_bSampleDocument = true;
+        m_encodingText = _T("UTF-8");
     }
 }
 
@@ -1052,11 +1311,6 @@ void MainForm::OnFindText()
     }
 }
 
-void MainForm::OnFindNext()
-{
-    m_findReplace.FindNext();
-}
-
 void MainForm::OnReplaceText()
 {
     if (m_pReplaceForm == nullptr) {
@@ -1083,9 +1337,17 @@ void MainForm::OnReplaceText()
     }
 }
 
-void MainForm::FindRichText(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog)
+bool MainForm::FindRichText(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog)
 {
-    m_findReplace.FindRichText(findText, bFindDown, bMatchCase, bMatchWholeWord, pWndDialog);
+    bool bFound = m_findReplace.FindRichText(findText, bFindDown, bMatchCase, bMatchWholeWord, pWndDialog);
+    if (!bFound) {
+        ShowStatusMessage(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_FIND_NOT_FOUND")));
+    }
+    else {
+        m_statusMessage.clear();
+        UpdateStatusBar();
+    }
+    return bFound;
 }
 
 void MainForm::ReplaceRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog)
@@ -1094,7 +1356,12 @@ void MainForm::ReplaceRichText(const DString& findText, const DString& replaceTe
         if (m_pRichEdit != nullptr) {
             m_pRichEdit->SetModify(true);
             UpdateSaveStatus();
+            UpdateStatusBar();
         }
+        ShowStatusMessage(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_REPLACE_DONE")));
+    }
+    else {
+        ShowStatusMessage(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_FIND_NOT_FOUND")));
     }
 }
 
@@ -1104,7 +1371,12 @@ void MainForm::ReplaceAllRichText(const DString& findText, const DString& replac
         if (m_pRichEdit != nullptr) {
             m_pRichEdit->SetModify(true);
             UpdateSaveStatus();
+            UpdateStatusBar();
         }
+        ShowStatusMessage(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_REPLACE_ALL_DONE")));
+    }
+    else {
+        ShowStatusMessage(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_FIND_NOT_FOUND")));
     }
 }
 
@@ -1126,10 +1398,15 @@ void MainForm::UpdateZoomValue()
         DString strZoom = ui::StringUtil::Printf(_T("%u%%"), nZoomPercent);
         pZoomLabel->SetText(strZoom);
     }
+    UpdateStatusBar();
 }
 
-void MainForm::OnOpenFile()
+bool MainForm::OnOpenFile()
 {
+    if (!ConfirmDiscardChanges()) {
+        return false;
+    }
+
     std::vector<ui::FileDialog::FileType> fileTypes;
     fileTypes.push_back({ ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_ALL_FILES")), _T("*.*")});
     fileTypes.push_back({ ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_TXT_FILES")), _T("*.txt") });
@@ -1144,36 +1421,61 @@ void MainForm::OnOpenFile()
         nFileTypeIndex = 2;
     }
 #endif
-    DString fileName = m_filePath.GetFileName();
+    DString fileName;
+    if (!m_filePath.IsEmpty() && !m_bSampleDocument) {
+        fileName = m_filePath.GetFileName();
+    }
 
     ui::FilePath filePath;
     ui::FileDialog openFileDlg;
-    //初始的目录：当前文件所在的目录
+    //初始的目录：当前文件所在的目录，或者上一次使用的目录
     ui::FilePath defaultLocation = m_filePath.GetParentPath();
+    if (defaultLocation.IsEmpty() || m_bSampleDocument) {
+        defaultLocation = m_lastFileDir;
+    }
     if (openFileDlg.BrowseForFile(this, filePath, true, fileTypes, nFileTypeIndex, defaultExt, fileName, defaultLocation)) {
         if (LoadFile(filePath)) {
             m_filePath = filePath;
+            m_bSampleDocument = false;
+            m_lastFileDir = filePath.GetParentPath();
             if (m_pRichEdit != nullptr) {
                 m_pRichEdit->SetModify(false);
-                UpdateSaveStatus();
             }
-        }        
-    }
-}
-
-void MainForm::OnSaveFile()
-{
-    if (m_pRichEdit != nullptr) {
-        if (m_pRichEdit->GetModify()) {
-            if (SaveFile(m_filePath)) {
-                m_pRichEdit->SetModify(false);
-                UpdateSaveStatus();
-            }
+            m_statusMessage.clear();
+            UpdateSaveStatus();
+            UpdateStatusBar();
+        }
+        else {
+            ShowErrorMessage(_T("STRID_RICHEDIT_OPEN_FAILED_TEXT"), _T("STRID_RICHEDIT_OPEN_FAILED_TITLE"));
         }
     }
+    return true;
 }
 
-void MainForm::OnSaveAsFile()
+bool MainForm::OnSaveFile()
+{
+    if (m_pRichEdit == nullptr) {
+        return false;
+    }
+    if (m_bSampleDocument || m_filePath.IsEmpty()) {
+        //示例文档或未命名文档，转成另存为
+        return OnSaveAsFile();
+    }
+    if (!m_pRichEdit->GetModify()) {
+        return true;
+    }
+    if (!SaveFile(m_filePath)) {
+        ShowErrorMessage(_T("STRID_RICHEDIT_SAVE_FAILED_TEXT"), _T("STRID_RICHEDIT_SAVE_FAILED_TITLE"));
+        return false;
+    }
+    m_pRichEdit->SetModify(false);
+    m_statusMessage.clear();
+    UpdateSaveStatus();
+    UpdateStatusBar();
+    return true;
+}
+
+bool MainForm::OnSaveAsFile()
 {
     std::vector<ui::FileDialog::FileType> fileTypes;
     fileTypes.push_back({ ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_ALL_FILES")), _T("*.*") });
@@ -1182,31 +1484,119 @@ void MainForm::OnSaveAsFile()
     fileTypes.push_back({ ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_RTF_FILES")), _T("*.rtf") });
 #endif
 
-    DString defaultExt;
+    bool bRichText = (m_pRichEdit != nullptr) && m_pRichEdit->IsRichText();
+    DString defaultExt = bRichText ? _T("rtf") : _T("txt");
     int32_t nFileTypeIndex = 1;
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    if ((m_pRichEdit != nullptr) && m_pRichEdit->IsRichText()) {
+    if (bRichText) {
         nFileTypeIndex = 2;
     }
 #endif
-    DString fileName = m_filePath.GetFileName();
+    DString fileName;
+    if (!m_filePath.IsEmpty() && !m_bSampleDocument) {
+        fileName = m_filePath.GetFileName();
+    }
+    else {
+        fileName = defaultExt == _T("rtf") ? _T("untitled.rtf") : _T("untitled.txt");
+    }
 
     ui::FilePath filePath;
-    ui::FileDialog openFileDlg;
-    //初始的目录：当前文件所在的目录
+    ui::FileDialog saveFileDlg;
+    //初始的目录：当前文件所在的目录，或者上一次使用的目录
     ui::FilePath defaultLocation = m_filePath.GetParentPath();
-    if (openFileDlg.BrowseForFile(this, filePath, false, fileTypes, nFileTypeIndex, defaultExt, fileName, defaultLocation)) {
-        if (SaveFile(filePath)) {
-            m_filePath = filePath;
-            if (m_pRichEdit != nullptr) {
-                m_pRichEdit->SetModify(false);
-                UpdateSaveStatus();
-            }
-        }        
+    if (defaultLocation.IsEmpty() || m_bSampleDocument) {
+        defaultLocation = m_lastFileDir;
     }
+    if (!saveFileDlg.BrowseForFile(this, filePath, false, fileTypes, nFileTypeIndex, defaultExt, fileName, defaultLocation)) {
+        return false;
+    }
+    if (!SaveFile(filePath)) {
+        ShowErrorMessage(_T("STRID_RICHEDIT_SAVE_FAILED_TEXT"), _T("STRID_RICHEDIT_SAVE_FAILED_TITLE"));
+        return false;
+    }
+    m_filePath = filePath;
+    m_bSampleDocument = false;
+    m_lastFileDir = filePath.GetParentPath();
+    if (m_pRichEdit != nullptr) {
+        m_pRichEdit->SetModify(false);
+    }
+    m_statusMessage.clear();
+    UpdateSaveStatus();
+    UpdateStatusBar();
+    return true;
+}
+
+//读取文本文件（自动识别 UTF-8/UTF-16/ANSI 编码），空文件也能正常打开
+static bool ReadTextFileContent(const ui::FilePath& filePath, DStringW& text, DString& encodingText)
+{
+    std::vector<uint8_t> fileData;
+    if (!ui::FileUtil::ReadFileData(filePath, fileData)) {
+        return false;
+    }
+    text.clear();
+    encodingText = _T("UTF-8");
+    if (fileData.empty()) {
+        return true;
+    }
+    ui::CharsetType charsetType = ui::CharsetType::UNKNOWN;
+    uint32_t bomSize = 0;
+    if (!ui::StringCharset::GetDataAsString((const char*)fileData.data(), (uint32_t)fileData.size(), text, charsetType, bomSize)) {
+        return false;
+    }
+    switch (charsetType) {
+    case ui::CharsetType::ANSI:
+        encodingText = _T("ANSI");
+        break;
+    case ui::CharsetType::UTF16_LE:
+        encodingText = _T("UTF-16LE");
+        break;
+    case ui::CharsetType::UTF16_BE:
+        encodingText = _T("UTF-16BE");
+        break;
+    default:
+        encodingText = _T("UTF-8");
+        break;
+    }
+    return true;
+}
+
+//保存文本文件：原文件已存在时尽量保持原编码，新文件按 UTF-8 保存；空文本也允许保存
+static bool WriteTextFileContent(const ui::FilePath& filePath, const DStringW& text, DString& encodingText)
+{
+    encodingText = _T("UTF-8");
+    ui::CharsetType charsetType = ui::CharsetType::UNKNOWN;
+    std::vector<uint8_t> oldFileData;
+    if (ui::FileUtil::ReadFileData(filePath, oldFileData) && !oldFileData.empty()) {
+        charsetType = ui::StringCharset::GetDataCharsetByBOM((const char*)oldFileData.data(), (uint32_t)oldFileData.size());
+        if (charsetType == ui::CharsetType::UNKNOWN) {
+            charsetType = ui::StringCharset::GetDataCharset((const char*)oldFileData.data(), (uint32_t)oldFileData.size());
+        }
+        oldFileData.clear();
+    }
+    if (charsetType == ui::CharsetType::UTF16_LE) {
+        encodingText = _T("UTF-16LE");
+        return ui::FileUtil::WriteFileData(filePath, text);
+    }
+    if (charsetType == ui::CharsetType::ANSI) {
+#ifdef DUILIB_BUILD_FOR_WIN
+        encodingText = _T("ANSI");
+        DStringA textA = ui::StringConvert::UnicodeToMBCS(text);
+#else
+        DStringA textA = ui::StringConvert::WStringToUTF8(text);
+#endif
+        return ui::FileUtil::WriteFileData(filePath, textA);
+    }
+    DStringA textA = ui::StringConvert::WStringToUTF8(text);
+    return ui::FileUtil::WriteFileData(filePath, textA);
 }
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+
+bool MainForm::IsRtfFile(const DString& filePath) const
+{
+    DString fileExt = ui::FilePathUtil::GetFileExtension(filePath);
+    return ui::StringUtil::IsEqualNoCase(fileExt, _T("rtf"));
+}
 
 bool MainForm::LoadFile(const ui::FilePath& filePath)
 {
@@ -1214,22 +1604,36 @@ bool MainForm::LoadFile(const ui::FilePath& filePath)
         return false;
     }
     DString filePathLocal = filePath.NativePath();
-    HANDLE hFile = ::CreateFile(filePathLocal.c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
-    if (hFile == INVALID_HANDLE_VALUE) {
-        return false;
+
+    //RTF文件使用RichEdit的流接口读取，可以保留格式
+    if (m_pRichEdit->IsRichText() && IsRtfFile(filePathLocal)) {
+        HANDLE hFile = ::CreateFile(filePathLocal.c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+        if (hFile == INVALID_HANDLE_VALUE) {
+            return false;
+        }
+
+        EDITSTREAM es;
+        es.dwCookie = (DWORD_PTR)hFile;
+        es.dwError = 0;
+        es.pfnCallback = StreamReadCallback;
+        m_pRichEdit->StreamIn(SF_RTF, es);
+        ::CloseHandle(hFile);
+        if ((BOOL)es.dwError) {
+            return false;
+        }
+        m_encodingText = _T("RTF");
+        return true;
     }
 
-    EDITSTREAM es;
-    es.dwCookie = (DWORD_PTR)hFile;
-    es.dwError = 0;
-    es.pfnCallback = StreamReadCallback;
-    UINT nFormat = SF_TEXT;
-    if (m_pRichEdit->IsRichText()) {
-        nFormat = IsRtfFile(filePathLocal) ? SF_RTF : SF_TEXT;
+    //普通文本统一按自动识别的编码读取，避免UTF-8/Unicode文件乱码
+    DStringW text;
+    if (!ReadTextFileContent(filePath, text, m_encodingText)) {
+        return false;
     }
-    m_pRichEdit->StreamIn(nFormat, es);
-    ::CloseHandle(hFile);
-    return !(BOOL)es.dwError;
+    m_bLoadingDocument = true;
+    m_pRichEdit->SetText(text);
+    m_bLoadingDocument = false;
+    return true;
 }
 
 bool MainForm::SaveFile(const ui::FilePath& filePath)
@@ -1238,33 +1642,32 @@ bool MainForm::SaveFile(const ui::FilePath& filePath)
         return false;
     }
     DString filePathLocal = filePath.NativePath();
-    HANDLE hFile = ::CreateFile(filePathLocal.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
-    if (hFile == INVALID_HANDLE_VALUE) {
+
+    //RTF文件使用RichEdit的流接口保存，可以保留格式
+    if (m_pRichEdit->IsRichText() && IsRtfFile(filePathLocal)) {
+        HANDLE hFile = ::CreateFile(filePathLocal.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+        if (hFile == INVALID_HANDLE_VALUE) {
+            return false;
+        }
+
+        EDITSTREAM es;
+        es.dwCookie = (DWORD_PTR)hFile;
+        es.dwError = 0;
+        es.pfnCallback = StreamWriteCallback;
+        m_pRichEdit->StreamOut(SF_RTF, es);
+        ::CloseHandle(hFile);
+        if ((BOOL)es.dwError) {
+            return false;
+        }
+        m_encodingText = _T("RTF");
+        return true;
+    }
+
+    //普通文本统一保存，空文本也允许保存
+    if (!WriteTextFileContent(filePath, m_pRichEdit->GetText(), m_encodingText)) {
         return false;
     }
-
-    EDITSTREAM es;
-    es.dwCookie = (DWORD_PTR)hFile;
-    es.dwError = 0;
-    es.pfnCallback = StreamWriteCallback;
-    UINT nFormat = SF_TEXT;
-    if (m_pRichEdit->IsRichText()) {
-        nFormat = IsRtfFile(filePathLocal) ? SF_RTF : SF_TEXT;
-    }
-    m_pRichEdit->StreamOut(nFormat, es);
-    ::CloseHandle(hFile);
-    return !(BOOL)es.dwError;
-}
-
-bool MainForm::IsRtfFile(const DString& filePath) const
-{
-    DString fileExt;
-    size_t pos = filePath.find_last_of(_T("."));
-    if (pos != DString::npos) {
-        fileExt = filePath.substr(pos);
-        fileExt = ui::StringUtil::MakeLowerString(fileExt);
-    }
-    return fileExt == _T(".rtf");
+    return true;
 }
 
 DWORD MainForm::StreamReadCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG FAR* pcb)
@@ -1493,17 +1896,14 @@ bool MainForm::LoadFile(const ui::FilePath& filePath)
     if (m_pRichEdit == nullptr) {
         return false;
     }
-    bool bRet = false;
-    std::vector<uint8_t> fileData;
-    ui::FileUtil::ReadFileData(filePath, fileData);
-    if (!fileData.empty()) {
-        DStringW text;
-        if (ui::StringCharset::GetDataAsString((const char*)fileData.data(), (uint32_t)fileData.size(), text)) {
-            m_pRichEdit->SetText(text);
-            bRet = true;
-        }
+    DStringW text;
+    if (!ReadTextFileContent(filePath, text, m_encodingText)) {
+        return false;
     }
-    return bRet;
+    m_bLoadingDocument = true;
+    m_pRichEdit->SetText(text);
+    m_bLoadingDocument = false;
+    return true;
 }
 
 bool MainForm::SaveFile(const ui::FilePath& filePath)
@@ -1511,43 +1911,8 @@ bool MainForm::SaveFile(const ui::FilePath& filePath)
     //保存
     if (m_pRichEdit == nullptr) {
         return false;
-    }    
-    DStringW text = m_pRichEdit->GetTextW();
-    if (text.empty()) {
-        return false;
     }
-
-    bool bRet = false;
-    ui::CharsetType charsetType = ui::CharsetType::UNKNOWN;
-    std::vector<uint8_t> fileData;
-    ui::FileUtil::ReadFileData(filePath, fileData);
-    if (!fileData.empty()) {
-        //检测原来文件的编码类型，尽量保持一致
-        charsetType = ui::StringCharset::GetDataCharsetByBOM((const char*)fileData.data(), (uint32_t)fileData.size());
-        if (charsetType == ui::CharsetType::UNKNOWN) {
-            charsetType = ui::StringCharset::GetDataCharset((const char*)fileData.data(), (uint32_t)fileData.size());
-        }
-        fileData.clear();
-    }
-    if (charsetType == ui::CharsetType::UTF16_LE) {
-        bRet = ui::FileUtil::WriteFileData(filePath, text);
-    }
-    else if (charsetType == ui::CharsetType::ANSI) {
-#ifdef DUILIB_BUILD_FOR_WIN
-        DStringA textA = ui::StringConvert::UnicodeToMBCS(text);
-        bRet = ui::FileUtil::WriteFileData(filePath, textA);
-#else
-        //按UTF8保存
-        DStringA textA = ui::StringConvert::WStringToUTF8(text);
-        bRet = ui::FileUtil::WriteFileData(filePath, textA);
-#endif        
-    }
-    else {
-        //按UTF8保存
-        DStringA textA = ui::StringConvert::WStringToUTF8(text);
-        bRet = ui::FileUtil::WriteFileData(filePath, textA);
-    }
-    return bRet;
+    return WriteTextFileContent(filePath, m_pRichEdit->GetTextW(), m_encodingText);
 }
 
 #endif //defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)

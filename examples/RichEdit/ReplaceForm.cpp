@@ -136,9 +136,6 @@ void ReplaceForm::OnReplace()
         return;
     }
     DString replaceText = m_pReplaceText->GetText();
-    if (replaceText.empty()) {
-        return;
-    }
 
     bool bFindDown = true;
     if (m_pDirectionOption != nullptr) {
@@ -172,9 +169,6 @@ void ReplaceForm::OnReplaceAll()
         return;
     }
     DString replaceText = m_pReplaceText->GetText();
-    if (replaceText.empty()) {
-        return;
-    }
 
     bool bFindDown = true;
     if (m_pDirectionOption != nullptr) {

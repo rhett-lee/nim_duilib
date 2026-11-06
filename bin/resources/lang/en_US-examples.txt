@@ -546,6 +546,30 @@ STRID_RICHEDIT_ALL_FILES = All Files(*.*)
 STRID_RICHEDIT_TXT_FILES = Text Files(*.txt)
 STRID_RICHEDIT_RTF_FILES = RTF Files(*.rtf)
 
+# Status bar and tips
+STRID_RICHEDIT_STATUS_POSITION_TIPS = Caret position (line:column)
+STRID_RICHEDIT_STATUS_CHARS_TIPS = Character count (selected characters)
+STRID_RICHEDIT_STATUS_ZOOM_TIPS = Current zoom ratio
+STRID_RICHEDIT_STATUS_ENCODING_TIPS = Current file encoding
+STRID_RICHEDIT_UNTITLED = Untitled document
+STRID_RICHEDIT_MODE_RICH_TEXT = Rich text
+STRID_RICHEDIT_MODE_PLAIN_TEXT = Plain text
+STRID_RICHEDIT_WRAP_ON = Word wrap
+STRID_RICHEDIT_WRAP_OFF = No wrap
+
+# Message boxes
+STRID_RICHEDIT_UNSAVED_TITLE = Unsaved changes
+STRID_RICHEDIT_UNSAVED_TEXT = The current document has been modified. Do you want to save the changes?\nChoose "No" to discard them, or "Cancel" to return to editing.
+STRID_RICHEDIT_OPEN_FAILED_TITLE = Open file failed
+STRID_RICHEDIT_OPEN_FAILED_TEXT = Unable to open the selected file. Please make sure it exists and has a valid format.
+STRID_RICHEDIT_SAVE_FAILED_TITLE = Save file failed
+STRID_RICHEDIT_SAVE_FAILED_TEXT = Unable to save the file. Please make sure the path is valid and writable.
+STRID_RICHEDIT_RICHTEXT_SWITCH_TITLE = Disable rich text mode
+STRID_RICHEDIT_RICHTEXT_SWITCH_TEXT = Disabling rich text mode will remove all formatting and undo history from the current text. Continue?
+STRID_RICHEDIT_FIND_NOT_FOUND = The search text was not found
+STRID_RICHEDIT_REPLACE_DONE = Replaced 1 occurrence
+STRID_RICHEDIT_REPLACE_ALL_DONE = Replaced all occurrences
+
 # examples/ListCtrl
 # Window Basic
 STRID_LISTCTRL_TEST_TITLE = ListCtrl Test

@@ -17,6 +17,9 @@ public:
     //查找
     bool FindRichText(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog);
 
+    //是否已有查找内容
+    bool HasFindText() const;
+
     //查找下一个
     bool FindNext();
 

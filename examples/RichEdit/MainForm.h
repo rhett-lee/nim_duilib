@@ -26,9 +26,21 @@ public:
     */
     virtual void OnInitWindow() override;
 
+    /** 窗口关闭消息：有未保存的修改时，提示用户保存
+    */
+    virtual LRESULT OnWindowCloseMsg(uint32_t wParam, const ui::NativeMsg& nativeMsg, bool& bHandled) override;
+
     /** 当窗口已经被关闭时调用此函数，供子类中做一些收尾工作
     */
     virtual void OnCloseWindow() override;
+
+    /** 窗口关闭前：保存相关状态
+    */
+    virtual void OnPreCloseWindow() override;
+
+    /** 界面语言切换后：刷新动态文本
+    */
+    virtual bool OnLanguageChanged() override;
 
     /** 键盘按下(WM_KEYDOWN 或者 WM_SYSKEYDOWN)
     * @param [in] vkCode 虚拟键盘代码
@@ -49,7 +61,7 @@ public:
     virtual LRESULT OnKeyUpMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled) override;
 
     //查找/替换接口
-    void FindRichText(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog);
+    bool FindRichText(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog);
     void ReplaceRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog);
     void ReplaceAllRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog);
 
@@ -61,15 +73,30 @@ private:
     void LoadRichEditData();
 
     //打开文件、保存文件、另存为文件
-    void OnOpenFile();
-    void OnSaveFile();
-    void OnSaveAsFile();
+    bool OnOpenFile();
+    bool OnSaveFile();
+    bool OnSaveAsFile();
 
     bool LoadFile(const ui::FilePath& filePath);
     bool SaveFile(const ui::FilePath& filePath);
 
+    //保存当前文档（文件路径为空时自动转为另存为）
+    bool SaveDocument();
+
+    //检查未保存的修改，返回 true 表示可以继续操作
+    bool ConfirmDiscardChanges();
+
+    //显示错误提示框
+    void ShowErrorMessage(const DString& textId, const DString& titleId);
+
     //更新保存状态
     void UpdateSaveStatus();
+
+    //更新状态栏
+    void UpdateStatusBar();
+
+    //在状态栏显示一条提示信息
+    void ShowStatusMessage(const DString& message);
 
 private:
     //查找/替换
@@ -163,8 +190,26 @@ private:
     //当前打开的文件
     ui::FilePath m_filePath;
 
+    //是否是示例文档（示例内容来自界面资源，不能直接保存到该文件）
+    bool m_bSampleDocument;
+
+    //是否正在加载文档（加载期间忽略文本变化事件）
+    bool m_bLoadingDocument;
+
+    //是否正在同步富文本模式复选框的状态
+    bool m_bUpdatingRichTextCheck;
+
     //保存按钮的文字
     DString m_saveBtnText;
+
+    //状态栏提示信息
+    DString m_statusMessage;
+
+    //当前文档编码说明
+    DString m_encodingText;
+
+    //最近一次打开/保存的目录
+    ui::FilePath m_lastFileDir;
 
     //查找
     FindForm* m_pFindForm;
