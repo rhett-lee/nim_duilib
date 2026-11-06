@@ -1,4 +1,4 @@
-<Window size="90%,80%" min_size="1000,660" size_box="4,4,4,4" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" text_id="STRID_RICHEDIT_TEST_TITLE" icon="public/caption/logo.ico">
+<Window size="1000,720" min_size="880,640" size_box="4,4,4,4" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" text_id="STRID_RICHEDIT_TEST_TITLE" icon="public/caption/logo.ico">
     <!-- 该窗口下的Class定义 -->
     <Class name="checkbox_font_class" font="system_regular_14" text_align="hcenter,vcenter"
                                       border_size="1"
@@ -211,12 +211,12 @@
                             <Label text_id="STRID_RICHEDIT_ZOOM" width="56" text_align="right,vcenter" valign="center" font="system_bold_12" margin="0,0,10,0"/>
                             <Label text_id="STRID_RICHEDIT_CURRENT_ZOOM_RATIO" font="system_regular_12" valign="center"/>
                             <Label name="lavel_zoom_value" text_id="STRID_RICHEDIT_ZOOM_100_PERCENT" font="system_bold_12" valign="center" margin="0,0,10,0"/>
-                            <Combo class="combo" name="combo_zoom" combo_type="drop_down" dropbox_size="120,240" height="28" width="88" margin="2,0,2,0" tooltip_text_id="STRID_RICHEDIT_ZOOM_SELECT_TIPS"/>
+                            <Combo class="combo" name="combo_zoom" combo_icon_class="" combo_type="drop_down" dropbox_size="120,240" height="28" width="88" margin="2,0,2,0" tooltip_text_id="STRID_RICHEDIT_ZOOM_SELECT_TIPS"/>
                         </HBox>
                         <HBox height="auto">
                             <Label text_id="STRID_RICHEDIT_OTHER" width="56" text_align="right,vcenter" valign="center" font="system_bold_12" margin="0,0,10,0"/>
                             <CheckBox class="checkbox_1" name="btn_word_wrap" text_id="STRID_RICHEDIT_AUTO_WRAP" font="system_regular_12" margin="0,0,0,0" selected="true" tooltip_text_id="STRID_RICHEDIT_AUTO_WRAP_TIPS"/>
-                            <CheckBox class="checkbox_1" name="btn_rich_text" text_id="STRID_RICHEDIT_RICH_TEXT_MODE" font="system_regular_12" margin="10,0,0,0" selected="true" tooltip_text_id="STRID_RICHEDIT_RICH_TEXT_MODE_TIPS"/>
+                            <CheckBox class="checkbox_1" name="btn_rich_text" text_id="STRID_RICHEDIT_RICH_TEXT_MODE" font="system_regular_12" margin="10,0,0,0" selected="false" tooltip_text_id="STRID_RICHEDIT_RICH_TEXT_MODE_TIPS"/>
                             <Label name="line_spacing_label" text_id="STRID_RICHEDIT_LINE_SPACING" font="system_regular_12" valign="center" margin="12,0,0,0" tooltip_text_id="STRID_RICHEDIT_LINE_SPACING_RICH_TEXT_ONLY"/>
                             <Option class="option_1" name="row_spacing_1_0" group="richedit_row_spacing_group" text="1.0" margin="4,0,0,0" text_align="vcenter" selected="true">
                                 <Event type="select" receiver="rich_edit" apply_attribute="row_spacing_mul='1.0'" />
@@ -241,7 +241,7 @@
 
                     <!-- 编辑区 -->
                     <HBox class="panel_card" height="stretch" margin="0,8,0,0" padding="4,4,4,4" min_width="60">
-                        <RichEdit name="rich_edit" enable_drag_drop="true" zoom="0,0" wheel_zoom="true" multi_line="true" want_return="true" word_wrap="true" rich_text="true" default_context_menu="true" save_selection="true" hide_selection="false" vscrollbar="true" auto_vscroll="true" bkcolor="bg_richedit"/>
+                        <RichEdit name="rich_edit" enable_drag_drop="true" zoom="0,0" wheel_zoom="true" multi_line="true" want_return="true" word_wrap="true" rich_text="false" default_context_menu="true" save_selection="true" hide_selection="false" vscrollbar="true" auto_vscroll="true" bkcolor="bg_richedit"/>
                     </HBox>
                 </VBox>
             </HBox>

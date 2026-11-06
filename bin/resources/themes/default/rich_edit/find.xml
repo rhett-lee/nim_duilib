@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="430,278" min_size="360,250" caption="0,0,0,36" text_id="STRID_RICHEDIT_FIND_TITLE" use_system_caption="false" shadow_attached="true" icon="public/caption/logo.ico">
+<Window size="440,300" min_size="400,280" caption="0,0,0,36" text_id="STRID_RICHEDIT_FIND_TITLE" use_system_caption="false" shadow_attached="true" icon="public/caption/logo.ico">
+    <!-- 卡片容器：与主窗口保持一致的样式 -->
+    <Class name="panel_card" bkcolor="bg_window_card" border_size="1" border_color="border_split_level1" border_round="8,8"/>
     <VBox bkcolor="bg_window_main">
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
             <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8,0,0,0"/>
@@ -7,28 +9,29 @@
             <Control />
             <Button class="btn_wnd_close_11" name="btn_window_close" width="40" height="34" margin="0,0,0,2"/>
         </HBox>
-        <VBox padding="10,10,10,10" height="stretch">
-            <VBox class="panel_card" padding="12,14,12,12" height="auto">
+        <VBox padding="12,12,12,12" height="stretch">
+            <VBox class="panel_card" padding="16,16,16,14" height="auto">
                 <HBox height="34">
-                    <Label text_id="STRID_RICHEDIT_FIND_CONTENT" width="70" text_align="right,vcenter" valign="center"/>
-                    <RichEdit class="simple simple_border" name="btn_find_text" width="stretch" height="30" prompt_text_id="STRID_RICHEDIT_FIND_PROMPT" text_padding="2,0,2,0" text_align="vcenter" margin="8,2,0,2"/>
-                    <Button class="btn_global" name="btn_find_next" text_id="STRID_RICHEDIT_FIND_NEXT" width="auto" height="28" padding="12,0,12,0" border_round="4,4" valign="center" margin="8,2,0,2"/>
+                    <Label text_id="STRID_RICHEDIT_FIND_CONTENT" width="96" text_align="right,vcenter" valign="center"/>
+                    <RichEdit class="simple simple_border" name="btn_find_text" width="stretch" height="30" prompt_text_id="STRID_RICHEDIT_FIND_PROMPT" text_padding="4,0,4,0" text_align="vcenter" margin="10,2,8,2"/>
+                    <Button class="btn_global" name="btn_find_next" text_id="STRID_RICHEDIT_FIND_NEXT" width="96" height="28" padding="0,0,0,0" border_round="4,4" valign="center" margin="0,2,0,2"/>
                 </HBox>
-                <GroupVBox margin="0,10,0,6" text_id="STRID_RICHEDIT_FIND_SEARCH_DIRECTION" height="auto" corner_size="4,4">
-                    <HBox height="40" margin="16,12,8,6">
-                        <Option class="option_1" group="option_direction_group" text_id="STRID_RICHEDIT_FIND_SEARCH_UP" name="option_direction_up" margin="0,6,0,0"/>
-                        <Option class="option_1" group="option_direction_group" text_id="STRID_RICHEDIT_FIND_SEARCH_DOWN" name="option_direction_down" margin="16,6,0,0" selected="true"/>
+                <VBox width="stretch" height="auto" margin="0,14,0,0">
+                    <Label text_id="STRID_RICHEDIT_FIND_SEARCH_DIRECTION" height="20" valign="center" margin="2,0,0,6" font="system_regular_12"/>
+                    <HBox width="stretch" height="auto" padding="14,9,14,9" border_size="1" border_color="border_group_box" border_round="6,6">
+                        <Option class="option_1" group="option_direction_group" text_id="STRID_RICHEDIT_FIND_SEARCH_UP" name="option_direction_up"/>
+                        <Option class="option_1" group="option_direction_group" text_id="STRID_RICHEDIT_FIND_SEARCH_DOWN" name="option_direction_down" margin="24,0,0,0" selected="true"/>
                     </HBox>
-                </GroupVBox>
-                <HBox height="auto" margin="0,6,0,0">
+                </VBox>
+                <HBox height="auto" margin="0,14,0,0">
                     <CheckBox class="checkbox_1" name="check_box_case_sensitive" text_id="STRID_RICHEDIT_FIND_CASE_SENSITIVE" valign="center" selected="true"/>
-                    <CheckBox class="checkbox_1" name="check_box_match_whole_word" text_id="STRID_RICHEDIT_FIND_MATCH_WHOLE_WORD" valign="center" margin="16,0,0,0" selected="false"/>
+                    <CheckBox class="checkbox_1" name="check_box_match_whole_word" text_id="STRID_RICHEDIT_FIND_MATCH_WHOLE_WORD" valign="center" margin="24,0,0,0" selected="false"/>
                 </HBox>
             </VBox>
             <Control />
             <HBox height="auto">
                 <Control />
-                <Button class="btn_global" name="btn_cancel" text_id="STRID_RICHEDIT_FIND_CANCEL" width="auto" height="28" padding="16,0,16,0" border_round="4,4" valign="center"/>
+                <Button class="btn_global" name="btn_cancel" text_id="STRID_RICHEDIT_FIND_CANCEL" width="88" height="28" padding="0,0,0,0" border_round="4,4" valign="center"/>
             </HBox>
         </VBox>
     </VBox>

@@ -383,7 +383,9 @@ void MainForm::SetupViewTools()
             if (m_pRichEdit != nullptr) {
                 bool bWordWrap = pCheckBox->IsSelected();
                 m_pRichEdit->SetWordWrap(bWordWrap);
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
                 m_pRichEdit->SetAttribute(_T("hscrollbar"), bWordWrap ? _T("false") : _T("true"));
+#endif
                 UpdateStatusBar();
             }
             return true;
@@ -600,18 +602,22 @@ void MainForm::SyncZoomCombo()
         return;
     }
     const uint32_t nZoomPercent = m_pRichEdit->GetZoomPercent();
+    const DString zoomText = ui::StringUtil::Printf(_T("%u%%"), nZoomPercent);
     bool bFound = false;
     const size_t nItemCount = pCombo->GetItemCount();
     for (size_t nIndex = 0; nIndex < nItemCount; ++nIndex) {
         if ((uint32_t)pCombo->GetItemData(nIndex) == nZoomPercent) {
-            pCombo->SetCurSel(nIndex);
+            //同步显示时不需要触发选择事件
+            pCombo->SetCurSel(nIndex, false);
             bFound = true;
             break;
         }
     }
     if (!bFound) {
-        pCombo->SetCurSel(ui::Box::InvalidIndex);
+        pCombo->SetCurSel(ui::Box::InvalidIndex, false);
     }
+    //下拉框为可编辑模式，同步编辑框中的文本（非标准比例时也能正确显示）
+    pCombo->SetText(zoomText);
 }
 
 void MainForm::SetZoomPercent(uint32_t nZoomPercent)
@@ -1462,12 +1468,15 @@ void MainForm::LoadSettings()
     SettingsMap settings;
     ReadSettingsFile(GetSettingsFilePath(), settings);
 
+    //设置文件的版本号：版本号小于2时，使用新的默认界面布局与默认编辑模式
+    const int32_t nSettingsVersion = GetSettingInt(settings, "settings_version", 0);
+
     //1. 窗口位置与大小（保存的是物理像素）
     const int32_t nLeft = GetSettingInt(settings, "window_left", 0);
     const int32_t nTop = GetSettingInt(settings, "window_top", 0);
     const int32_t nWidth = GetSettingInt(settings, "window_width", 0);
     const int32_t nHeight = GetSettingInt(settings, "window_height", 0);
-    if ((nWidth > 0) && (nHeight > 0)) {
+    if ((nSettingsVersion >= 2) && (nWidth > 0) && (nHeight > 0)) {
         ui::UiRect rcWork;
         if (!GetMonitorWorkRect(ui::UiPoint(nLeft, nTop), rcWork)) {
             GetMonitorWorkRect(rcWork);
@@ -1481,7 +1490,7 @@ void MainForm::LoadSettings()
 
     //2. 左侧面板的宽度
     const int32_t nLeftPanelWidth = GetSettingInt(settings, "left_panel_width", -1);
-    if (nLeftPanelWidth > 0) {
+    if ((nSettingsVersion >= 2) && (nLeftPanelWidth > 0)) {
         ui::Control* pLeftPanel = FindControl(_T("left_panel"));
         if (pLeftPanel != nullptr) {
             const int32_t nMinWidth = 60;
@@ -1493,7 +1502,7 @@ void MainForm::LoadSettings()
     if (m_pRichEdit != nullptr) {
         //3. 缩放比例
         const int32_t nZoomPercent = GetSettingInt(settings, "zoom_percent", 100);
-        if (nZoomPercent > 0) {
+        if ((nSettingsVersion >= 2) && (nZoomPercent > 0)) {
             m_pRichEdit->SetZoomPercent((uint32_t)nZoomPercent);
         }
 
@@ -1501,12 +1510,14 @@ void MainForm::LoadSettings()
         const int32_t nWordWrap = GetSettingInt(settings, "word_wrap", -1);
         if (nWordWrap >= 0) {
             m_pRichEdit->SetWordWrap(nWordWrap != 0);
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
             m_pRichEdit->SetAttribute(_T("hscrollbar"), (nWordWrap != 0) ? _T("false") : _T("true"));
+#endif
         }
 
-        //5. 富文本模式
+        //5. 富文本模式（该模式缺少跨平台兼容性，旧版本设置不恢复，默认关闭）
         const int32_t nRichText = GetSettingInt(settings, "rich_text", -1);
-        if (nRichText >= 0) {
+        if ((nSettingsVersion >= 2) && (nRichText >= 0)) {
             m_bUpdatingRichTextCheck = true;
             m_bLoadingDocument = true;
             m_pRichEdit->SetRichText(nRichText != 0);
@@ -1536,6 +1547,7 @@ void MainForm::SaveSettings() const
 {
     std::string settingsText;
     settingsText += "# RichEdit 示例的用户设置（程序自动生成，删除该文件后恢复默认设置）\n";
+    AppendSettingInt(settingsText, "settings_version", 2);
 
     //1. 窗口位置与大小
     ui::UiRect rcWindow;
@@ -1632,7 +1644,10 @@ bool MainForm::OnOpenFile()
     fileTypes.push_back({ ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_ALL_FILES")), _T("*.*")});
     fileTypes.push_back({ ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_TXT_FILES")), _T("*.txt") });
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    fileTypes.push_back({ ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_RTF_FILES")), _T("*.rtf") });
+    //仅富文本模式支持RTF文件，避免选择后无法打开
+    if ((m_pRichEdit != nullptr) && m_pRichEdit->IsRichText()) {
+        fileTypes.push_back({ ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_RTF_FILES")), _T("*.rtf") });
+    }
 #endif
 
     DString defaultExt;
@@ -1653,6 +1668,10 @@ bool MainForm::OnOpenFile()
     ui::FilePath defaultLocation = m_filePath.GetParentPath();
     if (defaultLocation.IsEmpty() || m_bSampleDocument) {
         defaultLocation = m_lastFileDir;
+    }
+    if (defaultLocation.IsEmpty() || !defaultLocation.IsExistsDirectory()) {
+        //默认目录不存在时，使用程序所在目录（避免文件对话框使用无效目录）
+        defaultLocation = ui::FilePathUtil::GetCurrentModuleDirectory();
     }
     if (openFileDlg.BrowseForFile(this, filePath, true, fileTypes, nFileTypeIndex, defaultExt, fileName, defaultLocation)) {
         if (LoadFile(filePath)) {
@@ -1698,14 +1717,18 @@ bool MainForm::OnSaveFile()
 
 bool MainForm::OnSaveAsFile()
 {
+    bool bRichText = (m_pRichEdit != nullptr) && m_pRichEdit->IsRichText();
+
     std::vector<ui::FileDialog::FileType> fileTypes;
     fileTypes.push_back({ ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_ALL_FILES")), _T("*.*") });
     fileTypes.push_back({ ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_TXT_FILES")), _T("*.txt") });
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    fileTypes.push_back({ ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_RTF_FILES")), _T("*.rtf") });
+    //仅富文本模式支持保存为RTF文件，避免选择后保存失败
+    if (bRichText) {
+        fileTypes.push_back({ ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_RTF_FILES")), _T("*.rtf") });
+    }
 #endif
 
-    bool bRichText = (m_pRichEdit != nullptr) && m_pRichEdit->IsRichText();
     DString defaultExt = bRichText ? _T("rtf") : _T("txt");
     int32_t nFileTypeIndex = 1;
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
@@ -1727,6 +1750,10 @@ bool MainForm::OnSaveAsFile()
     ui::FilePath defaultLocation = m_filePath.GetParentPath();
     if (defaultLocation.IsEmpty() || m_bSampleDocument) {
         defaultLocation = m_lastFileDir;
+    }
+    if (defaultLocation.IsEmpty() || !defaultLocation.IsExistsDirectory()) {
+        //默认目录不存在时，使用程序所在目录（避免文件对话框使用无效目录）
+        defaultLocation = ui::FilePathUtil::GetCurrentModuleDirectory();
     }
     if (!saveFileDlg.BrowseForFile(this, filePath, false, fileTypes, nFileTypeIndex, defaultExt, fileName, defaultLocation)) {
         return false;
