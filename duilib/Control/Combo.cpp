@@ -274,6 +274,15 @@ void CComboWnd::OnCloseWindow()
 
 LRESULT CComboWnd::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    if (((vkCode == kVK_UP) || (vkCode == kVK_DOWN)) &&
+        (m_pOwner != nullptr) &&
+        (m_pOwner->GetComboType() == Combo::kCombo_DropDown)) {
+        //下拉窗口被鼠标点击激活后，键盘消息由本窗口接收，需要转发给Combo处理方向键
+        m_pOwner->ProcessDropListKeyDown(vkCode);
+        bHandled = true;
+        return 0;
+    }
+
     LRESULT lResult = BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
     if (vkCode == kVK_ESCAPE) {
         //按住ESC键，取消
@@ -923,9 +932,16 @@ bool Combo::OnSelectItem(const EventArgs& /*args*/)
     }
     if (Box::IsValidItemIndex(m_iCurSel) && (m_pWindow != nullptr) && !m_pWindow->IsClosingWnd()) {
         const Control* pControl = m_treeView.GetItemAt(m_iCurSel);
-        if ((pControl != nullptr) && (m_pWindow->GetEventClick() == pControl)) {
-            //如果是鼠标点击触发选择，那么关闭下拉列表
-            m_pWindow->CloseComboWnd(false, false);
+        if (pControl != nullptr) {
+            //如果是鼠标触发选择，那么关闭下拉列表：
+            //1. 下拉窗口的点击控件不一定是条目控件本身（例如点击条目内的子控件）；
+            //2. 鼠标按下时可能已经触发选择，此时左键仍处于按下状态。
+            //键盘触发的选择不关闭下拉列表，等用户按回车键后再关闭。
+            const Control* pEventClick = m_pWindow->GetEventClick();
+            const bool bMouseSelect = (pEventClick != nullptr) || Keyboard::IsKeyDown(kVK_LBUTTON);
+            if (bMouseSelect) {
+                m_pWindow->CloseComboWnd(false, false);
+            }
         }
     }
     return true;
@@ -1062,6 +1078,15 @@ bool Combo::OnEditKeyDown(const EventArgs& args)
         }
     }
     return true;
+}
+
+bool Combo::ProcessDropListKeyDown(VirtualKeyCode vkCode)
+{
+    EventArgs args;
+    args.eventType = kEventKeyDown;
+    args.wParam = vkCode;
+    args.vkCode = vkCode;
+    return OnEditKeyDown(args);
 }
 
 bool Combo::OnEditSetFocus(const EventArgs& /*args*/)

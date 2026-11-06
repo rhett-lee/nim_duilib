@@ -230,6 +230,12 @@ public:
     */
     ShadowType GetComboWndShadowType() const;
 
+    /** 下拉列表窗口获得焦点时处理方向键（供下拉窗口转发键盘消息时使用）
+     * @param[in] vkCode 按下的功能键
+     * @return 始终返回 true
+     */
+    bool ProcessDropListKeyDown(VirtualKeyCode vkCode);
+
 public:
     /** 监听子项被选择事件
      * @param [in] callback 子项被选择后触发的回调函数

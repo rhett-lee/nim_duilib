@@ -1037,7 +1037,10 @@ bool RichEdit::SetFontInfo(const UiFont& fontInfo)
         SetSelectionCharFormat(charFormat);
     }
     else {
+        //纯文本模式下，SCF_DEFAULT只设置默认格式（影响后续输入的文本），
+        //需要同时使用SCF_ALL，使控件内已有的文本也应用新的格式
         SetDefaultCharFormat(charFormat);
+        m_richCtrl.SetCharFormat(charFormat, SCF_ALL);
     }
     ASSERT(GetFontInfo() == fontInfo);
     return true;

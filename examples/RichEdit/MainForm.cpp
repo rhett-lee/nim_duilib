@@ -112,6 +112,7 @@ MainForm::MainForm():
     m_bSampleDocument(true),
     m_bLoadingDocument(false),
     m_bUpdatingRichTextCheck(false),
+    m_bZoomComboSelecting(false),
     m_encodingText(_T("UTF-8")),
     m_pFindForm(nullptr),
     m_pReplaceForm(nullptr)
@@ -174,6 +175,22 @@ void MainForm::BindClick(const DString& controlName, const std::function<void()>
             }
             return true;
             });
+    }
+}
+
+void MainForm::BindCheck(const DString& controlName, const std::function<void(bool)>& onChanged)
+{
+    ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(controlName));
+    if (pCheckBox != nullptr) {
+        //CheckBox只触发select/unselect事件，不触发kEventClick事件
+        auto handler = [pCheckBox, onChanged](const ui::EventArgs& args) {
+            if (args.GetSender() == pCheckBox) {
+                onChanged(pCheckBox->IsSelected());
+            }
+            return true;
+            };
+        pCheckBox->AttachSelect(handler);
+        pCheckBox->AttachUnSelect(handler);
     }
 }
 
@@ -329,34 +346,10 @@ void MainForm::SetupFontTools()
     InitFontSizeCombo();
 
     //粗体、斜体、下划线、删除线
-    ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_font_bold")));
-    if (pCheckBox != nullptr) {
-        pCheckBox->AttachClick([this, pCheckBox](const ui::EventArgs& /*args*/) {
-            SetFontBold(pCheckBox->IsSelected());
-            return true;
-            });
-    }
-    pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_font_italic")));
-    if (pCheckBox != nullptr) {
-        pCheckBox->AttachClick([this, pCheckBox](const ui::EventArgs& /*args*/) {
-            SetFontItalic(pCheckBox->IsSelected());
-            return true;
-            });
-    }
-    pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_font_underline")));
-    if (pCheckBox != nullptr) {
-        pCheckBox->AttachClick([this, pCheckBox](const ui::EventArgs& /*args*/) {
-            SetFontUnderline(pCheckBox->IsSelected());
-            return true;
-            });
-    }
-    pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_font_strikeout")));
-    if (pCheckBox != nullptr) {
-        pCheckBox->AttachClick([this, pCheckBox](const ui::EventArgs& /*args*/) {
-            SetFontStrikeOut(pCheckBox->IsSelected());
-            return true;
-            });
-    }
+    BindCheck(_T("btn_font_bold"), [this](bool bSelected) { SetFontBold(bSelected); });
+    BindCheck(_T("btn_font_italic"), [this](bool bSelected) { SetFontItalic(bSelected); });
+    BindCheck(_T("btn_font_underline"), [this](bool bSelected) { SetFontUnderline(bSelected); });
+    BindCheck(_T("btn_font_strikeout"), [this](bool bSelected) { SetFontStrikeOut(bSelected); });
 
     BindClick(_T("btn_font_size_increase"), [this]() { AdjustFontSize(true); });
     BindClick(_T("btn_font_size_decrease"), [this]() { AdjustFontSize(false); });
@@ -377,41 +370,31 @@ void MainForm::SetupViewTools()
     }
 
     //自动换行
-    ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_word_wrap")));
-    if (pCheckBox != nullptr) {
-        pCheckBox->AttachClick([this, pCheckBox](const ui::EventArgs& /*args*/) {
-            if (m_pRichEdit != nullptr) {
-                bool bWordWrap = pCheckBox->IsSelected();
-                m_pRichEdit->SetWordWrap(bWordWrap);
+    BindCheck(_T("btn_word_wrap"), [this](bool bSelected) {
+        if (m_pRichEdit != nullptr) {
+            m_pRichEdit->SetWordWrap(bSelected);
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-                m_pRichEdit->SetAttribute(_T("hscrollbar"), bWordWrap ? _T("false") : _T("true"));
+            m_pRichEdit->SetAttribute(_T("hscrollbar"), bSelected ? _T("false") : _T("true"));
 #endif
-                UpdateStatusBar();
-            }
-            return true;
-            });
-    }
+            UpdateStatusBar();
+        }
+        });
 
     //富文本模式
-    pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_rich_text")));
-    if (pCheckBox != nullptr) {
-        pCheckBox->AttachClick([this, pCheckBox](const ui::EventArgs& /*args*/) {
-            if (m_pRichEdit != nullptr) {
-                bool bRichText = pCheckBox->IsSelected();
-                m_bUpdatingRichTextCheck = true;
-                m_bLoadingDocument = true;
-                m_pRichEdit->SetRichText(bRichText);
-                m_bLoadingDocument = false;
-                m_bUpdatingRichTextCheck = false;
-                UpdateSaveStatus();
-                UpdateStatusBar();
-                UpdateFontStatus();
-                UpdateEditButtonStatus();
-                UpdateRowSpacingEnabled();
-            }
-            return true;
-            });
-    }
+    BindCheck(_T("btn_rich_text"), [this](bool bSelected) {
+        if (m_pRichEdit != nullptr) {
+            m_bUpdatingRichTextCheck = true;
+            m_bLoadingDocument = true;
+            m_pRichEdit->SetRichText(bSelected);
+            m_bLoadingDocument = false;
+            m_bUpdatingRichTextCheck = false;
+            UpdateSaveStatus();
+            UpdateStatusBar();
+            UpdateFontStatus();
+            UpdateEditButtonStatus();
+            UpdateRowSpacingEnabled();
+        }
+        });
 
     //行距相关控件：富文本关闭时禁用
     m_rowSpacingControls.clear();
@@ -588,7 +571,10 @@ void MainForm::InitZoomCombo()
         const size_t nItemIndex = pCombo->GetCurSel();
         const uint32_t nZoomPercent = (uint32_t)pCombo->GetItemData(nItemIndex);
         if (nZoomPercent > 0) {
+            //由下拉框自身触发的选择，不再回写下拉框，否则会打断下拉列表的关闭与键盘选择流程
+            m_bZoomComboSelecting = true;
             SetZoomPercent(nZoomPercent);
+            m_bZoomComboSelecting = false;
         }
         return true;
         });
@@ -604,7 +590,8 @@ void MainForm::SyncZoomCombo()
     const uint32_t nZoomPercent = m_pRichEdit->GetZoomPercent();
     const DString zoomText = ui::StringUtil::Printf(_T("%u%%"), nZoomPercent);
     bool bFound = false;
-    const size_t nItemCount = pCombo->GetItemCount();
+    //注意：Combo的条目数需要使用GetCount()，GetItemCount()返回的是子控件数量
+    const size_t nItemCount = pCombo->GetCount();
     for (size_t nIndex = 0; nIndex < nItemCount; ++nIndex) {
         if ((uint32_t)pCombo->GetItemData(nIndex) == nZoomPercent) {
             //同步显示时不需要触发选择事件
@@ -1607,7 +1594,9 @@ void MainForm::UpdateZoomValue()
         DString strZoom = ui::StringUtil::Printf(_T("%u%%"), nZoomPercent);
         pZoomLabel->SetText(strZoom);
     }
-    SyncZoomCombo();
+    if (!m_bZoomComboSelecting) {
+        SyncZoomCombo();
+    }
     UpdateStatusBar();
 }
 

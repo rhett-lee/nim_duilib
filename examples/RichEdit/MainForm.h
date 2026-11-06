@@ -98,6 +98,9 @@ private:
     //绑定按钮的点击事件
     void BindClick(const DString& controlName, const std::function<void()>& onClick);
 
+    //绑定复选框的状态切换事件（CheckBox不会触发kEventClick，需要监听select/unselect事件）
+    void BindCheck(const DString& controlName, const std::function<void(bool)>& onChanged);
+
     //加载默认的示例内容
     void LoadRichEditData();
 
@@ -247,6 +250,9 @@ private:
 
     //是否正在同步富文本模式复选框的状态
     bool m_bUpdatingRichTextCheck;
+
+    //是否正在响应缩放比例下拉框的选择（此时不再回写下拉框，避免打断下拉列表的选择流程）
+    bool m_bZoomComboSelecting;
 
     //保存按钮的文字
     DString m_saveBtnText;

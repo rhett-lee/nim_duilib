@@ -1,4 +1,4 @@
-<Window size="1000,720" min_size="880,640" size_box="4,4,4,4" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" text_id="STRID_RICHEDIT_TEST_TITLE" icon="public/caption/logo.ico">
+<Window size="1100,740" min_size="880,640" size_box="4,4,4,4" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" text_id="STRID_RICHEDIT_TEST_TITLE" icon="public/caption/logo.ico">
     <!-- 该窗口下的Class定义 -->
     <Class name="checkbox_font_class" font="system_regular_14" text_align="hcenter,vcenter"
                                       border_size="1"
