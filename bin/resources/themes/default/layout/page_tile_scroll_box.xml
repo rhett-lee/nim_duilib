@@ -5,7 +5,7 @@
         <Label text="VTileScrollBox " height="28" valign="center"/>
         <Label text_id="STRID_LAYOUT_TEST_TITLE" height="28" valign="center"/>
     </HBox>
-    <VTileScrollBox hscrollbar="true" vscrollbar="true" width="stretch" height="400" bkcolor="white" border_size="2" border_color="red" padding="20,20,20,20">
+    <VTileScrollBox hscrollbar="true" vscrollbar="true" width="stretch" height="45%" bkcolor="white" border_size="2" border_color="red" padding="20,20,20,20">
         <Label class="page_tile_scroll_box" text="1 right,top" text_align="right,bottom" halign="right" valign="top"/>
         <Label class="page_tile_scroll_box" text="2 left,top" halign="left" valign="top"/>
         <Label class="page_tile_scroll_box" text="3 left,center" halign="left" valign="center"/>
@@ -27,7 +27,7 @@
         <Label text="HTileScrollBox " height="28" valign="center"/>
         <Label text_id="STRID_LAYOUT_TEST_TITLE" height="28" valign="center"/>
     </HBox>
-    <HTileScrollBox hscrollbar="true" vscrollbar="false" width="stretch" height="380" bkcolor="white" border_size="2" border_color="red" padding="20,20,20,20">
+    <HTileScrollBox hscrollbar="true" vscrollbar="false" width="stretch" height="stretch" bkcolor="white" border_size="2" border_color="red" padding="20,20,20,20">
         <Label class="page_tile_scroll_box" text="1 right,top" text_align="right,bottom" halign="right" valign="top"/>
         <Label class="page_tile_scroll_box" text="2 left,top" halign="left" valign="top"/>
         <Label class="page_tile_scroll_box" text="3 left,center" halign="left" valign="center"/>

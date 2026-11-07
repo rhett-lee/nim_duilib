@@ -1,5 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Window size="75%,75%" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" size_box="4,4,4,4" text_id="STRID_LAYOUT_TEST_TITLE">
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Window size="85%,80%" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" size_box="4,4,4,4" text_id="STRID_LAYOUT_TEST_TITLE">
+    <!-- 内容卡片样式：与 TreeView 示例保持一致 -->
+    <Class name="layout_card" bkcolor="bg_window_card" border_size="1" border_color="border_split_level1" border_round="8,8"/>
+    <!-- 标签标题样式：收紧右侧留白，让固定宽度的标签能完整显示文字 -->
+    <Class name="layout_tab_item_title" width="stretch" height="24" margin="0,0,0,0" valign="center"
+           font="system_regular_12" auto_tooltip="true" mouse_enabled="false"/>
+
     <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->
     <VBox bkcolor="bg_window_main">
         <!-- 标题栏区域 -->
@@ -26,81 +32,83 @@
         <!-- 标题栏区域结束 -->
 
         <!-- 显示区域 -->
-        <VBox bkcolor="bg_tab_ctrl_item_selected">
-            <TabCtrl class="tab_ctrl" tab_box_name="main_view_tab" selected_id="0">
-                <TabCtrlItem class="tab_ctrl_item" title="Box" close_button_class="" tab_box_item_index="0"/>
-                <TabCtrlItem class="tab_ctrl_item" title="HBox" close_button_class="" tab_box_item_index="1"/>
-                <TabCtrlItem class="tab_ctrl_item" title="VBox" close_button_class="" tab_box_item_index="2"/>
-                <TabCtrlItem class="tab_ctrl_item" title="HFlowBox" close_button_class="" tab_box_item_index="3"/>
-                <TabCtrlItem class="tab_ctrl_item" title="VFlowBox" close_button_class="" tab_box_item_index="4"/>
-                <TabCtrlItem class="tab_ctrl_item" title="TileBox" close_button_class="" tab_box_item_index="5"/>
-                <TabCtrlItem class="tab_ctrl_item" title="ScrollBox" close_button_class="" tab_box_item_index="6"/>
-                <TabCtrlItem class="tab_ctrl_item" title="HScrollBox" close_button_class="" tab_box_item_index="7"/>
-                <TabCtrlItem class="tab_ctrl_item" title="VScrollBox" close_button_class="" tab_box_item_index="8"/>
-                <TabCtrlItem class="tab_ctrl_item" title="HFlowScrollBox" close_button_class="" tab_box_item_index="9"/>
-                <TabCtrlItem class="tab_ctrl_item" title="VFlowScrollBox" close_button_class="" tab_box_item_index="10"/>
-                <TabCtrlItem class="tab_ctrl_item" title="TileScrollBox" close_button_class="" tab_box_item_index="11"/>
-                <TabCtrlItem class="tab_ctrl_item" title="ListBox" close_button_class="" tab_box_item_index="12"/>
-                <TabCtrlItem class="tab_ctrl_item" title="Layout" close_button_class="" tab_box_item_index="13"/>
-                <TabCtrlItem class="tab_ctrl_item" title="TabBox" close_button_class="" tab_box_item_index="14"/>
-                <TabCtrlItem class="tab_ctrl_item" title="GridBox" close_button_class="" tab_box_item_index="15"/>
-                <TabCtrlItem class="tab_ctrl_item" title="GridScrollBox" close_button_class="" tab_box_item_index="16"/>
+        <VBox bkcolor="bg_window_main" padding="10,10,10,10">
+            <!-- 标签栏 -->
+            <TabCtrl class="tab_ctrl" tab_box_name="main_view_tab" selected_id="0"
+                     height="40" border_round="8,8" margin="0,0,0,8">
+                <TabCtrlItem class="tab_ctrl_item" title_class="layout_tab_item_title" title="Box" width="47" close_button_class="" tab_box_item_index="0"/>
+                <TabCtrlItem class="tab_ctrl_item" title_class="layout_tab_item_title" title="HBox" width="56" close_button_class="" tab_box_item_index="1"/>
+                <TabCtrlItem class="tab_ctrl_item" title_class="layout_tab_item_title" title="VBox" width="55" close_button_class="" tab_box_item_index="2"/>
+                <TabCtrlItem class="tab_ctrl_item" title_class="layout_tab_item_title" title="HFlowBox" width="80" close_button_class="" tab_box_item_index="3"/>
+                <TabCtrlItem class="tab_ctrl_item" title_class="layout_tab_item_title" title="VFlowBox" width="79" close_button_class="" tab_box_item_index="4"/>
+                <TabCtrlItem class="tab_ctrl_item" title_class="layout_tab_item_title" title="TileBox" width="66" close_button_class="" tab_box_item_index="5"/>
+                <TabCtrlItem class="tab_ctrl_item" title_class="layout_tab_item_title" title="ScrollBox" width="76" close_button_class="" tab_box_item_index="6"/>
+                <TabCtrlItem class="tab_ctrl_item" title_class="layout_tab_item_title" title="HScrollBox" width="85" close_button_class="" tab_box_item_index="7"/>
+                <TabCtrlItem class="tab_ctrl_item" title_class="layout_tab_item_title" title="VScrollBox" width="83" close_button_class="" tab_box_item_index="8"/>
+                <TabCtrlItem class="tab_ctrl_item" title_class="layout_tab_item_title" title="HFlowScrollBox" width="110" close_button_class="" tab_box_item_index="9"/>
+                <TabCtrlItem class="tab_ctrl_item" title_class="layout_tab_item_title" title="VFlowScrollBox" width="109" close_button_class="" tab_box_item_index="10"/>
+                <TabCtrlItem class="tab_ctrl_item" title_class="layout_tab_item_title" title="TileScrollBox" width="95" close_button_class="" tab_box_item_index="11"/>
+                <TabCtrlItem class="tab_ctrl_item" title_class="layout_tab_item_title" title="ListBox" width="65" close_button_class="" tab_box_item_index="12"/>
+                <TabCtrlItem class="tab_ctrl_item" title_class="layout_tab_item_title" title="Layout" width="63" close_button_class="" tab_box_item_index="13"/>
+                <TabCtrlItem class="tab_ctrl_item" title_class="layout_tab_item_title" title="TabBox" width="67" close_button_class="" tab_box_item_index="14"/>
+                <TabCtrlItem class="tab_ctrl_item" title_class="layout_tab_item_title" title="GridBox" width="69" close_button_class="" tab_box_item_index="15"/>
+                <TabCtrlItem class="tab_ctrl_item" title_class="layout_tab_item_title" title="GridScrollBox" width="100" close_button_class="" tab_box_item_index="16"/>
             </TabCtrl>
-            <TabBox name="main_view_tab" bkcolor="bg_container" selected_id="0" margin="4,4,4,4" padding="3,3,3,3"
-                    border_size="1" border_color="border_window" border_round="3,3"
+            <!-- 内容卡片 -->
+            <TabBox class="layout_card" name="main_view_tab" bkcolor="bg_window_card" selected_id="0"
                     fade_switch_type="FadeInOutX"
                     fade_switch_frame_interval_ms="16"
                     fade_switch_total_ms="220"
                     fade_switch_easing_function="EaseOutCubic">
-                <VBox name="main_view_page_00">
+                <VBox name="main_view_page_00" padding="10,10,10,10">
                     <Include src="page_box.xml"/>
                 </VBox>
-                <VBox name="main_view_page_01">
+                <VBox name="main_view_page_01" padding="10,10,10,10">
                     <Include src="page_hbox.xml"/>
                 </VBox>
-                <VBox name="main_view_page_02">
+                <VBox name="main_view_page_02" padding="10,10,10,10">
                     <Include src="page_vbox.xml"/>
                 </VBox>
-                <VBox name="main_view_page_03">
+                <VBox name="main_view_page_03" padding="10,10,10,10">
                     <Include src="page_hflow_box.xml"/>
                 </VBox>
-                <VBox name="main_view_page_04">
+                <VBox name="main_view_page_04" padding="10,10,10,10">
                     <Include src="page_vflow_box.xml"/>
                 </VBox>
-                <VBox name="main_view_page_05">
+                <VBox name="main_view_page_05" padding="10,10,10,10">
                     <Include src="page_tilebox.xml"/>
                 </VBox>
-                <VBox name="main_view_page_06">
+                <VBox name="main_view_page_06" padding="10,10,10,10">
                     <Include src="page_scroll_box.xml"/>
                 </VBox>
-                <VBox name="main_view_page_07">
+                <VBox name="main_view_page_07" padding="10,10,10,10">
                     <Include src="page_hscroll_box.xml"/>
                 </VBox>
-                <VBox name="main_view_page_08">
+                <VBox name="main_view_page_08" padding="10,10,10,10">
                     <Include src="page_vscroll_box.xml"/>
                 </VBox>
-                <VBox name="main_view_page_09">
+                <VBox name="main_view_page_09" padding="10,10,10,10">
                     <Include src="page_hflow_scroll_box.xml"/>
                 </VBox>
-                <VBox name="main_view_page_10">
+                <VBox name="main_view_page_10" padding="10,10,10,10">
                     <Include src="page_vflow_scroll_box.xml"/>
                 </VBox>
-                <VBox name="main_view_page_11">
+                <VBox name="main_view_page_11" padding="10,10,10,10">
                     <Include src="page_tile_scroll_box.xml"/>
                 </VBox>
-                <VBox name="main_view_page_12">
+                <VBox name="main_view_page_12" padding="10,10,10,10">
                     <Include src="page_list_box.xml"/>
                 </VBox>
-                <VBox name="main_view_page_13">
+                <VBox name="main_view_page_13" padding="10,10,10,10">
                     <Include src="page_layout.xml"/>
                 </VBox>
-                <VBox name="main_view_page_14">
+                <VBox name="main_view_page_14" padding="10,10,10,10">
                     <Include src="page_tabbox.xml"/>
                 </VBox>
-                <VBox name="main_view_page_15">
+                <VBox name="main_view_page_15" padding="10,10,10,10">
                     <Include src="page_gridbox.xml"/>
                 </VBox>
-                <VBox name="main_view_page_16">
+                <VBox name="main_view_page_16" padding="10,10,10,10">
                     <Include src="page_grid_scroll_box.xml"/>
                 </VBox>
             </TabBox>

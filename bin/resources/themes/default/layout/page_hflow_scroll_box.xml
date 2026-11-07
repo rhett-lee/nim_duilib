@@ -36,7 +36,7 @@
     <VBox>
         <HFlowScrollBox name="hflow_scrollbox_test" vscrollbar="true" hscrollbar="true" child_halign="left" child_valign="top" bkcolor="Cornsilk" border_size="1" border_color="red" padding="8,8,8,8" margin="8,8,8,8" height="70%">
             <Label class="page_hflow_scrollbox" text="1 top" halign="left" valign="top" minwidth="300" maxheight="60"/>
-            <Label class="page_hflow_scrollbox" text="2 enter" halign="left" valign="center"/>
+            <Label class="page_hflow_scrollbox" text="2 center" halign="left" valign="center"/>
             <Label class="page_hflow_scrollbox" text="3 bottom" halign="left" valign="bottom" height="40"/>
             <Label class="page_hflow_scrollbox" text="4 top" halign="center" valign="top"/>
             <Label class="page_hflow_scrollbox" text="5 center" halign="center" valign="center" height="40"/>

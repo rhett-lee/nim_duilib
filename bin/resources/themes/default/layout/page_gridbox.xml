@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
     <Class name="page_gridbox" multi_line="true" margin="0,0,0,0" width="90%" height="90%" bkcolor="Sienna" border_size="1" border_color="green"/>
-    <Class name="page_gridbox_calculator" multi_line="false" text_align="center,hcenter" font="system_regular_16" margin="0,0,0,0" width="100%" height="100%" halign="center" valign="center" bkcolor="Sienna" border_size="1" border_color="green"/>
+    <Class name="page_gridbox_calculator" multi_line="false" text_align="hcenter,vcenter" font="system_regular_16" margin="0,0,0,0" width="100%" height="100%" halign="center" valign="center" bkcolor="Sienna" border_size="1" border_color="green"/>
     <VBox height="84" padding="6,0,6,0" >
         <HBox width="auto" height="auto">
             <Label text="GridBox " height="28" valign="center"/>
@@ -72,7 +72,7 @@
                  child_halign="center" child_valign="center"
                  grid_width="80" grid_height="60" rows="6" columns="4" child_margin_x="1" child_margin_y="1">
             <!-- 一个计算器的布局 -->
-            <Label class="page_gridbox_calculator" text="0" col_span="4" text_align="center,right" text_padding="0,0,6,0" bkcolor="Cornsilk" normal_text_color="black"/>
+            <Label class="page_gridbox_calculator" text="0" col_span="4" text_align="right,vcenter" text_padding="0,0,6,0" bkcolor="Cornsilk" normal_text_color="black"/>
             <Label class="page_gridbox_calculator" text_id="STRID_LAYOUT_PAGE_12" col_span="2"/>
             <Label class="page_gridbox_calculator" text_id="STRID_LAYOUT_PAGE_13" col_span="1"/>
             <Label class="page_gridbox_calculator" text="=" col_span="1"/>
