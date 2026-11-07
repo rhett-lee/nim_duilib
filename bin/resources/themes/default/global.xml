@@ -359,13 +359,16 @@
                                             disabled_color='bg_combo_btn_disabled' disabled_color_round='3,3'
                                             normal_image={file='${PATH_COMBO}/arrow_normal.svg' valign='center'} 
                                             hovered_image={file='${PATH_COMBO}/arrow_hovered.svg' valign='center'}"/>
-    <Class name="filter_combo" class="combo_base"/>
+    <Class name="filter_combo" class="combo"/>
     <Class name="check_combo" class="combo_basic"
-                              dropbox="padding='0,0,0,0' bkcolor='bg_combo' border_size='0,0,0,0' vscrollbar='true'"
-                              dropbox_item_class="width='stretch' height='24' text_padding='20,0,2,1' text_align='left,vcenter' 
-                                                  normal_image={file='${PATH_CHECKBOX}/checkbox-outline-unchecked.svg' valign='center'} 
-                                                  selected_normal_image={file='${PATH_CHECKBOX}/checkbox-outline-checked.svg' valign='center'}" 
-                              selected_item_class="width='auto' height='22' margin='4,2,4,2' bkcolor='bg_menu_item_selected' text_padding='2,1,2,1'"/>
+                              dropbox="padding='4,4,4,4' bkcolor='bg_menu' border_size='0,0,0,0'"
+                              dropbox_item_class="width='stretch' height='24' text_padding='24,0,8,0' text_align='left,vcenter'
+                                                  hovered_color='bg_list_item_hovered'
+                                                  normal_image={file='${PATH_CHECKBOX}/checkbox-outline-unchecked.svg' width='16' height='16' valign='center'} 
+                                                  disabled_image={file='${PATH_CHECKBOX}/checkbox-outline-unchecked.svg' width='16' height='16' valign='center' fade='80'}
+                                                  selected_normal_image={file='${PATH_CHECKBOX}/checkbox-outline-checked.svg' width='16' height='16' valign='center'}
+                                                  selected_disabled_image={file='${PATH_CHECKBOX}/checkbox-outline-checked.svg' width='16' height='16' valign='center' fade='80'}" 
+                              selected_item_class="width='auto' height='22' margin='4,2,4,2' bkcolor='bg_menu_item_selected' border_round='3,3' text_padding='6,0,6,0'"/>
     <Class name="combo_button" padding="1,1,1,1" border_size="1" hovered_border_color="border_combo_hovered" 
                                hovered_color="bg_combo_btn_hovered" pressed_color="bg_combo_btn_pressed"
                                combo_box_class="padding='0,0,0,0' border_size='0,0,0,0' bkcolor='bg_container'" 

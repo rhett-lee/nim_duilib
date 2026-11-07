@@ -145,6 +145,13 @@ UiRect CCheckComboWnd::GetComboWndRect() const
         rc.Inflate(rcPadding);
         pOwner->GetWindow()->ClientToScreen(rc);
     }
+    //限制在显示器工作区内，避免下拉窗口在屏幕边缘溢出
+    if (rc.right > rcWork.right) {
+        rc.Offset(-(rc.right - rcWork.right), 0);
+    }
+    if (rc.left < rcWork.left) {
+        rc.Offset(rcWork.left - rc.left, 0);
+    }
     return rc;
 }
 
@@ -207,6 +214,9 @@ void CCheckComboWnd::OnInitWindow()
     BaseClass::OnInitWindow();
     SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
     SetShadowType(m_pOwner->GetComboWndShadowType());
+    //边框与菜单保持一致：1px 圆角边框由窗口阴影统一绘制，下拉列表不再绘制自身边框
+    SetShadowBorderSize(1);
+    SetShadowBorderColor(_T("border_window"));
 
     Box* pRoot = new Box(this);
     pRoot->SetAutoDestroyChild(false);
@@ -260,7 +270,7 @@ CheckCombo::CheckCombo(Window* pWindow) :
     m_szDropBox(0, 0),
     m_bPopupTop(false),
     m_iOrgHeight(CHECK_COMBO_DEFAULT_HEIGHT),
-    m_nShadowType(ShadowType::kShadowMenu)
+    m_nShadowType(ShadowType::kShadowMenuRound)
 {
     SetDropBoxSize({0, 150}, true);
     SetMaxHeight(m_iOrgHeight * 3, true);
