@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Box>
-    <VBox bkcolor="bg_container" >
+<Box width="stretch" height="stretch">
+    <VScrollBox width="stretch" height="stretch" vscrollbar="true" hscrollbar="true">
         <HBox height="80" margin="0,10,0,0">
             <Label text_id="STRID_RENDER_CTRL_TEST_MENUBAR_DESC" text_align="right,vcenter" height="36"/>
             <MenuBar name="menu_bar_test" bkcolor="bg_menu_bar" height="36" margin="6,0,20,0" padding="4,0,0,0" border_round="4,4" />
@@ -34,5 +34,5 @@
                        valign="center" halign="center" mouse_enabled="false"/>
             </BoxResizable>
         </HBox>
-    </VBox>
+    </VScrollBox>
 </Box>

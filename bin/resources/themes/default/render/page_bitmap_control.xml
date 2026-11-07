@@ -3,7 +3,7 @@
     <Class name="bitmap_control_image" width="200" height="200" border_size="1" border_color="green" />
     <Class name="bitmap_control_text" width="200" height="auto" multi_line="true" replace_newline="true" text_align="left,vcenter" />
     <Class name="bitmap_control_case" width="200" height="auto" multi_line="true" replace_newline="true" text_align="hcenter,vcenter" />
-    <HFlowScrollBox width="auto" height="auto" child_margin_x="2" child_margin_y="2" padding="2,2,2,2">
+    <HFlowScrollBox width="stretch" height="stretch" child_margin_x="2" child_margin_y="2" padding="2,2,2,2">
         <VBox width="auto" height="auto">
             <BitmapControl class="bitmap_control_image" bitmap_file="render/autumn.png"/>
             <Label class="bitmap_control_case" text="Case No.(1.1)"/>

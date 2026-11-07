@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
-    <VBox bkcolor="bg_container" alpha="255">
+    <VScrollBox width="stretch" height="stretch" vscrollbar="true" hscrollbar="true">
         <HBox height="40"/>
         <HBox height="auto" padding="0,0,0,18">
             <Control margin="50,40" width="100" height="60" name="box_shadow_test" bkcolor="red" border_round="4,4" box_shadow="color='gray' offset='1,1' blur_radius='3' spread_radius='3'" visible="false"/>
@@ -68,5 +68,5 @@
             <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" bkcolor="blue" border_size="2,1,2,1" border_color="gold" border_dash_style="dash_dot_dot"/>
         </HBox>
 
-    </VBox>
+    </VScrollBox>
 </Window>

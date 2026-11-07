@@ -28,25 +28,24 @@ void RenderForm::OnInitWindow()
     ui::MenuBar* pMenuBar = dynamic_cast<ui::MenuBar*>(FindControl(_T("menu_bar_test")));
     if (pMenuBar != nullptr) {
         pMenuBar->AddTopMenu(_T("1"), _T("File"),      _T(""), DString(DUILIB_PUBLIC_RES_DIR) + _T("/menu/rich_edit_menu.xml"));
-        pMenuBar->AddTopMenu(_T("2"), _T("Edit"),      _T(""), _T("controls\\menu\\settings_menu.xml"));
+        pMenuBar->AddTopMenu(_T("2"), _T("Edit"),      _T(""), _T("controls/menu/settings_menu.xml"));
         pMenuBar->AddTopMenu(_T("3"), _T("Selection"), _T(""), DString(DUILIB_PUBLIC_RES_DIR) + _T("/menu/rich_edit_menu.xml"));
         pMenuBar->AddTopMenu(_T("4"), _T("View1"),      _T(""), _T("controls/menu/settings_menu.xml"));
         pMenuBar->AddTopMenu(_T("5"), _T("View2"),       _T(""), DString(DUILIB_PUBLIC_RES_DIR) + _T("/menu/rich_edit_menu.xml"));
         pMenuBar->AddTopMenu(_T("6"), _T("  ...  "),   _T(""), DString(DUILIB_PUBLIC_RES_DIR) + _T("/menu/rich_edit_menu.xml"), _T(""), _T("text_padding='8,1,8,7'"));
-    }
 
-    //注册菜单命令激活的响应函数
-    ui::MenuBarItemActivatedEvent callback = [](const DString& menuItemId,
-                                                const DString& menuName, int32_t nMenuLevel,
-                                                const DString& itemName, size_t nItemIndex) {
-            (void)menuItemId;
-            (void)menuName;
-            (void)nMenuLevel;
-            (void)itemName;
-            (void)nItemIndex;
-            int ii = 0;
-        };
-    pMenuBar->AttachMenuBarItemActivated(callback);
+        //注册菜单命令激活的响应函数
+        ui::MenuBarItemActivatedEvent callback = [](const DString& menuItemId,
+                                                    const DString& menuName, int32_t nMenuLevel,
+                                                    const DString& itemName, size_t nItemIndex) {
+                (void)menuItemId;
+                (void)menuName;
+                (void)nMenuLevel;
+                (void)itemName;
+                (void)nItemIndex;
+            };
+        pMenuBar->AttachMenuBarItemActivated(callback);
+    }
 }
 
 void RenderForm::OnCloseWindow()
@@ -173,14 +172,7 @@ void RenderForm::TestPropertyGrid()
         _T("STRID_RENDER_PROPGRID_FONT_SIZE_5"),  // 五号
         _T("STRID_RENDER_PROPGRID_DESC_SET_FONT_SIZE"));  // 描述信息：设置字体大小
 
-    auto s000 = p21->GetPropertyNewValue();
-    auto s001 = p21->GetFontSize();
-    auto s002 = p21->GetDpiFontSize();
-
-    auto s003 = p21->GetFontSizeById(_T("STRID_RENDER_PROPGRID_FONT_SIZE_6"));  // 六号
-    auto s004 = p21->GetDpiFontSizeById(_T("STRID_RENDER_PROPGRID_FONT_SIZE_6"));  // 六号
-
-    auto p22 = pPropertyGrid->AddColorPropertyById(pGroup,
+    pPropertyGrid->AddColorPropertyById(pGroup,
         _T("STRID_RENDER_PROPGRID_COLOR"),  // 颜色
         _T("STRID_RENDER_PROPGRID_COLOR_BLUE"),  // Blue
         _T("STRID_RENDER_PROPGRID_DESC_SET_FONT_COLOR"));  // 描述信息：设置字体颜色

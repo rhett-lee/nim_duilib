@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="85%,95%" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" size_box="4,4,4,4" text_id="STRID_RENDER_WINDOW_TITLE">
+<Window size="85%,80%" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" size_box="4,4,4,4" text_id="STRID_RENDER_WINDOW_TITLE">
+    <!-- 内容卡片样式：与 layout 示例保持一致 -->
+    <Class name="render_card" bkcolor="bg_window_card" border_size="1" border_color="border_split_level1" border_round="8,8"/>
     <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->
     <VBox bkcolor="bg_window_main">
         <!-- 标题栏区域 -->
@@ -26,77 +28,78 @@
         <!-- 标题栏区域结束 -->
 
         <!-- 显示区域 -->
-        <VBox bkcolor="bg_tab_ctrl_item_selected">
-            <TabCtrl class="tab_ctrl" tab_box_name="main_view_tab" selected_id="0">
-                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_IMAGE1" close_button_class="" tab_box_item_index="0"/>
-                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_IMAGE2" close_button_class="" tab_box_item_index="1"/>
-                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_IMAGE3" close_button_class="" tab_box_item_index="2"/>
-                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_TEXT_HORIZONTAL" close_button_class="" tab_box_item_index="3"/>
-                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_TEXT_VERTICAL" close_button_class="" tab_box_item_index="4"/>
-                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_DRAW" close_button_class="" tab_box_item_index="5"/>
-                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_PAINT" close_button_class="" tab_box_item_index="6"/>
-                <TabCtrlItem class="tab_ctrl_item" title="BoxShadow" close_button_class="" tab_box_item_index="7"/>
-                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_PROPERTY_TAB" close_button_class="" tab_box_item_index="8"/>
-                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_WINDOW_SHADOW" close_button_class="" tab_box_item_index="9"/>
-                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_BITMAP_CTRL" close_button_class="" tab_box_item_index="10"/>
-                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_CONTROL_TEST" close_button_class="" tab_box_item_index="11"/>
-                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_CONTROL_ANI" close_button_class="" tab_box_item_index="12"/>
+        <VBox bkcolor="bg_window_main" padding="10,10,10,10">
+            <!-- 标签栏：底部指示条风格，与 layout 示例保持一致 -->
+            <TabCtrl class="tab_ctrl tab_ctrl_indicator" tab_box_name="main_view_tab" selected_id="0" margin="0,0,0,8">
+                <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_RENDER_TAB_IMAGE1" width="76" tab_box_item_index="0"/>
+                <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_RENDER_TAB_IMAGE2" width="76" tab_box_item_index="1"/>
+                <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_RENDER_TAB_IMAGE3" width="76" tab_box_item_index="2"/>
+                <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_RENDER_TAB_TEXT_HORIZONTAL" width="130" tab_box_item_index="3"/>
+                <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_RENDER_TAB_TEXT_VERTICAL" width="118" tab_box_item_index="4"/>
+                <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_RENDER_TAB_DRAW" width="72" tab_box_item_index="5"/>
+                <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_RENDER_TAB_PAINT" width="72" tab_box_item_index="6"/>
+                <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_RENDER_TAB_BOX_SHADOW" width="100" tab_box_item_index="7"/>
+                <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_RENDER_TAB_PROPERTY_TAB" width="150" tab_box_item_index="8"/>
+                <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_RENDER_TAB_WINDOW_SHADOW" width="120" tab_box_item_index="9"/>
+                <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_RENDER_TAB_BITMAP_CTRL" width="104" tab_box_item_index="10"/>
+                <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_RENDER_TAB_CONTROL_TEST" width="96" tab_box_item_index="11"/>
+                <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_RENDER_TAB_CONTROL_ANI" width="112" tab_box_item_index="12"/>
             </TabCtrl>
-            <TabBox name="main_view_tab" bkcolor="bg_container" selected_id="0" margin="4,4,4,4" padding="3,3,3,3"
-                    border_size="1" border_color="border_window" border_round="3,3"
-                    fade_switch_type="FadeInOut"
+            <!-- 内容卡片 -->
+            <TabBox class="render_card" name="main_view_tab" bkcolor="bg_window_card" selected_id="0"
+                    fade_switch_type="FadeInOutX"
                     fade_switch_frame_interval_ms="16"
-                    fade_switch_total_ms="180"
+                    fade_switch_total_ms="220"
                     fade_switch_easing_function="EaseOutCubic">
-                <VBox name="main_view_page_00">
-                    <Label text_id="STRID_RENDER_PAGE1_DESC" />
+                <VBox name="main_view_page_00" padding="10,10,10,10">
+                    <Label text_id="STRID_RENDER_PAGE1_DESC" normal_text_color="text_muted" margin="0,0,0,8"/>
                     <Include src="page_image1.xml"/>
                 </VBox>
-                <VBox name="main_view_page_01">
-                    <Label text_id="STRID_RENDER_PAGE2_DESC" />
+                <VBox name="main_view_page_01" padding="10,10,10,10">
+                    <Label text_id="STRID_RENDER_PAGE2_DESC" normal_text_color="text_muted" margin="0,0,0,8"/>
                     <Include src="page_image2.xml"/>
                 </VBox>
-                <VBox name="main_view_page_02">
-                    <Label text_id="STRID_RENDER_PAGE3_DESC" />
+                <VBox name="main_view_page_02" padding="10,10,10,10">
+                    <Label text_id="STRID_RENDER_PAGE3_DESC" normal_text_color="text_muted" margin="0,0,0,8"/>
                     <Include src="page_image3.xml"/>
                 </VBox>
-                <VBox name="main_view_page_03">
-                    <Label text_id="STRID_RENDER_PAGE4_DESC" />
+                <VBox name="main_view_page_03" padding="10,10,10,10">
+                    <Label text_id="STRID_RENDER_PAGE4_DESC" normal_text_color="text_muted" margin="0,0,0,8"/>
                     <Include src="page_text1.xml"/>
                 </VBox>
-                <VBox name="main_view_page_04">
-                    <Label text_id="STRID_RENDER_PAGE5_DESC" />
+                <VBox name="main_view_page_04" padding="10,10,10,10">
+                    <Label text_id="STRID_RENDER_PAGE5_DESC" normal_text_color="text_muted" margin="0,0,0,8"/>
                     <Include src="page_text2.xml"/>
                 </VBox>
-                <VBox name="main_view_page_05">
-                    <Label text_id="STRID_RENDER_PAGE6_DESC" />
-                    <RenderTest1 />
+                <VBox name="main_view_page_05" padding="10,10,10,10">
+                    <Label text_id="STRID_RENDER_PAGE6_DESC" normal_text_color="text_muted" margin="0,0,0,8"/>
+                    <RenderTest1 width="stretch" height="stretch"/>
                 </VBox>
-                <VBox name="main_view_page_06">
-                    <Label text_id="STRID_RENDER_PAGE7_DESC" />
-                    <RenderTest2 />
+                <VBox name="main_view_page_06" padding="10,10,10,10">
+                    <Label text_id="STRID_RENDER_PAGE7_DESC" normal_text_color="text_muted" margin="0,0,0,8"/>
+                    <RenderTest2 width="stretch" height="stretch"/>
                 </VBox>
-                <VBox name="main_view_page_07">
-                    <Label text_id="STRID_RENDER_PAGE8_DESC" />
+                <VBox name="main_view_page_07" padding="10,10,10,10">
+                    <Label text_id="STRID_RENDER_PAGE8_DESC" normal_text_color="text_muted" margin="0,0,0,8"/>
                     <Include src="page_boxshadow.xml"/>
                 </VBox>
-                <VBox name="main_view_page_08">
+                <VBox name="main_view_page_08" padding="10,10,10,10">
                     <Include src="page_property_grid.xml"/>
                 </VBox>
-                <VBox name="main_view_page_09">
-                    <Label text_id="STRID_RENDER_PAGE10_DESC" />
+                <VBox name="main_view_page_09" padding="10,10,10,10">
+                    <Label text_id="STRID_RENDER_PAGE10_DESC" normal_text_color="text_muted" margin="0,0,0,8"/>
                     <Include src="page_window_shadow.xml"/>
                 </VBox>
-                <VBox name="main_view_page_10">
-                    <Label text_id="STRID_RENDER_PAGE11_DESC" />
+                <VBox name="main_view_page_10" padding="10,10,10,10">
+                    <Label text_id="STRID_RENDER_PAGE11_DESC" normal_text_color="text_muted" margin="0,0,0,8"/>
                     <Include src="page_bitmap_control.xml"/>
                 </VBox>
-                <VBox name="main_view_page_11">
-                    <Label text_id="STRID_RENDER_PAGE12_DESC" />
+                <VBox name="main_view_page_11" padding="10,10,10,10">
+                    <Label text_id="STRID_RENDER_PAGE12_DESC" normal_text_color="text_muted" margin="0,0,0,8"/>
                     <Include src="page_control_test.xml"/>
                 </VBox>
-                <VBox name="main_view_page_12">
-                    <Label text_id="STRID_RENDER_PAGE13_DESC" />
+                <VBox name="main_view_page_12" padding="10,10,10,10">
+                    <Label text_id="STRID_RENDER_PAGE13_DESC" normal_text_color="text_muted" margin="0,0,0,8"/>
                     <Include src="page_control_animation.xml"/>
                 </VBox>
             </TabBox>

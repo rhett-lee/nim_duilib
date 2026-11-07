@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Box>
-    <VBox bkcolor="bg_container">
+<Box width="stretch" height="stretch">
+    <VScrollBox width="stretch" height="stretch" vscrollbar="true" hscrollbar="true">
         <HBox child_margin_x="8">
             <VBox border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
                 <Button class="btn_global" width="180" height="32" border_round="3,3" halign="center" valign='center'
@@ -122,5 +122,5 @@
                 </HBox>
             </VBox>
         </HBox>
-    </VBox>
+    </VScrollBox>
 </Box>

@@ -3,7 +3,7 @@
     <Class name="page_image2_image" width="128" height="100" border_size="1" border_color="green" />
     <Class name="page_image2_text"  width="128" height="auto" multi_line="true" replace_newline="true" text_align="left,vcenter" />
     <Class name="page_image2_case"  width="128" height="auto" multi_line="true" replace_newline="true" text_align="hcenter,vcenter" />
-    <VScrollBox vscrollbar="true" hscrollbar="false" bkcolor="bg_container">
+    <VScrollBox width="stretch" height="stretch" vscrollbar="true" hscrollbar="false">
         <Label class="page_image2_text" text_id="STRID_RENDER_IMAGE_TITLE_01" width="100%" margin="0,4,0,0" font="system_bold_14"/>
         <HFlowScrollBox width="auto" height="auto" child_margin_x="2" child_margin_y="2" padding="2,2,2,2">
             <VBox width="auto" height="auto">

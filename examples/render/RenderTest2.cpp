@@ -1,5 +1,4 @@
 #include "RenderTest2.h"
-#include "duilib/Utils/BitmapHelper_Windows.h"
 
 namespace ui {
 
@@ -12,16 +11,14 @@ RenderTest2::~RenderTest2()
 {
 }
 
-void RenderTest2::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
-{
-    BaseClass::AlphaPaint(pRender, rcPaint);
-}
-
 void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
 {
     BaseClass::Paint(pRender, rcPaint);
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     ASSERT(pRenderFactory != nullptr);
+    if (pRenderFactory == nullptr) {
+        return;
+    }
 
     int marginLeft = 8;
     int marginTop = 4;
@@ -434,11 +431,6 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
 
     drawParam.textRect = textRect;
     pRender->DrawString(_T("DrawBoxShadow"), drawParam);
-}
-
-void RenderTest2::PaintChild(IRender* pRender, const UiRect& rcPaint)
-{
-    BaseClass::PaintChild(pRender, rcPaint);
 }
 
 int RenderTest2::DpiScaledInt(int iValue)
