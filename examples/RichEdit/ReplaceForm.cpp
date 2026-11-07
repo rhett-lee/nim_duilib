@@ -88,10 +88,11 @@ void ReplaceForm::OnReplace()
         return;
     }
     SaveFindOptions(options);
+    bool bReplaced = false;
     if (m_pMainForm != nullptr) {
-        m_pMainForm->ReplaceRichText(options, this);
+        bReplaced = m_pMainForm->ReplaceRichText(options, this);
     }
-    UpdateFindResultLabel(true);
+    UpdateFindResultLabel(bReplaced);
 }
 
 void ReplaceForm::OnReplaceAll()
@@ -104,8 +105,15 @@ void ReplaceForm::OnReplaceAll()
         return;
     }
     SaveFindOptions(options);
+    bool bReplaced = false;
     if (m_pMainForm != nullptr) {
-        m_pMainForm->ReplaceAllRichText(options, this);
+        bReplaced = m_pMainForm->ReplaceAllRichText(options);
     }
-    UpdateFindResultLabel(true);
+    if (bReplaced) {
+        //全部替换后已无匹配，清空计数提示
+        ClearFindResultLabel();
+    }
+    else {
+        UpdateFindResultLabel(false);
+    }
 }

@@ -173,6 +173,13 @@ void FindReplaceFormBase::UpdateFindResultLabel(bool bFound)
     }
 }
 
+void FindReplaceFormBase::ClearFindResultLabel()
+{
+    if (m_pFindResult != nullptr) {
+        m_pFindResult->SetText(DString());
+    }
+}
+
 void FindReplaceFormBase::BindCancelButton()
 {
     ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_cancel")));

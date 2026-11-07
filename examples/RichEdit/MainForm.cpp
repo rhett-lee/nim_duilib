@@ -4,10 +4,6 @@
 #include "MainThread.h"
 #include "duilib/Utils/MessageBoxWnd.h"
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-#include <ShellApi.h>
-#endif
-
 MainForm::MainForm():
     m_pRichEdit(nullptr),
     m_bSampleDocument(true),
@@ -17,7 +13,14 @@ MainForm::MainForm():
     m_statusMessageTimerId(0),
     m_encodingText(_T("UTF-8")),
     m_pFindForm(nullptr),
-    m_pReplaceForm(nullptr)
+    m_pReplaceForm(nullptr),
+    m_pStatusPathLabel(nullptr),
+    m_pStatusHintLabel(nullptr),
+    m_pStatusPositionLabel(nullptr),
+    m_pStatusCharsLabel(nullptr),
+    m_pStatusZoomLabel(nullptr),
+    m_pStatusModeLabel(nullptr),
+    m_pStatusEncodingLabel(nullptr)
 {
 }
 
@@ -40,6 +43,7 @@ void MainForm::OnInitWindow()
     m_pRichEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("rich_edit")));
     ASSERT(m_pRichEdit != nullptr);
     m_findReplace.SetRichEdit(m_pRichEdit);
+    InitStatusBarLabels();
 
     ui::Button* pSaveButton = dynamic_cast<ui::Button*>(FindControl(_T("save_file")));
     if (pSaveButton != nullptr) {
@@ -106,9 +110,7 @@ void MainForm::SetupTestControls()
             if (args.GetSender() == pRichEdit) {
                 const DString::value_type* pUrl = (const DString::value_type*)args.wParam;
                 if (pUrl != nullptr) {
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-                    ::ShellExecuteW(NativeWnd()->GetHWND(), L"open", ui::StringConvert::TToWString(pUrl).c_str(), nullptr, nullptr, SW_SHOWNORMAL);
-#endif
+                    ui::SystemUtil::OpenUrl(DString(pUrl));
                 }
             }
             return true;
@@ -281,6 +283,7 @@ void MainForm::SetupViewTools()
         });
 
     //富文本模式
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     BindCheck(_T("btn_rich_text"), [this](bool bSelected) {
         if ((m_pRichEdit == nullptr) || m_bUpdatingRichTextCheck) {
             return;
@@ -315,6 +318,14 @@ void MainForm::SetupViewTools()
         UpdateEditButtonStatus();
         UpdateRowSpacingEnabled();
         });
+#else
+    //非Windows平台（含Windows的SDL版本）：RichEdit不支持富文本模式，禁用该复选框
+    ui::CheckBox* pRichTextCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_rich_text")));
+    if (pRichTextCheckBox != nullptr) {
+        pRichTextCheckBox->SetSelected(false);
+        pRichTextCheckBox->SetEnabled(false);
+    }
+#endif
 
     //缩放比例复位
     BindClick(_T("btn_zoom_reset"), [this]() { SetZoomPercent(100); });
@@ -355,9 +366,7 @@ void MainForm::SetupTextEvents()
             //点击了超级链接
             const DString::value_type* pUrl = (const DString::value_type*)args.wParam;
             if (pUrl != nullptr) {
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-                ::ShellExecuteW(NativeWnd()->GetHWND(), L"open", ui::StringConvert::TToWString(pUrl).c_str(), nullptr, nullptr, SW_SHOWNORMAL);
-#endif
+                ui::SystemUtil::OpenUrl(DString(pUrl));
             }
             return true;
             });
@@ -379,7 +388,12 @@ void MainForm::SetupDropFile()
     }
     m_pRichEdit->SetEnableDragDrop(true);
     m_pRichEdit->SetEnableDropFile(true);
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     m_pRichEdit->SetDropFileTypes(_T(".txt;.rtf"));
+#else
+    //非Windows平台（含Windows的SDL版本）只支持纯文本文件
+    m_pRichEdit->SetDropFileTypes(_T(".txt"));
+#endif
     m_pRichEdit->AttachDropData([this](const ui::EventArgs& args) {
         std::vector<DString> fileList;
         if (args.wParam == ui::kControlDropTypeWindows) {
@@ -399,7 +413,11 @@ void MainForm::SetupDropFile()
         }
         const ui::FilePath filePath(fileList[0]);
         const DString fileExt = filePath.GetFileExtension();
-        if ((fileExt != _T(".txt")) && (fileExt != _T(".rtf"))) {
+        bool bSupportedFile = ui::StringUtil::IsEqualNoCase(fileExt, _T(".txt"));
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+        bSupportedFile = bSupportedFile || ui::StringUtil::IsEqualNoCase(fileExt, _T(".rtf"));
+#endif
+        if (!bSupportedFile) {
             return true;
         }
         if (!ConfirmDiscardChanges()) {
@@ -416,9 +434,11 @@ void MainForm::SetupDropFile()
             UpdateSaveStatus();
             UpdateStatusBar();
             UpdateEditButtonStatus();
+            UpdateFontStatus();
+            UpdateRowSpacingEnabled();
         }
         else {
-            ShowErrorMessage(_T("STRID_RICHEDIT_OPEN_FILE_FAILED"), _T("STRID_RICHEDIT_OPEN_FILE"));
+            ShowErrorMessage(_T("STRID_RICHEDIT_OPEN_FAILED_TEXT"), _T("STRID_RICHEDIT_OPEN_FAILED_TITLE"));
         }
         return true;
         });
@@ -444,8 +464,19 @@ void MainForm::SetupCollapsibleGroups()
         pGroup->AttachButtonUp([this, pGroup](const ui::EventArgs& args) {
             //只有点击标题区域（第一个子控件上方）时才折叠/展开，点击分组内的控件不处理
             ui::Control* pFirstChild = pGroup->GetItemAt(0);
-            if ((pFirstChild != nullptr) && (args.ptMouse.y >= pFirstChild->GetPos().top)) {
+            if (pFirstChild == nullptr) {
                 return true;
+            }
+            if (pFirstChild->IsVisible()) {
+                //展开状态：先把鼠标坐标换算为分组内的相对坐标（分组位于滚动容器内，需要扣除滚动偏移）
+                ui::UiPoint ptLayout;
+                if (!pGroup->MousePosToLayoutPos(args.ptMouse, ptLayout)) {
+                    return true;
+                }
+                const int32_t nTitleHeight = pFirstChild->GetPos().top - pGroup->GetPos().top;
+                if ((nTitleHeight > 0) && (ptLayout.y >= nTitleHeight)) {
+                    return true;
+                }
             }
             ToggleGroupCollapsed(pGroup);
             return true;
@@ -826,6 +857,17 @@ void MainForm::UpdateSaveStatus()
     }
 }
 
+void MainForm::InitStatusBarLabels()
+{
+    m_pStatusPathLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_path")));
+    m_pStatusHintLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_hint")));
+    m_pStatusPositionLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_position")));
+    m_pStatusCharsLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_chars")));
+    m_pStatusZoomLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_zoom")));
+    m_pStatusModeLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_mode")));
+    m_pStatusEncodingLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_encoding")));
+}
+
 void MainForm::UpdateStatusBar()
 {
     if (m_pRichEdit == nullptr) {
@@ -833,8 +875,7 @@ void MainForm::UpdateStatusBar()
     }
 
     //文件路径与修改标记
-    ui::Label* pPathLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_path")));
-    if (pPathLabel != nullptr) {
+    if (m_pStatusPathLabel != nullptr) {
         DString filePath;
         if (m_bSampleDocument || m_filePath.IsEmpty()) {
             filePath = ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_UNTITLED"));
@@ -845,14 +886,13 @@ void MainForm::UpdateStatusBar()
         if (m_pRichEdit->GetModify()) {
             filePath += _T(" *");
         }
-        pPathLabel->SetText(filePath);
+        m_pStatusPathLabel->SetText(filePath);
     }
 
     //提示信息
-    ui::Label* pHintLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_hint")));
-    if (pHintLabel != nullptr) {
-        pHintLabel->SetText(m_statusMessage);
-        pHintLabel->SetVisible(!m_statusMessage.empty());
+    if (m_pStatusHintLabel != nullptr) {
+        m_pStatusHintLabel->SetText(m_statusMessage);
+        m_pStatusHintLabel->SetVisible(!m_statusMessage.empty());
     }
 
     //行号与列号
@@ -860,55 +900,61 @@ void MainForm::UpdateStatusBar()
     int32_t nEndChar = 0;
     m_pRichEdit->GetSel(nStartChar, nEndChar);
     int32_t nLine = m_pRichEdit->LineFromChar(nStartChar);
+    //光标在文本末尾时，SDL版本的LineFromChar返回的行号可能超出有效范围，需要做保护
+    const int32_t nLineCount = m_pRichEdit->GetLineCount();
+    if ((nLineCount > 0) && (nLine >= nLineCount)) {
+        nLine = nLineCount - 1;
+    }
+    if (nLine < 0) {
+        nLine = 0;
+    }
     int32_t nLineStart = m_pRichEdit->LineIndex(nLine);
+    if (nLineStart < 0) {
+        nLineStart = 0;
+    }
     int32_t nColumn = nStartChar - nLineStart;
-    ui::Label* pPositionLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_position")));
-    if (pPositionLabel != nullptr) {
+    if (m_pStatusPositionLabel != nullptr) {
         //显示格式：行:列 3:12
-        pPositionLabel->SetText(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_STATUS_POSITION_LABEL")) +
-                                ui::StringUtil::Printf(_T(" %d:%d"), nLine + 1, nColumn + 1));
+        m_pStatusPositionLabel->SetText(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_STATUS_POSITION_LABEL")) +
+                                        ui::StringUtil::Printf(_T(" %d:%d"), nLine + 1, nColumn + 1));
     }
 
     //字符数（含选中字符数）
     uint32_t nTextLength = m_pRichEdit->GetTextLength();
     uint32_t nSelLength = static_cast<uint32_t>(nEndChar - nStartChar);
-    ui::Label* pCharsLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_chars")));
-    if (pCharsLabel != nullptr) {
+    if (m_pStatusCharsLabel != nullptr) {
         //显示格式：字符数 1289，有选中文本时为：字符数 1289 · 选中 12
         const DString charsLabel = ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_STATUS_CHARS_LABEL"));
         if (nSelLength > 0) {
-            pCharsLabel->SetText(charsLabel + ui::StringUtil::Printf(_T(" %u"), nTextLength) +
-                                 _T(" · ") +
-                                 ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_STATUS_SELECTED_LABEL")) +
-                                 ui::StringUtil::Printf(_T(" %u"), nSelLength));
+            m_pStatusCharsLabel->SetText(charsLabel + ui::StringUtil::Printf(_T(" %u"), nTextLength) +
+                                         _T(" · ") +
+                                         ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_STATUS_SELECTED_LABEL")) +
+                                         ui::StringUtil::Printf(_T(" %u"), nSelLength));
         }
         else {
-            pCharsLabel->SetText(charsLabel + ui::StringUtil::Printf(_T(" %u"), nTextLength));
+            m_pStatusCharsLabel->SetText(charsLabel + ui::StringUtil::Printf(_T(" %u"), nTextLength));
         }
     }
 
     //缩放比例
-    ui::Label* pZoomLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_zoom")));
-    if (pZoomLabel != nullptr) {
+    if (m_pStatusZoomLabel != nullptr) {
         //显示格式：缩放 100%
-        pZoomLabel->SetText(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_STATUS_ZOOM_LABEL")) +
-                            ui::StringUtil::Printf(_T(" %u%%"), m_pRichEdit->GetZoomPercent()));
+        m_pStatusZoomLabel->SetText(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_STATUS_ZOOM_LABEL")) +
+                                    ui::StringUtil::Printf(_T(" %u%%"), m_pRichEdit->GetZoomPercent()));
     }
 
     //文本模式与换行状态
-    ui::Label* pModeLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_mode")));
-    if (pModeLabel != nullptr) {
+    if (m_pStatusModeLabel != nullptr) {
         DString modeText = ui::GlobalManager::GetTextById(m_pRichEdit->IsRichText() ? _T("STRID_RICHEDIT_MODE_RICH_TEXT") : _T("STRID_RICHEDIT_MODE_PLAIN_TEXT"));
         DString wrapText = ui::GlobalManager::GetTextById(m_pRichEdit->IsWordWrap() ? _T("STRID_RICHEDIT_WRAP_ON") : _T("STRID_RICHEDIT_WRAP_OFF"));
-        pModeLabel->SetText(modeText + _T(" · ") + wrapText);
+        m_pStatusModeLabel->SetText(modeText + _T(" · ") + wrapText);
     }
 
     //编码
-    ui::Label* pEncodingLabel = dynamic_cast<ui::Label*>(FindControl(_T("status_encoding")));
-    if (pEncodingLabel != nullptr) {
+    if (m_pStatusEncodingLabel != nullptr) {
         //显示格式：编码 UTF-8
-        pEncodingLabel->SetText(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_STATUS_ENCODING_LABEL")) +
-                                _T(" ") + m_encodingText);
+        m_pStatusEncodingLabel->SetText(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_STATUS_ENCODING_LABEL")) +
+                                        _T(" ") + m_encodingText);
     }
 }
 
@@ -990,28 +1036,31 @@ void MainForm::LoadRichEditData()
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     if (m_pRichEdit->IsRichText()) {
+        //在设置任何格式之前先记录基础字体，避免各段格式相互继承
+        const ui::UiFont baseFont = m_pRichEdit->GetFontInfo();
+        ui::UiFont fontInfo = baseFont;
+
         //标题：加粗、增大字号、强调色
-        ui::UiFont fontInfo = m_pRichEdit->GetFontInfo();
         m_pRichEdit->SetSel(0, (int32_t)title.size());
         fontInfo.m_bBold = true;
         fontInfo.m_fontSize = Dpi().GetScaleInt(16);
         m_pRichEdit->SetFontInfo(fontInfo);
         m_pRichEdit->SetSelectionTextColor(_T("blue"));
 
-        //快捷键标题：加粗
-        fontInfo = m_pRichEdit->GetFontInfo();
+        //快捷键标题：加粗（其余属性保持基础字体）
+        fontInfo = baseFont;
         m_pRichEdit->SetSel((int32_t)posShortcutsTitle, (int32_t)(posShortcutsTitle + shortcutsTitle.size()));
         fontInfo.m_bBold = true;
         m_pRichEdit->SetFontInfo(fontInfo);
 
-        //行间距示例标题：加粗
-        fontInfo = m_pRichEdit->GetFontInfo();
+        //行间距示例标题：加粗（其余属性保持基础字体）
+        fontInfo = baseFont;
         m_pRichEdit->SetSel((int32_t)posSpacingTitle, (int32_t)(posSpacingTitle + spacingTitle.size()));
         fontInfo.m_bBold = true;
         m_pRichEdit->SetFontInfo(fontInfo);
 
-        //行间距示例正文：斜体
-        fontInfo = m_pRichEdit->GetFontInfo();
+        //行间距示例正文：斜体（其余属性保持基础字体）
+        fontInfo = baseFont;
         m_pRichEdit->SetSel((int32_t)(posSpacingTitle + spacingTitle.size() + 1), (int32_t)sampleText.size());
         fontInfo.m_bItalic = true;
         m_pRichEdit->SetFontInfo(fontInfo);
@@ -1034,6 +1083,11 @@ void MainForm::OnFindText()
 {
     if (m_pFindForm == nullptr) {
         m_pFindForm = new FindForm(this);
+        //先注册关闭消息，避免窗口创建后立刻关闭时收不到通知
+        m_pFindForm->AttachWindowCloseMsg([this](const ui::EventArgs& /*args*/) {
+                m_pFindForm = nullptr;
+                return true;
+            });
         ui::WindowCreateParam createParam;
         createParam.m_dwStyle = ui::kWS_POPUP;
         createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
@@ -1041,10 +1095,6 @@ void MainForm::OnFindText()
         createParam.m_bCenterWindow = true;
         m_pFindForm->CreateWnd(this, createParam);
         m_pFindForm->ShowWindow(ui::kSW_SHOW);
-        m_pFindForm->AttachWindowCloseMsg([this](const ui::EventArgs& args) {
-                m_pFindForm = nullptr;
-                return true;
-            });
     }
     else {
         if (m_pFindForm->IsWindowMinimized()) {
@@ -1060,6 +1110,11 @@ void MainForm::OnReplaceText()
 {
     if (m_pReplaceForm == nullptr) {
         m_pReplaceForm = new ReplaceForm(this);
+        //先注册关闭消息，避免窗口创建后立刻关闭时收不到通知
+        m_pReplaceForm->AttachWindowCloseMsg([this](const ui::EventArgs& /*args*/) {
+                m_pReplaceForm = nullptr;
+                return true;
+            });
         ui::WindowCreateParam createParam;
         createParam.m_dwStyle = ui::kWS_POPUP;
         createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
@@ -1067,10 +1122,6 @@ void MainForm::OnReplaceText()
         createParam.m_bCenterWindow = true;
         m_pReplaceForm->CreateWnd(this, createParam);
         m_pReplaceForm->ShowWindow(ui::kSW_SHOW);
-        m_pReplaceForm->AttachWindowCloseMsg([this](const ui::EventArgs& args) {
-                m_pReplaceForm = nullptr;
-                return true;
-            });
     }
     else {
         if (m_pReplaceForm->IsWindowMinimized()) {
@@ -1096,26 +1147,34 @@ bool MainForm::FindRichText(const RichEditFindOptions& options, ui::Window* pWnd
     return bFound;
 }
 
-void MainForm::ReplaceRichText(const RichEditFindOptions& options, ui::Window* pWndDialog)
+bool MainForm::ReplaceRichText(const RichEditFindOptions& options, ui::Window* pWndDialog)
 {
-    if (m_findReplace.ReplaceRichText(options, pWndDialog)) {
+    const bool bHandled = m_findReplace.ReplaceRichText(options, pWndDialog);
+    const int32_t nReplaceCount = m_findReplace.GetLastReplaceCount();
+    if (nReplaceCount > 0) {
         if (m_pRichEdit != nullptr) {
             m_pRichEdit->SetModify(true);
             UpdateSaveStatus();
             UpdateStatusBar();
         }
-        const int32_t nReplaceCount = m_findReplace.GetLastReplaceCount();
         ShowStatusMessage(ui::StringUtil::Printf(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_REPLACE_DONE")).c_str(), (int32_t)nReplaceCount));
+    }
+    else if (bHandled) {
+        //没有替换，但已找到并选中下一处匹配：只刷新界面，不提示未找到
+        m_statusMessage.clear();
+        UpdateStatusBar();
     }
     else {
         ShowStatusMessage(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_FIND_NOT_FOUND")));
     }
     UpdateEditButtonStatus();
+    return bHandled;
 }
 
-void MainForm::ReplaceAllRichText(const RichEditFindOptions& options, ui::Window* pWndDialog)
+bool MainForm::ReplaceAllRichText(const RichEditFindOptions& options)
 {
-    if (m_findReplace.ReplaceAllRichText(options, pWndDialog)) {
+    const bool bReplaced = m_findReplace.ReplaceAllRichText(options);
+    if (bReplaced) {
         if (m_pRichEdit != nullptr) {
             m_pRichEdit->SetModify(true);
             UpdateSaveStatus();
@@ -1128,6 +1187,7 @@ void MainForm::ReplaceAllRichText(const RichEditFindOptions& options, ui::Window
         ShowStatusMessage(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_FIND_NOT_FOUND")));
     }
     UpdateEditButtonStatus();
+    return bReplaced;
 }
 
 ui::RichEdit* MainForm::GetRichEdit() const

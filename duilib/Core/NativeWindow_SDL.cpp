@@ -2703,12 +2703,9 @@ void NativeWindow_SDL::SetCapture()
 {
     //ASSERT(SDL_GetMouseFocus() == m_sdlWindow);
     if (SDL_GetMouseFocus() == m_sdlWindow) {
+        //SDL_CaptureMouse 在部分场景下会返回失败（例如鼠标未按下、窗口未获得鼠标焦点等），
+        //这属于可以预期的运行时状态，此处不做断言，只记录捕获状态
         bool nRet = SDL_CaptureMouse(true);
-        if (!nRet) {
-            const char* szErrorMsg = SDL_GetError();
-            ASSERT_UNUSED_VARIABLE(nRet);
-            UNUSED_VARIABLE(szErrorMsg);
-        }        
         if (nRet) {
             m_bMouseCapture = true;
         }
@@ -2718,10 +2715,9 @@ void NativeWindow_SDL::SetCapture()
 void NativeWindow_SDL::ReleaseCapture()
 {
     if (m_bMouseCapture) {
-        ASSERT(SDL_GetMouseFocus() == m_sdlWindow);
         if (SDL_GetMouseFocus() == m_sdlWindow) {
-            bool nRet = SDL_CaptureMouse(false);
-            ASSERT_UNUSED_VARIABLE(nRet);
+            //与 SetCapture 一致：SDL_CaptureMouse 失败属于可预期的运行时状态，不做断言
+            SDL_CaptureMouse(false);
         }
         m_bMouseCapture = false;
     }

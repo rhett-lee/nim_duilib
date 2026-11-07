@@ -1,4 +1,5 @@
 #include "MainForm.h"
+#include <algorithm>
 #include <list>
 #include <map>
 
@@ -155,7 +156,8 @@ void MainForm::LoadSettings()
 #endif
         }
 
-        //4. 富文本模式（该模式缺少跨平台兼容性，旧版本设置不恢复，默认关闭）
+        //4. 富文本模式（仅Windows的非SDL版本支持）
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
         const int32_t nRichText = GetSettingInt(settings, "rich_text", -1);
         if (nRichText >= 0) {
             m_bUpdatingRichTextCheck = true;
@@ -164,6 +166,7 @@ void MainForm::LoadSettings()
             m_bLoadingDocument = false;
             m_bUpdatingRichTextCheck = false;
         }
+#endif
 
         //同步复选框的选中状态
         ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_word_wrap")));
@@ -204,8 +207,10 @@ void MainForm::SaveSettings() const
         //3. 自动换行
         AppendSettingInt(settingsText, "word_wrap", m_pRichEdit->IsWordWrap() ? 1 : 0);
 
-        //4. 富文本模式
+        //4. 富文本模式（仅Windows的非SDL版本支持；其他平台不写该键，避免覆盖Windows版本保存的设置）
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
         AppendSettingInt(settingsText, "rich_text", m_pRichEdit->IsRichText() ? 1 : 0);
+#endif
     }
 
     //5. 字体名称

@@ -1,4 +1,5 @@
 #include "RichEditFindReplace.h"
+#include <algorithm>
 
 RichEditFindReplace::RichEditFindReplace():
     m_pRichEdit(nullptr),
@@ -74,16 +75,18 @@ bool RichEditFindReplace::ReplaceRichText(const RichEditFindOptions& options, ui
     }
     m_nLastReplaceCount = bReplaced ? 1 : 0;
 
-    if (!FindTextSimple()) {
+    //未替换时，先找到下一处匹配并选中；返回是否找到了匹配
+    const bool bFoundNext = FindTextSimple();
+    if (!bFoundNext) {
         TextNotFound(m_sFindNext);
     }
     else {
         AdjustDialogPosition(pWndDialog);
     }
-    return bReplaced;
+    return bReplaced || bFoundNext;
 }
 
-bool RichEditFindReplace::ReplaceAllRichText(const RichEditFindOptions& options, ui::Window* pWndDialog)
+bool RichEditFindReplace::ReplaceAllRichText(const RichEditFindOptions& options)
 {
     ApplyOptions(options);
     m_sReplaceWith = options.replaceText;
@@ -177,7 +180,7 @@ void RichEditFindReplace::GetMatchInfo(int32_t& nIndex, int32_t& nTotal) const
     }
 }
 
-bool RichEditFindReplace::ApplyOptions(const RichEditFindOptions& options)
+void RichEditFindReplace::ApplyOptions(const RichEditFindOptions& options)
 {
     const bool bChanged = (m_sFindNext != options.findText) ||
                           (m_bFindDown != options.bFindDown) ||
@@ -194,7 +197,6 @@ bool RichEditFindReplace::ApplyOptions(const RichEditFindOptions& options)
         m_bFirstSearch = true;
         m_nInitialSearchPos = 0;
     }
-    return bChanged;
 }
 
 bool RichEditFindReplace::FindTextSimple()

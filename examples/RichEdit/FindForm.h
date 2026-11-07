@@ -39,6 +39,9 @@ protected:
     //更新查找结果的计数显示（如"第 2 处，共 8 处"）
     void UpdateFindResultLabel(bool bFound);
 
+    //清空查找结果的显示
+    void ClearFindResultLabel();
+
     //绑定取消按钮
     void BindCancelButton();
 

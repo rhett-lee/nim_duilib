@@ -40,12 +40,8 @@ bool MainForm::OnOpenFile()
 #endif
 
     DString defaultExt;
-    int32_t nFileTypeIndex = 1;
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    if ((m_pRichEdit != nullptr) && m_pRichEdit->IsRichText()) {
-        nFileTypeIndex = 2;
-    }
-#endif
+    //默认选中"所有文件"（索引从0开始），避免默认只显示txt导致其他类型的文件看不到
+    int32_t nFileTypeIndex = 0;
     DString fileName;
     if (!m_filePath.IsEmpty() && !m_bSampleDocument) {
         fileName = m_filePath.GetFileName();
@@ -73,6 +69,9 @@ bool MainForm::OnOpenFile()
             m_statusMessage.clear();
             UpdateSaveStatus();
             UpdateStatusBar();
+            UpdateEditButtonStatus();
+            UpdateFontStatus();
+            UpdateRowSpacingEnabled();
         }
         else {
             ShowErrorMessage(_T("STRID_RICHEDIT_OPEN_FAILED_TEXT"), _T("STRID_RICHEDIT_OPEN_FAILED_TITLE"));
@@ -341,6 +340,10 @@ bool MainForm::LoadFile(const ui::FilePath& filePath)
     if (m_pRichEdit == nullptr) {
         return false;
     }
+    //非Windows平台不支持RTF格式，按普通文本读取会得到乱码，直接拒绝
+    if (ui::StringUtil::IsEqualNoCase(filePath.GetFileExtension(), _T(".rtf"))) {
+        return false;
+    }
     DStringW text;
     if (!ReadTextFileContent(filePath, text, m_encodingText)) {
         return false;
@@ -355,6 +358,10 @@ bool MainForm::SaveFile(const ui::FilePath& filePath)
 {
     //保存
     if (m_pRichEdit == nullptr) {
+        return false;
+    }
+    //非Windows平台不支持RTF格式，避免生成扩展名与实际内容不符的文件
+    if (ui::StringUtil::IsEqualNoCase(filePath.GetFileExtension(), _T(".rtf"))) {
         return false;
     }
     return WriteTextFileContent(filePath, m_pRichEdit->GetTextW(), m_encodingText);

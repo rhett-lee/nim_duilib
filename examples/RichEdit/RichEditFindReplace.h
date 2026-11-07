@@ -47,7 +47,7 @@ public:
     bool ReplaceRichText(const RichEditFindOptions& options, ui::Window* pWndDialog);
     
     //全部替换
-    bool ReplaceAllRichText(const RichEditFindOptions& options, ui::Window* pWndDialog);
+    bool ReplaceAllRichText(const RichEditFindOptions& options);
 
     //上一次替换操作替换的处数
     int32_t GetLastReplaceCount() const;
@@ -69,8 +69,8 @@ protected:
     virtual void OnReplaceAllCoreEnd(int replaceCount);
 
 private:
-    //保存新的查找选项，返回选项是否发生变化（变化时重新开始查找）
-    bool ApplyOptions(const RichEditFindOptions& options);
+    //保存新的查找选项（条件变化时重新开始查找）
+    void ApplyOptions(const RichEditFindOptions& options);
 
     //按当前保存的查找选项查找并选择，查找范围不包含当前选区
     bool FindTextSimple();

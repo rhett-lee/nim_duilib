@@ -1,4 +1,5 @@
 #include "MainForm.h"
+#include <algorithm>
 #include <cmath>
 #include <map>
 
@@ -12,7 +13,13 @@
 
 void MainForm::UpdateRowSpacingEnabled()
 {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    //Windows平台：行距设置依赖RichEdit的富文本模式
     const bool bEnabled = (m_pRichEdit != nullptr) && m_pRichEdit->IsRichText();
+#else
+    //非Windows平台（含Windows的SDL版本）：RichEdit2支持行距设置，恒可用
+    const bool bEnabled = (m_pRichEdit != nullptr);
+#endif
     for (ui::Control* pControl : m_rowSpacingControls) {
         if (pControl != nullptr) {
             pControl->SetEnabled(bEnabled);
@@ -592,6 +599,9 @@ void MainForm::OnSetFont()
 
         SetCharFormat(charFormat);
 
+        //记录最后一次设置的字体名称（与字体下拉框的选择保持一致），保存设置时使用
+        m_lastFontName = lf.lfFaceName;
+
         //更新颜色
         ui::ComboButton* pColorComboBtn = dynamic_cast<ui::ComboButton*>(FindControl(_T("color_combo_button")));
         if (pColorComboBtn != nullptr) {
@@ -627,14 +637,25 @@ void MainForm::SetCharFormat(CHARFORMAT2W& charFormat)
 {
     ui::RichEdit* pRichEdit = GetRichEdit();
     ASSERT(pRichEdit != nullptr);
-    if (pRichEdit != nullptr) {
-        if (pRichEdit->IsRichText()) {
-            pRichEdit->SetSelectionCharFormat(charFormat);
-        }
-        else {
-            pRichEdit->SetDefaultCharFormat(charFormat);
-        }
+    if (pRichEdit == nullptr) {
+        return;
     }
+    if (!pRichEdit->IsRichText()) {
+        //纯文本模式：字体格式本身作用于整个控件
+        pRichEdit->SetDefaultCharFormat(charFormat);
+        return;
+    }
+    if (!IsApplyToAll()) {
+        pRichEdit->SetSelectionCharFormat(charFormat);
+        return;
+    }
+    //应用到全文：临时全选，应用后再恢复原来的选区
+    int32_t nStartChar = 0;
+    int32_t nEndChar = 0;
+    pRichEdit->GetSel(nStartChar, nEndChar);
+    pRichEdit->SetSelAll();
+    pRichEdit->SetSelectionCharFormat(charFormat);
+    pRichEdit->SetSel(nStartChar, nEndChar);
 }
 
 #endif

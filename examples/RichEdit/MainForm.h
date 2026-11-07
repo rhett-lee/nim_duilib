@@ -70,8 +70,8 @@ public:
 
     //查找/替换接口
     bool FindRichText(const RichEditFindOptions& options, ui::Window* pWndDialog);
-    void ReplaceRichText(const RichEditFindOptions& options, ui::Window* pWndDialog);
-    void ReplaceAllRichText(const RichEditFindOptions& options, ui::Window* pWndDialog);
+    bool ReplaceRichText(const RichEditFindOptions& options, ui::Window* pWndDialog);
+    bool ReplaceAllRichText(const RichEditFindOptions& options);
 
     //获取上次查找/替换使用的选项
     const RichEditFindOptions& GetFindOptions() const;
@@ -149,6 +149,9 @@ private:
 
     //更新状态栏
     void UpdateStatusBar();
+
+    //缓存状态栏中的控件（避免每次刷新状态栏都查找控件）
+    void InitStatusBarLabels();
 
 private:
     //查找/替换
@@ -314,6 +317,15 @@ private:
 
     //查找替换实现
     RichEditFindReplace m_findReplace;
+
+    //状态栏中的控件
+    ui::Label* m_pStatusPathLabel;
+    ui::Label* m_pStatusHintLabel;
+    ui::Label* m_pStatusPositionLabel;
+    ui::Label* m_pStatusCharsLabel;
+    ui::Label* m_pStatusZoomLabel;
+    ui::Label* m_pStatusModeLabel;
+    ui::Label* m_pStatusEncodingLabel;
 
 private:
     //字体大小列表
