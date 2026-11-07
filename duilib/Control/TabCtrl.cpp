@@ -13,7 +13,13 @@ TabCtrl::TabCtrl(Window* pWindow):
     m_pTabBox(nullptr),
     m_bEnableDragOrder(true),
     m_orientation(TabCtrlOrientation::kHorizontal),
-    m_bEnableOverflowScroll(true)
+    m_bEnableOverflowScroll(true),
+    m_fSelectedTabItemOutlineWidth(0.0f),
+    m_fTabCtrlBottomLineHeight(0.0f),
+    m_fSelectedTabItemIndicatorWidth(0.0f),
+    m_bSelectedTabItemIndicatorAutoWidth(false),
+    m_fSelectedTabItemIndicatorHeight(3.0f),
+    m_bSelectedTabItemShowBg(true)
 {
 }
 
@@ -47,6 +53,25 @@ void TabCtrl::SetAttribute(const DString& strName, const DString& strValue2)
     }
     else if (strName == _T("tab_ctrl_bottom_line_color")) {
         SetTabCtrlBottomLineColor(strValue);
+    }
+    else if (strName == _T("selected_tab_item_indicator_width")) {
+        if (strValue == _T("auto")) {
+            //指示条宽度自动跟随标签标题文字宽度
+            SetSelectedTabItemIndicatorAutoWidth(true);
+        }
+        else {
+            SetSelectedTabItemIndicatorAutoWidth(false);
+            SetSelectedTabItemIndicatorWidth(StringUtil::StringToFloat(strValue.c_str()));
+        }
+    }
+    else if (strName == _T("selected_tab_item_indicator_height")) {
+        SetSelectedTabItemIndicatorHeight(StringUtil::StringToFloat(strValue.c_str()));
+    }
+    else if (strName == _T("selected_tab_item_indicator_color")) {
+        SetSelectedTabItemIndicatorColor(strValue);
+    }
+    else if (strName == _T("selected_tab_item_show_bg")) {
+        SetSelectedTabItemShowBg(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("tab_ctrl_orientation")) {
         //标签栏的布局方向：horz(水平) / vert(垂直)，默认 horz
@@ -242,6 +267,62 @@ void TabCtrl::SetTabCtrlBottomLineColor(const DString& lineColor)
 const DString& TabCtrl::GetTabCtrlBottomLineColor() const
 {
     return m_tabCtrlBottomLineColor;
+}
+
+void TabCtrl::SetSelectedTabItemIndicatorWidth(float fIndicatorWidth)
+{
+    if (fIndicatorWidth < 0.0f) {
+        fIndicatorWidth = 0.0f;
+    }
+    m_fSelectedTabItemIndicatorWidth = fIndicatorWidth;
+}
+
+float TabCtrl::GetSelectedTabItemIndicatorWidth() const
+{
+    return m_fSelectedTabItemIndicatorWidth;
+}
+
+void TabCtrl::SetSelectedTabItemIndicatorAutoWidth(bool bAuto)
+{
+    m_bSelectedTabItemIndicatorAutoWidth = bAuto;
+}
+
+bool TabCtrl::IsSelectedTabItemIndicatorAutoWidth() const
+{
+    return m_bSelectedTabItemIndicatorAutoWidth;
+}
+
+void TabCtrl::SetSelectedTabItemIndicatorHeight(float fIndicatorHeight)
+{
+    if (fIndicatorHeight < 0.0f) {
+        fIndicatorHeight = 0.0f;
+    }
+    m_fSelectedTabItemIndicatorHeight = fIndicatorHeight;
+}
+
+float TabCtrl::GetSelectedTabItemIndicatorHeight() const
+{
+    return m_fSelectedTabItemIndicatorHeight;
+}
+
+void TabCtrl::SetSelectedTabItemIndicatorColor(const DString& indicatorColor)
+{
+    m_selectedTabItemIndicatorColor = indicatorColor;
+}
+
+const DString& TabCtrl::GetSelectedTabItemIndicatorColor() const
+{
+    return m_selectedTabItemIndicatorColor;
+}
+
+void TabCtrl::SetSelectedTabItemShowBg(bool bShow)
+{
+    m_bSelectedTabItemShowBg = bShow;
+}
+
+bool TabCtrl::IsSelectedTabItemShowBg() const
+{
+    return m_bSelectedTabItemShowBg;
 }
 
 void TabCtrl::OnInit()
@@ -575,6 +656,15 @@ void TabCtrlItem::SetAttribute(const DString& strName, const DString& strValue2)
     else if (strName == _T("title_class")) {
         SetTitleClass(strValue);
     }
+    else if (strName == _T("title_color")) {
+        SetTitleColor(strValue);
+    }
+    else if (strName == _T("hovered_title_color")) {
+        SetHoveredTitleColor(strValue);
+    }
+    else if (strName == _T("selected_title_color")) {
+        SetSelectedTitleColor(strValue);
+    }
     else if (strName == _T("close_button_class")) {
         SetCloseButtonClass(strValue);
     }
@@ -639,9 +729,13 @@ void TabCtrlItem::OnInit()
 void TabCtrlItem::HandleEvent(const EventArgs& msg)
 {
     BaseClass::HandleEvent(msg);
-    if ((msg.GetSender() == this) && (m_pLine != nullptr) && (msg.eventType == kEventStateChanged)) {
+    if ((msg.GetSender() == this) && (msg.eventType == kEventStateChanged)) {
         //处理分割线的状态
-        AdjustItemLineStatus();
+        if (m_pLine != nullptr) {
+            AdjustItemLineStatus();
+        }
+        //更新标题文字的颜色
+        UpdateTitleTextColor();
     }
 }
 
@@ -710,6 +804,7 @@ void TabCtrlItem::SetTitleClass(const DString& titleClass)
         return;
     }
     if (!titleClass.empty()) {
+        bool bCreatedOrChanged = false;
         if (m_pLabel == nullptr) {
             m_pLabel = new Label(GetWindow());
             m_pLabel->SetClass(titleClass);
@@ -723,9 +818,16 @@ void TabCtrlItem::SetTitleClass(const DString& titleClass)
                 m_titleId.clear();
             }
             AdjustSubItemIndex();
+            bCreatedOrChanged = true;
         }
         else if (bChanged) {
             m_pLabel->SetClass(titleClass);
+            bCreatedOrChanged = true;
+        }
+        if (bCreatedOrChanged) {
+            //记录原始的文字颜色（未配置状态颜色时用于恢复），并应用配置的状态颜色
+            m_defaultTitleColor = m_pLabel->GetStateTextColor(kControlStateNormal).c_str();
+            UpdateTitleTextColor();
         }
     }
     else {
@@ -733,12 +835,88 @@ void TabCtrlItem::SetTitleClass(const DString& titleClass)
             RemoveItem(m_pLabel);
             m_pLabel = nullptr;
         }
+        m_defaultTitleColor.clear();
     }
 }
 
 DString TabCtrlItem::GetTitleClass() const
 {
     return m_titleClass.c_str();
+}
+
+void TabCtrlItem::SetTitleColor(const DString& titleColor)
+{
+    if (m_titleColor != titleColor) {
+        m_titleColor = titleColor;
+        if (IsInited()) {
+            UpdateTitleTextColor();
+        }
+    }
+}
+
+DString TabCtrlItem::GetTitleColor() const
+{
+    return m_titleColor.c_str();
+}
+
+void TabCtrlItem::SetHoveredTitleColor(const DString& hoveredTitleColor)
+{
+    if (m_hoveredTitleColor != hoveredTitleColor) {
+        m_hoveredTitleColor = hoveredTitleColor;
+        if (IsInited()) {
+            UpdateTitleTextColor();
+        }
+    }
+}
+
+DString TabCtrlItem::GetHoveredTitleColor() const
+{
+    return m_hoveredTitleColor.c_str();
+}
+
+void TabCtrlItem::SetSelectedTitleColor(const DString& selectedTitleColor)
+{
+    if (m_selectedTitleColor != selectedTitleColor) {
+        m_selectedTitleColor = selectedTitleColor;
+        if (IsInited()) {
+            UpdateTitleTextColor();
+        }
+    }
+}
+
+DString TabCtrlItem::GetSelectedTitleColor() const
+{
+    return m_selectedTitleColor.c_str();
+}
+
+void TabCtrlItem::UpdateTitleTextColor()
+{
+    if (m_pLabel == nullptr) {
+        return;
+    }
+    if (m_titleColor.empty() && m_hoveredTitleColor.empty() && m_selectedTitleColor.empty()) {
+        //未配置标题状态颜色：不干预，保持原有颜色
+        return;
+    }
+    DString titleColor;
+    if (IsSelected()) {
+        titleColor = m_selectedTitleColor.c_str();
+    }
+    if (titleColor.empty() &&
+        ((GetState() == kControlStateHovered) || (GetState() == kControlStatePressed))) {
+        titleColor = m_hoveredTitleColor.c_str();
+    }
+    if (titleColor.empty()) {
+        titleColor = m_titleColor.c_str();
+    }
+    if (titleColor.empty()) {
+        titleColor = m_defaultTitleColor.c_str();
+    }
+    if (titleColor.empty()) {
+        return;
+    }
+    //标题控件的状态恒为Normal，把当前应当显示的颜色写入Normal状态
+    m_pLabel->SetStateTextColor(kControlStateNormal, titleColor);
 }
 
 void TabCtrlItem::SetCloseButtonClass(const DString& closeButtonClass)
@@ -1082,6 +1260,8 @@ void TabCtrlItem::OnPrivateSetSelected()
     UpdateCloseButtonVisible();
     //处理分割线的状态
     AdjustItemLineStatus();
+    //更新标题文字的颜色
+    UpdateTitleTextColor();
 }
 
 bool TabCtrlItem::ButtonDown(const EventArgs& msg)
@@ -1108,7 +1288,10 @@ void TabCtrlItem::PaintStateColors(IRender* pRender)
 {
     //绘制标签页的形状（通过颜色体现）
     if (IsSelected()) {
-        PaintTabItemSelected(pRender);
+        TabCtrl* pTabCtrl = GetTabCtrl();
+        if ((pTabCtrl == nullptr) || pTabCtrl->IsSelectedTabItemShowBg()) {
+            PaintTabItemSelected(pRender);
+        }
     }
     else if ((GetState() == ControlStateType::kControlStateHovered)    ||
              (GetState() == ControlStateType::kControlStatePressed) ||
@@ -1323,6 +1506,161 @@ void TabCtrlItem::PaintTabItemHovered(IRender* pRender)
         uFade = GetHoveredAlpha();
     }
     pRender->FillRoundRect(UiRectF::MakeFromRect(rc), (float)roundSize.cx, (float)roundSize.cy, dwColor, uFade);
+}
+
+void TabCtrl::PaintForeColor(IRender* pRender)
+{
+    BaseClass::PaintForeColor(pRender);
+    //在子控件绘制完成后绘制指示条，避免被标签项自身的绘制区域裁剪
+    PaintSelectedTabIndicator(pRender);
+}
+
+void TabCtrl::PaintSelectedTabIndicator(IRender* pRender)
+{
+    if (pRender == nullptr) {
+        return;
+    }
+    const DString& indicatorColor = GetSelectedTabItemIndicatorColor();
+    const float fIndicatorWidth = GetSelectedTabItemIndicatorWidth();
+    const float fIndicatorHeight = GetSelectedTabItemIndicatorHeight();
+    const bool bAutoWidth = IsSelectedTabItemIndicatorAutoWidth();
+    if (indicatorColor.empty() || (!bAutoWidth && (fIndicatorWidth <= 0.01f)) || (fIndicatorHeight <= 0.01f)) {
+        //未配置指示条，不绘制（保持原有选中效果）
+        return;
+    }
+    UiColor dwColor = GetUiColor(indicatorColor);
+    if (dwColor.IsEmpty()) {
+        return;
+    }
+
+    //获取当前选中标签项的矩形
+    std::vector<size_t> selectedIndexs;
+    GetSelectedItems(selectedIndexs);
+    if (selectedIndexs.empty()) {
+        return;
+    }
+    Control* pSelectedItem = GetItemAt(selectedIndexs[0]);
+    if (pSelectedItem == nullptr) {
+        return;
+    }
+    //优先以标签文字区域为基准居中，保证指示条与文字对齐
+    UiRect rcItem = pSelectedItem->GetRect();
+    TabCtrlItem* pTabItem = dynamic_cast<TabCtrlItem*>(pSelectedItem);
+    if (pTabItem != nullptr) {
+        Control* pTitleLabel = pTabItem->GetTextLabel();
+        if ((pTitleLabel != nullptr) && !pTitleLabel->GetRect().IsEmpty()) {
+            rcItem = pTitleLabel->GetRect();
+        }
+    }
+    const UiRect rcTabCtrl = GetRect();
+    if (rcItem.IsEmpty() || rcTabCtrl.IsEmpty()) {
+        return;
+    }
+
+    //按DPI缩放指示条的宽度和高度
+    const DpiManager& dpi = Dpi();
+    int32_t nIndicatorWidth = 0;
+    if (bAutoWidth) {
+        //宽度自动跟随标签标题文字
+        nIndicatorWidth = CalcAutoIndicatorLength(pRender, pSelectedItem, rcItem);
+    }
+    else {
+        nIndicatorWidth = (int32_t)std::round(dpi.GetScaleFloat(fIndicatorWidth));
+    }
+    int32_t nIndicatorHeight = (int32_t)std::round(dpi.GetScaleFloat(fIndicatorHeight));
+    if ((nIndicatorWidth <= 0) || (nIndicatorHeight <= 0)) {
+        return;
+    }
+
+    UiRect rcIndicator;
+    if (GetTabCtrlOrientation() == TabCtrlOrientation::kVertical) {
+        //垂直标签栏：指示条位于标签栏面向内容区的一侧（右侧），沿垂直方向居中于当前标签
+        int32_t nCenterY = (rcItem.top + rcItem.bottom) / 2;
+        rcIndicator.left = rcTabCtrl.right - nIndicatorHeight;
+        rcIndicator.right = rcTabCtrl.right;
+        rcIndicator.top = nCenterY - nIndicatorWidth / 2;
+        rcIndicator.bottom = rcIndicator.top + nIndicatorWidth;
+        //限制在标签栏的上下边界内
+        if (rcIndicator.top < rcTabCtrl.top) {
+            rcIndicator.top = rcTabCtrl.top;
+            rcIndicator.bottom = rcIndicator.top + nIndicatorWidth;
+        }
+        if (rcIndicator.bottom > rcTabCtrl.bottom) {
+            rcIndicator.bottom = rcTabCtrl.bottom;
+            rcIndicator.top = rcIndicator.bottom - nIndicatorWidth;
+            if (rcIndicator.top < rcTabCtrl.top) {
+                rcIndicator.top = rcTabCtrl.top;
+            }
+        }
+    }
+    else {
+        //水平标签栏：指示条位于标签栏的底部，沿水平方向居中于当前标签
+        int32_t nCenterX = (rcItem.left + rcItem.right) / 2;
+        rcIndicator.left = nCenterX - nIndicatorWidth / 2;
+        rcIndicator.right = rcIndicator.left + nIndicatorWidth;
+        rcIndicator.bottom = rcTabCtrl.bottom;
+        rcIndicator.top = rcIndicator.bottom - nIndicatorHeight;
+        //限制在标签栏的左右边界内
+        if (rcIndicator.left < rcTabCtrl.left) {
+            rcIndicator.left = rcTabCtrl.left;
+            rcIndicator.right = rcIndicator.left + nIndicatorWidth;
+        }
+        if (rcIndicator.right > rcTabCtrl.right) {
+            rcIndicator.right = rcTabCtrl.right;
+            rcIndicator.left = rcIndicator.right - nIndicatorWidth;
+            if (rcIndicator.left < rcTabCtrl.left) {
+                rcIndicator.left = rcTabCtrl.left;
+            }
+        }
+    }
+    if ((rcIndicator.Width() <= 0) || (rcIndicator.Height() <= 0)) {
+        return;
+    }
+
+    //圆角取短边的一半，形成两端为半圆的指示条
+    const float fRound = (float)std::min(rcIndicator.Width(), rcIndicator.Height()) / 2.0f;
+    pRender->FillRoundRect(UiRectF::MakeFromRect(rcIndicator), fRound, fRound, dwColor, 255);
+}
+
+int32_t TabCtrl::CalcAutoIndicatorLength(IRender* pRender, Control* pSelectedItem, const UiRect& rcItem) const
+{
+    int32_t nLength = 0;
+    if (GetTabCtrlOrientation() == TabCtrlOrientation::kVertical) {
+        //垂直标签栏：指示条沿垂直方向延伸，长度取标题区域的高度
+        nLength = rcItem.Height();
+    }
+    else {
+        //水平标签栏：指示条沿水平方向延伸，长度取标题文字的绘制宽度
+        TabCtrlItem* pTabItem = dynamic_cast<TabCtrlItem*>(pSelectedItem);
+        Label* pLabel = (pTabItem != nullptr) ? pTabItem->GetTextLabel() : nullptr;
+        if ((pLabel != nullptr) && (pRender != nullptr)) {
+            const DString text = pLabel->GetText();
+            IFont* pFont = GetIFontById(pLabel->GetFontId());
+            if (!text.empty() && (pFont != nullptr)) {
+                MeasureStringParam param;
+                param.pFont = pFont;
+                param.uFormat = TEXT_SINGLELINE;
+                nLength = pRender->MeasureString(text, param).Width();
+            }
+        }
+        if (nLength <= 0) {
+            //无法测量文本时，使用标题区域的宽度
+            nLength = rcItem.Width();
+        }
+    }
+    //限制在标签项自身的范围内
+    if (pSelectedItem != nullptr) {
+        const UiRect rcSelectedItem = pSelectedItem->GetRect();
+        const int32_t nMaxLength = (GetTabCtrlOrientation() == TabCtrlOrientation::kVertical) ?
+                                   rcSelectedItem.Height() : rcSelectedItem.Width();
+        if ((nMaxLength > 0) && (nLength > nMaxLength)) {
+            nLength = nMaxLength;
+        }
+    }
+    if (nLength < 0) {
+        nLength = 0;
+    }
+    return nLength;
 }
 
 void TabCtrlItem::SetIcon(const DString& iconImageString)

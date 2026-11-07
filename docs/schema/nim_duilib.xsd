@@ -8622,6 +8622,26 @@
         <xs:documentation>设置标签栏底部的边线颜色</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="selected_tab_item_show_bg" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否绘制选中标签的背景色：false时不绘制选中背景（通常配合底部指示条使用）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="selected_tab_item_indicator_width" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>选中标签的底部指示条宽度：数值表示固定宽度（未做DPI缩放）；填auto时自动跟随标签标题文字宽度；为0时不绘制指示条</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="selected_tab_item_indicator_height" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>选中标签的底部指示条高度（未做DPI缩放）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="selected_tab_item_indicator_color" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>选中标签的底部指示条颜色；为空时不绘制指示条</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute name="tab_ctrl_orientation" type="xs:string">
       <xs:annotation>
         <xs:documentation>标签栏的布局方向：horz(水平，默认值) / vert(垂直)。垂直时标签位于左侧、内容区在右侧，选中项轮廓与分隔线自动适配为右侧</xs:documentation>
@@ -8701,6 +8721,21 @@
     <xs:attribute name="title_class" type="xs:string">
       <xs:annotation>
         <xs:documentation>标签页的标题文字资源属性Class值</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="title_color" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>标签标题文字在普通状态下的颜色（为空时不干预，保持原有颜色）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="hovered_title_color" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>标签标题文字在悬停/按下状态下的颜色（为空时使用普通状态颜色）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="selected_title_color" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>标签标题文字在选中状态下的颜色（为空时使用普通状态颜色）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="icon" type="xs:string">

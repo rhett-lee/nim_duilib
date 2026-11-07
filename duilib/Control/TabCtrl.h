@@ -121,6 +121,53 @@ public:
     */
     const DString& GetTabCtrlBottomLineColor() const;
 
+    /** 设置选中标签的指示条宽度（用于"底部指示条"样式的选中效果）
+    * @param [in] fIndicatorWidth 指示条宽度，宽度值未进行DPI缩放；小于等于0时表示不绘制指示条（默认值）
+    */
+    void SetSelectedTabItemIndicatorWidth(float fIndicatorWidth);
+
+    /** 获取选中标签的指示条宽度
+    * @return 返回指示条的宽度，宽度值未进行DPI缩放
+    */
+    float GetSelectedTabItemIndicatorWidth() const;
+
+    /** 设置选中标签的指示条宽度是否自动跟随标签标题文字宽度
+    * @param [in] bAuto true表示自动跟随标题文字宽度（此时忽略指示条宽度值），默认false
+    */
+    void SetSelectedTabItemIndicatorAutoWidth(bool bAuto);
+
+    /** 选中标签的指示条宽度是否自动跟随标签标题文字宽度
+    */
+    bool IsSelectedTabItemIndicatorAutoWidth() const;
+
+    /** 设置选中标签的指示条高度
+    * @param [in] fIndicatorHeight 指示条高度，高度值未进行DPI缩放
+    */
+    void SetSelectedTabItemIndicatorHeight(float fIndicatorHeight);
+
+    /** 获取选中标签的指示条高度
+    * @return 返回指示条的高度，高度值未进行DPI缩放
+    */
+    float GetSelectedTabItemIndicatorHeight() const;
+
+    /** 设置选中标签的指示条颜色（为空时不绘制指示条）
+    * @param [in] indicatorColor 指示条颜色
+    */
+    void SetSelectedTabItemIndicatorColor(const DString& indicatorColor);
+
+    /** 获取选中标签的指示条颜色
+    */
+    const DString& GetSelectedTabItemIndicatorColor() const;
+
+    /** 设置是否绘制选中标签的背景色
+    * @param [in] bShow true表示绘制选中标签的背景色（默认值），false表示不绘制背景色（可配合指示条使用）
+    */
+    void SetSelectedTabItemShowBg(bool bShow);
+
+    /** 是否绘制选中标签的背景色
+    */
+    bool IsSelectedTabItemShowBg() const;
+
 public:
     /** 设置子项的位置索引
      * @param [in] pControl 子项指针
@@ -167,7 +214,23 @@ protected:
     */
     virtual void PaintStateColors(IRender* pRender) override;
 
+    /** 绘制前景色（在子控件绘制完成后调用，用于绘制选中标签的指示条）
+    */
+    virtual void PaintForeColor(IRender* pRender) override;
+
 private:
+    /** 绘制选中标签的指示条（仅在配置了指示条宽度、高度和颜色时绘制）
+    */
+    void PaintSelectedTabIndicator(IRender* pRender);
+
+    /** 计算自动宽度模式下指示条的长度
+    * @param [in] pRender 绘制接口
+    * @param [in] pSelectedItem 当前选中的标签项
+    * @param [in] rcItem 标签项（或标题文字）的矩形
+    * @return 返回指示条的长度（像素）
+    */
+    int32_t CalcAutoIndicatorLength(IRender* pRender, Control* pSelectedItem, const UiRect& rcItem) const;
+
     /** 固定标签归位：把固定标签稳定地移到标签栏前端（保持各自原有相对顺序）
     */
     void NormalizeFixedItems();
@@ -211,6 +274,26 @@ private:
     /** 设置标签栏底部的边线颜色
     */
     DString m_tabCtrlBottomLineColor;
+
+    /** 选中标签的指示条宽度，宽度值未进行DPI缩放（小于等于0时不绘制）
+    */
+    float m_fSelectedTabItemIndicatorWidth;
+
+    /** 选中标签的指示条宽度是否自动跟随标签标题文字宽度
+    */
+    bool m_bSelectedTabItemIndicatorAutoWidth;
+
+    /** 选中标签的指示条高度，高度值未进行DPI缩放
+    */
+    float m_fSelectedTabItemIndicatorHeight;
+
+    /** 选中标签的指示条颜色（为空时不绘制）
+    */
+    DString m_selectedTabItemIndicatorColor;
+
+    /** 是否绘制选中标签的背景色
+    */
+    bool m_bSelectedTabItemShowBg;
 };
 
 /** 多标签控件的一个标签页
@@ -336,6 +419,21 @@ public:
     */
     void SetTitleClass(const DString& titleClass);
     DString GetTitleClass() const;
+
+    /** 设置标签标题文字在普通状态下的颜色（为空时保持原有颜色，不干预）
+    */
+    void SetTitleColor(const DString& titleColor);
+    DString GetTitleColor() const;
+
+    /** 设置标签标题文字在悬停/按下状态下的颜色（为空时使用普通状态颜色）
+    */
+    void SetHoveredTitleColor(const DString& hoveredTitleColor);
+    DString GetHoveredTitleColor() const;
+
+    /** 设置标签标题文字在选中状态下的颜色（为空时使用普通状态颜色）
+    */
+    void SetSelectedTitleColor(const DString& selectedTitleColor);
+    DString GetSelectedTitleColor() const;
 
     /** 关闭按钮控件的Class
     */
@@ -473,6 +571,10 @@ protected:
     */
     void UpdateCloseButtonVisible();
 
+    /** 更新标题文字的颜色（根据选中、悬停状态应用配置的颜色）
+    */
+    void UpdateTitleTextColor();
+
     /** 检查并设置图标的可见性
     */
     void CheckIconVisible();
@@ -543,6 +645,22 @@ private:
     /** 文本控件的Class
     */
     UiString m_titleClass;
+
+    /** 标签标题文字在普通状态下的颜色
+    */
+    UiString m_titleColor;
+
+    /** 标签标题文字在悬停/按下状态下的颜色
+    */
+    UiString m_hoveredTitleColor;
+
+    /** 标签标题文字在选中状态下的颜色
+    */
+    UiString m_selectedTitleColor;
+
+    /** 标签标题文字的原始颜色（未配置状态颜色时用于恢复）
+    */
+    UiString m_defaultTitleColor;
 
     /** 关闭按钮控件的Class
     */

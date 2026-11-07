@@ -946,6 +946,24 @@
                                       normal_text_color="text_badge" text_padding="4,0,4,0" text_align="center" mouse_enabled="false"/>
     <Class name="tab_ctrl_item_badge_dot" width="8" height="8" dot="true" valign="center" margin="0,0,10,0" mouse_enabled="false"/>
 
+    <!-- TabCtrl控件：指示条风格（Ant Design Tabs(line) 风格），用法：class="tab_ctrl tab_ctrl_indicator" -->
+    <Class name="tab_ctrl_indicator" width="stretch" height="40" border_round="0,0" bkcolor=""
+           selected_tab_item_outline_width="0" selected_tab_item_outline_color=""
+           tab_ctrl_bottom_line_height="1" tab_ctrl_bottom_line_color="border_split_level1"
+           selected_tab_item_show_bg="false"
+           selected_tab_item_indicator_width="auto"
+           selected_tab_item_indicator_height="2"
+           selected_tab_item_indicator_color="color_accent"/>
+    <!-- 标签项：无背景、无竖分隔线，标题文字按状态变色，用法：class="tab_ctrl_item tab_ctrl_item_indicator" -->
+    <Class name="tab_ctrl_item_indicator" padding="0,0,0,0"
+           hovered_color="" pressed_color="" selected_normal_color=""
+           selected_round_corner="0,0" hovered_round_corner="0,0" hovered_padding="0,0,0,0"
+           title_class="tab_ctrl_item_indicator_title" line_class="" close_button_class=""
+           title_color="text_default" hovered_title_color="color_accent" selected_title_color="color_accent"/>
+    <!-- 标签项标题：文字水平居中，去掉右侧留白，便于固定宽度的标签完整显示文字 -->
+    <Class name="tab_ctrl_item_indicator_title" width="stretch" height="24" margin="0,0,0,0" valign="center"
+           font="system_regular_12" text_align="hcenter" auto_tooltip="true" mouse_enabled="false"/>
+
     <!-- AddressBar控件 -->
     <Class name="address_bar" width="stretch" height="28" border_size="1" border_color="border_address_bar" disabled_border_color="border_address_bar_disabled" border_round="6,6" 
                               bkcolor="bg_address_bar" disabled_color="bg_address_bar_disabled"

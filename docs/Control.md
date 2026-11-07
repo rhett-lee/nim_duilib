@@ -3238,10 +3238,14 @@ SplitBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属�
 | selected_tab_item_outline_color  |   | string | 选择标签项的外部轮廓边线的颜色 |
 | tab_ctrl_bottom_line_height      | 0 | float  | 标签栏底部的边线高度（这个边线，选择标签的区域不绘制，其他区域绘制） |
 | tab_ctrl_bottom_line_color       |   | string | 设置标签栏底部的边线颜色 |
+| selected_tab_item_show_bg | true | bool | 是否绘制选中标签的背景色：`false` 时不绘制选中背景（通常配合底部指示条使用） |
+| selected_tab_item_indicator_width | 0 | string | 选中标签的底部指示条宽度：数值表示固定宽度（未做DPI缩放）；填 `auto` 时自动跟随标签标题文字宽度；为 `0` 时不绘制指示条 |
+| selected_tab_item_indicator_height | 3 | float | 选中标签的底部指示条高度（未做DPI缩放） |
+| selected_tab_item_indicator_color |   | string | 选中标签的底部指示条颜色；为空时不绘制指示条 |
 | tab_ctrl_orientation | horz | string | 标签栏的布局方向：`horz`(水平，默认值) / `vert`(垂直)。垂直时标签位于左侧、内容区在右侧，选中项轮廓与分隔线自动适配为右侧 |
 | overflow_scroll | true | bool | 是否启用溢出滚动：标签总宽度（水平）或总高度（垂直）超出可视区域时，自动显示滚动条。滚动条悬浮在子控件之上，不占用布局空间；拖动标签靠近边缘时会自动滚动 |
 
-**对应 C++ 接口：** `SetTabCtrlOrientation`/`GetTabCtrlOrientation`、`SetEnableOverflowScroll`/`IsEnableOverflowScroll`。
+**对应 C++ 接口：** `SetSelectedTabItemShowBg`/`IsSelectedTabItemShowBg`、`SetSelectedTabItemIndicatorWidth`/`GetSelectedTabItemIndicatorWidth`、`SetSelectedTabItemIndicatorAutoWidth`/`IsSelectedTabItemIndicatorAutoWidth`、`SetSelectedTabItemIndicatorHeight`/`GetSelectedTabItemIndicatorHeight`、`SetSelectedTabItemIndicatorColor`/`GetSelectedTabItemIndicatorColor`、`SetTabCtrlOrientation`/`GetTabCtrlOrientation`、`SetEnableOverflowScroll`/`IsEnableOverflowScroll`。
 
 TabCtrl 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`的属性
 
@@ -3252,6 +3256,9 @@ TabCtrl 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`�
 | title | | string | 标签页的标题文字 |
 | title_id | | string | 标签页的标题文字ID（用于支持多语版） |
 | title_class | | string | 标签页的标题文字资源属性Class值|
+| title_color | | string | 标签标题文字在普通状态下的颜色（为空时不干预，保持原有颜色） |
+| hovered_title_color | | string | 标签标题文字在悬停/按下状态下的颜色（为空时使用普通状态颜色） |
+| selected_title_color | | string | 标签标题文字在选中状态下的颜色（为空时使用普通状态颜色） |
 | icon | | string | 标签页的图标资源字符串 |
 | icon_class | | string | 标签页的图标资源属性Class值|
 | close_button_class | | string | 标签页的关闭按钮资源属性Class值|
@@ -3271,7 +3278,7 @@ TabCtrl 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`�
 - 默认皮肤在 global.xml 中定义了 `tab_ctrl_item_badge`（数字角标，高16，白字红底）和 `tab_ctrl_item_badge_dot`（红点角标，8x8），已挂载在 `tab_ctrl_item` 的 `badge_class` 上。
 - 角标子控件不参与鼠标事件（`mouse_enabled="false"`），不会阻挡标签页的点击。
 
-**对应 C++ 接口：** `SetBadgeCount/GetBadgeCount`、`SetBadgeMaxCount/GetBadgeMaxCount`、`SetBadgeDot/IsBadgeDot`、`SetBadgeClass/GetBadgeClass`、`GetBadgeControl`。
+**对应 C++ 接口：** `SetTitleColor`/`GetTitleColor`、`SetHoveredTitleColor`/`GetHoveredTitleColor`、`SetSelectedTitleColor`/`GetSelectedTitleColor`、`SetBadgeCount`/`GetBadgeCount`、`SetBadgeMaxCount`/`GetBadgeMaxCount`、`SetBadgeDot`/`IsBadgeDot`、`SetBadgeClass`/`GetBadgeClass`、`GetBadgeControl`。
 
 **XML 示例：**
 
@@ -3358,6 +3365,26 @@ if (pTabCtrl != nullptr) {
     const size_t nFixedCount = pTabCtrl->GetFixedItemCount();   //固定标签数量
 }
 ```
+
+**底部指示条（Ant Design Tabs 风格）：**
+
+默认皮肤已在 `global.xml` 中内置该样式：`tab_ctrl_indicator`（标签栏）、`tab_ctrl_item_indicator`（标签项）、`tab_ctrl_item_indicator_title`（标签标题），直接组合使用即可：
+
+```xml
+<TabCtrl class="tab_ctrl tab_ctrl_indicator" tab_box_name="main_view_tab" selected_id="0">
+    <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title="Box" width="47" tab_box_item_index="0"/>
+    <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title="HBox" width="56" tab_box_item_index="1"/>
+    <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title="VBox" width="55" tab_box_item_index="2"/>
+</TabCtrl>
+```
+
+该样式的特点：无选中背景、无竖分隔线，底部 1 像素分割线；选中项下方绘制主题色圆角指示条，宽度自动跟随标题文字；标题文字普通态为 `text_default`，悬停/选中态为 `color_accent`。
+
+- 需要自定义时，可参照 `tab_ctrl_indicator` 中的属性组合，按需覆盖 `selected_tab_item_*` 系列属性。
+- `selected_tab_item_indicator_width="auto"`：指示条宽度自动等于标题文字宽度（默认居中于文字下方）；填数值则为固定宽度。
+- 指示条绘制在子控件之后（`PaintForeColor` 阶段），不会被标签项矩形裁剪。
+- 清除父 Class 的背景/分隔线时用空字符串（如 `bkcolor=""`、`line_class=""`），不要用 `#00000000`（ARGB 为 0 会被视为空颜色并触发断言）。
+- 指示条的宽度/高度为逻辑像素，运行时会按 DPI 自动缩放。
 
 TabCtrlItem 控件继承了 `ControlDragableT` 属性，更多可用属性请参考`ControlDragableT`的属性
 

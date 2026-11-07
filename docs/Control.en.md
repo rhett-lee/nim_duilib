@@ -3234,10 +3234,14 @@ The SplitBox control inherits the `Box` attributes. For more available attribute
 | selected_tab_item_outline_color  |   | string | Color of the outer outline of the selected tab item |
 | tab_ctrl_bottom_line_height      | 0 | float  | Height of the bottom line of the tab bar (this line is not drawn in the selected tab area, but drawn in other areas) |
 | tab_ctrl_bottom_line_color       |   | string | Set the color of the bottom line of the tab bar |
+| selected_tab_item_show_bg | true | bool | Whether to draw the background of the selected tab; `false` disables the selected background (usually used together with the bottom indicator) |
+| selected_tab_item_indicator_width | 0 | string | Width of the bottom indicator of the selected tab: a number means a fixed width (not DPI-scaled); `auto` makes it follow the title text width; `0` disables the indicator |
+| selected_tab_item_indicator_height | 3 | float | Height of the bottom indicator of the selected tab (not DPI-scaled) |
+| selected_tab_item_indicator_color |   | string | Color of the bottom indicator of the selected tab; empty disables the indicator |
 | tab_ctrl_orientation | horz | string | Layout direction of the tab bar: `horz` (horizontal, default) / `vert` (vertical). In vertical mode, tabs are on the left and the content area on the right, and the selected-item outline and divider are automatically adapted to the right side |
 | overflow_scroll | true | bool | Whether to enable overflow scrolling: when the total tab width (horizontal) or total height (vertical) exceeds the visible area, a scrollbar is shown automatically. The scrollbar floats above child controls and does not take up layout space; dragging a tab near the visible edge auto-scrolls |
 
-**Corresponding C++ interfaces:** `SetTabCtrlOrientation`/`GetTabCtrlOrientation`, `SetEnableOverflowScroll`/`IsEnableOverflowScroll`.
+**Corresponding C++ interfaces:** `SetSelectedTabItemShowBg`/`IsSelectedTabItemShowBg`, `SetSelectedTabItemIndicatorWidth`/`GetSelectedTabItemIndicatorWidth`, `SetSelectedTabItemIndicatorAutoWidth`/`IsSelectedTabItemIndicatorAutoWidth`, `SetSelectedTabItemIndicatorHeight`/`GetSelectedTabItemIndicatorHeight`, `SetSelectedTabItemIndicatorColor`/`GetSelectedTabItemIndicatorColor`, `SetTabCtrlOrientation`/`GetTabCtrlOrientation`, `SetEnableOverflowScroll`/`IsEnableOverflowScroll`.
 
 The TabCtrl control inherits the `ListBox` attributes. For more available attributes, please refer to the `ListBox` attributes.
 
@@ -3248,6 +3252,9 @@ The TabCtrl control inherits the `ListBox` attributes. For more available attrib
 | title | | string | Title text of the tab page |
 | title_id | | string | Title text ID of the tab page (for multilingual support) |
 | title_class | | string | Class value of the title text resource attribute of the tab page |
+| title_color | | string | Title text color in the normal state (empty means no override; the original color is kept) |
+| hovered_title_color | | string | Title text color in the hovered/pressed state (empty uses the normal-state color) |
+| selected_title_color | | string | Title text color in the selected state (empty uses the normal-state color) |
 | icon | | string | Icon resource string of the tab page |
 | icon_class | | string | Class value of the icon resource attribute of the tab page |
 | close_button_class | | string | Class value of the close button resource attribute of the tab page |
@@ -3267,7 +3274,7 @@ The TabCtrl control inherits the `ListBox` attributes. For more available attrib
 - The default skin defines `tab_ctrl_item_badge` (count badge, height 16, white text on red background) and `tab_ctrl_item_badge_dot` (dot badge, 8x8) in global.xml, already attached to `badge_class` of `tab_ctrl_item`.
 - The badge child control does not handle mouse events (`mouse_enabled="false"`), so it does not block tab clicks.
 
-**Corresponding C++ interfaces:** `SetBadgeCount/GetBadgeCount`, `SetBadgeMaxCount/GetBadgeMaxCount`, `SetBadgeDot/IsBadgeDot`, `SetBadgeClass/GetBadgeClass`, `GetBadgeControl`.
+**Corresponding C++ interfaces:** `SetTitleColor`/`GetTitleColor`, `SetHoveredTitleColor`/`GetHoveredTitleColor`, `SetSelectedTitleColor`/`GetSelectedTitleColor`, `SetBadgeCount`/`GetBadgeCount`, `SetBadgeMaxCount`/`GetBadgeMaxCount`, `SetBadgeDot`/`IsBadgeDot`, `SetBadgeClass`/`GetBadgeClass`, `GetBadgeControl`.
 
 **XML example:**
 
@@ -3355,6 +3362,26 @@ if (pTabCtrl != nullptr) {
     const size_t nFixedCount = pTabCtrl->GetFixedItemCount();   // number of fixed tabs
 }
 ```
+
+**Bottom indicator (Ant Design Tabs style):**
+
+The default skin provides this style in `global.xml`: `tab_ctrl_indicator` (tab bar), `tab_ctrl_item_indicator` (tab item) and `tab_ctrl_item_indicator_title` (tab title). Combine them directly:
+
+```xml
+<TabCtrl class="tab_ctrl tab_ctrl_indicator" tab_box_name="main_view_tab" selected_id="0">
+    <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title="Box" width="47" tab_box_item_index="0"/>
+    <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title="HBox" width="56" tab_box_item_index="1"/>
+    <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title="VBox" width="55" tab_box_item_index="2"/>
+</TabCtrl>
+```
+
+Characteristics: no selected background, no vertical dividers, a 1px bottom divider; a theme-colored rounded indicator is drawn under the selected tab and its width follows the title text automatically; the title text uses `text_default` normally and `color_accent` when hovered/selected.
+
+- To customize, follow the attribute combination in `tab_ctrl_indicator` and override the `selected_tab_item_*` attributes as needed.
+- `selected_tab_item_indicator_width="auto"`: the indicator width equals the title text width (centered under the text by default); a numeric value means a fixed width.
+- The indicator is painted after child controls (in the `PaintForeColor` stage), so it is not clipped by the tab item rectangle.
+- Use an empty string to clear background/divider from a parent Class (e.g. `bkcolor=""`, `line_class=""`); do not use `#00000000` (an ARGB value of 0 is treated as an empty color and triggers an assertion).
+- Indicator width/height are logical pixels and are DPI-scaled at runtime.
 
 The TabCtrlItem control inherits the `ControlDragableT` attributes. For more available attributes, please refer to the `ControlDragableT` attributes.
 
