@@ -347,7 +347,7 @@
                               disabled_border_color="border_combo_disabled"
                               bkcolor="bg_combo" disabled_color="bg_combo_disabled"/>
     <Class name="combo_base" class="combo_basic"
-                             combo_tree_view_class="class='tree_view' padding='4,4,4,4' border_size='1' border_color='border_combo_normal' border_round='6,6' bkcolor='bg_menu' indent='20'"
+                             combo_tree_view_class="class='tree_view' padding='4,4,4,4' border_size='0,0,0,0' bkcolor='bg_menu' indent='20'"
                              combo_tree_node_class="class='tree_node' text_padding='8,0,8,0' hovered_color_round='4,4' selected_normal_color_round='4,4'"
                              combo_icon_class="bkimage='${PATH_CAPTION}/logo.svg' width='18' height='18' valign='center' margin='2,0,2,0'" 
                              combo_edit_class="bkcolor='' disabled_color='bg_combo_disabled' text_align='vcenter' text_padding='8,0,4,0' single_line='true' word_wrap='false' auto_hscroll='true'"/>

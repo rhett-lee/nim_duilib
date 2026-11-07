@@ -254,6 +254,9 @@ void CComboWnd::OnInitWindow()
 
     SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
     SetShadowType(m_pOwner->GetComboWndShadowType());
+    //边框与菜单保持一致：1px 圆角边框由窗口阴影统一绘制，TreeView 不再绘制自身边框
+    SetShadowBorderSize(1);
+    SetShadowBorderColor(_T("border_window"));
 
     Box* pRoot = new Box(this);
     pRoot->SetAutoDestroyChild(false);
@@ -326,7 +329,7 @@ Combo::Combo(Window* pWindow) :
     m_pButtonControl(nullptr),
     m_comboType(kCombo_DropDown),
     m_bDropListShown(false),
-    m_nShadowType(ShadowType::kShadowMenu)
+    m_nShadowType(ShadowType::kShadowMenuRound)
 {
     SetDropBoxSize({0, 150}, true);
     m_treeView.SetSelectNextWhenActiveRemoved(false);
