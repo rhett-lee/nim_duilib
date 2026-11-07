@@ -176,6 +176,14 @@ UiRect CComboWnd::GetComboWndRect() const
         rc.Inflate(rcPadding);
         pOwner->GetWindow()->ClientToScreen(rc);
     }
+
+    //限制在显示器工作区内，避免下拉窗口在屏幕边缘溢出
+    if (rc.right > rcWork.right) {
+        rc.Offset(-(rc.right - rcWork.right), 0);
+    }
+    if (rc.left < rcWork.left) {
+        rc.Offset(rcWork.left - rc.left, 0);
+    }
     return rc;
 }
 

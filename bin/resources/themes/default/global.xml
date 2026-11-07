@@ -341,25 +341,22 @@
                              selected_disabled_image="file='${PATH_CHECKBOX}/checkbox-outline-checked.svg' width='18' height='18' valign='center' fade='80'"/>
     
     <!-- 下拉框基类 -->
-    <Class name="combo_basic" padding="1,1,1,1" border_size="1" 
+    <Class name="combo_basic" padding="1,1,1,1" border_size="1" border_round="4,4"
                               border_color="border_combo_normal" 
                               hovered_border_color="border_combo_hovered"
                               disabled_border_color="border_combo_disabled"
                               bkcolor="bg_combo" disabled_color="bg_combo_disabled"/>
     <Class name="combo_base" class="combo_basic"
-                             combo_tree_view_class="class='tree_view' padding='0,0,0,0' border_size='0,0,0,0' indent='20'"
-                             combo_tree_node_class="tree_node" 
+                             combo_tree_view_class="class='tree_view' padding='4,4,4,4' border_size='1' border_color='border_combo_normal' border_round='6,6' bkcolor='bg_menu' indent='20'"
+                             combo_tree_node_class="class='tree_node' text_padding='8,0,8,0' hovered_color_round='4,4' selected_normal_color_round='4,4'"
                              combo_icon_class="bkimage='${PATH_CAPTION}/logo.svg' width='18' height='18' valign='center' margin='2,0,2,0'" 
-                             combo_edit_class="bkcolor='bg_richedit' disabled_color='bg_combo_disabled' text_align='vcenter' text_padding='2,0,2,0' single_line='true' word_wrap='false' auto_hscroll='true'"/>
+                             combo_edit_class="bkcolor='' disabled_color='bg_combo_disabled' text_align='vcenter' text_padding='8,0,4,0' single_line='true' word_wrap='false' auto_hscroll='true'"/>
     <!-- 下拉框 -->
     <Class name="combo" class="combo_base"
-                        combo_button_class="height='stretch' width='auto' margin='1,0,0,0' padding='1,0,0,0' border_size='1,0,0,0' valign='center' 
-                                            hovered_border_color='border_combo_hovered' 
-                                            pressed_border_color='border_combo_hovered'
-                                            disabled_border_color='border_combo_disabled'
-                                            hovered_color='bg_combo_btn_hovered' 
-                                            pressed_color='bg_combo_btn_pressed'
-                                            disabled_color='bg_combo_btn_disabled' 
+                        combo_button_class="height='stretch' width='auto' margin='2,2,2,2' padding='0,0,0,0' border_size='0,0,0,0' valign='center' 
+                                            hovered_color='bg_combo_btn_hovered' hovered_color_round='3,3'
+                                            pressed_color='bg_combo_btn_pressed' pressed_color_round='3,3'
+                                            disabled_color='bg_combo_btn_disabled' disabled_color_round='3,3'
                                             normal_image={file='${PATH_COMBO}/arrow_normal.svg' valign='center'} 
                                             hovered_image={file='${PATH_COMBO}/arrow_hovered.svg' valign='center'}"/>
     <Class name="filter_combo" class="combo_base"/>
