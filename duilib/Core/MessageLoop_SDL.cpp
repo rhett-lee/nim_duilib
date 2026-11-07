@@ -23,6 +23,11 @@ bool MessageLoop_SDL::CheckInitSDL(const DString& videoDriverName)
     //Linux Wayland下支持DPI自适应
     SDL_SetHint(SDL_HINT_VIDEO_WAYLAND_SCALE_TO_DISPLAY, "true");
 
+    //允许点击激活窗口时同时派发鼠标点击事件
+    //SDL默认会丢弃"激活窗口的首次点击"（避免游戏误触），但在桌面窗口中会导致：
+    //点击刚获得焦点的弹出窗口（如Combo的下拉列表）时，首次点击被丢弃，控件点击无效
+    SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "true");
+
     //初始化SDL
     bool bRet = true;
     if (!SDL_WasInit(SDL_INIT_VIDEO)) {

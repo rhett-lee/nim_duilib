@@ -157,6 +157,62 @@ namespace CxImageLoader
         }
     }
 
+    /** 获取ICO文件中指定目录项的图像数据位置
+    * @param [in] fileData ICO/CUR文件数据
+    * @param [in] index 目录项的索引
+    * @param [out] imageOffset 图像数据的偏移（从文件头开始计算）
+    * @param [out] imageSize 图像数据的大小
+    * @param [out] bIsPng 返回true表示该目录项的数据是PNG压缩格式，否则为DIB格式
+    * @return 返回true表示获取成功，否则返回false
+    */
+    static bool GetIcoEntryInfo(const std::vector<uint8_t>& fileData,
+                                int32_t index,
+                                uint32_t& imageOffset,
+                                uint32_t& imageSize,
+                                bool& bIsPng)
+    {
+        imageOffset = 0;
+        imageSize = 0;
+        bIsPng = false;
+        //ICONHEADER: idReserved(2) + idType(2) + idCount(2)
+        constexpr size_t iconHeaderSize = 6;
+        //ICONDIRENTRY: bWidth(1)+bHeight(1)+bColorCount(1)+bReserved(1)+wPlanes(2)+wBitCount(2)+dwBytesInRes(4)+dwImageOffset(4)
+        constexpr size_t iconDirEntrySize = 16;
+        if (fileData.size() < iconHeaderSize) {
+            return false;
+        }
+        const uint16_t idCount = (uint16_t)(fileData[4] | (fileData[5] << 8));
+        if ((index < 0) || (index >= (int32_t)idCount)) {
+            return false;
+        }
+        const size_t entryOffset = iconHeaderSize + iconDirEntrySize * (size_t)index;
+        if (fileData.size() < (entryOffset + iconDirEntrySize)) {
+            return false;
+        }
+        imageSize = (uint32_t)fileData[entryOffset + 8] |
+                    ((uint32_t)fileData[entryOffset + 9] << 8) |
+                    ((uint32_t)fileData[entryOffset + 10] << 16) |
+                    ((uint32_t)fileData[entryOffset + 11] << 24);
+        imageOffset = (uint32_t)fileData[entryOffset + 12] |
+                      ((uint32_t)fileData[entryOffset + 13] << 8) |
+                      ((uint32_t)fileData[entryOffset + 14] << 16) |
+                      ((uint32_t)fileData[entryOffset + 15] << 24);
+        if ((imageSize < 8) || (imageOffset >= fileData.size()) ||
+            ((size_t)imageSize > (fileData.size() - imageOffset))) {
+            return false;
+        }
+        //检查是否为PNG文件签名: 89 50 4E 47 0D 0A 1A 0A
+        static const uint8_t pngSignature[8] = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
+        bIsPng = true;
+        for (size_t i = 0; i < 8; ++i) {
+            if (fileData[imageOffset + i] != pngSignature[i]) {
+                bIsPng = false;
+                break;
+            }
+        }
+        return true;
+    }
+
     static bool LoadImageFromMemory(const std::vector<uint8_t>& fileData,
                                     bool bLoadAllFrames,
                                     uint32_t iconSize,
@@ -187,11 +243,26 @@ namespace CxImageLoader
         frameNumColors.resize(frameCount);
         for (int32_t index = 0; index < frameCount; ++index) {
             CxImage* cxFrame = nullptr;
-            cxIcoStream = std::make_unique<CxMemFile>((uint8_t*)fileData.data(), (uint32_t)fileData.size());
-            cxIcoImage = std::make_unique<CxImage>(imagetype);
-            cxIcoImage->SetFrame(index);
-            if (cxIcoImage->Decode(cxIcoStream.get(), imagetype) && cxIcoImage->IsValid()) {
-                cxFrame = cxIcoImage.get();
+            uint32_t pngOffset = 0;
+            uint32_t pngSize = 0;
+            bool bIsPng = false;
+            if (GetIcoEntryInfo(fileData, index, pngOffset, pngSize, bIsPng) && bIsPng) {
+                //Vista之后的ICO文件，部分尺寸的图标项使用PNG压缩数据存储
+                //CxImage的ICO解码器只支持256x256的PNG图标项，其他尺寸会按DIB解析，导致解码出的图像异常
+                //此处对PNG压缩的图标项，直接使用PNG解码器解码
+                cxIcoStream = std::make_unique<CxMemFile>((uint8_t*)fileData.data() + pngOffset, pngSize);
+                cxIcoImage = std::make_unique<CxImage>(CXIMAGE_FORMAT_PNG);
+                if (cxIcoImage->Decode(cxIcoStream.get(), CXIMAGE_FORMAT_PNG) && cxIcoImage->IsValid()) {
+                    cxFrame = cxIcoImage.get();
+                }
+            }
+            else {
+                cxIcoStream = std::make_unique<CxMemFile>((uint8_t*)fileData.data(), (uint32_t)fileData.size());
+                cxIcoImage = std::make_unique<CxImage>(imagetype);
+                cxIcoImage->SetFrame(index);
+                if (cxIcoImage->Decode(cxIcoStream.get(), imagetype) && cxIcoImage->IsValid()) {
+                    cxFrame = cxIcoImage.get();
+                }
             }
             
             //ASSERT(cxFrame != nullptr);
