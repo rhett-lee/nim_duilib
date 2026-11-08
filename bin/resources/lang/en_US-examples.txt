@@ -2080,6 +2080,103 @@ STRID_TABCTRL_TIP_CARD_VOVERFLOW = Vertical tab bar: a vertical floating scrollb
 STRID_TABCTRL_TIP_CARD_VOVERFLOW2 = Hint: SetTabCtrlOrientation switches the overflow scrollbar axis automatically
 STRID_TABCTRL_TIP_CARD_BADGE = ui::TabCtrl + ui::TabCtrlItem (badge)
 
+# Cards ⑥–⑭: C1–C10 features
+STRID_TABCTRL_CARD_C1 = ⑥ C1 TabBox ↔ TabCtrl two-way sync
+STRID_TABCTRL_CARD_C2 = ⑦ C2 Close request / closable / middle click
+STRID_TABCTRL_CARD_C3 = ⑧ C3 Selected tab auto scroll into view
+STRID_TABCTRL_CARD_C4 = ⑨ C4 Keyboard navigation
+STRID_TABCTRL_CARD_C5 = ⑩ C5 Wheel switches tabs / drag reorder
+STRID_TABCTRL_CARD_C6 = ⑪ C6 Overflow arrow buttons (instead of scrollbar)
+STRID_TABCTRL_CARD_C7 = ⑫ C7 Justified tabs / min-max width
+STRID_TABCTRL_CARD_C8 = ⑬ C8 New tab button
+STRID_TABCTRL_CARD_C9 = ⑭ C9 Convenience APIs
+
+# Shared switch text
+STRID_TABCTRL_SWITCH_ON = On
+STRID_TABCTRL_SWITCH_OFF = Off
+STRID_TABCTRL_STATE_NONE = none
+STRID_TABCTRL_STATE_FOCUS_YES = yes
+STRID_TABCTRL_STATE_FOCUS_NO = no
+STRID_TABCTRL_STATE_SHOWN = visible
+STRID_TABCTRL_STATE_HIDDEN = hidden
+
+# Toggle buttons (format string, %s = On/Off)
+STRID_TABCTRL_BTN_CLOSABLE = Closable: %s
+STRID_TABCTRL_BTN_MIDDLE = Middle click close: %s
+STRID_TABCTRL_BTN_WHEEL = Wheel switches tabs: %s
+STRID_TABCTRL_BTN_DRAG = Drag reorder: %s
+STRID_TABCTRL_BTN_BUTTONS = Overflow arrows: %s
+STRID_TABCTRL_BTN_JUSTIFY = Justified: %s
+STRID_TABCTRL_BTN_NEWTAB = New tab button: %s
+
+# C1 buttons and text
+STRID_TABCTRL_BTN_C1_CTRL_1 = TabCtrl select #1
+STRID_TABCTRL_BTN_C1_CTRL_2 = TabCtrl select #2
+STRID_TABCTRL_BTN_C1_CTRL_3 = TabCtrl select #3
+STRID_TABCTRL_BTN_C1_BOX_1 = TabBox select page 1
+STRID_TABCTRL_BTN_C1_BOX_2 = TabBox select page 2
+STRID_TABCTRL_BTN_C1_BOX_3 = TabBox select page 3
+STRID_TABCTRL_C1_TAB_1 = Tab A
+STRID_TABCTRL_C1_TAB_2 = Tab B
+STRID_TABCTRL_C1_TAB_3 = Tab C
+STRID_TABCTRL_C1_PAGE_1 = Page 1 content (TabBox child)
+STRID_TABCTRL_C1_PAGE_2 = Page 2 content (TabBox child)
+STRID_TABCTRL_C1_PAGE_3 = Page 3 content (TabBox child)
+
+# C2–C9 buttons and tab titles
+STRID_TABCTRL_BTN_REMOVE_SEL = Remove selected
+STRID_TABCTRL_BTN_REMOVE_LAST = Remove last
+STRID_TABCTRL_BTN_C3_FIRST = Select first
+STRID_TABCTRL_BTN_C3_LAST = Select last
+STRID_TABCTRL_BTN_C3_PREV = Previous
+STRID_TABCTRL_BTN_C3_NEXT = Next
+STRID_TABCTRL_BTN_C4_FOCUS = Focus the tab bar
+STRID_TABCTRL_BTN_C9_ADD = AddTabItemToEnd
+STRID_TABCTRL_BTN_C9_GET = GetSelectedTabItem
+STRID_TABCTRL_BTN_C9_SET = SetSelectedTabItem(#2)
+
+# C1–C9 initial status text (refreshed by code after layout)
+STRID_TABCTRL_STATE_C1_INIT = TabCtrl index: -　|　TabBox index: -　|　TabBox select events: 0
+STRID_TABCTRL_STATE_C2_INIT = Tabs: 4　|　Selected: none　|　Closable: none　|　Close requests: 0 (index -1)
+STRID_TABCTRL_STATE_C3_INIT = Selected: none　|　Scroll position: 0 / 0
+STRID_TABCTRL_STATE_C4_INIT = Selected: none　|　Focus: no
+STRID_TABCTRL_STATE_C5_INIT = Selected: none　|　Wheel switches tabs: Off
+STRID_TABCTRL_STATE_C6_INIT = Arrows: On　|　Scrollbar: hidden　|　Overflow: 0　|　Position: 0
+STRID_TABCTRL_STATE_C7_INIT = Justified: Off　|　Tab widths: -
+STRID_TABCTRL_STATE_C8_INIT = Tabs: 3　|　New tab events: 0
+STRID_TABCTRL_STATE_C9_INIT = Tabs: 4　|　Selected: none　|　Last action: none
+
+# C1–C9 dynamic status text (formatted in code, placeholders in order)
+STRID_TABCTRL_STATE_C1 = TabCtrl index: %d　|　TabBox index: %d　|　TabBox select events: %d
+STRID_TABCTRL_STATE_C2 = Tabs: %d　|　Selected: %s　|　Closable: %s　|　Close requests: %d (index %d)
+STRID_TABCTRL_STATE_C3 = Selected: %s　|　Scroll position: %d / %d
+STRID_TABCTRL_STATE_C4 = Selected: %s　|　Focus: %s
+STRID_TABCTRL_STATE_C5 = Selected: %s　|　Wheel switches tabs: %s
+STRID_TABCTRL_STATE_C6 = Arrows: %s　|　Scrollbar: %s　|　Overflow: %d　|　Position: %d
+STRID_TABCTRL_STATE_C7 = Justified: %s　|　Tab widths: %s
+STRID_TABCTRL_STATE_C8 = Tabs: %d　|　New tab events: %d
+STRID_TABCTRL_STATE_C9 = Tabs: %d　|　Selected: %s　|　Last action: %s
+
+# C1–C9 hints
+STRID_TABCTRL_TIP_C1 = Switch on either side and the other side follows; TabBox events increase by 1 each time
+STRID_TABCTRL_TIP_C2 = The close button only raises a close request (the tab is not removed); tab #2 is not closable
+STRID_TABCTRL_TIP_C3 = After selecting the first / last tab the bar scrolls so the selection stays visible
+STRID_TABCTRL_TIP_C4 = Ctrl+Tab / Ctrl+Shift+Tab / Ctrl+1..9 / Left-Right arrows
+STRID_TABCTRL_TIP_C5 = By default the wheel scrolls the bar; when enabled it switches tabs; drag a tab to see the insert marker
+STRID_TABCTRL_TIP_C6 = The floating scrollbar is hidden while arrows are on; clicking an arrow scrolls by one page
+STRID_TABCTRL_TIP_C7 = Justified tabs share the width evenly, limited by min_width / max_width
+STRID_TABCTRL_TIP_C8 = Clicking the "+" at the end raises kEventTabNew; the app creates the tab
+STRID_TABCTRL_TIP_C9 = AddTabItemToEnd / GetSelectedTabItem / SetSelectedTabItem / SelectNext(Prev)Tab
+STRID_TABCTRL_TIP_CARD_C1 = TabCtrl is bound to TabBox via tab_box_name
+STRID_TABCTRL_TIP_CARD_C2 = kEventTabClose only requests a close; removal is up to the app
+STRID_TABCTRL_TIP_CARD_C3 = The bar auto-scrolls to keep the selected tab visible
+STRID_TABCTRL_TIP_CARD_C4 = Keyboard navigation requires the tab bar to have focus
+STRID_TABCTRL_TIP_CARD_C5 = wheel_switch defaults to off; drag_insert_color sets the insert marker color
+STRID_TABCTRL_TIP_CARD_C6 = overflow_buttons and the floating scrollbar are mutually exclusive
+STRID_TABCTRL_TIP_CARD_C7 = tab_item_justify shares the width, limited by min_width / max_width
+STRID_TABCTRL_TIP_CARD_C8 = new_tab_button shows a "+" button at the end
+STRID_TABCTRL_TIP_CARD_C9 = Demonstrates the convenience APIs of the tab bar
+
 # TabCtrl standalone test window entry (controls/test.xml)
 STRID_CONTROLS_TABCTRL_FULL = TabCtrl: Vertical / Fixed / Overflow / Badge
 STRID_CONTROLS_TABCTRL_TEST_BTN = TabCtrl Test

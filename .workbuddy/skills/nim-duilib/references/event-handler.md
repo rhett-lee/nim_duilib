@@ -187,7 +187,7 @@ btn->AttachClick([this](const ui::EventArgs& args) {
 
 焦点/输入法: `kEventSetFocus`, `kEventKillFocus`, `kEventSetCursor`, `kEventCaptureChanged`, `kEventImeSetContext`, `kEventImeStartComposition`, `kEventImeComposition`, `kEventImeEndComposition`
 
-操作: `kEventClick`, `kEventRClick`, `kEventSelect`, `kEventUnSelect`, `kEventCheck`, `kEventUnCheck`, `kEventTabSelect`, `kEventExpand`, `kEventCollapse`, `kEventPanelExpanding`, `kEventPanelCollapsing`（后两个为 Panel 专用：即将展开/折叠时触发，回调返回 false 可取消）, `kEventNavigationItemClick`, `kEventNavigationSelectionChanged`, `kEventNavigationPaneToggling`, `kEventNavigationPaneToggled`（NavigationView 专用：导航项点击/选中变化/窗格切换前（可取消）/窗格切换后）
+操作: `kEventClick`, `kEventRClick`, `kEventSelect`, `kEventUnSelect`, `kEventCheck`, `kEventUnCheck`, `kEventTabSelect`, `kEventTabClose`, `kEventTabNew`（TabCtrl 专用：关闭请求/新建标签按钮，不自动删除或创建标签）, `kEventExpand`, `kEventCollapse`, `kEventPanelExpanding`, `kEventPanelCollapsing`（后两个为 Panel 专用：即将展开/折叠时触发，回调返回 false 可取消）, `kEventNavigationItemClick`, `kEventNavigationSelectionChanged`, `kEventNavigationPaneToggling`, `kEventNavigationPaneToggled`（NavigationView 专用：导航项点击/选中变化/窗格切换前（可取消）/窗格切换后）
 
 编辑: `kEventTextChanged`, `kEventSelChanged`, `kEventReturn`, `kEventEsc`, `kEventTab`, `kEventZoom`, `kEventLinkClick`, `kEventScrollPosChanged`, `kEventValueChanged`
 

@@ -1,6 +1,6 @@
 English | [简体中文](Events.md)
 
-> Last synced: 2026-11-02
+> Last synced: 2026-11-08
 
 ## Control Events (EventArgs) Documentation
 The content related to control events is defined in the files [`duilib/Core/EventArgs.h`](../duilib/Core/EventArgs.h) and [`duilib/duilib_defs.h`](../duilib/duilib_defs.h).
@@ -54,6 +54,8 @@ The content related to control events is defined in the files [`duilib/Core/Even
 |kEventCheck                |     |     |     |     |       |     | No parameters |
 |kEventUnCheck              |     |     |     |     |       |     | No parameters |
 |kEventTabSelect            |New selected index | Old selected index|     |     |    |     |    |
+|kEventTabClose             |Tab index|     |     |     |       |     | TabCtrl: fired when the close button is clicked or a tab is middle-clicked; only sends the close request and does not remove the tab (removal is done by the business layer in the callback) |
+|kEventTabNew               |     |     |     |     |       |     | TabCtrl: fired when the "new tab" button is clicked; the tab is not created automatically |
 |kEventExpand               |     |     |     |     |       |     | No parameters; fired after a Panel finishes expanding |
 |kEventCollapse             |     |     |     |     |       |     | No parameters; fired after a Panel finishes collapsing |
 |kEventPanelExpanding       |     |     |Client-area coordinates of the mouse |     | Key flags   |     | Fired before a Panel expands; returning false from the handler cancels the expand |
@@ -66,7 +68,7 @@ The content related to control events is defined in the files [`duilib/Core/Even
 |kEventTagAdded            |New tag index (0-based) |     |Client-area coordinates of the mouse |     | Key flags |     | Fired after a tag is added to TagInput |
 |kEventTagRemoved          |Removed tag index (0-based) |     |Client-area coordinates of the mouse |     | Key flags |     | Fired before a tag is removed from TagInput; its text is still readable via GetTagText in the callback |
 |kEventTagClick            |Tag index (0-based) |     |Client-area coordinates of the mouse |     | Key flags |     | Fired when the tag body (not the close button) in TagInput is clicked |
-|kEventAutoCompleteSelect  |Selected item index within the current candidate list (0-based) |     |Client-area coordinates of the mouse |     | Key flags |     | Fired after a candidate in AutoComplete is chosen (mouse click or Enter); inline XML event name is `select` |
+|kEventAutoCompleteSelect  |Selected item index within the current candidate list (0-based) |     |Client-area coordinates of the mouse |     | Key flags |     | Fired after a candidate in AutoComplete is chosen (mouse click or Enter); inline XML event name is `auto_complete_select` |
 
 
 | Event (eventType)           | Parameter (wParam)  | Parameter (lParam) | Parameter (ptMouse) | Parameter (vkCode) | Parameter (modifierKey) |Parameter (eventData) | Note     |

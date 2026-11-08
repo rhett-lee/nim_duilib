@@ -2,9 +2,14 @@
 #define UI_BOX_TABBOX_H_
 
 #include "duilib/Core/Box.h"
+#include <vector>
 
 namespace ui
 {
+/** TabCtrl 控件（用于双向同步）
+*/
+class TabCtrl;
+
 /** 堆叠布局/卡片布局，内部的多个子控件，只有一个可见，其他是隐藏的，可动态切换，支持切换动画
 */
 class DUILIB_API TabBox : public Box
@@ -59,6 +64,18 @@ public:
      * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
     void AttachTabSelect(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventTabSelect, callback, callbackID); }
+
+public:
+    /** 注册标签选择监听（供TabCtrl双向同步使用）
+     * 与 AttachTabSelect 不同，该接口支持多个监听者，且不会覆盖用户注册的事件回调
+     * @param [in] pTabCtrl 需要监听的TabCtrl控件
+     */
+    void AddTabSelectListener(TabCtrl* pTabCtrl);
+
+    /** 注销标签选择监听
+     * @param [in] pTabCtrl 需要注销的TabCtrl控件
+     */
+    void RemoveTabSelectListener(TabCtrl* pTabCtrl);
 
 public:
     /** 页面切换动画的类型
@@ -191,6 +208,10 @@ private:
     /** 是否需要切换动画
     */
     FadeSwitchType m_fadeSwithType;
+
+    /** 标签选择监听者（TabCtrl控件，用于双向同步）
+    */
+    std::vector<TabCtrl*> m_tabSelectListeners;
 };
 
 } //namespace ui

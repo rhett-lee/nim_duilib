@@ -3244,8 +3244,31 @@ SplitBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属�
 | selected_tab_item_indicator_color |   | string | 选中标签的底部指示条颜色；为空时不绘制指示条 |
 | tab_ctrl_orientation | horz | string | 标签栏的布局方向：`horz`(水平，默认值) / `vert`(垂直)。垂直时标签位于左侧、内容区在右侧，选中项轮廓与分隔线自动适配为右侧 |
 | overflow_scroll | true | bool | 是否启用溢出滚动：标签总宽度（水平）或总高度（垂直）超出可视区域时，自动显示滚动条。滚动条悬浮在子控件之上，不占用布局空间；拖动标签靠近边缘时会自动滚动 |
+| overflow_buttons | true | bool | 标签溢出时，是否在标签栏两端显示左右（垂直方向为上下）滚动箭头按钮，点击可按可视范围翻页滚动。启用时会隐藏悬浮滚动条（两者互斥显示），滚动位置仍由内部滚动条对象维护 |
+| wheel_switch | false | bool | 是否启用鼠标滚轮切换标签：滚动滚轮选择上一个/下一个标签；默认 `false`，滚轮用于滚动标签栏 |
+| middle_click_close | true | bool | 是否启用鼠标中键关闭标签：中键点击标签时发送 `kEventTabClose` 事件（不会自动删除标签） |
+| drag_insert_color | #FF2D7FF9 | string | 拖动排序时插入位置提示线的颜色；为空时不绘制提示线 |
+| tab_item_justify | false | bool | 标签是否等宽填充：`true` 时按标签栏可用宽度（垂直方向按高度）平分每个标签，并自动关闭滚动条；此时可用标签项的 `min_width`/`max_width` 做进一步约束 |
+| new_tab_button | false | bool | 是否在标签栏末尾显示"新建标签"按钮（"+"），点击时发送 `kEventTabNew` 事件，不会自动创建标签 |
 
-**对应 C++ 接口：** `SetSelectedTabItemShowBg`/`IsSelectedTabItemShowBg`、`SetSelectedTabItemIndicatorWidth`/`GetSelectedTabItemIndicatorWidth`、`SetSelectedTabItemIndicatorAutoWidth`/`IsSelectedTabItemIndicatorAutoWidth`、`SetSelectedTabItemIndicatorHeight`/`GetSelectedTabItemIndicatorHeight`、`SetSelectedTabItemIndicatorColor`/`GetSelectedTabItemIndicatorColor`、`SetTabCtrlOrientation`/`GetTabCtrlOrientation`、`SetEnableOverflowScroll`/`IsEnableOverflowScroll`。
+**对应 C++ 接口：** `SetSelectedTabItemShowBg`/`IsSelectedTabItemShowBg`、`SetSelectedTabItemIndicatorWidth`/`GetSelectedTabItemIndicatorWidth`、`SetSelectedTabItemIndicatorAutoWidth`/`IsSelectedTabItemIndicatorAutoWidth`、`SetSelectedTabItemIndicatorHeight`/`GetSelectedTabItemIndicatorHeight`、`SetSelectedTabItemIndicatorColor`/`GetSelectedTabItemIndicatorColor`、`SetTabCtrlOrientation`/`GetTabCtrlOrientation`、`SetEnableOverflowScroll`/`IsEnableOverflowScroll`、`SetEnableOverflowButtons`/`IsEnableOverflowButtons`、`SetEnableWheelSwitch`/`IsEnableWheelSwitch`、`SetEnableMiddleClickClose`/`IsEnableMiddleClickClose`、`SetDragInsertColor`/`GetDragInsertColor`、`SetTabItemJustify`/`IsTabItemJustify`、`SetEnableNewTabButton`/`IsEnableNewTabButton`、`GetSelectedTabItem`/`SetSelectedTabItem`、`GetTabItemAt`、`AddTabItemToEnd`、`SelectNextTab`/`SelectPrevTab`。
+
+**交互与事件说明：**
+- 选中标签变化时自动滚动到可视区域（键盘/程序化选择不会落在可视区外）。
+- 键盘：`Ctrl+Tab` 选择下一个标签，`Ctrl+Shift+Tab` 选择上一个标签，`Ctrl+1`～`Ctrl+9` 选择对应索引的标签；方向键/PageUp/PageDown/Home/End 沿用 `ListBox` 的行为。
+- 与 `TabBox` 双向同步：`tab_box_name` 绑定后，TabCtrl 选择变化会同步到 TabBox；TabBox 的 `SelectItem` 也会反向同步回 TabCtrl（内部已有防重入保护，不会形成死循环）。
+- `kEventTabClose`（WPARAM 为标签索引）：点击关闭按钮或鼠标中键点击标签时触发，TabCtrl 只发送请求，不删除标签，删除操作由业务层完成。
+- `kEventTabNew`：点击"新建标签"按钮时触发，TabCtrl 不会自动创建标签。
+
+```cpp
+// 监听关闭请求：由业务层决定是否删除标签
+pTabCtrl->AttachTabClose([pTabCtrl](const ui::EventArgs& msg) {
+    pTabCtrl->RemoveItemAt((size_t)msg.wParam);
+});
+pTabCtrl->AttachTabNew([](const ui::EventArgs&) {
+    // 创建并追加新标签
+});
+```
 
 TabCtrl 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`的属性
 
@@ -3267,6 +3290,7 @@ TabCtrl 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`�
 | hovered_round_corner | | size | 标签页悬停状态时的圆角大小|
 | hovered_padding | | UiPadding | 标签页悬停状态的背景色的内边距|
 | auto_hide_close_button | false | bool | 关闭按钮是否自动隐藏|
+| closable | true | bool | 标签是否可关闭：`false` 时隐藏关闭按钮，且鼠标中键点击也不会发送关闭请求事件 |
 | drag_order | true | bool | 是否支持拖动调整顺序（在同一个标签栏内）；实际生效还需 TabCtrl 的 `drag_order` 总开关开启。固定标签期间该开关被临时关闭，取消固定（`SetFixed(false)`）后按此值恢复 |
 | fixed | false | bool | 是否为固定标签：固定标签不可拖动、不可作为拖放目标，且不显示关闭按钮；多个固定标签始终位于标签栏前端，构成“固定块”（普通标签只能在固定块之后移动，且不可越过固定块）|
 | badge_count | 0 | int64 | 角标数量：大于0时显示角标，小于等于0时自动隐藏；未设置badge_class时不创建角标控件|

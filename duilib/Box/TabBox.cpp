@@ -1,7 +1,10 @@
 #include "TabBox.h"
 #include "duilib/Animation/AnimationPlayer.h"
+#include "duilib/Control/TabCtrl.h"
+#include "duilib/Core/ControlPtrT.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Utils/StringUtil.h"
+#include <algorithm>
 
 namespace ui
 {
@@ -18,6 +21,23 @@ TabBox::TabBox(Window* pWindow, Layout* pLayout):
 }
 
 TabBox::~TabBox() = default;
+
+void TabBox::AddTabSelectListener(TabCtrl* pTabCtrl)
+{
+    if ((pTabCtrl == nullptr) ||
+        (std::find(m_tabSelectListeners.begin(), m_tabSelectListeners.end(), pTabCtrl) != m_tabSelectListeners.end())) {
+        return;
+    }
+    m_tabSelectListeners.push_back(pTabCtrl);
+}
+
+void TabBox::RemoveTabSelectListener(TabCtrl* pTabCtrl)
+{
+    auto it = std::find(m_tabSelectListeners.begin(), m_tabSelectListeners.end(), pTabCtrl);
+    if (it != m_tabSelectListeners.end()) {
+        m_tabSelectListeners.erase(it);
+    }
+}
 
 DString TabBox::GetType() const { return DUI_CTR_TABBOX; }
 
@@ -258,7 +278,19 @@ bool TabBox::DoSelectItem(size_t nItemIndex, bool bFadeSwith, bool bCheckChanged
         }
     }
     if (bCheckChanged && (nOldSelIndex != m_nCurSel)) {
+        //先建立生命周期保护，避免事件回调中删除控件导致野指针
+        std::vector<ControlPtrT<TabCtrl>> listeners;
+        listeners.reserve(m_tabSelectListeners.size());
+        for (TabCtrl* pListener : m_tabSelectListeners) {
+            listeners.emplace_back(pListener);
+        }
         SendEvent(kEventTabSelect, m_nCurSel, nOldSelIndex);
+        //通知绑定到本控件的TabCtrl进行反向同步（内部有防重入保护）
+        for (ControlPtrT<TabCtrl>& pTabCtrl : listeners) {
+            if (pTabCtrl != nullptr) {
+                pTabCtrl->OnBoundTabBoxSelectChanged(m_nCurSel);
+            }
+        }
     }    
     return true;
 }

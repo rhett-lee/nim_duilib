@@ -3240,8 +3240,31 @@ The SplitBox control inherits the `Box` attributes. For more available attribute
 | selected_tab_item_indicator_color |   | string | Color of the bottom indicator of the selected tab; empty disables the indicator |
 | tab_ctrl_orientation | horz | string | Layout direction of the tab bar: `horz` (horizontal, default) / `vert` (vertical). In vertical mode, tabs are on the left and the content area on the right, and the selected-item outline and divider are automatically adapted to the right side |
 | overflow_scroll | true | bool | Whether to enable overflow scrolling: when the total tab width (horizontal) or total height (vertical) exceeds the visible area, a scrollbar is shown automatically. The scrollbar floats above child controls and does not take up layout space; dragging a tab near the visible edge auto-scrolls |
+| overflow_buttons | true | bool | Whether to show scroll arrow buttons at both ends of the tab bar (left/right, or top/bottom in vertical mode) when tabs overflow. Clicking them scrolls by one visible page. When enabled, the floating scrollbar is hidden (the two are mutually exclusive); the scroll position is still maintained by the internal scrollbar object |
+| wheel_switch | false | bool | Whether the mouse wheel switches tabs: rolling the wheel selects the previous/next tab. Defaults to `false`, so the wheel scrolls the tab bar |
+| middle_click_close | true | bool | Whether middle-click closes a tab: middle-clicking a tab sends `kEventTabClose` (the tab is not removed automatically) |
+| drag_insert_color | #FF2D7FF9 | string | Color of the insertion indicator line shown while drag-reordering; empty means the line is not drawn |
+| tab_item_justify | false | bool | Whether tabs fill the bar evenly: when `true`, each tab gets an equal share of the available width (or height in vertical mode), and the scrollbar is disabled; the item's `min_width`/`max_width` can further constrain the size |
+| new_tab_button | false | bool | Whether to show a "new tab" button ("+") at the end of the tab bar. Clicking it sends `kEventTabNew`; the tab is not created automatically |
 
-**Corresponding C++ interfaces:** `SetSelectedTabItemShowBg`/`IsSelectedTabItemShowBg`, `SetSelectedTabItemIndicatorWidth`/`GetSelectedTabItemIndicatorWidth`, `SetSelectedTabItemIndicatorAutoWidth`/`IsSelectedTabItemIndicatorAutoWidth`, `SetSelectedTabItemIndicatorHeight`/`GetSelectedTabItemIndicatorHeight`, `SetSelectedTabItemIndicatorColor`/`GetSelectedTabItemIndicatorColor`, `SetTabCtrlOrientation`/`GetTabCtrlOrientation`, `SetEnableOverflowScroll`/`IsEnableOverflowScroll`.
+**Corresponding C++ interfaces:** `SetSelectedTabItemShowBg`/`IsSelectedTabItemShowBg`, `SetSelectedTabItemIndicatorWidth`/`GetSelectedTabItemIndicatorWidth`, `SetSelectedTabItemIndicatorAutoWidth`/`IsSelectedTabItemIndicatorAutoWidth`, `SetSelectedTabItemIndicatorHeight`/`GetSelectedTabItemIndicatorHeight`, `SetSelectedTabItemIndicatorColor`/`GetSelectedTabItemIndicatorColor`, `SetTabCtrlOrientation`/`GetTabCtrlOrientation`, `SetEnableOverflowScroll`/`IsEnableOverflowScroll`, `SetEnableOverflowButtons`/`IsEnableOverflowButtons`, `SetEnableWheelSwitch`/`IsEnableWheelSwitch`, `SetEnableMiddleClickClose`/`IsEnableMiddleClickClose`, `SetDragInsertColor`/`GetDragInsertColor`, `SetTabItemJustify`/`IsTabItemJustify`, `SetEnableNewTabButton`/`IsEnableNewTabButton`, `GetSelectedTabItem`/`SetSelectedTabItem`, `GetTabItemAt`, `AddTabItemToEnd`, `SelectNextTab`/`SelectPrevTab`.
+
+**Interaction and events:**
+- When the selected tab changes, it is automatically scrolled into view (keyboard/programmatic selection never lands outside the visible area).
+- Keyboard: `Ctrl+Tab` selects the next tab, `Ctrl+Shift+Tab` selects the previous tab, and `Ctrl+1`–`Ctrl+9` select the tab at that index. Arrow keys/PageUp/PageDown/Home/End keep the `ListBox` behavior.
+- Two-way synchronization with `TabBox`: when `tab_box_name` is bound, TabCtrl selection changes are synced to TabBox, and `TabBox::SelectItem` is also synced back to TabCtrl (re-entrancy protection prevents infinite loops).
+- `kEventTabClose` (WPARAM is the tab index): sent when the close button is clicked or a tab is middle-clicked. TabCtrl only sends the request and does not remove the tab; removal is up to the business layer.
+- `kEventTabNew`: sent when the "new tab" button is clicked. TabCtrl does not create the tab automatically.
+
+```cpp
+// Listen for close requests: the business layer decides whether to remove the tab
+pTabCtrl->AttachTabClose([pTabCtrl](const ui::EventArgs& msg) {
+    pTabCtrl->RemoveItemAt((size_t)msg.wParam);
+});
+pTabCtrl->AttachTabNew([](const ui::EventArgs&) {
+    // Create and append a new tab
+});
+```
 
 The TabCtrl control inherits the `ListBox` attributes. For more available attributes, please refer to the `ListBox` attributes.
 
@@ -3263,6 +3286,7 @@ The TabCtrl control inherits the `ListBox` attributes. For more available attrib
 | hovered_round_corner | | size | Rounded corner size of the tab page in hovered state|
 | hovered_padding | | UiPadding | Padding of the background color of the tab page in hovered state|
 | auto_hide_close_button | false | bool | Whether the close button is automatically hidden|
+| closable | true | bool | Whether the tab is closable: when `false`, the close button is hidden and middle-clicking the tab does not send a close request |
 | drag_order | true | bool | Whether the tab supports drag to reorder (within the same tab bar); it also requires the TabCtrl's `drag_order` master switch to be on. While the tab is fixed this switch is temporarily disabled, and it is restored from this value when the tab is unfixed (`SetFixed(false)`) |
 | fixed | false | bool | Whether the tab is a fixed tab: a fixed tab cannot be dragged, cannot be a drop target, and shows no close button; multiple fixed tabs always stay at the front of the tab bar, forming a "fixed block" (normal tabs can only move after the fixed block and cannot cross it)|
 | badge_count | 0 | int64 | Badge count: shows the badge when greater than 0, automatically hidden when less than or equal to 0; the badge control is not created unless badge_class is set |

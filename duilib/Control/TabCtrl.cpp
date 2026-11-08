@@ -15,6 +15,12 @@ TabCtrl::TabCtrl(Window* pWindow):
     m_bEnableDragOrder(true),
     m_orientation(TabCtrlOrientation::kHorizontal),
     m_bEnableOverflowScroll(true),
+    m_bSyncingTabBox(false),
+    m_bEnableWheelSwitch(false),
+    m_bEnableMiddleClickClose(true),
+    m_bEnableOverflowButtons(true),
+    m_bTabItemJustify(false),
+    m_bEnableNewTabButton(false),
     m_fSelectedTabItemOutlineWidth(0.0f),
     m_fTabCtrlBottomLineHeight(0.0f),
     m_fSelectedTabItemIndicatorWidth(0.0f),
@@ -27,7 +33,12 @@ TabCtrl::TabCtrl(Window* pWindow):
 {
 }
 
-TabCtrl::~TabCtrl() = default;
+TabCtrl::~TabCtrl()
+{
+    if (m_pTabBox != nullptr) {
+        m_pTabBox->RemoveTabSelectListener(this);
+    }
+}
 
 void TabCtrl::ClearPaintCache()
 {
@@ -68,6 +79,47 @@ void TabCtrl::EnsureLayout()
     Layout* pOldLayout = ResetLayout(pNewLayout);
     if (pOldLayout != nullptr) {
         FreeLayout(pOldLayout);
+    }
+}
+
+void TabCtrl::UpdateScrollBarConfig()
+{
+    //注意：滚动位置(SetScrollPos)依赖滚动条对象，因此即使启用了溢出箭头，
+    //滚动条对象也需要保留，只是不显示（见 UpdateScrollBarVisibility）
+    if (m_bEnableOverflowScroll && !m_bTabItemJustify) {
+        if (m_orientation == TabCtrlOrientation::kVertical) {
+            EnableScrollBar(true, false);
+        }
+        else {
+            EnableScrollBar(false, true);
+        }
+        SetScrollBarFloat(true);
+    }
+    else {
+        EnableScrollBar(false, false);
+    }
+    UpdateScrollBarVisibility();
+}
+
+void TabCtrl::UpdateScrollBarVisibility()
+{
+    //溢出箭头与滚动条二选一：箭头模式下隐藏滚动条，避免两者叠加
+    ScrollBar* pScrollBar = nullptr;
+    if (m_orientation == TabCtrlOrientation::kVertical) {
+        pScrollBar = GetVScrollBar();
+    }
+    else {
+        pScrollBar = GetHScrollBar();
+    }
+    if (pScrollBar == nullptr) {
+        return;
+    }
+    if (m_bEnableOverflowButtons) {
+        pScrollBar->SetVisible(false);
+        pScrollBar->SetMouseEnabled(false);
+    }
+    else {
+        pScrollBar->SetMouseEnabled(true);
     }
 }
 
@@ -132,6 +184,30 @@ void TabCtrl::SetAttribute(const DString& strName, const DString& strValue2)
     else if (strName == _T("overflow_scroll")) {
         //是否启用溢出滚动（标签过多时显示滚动条），默认启用
         SetEnableOverflowScroll(StringUtil::IsValueTrue(strValue));
+    }
+    else if (strName == _T("wheel_switch")) {
+        //是否启用鼠标滚轮切换标签，默认关闭（滚轮用于滚动标签栏）
+        SetEnableWheelSwitch(StringUtil::IsValueTrue(strValue));
+    }
+    else if (strName == _T("middle_click_close")) {
+        //是否启用鼠标中键关闭标签，默认启用
+        SetEnableMiddleClickClose(StringUtil::IsValueTrue(strValue));
+    }
+    else if (strName == _T("drag_insert_color")) {
+        //拖动排序时插入位置提示线的颜色
+        SetDragInsertColor(strValue);
+    }
+    else if (strName == _T("overflow_buttons")) {
+        //标签溢出时是否显示滚动箭头按钮，默认启用
+        SetEnableOverflowButtons(StringUtil::IsValueTrue(strValue));
+    }
+    else if (strName == _T("tab_item_justify")) {
+        //标签是否等宽填充，默认不启用
+        SetTabItemJustify(StringUtil::IsValueTrue(strValue));
+    }
+    else if (strName == _T("new_tab_button")) {
+        //是否显示"新建标签"按钮，默认不显示
+        SetEnableNewTabButton(StringUtil::IsValueTrue(strValue));
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
@@ -230,20 +306,11 @@ void TabCtrl::SetTabCtrlOrientation(TabCtrlOrientation orientation)
     m_orientation = orientation;
     //切换布局方向：仅在当前布局与目标方向不一致时重建
     EnsureLayout();
+    //按新的布局方向调整标签项宽度与分割线方向
+    UpdateItemsLayoutForOrientation();
     if (IsInited()) {
         //重新配置滚动条并触发重排
-        if (m_bEnableOverflowScroll) {
-            if (m_orientation == TabCtrlOrientation::kVertical) {
-                EnableScrollBar(true, false);
-            }
-            else {
-                EnableScrollBar(false, true);
-            }
-            SetScrollBarFloat(true);
-        }
-        else {
-            EnableScrollBar(false, false);
-        }
+        UpdateScrollBarConfig();
         if (GetWindow() != nullptr) {
             Invalidate();
         }
@@ -262,18 +329,7 @@ void TabCtrl::SetEnableOverflowScroll(bool bEnable)
     }
     m_bEnableOverflowScroll = bEnable;
     if (IsInited()) {
-        if (bEnable) {
-            if (m_orientation == TabCtrlOrientation::kVertical) {
-                EnableScrollBar(true, false);
-            }
-            else {
-                EnableScrollBar(false, true);
-            }
-            SetScrollBarFloat(true);
-        }
-        else {
-            EnableScrollBar(false, false);
-        }
+        UpdateScrollBarConfig();
         if (GetWindow() != nullptr) {
             Invalidate();
         }
@@ -283,6 +339,534 @@ void TabCtrl::SetEnableOverflowScroll(bool bEnable)
 bool TabCtrl::IsEnableOverflowScroll() const
 {
     return m_bEnableOverflowScroll;
+}
+
+void TabCtrl::SetEnableWheelSwitch(bool bEnable)
+{
+    m_bEnableWheelSwitch = bEnable;
+}
+
+bool TabCtrl::IsEnableWheelSwitch() const
+{
+    return m_bEnableWheelSwitch;
+}
+
+void TabCtrl::SetEnableMiddleClickClose(bool bEnable)
+{
+    m_bEnableMiddleClickClose = bEnable;
+}
+
+bool TabCtrl::IsEnableMiddleClickClose() const
+{
+    return m_bEnableMiddleClickClose;
+}
+
+void TabCtrl::SetDragInsertColor(const DString& insertColor)
+{
+    m_dragInsertColor = insertColor;
+}
+
+const DString& TabCtrl::GetDragInsertColor() const
+{
+    return m_dragInsertColor;
+}
+
+void TabCtrl::SetEnableOverflowButtons(bool bEnable)
+{
+    if (m_bEnableOverflowButtons == bEnable) {
+        return;
+    }
+    m_bEnableOverflowButtons = bEnable;
+    if (IsInited()) {
+        UpdateScrollBarVisibility();
+        Arrange();
+    }
+    if (GetWindow() != nullptr) {
+        Invalidate();
+    }
+}
+
+bool TabCtrl::IsEnableOverflowButtons() const
+{
+    return m_bEnableOverflowButtons;
+}
+
+void TabCtrl::SetTabItemJustify(bool bJustify)
+{
+    if (m_bTabItemJustify == bJustify) {
+        return;
+    }
+    m_bTabItemJustify = bJustify;
+    if (IsInited()) {
+        //等宽填充时总宽度等于可视宽度，不需要滚动
+        UpdateScrollBarConfig();
+        Arrange();
+        if (GetWindow() != nullptr) {
+            Invalidate();
+        }
+    }
+}
+
+bool TabCtrl::IsTabItemJustify() const
+{
+    return m_bTabItemJustify;
+}
+
+void TabCtrl::SetEnableNewTabButton(bool bEnable)
+{
+    if (m_bEnableNewTabButton == bEnable) {
+        return;
+    }
+    m_bEnableNewTabButton = bEnable;
+    if (GetWindow() != nullptr) {
+        Invalidate();
+    }
+}
+
+bool TabCtrl::IsEnableNewTabButton() const
+{
+    return m_bEnableNewTabButton;
+}
+
+TabCtrlItem* TabCtrl::GetSelectedTabItem() const
+{
+    std::vector<size_t> selectedIndexs;
+    GetSelectedItems(selectedIndexs);
+    if (selectedIndexs.empty()) {
+        return nullptr;
+    }
+    return dynamic_cast<TabCtrlItem*>(GetItemAt(selectedIndexs[0]));
+}
+
+bool TabCtrl::SetSelectedTabItem(TabCtrlItem* pItem, bool bTriggerEvent)
+{
+    if (pItem == nullptr) {
+        return false;
+    }
+    const size_t nIndex = GetItemIndex(pItem);
+    if (nIndex == Box::InvalidIndex) {
+        return false;
+    }
+    return SelectItem(nIndex, false, bTriggerEvent);
+}
+
+TabCtrlItem* TabCtrl::GetTabItemAt(size_t iIndex) const
+{
+    if (iIndex == Box::InvalidIndex) {
+        return nullptr;
+    }
+    return dynamic_cast<TabCtrlItem*>(GetItemAt(iIndex));
+}
+
+bool TabCtrl::AddTabItemToEnd(Control* pItem)
+{
+    if (pItem == nullptr) {
+        return false;
+    }
+    return AddItem(pItem);
+}
+
+bool TabCtrl::SelectNextTab(bool bTakeFocus, bool bTriggerEvent)
+{
+    const size_t nCount = GetItemCount();
+    if (nCount == 0) {
+        return false;
+    }
+    size_t nIndex = 0;
+    const size_t nCurSel = GetCurSel();
+    if (nCurSel != Box::InvalidIndex) {
+        nIndex = (nCurSel + 1) % nCount;
+    }
+    return SelectItem(nIndex, bTakeFocus, bTriggerEvent);
+}
+
+bool TabCtrl::SelectPrevTab(bool bTakeFocus, bool bTriggerEvent)
+{
+    const size_t nCount = GetItemCount();
+    if (nCount == 0) {
+        return false;
+    }
+    size_t nIndex = nCount - 1;
+    const size_t nCurSel = GetCurSel();
+    if (nCurSel != Box::InvalidIndex) {
+        nIndex = (nCurSel == 0) ? (nCount - 1) : (nCurSel - 1);
+    }
+    return SelectItem(nIndex, bTakeFocus, bTriggerEvent);
+}
+
+void TabCtrl::SetPos(UiRect rc)
+{
+    BaseClass::SetPos(rc);
+    if (m_bTabItemJustify) {
+        LayoutJustify();
+    }
+    //重排过程中滚动条可能被重新显示，这里再隐藏一次（箭头模式下不显示滚动条）
+    UpdateScrollBarVisibility();
+}
+
+bool TabCtrl::MouseEnter(const EventArgs& msg)
+{
+    bool bRet = BaseClass::MouseEnter(msg);
+    //基类会在鼠标进入时淡入悬浮滚动条，箭头模式下需要保持隐藏
+    UpdateScrollBarVisibility();
+    return bRet;
+}
+
+void TabCtrl::LayoutJustify()
+{
+    //收集参与等宽布局的标签项（可见、非浮动）
+    std::vector<TabCtrlItem*> items;
+    const size_t nCount = GetItemCount();
+    items.reserve(nCount);
+    for (size_t i = 0; i < nCount; ++i) {
+        TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(GetItemAt(i));
+        if ((pItem == nullptr) || !pItem->IsVisible() || pItem->IsFloat()) {
+            continue;
+        }
+        items.push_back(pItem);
+    }
+    if (items.empty()) {
+        return;
+    }
+    UiRect rcClient = GetRect();
+    rcClient.Deflate(GetPadding());
+    if (rcClient.IsEmpty()) {
+        return;
+    }
+    const int32_t nItemCount = static_cast<int32_t>(items.size());
+    if (m_orientation == TabCtrlOrientation::kVertical) {
+        int32_t nEach = rcClient.Height() / nItemCount;
+        if (nEach <= 0) {
+            return;
+        }
+        int32_t nTop = rcClient.top;
+        for (int32_t i = 0; i < nItemCount; ++i) {
+            int32_t nBottom = (i + 1 == nItemCount) ? rcClient.bottom : (nTop + nEach);
+            TabCtrlItem* pItem = items[(size_t)i];
+            //应用最小/最大高度约束
+            const int32_t nMinHeight = pItem->GetMinHeight();
+            if ((nMinHeight > 0) && ((nBottom - nTop) < nMinHeight)) {
+                nBottom = std::min(rcClient.bottom, nTop + nMinHeight);
+            }
+            const int32_t nMaxHeight = pItem->GetMaxHeight();
+            if ((nMaxHeight > 0) && ((nBottom - nTop) > nMaxHeight)) {
+                nBottom = nTop + nMaxHeight;
+            }
+            pItem->SetPos(UiRect(rcClient.left, nTop, rcClient.right, nBottom));
+            nTop = nBottom;
+        }
+    }
+    else {
+        int32_t nEach = rcClient.Width() / nItemCount;
+        if (nEach <= 0) {
+            return;
+        }
+        int32_t nLeft = rcClient.left;
+        for (int32_t i = 0; i < nItemCount; ++i) {
+            int32_t nRight = (i + 1 == nItemCount) ? rcClient.right : (nLeft + nEach);
+            TabCtrlItem* pItem = items[(size_t)i];
+            //应用最小/最大宽度约束
+            const int32_t nMinWidth = pItem->GetMinWidth();
+            if ((nMinWidth > 0) && ((nRight - nLeft) < nMinWidth)) {
+                nRight = std::min(rcClient.right, nLeft + nMinWidth);
+            }
+            const int32_t nMaxWidth = pItem->GetMaxWidth();
+            if ((nMaxWidth > 0) && ((nRight - nLeft) > nMaxWidth)) {
+                nRight = nLeft + nMaxWidth;
+            }
+            pItem->SetPos(UiRect(nLeft, rcClient.top, nRight, rcClient.bottom));
+            nLeft = nRight;
+        }
+    }
+}
+
+void TabCtrl::UpdateItemsLayoutForOrientation()
+{
+    const bool bVertical = (m_orientation == TabCtrlOrientation::kVertical);
+    const size_t nCount = GetItemCount();
+    for (size_t i = 0; i < nCount; ++i) {
+        TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(GetItemAt(i));
+        if (pItem == nullptr) {
+            continue;
+        }
+        if (bVertical) {
+            //垂直标签栏：标签铺满标签栏宽度
+            if (pItem->GetFixedWidth().IsAuto()) {
+                pItem->SetFixedWidth(UiFixedInt::MakeStretch(), false, false);
+            }
+        }
+        else {
+            //水平标签栏：恢复为按内容自适应宽度
+            if (pItem->GetFixedWidth().IsStretch()) {
+                pItem->SetFixedWidth(UiFixedInt::MakeAuto(), false, false);
+            }
+        }
+        pItem->UpdateLineOrientation(bVertical);
+    }
+}
+
+bool TabCtrl::ButtonDown(const EventArgs& msg)
+{
+    if ((msg.eventType == kEventMouseButtonDown) && HandleTabStripClick(msg.ptMouse)) {
+        return true;
+    }
+    return BaseClass::ButtonDown(msg);
+}
+
+bool TabCtrl::OnListBoxKeyDown(const EventArgs& msg)
+{
+    if (msg.eventType != kEventKeyDown) {
+        return BaseClass::OnListBoxKeyDown(msg);
+    }
+    if (IsKeyDown(msg, ModifierKey::kControl)) {
+        if (msg.vkCode == kVK_TAB) {
+            //Ctrl+Tab 选择下一个标签，Ctrl+Shift+Tab 选择上一个标签
+            if (IsKeyDown(msg, ModifierKey::kShift)) {
+                return SelectPrevTab(true, true);
+            }
+            return SelectNextTab(true, true);
+        }
+        if ((msg.vkCode >= kVK_1) && (msg.vkCode <= kVK_9)) {
+            //Ctrl+1..9 选择对应索引的标签
+            const size_t nIndex = static_cast<size_t>(msg.vkCode - kVK_1);
+            if (nIndex < GetItemCount()) {
+                return SelectItem(nIndex, true, true);
+            }
+            return false;
+        }
+    }
+    return BaseClass::OnListBoxKeyDown(msg);
+}
+
+bool TabCtrl::IsTabOverflow() const
+{
+    const UiSize64 szRange = GetScrollRange();
+    if (m_orientation == TabCtrlOrientation::kVertical) {
+        return szRange.cy > 0;
+    }
+    return szRange.cx > 0;
+}
+
+bool TabCtrl::CalcOverflowButtonRects(UiRect& rcPrev, UiRect& rcNext) const
+{
+    rcPrev.Clear();
+    rcNext.Clear();
+    if (!m_bEnableOverflowButtons || !IsTabOverflow()) {
+        return false;
+    }
+    const UiRect rc = GetRect();
+    if (rc.IsEmpty()) {
+        return false;
+    }
+    const int32_t nSize = Dpi().GetScaleInt(20);
+    if (m_orientation == TabCtrlOrientation::kVertical) {
+        const int32_t nHeight = std::min(nSize, rc.Height() / 2);
+        if (nHeight <= 0) {
+            return false;
+        }
+        rcPrev = UiRect(rc.left, rc.top, rc.right, rc.top + nHeight);
+        rcNext = UiRect(rc.left, rc.bottom - nHeight, rc.right, rc.bottom);
+    }
+    else {
+        const int32_t nWidth = std::min(nSize, rc.Width() / 2);
+        if (nWidth <= 0) {
+            return false;
+        }
+        rcPrev = UiRect(rc.left, rc.top, rc.left + nWidth, rc.bottom);
+        rcNext = UiRect(rc.right - nWidth, rc.top, rc.right, rc.bottom);
+    }
+    return true;
+}
+
+bool TabCtrl::CalcNewTabButtonRect(UiRect& rcButton) const
+{
+    rcButton.Clear();
+    if (!m_bEnableNewTabButton) {
+        return false;
+    }
+    const UiRect rc = GetRect();
+    if (rc.IsEmpty()) {
+        return false;
+    }
+    const int32_t nSize = Dpi().GetScaleInt(24);
+    const UiSize szScroll = GetScrollOffset();
+
+    //找到最后一个可见标签项的末端位置
+    TabCtrlItem* pLastItem = nullptr;
+    const size_t nCount = GetItemCount();
+    for (size_t i = nCount; i > 0; --i) {
+        TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(GetItemAt(i - 1));
+        if ((pItem != nullptr) && pItem->IsVisible()) {
+            pLastItem = pItem;
+            break;
+        }
+    }
+
+    UiRect rcPrev;
+    UiRect rcNext;
+    const bool bOverflow = CalcOverflowButtonRects(rcPrev, rcNext);
+    if (m_orientation == TabCtrlOrientation::kVertical) {
+        int32_t nTop = rc.top + 2;
+        if (pLastItem != nullptr) {
+            nTop = pLastItem->GetRect().bottom - szScroll.cy;
+        }
+        if (bOverflow) {
+            //避免与底部"向后"箭头重叠
+            nTop = std::min(nTop, rcNext.top - nSize - 2);
+        }
+        if (nTop + nSize > rc.bottom) {
+            return false;
+        }
+        rcButton = UiRect(rc.left + 2, nTop + 2, rc.right - 2, nTop + 2 + nSize);
+    }
+    else {
+        int32_t nLeft = rc.left + 2;
+        if (pLastItem != nullptr) {
+            nLeft = pLastItem->GetRect().right - szScroll.cx;
+        }
+        if (bOverflow) {
+            //避免与右侧"向后"箭头重叠
+            nLeft = std::min(nLeft, rcNext.left - nSize - 2);
+        }
+        if (nLeft + nSize > rc.right) {
+            return false;
+        }
+        rcButton = UiRect(nLeft + 2, rc.top + 2, nLeft + 2 + nSize, rc.bottom - 2);
+    }
+    return true;
+}
+
+void TabCtrl::NotifyTabCloseRequest(TabCtrlItem* pItem)
+{
+    if (pItem == nullptr) {
+        return;
+    }
+    const size_t nIndex = GetItemIndex(pItem);
+    if (nIndex == Box::InvalidIndex) {
+        return;
+    }
+    //只发送请求事件，不删除标签（删除操作由业务层完成）
+    SendEvent(kEventTabClose, static_cast<WPARAM>(nIndex));
+}
+
+bool TabCtrl::HandleTabStripClick(const UiPoint& pt)
+{
+    UiRect rcPrev;
+    UiRect rcNext;
+    if (CalcOverflowButtonRects(rcPrev, rcNext)) {
+        if (rcPrev.ContainsPt(pt)) {
+            //按可视范围翻页滚动（ScrollBox 的 LineXxx 默认步长为 0，不会产生滚动）
+            if (m_orientation == TabCtrlOrientation::kVertical) {
+                PageUp();
+            }
+            else {
+                PageLeft();
+            }
+            return true;
+        }
+        if (rcNext.ContainsPt(pt)) {
+            if (m_orientation == TabCtrlOrientation::kVertical) {
+                PageDown();
+            }
+            else {
+                PageRight();
+            }
+            return true;
+        }
+    }
+    UiRect rcNewTab;
+    if (CalcNewTabButtonRect(rcNewTab) && rcNewTab.ContainsPt(pt)) {
+        //仅发送事件，不自动创建标签（由业务层处理）
+        SendEvent(kEventTabNew);
+        return true;
+    }
+    return false;
+}
+
+void TabCtrl::PaintOverflowButtons(IRender* pRender)
+{
+    UiRect rcPrev;
+    UiRect rcNext;
+    if ((pRender == nullptr) || !CalcOverflowButtonRects(rcPrev, rcNext)) {
+        return;
+    }
+    const UiColor bkColor = GetUiColor(_T("#66000000"));
+    const UiColor lineColor = GetUiColor(_T("#FFFFFFFF"));
+    const float fLineWidth = (float)Dpi().GetScaleInt(2);
+    pRender->FillRoundRect(UiRectF::MakeFromRect(rcPrev), 3.0f, 3.0f, bkColor);
+    pRender->FillRoundRect(UiRectF::MakeFromRect(rcNext), 3.0f, 3.0f, bkColor);
+
+    const float fPrevX = (float)rcPrev.left + rcPrev.Width() / 2.0f;
+    const float fPrevY = (float)rcPrev.top + rcPrev.Height() / 2.0f;
+    const float fNextX = (float)rcNext.left + rcNext.Width() / 2.0f;
+    const float fNextY = (float)rcNext.top + rcNext.Height() / 2.0f;
+    const float fSize = (float)std::min(rcPrev.Width(), rcPrev.Height()) / 4.0f;
+    if (m_orientation == TabCtrlOrientation::kVertical) {
+        //向上、向下箭头
+        pRender->DrawLine(UiPointF(fPrevX - fSize, fPrevY + fSize / 2), UiPointF(fPrevX, fPrevY - fSize / 2), lineColor, fLineWidth);
+        pRender->DrawLine(UiPointF(fPrevX, fPrevY - fSize / 2), UiPointF(fPrevX + fSize, fPrevY + fSize / 2), lineColor, fLineWidth);
+        pRender->DrawLine(UiPointF(fNextX - fSize, fNextY - fSize / 2), UiPointF(fNextX, fNextY + fSize / 2), lineColor, fLineWidth);
+        pRender->DrawLine(UiPointF(fNextX, fNextY + fSize / 2), UiPointF(fNextX + fSize, fNextY - fSize / 2), lineColor, fLineWidth);
+    }
+    else {
+        //向左、向右箭头
+        pRender->DrawLine(UiPointF(fPrevX + fSize / 2, fPrevY - fSize), UiPointF(fPrevX - fSize / 2, fPrevY), lineColor, fLineWidth);
+        pRender->DrawLine(UiPointF(fPrevX - fSize / 2, fPrevY), UiPointF(fPrevX + fSize / 2, fPrevY + fSize), lineColor, fLineWidth);
+        pRender->DrawLine(UiPointF(fNextX - fSize / 2, fNextY - fSize), UiPointF(fNextX + fSize / 2, fNextY), lineColor, fLineWidth);
+        pRender->DrawLine(UiPointF(fNextX + fSize / 2, fNextY), UiPointF(fNextX - fSize / 2, fNextY + fSize), lineColor, fLineWidth);
+    }
+}
+
+void TabCtrl::PaintNewTabButton(IRender* pRender)
+{
+    UiRect rcButton;
+    if ((pRender == nullptr) || !CalcNewTabButtonRect(rcButton)) {
+        return;
+    }
+    const UiColor bkColor = GetUiColor(_T("#33000000"));
+    const UiColor lineColor = GetUiColor(_T("#FF333333"));
+    const float fLineWidth = (float)Dpi().GetScaleInt(2);
+    pRender->FillRoundRect(UiRectF::MakeFromRect(rcButton), 3.0f, 3.0f, bkColor);
+    const float fCenterX = (float)rcButton.left + rcButton.Width() / 2.0f;
+    const float fCenterY = (float)rcButton.top + rcButton.Height() / 2.0f;
+    const float fSize = (float)std::min(rcButton.Width(), rcButton.Height()) / 4.0f;
+    pRender->DrawLine(UiPointF(fCenterX - fSize, fCenterY), UiPointF(fCenterX + fSize, fCenterY), lineColor, fLineWidth);
+    pRender->DrawLine(UiPointF(fCenterX, fCenterY - fSize), UiPointF(fCenterX, fCenterY + fSize), lineColor, fLineWidth);
+}
+
+void TabCtrl::PaintDragInsertIndicator(IRender* pRender)
+{
+    if ((pRender == nullptr) || m_dragInsertColor.empty()) {
+        return;
+    }
+    const size_t nCount = GetItemCount();
+    for (size_t i = 0; i < nCount; ++i) {
+        TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(GetItemAt(i));
+        if ((pItem == nullptr) || !pItem->IsInDraggingOrder() || !pItem->IsVisible()) {
+            continue;
+        }
+        UiRect rcItem = pItem->GetRect();
+        if (rcItem.IsEmpty()) {
+            continue;
+        }
+        //子控件绘制时按滚动量偏移，这里换算到当前绘制坐标系
+        const UiSize szScroll = GetScrollOffset();
+        rcItem.Offset(-szScroll.cx, -szScroll.cy);
+        const UiColor color = GetUiColor(m_dragInsertColor);
+        const float fLineWidth = (float)Dpi().GetScaleInt(2);
+        if (m_orientation == TabCtrlOrientation::kVertical) {
+            //垂直布局：在标签上方画横线
+            pRender->DrawLine(UiPointF((float)rcItem.left, (float)rcItem.top),
+                              UiPointF((float)rcItem.right, (float)rcItem.top),
+                              color, fLineWidth);
+        }
+        else {
+            //水平布局：在标签左侧画竖线
+            pRender->DrawLine(UiPointF((float)rcItem.left, (float)rcItem.top),
+                              UiPointF((float)rcItem.left, (float)rcItem.bottom),
+                              color, fLineWidth);
+        }
+    }
 }
 
 void TabCtrl::SetSelectedTabItemOutlineWidth(float fOutlineWidth)
@@ -400,6 +984,9 @@ void TabCtrl::OnInit()
     //固定标签归位：保证固定标签始终位于标签栏前端（XML 中未按顺序书写时也能自愈）
     NormalizeFixedItems();
 
+    //按布局方向调整标签项与分割线（垂直方向标签铺满宽度、分割线改为底部横线）
+    UpdateItemsLayoutForOrientation();
+
     //设置为单选
     SetMultiSelect(false);
 
@@ -416,20 +1003,25 @@ void TabCtrl::OnInit()
     //调整标签分割线的显示状态
     AdjustItemLineStatus();
 
-    //溢出滚动：启用对应的滚动条（悬浮在子控件之上，不占用布局空间）
-    if (m_bEnableOverflowScroll) {
-        if (m_orientation == TabCtrlOrientation::kVertical) {
-            EnableScrollBar(true, false);    //垂直滚动条
-        }
-        else {
-            EnableScrollBar(false, true);    //水平滚动条
-        }
-        SetScrollBarFloat(true);
-    }
+    //溢出滚动：按当前配置准备滚动条（悬浮在子控件之上，不占用布局空间）
+    UpdateScrollBarConfig();
 }
 
 void TabCtrl::HandleEvent(const EventArgs& msg)
 {
+    if ((msg.eventType == kEventMouseWheel) && m_bEnableWheelSwitch) {
+        //滚轮切换标签（可通过 wheel_switch 关闭，关闭后滚轮仍用于滚动标签栏）
+        const int32_t nDelta = msg.eventData;
+        if ((nDelta != 0) && (GetItemCount() > 1)) {
+            if (nDelta > 0) {
+                SelectPrevTab(false, true);
+            }
+            else {
+                SelectNextTab(false, true);
+            }
+            return;
+        }
+    }
     if ((msg.GetSender() == this) && (msg.eventType == kEventSelect)) {
         //尝试设置关联的TabBox（首次选择时可能尚未绑定）
         if ((m_pTabBox == nullptr) && !m_tabBoxName.empty()) {
@@ -445,6 +1037,13 @@ void TabCtrl::HandleEvent(const EventArgs& msg)
         TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(GetItemAt(msg.wParam));
         if (pItem != nullptr) {
             pItem->AdjustItemLineStatus();
+        }
+        if (msg.eventType == kEventSelect) {
+            //选中项自动滚入可视区域（保证键盘/程序化选择不会落在可视区外）
+            const size_t nCurSel = GetCurSel();
+            if (nCurSel != Box::InvalidIndex) {
+                SelectEnsureVisible(nCurSel, false);
+            }
         }
     }
 }
@@ -544,16 +1143,69 @@ DString TabCtrl::GetTabBoxName() const
 
 void TabCtrl::SetTabBox(TabBox* pTabBox)
 {
-    m_pTabBox = pTabBox;
-    if ((pTabBox != nullptr) && IsInited()) {
-        //绑定后同步一次当前选择项，避免绑定前的选择状态与TabBox不一致
-        SyncTabBoxSelection();
+    if (m_pTabBox == pTabBox) {
+        if ((pTabBox != nullptr) && IsInited()) {
+            SyncTabBoxSelection();
+        }
+        return;
     }
+    //先解绑旧的TabBox，避免继续接收其选择事件
+    if (m_pTabBox != nullptr) {
+        m_pTabBox->RemoveTabSelectListener(this);
+    }
+    m_pTabBox = pTabBox;
+    if (m_pTabBox != nullptr) {
+        //注册监听，实现 TabBox -> TabCtrl 的反向同步（不会覆盖用户注册的选择事件）
+        m_pTabBox->AddTabSelectListener(this);
+        if (IsInited()) {
+            //绑定后同步一次当前选择项，避免绑定前的选择状态与TabBox不一致
+            SyncTabBoxSelection();
+        }
+    }
+}
+
+void TabCtrl::OnBoundTabBoxSelectChanged(size_t nTabBoxIndex)
+{
+    if (m_bSyncingTabBox) {
+        //该变化由 TabCtrl -> TabBox 的同步触发，直接忽略，避免形成死循环
+        return;
+    }
+    TabCtrlItem* pItem = FindTabItemByTabBoxIndex(nTabBoxIndex);
+    if (pItem == nullptr) {
+        return;
+    }
+    const size_t nIndex = GetItemIndex(pItem);
+    if (nIndex == Box::InvalidIndex) {
+        return;
+    }
+    m_bSyncingTabBox = true;
+    SelectItem(nIndex, false, true);
+    m_bSyncingTabBox = false;
+}
+
+TabCtrlItem* TabCtrl::FindTabItemByTabBoxIndex(size_t nTabBoxIndex) const
+{
+    if (nTabBoxIndex == Box::InvalidIndex) {
+        return nullptr;
+    }
+    //优先使用显式配置的绑定索引
+    const size_t nCount = GetItemCount();
+    for (size_t i = 0; i < nCount; ++i) {
+        TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(GetItemAt(i));
+        if ((pItem != nullptr) && (pItem->GetTabBoxItemIndex() == nTabBoxIndex)) {
+            return pItem;
+        }
+    }
+    //未配置绑定索引时，回退为相同位置的标签项
+    if (nTabBoxIndex < nCount) {
+        return dynamic_cast<TabCtrlItem*>(GetItemAt(nTabBoxIndex));
+    }
+    return nullptr;
 }
 
 void TabCtrl::SyncTabBoxSelection()
 {
-    if (m_pTabBox == nullptr) {
+    if (m_bSyncingTabBox || (m_pTabBox == nullptr)) {
         return;
     }
     std::vector<size_t> selectedIndexs;
@@ -565,9 +1217,15 @@ void TabCtrl::SyncTabBoxSelection()
     if (pItem == nullptr) {
         return;
     }
-    const size_t nItemIndex = pItem->GetTabBoxItemIndex();
-    if (nItemIndex != Box::InvalidIndex) {
+    size_t nItemIndex = pItem->GetTabBoxItemIndex();
+    if (nItemIndex == Box::InvalidIndex) {
+        //未配置绑定索引时，回退为标签索引
+        nItemIndex = GetItemIndex(pItem);
+    }
+    if ((nItemIndex != Box::InvalidIndex) && (nItemIndex < m_pTabBox->GetItemCount())) {
+        m_bSyncingTabBox = true;
         m_pTabBox->SelectItem(nItemIndex);
+        m_bSyncingTabBox = false;
     }
 }
 
@@ -644,6 +1302,15 @@ bool TabCtrl::AddItemAt(Control* pControl, size_t iIndex)
     }
     bool bRet = BaseClass::AddItemAt(pControl, iIndex);
     if (bRet) {
+        if (pItem != nullptr) {
+            //按当前布局方向调整新标签项的宽度与分割线方向
+            if (m_orientation == TabCtrlOrientation::kVertical) {
+                if (pItem->GetFixedWidth().IsAuto()) {
+                    pItem->SetFixedWidth(UiFixedInt::MakeStretch(), false, false);
+                }
+            }
+            pItem->UpdateLineOrientation(m_orientation == TabCtrlOrientation::kVertical);
+        }
         AdjustItemLineStatus();
     }
     return bRet;
@@ -715,6 +1382,9 @@ TabCtrlItem::TabCtrlItem(Window* pWindow):
     m_nBadgeMaxCount(99),
     m_bBadgeDot(false),
     m_bAutoHideCloseBtn(false),
+    m_bClosable(true),
+    m_bLineVertical(false),
+    m_bLineOrientationValid(false),
     m_bUserDragOrder(true),
     m_bFixed(false),
     m_bLineVisible(true),
@@ -812,6 +1482,10 @@ void TabCtrlItem::SetAttribute(const DString& strName, const DString& strValue2)
     else if (strName == _T("auto_hide_close_button")) {
         SetAutoHideCloseButton(StringUtil::IsValueTrue(strValue));
     }
+    else if (strName == _T("closable")) {
+        //标签是否可关闭，默认可关闭
+        SetClosable(StringUtil::IsValueTrue(strValue));
+    }
     else if (strName == _T("badge_count")) {
         SetBadgeCount(StringUtil::StringToInt64(strValue));
     }
@@ -852,6 +1526,11 @@ void TabCtrlItem::OnInit()
     CheckIconVisible();
     UpdateCloseButtonVisible();
     AdjustItemLineStatus();
+    //按标签栏方向初始化分割线布局
+    TabCtrl* pTabCtrl = GetTabCtrl();
+    if (pTabCtrl != nullptr) {
+        UpdateLineOrientation(pTabCtrl->GetTabCtrlOrientation() == TabCtrlOrientation::kVertical);
+    }
 }
 
 void TabCtrlItem::HandleEvent(const EventArgs& msg)
@@ -1069,6 +1748,16 @@ void TabCtrlItem::SetCloseButtonClass(const DString& closeButtonClass)
         if (m_pCloseBtn == nullptr) {
             m_pCloseBtn = new Button(GetWindow());
             m_pCloseBtn->SetClass(closeButtonClass);
+            //点击关闭按钮：只发送关闭请求事件，不删除标签（删除由业务层完成）
+            m_pCloseBtn->AttachClick([this](const EventArgs&) -> bool {
+                if (m_bClosable && !IsFixed()) {
+                    TabCtrl* pTabCtrl = GetTabCtrl();
+                    if (pTabCtrl != nullptr) {
+                        pTabCtrl->NotifyTabCloseRequest(this);
+                    }
+                }
+                return true;
+            });
             AddItem(m_pCloseBtn);
             AdjustSubItemIndex();
         }
@@ -1424,6 +2113,13 @@ void TabCtrlItem::OnPrivateSetSelected()
 
 bool TabCtrlItem::ButtonDown(const EventArgs& msg)
 {
+    TabCtrl* pTabCtrl = GetTabCtrl();
+    if ((pTabCtrl != nullptr) && (msg.eventType == kEventMouseButtonDown)) {
+        //标签项覆盖了标签栏的整个区域，这里把落在溢出箭头/新建标签按钮上的点击转发给TabCtrl
+        if (pTabCtrl->HandleTabStripClick(msg.ptMouse)) {
+            return true;
+        }
+    }
     bool bRet = BaseClass::ButtonDown(msg);
     if (msg.IsSenderExpired()) {
         return false;
@@ -1440,6 +2136,34 @@ bool TabCtrlItem::ButtonDown(const EventArgs& msg)
         Selected(true, true, vkFlag);
     }
     return bRet;
+}
+
+bool TabCtrlItem::MButtonDown(const EventArgs& msg)
+{
+    bool bRet = BaseClass::MButtonDown(msg);
+    if (msg.IsSenderExpired()) {
+        return bRet;
+    }
+    TabCtrl* pTabCtrl = GetTabCtrl();
+    if ((pTabCtrl != nullptr) && pTabCtrl->IsEnableMiddleClickClose() &&
+        m_bClosable && !IsFixed()) {
+        //鼠标中键：发送关闭请求事件，不删除标签（删除由业务层完成）
+        pTabCtrl->NotifyTabCloseRequest(this);
+        return true;
+    }
+    return bRet;
+}
+
+bool TabCtrlItem::MouseWheel(const EventArgs& msg)
+{
+    TabCtrl* pTabCtrl = GetTabCtrl();
+    if (pTabCtrl != nullptr) {
+        //标签项覆盖了标签栏的整个区域，滚轮消息需要转发给TabCtrl处理
+        EventArgs newMsg = msg;
+        pTabCtrl->SendEvent(kEventMouseWheel, newMsg);
+        return true;
+    }
+    return BaseClass::MouseWheel(msg);
 }
 
 void TabCtrlItem::PaintStateColors(IRender* pRender)
@@ -1708,6 +2432,12 @@ void TabCtrl::PaintForeColor(IRender* pRender)
     BaseClass::PaintForeColor(pRender);
     //在子控件绘制完成后绘制指示条，避免被标签项自身的绘制区域裁剪
     PaintSelectedTabIndicator(pRender);
+    //拖动排序时的插入位置提示
+    PaintDragInsertIndicator(pRender);
+    //标签溢出时的滚动箭头按钮
+    PaintOverflowButtons(pRender);
+    //"新建标签"按钮
+    PaintNewTabButton(pRender);
 }
 
 void TabCtrl::PaintSelectedTabIndicator(IRender* pRender)
@@ -2036,13 +2766,59 @@ bool TabCtrlItem::IsFixed() const
     return m_bFixed;
 }
 
+void TabCtrlItem::SetClosable(bool bClosable)
+{
+    if (m_bClosable != bClosable) {
+        m_bClosable = bClosable;
+        UpdateCloseButtonVisible();
+    }
+}
+
+bool TabCtrlItem::IsClosable() const
+{
+    return m_bClosable;
+}
+
+void TabCtrlItem::UpdateLineOrientation(bool bVertical)
+{
+    if (m_pLine == nullptr) {
+        //分割线控件尚未创建：记录方向，创建后由 OnInit 应用
+        m_bLineVertical = bVertical;
+        m_bLineOrientationValid = false;
+        return;
+    }
+    if (m_bLineOrientationValid && (m_bLineVertical == bVertical)) {
+        return;
+    }
+    const bool bWasVertical = m_bLineVertical;
+    m_bLineVertical = bVertical;
+    m_bLineOrientationValid = true;
+    if (!GetLineClass().empty()) {
+        //先恢复类中配置的默认布局，再按方向覆盖
+        m_pLine->SetClass(GetLineClass());
+    }
+    if (bVertical) {
+        //垂直标签栏：分隔线改为标签底部的横线
+        m_pLine->SetAttribute(_T("width"), _T("stretch"));
+        m_pLine->SetAttribute(_T("height"), _T("1"));
+        m_pLine->SetAttribute(_T("valign"), _T("bottom"));
+        m_pLine->SetAttribute(_T("margin"), _T("4,0,4,0"));
+    }
+    else if (bWasVertical) {
+        //从垂直方向恢复为水平方向时，清除垂直模式设置的边距
+        m_pLine->SetAttribute(_T("margin"), _T("0,0,0,0"));
+    }
+    //恢复分割线的显示/隐藏状态
+    m_pLine->SetAlpha(m_bLineVisible ? 255 : 0);
+}
+
 void TabCtrlItem::UpdateCloseButtonVisible()
 {
     if (m_pCloseBtn == nullptr) {
         return;
     }
-    if (IsFixed()) {
-        //固定标签不显示关闭按钮
+    if (IsFixed() || !m_bClosable) {
+        //固定标签或不可关闭的标签，不显示关闭按钮
         m_pCloseBtn->SetVisible(false);
         return;
     }

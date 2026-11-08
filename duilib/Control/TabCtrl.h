@@ -20,12 +20,15 @@ enum class TabCtrlOrientation
 /** 多标签控件（类似浏览器的多标签）
 */
 class TabBox;
+class TabCtrlItem;
 class IBrush;
 class IPath;
 class IPen;
 class DUILIB_API TabCtrl: public ListBox
 {
     typedef ListBox BaseClass;
+    friend class TabCtrlItem;
+    friend class TabBox;
 public:
     explicit TabCtrl(Window* pWindow);
     virtual ~TabCtrl() override;
@@ -86,6 +89,114 @@ public:
     * @return 返回固定标签的数量
     */
     size_t GetFixedItemCount() const;
+
+public:
+    /** 监听标签关闭请求事件（点击关闭按钮，或者鼠标中键点击标签时触发）
+    * 注意：TabCtrl 不会自动删除标签，需要在事件响应中自行删除
+    * @param [in] callback 事件处理的回调函数，wParam 为标签索引
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachTabClose(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventTabClose, callback, callbackID); }
+
+    /** 监听"新建标签"按钮的点击事件
+    * @param [in] callback 事件处理的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachTabNew(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventTabNew, callback, callbackID); }
+
+    /** 设置是否启用鼠标滚轮切换标签
+    * @param [in] bEnable true表示滚轮切换标签，false表示滚轮仍用于滚动标签栏（默认值）
+    */
+    void SetEnableWheelSwitch(bool bEnable);
+
+    /** 判断是否启用鼠标滚轮切换标签
+    */
+    bool IsEnableWheelSwitch() const;
+
+    /** 设置是否启用鼠标中键关闭标签（点击后仅发送 kEventTabClose 事件，不删除标签）
+    * @param [in] bEnable true表示启用（默认值），false表示禁用
+    */
+    void SetEnableMiddleClickClose(bool bEnable);
+
+    /** 判断是否启用鼠标中键关闭标签
+    */
+    bool IsEnableMiddleClickClose() const;
+
+    /** 设置拖动排序时插入位置提示线的颜色
+    * @param [in] insertColor 提示线颜色，为空时不绘制
+    */
+    void SetDragInsertColor(const DString& insertColor);
+
+    /** 获取拖动排序时插入位置提示线的颜色
+    */
+    const DString& GetDragInsertColor() const;
+
+    /** 设置标签溢出时是否显示左右（上下）滚动箭头按钮
+    * 启用时隐藏悬浮滚动条（两者互斥显示），点击箭头按可视范围翻页滚动
+    * @param [in] bEnable true表示显示（默认值），false表示不显示
+    */
+    void SetEnableOverflowButtons(bool bEnable);
+
+    /** 判断标签溢出时是否显示滚动箭头按钮
+    */
+    bool IsEnableOverflowButtons() const;
+
+    /** 设置标签是否等宽填充（按标签栏可用宽度平分，垂直方向按高度平分）
+    * @param [in] bJustify true表示等宽填充，false表示按标签内容自适应宽度（默认值）
+    */
+    void SetTabItemJustify(bool bJustify);
+
+    /** 判断标签是否等宽填充
+    */
+    bool IsTabItemJustify() const;
+
+    /** 设置是否在标签栏末尾显示"新建标签"按钮
+    * @param [in] bEnable true表示显示，false表示不显示（默认值）
+    */
+    void SetEnableNewTabButton(bool bEnable);
+
+    /** 判断是否显示"新建标签"按钮
+    */
+    bool IsEnableNewTabButton() const;
+
+public:
+    /** 获取当前选中的标签项
+    * @return 返回选中的标签项指针，未选中时返回 nullptr
+    */
+    TabCtrlItem* GetSelectedTabItem() const;
+
+    /** 设置当前选中的标签项
+    * @param [in] pItem 要选中的标签项指针
+    * @param [in] bTriggerEvent 是否触发选择事件，默认触发
+    * @return 成功返回 true，否则返回 false
+    */
+    bool SetSelectedTabItem(TabCtrlItem* pItem, bool bTriggerEvent = true);
+
+    /** 获取指定索引处的标签项
+    * @param [in] iIndex 标签项索引，范围是：[0, GetItemCount())
+    * @return 返回标签项指针，索引无效或不是标签项时返回 nullptr
+    */
+    TabCtrlItem* GetTabItemAt(size_t iIndex) const;
+
+    /** 追加一个标签项到末尾（如果是固定标签，则仍会归位到固定标签区域）
+    * @param [in] pItem 标签项指针
+    * @return 成功返回 true，否则返回 false
+    */
+    bool AddTabItemToEnd(Control* pItem);
+
+    /** 选择下一个标签（循环选择）
+    * @param [in] bTakeFocus 是否让控件获取焦点，默认获取
+    * @param [in] bTriggerEvent 是否触发选择事件，默认触发
+    * @return 选择成功返回 true
+    */
+    bool SelectNextTab(bool bTakeFocus = true, bool bTriggerEvent = true);
+
+    /** 选择上一个标签（循环选择）
+    * @param [in] bTakeFocus 是否让控件获取焦点，默认获取
+    * @param [in] bTriggerEvent 是否触发选择事件，默认触发
+    * @return 选择成功返回 true
+    */
+    bool SelectPrevTab(bool bTakeFocus = true, bool bTriggerEvent = true);
 
 public:
     /** 设置选择标签项的外部轮廓边线的宽度
@@ -201,6 +312,10 @@ public:
      */
     virtual bool RemoveItemAt(size_t iIndex) override;
 
+    /** 设置控件位置（等宽填充模式下，在基类布局完成后重新分配各标签项的尺寸）
+    */
+    virtual void SetPos(UiRect rc) override;
+
 protected:
     /** 初始化接口
     */
@@ -210,6 +325,18 @@ protected:
     * @param [in] msg 消息内容
     */
     virtual void HandleEvent(const EventArgs& msg) override;
+
+    /** 鼠标左键按下（仅处理标签栏空白区域与溢出箭头按钮）
+    */
+    virtual bool ButtonDown(const EventArgs& msg) override;
+
+    /** 鼠标进入（溢出箭头模式下保持滚动条隐藏，避免淡入）
+    */
+    virtual bool MouseEnter(const EventArgs& msg) override;
+
+    /** 键盘消息处理：支持 Ctrl+Tab / Ctrl+Shift+Tab / Ctrl+1..9
+    */
+    virtual bool OnListBoxKeyDown(const EventArgs& msg) override;
 
     /** 绘制控件状态颜色的函数
     */
@@ -236,6 +363,14 @@ private:
     */
     void EnsureLayout();
 
+    /** 按当前配置启用/禁用滚动条（滚动位置依赖滚动条对象，因此箭头模式下仍需保留）
+    */
+    void UpdateScrollBarConfig();
+
+    /** 更新滚动条的可见性与鼠标响应（溢出箭头模式下隐藏滚动条，避免与箭头叠加）
+    */
+    void UpdateScrollBarVisibility();
+
     /** 绘制选中标签的指示条（仅在配置了指示条宽度、高度和颜色时绘制）
     */
     void PaintSelectedTabIndicator(IRender* pRender);
@@ -255,6 +390,65 @@ private:
     /** 把当前选中的标签同步到绑定的TabBox
     */
     void SyncTabBoxSelection();
+
+    /** TabBox的选择项变化时，同步到TabCtrl（避免与 SyncTabBoxSelection 互相触发）
+    * @param [in] nTabBoxIndex TabBox当前选择的子项索引
+    */
+    void OnBoundTabBoxSelectChanged(size_t nTabBoxIndex);
+
+    /** 根据TabBox子项索引查找对应的标签项
+    * @param [in] nTabBoxIndex TabBox的子项索引
+    * @return 返回标签项指针，未找到时返回 nullptr
+    */
+    TabCtrlItem* FindTabItemByTabBoxIndex(size_t nTabBoxIndex) const;
+
+    /** 发送标签关闭请求事件（不删除标签）
+    * @param [in] pItem 请求关闭的标签项
+    */
+    void NotifyTabCloseRequest(TabCtrlItem* pItem);
+
+    /** 处理标签栏上的点击（溢出箭头按钮、新建标签按钮）
+    * @param [in] pt 鼠标坐标（窗口坐标）
+    * @return 已处理时返回 true
+    */
+    bool HandleTabStripClick(const UiPoint& pt);
+
+    /** 更新所有标签项的布局（垂直方向铺满宽度，并更新分隔线方向）
+    */
+    void UpdateItemsLayoutForOrientation();
+
+    /** 等宽填充模式下的布局
+    */
+    void LayoutJustify();
+
+    /** 绘制溢出滚动箭头按钮（仅当标签溢出时显示）
+    */
+    void PaintOverflowButtons(IRender* pRender);
+
+    /** 绘制"新建标签"按钮
+    */
+    void PaintNewTabButton(IRender* pRender);
+
+    /** 绘制拖动排序时的插入位置提示线
+    */
+    void PaintDragInsertIndicator(IRender* pRender);
+
+    /** 计算溢出滚动箭头按钮的矩形
+    * @param [out] rcPrev 返回"向前"按钮的矩形
+    * @param [out] rcNext 返回"向后"按钮的矩形
+    * @return 需要显示箭头按钮时返回 true
+    */
+    bool CalcOverflowButtonRects(UiRect& rcPrev, UiRect& rcNext) const;
+
+    /** 计算"新建标签"按钮的矩形
+    * @param [out] rcButton 返回按钮矩形
+    * @return 需要显示"新建标签"按钮时返回 true
+    */
+    bool CalcNewTabButtonRect(UiRect& rcButton) const;
+
+    /** 判断标签是否处于溢出状态
+    */
+    bool IsTabOverflow() const;
 
     /** 默认选择的子项索引（仅初始化时生效）
     */
@@ -279,6 +473,34 @@ private:
     /** 是否启用溢出滚动（标签超出可视区域时显示滚动条）
     */
     bool m_bEnableOverflowScroll;
+
+    /** 是否正在执行 TabBox 与 TabCtrl 之间的选择同步（防止互相触发形成死循环）
+    */
+    bool m_bSyncingTabBox;
+
+    /** 是否启用鼠标滚轮切换标签
+    */
+    bool m_bEnableWheelSwitch;
+
+    /** 是否启用鼠标中键关闭标签
+    */
+    bool m_bEnableMiddleClickClose;
+
+    /** 标签溢出时是否显示滚动箭头按钮
+    */
+    bool m_bEnableOverflowButtons;
+
+    /** 标签是否等宽填充
+    */
+    bool m_bTabItemJustify;
+
+    /** 是否显示"新建标签"按钮
+    */
+    bool m_bEnableNewTabButton;
+
+    /** 拖动排序时插入位置提示线的颜色
+    */
+    DString m_dragInsertColor;
 
     /** 选择标签项的外部轮廓边线的宽度，宽度值未进行DPI缩放
     */
@@ -492,6 +714,21 @@ public:
     DString GetLineClass() const;
 
 public:
+    /** 设置标签是否可关闭（为 false 时隐藏关闭按钮，且中键点击不触发关闭请求）
+    * @param [in] bClosable true表示可关闭（默认值），false表示不可关闭
+    */
+    void SetClosable(bool bClosable);
+
+    /** 判断标签是否可关闭
+    */
+    bool IsClosable() const;
+
+    /** 根据标签栏方向更新分割线的布局
+    * @param [in] bVertical true表示垂直标签栏（分割线为底部横线），false表示水平标签栏（分割线为右侧竖线）
+    */
+    void UpdateLineOrientation(bool bVertical);
+
+public:
     /** 设置选择状态的标签圆角大小
     * @param [in] szCorner 圆角的宽度和高度
     * @param [in] bNeedDpiScale 是否根据 DPI 自适应，默认为 true
@@ -578,6 +815,14 @@ protected:
     /** 鼠标左键按下消息
     */
     virtual bool ButtonDown(const EventArgs& msg) override;
+
+    /** 鼠标中键按下消息（用于中键关闭标签）
+    */
+    virtual bool MButtonDown(const EventArgs& msg) override;
+
+    /** 鼠标滚轮消息（转发给TabCtrl，用于滚轮切换标签或滚动标签栏）
+    */
+    virtual bool MouseWheel(const EventArgs& msg) override;
 
     /** 绘制控件状态颜色的函数
     */
@@ -667,6 +912,18 @@ private:
     /** 关闭按钮是否自动隐藏
     */
     bool m_bAutoHideCloseBtn;
+
+    /** 标签是否可关闭（为 false 时隐藏关闭按钮）
+    */
+    bool m_bClosable;
+
+    /** 分割线是否已按垂直方向调整过布局（避免重复设置属性）
+    */
+    bool m_bLineVertical;
+
+    /** 分割线方向布局是否已生效
+    */
+    bool m_bLineOrientationValid;
 
     /** 用户配置的是否支持拖动排序（固定标签期间会被临时关闭，取消固定后按此值恢复）
     */

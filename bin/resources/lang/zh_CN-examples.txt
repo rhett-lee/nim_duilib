@@ -2085,6 +2085,103 @@ STRID_TABCTRL_TIP_CARD_VOVERFLOW = 垂直标签栏：标签超出后出现纵向
 STRID_TABCTRL_TIP_CARD_VOVERFLOW2 = 提示：垂直方向的溢出滚动由 SetTabCtrlOrientation 自动切换到纵向滚动条
 STRID_TABCTRL_TIP_CARD_BADGE = ui::TabCtrl + ui::TabCtrlItem (badge)
 
+# 卡片 ⑥–⑭：C1–C10 新增能力
+STRID_TABCTRL_CARD_C1 = ⑥ C1 TabBox ↔ TabCtrl 双向同步
+STRID_TABCTRL_CARD_C2 = ⑦ C2 关闭请求 / 可关闭 / 中键关闭
+STRID_TABCTRL_CARD_C3 = ⑧ C3 选中项自动滚入视野
+STRID_TABCTRL_CARD_C4 = ⑨ C4 键盘导航
+STRID_TABCTRL_CARD_C5 = ⑩ C5 滚轮切标签 / 拖动排序
+STRID_TABCTRL_CARD_C6 = ⑪ C6 溢出箭头按钮（与滚动条二选一）
+STRID_TABCTRL_CARD_C7 = ⑫ C7 等宽填充 / min-max 宽度
+STRID_TABCTRL_CARD_C8 = ⑬ C8 新建标签按钮
+STRID_TABCTRL_CARD_C9 = ⑭ C9 便捷 API
+
+# 通用开关文案
+STRID_TABCTRL_SWITCH_ON = 开
+STRID_TABCTRL_SWITCH_OFF = 关
+STRID_TABCTRL_STATE_NONE = 无
+STRID_TABCTRL_STATE_FOCUS_YES = 有
+STRID_TABCTRL_STATE_FOCUS_NO = 无
+STRID_TABCTRL_STATE_SHOWN = 显示
+STRID_TABCTRL_STATE_HIDDEN = 隐藏
+
+# 开关按钮（格式串，%s 为开/关）
+STRID_TABCTRL_BTN_CLOSABLE = 可关闭：%s
+STRID_TABCTRL_BTN_MIDDLE = 中键关闭：%s
+STRID_TABCTRL_BTN_WHEEL = 滚轮切标签：%s
+STRID_TABCTRL_BTN_DRAG = 拖动排序：%s
+STRID_TABCTRL_BTN_BUTTONS = 溢出箭头：%s
+STRID_TABCTRL_BTN_JUSTIFY = 等宽填充：%s
+STRID_TABCTRL_BTN_NEWTAB = 新建标签按钮：%s
+
+# C1 按钮与文案
+STRID_TABCTRL_BTN_C1_CTRL_1 = TabCtrl 选第 1 项
+STRID_TABCTRL_BTN_C1_CTRL_2 = TabCtrl 选第 2 项
+STRID_TABCTRL_BTN_C1_CTRL_3 = TabCtrl 选第 3 项
+STRID_TABCTRL_BTN_C1_BOX_1 = TabBox 选第 1 页
+STRID_TABCTRL_BTN_C1_BOX_2 = TabBox 选第 2 页
+STRID_TABCTRL_BTN_C1_BOX_3 = TabBox 选第 3 页
+STRID_TABCTRL_C1_TAB_1 = 标签 A
+STRID_TABCTRL_C1_TAB_2 = 标签 B
+STRID_TABCTRL_C1_TAB_3 = 标签 C
+STRID_TABCTRL_C1_PAGE_1 = 第 1 页内容（TabBox 子控件）
+STRID_TABCTRL_C1_PAGE_2 = 第 2 页内容（TabBox 子控件）
+STRID_TABCTRL_C1_PAGE_3 = 第 3 页内容（TabBox 子控件）
+
+# C2–C9 按钮与标签文字
+STRID_TABCTRL_BTN_REMOVE_SEL = 删除选中项
+STRID_TABCTRL_BTN_REMOVE_LAST = 删除最后一个
+STRID_TABCTRL_BTN_C3_FIRST = 选中第一个
+STRID_TABCTRL_BTN_C3_LAST = 选中最后一个
+STRID_TABCTRL_BTN_C3_PREV = 上一个
+STRID_TABCTRL_BTN_C3_NEXT = 下一个
+STRID_TABCTRL_BTN_C4_FOCUS = 让标签栏获取焦点
+STRID_TABCTRL_BTN_C9_ADD = AddTabItemToEnd
+STRID_TABCTRL_BTN_C9_GET = GetSelectedTabItem
+STRID_TABCTRL_BTN_C9_SET = SetSelectedTabItem(第2项)
+
+# C1–C9 状态栏初始文案（布局完成后由代码刷新）
+STRID_TABCTRL_STATE_C1_INIT = TabCtrl 选中索引：-　|　TabBox 选中索引：-　|　TabBox 选择事件：0 次
+STRID_TABCTRL_STATE_C2_INIT = 标签数：4　|　选中：无　|　可关闭：无　|　关闭请求：0 次（索引 -1）
+STRID_TABCTRL_STATE_C3_INIT = 选中：无　|　滚动位置：0 / 0
+STRID_TABCTRL_STATE_C4_INIT = 选中：无　|　焦点：无
+STRID_TABCTRL_STATE_C5_INIT = 选中：无　|　滚轮切标签：关
+STRID_TABCTRL_STATE_C6_INIT = 箭头按钮：开　|　滚动条：隐藏　|　溢出：0　|　位置：0
+STRID_TABCTRL_STATE_C7_INIT = 等宽填充：关　|　各标签宽度：-
+STRID_TABCTRL_STATE_C8_INIT = 标签数：3　|　新建标签事件：0 次
+STRID_TABCTRL_STATE_C9_INIT = 标签数：4　|　选中：无　|　最近操作：无
+
+# C1–C9 状态栏动态文案（代码格式化，占位符保持顺序）
+STRID_TABCTRL_STATE_C1 = TabCtrl 选中索引：%d　|　TabBox 选中索引：%d　|　TabBox 选择事件：%d 次
+STRID_TABCTRL_STATE_C2 = 标签数：%d　|　选中：%s　|　可关闭：%s　|　关闭请求：%d 次（索引 %d）
+STRID_TABCTRL_STATE_C3 = 选中：%s　|　滚动位置：%d / %d
+STRID_TABCTRL_STATE_C4 = 选中：%s　|　焦点：%s
+STRID_TABCTRL_STATE_C5 = 选中：%s　|　滚轮切标签：%s
+STRID_TABCTRL_STATE_C6 = 箭头按钮：%s　|　滚动条：%s　|　溢出：%d　|　位置：%d
+STRID_TABCTRL_STATE_C7 = 等宽填充：%s　|　各标签宽度：%s
+STRID_TABCTRL_STATE_C8 = 标签数：%d　|　新建标签事件：%d 次
+STRID_TABCTRL_STATE_C9 = 标签数：%d　|　选中：%s　|　最近操作：%s
+
+# C1–C9 操作提示
+STRID_TABCTRL_TIP_C1 = 在任一侧切换，另一侧应同步；TabBox 选择事件每次只加 1
+STRID_TABCTRL_TIP_C2 = 点关闭按钮只产生"关闭请求"（标签不删除）；第 2 个标签不可关闭
+STRID_TABCTRL_TIP_C3 = 选中第一个 / 最后一个后，标签栏应自动滚动使选中项可见
+STRID_TABCTRL_TIP_C4 = Ctrl+Tab / Ctrl+Shift+Tab / Ctrl+1..9 / 左右方向键
+STRID_TABCTRL_TIP_C5 = 默认滚轮滚动标签栏，开启后滚轮切换标签；拖动标签观察插入提示线
+STRID_TABCTRL_TIP_C6 = 开启箭头时浮动滚动条隐藏；点击两端箭头按可视范围翻页滚动
+STRID_TABCTRL_TIP_C7 = 等宽填充时各标签平分宽度，但受 min_width / max_width 约束
+STRID_TABCTRL_TIP_C8 = 点击标签栏末尾的"+"触发 kEventTabNew，由业务层新建标签
+STRID_TABCTRL_TIP_C9 = AddTabItemToEnd / GetSelectedTabItem / SetSelectedTabItem / SelectNext(Prev)Tab
+STRID_TABCTRL_TIP_CARD_C1 = TabCtrl 通过 tab_box_name 双向绑定 TabBox
+STRID_TABCTRL_TIP_CARD_C2 = kEventTabClose 只请求关闭，删除由业务层决定
+STRID_TABCTRL_TIP_CARD_C3 = 选中项变化后自动滚动到可视区域
+STRID_TABCTRL_TIP_CARD_C4 = 键盘导航需要标签栏先获得焦点
+STRID_TABCTRL_TIP_CARD_C5 = wheel_switch 默认关闭；drag_insert_color 指定插入提示线颜色
+STRID_TABCTRL_TIP_CARD_C6 = overflow_buttons 与浮动滚动条互斥显示
+STRID_TABCTRL_TIP_CARD_C7 = tab_item_justify 等宽填充，受 min_width / max_width 约束
+STRID_TABCTRL_TIP_CARD_C8 = new_tab_button 在末尾显示"+"新建按钮
+STRID_TABCTRL_TIP_CARD_C9 = 演示标签栏的便捷操作 API
+
 # TabCtrl 独立测试窗口入口（controls/test.xml）
 STRID_CONTROLS_TABCTRL_FULL = TabCtrl：垂直 / 固定 / 溢出滚动 / 角标
 STRID_CONTROLS_TABCTRL_TEST_BTN = TabCtrl Test

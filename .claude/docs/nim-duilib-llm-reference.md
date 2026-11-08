@@ -524,6 +524,7 @@ strikeout / fullstyle（四者全开），字号支持 12/14/16/18/20/22。`defa
 | select / unselect | 选中/取消选中(ListBox/Combo) |
 | check / uncheck | 勾选/取消勾选(CheckBox) |
 | tab_select | 标签页切换 |
+| tab_close / tab_new | TabCtrl 标签关闭请求 / 新建标签按钮（不自动删除或创建标签） |
 | text_changed | 文本变化 |
 | value_changed | 值变化 |
 | expand / collapse | Panel 面板展开/折叠完成 |

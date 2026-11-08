@@ -173,7 +173,9 @@ The available event list is defined in the `InitEventStringMap` function in the 
 |kEventTagAdded|"TagAdded"|"tag_added"|
 |kEventTagRemoved|"TagRemoved"|"tag_removed"|
 |kEventTagClick|"TagClick"|"tag_click"|
-|kEventAutoCompleteSelect|"AutoCompleteSelect"|"select"|
+|kEventAutoCompleteSelect|"AutoCompleteSelect"|"auto_complete_select"|
+|kEventTabClose|"TabClose"|"tab_close"|
+|kEventTabNew|"TabNew"|"tab_new"|
 |kEventZoom|"Zoom"|"zoom"|
 |kEventTextChanged|"TextChanged"|"text_changed"|
 |kEventSelChanged|"SelChanged"|"sel_changed"|
@@ -190,7 +192,7 @@ The available event list is defined in the `InitEventStringMap` function in the 
 |kEventStateChanged|"StateChanged"|"state_changed"|
 |kEventSelectColor|"SelectColor"|"select_color"|
 |kEventSplitDraged|"SplitDraged"|"split_draged"|
-|kEventElementFilled|"kEventElementFilled"|"element_filled"|
+|kEventElementFilled|"ElementFilled"|"element_filled"|
 |kEventEnterEdit|"EnterEdit"|"enter_edit"|
 |kEventLeaveEdit|"LeaveEdit"|"leave_edit"|
 |kEventDataItemCountChanged|"DataItemCountChanged"|"data_item_count_changed"|

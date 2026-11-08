@@ -540,6 +540,10 @@ namespace ui
         kEventPopconfirmConfirm,        //Popconfirm类：点击卡片内的"确定"按钮（或调用 Confirm()）时触发，无参数
         kEventPopconfirmCancel,         //Popconfirm类：点击卡片内的"取消"按钮（或调用 Cancel()）时触发，无参数
 
+        kEventTabClose,                 //TabCtrl类：请求关闭标签（点击关闭按钮或鼠标中键点击标签时触发），wParam是标签索引
+                                        //            TabCtrl本身不删除标签，由业务层在事件响应中完成删除
+        kEventTabNew,                   //TabCtrl类：点击"新建标签"按钮时触发，无参数
+
         kEventLast,                     //控件的最后一个消息
 
         /** 窗口相关的事件，这些事件不会发给任何控件，直接发给应用层

@@ -52,6 +52,8 @@
 |kEventCheck                |     |     |     |     |       |     | 无参数 |
 |kEventUnCheck              |     |     |     |     |       |     | 无参数 |
 |kEventTabSelect            |新选择的索引号 | 旧选项择索引号|     |     |    |     |    |
+|kEventTabClose             |标签索引号|     |     |     |       |     | TabCtrl：点击关闭按钮或鼠标中键点击标签时触发；只发送关闭请求，不删除标签（删除由业务层在事件回调中完成） |
+|kEventTabNew               |     |     |     |     |       |     | TabCtrl：点击"新建标签"按钮时触发；不会自动创建标签 |
 |kEventExpand               |     |     |     |     |       |     | 无参数；Panel面板展开完成后触发 |
 |kEventCollapse             |     |     |     |     |       |     | 无参数；Panel面板折叠完成后触发 |
 |kEventPanelExpanding       |     |     |鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     | Panel面板即将展开时触发，事件回调返回false可取消本次展开 |

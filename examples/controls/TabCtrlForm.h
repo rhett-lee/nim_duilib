@@ -14,6 +14,18 @@
 *  另外演示标签角标（数字 / 99+ / 小红点 / 关闭按钮）与程序化增删标签
 *  （AddItem / AddItemAt / RemoveItemAt）及固定块的锚定约束。
 *
+*  覆盖 C1–C10 新增能力（卡片 ⑥–⑭，每项功能都可以手工测试）：
+*   C1 TabBox ↔ TabCtrl 双向同步（tab_box_name，含同步事件计数，可验证无死循环）
+*   C2 关闭请求事件 kEventTabClose（只请求不删除）/ closable / 中键关闭开关
+*   C3 选中项自动滚入视野
+*   C4 键盘导航（Ctrl+Tab / Ctrl+Shift+Tab / Ctrl+1..9 / 方向键）
+*   C5 滚轮切标签（默认关闭，可开启）/ 拖动排序与插入提示
+*   C6 溢出箭头按钮（与浮动滚动条二选一）与翻页滚动
+*   C7 等宽填充 tab_item_justify 与 min_width / max_width
+*   C8 新建标签按钮 new_tab_button + kEventTabNew
+*   C9 便捷 API（AddTabItemToEnd / Get/SetSelectedTabItem / SelectNext/PrevTab）
+*   C10 垂直模式的分割线与边距适配（卡片 ① 切到垂直、卡片 ④）
+*
 *  【多语言约定】所有测试窗口都必须支持简体中文与英文双语：
 *   - 皮肤 XML 里一律用 text_id / title_id / tooltip_text_id，不写死 text / title / tooltip_text；
 *   - 文案统一登记到 bin/resources/lang/zh_CN-examples.txt 与 en_US-examples.txt，
@@ -55,9 +67,11 @@ private:
     * @param [in] title 标签文字
     * @param [in] bFixed 是否为固定标签
     * @param [in] nFixedWidth 标签项宽度；传 0 表示沿用模板中的宽度（用于触发横向溢出）
+    * @param [in] bAddToCtrl 是否立即加入标签栏（false 时由调用方自行 AddItem/AddTabItemToEnd）
     * @return 返回新建的标签项指针，失败返回 nullptr
     */
-    ui::TabCtrlItem* CreateTabItem(ui::TabCtrl* pTabCtrl, const DString& title, bool bFixed, int32_t nFixedWidth = 0);
+    ui::TabCtrlItem* CreateTabItem(ui::TabCtrl* pTabCtrl, const DString& title, bool bFixed,
+                                   int32_t nFixedWidth = 0, bool bAddToCtrl = true);
 
     /** 找到指定名字的标签栏控件
     */
@@ -103,9 +117,79 @@ private:
     */
     bool FillTabCtrl(const DString& name, size_t nTarget, int32_t& nStartIndex, int32_t nFixedWidth = 0);
 
+    //======================= C1–C9 卡片的状态刷新 =======================
+
+    /** 更新 C1（TabBox ↔ TabCtrl 双向同步）卡片的状态文字
+    */
+    void UpdateC1State();
+
+    /** 更新 C2（关闭请求 / 可关闭 / 中键关闭）卡片的状态文字
+    */
+    void UpdateC2State();
+
+    /** 更新 C3（选中项自动滚入视野）卡片的状态文字
+    */
+    void UpdateC3State();
+
+    /** 更新 C4（键盘导航）卡片的状态文字
+    */
+    void UpdateC4State();
+
+    /** 更新 C5（滚轮切标签 / 拖动排序）卡片的状态文字
+    */
+    void UpdateC5State();
+
+    /** 更新 C6（溢出箭头按钮）卡片的状态文字
+    */
+    void UpdateC6State();
+
+    /** 更新 C7（等宽填充 / min-max 宽度）卡片的状态文字
+    */
+    void UpdateC7State();
+
+    /** 更新 C8（新建标签按钮）卡片的状态文字
+    */
+    void UpdateC8State();
+
+    /** 更新 C9（便捷 API）卡片的状态文字
+    */
+    void UpdateC9State();
+
+    /** 刷新所有"开关"按钮的文字（初始化与语言切换后调用）
+    */
+    void RefreshToggleButtons();
+
+    /** 设置开关按钮的文字
+    * @param [in] btnName 按钮控件名
+    * @param [in] formatId 格式串的 STRID（其中包含一个 %s，用于填入开/关）
+    * @param [in] bOn 当前是否为开启状态
+    */
+    void SetToggleText(const DString& btnName, const DString& formatId, bool bOn);
+
+    /** 取标签栏当前选中项的文字，无选中项时返回"无"
+    */
+    DString GetSelectedTitle(ui::TabCtrl* pTabCtrl) const;
+
     /** 程序化新增标签时使用的自增序号
     */
     int32_t m_nTabIndex;
+
+    /** C1：TabBox 选择事件次数（每次选择变化应为 1 次，可验证同步没有死循环）
+    */
+    int32_t m_nTabBoxSelectCount;
+
+    /** C2：关闭请求次数与最后一次请求的标签索引
+    */
+    int32_t m_nCloseRequestCount;
+    int32_t m_nCloseRequestIndex;
+
+    /** C8：新建标签事件次数
+    */
+    int32_t m_nNewTabCount;
+
+    /** C9：最近一次便捷 API 操作的描述
+    */
+    DString m_c9LastAction;
 };
 
 #endif //EXAMPLES_TABCTRL_FORM_H_

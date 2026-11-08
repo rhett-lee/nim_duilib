@@ -8652,6 +8652,36 @@
         <xs:documentation>是否启用溢出滚动：标签总宽度（水平）或总高度（垂直）超出可视区域时，自动显示滚动条。滚动条悬浮在子控件之上，不占用布局空间；拖动标签靠近边缘时会自动滚动</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="overflow_buttons" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>标签溢出时，是否在标签栏两端显示左右（垂直方向为上下）滚动箭头按钮，点击可按可视范围翻页滚动；启用时隐藏悬浮滚动条（两者互斥），默认开启</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="wheel_switch" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否启用鼠标滚轮切换标签：滚动滚轮选择上一个/下一个标签；默认关闭，滚轮用于滚动标签栏</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="middle_click_close" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否启用鼠标中键关闭标签：中键点击标签时发送kEventTabClose事件（不会自动删除标签），默认开启</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="drag_insert_color" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>拖动排序时插入位置提示线的颜色；为空时不绘制提示线</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="tab_item_justify" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>标签是否等宽填充：true时按标签栏可用宽度（垂直方向按高度）平分每个标签，并自动关闭滚动条；可用标签项的min_width/max_width做进一步约束</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="new_tab_button" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否在标签栏末尾显示"新建标签"按钮（+），点击时发送kEventTabNew事件，不会自动创建标签</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:attributeGroup>
   <xs:attributeGroup name="BoxAttrs4">
     <!-- 来源：Box -->
@@ -8776,6 +8806,11 @@
     <xs:attribute name="auto_hide_close_button" type="xs:string">
       <xs:annotation>
         <xs:documentation>关闭按钮是否自动隐藏</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="closable" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>标签是否可关闭：false时隐藏关闭按钮，且鼠标中键点击也不会发送关闭请求事件，默认可关闭</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="drag_order" type="xs:string">
