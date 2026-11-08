@@ -2081,15 +2081,15 @@ STRID_TABCTRL_TIP_CARD_VOVERFLOW2 = Hint: SetTabCtrlOrientation switches the ove
 STRID_TABCTRL_TIP_CARD_BADGE = ui::TabCtrl + ui::TabCtrlItem (badge)
 
 # Cards ⑥–⑭: C1–C10 features
-STRID_TABCTRL_CARD_C1 = ⑥ C1 TabBox ↔ TabCtrl two-way sync
-STRID_TABCTRL_CARD_C2 = ⑦ C2 Close request / closable / middle click
-STRID_TABCTRL_CARD_C3 = ⑧ C3 Selected tab auto scroll into view
-STRID_TABCTRL_CARD_C4 = ⑨ C4 Keyboard navigation
-STRID_TABCTRL_CARD_C5 = ⑩ C5 Wheel switches tabs / drag reorder
-STRID_TABCTRL_CARD_C6 = ⑪ C6 Overflow arrow buttons (instead of scrollbar)
-STRID_TABCTRL_CARD_C7 = ⑫ C7 Justified tabs / min-max width
-STRID_TABCTRL_CARD_C8 = ⑬ C8 New tab button
-STRID_TABCTRL_CARD_C9 = ⑭ C9 Convenience APIs
+STRID_TABCTRL_CARD_C1 = C1 TabBox ↔ TabCtrl two-way sync
+STRID_TABCTRL_CARD_C2 = C2 Close request / closable / middle click
+STRID_TABCTRL_CARD_C3 = C3 Selected tab auto scroll into view
+STRID_TABCTRL_CARD_C4 = C4 Keyboard navigation
+STRID_TABCTRL_CARD_C5 = C5 Wheel switches tabs / drag reorder
+STRID_TABCTRL_CARD_C6 = C6 Overflow arrow buttons (instead of scrollbar)
+STRID_TABCTRL_CARD_C7 = C7 Justified tabs / min-max width
+STRID_TABCTRL_CARD_C8 = C8 New tab button
+STRID_TABCTRL_CARD_C9 = C9 Convenience APIs
 
 # Shared switch text
 STRID_TABCTRL_SWITCH_ON = On
@@ -2178,14 +2178,14 @@ STRID_TABCTRL_TIP_CARD_C8 = new_tab_button shows a "+" button at the end
 STRID_TABCTRL_TIP_CARD_C9 = Demonstrates the convenience APIs of the tab bar
 
 # Cards 15-22: appearance and interaction
-STRID_TABCTRL_CARD_C15 = ⑮ Indicator sliding animation
-STRID_TABCTRL_CARD_C16 = ⑯ Selected state hierarchy (bold / tint)
-STRID_TABCTRL_CARD_C17 = ⑰ Selected + hover feedback
-STRID_TABCTRL_CARD_C18 = ⑱ Vertical mode separators
-STRID_TABCTRL_CARD_C19 = ⑲ Bottom line break mode
-STRID_TABCTRL_CARD_C20 = ⑳ Focus rect / disabled state
-STRID_TABCTRL_CARD_C21 = ㉑ Floating badge
-STRID_TABCTRL_CARD_C22 = ㉒ Close button show mode
+STRID_TABCTRL_CARD_C15 = 15 Indicator sliding animation
+STRID_TABCTRL_CARD_C16 = 16 Selected state hierarchy (bold / tint)
+STRID_TABCTRL_CARD_C17 = 17 Selected + hover feedback
+STRID_TABCTRL_CARD_C18 = 18 Vertical mode separators
+STRID_TABCTRL_CARD_C19 = 19 Bottom line break mode
+STRID_TABCTRL_CARD_C20 = 20 Focus rect / disabled state
+STRID_TABCTRL_CARD_C21 = 21 Floating badge
+STRID_TABCTRL_CARD_C22 = 22 Close button show mode
 
 # Cards 15-22: buttons
 STRID_TABCTRL_BTN_ANIM = Indicator animation: %s

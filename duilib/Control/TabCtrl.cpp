@@ -1236,6 +1236,9 @@ void TabCtrl::PaintStateColors(IRender* pRender)
                 Control* pSelectedItem = GetItemAt(selectedIndexs[0]);
                 if (pSelectedItem != nullptr) {
                     rcSelected = pSelectedItem->GetRect();
+                    //子控件绘制时按滚动量偏移，这里换算到当前绘制坐标系
+                    const UiSize szScroll = GetScrollOffset();
+                    rcSelected.Offset(-szScroll.cx, -szScroll.cy);
                 }
             }
         }
@@ -2162,7 +2165,10 @@ void TabCtrlItem::UpdateBadgeLayoutMode()
         m_pBadge->SetAttribute(_T("margin"), _T("0,2,6,0"));
     }
     else {
-        //还原角标Class中的布局属性
+        //float/halign 不会被 Class 自动清除，需要显式恢复为流式布局
+        m_pBadge->SetAttribute(_T("float"), _T("false"));
+        m_pBadge->SetAttribute(_T("halign"), _T("left"));
+        //还原角标Class中的布局属性（含 valign/margin 等）
         if (!m_badgeClass.empty()) {
             m_pBadge->SetClass(m_badgeClass.c_str());
         }
@@ -2929,6 +2935,9 @@ bool TabCtrl::CalcSelectedIndicatorRect(IRender* pRender, UiRect& rcIndicator)
             rcItem = pTitleLabel->GetRect();
         }
     }
+    //子控件绘制时按滚动量偏移，这里换算到当前绘制坐标系
+    const UiSize szScroll = GetScrollOffset();
+    rcItem.Offset(-szScroll.cx, -szScroll.cy);
     const UiRect rcTabCtrl = GetRect();
     if (rcItem.IsEmpty() || rcTabCtrl.IsEmpty()) {
         return false;
@@ -3067,6 +3076,9 @@ void TabCtrl::PaintTabFocusRect(IRender* pRender)
         return;
     }
     UiRect rcFocusRect = pSelectedItem->GetRect();
+    //子控件绘制时按滚动量偏移，这里换算到当前绘制坐标系
+    const UiSize szScroll = GetScrollOffset();
+    rcFocusRect.Offset(-szScroll.cx, -szScroll.cy);
     const int32_t nFocusGap = Dpi().GetScaleInt(2);
     rcFocusRect.Deflate(nFocusGap, nFocusGap);
     if (rcFocusRect.IsEmpty()) {

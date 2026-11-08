@@ -2086,15 +2086,15 @@ STRID_TABCTRL_TIP_CARD_VOVERFLOW2 = 提示：垂直方向的溢出滚动由 SetT
 STRID_TABCTRL_TIP_CARD_BADGE = ui::TabCtrl + ui::TabCtrlItem (badge)
 
 # 卡片 ⑥–⑭：C1–C10 新增能力
-STRID_TABCTRL_CARD_C1 = ⑥ C1 TabBox ↔ TabCtrl 双向同步
-STRID_TABCTRL_CARD_C2 = ⑦ C2 关闭请求 / 可关闭 / 中键关闭
-STRID_TABCTRL_CARD_C3 = ⑧ C3 选中项自动滚入视野
-STRID_TABCTRL_CARD_C4 = ⑨ C4 键盘导航
-STRID_TABCTRL_CARD_C5 = ⑩ C5 滚轮切标签 / 拖动排序
-STRID_TABCTRL_CARD_C6 = ⑪ C6 溢出箭头按钮（与滚动条二选一）
-STRID_TABCTRL_CARD_C7 = ⑫ C7 等宽填充 / min-max 宽度
-STRID_TABCTRL_CARD_C8 = ⑬ C8 新建标签按钮
-STRID_TABCTRL_CARD_C9 = ⑭ C9 便捷 API
+STRID_TABCTRL_CARD_C1 = C1 TabBox ↔ TabCtrl 双向同步
+STRID_TABCTRL_CARD_C2 = C2 关闭请求 / 可关闭 / 中键关闭
+STRID_TABCTRL_CARD_C3 = C3 选中项自动滚入视野
+STRID_TABCTRL_CARD_C4 = C4 键盘导航
+STRID_TABCTRL_CARD_C5 = C5 滚轮切标签 / 拖动排序
+STRID_TABCTRL_CARD_C6 = C6 溢出箭头按钮（与滚动条二选一）
+STRID_TABCTRL_CARD_C7 = C7 等宽填充 / min-max 宽度
+STRID_TABCTRL_CARD_C8 = C8 新建标签按钮
+STRID_TABCTRL_CARD_C9 = C9 便捷 API
 
 # 通用开关文案
 STRID_TABCTRL_SWITCH_ON = 开
@@ -2183,14 +2183,14 @@ STRID_TABCTRL_TIP_CARD_C8 = new_tab_button 在末尾显示"+"新建按钮
 STRID_TABCTRL_TIP_CARD_C9 = 演示标签栏的便捷操作 API
 
 # 卡片 ⑮–㉒：界面美观与交互
-STRID_TABCTRL_CARD_C15 = ⑮ 指示条滑动动画
-STRID_TABCTRL_CARD_C16 = ⑯ 选中态层次（加粗 / 淡底色）
-STRID_TABCTRL_CARD_C17 = ⑰ 选中 + 悬停反馈
-STRID_TABCTRL_CARD_C18 = ⑱ 垂直模式分隔线
-STRID_TABCTRL_CARD_C19 = ⑲ 底边线断开策略
-STRID_TABCTRL_CARD_C20 = ⑳ 焦点框 / 禁用态
-STRID_TABCTRL_CARD_C21 = ㉑ 浮动角标
-STRID_TABCTRL_CARD_C22 = ㉒ 关闭按钮显示策略
+STRID_TABCTRL_CARD_C15 = 15 指示条滑动动画
+STRID_TABCTRL_CARD_C16 = 16 选中态层次（加粗 / 淡底色）
+STRID_TABCTRL_CARD_C17 = 17 选中 + 悬停反馈
+STRID_TABCTRL_CARD_C18 = 18 垂直模式分隔线
+STRID_TABCTRL_CARD_C19 = 19 底边线断开策略
+STRID_TABCTRL_CARD_C20 = 20 焦点框 / 禁用态
+STRID_TABCTRL_CARD_C21 = 21 浮动角标
+STRID_TABCTRL_CARD_C22 = 22 关闭按钮显示策略
 
 # ⑮–㉒ 按钮
 STRID_TABCTRL_BTN_ANIM = 指示条动画：%s

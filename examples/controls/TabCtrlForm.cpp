@@ -1000,7 +1000,7 @@ void TabCtrlForm::OnInitWindow()
 
     /////////////////////// ㉑ 浮动角标 ///////////////////////
     BindClick(_T("btn_badge_float"), [this](const ui::EventArgs& /*args*/) {
-        ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_badge"));
+        ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_badge_float"));
         if (pCtrl != nullptr) {
             ui::TabCtrlItem* pFirst = pCtrl->GetTabItemAt(0);
             const bool bFloat = (pFirst != nullptr) && pFirst->IsBadgeFloat();
@@ -1015,7 +1015,7 @@ void TabCtrlForm::OnInitWindow()
         return true;
         });
     BindClick(_T("btn_badge_add"), [this](const ui::EventArgs& /*args*/) {
-        ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_badge"));
+        ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_badge_float"));
         if (pCtrl != nullptr) {
             for (size_t i = 0; i < pCtrl->GetItemCount(); ++i) {
                 ui::TabCtrlItem* pItem = pCtrl->GetTabItemAt(i);
@@ -1027,7 +1027,7 @@ void TabCtrlForm::OnInitWindow()
         UpdateC21State();
         return true;
         });
-    if (ui::TabCtrl* pC21Ctrl = FindTabCtrl(_T("tab_ctrl_badge"))) {
+    if (ui::TabCtrl* pC21Ctrl = FindTabCtrl(_T("tab_ctrl_badge_float"))) {
         pC21Ctrl->AttachSelect([this](const ui::EventArgs& /*args*/) {
             UpdateC21State();
             return true;
@@ -1470,7 +1470,7 @@ void TabCtrlForm::UpdateC20State()
 
 void TabCtrlForm::UpdateC21State()
 {
-    ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_badge"));
+    ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_badge_float"));
     ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("label_badge_state")));
     if ((pCtrl == nullptr) || (pLabel == nullptr)) {
         return;

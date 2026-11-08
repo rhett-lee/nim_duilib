@@ -573,7 +573,7 @@
                         <Label text_id="STRID_TABCTRL_TIP_C21" text_color="text_muted" font="system_regular_12" valign="center"/>
                     </HBox>
                     <!-- 长标题 + 窄标签：流式角标会挤压标题，浮动角标不会 -->
-                    <TabCtrl class="tab_ctrl" name="tab_ctrl_badge" width="400" height="36" selected_id="0"
+                    <TabCtrl class="tab_ctrl" name="tab_ctrl_badge_float" width="400" height="36" selected_id="0"
                              tooltip_text_id="STRID_TABCTRL_TIP_C21">
                         <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TABCTRL_LONG_TITLE" width="150"
                                      badge_count="120" badge_class="tab_ctrl_item_badge"/>
