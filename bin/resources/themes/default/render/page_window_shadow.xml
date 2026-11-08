@@ -30,8 +30,8 @@
                 <Label class="page_window_shadow_label" text_id="STRID_RENDER_SHADOW_MENU_ROUND"/>
             </VBox>
         </HBox>
-        <HBox>
-            <VBox>
+        <HBox height="auto">
+            <VBox height="auto">
                 <Label text_id="STRID_RENDER_SHADOW_TEST_TITLE" valign="center" margin="12,30,10,0"/>
                 <Option class="checkbox_2" group="shadow_type" text_id="STRID_RENDER_SHADOW_TYPE_DEFAULT" selected="true" valign="center" margin="30,4,0,2">
                     <Event type="select" receiver="#window#" apply_attribute="shadow_type={default}" />
@@ -76,7 +76,7 @@
                     <Event type="select" receiver="#window#" apply_attribute="shadow_attached={false}" />
                 </Option>
             </VBox>
-            <VBox>
+            <VBox height="auto">
                 <Label text_id="STRID_RENDER_SYSTEM_CAPTION_TEST_TITLE" valign="center" margin="12,30,10,0"/>
                 <Option class="checkbox_2" group="caption" text_id="STRID_RENDER_SYSTEM_CAPTION_ON" selected="false" valign="center" margin="30,14,0,2">
                     <Event type="select" receiver="#window#" apply_attribute="use_system_caption={true}" />

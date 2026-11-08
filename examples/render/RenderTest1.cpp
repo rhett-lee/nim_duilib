@@ -33,12 +33,13 @@ void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
     rect.left += marginLeft;
     rect.top += marginTop;
 
-    //首次绘制时，加载图片
+    //首次绘制时，创建图片对象
     if (m_pImage == nullptr) {
         m_pImage = std::make_unique<Image>();
         m_pImage->SetImageString(_T("file='autumn.png' async_load='false'"), Dpi());
-        LoadImageInfo(*m_pImage);
     }
+    //每次绘制时检查DPI是否变化：DPI变化时重新加载图片，避免图片和平铺格子的尺寸错误
+    LoadImageInfo(*m_pImage);
     const Image& image = *m_pImage;
     std::shared_ptr<ImageInfo> pImageInfo = image.GetImageInfo();
     if (pImageInfo == nullptr) {

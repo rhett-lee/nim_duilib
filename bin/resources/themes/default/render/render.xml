@@ -98,7 +98,7 @@
                     <Label text_id="STRID_RENDER_PAGE12_DESC" normal_text_color="text_muted" margin="0,0,0,8"/>
                     <Include src="page_control_test.xml"/>
                 </VBox>
-                <VBox name="main_view_page_12" padding="10,10,10,10">
+                <VBox name="main_view_page_12" padding="10,10,10,10" height="stretch">
                     <Label text_id="STRID_RENDER_PAGE13_DESC" normal_text_color="text_muted" margin="0,0,0,8"/>
                     <Include src="page_control_animation.xml"/>
                 </VBox>
