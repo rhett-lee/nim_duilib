@@ -5,6 +5,7 @@
 #include "duilib/Core/ControlDragable.h"
 #include "duilib/Control/IconControl.h"
 #include "duilib/Control/Badge.h"
+#include <memory>
 
 namespace ui
 {
@@ -19,11 +20,15 @@ enum class TabCtrlOrientation
 /** 多标签控件（类似浏览器的多标签）
 */
 class TabBox;
+class IBrush;
+class IPath;
+class IPen;
 class DUILIB_API TabCtrl: public ListBox
 {
     typedef ListBox BaseClass;
 public:
     explicit TabCtrl(Window* pWindow);
+    virtual ~TabCtrl() override;
 
     /** 获取控件类型
     */
@@ -214,7 +219,23 @@ protected:
     */
     virtual void PaintForeColor(IRender* pRender) override;
 
+    /** 主题发生变化，清除缓存的绘制资源
+    */
+    virtual void OnThemeChanged(bool bRedraw) override;
+
+    /** DPI发生变化，清除缓存的文字测量结果
+    */
+    virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
+
 private:
+    /** 清除缓存的绘制资源（颜色解析结果、画笔、文字测量结果等）
+    */
+    void ClearPaintCache();
+
+    /** 按当前布局方向确保布局对象正确（已匹配时不重建）
+    */
+    void EnsureLayout();
+
     /** 绘制选中标签的指示条（仅在配置了指示条宽度、高度和颜色时绘制）
     */
     void PaintSelectedTabIndicator(IRender* pRender);
@@ -225,7 +246,7 @@ private:
     * @param [in] rcItem 标签项（或标题文字）的矩形
     * @return 返回指示条的长度（像素）
     */
-    int32_t CalcAutoIndicatorLength(IRender* pRender, Control* pSelectedItem, const UiRect& rcItem) const;
+    int32_t CalcAutoIndicatorLength(IRender* pRender, Control* pSelectedItem, const UiRect& rcItem);
 
     /** 固定标签归位：把固定标签稳定地移到标签栏前端（保持各自原有相对顺序）
     */
@@ -235,9 +256,9 @@ private:
     */
     void SyncTabBoxSelection();
 
-    /** 默认选择的子项
+    /** 默认选择的子项索引（仅初始化时生效）
     */
-    size_t m_nSelectedId;
+    size_t m_nDefaultSelectedIndex;
 
     /** 绑定的TabBox名称
     */
@@ -294,6 +315,30 @@ private:
     /** 是否绘制选中标签的背景色
     */
     bool m_bSelectedTabItemShowBg;
+
+    /** 标签栏底部边线的画笔缓存（颜色或高度变化时重建）
+    */
+    std::unique_ptr<IPen> m_spBottomLinePen;
+
+    /** 底部边线画笔缓存对应的颜色字符串
+    */
+    UiString m_bottomLinePenColor;
+
+    /** 底部边线画笔缓存对应的边线高度
+    */
+    float m_fBottomLinePenHeight;
+
+    /** 指示条颜色缓存对应的颜色字符串与颜色值
+    */
+    UiString m_indicatorColorKey;
+    UiColor m_indicatorColorValue;
+
+    /** 指示条文字测量结果的缓存（文本或字体变化时失效）
+    */
+    UiString m_indicatorTextCache;
+    UiString m_indicatorFontIdCache;
+    int32_t m_indicatorTextLength;
+    bool m_bIndicatorTextLengthValid;
 };
 
 /** 多标签控件的一个标签页
@@ -303,6 +348,7 @@ class DUILIB_API TabCtrlItem : public ControlDragableT<ListBoxItemH>
     typedef ControlDragableT<ListBoxItemH> BaseClass;
 public:
     explicit TabCtrlItem(Window* pWindow);
+    virtual ~TabCtrlItem() override;
 
     /** 获取控件类型
     */
@@ -554,6 +600,10 @@ protected:
     */
     virtual void OnSetVisible(bool bChanged) override;
 
+    /** 主题发生变化，清除缓存的绘制资源
+    */
+    virtual void OnThemeChanged(bool bRedraw) override;
+
 protected:
     /** 填充路径, 形成圆角矩形
     */
@@ -566,6 +616,10 @@ protected:
     /** 获取TabCtrl接口
     */
     TabCtrl* GetTabCtrl() const;
+
+    /** 清除缓存的绘制资源（画刷、画笔、路径、颜色解析结果等）
+    */
+    void ClearPaintCache();
 
     /** 更新关闭按钮的可见性（综合自动隐藏与固定标签两个因素）
     */
@@ -621,6 +675,10 @@ private:
     /** 是否为固定标签（固定标签不可拖动、不显示关闭按钮）
     */
     bool m_bFixed;
+
+    /** 分割线是否可见（缓存，状态未变化时不重复设置控件Alpha）
+    */
+    bool m_bLineVisible;
 
     /** 图标控件
     */
@@ -701,6 +759,32 @@ private:
     /** 图标资源字符串
     */
     UiString m_iconImageString;
+
+    /** 选中状态背景画刷缓存（颜色变化时重建）
+    */
+    std::unique_ptr<IBrush> m_spSelectedBgBrush;
+
+    /** 选中背景画刷缓存对应的颜色字符串
+    */
+    UiString m_selectedBgBrushColor;
+
+    /** 选中状态轮廓画笔缓存（颜色或宽度变化时重建）
+    */
+    std::unique_ptr<IPen> m_spSelectedOutlinePen;
+    UiString m_selectedOutlinePenColor;
+    float m_fSelectedOutlinePenWidth;
+
+    /** 选中状态背景路径缓存（矩形或圆角变化时重建）
+    */
+    std::unique_ptr<IPath> m_spSelectedPath;
+    UiRect m_rcSelectedPath;
+    UiSize m_szSelectedPathRound;
+    bool m_bSelectedPathValid;
+
+    /** 悬停状态背景颜色缓存（颜色字符串变化时重新解析）
+    */
+    UiString m_hoveredColorKey;
+    UiColor m_hoveredColorValue;
 
 private:
     /** 绑定的TabBox子项索引号

@@ -10,7 +10,7 @@ namespace ui
 
 TabCtrl::TabCtrl(Window* pWindow):
     ListBox(pWindow, new HLayout),
-    m_nSelectedId(Box::InvalidIndex),
+    m_nDefaultSelectedIndex(Box::InvalidIndex),
     m_pTabBox(nullptr),
     m_bEnableDragOrder(true),
     m_orientation(TabCtrlOrientation::kHorizontal),
@@ -20,8 +20,55 @@ TabCtrl::TabCtrl(Window* pWindow):
     m_fSelectedTabItemIndicatorWidth(0.0f),
     m_bSelectedTabItemIndicatorAutoWidth(false),
     m_fSelectedTabItemIndicatorHeight(3.0f),
-    m_bSelectedTabItemShowBg(true)
+    m_bSelectedTabItemShowBg(true),
+    m_fBottomLinePenHeight(0.0f),
+    m_indicatorTextLength(0),
+    m_bIndicatorTextLengthValid(false)
 {
+}
+
+TabCtrl::~TabCtrl() = default;
+
+void TabCtrl::ClearPaintCache()
+{
+    m_spBottomLinePen.reset();
+    m_bottomLinePenColor.clear();
+    m_fBottomLinePenHeight = 0.0f;
+    m_indicatorColorKey.clear();
+    m_indicatorColorValue = UiColor();
+    m_bIndicatorTextLengthValid = false;
+}
+
+void TabCtrl::OnThemeChanged(bool bRedraw)
+{
+    //主题变化后，颜色字符串解析结果、画刷和画笔都需重新生成
+    ClearPaintCache();
+    BaseClass::OnThemeChanged(bRedraw);
+}
+
+void TabCtrl::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    //DPI变化后字体尺寸变化，缓存的文字测量结果失效
+    m_bIndicatorTextLengthValid = false;
+}
+
+void TabCtrl::EnsureLayout()
+{
+    const bool bVertical = (m_orientation == TabCtrlOrientation::kVertical);
+    Layout* pLayout = GetLayout();
+    const bool bLayoutMatched = bVertical ? (dynamic_cast<VLayout*>(pLayout) != nullptr)
+                                          : (dynamic_cast<HLayout*>(pLayout) != nullptr);
+    if (bLayoutMatched) {
+        return;
+    }
+    //布局方向不匹配时重建：水平用 HLayout，垂直用 VLayout
+    Layout* pNewLayout = bVertical ? static_cast<Layout*>(new VLayout())
+                                   : static_cast<Layout*>(new HLayout());
+    Layout* pOldLayout = ResetLayout(pNewLayout);
+    if (pOldLayout != nullptr) {
+        FreeLayout(pOldLayout);
+    }
 }
 
 DString TabCtrl::GetType() const { return DUI_CTR_TAB_CTRL; }
@@ -32,7 +79,7 @@ void TabCtrl::SetAttribute(const DString& strName, const DString& strValue2)
     if (strName == _T("selected_id")) {
         int32_t nValue = StringUtil::StringToInt32(strValue);
         if (nValue >= 0) {
-            m_nSelectedId = nValue;
+            m_nDefaultSelectedIndex = nValue;
         }
     }
     else if (strName == _T("tab_box_name")) {
@@ -137,21 +184,41 @@ void TabCtrl::NormalizeFixedItems()
     }
     vecFixed.insert(vecFixed.end(), vecNormal.begin(), vecNormal.end());
 
-    //顺序已正确时无需重排（避免无谓的 RemoveItem/AddItemAt 与重排开销）
-    bool bNeedArrange = (vecFixed.size() != nCount);
-    for (size_t i = 0; !bNeedArrange && (i < vecFixed.size()); ++i) {
-        if (GetItemAt(i) != vecFixed[i]) {
-            bNeedArrange = true;
+    //批量重排：直接按目标顺序生成新的子项列表，只触发一次布局
+    std::vector<Control*> newItems;
+    newItems.reserve(nCount);
+    for (Control* pItem : vecFixed) {
+        if (pItem != nullptr) {
+            newItems.push_back(pItem);
         }
     }
-    if (!bNeedArrange) {
+    //防御：保留未被遍历到的子控件（正常不会出现），避免遗漏
+    for (Control* pItem : m_items) {
+        if (std::find(newItems.begin(), newItems.end(), pItem) == newItems.end()) {
+            newItems.push_back(pItem);
+        }
+    }
+    if (newItems == m_items) {
         return;
     }
 
-    //按目标顺序逐个移动（SetItemIndex 内部做移除+插入）
-    for (size_t i = 0; i < vecFixed.size(); ++i) {
-        SetItemIndex(vecFixed[i], i);
+    //记录当前选中项，重排后按新的索引恢复（不触发选择事件）
+    Control* pSelectedItem = nullptr;
+    const size_t nOldSel = GetCurSel();
+    if (nOldSel != Box::InvalidIndex) {
+        pSelectedItem = GetItemAt(nOldSel);
     }
+    m_items.swap(newItems);
+    for (size_t i = 0; i < m_items.size(); ++i) {
+        IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(m_items[i]);
+        if (pListItem != nullptr) {
+            pListItem->SetListBoxIndex(i);
+        }
+    }
+    if (pSelectedItem != nullptr) {
+        SetCurSel(GetItemIndex(pSelectedItem));
+    }
+    Arrange();
     AdjustItemLineStatus();
 }
 
@@ -161,14 +228,8 @@ void TabCtrl::SetTabCtrlOrientation(TabCtrlOrientation orientation)
         return;
     }
     m_orientation = orientation;
-    //切换布局方向：水平用 HLayout，垂直用 VLayout
-    Layout* pNewLayout = (m_orientation == TabCtrlOrientation::kVertical) ?
-                         static_cast<Layout*>(new VLayout()) :
-                         static_cast<Layout*>(new HLayout());
-    Layout* pOldLayout = ResetLayout(pNewLayout);
-    if (pOldLayout != nullptr) {
-        FreeLayout(pOldLayout);
-    }
+    //切换布局方向：仅在当前布局与目标方向不一致时重建
+    EnsureLayout();
     if (IsInited()) {
         //重新配置滚动条并触发重排
         if (m_bEnableOverflowScroll) {
@@ -331,14 +392,8 @@ void TabCtrl::OnInit()
     if (IsInited()) {
         return;
     }
-    //设置布局方向（需在布局计算前完成）：水平用 HLayout，垂直用 VLayout
-    Layout* pNewLayout = (m_orientation == TabCtrlOrientation::kVertical) ?
-                         static_cast<Layout*>(new VLayout()) :
-                         static_cast<Layout*>(new HLayout());
-    Layout* pOldLayout = ResetLayout(pNewLayout);
-    if (pOldLayout != nullptr) {
-        FreeLayout(pOldLayout);
-    }
+    //设置布局方向（需在布局计算前完成）：仅在当前布局与目标方向不一致时重建
+    EnsureLayout();
 
     BaseClass::OnInit();
 
@@ -354,8 +409,8 @@ void TabCtrl::OnInit()
     }
 
     //默认选择的子项
-    if (m_nSelectedId != Box::InvalidIndex) {
-        SelectItem(m_nSelectedId);
+    if (m_nDefaultSelectedIndex != Box::InvalidIndex) {
+        SelectItem(m_nDefaultSelectedIndex);
     }
 
     //调整标签分割线的显示状态
@@ -386,12 +441,8 @@ void TabCtrl::HandleEvent(const EventArgs& msg)
     BaseClass::HandleEvent(msg);
 
     if ((msg.GetSender() == this) && ((msg.eventType == kEventSelect) || (msg.eventType == kEventUnSelect))) {
-        TabCtrlItem* pItem = nullptr;
-        size_t nSelectIndex = msg.wParam;
-        Control* pControl = GetItemAt(nSelectIndex);
-        if (pControl != nullptr) {
-            pItem = dynamic_cast<TabCtrlItem*>(pControl);
-        }
+        //基类处理时可能触发用户回调（存在增删标签的可能），这里重新获取标签项
+        TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(GetItemAt(msg.wParam));
         if (pItem != nullptr) {
             pItem->AdjustItemLineStatus();
         }
@@ -402,18 +453,22 @@ void TabCtrl::PaintStateColors(IRender* pRender)
 {
     BaseClass::PaintStateColors(pRender);
     //在标签底部画线（但排除当前选择标签的区域，不覆盖选择标签）
-    float fBottomLineHeight = GetTabCtrlBottomLineHeight();
-    DString strBottomLineColor = GetTabCtrlBottomLineColor();
-    UiColor bottomLineColor;
-    if (!strBottomLineColor.empty()) {
-        bottomLineColor = GetUiColor(strBottomLineColor);
-    }
-    std::unique_ptr<IPen> pBottomLinePen;
-    if ((fBottomLineHeight > 0.01f) && !bottomLineColor.IsEmpty()) {
-        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-        if (pRenderFactory != nullptr) {
-            pBottomLinePen.reset(pRenderFactory->CreatePen(bottomLineColor, fBottomLineHeight));
+    const float fBottomLineHeight = GetTabCtrlBottomLineHeight();
+    const DString& strBottomLineColor = GetTabCtrlBottomLineColor();
+    //画笔缓存：仅在颜色或高度变化时重建
+    IPen* pBottomLinePen = nullptr;
+    if ((fBottomLineHeight > 0.01f) && !strBottomLineColor.empty()) {
+        if ((m_spBottomLinePen == nullptr) ||
+            (m_fBottomLinePenHeight != fBottomLineHeight) ||
+            (m_bottomLinePenColor != strBottomLineColor)) {
+            IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+            if (pRenderFactory != nullptr) {
+                m_spBottomLinePen.reset(pRenderFactory->CreatePen(GetUiColor(strBottomLineColor), fBottomLineHeight));
+                m_fBottomLinePenHeight = fBottomLineHeight;
+                m_bottomLinePenColor = strBottomLineColor;
+            }
         }
+        pBottomLinePen = m_spBottomLinePen.get();
     }
     if (pBottomLinePen != nullptr) {
         UiRectF rcTabCtrl = UiRectF::MakeFromRect(GetRect());
@@ -422,7 +477,7 @@ void TabCtrl::PaintStateColors(IRender* pRender)
             rcTabCtrl.right -= (fBottomLineHeight / 2);
             pRender->DrawLine(UiPointF(rcTabCtrl.right, rcTabCtrl.top),
                               UiPointF(rcTabCtrl.right, rcTabCtrl.bottom),
-                              pBottomLinePen.get());
+                              pBottomLinePen);
         }
         else {
             //水平标签栏：在底部画线
@@ -441,12 +496,12 @@ void TabCtrl::PaintStateColors(IRender* pRender)
                             if (rcSelected.left > rcTabCtrl.left) {
                                 pRender->DrawLine(UiPointF(rcTabCtrl.left, rcTabCtrl.bottom),
                                                   UiPointF(std::min(rcTabCtrl.right, (float)rcSelected.left), rcTabCtrl.bottom),
-                                                  pBottomLinePen.get());
+                                                  pBottomLinePen);
                             }
                             if (rcSelected.right < rcTabCtrl.right) {
                                 pRender->DrawLine(UiPointF(std::max(rcTabCtrl.left, (float)rcSelected.right), rcTabCtrl.bottom),
                                                   UiPointF(rcTabCtrl.right, rcTabCtrl.bottom),
-                                                  pBottomLinePen.get());
+                                                  pBottomLinePen);
                             }
                         }
                     }
@@ -455,7 +510,7 @@ void TabCtrl::PaintStateColors(IRender* pRender)
             if (bDrawFullLine) {
                 pRender->DrawLine(UiPointF(rcTabCtrl.left, rcTabCtrl.bottom),
                                   UiPointF(rcTabCtrl.right, rcTabCtrl.bottom),
-                                  pBottomLinePen.get());
+                                  pBottomLinePen);
             }
         }
     }
@@ -662,6 +717,9 @@ TabCtrlItem::TabCtrlItem(Window* pWindow):
     m_bAutoHideCloseBtn(false),
     m_bUserDragOrder(true),
     m_bFixed(false),
+    m_bLineVisible(true),
+    m_fSelectedOutlinePenWidth(0.0f),
+    m_bSelectedPathValid(false),
     m_nTabBoxItemIndex(Box::InvalidIndex)
 {
     m_rcSelected.cx = -1;
@@ -674,6 +732,28 @@ TabCtrlItem::TabCtrlItem(Window* pWindow):
     m_hoveredPadding.left = -1;
     m_hoveredPadding.right = 0;
     m_hoveredPadding.bottom = 0;
+}
+
+TabCtrlItem::~TabCtrlItem() = default;
+
+void TabCtrlItem::ClearPaintCache()
+{
+    m_spSelectedBgBrush.reset();
+    m_selectedBgBrushColor.clear();
+    m_spSelectedOutlinePen.reset();
+    m_selectedOutlinePenColor.clear();
+    m_fSelectedOutlinePenWidth = 0.0f;
+    m_spSelectedPath.reset();
+    m_bSelectedPathValid = false;
+    m_hoveredColorKey.clear();
+    m_hoveredColorValue = UiColor();
+}
+
+void TabCtrlItem::OnThemeChanged(bool bRedraw)
+{
+    //主题变化后，颜色字符串解析结果、画刷和画笔都需重新生成
+    ClearPaintCache();
+    BaseClass::OnThemeChanged(bRedraw);
 }
 
 DString TabCtrlItem::GetType() const { return DUI_CTR_TAB_CTRL_ITEM; }
@@ -778,10 +858,8 @@ void TabCtrlItem::HandleEvent(const EventArgs& msg)
 {
     BaseClass::HandleEvent(msg);
     if ((msg.GetSender() == this) && (msg.eventType == kEventStateChanged)) {
-        //处理分割线的状态
-        if (m_pLine != nullptr) {
-            AdjustItemLineStatus();
-        }
+        //处理分割线的状态（内部对未变化的项直接跳过，不会再重复设置）
+        AdjustItemLineStatus();
         //更新标题文字的颜色
         UpdateTitleTextColor();
     }
@@ -1024,11 +1102,15 @@ void TabCtrlItem::SetLineClass(const DString& lineClass)
         if (m_pLine == nullptr) {
             m_pLine = new Control(GetWindow());
             m_pLine->SetClass(lineClass);
+            //应用缓存的可见状态，避免重建后分割线闪烁
+            m_pLine->SetAlpha(m_bLineVisible ? 255 : 0);
             AddItem(m_pLine);
             AdjustSubItemIndex();
         }
         else if (bChanged) {
             m_pLine->SetClass(lineClass);
+            //SetClass会重置控件属性，这里重新应用缓存的可见状态
+            m_pLine->SetAlpha(m_bLineVisible ? 255 : 0);
         }
     }
     else {
@@ -1036,6 +1118,8 @@ void TabCtrlItem::SetLineClass(const DString& lineClass)
             RemoveItem(m_pLine);
             m_pLine = nullptr;
         }
+        //分割线控件已移除，可见状态恢复默认值
+        m_bLineVisible = true;
     }
 }
 
@@ -1144,13 +1228,32 @@ void TabCtrlItem::AdjustSubItemIndex()
     if ((m_pCloseBtn != nullptr) && m_pCloseBtn->IsFloat()) {
         subItems.push_back(m_pCloseBtn);
     }
-    for (size_t nIndex = 0; nIndex < subItems.size(); ++nIndex) {
-        Control* pControl = subItems[nIndex];
-        size_t nCurrentIndex = GetItemIndex(pControl);
-        if (nIndex != nCurrentIndex) {
-            SetItemIndex(pControl, nIndex);
+    //批量重排：直接生成目标顺序的子控件列表，只触发一次布局
+    if (subItems.size() > m_items.size()) {
+        return;
+    }
+    for (Control* pControl : subItems) {
+        if (std::find(m_items.begin(), m_items.end(), pControl) == m_items.end()) {
+            //存在不属于当前容器的控件，放弃调整
+            return;
         }
     }
+    std::vector<Control*> newItems;
+    newItems.reserve(m_items.size());
+    newItems.insert(newItems.end(), subItems.begin(), subItems.end());
+    for (Control* pControl : m_items) {
+        if (std::find(subItems.begin(), subItems.end(), pControl) == subItems.end()) {
+            newItems.push_back(pControl);
+        }
+    }
+    if (newItems.size() != m_items.size()) {
+        return;
+    }
+    if (newItems == m_items) {
+        return;
+    }
+    m_items.swap(newItems);
+    Arrange();
 }
 
 void TabCtrlItem::AdjustItemLineStatus()
@@ -1163,19 +1266,22 @@ void TabCtrlItem::AdjustItemLineStatus()
 
 bool TabCtrlItem::IsItemLineVisible() const
 {
-    return (m_pLine != nullptr) && m_pLine->IsVisible() && (m_pLine->GetAlpha() != 0);
+    return (m_pLine != nullptr) && m_bLineVisible && m_pLine->IsVisible() && (m_pLine->GetAlpha() != 0);
 }
 
 void TabCtrlItem::SetItemLineVisible(bool bVisible)
 {
     if (m_pLine == nullptr) {
+        m_bLineVisible = bVisible;
         return;
     }
-    //通过控件的Alpha控制显示与隐藏，不修改背景色，避免把主题颜色变量解析成固定颜色
-    const uint8_t nAlpha = bVisible ? 255 : 0;
-    if (m_pLine->GetAlpha() != nAlpha) {
-        m_pLine->SetAlpha(nAlpha);
+    if (m_bLineVisible == bVisible) {
+        //状态未变化，避免重复设置Alpha
+        return;
     }
+    m_bLineVisible = bVisible;
+    //通过控件的Alpha控制显示与隐藏，不修改背景色，避免把主题颜色变量解析成固定颜色
+    m_pLine->SetAlpha(bVisible ? 255 : 0);
 }
 
 TabCtrl* TabCtrlItem::GetTabCtrl() const
@@ -1379,28 +1485,39 @@ void TabCtrlItem::PaintTabItemSelected(IRender* pRender)
         return;
     }
 
-    UiColor dwColor = GetUiColor(color);
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     if (pRenderFactory != nullptr) {
-        std::unique_ptr<IBrush> brush(pRenderFactory->CreateBrush(dwColor));        
-        std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
-        if ((brush != nullptr) && (path != nullptr)) {
+        //选中背景的画刷缓存：仅在颜色变化时重建
+        if ((m_spSelectedBgBrush == nullptr) || (m_selectedBgBrushColor != color)) {
+            m_selectedBgBrushColor = color;
+            m_spSelectedBgBrush.reset(pRenderFactory->CreateBrush(GetUiColor(color)));
+        }
+        if (m_spSelectedBgBrush != nullptr) {
             //轮廓边线相关参数
             float fOutlineWidth = 0.0f;
             UiColor outlineColor;
+            DString strOutlineColor;
             TabCtrl* pTabCtrl = GetTabCtrl();
             if (pTabCtrl != nullptr) {
                 fOutlineWidth = pTabCtrl->GetSelectedTabItemOutlineWidth();
-                DString strOutlineColor = pTabCtrl->GetSelectedTabItemOutlineColor();
+                strOutlineColor = pTabCtrl->GetSelectedTabItemOutlineColor();
 
                 fOutlineWidth = pTabCtrl->Dpi().GetScaleFloat(fOutlineWidth);
                 if (!strOutlineColor.empty()) {
                     outlineColor = GetUiColor(strOutlineColor);
                 }
             }
-            std::unique_ptr<IPen> pOutlinePen;
+            //轮廓边线的画笔缓存：仅在颜色或宽度变化时重建
+            IPen* pOutlinePen = nullptr;
             if ((fOutlineWidth > 0.01f) && !outlineColor.IsEmpty()) {
-                pOutlinePen.reset(pRenderFactory->CreatePen(outlineColor, fOutlineWidth));
+                if ((m_spSelectedOutlinePen == nullptr) ||
+                    (m_fSelectedOutlinePenWidth != fOutlineWidth) ||
+                    (m_selectedOutlinePenColor != strOutlineColor)) {
+                    m_fSelectedOutlinePenWidth = fOutlineWidth;
+                    m_selectedOutlinePenColor = strOutlineColor;
+                    m_spSelectedOutlinePen.reset(pRenderFactory->CreatePen(outlineColor, fOutlineWidth));
+                }
+                pOutlinePen = m_spSelectedOutlinePen.get();
             }
             bool bVertical = (pTabCtrl != nullptr) &&
                              (pTabCtrl->GetTabCtrlOrientation() == TabCtrlOrientation::kVertical);
@@ -1413,11 +1530,30 @@ void TabCtrlItem::PaintTabItemSelected(IRender* pRender)
                     rc.top += (int32_t)std::round(fOutlineWidth / 2);
                 }
             }
-            //绘制选择标签的样式到路径
-            AddTabItemPath(path.get(), rc, roundSize);
+            //选中标签的背景路径缓存：仅在矩形或圆角变化时重建
+            if ((m_spSelectedPath == nullptr) ||
+                !m_bSelectedPathValid ||
+                !m_rcSelectedPath.Equals(rc) ||
+                (m_szSelectedPathRound.cx != roundSize.cx) ||
+                (m_szSelectedPathRound.cy != roundSize.cy)) {
+                if (m_spSelectedPath == nullptr) {
+                    m_spSelectedPath.reset(pRenderFactory->CreatePath());
+                }
+                if (m_spSelectedPath != nullptr) {
+                    m_spSelectedPath->Reset();
+                    AddTabItemPath(m_spSelectedPath.get(), rc, roundSize);
+                    m_rcSelectedPath = rc;
+                    m_szSelectedPathRound = roundSize;
+                    m_bSelectedPathValid = true;
+                }
+            }
+            if (m_spSelectedPath == nullptr) {
+                return;
+            }
+            IPath* pPath = m_spSelectedPath.get();
             if (pOutlinePen != nullptr) {
                 //绘制选择标签的轮廓边线
-                pRender->DrawPath(path.get(), pOutlinePen.get());
+                pRender->DrawPath(pPath, pOutlinePen);
                 UiRect rcSelectItem = rc;
                 if (pTabCtrl != nullptr) {
                     UiRect rcTabCtrl = pTabCtrl->GetRect();
@@ -1427,7 +1563,7 @@ void TabCtrlItem::PaintTabItemSelected(IRender* pRender)
                         rcSelectItem.bottom = std::min(rcSelectItem.bottom, rcTabCtrl.bottom);
                         pRender->DrawLine(UiPointF(rcSelectItem.right, rcSelectItem.top),
                                           UiPointF(rcSelectItem.right, rcSelectItem.bottom),
-                                          pOutlinePen.get());
+                                          pOutlinePen);
                     }
                     else {
                         float fRoundWidth = 0;
@@ -1440,18 +1576,18 @@ void TabCtrlItem::PaintTabItemSelected(IRender* pRender)
                         rcSelectItem.right = std::min(rcSelectItem.right, rcTabCtrl.right);
                         pRender->DrawLine(UiPointF(rcSelectItem.left, rcSelectItem.bottom),
                                           UiPointF(rcSelectItem.right, rcSelectItem.bottom),
-                                          pOutlinePen.get());
+                                          pOutlinePen);
                     }
                 }
                 else {
                     //未关联到 TabCtrl 时（理论上不会发生），按水平处理
                     pRender->DrawLine(UiPointF(rcSelectItem.left, rcSelectItem.bottom),
                                       UiPointF(rcSelectItem.right, rcSelectItem.bottom),
-                                      pOutlinePen.get());
+                                      pOutlinePen);
                 }
             }
             //绘制选择标签的样式（从路径中绘制）
-            pRender->FillPath(path.get(), brush.get());
+            pRender->FillPath(pPath, m_spSelectedBgBrush.get());
         }
     }
 }
@@ -1555,12 +1691,16 @@ void TabCtrlItem::PaintTabItemHovered(IRender* pRender)
     if (color.empty()) {
         return;
     }
-    UiColor dwColor = GetUiColor(color);
+    //悬停背景颜色缓存：仅在颜色字符串变化时重新解析
+    if (m_hoveredColorKey != color) {
+        m_hoveredColorKey = color;
+        m_hoveredColorValue = GetUiColor(color);
+    }
     uint8_t uFade = 255;
     if (IsAnimationPlayerPlaying(AnimationType::kAnimationHovered)) {
         uFade = GetHoveredAlpha();
     }
-    pRender->FillRoundRect(UiRectF::MakeFromRect(rc), (float)roundSize.cx, (float)roundSize.cy, dwColor, uFade);
+    pRender->FillRoundRect(UiRectF::MakeFromRect(rc), (float)roundSize.cx, (float)roundSize.cy, m_hoveredColorValue, uFade);
 }
 
 void TabCtrl::PaintForeColor(IRender* pRender)
@@ -1583,8 +1723,12 @@ void TabCtrl::PaintSelectedTabIndicator(IRender* pRender)
         //未配置指示条，不绘制（保持原有选中效果）
         return;
     }
-    UiColor dwColor = GetUiColor(indicatorColor);
-    if (dwColor.IsEmpty()) {
+    //颜色解析结果缓存：仅在颜色字符串变化时重新解析
+    if (m_indicatorColorKey != indicatorColor) {
+        m_indicatorColorKey = indicatorColor;
+        m_indicatorColorValue = GetUiColor(indicatorColor);
+    }
+    if (m_indicatorColorValue.IsEmpty()) {
         return;
     }
 
@@ -1674,10 +1818,10 @@ void TabCtrl::PaintSelectedTabIndicator(IRender* pRender)
 
     //圆角取短边的一半，形成两端为半圆的指示条
     const float fRound = (float)std::min(rcIndicator.Width(), rcIndicator.Height()) / 2.0f;
-    pRender->FillRoundRect(UiRectF::MakeFromRect(rcIndicator), fRound, fRound, dwColor, 255);
+    pRender->FillRoundRect(UiRectF::MakeFromRect(rcIndicator), fRound, fRound, m_indicatorColorValue, 255);
 }
 
-int32_t TabCtrl::CalcAutoIndicatorLength(IRender* pRender, Control* pSelectedItem, const UiRect& rcItem) const
+int32_t TabCtrl::CalcAutoIndicatorLength(IRender* pRender, Control* pSelectedItem, const UiRect& rcItem)
 {
     int32_t nLength = 0;
     if (GetTabCtrlOrientation() == TabCtrlOrientation::kVertical) {
@@ -1690,12 +1834,22 @@ int32_t TabCtrl::CalcAutoIndicatorLength(IRender* pRender, Control* pSelectedIte
         Label* pLabel = (pTabItem != nullptr) ? pTabItem->GetTextLabel() : nullptr;
         if ((pLabel != nullptr) && (pRender != nullptr)) {
             const DString text = pLabel->GetText();
-            IFont* pFont = GetIFontById(pLabel->GetFontId());
+            const DString fontId = pLabel->GetFontId();
+            IFont* pFont = GetIFontById(fontId);
             if (!text.empty() && (pFont != nullptr)) {
-                MeasureStringParam param;
-                param.pFont = pFont;
-                param.uFormat = TEXT_SINGLELINE;
-                nLength = pRender->MeasureString(text, param).Width();
+                //测量结果缓存：仅在文本或字体变化时重新测量
+                if (!m_bIndicatorTextLengthValid ||
+                    (m_indicatorTextCache != text) ||
+                    (m_indicatorFontIdCache != fontId)) {
+                    MeasureStringParam param;
+                    param.pFont = pFont;
+                    param.uFormat = TEXT_SINGLELINE;
+                    m_indicatorTextLength = pRender->MeasureString(text, param).Width();
+                    m_indicatorTextCache = text;
+                    m_indicatorFontIdCache = fontId;
+                    m_bIndicatorTextLengthValid = true;
+                }
+                nLength = m_indicatorTextLength;
             }
         }
         if (nLength <= 0) {
