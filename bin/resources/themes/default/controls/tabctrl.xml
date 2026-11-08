@@ -17,6 +17,15 @@
     ⑫  C7 等宽填充（tab_item_justify）与 min/max 宽度
     ⑬  C8 新建标签按钮（new_tab_button）+ kEventTabNew
     ⑭  C9 便捷 API（AddTabItemToEnd / Get/SetSelectedTabItem / SelectNext/PrevTab）
+  卡片 ⑮–㉒ 对应界面美观与交互改进（每项功能都可以手工测试）：
+    ⑮ 指示条滑动动画（位置/宽度插值）
+    ⑯ 选中态层次（selected_title_font 加粗 + 可选淡底色）
+    ⑰ 选中 + 悬停（selected_hovered_title_color 与悬停背景叠加）
+    ⑱ 垂直模式分隔线与间距
+    ⑲ 底边线断开策略（tab_ctrl_bottom_line_mode = auto / break / full）
+    ⑳ 焦点框与禁用态
+    ㉑ 浮动角标（badge_float，右上角不挤压标题）
+    ㉒ 关闭按钮显示策略（close_button_show_mode = auto / hover / always）
   C10 垂直模式的分割线与边距适配由卡片 ①（切到垂直）和 ④ 覆盖。
   所有可见文案一律用 text_id / title_id / tooltip_text_id 引用语言文件，支持中英双语。
 -->
@@ -382,7 +391,7 @@
                 </VBox>
 
                 <!-- ⑭ C9：便捷 API（AddTabItemToEnd / Get/SetSelectedTabItem / SelectNext/PrevTab） -->
-                <VBox height="auto" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12">
+                <VBox height="auto" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12" margin="0,0,0,10">
                     <HBox height="24" margin="0,0,0,10">
                         <Label text_id="STRID_TABCTRL_CARD_C9" font="system_bold_15" text_color="text_default" valign="center"/>
                         <Control/>
@@ -401,6 +410,195 @@
                         <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_FAVORITE" width="96"/>
                         <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_MSG" width="96"/>
                         <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_SETTINGS" width="96"/>
+                    </TabCtrl>
+                </VBox>
+
+                <!-- ⑮ 指示条滑动动画：选中切换时位置/宽度插值过渡，而不是瞬间跳变 -->
+                <VBox height="auto" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12" margin="0,0,0,10">
+                    <HBox height="24" margin="0,0,0,10">
+                        <Label text_id="STRID_TABCTRL_CARD_C15" font="system_bold_15" text_color="text_default" valign="center"/>
+                        <Control/>
+                        <Label name="label_anim_state" text_id="STRID_TABCTRL_STATE_C15_INIT" text_color="text_muted" valign="center"/>
+                    </HBox>
+                    <HBox height="auto" margin="0,0,0,10">
+                        <Button class="btn_global" name="btn_anim_toggle" text_id="STRID_TABCTRL_BTN_ANIM" width="130" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_anim_duration" text_id="STRID_TABCTRL_BTN_ANIM_DURATION" width="140" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_anim_next" text_id="STRID_TABCTRL_BTN_ANIM_NEXT" width="140" height="28" border_round="3,3"/>
+                        <Control/>
+                        <Label text_id="STRID_TABCTRL_TIP_C15" text_color="text_muted" font="system_regular_12" valign="center"/>
+                    </HBox>
+                    <!-- selected_tab_item_indicator_animation / _duration：控制指示条插值动画 -->
+                    <TabCtrl class="tab_ctrl tab_ctrl_indicator" name="tab_ctrl_anim" width="600" height="40" selected_id="0"
+                             selected_tab_item_indicator_animation="true" selected_tab_item_indicator_animation_duration="200"
+                             tooltip_text_id="STRID_TABCTRL_TIP_C15">
+                        <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_TAB_CTRL_HOME" width="120"/>
+                        <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_TAB_CTRL_FAVORITE" width="120"/>
+                        <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_TAB_CTRL_MSG" width="120"/>
+                        <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_TAB_CTRL_SETTINGS" width="120"/>
+                    </TabCtrl>
+                </VBox>
+
+                <!-- ⑯ 选中态层次：selected_title_font（加粗）+ 可选的淡底色（selected_normal_color） -->
+                <VBox height="auto" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12" margin="0,0,0,10">
+                    <HBox height="24" margin="0,0,0,10">
+                        <Label text_id="STRID_TABCTRL_CARD_C16" font="system_bold_15" text_color="text_default" valign="center"/>
+                        <Control/>
+                        <Label name="label_selected_state" text_id="STRID_TABCTRL_STATE_C16_INIT" text_color="text_muted" valign="center"/>
+                    </HBox>
+                    <HBox height="auto" margin="0,0,0,10">
+                        <Button class="btn_global" name="btn_selected_font" text_id="STRID_TABCTRL_BTN_SEL_FONT" width="150" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_selected_bg" text_id="STRID_TABCTRL_BTN_SEL_BG" width="150" height="28" border_round="3,3"/>
+                        <Control/>
+                        <Label text_id="STRID_TABCTRL_TIP_C16" text_color="text_muted" font="system_regular_12" valign="center"/>
+                    </HBox>
+                    <!-- selected_tab_item_show_bg=true 让标签项可以用 selected_normal_color 画淡底色 -->
+                    <TabCtrl class="tab_ctrl tab_ctrl_indicator" name="tab_ctrl_selected" width="560" height="40" selected_id="0"
+                             selected_tab_item_show_bg="true" tooltip_text_id="STRID_TABCTRL_TIP_C16">
+                        <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_TAB_CTRL_HOME" width="120"
+                                     selected_title_font="system_bold_12" selected_round_corner="4,4"/>
+                        <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_TAB_CTRL_FAVORITE" width="120"
+                                     selected_title_font="system_bold_12" selected_round_corner="4,4"/>
+                        <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_TAB_CTRL_MSG" width="120"
+                                     selected_title_font="system_bold_12" selected_round_corner="4,4"/>
+                        <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_TAB_CTRL_SETTINGS" width="120"
+                                     selected_title_font="system_bold_12" selected_round_corner="4,4"/>
+                    </TabCtrl>
+                </VBox>
+
+                <!-- ⑰ 选中 + 悬停：选中标签再悬停时叠加悬停背景与 selected_hovered_title_color -->
+                <VBox height="auto" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12" margin="0,0,0,10">
+                    <HBox height="24" margin="0,0,0,10">
+                        <Label text_id="STRID_TABCTRL_CARD_C17" font="system_bold_15" text_color="text_default" valign="center"/>
+                        <Control/>
+                        <Label name="label_hover_state" text_id="STRID_TABCTRL_STATE_C17_INIT" text_color="text_muted" valign="center"/>
+                    </HBox>
+                    <HBox height="auto" margin="0,0,0,10">
+                        <Button class="btn_global" name="btn_hover_title" text_id="STRID_TABCTRL_BTN_HOVER_TITLE" width="190" height="28" border_round="3,3"/>
+                        <Control/>
+                        <Label text_id="STRID_TABCTRL_TIP_C17" text_color="text_muted" font="system_regular_12" valign="center"/>
+                    </HBox>
+                    <TabCtrl class="tab_ctrl" name="tab_ctrl_hover" width="480" height="36" selected_id="0"
+                             tooltip_text_id="STRID_TABCTRL_TIP_C17">
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_HOME" width="110"
+                                     title_color="text_default" selected_title_color="text_default"
+                                     selected_hovered_title_color="color_accent"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_FAVORITE" width="110"
+                                     title_color="text_default" selected_title_color="text_default"
+                                     selected_hovered_title_color="color_accent"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_MSG" width="110"
+                                     title_color="text_default" selected_title_color="text_default"
+                                     selected_hovered_title_color="color_accent"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_SETTINGS" width="110"
+                                     title_color="text_default" selected_title_color="text_default"
+                                     selected_hovered_title_color="color_accent"/>
+                    </TabCtrl>
+                </VBox>
+
+                <!-- ⑱ 垂直模式分隔线：分隔线应从右侧竖线变为底部横线，并与标签保持间距 -->
+                <VBox height="auto" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12" margin="0,0,0,10">
+                    <HBox height="24" margin="0,0,0,10">
+                        <Label text_id="STRID_TABCTRL_CARD_C18" font="system_bold_15" text_color="text_default" valign="center"/>
+                        <Control/>
+                        <Label name="label_line_state" text_id="STRID_TABCTRL_STATE_C18_INIT" text_color="text_muted" valign="center"/>
+                    </HBox>
+                    <HBox height="auto" margin="0,0,0,10">
+                        <Button class="btn_global" name="btn_line_vert" text_id="STRID_TABCTRL_BTN_LINE_VERT" width="110" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_line_horz" text_id="STRID_TABCTRL_BTN_LINE_HORZ" width="110" height="28" border_round="3,3"/>
+                        <Control/>
+                        <Label text_id="STRID_TABCTRL_TIP_C18" text_color="text_muted" font="system_regular_12" valign="center"/>
+                    </HBox>
+                    <TabCtrl class="tab_ctrl" name="tab_ctrl_line" width="260" height="180" selected_id="0"
+                             tab_ctrl_orientation="vertical" tooltip_text_id="STRID_TABCTRL_TIP_C18">
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_HOME" min_width="96"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_FAVORITE" min_width="96"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_MSG" min_width="96"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_SETTINGS" min_width="96"/>
+                    </TabCtrl>
+                </VBox>
+
+                <!-- ⑲ 底边线断开策略：auto（有选中背景时断开）/ break（始终断开）/ full（始终连续） -->
+                <VBox height="auto" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12" margin="0,0,0,10">
+                    <HBox height="24" margin="0,0,0,10">
+                        <Label text_id="STRID_TABCTRL_CARD_C19" font="system_bold_15" text_color="text_default" valign="center"/>
+                        <Control/>
+                        <Label name="label_bottom_line_state" text_id="STRID_TABCTRL_STATE_C19_INIT" text_color="text_muted" valign="center"/>
+                    </HBox>
+                    <HBox height="auto" margin="0,0,0,10">
+                        <Button class="btn_global" name="btn_bottom_line_mode" text_id="STRID_TABCTRL_BTN_BOTTOM_LINE" width="140" height="28" border_round="3,3"/>
+                        <Control/>
+                        <Label text_id="STRID_TABCTRL_TIP_C19" text_color="text_muted" font="system_regular_12" valign="center"/>
+                    </HBox>
+                    <TabCtrl class="tab_ctrl tab_ctrl_indicator" name="tab_ctrl_bottom_line" width="560" height="40" selected_id="0"
+                             tab_ctrl_bottom_line_mode="auto" tooltip_text_id="STRID_TABCTRL_TIP_C19">
+                        <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_TAB_CTRL_HOME" width="120"/>
+                        <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_TAB_CTRL_FAVORITE" width="120"/>
+                        <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_TAB_CTRL_MSG" width="120"/>
+                        <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_TAB_CTRL_SETTINGS" width="120"/>
+                    </TabCtrl>
+                </VBox>
+
+                <!-- ⑳ 焦点框 / 禁用态：键盘操作时选中标签上应显示焦点框 -->
+                <VBox height="auto" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12" margin="0,0,0,10">
+                    <HBox height="24" margin="0,0,0,10">
+                        <Label text_id="STRID_TABCTRL_CARD_C20" font="system_bold_15" text_color="text_default" valign="center"/>
+                        <Control/>
+                        <Label name="label_focus_state" text_id="STRID_TABCTRL_STATE_C20_INIT" text_color="text_muted" valign="center"/>
+                    </HBox>
+                    <HBox height="auto" margin="0,0,0,10">
+                        <Button class="btn_global" name="btn_focus_tabctrl" text_id="STRID_TABCTRL_BTN_FOCUS_CTRL" width="180" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_disable_tabctrl" text_id="STRID_TABCTRL_BTN_DISABLE" width="130" height="28" border_round="3,3"/>
+                        <Control/>
+                        <Label text_id="STRID_TABCTRL_TIP_C20" text_color="text_muted" font="system_regular_12" valign="center"/>
+                    </HBox>
+                    <TabCtrl class="tab_ctrl" name="tab_ctrl_focus" width="420" height="36" selected_id="0"
+                             show_focused_rect="true" tooltip_text_id="STRID_TABCTRL_TIP_C20">
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_HOME" width="105"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_FAVORITE" width="105"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_MSG" width="105"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_SETTINGS" width="105"/>
+                    </TabCtrl>
+                </VBox>
+
+                <!-- ㉑ 浮动角标：badge_float=true 时角标固定在右上角，不占用标题布局宽度 -->
+                <VBox height="auto" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12" margin="0,0,0,10">
+                    <HBox height="24" margin="0,0,0,10">
+                        <Label text_id="STRID_TABCTRL_CARD_C21" font="system_bold_15" text_color="text_default" valign="center"/>
+                        <Control/>
+                        <Label name="label_badge_state" text_id="STRID_TABCTRL_STATE_C21_INIT" text_color="text_muted" valign="center"/>
+                    </HBox>
+                    <HBox height="auto" margin="0,0,0,10">
+                        <Button class="btn_global" name="btn_badge_float" text_id="STRID_TABCTRL_BTN_BADGE_FLOAT" width="150" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_badge_add" text_id="STRID_TABCTRL_BTN_BADGE_ADD" width="130" height="28" border_round="3,3"/>
+                        <Control/>
+                        <Label text_id="STRID_TABCTRL_TIP_C21" text_color="text_muted" font="system_regular_12" valign="center"/>
+                    </HBox>
+                    <!-- 长标题 + 窄标签：流式角标会挤压标题，浮动角标不会 -->
+                    <TabCtrl class="tab_ctrl" name="tab_ctrl_badge" width="400" height="36" selected_id="0"
+                             tooltip_text_id="STRID_TABCTRL_TIP_C21">
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TABCTRL_LONG_TITLE" width="150"
+                                     badge_count="120" badge_class="tab_ctrl_item_badge"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TABCTRL_LONG_TITLE" width="150"
+                                     badge_count="120" badge_class="tab_ctrl_item_badge" badge_float="true"/>
+                    </TabCtrl>
+                </VBox>
+
+                <!-- ㉒ 关闭按钮显示策略：auto（沿用 auto_hide_close_button）/ hover（仅悬停）/ always（始终） -->
+                <VBox height="auto" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12">
+                    <HBox height="24" margin="0,0,0,10">
+                        <Label text_id="STRID_TABCTRL_CARD_C22" font="system_bold_15" text_color="text_default" valign="center"/>
+                        <Control/>
+                        <Label name="label_close_state" text_id="STRID_TABCTRL_STATE_C22_INIT" text_color="text_muted" valign="center"/>
+                    </HBox>
+                    <HBox height="auto" margin="0,0,0,10">
+                        <Button class="btn_global" name="btn_close_mode" text_id="STRID_TABCTRL_BTN_CLOSE_MODE" width="140" height="28" border_round="3,3"/>
+                        <Control/>
+                        <Label text_id="STRID_TABCTRL_TIP_C22" text_color="text_muted" font="system_regular_12" valign="center"/>
+                    </HBox>
+                    <TabCtrl class="tab_ctrl" name="tab_ctrl_close" width="420" height="36" selected_id="0"
+                             tooltip_text_id="STRID_TABCTRL_TIP_C22">
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_HOME" width="110"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_FAVORITE" width="110"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_MSG" width="110"/>
                     </TabCtrl>
                 </VBox>
 

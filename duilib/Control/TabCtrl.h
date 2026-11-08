@@ -3,9 +3,11 @@
 
 #include "duilib/Box/ListBox.h"
 #include "duilib/Core/ControlDragable.h"
+#include "duilib/Core/Callback.h"
 #include "duilib/Control/IconControl.h"
 #include "duilib/Control/Badge.h"
 #include <memory>
+#include <cstdint>
 
 namespace ui
 {
@@ -15,6 +17,24 @@ enum class TabCtrlOrientation
 {
     kHorizontal = 0,  //水平方向（默认值）
     kVertical        //垂直方向
+};
+
+/** TabCtrl 底边线的断开策略
+*/
+enum class TabCtrlBottomLineMode
+{
+    kAuto = 0,   //自动：选中项绘制背景色时断开（默认值）
+    kBreak,      //始终在选中项区域断开
+    kFull        //始终绘制连续的整条边线
+};
+
+/** TabCtrlItem 关闭按钮的显示策略
+*/
+enum class TabCtrlCloseButtonShowMode
+{
+    kAuto = 0,   //自动：沿用 auto_hide_close_button 的原有逻辑（默认值）
+    kHover,      //仅鼠标悬停时显示（选中时也不常显）
+    kAlways      //始终显示
 };
 
 /** 多标签控件（类似浏览器的多标签）
@@ -284,6 +304,33 @@ public:
     */
     bool IsSelectedTabItemShowBg() const;
 
+    /** 设置选中标签的指示条是否使用位置/宽度插值动画
+    * @param [in] bEnable true表示启用动画（默认值），false表示瞬间切换
+    */
+    void SetEnableIndicatorAnimation(bool bEnable);
+
+    /** 判断选中标签的指示条是否使用插值动画
+    */
+    bool IsEnableIndicatorAnimation() const;
+
+    /** 设置指示条动画的时长
+    * @param [in] nDurationMs 动画时长（毫秒），小于等于0时视为关闭动画
+    */
+    void SetIndicatorAnimationDuration(uint32_t nDurationMs);
+
+    /** 获取指示条动画的时长（毫秒）
+    */
+    uint32_t GetIndicatorAnimationDuration() const;
+
+    /** 设置标签栏底边线的断开策略
+    * @param [in] mode kAuto：选中项绘制背景色时断开（默认值）；kBreak：始终断开；kFull：始终连续
+    */
+    void SetTabCtrlBottomLineMode(TabCtrlBottomLineMode mode);
+
+    /** 获取标签栏底边线的断开策略
+    */
+    TabCtrlBottomLineMode GetTabCtrlBottomLineMode() const;
+
 public:
     /** 设置子项的位置索引
      * @param [in] pControl 子项指针
@@ -346,6 +393,14 @@ protected:
     */
     virtual void PaintForeColor(IRender* pRender) override;
 
+    /** 绘制焦点框（TabCtrl 的焦点框绘制在选中标签上，避免整条标签栏外框）
+    */
+    virtual void PaintFocusRect(IRender* pRender) override;
+
+    /** 子项的选择状态变化事件（用于启动指示条动画）
+    */
+    virtual void OnItemSelectedChanged(size_t iIndex, IListBoxItem* pListBoxItem) override;
+
     /** 主题发生变化，清除缓存的绘制资源
     */
     virtual void OnThemeChanged(bool bRedraw) override;
@@ -382,6 +437,33 @@ private:
     * @return 返回指示条的长度（像素）
     */
     int32_t CalcAutoIndicatorLength(IRender* pRender, Control* pSelectedItem, const UiRect& rcItem);
+
+    /** 计算选中标签指示条的目标矩形（未进行动画插值）
+    * @param [in] pRender 绘制接口
+    * @param [out] rcIndicator 返回指示条矩形
+    * @return 指示条可绘制时返回 true
+    */
+    bool CalcSelectedIndicatorRect(IRender* pRender, UiRect& rcIndicator);
+
+    /** 启动指示条动画（从当前绘制位置过渡到目标位置）
+    */
+    void StartIndicatorAnimation(const UiRectF& rcFrom, const UiRectF& rcTo);
+
+    /** 重置指示条动画状态（停止定时器并清空缓存）
+    */
+    void ResetIndicatorAnimation();
+
+    /** 指示条动画的定时器回调（仅触发重绘）
+    */
+    void OnIndicatorAnimationTimer();
+
+    /** 判断当前焦点是否位于本控件或其子控件内
+    */
+    bool IsFocusWithin() const;
+
+    /** 在选中标签上绘制焦点框
+    */
+    void PaintTabFocusRect(IRender* pRender);
 
     /** 固定标签归位：把固定标签稳定地移到标签栏前端（保持各自原有相对顺序）
     */
@@ -538,6 +620,54 @@ private:
     */
     bool m_bSelectedTabItemShowBg;
 
+    /** 是否启用选中标签指示条的滑动动画
+    */
+    bool m_bEnableIndicatorAnimation;
+
+    /** 指示条动画时长（毫秒）
+    */
+    uint32_t m_nIndicatorAnimationDuration;
+
+    /** 标签栏底边线的断开策略
+    */
+    TabCtrlBottomLineMode m_bottomLineMode;
+
+    /** 是否正在播放指示条动画
+    */
+    bool m_bIndicatorAnimating;
+
+    /** 下一次绘制是否需要启动指示条动画（选择变化时置位）
+    */
+    bool m_bIndicatorAnimateNext;
+
+    /** 上一次绘制的指示条矩形是否有效
+    */
+    bool m_bIndicatorLastValid;
+
+    /** 上一次绘制的指示条矩形（动画起点/重定向基准）
+    */
+    UiRectF m_rcIndicatorLast;
+
+    /** 动画起始指示条矩形
+    */
+    UiRectF m_rcIndicatorFrom;
+
+    /** 动画目标指示条矩形
+    */
+    UiRectF m_rcIndicatorTo;
+
+    /** 动画起始时间（steady_clock 毫秒）
+    */
+    uint64_t m_nIndicatorAnimStartMs;
+
+    /** 指示条动画定时器的ID（0表示未启动）
+    */
+    size_t m_nIndicatorTimerId;
+
+    /** 指示条动画定时器的生命周期标志
+    */
+    WeakCallbackFlag m_indicatorTimerFlag;
+
     /** 标签栏底部边线的画笔缓存（颜色或高度变化时重建）
     */
     std::unique_ptr<IPen> m_spBottomLinePen;
@@ -677,6 +807,15 @@ public:
     void SetBadgeClass(const DString& badgeClass);
     DString GetBadgeClass() const;
 
+    /** 设置角标是否为右上角浮动模式（不占用标题的布局宽度）
+    * @param [in] bFloat true表示浮动到右上角，false表示按流式布局排列（默认值）
+    */
+    void SetBadgeFloat(bool bFloat);
+
+    /** 判断角标是否为右上角浮动模式
+    */
+    bool IsBadgeFloat() const;
+
 public:
     /** 图标控件的Class
     */
@@ -702,6 +841,21 @@ public:
     */
     void SetSelectedTitleColor(const DString& selectedTitleColor);
     DString GetSelectedTitleColor() const;
+
+    /** 设置标签标题文字在选中且悬停状态下的颜色（为空时使用选中状态颜色）
+    */
+    void SetSelectedHoveredTitleColor(const DString& selectedHoveredTitleColor);
+    DString GetSelectedHoveredTitleColor() const;
+
+    /** 设置标签标题文字在禁用状态下的颜色（为空时保持原有颜色）
+    */
+    void SetDisabledTitleColor(const DString& disabledTitleColor);
+    DString GetDisabledTitleColor() const;
+
+    /** 设置标签在选中状态下的标题字体ID（为空时保持原有字体）
+    */
+    void SetSelectedTitleFont(const DString& selectedTitleFont);
+    DString GetSelectedTitleFont() const;
 
     /** 关闭按钮控件的Class
     */
@@ -768,6 +922,15 @@ public:
     */
     bool IsAutoHideCloseButton() const;
 
+    /** 设置关闭按钮的显示策略
+    * @param [in] mode kAuto：沿用 auto_hide_close_button 的逻辑（默认值）；kHover：仅悬停显示；kAlways：始终显示
+    */
+    void SetCloseButtonShowMode(TabCtrlCloseButtonShowMode mode);
+
+    /** 获取关闭按钮的显示策略
+    */
+    TabCtrlCloseButtonShowMode GetCloseButtonShowMode() const;
+
     /** 处理分割线的显示或者隐藏
     */
     void AdjustItemLineStatus();
@@ -832,6 +995,14 @@ protected:
     */
     virtual void OnPrivateSetSelected() override;
 
+    /** 获得焦点（通知父控件刷新焦点框）
+    */
+    virtual bool OnSetFocus(const EventArgs& msg) override;
+
+    /** 失去焦点（通知父控件刷新焦点框）
+    */
+    virtual bool OnKillFocus(const EventArgs& msg) override;
+
     /** 绘制标签页(选择状态)
     */
     virtual void PaintTabItemSelected(IRender* pRender) ;
@@ -874,6 +1045,14 @@ protected:
     */
     void UpdateTitleTextColor();
 
+    /** 更新标题文字的字体（根据选中状态应用配置的字体）
+    */
+    void UpdateTitleFont();
+
+    /** 更新角标的布局模式（流式 / 右上角浮动）
+    */
+    void UpdateBadgeLayoutMode();
+
     /** 检查并设置图标的可见性
     */
     void CheckIconVisible();
@@ -912,6 +1091,10 @@ private:
     /** 关闭按钮是否自动隐藏
     */
     bool m_bAutoHideCloseBtn;
+
+    /** 关闭按钮的显示策略
+    */
+    TabCtrlCloseButtonShowMode m_closeBtnShowMode;
 
     /** 标签是否可关闭（为 false 时隐藏关闭按钮）
     */
@@ -980,6 +1163,26 @@ private:
     /** 标签标题文字的原始颜色（未配置状态颜色时用于恢复）
     */
     UiString m_defaultTitleColor;
+
+    /** 标签标题文字的原始字体ID（未配置选中字体时用于恢复）
+    */
+    UiString m_defaultTitleFontId;
+
+    /** 标签标题文字在选中且悬停状态下的颜色
+    */
+    UiString m_selectedHoveredTitleColor;
+
+    /** 标签标题文字在禁用状态下的颜色
+    */
+    UiString m_disabledTitleColor;
+
+    /** 标签在选中状态下的标题字体ID
+    */
+    UiString m_selectedTitleFont;
+
+    /** 角标是否使用右上角浮动模式
+    */
+    bool m_bBadgeFloat;
 
     /** 关闭按钮控件的Class
     */

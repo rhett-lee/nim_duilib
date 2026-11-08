@@ -155,6 +155,44 @@ private:
     */
     void UpdateC9State();
 
+    //======================= ⑮–㉒ 界面美观与交互卡片的状态刷新 =======================
+
+    /** 更新指示条滑动动画卡片的状态文字
+    */
+    void UpdateC15State();
+
+    /** 更新选中态层次（加粗 / 淡底色）卡片的状态文字
+    */
+    void UpdateC16State();
+
+    /** 更新选中 + 悬停反馈卡片的状态文字
+    */
+    void UpdateC17State();
+
+    /** 更新垂直模式分隔线卡片的状态文字
+    */
+    void UpdateC18State();
+
+    /** 延迟更新垂直模式分隔线卡片的状态文字（等待标签栏重新布局完成）
+    */
+    void DeferUpdateC18State();
+
+    /** 更新底边线断开策略卡片的状态文字
+    */
+    void UpdateC19State();
+
+    /** 更新焦点框 / 禁用态卡片的状态文字
+    */
+    void UpdateC20State();
+
+    /** 更新浮动角标卡片的状态文字
+    */
+    void UpdateC21State();
+
+    /** 更新关闭按钮显示策略卡片的状态文字
+    */
+    void UpdateC22State();
+
     /** 刷新所有"开关"按钮的文字（初始化与语言切换后调用）
     */
     void RefreshToggleButtons();

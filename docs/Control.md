@@ -3242,6 +3242,9 @@ SplitBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属�
 | selected_tab_item_indicator_width | 0 | string | 选中标签的底部指示条宽度：数值表示固定宽度（未做DPI缩放）；填 `auto` 时自动跟随标签标题文字宽度；为 `0` 时不绘制指示条 |
 | selected_tab_item_indicator_height | 3 | float | 选中标签的底部指示条高度（未做DPI缩放） |
 | selected_tab_item_indicator_color |   | string | 选中标签的底部指示条颜色；为空时不绘制指示条 |
+| selected_tab_item_indicator_animation | true | bool | 选中切换时，指示条是否以位置/宽度插值动画过渡；关闭后立即跳变 |
+| selected_tab_item_indicator_animation_duration | 200 | int | 指示条滑动动画时长（毫秒），范围 0–2000；为 `0` 时不播放动画 |
+| tab_ctrl_bottom_line_mode | auto | string | 底边线在选中项处的断开策略：`auto`（绘制选中背景时断开）/ `break`（始终断开）/ `full`（始终连续） |
 | tab_ctrl_orientation | horz | string | 标签栏的布局方向：`horz`(水平，默认值) / `vert`(垂直)。垂直时标签位于左侧、内容区在右侧，选中项轮廓与分隔线自动适配为右侧 |
 | overflow_scroll | true | bool | 是否启用溢出滚动：标签总宽度（水平）或总高度（垂直）超出可视区域时，自动显示滚动条。滚动条悬浮在子控件之上，不占用布局空间；拖动标签靠近边缘时会自动滚动 |
 | overflow_buttons | true | bool | 标签溢出时，是否在标签栏两端显示左右（垂直方向为上下）滚动箭头按钮，点击可按可视范围翻页滚动。启用时会隐藏悬浮滚动条（两者互斥显示），滚动位置仍由内部滚动条对象维护 |
@@ -3251,7 +3254,7 @@ SplitBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属�
 | tab_item_justify | false | bool | 标签是否等宽填充：`true` 时按标签栏可用宽度（垂直方向按高度）平分每个标签，并自动关闭滚动条；此时可用标签项的 `min_width`/`max_width` 做进一步约束 |
 | new_tab_button | false | bool | 是否在标签栏末尾显示"新建标签"按钮（"+"），点击时发送 `kEventTabNew` 事件，不会自动创建标签 |
 
-**对应 C++ 接口：** `SetSelectedTabItemShowBg`/`IsSelectedTabItemShowBg`、`SetSelectedTabItemIndicatorWidth`/`GetSelectedTabItemIndicatorWidth`、`SetSelectedTabItemIndicatorAutoWidth`/`IsSelectedTabItemIndicatorAutoWidth`、`SetSelectedTabItemIndicatorHeight`/`GetSelectedTabItemIndicatorHeight`、`SetSelectedTabItemIndicatorColor`/`GetSelectedTabItemIndicatorColor`、`SetTabCtrlOrientation`/`GetTabCtrlOrientation`、`SetEnableOverflowScroll`/`IsEnableOverflowScroll`、`SetEnableOverflowButtons`/`IsEnableOverflowButtons`、`SetEnableWheelSwitch`/`IsEnableWheelSwitch`、`SetEnableMiddleClickClose`/`IsEnableMiddleClickClose`、`SetDragInsertColor`/`GetDragInsertColor`、`SetTabItemJustify`/`IsTabItemJustify`、`SetEnableNewTabButton`/`IsEnableNewTabButton`、`GetSelectedTabItem`/`SetSelectedTabItem`、`GetTabItemAt`、`AddTabItemToEnd`、`SelectNextTab`/`SelectPrevTab`。
+**对应 C++ 接口：** `SetSelectedTabItemShowBg`/`IsSelectedTabItemShowBg`、`SetSelectedTabItemIndicatorWidth`/`GetSelectedTabItemIndicatorWidth`、`SetSelectedTabItemIndicatorAutoWidth`/`IsSelectedTabItemIndicatorAutoWidth`、`SetSelectedTabItemIndicatorHeight`/`GetSelectedTabItemIndicatorHeight`、`SetSelectedTabItemIndicatorColor`/`GetSelectedTabItemIndicatorColor`、`SetEnableIndicatorAnimation`/`IsEnableIndicatorAnimation`、`SetIndicatorAnimationDuration`/`GetIndicatorAnimationDuration`、`SetTabCtrlBottomLineMode`/`GetTabCtrlBottomLineMode`、`SetTabCtrlOrientation`/`GetTabCtrlOrientation`、`SetEnableOverflowScroll`/`IsEnableOverflowScroll`、`SetEnableOverflowButtons`/`IsEnableOverflowButtons`、`SetEnableWheelSwitch`/`IsEnableWheelSwitch`、`SetEnableMiddleClickClose`/`IsEnableMiddleClickClose`、`SetDragInsertColor`/`GetDragInsertColor`、`SetTabItemJustify`/`IsTabItemJustify`、`SetEnableNewTabButton`/`IsEnableNewTabButton`、`GetSelectedTabItem`/`SetSelectedTabItem`、`GetTabItemAt`、`AddTabItemToEnd`、`SelectNextTab`/`SelectPrevTab`。
 
 **交互与事件说明：**
 - 选中标签变化时自动滚动到可视区域（键盘/程序化选择不会落在可视区外）。
@@ -3259,6 +3262,8 @@ SplitBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属�
 - 与 `TabBox` 双向同步：`tab_box_name` 绑定后，TabCtrl 选择变化会同步到 TabBox；TabBox 的 `SelectItem` 也会反向同步回 TabCtrl（内部已有防重入保护，不会形成死循环）。
 - `kEventTabClose`（WPARAM 为标签索引）：点击关闭按钮或鼠标中键点击标签时触发，TabCtrl 只发送请求，不删除标签，删除操作由业务层完成。
 - `kEventTabNew`：点击"新建标签"按钮时触发，TabCtrl 不会自动创建标签。
+- 焦点框：TabCtrl 默认 `show_focused_rect="false"`（默认不绘制焦点框）。需要时将该属性设为 `true`，当焦点位于标签栏（含标签项/关闭按钮）时，焦点框绘制在选中标签上；焦点框颜色由 `focused_rect_color` 控制。TabCtrl 自身不绘制整栏焦点框，避免与选中指示条叠加。
+- 选中 + 悬停：选中标签再次被鼠标悬停时，会叠加悬停背景，并可使用标签项的 `selected_hovered_title_color` 改变标题颜色。
 
 ```cpp
 // 监听关闭请求：由业务层决定是否删除标签
@@ -3282,6 +3287,9 @@ TabCtrl 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`�
 | title_color | | string | 标签标题文字在普通状态下的颜色（为空时不干预，保持原有颜色） |
 | hovered_title_color | | string | 标签标题文字在悬停/按下状态下的颜色（为空时使用普通状态颜色） |
 | selected_title_color | | string | 标签标题文字在选中状态下的颜色（为空时使用普通状态颜色） |
+| selected_hovered_title_color | | string | 标签标题文字在“选中且悬停”状态下的颜色（为空时使用选中状态颜色） |
+| disabled_title_color | | string | 标签标题文字在禁用状态下的颜色（为空时不干预） |
+| selected_title_font | | string | 标签标题在选中状态下使用的字体ID（如 `system_bold_12`）；为空时使用 `title_class` 的字体 |
 | icon | | string | 标签页的图标资源字符串 |
 | icon_class | | string | 标签页的图标资源属性Class值|
 | close_button_class | | string | 标签页的关闭按钮资源属性Class值|
@@ -3290,6 +3298,7 @@ TabCtrl 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`�
 | hovered_round_corner | | size | 标签页悬停状态时的圆角大小|
 | hovered_padding | | UiPadding | 标签页悬停状态的背景色的内边距|
 | auto_hide_close_button | false | bool | 关闭按钮是否自动隐藏|
+| close_button_show_mode | auto | string | 关闭按钮显示策略：`auto`（沿用 `auto_hide_close_button`：选中或悬停时显示）/ `hover`（仅悬停时显示，选中也不常显；适合指示条风格）/ `always`（始终显示）|
 | closable | true | bool | 标签是否可关闭：`false` 时隐藏关闭按钮，且鼠标中键点击也不会发送关闭请求事件 |
 | drag_order | true | bool | 是否支持拖动调整顺序（在同一个标签栏内）；实际生效还需 TabCtrl 的 `drag_order` 总开关开启。固定标签期间该开关被临时关闭，取消固定（`SetFixed(false)`）后按此值恢复 |
 | fixed | false | bool | 是否为固定标签：固定标签不可拖动、不可作为拖放目标，且不显示关闭按钮；多个固定标签始终位于标签栏前端，构成“固定块”（普通标签只能在固定块之后移动，且不可越过固定块）|
@@ -3297,13 +3306,15 @@ TabCtrl 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`�
 | badge_max_count | 99 | int64 | 角标数量上限，超过上限时显示"上限+"（如"99+"）|
 | badge_dot | false | bool | 角标红点模式：true为纯小圆点，不显示数字；需配合badge_class或badge属性使用|
 | badge_class | | string | 角标控件的Class值（如`tab_ctrl_item_badge`），为空时不创建角标控件|
+| badge_float | false | bool | 角标是否浮动定位到标签右上角（`float=true`、右对齐/顶部对齐），不占用标题布局宽度；适合长标题或固定窄宽度的标签 |
 
 **说明：**
 - TabCtrlItem 内置角标能力：通过 `badge_class` 指定一个基于 `Badge` 控件的 Class，再使用 `badge_count`/`badge_dot`/`badge_max_count` 配置显示内容。未设置 `badge_class` 时，角标属性仅保存数值，不会创建 Badge 子控件。
 - 默认皮肤在 global.xml 中定义了 `tab_ctrl_item_badge`（数字角标，高16，白字红底）和 `tab_ctrl_item_badge_dot`（红点角标，8x8），已挂载在 `tab_ctrl_item` 的 `badge_class` 上。
+- `badge_float="true"` 时角标浮动到标签右上角，不参与标题的流式布局，因此长标题或窄标签下不会被裁切；默认皮肤另外提供 `tab_ctrl_item_badge_float`（右上角浮动角标）。
 - 角标子控件不参与鼠标事件（`mouse_enabled="false"`），不会阻挡标签页的点击。
 
-**对应 C++ 接口：** `SetTitleColor`/`GetTitleColor`、`SetHoveredTitleColor`/`GetHoveredTitleColor`、`SetSelectedTitleColor`/`GetSelectedTitleColor`、`SetBadgeCount`/`GetBadgeCount`、`SetBadgeMaxCount`/`GetBadgeMaxCount`、`SetBadgeDot`/`IsBadgeDot`、`SetBadgeClass`/`GetBadgeClass`、`GetBadgeControl`、`SetEnableDragOrder`/`IsEnableDragOrder`（`IsEnableDragOrder` 为覆写：同时要求 TabCtrl 的 `drag_order` 总开关开启）。
+**对应 C++ 接口：** `SetTitleColor`/`GetTitleColor`、`SetHoveredTitleColor`/`GetHoveredTitleColor`、`SetSelectedTitleColor`/`GetSelectedTitleColor`、`SetSelectedHoveredTitleColor`/`GetSelectedHoveredTitleColor`、`SetDisabledTitleColor`/`GetDisabledTitleColor`、`SetSelectedTitleFont`/`GetSelectedTitleFont`、`SetBadgeCount`/`GetBadgeCount`、`SetBadgeMaxCount`/`GetBadgeMaxCount`、`SetBadgeDot`/`IsBadgeDot`、`SetBadgeClass`/`GetBadgeClass`、`SetBadgeFloat`/`IsBadgeFloat`、`SetCloseButtonShowMode`/`GetCloseButtonShowMode`、`GetBadgeControl`、`SetEnableDragOrder`/`IsEnableDragOrder`（`IsEnableDragOrder` 为覆写：同时要求 TabCtrl 的 `drag_order` 总开关开启）。
 
 **XML 示例：**
 
@@ -3410,6 +3421,8 @@ if (pTabCtrl != nullptr) {
 - 指示条绘制在子控件之后（`PaintForeColor` 阶段），不会被标签项矩形裁剪。
 - 清除父 Class 的背景/分隔线时用空字符串（如 `bkcolor=""`、`line_class=""`），不要用 `#00000000`（ARGB 为 0 会被视为空颜色并触发断言）。
 - 指示条的宽度/高度为逻辑像素，运行时会按 DPI 自动缩放。
+- `selected_tab_item_indicator_animation`（默认 `true`）：选择变化时指示条按位置/宽度插值平滑滑动；`selected_tab_item_indicator_animation_duration` 控制时长（默认 200ms）。动画过程中再次切换选择，会从当前位置平滑转向新目标，不会跳变。
+- `tab_ctrl_bottom_line_mode`：控制底边线在选中项处是否断开。`auto` 仅在绘制了选中背景时断开（卡片风格）；`break` 始终断开；`full` 始终连续（线风格）；垂直模式同样生效。
 
 TabCtrlItem 控件继承了 `ControlDragableT` 属性，更多可用属性请参考`ControlDragableT`的属性
 

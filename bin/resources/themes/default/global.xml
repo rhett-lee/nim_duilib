@@ -937,12 +937,18 @@
     <Class name="tab_ctrl_item_close" width="${SIZE_ICON_SMALL}" height="${SIZE_ICON_SMALL}" margin="0,2,10,8"
                                       float="true" halign="right" valign="center" visible="false" 
                                       normal_image="file='${PATH_BUTTON}/btn_close.svg' height='${SIZE_ICON_SMALL}' width='${SIZE_ICON_SMALL}' halign='center' valign='center' svg_replace_colors='#333333|border_svg_image'"
-                                      hovered_color="bg_tab_ctrl_item_close_hovered" 
-                                      pressed_color="bg_tab_ctrl_item_close_pressed"
-                                      border_round="4,4" alpha="192" fade_alpha="true"/>
+                                      hovered_color="bg_tag_close_hover"
+                                      hovered_image="file='${PATH_BUTTON}/btn_close.svg' height='${SIZE_ICON_SMALL}' width='${SIZE_ICON_SMALL}' halign='center' valign='center' svg_replace_colors='#333333|white'"
+                                      pressed_color="bg_tag_close_pressed"
+                                      pressed_image="file='${PATH_BUTTON}/btn_close.svg' height='${SIZE_ICON_SMALL}' width='${SIZE_ICON_SMALL}' halign='center' valign='center' svg_replace_colors='#333333|white'"
+                                      border_round="4,4" fade_alpha="true"/>
     <Class name="tab_ctrl_item_line" bkcolor="border_tab_ctrl_item" width="1" height="22" float="true"
                                      halign="right" valign="center" mouse_enabled="false"/>
     <Class name="tab_ctrl_item_badge" height="16" valign="center" margin="0,0,8,0" font="system_regular_12"
+                                      normal_text_color="text_badge" text_padding="4,0,4,0" text_align="center" mouse_enabled="false"/>
+    <!-- 角标：右上角浮动模式（配合 TabCtrlItem 的 badge_float="true" 使用，长标题下不会挤压标题） -->
+    <Class name="tab_ctrl_item_badge_float" width="auto" height="16" float="true" halign="right" valign="top"
+                                      margin="0,2,6,0" font="system_regular_12"
                                       normal_text_color="text_badge" text_padding="4,0,4,0" text_align="center" mouse_enabled="false"/>
     <Class name="tab_ctrl_item_badge_dot" width="8" height="8" dot="true" valign="center" margin="0,0,10,0" mouse_enabled="false"/>
 

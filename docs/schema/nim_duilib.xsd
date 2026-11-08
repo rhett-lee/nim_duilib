@@ -8642,6 +8642,21 @@
         <xs:documentation>选中标签的底部指示条颜色；为空时不绘制指示条</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="selected_tab_item_indicator_animation" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>选中切换时，指示条是否以位置/宽度插值动画过渡；关闭后立即跳变，默认开启</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="selected_tab_item_indicator_animation_duration" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>指示条滑动动画时长（毫秒），范围0-2000；为0时不播放动画，默认200</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="tab_ctrl_bottom_line_mode" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>底边线在选中项处的断开策略：auto（绘制选中背景时断开）/ break（始终断开）/ full（始终连续），默认auto</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute name="tab_ctrl_orientation" type="xs:string">
       <xs:annotation>
         <xs:documentation>标签栏的布局方向：horz(水平，默认值) / vert(垂直)。垂直时标签位于左侧、内容区在右侧，选中项轮廓与分隔线自动适配为右侧</xs:documentation>
@@ -8768,6 +8783,21 @@
         <xs:documentation>标签标题文字在选中状态下的颜色（为空时使用普通状态颜色）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="selected_hovered_title_color" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>标签标题文字在“选中且悬停”状态下的颜色（为空时使用选中状态颜色）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="disabled_title_color" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>标签标题文字在禁用状态下的颜色（为空时不干预）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="selected_title_font" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>标签标题在选中状态下使用的字体ID（如system_bold_12）；为空时使用title_class的字体</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute name="icon" type="xs:string">
       <xs:annotation>
         <xs:documentation>标签页的图标资源字符串</xs:documentation>
@@ -8808,6 +8838,11 @@
         <xs:documentation>关闭按钮是否自动隐藏</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="close_button_show_mode" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>关闭按钮显示策略：auto（沿用auto_hide_close_button：选中或悬停时显示）/ hover（仅悬停时显示，选中也不常显；适合指示条风格）/ always（始终显示），默认auto</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute name="closable" type="xs:string">
       <xs:annotation>
         <xs:documentation>标签是否可关闭：false时隐藏关闭按钮，且鼠标中键点击也不会发送关闭请求事件，默认可关闭</xs:documentation>
@@ -8841,6 +8876,11 @@
     <xs:attribute name="badge_class" type="xs:string">
       <xs:annotation>
         <xs:documentation>角标控件的Class值（如tab_ctrl_item_badge），为空时不创建角标控件</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="badge_float" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>角标是否浮动定位到标签右上角（float=true、右对齐/顶部对齐），不占用标题布局宽度；适合长标题或固定窄宽度的标签</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>

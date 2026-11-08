@@ -58,6 +58,15 @@ void TabCtrlForm::RefreshAllState()
     UpdateC7State();
     UpdateC8State();
     UpdateC9State();
+    //⑮–㉒ 界面美观与交互
+    UpdateC15State();
+    UpdateC16State();
+    UpdateC17State();
+    UpdateC18State();
+    UpdateC19State();
+    UpdateC20State();
+    UpdateC21State();
+    UpdateC22State();
     //开关类按钮的文字依赖当前状态，语言切换后需要重建
     RefreshToggleButtons();
 }
@@ -791,7 +800,281 @@ void TabCtrlForm::OnInitWindow()
             });
     }
 
+    /////////////////////// ⑮ 指示条滑动动画 ///////////////////////
+    BindClick(_T("btn_anim_toggle"), [this](const ui::EventArgs& /*args*/) {
+        ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_anim"));
+        if (pCtrl != nullptr) {
+            pCtrl->SetEnableIndicatorAnimation(!pCtrl->IsEnableIndicatorAnimation());
+        }
+        UpdateC15State();
+        return true;
+        });
+    BindClick(_T("btn_anim_duration"), [this](const ui::EventArgs& /*args*/) {
+        ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_anim"));
+        if (pCtrl != nullptr) {
+            //时长按 100 → 200 → 400 → 800 ms 循环
+            const uint32_t nDuration = pCtrl->GetIndicatorAnimationDuration();
+            uint32_t nNext = 100;
+            if (nDuration < 200) {
+                nNext = 200;
+            }
+            else if (nDuration < 400) {
+                nNext = 400;
+            }
+            else if (nDuration < 800) {
+                nNext = 800;
+            }
+            pCtrl->SetIndicatorAnimationDuration(nNext);
+        }
+        UpdateC15State();
+        return true;
+        });
+    BindClick(_T("btn_anim_next"), [this](const ui::EventArgs& /*args*/) {
+        ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_anim"));
+        if (pCtrl != nullptr) {
+            pCtrl->SelectNextTab(false, true);
+        }
+        UpdateC15State();
+        return true;
+        });
+    if (ui::TabCtrl* pC15Ctrl = FindTabCtrl(_T("tab_ctrl_anim"))) {
+        pC15Ctrl->AttachSelect([this](const ui::EventArgs& /*args*/) {
+            UpdateC15State();
+            return true;
+            });
+    }
+
+    /////////////////////// ⑯ 选中态层次（加粗 / 淡底色） ///////////////////////
+    BindClick(_T("btn_selected_font"), [this](const ui::EventArgs& /*args*/) {
+        ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_selected"));
+        if (pCtrl != nullptr) {
+            ui::TabCtrlItem* pFirst = pCtrl->GetTabItemAt(0);
+            const bool bOn = (pFirst != nullptr) && !pFirst->GetSelectedTitleFont().empty();
+            for (size_t i = 0; i < pCtrl->GetItemCount(); ++i) {
+                ui::TabCtrlItem* pItem = pCtrl->GetTabItemAt(i);
+                if (pItem != nullptr) {
+                    pItem->SetSelectedTitleFont(bOn ? DString() : DString(_T("system_bold_12")));
+                }
+            }
+        }
+        UpdateC16State();
+        return true;
+        });
+    BindClick(_T("btn_selected_bg"), [this](const ui::EventArgs& /*args*/) {
+        ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_selected"));
+        if (pCtrl != nullptr) {
+            ui::TabCtrlItem* pFirst = pCtrl->GetTabItemAt(0);
+            const bool bOn = (pFirst != nullptr) &&
+                             !pFirst->GetSelectStateColor(ui::ControlStateType::kControlStateNormal).empty();
+            for (size_t i = 0; i < pCtrl->GetItemCount(); ++i) {
+                ui::TabCtrlItem* pItem = pCtrl->GetTabItemAt(i);
+                if (pItem != nullptr) {
+                    pItem->SetSelectedStateColor(ui::ControlStateType::kControlStateNormal,
+                                                 bOn ? DString() : DString(_T("bg_tab_ctrl_item_selected")));
+                }
+            }
+        }
+        UpdateC16State();
+        return true;
+        });
+    if (ui::TabCtrl* pC16Ctrl = FindTabCtrl(_T("tab_ctrl_selected"))) {
+        pC16Ctrl->AttachSelect([this](const ui::EventArgs& /*args*/) {
+            UpdateC16State();
+            return true;
+            });
+    }
+
+    /////////////////////// ⑰ 选中 + 悬停反馈 ///////////////////////
+    BindClick(_T("btn_hover_title"), [this](const ui::EventArgs& /*args*/) {
+        ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_hover"));
+        if (pCtrl != nullptr) {
+            ui::TabCtrlItem* pFirst = pCtrl->GetTabItemAt(0);
+            const bool bOn = (pFirst != nullptr) && !pFirst->GetSelectedHoveredTitleColor().empty();
+            for (size_t i = 0; i < pCtrl->GetItemCount(); ++i) {
+                ui::TabCtrlItem* pItem = pCtrl->GetTabItemAt(i);
+                if (pItem != nullptr) {
+                    pItem->SetSelectedHoveredTitleColor(bOn ? DString() : DString(_T("color_accent")));
+                }
+            }
+        }
+        UpdateC17State();
+        return true;
+        });
+    if (ui::TabCtrl* pC17Ctrl = FindTabCtrl(_T("tab_ctrl_hover"))) {
+        pC17Ctrl->AttachSelect([this](const ui::EventArgs& /*args*/) {
+            UpdateC17State();
+            return true;
+            });
+    }
+
+    /////////////////////// ⑱ 垂直模式分隔线 ///////////////////////
+    BindClick(_T("btn_line_vert"), [this](const ui::EventArgs& /*args*/) {
+        ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_line"));
+        if (pCtrl != nullptr) {
+            pCtrl->SetTabCtrlOrientation(ui::TabCtrlOrientation::kVertical);
+        }
+        UpdateC18State();
+        //分隔线的方向要等标签栏重新布局后才更新，延迟再刷新一次，避免状态显示滞后
+        DeferUpdateC18State();
+        return true;
+        });
+    BindClick(_T("btn_line_horz"), [this](const ui::EventArgs& /*args*/) {
+        ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_line"));
+        if (pCtrl != nullptr) {
+            pCtrl->SetTabCtrlOrientation(ui::TabCtrlOrientation::kHorizontal);
+        }
+        UpdateC18State();
+        //分隔线的方向要等标签栏重新布局后才更新，延迟再刷新一次，避免状态显示滞后
+        DeferUpdateC18State();
+        return true;
+        });
+    if (ui::TabCtrl* pC18Ctrl = FindTabCtrl(_T("tab_ctrl_line"))) {
+        pC18Ctrl->AttachSelect([this](const ui::EventArgs& /*args*/) {
+            UpdateC18State();
+            return true;
+            });
+        pC18Ctrl->AttachEvent(ui::kEventSizeChanged, [this](const ui::EventArgs& /*args*/) {
+            UpdateC18State();
+            return true;
+            }, 0);
+    }
+
+    /////////////////////// ⑲ 底边线断开策略 ///////////////////////
+    BindClick(_T("btn_bottom_line_mode"), [this](const ui::EventArgs& /*args*/) {
+        ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_bottom_line"));
+        if (pCtrl != nullptr) {
+            //auto → break → full → auto 循环
+            ui::TabCtrlBottomLineMode mode = pCtrl->GetTabCtrlBottomLineMode();
+            if (mode == ui::TabCtrlBottomLineMode::kAuto) {
+                mode = ui::TabCtrlBottomLineMode::kBreak;
+            }
+            else if (mode == ui::TabCtrlBottomLineMode::kBreak) {
+                mode = ui::TabCtrlBottomLineMode::kFull;
+            }
+            else {
+                mode = ui::TabCtrlBottomLineMode::kAuto;
+            }
+            pCtrl->SetTabCtrlBottomLineMode(mode);
+        }
+        UpdateC19State();
+        return true;
+        });
+    if (ui::TabCtrl* pC19Ctrl = FindTabCtrl(_T("tab_ctrl_bottom_line"))) {
+        pC19Ctrl->AttachSelect([this](const ui::EventArgs& /*args*/) {
+            UpdateC19State();
+            return true;
+            });
+    }
+
+    /////////////////////// ⑳ 焦点框 / 禁用态 ///////////////////////
+    BindClick(_T("btn_focus_tabctrl"), [this](const ui::EventArgs& /*args*/) {
+        ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_focus"));
+        if (pCtrl != nullptr) {
+            pCtrl->SetFocus();
+        }
+        UpdateC20State();
+        return true;
+        });
+    BindClick(_T("btn_disable_tabctrl"), [this](const ui::EventArgs& /*args*/) {
+        ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_focus"));
+        if (pCtrl != nullptr) {
+            pCtrl->SetEnabled(!pCtrl->IsEnabled());
+        }
+        UpdateC20State();
+        return true;
+        });
+    if (ui::TabCtrl* pC20Ctrl = FindTabCtrl(_T("tab_ctrl_focus"))) {
+        pC20Ctrl->AttachSelect([this](const ui::EventArgs& /*args*/) {
+            UpdateC20State();
+            return true;
+            });
+        pC20Ctrl->AttachEvent(ui::kEventSetFocus, [this](const ui::EventArgs& /*args*/) {
+            UpdateC20State();
+            return true;
+            }, 0);
+        pC20Ctrl->AttachEvent(ui::kEventKillFocus, [this](const ui::EventArgs& /*args*/) {
+            UpdateC20State();
+            return true;
+            }, 0);
+    }
+
+    /////////////////////// ㉑ 浮动角标 ///////////////////////
+    BindClick(_T("btn_badge_float"), [this](const ui::EventArgs& /*args*/) {
+        ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_badge"));
+        if (pCtrl != nullptr) {
+            ui::TabCtrlItem* pFirst = pCtrl->GetTabItemAt(0);
+            const bool bFloat = (pFirst != nullptr) && pFirst->IsBadgeFloat();
+            for (size_t i = 0; i < pCtrl->GetItemCount(); ++i) {
+                ui::TabCtrlItem* pItem = pCtrl->GetTabItemAt(i);
+                if (pItem != nullptr) {
+                    pItem->SetBadgeFloat(!bFloat);
+                }
+            }
+        }
+        UpdateC21State();
+        return true;
+        });
+    BindClick(_T("btn_badge_add"), [this](const ui::EventArgs& /*args*/) {
+        ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_badge"));
+        if (pCtrl != nullptr) {
+            for (size_t i = 0; i < pCtrl->GetItemCount(); ++i) {
+                ui::TabCtrlItem* pItem = pCtrl->GetTabItemAt(i);
+                if (pItem != nullptr) {
+                    pItem->SetBadgeCount(pItem->GetBadgeCount() + 10);
+                }
+            }
+        }
+        UpdateC21State();
+        return true;
+        });
+    if (ui::TabCtrl* pC21Ctrl = FindTabCtrl(_T("tab_ctrl_badge"))) {
+        pC21Ctrl->AttachSelect([this](const ui::EventArgs& /*args*/) {
+            UpdateC21State();
+            return true;
+            });
+    }
+
+    /////////////////////// ㉒ 关闭按钮显示策略 ///////////////////////
+    BindClick(_T("btn_close_mode"), [this](const ui::EventArgs& /*args*/) {
+        ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_close"));
+        if (pCtrl != nullptr) {
+            ui::TabCtrlItem* pFirst = pCtrl->GetTabItemAt(0);
+            if (pFirst != nullptr) {
+                //auto → hover → always → auto 循环
+                ui::TabCtrlCloseButtonShowMode mode = pFirst->GetCloseButtonShowMode();
+                if (mode == ui::TabCtrlCloseButtonShowMode::kAuto) {
+                    mode = ui::TabCtrlCloseButtonShowMode::kHover;
+                }
+                else if (mode == ui::TabCtrlCloseButtonShowMode::kHover) {
+                    mode = ui::TabCtrlCloseButtonShowMode::kAlways;
+                }
+                else {
+                    mode = ui::TabCtrlCloseButtonShowMode::kAuto;
+                }
+                for (size_t i = 0; i < pCtrl->GetItemCount(); ++i) {
+                    ui::TabCtrlItem* pItem = pCtrl->GetTabItemAt(i);
+                    if (pItem != nullptr) {
+                        pItem->SetCloseButtonShowMode(mode);
+                    }
+                }
+            }
+        }
+        UpdateC22State();
+        return true;
+        });
+    if (ui::TabCtrl* pC22Ctrl = FindTabCtrl(_T("tab_ctrl_close"))) {
+        pC22Ctrl->AttachSelect([this](const ui::EventArgs& /*args*/) {
+            UpdateC22State();
+            return true;
+            });
+    }
+
     RefreshAllState();
+
+    //布局完成后刷新一次：部分状态依赖标签项布局后的实际尺寸（如卡片 ⑱）
+    ui::GlobalManager::Instance().Timer().AddTimer(GetWeakFlag(), [this]() {
+        UpdateC18State();
+        }, 200, 1);
 }
 
 void TabCtrlForm::UpdateOrientState()
@@ -1051,4 +1334,177 @@ void TabCtrlForm::UpdateC9State()
                                             GetSelectedTitle(pCtrl).c_str(),
                                             m_c9LastAction.empty() ?
                                                 TabCtrlLang(_T("STRID_TABCTRL_STATE_NONE")).c_str() : m_c9LastAction.c_str()).c_str());
+}
+
+void TabCtrlForm::UpdateC15State()
+{
+    ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_anim"));
+    ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("label_anim_state")));
+    if ((pCtrl == nullptr) || (pLabel == nullptr)) {
+        return;
+    }
+    const bool bAnimOn = pCtrl->IsEnableIndicatorAnimation();
+    SetToggleText(_T("btn_anim_toggle"), _T("STRID_TABCTRL_BTN_ANIM"), bAnimOn);
+    if (ui::Button* pDurationBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_anim_duration")))) {
+        pDurationBtn->SetText(ui::StringUtil::Printf(TabCtrlLang(_T("STRID_TABCTRL_BTN_ANIM_DURATION")).c_str(),
+                                                     static_cast<int>(pCtrl->GetIndicatorAnimationDuration())).c_str());
+    }
+    pLabel->SetText(ui::StringUtil::Printf(TabCtrlLang(_T("STRID_TABCTRL_STATE_C15")).c_str(),
+                                            TabCtrlLang(bAnimOn ? _T("STRID_TABCTRL_SWITCH_ON") : _T("STRID_TABCTRL_SWITCH_OFF")).c_str(),
+                                            static_cast<int>(pCtrl->GetIndicatorAnimationDuration()),
+                                            GetSelectedTitle(pCtrl).c_str()).c_str());
+}
+
+void TabCtrlForm::UpdateC16State()
+{
+    ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_selected"));
+    ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("label_selected_state")));
+    if ((pCtrl == nullptr) || (pLabel == nullptr)) {
+        return;
+    }
+    ui::TabCtrlItem* pItem = pCtrl->GetSelectedTabItem();
+    const bool bFontOn = (pItem != nullptr) && !pItem->GetSelectedTitleFont().empty();
+    const bool bBgOn = (pItem != nullptr) &&
+                       !pItem->GetSelectStateColor(ui::ControlStateType::kControlStateNormal).empty();
+    SetToggleText(_T("btn_selected_font"), _T("STRID_TABCTRL_BTN_SEL_FONT"), bFontOn);
+    SetToggleText(_T("btn_selected_bg"), _T("STRID_TABCTRL_BTN_SEL_BG"), bBgOn);
+    pLabel->SetText(ui::StringUtil::Printf(TabCtrlLang(_T("STRID_TABCTRL_STATE_C16")).c_str(),
+                                            TabCtrlLang(bFontOn ? _T("STRID_TABCTRL_SWITCH_ON") : _T("STRID_TABCTRL_SWITCH_OFF")).c_str(),
+                                            TabCtrlLang(bBgOn ? _T("STRID_TABCTRL_SWITCH_ON") : _T("STRID_TABCTRL_SWITCH_OFF")).c_str(),
+                                            GetSelectedTitle(pCtrl).c_str()).c_str());
+}
+
+void TabCtrlForm::UpdateC17State()
+{
+    ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_hover"));
+    ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("label_hover_state")));
+    if ((pCtrl == nullptr) || (pLabel == nullptr)) {
+        return;
+    }
+    ui::TabCtrlItem* pItem = pCtrl->GetSelectedTabItem();
+    const bool bOn = (pItem != nullptr) && !pItem->GetSelectedHoveredTitleColor().empty();
+    SetToggleText(_T("btn_hover_title"), _T("STRID_TABCTRL_BTN_HOVER_TITLE"), bOn);
+    pLabel->SetText(ui::StringUtil::Printf(TabCtrlLang(_T("STRID_TABCTRL_STATE_C17")).c_str(),
+                                            TabCtrlLang(bOn ? _T("STRID_TABCTRL_SWITCH_ON") : _T("STRID_TABCTRL_SWITCH_OFF")).c_str(),
+                                            GetSelectedTitle(pCtrl).c_str()).c_str());
+}
+
+void TabCtrlForm::DeferUpdateC18State()
+{
+    ui::GlobalManager::Instance().Timer().AddTimer(GetWeakFlag(), [this]() {
+        UpdateC18State();
+        }, 100, 1);
+}
+
+void TabCtrlForm::UpdateC18State()
+{
+    ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_line"));
+    ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("label_line_state")));
+    if ((pCtrl == nullptr) || (pLabel == nullptr)) {
+        return;
+    }
+    const bool bVertical = (pCtrl->GetTabCtrlOrientation() == ui::TabCtrlOrientation::kVertical);
+    ui::TabCtrlItem* pItem = pCtrl->GetTabItemAt(0);
+    ui::Control* pLine = (pItem != nullptr) ? pItem->GetLineControl() : nullptr;
+    //垂直模式下分隔线应变为底部横线（高度约 1 像素），水平模式下为右侧竖线
+    const bool bLineHorizontal = (pLine != nullptr) && (pLine->GetHeight() <= 2);
+    DString itemSize = TabCtrlLang(_T("STRID_TABCTRL_STATE_NONE"));
+    if (pItem != nullptr) {
+        itemSize = ui::StringUtil::Printf(_T("%d×%d"), static_cast<int>(pItem->GetWidth()), static_cast<int>(pItem->GetHeight()));
+    }
+    pLabel->SetText(ui::StringUtil::Printf(TabCtrlLang(_T("STRID_TABCTRL_STATE_C18")).c_str(),
+                                            TabCtrlLang(bVertical ? _T("STRID_TABCTRL_STATE_DIR_VERT") : _T("STRID_TABCTRL_STATE_DIR_HORZ")).c_str(),
+                                            TabCtrlLang(bLineHorizontal ? _T("STRID_TABCTRL_STATE_LINE_HORZ") : _T("STRID_TABCTRL_STATE_LINE_VERT")).c_str(),
+                                            itemSize.c_str()).c_str());
+}
+
+void TabCtrlForm::UpdateC19State()
+{
+    ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_bottom_line"));
+    ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("label_bottom_line_state")));
+    if ((pCtrl == nullptr) || (pLabel == nullptr)) {
+        return;
+    }
+    const ui::TabCtrlBottomLineMode mode = pCtrl->GetTabCtrlBottomLineMode();
+    DString modeTextId = _T("STRID_TABCTRL_MODE_AUTO");
+    if (mode == ui::TabCtrlBottomLineMode::kBreak) {
+        modeTextId = _T("STRID_TABCTRL_MODE_BREAK");
+    }
+    else if (mode == ui::TabCtrlBottomLineMode::kFull) {
+        modeTextId = _T("STRID_TABCTRL_MODE_FULL");
+    }
+    //kAuto 仅在绘制选中背景时断开；当前测试栏没有选中背景，所以 auto 表现为连续
+    const bool bBreak = (mode == ui::TabCtrlBottomLineMode::kBreak) ||
+                        ((mode == ui::TabCtrlBottomLineMode::kAuto) && pCtrl->IsSelectedTabItemShowBg());
+    pLabel->SetText(ui::StringUtil::Printf(TabCtrlLang(_T("STRID_TABCTRL_STATE_C19")).c_str(),
+                                            TabCtrlLang(modeTextId).c_str(),
+                                            TabCtrlLang(bBreak ? _T("STRID_TABCTRL_STATE_LINE_BREAK") : _T("STRID_TABCTRL_STATE_LINE_CONTINUOUS")).c_str()).c_str());
+}
+
+void TabCtrlForm::UpdateC20State()
+{
+    ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_focus"));
+    ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("label_focus_state")));
+    if ((pCtrl == nullptr) || (pLabel == nullptr)) {
+        return;
+    }
+    //焦点可能落在标签项或关闭按钮上，需要沿父链判断是否在本标签栏内
+    bool bFocusWithin = false;
+    ui::Window* pWindow = pCtrl->GetWindow();
+    ui::Control* pFocus = (pWindow != nullptr) ? pWindow->GetFocusControl() : nullptr;
+    for (ui::Control* pControl = pFocus; pControl != nullptr; pControl = pControl->GetParent()) {
+        if (pControl == pCtrl) {
+            bFocusWithin = true;
+            break;
+        }
+    }
+    const bool bEnabled = pCtrl->IsEnabled();
+    const bool bFocusRect = bFocusWithin && bEnabled && pCtrl->IsShowFocusedRect() &&
+                            (pCtrl->GetSelectedTabItem() != nullptr);
+    SetToggleText(_T("btn_disable_tabctrl"), _T("STRID_TABCTRL_BTN_DISABLE"), !bEnabled);
+    pLabel->SetText(ui::StringUtil::Printf(TabCtrlLang(_T("STRID_TABCTRL_STATE_C20")).c_str(),
+                                            TabCtrlLang(bFocusWithin ? _T("STRID_TABCTRL_STATE_FOCUS_YES") : _T("STRID_TABCTRL_STATE_FOCUS_NO")).c_str(),
+                                            TabCtrlLang(bEnabled ? _T("STRID_TABCTRL_SWITCH_OFF") : _T("STRID_TABCTRL_SWITCH_ON")).c_str(),
+                                            TabCtrlLang(bFocusRect ? _T("STRID_TABCTRL_STATE_SHOWN") : _T("STRID_TABCTRL_STATE_HIDDEN")).c_str()).c_str());
+}
+
+void TabCtrlForm::UpdateC21State()
+{
+    ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_badge"));
+    ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("label_badge_state")));
+    if ((pCtrl == nullptr) || (pLabel == nullptr)) {
+        return;
+    }
+    ui::TabCtrlItem* pFirst = pCtrl->GetTabItemAt(0);
+    const bool bFloat = (pFirst != nullptr) && pFirst->IsBadgeFloat();
+    const int64_t nCount = (pFirst != nullptr) ? pFirst->GetBadgeCount() : 0;
+    SetToggleText(_T("btn_badge_float"), _T("STRID_TABCTRL_BTN_BADGE_FLOAT"), bFloat);
+    pLabel->SetText(ui::StringUtil::Printf(TabCtrlLang(_T("STRID_TABCTRL_STATE_C21")).c_str(),
+                                            TabCtrlLang(bFloat ? _T("STRID_TABCTRL_SWITCH_ON") : _T("STRID_TABCTRL_SWITCH_OFF")).c_str(),
+                                            static_cast<int>(nCount),
+                                            GetSelectedTitle(pCtrl).c_str()).c_str());
+}
+
+void TabCtrlForm::UpdateC22State()
+{
+    ui::TabCtrl* pCtrl = FindTabCtrl(_T("tab_ctrl_close"));
+    ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("label_close_state")));
+    if ((pCtrl == nullptr) || (pLabel == nullptr)) {
+        return;
+    }
+    ui::TabCtrlItem* pFirst = pCtrl->GetTabItemAt(0);
+    const ui::TabCtrlCloseButtonShowMode mode = (pFirst != nullptr) ? pFirst->GetCloseButtonShowMode()
+                                                                    : ui::TabCtrlCloseButtonShowMode::kAuto;
+    DString modeTextId = _T("STRID_TABCTRL_MODE_CLOSE_AUTO");
+    if (mode == ui::TabCtrlCloseButtonShowMode::kHover) {
+        modeTextId = _T("STRID_TABCTRL_MODE_CLOSE_HOVER");
+    }
+    else if (mode == ui::TabCtrlCloseButtonShowMode::kAlways) {
+        modeTextId = _T("STRID_TABCTRL_MODE_CLOSE_ALWAYS");
+    }
+    //kAuto 下选中项常显关闭按钮；kHover 下选中项也只在悬停时显示
+    const bool bSelectedAlways = (mode != ui::TabCtrlCloseButtonShowMode::kHover);
+    pLabel->SetText(ui::StringUtil::Printf(TabCtrlLang(_T("STRID_TABCTRL_STATE_C22")).c_str(),
+                                            TabCtrlLang(modeTextId).c_str(),
+                                            TabCtrlLang(bSelectedAlways ? _T("STRID_TABCTRL_STATE_CLOSE_ALWAYS_SHOWN") : _T("STRID_TABCTRL_STATE_CLOSE_HOVER_ONLY")).c_str()).c_str());
 }

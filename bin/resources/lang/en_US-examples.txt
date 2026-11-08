@@ -2177,6 +2177,77 @@ STRID_TABCTRL_TIP_CARD_C7 = tab_item_justify shares the width, limited by min_wi
 STRID_TABCTRL_TIP_CARD_C8 = new_tab_button shows a "+" button at the end
 STRID_TABCTRL_TIP_CARD_C9 = Demonstrates the convenience APIs of the tab bar
 
+# Cards 15-22: appearance and interaction
+STRID_TABCTRL_CARD_C15 = ⑮ Indicator sliding animation
+STRID_TABCTRL_CARD_C16 = ⑯ Selected state hierarchy (bold / tint)
+STRID_TABCTRL_CARD_C17 = ⑰ Selected + hover feedback
+STRID_TABCTRL_CARD_C18 = ⑱ Vertical mode separators
+STRID_TABCTRL_CARD_C19 = ⑲ Bottom line break mode
+STRID_TABCTRL_CARD_C20 = ⑳ Focus rect / disabled state
+STRID_TABCTRL_CARD_C21 = ㉑ Floating badge
+STRID_TABCTRL_CARD_C22 = ㉒ Close button show mode
+
+# Cards 15-22: buttons
+STRID_TABCTRL_BTN_ANIM = Indicator animation: %s
+STRID_TABCTRL_BTN_ANIM_DURATION = Duration: %d ms
+STRID_TABCTRL_BTN_ANIM_NEXT = Select next tab
+STRID_TABCTRL_BTN_SEL_FONT = Selected bold: %s
+STRID_TABCTRL_BTN_SEL_BG = Selected tint: %s
+STRID_TABCTRL_BTN_HOVER_TITLE = Selected+hover color: %s
+STRID_TABCTRL_BTN_LINE_VERT = Vertical
+STRID_TABCTRL_BTN_LINE_HORZ = Horizontal
+STRID_TABCTRL_BTN_BOTTOM_LINE = Switch line mode
+STRID_TABCTRL_BTN_FOCUS_CTRL = Focus the tab bar
+STRID_TABCTRL_BTN_DISABLE = Disabled: %s
+STRID_TABCTRL_BTN_BADGE_FLOAT = Floating badge: %s
+STRID_TABCTRL_BTN_BADGE_ADD = Badge count +10
+STRID_TABCTRL_BTN_CLOSE_MODE = Switch show mode
+
+# Cards 15-22: enum texts
+STRID_TABCTRL_STATE_LINE_HORZ = Horizontal
+STRID_TABCTRL_STATE_LINE_VERT = Vertical
+STRID_TABCTRL_STATE_LINE_BREAK = broken
+STRID_TABCTRL_STATE_LINE_CONTINUOUS = continuous
+STRID_TABCTRL_MODE_AUTO = auto
+STRID_TABCTRL_MODE_BREAK = always break
+STRID_TABCTRL_MODE_FULL = always full
+STRID_TABCTRL_MODE_CLOSE_AUTO = auto
+STRID_TABCTRL_MODE_CLOSE_HOVER = hover only
+STRID_TABCTRL_MODE_CLOSE_ALWAYS = always
+STRID_TABCTRL_STATE_CLOSE_ALWAYS_SHOWN = always visible
+STRID_TABCTRL_STATE_CLOSE_HOVER_ONLY = hover only
+
+# Cards 15-22: state labels
+STRID_TABCTRL_STATE_C15_INIT = Indicator animation: on　|　Duration: 200 ms　|　Selected: none
+STRID_TABCTRL_STATE_C15 = Indicator animation: %s　|　Duration: %d ms　|　Selected: %s
+STRID_TABCTRL_STATE_C16_INIT = Selected bold: on　|　Selected tint: off
+STRID_TABCTRL_STATE_C16 = Selected bold: %s　|　Selected tint: %s　|　Selected: %s
+STRID_TABCTRL_STATE_C17_INIT = Selected+hover color: on　|　Selected: none
+STRID_TABCTRL_STATE_C17 = Selected+hover color: %s　|　Selected: %s
+STRID_TABCTRL_STATE_C18_INIT = Direction: vertical　|　Separator: horizontal　|　Item: -
+STRID_TABCTRL_STATE_C18 = Direction: %s　|　Separator: %s　|　Item: %s
+STRID_TABCTRL_STATE_C19_INIT = Mode: auto　|　At selected: continuous
+STRID_TABCTRL_STATE_C19 = Mode: %s　|　At selected: %s
+STRID_TABCTRL_STATE_C20_INIT = Focus: no　|　Disabled: off　|　Focus rect: hidden
+STRID_TABCTRL_STATE_C20 = Focus: %s　|　Disabled: %s　|　Focus rect: %s
+STRID_TABCTRL_STATE_C21_INIT = Floating badge: off　|　Badge count: 120　|　Selected: none
+STRID_TABCTRL_STATE_C21 = Floating badge: %s　|　Badge count: %d　|　Selected: %s
+STRID_TABCTRL_STATE_C22_INIT = Mode: auto　|　Selected tab: close button always visible
+STRID_TABCTRL_STATE_C22 = Mode: %s　|　Selected tab: %s
+
+# Card 21: long title used to verify that the badge does not squeeze the title
+STRID_TABCTRL_LONG_TITLE = A very long tab title used to verify badges do not squeeze the text
+
+# Cards 15-22: operation tips
+STRID_TABCTRL_TIP_C15 = When the selection changes, the indicator should slide smoothly instead of jumping
+STRID_TABCTRL_TIP_C16 = In indicator style, use selected_title_font (bold) and selected_normal_color (tint) to add hierarchy
+STRID_TABCTRL_TIP_C17 = Hover the already selected tab: the hover background and title color should still respond
+STRID_TABCTRL_TIP_C18 = In vertical mode the separator should become a bottom line with proper spacing, not misaligned
+STRID_TABCTRL_TIP_C19 = auto: break when a selected background is drawn; always break; always continuous
+STRID_TABCTRL_TIP_C20 = After getting focus, the selected tab shows a focus rect (you can also use the Tab key)
+STRID_TABCTRL_TIP_C21 = A flow badge squeezes a long title; a floating badge sits at the top-right without taking title space
+STRID_TABCTRL_TIP_C22 = auto keeps auto_hide_close_button; hover only hides the close button on the selected tab too
+
 # TabCtrl standalone test window entry (controls/test.xml)
 STRID_CONTROLS_TABCTRL_FULL = TabCtrl: Vertical / Fixed / Overflow / Badge
 STRID_CONTROLS_TABCTRL_TEST_BTN = TabCtrl Test

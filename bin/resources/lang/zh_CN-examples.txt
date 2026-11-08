@@ -2182,6 +2182,77 @@ STRID_TABCTRL_TIP_CARD_C7 = tab_item_justify 等宽填充，受 min_width / max_
 STRID_TABCTRL_TIP_CARD_C8 = new_tab_button 在末尾显示"+"新建按钮
 STRID_TABCTRL_TIP_CARD_C9 = 演示标签栏的便捷操作 API
 
+# 卡片 ⑮–㉒：界面美观与交互
+STRID_TABCTRL_CARD_C15 = ⑮ 指示条滑动动画
+STRID_TABCTRL_CARD_C16 = ⑯ 选中态层次（加粗 / 淡底色）
+STRID_TABCTRL_CARD_C17 = ⑰ 选中 + 悬停反馈
+STRID_TABCTRL_CARD_C18 = ⑱ 垂直模式分隔线
+STRID_TABCTRL_CARD_C19 = ⑲ 底边线断开策略
+STRID_TABCTRL_CARD_C20 = ⑳ 焦点框 / 禁用态
+STRID_TABCTRL_CARD_C21 = ㉑ 浮动角标
+STRID_TABCTRL_CARD_C22 = ㉒ 关闭按钮显示策略
+
+# ⑮–㉒ 按钮
+STRID_TABCTRL_BTN_ANIM = 指示条动画：%s
+STRID_TABCTRL_BTN_ANIM_DURATION = 时长：%d ms
+STRID_TABCTRL_BTN_ANIM_NEXT = 切到下一个标签
+STRID_TABCTRL_BTN_SEL_FONT = 选中加粗：%s
+STRID_TABCTRL_BTN_SEL_BG = 选中淡底色：%s
+STRID_TABCTRL_BTN_HOVER_TITLE = 选中+hover 变色：%s
+STRID_TABCTRL_BTN_LINE_VERT = 垂直方向
+STRID_TABCTRL_BTN_LINE_HORZ = 水平方向
+STRID_TABCTRL_BTN_BOTTOM_LINE = 切换底线策略
+STRID_TABCTRL_BTN_FOCUS_CTRL = 让标签栏获得焦点
+STRID_TABCTRL_BTN_DISABLE = 禁用：%s
+STRID_TABCTRL_BTN_BADGE_FLOAT = 浮动角标：%s
+STRID_TABCTRL_BTN_BADGE_ADD = 角标数量 +10
+STRID_TABCTRL_BTN_CLOSE_MODE = 切换显示策略
+
+# ⑮–㉒ 枚举文案
+STRID_TABCTRL_STATE_LINE_HORZ = 横线
+STRID_TABCTRL_STATE_LINE_VERT = 竖线
+STRID_TABCTRL_STATE_LINE_BREAK = 断开
+STRID_TABCTRL_STATE_LINE_CONTINUOUS = 连续
+STRID_TABCTRL_MODE_AUTO = 自动
+STRID_TABCTRL_MODE_BREAK = 始终断开
+STRID_TABCTRL_MODE_FULL = 始终连续
+STRID_TABCTRL_MODE_CLOSE_AUTO = 自动
+STRID_TABCTRL_MODE_CLOSE_HOVER = 仅悬停
+STRID_TABCTRL_MODE_CLOSE_ALWAYS = 始终显示
+STRID_TABCTRL_STATE_CLOSE_ALWAYS_SHOWN = 常显关闭按钮
+STRID_TABCTRL_STATE_CLOSE_HOVER_ONLY = 仅悬停显示
+
+# ⑮–㉒ 状态栏文案
+STRID_TABCTRL_STATE_C15_INIT = 指示条动画：开　|　时长：200 ms　|　选中：无
+STRID_TABCTRL_STATE_C15 = 指示条动画：%s　|　时长：%d ms　|　选中：%s
+STRID_TABCTRL_STATE_C16_INIT = 选中加粗：开　|　选中淡底色：关
+STRID_TABCTRL_STATE_C16 = 选中加粗：%s　|　选中淡底色：%s　|　选中：%s
+STRID_TABCTRL_STATE_C17_INIT = 选中+hover 变色：开　|　选中：无
+STRID_TABCTRL_STATE_C17 = 选中+hover 变色：%s　|　选中：%s
+STRID_TABCTRL_STATE_C18_INIT = 方向：垂直　|　分隔线：横线　|　标签项：-
+STRID_TABCTRL_STATE_C18 = 方向：%s　|　分隔线：%s　|　标签项：%s
+STRID_TABCTRL_STATE_C19_INIT = 策略：自动　|　选中处：连续
+STRID_TABCTRL_STATE_C19 = 策略：%s　|　选中处：%s
+STRID_TABCTRL_STATE_C20_INIT = 焦点：无　|　禁用：关　|　焦点框：隐藏
+STRID_TABCTRL_STATE_C20 = 焦点：%s　|　禁用：%s　|　焦点框：%s
+STRID_TABCTRL_STATE_C21_INIT = 浮动角标：关　|　角标数量：120　|　选中：无
+STRID_TABCTRL_STATE_C21 = 浮动角标：%s　|　角标数量：%d　|　选中：%s
+STRID_TABCTRL_STATE_C22_INIT = 策略：自动　|　选中项：常显关闭按钮
+STRID_TABCTRL_STATE_C22 = 策略：%s　|　选中项：%s
+
+# ㉑ 长标题（验证角标不挤压标题）
+STRID_TABCTRL_LONG_TITLE = 超长标签标题用于验证角标不挤压文字
+
+# ⑮–㉒ 操作提示
+STRID_TABCTRL_TIP_C15 = 点击标签切换时，指示条位置/宽度应平滑插值，而不是瞬间跳变
+STRID_TABCTRL_TIP_C16 = 指示条风格下，用 selected_title_font 加粗、selected_normal_color 淡底色拉开层次
+STRID_TABCTRL_TIP_C17 = 把鼠标移到"已选中"的标签上，应叠加悬停背景与文字变色反馈
+STRID_TABCTRL_TIP_C18 = 垂直模式下分隔线应变为底部横线，并与标签保持间距，不应错位
+STRID_TABCTRL_TIP_C19 = 自动：有选中背景时断开；始终断开；始终连续
+STRID_TABCTRL_TIP_C20 = 获得焦点后，选中标签上应显示焦点框（也可用 Tab 键切换焦点）
+STRID_TABCTRL_TIP_C21 = 流式角标会挤压长标题；浮动角标固定在右上角，不占用标题宽度
+STRID_TABCTRL_TIP_C22 = 自动沿用 auto_hide_close_button；仅悬停时选中项也不再常显关闭按钮
+
 # TabCtrl 独立测试窗口入口（controls/test.xml）
 STRID_CONTROLS_TABCTRL_FULL = TabCtrl：垂直 / 固定 / 溢出滚动 / 角标
 STRID_CONTROLS_TABCTRL_TEST_BTN = TabCtrl Test
