@@ -46,6 +46,7 @@ STRID_WEBVIEW2_BROWSER_REFRESH           =    刷新
 STRID_WEBVIEW2_BROWSER_STOP              =    停止
 STRID_WEBVIEW2_BROWSER_NEW_TAB           =    新建标签页
 STRID_WEBVIEW2_BROWSER_MULTI_TAB         =    可拖拽多标签浏览器
+STRID_WEBVIEW2_TITLE                     =    WebView2控件测试程序
 
 # examples/MultiLang
 MULTI_LANG_WINDOW_TEXT              = 支持多语言的窗口

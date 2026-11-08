@@ -45,6 +45,7 @@ STRID_WEBVIEW2_BROWSER_REFRESH           =    Refresh
 STRID_WEBVIEW2_BROWSER_STOP              =    Stop
 STRID_WEBVIEW2_BROWSER_NEW_TAB           =    New Tab
 STRID_WEBVIEW2_BROWSER_MULTI_TAB         =    Multi Tab Browser
+STRID_WEBVIEW2_TITLE                     =    WebView2 Control Test Program
 
 # examples/MultiLang
 MULTI_LANG_WINDOW_TEXT              = Support for multilingual windows

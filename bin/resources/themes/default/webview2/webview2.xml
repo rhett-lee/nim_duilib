@@ -1,36 +1,76 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="700,500" caption="0,0,0,36" shadow_type="default" size_box="4,4,4,4">
+<Window size="80%,80%" min_size="760,540" caption="0,0,0,36" size_box="4,4,4,4"
+        shadow_attached="true" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36"
+        icon="public/caption/logo.ico" text_id="STRID_WEBVIEW2_TITLE">
+    <!-- 卡片容器：内容区域分组显示，与 TreeView 示例保持一致 -->
+    <Class name="webview2_card" bkcolor="bg_window_card" border_size="1" border_color="border_split_level1"
+                                border_round="8,8"/>
+    <!-- 工具条按钮：轻量图标按钮，与 TreeView 示例保持一致 -->
+    <Class name="webview2_tool_btn" width="32" height="26" border_round="6,6" valign="center"
+                                   normal_color="" hovered_color="bg_btn_hovered" pressed_color="bg_btn_pressed"/>
+    <Class name="webview2_tool_back" class="webview2_tool_btn"
+            normal_image="file='arrow-left.svg' width='16' height='16' valign='center' halign='center' svg_replace_colors='#1E1E1E|border_svg_image'"
+            disabled_image="file='arrow-left.svg' width='16' height='16' valign='center' halign='center' fade='128' svg_replace_colors='#1E1E1E|border_svg_image'"/>
+    <Class name="webview2_tool_forward" class="webview2_tool_btn"
+            normal_image="file='arrow-right.svg' width='16' height='16' valign='center' halign='center' svg_replace_colors='#1E1E1E|border_svg_image'"
+            disabled_image="file='arrow-right.svg' width='16' height='16' valign='center' halign='center' fade='128' svg_replace_colors='#1E1E1E|border_svg_image'"/>
+    <Class name="webview2_tool_refresh" class="webview2_tool_btn"
+            normal_image="file='refresh.svg' width='16' height='16' valign='center' halign='center' svg_replace_colors='#1E1E1E|border_svg_image'"
+            disabled_image="file='refresh.svg' width='16' height='16' valign='center' halign='center' fade='128' svg_replace_colors='#1E1E1E|border_svg_image'"/>
+    <Class name="webview2_tool_stop" class="webview2_tool_btn"
+            normal_image="file='stop.svg' width='16' height='16' valign='center' halign='center' svg_replace_colors='#1E1E1E|border_svg_image'"
+            disabled_image="file='stop.svg' width='16' height='16' valign='center' halign='center' fade='128' svg_replace_colors='#1E1E1E|border_svg_image'"/>
+    <!-- 文字按钮：用于“转到” -->
+    <Class name="webview2_text_btn" height="26" border_round="6,6" valign="center" font="system_regular_12"
+                                    text_align="hcenter,vcenter" text_padding="10,0,10,0"
+                                    normal_text_color="text_default" normal_color=""
+                                    hovered_color="bg_btn_hovered" pressed_color="bg_btn_pressed"/>
+
     <VBox bkcolor="bg_window_main">
         <!-- 标题栏区域 -->
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
-            <Label name="page_title" width="stretch" height="32" text_align="left,vcenter" text_padding="8,2,5,0" mouse_enabled="false"/>
-            <Button class="btn_wnd_base" name="btn_dev_tool" height="32" width="40" margin="0,2,4,2" valign="center"
-                          tooltip_text_id="STRID_WEBVIEW2_BROWSER_DEV_TOOL" bkimage="file='dev_tool.svg' height='20' width='20' halign='center' valign='center'"/>
-            <Button class="btn_view_fullscreen_11" height="32" width="40" name="cef_full_screen_btn" margin="0,2,0,2"/>
-            <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
-            <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>
-            <Button class="btn_wnd_fullscreen_11" height="32" width="40" name="btn_window_fullscreen" margin="0,2,0,2"/>
-            <Button class="btn_wnd_min_11" height="32" width="40" name="btn_window_min" margin="0,2,0,2"/>
-            <Box height="stretch" width="40" margin="0,2,0,2">
-                <Button class="btn_wnd_max_11" height="32" width="stretch" name="btn_window_max"/>
-                <Button class="btn_wnd_restore_11" height="32" width="stretch" name="btn_window_restore" visible="false"/>
-            </Box>
-            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+            <!-- 标题栏：左侧显示应用图标和网页标题 -->
+            <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
+            <Label name="page_title" width="stretch" height="32" margin="8,0,8,0" text_align="left,vcenter" mouse_enabled="false"/>
+            <!-- 标题栏：右侧窗口控制区域 -->
+            <HBox margin="0,0,0,0" valign="center" width="auto" height="36">
+                <Button class="btn_view_fullscreen_11" height="32" width="40" name="webview2_full_screen_btn" margin="0,2,0,2"/>
+                <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
+                <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>
+                <Button class="btn_wnd_fullscreen_11" height="32" width="40" name="btn_window_fullscreen" margin="0,2,0,2"/>
+                <Button class="btn_wnd_min_11" height="32" width="40" name="btn_window_min" margin="0,2,0,2"/>
+                <Box height="stretch" width="40" margin="0,2,0,2">
+                    <Button class="btn_wnd_max_11" height="32" width="stretch" name="btn_window_max"/>
+                    <Button class="btn_wnd_restore_11" height="32" width="stretch" name="btn_window_restore" visible="false"/>
+                </Box>
+                <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+            </HBox>
         </HBox>
 
-        <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
-        <HBox height="auto" margin="2,0,2,0">
-            <Button class="btn_global_blue_80x30" name="btn_back" text_id="STRID_WEBVIEW2_BROWSER_BACKWARD" width="60"/>
-            <Button class="btn_global_blue_80x30" name="btn_forward" text_id="STRID_WEBVIEW2_BROWSER_FORWARD" width="60" margin="5,0,5"/>
-            <RichEdit class="simple simple_border prompt" name="edit_url"
-                                                  width="stretch" height="28" valign="center" text_padding="5,0,5,0"
-                                                  prompt_text_id="STRID_WEBVIEW2_BROWSER_INPUT_ADDRESS"
-                                                  default_context_menu="true"/>
-            <Button class="btn_global_blue_80x30" name="btn_navigate" text_id="STRID_WEBVIEW2_BROWSER_BROWSE_TO" width="60" margin="5"/>
-            <Button class="btn_global_blue_80x30" name="btn_refresh" text_id="STRID_WEBVIEW2_BROWSER_REFRESH" width="60" margin="5"/>
-        </HBox>
-        <VBox bkcolor="bg_container" margin="0,2,0,0">
-            <WebView2Control name="webview2_control" url="https://www.baidu.com" F12="true" margin="2,0,2,2"/>
+        <!-- 显示区域 -->
+        <VBox bkcolor="bg_window_main" padding="10,10,10,10">
+            <!-- 导航与地址栏工具条 -->
+            <HBox class="webview2_card" height="46" padding="8,0,8,0" child_margin="2">
+                <Button class="webview2_tool_back" name="btn_back" tooltip_text_id="STRID_WEBVIEW2_BROWSER_BACKWARD"/>
+                <Button class="webview2_tool_forward" name="btn_forward" tooltip_text_id="STRID_WEBVIEW2_BROWSER_FORWARD"/>
+                <Button class="webview2_tool_refresh" name="btn_refresh" tooltip_text_id="STRID_WEBVIEW2_BROWSER_REFRESH"/>
+                <Button class="webview2_tool_stop" name="btn_stop" tooltip_text_id="STRID_WEBVIEW2_BROWSER_STOP" visible="false"/>
+                <Control width="1" height="18" bkcolor="border_split_level1" margin="6,0,6,0"/>
+                <RichEdit class="simple simple_border prompt" name="edit_url"
+                                              width="stretch" height="28" valign="center" border_round="6,6"
+                                              text_padding="6,0,6,0"
+                                              prompt_text_id="STRID_WEBVIEW2_BROWSER_INPUT_ADDRESS"
+                                              default_context_menu="true"/>
+                <Button class="webview2_text_btn" name="btn_navigate" text_id="STRID_WEBVIEW2_BROWSER_BROWSE_TO" width="auto"/>
+                <Control width="1" height="18" bkcolor="border_split_level1" margin="6,0,6,0"/>
+                <Button class="webview2_tool_btn" name="btn_dev_tool" tooltip_text_id="STRID_WEBVIEW2_BROWSER_DEV_TOOL"
+                        normal_image="file='dev_tool.svg' width='18' height='18' halign='center' valign='center' svg_replace_colors='#1E1E1E|border_svg_image'"/>
+            </HBox>
+
+            <!-- 网页显示区域 -->
+            <VBox class="webview2_card" height="stretch" margin="0,8,0,0" padding="4,4,4,4">
+                <WebView2Control name="webview2_control" url="https://www.baidu.com" F12="true"/>
+            </VBox>
         </VBox>
     </VBox>
 </Window>

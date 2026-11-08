@@ -3,6 +3,13 @@
 
 MainForm::MainForm()
 {
+    m_pWebView2Control = nullptr;
+    m_pEditUrl = nullptr;
+    m_pTitleLabel = nullptr;
+    m_pBtnBack = nullptr;
+    m_pBtnForward = nullptr;
+    m_pBtnRefresh = nullptr;
+    m_pBtnStop = nullptr;
 }
 
 MainForm::~MainForm()
@@ -27,6 +34,11 @@ void MainForm::OnInitWindow()
     GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&MainForm::OnClicked, this, std::placeholders::_1), 0);
     m_pWebView2Control = dynamic_cast<ui::WebView2Control*>(FindControl(_T("webview2_control")));
     m_pEditUrl = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit_url")));
+    m_pTitleLabel = dynamic_cast<ui::Label*>(FindControl(_T("page_title")));
+    m_pBtnBack = dynamic_cast<ui::Button*>(FindControl(_T("btn_back")));
+    m_pBtnForward = dynamic_cast<ui::Button*>(FindControl(_T("btn_forward")));
+    m_pBtnRefresh = dynamic_cast<ui::Button*>(FindControl(_T("btn_refresh")));
+    m_pBtnStop = dynamic_cast<ui::Button*>(FindControl(_T("btn_stop")));
 
     // 设置输入框样式
     if (m_pEditUrl != nullptr) {
@@ -34,46 +46,54 @@ void MainForm::OnInitWindow()
         m_pEditUrl->AttachReturn(UiBind(&MainForm::OnNavigate, this, std::placeholders::_1));
     }
 
-    ui::Control* pControl = FindControl(_T("btn_back"));
-    if (pControl != nullptr) {
-        pControl->SetEnabled(false);
+    //初始状态：不允许后退、前进；显示刷新按钮，隐藏停止按钮
+    if (m_pBtnBack != nullptr) {
+        m_pBtnBack->SetEnabled(false);
     }
-
-    pControl = FindControl(_T("btn_forward"));
-    if (pControl != nullptr) {
-        pControl->SetEnabled(false);
+    if (m_pBtnForward != nullptr) {
+        m_pBtnForward->SetEnabled(false);
+    }
+    if (m_pBtnRefresh != nullptr) {
+        m_pBtnRefresh->SetVisible(true);
+    }
+    if (m_pBtnStop != nullptr) {
+        m_pBtnStop->SetVisible(false);
     }
 
     if (m_pWebView2Control != nullptr) {
         //更新前进后退按钮的状态
         m_pWebView2Control->SetHistoryChangedCallback([this]() {
-            if (m_pWebView2Control != nullptr) {
-                ui::Control* pControl = FindControl(_T("btn_back"));
-                if (pControl != nullptr) {
-                    pControl->SetEnabled(m_pWebView2Control->CanGoBack());
+            ui::GlobalManager::Instance().AssertUIThread();
+            UpdateNavigationButtonState();
+            });
+
+        //导航状态变化时，切换"刷新"和"停止"按钮
+        m_pWebView2Control->SetNavigationStateChangedCallback(
+            [this](ui::WebView2Control::NavigationState state, HRESULT /*errorCode*/) {
+                ui::GlobalManager::Instance().AssertUIThread();
+                const bool bLoading = (state == ui::WebView2Control::NavigationState::Started);
+                if (m_pBtnRefresh != nullptr) {
+                    m_pBtnRefresh->SetVisible(!bLoading);
                 }
-                pControl = FindControl(_T("btn_forward"));
-                if (pControl != nullptr) {
-                    pControl->SetEnabled(m_pWebView2Control->CanGoForward());
+                if (m_pBtnStop != nullptr) {
+                    m_pBtnStop->SetVisible(bLoading);
                 }
-            }
+                UpdateNavigationButtonState();
             });
 
         //更新URL
         m_pWebView2Control->SetSourceChangedCallback([this](const DString& url) {
             ui::GlobalManager::Instance().AssertUIThread();
-            ui::RichEdit* pEditUrl = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit_url")));
-            if (pEditUrl != nullptr) {
-                pEditUrl->SetText(url);
+            if (m_pEditUrl != nullptr) {
+                m_pEditUrl->SetText(url);
             }
             });
 
         //更新标题
         m_pWebView2Control->SetDocumentTitleChangedCallback([this](const DString& title) {
             ui::GlobalManager::Instance().AssertUIThread();
-            ui::Label* pLabelTitle = dynamic_cast<ui::Label*>(FindControl(_T("page_title")));
-            if (pLabelTitle != nullptr) {
-                pLabelTitle->SetText(title);
+            if (m_pTitleLabel != nullptr) {
+                m_pTitleLabel->SetText(title);
             }
             });
     }
@@ -82,9 +102,8 @@ void MainForm::OnInitWindow()
     ui::Button* pFullscreenBtn = dynamic_cast<ui::Button*>(FindControl(_T("webview2_full_screen_btn")));
     if (pFullscreenBtn != nullptr) {
         pFullscreenBtn->AttachClick([this](const ui::EventArgs&) {
-            ui::Control* pWebView2Control = FindControl(_T("webview2_control"));
-            if (pWebView2Control != nullptr) {
-                this->SetFullscreenControl(pWebView2Control);
+            if (m_pWebView2Control != nullptr) {
+                this->SetFullscreenControl(m_pWebView2Control);
             }
             return true;
             });
@@ -93,44 +112,82 @@ void MainForm::OnInitWindow()
 
 bool MainForm::OnClicked(const ui::EventArgs& msg)
 {
+    if (msg.GetSender() == nullptr) {
+        return false;
+    }
     DString name = msg.GetSender()->GetName();
 
     if (name == _T("btn_dev_tool")) {
         if (m_pWebView2Control != nullptr) {
             m_pWebView2Control->OpenDevToolsWindow();
         }
+        return true;
     }
     else if (name == _T("btn_back")) {
         if (m_pWebView2Control != nullptr) {
             m_pWebView2Control->NavigateBack();
         }
+        return true;
     }
     else if (name == _T("btn_forward")) {
         if (m_pWebView2Control != nullptr) {
             m_pWebView2Control->NavigateForward();
         }
+        return true;
     }
     else if (name == _T("btn_navigate")) {
         ui::EventArgs emptyMsg;
         OnNavigate(emptyMsg);
+        return true;
     }
     else if (name == _T("btn_refresh")) {
         if (m_pWebView2Control != nullptr) {
             m_pWebView2Control->Refresh();
         }
+        return true;
     }
-    return true;
+    else if (name == _T("btn_stop")) {
+        if (m_pWebView2Control != nullptr) {
+            m_pWebView2Control->Stop();
+        }
+        return true;
+    }
+    // 未处理的点击事件继续向上传递
+    return false;
 }
 
 bool MainForm::OnNavigate(const ui::EventArgs& /*msg*/)
 {
-    if ((m_pEditUrl != nullptr) && !m_pEditUrl->GetText().empty()) {
-        if (m_pWebView2Control != nullptr) {
-            m_pWebView2Control->Navigate(m_pEditUrl->GetText());
-            m_pWebView2Control->SetFocus();
-        }
+    if ((m_pEditUrl == nullptr) || (m_pWebView2Control == nullptr)) {
+        return true;
     }
+
+    //去除首尾的空白字符
+    DString url = m_pEditUrl->GetText();
+    size_t begin = url.find_first_not_of(_T(" \t\r\n"));
+    if (begin == DString::npos) {
+        return true;
+    }
+    size_t end = url.find_last_not_of(_T(" \t\r\n"));
+    url = url.substr(begin, end - begin + 1);
+
+    //未输入协议时，由WebView2控件自动补全为https协议
+    m_pWebView2Control->Navigate(url);
+    m_pWebView2Control->SetFocus();
     return true;
+}
+
+void MainForm::UpdateNavigationButtonState()
+{
+    if (m_pWebView2Control == nullptr) {
+        return;
+    }
+    if (m_pBtnBack != nullptr) {
+        m_pBtnBack->SetEnabled(m_pWebView2Control->CanGoBack());
+    }
+    if (m_pBtnForward != nullptr) {
+        m_pBtnForward->SetEnabled(m_pWebView2Control->CanGoForward());
+    }
 }
 
 

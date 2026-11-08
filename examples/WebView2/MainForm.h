@@ -45,9 +45,38 @@ private:
     bool OnClicked(const ui::EventArgs& msg);
     bool OnNavigate(const ui::EventArgs& msg);
 
+    /** 更新前进、后退按钮的可用状态
+    */
+    void UpdateNavigationButtonState();
+
 private:
+    /** 网页控件
+    */
     ui::WebView2Control* m_pWebView2Control;
+
+    /** 地址栏
+    */
     ui::RichEdit* m_pEditUrl;
+
+    /** 网页标题
+    */
+    ui::Label* m_pTitleLabel;
+
+    /** 后退按钮
+    */
+    ui::Button* m_pBtnBack;
+
+    /** 前进按钮
+    */
+    ui::Button* m_pBtnForward;
+
+    /** 刷新按钮
+    */
+    ui::Button* m_pBtnRefresh;
+
+    /** 停止按钮
+    */
+    ui::Button* m_pBtnStop;
 };
 
 #endif //EXAMPLES_MAIN_FORM_H_
