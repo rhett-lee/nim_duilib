@@ -276,6 +276,11 @@ private:
     ui::CefControl* m_pCefControlDev;
     ui::Button* m_pDevToolBtn;
     ui::RichEdit* m_pEditUrl;
+    ui::Label* m_pTitleLabel;
+    ui::Button* m_pBtnBack;
+    ui::Button* m_pBtnForward;
+    ui::Button* m_pBtnRefresh;
+    ui::Button* m_pBtnStop;
 
     /** 拖入文件操作: 记录文件列表
     */

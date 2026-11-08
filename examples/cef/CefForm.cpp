@@ -6,6 +6,15 @@
 
 CefForm::CefForm()
 {
+    m_pCefControl = nullptr;
+    m_pCefControlDev = nullptr;
+    m_pDevToolBtn = nullptr;
+    m_pEditUrl = nullptr;
+    m_pTitleLabel = nullptr;
+    m_pBtnBack = nullptr;
+    m_pBtnForward = nullptr;
+    m_pBtnRefresh = nullptr;
+    m_pBtnStop = nullptr;
 }
 
 CefForm::~CefForm()
@@ -32,6 +41,11 @@ void CefForm::OnInitWindow()
     m_pCefControlDev = dynamic_cast<ui::CefControl*>(FindControl(_T("cef_control_dev")));
     m_pDevToolBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_dev_tool")));
     m_pEditUrl = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit_url")));
+    m_pTitleLabel = dynamic_cast<ui::Label*>(FindControl(_T("page_title")));
+    m_pBtnBack = dynamic_cast<ui::Button*>(FindControl(_T("btn_back")));
+    m_pBtnForward = dynamic_cast<ui::Button*>(FindControl(_T("btn_forward")));
+    m_pBtnRefresh = dynamic_cast<ui::Button*>(FindControl(_T("btn_refresh")));
+    m_pBtnStop = dynamic_cast<ui::Button*>(FindControl(_T("btn_stop")));
     ASSERT(m_pDevToolBtn != nullptr);
     //ASSERT(m_pEditUrl != nullptr);
 
@@ -41,14 +55,18 @@ void CefForm::OnInitWindow()
         m_pEditUrl->AttachReturn(UiBind(&CefForm::OnNavigate, this, std::placeholders::_1));
     }
 
-    ui::Control* pControl = FindControl(_T("btn_back"));
-    if (pControl != nullptr) {
-        pControl->SetEnabled(false);
+    //初始状态：不允许后退、前进；显示刷新按钮，隐藏停止按钮
+    if (m_pBtnBack != nullptr) {
+        m_pBtnBack->SetEnabled(false);
     }
-
-    pControl = FindControl(_T("btn_forward"));
-    if (pControl != nullptr) {
-        pControl->SetEnabled(false);
+    if (m_pBtnForward != nullptr) {
+        m_pBtnForward->SetEnabled(false);
+    }
+    if (m_pBtnRefresh != nullptr) {
+        m_pBtnRefresh->SetVisible(true);
+    }
+    if (m_pBtnStop != nullptr) {
+        m_pBtnStop->SetVisible(false);
     }
 
     if (m_pCefControl != nullptr) {
@@ -85,9 +103,8 @@ void CefForm::OnInitWindow()
     ui::Button* pFullscreenBtn = dynamic_cast<ui::Button*>(FindControl(_T("cef_full_screen_btn")));
     if (pFullscreenBtn != nullptr) {
         pFullscreenBtn->AttachClick([this](const ui::EventArgs&) {
-            ui::Control* pCefControl = FindControl(_T("cef_control"));
-            if (pCefControl != nullptr) {
-                this->SetFullscreenControl(pCefControl);
+            if (m_pCefControl != nullptr) {
+                this->SetFullscreenControl(m_pCefControl);
             }
             return true;
             });
@@ -182,41 +199,72 @@ void CefForm::OnAlreadyRunningAppRelaunch(const std::vector<DString>& argumentLi
 
 bool CefForm::OnClicked(const ui::EventArgs& msg)
 {
+    if (msg.GetSender() == nullptr) {
+        return false;
+    }
     DString name = msg.GetSender()->GetName();
 
     if (name == _T("btn_dev_tool")) {
         SwitchShowDevTools();
+        return true;
     }
     else if (name == _T("btn_back")) {
         if (m_pCefControl != nullptr) {
             m_pCefControl->GoBack();
         }
+        return true;
     }
     else if (name == _T("btn_forward")) {
         if (m_pCefControl != nullptr) {
             m_pCefControl->GoForward();
         }
+        return true;
     }
     else if (name == _T("btn_navigate")) {
         ui::EventArgs emptyMsg;
         OnNavigate(emptyMsg);
+        return true;
     }
     else if (name == _T("btn_refresh")) {
         if (m_pCefControl != nullptr) {
             m_pCefControl->Refresh();
         }
+        return true;
     }
-    return true;
+    else if (name == _T("btn_stop")) {
+        if (m_pCefControl != nullptr) {
+            m_pCefControl->StopLoad();
+        }
+        return true;
+    }
+    // 未处理的点击事件继续向上传递
+    return false;
 }
 
 bool CefForm::OnNavigate(const ui::EventArgs& /*msg*/)
 {
-    if ((m_pEditUrl != nullptr) && !m_pEditUrl->GetText().empty()) {
-        if (m_pCefControl != nullptr) {
-            m_pCefControl->LoadURL(m_pEditUrl->GetText());
-            m_pCefControl->SetFocus();
-        }
+    if ((m_pEditUrl == nullptr) || (m_pCefControl == nullptr)) {
+        return true;
     }
+
+    //去除首尾的空白字符
+    DString url = m_pEditUrl->GetText();
+    size_t begin = url.find_first_not_of(_T(" \t\r\n"));
+    if (begin == DString::npos) {
+        return true;
+    }
+    size_t end = url.find_last_not_of(_T(" \t\r\n"));
+    url = url.substr(begin, end - begin + 1);
+
+    //未输入协议时，按网址处理，默认使用https协议
+    if ((url.find(_T("://")) == DString::npos) &&
+        (url.find(_T("about:")) != 0) &&
+        (url.find(_T("file:")) != 0)) {
+        url = _T("https://") + url;
+    }
+
+    m_pCefControl->LoadURL(url);
+    m_pCefControl->SetFocus();
     return true;
 }
 
@@ -256,9 +304,8 @@ void CefForm::OnContextMenuDismissed(CefRefPtr<CefBrowser> browser, CefRefPtr<Ce
 void CefForm::OnTitleChange(CefRefPtr<CefBrowser> browser, const DString& title)
 {
     ui::GlobalManager::Instance().AssertUIThread();
-    ui::Label* pLabelTitle = dynamic_cast<ui::Label*>(FindControl(_T("page_title")));
-    if (pLabelTitle != nullptr) {
-        pLabelTitle->SetText(title);
+    if (m_pTitleLabel != nullptr) {
+        m_pTitleLabel->SetText(title);
     }
 }
     
@@ -270,9 +317,8 @@ void CefForm::OnUrlChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> fra
 void CefForm::OnMainUrlChange(const DString& oldUrl, const DString& newUrl)
 {
     ui::GlobalManager::Instance().AssertUIThread();
-    ui::RichEdit* pEditUrl = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit_url")));
-    if (pEditUrl != nullptr) {
-        pEditUrl->SetText(newUrl);
+    if (m_pEditUrl != nullptr) {
+        m_pEditUrl->SetText(newUrl);
     }
 }
     
@@ -421,14 +467,21 @@ void CefForm::OnProtocolExecution(CefRefPtr<CefBrowser> browser,
 void CefForm::OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward)
 {
     ui::GlobalManager::Instance().AssertUIThread();
-    ui::Control* pControl = FindControl(_T("btn_back"));
-    if ((pControl != nullptr) && (m_pCefControl != nullptr)) {
-        pControl->SetEnabled(m_pCefControl->CanGoBack());
+
+    //更新前进、后退按钮的状态
+    if (m_pBtnBack != nullptr) {
+        m_pBtnBack->SetEnabled(canGoBack);
+    }
+    if (m_pBtnForward != nullptr) {
+        m_pBtnForward->SetEnabled(canGoForward);
     }
 
-    pControl = FindControl(_T("btn_forward"));
-    if ((pControl != nullptr) && (m_pCefControl != nullptr)) {
-        pControl->SetEnabled(m_pCefControl->CanGoForward());
+    //加载状态变化时，切换"刷新"和"停止"按钮
+    if (m_pBtnRefresh != nullptr) {
+        m_pBtnRefresh->SetVisible(!isLoading);
+    }
+    if (m_pBtnStop != nullptr) {
+        m_pBtnStop->SetVisible(isLoading);
     }
 }
     
