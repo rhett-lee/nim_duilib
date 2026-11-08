@@ -2,6 +2,7 @@
 #include "duilib/Box/TabBox.h"
 #include "duilib/Layout/VLayout.h"
 #include "duilib/Layout/HLayout.h"
+#include <algorithm>
 #include <vector>
 
 namespace ui
@@ -347,6 +348,11 @@ void TabCtrl::OnInit()
     //设置为单选
     SetMultiSelect(false);
 
+    //绑定TabBox：XML 解析时TabBox可能尚未创建，此时控件树已完整，可稳定绑定
+    if ((m_pTabBox == nullptr) && !m_tabBoxName.empty()) {
+        SetTabBoxName(m_tabBoxName.c_str());
+    }
+
     //默认选择的子项
     if (m_nSelectedId != Box::InvalidIndex) {
         SelectItem(m_nSelectedId);
@@ -370,24 +376,12 @@ void TabCtrl::OnInit()
 void TabCtrl::HandleEvent(const EventArgs& msg)
 {
     if ((msg.GetSender() == this) && (msg.eventType == kEventSelect)) {
-        //尝试设置关联的TabBox
+        //尝试设置关联的TabBox（首次选择时可能尚未绑定）
         if ((m_pTabBox == nullptr) && !m_tabBoxName.empty()) {
             SetTabBoxName(m_tabBoxName.c_str());
         }
-        if (m_pTabBox != nullptr) {
-            TabCtrlItem* pItem = nullptr;
-            size_t nSelectIndex = msg.wParam;
-            Control* pControl = GetItemAt(nSelectIndex);
-            if (pControl != nullptr) {
-                pItem = dynamic_cast<TabCtrlItem*>(pControl);
-            }
-            if (pItem != nullptr) {
-                size_t nItemIndex = pItem->GetTabBoxItemIndex();
-                if (nItemIndex != Box::InvalidIndex) {
-                    m_pTabBox->SelectItem(nItemIndex);
-                }
-            }
-        }
+        //把当前选择项同步到TabBox
+        SyncTabBoxSelection();
     }
     BaseClass::HandleEvent(msg);
 
@@ -433,9 +427,36 @@ void TabCtrl::PaintStateColors(IRender* pRender)
         else {
             //水平标签栏：在底部画线
             rcTabCtrl.bottom -= (fBottomLineHeight / 2);
-            pRender->DrawLine(UiPointF(rcTabCtrl.left, rcTabCtrl.bottom),
-                              UiPointF(rcTabCtrl.right, rcTabCtrl.bottom),
-                              pBottomLinePen.get());
+            bool bDrawFullLine = true;
+            if (m_bSelectedTabItemShowBg) {
+                //绘制选中标签背景时，按选中标签的左右边界分段绘制，选择标签的区域不绘制
+                std::vector<size_t> selectedIndexs;
+                GetSelectedItems(selectedIndexs);
+                if (!selectedIndexs.empty()) {
+                    Control* pSelectedItem = GetItemAt(selectedIndexs[0]);
+                    if (pSelectedItem != nullptr) {
+                        const UiRect rcSelected = pSelectedItem->GetRect();
+                        if (!rcSelected.IsEmpty()) {
+                            bDrawFullLine = false;
+                            if (rcSelected.left > rcTabCtrl.left) {
+                                pRender->DrawLine(UiPointF(rcTabCtrl.left, rcTabCtrl.bottom),
+                                                  UiPointF(std::min(rcTabCtrl.right, (float)rcSelected.left), rcTabCtrl.bottom),
+                                                  pBottomLinePen.get());
+                            }
+                            if (rcSelected.right < rcTabCtrl.right) {
+                                pRender->DrawLine(UiPointF(std::max(rcTabCtrl.left, (float)rcSelected.right), rcTabCtrl.bottom),
+                                                  UiPointF(rcTabCtrl.right, rcTabCtrl.bottom),
+                                                  pBottomLinePen.get());
+                            }
+                        }
+                    }
+                }
+            }
+            if (bDrawFullLine) {
+                pRender->DrawLine(UiPointF(rcTabCtrl.left, rcTabCtrl.bottom),
+                                  UiPointF(rcTabCtrl.right, rcTabCtrl.bottom),
+                                  pBottomLinePen.get());
+            }
         }
     }
 }
@@ -469,6 +490,30 @@ DString TabCtrl::GetTabBoxName() const
 void TabCtrl::SetTabBox(TabBox* pTabBox)
 {
     m_pTabBox = pTabBox;
+    if ((pTabBox != nullptr) && IsInited()) {
+        //绑定后同步一次当前选择项，避免绑定前的选择状态与TabBox不一致
+        SyncTabBoxSelection();
+    }
+}
+
+void TabCtrl::SyncTabBoxSelection()
+{
+    if (m_pTabBox == nullptr) {
+        return;
+    }
+    std::vector<size_t> selectedIndexs;
+    GetSelectedItems(selectedIndexs);
+    if (selectedIndexs.empty()) {
+        return;
+    }
+    TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(GetItemAt(selectedIndexs[0]));
+    if (pItem == nullptr) {
+        return;
+    }
+    const size_t nItemIndex = pItem->GetTabBoxItemIndex();
+    if (nItemIndex != Box::InvalidIndex) {
+        m_pTabBox->SelectItem(nItemIndex);
+    }
 }
 
 TabBox* TabCtrl::GetTabBox() const
@@ -497,8 +542,9 @@ bool TabCtrl::SetItemIndex(Control* pControl, size_t iIndex)
             if (iIndex < nFixedCount) {
                 iIndex = nFixedCount;
             }
-            if (iIndex > nCount) {
-                iIndex = nCount;
+            if (iIndex >= nCount) {
+                //移到末尾时索引不能等于元素个数（Box::SetItemIndex 要求索引小于元素个数）
+                iIndex = (nCount > 0) ? (nCount - 1) : 0;
             }
         }
     }
@@ -566,14 +612,10 @@ bool TabCtrl::RemoveItemAt(size_t iIndex)
     return bRet;
 }
 
-void TabCtrl::RemoveAllItems()
-{
-    BaseClass::RemoveAllItems();
-}
-
 void TabCtrl::AdjustItemLineStatus()
 {
     TabCtrlItem* pLastItem = nullptr;
+    TabCtrlItem* pLastVisibleItem = nullptr;
     const size_t nCount = GetItemCount();
     for (size_t nItem = 0; nItem < nCount; ++nItem) {
         TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(GetItemAt(nItem));
@@ -594,14 +636,14 @@ void TabCtrl::AdjustItemLineStatus()
             //其他状态的标签，显示分割线
             pItem->SetItemLineVisible(true);
         }
-        
-        if (nItem == (nCount - 1)) {
-            //最后一个标签，不显示分割线
-            pItem->SetItemLineVisible(false);
-        }
 
         //记录上一个标签
         pLastItem = pItem;
+        pLastVisibleItem = pItem;
+    }
+    if (pLastVisibleItem != nullptr) {
+        //最后一个可见标签，不显示分割线
+        pLastVisibleItem->SetItemLineVisible(false);
     }
 }
 
@@ -618,17 +660,18 @@ TabCtrlItem::TabCtrlItem(Window* pWindow):
     m_nBadgeMaxCount(99),
     m_bBadgeDot(false),
     m_bAutoHideCloseBtn(false),
+    m_bUserDragOrder(true),
     m_bFixed(false),
     m_nTabBoxItemIndex(Box::InvalidIndex)
 {
-    m_rcSelected.cx = (uint8_t)-1;
-    m_rcSelected.cy = (uint8_t)-1;
+    m_rcSelected.cx = -1;
+    m_rcSelected.cy = -1;
 
-    m_rcHovered.cx = (uint8_t)-1;
-    m_rcHovered.cy = (uint8_t)-1;
+    m_rcHovered.cx = -1;
+    m_rcHovered.cy = -1;
 
     m_hoveredPadding.top = 0;
-    m_hoveredPadding.left = (uint8_t)-1;
+    m_hoveredPadding.left = -1;
     m_hoveredPadding.right = 0;
     m_hoveredPadding.bottom = 0;
 }
@@ -700,6 +743,11 @@ void TabCtrlItem::SetAttribute(const DString& strName, const DString& strValue2)
     }
     else if (strName == _T("badge_class")) {
         SetBadgeClass(strValue);
+    }
+    else if (strName == _T("drag_order")) {
+        //记录用户配置的拖动排序开关：固定标签期间会临时关闭，取消固定后按此值恢复
+        m_bUserDragOrder = StringUtil::IsValueTrue(strValue);
+        SetEnableDragOrder(m_bUserDragOrder && !m_bFixed);
     }
     else if (strName == _T("fixed")) {
         //是否为固定标签（固定标签不可拖动、不可作为拖放目标，且不显示关闭按钮）
@@ -783,6 +831,10 @@ void TabCtrlItem::SetIconClass(const DString& iconClass)
     }
     else {
         if (m_pIcon != nullptr) {
+            //保留图标资源字符串，重新创建图标控件后可恢复
+            if (m_iconImageString.empty()) {
+                m_iconImageString = m_pIcon->GetBkImage();
+            }
             RemoveItem(m_pIcon);
             m_pIcon = nullptr;
         }
@@ -832,6 +884,13 @@ void TabCtrlItem::SetTitleClass(const DString& titleClass)
     }
     else {
         if (m_pLabel != nullptr) {
+            //保留文字内容和多语ID，重新创建文本控件后可恢复
+            if (m_title.empty()) {
+                m_title = m_pLabel->GetText();
+            }
+            if (m_titleId.empty()) {
+                m_titleId = m_pLabel->GetTextId();
+            }
             RemoveItem(m_pLabel);
             m_pLabel = nullptr;
         }
@@ -1104,15 +1163,7 @@ void TabCtrlItem::AdjustItemLineStatus()
 
 bool TabCtrlItem::IsItemLineVisible() const
 {
-    if ((m_pLine == nullptr) || !m_pLine->IsVisible()) {
-        return false;
-    }
-    DString bkColor = m_pLine->GetBkColor();
-    if (bkColor.empty()) {
-        return false;
-    }
-    UiColor color = GetUiColor(bkColor);
-    return color.GetA() != 0;
+    return (m_pLine != nullptr) && m_pLine->IsVisible() && (m_pLine->GetAlpha() != 0);
 }
 
 void TabCtrlItem::SetItemLineVisible(bool bVisible)
@@ -1120,15 +1171,10 @@ void TabCtrlItem::SetItemLineVisible(bool bVisible)
     if (m_pLine == nullptr) {
         return;
     }
-    DString bkColor = m_pLine->GetBkColor();
-    if (bkColor.empty()) {
-        return;
-    }
-    UiColor oldColor = GetUiColor(bkColor);
-    uint8_t a = bVisible ? 255 : 0;
-    UiColor newColor = UiColor(a, oldColor.GetR(), oldColor.GetG(), oldColor.GetB());
-    if (newColor != oldColor) {
-        m_pLine->SetBkColor(newColor);
+    //通过控件的Alpha控制显示与隐藏，不修改背景色，避免把主题颜色变量解析成固定颜色
+    const uint8_t nAlpha = bVisible ? 255 : 0;
+    if (m_pLine->GetAlpha() != nAlpha) {
+        m_pLine->SetAlpha(nAlpha);
     }
 }
 
@@ -1145,15 +1191,15 @@ void TabCtrlItem::SetSelectedRoundCorner(UiSize szCorner, bool bNeedDpiScale)
     if (bNeedDpiScale) {
         Dpi().ScaleSize(szCorner);
     }
-    m_rcSelected.cx = ui::TruncateToUInt8(szCorner.cx);
-    m_rcSelected.cy = ui::TruncateToUInt8(szCorner.cy);
+    m_rcSelected.cx = szCorner.cx;
+    m_rcSelected.cy = szCorner.cy;
 }
 
 UiSize TabCtrlItem::GetSelectedRoundCorner() const
 {
     UiSize szCorner;
-    szCorner.cx = (int8_t)m_rcSelected.cx;
-    szCorner.cy = (int8_t)m_rcSelected.cy;
+    szCorner.cx = m_rcSelected.cx;
+    szCorner.cy = m_rcSelected.cy;
     if (szCorner.cx < 0) {
         szCorner.cx = Dpi().GetScaleInt(12);
     }
@@ -1170,15 +1216,15 @@ void TabCtrlItem::SetHoveredRoundCorner(UiSize szCorner, bool bNeedDpiScale)
     if (bNeedDpiScale) {
         Dpi().ScaleSize(szCorner);
     }
-    m_rcHovered.cx = ui::TruncateToUInt8(szCorner.cx);
-    m_rcHovered.cy = ui::TruncateToUInt8(szCorner.cy);
+    m_rcHovered.cx = szCorner.cx;
+    m_rcHovered.cy = szCorner.cy;
 }
 
 UiSize TabCtrlItem::GetHoveredRoundCorner() const
 {
     UiSize szCorner;
-    szCorner.cx = (int8_t)m_rcHovered.cx;
-    szCorner.cy = (int8_t)m_rcHovered.cy;
+    szCorner.cx = m_rcHovered.cx;
+    szCorner.cy = m_rcHovered.cy;
     if (szCorner.cx < 0) {
         szCorner.cx = Dpi().GetScaleInt(5);
     }
@@ -1195,22 +1241,22 @@ void TabCtrlItem::SetHoveredPadding(UiPadding rcPadding, bool bNeedDpiScale)
     if (bNeedDpiScale) {
         Dpi().ScalePadding(rcPadding);
     }
-    m_hoveredPadding.left = TruncateToUInt8(rcPadding.left);
-    m_hoveredPadding.top = TruncateToUInt8(rcPadding.top);
-    m_hoveredPadding.right = TruncateToUInt8(rcPadding.right);
-    m_hoveredPadding.bottom = TruncateToUInt8(rcPadding.bottom);
+    m_hoveredPadding.left = rcPadding.left;
+    m_hoveredPadding.top = rcPadding.top;
+    m_hoveredPadding.right = rcPadding.right;
+    m_hoveredPadding.bottom = rcPadding.bottom;
 }
 
 UiPadding TabCtrlItem::GetHoveredPadding() const
 {
     UiPadding rcPadding;
-    rcPadding.left = (int8_t)m_hoveredPadding.left;
-    rcPadding.top = (int8_t)m_hoveredPadding.top;
-    rcPadding.right = (int8_t)m_hoveredPadding.right;
-    rcPadding.bottom = (int8_t)m_hoveredPadding.bottom;
+    rcPadding.left = m_hoveredPadding.left;
+    rcPadding.top = m_hoveredPadding.top;
+    rcPadding.right = m_hoveredPadding.right;
+    rcPadding.bottom = m_hoveredPadding.bottom;
     if (rcPadding.left < 0) {
         rcPadding.top = 0;
-        rcPadding.left = (uint8_t)Dpi().GetScaleInt(3);
+        rcPadding.left = Dpi().GetScaleInt(3);
         rcPadding.right = rcPadding.left;
         rcPadding.bottom = rcPadding.left;
     }
@@ -1249,7 +1295,13 @@ bool TabCtrlItem::MouseLeave(const EventArgs& msg)
     }
     else if (!GetRect().ContainsPt(pt)) {
         if (m_pCloseBtn != nullptr) {
-            m_pCloseBtn->SetFadeVisible(IsSelected());
+            if (IsAutoHideCloseButton()) {
+                //自动隐藏：未选中时隐藏；选中时保持显示
+                m_pCloseBtn->SetFadeVisible(IsSelected());
+            }
+            else {
+                m_pCloseBtn->SetVisible(true);
+            }
         }
     }
     return bRet;
@@ -1317,6 +1369,9 @@ void TabCtrlItem::PaintTabItemSelected(IRender* pRender)
     UiSize roundSize = GetSelectedRoundCorner();
     if (rc.Width() < roundSize.cx * 2) {
         roundSize.cx = rc.Width() / 3;
+    }
+    if (rc.Height() < roundSize.cy * 2) {
+        roundSize.cy = rc.Height() / 3;
     }
 
     DString color = GetSelectStateColor(ControlStateType::kControlStateNormal);
@@ -1800,8 +1855,8 @@ void TabCtrlItem::SetFixed(bool bFixed)
 {
     if (m_bFixed != bFixed) {
         m_bFixed = bFixed;
-        //固定标签不可拖动，也不可作为拖放目标
-        SetEnableDragOrder(!bFixed);
+        //固定标签不可拖动，也不可作为拖放目标；取消固定后恢复用户配置的开关
+        SetEnableDragOrder(bFixed ? false : m_bUserDragOrder);
         UpdateCloseButtonVisible();
 
         //归位：保证"固定标签恒在标签栏前端"这一不变量

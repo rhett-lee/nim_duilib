@@ -3227,7 +3227,7 @@ The SplitBox control inherits the `Box` attributes. For more available attribute
 | :--- | :--- | :--- | :--- |
 | selected_id | | int | Default selected child item |
 | tab_box_name| | string | Name of the bound TabBox control; after binding, when the TabCtrl's selected item changes, the TabBox's selected item changes accordingly |
-| drag_order  | true | bool | Whether to support drag to adjust order (within the same tab); enabled by default |
+| drag_order  | true | bool | Whether to support drag to adjust order (within the same tab); enabled by default. This is the tab-bar-level master switch; a tab item can only be dragged when its own `drag_order` is also enabled |
 | drag_out_id | 0 | int | Whether to support drag-out of this container: if not 0, dragging out is supported; otherwise it is not (dragged out to a container whose drop_in_id == drag_out_id)|
 | drop_in_id | 0 | int | Whether to support drag-and-drop into this container: if not 0, dragging in is supported; otherwise it is not (dragged in from a container whose drag_out_id == drop_in_id)|
 | selected_tab_item_outline_width  | 0 | float  | Width of the outer outline of the selected tab item |
@@ -3263,6 +3263,7 @@ The TabCtrl control inherits the `ListBox` attributes. For more available attrib
 | hovered_round_corner | | size | Rounded corner size of the tab page in hovered state|
 | hovered_padding | | UiPadding | Padding of the background color of the tab page in hovered state|
 | auto_hide_close_button | false | bool | Whether the close button is automatically hidden|
+| drag_order | true | bool | Whether the tab supports drag to reorder (within the same tab bar); it also requires the TabCtrl's `drag_order` master switch to be on. While the tab is fixed this switch is temporarily disabled, and it is restored from this value when the tab is unfixed (`SetFixed(false)`) |
 | fixed | false | bool | Whether the tab is a fixed tab: a fixed tab cannot be dragged, cannot be a drop target, and shows no close button; multiple fixed tabs always stay at the front of the tab bar, forming a "fixed block" (normal tabs can only move after the fixed block and cannot cross it)|
 | badge_count | 0 | int64 | Badge count: shows the badge when greater than 0, automatically hidden when less than or equal to 0; the badge control is not created unless badge_class is set |
 | badge_max_count | 99 | int64 | Badge count limit; when exceeded, "limit+" is displayed (e.g. "99+") |
@@ -3274,7 +3275,7 @@ The TabCtrl control inherits the `ListBox` attributes. For more available attrib
 - The default skin defines `tab_ctrl_item_badge` (count badge, height 16, white text on red background) and `tab_ctrl_item_badge_dot` (dot badge, 8x8) in global.xml, already attached to `badge_class` of `tab_ctrl_item`.
 - The badge child control does not handle mouse events (`mouse_enabled="false"`), so it does not block tab clicks.
 
-**Corresponding C++ interfaces:** `SetTitleColor`/`GetTitleColor`, `SetHoveredTitleColor`/`GetHoveredTitleColor`, `SetSelectedTitleColor`/`GetSelectedTitleColor`, `SetBadgeCount`/`GetBadgeCount`, `SetBadgeMaxCount`/`GetBadgeMaxCount`, `SetBadgeDot`/`IsBadgeDot`, `SetBadgeClass`/`GetBadgeClass`, `GetBadgeControl`.
+**Corresponding C++ interfaces:** `SetTitleColor`/`GetTitleColor`, `SetHoveredTitleColor`/`GetHoveredTitleColor`, `SetSelectedTitleColor`/`GetSelectedTitleColor`, `SetBadgeCount`/`GetBadgeCount`, `SetBadgeMaxCount`/`GetBadgeMaxCount`, `SetBadgeDot`/`IsBadgeDot`, `SetBadgeClass`/`GetBadgeClass`, `GetBadgeControl`, `SetEnableDragOrder`/`IsEnableDragOrder` (`IsEnableDragOrder` is overridden: it also requires the TabCtrl's `drag_order` master switch to be on).
 
 **XML example:**
 

@@ -196,10 +196,6 @@ public:
      */
     virtual bool RemoveItemAt(size_t iIndex) override;
 
-    /** 移除所有子项
-     */
-    virtual void RemoveAllItems() override;
-
 protected:
     /** 初始化接口
     */
@@ -234,6 +230,10 @@ private:
     /** 固定标签归位：把固定标签稳定地移到标签栏前端（保持各自原有相对顺序）
     */
     void NormalizeFixedItems();
+
+    /** 把当前选中的标签同步到绑定的TabBox
+    */
+    void SyncTabBoxSelection();
 
     /** 默认选择的子项
     */
@@ -584,18 +584,18 @@ private:
     */
     struct RoundCorner
     {
-        uint8_t cx; //圆角的宽度
-        uint8_t cy; //圆角的高度
+        int32_t cx; //圆角的宽度，小于0表示未配置（使用默认值）
+        int32_t cy; //圆角的高度，小于0表示未配置（使用默认值）
     };
 
     /** Hovered标签的状态Padding值
     */
     struct HoveredPadding
     {
-        uint8_t left;
-        uint8_t top;
-        uint8_t right;
-        uint8_t bottom;
+        int32_t left;   //左侧内边距，小于0表示未配置（使用默认值）
+        int32_t top;
+        int32_t right;
+        int32_t bottom;
     };
 
     /** 选择状态的标签圆角大小
@@ -613,6 +613,10 @@ private:
     /** 关闭按钮是否自动隐藏
     */
     bool m_bAutoHideCloseBtn;
+
+    /** 用户配置的是否支持拖动排序（固定标签期间会被临时关闭，取消固定后按此值恢复）
+    */
+    bool m_bUserDragOrder;
 
     /** 是否为固定标签（固定标签不可拖动、不显示关闭按钮）
     */

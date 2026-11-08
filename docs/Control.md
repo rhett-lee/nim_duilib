@@ -3231,7 +3231,7 @@ SplitBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属�
 | :--- | :--- | :--- | :--- |
 | selected_id | | int | 默认选择的子项 |
 | tab_box_name| | string | 绑定的TabBox控件名称，绑定后TabCtrl的选择项变化时，TabBox的选择项会跟随变化 |
-| drag_order  | true | bool | 是否支持拖动调整顺序（在同一个标签内），默认是开启的 |
+| drag_order  | true | bool | 是否支持拖动调整顺序（在同一个标签内），默认是开启的。这是标签栏级的总开关，标签项还需自身的 `drag_order` 开启才可拖动 |
 | drag_out_id | 0 | int | 设置是否支持拖拽拖出该容器：如果不等于0，支持拖出，否则不支持拖出（拖出到drop_in_id==drag_out_id的容器）|
 | drop_in_id | 0 | int | 设置是否支持拖拽投放进入该容器: 如果不等于0，支持拖入，否则不支持拖入(从drag_out_id==drop_in_id的容器拖入到该容器)|
 | selected_tab_item_outline_width  | 0 | float  | 选择标签项的外部轮廓边线的宽度 |
@@ -3267,6 +3267,7 @@ TabCtrl 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`�
 | hovered_round_corner | | size | 标签页悬停状态时的圆角大小|
 | hovered_padding | | UiPadding | 标签页悬停状态的背景色的内边距|
 | auto_hide_close_button | false | bool | 关闭按钮是否自动隐藏|
+| drag_order | true | bool | 是否支持拖动调整顺序（在同一个标签栏内）；实际生效还需 TabCtrl 的 `drag_order` 总开关开启。固定标签期间该开关被临时关闭，取消固定（`SetFixed(false)`）后按此值恢复 |
 | fixed | false | bool | 是否为固定标签：固定标签不可拖动、不可作为拖放目标，且不显示关闭按钮；多个固定标签始终位于标签栏前端，构成“固定块”（普通标签只能在固定块之后移动，且不可越过固定块）|
 | badge_count | 0 | int64 | 角标数量：大于0时显示角标，小于等于0时自动隐藏；未设置badge_class时不创建角标控件|
 | badge_max_count | 99 | int64 | 角标数量上限，超过上限时显示"上限+"（如"99+"）|
@@ -3278,7 +3279,7 @@ TabCtrl 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`�
 - 默认皮肤在 global.xml 中定义了 `tab_ctrl_item_badge`（数字角标，高16，白字红底）和 `tab_ctrl_item_badge_dot`（红点角标，8x8），已挂载在 `tab_ctrl_item` 的 `badge_class` 上。
 - 角标子控件不参与鼠标事件（`mouse_enabled="false"`），不会阻挡标签页的点击。
 
-**对应 C++ 接口：** `SetTitleColor`/`GetTitleColor`、`SetHoveredTitleColor`/`GetHoveredTitleColor`、`SetSelectedTitleColor`/`GetSelectedTitleColor`、`SetBadgeCount`/`GetBadgeCount`、`SetBadgeMaxCount`/`GetBadgeMaxCount`、`SetBadgeDot`/`IsBadgeDot`、`SetBadgeClass`/`GetBadgeClass`、`GetBadgeControl`。
+**对应 C++ 接口：** `SetTitleColor`/`GetTitleColor`、`SetHoveredTitleColor`/`GetHoveredTitleColor`、`SetSelectedTitleColor`/`GetSelectedTitleColor`、`SetBadgeCount`/`GetBadgeCount`、`SetBadgeMaxCount`/`GetBadgeMaxCount`、`SetBadgeDot`/`IsBadgeDot`、`SetBadgeClass`/`GetBadgeClass`、`GetBadgeControl`、`SetEnableDragOrder`/`IsEnableDragOrder`（`IsEnableDragOrder` 为覆写：同时要求 TabCtrl 的 `drag_order` 总开关开启）。
 
 **XML 示例：**
 

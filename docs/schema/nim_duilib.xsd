@@ -8778,6 +8778,11 @@
         <xs:documentation>关闭按钮是否自动隐藏</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="drag_order" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否支持拖动调整顺序（在同一个标签栏内），默认是开启的；实际生效还需TabCtrl的drag_order总开关开启。固定标签期间该开关被临时关闭，取消固定（SetFixed(false)）后按此值恢复</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute name="fixed" type="xs:string">
       <xs:annotation>
         <xs:documentation>是否为固定标签：固定标签不可拖动、不可作为拖放目标，且不显示关闭按钮；多个固定标签始终位于标签栏前端，构成“固定块”（普通标签只能在固定块之后移动，且不可越过固定块）</xs:documentation>
