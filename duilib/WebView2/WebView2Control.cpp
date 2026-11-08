@@ -406,6 +406,11 @@ void WebView2Control::SetFavIconChangedCallback(FavIconChangedCallback callback)
     m_pImpl->SetFavIconChangedCallback(callback);
 }
 
+void WebView2Control::SetAcceleratorKeyPressedCallback(AcceleratorKeyPressedCallback callback)
+{
+    m_pImpl->SetAcceleratorKeyPressedCallback(callback);
+}
+
 bool WebView2Control::CapturePreview(const DString& filePath,
     std::function<void(const DString& filePath, HRESULT hr)> callback)
 {

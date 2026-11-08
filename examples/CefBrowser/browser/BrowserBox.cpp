@@ -29,7 +29,7 @@ const DString& BrowserBox::GetTitle() const
 
 void BrowserBox::InitBrowserBox(const DString& url)
 {
-    m_pCefControl = static_cast<ui::CefControl*>(FindSubControl(_T("cef_control")));
+    m_pCefControl = dynamic_cast<ui::CefControl*>(FindSubControl(_T("cef_control")));
     ASSERT(m_pCefControl != nullptr);
     if (m_pCefControl == nullptr) {
         return;
@@ -206,14 +206,18 @@ void BrowserBox::OnTitleChange(CefRefPtr<CefBrowser> browser, const DString& tit
 {
     ui::GlobalManager::Instance().AssertUIThread();
     m_title = title;
-    m_pBrowserForm->SetTabItemName(ui::StringConvert::UTF8ToT(m_browserId), title);
+    if (m_pBrowserForm != nullptr) {
+        m_pBrowserForm->SetTabItemName(ui::StringConvert::UTF8ToT(m_browserId), title);
+    }
 }
 
 void BrowserBox::OnUrlChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const DString& url)
 {
     ui::GlobalManager::Instance().AssertUIThread();
     m_url = url;
-    m_pBrowserForm->SetURL(m_browserId, url);
+    if (m_pBrowserForm != nullptr) {
+        m_pBrowserForm->SetURL(m_browserId, url);
+    }
 }
 
 void BrowserBox::OnMainUrlChange(const DString& oldUrl, const DString& newUrl)
@@ -402,6 +406,9 @@ void BrowserBox::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> 
 void BrowserBox::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode)
 {
     ui::GlobalManager::Instance().AssertUIThread();
+    if (m_pCefControl == nullptr) {
+        return;
+    }
     // 注册一个方法提供前端调用
     m_pCefControl->RegisterCppFunc(_T("ShowMessageBox"), ToWeakCallback([this](const std::string& params, ui::ReportResultFunction callback) {
         //C++ 接收到 JavaScript 发来的消息

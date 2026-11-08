@@ -28,6 +28,9 @@ LRESULT BrowserForm_Windows::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lP
     if (uMsg == WM_TASKBARBUTTONCREATED) {
         bHandled = true;
         m_taskbarManager.Init(this);
+        if (m_pBorwserBoxTab == nullptr) {
+            return TRUE;
+        }
 
         // 因为窗口刚创建时，浏览器盒子已经创建但是那时还没有收到WM_TASKBARBUTTONCREATED消息，导致RegisterTab函数没有被调用，所以收到消息后重新遍历一下没有被注册的Tab
         for (size_t i = 0; i < m_pBorwserBoxTab->GetItemCount(); ++i) {

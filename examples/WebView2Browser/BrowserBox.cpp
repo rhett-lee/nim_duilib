@@ -31,7 +31,7 @@ const DString& BrowserBox::GetTitle() const
 
 void BrowserBox::InitBrowserBox(const DString& url)
 {
-    m_pWebView2Control = static_cast<ui::WebView2Control*>(FindSubControl(_T("webview2_control")));
+    m_pWebView2Control = dynamic_cast<ui::WebView2Control*>(FindSubControl(_T("webview2_control")));
     ASSERT(m_pWebView2Control != nullptr);
     if (m_pWebView2Control == nullptr) {
         return;
@@ -40,13 +40,17 @@ void BrowserBox::InitBrowserBox(const DString& url)
     m_pWebView2Control->SetSourceChangedCallback([this](const DString& url) {
         ui::GlobalManager::Instance().AssertUIThread();
         m_url = url;
-        m_pBrowserForm->SetURL(m_browserId, url);
+        if (m_pBrowserForm != nullptr) {
+            m_pBrowserForm->SetURL(m_browserId, url);
+        }
         });
 
     m_pWebView2Control->SetDocumentTitleChangedCallback([this](const DString& title) {
         ui::GlobalManager::Instance().AssertUIThread();
         m_title = title;
-        m_pBrowserForm->SetTabItemName(ui::StringConvert::UTF8ToT(m_browserId), title);
+        if (m_pBrowserForm != nullptr) {
+            m_pBrowserForm->SetTabItemName(ui::StringConvert::UTF8ToT(m_browserId), title);
+        }
         });
 
     m_pWebView2Control->SetNavigationStateChangedCallback([this](WebView2Control::NavigationState state, HRESULT /*errorCode*/) {
@@ -86,6 +90,19 @@ void BrowserBox::InitBrowserBox(const DString& url)
         ui::GlobalManager::Instance().AssertUIThread();
         //发送回复给HTML页面
         m_pWebView2Control->PostWebMessageAsString(_T("Hello from C++!"));
+        });
+
+    //页面内快捷键回调函数（网页有输入焦点时，宿主窗口收不到按键消息，需要在这里转发）
+    m_pWebView2Control->SetAcceleratorKeyPressedCallback([this](uint32_t vkCode) -> bool {
+        ui::GlobalManager::Instance().AssertUIThread();
+        if (m_pBrowserForm == nullptr) {
+            return false;
+        }
+        //只有当前显示的标签页才处理快捷键
+        if (m_pBrowserForm->GetSelectedBox() != this) {
+            return false;
+        }
+        return m_pBrowserForm->HandleShortcutKey(static_cast<ui::VirtualKeyCode>(vkCode));
         });
 
     //新窗口请求回调函数

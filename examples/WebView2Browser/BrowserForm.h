@@ -136,6 +136,12 @@ public:
     */
     void OpenLinkUrl(const DString& url, bool bInNewWindow);
 
+    /** 处理浏览器的快捷键（窗口和网页内均生效）
+    * @param [in] vkCode 虚拟键码
+    * @return 返回true表示该按键已经被处理
+    */
+    bool HandleShortcutKey(ui::VirtualKeyCode vkCode);
+
 protected:
     /** 点击事件
     */
@@ -243,6 +249,14 @@ private:
     */
     void ShowCurrentPageFullscreen();
 
+    /** 更新前进/后退按钮的状态
+    */
+    void UpdateNavigationButtonState();
+
+    /** 更新窗口标题（跟随当前网页标题）
+    */
+    void UpdateWindowTitle();
+
 protected:
     /** 地址栏控件（用于显示和输入URL）
     */
@@ -259,6 +273,22 @@ protected:
     /** 当前激活的BrowserBox接口
     */
     BrowserBox* m_pActiveBrowserBox;
+
+    /** 后退按钮
+    */
+    ui::Button* m_pBtnBack;
+
+    /** 前进按钮
+    */
+    ui::Button* m_pBtnForward;
+
+    /** 刷新按钮
+    */
+    ui::Button* m_pBtnRefresh;
+
+    /** 停止按钮
+    */
+    ui::Button* m_pBtnStop;
 
 private:
     //处理浏览器盒子拖拽事件

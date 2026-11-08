@@ -96,6 +96,12 @@ void MainForm::OnInitWindow()
                 m_pTitleLabel->SetText(title);
             }
             });
+
+        //WebView2的子窗口获得焦点时，键盘消息不会到达本窗口，需要注册回调处理快捷键
+        m_pWebView2Control->SetAcceleratorKeyPressedCallback([this](uint32_t vkCode) {
+            ui::GlobalManager::Instance().AssertUIThread();
+            return HandleShortcutKey(static_cast<ui::VirtualKeyCode>(vkCode));
+            });
     }
 
     //页面全屏
@@ -193,36 +199,40 @@ void MainForm::UpdateNavigationButtonState()
 
 LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled)
 {
-    if (vkCode == ui::kVK_F11) {
-        if (ui::WebView2Manager::GetInstance().IsEnableF11()) {
-            //页面全屏或者退出全屏
-            if (IsWindowFullscreen() && (GetFullscreenControl() != nullptr)) {
-                bHandled = true;
-                ExitControlFullscreen();
-            }
-            else {
-                //当前页面，全屏显示
-                if (m_pWebView2Control != nullptr) {
-                    bHandled = true;
-                    SetFullscreenControl(m_pWebView2Control);
-                }
-            }
-        }
-    }
-    else if (vkCode == ui::kVK_F12) {
-        if (ui::WebView2Manager::GetInstance().IsEnableF12()) {
-            //显示或者隐藏开发者工具
-            bHandled = true;
-            if (m_pWebView2Control != nullptr) {
-                //只有打开功能，没有关闭功能
-                if (m_pWebView2Control->AreDevToolsEnabled()) {
-                    m_pWebView2Control->OpenDevToolsWindow();
-                }
-            }
-        }
-    }
-    if (bHandled) {
+    if (HandleShortcutKey(vkCode)) {
+        bHandled = true;
         return 0;
     }
     return BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
+}
+
+bool MainForm::HandleShortcutKey(ui::VirtualKeyCode vkCode)
+{
+    if (vkCode == ui::kVK_F11) {
+        if (!ui::WebView2Manager::GetInstance().IsEnableF11()) {
+            return false;
+        }
+        //页面全屏或者退出全屏
+        if (IsWindowFullscreen() && (GetFullscreenControl() != nullptr)) {
+            ExitControlFullscreen();
+            return true;
+        }
+        if (m_pWebView2Control != nullptr) {
+            //当前页面，全屏显示
+            SetFullscreenControl(m_pWebView2Control);
+            return true;
+        }
+        return false;
+    }
+    else if (vkCode == ui::kVK_F12) {
+        if (!ui::WebView2Manager::GetInstance().IsEnableF12()) {
+            return false;
+        }
+        //打开开发者工具（只有打开功能，没有关闭功能）
+        if ((m_pWebView2Control != nullptr) && m_pWebView2Control->AreDevToolsEnabled()) {
+            m_pWebView2Control->OpenDevToolsWindow();
+        }
+        return true;
+    }
+    return false;
 }

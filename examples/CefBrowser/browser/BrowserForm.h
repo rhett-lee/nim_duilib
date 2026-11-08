@@ -250,6 +250,20 @@ private:
     */
     void ShowCurrentPageFullscreen();
 
+    /** 处理浏览器窗口的快捷键
+    * @param[in] vkCode 虚拟键盘代码
+    * @return bool true 表示已处理，false 表示未处理
+    */
+    bool HandleShortcutKey(ui::VirtualKeyCode vkCode);
+
+    /** 更新前进/后退按钮的状态
+    */
+    void UpdateNavigationButtonState();
+
+    /** 更新窗口标题（跟随当前网页标题）
+    */
+    void UpdateWindowTitle();
+
 protected:
     /** 地址栏控件（用于显示和输入URL）
     */
@@ -266,6 +280,22 @@ protected:
     /** 当前激活的BrowserBox接口
     */
     BrowserBox* m_pActiveBrowserBox;
+
+    /** 工具条按钮：后退
+    */
+    ui::Button* m_pBtnBack;
+
+    /** 工具条按钮：前进
+    */
+    ui::Button* m_pBtnForward;
+
+    /** 工具条按钮：刷新
+    */
+    ui::Button* m_pBtnRefresh;
+
+    /** 工具条按钮：停止加载
+    */
+    ui::Button* m_pBtnStop;
 
 private:
     //处理浏览器盒子拖拽事件

@@ -1,5 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<Window size="75%,90%" min_size="800,500" caption="0,0,0,36" size_box="4,4,4,4" textid="STRID_WEBVIEW2_BROWSER_MULTI_TAB" shadow_attached="true" icon="public/caption/logo.ico">
+<Window size="80%,80%" min_size="760,540" caption="0,0,0,36" size_box="4,4,4,4"
+        shadow_attached="true" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36"
+        icon="public/caption/logo.ico" text_id="STRID_WEBVIEW2_BROWSER_MULTI_TAB">
     <!--新建标签按钮：纯色按钮-->
     <Class name="tab_item_new_add_btn" font="system_regular_18" text_align="hcenter,vcenter" valign="center"
                                        normal_text_color="text_default"
@@ -7,31 +9,40 @@
                                        normal_color=""
                                        hovered_color="bg_tab_ctrl_item_close_hovered"
                                        pressed_color="bg_tab_ctrl_item_close_pressed"/>
-    <Class name="tab_ctrl_left_line" bkcolor="border_tab_ctrl_item" width="1" height="22" halign="center" valign="center" mouse_enabled="false"/>
 
-    <Class name="btn_webview2_browser" text_align="hcenter,vcenter"
-                              normal_text_color="text_btn_normal" disabled_text_color="text_btn_disabled"
-                              normal_color="" hovered_color="bg_btn_hovered"
-                              pressed_color="bg_btn_pressed" disabled_color=""
-                              border_size="${border_btn_size}"
-                              normal_border_color="" hovered_border_color="border_btn_hovered"
-                              pressed_border_color="border_btn_pressed" disabled_border_color=""/>
+    <!-- 卡片容器：内容区域分组显示，与 WebView2 示例保持一致 -->
+    <Class name="browser_card" bkcolor="bg_window_card" border_size="1" border_color="border_split_level1"
+                                border_round="8,8"/>
+    <!-- 工具条按钮：轻量图标按钮，与 WebView2 示例保持一致 -->
+    <Class name="browser_tool_btn" width="32" height="26" border_round="6,6" valign="center"
+                                   normal_color="" hovered_color="bg_btn_hovered" pressed_color="bg_btn_pressed"/>
+    <Class name="browser_tool_back" class="browser_tool_btn"
+            normal_image="file='arrow-left.svg' width='16' height='16' valign='center' halign='center' svg_replace_colors='#1E1E1E|border_svg_image'"
+            disabled_image="file='arrow-left.svg' width='16' height='16' valign='center' halign='center' fade='128' svg_replace_colors='#1E1E1E|border_svg_image'"/>
+    <Class name="browser_tool_forward" class="browser_tool_btn"
+            normal_image="file='arrow-right.svg' width='16' height='16' valign='center' halign='center' svg_replace_colors='#1E1E1E|border_svg_image'"
+            disabled_image="file='arrow-right.svg' width='16' height='16' valign='center' halign='center' fade='128' svg_replace_colors='#1E1E1E|border_svg_image'"/>
+    <Class name="browser_tool_refresh" class="browser_tool_btn"
+            normal_image="file='refresh.svg' width='16' height='16' valign='center' halign='center' svg_replace_colors='#1E1E1E|border_svg_image'"
+            disabled_image="file='refresh.svg' width='16' height='16' valign='center' halign='center' fade='128' svg_replace_colors='#1E1E1E|border_svg_image'"/>
+    <Class name="browser_tool_stop" class="browser_tool_btn"
+            normal_image="file='stop.svg' width='16' height='16' valign='center' halign='center' svg_replace_colors='#1E1E1E|border_svg_image'"
+            disabled_image="file='stop.svg' width='16' height='16' valign='center' halign='center' fade='128' svg_replace_colors='#1E1E1E|border_svg_image'"/>
 
-    <VBox bkcolor="bg_tab_ctrl_item_selected">
+    <VBox bkcolor="bg_window_main">
+        <!-- 标题栏区域 -->
         <HBox name="title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
-            <!-- 图标区域 -->
-            <Control width="36" height="36" bkimage="file='public/caption/logo.ico' width='22' height='22' halign='center' valign='center'"/>
-
-            <!-- 竖线区域 -->
-            <Control class="tab_ctrl_left_line" padding="0,6,0,6" margin="0,0,2,0"/>
+            <!-- 应用图标 -->
+            <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8,0,6,0" mouse_enabled="false"/>
 
             <!-- 顶部标签列表 -->
             <TabCtrl class="tab_ctrl" name="tab_ctrl"/>
 
             <!-- 顶部标签列表后面放一个新建标签按钮 -->
-            <Button class="tab_item_new_add_btn" name="btn_add" text="+" tooltip_text_id="STRID_WEBVIEW2_BROWSER_NEW_TAB" width="24" height="24" border_round="8,8" text_padding="0,0,0,2"/>
+            <Button class="tab_item_new_add_btn" name="btn_add" text="+" tooltip_text_id="STRID_WEBVIEW2_BROWSER_NEW_TAB"
+                    width="28" height="28" margin="2,4,4,4" border_round="6,6" text_padding="0,0,0,1"/>
 
-            <!-- 标题栏区域 -->
+            <!-- 窗口控制区域 -->
             <HBox name="window_title_bar" width="auto" height="36" bkcolor="">
                 <Control mouse_enabled="false"/>
                 <Control width="36" mouse_enabled="false"/>
@@ -46,32 +57,30 @@
                 <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
             </HBox>
         </HBox>
-        <!-- 后退/前进/刷新按钮，地址栏，标签栏区域 -->
-        <HBox height="30" margin="10,2,10,2" child_margin="3">
-            <Button class="btn_webview2_browser" name="btn_back" width="50" height="30" textid="STRID_WEBVIEW2_BROWSER_BACKWARD" valign="center" font="system_regular_12" />
-            <Button class="btn_webview2_browser" name="btn_forward" width="50" height="30" textid="STRID_WEBVIEW2_BROWSER_FORWARD" valign="center" font="system_regular_12" />
-            <Box width="50" height="30" valign="center">
-                <Button class="btn_webview2_browser" name="btn_refresh" width="50" height="30" textid="STRID_WEBVIEW2_BROWSER_REFRESH" valign="center" font="system_regular_12" />
-                <Button class="btn_webview2_browser" name="btn_stop" width="50" height="30" textid="STRID_WEBVIEW2_BROWSER_STOP" valign="center" font="system_regular_12" />
-            </Box>
-            <!-- 地址栏 -->
-            <RichEdit class="simple simple_border prompt" name="edit_url" width="stretch" height="30" border_round="3,3"
-                                            text_padding="5,2,5,0"
-                                            text_align="vcenter"
-                                            valign="center"
-                                            font="system_regular_14"
-                                            prompt_textid="STRID_WEBVIEW2_BROWSER_INPUT_ADDRESS"
-                                            default_context_menu="true"
-                                            vscrollbar="false"
-                                            auto_vscroll="false"
-                                            hscrollbar="false"
-                                            auto_hscroll="true"/>
-        </HBox>
 
-        <!-- 一条分割线 -->
-        <Control class="splitline_hor_level1" margin="0,0,0,0" />
+        <!-- 显示区域 -->
+        <VBox bkcolor="bg_window_main" padding="10,8,10,10">
+            <!-- 导航与地址栏工具条 -->
+            <HBox class="browser_card" height="46" padding="8,0,8,0" child_margin="2">
+                <Button class="browser_tool_back" name="btn_back" tooltip_text_id="STRID_WEBVIEW2_BROWSER_BACKWARD"/>
+                <Button class="browser_tool_forward" name="btn_forward" tooltip_text_id="STRID_WEBVIEW2_BROWSER_FORWARD"/>
+                <Button class="browser_tool_refresh" name="btn_refresh" tooltip_text_id="STRID_WEBVIEW2_BROWSER_REFRESH"/>
+                <Button class="browser_tool_stop" name="btn_stop" tooltip_text_id="STRID_WEBVIEW2_BROWSER_STOP" visible="false"/>
+                <Control width="1" height="18" bkcolor="border_split_level1" margin="6,0,6,0"/>
+                <RichEdit class="simple simple_border prompt" name="edit_url"
+                                              width="stretch" height="28" valign="center" border_round="6,6"
+                                              text_padding="6,0,6,0"
+                                              prompt_text_id="STRID_WEBVIEW2_BROWSER_INPUT_ADDRESS"
+                                              default_context_menu="true"/>
+                <Control width="1" height="18" bkcolor="border_split_level1" margin="6,0,6,0"/>
+                <Button class="browser_tool_btn" name="btn_dev_tool" tooltip_text_id="STRID_WEBVIEW2_BROWSER_DEV_TOOL"
+                        normal_image="file='dev_tool.svg' width='18' height='18' halign='center' valign='center' svg_replace_colors='#1E1E1E|border_svg_image'"/>
+            </HBox>
 
-        <!-- 网页显示区域：浏览器盒子列表 -->
-        <TabBox name="browser_box_tab" bkcolor="white" padding="2,2,2,2"/>
+            <!-- 网页显示区域：浏览器盒子列表 -->
+            <VBox class="browser_card" height="stretch" margin="0,8,0,0" padding="4,4,4,4">
+                <TabBox name="browser_box_tab" bkcolor="white"/>
+            </VBox>
+        </VBox>
     </VBox>
 </Window>

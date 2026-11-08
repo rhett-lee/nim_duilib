@@ -115,6 +115,12 @@ HICON BrowserBox_Windows::ConvertCefImageToHICON(CefImage& cefImage) const
 
     void* pBitsColor = nullptr;
     HBITMAP hBmpColor = ::CreateDIBSection(nullptr, &bmi, DIB_RGB_COLORS, &pBitsColor, nullptr, 0);
+    if ((hBmpColor == nullptr) || (pBitsColor == nullptr)) {
+        if (hBmpColor != nullptr) {
+            ::DeleteObject(hBmpColor);
+        }
+        return nullptr;
+    }
     memcpy(pBitsColor, imageData.data(), nWidth * nHeight * 4);  // 复制ARGB数据
 
     // 3. 创建掩码位图（此处可优化为实际掩码生成逻辑）

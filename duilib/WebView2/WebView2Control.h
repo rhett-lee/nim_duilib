@@ -88,6 +88,12 @@ public:
     */
     using FavIconChangedCallback = std::function<void(int32_t nWidth, int32_t nHeight, const std::vector<uint8_t>& imageData)>;
 
+    /** 页面内快捷键回调函数类型（当网页有输入焦点时，宿主窗口收不到按键消息，通过该回调转发）
+    * @param [in] vkCode 按下的虚拟键码
+    * @return 返回true表示该按键已被处理，WebView2不再将按键传递给网页；返回false表示继续传递给网页处理
+    */
+    using AcceleratorKeyPressedCallback = std::function<bool(uint32_t vkCode)>;
+
 public:
     /** 构造函数
      */
@@ -232,6 +238,10 @@ public:
     /** 设置网站图标变化事件回调函数类型
     */
     void SetFavIconChangedCallback(FavIconChangedCallback callback);
+
+    /** 设置页面内快捷键回调函数（网页有输入焦点时，用于接收快捷键）
+    */
+    void SetAcceleratorKeyPressedCallback(AcceleratorKeyPressedCallback callback);
        
     /** 捕获当前页面的预览图(异步完成)，保存为PNG或者JPG格式
      * @param filePath 保存预览图的文件路径，根据保存的图片文件名后缀自动判断保存的格式

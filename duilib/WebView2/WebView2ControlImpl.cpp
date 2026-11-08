@@ -454,6 +454,7 @@ void WebView2Control::Impl::InitializeAcceleratorKeyPressed()
                 UINT32 virtualKey = 0;
                 args->get_VirtualKey(&virtualKey);
 
+                bool bHandled = false;
                 if (keyKind == COREWEBVIEW2_KEY_EVENT_KIND_KEY_DOWN && virtualKey == VK_ESCAPE) {
                     //ESC键：退出全屏                    
                     if (pWindow->IsWindowFullscreen()) {
@@ -465,12 +466,14 @@ void WebView2Control::Impl::InitializeAcceleratorKeyPressed()
                         }
                         // 阻止WebView2将事件传递给网页，避免网页自己处理
                         args->put_Handled(TRUE);
+                        bHandled = true;
                     }
                 }
                 else if (keyKind == COREWEBVIEW2_KEY_EVENT_KIND_KEY_DOWN && virtualKey == VK_F11) {
                     if (IsEnableF11()) {
                         // 阻止WebView2将事件传递给网页，避免网页自己处理
                         args->put_Handled(TRUE);
+                        bHandled = true;
 
                         // 执行全屏切换逻辑
                         if (pWindow->IsWindowFullscreen() && (pWindow->GetFullscreenControl() == m_pControl)) {
@@ -486,6 +489,16 @@ void WebView2Control::Impl::InitializeAcceleratorKeyPressed()
                 else if (keyKind == COREWEBVIEW2_KEY_EVENT_KIND_KEY_DOWN && virtualKey == VK_F12) {
                     if (!IsEnableF12()) {
                         //设置不支持F12，拦截F12快捷键
+                        args->put_Handled(TRUE);
+                        bHandled = true;
+                    }
+                }
+
+                // 转发给宿主注册的快捷键回调（网页有焦点时，宿主窗口收不到按键消息）
+                if ((keyKind == COREWEBVIEW2_KEY_EVENT_KIND_KEY_DOWN) && !bHandled &&
+                    (m_acceleratorKeyPressedCallback != nullptr)) {
+                    if (m_acceleratorKeyPressedCallback(virtualKey)) {
+                        // 阻止WebView2将事件传递给网页，避免网页自己处理
                         args->put_Handled(TRUE);
                     }
                 }
@@ -1428,6 +1441,11 @@ bool WebView2Control::Impl::OpenDevToolsWindow()
         hr = m_spWebView2->OpenDevToolsWindow();
     }
     return SUCCEEDED(hr);
+}
+
+void WebView2Control::Impl::SetAcceleratorKeyPressedCallback(AcceleratorKeyPressedCallback callback)
+{
+    m_acceleratorKeyPressedCallback = callback;
 }
 
 void WebView2Control::Impl::SetFavIconChangedCallback(FavIconChangedCallback callback)

@@ -80,6 +80,7 @@ public:
     HRESULT SetHistoryChangedCallback(HistoryChangedCallback callback);
     HRESULT SetZoomFactorChangedCallback(ZoomFactorChangedCallback callback);
     void SetFavIconChangedCallback(FavIconChangedCallback callback);
+    void SetAcceleratorKeyPressedCallback(AcceleratorKeyPressedCallback callback);
 
     // 内容管理
     HRESULT CapturePreview(const DString& filePath,
@@ -210,6 +211,7 @@ private:
     HistoryChangedCallback m_historyChangedCallback = nullptr;
     ZoomFactorChangedCallback m_zoomFactorChangedCallback = nullptr;
     FavIconChangedCallback m_favIconChangedCallback = nullptr;
+    AcceleratorKeyPressedCallback m_acceleratorKeyPressedCallback = nullptr;
 
     //初始化URL
     DString m_navigateUrl;

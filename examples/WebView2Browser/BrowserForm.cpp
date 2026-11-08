@@ -27,6 +27,10 @@ BrowserForm::BrowserForm()
     m_pTabCtrl = nullptr;
     m_pBorwserBoxTab = nullptr;
     m_pActiveBrowserBox = nullptr;
+    m_pBtnBack = nullptr;
+    m_pBtnForward = nullptr;
+    m_pBtnRefresh = nullptr;
+    m_pBtnStop = nullptr;
     m_bButtonDown = false;
     m_bDragState = false;
 }
@@ -37,6 +41,10 @@ BrowserForm::~BrowserForm()
     m_pTabCtrl = nullptr;
     m_pBorwserBoxTab = nullptr;
     m_pActiveBrowserBox = nullptr;
+    m_pBtnBack = nullptr;
+    m_pBtnForward = nullptr;
+    m_pBtnRefresh = nullptr;
+    m_pBtnStop = nullptr;
 }
 
 DString BrowserForm::GetSkinFolder()
@@ -67,10 +75,31 @@ public:
     virtual UiSize64 ArrangeChildren(const std::vector<Control*>& items, UiRect rc, bool bEstimateOnly = false) override
     {
         UiSize64 szSize = HLayout::ArrangeChildren(items, rc, bEstimateOnly);
-        ASSERT(items.empty() || items.size() == 5);
-        if (items.size() != 5) {
+        if (items.size() < 3) {
             return szSize;
         }
+
+        //查找标签栏的TabCtrl控件
+        size_t nTabCtrlIndex = 0;
+        ui::TabCtrl* pTabCtrl = nullptr;
+        for (size_t nIndex = 0; nIndex < items.size(); ++nIndex) {
+            pTabCtrl = dynamic_cast<ui::TabCtrl*>(items[nIndex]);
+            if (pTabCtrl != nullptr) {
+                nTabCtrlIndex = nIndex;
+                break;
+            }
+        }
+        if (pTabCtrl == nullptr) {
+            return szSize;
+        }
+        //TabCtrl之后必须还有两个控件：新建标签按钮、窗口控制区域
+        if (nTabCtrlIndex + 2 >= items.size()) {
+            return szSize;
+        }
+        if (!pTabCtrl->GetFixedWidth().IsStretch()) {
+            return szSize;
+        }
+
         //固定结构, 校验后修改标签栏的宽度
         int64_t nTotalWidth = 0;
         for (Control* pControl : items) {
@@ -80,33 +109,16 @@ public:
             ui::UiMargin margin = pControl->GetMargin();
             nTotalWidth += (pControl->GetRect().Width() + margin.left + margin.right);
         }
-        ASSERT(szSize.cx == nTotalWidth);
         if (szSize.cx != nTotalWidth) {
             return szSize;
         }
-        ASSERT(rc.Width() == nTotalWidth);
         if (rc.Width() != nTotalWidth) {
-            return szSize;
-        }
-
-        //校验标签栏的TabCtrl控件
-        ui::TabCtrl* pTabCtrl = nullptr;
-        ui::Control* pItem = items[2];
-        if (pItem != nullptr) {
-            pTabCtrl = dynamic_cast<ui::TabCtrl*>(pItem);            
-        }
-        ASSERT(pTabCtrl != nullptr);
-        if (pTabCtrl == nullptr) {
-            return szSize;
-        }
-        ASSERT(pTabCtrl->GetFixedWidth().IsStretch());
-        if (!pTabCtrl->GetFixedWidth().IsStretch()) {
             return szSize;
         }
 
         //等于总宽度：计算标签控件的实际总宽度
         int32_t nTabItemTotalWidth = 0;
-        UiRect rcTabCtrl = pItem->GetPos();
+        UiRect rcTabCtrl = pTabCtrl->GetPos();
         const size_t nTabItemCount = pTabCtrl->GetItemCount();
         for (size_t nTabItem = 0; nTabItem < nTabItemCount; ++nTabItem) {
             Control* pTabItem = pTabCtrl->GetItemAt(nTabItem);
@@ -125,21 +137,21 @@ public:
             }
 
             //新建按钮控件：向左移动
-            Control* pItem = items[items.size() - 2];
-            if (pItem != nullptr) {
-                UiRect rcItem = pItem->GetPos();
+            Control* pNewTabButton = items[nTabCtrlIndex + 1];
+            if (pNewTabButton != nullptr) {
+                UiRect rcItem = pNewTabButton->GetPos();
                 rcItem.Offset(-nItemDiff, 0);
                 if (!bEstimateOnly) {
-                    pItem->SetPos(rcItem);
+                    pNewTabButton->SetPos(rcItem);
                 }
             }
             //最后的控件：宽度增加
-            pItem = items[items.size() - 1];
-            if (pItem != nullptr) {
-                UiRect rcItem = pItem->GetPos();
+            Control* pLastItem = items[items.size() - 1];
+            if (pLastItem != nullptr) {
+                UiRect rcItem = pLastItem->GetPos();
                 rcItem.left -= nItemDiff;
                 if (!bEstimateOnly) {
-                    pItem->SetPos(rcItem);
+                    pLastItem->SetPos(rcItem);
                 }
             }
         }
@@ -174,15 +186,15 @@ void BrowserForm::OnInitWindow()
 
     GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&BrowserForm::OnClicked, this, std::placeholders::_1), 0);
 
-    m_pEditUrl = static_cast<RichEdit*>(FindControl(_T("edit_url")));
-    m_pEditUrl->AttachReturn(UiBind(&BrowserForm::OnReturn, this, std::placeholders::_1));
+    m_pEditUrl = dynamic_cast<RichEdit*>(FindControl(_T("edit_url")));
     if (m_pEditUrl != nullptr) {
+        m_pEditUrl->AttachReturn(UiBind(&BrowserForm::OnReturn, this, std::placeholders::_1));
         //鼠标点击切入地址栏时，全选文本
         m_pEditUrl->SetSelAllOnFocus(true);
     }
 
     //替换标题栏的布局
-    HBox* pTitleBar = static_cast<HBox*>(FindControl(_T("title_bar")));
+    HBox* pTitleBar = dynamic_cast<HBox*>(FindControl(_T("title_bar")));
     if (pTitleBar != nullptr) {
         TitleBarHLayout* pNewLayout = new TitleBarHLayout;
         Layout* pOldLayout = pTitleBar->ResetLayout(pNewLayout);
@@ -194,35 +206,38 @@ void BrowserForm::OnInitWindow()
         }
     }
 
-    m_pTabCtrl = static_cast<TabCtrl*>(FindControl(_T("tab_ctrl")));
-    m_pBorwserBoxTab = static_cast<TabBox*>(FindControl(_T("browser_box_tab")));
+    m_pTabCtrl = dynamic_cast<TabCtrl*>(FindControl(_T("tab_ctrl")));
+    m_pBorwserBoxTab = dynamic_cast<TabBox*>(FindControl(_T("browser_box_tab")));
 
     if (m_pTabCtrl != nullptr) {
         m_pTabCtrl->AttachSelect(UiBind(&BrowserForm::OnTabItemSelected, this, std::placeholders::_1));
     }
 
-    //设置按钮的状态
-    Control* pButton = FindControl(_T("btn_back"));
-    if (pButton != nullptr) {
-        pButton->SetEnabled(false);
+    //缓存工具条按钮，并设置初始状态
+    m_pBtnBack = dynamic_cast<Button*>(FindControl(_T("btn_back")));
+    m_pBtnForward = dynamic_cast<Button*>(FindControl(_T("btn_forward")));
+    m_pBtnRefresh = dynamic_cast<Button*>(FindControl(_T("btn_refresh")));
+    m_pBtnStop = dynamic_cast<Button*>(FindControl(_T("btn_stop")));
+    if (m_pBtnBack != nullptr) {
+        m_pBtnBack->SetEnabled(false);
     }
-    pButton = FindControl(_T("btn_forward"));
-    if (pButton != nullptr) {
-        pButton->SetEnabled(false);
+    if (m_pBtnForward != nullptr) {
+        m_pBtnForward->SetEnabled(false);
     }
-    pButton = FindControl(_T("btn_refresh"));
-    if (pButton != nullptr) {
-        pButton->SetVisible(true);
+    if (m_pBtnRefresh != nullptr) {
+        m_pBtnRefresh->SetVisible(true);
     }
-    pButton = FindControl(_T("btn_stop"));
-    if (pButton != nullptr) {
-        pButton->SetVisible(false);
+    if (m_pBtnStop != nullptr) {
+        m_pBtnStop->SetVisible(false);
     }
 }
 
 void BrowserForm::OnCloseWindow()
 {
     TestApplication::Instance().RemoveMainWindow(this);
+    if (m_pBorwserBoxTab == nullptr) {
+        return;
+    }
     // 使用m_pTabCtrl来判断浏览器盒子总数，browser_box_tab_获取的总数不准确
     int browser_box_count = GetBoxCount();
     for (int i = 0; i < browser_box_count; i++) {
@@ -241,47 +256,150 @@ void BrowserForm::OnCloseWindow()
 
 void BrowserForm::OnLoadingStateChange(BrowserBox* pBrowserBox)
 {
-    if (m_pActiveBrowserBox != pBrowserBox) {
+    if ((pBrowserBox == nullptr) || (m_pActiveBrowserBox != pBrowserBox)) {
         return;
     }
-    ui::WebView2Control* pWebView2Ccontrol = m_pActiveBrowserBox->GetWebView2Control();
-    if (pWebView2Ccontrol == nullptr) {
+    ui::WebView2Control* pWebView2Control = m_pActiveBrowserBox->GetWebView2Control();
+    if (pWebView2Control == nullptr) {
         return;
     }
-    bool isLoading = pWebView2Ccontrol->IsNavigating();
-    bool canGoBack = pWebView2Ccontrol->CanGoBack();
-    bool canGoForward = pWebView2Ccontrol->CanGoForward();
-    Control* pButton = FindControl(_T("btn_back"));
-    if (pButton != nullptr) {
-        pButton->SetEnabled(canGoBack);
+    const bool bLoading = pWebView2Control->IsNavigating();
+    if (m_pBtnRefresh != nullptr) {
+        m_pBtnRefresh->SetVisible(!bLoading);
     }
-    pButton = FindControl(_T("btn_forward"));
-    if (pButton != nullptr) {
-        pButton->SetEnabled(canGoForward);
+    if (m_pBtnStop != nullptr) {
+        m_pBtnStop->SetVisible(bLoading);
     }
-    pButton = FindControl(_T("btn_refresh"));
-    if (pButton != nullptr) {
-        pButton->SetVisible(!isLoading);
+    UpdateNavigationButtonState();
+}
+
+void BrowserForm::UpdateNavigationButtonState()
+{
+    ui::WebView2Control* pWebView2Control = nullptr;
+    if (m_pActiveBrowserBox != nullptr) {
+        pWebView2Control = m_pActiveBrowserBox->GetWebView2Control();
     }
-    pButton = FindControl(_T("btn_stop"));
-    if (pButton != nullptr) {
-        pButton->SetVisible(isLoading);
+    if (pWebView2Control == nullptr) {
+        return;
+    }
+    if (m_pBtnBack != nullptr) {
+        m_pBtnBack->SetEnabled(pWebView2Control->CanGoBack());
+    }
+    if (m_pBtnForward != nullptr) {
+        m_pBtnForward->SetEnabled(pWebView2Control->CanGoForward());
+    }
+}
+
+void BrowserForm::UpdateWindowTitle()
+{
+    DString title;
+    if (m_pActiveBrowserBox != nullptr) {
+        title = m_pActiveBrowserBox->GetTitle();
+    }
+    if (title.empty()) {
+        SetTextId(_T("STRID_WEBVIEW2_BROWSER_MULTI_TAB"));
+    }
+    else {
+        SetText(title);
     }
 }
 
 LRESULT BrowserForm::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    if ((vkCode == VirtualKeyCode::kVK_TAB) && ui::Keyboard::IsKeyDown(VirtualKeyCode::kVK_CONTROL)) {
-        // 处理Ctrl+Tab快捷键: 切换标签
+    if (HandleShortcutKey(vkCode)) {
         bHandled = true;
-        size_t nNextItem = m_pTabCtrl->GetCurSel();
-        nNextItem = (nNextItem + 1) % m_pTabCtrl->GetItemCount();
-        m_pTabCtrl->SelectItem(nNextItem, true, true);
+        return 0;
     }
-    else if ((vkCode == VirtualKeyCode::kVK_ESCAPE) && ui::Keyboard::IsKeyDown(VirtualKeyCode::kVK_LBUTTON)) {
+    return BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
+}
+
+bool BrowserForm::HandleShortcutKey(VirtualKeyCode vkCode)
+{
+    const bool bCtrl = ui::Keyboard::IsKeyDown(ui::VirtualKeyCode::kVK_CONTROL);
+    const bool bShift = ui::Keyboard::IsKeyDown(ui::VirtualKeyCode::kVK_SHIFT);
+    const bool bAlt = ui::Keyboard::IsKeyDown(ui::VirtualKeyCode::kVK_MENU);
+    ui::WebView2Control* pWebView2Control = nullptr;
+    if (m_pActiveBrowserBox != nullptr) {
+        pWebView2Control = m_pActiveBrowserBox->GetWebView2Control();
+    }
+
+    bool bHandled = false;
+    if ((vkCode == ui::kVK_TAB) && bCtrl) {
+        //Ctrl+Tab / Ctrl+Shift+Tab: 切换标签
+        if ((m_pTabCtrl != nullptr) && (m_pTabCtrl->GetItemCount() > 0)) {
+            bHandled = true;
+            const size_t nItemCount = m_pTabCtrl->GetItemCount();
+            const size_t nCurSel = m_pTabCtrl->GetCurSel();
+            size_t nNextItem = 0;
+            if (bShift) {
+                nNextItem = (nCurSel == 0) ? (nItemCount - 1) : (nCurSel - 1);
+            }
+            else {
+                nNextItem = (nCurSel + 1) % nItemCount;
+            }
+            m_pTabCtrl->SelectItem(nNextItem, true, true);
+        }
+    }
+    else if ((vkCode == ui::kVK_T) && bCtrl) {
+        //Ctrl+T: 新建标签
+        bHandled = true;
+        BrowserManager::GetInstance()->CreateBorwserBox(this, "", _T(""));
+    }
+    else if ((vkCode == ui::kVK_W) && bCtrl) {
+        //Ctrl+W: 关闭当前标签
+        if (m_pActiveBrowserBox != nullptr) {
+            bHandled = true;
+            CloseBox(m_pActiveBrowserBox->GetBrowserId());
+        }
+    }
+    else if ((vkCode == ui::kVK_L) && bCtrl) {
+        //Ctrl+L: 聚焦地址栏并全选文本
+        if (m_pEditUrl != nullptr) {
+            bHandled = true;
+            m_pEditUrl->SetFocus();
+            m_pEditUrl->SetSelAll();
+        }
+    }
+    else if ((vkCode == ui::kVK_R) && bCtrl) {
+        //Ctrl+R: 刷新当前页面
+        if (pWebView2Control != nullptr) {
+            bHandled = true;
+            pWebView2Control->Refresh();
+        }
+    }
+    else if (vkCode == ui::kVK_F5) {
+        //F5: 刷新当前页面
+        if (pWebView2Control != nullptr) {
+            bHandled = true;
+            pWebView2Control->Refresh();
+        }
+    }
+    else if ((vkCode == ui::kVK_LEFT) && bAlt) {
+        //Alt+左箭头: 后退
+        if (pWebView2Control != nullptr) {
+            bHandled = true;
+            pWebView2Control->NavigateBack();
+        }
+    }
+    else if ((vkCode == ui::kVK_RIGHT) && bAlt) {
+        //Alt+右箭头: 前进
+        if (pWebView2Control != nullptr) {
+            bHandled = true;
+            pWebView2Control->NavigateForward();
+        }
+    }
+    else if ((vkCode == ui::kVK_ESCAPE) && ui::Keyboard::IsKeyDown(ui::VirtualKeyCode::kVK_LBUTTON)) {
         //按ESC键时，取消标签拖出
         if (DragDropManager::GetInstance()->IsDragingBorwserBox()) {
+            bHandled = true;
             DragDropManager::GetInstance()->EndDragBorwserBox(false);
+        }
+    }
+    else if (vkCode == ui::kVK_ESCAPE) {
+        //加载中按ESC键，停止加载
+        if ((pWebView2Control != nullptr) && pWebView2Control->IsNavigating()) {
+            bHandled = true;
+            pWebView2Control->Stop();
         }
     }
     else if (vkCode == ui::kVK_F11) {
@@ -305,10 +423,7 @@ LRESULT BrowserForm::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, c
             SwitchShowDevTools();
         }
     }
-    if (bHandled) {
-        return 0;
-    }
-    return BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
+    return bHandled;
 }
 
 void BrowserForm::SwitchShowDevTools()
@@ -361,48 +476,71 @@ LRESULT BrowserForm::OnWindowCloseMsg(uint32_t wParam, const ui::NativeMsg& nati
 
 bool BrowserForm::OnClicked(const ui::EventArgs& arg )
 {
-    DString name = arg.GetSender()->GetName();
+    if (arg.GetSender() == nullptr) {
+        return false;
+    }
+    const DString name = arg.GetSender()->GetName();
     if (name == _T("btn_close")) {
         if (m_pActiveBrowserBox != nullptr) {
             CloseBox(m_pActiveBrowserBox->GetBrowserId());
         }
+        return true;
     }
-    else if (name == _T("btn_add")) {
+    if (name == _T("btn_add")) {
         BrowserManager::GetInstance()->CreateBorwserBox(this, "", _T(""));
+        return true;
     }
-    else if (m_pActiveBrowserBox) {
+    if (name == _T("btn_dev_tool")) {
+        SwitchShowDevTools();
+        return true;
+    }
+    if (m_pActiveBrowserBox != nullptr) {
         WebView2Control* pWebView2Control = m_pActiveBrowserBox->GetWebView2Control();
-        if (!pWebView2Control) {
-            return true;
-        }
-
-        if (name == _T("btn_back")) {
-            pWebView2Control->NavigateBack();
-        }
-        else if (name == _T("btn_forward")) {
-            pWebView2Control->NavigateForward();
-        }
-        else if (name == _T("btn_refresh")) {
-            pWebView2Control->Refresh();
-        }
-        else if (name == _T("btn_stop")) {
-            pWebView2Control->Stop();
+        if (pWebView2Control != nullptr) {
+            if (name == _T("btn_back")) {
+                pWebView2Control->NavigateBack();
+                return true;
+            }
+            if (name == _T("btn_forward")) {
+                pWebView2Control->NavigateForward();
+                return true;
+            }
+            if (name == _T("btn_refresh")) {
+                pWebView2Control->Refresh();
+                return true;
+            }
+            if (name == _T("btn_stop")) {
+                pWebView2Control->Stop();
+                return true;
+            }
         }
     }
-
-    return true;
+    //未处理的点击事件继续向上传递
+    return false;
 }
 
 bool BrowserForm::OnReturn(const ui::EventArgs& arg)
 {
-    if (m_pEditUrl != nullptr) {
-        DString url = m_pEditUrl->GetText();
-        if (!url.empty()) {
-            if ((m_pActiveBrowserBox != nullptr) && (m_pActiveBrowserBox->GetWebView2Control())) {
-                m_pActiveBrowserBox->GetWebView2Control()->Navigate(url);
-            }
-        }        
+    if ((m_pEditUrl == nullptr) || (m_pActiveBrowserBox == nullptr)) {
+        return true;
     }
+    ui::WebView2Control* pWebView2Control = m_pActiveBrowserBox->GetWebView2Control();
+    if (pWebView2Control == nullptr) {
+        return true;
+    }
+
+    //去除首尾的空白字符
+    DString url = m_pEditUrl->GetText();
+    size_t begin = url.find_first_not_of(_T(" \t\r\n"));
+    if (begin == DString::npos) {
+        return true;
+    }
+    size_t end = url.find_last_not_of(_T(" \t\r\n"));
+    url = url.substr(begin, end - begin + 1);
+
+    //未输入协议时，由WebView2控件自动补全为https协议
+    pWebView2Control->Navigate(url);
+    pWebView2Control->SetFocus();
     return true;
 }
 
@@ -444,6 +582,13 @@ BrowserBox* BrowserForm::CreateBox(const std::string& browserId, DString url)
     GlobalManager::Instance().FillBoxWithCache(pTabItem, ui::FilePath(_T("webview2_browser/tab_item.xml")));
     m_pTabCtrl->AddItemAt(pTabItem, GetBoxCount());
     pTabItem->SetUTF8Name(browserId);
+    //设置初始标题，等待网页标题回调更新
+    if (url.empty()) {
+        pTabItem->SetTitle(ui::GlobalManager::GetTextById(_T("STRID_WEBVIEW2_BROWSER_NEW_TAB_PAGE")));
+    }
+    else {
+        pTabItem->SetTitle(url);
+    }
     ui::Button* btn_item_close = pTabItem->GetCloseButton();
     ASSERT(btn_item_close != nullptr);
     if (btn_item_close != nullptr) {
@@ -544,7 +689,11 @@ bool BrowserForm::AttachBox(BrowserBox* pBrowserBox)
     GlobalManager::Instance().FillBoxWithCache(pTabItem, ui::FilePath(_T("webview2_browser/tab_item.xml")));
     m_pTabCtrl->AddItemAt(pTabItem, GetBoxCount());
     pTabItem->SetUTF8Name(pBrowserBox->GetBrowserId());
-    pTabItem->SetTitle(pBrowserBox->GetTitle());
+    DString boxTitle = pBrowserBox->GetTitle();
+    if (boxTitle.empty()) {
+        boxTitle = ui::GlobalManager::GetTextById(_T("STRID_WEBVIEW2_BROWSER_NEW_TAB_PAGE"));
+    }
+    pTabItem->SetTitle(boxTitle);
     ui::Button* btn_item_close = pTabItem->GetCloseButton();
     ASSERT(btn_item_close != nullptr);
     if (btn_item_close != nullptr) {
@@ -670,7 +819,11 @@ bool BrowserForm::OnTabItemSelected(const ui::EventArgs& param)
         ASSERT(param.GetSender() == m_pTabCtrl);
         if (m_pTabCtrl != nullptr) {
             // 如果单击了顶部的标签，则找到下方Tab里对应的浏览器盒子并选中
-            Control* pSelectedItem = m_pTabCtrl->GetItemAt(m_pTabCtrl->GetCurSel());
+            const size_t nSelItem = m_pTabCtrl->GetCurSel();
+            if (nSelItem == ui::Box::InvalidIndex) {
+                return true;
+            }
+            Control* pSelectedItem = m_pTabCtrl->GetItemAt(nSelItem);
             ASSERT(pSelectedItem != nullptr);
             if (pSelectedItem != nullptr) {
                 DString session_id = pSelectedItem->GetName();
@@ -725,6 +878,9 @@ void BrowserForm::SetTabItemName(const DString& browserId, const DString& name)
     if (nullptr != pTabItem) {
         pTabItem->SetTitle(name);
     }
+    if ((m_pActiveBrowserBox != nullptr) && (FindBox(browserId) == m_pActiveBrowserBox)) {
+        UpdateWindowTitle();
+    }
 }
 
 void BrowserForm::SetURL(const std::string& browserId, const DString& url)
@@ -749,9 +905,12 @@ bool BrowserForm::ChangeToBox(const DString& browserId)
     pBoxItem->SetFocus();
     m_pActiveBrowserBox = pBoxItem;
 
-    // 根据当前激活的浏览器盒子，更新任务栏的图标和标题
-    DString url = m_pActiveBrowserBox->GetWebView2Control()->GetUrl();
-    m_pEditUrl->SetText(url);
+    // 根据当前激活的浏览器盒子，更新地址栏、窗口标题和按钮状态
+    ui::WebView2Control* pWebView2Control = pBoxItem->GetWebView2Control();
+    if ((pWebView2Control != nullptr) && (m_pEditUrl != nullptr)) {
+        m_pEditUrl->SetText(pWebView2Control->GetUrl());
+    }
+    UpdateWindowTitle();
     OnLoadingStateChange(m_pActiveBrowserBox);
     return true;
 }
@@ -800,10 +959,14 @@ bool BrowserForm::OnBeforeDragBoxCallback(const DString& browserId)
     m_dragingBrowserId = browserId;
 
     TabCtrlItem* pTabItem = FindTabItem(browserId);
-    if (pTabItem != nullptr) {
-        pTabItem->CancelDragOperation();
-        pTabItem->SetVisible(false);
+    if ((pTabItem == nullptr) || (m_pTabCtrl == nullptr)) {
+        //标签不存在时，恢复浏览器盒子的显示
+        pBrowserBox->SetVisible(true);
+        m_dragingBrowserId.clear();
+        return false;
     }
+    pTabItem->CancelDragOperation();
+    pTabItem->SetVisible(false);
 
     // 找到新的被显示的浏览器盒子
     size_t index = pTabItem->GetListBoxIndex();
@@ -813,10 +976,12 @@ bool BrowserForm::OnBeforeDragBoxCallback(const DString& browserId)
     else {
         index++;
     }
-    TabCtrlItem* new_tab_item = static_cast<TabCtrlItem*>(m_pTabCtrl->GetItemAt(index));
-    if (new_tab_item != nullptr) {
-        new_tab_item->Selected(true, false, 0);
-        ChangeToBox(new_tab_item->GetName());
+    if (index < m_pTabCtrl->GetItemCount()) {
+        TabCtrlItem* new_tab_item = dynamic_cast<TabCtrlItem*>(m_pTabCtrl->GetItemAt(index));
+        if (new_tab_item != nullptr) {
+            new_tab_item->Selected(true, false, 0);
+            ChangeToBox(new_tab_item->GetName());
+        }
     }
 
     //由于标签隐藏，通知标签的父控件重新计算位置
@@ -946,7 +1111,7 @@ std::shared_ptr<ui::IBitmap> BrowserForm::GenerateWebPageBitmap(ui::WebView2Cont
         render.reset(pRenderFactory->CreateRender(GetRenderDpi()));
     }
     ASSERT(render != nullptr);
-    if (render->Resize(kDragImageWidth, kDragImageHeight)) {
+    if ((render != nullptr) && render->Resize(kDragImageWidth, kDragImageHeight)) {
         int32_t dest_width = 0;
         int32_t dest_height = 0;
         float scale = (float)spBitmap->GetWidth() / (float)spBitmap->GetHeight();

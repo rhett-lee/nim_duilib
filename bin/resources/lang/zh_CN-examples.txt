@@ -31,6 +31,7 @@ STRID_CEF_BROWSER_SEND_TO_JS        =    发送给JS
 STRID_CEF_BROWSER_OFF_SCREEN_MODE   =    离屏渲染Cef浏览器组件测试
 STRID_CEF_BROWSER_RECEIVE_JS_MSG    =    收到来自JS的消息：%s
 STRID_CEF_BROWSER_MULTI_TAB         =    可拖拽多标签浏览器
+STRID_CEF_BROWSER_NEW_TAB_PAGE      =    新标签页
 # 浏览器链接操作 - 中文
 STRID_CEF_BROWSER_OPEN_LINK_IN_NEW_TAB    = 在新标签页中打开链接
 STRID_CEF_BROWSER_OPEN_LINK_IN_NEW_WINDOW = 在新窗口中打开链接
@@ -45,6 +46,7 @@ STRID_WEBVIEW2_BROWSER_BROWSE_TO         =    转到
 STRID_WEBVIEW2_BROWSER_REFRESH           =    刷新
 STRID_WEBVIEW2_BROWSER_STOP              =    停止
 STRID_WEBVIEW2_BROWSER_NEW_TAB           =    新建标签页
+STRID_WEBVIEW2_BROWSER_NEW_TAB_PAGE      =    新标签页
 STRID_WEBVIEW2_BROWSER_MULTI_TAB         =    可拖拽多标签浏览器
 STRID_WEBVIEW2_TITLE                     =    WebView2控件测试程序
 

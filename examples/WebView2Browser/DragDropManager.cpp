@@ -145,7 +145,7 @@ void DragDropManager::EndDragBorwserBox(bool bSuccess)
             dragBrowserForm->OnAfterDragBoxCallback(true);
             if (dragBrowserForm->DetachBox(m_pDragingBox)) {
                 BrowserForm* newBrowserForm = BrowserManager::GetInstance()->CreateBrowserForm();
-                if (newBrowserForm->CreateWnd(nullptr, ui::WindowCreateParam(_T("CefBrowser")))) {
+                if (newBrowserForm->CreateWnd(nullptr, ui::WindowCreateParam(_T("WebView2Browser")))) {
                     if (newBrowserForm->AttachBox(m_pDragingBox)) {
                         // 这里设置新浏览器窗口的位置，设置到偏移鼠标坐标100,20的位置
                         ui::UiPoint pt_mouse;

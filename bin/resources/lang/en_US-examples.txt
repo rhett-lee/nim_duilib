@@ -31,6 +31,7 @@ STRID_CEF_BROWSER_SEND_TO_JS         =    Send to JS
 STRID_CEF_BROWSER_OFF_SCREEN_MODE    =    Off-screen Rendering Cef Browser Component Test
 STRID_CEF_BROWSER_RECEIVE_JS_MSG     =    Received Msg From JS: %s
 STRID_CEF_BROWSER_MULTI_TAB          =    Multi Tab Browser
+STRID_CEF_BROWSER_NEW_TAB_PAGE       =    New tab
 STRID_CEF_BROWSER_OPEN_LINK_IN_NEW_TAB    = Open link in new tab
 STRID_CEF_BROWSER_OPEN_LINK_IN_NEW_WINDOW = Open link in new window
 STRID_CEF_BROWSER_COPY_LINK               = Copy link
@@ -44,6 +45,7 @@ STRID_WEBVIEW2_BROWSER_BROWSE_TO         =    Go
 STRID_WEBVIEW2_BROWSER_REFRESH           =    Refresh
 STRID_WEBVIEW2_BROWSER_STOP              =    Stop
 STRID_WEBVIEW2_BROWSER_NEW_TAB           =    New Tab
+STRID_WEBVIEW2_BROWSER_NEW_TAB_PAGE      =    New tab
 STRID_WEBVIEW2_BROWSER_MULTI_TAB         =    Multi Tab Browser
 STRID_WEBVIEW2_TITLE                     =    WebView2 Control Test Program
 

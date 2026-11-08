@@ -49,6 +49,12 @@ private:
     */
     void UpdateNavigationButtonState();
 
+    /** 处理浏览器的快捷键
+    * @param[in] vkCode 虚拟键盘代码
+    * @return bool true 表示已处理，false 表示未处理
+    */
+    bool HandleShortcutKey(ui::VirtualKeyCode vkCode);
+
 private:
     /** 网页控件
     */
