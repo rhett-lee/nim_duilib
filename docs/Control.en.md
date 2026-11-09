@@ -701,8 +701,28 @@ The HyperLink control inherits the `Label` attributes. For more available attrib
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |
 | ip | | string | IP address, e.g. "192.168.0.0" |
+| allow_empty | false | bool | Whether an empty value is allowed: when true and all four segments are empty, GetIPAddress returns an empty string |
 
 The IPAddress control inherits the `HBox` attributes. For more available attributes, please refer to the `HBox` attributes.
+
+IPAddress consists of four numeric edit boxes (each ranging from 0 to 255) and three separators. Keyboard handling follows normal text editing:
+
+- After three digits are entered, focus moves to the next segment and its text is selected;
+- Typing `.` moves to the next segment without inserting a character;
+- Enter moves to the next segment, and Enter in the last segment wraps back to the first one;
+- Backspace, Delete, `←` and `→` edit the text around the caret natively, and only cross to the neighbouring segment when the caret is at the start (Backspace, `←`) or at the end (`→`) of a segment;
+- `↑`/`↓` increments/decrements the current segment value, clamped to 0~255;
+- `Ctrl + V` pastes a complete address in `a.b.c.d` form into the four segments at once.
+
+The focused segment is highlighted; `IsFocused()` returns true when any segment has focus.
+
+```cpp
+bool IsComplete() const;                        //Whether all four segments are filled
+bool IsValid() const;                           //Whether all four segments are digits in 0~255 (complete and valid address)
+DString GetIPAddress() const;                   //Get the address, e.g. "192.168.0.1"
+void SetIPAddress(const DString& ipAddress);    //Set the address: four numeric segments separated by '.'; ignored when malformed
+void ClearIPAddress();                          //Clear all four segments
+```
 
 ## Attributes of Line
 | Attribute name | Default value | Parameter type | Purpose |

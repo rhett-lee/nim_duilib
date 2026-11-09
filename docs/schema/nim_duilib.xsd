@@ -5099,6 +5099,11 @@
         <xs:documentation>IP地址，比如："192.168.0.0"</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="allow_empty" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否允许空值：为 true 且四段都为空时，GetIPAddress 返回空字符串</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:attributeGroup>
   <xs:attributeGroup name="IncludeAttrs">
     <!-- 来源：Include -->

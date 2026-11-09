@@ -699,8 +699,28 @@ HyperLink 控件继承了 `Label` 属性，更多可用属性请参考`Label`的
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | ip | | string | IP地址，比如："192.168.0.0" |
+| allow_empty | false | bool | 是否允许空值：为 true 且四段都为空时，GetIPAddress 返回空字符串 |
 
 IPAddress 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
+
+IPAddress 由四段数字编辑框（每段取值 0~255）与三个分隔符组成，键盘操作与普通文本编辑保持一致：
+
+- 输入满 3 位后自动跳到下一段，并全选该段内容；
+- 输入 `.` 直接跳到下一段（不插入字符）；
+- 回车切换到下一段，最后一段回车后回到第一段；
+- Backspace、Delete、`←`、`→` 按原生行为编辑光标前后的字符，仅当光标位于段首（Backspace、`←`）或段尾（`→`）时才跨段；
+- `↑`/`↓` 对当前段数值加一/减一，并按 0~255 钳位；
+- `Ctrl + V` 粘贴 `a.b.c.d` 形式的完整地址时，整体填充四段。
+
+当前聚焦段以高亮背景显示；任意一段获得焦点时，`IsFocused()` 返回 true。
+
+```cpp
+bool IsComplete() const;                        //四段是否都已填写
+bool IsValid() const;                           //四段是否均为 0~255 的纯数字（即完整且合法的地址）
+DString GetIPAddress() const;                   //获取地址，形如 "192.168.0.1"
+void SetIPAddress(const DString& ipAddress);    //设置地址，要求四段纯数字、以 '.' 分隔；格式非法时忽略
+void ClearIPAddress();                          //清空四段内容
+```
 
 ## Line的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |

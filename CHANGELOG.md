@@ -124,7 +124,7 @@
   - `GroupBox`：分组框容器，在左上角显示分组标题，边框圆角、线宽与颜色可配，适合把一组相关控件在视觉上归为一块（示例：`examples/ColorTheme`）
   - `HotKey`：热键输入控件，按下组合键即记录热键，支持与 `Ctrl + C` 形式的显示名互转，用于快捷键设置界面（示例：`examples/controls`）
   - `HyperLink`：超链接文字，可显示链接地址作为 ToolTip，点击时派发 `kEventLinkClick` 事件（示例：`examples/controls`）
-  - `IPAddress`：IP 地址输入控件，由 4 段编辑框组成并自动跳转焦点，按 `192.168.0.1` 形式编辑整串地址（示例：`examples/render`）
+  - `IPAddress`：IP 地址输入控件，由 4 段编辑框组成并自动跳转焦点，按 `192.168.0.1` 形式编辑整串地址；支持输入满 3 位自动跳段、`.` 跳段、`↑`/`↓` 按 0~255 增减当前段、`Ctrl+V` 整体粘贴完整地址，Backspace/Delete/方向键与普通文本编辑一致（仅在段首或段尾时跨段），并提供 `IsComplete`/`IsValid`/`ClearIPAddress` 与 `allow_empty` 属性（示例：`examples/render`）
   - `Line`：画线控件，横线/竖线可选，颜色、宽度与五种线型（solid/dash/dot/dash_dot/dash_dot_dot）可配（示例：`examples/render`）
   - `RichText`：富文本显示控件，支持 `<a href>`、`<b>`、`<i>`、`<s>`、`<u>`、`<bgcolor>`、`<font>`、`<br/>` 等类 HTML 标签（示例：`examples/controls`）
   - `Split`：分割条控件/容器，放在 HBox 中左右拖动、VBox 中上下拖动，改变相邻控件的宽高（示例：`examples/ColorTheme`）

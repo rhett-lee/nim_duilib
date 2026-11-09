@@ -788,7 +788,10 @@
                             link_font_underline="true"/>
     
     <!-- IP地址控件 -->
-    <Class name="ip_address" width="140" height="28" bkcolor="bg_richedit" border_size="1" border_color="border_richedit_normal"/>
+    <Class name="ip_address" width="140" height="28" bkcolor="bg_richedit" border_size="1" border_round="4,4" padding="4,3,4,3"
+                                border_color="border_richedit_normal" 
+                                hovered_border_color="border_richedit_hovered" 
+                                focused_border_color="border_focus_ring"/>
     
     <!-- 热键控件 -->
     <Class name="hot_key" width="216" height="28" bkcolor="bg_richedit" border_size="1" border_color="border_richedit_normal"/>
