@@ -1,4 +1,5 @@
 #include "Mask.h"
+#include "duilib/Box/ScrollBox.h"
 #include "duilib/Core/ControlFinder.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
@@ -130,6 +131,18 @@ bool Mask::GetHighlightRect(UiRect& rcHighlight)
     UiRect rc = pControl->GetRect();
     if (rc.IsEmpty()) {
         return false;
+    }
+    //GetRect() 返回的是布局坐标（滚动容器内部的子控件不包含滚动偏移），
+    //而 Mask 自身位于滚动容器之外；这里减去所有祖先滚动容器的偏移量，
+    //否则页面滚动后高亮矩形会与目标控件错位。
+    Control* pParent = pControl->GetParent();
+    while (pParent != nullptr) {
+        ScrollBox* pScrollBox = dynamic_cast<ScrollBox*>(pParent);
+        if (pScrollBox != nullptr) {
+            const UiSize scrollOffset = pScrollBox->GetScrollOffsetForChild(pControl);
+            rc.Offset(-scrollOffset.cx, -scrollOffset.cy);
+        }
+        pParent = pParent->GetParent();
     }
     rc.Inflate(m_nHighlightPadding, m_nHighlightPadding);
     //限制在本控件范围内

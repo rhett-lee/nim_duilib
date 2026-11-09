@@ -139,11 +139,11 @@
                     <Label text_id="STRID_AVATAR_PALETTE_DESC" font="system_regular_12" text_color="text_muted"
                            valign="center" margin="0,0,0,12" auto_tooltip="true"/>
                     <HBox height="48" child_margin_x="16" valign="center">
-                        <Avatar class="avatar_large" text="张伟" valign="center"/>
-                        <Avatar class="avatar_large" text="张伟" valign="center"/>
-                        <Avatar class="avatar_large" text="李娜" valign="center"/>
-                        <Avatar class="avatar_large" text="王强" valign="center"/>
-                        <Avatar class="avatar_large" text="赵敏" valign="center"/>
+                        <Avatar class="avatar_large" text_id="STRID_AVATAR_NAME_ZHANGWEI" valign="center"/>
+                        <Avatar class="avatar_large" text_id="STRID_AVATAR_NAME_ZHANGWEI" valign="center"/>
+                        <Avatar class="avatar_large" text_id="STRID_AVATAR_NAME_LINA" valign="center"/>
+                        <Avatar class="avatar_large" text_id="STRID_AVATAR_NAME_WANGQIANG" valign="center"/>
+                        <Avatar class="avatar_large" text_id="STRID_AVATAR_NAME_ZHAOMIN" valign="center"/>
                         <Avatar class="avatar_large" text="Alice" valign="center"/>
                         <Avatar class="avatar_large" text="Bob" valign="center"/>
                         <Avatar class="avatar_large" text="Ann" palette="false" valign="center"/>

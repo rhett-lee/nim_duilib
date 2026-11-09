@@ -109,11 +109,36 @@ void AvatarForm::OnChangeText()
     m_bShowImage = false;
     m_pDynamic->SetImage(DString());
 
-    const DString textList[] = { _T("Tom"), _T("张伟"), _T("Lucy"), _T("李娜") };
-    const size_t nTextCount = sizeof(textList) / sizeof(textList[0]);
-    m_nTextIndex = (m_nTextIndex + 1) % nTextCount;
-    m_pDynamic->SetText(textList[m_nTextIndex]);
+    //文字内容循环：Tom -> 张伟 -> Lucy -> 李娜（中文姓名来自语言资源）
+    m_nTextIndex = (m_nTextIndex + 1) % 4;
+    m_pDynamic->SetText(GetAvatarText(m_nTextIndex));
     UpdateStateText();
+}
+
+bool AvatarForm::OnLanguageChanged()
+{
+    const bool bRet = BaseClass::OnLanguageChanged();
+    UpdateStateText();
+    //当前显示的是文字时，按新语言刷新（文字内容来自语言资源）
+    if ((m_pDynamic != nullptr) && m_pDynamic->GetImage().empty() && m_pDynamic->GetIcon().empty() &&
+        !m_pDynamic->GetText().empty()) {
+        m_pDynamic->SetText(GetAvatarText(m_nTextIndex));
+    }
+    return bRet;
+}
+
+DString AvatarForm::GetAvatarText(size_t nIndex) const
+{
+    switch (nIndex % 4) {
+    case 1:
+        return GetLangText(_T("STRID_AVATAR_NAME_ZHANGWEI"));
+    case 3:
+        return GetLangText(_T("STRID_AVATAR_NAME_LINA"));
+    case 0:
+        return _T("Tom");
+    default:
+        return _T("Lucy");
+    }
 }
 
 void AvatarForm::OnChangeImage()

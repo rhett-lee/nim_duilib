@@ -1,4 +1,5 @@
 #include "Calendar.h"
+#include "CalendarWeekdayUtil.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Keycode.h"
@@ -44,6 +45,7 @@ Calendar::Calendar(Window* pWindow):
     m_bHasHover(false),
     m_bHasMinDate(false),
     m_bHasMaxDate(false),
+    m_disabledWeekdaysMask(0),
     m_bCellsDirty(true),
     m_bTodayValid(false),
     m_focusDate{0},
@@ -101,6 +103,9 @@ void Calendar::SetAttribute(const DString& strName, const DString& strValue2)
         //属性语义为替换，避免重复设置导致禁用日期累加（与 SetDisabledDates 保持一致）
         ClearDisabledDates();
         AddDisabledDates(strValue);
+    }
+    else if (strName == _T("disabled_weekdays")) {
+        SetDisabledWeekdays(strValue);
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
@@ -285,8 +290,30 @@ void Calendar::ClearDisabledDates()
     Invalidate();
 }
 
+void Calendar::SetDisabledWeekdays(const DString& disabledWeekdays)
+{
+    const uint32_t mask = ParseDisabledWeekdays(disabledWeekdays);
+    if (m_disabledWeekdaysMask != mask) {
+        m_disabledWeekdaysMask = mask;
+        m_bCellsDirty = true;
+        Invalidate();
+    }
+}
+
+void Calendar::ClearDisabledWeekdays()
+{
+    if (m_disabledWeekdaysMask != 0) {
+        m_disabledWeekdaysMask = 0;
+        m_bCellsDirty = true;
+        Invalidate();
+    }
+}
+
 bool Calendar::IsDateDisabled(const struct tm& date) const
 {
+    if (IsCalendarWeekdayDisabled(m_disabledWeekdaysMask, date.tm_wday)) {
+        return true;
+    }
     for (const auto& range : m_disabledDateRanges) {
         if (IsDateInRange(date, range.first, range.second)) {
             return true;

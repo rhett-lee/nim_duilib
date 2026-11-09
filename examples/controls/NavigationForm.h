@@ -21,6 +21,12 @@ public:
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
     virtual void OnInitWindow() override;
+    virtual bool OnLanguageChanged() override;
+
+private:
+    /** 按当前语言刷新状态栏文本
+    */
+    void UpdateNavStatus();
 };
 
 #endif //EXAMPLES_NAVIGATION_FORM_H_

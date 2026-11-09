@@ -1,5 +1,14 @@
 #include "DateTimeForm.h"
 
+namespace
+{
+/** 读取语言资源（代码动态生成的文本必须走语言文件，才能支持中英文切换） */
+DString DateTimeLang(const DString& strId)
+{
+    return ui::GlobalManager::Instance().Lang().GetStringByID(strId);
+}
+}//namespace
+
 DateTimeForm::DateTimeForm()
 {
 }
@@ -45,9 +54,17 @@ void DateTimeForm::AttachValueChanged(const DString& controlName)
         return;
     }
     pDateTime->AttachEvent(ui::kEventValueChanged, [this, pDateTime, controlName](const ui::EventArgs& /*args*/) {
-        UpdateEventText(ui::StringUtil::Printf(_T("%s 当前值：%s"), controlName.c_str(), pDateTime->GetText().c_str()));
+        UpdateEventText(ui::StringUtil::Printf(DateTimeLang(_T("STRID_DATETIME_EVENT_VALUE")).c_str(),
+                                               controlName.c_str(), pDateTime->GetText().c_str()));
         return true;
         }, 0);
+}
+
+bool DateTimeForm::OnLanguageChanged()
+{
+    const bool bRet = BaseClass::OnLanguageChanged();
+    UpdateEventText(DateTimeLang(_T("STRID_DATETIME_EVENT_DEFAULT")));
+    return bRet;
 }
 
 void DateTimeForm::UpdateEventText(const DString& text)

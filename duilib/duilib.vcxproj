@@ -327,6 +327,7 @@
     <ClCompile Include="Control\AddressBar.cpp" />
     <ClCompile Include="Control\AddressBarPathUtil.cpp" />
     <ClCompile Include="Control\BitmapControl.cpp" />
+    <ClCompile Include="Control\CalendarWeekdayUtil.cpp" />
     <ClCompile Include="Control\Chart.cpp" />
     <ClCompile Include="Control\CheckCombo.cpp" />
     <ClCompile Include="Control\ChildWindow.cpp" />
@@ -753,6 +754,7 @@
     <ClInclude Include="Control\AddressBar.h" />
     <ClInclude Include="Control\AddressBarPathUtil.h" />
     <ClInclude Include="Control\BitmapControl.h" />
+    <ClInclude Include="Control\CalendarWeekdayUtil.h" />
     <ClInclude Include="Control\Chart.h" />
     <ClInclude Include="Control\CheckCombo.h" />
     <ClInclude Include="Control\ChildWindow.h" />

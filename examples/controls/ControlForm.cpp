@@ -553,7 +553,10 @@ void ControlForm::ShowTrayIcon(bool bShow)
                 });
 
             // 显示欢迎气泡
-            m_pTrayIcon->ShowBalloon(_T("提示"), _T("应用已启动！"), 3000);
+            m_pTrayIcon->ShowBalloon(
+                ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_CONTROLS_TRAY_BALLOON_TITLE")),
+                ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_CONTROLS_TRAY_BALLOON_TEXT")),
+                3000);
         }
 
     }

@@ -242,6 +242,25 @@ void CalendarFlyout::ClearDisabledDates()
     }
 }
 
+void CalendarFlyout::SetDisabledWeekdays(const DString& disabledWeekdays)
+{
+    m_disabledWeekdays = disabledWeekdays;
+    Calendar* pCalendar = GetCalendar();
+    if (pCalendar != nullptr) {
+        //Set 语义为替换，避免重复调用导致禁用星期累加
+        pCalendar->SetDisabledWeekdays(disabledWeekdays);
+    }
+}
+
+void CalendarFlyout::ClearDisabledWeekdays()
+{
+    m_disabledWeekdays.clear();
+    Calendar* pCalendar = GetCalendar();
+    if (pCalendar != nullptr) {
+        pCalendar->ClearDisabledWeekdays();
+    }
+}
+
 void CalendarFlyout::AttachDateTimeSelected(const DateTimeSelectedEvent& callback)
 {
     if (callback) {
@@ -390,6 +409,9 @@ void CalendarFlyout::InitControls()
         }
         if (!m_disabledDates.empty()) {
             pCalendar->AddDisabledDates(m_disabledDates);
+        }
+        if (!m_disabledWeekdays.empty()) {
+            pCalendar->SetDisabledWeekdays(m_disabledWeekdays);
         }
         if (m_bHasInitRange && (m_mode == 1)) {
             //范围模式：用初始范围

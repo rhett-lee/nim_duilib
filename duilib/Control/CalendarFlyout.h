@@ -140,6 +140,16 @@ public:
     */
     void ClearDisabledDates();
 
+    /** 设置每周禁用的星期
+    * @param [in] disabledWeekdays 列表文本，多个项用 ',' 或 ';' 分隔；
+    *            每项为 sunday/sun/0 ... saturday/sat/6（0=周日）
+    */
+    void SetDisabledWeekdays(const DString& disabledWeekdays);
+
+    /** 清空每周禁用的星期
+    */
+    void ClearDisabledWeekdays();
+
     /** 日期时间选择完成事件回调类型（时间模式下点击"确定"时触发）
     * @param [in] dateTime 完整日期时间（已归一化）
     */
@@ -283,6 +293,10 @@ private:
     /** 业务禁用日期列表文本
     */
     DString m_disabledDates;
+
+    /** 每周禁用的星期列表文本
+    */
+    DString m_disabledWeekdays;
 
     /** 时间选择模式：是否显示时间/是否显示日历/是否显示秒
     */

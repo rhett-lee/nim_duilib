@@ -145,6 +145,16 @@ public:
     */
     void ClearDisabledDates();
 
+    /** 设置每周禁用的星期（业务规则）
+    * @param [in] disabledWeekdays 列表文本，多个项用 ',' 或 ';' 分隔；
+    *            每项为 sunday/sun/0 ... saturday/sat/6（0=周日，6=周六）；非法项忽略
+    */
+    void SetDisabledWeekdays(const DString& disabledWeekdays);
+
+    /** 清空每周禁用的星期
+    */
+    void ClearDisabledWeekdays();
+
     /** 判断日期是否被业务规则禁用（不包含 min_date/max_date 判断）
     */
     bool IsDateDisabled(const struct tm& date) const;
@@ -376,6 +386,10 @@ private:
     /** 业务禁用的日期区间集合（闭区间；单日禁用时 start == end）
     */
     std::vector<std::pair<struct tm, struct tm>> m_disabledDateRanges;
+
+    /** 业务禁用的星期掩码（bit0=周日 ... bit6=周六）
+    */
+    uint32_t m_disabledWeekdaysMask;
 
     /** 当前月份格子缓存（用于命中测试）
     */

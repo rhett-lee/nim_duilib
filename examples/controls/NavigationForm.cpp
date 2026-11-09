@@ -5,6 +5,15 @@
 
 using namespace ui;
 
+namespace
+{
+/** 读取语言资源（代码动态生成的文本必须走语言文件，才能支持中英文切换） */
+DString NavigationLang(const DString& strId)
+{
+    return GlobalManager::Instance().Lang().GetStringByID(strId);
+}
+}//namespace
+
 NavigationForm::NavigationForm()
 {
 }
@@ -23,6 +32,30 @@ DString NavigationForm::GetSkinFile()
     return _T("navigation.xml");
 }
 
+bool NavigationForm::OnLanguageChanged()
+{
+    const bool bRet = BaseClass::OnLanguageChanged();
+    UpdateNavStatus();
+    return bRet;
+}
+
+void NavigationForm::UpdateNavStatus()
+{
+    ui::NavigationView* pNav = dynamic_cast<ui::NavigationView*>(FindControl(_T("nav")));
+    ui::Label* pStatusValue = dynamic_cast<ui::Label*>(FindControl(_T("nav_status_value")));
+    if ((pNav == nullptr) || (pStatusValue == nullptr)) {
+        return;
+    }
+    const size_t nSel = pNav->GetSelectedIndex();
+    if (nSel == ui::Box::InvalidIndex) {
+        pStatusValue->SetText(NavigationLang(_T("STRID_NAVIGATION_STATUS_NONE")));
+    }
+    else {
+        pStatusValue->SetText(ui::StringUtil::Printf(NavigationLang(_T("STRID_NAVIGATION_STATUS_INFO")).c_str(),
+                                                    nSel, pNav->GetSelectedPage().c_str()));
+    }
+}
+
 void NavigationForm::OnInitWindow()
 {
     BaseClass::OnInitWindow();
@@ -34,20 +67,8 @@ void NavigationForm::OnInitWindow()
     }
 
     //状态栏回调：显示当前选中项序号与关联页
-    std::function<void()> updateStatus = [pStatusValue, pNav]() {
-        if (pStatusValue == nullptr) {
-            return;
-        }
-        size_t nSel = pNav->GetSelectedIndex();
-        DString text;
-        if (nSel == ui::Box::InvalidIndex) {
-            text = _T("(none)");
-        }
-        else {
-            text = ui::StringUtil::Printf(_T("index=%zu, page=%s"),
-                                          nSel, pNav->GetSelectedPage().c_str());
-        }
-        pStatusValue->SetText(text);
+    std::function<void()> updateStatus = [this]() {
+        UpdateNavStatus();
         };
     updateStatus();
 
@@ -60,7 +81,7 @@ void NavigationForm::OnInitWindow()
     //AttachNavItemClick：重复点击同一项也会触发（适合刷新/回顶场景）
     pNav->AttachNavItemClick([pStatusValue](const ui::EventArgs& args) {
         if (pStatusValue != nullptr) {
-            pStatusValue->SetText(ui::StringUtil::Printf(_T("item clicked: %zu"), (size_t)args.wParam));
+            pStatusValue->SetText(ui::StringUtil::Printf(NavigationLang(_T("STRID_NAVIGATION_STATUS_ITEM_CLICK")).c_str(), (size_t)args.wParam));
         }
         return true;
         });
@@ -68,7 +89,8 @@ void NavigationForm::OnInitWindow()
     //AttachNavPaneToggled：窗格收起/展开完成后更新状态（wParam: 1=收起 0=展开）
     pNav->AttachNavPaneToggled([pStatusValue](const ui::EventArgs& args) {
         if (pStatusValue != nullptr) {
-            pStatusValue->SetText(args.wParam == 1 ? _T("pane collapsed") : _T("pane expanded"));
+            pStatusValue->SetText(args.wParam == 1 ? NavigationLang(_T("STRID_NAVIGATION_STATUS_PANE_COLLAPSED")) :
+                                                     NavigationLang(_T("STRID_NAVIGATION_STATUS_PANE_EXPANDED")));
         }
         return true;
         });
@@ -97,7 +119,7 @@ void NavigationForm::OnInitWindow()
             pPage->SetBkColor(_T("bg_window_main"));
             pPage->SetAttribute(_T("padding"), _T("24,24,24,24"));
             ui::Label* pLabel = new ui::Label(pNav->GetWindow());
-            pLabel->SetText(ui::StringUtil::Printf(_T("动态页面：%s"), pageName.c_str()));
+            pLabel->SetText(ui::StringUtil::Printf(NavigationLang(_T("STRID_NAVIGATION_DYNAMIC_PAGE")).c_str(), pageName.c_str()));
             pLabel->SetAttribute(_T("text_color"), _T("text_default"));
             pLabel->SetFontId(_T("system_regular_16"));
             pPage->AddItem(pLabel);

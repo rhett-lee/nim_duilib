@@ -15,6 +15,7 @@ public:
     virtual DString GetSkinFolder() override;
     virtual DString GetSkinFile() override;
     virtual void OnInitWindow() override;
+    virtual bool OnLanguageChanged() override;
 
 private:
     /** 填充 Combo 的下拉选项

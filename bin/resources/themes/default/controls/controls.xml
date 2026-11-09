@@ -274,7 +274,7 @@
                         </HBox>
                         <RichEdit class="simple prompt simple_border_bottom" name="gallery_edit_color" height="32" margin="0,12,0,0"
                                   font="system_regular_14" text_align="vcenter" text_padding="8,4,8,4"
-                                  default_context_menu="true" prompt_text="请输入文本，可拖入 txt/md 文件"/>
+                                  default_context_menu="true" prompt_text_id="STRID_CONTROLS_RICHEDIT_PROMPT_HINT"/>
                         <RichEdit class="simple simple_border rich_edit_spin" height="30" margin="0,8,0,0"
                                   min_number="-64" max_number="64" limit_text="3" text="0"/>
                         <Label text_id="STRID_GALLERY_CARD_RICHEDIT_DESC" font="system_regular_12" text_color="text_muted"
@@ -345,14 +345,14 @@
                         </HBox>
                         <HBox height="32" margin="0,10,0,0" child_margin="8">
                             <SearchBox class="search_box" name="gallery_search_box" width="50%"
-                                       prompt_text="搜索控件..." suggestions="nim_duilib;C++;Skia;Qt;WPF"/>
+                                       prompt_text_id="STRID_CONTROLS_SEARCHBOX_PROMPT_HINT" suggestions="nim_duilib;C++;Skia;Qt;WPF"/>
                             <TagInput class="tag_input" name="gallery_tag_input" width="50%" tags="UI;XML;C++"
-                                      prompt_text="添加标签"/>
+                                      prompt_text_id="STRID_CONTROLS_TAGINPUT_PROMPT_HINT"/>
                         </HBox>
                         <HBox height="32" margin="0,6,0,0">
                             <AutoComplete class="auto_complete" name="gallery_auto_complete" width="100%"
                                           items="Beijing;Berlin;London;New York;Paris;Shanghai;Shenzhen;Tokyo"
-                                          prompt_text="自动完成输入"/>
+                                          prompt_text_id="STRID_CONTROLS_AUTOCOMPLETE_PROMPT_HINT"/>
                         </HBox>
                         <HBox height="28" margin="0,8,0,0">
                             <Control/>
@@ -565,7 +565,7 @@
                             <Control width="6" height="16" bkcolor="color_warning" border_round="3,3" valign="center"/>
                             <Label text="Popover / Popconfirm" font="system_bold_15" text_color="text_default"
                                    margin="8,0,0,0" valign="center"/>
-                            <Label text="气泡卡片" font="system_regular_12" text_color="text_muted" margin="8,0,0,0" valign="center"/>
+                            <Label text_id="STRID_CONTROLS_BALLOON_CARD" font="system_regular_12" text_color="text_muted" margin="8,0,0,0" valign="center"/>
                             <Control/>
                         </HBox>
                         <Label text_id="STRID_GALLERY_CARD_POPOVER_DESC" font="system_regular_12" text_color="text_muted"
@@ -591,7 +591,7 @@
                                margin="0,10,0,0" width="stretch" height="stretch" multi_line="true" auto_tooltip="true"/>
                         <HBox height="30" margin="0,6,0,0">
                             <Control/>
-                            <Button class="btn_global" name="btn_gallery_flyout" text="打开交互测试页"
+                            <Button class="btn_global" name="btn_gallery_flyout" text_id="STRID_CONTROLS_OPEN_FLYOUT_PAGE"
                                     width="140" height="28" border_round="4,4"/>
                         </HBox>
                     </VBox>
@@ -664,7 +664,7 @@
                       padding="16,14,16,14" height="auto" width="stretch" margin="0,10,0,0">
                     <HBox height="24" valign="center">
                         <Control width="6" height="16" bkcolor="color_error" border_round="3,3" valign="center"/>
-                        <Label text="更多组件：Timeline / Marquee / Animation / StatusBar / ToolBar" font="system_bold_15"
+                        <Label text_id="STRID_CONTROLS_MORE_COMPONENTS" font="system_bold_15"
                                text_color="text_default" margin="8,0,0,0" valign="center"/>
                         <Control/>
                     </HBox>

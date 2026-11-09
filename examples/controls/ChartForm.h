@@ -23,6 +23,7 @@ public:
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
     virtual void OnInitWindow() override;
+    virtual bool OnLanguageChanged() override;
 
 private:
     /** 初始化折线图为多系列（今年/去年对比）

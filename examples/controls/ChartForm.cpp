@@ -153,6 +153,19 @@ void ChartForm::OnRealtimeTimer()
     pChart->AddDataPoint(0, m_fRealtimeValue);
 }
 
+bool ChartForm::OnLanguageChanged()
+{
+    const bool bRet = BaseClass::OnLanguageChanged();
+    //"开始/暂停"按钮的文本由代码按运行状态设置，需要按当前语言刷新
+    ui::Button* pRealtimeToggle = dynamic_cast<ui::Button*>(FindControl(_T("btn_realtime_toggle")));
+    if (pRealtimeToggle != nullptr) {
+        pRealtimeToggle->SetText(ChartLang(m_bRealtimeRunning ?
+                                           _T("STRID_CHART_REALTIME_PAUSE") :
+                                           _T("STRID_CHART_REALTIME_START")));
+    }
+    return bRet;
+}
+
 void ChartForm::ToggleRealtime(ui::Chart* pChart, ui::Button* pBtn)
 {
     if ((pChart == nullptr) || (pBtn == nullptr)) {
@@ -163,14 +176,14 @@ void ChartForm::ToggleRealtime(ui::Chart* pChart, ui::Button* pBtn)
         //启动定时器：每 250ms 追加一个数据点
         m_nRealtimeTaskId = ui::GlobalManager::Instance().Thread().PostRepeatedTask(
             ui::kThreadUI, ui::UiBind(this, [this]() { OnRealtimeTimer(); }), 250);
-        pBtn->SetText(_T("暂停"));
+        pBtn->SetText(ChartLang(_T("STRID_CHART_REALTIME_PAUSE")));
     }
     else {
         if (m_nRealtimeTaskId != 0) {
             ui::GlobalManager::Instance().Thread().CancelTask(m_nRealtimeTaskId);
             m_nRealtimeTaskId = 0;
         }
-        pBtn->SetText(_T("开始"));
+        pBtn->SetText(ChartLang(_T("STRID_CHART_REALTIME_START")));
     }
 }
 

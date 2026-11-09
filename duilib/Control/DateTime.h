@@ -172,6 +172,16 @@ public:
     */
     DString GetDisabledDates() const;
 
+    /** 设置每周禁用的星期（仅日历类编辑格式生效）
+    * @param [in] disabledWeekdays 列表文本，多个项用 ',' 或 ';' 分隔；
+    *            每项为 sunday/sun/0 ... saturday/sat/6（0=周日）
+    */
+    void SetDisabledWeekdays(const DString& disabledWeekdays);
+
+    /** 获取每周禁用的星期列表文本
+    */
+    DString GetDisabledWeekdays() const;
+
     /** 设置每周第一天（仅日历类编辑格式生效）
     * @param [in] dayOfWeek 0=周日, 1=周一（默认 1）
     */
@@ -290,6 +300,10 @@ private:
     /** 业务禁用日期列表文本
     */
     UiString m_disabledDates;
+
+    /** 每周禁用的星期列表文本
+    */
+    UiString m_disabledWeekdays;
 
     /** 每周第一天（0=周日, 1=周一）
     */

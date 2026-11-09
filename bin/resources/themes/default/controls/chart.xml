@@ -93,15 +93,15 @@
             <HBox height="stretch" padding="0,12,0,0">
                 <VBox width="stretch" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12">
                     <HBox height="28">
-                        <Label text="实时监控（增量更新 + 滚动窗口 + 轴格式化）" font="system_bold_15" text_color="text_default" valign="center"/>
+                        <Label text_id="STRID_CHART_REALTIME_TITLE" font="system_bold_15" text_color="text_default" valign="center"/>
                         <Control/>
-                        <Button class="btn_global" name="btn_realtime_toggle" text="开始" width="80" height="26" border_round="3,3" margin="0,0,6,0"/>
-                        <Button class="btn_global" name="btn_realtime_clear" text="清空" width="70" height="26" border_round="3,3" margin="0,0,6,0"/>
-                        <Button class="btn_global" name="btn_realtime_jitter" text="随机扰动" width="90" height="26" border_round="3,3"/>
+                        <Button class="btn_global" name="btn_realtime_toggle" text_id="STRID_CHART_REALTIME_START" width="80" height="26" border_round="3,3" margin="0,0,6,0"/>
+                        <Button class="btn_global" name="btn_realtime_clear" text_id="STRID_CHART_REALTIME_CLEAR" width="70" height="26" border_round="3,3" margin="0,0,6,0"/>
+                        <Button class="btn_global" name="btn_realtime_jitter" text_id="STRID_CHART_REALTIME_JITTER" width="90" height="26" border_round="3,3"/>
                     </HBox>
                     <Chart name="chart_realtime" height="stretch" chart_type="line"
-                           title="实时监控：CPU 占用率（模拟）"
-                           x_axis_title="时间" y_axis_title="占用率"
+                           title_id="STRID_CHART_REALTIME_CHART_TITLE"
+                           x_axis_title_id="STRID_CHART_REALTIME_X_AXIS" y_axis_title_id="STRID_CHART_REALTIME_Y_AXIS"
                            legend_visible="false"
                            series_color="color_accent" axis_color="border_control_normal"
                            label_color="text_default" show_value="false" show_grid="true"

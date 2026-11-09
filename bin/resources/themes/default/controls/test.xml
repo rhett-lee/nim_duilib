@@ -110,10 +110,10 @@
                         <AutoComplete class="auto_complete" name="auto_complete2" match_mode="contains" max_visible="6"
                                       width="50%" height="32" prompt_text_id="STRID_CONTROLS_AUTO_COMPLETE_PROMPT2"/>
                     </HBox>
-                    <Label text="SearchBox 搜索框（建议 + 历史）" font="system_bold_14" text_color="text_default" margin="0,12,0,0"/>
+                    <Label text_id="STRID_TEST_SEARCH_TITLE" font="system_bold_14" text_color="text_default" margin="0,12,0,0"/>
                     <HBox height="34" margin="0,8,0,0">
                         <SearchBox class="search_box" name="search_box" width="100%" height="32"
-                                   prompt_text="搜索控件 / 输入关键词（回车记录历史）"
+                                   prompt_text_id="STRID_TEST_SEARCH_PROMPT"
                                    suggestions="nim_duilib;C++;Desktop UI;Skia;Qt;WPF;MFC;Win32;DirectUI;Electron;Flutter;duilib"
                                    history_enabled="true" max_history="10" max_visible="8"/>
                     </HBox>
@@ -126,32 +126,31 @@
                            margin="8,0,0,0" valign="center"/>
                     <Control/>
                 </HBox>
-                <HBox height="176" child_margin="10">
+                <HBox height="208" child_margin="10">
                     <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
                           padding="16,14,16,14" height="stretch" width="50%">
                         <Label text="RichText / HyperLink / Line" font="system_bold_14" text_color="text_default"/>
-                        <RichText class="rich_text" name="test_rich_text" row_spacing_mul="1.2" width="auto" margin="0,8,0,0">
-                            RichText 支持富文本与超链接：<a href="www.baidu.com">Baidu</a>　<a href="www.bing.com">Bing</a>
-                        </RichText>
+                        <RichText class="rich_text" name="test_rich_text" row_spacing_mul="1.2" width="auto"
+                                  margin="0,8,0,0" text_id="STRID_TEST_RICHTEXT_DEMO"/>
                         <HBox height="26" margin="0,6,0,0" child_margin="10">
                             <HyperLink class="hyper_link" name="test_hyperlink1" text="Baidu Home" url="www.baidu.com" valign="center"/>
                             <HyperLink class="hyper_link" name="test_hyperlink2" text="Text Button" url="" valign="center"/>
                             <Control/>
                         </HBox>
-                        <HBox height="10" margin="0,6,0,0">
-                            <Label text="Solid" text_color="text_muted" width="52" valign="center"/>
+                        <HBox height="20" margin="0,6,0,0">
+                            <Label text="Solid" text_color="text_muted" width="86" font="system_regular_12" valign="center"/>
                             <Line vertical="false" line_color="#FF0078D4" dash_style="solid" line_width="2"/>
                         </HBox>
-                        <HBox height="10" margin="0,4,0,0">
-                            <Label text="Dash" text_color="text_muted" width="52" valign="center"/>
+                        <HBox height="20" margin="0,4,0,0">
+                            <Label text="Dash" text_color="text_muted" width="86" font="system_regular_12" valign="center"/>
                             <Line vertical="false" line_color="#FFE85854" dash_style="dash" line_width="2"/>
                         </HBox>
-                        <HBox height="10" margin="0,4,0,0">
-                            <Label text="Dot" text_color="text_muted" width="52" valign="center"/>
+                        <HBox height="20" margin="0,4,0,0">
+                            <Label text="Dot" text_color="text_muted" width="86" font="system_regular_12" valign="center"/>
                             <Line vertical="false" line_color="#FF22A95B" dash_style="dot" line_width="2"/>
                         </HBox>
-                        <HBox height="10" margin="0,4,0,0">
-                            <Label text="DashDot" text_color="text_muted" width="52" valign="center"/>
+                        <HBox height="20" margin="0,4,0,0">
+                            <Label text="DashDot" text_color="text_muted" width="86" font="system_regular_12" valign="center"/>
                             <Line vertical="false" line_color="#FFD08700" dash_style="dash_dot" line_width="2"/>
                         </HBox>
                     </VBox>

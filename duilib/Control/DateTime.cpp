@@ -98,6 +98,9 @@ void DateTime::SetAttribute(const DString& strName, const DString& strValue2)
     else if (strName == _T("disabled_dates")) {
         SetDisabledDates(strValue);
     }
+    else if (strName == _T("disabled_weekdays")) {
+        SetDisabledWeekdays(strValue);
+    }
     else if (strName == _T("first_day_of_week")) {
         if ((strValue == _T("sunday")) || (strValue == _T("0"))) {
             SetFirstDayOfWeek(0);
@@ -566,6 +569,19 @@ DString DateTime::GetDisabledDates() const
     return m_disabledDates.c_str();
 }
 
+void DateTime::SetDisabledWeekdays(const DString& disabledWeekdays)
+{
+    m_disabledWeekdays = disabledWeekdays;
+    if (m_pCalendarFlyout != nullptr) {
+        m_pCalendarFlyout->SetDisabledWeekdays(disabledWeekdays);
+    }
+}
+
+DString DateTime::GetDisabledWeekdays() const
+{
+    return m_disabledWeekdays.c_str();
+}
+
 void DateTime::SetFirstDayOfWeek(int32_t dayOfWeek)
 {
     if ((dayOfWeek < 0) || (dayOfWeek > 6)) {
@@ -651,6 +667,7 @@ void DateTime::OpenCalendarFlyout()
 
     pFlyout->SetDateLimit(m_minDate.c_str(), m_maxDate.c_str());
     pFlyout->SetDisabledDates(m_disabledDates.c_str());
+    pFlyout->SetDisabledWeekdays(m_disabledWeekdays.c_str());
     pFlyout->SetFirstDayOfWeek(m_firstDayOfWeek);
     pFlyout->AttachClosed([this](ui::Flyout::CloseReason) {
         m_pCalendarFlyout = nullptr;

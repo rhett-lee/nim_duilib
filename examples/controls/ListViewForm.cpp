@@ -1,5 +1,14 @@
 #include "ListViewForm.h"
 
+namespace
+{
+/** 读取语言资源（代码动态生成的文本必须走语言文件，才能支持中英文切换） */
+DString ListViewLang(const DString& strId)
+{
+    return ui::GlobalManager::Instance().Lang().GetStringByID(strId);
+}
+}//namespace
+
 ListViewForm::ListViewForm()
 {
 }
@@ -37,7 +46,7 @@ void ListViewForm::OnInitWindow()
             ui::Control* pItem = pListV->GetItemAt(index);
             ui::ListBoxItem* pListBoxItem = dynamic_cast<ui::ListBoxItem*>(pItem);
             if (pListBoxItem != nullptr) {
-                UpdateEventText(ui::StringUtil::Printf(_T("VListBox 选中第 %d 项：%s"),
+                UpdateEventText(ui::StringUtil::Printf(ListViewLang(_T("STRID_LISTVIEW_EVENT_VLIST")).c_str(),
                                                        (int32_t)index, pListBoxItem->GetText().c_str()));
             }
             return true;
@@ -47,7 +56,7 @@ void ListViewForm::OnInitWindow()
             ui::Control* pItem = pListV->GetItemAt(index);
             ui::ListBoxItem* pListBoxItem = dynamic_cast<ui::ListBoxItem*>(pItem);
             if (pListBoxItem != nullptr) {
-                ui::ToastWnd::Show(this, ui::StringUtil::Printf(_T("双击：%s"), pListBoxItem->GetText().c_str()),
+                ui::ToastWnd::Show(this, ui::StringUtil::Printf(ListViewLang(_T("STRID_LISTVIEW_TOAST_DOUBLE_CLICK")).c_str(), pListBoxItem->GetText().c_str()),
                                    ui::ToastWnd::kTypeInfo, 1500, ui::ToastWnd::kPosTop, false);
             }
             return true;
@@ -72,11 +81,18 @@ void ListViewForm::OnInitWindow()
             ui::Control* pItem = pTreeView->GetItemAt(index);
             ui::TreeNode* pTreeNode = dynamic_cast<ui::TreeNode*>(pItem);
             if (pTreeNode != nullptr) {
-                UpdateEventText(ui::StringUtil::Printf(_T("TreeView 选中：%s"), pTreeNode->GetText().c_str()));
+                UpdateEventText(ui::StringUtil::Printf(ListViewLang(_T("STRID_LISTVIEW_EVENT_TREE")).c_str(), pTreeNode->GetText().c_str()));
             }
             return true;
             });
     }
+}
+
+bool ListViewForm::OnLanguageChanged()
+{
+    const bool bRet = BaseClass::OnLanguageChanged();
+    UpdateEventText(ListViewLang(_T("STRID_LISTVIEW_EVENT_DEFAULT")));
+    return bRet;
 }
 
 void ListViewForm::UpdateEventText(const DString& text)

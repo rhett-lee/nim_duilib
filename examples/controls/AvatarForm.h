@@ -24,6 +24,10 @@ public:
      */
     virtual void OnInitWindow() override;
 
+    /** 语言切换后刷新动态演示头像的文字
+     */
+    virtual bool OnLanguageChanged() override;
+
 private:
     /** 绑定"动态修改"演示区的按钮
      */
@@ -61,6 +65,11 @@ private:
      * @param [in] strId 语言 ID
      */
     DString GetLangText(const DString& strId) const;
+
+    /** 取循环显示的文字内容（中文姓名走语言资源）
+     * @param [in] nIndex 文字循环索引
+     */
+    DString GetAvatarText(size_t nIndex) const;
 
 private:
     /** 动态演示的头像控件（生命周期与窗口一致，不需要额外持有）

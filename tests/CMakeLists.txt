@@ -23,6 +23,25 @@ add_test(NAME address_bar_path
          COMMAND test_address_bar_path
 )
 
+# Calendar 每周禁用星期（disabled_weekdays）：覆盖星期列表的解析与判断逻辑
+# （Calendar::SetDisabledWeekdays / IsDateDisabled 使用的纯逻辑实现）
+add_executable(test_calendar_disabled_weekdays
+    test_calendar_disabled_weekdays.cpp
+)
+target_include_directories(test_calendar_disabled_weekdays PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_calendar_disabled_weekdays PRIVATE duilib)
+if(WIN32)
+    target_compile_definitions(test_calendar_disabled_weekdays PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_calendar_disabled_weekdays PRIVATE /utf-8)
+endif()
+add_test(NAME calendar_disabled_weekdays
+         COMMAND test_calendar_disabled_weekdays
+)
+
 # controls 示例页面的静态校验（XML 节点名、属性、class/颜色引用、语言词条、
 # Form 与 XML 的绑定关系）。该测试不创建窗口、不加载主题，仅用 Python3 解析
 # 资源文件，Windows/Linux/macOS 均可运行，可直接在命令行（含 CI）执行。

@@ -15,6 +15,7 @@ public:
     virtual DString GetSkinFolder() override;
     virtual DString GetSkinFile() override;
     virtual void OnInitWindow() override;
+    virtual bool OnLanguageChanged() override;
 
 private:
     /** 绑定日期时间控件的值变化事件
