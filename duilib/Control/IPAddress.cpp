@@ -96,7 +96,8 @@ IPAddress::IPAddress(Window* pWindow):
     HBox(pWindow),
     m_pLastFocus(nullptr),
     m_nFocusIndex(-1),
-    m_bAllowEmpty(false)
+    m_bAllowEmpty(false),
+    m_nSegmentWidth(kSegmentWidth)
 {
 }
 
@@ -111,6 +112,19 @@ void IPAddress::SetAttribute(const DString& strName, const DString& strValue2)
     else if (strName == _T("allow_empty")) {
         //是否允许空值（四段都为空时，GetIPAddress 返回空字符串）
         m_bAllowEmpty = StringUtil::IsValueTrue(strValue);
+    }
+    else if (strName == _T("segment_width")) {
+        //每段编辑框的宽度（逻辑像素）
+        int32_t nWidth = StringUtil::StringToInt32(strValue);
+        if (nWidth < 1) {
+            nWidth = 1;
+        }
+        m_nSegmentWidth = nWidth;
+        for (RichEdit* pRichEdit : m_editList) {
+            if (pRichEdit != nullptr) {
+                pRichEdit->SetFixedWidth(UiFixedInt(m_nSegmentWidth), true, true);
+            }
+        }
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
@@ -140,7 +154,7 @@ void IPAddress::OnInit()
         pRichEdit->SetNumberOnly(true);
         pRichEdit->SetMinNumber(0);
         pRichEdit->SetMaxNumber(kSegmentMaxValue);
-        pRichEdit->SetFixedWidth(UiFixedInt(kSegmentWidth), true, true);
+        pRichEdit->SetFixedWidth(UiFixedInt(m_nSegmentWidth), true, true);
         AddItem(pRichEdit);
         m_editList.push_back(pRichEdit);
         if (index != (kSegmentCount - 1)) {
@@ -189,14 +203,21 @@ void IPAddress::OnInit()
             }, 0);
     }
     if (!m_ipAddress.empty()) {
-        SetIPAddress(DString(m_ipAddress.c_str()));
+        //初始化前设置的IP地址：静默应用，不触发文本变化事件
+        int32_t values[kSegmentCount] = { 0 };
+        if (TryParseIPAddress(DString(m_ipAddress.c_str()), values)) {
+            ApplyIPAddress(values);
+        }
     }
     //记录初始值，避免初始化后立即触发一次文本变化事件
-    m_lastIPAddress = GetIPAddress();
+    m_lastIPAddress = GetSegmentText();
 }
 
 void IPAddress::SetFocus()
 {
+    if (IsNoFocus()) {
+        return;
+    }
     if (IsVisible() && IsEnabled() && !m_editList.empty()) {
         size_t nIndex = 0;
         auto iter = std::find(m_editList.begin(), m_editList.end(), m_pLastFocus);
@@ -212,18 +233,28 @@ void IPAddress::SetFocus()
 
 void IPAddress::SetIPAddress(const DString& ipAddress)
 {
+    if (ipAddress.empty()) {
+        //设置为空字符串：等价于清空IP地址
+        ClearIPAddress();
+        return;
+    }
+    int32_t values[kSegmentCount] = { 0 };
+    if (!TryParseIPAddress(ipAddress, values)) {
+        //格式非法（非四段纯数字）：忽略本次设置，不修改当前值
+        return;
+    }
     m_ipAddress = ipAddress;
     if (m_editList.size() != static_cast<size_t>(kSegmentCount)) {
         //尚未初始化完成，等 OnInit 时再应用
         return;
     }
-    if (ipAddress.empty()) {
-        return;
-    }
-    int32_t values[kSegmentCount] = { 0 };
-    if (!TryParseIPAddress(ipAddress, values)) {
-        return;
-    }
+    ApplyIPAddress(values);
+    //程序化赋值属于值发生变化，对外发送文本变化事件
+    NotifyValueChanged();
+}
+
+void IPAddress::ApplyIPAddress(const int32_t values[4])
+{
     for (int32_t index = 0; index < kSegmentCount; ++index) {
         RichEdit* pRichEdit = m_editList[static_cast<size_t>(index)];
         if (pRichEdit != nullptr) {
@@ -231,9 +262,26 @@ void IPAddress::SetIPAddress(const DString& ipAddress)
             pRichEdit->SetTextNoEvent(StringUtil::Printf(_T("%d"), values[index]));
         }
     }
-    //程序化赋值不对外发送事件，仅同步内部记录
-    m_lastIPAddress = GetIPAddress();
     UpdateSegmentBkColor();
+}
+
+DString IPAddress::GetSegmentText() const
+{
+    if (m_editList.size() != static_cast<size_t>(kSegmentCount)) {
+        //尚未初始化完成时，返回初始化前设置的IP地址
+        return m_ipAddress.empty() ? DString() : DString(m_ipAddress.c_str());
+    }
+    DString segmentText;
+    for (int32_t index = 0; index < kSegmentCount; ++index) {
+        if (index != 0) {
+            segmentText += _T('.');
+        }
+        RichEdit* pRichEdit = m_editList[static_cast<size_t>(index)];
+        if (pRichEdit != nullptr) {
+            segmentText += pRichEdit->GetText();
+        }
+    }
+    return segmentText;
 }
 
 DString IPAddress::GetIPAddress() const
@@ -259,7 +307,9 @@ DString IPAddress::GetIPAddress() const
 bool IPAddress::IsComplete() const
 {
     if (m_editList.size() != static_cast<size_t>(kSegmentCount)) {
-        return false;
+        //尚未初始化完成时，基于初始化前设置的IP地址判断
+        int32_t values[kSegmentCount] = { 0 };
+        return !m_ipAddress.empty() && TryParseIPAddress(DString(m_ipAddress.c_str()), values);
     }
     for (RichEdit* pRichEdit : m_editList) {
         if ((pRichEdit == nullptr) || pRichEdit->GetText().empty()) {
@@ -272,7 +322,9 @@ bool IPAddress::IsComplete() const
 bool IPAddress::IsValid() const
 {
     if (m_editList.size() != static_cast<size_t>(kSegmentCount)) {
-        return false;
+        //尚未初始化完成时，基于初始化前设置的IP地址判断
+        int32_t values[kSegmentCount] = { 0 };
+        return !m_ipAddress.empty() && TryParseIPAddress(DString(m_ipAddress.c_str()), values);
     }
     for (RichEdit* pRichEdit : m_editList) {
         if (pRichEdit == nullptr) {
@@ -304,6 +356,9 @@ void IPAddress::ClearIPAddress()
 
 bool IPAddress::IsFocused() const
 {
+    if (BaseClass::IsFocused()) {
+        return true;
+    }
     for (RichEdit* pRichEdit : m_editList) {
         if ((pRichEdit != nullptr) && pRichEdit->IsFocused()) {
             return true;
@@ -317,7 +372,8 @@ void IPAddress::SendEventMsg(const EventArgs& msg)
     if ((msg.GetSender() == this) && (msg.eventType == kEventKillFocus)) {
         Control* pNewFocus = (Control*)msg.wParam;
         if (IsSegmentControl(m_editList, pNewFocus)) {
-            //焦点切换到本控件的编辑框，不发出KillFocus事件
+            //焦点从本控件自身移动到本控件的编辑框时，基类也会发出KillFocus事件，
+            //此时焦点仍在控件内部，不应对外发出KillFocus事件
             return;
         }
     }
@@ -411,22 +467,27 @@ bool IPAddress::OnSegmentKeyDown(size_t index, const EventArgs& msg)
             pRichEdit->GetSel(nStartChar, nEndChar);
             const int32_t nTextLength = static_cast<int32_t>(pRichEdit->GetText().size());
             if (((index + 1) < m_editList.size()) && (nStartChar == nTextLength) && (nEndChar == nTextLength)) {
-                FocusSegment(index + 1, false);
-                RichEdit* pNextRichEdit = m_editList[index + 1];
-                if (pNextRichEdit != nullptr) {
-                    pNextRichEdit->SetSel(0, 0);
-                }
+                //光标置于下一段的开头
+                FocusSegment(index + 1, false, true);
                 return false;
             }
             return true;
         }
     case kVK_UP:
         {
+            //带修饰键时（如 Ctrl+↑）不处理，避免与框架的快捷键冲突
+            if ((msg.modifierKey & (ModifierKey::kShift | ModifierKey::kControl | ModifierKey::kAlt)) != 0) {
+                return true;
+            }
             SetSegmentNumber(index, GetSegmentNumber(index) + 1);
             return false;
         }
     case kVK_DOWN:
         {
+            //带修饰键时（如 Ctrl+↓）不处理，避免与框架的快捷键冲突
+            if ((msg.modifierKey & (ModifierKey::kShift | ModifierKey::kControl | ModifierKey::kAlt)) != 0) {
+                return true;
+            }
             SetSegmentNumber(index, GetSegmentNumber(index) - 1);
             return false;
         }
@@ -449,8 +510,8 @@ bool IPAddress::OnSegmentKeyDown(size_t index, const EventArgs& msg)
             if (!TryParseIPAddress(text, values)) {
                 return true;
             }
+            //整体粘贴（值变化时由SetIPAddress对外发送文本变化事件）
             SetIPAddress(text);
-            NotifyValueChanged();
             return false;
         }
     default:
@@ -475,7 +536,7 @@ void IPAddress::OnSegmentSetFocus(size_t index)
     }
 }
 
-void IPAddress::FocusSegment(size_t index, bool bSelectAll)
+void IPAddress::FocusSegment(size_t index, bool bSelectAll, bool bCaretAtStart)
 {
     if (index >= m_editList.size()) {
         return;
@@ -487,6 +548,9 @@ void IPAddress::FocusSegment(size_t index, bool bSelectAll)
     pRichEdit->SetFocus();
     if (bSelectAll) {
         pRichEdit->SetSelAll();
+    }
+    else if (bCaretAtStart) {
+        pRichEdit->SetSel(0, 0);
     }
     else {
         const int32_t nTextLength = static_cast<int32_t>(pRichEdit->GetText().size());
@@ -511,9 +575,10 @@ void IPAddress::UpdateSegmentBkColor()
 
 void IPAddress::NotifyValueChanged()
 {
-    const DString ipAddress = GetIPAddress();
-    if (!(m_lastIPAddress == ipAddress)) {
-        m_lastIPAddress = ipAddress;
+    //以四段原始文本比较，确保"某段由空变为0"等值变化也能触发事件
+    const DString segmentText = GetSegmentText();
+    if (!(m_lastIPAddress == segmentText)) {
+        m_lastIPAddress = segmentText;
         SendEvent(kEventTextChanged);
     }
 }

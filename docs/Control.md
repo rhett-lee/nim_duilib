@@ -700,6 +700,7 @@ HyperLink 控件继承了 `Label` 属性，更多可用属性请参考`Label`的
 | :--- | :--- | :--- | :--- |
 | ip | | string | IP地址，比如："192.168.0.0" |
 | allow_empty | false | bool | 是否允许空值：为 true 且四段都为空时，GetIPAddress 返回空字符串 |
+| segment_width | 28 | int | 每段编辑框的宽度（逻辑像素） |
 
 IPAddress 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
 
@@ -718,7 +719,7 @@ IPAddress 由四段数字编辑框（每段取值 0~255）与三个分隔符组�
 bool IsComplete() const;                        //四段是否都已填写
 bool IsValid() const;                           //四段是否均为 0~255 的纯数字（即完整且合法的地址）
 DString GetIPAddress() const;                   //获取地址，形如 "192.168.0.1"
-void SetIPAddress(const DString& ipAddress);    //设置地址，要求四段纯数字、以 '.' 分隔；格式非法时忽略
+void SetIPAddress(const DString& ipAddress);    //设置地址，要求四段纯数字、以 '.' 分隔；格式非法时忽略；超出 0~255 的段会被钳位到 0~255；设置为空字符串等价于清空
 void ClearIPAddress();                          //清空四段内容
 ```
 

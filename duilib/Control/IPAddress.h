@@ -79,8 +79,18 @@ protected:
 private:
     /** 让指定段的编辑框获得焦点
      * @param[in] bSelectAll 是否全选该段的内容
+     * @param[in] bCaretAtStart 未全选时，光标是否置于段首（为 false 时置于段尾）
      */
-    void FocusSegment(size_t index, bool bSelectAll);
+    void FocusSegment(size_t index, bool bSelectAll, bool bCaretAtStart = false);
+
+    /** 静默应用四段数值（不触发文本变化事件）
+     * @param[in] values 四段数值（已限制在 0~255）
+     */
+    void ApplyIPAddress(const int32_t values[4]);
+
+    /** 获取四段编辑框的原始文本（以 '.' 拼接，如 "1..0.1"），用于判断值是否真正变化
+    */
+    DString GetSegmentText() const;
 
     /** 刷新各段编辑框的背景色（当前聚焦的段高亮显示）
     */
@@ -99,7 +109,7 @@ private:
     void SetSegmentNumber(size_t index, int32_t nValue);
 
 private:
-    /** 编辑框列表
+    /** 编辑框列表（由本控件创建并持有，不支持外部调用 RemoveAllItems 移除）
     */
     std::vector<RichEdit*> m_editList;
 
@@ -107,11 +117,11 @@ private:
     */
     RichEdit* m_pLastFocus;
 
-    /** IP地址
+    /** IP地址的初始值缓存（仅用于初始化前设置的值，初始化后以各段编辑框的文本为准）
     */
     UiString m_ipAddress;
 
-    /** 上次对外通知的IP地址（用于判断值是否真正变化）
+    /** 上次对外通知的四段原始文本（用于判断值是否真正变化）
     */
     UiString m_lastIPAddress;
 
@@ -122,6 +132,10 @@ private:
     /** 是否允许空值（为 true 时，四段都为空则 GetIPAddress 返回空字符串）
     */
     bool m_bAllowEmpty;
+
+    /** 每段编辑框的宽度（逻辑像素）
+    */
+    int32_t m_nSegmentWidth;
 };
 
 }//namespace ui

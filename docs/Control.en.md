@@ -702,6 +702,7 @@ The HyperLink control inherits the `Label` attributes. For more available attrib
 | :--- | :--- | :--- | :--- |
 | ip | | string | IP address, e.g. "192.168.0.0" |
 | allow_empty | false | bool | Whether an empty value is allowed: when true and all four segments are empty, GetIPAddress returns an empty string |
+| segment_width | 28 | int | Width of each segment edit box (logical pixels) |
 
 The IPAddress control inherits the `HBox` attributes. For more available attributes, please refer to the `HBox` attributes.
 
@@ -720,7 +721,7 @@ The focused segment is highlighted; `IsFocused()` returns true when any segment 
 bool IsComplete() const;                        //Whether all four segments are filled
 bool IsValid() const;                           //Whether all four segments are digits in 0~255 (complete and valid address)
 DString GetIPAddress() const;                   //Get the address, e.g. "192.168.0.1"
-void SetIPAddress(const DString& ipAddress);    //Set the address: four numeric segments separated by '.'; ignored when malformed
+void SetIPAddress(const DString& ipAddress);    //Set the address: four numeric segments separated by '.'; ignored when malformed; segments outside 0~255 are clamped to 0~255; an empty string clears the address
 void ClearIPAddress();                          //Clear all four segments
 ```
 
