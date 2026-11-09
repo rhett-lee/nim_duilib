@@ -106,15 +106,15 @@
                         </HFlowBox>
                         <HBox width="stretch" height="auto" child_valign="center" margin="0,0,0,6">
                             <Label text_id="STRID_LISTCTRL_HEADER_TEXT" height="20" valign="center" margin="0,0,10,0"/>
-                            <Option class="option_2" name="header_text_align_left" group="header_text_align" selected="false" width="64" height="32" text_id="STRID_LISTCTRL_ALIGN_LEFT" padding="2,2,2,2" border_round="2,2" margin="0,0,4,0" valign="center"/>
-                            <Option class="option_2" name="header_text_align_center" group="header_text_align" selected="true" width="64" height="32" text_id="STRID_LISTCTRL_ALIGN_CENTER" padding="2,2,2,2" border_round="2,2" margin="0,0,4,0" valign="center"/>
-                            <Option class="option_2" name="header_text_align_right" group="header_text_align" selected="false" width="64" height="32" text_id="STRID_LISTCTRL_ALIGN_RIGHT" padding="2,2,2,2" border_round="2,2" margin="0,0,0,0" valign="center"/>
+                            <Option class="option_2" name="header_text_align_left" group="header_text_align" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_ALIGN_LEFT" padding="8,2,8,2" border_round="2,2" margin="0,0,4,0" valign="center"/>
+                            <Option class="option_2" name="header_text_align_center" group="header_text_align" selected="true" width="auto" height="32" text_id="STRID_LISTCTRL_ALIGN_CENTER" padding="8,2,8,2" border_round="2,2" margin="0,0,4,0" valign="center"/>
+                            <Option class="option_2" name="header_text_align_right" group="header_text_align" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_ALIGN_RIGHT" padding="8,2,8,2" border_round="2,2" margin="0,0,0,0" valign="center"/>
                         </HBox>
                         <HBox width="stretch" height="auto" child_valign="center">
                             <Label text_id="STRID_LISTCTRL_TABLE_TEXT" height="20" valign="center" margin="0,0,10,0"/>
-                            <Option class="option_2" name="column_text_align_left" group="column_text_align" selected="true" width="64" height="32" text_id="STRID_LISTCTRL_ALIGN_LEFT" padding="2,2,2,2" border_round="2,2" margin="0,0,4,0" valign="center"/>
-                            <Option class="option_2" name="column_text_align_center" group="column_text_align" selected="false" width="64" height="32" text_id="STRID_LISTCTRL_ALIGN_CENTER" padding="2,2,2,2" border_round="2,2" margin="0,0,4,0" valign="center"/>
-                            <Option class="option_2" name="column_text_align_right" group="column_text_align" selected="false" width="64" height="32" text_id="STRID_LISTCTRL_ALIGN_RIGHT" padding="2,2,2,2" border_round="2,2" margin="0,0,0,0" valign="center"/>
+                            <Option class="option_2" name="column_text_align_left" group="column_text_align" selected="true" width="auto" height="32" text_id="STRID_LISTCTRL_ALIGN_LEFT" padding="8,2,8,2" border_round="2,2" margin="0,0,4,0" valign="center"/>
+                            <Option class="option_2" name="column_text_align_center" group="column_text_align" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_ALIGN_CENTER" padding="8,2,8,2" border_round="2,2" margin="0,0,4,0" valign="center"/>
+                            <Option class="option_2" name="column_text_align_right" group="column_text_align" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_ALIGN_RIGHT" padding="8,2,8,2" border_round="2,2" margin="0,0,0,0" valign="center"/>
                         </HBox>
                     </GroupVBox>
 

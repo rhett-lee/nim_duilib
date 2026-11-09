@@ -33,6 +33,10 @@ public:
     */
     virtual void OnInitWindow() override;
 
+    /** 语言切换后刷新代码动态设置的文本（状态栏、空视图提示）
+    */
+    virtual bool OnLanguageChanged() override;
+
     /** 窗口级按键消息：处理快捷键
      * Enter/Backspace/F5/Ctrl+A/Ctrl+F/Ctrl+C/Esc/Alt+Left/Alt+Right/Alt+Up
      */

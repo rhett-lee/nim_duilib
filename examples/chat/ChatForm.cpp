@@ -93,6 +93,9 @@ void ChatForm::SetLoginUser(const DString& strUser)
 
 void ChatForm::OnInitWindow()
 {
+    //绑定标题栏的窗口按钮与语言/主题切换按钮
+    ui::WindowImplBase::OnInitWindow();
+
     //会话与联系人数据
     InitSessionData();
 

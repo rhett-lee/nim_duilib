@@ -250,6 +250,9 @@ DString MainForm::GetSkinFile()
 
 void MainForm::OnInitWindow()
 {
+    //绑定标题栏的窗口按钮与语言/主题切换按钮
+    ui::WindowImplBase::OnInitWindow();
+
     m_pTree = dynamic_cast<ui::DirectoryTree*>(FindControl(_T("tree")));
     ASSERT(m_pTree != nullptr);
     if (m_pTree == nullptr) {
@@ -410,6 +413,18 @@ void MainForm::OnInitWindow()
     if (pComputerNode != nullptr) {
         m_pTree->SelectTreeNode(pComputerNode);
     }
+}
+
+bool MainForm::OnLanguageChanged()
+{
+    const bool bRet = ui::WindowImplBase::OnLanguageChanged();
+    //状态栏文本是代码拼接的，需要按当前语言重新生成
+    UpdateStatusBar();
+    //空视图的提示文本也是代码设置的
+    if (m_pEmptyTip != nullptr) {
+        m_pEmptyTip->SetText(ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_TREEVIEW_SEARCH_NO_MATCH")));
+    }
+    return bRet;
 }
 
 void MainForm::Refresh()

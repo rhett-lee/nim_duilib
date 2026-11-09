@@ -40,6 +40,9 @@ DString MainForm::GetSkinFile()
 
 void MainForm::OnInitWindow()
 {
+    //绑定标题栏的窗口按钮与语言/主题切换按钮
+    ui::WindowImplBase::OnInitWindow();
+
     ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(_T("list_ctrl")));
     ASSERT(pListCtrl != nullptr);
     if (pListCtrl == nullptr) {
@@ -141,7 +144,33 @@ bool MainForm::OnLanguageChanged()
         pListCtrl->DeleteAllDataItems();
         InsertItemData(400, 9, (int32_t)m_imageId);
         pListCtrl->SetEnableRefresh(true);
-    }    
+        pListCtrl->Refresh(true);
+
+        //语言变化后，列名已重新生成，需要同步刷新“列控制”下拉框的文本
+        ui::Combo* pColumnCombo = dynamic_cast<ui::Combo*>(FindControl(_T("column_combo")));
+        if (pColumnCombo != nullptr) {
+            //列ID是表头对象的地址，重建列之后不再有效，因此按列索引保持选择
+            const size_t nOldSel = pColumnCombo->GetCurSel();
+            pColumnCombo->DeleteAllItems();
+            const size_t nColumnCount = pListCtrl->GetColumnCount();
+            for (size_t i = 0; i < nColumnCount; ++i) {
+                ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumn(i);
+                if (pHeaderItem == nullptr) {
+                    continue;
+                }
+                const size_t nItem = pColumnCombo->AddTextItem(pHeaderItem->GetText());
+                if (nItem == ui::Box::InvalidIndex) {
+                    continue;
+                }
+                pColumnCombo->SetItemData(nItem, pHeaderItem->GetColumnId());
+            }
+            if (pColumnCombo->GetCount() > 0) {
+                const size_t nNewSel = (nOldSel < pColumnCombo->GetCount()) ? nOldSel : 0;
+                //触发选择事件，让“列控制”区域的控件与新列对象重新对应
+                pColumnCombo->SetCurSel(nNewSel, true);
+            }
+        }
+    }
     return bRet;
 }
 

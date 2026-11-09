@@ -114,7 +114,7 @@
                 <TabBox name="panel_box" width="stretch" height="stretch">
                 <VBox name="panel_chats" width="stretch" height="stretch">
                     <HBox class="chat_session_item" name="session_1" width="stretch" height="auto" padding="12,10,12,10">
-                        <Avatar class="avatar_large" name="session_1_avatar" text="张" valign="center" mouse_enabled="false"/>
+                        <Avatar class="avatar_large" name="session_1_avatar" text_id="STRID_CHAT_AVATAR_PLACEHOLDER" valign="center" mouse_enabled="false"/>
                         <VBox width="stretch" height="auto" margin="10,0,0,0" mouse_enabled="false">
                             <HBox height="20" mouse_enabled="false">
                                 <Label name="session_1_name" width="stretch" font="system_bold_14"
@@ -130,7 +130,7 @@
                         </VBox>
                     </HBox>
                     <HBox class="chat_session_item" name="session_2" width="stretch" height="auto" padding="12,10,12,10">
-                        <Avatar class="avatar_large" name="session_2_avatar" text="设" valign="center" mouse_enabled="false"/>
+                        <Avatar class="avatar_large" name="session_2_avatar" text_id="STRID_CHAT_AVATAR_PLACEHOLDER" valign="center" mouse_enabled="false"/>
                         <VBox width="stretch" height="auto" margin="10,0,0,0" mouse_enabled="false">
                             <HBox height="20" mouse_enabled="false">
                                 <Label name="session_2_name" width="stretch" font="system_bold_14"
@@ -146,7 +146,7 @@
                         </VBox>
                     </HBox>
                     <HBox class="chat_session_item" name="session_3" width="stretch" height="auto" padding="12,10,12,10">
-                        <Avatar class="avatar_large" name="session_3_avatar" text="李" valign="center" mouse_enabled="false"/>
+                        <Avatar class="avatar_large" name="session_3_avatar" text_id="STRID_CHAT_AVATAR_PLACEHOLDER" valign="center" mouse_enabled="false"/>
                         <VBox width="stretch" height="auto" margin="10,0,0,0" mouse_enabled="false">
                             <HBox height="20" mouse_enabled="false">
                                 <Label name="session_3_name" width="stretch" font="system_bold_14"
@@ -162,7 +162,7 @@
                         </VBox>
                     </HBox>
                     <HBox class="chat_session_item" name="session_4" width="stretch" height="auto" padding="12,10,12,10" visible="false">
-                        <Avatar class="avatar_large" name="session_4_avatar" text="新" valign="center" mouse_enabled="false"/>
+                        <Avatar class="avatar_large" name="session_4_avatar" text_id="STRID_CHAT_AVATAR_PLACEHOLDER" valign="center" mouse_enabled="false"/>
                         <VBox width="stretch" height="auto" margin="10,0,0,0" mouse_enabled="false">
                             <HBox height="20" mouse_enabled="false">
                                 <Label name="session_4_name" width="stretch" font="system_bold_14"
@@ -182,7 +182,7 @@
                 <!-- 面板二：联系人列表 -->
                 <VBox name="panel_contacts" width="stretch" height="stretch">
                     <HBox class="chat_session_item" name="contact_1" width="stretch" height="auto" padding="12,10,12,10">
-                        <Avatar class="avatar_large" name="contact_1_avatar" text="张" valign="center" mouse_enabled="false"/>
+                        <Avatar class="avatar_large" name="contact_1_avatar" text_id="STRID_CHAT_AVATAR_PLACEHOLDER" valign="center" mouse_enabled="false"/>
                         <VBox width="stretch" height="auto" margin="10,0,0,0" mouse_enabled="false">
                             <Label text_id="STRID_CHAT_CONTACT_1" width="stretch" font="system_bold_14"
                                    text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
@@ -192,7 +192,7 @@
                         </VBox>
                     </HBox>
                     <HBox class="chat_session_item" name="contact_2" width="stretch" height="auto" padding="12,10,12,10">
-                        <Avatar class="avatar_large" name="contact_2_avatar" text="李" valign="center" mouse_enabled="false"/>
+                        <Avatar class="avatar_large" name="contact_2_avatar" text_id="STRID_CHAT_AVATAR_PLACEHOLDER" valign="center" mouse_enabled="false"/>
                         <VBox width="stretch" height="auto" margin="10,0,0,0" mouse_enabled="false">
                             <Label text_id="STRID_CHAT_CONTACT_2" width="stretch" font="system_bold_14"
                                    text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
@@ -202,7 +202,7 @@
                         </VBox>
                     </HBox>
                     <HBox class="chat_session_item" name="contact_3" width="stretch" height="auto" padding="12,10,12,10">
-                        <Avatar class="avatar_large" name="contact_3_avatar" text="王" valign="center" mouse_enabled="false"/>
+                        <Avatar class="avatar_large" name="contact_3_avatar" text_id="STRID_CHAT_AVATAR_PLACEHOLDER" valign="center" mouse_enabled="false"/>
                         <VBox width="stretch" height="auto" margin="10,0,0,0" mouse_enabled="false">
                             <Label text_id="STRID_CHAT_CONTACT_3" width="stretch" font="system_bold_14"
                                    text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
@@ -216,7 +216,7 @@
                 <!-- 面板三：收藏列表 -->
                 <VBox name="panel_favorites" width="stretch" height="stretch">
                     <HBox class="chat_session_item" name="favorite_1" width="stretch" height="auto" padding="12,10,12,10">
-                        <Avatar class="avatar_large" name="favorite_1_avatar" text="设" valign="center" mouse_enabled="false"/>
+                        <Avatar class="avatar_large" name="favorite_1_avatar" text_id="STRID_CHAT_AVATAR_PLACEHOLDER" valign="center" mouse_enabled="false"/>
                         <VBox width="stretch" height="auto" margin="10,0,0,0" mouse_enabled="false">
                             <Label text_id="STRID_CHAT_FAVORITE_1" width="stretch" font="system_bold_14"
                                    text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>
@@ -226,7 +226,7 @@
                         </VBox>
                     </HBox>
                     <HBox class="chat_session_item" name="favorite_2" width="stretch" height="auto" padding="12,10,12,10">
-                        <Avatar class="avatar_large" name="favorite_2_avatar" text="文" valign="center" mouse_enabled="false"/>
+                        <Avatar class="avatar_large" name="favorite_2_avatar" text_id="STRID_CHAT_AVATAR_PLACEHOLDER" valign="center" mouse_enabled="false"/>
                         <VBox width="stretch" height="auto" margin="10,0,0,0" mouse_enabled="false">
                             <Label text_id="STRID_CHAT_FAVORITE_2" width="stretch" font="system_bold_14"
                                    text_align="left,vcenter" text_color="text_default" mouse_enabled="false"/>

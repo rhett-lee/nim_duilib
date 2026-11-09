@@ -15,7 +15,8 @@
       或来自 UiColors.cpp 的内置标准色表。
   R5  同一页面内控件 name 唯一。
   R6  每个 *_id（text_id、prompt_text_id、title_id 等）引用的 STRID
-      都必须同时存在于中文和英文字符串文件中。
+      都必须同时存在于中文和英文字符串文件中。检查范围为 controls 页面，
+      以及 chat/render/tree_view/list_ctrl 主题目录下的全部 XML。
   R7  Form 中未限定对象的 FindControl(_T("name")) 必须能在该 Form 的
       GetSkinFile() 返回的 XML 中找到。
   R8  controls.xml 中的每个 btn_gallery_* 按钮都必须在 ControlForm.cpp
@@ -35,7 +36,7 @@
       内部而 Mask 在其外部时，Mask.cpp 必须补偿滚动偏移。
   R15 控件的 UI 文本属性（text、prompt_text、title、x_axis_title、
       y_axis_title、tooltip_text）禁止硬编码中文，必须改用对应的 *_id，
-      否则切换语言后文本不会跟随变化。
+      否则切换语言后文本不会跟随变化。检查范围同 R6。
 
 退出码：全部通过为 0，存在失败项为 1。
 """
@@ -191,6 +192,21 @@ def main():
         except ET.ParseError as exc:
             add_failure("R1-XML-PARSE", "{}: {}".format(path.name, exc))
 
+    # 其它示例主题目录：只参与 R6（语言键完整性）与 R15（禁止硬编码中文）
+    extra_theme_names = ("chat", "render", "tree_view", "list_ctrl")
+    extra_documents = {}
+    for name in extra_theme_names:
+        folder = theme_root / theme_name / name
+        if not folder.is_dir():
+            continue
+        for path in sorted(p for p in folder.rglob("*.xml") if p.is_file()):
+            try:
+                extra_documents[path] = ET.parse(str(path)).getroot()
+                CHECKS += 1
+            except ET.ParseError as exc:
+                add_failure("R1-XML-PARSE", "{}: {}".format(path.name, exc))
+    all_documents = list(documents.items()) + list(extra_documents.items())
+
     # -----------------------------------------------------------------------
     # R2：元素名必须是合法控件节点
     # -----------------------------------------------------------------------
@@ -305,7 +321,7 @@ def main():
         lang_root / "en_US-examples.txt",
     ])
 
-    for path, root in documents.items():
+    for path, root in all_documents:
         for element in iter_page_elements(root):
             for attr_name, attr_value in element.attrib.items():
                 if not attr_name.endswith("_id") or not attr_value:
@@ -622,7 +638,7 @@ def main():
     hardcoded_text_attributes = ("text", "prompt_text", "title",
                                  "x_axis_title", "y_axis_title", "tooltip_text")
     cjk_pattern = re.compile(r"[\u4e00-\u9fff]")
-    for path, root in documents.items():
+    for path, root in all_documents:
         for element in iter_page_elements(root):
             for attr_name in hardcoded_text_attributes:
                 attr_value = element.get(attr_name)

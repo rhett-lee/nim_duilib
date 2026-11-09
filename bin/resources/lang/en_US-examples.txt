@@ -357,12 +357,12 @@ STRID_TREEVIEW_EXPLORER_FILE_SIZE = File Size
 STRID_TREEVIEW_TITLE  = TreeView Control Test Program
 STRID_TREEVIEW_FUNCTION_CONTROL  = Tree Control:
 STRID_TREEVIEW_FILE_LIST_FUNCTION_CONTROL  = File List Control:
-STRID_TREEVIEW_SHOW_EXPAND_ICON  = Show expand icon
-STRID_TREEVIEW_SHOW_CHECKBOX  = Show CheckBox
-STRID_TREEVIEW_SHOW_ICON  = Show Icon
-STRID_TREEVIEW_MULTI_SELECT  = Multi Select
-STRID_TREEVIEW_SHOW_HIDEN_FILES  = Show hidden files
-STRID_TREEVIEW_SHOW_SYSTEM_FILES  = Show system files
+STRID_TREEVIEW_SHOW_EXPAND_ICON  = Expand icon
+STRID_TREEVIEW_SHOW_CHECKBOX  = CheckBox
+STRID_TREEVIEW_SHOW_ICON  = Show icon
+STRID_TREEVIEW_MULTI_SELECT  = Multi-select
+STRID_TREEVIEW_SHOW_HIDEN_FILES  = Hidden files
+STRID_TREEVIEW_SHOW_SYSTEM_FILES  = System files
 STRID_TREEVIEW_VIEW_UP  = Move up to parent directory
 STRID_TREEVIEW_VIEW_LEFT  = Backward
 STRID_TREEVIEW_VIEW_RIGHT  = Forward
@@ -2467,3 +2467,119 @@ STRID_NAVIGATION_STATUS_ITEM_CLICK = item clicked: %zu
 STRID_NAVIGATION_STATUS_PANE_COLLAPSED = pane collapsed
 STRID_NAVIGATION_STATUS_PANE_EXPANDED = pane expanded
 STRID_NAVIGATION_DYNAMIC_PAGE     = Dynamic page: %s
+STRID_RENDER_IMG_01               = dpi_scale='false' halign='center' valign='center' \nNo stretch
+STRID_RENDER_IMG_02               = dpi_scale='true' \nhalign='center' valign='center'\nNo stretch
+STRID_RENDER_IMG_03               = dpi_scale='true' \nOriginal (stretched)
+STRID_RENDER_IMG_04               = src='12,10,36,34' \nhalign='center' \nvalign='center'\nNo stretch
+STRID_RENDER_IMG_05               = src='12,10,36,34'\nStretch
+STRID_RENDER_IMG_06               = src='12,10,36,34' \ndpi_scale='false' \nStretch
+STRID_RENDER_IMG_07               = src='12,10,36,34' \nmargin='10,10,10,10' \nStretch
+STRID_RENDER_IMG_08               = src='12,10,36,34' \nmargin='10,0,0,0' \nStretch
+STRID_RENDER_IMG_09               = src='12,10,36,34' \nmargin='0,10,0,0' \nStretch
+STRID_RENDER_IMG_10               = src='12,10,36,34' \nmargin='0,0,10,0' \nStretch
+STRID_RENDER_IMG_11               = src='12,10,36,34' \nmargin='0,0,0,10' \nStretch
+STRID_RENDER_IMG_12               = src='12,10,36,34' \nhalign='left' \nvalign='top' \nNo stretch
+STRID_RENDER_IMG_13               = src='12,10,36,34' \nhalign='center' \nvalign='center \nNo stretch'
+STRID_RENDER_IMG_14               = src='12,10,36,34' \nhalign='right' \nvalign='bottom' \nNo stretch
+STRID_RENDER_IMG_15               = src='12,10,36,34' \ndest='12,12,48,48' \nStretch
+STRID_RENDER_IMG_16               = src='12,10,36,34' \ndest='12,12,48,48' \ndest_scale='false' \nStretch
+STRID_RENDER_IMG_17               = src='12,10,36,34' \ndest='24,24' \nNo stretch
+STRID_RENDER_IMG_18               = src='12,10,36,34' \ndest='24,24' \ndest_scale='false' \nNo stretch
+STRID_RENDER_IMG_19               = src='12,10,36,34' dpi_scale='false' \ndest='24,24' \ndest_scale='false' \nNo stretch
+STRID_RENDER_IMG_20               = Original (not stretched)
+STRID_RENDER_IMG_21               = width='150' \nheight='150' \ndest='0,0' No stretch
+STRID_RENDER_IMG_22               = width='150' \nheight='150' \nStretch
+STRID_RENDER_IMG_23               = width='500%' \nhalign='center' \nvalign='center' \nLarge image, auto-fit
+STRID_RENDER_IMG_24               = src='12,10,36,34' \nStretch
+STRID_RENDER_IMG_25               = src='12,10,36,34' \nadaptive_dest_rect='true' \nAuto-fit
+STRID_RENDER_IMG_26               = Original: width 100 height 100 \ndpi_scale='false'
+STRID_RENDER_IMG_27               = Original: width 100 height 100 \ndpi_scale='true'
+STRID_RENDER_IMG_28               = Nine-patch \ndpi_scale='false' \ndest='0,0,180,180' \ndest_scale='false' \ncorner='13,13,13,13'
+STRID_RENDER_IMG_29               = Original (14*14) \nNo stretch \ndpi_scale='false' \nhalign='center' \nvalign='center'
+STRID_RENDER_IMG_30               = Nine-patch \nOriginal\ndpi_scale='false' \ncorner='6,6,6,6'
+STRID_RENDER_IMG_31               = Original (14*14) \nDPI auto-fit \ndpi_scale='true' \nhalign='center' \nvalign='center'
+STRID_RENDER_IMG_32               = Nine-patch \nDPI auto-fit image\ndpi_scale='true' \ncorner='6,6,6,6'
+STRID_RENDER_IMG_33               = Nine-patch \nManual upscale\ndpi_scale='false' \nwidth='28' \ncorner='12,12,12,12'
+STRID_RENDER_IMG_34               = Original (14*14) stretched\ndpi_scale='false' 
+STRID_RENDER_IMG_35               = fade='64' \nalpha = 64
+STRID_RENDER_IMG_36               = Nine-patch stretch (default)
+STRID_RENDER_IMG_37               = Nine-patch tile\nxtiled='true' \nfull_xtiled='true'
+STRID_RENDER_IMG_38               = Nine-patch tile\nxtiled='true' \nfull_xtiled='false'
+STRID_RENDER_IMG_39               = Nine-patch tile\nytiled='true' \nfull_ytiled='true'
+STRID_RENDER_IMG_40               = Nine-patch tile\nytiled='true' \nfull_ytiled='false'
+STRID_RENDER_IMG_41               = Nine-patch tile\nxtiled='true' \nfull_xtiled='true' \nytiled='true' \nfull_ytiled='true'
+STRID_RENDER_IMG_42               = Nine-patch tile\nxtiled='true' \nfull_xtiled='false' \nytiled='true' \nfull_ytiled='true'
+STRID_RENDER_IMG_43               = Nine-patch tile\nxtiled='true' \nfull_xtiled='true' \nytiled='true' \nfull_ytiled='false'
+STRID_RENDER_IMG_44               = Nine-patch tile\nxtiled='true' \nfull_xtiled='false' \nytiled='true' \nfull_ytiled='false'
+STRID_RENDER_IMG_45               = Nine-patch tile\nxtiled='true' \nfull_xtiled='false' \nytiled='true' \nfull_ytiled='false' \ntiled_margin='1'
+STRID_RENDER_IMG_46               = Nine-patch tile\nxtiled='true' \nfull_xtiled='false' \nytiled='true' \nfull_ytiled='false' \ntiled_margin='1' \ntiled_padding='1,1,1,1'
+STRID_RENDER_TEXT1_01             = Text (H: left, V: top)
+STRID_RENDER_TEXT1_02             = Text (H: left, V: middle)
+STRID_RENDER_TEXT1_03             = Text (H: left, V: bottom)
+STRID_RENDER_TEXT1_04             = Text (H: center, V: top)
+STRID_RENDER_TEXT1_05             = Text (H: center, V: middle)
+STRID_RENDER_TEXT1_06             = Text (H: center, V: bottom)
+STRID_RENDER_TEXT1_07             = Text (H: right, V: top)
+STRID_RENDER_TEXT1_08             = Text (H: right, V: middle)
+STRID_RENDER_TEXT1_09             = Text (H: right, V: bottom)
+STRID_RENDER_TEXT1_10             = MeasureString result 1, MeasureString result 2, MeasureString result 3,
+STRID_RENDER_TEXT1_11             = Text align (H: justify, V: middle)\nMulti-line text test, newline characters
+STRID_RENDER_TEXT1_12             = Text align (H: left, V: middle)\nLine spacing is set for this case.\nNormal line spacing
+STRID_RENDER_TEXT1_13             = Text align (H: left, V: middle)\nLine spacing is set for this case.\nspacing_mul='1.2'
+STRID_RENDER_TEXT1_14             = Long text drawing\nTest, single line, no auto ellipsis, 1234567890-.qwertyuiopasdfghjkl;lmnozxccvb.NBVCXZASDFGHJKLPOIUYTREWQ.
+STRID_RENDER_TEXT1_15             = Long text drawing\nTest, single line, auto ellipsis, 1234567890-.qwertyuiopasdfghjkl;lmnozxccvb.NBVCXZASDFGHJKLPOIUYTREWQ.
+STRID_RENDER_TEXT1_16             = Long text drawing\nTest, multi-line text, text is 1234567890-.qwertyuiopasdfghjkl-v.
+STRID_RENDER_TEXT1_17             = Long text drawing\nTest, multi-line text, auto ellipsis, long text test good bad test text is 1234567890-.qwertyuiopasdfghjkl;lmnozxccvb.NBVCXZASDFGHJKLPOIUYTREWQ. long text test, long text test, long text test, long text test, long text test, long text test, long text test, long text test, long text test, long text test, long text test, long text test
+STRID_RENDER_TEXT1_18             = Long text drawing\nTest, multi-line text, no auto ellipsis, 1234567890NBVCXZASDFGHJKLPOIUYTREWQNBVCXZASDFGHJKLPOIUYTREWQ long text test good bad test text is -.qwertyuiopasdfghjkl;lmnozxccvb.NBVCXZASDFGHJKLPOIUYTREWQ. long text test, long text test, long text test, long text test, long text test, long text test, long text test, long text test, long text test, long text test, long text test, long text test
+STRID_RENDER_TEXT1_19             = C:\develop\DevStudy\WindowsKernelAndImplementation\Dev\TestDevDevDev.txt
+STRID_RENDER_TEXT1_20             = Text - underlined
+STRID_RENDER_TEXT1_21             = Text - bold
+STRID_RENDER_TEXT1_22             = Text - strikethrough
+STRID_RENDER_TEXT1_23             = Text - italic
+STRID_RENDER_TEXT1_24             = Text - all styles\nSecond column content
+STRID_RENDER_TEXT1_25             = Text align (H: left, V: middle)\nLine spacing is set for this case.\nword_spacing='6'
+STRID_RENDER_TEXT1_26             = Text align (H: left, V: middle)\nLine spacing is set for this case.\nspacing_mul='1.2' spacing_add='6'
+STRID_RENDER_TEXT2_01             = Align L/T
+STRID_RENDER_TEXT2_02             = Align L/M
+STRID_RENDER_TEXT2_03             = Align L/B
+STRID_RENDER_TEXT2_04             = Align C/T
+STRID_RENDER_TEXT2_05             = Align C/M
+STRID_RENDER_TEXT2_06             = Align C/B
+STRID_RENDER_TEXT2_07             = Align R/T
+STRID_RENDER_TEXT2_08             = Align R/M
+STRID_RENDER_TEXT2_09             = Align R/B
+STRID_RENDER_TEXT2_10             = Align C/J
+STRID_RENDER_TEXT2_11             = Long text test, single column, 1234567890-.qwertyuiopasdfghjkl;lmnozxccvb.NBVCXZASDFGHJKLPOIUYTREWQ.
+STRID_RENDER_TEXT2_12             = Long text test, multi-column, text is 1234567890-.Long text test: 1+2=3, 8/4=2, multi-column qwertyuiopasdfghjkl-v. Long text test, multi-column end.
+STRID_RENDER_TEXT2_13             = Text - normal
+STRID_RENDER_TEXT2_14             = Text - bold
+STRID_RENDER_TEXT2_15             = Text - italic
+STRID_RENDER_TEXT2_16             = 123Text - strikethrough
+STRID_RENDER_TEXT2_17             = AText - underlined
+STRID_RENDER_TEXT2_18             = Text - all styles\nSecond column content
+STRID_RENDER_TEXT2_19             = Text align (H: right, V: middle)\nLine spacing is set for this case.\nNormal line spacing
+STRID_RENDER_TEXT2_20             = Text align (H: right, V: middle)\nLine spacing is set for this case.\nspacing_mul='1.2'
+STRID_RENDER_TEXT2_21             = Text align (H: right, V: middle)\nLine spacing is set for this case.\nword_spacing='6'
+STRID_RENDER_TEXT2_22             = Text align (H: right, V: middle)\nLine spacing is set for this case.\nspacing_mul='1.2' spacing_add='6'
+STRID_RENDER_TEXT2_23             = Text align (H: center, V: justify)\nMulti-line test, newline characters\nLong text test:1+2=3, 8/4=2 multi-column end.
+STRID_RENDER_TEXT2_24             = Letters and digits are not rotated 90 degrees, 1234567890-.qwertyuiopasdfghjkl;lmnozxccvb.NBVCXZASDFGHJKLPOIUYTREWQ.
+STRID_RENDER_TEXT2_25             = Text height follows actual height, no fixed font height: 1234567890-.Long text test: 1+2=3, 8/4=2, multi-column qwertyuiopasdfghjkl-v. Long text test, multi-column end.
+STRID_RENDER_TEXT2_26             = Text height follows actual height, no fixed font height, vertical word spacing: 1234567890-.Long text test: 1+2=3, 8/4=2, multi-column qwertyuiopasdfghjkl-v. Long text test, multi-column end.
+STRID_RENDER_TEXT2_27             = Text height follows actual height, no fixed font height, vertical word spacing, column spacing: 1234567890-.Long text test: 1+2=3, 8/4=2, multi-column qwertyuiopasdfghjkl-v. Long text test, multi-column end.
+STRID_RENDER_TEXT1_RICHTEXT_ALL   = RichText text<br/>content 1<b>bold<bgcolor color="#FFFFFF"><u><a href="www.baidu.com">Hyperlink: visit Baidu</a></u></bgcolor><font color="#FF0000">bold red</font></b><font face="SimSun" size="12">SimSun 12pt demo 1<font face="KaiTi" size="18">KaiTi 18pt demo</font>SimSun 12pt demo 2</font><a href="www.sohu.com">Hyperlink: visit Sohu</a><font face="SimSun" size="8">SimSun 8pt demo</font><i>italic demo</i><b>bold demo</b><s>strikeout demo</s><u>underline demo</u><font face="Microsoft YaHei" size="14">Microsoft YaHei 14pt demo</font><bgcolor color="#802378">background color demo</bgcolor>RichText content 2RichText content 3RichText content 4RichText content 5RichText content 6RichText content 7RichText content 8RichText content 9RichText content 10
+STRID_RENDER_TEXT1_RICHTEXT_SCROLL = Line 1: RichText in ScrollBox<br/>Line 2: RichText text<br/>Line 3: RichText text<br/>Line 4: RichText text<br/>Line 5: RichText text<br/>Line 6: RichText text<br/>Line 7: RichText text<br/>Line 8: RichText text<br/>Line 9: RichText text<br/>Line 10: RichText content 2RichText content 3RichText content 4RichText content 5RichText content 6RichText content 7RichText content 8RichText content 9RichText content 10
+STRID_RENDER_TEXT1_RICHTEXT_01    = RichText (H: left, V: top)<br/><a href="www.sohu.com">Hyperlink: visit Sohu</a>
+STRID_RENDER_TEXT1_RICHTEXT_02    = RichText (H: left, V: middle)<br/><a href="www.sohu.com">Hyperlink: visit Sohu</a>
+STRID_RENDER_TEXT1_RICHTEXT_03    = RichText (H: left, V: bottom)<br/><a href="www.sohu.com">Hyperlink: visit Sohu</a>
+STRID_RENDER_TEXT1_RICHTEXT_04    = RichText (H: center, V: top)<br/><a href="www.sohu.com">Hyperlink: visit Sohu</a>
+STRID_RENDER_TEXT1_RICHTEXT_05    = RichText (H: center, V: middle)<br/><a href="www.sohu.com">Hyperlink: visit Sohu</a>
+STRID_RENDER_TEXT1_RICHTEXT_06    = RichText (H: center, V: bottom)<br/><a href="www.sohu.com">Hyperlink: visit Sohu</a>
+STRID_RENDER_TEXT1_RICHTEXT_07    = RichText (H: right, V: top)<br/><a href="www.sohu.com">Hyperlink: visit Sohu</a>
+STRID_RENDER_TEXT1_RICHTEXT_08    = RichText (H: right, V: middle)<br/><a href="www.sohu.com">Hyperlink: visit Sohu</a>
+STRID_RENDER_TEXT1_RICHTEXT_09    = RichText (H: right, V: bottom)<br/><a href="www.sohu.com">Hyperlink: visit Sohu</a>
+STRID_RENDER_MENU_FILE            = File
+STRID_RENDER_MENU_EDIT            = Edit
+STRID_RENDER_MENU_SELECTION       = Selection
+STRID_RENDER_MENU_VIEW1           = View1
+STRID_RENDER_MENU_VIEW2           = View2
+STRID_CHAT_AVATAR_PLACEHOLDER     = A
