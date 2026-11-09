@@ -713,7 +713,8 @@ IPAddress consists of four numeric edit boxes (each ranging from 0 to 255) and t
 - Enter moves to the next segment, and Enter in the last segment wraps back to the first one;
 - Backspace, Delete, `←` and `→` edit the text around the caret natively, and only cross to the neighbouring segment when the caret is at the start (Backspace, `←`) or at the end (`→`) of a segment;
 - `↑`/`↓` increments/decrements the current segment value, clamped to 0~255;
-- `Ctrl + V` pastes a complete address in `a.b.c.d` form into the four segments at once.
+- `Ctrl + V` pastes a complete address in `a.b.c.d` form into the four segments at once;
+- `Ctrl + C` copies the complete address (as `a.b.c.d`) when all four segments are filled; otherwise it copies the text selected in the current segment.
 
 The focused segment is highlighted; `IsFocused()` returns true when any segment has focus.
 

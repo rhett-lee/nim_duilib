@@ -491,6 +491,21 @@ bool IPAddress::OnSegmentKeyDown(size_t index, const EventArgs& msg)
             SetSegmentNumber(index, GetSegmentNumber(index) - 1);
             return false;
         }
+    case kVK_C:
+        {
+            //Ctrl+C：复制完整的IP地址（四段未填写完整时，交给编辑框复制当前选中的文本）
+            if (!bCtrl || !IsComplete()) {
+                return true;
+            }
+            const DString ipAddress = GetIPAddress();
+#ifdef DUILIB_UNICODE
+            DStringW clipboardText(ipAddress.c_str());
+#else
+            DStringW clipboardText = StringConvert::UTF8ToWString(ipAddress);
+#endif
+            Clipboard::SetClipboardText(clipboardText);
+            return false;
+        }
     case kVK_V:
         {
             //Ctrl+V：剪贴板内容为完整的IP地址时，整体粘贴
