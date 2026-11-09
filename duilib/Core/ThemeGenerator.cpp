@@ -582,7 +582,7 @@ void ThemeGenerator::GenerateThemeColors(double hue, double base, bool isDark)
         const ThemeColorConfig& attrs = pair.second;
         if (attrs.fixed) {
             //固定属性，不需要生成颜色
-            //continue;
+            continue;
         }
         if (attrs.category == "basic_color") {
             //基础色，不需要生成颜色
@@ -649,8 +649,6 @@ void ThemeGenerator::GenerateThemeColors(double hue, double base, bool isDark)
     // 等级7(最深)  surface6    #D6D9DD     窗口标题栏 TitleBar/Caption
     // ----------------------------------------------------------------
 
-    const size_t nGeneratedColorsCount = m_generatedColors.size();
-
     // 等级1：编辑框区域（最浅，#FFFFFF）
     m_generatedColors["bg_richedit"] = surface1;
 
@@ -706,8 +704,9 @@ void ThemeGenerator::GenerateThemeColors(double hue, double base, bool isDark)
     // 窗口关闭按钮 - 使用错误色
     m_generatedColors["bg_btn_window_close"] = m_generatedColors["--error"];
 
-    //确保颜色值正确(生成的颜色个数不应增加，因为新增加的是无法识别的)
-    ASSERT_UNUSED_VARIABLE(nGeneratedColorsCount == m_generatedColors.size());
+    //说明：生成过程中会额外记录以"--"开头的语义中间变量（如 --background/--surface_1），
+    //      以及部分仅用于内部查找的颜色名，它们不会输出到主题XML中，
+    //      因此这里不再校验"生成的颜色个数不变"。
 }
 
 std::string ThemeGenerator::GetGeneratedColor(const std::string& colorName) const

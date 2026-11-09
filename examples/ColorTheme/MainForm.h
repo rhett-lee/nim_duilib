@@ -4,6 +4,10 @@
 // duilib
 #include "duilib/duilib.h"
 
+#include <map>
+#include <memory>
+#include <string>
+
 /** 应用程序的主窗口实现
 */
 class MainForm : public ui::WindowImplBase
@@ -42,6 +46,38 @@ private:
     */
     void ShowAllColors();
 
+    /** 更新全量颜色卡片的提示信息（生成主题后调用）
+    */
+    void UpdateAllColors();
+
+    /** 创建并加载当前主题配置的主题生成器
+    */
+    void CreateThemeGenerator();
+
+    /** 初始化生成器参数滑块，并同步默认值
+    */
+    void InitGenParamSliders();
+
+    /** 重置生成器参数为默认值
+    */
+    void ResetGenParams();
+
+    /** 保存生成的 XML 数据到文件
+    */
+    void SaveXmlDataToFile();
+
+    /** 显示浅色/深色主题全部颜色的并排对照表
+    */
+    void ShowLightDarkColorCompare();
+
+    /** 显示 global.xml 中的 ThemeMeta/Var/Alias/Font 配置
+    */
+    void ShowGlobalConfigInfo();
+
+    /** 初始化需要用代码填充数据的预览控件
+    */
+    void InitPreviewControls();
+
     /** 在指定按钮周围弹出 Flyout 演示浮层（同锚点再次点击则关闭）
     */
     void ShowFlyoutDemo(ui::Control* pAnchor, ui::Flyout::Placement placement);
@@ -54,6 +90,10 @@ private:
     /** 当前预览主题的XML文件数据
     */
     std::string m_colorThemeXmlData;
+
+    /** 全量颜色卡片缓存：颜色名 -> 控件
+    */
+    std::map<std::string, ui::Label*> m_allColorLabels;
 };
 
 #endif //EXAMPLES_MAIN_FORM_H_

@@ -130,9 +130,10 @@ double ColorConverter::GetRelativeLuminance(uint8_t r, uint8_t g, uint8_t b)
     double gs = g / 255.0;
     double bs = b / 255.0;
 
-    rs = (rs > 0.03928) ? rs : rs / 12.92;
-    gs = (gs > 0.03928) ? gs : gs / 12.92;
-    bs = (bs > 0.03928) ? bs : bs / 12.92;
+    //WCAG相对亮度计算：先做sRGB伽马解码，再加权求和
+    rs = (rs > 0.03928) ? std::pow((rs + 0.055) / 1.055, 2.4) : (rs / 12.92);
+    gs = (gs > 0.03928) ? std::pow((gs + 0.055) / 1.055, 2.4) : (gs / 12.92);
+    bs = (bs > 0.03928) ? std::pow((bs + 0.055) / 1.055, 2.4) : (bs / 12.92);
 
     return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
 }

@@ -23,8 +23,8 @@
             <Button class="btn_primary_global" name="open_theme_manager" text_id="STRID_COLORTHEME_BTN_OPEN_THEME_MGR" height="32" width="auto" margin="4,0,4,0" text_padding="10,0,10,0" border_round="4,4"/>
             <Button class="btn_primary_global" name="open_new_window_as_dark" text_id="STRID_COLORTHEME_BTN_OPEN_WND_AS_DARK" height="32" width="auto" margin="4,0,4,0" text_padding="10,0,10,0" border_round="4,4"/>
             <Button class="btn_primary_global" name="open_new_window_as_light" text_id="STRID_COLORTHEME_BTN_OPEN_WND_AS_LIGHT" height="32" width="auto" margin="4,0,4,0" text_padding="10,0,10,0" border_round="4,4"/>
-            <CheckBox class="checkbox_1" name="gen_color_checkbox" text_id="STRID_COLORTHEME_ENABLE_GEN_THEME" margin="20,0,0,0"/>
-            <CheckBox class="checkbox_1" text_id="STRID_COLORTHEME_SHOW_ALL_COLORS" margin="20,0,0,0" selected="false">
+            <CheckBox class="checkbox_1" name="gen_color_checkbox" text_id="STRID_COLORTHEME_ENABLE_GEN_THEME" margin="20,0,0,0" selected="true"/>
+            <CheckBox class="checkbox_1" text_id="STRID_COLORTHEME_SHOW_ALL_COLORS" margin="20,0,0,0" selected="true">
                 <Event type="select" receiver="all_colors" apply_attribute="visible='true'" />
                 <Event type="unselect" receiver="all_colors" apply_attribute="visible='false'" />
             </CheckBox>
@@ -55,11 +55,73 @@
                     </VBox>
                     <CheckBox class="checkbox_1" name="gen_color_neutral_mode" text_id="STRID_COLORTHEME_GEN_NEUTRAL_MODE" margin="10,0,0,0" valign="center"/>
                     <Button class="btn_primary_global" name="btn_copty_xml_data" text_id="STRID_COLORTHEME_COPY_XML" height="32" width="auto" margin="4,0,4,0" text_padding="10,0,10,0" border_round="4,4"/>
+                    <Button class="btn_primary_global" name="btn_save_xml_data" text="Save XML" height="32" width="auto" margin="4,0,4,0" text_padding="10,0,10,0" border_round="4,4"/>
+                    <Button class="btn_primary_global" name="btn_reset_gen_params" text="Reset" height="32" width="auto" margin="4,0,4,0" text_padding="10,0,10,0" border_round="4,4"/>
+                </HBox>
+                <HBox height="auto" child_margin="10">
+                    <VBox height="auto" width="240" child_margin="4">
+                        <HBox height="auto" child_margin="2" margin="12,0,0,0">
+                            <Label text="BG Light L" valign="center" width="auto" height="auto"/>
+                            <Label name="gen_color_label_bg_l_light" text="" valign="center" width="auto" height="auto"/>
+                        </HBox>
+                        <Slider class="slider_horizontal_blue" name="gen_color_slider_bg_l_light" min="500" max="1000" value="970"/>
+                    </VBox>
+                    <VBox height="auto" width="240" child_margin="4">
+                        <HBox height="auto" child_margin="2" margin="12,0,0,0">
+                            <Label text="BG Dark L" valign="center" width="auto" height="auto"/>
+                            <Label name="gen_color_label_bg_l_dark" text="" valign="center" width="auto" height="auto"/>
+                        </HBox>
+                        <Slider class="slider_horizontal_blue" name="gen_color_slider_bg_l_dark" min="0" max="500" value="170"/>
+                    </VBox>
+                    <VBox height="auto" width="240" child_margin="4">
+                        <HBox height="auto" child_margin="2" margin="12,0,0,0">
+                            <Label text="FG Light L" valign="center" width="auto" height="auto"/>
+                            <Label name="gen_color_label_fg_l_light" text="" valign="center" width="auto" height="auto"/>
+                        </HBox>
+                        <Slider class="slider_horizontal_blue" name="gen_color_slider_fg_l_light" min="0" max="600" value="220"/>
+                    </VBox>
+                    <VBox height="auto" width="240" child_margin="4">
+                        <HBox height="auto" child_margin="2" margin="12,0,0,0">
+                            <Label text="FG Dark L" valign="center" width="auto" height="auto"/>
+                            <Label name="gen_color_label_fg_l_dark" text="" valign="center" width="auto" height="auto"/>
+                        </HBox>
+                        <Slider class="slider_horizontal_blue" name="gen_color_slider_fg_l_dark" min="500" max="1000" value="920"/>
+                    </VBox>
+                </HBox>
+                <HBox height="auto" child_margin="10">
+                    <VBox height="auto" width="240" child_margin="4">
+                        <HBox height="auto" child_margin="2" margin="12,0,0,0">
+                            <Label text="Surface Light Offset" valign="center" width="auto" height="auto"/>
+                            <Label name="gen_color_label_surface_light_offset" text="" valign="center" width="auto" height="auto"/>
+                        </HBox>
+                        <Slider class="slider_horizontal_blue" name="gen_color_slider_surface_light_offset" min="0" max="150" value="25"/>
+                    </VBox>
+                    <VBox height="auto" width="240" child_margin="4">
+                        <HBox height="auto" child_margin="2" margin="12,0,0,0">
+                            <Label text="Surface Dark Offset" valign="center" width="auto" height="auto"/>
+                            <Label name="gen_color_label_surface_dark_offset" text="" valign="center" width="auto" height="auto"/>
+                        </HBox>
+                        <Slider class="slider_horizontal_blue" name="gen_color_slider_surface_dark_offset" min="0" max="200" value="70"/>
+                    </VBox>
+                    <VBox height="auto" width="240" child_margin="4">
+                        <HBox height="auto" child_margin="2" margin="12,0,0,0">
+                            <Label text="Accent L" valign="center" width="auto" height="auto"/>
+                            <Label name="gen_color_label_accent_l" text="" valign="center" width="auto" height="auto"/>
+                        </HBox>
+                        <Slider class="slider_horizontal_blue" name="gen_color_slider_accent_l" min="300" max="900" value="620"/>
+                    </VBox>
+                    <VBox height="auto" width="240" child_margin="4">
+                        <HBox height="auto" child_margin="2" margin="12,0,0,0">
+                            <Label text="Accent Chroma" valign="center" width="auto" height="auto"/>
+                            <Label name="gen_color_label_accent_c" text="" valign="center" width="auto" height="auto"/>
+                        </HBox>
+                        <Slider class="slider_horizontal_blue" name="gen_color_slider_accent_c" min="0" max="400" value="195"/>
+                    </VBox>
                 </HBox>
                 <GroupVBox class="group_box_round" text_id="STRID_COLORTHEME_COLOR_PREVIEW" height="auto" padding="10,30,6,10" control_padding="false">
                     <HBox height="auto" child_margin="4">
-                        <Label name="--background2" bkcolor="bg_window_main" text_id="STRID_COLORTHEME_COLOR_BACKGROUND" width="160" height="40" text_align="hcenter,vcenter" border_round="8,8"/>
-                        <Label name="--background1" bkcolor="bg_window_main" text_id="STRID_COLORTHEME_COLOR_BACKGROUND" width="160" height="40" text_align="hcenter,vcenter" border_round="8,8"/>
+                        <Label name="--foreground" bkcolor="bg_window_main" text_id="STRID_COLORTHEME_COLOR_FOREGROUND" width="160" height="40" text_align="hcenter,vcenter" border_round="8,8"/>
+                        <Label name="--accent_foreground" bkcolor="bg_window_card" text_id="STRID_COLORTHEME_COLOR_ACCENT_FOREGROUND" width="160" height="40" text_align="hcenter,vcenter" border_round="8,8"/>
                         <Label name="--background" bkcolor="bg_window_main" text_id="STRID_COLORTHEME_COLOR_BACKGROUND" width="160" height="40" text_align="hcenter,vcenter" border_round="8,8"/>
                         <Label name="--accent" bkcolor="bg_window_card" text_id="STRID_COLORTHEME_COLOR_ACCENT" width="160" height="40" text_align="hcenter,vcenter" border_round="8,8"/>
                         <Label name="--success" bkcolor="bg_window_card" text_id="STRID_COLORTHEME_COLOR_SUCCESS" width="160" height="40" text_align="hcenter,vcenter" border_round="8,8"/>
@@ -83,7 +145,7 @@
             <VBox height="auto">
                 <Control height="0000"/>
                 <!-- Section 0: All Colors -->
-                <VBox name="all_colors" child_margin="2" height="auto" width="100%" visible="false"/>
+                <VBox name="all_colors" child_margin="2" height="auto" width="100%" visible="true"/>
 
                 <!-- Section 1: Window Controls -->
                 <GroupVBox class="group_box_round" text="Window Buttons" height="auto" padding="10,20,10,10" control_padding="false">
@@ -467,16 +529,16 @@
                             <ListCtrl class="list_ctrl" name="list_ctrl" height="200">
                                 <ListCtrlHeaderItem text="Column 1" width="130"/>
                                 <ListCtrlHeaderItem text="Column 2" width="130"/>
-                                <ListCtrlItem text="Item 0"/>
-                                <ListCtrlItem text="Item 1"/>
-                                <ListCtrlItem text="Item 2"/>
-                                <ListCtrlItem text="Item 3"/>
-                                <ListCtrlItem text="Item 4"/>
-                                <ListCtrlItem text="Item 5"/>
-                                <ListCtrlItem text="Item 6"/>
-                                <ListCtrlItem text="Item 7"/>
-                                <ListCtrlItem text="Item 8"/>
-                                <ListCtrlItem text="Item 9"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Item 0"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Item 1"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Item 2"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Item 3"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Item 4"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Item 5"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Item 6"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Item 7"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Item 8"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Item 9"/>
                                 <ListCtrlSubItem item_index="0" column_index="1" text="SubItem 0"/>
                                 <ListCtrlSubItem item_index="1" column_index="1" text="SubItem 1"/>
                                 <ListCtrlSubItem item_index="2" column_index="1" text="SubItem 2"/>
@@ -782,6 +844,29 @@
                                     <MenuItem class="menu_element" text="Open" height="28" width="auto" padding="10,4,10,4"/>
                                     <MenuItem class="menu_element" text="Save" height="28" width="auto" padding="10,4,10,4"/>
                                     <MenuItem class="menu_element" text="Exit" height="28" width="auto" padding="10,4,10,4"/>
+                                    <Box class="menu_split_box">
+                                        <Control class="menu_split_line" mouse_enabled="false" keyboard_enabled="false"/>
+                                    </Box>
+                                    <MenuItem class="menu_element" name="menu_variant_shortcut" height="28" width="240" padding="10,4,10,4" mouse_enabled="false" keyboard_enabled="false">
+                                        <Label class="menu_text" text="Save As..." mouse_enabled="false" keyboard_enabled="false"/>
+                                        <Control width="stretch" mouse_enabled="false" keyboard_enabled="false"/>
+                                        <Label class="menu_text_shortcut" text="Ctrl+Shift+S" mouse_enabled="false" keyboard_enabled="false"/>
+                                    </MenuItem>
+                                    <MenuItem class="menu_element" height="28" width="240" padding="10,4,10,4" mouse_enabled="false" keyboard_enabled="false">
+                                        <CheckBox class="menu_checkbox" text="Show Toolbar" selected="true" mouse_enabled="false" keyboard_enabled="false"/>
+                                    </MenuItem>
+                                    <MenuItem class="menu_element" height="28" width="240" padding="10,4,10,4" mouse_enabled="false" keyboard_enabled="false">
+                                        <Option class="menu_selected_dot" group="menu_style_dot" text="Dot Selected" selected="true" mouse_enabled="false" keyboard_enabled="false"/>
+                                    </MenuItem>
+                                    <MenuItem class="menu_element" height="28" width="240" padding="10,4,10,4" mouse_enabled="false" keyboard_enabled="false">
+                                        <Option class="menu_selected_square" group="menu_style_square" text="Square Selected" selected="true" mouse_enabled="false" keyboard_enabled="false"/>
+                                    </MenuItem>
+                                    <MenuItem class="menu_element" height="28" width="240" padding="10,4,10,4" mouse_enabled="false" keyboard_enabled="false">
+                                        <Option class="menu_selected_circle_dot" group="menu_style_circle" text="Circle Dot Selected" selected="true" mouse_enabled="false" keyboard_enabled="false"/>
+                                    </MenuItem>
+                                    <MenuItem class="menu_element" height="28" width="240" padding="10,4,10,4" mouse_enabled="false" keyboard_enabled="false">
+                                        <Option class="menu_selected_check_line" group="menu_style_check" text="Check Line Selected" selected="true" mouse_enabled="false" keyboard_enabled="false"/>
+                                    </MenuItem>
                                 </Menu>
                             </MenuBarItem>
                             <MenuBarItem class="menu_bar_button" id="menu_edit" text="Edit">
@@ -924,6 +1009,576 @@
                     </HBox>
                 </GroupVBox>
                 
+                <!-- Section 18: RangeSlider -->
+                <GroupVBox class="group_box_round" text="RangeSlider - All States" height="auto" margin="0,4,0,0" padding="10,24,6,10" control_padding="false">
+                    <HBox child_margin="20" height="auto">
+                        <VBox width="420" height="auto" child_margin="8">
+                            <Label text="Horizontal (included):" height="auto"/>
+                            <RangeSlider class="range_slider_horizontal" name="preview_range_h" min="0" max="1000" low_value="200" value="800" min_range="50" width="stretch"/>
+                            <Label text="Horizontal (excluded, snap to marks):" height="auto" margin="0,8,0,0"/>
+                            <RangeSlider class="range_slider_horizontal" name="preview_range_h_marks" min="0" max="100" low_value="25" value="75" included="false" snap_to_marks="true" marks="0=0|25=25|50=50|75=75|100=100" mark_dot_size="8" width="stretch"/>
+                        </VBox>
+                        <VBox width="220" height="auto" child_margin="8">
+                            <Label text="Vertical:" height="auto"/>
+                            <HBox height="240">
+                                <Control width="40"/>
+                                <RangeSlider class="range_slider_vertical" name="preview_range_v" min="0" max="100" low_value="30" value="70" height="stretch" width="20" marks="0=0|50=50|100=100" mark_dot_size="8"/>
+                            </HBox>
+                        </VBox>
+                    </HBox>
+                </GroupVBox>
+
+                <!-- Section 19: Stepper & Rating -->
+                <GroupVBox class="group_box_round" text="Stepper &amp; Rating - All States" height="auto" margin="0,4,0,0" padding="10,24,6,10" control_padding="false">
+                    <HBox child_margin="20" height="auto">
+                        <VBox width="620" height="160" child_margin="8">
+                            <Label text="Stepper (horizontal):" height="auto"/>
+                            <Stepper class="stepper_node" name="preview_stepper" width="stretch" height="stretch" node_size="28" current="1"
+                                     step_title="Create|Review|Publish|Done" step_desc="Fill data|Check|Go live|Finished"/>
+                        </VBox>
+                        <VBox width="360" height="auto" child_margin="8">
+                            <Label text="Rating (interactive):" height="auto"/>
+                            <Rating class="rating" name="preview_rating" value="3" star_size="28" star_gap="6" width="170" height="40" valign="center"/>
+                            <Label text="Rating (readonly, half star):" height="auto" margin="0,10,0,0"/>
+                            <Rating class="rating" name="preview_rating_readonly" read_only="true" allow_half="true" value="4.5" star_size="26" star_gap="6" width="160" height="40" valign="center"/>
+                        </VBox>
+                    </HBox>
+                </GroupVBox>
+
+                <!-- Section 20: Carousel & Pagination -->
+                <GroupVBox class="group_box_round" text="Carousel &amp; Pagination - All States" height="auto" margin="0,4,0,0" padding="10,24,6,10" control_padding="false">
+                    <VBox width="stretch" height="auto" child_margin="8">
+                        <Carousel class="carousel" name="preview_carousel" height="150" width="stretch"
+                                  item_image="file='${PATH_CAROUSEL}/slide1.svg'|file='${PATH_CAROUSEL}/slide2.svg'|file='${PATH_CAROUSEL}/slide3.svg'"
+                                  current_index="0" auto_play="true" interval="2500" loop="true" transition_ms="350"/>
+                        <Pagination name="preview_pagination" width="stretch" height="40" child_margin="2"
+                                    page_count="10" current_page="3" show_prev_next="true" max_visible_count="7"/>
+                        <Pagination name="preview_pagination_many" width="stretch" height="40" child_margin="2"
+                                    total_count="995" page_size="20" current_page="12" show_first_last="true" max_visible_count="7"/>
+                    </VBox>
+                </GroupVBox>
+
+                <!-- Section 21: Breadcrumb & CascadingSelect -->
+                <GroupVBox class="group_box_round" text="Breadcrumb &amp; Cascading Select - All States" height="auto" margin="0,4,0,0" padding="10,24,6,10" control_padding="false">
+                    <VBox width="stretch" height="auto" child_margin="10">
+                        <Breadcrumb class="breadcrumb" name="preview_breadcrumb" width="stretch" height="32" item_text="Home|Products|Docs|Controls"/>
+                        <Breadcrumb class="breadcrumb" name="preview_breadcrumb_custom" width="stretch" height="32" separator=">" item_text="System|Network|Proxy|Detail" current="1" disabled_items="2"/>
+                        <CascadingSelect class="cascading_select" name="preview_cascading" width="stretch" height="174"
+                                         items="East/Shanghai/Pudong|East/Shanghai/Xuhui|East/Hangzhou/Xihu|South/Guangzhou/Tianhe|North/Beijing/Haidian"/>
+                        <HBox height="32" child_margin="8">
+                            <CascadingSelect class="cascader" name="preview_cascader" dropdown="true" width="360" height="32" placeholder="Select region..."
+                                             items="East/Shanghai/Pudong|East/Hangzhou/Xihu|South/Guangzhou/Tianhe"/>
+                            <CascadingSelect class="cascader" name="preview_cascader_custom" dropdown="true" width="360" height="32" placeholder="Select component..." path_separator=">" value_separator=">"
+                                             items="System/Network/Proxy|System/Network/DNS|System/Display/Theme"/>
+                        </HBox>
+                    </VBox>
+                </GroupVBox>
+
+                <!-- Section 22: Avatar -->
+                <GroupVBox class="group_box_round" text="Avatar - All Sizes &amp; Shapes" height="auto" margin="0,4,0,0" padding="10,24,6,10" control_padding="false">
+                    <HBox height="120" child_margin="16" valign="center">
+                        <Avatar class="avatar_small" text="A"/>
+                        <Avatar class="avatar" text="B"/>
+                        <Avatar class="avatar_large" text="C"/>
+                        <Avatar class="avatar_xlarge" text="D"/>
+                        <Avatar class="avatar_large" shape="square" text="E"/>
+                        <Avatar class="avatar_square" text="F"/>
+                        <Avatar class="avatar_square_large" text="G"/>
+                        <Avatar class="avatar_user"/>
+                        <Avatar class="avatar_user_large"/>
+                        <Avatar class="avatar_photo"/>
+                        <Avatar class="avatar_text" text="Tom"/>
+                    </HBox>
+                    <HBox height="auto" child_margin="5" margin="0,10,0,0">
+                        <Control width="30" height="20" bkcolor="bg_avatar"/>
+                        <Label text="Avatar Background" valign="center" height="auto"/>
+                        <Control width="30" height="20" bkcolor="bg_avatar_1" margin="16,0,0,0"/>
+                        <Label text="Avatar Background 1" valign="center" height="auto"/>
+                        <Control width="30" height="20" bkcolor="text_avatar" margin="16,0,0,0"/>
+                        <Label text="Avatar Text" valign="center" height="auto"/>
+                    </HBox>
+                </GroupVBox>
+
+                <!-- Section 23: SearchBox / AutoComplete / TagInput / RichText -->
+                <GroupVBox class="group_box_round" text="Search &amp; Input Helpers - All States" height="auto" margin="0,4,0,0" padding="10,24,6,10" control_padding="false">
+                    <HBox child_margin="20" height="auto">
+                        <VBox width="380" height="auto" child_margin="8">
+                            <Label text="SearchBox:" height="auto"/>
+                            <SearchBox class="search_box" name="preview_search_box" width="360"
+                                       prompt_text="Search controls..." suggestions="nim_duilib;C++;Desktop UI;Skia;Qt;WPF;MFC;Win32"
+                                       history_enabled="true" max_history="10" max_visible="8"/>
+                            <Label text="AutoComplete:" height="auto" margin="0,8,0,0"/>
+                            <AutoComplete class="auto_complete" name="preview_auto_complete" width="360"
+                                          items="Beijing;Berlin;Budapest;Bangkok;Boston;Chicago;London;New York;Paris;Shanghai;Shenzhen;Tokyo"
+                                          prompt_text="Type a city..."/>
+                        </VBox>
+                        <VBox width="420" height="auto" child_margin="8">
+                            <Label text="TagInput:" height="auto"/>
+                            <TagInput class="tag_input" name="preview_tag_input" tags="nim_duilib;C++;Desktop UI" prompt_text="Add tag..."/>
+                            <Label text="RichText:" height="auto" margin="0,8,0,0"/>
+                            <RichText class="rich_text" name="preview_rich_text" width="stretch" height="auto" row_spacing_mul="1.2">
+                                RichText: <a href="https://www.example.com">Click to Example</a><br/>
+                                RichText: <a href="https://www.example.org">Click to Example Org</a>
+                            </RichText>
+                        </VBox>
+                    </HBox>
+                </GroupVBox>
+
+                <!-- Section 24: ToolBar & StatusBar -->
+                <GroupVBox class="group_box_round" text="ToolBar &amp; StatusBar - All States" height="auto" margin="0,4,0,0" padding="10,24,6,10" control_padding="false">
+                    <VBox width="stretch" height="auto" child_margin="8">
+                        <Label text="ToolBar:" height="auto"/>
+                        <ToolBar name="preview_toolbar" width="stretch" height="36" bkcolor="bg_titlebar" padding="8,0,8,0" child_margin_x="4"
+                                 tool_class="toolbar_button" tool_checkbox_class="toolbar_check" tool_separator_class="toolbar_separator"
+                                 overflow_button_class="btn_global" overflow_button_width="28" overflow_button_text="&#187;"/>
+                        <Label text="StatusBar:" height="auto" margin="0,8,0,0"/>
+                        <StatusBar name="preview_status_bar" width="stretch" height="30" bkcolor="bg_window_card" border_size="0,1,0,0" border_color="border_window">
+                            <Label text="Ready" width="110" valign="center" text_color="text_default" padding="10,0,10,0"/>
+                            <Label text="Connected" width="140" valign="center" text_color="text_default" padding="10,0,10,0"/>
+                            <HBox width="stretch">
+                                <Label text="Progress:" valign="center" text_color="text_muted" padding="10,0,8,0"/>
+                                <Progress width="stretch" min="0" max="100" value="60" valign="center" margin="0,0,10,0" bkcolor="bg_progress_track" progress_color="bg_progress" progress_radius="6"/>
+                            </HBox>
+                        </StatusBar>
+                    </VBox>
+                </GroupVBox>
+
+                <!-- Section 25: TreeGrid -->
+                <GroupVBox class="group_box_round" text="TreeGrid - All States" height="auto" margin="0,4,0,0" padding="10,24,6,10" control_padding="false">
+                    <HBox child_margin="16" height="auto">
+                        <VBox width="520" height="auto" child_margin="4">
+                            <Label text="TreeGrid (multi column):" height="auto"/>
+                            <TreeGrid class="tree_grid" name="preview_tree_grid" height="220" width="stretch"
+                                      column_title="Name|Size|Type" column_width="240|110|140" column_align="left|right|left"
+                                      tree_column="0" indent="18" header_height="30" row_height="26"
+                                      expand_image_class="tree_grid_expand" check_image_class="tree_grid_check"
+                                      header_cell_class="tree_grid_header_cell" cell_class="tree_grid_cell" row_class="tree_grid_row"/>
+                        </VBox>
+                        <VBox width="520" height="auto" child_margin="4">
+                            <Label text="TreeGrid (checkable + multi select):" height="auto"/>
+                            <TreeGrid class="tree_grid" name="preview_tree_grid_check" height="220" width="stretch"
+                                      column_title="Name|Size|Type" column_width="240|110|140" column_align="left|right|left"
+                                      tree_column="0" indent="18" header_height="30" row_height="26"
+                                      multi_select="true" check_mode="true" check_cascade="true"
+                                      expand_image_class="tree_grid_expand" check_image_class="tree_grid_check"
+                                      header_cell_class="tree_grid_header_cell" cell_class="tree_grid_cell" row_class="tree_grid_row"/>
+                        </VBox>
+                    </HBox>
+                </GroupVBox>
+
+                <!-- Section 26: ScrollBar -->
+                <GroupVBox class="group_box_round" text="ScrollBar - All States" height="auto" margin="0,4,0,0" padding="10,24,6,10" control_padding="false">
+                    <HBox child_margin="20" height="auto">
+                        <VBox width="280" height="auto" child_margin="4">
+                            <Label text="Vertical ScrollBar:" height="auto"/>
+                            <VScrollBox name="preview_vscroll_box" width="240" height="120" bkcolor="bg_window_card" border_size="1" border_color="border_window"
+                                        vscrollbar="true" vscrollbar_class="vscrollbar2">
+                                <VBox height="600" bkcolor="bg_window_card"/>
+                            </VScrollBox>
+                        </VBox>
+                        <VBox width="360" height="auto" child_margin="4">
+                            <Label text="Horizontal ScrollBar:" height="auto"/>
+                            <HScrollBox name="preview_hscroll_box" width="320" height="120" bkcolor="bg_window_card" border_size="1" border_color="border_window"
+                                        hscrollbar="true" hscrollbar_class="hscrollbar2">
+                                <Control width="900" height="100"/>
+                            </HScrollBox>
+                        </VBox>
+                    </HBox>
+                </GroupVBox>
+
+                <!-- Section 27: ListCtrl Icon / List Views -->
+                <GroupVBox class="group_box_round" text="ListCtrl - Icon / List Views" height="auto" margin="0,4,0,0" padding="10,24,6,10" control_padding="false">
+                    <HBox child_margin="16" height="auto">
+                        <VBox width="340" height="auto" child_margin="4">
+                            <Label text="Icon View:" height="auto"/>
+                            <ListCtrl class="list_ctrl" name="preview_list_ctrl_icon" type="icon" height="200" show_header="false">
+                                <ListCtrlHeaderItem text="Name" width="300"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Document 1"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Document 2"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Document 3"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Document 4"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Document 5"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Document 6"/>
+                            </ListCtrl>
+                        </VBox>
+                        <VBox width="380" height="auto" child_margin="4">
+                            <Label text="List View:" height="auto"/>
+                            <ListCtrl class="list_ctrl" name="preview_list_ctrl_list" type="list" height="200" show_header="false">
+                                <ListCtrlHeaderItem text="Name" width="300"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Item 1"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Item 2"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Item 3"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Item 4"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Item 5"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Item 6"/>
+                            </ListCtrl>
+                        </VBox>
+                    </HBox>
+                </GroupVBox>
+
+                <!-- Section 28: TabCtrl Close / Badge -->
+                <GroupVBox class="group_box_round" text="TabCtrl - Close &amp; Badge" height="auto" margin="0,4,0,0" padding="10,24,6,10" control_padding="false">
+                    <TabCtrl class="tab_ctrl" name="preview_tab_ctrl_close" width="stretch" height="40">
+                        <TabCtrlItem class="tab_ctrl_item" title="Closable 1" badge_count="3" badge_class="badge" closable="true" close_button_show_mode="always" width="140"/>
+                        <TabCtrlItem class="tab_ctrl_item" title="Closable 2" closable="true" close_button_show_mode="always" width="140"/>
+                        <TabCtrlItem class="tab_ctrl_item" title="Closable 3" closable="true" close_button_show_mode="always" width="140"/>
+                        <TabCtrlItem class="tab_ctrl_item" title="Closable 4" closable="true" close_button_show_mode="always" width="140"/>
+                    </TabCtrl>
+                </GroupVBox>
+
+                <!-- Section 29: GroupBox / Popover / Popconfirm -->
+                <GroupVBox class="group_box_round" text="GroupBox, Popover &amp; Popconfirm - All States" height="auto" margin="0,4,0,0" padding="10,24,6,10" control_padding="false">
+                    <HBox child_margin="16" height="auto">
+                        <GroupBox class="group_box" text="GroupBox (line)" width="320" height="110" padding="10,20,10,10" control_padding="false">
+                            <Label text="GroupBox content" height="auto"/>
+                        </GroupBox>
+                        <GroupBox class="group_box_round" text="GroupBox (round)" width="320" height="110" padding="10,20,10,10" control_padding="false">
+                            <Label text="GroupBox content" height="auto"/>
+                        </GroupBox>
+                    </HBox>
+                    <HBox child_margin="12" height="56" margin="0,14,0,0">
+                        <Popover class="popover_anchor_primary" name="preview_popover_hover" trigger="hover" placement="top" valign="center" text="Hover for Popover" title="Popover" content="Theme preview content"/>
+                        <Popover class="popover_anchor" name="preview_popover_click" trigger="click" placement="bottom" valign="center" text="Click for Popover" title="Popover" content="Theme preview content"/>
+                        <Popconfirm class="popover_anchor" name="preview_popconfirm" placement="top" valign="center" width="auto" padding="12,0,12,0" text="Delete" title="Confirm" description="Are you sure?"/>
+                    </HBox>
+                </GroupVBox>
+
+                <!-- Section 30: Global Config (ThemeMeta / Var / Alias / Font) -->
+                <GroupVBox class="group_box_round" text="Global Config - ThemeMeta / Var / Alias / Font" height="auto" margin="0,4,0,0" padding="10,24,6,10" control_padding="false">
+                    <VBox name="global_meta_box" height="auto" width="100%" child_margin="4"/>
+                    <VBox name="global_vars_box" height="auto" width="100%" child_margin="4" margin="0,10,0,0"/>
+                    <VBox name="global_alias_box" height="auto" width="100%" child_margin="4" margin="0,10,0,0"/>
+                    <VBox name="global_font_box" height="auto" width="100%" child_margin="4" margin="0,10,0,0"/>
+                </GroupVBox>
+
+                <!-- Section 31: Light / Dark Theme Colors -->
+                <GroupVBox class="group_box_round" text="Light / Dark Theme Colors - Full Comparison" height="auto" margin="0,4,0,0" padding="10,24,6,10" control_padding="false">
+                    <VBox name="light_dark_colors_box" height="auto" width="100%" child_margin="2"/>
+                </GroupVBox>
+
+                <!-- Section 32: Internal Sub-Styles - Explicit Demo (112 classes) -->
+                <GroupVBox class="group_box_round" text="Internal Sub-Styles - Explicit Demo (112)" height="auto" margin="0,4,0,0" padding="10,24,6,10" control_padding="false">
+                    <Label text="以下为 global.xml 中供控件内部使用的子样式（页面此前未直接引用），按控件族显式实例化演示，用于验证配色是否完整。" height="auto" multi_line="true"/>
+
+                    <!-- 32.1 Base &amp; ToolBar: btn_global_base, btn_wnd_base, toolbar_button, toolbar_check, toolbar_separator -->
+                    <Label text="Base / ToolBar: btn_global_base, btn_wnd_base, toolbar_button, toolbar_check, toolbar_separator" height="auto" margin="0,8,0,0"/>
+                    <HBox height="40" child_margin="10" valign="center">
+                        <Button class="btn_global_base" width="130" height="28" text="btn_global_base"/>
+                        <Button class="btn_wnd_base" width="130" height="28" text="btn_wnd_base"/>
+                        <Button class="toolbar_button" text="toolbar_button"/>
+                        <CheckBox class="toolbar_check" text="toolbar_check" selected="true"/>
+                        <Line class="toolbar_separator"/>
+                    </HBox>
+
+                    <!-- 32.2 Combo: combo_basic, combo_base -->
+                    <Label text="Combo: combo_basic, combo_base" height="auto" margin="0,8,0,0"/>
+                    <HBox height="40" child_margin="10" valign="center">
+                        <Combo class="combo_basic" name="preview_combo_basic_styles" combo_type="drop_list" dropbox_size="0,120" width="180" height="30">
+                            <TreeNode class="tree_node" padding="4,4,4,4" text="combo_basic"/>
+                        </Combo>
+                        <Combo class="combo_base" name="preview_combo_base_styles" combo_type="drop_list" dropbox_size="0,120" width="180" height="30">
+                            <TreeNode class="tree_node" padding="4,4,4,4" text="combo_base"/>
+                        </Combo>
+                    </HBox>
+
+                    <!-- 32.3 AddressBar: 11 classes -->
+                    <Label text="AddressBar: address_bar_edit, address_bar_history_button, address_bar_path_separator, address_bar_reset_button, address_bar_sub_path_button, address_bar_sub_path_button_current, address_bar_sub_path_collapse, address_bar_sub_path_computer, address_bar_sub_path_drive, address_bar_sub_path_hbox, address_bar_sub_path_root" height="auto" margin="0,8,0,0" multi_line="true"/>
+                    <HBox height="auto" child_margin="6" valign="center">
+                        <Button class="address_bar_reset_button"/>
+                        <Button class="address_bar_history_button"/>
+                        <Button class="address_bar_path_separator" height="28" width="12"/>
+                        <Button class="address_bar_sub_path_collapse" height="28"/>
+                        <Button class="address_bar_sub_path_button" height="28" text="sub_path_button"/>
+                        <Button class="address_bar_sub_path_button_current" height="28" text="current"/>
+                        <Button class="address_bar_sub_path_root" height="28" text="root"/>
+                        <Button class="address_bar_sub_path_drive" height="28" text="drive"/>
+                        <Button class="address_bar_sub_path_computer" height="28" text="computer"/>
+                        <HBox class="address_bar_sub_path_hbox" width="150" height="28">
+                            <Label text="sub_path_hbox" valign="center" text_padding="6,0,6,0"/>
+                        </HBox>
+                        <RichEdit class="address_bar_edit" width="220" height="28" text="address_bar_edit"/>
+                    </HBox>
+                    <AddressBar class="address_bar" name="preview_address_bar_styles" width="stretch" height="30" margin="0,6,0,0"
+                                address_path="C:\Users\Public\Documents"
+                                rich_edit_class="address_bar_edit"
+                                reset_button_class="address_bar_reset_button"
+                                sub_path_hbox_class="address_bar_sub_path_hbox"
+                                sub_path_button_class="address_bar_sub_path_button"
+                                sub_path_root_class="address_bar_sub_path_root"
+                                sub_path_drive_class="address_bar_sub_path_drive"
+                                sub_path_current_class="address_bar_sub_path_button_current"
+                                collapse_button_class="address_bar_sub_path_collapse"
+                                path_separator_class="address_bar_path_separator"/>
+
+                    <!-- 32.4 AutoComplete: 6 classes -->
+                    <Label text="AutoComplete: auto_complete_edit, auto_complete_flyout, auto_complete_item, auto_complete_item_match, auto_complete_item_text, auto_complete_list" height="auto" margin="0,8,0,0" multi_line="true"/>
+                    <HBox height="auto" child_margin="12" valign="top">
+                        <VBox width="300" height="auto" child_margin="6">
+                            <AutoComplete class="auto_complete" name="preview_auto_complete_styles" width="280" items="Alpha;Beta;Gamma;Delta" prompt_text="auto_complete"/>
+                            <RichEdit class="auto_complete_edit" width="280" height="30" text="auto_complete_edit"/>
+                        </VBox>
+                        <VBox class="auto_complete_flyout" width="280" height="auto">
+                            <VListBox class="auto_complete_list" name="preview_auto_complete_list_styles" width="stretch" height="96">
+                                <ListBoxItem class="auto_complete_item" height="28">
+                                    <Label class="auto_complete_item_match" text="Al"/>
+                                    <Label class="auto_complete_item_text" text="pha (match + text)"/>
+                                </ListBoxItem>
+                                <ListBoxItem class="auto_complete_item" height="28" text="auto_complete_item"/>
+                            </VListBox>
+                        </VBox>
+                    </HBox>
+
+                    <!-- 32.5 Calendar: 7 classes -->
+                    <Label text="Calendar: calendar_weekday, calendar_day, calendar_day_muted, calendar_day_today, calendar_day_selected, calendar_day_range, calendar_day_hovered" height="auto" margin="0,8,0,0" multi_line="true"/>
+                    <HBox height="30" child_margin="6" valign="center">
+                        <Label class="calendar_weekday" text="calendar_weekday" width="140" height="28"/>
+                        <Label class="calendar_day" text="calendar_day" width="110" height="28"/>
+                        <Label class="calendar_day_muted" text="muted" width="70" height="28"/>
+                        <Label class="calendar_day_today" text="today" width="70" height="28"/>
+                        <Box width="80" height="28" bkcolor="bg_primary_btn_normal">
+                            <Label class="calendar_day_selected" text="selected" height="28"/>
+                        </Box>
+                        <Box width="70" height="28" bkcolor="bg_list_item_hovered">
+                            <Label class="calendar_day_range" text="range" height="28"/>
+                        </Box>
+                        <Box width="80" height="28" bkcolor="bg_list_item_hovered">
+                            <Label class="calendar_day_hovered" text="hovered" height="28"/>
+                        </Box>
+                    </HBox>
+                    <HBox height="240" margin="0,6,0,0">
+                        <Calendar class="calendar" name="preview_calendar_styles" width="280" height="240"/>
+                    </HBox>
+
+                    <!-- 32.6 CascadingSelect: cascading_select_popup -->
+                    <Label text="CascadingSelect: cascading_select_popup" height="auto" margin="0,8,0,0"/>
+                    <HBox height="36" child_margin="10" valign="center">
+                        <CascadingSelect class="cascader" name="preview_cascader_styles" dropdown="true" width="360" height="32"
+                                         popup_class="cascading_select_popup" placeholder="cascading_select_popup"
+                                         items="A/1|A/2|B/3|B/4"/>
+                    </HBox>
+
+                    <!-- 32.7 ListCtrl: 20 classes -->
+                    <Label text="ListCtrl: list_ctrl_header, list_ctrl_header_item, list_ctrl_header_split_box, list_ctrl_header_split_control, list_ctrl_checkbox, list_ctrl_sub_item, list_ctrl_report_view, list_ctrl_icon_view(+item/image/label), list_ctrl_list_view(+item/image/label), list_ctrl_combo_flyout, list_ctrl_combo_list, list_ctrl_combo_item, list_ctrl_richedit, list_ctrl_datetime" height="auto" margin="0,8,0,0" multi_line="true"/>
+                    <VBox width="100%" height="auto" child_margin="4">
+                        <Label text="Report View:" height="auto"/>
+                        <ListCtrl class="list_ctrl" name="preview_list_ctrl_styles_report" width="stretch" height="180" show_data_item_checkbox="true"
+                                  header_class="list_ctrl_header"
+                                  header_item_class="list_ctrl_header_item"
+                                  header_split_box_class="list_ctrl_header_split_box"
+                                  header_split_control_class="list_ctrl_header_split_control"
+                                  check_box_class="list_ctrl_checkbox"
+                                  data_item_class="list_ctrl_item"
+                                  data_sub_item_class="list_ctrl_sub_item"
+                                  report_view_class="list_ctrl_report_view"
+                                  list_ctrl_richedit_class="list_ctrl_richedit"
+                                  list_ctrl_datetime_class="list_ctrl_datetime">
+                            <ListCtrlHeaderItem text="Name" width="160"/>
+                            <ListCtrlHeaderItem text="Value" width="160"/>
+                            <ListCtrlItem class="list_ctrl_item" text="Row 1"/>
+                            <ListCtrlItem class="list_ctrl_item" text="Row 2"/>
+                            <ListCtrlItem class="list_ctrl_item" text="Row 3"/>
+                            <ListCtrlSubItem item_index="0" column_index="1" text="Value 1"/>
+                            <ListCtrlSubItem item_index="1" column_index="1" text="Value 2"/>
+                            <ListCtrlSubItem item_index="2" column_index="1" text="Value 3"/>
+                        </ListCtrl>
+                    </VBox>
+                    <HBox child_margin="16" height="auto" margin="0,8,0,0">
+                        <VBox width="360" height="auto" child_margin="4">
+                            <Label text="Icon View:" height="auto"/>
+                            <ListCtrl class="list_ctrl" name="preview_list_ctrl_styles_icon" type="icon" height="160" show_header="false"
+                                      icon_view_class="list_ctrl_icon_view"
+                                      icon_view_item_class="list_ctrl_icon_view_item"
+                                      icon_view_item_image_class="list_ctrl_icon_view_item_image"
+                                      icon_view_item_label_class="list_ctrl_icon_view_item_label">
+                                <ListCtrlHeaderItem text="Name" width="300"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Icon 1"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Icon 2"/>
+                                <ListCtrlItem class="list_ctrl_item" text="Icon 3"/>
+                            </ListCtrl>
+                        </VBox>
+                        <VBox width="360" height="auto" child_margin="4">
+                            <Label text="List View:" height="auto"/>
+                            <ListCtrl class="list_ctrl" name="preview_list_ctrl_styles_list" type="list" height="160" show_header="false"
+                                      list_view_class="list_ctrl_list_view"
+                                      list_view_item_class="list_ctrl_list_view_item"
+                                      list_view_item_image_class="list_ctrl_list_view_item_image"
+                                      list_view_item_label_class="list_ctrl_list_view_item_label">
+                                <ListCtrlHeaderItem text="Name" width="300"/>
+                                <ListCtrlItem class="list_ctrl_item" text="List 1"/>
+                                <ListCtrlItem class="list_ctrl_item" text="List 2"/>
+                                <ListCtrlItem class="list_ctrl_item" text="List 3"/>
+                            </ListCtrl>
+                        </VBox>
+                    </HBox>
+                    <HBox height="120" child_margin="10" valign="top" margin="0,8,0,0">
+                        <VBox class="list_ctrl_combo_flyout" width="220" height="auto">
+                            <VListBox class="list_ctrl_combo_list" width="stretch" height="96">
+                                <ListBoxItem class="list_ctrl_combo_item" height="28" text="list_ctrl_combo_item"/>
+                                <ListBoxItem class="list_ctrl_combo_item" height="28" text="list_ctrl_combo_item"/>
+                            </VListBox>
+                        </VBox>
+                        <RichEdit class="list_ctrl_richedit" width="220" height="28" text="list_ctrl_richedit"/>
+                        <DateTime class="list_ctrl_datetime" width="220" height="28"/>
+                    </HBox>
+
+                    <!-- 32.8 Mask: mask -->
+                    <Label text="Mask: mask" height="auto" margin="0,8,0,0"/>
+                    <Box width="260" height="80" bkcolor="bg_window_card" margin="0,4,0,0">
+                        <Label text="Mask overlay area (mask intercepts mouse)" valign="center" text_padding="8,0,8,0"/>
+                        <Mask class="mask"/>
+                    </Box>
+
+                    <!-- 32.9 Pagination: pagination_button, pagination_nav_button, pagination_page_size -->
+                    <Label text="Pagination: pagination_button, pagination_nav_button, pagination_page_size" height="auto" margin="0,8,0,0"/>
+                    <Pagination name="preview_pagination_styles" width="stretch" height="40" total_count="95" page_size="10"
+                                show_page_size="true" show_first_last="true" page_size_options="10,20,50"
+                                page_size_class="pagination_page_size" button_class="pagination_button"/>
+
+                    <!-- 32.10 Popover &amp; Popconfirm: 19 classes -->
+                    <Label text="Popover: popover_arrow_up, popover_arrow_down, popover_arrow_left, popover_arrow_right, popover_card, popover_content, popover_title, popover_trigger" height="auto" margin="0,8,0,0" multi_line="true"/>
+                    <Label text="Popconfirm: popconfirm_btn, popconfirm_cancel, popconfirm_description, popconfirm_icon_error, popconfirm_icon_info, popconfirm_icon_success, popconfirm_icon_warning, popconfirm_ok_danger, popconfirm_ok_default, popconfirm_ok_primary, popconfirm_title" height="auto" multi_line="true"/>
+                    <HBox height="auto" child_margin="10" valign="center" margin="0,6,0,0">
+                        <Popover class="popover_trigger" name="preview_popover_trigger_styles" trigger="hover" placement="top" valign="center"
+                                 text="popover_trigger" title="Popover" content="popover_trigger 演示"/>
+                        <Button class="popconfirm_btn" text="popconfirm_btn"/>
+                        <Button class="popconfirm_cancel" text="cancel"/>
+                        <Button class="popconfirm_ok_default" text="ok_default"/>
+                        <Button class="popconfirm_ok_primary" text="ok_primary"/>
+                        <Button class="popconfirm_ok_danger" text="ok_danger"/>
+                        <Control class="popconfirm_icon_warning"/>
+                        <Control class="popconfirm_icon_info"/>
+                        <Control class="popconfirm_icon_success"/>
+                        <Control class="popconfirm_icon_error"/>
+                    </HBox>
+                    <HBox height="auto" child_margin="10" valign="center" margin="0,6,0,0">
+                        <Control class="popover_arrow_up"/>
+                        <Control class="popover_arrow_down"/>
+                        <Control class="popover_arrow_left"/>
+                        <Control class="popover_arrow_right"/>
+                        <VBox class="popover_card" width="260" height="auto">
+                            <Label class="popover_title" text="popover_title"/>
+                            <Label class="popover_content" text="popover_content"/>
+                        </VBox>
+                    </HBox>
+                    <VBox width="100%" height="auto" margin="0,6,0,0" child_margin="2">
+                        <Label class="popconfirm_title" text="popconfirm_title"/>
+                        <Label class="popconfirm_description" text="popconfirm_description"/>
+                    </VBox>
+
+                    <!-- 32.11 RichEdit: 8 classes -->
+                    <Label text="RichEdit: richedit_base, rich_edit_spin_box, rich_edit_spin_btn_up, rich_edit_spin_btn_down, rich_edit_spin_btn_up2, rich_edit_spin_btn_down2, rich_edit_clear_btn_class, rich_edit_show_password_btn_class" height="auto" margin="0,8,0,0" multi_line="true"/>
+                    <HBox height="auto" child_margin="10" valign="center">
+                        <RichEdit class="richedit_base" width="190" height="28" text="richedit_base"/>
+                        <RichEdit class="rich_edit_spin" width="190" height="28" text="1"/>
+                        <RichEdit class="rich_edit_spin2" width="190" height="28" text="2"/>
+                        <RichEdit class="rich_edit_clear_btn" width="190" height="28" text="clear_btn"/>
+                        <RichEdit class="rich_edit_show_password_btn" width="190" height="28" text="password"/>
+                    </HBox>
+
+                    <!-- 32.12 ScrollBar: 5 classes -->
+                    <Label text="ScrollBar: scrollbar_base (基类，需由 vscrollbar/hscrollbar 派生显示), vscrollbar, vscrollbar2, hscrollbar, hscrollbar2" height="auto" margin="0,8,0,0" multi_line="true"/>
+                    <HBox height="auto" child_margin="12" valign="top">
+                        <VBox width="190" height="auto" child_margin="4">
+                            <Label text="vscrollbar:" height="auto"/>
+                            <VScrollBox name="preview_vscroll_styles_1" width="170" height="110" bkcolor="bg_window_card" border_size="1" border_color="border_window"
+                                        vscrollbar="true" vscrollbar_class="vscrollbar">
+                                <VBox height="360" bkcolor="bg_window_card"/>
+                            </VScrollBox>
+                            <Label text="vscrollbar2:" height="auto"/>
+                            <VScrollBox name="preview_vscroll_styles_2" width="170" height="110" bkcolor="bg_window_card" border_size="1" border_color="border_window"
+                                        vscrollbar="true" vscrollbar_class="vscrollbar2">
+                                <VBox height="360" bkcolor="bg_window_card"/>
+                            </VScrollBox>
+                        </VBox>
+                        <VBox width="190" height="auto" child_margin="4">
+                            <Label text="scrollbar_base:" height="auto"/>
+                            <VScrollBox name="preview_vscroll_styles_base" width="170" height="110" bkcolor="bg_window_card" border_size="1" border_color="border_window"
+                                        vscrollbar="true" vscrollbar_class="scrollbar_base">
+                                <VBox height="360" bkcolor="bg_window_card"/>
+                            </VScrollBox>
+                        </VBox>
+                        <VBox width="300" height="auto" child_margin="4">
+                            <Label text="hscrollbar:" height="auto"/>
+                            <HScrollBox name="preview_hscroll_styles_1" width="280" height="90" bkcolor="bg_window_card" border_size="1" border_color="border_window"
+                                        hscrollbar="true" hscrollbar_class="hscrollbar">
+                                <Control width="800" height="70"/>
+                            </HScrollBox>
+                            <Label text="hscrollbar2:" height="auto"/>
+                            <HScrollBox name="preview_hscroll_styles_2" width="280" height="90" bkcolor="bg_window_card" border_size="1" border_color="border_window"
+                                        hscrollbar="true" hscrollbar_class="hscrollbar2">
+                                <Control width="800" height="70"/>
+                            </HScrollBox>
+                        </VBox>
+                    </HBox>
+
+                    <!-- 32.13 SearchBox: 3 classes -->
+                    <Label text="SearchBox: search_box_clear_btn, search_box_edit, search_box_icon" height="auto" margin="0,8,0,0"/>
+                    <HBox height="auto" child_margin="10" valign="center">
+                        <SearchBox class="search_box" name="preview_search_box_styles" width="280" prompt_text="search_box"/>
+                        <Control class="search_box_icon"/>
+                        <RichEdit class="search_box_edit" width="220" height="30" text="search_box_edit"/>
+                        <Button class="search_box_clear_btn"/>
+                    </HBox>
+
+                    <!-- 32.14 Switch: 2 classes -->
+                    <Label text="Switch: switch_ios, switch_small" height="auto" margin="0,8,0,0"/>
+                    <HBox height="40" child_margin="16" valign="center">
+                        <Switch class="switch_ios" selected="false"/>
+                        <Switch class="switch_ios" selected="true"/>
+                        <Switch class="switch_small" selected="false"/>
+                        <Switch class="switch_small" selected="true"/>
+                    </HBox>
+
+                    <!-- 32.15 TabCtrl: 10 classes -->
+                    <Label text="TabCtrl: tab_ctrl_indicator, tab_ctrl_item_badge, tab_ctrl_item_badge_dot, tab_ctrl_item_badge_float, tab_ctrl_item_close, tab_ctrl_item_icon, tab_ctrl_item_indicator, tab_ctrl_item_indicator_title, tab_ctrl_item_line, tab_ctrl_item_title" height="auto" margin="0,8,0,0" multi_line="true"/>
+                    <HBox height="auto" child_margin="12" valign="top">
+                        <VBox width="480" height="auto" child_margin="4">
+                            <Label text="tab_ctrl_indicator + tab_ctrl_item_indicator + title:" height="auto"/>
+                            <TabCtrl class="tab_ctrl tab_ctrl_indicator" name="preview_tab_ctrl_styles_indicator" width="stretch" height="40">
+                                <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title="Indicator 1" width="160"/>
+                                <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title="Indicator 2" width="160"/>
+                            </TabCtrl>
+                        </VBox>
+                        <VBox width="600" height="auto" child_margin="4">
+                            <Label text="tab_ctrl_item_icon / title / close / line / badge / badge_dot / badge_float:" height="auto"/>
+                            <TabCtrl class="tab_ctrl" name="preview_tab_ctrl_styles" width="stretch" height="40">
+                                <TabCtrlItem class="tab_ctrl_item" title="All sub classes"
+                                             icon="file='public/caption/logo.svg' valign='center' halign='center'"
+                                             icon_class="tab_ctrl_item_icon" title_class="tab_ctrl_item_title"
+                                             close_button_class="tab_ctrl_item_close" closable="true" close_button_show_mode="always"
+                                             line_class="tab_ctrl_item_line" badge_class="tab_ctrl_item_badge" badge_count="5" width="240"/>
+                                <TabCtrlItem class="tab_ctrl_item" title="dot" badge_class="tab_ctrl_item_badge_dot" badge_dot="true" width="120"/>
+                                <TabCtrlItem class="tab_ctrl_item" title="float" badge_class="tab_ctrl_item_badge_float" badge_float="true" badge_count="99" width="120"/>
+                            </TabCtrl>
+                        </VBox>
+                    </HBox>
+
+                    <!-- 32.16 TagInput: 4 classes -->
+                    <Label text="TagInput: tag_input_edit, tag_input_tag, tag_input_tag_close, tag_input_tag_text" height="auto" margin="0,8,0,0"/>
+                    <HBox height="auto" child_margin="10" valign="center">
+                        <HBox class="tag_input_tag" width="auto" height="24" valign="center">
+                            <Label class="tag_input_tag_text" text="tag_input_tag_text"/>
+                            <Button class="tag_input_tag_close"/>
+                        </HBox>
+                        <RichEdit class="tag_input_edit" width="220" height="24" text="tag_input_edit"/>
+                    </HBox>
+
+                    <!-- 32.17 TreeView / TreeGrid: 7 classes -->
+                    <Label text="TreeView: tree_node_checkbox, tree_node_expand；TreeGrid: tree_grid_expand, tree_grid_check, tree_grid_header_cell, tree_grid_cell, tree_grid_row（见上方 Section 25 的显式属性）" height="auto" margin="0,8,0,0" multi_line="true"/>
+                    <HBox height="auto" child_margin="12" valign="top">
+                        <VBox width="340" height="auto" child_margin="4">
+                            <Label text="TreeView:" height="auto"/>
+                            <TreeView class="tree_view" name="preview_tree_view_styles" width="320" height="140" indent="20"
+                                      check_box_class="tree_node_checkbox" expand_image_class="tree_node_expand">
+                                <TreeNode class="tree_node" text="Node (checkbox + expand)" height="28">
+                                    <TreeNode class="tree_node" text="Child 1" height="24"/>
+                                    <TreeNode class="tree_node" text="Child 2" height="24"/>
+                                </TreeNode>
+                            </TreeView>
+                        </VBox>
+                    </HBox>
+                </GroupVBox>
+
                 <Control height="20"/>
             </VBox>
         </VScrollBox>
