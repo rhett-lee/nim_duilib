@@ -1,5 +1,14 @@
 #include "TestForm.h"
 
+namespace
+{
+/** 读取语言资源（代码动态生成的文本必须走语言文件，才能支持中英文切换） */
+DString TestLang(const DString& strId)
+{
+    return ui::GlobalManager::Instance().Lang().GetStringByID(strId);
+}
+}//namespace
+
 TestForm::TestForm()
 {
 }
@@ -25,16 +34,16 @@ void TestForm::OnInitWindow()
     if (pSystemNotificationBtn != nullptr) {
         pSystemNotificationBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
             if (!ui::SystemNotification::IsSupported()) {
-                ui::ToastWnd::Show(this, _T("System notification is not supported on this platform"),
+                ui::ToastWnd::Show(this, TestLang(_T("STRID_CONTROLS_NOTIFY_UNSUPPORTED")),
                                    ui::ToastWnd::kTypeWarning, 2000, ui::ToastWnd::kPosTop, false);
                 return true;
             }
             ui::SystemNotification::RequestPermission();
             uint32_t notificationId = ui::SystemNotification::Show(_T("nim_duilib"),
-                _T("This is a native system notification."),
+                TestLang(_T("STRID_CONTROLS_NOTIFY_TEXT")),
                 ui::SystemNotificationPriority::kNormal, 5000);
             if (notificationId == 0) {
-                ui::ToastWnd::Show(this, _T("Failed to show system notification"),
+                ui::ToastWnd::Show(this, TestLang(_T("STRID_CONTROLS_NOTIFY_FAILED")),
                                    ui::ToastWnd::kTypeWarning, 2000, ui::ToastWnd::kPosTop, false);
             }
             return true;
@@ -164,7 +173,7 @@ void TestForm::OnInitWindow()
         //数据源已通过 XML 的 items 属性配置（前缀匹配），这里仅绑定选中事件
         pAutoComplete->AttachSelect([this, pAutoComplete](const ui::EventArgs& /*args*/) {
             DString text = pAutoComplete->GetText();
-            ui::ToastWnd::Show(this, ui::StringUtil::Printf(_T("Selected: %s"), text.c_str()),
+            ui::ToastWnd::Show(this, ui::StringUtil::Printf(TestLang(_T("STRID_TEST_SELECTED_FMT")).c_str(), text.c_str()),
                                ui::ToastWnd::kTypeInfo, 1500, ui::ToastWnd::kPosTop, false);
             return true;
             });
@@ -186,7 +195,7 @@ void TestForm::OnInitWindow()
             });
         pAutoComplete2->AttachSelect([this, pAutoComplete2](const ui::EventArgs& /*args*/) {
             DString text = pAutoComplete2->GetText();
-            ui::ToastWnd::Show(this, ui::StringUtil::Printf(_T("Selected: %s"), text.c_str()),
+            ui::ToastWnd::Show(this, ui::StringUtil::Printf(TestLang(_T("STRID_TEST_SELECTED_FMT")).c_str(), text.c_str()),
                                ui::ToastWnd::kTypeInfo, 1500, ui::ToastWnd::kPosTop, false);
             return true;
             });
@@ -198,12 +207,12 @@ void TestForm::OnInitWindow()
         //搜索场景防抖：连续输入仅在停顿 300ms 后才触发 kEventTextChanged
         pSearchBox->SetDebounceInterval(300);
         pSearchBox->AttachSelect([this, pSearchBox](const ui::EventArgs& /*args*/) {
-            ui::ToastWnd::Show(this, ui::StringUtil::Printf(_T("Selected: %s"), pSearchBox->GetSearchText().c_str()),
+            ui::ToastWnd::Show(this, ui::StringUtil::Printf(TestLang(_T("STRID_TEST_SELECTED_FMT")).c_str(), pSearchBox->GetSearchText().c_str()),
                                ui::ToastWnd::kTypeInfo, 1500, ui::ToastWnd::kPosTop, false);
             return true;
             });
         pSearchBox->AttachReturn([this, pSearchBox](const ui::EventArgs& /*args*/) {
-            ui::ToastWnd::Show(this, ui::StringUtil::Printf(_T("Search: %s  (history=%d)"),
+            ui::ToastWnd::Show(this, ui::StringUtil::Printf(TestLang(_T("STRID_TEST_SEARCH_FMT")).c_str(),
                                pSearchBox->GetSearchText().c_str(), static_cast<int>(pSearchBox->GetHistory().size())),
                                ui::ToastWnd::kTypeInfo, 1500, ui::ToastWnd::kPosTop, false);
             return true;
@@ -215,7 +224,7 @@ void TestForm::OnInitWindow()
     if (pContextMenuBtn != nullptr) {
         pContextMenuBtn->AttachPopupMenu(_T("menu/settings_menu.xml"),
             [this](const DString& itemName, size_t /*nItemIndex*/) {
-                ui::ToastWnd::Show(this, ui::StringUtil::Printf(_T("Context menu item: %s"), itemName.c_str()),
+                ui::ToastWnd::Show(this, ui::StringUtil::Printf(TestLang(_T("STRID_TEST_CONTEXT_MENU_FMT")).c_str(), itemName.c_str()),
                                    ui::ToastWnd::kTypeInfo, 1500, ui::ToastWnd::kPosTop, false);
             });
     }
@@ -312,7 +321,7 @@ void TestForm::OnInitWindow()
     pHyperLink = dynamic_cast<ui::HyperLink*>(FindControl(_T("test_hyperlink2")));
     if (pHyperLink != nullptr) {
         pHyperLink->AttachLinkClick([this](const ui::EventArgs& /*args*/) {
-            ui::SystemUtil::ShowMessageBox(this, _T("Text Button LinkClick Event!"), _T("HyperLink"));
+            ui::SystemUtil::ShowMessageBox(this, TestLang(_T("STRID_CONTROLS_LINK_CLICK_MSG")), _T("HyperLink"));
             return true;
             });
     }

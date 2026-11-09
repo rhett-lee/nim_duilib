@@ -98,7 +98,7 @@ void ProgressForm::OnInitWindow()
         pLoopProgress->AttachProgressCompleted([this](const ui::EventArgs& /*args*/) {
             ui::Label* pEventLabel = dynamic_cast<ui::Label*>(FindControl(_T("progress_event_text")));
             if (pEventLabel != nullptr) {
-                pEventLabel->SetText(_T("Completed!"));
+                pEventLabel->SetText(ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_PROGRESS_COMPLETED")));
             }
             return true;
             });

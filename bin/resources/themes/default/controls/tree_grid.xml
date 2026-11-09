@@ -63,8 +63,8 @@
                     <Button class="btn_global" name="tree_grid_test_check_mode" text_id="STRID_TREE_GRID_TOGGLE_CHECK_MODE" width="130" height="28" border_round="3,3"/>
                 </HBox>
                 <HBox height="30" child_margin="8" margin="0,6,0,0">
-                    <Button class="btn_global" name="tree_grid_test_cascade" text_id="STRID_TREE_GRID_TOGGLE_CASCADE" width="90" height="28" border_round="3,3"/>
-                    <Button class="btn_global" name="tree_grid_test_multi" text_id="STRID_TREE_GRID_TOGGLE_MULTI" width="90" height="28" border_round="3,3"/>
+                    <Button class="btn_global" name="tree_grid_test_cascade" text_id="STRID_TREE_GRID_TOGGLE_CASCADE" width="auto" min_width="90" height="28" border_round="3,3" padding="8,0,8,0"/>
+                    <Button class="btn_global" name="tree_grid_test_multi" text_id="STRID_TREE_GRID_TOGGLE_MULTI" width="auto" min_width="90" height="28" border_round="3,3" padding="8,0,8,0"/>
                     <Button class="btn_global" name="tree_grid_test_show_checked" text_id="STRID_TREE_GRID_SHOW_CHECKED" width="110" height="28" border_round="3,3"/>
                     <Button class="btn_global" name="tree_grid_test_expand2" text_id="STRID_TREE_GRID_EXPAND_LEVEL2" width="120" height="28" border_round="3,3"/>
                 </HBox>

@@ -56,6 +56,13 @@ void Item::SetOnRemoved(std::function<void()> onRemoved)
     m_onRemoved = std::move(onRemoved);
 }
 
+void Item::SetTitleText(const DString& title)
+{
+    if (m_pTitleLabel != nullptr) {
+        m_pTitleLabel->SetText(title);
+    }
+}
+
 bool Item::OnRemove(const ui::EventArgs& args)
 {
     //先把回调拷贝到局部变量：RemoveItem 之后 this 可能已经被销毁，不能再访问成员变量

@@ -36,7 +36,7 @@
             <Button class="btn_global" name="tb_replace" text_id="STRID_TOOLBAR_REPLACE" width="64" height="28" border_round="3,3"/>
             <Button class="btn_global" name="tb_zoom_in" text_id="STRID_TOOLBAR_ZOOM_IN" width="64" height="28" border_round="3,3"/>
             <Button class="btn_global" name="tb_zoom_out" text_id="STRID_TOOLBAR_ZOOM_OUT" width="64" height="28" border_round="3,3"/>
-            <Button class="btn_global" name="tb_fullscreen" text_id="STRID_TOOLBAR_FULLSCREEN" width="64" height="28" border_round="3,3"/>
+            <Button class="btn_global" name="tb_fullscreen" text_id="STRID_TOOLBAR_FULLSCREEN" width="auto" min_width="64" height="28" border_round="3,3" padding="8,0,8,0"/>
         </ToolBar>
 
         <!-- 动态工具条：由 ToolBarForm 通过 AddToolButton / AddToolCheckBox / AddToolSeparator 创建，

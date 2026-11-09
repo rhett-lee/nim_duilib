@@ -58,8 +58,8 @@
                         <Label name="label_orient_state" text_id="STRID_TABCTRL_STATE_HORZ" text_color="text_muted" valign="center"/>
                     </HBox>
                     <HBox height="auto" margin="0,0,0,10">
-                        <Button class="btn_global" name="btn_orient_vert" text_id="STRID_TABCTRL_BTN_VERT" width="110" height="28" border_round="3,3" margin="0,0,8,0"/>
-                        <Button class="btn_global" name="btn_orient_horz" text_id="STRID_TABCTRL_BTN_HORZ" width="110" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_orient_vert" text_id="STRID_TABCTRL_BTN_VERT" width="auto" min_width="110" height="28" border_round="3,3" padding="8,0,8,0" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_orient_horz" text_id="STRID_TABCTRL_BTN_HORZ" width="auto" min_width="110" height="28" border_round="3,3" padding="8,0,8,0" margin="0,0,8,0"/>
                         <Button class="btn_global" name="btn_orient_overflow" text_id="STRID_TABCTRL_BTN_OVERFLOW_ON" width="130" height="28" border_round="3,3"/>
                         <Control/>
                         <Label text_id="STRID_TABCTRL_TIP_ORIENT" text_color="text_muted" font="system_regular_12" valign="center"/>
@@ -143,7 +143,7 @@
                         <Button class="btn_global" name="btn_v_fill" text_id="STRID_TABCTRL_BTN_FILL8" width="110" height="28" border_round="3,3" margin="0,0,8,0"/>
                         <Button class="btn_global" name="btn_v_toggle" text_id="STRID_TABCTRL_BTN_OVERFLOW_ON" width="130" height="28" border_round="3,3" margin="0,0,8,0"/>
                         <Button class="btn_global" name="btn_v_home" text_id="STRID_TABCTRL_BTN_HOME_UP" width="100" height="28" border_round="3,3" margin="0,0,8,0"/>
-                        <Button class="btn_global" name="btn_v_end" text_id="STRID_TABCTRL_BTN_END_DOWN" width="100" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_v_end" text_id="STRID_TABCTRL_BTN_END_DOWN" width="auto" min_width="100" height="28" border_round="3,3" padding="8,0,8,0" margin="0,0,8,0"/>
                         <Button class="btn_global" name="btn_v_page" text_id="STRID_TABCTRL_BTN_PAGE_DOWN" width="100" height="28" border_round="3,3" margin="0,0,8,0"/>
                         <Button class="btn_global" name="btn_v_clear" text_id="STRID_TABCTRL_BTN_CLEAR" width="70" height="28" border_round="3,3"/>
                     </HBox>
@@ -193,9 +193,9 @@
                         <Button class="btn_global" name="btn_c1_ctrl_1" text_id="STRID_TABCTRL_BTN_C1_CTRL_1" width="120" height="28" border_round="3,3" margin="0,0,8,0"/>
                         <Button class="btn_global" name="btn_c1_ctrl_2" text_id="STRID_TABCTRL_BTN_C1_CTRL_2" width="120" height="28" border_round="3,3" margin="0,0,8,0"/>
                         <Button class="btn_global" name="btn_c1_ctrl_3" text_id="STRID_TABCTRL_BTN_C1_CTRL_3" width="120" height="28" border_round="3,3" margin="0,0,8,0"/>
-                        <Button class="btn_global" name="btn_c1_box_1" text_id="STRID_TABCTRL_BTN_C1_BOX_1" width="120" height="28" border_round="3,3" margin="0,0,8,0"/>
-                        <Button class="btn_global" name="btn_c1_box_2" text_id="STRID_TABCTRL_BTN_C1_BOX_2" width="120" height="28" border_round="3,3" margin="0,0,8,0"/>
-                        <Button class="btn_global" name="btn_c1_box_3" text_id="STRID_TABCTRL_BTN_C1_BOX_3" width="120" height="28" border_round="3,3"/>
+                        <Button class="btn_global" name="btn_c1_box_1" text_id="STRID_TABCTRL_BTN_C1_BOX_1" width="auto" min_width="120" height="28" border_round="3,3" padding="8,0,8,0" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_c1_box_2" text_id="STRID_TABCTRL_BTN_C1_BOX_2" width="auto" min_width="120" height="28" border_round="3,3" padding="8,0,8,0" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_c1_box_3" text_id="STRID_TABCTRL_BTN_C1_BOX_3" width="auto" min_width="120" height="28" border_round="3,3" padding="8,0,8,0"/>
                     </HBox>
                     <!-- tab_box_name：绑定后任一方的选择变化都会同步到另一方 -->
                     <TabCtrl class="tab_ctrl" name="tab_ctrl_c1" width="stretch" height="36"
@@ -226,7 +226,7 @@
                     </HBox>
                     <HBox height="auto" margin="0,0,0,10">
                         <Button class="btn_global" name="btn_c2_closable" text_id="STRID_TABCTRL_BTN_CLOSABLE" width="120" height="28" border_round="3,3" margin="0,0,8,0"/>
-                        <Button class="btn_global" name="btn_c2_middle" text_id="STRID_TABCTRL_BTN_MIDDLE" width="130" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_c2_middle" text_id="STRID_TABCTRL_BTN_MIDDLE" width="auto" min_width="130" height="28" border_round="3,3" padding="8,0,8,0" margin="0,0,8,0"/>
                         <Button class="btn_global" name="btn_c2_remove" text_id="STRID_TABCTRL_BTN_REMOVE_SEL" width="120" height="28" border_round="3,3" margin="0,0,8,0"/>
                         <Button class="btn_global" name="btn_c2_reset" text_id="STRID_TABCTRL_BTN_RESET" width="70" height="28" border_round="3,3"/>
                         <Control/>
@@ -421,7 +421,7 @@
                         <Label name="label_anim_state" text_id="STRID_TABCTRL_STATE_C15_INIT" text_color="text_muted" valign="center"/>
                     </HBox>
                     <HBox height="auto" margin="0,0,0,10">
-                        <Button class="btn_global" name="btn_anim_toggle" text_id="STRID_TABCTRL_BTN_ANIM" width="130" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_anim_toggle" text_id="STRID_TABCTRL_BTN_ANIM" width="auto" min_width="130" height="28" border_round="3,3" padding="8,0,8,0" margin="0,0,8,0"/>
                         <Button class="btn_global" name="btn_anim_duration" text_id="STRID_TABCTRL_BTN_ANIM_DURATION" width="140" height="28" border_round="3,3" margin="0,0,8,0"/>
                         <Button class="btn_global" name="btn_anim_next" text_id="STRID_TABCTRL_BTN_ANIM_NEXT" width="140" height="28" border_round="3,3"/>
                         <Control/>

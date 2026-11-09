@@ -24,6 +24,10 @@ public:
     */
     void SetOnRemoved(std::function<void()> onRemoved);
 
+    /** 更新任务名称（语言切换时使用）
+    */
+    void SetTitleText(const DString& title);
+
 private:
     /** 删除事件
     */

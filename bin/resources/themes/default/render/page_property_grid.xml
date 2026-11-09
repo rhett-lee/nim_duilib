@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Box width="stretch" height="stretch">
     <HBox width="stretch" height="stretch">
-        <PropertyGrid class="property_grid" name="property_grid_test" width="320" margin="1,1,1,1"/>
+        <PropertyGrid class="property_grid" name="property_grid_test" width="440" margin="1,1,1,1"/>
         <Split class="split_vertical"/>
         <VBox>
             <HBox height="80" margin="0,4,0,0">
@@ -20,7 +20,7 @@
             </HBox>
             <HBox>
                 <TabCtrl class="tab_ctrl" margin="10,10,10,10" drag_order="false">
-                    <TabCtrlItem class="tab_ctrl_item" width="96" title_id="STRID_RENDER_PROPGRID_TAB_3_1_NO_DRAG" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签3-1：不支持拖动调序 -->
+                    <TabCtrlItem class="tab_ctrl_item" width="150" title_id="STRID_RENDER_PROPGRID_TAB_3_1_NO_DRAG" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签3-1：不支持拖动调序 -->
                     <TabCtrlItem class="tab_ctrl_item" width="96" title_id="STRID_RENDER_PROPGRID_TAB_3_2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签3-2 -->
                     <TabCtrlItem class="tab_ctrl_item" width="96" title_id="STRID_RENDER_PROPGRID_TAB_3_3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签3-3 -->
                     <TabCtrlItem class="tab_ctrl_item" width="96" title_id="STRID_RENDER_PROPGRID_TAB_3_4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签3-4 -->

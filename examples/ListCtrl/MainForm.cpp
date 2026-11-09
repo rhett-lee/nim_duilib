@@ -2040,7 +2040,7 @@ void MainForm::InitEventStateTests(ui::ListCtrl* pListCtrl)
             ui::SystemUtil::ShowMessageBox(this,
                 ui::StringUtil::Printf(_T("SetSortCompareFunction(CustomCompareByTextLength) done\nSortDataItems(0, true) -> %s"),
                     bRet ? _T("true") : _T("false")),
-                _T("Custom Sort"));
+                ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_LISTCTRL_CUSTOM_SORT")));
             return true;
             });
     }
@@ -2342,7 +2342,7 @@ void MainForm::InitCheckCopyTests(ui::ListCtrl* pListCtrl)
             DString msg = bRet ? DString(_T("CopySelectionToClipboard(csv=true) -> OK, paste into Excel to verify"))
                                : DString(_T("CopySelectionToClipboard(csv=true) -> FAILED (no selection, or enable_copy is false)"));
             setLabel(msg);
-            ui::SystemUtil::ShowMessageBox(this, msg, _T("Copy as CSV"));
+            ui::SystemUtil::ShowMessageBox(this, msg, ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_LISTCTRL_COPY_AS_CSV")));
             return true;
             });
     }
@@ -2362,7 +2362,7 @@ void MainForm::InitCheckCopyTests(ui::ListCtrl* pListCtrl)
                 msg = _T("ExportToCsvFile(all rows) -> FAILED (no data, or enable_csv_export is false)");
             }
             setLabel(msg);
-            ui::SystemUtil::ShowMessageBox(this, msg, _T("Export All CSV"));
+            ui::SystemUtil::ShowMessageBox(this, msg, ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_LISTCTRL_EXPORT_ALL_CSV")));
             return true;
             });
     }

@@ -16,6 +16,12 @@ namespace
         _T("task_code.svg"),
         _T("task_chart.svg"),
     };
+
+    /** 读取语言资源（代码动态生成的文本必须走语言文件，才能支持中英文切换） */
+    DString ListBoxLang(const DString& strId)
+    {
+        return ui::GlobalManager::Instance().Lang().GetStringByID(strId);
+    }
 }
 
 ListBoxForm::ListBoxForm():
@@ -27,7 +33,8 @@ ListBoxForm::ListBoxForm():
     m_pLogCheck(nullptr),
     m_pLogPanel(nullptr),
     m_pLogView(nullptr),
-    m_nLogId(0)
+    m_nLogId(0),
+    m_bOnlyHintLogged(true)
 {
 }
 
@@ -119,7 +126,7 @@ void ListBoxForm::OnInitWindow()
             item->SetFixedHeight(ui::UiFixedInt::MakeAuto(), true, true);
         }
 
-        DString title = ui::StringUtil::Printf(_T("Task [%02d]"), i);
+        DString title = ui::StringUtil::Printf(ListBoxLang(_T("STRID_LISTBOX_TASK_FMT")).c_str(), i);
 
         //每个列表项的进度值不同：原来的实现是 std::time(nullptr) % 100，
         //由于所有项在同一秒内创建，取到的值完全相同（界面上全部显示同一个百分比）
@@ -169,7 +176,35 @@ void ListBoxForm::OnInitWindow()
     RefreshStatus();
 
     //提示：容器类型由 XML 决定，改标签即可切换，代码无需改动
-    PrintLog(ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_LISTBOX_LOG_HINT")));
+    m_bOnlyHintLogged = true;
+    PrintLog(ListBoxLang(_T("STRID_LISTBOX_LOG_HINT")));
+}
+
+bool ListBoxForm::OnLanguageChanged()
+{
+    const bool bRet = ui::WindowImplBase::OnLanguageChanged();
+
+    //刷新列表项标题（任务名称由代码动态生成）
+    if (m_pListBox != nullptr) {
+        const DString strTaskFmt = ListBoxLang(_T("STRID_LISTBOX_TASK_FMT"));
+        for (size_t i = 0; i < m_pListBox->GetItemCount(); ++i) {
+            Item* item = dynamic_cast<Item*>(m_pListBox->GetItemAt(i));
+            if (item != nullptr) {
+                item->SetTitleText(ui::StringUtil::Printf(strTaskFmt.c_str(), (int32_t)i));
+            }
+        }
+    }
+
+    //日志区只有初始提示时，按新语言重新生成提示
+    if (m_bOnlyHintLogged) {
+        if (m_pLogView != nullptr) {
+            m_pLogView->SetText(_T(""));
+        }
+        m_nLogId = 0;
+        PrintLog(ListBoxLang(_T("STRID_LISTBOX_LOG_HINT")));
+        m_bOnlyHintLogged = true;
+    }
+    return bRet;
 }
 
 void ListBoxForm::TestListBoxEvents(ui::ListBox* pListBox)
@@ -307,6 +342,7 @@ DString ListBoxForm::GetEventDisplayInfo(const ui::EventArgs& args, ui::ListBox*
 
 void ListBoxForm::OutputDebugLog(const DString& logMsg)
 {
+    m_bOnlyHintLogged = false;
     PrintLog(logMsg);
 }
 
@@ -328,6 +364,7 @@ void ListBoxForm::PrintLog(const DString& logMsg)
 
 void ListBoxForm::ClearLog()
 {
+    m_bOnlyHintLogged = false;
     m_nLogId = 0;
     if (m_pLogView != nullptr) {
         m_pLogView->SetText(_T(""));
@@ -371,8 +408,8 @@ bool ListBoxForm::OnMultiSelectChanged(const ui::EventArgs& args)
     }
     const bool bMultiSelect = m_pMultiCheck->IsSelected();
     m_pListBox->SetMultiSelect(bMultiSelect);
-    PrintLog(ui::GlobalManager::Instance().Lang().GetStringByID(bMultiSelect ?
-             _T("STRID_LISTBOX_MULTI_ON") : _T("STRID_LISTBOX_MULTI_OFF")));
+    m_bOnlyHintLogged = false;
+    PrintLog(ListBoxLang(bMultiSelect ? _T("STRID_LISTBOX_MULTI_ON") : _T("STRID_LISTBOX_MULTI_OFF")));
     RefreshStatus();
     return true;
 }

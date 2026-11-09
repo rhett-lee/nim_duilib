@@ -2,7 +2,7 @@
 <Window>
     <VScrollBox width="stretch" height="stretch" vscrollbar="true" hscrollbar="true">
         <HBox height="auto">
-            <VBox width="50%" margin="4" height="auto">
+            <VBox width="50%" min_width="220" margin="4" height="auto">
                 <HBox height="56" bkcolor="color_blue">
                     <Label height="stretch" width="stretch" text_id="STRID_RENDER_TEXT1_01" text_align="left,top"/>
                 </HBox>

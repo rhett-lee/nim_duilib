@@ -31,6 +31,15 @@
 
 #include <functional>
 
+namespace
+{
+/** 读取语言资源（代码动态生成的文本必须走语言文件，才能支持中英文切换） */
+DString ControlLang(const DString& strId)
+{
+    return ui::GlobalManager::Instance().Lang().GetStringByID(strId);
+}
+}//namespace
+
 //系统全局热键的ID
 #define SYSTEM_HOTKEY_ID 111
 
@@ -89,12 +98,12 @@ void ControlForm::OnInitWindow()
             if (pTestNode != nullptr) {
                 ui::TreeNode* pNode0 = new ui::TreeNode(this);
                 pNode0->SetClass(_T("tree_node"));
-                pNode0->SetText(_T("Dynamic Node 0(top)"));
+                pNode0->SetText(ControlLang(_T("STRID_CONTROLS_DYNAMIC_NODE_TOP")));
                 pTestNode->AddChildNodeAt(pNode0, 0);
 
                 ui::TreeNode* pNode2 = new ui::TreeNode(this);
                 pNode2->SetClass(_T("tree_node"));
-                pNode2->SetText(_T("Dynamic Node 1(end)"));
+                pNode2->SetText(ControlLang(_T("STRID_CONTROLS_DYNAMIC_NODE_END")));
                 pTestNode->AddChildNode(pNode2);
             }
         }
@@ -187,7 +196,7 @@ void ControlForm::OnInitWindow()
     pHyperLink = dynamic_cast<ui::HyperLink*>(FindControl(_T("hyper_link2")));
     if (pHyperLink != nullptr) {
         pHyperLink->AttachLinkClick([this](const ui::EventArgs& /*args*/) {
-            ui::SystemUtil::ShowMessageBox(this, _T("Text Button LinkClick Event!"), _T("HyperLink"));
+            ui::SystemUtil::ShowMessageBox(this, ControlLang(_T("STRID_CONTROLS_LINK_CLICK_MSG")), _T("HyperLink"));
             return true;
             });
     }
@@ -268,16 +277,16 @@ void ControlForm::OnInitWindow()
     if (pSystemNotificationBtn != nullptr) {
         pSystemNotificationBtn->AttachClick([this](const ui::EventArgs&) {
             if (!ui::SystemNotification::IsSupported()) {
-                ui::ToastWnd::Show(this, _T("System notification is not supported on this platform"),
+                ui::ToastWnd::Show(this, ControlLang(_T("STRID_CONTROLS_NOTIFY_UNSUPPORTED")),
                                    ui::ToastWnd::kTypeWarning, 2000, ui::ToastWnd::kPosTop, false);
                 return true;
             }
             ui::SystemNotification::RequestPermission();
             uint32_t notificationId = ui::SystemNotification::Show(_T("nim_duilib"),
-                _T("This is a native system notification."),
+                ControlLang(_T("STRID_CONTROLS_NOTIFY_TEXT")),
                 ui::SystemNotificationPriority::kNormal, 5000);
             if (notificationId == 0) {
-                ui::ToastWnd::Show(this, _T("Failed to show system notification"),
+                ui::ToastWnd::Show(this, ControlLang(_T("STRID_CONTROLS_NOTIFY_FAILED")),
                                    ui::ToastWnd::kTypeWarning, 2000, ui::ToastWnd::kPosTop, false);
             }
             return true;
@@ -467,7 +476,7 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point, ui::Control* pRelatedC
     ui::MenuItem* menu_fourth = dynamic_cast<ui::MenuItem*>(menu->FindControl(_T("fourth")));
     if (menu_fourth != nullptr) {
         ui::MenuItem* menu_item = new ui::MenuItem(menu);
-        menu_item->SetText(_T("Dynamically created"));
+        menu_item->SetText(ControlLang(_T("STRID_CONTROLS_DYNAMIC_MENU_ITEM")));
         menu_item->SetClass(_T("menu_element"));
         menu_item->SetFixedWidth(ui::UiFixedInt(180), true, true);
         menu_item->SetFontId(_T("system_14"));
@@ -535,7 +544,7 @@ LRESULT ControlForm::OnHotKeyMsg(int32_t hotkeyId, ui::VirtualKeyCode vkCode, ui
     bHandled = true;
     if (hotkeyId == SYSTEM_HOTKEY_ID) {
         SetWindowForeground();
-        ui::SystemUtil::ShowMessageBox(this, _T("Received system hotkey command"), _T("ControlForm::OnHotKeyMsg"));
+        ui::SystemUtil::ShowMessageBox(this, ControlLang(_T("STRID_CONTROLS_HOTKEY_MSG")), _T("ControlForm::OnHotKeyMsg"));
     }
     return lResult;
 }
@@ -610,28 +619,28 @@ void ControlForm::ShowTrayMenu(int32_t x, int32_t y)
     ui::MenuItem* pMenuItem = dynamic_cast<ui::MenuItem*>(menu->FindControl(_T("tray_menu_item_1")));
     if (pMenuItem != nullptr) {
         pMenuItem->AttachClick([this](const ui::EventArgs& /*args*/) {
-            ui::SystemUtil::ShowMessageBox(this, _T("tray_menu_item_1 clicked!"), _T("TrayIconTest"));
+            ui::SystemUtil::ShowMessageBox(this, ControlLang(_T("STRID_CONTROLS_TRAY_CLICK_MSG")), _T("TrayIconTest"));
             return true;
             });
     }
     pMenuItem = dynamic_cast<ui::MenuItem*>(menu->FindControl(_T("tray_menu_item_2")));
     if (pMenuItem != nullptr) {
         pMenuItem->AttachClick([this](const ui::EventArgs& /*args*/) {
-            ui::SystemUtil::ShowMessageBox(this, _T("tray_menu_item_2 clicked!"), _T("TrayIconTest"));
+            ui::SystemUtil::ShowMessageBox(this, ControlLang(_T("STRID_CONTROLS_TRAY_CLICK_MSG")), _T("TrayIconTest"));
             return true;
             });
     }
     pMenuItem = dynamic_cast<ui::MenuItem*>(menu->FindControl(_T("tray_menu_item_3")));
     if (pMenuItem != nullptr) {
         pMenuItem->AttachClick([this](const ui::EventArgs& /*args*/) {
-            ui::SystemUtil::ShowMessageBox(this, _T("tray_menu_item_3 clicked!"), _T("TrayIconTest"));
+            ui::SystemUtil::ShowMessageBox(this, ControlLang(_T("STRID_CONTROLS_TRAY_CLICK_MSG")), _T("TrayIconTest"));
             return true;
             });
     }
     pMenuItem = dynamic_cast<ui::MenuItem*>(menu->FindControl(_T("tray_menu_item_4")));
     if (pMenuItem != nullptr) {
         pMenuItem->AttachClick([this](const ui::EventArgs& /*args*/) {
-            ui::SystemUtil::ShowMessageBox(this, _T("tray_menu_item_4 clicked!"), _T("TrayIconTest"));
+            ui::SystemUtil::ShowMessageBox(this, ControlLang(_T("STRID_CONTROLS_TRAY_CLICK_MSG")), _T("TrayIconTest"));
             return true;
             });
     }

@@ -106,7 +106,7 @@
                            margin="12,0,0,0" valign="center" auto_tooltip="true"/>
                     <Control/>
                 </HBox>
-                <HBox height="204" child_margin="10" width="stretch">
+                <HBox height="216" child_margin="10" width="stretch">
                     <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
                           padding="16,14,16,14" height="stretch" width="stretch">
                         <HBox height="24" valign="center">
@@ -291,8 +291,7 @@
                             <Control width="6" height="16" bkcolor="color_success" border_round="3,3" valign="center"/>
                             <Label text="Combo" font="system_bold_15" text_color="text_default" margin="8,0,0,0" valign="center"/>
                             <Label text="ui::Combo / FilterCombo / CheckCombo" font="system_regular_12" text_color="text_muted"
-                                   margin="8,0,0,0" valign="center"/>
-                            <Control/>
+                                   margin="8,0,0,0" valign="center" width="stretch" endellipsis="true"/>
                         </HBox>
                         <Combo class="combo" name="combo" combo_type="drop_list" dropbox_size="0,140" height="30" margin="0,12,0,0"/>
                         <FilterCombo class="filter_combo" name="filter_combo" dropbox_size="0,140" height="30" margin="0,6,0,0"/>
@@ -313,17 +312,17 @@
                         </HBox>
                         <HBox height="30" margin="0,12,0,0" child_margin="8" valign="center">
                             <Label text_id="STRID_CONTROLS_DATE" width="54" valign="center"/>
-                            <DateTime width="auto" height="26" text="2022-02-01"/>
-                            <DateTime width="auto" height="26" edit_format="date_up_down"/>
+                            <DateTime width="108" height="26" text="2022-02-01"/>
+                            <DateTime width="92" height="26" edit_format="date_up_down"/>
                         </HBox>
                         <HBox height="30" margin="0,6,0,0" child_margin="8" valign="center">
                             <Label text_id="STRID_CONTROLS_TIME" width="54" valign="center"/>
-                            <DateTime width="auto" height="26" edit_format="date_time_up_down"/>
-                            <DateTime width="auto" height="26" edit_format="minute_up_down"/>
+                            <DateTime width="108" height="26" edit_format="date_time_up_down"/>
+                            <DateTime width="92" height="26" edit_format="minute_up_down"/>
                         </HBox>
                         <HBox height="30" margin="0,6,0,0" child_margin="8" valign="center">
                             <Label text_id="STRID_CONTROLS_DATE_TIME" width="70" valign="center"/>
-                            <DateTime width="auto" height="26" text="2026-10-21 09:30:00"
+                            <DateTime width="196" height="26" text="2026-10-21 09:30:00"
                                       edit_format="date_time_calendar" show_seconds="true"/>
                         </HBox>
                         <HBox height="28" margin="0,8,0,0">
@@ -371,7 +370,7 @@
                             <Control/>
                         </HBox>
                         <HBox height="32" margin="0,10,0,0" child_margin="8" valign="center">
-                            <Label text_id="STRID_CONTROLS_IP_ADDRESS" width="70" valign="center"/>
+                            <Label text_id="STRID_CONTROLS_IP_ADDRESS" width="86" valign="center"/>
                             <IPAddress class="ip_address" ip="192.168.0.1"/>
                         </HBox>
                         <HBox height="32" margin="0,6,0,0" child_margin="8" valign="center">
@@ -485,9 +484,9 @@
                         </HBox>
                         <HBox height="28" margin="0,10,0,0" child_margin="8">
                             <Control/>
-                            <Button class="btn_global" name="btn_gallery_chart" text_id="STRID_GALLERY_OPEN_TEST"
+                            <Button class="btn_global" name="btn_gallery_chart" text_id="STRID_CONTROLS_CHART_TEST"
                                     width="112" height="28" border_round="4,4"/>
-                            <Button class="btn_global" name="btn_gallery_tree_grid" text_id="STRID_GALLERY_OPEN_TEST"
+                            <Button class="btn_global" name="btn_gallery_tree_grid" text_id="STRID_CONTROLS_TREE_GRID_TEST"
                                     width="112" height="28" border_round="4,4"/>
                         </HBox>
                     </VBox>
@@ -592,7 +591,7 @@
                         <HBox height="30" margin="0,6,0,0">
                             <Control/>
                             <Button class="btn_global" name="btn_gallery_flyout" text_id="STRID_CONTROLS_OPEN_FLYOUT_PAGE"
-                                    width="140" height="28" border_round="4,4"/>
+                                    width="170" height="28" border_round="4,4"/>
                         </HBox>
                     </VBox>
                     <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"

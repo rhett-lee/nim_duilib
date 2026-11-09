@@ -77,7 +77,7 @@
                         <Control/>
                     </HBox>
                     <HBox height="32" margin="0,8,0,0" child_margin="10" valign="center">
-                        <Label text_id="STRID_DATETIME_DISABLED_WEEKEND" width="220" text_color="text_muted" valign="center"/>
+                        <Label text_id="STRID_DATETIME_DISABLED_WEEKEND" width="auto" min_width="220" text_color="text_muted" valign="center"/>
                         <DateTime name="dt_disabled" width="auto" height="28" edit_format="date_calendar"
                                   disabled_dates="2026-10-01,2026-10-02,2026-10-03"
                                   disabled_weekdays="saturday,sunday"/>

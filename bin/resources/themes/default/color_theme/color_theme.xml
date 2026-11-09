@@ -291,9 +291,9 @@
                             </HBox>
                             <HBox height="auto" child_margin="4">
                                 <Label text_id="STRID_COLORTHEME_BADGE_BUTTON" valign="center" width="auto" height="auto"/>
-                                <Box width="66" height="30" valign="center">
-                                    <Button class="btn_global" text_id="STRID_COLORTHEME_BADGE_MSG" width="48" height="30" border_round="3,3"/>
-                                    <Badge class="badge" count="6" float="true" margin="42,0,0,0"/>
+                                <Box width="90" height="30" valign="center">
+                                    <Button class="btn_global" text_id="STRID_COLORTHEME_BADGE_MSG" width="auto" min_width="48" height="30" border_round="3,3" padding="8,0,8,0"/>
+                                    <Badge class="badge" count="6" float="true" margin="66,0,0,0"/>
                                 </Box>
                             </HBox>
                         </VBox>
@@ -1258,7 +1258,7 @@
 
                 <!-- Section 32: Internal Sub-Styles - Explicit Demo (112 classes) -->
                 <GroupVBox class="group_box_round" text="Internal Sub-Styles - Explicit Demo (112)" height="auto" margin="0,4,0,0" padding="10,24,6,10" control_padding="false">
-                    <Label text="以下为 global.xml 中供控件内部使用的子样式（页面此前未直接引用），按控件族显式实例化演示，用于验证配色是否完整。" height="auto" multi_line="true"/>
+                    <Label text_id="STRID_COLOR_THEME_SUBSTYLE_DESC" height="auto" multi_line="true"/>
 
                     <!-- 32.1 Base &amp; ToolBar: btn_global_base, btn_wnd_base, toolbar_button, toolbar_check, toolbar_separator -->
                     <Label text="Base / ToolBar: btn_global_base, btn_wnd_base, toolbar_button, toolbar_check, toolbar_separator" height="auto" margin="0,8,0,0"/>
@@ -1439,7 +1439,7 @@
                     <Label text="Popconfirm: popconfirm_btn, popconfirm_cancel, popconfirm_description, popconfirm_icon_error, popconfirm_icon_info, popconfirm_icon_success, popconfirm_icon_warning, popconfirm_ok_danger, popconfirm_ok_default, popconfirm_ok_primary, popconfirm_title" height="auto" multi_line="true"/>
                     <HBox height="auto" child_margin="10" valign="center" margin="0,6,0,0">
                         <Popover class="popover_trigger" name="preview_popover_trigger_styles" trigger="hover" placement="top" valign="center"
-                                 text="popover_trigger" title="Popover" content="popover_trigger 演示"/>
+                                 text="popover_trigger" title="Popover" content_id="STRID_COLOR_THEME_POPOVER_CONTENT"/>
                         <Button class="popconfirm_btn" text="popconfirm_btn"/>
                         <Button class="popconfirm_cancel" text="cancel"/>
                         <Button class="popconfirm_ok_default" text="ok_default"/>
@@ -1476,7 +1476,7 @@
                     </HBox>
 
                     <!-- 32.12 ScrollBar: 5 classes -->
-                    <Label text="ScrollBar: scrollbar_base (基类，需由 vscrollbar/hscrollbar 派生显示), vscrollbar, vscrollbar2, hscrollbar, hscrollbar2" height="auto" margin="0,8,0,0" multi_line="true"/>
+                    <Label text_id="STRID_COLOR_THEME_SCROLLBAR_DESC" height="auto" margin="0,8,0,0" multi_line="true"/>
                     <HBox height="auto" child_margin="12" valign="top">
                         <VBox width="190" height="auto" child_margin="4">
                             <Label text="vscrollbar:" height="auto"/>
@@ -1564,7 +1564,7 @@
                     </HBox>
 
                     <!-- 32.17 TreeView / TreeGrid: 7 classes -->
-                    <Label text="TreeView: tree_node_checkbox, tree_node_expand；TreeGrid: tree_grid_expand, tree_grid_check, tree_grid_header_cell, tree_grid_cell, tree_grid_row（见上方 Section 25 的显式属性）" height="auto" margin="0,8,0,0" multi_line="true"/>
+                    <Label text_id="STRID_COLOR_THEME_TREEVIEW_DESC" height="auto" margin="0,8,0,0" multi_line="true"/>
                     <HBox height="auto" child_margin="12" valign="top">
                         <VBox width="340" height="auto" child_margin="4">
                             <Label text="TreeView:" height="auto"/>

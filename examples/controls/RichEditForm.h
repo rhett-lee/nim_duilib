@@ -21,6 +21,12 @@ private:
     /** 更新事件回显
     */
     void UpdateEventText(const DString& text);
+
+    /** 多行编辑框的示例文本（用于语言切换时判断内容是否被用户修改） */
+    DString m_strMultiSample;
+
+    /** RichEdit2 的示例文本（用于语言切换时判断内容是否被用户修改） */
+    DString m_strRichEdit2Sample;
 };
 
 #endif // EXAMPLES_CONTROLS_RICH_EDIT_FORM_H_

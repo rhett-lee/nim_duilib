@@ -1068,7 +1068,7 @@
 
     <!-- Property Grid控件，部分属性在default/public/property_grid/property_grid.xml中定义-->
     <Class name="property_grid" bkcolor="bg_property_grid" 
-                                left_column_width="130"
+                                left_column_width="200"
                                 row_grid_line_width="1"
                                 row_grid_line_color="border_property_grid_line"
                                 column_grid_line_width="1"

@@ -193,7 +193,10 @@ def main():
             add_failure("R1-XML-PARSE", "{}: {}".format(path.name, exc))
 
     # 其它示例主题目录：只参与 R6（语言键完整性）与 R15（禁止硬编码中文）
-    extra_theme_names = ("chat", "render", "tree_view", "list_ctrl")
+    # 覆盖 default 主题下的全部示例目录，避免新增示例时出现漏检。
+    extra_theme_names = tuple(sorted(
+        p.name for p in (theme_root / theme_name).iterdir()
+        if p.is_dir() and p.name != "controls"))
     extra_documents = {}
     for name in extra_theme_names:
         folder = theme_root / theme_name / name
@@ -498,18 +501,39 @@ def main():
     else:
         add_failure("R12-RICHEDIT-SCROLL", "rich_edit.xml not found below {}".format(pages_root))
 
-    # 示例文本必须超出可视高度，否则滚动条不会出现
-    rich_form_file = examples_root / "RichEditForm.cpp"
-    required_lines = {"rich_edit_multi": 20, "rich_edit2": 15}
-    if rich_form_file.is_file():
-        rich_form_text = read_text(rich_form_file)
-        for control_name, min_lines in required_lines.items():
+    # 示例文本必须超出可视高度，否则滚动条不会出现；文案存放在语言文件中。
+    rich_sample_keys = {
+        "STRID_RICHEDIT_MULTI_SAMPLE": 20,
+        "STRID_RICHEDIT2_SAMPLE": 15,
+    }
+    for lang_name in ("zh_CN-examples.txt", "en_US-examples.txt"):
+        lang_file = lang_root / lang_name
+        if not lang_file.is_file():
+            add_failure("R12-RICHEDIT-SCROLL",
+                        "language file not found: {}".format(lang_file))
+            continue
+        lang_text = read_text(lang_file)
+        for key, min_lines in rich_sample_keys.items():
             CHECKS += 1
-            actual_lines = count_sample_text_lines(rich_form_text, control_name)
+            match = re.search(r"(?m)^\s*" + key + r"\s*=\s*(.*)$", lang_text)
+            if match is None:
+                add_failure("R12-RICHEDIT-SCROLL",
+                            '{}: "{}" is missing'.format(lang_name, key))
+                continue
+            actual_lines = match.group(1).count("\\n")
             if actual_lines < min_lines:
                 add_failure("R12-RICHEDIT-SCROLL",
-                            'RichEditForm.cpp: "{}" sample text has {} line break(s), '
-                            'expected >= {}'.format(control_name, actual_lines, min_lines))
+                            '{}: "{}" sample text has {} line break(s), '
+                            'expected >= {}'.format(lang_name, key, actual_lines, min_lines))
+
+    rich_form_file = examples_root / "RichEditForm.cpp"
+    if rich_form_file.is_file():
+        rich_form_text = read_text(rich_form_file)
+        for key in rich_sample_keys:
+            CHECKS += 1
+            if key not in rich_form_text:
+                add_failure("R12-RICHEDIT-SCROLL",
+                            'RichEditForm.cpp does not use language key "{}"'.format(key))
     else:
         add_failure("R12-RICHEDIT-SCROLL",
                     "RichEditForm.cpp not found below {}".format(examples_root))
@@ -635,7 +659,7 @@ def main():
     # -----------------------------------------------------------------------
     # R15：UI 文本属性禁止硬编码中文（必须使用 *_id，才能跟随语言切换）
     # -----------------------------------------------------------------------
-    hardcoded_text_attributes = ("text", "prompt_text", "title",
+    hardcoded_text_attributes = ("text", "prompt_text", "title", "content",
                                  "x_axis_title", "y_axis_title", "tooltip_text")
     cjk_pattern = re.compile(r"[\u4e00-\u9fff]")
     for path, root in all_documents:

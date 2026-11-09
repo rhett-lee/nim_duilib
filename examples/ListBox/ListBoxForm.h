@@ -21,6 +21,10 @@ public:
     */
     virtual void OnInitWindow() override;
 
+    /** 语言切换后刷新动态文本（列表项标题与提示日志）
+    */
+    virtual bool OnLanguageChanged() override;
+
 private:
     /** 测试列表的事件
     */
@@ -94,6 +98,10 @@ private:
     /** 日志序号
     */
     int32_t m_nLogId;
+
+    /** 日志区是否只包含初始提示（语言切换时需要重新生成提示）
+    */
+    bool m_bOnlyHintLogged;
 };
 
 #endif //EXAMPLES_LISTBOX_FORM_H_

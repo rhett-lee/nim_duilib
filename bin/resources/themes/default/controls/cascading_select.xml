@@ -32,7 +32,7 @@
                 <Button class="btn_global" name="btn_cs_select" text_id="STRID_CASCADING_SELECT_BTN_SELECT" width="96" height="28" border_round="3,3"/>
                 <Button class="btn_global" name="btn_cs_clear" text_id="STRID_CASCADING_SELECT_BTN_CLEAR" width="80" height="28" border_round="3,3"/>
                 <Button class="btn_global" name="btn_cs_add" text_id="STRID_CASCADING_SELECT_BTN_ADD" width="110" height="28" border_round="3,3"/>
-                <Button class="btn_global" name="btn_cs_disable" text_id="STRID_CASCADING_SELECT_BTN_DISABLE" width="96" height="28" border_round="3,3"/>
+                <Button class="btn_global" name="btn_cs_disable" text_id="STRID_CASCADING_SELECT_BTN_DISABLE" width="auto" min_width="96" height="28" border_round="3,3" padding="8,0,8,0"/>
                 <Button class="btn_global" name="btn_cs_enable" text_id="STRID_CASCADING_SELECT_BTN_ENABLE" width="96" height="28" border_round="3,3"/>
                 <Button class="btn_global" name="btn_cs_read" text_id="STRID_CASCADING_SELECT_BTN_READ" width="96" height="28" border_round="3,3"/>
             </HBox>
@@ -79,7 +79,7 @@
                 <HBox height="40" child_margin="8" margin="0,10,0,0">
                     <Button class="btn_global" name="btn_cascader_select" text_id="STRID_CASCADING_SELECT_BTN_DROPDOWN_SELECT" width="96" height="28" border_round="3,3"/>
                     <Button class="btn_global" name="btn_cascader_clear" text_id="STRID_CASCADING_SELECT_BTN_DROPDOWN_CLEAR" width="80" height="28" border_round="3,3"/>
-                    <Button class="btn_global" name="btn_cascader_display" text_id="STRID_CASCADING_SELECT_BTN_DROPDOWN_DISPLAY" width="110" height="28" border_round="3,3"/>
+                    <Button class="btn_global" name="btn_cascader_display" text_id="STRID_CASCADING_SELECT_BTN_DROPDOWN_DISPLAY" width="auto" min_width="110" height="28" border_round="3,3" padding="8,0,8,0"/>
                 </HBox>
                 <HBox height="30" margin="0,4,0,0">
                     <Label name="cascader_event" text_id="STRID_CASCADING_SELECT_EVENT_DROPDOWN_NONE" text_color="text_default"
