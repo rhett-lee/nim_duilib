@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="900,720" min_size="720,520" caption="0,0,0,40" shadow_type="default" size_box="2,2,2,2"
+        icon="public/caption/logo.ico">
+    <VBox bkcolor="bg_window_main">
+        <HBox name="window_title_bar" width="stretch" height="40" bkcolor="bg_titlebar">
+            <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
+                <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="10,0,0,0"/>
+                <Label text="Combo 下拉选择" font="system_bold_14" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
+            </HBox>
+            <Control mouse_enabled="false"/>
+            <HBox margin="0,0,0,0" valign="center" width="auto" height="36">
+                <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
+                <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>
+                <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+            </HBox>
+        </HBox>
+
+        <VScrollBox width="stretch" height="stretch" vscrollbar="true" hscrollbar="false" padding="16,12,16,16">
+            <VBox width="stretch" height="auto">
+                <Label text="演示 Combo 的三种形态、FilterCombo 过滤、CheckCombo 多选以及禁用态；选择结果会实时显示在下方。"
+                       font="system_regular_12" text_color="text_muted" margin="4,0,4,10"
+                       multi_line="true" auto_tooltip="true"/>
+
+                <HBox height="30" margin="4,4,4,8" valign="center">
+                    <Control width="4" height="16" bkcolor="color_success" border_round="2,2" valign="center"/>
+                    <Label text="Combo 基本形态" font="system_bold_15" text_color="text_default" margin="8,0,0,0" valign="center"/>
+                    <Control/>
+                </HBox>
+                <HBox height="200" child_margin="10">
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="50%">
+                        <Label text="drop_list（不可编辑）" font="system_regular_12" text_color="text_muted"/>
+                        <Combo class="combo" name="combo_drop_list" combo_type="drop_list" dropbox_size="0,150"
+                               height="30" margin="0,8,0,0"/>
+                        <Label text="drop_down（可编辑）" font="system_regular_12" text_color="text_muted" margin="0,12,0,0"/>
+                        <Combo class="combo" name="combo_drop_down" combo_type="drop_down" dropbox_size="0,150"
+                               height="30" margin="0,8,0,0"/>
+                        <Label text="禁用状态" font="system_regular_12" text_color="text_muted" margin="0,12,0,0"/>
+                        <Combo class="combo" name="combo_disabled" combo_type="drop_list" dropbox_size="0,120"
+                               enabled="false" height="30" margin="0,8,0,0"/>
+                    </VBox>
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="50%">
+                        <Label text="FilterCombo（输入关键字过滤）" font="system_regular_12" text_color="text_muted"/>
+                        <FilterCombo class="filter_combo" name="filter_combo" dropbox_size="0,180"
+                                     height="30" margin="0,8,0,0"/>
+                        <Label text="CheckCombo（多选）" font="system_regular_12" text_color="text_muted" margin="0,12,0,0"/>
+                        <CheckCombo class="check_combo" name="check_combo" height="30" margin="0,8,0,0"/>
+                        <Label text="下拉项支持滚动，适配大量数据。" font="system_regular_12"
+                               text_color="text_muted" margin="0,12,0,0"/>
+                    </VBox>
+                </HBox>
+
+                <HBox height="30" margin="4,18,4,8" valign="center">
+                    <Control width="4" height="16" bkcolor="color_accent" border_round="2,2" valign="center"/>
+                    <Label text="事件回显" font="system_bold_15" text_color="text_default" margin="8,0,0,0" valign="center"/>
+                    <Control/>
+                </HBox>
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" height="auto">
+                    <Label name="combo_event_label" text="请选择上面任意一个下拉项..." font="system_regular_14"
+                           text_color="text_default" multi_line="true" auto_tooltip="true"/>
+                </VBox>
+            </VBox>
+        </VScrollBox>
+    </VBox>
+</Window>

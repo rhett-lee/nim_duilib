@@ -27,29 +27,22 @@ public:
     virtual void OnCloseWindow() override;
 
 private:
+    /** 以非模态方式打开子窗口
+    * @param [in] pForm 子窗口对象，由框架接管生命周期
+    */
+    void ShowChildForm(ui::WindowImplBase* pForm);
 
     /** 显示菜单
     * @param [in] point 显示位置坐标，屏幕坐标
     */
     void ShowPopupMenu(const ui::UiPoint& point, ui::Control* pRelatedControl);
 
-    /** 注册编辑框的事件
+    /** 注册编辑框的拖放事件
     */
     void AttachRichEditEvents(ui::Control* edit);
 
-    /**
-     * 被投递到杂事线程读取 xml 数据的任务函数
-     */
-    void LoadRichEditData();
-
-    /**
-     * 用于在杂事线程读取 xml 完成后更新 UI 内容的接口
-     */
-    void OnResourceFileLoaded(const DString& xml);
-
-    /**
-     * 动态更新进度条接口
-     */
+    /** 动态更新进度条接口
+    */
     void OnProgressValueChagned(float value);
 
     /** 显示拾色器窗口
@@ -61,46 +54,8 @@ private:
     */
     void ShowDoModalDlg();
 
-    /** 显示控件测试窗口
-    */
-    void ShowTestWindow();
-
-    /** 显示控件测试窗口
-    */
-    void ShowAnimationWindow();
-
-    /** 显示 NavigationView 侧边栏导航演示窗口
-    */
-    void ShowNavigationWindow();
-
-    /** 显示 Chart 轻量图表演示窗口
-    */
-    void ShowChartWindow();
-
-    /** 显示 Marquee 文本跑马灯演示窗口
-    */
-    void ShowMarqueeWindow();
-
-    /** 显示 Timeline 垂直时间轴演示窗口
-    */
-    void ShowTimelineWindow();
-
-    /** 显示 StatusBar 状态栏演示窗口
-    */
-    void ShowStatusBarWindow();
-
-    /** 显示 ToolBar 工具条演示窗口
-    */
-    void ShowToolBarWindow();
-
 private:
     /** 快捷键消息（WM_HOTKEY）
-    * @param [in] hotkeyId 热键的ID
-    * @param [in] vkCode 虚拟键盘代码
-    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kAlt, ModifierKey::kControl, ModifierKey::kShift, ModifierKey::kWin
-    * @param [in] nativeMsg 从系统接收到的原始消息内容
-    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
-    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */
     virtual LRESULT OnHotKeyMsg(int32_t hotkeyId, ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled) override;
 
@@ -110,9 +65,6 @@ private:
     void ShowTrayIcon(bool bShow);
 
     /** 托盘图标消息回调函数
-     * @param [in] msgType 消息类型
-     * @param [in] x 鼠标X坐标（屏幕坐标）
-     * @param [in] y 鼠标Y坐标（屏幕坐标）
      */
     void OnTrayIconMessage(ui::TrayIconMessageType msgType, int32_t x, int32_t y);
 

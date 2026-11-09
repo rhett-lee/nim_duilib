@@ -249,6 +249,10 @@
     <ClInclude Include="AvatarForm.h" />
     <ClInclude Include="SwitchForm.h" />
     <ClInclude Include="ButtonCheckBoxForm.h" />
+    <ClInclude Include="ComboForm.h" />
+    <ClInclude Include="DateTimeForm.h" />
+    <ClInclude Include="ListViewForm.h" />
+    <ClInclude Include="RichEditForm.h" />
     <ClInclude Include="ProgressForm.h" />
     <ClInclude Include="TabCtrlForm.h" />
     <ClInclude Include="ControlForm.h" />
@@ -281,6 +285,10 @@
     <ClCompile Include="AvatarForm.cpp" />
     <ClCompile Include="SwitchForm.cpp" />
     <ClCompile Include="ButtonCheckBoxForm.cpp" />
+    <ClCompile Include="ComboForm.cpp" />
+    <ClCompile Include="DateTimeForm.cpp" />
+    <ClCompile Include="ListViewForm.cpp" />
+    <ClCompile Include="RichEditForm.cpp" />
     <ClCompile Include="ProgressForm.cpp" />
     <ClCompile Include="TabCtrlForm.cpp" />
     <ClCompile Include="ControlForm.cpp" />

@@ -96,6 +96,18 @@
     <ClInclude Include="ButtonCheckBoxForm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ComboForm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DateTimeForm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ListViewForm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RichEditForm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="MessageBoxForm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -183,6 +195,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ButtonCheckBoxForm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ComboForm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DateTimeForm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ListViewForm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RichEditForm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MessageBoxForm.cpp">

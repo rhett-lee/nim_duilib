@@ -1,20 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="1000,760" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" 
-        shadow_type="default" size_box="2,2,2,2" min_size="400,320" icon="public/caption/logo.ico">
-    <!-- 整个布局放在一个VBox容器中 -->
-    <!-- 布局属性：margin="left,top,right,bottom"; padding="left,top,right,bottom" -->
-    <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->
+<Window size="1200,860" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,40"
+        shadow_type="default" size_box="2,2,2,2" min_size="980,640" icon="public/caption/logo.ico">
     <VBox bkcolor="bg_window_main">
-        <!-- 标题栏区域 -->
-        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
-            <!-- 标题栏：窗口左上角显示区域 -->
+        <!-- 标题栏 -->
+        <HBox name="window_title_bar" width="stretch" height="40" bkcolor="bg_titlebar">
             <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
-                <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8,0,0,0"/>
-                <Label text="Controls" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
-                <Label name="window_title" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
+                <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="10,0,0,0"/>
+                <Label text="Controls Gallery" font="system_bold_14" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
+                <Label name="window_title" text_color="text_muted" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
             </HBox>
             <Control mouse_enabled="false"/>
-            <!-- 标题栏：右侧窗口控制区域，窗口最小化、最大化、还原、关闭按钮 -->
             <HBox margin="0,0,0,0" valign="center" width="auto" height="36">
                 <Button class="btn_wnd_settings_11" height="32" width="40" name="settings" margin="0,2,0,2"/>
                 <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
@@ -28,240 +23,672 @@
                 <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
             </HBox>
         </HBox>
-        <!-- 标题栏区域结束 -->
 
-        <!-- 工作区域，除了标题栏外的内容都放在这个大的VBox区域 -->
-        <VBox padding="10,10,10,10">
-            <!-- 第一排 -->
-            <HBox height="288" padding="0,0,0,10">
-                <!-- Buttons -->
-                <VBox width="120">
-                    <Button class="btn_global_blue_80x30" text="blue" tooltip_text="ui::Buttons"/>
-                    <Button class="btn_global_white_80x30" text="white"/>
-                    <Button class="btn_global_red_80x30" text="red"/>
-                    <Button class="btn_global" name="domodal2" text_id="STRID_CONTROLS_MODAL_DIALOG" width="110" height="30" border_round="3,3" margin="0,12,0,0"/>
-                    <Button class="btn_global" name="show_color_picker" text_id="STRID_CONTROLS_COLOR_PICKER_MODAL" width="110" height="30" border_round="3,3" margin="0,2,0,0"/>
-                </VBox>
-                <VBox width="124">
-                    <Button class="btn_global" text_id="STRID_CONTROLS_CONTROL_TEST" name="test_btn" width="110" height="30" border_round="3,3" margin="0,2,0,0"/>
-                    <Button class="btn_global" name="animation_btn" text_id="STRID_CONTROLS_ANIMATION_TEST" width="110" height="30" border_round="3,3" margin="0,2,0,0"/>
-                    <Button class="btn_global" name="navigation_btn" text_id="STRID_CONTROLS_NAVIGATION_TEST" width="110" height="30" border_round="3,3" margin="0,2,0,0"/>
-                    <Button class="btn_global" name="chart_btn" text_id="STRID_CONTROLS_CHART_TEST" width="110" height="30" border_round="3,3" margin="0,2,0,0"/>
-                    <Button class="btn_global" name="marquee_btn" text_id="STRID_CONTROLS_MARQUEE_TEST" width="110" height="30" border_round="3,3" margin="0,2,0,0"/>
-                    <Button class="btn_global" name="timeline_btn" text_id="STRID_CONTROLS_TIMELINE_TEST" width="110" height="30" border_round="3,3" margin="0,2,0,0"/>
-                    <Button class="btn_global" name="statusbar_btn" text_id="STRID_CONTROLS_STATUSBAR_TEST" width="110" height="30" border_round="3,3" margin="0,2,0,0"/>
-                    <Button class="btn_global" name="toolbar_btn" text_id="STRID_CONTROLS_TOOLBAR_TEST" width="110" height="30" border_round="3,3" margin="0,2,0,0"/>
-                </VBox>
-                <!-- Checkbox / Option -->
-                <VBox width="100">
-                    <CheckBox class="checkbox_1" font="system_regular_14" text_id="STRID_CONTROLS_CHECKBOX_1" margin="0,3,0,3" selected="true" tooltip_text="ui::Checkbox"/>
-                    <CheckBox class="checkbox_1" text_id="STRID_CONTROLS_CHECKBOX_2" margin="0,3,0,3"/>
-                    <CheckBox class="checkbox_2"  text_id="STRID_CONTROLS_CHECKBOX_3" margin="0,3,0,3"/>
-                    
-                    <Option class="option_1" group="option_group" text_id="STRID_CONTROLS_OPTION_1" margin="0,3,0,3" selected="true" tooltip_text="ui::Option"/>
-                    <Option class="option_1" group="option_group" text_id="STRID_CONTROLS_OPTION_2" margin="0,3,0,3"/>
-                    <Option class="option_1" group="option_group" text_id="STRID_CONTROLS_OPTION_3" margin="0,3,0,3"/>
-                </VBox>
-                <!-- CheckBox / Switch -->
-                <VBox width="120" margin="2,0,0,0">                    
-                    <HBox height="36">
-                        <Label text_id="STRID_CONTROLS_SWITCH_1" height="36" valign="center"/>
-                        <CheckBox class="checkbox_toggle_1" name="checkbox_tray_icon" selected="false" margin="4,3,0,3"/>
+        <!-- 工作区：整页纵向滚动 -->
+        <VScrollBox width="stretch" height="stretch" vscrollbar="true" hscrollbar="false" padding="18,14,18,18">
+            <VBox width="stretch" height="auto">
+
+                <!-- Hero 区 -->
+                <VBox bkcolor="color_accent" bkcolor2="color_blue_light" bkcolor2_direction="3"
+                      border_round="14,14" padding="30,24,30,24" width="stretch" height="156">
+                    <HBox height="stretch" width="stretch">
+                        <VBox width="stretch" height="stretch">
+                            <Label text="nim_duilib · Controls Gallery" font="system_bold_20" text_color="#FFFFFFFF"/>
+                            <Label text_id="STRID_GALLERY_HERO_SUBTITLE" font="system_regular_13" text_color="#E6FFFFFF"
+                                   margin="0,8,0,0" multi_line="true" auto_tooltip="true"/>
+                            <HBox height="26" margin="0,16,0,0" child_margin="8">
+                                <Label text_id="STRID_GALLERY_HERO_TAG1" font="system_regular_12" text_color="#FFFFFFFF"
+                                       bkcolor="#33FFFFFF" border_round="13,13" padding="12,0,12,0"
+                                       text_align="vcenter" valign="center"/>
+                                <Label text_id="STRID_GALLERY_HERO_TAG2" font="system_regular_12" text_color="#FFFFFFFF"
+                                       bkcolor="#33FFFFFF" border_round="13,13" padding="12,0,12,0"
+                                       text_align="vcenter" valign="center"/>
+                                <Label text_id="STRID_GALLERY_HERO_TAG3" font="system_regular_12" text_color="#FFFFFFFF"
+                                       bkcolor="#33FFFFFF" border_round="13,13" padding="12,0,12,0"
+                                       text_align="vcenter" valign="center"/>
+                                <Control/>
+                            </HBox>
+                        </VBox>
+                        <Control width="104" height="104" bkimage="public/caption/logo.svg" valign="center" margin="24,0,0,0"/>
                     </HBox>
-                    <HBox height="36">
-                        <Label text_id="STRID_CONTROLS_SWITCH_2" height="36" valign="center"/>
-                        <CheckBox class="checkbox_toggle_2" margin="4,3,0,3"/>
-                    </HBox>
-                    <HBox height="36">
-                    <Label text_id="STRID_CONTROLS_SWITCH_3" height="36" valign="center"/>
-                    <Switch class="switch" margin="4,3,0,3"/>
-                </HBox>
-            </VBox>
-            <!-- Badge -->
-            <VBox width="100" margin="2,0,0,0">
-                <HBox height="36">
-                    <Label text_id="STRID_CONTROLS_BADGE" height="36" valign="center"/>
-                    <Badge class="badge" count="5" margin="8,0,0,0" tooltip_text="ui::Badge (count=5)"/>
-                </HBox>
-                <HBox height="36">
-                    <Label text_id="STRID_CONTROLS_BADGE" height="36" valign="center"/>
-                    <Badge class="badge" count="120" margin="8,0,0,0" tooltip_text="ui::Badge (count=120, max=99)"/>
-                </HBox>
-                <HBox height="36">
-                    <Label text_id="STRID_CONTROLS_BADGE" height="36" valign="center"/>
-                    <Badge class="badge_dot" margin="8,0,0,0" tooltip_text="ui::Badge (dot)"/>
-                </HBox>
-                <HBox height="36">
-                    <Box width="90" height="30" valign="center">
-                        <Button class="btn_global" text_id="STRID_CONTROLS_BADGE_MSG" width="80" height="30" border_round="3,3"/>
-                        <Badge class="badge" count="6" float="true" margin="64,0,0,0" tooltip_text="ui::Badge (float)"/>
-                    </Box>
-                </HBox>
-            </VBox>
-                <!-- List -->
-                <VListBox class="list" name="list" padding="5,3,5,3" tooltip_text="ui::VListBox">
-                    <ListBoxItem class="list_item" height="20" text="ui::VListBox::ListBoxItem"/>
-                </VListBox>
-                <!-- TreeView -->
-                <TreeView class="list" name="tree" padding="5,3,5,3" margin="8,0,0,0" indent="20" tooltip_text="ui::TreeView">
-                    <TreeNode class="list_item" height="20" text="ui::TreeView Parent Node 0"/>
-                    <TreeNode class="list_item" height="20" text="ui::TreeView Parent Node 1">
-                        <TreeNode class="list_item" height="20" text="ui::TreeView::TreeNode 1-1"/>
-                        <TreeNode class="list_item" height="20" text="ui::TreeView::TreeNode 1-2"/>
-                        <TreeNode class="list_item" height="20" text="ui::TreeView::TreeNode 1-3">
-                            <TreeNode class="list_item" height="20" text="ui::TreeView::TreeNode 1-3-1"/>
-                            <TreeNode class="list_item" height="20" text="ui::TreeView::TreeNode 1-3-2">
-                                <TreeNode class="list_item" height="20" text="ui::TreeView::TreeNode 1-3-2-1"/>
-                            </TreeNode>
-                        </TreeNode>
-                    </TreeNode>
-                    <TreeNode class="list_item" height="20" text="ui::TreeView Parent Node 2">
-                        <TreeNode class="list_item" height="20" text="ui::TreeView::TreeNode 2-1"/>
-                        <TreeNode class="list_item" height="20" text="ui::TreeView::TreeNode 2-2"/>
-                        <TreeNode class="list_item" height="20" text="ui::TreeView::TreeNode 2-3"/>
-                    </TreeNode>
-                </TreeView>
-            </HBox>
-            <Control class="splitline_hor_level1"/>
-            <!-- 第二排 -->
-            <HBox height="220">
-                <!-- Combo/RichEdit/FilterCombo/CheckCombo -->
-                <VBox width="300" margin="0,0,10">
-                    <Combo class="combo" name="combo" combo_type="drop_list" dropbox_size="0,150" height="30" margin="0,12,0,0" tooltip_text="ui::Combo"/>
-                    <FilterCombo class="filter_combo" name="filter_combo" dropbox_size="0,150" height="30" margin="0,12,0,0" tooltip_text="ui::FilterCombo"/>
-                    <RichEdit class="simple prompt simple_border_bottom" height="30" margin="0,3" font="system_regular_14"
-                              text_align="vcenter" text_padding="8,4,8,4" default_context_menu="true"
-                              prompt_text_id="STRID_CONTROLS_RICHEDIT_SINGLE_LINE"/>
-                    <CheckCombo class="check_combo" name="check_combo" height="30" margin="0,3" tooltip_text="nim_comp::CheckCombo"/>
-                    <Button class="btn_global" text_id="STRID_CONTROLS_FULLSCREEN_RICHEDIT" name="rich_edit_fullscreen_btn" width="160" height="30" border_round="3,3" margin="0,2,0,0"/>
                 </VBox>
 
-                <!-- 一些基本控件 -->
-                <VBox height="240">
-                    <HBox>
-                        <!-- Progress/Slider -->
-                        <VBox width="200">
-                            <HBox margin="0,10" height="32">
-                                <Control width="20" height="20" bkimage="file='public/animation/loading3.json'" valign="center"/>
-                                <Progress class="progress_horizontal_blue" name="progress" value="0" margin="10" tooltip_text="ui::Progress"/>
-                            </HBox>
-                            <HBox margin="0,0,0,10" height="32">
-                                <Control width="24" height="24" bkimage="file='set_speaker.svg' width='20' height='20' valign='center' halign='center'" valign="center"/>
-                                <Slider class="slider_horizontal_blue" value="70" margin="10" tooltip_text="ui::Slider"/>
-                            </HBox>
-                        </VBox>
-                        <!-- CircleProgress -->
-                        <VBox width="90" margin="10,0">
-                            <CircleProgress name="circleprogress" circular="true" height="80" width="80"
-                            circle_width="12" bgcolor="gray" fgcolor="green" gradient_color="red" clockwise="true"  min="0" max="100" value="75" margin="10"
-                            text_padding="10,32,10,10" normal_text_color="darkcolor" indicator="file='public/progress/indicator.svg' width='12' height='12'" tooltip_text="ui::CircleProgress"/>
-                        </VBox>
-                        <!-- DateTime -->
-                        <VBox margin="4,8,0,0">
-                            <HBox child_margin="4" width="300">
-                                <Label text_id="STRID_CONTROLS_DATE" height="24" text_align="vcenter" hovered_text_color="red" pressed_text_color="blue"/>
-                                <DateTime width="auto" height="24" text="2022-02-01"/>
-                                <DateTime width="auto" height="24" edit_format="date_up_down" />
-                            </HBox>
-                            <HBox child_margin="4" width="320">
-                                <Label text_id="STRID_CONTROLS_TIME" height="24" text_align="vcenter" />
-                                <DateTime width="auto" height="24" edit_format="date_time_up_down" />
-                                <DateTime width="auto" height="24" edit_format="minute_up_down" />
-                            </HBox>
-                            <HBox child_margin="4" width="420">
-                                <Label text_id="STRID_CONTROLS_DATE_TIME" height="24" text_align="vcenter" />
-                                <DateTime width="auto" height="24" text="2026-10-21 09:30:00"
-                                          edit_format="date_time_calendar" show_seconds="true"
-                                          min_date="2020-01-01" max_date="2035-12-31"
-                                          disabled_dates="2026-10-01~2026-10-07,2026-12-25"
-                                          first_day_of_week="sunday"
-                                          tooltip_text="date_time_calendar (h:m:s) + min/max + disabled_dates"/>
-                                <DateTime width="auto" height="24" edit_format="time_calendar" show_seconds="true"
-                                          tooltip_text="time_calendar (h:m:s)"/>
-                            </HBox>
-                        </VBox>
-                    </HBox>
-                    <!-- IPAddress / RichEdit With Spin -->
-                    <HBox>
-                        <VBox margin="10,0,0,0">
-                            <HBox child_margin="10">
-                                <Label text_id="STRID_CONTROLS_IP_ADDRESS" height="28" text_align="vcenter"/>
-                                <IPAddress class="ip_address" ip="192.168.0.1"/>
-                            </HBox>
-                            <HBox child_margin="10">
-                                <Label text="RichEdit Spin" height="28" text_align="vcenter"/>
-                                <RichEdit class="simple simple_border rich_edit_spin" min_number="-64" max_number="64" limit_text="3" text="0"/>
-                            </HBox>
-                        </VBox>
-                        <VBox margin="10,0,0,0">
-                            <HBox child_margin="10">
-                                <HotKey class="hot_key" name="set_hot_key" default_text_id="STRID_CONTROLS_NONE"/>
-                                <Button class="btn_global" name="btn_set_hot_key" text_id="STRID_CONTROLS_SET_WINDOW_HOTKEY" width="100%" height="28" border_round="3,3" text_align="vcenter"/>
-                            </HBox>
-                            <HBox child_margin="10">
-                                <HotKey class="hot_key" name="set_system_hot_key" default_text_id="STRID_CONTROLS_NONE"/>
-                                <Button class="btn_global" name="btn_set_system_hot_key" text_id="STRID_CONTROLS_SET_SYSTEM_HOTKEY" width="100%" height="28" border_round="3,3" text_align="vcenter"/>
-                            </HBox>
-                        </VBox>
-                    </HBox>
-                    <!-- RichText / Line -->
-                    <HBox child_margin="10">
-                        <HBox child_margin="10">
-                            <RichText class="rich_text" name="rich_text_demo" row_spacing_mul="1.2">
-                                RichText:　<a href="www.baidu.com">Click to Baidu</a><br/>
-                                RichText:　<a href="www.sohu.com">Click to Sohu</a>
-                            </RichText>
-                            <VBox width="80">
-                                <HyperLink class="hyper_link" name="hyper_link1" text_id="STRID_CONTROLS_BAIDU_HOME" url="www.baidu.com" tooltip_text_id="STRID_CONTROLS_HYPERLINK_CONTROL"/>
-                                <HyperLink class="hyper_link" name="hyper_link2" text_id="STRID_CONTROLS_TEXT_BUTTON" url="" tooltip_text_id="STRID_CONTROLS_HYPERLINK_CONTROL"/>
+                <!-- 概览统计 -->
+                <HBox height="96" margin="0,12,0,0" child_margin="10" width="stretch">
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,12,16,12" height="stretch" width="stretch">
+                        <HBox height="22" valign="center">
+                            <Control width="4" height="16" bkcolor="color_accent" border_round="2,2" valign="center"/>
+                            <Label text_id="STRID_GALLERY_STAT_BASIC" font="system_bold_15" text_color="text_default"
+                                   margin="8,0,0,0" valign="center"/>
+                        </HBox>
+                        <Label text_id="STRID_GALLERY_STAT_BASIC_DESC" font="system_regular_12" text_color="text_muted"
+                               margin="0,8,0,0" width="stretch" height="stretch" multi_line="true" auto_tooltip="true"/>
+                    </VBox>
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,12,16,12" height="stretch" width="stretch">
+                        <HBox height="22" valign="center">
+                            <Control width="4" height="16" bkcolor="color_success" border_round="2,2" valign="center"/>
+                            <Label text_id="STRID_GALLERY_STAT_INPUT" font="system_bold_15" text_color="text_default"
+                                   margin="8,0,0,0" valign="center"/>
+                        </HBox>
+                        <Label text_id="STRID_GALLERY_STAT_INPUT_DESC" font="system_regular_12" text_color="text_muted"
+                               margin="0,8,0,0" width="stretch" height="stretch" multi_line="true" auto_tooltip="true"/>
+                    </VBox>
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,12,16,12" height="stretch" width="stretch">
+                        <HBox height="22" valign="center">
+                            <Control width="4" height="16" bkcolor="color_blue_light" border_round="2,2" valign="center"/>
+                            <Label text_id="STRID_GALLERY_STAT_DATA" font="system_bold_15" text_color="text_default"
+                                   margin="8,0,0,0" valign="center"/>
+                        </HBox>
+                        <Label text_id="STRID_GALLERY_STAT_DATA_DESC" font="system_regular_12" text_color="text_muted"
+                               margin="0,8,0,0" width="stretch" height="stretch" multi_line="true" auto_tooltip="true"/>
+                    </VBox>
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,12,16,12" height="stretch" width="stretch">
+                        <HBox height="22" valign="center">
+                            <Control width="4" height="16" bkcolor="color_warning" border_round="2,2" valign="center"/>
+                            <Label text_id="STRID_GALLERY_STAT_FEEDBACK" font="system_bold_15" text_color="text_default"
+                                   margin="8,0,0,0" valign="center"/>
+                        </HBox>
+                        <Label text_id="STRID_GALLERY_STAT_FEEDBACK_DESC" font="system_regular_12" text_color="text_muted"
+                               margin="0,8,0,0" width="stretch" height="stretch" multi_line="true" auto_tooltip="true"/>
+                    </VBox>
+                </HBox>
+
+                <!-- ========== 基础控件 ========== -->
+                <HBox height="34" margin="4,20,4,8" valign="center">
+                    <Control width="4" height="18" bkcolor="color_accent" border_round="2,2" valign="center"/>
+                    <Label text_id="STRID_GALLERY_SEC_BASIC" font="system_bold_16" text_color="text_default"
+                           margin="8,0,0,0" valign="center"/>
+                    <Label text_id="STRID_GALLERY_SEC_BASIC_DESC" font="system_regular_12" text_color="text_muted"
+                           margin="12,0,0,0" valign="center" auto_tooltip="true"/>
+                    <Control/>
+                </HBox>
+                <HBox height="204" child_margin="10" width="stretch">
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="stretch">
+                        <HBox height="24" valign="center">
+                            <Control width="6" height="16" bkcolor="color_accent" border_round="3,3" valign="center"/>
+                            <Label text="Button" font="system_bold_15" text_color="text_default" margin="8,0,0,0" valign="center"/>
+                            <Label text="ui::Button" font="system_regular_12" text_color="text_muted" margin="8,0,0,0" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <HBox height="58" margin="0,12,0,0" child_margin="10" valign="center">
+                            <Button class="btn_global_blue_80x30" text="Primary"/>
+                            <Button class="btn_global_white_80x30" text="Normal"/>
+                            <Button class="btn_global_red_80x30" text="Danger"/>
+                            <Control/>
+                        </HBox>
+                        <Label text_id="STRID_GALLERY_CARD_BUTTON_DESC" font="system_regular_12" text_color="text_muted"
+                               margin="0,10,0,0" width="stretch" height="stretch" multi_line="true" auto_tooltip="true"/>
+                        <HBox height="28" margin="0,6,0,0">
+                            <Control/>
+                            <Button class="btn_global" name="btn_gallery_button" text_id="STRID_GALLERY_OPEN_TEST"
+                                    width="112" height="28" border_round="4,4"/>
+                        </HBox>
+                    </VBox>
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="stretch">
+                        <HBox height="24" valign="center">
+                            <Control width="6" height="16" bkcolor="color_accent" border_round="3,3" valign="center"/>
+                            <Label text="CheckBox / Option" font="system_bold_15" text_color="text_default" margin="8,0,0,0" valign="center"/>
+                            <Label text="ui::CheckBox" font="system_regular_12" text_color="text_muted" margin="8,0,0,0" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <HBox height="72" margin="0,8,0,0">
+                            <VBox width="50%">
+                                <CheckBox class="checkbox_1" text="CheckBox A" margin="0,2,0,2" selected="true"/>
+                                <CheckBox class="checkbox_2" text="CheckBox B" margin="0,2,0,2"/>
+                            </VBox>
+                            <VBox width="50%">
+                                <Option class="option_1" group="gallery_option" text="Option 1" margin="0,2,0,2" selected="true"/>
+                                <Option class="option_1" group="gallery_option" text="Option 2" margin="0,2,0,2"/>
                             </VBox>
                         </HBox>
-                        <HBox child_margin="10">
-                            <Label text="Line:" valign="center" />
-                            <VBox>
-                                <Line vertical="false" line_color="blue" dash_style="solid" line_width="2"/>
-                                <Line vertical="false" line_color="red" dash_style="dash" line_width="2"/>
-                                <Line vertical="false" line_color="green" dash_style="dot" line_width="2"/>
-                                <Line vertical="false" line_color="black" dash_style="dash_dot" line_width="2"/>
-                                <Line vertical="false" line_color="orange" dash_style="dash_dot_dot" line_width="2"/>
+                        <Label text_id="STRID_GALLERY_CARD_CHECK_DESC" font="system_regular_12" text_color="text_muted"
+                               margin="0,6,0,0" width="stretch" height="stretch" multi_line="true" auto_tooltip="true"/>
+                        <HBox height="28" margin="0,6,0,0">
+                            <Control/>
+                            <Button class="btn_global" name="btn_gallery_check" text_id="STRID_GALLERY_OPEN_TEST"
+                                    width="112" height="28" border_round="4,4"/>
+                        </HBox>
+                    </VBox>
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="stretch">
+                        <HBox height="24" valign="center">
+                            <Control width="6" height="16" bkcolor="color_accent" border_round="3,3" valign="center"/>
+                            <Label text="Switch" font="system_bold_15" text_color="text_default" margin="8,0,0,0" valign="center"/>
+                            <Label text="ui::Switch" font="system_regular_12" text_color="text_muted" margin="8,0,0,0" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <HBox height="58" margin="0,12,0,0" child_margin="12" valign="center">
+                            <Switch class="switch"/>
+                            <Switch class="switch" selected="true"/>
+                            <Switch class="switch" selected="true" track_on_color="color_success"/>
+                            <Control/>
+                        </HBox>
+                        <Label text_id="STRID_GALLERY_CARD_SWITCH_DESC" font="system_regular_12" text_color="text_muted"
+                               margin="0,10,0,0" width="stretch" height="stretch" multi_line="true" auto_tooltip="true"/>
+                        <HBox height="28" margin="0,6,0,0">
+                            <Control/>
+                            <Button class="btn_global" name="btn_gallery_switch" text_id="STRID_GALLERY_OPEN_TEST"
+                                    width="112" height="28" border_round="4,4"/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+
+                <HBox height="200" margin="0,10,0,0" child_margin="10" width="stretch">
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="stretch">
+                        <HBox height="24" valign="center">
+                            <Control width="6" height="16" bkcolor="color_accent" border_round="3,3" valign="center"/>
+                            <Label text="Badge" font="system_bold_15" text_color="text_default" margin="8,0,0,0" valign="center"/>
+                            <Label text="ui::Badge" font="system_regular_12" text_color="text_muted" margin="8,0,0,0" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <HBox height="56" margin="0,12,0,0" child_margin="14" valign="center">
+                            <Label text="Badge" valign="center"/>
+                            <Badge class="badge" count="5"/>
+                            <Label text="99+" valign="center" margin="14,0,0,0"/>
+                            <Badge class="badge" count="120"/>
+                            <Label text="Dot" valign="center" margin="14,0,0,0"/>
+                            <Badge class="badge_dot"/>
+                            <Box width="96" height="30" valign="center" margin="14,0,0,0">
+                                <Button class="btn_global" text="Float" width="86" height="30" border_round="3,3"/>
+                                <Badge class="badge" count="6" float="true" margin="70,0,0,0"/>
+                            </Box>
+                            <Control/>
+                        </HBox>
+                        <Label text_id="STRID_GALLERY_CARD_BADGE_DESC" font="system_regular_12" text_color="text_muted"
+                               margin="0,8,0,0" width="stretch" height="stretch" multi_line="true" auto_tooltip="true"/>
+                        <HBox height="28" margin="0,4,0,0">
+                            <Control/>
+                            <Button class="btn_global" name="btn_gallery_badge" text_id="STRID_GALLERY_OPEN_TEST"
+                                    width="112" height="28" border_round="4,4"/>
+                        </HBox>
+                    </VBox>
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="stretch">
+                        <HBox height="24" valign="center">
+                            <Control width="6" height="16" bkcolor="color_accent" border_round="3,3" valign="center"/>
+                            <Label text="Label / HyperLink / RichText / Line" font="system_bold_15" text_color="text_default"
+                                   margin="8,0,0,0" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <HBox height="84" margin="0,10,0,0">
+                            <VBox width="170">
+                                <RichText class="rich_text" name="rich_text_demo" row_spacing_mul="1.2" width="stretch">
+                                    RichText:　<a href="www.baidu.com">Baidu</a>
+                                </RichText>
+                                <HyperLink class="hyper_link" name="hyper_link1" text="Baidu Home" url="www.baidu.com"/>
+                                <HyperLink class="hyper_link" name="hyper_link2" text="Text Button" url=""/>
                             </VBox>
-                            <VBox>
-                                <HBox margin="0,4,0,4">
-                                    <Line vertical="true" line_color="blue" dash_style="solid" line_width="1"/>
-                                    <Line vertical="true" line_color="red" dash_style="dash" line_width="1"/>
-                                    <Line vertical="true" line_color="green" dash_style="dot" line_width="1"/>
-                                    <Line vertical="true" line_color="black" dash_style="dash_dot" line_width="1"/>
-                                    <Line vertical="true" line_color="orange" dash_style="dash_dot_dot" line_width="1"/>
+                            <VBox width="stretch" margin="8,0,0,0" valign="center">
+                                <HBox height="20" margin="0,1,0,1" valign="center">
+                                    <Label text="Line:" text_color="text_muted" width="46" valign="center"/>
+                                    <Line vertical="false" line_color="#FF0078D4" dash_style="solid" line_width="2"/>
+                                </HBox>
+                                <HBox height="20" margin="0,1,0,1" valign="center">
+                                    <Label text="Dash" text_color="text_muted" width="46" valign="center"/>
+                                    <Line vertical="false" line_color="#FFE85854" dash_style="dash" line_width="2"/>
+                                </HBox>
+                                <HBox height="20" margin="0,1,0,1" valign="center">
+                                    <Label text="Dot" text_color="text_muted" width="46" valign="center"/>
+                                    <Line vertical="false" line_color="#FF22A95B" dash_style="dot" line_width="2"/>
+                                </HBox>
+                                <HBox height="20" margin="0,1,0,1" valign="center">
+                                    <Label text="DDot" text_color="text_muted" width="46" valign="center"/>
+                                    <Line vertical="false" line_color="#FFD08700" dash_style="dash_dot" line_width="2"/>
                                 </HBox>
                             </VBox>
                         </HBox>
+                        <Label text_id="STRID_GALLERY_CARD_ELEMENT_DESC" font="system_regular_12" text_color="text_muted"
+                               margin="0,4,0,0" width="stretch" height="stretch" multi_line="true" auto_tooltip="true"/>
+                        <HBox height="28" margin="0,4,0,0">
+                            <Control/>
+                            <Button class="btn_global" name="btn_gallery_elements" text_id="STRID_GALLERY_OPEN_TEST"
+                                    width="112" height="28" border_round="4,4"/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+
+                <!-- ========== 输入控件 ========== -->
+                <HBox height="34" margin="4,20,4,8" valign="center">
+                    <Control width="4" height="18" bkcolor="color_success" border_round="2,2" valign="center"/>
+                    <Label text_id="STRID_GALLERY_SEC_INPUT" font="system_bold_16" text_color="text_default"
+                           margin="8,0,0,0" valign="center"/>
+                    <Label text_id="STRID_GALLERY_SEC_INPUT_DESC" font="system_regular_12" text_color="text_muted"
+                           margin="12,0,0,0" valign="center" auto_tooltip="true"/>
+                    <Control/>
+                </HBox>
+                <HBox height="218" child_margin="10" width="stretch">
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="stretch">
+                        <HBox height="24" valign="center">
+                            <Control width="6" height="16" bkcolor="color_success" border_round="3,3" valign="center"/>
+                            <Label text="RichEdit" font="system_bold_15" text_color="text_default" margin="8,0,0,0" valign="center"/>
+                            <Label text="ui::RichEdit" font="system_regular_12" text_color="text_muted" margin="8,0,0,0" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <RichEdit class="simple prompt simple_border_bottom" name="gallery_edit_color" height="32" margin="0,12,0,0"
+                                  font="system_regular_14" text_align="vcenter" text_padding="8,4,8,4"
+                                  default_context_menu="true" prompt_text="请输入文本，可拖入 txt/md 文件"/>
+                        <RichEdit class="simple simple_border rich_edit_spin" height="30" margin="0,8,0,0"
+                                  min_number="-64" max_number="64" limit_text="3" text="0"/>
+                        <Label text_id="STRID_GALLERY_CARD_RICHEDIT_DESC" font="system_regular_12" text_color="text_muted"
+                               margin="0,8,0,0" width="stretch" height="stretch" multi_line="true" auto_tooltip="true"/>
+                        <HBox height="28" margin="0,4,0,0">
+                            <Control/>
+                            <Button class="btn_global" name="btn_gallery_richedit" text_id="STRID_GALLERY_OPEN_TEST"
+                                    width="112" height="28" border_round="4,4"/>
+                        </HBox>
+                    </VBox>
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="stretch">
+                        <HBox height="24" valign="center">
+                            <Control width="6" height="16" bkcolor="color_success" border_round="3,3" valign="center"/>
+                            <Label text="Combo" font="system_bold_15" text_color="text_default" margin="8,0,0,0" valign="center"/>
+                            <Label text="ui::Combo / FilterCombo / CheckCombo" font="system_regular_12" text_color="text_muted"
+                                   margin="8,0,0,0" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <Combo class="combo" name="combo" combo_type="drop_list" dropbox_size="0,140" height="30" margin="0,12,0,0"/>
+                        <FilterCombo class="filter_combo" name="filter_combo" dropbox_size="0,140" height="30" margin="0,6,0,0"/>
+                        <CheckCombo class="check_combo" name="check_combo" height="30" margin="0,6,0,0"/>
+                        <HBox height="28" margin="0,8,0,0">
+                            <Control/>
+                            <Button class="btn_global" name="btn_gallery_combo" text_id="STRID_GALLERY_OPEN_TEST"
+                                    width="112" height="28" border_round="4,4"/>
+                        </HBox>
+                    </VBox>
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="stretch">
+                        <HBox height="24" valign="center">
+                            <Control width="6" height="16" bkcolor="color_success" border_round="3,3" valign="center"/>
+                            <Label text="DateTime" font="system_bold_15" text_color="text_default" margin="8,0,0,0" valign="center"/>
+                            <Label text="ui::DateTime" font="system_regular_12" text_color="text_muted" margin="8,0,0,0" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <HBox height="30" margin="0,12,0,0" child_margin="8" valign="center">
+                            <Label text_id="STRID_CONTROLS_DATE" width="54" valign="center"/>
+                            <DateTime width="auto" height="26" text="2022-02-01"/>
+                            <DateTime width="auto" height="26" edit_format="date_up_down"/>
+                        </HBox>
+                        <HBox height="30" margin="0,6,0,0" child_margin="8" valign="center">
+                            <Label text_id="STRID_CONTROLS_TIME" width="54" valign="center"/>
+                            <DateTime width="auto" height="26" edit_format="date_time_up_down"/>
+                            <DateTime width="auto" height="26" edit_format="minute_up_down"/>
+                        </HBox>
+                        <HBox height="30" margin="0,6,0,0" child_margin="8" valign="center">
+                            <Label text_id="STRID_CONTROLS_DATE_TIME" width="70" valign="center"/>
+                            <DateTime width="auto" height="26" text="2026-10-21 09:30:00"
+                                      edit_format="date_time_calendar" show_seconds="true"/>
+                        </HBox>
+                        <HBox height="28" margin="0,8,0,0">
+                            <Control/>
+                            <Button class="btn_global" name="btn_gallery_datetime" text_id="STRID_GALLERY_OPEN_TEST"
+                                    width="112" height="28" border_round="4,4"/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+
+                <HBox height="176" margin="0,10,0,0" child_margin="10" width="stretch">
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="50%">
+                        <HBox height="24" valign="center">
+                            <Control width="6" height="16" bkcolor="color_success" border_round="3,3" valign="center"/>
+                            <Label text="SearchBox / TagInput / AutoComplete" font="system_bold_15" text_color="text_default"
+                                   margin="8,0,0,0" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <HBox height="32" margin="0,10,0,0" child_margin="8">
+                            <SearchBox class="search_box" name="gallery_search_box" width="50%"
+                                       prompt_text="搜索控件..." suggestions="nim_duilib;C++;Skia;Qt;WPF"/>
+                            <TagInput class="tag_input" name="gallery_tag_input" width="50%" tags="UI;XML;C++"
+                                      prompt_text="添加标签"/>
+                        </HBox>
+                        <HBox height="32" margin="0,6,0,0">
+                            <AutoComplete class="auto_complete" name="gallery_auto_complete" width="100%"
+                                          items="Beijing;Berlin;London;New York;Paris;Shanghai;Shenzhen;Tokyo"
+                                          prompt_text="自动完成输入"/>
+                        </HBox>
+                        <HBox height="28" margin="0,8,0,0">
+                            <Control/>
+                            <Button class="btn_global" name="btn_gallery_interaction" text_id="STRID_GALLERY_OPEN_TEST"
+                                    width="112" height="28" border_round="4,4"/>
+                        </HBox>
+                    </VBox>
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="50%">
+                        <HBox height="24" valign="center">
+                            <Control width="6" height="16" bkcolor="color_success" border_round="3,3" valign="center"/>
+                            <Label text="IPAddress / HotKey" font="system_bold_15" text_color="text_default"
+                                   margin="8,0,0,0" valign="center"/>
+                            <Label text="ui::IPAddress / ui::HotKey" font="system_regular_12" text_color="text_muted"
+                                   margin="8,0,0,0" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <HBox height="32" margin="0,10,0,0" child_margin="8" valign="center">
+                            <Label text_id="STRID_CONTROLS_IP_ADDRESS" width="70" valign="center"/>
+                            <IPAddress class="ip_address" ip="192.168.0.1"/>
+                        </HBox>
+                        <HBox height="32" margin="0,6,0,0" child_margin="8" valign="center">
+                            <HotKey class="hot_key" name="set_hot_key" default_text_id="STRID_CONTROLS_NONE"/>
+                            <Button class="btn_global" name="btn_set_hot_key" text_id="STRID_CONTROLS_SET_WINDOW_HOTKEY"
+                                    width="120" height="28" border_round="3,3" text_align="vcenter"/>
+                        </HBox>
+                        <HBox height="28" margin="0,8,0,0">
+                            <Control/>
+                            <Button class="btn_global" name="btn_gallery_io" text_id="STRID_GALLERY_OPEN_TEST"
+                                    width="112" height="28" border_round="4,4"/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+
+                <!-- ========== 数据展示 ========== -->
+                <HBox height="34" margin="4,20,4,8" valign="center">
+                    <Control width="4" height="18" bkcolor="color_blue_light" border_round="2,2" valign="center"/>
+                    <Label text_id="STRID_GALLERY_SEC_DATA" font="system_bold_16" text_color="text_default"
+                           margin="8,0,0,0" valign="center"/>
+                    <Label text_id="STRID_GALLERY_SEC_DATA_DESC" font="system_regular_12" text_color="text_muted"
+                           margin="12,0,0,0" valign="center" auto_tooltip="true"/>
+                    <Control/>
+                </HBox>
+                <HBox height="252" child_margin="10" width="stretch">
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="50%">
+                        <HBox height="24" valign="center">
+                            <Control width="6" height="16" bkcolor="color_blue_light" border_round="3,3" valign="center"/>
+                            <Label text="Progress / Slider / CircleProgress" font="system_bold_15" text_color="text_default"
+                                   margin="8,0,0,0" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <HBox height="30" margin="0,10,0,0" child_margin="8" valign="center">
+                            <Control width="20" height="20" bkimage="file='public/animation/loading3.json'" valign="center"/>
+                            <Progress class="progress_horizontal_blue" name="progress" value="30" valign="center"/>
+                        </HBox>
+                        <HBox height="30" margin="0,6,0,0" child_margin="8" valign="center">
+                            <Control width="20" height="20" bkimage="file='set_speaker.svg' width='18' height='18' valign='center' halign='center'"
+                                     valign="center"/>
+                            <Slider class="slider_horizontal_blue" value="70" valign="center"/>
+                        </HBox>
+                        <HBox height="98" margin="0,4,0,0">
+                            <VBox width="stretch">
+                                <Label text_id="STRID_GALLERY_CARD_PROGRESS_DESC" font="system_regular_12" text_color="text_muted"
+                                       multi_line="true" auto_tooltip="true"/>
+                                <HBox height="28" margin="0,8,0,0">
+                                    <Control/>
+                                    <Button class="btn_global" name="btn_gallery_progress" text_id="STRID_GALLERY_OPEN_TEST"
+                                            width="112" height="28" border_round="4,4"/>
+                                </HBox>
+                            </VBox>
+                            <CircleProgress name="circleprogress" circular="true" height="86" width="86"
+                                            circle_width="10" bgcolor="gray" fgcolor="#FF0078D4" gradient_color="#FF5C99D6"
+                                            clockwise="true" min="0" max="100" value="75" margin="10,0,0,0"
+                                            text_padding="10,34,10,10" normal_text_color="text_default"
+                                            indicator="file='public/progress/indicator.svg' width='12' height='12'"/>
+                        </HBox>
+                    </VBox>
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="50%">
+                        <HBox height="24" valign="center">
+                            <Control width="6" height="16" bkcolor="color_blue_light" border_round="3,3" valign="center"/>
+                            <Label text="ListBox / TreeView" font="system_bold_15" text_color="text_default"
+                                   margin="8,0,0,0" valign="center"/>
+                            <Label text="ui::VListBox / ui::TreeView" font="system_regular_12" text_color="text_muted"
+                                   margin="8,0,0,0" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <HBox height="154" margin="0,8,0,0">
+                            <VListBox class="list" name="list" width="50%" padding="5,3,5,3">
+                                <ListBoxItem class="list_item" height="22" text="ui::VListBox::Item 0"/>
+                                <ListBoxItem class="list_item" height="22" text="ui::VListBox::Item 1"/>
+                                <ListBoxItem class="list_item" height="22" text="ui::VListBox::Item 2"/>
+                            </VListBox>
+                            <TreeView class="list" name="tree" width="50%" margin="8,0,0,0" padding="5,3,5,3" indent="16">
+                                <TreeNode class="list_item" height="22" text="TreeView Node">
+                                    <TreeNode class="list_item" height="22" text="Child 1"/>
+                                    <TreeNode class="list_item" height="22" text="Child 2"/>
+                                </TreeNode>
+                                <TreeNode class="list_item" height="22" text="TreeView Node 2"/>
+                            </TreeView>
+                        </HBox>
+                        <HBox height="28" margin="0,8,0,0">
+                            <Control/>
+                            <Button class="btn_global" name="btn_gallery_list" text_id="STRID_GALLERY_OPEN_TEST"
+                                    width="112" height="28" border_round="4,4"/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+
+                <HBox height="200" margin="0,10,0,0" child_margin="10" width="stretch">
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="50%">
+                        <HBox height="24" valign="center">
+                            <Control width="6" height="16" bkcolor="color_blue_light" border_round="3,3" valign="center"/>
+                            <Label text="Chart / TreeGrid" font="system_bold_15" text_color="text_default"
+                                   margin="8,0,0,0" valign="center"/>
+                            <Label text="ui::Chart / ui::TreeGrid" font="system_regular_12" text_color="text_muted"
+                                   margin="8,0,0,0" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <HBox height="86" margin="0,12,0,0" child_margin="8" valign="bottom">
+                            <Control width="24" height="36" bkcolor="color_accent" border_round="3,3"/>
+                            <Control width="24" height="62" bkcolor="color_success" border_round="3,3"/>
+                            <Control width="24" height="48" bkcolor="color_warning" border_round="3,3"/>
+                            <Control width="24" height="76" bkcolor="color_error" border_round="3,3"/>
+                            <Control width="24" height="58" bkcolor="color_blue_light" border_round="3,3"/>
+                            <Control width="24" height="42" bkcolor="color_accent" border_round="3,3"/>
+                            <Control/>
+                        </HBox>
+                        <HBox height="28" margin="0,10,0,0" child_margin="8">
+                            <Control/>
+                            <Button class="btn_global" name="btn_gallery_chart" text_id="STRID_GALLERY_OPEN_TEST"
+                                    width="112" height="28" border_round="4,4"/>
+                            <Button class="btn_global" name="btn_gallery_tree_grid" text_id="STRID_GALLERY_OPEN_TEST"
+                                    width="112" height="28" border_round="4,4"/>
+                        </HBox>
+                    </VBox>
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="50%">
+                        <HBox height="24" valign="center">
+                            <Control width="6" height="16" bkcolor="color_blue_light" border_round="3,3" valign="center"/>
+                            <Label text="Rating / Stepper / Avatar / Carousel" font="system_bold_15" text_color="text_default"
+                                   margin="8,0,0,0" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <HBox height="56" margin="0,12,0,0" child_margin="14" valign="center">
+                            <HBox width="auto" child_margin="2" valign="center">
+                                <Label text="★" font="system_bold_16" text_color="color_warning" valign="center"/>
+                                <Label text="★" font="system_bold_16" text_color="color_warning" valign="center"/>
+                                <Label text="★" font="system_bold_16" text_color="color_warning" valign="center"/>
+                                <Label text="★" font="system_bold_16" text_color="color_warning" valign="center"/>
+                                <Label text="☆" font="system_bold_16" text_color="text_muted" valign="center"/>
+                            </HBox>
+                            <HBox width="auto" child_margin="4" valign="center">
+                                <Control width="26" height="26" bkcolor="bg_window_main" border_size="1" bordercolor="border_window" border_round="4,4"/>
+                                <Control width="44" height="26" bkcolor="bg_window_main" border_size="1" bordercolor="border_window" border_round="0,0"/>
+                                <Control width="26" height="26" bkcolor="bg_window_main" border_size="1" bordercolor="border_window" border_round="4,4"/>
+                            </HBox>
+                            <Control width="34" height="34" bkcolor="color_blue_light" border_round="17,17" valign="center"/>
+                            <HBox width="auto" child_margin="4" valign="center">
+                                <Control width="46" height="28" bkcolor="color_accent" border_round="4,4"/>
+                                <Control width="46" height="28" bkcolor="color_blue_light" border_round="4,4"/>
+                                <Control width="46" height="28" bkcolor="color_success" border_round="4,4"/>
+                            </HBox>
+                            <Control/>
+                        </HBox>
+                        <Label text_id="STRID_GALLERY_CARD_SHOW_DESC" font="system_regular_12" text_color="text_muted"
+                               margin="0,10,0,0" width="stretch" height="stretch" multi_line="true" auto_tooltip="true"/>
+                        <HBox height="28" margin="0,6,0,0" child_margin="8">
+                            <Control/>
+                            <Button class="btn_global" name="btn_gallery_rating" text="Rating" width="96" height="28" border_round="4,4"/>
+                            <Button class="btn_global" name="btn_gallery_stepper" text="Stepper" width="96" height="28" border_round="4,4"/>
+                            <Button class="btn_global" name="btn_gallery_avatar" text="Avatar" width="96" height="28" border_round="4,4"/>
+                            <Button class="btn_global" name="btn_gallery_carousel" text="Carousel" width="96" height="28" border_round="4,4"/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+
+                <!-- ========== 反馈与浮层 ========== -->
+                <HBox height="34" margin="4,20,4,8" valign="center">
+                    <Control width="4" height="18" bkcolor="color_warning" border_round="2,2" valign="center"/>
+                    <Label text_id="STRID_GALLERY_SEC_FEEDBACK" font="system_bold_16" text_color="text_default"
+                           margin="8,0,0,0" valign="center"/>
+                    <Label text_id="STRID_GALLERY_SEC_FEEDBACK_DESC" font="system_regular_12" text_color="text_muted"
+                           margin="12,0,0,0" valign="center" auto_tooltip="true"/>
+                    <Control/>
+                </HBox>
+                <HBox height="160" child_margin="10" width="stretch">
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="50%">
+                        <HBox height="24" valign="center">
+                            <Control width="6" height="16" bkcolor="color_warning" border_round="3,3" valign="center"/>
+                            <Label text="MessageBox / Toast / Notification" font="system_bold_15" text_color="text_default"
+                                   margin="8,0,0,0" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <Label text_id="STRID_GALLERY_CARD_FEEDBACK_DESC" font="system_regular_12" text_color="text_muted"
+                               margin="0,10,0,0" width="stretch" height="stretch" multi_line="true" auto_tooltip="true"/>
+                        <HBox height="30" margin="0,6,0,0" child_margin="8">
+                            <Control/>
+                            <Button class="btn_global" name="message_box_btn" text="MessageBox" width="104" height="28" border_round="4,4"/>
+                            <Button class="btn_global" name="toast_btn" text="Toast" width="88" height="28" border_round="4,4"/>
+                            <Button class="btn_global" name="system_notification_btn" text="Notification" width="104" height="28" border_round="4,4"/>
+                        </HBox>
+                    </VBox>
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="#FFD08700" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="50%">
+                        <HBox height="24" valign="center">
+                            <Control width="6" height="16" bkcolor="color_warning" border_round="3,3" valign="center"/>
+                            <Label text="Popover / Popconfirm" font="system_bold_15" text_color="text_default"
+                                   margin="8,0,0,0" valign="center"/>
+                            <Label text="气泡卡片" font="system_regular_12" text_color="text_muted" margin="8,0,0,0" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <Label text_id="STRID_GALLERY_CARD_POPOVER_DESC" font="system_regular_12" text_color="text_muted"
+                               margin="0,10,0,0" width="stretch" height="stretch" multi_line="true" auto_tooltip="true"/>
+                        <HBox height="30" margin="0,6,0,0" child_margin="8">
+                            <Control/>
+                            <Button class="btn_global" name="popover_btn" text="Popover" width="104" height="28" border_round="4,4"/>
+                            <Button class="btn_global" name="popconfirm_btn" text="Popconfirm" width="112" height="28" border_round="4,4"/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+
+                <HBox height="150" margin="0,10,0,0" child_margin="10" width="stretch">
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="50%">
+                        <HBox height="24" valign="center">
+                            <Control width="6" height="16" bkcolor="color_warning" border_round="3,3" valign="center"/>
+                            <Label text="Flyout / Calendar / Mask" font="system_bold_15" text_color="text_default"
+                                   margin="8,0,0,0" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <Label text_id="STRID_GALLERY_CARD_FLYOUT_DESC" font="system_regular_12" text_color="text_muted"
+                               margin="0,10,0,0" width="stretch" height="stretch" multi_line="true" auto_tooltip="true"/>
+                        <HBox height="30" margin="0,6,0,0">
+                            <Control/>
+                            <Button class="btn_global" name="btn_gallery_flyout" text="打开交互测试页"
+                                    width="140" height="28" border_round="4,4"/>
+                        </HBox>
+                    </VBox>
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="50%">
+                        <HBox height="24" valign="center">
+                            <Control width="6" height="16" bkcolor="color_warning" border_round="3,3" valign="center"/>
+                            <Label text="Modal Dialog / ColorPicker" font="system_bold_15" text_color="text_default"
+                                   margin="8,0,0,0" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <Label text_id="STRID_GALLERY_CARD_MODAL_DESC" font="system_regular_12" text_color="text_muted"
+                               margin="0,10,0,0" width="stretch" height="stretch" multi_line="true" auto_tooltip="true"/>
+                        <HBox height="30" margin="0,6,0,0" child_margin="8">
+                            <Control/>
+                            <Button class="btn_global" name="domodal2" text="Modal Dialog" width="104" height="28" border_round="4,4"/>
+                            <Button class="btn_global" name="show_color_picker" text="ColorPicker" width="104" height="28" border_round="4,4"/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+
+                <!-- ========== 导航与布局 ========== -->
+                <HBox height="34" margin="4,20,4,8" valign="center">
+                    <Control width="4" height="18" bkcolor="color_error" border_round="2,2" valign="center"/>
+                    <Label text_id="STRID_GALLERY_SEC_NAV" font="system_bold_16" text_color="text_default"
+                           margin="8,0,0,0" valign="center"/>
+                    <Label text_id="STRID_GALLERY_SEC_NAV_DESC" font="system_regular_12" text_color="text_muted"
+                           margin="12,0,0,0" valign="center" auto_tooltip="true"/>
+                    <Control/>
+                </HBox>
+                <HBox height="150" child_margin="10" width="stretch">
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="50%">
+                        <HBox height="24" valign="center">
+                            <Control width="6" height="16" bkcolor="color_error" border_round="3,3" valign="center"/>
+                            <Label text="TabCtrl" font="system_bold_15" text_color="text_default"
+                                   margin="8,0,0,0" valign="center"/>
+                            <Label text="ui::TabCtrl" font="system_regular_12" text_color="text_muted" margin="8,0,0,0" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <Label text_id="STRID_GALLERY_CARD_TAB_DESC" font="system_regular_12" text_color="text_muted"
+                               margin="0,10,0,0" width="stretch" height="stretch" multi_line="true" auto_tooltip="true"/>
+                        <HBox height="30" margin="0,6,0,0">
+                            <Control/>
+                            <Button class="btn_global" name="btn_gallery_tab_ctrl" text="TabCtrl" width="104" height="28" border_round="4,4"/>
+                            <Button class="btn_global" name="btn_gallery_rangeslider" text="RangeSlider" width="112" height="28"
+                                    border_round="4,4" margin="8,0,0,0"/>
+                        </HBox>
+                    </VBox>
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="50%">
+                        <HBox height="24" valign="center">
+                            <Control width="6" height="16" bkcolor="color_error" border_round="3,3" valign="center"/>
+                            <Label text="Navigation / Breadcrumb / CascadingSelect" font="system_bold_15" text_color="text_default"
+                                   margin="8,0,0,0" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <Label text_id="STRID_GALLERY_CARD_NAV_DESC" font="system_regular_12" text_color="text_muted"
+                               margin="0,10,0,0" width="stretch" height="stretch" multi_line="true" auto_tooltip="true"/>
+                        <HBox height="30" margin="0,6,0,0" child_margin="8">
+                            <Control/>
+                            <Button class="btn_global" name="navigation_btn" text="Navigation" width="104" height="28" border_round="4,4"/>
+                            <Button class="btn_global" name="breadcrumb_btn" text="Breadcrumb" width="104" height="28" border_round="4,4"/>
+                            <Button class="btn_global" name="cascading_select_btn" text="Cascading" width="104" height="28" border_round="4,4"/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" height="auto" width="stretch" margin="0,10,0,0">
+                    <HBox height="24" valign="center">
+                        <Control width="6" height="16" bkcolor="color_error" border_round="3,3" valign="center"/>
+                        <Label text="更多组件：Timeline / Marquee / Animation / StatusBar / ToolBar" font="system_bold_15"
+                               text_color="text_default" margin="8,0,0,0" valign="center"/>
+                        <Control/>
+                    </HBox>
+                    <HBox height="30" margin="0,8,0,0" child_margin="8">
+                        <Control/>
+                        <Button class="btn_global" name="timeline_btn" text="Timeline" width="96" height="28" border_round="4,4"/>
+                        <Button class="btn_global" name="marquee_btn" text="Marquee" width="96" height="28" border_round="4,4"/>
+                        <Button class="btn_global" name="animation_btn" text="Animation" width="96" height="28" border_round="4,4"/>
+                        <Button class="btn_global" name="statusbar_btn" text="StatusBar" width="96" height="28" border_round="4,4"/>
+                        <Button class="btn_global" name="toolbar_btn" text="ToolBar" width="96" height="28" border_round="4,4"/>
                     </HBox>
                 </VBox>
-            </HBox>
 
-            <!-- 分割线 -->
-            <Control class="splitline_hor_level1" margin="0,8,0,4"/>
-            <!-- RichEdit -->
-            <HBox>
-                <RichEdit class="prompt" name="edit" bkcolor="bg_richedit" width="stretch" height="stretch"
-                            hide_selection="false" multi_line="true" auto_vscroll="true"
-                            vscrollbar="true" hscrollbar="true" scrollbar_float="false" 
-                            vscrollbar_style="auto_hide_scroll='true'" 
-                            hscrollbar_style="auto_hide_scroll='true'"
-                            want_return="true" want_tab="true" rich="false" default_context_menu="true"
-                            enable_drag_drop="true" enable_drop_file="true" drop_file_types=".txt;.md"/>
-                <!-- 纵向分割条，用于调整左右区域大小 -->
-                <Split class="split_vertical"/>
-                <RichEdit2 class="prompt" name="edit2" bkcolor="bg_richedit" width="stretch" height="stretch"
-                            hide_selection="false" multi_line="true" auto_vscroll="true"
-                            vscrollbar="true" hscrollbar="true" scrollbar_float="false"
-                            vscrollbar_class="vscrollbar2" hscrollbar_class="hscrollbar2"
-                            vscrollbar_style="auto_hide_scroll='false'" 
-                            hscrollbar_style="auto_hide_scroll='false'"
-                            want_return="true" want_tab="true" rich="false" default_context_menu="true"
-                            margin="4,0,0,0"
-                            enable_drag_drop="true" enable_drop_file="false"/>
-            </HBox>
-        </VBox>
+                <!-- 页脚 -->
+                <HBox height="44" margin="4,14,4,0" valign="center">
+                    <Label text_id="STRID_GALLERY_FOOTER" font="system_regular_12" text_color="text_muted"
+                           valign="center" auto_tooltip="true"/>
+                    <Control/>
+                    <HBox height="26" width="auto" valign="center" child_margin="6">
+                        <Label text_id="STRID_CONTROLS_SWITCH_1" text_color="text_muted" font="system_regular_12" valign="center"/>
+                        <CheckBox class="checkbox_toggle_1" name="checkbox_tray_icon" selected="false" valign="center"/>
+                    </HBox>
+                </HBox>
+            </VBox>
+        </VScrollBox>
     </VBox>
 </Window>

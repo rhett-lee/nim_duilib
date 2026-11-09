@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="940,760" min_size="720,520" caption="0,0,0,40" shadow_type="default" size_box="2,2,2,2"
+        icon="public/caption/logo.ico">
+    <VBox bkcolor="bg_window_main">
+        <HBox name="window_title_bar" width="stretch" height="40" bkcolor="bg_titlebar">
+            <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
+                <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="10,0,0,0"/>
+                <Label text="DateTime 日期时间" font="system_bold_14" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
+            </HBox>
+            <Control mouse_enabled="false"/>
+            <HBox margin="0,0,0,0" valign="center" width="auto" height="36">
+                <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
+                <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>
+                <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+            </HBox>
+        </HBox>
+
+        <VScrollBox width="stretch" height="stretch" vscrollbar="true" hscrollbar="false" padding="16,12,16,16">
+            <VBox width="stretch" height="auto">
+                <Label text="演示日期/时间的各种编辑格式：上下按钮、日历弹出、时间弹出、秒显示、最小/最大日期与禁用日期。"
+                       font="system_regular_12" text_color="text_muted" margin="4,0,4,10"
+                       multi_line="true" auto_tooltip="true"/>
+
+                <HBox height="30" margin="4,4,4,8" valign="center">
+                    <Control width="4" height="16" bkcolor="color_success" border_round="2,2" valign="center"/>
+                    <Label text="编辑格式" font="system_bold_15" text_color="text_default" margin="8,0,0,0" valign="center"/>
+                    <Control/>
+                </HBox>
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" height="auto">
+                    <HBox height="32" child_margin="10" valign="center">
+                        <Label text="date_up_down" width="150" text_color="text_muted" valign="center"/>
+                        <DateTime name="dt_date_up_down" width="auto" height="28" edit_format="date_up_down"/>
+                        <Control/>
+                    </HBox>
+                    <HBox height="32" margin="0,8,0,0" child_margin="10" valign="center">
+                        <Label text="date_time_up_down" width="150" text_color="text_muted" valign="center"/>
+                        <DateTime name="dt_date_time_up_down" width="auto" height="28" edit_format="date_time_up_down"/>
+                        <Control/>
+                    </HBox>
+                    <HBox height="32" margin="0,8,0,0" child_margin="10" valign="center">
+                        <Label text="minute_up_down" width="150" text_color="text_muted" valign="center"/>
+                        <DateTime name="dt_minute_up_down" width="auto" height="28" edit_format="minute_up_down"/>
+                        <Control/>
+                    </HBox>
+                    <HBox height="32" margin="0,8,0,0" child_margin="10" valign="center">
+                        <Label text="date_calendar" width="150" text_color="text_muted" valign="center"/>
+                        <DateTime name="dt_date_calendar" width="auto" height="28" edit_format="date_calendar" text="2026-10-21"/>
+                        <Control/>
+                    </HBox>
+                    <HBox height="32" margin="0,8,0,0" child_margin="10" valign="center">
+                        <Label text="time_calendar" width="150" text_color="text_muted" valign="center"/>
+                        <DateTime name="dt_time_calendar" width="auto" height="28" edit_format="time_calendar"/>
+                        <Control/>
+                    </HBox>
+                    <HBox height="32" margin="0,8,0,0" child_margin="10" valign="center">
+                        <Label text="date_time_calendar + 秒" width="150" text_color="text_muted" valign="center"/>
+                        <DateTime name="dt_date_time_calendar" width="auto" height="28" edit_format="date_time_calendar"
+                                  show_seconds="true"/>
+                        <Control/>
+                    </HBox>
+                </VBox>
+
+                <HBox height="30" margin="4,18,4,8" valign="center">
+                    <Control width="4" height="16" bkcolor="color_warning" border_round="2,2" valign="center"/>
+                    <Label text="日期限制" font="system_bold_15" text_color="text_default" margin="8,0,0,0" valign="center"/>
+                    <Control/>
+                </HBox>
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" height="auto">
+                    <Label text="min_date / max_date 限制可选范围；disabled_dates 指定不可选日期；first_day_of_week 指定一周起始日。"
+                           font="system_regular_12" text_color="text_muted" multi_line="true" auto_tooltip="true"/>
+                    <HBox height="32" margin="0,10,0,0" child_margin="10" valign="center">
+                        <Label text="范围 2026-01-01 ~ 2026-12-31" width="220" text_color="text_muted" valign="center"/>
+                        <DateTime name="dt_limited" width="auto" height="28" edit_format="date_calendar"
+                                  min_date="2026-01-01" max_date="2026-12-31" first_day_of_week="monday"/>
+                        <Control/>
+                    </HBox>
+                    <HBox height="32" margin="0,8,0,0" child_margin="10" valign="center">
+                        <Label text="禁用周末（示例日期串）" width="220" text_color="text_muted" valign="center"/>
+                        <DateTime name="dt_disabled" width="auto" height="28" edit_format="date_calendar"
+                                  disabled_dates="2026-10-01,2026-10-02,2026-10-03"/>
+                        <Control/>
+                    </HBox>
+                    <HBox height="32" margin="0,8,0,0" child_margin="10" valign="center">
+                        <Label text="当前时间" width="220" text_color="text_muted" valign="center"/>
+                        <DateTime name="dt_now" width="auto" height="28" edit_format="date_time_calendar"
+                                  current_time="true" show_seconds="true"/>
+                        <Control/>
+                    </HBox>
+                </VBox>
+
+                <HBox height="30" margin="4,18,4,8" valign="center">
+                    <Control width="4" height="16" bkcolor="color_accent" border_round="2,2" valign="center"/>
+                    <Label text="事件回显" font="system_bold_15" text_color="text_default" margin="8,0,0,0" valign="center"/>
+                    <Control/>
+                </HBox>
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" height="auto">
+                    <Label name="datetime_event_label" text="修改任意日期时间，这里会实时显示最新值。" font="system_regular_14"
+                           text_color="text_default" multi_line="true" auto_tooltip="true"/>
+                </VBox>
+            </VBox>
+        </VScrollBox>
+    </VBox>
+</Window>

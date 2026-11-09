@@ -22,3 +22,17 @@ endif()
 add_test(NAME address_bar_path
          COMMAND test_address_bar_path
 )
+
+# controls 示例页面的静态校验（XML 节点名、属性、class/颜色引用、语言词条、
+# Form 与 XML 的绑定关系）。该测试不创建窗口、不加载主题，仅用 Python3 解析
+# 资源文件，Windows/Linux/macOS 均可运行，可直接在命令行（含 CI）执行。
+find_package(Python3 3.6 COMPONENTS Interpreter QUIET)
+if(Python3_Interpreter_FOUND)
+    add_test(NAME controls_pages_xml
+             COMMAND ${Python3_EXECUTABLE}
+                     "${CMAKE_CURRENT_LIST_DIR}/test_controls_pages.py"
+                     --source-root "${CMAKE_SOURCE_DIR}")
+    set_tests_properties(controls_pages_xml PROPERTIES TIMEOUT 120)
+else()
+    message(STATUS "Python3 not found: the controls_pages_xml test is disabled")
+endif()

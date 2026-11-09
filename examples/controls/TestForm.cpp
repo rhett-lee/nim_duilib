@@ -1,22 +1,4 @@
 #include "TestForm.h"
-#include "MessageBoxForm.h"
-#include "ToastForm.h"
-#include "ProgressForm.h"
-#include "TabCtrlForm.h"
-#include "RangeSliderForm.h"
-#include "StepperForm.h"
-#include "RatingForm.h"
-#include "CarouselForm.h"
-#include "TreeGridForm.h"
-#include "BreadcrumbForm.h"
-#include "CascadingSelectForm.h"
-#include "PopoverForm.h"
-#include "PopconfirmForm.h"
-#include "AvatarForm.h"
-#include "SwitchForm.h"
-#include "ButtonCheckBoxForm.h"
-#include "duilib/Control/SearchBox.h"
-#include <ctime>
 
 TestForm::TestForm()
 {
@@ -38,132 +20,6 @@ DString TestForm::GetSkinFile()
 
 void TestForm::OnInitWindow()
 {
-    //显示进度条测试窗口（独立演示窗口）
-    ui::Button* pProgressBtn = dynamic_cast<ui::Button*>(FindControl(_T("progress_btn")));
-    if (pProgressBtn != nullptr) {
-        pProgressBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
-            ShowProgressWindow();
-            return true;
-            });
-    }
-
-    //标签栏测试窗口（垂直标签 / 固定标签 / 溢出滚动 / 程序化增删标签）
-    ui::Button* pTabCtrlBtn = dynamic_cast<ui::Button*>(FindControl(_T("tab_ctrl_test_btn")));
-    if (pTabCtrlBtn != nullptr) {
-        pTabCtrlBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
-            ShowTabCtrlWindow();
-            return true;
-            });
-    }
-
-    //范围滑块测试窗口（双滑块范围选择控件）
-    ui::Button* pRangeSliderBtn = dynamic_cast<ui::Button*>(FindControl(_T("rangeslider_btn")));
-    if (pRangeSliderBtn != nullptr) {
-        pRangeSliderBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
-            ShowRangeSliderWindow();
-            return true;
-            });
-    }
-
-    //Stepper 向导步骤条测试窗口
-    ui::Button* pStepperBtn = dynamic_cast<ui::Button*>(FindControl(_T("stepper_btn")));
-    if (pStepperBtn != nullptr) {
-        pStepperBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
-            ShowStepperWindow();
-            return true;
-            });
-    }
-
-    //Rating 星级评分测试窗口
-    ui::Button* pRatingBtn = dynamic_cast<ui::Button*>(FindControl(_T("rating_btn")));
-    if (pRatingBtn != nullptr) {
-        pRatingBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
-            ShowRatingWindow();
-            return true;
-            });
-    }
-
-    //Carousel 图片轮播 / Pagination 分页器测试窗口
-    ui::Button* pCarouselBtn = dynamic_cast<ui::Button*>(FindControl(_T("carousel_btn")));
-    if (pCarouselBtn != nullptr) {
-        pCarouselBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
-            ShowCarouselWindow();
-            return true;
-            });
-    }
-
-    //TreeGrid 树表格测试窗口
-    ui::Button* pTreeGridBtn = dynamic_cast<ui::Button*>(FindControl(_T("tree_grid_btn")));
-    if (pTreeGridBtn != nullptr) {
-        pTreeGridBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
-            ShowTreeGridWindow();
-            return true;
-            });
-    }
-
-    //Breadcrumb 面包屑导航测试窗口
-    ui::Button* pBreadcrumbBtn = dynamic_cast<ui::Button*>(FindControl(_T("breadcrumb_btn")));
-    if (pBreadcrumbBtn != nullptr) {
-        pBreadcrumbBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
-            ShowBreadcrumbWindow();
-            return true;
-            });
-    }
-
-    //CascadingSelect 级联选择器测试窗口
-    ui::Button* pCascadingSelectBtn = dynamic_cast<ui::Button*>(FindControl(_T("cascading_select_btn")));
-    if (pCascadingSelectBtn != nullptr) {
-        pCascadingSelectBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
-            ShowCascadingSelectWindow();
-            return true;
-            });
-    }
-
-    //Popover 气泡卡片测试窗口
-    ui::Button* pPopoverBtn = dynamic_cast<ui::Button*>(FindControl(_T("popover_btn")));
-    if (pPopoverBtn != nullptr) {
-        pPopoverBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
-            ShowPopoverWindow();
-            return true;
-            });
-    }
-
-    //Popconfirm 确认气泡卡片测试窗口
-    ui::Button* pPopconfirmBtn = dynamic_cast<ui::Button*>(FindControl(_T("popconfirm_btn")));
-    if (pPopconfirmBtn != nullptr) {
-        pPopconfirmBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
-            ShowPopconfirmWindow();
-            return true;
-            });
-    }
-
-    //Avatar 头像测试窗口
-    ui::Button* pAvatarBtn = dynamic_cast<ui::Button*>(FindControl(_T("avatar_btn")));
-    if (pAvatarBtn != nullptr) {
-        pAvatarBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
-            ShowAvatarWindow();
-            return true;
-            });
-    }
-
-    //Switch 开关测试窗口
-    ui::Button* pSwitchBtn = dynamic_cast<ui::Button*>(FindControl(_T("switch_btn")));
-    if (pSwitchBtn != nullptr) {
-        pSwitchBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
-            ShowSwitchWindow();
-            return true;
-            });
-    }
-
-    //Button / CheckBox / Option 演示窗口
-    ui::Button* pButtonCheckBoxBtn = dynamic_cast<ui::Button*>(FindControl(_T("button_checkbox_btn")));
-    if (pButtonCheckBoxBtn != nullptr) {
-        pButtonCheckBoxBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
-            ShowButtonCheckBoxWindow();
-            return true;
-            });
-    }
-
     //系统原生通知（SystemNotification）：与Toast无关，走操作系统通知通道
     ui::Button* pSystemNotificationBtn = dynamic_cast<ui::Button*>(FindControl(_T("system_notification_btn")));
     if (pSystemNotificationBtn != nullptr) {
@@ -181,38 +37,6 @@ void TestForm::OnInitWindow()
                 ui::ToastWnd::Show(this, _T("Failed to show system notification"),
                                    ui::ToastWnd::kTypeWarning, 2000, ui::ToastWnd::kPosTop, false);
             }
-            return true;
-            });
-    }
-
-    //显示MessageBox的测试界面
-    ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(_T("message_box_btn")));
-    if (pButton != nullptr) {
-        pButton->AttachClick([this](const ui::EventArgs& args) {
-            MessageBoxForm* testForm = new MessageBoxForm();
-            ui::WindowCreateParam createParam;
-            createParam.m_dwStyle = ui::kWS_POPUP;
-            createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-            createParam.m_windowTitle = _T("MessageBoxForm");
-            createParam.m_bCenterWindow = true;
-            testForm->CreateWnd(this, createParam);
-            testForm->ShowModalFake();
-            return true;
-            });
-    }
-
-    //显示Toast的测试界面
-    ui::Button* pToastButton = dynamic_cast<ui::Button*>(FindControl(_T("toast_btn")));
-    if (pToastButton != nullptr) {
-        pToastButton->AttachClick([this](const ui::EventArgs& /*args*/) {
-            ToastForm* testForm = new ToastForm();
-            ui::WindowCreateParam createParam;
-            createParam.m_dwStyle = ui::kWS_POPUP;
-            createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-            createParam.m_windowTitle = _T("ToastForm");
-            createParam.m_bCenterWindow = true;
-            testForm->CreateWnd(this, createParam);
-            testForm->ShowModalFake();
             return true;
             });
     }
@@ -461,174 +285,54 @@ void TestForm::OnInitWindow()
             return true;
             });
     }
-}
 
-void TestForm::ShowProgressWindow()
-{
-    ProgressForm* testForm = new ProgressForm();
-    ui::WindowCreateParam createParam;
-    createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-    createParam.m_windowTitle = _T("ProgressWindow");
-    createParam.m_bCenterWindow = true;
-    testForm->CreateWnd(this, createParam);
-    testForm->ShowModalFake();
-}
+    //RichText 超级链接
+    ui::RichText* pRichText = dynamic_cast<ui::RichText*>(FindControl(_T("test_rich_text")));
+    if (pRichText != nullptr) {
+        pRichText->AttachLinkClick([this](const ui::EventArgs& args) {
+            const DString::value_type* url = (const DString::value_type*)args.wParam;
+            if (url != nullptr) {
+                ui::SystemUtil::ShowMessageBox(this, url, _T("RichText"));
+            }
+            return true;
+            });
+    }
 
-void TestForm::ShowTabCtrlWindow()
-{
-    TabCtrlForm* testForm = new TabCtrlForm();
-    ui::WindowCreateParam createParam;
-    createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-    createParam.m_windowTitle = _T("TabCtrlForm");
-    createParam.m_bCenterWindow = true;
-    testForm->CreateWnd(this, createParam);
-    testForm->ShowModalFake();
-}
+    //HyperLink 控件
+    ui::HyperLink* pHyperLink = dynamic_cast<ui::HyperLink*>(FindControl(_T("test_hyperlink1")));
+    if (pHyperLink != nullptr) {
+        pHyperLink->AttachLinkClick([this](const ui::EventArgs& args) {
+            const DString::value_type* url = (const DString::value_type*)args.wParam;
+            if (url != nullptr) {
+                ui::SystemUtil::ShowMessageBox(this, url, _T("HyperLink"));
+            }
+            return true;
+            });
+    }
+    pHyperLink = dynamic_cast<ui::HyperLink*>(FindControl(_T("test_hyperlink2")));
+    if (pHyperLink != nullptr) {
+        pHyperLink->AttachLinkClick([this](const ui::EventArgs& /*args*/) {
+            ui::SystemUtil::ShowMessageBox(this, _T("Text Button LinkClick Event!"), _T("HyperLink"));
+            return true;
+            });
+    }
 
-void TestForm::ShowRangeSliderWindow()
-{
-    RangeSliderForm* testForm = new RangeSliderForm();
-    ui::WindowCreateParam createParam;
-    createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-    createParam.m_windowTitle = _T("RangeSliderWindow");
-    createParam.m_bCenterWindow = true;
-    testForm->CreateWnd(this, createParam);
-    testForm->ShowModalFake();
-}
-
-void TestForm::ShowStepperWindow()
-{
-    StepperForm* testForm = new StepperForm();
-    ui::WindowCreateParam createParam;
-    createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-    createParam.m_windowTitle = _T("StepperWindow");
-    createParam.m_bCenterWindow = true;
-    testForm->CreateWnd(this, createParam);
-    testForm->ShowModalFake();
-}
-
-void TestForm::ShowRatingWindow()
-{
-    RatingForm* testForm = new RatingForm();
-    ui::WindowCreateParam createParam;
-    createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-    createParam.m_windowTitle = _T("RatingWindow");
-    createParam.m_bCenterWindow = true;
-    testForm->CreateWnd(this, createParam);
-    testForm->ShowModalFake();
-}
-
-void TestForm::ShowCarouselWindow()
-{
-    CarouselForm* testForm = new CarouselForm();
-    ui::WindowCreateParam createParam;
-    createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-    createParam.m_windowTitle = _T("CarouselWindow");
-    createParam.m_bCenterWindow = true;
-    testForm->CreateWnd(this, createParam);
-    testForm->ShowModalFake();
-}
-
-void TestForm::ShowTreeGridWindow()
-{
-    TreeGridForm* testForm = new TreeGridForm();
-    ui::WindowCreateParam createParam;
-    createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-    createParam.m_windowTitle = _T("TreeGridWindow");
-    createParam.m_bCenterWindow = true;
-    testForm->CreateWnd(this, createParam);
-    testForm->ShowModalFake();
-}
-
-void TestForm::ShowBreadcrumbWindow()
-{
-    BreadcrumbForm* testForm = new BreadcrumbForm();
-    ui::WindowCreateParam createParam;
-    createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-    createParam.m_windowTitle = _T("BreadcrumbWindow");
-    createParam.m_bCenterWindow = true;
-    testForm->CreateWnd(this, createParam);
-    testForm->ShowModalFake();
-}
-
-void TestForm::ShowCascadingSelectWindow()
-{
-    CascadingSelectForm* testForm = new CascadingSelectForm();
-    ui::WindowCreateParam createParam;
-    createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-    createParam.m_windowTitle = _T("CascadingSelectWindow");
-    createParam.m_bCenterWindow = true;
-    testForm->CreateWnd(this, createParam);
-    testForm->ShowModalFake();
-}
-
-void TestForm::ShowPopoverWindow()
-{
-    PopoverForm* testForm = new PopoverForm();
-    ui::WindowCreateParam createParam;
-    createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-    createParam.m_windowTitle = _T("PopoverWindow");
-    createParam.m_bCenterWindow = true;
-    testForm->CreateWnd(this, createParam);
-    testForm->ShowModalFake();
-}
-
-void TestForm::ShowPopconfirmWindow()
-{
-    PopconfirmForm* testForm = new PopconfirmForm();
-    ui::WindowCreateParam createParam;
-    createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-    createParam.m_windowTitle = _T("PopconfirmWindow");
-    createParam.m_bCenterWindow = true;
-    testForm->CreateWnd(this, createParam);
-    testForm->ShowModalFake();
-}
-
-void TestForm::ShowAvatarWindow()
-{
-    AvatarForm* testForm = new AvatarForm();
-    ui::WindowCreateParam createParam;
-    createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-    createParam.m_windowTitle = _T("AvatarWindow");
-    createParam.m_bCenterWindow = true;
-    testForm->CreateWnd(this, createParam);
-    testForm->ShowModalFake();
-}
-
-void TestForm::ShowSwitchWindow()
-{
-    SwitchForm* testForm = new SwitchForm();
-    ui::WindowCreateParam createParam;
-    createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-    createParam.m_windowTitle = _T("SwitchWindow");
-    createParam.m_bCenterWindow = true;
-    testForm->CreateWnd(this, createParam);
-    testForm->ShowModalFake();
-}
-
-void TestForm::ShowButtonCheckBoxWindow()
-{
-    ButtonCheckBoxForm* testForm = new ButtonCheckBoxForm();
-    ui::WindowCreateParam createParam;
-    createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-    createParam.m_windowTitle = _T("ButtonCheckBoxForm");
-    createParam.m_bCenterWindow = true;
-    testForm->CreateWnd(this, createParam);
-    testForm->ShowModalFake();
+    //窗口热键设置
+    ui::HotKey* pHotKey = dynamic_cast<ui::HotKey*>(FindControl(_T("test_set_hot_key")));
+    ui::Button* pHotKeyButton = dynamic_cast<ui::Button*>(FindControl(_T("test_btn_set_hot_key")));
+    if ((pHotKey != nullptr) && (pHotKeyButton != nullptr)) {
+        pHotKeyButton->AttachClick([this, pHotKey](const ui::EventArgs& /*args*/) {
+            uint8_t wVirtualKeyCode = 0;
+            uint8_t wModifiers = 0;
+            pHotKey->GetHotKey(wVirtualKeyCode, wModifiers);
+            if (wVirtualKeyCode != 0) {
+                //设置为激活窗口的热键
+                int32_t nRet = SetWindowHotKey(wVirtualKeyCode, wModifiers);
+                ASSERT(nRet == 1);
+            }
+            return true;
+            });
+    }
 }
 
 void TestForm::ShowFlyoutDemo(ui::Control* pAnchor, ui::Flyout::Placement placement)
@@ -684,4 +388,3 @@ void TestForm::ShowFlyoutDemo(ui::Control* pAnchor, ui::Flyout::Placement placem
             });
     }
 }
-

@@ -8,8 +8,28 @@
 #include "TimelineForm.h"
 #include "StatusBarForm.h"
 #include "ToolBarForm.h"
+#include "ProgressForm.h"
+#include "TabCtrlForm.h"
+#include "RangeSliderForm.h"
+#include "StepperForm.h"
+#include "RatingForm.h"
+#include "CarouselForm.h"
+#include "TreeGridForm.h"
+#include "BreadcrumbForm.h"
+#include "CascadingSelectForm.h"
+#include "PopoverForm.h"
+#include "PopconfirmForm.h"
+#include "AvatarForm.h"
+#include "SwitchForm.h"
+#include "ButtonCheckBoxForm.h"
+#include "MessageBoxForm.h"
+#include "ToastForm.h"
+#include "ComboForm.h"
+#include "ListViewForm.h"
+#include "RichEditForm.h"
+#include "DateTimeForm.h"
 
-#include <fstream>
+#include <functional>
 
 //系统全局热键的ID
 #define SYSTEM_HOTKEY_ID 111
@@ -50,12 +70,12 @@ void ControlForm::OnInitWindow()
     /* Initialize ListBox data */
     ui::ListBox* list = dynamic_cast<ui::ListBox*>(FindControl(_T("list")));
     if (list != nullptr) {
-        for (auto i = 0; i < 30; i++)
+        for (auto i = 0; i < 3; i++)
         {
             ui::ListBoxItem* element = new ui::ListBoxItem(this);
             element->SetText(ui::StringUtil::Printf(_T("ui::VListBox::ListBoxItem %d"), i));
-            element->SetClass(_T("listitem"));
-            element->SetFixedHeight(ui::UiFixedInt(20), true, true);
+            element->SetClass(_T("list_item"));
+            element->SetFixedHeight(ui::UiFixedInt(22), true, true);
             list->AddItem(element);
         }
     }
@@ -65,8 +85,7 @@ void ControlForm::OnInitWindow()
         ui::TreeNode* pRootNode = pTree->GetRootNode();
         ASSERT(pRootNode != nullptr);
         if (pRootNode != nullptr) {
-            ui::TreeNode* pTestNode = pRootNode->FindChildNodeByText(_T("ui::TreeView Parent Node 2"), true);
-            ASSERT(pTestNode != nullptr);
+            ui::TreeNode* pTestNode = pRootNode->FindChildNodeByText(_T("TreeView Node 2"), true);
             if (pTestNode != nullptr) {
                 ui::TreeNode* pNode0 = new ui::TreeNode(this);
                 pNode0->SetClass(_T("tree_node"));
@@ -77,11 +96,6 @@ void ControlForm::OnInitWindow()
                 pNode2->SetClass(_T("tree_node"));
                 pNode2->SetText(_T("Dynamic Node 1(end)"));
                 pTestNode->AddChildNode(pNode2);
-
-                ui::TreeNode* pNode1 = new ui::TreeNode(this);
-                pNode1->SetClass(_T("tree_node"));
-                pNode1->SetText(_T("Dynamic Node 2(at index 2)"));
-                pTestNode->AddChildNodeAt(pNode1, 2);
             }
         }
     }
@@ -98,28 +112,6 @@ void ControlForm::OnInitWindow()
             pTreeNode->AddChildNode(node);
         }
     }
-//#ifdef _DEBUG
-//    ASSERT(combo->GetCount() == 10);
-//    ASSERT(combo->GetCurSel() == -1);
-//    combo->SetCurSel(1);
-//    ASSERT(combo->GetCurSel() == 1);
-//    combo->SetItemData(1, 0xFF1234);
-//    ASSERT(combo->GetItemData(1) == 0xFF1234);
-//    combo->SetItemText(2, _T("2"));
-//    ASSERT(combo->GetItemText(2) == _T("2"));
-//
-//    size_t nIndex = combo->AddTextItem(_T("Last"));
-//    ASSERT(combo->GetItemText(nIndex) == _T("Last"));
-//
-//    nIndex = combo->InsertTextItem(nIndex, _T("Last2"));
-//    ASSERT(combo->GetItemText(nIndex) == _T("Last2"));
-//
-//    ASSERT(combo->DeleteItem(nIndex));
-//
-//    ASSERT(combo->GetItemText(combo->GetCurSel()) == combo->GetText());
-//    combo->SetText(_T("Test"));
-//    ASSERT(combo->GetText() == _T("Test"));
-//#endif
 
     ui::FilterCombo* filterCombo = dynamic_cast<ui::FilterCombo*>(FindControl(_T("filter_combo")));
     if (filterCombo != nullptr) {
@@ -140,18 +132,9 @@ void ControlForm::OnInitWindow()
         check_combo->AddTextIdItem(_T("STRID_CONTROLS_SUNDAY"));    // 星期日
     }
 
-    //如果是zip模式，需要在主线程中执行
-    int32_t nThreadIdentifier = ui::ThreadIdentifier::kThreadUI;
-    if (!ui::GlobalManager::Instance().Zip().IsUseZip()) {
-        if (ui::GlobalManager::Instance().Thread().HasThread(ui::ThreadIdentifier::kThreadWorker)) {
-            nThreadIdentifier = ui::ThreadIdentifier::kThreadWorker;
-        }
-    }
-    ui::GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, UiBind(&ControlForm::LoadRichEditData, this));
-
-    /* Post repeat task to update progress value 200 milliseconds once */
-    /* Using ToWeakCallback to protect closure when if [ControlForm] was destoryed */    
-    ui::GlobalManager::Instance().Thread().PostRepeatedTask(nThreadIdentifier,
+    /* Post repeat task to update progress value 300 milliseconds once */
+    /* Using ToWeakCallback to protect closure when if [ControlForm] was destoryed */
+    ui::GlobalManager::Instance().Thread().PostRepeatedTask(ui::ThreadIdentifier::kThreadUI,
         ui::UiBind(this, [this]() {
             float fProgress = (float)(std::time(nullptr) % 100);
             ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&ControlForm::OnProgressValueChagned, this, fProgress));
@@ -174,27 +157,8 @@ void ControlForm::OnInitWindow()
             });
     }
 
-    //注册一个Context Menu，演示功能（用这两种方法都可以注册上下文菜单功能）
-    AttachRichEditEvents(dynamic_cast<ui::RichEdit*>(FindControl(_T("edit"))));
-    AttachRichEditEvents(dynamic_cast<ui::RichEdit2*>(FindControl(_T("edit2"))));
-
-    //显示模态对话框的拾色器
-    ui::Button* pShowColorPicker = dynamic_cast<ui::Button*>(FindControl(_T("show_color_picker")));
-    if (pShowColorPicker != nullptr) {
-        pShowColorPicker->AttachClick([this](const ui::EventArgs& args) {
-            ShowColorPicker(true);
-            return true;
-            });
-    }
-
-    //显示模态对话框
-    ui::Button* pShowModal = dynamic_cast<ui::Button*>(FindControl(_T("domodal2")));
-    if (pShowModal != nullptr) {
-        pShowModal->AttachClick([this](const ui::EventArgs& args) {
-            ShowDoModalDlg();
-            return true;
-            });
-    }
+    //注册编辑框的拖放事件（演示文件拖入）
+    AttachRichEditEvents(FindControl(_T("gallery_edit_color")));
 
     //RichText显示超级链接
     ui::RichText* pRichText = dynamic_cast<ui::RichText*>(FindControl(_T("rich_text_demo")));
@@ -228,7 +192,7 @@ void ControlForm::OnInitWindow()
             });
     }
 
-    //热键设置
+    //窗口热键设置
     ui::HotKey* pHotKey = dynamic_cast<ui::HotKey*>(FindControl(_T("set_hot_key")));
     ui::Button* pHotKeyButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_set_hot_key")));
     if (pHotKey && pHotKeyButton) {
@@ -241,117 +205,99 @@ void ControlForm::OnInitWindow()
                 int32_t nRet = SetWindowHotKey(wVirtualKeyCode, wModifiers);
                 ASSERT(nRet == 1);
             }
-
-            //if (1) {
-            //    //测试代码
-            //    DString hotKeyName = pHotKey->GetHotKeyName();
-            //    uint8_t wVirtualKeyCode = 0;
-            //    uint8_t wModifiers = 0;
-            //    pHotKey->GetHotKey(wVirtualKeyCode, wModifiers);
-            //    ASSERT(pHotKey->GetHotKey() == MAKEWORD(wVirtualKeyCode, wModifiers));
-
-            //    const uint8_t wModifiers2 = ui::kHotKey_Shift | ui::kHotKey_Contrl | ui::kHotKey_Alt | ui::kHotKey_Ext;
-            //    const uint8_t wVirtualKeyCode2 = kVK_HOME;
-
-            //    pHotKey->SetHotKey(wVirtualKeyCode2, wModifiers2);
-            //    pHotKey->GetHotKey(wVirtualKeyCode, wModifiers);
-            //    ASSERT(wModifiers2 == wModifiers);
-            //    ASSERT(wVirtualKeyCode2 == wVirtualKeyCode);
-
-            //    ASSERT(pHotKey->GetHotKey() == MAKEWORD(wVirtualKeyCode, wModifiers));
-
-            //    pHotKey->SetHotKey(MAKEWORD(wVirtualKeyCode2, wModifiers2));
-            //    ASSERT(pHotKey->GetHotKey() == MAKEWORD(wVirtualKeyCode2, wModifiers2));
-            //}
-
             return true;
             });
     }
 
-    pHotKey = dynamic_cast<ui::HotKey*>(FindControl(_T("set_system_hot_key")));
-    pHotKeyButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_set_system_hot_key")));
-    if (pHotKey && pHotKeyButton) {
-        pHotKeyButton->AttachClick([this, pHotKey](const ui::EventArgs& args) {
-            uint8_t wVirtualKeyCode = 0;
-            uint8_t wModifiers = 0;
-            pHotKey->GetHotKey(wVirtualKeyCode, wModifiers);
-            if (wVirtualKeyCode != 0) {
-                //设置为系统全局的热键
-                bool nRet = RegisterHotKey(wVirtualKeyCode, wModifiers, SYSTEM_HOTKEY_ID);
-                ASSERT(nRet);
+    //二级页面入口（统一绑定）
+    auto bindOpen = [this](const DString& name, const std::function<ui::WindowImplBase*()>& creator) {
+        ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(name));
+        if (pButton != nullptr) {
+            pButton->AttachClick([this, creator](const ui::EventArgs&) {
+                ShowChildForm(creator());
+                return true;
+                });
+        }
+    };
+
+    //基础控件
+    bindOpen(_T("btn_gallery_button"), []() { return new ButtonCheckBoxForm(); });
+    bindOpen(_T("btn_gallery_check"), []() { return new ButtonCheckBoxForm(); });
+    bindOpen(_T("btn_gallery_badge"), []() { return new ButtonCheckBoxForm(); });
+    bindOpen(_T("btn_gallery_switch"), []() { return new SwitchForm(); });
+    bindOpen(_T("btn_gallery_elements"), []() { return new TestForm(); });
+
+    //输入控件
+    bindOpen(_T("btn_gallery_richedit"), []() { return new RichEditForm(); });
+    bindOpen(_T("btn_gallery_combo"), []() { return new ComboForm(); });
+    bindOpen(_T("btn_gallery_datetime"), []() { return new DateTimeForm(); });
+    bindOpen(_T("btn_gallery_interaction"), []() { return new TestForm(); });
+    bindOpen(_T("btn_gallery_io"), []() { return new TestForm(); });
+
+    //数据展示
+    bindOpen(_T("btn_gallery_progress"), []() { return new ProgressForm(); });
+    bindOpen(_T("btn_gallery_list"), []() { return new ListViewForm(); });
+    bindOpen(_T("btn_gallery_chart"), []() { return new ChartForm(); });
+    bindOpen(_T("btn_gallery_tree_grid"), []() { return new TreeGridForm(); });
+    bindOpen(_T("btn_gallery_rating"), []() { return new RatingForm(); });
+    bindOpen(_T("btn_gallery_stepper"), []() { return new StepperForm(); });
+    bindOpen(_T("btn_gallery_avatar"), []() { return new AvatarForm(); });
+    bindOpen(_T("btn_gallery_carousel"), []() { return new CarouselForm(); });
+
+    //反馈与浮层
+    bindOpen(_T("message_box_btn"), []() { return new MessageBoxForm(); });
+    bindOpen(_T("toast_btn"), []() { return new ToastForm(); });
+    bindOpen(_T("popover_btn"), []() { return new PopoverForm(); });
+    bindOpen(_T("popconfirm_btn"), []() { return new PopconfirmForm(); });
+    bindOpen(_T("btn_gallery_flyout"), []() { return new TestForm(); });
+
+    //导航与布局
+    bindOpen(_T("btn_gallery_tab_ctrl"), []() { return new TabCtrlForm(); });
+    bindOpen(_T("btn_gallery_rangeslider"), []() { return new RangeSliderForm(); });
+    bindOpen(_T("navigation_btn"), []() { return new NavigationForm(); });
+    bindOpen(_T("breadcrumb_btn"), []() { return new BreadcrumbForm(); });
+    bindOpen(_T("cascading_select_btn"), []() { return new CascadingSelectForm(); });
+    bindOpen(_T("timeline_btn"), []() { return new TimelineForm(); });
+    bindOpen(_T("marquee_btn"), []() { return new MarqueeForm(); });
+    bindOpen(_T("animation_btn"), []() { return new AnimationForm(); });
+    bindOpen(_T("statusbar_btn"), []() { return new StatusBarForm(); });
+    bindOpen(_T("toolbar_btn"), []() { return new ToolBarForm(); });
+
+    //系统原生通知（SystemNotification）：与 Toast 无关，走操作系统通知通道
+    ui::Button* pSystemNotificationBtn = dynamic_cast<ui::Button*>(FindControl(_T("system_notification_btn")));
+    if (pSystemNotificationBtn != nullptr) {
+        pSystemNotificationBtn->AttachClick([this](const ui::EventArgs&) {
+            if (!ui::SystemNotification::IsSupported()) {
+                ui::ToastWnd::Show(this, _T("System notification is not supported on this platform"),
+                                   ui::ToastWnd::kTypeWarning, 2000, ui::ToastWnd::kPosTop, false);
+                return true;
+            }
+            ui::SystemNotification::RequestPermission();
+            uint32_t notificationId = ui::SystemNotification::Show(_T("nim_duilib"),
+                _T("This is a native system notification."),
+                ui::SystemNotificationPriority::kNormal, 5000);
+            if (notificationId == 0) {
+                ui::ToastWnd::Show(this, _T("Failed to show system notification"),
+                                   ui::ToastWnd::kTypeWarning, 2000, ui::ToastWnd::kPosTop, false);
             }
             return true;
-        });
+            });
     }
 
-    //测试页面，打开新窗口
-    ui::Button* pTestBtn = dynamic_cast<ui::Button*>(FindControl(_T("test_btn")));
-    if (pTestBtn != nullptr) {
-        pTestBtn->AttachClick([this](const ui::EventArgs&) {
-            ShowTestWindow();
+    //显示模态对话框的拾色器
+    ui::Button* pShowColorPicker = dynamic_cast<ui::Button*>(FindControl(_T("show_color_picker")));
+    if (pShowColorPicker != nullptr) {
+        pShowColorPicker->AttachClick([this](const ui::EventArgs&) {
+            ShowColorPicker(true);
             return true;
             });
     }
 
-    //动画测试按钮的响应函数
-    ui::Button* pAnimationBtn = dynamic_cast<ui::Button*>(FindControl(_T("animation_btn")));
-    if (pAnimationBtn != nullptr) {
-        pAnimationBtn->AttachClick([this](const ui::EventArgs&) {
-            ShowAnimationWindow();
-            return true;
-            });
-    }
-
-    //NavigationView 侧边栏导航演示
-    ui::Button* pNavigationBtn = dynamic_cast<ui::Button*>(FindControl(_T("navigation_btn")));
-    if (pNavigationBtn != nullptr) {
-        pNavigationBtn->AttachClick([this](const ui::EventArgs&) {
-            ShowNavigationWindow();
-            return true;
-            });
-    }
-
-    //Chart 轻量图表演示
-    ui::Button* pChartBtn = dynamic_cast<ui::Button*>(FindControl(_T("chart_btn")));
-    if (pChartBtn != nullptr) {
-        pChartBtn->AttachClick([this](const ui::EventArgs&) {
-            ShowChartWindow();
-            return true;
-            });
-    }
-
-    //Marquee 文本跑马灯演示
-    ui::Button* pMarqueeBtn = dynamic_cast<ui::Button*>(FindControl(_T("marquee_btn")));
-    if (pMarqueeBtn != nullptr) {
-        pMarqueeBtn->AttachClick([this](const ui::EventArgs&) {
-            ShowMarqueeWindow();
-            return true;
-            });
-    }
-
-    //Timeline 垂直时间轴演示
-    ui::Button* pTimelineBtn = dynamic_cast<ui::Button*>(FindControl(_T("timeline_btn")));
-    if (pTimelineBtn != nullptr) {
-        pTimelineBtn->AttachClick([this](const ui::EventArgs&) {
-            ShowTimelineWindow();
-            return true;
-            });
-    }
-
-    //StatusBar 状态栏演示
-    ui::Button* pStatusBarBtn = dynamic_cast<ui::Button*>(FindControl(_T("statusbar_btn")));
-    if (pStatusBarBtn != nullptr) {
-        pStatusBarBtn->AttachClick([this](const ui::EventArgs&) {
-            ShowStatusBarWindow();
-            return true;
-            });
-    }
-
-    //ToolBar 工具条演示
-    ui::Button* pToolBarBtn = dynamic_cast<ui::Button*>(FindControl(_T("toolbar_btn")));
-    if (pToolBarBtn != nullptr) {
-        pToolBarBtn->AttachClick([this](const ui::EventArgs&) {
-            ShowToolBarWindow();
+    //显示模态对话框
+    ui::Button* pShowModal = dynamic_cast<ui::Button*>(FindControl(_T("domodal2")));
+    if (pShowModal != nullptr) {
+        pShowModal->AttachClick([this](const ui::EventArgs&) {
+            ShowDoModalDlg();
             return true;
             });
     }
@@ -368,7 +314,7 @@ void ControlForm::OnInitWindow()
             //关闭
             ShowTrayIcon(false);
             return true;
-        });
+            });
     }
 }
 
@@ -378,6 +324,20 @@ void ControlForm::OnCloseWindow()
     ShowTrayIcon(false);
 
     BaseClass::OnCloseWindow();
+}
+
+void ControlForm::ShowChildForm(ui::WindowImplBase* pForm)
+{
+    if (pForm == nullptr) {
+        return;
+    }
+    ui::WindowCreateParam createParam;
+    createParam.m_dwStyle = ui::kWS_POPUP;
+    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    createParam.m_windowTitle = _T("ControlsChildWindow");
+    createParam.m_bCenterWindow = true;
+    pForm->CreateWnd(this, createParam);
+    pForm->ShowModalFake();
 }
 
 void ControlForm::AttachRichEditEvents(ui::Control* edit)
@@ -423,18 +383,6 @@ void ControlForm::AttachRichEditEvents(ui::Control* edit)
         }
         return true;
         });
-
-    //全屏显示RichEdit
-    ui::Button* pFullscreenBtn = dynamic_cast<ui::Button*>(FindControl(_T("rich_edit_fullscreen_btn")));
-    if (pFullscreenBtn != nullptr) {
-        pFullscreenBtn->AttachClick([this](const ui::EventArgs&) {
-            ui::Control* pControl = FindControl(_T("edit"));
-            if (pControl != nullptr) {
-                this->SetFullscreenControl(pControl);
-            }
-            return true;
-            });
-    }
 }
 
 void ControlForm::ShowColorPicker(bool bDoModal)
@@ -451,7 +399,7 @@ void ControlForm::ShowColorPicker(bool bDoModal)
 
     //窗口创建完成执行的函数
     auto OnInitColorPicker = [this, pColorPicker](const ui::EventArgs&) {
-        ui::RichEdit* pEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit")));
+        ui::RichEdit* pEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("gallery_edit_color")));
         if (pEdit != nullptr) {
             DString oldTextColor = pEdit->GetTextColor();
             if (!oldTextColor.empty()) {
@@ -508,102 +456,6 @@ void ControlForm::ShowDoModalDlg()
     simpleWnd.DoModal(this, createParam);
 }
 
-void ControlForm::ShowTestWindow()
-{
-    TestForm* testForm = new TestForm();
-    ui::WindowCreateParam createParam;
-    createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-    createParam.m_windowTitle = _T("TestWindow");
-    createParam.m_bCenterWindow = true;
-    testForm->CreateWnd(this, createParam);
-    testForm->ShowModalFake();
-}
-
-void ControlForm::ShowAnimationWindow()
-{
-    AnimationForm* testForm = new AnimationForm();
-    ui::WindowCreateParam createParam;
-    createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-    createParam.m_windowTitle = _T("AnimationWindow");
-    createParam.m_bCenterWindow = true;
-    testForm->CreateWnd(this, createParam);
-    testForm->ShowModalFake();
-}
-
-void ControlForm::ShowNavigationWindow()
-{
-    NavigationForm* testForm = new NavigationForm();
-    ui::WindowCreateParam createParam;
-    createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-    createParam.m_windowTitle = _T("NavigationWindow");
-    createParam.m_bCenterWindow = true;
-    testForm->CreateWnd(this, createParam);
-    testForm->ShowModalFake();
-}
-
-void ControlForm::ShowChartWindow()
-{
-    ChartForm* testForm = new ChartForm();
-    ui::WindowCreateParam createParam;
-    createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-    createParam.m_windowTitle = _T("ChartWindow");
-    createParam.m_bCenterWindow = true;
-    testForm->CreateWnd(this, createParam);
-    testForm->ShowModalFake();
-}
-
-void ControlForm::ShowMarqueeWindow()
-{
-    MarqueeForm* testForm = new MarqueeForm();
-    ui::WindowCreateParam createParam;
-    createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-    createParam.m_windowTitle = _T("MarqueeWindow");
-    createParam.m_bCenterWindow = true;
-    testForm->CreateWnd(this, createParam);
-    testForm->ShowModalFake();
-}
-
-void ControlForm::ShowTimelineWindow()
-{
-    TimelineForm* testForm = new TimelineForm();
-    ui::WindowCreateParam createParam;
-    createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-    createParam.m_windowTitle = _T("TimelineWindow");
-    createParam.m_bCenterWindow = true;
-    testForm->CreateWnd(this, createParam);
-    testForm->ShowModalFake();
-}
-
-void ControlForm::ShowStatusBarWindow()
-{
-    StatusBarForm* testForm = new StatusBarForm();
-    ui::WindowCreateParam createParam;
-    createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-    createParam.m_windowTitle = _T("StatusBarWindow");
-    createParam.m_bCenterWindow = true;
-    testForm->CreateWnd(this, createParam);
-    testForm->ShowModalFake();
-}
-
-void ControlForm::ShowToolBarWindow()
-{
-    ToolBarForm* testForm = new ToolBarForm();
-    ui::WindowCreateParam createParam;
-    createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-    createParam.m_windowTitle = _T("ToolBarWindow");
-    createParam.m_bCenterWindow = true;
-    testForm->CreateWnd(this, createParam);
-    testForm->ShowModalFake();
-}
-
 void ControlForm::ShowPopupMenu(const ui::UiPoint& point, ui::Control* pRelatedControl)
 {
     ui::Menu* menu = new ui::Menu(this, pRelatedControl);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
@@ -622,19 +474,6 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point, ui::Control* pRelatedC
         menu_item->SetTextPadding({ 20, 0, 20, 0 }, true);
         menu_fourth->AddSubMenuItemAt(menu_item, 1);//添加后，资源由菜单统一管理
     }
-    
-
-    //在一级菜单中，添加子菜单项
-    /*
-    menu_item = new ui::MenuItem(menu);
-    menu_item->SetWindow(menu);
-    menu_item->SetText(_T("Dynamically created"));
-    menu_item->SetClass(_T("menu_element"));
-    menu_item->SetFixedWidth(180);
-    menu_item->SetFontId(_T("system_14"));
-    menu_item->SetTextPadding({ 20, 0, 20, 0 });
-    menu->AddMenuItemAt(menu_item, 4);//添加后，资源由菜单统一管理
-    */
 
     //CheckBox菜单项的功能演示
     static bool s_is_checked_01_flag = false;
@@ -664,79 +503,13 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point, ui::Control* pRelatedC
         menuCheckBox02->Selected(!s_is_checked_01_flag);
     }
 
-
     /* About menu */
     ui::MenuItem* menu_about = dynamic_cast<ui::MenuItem*>(menu->FindControl(_T("about")));
     if (menu_about != nullptr) {
         menu_about->AttachClick([this](const ui::EventArgs& args) {
-            AboutForm* about_form = new AboutForm();
-            ui::WindowCreateParam createParam;
-            createParam.m_dwStyle = ui::kWS_POPUP;
-            createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
-            createParam.m_windowTitle = _T("AboutForm");
-            createParam.m_bCenterWindow = true;
-            about_form->CreateWnd(this, createParam);
-            about_form->ShowModalFake();
+            ShowChildForm(new AboutForm());
             return true;
             });
-    }
-}
-
-void ControlForm::LoadRichEditData()
-{
-    ui::FilePath resFileFullPath;
-    std::vector<uint8_t> resFileData;
-    ui::FilePath windowResPath = GetResourcePath();
-    ui::FilePath xmlFilePath = ui::FilePath(GetSkinFile());
-    if (!ui::GlobalManager::Instance().Theme().GetResFile(xmlFilePath, windowResPath, resFileFullPath, resFileData)) {
-        return;
-    }
-
-    DString xmlU;
-    if (resFileData.empty()) {
-        std::string xml;
-        std::ifstream ifs(resFileFullPath.NativePath().c_str(), std::ios::binary);
-        if (ifs.is_open()) {
-            ifs.seekg(0, std::ios_base::end);
-            std::streamoff length = ifs.tellg();
-            ifs.seekg(0, std::ios_base::beg);
-
-            xml.resize(static_cast<unsigned int>(length));
-            ifs.read(&xml[0], length);
-            ifs.close();
-        }
-        xmlU = ui::StringConvert::UTF8ToT(xml);
-    }
-    else {
-        resFileData.push_back(0);
-        resFileData.push_back(0);
-        xmlU = ui::StringConvert::UTF8ToT((const char*)resFileData.data());
-    }
-    // Post task to UI thread
-    ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&ControlForm::OnResourceFileLoaded, this, xmlU));
-}
-
-void ControlForm::OnResourceFileLoaded(const DString& xml)
-{
-    if (xml.empty()) {
-        return;
-    }
-    std::vector<ui::Control*> richEdits;
-    richEdits.push_back(FindControl(_T("edit")));
-    richEdits.push_back(FindControl(_T("edit2")));
-    for (ui::Control* pControl: richEdits) {
-        ui::RichEdit2* pRichEdit2 = dynamic_cast<ui::RichEdit2*>(pControl);
-        if (pRichEdit2) {
-            pRichEdit2->SetText(xml);
-            pRichEdit2->HomeUp();
-        }
-        else {
-            ui::RichEdit* pRichEdit = dynamic_cast<ui::RichEdit*>(pControl);
-            if (pRichEdit) {
-                pRichEdit->SetText(xml);
-                pRichEdit->HomeUp();
-            }
-        }
     }
 }
 
@@ -750,7 +523,7 @@ void ControlForm::OnProgressValueChagned(float value)
     }
 
     auto circleprogress = dynamic_cast<ui::Progress*>(FindControl(_T("circleprogress")));
-    if (circleprogress)    {
+    if (circleprogress) {
         circleprogress->SetValue(value);
         circleprogress->SetText(ui::StringUtil::Printf(_T("%.0f%%"), value));
     }

@@ -1,176 +1,200 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="980,740" use_system_caption="true">
-    <VBox bkcolor="bg_window_main" height="stretch">
-        <!-- 入口列表：内容较多，放入纵向滚动容器，窗口变矮时不会被裁掉 -->
-        <VScrollBox width="stretch" height="stretch" vscrollbar="true" hscrollbar="false">
-        <VBox height="auto" width="stretch">
-            <HBox height="auto">
-                <GroupHBox height="80" margin="6,6,6,6" text="MessageBox" corner_size="4,4">
-                    <Button class="btn_global" text="MessageBox Test" name="message_box_btn" margin="20,30,0,0" width="160" height="30" border_round="3,3"/>
-                </GroupHBox>
-                <GroupHBox height="80" margin="6,6,6,6" text="Toast" corner_size="4,4">
-                    <Button class="btn_global" text="Toast Test" name="toast_btn" margin="20,30,0,0" width="160" height="30" border_round="3,3"/>
-                </GroupHBox>
-                <!-- Flyout 浮层：4 个按钮分别从下/上/右/左弹出，均以自身为锚点 -->
-                <GroupVBox height="80" width="auto" margin="6,6,6,6" text_id="STRID_FLYOUT_DEMO_GROUP" corner_size="4,4">
-                    <HBox margin="8,28,8,8" height="28" width="auto">
-                        <Button class="btn_global" text_id="STRID_FLYOUT_DEMO_BOTTOM" name="flyout_bottom" width="56" height="28" border_round="3,3"/>
-                        <Button class="btn_global" text_id="STRID_FLYOUT_DEMO_TOP" name="flyout_top" width="56" height="28" border_round="3,3" margin="6,0,0,0"/>
-                        <Button class="btn_global" text_id="STRID_FLYOUT_DEMO_LEFT" name="flyout_left" width="56" height="28" border_round="3,3" margin="6,0,0,0"/>
-                        <Button class="btn_global" text_id="STRID_FLYOUT_DEMO_RIGHT" name="flyout_right" width="56" height="28" border_round="3,3" margin="6,0,0,0"/>
+<Window size="1000,780" min_size="780,540" caption="0,0,0,40" shadow_type="default" size_box="2,2,2,2"
+        icon="public/caption/logo.ico">
+    <VBox bkcolor="bg_window_main">
+        <!-- 标题栏 -->
+        <HBox name="window_title_bar" width="stretch" height="40" bkcolor="bg_titlebar">
+            <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
+                <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="10,0,0,0"/>
+                <Label text_id="STRID_TEST_TITLE" font="system_bold_14" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
+            </HBox>
+            <Control mouse_enabled="false"/>
+            <HBox margin="0,0,0,0" valign="center" width="auto" height="36">
+                <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
+                <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>
+                <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+            </HBox>
+        </HBox>
+
+        <VScrollBox width="stretch" height="stretch" vscrollbar="true" hscrollbar="false" padding="16,12,16,16">
+            <VBox width="stretch" height="auto">
+                <Label text_id="STRID_TEST_HINT" font="system_regular_12" text_color="text_muted"
+                       margin="4,0,4,10" multi_line="true" auto_tooltip="true"/>
+
+                <!-- 反馈与通知 -->
+                <HBox height="30" margin="4,4,4,8" valign="center">
+                    <Control width="4" height="16" bkcolor="color_warning" border_round="2,2" valign="center"/>
+                    <Label text_id="STRID_TEST_SEC_FEEDBACK" font="system_bold_15" text_color="text_default"
+                           margin="8,0,0,0" valign="center"/>
+                    <Control/>
+                </HBox>
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" height="auto">
+                    <Label text_id="STRID_TEST_NOTIFY_DESC" font="system_regular_12" text_color="text_muted"
+                           multi_line="true" auto_tooltip="true"/>
+                    <HBox height="32" margin="0,10,0,0">
+                        <Button class="btn_global" text="System Notification" name="system_notification_btn"
+                                width="160" height="30" border_round="3,3"/>
                     </HBox>
-                </GroupVBox>
-                <!-- Calendar 演示：单选/范围 两个按钮 -->
-                <GroupVBox height="80" width="auto" margin="6,6,6,6" text_id="STRID_CALENDAR_DEMO_GROUP" corner_size="4,4">
-                    <HBox margin="8,28,8,8" height="28" width="auto">
-                        <Button class="btn_global" text_id="STRID_CALENDAR_DEMO_SINGLE" name="calendar_single" width="56" height="28" border_round="3,3"/>
-                        <Button class="btn_global" text_id="STRID_CALENDAR_DEMO_RANGE" name="calendar_range" width="56" height="28" border_round="3,3" margin="6,0,0,0"/>
-                    </HBox>
-                </GroupVBox>
-            </HBox>
-            <HBox height="auto">
-                <!-- 进度条测试：独立窗口入口 -->
-                <GroupHBox height="80" width="auto" margin="6,6,6,6" text="Progress" corner_size="4,4">
-                    <Button class="btn_global" text="Progress Test" name="progress_btn" margin="20,30,20,0" width="140" height="30" border_round="3,3"/>
-                </GroupHBox>
+                </VBox>
 
-                <!-- 范围滑块测试：独立窗口入口 -->
-                <GroupHBox height="80" width="auto" margin="6,6,6,6" text="RangeSlider" corner_size="4,4">
-                    <Button class="btn_global" name="rangeslider_btn" text_id="STRID_CONTROLS_RANGESLIDER_TEST"
-                            margin="20,30,20,0" width="160" height="30" border_round="3,3"/>
-                </GroupHBox>
-                
-                <!-- 上下文菜单：一行代码为任意控件绑定右键菜单(Control::AttachPopupMenu) -->
-                <GroupHBox text_id="STRID_CONTROLS_CONTEXT_MENU" height="80" margin="6,6,6,6" corner_size="4,4">
-                    <Button class="btn_global" name="context_menu_btn" text_id="STRID_CONTROLS_CONTEXT_MENU_HINT"
-                            margin="20,30,20,0" width="220" height="30" border_round="3,3"/>
-                </GroupHBox>
-                <!-- Stepper 向导步骤条：独立演示窗口入口 -->
-                <GroupHBox text="Stepper" height="80" width="auto" margin="6,6,6,6" corner_size="4,4">
-                    <Button class="btn_global" name="stepper_btn" text_id="STRID_CONTROLS_STEPPER_TEST"
-                            margin="20,30,20,0" width="160" height="30" border_round="3,3"/>
-                </GroupHBox>
-            </HBox>
-            <HBox height="auto">
-                <!-- Rating 星级评分：独立演示窗口入口 -->
-                <GroupHBox text="Rating" height="80" width="auto" margin="6,6,6,6" corner_size="4,4">
-                    <Button class="btn_global" name="rating_btn" text_id="STRID_CONTROLS_RATING_TEST"
-                            margin="20,30,20,0" width="160" height="30" border_round="3,3"/>
-                </GroupHBox>
+                <!-- 浮层与菜单 -->
+                <HBox height="30" margin="4,18,4,8" valign="center">
+                    <Control width="4" height="16" bkcolor="color_accent" border_round="2,2" valign="center"/>
+                    <Label text_id="STRID_TEST_SEC_POPUP" font="system_bold_15" text_color="text_default"
+                           margin="8,0,0,0" valign="center"/>
+                    <Control/>
+                </HBox>
+                <HBox height="130" child_margin="10">
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch">
+                        <Label text_id="STRID_FLYOUT_DEMO_GROUP" font="system_bold_14" text_color="text_default"/>
+                        <Label text_id="STRID_TEST_FLYOUT_DESC" font="system_regular_12" text_color="text_muted"
+                               margin="0,6,0,0" height="stretch" multi_line="true" auto_tooltip="true"/>
+                        <HBox height="30" margin="0,6,0,0" child_margin="6">
+                            <Button class="btn_global" text_id="STRID_FLYOUT_DEMO_BOTTOM" name="flyout_bottom" width="60" height="28" border_round="3,3"/>
+                            <Button class="btn_global" text_id="STRID_FLYOUT_DEMO_TOP" name="flyout_top" width="60" height="28" border_round="3,3"/>
+                            <Button class="btn_global" text_id="STRID_FLYOUT_DEMO_LEFT" name="flyout_left" width="60" height="28" border_round="3,3"/>
+                            <Button class="btn_global" text_id="STRID_FLYOUT_DEMO_RIGHT" name="flyout_right" width="60" height="28" border_round="3,3"/>
+                            <Control/>
+                        </HBox>
+                    </VBox>
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch">
+                        <Label text_id="STRID_CALENDAR_DEMO_GROUP" font="system_bold_14" text_color="text_default"/>
+                        <Label text_id="STRID_TEST_CALENDAR_DESC" font="system_regular_12" text_color="text_muted"
+                               margin="0,6,0,0" height="stretch" multi_line="true" auto_tooltip="true"/>
+                        <HBox height="30" margin="0,6,0,0" child_margin="6">
+                            <Button class="btn_global" text_id="STRID_CALENDAR_DEMO_SINGLE" name="calendar_single" width="70" height="28" border_round="3,3"/>
+                            <Button class="btn_global" text_id="STRID_CALENDAR_DEMO_RANGE" name="calendar_range" width="70" height="28" border_round="3,3"/>
+                            <Control/>
+                        </HBox>
+                    </VBox>
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch">
+                        <Label text_id="STRID_CONTROLS_CONTEXT_MENU" font="system_bold_14" text_color="text_default"/>
+                        <Label text_id="STRID_TEST_CONTEXT_DESC" font="system_regular_12" text_color="text_muted"
+                               margin="0,6,0,0" height="stretch" multi_line="true" auto_tooltip="true"/>
+                        <HBox height="30" margin="0,6,0,0">
+                            <Button class="btn_global" name="context_menu_btn" text_id="STRID_CONTROLS_CONTEXT_MENU_HINT"
+                                    width="180" height="28" border_round="3,3"/>
+                            <Control/>
+                        </HBox>
+                    </VBox>
+                </HBox>
 
-                <!-- TabCtrl (垂直标签 / 固定标签 / 溢出滚动 / 角标)：独立演示窗口入口 -->
-                <GroupHBox text_id="STRID_CONTROLS_TABCTRL_FULL" height="80" margin="6,6,6,6" corner_size="4,4">
-                    <Button class="btn_global" name="tab_ctrl_test_btn" text_id="STRID_CONTROLS_TABCTRL_TEST_BTN" margin="20,30,0,0"
-                            width="160" height="30" border_round="3,3"
-                            tooltip_text_id="STRID_CONTROLS_TABCTRL_TEST_TIP"/>
-                </GroupHBox>
-
-                <!-- Carousel 图片轮播 / Pagination 分页器：独立演示窗口入口 -->
-                <GroupHBox text="Carousel" height="80" width="auto" margin="6,6,6,6" corner_size="4,4">
-                    <Button class="btn_global" name="carousel_btn" text_id="STRID_CONTROLS_CAROUSEL_TEST"
-                            margin="20,30,20,0" width="180" height="30" border_round="3,3"/>
-                </GroupHBox>
-
-                <!-- TreeGrid 树表格：独立演示窗口入口 -->
-                <GroupHBox text="TreeGrid" height="80" width="auto" margin="6,6,6,6" corner_size="4,4">
-                    <Button class="btn_global" name="tree_grid_btn" text_id="STRID_CONTROLS_TREE_GRID_TEST"
-                            margin="20,30,20,0" width="160" height="30" border_round="3,3"/>
-                </GroupHBox>
-            </HBox>
-
-            <HBox height="auto">
-                <!-- TagInput 标签输入框 -->
-                <GroupVBox text_id="STRID_CONTROLS_TAG_INPUT" height="auto" margin="6,6,6,6" corner_size="4,4">
-                    <HBox height="auto" margin="8,28,8,8">
+                <!-- 输入增强 -->
+                <HBox height="30" margin="4,18,4,8" valign="center">
+                    <Control width="4" height="16" bkcolor="color_success" border_round="2,2" valign="center"/>
+                    <Label text_id="STRID_TEST_SEC_INPUT" font="system_bold_15" text_color="text_default"
+                           margin="8,0,0,0" valign="center"/>
+                    <Control/>
+                </HBox>
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" height="auto">
+                    <Label text_id="STRID_CONTROLS_TAG_INPUT" font="system_bold_14" text_color="text_default"/>
+                    <HBox height="34" margin="0,8,0,0" child_margin="8">
                         <TagInput class="tag_input" name="tag_input" tags="nim_duilib;C++;Desktop UI"
-                                  prompt_text_id="STRID_CONTROLS_TAG_INPUT_PROMPT"/>
-                        <Button class="btn_global" name="btn_add_tag" text_id="STRID_CONTROLS_TAG_ADD" width="100" height="30" border_round="3,3" margin="8,2,0,2" valign="center"/>
-                        <TagInput class="tag_input" name="tag_input2" delimiter="," width="240" margin="8,2,0,2"
+                                  prompt_text_id="STRID_CONTROLS_TAG_INPUT_PROMPT" height="32"/>
+                        <Button class="btn_global" name="btn_add_tag" text_id="STRID_CONTROLS_TAG_ADD" width="100" height="30"
+                                border_round="3,3" valign="center"/>
+                        <TagInput class="tag_input" name="tag_input2" delimiter="," width="260" height="32"
                                   prompt_text_id="STRID_CONTROLS_TAG_INPUT_PROMPT2"/>
+                        <Control/>
                     </HBox>
-                </GroupVBox>
-                <!-- 系统通知  -->
-                <GroupHBox height="stretch" width="220" margin="6,6,6,6" text="System Notification" corner_size="4,4">
-                    <Button class="btn_global" text="Notify Test" name="system_notification_btn" margin="20,30,0,0" width="160" height="30" border_round="3,3"/>
-                </GroupHBox>
-            </HBox>
-
-            <HBox height="auto">
-                <!-- AutoComplete 自动完成输入框 -->
-                <GroupVBox text_id="STRID_CONTROLS_AUTO_COMPLETE" height="auto" margin="6,6,6,6" corner_size="4,4">
-                    <HBox height="auto" margin="8,28,8,8">
-                        <AutoComplete class="auto_complete" name="auto_complete"
+                    <Label text_id="STRID_CONTROLS_AUTO_COMPLETE" font="system_bold_14" text_color="text_default" margin="0,12,0,0"/>
+                    <HBox height="34" margin="0,8,0,0" child_margin="8">
+                        <AutoComplete class="auto_complete" name="auto_complete" width="50%" height="32"
                                       items="Beijing;Berlin;Budapest;Bangkok;Boston;Brisbane;Chicago;London;Los Angeles;New York;Paris;Seattle;Shanghai;Shenzhen;Singapore;Sydney;Tokyo;Toronto"
                                       prompt_text_id="STRID_CONTROLS_AUTO_COMPLETE_PROMPT"/>
                         <AutoComplete class="auto_complete" name="auto_complete2" match_mode="contains" max_visible="6"
-                                      width="260" margin="8,2,0,2"
-                                      prompt_text_id="STRID_CONTROLS_AUTO_COMPLETE_PROMPT2"/>
+                                      width="50%" height="32" prompt_text_id="STRID_CONTROLS_AUTO_COMPLETE_PROMPT2"/>
                     </HBox>
-                </GroupVBox>
-
-                <!-- SearchBox 搜索框（建议 + 历史） -->
-                <GroupVBox text="SearchBox 搜索框（建议 + 历史）" height="auto" width="400" margin="6,6,6,6" corner_size="4,4">
-                    <HBox height="auto" margin="8,28,8,8">
-                        <SearchBox class="search_box" name="search_box" width="360"
+                    <Label text="SearchBox 搜索框（建议 + 历史）" font="system_bold_14" text_color="text_default" margin="0,12,0,0"/>
+                    <HBox height="34" margin="0,8,0,0">
+                        <SearchBox class="search_box" name="search_box" width="100%" height="32"
                                    prompt_text="搜索控件 / 输入关键词（回车记录历史）"
                                    suggestions="nim_duilib;C++;Desktop UI;Skia;Qt;WPF;MFC;Win32;DirectUI;Electron;Flutter;duilib"
                                    history_enabled="true" max_history="10" max_visible="8"/>
                     </HBox>
-                </GroupVBox>
-            </HBox>
-            <HBox height="auto">
-                <!-- 遮罩/蒙版层（Mask）：模态遮罩 / 新手引导 / 加载遮罩 -->
-                <GroupHBox text_id="STRID_CONTROLS_MASK" height="70" margin="6,6,6,6" corner_size="4,4">
-                    <Button class="btn_global" name="mask_modal_btn" text_id="STRID_CONTROLS_MASK_MODAL"
-                            margin="20,24,0,10" width="120" height="30" border_round="3,3"/>
-                    <Button class="btn_global" name="mask_guide_btn" text_id="STRID_CONTROLS_MASK_GUIDE"
-                            margin="8,24,0,10" width="120" height="30" border_round="3,3"/>
-                    <Button class="btn_global" name="mask_guide_target" text_id="STRID_CONTROLS_MASK_GUIDE_TARGET"
-                            margin="8,24,0,10" width="120" height="30" border_round="3,3"/>
-                    <Button class="btn_global" name="mask_loading_btn" text_id="STRID_CONTROLS_MASK_LOADING"
-                            margin="8,24,0,10" width="120" height="30" border_round="3,3"/>
-                </GroupHBox>
-                <!-- Breadcrumb 面包屑导航：独立演示窗口入口 -->
-                <GroupHBox text="Breadcrumb" height="70" width="auto" margin="6,6,6,6" corner_size="4,4">
-                    <Button class="btn_global" name="breadcrumb_btn" text_id="STRID_CONTROLS_BREADCRUMB_TEST"
-                            margin="20,30,20,0" width="180" height="30" border_round="3,3"/>
-                </GroupHBox>                
-            </HBox>
-            <HBox height="auto">
-                <!-- CascadingSelect 级联选择器：独立演示窗口入口 -->
-                <GroupHBox text="CascadingSelect" height="70" width="auto" margin="6,6,6,6" corner_size="4,4">
-                    <Button class="btn_global" name="cascading_select_btn" text_id="STRID_CONTROLS_CASCADING_SELECT_TEST"
-                            margin="20,30,20,0" width="180" height="30" border_round="3,3"/>
-                </GroupHBox>
-                <!-- Switch 开关：独立演示窗口入口 -->
-                <GroupHBox text="Switch" height="70" width="auto" margin="6,6,6,6" corner_size="4,4">
-                    <Button class="btn_global" name="switch_btn" text_id="STRID_SWITCH_TEST"
-                            margin="20,30,20,0" width="160" height="30" border_round="3,3"/>
-                </GroupHBox>
-                <!-- Button / CheckBox / Option：独立演示窗口入口 -->
-                <GroupHBox text="Button / CheckBox / Option" height="70" width="auto" margin="6,6,6,6" corner_size="4,4">
-                    <Button class="btn_global" name="button_checkbox_btn" text_id="STRID_BCB_TEST"
-                            margin="20,30,20,0" width="180" height="30" border_round="3,3"/>
-                </GroupHBox>
-            </HBox>
-            <HBox height="auto">
-                <!-- Popover 气泡卡片：独立演示窗口入口 -->
-                <GroupHBox text="Popover" height="70" width="auto" margin="6,6,6,6" corner_size="4,4">
-                    <Button class="btn_global" name="popover_btn" text_id="STRID_CONTROLS_POPOVER_TEST"
-                            margin="20,30,20,0" width="180" height="30" border_round="3,3"/>
-                </GroupHBox>
-                <!-- Popconfirm 确认气泡卡片：独立演示窗口入口 -->
-                <GroupHBox text="Popconfirm" height="70" width="auto" margin="6,6,6,6" corner_size="4,4">
-                    <Button class="btn_global" name="popconfirm_btn" text_id="STRID_CONTROLS_POPCONFIRM_TEST"
-                            margin="20,30,20,0" width="180" height="30" border_round="3,3"/>
-                </GroupHBox>
-                <!-- Avatar 头像：独立演示窗口入口 -->
-                <GroupHBox text="Avatar" height="70" width="auto" margin="6,6,6,6" corner_size="4,4">
-                    <Button class="btn_global" name="avatar_btn" text_id="STRID_CONTROLS_AVATAR_TEST"
-                            margin="20,30,20,0" width="180" height="30" border_round="3,3"/>
-                </GroupHBox>
-            </HBox>
-        </VBox>
+                </VBox>
+
+                <!-- 基础元素 -->
+                <HBox height="30" margin="4,18,4,8" valign="center">
+                    <Control width="4" height="16" bkcolor="color_blue_light" border_round="2,2" valign="center"/>
+                    <Label text_id="STRID_TEST_SEC_ELEMENT" font="system_bold_15" text_color="text_default"
+                           margin="8,0,0,0" valign="center"/>
+                    <Control/>
+                </HBox>
+                <HBox height="176" child_margin="10">
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="50%">
+                        <Label text="RichText / HyperLink / Line" font="system_bold_14" text_color="text_default"/>
+                        <RichText class="rich_text" name="test_rich_text" row_spacing_mul="1.2" width="auto" margin="0,8,0,0">
+                            RichText 支持富文本与超链接：<a href="www.baidu.com">Baidu</a>　<a href="www.bing.com">Bing</a>
+                        </RichText>
+                        <HBox height="26" margin="0,6,0,0" child_margin="10">
+                            <HyperLink class="hyper_link" name="test_hyperlink1" text="Baidu Home" url="www.baidu.com" valign="center"/>
+                            <HyperLink class="hyper_link" name="test_hyperlink2" text="Text Button" url="" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <HBox height="10" margin="0,6,0,0">
+                            <Label text="Solid" text_color="text_muted" width="52" valign="center"/>
+                            <Line vertical="false" line_color="#FF0078D4" dash_style="solid" line_width="2"/>
+                        </HBox>
+                        <HBox height="10" margin="0,4,0,0">
+                            <Label text="Dash" text_color="text_muted" width="52" valign="center"/>
+                            <Line vertical="false" line_color="#FFE85854" dash_style="dash" line_width="2"/>
+                        </HBox>
+                        <HBox height="10" margin="0,4,0,0">
+                            <Label text="Dot" text_color="text_muted" width="52" valign="center"/>
+                            <Line vertical="false" line_color="#FF22A95B" dash_style="dot" line_width="2"/>
+                        </HBox>
+                        <HBox height="10" margin="0,4,0,0">
+                            <Label text="DashDot" text_color="text_muted" width="52" valign="center"/>
+                            <Line vertical="false" line_color="#FFD08700" dash_style="dash_dot" line_width="2"/>
+                        </HBox>
+                    </VBox>
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="stretch" width="50%">
+                        <Label text="IPAddress / HotKey" font="system_bold_14" text_color="text_default"/>
+                        <HBox height="34" margin="0,10,0,0" child_margin="8" valign="center">
+                            <Label text_id="STRID_CONTROLS_IP_ADDRESS" width="78" valign="center"/>
+                            <IPAddress class="ip_address" ip="192.168.0.1" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <HBox height="34" margin="0,8,0,0" child_margin="8" valign="center">
+                            <Label text="HotKey" width="78" valign="center"/>
+                            <HotKey class="hot_key" name="test_set_hot_key" default_text_id="STRID_CONTROLS_NONE" valign="center"/>
+                            <Button class="btn_global" name="test_btn_set_hot_key" text_id="STRID_CONTROLS_SET_WINDOW_HOTKEY"
+                                    width="130" height="28" border_round="3,3" text_align="vcenter"/>
+                            <Control/>
+                        </HBox>
+                        <Label text_id="STRID_TEST_HOTKEY_DESC" font="system_regular_12" text_color="text_muted"
+                               margin="0,8,0,0" height="stretch" multi_line="true" auto_tooltip="true"/>
+                    </VBox>
+                </HBox>
+
+                <!-- 遮罩 -->
+                <HBox height="30" margin="4,18,4,8" valign="center">
+                    <Control width="4" height="16" bkcolor="color_error" border_round="2,2" valign="center"/>
+                    <Label text_id="STRID_CONTROLS_MASK" font="system_bold_15" text_color="text_default"
+                           margin="8,0,0,0" valign="center"/>
+                    <Control/>
+                </HBox>
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" height="auto">
+                    <Label text_id="STRID_TEST_MASK_DESC" font="system_regular_12" text_color="text_muted"
+                           multi_line="true" auto_tooltip="true"/>
+                    <HBox height="32" margin="0,10,0,0" child_margin="8">
+                        <Button class="btn_global" name="mask_modal_btn" text_id="STRID_CONTROLS_MASK_MODAL" width="120" height="30" border_round="3,3"/>
+                        <Button class="btn_global" name="mask_guide_btn" text_id="STRID_CONTROLS_MASK_GUIDE" width="120" height="30" border_round="3,3"/>
+                        <Button class="btn_global" name="mask_guide_target" text_id="STRID_CONTROLS_MASK_GUIDE_TARGET" width="120" height="30" border_round="3,3"/>
+                        <Button class="btn_global" name="mask_loading_btn" text_id="STRID_CONTROLS_MASK_LOADING" width="120" height="30" border_round="3,3"/>
+                        <Control/>
+                    </HBox>
+                </VBox>
+            </VBox>
         </VScrollBox>
 
         <!-- 模态遮罩：铺满整个窗口、拦截鼠标输入，中间显示一个模态卡片 -->
@@ -185,8 +209,7 @@
             </VBox>
         </Mask>
 
-        <!-- 新手引导遮罩：镂空高亮 mask_guide_target，镂空区域内点击可穿透到该按钮。
-             这里显式指定较深的蒙层色（默认语义色 bg_overlay 在浅色主题下偏淡，镂空对比不明显） -->
+        <!-- 新手引导遮罩：镂空高亮 mask_guide_target，镂空区域内点击可穿透到该按钮 -->
         <Mask class="mask" name="mask_guide" visible="false" mask_color="#80000000"
               highlight_control="mask_guide_target" highlight_padding="6" highlight_corner="6" click_through="true">
             <Label text_id="STRID_CONTROLS_MASK_GUIDE_HINT" float="true" halign="center" valign="bottom"
@@ -201,6 +224,6 @@
                 <Label text_id="STRID_CONTROLS_MASK_LOADING_TEXT" width="stretch" height="auto"
                        margin="0,16,0,0" text_align="center" font="system_regular_14"/>
             </VBox>
-        </Mask>        
+        </Mask>
     </VBox>
 </Window>

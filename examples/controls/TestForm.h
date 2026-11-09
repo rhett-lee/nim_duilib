@@ -22,62 +22,6 @@ public:
     virtual void OnInitWindow() override;
 
 private:
-    /** 显示进度条控件测试窗口（独立演示窗口）
-    */
-    void ShowProgressWindow();
-
-    /** 显示标签栏控件测试窗口（垂直标签 / 固定标签 / 溢出滚动）
-    */
-    void ShowTabCtrlWindow();
-
-    /** 显示 RangeSlider 双滑块范围控件演示窗口
-    */
-    void ShowRangeSliderWindow();
-
-    /** 显示 Stepper 向导步骤条演示窗口
-    */
-    void ShowStepperWindow();
-
-    /** 显示 Rating 星级评分演示窗口
-    */
-    void ShowRatingWindow();
-
-    /** 显示 Carousel 图片轮播 / Pagination 分页器演示窗口
-    */
-    void ShowCarouselWindow();
-
-    /** 显示 TreeGrid 树表格演示窗口
-    */
-    void ShowTreeGridWindow();
-
-    /** 显示 Breadcrumb 面包屑导航演示窗口
-    */
-    void ShowBreadcrumbWindow();
-
-    /** 显示 CascadingSelect 级联选择器演示窗口
-    */
-    void ShowCascadingSelectWindow();
-
-    /** 显示 Popover 气泡卡片演示窗口
-    */
-    void ShowPopoverWindow();
-
-    /** 显示 Popconfirm 确认气泡卡片演示窗口
-    */
-    void ShowPopconfirmWindow();
-
-    /** 显示 Avatar 头像演示窗口
-    */
-    void ShowAvatarWindow();
-
-    /** 显示 Switch 开关演示窗口
-    */
-    void ShowSwitchWindow();
-
-    /** 显示 Button / CheckBox / Option 演示窗口
-    */
-    void ShowButtonCheckBoxWindow();
-
     /** 显示 Flyout 浮层演示
     * @param [in] pAnchor 锚点按钮（事件发送者）
     * @param [in] placement 期望弹出方位
