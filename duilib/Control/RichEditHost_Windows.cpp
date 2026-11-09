@@ -817,6 +817,17 @@ void RichEditHost::SetTextHAlignType(HorAlignType alignType)
     }
 }
 
+HorAlignType RichEditHost::GetTextHAlignType() const
+{
+    if ((m_dwStyle & UI_ES_CENTER) != 0) {
+        return HorAlignType::kAlignCenter;
+    }
+    else if ((m_dwStyle & UI_ES_RIGHT) != 0) {
+        return HorAlignType::kAlignRight;
+    }
+    return HorAlignType::kAlignLeft;
+}
+
 void RichEditHost::SetTextVAlignType(VerAlignType alignType)
 {
     if (alignType == VerAlignType::kAlignCenter) {

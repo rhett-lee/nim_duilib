@@ -1,8 +1,9 @@
 #include "HotKey.h"
 #include "duilib/Control/RichEdit.h"
-#include "duilib/Control/Label.h"
 #include "duilib/Core/Keyboard.h"
-#include "duilib/Core/GlobalManager.h"
+#include "duilib/Utils/StringUtil.h"
+#include <map>
+#include <list>
 
 namespace ui
 {
@@ -12,14 +13,36 @@ namespace ui
 #define HOTKEYF_ALT             0x04
 #define HOTKEYF_EXT             0x08
 
+/** 将按键消息中的修饰键标志转换为内部的HOTKEYF_*标志
+*/
+static uint8_t GetHotKeyModifiers(const EventArgs& msg)
+{
+    uint8_t wModifiers = 0;
+    if (msg.modifierKey & ModifierKey::kShift) {
+        wModifiers |= HOTKEYF_SHIFT;
+    }
+    if (msg.modifierKey & ModifierKey::kControl) {
+        wModifiers |= HOTKEYF_CONTROL;
+    }
+    if (msg.modifierKey & ModifierKey::kAlt) {
+        wModifiers |= HOTKEYF_ALT;
+    }
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    //扩展键标志：仅Windows原生消息的lParam中包含该信息（SDL下无法获取，忽略）
+    if ((msg.lParam >> 16) & kKF_EXTENDED) {
+        wModifiers |= HOTKEYF_EXT;
+    }
+#endif
+    return wModifiers;
+}
+
 class HotKeyRichEdit : public RichEdit
 {
     typedef RichEdit BaseClass;
 public:
-    explicit HotKeyRichEdit(Window* pWindow):
+    HotKeyRichEdit(Window* pWindow, HotKey* pOwner):
         RichEdit(pWindow),
-        m_wVirtualKeyCode(0),
-        m_wModifiers(0)
+        m_pOwner(pOwner)
     {
     }
 
@@ -35,218 +58,81 @@ public:
     */
     virtual bool OnKeyDown(const EventArgs& msg) override
     {
-        SetHotKey(0, 0);
-        bool bShiftDown = Keyboard::IsKeyDown(kVK_SHIFT);
-        bool bControlDown = Keyboard::IsKeyDown(kVK_CONTROL);
-        bool bAltDown = Keyboard::IsKeyDown(kVK_MENU);
-        uint8_t wModifiers = 0;
-        if (bShiftDown) {
-            wModifiers |= HOTKEYF_SHIFT;
+        HotKey* pOwner = m_pOwner;
+        if (pOwner == nullptr) {
+            return true;
         }
-        if (bControlDown) {
-            wModifiers |= HOTKEYF_CONTROL;
-        }
-        if (bAltDown) {
-            wModifiers |= HOTKEYF_ALT;
-        }
-        if ((msg.lParam >> 16) & kKF_EXTENDED) {
-            wModifiers |= HOTKEYF_EXT;
-        }
+        //本次按键对应的修饰键标志
+        const uint8_t wModifiers = GetHotKeyModifiers(msg);
 
-        if ((msg.wParam == kVK_DELETE) || (msg.wParam == kVK_BACK)) {
-            //清空文本
-            m_lastDefaultText = GetDefaultText();
-            SetTextNoEvent(m_lastDefaultText.c_str());
+        //Esc：取消本次输入，恢复为已提交热键的显示
+        if (msg.vkCode == kVK_ESCAPE) {
+            pOwner->RestoreDisplayText();
+            return true;
         }
-        else if (msg.wParam == kVK_MENU) {
-            SetHotKey(0, wModifiers);
+        //Delete/Backspace：清空热键
+        if ((msg.vkCode == kVK_DELETE) || (msg.vkCode == kVK_BACK)) {
+            pOwner->ClearHotKey();
+            return true;
         }
-        else if (msg.wParam == kVK_SHIFT) {
-            SetHotKey(0, wModifiers);
+        //Windows键不作为热键记录
+        if ((msg.vkCode == kVK_LWIN) || (msg.vkCode == kVK_RWIN)) {
+            return true;
         }
-        else if (msg.wParam == kVK_CONTROL) {
-            SetHotKey(0, wModifiers);
+        //Alt与系统组合键不作为热键记录（避免被系统优先处理）
+        if ((wModifiers & HOTKEYF_ALT) &&
+            ((msg.vkCode == kVK_F4) || (msg.vkCode == kVK_TAB) ||
+             (msg.vkCode == kVK_SPACE))) {
+            return true;
         }
-        else {
-            DString keyName = Keyboard::GetKeyName(msg.vkCode, false);
-            if (!keyName.empty()) {
-                SetHotKey(static_cast<uint8_t>(msg.wParam), wModifiers);
-            }
+        //只按下修饰键时：仅预览显示，不修改热键值
+        if ((msg.vkCode == kVK_SHIFT) || (msg.vkCode == kVK_CONTROL) || (msg.vkCode == kVK_MENU)) {
+            pOwner->PreviewHotKey(wModifiers);
+            return true;
         }
-        DString keyName = GetHotKeyName();
-        if (!keyName.empty()) {
-            SetTextNoEvent(keyName);
+        //普通按键：提交热键（允许不带修饰键的单独按键）
+        if (!Keyboard::GetKeyName(msg.vkCode, (wModifiers & HOTKEYF_EXT) != 0).empty()) {
+            pOwner->ApplyHotKey(static_cast<uint8_t>(msg.vkCode), wModifiers);
         }
         return true;
     }
 
     /** 按键事件
     */
-    virtual bool OnKeyUp(const EventArgs& /*msg*/) override
+    virtual bool OnKeyUp(const EventArgs& msg) override
     {
-        uint8_t wVirtualKeyCode = 0;
-        uint8_t wModifiers = 0;
-        GetHotKey(wVirtualKeyCode, wModifiers);
-        if ((wVirtualKeyCode == kVK_MENU) ||
-            (wVirtualKeyCode == kVK_SHIFT) ||
-            (wVirtualKeyCode == kVK_CONTROL)) {
-            wVirtualKeyCode = 0;
-        }
-        if ((wVirtualKeyCode == 0) || (wModifiers == 0)) {
-            //无有效的热键，清空文本
-            m_lastDefaultText = GetDefaultText();
-            SetTextNoEvent(m_lastDefaultText.c_str());
+        //松开修饰键时，结束预览并恢复为已提交热键的显示
+        if ((msg.vkCode == kVK_SHIFT) || (msg.vkCode == kVK_CONTROL) ||
+            (msg.vkCode == kVK_MENU) || (msg.vkCode == kVK_LWIN) || (msg.vkCode == kVK_RWIN)) {
+            if (m_pOwner != nullptr) {
+                m_pOwner->RestoreDisplayText();
+            }
         }
         return true;
     }
 
-    /** 语言发生变化，刷新界面文字显示相关的内容
-    * @param [in] bRedraw true表示需要内部实现重绘，否则控件内部不需要重绘，由外部调用重绘
-    */
-    virtual void OnLanguageChanged(bool bRedraw) override
-    {
-        BaseClass::OnLanguageChanged(bRedraw);
-        if (GetText() == m_lastDefaultText) {
-            m_lastDefaultText = GetDefaultText();
-            SetTextNoEvent(m_lastDefaultText.c_str());
-        }
-    }
-
-    /** 设置热键
-    */
-    void SetHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers)
-    {
-        m_wVirtualKeyCode = wVirtualKeyCode;
-        m_wModifiers = wModifiers;
-    }
-
-    /** 获取热键
-    */
-    void GetHotKey(uint8_t& wVirtualKeyCode, uint8_t& wModifiers) const
-    {
-        wVirtualKeyCode = m_wVirtualKeyCode;
-        wModifiers = m_wModifiers;
-    }
-
-    /** 获取热键显示名称
-    */
-    DString GetHotKeyName() const
-    {
-        DString sKeyName;
-        uint8_t wCode = 0;
-        uint8_t wModifiers = 0;
-        const DString::value_type szPlus[] = _T("+");
-        GetHotKey(wCode, wModifiers);
-        if (wModifiers == 0) {
-            //必须有组合键，才是有效的热键
-            return sKeyName;
-        }
-        if (wCode != 0 || wModifiers != 0) {
-            if (wModifiers & HOTKEYF_CONTROL) {
-                DString sKey = Keyboard::GetKeyName(kVK_CONTROL, wModifiers & HOTKEYF_EXT);
-                if (!sKey.empty()) {
-                    if (!sKeyName.empty()) {
-                        sKeyName += szPlus;
-                    }
-                    sKeyName += sKey;
-                }
-            }
-            if (wModifiers & HOTKEYF_SHIFT) {
-                DString sKey = Keyboard::GetKeyName(kVK_SHIFT, wModifiers & HOTKEYF_EXT);
-                if (!sKey.empty()) {
-                    if (!sKeyName.empty()) {
-                        sKeyName += szPlus;
-                    }
-                    sKeyName += sKey;
-                }
-            }
-            if (wModifiers & HOTKEYF_ALT) {
-                DString sKey = Keyboard::GetKeyName(kVK_MENU, wModifiers & HOTKEYF_EXT);
-                if (!sKey.empty()) {
-                    if (!sKeyName.empty()) {
-                        sKeyName += szPlus;
-                    }
-                    sKeyName += sKey;
-                }
-            }
-            if ((wCode != kVK_SHIFT) && (wCode != kVK_CONTROL) && (wCode != kVK_MENU)) {
-                DString sKey = Keyboard::GetKeyName((VirtualKeyCode)wCode, wModifiers & HOTKEYF_EXT);
-                if (!sKey.empty()) {
-                    if (!sKeyName.empty()) {
-                        sKeyName += szPlus;
-                    }
-                    sKeyName += sKey;
-                }
-            }
-        }
-        return sKeyName;
-    }
-
-    /** 设置默认的文本
-    */
-    void SetDefaultText(const DString& defaultText)
-    {
-        m_defaultText = defaultText;
-    }
-
-    /** 设置默认的文本Id
-    */
-    void SetDefaultTextId(const DString& defaultTextId)
-    {
-        m_defaultTextId = defaultTextId;
-    }
-
-    /** 获取默认的文本内容
-    */
-    DString GetDefaultText() const
-    {
-        if (!m_defaultText.empty()) {
-            return m_defaultText.c_str();
-        }
-        else if (!m_defaultTextId.empty()) {
-            return GlobalManager::Instance().Lang().GetStringByID(m_defaultTextId.c_str());
-        }
-        return DString();
-    }
-
-    /** 设置默认的文本（原值）
-    */
-    void SetLastDefaultText(const DString& defaultText)
-    {
-        m_lastDefaultText = defaultText;
-    }
-
 private:
-
-    /** 虚拟键盘码，比如：VK_DOWN等
-        可参考：https://learn.microsoft.com/zh-cn/windows/win32/inputdev/virtual-key-codes
+    /** 所属的热键控件
     */
-    uint8_t m_wVirtualKeyCode;
-
-    /** 热键组合键：HOTKEYF_SHIFT 或者 HOTKEYF_CONTROL 或者 HOTKEYF_ALT
-    */
-    uint8_t m_wModifiers;
-
-    /** 默认的文本
-    */
-    UiString m_defaultText;
-
-    /** 默认的文本
-    */
-    UiString m_defaultTextId;
-
-    /** 已经设置的文本内容
-    */
-    UiString m_lastDefaultText;
+    HotKey* m_pOwner;
 };
 
 HotKey::HotKey(Window* pWindow):
-    HBox(pWindow)
+    HBox(pWindow),
+    m_pRichEdit(nullptr),
+    m_wVirtualKeyCode(0),
+    m_wModifiers(0),
+    m_nLastHotKeyValue(0),
+    m_bPreviewing(false)
 {
     ASSERT(pWindow != nullptr);
-    m_pRichEdit = new HotKeyRichEdit(pWindow);
+    m_pRichEdit = new HotKeyRichEdit(pWindow, this);
     m_pRichEdit->SetAttribute(_T("text_align"), _T("vcenter,hcenter"));
+    m_pRichEdit->SetAttribute(_T("text_padding"), _T("0,0,0,0"));
     m_pRichEdit->SetAttribute(_T("want_tab"), _T("false"));
+    //未设置热键时，显示灰色的占位提示文字
+    m_pRichEdit->SetAttribute(_T("prompt_mode"), _T("true"));
+    m_pRichEdit->SetAttribute(_T("prompt_color"), _T("text_richedit_prompt"));
     m_pRichEdit->SetAttribute(_T("width"), _T("100%"));
     m_pRichEdit->SetAttribute(_T("height"), _T("100%"));
 }
@@ -268,16 +154,14 @@ void HotKey::SetAttribute(const DString& strName, const DString& strValue2)
     DString strValue = GetExpandVarStrings(strValue2);
     if (strName == _T("default_text")) {
         if (m_pRichEdit != nullptr) {
-            m_pRichEdit->SetDefaultText(strValue);
-            m_pRichEdit->SetText(strValue);
-            m_pRichEdit->SetLastDefaultText(m_pRichEdit->GetDefaultText());
+            //仅作为占位提示文字显示，不修改热键值
+            m_pRichEdit->SetPromptText(strValue);
         }
     }
     else if (strName == _T("default_text_id")) {
         if (m_pRichEdit != nullptr) {
-            m_pRichEdit->SetDefaultTextId(strValue);
-            m_pRichEdit->SetTextId(strValue);
-            m_pRichEdit->SetLastDefaultText(m_pRichEdit->GetDefaultText());
+            //仅作为占位提示文字显示，不修改热键值
+            m_pRichEdit->SetPromptTextId(strValue);
         }
     }
     else {
@@ -300,13 +184,21 @@ void HotKey::OnInit()
 
     //以RichEdit控件的焦点作为整个控件的焦点
     pRichEdit->AttachSetFocus([this](const EventArgs&) {
+        //焦点变化后，刷新焦点边框的显示
+        Invalidate();
         SendEvent(kEventSetFocus);
         return true;
         });
     pRichEdit->AttachKillFocus([this](const EventArgs&) {
+        //失去焦点时，结束修饰键的预览状态
+        RestoreDisplayText();
+        Invalidate();
         SendEvent(kEventKillFocus);
         return true;
         });
+
+    //同步显示的文本（初始化前可能已经设置过热键）
+    UpdateDisplayText();
 }
 
 void HotKey::SetFocus()
@@ -314,9 +206,14 @@ void HotKey::SetFocus()
     if (IsVisible() && IsEnabled() && (m_pRichEdit != nullptr)) {
         m_pRichEdit->SetFocus();
     }
-    else {
-        BaseClass::SetFocus();
+}
+
+bool HotKey::IsFocused() const
+{
+    if (BaseClass::IsFocused()) {
+        return true;
     }
+    return (m_pRichEdit != nullptr) && m_pRichEdit->IsFocused();
 }
 
 void HotKey::SetHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers)
@@ -334,17 +231,13 @@ void HotKey::SetHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers)
     if (wModifiers & kHotKey_Ext) {
         wNewModifiers |= (HOTKEYF_EXT);
     }
-    m_pRichEdit->SetHotKey(wVirtualKeyCode, wNewModifiers);
-
-    DString hotKeyName = m_pRichEdit->GetHotKeyName();
-    if (!hotKeyName.empty()) {
-        m_pRichEdit->SetText(hotKeyName);
-    }
+    ApplyHotKey(wVirtualKeyCode, wNewModifiers);
 }
 
 void HotKey::GetHotKey(uint8_t& wVirtualKeyCode, uint8_t& wModifiers) const
 {
-    m_pRichEdit->GetHotKey(wVirtualKeyCode, wModifiers);
+    wVirtualKeyCode = m_wVirtualKeyCode;
+    wModifiers = m_wModifiers;
 }
 
 void HotKey::SetHotKey(uint16_t dwHotKey)
@@ -356,20 +249,30 @@ void HotKey::SetHotKey(uint16_t dwHotKey)
 
 uint16_t HotKey::GetHotKey() const
 {
-    uint8_t wVirtualKeyCode = 0;
-    uint8_t wModifiers = 0;
-    GetHotKey(wVirtualKeyCode, wModifiers);
-    return (MAKEWORD(wVirtualKeyCode, wModifiers));
+    return MAKEWORD(m_wVirtualKeyCode, m_wModifiers);
+}
+
+void HotKey::ClearHotKey()
+{
+    ApplyHotKey(0, 0);
 }
 
 DString HotKey::GetHotKeyName() const
 {
-    return m_pRichEdit->GetHotKeyName();
+    return FormatHotKeyName(m_wVirtualKeyCode, m_wModifiers);
 }
 
 bool HotKey::SetHotKeyName(const DString& hotKeyName)
 {
-    std::list<DString> hotKeyList = StringUtil::Split(hotKeyName, _T("+"));
+    DString hotKeyText = hotKeyName;
+    StringUtil::Trim(hotKeyText);
+    if (hotKeyText.empty()) {
+        //空名称：等价于清空热键
+        ClearHotKey();
+        return true;
+    }
+
+    std::list<DString> hotKeyList = StringUtil::Split(hotKeyText, _T("+"));
     for (DString& hotKey : hotKeyList) {
         StringUtil::Trim(hotKey);
         hotKey = StringUtil::MakeLowerString(hotKey);
@@ -405,7 +308,7 @@ bool HotKey::SetHotKeyName(const DString& hotKeyName)
         }
         else {
             ++iter;
-        }        
+        }
     }
     uint8_t wVirtualKeyCode = 0;
     if (!hotKeyList.empty()) {
@@ -446,12 +349,12 @@ bool HotKey::SetHotKeyName(const DString& hotKeyName)
         }
     }
 
-    bool bRet = false;
-    if ((wVirtualKeyCode != 0) || (wModifiers != 0)) {
-        SetHotKey(wVirtualKeyCode, wModifiers);
-        bRet = true;
+    if (wVirtualKeyCode == 0) {
+        //没有主键时（比如仅"Ctrl"），不是有效的热键
+        return false;
     }
-    return bRet;
+    SetHotKey(wVirtualKeyCode, wModifiers);
+    return true;
 }
 
 DString HotKey::GetKeyName(uint8_t wVirtualKeyCode, bool fExtended)
@@ -459,5 +362,77 @@ DString HotKey::GetKeyName(uint8_t wVirtualKeyCode, bool fExtended)
     return Keyboard::GetKeyName((VirtualKeyCode)wVirtualKeyCode, fExtended);
 }
 
-}//namespace ui
+void HotKey::ApplyHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers)
+{
+    if (wVirtualKeyCode == 0) {
+        //虚拟键码为空时，视为清空热键
+        wModifiers = 0;
+    }
+    m_bPreviewing = false;
+    m_wVirtualKeyCode = wVirtualKeyCode;
+    m_wModifiers = wModifiers;
+    UpdateDisplayText();
+    NotifyHotKeyChanged();
+}
 
+void HotKey::UpdateDisplayText()
+{
+    m_bPreviewing = false;
+    if (m_pRichEdit != nullptr) {
+        m_pRichEdit->SetTextNoEvent(GetHotKeyName());
+    }
+}
+
+void HotKey::PreviewHotKey(uint8_t wModifiers)
+{
+    if ((m_pRichEdit == nullptr) || (wModifiers == 0)) {
+        return;
+    }
+    m_bPreviewing = true;
+    m_pRichEdit->SetTextNoEvent(FormatHotKeyName(0, wModifiers));
+}
+
+void HotKey::RestoreDisplayText()
+{
+    if (m_bPreviewing) {
+        UpdateDisplayText();
+    }
+}
+
+void HotKey::NotifyHotKeyChanged()
+{
+    const uint16_t nHotKeyValue = MAKEWORD(m_wVirtualKeyCode, m_wModifiers);
+    if (nHotKeyValue != m_nLastHotKeyValue) {
+        m_nLastHotKeyValue = nHotKeyValue;
+        SendEvent(kEventTextChanged);
+    }
+}
+
+DString HotKey::FormatHotKeyName(uint8_t wVirtualKeyCode, uint8_t wModifiers)
+{
+    DString sKeyName;
+    auto appendKey = [&sKeyName](const DString& sKey) {
+        if (!sKey.empty()) {
+            if (!sKeyName.empty()) {
+                sKeyName += _T(" + ");
+            }
+            sKeyName += sKey;
+        }
+        };
+    if (wModifiers & HOTKEYF_CONTROL) {
+        appendKey(Keyboard::GetKeyName(kVK_CONTROL, false));
+    }
+    if (wModifiers & HOTKEYF_SHIFT) {
+        appendKey(Keyboard::GetKeyName(kVK_SHIFT, false));
+    }
+    if (wModifiers & HOTKEYF_ALT) {
+        appendKey(Keyboard::GetKeyName(kVK_MENU, false));
+    }
+    if ((wVirtualKeyCode != 0) &&
+        (wVirtualKeyCode != kVK_SHIFT) && (wVirtualKeyCode != kVK_CONTROL) && (wVirtualKeyCode != kVK_MENU)) {
+        appendKey(Keyboard::GetKeyName((VirtualKeyCode)wVirtualKeyCode, (wModifiers & HOTKEYF_EXT) != 0));
+    }
+    return sKeyName;
+}
+
+}//namespace ui

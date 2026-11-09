@@ -73,6 +73,9 @@ public:
     void SetTextHAlignType(HorAlignType alignType);
     void SetTextVAlignType(VerAlignType alignType);
 
+    //获取文本横向对齐方式（用于绘制提示文字）
+    HorAlignType GetTextHAlignType() const;
+
     //横向和纵向滚动条设置
     void SetVScrollBar(bool bEnable);
     void SetHScrollBar(bool bEnable);    

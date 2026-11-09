@@ -3143,6 +3143,9 @@ void RichEdit::PaintPromptText(IRender* pRender)
     if (pRender == nullptr) {
         return;
     }
+    if (!m_bAllowPrompt) {
+        return;
+    }
     if (GetTextLength() != 0) {
         return;
     }
@@ -3159,9 +3162,22 @@ void RichEdit::PaintPromptText(IRender* pRender)
     UiRect rc;
     m_pRichHost->GetControlRect(&rc);
 
+    //提示文字与正常文本使用相同的对齐方式（GetControlRect已去除文本内边距）
+    uint32_t uTextStyle = TEXT_NOCLIP;
+    HorAlignType hAlignType = m_pRichHost->GetTextHAlignType();
+    if (hAlignType == HorAlignType::kAlignCenter) {
+        uTextStyle |= TEXT_HCENTER;
+    }
+    else if (hAlignType == HorAlignType::kAlignRight) {
+        uTextStyle |= TEXT_RIGHT;
+    }
+    else {
+        uTextStyle |= TEXT_LEFT;
+    }
+
     DrawStringParam drawParam;
     drawParam.pFont = GetIFontById(m_sFontId.c_str());
-    drawParam.uFormat = TEXT_NOCLIP;
+    drawParam.uFormat = uTextStyle;
     drawParam.textRect = rc;
     drawParam.dwTextColor = GetUiColor(m_sPromptColor.c_str());
 

@@ -684,10 +684,25 @@ The DateTime control (`edit_format="date_calendar"` / `"date_time_calendar"` / `
 ## Attributes of HotKey
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |
-| default_text | | string | Default displayed text |
-| default_text_id | | string | Default displayed text ID |
+| default_text | | string | Placeholder text shown (in gray) when no hot key is set |
+| default_text_id | | string | Placeholder text ID shown (in gray) when no hot key is set |
 
 The HotKey control inherits the `HBox` attributes. For more available attributes, please refer to the `HBox` attributes.
+
+### Interaction behavior of HotKey
+- After the control gets focus, press a key combination to record it, displayed as `Ctrl + C`; a single key without modifiers (e.g., `F5`) is also allowed.
+- Pressing only a modifier key (Ctrl/Shift/Alt) shows a preview only and rolls back on release, so an invalid "modifier-only" hot key is never produced.
+- `Esc` cancels the current input and restores the committed hot key; `Delete`/`Backspace` clears the hot key and restores the placeholder text.
+- The `Win` key and system combinations such as `Alt + F4`, `Alt + Tab`, `Alt + Space` are not recorded.
+- Limited by the framework's focus traversal, `Tab` cannot be used as a hot key (pressing Tab switches focus).
+- On non-Windows platforms (SDL backend) the "extended key" flag cannot be obtained, so the `kHotKey_Ext` bit is always 0.
+
+### C++ interfaces of HotKey
+- `SetHotKey(uint8_t vk, uint8_t modifiers)` / `SetHotKey(uint16_t value)`: sets the hot key; a `vk` of 0 clears it.
+- `GetHotKey(uint8_t& vk, uint8_t& modifiers)` / `GetHotKey()`: reads the virtual key code and modifiers.
+- `ClearHotKey()`: clears the hot key.
+- `GetHotKeyName()` / `SetHotKeyName(name)`: converts between the hot key value and its display name; `SetHotKeyName("")` clears the hot key.
+- `kEventTextChanged` is dispatched whenever the hot key value changes (not repeated for the same value), covering user input, `SetHotKey` and `ClearHotKey`.
 
 ## Attributes of HyperLink
 | Attribute name | Default value | Parameter type | Purpose |

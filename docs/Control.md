@@ -682,10 +682,25 @@ DateTime控件（`edit_format="date_calendar"` / `"date_time_calendar"` / `"time
 ## HotKey的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
-| default_text | | string | 默认显示的文字 |
-| default_text_id | | string | 默认显示的文字ID |
+| default_text | | string | 未设置热键时显示的占位提示文字（灰色显示） |
+| default_text_id | | string | 未设置热键时显示的占位提示文字ID（灰色显示） |
 
 HotKey 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
+
+### HotKey的交互行为
+- 获得焦点后按下组合键即录入热键，显示为 `Ctrl + C` 形式；允许不带修饰键的单独按键（如 `F5`）。
+- 仅按下修饰键（Ctrl/Shift/Alt）时只做预览显示，松开后回退，不会产生"只有修饰键"的无效热键。
+- `Esc` 取消本次输入，恢复为已提交的热键；`Delete`/`Backspace` 清空热键，恢复占位提示。
+- `Win` 键以及 `Alt + F4`、`Alt + Tab`、`Alt + Space` 等系统组合键不会被录制。
+- 受框架焦点切换机制限制，`Tab` 不能作为热键（按 Tab 会切换焦点）。
+- 非 Windows 平台（SDL 后端）无法获取"扩展键"标志，`kHotKey_Ext` 位固定为 0。
+
+### HotKey的C++接口
+- `SetHotKey(uint8_t vk, uint8_t modifiers)` / `SetHotKey(uint16_t value)`：设置热键；`vk` 为 0 时清空热键。
+- `GetHotKey(uint8_t& vk, uint8_t& modifiers)` / `GetHotKey()`：读取虚拟键码与修饰键。
+- `ClearHotKey()`：清空热键。
+- `GetHotKeyName()` / `SetHotKeyName(name)`：热键值与显示名互转；`SetHotKeyName("")` 等价于清空热键。
+- 热键值发生变化时派发 `kEventTextChanged`（相同值不重复派发），可统一监听用户录入、`SetHotKey` 与 `ClearHotKey` 引起的值变化。
 
 ## HyperLink的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |

@@ -62,7 +62,10 @@
     <Class name="property_grid_ip_address" height="100%" width="100%" bkcolor="bg_richedit" border_size="1" border_color="border_richedit_normal"/>
 
     <!--HotKey控件通用样式-->
-    <Class name="property_grid_hot_key" height="100%" width="100%" bkcolor="bg_richedit" border_size="1" border_color="border_richedit_normal"/>
+    <Class name="property_grid_hot_key" height="100%" width="100%" bkcolor="bg_richedit" border_size="1" border_round="3,3"
+           border_color="border_richedit_normal"
+           hovered_border_color="border_richedit_hovered"
+           focused_border_color="border_focus_ring"/>
     <!-- 纯色按钮 -->
     <Class name="property_grid_button" height="100%" width="40" text=". . ." halign="right" valign="center" text_padding="0,0,0,4" font="system_regular_14" normal_text_color="text_btn_normal" disabled_text_color="text_btn_disabled" text_align="hcenter,vcenter" normal_color="bg_btn_normal" hovered_color="bg_btn_hovered" pressed_color="bg_btn_pressed"/>
 
