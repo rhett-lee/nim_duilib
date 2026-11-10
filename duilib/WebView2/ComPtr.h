@@ -284,7 +284,8 @@ public:
         if (!p) {
             return E_POINTER;
         }
-        return QueryInterface(IID_PPV_ARGS(p));
+        //注意：不能对ComPtr*使用IID_PPV_ARGS，这里取内部指针的地址再按IID查询
+        return AsIID<U>(__uuidof(U), reinterpret_cast<void**>(p->GetAddressOf()));
     }
 
     /** 查询接口，获取另一个COM接口

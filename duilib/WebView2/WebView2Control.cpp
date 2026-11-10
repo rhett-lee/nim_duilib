@@ -550,7 +550,7 @@ static bool CaptureWindowBitmap_Win32(HWND hwnd, RECT rect, std::vector<uint8_t>
 
     // 分配内存并获取位图数据
     bitmap.resize(width * height * 4);
-    ::GetDIBits(hdcMemDC, hBitmap, 0, height, bitmap.data(), (BITMAPINFO*)&bi, DIB_RGB_COLORS);
+    int nLines = ::GetDIBits(hdcMemDC, hBitmap, 0, height, bitmap.data(), (BITMAPINFO*)&bi, DIB_RGB_COLORS);
 
     // 清理资源
     ::SelectObject(hdcMemDC, hOldObj);
@@ -559,7 +559,8 @@ static bool CaptureWindowBitmap_Win32(HWND hwnd, RECT rect, std::vector<uint8_t>
     ::ReleaseDC(nullptr, hdcScreen);
     ::ReleaseDC(hwnd, hdcWindow);
 
-    return true;
+    //GetDIBits失败时返回0，避免把未填充的图像数据当作有效结果
+    return nLines == height;
 }
 
 /** 抓取网页的预览图（仅控件显示区域，并不是整个网页）
@@ -599,7 +600,10 @@ static bool CaptureWindowBitmap_Win32(WebView2Control* pWebView2Control, std::ve
     ::GetWindowRect(hParentWnd, &rcWindow);
 
     RECT rcValidWebView2Control = { 0, 0, 0, 0 };
-    ::IntersectRect(&rcValidWebView2Control, &rcScreenWebView2Control, &rcWindow);
+    if (!::IntersectRect(&rcValidWebView2Control, &rcScreenWebView2Control, &rcWindow)) {
+        //控件完全位于父窗口之外（例如被滚动出可见区域），无需抓取
+        return false;
+    }
 
     HWND hDesktopWnd = ::GetDesktopWindow();
     if (!::IsWindow(hDesktopWnd)) {
@@ -609,9 +613,19 @@ static bool CaptureWindowBitmap_Win32(WebView2Control* pWebView2Control, std::ve
     ::GetWindowRect(hDesktopWnd, &rcDesktop);
 
     RECT rcWebView2Control = { 0, 0, 0, 0 };
-    ::IntersectRect(&rcWebView2Control, &rcScreenWebView2Control, &rcDesktop);
+    if (!::IntersectRect(&rcWebView2Control, &rcValidWebView2Control, &rcDesktop)) {
+        return false;
+    }
 
-    ::ScreenToClient(hDesktopWnd, (LPPOINT)&rcWebView2Control);
+    //注意：ScreenToClient只转换一个点，这里分别转换左上角和右下角
+    POINT ptTopLeft = { rcWebView2Control.left, rcWebView2Control.top };
+    POINT ptBottomRight = { rcWebView2Control.right, rcWebView2Control.bottom };
+    ::ScreenToClient(hDesktopWnd, &ptTopLeft);
+    ::ScreenToClient(hDesktopWnd, &ptBottomRight);
+    rcWebView2Control.left = ptTopLeft.x;
+    rcWebView2Control.top = ptTopLeft.y;
+    rcWebView2Control.right = ptBottomRight.x;
+    rcWebView2Control.bottom = ptBottomRight.y;
     return CaptureWindowBitmap_Win32(hDesktopWnd, rcWebView2Control, bitmap, width, height);
 }
 

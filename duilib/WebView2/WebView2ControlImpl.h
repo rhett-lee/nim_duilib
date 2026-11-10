@@ -229,6 +229,11 @@ private:
     bool m_bInitialized;
     bool m_bNavigating;
 
+    /** 异步初始化回调的存活标志
+        控件析构时置为false，避免尚未执行的异步回调访问已释放的对象
+    */
+    std::shared_ptr<bool> m_bAlive;
+
     //是否启用开发者工具
     bool m_bAreDevToolsEnabled;
     bool m_bAreDevToolsEnabledSet;

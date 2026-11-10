@@ -31,6 +31,7 @@ WebView2Control::Impl::Impl(Control* pControl)
     , m_bInitializing(false)
     , m_bInitialized(false)
     , m_bNavigating(false)
+    , m_bAlive(std::make_shared<bool>(true))
     , m_lastError(S_OK)
     , m_bAreDevToolsEnabled(true)
     , m_bAreDevToolsEnabledSet(false)
@@ -52,6 +53,10 @@ WebView2Control::Impl::Impl(Control* pControl)
 
 WebView2Control::Impl::~Impl()
 {
+    if (m_bAlive != nullptr) {
+        //先标记对象已销毁，防止尚未执行的异步初始化回调访问已释放的内存
+        *m_bAlive = false;
+    }
     Cleanup();
 }
 
@@ -162,13 +167,19 @@ HRESULT WebView2Control::Impl::CreateEnvironmentAsync()
     // 创建WebView2环境
     std::wstring browserExecutableFolderW = StringConvert::TToWString(browserExecutableFolder);
     std::wstring userDataFolderW = StringConvert::TToWString(userDataFolder);
+    //捕获存活标志，防止控件提前析构后回调访问已释放的this
+    std::shared_ptr<bool> bAlive = m_bAlive;
     return CallCreateCoreWebView2EnvironmentWithOptions(
         !browserExecutableFolderW.empty() ? browserExecutableFolderW.c_str() : nullptr,
         !userDataFolderW.empty() ? userDataFolderW.c_str() : nullptr,
         spEnvironmentOptions.Get(),
         ui::ComCallback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler,
                         IID_ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
-            [this](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
+            [this, bAlive](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
+                if ((bAlive == nullptr) || !(*bAlive)) {
+                    //控件已销毁，忽略该回调
+                    return S_OK;
+                }
                 ASSERT(m_spWebView2Environment == nullptr);
                 if (SUCCEEDED(result) && (env != nullptr)) {
                     m_spWebView2Environment = env;
@@ -213,11 +224,17 @@ HRESULT WebView2Control::Impl::CreateControllerAsync()
     }
 
     // 创建WebView2控制器
+    //捕获存活标志，防止控件提前析构后回调访问已释放的this
+    std::shared_ptr<bool> bAlive = m_bAlive;
     return m_spWebView2Environment->CreateCoreWebView2Controller(
         hWnd,
         ui::ComCallback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler,
                         IID_ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
-            [this](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
+            [this, bAlive](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
+                if ((bAlive == nullptr) || !(*bAlive)) {
+                    //控件已销毁，忽略该回调
+                    return S_OK;
+                }
                 ASSERT(m_spWebView2Controller == nullptr);
                 ASSERT(m_spWebView2 == nullptr);
                 bool bInitWebView = false;
@@ -1031,19 +1048,21 @@ void WebView2Control::Impl::AddNewWindowRequestedCallback()
                     args->QueryInterface(IID_ICoreWebView2NewWindowRequestedEventArgs2, (void**)&args2);
                     args->QueryInterface(IID_ICoreWebView2NewWindowRequestedEventArgs3, (void**)&args3);
 
-                    DString sourceFrameName;
+                    //注意：ICoreWebView2NewWindowRequestedEventArgs2::get_Name返回的是"新窗口的名字"，
+                    //而ICoreWebView2FrameInfo::get_Name返回的是"发起弹窗的框架名字"，两者的含义不能互换
+                    DString targetFrameName;
                     if (args2 != nullptr) {                        
                         LPWSTR name = nullptr;
                         args2->get_Name(&name);
                         if (name != nullptr) {
-                            sourceFrameName = StringConvert::WStringToT(std::wstring(name));
+                            targetFrameName = StringConvert::WStringToT(std::wstring(name));
                             ::CoTaskMemFree(name);
                             name = nullptr;
                         }
                     }
 
                     DString sourceUrl;
-                    DString targetFrameName;
+                    DString sourceFrameName;
                     if (args3 != nullptr) {
                         ui::ComPtr<ICoreWebView2FrameInfo> frameInfo;
                         args3->get_OriginalSourceFrameInfo(&frameInfo);
@@ -1051,7 +1070,7 @@ void WebView2Control::Impl::AddNewWindowRequestedCallback()
                             LPWSTR name = nullptr;
                             frameInfo->get_Name(&name);
                             if (name != nullptr) {
-                                targetFrameName = StringConvert::WStringToT(std::wstring(name));
+                                sourceFrameName = StringConvert::WStringToT(std::wstring(name));
                                 ::CoTaskMemFree(name);
                                 name = nullptr;
                             }
@@ -1134,8 +1153,9 @@ HRESULT WebView2Control::Impl::SetHistoryChangedCallback(HistoryChangedCallback 
 
 HRESULT WebView2Control::Impl::SetZoomFactorChangedCallback(ZoomFactorChangedCallback callback)
 {
-    if ((m_zoomFactorChangedToken.value != 0) && (m_spWebView2 != nullptr)) {
-        m_spWebView2->remove_HistoryChanged(m_zoomFactorChangedToken);
+    if ((m_zoomFactorChangedToken.value != 0) && (m_spWebView2Controller != nullptr)) {
+        //缩放比变化事件注册在Controller上，原来误用WebView2的remove_HistoryChanged，导致旧回调无法注销
+        m_spWebView2Controller->remove_ZoomFactorChanged(m_zoomFactorChangedToken);
         m_zoomFactorChangedToken.value = 0;
     }
     m_zoomFactorChangedCallback = callback;

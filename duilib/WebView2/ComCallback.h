@@ -111,6 +111,7 @@ namespace ui
                 AddRef();
                 return S_OK;
             }
+            *ppv = nullptr;//遵循COM约定：查询失败时输出参数置空
             return E_NOINTERFACE;
         }
 
@@ -150,6 +151,7 @@ namespace ui
                 AddRef();
                 return S_OK;
             }
+            *ppv = nullptr;//遵循COM约定：查询失败时输出参数置空
             return E_NOINTERFACE;
         }
 
@@ -190,6 +192,7 @@ namespace ui
                 AddRef();
                 return S_OK;
             }
+            *ppv = nullptr;//遵循COM约定：查询失败时输出参数置空
             return E_NOINTERFACE;
         }
 
@@ -231,6 +234,7 @@ namespace ui
                 AddRef();
                 return S_OK;
             }
+            *ppv = nullptr;//遵循COM约定：查询失败时输出参数置空
             return E_NOINTERFACE;
         }
 
@@ -273,6 +277,7 @@ namespace ui
                 AddRef();
                 return S_OK;
             }
+            *ppv = nullptr;//遵循COM约定：查询失败时输出参数置空
             return E_NOINTERFACE;
         }
 
@@ -316,6 +321,7 @@ namespace ui
                 AddRef();
                 return S_OK;
             }
+            *ppv = nullptr;//遵循COM约定：查询失败时输出参数置空
             return E_NOINTERFACE;
         }
 
