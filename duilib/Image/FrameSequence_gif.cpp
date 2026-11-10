@@ -117,6 +117,10 @@ bool FrameSequence_gif::Init(GifFileType* gif)
 void FrameSequence_gif::Clear()
 {
     mGif = nullptr;
+    //重置解析状态，避免复用本对象加载新的GIF时，残留旧的循环次数、背景色和缓存帧号
+    mLoopCount = -1;
+    mBgColor = TRANSPARENT;
+    mPreserveBufferFrame = -1;
     if (mPreservedFrames != nullptr) {
         delete[] mPreservedFrames;
         mPreservedFrames = nullptr;
@@ -215,9 +219,16 @@ bool FrameSequence_gif::DrawFrame(int frameNr, Color8888* outputPtr, int outputP
     if (!gif) {
         return false;
     }
+    //帧号越界保护：避免访问 gif->SavedImages 时越界
+    if ((frameNr < 0) || (frameNr >= GetFrameCount())) {
+        return false;
+    }
 
     const int height = GetHeight();
     const int width = GetWidth();
+    if ((width <= 0) || (height <= 0)) {
+        return false;
+    }
 
     GraphicsControlBlock gcb;
 

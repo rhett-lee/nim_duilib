@@ -43,7 +43,8 @@ std::unique_ptr<IImage> ImageDecoder_Icon::LoadImageData(const ImageDecodeParam&
         uint32_t nIconID = iconManager.GetIconID(imageFilePath);
         if (!iconManager.IsImageString(nIconID)) {
             IconBitmapData bitmapData;
-            if (iconManager.GetIconBitmapData(nIconID, bitmapData)) {
+            if (iconManager.GetIconBitmapData(nIconID, bitmapData) && !bitmapData.m_bitmapData.empty() &&
+                (bitmapData.m_nBitmapWidth > 0) && (bitmapData.m_nBitmapHeight > 0)) {
                 float fImageSizeScale = decodeParam.m_fImageSizeScale;
                 pImage = Image_Bitmap::MakeImage(bitmapData.m_nBitmapWidth, bitmapData.m_nBitmapHeight, bitmapData.m_bitmapData.data(), fImageSizeScale);
             }

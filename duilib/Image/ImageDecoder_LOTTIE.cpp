@@ -35,7 +35,17 @@ bool ImageDecoder_LOTTIE::CanDecode(const uint8_t* data, size_t dataLen) const
     if ((data == nullptr) || (dataLen == 0)) {
         return false;
     }
-    return true;
+    //LOTTIE是JSON格式：跳过UTF-8 BOM和空白字符后，第一个有效字符应该是'{'
+    //这样可避免把其他格式(如BMP)的图片数据误判为LOTTIE格式，减少无用的解码尝试
+    size_t nPos = 0;
+    if ((dataLen >= 3) && (data[0] == 0xEF) && (data[1] == 0xBB) && (data[2] == 0xBF)) {
+        nPos = 3;
+    }
+    while ((nPos < dataLen) &&
+           ((data[nPos] == ' ') || (data[nPos] == '\t') || (data[nPos] == '\r') || (data[nPos] == '\n'))) {
+        ++nPos;
+    }
+    return (nPos < dataLen) && (data[nPos] == '{');
 }
 
 std::unique_ptr<IImage> ImageDecoder_LOTTIE::LoadImageData(const ImageDecodeParam& decodeParam)

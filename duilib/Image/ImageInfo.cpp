@@ -59,15 +59,15 @@ std::shared_ptr<IBitmap> ImageInfo::GetSvgBitmap(const UiRect& rcDest, UiRect& r
         return nullptr;
     }
     ASSERT((rcSource.Width() > 0) && (rcSource.Height() > 0));
-    if ((rcSource.Width() <= 0) && (rcSource.Height() <= 0)) {
+    if ((rcSource.Width() <= 0) || (rcSource.Height() <= 0)) {
         return nullptr;
     }
     ASSERT((pSvgImage->GetWidth() > 0) && (pSvgImage->GetHeight() > 0));
-    if ((pSvgImage->GetWidth() == 0) && (pSvgImage->GetHeight() == 0)) {
+    if ((pSvgImage->GetWidth() == 0) || (pSvgImage->GetHeight() == 0)) {
         return nullptr;
     }
     ASSERT((m_nImageInfoWidth > 0) && (m_nImageInfoHeight > 0));
-    if ((m_nImageInfoWidth <= 0) && (m_nImageInfoHeight <= 0)) {
+    if ((m_nImageInfoWidth <= 0) || (m_nImageInfoHeight <= 0)) {
         return nullptr;
     }
 
@@ -88,7 +88,7 @@ std::shared_ptr<IBitmap> ImageInfo::GetSvgBitmap(float fImageSizeScale, Control*
         return nullptr;
     }
     ASSERT((m_nImageInfoWidth > 0) && (m_nImageInfoHeight > 0));
-    if ((m_nImageInfoWidth <= 0) && (m_nImageInfoHeight <= 0)) {
+    if ((m_nImageInfoWidth <= 0) || (m_nImageInfoHeight <= 0)) {
         return nullptr;
     }
 
@@ -208,7 +208,7 @@ std::shared_ptr<IAnimationImage> ImageInfo::GetAnimationImage(uint32_t nFrameInd
     if (nFrameCount == 0) {
         return nullptr;
     }
-    ASSERT(nFrameIndex <= nFrameCount);
+    ASSERT(nFrameIndex < nFrameCount);
     if (nFrameIndex >= nFrameCount) {
         return nullptr;
     }
@@ -318,7 +318,7 @@ bool ImageInfo::SetImageData(const ImageLoadParam& loadParam,
     }
 
     const int32_t nImageWidth = pImageData->GetWidth();
-    const int32_t nImageHeight = pImageData->GetWidth();
+    const int32_t nImageHeight = pImageData->GetHeight();
     ASSERT((nImageWidth > 0) && (nImageHeight > 0));
     if ((nImageWidth <= 0) || (nImageHeight <= 0)) {
         return false;

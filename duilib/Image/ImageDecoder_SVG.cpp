@@ -7,6 +7,7 @@
 #include "duilib/Utils/StringConvert.h"
 #include "duilib/Core/GlobalManager.h"
 #include <cmath>
+#include <cstring>
 
 #if defined(__GNUC__) && !defined(__clang__)
     #pragma GCC diagnostic push
@@ -74,6 +75,10 @@ namespace NanoSvgDecoder
         }
 
         std::unique_ptr<NSVGimage, SvgDeleter> svg((NSVGimage*)svgData);
+        if (svg == nullptr) {
+            //解析失败（XML格式非法时返回空指针），避免解引用空指针
+            return false;
+        }
         int width = (int)std::ceil(svg->width);
         int height = (int)std::ceil(svg->height);
         if (width <= 0 || height <= 0) {
@@ -113,7 +118,7 @@ public:
         const uint32_t nImageWidth = szImageSize.cx > 0 ? (uint32_t)szImageSize.cx : m_nImageWidth;
         const uint32_t nImageHeight = szImageSize.cy > 0 ? (uint32_t)szImageSize.cy : m_nImageHeight;
         ASSERT((nImageWidth > 0) && (nImageHeight > 0));
-        if ((nImageWidth <= 0) || (nImageHeight <= 0)) {
+        if ((nImageWidth == 0) || (nImageHeight == 0)) {
             return nullptr;
         }
 
@@ -367,7 +372,7 @@ public:
         //计算缩放后的大小
         nImageWidth = ImageUtil::GetScaledImageSize((uint32_t)nSvgImageWidth, fImageSizeScale);
         nImageHeight = ImageUtil::GetScaledImageSize((uint32_t)nSvgImageHeight, fImageSizeScale);
-        ASSERT((nImageHeight > 0) && (nImageHeight > 0));
+        ASSERT((nImageWidth > 0) && (nImageHeight > 0));
         if ((nImageWidth < 1) || (nImageHeight < 1)) {
             return nullptr;
         }
@@ -431,12 +436,8 @@ bool ImageDecoder_SVG::CanDecode(const uint8_t* data, size_t dataLen) const
     if ((data == nullptr) || (dataLen < 8)) {
         return false;
     }
-
-    // 转换为字符串进行检查
-    std::string headerStr(reinterpret_cast<const char*>(data), dataLen);
-
-    // 检查常见的SVG开头
-    return (headerStr.substr(0, 5) == "<?xml") || (headerStr.substr(0, 4) == "<svg");
+    //只比较开头的几个字符即可，避免把整个文件复制为字符串
+    return (memcmp(data, "<?xml", 5) == 0) || (memcmp(data, "<svg", 4) == 0);
 }
 
 std::unique_ptr<IImage> ImageDecoder_SVG::LoadImageData(const ImageDecodeParam& decodeParam)

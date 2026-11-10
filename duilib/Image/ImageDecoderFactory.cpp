@@ -20,6 +20,7 @@ bool ImageDecoderFactory::AddImageDecoder(const std::shared_ptr<IImageDecoder>& 
     auto iter = std::find(m_imageDecoders.begin(), m_imageDecoders.end(), pImageDecoder);
     if (iter == m_imageDecoders.end()) {
         m_imageDecoders.push_back(pImageDecoder);
+        return true;
     }
     return false;
 }

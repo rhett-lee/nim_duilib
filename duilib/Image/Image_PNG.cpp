@@ -321,6 +321,9 @@ public:
     //每一帧的播放延迟时间，毫秒
     std::vector<int32_t> m_framesDelayMs;
 
+    //解码单帧时使用的临时像素缓冲（复用，避免每帧解码都重新分配内存）
+    std::vector<uint8_t> m_framePixelBuffer;
+
 public:
     //图片数据解码器
     std::unique_ptr<APngDecoder> m_pImageDecoder;
@@ -400,6 +403,10 @@ public:
     void ClearImageData()
     {
         m_pImageDecoder.reset();
+        if (!m_framePixelBuffer.empty()) {
+            std::vector<uint8_t> framePixelBuffer;
+            m_framePixelBuffer.swap(framePixelBuffer);
+        }
         if (!m_fileData.empty()) {
             std::vector<uint8_t> fileData;
             m_fileData.swap(fileData);
@@ -548,8 +555,10 @@ AnimationFramePtr Image_PNG::DecodeImageFrame()
         if (pFrameData->m_pBitmap != nullptr) {
             //使用 size_t 避免溢出
             size_t nBitmapSize = (size_t)pngDecoder.GetWidth() * (size_t)pngDecoder.GetHeight() * 4;
-            std::vector<uint8_t> bitmapData;
-            bitmapData.resize(nBitmapSize);
+            std::vector<uint8_t>& bitmapData = m_impl->m_framePixelBuffer;
+            if (bitmapData.size() != nBitmapSize) {
+                bitmapData.resize(nBitmapSize);
+            }
             if (pngDecoder.GetFrameDataPremultiplied(nFrameIndex, bitmapData.data())) {
                 bool bRet = pFrameData->m_pBitmap->Init(pngDecoder.GetWidth(), pngDecoder.GetHeight(), bitmapData.data(), fImageSizeScale);
                 if (!bRet) {

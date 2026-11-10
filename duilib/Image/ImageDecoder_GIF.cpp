@@ -4,6 +4,7 @@
 #include "duilib/Image/Image_GIF.h"
 #include "duilib/Image/Image_Animation.h"
 #include "duilib/Utils/FilePathUtil.h"
+#include <cstring>
 
 namespace ui
 {
@@ -32,32 +33,14 @@ bool ImageDecoder_GIF::CanDecode(const DString& imageFilePath) const
 
 bool ImageDecoder_GIF::CanDecode(const uint8_t* data, size_t dataLen) const
 {
-    std::vector<uint8_t> gifSignature1 = { 0x47, 0x49, 0x46, 0x38, 0x37, 0x61 }; // GIF87a
-    std::vector<uint8_t> gifSignature2 = { 0x47, 0x49, 0x46, 0x38, 0x39, 0x61 }; // GIF89a
-    //GIF格式签名
-    bool bGIF87a = false;
-    bool bGIF89a = false;
-    if ((dataLen > gifSignature1.size()) && (data != nullptr)) {
-        bGIF87a = true;
-        for (size_t i = 0; i < gifSignature1.size(); ++i) {
-            if (data[i] != gifSignature1[i]) {
-                bGIF87a = false;
-                break;
-            }
-        }
+    //GIF87a/GIF89a格式签名
+    static const uint8_t gifSignature1[] = { 0x47, 0x49, 0x46, 0x38, 0x37, 0x61 };
+    static const uint8_t gifSignature2[] = { 0x47, 0x49, 0x46, 0x38, 0x39, 0x61 };
+    if ((data == nullptr) || (dataLen < sizeof(gifSignature1))) {
+        return false;
     }
-    if (!bGIF87a) {
-        if ((dataLen > gifSignature2.size()) && (data != nullptr)) {
-            bGIF89a = true;
-            for (size_t i = 0; i < gifSignature2.size(); ++i) {
-                if (data[i] != gifSignature2[i]) {
-                    bGIF89a = false;
-                    break;
-                }
-            }
-        }
-    }
-    return bGIF87a || bGIF89a;
+    return (memcmp(data, gifSignature1, sizeof(gifSignature1)) == 0) ||
+           (memcmp(data, gifSignature2, sizeof(gifSignature2)) == 0);
 }
 
 std::unique_ptr<IImage> ImageDecoder_GIF::LoadImageData(const ImageDecodeParam& decodeParam)

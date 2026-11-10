@@ -3,6 +3,7 @@
 #include "duilib/Image/Image_Bitmap.h"
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Utils/StringUtil.h"
+#include <cstring>
 
 #ifdef DUILIB_IMAGE_SUPPORT_JPEG_TURBO
 
@@ -23,35 +24,20 @@ DString ImageDecoder_JPEG::GetFormatName() const
 
 bool ImageDecoder_JPEG::CanDecode(const DString& imageFilePath) const
 {
-    DString fileExtentions = _T("JPG;JPEG;JPE;JIF;JFIF;JFI");
     DString fileExt = FilePathUtil::GetFileExtension(imageFilePath);
     StringUtil::MakeUpperString(fileExt);
-
-    std::list<DString> fileExtList = StringUtil::Split(fileExtentions, _T(";"));
-    for (DString& ext : fileExtList) {
-        StringUtil::MakeUpperString(ext);
-        if (fileExt == ext) {
-            return true;
-        }
-    }    
-    return false;
+    return (fileExt == _T("JPG")) || (fileExt == _T("JPEG")) || (fileExt == _T("JPE")) ||
+           (fileExt == _T("JIF")) || (fileExt == _T("JFIF")) || (fileExt == _T("JFI"));
 }
 
 bool ImageDecoder_JPEG::CanDecode(const uint8_t* data, size_t dataLen) const
 {
     //JPEG格式签名
-    std::vector<uint8_t> jpegSignature = { 0xFF, 0xD8, 0xFF };
-    bool bJPEG = false;
-    if ((dataLen > jpegSignature.size()) && (data != nullptr)) {
-        bJPEG = true;
-        for (size_t i = 0; i < jpegSignature.size(); ++i) {
-            if (data[i] != jpegSignature[i]) {
-                bJPEG = false;
-                break;
-            }
-        }
+    static const uint8_t jpegSignature[] = { 0xFF, 0xD8, 0xFF };
+    if ((data == nullptr) || (dataLen < sizeof(jpegSignature))) {
+        return false;
     }
-    return bJPEG;
+    return memcmp(data, jpegSignature, sizeof(jpegSignature)) == 0;
 }
 
 std::unique_ptr<IImage> ImageDecoder_JPEG::LoadImageData(const ImageDecodeParam& decodeParam)

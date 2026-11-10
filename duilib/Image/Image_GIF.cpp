@@ -179,22 +179,29 @@ static AnimationFramePtr UiGifToRgbaFrames(FrameSequence_gif& gif,
     pFrameData->m_pBitmap = pBitmap;
 
     // 获取当前帧的数据
-    gif.DrawFrame(nFrameIndex, (Color8888*)canvas.data(), outputPixelStride, nPrevFrameIndex);
+    if (!gif.DrawFrame(nFrameIndex, (Color8888*)canvas.data(), outputPixelStride, nPrevFrameIndex)) {
+        return nullptr;
+    }
 
     // 更新位图数据
+    bool bInitOk = false;
 #ifdef DUILIB_BUILD_FOR_WIN
-    std::vector<UiGifRGBA> canvasWin = canvas;
-    //交换R和G，Windows平台使用ABGR格式
-    for (int y = 0; y < nImageHeight; y++) {
-        for (int x = 0; x < nImageWidth; x++) {
-            UiGifRGBA& pixelColor = canvasWin[y * outputPixelStride + x];
-            std::swap(pixelColor.b, pixelColor.r);
-        }
+    //Windows平台使用BGRA格式：先原地交换R和B通道，生成位图后再交换回来
+    //（避免每帧都复制一整幅画布，减少内存分配与数据拷贝）
+    for (auto& pixelColor : canvas) {
+        std::swap(pixelColor.b, pixelColor.r);
     }
-    pFrameData->m_pBitmap->Init(nImageWidth, nImageHeight, canvasWin.data(), fImageSizeScale);
+    bInitOk = pFrameData->m_pBitmap->Init(nImageWidth, nImageHeight, canvas.data(), fImageSizeScale);
+    for (auto& pixelColor : canvas) {
+        std::swap(pixelColor.b, pixelColor.r);
+    }
 #else
-    pFrameData->m_pBitmap->Init(nImageWidth, nImageHeight, canvas.data(), fImageSizeScale);
+    bInitOk = pFrameData->m_pBitmap->Init(nImageWidth, nImageHeight, canvas.data(), fImageSizeScale);
 #endif
+    if (!bInitOk) {
+        //位图初始化失败，视为解码失败
+        return nullptr;
+    }
 
     nPrevFrameIndex = nFrameIndex;
     return pFrameData;
@@ -392,6 +399,7 @@ bool Image_GIF::LoadImageFile(std::vector<uint8_t>& fileData,
     if (fileData.empty() && imageFilePath.IsEmpty()) {
         return false;
     }
+    m_impl->m_bDecodeError = false;
     m_impl->m_bAssertEnabled = bAssertEnabled;
     m_impl->m_imageFilePath = imageFilePath;
     m_impl->m_fileData.clear();
@@ -623,7 +631,8 @@ bool Image_GIF::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSiz
                                                    m_impl->m_nLastFrameIndex);
 
             if (pNewAnimationFrame != nullptr) {
-                pNewAnimationFrame->SetDelayMs(GetFrameDelayMs(nFrameIndex));
+                //注意：这里的延迟时间是当前正在解码的帧(nInitFrameIndex)的延迟，不能使用目标帧的延迟
+                pNewAnimationFrame->SetDelayMs(GetFrameDelayMs(nInitFrameIndex));
                 m_impl->m_frames.push_back(pNewAnimationFrame);
             }
             else {

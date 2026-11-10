@@ -339,7 +339,7 @@ bool Image_WEBP::DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> 
             bRet = false;
             m_impl->m_bDecodeError = true;
             if (bDecodeError != nullptr) {
-                *bDecodeError = false;
+                *bDecodeError = true;
             }
             break;
         }

@@ -316,8 +316,15 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
             }
         }
         else if ((name == _T("fade")) || (name == _T("alpha"))) {
-            //图片的透明度
-            imageAttribute.m_bFade = (uint8_t)StringUtil::StringToInt32(value);
+            //图片的透明度（取值范围：0-255，越界时进行截断，避免uint8_t溢出）
+            int32_t nFade = StringUtil::StringToInt32(value);
+            if (nFade < 0) {
+                nFade = 0;
+            }
+            else if (nFade > 0xFF) {
+                nFade = 0xFF;
+            }
+            imageAttribute.m_bFade = (uint8_t)nFade;
         }
         else if (name == _T("xtiled")) {
             //横向平铺
@@ -379,7 +386,8 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
         }
         else if ((name == _T("icon_size")) || (name == _T("iconsize"))) {
             //指定加载ICO文件的图片大小(仅当图片文件是ICO文件时有效)
-            imageAttribute.m_nIconSize = (uint32_t)StringUtil::StringToInt32(value);
+            const int32_t nIconSize = StringUtil::StringToInt32(value);
+            imageAttribute.m_nIconSize = nIconSize > 0 ? (uint32_t)nIconSize : 0;
         }
         else if (name == _T("icon_as_animation")) {
             //如果是ICO文件，指定是否按多帧图片加载（按动画图片显示）
@@ -394,7 +402,11 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
         }
         else if (name == _T("pag_max_frame_rate")) {
             //如果是PAG文件，用于指定动画的帧率，默认为30.0f
-            imageAttribute.m_fPagMaxFrameRate = (float)StringUtil::StringToInt32(value);
+            //注意：此处允许小数（如12.5），只忽略非法值（负数或非数字），避免解码异常
+            const double fFrameRate = StringUtil::StringToDouble(value);
+            if (fFrameRate >= 0.0) {
+                imageAttribute.m_fPagMaxFrameRate = (float)fFrameRate;
+            }
         }
         else if ((name == _T("play_count")) || (name == _T("playcount"))) {
             //如果是动画图片，取值代表的含义

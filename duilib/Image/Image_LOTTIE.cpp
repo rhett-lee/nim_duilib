@@ -55,8 +55,14 @@ static bool DecodeImage_LOTTIE(sk_sp<skottie::Animation>& pSkAnimation,
     SkCanvas canvas(skBitmap);
     SkRect dst = SkRect::MakeLTRB(0.0f, 0.0f, (float)nImageWidth, (float)nImageHeight);
     pSkAnimation->render(&canvas, &dst);
+    if (skBitmap.getPixels() == nullptr) {
+        //像素内存分配失败
+        return false;
+    }
     if (!pBitmap->Init(nImageWidth, nImageHeight, skBitmap.getPixels())) {
+        //位图初始化失败，返回失败，避免上层拿到没有位图数据的帧
         pBitmap.reset();
+        return false;
     }
     auto pFrameData = std::make_shared<IAnimationImage::AnimationFrame>();
     pFrameData->m_nFrameIndex = nFrame;
@@ -64,9 +70,6 @@ static bool DecodeImage_LOTTIE(sk_sp<skottie::Animation>& pSkAnimation,
     pFrameData->m_nOffsetY = 0;
     pFrameData->m_bDataPending = false;
     pFrameData->m_pBitmap = pBitmap;
-    if (pBitmap == nullptr) {
-        pFrameData->m_bDataError = true;
-    }
     frame = pFrameData;
     return true;
 }

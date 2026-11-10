@@ -4,6 +4,7 @@
 #include "duilib/Image/Image_PNG.h"
 #include "duilib/Image/Image_Animation.h"
 #include "duilib/Utils/FilePathUtil.h"
+#include <cstring>
 
 namespace ui
 {
@@ -33,18 +34,11 @@ bool ImageDecoder_PNG::CanDecode(const DString& imageFilePath) const
 bool ImageDecoder_PNG::CanDecode(const uint8_t* data, size_t dataLen) const
 {
     //PNG/APNG格式签名
-    std::vector<uint8_t> pngSignature = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };    
-    bool bPNG = false;
-    if ((dataLen > pngSignature.size()) && (data != nullptr)) {
-        bPNG = true;
-        for (size_t i = 0; i < pngSignature.size(); ++i) {
-            if (data[i] != pngSignature[i]) {
-                bPNG = false;
-                break;
-            }
-        }
+    static const uint8_t pngSignature[] = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
+    if ((data == nullptr) || (dataLen < sizeof(pngSignature))) {
+        return false;
     }
-    return bPNG;
+    return memcmp(data, pngSignature, sizeof(pngSignature)) == 0;
 }
 
 std::unique_ptr<IImage> ImageDecoder_PNG::LoadImageData(const ImageDecodeParam& decodeParam)

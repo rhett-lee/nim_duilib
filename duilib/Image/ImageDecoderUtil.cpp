@@ -285,32 +285,40 @@ namespace CxImageLoader
             UiImageData& bitmapData = imageData[index];
             bitmapData.m_imageData.resize((size_t)nHeight * nWidth * 4);
             RGBQUAD* pBit = (RGBQUAD*)bitmapData.m_imageData.data();
+            //这些属性在像素循环中不会变化，提前获取，避免每个像素都重复调用
+            const bool bAlphaIsValid = cxFrame->AlphaIsValid();
+            const bool bIsTransparent = cxFrame->IsTransparent();
+            const bool bAlphaPaletteEnabled = cxFrame->AlphaPaletteIsEnabled();
+            const bool bHasTransColor = (cxFrame->GetTransIndex() >= 0) &&//透明色索引，-1表示无透明度
+                                        (cxFrame->GetBpp() < 24) &&//1, 4, 8, 24
+                                        (cxFrame->GetNumColors() != 0) &&//2, 16, 256; 0 for RGB images.
+                                        (cxFrame->GetDIB() != nullptr);
+            RGBQUAD transColor{};
+            if (bHasTransColor) {
+                transColor = cxFrame->GetTransColor();
+            }
             for (lPy = 0; lPy < (int32_t)nHeight; ++lPy) {
                 for (lPx = 0; lPx < (int32_t)nWidth; ++lPx) {
                     *pBit = cxFrame->GetPixelColor(lPx, lPy, true);
-                    if (!cxFrame->AlphaIsValid() && !cxFrame->IsTransparent() && !cxFrame->AlphaPaletteIsEnabled()) {
+                    if (!bAlphaIsValid && !bIsTransparent && !bAlphaPaletteEnabled) {
                         //如果不含有Alpha通道，则填充A值为固定值
                         pBit->rgbReserved = 255;
                     }
                     else {
                         //图片含有Alpha通道
                         uint8_t a = pBit->rgbReserved;
-                        if (!cxFrame->AlphaIsValid()) {
+                        if (!bAlphaIsValid) {
                             a = 255;
                         }
 
-                        int32_t transIndex = cxFrame->GetTransIndex();//Gets the index used for transparency. Returns -1 for no transparancy.
-                        int32_t bitCount = cxFrame->GetBpp();//1, 4, 8, 24.
-                        int32_t numColors = cxFrame->GetNumColors();//2, 16, 256; 0 for RGB images.
-                        if ((transIndex >= 0) && (bitCount < 24) && (numColors != 0) && (cxFrame->GetDIB() != nullptr)) {
-                            RGBQUAD transColor = cxFrame->GetTransColor();
+                        if (bHasTransColor) {
                             if ((transColor.rgbRed == pBit->rgbRed) &&
                                 (transColor.rgbGreen == pBit->rgbGreen) &&
                                 (transColor.rgbBlue == pBit->rgbBlue)) {
                                 //透明色，标记Alpha通道为全透明
                                 a = 0;
                             }
-                        }                                                                
+                        }
                         pBit->rgbReserved = a;
 
                         if ((a > 0) && (a < 255)) {
@@ -319,12 +327,8 @@ namespace CxImageLoader
                             pBit->rgbBlue = pBit->rgbBlue * a / 255;
                         }
                     }
-#ifdef DUILIB_BUILD_FOR_WIN
-                    //数据格式：Window平台BGRA，其他平台RGBA
-                    bitmapData.m_imageDataType = UiImageDataType::kBGRA;
-#else
-                    //其他平台，交换R和B值
-                    bitmapData.m_imageDataType = UiImageDataType::kRGBA;
+#ifndef DUILIB_BUILD_FOR_WIN
+                    //其他平台，交换R和B值（Windows平台的数据格式为BGRA，无需交换）
                     uint8_t r = pBit->rgbRed;
                     pBit->rgbRed = pBit->rgbBlue;
                     pBit->rgbBlue = r;
@@ -332,6 +336,12 @@ namespace CxImageLoader
                     ++pBit;
                 }
             }
+#ifdef DUILIB_BUILD_FOR_WIN
+            //数据格式：Window平台BGRA，其他平台RGBA
+            bitmapData.m_imageDataType = UiImageDataType::kBGRA;
+#else
+            bitmapData.m_imageDataType = UiImageDataType::kRGBA;
+#endif
             bitmapData.m_imageWidth = nWidth;
             bitmapData.m_imageHeight = nHeight;
         }
@@ -370,7 +380,7 @@ namespace CxImageLoader
                     if ((!isIconSizeValid || (icoData.m_imageWidth == nBestIconSize)) && (numColors == color)) {
                         UiImageData oneData = icoData;
                         imageData.resize(1);
-                        imageData[0] = oneData;
+                        imageData[0] = std::move(oneData);
                         isFound = true;
                         break;
                     }
@@ -382,7 +392,7 @@ namespace CxImageLoader
             if (imageData.size() > 1) {
                 UiImageData oneData = imageData.front();
                 imageData.resize(1);
-                imageData[0] = oneData;
+                imageData[0] = std::move(oneData);
             }
         }
 

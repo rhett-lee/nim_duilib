@@ -180,8 +180,9 @@ bool ImageLoadParam::GetScaledFixedSize(const DString& srcSize, uint32_t& nScale
         }
         else {
             //设置固定值
-            nScaledSize = StringUtil::StringToInt32(srcSize.c_str());
-            if (nScaledSize > 0) {
+            const int32_t nValue = StringUtil::StringToInt32(srcSize.c_str());
+            if (nValue > 0) {
+                nScaledSize = (uint32_t)nValue;
                 uint32_t nLoadDpiScale = GetLoadDpiScale();
                 if ((nLoadDpiScale > 0) && (nLoadDpiScale != 100)) {
                     if (IsImageDpiScaleEnabled()) {

@@ -424,7 +424,10 @@ std::shared_ptr<IBitmap> Image_JPEG::DecodeBitmap() const
             pBitmap->UnLockPixelBits();
         }
         else {
-            // 解码失败：丢弃位图，RAII 会负责解锁
+            // 解码失败：先解锁，再丢弃位图
+            // （必须先解锁并清除标记，否则 RAII 析构时会对已释放的位图调用 UnLockPixelBits）
+            bUnlockNeeded = false;
+            pBitmap->UnLockPixelBits();
             pJpegBitmap.reset();
         }
     }

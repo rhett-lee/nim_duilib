@@ -257,6 +257,10 @@ bool APngDecoder::LoadPng(IPngReader* reader, bool bLoadAllFrames)
         m_loopCount = (numPlays > (png_uint_32)INT32_MAX) ? 0 : (int32_t)numPlays;
 
         m_frameDelays = std::make_unique<uint16_t[]>(m_frameCount);
+        if (!m_loadAllFrames && (m_frameCount > 0)) {
+            //只加载第一帧时，不会读取fcTL中的延迟，这里使用默认值，避免返回未初始化的数据
+            m_frameDelays[0] = 100;
+        }
 
         // 安全计算所有帧数据总大小（避免 m_frameSize * m_frameCount 溢出）
         size_t totalFrameDataSize = m_frameSize * (size_t)numFrames;
@@ -311,8 +315,9 @@ bool APngDecoder::DecodeNextFrame() {
                 png_uint_16 delayNum = m_infoPtr->next_frame_delay_num;
                 png_uint_16 delayDen = m_infoPtr->next_frame_delay_den;
                 if (delayDen == 0) delayDen = 100;
-                m_frameDelays[m_currentFrame] = static_cast<uint16_t>(
-                    (delayNum * 1000.0) / delayDen);
+                const double delayMs = (delayNum * 1000.0) / delayDen;
+                //限制在uint16_t范围内，避免数值溢出后变成很小的值
+                m_frameDelays[m_currentFrame] = (delayMs >= 65535.0) ? 65535 : static_cast<uint16_t>(delayMs);
             }
             else {
                 m_frameDelays[m_currentFrame] = 100;
@@ -531,8 +536,8 @@ bool APngDecoder::GetFrameDataPremultiplied(int32_t frameIndex, uint8_t* outData
 void APngDecoder::Destroy()
 {
     // 释放libpng资源
-    if (m_pngPtr && m_infoPtr) {
-        png_destroy_read_struct(&m_pngPtr, &m_infoPtr, nullptr);
+    if (m_pngPtr != nullptr) {
+        png_destroy_read_struct(&m_pngPtr, (m_infoPtr != nullptr) ? &m_infoPtr : nullptr, nullptr);
         m_pngPtr = nullptr;
         m_infoPtr = nullptr;
     }

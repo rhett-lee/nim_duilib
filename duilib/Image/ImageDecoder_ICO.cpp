@@ -6,6 +6,7 @@
 #include "duilib/Image/Image_ICO.h"
 #include "duilib/Image/Image_Animation.h"
 #include "duilib/Utils/FilePathUtil.h"
+#include <cstring>
 
 namespace ui
 {
@@ -34,33 +35,14 @@ bool ImageDecoder_ICO::CanDecode(const DString& imageFilePath) const
 
 bool ImageDecoder_ICO::CanDecode(const uint8_t* data, size_t dataLen) const
 {
-    //ICO格式签名
-    bool bICO = false;
-    bool bCur = false;
-    std::vector<uint8_t> icoSignature = { 0x00, 0x00, 0x01, 0x00 };
-    if ((dataLen > icoSignature.size()) && (data != nullptr)) {
-        bICO = true;
-        for (size_t i = 0; i < icoSignature.size(); ++i) {
-            if (data[i] != icoSignature[i]) {
-                bICO = false;
-                break;
-            }
-        }
+    //ICO/CUR格式签名
+    static const uint8_t icoSignature[] = { 0x00, 0x00, 0x01, 0x00 };
+    static const uint8_t curSignature[] = { 0x00, 0x00, 0x02, 0x00 };
+    if ((data == nullptr) || (dataLen < sizeof(icoSignature))) {
+        return false;
     }
-    if (!bICO) {
-        //CUR格式签名
-        std::vector<uint8_t> curSignature = { 0x00, 0x00, 0x02, 0x00 };
-        if ((dataLen > curSignature.size()) && (data != nullptr)) {
-            bCur = true;
-            for (size_t i = 0; i < curSignature.size(); ++i) {
-                if (data[i] != curSignature[i]) {
-                    bCur = false;
-                    break;
-                }
-            }
-        }
-    }
-    return bICO || bCur;
+    return (memcmp(data, icoSignature, sizeof(icoSignature)) == 0) ||
+           (memcmp(data, curSignature, sizeof(curSignature)) == 0);
 }
 
 std::unique_ptr<IImage> ImageDecoder_ICO::LoadImageData(const ImageDecodeParam& decodeParam)

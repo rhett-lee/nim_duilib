@@ -129,7 +129,11 @@ bool ImagePlayer::StartImageAnimation(AnimationImagePos nStartFrame, int32_t nPl
     bool bRet = GlobalManager::Instance().Timer().AddTimer(m_animWeakFlag.GetWeakFlag(),
                                                            animationPlayCallback,
                                                            nTimerInterval) != 0;
-    if ((m_pControl != nullptr) && (m_pImage != nullptr)) {
+    if (!bRet) {
+        //启动定时器失败，恢复为非播放状态，避免状态与实际不符
+        m_bAnimationPlaying = false;
+    }
+    if (bRet && (m_pControl != nullptr) && (m_pImage != nullptr)) {
         if (m_pControl->HasEventCallback(kEventImageAnimationStart)) {
             //触发一次动画开始事件
             ImageAnimationStatus animStatus;
