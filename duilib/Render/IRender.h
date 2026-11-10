@@ -491,6 +491,11 @@ typedef std::shared_ptr<IRenderDpi> IRenderDpiPtr;
 class DUILIB_API IRenderPaint
 {
 public:
+    /** 虚析构函数：本类是多态基类（通过 IRenderPaint* 传递派生类对象），
+    *   必须提供虚析构函数，避免通过基类指针释放派生类对象时析构不完整
+    */
+    virtual ~IRenderPaint() = default;
+
     /** 通过回调接口，完成绘制
     * @param [in] rcPaint 需要绘制的区域（客户区坐标）
     */
@@ -640,8 +645,14 @@ struct RichTextCharInfo
     */
     inline void SetCharWidth(float charWidth)
     {
-        uint32_t v = (uint32_t)(ui::CEILF(charWidth * 1000.0f));
-        ASSERT(v < 0x00FFFFFF);
+        //防御异常输入：浮点负值转换为无符号整数属于未定义行为，统一按 0 处理
+        const float fWidth = charWidth * 1000.0f;
+        uint32_t v = (fWidth > 0.0f) ? (uint32_t)(ui::CEILF(fWidth)) : 0;
+        ASSERT(v <= 0x00FFFFFE);
+        //宽度使用 24 位存储：超出可表示范围时按上限截断，避免 Release 下截断成错误的宽度值
+        if (v > 0x00FFFFFE) {
+            v = 0x00FFFFFE;
+        }
         v &= 0x00FFFFFF;
         m_value &= 0xFF000000;
         m_value |= v;
@@ -874,7 +885,6 @@ public:
     * @param [in] y 目标矩形左上角的 y 坐标
     * @param [in] cx 源矩形和目标矩形的宽度
     * @param [in] cy 源和目标矩形的高度
-    * @param [in] pSrcBitmap 源图片接口
     * @param [in] pSrcRender 源Render对象
     * @param [in] xSrc 源矩形左上角的 x 坐标
     * @param [in] ySrc 源矩形左上角的 y 坐标
@@ -1404,7 +1414,7 @@ public:
     /** 创建一个Render对象
     * @param [in] spRenderDpi 关联的DPI转换接口
     * @param [in] platformData 平台相关的数据，Windows平台该值是窗口句柄
-    * @parma [in] backendType 后台绘制方式
+    * @param [in] backendType 后台绘制方式
     */
     virtual IRender* CreateRender(const IRenderDpiPtr& spRenderDpi,
                                   void* platformData = nullptr,

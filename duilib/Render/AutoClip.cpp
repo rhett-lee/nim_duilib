@@ -31,8 +31,6 @@ AutoClip::AutoClip(IRender* pRender, const UiRect& rc, bool bClip)
     m_nClipState = -1;
 
     if (bClip) {
-        // 记录"本次构造确实设置了裁剪区域"，析构时据此决定是否需要 ClearClip
-        m_bClip = bClip;
         // Debug 断言：启用裁剪时必须传入有效的渲染对象指针
         ASSERT(pRender != nullptr);
 
@@ -43,6 +41,10 @@ AutoClip::AutoClip(IRender* pRender, const UiRect& rc, bool bClip)
         if (m_pRender != nullptr) {
             // 设置矩形裁剪区域，内部会与当前裁剪区取交集并保存旧状态
             m_nClipState = m_pRender->SetClip(rc);
+            // SetClip 返回 -1 表示"没有实际设置裁剪"（例如矩形为空、渲染对象不可用），
+            // 此时析构函数不能再调用 ClearClip(-1)：该参数与 IRender 的约定
+            // （nState 必须由 SetClip/SetRoundClip 成功返回）不符，Debug 下会触发 ASSERT。
+            m_bClip = (m_nClipState >= 0);
         }
     }
 }
@@ -58,7 +60,6 @@ AutoClip::AutoClip(IRender* pRender, const UiRect& rcRound,
     m_nClipState = -1;
 
     if (bClip) {
-        m_bClip = bClip;
         ASSERT(pRender != nullptr);
 
         m_pRender = pRender;
@@ -66,6 +67,8 @@ AutoClip::AutoClip(IRender* pRender, const UiRect& rcRound,
         if (m_pRender != nullptr) {
             // 设置圆角矩形裁剪区域，内部会与当前裁剪区取交集并保存旧状态
             m_nClipState = m_pRender->SetRoundClip(rcRound, fRoundWidth, fRoundHeight);
+            // 同矩形裁剪：返回 -1 表示未实际设置裁剪，析构时不需要（也不应该）调用 ClearClip
+            m_bClip = (m_nClipState >= 0);
         }
     }
 }

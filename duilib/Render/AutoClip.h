@@ -78,6 +78,19 @@ public:
       */
     ~AutoClip();
 
+    /** @brief 禁止拷贝构造。
+      *
+      * AutoClip 是"作用域守卫"，其语义是"构造时设置裁剪、析构时清除裁剪"。
+      * 如果允许拷贝，两个对象会持有同一个 m_nClipState，析构时会对同一个
+      * 渲染状态调用两次 ClearClip，导致裁剪状态被重复恢复（绘制结果出错）。
+      * 因此显式禁用拷贝构造与拷贝赋值。
+      */
+    AutoClip(const AutoClip&) = delete;
+
+    /** @brief 禁止拷贝赋值（原因同拷贝构造）。
+      */
+    AutoClip& operator=(const AutoClip&) = delete;
+
 private:
     /** @brief 绑定的渲染对象指针。
       *  仅在启用裁剪时（即 m_bClip == true）才可能为非空。

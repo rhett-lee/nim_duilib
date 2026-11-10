@@ -11,7 +11,7 @@ namespace ui
 class DUILIB_API BitmapAlpha
 {
 public:
-    BitmapAlpha(uint8_t* pPiexl, int32_t nWidth, int32_t nHeight, int32_t nChannels);
+    BitmapAlpha(uint8_t* pPixel, int32_t nWidth, int32_t nHeight, int32_t nChannels);
     ~BitmapAlpha();
 
 public:
@@ -22,7 +22,7 @@ public:
 private:
     /** 图像数据
     */
-    uint8_t* m_pPiexl;
+    uint8_t* m_pPixel;
 
     /** 图像宽度
     */
