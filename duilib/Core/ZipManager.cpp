@@ -149,17 +149,15 @@ bool ZipManager::IsZipResExist(const FilePath& path) const
     if (m_zipPathCache.empty()) {
         //首次查询时，建立缓存，避免每次都需要遍历整个压缩包的文件（::unzLocateFile函数是采用遍历所有文件的方式实现的，性能比较差）
         int nRet = ::unzGoToFirstFile(m_hzip);
+        //文件名缓冲区提到循环外复用，避免每个文件都做一次堆分配
+        std::vector<char> szFileName;
+        szFileName.resize(MAX_PATH_LEN, 0);
         while (nRet == UNZ_OK) {
-            size_t fileNameLen = MAX_PATH_LEN;
-            std::vector<char> szFileName;
-            szFileName.resize(fileNameLen, 0);
             unz_file_info file_info = { 0, };
             nRet = ::unzGetCurrentFileInfo(m_hzip, &file_info, &szFileName[0], (uLong)szFileName.size() - 1, nullptr, 0, nullptr, 0);
             if (nRet == UNZ_OK) {
                 //文件名的编码是否为UTF8格式
-                bool bUtf8 = file_info.flag & (1 << 11);
-                DString fileName = GetZipFilePath(szFileName.data(), bUtf8);
-
+                bool bUtf8 = (file_info.flag & (1 << 11)) != 0;
 #ifdef DUILIB_BUILD_FOR_WIN
                 DStringW innerFilePath = StringConvert::MBCSToUnicode(szFileName.data(), bUtf8 ? CP_UTF8 : CP_ACP);
 #else
@@ -262,10 +260,10 @@ bool ZipManager::GetZipFileList(const FilePath& dirPath,
         return false;
     }
     DString fileName;
+    //文件名缓冲区提到循环外复用，避免每个文件都做一次堆分配
+    std::vector<char> szFileName;
+    szFileName.resize(MAX_PATH_LEN, 0);
     while (nRet == UNZ_OK) {
-        size_t fileNameLen = MAX_PATH_LEN;
-        std::vector<char> szFileName;
-        szFileName.resize(fileNameLen, 0);
         unz_file_info file_info = { 0, };
         nRet = ::unzGetCurrentFileInfo(m_hzip, &file_info, &szFileName[0], (uLong)szFileName.size() - 1, nullptr, 0, nullptr, 0);
         if (nRet != UNZ_OK) {
@@ -273,7 +271,7 @@ bool ZipManager::GetZipFileList(const FilePath& dirPath,
         }
 
         //文件名的编码是否为UTF8格式
-        bool bUtf8 = file_info.flag & (1 << 11);
+        bool bUtf8 = (file_info.flag & (1 << 11)) != 0;
         fileName = GetZipFilePath(szFileName.data(), bUtf8);
 
         // zip has an 'attribute' 32bit value. Its lower half is windows stuff

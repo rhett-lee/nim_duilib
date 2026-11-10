@@ -65,11 +65,13 @@ bool IconManager::GetIconBitmapData(uint32_t id, IconBitmapData& bitmapData) con
     std::lock_guard<std::mutex> threadGuard(m_iconMutex);
     auto iter = m_iconMap.find(id);
     if (iter != m_iconMap.end()) {
-        bitmapData = iter->second;
-        if (!bitmapData.m_bitmapData.empty() && (bitmapData.m_nBitmapWidth > 0) && (bitmapData.m_nBitmapHeight > 0) &&
-            (bitmapData.m_nBitmapHeight * bitmapData.m_nBitmapWidth * 4 == (int32_t)bitmapData.m_bitmapData.size())) {
+        const IconBitmapData& data = iter->second;
+        //先校验数据有效性，校验通过后再拷贝，避免无效数据也付出一次大块内存拷贝
+        if (!data.m_bitmapData.empty() && (data.m_nBitmapWidth > 0) && (data.m_nBitmapHeight > 0) &&
+            (data.m_nBitmapHeight * data.m_nBitmapWidth * 4 == (int32_t)data.m_bitmapData.size())) {
+            bitmapData = data;
             return true;
-        }        
+        }
     }
     return false;
 }

@@ -74,7 +74,7 @@ StandardColorMap::StandardColorMap()
     //初始化标准颜色表, 字符串不区分大小写
     std::vector<std::pair<DString, int32_t>> uiColors;
     UiColors::GetUiColorsString(uiColors);
-    for (auto iter : uiColors) {
+    for (const auto& iter : uiColors) {
         AddColor(StringUtil::MakeLowerString(iter.first), UiColor(iter.second));
     }
 }

@@ -117,6 +117,7 @@ WindowPtr WindowManager::GetWindowById(const DString& windowId) const
         if (iter->get() != nullptr) {
             if (windowId == iter->get()->GetWindowId()) {
                 pWindow = iter->get();
+                break;
             }
         }
     }

@@ -34,12 +34,12 @@ CursorManager::TImpl::TImpl()
 
 CursorManager::TImpl::~TImpl()
 {
-    for (auto iter : m_cursorMap) {
+    for (const auto& iter : m_cursorMap) {
         if (iter.second != nullptr) {
             SDL_DestroyCursor(iter.second);
         }
     }
-    for (auto iter : m_systemCursorMap) {
+    for (const auto& iter : m_systemCursorMap) {
         if (iter.second != nullptr) {
             SDL_DestroyCursor(iter.second);
         }

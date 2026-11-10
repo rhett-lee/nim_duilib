@@ -29,7 +29,7 @@ CursorManager::TImpl::TImpl()
 
 CursorManager::TImpl::~TImpl()
 {
-    for (auto iter : m_cursorMap) {
+    for (const auto& iter : m_cursorMap) {
         if (iter.second != nullptr) {
             ::DestroyCursor(iter.second);
         }

@@ -453,7 +453,7 @@ void FontManager::RemoveAllFonts()
 void FontManager::ClearFontCache()
 {
     //清理字体ID对应的字体缓存数据
-    for (auto fontInfo : m_fontMap) {
+    for (const auto& fontInfo : m_fontMap) {
         IFont* pFont = fontInfo.second;
         if (pFont != nullptr) {
             delete pFont;
@@ -462,7 +462,7 @@ void FontManager::ClearFontCache()
     m_fontMap.clear();
 
     //清理字体回退缓存
-    for (auto fallbackFont : m_fallbackFontMap) {
+    for (const auto& fallbackFont : m_fallbackFontMap) {
         const std::vector<IFont*>& fontList = fallbackFont.second;
         for (IFont* pFont : fontList) {
             if (pFont != nullptr) {

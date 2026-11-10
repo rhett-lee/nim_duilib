@@ -17,7 +17,8 @@ ImageList::~ImageList()
 void ImageList::SetImageSize(UiSize imageSize, const DpiManager& dpi, bool bNeedDpiScale)
 {
     ASSERT ((imageSize.cx > 0) && (imageSize.cy > 0) );
-    if ((imageSize.cx < 0) || (imageSize.cy < 0)) {
+    if ((imageSize.cx <= 0) || (imageSize.cy <= 0)) {
+        //尺寸无效时直接返回，避免0尺寸写入缓存后影响后续计算
         return;
     }
     m_imageSize = imageSize;

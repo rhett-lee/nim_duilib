@@ -24,6 +24,11 @@ public:
             StringUtil::StringCopy(m_pData, strSize + 1, str.c_str());
         }
     }
+    UiStringT(UiStringT&& str) noexcept : m_pData(str.m_pData)
+    {
+        //移动构造：直接接管对方的字符串内存，避免深拷贝
+        str.m_pData = nullptr;
+    }
     UiStringT(const string_type& str) : m_pData(nullptr)
     {
         if (!str.empty()) {
@@ -85,6 +90,20 @@ public:
             m_pData = new value_type[strSize + 1];
             StringUtil::StringCopy(m_pData, strSize + 1, str.c_str());
         }
+        return *this;
+    }
+
+    UiStringT& operator=(UiStringT&& str) noexcept
+    {
+        if (&str == this) {
+            return *this;
+        }
+        //移动赋值：释放自身内存后直接接管对方的字符串内存，避免深拷贝
+        if (m_pData != nullptr) {
+            delete[] m_pData;
+        }
+        m_pData = str.m_pData;
+        str.m_pData = nullptr;
         return *this;
     }
 

@@ -575,9 +575,10 @@ bool WindowRoot::SetFullscreenControl(Control* pFullscreenControl, const DString
         ASSERT(m_bControlFullscreen);
         ASSERT(m_pWindow->IsWindowFullscreen());
         ASSERT(m_pRoot == pFullscreenBox);
-        ASSERT(m_pControlFinder->GetRoot() == pFullscreenBox);
+        ASSERT((m_pControlFinder != nullptr) && (m_pControlFinder->GetRoot() == pFullscreenBox));
         if (m_bControlFullscreen && m_pWindow->IsWindowFullscreen() &&
-            (m_pRoot == pFullscreenBox) && (m_pControlFinder->GetRoot() == pFullscreenBox)) {
+            (m_pRoot == pFullscreenBox) &&
+            (m_pControlFinder != nullptr) && (m_pControlFinder->GetRoot() == pFullscreenBox)) {
             //仅切换全屏控件，不改变全屏状态
             if (pFullscreenBox->UpdateControlFullscreen(pFullscreenControl, exitButtonClass)) {
                 //复位控件的状态

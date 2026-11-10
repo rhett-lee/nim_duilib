@@ -186,6 +186,10 @@ void ControlFinder::RemoveControl(Control* pControl)
                     break;
                 }
             }
+            if (controlList.empty()) {
+                //列表已空，删除该名字对应的条目，避免控件动态创建/销毁时名字映射不断增长
+                m_controlNameMap.erase(iter);
+            }
         }
     }
 }

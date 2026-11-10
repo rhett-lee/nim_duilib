@@ -247,12 +247,14 @@ uint32_t DpiManager::GetUnscaleInt(uint32_t nValue) const
 
 float DpiManager::GetScaleFloat(int32_t nValue) const
 {
-    return (nValue * (int32_t)m_nScaleFactor) / 100.0f;
+    //使用64位中间量进行乘法，避免nValue较大时32位整数乘法溢出（溢出属于未定义行为）
+    return (float)((int64_t)nValue * (int64_t)m_nScaleFactor) / 100.0f;
 }
 
 float DpiManager::GetScaleFloat(uint32_t nValue) const
 {
-    return (nValue * m_nScaleFactor) / 100.0f;
+    //使用64位中间量进行乘法，避免nValue较大时32位整数乘法溢出
+    return (float)((uint64_t)nValue * (uint64_t)m_nScaleFactor) / 100.0f;
 }
 
 float DpiManager::GetScaleFloat(float fValue) const
@@ -273,7 +275,8 @@ int32_t DpiManager::GetScaleInt(int32_t nValue, uint32_t nOldScaleFactor) const
     if ((nOldScaleFactor == 0) || (m_nScaleFactor == 0)) {
         return nValue;
     }
-    nValue = (uint32_t)MulDiv(nValue, (int32_t)m_nScaleFactor, (int32_t)nOldScaleFactor);
+    //原实现把MulDiv的int32_t结果强转为uint32_t后再赋给int32_t，负值时行为依赖实现，此处直接使用有符号结果
+    nValue = MulDiv(nValue, (int32_t)m_nScaleFactor, (int32_t)nOldScaleFactor);
     return nValue;
 }
 
