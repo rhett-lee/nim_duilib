@@ -690,6 +690,9 @@ void ChatMessageList::ClearMessages()
     m_msgHeights.clear();
     m_msgOffsets.clear();
     m_msgLineCache.clear();
+    //消息清空后图片对象与尺寸缓存不再有引用，及时释放，避免长时间运行后内存持续增长
+    m_chatImages.clear();
+    m_chatImageSizes.clear();
     m_nLayoutWidth = -1;
     m_nScrollPos = 0;
     m_nContentHeight = 0;
@@ -1289,7 +1292,8 @@ bool ChatMessageList::CalcBubbleLayout(IRender* pRender, const Message& message,
         //否则滚动时每条可见消息的每一帧都要重做 O(log n) 次文本测量。
         LineCache* pLineCache = (nMessageIndex < m_msgLineCache.size()) ? &m_msgLineCache[nMessageIndex] : nullptr;
         if ((pLineCache != nullptr) && (pLineCache->nMaxTextWidth == nTextWidth) && (pLineCache->nLineHeight > 0)) {
-            layout.lines = pLineCache->lines;
+            //直接引用缓存中的行数据，避免每帧为每条可见消息分配并拷贝一份行数组
+            layout.pCachedLines = &pLineCache->lines;
             layout.nLineHeight = pLineCache->nLineHeight;
         }
         else {
@@ -1301,7 +1305,7 @@ bool ChatMessageList::CalcBubbleLayout(IRender* pRender, const Message& message,
                 pLineCache->lines = layout.lines;
             }
         }
-        nTextHeight = static_cast<int32_t>(layout.lines.size()) * layout.nLineHeight;
+        nTextHeight = static_cast<int32_t>(layout.GetLines().size()) * layout.nLineHeight;
         nBubbleWidth = nTextWidth + 2 * nPadH;
         nBubbleHeight = nTextHeight + 2 * nPadV;
     }
@@ -1576,7 +1580,7 @@ void ChatMessageList::DrawMessageText(IRender* pRender, size_t nMessageIndex, co
                                        const BubbleLayout& layout, const DString& strTextColor)
 {
     const DString& strText = message.text;
-    if (strText.empty() || layout.lines.empty() || (layout.nLineHeight <= 0)) {
+    if (strText.empty() || layout.GetLines().empty() || (layout.nLineHeight <= 0)) {
         return;
     }
     const int32_t nTextLen = static_cast<int32_t>(strText.length());
@@ -1593,9 +1597,9 @@ void ChatMessageList::DrawMessageText(IRender* pRender, size_t nMessageIndex, co
 
     //逐行绘制：每行的首尾两段用普通文字色，选中段用选中文字色。
     //注意：必须按行绘制，不能把整段文本当单行文本绘制，否则多行文本会被画乱。
-    const int32_t nLineCount = static_cast<int32_t>(layout.lines.size());
+    const int32_t nLineCount = static_cast<int32_t>(layout.GetLines().size());
     for (int32_t nLineIndex = 0; nLineIndex < nLineCount; ++nLineIndex) {
-        const TextLine& line = layout.lines[nLineIndex];
+        const TextLine& line = layout.GetLines()[nLineIndex];
         if (line.nEnd <= line.nStart) {
             continue;
         }
@@ -1643,7 +1647,7 @@ void ChatMessageList::DrawMessageText(IRender* pRender, size_t nMessageIndex, co
 
 void ChatMessageList::PaintSelection(IRender* pRender, size_t nMessageIndex, const BubbleLayout& layout)
 {
-    if (!m_bHasSelection || !layout.bValid || layout.lines.empty() || (layout.nLineHeight <= 0)) {
+    if (!m_bHasSelection || !layout.bValid || layout.GetLines().empty() || (layout.nLineHeight <= 0)) {
         return;
     }
     if ((nMessageIndex < m_nSelStartIndex) || (nMessageIndex > m_nSelEndIndex)) {
@@ -1666,11 +1670,11 @@ void ChatMessageList::PaintSelection(IRender* pRender, size_t nMessageIndex, con
         colorBk = UiColor(0xFF3399FF);
     }
 
-    //逐行绘制高亮背景：行数据与文字绘制共用 layout.lines，
+    //逐行绘制高亮背景：行数据与文字绘制共用 layout.GetLines()，
     //这样高亮框与文字行严格对齐，不会出现跨行或超出气泡的色块。
-    const int32_t nLineCount = static_cast<int32_t>(layout.lines.size());
+    const int32_t nLineCount = static_cast<int32_t>(layout.GetLines().size());
     for (int32_t nLineIndex = 0; nLineIndex < nLineCount; ++nLineIndex) {
-        const TextLine& line = layout.lines[nLineIndex];
+        const TextLine& line = layout.GetLines()[nLineIndex];
         const int32_t nLineSelStart = std::max(line.nStart, nStart);
         const int32_t nLineSelEnd = std::min(line.nEnd, nEnd);
         if (nLineSelEnd <= nLineSelStart) {
@@ -2173,10 +2177,10 @@ void ChatMessageList::WrapTextLines(IRender* pRender, const DString& strText, in
 int32_t ChatMessageList::HitTestTextChar(IRender* pRender, const DString& strText, const BubbleLayout& layout,
                                           const UiPoint& ptMouse)
 {
-    if ((pRender == nullptr) || strText.empty() || layout.lines.empty() || (layout.nLineHeight <= 0)) {
+    if ((pRender == nullptr) || strText.empty() || layout.GetLines().empty() || (layout.nLineHeight <= 0)) {
         return 0;
     }
-    const int32_t nLineCount = static_cast<int32_t>(layout.lines.size());
+    const int32_t nLineCount = static_cast<int32_t>(layout.GetLines().size());
 
     //先按纵向位置定位到行，再在行内按横向位置二分定位字符
     int32_t nLineIndex = (ptMouse.y - layout.rcText.top) / layout.nLineHeight;
@@ -2186,7 +2190,7 @@ int32_t ChatMessageList::HitTestTextChar(IRender* pRender, const DString& strTex
     if (nLineIndex >= nLineCount) {
         nLineIndex = nLineCount - 1;
     }
-    const TextLine& line = layout.lines[nLineIndex];
+    const TextLine& line = layout.GetLines()[nLineIndex];
 
     const int32_t nOffsetX = ptMouse.x - layout.rcText.left;
     if (nOffsetX <= 0) {

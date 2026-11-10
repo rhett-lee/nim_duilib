@@ -389,13 +389,13 @@ void Slider::SetAttribute(const DString& strName, const DString& strValue2)
         SetProgressBarPadding(rcPadding, true);
     }
     else if ((strName == _T("click_to_jump")) || (strName == _T("clicktojump"))) {
-        SetClickToJump(strValue == _T("true"));
+        SetClickToJump(StringUtil::IsValueTrue(strValue));
     }
     else if ((strName == _T("page_step")) || (strName == _T("pagestep"))) {
         SetPageStep(StringUtil::StringToInt32(strValue));
     }
     else if ((strName == _T("show_ticks")) || (strName == _T("showticks"))) {
-        SetShowTicks(strValue == _T("true"));
+        SetShowTicks(StringUtil::IsValueTrue(strValue));
     }
     else if ((strName == _T("tick_count")) || (strName == _T("tickcount"))) {
         SetTickCount(StringUtil::StringToInt32(strValue));
@@ -421,7 +421,7 @@ void Slider::SetAttribute(const DString& strName, const DString& strValue2)
         }
     }
     else if ((strName == _T("show_tick_labels")) || (strName == _T("showticklabels"))) {
-        SetShowTickLabels(strValue == _T("true"));
+        SetShowTickLabels(StringUtil::IsValueTrue(strValue));
     }
     else if ((strName == _T("tick_label_interval")) || (strName == _T("ticklabelinterval"))) {
         SetTickLabelInterval(StringUtil::StringToInt32(strValue));

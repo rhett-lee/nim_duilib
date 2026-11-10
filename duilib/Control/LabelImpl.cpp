@@ -129,7 +129,8 @@ bool LabelImpl::OnSetAttribute(const DString& strName, const DString& strValue)
         SetSingleLine(StringUtil::IsValueTrue(strValue));
     }
     else if ((strName == _T("multi_line")) || (strName == _T("multiline"))) {
-        SetSingleLine(strValue != _T("true"));
+        //与其他布尔属性保持一致：支持 "true"/"1"
+        SetSingleLine(!StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("text")) {
         SetText(strValue);
@@ -924,6 +925,10 @@ DString LabelImpl::GetFontId() const
 
 void LabelImpl::SetFontId(const DString& strFontId)
 {
+    if (m_sFontId == strFontId) {
+        //字体未变化时不触发重绘（列表/表格滚动重填时会反复设置字体）
+        return;
+    }
     m_sFontId = strFontId;
     m_pOwner->Invalidate();
 }

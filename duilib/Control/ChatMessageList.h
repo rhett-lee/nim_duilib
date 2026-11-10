@@ -600,7 +600,11 @@ private:
         int32_t nTextWidth = 0;
         int32_t nTextHeight = 0;
         int32_t nLineHeight = 0;            //单行文本的行高
-        std::vector<TextLine> lines;        //换行后各行的字符区间
+        std::vector<TextLine> lines;        //换行后各行的字符区间（自行计算换行时使用）
+        const std::vector<TextLine>* pCachedLines = nullptr; //命中缓存时指向缓存行数据，避免每帧拷贝
+        /** 获取有效行数据：命中缓存时直接引用缓存，否则使用本地计算结果
+        */
+        const std::vector<TextLine>& GetLines() const { return (pCachedLines != nullptr) ? *pCachedLines : lines; }
         bool bShowStatus = false;
         bool bHasQuote = false;             //是否为引用消息
         bool bHasImage = false;             //是否为图片消息

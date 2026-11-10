@@ -160,7 +160,7 @@ void TagInput::SetAttribute(const DString& strName, const DString& strValue2)
         }
     }
     else if ((strName == _T("allow_duplicate")) || (strName == _T("allowduplicate"))) {
-        SetAllowDuplicate(strValue == _T("true") || strValue == _T("1"));
+        SetAllowDuplicate(StringUtil::IsValueTrue(strValue));
     }
     else if ((strName == _T("max_count")) || (strName == _T("maxcount"))) {
         SetMaxCount(StringUtil::StringToInt32(strValue.c_str()));

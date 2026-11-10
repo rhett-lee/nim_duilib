@@ -88,7 +88,7 @@ void Switch::SetAttribute(const DString& strName, const DString& strValue2)
         SetImageOff(strValue);
     }
     else if ((strName == _T("switch_loading")) || (strName == _T("switchloading"))) {
-        SetLoading((strValue == _T("true")) || (strValue == _T("1")));
+        SetLoading(StringUtil::IsValueTrue(strValue));
     }
     else if ((strName == _T("switch_loading_color")) || (strName == _T("switchloadingcolor"))) {
         SetLoadingColor(strValue);

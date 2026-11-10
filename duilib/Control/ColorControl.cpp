@@ -142,7 +142,7 @@ IBitmap* ColorControl::GetColorBitmap(const UiRect& rect)
         void* pPixelBits = m_spBitmap->LockPixelBits();
         if (pPixelBits != nullptr) {
             uint32_t* pData = (uint32_t*)pPixelBits;
-            double satStep = 1.0 / (nHeight - 1); //每增加一行，sat的增量值
+            double satStep = (nHeight > 1) ? (1.0 / (nHeight - 1)) : 0.0; //每增加一行，sat的增量值
             double sat = 1.0;//第一个数值是1.0
             for (int32_t nRow = 0; nRow < nHeight; ++nRow) {                    
                 ColorConvert::HSV_HUE(pData, nWidth, sat, 1.0);

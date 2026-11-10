@@ -320,7 +320,8 @@ int ColorConvert::RGB2HSL(double red, double green, double blue, double* hue, do
 
 void ColorConvert::GetRGB(uint32_t* buffer, int samples, COLORREF start, COLORREF end)
 {
-    if (buffer == nullptr) {
+    //samples < 1 时下面的 (samples - 1) 会除零，且 while 循环可能死循环写越界
+    if ((buffer == nullptr) || (samples < 1)) {
         return;
     }
     int red = 0, green = 0, blue = 0;
@@ -350,7 +351,8 @@ void ColorConvert::GetRGB(uint32_t* buffer, int samples, COLORREF start, COLORRE
 
 void ColorConvert::HSV_HUE(uint32_t* buffer, int samples, double sat, double val_fp)
 {
-    if (buffer == nullptr) {
+    //samples 非法时步长会变成 0 或负数，导致循环不结束并写越界
+    if ((buffer == nullptr) || (samples < 1)) {
         return;
     }
     // value, but as integer in [0, 255 << int_extend]
@@ -421,7 +423,8 @@ void ColorConvert::HSV_HUE(uint32_t* buffer, int samples, double sat, double val
 
 void ColorConvert::HSV_SAT(uint32_t* buffer, int samples, double hue, double val_fp)
 {
-    if (buffer == nullptr) {
+    //samples 为 0 时下面会除零，负数时循环不结束并写越界
+    if ((buffer == nullptr) || (samples < 1)) {
         return;
     }
     // value, but as integer in [0, 255 << int_extend]
@@ -489,7 +492,8 @@ void ColorConvert::HSV_SAT(uint32_t* buffer, int samples, double hue, double val
 
 void ColorConvert::HSV_VAL(uint32_t* buffer, int samples, double hue, double sat)
 {
-    if (buffer == nullptr) {
+    //samples 为 0 时下面会除零，负数时循环不结束并写越界
+    if ((buffer == nullptr) || (samples < 1)) {
         return;
     }
     // loop counter

@@ -31,7 +31,7 @@ void Badge::SetAttribute(const DString& strName, const DString& strValue)
         SetMaxCount(StringUtil::StringToInt64(strValue));
     }
     else if (strName == _T("dot")) {
-        SetDotMode(strValue == _T("true"));
+        SetDotMode(StringUtil::IsValueTrue(strValue));
     }
     else if ((strName == _T("badge_color")) || (strName == _T("badgecolor"))) {
         SetBadgeColor(strValue);
@@ -69,6 +69,11 @@ void Badge::SetDotMode(bool bDotMode)
     }
     m_bDotMode = bDotMode;
     UpdateBadge();
+    if (m_bDotMode) {
+        //切换到红点模式时默认显示，避免此前因数字为0而隐藏、导致红点不出现
+        //（如需隐藏，可在之后调用 SetVisible(false) 或配置 visible="false"）
+        SetVisible(true);
+    }
 }
 
 void Badge::SetBadgeColor(const DString& strColor)
@@ -90,7 +95,9 @@ void Badge::UpdateBadge()
         SetText(StringUtil::Printf(_T("%lld"), static_cast<long long>(m_nCount)));
     }
     // 数字模式：数量小于等于0时自动隐藏（无未读不显示角标）；红点模式的显隐由 visible 属性控制
-    SetVisible(m_bDotMode || (m_nCount > 0));
+    if (!m_bDotMode) {
+        SetVisible(m_nCount > 0);
+    }
     Invalidate();
 }
 

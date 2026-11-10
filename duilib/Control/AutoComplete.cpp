@@ -358,7 +358,7 @@ void AutoComplete::SetAttribute(const DString& strName, const DString& strValue)
         }
     }
     else if (strName == _T("ignore_case")) {
-        m_bIgnoreCase = (strValue2 == _T("true"));
+        m_bIgnoreCase = StringUtil::IsValueTrue(strValue2);
     }
     else {
         BaseClass::SetAttribute(strName, strValue);

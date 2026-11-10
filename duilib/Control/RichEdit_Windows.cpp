@@ -430,7 +430,7 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue2)
         }
     }
     else if ((strName == _T("single_line")) || (strName == _T("singleline"))) {
-        SetMultiLine(strValue != _T("true"));
+        SetMultiLine(!StringUtil::IsValueTrue(strValue));
     }
     else if ((strName == _T("multi_line")) || (strName == _T("multiline"))) {
         SetMultiLine(StringUtil::IsValueTrue(strValue));

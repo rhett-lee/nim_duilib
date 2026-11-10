@@ -104,13 +104,13 @@ void SearchBox::SetAttribute(const DString& strName, const DString& strValue2)
         SetMaxVisible(StringUtil::StringToInt32(strValue.c_str()));
     }
     else if (strName == _T("history_enabled")) {
-        m_bHistoryEnabled = (strValue2 == _T("true"));
+        m_bHistoryEnabled = StringUtil::IsValueTrue(strValue);
     }
     else if (strName == _T("max_history")) {
         SetMaxHistory(StringUtil::StringToInt32(strValue.c_str()));
     }
     else if (strName == _T("filter_enabled")) {
-        m_bFilterEnabled = (strValue2 == _T("true"));
+        m_bFilterEnabled = StringUtil::IsValueTrue(strValue);
     }
     else if (strName == _T("min_chars")) {
         SetMinChars(StringUtil::StringToInt32(strValue.c_str()));
@@ -124,7 +124,7 @@ void SearchBox::SetAttribute(const DString& strName, const DString& strValue2)
         }
     }
     else if (strName == _T("ignore_case")) {
-        m_bIgnoreCase = (strValue2 == _T("true"));
+        m_bIgnoreCase = StringUtil::IsValueTrue(strValue);
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
