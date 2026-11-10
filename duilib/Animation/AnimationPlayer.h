@@ -2,6 +2,7 @@
 #define UI_ANIMATION_ANIMATIONPLAYER_H_
 
 #include "duilib/Animation/EasingFunctions.h"
+#include "duilib/Animation/PhysicsAnimation.h"
 #include "duilib/Core/Callback.h"
 
 namespace ui 
@@ -44,6 +45,41 @@ public:
     /** 获取缓动函数类型
     */
     EasingFunctionType GetEasingFunctionType() const { return m_easingFunctionType; }
+
+    /** 设置物理动画类型
+    *   物理动画受 PhysicsAnimation 的全局开关控制：开关关闭时按缓动函数播放；
+    *   默认类型为 kNone（纯缓动函数动画），需要显式设置才会启用物理动画
+    * @param [in] physicsType 物理动画类型（弹簧/惯性/不使用）
+    */
+    void SetPhysicsType(AnimationPhysicsType physicsType) { m_physicsType = physicsType; }
+
+    /** 获取物理动画类型
+    */
+    AnimationPhysicsType GetPhysicsType() const { return m_physicsType; }
+
+    /** 设置弹簧参数（物理类型为 kSpring 时生效）
+    *   未设置时使用 PhysicsAnimation 的默认弹簧参数
+    * @param [in] stiffness 刚度，越大回弹越快
+    * @param [in] damping 阻尼，越大越不容易回弹
+    * @param [in] mass 质量，越大惯性越强
+    */
+    void SetSpringParameters(double stiffness, double damping, double mass);
+
+    /** 设置惯性动画的参数（物理类型为 kInertia 时生效）
+    * @param [in] initialVelocity 初始速度（像素/秒，正负表示方向）
+    * @param [in] friction 摩擦系数（1/秒），越大停得越快；未设置时使用全局默认值
+    */
+    void SetInertiaParameters(double initialVelocity, double friction = -1.0);
+
+    /** 设置惯性动画的取值范围（到达边界后自动结束，DUI_NOSET_VALUE 的默认值表示不限制）
+    * @param [in] minValue 取值下限
+    * @param [in] maxValue 取值上限
+    */
+    void SetInertiaValueRange(int32_t minValue, int32_t maxValue);
+
+    /** 物理动画当前是否生效（全局开关开启且本播放器设置了物理类型）
+    */
+    bool IsPhysicsEnabled() const;
     
     /** 设置动画播放起始值
     * @param [in] startValue 动画播放的起始值
@@ -158,8 +194,22 @@ private:
     void ReverseAllValue();
 
     /** 完成播放动画，并触发播放完成回调函数
+    * @param [in] bSnapToEnd true表示把当前值对齐到结束值（弹簧动画），false表示保留当前值（惯性动画）
     */
-    void Complete();
+    void Complete(bool bSnapToEnd = true);
+
+    /** 是否正在使用物理积分器（弹簧或惯性）
+    */
+    bool HasPhysicsSimulation() const { return (m_pSpringSimulation != nullptr) || (m_pInertiaSimulation != nullptr); }
+
+    /** 按物理模型启动动画（注册到动画调度器，由统一时间基准驱动）
+    */
+    void StartPhysics();
+
+    /** 物理动画的一帧推进（由动画调度器在定时器中触发调用）
+    * @param [in] nNowMillSeconds 本帧的统一时间基准（毫秒）
+    */
+    void OnTickPhysics(int64_t nNowMillSeconds);
 
 private:
     friend class AnimationScheduler;
@@ -225,6 +275,44 @@ private:
     /** 缓动函数类型
     */
     EasingFunctionType m_easingFunctionType;
+
+    /** 物理动画类型
+    */
+    AnimationPhysicsType m_physicsType;
+
+    /** 弹簧参数：刚度、阻尼、质量（均为 0 时使用全局默认值）
+    */
+    double m_springStiffness;
+    double m_springDamping;
+    double m_springMass;
+
+    /** 惯性动画的初始速度（像素/秒）
+    */
+    double m_inertiaVelocity;
+
+    /** 惯性动画的摩擦系数（<0 表示使用全局默认值）
+    */
+    double m_inertiaFriction;
+
+    /** 惯性动画的取值下限
+    */
+    int32_t m_inertiaMinValue;
+
+    /** 惯性动画的取值上限
+    */
+    int32_t m_inertiaMaxValue;
+
+    /** 弹簧积分器（物理类型为 kSpring 时有效）
+    */
+    std::unique_ptr<SpringSimulation> m_pSpringSimulation;
+
+    /** 惯性积分器（物理类型为 kInertia 时有效）
+    */
+    std::unique_ptr<InertiaSimulation> m_pInertiaSimulation;
+
+    /** 物理动画上一帧对应的时间（毫秒），用于计算积分步长
+    */
+    int64_t m_physicsLastTimeMillSeconds;
 
     /** 是否正在播放中
     */

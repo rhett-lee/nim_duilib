@@ -178,6 +178,11 @@
   - `Avatar`：头像控件，用圆形或圆角方形展示图片/图标/文字三类头像内容，支持尺寸预设、形状、内容优先级与语义色配色（示例：`examples/controls`）
   - `ChatMessageList`：聊天消息列表控件，消息区纯自绘：气泡左右分栏、宽度自适应换行、文字/图片头像、拖选复制、发送状态与点击重试，并支持图片消息、引用消息（双击引用块跳转高亮）与消息撤回（示例：`examples/chat`）
 - 新增示例程序 `examples/chat`：模拟 IM 客户端的完整演示，含登录窗口（提示任意用户名密码即可登录、标题栏可切换主题与语言）与聊天主窗口（会话列表与未读角标、搜索过滤、图片头像、图片/引用/撤回消息、拖选复制、右键菜单），中英双语且随语言切换实时刷新。
+- 物理动画（弹簧/惯性）：新增 `duilib/Animation/PhysicsAnimation.h`，内含 `SpringSimulation`（半隐式欧拉、固定小步长积分，用于有明确目标值的过渡）与 `InertiaSimulation`（指数摩擦解析解，用于只有初速度的滑行），并提供全局总开关 `PhysicsAnimation::SetEnabled()` 与默认参数接口。
+  - `AnimationPlayer` 支持物理模式：新增 `SetPhysicsType()`、`SetSpringParameters()`、`SetInertiaParameters()`、`SetInertiaValueRange()`、`IsPhysicsEnabled()`，播放中修改结束值会从当前状态平滑过渡（不回跳）。
+  - `Panel` 新增 `collapse_physics` 属性（折叠/展开使用弹簧动画），对应 `SetCollapsePhysicsEnabled()` / `SetCollapseSpringParameters()`。
+  - `ScrollBox` 及其子类新增 `inertia_scroll` / `inertia_friction` / `inertia_gain` 属性（滚轮结束后按惯性滑行），对应 `SetInertiaScrollEnabled()` / `SetInertiaScrollParameters()`。
+  - 关闭物理动画总开关后，以上功能自动回退为原有缓动动画/普通滚动（示例：`examples/controls` 的动画功能演示页）。
 
 ### 变更
 

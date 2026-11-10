@@ -269,8 +269,22 @@ HTileBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属�
 | scrollbar_float | true | bool | 容器的滚动条是否悬浮在子控件上面,如"true" |
 | vscrollbar_left | false | bool | 容器的滚动条是否在左侧显示 |
 | hold_end | false | bool | 是否一直保持显示末尾位置,如"true" |
+| inertia_scroll | false | bool | 是否启用惯性滚动：滚轮滚动结束后按摩擦衰减继续滑行一段距离；仅在物理动画总开关开启时生效 |
+| inertia_friction | 5.0 | double | 惯性滚动的摩擦系数（1/秒），越大停得越快 |
+| inertia_gain | 0.6 | double | 惯性增益：额外滑行距离 = 滚轮滚动距离 × 该系数，0 表示无额外滑行 |
 
 ScrollBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
+
+#### 惯性滚动
+
+配置 `inertia_scroll="true"` 后，鼠标滚轮滚动结束时列表会按初速度继续滑行一小段距离，
+速度按指数摩擦衰减（`v(t) = v0 * exp(-friction * t)`），滑行到内容边界时自然停住。
+行为说明：
+
+- 每次滚轮事件先按原逻辑滚动，再以当前滚动位置为起点重新开始滑行（连续滚动以最新速度为准）；
+- 滑行总距离约为「滚轮距离 × inertia_gain」，`inertia_friction` 只影响衰减快慢与手感；
+- 惯性滚动受物理动画总开关控制（`PhysicsAnimation::SetEnabled(false)` 后立即回退为普通滚动）；
+- 主要 C++ 接口：`SetInertiaScrollEnabled()` / `IsInertiaScrollEnabled()`、`SetInertiaScrollParameters(friction, gain)`。
 
 #### 键盘导航
 
@@ -501,6 +515,7 @@ Panel/PanelHBox/PanelVBox 是同一个模板类（`PanelTemplate`）的三个实
 | collapsed | false | bool | 初始是否处于折叠状态；初始设置不触发事件、不播放动画 |
 | collapse_trigger | "title" | string | 折叠触发热区："title" 表示整个标题栏可点击；"arrow" 表示仅箭头区域可点击 |
 | collapse_anim | 0 | int | 折叠/展开动画时长（毫秒），0 表示无动画、立即切换，建议取值 150~300 |
+| collapse_physics | false | bool | 折叠/展开是否使用弹簧物理动画；需同时满足 `collapse_anim > 0` 且物理动画总开关开启，否则自动回退为缓动函数 |
 | arrow_align | "right" | string | 折叠箭头的位置："right"（标题栏右侧，默认）或 "left"（标题栏左侧）|
 | group | | string | 手风琴分组名：同一窗口内同组面板同时只允许一个展开（允许全部折叠）；空字符串表示不分组 |
 | title_slot | | string | 标题栏槽位：值为一个子控件的 name，该控件（建议设置 float="true"）会被自动定位到标题栏右侧（箭头左侧），折叠后仍显示且可点击 |
@@ -518,7 +533,12 @@ Panel/PanelHBox/PanelVBox 是同一个模板类（`PanelTemplate`）的三个实
 * 多语言：配置 `title_id` 后标题文本由语言资源提供，程序运行中切换语言时标题会自动刷新，无需业务代码干预；对应的 C++ 接口为 `SetTitleId()` / `GetTitleId()`。若通过 `SetTitle()` 设置了动态文本（如带参数的格式化文案），切换语言后需要自行在窗口的 `OnLanguageChanged()` 中重新设置。
 * 未配置任何箭头图片时使用内置矢量三角形（折叠态指向右、展开态指向下），鼠标悬停标题栏时箭头自动变为 color_accent 强调色；配置了图片但某个状态缺图时，自动回退到普通态图片。
 * 折叠通过测量、绘制、命中测试三处屏蔽内容区实现，不修改子控件的 visible 状态，也不改变自身的高度模式，fixed/auto/stretch 高度均可正常折叠；折叠期间会临时把 min_height 放宽到标题栏高度，展开后恢复用户设置值。
+* 折叠动画默认使用缓动函数（折叠缓入、展开缓出）。配置 `collapse_physics="true"` 后改用弹簧模型过渡：
+  高度从起点平滑地"弹"到目标值，接近临界阻尼（默认刚度 220、阻尼 26、质量 1，只有轻微回弹）；
+  `collapse_anim` 此时仅作为兜底时长上限。弹簧参数可用 C++ 接口
+  `SetCollapseSpringParameters(stiffness, damping, mass)` 调整，或调用
+  `SetCollapsePhysicsEnabled()` / `IsCollapsePhysicsEnabled()` 动态开关。
 * 事件：折叠/展开完成后分别触发 `kEventCollapse` / `kEventExpand`（无动画时立即触发，有动画时在动画结束后触发）；动作执行前分别触发 `kEventPanelCollapsing` / `kEventPanelExpanding`，事件回调返回 false 可取消本次操作（XML 初始 collapsed 属性与手风琴内部联动不会触发取消事件）。
-* 主要 C++ 接口：`SetTitle()` / `GetTitle()`、`SetTitleId()` / `GetTitleId()`、`SetCollapsed(bool bCollapsed, bool bFireEvent = true, bool bPlayAnim = true)`、`IsCollapsed()`、`SetCollapsible()`、`SetCollapseAnimMillSeconds()`、`SetGroup()`、`SetArrowAlign()`、`SetTitleTextHAlign()`、`SetArrowStateImage()`、`SetTitleSlotName()`，以及事件监听 `AttachCollapse` / `AttachExpand` / `AttachCollapsing` / `AttachExpanding`。
+* 主要 C++ 接口：`SetTitle()` / `GetTitle()`、`SetTitleId()` / `GetTitleId()`、`SetCollapsed(bool bCollapsed, bool bFireEvent = true, bool bPlayAnim = true)`、`IsCollapsed()`、`SetCollapsible()`、`SetCollapseAnimMillSeconds()`、`SetCollapsePhysicsEnabled()`、`SetCollapseSpringParameters()`、`SetGroup()`、`SetArrowAlign()`、`SetTitleTextHAlign()`、`SetArrowStateImage()`、`SetTitleSlotName()`，以及事件监听 `AttachCollapse` / `AttachExpand` / `AttachCollapsing` / `AttachExpanding`。
 
 Panel/PanelHBox/PanelVBox 控件分别继承了 `Box`/`HBox`/`VBox` 的属性，更多可用属性请参考`Box`的属性。完整示例可参考 `examples/panel` 示例程序。

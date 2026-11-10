@@ -52,6 +52,8 @@ public:
 *     collapsed         初始是否处于折叠状态（true/false，默认 false；初始设置不播放动画）
 *     collapse_trigger  折叠触发热区："title"（整个标题栏，默认）或 "arrow"（仅箭头区域）
 *     collapse_anim     折叠/展开动画时长（毫秒，默认 0 表示无动画，建议 150~300）
+*     collapse_physics  折叠/展开是否使用物理动画（弹簧）：true/false，默认 false；
+*                       开启后按弹簧模型过渡，观感更自然（物理动画总开关关闭时自动回退为缓动函数）
 *     arrow_align       箭头位置："right"（标题栏右侧，默认）或 "left"（标题栏左侧）
 *     group             手风琴分组名：同组面板同时只允许一个展开，展开某面板时其余自动折叠
 *                       （作用域为当前窗口；允许全部折叠；初始状态请在 XML 中只标记一个展开）
@@ -210,6 +212,23 @@ public:
     /** 获取折叠/展开动画时长（毫秒）
     */
     int32_t GetCollapseAnimMillSeconds() const;
+
+    /** 设置折叠/展开是否使用物理动画（弹簧）
+    *   物理动画总开关（PhysicsAnimation::SetEnabled）关闭时，会自动回退为缓动函数动画
+    */
+    void SetCollapsePhysicsEnabled(bool bEnabled);
+
+    /** 折叠/展开是否使用物理动画（弹簧）
+    */
+    bool IsCollapsePhysicsEnabled() const;
+
+    /** 设置折叠/展开弹簧参数（物理动画开启时生效）
+    *   未设置时使用 PhysicsAnimation 的默认弹簧参数
+    * @param [in] stiffness 刚度，越大回弹越快
+    * @param [in] damping 阻尼，越大越不容易回弹
+    * @param [in] mass 质量，越大惯性越强
+    */
+    void SetCollapseSpringParameters(double stiffness, double damping, double mass);
 
     /** 设置手风琴分组名
     * @param [in] strGroupName 分组名，空字符串表示退出分组
@@ -385,6 +404,14 @@ private:
     //折叠/展开动画时长（毫秒），0 表示无动画
     int32_t m_nCollapseAnimMs;
 
+    //折叠/展开是否使用物理动画（弹簧）
+    bool m_bCollapsePhysics;
+
+    //折叠/展开的弹簧参数（0 表示使用全局默认值）
+    double m_springStiffness;
+    double m_springDamping;
+    double m_springMass;
+
     //动画播放器（仅在动画进行时非空）
     std::unique_ptr<AnimationPlayer> m_pAnimationPlayer;
 
@@ -418,6 +445,10 @@ PanelTemplate<InheritType>::PanelTemplate(Window* pWindow):
     m_bCollapsed(false),
     m_collapseTrigger(CollapseTrigger::kTitle),
     m_nCollapseAnimMs(0),
+    m_bCollapsePhysics(false),
+    m_springStiffness(0.0),
+    m_springDamping(0.0),
+    m_springMass(0.0),
     m_nAnimHeight(-1),
     m_nExpandedHeight(0),
     m_nSavedMinHeight(-1)
@@ -510,6 +541,10 @@ void PanelTemplate<InheritType>::SetAttribute(const DString& strName, const DStr
     else if (strName == _T("collapse_anim")) {
         //折叠/展开动画时长（毫秒，0 关闭）
         SetCollapseAnimMillSeconds(StringUtil::StringToInt32(strValue));
+    }
+    else if ((strName == _T("collapse_physics")) || (strName == _T("collapse_spring"))) {
+        //折叠/展开是否使用物理动画（弹簧）
+        SetCollapsePhysicsEnabled(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("group")) {
         //手风琴分组名
@@ -861,6 +896,26 @@ int32_t PanelTemplate<InheritType>::GetCollapseAnimMillSeconds() const
 }
 
 template<typename InheritType>
+void PanelTemplate<InheritType>::SetCollapsePhysicsEnabled(bool bEnabled)
+{
+    m_bCollapsePhysics = bEnabled;
+}
+
+template<typename InheritType>
+bool PanelTemplate<InheritType>::IsCollapsePhysicsEnabled() const
+{
+    return m_bCollapsePhysics;
+}
+
+template<typename InheritType>
+void PanelTemplate<InheritType>::SetCollapseSpringParameters(double stiffness, double damping, double mass)
+{
+    m_springStiffness = (stiffness > 0.0) ? stiffness : 0.0;
+    m_springDamping = (damping > 0.0) ? damping : 0.0;
+    m_springMass = (mass > 0.0) ? mass : 0.0;
+}
+
+template<typename InheritType>
 void PanelTemplate<InheritType>::SetGroup(const DString& strGroupName)
 {
     m_groupName = strGroupName;
@@ -1191,10 +1246,21 @@ void PanelTemplate<InheritType>::StartCollapseAnim(bool bCollapse, int32_t nFrom
     AnimationPlayer* pAnimationPlayer = new AnimationPlayer;
     m_pAnimationPlayer.reset(pAnimationPlayer);
     pAnimationPlayer->SetAnimationType(AnimationType::kAnimationNone);
-    pAnimationPlayer->SetTotalMillSeconds(m_nCollapseAnimMs);
-    pAnimationPlayer->SetFrameIntervalMillSeconds(16); //约 60 帧/秒
     //折叠用缓入（越收越快），展开用缓出（越展越慢），符合常见手感动效
     pAnimationPlayer->SetEasingFunctionType(bCollapse ? EaseInCubic : EaseOutCubic);
+    if (m_bCollapsePhysics && PhysicsAnimation::IsEnabled()) {
+        //物理动画：按弹簧模型过渡，时长参数仅作为兜底上限（弹簧一般会先自然静止）
+        const int32_t nMaxMillSeconds = (m_nCollapseAnimMs > 600) ? m_nCollapseAnimMs : 600;
+        pAnimationPlayer->SetTotalMillSeconds(nMaxMillSeconds);
+        pAnimationPlayer->SetPhysicsType(AnimationPhysicsType::kSpring);
+        if ((m_springStiffness > 0.0) && (m_springDamping > 0.0) && (m_springMass > 0.0)) {
+            pAnimationPlayer->SetSpringParameters(m_springStiffness, m_springDamping, m_springMass);
+        }
+    }
+    else {
+        pAnimationPlayer->SetTotalMillSeconds(m_nCollapseAnimMs);
+    }
+    pAnimationPlayer->SetFrameIntervalMillSeconds(16); //约 60 帧/秒
     pAnimationPlayer->SetStartValue(nFromHeight);
     pAnimationPlayer->SetEndValue(nToHeight);
 

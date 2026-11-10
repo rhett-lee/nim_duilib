@@ -2,6 +2,7 @@
 #include "AnimationScheduler.h"
 #include "duilib/Animation/EasingFunctions.h"
 #include <cmath>
+#include <limits>
 
 #define AP_NO_VALUE -1
 
@@ -28,6 +29,8 @@ void AnimationPlayer::Clear()
     m_playCallback = nullptr;
     m_completeCallback = nullptr;
     m_pEasingFunctions.reset();
+    m_pSpringSimulation.reset();
+    m_pInertiaSimulation.reset();
     m_playProgress = 0.0;
 }
 
@@ -46,10 +49,56 @@ void AnimationPlayer::Init()
     m_startTimeMillSeconds = 0;
     m_pEasingFunctions.reset();
     m_easingFunctionType = EasingFunctionType::EaseInOutCubic;
+
+    //物理动画的默认参数（0/<0 表示使用 PhysicsAnimation 的全局默认值）
+    m_physicsType = AnimationPhysicsType::kNone;
+    m_springStiffness = 0.0;
+    m_springDamping = 0.0;
+    m_springMass = 0.0;
+    m_inertiaVelocity = 0.0;
+    m_inertiaFriction = -1.0;
+    m_inertiaMinValue = std::numeric_limits<int32_t>::min();
+    m_inertiaMaxValue = std::numeric_limits<int32_t>::max();
+    m_pSpringSimulation.reset();
+    m_pInertiaSimulation.reset();
+    m_physicsLastTimeMillSeconds = 0;
+}
+
+void AnimationPlayer::SetSpringParameters(double stiffness, double damping, double mass)
+{
+    m_springStiffness = (stiffness > 0.0) ? stiffness : 0.0;
+    m_springDamping = (damping > 0.0) ? damping : 0.0;
+    m_springMass = (mass > 0.0) ? mass : 0.0;
+}
+
+void AnimationPlayer::SetInertiaParameters(double initialVelocity, double friction)
+{
+    m_inertiaVelocity = initialVelocity;
+    m_inertiaFriction = (friction > 0.0) ? friction : -1.0;
+}
+
+void AnimationPlayer::SetInertiaValueRange(int32_t minValue, int32_t maxValue)
+{
+    if (minValue > maxValue) {
+        std::swap(minValue, maxValue);
+    }
+    m_inertiaMinValue = minValue;
+    m_inertiaMaxValue = maxValue;
+}
+
+bool AnimationPlayer::IsPhysicsEnabled() const
+{
+    return (m_physicsType != AnimationPhysicsType::kNone) && PhysicsAnimation::IsEnabled();
 }
 
 void AnimationPlayer::SetEndValue(int32_t endValue)
 {
+    if (m_pSpringSimulation != nullptr) {
+        //弹簧动画播放中：直接修改目标值，从当前状态平滑过渡，不会回跳
+        m_endValue = endValue;
+        m_pSpringSimulation->SetTarget(static_cast<double>(endValue));
+        return;
+    }
     if (!m_bPlaying || (m_pEasingFunctions == nullptr) || m_bReversePlay) {
         //未在正向播放中，直接更新结束值
         m_endValue = endValue;
@@ -119,6 +168,8 @@ void AnimationPlayer::Stop()
         m_bReversePlay = false;
     }
     m_pEasingFunctions.reset();
+    m_pSpringSimulation.reset();
+    m_pInertiaSimulation.reset();
     m_frameIndex = 0;
     m_playProgress = 0.0;
     m_currentValue = m_startValue;
@@ -161,6 +212,11 @@ void AnimationPlayer::ReverseContinue()
 
 void AnimationPlayer::StartTimer(bool bContinueMode, bool bOldReversePlay)
 {
+    if (IsPhysicsEnabled()) {
+        //物理动画：惯性动画没有明确的目标值，起止值相同也仍然需要按初速度滑行
+        StartPhysics();
+        return;
+    }
     if (m_endValue == m_startValue) {
         Complete();
         return;
@@ -240,8 +296,132 @@ void AnimationPlayer::StartTimer(bool bContinueMode, bool bOldReversePlay)
     }
 }
 
+void AnimationPlayer::StartPhysics()
+{
+    m_bPlaying = true;
+    m_frameIndex = 0;
+    m_playProgress = 0.0;
+    m_currentValue = m_startValue;
+    m_playTotalMillSeconds = m_totalMillSeconds;
+    if (m_playTotalMillSeconds <= 0) {
+        //物理动画没有固定时长，这里只作为兜底上限（正常情况下会先自然静止）
+        m_playTotalMillSeconds = 3000;
+    }
+    m_startTimeMillSeconds = AnimationScheduler::GetTimeMillSeconds();
+    m_physicsLastTimeMillSeconds = m_startTimeMillSeconds;
+    m_pEasingFunctions.reset();
+    m_pSpringSimulation.reset();
+    m_pInertiaSimulation.reset();
+
+    if (m_physicsType == AnimationPhysicsType::kSpring) {
+        m_pSpringSimulation = std::make_unique<SpringSimulation>();
+        if ((m_springStiffness > 0.0) && (m_springDamping > 0.0) && (m_springMass > 0.0)) {
+            m_pSpringSimulation->SetParameters(m_springStiffness, m_springDamping, m_springMass);
+        }
+        else {
+            double stiffness = 0.0;
+            double damping = 0.0;
+            double mass = 0.0;
+            PhysicsAnimation::GetDefaultSpringParameters(stiffness, damping, mass);
+            m_pSpringSimulation->SetParameters(stiffness, damping, mass);
+        }
+        m_pSpringSimulation->Reset(static_cast<double>(m_startValue), static_cast<double>(m_endValue));
+    }
+    else if (m_physicsType == AnimationPhysicsType::kInertia) {
+        double friction = m_inertiaFriction;
+        double minVelocity = 0.0;
+        double defaultFriction = 0.0;
+        PhysicsAnimation::GetDefaultInertiaParameters(defaultFriction, minVelocity);
+        if (friction <= 0.0) {
+            friction = defaultFriction;
+        }
+        m_pInertiaSimulation = std::make_unique<InertiaSimulation>();
+        m_pInertiaSimulation->SetParameters(friction, minVelocity, m_playTotalMillSeconds);
+        m_pInertiaSimulation->SetValueRange(static_cast<double>(m_inertiaMinValue),
+                                            static_cast<double>(m_inertiaMaxValue));
+        m_pInertiaSimulation->Reset(static_cast<double>(m_startValue), m_inertiaVelocity);
+    }
+
+    if (!HasPhysicsSimulation()) {
+        //没有可用的物理积分器，按普通动画完成处理
+        Complete();
+        return;
+    }
+    //注册到动画调度器，由全局唯一的定时器统一驱动
+    AnimationScheduler::Instance().Register(this, m_weakFlagOwner.GetWeakFlag());
+
+    //首次调用，初始化当前的值
+    if (m_playCallback) {
+        m_playCallback(m_currentValue);
+    }
+}
+
+void AnimationPlayer::OnTickPhysics(int64_t nNowMillSeconds)
+{
+    double deltaSeconds = static_cast<double>(nNowMillSeconds - m_physicsLastTimeMillSeconds) / 1000.0;
+    m_physicsLastTimeMillSeconds = nNowMillSeconds;
+    if (deltaSeconds <= 0.0) {
+        return;
+    }
+    //UI线程卡顿时限制单帧步进，避免物理积分产生过大的跳变
+    if (deltaSeconds > 0.1) {
+        deltaSeconds = 0.1;
+    }
+
+    double dValue = static_cast<double>(m_currentValue);
+    bool bFinished = false;
+    if (m_pSpringSimulation != nullptr) {
+        bFinished = !m_pSpringSimulation->Advance(deltaSeconds, dValue);
+    }
+    else if (m_pInertiaSimulation != nullptr) {
+        bFinished = !m_pInertiaSimulation->Advance(deltaSeconds, dValue);
+    }
+    const int32_t newCurrentValue = static_cast<int32_t>(std::llround(dValue));
+
+    //回调函数的副本与对象存活标志：回调中可能销毁 AnimationPlayer（控件被删除），
+    //回调返回后不能直接访问任何成员变量，只能通过本地的存活标志判断对象是否仍然有效
+    const std::weak_ptr<WeakFlag> aliveFlag = m_weakFlagOwner.GetWeakFlag();
+    const int64_t nStartTimeBefore = m_startTimeMillSeconds;
+    SpringSimulation* pSpringBefore = m_pSpringSimulation.get();
+    InertiaSimulation* pInertiaBefore = m_pInertiaSimulation.get();
+    AnimationPlayCallback playCallback = m_playCallback;
+    if (playCallback && (newCurrentValue != m_currentValue)) {
+        playCallback(newCurrentValue);
+        if (aliveFlag.expired()) {
+            //回调中动画已被清理、停止或者对象已被销毁，不再访问成员变量
+            return;
+        }
+        if ((m_pSpringSimulation.get() != pSpringBefore) ||
+            (m_pInertiaSimulation.get() != pInertiaBefore) ||
+            (m_startTimeMillSeconds != nStartTimeBefore)) {
+            //回调中重新启动了动画，本次计算结果作废
+            return;
+        }
+    }
+    if (!HasPhysicsSimulation()) {
+        AnimationScheduler::Instance().Unregister(this);
+        m_weakFlagOwner.Cancel();
+        return;
+    }
+    m_currentValue = newCurrentValue;
+    //记录近似进度（物理动画没有固定时长，仅供外部查询参考）
+    m_playProgress = (m_playTotalMillSeconds > 0) ?
+        (static_cast<double>(nNowMillSeconds - m_startTimeMillSeconds) / static_cast<double>(m_playTotalMillSeconds)) : 0.0;
+    if (m_playProgress > 1.0) {
+        m_playProgress = 1.0;
+    }
+    if (bFinished) {
+        //弹簧动画结束时对齐到目标值；惯性动画保留停止时的实际值（如滚动到边界）
+        Complete(m_pSpringSimulation != nullptr);
+    }
+}
+
 void AnimationPlayer::OnTick(int64_t nNowMillSeconds)
 {
+    if (HasPhysicsSimulation()) {
+        OnTickPhysics(nNowMillSeconds);
+        return;
+    }
     if (m_pEasingFunctions == nullptr) {
         AnimationScheduler::Instance().Unregister(this);
         return;
@@ -306,15 +486,19 @@ void AnimationPlayer::ReverseAllValue()
     m_currentValue = m_startValue;
 }
 
-void AnimationPlayer::Complete()
+void AnimationPlayer::Complete(bool bSnapToEnd)
 {
     // 先缓存回调，避免回调中 AnimationPlayer 被销毁后的悬空调用
     AnimationCompleteCallback completeCallback = m_completeCallback;
-    m_currentValue = m_endValue;
+    if (bSnapToEnd) {
+        m_currentValue = m_endValue;
+    }
     m_playProgress = 1.0;
     m_bPlaying = false;
-    // 先释放 easing 函数资源，让回调中如需重启也能正确初始化
+    // 先释放 easing 函数与物理积分器资源，让回调中如需重启也能正确初始化
     m_pEasingFunctions.reset();
+    m_pSpringSimulation.reset();
+    m_pInertiaSimulation.reset();
     AnimationScheduler::Instance().Unregister(this);
     m_weakFlagOwner.Cancel();
     if (completeCallback) {

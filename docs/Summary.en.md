@@ -153,7 +153,8 @@ For detailed interface descriptions of each class, please refer to the associate
 | Class Name / Description | Associated Header File | Purpose |
 | :--- | :--- | :--- |
 | AnimationManager | [duilib/Animation/AnimationManager.h](../duilib/Animation/AnimationManager.h) | Image animation manager |
-| AnimationPlayer | [duilib/Animation/AnimationPlayer.h](../duilib/Animation/AnimationPlayer.h) | Image animation playback state management |
+| AnimationPlayer | [duilib/Animation/AnimationPlayer.h](../duilib/Animation/AnimationPlayer.h) | Control animation playback state management (easing / spring / inertia) |
+| PhysicsAnimation | [duilib/Animation/PhysicsAnimation.h](../duilib/Animation/PhysicsAnimation.h) | Physics animation: spring and inertia integrators plus the global switch |
 
 * Color
 

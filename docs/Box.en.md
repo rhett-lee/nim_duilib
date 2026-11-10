@@ -274,8 +274,21 @@ The HTileBox control inherits the `Box` attributes. For more available attribute
 | scrollbar_float | true | bool | Whether the container's scrollbar floats above the child controls, e.g. "true" |
 | vscrollbar_left | false | bool | Whether the container's scrollbar is displayed on the left |
 | hold_end | false | bool | Whether to always keep displaying the end position, e.g. "true" |
+| inertia_scroll | false | bool | Whether to enable inertia scrolling: after the wheel stops, the view keeps gliding with exponential friction; effective only when the global physics animation switch is on |
+| inertia_friction | 5.0 | double | Friction coefficient of inertia scrolling (1/second); larger values stop sooner |
+| inertia_gain | 0.6 | double | Inertia gain: extra glide distance = wheel scroll distance x this factor; 0 disables the extra glide |
 
 The ScrollBox control inherits the `Box` attributes. For more available attributes, please refer to the `Box` attributes.
+
+#### Inertia scrolling
+
+With `inertia_scroll="true"`, the list keeps gliding a short distance after the wheel stops. The velocity
+decays exponentially (`v(t) = v0 * exp(-friction * t)`) and the glide stops naturally at the content boundary:
+
+- Each wheel event scrolls as usual first, then restarts the glide from the current position (the latest velocity wins);
+- The total glide distance is about "wheel distance x inertia_gain"; `inertia_friction` only changes how fast it decays;
+- Inertia scrolling is controlled by the global physics switch (`PhysicsAnimation::SetEnabled(false)` falls back to plain scrolling immediately);
+- Main C++ APIs: `SetInertiaScrollEnabled()` / `IsInertiaScrollEnabled()`, `SetInertiaScrollParameters(friction, gain)`.
 
 #### Keyboard navigation
 
@@ -507,6 +520,7 @@ Panel/PanelHBox/PanelVBox are three instances of the same template class (`Panel
 | collapsed | false | bool | Initial collapsed state; the initial setting fires no events and plays no animation |
 | collapse_trigger | "title" | string | Collapse trigger hit area: "title" (the whole title bar) or "arrow" (only the arrow area) |
 | collapse_anim | 0 | int | Collapse/expand animation duration in milliseconds; 0 means no animation (instant switch), 150~300 is recommended |
+| collapse_physics | false | bool | Whether to use the spring physics animation for collapse/expand; requires `collapse_anim > 0` and the global physics switch to be on, otherwise it falls back to easing |
 | arrow_align | "right" | string | Position of the collapse arrow: "right" (right side of the title bar, default) or "left" (left side) |
 | group | | string | Accordion group name: within the same window, only one panel of a group may be expanded at a time (all may be collapsed); empty string means no group |
 | title_slot | | string | Title bar slot: the name of a child control (recommended to set float="true") which is automatically positioned at the right side of the title bar (left of the arrow); it stays visible and clickable when collapsed |
@@ -524,7 +538,8 @@ Additional notes:
 * Multi-language: when `title_id` is configured, the title text is provided by the language resources and is automatically refreshed when the language changes at runtime, requiring no application code; the corresponding C++ APIs are `SetTitleId()` / `GetTitleId()`. If a dynamic text (e.g. a formatted string with parameters) has been set via `SetTitle()`, it must be re-applied in the window's `OnLanguageChanged()` after a language switch.
 * When no arrow images are configured, built-in vector triangles are used (pointing right when collapsed, down when expanded); the arrow automatically turns into the color_accent color when the mouse hovers over the title bar. If an image is missing for a specific state, the normal-state image is used as fallback.
 * Collapsing hides the content area at measurement, painting and hit-testing points. It neither modifies the children's visible state nor changes the control's own height mode, so fixed/auto/stretch heights all collapse correctly. During collapse, min_height is temporarily relaxed to the title bar height, and the user value is restored after expanding.
+* The collapse animation uses easing by default (ease-in when collapsing, ease-out when expanding). With `collapse_physics="true"` it uses a spring model instead: the height springs smoothly to the target with near-critical damping (default stiffness 220, damping 26, mass 1, only a slight bounce); `collapse_anim` then only serves as a fallback time limit. Tune the spring via `SetCollapseSpringParameters(stiffness, damping, mass)`, or toggle it at runtime with `SetCollapsePhysicsEnabled()` / `IsCollapsePhysicsEnabled()`.
 * Events: `kEventCollapse` / `kEventExpand` are fired after collapse/expand completes (immediately without animation, after the animation otherwise). Before the action, `kEventPanelCollapsing` / `kEventPanelExpanding` are fired; an event callback returning false cancels the action (the initial collapsed XML attribute and internal accordion synchronization do not fire the cancel events).
-* Main C++ APIs: `SetTitle()` / `GetTitle()`, `SetTitleId()` / `GetTitleId()`, `SetCollapsed(bool bCollapsed, bool bFireEvent = true, bool bPlayAnim = true)`, `IsCollapsed()`, `SetCollapsible()`, `SetCollapseAnimMillSeconds()`, `SetGroup()`, `SetArrowAlign()`, `SetTitleTextHAlign()`, `SetArrowStateImage()`, `SetTitleSlotName()`, plus the listeners `AttachCollapse` / `AttachExpand` / `AttachCollapsing` / `AttachExpanding`.
+* Main C++ APIs: `SetTitle()` / `GetTitle()`, `SetTitleId()` / `GetTitleId()`, `SetCollapsed(bool bCollapsed, bool bFireEvent = true, bool bPlayAnim = true)`, `IsCollapsed()`, `SetCollapsible()`, `SetCollapseAnimMillSeconds()`, `SetCollapsePhysicsEnabled()`, `SetCollapseSpringParameters()`, `SetGroup()`, `SetArrowAlign()`, `SetTitleTextHAlign()`, `SetArrowStateImage()`, `SetTitleSlotName()`, plus the listeners `AttachCollapse` / `AttachExpand` / `AttachCollapsing` / `AttachExpanding`.
 
 The Panel/PanelHBox/PanelVBox controls inherit the attributes of `Box`/`HBox`/`VBox` respectively. For more available attributes, please refer to the `Box` attributes. For a complete example, see the `examples/panel` sample.

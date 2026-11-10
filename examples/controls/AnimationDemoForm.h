@@ -13,7 +13,8 @@
 *  3. 滑动进出场：上下左右四个方向；
 *  4. 缓动曲线对比：同一时刻启动、使用不同缓动函数的动画；
 *  5. Retarget：播放过程中修改结束值，从当前值继续播放；
-*  6. 功能说明。
+*  6. 物理动画：弹簧（Panel 展开/折叠）与惯性（列表滚动），支持全局开关与自检；
+*  7. 功能说明。
 */
 class AnimationDemoForm : public ui::WindowImplBase
 {
@@ -52,6 +53,19 @@ private:
     /** 初始化 Retarget 的演示控件
     */
     void InitRetargetDemo();
+
+    /** 初始化物理动画的演示控件（Panel 弹簧展开/折叠、列表惯性滚动、总开关）
+    */
+    void InitPhysicsDemo();
+
+    /** 刷新物理动画总开关的状态显示
+    */
+    void UpdatePhysicsStateLabel();
+
+    /** 运行物理动画自检（校验弹簧收敛/回弹/换目标，惯性滑行距离/边界钳制，总开关）
+    *  结果直接显示在页面上，无需单元测试框架
+    */
+    void RunPhysicsSelfTest();
 
     /** 把当前的全局参数（时长、缓动函数）应用到所有演示控件
     */

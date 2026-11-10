@@ -1023,6 +1023,9 @@
     <ClCompile Include="Animation\AnimationScheduler.cpp">
       <Filter>Animation</Filter>
     </ClCompile>
+    <ClCompile Include="Animation\PhysicsAnimation.cpp">
+      <Filter>Animation</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -2121,6 +2124,9 @@
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Animation\AnimationScheduler.h">
+      <Filter>Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="Animation\PhysicsAnimation.h">
       <Filter>Animation</Filter>
     </ClInclude>
   </ItemGroup>

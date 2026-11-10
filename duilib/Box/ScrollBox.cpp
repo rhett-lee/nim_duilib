@@ -1,4 +1,7 @@
 #include "ScrollBox.h"
+#include "duilib/Animation/AnimationPlayer.h"
+#include "duilib/Animation/PhysicsAnimation.h"
+#include "duilib/Core/ControlPtrT.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Core/Window.h"
@@ -18,7 +21,12 @@ ScrollBox::ScrollBox(Window* pWindow, Layout* pLayout) :
     m_bHoldEnd(false),
     m_rcScrollBarPadding(),
     m_nVScrollUnitPixels(0),
-    m_nHScrollUnitPixels(0)
+    m_nHScrollUnitPixels(0),
+    m_bInertiaScroll(false),
+    m_inertiaFriction(5.0),
+    m_inertiaGain(0.6),
+    m_pInertiaPlayer(),
+    m_bInertiaScrolling(false)
 {
     SetVerScrollUnitPixels(30, true);
     SetHorScrollUnitPixels(30, true);
@@ -84,6 +92,18 @@ void ScrollBox::SetAttribute(const DString& strName, const DString& strValue2)
     }
     else if ((strName == _T("hold_end")) || (strName == _T("holdend"))) {
         SetHoldEnd(StringUtil::IsValueTrue(strValue));
+    }
+    else if ((strName == _T("inertia_scroll")) || (strName == _T("inertiascroll"))) {
+        //是否启用惯性滚动
+        SetInertiaScrollEnabled(StringUtil::IsValueTrue(strValue));
+    }
+    else if ((strName == _T("inertia_friction")) || (strName == _T("inertiafriction"))) {
+        //惯性滚动的摩擦系数
+        SetInertiaScrollParameters(StringUtil::StringToDouble(strValue), m_inertiaGain);
+    }
+    else if ((strName == _T("inertia_gain")) || (strName == _T("inertiagain"))) {
+        //惯性增益（额外滑行距离的比例）
+        SetInertiaScrollParameters(m_inertiaFriction, StringUtil::StringToDouble(strValue));
     }
     else {
         Box::SetAttribute(strName, strValue);
@@ -478,7 +498,18 @@ void ScrollBox::HandleEvent(const EventArgs& msg)
             int32_t deltaValue = msg.eventData;
             if (msg.lParam != 0) {
                 //正常逻辑滚动
-                if (deltaValue > 0) {
+                if (m_bInertiaScroll && PhysicsAnimation::IsEnabled()) {
+                    //惯性滚动：先按滚轮距离滚动，再叠加一段按摩擦衰减的滑行
+                    const int32_t nWheelDistance = abs(deltaValue);
+                    if (deltaValue > 0) {
+                        LineUp(nWheelDistance);
+                    }
+                    else {
+                        LineDown(nWheelDistance);
+                    }
+                    StartInertiaScroll((deltaValue > 0) ? -1 : 1, nWheelDistance);
+                }
+                else if (deltaValue > 0) {
                     LineUp(abs(deltaValue));
                 }
                 else {
@@ -771,6 +802,10 @@ UiSize64 ScrollBox::GetScrollRange() const
 
 void ScrollBox::SetScrollPos(UiSize64 szPos)
 {
+    if (!m_bInertiaScrolling) {
+        //外部改变滚动位置时，先停止正在进行的惯性滚动，避免两者相互争夺
+        StopInertiaScroll();
+    }
     UiSize oldScrollOffset = GetScrollOffset();
     if (szPos.cy < 0) {
         szPos.cy = 0;     
@@ -1103,6 +1138,89 @@ void ScrollBox::SetHorScrollUnitPixels(int32_t nUnitPixels, bool bNeedDpiScale)
         Dpi().ScaleInt(nUnitPixels);
     }
     m_nHScrollUnitPixels = nUnitPixels;
+}
+
+void ScrollBox::SetInertiaScrollEnabled(bool bEnabled)
+{
+    if (m_bInertiaScroll == bEnabled) {
+        return;
+    }
+    m_bInertiaScroll = bEnabled;
+    if (!m_bInertiaScroll) {
+        StopInertiaScroll();
+    }
+}
+
+bool ScrollBox::IsInertiaScrollEnabled() const
+{
+    return m_bInertiaScroll;
+}
+
+void ScrollBox::SetInertiaScrollParameters(double friction, double gain)
+{
+    m_inertiaFriction = (friction > 0.0) ? friction : m_inertiaFriction;
+    m_inertiaGain = (gain >= 0.0) ? gain : m_inertiaGain;
+}
+
+void ScrollBox::StartInertiaScroll(int32_t nDirection, int32_t nWheelDistance)
+{
+    if (!m_bInertiaScroll || !PhysicsAnimation::IsEnabled()) {
+        return;
+    }
+    const int64_t nScrollRange = GetScrollRange().cy;
+    if (nScrollRange <= 0) {
+        return;
+    }
+    const int64_t nCurrentPos = GetScrollPos().cy;
+    if ((nDirection < 0) && (nCurrentPos <= 0)) {
+        //已经在最上方，无需向上滑行
+        return;
+    }
+    if ((nDirection > 0) && (nCurrentPos >= nScrollRange)) {
+        //已经在最下方，无需向下滑行
+        return;
+    }
+    //额外滑行距离 = 滚轮距离 * 惯性增益；惯性总距离为 初速度 / 摩擦系数
+    double nExtraDistance = static_cast<double>(nWheelDistance) * m_inertiaGain;
+    if (nExtraDistance < 1.0) {
+        nExtraDistance = 1.0;
+    }
+    double nVelocity = nExtraDistance * m_inertiaFriction;
+    if (nDirection < 0) {
+        nVelocity = -nVelocity;
+    }
+
+    if (m_pInertiaPlayer == nullptr) {
+        m_pInertiaPlayer = std::make_unique<AnimationPlayer>();
+        m_pInertiaPlayer->SetAnimationType(AnimationType::kAnimationNone);
+        m_pInertiaPlayer->SetPhysicsType(AnimationPhysicsType::kInertia);
+        m_pInertiaPlayer->SetFrameIntervalMillSeconds(16);
+        ControlPtrT<ScrollBox> pScrollBox(this);
+        m_pInertiaPlayer->SetPlayCallback([pScrollBox](int32_t nNewValue) {
+            if (pScrollBox == nullptr) {
+                return;
+            }
+            //应用惯性滚动时不要停止自身的动画
+            pScrollBox->m_bInertiaScrolling = true;
+            pScrollBox->SetScrollPosY(static_cast<int64_t>(nNewValue));
+            pScrollBox->m_bInertiaScrolling = false;
+        });
+    }
+    //每次滚轮事件都从当前位置重新开始滑行（连续滚动时以最新速度为准）
+    m_pInertiaPlayer->Stop();
+    m_pInertiaPlayer->SetStartValue(static_cast<int32_t>(nCurrentPos));
+    m_pInertiaPlayer->SetEndValue(static_cast<int32_t>(nCurrentPos));
+    m_pInertiaPlayer->SetInertiaParameters(nVelocity, m_inertiaFriction);
+    m_pInertiaPlayer->SetInertiaValueRange(0, static_cast<int32_t>(nScrollRange));
+    m_pInertiaPlayer->SetTotalMillSeconds(1200);
+    m_pInertiaPlayer->Start();
+}
+
+void ScrollBox::StopInertiaScroll()
+{
+    if (m_pInertiaPlayer != nullptr) {
+        m_pInertiaPlayer->Stop();
+    }
 }
 
 bool ScrollBox::GetScrollBarFloat() const

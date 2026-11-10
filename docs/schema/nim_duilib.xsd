@@ -4233,6 +4233,21 @@
         <xs:documentation>是否一直保持显示末尾位置,如"true"</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="inertia_scroll" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否启用惯性滚动：true/false，默认 false；滚轮滚动结束后按摩擦衰减继续滑行一段距离，仅在物理动画总开关开启时生效</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="inertia_friction" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>惯性滚动的摩擦系数（1/秒），越大停得越快，默认 5.0</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="inertia_gain" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>惯性增益：额外滑行距离相对滚轮滚动距离的比例，默认 0.6，0 表示无额外滑行</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:attributeGroup>
   <xs:attributeGroup name="SliderAttrs">
     <!-- 来源：Slider -->
@@ -5870,6 +5885,11 @@
         <xs:documentation>折叠/展开动画时长（毫秒），0 表示无动画、立即切换，建议取值 150~300</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="collapse_physics" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>折叠/展开是否使用物理动画（弹簧）：true/false，默认 false；需同时满足 collapse_anim 大于 0 且物理动画总开关开启，否则自动回退为缓动函数</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute name="arrow_align" type="xs:string">
       <xs:annotation>
         <xs:documentation>折叠箭头的位置："right"（标题栏右侧，默认）或 "left"（标题栏左侧）</xs:documentation>
@@ -6041,6 +6061,11 @@
         <xs:documentation>折叠/展开动画时长（毫秒），0 表示无动画、立即切换，建议取值 150~300</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="collapse_physics" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>折叠/展开是否使用物理动画（弹簧）：true/false，默认 false；需同时满足 collapse_anim 大于 0 且物理动画总开关开启，否则自动回退为缓动函数</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute name="arrow_align" type="xs:string">
       <xs:annotation>
         <xs:documentation>折叠箭头的位置："right"（标题栏右侧，默认）或 "left"（标题栏左侧）</xs:documentation>
@@ -6157,6 +6182,11 @@
     <xs:attribute name="collapse_anim" type="xs:string">
       <xs:annotation>
         <xs:documentation>折叠/展开动画时长（毫秒），0 表示无动画、立即切换，建议取值 150~300</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="collapse_physics" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>折叠/展开是否使用物理动画（弹簧）：true/false，默认 false；需同时满足 collapse_anim 大于 0 且物理动画总开关开启，否则自动回退为缓动函数</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="arrow_align" type="xs:string">
@@ -6936,6 +6966,21 @@
     <xs:attribute name="hold_end" type="xs:string">
       <xs:annotation>
         <xs:documentation>是否一直保持显示末尾位置,如"true"</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="inertia_scroll" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否启用惯性滚动：true/false，默认 false；滚轮滚动结束后按摩擦衰减继续滑行一段距离，仅在物理动画总开关开启时生效</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="inertia_friction" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>惯性滚动的摩擦系数（1/秒），越大停得越快，默认 5.0</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="inertia_gain" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>惯性增益：额外滑行距离相对滚轮滚动距离的比例，默认 0.6，0 表示无额外滑行</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>

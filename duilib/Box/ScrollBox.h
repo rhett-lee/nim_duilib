@@ -12,8 +12,16 @@
 
 namespace ui 
 {
+
+class AnimationPlayer;
+
  /** 带有垂直或水平滚动条的容器，使容器可以容纳更多内容
  *   通过修改布局，形成 HScrollBox/VScrollBox/HFlowScrollBox/VFlowScrollBox/HTileScrollBox/VTileScrollBox六个子类
+ *
+ *   XML 属性（惯性滚动相关，物理动画总开关关闭时自动失效）：
+ *     inertia_scroll    是否启用惯性滚动：true/false，默认 false
+ *     inertia_friction  惯性滚动的摩擦系数（1/秒），越大停得越快，默认 5.0
+ *     inertia_gain      惯性增益，额外滑行距离相对滚轮距离的比例，默认 0.6
  */
 class DUILIB_API ScrollBox : public Box
 {
@@ -220,6 +228,21 @@ public:
     */
     void SetHorScrollUnitPixels(int32_t nUnitPixels, bool bNeedDpiScale);
 
+    /** 是否启用惯性滚动（滚轮滚动结束后按惯性继续滑行一段距离）
+    *   仅在物理动画总开关（PhysicsAnimation::SetEnabled）开启时生效
+    */
+    void SetInertiaScrollEnabled(bool bEnabled);
+
+    /** 是否启用惯性滚动
+    */
+    bool IsInertiaScrollEnabled() const;
+
+    /** 设置惯性滚动参数
+    * @param [in] friction 摩擦系数（1/秒），越大停得越快
+    * @param [in] gain 惯性增益：额外滑行距离相对滚轮滚动距离的比例（0 表示无额外滑行）
+    */
+    void SetInertiaScrollParameters(double friction, double gain);
+
     /** 获取容器的滚动条是否悬浮在子控件上面
      * @return 返回 true 表示悬浮在滚动条上，否则为 false
      */
@@ -332,6 +355,16 @@ private:
     bool NeedShowVScrollBar(UiRect rcBox, int64_t cyRequired,
                             UiRect& rcScrollBarPos, int64_t& nScrollRange) const;
 
+    /** 启动惯性滚动（滚轮滚动后叠加的滑行）
+    * @param [in] nDirection 方向：<0 向上滚动，>0 向下滚动
+    * @param [in] nWheelDistance 本次滚轮滚动的距离（像素），用于计算滑行的初速度
+    */
+    void StartInertiaScroll(int32_t nDirection, int32_t nWheelDistance);
+
+    /** 停止惯性滚动
+    */
+    void StopInertiaScroll();
+
 private:
     //垂直滚动条接口
     std::unique_ptr<ScrollBar> m_pVScrollBar;
@@ -360,6 +393,21 @@ private:
 
     //容器的滚动条是否在左侧显示
     bool m_bVScrollBarAtLeft;
+
+    //是否启用惯性滚动
+    bool m_bInertiaScroll;
+
+    //惯性滚动的摩擦系数（1/秒）
+    double m_inertiaFriction;
+
+    //惯性增益（额外滑行距离相对滚轮滚动距离的比例）
+    double m_inertiaGain;
+
+    //惯性滚动使用的动画播放器（延迟创建，注册到全局动画调度器）
+    std::unique_ptr<AnimationPlayer> m_pInertiaPlayer;
+
+    //是否正在应用惯性滚动（避免 SetScrollPos 把自身停止）
+    bool m_bInertiaScrolling;
 };
 
 /** 横向布局的ScrollBox

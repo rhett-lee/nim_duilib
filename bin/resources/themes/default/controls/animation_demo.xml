@@ -209,16 +209,61 @@
                     </HBox>
                 </VBox>
 
-                <!-- 6. 功能说明 -->
+                <!-- 6. 物理动画：弹簧（Panel 展开/折叠） / 惯性（列表滚动） -->
                 <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
                       padding="16,14,16,14" width="stretch" height="auto" margin="0,10,0,0">
                     <HBox height="24" valign="center">
-                        <Control width="6" height="16" bkcolor="color_accent" border_round="3,3" valign="center"/>
+                        <Control width="6" height="16" bkcolor="color_blue" border_round="3,3" valign="center"/>
                         <Label text_id="STRID_ANIM_CARD6_TITLE" font="system_bold_15" text_color="text_default"
                                margin="8,0,0,0" valign="center"/>
                         <Control/>
                     </HBox>
-                    <Label text_id="STRID_ANIM_CARD6_NOTE"
+                    <Label text_id="STRID_ANIM_CARD6_DESC"
+                           font="system_regular_12" text_color="text_muted" margin="0,6,0,0" width="stretch" height="auto"
+                           multi_line="true" replace_newline="true" auto_tooltip="true"/>
+                    <HBox height="30" margin="0,8,0,0" child_margin="8" valign="center">
+                        <Button class="btn_global" name="btn_physics_toggle" text_id="STRID_ANIM_BTN_PHYSICS_ON" width="200" height="26" border_round="4,4"/>
+                        <Label name="label_physics_state" text="ON" font="system_bold_12" text_color="color_success" valign="center"/>
+                        <Control/>
+                    </HBox>
+                    <HBox height="30" margin="0,8,0,0" child_margin="10" valign="center">
+                        <Button class="btn_global" name="btn_physics_selftest" text_id="STRID_ANIM_BTN_PHYSICS_TEST" width="200" height="26" border_round="4,4"/>
+                        <Label name="label_physics_selftest" font="system_regular_12" text_color="text_muted" valign="center" auto_tooltip="true"/>
+                        <Control/>
+                    </HBox>
+                    <HBox height="auto" margin="0,10,0,0" child_margin="16">
+                        <VBox width="stretch" height="auto" child_margin="8">
+                            <Label text_id="STRID_ANIM_PHYSICS_PANEL_LABEL" font="system_regular_12" text_color="text_default"/>
+                            <PanelVBox name="physics_panel" width="stretch" height="190"
+                                       bkcolor="bg_window_main" border_size="1" border_color="border_window" border_round="8,8"
+                                       title_id="STRID_ANIM_PHYSICS_PANEL_TITLE" title_height="30"
+                                       title_bk_color="bg_overlay" title_text_color="text_selected" title_font="system_bold_14"
+                                       collapsible="true" collapsed="false" collapse_anim="600" collapse_physics="true"
+                                       padding="12,10,12,10">
+                                <Label text_id="STRID_ANIM_PHYSICS_PANEL_BODY"
+                                       font="system_regular_12" text_color="text_muted" width="stretch" height="auto"
+                                       multi_line="true" replace_newline="true" auto_tooltip="true"/>
+                            </PanelVBox>
+                        </VBox>
+                        <VBox width="stretch" height="auto" child_margin="8">
+                            <Label text_id="STRID_ANIM_PHYSICS_LIST_LABEL" font="system_regular_12" text_color="text_default"/>
+                            <VListBox name="physics_list" width="stretch" height="190" vscrollbar="true" hscrollbar="false"
+                                      bkcolor="bg_window_main" border_size="1" border_color="border_window" border_round="8,8"
+                                      padding="1,1,1,1" inertia_scroll="true" scroll_select="false"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- 7. 功能说明 -->
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" width="stretch" height="auto" margin="0,10,0,0">
+                    <HBox height="24" valign="center">
+                        <Control width="6" height="16" bkcolor="color_accent" border_round="3,3" valign="center"/>
+                        <Label text_id="STRID_ANIM_CARD7_TITLE" font="system_bold_15" text_color="text_default"
+                               margin="8,0,0,0" valign="center"/>
+                        <Control/>
+                    </HBox>
+                    <Label text_id="STRID_ANIM_CARD7_NOTE"
                            font="system_regular_12" text_color="text_muted" margin="0,8,0,0"
                            width="stretch" height="auto" multi_line="true" replace_newline="true" auto_tooltip="true"/>
                 </VBox>
