@@ -84,8 +84,11 @@ public:
         }
 
         // 拷贝已有数据（仅拷贝有效数据，无冗余）
-        if (m_data != nullptr && m_size > 0) {
-            std::memcpy(new_data, m_data, m_size * sizeof(T));
+        //修复：原来仅当 m_size > 0 才 free 旧缓冲区，clear() 之后再扩容会泄漏旧内存
+        if (m_data != nullptr) {
+            if (m_size > 0) {
+                std::memcpy(new_data, m_data, m_size * sizeof(T));
+            }
             std::free(m_data);
         }
 
@@ -100,6 +103,10 @@ public:
         if (m_size >= m_capacity) {
             const size_t new_cap = (m_capacity == 0) ? 16 : m_capacity * 3 / 2;
             reserve(new_cap);
+            //修复：分配失败时 m_capacity 未增长，继续写入会写空指针（崩溃），此处直接放弃本次添加
+            if (m_size >= m_capacity) {
+                return;
+            }
         }
         // 直接赋值，不调用构造函数（极致性能）
         m_data[m_size++] = value;
@@ -179,6 +186,10 @@ public:
         // 扩大：需要扩容
         if (new_size > m_capacity) {
             reserve(new_size);
+            //修复：分配失败时不能把 size 改大，否则后续访问越界
+            if (new_size > m_capacity) {
+                return;
+            }
         }
 
         // 只改大小，不初始化新元素（最快）
@@ -201,6 +212,10 @@ public:
         // 扩大：先确保容量足够
         if (new_size > m_capacity) {
             reserve(new_size);
+            //修复：分配失败时不能继续初始化/改大小
+            if (new_size > m_capacity) {
+                return;
+            }
         }
 
         // 将新增的元素全部赋值为 default_value

@@ -1,6 +1,8 @@
 #include "Path_Skia.h"
 #include "duilib/RenderSkia/Matrix_Skia.h"
 
+#include <vector>
+
 #include "SkiaHeaderBegin.h"
 #include "include/core/SkPathBuilder.h"
 #include "SkiaHeaderEnd.h"
@@ -167,7 +169,8 @@ void Path_Skia::AddBeziers(const UiPoint* points, int32_t count)
     }
     MoveToPoint(points[0].x, points[0].y);
     int32_t i = 1;
-    for (; i < count; i += 3) {
+    //修复：循环条件必须保证 i+2 不越界（count 不是 1+3n 时，原来会读取 points[count] 之后的数据）
+    for (; (i + 2) < count; i += 3) {
         m_skPathBuilder->cubicTo(SkPoint::Make(static_cast<float>(points[i].x), static_cast<float>(points[i].y)),
                                  SkPoint::Make(static_cast<float>(points[i + 1].x), static_cast<float>(points[i + 1].y)),
                                  SkPoint::Make(static_cast<float>(points[i + 2].x), static_cast<float>(points[i + 2].y)));
@@ -184,7 +187,8 @@ void Path_Skia::AddBeziers(const UiPointF* points, int32_t count)
     }
     MoveToPoint(points[0].x, points[0].y);
     int32_t i = 1;
-    for (; i < count; i += 3) {
+    //修复：循环条件必须保证 i+2 不越界（count 不是 1+3n 时，原来会读取 points[count] 之后的数据）
+    for (; (i + 2) < count; i += 3) {
         m_skPathBuilder->cubicTo(SkPoint::Make(points[i].x, points[i].y),
                                  SkPoint::Make(points[i + 1].x, points[i + 1].y),
                                  SkPoint::Make(points[i + 2].x, points[i + 2].y));
@@ -234,13 +238,13 @@ void Path_Skia::AddPolygon(const UiPoint* points, int count)
     if ((count < 1) || (points == nullptr)) {
         return;
     }
-    SkPoint* skPts = new SkPoint[count];
+    //优化：使用 std::vector 代替裸 new[]/delete[]，异常安全且少一次手动释放
+    std::vector<SkPoint> skPts(count);
     for (int32_t i = 0; i < count; ++i)    {
         skPts[i].fX = (float)points[i].x;
         skPts[i].fY = (float)points[i].y;
     }
-    m_skPathBuilder->addPolygon(SkSpan<const SkPoint>(skPts, count), false);
-    delete[] skPts;
+    m_skPathBuilder->addPolygon(SkSpan<const SkPoint>(skPts.data(), count), false);
 }
 
 void Path_Skia::AddPolygon(const UiPointF* points, int32_t count)
@@ -250,13 +254,13 @@ void Path_Skia::AddPolygon(const UiPointF* points, int32_t count)
     if ((count < 1) || (points == nullptr)) {
         return;
     }
-    SkPoint* skPts = new SkPoint[count];
+    //优化：使用 std::vector 代替裸 new[]/delete[]，异常安全且少一次手动释放
+    std::vector<SkPoint> skPts(count);
     for (int32_t i = 0; i < count; ++i) {
         skPts[i].fX = points[i].x;
         skPts[i].fY = points[i].y;
     }
-    m_skPathBuilder->addPolygon(SkSpan<const SkPoint>(skPts, count), false);
-    delete[] skPts;
+    m_skPathBuilder->addPolygon(SkSpan<const SkPoint>(skPts.data(), count), false);
 }
 
 void Path_Skia::Transform(IMatrix* pMatrix)
@@ -271,7 +275,8 @@ void Path_Skia::Transform(IMatrix* pMatrix)
 
 ui::UiRect Path_Skia::GetBounds(const IPen* /*pen*/)
 {
-    SkRect bounds;
+    //修复：空路径/非有限路径时 computeFiniteBounds 返回 nullopt，bounds 必须是确定值（原来是未初始化内存）
+    SkRect bounds = SkRect::MakeEmpty();
     std::optional<SkRect> optBounds = m_skPathBuilder->computeFiniteBounds();
     if (optBounds.has_value()) {
         bounds = *optBounds;

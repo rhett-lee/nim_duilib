@@ -1361,13 +1361,14 @@ void Render_Skia::DrawPath(const IPath* path, const IPen* pen)
     SkPaint paint = *m_pSkPaint;
     SetPaintByPen(paint, pen);
 
-    SkPathBuilder skPathBuilder = *pSkiaPath->GetSkPathBuilder();
-    skPathBuilder.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
-    SkPath skPath = skPathBuilder.snapshot();
     SkCanvas* skCanvas = GetSkCanvas();
     ASSERT(skCanvas != nullptr);
     if (skCanvas != nullptr) {
-        skCanvas->drawPath(skPath, paint);
+        //优化：用画布平移代替“路径深拷贝+偏移”，路径只 snapshot 一次（save/restore 成对，不影响裁剪栈计数）
+        skCanvas->save();
+        skCanvas->translate(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
+        skCanvas->drawPath(pSkiaPath->GetSkPathBuilder()->snapshot(), paint);
+        skCanvas->restore();
     }
 }
 
@@ -1393,9 +1394,7 @@ void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
     switch (dashStyle) {
     case IPen::kDashStyleSolid:
     {
-        float fValue = GetScaleFloat(1.0f) * fRatio;
-        SkScalar intervals[] = { fValue * 1.0f, 0.0f };
-        skPathEffect = SkDashPathEffect::Make(SkSpan<const SkScalar>(intervals, 2), 0.0f);
+        //优化：实线不再创建 {w, 0} 的退化 DashPathEffect，避免每条实线都走 PathEffect 绘制路径（更快且无退化参数）
         break;
     }
     case IPen::kDashStyleDash:
@@ -1431,8 +1430,7 @@ void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
     }
     default:
     {
-        SkScalar intervals[] = { 1.0f, 0.0f };
-        skPathEffect = SkDashPathEffect::Make(SkSpan<const SkScalar>(intervals, 2), 0.0f);
+        //优化：未知样式按实线处理，同样不创建退化的 DashPathEffect
         break;
     }
     }
@@ -1497,9 +1495,8 @@ void Render_Skia::FillPath(const IPath* path, const IBrush* brush)
     paint.setColor(brush->GetColor().GetARGB());
     paint.setStyle(SkPaint::kFill_Style);
 
-    SkPathBuilder skPathBuilder = *pSkiaPath->GetSkPathBuilder();
-    skPathBuilder.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
-    SkPath skPath = skPathBuilder.snapshot();
+    //优化：先 snapshot 再一次性平移，避免对整个 SkPathBuilder 做一次多余拷贝
+    SkPath skPath = pSkiaPath->GetSkPathBuilder()->snapshot().makeOffset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
 
     SkCanvas* skCanvas = GetSkCanvas();
     ASSERT(skCanvas != nullptr);
@@ -1528,9 +1525,8 @@ void Render_Skia::FillPath(const IPath* path, const UiRectF& rc, UiColor dwColor
 
     InitGradientColor(skPaint, rc, dwColor, dwColor2, nColor2Direction);
     
-    SkPathBuilder skPathBuilder = *pSkiaPath->GetSkPathBuilder();
-    skPathBuilder.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
-    SkPath skPath = skPathBuilder.snapshot();
+    //优化：先 snapshot 再一次性平移，避免对整个 SkPathBuilder 做一次多余拷贝
+    SkPath skPath = pSkiaPath->GetSkPathBuilder()->snapshot().makeOffset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
 
     SkCanvas* skCanvas = GetSkCanvas();
     ASSERT(skCanvas != nullptr);
@@ -1799,21 +1795,17 @@ UiRect Render_Skia::MeasureString(const DString& strText, const MeasureStringPar
         int32_t textWidth = 0;
         ASSERT((int32_t)lineLenList.size() == lineCount);
         if (!lineLenList.empty()) {
-            std::vector<DString> lineTextList; //每行的文本
-            size_t nTextPos = 0;
+            //优化：直接用文本指针+行字节长度测量，避免逐行 substr 产生大量临时 DString 对象
+            const DString::value_type* pTextData = strText.c_str();
+            size_t nTextPos = 0; //当前行在文本中的字节偏移
             for (size_t len : lineLenList) {
-                ASSERT((len % sizeof(DString::value_type)) == 0);
-                size_t nTextLen = len / sizeof(DString::value_type);
-                lineTextList.push_back(strText.substr(nTextPos, nTextLen));
-                nTextPos += nTextLen;
-            }
-            for (const DString& lineText : lineTextList) {
-                //按单行评估每行文本，取最大宽度
                 SkRect bounds; //斜体字时，这个宽度包含了外延的宽度
-                SkScalar lineTextLen = DrawSkiaText::MeasureText(*pSkFont, lineText.c_str(),
-                                                                 lineText.size() * sizeof(DString::value_type),
+                SkScalar lineTextLen = DrawSkiaText::MeasureText(*pSkFont,
+                                                                 (const char*)(pTextData + nTextPos / sizeof(DString::value_type)),
+                                                                 len,
                                                                  GetTextEncoding(), &bounds, &skPaint, fallbackFontCreator,
                                                                  measureTempData);
+                nTextPos += len;
                 lineTextLen = std::max(lineTextLen, bounds.width());
                 int32_t lineTextIWidth = SkScalarTruncToInt(lineTextLen + 0.5f);
                 if (lineTextLen > lineTextIWidth) {
@@ -2031,8 +2023,10 @@ bool Render_Skia::ReadPixels(const UiRect& rc, void* dstPixels, size_t dstPixels
     if (rc.IsEmpty()) {
         return false;
     }
-    ASSERT(dstPixelsLen >= (rc.Width() * rc.Height() * sizeof(uint32_t)));
-    if (dstPixelsLen < (rc.Width() * rc.Height() * sizeof(uint32_t))) {
+    //修复：宽高相乘可能溢出 int，统一提升为 size_t 计算
+    const size_t needBytes = (size_t)rc.Width() * (size_t)rc.Height() * sizeof(uint32_t);
+    ASSERT(dstPixelsLen >= needBytes);
+    if (dstPixelsLen < needBytes) {
         return false;
     }
 
@@ -2060,8 +2054,10 @@ bool Render_Skia::WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect
     if (rc.IsEmpty()) {
         return false;
     }
-    ASSERT(srcPixelsLen == (rc.Width() * rc.Height() * sizeof(uint32_t)));
-    if (srcPixelsLen != (rc.Width() * rc.Height() * sizeof(uint32_t))) {
+    //修复：宽高相乘可能溢出 int，统一提升为 size_t 计算
+    const size_t needBytes = (size_t)rc.Width() * (size_t)rc.Height() * sizeof(uint32_t);
+    ASSERT(srcPixelsLen == needBytes);
+    if (srcPixelsLen != needBytes) {
         return false;
     }
 
@@ -2093,8 +2089,10 @@ bool Render_Skia::WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect
     if (rc.IsEmpty()) {
         return false;
     }
-    ASSERT(srcPixelsLen == (rc.Width() * rc.Height() * sizeof(uint32_t)));
-    if (srcPixelsLen != (rc.Width() * rc.Height() * sizeof(uint32_t))) {
+    //修复：宽高相乘可能溢出 int，统一提升为 size_t 计算
+    const size_t needBytes = (size_t)rc.Width() * (size_t)rc.Height() * sizeof(uint32_t);
+    ASSERT(srcPixelsLen == needBytes);
+    if (srcPixelsLen != needBytes) {
         return false;
     }
 

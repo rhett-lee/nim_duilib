@@ -83,8 +83,16 @@ bool WindowRgn::SetWindowRoundRectRgn(HWND hWnd, const UiRect& rcWnd, float rx, 
     skRect.fBottom = skRect.fTop + rcWnd.Height();
 
     HRGN hRgn = CreateHRGNFromSkiaRoundRect(skRect, rx, ry);
+    if (hRgn == nullptr) {
+        return false;
+    }
+    //修复：SetWindowRgn 成功时由系统接管 HRGN，失败时必须由调用方释放，否则句柄泄漏
     int nRet = ::SetWindowRgn(hWnd, hRgn, bRedraw ? TRUE : FALSE);
-    return nRet != 0;
+    if (nRet == 0) {
+        ::DeleteObject(hRgn);
+        return false;
+    }
+    return true;
 }
 
 bool WindowRgn::SetWindowRectRgn(HWND hWnd, const UiRect& rcWnd, bool bRedraw)
@@ -94,8 +102,16 @@ bool WindowRgn::SetWindowRectRgn(HWND hWnd, const UiRect& rcWnd, bool bRedraw)
         return false;
     }
     HRGN hRgn = ::CreateRectRgn(rcWnd.left, rcWnd.top, rcWnd.right, rcWnd.bottom);
+    if (hRgn == nullptr) {
+        return false;
+    }
+    //修复：SetWindowRgn 失败时 HRGN 未被系统接管，需要释放
     int nRet = ::SetWindowRgn(hWnd, hRgn, bRedraw ? TRUE : FALSE);
-    return nRet != 0;
+    if (nRet == 0) {
+        ::DeleteObject(hRgn);
+        return false;
+    }
+    return true;
 }
 
 void WindowRgn::ClearWindowRgn(HWND hWnd, bool bRedraw)
