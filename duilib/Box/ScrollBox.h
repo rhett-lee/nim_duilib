@@ -61,6 +61,10 @@ public:
     */
     virtual UiSize GetScrollOffsetForChild(const PlaceHolder* pChild) const;
 
+    /** 是否为滚动容器（重写PlaceHolder接口，避免高频路径上使用dynamic_cast）
+    */
+    virtual bool IsScrollBox() const override { return true; }
+
     /** 获取滚动条的真实偏移量, 以64位整型值标志偏移 (虚表会使用虚拟滚动条位置)
     *   如果设置了ScrollVirtualOffset，那么这个函数会将滚动条的位置减去这个虚拟偏移；
     *   如果没有设置ScrollVirtualOffset，那么这个函数返回与UiSize64 GetScrollPos()相同的结果，但会检查是否越界；

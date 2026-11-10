@@ -735,17 +735,21 @@ UiPoint PlaceHolder::GetScrollOffsetInScrollBox() const
     UiPoint scrollPos;
     Control* parent = GetParent();
     while (parent != nullptr) {
-        ScrollBox* pScrollBox = dynamic_cast<ScrollBox*>(parent);
-        if ((pScrollBox != nullptr) &&
-            (pScrollBox->IsVScrollBarValid() || pScrollBox->IsHScrollBarValid())) {
-            //此父控件是ScrollBox，并且父控件存在横向滚动条或者纵向滚动条
-            if (IsFloat() && (pScrollBox == GetParent())) {
-                //当前控件是浮动的，父控件是ScrollBox，不计入统计
-            }
-            else {
-                const UiSize childScrollOffset = pScrollBox->GetScrollOffsetForChild(this);
-                scrollPos.x += childScrollOffset.cx;
-                scrollPos.y += childScrollOffset.cy;
+        //注意：此处使用IsScrollBox()判断，避免在重绘、布局等高频路径上使用dynamic_cast(RTTI)带来的性能开销
+        if (parent->IsScrollBox()) {
+            //容错：确认类型判断与实际的继承关系一致，避免static_cast转换到错误的类型（Release版本中该断言不参与编译）
+            ASSERT(dynamic_cast<ScrollBox*>(parent) != nullptr);
+            ScrollBox* pScrollBox = static_cast<ScrollBox*>(parent);
+            if (pScrollBox->IsVScrollBarValid() || pScrollBox->IsHScrollBarValid()) {
+                //此父控件是ScrollBox，并且父控件存在横向滚动条或者纵向滚动条
+                if (IsFloat() && (pScrollBox == GetParent())) {
+                    //当前控件是浮动的，父控件是ScrollBox，不计入统计
+                }
+                else {
+                    const UiSize childScrollOffset = pScrollBox->GetScrollOffsetForChild(this);
+                    scrollPos.x += childScrollOffset.cx;
+                    scrollPos.y += childScrollOffset.cy;
+                }
             }
         }
         parent = parent->GetParent();
@@ -758,16 +762,20 @@ UiSize64 PlaceHolder::GetScrollOffsetInScrollBox64() const
     UiSize64 scrollPos;
     Control* parent = GetParent();
     while (parent != nullptr) {
-        ScrollBox* pScrollBox = dynamic_cast<ScrollBox*>(parent);
-        if ((pScrollBox != nullptr) &&
-            (pScrollBox->IsVScrollBarValid() || pScrollBox->IsHScrollBarValid())) {
-            //此父控件是ScrollBox，并且父控件存在横向滚动条或者纵向滚动条
-            if (IsFloat() && (pScrollBox == GetParent())) {
-                //当前控件是浮动的，父控件是ScrollBox，不计入统计
-            }
-            else {
-                scrollPos.cx += pScrollBox->GetScrollOffset64().cx;
-                scrollPos.cy += pScrollBox->GetScrollOffset64().cy;
+        //注意：此处使用IsScrollBox()判断，避免在重绘、布局等高频路径上使用dynamic_cast(RTTI)带来的性能开销
+        if (parent->IsScrollBox()) {
+            //容错：确认类型判断与实际的继承关系一致，避免static_cast转换到错误的类型（Release版本中该断言不参与编译）
+            ASSERT(dynamic_cast<ScrollBox*>(parent) != nullptr);
+            ScrollBox* pScrollBox = static_cast<ScrollBox*>(parent);
+            if (pScrollBox->IsVScrollBarValid() || pScrollBox->IsHScrollBarValid()) {
+                //此父控件是ScrollBox，并且父控件存在横向滚动条或者纵向滚动条
+                if (IsFloat() && (pScrollBox == GetParent())) {
+                    //当前控件是浮动的，父控件是ScrollBox，不计入统计
+                }
+                else {
+                    scrollPos.cx += pScrollBox->GetScrollOffset64().cx;
+                    scrollPos.cy += pScrollBox->GetScrollOffset64().cy;
+                }
             }
         }
         parent = parent->GetParent();

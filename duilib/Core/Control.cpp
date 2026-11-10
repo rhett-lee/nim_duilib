@@ -820,6 +820,10 @@ void Control::SetClass(const DString& strClass)
     }
     std::list<DString> splitList = StringUtil::Split(strClass, _T(" "));
     for (auto it = splitList.begin(); it != splitList.end(); it++) {
+        if (it->empty()) {
+            //容错：跳过拆分产生的空类名（如连续空格），避免用空字符串查询类属性
+            continue;
+        }
         DString classAttributes = GlobalManager::Instance().GetClassAttributes(*it);
         Window* pWindow = GetWindow();
         if (classAttributes.empty() && (pWindow != nullptr)) {
@@ -827,8 +831,8 @@ void Control::SetClass(const DString& strClass)
         }
 
         if (classAttributes.empty()) {
-            //尝试别名
-            DString aliasValue = GlobalManager::Instance().GetAliasValue(strClass);
+            //尝试别名（注意：这里必须用当前正在处理的类名 *it，不能用整个 strClass）
+            DString aliasValue = GlobalManager::Instance().GetAliasValue(*it);
             if (!aliasValue.empty()) {
                 classAttributes = GlobalManager::Instance().GetClassAttributes(aliasValue);
             }
@@ -902,6 +906,16 @@ bool Control::OnApplyAttributeList(const DString& strReceiver, const DString& st
 void Control::SetFadeHovered(bool bFadeHovered)
 {
     if (bFadeHovered) {
+        if (m_pHoveredAnimationPlayer != nullptr) {
+            //已经存在动画播放器时，直接复用（其动画类型、起止值、回调、时间参数均与新建的一致），
+            //避免重复分配AnimationPlayer(224字节)和两个回调闭包，降低内存占用与分配开销
+            if (m_pHoveredAnimationPlayer->GetAnimationType() == AnimationType::kAnimationHovered) {
+                return;
+            }
+            //数据异常（类型不一致）时，丢弃旧的播放器并重新创建，保证后续动画逻辑正确
+            ASSERT(!"Control::SetFadeHovered: invalid animation type!");
+            m_pHoveredAnimationPlayer.reset();
+        }
         AnimationPlayer* pAnimationPlayer = new AnimationPlayer;
         pAnimationPlayer->SetAnimationType(AnimationType::kAnimationHovered);
         pAnimationPlayer->SetStartValue(0);
@@ -928,13 +942,6 @@ void Control::SetFadeHovered(bool bFadeHovered)
                 }
             };
         pAnimationPlayer->SetCompleteCallback(completeCallback);
-
-        if (m_pHoveredAnimationPlayer != nullptr) {
-            //同步属性
-            pAnimationPlayer->SetTotalMillSeconds(m_pHoveredAnimationPlayer->GetTotalMillSeconds());
-            pAnimationPlayer->SetFrameIntervalMillSeconds(m_pHoveredAnimationPlayer->GetFrameIntervalMillSeconds());
-            pAnimationPlayer->SetEasingFunctionType(m_pHoveredAnimationPlayer->GetEasingFunctionType());
-        }
         m_pHoveredAnimationPlayer.reset(pAnimationPlayer);
     }
     else {
@@ -1621,14 +1628,26 @@ ControlStateType Control::GetState() const
 
 void Control::SetState(ControlStateType controlState)
 {
+    if ((controlState < kControlStateNormal) || (controlState >= kControlStateCount)) {
+        //容错：状态值越界时直接忽略，避免后续按状态值索引时越界访问
+        ASSERT(!"Control::SetState: invalid controlState!");
+        return;
+    }
+    const uint8_t nOldHoveredAlpha = m_nHoveredAlpha;
     if (controlState == kControlStateNormal) {
         m_nHoveredAlpha = 0;
     }
     else if (controlState == kControlStateHovered) {
         m_nHoveredAlpha = 255;
     }
+    if (GetState() == controlState) {
+        //状态未变化时，只有HoveredAlpha发生变化才需要重绘（PrivateSetState内部会重绘）
+        if (nOldHoveredAlpha != m_nHoveredAlpha) {
+            Invalidate();
+        }
+        return;
+    }
     PrivateSetState(controlState);
-    Invalidate();
 }
 
 void Control::PrivateSetState(ControlStateType controlState)
@@ -2134,7 +2153,10 @@ bool Control::OnContextMenuEvent(const EventArgs& args)
 
 DString Control::GetDataID() const
 {
-    return m_sUserDataID.c_str();
+    if (m_pOtherData != nullptr) {
+        return m_pOtherData->m_sDataID.c_str();
+    }
+    return DString();
 }
 
 std::string Control::GetUTF8DataID() const
@@ -2145,12 +2167,21 @@ std::string Control::GetUTF8DataID() const
 
 void Control::SetDataID(const DString& strText)
 {
-    m_sUserDataID = strText;
+    if (strText.empty()) {
+        if (m_pOtherData != nullptr) {
+            m_pOtherData->m_sDataID.clear();
+        }
+        return;
+    }
+    if (m_pOtherData == nullptr) {
+        m_pOtherData = std::make_unique<TOtherData>();
+    }
+    m_pOtherData->m_sDataID = strText;
 }
 
 void Control::SetUTF8DataID(const std::string& strText)
 {
-    m_sUserDataID = StringConvert::UTF8ToT(strText);
+    SetDataID(StringConvert::UTF8ToT(strText));
 }
 
 void Control::SetUserDataID(size_t dataID)
@@ -3713,8 +3744,12 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
             const UiPoint ptOffset(GetRect().left, GetRect().top);
             const UiPoint ptOldOrg = pTempRender->OffsetWindowOrg(ptOffset);
 
-            std::unique_ptr<AutoClip> rectCacheClip = CreateRectClip(pTempRender, GetRect(), bRectClip);
-            std::unique_ptr<AutoClip> roundCacheClip = CreateRoundClip(pTempRender, GetRect(), bRoundClip);
+            //设置剪辑区域：使用栈对象，避免每帧绘制时进行堆内存分配
+            AutoClip cacheRectClip(pTempRender, GetRect(), bRectClip);
+            float fCacheRoundWidth = 0;
+            float fCacheRoundHeight = 0;
+            const bool bCacheRoundClip = bRoundClip && GetBorderRound(fCacheRoundWidth, fCacheRoundHeight);
+            AutoClip cacheRoundClip(pTempRender, GetRect(), fCacheRoundWidth, fCacheRoundHeight, bCacheRoundClip);
 
             //首先绘制自己
             Paint(pTempRender, rcPaintRect);
@@ -3737,8 +3772,11 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
             m_bBoxShadowPainted = true;
         }
         UiPoint ptOldOrg = pRender->OffsetWindowOrg(renderOffset);//控件的位置偏移，显示为动画效果
-        std::unique_ptr<AutoClip> rectClip = CreateRectClip(pRender, GetRect(), bRectClip);
-        std::unique_ptr<AutoClip> roundClip = CreateRoundClip(pRender, GetRect(), bRoundClip);
+        AutoClip rectClip(pRender, GetRect(), bRectClip);
+        float fRoundWidth = 0;
+        float fRoundHeight = 0;
+        const bool bRoundClipValid = bRoundClip && GetBorderRound(fRoundWidth, fRoundHeight);
+        AutoClip roundClip(pRender, GetRect(), fRoundWidth, fRoundHeight, bRoundClipValid);
 
         int32_t xOffset = std::max(rcPaintRect.left - GetRect().left, 0);
         int32_t yOffset = std::max(rcPaintRect.top - GetRect().top, 0);
@@ -3773,8 +3811,11 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
             m_bBoxShadowPainted = true;
         }
 
-        std::unique_ptr<AutoClip> rectClip = CreateRectClip(pRender, GetRect(), bRectClip);
-        std::unique_ptr<AutoClip> roundClip = CreateRoundClip(pRender, GetRect(), bRoundClip);
+        AutoClip rectClip(pRender, GetRect(), bRectClip);
+        float fRoundWidth = 0;
+        float fRoundHeight = 0;
+        const bool bRoundClipValid = bRoundClip && GetBorderRound(fRoundWidth, fRoundHeight);
+        AutoClip roundClip(pRender, GetRect(), fRoundWidth, fRoundHeight, bRoundClipValid);
         Paint(pRender, rcPaint);        //绘制控件自身
         if (bPaintBoxShadow) {
             //Paint绘制后，立即复位标志，避免影响其他绘制逻辑
@@ -3955,9 +3996,7 @@ void Control::PaintBorder(IRender* pRender)
     UiColor dwBorderColor;
     DString borderColor;
     if (IsFocused()) {
-        if (borderColor.empty()) {
-            borderColor = GetFocusedBorderColor();
-        }
+        borderColor = GetFocusedBorderColor();
     }
     if (borderColor.empty()) {
         borderColor = GetBorderColor(GetState());

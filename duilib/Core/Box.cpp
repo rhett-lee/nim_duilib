@@ -428,7 +428,7 @@ size_t Box::GetItemIndex(Control* pControl) const
     if (it == m_items.end()) {
         return Box::InvalidIndex;
     }
-    return static_cast<int>(it - m_items.begin());
+    return static_cast<size_t>(it - m_items.begin());
 }
 
 bool Box::SetItemIndex(Control* pControl, size_t iIndex)
@@ -441,9 +441,15 @@ bool Box::SetItemIndex(Control* pControl, size_t iIndex)
     }
     for (auto it = m_items.begin(); it != m_items.end(); ++it) {
         if( *it == pControl ) {
-            Arrange();            
+            const size_t nOldIndex = static_cast<size_t>(it - m_items.begin());
+            if (nOldIndex == iIndex) {
+                //索引未变化，不需要调整顺序和重新布局
+                return true;
+            }
+            //先调整顺序，再重新布局（原来先Arrange再调整顺序，导致布局使用的是调整前的位置）
             m_items.erase(it);
             m_items.insert(m_items.begin() + iIndex, pControl);
+            Arrange();
             return true;
         }
     }
@@ -541,7 +547,13 @@ void Box::RemoveAllItems()
     items.swap(m_items);
     if (m_bAutoDestroyChild) {
         for(Control* pControl : items) {
-            delete pControl;
+            if (pControl != nullptr) {
+                //与DoRemoveItem保持一致：销毁前通知控件（已先从m_items中移除，回调中重入安全）
+                if (pControl->HasDestroyEventCallback()) {
+                    pControl->SendEvent(kEventDestroy);
+                }
+                delete pControl;
+            }
         }
     }
     else {

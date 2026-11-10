@@ -1881,6 +1881,10 @@ private:
         /** 上下文菜单便捷绑定的数据(AttachPopupMenu接口)
         */
         std::unique_ptr<TContextMenuData> m_pContextMenuData;
+
+        /** 用户绑定到控件的自定义字符串数据（多数控件不会使用，按需分配）
+        */
+        UiString m_sDataID;
     };
 
 private:
@@ -1931,10 +1935,6 @@ private:
     /** 控件的绘制区域
     */
     UiRect m_rcPaint;
-   
-    /** 用户数据ID(字符串)
-    */
-    UiString m_sUserDataID;
 
     /** 用户数据ID(整型值)
     */

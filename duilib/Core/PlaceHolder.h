@@ -406,6 +406,11 @@ public:
     virtual UiPoint GetScrollOffsetInScrollBox() const;
     virtual UiSize64 GetScrollOffsetInScrollBox64() const;
 
+    /** 当前控件是否为滚动容器（ScrollBox或者其派生类）
+     *  说明：提供该接口用于替代dynamic_cast，避免在绘制、重绘等高频路径上使用RTTI判断
+     */
+    virtual bool IsScrollBox() const { return false; }
+
     /** 判断两个控件是否相等，是否存在父子或者子孙关系
      * @param [in] pAncestor 父祖级别的控件
      * @param [in] pChild 子孙级别的控件
