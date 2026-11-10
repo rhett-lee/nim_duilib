@@ -55,9 +55,10 @@ public:
     int32_t GetStartValue() const { return m_startValue; }
 
     /** 设置动画播放结束值
+    *   如果动画正在播放中，则以当前播放值作为新的起点继续播放，避免数值回跳
     * @param [in] endValue 动画播放的结束值
     */
-    void SetEndValue(int32_t endValue) { m_endValue = endValue; }
+    void SetEndValue(int32_t endValue);
 
     /** 获取动画播放结束值
     */
@@ -146,6 +147,11 @@ private:
     * @param [in] nNowMillSeconds 本帧的统一时间基准（毫秒）
     */
     void OnTick(int64_t nNowMillSeconds);
+
+    /** 播放过程中修改结束值：以当前播放值作为新起点，用剩余的播放时间续播到新的结束值
+    * @param [in] nNewEndValue 新的结束值
+    */
+    void Retarget(int32_t nNewEndValue);
 
     /** 交换起始值和结束值
     */

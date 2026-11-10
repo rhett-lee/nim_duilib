@@ -1,6 +1,7 @@
 #include "AnimationScheduler.h"
 #include "AnimationPlayer.h"
 #include "duilib/Core/Control.h"
+#include "duilib/Core/Window.h"
 #include "duilib/Core/GlobalManager.h"
 #include <chrono>
 #include <functional>
@@ -21,7 +22,11 @@ AnimationScheduler& AnimationScheduler::Instance()
     return s_animationScheduler;
 }
 
-AnimationScheduler::AnimationScheduler() = default;
+AnimationScheduler::AnimationScheduler():
+    m_nVirtualTimeMillSeconds(GetRealTimeMillSeconds()),
+    m_nLastRealTimeMillSeconds(m_nVirtualTimeMillSeconds)
+{
+}
 
 AnimationScheduler::~AnimationScheduler()
 {
@@ -32,8 +37,31 @@ AnimationScheduler::~AnimationScheduler()
 
 int64_t AnimationScheduler::GetTimeMillSeconds()
 {
+    return Instance().m_nVirtualTimeMillSeconds;
+}
+
+int64_t AnimationScheduler::GetRealTimeMillSeconds()
+{
     return std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count();
+}
+
+bool AnimationScheduler::IsAnimationPaused()
+{
+    const std::vector<WindowPtr> windowList = GlobalManager::Instance().Windows().GetAllWindowList();
+    if (windowList.empty()) {
+        //没有窗口时不暂停，避免动画永远无法推进
+        return false;
+    }
+    for (const WindowPtr& pWindow : windowList) {
+        Window* pRawWindow = pWindow.get();
+        if ((pRawWindow != nullptr) && pRawWindow->IsWindowVisible() && !pRawWindow->IsWindowMinimized()) {
+            //存在可见且非最小化的窗口，动画正常推进
+            return false;
+        }
+    }
+    //所有窗口都最小化或者不可见，暂停动画
+    return true;
 }
 
 void AnimationScheduler::Register(AnimationPlayer* pPlayer, const std::weak_ptr<WeakFlag>& weakFlag)
@@ -54,6 +82,8 @@ void AnimationScheduler::Register(AnimationPlayer* pPlayer, const std::weak_ptr<
 
     if (!m_bTimerStarted) {
         m_bTimerStarted = true;
+        //重置真实时间基线，避免定时器停止期间累积的时间差造成动画跳变
+        m_nLastRealTimeMillSeconds = GetRealTimeMillSeconds();
         TimerCallback timerCallback = std::bind(&AnimationScheduler::OnTimer, this);
         GlobalManager::Instance().Timer().AddTimer(m_timerFlag.GetWeakFlag(), timerCallback, kAnimationTimerIntervalMs);
     }
@@ -97,10 +127,20 @@ void AnimationScheduler::RequestArrange(const ControlPtr& pControl)
 
 void AnimationScheduler::OnTimer()
 {
-    const int64_t nNowMillSeconds = GetTimeMillSeconds();
+    const int64_t nRealNowMillSeconds = GetRealTimeMillSeconds();
+    const int64_t nElapsedMillSeconds = nRealNowMillSeconds - m_nLastRealTimeMillSeconds;
+    m_nLastRealTimeMillSeconds = nRealNowMillSeconds;
+
+    if (IsAnimationPaused()) {
+        //所有窗口都最小化或者不可见：不推进时间基准，相当于暂停所有动画
+        return;
+    }
+    if (nElapsedMillSeconds > 0) {
+        m_nVirtualTimeMillSeconds += nElapsedMillSeconds;
+    }
 
     m_bInTick = true;
-    Tick(nNowMillSeconds);
+    Tick(m_nVirtualTimeMillSeconds);
     m_bInTick = false;
 
     //动画刷新结束后，统一执行本帧内累计的控件重排（每帧每个控件只重排一次）

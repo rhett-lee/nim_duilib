@@ -298,6 +298,7 @@
     <ClCompile Include="..\msvc\dllRes\dllmain.cpp" />
     <ClCompile Include="Animation\AnimationManager.cpp" />
     <ClCompile Include="Animation\AnimationPlayer.cpp" />
+    <ClCompile Include="Animation\AnimationScheduler.cpp" />
     <ClCompile Include="Animation\EasingFunctions.cpp" />
     <ClCompile Include="Box\ListBox.cpp" />
     <ClCompile Include="Box\ListBoxHelper.cpp" />
@@ -716,6 +717,7 @@
     <ClInclude Include="..\msvc\dllRes\version.h" />
     <ClInclude Include="Animation\AnimationManager.h" />
     <ClInclude Include="Animation\AnimationPlayer.h" />
+    <ClInclude Include="Animation\AnimationScheduler.h" />
     <ClInclude Include="Animation\EasingFunctions.h" />
     <ClInclude Include="Box\GridBox.h" />
     <ClInclude Include="Box\HBox.h" />

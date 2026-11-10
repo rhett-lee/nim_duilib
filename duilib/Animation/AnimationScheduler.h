@@ -17,7 +17,8 @@ class AnimationPlayer;
 *  1. 同一帧内所有动画使用相同的时间基准，保证各属性动画严格同步；
 *  2. 定时器消息数量从 "动画数量 × 帧率" 降为 "帧率"，避免消息队列拥塞；
 *  3. 同一帧内多次请求的控件重排，合并为每帧一次；
-*  4. 无动画播放时定时器自动停止，不占用CPU。
+*  4. 无动画播放时定时器自动停止，不占用CPU；
+*  5. 所有窗口都最小化或者不可见时，暂停推进时间基准，节省CPU。
 */
 class DUILIB_API AnimationScheduler final
 {
@@ -48,12 +49,21 @@ public:
     void RequestArrange(const ControlPtr& pControl);
 
     /** 获取当前时间（毫秒），作为所有动画播放进度的统一时间基准
+    *   该时间只在有动画播放且窗口可见时推进，窗口最小化/不可见期间不推进（相当于动画暂停）
     */
     static int64_t GetTimeMillSeconds();
 
 private:
     AnimationScheduler();
     ~AnimationScheduler();
+
+    /** 获取当前的真实时间（毫秒），不受暂停影响
+    */
+    static int64_t GetRealTimeMillSeconds();
+
+    /** 动画是否应该暂停推进（所有窗口都最小化或者不可见时返回true）
+    */
+    static bool IsAnimationPaused();
 
     /** 定时器回调函数，驱动所有正在播放的动画
     */
@@ -93,6 +103,14 @@ private:
     /** 动画刷新定时器的取消标志
     */
     WeakCallbackFlag m_timerFlag;
+
+    /** 动画的统一时间基准（毫秒）：只在播放且窗口可见时推进
+    */
+    int64_t m_nVirtualTimeMillSeconds;
+
+    /** 上一次刷新时的真实时间（毫秒），用于计算时间基准的增量
+    */
+    int64_t m_nLastRealTimeMillSeconds;
 
     /** 定时器是否已经启动
     */

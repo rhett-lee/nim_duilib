@@ -102,8 +102,15 @@ public:
     int32_t GetTotalMillSeconds() const;
 
     /** 设置缓动函数类型
+    *   同时设置进场和出场的缓动函数类型
     */
     void SetEasingFunctionType(EasingFunctionType easingFunctionType);
+
+    /** 分别设置进场动画和出场动画的缓动函数类型
+    * @param [in] easingInType 进场动画（显示控件）使用的缓动函数类型
+    * @param [in] easingOutType 出场动画（隐藏控件）使用的缓动函数类型
+    */
+    void SetEasingFunctionType(EasingFunctionType easingInType, EasingFunctionType easingOutType);
 
     /** 获取缓动函数类型
     */
@@ -113,6 +120,11 @@ private:
     /** 创建一个动画实例对象，并初始化默认属性
     */
     AnimationPlayer* CreateAnimationPlayer(AnimationType animationType) const;
+
+    /** 按控件实际布局尺寸，更新进出场动画的滑动起始值
+    *   控件尺寸可能是 stretch/auto 的，配置动画时拿不到真实尺寸，需要在播放前按实际布局尺寸修正
+    */
+    void UpdateInoutStartValue();
 
 private:
     /** 动画所属控件的接口
@@ -127,9 +139,17 @@ private:
     */
     int32_t m_totalMillSeconds;
 
-    /** 缓动函数类型
+    /** 缓动函数类型（进场、出场未分别设置时使用的默认值）
     */
     EasingFunctionType m_easingFunctionType;
+
+    /** 进场动画使用的缓动函数类型
+    */
+    EasingFunctionType m_easingFunctionTypeIn;
+
+    /** 出场动画使用的缓动函数类型
+    */
+    EasingFunctionType m_easingFunctionTypeOut;
 
     /** 当前可见值
     */

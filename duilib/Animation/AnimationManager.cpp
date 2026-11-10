@@ -30,11 +30,13 @@ const std::vector<AnimationType>& GetAppearAnimationList()
 
 AnimationManager::AnimationManager(Control* pControl) :
     m_pControl(pControl),
-    m_bControlVisible(false),
-    m_bControlVisibleInited(false),
     m_frameIntervalMillSeconds(-1),
     m_totalMillSeconds(-1),
-    m_easingFunctionType(EasingFunctionType::EaseInOutCubic)
+    m_easingFunctionType(EasingFunctionType::EaseInOutCubic),
+    m_easingFunctionTypeIn(EasingFunctionType::EaseOutCubic),
+    m_easingFunctionTypeOut(EasingFunctionType::EaseInCubic),
+    m_bControlVisible(false),
+    m_bControlVisibleInited(false)
 {
 }
 
@@ -278,6 +280,56 @@ AnimationPlayer* AnimationManager::SetFadeInOutY(bool bFade, bool bIsFromBottom)
     return pAnimationPlayer;
 }
 
+void AnimationManager::UpdateInoutStartValue()
+{
+    if (m_pControl == nullptr) {
+        return;
+    }
+    //控件的实际布局尺寸（控件尺寸可能是 stretch/auto 的，配置动画时拿到的尺寸并不准确）
+    const int32_t cx = m_pControl->GetRect().Width();
+    const int32_t cy = m_pControl->GetRect().Height();
+
+    //(动画类型, 滑动起始值)
+    const AnimationType inoutTypes[] =
+    {
+        AnimationType::kAnimationInoutXFromLeft,
+        AnimationType::kAnimationInoutXFromRight,
+        AnimationType::kAnimationInoutYFromTop,
+        AnimationType::kAnimationInoutYFromBottom
+    };
+    for (AnimationType animationType : inoutTypes) {
+        AnimationPlayer* pAnimationPlayer = GetAnimationPlayer(animationType);
+        if ((pAnimationPlayer == nullptr) || pAnimationPlayer->IsPlaying()) {
+            //播放中的动画不做修改，避免打断当前播放
+            continue;
+        }
+        int32_t nStartValue = 0;
+        switch (animationType) {
+        case AnimationType::kAnimationInoutXFromLeft:
+            nStartValue = cx;
+            break;
+        case AnimationType::kAnimationInoutXFromRight:
+            nStartValue = -cx;
+            break;
+        case AnimationType::kAnimationInoutYFromTop:
+            nStartValue = cy;
+            break;
+        case AnimationType::kAnimationInoutYFromBottom:
+            nStartValue = -cy;
+            break;
+        default:
+            continue;
+        }
+        if (nStartValue == 0) {
+            //控件还没有布局出实际尺寸，保留配置动画时的估算值
+            continue;
+        }
+        //先恢复到正向播放状态（反向播放时，起始值保存在结束值中，在此交换回来）
+        pAnimationPlayer->Stop();
+        pAnimationPlayer->SetStartValue(nStartValue);
+    }
+}
+
 void AnimationManager::Appear()
 {
     //仅当可见属性发生变化时，才触发控件动画
@@ -291,6 +343,9 @@ void AnimationManager::Appear()
 
     m_pControl->SetVisible(true);
 
+    //按控件的实际布局尺寸修正进出场动画的滑动起始值
+    UpdateInoutStartValue();
+
     //可见属性是否发生变化
     const bool bVisibleChanged = !bOldVisibleInited || (bOldVisible != bNewVisible);
     for (AnimationType animationType : GetAppearAnimationList()) {
@@ -299,6 +354,8 @@ void AnimationManager::Appear()
             continue;
         }
         pAnimationPlayer->SetCompleteCallback(AnimationCompleteCallback());
+        //进场动画使用进场缓动曲线
+        pAnimationPlayer->SetEasingFunctionType(m_easingFunctionTypeIn);
         if (bVisibleChanged) {
             //可见属性发生变化
             if (pAnimationPlayer->IsPlaying()) {
@@ -336,6 +393,10 @@ void AnimationManager::Disappear()
 
     bool handled = false;
     AnimationCompleteCallback completeCallback = UiBind(&Control::SetVisible, m_pControl, false);
+
+    //按控件的实际布局尺寸修正进出场动画的滑动起始值
+    UpdateInoutStartValue();
+
     //可见属性是否发生变化
     const bool bVisibleChanged = !bOldVisibleInited || (bOldVisible != bNewVisible);
     for (AnimationType animationType : GetAppearAnimationList()) {
@@ -344,6 +405,8 @@ void AnimationManager::Disappear()
             continue;
         }
         pAnimationPlayer->SetCompleteCallback(completeCallback);
+        //出场动画使用出场缓动曲线
+        pAnimationPlayer->SetEasingFunctionType(m_easingFunctionTypeOut);
         if (bVisibleChanged) {
             //可见属性发生变化
             if (pAnimationPlayer->IsPlaying()) {
@@ -430,10 +493,17 @@ int32_t AnimationManager::GetTotalMillSeconds() const
 
 void AnimationManager::SetEasingFunctionType(EasingFunctionType easingFunctionType)
 {
-    m_easingFunctionType = easingFunctionType;
+    SetEasingFunctionType(easingFunctionType, easingFunctionType);
+}
+
+void AnimationManager::SetEasingFunctionType(EasingFunctionType easingInType, EasingFunctionType easingOutType)
+{
+    m_easingFunctionType = easingInType;
+    m_easingFunctionTypeIn = easingInType;
+    m_easingFunctionTypeOut = easingOutType;
     for (auto& iter : m_animationMap) {
         if (iter.second != nullptr) {
-            iter.second->SetEasingFunctionType(easingFunctionType);
+            iter.second->SetEasingFunctionType(easingInType);
         }
     }
 }

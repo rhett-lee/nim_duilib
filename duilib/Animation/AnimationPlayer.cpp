@@ -48,6 +48,58 @@ void AnimationPlayer::Init()
     m_easingFunctionType = EasingFunctionType::EaseInOutCubic;
 }
 
+void AnimationPlayer::SetEndValue(int32_t endValue)
+{
+    if (!m_bPlaying || (m_pEasingFunctions == nullptr) || m_bReversePlay) {
+        //未在正向播放中，直接更新结束值
+        m_endValue = endValue;
+        return;
+    }
+    if (endValue == m_endValue) {
+        return;
+    }
+    Retarget(endValue);
+}
+
+void AnimationPlayer::Retarget(int32_t nNewEndValue)
+{
+    //计算当前的真实播放进度
+    double nProgress = 1.0;
+    if (m_playTotalMillSeconds > 0) {
+        const double nElapsedMs = static_cast<double>(AnimationScheduler::GetTimeMillSeconds() - m_startTimeMillSeconds);
+        nProgress = nElapsedMs / static_cast<double>(m_playTotalMillSeconds);
+    }
+    if (nProgress < 0.0) {
+        nProgress = 0.0;
+    }
+    if (nProgress > 1.0) {
+        nProgress = 1.0;
+    }
+
+    int32_t nFrameIntervalMs = m_frameIntervalMillSeconds;
+    if (nFrameIntervalMs <= 0) {
+        nFrameIntervalMs = 1000 / 60;
+    }
+    //使用剩余的播放时间播放到新的结束值
+    int32_t nRemainMillSeconds = static_cast<int32_t>(std::llround((1.0 - nProgress) * static_cast<double>(m_playTotalMillSeconds)));
+    if (nRemainMillSeconds <= nFrameIntervalMs) {
+        nRemainMillSeconds = nFrameIntervalMs;
+    }
+    int32_t nFrameCount = nRemainMillSeconds / nFrameIntervalMs;
+    if (nFrameCount < 1) {
+        nFrameCount = 1;
+    }
+
+    //以当前播放值作为新起点，避免数值回跳
+    m_startValue = m_currentValue;
+    m_endValue = nNewEndValue;
+    m_playTotalMillSeconds = nRemainMillSeconds;
+    m_playProgress = 0.0;
+    m_frameIndex = 0;
+    m_startTimeMillSeconds = AnimationScheduler::GetTimeMillSeconds();
+    m_pEasingFunctions = std::make_unique<EasingFunctions>(m_startValue, m_endValue, nFrameCount, m_easingFunctionType);
+}
+
 void AnimationPlayer::Start()
 {
     m_weakFlagOwner.Cancel();

@@ -1020,6 +1020,9 @@
     <ClCompile Include="Control\CalendarWeekdayUtil.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Animation\AnimationScheduler.cpp">
+      <Filter>Animation</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -2116,6 +2119,9 @@
     </ClInclude>
     <ClInclude Include="Control\CalendarWeekdayUtil.h">
       <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Animation\AnimationScheduler.h">
+      <Filter>Animation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
