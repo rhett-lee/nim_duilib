@@ -600,27 +600,34 @@ static double InterpolateFunction(double start, double end, double t, EasingFunc
 
 int32_t EasingFunctions::GetEasingValue(int32_t nCurrentFrame) const
 {
-    int32_t nEasingValue = m_nEndValue;
     ASSERT(nCurrentFrame >= 0);
     if (nCurrentFrame <= 0) {
-        //帧序号小于等于0时，取起始值（原实现在帧序号非法时返回了结束值）
+        //帧序号小于等于0时，取起始值
         return m_nStartValue;
     }
-    if (nCurrentFrame >= m_nFrameCount) {
-        return nEasingValue;
+    if ((nCurrentFrame >= m_nFrameCount) || (m_nFrameCount <= 0)) {
+        return m_nEndValue;
     }
-    if ((m_nEndValue == m_nStartValue) || (m_nFrameCount <= 0)) {
-        return nEasingValue;
-    }
+    //转为播放进度，复用亚帧精度的计算逻辑
+    return GetEasingValue(static_cast<double>(nCurrentFrame) / static_cast<double>(m_nFrameCount));
+}
 
-    double start = static_cast<double>(m_nStartValue);
-    double end = static_cast<double>(m_nEndValue);
-    double t = static_cast<double>(nCurrentFrame) / static_cast<double>(m_nFrameCount);
-    double fValue = InterpolateFunction(start, end, t, m_easingFunction);
-    if (!std::isnan(fValue) && !std::isinf(fValue)) {
-        nEasingValue = static_cast<int32_t>(std::round(fValue));
+int32_t EasingFunctions::GetEasingValue(double progress) const
+{
+    if (progress <= 0.0) {
+        return m_nStartValue;
     }
-    return nEasingValue;
+    if ((progress >= 1.0) || (m_nEndValue == m_nStartValue)) {
+        return m_nEndValue;
+    }
+    const double fValue = InterpolateFunction(static_cast<double>(m_nStartValue),
+                                              static_cast<double>(m_nEndValue),
+                                              progress,
+                                              m_easingFunction);
+    if (std::isnan(fValue) || std::isinf(fValue)) {
+        return m_nEndValue;
+    }
+    return static_cast<int32_t>(std::round(fValue));
 }
 
 int32_t EasingFunctions::GetStartValue() const

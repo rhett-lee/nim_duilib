@@ -178,8 +178,10 @@ AnimationPlayer* AnimationManager::SetFadeSize(bool bFadeSize)
                 if (nNewValue > 0) {
                     int32_t cxNow = TruncateToInt32((int64_t)cx * nNewValue / 100);
                     int32_t cyNow = TruncateToInt32((int64_t)cy * nNewValue / 100);
-                    pControl->SetFixedWidth(UiFixedInt(cxNow), true, false);
-                    pControl->SetFixedHeight(UiFixedInt(cyNow), true, false);
+                    //宽高必须同时更新，先设置尺寸（不重排），最后统一重排一次，避免每帧重排两次
+                    pControl->SetFixedWidth(UiFixedInt(cxNow), false, false);
+                    pControl->SetFixedHeight(UiFixedInt(cyNow), false, false);
+                    pControl->ArrangeAncestor();
                 }
             }
             };

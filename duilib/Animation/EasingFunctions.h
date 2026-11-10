@@ -85,6 +85,12 @@ public:
     */
     int32_t GetEasingValue(int32_t nCurrentFrame) const;
 
+    /** 获取指定播放进度下的缓动值（支持亚帧精度）
+    * @param [in] progress 播放进度，有效范围[0.0, 1.0]，0.0表示起始值，1.0表示结束值
+    * @return 返回缓动的值，有效值的范围是[nStartValue, nEndValue]，闭区间
+    */
+    int32_t GetEasingValue(double progress) const;
+
     /** 获取动画播放起始值
     */
     int32_t GetStartValue() const;

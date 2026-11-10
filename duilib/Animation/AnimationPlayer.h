@@ -3,6 +3,7 @@
 
 #include "duilib/Animation/EasingFunctions.h"
 #include "duilib/Core/Callback.h"
+#include <chrono>
 
 namespace ui 
 {
@@ -184,6 +185,18 @@ private:
     /** 当前播放的帧序号
     */
     int32_t m_frameIndex;
+
+    /** 当前播放进度（浮点数，范围[0.0, 1.0]，用于精确衔接反向/继续播放）
+    */
+    double m_playProgress;
+
+    /** 本次播放实际使用的总时长（毫秒）
+    */
+    int32_t m_playTotalMillSeconds;
+
+    /** 播放起点对应的时钟时间（用于按真实时间计算播放进度）
+    */
+    std::chrono::steady_clock::time_point m_startTimePoint;
 
     /** 定时器终止标志
     */
