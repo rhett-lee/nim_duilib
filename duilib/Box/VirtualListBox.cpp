@@ -586,6 +586,10 @@ void VirtualListBox::Refresh(bool bSync)
         size_t n = nNewItemCount - nItemCount;
         for (size_t i = 0; i < n; ++i) {
             Control* pControl = CreateElement();
+            if (pControl == nullptr) {
+                //创建失败时不再继续添加，避免容器中出现空指针
+                break;
+            }
             AddItem(pControl);
         }
     }
@@ -1084,7 +1088,7 @@ void VirtualListBox::CalcTileElementRectH(size_t nElemenetIndex, const UiSize& s
 bool VirtualListBox::OnFrameSelection(int64_t left, int64_t right, int64_t top, int64_t bottom)
 {
     ASSERT((top <= bottom) && (left <= right));
-    if ((top > bottom) && (left > right)) {
+    if ((top > bottom) || (left > right)) {
         return false;
     }
     VirtualListBoxElement* pDataProvider = GetDataProvider();
@@ -1162,6 +1166,10 @@ bool VirtualListBox::OnFrameSelection(int64_t left, int64_t right, int64_t top, 
             childMarginX = 0;
         }
         int64_t nStartIndex = ((int64_t)left / ((int64_t)szItem.cx + childMarginX)) * nRows;
+        if (nStartIndex < 0) {
+            //坐标为负时，避免转换为size_t后变成一个极大值
+            nStartIndex = 0;
+        }
         const size_t nCount = GetElementCount();
         for (size_t nElemenetIndex = (size_t)nStartIndex; nElemenetIndex < nCount; ++nElemenetIndex) {
             CalcTileElementRectH(nElemenetIndex, szItem, nRows, childMarginX, childMarginY,
@@ -1197,6 +1205,10 @@ bool VirtualListBox::OnFrameSelection(int64_t left, int64_t right, int64_t top, 
             childMarginY = 0;
         }
         int64_t nStartIndex = ((int64_t)top / ((int64_t)szItem.cy + childMarginY)) * nColumns;
+        if (nStartIndex < 0) {
+            //坐标为负时，避免转换为size_t后变成一个极大值
+            nStartIndex = 0;
+        }
         const size_t nCount = GetElementCount();
         for (size_t nElemenetIndex = (size_t)nStartIndex; nElemenetIndex < nCount; ++nElemenetIndex) {
             CalcTileElementRectV(nElemenetIndex, szItem, nColumns, childMarginX, childMarginY,

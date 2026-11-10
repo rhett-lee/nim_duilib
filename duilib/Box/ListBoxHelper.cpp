@@ -70,6 +70,10 @@ void ListBoxHelper::SetFrameSelectionBorderSize(int32_t nBorderSize)
     if (nBorderSize < 0) {
         nBorderSize = 0;
     }
+    else if (nBorderSize > 255) {
+        //成员变量是uint8_t类型，避免截断
+        nBorderSize = 255;
+    }
     m_frameSelectionBorderSize = (uint8_t)nBorderSize;
 }
 

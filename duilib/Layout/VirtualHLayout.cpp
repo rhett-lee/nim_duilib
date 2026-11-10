@@ -182,6 +182,10 @@ int64_t VirtualHLayout::GetElementsWidth(UiRect /*rc*/, size_t nCount) const
         ASSERT(0);
         return (int64_t)szItem.cx + GetChildMarginX();
     }
+    if (nCount == 0) {
+        //没有数据项时，总宽度为0（避免下面计算出现负数）
+        return 0;
+    }
 
     int64_t cols = nCount;
     int64_t iChildMargin = 0;

@@ -329,7 +329,7 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
             //横向滚动条，向上1列
             size_t nColumns = 0;
             size_t nRows = 0;
-            GetDisplayItemCount(false, nColumns, nRows);
+            GetDisplayItemCount(true, nColumns, nRows);
             if ((m_iCurSel < GetItemCount()) && IsSelectableItem(m_iCurSel) &&
                 (GetItemCountBefore(m_iCurSel) >= nRows)) {
                 SelectItemCountN(true, true, false, nRows);
@@ -345,7 +345,7 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
             //横向滚动条，向下1行
             size_t nColumns = 0;
             size_t nRows = 0;
-            GetDisplayItemCount(false, nColumns, nRows);
+            GetDisplayItemCount(true, nColumns, nRows);
             if ((m_iCurSel < GetItemCount()) && IsSelectableItem(m_iCurSel) &&
                 (GetItemCountAfter(m_iCurSel) >= nRows)) {
                 SelectItemCountN(true, true, true, nRows);
@@ -1319,7 +1319,7 @@ void ListBox::SetCurSel(size_t iIndex)
 {
     if (Box::IsValidItemIndex(iIndex)) {
         ASSERT(iIndex < GetItemCount());
-        if (iIndex > GetItemCount()) {
+        if (iIndex >= GetItemCount()) {
             return;
         }
     }    
@@ -2057,6 +2057,9 @@ bool ListBox::RemoveItem(Control* pControl)
 
 bool ListBox::RemoveItemAt(size_t iIndex)
 {
+    if (!Box::IsValidItemIndex(iIndex) || (iIndex >= GetItemCount())) {
+        return false;
+    }
     if (!IsAutoDestroyChild()) {
         Control* p = GetItemAt(iIndex);
         IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(p);
@@ -2082,7 +2085,10 @@ bool ListBox::RemoveItemAt(size_t iIndex)
     if (Box::IsValidItemIndex(m_iCurSel)) {
         if (iIndex == m_iCurSel) {
             if (!IsMultiSelect() && m_bSelectNextWhenActiveRemoved) {
-                SelectItem(FindSelectable(m_iCurSel--, false));
+                //删除当前选择项后，选择下一个可选择的项（m_iCurSel临时置为无效，避免索引下溢）
+                size_t nNextSel = FindSelectable(m_iCurSel, false);
+                m_iCurSel = Box::InvalidIndex;
+                SelectItem(nNextSel);
             }
             else {
                 m_iCurSel = Box::InvalidIndex;
@@ -2215,7 +2221,7 @@ bool ListBox::OnSwitchToSingleSelect()
     bool bChanged = false;
     IListBoxItem* pItem = nullptr;
     const size_t itemCount = m_items.size();
-    if (m_iCurSel > itemCount) { 
+    if (m_iCurSel >= itemCount) { 
         //如果单选状态不同步，使用第一个选择的作为最终单选的选择项
         for (size_t i = 0; i < itemCount; ++i) {
             pItem = dynamic_cast<IListBoxItem*>(m_items[i]);

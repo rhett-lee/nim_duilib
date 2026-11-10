@@ -123,7 +123,8 @@ void HTileLayout::CalcTileRows(const std::vector<ItemSizeInfo>& normalItems, con
         while (totalHeight > 0) {
             totalHeight -= tileHeight;
             if (nRows != 0) {
-                totalHeight -= childMarginX;
+                //纵向排列，行间距使用Y轴方向的子控件间距
+                totalHeight -= childMarginY;
             }
             if (totalHeight >= 0) {
                 ++nRows;
@@ -434,7 +435,8 @@ UiSize64 HTileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
     if (!bEstimateOnly && !fixedRowHeights.empty()) {
         int32_t cyTotal = std::accumulate(fixedRowHeights.begin(), fixedRowHeights.end(), 0);
         if (fixedRowHeights.size() > 1) {
-            cyTotal += ((int32_t)fixedRowHeights.size() - 1) * GetChildMarginX();
+            //行是纵向排列，行间距使用Y轴方向的子控件间距
+            cyTotal += ((int32_t)fixedRowHeights.size() - 1) * GetChildMarginY();
         }
         if (cyTotal < rc.Height()) {
             VerAlignType vAlign = GetChildVAlignType();

@@ -123,6 +123,7 @@ UiSize64 HFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
     }
     // 预处理：筛选所有可见、非浮动的控件
     std::vector<Control*> visibleControls;
+    visibleControls.reserve(items.size());
     for (auto pControl : items) {
         if ((pControl != nullptr) && pControl->IsVisible() && !pControl->IsFloat()) {
             visibleControls.push_back(pControl);
@@ -150,6 +151,7 @@ UiSize64 HFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
 
     //需要进行布局处理的所有控件(KEY是控件，VALUE是宽度和高度)
     std::unordered_map<Control*, UiEstSize> itemsMap;
+    itemsMap.reserve(visibleControls.size());
 
     //计算每个控件的宽度和高度，并记录到Map中
     for (auto pControl : visibleControls) {

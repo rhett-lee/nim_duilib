@@ -40,6 +40,10 @@ UiSize64 VLayout::ArrangeChildren(const std::vector<Control*>& items, UiRect rc,
     std::unordered_map<Control*, UiEstSize> itemsMap;       // 非拉伸子控件
     std::vector<Control*> stretchControls;                  // 按顺序存储拉伸控件
     std::unordered_map<Control*, UiEstSize> stretchItemsMap;// 拉伸控件尺寸临时存储
+    //预分配容量：布局过程会被频繁调用，避免反复扩容与哈希表重哈希
+    itemsMap.reserve(items.size());
+    stretchControls.reserve(items.size());
+    stretchItemsMap.reserve(items.size());
 
     int32_t cyStretchPercentageTotal = 0;  // 拉伸控件总百分比
     int32_t cyFixedSelfTotal = 0;          // 固定控件自身总高度（不含边距、不含间距）
@@ -113,6 +117,7 @@ UiSize64 VLayout::ArrangeChildren(const std::vector<Control*>& items, UiRect rc,
             int32_t finalHeight; // 最终高度（自身）
         };
         std::vector<StretchInfo> stretchInfos;
+        stretchInfos.reserve(stretchControls.size());
         int32_t totalStretchMin = 0;  // 拉伸控件最小高度总和（自身）
 
         for (auto pControl : stretchControls) {
@@ -294,12 +299,11 @@ UiSize64 VLayout::ArrangeChildren(const std::vector<Control*>& items, UiRect rc,
             itemsMap[pControl] = estSize;
         }
     }
-    stretchItemsMap.clear();
-    stretchControls.clear();
-
-    // 计算子控件的最终位置（按：上边距 + 控件高度 + 下边距 + 间距 的顺序）
+    //计算子控件的最终位置（按：上边距 + 控件高度 + 下边距 + 间距 的顺序）
     std::vector<Control*> childrenControlList;  // 控件列表
     std::vector<UiRect> childrenControlRects;   // 控件的位置和大小
+    childrenControlList.reserve(items.size());
+    childrenControlRects.reserve(items.size());
     UiRect childrenRect;                        // 子控件原始范围（未对齐前）
     int32_t nPosX = rc.left;
     int32_t nPosY = rc.top;

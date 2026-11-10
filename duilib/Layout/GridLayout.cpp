@@ -186,6 +186,7 @@ UiSize64 GridLayout::ArrangeChildInternal(const std::vector<Control*>& items, Ui
     }
     // 预处理：筛选所有可见、非浮动的控件
     std::vector<Control*> visibleControls;
+    visibleControls.reserve(items.size());
     for (auto pControl : items) {
         if ((pControl != nullptr) && pControl->IsVisible() && !pControl->IsFloat()) {
             visibleControls.push_back(pControl);
@@ -231,6 +232,7 @@ UiSize64 GridLayout::ArrangeChildInternal(const std::vector<Control*>& items, Ui
     // 标记已占用的单元格（处理合并）
     std::vector<std::vector<bool>> cellOccupied(actualRows, std::vector<bool>(actualCols, false));
     std::unordered_map<Control*, UiRect> ctrlCellRects; // 控件对应的合并后单元格区域
+    ctrlCellRects.reserve(visibleControls.size());
     if (!CalcMergedCellRects(visibleControls, actualRows, actualCols, colWidths, rowHeights, cellOccupied, ctrlCellRects)) {
         ASSERT(!"CalcMergedCellRects failed!");
         return UiSize64(); // 单元格合并冲突，返回无效尺寸

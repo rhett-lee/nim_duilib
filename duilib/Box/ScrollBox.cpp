@@ -320,6 +320,7 @@ bool ScrollBox::NeedShowVScrollBar(UiRect rcBox, int64_t cyRequired,
     rcScrollBarPos = rcBox;
     rcScrollBarPos.Deflate(m_rcScrollBarPadding);
     rcBox.Deflate(GetPadding());
+    rcBox.Validate();
 
     int32_t nHeight = rcBox.Height();
     const int64_t cyScroll = std::max(cyRequired - nHeight, (int64_t)0);
@@ -595,6 +596,10 @@ void ScrollBox::PaintChild(IRender* pRender, const UiRect& rcPaint)
     }
 
     std::vector<Control*> delayItems;
+    //这些值在绘制过程中不会变化，提到循环外计算，避免每个子控件重复计算
+    const UiSize scrollPos = GetScrollOffset();
+    const UiRect rcBoxPaint = GetPosWithoutPadding();
+    const UiPoint renderOffset = GetRenderOffset();
     for (Control* pControl : m_items) {
         if (pControl == nullptr) {
             continue;
@@ -607,11 +612,10 @@ void ScrollBox::PaintChild(IRender* pRender, const UiRect& rcPaint)
             delayItems.push_back(pControl);
             continue;
         }
-        UiSize scrollPos = GetScrollOffset();
-        UiRect rcNewPaint = GetPosWithoutPadding();
+        UiRect rcNewPaint = rcBoxPaint;
         AutoClip alphaClip(pRender, rcNewPaint, IsClip());
         rcNewPaint.Offset(scrollPos.cx, scrollPos.cy);
-        rcNewPaint.Offset(GetRenderOffset().x, GetRenderOffset().y);
+        rcNewPaint.Offset(renderOffset.x, renderOffset.y);
 
         UiPoint ptOffset(scrollPos.cx, scrollPos.cy);
         UiPoint ptOldOrg = pRender->OffsetWindowOrg(ptOffset);
@@ -628,11 +632,10 @@ void ScrollBox::PaintChild(IRender* pRender, const UiRect& rcPaint)
             if (pControl == nullptr) {
                 continue;
             }
-            UiSize scrollPos = GetScrollOffset();
-            UiRect rcNewPaint = GetPosWithoutPadding();
+            UiRect rcNewPaint = rcBoxPaint;
             AutoClip alphaClip(pRender, rcNewPaint, IsClip());
             rcNewPaint.Offset(scrollPos.cx, scrollPos.cy);
-            rcNewPaint.Offset(GetRenderOffset().x, GetRenderOffset().y);
+            rcNewPaint.Offset(renderOffset.x, renderOffset.y);
 
             UiPoint ptOffset(scrollPos.cx, scrollPos.cy);
             UiPoint ptOldOrg = pRender->OffsetWindowOrg(ptOffset);
@@ -1187,7 +1190,7 @@ void ScrollBox::SetScrollVirtualOffset(const UiSize64& szOffset)
     UiSize oldScrollOffset = GetScrollOffset();
     ASSERT(szOffset.cx >= 0);
     ASSERT(szOffset.cy >= 0);
-    if ((szOffset.cx >= 0) && (szOffset.cy)) {
+    if ((szOffset.cx >= 0) && (szOffset.cy >= 0)) {
         m_scrollVirtualOffset = szOffset;
     }
     UiSize newScrollOffset = GetScrollOffset();

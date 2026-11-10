@@ -96,7 +96,7 @@ void TabBox::OnSetVisible(bool bChanged)
     if (Box::IsValidItemIndex(nCurSel)) {
         bSelected = DoSelectItem(nCurSel, false, false);
     }
-    if (!bSelected && (GetItemCount() > 0) && (GetCurSel() > GetItemCount())) {
+    if (!bSelected && (GetItemCount() > 0) && (GetCurSel() >= GetItemCount())) {
         //默认选择第一个页面，避免所有页面都同时显示出来
         DoSelectItem(0, false, false);
     }
@@ -113,7 +113,7 @@ void TabBox::OnInit()
         bSelected = DoSelectItem(m_nInitSel, false, true);
     }
 
-    if (!bSelected && (GetItemCount() > 0) && (m_nCurSel > GetItemCount())) {
+    if (!bSelected && (GetItemCount() > 0) && (m_nCurSel >= GetItemCount())) {
         //初始化时，默认选择第一个页面，避免所有页面都同时显示出来
         DoSelectItem(0, false, true);
     }
@@ -213,7 +213,7 @@ size_t TabBox::GetCurSel() const
     
 bool TabBox::DoSelectItem(size_t nItemIndex, bool bFadeSwith, bool bCheckChanged)
 {
-    ASSERT(nItemIndex < m_items.size());
+    ASSERT(!Box::IsValidItemIndex(nItemIndex) || (nItemIndex < m_items.size()));
     if (!Box::IsValidItemIndex(nItemIndex) || (nItemIndex >= m_items.size())) {
         return false;
     }
