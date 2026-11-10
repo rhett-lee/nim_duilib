@@ -231,6 +231,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AboutForm.h" />
+    <ClInclude Include="AnimationDemoForm.h" />
     <ClInclude Include="AnimationForm.h" />
     <ClInclude Include="ChartForm.h" />
     <ClInclude Include="MarqueeForm.h" />
@@ -267,6 +268,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AboutForm.cpp" />
+    <ClCompile Include="AnimationDemoForm.cpp" />
     <ClCompile Include="AnimationForm.cpp" />
     <ClCompile Include="ChartForm.cpp" />
     <ClCompile Include="MarqueeForm.cpp" />

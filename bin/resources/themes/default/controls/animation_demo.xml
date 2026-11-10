@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="1000,780" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,40"
+        shadow_type="default" size_box="2,2,2,2" min_size="820,560" icon="public/caption/logo.ico">
+    <VBox bkcolor="bg_window_main">
+        <!-- 标题栏 -->
+        <HBox name="window_title_bar" width="stretch" height="40" bkcolor="bg_titlebar">
+            <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
+                <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="10,0,0,0"/>
+                <Label text="Controls Gallery" font="system_bold_14" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
+                <Label text="/ Animation Features" text_color="text_muted" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
+            </HBox>
+            <Control mouse_enabled="false"/>
+            <HBox valign="center" width="auto" height="36">
+                <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
+                <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>
+                <Button class="btn_wnd_min_11" height="32" width="40" name="btn_window_min" margin="0,2,0,2"/>
+                <Box height="stretch" width="40" margin="0,2,0,2">
+                    <Button class="btn_wnd_max_11" height="32" width="stretch" name="btn_window_max"/>
+                    <Button class="btn_wnd_restore_11" height="32" width="stretch" name="btn_window_restore" visible="false"/>
+                </Box>
+                <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+            </HBox>
+        </HBox>
+
+        <VScrollBox width="stretch" height="stretch" vscrollbar="true" hscrollbar="false" padding="18,14,18,18">
+            <VBox width="stretch" height="auto">
+
+                <!-- 页面说明 -->
+                <VBox bkcolor="color_accent" bkcolor2="color_blue_light" bkcolor2_direction="3"
+                      border_round="12,12" padding="20,16,20,16" width="stretch" height="auto">
+                    <Label text="Animation features" font="system_bold_18" text_color="#FFFFFFFF"/>
+                    <Label text="All animations below are driven by one global 16 ms timer. Multiple properties and multiple controls are advanced with the same timestamp, so they stay in sync and the layout is merged into one pass per frame."
+                           font="system_regular_12" text_color="#E6FFFFFF" margin="0,6,0,0" width="stretch" height="auto"
+                           multi_line="true" auto_tooltip="true"/>
+                </VBox>
+
+                <!-- 1. 全局参数 -->
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" width="stretch" height="auto" margin="0,10,0,0">
+                    <HBox height="24" valign="center">
+                        <Control width="6" height="16" bkcolor="color_accent" border_round="3,3" valign="center"/>
+                        <Label text="1. Global settings" font="system_bold_15" text_color="text_default" margin="8,0,0,0" valign="center"/>
+                        <Label text="duration and easing used by the demos below" font="system_regular_12" text_color="text_muted" margin="8,0,0,0" valign="center"/>
+                        <Control/>
+                    </HBox>
+                    <HBox height="30" margin="0,10,0,0" child_margin="8" valign="center">
+                        <Label text="Duration:" font="system_regular_12" text_color="text_muted" valign="center" width="72"/>
+                        <Button class="btn_global" name="btn_duration_200" text="200 ms" width="86" height="26" border_round="4,4"/>
+                        <Button class="btn_global" name="btn_duration_480" text="480 ms" width="86" height="26" border_round="4,4"/>
+                        <Button class="btn_global" name="btn_duration_900" text="900 ms" width="86" height="26" border_round="4,4"/>
+                        <Label name="label_duration" text="current: 480 ms" font="system_regular_12" text_color="text_muted" valign="center" margin="8,0,0,0" auto_tooltip="true"/>
+                        <Control/>
+                    </HBox>
+                    <HBox height="30" margin="0,6,0,0" child_margin="8" valign="center">
+                        <Label text="Easing:" font="system_regular_12" text_color="text_muted" valign="center" width="72"/>
+                        <Button class="btn_global" name="btn_easing_out_cubic" text="EaseOutCubic" width="112" height="26" border_round="4,4"/>
+                        <Button class="btn_global" name="btn_easing_inout_cubic" text="EaseInOutCubic" width="112" height="26" border_round="4,4"/>
+                        <Button class="btn_global" name="btn_easing_out_back" text="EaseOutBack" width="112" height="26" border_round="4,4"/>
+                        <Button class="btn_global" name="btn_easing_out_elastic" text="EaseOutElastic" width="112" height="26" border_round="4,4"/>
+                        <Control/>
+                    </HBox>
+                </VBox>
+
+                <!-- 2. 属性动画：Alpha / Width / Height / Size -->
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" width="stretch" height="auto" margin="0,10,0,0">
+                    <HBox height="24" valign="center">
+                        <Control width="6" height="16" bkcolor="color_success" border_round="3,3" valign="center"/>
+                        <Label text="2. Property animation: Alpha / Width / Height / Size" font="system_bold_15"
+                               text_color="text_default" margin="8,0,0,0" valign="center"/>
+                        <Control/>
+                    </HBox>
+                    <Label text="Click a button to toggle the target control: Appear plays the animation forward, clicking again plays it backward."
+                           font="system_regular_12" text_color="text_muted" margin="0,6,0,0" width="stretch" height="auto"
+                           multi_line="true" auto_tooltip="true"/>
+                    <HBox height="150" margin="0,10,0,0" child_margin="14">
+                        <VBox width="stretch" height="stretch">
+                            <HBox height="28" child_margin="8">
+                                <Button class="btn_global" name="btn_alpha" text="Alpha" width="92" height="26" border_round="4,4"/>
+                                <Button class="btn_global" name="btn_width" text="Width" width="92" height="26" border_round="4,4"/>
+                                <Button class="btn_global" name="btn_height" text="Height" width="92" height="26" border_round="4,4"/>
+                                <Button class="btn_global" name="btn_size" text="Size" width="92" height="26" border_round="4,4"/>
+                                <Control/>
+                            </HBox>
+                            <Label text="Alpha: 0 - 255\nWidth/Height: 0 - natural size\nSize: 0% - 100% (width + height together)"
+                                   font="system_regular_12" text_color="text_muted" margin="0,10,0,0"
+                                   width="stretch" height="auto" multi_line="true" replace_newline="true" auto_tooltip="true"/>
+                            <Control/>
+                        </VBox>
+                        <Box name="stage_property" width="380" height="stretch" bkcolor="bg_window_main"
+                             border_size="1" bordercolor="border_window" border_round="8,8">
+                            <Control name="demo_alpha" float="true" halign="left" valign="center"
+                                     width="64" height="64" bkcolor="color_accent" border_round="8,8" margin="28,0,0,0"/>
+                            <Control name="demo_width" float="true" halign="center" valign="top"
+                                     width="120" height="44" bkcolor="color_success" border_round="8,8" margin="0,16,0,0"/>
+                            <Control name="demo_height" float="true" halign="right" valign="center"
+                                     width="48" height="88" bkcolor="color_warning" border_round="8,8" margin="0,0,28,0"/>
+                            <Control name="demo_size" float="true" halign="center" valign="bottom"
+                                     width="72" height="44" bkcolor="color_error" border_round="8,8" margin="0,0,0,16"/>
+                        </Box>
+                    </HBox>
+                </VBox>
+
+                <!-- 3. 滑动进出场（4 个方向） -->
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" width="stretch" height="auto" margin="0,10,0,0">
+                    <HBox height="24" valign="center">
+                        <Control width="6" height="16" bkcolor="color_warning" border_round="3,3" valign="center"/>
+                        <Label text="3. Slide in/out: 4 directions" font="system_bold_15" text_color="text_default"
+                               margin="8,0,0,0" valign="center"/>
+                        <Control/>
+                    </HBox>
+                    <Label text="The slide distance is taken from the real arranged size of the control, so it also works for stretch/auto controls."
+                           font="system_regular_12" text_color="text_muted" margin="0,6,0,0" width="stretch" height="auto"
+                           multi_line="true" auto_tooltip="true"/>
+                    <HBox height="30" margin="0,8,0,0" child_margin="8">
+                        <Button class="btn_global" name="btn_slide_in" text="Play all (appear)" width="140" height="26" border_round="4,4"/>
+                        <Button class="btn_global" name="btn_slide_out" text="Hide all (disappear)" width="150" height="26" border_round="4,4"/>
+                        <Control/>
+                    </HBox>
+                    <Box name="stage_slide" width="stretch" height="190" bkcolor="bg_window_main"
+                         border_size="1" bordercolor="border_window" border_round="8,8" margin="0,10,0,0">
+                        <Control name="slide_left" float="true" halign="left" valign="top"
+                                 width="110" height="58" bkcolor="color_accent" border_round="8,8" margin="16,16,0,0"/>
+                        <Control name="slide_right" float="true" halign="right" valign="top"
+                                 width="110" height="58" bkcolor="color_success" border_round="8,8" margin="0,16,16,0"/>
+                        <Control name="slide_top" float="true" halign="left" valign="bottom"
+                                 width="110" height="58" bkcolor="color_warning" border_round="8,8" margin="16,0,0,16"/>
+                        <Control name="slide_bottom" float="true" halign="right" valign="bottom"
+                                 width="110" height="58" bkcolor="color_error" border_round="8,8" margin="0,0,16,16"/>
+                        <Label text="top-left: XFromLeft" float="true" halign="left" valign="top"
+                               font="system_regular_12" text_color="text_muted" margin="16,86,0,0"/>
+                        <Label text="top-right: XFromRight" float="true" halign="right" valign="top"
+                               font="system_regular_12" text_color="text_muted" margin="0,86,16,0"/>
+                        <Label text="bottom-left: YFromTop" float="true" halign="left" valign="bottom"
+                               font="system_regular_12" text_color="text_muted" margin="16,0,0,86"/>
+                        <Label text="bottom-right: YFromBottom" float="true" halign="right" valign="bottom"
+                               font="system_regular_12" text_color="text_muted" margin="0,0,16,86"/>
+                    </Box>
+                </VBox>
+
+                <!-- 4. 缓动曲线对比 -->
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" width="stretch" height="auto" margin="0,10,0,0">
+                    <HBox height="24" valign="center">
+                        <Control width="6" height="16" bkcolor="color_error" border_round="3,3" valign="center"/>
+                        <Label text="4. Easing comparison" font="system_bold_15" text_color="text_default"
+                               margin="8,0,0,0" valign="center"/>
+                        <Control/>
+                    </HBox>
+                    <Label text="Four animations start at exactly the same moment with different easing functions: they share one timer, so frame alignment is identical."
+                           font="system_regular_12" text_color="text_muted" margin="0,6,0,0" width="stretch" height="auto"
+                           multi_line="true" auto_tooltip="true"/>
+                    <HBox height="30" margin="0,8,0,0" child_margin="8">
+                        <Button class="btn_global" name="btn_easing_compare" text="Start together" width="140" height="26" border_round="4,4"/>
+                        <Control/>
+                    </HBox>
+                    <VBox width="stretch" height="auto" margin="0,10,0,0">
+                        <HBox height="34" valign="center">
+                            <Label text="EaseLinear" font="system_regular_12" text_color="text_default" width="132" valign="center"/>
+                            <Box name="ease_track_0" width="stretch" height="30" bkcolor="#11000000" border_round="5,5">
+                                <Control name="ease_box_0" float="true" halign="left" valign="center"
+                                         width="40" height="22" bkcolor="color_accent" border_round="5,5" margin="4,0,0,0"/>
+                            </Box>
+                        </HBox>
+                        <HBox height="34" valign="center" margin="0,6,0,0">
+                            <Label text="EaseOutCubic" font="system_regular_12" text_color="text_default" width="132" valign="center"/>
+                            <Box name="ease_track_1" width="stretch" height="30" bkcolor="#11000000" border_round="5,5">
+                                <Control name="ease_box_1" float="true" halign="left" valign="center"
+                                         width="40" height="22" bkcolor="color_success" border_round="5,5" margin="4,0,0,0"/>
+                            </Box>
+                        </HBox>
+                        <HBox height="34" valign="center" margin="0,6,0,0">
+                            <Label text="EaseOutBack" font="system_regular_12" text_color="text_default" width="132" valign="center"/>
+                            <Box name="ease_track_2" width="stretch" height="30" bkcolor="#11000000" border_round="5,5">
+                                <Control name="ease_box_2" float="true" halign="left" valign="center"
+                                         width="40" height="22" bkcolor="color_warning" border_round="5,5" margin="4,0,0,0"/>
+                            </Box>
+                        </HBox>
+                        <HBox height="34" valign="center" margin="0,6,0,0">
+                            <Label text="EaseOutElastic" font="system_regular_12" text_color="text_default" width="132" valign="center"/>
+                            <Box name="ease_track_3" width="stretch" height="30" bkcolor="#11000000" border_round="5,5">
+                                <Control name="ease_box_3" float="true" halign="left" valign="center"
+                                         width="40" height="22" bkcolor="color_error" border_round="5,5" margin="4,0,0,0"/>
+                            </Box>
+                        </HBox>
+                    </VBox>
+                </VBox>
+
+                <!-- 5. Retarget -->
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" width="stretch" height="auto" margin="0,10,0,0">
+                    <HBox height="24" valign="center">
+                        <Control width="6" height="16" bkcolor="color_blue" border_round="3,3" valign="center"/>
+                        <Label text="5. Retarget while playing" font="system_bold_15" text_color="text_default"
+                               margin="8,0,0,0" valign="center"/>
+                        <Control/>
+                    </HBox>
+                    <Label text="Click another width while the bar is still animating: the animation continues from the current value (no jump back to the start)."
+                           font="system_regular_12" text_color="text_muted" margin="0,6,0,0" width="stretch" height="auto"
+                           multi_line="true" auto_tooltip="true"/>
+                    <Box name="stage_retarget" width="stretch" height="86" bkcolor="bg_window_main"
+                         border_size="1" bordercolor="border_window" border_round="8,8" margin="0,10,0,0">
+                        <Control name="retarget_box" float="true" halign="left" valign="center"
+                                 width="120" height="48" bkcolor="color_blue" border_round="8,8" margin="12,0,0,0"/>
+                    </Box>
+                    <HBox height="30" margin="0,10,0,0" child_margin="8">
+                        <Button class="btn_global" name="btn_retarget_120" text="Width 120" width="110" height="26" border_round="4,4"/>
+                        <Button class="btn_global" name="btn_retarget_240" text="Width 240" width="110" height="26" border_round="4,4"/>
+                        <Button class="btn_global" name="btn_retarget_360" text="Width 360" width="110" height="26" border_round="4,4"/>
+                        <Button class="btn_global" name="btn_retarget_restart" text="Restart" width="96" height="26" border_round="4,4"/>
+                        <Control/>
+                    </HBox>
+                </VBox>
+
+                <!-- 6. 功能说明 -->
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" width="stretch" height="auto" margin="0,10,0,0">
+                    <HBox height="24" valign="center">
+                        <Control width="6" height="16" bkcolor="color_accent" border_round="3,3" valign="center"/>
+                        <Label text="6. What is covered" font="system_bold_15" text_color="text_default"
+                               margin="8,0,0,0" valign="center"/>
+                        <Control/>
+                    </HBox>
+                    <Label text="Single global timer: every active animation is advanced with the same timestamp (perfect sync, N x 62.5 -> 62.5 timer messages per second).\nLayout merge: size animations request one layout per control per frame.\n31 easing functions with per-direction easing: appear uses EaseOutCubic, disappear uses EaseInCubic by default.\nRetarget: SetEndValue during playback restarts from the current value with the remaining duration.\nReal slide distance: taken from the arranged rect, correct for stretch/auto controls.\nAuto pause: when every window is minimized or hidden, the time base stops advancing, so no CPU is wasted."
+                           font="system_regular_12" text_color="text_muted" margin="0,8,0,0"
+                           width="stretch" height="auto" multi_line="true" replace_newline="true" auto_tooltip="true"/>
+                </VBox>
+
+            </VBox>
+        </VScrollBox>
+    </VBox>
+</Window>

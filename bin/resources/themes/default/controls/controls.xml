@@ -672,6 +672,7 @@
                         <Button class="btn_global" name="timeline_btn" text="Timeline" width="96" height="28" border_round="4,4"/>
                         <Button class="btn_global" name="marquee_btn" text="Marquee" width="96" height="28" border_round="4,4"/>
                         <Button class="btn_global" name="animation_btn" text="Animation" width="96" height="28" border_round="4,4"/>
+                        <Button class="btn_global" name="animation_demo_btn" text="Animations" width="96" height="28" border_round="4,4"/>
                         <Button class="btn_global" name="statusbar_btn" text="StatusBar" width="96" height="28" border_round="4,4"/>
                         <Button class="btn_global" name="toolbar_btn" text="ToolBar" width="96" height="28" border_round="4,4"/>
                     </HBox>

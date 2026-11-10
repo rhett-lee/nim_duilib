@@ -2,6 +2,7 @@
 #include "AboutForm.h"
 #include "TestForm.h"
 #include "AnimationForm.h"
+#include "AnimationDemoForm.h"
 #include "NavigationForm.h"
 #include "ChartForm.h"
 #include "MarqueeForm.h"
@@ -269,6 +270,7 @@ void ControlForm::OnInitWindow()
     bindOpen(_T("timeline_btn"), []() { return new TimelineForm(); });
     bindOpen(_T("marquee_btn"), []() { return new MarqueeForm(); });
     bindOpen(_T("animation_btn"), []() { return new AnimationForm(); });
+    bindOpen(_T("animation_demo_btn"), []() { return new AnimationDemoForm(); });
     bindOpen(_T("statusbar_btn"), []() { return new StatusBarForm(); });
     bindOpen(_T("toolbar_btn"), []() { return new ToolBarForm(); });
 
