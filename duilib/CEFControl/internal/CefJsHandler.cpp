@@ -48,6 +48,12 @@ bool CefJSHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> /*object
     (void)browserId;
     (void)frameId;
 
+    //参数个数校验：后续逻辑至少需要访问arguments[0]和arguments[1]，参数不足时直接返回，避免越界访问
+    if (arguments.size() < 2) {
+        exception = "Invalid arguments.";
+        return false;
+    }
+
     if (name == "call") {
         // 允许没有参数列表的调用，第二个参数为回调
         // 如果传递了参数列表，那么回调是第三个参数
@@ -57,7 +63,7 @@ bool CefJSHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> /*object
         if (arguments[0]->IsString() && arguments[1]->IsFunction()) {
             callback = arguments[1];
         }
-        else if (arguments[0]->IsString() && arguments[1]->IsString() && arguments[2]->IsFunction()) {
+        else if ((arguments.size() >= 3) && arguments[0]->IsString() && arguments[1]->IsString() && arguments[2]->IsFunction()) {
             params = arguments[1]->GetStringValue();
             callback = arguments[2];
         }

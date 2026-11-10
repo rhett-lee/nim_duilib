@@ -137,7 +137,8 @@ std::string HtmlToCFHtml(const std::string& html, const std::string& base_url) {
   size_t end_fragment_offset = start_fragment_offset + html.length();
   size_t end_html_offset = end_fragment_offset + strlen(end_markup);
   char raw_result[1024];
-  _snprintf_s(raw_result, sizeof(1024), header, start_html_offset,
+  //注意：这里第2个参数是缓冲区大小(字节数)，第3个参数是最大写入字符数，不能写成sizeof(1024)
+  _snprintf_s(raw_result, sizeof(raw_result), sizeof(raw_result), header, start_html_offset,
             end_html_offset, start_fragment_offset, end_fragment_offset);
   std::string result = raw_result;
   if (!base_url.empty()) {
@@ -179,8 +180,7 @@ void CFHtmlExtractMetadata(const std::string& cf_html,
   // If the comments cannot be found, like copying from OpenOffice Writer,
   // we simply fall back to using StartFragment/EndFragment bytecount values
   // to determine the fragment indexes.
-  std::string cf_html_lower = cf_html;
-  size_t markup_start = cf_html_lower.find("<html", 0);
+  size_t markup_start = cf_html.find("<html", 0);
   if (html_start) {
     *html_start = markup_start;
   }
@@ -203,7 +203,9 @@ void CFHtmlExtractMetadata(const std::string& cf_html,
   } else {
     *fragment_start = cf_html.find('>', tag_start) + 1;
     size_t tag_end = cf_html.rfind("<!--EndFragment", std::string::npos);
-    *fragment_end = cf_html.rfind('<', tag_end);
+    if (tag_end != std::string::npos) {
+      *fragment_end = cf_html.rfind('<', tag_end);
+    }
   }
 }
 
@@ -701,6 +703,18 @@ DataObjectWin::DataObjectWin(FORMATETC* fmtetc, STGMEDIUM* stgmed, int count)
     m_pFormatEtc[i] = fmtetc[i];
     m_pStgMedium[i] = stgmed[i];
   }
+}
+
+DataObjectWin::~DataObjectWin() {
+  //释放STGMEDIUM中保存的数据（如HGLOBAL），并释放数组，避免内存泄漏
+  for (int i = 0; i < m_nNumFormats; ++i) {
+    ReleaseStgMedium(&m_pStgMedium[i]);
+  }
+  delete[] m_pFormatEtc;
+  m_pFormatEtc = nullptr;
+
+  delete[] m_pStgMedium;
+  m_pStgMedium = nullptr;
 }
 
 }  // namespace client

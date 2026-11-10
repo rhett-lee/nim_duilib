@@ -187,8 +187,11 @@ std::string CefControl::GetUTF8URL()
 CefString CefControl::GetMainURL(const CefString& url)
 {
     std::string temp = url.ToString();
-    size_t end_pos = temp.find("#") == std::string::npos ? temp.length() : temp.find("#");
-    temp = temp.substr(0, end_pos);
+    size_t end_pos = temp.find('#');
+    if (end_pos != std::string::npos) {
+        //只保留"#"号前面的地址
+        temp.resize(end_pos);
+    }
     return CefString(temp.c_str());
 }
 
@@ -272,10 +275,11 @@ bool CefControl::OnExecuteCppCallbackFunc(int cpp_callback_id, const CefString& 
 {
     if (m_jsBridge.get()) {
         if (m_jsCallbackThreadId != -1) {
-            ui::GlobalManager::Instance().Thread().PostTask(m_jsCallbackThreadId, [this, cpp_callback_id, json_string]
+            //当前不在回调线程，转接到回调线程执行（使用弱回调，避免控件销毁后再执行）
+            GlobalManager::Instance().Thread().PostTask(m_jsCallbackThreadId, ToWeakCallback([this, cpp_callback_id, json_string]()
                 {
                     m_jsBridge->ExecuteCppCallbackFunc(cpp_callback_id, json_string);
-                });
+                }));
         }
         else {
             return m_jsBridge->ExecuteCppCallbackFunc(cpp_callback_id, json_string);
@@ -537,7 +541,10 @@ void CefControl::DettachDevTools()
     bool bAttachedDevTools = m_bAttachedDevTools;
     m_bAttachedDevTools = false;
 
-    auto browser = m_pBrowserHandler->GetBrowser();
+    CefRefPtr<CefBrowser> browser;
+    if (m_pBrowserHandler != nullptr) {
+        browser = m_pBrowserHandler->GetBrowser();
+    }
     if ((browser != nullptr) && (browser->GetHost() != nullptr)) {
         browser->GetHost()->CloseDevTools();
     }
@@ -715,19 +722,24 @@ void CefControl::OnDownloadImageFinished(const CefString& image_url,
                                          CefRefPtr<CefImage> image)
 {
     ASSERT(CefCurrentlyOn(TID_UI));
+    auto doCallback = [this, image_url, http_status_code, image]() {
+        m_favIconUrl = image_url;
+        CefRefPtr<CefBrowser> browser = GetCefBrowser();
+        if (m_pfnDownloadFavIconFinished) {
+            m_pfnDownloadFavIconFinished(browser, image_url, http_status_code, image);
+        }
+        else if (m_pCefControlEventHandler) {
+            m_pCefControlEventHandler->OnDownloadFavIconFinished(browser, image_url, http_status_code, image);
+        }
+    };
     if (!GlobalManager::Instance().IsInUIThread()) {
-        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, image_url, http_status_code, image]() {
-            m_favIconUrl = image_url;
-            CefRefPtr<CefBrowser> browser = GetCefBrowser();
-            if (m_pfnDownloadFavIconFinished) {
-                m_pfnDownloadFavIconFinished(browser, image_url, http_status_code, image);
-            }
-            else if (m_pCefControlEventHandler) {
-                m_pCefControlEventHandler->OnDownloadFavIconFinished(browser, image_url, http_status_code, image);
-            }
-            }));
+        //当前在CEF的UI线程，需要转接到主进程的UI线程
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback(doCallback));
     }
-    
+    else {
+        //已经在主进程的UI线程，直接处理（否则回调不会被执行）
+        doCallback();
+    }
 }
 
 bool CefControl::ReDownloadFavIcon()

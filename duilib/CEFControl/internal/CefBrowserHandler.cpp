@@ -159,19 +159,20 @@ bool CefBrowserHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
     }
     // 处理render进程发来的消息
     std::string message_name = message->GetName();
-    if (message->GetArgumentList() == nullptr) {
+    CefRefPtr<CefListValue> args = message->GetArgumentList();
+    if (args == nullptr) {
         return false;
     }
     if (message_name == kFocusedNodeChangedMessage) {
-        CefDOMNode::Type type = (CefDOMNode::Type)message->GetArgumentList()->GetInt(0);
-        bool bText = message->GetArgumentList()->GetBool(1);
-        bool bEditable = message->GetArgumentList()->GetBool(2);
+        CefDOMNode::Type type = (CefDOMNode::Type)args->GetInt(0);
+        bool bText = args->GetBool(1);
+        bool bEditable = args->GetBool(2);
 
         CefRect nodeRect;
-        nodeRect.x = message->GetArgumentList()->GetInt(3);
-        nodeRect.y = message->GetArgumentList()->GetInt(4);
-        nodeRect.width = message->GetArgumentList()->GetInt(5);
-        nodeRect.height = message->GetArgumentList()->GetInt(6);
+        nodeRect.x = args->GetInt(3);
+        nodeRect.y = args->GetInt(4);
+        nodeRect.width = args->GetInt(5);
+        nodeRect.height = args->GetInt(6);
 
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, browser, frame, type, bText, bEditable, nodeRect]() {
                 if (m_pHandlerDelegate) {
@@ -181,9 +182,9 @@ bool CefBrowserHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
         return true;
     }
     else if (message_name == kCallCppFunctionMessage) {
-        CefString fun_name = message->GetArgumentList()->GetString(0);
-        CefString param = message->GetArgumentList()->GetString(1);
-        int js_callback_id = message->GetArgumentList()->GetInt(2);
+        CefString fun_name = args->GetString(0);
+        CefString param = args->GetString(1);
+        int js_callback_id = args->GetInt(2);
 
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, fun_name, param, js_callback_id, browser, frame]() {
                 if (m_pHandlerDelegate) {
@@ -193,8 +194,8 @@ bool CefBrowserHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
         return true;
     }
     else if (message_name == kExecuteCppCallbackMessage) {
-        CefString param = message->GetArgumentList()->GetString(0);
-        int callback_id = message->GetArgumentList()->GetInt(1);
+        CefString param = args->GetString(0);
+        int callback_id = args->GetInt(1);
 
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, callback_id, param]() {
             if (m_pHandlerDelegate) {

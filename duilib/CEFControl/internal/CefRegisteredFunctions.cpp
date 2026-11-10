@@ -103,6 +103,10 @@ void RenderRegisteredFunctions::RemoveJsFunctionByFrame(CefRefPtr<CefFrame> fram
     }
 
     if (!m_renderJsFunctionMap.empty()) {
+        CefRefPtr<CefV8Context> frameContext = frame->GetV8Context();
+        if (frameContext == nullptr) {
+            return;
+        }
         for (auto iter = m_renderJsFunctionMap.begin(); iter != m_renderJsFunctionMap.end();) {
             FrameFunctionMap& frameFunctionMap = iter->second;            
             for (auto pos = frameFunctionMap.begin(); pos != frameFunctionMap.end();) {
@@ -114,7 +118,7 @@ void RenderRegisteredFunctions::RemoveJsFunctionByFrame(CefRefPtr<CefFrame> fram
                 //CEF 高版本
                 auto child_frame = browser->GetFrameByIdentifier(pos->first);
 #endif
-                if (child_frame.get() && child_frame->GetV8Context()->IsSame(frame->GetV8Context())) {
+                if (child_frame.get() && (child_frame->GetV8Context() != nullptr) && child_frame->GetV8Context()->IsSame(frameContext)) {
                     pos = frameFunctionMap.erase(pos);
                 }
                 else {

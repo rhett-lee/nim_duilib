@@ -232,7 +232,7 @@ std::shared_ptr<IBitmap> CefControlNative::MakeImageSnapshot()
     int32_t width = 0;
     int32_t height = 0;
     bool bRet = CaptureCefWindowBitmap(GetCefWindowHandle(), bitmap, width, height);
-    if (bRet && (width > 0) && (height > 0) && ((int32_t)bitmap.size() == (width * height * 4))) {
+    if (bRet && (width > 0) && (height > 0) && (bitmap.size() == (size_t)width * height * 4)) {
         std::shared_ptr<IBitmap> spBitmap;
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         ASSERT(pRenderFactory != nullptr);

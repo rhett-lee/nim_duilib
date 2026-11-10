@@ -42,7 +42,8 @@ bool CefMemoryBlock::Init(const void* buffer, const std::vector<UiRect>& dirtyRe
             delete[] m_pBits;
             m_pBits = nullptr;
         }
-        m_pBits = new uint8_t[width * height * sizeof(uint32_t)];
+        //注意：width * height * sizeof(uint32_t) 在 int32 范围内可能溢出（如 32768*32768*4 > INT32_MAX），必须先转为 size_t
+        m_pBits = new uint8_t[(size_t)width * height * sizeof(uint32_t)];
         m_nWidth = width;
         m_nHeight = height;
         bDirtyRectValid = false;
@@ -51,17 +52,19 @@ bool CefMemoryBlock::Init(const void* buffer, const std::vector<UiRect>& dirtyRe
     if (m_pBits != nullptr) {
         if (!bDirtyRectValid || dirtyRectList.empty() || dirtyRectList[0] == UiRect(0, 0, width, height)) {
             //完整绘制
-            memcpy(m_pBits, buffer, width * height * sizeof(uint32_t));
+            //注意：width * height * sizeof(uint32_t) 在 int32 范围内可能溢出，必须先转为 size_t
+            memcpy(m_pBits, buffer, (size_t)width * height * sizeof(uint32_t));
         }
         else {
             //增量绘制：只绘制脏区域
             uint32_t* pBmpBits = (uint32_t*)m_pBits;
-            int32_t offset = 0;
+            const uint32_t* pSrcBits = (const uint32_t*)buffer;
+            size_t offset = 0;
             for (const UiRect& rect : dirtyRectList) {
                 for (int32_t i = rect.top; i < rect.bottom; ++i) {
                     //按行复制数据
-                    offset = i * width + rect.left;
-                    memcpy(pBmpBits + offset, (uint32_t*)buffer + offset, rect.Width() * sizeof (uint32_t));
+                    offset = (size_t)i * width + rect.left;
+                    memcpy(pBmpBits + offset, pSrcBits + offset, rect.Width() * sizeof (uint32_t));
                 }
             }
         }
@@ -125,7 +128,8 @@ bool CefMemoryBlock::MakeImageSnapshot(IRender* pRender)
     dcPaint.bottom = dcPaint.top + nHeight;
 
     if (pRender->Resize(nWidth, nHeight)) {
-        return pRender->WritePixels(pBits, nWidth * nHeight * sizeof(uint32_t), dcPaint);
+        //注意：nWidth * nHeight * sizeof(uint32_t) 在 int32 范围内可能溢出，必须先转为 size_t
+        return pRender->WritePixels(pBits, (size_t)nWidth * nHeight * sizeof(uint32_t), dcPaint);
     }
     return false;    
 }

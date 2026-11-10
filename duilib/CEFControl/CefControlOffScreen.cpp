@@ -585,7 +585,8 @@ void CefControlOffScreen::SendButtonUpEvent(const EventArgs& msg)
 
     UiPoint pt = msg.ptMouse;
     pt.Offset(GetScrollOffsetInScrollBox());
-    if (!GetRect().ContainsPt(pt) && !GetWindow()->IsCaptured()) {
+    Window* pWindow = GetWindow();
+    if (!GetRect().ContainsPt(pt) && ((pWindow == nullptr) || !pWindow->IsCaptured())) {
         return;
     }
 
@@ -998,7 +999,8 @@ LRESULT CefControlOffScreen::SendKeyEvent(UINT uMsg, WPARAM wParam, LPARAM lPara
         return 0;
     }
 
-    CefKeyEvent event;
+    //注意：CefKeyEvent的成员没有默认初始化，必须零初始化，避免将未初始化的字段传递给CEF
+    CefKeyEvent event = {};
     event.windows_key_code = static_cast<int>(wParam);
     event.native_key_code = static_cast<int>(lParam);
     event.is_system_key = uMsg == WM_SYSCHAR || uMsg == WM_SYSKEYDOWN || uMsg == WM_SYSKEYUP;

@@ -45,8 +45,12 @@ bool CefJSBridge::CallCppFunction(const CefString& function_name, const CefStrin
 void CefJSBridge::RemoveCallbackFuncWithFrame(CefRefPtr<CefFrame> frame)
 {
     if (!m_renderCallbackMap.empty()) {
+        CefRefPtr<CefV8Context> frameContext = (frame != nullptr) ? frame->GetV8Context() : nullptr;
+        if (frameContext == nullptr) {
+            return;
+        }
         for (auto it = m_renderCallbackMap.begin(); it != m_renderCallbackMap.end();)  {
-            if (it->second.first->IsSame(frame->GetV8Context())) {
+            if ((it->second.first != nullptr) && it->second.first->IsSame(frameContext)) {
                 it = m_renderCallbackMap.erase(it);
             }
             else {
@@ -74,8 +78,21 @@ bool CefJSBridge::ExecuteJSCallbackFunc(int js_callback_id, bool has_error, cons
             // 第二个参数携带函数执行后返回的数据
             CefV8ValueList json_parse_args;
             json_parse_args.push_back(CefV8Value::CreateString(json_result));
-            CefRefPtr<CefV8Value> json_parse = context->GetGlobal()->GetValue("JSON")->GetValue("parse");
-            CefRefPtr<CefV8Value> json_object = json_parse->ExecuteFunction(nullptr, json_parse_args);
+            CefRefPtr<CefV8Value> json_object;
+            CefRefPtr<CefV8Value> json_global = context->GetGlobal();
+            if (json_global != nullptr) {
+                CefRefPtr<CefV8Value> json = json_global->GetValue("JSON");
+                if (json != nullptr) {
+                    CefRefPtr<CefV8Value> json_parse = json->GetValue("parse");
+                    if (json_parse != nullptr) {
+                        json_object = json_parse->ExecuteFunction(nullptr, json_parse_args);
+                    }
+                }
+            }
+            if (json_object == nullptr) {
+                //JSON解析失败时，传递null，避免将空对象传入V8导致异常
+                json_object = CefV8Value::CreateNull();
+            }
             arguments.push_back(json_object);
 
             // 执行 JS 方法
@@ -165,30 +182,48 @@ bool CefJSBridge::ExecuteJSFunc(const CefString& function_name, const CefString&
             CefV8ValueList arguments;
 
             // 将 C++ 传递过来的 JSON 转换成 Object
-            CefV8ValueList json_parse_args;
-            json_parse_args.push_back(CefV8Value::CreateString(json_params));
-            CefRefPtr<CefV8Value> json_object = context->GetGlobal()->GetValue("JSON");
-            CefRefPtr<CefV8Value> json_parse = json_object->GetValue("parse");
-            CefRefPtr<CefV8Value> json_stringify = json_object->GetValue("stringify");
-            CefRefPtr<CefV8Value> json_object_args = json_parse->ExecuteFunction(nullptr, json_parse_args);
+            CefRefPtr<CefV8Value> json_parse;
+            CefRefPtr<CefV8Value> json_stringify;
+            CefRefPtr<CefV8Value> json_global = context->GetGlobal();
+            if (json_global != nullptr) {
+                CefRefPtr<CefV8Value> json = json_global->GetValue("JSON");
+                if (json != nullptr) {
+                    json_parse = json->GetValue("parse");
+                    json_stringify = json->GetValue("stringify");
+                }
+            }
+            CefRefPtr<CefV8Value> json_object_args;
+            if (json_parse != nullptr) {
+                CefV8ValueList json_parse_args;
+                json_parse_args.push_back(CefV8Value::CreateString(json_params));
+                json_object_args = json_parse->ExecuteFunction(nullptr, json_parse_args);
+            }
+            if (json_object_args == nullptr) {
+                //JSON解析失败时，传递null，避免将空对象传入V8导致异常
+                json_object_args = CefV8Value::CreateNull();
+            }
             arguments.push_back(json_object_args);
 
             // 执行回调函数
             CefRefPtr<CefV8Value> retval = function->ExecuteFunction(nullptr, arguments);
-            if (retval.get() && retval->IsObject()) {
+            if ((retval.get() != nullptr) && retval->IsObject() && (json_stringify != nullptr)) {
                 // 回复调用 JS 后的返回值
                 CefV8ValueList json_stringify_args;
                 json_stringify_args.push_back(retval);
                 CefRefPtr<CefV8Value> json_string = json_stringify->ExecuteFunction(nullptr, json_stringify_args);
-                CefString str = json_string->GetStringValue();
+                if (json_string.get() != nullptr) {
+                    //注意：GetStringValue()涉及字符串转换，只调用一次
+                    CefString str = json_string->GetStringValue();
 
-                CefRefPtr<CefProcessMessage> message = CefProcessMessage::Create(kExecuteCppCallbackMessage);
-                CefRefPtr<CefListValue> args = message->GetArgumentList();
-                args->SetString(0, json_string->GetStringValue());
-                args->SetInt(1, cpp_callback_id);
+                    CefRefPtr<CefProcessMessage> message = CefProcessMessage::Create(kExecuteCppCallbackMessage);
+                    CefRefPtr<CefListValue> args = message->GetArgumentList();
+                    args->SetString(0, str);
+                    args->SetInt(1, cpp_callback_id);
 
-                if (context->GetFrame() != nullptr) {
-                    context->GetFrame()->SendProcessMessage(PID_BROWSER, message);
+                    CefRefPtr<CefFrame> curFrame = context->GetFrame();
+                    if (curFrame != nullptr) {
+                        curFrame->SendProcessMessage(PID_BROWSER, message);
+                    }
                 }
             }
 

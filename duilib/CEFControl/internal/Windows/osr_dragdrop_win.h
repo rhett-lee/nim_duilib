@@ -183,7 +183,7 @@ class DataObjectWin : public IDataObject {
   int LookupFormatEtc(FORMATETC* pFormatEtc);
 
   explicit DataObjectWin(FORMATETC* fmtetc, STGMEDIUM* stgmed, int count);
-  virtual ~DataObjectWin() = default;
+  virtual ~DataObjectWin();
 };
 
 }  // namespace client

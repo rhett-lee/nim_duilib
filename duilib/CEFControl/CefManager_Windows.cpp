@@ -184,8 +184,16 @@ void CefManager_Windows::AddCefDllToPath()
         return;
     }
 
-    TCHAR path_envirom[4096] = { 0 };
-    ::GetEnvironmentVariable(_T("path"), path_envirom, 4096);
+    //获取当前进程的PATH环境变量（PATH的最大长度可达32767，使用动态缓冲区，避免固定缓冲区导致内容被截断）
+    DString path_envirom;
+    DWORD nPathLen = ::GetEnvironmentVariable(_T("path"), nullptr, 0);
+    if (nPathLen > 0) {
+        std::vector<TCHAR> path_buffer(nPathLen, 0);
+        DWORD nRet = ::GetEnvironmentVariable(_T("path"), path_buffer.data(), nPathLen);
+        if ((nRet > 0) && (nRet < nPathLen)) {
+            path_envirom.assign(path_buffer.data(), nRet);
+        }
+    }
 
     FilePath cefDllDir = ui::FilePathUtil::GetCurrentModuleDirectory();
     cefDllDir /= FilePath(cefMoudlePath);

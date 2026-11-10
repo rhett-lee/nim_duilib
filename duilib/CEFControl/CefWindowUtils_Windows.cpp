@@ -117,6 +117,9 @@ bool CaptureCefWindowBitmap(CefWindowHandle cefWindow, std::vector<uint8_t>& bit
     // 拷贝屏幕内容到位图
     ::BitBlt(hdcMemDC, 0, 0, width, height, hdcWindow, 0, 0, SRCCOPY);
 
+    //注意：GetDIBits要求位图未被选入DC，否则调用会失败，所以需要先恢复DC中原来的对象
+    ::SelectObject(hdcMemDC, hOldObj);
+
     // 获取位图信息
     BITMAPINFOHEADER bi;
     bi.biSize = sizeof(BITMAPINFOHEADER);
@@ -134,15 +137,18 @@ bool CaptureCefWindowBitmap(CefWindowHandle cefWindow, std::vector<uint8_t>& bit
     // 分配内存并获取位图数据
     //注意：width * height * 4 在 int32 范围内可能溢出（如 32768*32768*4 > INT32_MAX），必须先转为 size_t
     bitmap.resize((size_t)width * height * 4);
-    ::GetDIBits(hdcMemDC, hBitmap, 0, height, bitmap.data(), (BITMAPINFO*)&bi, DIB_RGB_COLORS);
+    bool bRet = (::GetDIBits(hdcMemDC, hBitmap, 0, height, bitmap.data(), (BITMAPINFO*)&bi, DIB_RGB_COLORS) != 0);
 
     // 清理资源
-    ::SelectObject(hdcMemDC, hOldObj);
     ::DeleteObject(hBitmap);
     ::DeleteDC(hdcMemDC);
     ::ReleaseDC(nullptr, hdcScreen);
     ::ReleaseDC(hwnd, hdcWindow);
 
+    if (!bRet) {
+        bitmap.clear();
+        return false;
+    }
     return true;
 }
 
