@@ -62,9 +62,9 @@ bool GetDpiForMonitorWrapper(HMONITOR hMonitor, MONITOR_DPI_TYPE dpiType, UINT *
 
     static GetDpiForMonitorPtr get_dpi_for_monitor_func = reinterpret_cast<GetDpiForMonitorPtr>(GetProcAddress(GetModuleHandleA("user32.dll"), "GetDpiForMonitorInternal"));
     if (get_dpi_for_monitor_func) {
-        if (get_dpi_for_monitor_func(hMonitor, dpiType, dpiX, dpiY) != S_OK) {
-            return true;
-        }
+        //返回值语义：调用成功返回true，失败返回false。
+        //原实现把失败当成成功(true)、把成功当成失败(false)，导致调用方永远取不到真实的显示器DPI
+        return get_dpi_for_monitor_func(hMonitor, dpiType, dpiX, dpiY) == S_OK;
     }
     return false;
 }
@@ -841,6 +841,9 @@ static bool CreateIconsFromImageData(const std::vector<uint8_t>& iconFileData,
             continue;
         }
         memcpy(pBits, pPixelBits, nWidth * nHeight * 4);
+        //获取像素数据后必须释放，否则部分渲染引擎(如Direct2D)的位图会一直处于锁定状态
+        pBitmap->UnLockPixelBits();
+        pPixelBits = nullptr;
         HBITMAP hMask = ::CreateBitmap(nWidth, nHeight, 1, 1, NULL);
         if (hMask == nullptr) {
             ::DeleteObject(hBitmap);

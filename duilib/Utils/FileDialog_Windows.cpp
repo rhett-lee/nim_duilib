@@ -219,13 +219,24 @@ bool FileDialog::BrowseForFiles(Window* pWindow,
         fos |= FOS_FORCEFILESYSTEM | FOS_ALLOWMULTISELECT;
         pfd->SetOptions(fos);
         if (!fileTypes.empty()) {
-            std::vector<COMDLG_FILTERSPEC> filterSpecs;
+            //注意：转换后的字符串必须保存在循环外的容器中，
+            //否则 filterSpecs 中保存的是局部变量 name 的指针，循环结束后会变成悬垂指针
+            struct FileTypeW
+            {
+                DStringW szName;
+                DStringW szExt;
+            };
+            std::vector<FileTypeW> fileTypesW;
             for (const FileType& fileType : fileTypes) {
                 DString name = fileType.szName;
                 if (!fileType.szNameId.empty()) {
                     name = GlobalManager::GetTextById(fileType.szNameId);
                 }
-                filterSpecs.push_back({ (LPCWSTR)name.c_str(), (LPCWSTR)fileType.szExt.c_str() });
+                fileTypesW.push_back({ StringConvert::TToWString(name), StringConvert::TToWString(fileType.szExt) });
+            }
+            std::vector<COMDLG_FILTERSPEC> filterSpecs;
+            for (const FileTypeW& fileType : fileTypesW) {
+                filterSpecs.push_back({ (LPCWSTR)fileType.szName.c_str(), (LPCWSTR)fileType.szExt.c_str() });
             }
             hr = pfd->SetFileTypes((UINT)filterSpecs.size(), filterSpecs.data());
         }

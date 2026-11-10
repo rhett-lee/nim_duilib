@@ -121,7 +121,9 @@ bool StringCharset::GetDataAsString(const char* data, uint32_t length, CharsetTy
             else {
                 //如果无BOM头签名，则强制以inCharsetType处理后续数据                
                 CharsetType checkCharsetType = GetDataCharset(data, length);
-                if (inCharsetType != checkCharsetType) {
+                //检测结果为ANSI时说明数据是纯ASCII（ASCII是多种编码的公共子集，缺乏区分度），
+                //此时应信任调用方显式指定的编码，避免把"UTF16_LE/UTF8 的纯ASCII数据"误判为编码不匹配
+                if ((checkCharsetType != CharsetType::ANSI) && (inCharsetType != checkCharsetType)) {
                     //指定的数据流编码与实际文件数据检测到的编码不同
                     return false;
                 }

@@ -16,8 +16,8 @@ bool Clipboard::GetClipboardText(DStringW& text)
             if (h != nullptr) {
                 wchar_t* buf = (wchar_t*)::GlobalLock(h);
                 if (buf != nullptr) {
-                    DStringW str(buf, GlobalSize(h) / sizeof(wchar_t));
-                    text = DStringW(str).c_str();//避免出现字符中包含尾0的情况
+                    //直接按C字符串赋值即可(会截断到第一个'\0')，无需先按GlobalSize构造再拷贝一次
+                    text = buf;
                     ::GlobalUnlock(h);
                 }
             }
@@ -28,8 +28,8 @@ bool Clipboard::GetClipboardText(DStringW& text)
             if (h != nullptr) {
                 char* buf = (char*)::GlobalLock(h);
                 if (buf != nullptr) {
-                    std::string str(buf, GlobalSize(h));
-                    text = StringConvert::MBCSToUnicode(str).c_str();
+                    //直接按C字符串转换(会截断到第一个'\0')，避免尾部的填充0被转换进结果字符串
+                    text = StringConvert::MBCSToUnicode2(buf, ::strlen(buf));
                     ::GlobalUnlock(h);
                 }
             }
@@ -66,10 +66,21 @@ bool Clipboard::SetClipboardText(const DStringW& text)
     }
 
     wchar_t* lpStr = (wchar_t*)::GlobalLock(hMem);
+    if (lpStr == nullptr) {
+        //GlobalLock失败时不能访问内存，需要释放后返回失败
+        ::GlobalFree(hMem);
+        ::CloseClipboard();
+        return false;
+    }
     ::memcpy(lpStr, text.c_str(), len * sizeof(wchar_t));
     lpStr[len] = wchar_t(0);
     ::GlobalUnlock(hMem);
-    ::SetClipboardData(CF_UNICODETEXT, hMem);
+    if (::SetClipboardData(CF_UNICODETEXT, hMem) == nullptr) {
+        //设置剪贴板数据失败时，内存所有权未转移，需要释放
+        ::GlobalFree(hMem);
+        ::CloseClipboard();
+        return false;
+    }
     ::CloseClipboard();
     return true;
 }

@@ -2,6 +2,7 @@
 #define UI_UTILS_PROCESS_SINGLETON_WINDOWS_H_
 
 #include "ProcessSingletonData.h"
+#include "StringConvert.h"
 
 #ifdef DUILIB_BUILD_FOR_WIN
 
@@ -86,22 +87,27 @@ public:
 
             OVERLAPPED overlapped = { 0 };
             overlapped.hEvent = ::CreateEvent(nullptr, TRUE, FALSE, nullptr);
+            if (overlapped.hEvent == nullptr) {
+                ::CloseHandle(hPipe);
+                return false;
+            }
 
             DWORD dwWritten = 0;
-            if (!::WriteFile(hPipe, strData.data(), static_cast<DWORD>(strData.size()), &dwWritten, &overlapped)) {
-                if (::GetLastError() == ERROR_IO_PENDING) {
-                    ::WaitForSingleObject(overlapped.hEvent, INFINITE);
-                }
-                else {
-                    ::CloseHandle(hPipe);
-                    ::CloseHandle(overlapped.hEvent);
-                    return false;
+            bool bSendOk = false;
+            if (::WriteFile(hPipe, strData.data(), static_cast<DWORD>(strData.size()), &dwWritten, &overlapped)) {
+                bSendOk = (dwWritten == static_cast<DWORD>(strData.size()));
+            }
+            else if (::GetLastError() == ERROR_IO_PENDING) {
+                //等待异步写完成后，需要通过GetOverlappedResult确认实际结果，避免写入失败也返回成功
+                ::WaitForSingleObject(overlapped.hEvent, INFINITE);
+                if (::GetOverlappedResult(hPipe, &overlapped, &dwWritten, FALSE)) {
+                    bSendOk = (dwWritten == static_cast<DWORD>(strData.size()));
                 }
             }
 
             ::CloseHandle(hPipe);
             ::CloseHandle(overlapped.hEvent);
-            return true;
+            return bSendOk;
         }
         catch (const std::exception& ex) {
             LogError("Windows send error: " + std::string(ex.what()));
@@ -130,13 +136,24 @@ public:
 
                 OVERLAPPED overlapped = { 0 };
                 overlapped.hEvent = ::CreateEvent(nullptr, TRUE, FALSE, nullptr);
+                if (overlapped.hEvent == nullptr) {
+                    ::CloseHandle(m_hPipe);
+                    m_hPipe = INVALID_HANDLE_VALUE;
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                    continue;
+                }
 
                 bool bConnected = true;
                 if (!::ConnectNamedPipe(m_hPipe, &overlapped)) {
-                    if (::GetLastError() == ERROR_IO_PENDING) {
+                    const DWORD dwConnectError = ::GetLastError();
+                    if (dwConnectError == ERROR_IO_PENDING) {
                         if (!WaitForPipe(m_hPipe, overlapped, m_hCancelEvent)) {
                             bConnected = false;
                         }
+                    }
+                    else if (dwConnectError == ERROR_PIPE_CONNECTED) {
+                        //客户端在ConnectNamedPipe调用之前已经连接上，属于正常情况，不能当作错误
+                        bConnected = true;
                     }
                     else {
                         ::CloseHandle(m_hPipe);
@@ -147,7 +164,18 @@ public:
 
                 char pBuffer[ProcessSingletonData::MAX_DATA_SIZE + sizeof(ProcessSingletonData::ProtocolHeader)] = { 0 };
                 DWORD dwRead = 0;
-                if (bConnected && m_bRunning && ::ReadFile(m_hPipe, pBuffer, sizeof(pBuffer), &dwRead, &overlapped)) {
+                bool bReadOk = false;
+                if (bConnected && m_bRunning) {
+                    if (::ReadFile(m_hPipe, pBuffer, sizeof(pBuffer), &dwRead, &overlapped)) {
+                        bReadOk = true;
+                    }
+                    else if (::GetLastError() == ERROR_IO_PENDING) {
+                        //重叠I/O下，ReadFile通常返回ERROR_IO_PENDING，需要等待完成并取回实际读取的字节数。
+                        //原实现把这种情况直接当作读取失败，导致新进程发送的参数被静默丢弃
+                        bReadOk = WaitForPipe(m_hPipe, overlapped, m_hCancelEvent, &dwRead);
+                    }
+                }
+                if (bReadOk && (dwRead > 0)) {
                     try {
                         auto vecArgs = ProcessSingletonData::DeserializeData(std::string(pBuffer, dwRead));
                         OnAlreadyRunningAppRelaunch(vecArgs);
@@ -188,7 +216,7 @@ public:
     }
     
 private:
-    bool WaitForPipe(HANDLE hPipe, OVERLAPPED& overlapped, HANDLE hCancelEvent) const
+    bool WaitForPipe(HANDLE hPipe, OVERLAPPED& overlapped, HANDLE hCancelEvent, DWORD* pBytesTransferred = nullptr) const
     {
         HANDLE waitHandles[2] = {overlapped.hEvent, hCancelEvent};
         DWORD waitResult = ::WaitForMultipleObjects(2, waitHandles, FALSE, INFINITE);
@@ -200,19 +228,15 @@ private:
                     DWORD bytesTransferred = 0;
                     BOOL success = ::GetOverlappedResult(hPipe, &overlapped, &bytesTransferred, FALSE);
                     if (!success) {
-                        DWORD error = ::GetLastError();
-                        if (error == ERROR_OPERATION_ABORTED) {
-                            // 操作被取消
-                            bRet = false;
-                        }
-                        else {
-                            // 其他错误
-                            bRet = false;
-                        }
+                        // 操作被取消或其他错误
+                        bRet = false;
                     }
                     else {
-                        // 连接成功处理
+                        // 操作成功处理
                         bRet = true;
+                        if (pBytesTransferred != nullptr) {
+                            *pBytesTransferred = bytesTransferred;
+                        }
                     }
                     break;
                 }
@@ -276,7 +300,8 @@ private:
         ::LocalFree(pszSid);
         ::CloseHandle(hToken);
 
-        return L"Local\\" + std::wstring(m_strAppName.begin(), m_strAppName.end()) + L"_" + wstrSid;
+        //m_strAppName 是UTF-8编码的字符串，需要先转换为UTF-16再拼接，避免非ASCII应用名变成乱码
+        return L"Local\\" + StringConvert::UTF8ToWString(m_strAppName) + L"_" + wstrSid;
     }
 
 private:

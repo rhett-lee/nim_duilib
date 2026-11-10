@@ -19,8 +19,9 @@ DString LogUtil::GetTimeStamp()
     auto thisTime = std::chrono::duration_cast<std::chrono::milliseconds>(nowTime - s_startTime);
     uint64_t nTimeMs = (uint64_t)thisTime.count();
     uint32_t nHH = (uint32_t)((nTimeMs / 1000) / 60 / 60);
-    uint32_t nMM = (uint32_t)((nTimeMs / 1000) / 60);
-    uint32_t nSS = (uint32_t)(nTimeMs / 1000);
+    //分钟、秒需要按60取模，原实现直接输出总分钟数和总秒数，会导致时间显示错误
+    uint32_t nMM = (uint32_t)(((nTimeMs / 1000) / 60) % 60);
+    uint32_t nSS = (uint32_t)((nTimeMs / 1000) % 60);
     uint32_t nMS = (uint32_t)(nTimeMs % 1000);
     return StringUtil::Printf(_T("%02u:%02u:%02u.%03u "), nHH, nMM, nSS, nMS);
 }

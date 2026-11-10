@@ -117,23 +117,23 @@ bool FilePathUtil::CreateDirectories(const DString& filePath)
 
 DString FilePathUtil::GetFileExtension(const DString& filePath)
 {
-    DString path = filePath;
 #ifdef DUILIB_BUILD_FOR_WIN
-    size_t pos = filePath.find_last_of(_T("/\\"));
+    const size_t sepPos = filePath.find_last_of(_T("/\\"));
 #else
-    size_t pos = filePath.find_last_of(_T("/"));
+    const size_t sepPos = filePath.find_last_of(_T("/"));
 #endif
-    if ((pos != DString::npos) && ((pos + 1) < filePath.size())) {
-        path = filePath.substr(pos + 1, DString::npos);
+    //文件名部分的起始位置(路径以分隔符结尾时，文件名部分为空)
+    const size_t nameBegin = (sepPos == DString::npos) ? 0 : (sepPos + 1);
+    if (nameBegin >= filePath.size()) {
+        return DString();
     }
-
-    DString fileExt;
-    pos = path.rfind(_T("."));
-    if ((pos != DString::npos) && ((pos + 1) < path.size())) {
-        fileExt = path.substr(pos + 1, DString::npos);
-        fileExt = StringUtil::MakeUpperString(fileExt);
+    //性能优化：只取文件名部分的下标进行查找，避免原来对整个路径字符串的拷贝
+    //同时避免路径以分隔符结尾时，把目录名中的"."误判为扩展名
+    const size_t dotPos = filePath.rfind(_T('.'));
+    if ((dotPos == DString::npos) || (dotPos < nameBegin) || ((dotPos + 1) >= filePath.size())) {
+        return DString();
     }
-    return fileExt;
+    return StringUtil::MakeUpperString(filePath.substr(dotPos + 1, DString::npos));
 }
 
 FilePath FilePathUtil::GetCurrentModuleDirectory()
@@ -141,7 +141,21 @@ FilePath FilePathUtil::GetCurrentModuleDirectory()
 #ifdef DUILIB_BUILD_FOR_WIN
     DStringW dirPath;
     dirPath.resize(1024, 0);
-    dirPath.resize(::GetModuleFileNameW(nullptr, &dirPath[0], (uint32_t)dirPath.size()));
+    for (;;) {
+        const uint32_t nSize = (uint32_t)dirPath.size();
+        const uint32_t nRet = ::GetModuleFileNameW(nullptr, &dirPath[0], nSize);
+        if (nRet == 0) {
+            dirPath.clear();
+            break;
+        }
+        if (nRet < nSize) {
+            //获取成功，截断到实际长度
+            dirPath.resize(nRet);
+            break;
+        }
+        //返回值等于缓冲区大小表示缓冲区不足(路径被截断)，扩大缓冲区后重试，避免长路径被静默截断
+        dirPath.resize((size_t)nSize * 2, 0);
+    }
     FilePath currentDir(dirPath);
     currentDir.RemoveFileName();
     return currentDir;

@@ -15,12 +15,15 @@ namespace PerformanceUtilHelperInternal
     */
     static int64_t GetQPCFrequency()
     {
-        static int64_t s_qpcFrequency = 0;
-        if (s_qpcFrequency == 0) {
-            LARGE_INTEGER freq;
-            QueryPerformanceFrequency(&freq);
-            s_qpcFrequency = freq.QuadPart;
-        }
+        //使用函数内静态变量(局部静态)保证多线程首次调用时的初始化是线程安全的，
+        //原实现的"读-判断-写"在并发首次调用时存在数据竞争
+        static const int64_t s_qpcFrequency = []() -> int64_t {
+            LARGE_INTEGER freq = { 0, };
+            if (::QueryPerformanceFrequency(&freq) == FALSE) {
+                return 0;
+            }
+            return (int64_t)freq.QuadPart;
+        }();
         return s_qpcFrequency;
     }
 

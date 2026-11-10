@@ -12,7 +12,8 @@ namespace ui
 static HBITMAP CreateBitmap(const Window* pWindow, int32_t nWidth, int32_t nHeight, bool flipHeight, LPVOID* pBits)
 {
     ASSERT((nWidth > 0) && (nHeight > 0));
-    if (nWidth == 0 || nHeight == 0) {
+    if ((nWidth <= 0) || (nHeight <= 0)) {
+        //负数尺寸也是非法输入，直接返回失败
         return nullptr;
     }
 

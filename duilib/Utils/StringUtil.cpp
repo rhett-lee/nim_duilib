@@ -162,9 +162,25 @@ void StringAppendVT(const CharType *format, va_list ap, std::basic_string<CharTy
         return;
     }
 
+    std::basic_string<CharType> heap_buffer;
+
+    /* MSVC 的 vsnprintf(char版) 遵循 C99 标准：缓冲区不足时返回"所需长度"而不是 -1。
+       原逻辑在 result != -1 时直接 ASSERT 并返回，导致格式化结果超过 1023 字符时返回空字符串。
+       这里按返回的所需长度一次性重新格式化，避免该问题 */
+    if (result >= 0) {
+        const int needSize = result + 1;
+        heap_buffer.resize(needSize);
+        va_copy(ap_copy, ap);
+        const int result2 = vsnprintfT(&heap_buffer[0], needSize, format, ap_copy);
+        va_end(ap_copy);
+        if ((result2 >= 0) && (result2 < needSize)) {
+            output.append(heap_buffer.data(), result2);
+        }
+        return;
+    }
+
     /* then, we have to repeatedly increase buffer size until it fits. */
     int buffer_size = COUNT_OF(stack_buffer);
-    std::basic_string<CharType> heap_buffer;
     for (;;)
     {
         if (result != -1)
@@ -781,11 +797,13 @@ std::wstring StringUtil::UInt64ToStringW(uint64_t value)
         value /= 10;
     } while (value != 0);
 
-    std::wstring str;
-    do {
-        str += temp[--pos];
-    } while (pos > 0);
-    return str;
+    //将低位在前的数字反转为正常顺序，然后一次性构造字符串，避免逐字符 += 触发多次内存分配
+    for (int i = 0, j = pos - 1; i < j; ++i, --j) {
+        const wchar_t ch = temp[i];
+        temp[i] = temp[j];
+        temp[j] = ch;
+    }
+    return std::wstring(temp, (size_t)pos);
 }
 
 std::wstring StringUtil::UInt32ToStringW(uint32_t value)
@@ -802,11 +820,13 @@ std::string StringUtil::UInt64ToStringA(uint64_t value)
         value /= 10;
     } while (value != 0);
 
-    std::string str;
-    do {
-        str += temp[--pos];
-    } while (pos > 0);
-    return str;
+    //将低位在前的数字反转为正常顺序，然后一次性构造字符串，避免逐字符 += 触发多次内存分配
+    for (int i = 0, j = pos - 1; i < j; ++i, --j) {
+        const char ch = temp[i];
+        temp[i] = temp[j];
+        temp[j] = ch;
+    }
+    return std::string(temp, (size_t)pos);
 }
 
 std::string StringUtil::UInt32ToStringA(uint32_t value)
@@ -959,14 +979,15 @@ uint32_t StringUtil::StringToUInt32(const char* str, char** pEndPtr, int32_t nRa
 
 int64_t StringUtil::StringToInt64(const std::wstring& str)
 {
-    return ::wcstoull(str.c_str(), nullptr, 10);
+    //返回值是有符号类型，应使用有符号转换函数，避免负数依赖无符号回绕的实现定义行为
+    return ::wcstoll(str.c_str(), nullptr, 10);
 }
 
 int64_t StringUtil::StringToInt64(const std::wstring::value_type* str)
 {
     ASSERT(str != nullptr);
     if (str != nullptr) {
-        return ::wcstoull(str, nullptr, 10);
+        return ::wcstoll(str, nullptr, 10);
     }
     else {
         return 0;
@@ -975,14 +996,15 @@ int64_t StringUtil::StringToInt64(const std::wstring::value_type* str)
 
 int64_t StringUtil::StringToInt64(const std::string& str)
 {
-    return ::strtoull(str.c_str(), nullptr, 10);
+    //返回值是有符号类型，应使用有符号转换函数，避免负数依赖无符号回绕的实现定义行为
+    return ::strtoll(str.c_str(), nullptr, 10);
 }
 
 int64_t StringUtil::StringToInt64(const std::string::value_type* str)
 {
     ASSERT(str != nullptr);
     if (str != nullptr) {
-        return ::strtoull(str, nullptr, 10);
+        return ::strtoll(str, nullptr, 10);
     }
     else {
         return 0;
@@ -1056,7 +1078,8 @@ int32_t StringUtil::StringCopy(wchar_t* dest, size_t destSize, const wchar_t* sr
 #ifdef DUILIB_BUILD_FOR_WIN
     return ::wcscpy_s(dest, destSize, src);
 #else
-    size_t nLen = std::min((size_t)wcslen(src), destSize);
+    //最多拷贝 destSize - 1 个字符，给结尾的'\0'预留空间，避免写入 dest[destSize] 造成越界
+    size_t nLen = std::min((size_t)wcslen(src), destSize - 1);
     ::wcsncpy(dest, src, nLen);
     dest[nLen] = L'\0';
     return 0;
@@ -1071,7 +1094,8 @@ int32_t StringUtil::StringNCopy(wchar_t* dest, size_t destSize, const wchar_t* s
 #ifdef DUILIB_BUILD_FOR_WIN
     return ::wcsncpy_s(dest, destSize, src, srcSize);
 #else
-    size_t nLen = std::min(srcSize, destSize);
+    //最多拷贝 destSize - 1 个字符，给结尾的'\0'预留空间，避免写入 dest[destSize] 造成越界
+    size_t nLen = std::min(srcSize, destSize - 1);
     ::wcsncpy(dest, src, nLen);
     dest[nLen] = L'\0';
     return 0;
@@ -1091,7 +1115,8 @@ int32_t StringUtil::StringCopy(char* dest, size_t destSize, const char* src)
 #ifdef DUILIB_BUILD_FOR_WIN
     return ::strcpy_s(dest, destSize, src);
 #else
-    size_t nLen = std::min(destSize, strlen(src));
+    //最多拷贝 destSize - 1 个字符，给结尾的'\0'预留空间，避免写入 dest[destSize] 造成越界
+    size_t nLen = std::min(destSize - 1, strlen(src));
     ::strncpy(dest, src, nLen);
     dest[nLen] = '\0';
     return 0;
@@ -1110,7 +1135,8 @@ int32_t StringUtil::StringNCopy(char* dest, size_t destSize, const char* src, si
 #ifdef DUILIB_BUILD_FOR_WIN
     return ::strncpy_s(dest, destSize, src, srcSize);
 #else
-    size_t nLen = std::min(srcSize, destSize);
+    //最多拷贝 destSize - 1 个字符，给结尾的'\0'预留空间，避免写入 dest[destSize] 造成越界
+    size_t nLen = std::min(srcSize, destSize - 1);
     ::strncpy(dest, src, nLen);
     dest[nLen] = '\0';
     return 0;

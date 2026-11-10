@@ -434,12 +434,15 @@ void AttributeUtil::ValidateWindowSize(const Window* pWindow, int32_t& nWindowWi
     else {
         WindowBase::GetPrimaryMonitorWorkRect(rcWork);
     }
-    //如果超过宽度，就按屏幕的95%来确定大小（避免占满整个屏幕，导致该状态与最大化状态无法区分）
-    if (nWindowWidth > rcWork.Width()) {
-        nWindowWidth = (int32_t)(rcWork.Width() * 0.95);
-    }
-    if (nWindowHeight > rcWork.Height()) {
-        nWindowHeight = (int32_t)(rcWork.Height() * 0.95);
+    //工作区为空(显示器信息获取失败)时不裁剪，否则会把窗口尺寸压成0
+    if (!rcWork.IsEmpty()) {
+        //如果超过宽度，就按屏幕的95%来确定大小（避免占满整个屏幕，导致该状态与最大化状态无法区分）
+        if (nWindowWidth > rcWork.Width()) {
+            nWindowWidth = (int32_t)(rcWork.Width() * 0.95);
+        }
+        if (nWindowHeight > rcWork.Height()) {
+            nWindowHeight = (int32_t)(rcWork.Height() * 0.95);
+        }
     }
 }
 

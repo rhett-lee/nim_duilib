@@ -33,6 +33,17 @@ IRender* BitmapHelper::CreateRenderObject(int srcRenderWidth, int srcRenderHeigh
     HDC hMemDC = ::CreateCompatibleDC(hSrcDc);
     void* pBits = nullptr;
     HBITMAP hBitmap = CreateGDIBitmap(srcDcWidth, srcDcHeight, true, &pBits);
+    if ((hMemDC == nullptr) || (hBitmap == nullptr) || (pBits == nullptr)) {
+        //创建GDI资源失败时，避免把空的像素指针传给Init，并释放已创建的资源
+        if (hBitmap != nullptr) {
+            ::DeleteObject(hBitmap);
+        }
+        if (hMemDC != nullptr) {
+            ::DeleteDC(hMemDC);
+        }
+        delete pRender;
+        return nullptr;
+    }
     ::SelectObject(hMemDC, hBitmap);
 
     //复制位图到内存DC
@@ -126,7 +137,8 @@ HBITMAP BitmapHelper::CreateGDIBitmap(IBitmap* pBitmap)
 HBITMAP BitmapHelper::CreateGDIBitmap(int32_t nWidth, int32_t nHeight, bool flipHeight, LPVOID* pBits)
 {
     ASSERT((nWidth > 0) && (nHeight > 0));
-    if (nWidth == 0 || nHeight == 0) {
+    if ((nWidth <= 0) || (nHeight <= 0)) {
+        //负数尺寸也是非法输入，直接返回失败
         return nullptr;
     }
 
@@ -147,6 +159,9 @@ HBITMAP BitmapHelper::CreateGDIBitmap(int32_t nWidth, int32_t nHeight, bool flip
     bmi.bmiHeader.biSizeImage = (DWORD)((size_t)nWidth * nHeight * sizeof(DWORD));
 
     HDC hdc = ::GetDC(nullptr);
+    if (hdc == nullptr) {
+        return nullptr;
+    }
     HBITMAP hBitmap = ::CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, pBits, nullptr, 0);
     ::ReleaseDC(nullptr, hdc);
     return hBitmap;

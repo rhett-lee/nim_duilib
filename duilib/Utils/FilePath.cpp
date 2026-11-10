@@ -279,8 +279,12 @@ void FilePath::TrimRightPathSeparator()
         return;
     }
     if (!str.empty() && str[str.size() - 1] == FilePath::GetPathSeparator()) {
-        std::filesystem::path::string_type filePath = m_filePath.native();
-        m_filePath = filePath.substr(0, str.size() - 1);
+        std::filesystem::path::string_type filePath = str.substr(0, str.size() - 1);
+        //避免把根目录(如"C:\\"、UNC共享根目录)裁剪成盘符相对路径("C:")，否则会改变路径语义
+        if (filePath == m_filePath.root_name().native()) {
+            return;
+        }
+        m_filePath = filePath;
     }
 }
 
@@ -415,7 +419,14 @@ FilePath& FilePath::operator /= (const FilePath& rightPath)
 
 FilePath& FilePath::operator += (const FilePath& rightPath)
 {
-    m_filePath += rightPath.m_filePath;
+    if (&rightPath == this) {
+        //自拼接时右侧路径与自身是同一个对象，先拷贝一份再拼接，避免修改过程中读取同一对象
+        const std::filesystem::path rightPathCopy(rightPath.m_filePath);
+        m_filePath += rightPathCopy;
+    }
+    else {
+        m_filePath += rightPath.m_filePath;
+    }
     m_bLexicallyNormal = false;
     return *this;
 }

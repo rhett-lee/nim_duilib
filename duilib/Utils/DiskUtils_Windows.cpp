@@ -19,7 +19,8 @@ bool DiskUtils::GetLogicalDriveList(std::vector<DString>& driveList)
         return false;
     }
     const DStringW::value_type* driveStr = tempBuf;
-    std::unique_ptr<DStringW::value_type> spBuf;
+    //数组必须由 unique_ptr<T[]> 托管，否则析构时调用 delete 而不是 delete[]，属于未定义行为
+    std::unique_ptr<DStringW::value_type[]> spBuf;
     if (dwSize > maxBufLen) {
         DStringW::value_type* szBuf = new DStringW::value_type[dwSize + 2];
         spBuf.reset(szBuf);

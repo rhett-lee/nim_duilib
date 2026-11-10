@@ -86,8 +86,11 @@ float MonitorUtil::GetPrimaryMonitorDisplayScale()
     }
     if (!bOk) {
         HDC desktopDc = ::GetDC(nullptr);
-        uDPI = (uint32_t)::GetDeviceCaps(desktopDc, LOGPIXELSX);
-        ::ReleaseDC(nullptr, desktopDc);
+        if (desktopDc != nullptr) {
+            //必须先判断DC是否有效，否则GetDeviceCaps使用空句柄会失败甚至崩溃
+            uDPI = (uint32_t)::GetDeviceCaps(desktopDc, LOGPIXELSX);
+            ::ReleaseDC(nullptr, desktopDc);
+        }
     }
     if (uDPI == 0) {
         uDPI = 96;

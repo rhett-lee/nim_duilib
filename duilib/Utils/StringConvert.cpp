@@ -12,14 +12,17 @@ std::basic_string<DUTF16Char> StringConvert::UTF8ToUTF16(const DUTF8Char* utf8, 
     if ((utf8 == nullptr) || (length == 0)) {
         return std::basic_string<DUTF16Char>();
     }
+    //性能优化：UTF-8 每个字节最多转换为一个 UTF-16 编码单元，输出缓冲以 length 为上界即可。
+    //          避免原来固定分配 8192 个单元(短字符串也要清零16KB内存)的开销，且可一次转换完成
     std::vector<DUTF16Char> data;
-    data.resize(8192);
+    data.resize(length);
     DUTF16Char* output = &data[0];
     const UTF8* src_begin = reinterpret_cast<const UTF8*>(utf8);
     const UTF8* src_end = src_begin + length;
     UTF16* dst_begin = reinterpret_cast<UTF16*>(output);
 
     std::basic_string<DUTF16Char> utf16;
+    utf16.reserve(length);
     while (src_begin < src_end) {
         ConversionResult result = ConvertUTF8toUTF16(&src_begin,
                                                      src_end,
@@ -60,14 +63,16 @@ std::string StringConvert::UTF16ToUTF8(const DUTF16Char* utf16, size_t length)
     if ((utf16 == nullptr) || (length == 0)) {
         return std::string();
     }
+    //性能优化：每个 UTF-16 编码单元最多转换为3字节 UTF-8(代理对2个单元转4字节)，输出缓冲以 3 * length 为上界
     std::vector<DUTF8Char> data;
-    data.resize(8192);
+    data.resize(length * 3);
     DUTF8Char* output = &data[0];
     const UTF16* src_begin = reinterpret_cast<const UTF16*>(utf16);
     const UTF16* src_end = src_begin + length;
     UTF8* dst_begin = reinterpret_cast<UTF8*>(output);
 
     std::string utf8;
+    utf8.reserve(length * 3);
     while (src_begin < src_end) {
         ConversionResult result = ConvertUTF16toUTF8(&src_begin,
                                                      src_end,
@@ -101,14 +106,19 @@ std::string StringConvert::WStringToUTF8(const std::wstring& wstr)
 
 std::basic_string<DUTF32Char> StringConvert::UTF8ToUTF32(const DUTF8Char* utf8, size_t length)
 {
+    if ((utf8 == nullptr) || (length == 0)) {
+        return std::basic_string<DUTF32Char>();
+    }
+    //性能优化：UTF-8 每个字节最多转换为一个 UTF-32 编码单元，输出缓冲以 length 为上界即可
     std::vector<DUTF32Char> data;
-    data.resize(8192);
+    data.resize(length);
     DUTF32Char* output = &data[0];
     const UTF8* src_begin = reinterpret_cast<const UTF8*>(utf8);
     const UTF8* src_end = src_begin + length;
     UTF32* dst_begin = reinterpret_cast<UTF32*>(output);
 
     std::basic_string<DUTF32Char> utf32;
+    utf32.reserve(length);
     while (src_begin < src_end)
     {
         ConversionResult result = ConvertUTF8toUTF32(&src_begin,
@@ -133,14 +143,19 @@ std::basic_string<DUTF32Char> StringConvert::UTF8ToUTF32(const DUTF8Char* utf8, 
 
 std::string StringConvert::UTF32ToUTF8(const DUTF32Char* utf32, size_t length)
 {
+    if ((utf32 == nullptr) || (length == 0)) {
+        return std::string();
+    }
+    //性能优化：每个 UTF-32 编码单元最多转换为4字节 UTF-8，输出缓冲以 4 * length 为上界
     std::vector<DUTF8Char> data;
-    data.resize(8192);
+    data.resize(length * 4);
     DUTF8Char* output = &data[0];
     const UTF32* src_begin = reinterpret_cast<const UTF32*>(utf32);
     const UTF32* src_end = src_begin + length;
     UTF8* dst_begin = reinterpret_cast<UTF8*>(output);
 
     std::string utf8;
+    utf8.reserve(length * 4);
     while (src_begin < src_end)
     {
         ConversionResult result = ConvertUTF32toUTF8(&src_begin,
@@ -168,14 +183,16 @@ std::basic_string<DUTF32Char> StringConvert::UTF16ToUTF32(const DUTF16Char* utf1
     if ((utf16 == nullptr) || (length == 0)) {
         return std::basic_string<DUTF32Char>();
     }
+    //性能优化：每个 UTF-16 编码单元最多转换为一个 UTF-32 编码单元(代理对2个单元转1个)，输出缓冲以 length 为上界
     std::vector<DUTF32Char> data;
-    data.resize(8192);
+    data.resize(length);
     DUTF32Char* output = &data[0];
     const UTF16* src_begin = reinterpret_cast<const UTF16*>(utf16);
     const UTF16* src_end = src_begin + length;
     UTF32* dst_begin = reinterpret_cast<UTF32*>(output);
 
     std::basic_string<DUTF32Char> utf32;
+    utf32.reserve(length);
     while (src_begin < src_end) {
         ConversionResult result = ConvertUTF16toUTF32(&src_begin,
                                                       src_end,
@@ -214,13 +231,15 @@ DStringW StringConvert::UTF32ToWString(const DUTF32Char* utf32, size_t length)
         return DStringW();
     }
 #if defined(WCHAR_T_IS_UTF16)
+    //性能优化：每个 UTF-32 编码单元最多转换为2个 UTF-16 编码单元(需要代理对的情况)，输出缓冲以 2 * length 为上界
     std::vector<DUTF16Char> data;
-    data.resize(8192);
+    data.resize(length * 2);
     DUTF16Char* output = &data[0];
     const UTF32* src_begin = reinterpret_cast<const UTF32*>(utf32);
     const UTF32* src_end = src_begin + length;
     UTF16* dst_begin = reinterpret_cast<UTF16*>(output);
     std::wstring utf16;
+    utf16.reserve(length);
     while (src_begin < src_end) {
         ConversionResult result = ConvertUTF32toUTF16(&src_begin,
                                                       src_end,
