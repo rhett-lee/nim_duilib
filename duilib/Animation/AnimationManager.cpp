@@ -1,11 +1,31 @@
 #include "AnimationManager.h"
 #include "duilib/Core/Control.h"
 #include "duilib/Core/ControlPtrT.h"
+#include <vector>
 
 namespace ui 
 {
-// 显示 / 隐藏的动画类型列表
-std::vector<AnimationType> AnimationManager::s_animationList;
+namespace
+{
+/** 显示/隐藏时，需要触发的动画类型列表
+*   函数内静态常量：只初始化一次，且初始化过程是线程安全的
+*/
+const std::vector<AnimationType>& GetAppearAnimationList()
+{
+    static const std::vector<AnimationType> s_animationList =
+    {
+        AnimationType::kAnimationAlpha,
+        AnimationType::kAnimationWidth,
+        AnimationType::kAnimationHeight,
+        AnimationType::kAnimationSize,
+        AnimationType::kAnimationInoutXFromLeft,
+        AnimationType::kAnimationInoutXFromRight,
+        AnimationType::kAnimationInoutYFromTop,
+        AnimationType::kAnimationInoutYFromBottom
+    };
+    return s_animationList;
+}
+} // namespace
 
 AnimationManager::AnimationManager(Control* pControl) :
     m_pControl(pControl),
@@ -251,20 +271,6 @@ AnimationPlayer* AnimationManager::SetFadeInOutY(bool bFade, bool bIsFromBottom)
     return pAnimationPlayer;
 }
 
-void AnimationManager::InitAppearAnimationList(std::vector<AnimationType>& animationList) const
-{
-    if (animationList.empty()) {
-        animationList.push_back(AnimationType::kAnimationAlpha);
-        animationList.push_back(AnimationType::kAnimationWidth);
-        animationList.push_back(AnimationType::kAnimationHeight);
-        animationList.push_back(AnimationType::kAnimationSize);
-        animationList.push_back(AnimationType::kAnimationInoutXFromLeft);
-        animationList.push_back(AnimationType::kAnimationInoutXFromRight);
-        animationList.push_back(AnimationType::kAnimationInoutYFromTop);
-        animationList.push_back(AnimationType::kAnimationInoutYFromBottom);
-    }
-}
-
 void AnimationManager::Appear()
 {
     //仅当可见属性发生变化时，才触发控件动画
@@ -278,31 +284,30 @@ void AnimationManager::Appear()
 
     m_pControl->SetVisible(true);
 
-    std::vector<AnimationType>& animationList = s_animationList;
-    InitAppearAnimationList(animationList);
-    if (!m_animationMap.empty()) {
-        for (AnimationType animationType : animationList) {
-            if (HasAnimationPlayer(animationType)) {
-                AnimationPlayer* pAnimationPlayer = m_animationMap[animationType].get();
-                pAnimationPlayer->SetCompleteCallback(AnimationCompleteCallback());
-                if (bOldVisibleInited && (bOldVisible == bNewVisible)) {
-                    //可见属性未发生变化
-                    if (pAnimationPlayer->IsPlaying()) {
-                        pAnimationPlayer->Continue();
-                    }
-                    else {
-                        pAnimationPlayer->Stop();
-                    }
-                }
-                else {
-                    //可见属性发生变化
-                    if (pAnimationPlayer->IsPlaying()) {
-                        pAnimationPlayer->Continue();
-                    }
-                    else {
-                        pAnimationPlayer->Start();
-                    }
-                }
+    //可见属性是否发生变化
+    const bool bVisibleChanged = !bOldVisibleInited || (bOldVisible != bNewVisible);
+    for (AnimationType animationType : GetAppearAnimationList()) {
+        AnimationPlayer* pAnimationPlayer = GetAnimationPlayer(animationType);
+        if (pAnimationPlayer == nullptr) {
+            continue;
+        }
+        pAnimationPlayer->SetCompleteCallback(AnimationCompleteCallback());
+        if (bVisibleChanged) {
+            //可见属性发生变化
+            if (pAnimationPlayer->IsPlaying()) {
+                pAnimationPlayer->Continue();
+            }
+            else {
+                pAnimationPlayer->Start();
+            }
+        }
+        else {
+            //可见属性未发生变化
+            if (pAnimationPlayer->IsPlaying()) {
+                pAnimationPlayer->Continue();
+            }
+            else {
+                pAnimationPlayer->Stop();
             }
         }
     }
@@ -313,7 +318,6 @@ void AnimationManager::Appear()
 
 void AnimationManager::Disappear()
 {
-    bool handled = false;
     ASSERT(m_pControl != nullptr);
     if (m_pControl == nullptr) {
         return;
@@ -323,37 +327,37 @@ void AnimationManager::Disappear()
     const bool bOldVisibleInited = m_bControlVisibleInited;
     const bool bNewVisible = false;
 
+    bool handled = false;
     AnimationCompleteCallback completeCallback = UiBind(&Control::SetVisible, m_pControl, false);
-    std::vector<AnimationType>& animationList = s_animationList;
-    InitAppearAnimationList(animationList);
-    if (!m_animationMap.empty()) {
-        for (AnimationType animationType : animationList) {
-            if (HasAnimationPlayer(animationType)) {
-                AnimationPlayer* pAnimationPlayer = m_animationMap[animationType].get();
-                pAnimationPlayer->SetCompleteCallback(completeCallback);
-                if (bOldVisibleInited && (bOldVisible == bNewVisible)) {
-                    //可见属性未发生变化
-                    if (pAnimationPlayer->IsPlaying()) {
-                        pAnimationPlayer->ReverseContinue();
-                    }
-                    else {
-                        pAnimationPlayer->Stop();
-                    }
-                }
-                else {
-                    //可见属性发生变化
-                    if (pAnimationPlayer->IsPlaying()) {
-                        pAnimationPlayer->ReverseContinue();
-                    }
-                    else {
-                        pAnimationPlayer->ReverseStart();
-                    }
-                }
-                handled = true;
+    //可见属性是否发生变化
+    const bool bVisibleChanged = !bOldVisibleInited || (bOldVisible != bNewVisible);
+    for (AnimationType animationType : GetAppearAnimationList()) {
+        AnimationPlayer* pAnimationPlayer = GetAnimationPlayer(animationType);
+        if (pAnimationPlayer == nullptr) {
+            continue;
+        }
+        pAnimationPlayer->SetCompleteCallback(completeCallback);
+        if (bVisibleChanged) {
+            //可见属性发生变化
+            if (pAnimationPlayer->IsPlaying()) {
+                pAnimationPlayer->ReverseContinue();
+            }
+            else {
+                pAnimationPlayer->ReverseStart();
             }
         }
+        else {
+            //可见属性未发生变化
+            if (pAnimationPlayer->IsPlaying()) {
+                pAnimationPlayer->ReverseContinue();
+            }
+            else {
+                pAnimationPlayer->Stop();
+            }
+        }
+        handled = true;
     }
-    
+
     if (!handled) {
         m_pControl->SetVisible(false);
     }

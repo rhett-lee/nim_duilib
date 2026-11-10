@@ -1,5 +1,5 @@
 #include "EasingFunctions.h"
-#include <map>
+#include <cstddef>
 #include <cmath>
 
 ////////////////////////////////////////////////////////////////
@@ -85,8 +85,10 @@ static double easeInOutQuad(double t) {
         return 2.0 * t * t;
     }
     else {
-        t -= 0.5;
-        return 1.0 - 2.0 * t * t; // 标准公式，避免超出0~1范围
+        // 标准公式：1 - 2*(1-t)²
+        // 原实现误用 (t-0.5)，会在 t=0.5 处从 0.5 跳变为 1.0，导致动画出现跳帧
+        const double temp = 1.0 - t;
+        return 1.0 - 2.0 * temp * temp;
     }
 }
 
@@ -436,86 +438,94 @@ static double easeInOutBounce(double t) {
  */
 EasingFunction EasingFunctions::GetEasingFunction(EasingFunctionType function)
 {
-    // 静态map：只初始化一次，提升性能
-    static std::map<EasingFunctionType, EasingFunction> easingFunctions;
-    if (easingFunctions.empty()) {
-        // 初始化枚举与函数的映射关系
-        easingFunctions.insert(std::make_pair(EaseLinear,        easeLinear));
-        easingFunctions.insert(std::make_pair(EaseInSine,        easeInSine));
-        easingFunctions.insert(std::make_pair(EaseOutSine,       easeOutSine));
-        easingFunctions.insert(std::make_pair(EaseInOutSine,     easeInOutSine));
-        easingFunctions.insert(std::make_pair(EaseInQuad,        easeInQuad));
-        easingFunctions.insert(std::make_pair(EaseOutQuad,       easeOutQuad));
-        easingFunctions.insert(std::make_pair(EaseInOutQuad,     easeInOutQuad));
-        easingFunctions.insert(std::make_pair(EaseInCubic,       easeInCubic));
-        easingFunctions.insert(std::make_pair(EaseOutCubic,      easeOutCubic));
-        easingFunctions.insert(std::make_pair(EaseInOutCubic,    easeInOutCubic));
-        easingFunctions.insert(std::make_pair(EaseInQuart,       easeInQuart));
-        easingFunctions.insert(std::make_pair(EaseOutQuart,      easeOutQuart));
-        easingFunctions.insert(std::make_pair(EaseInOutQuart,    easeInOutQuart));
-        easingFunctions.insert(std::make_pair(EaseInQuint,       easeInQuint));
-        easingFunctions.insert(std::make_pair(EaseOutQuint,      easeOutQuint));
-        easingFunctions.insert(std::make_pair(EaseInOutQuint,    easeInOutQuint));
-        easingFunctions.insert(std::make_pair(EaseInExpo,        easeInExpo));
-        easingFunctions.insert(std::make_pair(EaseOutExpo,       easeOutExpo));
-        easingFunctions.insert(std::make_pair(EaseInOutExpo,     easeInOutExpo));
-        easingFunctions.insert(std::make_pair(EaseInCirc,        easeInCirc));
-        easingFunctions.insert(std::make_pair(EaseOutCirc,       easeOutCirc));
-        easingFunctions.insert(std::make_pair(EaseInOutCirc,     easeInOutCirc));
-        easingFunctions.insert(std::make_pair(EaseInBack,        easeInBack));
-        easingFunctions.insert(std::make_pair(EaseOutBack,       easeOutBack));
-        easingFunctions.insert(std::make_pair(EaseInOutBack,     easeInOutBack));
-        easingFunctions.insert(std::make_pair(EaseInElastic,     easeInElastic));
-        easingFunctions.insert(std::make_pair(EaseOutElastic,    easeOutElastic));
-        easingFunctions.insert(std::make_pair(EaseInOutElastic,  easeInOutElastic));
-        easingFunctions.insert(std::make_pair(EaseInBounce,      easeInBounce));
-        easingFunctions.insert(std::make_pair(EaseOutBounce,     easeOutBounce));
-        easingFunctions.insert(std::make_pair(EaseInOutBounce,   easeInOutBounce));
+    // 静态常量数组：下标与 EasingFunctionType 的枚举值一一对应
+    // 相比 std::map 查找更快，且静态初始化是线程安全的（避免多线程懒初始化时的竞争）
+    static const EasingFunction s_easingFunctionList[] =
+    {
+        easeLinear,         // EaseLinear
+        easeInSine,         // EaseInSine
+        easeOutSine,        // EaseOutSine
+        easeInOutSine,      // EaseInOutSine
+        easeInQuad,         // EaseInQuad
+        easeOutQuad,        // EaseOutQuad
+        easeInOutQuad,      // EaseInOutQuad
+        easeInCubic,        // EaseInCubic
+        easeOutCubic,       // EaseOutCubic
+        easeInOutCubic,     // EaseInOutCubic
+        easeInQuart,        // EaseInQuart
+        easeOutQuart,       // EaseOutQuart
+        easeInOutQuart,     // EaseInOutQuart
+        easeInQuint,        // EaseInQuint
+        easeOutQuint,       // EaseOutQuint
+        easeInOutQuint,     // EaseInOutQuint
+        easeInExpo,         // EaseInExpo
+        easeOutExpo,        // EaseOutExpo
+        easeInOutExpo,      // EaseInOutExpo
+        easeInCirc,         // EaseInCirc
+        easeOutCirc,        // EaseOutCirc
+        easeInOutCirc,      // EaseInOutCirc
+        easeInBack,         // EaseInBack
+        easeOutBack,        // EaseOutBack
+        easeInOutBack,      // EaseInOutBack
+        easeInElastic,      // EaseInElastic
+        easeOutElastic,     // EaseOutElastic
+        easeInOutElastic,   // EaseInOutElastic
+        easeInBounce,       // EaseInBounce
+        easeOutBounce,      // EaseOutBounce
+        easeInOutBounce,    // EaseInOutBounce
+    };
+    constexpr size_t nFunctionCount = sizeof(s_easingFunctionList) / sizeof(s_easingFunctionList[0]);
+    const size_t nIndex = static_cast<size_t>(function);
+    if (nIndex < nFunctionCount) {
+        return s_easingFunctionList[nIndex];
     }
-
-    // 查找对应函数
-    auto it = easingFunctions.find(function);
-    return it == easingFunctions.end() ? nullptr : it->second;
+    return nullptr;
 }
 
 EasingFunctionType EasingFunctions::GetEasingFunctionType(DString easingFunctionName)
 {
-    // 静态map：只初始化一次，提升性能
-    static std::map<DString, EasingFunctionType> easingFunctions;
-    if (easingFunctions.empty()) {
-        // 初始化枚举与函数的映射关系
-        easingFunctions.insert(std::make_pair(_T("EaseLinear"), EaseLinear));
-        easingFunctions.insert(std::make_pair(_T("EaseInSine"), EaseInSine));
-        easingFunctions.insert(std::make_pair(_T("EaseOutSine"), EaseOutSine));
-        easingFunctions.insert(std::make_pair(_T("EaseInOutSine"), EaseInOutSine));
-        easingFunctions.insert(std::make_pair(_T("EaseInQuad"), EaseInQuad));
-        easingFunctions.insert(std::make_pair(_T("EaseOutQuad"), EaseOutQuad));
-        easingFunctions.insert(std::make_pair(_T("EaseInOutQuad"), EaseInOutQuad));
-        easingFunctions.insert(std::make_pair(_T("EaseInCubic"), EaseInCubic));
-        easingFunctions.insert(std::make_pair(_T("EaseOutCubic"), EaseOutCubic));
-        easingFunctions.insert(std::make_pair(_T("EaseInOutCubic"), EaseInOutCubic));
-        easingFunctions.insert(std::make_pair(_T("EaseInQuart"), EaseInQuart));
-        easingFunctions.insert(std::make_pair(_T("EaseOutQuart"), EaseOutQuart));
-        easingFunctions.insert(std::make_pair(_T("EaseInOutQuart"), EaseInOutQuart));
-        easingFunctions.insert(std::make_pair(_T("EaseInQuint"), EaseInQuint));
-        easingFunctions.insert(std::make_pair(_T("EaseOutQuint"), EaseOutQuint));
-        easingFunctions.insert(std::make_pair(_T("EaseInOutQuint"), EaseInOutQuint));
-        easingFunctions.insert(std::make_pair(_T("EaseInExpo"), EaseInExpo));
-        easingFunctions.insert(std::make_pair(_T("EaseOutExpo"), EaseOutExpo));
-        easingFunctions.insert(std::make_pair(_T("EaseInOutExpo"), EaseInOutExpo));
-        easingFunctions.insert(std::make_pair(_T("EaseInCirc"), EaseInCirc));
-        easingFunctions.insert(std::make_pair(_T("EaseOutCirc"), EaseOutCirc));
-        easingFunctions.insert(std::make_pair(_T("EaseInOutCirc"), EaseInOutCirc));
-        easingFunctions.insert(std::make_pair(_T("EaseInBack"), EaseInBack));
-        easingFunctions.insert(std::make_pair(_T("EaseOutBack"), EaseOutBack));
-        easingFunctions.insert(std::make_pair(_T("EaseInOutBack"), EaseInOutBack));
-        easingFunctions.insert(std::make_pair(_T("EaseInElastic"), EaseInElastic));
-        easingFunctions.insert(std::make_pair(_T("EaseOutElastic"), EaseOutElastic));
-        easingFunctions.insert(std::make_pair(_T("EaseInOutElastic"), EaseInOutElastic));
-        easingFunctions.insert(std::make_pair(_T("EaseInBounce"), EaseInBounce));
-        easingFunctions.insert(std::make_pair(_T("EaseOutBounce"), EaseOutBounce));
-        easingFunctions.insert(std::make_pair(_T("EaseInOutBounce"), EaseInOutBounce));
-    }
+    /** 缓动函数的名称与类型的对应表
+    */
+    struct TEasingName
+    {
+        const DString::value_type* szName; //缓动函数的名称
+        EasingFunctionType functionType;   //缓动函数的类型
+    };
+    // 静态常量数组：线程安全，且不需要动态分配内存
+    static const TEasingName s_easingNameList[] =
+    {
+        { _T("EaseLinear"),         EaseLinear },
+        { _T("EaseInSine"),         EaseInSine },
+        { _T("EaseOutSine"),        EaseOutSine },
+        { _T("EaseInOutSine"),      EaseInOutSine },
+        { _T("EaseInQuad"),         EaseInQuad },
+        { _T("EaseOutQuad"),        EaseOutQuad },
+        { _T("EaseInOutQuad"),      EaseInOutQuad },
+        { _T("EaseInCubic"),        EaseInCubic },
+        { _T("EaseOutCubic"),       EaseOutCubic },
+        { _T("EaseInOutCubic"),     EaseInOutCubic },
+        { _T("EaseInQuart"),        EaseInQuart },
+        { _T("EaseOutQuart"),       EaseOutQuart },
+        { _T("EaseInOutQuart"),     EaseInOutQuart },
+        { _T("EaseInQuint"),        EaseInQuint },
+        { _T("EaseOutQuint"),       EaseOutQuint },
+        { _T("EaseInOutQuint"),     EaseInOutQuint },
+        { _T("EaseInExpo"),         EaseInExpo },
+        { _T("EaseOutExpo"),        EaseOutExpo },
+        { _T("EaseInOutExpo"),      EaseInOutExpo },
+        { _T("EaseInCirc"),         EaseInCirc },
+        { _T("EaseOutCirc"),        EaseOutCirc },
+        { _T("EaseInOutCirc"),      EaseInOutCirc },
+        { _T("EaseInBack"),         EaseInBack },
+        { _T("EaseOutBack"),        EaseOutBack },
+        { _T("EaseInOutBack"),      EaseInOutBack },
+        { _T("EaseInElastic"),      EaseInElastic },
+        { _T("EaseOutElastic"),     EaseOutElastic },
+        { _T("EaseInOutElastic"),   EaseInOutElastic },
+        { _T("EaseInBounce"),       EaseInBounce },
+        { _T("EaseOutBounce"),      EaseOutBounce },
+        { _T("EaseInOutBounce"),    EaseInOutBounce },
+    };
 
     if (!easingFunctionName.empty()) {
         if ((easingFunctionName[0] >= _T('a')) && (easingFunctionName[0] <= _T('z'))) {
@@ -523,9 +533,12 @@ EasingFunctionType EasingFunctions::GetEasingFunctionType(DString easingFunction
             easingFunctionName[0] = easingFunctionName[0] - (_T('a') - _T('A'));
         }
     }
-    // 查找对应函数
-    auto it = easingFunctions.find(easingFunctionName);
-    return it == easingFunctions.end() ? EaseLinear : it->second;
+    for (const TEasingName& easingName : s_easingNameList) {
+        if (easingFunctionName == easingName.szName) {
+            return easingName.functionType;
+        }
+    }
+    return EaseLinear;
 }
 
 EasingFunctions::EasingFunctions(int32_t nStartValue, int32_t nEndValue, int32_t nFrameCount, EasingFunctionType easingFunctionType) :
@@ -589,8 +602,9 @@ int32_t EasingFunctions::GetEasingValue(int32_t nCurrentFrame) const
 {
     int32_t nEasingValue = m_nEndValue;
     ASSERT(nCurrentFrame >= 0);
-    if (nCurrentFrame < 0) {
-        return nEasingValue;
+    if (nCurrentFrame <= 0) {
+        //帧序号小于等于0时，取起始值（原实现在帧序号非法时返回了结束值）
+        return m_nStartValue;
     }
     if (nCurrentFrame >= m_nFrameCount) {
         return nEasingValue;

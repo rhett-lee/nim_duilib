@@ -110,10 +110,6 @@ public:
     EasingFunctionType GetEasingFunctionType() const;
 
 private:
-    /** 初始化显示/隐藏的动画类型列表
-    */
-    void InitAppearAnimationList(std::vector<AnimationType>& animationList) const;
-
     /** 创建一个动画实例对象，并初始化默认属性
     */
     AnimationPlayer* CreateAnimationPlayer(AnimationType animationType) const;
@@ -146,10 +142,6 @@ private:
     /** 每个动画类型下的动画播放接口
     */
     std::map<AnimationType, std::unique_ptr<AnimationPlayer>> m_animationMap;
-
-    /** 显示/隐藏的动画类型列表
-    */
-    static std::vector<AnimationType> s_animationList;
 };
 
 /** EstimateSize 时使用的"无限制尺寸"，表示期望获取控件自身的最大/原始尺寸

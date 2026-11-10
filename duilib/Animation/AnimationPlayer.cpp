@@ -7,9 +7,9 @@
 namespace ui 
 {
 AnimationPlayer::AnimationPlayer():
-    m_animationType(AnimationType::kAnimationNone),
     m_playCallback(nullptr),
-    m_completeCallback(nullptr)
+    m_completeCallback(nullptr),
+    m_animationType(AnimationType::kAnimationNone)
 {
     Init();
 }
@@ -167,26 +167,30 @@ void AnimationPlayer::Play()
         m_weakFlagOwner.Cancel();
         return;
     }
+    const int32_t nFrameCount = m_pEasingFunctions->GetFrameCount();
     ++m_frameIndex;
-    if (m_frameIndex > m_pEasingFunctions->GetFrameCount()) {
-        m_frameIndex = m_pEasingFunctions->GetFrameCount();
+    if (m_frameIndex > nFrameCount) {
+        m_frameIndex = nFrameCount;
     }
-    int32_t newCurrentValue = m_pEasingFunctions->GetEasingValue(m_frameIndex);
-    // 缓存成员函数指针引用，避免回调中 AnimationPlayer 被销毁后的悬空调用
+    const int32_t newCurrentValue = m_pEasingFunctions->GetEasingValue(m_frameIndex);
+
+    // 回调函数的副本与对象存活标志：回调中可能销毁 AnimationPlayer（控件被删除），
+    // 回调返回后不能直接访问任何成员变量，只能通过本地的存活标志判断对象是否仍然有效
+    const std::weak_ptr<WeakFlag> aliveFlag = m_weakFlagOwner.GetWeakFlag();
     AnimationPlayCallback playCallback = m_playCallback;
-    if (playCallback) {
-        if (newCurrentValue != m_currentValue) {
-            // 回调可能修改成员（包括调用 Stop/Reset），
-            // 之后必须重新检查 m_pEasingFunctions 是否仍有效
-            playCallback(newCurrentValue);
-            if (m_pEasingFunctions == nullptr) {
-                m_weakFlagOwner.Cancel();
-                return;
-            }
+    if (playCallback && (newCurrentValue != m_currentValue)) {
+        playCallback(newCurrentValue);
+        if (aliveFlag.expired()) {
+            // 回调中动画已被清理、停止或者对象已被销毁，不再访问成员变量
+            return;
         }
     }
+    if (m_pEasingFunctions == nullptr) {
+        m_weakFlagOwner.Cancel();
+        return;
+    }
     m_currentValue = newCurrentValue;
-    if (m_frameIndex == m_pEasingFunctions->GetFrameCount()) {
+    if (m_frameIndex == nFrameCount) {
         //播放完成
         Complete();
     }
