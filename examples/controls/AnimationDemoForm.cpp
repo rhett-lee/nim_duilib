@@ -133,7 +133,7 @@ void AnimationDemoForm::InitEasingDemo()
     for (const DString& boxName : boxNames) {
         ui::Control* pControl = FindControl(boxName);
         if (pControl != nullptr) {
-            pControl->GetAnimationManager().SetFadeInOutX(true, false);
+            pControl->GetAnimationManager().SetFadeWidth(true);
         }
     }
 
@@ -202,7 +202,7 @@ void AnimationDemoForm::ApplyGlobalSettings()
 
     ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("label_duration")));
     if (pLabel != nullptr) {
-        pLabel->SetText(ui::StringUtil::Printf(_T("current: %d ms"), m_nTotalMillSeconds));
+        pLabel->SetText(ui::StringUtil::Printf(_T("%d ms"), m_nTotalMillSeconds));
     }
 }
 
@@ -257,7 +257,6 @@ void AnimationDemoForm::PlayEasingCompare()
         ui::EasingFunctionType::EaseOutElastic
     };
     const int32_t nBoxWidth = 40;
-    const int32_t nMargin = 4;
 
     for (int32_t nIndex = 0; nIndex < 4; ++nIndex) {
         ui::Control* pBox = FindControl(boxNames[nIndex]);
@@ -265,13 +264,13 @@ void AnimationDemoForm::PlayEasingCompare()
         if ((pBox == nullptr) || (pTrack == nullptr)) {
             continue;
         }
-        int32_t nDistance = pTrack->GetRect().Width() - nBoxWidth - nMargin * 2;
-        if (nDistance < 40) {
-            nDistance = 40;
+        int32_t nDistance = pTrack->GetRect().Width();
+        if (nDistance < nBoxWidth) {
+            nDistance = nBoxWidth;
         }
-        ui::AnimationPlayer* pAnimationPlayer = pBox->GetAnimationManager().GetAnimationPlayer(ui::AnimationType::kAnimationInoutXFromLeft);
+        ui::AnimationPlayer* pAnimationPlayer = pBox->GetAnimationManager().GetAnimationPlayer(ui::AnimationType::kAnimationWidth);
         if (pAnimationPlayer == nullptr) {
-            pAnimationPlayer = pBox->GetAnimationManager().SetFadeInOutX(true, false);
+            pAnimationPlayer = pBox->GetAnimationManager().SetFadeWidth(true);
         }
         if (pAnimationPlayer == nullptr) {
             continue;
