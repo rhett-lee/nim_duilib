@@ -3,7 +3,6 @@
 
 #include "duilib/Animation/EasingFunctions.h"
 #include "duilib/Core/Callback.h"
-#include <chrono>
 
 namespace ui 
 {
@@ -13,6 +12,9 @@ typedef std::function<void (void)> AnimationCompleteCallback;    //播放完成�
 
 //缓动函数的实现
 class EasingFunctions;
+
+//动画调度器
+class AnimationScheduler;
 
 /** 控件动画播放器的基类接口
 */
@@ -140,9 +142,10 @@ private:
     */
     void StartTimer(bool bContinueMode, bool bOldReversePlay);
 
-    /** 播放一次动画（在定时器中触发调用）
+    /** 播放一次动画（由动画调度器在定时器中触发调用）
+    * @param [in] nNowMillSeconds 本帧的统一时间基准（毫秒）
     */
-    void Play();
+    void OnTick(int64_t nNowMillSeconds);
 
     /** 交换起始值和结束值
     */
@@ -151,6 +154,9 @@ private:
     /** 完成播放动画，并触发播放完成回调函数
     */
     void Complete();
+
+private:
+    friend class AnimationScheduler;
 
 private:
     /** 起始值
@@ -194,9 +200,9 @@ private:
     */
     int32_t m_playTotalMillSeconds;
 
-    /** 播放起点对应的时钟时间（用于按真实时间计算播放进度）
+    /** 播放起点对应的时间（毫秒，使用动画调度器的统一时间基准）
     */
-    std::chrono::steady_clock::time_point m_startTimePoint;
+    int64_t m_startTimeMillSeconds;
 
     /** 定时器终止标志
     */

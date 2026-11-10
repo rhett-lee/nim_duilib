@@ -1,4 +1,5 @@
 #include "AnimationManager.h"
+#include "AnimationScheduler.h"
 #include "duilib/Core/Control.h"
 #include "duilib/Core/ControlPtrT.h"
 #include <vector>
@@ -106,7 +107,9 @@ AnimationPlayer* AnimationManager::SetFadeWidth(bool bFadeWidth)
                     if (nNewValue < 0) {
                         nNewValue = 0;
                     }
-                    pControl->SetFixedWidth(UiFixedInt(nNewValue), true, false);
+                    //由动画调度器在本帧统一重排（同一帧内多个尺寸动画只重排一次）
+                    pControl->SetFixedWidth(UiFixedInt(nNewValue), false, false);
+                    AnimationScheduler::Instance().RequestArrange(pControl);
                 }
             };
         pAnimationPlayer->SetPlayCallback(playCallback);
@@ -140,7 +143,9 @@ AnimationPlayer* AnimationManager::SetFadeHeight(bool bFadeHeight)
                     if (nNewValue < 0) {
                         nNewValue = 0;
                     }
-                    pControl->SetFixedHeight(UiFixedInt(nNewValue), true, false);
+                    //由动画调度器在本帧统一重排（同一帧内多个尺寸动画只重排一次）
+                    pControl->SetFixedHeight(UiFixedInt(nNewValue), false, false);
+                    AnimationScheduler::Instance().RequestArrange(pControl);
                 }
             };
         pAnimationPlayer->SetPlayCallback(playCallback);
@@ -178,10 +183,10 @@ AnimationPlayer* AnimationManager::SetFadeSize(bool bFadeSize)
                 if (nNewValue > 0) {
                     int32_t cxNow = TruncateToInt32((int64_t)cx * nNewValue / 100);
                     int32_t cyNow = TruncateToInt32((int64_t)cy * nNewValue / 100);
-                    //宽高必须同时更新，先设置尺寸（不重排），最后统一重排一次，避免每帧重排两次
+                    //宽高必须同时更新，先设置尺寸（不重排），由动画调度器在本帧统一重排一次
                     pControl->SetFixedWidth(UiFixedInt(cxNow), false, false);
                     pControl->SetFixedHeight(UiFixedInt(cyNow), false, false);
-                    pControl->ArrangeAncestor();
+                    AnimationScheduler::Instance().RequestArrange(pControl);
                 }
             }
             };

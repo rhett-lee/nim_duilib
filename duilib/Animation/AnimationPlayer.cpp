@@ -1,6 +1,6 @@
 #include "AnimationPlayer.h"
+#include "AnimationScheduler.h"
 #include "duilib/Animation/EasingFunctions.h"
-#include "duilib/Core/GlobalManager.h"
 #include <cmath>
 
 #define AP_NO_VALUE -1
@@ -17,10 +17,12 @@ AnimationPlayer::AnimationPlayer():
 
 AnimationPlayer::~AnimationPlayer()
 {
+    AnimationScheduler::Instance().Unregister(this);
 }
 
 void AnimationPlayer::Clear()
 {
+    AnimationScheduler::Instance().Unregister(this);
     m_weakFlagOwner.Cancel();
     m_bPlaying = false;
     m_playCallback = nullptr;
@@ -41,7 +43,7 @@ void AnimationPlayer::Init()
     m_frameIndex = 0;
     m_playProgress = 0.0;
     m_playTotalMillSeconds = 0;
-    m_startTimePoint = std::chrono::steady_clock::time_point();
+    m_startTimeMillSeconds = 0;
     m_pEasingFunctions.reset();
     m_easingFunctionType = EasingFunctionType::EaseInOutCubic;
 }
@@ -58,6 +60,7 @@ void AnimationPlayer::Start()
 
 void AnimationPlayer::Stop()
 {
+    AnimationScheduler::Instance().Unregister(this);
     m_weakFlagOwner.Cancel();
     if (m_bReversePlay) {
         ReverseAllValue();
@@ -167,17 +170,17 @@ void AnimationPlayer::StartTimer(bool bContinueMode, bool bOldReversePlay)
         }
         m_currentValue = m_pEasingFunctions->GetEasingValue(nProgress);
         //按已播放的进度反推播放起点时间，保证剩余时长与真实时间一致
-        m_startTimePoint = std::chrono::steady_clock::now() - std::chrono::milliseconds(static_cast<int64_t>(nProgress * totalMillSeconds));
+        m_startTimeMillSeconds = AnimationScheduler::GetTimeMillSeconds() - static_cast<int64_t>(nProgress * totalMillSeconds);
     }
     else {
         //重新开始
         m_frameIndex = 0;
         m_playProgress = 0.0;
         m_currentValue = m_startValue;
-        m_startTimePoint = std::chrono::steady_clock::now();
+        m_startTimeMillSeconds = AnimationScheduler::GetTimeMillSeconds();
     }
-    auto playCallback = UiBind(&AnimationPlayer::Play, this);
-    GlobalManager::Instance().Timer().AddTimer(m_weakFlagOwner.GetWeakFlag(), playCallback, (uint32_t)timerIntervalMs);
+    //注册到动画调度器，由全局唯一的定时器统一驱动（同一帧内所有动画使用相同的时间基准）
+    AnimationScheduler::Instance().Register(this, m_weakFlagOwner.GetWeakFlag());
 
     //首次调用，初始化当前的值（避免延迟调用导致的错误，比如设置控件大小、位置时，必须做初始化，否则会出现异常）
     if (m_playCallback) {
@@ -185,10 +188,10 @@ void AnimationPlayer::StartTimer(bool bContinueMode, bool bOldReversePlay)
     }
 }
 
-void AnimationPlayer::Play()
+void AnimationPlayer::OnTick(int64_t nNowMillSeconds)
 {
     if (m_pEasingFunctions == nullptr) {
-        m_weakFlagOwner.Cancel();
+        AnimationScheduler::Instance().Unregister(this);
         return;
     }
     const int32_t nFrameCount = m_pEasingFunctions->GetFrameCount();
@@ -196,7 +199,7 @@ void AnimationPlayer::Play()
     //保证动画的总时长准确（原来的实现每次只把帧序号+1，卡顿会让动画整体变慢）
     double nProgress = 1.0;
     if (m_playTotalMillSeconds > 0) {
-        const double nElapsedMs = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - m_startTimePoint).count();
+        const double nElapsedMs = static_cast<double>(nNowMillSeconds - m_startTimeMillSeconds);
         nProgress = nElapsedMs / static_cast<double>(m_playTotalMillSeconds);
     }
     if (nProgress < 0.0) {
@@ -217,6 +220,10 @@ void AnimationPlayer::Play()
     // 回调函数的副本与对象存活标志：回调中可能销毁 AnimationPlayer（控件被删除），
     // 回调返回后不能直接访问任何成员变量，只能通过本地的存活标志判断对象是否仍然有效
     const std::weak_ptr<WeakFlag> aliveFlag = m_weakFlagOwner.GetWeakFlag();
+    //记录本次播放的状态标记：回调中可能重启动画（继续/反向播放），
+    //此时本帧计算出的进度已经作废，不能再按 nProgress 判定播放完成
+    const int64_t nStartTimeBefore = m_startTimeMillSeconds;
+    const EasingFunctions* pEasingBefore = m_pEasingFunctions.get();
     AnimationPlayCallback playCallback = m_playCallback;
     if (playCallback && (newCurrentValue != m_currentValue)) {
         playCallback(newCurrentValue);
@@ -224,8 +231,13 @@ void AnimationPlayer::Play()
             // 回调中动画已被清理、停止或者对象已被销毁，不再访问成员变量
             return;
         }
+        if ((m_pEasingFunctions.get() != pEasingBefore) || (m_startTimeMillSeconds != nStartTimeBefore)) {
+            //回调中重新启动了动画，本次进度作废，等下一帧按新的起始时间重新计算
+            return;
+        }
     }
     if (m_pEasingFunctions == nullptr) {
+        AnimationScheduler::Instance().Unregister(this);
         m_weakFlagOwner.Cancel();
         return;
     }
@@ -251,6 +263,7 @@ void AnimationPlayer::Complete()
     m_bPlaying = false;
     // 先释放 easing 函数资源，让回调中如需重启也能正确初始化
     m_pEasingFunctions.reset();
+    AnimationScheduler::Instance().Unregister(this);
     m_weakFlagOwner.Cancel();
     if (completeCallback) {
         completeCallback();
