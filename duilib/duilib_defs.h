@@ -467,6 +467,8 @@ namespace ui
         kEventEsc,                  //RichEdit类、AddressBar类：当收到ESC键时触发
         kEventTab,                  //RichEdit类：在WantTab为false时，当收到TAB键时触发
         kEventLinkClick,            //RichEdit类、RichText类：当点击到超级链接的数据上时触发, 可以通过WPARAM获取点击的URL，类型为const DStringW::value_type*
+        kEventLinkHover,            //RichText类：当鼠标进入超级链接时触发, 可以通过WPARAM获取链接的URL，类型为const DStringW::value_type*
+        kEventLinkLeave,            //RichText类：当鼠标离开超级链接时触发, 可以通过WPARAM获取链接的URL，类型为const DStringW::value_type*
 
         kEventScrollPosChanged,     //ScrollBox类：当滚动条位置发生变化时触发
         kEventValueChanged,         //DateTime、Slider类、PropertyGridProperty：当值发生变化时触发, Slider类：WPARAM是新值，LPARAM是旧值

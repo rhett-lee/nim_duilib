@@ -4,6 +4,8 @@
 #include "duilib/Core/Control.h"
 #include "duilib/Render/IRender.h"
 
+#include <set>
+
 namespace ui 
 {
 /** RichText文本XML解析后的格式化文本片段
@@ -23,6 +25,10 @@ public:
     */
     UiString m_linkUrl;
 
+    /** 超链接的自定义提示文本: "title"（为空时使用URL作为提示）
+    */
+    UiString m_linkTitle;
+
     /** 文字颜色: "color"
     */
     UiString m_textColor;
@@ -34,6 +40,26 @@ public:
     /** 字体信息
     */
     UiFont m_fontInfo;
+
+    /** 字体缩放比例（用于 <h1>~<h6>、<sup>、<sub>），1.0 表示不缩放
+    */
+    float m_fFontScale = 1.0f;
+
+    /** 基线偏移（96 DPI 下的像素值，负数向上、正数向下），用于 <sup>/<sub>
+    */
+    int32_t m_nBaselineOffset = 0;
+
+    /** 行间距附加量（96 DPI 下的像素值），用于段落的段间距
+    */
+    float m_fRowSpacingAdd = 0.0f;
+
+    /** 水平对齐方式：-1表示继承，0左对齐，1居中，2右对齐，3两端对齐（用于 <p align>）
+    */
+    int8_t m_nHAlign = -1;
+
+    /** 是否为水平分割线（用于 <hr>）
+    */
+    bool m_bHorizontalRule = false;
 
 public:
     /** 子节点
@@ -172,6 +198,42 @@ public:
     */
     void AppendTextSlice(const RichTextSlice& textSlice, bool bRedraw = true);
 
+    /** 追加格式化文本（在已有内容之后追加，不清空原有内容）
+    * @param [in] richText 带有格式的文本内容（可以是纯文本，也可以是类HTML标签）
+    * @param [in] bRedraw true表示追加后触发重绘，false表示不触发重绘
+    */
+    bool AppendText(const DString& richText, bool bRedraw = true);
+
+    /** 设置超级链接的文本颜色
+    * @param [in] normalColor 常规状态的颜色，为空表示不修改
+    * @param [in] hoveredColor 鼠标悬停状态的颜色，为空表示不修改
+    * @param [in] pressedColor 鼠标按下状态的颜色，为空表示不修改
+    * @param [in] visitedColor 访问过（点击过）状态的颜色，为空表示不修改
+    */
+    void SetLinkColor(const DString& normalColor, const DString& hoveredColor,
+                      const DString& pressedColor, const DString& visitedColor = _T(""));
+
+    /** 获取超级链接的数量（相同URL且连续出现的文本片段算作一个链接）
+    */
+    size_t GetLinkCount() const;
+
+    /** 获取指定链接的URL
+    * @param [in] nLinkIndex 链接的索引号，取值范围：[0, GetLinkCount())
+    * @return 返回链接的URL，索引无效时返回空字符串
+    */
+    DString GetLinkUrl(size_t nLinkIndex) const;
+
+    /** 获取指定链接的绘制区域
+    * @param [in] nLinkIndex 链接的索引号，取值范围：[0, GetLinkCount())
+    * @param [out] rcLink 返回链接的绘制区域（多个文本片段的区域合并后的范围）
+    * @return 返回true表示成功，false表示索引无效或链接尚未完成布局
+    */
+    bool GetLinkRect(size_t nLinkIndex, UiRect& rcLink) const;
+
+    /** 获取段落的段间距（96 DPI 下的像素值）
+    */
+    int32_t GetParagraphSpacing() const { return m_nParagraphSpacing; }
+
     /** 根据Trim方案，对文本进行Trim处理，去掉多余的空格
     * @param [in,out] text 传入需要处理的文本，传出处理完成后的文本
     * @return 返回text的引用
@@ -215,6 +277,15 @@ public:
     void MouseLeave(const EventArgs& msg);
     bool OnSetCursor(const EventArgs& msg);
 
+    /** 键盘消息处理（用于链接的Tab聚焦与Enter触发）
+    * @return 返回true表示消息已处理
+    */
+    bool OnKeyDown(const EventArgs& msg);
+
+    /** 鼠标右键抬起（用于复制链接地址）
+    */
+    void RButtonUp(const EventArgs& msg);
+
 private:
     /** 格式化文本，解析后的结构(内部使用)
     */
@@ -229,6 +300,10 @@ private:
         /** 超链接的URL
         */
         UiString m_linkUrl;
+
+        /** 超链接的提示文本（为空时使用URL）
+        */
+        UiString m_linkTitle;
 
         /** 超链接使用的字体（解析时生成，绘制时共享，避免每帧创建字体对象）
         */
@@ -278,6 +353,21 @@ private:
     */
     void CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect);
 
+    /** 获取全部链接的分组信息（相同URL且连续的文本片段归为一组）
+    * @param [out] groupStartIndexes 每个链接在m_textData中的起始索引
+    * @param [out] groupUrls 每个链接的URL
+    */
+    void GetLinkGroups(std::vector<size_t>& groupStartIndexes, std::vector<DString>& groupUrls) const;
+
+    /** 查找坐标所在的链接分组索引
+    * @return 返回链接的分组索引，未找到时返回-1
+    */
+    int32_t HitTestLinkGroup(const UiPoint& ptMouse) const;
+
+    /** 更新鼠标悬停的链接，并派发Hover/Leave事件
+    */
+    void UpdateHoveredLink(int32_t nLinkGroupIndex);
+
 private:
     /** 关联控件
     */
@@ -302,6 +392,10 @@ private:
     /** 文本水平对齐方式
     */
     HorAlignType m_hAlignType;
+
+    /** 是否使用两端对齐（text_align="justify"）
+    */
+    bool m_bHAlignJustify = false;
 
     /** 文本垂直对齐方式
     */
@@ -358,6 +452,42 @@ private:
     /** 超级链接的文本：鼠标按下文本颜色
     */
     UiString m_linkPressedTextColor;
+
+    /** 超级链接的文本：访问过（点击过）的文本颜色
+    */
+    UiString m_linkVisitedTextColor;
+
+    /** 已经访问过的链接URL集合
+    */
+    std::set<DString> m_visitedLinks;
+
+    /** 鼠标当前悬停的链接分组索引（-1表示无）
+    */
+    int32_t m_nHoveredLinkGroup = -1;
+
+    /** 键盘当前聚焦的链接分组索引（-1表示无）
+    */
+    int32_t m_nFocusedLinkGroup = -1;
+
+    /** 字间距（像素）
+    */
+    float m_fLetterSpacing = 0.0f;
+
+    /** 首行缩进（96 DPI 下的像素值）
+    */
+    int32_t m_nTextIndent = 0;
+
+    /** 段间距（96 DPI 下的像素值），用于 <p>/<h1>~<h6> 等块级标签
+    */
+    int32_t m_nParagraphSpacing = 0;
+
+    /** 最多显示的行数（0表示不限制）
+    */
+    int32_t m_nMaxLines = 0;
+
+    /** 超出最大行数时是否显示省略号（false表示直接裁剪）
+    */
+    bool m_bTextOverflowEllipsis = true;
 
     /** 文本ID
     */

@@ -123,6 +123,20 @@ private:
     void DrawTextString(const UiRect& textRect, const DString& strText, uint32_t uFormat,
                         const SkPaint& skPaint, IFont* pFont) const;
 
+    /** 绘制一段文本，支持字间距与两端对齐的额外间距
+    * @param [in] textRect 绘制区域
+    * @param [in] textView 文本内容
+    * @param [in] textCharSize 单个字符的字节数
+    * @param [in] textEncoding 文本编码
+    * @param [in] uFormat 绘制格式（参见 enum DrawStringFormat）
+    * @param [in] skPaint 绘制属性
+    * @param [in] pFont 字体
+    * @param [in] fSpacing 额外的字间距（像素），为0时按默认间距绘制
+    */
+    void DrawTextRun(const UiRect& textRect, const std::wstring_view& textView, size_t textCharSize,
+                     SkTextEncoding textEncoding, uint32_t uFormat,
+                     const SkPaint& skPaint, IFont* pFont, float fSpacing) const;
+
     /** 获取文本编码
     */
     SkTextEncoding GetTextEncoding() const;

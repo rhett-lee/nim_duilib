@@ -155,6 +155,37 @@ public:
     */
     void AppendTextSlice(const RichTextSlice& textSlice, bool bRedraw = true);
 
+    /** 追加格式化文本（在已有内容之后追加，不清空原有内容）
+    * @param [in] richText 带有格式的文本内容（可以是纯文本，也可以是类HTML标签）
+    * @param [in] bRedraw true表示追加后触发重绘，false表示不触发重绘
+    * @return 返回true表示成功，false表示解析失败（失败时按纯文本追加）
+    */
+    bool AppendText(const DString& richText, bool bRedraw = true);
+
+    /** 设置超级链接的文本颜色
+    * @param [in] normalColor 常规状态的颜色，为空表示不修改
+    * @param [in] hoveredColor 鼠标悬停状态的颜色，为空表示不修改
+    * @param [in] pressedColor 鼠标按下状态的颜色，为空表示不修改
+    * @param [in] visitedColor 访问过（点击过）状态的颜色，为空表示不修改
+    */
+    void SetLinkColor(const DString& normalColor, const DString& hoveredColor,
+                      const DString& pressedColor, const DString& visitedColor = _T(""));
+
+    /** 获取超级链接的数量
+    */
+    size_t GetLinkCount() const;
+
+    /** 获取指定链接的URL
+    */
+    DString GetLinkUrl(size_t nLinkIndex) const;
+
+    /** 获取指定链接的绘制区域
+    * @param [in] nLinkIndex 链接的索引号，取值范围：[0, GetLinkCount())
+    * @param [out] rcLink 返回链接的绘制区域
+    * @return 返回true表示成功，false表示索引无效
+    */
+    bool GetLinkRect(size_t nLinkIndex, UiRect& rcLink) const;
+
     /** 重新布局与绘制（配合AppendTextSlice的bRedraw=false，在批量追加完成后调用一次）
     */
     void Redraw();
@@ -191,6 +222,14 @@ public:
      */
     void AttachLinkClick(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventLinkClick, callback, callbackID); }
 
+    /** 监听鼠标进入超级链接事件（WPARAM为链接的URL）
+    */
+    void AttachLinkHover(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventLinkHover, callback, callbackID); }
+
+    /** 监听鼠标离开超级链接事件（WPARAM为链接的URL）
+    */
+    void AttachLinkLeave(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventLinkLeave, callback, callbackID); }
+
     /** 获取实现接口
     */
     RichTextImpl* GetRichTextImpl() const { return m_impl.get(); }
@@ -203,6 +242,8 @@ private:
     virtual bool MouseHover(const EventArgs& msg) override;
     virtual bool MouseLeave(const EventArgs& msg) override;
     virtual bool OnSetCursor(const EventArgs& msg) override;
+    virtual bool OnKeyDown(const EventArgs& msg) override;
+    virtual bool RButtonUp(const EventArgs& msg) override;
 
 private:
 
@@ -443,6 +484,37 @@ void RichTextT<T>::Redraw()
 }
 
 template<typename T>
+bool RichTextT<T>::AppendText(const DString& richText, bool bRedraw)
+{
+    return m_impl->AppendText(richText, bRedraw);
+}
+
+template<typename T>
+void RichTextT<T>::SetLinkColor(const DString& normalColor, const DString& hoveredColor,
+                                const DString& pressedColor, const DString& visitedColor)
+{
+    m_impl->SetLinkColor(normalColor, hoveredColor, pressedColor, visitedColor);
+}
+
+template<typename T>
+size_t RichTextT<T>::GetLinkCount() const
+{
+    return m_impl->GetLinkCount();
+}
+
+template<typename T>
+DString RichTextT<T>::GetLinkUrl(size_t nLinkIndex) const
+{
+    return m_impl->GetLinkUrl(nLinkIndex);
+}
+
+template<typename T>
+bool RichTextT<T>::GetLinkRect(size_t nLinkIndex, UiRect& rcLink) const
+{
+    return m_impl->GetLinkRect(nLinkIndex, rcLink);
+}
+
+template<typename T>
 DString RichTextT<T>::ToString() const
 {
     return m_impl->ToString();
@@ -494,6 +566,22 @@ bool RichTextT<T>::OnSetCursor(const EventArgs& msg)
         return BaseClass::OnSetCursor(msg);
     }
     return true;
+}
+
+template<typename T>
+bool RichTextT<T>::OnKeyDown(const EventArgs& msg)
+{
+    if (m_impl->OnKeyDown(msg)) {
+        return true;
+    }
+    return BaseClass::OnKeyDown(msg);
+}
+
+template<typename T>
+bool RichTextT<T>::RButtonUp(const EventArgs& msg)
+{
+    m_impl->RButtonUp(msg);
+    return BaseClass::RButtonUp(msg);
 }
 
 typedef RichTextT<Control> RichText;

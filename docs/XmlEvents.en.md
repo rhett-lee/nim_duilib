@@ -183,6 +183,8 @@ The available event list is defined in the `InitEventStringMap` function in the 
 |kEventEsc|"Esc"|"esc"|
 |kEventTab|"Tab"|"tab"|
 |kEventLinkClick|"LinkClick"|"link_click"|
+|kEventLinkHover|"LinkHover"|"link_hover"|
+|kEventLinkLeave|"LinkLeave"|"link_leave"|
 |kEventScrollPosChanged|"ScrollPosChanged"|"scroll_pos_changed"|
 |kEventValueChanged|"ValueChanged"|"value_changed"|
 |kEventProgressCompleted|"ProgressCompleted"|"progress_completed"|

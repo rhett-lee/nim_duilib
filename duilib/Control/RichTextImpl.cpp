@@ -6,9 +6,11 @@
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/AttributeUtil.h"
+#include "duilib/Utils/Clipboard.h"
 #include "duilib/Core/Window.h"
 
 #include <utility>
+#include <algorithm>
 
 namespace ui 
 {
@@ -199,6 +201,85 @@ bool RichTextImpl::SetAttribute(const DString& strName, const DString& strValue)
         //超级链接：是否使用带下划线的字体
         m_bLinkUnderlineFont = (StringUtil::IsValueTrue(strValue));
     }
+    else if (strName == _T("visited_link_font_color")) {
+        //超级链接：访问过（点击过）的文本颜色
+        m_linkVisitedTextColor = strValue;
+    }
+    else if (strName == _T("letter_spacing")) {
+        //字间距（像素）
+        float fLetterSpacing = StringUtil::StringToFloat(strValue.c_str(), nullptr);
+        if (fLetterSpacing < 0.0f) {
+            fLetterSpacing = 0.0f;
+        }
+        if (m_fLetterSpacing != fLetterSpacing) {
+            m_fLetterSpacing = fLetterSpacing;
+            Redraw();
+        }
+    }
+    else if (strName == _T("text_indent")) {
+        //首行缩进（像素）
+        int32_t nTextIndent = StringUtil::StringToInt32(strValue.c_str());
+        if (nTextIndent < 0) {
+            nTextIndent = 0;
+        }
+        if (m_nTextIndent != nTextIndent) {
+            m_nTextIndent = nTextIndent;
+            Redraw();
+        }
+    }
+    else if (strName == _T("paragraph_spacing")) {
+        //段间距（像素）：用于 <p>/<h1>~<h6> 等块级标签
+        int32_t nParagraphSpacing = StringUtil::StringToInt32(strValue.c_str());
+        if (nParagraphSpacing < 0) {
+            nParagraphSpacing = 0;
+        }
+        if (m_nParagraphSpacing != nParagraphSpacing) {
+            m_nParagraphSpacing = nParagraphSpacing;
+        }
+    }
+    else if (strName == _T("max_lines")) {
+        //最多显示的行数
+        int32_t nMaxLines = StringUtil::StringToInt32(strValue.c_str());
+        if (nMaxLines < 0) {
+            nMaxLines = 0;
+        }
+        if (m_nMaxLines != nMaxLines) {
+            m_nMaxLines = nMaxLines;
+            Redraw();
+        }
+    }
+    else if (strName == _T("text_overflow")) {
+        //超出最大行数时的处理方式：ellipsis（省略号）或 clip（裁剪）
+        const bool bEllipsis = (strValue != _T("clip"));
+        if (m_bTextOverflowEllipsis != bEllipsis) {
+            m_bTextOverflowEllipsis = bEllipsis;
+            Redraw();
+        }
+    }
+    else if ((strName == _T("text_align")) || (strName == _T("textalign"))) {
+        //文本水平对齐方式：justify 表示两端对齐
+        if (strValue == _T("justify")) {
+            if (!m_bHAlignJustify) {
+                m_bHAlignJustify = true;
+                Redraw();
+            }
+        }
+        else {
+            if (m_bHAlignJustify) {
+                m_bHAlignJustify = false;
+                Redraw();
+            }
+            if (strValue == _T("center")) {
+                SetTextHAlignType(HorAlignType::kAlignCenter);
+            }
+            else if ((strValue == _T("right")) || (strValue == _T("end"))) {
+                SetTextHAlignType(HorAlignType::kAlignRight);
+            }
+            else if ((strValue == _T("left")) || (strValue == _T("start"))) {
+                SetTextHAlignType(HorAlignType::kAlignLeft);
+            }
+        }
+    }
     else if (strName == _T("replace_brace")) {
         //对text属性，是否允许替换花括号
         m_bReplaceBrace = StringUtil::IsValueTrue(strValue);
@@ -290,7 +371,10 @@ void RichTextImpl::Invalidate()
 uint16_t RichTextImpl::GetTextStyle() const
 {
     uint32_t uTextStyle = 0;
-    if (m_hAlignType == HorAlignType::kAlignCenter) {
+    if (m_bHAlignJustify) {
+        uTextStyle |= TEXT_HJUSTIFY;
+    }
+    else if (m_hAlignType == HorAlignType::kAlignCenter) {
         uTextStyle |= TEXT_HCENTER;
     }
     else if (m_hAlignType == HorAlignType::kAlignRight) {
@@ -476,6 +560,10 @@ void RichTextImpl::PaintText(IRender* pRender)
         if (!m_linkHoveredTextColor.empty()) {
             linkHoverTextColor = m_pOwner->GetUiColor(m_linkHoveredTextColor.c_str());
         }
+        UiColor linkVisitedTextColor;
+        if (!m_linkVisitedTextColor.empty()) {
+            linkVisitedTextColor = m_pOwner->GetUiColor(m_linkVisitedTextColor.c_str());
+        }
 
         //复用成员缓冲区，避免每帧堆分配
         std::vector<RichTextData>& richTextData = m_richTextDataBuffer;
@@ -484,7 +572,13 @@ void RichTextImpl::PaintText(IRender* pRender)
         std::vector<UiColor>& textColors = m_richTextTextColorBuffer;
         textColors.clear();
         textColors.reserve(m_textData.size());
+        int32_t nLinkGroup = -1;
+        DString lastLinkUrl;
         for (const RichTextDataEx& textDataEx : m_textData) {
+            if (!textDataEx.m_linkUrl.empty() && (textDataEx.m_linkUrl != lastLinkUrl)) {
+                ++nLinkGroup;
+                lastLinkUrl = textDataEx.m_linkUrl.c_str();
+            }
             if (!textDataEx.m_linkUrl.empty()) {
                 //对于超级链接，设置默认文本格式
                 RichTextData textData = textDataEx;
@@ -509,6 +603,17 @@ void RichTextImpl::PaintText(IRender* pRender)
                 else if (textDataEx.m_bMouseHover && !m_linkHoveredTextColor.empty()) {                    
                     if (!linkHoverTextColor.IsEmpty()) {
                         textData.m_textColor = linkHoverTextColor;//鼠标Hover时的字体颜色
+                    }
+                }
+                else if ((nLinkGroup == m_nFocusedLinkGroup) && !m_linkHoveredTextColor.empty()) {
+                    if (!linkHoverTextColor.IsEmpty()) {
+                        textData.m_textColor = linkHoverTextColor;//键盘聚焦时的字体颜色
+                    }
+                }
+                else if ((m_visitedLinks.find(DString(textDataEx.m_linkUrl.c_str())) != m_visitedLinks.end()) &&
+                         !m_linkVisitedTextColor.empty()) {
+                    if (!linkVisitedTextColor.IsEmpty()) {
+                        textData.m_textColor = linkVisitedTextColor;//访问过的字体颜色
                     }
                 }
                 richTextData.push_back(std::move(textData));
@@ -624,6 +729,11 @@ bool RichTextImpl::ParseText(std::vector<RichTextDataEx>& outTextData) const
     parentTextData.m_fRowSpacingMul = m_fRowSpacingMul;
     parentTextData.m_fRowSpacingAdd = m_fRowSpacingAdd;
     parentTextData.m_textStyle = GetTextStyle();
+    //字间距与首行缩进：按当前DPI缩放
+    parentTextData.m_fLetterSpacing = m_pOwner->Dpi().GetScaleFloat(m_fLetterSpacing);
+    parentTextData.m_nFirstLineIndent = m_pOwner->Dpi().GetScaleInt(m_nTextIndent);
+    parentTextData.m_nMaxLines = m_nMaxLines;
+    parentTextData.m_bTextOverflowEllipsis = m_bTextOverflowEllipsis;
 
     std::vector<RichTextDataEx> textData;
 
@@ -695,6 +805,33 @@ bool RichTextImpl::ParseTextSlice(const RichTextSlice& textSlice,
     currentTextData.m_fRowSpacingAdd = parentTextData.m_fRowSpacingAdd;
     currentTextData.m_textStyle = parentTextData.m_textStyle;
     currentTextData.m_textView = std::wstring_view(textSlice.m_text.c_str(), textSlice.m_text.size());
+    //继承父节点的排版属性
+    currentTextData.m_fLetterSpacing = parentTextData.m_fLetterSpacing;
+    currentTextData.m_nFirstLineIndent = parentTextData.m_nFirstLineIndent;
+    currentTextData.m_nMaxLines = parentTextData.m_nMaxLines;
+    currentTextData.m_bTextOverflowEllipsis = parentTextData.m_bTextOverflowEllipsis;
+    currentTextData.m_bHorizontalRule = textSlice.m_bHorizontalRule;
+    if (textSlice.m_fRowSpacingAdd != 0.0f) {
+        //段间距：由所属的文本片段增加行间距附加量
+        currentTextData.m_fRowSpacingAdd += m_pOwner->Dpi().GetScaleFloat(textSlice.m_fRowSpacingAdd);
+    }
+    if (textSlice.m_nHAlign >= 0) {
+        //逐段对齐：覆盖水平对齐方式
+        currentTextData.m_textStyle = static_cast<uint16_t>(currentTextData.m_textStyle &
+                                                            static_cast<uint16_t>(~DrawStringFormat::TEXT_HALIGN_ALL));
+        if (textSlice.m_nHAlign == 1) {
+            currentTextData.m_textStyle |= DrawStringFormat::TEXT_HCENTER;
+        }
+        else if (textSlice.m_nHAlign == 2) {
+            currentTextData.m_textStyle |= DrawStringFormat::TEXT_RIGHT;
+        }
+        else if (textSlice.m_nHAlign == 3) {
+            currentTextData.m_textStyle |= DrawStringFormat::TEXT_HJUSTIFY;
+        }
+        else {
+            currentTextData.m_textStyle |= DrawStringFormat::TEXT_LEFT;
+        }
+    }
 
     //文本中可以包含换行符和TAB（绘制时由DrawRichText负责处理）
     currentTextData.m_linkUrl = textSlice.m_linkUrl;
@@ -702,6 +839,13 @@ bool RichTextImpl::ParseTextSlice(const RichTextSlice& textSlice,
         //如果是链接的子节点，则继承父节点的链接地址
         currentTextData.m_linkUrl = parentTextData.m_linkUrl;
     }
+    currentTextData.m_linkTitle = textSlice.m_linkTitle;
+    if (currentTextData.m_linkTitle.empty()) {
+        currentTextData.m_linkTitle = parentTextData.m_linkTitle;
+    }
+    //基线偏移：用于上标/下标
+    currentTextData.m_nBaselineOffset = parentTextData.m_nBaselineOffset +
+        m_pOwner->Dpi().GetScaleInt(textSlice.m_nBaselineOffset);
     if (!textSlice.m_textColor.empty()) {
         currentTextData.m_textColor = m_pOwner->GetUiColor(textSlice.m_textColor.c_str());
     }
@@ -722,7 +866,8 @@ bool RichTextImpl::ParseTextSlice(const RichTextSlice& textSlice,
                                    textSlice.m_fontInfo.m_bBold ||
                                    textSlice.m_fontInfo.m_bUnderline ||
                                    textSlice.m_fontInfo.m_bItalic ||
-                                   textSlice.m_fontInfo.m_bStrikeOut;
+                                   textSlice.m_fontInfo.m_bStrikeOut ||
+                                   (textSlice.m_fFontScale != 1.0f);
     if (!bHasFontAttribute && (parentTextData.m_pFontInfo != nullptr)) {
         currentTextData.m_pFontInfo = parentTextData.m_pFontInfo;
     }
@@ -749,6 +894,12 @@ bool RichTextImpl::ParseTextSlice(const RichTextSlice& textSlice,
         if (textSlice.m_fontInfo.m_bStrikeOut) {
             currentTextData.m_pFontInfo->m_bStrikeOut = textSlice.m_fontInfo.m_bStrikeOut;
         }
+        if ((textSlice.m_fFontScale > 0.0f) && (textSlice.m_fFontScale != 1.0f) &&
+            (currentTextData.m_pFontInfo->m_fontSize > 0)) {
+            //字体缩放：用于 <h1>~<h6>、<sup>、<sub>
+            const float fFontSize = (float)currentTextData.m_pFontInfo->m_fontSize * textSlice.m_fFontScale;
+            currentTextData.m_pFontInfo->m_fontSize = std::max(1, (int32_t)(fFontSize + 0.5f));
+        }
     }
 
     if (!currentTextData.m_linkUrl.empty() && m_bLinkUnderlineFont &&
@@ -761,8 +912,8 @@ bool RichTextImpl::ParseTextSlice(const RichTextSlice& textSlice,
         currentTextData.m_pLinkFontInfo->m_bUnderline = true;
     }
 
-    if (!currentTextData.m_textView.empty()) {
-        //空文本节点不参与排版（链接的文本由子节点承载）
+    if (!currentTextData.m_textView.empty() || currentTextData.m_bHorizontalRule) {
+        //空文本节点不参与排版（链接的文本由子节点承载）；水平分割线没有文本，需要参与排版
         textData.push_back(currentTextData);
     }
         
@@ -1244,6 +1395,8 @@ void RichTextImpl::ButtonUp(const EventArgs& msg)
                 //在超级链接上, 并且与按下鼠标时的相同，则触发点击事件
                 if (textData.m_bMouseDown) {
                     textData.m_bMouseDown = false;
+                    //记录为已访问的链接（用于visited状态的颜色）
+                    m_visitedLinks.insert(DString(textData.m_linkUrl.c_str()));
                     Invalidate();
                     //直接使用成员中的URL，避免使用局部变量导致回调中指针失效
                     m_pOwner->SendEvent(kEventLinkClick, (WPARAM)textData.m_linkUrl.c_str());
@@ -1302,6 +1455,8 @@ void RichTextImpl::MouseMove(const EventArgs& msg)
     if (!bOnLinkUrl) {
         m_pOwner->SetToolTipText(_T(""));
     }
+    //更新悬停的链接，并派发Hover/Leave事件
+    UpdateHoveredLink(HitTestLinkGroup(msg.ptMouse));
 }
 
 void RichTextImpl::MouseHover(const EventArgs& msg)
@@ -1313,8 +1468,13 @@ void RichTextImpl::MouseHover(const EventArgs& msg)
         }
         for (const UiRect& textRect : textData.m_textRects) {
             if (textRect.ContainsPt(msg.ptMouse)) {
-                //超级链接, 显示ToolTip
-                m_pOwner->SetToolTipText(textData.m_linkUrl.c_str());
+                //超级链接, 显示ToolTip（优先使用title属性，未设置时使用URL）
+                if (!textData.m_linkTitle.empty()) {
+                    m_pOwner->SetToolTipText(textData.m_linkTitle.c_str());
+                }
+                else {
+                    m_pOwner->SetToolTipText(textData.m_linkUrl.c_str());
+                }
                 hasHover = true;
             }
         }        
@@ -1343,6 +1503,8 @@ void RichTextImpl::MouseLeave(const EventArgs& /*msg*/)
     if (bInvalidate) {
         Invalidate();
     }
+    //鼠标离开控件：派发链接的Leave事件
+    UpdateHoveredLink(-1);
 }
 
 bool RichTextImpl::OnSetCursor(const EventArgs& msg)
@@ -1362,6 +1524,227 @@ bool RichTextImpl::OnSetCursor(const EventArgs& msg)
         }
     }
     return false;
+}
+
+void RichTextImpl::GetLinkGroups(std::vector<size_t>& groupStartIndexes, std::vector<DString>& groupUrls) const
+{
+    groupStartIndexes.clear();
+    groupUrls.clear();
+    DString lastLinkUrl;
+    for (size_t nIndex = 0; nIndex < m_textData.size(); ++nIndex) {
+        const RichTextDataEx& textData = m_textData[nIndex];
+        if (textData.m_linkUrl.empty()) {
+            lastLinkUrl.clear();
+            continue;
+        }
+        if (textData.m_linkUrl != lastLinkUrl) {
+            //连续出现并且URL相同的文本片段，属于同一个链接
+            groupStartIndexes.push_back(nIndex);
+            groupUrls.push_back(textData.m_linkUrl.c_str());
+            lastLinkUrl = textData.m_linkUrl.c_str();
+        }
+    }
+}
+
+int32_t RichTextImpl::HitTestLinkGroup(const UiPoint& ptMouse) const
+{
+    std::vector<size_t> groupStartIndexes;
+    std::vector<DString> groupUrls;
+    GetLinkGroups(groupStartIndexes, groupUrls);
+    if (groupStartIndexes.empty()) {
+        return -1;
+    }
+    for (size_t nGroup = 0; nGroup < groupStartIndexes.size(); ++nGroup) {
+        const size_t nStartIndex = groupStartIndexes[nGroup];
+        const size_t nEndIndex = (nGroup + 1 < groupStartIndexes.size()) ? groupStartIndexes[nGroup + 1] : m_textData.size();
+        for (size_t nIndex = nStartIndex; nIndex < nEndIndex; ++nIndex) {
+            const RichTextDataEx& textData = m_textData[nIndex];
+            if (textData.m_linkUrl.empty()) {
+                continue;
+            }
+            for (const UiRect& textRect : textData.m_textRects) {
+                if (textRect.ContainsPt(ptMouse)) {
+                    return (int32_t)nGroup;
+                }
+            }
+        }
+    }
+    return -1;
+}
+
+void RichTextImpl::UpdateHoveredLink(int32_t nLinkGroupIndex)
+{
+    if (m_nHoveredLinkGroup == nLinkGroupIndex) {
+        return;
+    }
+    std::vector<size_t> groupStartIndexes;
+    std::vector<DString> groupUrls;
+    GetLinkGroups(groupStartIndexes, groupUrls);
+    const int32_t nOldGroupIndex = m_nHoveredLinkGroup;
+    m_nHoveredLinkGroup = nLinkGroupIndex;
+    if ((nOldGroupIndex >= 0) && ((size_t)nOldGroupIndex < groupUrls.size())) {
+        //鼠标离开链接
+        m_pOwner->SendEvent(kEventLinkLeave, (WPARAM)groupUrls[(size_t)nOldGroupIndex].c_str());
+    }
+    if ((nLinkGroupIndex >= 0) && ((size_t)nLinkGroupIndex < groupUrls.size())) {
+        //鼠标进入链接
+        m_pOwner->SendEvent(kEventLinkHover, (WPARAM)groupUrls[(size_t)nLinkGroupIndex].c_str());
+    }
+}
+
+void RichTextImpl::SetLinkColor(const DString& normalColor, const DString& hoveredColor,
+                                const DString& pressedColor, const DString& visitedColor)
+{
+    bool bChanged = false;
+    if (!normalColor.empty() && (m_linkNormalTextColor != normalColor)) {
+        m_linkNormalTextColor = normalColor;
+        bChanged = true;
+    }
+    if (!hoveredColor.empty() && (m_linkHoveredTextColor != hoveredColor)) {
+        m_linkHoveredTextColor = hoveredColor;
+        bChanged = true;
+    }
+    if (!pressedColor.empty() && (m_linkPressedTextColor != pressedColor)) {
+        m_linkPressedTextColor = pressedColor;
+        bChanged = true;
+    }
+    if (!visitedColor.empty() && (m_linkVisitedTextColor != visitedColor)) {
+        m_linkVisitedTextColor = visitedColor;
+        bChanged = true;
+    }
+    if (bChanged) {
+        Redraw();
+    }
+}
+
+size_t RichTextImpl::GetLinkCount() const
+{
+    std::vector<size_t> groupStartIndexes;
+    std::vector<DString> groupUrls;
+    GetLinkGroups(groupStartIndexes, groupUrls);
+    return groupUrls.size();
+}
+
+DString RichTextImpl::GetLinkUrl(size_t nLinkIndex) const
+{
+    std::vector<size_t> groupStartIndexes;
+    std::vector<DString> groupUrls;
+    GetLinkGroups(groupStartIndexes, groupUrls);
+    if (nLinkIndex < groupUrls.size()) {
+        return groupUrls[nLinkIndex];
+    }
+    return DString();
+}
+
+bool RichTextImpl::GetLinkRect(size_t nLinkIndex, UiRect& rcLink) const
+{
+    rcLink.Clear();
+    std::vector<size_t> groupStartIndexes;
+    std::vector<DString> groupUrls;
+    GetLinkGroups(groupStartIndexes, groupUrls);
+    if (nLinkIndex >= groupStartIndexes.size()) {
+        return false;
+    }
+    const DString linkUrl = groupUrls[nLinkIndex];
+    bool bFound = false;
+    for (size_t nIndex = groupStartIndexes[nLinkIndex]; nIndex < m_textData.size(); ++nIndex) {
+        const RichTextDataEx& textData = m_textData[nIndex];
+        if (textData.m_linkUrl.empty() || (textData.m_linkUrl != linkUrl)) {
+            break;
+        }
+        for (const UiRect& textRect : textData.m_textRects) {
+            if (!bFound) {
+                rcLink = textRect;
+                bFound = true;
+            }
+            else {
+                rcLink.left = std::min(rcLink.left, textRect.left);
+                rcLink.top = std::min(rcLink.top, textRect.top);
+                rcLink.right = std::max(rcLink.right, textRect.right);
+                rcLink.bottom = std::max(rcLink.bottom, textRect.bottom);
+            }
+        }
+    }
+    return bFound;
+}
+
+bool RichTextImpl::AppendText(const DString& richText, bool bRedraw)
+{
+    bool bResult = true;
+    if (!richText.empty()) {
+        DString trimmedText = richText;
+        StringUtil::Trim(trimmedText);
+        if (trimmedText.find(_T("<RichText")) == 0) {
+            bResult = WindowBuilder::ParseRichTextXmlText(trimmedText, m_pOwner);
+        }
+        else {
+            bResult = WindowBuilder::ParseRichTextXmlText(_T("<RichText>") + richText + _T("</RichText>"), m_pOwner);
+        }
+        if (!bResult) {
+            //追加的内容解析失败时，按纯文本追加
+            bResult = WindowBuilder::ParseRichTextXmlText(_T("<RichText>") + EscapeXmlText(richText) + _T("</RichText>"), m_pOwner);
+        }
+    }
+    //文本数据需要重新解析
+    m_textData.clear();
+    m_spDrawRichTextCache.reset();
+    m_bCachedTextRectValid = false;
+    m_nHoveredLinkGroup = -1;
+    if (bRedraw) {
+        Redraw();
+    }
+    return bResult;
+}
+
+bool RichTextImpl::OnKeyDown(const EventArgs& msg)
+{
+    std::vector<size_t> groupStartIndexes;
+    std::vector<DString> groupUrls;
+    GetLinkGroups(groupStartIndexes, groupUrls);
+    if (groupUrls.empty() || !m_pOwner->IsFocused()) {
+        return false;
+    }
+    const int32_t nGroupCount = (int32_t)groupUrls.size();
+    if (msg.vkCode == kVK_TAB) {
+        //Tab/Shift+Tab：在链接之间切换键盘焦点
+        const bool bShiftKey = ((msg.modifierKey & kShift) != 0);
+        int32_t nGroupIndex = m_nFocusedLinkGroup;
+        if (bShiftKey) {
+            nGroupIndex = (nGroupIndex <= 0) ? (nGroupCount - 1) : (nGroupIndex - 1);
+        }
+        else {
+            nGroupIndex = ((nGroupIndex < 0) || (nGroupIndex >= (nGroupCount - 1))) ? 0 : (nGroupIndex + 1);
+        }
+        if (nGroupIndex != m_nFocusedLinkGroup) {
+            m_nFocusedLinkGroup = nGroupIndex;
+            Invalidate();
+        }
+        return true;
+    }
+    if ((msg.vkCode == kVK_RETURN) && (m_nFocusedLinkGroup >= 0) && (m_nFocusedLinkGroup < nGroupCount)) {
+        //Enter：触发当前聚焦的链接
+        DString linkUrl = groupUrls[(size_t)m_nFocusedLinkGroup];
+        m_visitedLinks.insert(linkUrl);
+        Invalidate();
+        m_pOwner->SendEvent(kEventLinkClick, (WPARAM)linkUrl.c_str());
+        return true;
+    }
+    return false;
+}
+
+void RichTextImpl::RButtonUp(const EventArgs& msg)
+{
+    //鼠标右键：复制链接地址到剪贴板
+    const int32_t nGroupIndex = HitTestLinkGroup(msg.ptMouse);
+    if (nGroupIndex < 0) {
+        return;
+    }
+    std::vector<size_t> groupStartIndexes;
+    std::vector<DString> groupUrls;
+    GetLinkGroups(groupStartIndexes, groupUrls);
+    if ((size_t)nGroupIndex < groupUrls.size()) {
+        Clipboard::SetClipboardText(StringConvert::TToWString(groupUrls[(size_t)nGroupIndex]));
+    }
 }
 
 } // namespace ui

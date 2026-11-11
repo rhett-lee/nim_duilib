@@ -294,6 +294,18 @@
   CEF 开关与平台提示），其中文/英文输出随 `DUILIB_LANG` 切换。由于消息目录用
   `string(JSON)` 解析，该文件的 `cmake_minimum_required` 由 3.18 提为 3.19（根工程
   入口仍要求 3.24），见 `cmake/README.md` 的「构建消息目录」。
+- RichText 功能扩展（可扩展项，第一批）：
+  - 标签体系：新增 `<span color>`（局部着色别名）、`<p align>`、`<h1>`~`<h6>`（字号层级与加粗）、
+    `<ul>/<ol>/<li>`（项目符号）、`<sup>/<sub>`（上标/下标）、`<hr color>`（水平分割线）、
+    `<a title>`（自定义悬停提示，未指定时仍以 URL 作为提示）；
+  - 排版能力：新增 `text_align="justify"`（两端对齐，段落的最后一行保持左对齐）、
+    `letter_spacing`（字间距）、`text_indent`（首行缩进）、`paragraph_spacing`（段落间距）、
+    `max_lines` 配合 `text_overflow="ellipsis|clip"`（限制行数并在行尾显示省略号或直接裁剪）；
+  - 链接能力：新增 `visited_link_font_color`（点击后使用“已访问”颜色）、
+    悬停/离开事件 `kEventLinkHover`/`kEventLinkLeave`、键盘 Tab/Shift+Tab 聚焦 + Enter 触发、
+    右键“复制链接地址”；
+  - 运行时接口：`AppendText`（追加富文本，可选择是否立即重绘）、`SetLinkColor`（设置链接各状态颜色）、
+    `GetLinkCount`/`GetLinkUrl`/`GetLinkRect`（按索引查询链接数量、URL 与命中矩形）。
 
 ### 移除
 

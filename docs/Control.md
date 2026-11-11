@@ -3224,7 +3224,7 @@ RichText是带有格式的文本，其格式类似于HTML标签，格式文本�
 支持的标签列表：    
 ```cpp
    // 支持的标签列表(兼容HTML的标签):
-   // 超级链接：   <a href="URL">文本</a>（链接内可以嵌套其他格式标签，如 <a href="URL"><b>文本</b></a>）
+   // 超级链接：   <a href="URL" title="提示文本">文本</a>（链接内可以嵌套其他格式标签，如 <a href="URL"><b>文本</b></a>；title 为鼠标悬停提示，未指定时以 URL 作为提示）
    // 粗体字:      <b> </b>
    // 斜体字:      <i> </i>
    // 删除字:      <s> </s> 或 <del> </del> 或者 <strike> </strike>
@@ -3232,6 +3232,12 @@ RichText是带有格式的文本，其格式类似于HTML标签，格式文本�
    // 设置背景色:  <bgcolor color="#000000"> </bgcolor>
    // 设置字体:    <font face="宋体" size="12" color="#000000">（size 取值范围为 1~512，超出时按边界值处理）
    // 换行标签：   <br/>
+   // 别名标签：   <span color="#000000"> </span>（等价于只设置颜色的 <font>，便于局部着色）
+   // 段落标签：   <p align="left|center|right|justify"> </p>（段前自动换行，支持逐段对齐）
+   // 标题标签：   <h1> </h1> ~ <h6> </h6>（字号依次为 2.0/1.6/1.3/1.1/1.0/0.9 倍且加粗，支持 align 属性）
+   // 列表标签：   <ul> </ul> / <ol> </ol> 内的 <li> </li>（每个 li 前自动添加项目符号）
+   // 上标下标：   <sup> </sup> / <sub> </sub>（缩小字号，并分别向上/向下偏移）
+   // 水平分割线： <hr color="#000000"/>（独占一行，颜色可选）
 ```
 未识别的标签会被忽略，但其内部的文本内容仍会被保留并显示。
 当 `word_wrap="false"`（不自动换行）时，超出控件宽度的文本会显示省略号。
@@ -3239,7 +3245,7 @@ RichText是带有格式的文本，其格式类似于HTML标签，格式文本�
 
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
-| text_align | "left,top" | string | 文字的水平与垂直对齐方式, 可取值: left、right、hcenter、center、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter"（"center"与"hcenter"等价） |
+| text_align | "left,top" | string | 文字的水平与垂直对齐方式, 可取值: left、right、hcenter、center、justify、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter"（"center"与"hcenter"等价；"justify"为两端对齐，段落的最后一行保持左对齐） |
 | text_padding |  | rect | 文本内边距，如："2,2,2,2" |
 | font | | string | 字体ID |
 | text_color | | string | 默认文本颜色 |
@@ -3250,10 +3256,19 @@ RichText是带有格式的文本，其格式类似于HTML标签，格式文本�
 | default_link_font_color | | string | 超级链接：常规文本颜色值 |
 | hovered_link_font_color | | string | 超级链接：Hover状态文本颜色值 |
 | pressed_link_font_color | | string | 超级链接：鼠标按下状态文本颜色值 |
+| visited_link_font_color | | string | 超级链接：已访问状态文本颜色值（点击过的链接） |
 | link_font_underline | true | bool | 超级链接：是否使用带下划线的字体（常规状态和Hover状态均生效） |
 | row_spacing_mul | 1.0 | float | 行间距倍数, 比如1.5代表1.5倍行间距 |
 | row_spacing_add  |0    | float  | 行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素）|
+| letter_spacing | 0 | float | 字间距（像素）：大于0时按逐字绘制，0表示使用字体默认间距 |
+| text_indent | 0 | int | 首行缩进（像素），只对段落的第一行生效 |
+| paragraph_spacing | 0 | int | 段落间距（像素），用于 `<p>`/`<h1>`~`<h6>`/`<ul>`/`<li>`/`<hr>` 之间的附加间距 |
+| max_lines | 0 | int | 最大显示行数，0表示不限制；超出时按 text_overflow 处理 |
+| text_overflow | "ellipsis" | string | 超出 max_lines 时的处理方式："ellipsis"表示在行尾显示省略号，"clip"表示直接裁剪 |
 | word_wrap | true| bool | 是否自动换行，如果为false，则只有在`<br/>`标签的时候才换行，且超出控件宽度的文本显示省略号 |
+
+链接相关运行时接口：`AppendText`（追加富文本，可选择是否立即重绘）、`SetLinkColor`（设置链接常规/Hover/按下/已访问颜色）、`GetLinkCount`/`GetLinkUrl`/`GetLinkRect`（按链接索引获取数量、URL 和命中矩形）。
+链接支持键盘 Tab/Shift+Tab 聚焦，Enter 触发点击；鼠标悬停/离开时派发 `kEventLinkHover`/`kEventLinkLeave` 事件，右键菜单支持“复制链接地址”。
 
 RichText 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
 

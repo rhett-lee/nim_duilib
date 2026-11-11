@@ -78,6 +78,8 @@
 |kEventTab                  |     |     |     |     |       |     | 无参数   |
 |kEventEsc                  |     |     |     |     |       |     | 无参数；RichEdit、AddressBar等输入类控件收到ESC键时派发 |
 |kEventLinkClick            | DString.c_str()<br> URL字符串    |     |     |     |       |     |     |
+|kEventLinkHover            | DString.c_str()<br> URL字符串    |     |     |     |       |     | RichText类：鼠标进入链接时触发（指针仅同步有效）|
+|kEventLinkLeave            | DString.c_str()<br> URL字符串    |     |     |     |       |     | RichText类：鼠标离开链接时触发（指针仅同步有效）|
 |kEventScrollPosChanged     | 0: cy无变化<br> 1: cy有变化   | 0: cx无变化<br> 1: cx有变化    |     |     |       |     |     |
 |kEventValueChanged         |新值 | 旧值 |     |     |       |     | Slider类：值发生变化时触发 |
 |kEventProgressCompleted    |     |     |     |     |       |     | Progress类：进度值到达完成端点（正向到max、倒数到min）时触发一次，无参数 |

@@ -80,6 +80,8 @@ The content related to control events is defined in the files [`duilib/Core/Even
 |kEventTab                  |     |     |     |     |       |     | No parameters   |
 |kEventEsc                  |     |     |     |     |       |     | No parameters; fired when input controls such as RichEdit and AddressBar receive ESC |
 |kEventLinkClick            | DString.c_str()<br> URL string    |     |     |     |       |     |     |
+|kEventLinkHover            | DString.c_str()<br> URL string    |     |     |     |       |     | RichText: fired when the mouse enters a link (the pointer is only valid synchronously) |
+|kEventLinkLeave            | DString.c_str()<br> URL string    |     |     |     |       |     | RichText: fired when the mouse leaves a link (the pointer is only valid synchronously) |
 |kEventScrollPosChanged     | 0: cy unchanged<br> 1: cy changed   | 0: cx unchanged<br> 1: cx changed    |     |     |       |     |     |
 |kEventValueChanged         |New value | Old value |     |     |       |     | Slider: fired when the value changes |
 |kEventProgressCompleted    |     |     |     |     |       |     | Progress: fired once when the value reaches the completion endpoint (max forward, min countdown); no parameters |

@@ -53,7 +53,42 @@ struct TPendingDrawRichText
     /** 绘制文字的属性(包含文本对齐方式等属性，参见 enum DrawStringFormat)
     */
     uint16_t m_textStyle = 0;
+
+    /** 字间距（像素） */
+    SkScalar m_fLetterSpacing = 0;
+
+    /** 两端对齐时，额外分配给每个字形的间距（像素） */
+    SkScalar m_fJustifySpacing = 0;
+
+    /** 本段文本包含的字形数量（用于两端对齐） */
+    uint32_t m_nGlyphCount = 0;
+
+    /** 是否绘制水平分割线（用于 <hr> 标签） */
+    bool m_bHorizontalRule = false;
 };
+
+/** 省略号的文本内容（静态存储，绘制缓存中以 string_view 引用）
+*/
+static const DStringW::value_type g_ellipsisText[] = { (DStringW::value_type)0x2026, (DStringW::value_type)0 };
+
+/** 获取省略号的文本视图
+*/
+static std::wstring_view GetEllipsisTextView()
+{
+    return std::wstring_view(g_ellipsisText, 1);
+}
+
+/** 文本中是否包含可绘制的字符（排除回车和换行符）
+*/
+static bool HasDrawableText(const std::wstring_view& textView)
+{
+    for (DStringW::value_type ch : textView) {
+        if ((ch != L'\r') && (ch != L'\n')) {
+            return true;
+        }
+    }
+    return false;
+}
 
 /** 绘制缓存
 */
@@ -218,14 +253,91 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
     //是否正在绘制TAB键（按4个字符对齐）
     bool bDrawTabChar = false;
 
+    //当前是否为段落的起始位置（首行缩进只对段落的第一行生效）
+    bool bParagraphStart = true;
+
+    //当前行是否已经绘制了文本（用于避免块级标签产生多余的空行）
+    bool bRowHasText = false;
+
+    //段落结束的行号（这些行不做两端对齐）
+    std::vector<uint8_t> rowParagraphEnd;
+    auto markRowParagraphEnd = [&rowParagraphEnd](uint32_t nRow) {
+        if (rowParagraphEnd.size() <= nRow) {
+            rowParagraphEnd.resize((size_t)nRow + 1, 0);
+        }
+        rowParagraphEnd[(size_t)nRow] = 1;
+    };
+
+    //是否因超出最大行数而截断
+    bool bTruncated = false;
+
+    //截断时最后一行的top坐标与是否显示省略号
+    int32_t nTruncatedRowTop = 0;
+    bool bTruncatedEllipsis = true;
+
     // const DString statHashBreakName = _T("DrawRichText::InternalDrawRichText Break");
     // PerformanceUtil::Instance().AddStat(statHashBreakName);
     // static const size_t statHashBreak = std::hash<DString>{}(statHashBreakName); //2710 ms
 
     for (size_t index = 0; index < richTextData.size(); ++index) {
         const RichTextData& textData = richTextData[index];
+        if (textData.m_bHorizontalRule) {
+            //水平分割线：独占一行
+            if (xPos > (SkScalar)rcDrawRect.left) {
+                ASSERT(((int64_t)yPos + (int64_t)nRowHeight) < INT32_MAX);
+                yPos += nRowHeight;
+                SaveRowHeight(rowHeightVector, nRowIndex, nRowHeight);
+                SaveRowWidth(rowWidthVector, nRowIndex, SkScalarCeilToInt(rowRightX - rcDrawRect.left));
+                markRowParagraphEnd(nRowIndex);
+                xPos = (SkScalar)rcDrawRect.left;
+                rowRightX = xPos;
+                nRowHeight = 0;
+                bRowHasText = false;
+                ++nRowIndex;
+                ++nLineNumber;
+            }
+            const int32_t nHrHeight = 1;
+            TPendingDrawRichText& hrData = pendingTextData.emplace_back();
+            hrData.m_nDataIndex = (uint32_t)index;
+            hrData.m_nLineNumber = nLineNumber;
+            hrData.m_nRowIndex = nRowIndex;
+            hrData.m_textStyle = textData.m_textStyle;
+            hrData.m_textColor = textData.m_textColor;
+            hrData.m_bHorizontalRule = true;
+            hrData.m_destRect.left = rcDrawRect.left;
+            hrData.m_destRect.right = rcDrawRect.right;
+            hrData.m_destRect.top = yPos;
+            hrData.m_destRect.bottom = yPos + nHrHeight;
+            SaveRowHeight(rowHeightVector, nRowIndex, nHrHeight);
+            SaveRowWidth(rowWidthVector, nRowIndex, rcDrawRect.Width());
+            yPos += nHrHeight;
+            xPos = (SkScalar)rcDrawRect.left;
+            rowRightX = xPos;
+            nRowHeight = 0;
+            bRowHasText = false;
+            ++nRowIndex;
+            ++nLineNumber;
+            bParagraphStart = true;
+            if (bBreakWhenOutOfRect && (yPos >= nTextRectBottomMax)) {
+                break;
+            }
+            if ((textData.m_nMaxLines > 0) && (nRowIndex >= (uint32_t)textData.m_nMaxLines)) {
+                bTruncated = true;
+                nTruncatedRowTop = (int32_t)(yPos - nHrHeight);
+                bTruncatedEllipsis = textData.m_bTextOverflowEllipsis;
+                break;
+            }
+            continue;
+        }
         if (textData.m_textView.empty()) {
             continue;
+        }
+
+        //首行缩进：仅对段落的第一行生效（纯换行符不缩进，避免产生空行占位）
+        if (bParagraphStart && (textData.m_nFirstLineIndent > 0) && (xPos <= (SkScalar)rcDrawRect.left) &&
+            HasDrawableText(textData.m_textView)) {
+            xPos += (SkScalar)textData.m_nFirstLineIndent;
+            rowRightX = std::max(rowRightX, xPos);
         }
 
         //设置文本颜色
@@ -322,16 +434,32 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
 
                     //换行：执行换行操作(物理换行)
                     if (!bSingleLineMode) {
+                        if (!bRowHasText && (nRowHeight == 0) && (nRowIndex > 0)) {
+                            //当前行是空行且行高为0（例如块级标签紧跟在<hr>之后），忽略这个多余的换行，避免产生空行
+                            bParagraphStart = true;
+                            continue;
+                        }
                         xPos = (SkScalar)rcDrawRect.left;
                         ASSERT(((int64_t)yPos + (int64_t)nRowHeight) < INT32_MAX);
                         yPos += nRowHeight;
                         SaveRowHeight(rowHeightVector, nRowIndex, nRowHeight);
                         SaveRowWidth(rowWidthVector, nRowIndex, SkScalarCeilToInt(rowRightX - rcDrawRect.left));
+                        markRowParagraphEnd(nRowIndex);
                         rowRightX = (SkScalar)rcDrawRect.left;
                         nRowHeight = nFontHeight;
+                        bRowHasText = false;
                         ++nRowIndex;
                         ++nLineTextRowIndex;
                         ++nLineNumber;
+                        bParagraphStart = true;
+                        if ((textData.m_nMaxLines > 0) && (nRowIndex >= (uint32_t)textData.m_nMaxLines)) {
+                            //超过最大行数：终止绘制
+                            bTruncated = true;
+                            nTruncatedRowTop = (int32_t)(yPos - rowHeightVector[nRowIndex - 1]);
+                            bTruncatedEllipsis = textData.m_bTextOverflowEllipsis;
+                            bBreakAll = true;
+                            break;
+                        }
                     }
                     continue; //处理下一行
                 }
@@ -396,6 +524,35 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                                                           measureTempData, &breakTextData);
                 }
 
+                //字间距：BreakText按字体默认间距计算，这里按字间距修正可绘制的字形数量
+                if (!bDrawTabChar && (nDrawLength > 0) && (textData.m_fLetterSpacing > 0.0f)) {
+                    while (!breakTextData.glyphWidths.empty()) {
+                        SkScalar fTotalWidth = 0;
+                        const size_t nGlyphCount = breakTextData.glyphWidths.size();
+                        for (size_t nGlyph = 0; nGlyph < nGlyphCount; ++nGlyph) {
+                            fTotalWidth += breakTextData.glyphWidths[nGlyph];
+                            if ((nGlyph + 1) < nGlyphCount) {
+                                fTotalWidth += textData.m_fLetterSpacing;
+                            }
+                        }
+                        if ((nGlyphCount <= 1) || (fTotalWidth <= maxWidth)) {
+                            //当前字形可以放下
+                            textMeasuredWidth = fTotalWidth;
+                            nDrawLength = 0;
+                            for (size_t nGlyph = 0; nGlyph < nGlyphCount; ++nGlyph) {
+                                nDrawLength += breakTextData.glyphChars[nGlyph];
+                            }
+                            break;
+                        }
+                        //放不下时，去掉最后一个字形后重新计算
+                        const size_t nLastGlyph = nGlyphCount - 1;
+                        nDrawLength -= breakTextData.glyphChars[nLastGlyph];
+                        breakTextData.glyphIDs.resize(nLastGlyph);
+                        breakTextData.glyphChars.resize(nLastGlyph);
+                        breakTextData.glyphWidths.resize(nLastGlyph);
+                    }
+                }
+
                 //校验
                 bool bBreakTextError = false;
                 if (nDrawLength == 0) {
@@ -437,14 +594,18 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                     newPendingTextData.m_bgColor = textData.m_bgColor;
                     newPendingTextData.m_textColor = textData.m_textColor;
                     newPendingTextData.m_textStyle = textData.m_textStyle;
+                    newPendingTextData.m_fLetterSpacing = textData.m_fLetterSpacing;
+                    newPendingTextData.m_nGlyphCount = (uint32_t)breakTextData.glyphIDs.size();
+                    bParagraphStart = false;
+                    bRowHasText = true;
 
                     //绘制文字所需的矩形区域
                     newPendingTextData.m_destRect.left = SkScalarTruncToInt(xPos); //左值：直接截断，如果有小数部分，直接去掉小数即可
 
                     SkScalar fRight = xPos + textMeasuredWidth;             //右值：如果有小数，则需要增加1个像素
                     newPendingTextData.m_destRect.right = SkScalarCeilToInt(fRight);
-                    newPendingTextData.m_destRect.top = yPos;
-                    newPendingTextData.m_destRect.bottom = yPos + SkScalarCeilToInt(textMeasuredHeight); //记录字符的真实高度
+                    newPendingTextData.m_destRect.top = yPos + textData.m_nBaselineOffset;
+                    newPendingTextData.m_destRect.bottom = yPos + textData.m_nBaselineOffset + SkScalarCeilToInt(textMeasuredHeight); //记录字符的真实高度
                     rowRightX = std::max(rowRightX, fRight); //更新本行的最右侧坐标
 
                     if (pLineInfoParam != nullptr) {
@@ -506,8 +667,18 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                     SaveRowWidth(rowWidthVector, nRowIndex, SkScalarCeilToInt(rowRightX - rcDrawRect.left));
                     rowRightX = (SkScalar)rcDrawRect.left;
                     nRowHeight = nFontHeight;
+                    bRowHasText = false;
                     ++nRowIndex;
                     ++nLineTextRowIndex;
+
+                    if ((textData.m_nMaxLines > 0) && (nRowIndex >= (uint32_t)textData.m_nMaxLines)) {
+                        //超过最大行数：终止绘制
+                        bTruncated = true;
+                        nTruncatedRowTop = (int32_t)(yPos - rowHeightVector[nRowIndex - 1]);
+                        bTruncatedEllipsis = textData.m_bTextOverflowEllipsis;
+                        bBreakAll = true;
+                        break;
+                    }
 
                     if (bBreakWhenOutOfRect && (yPos >= nTextRectBottomMax)) {
                         //Y坐标底部已经超出目标矩形的范围，终止绘制
@@ -528,6 +699,64 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
     //记录最后一行的行高
     SaveRowHeight(rowHeightVector, nRowIndex, nRowHeight);
     SaveRowWidth(rowWidthVector, nRowIndex, SkScalarCeilToInt(rowRightX - rcDrawRect.left));
+
+    //超过最大行数：在最后一行的末尾追加省略号（text_overflow="clip"时不追加）
+    if (bTruncated && bTruncatedEllipsis && (spLastSkiaFont != nullptr) && (nRowIndex > 0)) {
+        const uint32_t nLastRow = nRowIndex - 1;
+        Font_Skia* pLastFont = dynamic_cast<Font_Skia*>(spLastSkiaFont.get());
+        const SkFont* pLastSkFont = (pLastFont != nullptr) ? pLastFont->GetFontHandle() : nullptr;
+        if ((pLastSkFont != nullptr) && (nLastRow < rowHeightVector.size()) && (nLastRow < rowWidthVector.size())) {
+            FallbackFontCreator fallbackFontCreator = [this, spLastSkiaFont](SkUnichar unicodeChar, SkGlyphID* glyphId) {
+                return DrawSkiaText::CreateFallbackFont(spLastSkiaFont.get(), unicodeChar, glyphId);
+                };
+            const SkScalar fEllipsisWidth = DrawSkiaText::MeasureTextChar(*pLastSkFont, (DUTF32Char)0x2026, nullptr, m_pSkPaint, fallbackFontCreator, true);
+            SkScalar fLeft = (SkScalar)rcDrawRect.left + (SkScalar)rowWidthVector[nLastRow];
+            if ((fLeft + fEllipsisWidth) > (SkScalar)rcDrawRect.right) {
+                fLeft = (SkScalar)rcDrawRect.right - fEllipsisWidth;
+            }
+            fLeft = std::max(fLeft, (SkScalar)rcDrawRect.left);
+
+            TPendingDrawRichText& ellipsisData = pendingTextData.emplace_back();
+            ellipsisData.m_nDataIndex = richTextData.empty() ? 0 : (uint32_t)(richTextData.size() - 1);
+            ellipsisData.m_nLineNumber = nLineNumber;
+            ellipsisData.m_nRowIndex = nLastRow;
+            ellipsisData.m_textView = GetEllipsisTextView();
+            ellipsisData.m_spFont = spLastSkiaFont;
+            ellipsisData.m_textColor = textColor;
+            ellipsisData.m_destRect.left = SkScalarTruncToInt(fLeft);
+            ellipsisData.m_destRect.right = SkScalarCeilToInt(fLeft + fEllipsisWidth + 1);
+            ellipsisData.m_destRect.top = nTruncatedRowTop;
+            ellipsisData.m_destRect.bottom = nTruncatedRowTop + rowHeightVector[nLastRow];
+        }
+    }
+
+    //逐行两端对齐：把行内的剩余宽度平均分配到该行的每个字形之间
+    const int32_t nAvailableWidth = rcDrawRect.Width();
+    if ((nAvailableWidth > 0) && !pendingTextData.empty()) {
+        std::vector<uint32_t> rowGlyphCount(rowWidthVector.size(), 0);
+        for (const TPendingDrawRichText& textData : pendingTextData) {
+            if (!textData.m_bHorizontalRule && (textData.m_nRowIndex < rowGlyphCount.size())) {
+                rowGlyphCount[textData.m_nRowIndex] += textData.m_nGlyphCount;
+            }
+        }
+        const size_t nLastRowIndex = rowWidthVector.empty() ? 0 : (rowWidthVector.size() - 1);
+        for (TPendingDrawRichText& textData : pendingTextData) {
+            if (textData.m_bHorizontalRule || ((textData.m_textStyle & DrawStringFormat::TEXT_HJUSTIFY) == 0)) {
+                continue;
+            }
+            if ((textData.m_nRowIndex >= nLastRowIndex) || (textData.m_nRowIndex >= rowWidthVector.size())) {
+                continue; //最后一行不两端对齐
+            }
+            if ((textData.m_nRowIndex < rowParagraphEnd.size()) && (rowParagraphEnd[textData.m_nRowIndex] != 0)) {
+                continue; //段落的最后一行不两端对齐
+            }
+            const int32_t nRowWidth = rowWidthVector[textData.m_nRowIndex];
+            const uint32_t nGlyphCount = rowGlyphCount[textData.m_nRowIndex];
+            if ((nGlyphCount > 1) && (nRowWidth > 0) && (nRowWidth < nAvailableWidth)) {
+                textData.m_fJustifySpacing = (SkScalar)(nAvailableWidth - nRowWidth) / (SkScalar)(nGlyphCount - 1);
+            }
+        }
+    }
 
     //更新每行的行高(只有提前确定行高，才能正确绘制纵向对齐的文本)
     for (TPendingDrawRichText& textData : pendingTextData) {
@@ -592,6 +821,12 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                 continue;
             }
 
+            //绘制水平分割线
+            if (textData.m_bHorizontalRule) {
+                m_pRender->FillRect(UiRectF::MakeFromRect(rcTemp), textData.m_textColor, uFade);
+                continue;
+            }
+
             //绘制文字的背景色（无背景色时不绘制，与使用缓存时的逻辑保持一致）
             if (!textData.m_bgColor.IsEmpty()) {
                 m_pRender->FillRect(UiRectF::MakeFromRect(rcDestRect), textData.m_bgColor, uFade);
@@ -624,15 +859,125 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                                skPaint, textData.m_spFont.get());
             }
             else {
-                const char* text = (const char*)textData.m_textView.data();
-                const size_t len = textData.m_textView.size() * textCharSize; //字节数
-                DrawTextString(rcDrawText, text, len, textEncoding,
-                               uDrawFormat,
-                               skPaint, textData.m_spFont.get());
+                //字间距 + 两端对齐的额外间距
+                const SkScalar fSpacing = textData.m_fLetterSpacing + textData.m_fJustifySpacing;
+                DrawTextRun(rcDrawText, textData.m_textView, textCharSize, textEncoding,
+                            uDrawFormat, skPaint, textData.m_spFont.get(), fSpacing);
             }
         }
     }
     return;
+}
+
+void DrawRichText::DrawTextRun(const UiRect& textRect, const std::wstring_view& textView, size_t textCharSize,
+                               SkTextEncoding textEncoding, uint32_t uFormat,
+                               const SkPaint& skPaint, IFont* pFont, float fSpacing) const
+{
+    if (textView.empty() || (pFont == nullptr)) {
+        return;
+    }
+    if (fSpacing <= 0.0f) {
+        //按默认字间距绘制
+        const char* text = (const char*)textView.data();
+        const size_t len = textView.size() * textCharSize; //字节数
+        DrawTextString(textRect, text, len, textEncoding, uFormat, skPaint, pFont);
+        return;
+    }
+
+    //按字间距逐字绘制
+    Font_Skia* pSkiaFont = dynamic_cast<Font_Skia*>(pFont);
+    if ((pSkiaFont == nullptr) || (m_pSkCanvas == nullptr) || (m_pSkPointOrg == nullptr)) {
+        return;
+    }
+    const SkFont* pSkFont = pSkiaFont->GetFontHandle();
+    if (pSkFont == nullptr) {
+        return;
+    }
+
+    FallbackFontCreator fallbackFontCreator = [this, pFont](SkUnichar unicodeChar, SkGlyphID* glyphId) {
+        return DrawSkiaText::CreateFallbackFont(pFont, unicodeChar, glyphId);
+        };
+
+    struct TGlyphItem
+    {
+        DUTF32Char m_ch = 0;
+        SkScalar m_fWidth = 0;
+    };
+    std::vector<TGlyphItem> glyphItems;
+    glyphItems.reserve(textView.size());
+
+    SkScalar fTotalWidth = 0;
+    for (size_t nIndex = 0; nIndex < textView.size();) {
+        DUTF32Char ch = (DUTF32Char)textView[nIndex];
+        size_t nCharCount = 1;
+        if ((sizeof(DStringW::value_type) == sizeof(uint16_t)) &&
+            (ch >= 0xD800) && (ch <= 0xDBFF) && ((nIndex + 1) < textView.size())) {
+            const DUTF32Char chLow = (DUTF32Char)textView[nIndex + 1];
+            if ((chLow >= 0xDC00) && (chLow <= 0xDFFF)) {
+                //UTF16编码的代理对
+                ch = 0x10000 + ((ch - 0xD800) << 10) + (chLow - 0xDC00);
+                nCharCount = 2;
+            }
+        }
+        TGlyphItem& glyphItem = glyphItems.emplace_back();
+        glyphItem.m_ch = ch;
+        glyphItem.m_fWidth = DrawSkiaText::MeasureTextChar(*pSkFont, ch, nullptr, &skPaint, fallbackFontCreator, true);
+        fTotalWidth += glyphItem.m_fWidth;
+        if ((nIndex + nCharCount) < textView.size()) {
+            fTotalWidth += fSpacing;
+        }
+        nIndex += nCharCount;
+    }
+    if (glyphItems.empty()) {
+        return;
+    }
+
+    SkFontMetrics fontMetrics;
+    pSkFont->getMetrics(&fontMetrics);
+    const SkScalar fTextHeight = fontMetrics.fDescent - fontMetrics.fAscent;
+    const SkScalar fBoxWidth = SkIntToScalar(textRect.Width());
+    const SkScalar fBoxHeight = SkIntToScalar(textRect.Height());
+
+    //水平对齐
+    SkScalar fX = SkIntToScalar(textRect.left);
+    if (fTotalWidth < fBoxWidth) {
+        if (uFormat & DrawStringFormat::TEXT_HCENTER) {
+            fX += (fBoxWidth - fTotalWidth) / 2;
+        }
+        else if (uFormat & DrawStringFormat::TEXT_RIGHT) {
+            fX += fBoxWidth - fTotalWidth;
+        }
+    }
+
+    //纵向对齐
+    SkScalar fTop = SkIntToScalar(textRect.top);
+    if (uFormat & DrawStringFormat::TEXT_VCENTER) {
+        fTop += (fBoxHeight - fTextHeight) / 2;
+    }
+    else if (uFormat & DrawStringFormat::TEXT_BOTTOM) {
+        fTop += fBoxHeight - fTextHeight;
+    }
+    const SkScalar fBaseline = fTop - fontMetrics.fAscent;
+
+    //裁剪到绘制区域（两端对齐/字间距会使文本超出片段自身的宽度，这里按整段文本的实际宽度放宽右边界）
+    SkCanvas* skCanvas = m_pSkCanvas;
+    skCanvas->save();
+    SkScalar fClipRight = SkIntToScalar(textRect.right);
+    const SkScalar fRunRight = fX + fTotalWidth;
+    if (fRunRight > fClipRight) {
+        fClipRight = fRunRight;
+    }
+    SkRect rcClip = SkRect::MakeLTRB(SkIntToScalar(textRect.left), SkIntToScalar(textRect.top),
+                                     fClipRight, SkIntToScalar(textRect.bottom));
+    rcClip.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
+    skCanvas->clipRect(rcClip);
+    for (const TGlyphItem& glyphItem : glyphItems) {
+        DrawSkiaText::DrawSimpleText(skCanvas, glyphItem.m_ch,
+                                     fX + m_pSkPointOrg->fX, fBaseline + m_pSkPointOrg->fY,
+                                     *pSkFont, skPaint, fallbackFontCreator);
+        fX += glyphItem.m_fWidth + fSpacing;
+    }
+    skCanvas->restore();
 }
 
 void DrawRichText::SplitLines(const std::wstring_view& lineText, std::vector<uint32_t>& lineSeprators, std::vector<std::wstring_view>& lineTextViewList)
@@ -834,6 +1179,22 @@ bool DrawRichText::IsValidDrawRichTextCache(const UiRect& textRect,
             bValid = false;
         }
         else if (textData.m_textStyle != textDataCache.m_textStyle) {
+            bValid = false;
+        }
+        else if (textData.m_fLetterSpacing != textDataCache.m_fLetterSpacing) {
+            bValid = false;
+        }
+        else if (textData.m_nBaselineOffset != textDataCache.m_nBaselineOffset) {
+            bValid = false;
+        }
+        else if (textData.m_nFirstLineIndent != textDataCache.m_nFirstLineIndent) {
+            bValid = false;
+        }
+        else if ((textData.m_nMaxLines != textDataCache.m_nMaxLines) ||
+                 (textData.m_bTextOverflowEllipsis != textDataCache.m_bTextOverflowEllipsis)) {
+            bValid = false;
+        }
+        else if (textData.m_bHorizontalRule != textDataCache.m_bHorizontalRule) {
             bValid = false;
         }
 
@@ -1229,6 +1590,16 @@ void DrawRichText::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache
             continue;
         }
 
+        //绘制水平分割线
+        if (textData.m_bHorizontalRule) {
+            const UiColor* pDrawTextColor = &textData.m_textColor;
+            if ((pTextColors != nullptr) && (textData.m_nDataIndex < pTextColors->size())) {
+                pDrawTextColor = &((*pTextColors)[textData.m_nDataIndex]);
+            }
+            m_pRender->FillRect(UiRectF::MakeFromRect(rcTemp), *pDrawTextColor, uFade);
+            continue;
+        }
+
         //绘制文字的背景色
         if (!textData.m_bgColor.IsEmpty()) {
             m_pRender->FillRect(UiRectF::MakeFromRect(rcDestRect), textData.m_bgColor, uFade);
@@ -1266,11 +1637,10 @@ void DrawRichText::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache
                             skPaint, textData.m_spFont.get());
         }
         else {
-            const char* text = (const char*)textData.m_textView.data();
-            size_t len = textData.m_textView.size() * textCharSize; //字节数
-            DrawTextString(rcDrawText, text, len, textEncoding,
-                           uDrawFormat,
-                           skPaint, textData.m_spFont.get());
+            //字间距 + 两端对齐的额外间距
+            const SkScalar fSpacing = textData.m_fLetterSpacing + textData.m_fJustifySpacing;
+            DrawTextRun(rcDrawText, textData.m_textView, textCharSize, textEncoding,
+                        uDrawFormat, skPaint, textData.m_spFont.get(), fSpacing);
         }
     }
 }

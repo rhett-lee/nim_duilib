@@ -3221,7 +3221,7 @@ Example: <RichText>RichText demo: <a href="URL">text</a></RichText>
 List of supported tags:    
 ```cpp
    // List of supported tags (compatible with HTML tags):
-   // Hyperlink:   <a href="URL">text</a> (other format tags can be nested inside the link, e.g. <a href="URL"><b>text</b></a>)
+   // Hyperlink:   <a href="URL" title="tooltip">text</a> (other format tags can be nested inside the link, e.g. <a href="URL"><b>text</b></a>; title is the hover tooltip, and the URL is used when it is not specified)
    // Bold:      <b> </b>
    // Italic:      <i> </i>
    // Strikethrough:      <s> </s>  or <del> </del>  or <strike> </strike>
@@ -3229,13 +3229,19 @@ List of supported tags:
    // Set background color:  <bgcolor color="#000000"> </bgcolor>
    // Set font:    <font face="SimSun" size="12" color="#000000"> (size range is 1~512; out-of-range values are clamped)
    // Line break tag:   <br/>
+   // Alias tag:   <span color="#000000"> </span> (equivalent to a <font> that only sets the color)
+   // Paragraph:   <p align="left|center|right|justify"> </p> (starts a new line; supports per-paragraph alignment)
+   // Headings:    <h1> </h1> ~ <h6> </h6> (font scale 2.0/1.6/1.3/1.1/1.0/0.9, bold, supports the align attribute)
+   // Lists:       <li> </li> inside <ul> </ul> / <ol> </ol> (a bullet is added before each item)
+   // Superscript/subscript:   <sup> </sup> / <sub> </sub> (smaller font, shifted up/down)
+   // Horizontal rule: <hr color="#000000"/> (occupies a full line; color is optional)
 ```
 Unknown tags are ignored, but their inner text content is still preserved and displayed.
 When `word_wrap="false"` (no automatic wrapping), text exceeding the control width is displayed with an ellipsis.
 
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |
-| text_align | "left,top" | string | Horizontal and vertical alignment of the text, optional values: left, right, hcenter, center, top, vcenter, bottom, separated by commas, e.g. "hcenter,vcenter" ("center" is equivalent to "hcenter") |
+| text_align | "left,top" | string | Horizontal and vertical alignment of the text, optional values: left, right, hcenter, center, justify, top, vcenter, bottom, separated by commas, e.g. "hcenter,vcenter" ("center" is equivalent to "hcenter"; "justify" stretches all lines except the last line of each paragraph) |
 | text_padding |  | rect | Text padding, e.g. "2,2,2,2" |
 | font | | string | Font ID |
 | text_color | | string | Default text color |
@@ -3246,10 +3252,19 @@ When `word_wrap="false"` (no automatic wrapping), text exceeding the control wid
 | default_link_font_color | | string | Hyperlink: normal text color value |
 | hovered_link_font_color | | string | Hyperlink: Hover state text color value |
 | pressed_link_font_color | | string | Hyperlink: pressed state text color value |
+| visited_link_font_color | | string | Hyperlink: visited state text color value (links that have been clicked) |
 | link_font_underline | true | bool | Hyperlink: whether to use underlined font (applies to both normal and hover states) |
 | row_spacing_mul | 1.0 | float | Line spacing multiple, e.g. 1.5 means 1.5x line spacing |
 | row_spacing_add  |0    | float  | Line spacing additional amount: a fixed additional pixel value (default is usually 0), used to add a fixed offset (pixels) on top of proportional adjustment|
+| letter_spacing | 0 | float | Letter spacing (pixels): when greater than 0, text is drawn glyph by glyph; 0 uses the font default spacing |
+| text_indent | 0 | int | First-line indent (pixels), applies only to the first line of each paragraph |
+| paragraph_spacing | 0 | int | Paragraph spacing (pixels), additional spacing between `<p>`/`<h1>`~`<h6>`/`<ul>`/`<li>`/`<hr>` blocks |
+| max_lines | 0 | int | Maximum number of displayed lines; 0 means unlimited; overflow is handled according to text_overflow |
+| text_overflow | "ellipsis" | string | Overflow handling for max_lines: "ellipsis" appends an ellipsis at the end of the line; "clip" clips the text directly |
 | word_wrap | true| bool | Whether to automatically wrap; if false, line breaks only occur at the `<br/>` tag, and text exceeding the control width is displayed with an ellipsis |
+
+Link runtime APIs: `AppendText` (append rich text, optionally with an immediate redraw), `SetLinkColor` (set normal/hovered/pressed/visited link colors), `GetLinkCount`/`GetLinkUrl`/`GetLinkRect` (query the count, URL and hit rectangle by link index).
+Links support keyboard focus with Tab/Shift+Tab and activation with Enter; hovering/leaving a link dispatches `kEventLinkHover`/`kEventLinkLeave`, and the context menu supports "Copy link address".
 
 The RichText control inherits the `Control` attributes. For more available attributes, please refer to the `Control` attributes.
 

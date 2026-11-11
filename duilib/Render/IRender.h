@@ -587,6 +587,30 @@ public:
     /** 绘制文字的属性(包含文本对齐方式等属性，参见 enum DrawStringFormat)
     */
     uint16_t m_textStyle = 0;
+
+    /** 字间距（像素），0表示使用字体默认间距
+    */
+    float m_fLetterSpacing = 0.0f;
+
+    /** 基线偏移（像素）：负数向上（上标），正数向下（下标），用于 <sup>/<sub>
+    */
+    int32_t m_nBaselineOffset = 0;
+
+    /** 首行缩进（像素）：仅对段落的第一行生效
+    */
+    int32_t m_nFirstLineIndent = 0;
+
+    /** 最多显示的行数（0表示不限制）
+    */
+    int32_t m_nMaxLines = 0;
+
+    /** 超出最大行数时是否显示省略号：true显示省略号，false直接裁剪
+    */
+    bool m_bTextOverflowEllipsis = true;
+
+    /** 是否绘制水平分割线（用于 <hr> 标签）
+    */
+    bool m_bHorizontalRule = false;
 };
 
 /** 绘制的字符标记位
