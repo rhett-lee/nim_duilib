@@ -887,12 +887,12 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
             continue;
         }
         if (textData.m_nRowIndex < rowHeightVector.size()) {
-            int32_t nRowTopOffset = 0;
+            int32_t nTextRowTopOffset = 0;
             if (textData.m_nRowIndex < rowTopOffsetVector.size()) {
-                nRowTopOffset = rowTopOffsetVector[textData.m_nRowIndex];
+                nTextRowTopOffset = rowTopOffsetVector[textData.m_nRowIndex];
             }
             //本行内容整体下移时，文本的矩形底部不应超出本行的底部
-            textData.m_destRect.bottom = textData.m_destRect.top + rowHeightVector[textData.m_nRowIndex] - nRowTopOffset;
+            textData.m_destRect.bottom = textData.m_destRect.top + rowHeightVector[textData.m_nRowIndex] - nTextRowTopOffset;
         }
     }
 
@@ -903,7 +903,6 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                 continue;
             }
             const int32_t nRowWidth = rowWidthVector[textData.m_nRowIndex];
-            const int32_t nAvailableWidth = rcDrawRect.Width();
             if ((nRowWidth > 0) && (nRowWidth < nAvailableWidth)) {
                 int32_t nXOffset = 0;
                 if (textData.m_textStyle & DrawStringFormat::TEXT_HCENTER) {

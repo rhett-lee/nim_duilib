@@ -2074,7 +2074,7 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, RichText
         else if (nodeName == _T("sub")) {
             //下标：字号缩小，并按父节点字号的比例向下偏移基线（需抵消字号缩小时基线被抬高部分）
             textSlice.m_fFontScale = 0.8f;
-            textSlice.m_fBaselineScale = 0.35f;
+            textSlice.m_fBaselineScale = 0.45f;
         }
         else if (nodeName == _T("hr")) {
             //水平分割线：没有文本内容，独占一行绘制
