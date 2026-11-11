@@ -192,6 +192,8 @@
 
 - 动画默认开启：`PopupAnimation`（弹出层淡入）、`Progress` 的 `animation_enabled`、`Panel` 的 `collapse_anim`（200ms）、`ScrollBox` 的 `inertia_scroll` 默认值统一改为开启，
   业务可按需在 XML 或 C++ 中关闭（`animation_enabled="false"`、`collapse_anim="0"`、`inertia_scroll="false"`、`PopupAnimation::SetEnabled(false)`），关闭后与原行为一致。
+- `GroupBox` 视觉细节改进：新增 `text_gap` 属性（默认 4，DPI 自适应），标题文字两侧与边框线之间留出间距，不再紧贴字形；
+  修正半透明线条色的计算（此前会同时把 RGB 压暗导致发灰），并让外圈柔光偏移随 DPI 缩放；补充 `GetLineColor()` 接口，清理 `SetAttribute` 中的冗余分支。
 - CEF 默认版本升级到 156（`156.0.14+g4fa4ab5+chromium-156.0.8078.48`，2026-10-24），
   109 继续保留供 Windows 7 使用。`duilib/third_party/libcef/` 下的三个平台目录整体
   替换为 156 源码：156 发行包取消了 `lib/` 目录，Windows 导入库改从

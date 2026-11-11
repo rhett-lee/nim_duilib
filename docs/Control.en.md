@@ -476,8 +476,9 @@ The OptionVBox control inherits the `VBox` attributes. For more available attrib
 | :--- | :--- | :--- | :--- |
 | corner_size | "0,0" | size | Corner radius |
 | line_width | 1.0 | float | Line width |
-| line_color | | string | Line color |
-| text | | string | Text content |
+| line_color | | string | Line color (when empty it follows the theme: translucent white in dark mode, translucent gray in light mode) |
+| text_gap | 4 | int | Gap between the title text and the border line (added on both sides so the line does not touch the glyphs) |
+| text | | string | Text content (shown at the top-left; the border line is interrupted behind the text) |
 
 The GroupBox control inherits the `Label` attributes. For more available attributes, please refer to the `Label` attributes.
 

@@ -474,8 +474,9 @@ OptionVBox 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的�
 | :--- | :--- | :--- | :--- |
 | corner_size | "0,0" | size | 圆角大小 |
 | line_width | 1.0 | float | 线条宽度 |
-| line_color | | string | 线条颜色 |
-| text | | string | 文本内容 |
+| line_color | | string | 线条颜色（为空时跟随主题：深色主题为半透明白，浅色主题为半透明灰） |
+| text_gap | 4 | int | 标题文字与边框线之间的间距（左右各留出该间距，避免线条紧贴文字） |
+| text | | string | 文本内容（显示在左上角，边框线自动在文字处断开） |
 
 GroupBox 控件继承了 `Label` 属性，更多可用属性请参考`Label`的属性
 

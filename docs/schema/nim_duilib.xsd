@@ -4876,12 +4876,17 @@
     </xs:attribute>
     <xs:attribute name="line_color" type="xs:string">
       <xs:annotation>
-        <xs:documentation>线条颜色</xs:documentation>
+        <xs:documentation>线条颜色（为空时跟随深浅色主题：深色主题为半透明白，浅色主题为半透明灰）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="text_gap" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>标题文字与边框线之间的间距（左右各留出该间距，默认 4，避免线条紧贴文字）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="text" type="xs:string">
       <xs:annotation>
-        <xs:documentation>文本内容</xs:documentation>
+        <xs:documentation>文本内容（显示在左上角，边框线自动在文字处断开）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>

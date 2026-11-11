@@ -49,6 +49,20 @@ public:
     */
     void SetLineColor(const DString& lineColor);
 
+    /** 获取线条颜色
+    */
+    const UiString& GetLineColor() const;
+
+    /** 设置标题文字与边框线之间的间距（左右各留出该间距）
+     * @param [in] nTextGap 间距值（像素）
+     * @param [in] bNeedDpiScale 是否需要做DPI缩放
+     */
+    void SetTextGap(int32_t nTextGap, bool bNeedDpiScale);
+
+    /** 获取标题文字与边框线之间的间距
+    */
+    int32_t GetTextGap() const;
+
 private:
     /** 获取一定透明度的颜色
     */
@@ -63,15 +77,21 @@ private:
 
     //线条颜色
     UiString m_lineColor;
+
+    //标题文字与边框线之间的间距（避免线条紧贴文字）
+    int32_t m_nTextGap;
 };
 
 template<typename InheritType>
 GroupBoxTemplate<InheritType>::GroupBoxTemplate(Window* pWindow):
     LabelTemplate<InheritType>(pWindow),
-    m_fLineWidth(0)
+    m_fLineWidth(0),
+    m_nTextGap(0)
 {
     SetAttribute(_T("text_align"), _T("top,left"));
     SetAttribute(_T("text_padding"), _T("8,0,0,0"));
+    //标题文字两侧默认留出间距，避免边框线紧贴文字
+    SetTextGap(4, true);
 }
 
 template<typename InheritType>
@@ -159,9 +179,37 @@ void GroupBoxTemplate<InheritType>::SetLineColor(const DString& lineColor)
 }
 
 template<typename InheritType>
+const UiString& GroupBoxTemplate<InheritType>::GetLineColor() const
+{
+    return m_lineColor;
+}
+
+template<typename InheritType>
+void GroupBoxTemplate<InheritType>::SetTextGap(int32_t nTextGap, bool bNeedDpiScale)
+{
+    if (nTextGap < 0) {
+        nTextGap = 0;
+    }
+    if (bNeedDpiScale) {
+        nTextGap = this->Dpi().GetScaleInt(nTextGap);
+    }
+    if (m_nTextGap != nTextGap) {
+        m_nTextGap = nTextGap;
+        this->Invalidate();
+    }
+}
+
+template<typename InheritType>
+int32_t GroupBoxTemplate<InheritType>::GetTextGap() const
+{
+    return m_nTextGap;
+}
+
+template<typename InheritType>
 UiColor GroupBoxTemplate<InheritType>::GetFadeColor(UiColor color, uint8_t nFade) const
 {
-    color = UiColor(nFade, color.GetR() * nFade / 255, color.GetG() * nFade / 255, color.GetB() * nFade / 255);
+    //只调整透明度，保持 RGB 分量不变，避免颜色被压暗后发灰
+    color = UiColor(nFade, color.GetR(), color.GetG(), color.GetB());
     return color;
 }
 
@@ -184,9 +232,9 @@ void GroupBoxTemplate<InheritType>::SetAttribute(const DString& strName, const D
         //线条颜色
         this->SetLineColor(strValue);
     }
-    else if (strName == _T("text")) {
-        //设置文本内容
-        BaseClass::SetAttribute(strName, strValue);
+    else if (strName == _T("text_gap")) {
+        //标题文字与边框线之间的间距
+        this->SetTextGap(StringUtil::StringToInt32(strValue), true);
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
@@ -206,6 +254,10 @@ void GroupBoxTemplate<InheritType>::ChangeDpiScale(uint32_t nOldDpiScale, uint32
     float fValue = this->GetLineWidth();
     fValue = this->Dpi().GetScaleFloat(fValue, nOldDpiScale);
     this->SetLineWidth(fValue, false);
+
+    int32_t nTextGap = this->GetTextGap();
+    nTextGap = this->Dpi().GetScaleInt(nTextGap, nOldDpiScale);
+    this->SetTextGap(nTextGap, false);
     BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
@@ -237,6 +289,13 @@ void GroupBoxTemplate<InheritType>::PaintText(IRender* pRender)
         drawTextRect.right = std::min(drawTextRect.right, nTextRight);
         drawTextRect.bottom = std::min(drawTextRect.bottom, nTextBottom);
 
+        //标题文字左右两侧各留出间距，使边框线不紧贴文字（更透气，也更符合分组框的视觉习惯）
+        if (m_nTextGap > 0) {
+            const UiRect rcControl = this->GetRect();
+            drawTextRect.left = std::max(drawTextRect.left - m_nTextGap, rcControl.left);
+            drawTextRect.right = std::min(drawTextRect.right + m_nTextGap, rcControl.right);
+        }
+
         //设置剪辑区域，避免绘制文字区域
         nClipState = pRender->SetClip(drawTextRect, false);
     }
@@ -262,7 +321,11 @@ void GroupBoxTemplate<InheritType>::PaintText(IRender* pRender)
         }        
     }
 
-    int32_t nShadowOffset = 1;//阴影偏移
+    //阴影偏移（随 DPI 缩放，保证高 DPI 下边缘依然柔和）
+    int32_t nShadowOffset = (int32_t)std::round(this->Dpi().GetScaleFloat(1.0f));
+    if (nShadowOffset < 1) {
+        nShadowOffset = 1;
+    }
     UiRect rc = this->GetRect();
     rc.Deflate(rcPadding);
 
