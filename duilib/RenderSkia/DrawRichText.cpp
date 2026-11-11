@@ -71,6 +71,10 @@ public:
     /** 生成好的待绘制的数据
     */
     std::vector<TPendingDrawRichText> m_pendingTextData;
+
+    /** 每行文本的宽度（用于逐行水平对齐）
+    */
+    std::vector<int32_t> m_rowWidthVector;
 };
 
 DrawRichText::DrawRichText(IRender* pRender, SkCanvas* pSkCanvas, SkPaint* pSkPaint, SkPoint* pSkPointOrg) :
@@ -88,6 +92,15 @@ inline static void SaveRowHeight(FastVector<int32_t>& rowHeightVector, uint32_t 
         rowHeightVector.resize(nRowIndex + 1);
     }
     rowHeightVector[nRowIndex] = nRowHeight;
+}
+
+//设置行宽数据
+inline static void SaveRowWidth(FastVector<int32_t>& rowWidthVector, uint32_t nRowIndex, int32_t nRowWidth)
+{
+    if (nRowIndex >= rowWidthVector.size()) {
+        rowWidthVector.resize(nRowIndex + 1);
+    }
+    rowWidthVector[nRowIndex] = nRowWidth;
 }
 
 void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
@@ -161,6 +174,10 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
 
     FastVector<int32_t> rowHeightVector; //每行的实际行高表
     rowHeightVector.reserve(richTextData.size() * 2);
+
+    FastVector<int32_t> rowWidthVector; //每行的实际文本宽度表（用于逐行水平对齐）
+    rowWidthVector.reserve(richTextData.size() * 2);
+    SkScalar rowRightX = (SkScalar)rcDrawRect.left; //本行文本的最右侧坐标
 
     //字体缓存(由于创建字体比较耗时，所以尽量复用相同的对象)
     SharePtr<UiFontEx> lastFont;
@@ -309,6 +326,8 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                         ASSERT(((int64_t)yPos + (int64_t)nRowHeight) < INT32_MAX);
                         yPos += nRowHeight;
                         SaveRowHeight(rowHeightVector, nRowIndex, nRowHeight);
+                        SaveRowWidth(rowWidthVector, nRowIndex, SkScalarCeilToInt(rowRightX - rcDrawRect.left));
+                        rowRightX = (SkScalar)rcDrawRect.left;
                         nRowHeight = nFontHeight;
                         ++nRowIndex;
                         ++nLineTextRowIndex;
@@ -423,6 +442,7 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                     newPendingTextData.m_destRect.right = SkScalarCeilToInt(fRight);
                     newPendingTextData.m_destRect.top = yPos;
                     newPendingTextData.m_destRect.bottom = yPos + SkScalarCeilToInt(textMeasuredHeight); //记录字符的真实高度
+                    rowRightX = std::max(rowRightX, fRight); //更新本行的最右侧坐标
 
                     if (pLineInfoParam != nullptr) {
                         //评估每个字符的矩形范围
@@ -478,6 +498,8 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                     ASSERT(((int64_t)yPos + (int64_t)nRowHeight) < INT32_MAX);
                     yPos += nRowHeight;
                     SaveRowHeight(rowHeightVector, nRowIndex, nRowHeight);
+                    SaveRowWidth(rowWidthVector, nRowIndex, SkScalarCeilToInt(rowRightX - rcDrawRect.left));
+                    rowRightX = (SkScalar)rcDrawRect.left;
                     nRowHeight = nFontHeight;
                     ++nRowIndex;
                     ++nLineTextRowIndex;
@@ -500,11 +522,35 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
 
     //记录最后一行的行高
     SaveRowHeight(rowHeightVector, nRowIndex, nRowHeight);
+    SaveRowWidth(rowWidthVector, nRowIndex, SkScalarCeilToInt(rowRightX - rcDrawRect.left));
 
     //更新每行的行高(只有提前确定行高，才能正确绘制纵向对齐的文本)
     for (TPendingDrawRichText& textData : pendingTextData) {
         if (textData.m_nRowIndex < rowHeightVector.size()) {
             textData.m_destRect.bottom = textData.m_destRect.top + rowHeightVector[textData.m_nRowIndex];
+        }
+    }
+
+    //逐行水平对齐：按行计算起始偏移（水平居中或右对齐）
+    if (!bMeasureOnly) {
+        for (TPendingDrawRichText& textData : pendingTextData) {
+            if (textData.m_nRowIndex >= rowWidthVector.size()) {
+                continue;
+            }
+            const int32_t nRowWidth = rowWidthVector[textData.m_nRowIndex];
+            const int32_t nAvailableWidth = rcDrawRect.Width();
+            if ((nRowWidth > 0) && (nRowWidth < nAvailableWidth)) {
+                int32_t nXOffset = 0;
+                if (textData.m_textStyle & DrawStringFormat::TEXT_HCENTER) {
+                    nXOffset = (nAvailableWidth - nRowWidth) / 2;
+                }
+                else if (textData.m_textStyle & DrawStringFormat::TEXT_RIGHT) {
+                    nXOffset = nAvailableWidth - nRowWidth;
+                }
+                if (nXOffset > 0) {
+                    textData.m_destRect.Offset(nXOffset, 0);
+                }
+            }
         }
     }
 
@@ -530,6 +576,7 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
         spDrawRichTextCache->m_textCharSize = textCharSize;
 
         spDrawRichTextCache->m_pendingTextData.swap(pendingTextData);
+        spDrawRichTextCache->m_rowWidthVector.assign(rowWidthVector.begin(), rowWidthVector.end());
     }
     else if (!bMeasureOnly) {
         UiRect rcTemp;
@@ -928,6 +975,8 @@ bool DrawRichText::UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& s
             }
         }
     }
+    //增量更新后，每行的宽度数据已失效，避免使用过期的数据做逐行对齐
+    oldData.m_rowWidthVector.clear();
     return true;
 }
 
@@ -1068,7 +1117,7 @@ bool DrawRichText::IsDrawRichTextCacheEqual(const DrawRichTextCache& first, cons
     return true;
 }
 
-void DrawRichText::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,                                       
+void DrawRichText::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
                                          const UiRect& rcNewTextRect,
                                          const UiSize& szNewScrollOffset,
                                          const std::vector<int32_t>& rowXOffset,
@@ -1127,6 +1176,23 @@ void DrawRichText::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache
             ASSERT(textData.m_nRowIndex < rowXOffset.size());
             if ((textData.m_nRowIndex < rowXOffset.size()) && (rowXOffset[textData.m_nRowIndex] > 0)) {
                 rcDestRect.Offset(rowXOffset[textData.m_nRowIndex], 0);
+            }
+        }
+        else if (textData.m_nRowIndex < spDrawRichTextCache->m_rowWidthVector.size()) {
+            //逐行水平对齐：按行计算起始偏移（水平居中或右对齐）
+            const int32_t nRowWidth = spDrawRichTextCache->m_rowWidthVector[textData.m_nRowIndex];
+            const int32_t nAvailableWidth = rcNewTextRect.Width();
+            if ((nRowWidth > 0) && (nRowWidth < nAvailableWidth)) {
+                int32_t nXOffset = 0;
+                if (textData.m_textStyle & DrawStringFormat::TEXT_HCENTER) {
+                    nXOffset = (nAvailableWidth - nRowWidth) / 2;
+                }
+                else if (textData.m_textStyle & DrawStringFormat::TEXT_RIGHT) {
+                    nXOffset = nAvailableWidth - nRowWidth;
+                }
+                if (nXOffset > 0) {
+                    rcDestRect.Offset(nXOffset, 0);
+                }
             }
         }
 

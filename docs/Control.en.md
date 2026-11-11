@@ -3221,7 +3221,7 @@ Example: <RichText>RichText demo: <a href="URL">text</a></RichText>
 List of supported tags:    
 ```cpp
    // List of supported tags (compatible with HTML tags):
-   // Hyperlink:   <a href="URL">text</a>
+   // Hyperlink:   <a href="URL">text</a> (other format tags can be nested inside the link, e.g. <a href="URL"><b>text</b></a>)
    // Bold:      <b> </b>
    // Italic:      <i> </i>
    // Strikethrough:      <s> </s>  or <del> </del>  or <strike> </strike>
@@ -3230,21 +3230,22 @@ List of supported tags:
    // Set font:    <font face="SimSun" size="12" color="#000000">
    // Line break tag:   <br/>
 ```
+Unknown tags are ignored, but their inner text content is still preserved and displayed.
 
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |
-| text_align | "left,top" | string | Horizontal and vertical alignment of the text, optional values: left, right, hcenter, top, vcenter, bottom, separated by commas, e.g. "hcenter,vcenter" |
+| text_align | "left,top" | string | Horizontal and vertical alignment of the text, optional values: left, right, hcenter, center, top, vcenter, bottom, separated by commas, e.g. "hcenter,vcenter" ("center" is equivalent to "hcenter") |
 | text_padding |  | rect | Text padding, e.g. "2,2,2,2" |
 | font | | string | Font ID |
 | text_color | | string | Default text color |
 | replace_brace | true | bool | When setting the text attribute, whether to allow replacing '{' with '<' and '}' with '>'; this attribute must be placed before the text attribute to take effect, e.g. replace_brace="false" means replace is disabled |
 | text | | string | Set the formatted text content, where '{' can be used instead of '<' and '}' instead of '>', thus avoiding escape characters and making it easier to read |
 | text_id | | string | Set the formatted text content ID, where the corresponding content allows using '{' instead of '<' and '}' instead of '>', thus avoiding escape characters and making it easier to read |
-| trim_policy | "all" | string | Set the text trim policy: "all" means remove all spaces; "none" means no need to remove spaces; "keep_one" means keep only one space |
+| trim_policy | "all" | string | Set the text trim policy: "all" trims the leading/trailing whitespace of each text node while keeping one space between words (also across nodes); "none" leaves the text untouched; "keep_one" collapses consecutive whitespace into one space. If the formatted text fails to parse, it falls back to plain text so the content is not lost |
 | default_link_font_color | | string | Hyperlink: normal text color value |
 | hovered_link_font_color | | string | Hyperlink: Hover state text color value |
 | pressed_link_font_color | | string | Hyperlink: pressed state text color value |
-| link_font_underline | true | bool | Hyperlink: whether to use underlined font |
+| link_font_underline | true | bool | Hyperlink: whether to use underlined font (applies to both normal and hover states) |
 | row_spacing_mul | 1.0 | float | Line spacing multiple, e.g. 1.5 means 1.5x line spacing |
 | row_spacing_add  |0    | float  | Line spacing additional amount: a fixed additional pixel value (default is usually 0), used to add a fixed offset (pixels) on top of proportional adjustment|
 | word_wrap | true| bool | Whether to automatically wrap; if false, line breaks only occur at the `<br/>` tag |

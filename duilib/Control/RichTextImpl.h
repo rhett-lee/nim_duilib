@@ -160,7 +160,7 @@ public:
 
     /** 追加一个文本片段
     */
-    void AppendTextSlice(const RichTextSlice&& textSlice);
+    void AppendTextSlice(RichTextSlice&& textSlice);
 
     /** 追加一个文本片段
     */

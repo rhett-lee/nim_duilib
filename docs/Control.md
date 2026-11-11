@@ -3224,7 +3224,7 @@ RichText是带有格式的文本，其格式类似于HTML标签，格式文本�
 支持的标签列表：    
 ```cpp
    // 支持的标签列表(兼容HTML的标签):
-   // 超级链接：   <a href="URL">文本</a>
+   // 超级链接：   <a href="URL">文本</a>（链接内可以嵌套其他格式标签，如 <a href="URL"><b>文本</b></a>）
    // 粗体字:      <b> </b>
    // 斜体字:      <i> </i>
    // 删除字:      <s> </s> 或 <del> </del> 或者 <strike> </strike>
@@ -3233,22 +3233,23 @@ RichText是带有格式的文本，其格式类似于HTML标签，格式文本�
    // 设置字体:    <font face="宋体" size="12" color="#000000">
    // 换行标签：   <br/>
 ```
+未识别的标签会被忽略，但其内部的文本内容仍会被保留并显示。
 具体用法也可用参考示例程序。
 
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
-| text_align | "left,top" | string | 文字的水平与垂直对齐方式, 可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter" |
+| text_align | "left,top" | string | 文字的水平与垂直对齐方式, 可取值: left、right、hcenter、center、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter"（"center"与"hcenter"等价） |
 | text_padding |  | rect | 文本内边距，如："2,2,2,2" |
 | font | | string | 字体ID |
 | text_color | | string | 默认文本颜色 |
 | replace_brace | true | bool | 在设置text属性时，是否允许将'{'替换为'<' 和 将'}'替换为'>'，该属性需要放置在text属性前面才能生效，比如replace_brace="false"表示禁止替换 |
 | text | | string | 设置格式文本内容，其中允许使用'{'代替'<'，'}'代替'>'，从而避免使用转移字符，便于阅读 |
 | text_id | | string | 设置格式文本内容ID，其中对应的内容允许使用'{'代替'<'，'}'代替'>'，从而避免使用转移字符，便于阅读 |
-| trim_policy | "all" | string | 设置Trim文本的策略："all"表示去除全部空格；"none"表示不需要去除空格；"keep_one"表示只保留一个空格 |
+| trim_policy | "all" | string | 设置Trim文本的策略："all"表示去除每个文本节点首尾的空白，并保留词间的一个空格（跨节点时也保留一个空格）；"none"表示不对文本做任何处理；"keep_one"表示把连续的空白压缩为一个空格。如果格式文本解析失败，会自动按纯文本降级显示，避免内容丢失 |
 | default_link_font_color | | string | 超级链接：常规文本颜色值 |
 | hovered_link_font_color | | string | 超级链接：Hover状态文本颜色值 |
 | pressed_link_font_color | | string | 超级链接：鼠标按下状态文本颜色值 |
-| link_font_underline | true | bool | 超级链接：是否使用带下划线的字体 |
+| link_font_underline | true | bool | 超级链接：是否使用带下划线的字体（常规状态和Hover状态均生效） |
 | row_spacing_mul | 1.0 | float | 行间距倍数, 比如1.5代表1.5倍行间距 |
 | row_spacing_add  |0    | float  | 行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素）|
 | word_wrap | true| bool | 是否自动换行，如果为false，则只有在`<br/>`标签的时候才换行 |

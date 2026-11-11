@@ -8,8 +8,117 @@
 #include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Core/Window.h"
 
+#include <utility>
+
 namespace ui 
 {
+
+namespace
+{
+/** 判断文本中是否包含XML特殊字符
+*/
+DString EscapeXmlText(const DString& text)
+{
+    DString result;
+    result.reserve(text.size());
+    for (DString::value_type ch : text) {
+        switch (ch) {
+        case _T('&'): result += _T("&amp;"); break;
+        case _T('<'): result += _T("&lt;"); break;
+        case _T('>'): result += _T("&gt;"); break;
+        default: result += ch; break;
+        }
+    }
+    return result;
+}
+
+/** 转义XML属性值中的特殊字符
+*/
+DString EscapeXmlAttribute(const DString& text)
+{
+    DString result;
+    result.reserve(text.size());
+    for (DString::value_type ch : text) {
+        switch (ch) {
+        case _T('&'): result += _T("&amp;"); break;
+        case _T('<'): result += _T("&lt;"); break;
+        case _T('>'): result += _T("&gt;"); break;
+        case _T('\"'): result += _T("&quot;"); break;
+        default: result += ch; break;
+        }
+    }
+    return result;
+}
+
+/** 判断以逗号分隔的对齐值中，是否包含指定的值（兼容"center"作为"hcenter"的别名）
+*/
+bool ContainsAlignValue(const DString& text, const DString::value_type* value)
+{
+    size_t nStart = 0;
+    while (nStart <= text.size()) {
+        size_t nEnd = text.find(_T(','), nStart);
+        if (nEnd == DString::npos) {
+            nEnd = text.size();
+        }
+        DString item = text.substr(nStart, nEnd - nStart);
+        StringUtil::Trim(item);
+        if (item == value) {
+            return true;
+        }
+        if (nEnd == text.size()) {
+            break;
+        }
+        nStart = nEnd + 1;
+    }
+    return false;
+}
+
+/** 是否为RichText支持的标签名称
+*/
+bool IsSupportedTagName(const DString& tagName)
+{
+    DString name = tagName;
+    StringUtil::LowerString(name);
+    return (name == _T("a")) || (name == _T("b")) || (name == _T("i")) ||
+           (name == _T("u")) || (name == _T("s")) || (name == _T("del")) ||
+           (name == _T("strike")) || (name == _T("ins")) || (name == _T("bgcolor")) ||
+           (name == _T("font")) || (name == _T("br"));
+}
+
+/** 检查替换花括号后的文本中，所有标签是否都是RichText支持的标签
+*/
+bool IsSupportedTagsText(const DString& text)
+{
+    size_t nPos = 0;
+    while ((nPos = text.find(_T('<'), nPos)) != DString::npos) {
+        size_t nEnd = text.find(_T('>'), nPos + 1);
+        if (nEnd == DString::npos) {
+            return false;
+        }
+        size_t nNameBegin = nPos + 1;
+        if ((nNameBegin < nEnd) && (text[nNameBegin] == _T('/'))) {
+            ++nNameBegin;
+        }
+        size_t nNameEnd = nNameBegin;
+        while (nNameEnd < nEnd) {
+            const DString::value_type ch = text[nNameEnd];
+            if (((ch >= _T('a')) && (ch <= _T('z'))) ||
+                ((ch >= _T('A')) && (ch <= _T('Z'))) ||
+                ((ch >= _T('0')) && (ch <= _T('9')))) {
+                ++nNameEnd;
+            }
+            else {
+                break;
+            }
+        }
+        if ((nNameEnd == nNameBegin) || !IsSupportedTagName(text.substr(nNameBegin, nNameEnd - nNameBegin))) {
+            return false;
+        }
+        nPos = nEnd + 1;
+    }
+    return true;
+}
+} // namespace
 
 RichTextImpl::RichTextImpl(Control* pOwner) :
     m_pOwner(pOwner),
@@ -33,25 +142,25 @@ RichTextImpl::~RichTextImpl()
 bool RichTextImpl::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("text_align")) {
-        //水平方向对齐方式
-        if (strValue.find(_T("left")) != DString::npos) {
+        //水平方向对齐方式（"center"作为"hcenter"的别名，兼容以逗号分隔的多个取值）
+        if (ContainsAlignValue(strValue, _T("left"))) {
             SetTextHAlignType(HorAlignType::kAlignLeft);
         }
-        else if (strValue.find(_T("hcenter")) != DString::npos) {
+        else if (ContainsAlignValue(strValue, _T("hcenter")) || ContainsAlignValue(strValue, _T("center"))) {
             SetTextHAlignType(HorAlignType::kAlignCenter);
         }
-        else if (strValue.find(_T("right")) != DString::npos) {
+        else if (ContainsAlignValue(strValue, _T("right"))) {
             SetTextHAlignType(HorAlignType::kAlignRight);
         }
 
         //垂直方向对齐方式
-        if (strValue.find(_T("top")) != DString::npos) {
+        if (ContainsAlignValue(strValue, _T("top"))) {
             SetTextVAlignType(VerAlignType::kAlignTop);
         }
-        else if (strValue.find(_T("vcenter")) != DString::npos) {
+        else if (ContainsAlignValue(strValue, _T("vcenter"))) {
             SetTextVAlignType(VerAlignType::kAlignCenter);
         }
-        else if (strValue.find(_T("bottom")) != DString::npos) {
+        else if (ContainsAlignValue(strValue, _T("bottom"))) {
             SetTextVAlignType(VerAlignType::kAlignBottom);
         }
         m_textData.clear();
@@ -102,7 +211,14 @@ bool RichTextImpl::SetAttribute(const DString& strName, const DString& strValue)
             DString richText(strValue);
             StringUtil::ReplaceAll(_T("{"), _T("<"), richText);
             StringUtil::ReplaceAll(_T("}"), _T(">"), richText);
-            SetText(richText);
+            if (IsSupportedTagsText(richText)) {
+                //仅当替换后是合法的RichText标签时，才按富文本解析
+                SetText(richText);
+            }
+            else {
+                //否则视为普通文本，避免内容被误解析或丢失
+                SetText(strValue);
+            }
         }
         else {
             SetText(strValue);
@@ -316,21 +432,12 @@ void RichTextImpl::PaintText(IRender* pRender)
     CheckParseText();
 
     //如果设置了对齐方式，需要评估绘制位置
+    //（水平方向的对齐在绘制时按行计算偏移，见DrawRichTextCacheData的逐行对齐处理）
     const uint32_t uTextStyle = GetTextStyle();
-    if ((uTextStyle & (TEXT_HCENTER | TEXT_RIGHT | TEXT_VCENTER | TEXT_BOTTOM))) {
+    if ((uTextStyle & (TEXT_VCENTER | TEXT_BOTTOM))) {
         //计算绘制所占的区域大小
         UiRect rect;
         CalcDestRect(pRender, rc, rect);
-        if ((rect.Width() < rc.Width()) && (uTextStyle & (TEXT_HCENTER | TEXT_RIGHT))) {
-            //水平方向
-            int32_t diff = rc.Width() - rect.Width();
-            if (uTextStyle & TEXT_HCENTER) {
-                rc.Offset(diff / 2, 0);
-            }
-            else if (uTextStyle & TEXT_RIGHT) {
-                rc.Offset(diff, 0);
-            }
-        }
         if ((rect.Height() < rc.Height()) && (uTextStyle & (TEXT_VCENTER | TEXT_BOTTOM))) {
             //垂直方向
             int32_t diff = rc.Height() - rect.Height();
@@ -369,8 +476,9 @@ void RichTextImpl::PaintText(IRender* pRender)
                     ASSERT(!textDataEx.m_pFontInfo->m_fontName.empty());
                     textData.m_pFontInfo->CopyFrom(*textDataEx.m_pFontInfo);
                 }                
-                if (textDataEx.m_bMouseDown || textDataEx.m_bMouseHover) {
-                    textData.m_pFontInfo->m_bUnderline = m_bLinkUnderlineFont;//是否显示下划线字体
+                if (m_bLinkUnderlineFont) {
+                    //是否显示下划线字体（常态与Hover状态保持一致）
+                    textData.m_pFontInfo->m_bUnderline = true;
                 }
                 if (!m_linkNormalTextColor.empty()) {                    
                     if (!normalLinkTextColor.IsEmpty()) {
@@ -503,6 +611,55 @@ bool RichTextImpl::ParseText(std::vector<RichTextDataEx>& outTextData) const
             return false;
         }
     }
+
+    if (m_trimPolicy != TrimPolicy::kNone) {
+        //跨文本节点的空格处理：保留词间的一个空格，去掉整段文本开头和结尾的空格
+        bool bPrevSpace = true;
+        for (RichTextDataEx& textDataItem : textData) {
+            std::wstring_view& textView = textDataItem.m_textView;
+            if (textView.empty()) {
+                continue;
+            }
+            if ((textView.size() == 1) && (textView[0] == L'\n')) {
+                //换行后，下一行开头的空格需要去掉
+                bPrevSpace = true;
+                continue;
+            }
+            if (bPrevSpace) {
+                size_t nCount = 0;
+                while ((nCount < textView.size()) && (textView[nCount] == L' ')) {
+                    ++nCount;
+                }
+                textView.remove_prefix(nCount);
+            }
+            if (!textView.empty()) {
+                bPrevSpace = (textView.back() == L' ');
+            }
+        }
+
+        bool bNextSpace = true;
+        for (auto it = textData.rbegin(); it != textData.rend(); ++it) {
+            std::wstring_view& textView = it->m_textView;
+            if (textView.empty()) {
+                continue;
+            }
+            if ((textView.size() == 1) && (textView[0] == L'\n')) {
+                bNextSpace = true;
+                continue;
+            }
+            if (bNextSpace) {
+                size_t nCount = 0;
+                while ((nCount < textView.size()) && (textView[textView.size() - 1 - nCount] == L' ')) {
+                    ++nCount;
+                }
+                textView.remove_suffix(nCount);
+            }
+            if (!textView.empty()) {
+                bNextSpace = (textView.front() == L' ');
+            }
+        }
+    }
+
     outTextData.swap(textData);
     return true;
 }
@@ -518,14 +675,12 @@ bool RichTextImpl::ParseTextSlice(const RichTextSlice& textSlice,
     currentTextData.m_textStyle = parentTextData.m_textStyle;
     currentTextData.m_textView = std::wstring_view(textSlice.m_text.c_str(), textSlice.m_text.size());
 
-    //不应包含回车和换行（由外部调用方负责处理）
-    ASSERT(currentTextData.m_textView.find(L"\r") == DStringW::npos);    
-    ASSERT(currentTextData.m_textView.find(L"\t") == DStringW::npos);
-    if (currentTextData.m_textView.size() != 1) {
-        ASSERT(currentTextData.m_textView.find(L"\n") == DStringW::npos);
-    }
-
+    //文本中可以包含换行符和TAB（绘制时由DrawRichText负责处理）
     currentTextData.m_linkUrl = textSlice.m_linkUrl;
+    if (currentTextData.m_linkUrl.empty()) {
+        //如果是链接的子节点，则继承父节点的链接地址
+        currentTextData.m_linkUrl = parentTextData.m_linkUrl;
+    }
     if (!textSlice.m_textColor.empty()) {
         currentTextData.m_textColor = m_pOwner->GetUiColor(textSlice.m_textColor.c_str());
     }
@@ -563,7 +718,8 @@ bool RichTextImpl::ParseTextSlice(const RichTextSlice& textSlice,
     if (textSlice.m_fontInfo.m_bStrikeOut) {
         currentTextData.m_pFontInfo->m_bStrikeOut = textSlice.m_fontInfo.m_bStrikeOut;
     }
-    if (!currentTextData.m_textView.empty() || !currentTextData.m_linkUrl.empty()) {
+    if (!currentTextData.m_textView.empty()) {
+        //空文本节点不参与排版（链接的文本由子节点承载）
         textData.push_back(currentTextData);
     }
         
@@ -606,41 +762,54 @@ void RichTextImpl::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
 
 const DString& RichTextImpl::TrimText(DString& text)
 {
-    //回车/换行TAB键：替换为1个空格
+    if (m_trimPolicy == TrimPolicy::kNone) {
+        //不处理
+        return text;
+    }
+
+    //回车/换行/TAB键：替换为1个空格
     DString tempText;
     tempText.swap(text);
-    size_t nCount = tempText.size();
-    for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
-        if ((tempText[nIndex] == _T('\r')) || (tempText[nIndex] == _T('\n')) || (tempText[nIndex] == _T('\t'))) {
-            tempText[nIndex] = _T(' ');
+    for (DString::value_type& ch : tempText) {
+        if ((ch == _T('\r')) || (ch == _T('\n')) || (ch == _T('\t'))) {
+            ch = _T(' ');
         }
     }
 
-    if (m_trimPolicy == TrimPolicy::kNone) {
-        //不处理
-    }
-    else if (m_trimPolicy == TrimPolicy::kKeepOne) {
-        //只保留一个空格
-        if (!tempText.empty()) {
-            bool bFirst = (tempText.front() == _T(' '));
-            bool bLast = tempText[tempText.size() - 1] == _T(' ');
-            StringUtil::Trim(tempText);
-            if (tempText.empty()) {
-                tempText = DString(_T(" "));
+    if (m_trimPolicy == TrimPolicy::kKeepOne) {
+        //把连续的空白压缩为一个空格
+        DString result;
+        result.reserve(tempText.size());
+        for (DString::value_type ch : tempText) {
+            if (ch == _T(' ')) {
+                if (result.empty() || (result.back() != _T(' '))) {
+                    result += ch;
+                }
             }
             else {
-                if (bFirst) {
-                    tempText = DString(_T(" ")) + tempText;
-                }
-                else if (bLast) {
-                    tempText += DString(_T(" "));
-                }
+                result += ch;
             }
         }
+        tempText.swap(result);
     }
     else {
-        //去掉左右两侧的空格
+        //去掉左右两侧的空格，但保留跨文本节点的词间空格
+        const bool bFirstSpace = !tempText.empty() && (tempText.front() == _T(' '));
+        const bool bLastSpace = !tempText.empty() && (tempText.back() == _T(' '));
         StringUtil::Trim(tempText);
+        if (tempText.empty()) {
+            if (bFirstSpace || bLastSpace) {
+                tempText = DString(_T(" "));
+            }
+        }
+        else {
+            if (bFirstSpace) {
+                tempText = DString(_T(" ")) + tempText;
+            }
+            if (bLastSpace) {
+                tempText += DString(_T(" "));
+            }
+        }
     }
     tempText.swap(text);
     return text;
@@ -671,12 +840,22 @@ bool RichTextImpl::DoSetText(const DString& richText)
     //XML解析的内容，全部封装在WindowBuilder这个类中，以避免到处使用XML解析器，从而降低代码维护复杂度
     bool bResult = true;
     if (!richText.empty()) {
-        if (richText.find(_T("<RichText")) == DString::npos) {
+        DString trimmedText = richText;
+        StringUtil::Trim(trimmedText);
+        if (trimmedText.find(_T("<RichText")) == 0) {
+            bResult = WindowBuilder::ParseRichTextXmlText(trimmedText, m_pOwner);
+        }
+        else {
             DString formatedText = _T("<RichText>") + richText + _T("</RichText>");
             bResult = WindowBuilder::ParseRichTextXmlText(formatedText, m_pOwner);
         }
-        else {
-            bResult = WindowBuilder::ParseRichTextXmlText(richText, m_pOwner);
+        if (!bResult) {
+            //解析失败时，按纯文本降级显示，避免文本内容丢失
+            m_textSlice.clear();
+            m_textData.clear();
+            m_spDrawRichTextCache.reset();
+            DString formatedText = _T("<RichText>") + EscapeXmlText(richText) + _T("</RichText>");
+            bResult = WindowBuilder::ParseRichTextXmlText(formatedText, m_pOwner);
         }
     }
     return bResult;
@@ -814,9 +993,9 @@ VerAlignType RichTextImpl::GetVAlignType() const
 }
 
 
-void RichTextImpl::AppendTextSlice(const RichTextSlice&& textSlice)
+void RichTextImpl::AppendTextSlice(RichTextSlice&& textSlice)
 {
-    m_textSlice.emplace_back(textSlice);
+    m_textSlice.emplace_back(std::move(textSlice));
     m_textData.clear();
     m_spDrawRichTextCache.reset();
 }
@@ -859,37 +1038,51 @@ DString RichTextImpl::ToString(const RichTextSlice& textSlice, const DString& in
     if (textSlice.m_nodeName.empty()) {
         if (!textSlice.m_text.empty()) {
             richText += indent;
-            richText += StringConvert::WStringToT(textSlice.m_text);
+            richText += EscapeXmlText(StringConvert::WStringToT(textSlice.m_text));
             richText += lineBreak;
         }
         //没有节点名称的情况下，就没有属性和子节点，直接返回
         return richText;
     }
 
-    //生成属性列表
+    //生成属性列表（多个属性之间使用空格分隔，属性值中的特殊字符需要转义）
     DString attrList;    
     if (!textSlice.m_linkUrl.empty()) {
+        if (!attrList.empty()) {
+            attrList += _T(" ");
+        }
         attrList += _T("href=\"");
-        DString url = textSlice.m_linkUrl.c_str();
-        attrList += textSlice.m_linkUrl.c_str();
+        attrList += EscapeXmlAttribute(textSlice.m_linkUrl.c_str());
         attrList += _T("\"");
     }
     if (!textSlice.m_bgColor.empty()) {
+        if (!attrList.empty()) {
+            attrList += _T(" ");
+        }
         attrList += _T("color=\"");
-        attrList += textSlice.m_bgColor.c_str();
+        attrList += EscapeXmlAttribute(textSlice.m_bgColor.c_str());
         attrList += _T("\"");
     }
     if (!textSlice.m_textColor.empty()) {
+        if (!attrList.empty()) {
+            attrList += _T(" ");
+        }
         attrList += _T("color=\"");
-        attrList += textSlice.m_textColor.c_str();
+        attrList += EscapeXmlAttribute(textSlice.m_textColor.c_str());
         attrList += _T("\"");
     }
     if (!textSlice.m_fontInfo.m_fontName.empty()) {
+        if (!attrList.empty()) {
+            attrList += _T(" ");
+        }
         attrList += _T("face=\"");
-        attrList += textSlice.m_fontInfo.m_fontName.c_str();
+        attrList += EscapeXmlAttribute(textSlice.m_fontInfo.m_fontName.c_str());
         attrList += _T("\"");
     }
     if (textSlice.m_fontInfo.m_fontSize != 0) {
+        if (!attrList.empty()) {
+            attrList += _T(" ");
+        }
         attrList += _T("size=\"");
         attrList += StringUtil::Printf(_T("%d"), textSlice.m_fontInfo.m_fontSize);
         attrList += _T("\"");
@@ -931,7 +1124,7 @@ DString RichTextImpl::ToString(const RichTextSlice& textSlice, const DString& in
         richText += _T(">");
 
         //添加超链接的文本
-        richText += StringConvert::WStringToT(textSlice.m_text);
+        richText += EscapeXmlText(StringConvert::WStringToT(textSlice.m_text));
 
         //节点结束
         richText += _T("</");
@@ -944,8 +1137,8 @@ DString RichTextImpl::ToString(const RichTextSlice& textSlice, const DString& in
         richText += indent;
         richText += _T("<");
         richText += textSlice.m_nodeName.c_str();
-        richText += _T(" ");
-        if (!attrList.empty()) {            
+        if (!attrList.empty()) {
+            richText += _T(" ");
             richText += attrList;
         }
         richText += _T("/>");
@@ -1016,21 +1209,34 @@ void RichTextImpl::ButtonUp(const EventArgs& msg)
 void RichTextImpl::MouseMove(const EventArgs& msg)
 {
     bool bOnLinkUrl = false;
+    bool bInvalidate = false;
     for (RichTextDataEx& textData : m_textData) {
-        textData.m_bMouseHover = false;
         if (textData.m_linkUrl.empty()) {
+            if (textData.m_bMouseHover) {
+                //从链接上移开时，需要取消Hover状态
+                textData.m_bMouseHover = false;
+                bInvalidate = true;
+            }
             continue;
         }
+        bool bMouseHover = false;
         for (const UiRect& textRect : textData.m_textRects) {
             if (textRect.ContainsPt(msg.ptMouse)) {
                 //在超级链接上
-                textData.m_bMouseHover = true;
-                Invalidate();
+                bMouseHover = true;
                 if (textData.m_linkUrl == m_pOwner->GetToolTipText()) {
                     bOnLinkUrl = true;
                 }
             }
         }
+        if (textData.m_bMouseHover != bMouseHover) {
+            textData.m_bMouseHover = bMouseHover;
+            bInvalidate = true;
+        }
+    }
+    if (bInvalidate) {
+        //只有在链接的Hover状态发生变化时，才需要重绘
+        Invalidate();
     }
     if (!bOnLinkUrl) {
         m_pOwner->SetToolTipText(_T(""));

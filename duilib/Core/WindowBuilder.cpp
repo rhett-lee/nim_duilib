@@ -1930,7 +1930,7 @@ bool WindowBuilder::ParseRichTextXmlText(const DString& xmlText, Control* pContr
     pugi::xml_document doc;
     pugi::xml_parse_result result = doc.load_buffer(xmlText.c_str(),
                                                     xmlText.size() * sizeof(DString::value_type),
-                                                    pugi::parse_default,
+                                                    pugi::parse_default | pugi::parse_ws_pcdata,
                                                     encoding);
     if (result.status != pugi::status_ok) {
         ASSERT(!_T("WindowBuilder::ParseRichTextXmlText load xml text failed!"));
@@ -2008,14 +2008,8 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, RichText
             bParseChildren = false;
         }        
         else if (nodeName == _T("a")) {
-#ifdef DUILIB_UNICODE
-            textSlice.m_text = pRichTextImpl->TrimText(node.first_child().value());
-#else
-            textSlice.m_text = StringConvert::UTF8ToWString(pRichTextImpl->TrimText(node.first_child().value()));
-#endif
+            //超级链接节点：href属性作用于所有子节点，子节点可以包含格式（如粗体、斜体等）
             textSlice.m_linkUrl = StringUtil::Trim(node.attribute(_T("href")).as_string());
-            //超级链接节点, 不需要递归遍历子节点
-            bParseChildren = false;
         }
         else if (nodeName == _T("b")) {
             //粗体字
@@ -2050,8 +2044,9 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, RichText
             bParseChildren = false;
         }
         else {
-            //遇到不认识的节点，忽略
+            //遇到不认识的节点：忽略标签本身，但保留其子内容，避免文本丢失
             ASSERT(!"Found unknown xml node name!");
+            ParseRichTextXmlNode(node, pRichTextImpl, pTextSlice);
             continue;
         }
         if (bParseChildren) {

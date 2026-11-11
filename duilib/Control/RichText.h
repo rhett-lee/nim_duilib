@@ -5,6 +5,8 @@
 #include "duilib/Box/HBox.h"
 #include "duilib/Box/VBox.h"
 
+#include <utility>
+
 namespace ui 
 {
 /** 格式化文本（类HTML格式）
@@ -141,7 +143,7 @@ public:
 
     /** 追加一个文本片段
     */
-    void AppendTextSlice(const RichTextSlice&& textSlice);
+    void AppendTextSlice(RichTextSlice&& textSlice);
 
     /** 追加一个文本片段
     */
@@ -411,15 +413,19 @@ VerAlignType RichTextT<T>::GetVAlignType() const
 }
 
 template<typename T>
-void RichTextT<T>::AppendTextSlice(const RichTextSlice&& textSlice)
+void RichTextT<T>::AppendTextSlice(RichTextSlice&& textSlice)
 {
-    m_impl->AppendTextSlice(textSlice);
+    m_impl->AppendTextSlice(std::move(textSlice));
+    //追加内容后，需要重新布局与绘制
+    m_impl->Redraw();
 }
 
 template<typename T>
 void RichTextT<T>::AppendTextSlice(const RichTextSlice& textSlice)
 {
     m_impl->AppendTextSlice(textSlice);
+    //追加内容后，需要重新布局与绘制
+    m_impl->Redraw();
 }
 
 template<typename T>
