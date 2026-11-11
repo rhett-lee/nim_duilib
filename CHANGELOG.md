@@ -306,6 +306,10 @@
     右键“复制链接地址”；
   - 运行时接口：`AppendText`（追加富文本，可选择是否立即重绘）、`SetLinkColor`（设置链接各状态颜色）、
     `GetLinkCount`/`GetLinkUrl`/`GetLinkRect`（按索引查询链接数量、URL 与命中矩形）。
+- RichText 功能扩展（可扩展项，第二批）：
+  - 标签体系：新增 `<img src width height>` 内联图片标签，图片底部与文本基线对齐；
+    `width`/`height` 为 96 DPI 下的像素值（省略时使用图片原始尺寸），
+    图片高于文本时自动增大行高并保持行内基线一致，支持自动换行，图片位图随文本解析一次并缓存复用。
 
 ### 移除
 

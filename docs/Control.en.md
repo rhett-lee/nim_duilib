@@ -3235,6 +3235,7 @@ List of supported tags:
    // Lists:       <li> </li> inside <ul> </ul> / <ol> </ol> (a bullet is added before each item)
    // Superscript/subscript:   <sup> </sup> / <sub> </sub> (smaller font, shifted up/down)
    // Horizontal rule: <hr color="#000000"/> (occupies a full line; color is optional)
+   // Inline image: <img src="resource path" width="width" height="height"/> (width/height are pixels at 96 DPI; omit them to use the original image size; the image bottom is aligned to the text baseline, and the line height grows when the image is taller than the text)
 ```
 Unknown tags are ignored, but their inner text content is still preserved and displayed.
 When `word_wrap="false"` (no automatic wrapping), text exceeding the control width is displayed with an ellipsis.

@@ -61,6 +61,18 @@ public:
     */
     bool m_bHorizontalRule = false;
 
+    /** 内联图片的资源路径（用于 <img src>）
+    */
+    UiString m_imageSrc;
+
+    /** 内联图片的显示宽度（96 DPI 下的像素值，0 表示使用原始尺寸）
+    */
+    int32_t m_nImageWidth = 0;
+
+    /** 内联图片的显示高度（96 DPI 下的像素值，0 表示使用原始尺寸）
+    */
+    int32_t m_nImageHeight = 0;
+
 public:
     /** 子节点
     */

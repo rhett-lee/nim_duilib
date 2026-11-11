@@ -611,6 +611,18 @@ public:
     /** 是否绘制水平分割线（用于 <hr> 标签）
     */
     bool m_bHorizontalRule = false;
+
+    /** 内联图片的位图（用于 <img> 标签），非空时绘制图片，忽略文字内容
+    */
+    std::shared_ptr<IBitmap> m_pImage;
+
+    /** 内联图片的显示宽度（像素），0表示使用位图的原始宽度
+    */
+    int32_t m_nImageWidth = 0;
+
+    /** 内联图片的显示高度（像素），0表示使用位图的原始高度
+    */
+    int32_t m_nImageHeight = 0;
 };
 
 /** 绘制的字符标记位

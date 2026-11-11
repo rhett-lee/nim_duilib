@@ -2108,6 +2108,20 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, RichText
             textSlice.m_textColor = StringUtil::Trim(node.attribute(_T("color")).as_string());
             bParseChildren = false;
         }
+        else if (nodeName == _T("img")) {
+            //内联图片：图片底部与当前文本的基线对齐
+            textSlice.m_imageSrc = StringUtil::Trim(node.attribute(_T("src")).as_string());
+            //显示尺寸(96 DPI)，未指定时使用图片的原始尺寸；限制有效范围，避免异常值
+            const int32_t nImageWidth = node.attribute(_T("width")).as_int();
+            const int32_t nImageHeight = node.attribute(_T("height")).as_int();
+            if (nImageWidth > 0) {
+                textSlice.m_nImageWidth = std::min(nImageWidth, 10000);
+            }
+            if (nImageHeight > 0) {
+                textSlice.m_nImageHeight = std::min(nImageHeight, 10000);
+            }
+            bParseChildren = false;
+        }
         else if (nodeName == _T("b")) {
             //粗体字
             textSlice.m_fontInfo.m_bBold = true;

@@ -7,6 +7,7 @@
 #include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Utils/Clipboard.h"
+#include "duilib/Utils/FileUtil.h"
 #include "duilib/Core/Window.h"
 
 #include <utility>
@@ -84,7 +85,12 @@ bool IsSupportedTagName(const DString& tagName)
     return (name == _T("a")) || (name == _T("b")) || (name == _T("i")) ||
            (name == _T("u")) || (name == _T("s")) || (name == _T("del")) ||
            (name == _T("strike")) || (name == _T("ins")) || (name == _T("bgcolor")) ||
-           (name == _T("font")) || (name == _T("br"));
+           (name == _T("font")) || (name == _T("br")) || (name == _T("img")) ||
+           (name == _T("span")) || (name == _T("p")) || (name == _T("ul")) ||
+           (name == _T("ol")) || (name == _T("li")) || (name == _T("sup")) ||
+           (name == _T("sub")) || (name == _T("hr")) ||
+           (name == _T("h1")) || (name == _T("h2")) || (name == _T("h3")) ||
+           (name == _T("h4")) || (name == _T("h5")) || (name == _T("h6"));
 }
 
 /** 检查替换花括号后的文本中，所有标签是否都是RichText支持的标签
@@ -912,8 +918,43 @@ bool RichTextImpl::ParseTextSlice(const RichTextSlice& textSlice,
         currentTextData.m_pLinkFontInfo->m_bUnderline = true;
     }
 
-    if (!currentTextData.m_textView.empty() || currentTextData.m_bHorizontalRule) {
-        //空文本节点不参与排版（链接的文本由子节点承载）；水平分割线没有文本，需要参与排版
+    if (!textSlice.m_imageSrc.empty()) {
+        //内联图片：解析时加载并解码位图，绘制时直接复用（避免每帧加载）
+        FilePath windowResPath;
+        if (m_pOwner->GetWindow() != nullptr) {
+            windowResPath = m_pOwner->GetWindow()->GetResourcePath();
+        }
+        FilePath imageFileFullPath;
+        std::vector<uint8_t> imageFileData;
+        const ThemeManager& themeMgr = GlobalManager::Instance().Theme();
+        if (themeMgr.GetResFile(FilePath(textSlice.m_imageSrc.c_str()), windowResPath, imageFileFullPath, imageFileData)) {
+            ImageDecodeParam decodeParam;
+            decodeParam.m_imageFilePath = imageFileFullPath;
+            decodeParam.m_pFileData = std::make_shared<std::vector<uint8_t>>();
+            decodeParam.m_fImageSizeScale = m_pOwner->Dpi().GetDisplayScale();
+            decodeParam.m_bAssertEnabled = false;
+            if (imageFileData.empty()) {
+                FileUtil::ReadFileData(decodeParam.m_imageFilePath, *decodeParam.m_pFileData);
+            }
+            else {
+                decodeParam.m_pFileData->swap(imageFileData);
+            }
+            currentTextData.m_pImage = GlobalManager::Instance().ImageDecoders().DecodeImageData(decodeParam);
+        }
+        if (currentTextData.m_pImage != nullptr) {
+            //显示尺寸：指定值时按96 DPI进行缩放，未指定时使用位图的原始尺寸（位图已按DPI缩放）
+            const int32_t nBitmapWidth = (int32_t)currentTextData.m_pImage->GetWidth();
+            const int32_t nBitmapHeight = (int32_t)currentTextData.m_pImage->GetHeight();
+            currentTextData.m_nImageWidth = (textSlice.m_nImageWidth > 0) ?
+                m_pOwner->Dpi().GetScaleInt(textSlice.m_nImageWidth) : nBitmapWidth;
+            currentTextData.m_nImageHeight = (textSlice.m_nImageHeight > 0) ?
+                m_pOwner->Dpi().GetScaleInt(textSlice.m_nImageHeight) : nBitmapHeight;
+        }
+    }
+
+    if (!currentTextData.m_textView.empty() || currentTextData.m_bHorizontalRule ||
+        (currentTextData.m_pImage != nullptr)) {
+        //空文本节点不参与排版（链接的文本由子节点承载）；水平分割线和内联图片没有文本，需要参与排版
         textData.push_back(currentTextData);
     }
         
@@ -1292,6 +1333,21 @@ DString RichTextImpl::ToString(const RichTextSlice& textSlice, const DString& in
         attrList += _T("size=\"");
         attrList += StringUtil::Printf(_T("%d"), textSlice.m_fontInfo.m_fontSize);
         attrList += _T("\"");
+    }
+    if (!textSlice.m_imageSrc.empty()) {
+        //内联图片：输出资源路径与显示尺寸
+        if (!attrList.empty()) {
+            attrList += _T(" ");
+        }
+        attrList += _T("src=\"");
+        attrList += EscapeXmlAttribute(textSlice.m_imageSrc.c_str());
+        attrList += _T("\"");
+        if (textSlice.m_nImageWidth > 0) {
+            attrList += StringUtil::Printf(_T(" width=\"%d\""), textSlice.m_nImageWidth);
+        }
+        if (textSlice.m_nImageHeight > 0) {
+            attrList += StringUtil::Printf(_T(" height=\"%d\""), textSlice.m_nImageHeight);
+        }
     }
 
     if(!textSlice.m_children.empty()) {
