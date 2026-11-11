@@ -30,6 +30,8 @@ void AnimationDemoForm::OnInitWindow()
     InitEasingDemo();
     InitRetargetDemo();
     InitPhysicsDemo();
+    InitPopupDemo();
+    InitCarouselDemo();
 
     //把默认的全局参数应用到所有演示控件
     ApplyGlobalSettings();
@@ -215,6 +217,120 @@ void AnimationDemoForm::InitPhysicsDemo()
         RunPhysicsSelfTest();
     });
     UpdatePhysicsStateLabel();
+}
+
+void AnimationDemoForm::InitPopupDemo()
+{
+    //弹出层动画总开关：默认关闭；开启后对 Flyout/Popover、Menu、Combo 下拉同时生效
+    ui::PopupAnimation::SetTotalMillSeconds(200);
+    ui::PopupAnimation::SetEasingFunctionType(ui::EasingFunctionType::EaseOutCubic);
+    ui::PopupAnimation::SetEnabled(false);
+
+    BindButtonClick(_T("btn_popup_toggle"), [this]() {
+        ui::PopupAnimation::SetEnabled(!ui::PopupAnimation::IsEnabled());
+        UpdatePopupStateLabel();
+    });
+    UpdatePopupStateLabel();
+
+    //Combo 下拉：填充选项，展开下拉窗口时可观察淡入效果
+    ui::Combo* pCombo = dynamic_cast<ui::Combo*>(FindControl(_T("popup_combo")));
+    if (pCombo != nullptr) {
+        ui::TreeView* pTreeView = pCombo->GetTreeView();
+        ui::TreeNode* pRootNode = (pTreeView != nullptr) ? pTreeView->GetRootNode() : nullptr;
+        if (pRootNode != nullptr) {
+            const DString strPrefix = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_ANIM_POPUP_ITEM"));
+            for (int32_t nIndex = 0; nIndex < 8; ++nIndex) {
+                ui::TreeNode* pNode = new ui::TreeNode(this);
+                pNode->SetClass(_T("tree_node"));
+                pNode->SetText(ui::StringUtil::Printf(_T("%s %02d"), strPrefix.c_str(), nIndex + 1));
+                pRootNode->AddChildNode(pNode);
+            }
+            pCombo->SetCurSel(0, false);
+        }
+    }
+
+    //菜单：点击按钮后弹出，菜单窗口同样使用淡入效果
+    ui::Button* pMenuButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_popup_menu")));
+    if (pMenuButton != nullptr) {
+        pMenuButton->AttachClick([this](const ui::EventArgs& args) {
+            ShowDemoMenu(args.ptMouse);
+            return true;
+        });
+    }
+}
+
+void AnimationDemoForm::InitCarouselDemo()
+{
+    ui::Carousel* pCarousel = dynamic_cast<ui::Carousel*>(FindControl(_T("easing_carousel")));
+    if (pCarousel == nullptr) {
+        return;
+    }
+    pCarousel->SetTransitionEasingFunctionType(ui::EasingFunctionType::EaseLinear);
+    UpdateCarouselEasingLabel();
+
+    BindButtonClick(_T("btn_carousel_linear"), [this]() {
+        ui::Carousel* pDemoCarousel = dynamic_cast<ui::Carousel*>(FindControl(_T("easing_carousel")));
+        if (pDemoCarousel != nullptr) {
+            pDemoCarousel->SetTransitionEasingFunctionType(ui::EasingFunctionType::EaseLinear);
+        }
+        UpdateCarouselEasingLabel();
+    });
+    BindButtonClick(_T("btn_carousel_out_cubic"), [this]() {
+        ui::Carousel* pDemoCarousel = dynamic_cast<ui::Carousel*>(FindControl(_T("easing_carousel")));
+        if (pDemoCarousel != nullptr) {
+            pDemoCarousel->SetTransitionEasingFunctionType(ui::EasingFunctionType::EaseOutCubic);
+        }
+        UpdateCarouselEasingLabel();
+    });
+    BindButtonClick(_T("btn_carousel_prev"), [this]() {
+        ui::Carousel* pDemoCarousel = dynamic_cast<ui::Carousel*>(FindControl(_T("easing_carousel")));
+        if (pDemoCarousel != nullptr) {
+            pDemoCarousel->Prev();
+        }
+    });
+    BindButtonClick(_T("btn_carousel_next"), [this]() {
+        ui::Carousel* pDemoCarousel = dynamic_cast<ui::Carousel*>(FindControl(_T("easing_carousel")));
+        if (pDemoCarousel != nullptr) {
+            pDemoCarousel->Next();
+        }
+    });
+}
+
+void AnimationDemoForm::UpdatePopupStateLabel()
+{
+    ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("label_popup_state")));
+    if (pLabel == nullptr) {
+        return;
+    }
+    const bool bEnabled = ui::PopupAnimation::IsEnabled();
+    pLabel->SetText(ui::GlobalManager::Instance().Lang().GetStringByID(
+        bEnabled ? _T("STRID_ANIM_POPUP_STATE_ON") : _T("STRID_ANIM_POPUP_STATE_OFF")));
+    pLabel->SetStateTextColor(ui::ControlStateType::kControlStateNormal,
+                              bEnabled ? _T("color_success") : _T("color_error"));
+}
+
+void AnimationDemoForm::UpdateCarouselEasingLabel()
+{
+    ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("label_carousel_easing")));
+    ui::Carousel* pCarousel = dynamic_cast<ui::Carousel*>(FindControl(_T("easing_carousel")));
+    if ((pLabel == nullptr) || (pCarousel == nullptr)) {
+        return;
+    }
+    const DString strEasingName = (pCarousel->GetTransitionEasingFunctionType() == ui::EasingFunctionType::EaseOutCubic) ?
+                                   _T("EaseOutCubic") : _T("EaseLinear");
+    const DString strFormat = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_ANIM_CAROUSEL_EASING_FORMAT"));
+    pLabel->SetText(ui::StringUtil::Printf(strFormat.c_str(), strEasingName.c_str()));
+}
+
+void AnimationDemoForm::ShowDemoMenu(const ui::UiPoint& ptMouse)
+{
+    //鼠标位置是窗口客户区坐标，转换为屏幕坐标后，菜单以该点为左上角弹出
+    ui::UiPoint ptScreen = ptMouse;
+    ClientToScreen(ptScreen);
+
+    ui::Menu* pMenu = new ui::Menu(this, FindControl(_T("btn_popup_menu")));
+    pMenu->SetSkinFolder(GetResourcePath().ToString());
+    pMenu->ShowMenu(_T("menu/anim_demo_menu.xml"), ptScreen);
 }
 
 void AnimationDemoForm::UpdatePhysicsStateLabel()

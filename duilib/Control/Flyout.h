@@ -11,6 +11,8 @@
 namespace ui
 {
 
+class AnimationPlayer;
+
 /** 通用浮层窗口（Flyout/Popup）
 *   功能：
 *   1. 锚定宿主控件周围弹出，支持 8 个方位；主方位空间不足时自动翻转到对侧，并夹持在显示器工作区内
@@ -302,6 +304,9 @@ private:
 
     //窗口阴影区域的命中测试过滤器（Windows 平台，把阴影上的鼠标消息交给下层窗口）
     std::unique_ptr<IUIMessageFilter> m_pShadowHitTestFilter;
+
+    //窗口显示时的淡入动画播放器（受 PopupAnimation 全局开关控制）
+    std::unique_ptr<AnimationPlayer> m_pFadeInPlayer;
 
     //是否不抢焦点
     bool m_bNoFocus;

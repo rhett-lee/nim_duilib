@@ -254,16 +254,72 @@
                     </HBox>
                 </VBox>
 
-                <!-- 7. 功能说明 -->
+                <!-- 7. 弹出层淡入动画：Flyout / Popover / Menu / Combo 下拉 -->
                 <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
                       padding="16,14,16,14" width="stretch" height="auto" margin="0,10,0,0">
                     <HBox height="24" valign="center">
-                        <Control width="6" height="16" bkcolor="color_accent" border_round="3,3" valign="center"/>
+                        <Control width="6" height="16" bkcolor="color_success" border_round="3,3" valign="center"/>
                         <Label text_id="STRID_ANIM_CARD7_TITLE" font="system_bold_15" text_color="text_default"
                                margin="8,0,0,0" valign="center"/>
                         <Control/>
                     </HBox>
-                    <Label text_id="STRID_ANIM_CARD7_NOTE"
+                    <Label text_id="STRID_ANIM_CARD7_DESC"
+                           font="system_regular_12" text_color="text_muted" margin="0,6,0,0" width="stretch" height="auto"
+                           multi_line="true" replace_newline="true" auto_tooltip="true"/>
+                    <HBox height="30" margin="0,10,0,0" child_margin="8" valign="center">
+                        <Button class="btn_global" name="btn_popup_toggle" text_id="STRID_ANIM_BTN_POPUP_ON" width="220" height="26" border_round="4,4"/>
+                        <Label name="label_popup_state" text="OFF" font="system_bold_12" text_color="color_success" valign="center"/>
+                        <Control/>
+                    </HBox>
+                    <HBox height="52" margin="0,10,0,0" child_margin="16" valign="center">
+                        <Popover class="popover_anchor_primary" name="popup_demo" trigger="click" placement="bottom"
+                                 valign="center" width="180" text_id="STRID_ANIM_POPUP_TRIGGER"
+                                 title_id="STRID_ANIM_POPUP_TITLE" content_id="STRID_ANIM_POPUP_CONTENT"/>
+                        <Button class="btn_global" name="btn_popup_menu" text_id="STRID_ANIM_BTN_POPUP_MENU" width="150" height="26" border_round="4,4"/>
+                        <VBox width="auto" height="auto">
+                            <Label text_id="STRID_ANIM_POPUP_COMBO_LABEL" font="system_regular_12" text_color="text_muted"/>
+                            <Combo class="combo" name="popup_combo" combo_type="drop_list" dropbox_size="0,140"
+                                   width="220" height="30" margin="0,4,0,0"/>
+                        </VBox>
+                        <Control/>
+                    </HBox>
+                </VBox>
+
+                <!-- 8. 轮播切换缓动曲线 -->
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" width="stretch" height="auto" margin="0,10,0,0">
+                    <HBox height="24" valign="center">
+                        <Control width="6" height="16" bkcolor="color_warning" border_round="3,3" valign="center"/>
+                        <Label text_id="STRID_ANIM_CARD8_TITLE" font="system_bold_15" text_color="text_default"
+                               margin="8,0,0,0" valign="center"/>
+                        <Control/>
+                    </HBox>
+                    <Label text_id="STRID_ANIM_CARD8_DESC"
+                           font="system_regular_12" text_color="text_muted" margin="0,6,0,0" width="stretch" height="auto"
+                           multi_line="true" replace_newline="true" auto_tooltip="true"/>
+                    <Carousel class="carousel" name="easing_carousel" height="140" width="stretch" margin="0,10,0,0"
+                              item_image="file='${PATH_CAROUSEL}/slide1.svg'|file='${PATH_CAROUSEL}/slide2.svg'|file='${PATH_CAROUSEL}/slide3.svg'"
+                              current_index="0" auto_play="false" loop="true" transition_ms="600" transition_easing="EaseLinear"/>
+                    <HBox height="30" margin="0,10,0,0" child_margin="8" valign="center">
+                        <Button class="btn_global" name="btn_carousel_linear" text_id="STRID_ANIM_BTN_CAROUSEL_LINEAR" width="100" height="26" border_round="4,4"/>
+                        <Button class="btn_global" name="btn_carousel_out_cubic" text="EaseOutCubic" width="130" height="26" border_round="4,4"/>
+                        <Button class="btn_global" name="btn_carousel_prev" text_id="STRID_ANIM_BTN_CAROUSEL_PREV" width="90" height="26" border_round="4,4"/>
+                        <Button class="btn_global" name="btn_carousel_next" text_id="STRID_ANIM_BTN_CAROUSEL_NEXT" width="90" height="26" border_round="4,4"/>
+                        <Label name="label_carousel_easing" font="system_bold_12" text_color="color_accent" valign="center" auto_tooltip="true"/>
+                        <Control/>
+                    </HBox>
+                </VBox>
+
+                <!-- 9. 功能说明 -->
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" width="stretch" height="auto" margin="0,10,0,0">
+                    <HBox height="24" valign="center">
+                        <Control width="6" height="16" bkcolor="color_accent" border_round="3,3" valign="center"/>
+                        <Label text_id="STRID_ANIM_CARD9_TITLE" font="system_bold_15" text_color="text_default"
+                               margin="8,0,0,0" valign="center"/>
+                        <Control/>
+                    </HBox>
+                    <Label text_id="STRID_ANIM_CARD9_NOTE"
                            font="system_regular_12" text_color="text_muted" margin="0,8,0,0"
                            width="stretch" height="auto" multi_line="true" replace_newline="true" auto_tooltip="true"/>
                 </VBox>

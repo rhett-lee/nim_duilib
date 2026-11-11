@@ -14,7 +14,9 @@
 *  4. 缓动曲线对比：同一时刻启动、使用不同缓动函数的动画；
 *  5. Retarget：播放过程中修改结束值，从当前值继续播放；
 *  6. 物理动画：弹簧（Panel 展开/折叠）与惯性（列表滚动），支持全局开关与自检；
-*  7. 功能说明。
+*  7. 弹出层淡入：Popover / Menu / Combo 下拉，支持全局开关；
+*  8. 轮播切换缓动：Carousel 的 transition_easing 配置；
+*  9. 功能说明。
 */
 class AnimationDemoForm : public ui::WindowImplBase
 {
@@ -57,6 +59,27 @@ private:
     /** 初始化物理动画的演示控件（Panel 弹簧展开/折叠、列表惯性滚动、总开关）
     */
     void InitPhysicsDemo();
+
+    /** 初始化弹出层淡入动画的演示控件（Popover / Menu / Combo 下拉、总开关）
+    */
+    void InitPopupDemo();
+
+    /** 初始化 Carousel 切换缓动的演示控件
+    */
+    void InitCarouselDemo();
+
+    /** 刷新弹出层动画总开关的状态显示
+    */
+    void UpdatePopupStateLabel();
+
+    /** 刷新轮播当前缓动曲线的显示
+    */
+    void UpdateCarouselEasingLabel();
+
+    /** 弹出演示菜单（使用与弹出层动画相同的淡入效果）
+    * @param [in] ptMouse 菜单弹出的位置（窗口客户区坐标，内部会转换为屏幕坐标）
+    */
+    void ShowDemoMenu(const ui::UiPoint& ptMouse);
 
     /** 刷新物理动画总开关的状态显示
     */

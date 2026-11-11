@@ -183,6 +183,10 @@
   - `Panel` 新增 `collapse_physics` 属性（折叠/展开使用弹簧动画），对应 `SetCollapsePhysicsEnabled()` / `SetCollapseSpringParameters()`。
   - `ScrollBox` 及其子类新增 `inertia_scroll` / `inertia_friction` / `inertia_gain` 属性（滚轮结束后按惯性滑行），对应 `SetInertiaScrollEnabled()` / `SetInertiaScrollParameters()`。
   - 关闭物理动画总开关后，以上功能自动回退为原有缓动动画/普通滚动（示例：`examples/controls` 的动画功能演示页）。
+- 弹出层淡入动画：新增 `duilib/Animation/PopupAnimation.h`，通过分层窗口 Alpha 由 0 渐变到 255 实现整体淡入，默认关闭；
+  - 全局开关 `PopupAnimation::SetEnabled()`，并可配置时长（`SetTotalMillSeconds()`，默认 120ms）与缓动函数（默认 `EaseOutCubic`）。
+  - 已接入 `Flyout`（`Popover`、`Popconfirm`、`CalendarFlyout` 自动继承）、`Menu` 及子菜单、`Combo` 下拉窗口（示例：`examples/controls` 的动画功能演示页）。
+- `Carousel` 新增 `transition_easing` 属性（默认 `EaseLinear`，与原有线性切换一致），对应 `SetTransitionEasingFunctionType()` / `GetTransitionEasingFunctionType()`，可把切换动画改为 `EaseOutCubic` 等曲线。
 
 ### 变更
 

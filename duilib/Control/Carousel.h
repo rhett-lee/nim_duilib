@@ -4,6 +4,7 @@
 #include "duilib/Core/Control.h"
 #include "duilib/Image/StateImage.h"
 #include "duilib/Core/Callback.h"
+#include "duilib/Animation/EasingFunctions.h"
 #include <vector>
 #include <memory>
 
@@ -38,6 +39,7 @@ struct CarouselValue
  *  - interval：自动播放间隔（毫秒），默认 3000
  *  - hover_pause：鼠标悬停暂停自动播放，默认 true
  *  - transition_ms：切换动画时长（毫秒），默认 300，0 表示立即切换
+ *  - transition_easing：切换动画的缓动曲线名称（与 EasingFunctionType 枚举名一致），默认 EaseLinear
  *  - show_indicator：是否显示页码指示点，默认 true
  *  - indicator_normal_image / indicator_active_image：指示点常态 / 当前页图片
  *  - indicator_size：指示点尺寸（像素，DPI 缩放），默认 8
@@ -205,6 +207,14 @@ public:
     */
     void SetTransitionMs(int32_t nMs);
 
+    /** 设置切换动画使用的缓动函数（默认 EaseLinear，与原有表现一致）
+    */
+    void SetTransitionEasingFunctionType(EasingFunctionType easingFunctionType);
+
+    /** 获取切换动画使用的缓动函数
+    */
+    EasingFunctionType GetTransitionEasingFunctionType() const { return m_transitionEasing; }
+
     /** 监听当前索引变化事件
     * @param [in] callback 索引变化后的回调函数
     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
@@ -357,6 +367,10 @@ private:
     /** 切换动画时长（毫秒，0 = 立即切换）
     */
     int32_t m_nTransitionMs;
+
+    /** 切换动画使用的缓动函数
+    */
+    EasingFunctionType m_transitionEasing;
 
     /** 是否显示页码指示点
     */

@@ -8,6 +8,8 @@
 #include "duilib/Core/WindowMessage.h"
 #include "duilib/Core/Keyboard.h"
 #include "duilib/Core/Callback.h"
+#include "duilib/Animation/PopupAnimation.h"
+#include "duilib/Animation/AnimationPlayer.h"
 
 namespace ui
 {
@@ -96,6 +98,10 @@ Flyout::Flyout(Window* pParentWindow) :
 Flyout::~Flyout()
 {
     StopDetectTimer();
+    if (m_pFadeInPlayer != nullptr) {
+        m_pFadeInPlayer->Stop();
+        m_pFadeInPlayer.reset();
+    }
     //兜底：确保析构后活动浮层指针不悬空（正常关闭路径已在 DoClose/OnFinalMessage 清空）
     if (s_pActiveFlyout == this) {
         s_pActiveFlyout = nullptr;
@@ -177,6 +183,9 @@ bool Flyout::ShowAt(Control* pAnchor, const DString& xmlFile, Placement placemen
     PositionAroundAnchor();
     //记录锚点的初始屏幕矩形，供跟随锚点时检测位移
     GetAnchorScreenRect(m_rcAnchorScreenLast, true);
+
+    //弹出层淡入动画：在窗口显示前把 Alpha 置 0，避免出现一帧全不透明的闪烁
+    PopupAnimation::PlayFadeIn(this, m_pFadeInPlayer);
 
     if (!m_bNoFocus) {
         //显示窗口，并且需要设置焦点

@@ -1026,6 +1026,9 @@
     <ClCompile Include="Animation\PhysicsAnimation.cpp">
       <Filter>Animation</Filter>
     </ClCompile>
+    <ClCompile Include="Animation\PopupAnimation.cpp">
+      <Filter>Animation</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -2127,6 +2130,9 @@
       <Filter>Animation</Filter>
     </ClInclude>
     <ClInclude Include="Animation\PhysicsAnimation.h">
+      <Filter>Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="Animation\PopupAnimation.h">
       <Filter>Animation</Filter>
     </ClInclude>
   </ItemGroup>

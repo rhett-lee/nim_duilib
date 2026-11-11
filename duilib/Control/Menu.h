@@ -67,6 +67,7 @@ typedef std::function<void (const DString& menuName, int32_t nMenuLevel,
 */
 class MenuItem;
 class MenuBar;
+class AnimationPlayer;
 class DUILIB_API Menu : public WindowImplBase, public ContextMenuReceiver
 {
     typedef WindowImplBase BaseClass;
@@ -79,6 +80,10 @@ public:
     explicit Menu(Window* pParentWindow,
                   Control* pRelatedControl = nullptr,
                   MenuBar* pMenuBar = nullptr);
+
+    /** 析构函数
+    */
+    virtual ~Menu() override;
 
     /** 设置资源加载的文件夹名称，如果没设置，内部默认为 "menu"
     *   XML文件中的资源（图片、XML等），均在这个文件夹中查找
@@ -257,6 +262,9 @@ private:
         size_t m_itemIndex = Box::InvalidIndex;
     };
     std::unique_ptr<ActiveMenuItem> m_pActiveMenuItem;
+
+    //菜单显示时的淡入动画播放器（受 PopupAnimation 全局开关控制）
+    std::unique_ptr<AnimationPlayer> m_pFadeInPlayer;
 };
 
 /** 菜单项

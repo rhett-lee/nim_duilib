@@ -27,6 +27,7 @@ Carousel::Carousel(Window* pWindow) :
     m_nInterval(3000),
     m_bHoverPause(true),
     m_nTransitionMs(300),
+    m_transitionEasing(EaseLinear),
     m_bShowIndicator(true),
     m_bShowNavButton(true),
     m_nIndicatorSize(8),
@@ -101,6 +102,9 @@ void Carousel::SetAttribute(const DString& strName, const DString& strValue2)
     }
     else if ((strName == _T("transition_ms")) || (strName == _T("transitionms"))) {
         SetTransitionMs(StringUtil::StringToInt32(strValue));
+    }
+    else if ((strName == _T("transition_easing")) || (strName == _T("transitioneasing"))) {
+        SetTransitionEasingFunctionType(EasingFunctions::GetEasingFunctionType(strValue));
     }
     else if ((strName == _T("show_indicator")) || (strName == _T("showindicator"))) {
         m_bShowIndicator = StringUtil::IsValueTrue(strValue);
@@ -476,6 +480,11 @@ void Carousel::SetTransitionMs(int32_t nMs)
     }
 }
 
+void Carousel::SetTransitionEasingFunctionType(EasingFunctionType easingFunctionType)
+{
+    m_transitionEasing = easingFunctionType;
+}
+
 // ---- 布局计算 ----
 
 UiRect Carousel::GetContentRect() const
@@ -758,6 +767,11 @@ float Carousel::GetAnimProgress() const
     }
     if (fT > 1.0f) {
         fT = 1.0f;
+    }
+    //应用缓动曲线（默认线性，与原有表现一致）
+    EasingFunction pEasingFunction = EasingFunctions::GetEasingFunction(m_transitionEasing);
+    if (pEasingFunction != nullptr) {
+        fT = static_cast<float>(pEasingFunction(static_cast<double>(fT)));
     }
     return fT;
 }

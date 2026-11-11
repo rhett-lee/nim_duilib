@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window shadow_type="menu_round" shadow_border_size="2" shadow_border_color="border_window">
+    <MenuListBox class="menu" name="anim_demo_menu">
+        <MenuItem class="menu_element" name="anim_menu_item1" width="180">
+            <Label class="menu_text" text_id="STRID_ANIM_MENU_ITEM1" mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+        <MenuItem class="menu_element" name="anim_menu_item2" width="180">
+            <Label class="menu_text" text_id="STRID_ANIM_MENU_ITEM2" mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+        <MenuItem class="menu_element" name="anim_menu_item3" width="180">
+            <Label class="menu_text" text_id="STRID_ANIM_MENU_ITEM3" mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+    </MenuListBox>
+</Window>

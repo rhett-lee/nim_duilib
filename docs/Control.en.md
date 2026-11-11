@@ -1221,6 +1221,7 @@ pRating->AttachRatingChanged([](const ui::EventArgs& msg) {
 | interval | 3000 | int | Auto-play interval (milliseconds) |
 | hover_pause | true | bool | Pause auto-play while the mouse hovers over the control |
 | transition_ms | 300 | int | Transition animation duration (milliseconds; 0 = switch immediately) |
+| transition_easing | EaseLinear | string | Easing curve name for the transition (`EasingFunctionType` enumerator, e.g. `EaseOutCubic`); defaults to linear, matching the previous behavior |
 | show_indicator | true | bool | Whether to show the page indicator dots |
 | indicator_normal_image |  | string | Image for a normal indicator dot |
 | indicator_active_image |  | string | Image for the active (current page) indicator dot |
@@ -1239,7 +1240,7 @@ Carousel inherits the `Control` attributes; for more available attributes please
 The image carousel is used for home banners, ad slots, image galleries, and similar scenarios, displaying one slide at a time. Its appearance is fully driven by SVG images (no self-drawn graphics):
 
 - Slides, the previous/next buttons, and the bottom page indicator dots are all carried by images; `svg_replace_colors` maps placeholder colors to theme semantic colors, so switching themes takes effect automatically;
-- Supports previous/next navigation, clickable bottom indicator dots (with the current page highlighted), `loop` infinite cycling, `auto_play` with `hover_pause`, `transition_ms` horizontal sliding animation, and press-and-drag horizontal paging.
+- Supports previous/next navigation, clickable bottom indicator dots (with the current page highlighted), `loop` infinite cycling, `auto_play` with `hover_pause`, `transition_ms` horizontal sliding animation (curve configured by `transition_easing`, linear by default), and press-and-drag horizontal paging.
 
 The `carousel` class in the default skin already provides the navigation buttons, indicator dots, and semantic color mapping; reference it directly with `class="carousel"`.
 
@@ -1267,6 +1268,8 @@ bool NextNoEvent();  bool PrevNoEvent();  bool GoToNoEvent(int32_t nIndex);
 bool IsLoop() const;       void SetLoop(bool bLoop);
 bool IsAutoPlay() const;   void SetAutoPlay(bool bAutoPlay);
 int32_t GetInterval() const; void SetInterval(int32_t nIntervalMs);
+void SetTransitionEasingFunctionType(EasingFunctionType easingFunctionType); // transition easing curve, EaseLinear by default
+EasingFunctionType GetTransitionEasingFunctionType() const;
 bool IsHoverPause() const; void SetHoverPause(bool bHoverPause);
 int32_t GetTransitionMs() const; void SetTransitionMs(int32_t nMs);
 void AttachCarouselChanged(const EventCallback& callback, EventCallbackID callbackID = 0); // index-change event
@@ -2563,6 +2566,7 @@ Key features:
 - Only one active flyout at a time: showing a new flyout closes the previous one;
 - The flyout is a layered popup window with shadow (`WS_POPUP | WS_EX_LAYERED`); the content XML is drawn with current-theme semantic colors, adapting to light/dark themes automatically;
 - The window shadow does not intercept the mouse (Windows only): mouse messages over the shadow are passed through to the window below, and the shadow is excluded from "is the pointer inside the flyout" checks (see `GetVisualRect`).
+- Show animation: when the global switch `PopupAnimation::SetEnabled(true)` is on, the flyout fades in by animating the layered window alpha from 0 to 255 (off by default; duration and easing are configurable via `PopupAnimation::SetTotalMillSeconds()` / `SetEasingFunctionType()`, and Menu and Combo drop-down windows share the same switch).
 
 ### C++ Interfaces
 

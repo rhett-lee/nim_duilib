@@ -301,6 +301,7 @@
     <ClCompile Include="Animation\AnimationScheduler.cpp" />
     <ClCompile Include="Animation\EasingFunctions.cpp" />
     <ClCompile Include="Animation\PhysicsAnimation.cpp" />
+    <ClCompile Include="Animation\PopupAnimation.cpp" />
     <ClCompile Include="Box\ListBox.cpp" />
     <ClCompile Include="Box\ListBoxHelper.cpp" />
     <ClCompile Include="Box\ScrollBox.cpp" />
@@ -721,6 +722,7 @@
     <ClInclude Include="Animation\AnimationScheduler.h" />
     <ClInclude Include="Animation\EasingFunctions.h" />
     <ClInclude Include="Animation\PhysicsAnimation.h" />
+    <ClInclude Include="Animation\PopupAnimation.h" />
     <ClInclude Include="Box\GridBox.h" />
     <ClInclude Include="Box\HBox.h" />
     <ClInclude Include="Box\ListBox.h" />

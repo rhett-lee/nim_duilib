@@ -4,6 +4,8 @@
 #include "duilib/Box/ListBox.h"
 #include "duilib/Box/HBox.h"
 #include "duilib/Core/WindowCreateParam.h"
+#include "duilib/Animation/PopupAnimation.h"
+#include "duilib/Animation/AnimationPlayer.h"
 
 namespace ui
 {
@@ -54,6 +56,9 @@ private:
 
     //是否已经关闭
     bool m_bIsClosed = false;
+
+    //窗口显示时的淡入动画播放器（受 PopupAnimation 全局开关控制）
+    std::unique_ptr<AnimationPlayer> m_pFadeInPlayer;
 };
 
 void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
@@ -80,6 +85,9 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
     createWndParam.m_nWidth = rcWnd.Width();
     createWndParam.m_nHeight = rcWnd.Height();
     CreateWnd(pOwner->GetWindow(), createWndParam);
+
+    //下拉窗口淡入动画：在显示前把 Alpha 置 0，显示时由动画渐变到完全不透明
+    PopupAnimation::PlayFadeIn(this, m_pFadeInPlayer);
 
     UpdateComboWnd();
     if (bActivated) {

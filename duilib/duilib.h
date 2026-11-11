@@ -27,6 +27,7 @@
 
 #include "Animation/AnimationPlayer.h"
 #include "Animation/AnimationManager.h"
+#include "Animation/PopupAnimation.h"
 
 #include "Render/IRender.h"
 #include "Render/AutoClip.h"

@@ -155,6 +155,7 @@ For detailed interface descriptions of each class, please refer to the associate
 | AnimationManager | [duilib/Animation/AnimationManager.h](../duilib/Animation/AnimationManager.h) | Image animation manager |
 | AnimationPlayer | [duilib/Animation/AnimationPlayer.h](../duilib/Animation/AnimationPlayer.h) | Control animation playback state management (easing / spring / inertia) |
 | PhysicsAnimation | [duilib/Animation/PhysicsAnimation.h](../duilib/Animation/PhysicsAnimation.h) | Physics animation: spring and inertia integrators plus the global switch |
+| PopupAnimation | [duilib/Animation/PopupAnimation.h](../duilib/Animation/PopupAnimation.h) | Popup fade-in animation: global switch and parameters for Flyout/Popover, Menu and Combo drop-downs |
 
 * Color
 

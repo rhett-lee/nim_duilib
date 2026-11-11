@@ -5,6 +5,8 @@
 #include "duilib/Core/WindowCreateParam.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/FilePathUtil.h"
+#include "duilib/Animation/PopupAnimation.h"
+#include "duilib/Animation/AnimationPlayer.h"
 
 namespace ui {
 
@@ -83,6 +85,14 @@ Menu::Menu(Window* pParentWindow, Control* pRelatedControl, MenuBar* pMenuBar):
     m_submenuNodeName = DString(_T("submenu"));
 }
 
+Menu::~Menu()
+{
+    if (m_pFadeInPlayer != nullptr) {
+        m_pFadeInPlayer->Stop();
+        m_pFadeInPlayer.reset();
+    }
+}
+
 void Menu::SetSkinFolder(const DString& skinFolder)
 {
     m_skinFolder = skinFolder;
@@ -115,6 +125,9 @@ void Menu::ShowMenu(const DString& xml, const UiPoint& point, MenuPopupPosType p
     createWndParam.m_nX = point.x;
     createWndParam.m_nY = point.y;
     CreateWnd(m_pParentWindow, createWndParam);
+
+    //菜单淡入动画：在显示前把 Alpha 置 0，显示时由动画渐变到完全不透明
+    PopupAnimation::PlayFadeIn(this, m_pFadeInPlayer);
 
     if (m_pMenuBar != nullptr) {
         //如果显示在MenuBar中，避免上方阴影影响鼠标滑动切换菜单功能，需要设置padding.top为0

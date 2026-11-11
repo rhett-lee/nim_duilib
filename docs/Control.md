@@ -1221,6 +1221,7 @@ pRating->AttachRatingChanged([](const ui::EventArgs& msg) {
 | interval | 3000 | int | 自动播放间隔（毫秒） |
 | hover_pause | true | bool | 鼠标悬停时暂停自动播放 |
 | transition_ms | 300 | int | 切换动画时长（毫秒，0 = 立即切换） |
+| transition_easing | EaseLinear | string | 切换动画的缓动曲线名称（`EasingFunctionType` 枚举名，如 `EaseOutCubic`）；默认线性，与原有表现一致 |
 | show_indicator | true | bool | 是否显示页码指示点 |
 | indicator_normal_image |  | string | 指示点常态图 |
 | indicator_active_image |  | string | 指示点当前页图 |
@@ -1239,7 +1240,7 @@ Carousel 控件继承了 `Control` 属性，更多可用属性请参考`Control`
 图片轮播用于首页横幅、广告位、图片集等场景，逐张展示幻灯片（同一时刻显示一张）。外观完全由 SVG 图片驱动（不做图形自绘）：
 
 - 幻灯片、左右切换按钮、底部页码指示点均以图片承载，经 `svg_replace_colors` 把占位色映射到主题语义色，切换主题自动生效；
-- 支持左右切换、底部可点击的页码指示点（当前页高亮）、`loop` 无限循环、`auto_play` 自动播放 + `hover_pause` 悬停暂停、`transition_ms` 水平滑动动画，以及按住鼠标左右拖拽翻页。
+- 支持左右切换、底部可点击的页码指示点（当前页高亮）、`loop` 无限循环、`auto_play` 自动播放 + `hover_pause` 悬停暂停、`transition_ms` 水平滑动动画（曲线由 `transition_easing` 配置，默认线性），以及按住鼠标左右拖拽翻页。
 
 默认皮肤的 `carousel` 类已内置导航按钮与指示点图片及语义色映射，可直接 `class="carousel"` 引用。
 
@@ -1267,6 +1268,8 @@ bool NextNoEvent();  bool PrevNoEvent();  bool GoToNoEvent(int32_t nIndex);
 bool IsLoop() const;       void SetLoop(bool bLoop);
 bool IsAutoPlay() const;   void SetAutoPlay(bool bAutoPlay);
 int32_t GetInterval() const; void SetInterval(int32_t nIntervalMs);
+void SetTransitionEasingFunctionType(EasingFunctionType easingFunctionType); //切换动画的缓动曲线，默认 EaseLinear
+EasingFunctionType GetTransitionEasingFunctionType() const;
 bool IsHoverPause() const; void SetHoverPause(bool bHoverPause);
 int32_t GetTransitionMs() const; void SetTransitionMs(int32_t nMs);
 void AttachCarouselChanged(const EventCallback& callback, EventCallbackID callbackID = 0); //索引变化事件
@@ -2560,7 +2563,8 @@ Flyout是通用浮层（弹出卡片）窗口，继承自WindowImplBase，对应
 - 非模态窗口：窗口关闭后框架自动释放对象，调用方不需要手动delete；
 - 同一时刻只保留一个活动浮层，弹出新浮层时旧浮层自动关闭；
 - 浮层为带阴影的层窗口（`WS_POPUP | WS_EX_LAYERED`），内容XML按当前主题语义色自绘，深浅色主题自动适配；
-- 窗口阴影区域不拦截鼠标（仅Windows平台）：落在阴影上的鼠标消息会穿透给浮层下面的窗口，阴影也不参与"鼠标是否在浮层内"的判定（见`GetVisualRect`）。
+- 窗口阴影区域不拦截鼠标（仅Windows平台）：落在阴影上的鼠标消息会穿透给浮层下面的窗口，阴影也不参与"鼠标是否在浮层内"的判定（见`GetVisualRect`）；
+- 显示动画：开启全局开关`PopupAnimation::SetEnabled(true)`后，浮层显示时按分层窗口 Alpha 从 0 渐变到 255（默认关闭；时长与缓动可由`PopupAnimation::SetTotalMillSeconds()` / `SetEasingFunctionType()`配置，Menu 与 Combo 下拉窗口共用同一开关）。
 
 ### C++接口
 

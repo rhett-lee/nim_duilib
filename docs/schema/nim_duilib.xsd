@@ -2688,6 +2688,11 @@
         <xs:documentation>切换动画时长（毫秒，0 = 立即切换）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="transition_easing" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>切换动画的缓动曲线名称（EasingFunctionType 枚举名，如 EaseOutCubic），默认 EaseLinear</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute name="show_indicator" type="xs:string">
       <xs:annotation>
         <xs:documentation>是否显示页码指示点</xs:documentation>
