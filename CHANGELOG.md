@@ -324,6 +324,22 @@
     等于链接 URL 才保留）；补充修正滚动容器内链接抬起点击与右键“复制链接地址”未扣除滚动偏移；
     块级标签（`<p>`/`<h1>`~`<h6>`/`<ul>`/`<ol>`/`<li>`/`<hr>`）结束后，紧跟其后的行内内容
     现在会自动另起一段（此前会接在块级内容同一行），纯空白文本节点不参与段落判断。
+- RichText 可测试性与示例页：
+  - 新增 `duilib/Control/RichTextUtil.h/.cpp`（`DUILIB_API` 导出）：将 XML 转义、`text_align`/`align` 解析、
+    标签与块级标签校验、可见文本判断、Trim 策略（`RichTextTrimPolicy`）、跨文本节点的空格规范化、
+    链接 URL 归一化与 ToolTip 判定、选中文本换行归一化等纯逻辑从 `RichTextImpl.cpp`、`WindowBuilder.cpp`
+    中原样抽出（行为不变），便于独立测试与复用；
+  - 新增 `tests/test_rich_text_util.cpp`，覆盖上述全部纯逻辑（含空值/边界、跨节点空格、三种 Trim 策略），
+    并接入 `tests/CMakeLists.txt`（`add_test(NAME rich_text_util ...)`）；
+  - `examples/controls` 新增 `RichTextForm`（布局 `controls/rich_text.xml`）：专门的 RichText 测试页，
+    覆盖内联格式、链接（ToolTip/已访问/无下划线）、段落与块级标签、排版控制
+    （`word_wrap`/`max_lines`/`text_overflow`/行距/字距/缩进）、内联图片与文本选择，
+    并提供对齐轮换、换行开关、链接配色、追加/清空/恢复、全选/复制/清除选择等按钮与状态回显；
+    `controls` 首页 RichText 卡片提供“打开测试页”入口。
+- 示例程序内嵌 HTML 演示页支持中英自动切换（`cef/cef.html`、`cef/drop_files.html`、`cef/popup.html`、
+  `cef/unload.html`、`cef/osr.html`、`cef_browser/cef.html`、`webview2_browser/WebView2Demo.html`）：
+  按 `navigator.language` 自动选择中文或英文（CEF/WebView2 的语言跟随程序的 `LANGUAGE_NAME`），
+  也支持在地址中追加 `?lang=zh|en` 强制指定；静态文案、placeholder、页面标题、对话框与动态状态文本均已覆盖。
 
 ### 移除
 
@@ -349,6 +365,12 @@
     解析失败时按纯文本降级显示；
   - 鼠标从链接移到空白处时高亮不刷新：Hover 状态变化时统一触发重绘；
   - `link_font_underline` 只在 Hover/按下状态生效：常规状态也显示下划线。
+  - `link_font_underline="false"` 时，Hover/按下补绘的下划线落在文本可视区域之外：绘制缓存返回的矩形
+    已是控件布局坐标，却又叠加了一次文本区域偏移（文本选择背景使用相对坐标，其偏移予以保留）。
+  - 文本解析失败时每帧重复解析：改为按“已解析”标记只解析一次，与注释语义一致。
+  - 示例程序双语残留：`controls` 首页 RichText 元素示例的文案改用语言资源
+    （`STRID_GALLERY_ELEMENT_RICHTEXT_TEXT`），英文界面不再出现中文；
+    `en_US-examples.txt` 中残留的全角标点（`！`、`，`、`：`、全角空格）统一改为半角。
 - RichText 中优先级问题修复（性能与健壮性）：
   - 悬停/按下导致整篇重新排版：绘制缓存校验忽略文字颜色，绘制时按片段覆盖颜色；
   - 每帧重复堆分配（文本数据、链接字体）：复用绘制缓冲区，链接字体在解析时生成并共享；

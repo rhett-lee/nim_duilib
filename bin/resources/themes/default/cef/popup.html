@@ -4,6 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CEF弹出窗口测试页面</title>
+    <script>
+        /* 界面语言：优先使用地址栏参数 lang=zh|en，否则跟随浏览器语言（中文环境显示中文，其他语言显示英文） */
+        window.__demoLang = (function () {
+            const m = /[?&]lang=(zh|en)/i.exec(location.search);
+            if (m) { return m[1].toLowerCase(); }
+            return /^zh/i.test(navigator.language || '') ? 'zh' : 'en';
+        })();
+        /* 动态文案：中文用 zh，英文用 en */
+        window.__t = function (zh, en) { return window.__demoLang === 'zh' ? zh : en; };
+        /* 静态文案：英文环境下按字典替换文本节点与页面标题 */
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.__demoLang === 'zh') { return; }
+            document.documentElement.lang = 'en';
+            const dict = {
+                'CEF弹出窗口测试页面': 'CEF Popup Window Test Page',
+                'CEF弹出窗口测试工具': 'CEF Popup Window Test Tool',
+                '多种方式触发弹出窗口，用于测试CefLifeSpanHandler': 'Trigger popups in multiple ways to test CefLifeSpanHandler',
+                '基本弹出窗口测试': 'Basic Popup Tests',
+                '链接方式弹出(blank)': 'Link target=_blank',
+                '自定义大小弹出窗口': 'Popup with Custom Size',
+                '空白弹出窗口': 'Blank Popup',
+                '特殊弹出场景测试': 'Special Popup Cases',
+                '弹出后自动关闭': 'Auto-close after Opening',
+                '多窗口弹出(3个)': 'Multiple Popups (3)',
+                '带交互功能的弹出窗': 'Interactive Popup',
+                '关闭所有弹出窗口': 'Close All Popups',
+                '弹出窗口状态': 'Popup Status',
+                '尚未打开任何弹出窗口': 'No popup has been opened yet',
+                '已打开的弹出窗口:': 'Opened popups:',
+                'CEF弹出窗口测试页面 © 2023': 'CEF Popup Window Test Page © 2023'
+            };
+            const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+            let node;
+            while ((node = walker.nextNode())) {
+                const key = node.nodeValue.trim();
+                if (Object.prototype.hasOwnProperty.call(dict, key)) {
+                    node.nodeValue = node.nodeValue.replace(key, dict[key]);
+                }
+            }
+            document.title = dict[document.title] || document.title;
+        });
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script>
@@ -55,7 +97,7 @@
                     </a>
                     
                     <!-- 2. JavaScript window.open() -->
-                    <button onclick="openPopup('https://example.com', '测试弹出窗口', 'width=600,height=400')"
+                    <button onclick="openPopup('https://example.com', window.__t('测试弹出窗口', 'Test Popup'), 'width=600,height=400')"
                             class="btn-pop w-full bg-primary hover:bg-primary/90 text-white py-3 px-4 rounded-lg">
                         <i class="fa fa-window-maximize mr-1"></i> JS window.open()
                     </button>
@@ -138,19 +180,19 @@
             const popupsEl = document.getElementById('popups');
             
             if (popups.length === 0) {
-                statusEl.textContent = '尚未打开任何弹出窗口';
+                statusEl.textContent = window.__t('尚未打开任何弹出窗口', 'No popup has been opened yet');
                 listEl.classList.add('hidden');
                 return;
             }
             
-            statusEl.textContent = `当前打开了 ${popups.length} 个弹出窗口`;
+            statusEl.textContent = window.__t(`当前打开了 ${popups.length} 个弹出窗口`, `Opened ${popups.length} popup window(s)`);
             listEl.classList.remove('hidden');
             
             // 清空列表并重新添加
             popupsEl.innerHTML = '';
             popups.forEach((popup, index) => {
                 const li = document.createElement('li');
-                li.textContent = `弹出窗口 #${index + 1}: ${popup.url || '空白页面'}`;
+                li.textContent = window.__t(`弹出窗口 #${index + 1}: ${popup.url || '空白页面'}`, `Popup #${index + 1}: ${popup.url || 'about:blank'}`);
                 popupsEl.appendChild(li);
             });
         }
@@ -175,7 +217,7 @@
                     }
                 }, 500);
             } else {
-                alert('弹出窗口被浏览器阻止，请允许弹出窗口后重试');
+                alert(window.__t('弹出窗口被浏览器阻止，请允许弹出窗口后重试', 'The popup was blocked by the browser. Please allow popups and try again'));
             }
         }
 
@@ -215,7 +257,7 @@
                     }
                 }, 3000);
             } else {
-                alert('弹出窗口被浏览器阻止，请允许弹出窗口后重试');
+                alert(window.__t('弹出窗口被浏览器阻止，请允许弹出窗口后重试', 'The popup was blocked by the browser. Please allow popups and try again'));
             }
         }
 
@@ -244,7 +286,7 @@
                     <!DOCTYPE html>
                     <html>
                     <head>
-                        <title>功能弹出窗口</title>
+                        <title>${window.__t('功能弹出窗口', 'Functional Popup')}</title>
                         <style>
                             body { font-family: Arial, sans-serif; padding: 20px; }
                             .container { text-align: center; }
@@ -254,19 +296,19 @@
                     </head>
                     <body>
                         <div class="container">
-                            <h2>功能弹出窗口</h2>
-                            <p>这是一个带有交互功能的弹出窗口</p>
-                            <p id="counter">计数: 0</p>
-                            <button onclick="window.opener.incrementCounter(this)">增加计数</button>
+                            <h2>${window.__t('功能弹出窗口', 'Functional Popup')}</h2>
+                            <p>${window.__t('这是一个带有交互功能的弹出窗口', 'This is a popup window with interactive features')}</p>
+                            <p id="counter">${window.__t('计数: 0', 'Count: 0')}</p>
+                            <button onclick="window.opener.incrementCounter(this)">${window.__t('增加计数', 'Increase')}</button>
                             <br><br>
-                            <button onclick="window.close()">关闭窗口</button>
+                            <button onclick="window.close()">${window.__t('关闭窗口', 'Close Window')}</button>
                         </div>
                     </body>
                     </html>
                 `);
                 popup.document.close();
             } else {
-                alert('弹出窗口被浏览器阻止，请允许弹出窗口后重试');
+                alert(window.__t('弹出窗口被浏览器阻止，请允许弹出窗口后重试', 'The popup was blocked by the browser. Please allow popups and try again'));
             }
         }
 
@@ -276,13 +318,13 @@
             const counterEl = popup.document.getElementById('counter');
             let count = parseInt(counterEl.textContent.split(': ')[1]);
             count++;
-            counterEl.textContent = `计数: ${count}`;
+            counterEl.textContent = window.__t('计数: ' + count, 'Count: ' + count);
         }
 
         // 关闭所有弹出窗口
         function closeAllPopups() {
             if (popups.length === 0) {
-                alert('没有打开的弹出窗口');
+                alert(window.__t('没有打开的弹出窗口', 'There is no opened popup'));
                 return;
             }
             

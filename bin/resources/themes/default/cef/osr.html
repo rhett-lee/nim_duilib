@@ -1,6 +1,39 @@
 <html>
 <head>
 <meta charset="UTF-8" />
+<script>
+/* 界面语言：优先使用地址栏参数 lang=zh|en，否则跟随浏览器语言（中文环境显示中文，其他语言显示英文） */
+window.__demoLang = (function () {
+  const m = /[?&]lang=(zh|en)/i.exec(location.search);
+  if (m) { return m[1].toLowerCase(); }
+  return /^zh/i.test(navigator.language || '') ? 'zh' : 'en';
+})();
+/* 动态文案：中文用 zh，英文用 en */
+window.__t = function (zh, en) { return window.__demoLang === 'zh' ? zh : en; };
+/* 静态文案：英文环境下按字典替换文本节点 */
+document.addEventListener('DOMContentLoaded', function () {
+  if (window.__demoLang === 'zh') { return; }
+  const dict = {
+    '点击弹出对话框': 'Show Dialog',
+    '系统提示': 'System Message',
+    '这是一个模态对话框示例！': 'This is a modal dialog sample!',
+    '确定': 'OK',
+    '选项1': 'Option 1',
+    '选项2': 'Option 2',
+    '选项3': 'Option 3',
+    '触发弹窗': 'Open Popup',
+    '右键点击此区域': 'Right-click this area'
+  };
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+  let node;
+  while ((node = walker.nextNode())) {
+    const key = node.nodeValue.trim();
+    if (Object.prototype.hasOwnProperty.call(dict, key)) {
+      node.nodeValue = node.nodeValue.replace(key, dict[key]);
+    }
+  }
+});
+</script>
 </head>
 
 <button onclick="showDialog()">点击弹出对话框</button>

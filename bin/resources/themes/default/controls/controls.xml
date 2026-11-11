@@ -219,8 +219,8 @@
                         </HBox>
                         <HBox height="84" margin="0,10,0,0">
                             <VBox width="170">
-                                <RichText class="rich_text" name="rich_text_demo" row_spacing_mul="1.2" width="stretch">
-                                    RichText: <a href="www.baidu.com">Baidu</a> 与 <a href="www.qq.com">腾讯</a> 之间的自然间距，以及 <b>粗体</b>、<i>斜体</i> 文字。
+                                <RichText class="rich_text" name="rich_text_demo" row_spacing_mul="1.2" width="stretch"
+                                          text_id="STRID_GALLERY_ELEMENT_RICHTEXT_TEXT">
                                 </RichText>
                                 <HyperLink class="hyper_link" name="hyper_link1" text="Baidu Home" url="www.baidu.com"/>
                                 <HyperLink class="hyper_link" name="hyper_link2" text="Text Button" url=""/>

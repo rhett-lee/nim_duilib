@@ -4,12 +4,45 @@
 <head>
     <title>WebView2 JS-C++通信</title>
     <script>
+        /* 界面语言：优先使用地址栏参数 lang=zh|en，否则跟随浏览器语言（中文环境显示中文，其他语言显示英文） */
+        window.__demoLang = (function() {
+            const m = /[?&]lang=(zh|en)/i.exec(location.search);
+            if (m) { return m[1].toLowerCase(); }
+            return /^zh/i.test(navigator.language || '') ? 'zh' : 'en';
+        })();
+        /* 动态文案：中文用 zh，英文用 en */
+        window.__t = function(zh, en) { return window.__demoLang === 'zh' ? zh : en; };
+        /* 静态文案：英文环境下按字典替换文本节点、placeholder 与页面标题 */
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.__demoLang === 'zh') { return; }
+            const dict = {
+                'WebView2 JS-C++通信': 'WebView2 JS-C++ Messaging',
+                'WebView2 JS-C++通信演示': 'WebView2 JS-C++ Messaging Demo',
+                '输入消息': 'Type a message',
+                '发送到C++': 'Send to C++'
+            };
+            const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+            let node;
+            while ((node = walker.nextNode())) {
+                const key = node.nodeValue.trim();
+                if (Object.prototype.hasOwnProperty.call(dict, key)) {
+                    node.nodeValue = node.nodeValue.replace(key, dict[key]);
+                }
+            }
+            document.title = dict[document.title] || document.title;
+            document.querySelectorAll('[placeholder]').forEach(function(el) {
+                const key = (el.getAttribute('placeholder') || '').trim();
+                if (Object.prototype.hasOwnProperty.call(dict, key)) { el.setAttribute('placeholder', dict[key]); }
+            });
+        });
+    </script>
+    <script>
         // 确保DOM加载完成
         document.addEventListener('DOMContentLoaded', function() {
             // 接收C++消息
             window.chrome.webview.addEventListener('message', event => {
                 document.getElementById('output').innerText = 
-                    "收到C++消息: " + event.data;
+                    window.__t("收到C++消息: ", "Message from C++: ") + event.data;
             });
 
             // 绑定按钮点击事件

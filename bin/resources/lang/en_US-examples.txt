@@ -25,7 +25,7 @@ STRID_CEF_BROWSER_BROWSE_TO          =    Go
 STRID_CEF_BROWSER_REFRESH            =    Refresh
 STRID_CEF_BROWSER_STOP               =    Stop
 STRID_CEF_BROWSER_NEW_TAB            =    New Tab
-STRID_CEF_BROWSER_HELLO_JS           =    Hello JS！
+STRID_CEF_BROWSER_HELLO_JS           =    Hello JS!
 STRID_CEF_BROWSER_INPUT_TEXT         =    Input text sending to JS
 STRID_CEF_BROWSER_SEND_TO_JS         =    Send to JS
 STRID_CEF_BROWSER_OFF_SCREEN_MODE    =    Off-screen Rendering Cef Browser Component Test
@@ -151,7 +151,7 @@ STRID_DPIAWARE_CURRENT_DPI_SCALE  = Monitor scale
 STRID_DPIAWARE_WINDOW_DISPLAY_SCALE  = Window scale
 STRID_DPIAWARE_WINDOW_SIZE  = Window (px)
 STRID_DPIAWARE_WINDOW_CLIENT_SIZE  = Client (px)
-STRID_DPIAWARE_RICHTEXT  = RichText：<b>Bold, <font color="#FF0000">Red Font</font></b>
+STRID_DPIAWARE_RICHTEXT  = RichText:<b>Bold, <font color="#FF0000">Red Font</font></b>
 STRID_DPIAWARE_MODIFY_DPI  = Display scale
 STRID_DPIAWARE_MODIFY_DPI_BTN  = Apply
 STRID_DPIAWARE_NEW_WINDOW  = New window
@@ -199,7 +199,7 @@ STRID_MOVECONTROL_TEST_10  = Report
 STRID_THREADS_TITLE  = Duilib multithreading example program
 STRID_THREADS_START  = Start Threads
 STRID_THREADS_STOP  = Stop Threads
-STRID_THREADS_EXECUTE_IN_THREAD_INFO  = Execute tasks in thread，TID:
+STRID_THREADS_EXECUTE_IN_THREAD_INFO  = Execute tasks in thread,TID:
 STRID_THREADS_EXECUTE_IN_THREAD  = Execute tasks in thread
 STRID_THREADS_EXECUTE_LOG_01_1  = OS TID
 STRID_THREADS_EXECUTE_LOG_01_2  = Thread Identifier
@@ -2141,26 +2141,26 @@ STRID_TABCTRL_BTN_C9_GET = GetSelectedTabItem
 STRID_TABCTRL_BTN_C9_SET = SetSelectedTabItem(#2)
 
 # C1–C9 initial status text (refreshed by code after layout)
-STRID_TABCTRL_STATE_C1_INIT = TabCtrl index: -　|　TabBox index: -　|　TabBox select events: 0
-STRID_TABCTRL_STATE_C2_INIT = Tabs: 4　|　Selected: none　|　Closable: none　|　Close requests: 0 (index -1)
-STRID_TABCTRL_STATE_C3_INIT = Selected: none　|　Scroll position: 0 / 0
-STRID_TABCTRL_STATE_C4_INIT = Selected: none　|　Focus: no
-STRID_TABCTRL_STATE_C5_INIT = Selected: none　|　Wheel switches tabs: Off
-STRID_TABCTRL_STATE_C6_INIT = Arrows: On　|　Scrollbar: hidden　|　Overflow: 0　|　Position: 0
-STRID_TABCTRL_STATE_C7_INIT = Justified: Off　|　Tab widths: -
-STRID_TABCTRL_STATE_C8_INIT = Tabs: 3　|　New tab events: 0
-STRID_TABCTRL_STATE_C9_INIT = Tabs: 4　|　Selected: none　|　Last action: none
+STRID_TABCTRL_STATE_C1_INIT = TabCtrl index: - | TabBox index: - | TabBox select events: 0
+STRID_TABCTRL_STATE_C2_INIT = Tabs: 4 | Selected: none | Closable: none | Close requests: 0 (index -1)
+STRID_TABCTRL_STATE_C3_INIT = Selected: none | Scroll position: 0 / 0
+STRID_TABCTRL_STATE_C4_INIT = Selected: none | Focus: no
+STRID_TABCTRL_STATE_C5_INIT = Selected: none | Wheel switches tabs: Off
+STRID_TABCTRL_STATE_C6_INIT = Arrows: On | Scrollbar: hidden | Overflow: 0 | Position: 0
+STRID_TABCTRL_STATE_C7_INIT = Justified: Off | Tab widths: -
+STRID_TABCTRL_STATE_C8_INIT = Tabs: 3 | New tab events: 0
+STRID_TABCTRL_STATE_C9_INIT = Tabs: 4 | Selected: none | Last action: none
 
 # C1–C9 dynamic status text (formatted in code, placeholders in order)
-STRID_TABCTRL_STATE_C1 = TabCtrl index: %d　|　TabBox index: %d　|　TabBox select events: %d
-STRID_TABCTRL_STATE_C2 = Tabs: %d　|　Selected: %s　|　Closable: %s　|　Close requests: %d (index %d)
-STRID_TABCTRL_STATE_C3 = Selected: %s　|　Scroll position: %d / %d
-STRID_TABCTRL_STATE_C4 = Selected: %s　|　Focus: %s
-STRID_TABCTRL_STATE_C5 = Selected: %s　|　Wheel switches tabs: %s
-STRID_TABCTRL_STATE_C6 = Arrows: %s　|　Scrollbar: %s　|　Overflow: %d　|　Position: %d
-STRID_TABCTRL_STATE_C7 = Justified: %s　|　Tab widths: %s
-STRID_TABCTRL_STATE_C8 = Tabs: %d　|　New tab events: %d
-STRID_TABCTRL_STATE_C9 = Tabs: %d　|　Selected: %s　|　Last action: %s
+STRID_TABCTRL_STATE_C1 = TabCtrl index: %d | TabBox index: %d | TabBox select events: %d
+STRID_TABCTRL_STATE_C2 = Tabs: %d | Selected: %s | Closable: %s | Close requests: %d (index %d)
+STRID_TABCTRL_STATE_C3 = Selected: %s | Scroll position: %d / %d
+STRID_TABCTRL_STATE_C4 = Selected: %s | Focus: %s
+STRID_TABCTRL_STATE_C5 = Selected: %s | Wheel switches tabs: %s
+STRID_TABCTRL_STATE_C6 = Arrows: %s | Scrollbar: %s | Overflow: %d | Position: %d
+STRID_TABCTRL_STATE_C7 = Justified: %s | Tab widths: %s
+STRID_TABCTRL_STATE_C8 = Tabs: %d | New tab events: %d
+STRID_TABCTRL_STATE_C9 = Tabs: %d | Selected: %s | Last action: %s
 
 # C1–C9 hints
 STRID_TABCTRL_TIP_C1 = Switch on either side and the other side follows; TabBox events increase by 1 each time
@@ -2223,22 +2223,22 @@ STRID_TABCTRL_STATE_CLOSE_ALWAYS_SHOWN = always visible
 STRID_TABCTRL_STATE_CLOSE_HOVER_ONLY = hover only
 
 # Cards 15-22: state labels
-STRID_TABCTRL_STATE_C15_INIT = Indicator animation: on　|　Duration: 200 ms　|　Selected: none
-STRID_TABCTRL_STATE_C15 = Indicator animation: %s　|　Duration: %d ms　|　Selected: %s
-STRID_TABCTRL_STATE_C16_INIT = Selected bold: on　|　Selected tint: off
-STRID_TABCTRL_STATE_C16 = Selected bold: %s　|　Selected tint: %s　|　Selected: %s
-STRID_TABCTRL_STATE_C17_INIT = Selected+hover color: on　|　Selected: none
-STRID_TABCTRL_STATE_C17 = Selected+hover color: %s　|　Selected: %s
-STRID_TABCTRL_STATE_C18_INIT = Direction: vertical　|　Separator: horizontal　|　Item: -
-STRID_TABCTRL_STATE_C18 = Direction: %s　|　Separator: %s　|　Item: %s
-STRID_TABCTRL_STATE_C19_INIT = Mode: auto　|　At selected: continuous
-STRID_TABCTRL_STATE_C19 = Mode: %s　|　At selected: %s
-STRID_TABCTRL_STATE_C20_INIT = Focus: no　|　Disabled: off　|　Focus rect: hidden
-STRID_TABCTRL_STATE_C20 = Focus: %s　|　Disabled: %s　|　Focus rect: %s
-STRID_TABCTRL_STATE_C21_INIT = Floating badge: off　|　Badge count: 120　|　Selected: none
-STRID_TABCTRL_STATE_C21 = Floating badge: %s　|　Badge count: %d　|　Selected: %s
-STRID_TABCTRL_STATE_C22_INIT = Mode: auto　|　Selected tab: close button always visible
-STRID_TABCTRL_STATE_C22 = Mode: %s　|　Selected tab: %s
+STRID_TABCTRL_STATE_C15_INIT = Indicator animation: on | Duration: 200 ms | Selected: none
+STRID_TABCTRL_STATE_C15 = Indicator animation: %s | Duration: %d ms | Selected: %s
+STRID_TABCTRL_STATE_C16_INIT = Selected bold: on | Selected tint: off
+STRID_TABCTRL_STATE_C16 = Selected bold: %s | Selected tint: %s | Selected: %s
+STRID_TABCTRL_STATE_C17_INIT = Selected+hover color: on | Selected: none
+STRID_TABCTRL_STATE_C17 = Selected+hover color: %s | Selected: %s
+STRID_TABCTRL_STATE_C18_INIT = Direction: vertical | Separator: horizontal | Item: -
+STRID_TABCTRL_STATE_C18 = Direction: %s | Separator: %s | Item: %s
+STRID_TABCTRL_STATE_C19_INIT = Mode: auto | At selected: continuous
+STRID_TABCTRL_STATE_C19 = Mode: %s | At selected: %s
+STRID_TABCTRL_STATE_C20_INIT = Focus: no | Disabled: off | Focus rect: hidden
+STRID_TABCTRL_STATE_C20 = Focus: %s | Disabled: %s | Focus rect: %s
+STRID_TABCTRL_STATE_C21_INIT = Floating badge: off | Badge count: 120 | Selected: none
+STRID_TABCTRL_STATE_C21 = Floating badge: %s | Badge count: %d | Selected: %s
+STRID_TABCTRL_STATE_C22_INIT = Mode: auto | Selected tab: close button always visible
+STRID_TABCTRL_STATE_C22 = Mode: %s | Selected tab: %s
 
 # Card 21: long title used to verify that the badge does not squeeze the title
 STRID_TABCTRL_LONG_TITLE = A very long tab title used to verify badges do not squeeze the text
@@ -2355,6 +2355,7 @@ STRID_GALLERY_CARD_CHECK_DESC     = Checkboxes are independent; options are mutu
 STRID_GALLERY_CARD_SWITCH_DESC    = Switches support selected, disabled, loading and custom track colors.
 STRID_GALLERY_CARD_BADGE_DESC     = Badges support numbers, a 99+ cap, red dots and floating positioning.
 STRID_GALLERY_CARD_ELEMENT_DESC   = Labels, hyperlinks, rich text and separator lines.
+STRID_GALLERY_ELEMENT_RICHTEXT_TEXT = RichText: <a href="www.baidu.com">Baidu</a> / <a href="www.qq.com">Tencent</a>, <b>bold</b>, <i>italic</i>.
 STRID_GALLERY_RICHTEXT_TITLE      = RichText Typography Sample
 STRID_GALLERY_RICHTEXT_SAMPLE     = <h3>Heading level 3</h3><p>Body text supports <b>bold</b>, <i>italic</i>, <u>underline</u>, <s>strikethrough</s>, <font color="#FF0078D4">custom color</font> and <bgcolor color="#220078D4">inline background</bgcolor>.</p><p>Link group: <a href="https://www.example.com">Plain link</a> and <a href="https://www.example.org" title="Example site">link with tooltip</a> keep natural spacing.</p><ul><li>List item one: list layout check</li><li>List item two with <a href="https://www.example.net">inline link</a></li></ul>
 STRID_GALLERY_RICHTEXT_WRAP_TITLE = Word wrap (word_wrap=true)

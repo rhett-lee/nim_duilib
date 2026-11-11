@@ -4,6 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>窗口关闭示例</title>
+    <script>
+        /* 界面语言：优先使用地址栏参数 lang=zh|en，否则跟随浏览器语言（中文环境显示中文，其他语言显示英文） */
+        window.__demoLang = (function () {
+            const m = /[?&]lang=(zh|en)/i.exec(location.search);
+            if (m) { return m[1].toLowerCase(); }
+            return /^zh/i.test(navigator.language || '') ? 'zh' : 'en';
+        })();
+        /* 动态文案：中文用 zh，英文用 en */
+        window.__t = function (zh, en) { return window.__demoLang === 'zh' ? zh : en; };
+        /* 静态文案：英文环境下按字典替换文本节点与页面标题 */
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.__demoLang === 'zh') { return; }
+            const dict = {
+                '窗口关闭示例': 'Window Close Sample',
+                '窗口控制示例': 'Window Control Sample',
+                '点击下方按钮关闭窗口，或尝试直接关闭浏览器标签页': 'Click a button below to close the window, or try closing the browser tab directly',
+                '关闭窗口': 'Close Window',
+                '重新加载页面': 'Reload Page',
+                '提示：关闭或刷新页面时会显示提示对话框': 'Note: a confirmation dialog appears when closing or reloading the page'
+            };
+            const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+            let node;
+            while ((node = walker.nextNode())) {
+                const key = node.nodeValue.trim();
+                if (Object.prototype.hasOwnProperty.call(dict, key)) {
+                    node.nodeValue = node.nodeValue.replace(key, dict[key]);
+                }
+            }
+            document.title = dict[document.title] || document.title;
+        });
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script>
@@ -68,7 +99,7 @@
             if (window.close) {
                 window.close();
             } else {
-                alert('浏览器不允许关闭此窗口');
+                alert(window.__t('浏览器不允许关闭此窗口', 'The browser does not allow closing this window'));
             }
         });
         
@@ -84,7 +115,7 @@
             // Chrome需要设置returnValue
             e.returnValue = '';
             // 返回的字符串在现代浏览器中可能不会显示，但需要保留
-            return '您确定要离开此页面吗？';
+            return window.__t('您确定要离开此页面吗？', 'Are you sure you want to leave this page?');
         });
     </script>
 </body>

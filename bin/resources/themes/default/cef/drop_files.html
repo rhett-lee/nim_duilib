@@ -5,6 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>文件拖放示例</title>
     <script>
+        /* 界面语言：优先使用地址栏参数 lang=zh|en，否则跟随浏览器语言（中文环境显示中文，其他语言显示英文） */
+        window.__demoLang = (function () {
+            const m = /[?&]lang=(zh|en)/i.exec(location.search);
+            if (m) { return m[1].toLowerCase(); }
+            return /^zh/i.test(navigator.language || '') ? 'zh' : 'en';
+        })();
+        /* 动态文案：中文用 zh，英文用 en */
+        window.__t = function (zh, en) { return window.__demoLang === 'zh' ? zh : en; };
+        /* 静态文案：英文环境下按字典替换文本节点与页面标题 */
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.__demoLang === 'zh') { return; }
+            document.documentElement.lang = 'en';
+            const dict = {
+                '文件拖放示例': 'File Drag and Drop Sample',
+                '拖放文件到下方区域': 'Drag files into the area below',
+                '拖放文件到这里': 'Drop files here',
+                '或者': 'or',
+                '选择文件': 'Choose Files',
+                '查看文件信息列表': 'Show File Info List'
+            };
+            const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+            let node;
+            while ((node = walker.nextNode())) {
+                const key = node.nodeValue.trim();
+                if (Object.prototype.hasOwnProperty.call(dict, key)) {
+                    node.nodeValue = node.nodeValue.replace(key, dict[key]);
+                }
+            }
+            document.title = dict[document.title] || document.title;
+        });
+    </script>
+    <script>
         //JS/C++通信的函数
         const SendDropFilesToBrowser = (files) => {
             // 调用一个 C++ 已经注册过的方法，将拖放的文件名传给主进程（json格式，网页无法获取到完整路径）
@@ -200,7 +232,7 @@
                         name: file.name,
                         size: file.size,
                         sizeFormatted: formatFileSize(file.size),
-                        type: file.type || '未知',
+                        type: file.type || window.__t('未知', 'Unknown'),
                         path: getFileInfo(file)
                     });
                     
@@ -267,13 +299,13 @@
                 <i class="file-icon">📄</i>
                 <div class="file-details">
                     <div class="file-name">${escapeHTML(file.name)}</div>
-                    <div class="file-path">路径: ${escapeHTML(fileInfo)}</div>
+                    <div class="file-path">${window.__t('路径: ', 'Path: ')}${escapeHTML(fileInfo)}</div>
                     <div class="file-meta">
-                        <span>大小: ${formatFileSize(file.size)}</span>
-                        <span>类型: ${escapeHTML(file.type || '未知')}</span>
+                        <span>${window.__t('大小: ', 'Size: ')}${formatFileSize(file.size)}</span>
+                        <span>${window.__t('类型: ', 'Type: ')}${escapeHTML(file.type || window.__t('未知', 'Unknown'))}</span>
                     </div>
                     <div class="file-content-preview" id="preview-${fileId}">
-                        <i>读取文件内容中...</i>
+                        <i>${window.__t('读取文件内容中...', 'Reading file content...')}</i>
                     </div>
                 </div>
             `;
@@ -305,7 +337,7 @@
                     
                     // 为长内容添加展开/折叠功能
                     const truncatedContent = content.length > 1000 
-                        ? content.substring(0, 1000) + '... [点击展开]' 
+                        ? content.substring(0, 1000) + window.__t('... [点击展开]', '... [Click to expand]') 
                         : content;
                     
                     // 在控制台打印完整内容
@@ -319,7 +351,7 @@
                         if (content.length > 1000) {
                             previewElement.innerHTML += `
                                 <button class="expand-button" onclick="toggleContent('${fileId}')">
-                                    展开
+                                    ${window.__t('展开', 'Expand')}
                                 </button>
                             `;
                         }
@@ -328,7 +360,7 @@
                 
                 reader.onerror = function() {
                     if (previewElement) {
-                        previewElement.innerHTML = '<span style="color: red;">无法读取文件内容</span>';
+                        previewElement.innerHTML = `<span style="color: red;">${window.__t('无法读取文件内容', 'Unable to read the file content')}</span>`;
                     }
                 };
                 
@@ -345,7 +377,7 @@
                     previewElement.innerHTML = `
                         <div style="color: #6c757d;">
                             <i class="file-icon">📎</i>
-                            非文本文件 (${escapeHTML(file.type || '未知类型')})
+                            ${window.__t('非文本文件', 'Non-text file')} (${escapeHTML(file.type || window.__t('未知类型', 'Unknown type'))})
                         </div>
                     `;
                 }
@@ -360,11 +392,11 @@
             if (previewElement.classList.contains('expanded')) {
                 // 折叠内容
                 previewElement.classList.remove('expanded');
-                button.textContent = '展开';
+                button.textContent = window.__t('展开', 'Expand');
             } else {
                 // 展开内容
                 previewElement.classList.add('expanded');
-                button.textContent = '折叠';
+                button.textContent = window.__t('折叠', 'Collapse');
             }
         }
 

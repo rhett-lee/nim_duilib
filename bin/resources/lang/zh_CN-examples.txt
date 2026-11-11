@@ -2360,6 +2360,7 @@ STRID_GALLERY_CARD_CHECK_DESC     = 复选框支持选中/未选中；单选框�
 STRID_GALLERY_CARD_SWITCH_DESC    = 开关支持选中、禁用、加载中与自定义轨道颜色。
 STRID_GALLERY_CARD_BADGE_DESC     = 角标支持数字、99+ 上限、红点与会话浮动定位。
 STRID_GALLERY_CARD_ELEMENT_DESC   = 文本、超链接、富文本与分割线等基础元素。
+STRID_GALLERY_ELEMENT_RICHTEXT_TEXT = RichText: <a href="www.baidu.com">Baidu</a> 与 <a href="www.qq.com">腾讯</a> 之间的自然间距，以及 <b>粗体</b>、<i>斜体</i> 文字。
 STRID_GALLERY_RICHTEXT_TITLE      = RichText 排版样例
 STRID_GALLERY_RICHTEXT_SAMPLE     = <h3>标题层级：三级标题</h3><p>正文段落：支持 <b>粗体</b>、<i>斜体</i>、<u>下划线</u>、<s>删除线</s>，以及 <font color="#FF0078D4">自定义颜色</font> 与 <bgcolor color="#220078D4">行内背景</bgcolor>。</p><p>链接组：<a href="https://www.example.com">普通链接</a> 与 <a href="https://www.example.org" title="示例站点">带提示的链接</a> 之间保持自然间距。</p><ul><li>列表项一：用于验证列表排版</li><li>列表项二：包含 <a href="https://www.example.net">列表内链接</a></li></ul>
 STRID_GALLERY_RICHTEXT_WRAP_TITLE = 自动换行（word_wrap=true）
