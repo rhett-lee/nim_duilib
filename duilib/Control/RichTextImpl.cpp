@@ -13,6 +13,7 @@
 
 #include <utility>
 #include <algorithm>
+#include <cmath>
 
 namespace ui 
 {
@@ -787,8 +788,16 @@ bool RichTextImpl::ParseTextSlice(const RichTextSlice& textSlice,
         currentTextData.m_linkTitle = parentTextData.m_linkTitle;
     }
     //基线偏移：用于上标/下标
-    currentTextData.m_nBaselineOffset = parentTextData.m_nBaselineOffset +
-        m_pOwner->Dpi().GetScaleInt(textSlice.m_nBaselineOffset);
+    //1. m_nBaselineOffset 为固定的像素值（96 DPI 下），需要按 DPI 缩放
+    //2. m_fBaselineScale 为相对父节点字号的比例，随字号缩放（父节点字体的字号已按 DPI 缩放）
+    int32_t nBaselineOffset = 0;
+    if (textSlice.m_nBaselineOffset != 0) {
+        nBaselineOffset += m_pOwner->Dpi().GetScaleInt(textSlice.m_nBaselineOffset);
+    }
+    if ((textSlice.m_fBaselineScale != 0.0f) && (parentTextData.m_pFontInfo != nullptr)) {
+        nBaselineOffset += (int32_t)std::lround((float)parentTextData.m_pFontInfo->m_fontSize * textSlice.m_fBaselineScale);
+    }
+    currentTextData.m_nBaselineOffset = parentTextData.m_nBaselineOffset + nBaselineOffset;
     if (!textSlice.m_textColor.empty()) {
         currentTextData.m_textColor = m_pOwner->GetUiColor(textSlice.m_textColor.c_str());
     }

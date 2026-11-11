@@ -105,12 +105,12 @@ private:
     * @param [in] nLineTextIndex 文本物理行号（即换行符'\n'切分的行）
     * @param [in] nLineTextRowIndex 物理行内的逻辑行号(每个物理行中，从0开始编号)
     * @param [in] xPos 字符绘制的X坐标
-    * @param [in] yPos 字符绘制的Y坐标
+    * @param [in] nRowTop 当前行的顶部Y坐标（行内文字因内联图片等原因下移时，行的顶部不变）
     * @param [in] glyphWidth 当前字符的绘制宽度
-    * @param [in] nRowHeight 当前行高
+    * @param [in] nRowHeight 当前行高（行内出现更高的内容时会增大）
     */
     void OnDrawUnicodeChar(RichTextLineInfoParam* pLineInfoParam, DStringW::value_type ch, uint8_t glyphChars, size_t glyphCount,
-                           size_t nLineTextIndex, uint32_t nLineTextRowIndex, float xPos, int32_t yPos, float glyphWidth, int32_t nRowHeight);
+                           size_t nLineTextIndex, uint32_t nLineTextRowIndex, float xPos, int32_t nRowTop, float glyphWidth, int32_t nRowHeight);
 
     /** 按设置的属性，绘制文字，由外部指定字符编码
     */

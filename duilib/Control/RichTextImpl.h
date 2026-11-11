@@ -50,6 +50,11 @@ public:
     */
     int32_t m_nBaselineOffset = 0;
 
+    /** 基线偏移比例（相对父节点字号的百分比，负数向上、正数向下），用于 <sup>/<sub>
+    * 文本按文本框顶部对齐绘制，字号缩小时基线本身会被抬高，因此该值需与 m_fFontScale 配合设置
+    */
+    float m_fBaselineScale = 0.0f;
+
     /** 行间距附加量（96 DPI 下的像素值），用于段落的段间距
     */
     float m_fRowSpacingAdd = 0.0f;

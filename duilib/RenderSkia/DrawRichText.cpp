@@ -519,7 +519,7 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                 if (lineTextView[0] == L'\r') {
                     //处理回车
                     if (pLineInfoParam != nullptr) {
-                        OnDrawUnicodeChar(pLineInfoParam, lineTextView[0], 1, 2, nLineNumber, nLineTextRowIndex, xPos, yPos + nRowTopOffset, 0, nRowHeight);
+                        OnDrawUnicodeChar(pLineInfoParam, lineTextView[0], 1, 2, nLineNumber, nLineTextRowIndex, xPos, yPos, 0, nRowHeight);
                     }
                     continue; //忽略回车
                 }
@@ -530,7 +530,7 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                 else if (lineTextView[0] == L'\n') {
                     //处理换行符
                     if (pLineInfoParam != nullptr) {
-                        OnDrawUnicodeChar(pLineInfoParam, lineTextView[0], 1, 2, nLineNumber, nLineTextRowIndex, xPos, yPos + nRowTopOffset, 0, nRowHeight);
+                        OnDrawUnicodeChar(pLineInfoParam, lineTextView[0], 1, 2, nLineNumber, nLineTextRowIndex, xPos, yPos, 0, nRowHeight);
                     }
 
                     //换行：执行换行操作(物理换行)
@@ -724,7 +724,7 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                             ASSERT((glyphCharCount % sizeof(DStringW::value_type)) == 0);
                             glyphCharCount /= sizeof(DStringW::value_type); //转换为StringW编码字符数，内部使用
                             ASSERT((glyphCharCount == 1) || (glyphCharCount == 2)); //该字占几个字符（UTF16编码，可能是1或者2）
-                            OnDrawUnicodeChar(pLineInfoParam, 0, glyphCharCount, glyphCount, nLineNumber, nLineTextRowIndex, glyphLeft, yPos + nRowTopOffset, glyphWidth, nRowHeight);
+                            OnDrawUnicodeChar(pLineInfoParam, 0, glyphCharCount, glyphCount, nLineNumber, nLineTextRowIndex, glyphLeft, yPos, glyphWidth, nRowHeight);
                             glyphLeft += glyphWidth;
                         }
                     }
@@ -1192,7 +1192,7 @@ void DrawRichText::SplitLines(const std::wstring_view& lineText, std::vector<uin
 void DrawRichText::OnDrawUnicodeChar(RichTextLineInfoParam* pLineInfoParam,
                                      DStringW::value_type ch, uint8_t glyphChars, size_t glyphCount,
                                      size_t nLineTextIndex, uint32_t nLineTextRowIndex,
-                                     float xPos, int32_t yPos, float glyphWidth, int32_t nRowHeight)
+                                     float xPos, int32_t nRowTop, float glyphWidth, int32_t nRowHeight)
 {
     //该函数执行频率非常高，每个字符都会调用一次，性能敏感    
     if (pLineInfoParam == nullptr) {
@@ -1228,10 +1228,10 @@ void DrawRichText::OnDrawUnicodeChar(RichTextLineInfoParam* pLineInfoParam,
     }
     RichTextRowInfo& rowInfo = *lineInfo.m_rowInfo[nLineTextRowIndex];
     if (!bFound) {
-        //该行的第一个字符
+        //该行的第一个字符：行矩形的高度取当前行高
         rowInfo.m_rowRect.left = xPos;
         rowInfo.m_rowRect.right = xPos + glyphWidth;
-        rowInfo.m_rowRect.top = (SkScalar)yPos;
+        rowInfo.m_rowRect.top = (SkScalar)nRowTop;
         rowInfo.m_rowRect.bottom = rowInfo.m_rowRect.top + nRowHeight;
         ASSERT(nRowHeight > 0);
 
@@ -1239,7 +1239,11 @@ void DrawRichText::OnDrawUnicodeChar(RichTextLineInfoParam* pLineInfoParam,
     }
     else {
         rowInfo.m_rowRect.right += glyphWidth;
-        ASSERT(nRowHeight == (int32_t)rowInfo.m_rowRect.Height());
+        //行内出现更高的内容（如高于文本的内联图片、更大字号的文字）时，行高会增大，
+        //此时需要同步更新行矩形的高度（行的顶部不变），否则字符位置信息与实际行高不一致
+        if (nRowHeight != (int32_t)rowInfo.m_rowRect.Height()) {
+            rowInfo.m_rowRect.bottom = rowInfo.m_rowRect.top + nRowHeight;
+        }
     }
 
     RichTextCharInfo charInfo;
