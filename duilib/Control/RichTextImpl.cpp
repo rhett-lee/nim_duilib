@@ -273,6 +273,7 @@ void RichTextImpl::Redraw()
     //重新绘制
     m_textData.clear();
     m_spDrawRichTextCache.reset();
+    m_bCachedTextRectValid = false;
     if (IsEnableRedraw()) {
         m_pOwner->Invalidate();
         m_pOwner->RelayoutOrRedraw();
@@ -327,6 +328,13 @@ void RichTextImpl::CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect
     if (pRender == nullptr) {
         return;
     }
+    //测量结果缓存：可用大小未变化时直接复用，避免重复测量
+    if (m_bCachedTextRectValid &&
+        (m_cachedAvailableSize.cx == rc.Width()) &&
+        (m_cachedAvailableSize.cy == rc.Height())) {
+        rect = m_cachedTextRect;
+        return;
+    }
     rect.Clear();
     if (!m_textData.empty()) {
         std::vector<RichTextData> richTextData;
@@ -352,6 +360,11 @@ void RichTextImpl::CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect
             rect.Union(textRect);
         }
     }
+    //更新测量结果缓存
+    m_cachedTextRect = rect;
+    m_cachedAvailableSize.cx = rc.Width();
+    m_cachedAvailableSize.cy = rc.Height();
+    m_bCachedTextRectValid = true;
 }
 
 UiSize RichTextImpl::EstimateText(UiSize szAvailable)
@@ -464,21 +477,24 @@ void RichTextImpl::PaintText(IRender* pRender)
             linkHoverTextColor = m_pOwner->GetUiColor(m_linkHoveredTextColor.c_str());
         }
 
-        std::vector<RichTextData> richTextData;
+        //复用成员缓冲区，避免每帧堆分配
+        std::vector<RichTextData>& richTextData = m_richTextDataBuffer;
+        richTextData.clear();
         richTextData.reserve(m_textData.size());
+        std::vector<UiColor>& textColors = m_richTextTextColorBuffer;
+        textColors.clear();
+        textColors.reserve(m_textData.size());
         for (const RichTextDataEx& textDataEx : m_textData) {
             if (!textDataEx.m_linkUrl.empty()) {
                 //对于超级链接，设置默认文本格式
                 RichTextData textData = textDataEx;
-                textData.m_pFontInfo.reset(new UiFontEx);
-                ASSERT(textDataEx.m_pFontInfo != nullptr);
-                if (textDataEx.m_pFontInfo != nullptr) {
-                    ASSERT(!textDataEx.m_pFontInfo->m_fontName.empty());
-                    textData.m_pFontInfo->CopyFrom(*textDataEx.m_pFontInfo);
-                }                
-                if (m_bLinkUnderlineFont) {
-                    //是否显示下划线字体（常态与Hover状态保持一致）
-                    textData.m_pFontInfo->m_bUnderline = true;
+                if (textDataEx.m_pLinkFontInfo != nullptr) {
+                    //链接字体在解析时已生成，此处直接共享，避免每帧创建字体对象
+                    textData.m_pFontInfo = textDataEx.m_pLinkFontInfo;
+                }
+                else {
+                    ASSERT(textDataEx.m_pFontInfo != nullptr);
+                    textData.m_pFontInfo = textDataEx.m_pFontInfo;
                 }
                 if (!m_linkNormalTextColor.empty()) {                    
                     if (!normalLinkTextColor.IsEmpty()) {
@@ -495,11 +511,12 @@ void RichTextImpl::PaintText(IRender* pRender)
                         textData.m_textColor = linkHoverTextColor;//鼠标Hover时的字体颜色
                     }
                 }
-                richTextData.push_back(textData);
+                richTextData.push_back(std::move(textData));
             }
             else {
                 richTextData.push_back(textDataEx);
             }
+            textColors.push_back(richTextData.back().m_textColor);
         }
         std::vector<std::vector<UiRect>> richTextRects;
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
@@ -507,7 +524,8 @@ void RichTextImpl::PaintText(IRender* pRender)
         UiSize szScrollOffset;
         if (m_spDrawRichTextCache != nullptr) {
             //校验缓存，如果失效则重新生成
-            if (!pRender->IsValidDrawRichTextCache(textRect, richTextData, m_spDrawRichTextCache)) {
+            //文字颜色不影响排版，悬停/按下时通过pTextColors覆盖，避免重新排版
+            if (!pRender->IsValidDrawRichTextCache(textRect, richTextData, m_spDrawRichTextCache, false)) {
                 m_spDrawRichTextCache.reset();
             }
         }
@@ -520,7 +538,8 @@ void RichTextImpl::PaintText(IRender* pRender)
         if (m_spDrawRichTextCache != nullptr) {
             //使用绘制缓存
             std::vector<int32_t> rowXOffset;//对齐方式为居中或者靠右时使用
-            pRender->DrawRichTextCacheData(m_spDrawRichTextCache, textRect, szScrollOffset, rowXOffset, m_pOwner->GetAlpha(), &richTextRects);
+            pRender->DrawRichTextCacheData(m_spDrawRichTextCache, textRect, szScrollOffset,
+                                           rowXOffset, m_pOwner->GetAlpha(), &richTextRects, &textColors);
 
 #if 0
             //测试代码结束(比较使用缓存绘制和不使用缓存绘制时结果是否相同)
@@ -568,12 +587,14 @@ void RichTextImpl::CheckParseText()
     if (m_nTextDataDisplayScaleFactor != m_pOwner->Dpi().GetDisplayScaleFactor()) {
         m_textData.clear();
         m_spDrawRichTextCache.reset();
+        m_bCachedTextRectValid = false;
     }
 
     if (m_textData.empty()) {
         ParseText(m_textData);
         m_nTextDataDisplayScaleFactor = m_pOwner->Dpi().GetDisplayScaleFactor();
         m_spDrawRichTextCache.reset();
+        m_bCachedTextRectValid = false;
     }
 }
 
@@ -695,29 +716,51 @@ bool RichTextImpl::ParseTextSlice(const RichTextSlice& textSlice,
         currentTextData.m_bgColor = parentTextData.m_bgColor;
     }
 
-    currentTextData.m_pFontInfo.reset(new UiFontEx);
-    if (parentTextData.m_pFontInfo != nullptr) {
-        currentTextData.m_pFontInfo->CopyFrom(*parentTextData.m_pFontInfo);
+    //字体信息：没有字体属性时共享父节点的字体，避免每个文本节点都创建字体对象
+    const bool bHasFontAttribute = !textSlice.m_fontInfo.m_fontName.empty() ||
+                                   (textSlice.m_fontInfo.m_fontSize > 0) ||
+                                   textSlice.m_fontInfo.m_bBold ||
+                                   textSlice.m_fontInfo.m_bUnderline ||
+                                   textSlice.m_fontInfo.m_bItalic ||
+                                   textSlice.m_fontInfo.m_bStrikeOut;
+    if (!bHasFontAttribute && (parentTextData.m_pFontInfo != nullptr)) {
+        currentTextData.m_pFontInfo = parentTextData.m_pFontInfo;
+    }
+    else {
+        currentTextData.m_pFontInfo.reset(new UiFontEx);
+        if (parentTextData.m_pFontInfo != nullptr) {
+            currentTextData.m_pFontInfo->CopyFrom(*parentTextData.m_pFontInfo);
+        }
+        if (!textSlice.m_fontInfo.m_fontName.empty()) {
+            currentTextData.m_pFontInfo->m_fontName = textSlice.m_fontInfo.m_fontName;
+        }
+        if (textSlice.m_fontInfo.m_fontSize > 0) {
+            currentTextData.m_pFontInfo->m_fontSize = m_pOwner->Dpi().GetScaleInt(textSlice.m_fontInfo.m_fontSize); //字体大小，需要DPI缩放
+        }
+        if (textSlice.m_fontInfo.m_bBold) {
+            currentTextData.m_pFontInfo->m_bBold = textSlice.m_fontInfo.m_bBold;
+        }
+        if (textSlice.m_fontInfo.m_bUnderline) {
+            currentTextData.m_pFontInfo->m_bUnderline = textSlice.m_fontInfo.m_bUnderline;
+        }
+        if (textSlice.m_fontInfo.m_bItalic) {
+            currentTextData.m_pFontInfo->m_bItalic = textSlice.m_fontInfo.m_bItalic;
+        }
+        if (textSlice.m_fontInfo.m_bStrikeOut) {
+            currentTextData.m_pFontInfo->m_bStrikeOut = textSlice.m_fontInfo.m_bStrikeOut;
+        }
     }
 
-    if (!textSlice.m_fontInfo.m_fontName.empty()) {
-        currentTextData.m_pFontInfo->m_fontName = textSlice.m_fontInfo.m_fontName;
+    if (!currentTextData.m_linkUrl.empty() && m_bLinkUnderlineFont &&
+        ((currentTextData.m_pFontInfo == nullptr) || !currentTextData.m_pFontInfo->m_bUnderline)) {
+        //链接的需要显示下划线：在解析时生成字体对象，绘制时共享，避免每帧创建
+        currentTextData.m_pLinkFontInfo.reset(new UiFontEx);
+        if (currentTextData.m_pFontInfo != nullptr) {
+            currentTextData.m_pLinkFontInfo->CopyFrom(*currentTextData.m_pFontInfo);
+        }
+        currentTextData.m_pLinkFontInfo->m_bUnderline = true;
     }
-    if (textSlice.m_fontInfo.m_fontSize > 0) {
-        currentTextData.m_pFontInfo->m_fontSize = m_pOwner->Dpi().GetScaleInt(textSlice.m_fontInfo.m_fontSize); //字体大小，需要DPI缩放
-    }
-    if (textSlice.m_fontInfo.m_bBold) {
-        currentTextData.m_pFontInfo->m_bBold = textSlice.m_fontInfo.m_bBold;
-    }
-    if (textSlice.m_fontInfo.m_bUnderline) {
-        currentTextData.m_pFontInfo->m_bUnderline = textSlice.m_fontInfo.m_bUnderline;
-    }
-    if (textSlice.m_fontInfo.m_bItalic) {
-        currentTextData.m_pFontInfo->m_bItalic = textSlice.m_fontInfo.m_bItalic;
-    }
-    if (textSlice.m_fontInfo.m_bStrikeOut) {
-        currentTextData.m_pFontInfo->m_bStrikeOut = textSlice.m_fontInfo.m_bStrikeOut;
-    }
+
     if (!currentTextData.m_textView.empty()) {
         //空文本节点不参与排版（链接的文本由子节点承载）
         textData.push_back(currentTextData);
@@ -863,6 +906,9 @@ bool RichTextImpl::DoSetText(const DString& richText)
 
 bool RichTextImpl::SetText(const DString& richText, bool bRedraw)
 {
+    //直接设置文本时，清除通过文本ID设置的记录（SetTextId在调用SetText后会重新设置）
+    m_richTextId.clear();
+    m_langFileName.clear();
     bool bResult = DoSetText(richText);
     if (bResult && bRedraw) {
         if (IsEnableRedraw()) {
@@ -889,6 +935,7 @@ void RichTextImpl::Clear()
 {
     m_textData.clear();
     m_spDrawRichTextCache.reset();
+    m_bCachedTextRectValid = false;
     if (!m_textSlice.empty()) {
         m_textSlice.clear();
         Invalidate();
@@ -1160,19 +1207,26 @@ void RichTextImpl::ButtonDown(const EventArgs& msg)
     if (msg.IsSenderExpired()) {
         return;
     }
-    for (size_t index = 0; index < m_textData.size(); ++index) {
-        RichTextDataEx& textData = m_textData[index];
-        textData.m_bMouseDown = false;
-        if (textData.m_linkUrl.empty()) {
-            continue;
-        }        
-        for (const UiRect& textRect : textData.m_textRects) {
-            if (textRect.ContainsPt(msg.ptMouse)) {
-                //在超级链接上
-                textData.m_bMouseDown = true;
-                Invalidate();
+    bool bInvalidate = false;
+    for (RichTextDataEx& textData : m_textData) {
+        bool bMouseDown = false;
+        if (!textData.m_linkUrl.empty()) {
+            for (const UiRect& textRect : textData.m_textRects) {
+                if (textRect.ContainsPt(msg.ptMouse)) {
+                    //在超级链接上
+                    bMouseDown = true;
+                    break;
+                }
             }
         }
+        if (textData.m_bMouseDown != bMouseDown) {
+            textData.m_bMouseDown = bMouseDown;
+            bInvalidate = true;
+        }
+    }
+    if (bInvalidate) {
+        //状态变化时，只重绘一次
+        Invalidate();
     }
 }
 
@@ -1181,8 +1235,7 @@ void RichTextImpl::ButtonUp(const EventArgs& msg)
     if (msg.IsSenderExpired()) {
         return;
     }
-    for (size_t index = 0; index < m_textData.size(); ++index) {
-        RichTextDataEx& textData = m_textData[index];
+    for (RichTextDataEx& textData : m_textData) {
         if (textData.m_linkUrl.empty()) {
             continue;
         }
@@ -1192,8 +1245,8 @@ void RichTextImpl::ButtonUp(const EventArgs& msg)
                 if (textData.m_bMouseDown) {
                     textData.m_bMouseDown = false;
                     Invalidate();
-                    DString url = textData.m_linkUrl.c_str();
-                    m_pOwner->SendEvent(kEventLinkClick, (WPARAM)url.c_str());
+                    //直接使用成员中的URL，避免使用局部变量导致回调中指针失效
+                    m_pOwner->SendEvent(kEventLinkClick, (WPARAM)textData.m_linkUrl.c_str());
                     return;
                 }                
             }

@@ -1195,10 +1195,13 @@ public:
     * @param [in] textRect 绘制文本的矩形区域
     * @param [in] richTextData 格式化文字内容，返回文字绘制的区域
     * @param [out] spDrawRichTextCache 返回绘制缓存
+    * @param [in] bCompareTextColor 是否比较文字颜色；为false时忽略颜色差异（颜色在绘制时覆盖，
+    *             用于悬停/按下等仅改变颜色的场景，避免重新排版）
     */
     virtual bool IsValidDrawRichTextCache(const UiRect& textRect,
                                           const std::vector<RichTextData>& richTextData,
-                                          const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) = 0;
+                                          const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
+                                          bool bCompareTextColor = true) = 0;
 
     /** 更新RichText的绘制缓存(增量计算)
     * @param [in] spOldDrawRichTextCache 需要更新的缓存
@@ -1232,13 +1235,16 @@ public:
     * @param [in] rowXOffset 每行的横向偏移列表（逻辑行）
     * @param [in] uFade 透明度（0 - 255）
     * @param [out] pRichTextRects 如果不为nullptr，则返回richTextData中每个数据绘制的矩形范围列表
+    * @param [in] pTextColors 每个数据绘制时使用的文字颜色（下标与richTextData对应）；
+    *             不为nullptr时覆盖缓存中的颜色，用于悬停/按下等仅改变颜色的场景
     */
     virtual void DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
                                        const UiRect& textRect,
                                        const UiSize& szNewScrollOffset,
                                        const std::vector<int32_t>& rowXOffset,
                                        uint8_t uFade,
-                                       std::vector<std::vector<UiRect>>* pRichTextRects = nullptr) = 0;
+                                       std::vector<std::vector<UiRect>>* pRichTextRects = nullptr,
+                                       const std::vector<UiColor>* pTextColors = nullptr) = 0;
 
     /** 在指定矩形周围绘制阴影（高斯模糊, 只支持外部阴影，不支持内部阴影）
     * @param [in] rc 矩形区域

@@ -369,7 +369,8 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                     SkScalar tabStopWidth = standardCharWidth * TAB_COUNT;
 
                     // 计算当前位置需要补齐多少宽度才到下一个制表位
-                    SkScalar currentX = xPos;
+                    // 制表位按行内偏移计算（相对于文本区域左边界），避免使用绝对坐标
+                    SkScalar currentX = xPos - SkIntToScalar(rcDrawRect.left);
                     SkScalar remainder = fmod(currentX, tabStopWidth);
                     SkScalar tabWidth = tabStopWidth - remainder; // 最终制表符宽度
 
@@ -399,7 +400,7 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                 bool bBreakTextError = false;
                 if (nDrawLength == 0) {
                     ASSERT(breakTextData.glyphIDs.empty() && breakTextData.glyphChars.empty() && breakTextData.glyphWidths.empty());
-                    if (!breakTextData.glyphChars.empty() || !breakTextData.glyphChars.empty() || !breakTextData.glyphWidths.empty()) {
+                    if (!breakTextData.glyphIDs.empty() || !breakTextData.glyphChars.empty() || !breakTextData.glyphWidths.empty()) {
                         bBreakTextError = true;
                     }
                 }
@@ -417,7 +418,9 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                 }
                 
                 if (nDrawLength == 0) {
-                    if (!bWordWrap || bSingleLineMode || (SkScalarTruncToInt(maxWidth) == rcDrawRect.Width())) {
+                    //位于行首时可用宽度最大，此时仍无法绘制任何字符，说明无法继续绘制
+                    const bool bAtRowStart = (xPos <= SkIntToScalar(rcDrawRect.left));
+                    if (!bWordWrap || bSingleLineMode || bAtRowStart) {
                         //出错了(不能换行，或者换行后依然不够)
                         bBreakAll = true;
                         break;
@@ -478,7 +481,9 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                     textStartIndex = textCount;//标记，结束循环
                     ASSERT(((int64_t)xPos + (int64_t)textMeasuredWidth) < INT32_MAX);
                     xPos += textMeasuredWidth;
-                    if (xPos >= nTextRectRightMax) {
+                    //文本恰好占满一行时，如果后面没有其他文本，则不需要换行（避免多算一行）
+                    const bool bHasMoreData = (index + 1) < richTextData.size();
+                    if ((xPos > nTextRectRightMax) || ((xPos >= nTextRectRightMax) && bHasMoreData)) {
                         //X坐标右侧已经超出目标矩形的范围
                         if (bBreakWhenOutOfRect && bSingleLineMode) {
                             //单行模式，终止绘制
@@ -587,8 +592,10 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                 continue;
             }
 
-            //绘制文字的背景色
-            m_pRender->FillRect(UiRectF::MakeFromRect(rcDestRect), textData.m_bgColor, uFade);
+            //绘制文字的背景色（无背景色时不绘制，与使用缓存时的逻辑保持一致）
+            if (!textData.m_bgColor.IsEmpty()) {
+                m_pRender->FillRect(UiRectF::MakeFromRect(rcDestRect), textData.m_bgColor, uFade);
+            }
 
             if (textColor != textData.m_textColor) {
                 const UiColor& color = textData.m_textColor;
@@ -596,20 +603,31 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                 textColor = textData.m_textColor;
             }
 
+            //不自动换行时，超出的部分裁剪到控件区域内，并用省略号表示
+            uint32_t uDrawFormat = textData.m_textStyle | DrawStringFormat::TEXT_SINGLELINE;
+            UiRect rcDrawText = rcDestRect;
+            if (!(textData.m_textStyle & DrawStringFormat::TEXT_WORD_WRAP) && (rcDrawText.right > rcTextRect.right)) {
+                rcDrawText.right = rcTextRect.right;
+                uDrawFormat |= DrawStringFormat::TEXT_END_ELLIPSIS;
+            }
+            if (rcDrawText.right <= rcDrawText.left) {
+                continue;
+            }
+
             //绘制文字
             if ((textData.m_textView.size() == 1) && (textData.m_textView[0] == L'\t')) {
                 //绘制TAB键
                 const char* text = (const char*)" ";
                 const size_t len = 1; //字节数
-                DrawTextString(rcDestRect, text, len, SkTextEncoding::kUTF8,
-                               textData.m_textStyle | DrawStringFormat::TEXT_SINGLELINE,
+                DrawTextString(rcDrawText, text, len, SkTextEncoding::kUTF8,
+                               uDrawFormat,
                                skPaint, textData.m_spFont.get());
             }
             else {
                 const char* text = (const char*)textData.m_textView.data();
                 const size_t len = textData.m_textView.size() * textCharSize; //字节数
-                DrawTextString(rcDestRect, text, len, textEncoding,
-                               textData.m_textStyle | DrawStringFormat::TEXT_SINGLELINE,
+                DrawTextString(rcDrawText, text, len, textEncoding,
+                               uDrawFormat,
                                skPaint, textData.m_spFont.get());
             }
         }
@@ -765,7 +783,8 @@ void DrawRichText::OnDrawUnicodeChar(RichTextLineInfoParam* pLineInfoParam,
 
 bool DrawRichText::IsValidDrawRichTextCache(const UiRect& textRect,
                                             const std::vector<RichTextData>& richTextData,
-                                            const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache)
+                                            const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
+                                            bool bCompareTextColor)
 {
     ASSERT((m_pRender != nullptr) && (m_pSkCanvas != nullptr) && (m_pSkPaint != nullptr) && (m_pSkPointOrg != nullptr));
     if ((m_pRender == nullptr) || (m_pSkCanvas == nullptr) || (m_pSkPaint == nullptr) || (m_pSkPointOrg == nullptr)) {
@@ -793,7 +812,8 @@ bool DrawRichText::IsValidDrawRichTextCache(const UiRect& textRect,
         else if (textData.m_textView.size() != textDataCache.m_textView.size()) {
             bValid = false;
         }
-        else if (textData.m_textColor != textDataCache.m_textColor) {
+        else if (bCompareTextColor && (textData.m_textColor != textDataCache.m_textColor)) {
+            //文字颜色不影响排版：绘制时可通过pTextColors覆盖，避免悬停/按下时重新排版
             bValid = false;
         }
         else if (textData.m_bgColor != textDataCache.m_bgColor) {
@@ -1122,7 +1142,8 @@ void DrawRichText::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache
                                          const UiSize& szNewScrollOffset,
                                          const std::vector<int32_t>& rowXOffset,
                                          uint8_t uFade,
-                                         std::vector<std::vector<UiRect>>* pRichTextRects)
+                                         std::vector<std::vector<UiRect>>* pRichTextRects,
+                                         const std::vector<UiColor>* pTextColors)
 {
     ASSERT((m_pRender != nullptr) && (m_pSkCanvas != nullptr) && (m_pSkPaint != nullptr) && (m_pSkPointOrg != nullptr));
     if ((m_pRender == nullptr) || (m_pSkCanvas == nullptr) || (m_pSkPaint == nullptr) || (m_pSkPointOrg == nullptr)) {
@@ -1213,11 +1234,26 @@ void DrawRichText::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache
             m_pRender->FillRect(UiRectF::MakeFromRect(rcDestRect), textData.m_bgColor, uFade);
         }
 
-        //设置文本颜色
-        if (textColor != textData.m_textColor) {
-            const UiColor& color = textData.m_textColor;
+        //设置文本颜色（优先使用外部传入的颜色，用于悬停/按下等仅改变颜色的场景）
+        const UiColor* pDrawTextColor = &textData.m_textColor;
+        if ((pTextColors != nullptr) && (textData.m_nDataIndex < pTextColors->size())) {
+            pDrawTextColor = &((*pTextColors)[textData.m_nDataIndex]);
+        }
+        if (textColor != *pDrawTextColor) {
+            const UiColor& color = *pDrawTextColor;
             skPaint.setARGB(color.GetA(), color.GetR(), color.GetG(), color.GetB());
-            textColor = textData.m_textColor;
+            textColor = *pDrawTextColor;
+        }
+
+        //不自动换行时，超出的部分裁剪到控件区域内，并用省略号表示
+        uint32_t uDrawFormat = textData.m_textStyle | DrawStringFormat::TEXT_SINGLELINE;
+        UiRect rcDrawText = rcDestRect;
+        rcDrawText.right = std::min(rcDrawText.right, rcNewTextRect.right);
+        if (!(textData.m_textStyle & DrawStringFormat::TEXT_WORD_WRAP) && (rcDestRect.right > rcNewTextRect.right)) {
+            uDrawFormat |= DrawStringFormat::TEXT_END_ELLIPSIS;
+        }
+        if (rcDrawText.right <= rcDrawText.left) {
+            continue;
         }
 
         //绘制文字
@@ -1225,15 +1261,15 @@ void DrawRichText::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache
             //绘制TAB键
             const char* text = (const char*)" ";
             const size_t len = 1; //字节数
-            DrawTextString(rcDestRect, text, len, SkTextEncoding::kUTF8,
-                            textData.m_textStyle | DrawStringFormat::TEXT_SINGLELINE,
+            DrawTextString(rcDrawText, text, len, SkTextEncoding::kUTF8,
+                            uDrawFormat,
                             skPaint, textData.m_spFont.get());
         }
         else {
             const char* text = (const char*)textData.m_textView.data();
             size_t len = textData.m_textView.size() * textCharSize; //字节数
-            DrawTextString(rcDestRect, text, len, textEncoding,
-                           textData.m_textStyle | DrawStringFormat::TEXT_SINGLELINE,
+            DrawTextString(rcDrawText, text, len, textEncoding,
+                           uDrawFormat,
                            skPaint, textData.m_spFont.get());
         }
     }

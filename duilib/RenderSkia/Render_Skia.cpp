@@ -1890,10 +1890,11 @@ bool Render_Skia::CreateDrawRichTextCache(const UiRect& textRect,
 
 bool Render_Skia::IsValidDrawRichTextCache(const UiRect& textRect,
                                            const std::vector<RichTextData>& richTextData,
-                                           const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache)
+                                           const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
+                                           bool bCompareTextColor)
 {
     ui::DrawRichText drawRichText(this, GetSkCanvas(), m_pSkPaint.get(), m_pSkPointOrg.get());
-    return drawRichText.IsValidDrawRichTextCache(textRect, richTextData, spDrawRichTextCache);
+    return drawRichText.IsValidDrawRichTextCache(textRect, richTextData, spDrawRichTextCache, bCompareTextColor);
 }
 
 bool Render_Skia::UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& spOldDrawRichTextCache,
@@ -1929,7 +1930,8 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
                                         const UiSize& szNewScrollOffset,
                                         const std::vector<int32_t>& rowXOffset,
                                         uint8_t uFade,
-                                        std::vector<std::vector<UiRect>>* pRichTextRects)
+                                        std::vector<std::vector<UiRect>>* pRichTextRects,
+                                        const std::vector<UiColor>* pTextColors)
 {
     ui::DrawRichText drawRichText(this, GetSkCanvas(), m_pSkPaint.get(), m_pSkPointOrg.get());
     return drawRichText.DrawRichTextCacheData(spDrawRichTextCache,
@@ -1937,7 +1939,8 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
                                               szNewScrollOffset,
                                               rowXOffset,
                                               uFade,
-                                              pRichTextRects);
+                                              pRichTextRects,
+                                              pTextColors);
 }
 
 void Render_Skia::DrawBoxShadow(const UiRect& rc,

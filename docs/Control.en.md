@@ -3227,10 +3227,11 @@ List of supported tags:
    // Strikethrough:      <s> </s>  or <del> </del>  or <strike> </strike>
    // Underline:    <u> </u>
    // Set background color:  <bgcolor color="#000000"> </bgcolor>
-   // Set font:    <font face="SimSun" size="12" color="#000000">
+   // Set font:    <font face="SimSun" size="12" color="#000000"> (size range is 1~512; out-of-range values are clamped)
    // Line break tag:   <br/>
 ```
 Unknown tags are ignored, but their inner text content is still preserved and displayed.
+When `word_wrap="false"` (no automatic wrapping), text exceeding the control width is displayed with an ellipsis.
 
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |
@@ -3248,7 +3249,7 @@ Unknown tags are ignored, but their inner text content is still preserved and di
 | link_font_underline | true | bool | Hyperlink: whether to use underlined font (applies to both normal and hover states) |
 | row_spacing_mul | 1.0 | float | Line spacing multiple, e.g. 1.5 means 1.5x line spacing |
 | row_spacing_add  |0    | float  | Line spacing additional amount: a fixed additional pixel value (default is usually 0), used to add a fixed offset (pixels) on top of proportional adjustment|
-| word_wrap | true| bool | Whether to automatically wrap; if false, line breaks only occur at the `<br/>` tag |
+| word_wrap | true| bool | Whether to automatically wrap; if false, line breaks only occur at the `<br/>` tag, and text exceeding the control width is displayed with an ellipsis |
 
 The RichText control inherits the `Control` attributes. For more available attributes, please refer to the `Control` attributes.
 

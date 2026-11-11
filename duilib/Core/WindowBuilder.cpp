@@ -41,6 +41,8 @@
 #include "duilib/Control/Rating.h"
 #include "duilib/Control/Carousel.h"
 #include "duilib/Control/Pagination.h"
+
+#include <algorithm>
 #include "duilib/Control/Breadcrumb.h"
 #include "duilib/Control/CascadingSelect.h"
 #include "duilib/Control/Popover.h"
@@ -2035,8 +2037,11 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, RichText
             //字体设置：文本颜色
             textSlice.m_textColor = node.attribute(_T("color")).as_string();
             textSlice.m_fontInfo.m_fontName = node.attribute(_T("face")).as_string();
-            //字号不需要进行DPI缩放，绘制的时候，会根据当时的DPI进行缩放
-            textSlice.m_fontInfo.m_fontSize = node.attribute(_T("size")).as_int();            
+            //字号在解析时进行DPI缩放（见RichTextImpl::ParseTextSlice）；此处限制有效范围，避免异常值
+            int32_t nFontSize = node.attribute(_T("size")).as_int();
+            if (nFontSize > 0) {
+                textSlice.m_fontInfo.m_fontSize = std::clamp(nFontSize, 1, 512);
+            }
         }
         else if (nodeName == _T("br")) {
             textSlice.m_text = L"\n";

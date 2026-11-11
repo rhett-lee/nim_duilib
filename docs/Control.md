@@ -3230,10 +3230,11 @@ RichText是带有格式的文本，其格式类似于HTML标签，格式文本�
    // 删除字:      <s> </s> 或 <del> </del> 或者 <strike> </strike>
    // 下划线字:    <u> </u>
    // 设置背景色:  <bgcolor color="#000000"> </bgcolor>
-   // 设置字体:    <font face="宋体" size="12" color="#000000">
+   // 设置字体:    <font face="宋体" size="12" color="#000000">（size 取值范围为 1~512，超出时按边界值处理）
    // 换行标签：   <br/>
 ```
 未识别的标签会被忽略，但其内部的文本内容仍会被保留并显示。
+当 `word_wrap="false"`（不自动换行）时，超出控件宽度的文本会显示省略号。
 具体用法也可用参考示例程序。
 
 | 属性名称 | 默认值 | 参数类型 | 用途 |
@@ -3252,7 +3253,7 @@ RichText是带有格式的文本，其格式类似于HTML标签，格式文本�
 | link_font_underline | true | bool | 超级链接：是否使用带下划线的字体（常规状态和Hover状态均生效） |
 | row_spacing_mul | 1.0 | float | 行间距倍数, 比如1.5代表1.5倍行间距 |
 | row_spacing_add  |0    | float  | 行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素）|
-| word_wrap | true| bool | 是否自动换行，如果为false，则只有在`<br/>`标签的时候才换行 |
+| word_wrap | true| bool | 是否自动换行，如果为false，则只有在`<br/>`标签的时候才换行，且超出控件宽度的文本显示省略号 |
 
 RichText 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
 

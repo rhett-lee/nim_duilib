@@ -230,6 +230,10 @@ private:
         */
         UiString m_linkUrl;
 
+        /** 超链接使用的字体（解析时生成，绘制时共享，避免每帧创建字体对象）
+        */
+        SharePtr<UiFontEx> m_pLinkFontInfo;
+
         /** 鼠标是否按下
         */
         bool m_bMouseDown = false;
@@ -318,6 +322,26 @@ private:
     /** 绘制的文本内容（解析后）
     */
     std::vector<RichTextDataEx> m_textData;
+
+    /** 绘制用的文本数据缓冲区（复用，避免每帧堆分配）
+    */
+    std::vector<RichTextData> m_richTextDataBuffer;
+
+    /** 绘制用的文本颜色缓冲区（复用，避免每帧堆分配）
+    */
+    std::vector<UiColor> m_richTextTextColorBuffer;
+
+    /** 文本测量结果的缓存（避免重复测量）
+    */
+    UiRect m_cachedTextRect;
+
+    /** 文本测量时使用的可用大小
+    */
+    UiSize m_cachedAvailableSize;
+
+    /** 文本测量缓存是否有效
+    */
+    bool m_bCachedTextRectValid = false;
 
     /** 解析文本对应的界面缩放比
     */

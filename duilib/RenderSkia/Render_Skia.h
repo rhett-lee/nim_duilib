@@ -135,7 +135,8 @@ public:
 
     virtual bool IsValidDrawRichTextCache(const UiRect& textRect,
                                           const std::vector<RichTextData>& richTextData,
-                                          const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) override;
+                                          const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
+                                          bool bCompareTextColor = true) override;
 
     virtual bool UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& spOldDrawRichTextCache,
                                          const std::shared_ptr<DrawRichTextCache>& spUpdateDrawRichTextCache,
@@ -154,7 +155,8 @@ public:
                                        const UiSize& szNewScrollOffset,
                                        const std::vector<int32_t>& rowXOffset,
                                        uint8_t uFade,
-                                       std::vector<std::vector<UiRect>>* pRichTextRects = nullptr) override;
+                                       std::vector<std::vector<UiRect>>* pRichTextRects = nullptr,
+                                       const std::vector<UiColor>* pTextColors = nullptr) override;
 
     virtual void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int32_t nBlurRadius, int32_t nSpreadRadius, UiColor dwColor, uint8_t uAlpha) override;
 
