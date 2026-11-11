@@ -1963,6 +1963,21 @@ static bool IsRichTextBlockNode(const DString& nodeName)
            (nodeName == _T("hr"));
 }
 
+/** 判断RichText的文本节点是否包含可见内容（非纯空白）
+*/
+static bool HasRichTextVisibleText(const DString::value_type* text)
+{
+    if (text == nullptr) {
+        return false;
+    }
+    for (const DString::value_type* p = text; *p != 0; ++p) {
+        if ((*p != _T(' ')) && (*p != _T('\t')) && (*p != _T('\r')) && (*p != _T('\n'))) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /** 解析RichText的对齐属性
 * @return 返回-1表示未设置，0左对齐，1居中，2右对齐，3两端对齐
 */
@@ -2027,13 +2042,18 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, RichText
 
     DString nodeName;
     bool bFirstNode = true;
+    //上一个节点是否为块级节点：块级节点结束后，后续的行内内容也需要另起一段
+    bool bPrevBlockNode = false;
     for (pugi::xml_node node : xmlNode.children()) {
         RichTextSlice textSlice;
         textSlice.m_nodeName = node.name();
         nodeName = textSlice.m_nodeName.c_str();
 
         const bool bBlockNode = IsRichTextBlockNode(nodeName);
-        if (bBlockNode && !bFirstNode) {
+        //文本节点只有包含可见内容时才参与段落判断，避免格式化文本的换行/缩进产生空行
+        const bool bHasVisibleText = !nodeName.empty() || HasRichTextVisibleText(node.value());
+        if (!bFirstNode && (bBlockNode ||
+                            (bPrevBlockNode && bHasVisibleText && (nodeName != _T("br"))))) {
             //块级节点：先插入换行，保证另起一段（段间距附加在新行的行首元素上）
             RichTextSlice blockBreakSlice;
             blockBreakSlice.m_text = L"\n";
@@ -2045,9 +2065,10 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, RichText
                 pRichTextImpl->AppendTextSlice(std::move(blockBreakSlice), false);
             }
         }
-        if (!nodeName.empty()) {
+        if (!nodeName.empty() || bHasVisibleText) {
             bFirstNode = false;
         }
+        bPrevBlockNode = bBlockNode;
 
         bool bParseChildren = true;
         if (nodeName.empty()) {            

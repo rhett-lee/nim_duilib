@@ -3239,6 +3239,7 @@ List of supported tags:
 ```
 Unknown tags are ignored, but their inner text content is still preserved and displayed.
 When `word_wrap="false"` (no automatic wrapping), text exceeding the control width is displayed with an ellipsis.
+Block-level tags (`<p>`/`<h1>`~`<h6>`/`<ul>`/`<ol>`/`<li>`/`<hr>`) start a new line before the block; after such a block ends, inline content that follows also starts a new paragraph.
 
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |

@@ -1514,7 +1514,7 @@ void RichTextImpl::ButtonUp(const EventArgs& msg)
             continue;
         }
         for (const UiRect& textRect : textData.m_textRects) {
-            if (textRect.ContainsPt(msg.ptMouse)) {
+            if (textRect.ContainsPt(ptMouse)) {
                 //在超级链接上, 并且与按下鼠标时的相同，则触发点击事件
                 if (textData.m_bMouseDown) {
                     textData.m_bMouseDown = false;
@@ -1550,6 +1550,8 @@ void RichTextImpl::MouseMove(const EventArgs& msg)
     //GetRect()返回的是布局坐标（不包含祖先滚动容器的滚动偏移），需要将鼠标坐标转换为布局坐标
     UiPoint ptMouse = msg.ptMouse;
     ptMouse.Offset(m_pOwner->GetScrollOffsetInScrollBox());
+    //当前ToolTip文本：判断它是否由悬停的链接设置，避免鼠标移动时误清除
+    const DString toolTipText = m_pOwner->GetToolTipText();
     for (RichTextDataEx& textData : m_textData) {
         if (textData.m_linkUrl.empty()) {
             if (textData.m_bMouseHover) {
@@ -1564,7 +1566,9 @@ void RichTextImpl::MouseMove(const EventArgs& msg)
             if (textRect.ContainsPt(ptMouse)) {
                 //在超级链接上
                 bMouseHover = true;
-                if (textData.m_linkUrl == m_pOwner->GetToolTipText()) {
+                //ToolTip可能是链接地址，也可能是<a>的title属性（自定义提示文本）
+                if ((textData.m_linkUrl == toolTipText) ||
+                    (!textData.m_linkTitle.empty() && (textData.m_linkTitle == toolTipText))) {
                     bOnLinkUrl = true;
                 }
             }
@@ -2241,7 +2245,10 @@ bool RichTextImpl::OnKeyDown(const EventArgs& msg)
 void RichTextImpl::RButtonUp(const EventArgs& msg)
 {
     //鼠标右键：复制链接地址到剪贴板
-    const int32_t nGroupIndex = HitTestLinkGroup(msg.ptMouse);
+    //GetRect()返回的是布局坐标（不包含祖先滚动容器的滚动偏移），需要将鼠标坐标转换为布局坐标
+    UiPoint ptMouse = msg.ptMouse;
+    ptMouse.Offset(m_pOwner->GetScrollOffsetInScrollBox());
+    const int32_t nGroupIndex = HitTestLinkGroup(ptMouse);
     if (nGroupIndex < 0) {
         return;
     }
