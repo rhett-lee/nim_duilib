@@ -1029,6 +1029,9 @@
     <ClCompile Include="Animation\PopupAnimation.cpp">
       <Filter>Animation</Filter>
     </ClCompile>
+    <ClCompile Include="Control\RichTextUtil.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -2134,6 +2137,9 @@
     </ClInclude>
     <ClInclude Include="Animation\PopupAnimation.h">
       <Filter>Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RichTextUtil.h">
+      <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

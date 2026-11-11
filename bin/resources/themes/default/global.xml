@@ -150,6 +150,7 @@
     <Alias name="default_link_font_color" value="text_link_normal"/>
     <Alias name="hover_link_font_color" value="text_link_hovered"/>
     <Alias name="mouse_down_link_font_color" value="text_link_pressed"/>
+    <Alias name="visited_link_font_color" value="text_link_visited"/>
     <Alias name="bk_progress_progress" value="bg_progress"/>
     <Alias name="richedit_border_color" value="border_richedit_normal"/>
     <Alias name="richedit_hot_border_color" value="border_richedit_hovered"/>
@@ -791,7 +792,16 @@
                             default_link_font_color="text_link_normal" 
                             hovered_link_font_color="text_link_hovered" 
                             pressed_link_font_color="text_link_pressed" 
+                            visited_link_font_color="text_link_visited"
                             link_font_underline="true"/>
+
+    <!-- 富文本：段落/说明文字（可选类，不改变 rich_text 的既有默认行为：
+         更大的行距、内边距与自动换行，适合成段的说明文字） -->
+    <Class name="rich_text_paragraph" class="rich_text" 
+                            text_color="text_default"
+                            row_spacing_mul="1.3" 
+                            text_padding="2,2,2,2" 
+                            word_wrap="true"/>
     
     <!-- IP地址控件 -->
     <Class name="ip_address" width="140" height="28" bkcolor="bg_richedit" border_size="1" border_round="4,4" padding="4,3,4,3"

@@ -13,6 +13,7 @@
 #include "TabCtrlForm.h"
 #include "RangeSliderForm.h"
 #include "StepperForm.h"
+#include "RichTextForm.h"
 #include "RatingForm.h"
 #include "CarouselForm.h"
 #include "TreeGridForm.h"
@@ -251,6 +252,7 @@ void ControlForm::OnInitWindow()
     bindOpen(_T("btn_gallery_tree_grid"), []() { return new TreeGridForm(); });
     bindOpen(_T("btn_gallery_rating"), []() { return new RatingForm(); });
     bindOpen(_T("btn_gallery_stepper"), []() { return new StepperForm(); });
+    bindOpen(_T("btn_gallery_richtext"), []() { return new RichTextForm(); });
     bindOpen(_T("btn_gallery_avatar"), []() { return new AvatarForm(); });
     bindOpen(_T("btn_gallery_carousel"), []() { return new CarouselForm(); });
 

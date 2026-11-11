@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="900,720" min_size="760,560" caption="0,0,0,36"
+        shadow_type="default" size_box="4,4,4,4">
+    <VBox bkcolor="bg_window_main">
+        <!-- 标题栏 -->
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
+            <Label name="label_title" text_id="STRID_RICHTEXT_WINDOW_TITLE" valign="center" margin="8" mouse_enabled="false"/>
+            <Control/>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+        </HBox>
+
+        <VScrollBox width="stretch" height="stretch" vscrollbar="true" hscrollbar="false" padding="16,12,16,16">
+            <VBox width="stretch" height="auto">
+                <Label text_id="STRID_RICHTEXT_HINT" font="system_regular_12" text_color="text_muted"
+                       margin="4,0,4,10" multi_line="true" auto_tooltip="true"/>
+
+                <!-- ========== 1. 内联文本格式 ========== -->
+                <HBox height="30" margin="4,0,4,8" valign="center">
+                    <Control width="4" height="16" bkcolor="color_accent" border_round="2,2" valign="center"/>
+                    <Label text_id="STRID_RICHTEXT_SEC_INLINE" font="system_bold_15" text_color="text_default"
+                           margin="8,0,0,0" valign="center"/>
+                    <Control/>
+                </HBox>
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" height="auto" width="stretch">
+                    <RichText class="rich_text_paragraph" name="richtext_inline" width="stretch" height="auto"
+                              text_id="STRID_RICHTEXT_INLINE_EXAMPLE"/>
+                </VBox>
+
+                <!-- ========== 2. 链接与提示 ========== -->
+                <HBox height="30" margin="4,14,4,8" valign="center">
+                    <Control width="4" height="16" bkcolor="color_accent" border_round="2,2" valign="center"/>
+                    <Label text_id="STRID_RICHTEXT_SEC_LINK" font="system_bold_15" text_color="text_default"
+                           margin="8,0,0,0" valign="center"/>
+                    <Control/>
+                </HBox>
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" height="auto" width="stretch">
+                    <RichText class="rich_text_paragraph" name="richtext_links" width="stretch" height="auto"
+                              text_id="STRID_RICHTEXT_LINK_EXAMPLE"/>
+                    <RichText class="rich_text_paragraph" name="richtext_links_nounderline" width="stretch" height="auto"
+                              link_font_underline="false" margin="0,8,0,0"
+                              text_id="STRID_RICHTEXT_LINK_NOUNDERLINE_EXAMPLE"/>
+                    <Label name="link_event" text_id="STRID_RICHTEXT_LINK_EVENT_NONE" font="system_regular_12"
+                           text_color="text_muted" margin="0,8,0,0" multi_line="true" auto_tooltip="true"/>
+                </VBox>
+
+                <!-- ========== 3. 段落与块级标签 ========== -->
+                <HBox height="30" margin="4,14,4,8" valign="center">
+                    <Control width="4" height="16" bkcolor="color_accent" border_round="2,2" valign="center"/>
+                    <Label text_id="STRID_RICHTEXT_SEC_BLOCK" font="system_bold_15" text_color="text_default"
+                           margin="8,0,0,0" valign="center"/>
+                    <Control/>
+                </HBox>
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" height="auto" width="stretch">
+                    <RichText class="rich_text" name="richtext_blocks" width="stretch" height="auto"
+                              paragraph_spacing="10" text_id="STRID_RICHTEXT_BLOCK_EXAMPLE"/>
+                </VBox>
+
+                <!-- ========== 4. 排版控制 ========== -->
+                <HBox height="30" margin="4,14,4,8" valign="center">
+                    <Control width="4" height="16" bkcolor="color_accent" border_round="2,2" valign="center"/>
+                    <Label text_id="STRID_RICHTEXT_SEC_LAYOUT" font="system_bold_15" text_color="text_default"
+                           margin="8,0,0,0" valign="center"/>
+                    <Control/>
+                </HBox>
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" height="auto" width="stretch">
+                    <HBox height="auto" width="stretch" child_margin="16">
+                        <VBox width="stretch" height="auto">
+                            <Label text_id="STRID_RICHTEXT_LAYOUT_WRAP_TITLE" font="system_regular_12"
+                                   text_color="text_muted"/>
+                            <RichText class="rich_text" name="richtext_wrap" width="stretch" height="auto"
+                                      word_wrap="true" margin="0,4,0,0"
+                                      text_id="STRID_RICHTEXT_LAYOUT_WRAP_TEXT"/>
+                        </VBox>
+                        <VBox width="stretch" height="auto">
+                            <Label text_id="STRID_RICHTEXT_LAYOUT_NOWRAP_TITLE" font="system_regular_12"
+                                   text_color="text_muted"/>
+                            <RichText class="rich_text" name="richtext_nowrap" width="stretch" height="44"
+                                      word_wrap="false" text_overflow="ellipsis" max_lines="1" margin="0,4,0,0"
+                                      text_id="STRID_RICHTEXT_LAYOUT_NOWRAP_TEXT"/>
+                            <RichText class="rich_text" name="richtext_maxlines" width="stretch" height="66"
+                                      word_wrap="true" text_overflow="clip" max_lines="3" margin="0,8,0,0"
+                                      text_id="STRID_RICHTEXT_LAYOUT_MAXLINES_TEXT"/>
+                        </VBox>
+                    </HBox>
+                    <RichText class="rich_text" name="richtext_spacing" width="stretch" height="auto"
+                              row_spacing_mul="1.6" letter_spacing="1" text_indent="24" text_padding="8,6,8,6"
+                              margin="0,12,0,0" text_id="STRID_RICHTEXT_LAYOUT_SPACING_TEXT"/>
+                </VBox>
+
+                <!-- ========== 5. 内联图片与交互 ========== -->
+                <HBox height="30" margin="4,14,4,8" valign="center">
+                    <Control width="4" height="16" bkcolor="color_accent" border_round="2,2" valign="center"/>
+                    <Label text_id="STRID_RICHTEXT_SEC_INTERACTIVE" font="system_bold_15" text_color="text_default"
+                           margin="8,0,0,0" valign="center"/>
+                    <Control/>
+                </HBox>
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" height="auto" width="stretch">
+                    <RichText class="rich_text" name="richtext_image" width="stretch" height="auto"
+                              text_id="STRID_RICHTEXT_IMAGE_EXAMPLE"/>
+                    <RichText class="rich_text_paragraph" name="richtext_interactive" width="stretch" height="auto"
+                              enable_text_select="true" margin="0,10,0,0"
+                              text_id="STRID_RICHTEXT_INTERACTIVE_EXAMPLE"/>
+                    <Label name="rt_status" text_id="STRID_RICHTEXT_STATUS_EMPTY" font="system_regular_12"
+                           text_color="text_muted" margin="0,8,0,0" multi_line="true" auto_tooltip="true"/>
+
+                    <HBox height="32" margin="0,10,0,0" child_margin="8">
+                        <Button class="btn_global" name="btn_rt_align" text_id="STRID_RICHTEXT_BTN_ALIGN"
+                                width="112" height="30" border_round="3,3"/>
+                        <Button class="btn_global" name="btn_rt_wrap" text_id="STRID_RICHTEXT_BTN_WRAP"
+                                width="112" height="30" border_round="3,3"/>
+                        <Button class="btn_global" name="btn_rt_link_color" text_id="STRID_RICHTEXT_BTN_LINK_COLOR"
+                                width="112" height="30" border_round="3,3"/>
+                        <Button class="btn_global" name="btn_rt_append" text_id="STRID_RICHTEXT_BTN_APPEND"
+                                width="112" height="30" border_round="3,3"/>
+                        <Button class="btn_global" name="btn_rt_clear" text_id="STRID_RICHTEXT_BTN_CLEAR"
+                                width="112" height="30" border_round="3,3"/>
+                        <Button class="btn_global" name="btn_rt_restore" text_id="STRID_RICHTEXT_BTN_RESTORE"
+                                width="112" height="30" border_round="3,3"/>
+                        <Control/>
+                    </HBox>
+                    <HBox height="32" margin="0,8,0,0" child_margin="8">
+                        <Button class="btn_global" name="btn_rt_select_all" text_id="STRID_RICHTEXT_BTN_SELECT_ALL"
+                                width="112" height="30" border_round="3,3"/>
+                        <Button class="btn_global" name="btn_rt_copy" text_id="STRID_RICHTEXT_BTN_COPY"
+                                width="112" height="30" border_round="3,3"/>
+                        <Button class="btn_global" name="btn_rt_clear_selection" text_id="STRID_RICHTEXT_BTN_CLEAR_SELECTION"
+                                width="112" height="30" border_round="3,3"/>
+                        <Control/>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </VScrollBox>
+    </VBox>
+</Window>

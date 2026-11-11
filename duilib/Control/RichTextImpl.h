@@ -2,6 +2,7 @@
 #define UI_CONTROL_RICHTEXT_IMPL_H_
 
 #include "duilib/Core/Control.h"
+#include "duilib/Control/RichTextUtil.h"
 #include "duilib/Render/IRender.h"
 
 #include <set>
@@ -435,6 +436,10 @@ private:
     */
     uint16_t GetTextStyle() const;
 
+    /** 获取绘制与测量共用的文本布局数据（仅在文本或排版变化时重建）
+    */
+    const std::vector<RichTextData>& GetRichTextLayoutData();
+
     /** 计算绘制后的目标区域大小
     */
     void CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect);
@@ -544,6 +549,10 @@ private:
     */
     std::vector<RichTextDataEx> m_textData;
 
+    /** 文本是否已经解析完成（避免无文本或解析失败时每帧重复解析）
+    */
+    bool m_bTextParsed = false;
+
     /** 绘制用的文本数据（与解析结果一一对应，仅在文本/排版变化时重建）
     */
     std::vector<RichTextData> m_richTextLayoutData;
@@ -567,6 +576,14 @@ private:
     /** 绘制缓存对应的文本绘制区域
     */
     UiRect m_drawCacheTextRect;
+
+    /** m_textData 中各片段绘制区域(m_textRects)对应的布局版本
+    */
+    uint32_t m_nTextRectsLayoutVersion = 0;
+
+    /** m_textData 中各片段绘制区域(m_textRects)对应的文本绘制区域
+    */
+    UiRect m_textRectsTextRect;
 
     /** 文本测量结果的缓存（避免重复测量）
     */
@@ -612,6 +629,10 @@ private:
     */
     int32_t m_nFocusedLinkGroup = -1;
 
+    /** 当前ToolTip是否由链接设置（用于鼠标移开链接时只清除链接设置的ToolTip）
+    */
+    bool m_bLinkToolTipActive = false;
+
     /** 字间距（像素）
     */
     float m_fLetterSpacing = 0.0f;
@@ -646,15 +667,7 @@ private:
 
     /** 文本的Trim策略
     */
-    enum class TrimPolicy: int8_t {
-        kNone    = 0, //不处理
-        kAll     = 1, //去掉所有空格
-        kKeepOne = 2, //去掉多余的空格，只保留一个空格
-    };
-
-    /** 文本的Trim策略
-    */
-    TrimPolicy m_trimPolicy = TrimPolicy::kAll;
+    RichTextTrimPolicy m_trimPolicy = RichTextTrimPolicy::kAll;
 
     /** 是否自动换行（默认为true）
     */

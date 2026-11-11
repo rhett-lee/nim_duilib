@@ -42,6 +42,25 @@ add_test(NAME calendar_disabled_weekdays
          COMMAND test_calendar_disabled_weekdays
 )
 
+# RichText 纯逻辑（RichTextUtil）：覆盖 XML 转义、对齐属性、标签校验、
+# 链接地址归一化与提示判断、空白裁剪、跨节点空格处理、选中文本归一化
+add_executable(test_rich_text_util
+    test_rich_text_util.cpp
+)
+target_include_directories(test_rich_text_util PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_rich_text_util PRIVATE duilib)
+if(WIN32)
+    target_compile_definitions(test_rich_text_util PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_rich_text_util PRIVATE /utf-8)
+endif()
+add_test(NAME rich_text_util
+         COMMAND test_rich_text_util
+)
+
 # controls 示例页面的静态校验（XML 节点名、属性、class/颜色引用、语言词条、
 # Form 与 XML 的绑定关系）。该测试不创建窗口、不加载主题，仅用 Python3 解析
 # 资源文件，Windows/Linux/macOS 均可运行，可直接在命令行（含 CI）执行。

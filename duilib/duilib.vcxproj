@@ -381,6 +381,7 @@
     <ClCompile Include="Control\RichEditHost_Windows.cpp" />
     <ClCompile Include="Control\RichEdit_Windows.cpp" />
     <ClCompile Include="Control\RichTextImpl.cpp" />
+    <ClCompile Include="Control\RichTextUtil.cpp" />
     <ClCompile Include="Control\SearchBox.cpp" />
     <ClCompile Include="Control\TagInput.cpp" />
     <ClCompile Include="Control\AutoComplete.cpp" />
@@ -820,6 +821,7 @@
     <ClInclude Include="Control\RichText.h" />
     <ClInclude Include="Control\CircleProgress.h" />
     <ClInclude Include="Control\RichTextImpl.h" />
+    <ClInclude Include="Control\RichTextUtil.h" />
     <ClInclude Include="Control\SearchBox.h" />
     <ClInclude Include="Control\TagInput.h" />
     <ClInclude Include="Control\AutoComplete.h" />

@@ -235,6 +235,7 @@
     <ClInclude Include="AnimationForm.h" />
     <ClInclude Include="ChartForm.h" />
     <ClInclude Include="MarqueeForm.h" />
+    <ClInclude Include="RichTextForm.h" />
     <ClInclude Include="TimelineForm.h" />
     <ClInclude Include="StatusBarForm.h" />
     <ClInclude Include="ToolBarForm.h" />
@@ -272,6 +273,7 @@
     <ClCompile Include="AnimationForm.cpp" />
     <ClCompile Include="ChartForm.cpp" />
     <ClCompile Include="MarqueeForm.cpp" />
+    <ClCompile Include="RichTextForm.cpp" />
     <ClCompile Include="TimelineForm.cpp" />
     <ClCompile Include="StatusBarForm.cpp" />
     <ClCompile Include="ToolBarForm.cpp" />

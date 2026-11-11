@@ -3239,11 +3239,15 @@ List of supported tags:
 ```
 Unknown tags are ignored, but their inner text content is still preserved and displayed.
 When `word_wrap="false"` (no automatic wrapping), text exceeding the control width is displayed with an ellipsis.
+See also the controls demo: the "Open test page" button in the "RichText layout sample" card opens a dedicated
+test page (`examples/controls/RichTextForm`, layout `controls/rich_text.xml`) that covers every attribute and
+interaction of this control (inline formats, links and tooltips, paragraphs and block tags, layout control,
+inline images, text selection, and the runtime APIs).
 Block-level tags (`<p>`/`<h1>`~`<h6>`/`<ul>`/`<ol>`/`<li>`/`<hr>`) start a new line before the block; after such a block ends, inline content that follows also starts a new paragraph.
 
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |
-| text_align | "left,top" | string | Horizontal and vertical alignment of the text, optional values: left, right, hcenter, center, justify, top, vcenter, bottom, separated by commas, e.g. "hcenter,vcenter" ("center" is equivalent to "hcenter"; "justify" stretches all lines except the last line of each paragraph) |
+| text_align | "left,top" | string | Horizontal and vertical alignment of the text, optional values: left, right, hcenter, center, justify, top, vcenter, bottom, separated by commas, e.g. "hcenter,vcenter" ("center" is equivalent to "hcenter"; "justify" stretches all lines except the last line of each paragraph; `textalign` is an accepted alias) |
 | text_padding |  | rect | Text padding, e.g. "2,2,2,2" |
 | font | | string | Font ID |
 | text_color | | string | Default text color |
@@ -3255,7 +3259,7 @@ Block-level tags (`<p>`/`<h1>`~`<h6>`/`<ul>`/`<ol>`/`<li>`/`<hr>`) start a new l
 | hovered_link_font_color | | string | Hyperlink: Hover state text color value |
 | pressed_link_font_color | | string | Hyperlink: pressed state text color value |
 | visited_link_font_color | | string | Hyperlink: visited state text color value (links that have been clicked) |
-| link_font_underline | true | bool | Hyperlink: whether to use underlined font (applies to both normal and hover states) |
+| link_font_underline | true | bool | Hyperlink: whether to use underlined font (when true, the normal state is always underlined; when false, the normal state is not underlined, but hover/pressed states still draw an underline as clickable feedback) |
 | row_spacing_mul | 1.0 | float | Line spacing multiple, e.g. 1.5 means 1.5x line spacing |
 | row_spacing_add  |0    | float  | Line spacing additional amount: a fixed additional pixel value (default is usually 0), used to add a fixed offset (pixels) on top of proportional adjustment|
 | letter_spacing | 0 | float | Letter spacing (pixels): when greater than 0, text is drawn glyph by glyph; 0 uses the font default spacing |
@@ -3267,12 +3271,20 @@ Block-level tags (`<p>`/`<h1>`~`<h6>`/`<ul>`/`<ol>`/`<li>`/`<hr>`) start a new l
 | selection_bg_color | | string | Background color of the selected text while dragging with the mouse, e.g. "#660099FF" (AARRGGBB); a default light blue is used when not set |
 | enable_text_select | true | bool | Whether text can be selected by dragging with the mouse |
 
-Link runtime APIs: `AppendText` (append rich text, optionally with an immediate redraw), `SetLinkColor` (set normal/hovered/pressed/visited link colors), `GetLinkCount`/`GetLinkUrl`/`GetLinkRect` (query the count, URL and hit rectangle by link index).
+Content runtime APIs: `SetText`/`SetTextId` (set formatted text / text ID), `Clear` (clear the content),
+`AppendText` (append rich text, optionally with an immediate redraw), `AppendTextSlice` (append one parsed
+text slice; pass `bRedraw=false` for batch appends and call `Redraw()` once at the end), `ToString` (emit
+formatted text that can be parsed again).
+
+Link runtime APIs: `SetLinkColor` (set normal/hovered/pressed/visited link colors), `GetLinkCount`/`GetLinkUrl`/`GetLinkRect` (query the count, URL and hit rectangle by link index).
 Link accessibility APIs: `GetLinkTitle` (returns the link tooltip, falling back to the URL), `GetHoveredLinkIndex`/`GetFocusedLinkIndex` (index of the hovered/focused link, useful for showing the current link in a status bar).
 Links support keyboard focus with Tab/Shift+Tab and activation with Enter; hovering/leaving a link dispatches `kEventLinkHover`/`kEventLinkLeave`, and the context menu supports "Copy link address".
+Link tooltips are shown only when the link sets a `title`, or when the link text differs substantially from its URL (the comparison ignores `http://`, `https://`, `www.` and a trailing `/`), avoiding meaningless tooltips on hover.
 
 Text selection APIs: `HasSelection` (whether any text is selected), `GetSelectedText` (returns the selected text, with line breaks normalized to "\r\n"), `CopySelectedText` (copy to clipboard), `SelectAll`, `ClearSelection`, `SetEnableTextSelect`/`IsEnableTextSelect`.
 Press and drag the left mouse button on a non-link area to select text (across lines, wrapped lines, and mixed with alignment and inline images); when the control has focus, `Ctrl+A` selects all and `Ctrl+C` copies. The selected text is highlighted per line with a translucent background aligned to individual characters.
+
+The theme provides two optional style classes: `rich_text` (link normal/hover/pressed/visited colors and underline, the default behavior) and `rich_text_paragraph` (inherits `rich_text`, uses a larger line spacing and text padding with word wrap enabled, suitable for paragraph text). Both can be adjusted in `themes/<theme>/global.xml`.
 
 The RichText control inherits the `Control` attributes. For more available attributes, please refer to the `Control` attributes.
 

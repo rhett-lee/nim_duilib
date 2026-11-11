@@ -3243,11 +3243,13 @@ RichText是带有格式的文本，其格式类似于HTML标签，格式文本�
 未识别的标签会被忽略，但其内部的文本内容仍会被保留并显示。
 块级标签（`<p>`/`<h1>`~`<h6>`/`<ul>`/`<ol>`/`<li>`/`<hr>`）在段前自动换行；块级标签结束后，紧跟其后的行内内容也会自动另起一段。
 当 `word_wrap="false"`（不自动换行）时，超出控件宽度的文本会显示省略号。
-具体用法也可用参考示例程序。
+具体用法也可用参考示例程序：`controls` 首页“RichText 排版样例”卡片中的“打开测试页”按钮会打开专门的
+测试页（`examples/controls/RichTextForm`，布局文件 `controls/rich_text.xml`），覆盖本控件的全部属性与交互
+（内联格式、链接与提示、段落与块级标签、排版控制、内联图片、文本选择，以及运行期接口按钮）。
 
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
-| text_align | "left,top" | string | 文字的水平与垂直对齐方式, 可取值: left、right、hcenter、center、justify、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter"（"center"与"hcenter"等价；"justify"为两端对齐，段落的最后一行保持左对齐） |
+| text_align | "left,top" | string | 文字的水平与垂直对齐方式, 可取值: left、right、hcenter、center、justify、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter"（"center"与"hcenter"等价；"justify"为两端对齐，段落的最后一行保持左对齐；兼容别名 textalign） |
 | text_padding |  | rect | 文本内边距，如："2,2,2,2" |
 | font | | string | 字体ID |
 | text_color | | string | 默认文本颜色 |
@@ -3259,7 +3261,7 @@ RichText是带有格式的文本，其格式类似于HTML标签，格式文本�
 | hovered_link_font_color | | string | 超级链接：Hover状态文本颜色值 |
 | pressed_link_font_color | | string | 超级链接：鼠标按下状态文本颜色值 |
 | visited_link_font_color | | string | 超级链接：已访问状态文本颜色值（点击过的链接） |
-| link_font_underline | true | bool | 超级链接：是否使用带下划线的字体（常规状态和Hover状态均生效） |
+| link_font_underline | true | bool | 超级链接：是否使用带下划线的字体（为 true 时常规状态始终显示下划线；为 false 时常规状态不显示下划线，但 Hover/按下状态仍会绘制一条下划线，保证可点击的视觉反馈） |
 | row_spacing_mul | 1.0 | float | 行间距倍数, 比如1.5代表1.5倍行间距 |
 | row_spacing_add  |0    | float  | 行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素）|
 | letter_spacing | 0 | float | 字间距（像素）：大于0时按逐字绘制，0表示使用字体默认间距 |
@@ -3271,12 +3273,19 @@ RichText是带有格式的文本，其格式类似于HTML标签，格式文本�
 | selection_bg_color | | string | 鼠标选择文本时，选中区域的背景颜色，如"#660099FF"（AARRGGBB）；未设置时使用默认的淡蓝色 |
 | enable_text_select | true | bool | 是否允许用鼠标拖拽选择文本 |
 
-链接相关运行时接口：`AppendText`（追加富文本，可选择是否立即重绘）、`SetLinkColor`（设置链接常规/Hover/按下/已访问颜色）、`GetLinkCount`/`GetLinkUrl`/`GetLinkRect`（按链接索引获取数量、URL 和命中矩形）。
+内容相关运行时接口：`SetText`/`SetTextId`（设置格式文本/文本 ID）、`Clear`（清空内容）、
+`AppendText`（追加富文本，可选择是否立即重绘）、`AppendTextSlice`（追加单个解析后的文本片段，
+批量追加时可传 `bRedraw=false`，完成后调用 `Redraw()` 统一刷新）、`ToString`（输出可直接再次解析的格式文本）。
+
+链接相关运行时接口：`SetLinkColor`（设置链接常规/Hover/按下/已访问颜色）、`GetLinkCount`/`GetLinkUrl`/`GetLinkRect`（按链接索引获取数量、URL 和命中矩形）。
 链接的无障碍信息接口：`GetLinkTitle`（获取链接的提示文本，未设置 title 时返回 URL）、`GetHoveredLinkIndex`/`GetFocusedLinkIndex`（获取鼠标悬停/键盘聚焦的链接索引，可用于在状态栏显示当前链接）。
 链接支持键盘 Tab/Shift+Tab 聚焦，Enter 触发点击；鼠标悬停/离开时派发 `kEventLinkHover`/`kEventLinkLeave` 事件，右键菜单支持“复制链接地址”。
+链接的工具提示：仅当链接设置了 `title` 属性，或链接的显示文本与 URL 实质不同（比较时忽略 `http://`、`https://`、`www.` 与末尾 `/`）时才显示，避免鼠标经过链接时出现无意义的提示。
 
 文本选择相关运行时接口：`HasSelection`（是否有选中的文本）、`GetSelectedText`（获取选中的文本，换行统一为"\r\n"）、`CopySelectedText`（复制到剪贴板）、`SelectAll`（全选）、`ClearSelection`（清除选择）、`SetEnableTextSelect`/`IsEnableTextSelect`（是否允许选择）。
 鼠标左键在非链接区域按下并拖拽即可选择文本（支持跨行、自动换行后的多行、对齐与内联图片混排）；控件获得焦点后支持 `Ctrl+A` 全选、`Ctrl+C` 复制。选中的文本按行绘制半透明背景，位置与文字逐字对齐。
+
+主题中提供两个可选的样式类：`rich_text`（链接常规/Hover/按下/已访问颜色与下划线，即默认行为）和 `rich_text_paragraph`（继承 `rich_text`，使用更大的行距、文本内边距并开启自动换行，适合成段的说明文字），均可在 `themes/<theme>/global.xml` 中按需调整。
 
 RichText 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
 

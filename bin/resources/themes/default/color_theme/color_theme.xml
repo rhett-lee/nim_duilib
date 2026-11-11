@@ -1116,9 +1116,10 @@
                             <Label text="TagInput:" height="auto"/>
                             <TagInput class="tag_input" name="preview_tag_input" tags="nim_duilib;C++;Desktop UI" prompt_text="Add tag..."/>
                             <Label text="RichText:" height="auto" margin="0,8,0,0"/>
-                            <RichText class="rich_text" name="preview_rich_text" width="stretch" height="auto" row_spacing_mul="1.2">
-                                RichText: <a href="https://www.example.com">Click to Example</a><br/>
-                                RichText: <a href="https://www.example.org">Click to Example Org</a>
+                            <RichText class="rich_text_paragraph" name="preview_rich_text" width="stretch" height="auto"
+                                      row_spacing_mul="1.2" text_padding="6,4,6,4" bkcolor="bg_container" border_round="6,6">
+                                RichText: text keeps natural spacing around <a href="https://www.example.com">Example Link</a>.<br/>
+                                Multiple links <a href="https://www.example.com">Example Link</a> and <a href="https://www.example.org">Example Org</a> never stick together.
                             </RichText>
                         </VBox>
                     </HBox>

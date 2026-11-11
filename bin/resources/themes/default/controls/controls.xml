@@ -220,7 +220,7 @@
                         <HBox height="84" margin="0,10,0,0">
                             <VBox width="170">
                                 <RichText class="rich_text" name="rich_text_demo" row_spacing_mul="1.2" width="stretch">
-                                    RichText:　<a href="www.baidu.com">Baidu</a>
+                                    RichText: <a href="www.baidu.com">Baidu</a> 与 <a href="www.qq.com">腾讯</a> 之间的自然间距，以及 <b>粗体</b>、<i>斜体</i> 文字。
                                 </RichText>
                                 <HyperLink class="hyper_link" name="hyper_link1" text="Baidu Home" url="www.baidu.com"/>
                                 <HyperLink class="hyper_link" name="hyper_link2" text="Text Button" url=""/>
@@ -249,6 +249,40 @@
                         <HBox height="28" margin="0,4,0,0">
                             <Control/>
                             <Button class="btn_global" name="btn_gallery_elements" text_id="STRID_GALLERY_OPEN_TEST"
+                                    width="112" height="28" border_round="4,4"/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+
+                <!-- ========== RichText 排版样例 ========== -->
+                <HBox height="auto" width="stretch" margin="4,12,4,0">
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="auto" width="stretch">
+                        <HBox height="24" valign="center">
+                            <Control width="6" height="16" bkcolor="color_accent" border_round="3,3" valign="center"/>
+                            <Label text_id="STRID_GALLERY_RICHTEXT_TITLE" font="system_bold_15" text_color="text_default"
+                                   margin="8,0,0,0" valign="center"/>
+                            <Label text="rich_text / rich_text_paragraph" font="system_regular_12" text_color="text_muted"
+                                   margin="8,0,0,0" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <HBox height="auto" margin="0,10,0,0">
+                            <VBox width="stretch" height="auto">
+                                <RichText class="rich_text_paragraph" width="stretch" height="auto"
+                                          text_id="STRID_GALLERY_RICHTEXT_SAMPLE"/>
+                            </VBox>
+                            <VBox width="260" margin="16,0,0,0" height="auto">
+                                <Label text_id="STRID_GALLERY_RICHTEXT_WRAP_TITLE" font="system_regular_12" text_color="text_muted"/>
+                                <RichText class="rich_text" width="stretch" height="auto" word_wrap="true" margin="0,4,0,0"
+                                          text_id="STRID_GALLERY_RICHTEXT_WRAP_TEXT"/>
+                                <Label text_id="STRID_GALLERY_RICHTEXT_TRUNC_TITLE" font="system_regular_12" text_color="text_muted" margin="0,10,0,0"/>
+                                <RichText class="rich_text" width="stretch" height="24" word_wrap="false" margin="0,4,0,0"
+                                          text_id="STRID_GALLERY_RICHTEXT_TRUNC_TEXT"/>
+                            </VBox>
+                        </HBox>
+                        <HBox height="28" margin="0,8,0,0">
+                            <Control/>
+                            <Button class="btn_global" name="btn_gallery_richtext" text_id="STRID_GALLERY_OPEN_TEST"
                                     width="112" height="28" border_round="4,4"/>
                         </HBox>
                     </VBox>

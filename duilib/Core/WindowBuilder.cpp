@@ -1952,53 +1952,6 @@ bool WindowBuilder::ParseRichTextXmlText(const DString& xmlText, Control* pContr
     return ParseRichTextXmlNode(root, pControl, nullptr);
 }
 
-/** 判断RichText的标签是否为块级标签（块级标签需要独占一段）
-*/
-static bool IsRichTextBlockNode(const DString& nodeName)
-{
-    return (nodeName == _T("p")) ||
-           (nodeName == _T("h1")) || (nodeName == _T("h2")) || (nodeName == _T("h3")) ||
-           (nodeName == _T("h4")) || (nodeName == _T("h5")) || (nodeName == _T("h6")) ||
-           (nodeName == _T("ul")) || (nodeName == _T("ol")) || (nodeName == _T("li")) ||
-           (nodeName == _T("hr"));
-}
-
-/** 判断RichText的文本节点是否包含可见内容（非纯空白）
-*/
-static bool HasRichTextVisibleText(const DString::value_type* text)
-{
-    if (text == nullptr) {
-        return false;
-    }
-    for (const DString::value_type* p = text; *p != 0; ++p) {
-        if ((*p != _T(' ')) && (*p != _T('\t')) && (*p != _T('\r')) && (*p != _T('\n'))) {
-            return true;
-        }
-    }
-    return false;
-}
-
-/** 解析RichText的对齐属性
-* @return 返回-1表示未设置，0左对齐，1居中，2右对齐，3两端对齐
-*/
-static int8_t ParseRichTextHAlign(const DString& alignValue)
-{
-    const DString align = StringUtil::Trim(alignValue.c_str());
-    if (align == _T("center")) {
-        return 1;
-    }
-    if ((align == _T("right")) || (align == _T("end"))) {
-        return 2;
-    }
-    if (align == _T("justify")) {
-        return 3;
-    }
-    if ((align == _T("left")) || (align == _T("start"))) {
-        return 0;
-    }
-    return -1;
-}
-
 bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control* pControl, RichTextSlice* pTextSlice)
 {
     ASSERT(pControl != nullptr);
@@ -2049,7 +2002,7 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, RichText
         textSlice.m_nodeName = node.name();
         nodeName = textSlice.m_nodeName.c_str();
 
-        const bool bBlockNode = IsRichTextBlockNode(nodeName);
+        const bool bBlockNode = IsRichTextBlockTagName(nodeName);
         //文本节点只有包含可见内容时才参与段落判断，避免格式化文本的换行/缩进产生空行
         const bool bHasVisibleText = !nodeName.empty() || HasRichTextVisibleText(node.value());
         if (!bFirstNode && (bBlockNode ||
@@ -2092,7 +2045,7 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, RichText
         }
         else if (nodeName == _T("p")) {
             //段落：支持 align 属性（left/center/right/justify）
-            textSlice.m_nHAlign = ParseRichTextHAlign(node.attribute(_T("align")).as_string());
+            textSlice.m_nHAlign = ParseRichTextHAlignValue(node.attribute(_T("align")).as_string());
         }
         else if ((nodeName == _T("h1")) || (nodeName == _T("h2")) || (nodeName == _T("h3")) ||
                  (nodeName == _T("h4")) || (nodeName == _T("h5")) || (nodeName == _T("h6"))) {
@@ -2104,7 +2057,7 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, RichText
                 textSlice.m_fFontScale = kHeadingScale[nLevelIndex];
             }
             textSlice.m_fontInfo.m_bBold = true;
-            textSlice.m_nHAlign = ParseRichTextHAlign(node.attribute(_T("align")).as_string());
+            textSlice.m_nHAlign = ParseRichTextHAlignValue(node.attribute(_T("align")).as_string());
         }
         else if ((nodeName == _T("ul")) || (nodeName == _T("ol"))) {
             //列表容器：仅作为块级容器，不产生额外的显示内容

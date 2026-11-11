@@ -2355,6 +2355,57 @@ STRID_GALLERY_CARD_CHECK_DESC     = Checkboxes are independent; options are mutu
 STRID_GALLERY_CARD_SWITCH_DESC    = Switches support selected, disabled, loading and custom track colors.
 STRID_GALLERY_CARD_BADGE_DESC     = Badges support numbers, a 99+ cap, red dots and floating positioning.
 STRID_GALLERY_CARD_ELEMENT_DESC   = Labels, hyperlinks, rich text and separator lines.
+STRID_GALLERY_RICHTEXT_TITLE      = RichText Typography Sample
+STRID_GALLERY_RICHTEXT_SAMPLE     = <h3>Heading level 3</h3><p>Body text supports <b>bold</b>, <i>italic</i>, <u>underline</u>, <s>strikethrough</s>, <font color="#FF0078D4">custom color</font> and <bgcolor color="#220078D4">inline background</bgcolor>.</p><p>Link group: <a href="https://www.example.com">Plain link</a> and <a href="https://www.example.org" title="Example site">link with tooltip</a> keep natural spacing.</p><ul><li>List item one: list layout check</li><li>List item two with <a href="https://www.example.net">inline link</a></li></ul>
+STRID_GALLERY_RICHTEXT_WRAP_TITLE = Word wrap (word_wrap=true)
+STRID_GALLERY_RICHTEXT_WRAP_TEXT  = Word wrap sample: when a line does not fit, the text wraps by control width and keeps the paragraph complete.
+STRID_GALLERY_RICHTEXT_TRUNC_TITLE = Truncate (word_wrap=false)
+STRID_GALLERY_RICHTEXT_TRUNC_TEXT = Truncate sample: when a line does not fit, the text is clipped with an ellipsis and never overflows into neighbors.
+
+# controls/RichText test page
+STRID_RICHTEXT_WINDOW_TITLE = RichText Test
+STRID_RICHTEXT_HINT = Hint: this page covers inline formatting, links (tooltip and visited color), paragraphs and block tags, layout control, inline images and text selection.
+STRID_RICHTEXT_SEC_INLINE = Inline formatting
+STRID_RICHTEXT_INLINE_EXAMPLE = <b>bold</b> · <i>italic</i> · <u>underline</u> · <s>strike</s> · <ins>inserted</ins> · superscript x<sup>2</sup> · subscript H<sub>2</sub>O · <font color="#FF0078D4" size="15">font color and size</font> · <bgcolor color="#220078D4">inline background</bgcolor> · <span color="#FFE85854">span color</span>
+STRID_RICHTEXT_SEC_LINK = Links and tooltips
+STRID_RICHTEXT_LINK_EXAMPLE = Link rules: <a href="https://www.example.com">normal link</a>, <a href="https://www.example.org" title="Custom tooltip: example site">link with title</a>, <a href="https://www.example.net">https://www.example.net</a> (display text equals URL, so no tooltip).
+STRID_RICHTEXT_LINK_NOUNDERLINE_EXAMPLE = link_font_underline=false: <a href="https://www.baidu.com">Baidu</a> has no underline by default; hovering and pressing draw an underline and change the color; visited links use the visited color.
+STRID_RICHTEXT_LINK_EVENT_NONE = Link events: hover or click the links above to see the event output.
+STRID_RICHTEXT_LINK_EVENT_CLICK = Link event (click): %s
+STRID_RICHTEXT_LINK_EVENT_HOVER = Link event (hover): %s
+STRID_RICHTEXT_LINK_EVENT_LEAVE = Link event (leave): %s
+STRID_RICHTEXT_SEC_BLOCK = Paragraphs and block tags
+STRID_RICHTEXT_BLOCK_EXAMPLE = <h1>H1 heading</h1><h2>H2 heading</h2><h3>H3 heading</h3><p align="left">Left aligned: paragraph spacing is controlled by paragraph_spacing.</p><p align="center">Centered paragraph: p align="center".</p><p align="right">Right aligned paragraph: p align="right".</p><p align="justify">Justified paragraph: shows how justify distributes spaces on both ends of the line.</p><ul><li>Unordered list item with a bullet</li><li>Unordered list item with a <a href="https://www.example.com">link inside a list</a></li></ul><ol><li>Ordered list item</li></ol><hr color="#FFD0D7DE"/>
+STRID_RICHTEXT_SEC_LAYOUT = Layout control
+STRID_RICHTEXT_LAYOUT_WRAP_TITLE = Word wrap (word_wrap=true)
+STRID_RICHTEXT_LAYOUT_WRAP_TEXT = Word wrap sample: when a line does not fit, the text wraps by control width and keeps the paragraph complete.
+STRID_RICHTEXT_LAYOUT_NOWRAP_TITLE = Single-line clip and multi-line clip
+STRID_RICHTEXT_LAYOUT_NOWRAP_TEXT = Single-line clip sample: text wider than the control is clipped with an ellipsis and never overflows into neighbors.
+STRID_RICHTEXT_LAYOUT_MAXLINES_TEXT = Multi-line clip sample (max_lines=3, text_overflow=clip): content beyond three lines is clipped and no longer painted.
+STRID_RICHTEXT_LAYOUT_SPACING_TEXT = <p>Sample paragraph with 1.6x row spacing, 1px letter spacing, 24px first-line indent and 8,6,8,6 text padding: verifies the combination of row_spacing_mul, letter_spacing, text_indent and text_padding.</p>
+STRID_RICHTEXT_SEC_INTERACTIVE = Inline image and interaction
+STRID_RICHTEXT_IMAGE_EXAMPLE = Inline image: <img src="public/slider/slider_blue_fg.png" width="18" height="18"/> the bottom of the image aligns with the text baseline.
+STRID_RICHTEXT_INTERACTIVE_EXAMPLE = Interactive text: <a href="https://www.example.com">sample link</a>, supports mouse text selection, select-all/copy and link clicks.
+STRID_RICHTEXT_STATUS_EMPTY = Status: waiting for input
+STRID_RICHTEXT_STATUS_FMT = Status: align=%s  links=%d  selected chars=%d  word wrap=%s
+STRID_RICHTEXT_STATUS_COPIED = Status: the selected text has been copied to the clipboard
+STRID_RICHTEXT_STATUS_NO_SELECTION = Status: no text is currently selected
+STRID_RICHTEXT_ALIGN_LEFT = left
+STRID_RICHTEXT_ALIGN_CENTER = center
+STRID_RICHTEXT_ALIGN_RIGHT = right
+STRID_RICHTEXT_ALIGN_JUSTIFY = justify
+STRID_RICHTEXT_ON = on
+STRID_RICHTEXT_OFF = off
+STRID_RICHTEXT_BTN_ALIGN = Cycle align
+STRID_RICHTEXT_BTN_WRAP = Toggle wrap
+STRID_RICHTEXT_BTN_LINK_COLOR = Link colors
+STRID_RICHTEXT_BTN_APPEND = Append text
+STRID_RICHTEXT_BTN_CLEAR = Clear text
+STRID_RICHTEXT_BTN_RESTORE = Restore text
+STRID_RICHTEXT_BTN_SELECT_ALL = Select all
+STRID_RICHTEXT_BTN_COPY = Copy selection
+STRID_RICHTEXT_BTN_CLEAR_SELECTION = Clear selection
+STRID_RICHTEXT_APPEND_TEXT = Appended text: <b>AppendText</b> accepts formatted tags, so the link count increases after appending <a href="https://www.example.com/append">appended link</a>.
 STRID_GALLERY_CARD_RICHEDIT_DESC  = Single/multi-line editing, prompts, numeric spin, password and drag-drop.
 STRID_GALLERY_CARD_PROGRESS_DESC  = Linear progress, slider and circular progress demo.
 STRID_GALLERY_CARD_SHOW_DESC      = Rating, stepper, avatar and carousel components.
@@ -2568,15 +2619,15 @@ STRID_RENDER_TEXT2_26             = Text height follows actual height, no fixed 
 STRID_RENDER_TEXT2_27             = Text height follows actual height, no fixed font height, vertical word spacing, column spacing: 1234567890-.Long text test: 1+2=3, 8/4=2, multi-column qwertyuiopasdfghjkl-v. Long text test, multi-column end.
 STRID_RENDER_TEXT1_RICHTEXT_ALL   = RichText text<br/>content 1<b>bold<bgcolor color="#FFFFFF"><u><a href="www.baidu.com">Hyperlink: visit Baidu</a></u></bgcolor><font color="#FF0000">bold red</font></b><font face="SimSun" size="12">SimSun 12pt demo 1<font face="KaiTi" size="18">KaiTi 18pt demo</font>SimSun 12pt demo 2</font><a href="www.sohu.com">Hyperlink: visit Sohu</a><font face="SimSun" size="8">SimSun 8pt demo</font><i>italic demo</i><b>bold demo</b><s>strikeout demo</s><u>underline demo</u><font face="Microsoft YaHei" size="14">Microsoft YaHei 14pt demo</font><bgcolor color="#802378">background color demo</bgcolor>RichText content 2RichText content 3RichText content 4RichText content 5RichText content 6RichText content 7RichText content 8RichText content 9RichText content 10
 STRID_RENDER_TEXT1_RICHTEXT_SCROLL = Line 1: RichText in ScrollBox<br/>Line 2: RichText text<br/>Line 3: RichText text<br/>Line 4: RichText text<br/>Line 5: RichText text<br/>Line 6: RichText text<br/>Line 7: RichText text<br/>Line 8: RichText text<br/>Line 9: RichText text<br/>Line 10: RichText content 2RichText content 3RichText content 4RichText content 5RichText content 6RichText content 7RichText content 8RichText content 9RichText content 10
-STRID_RENDER_TEXT1_RICHTEXT_01    = RichText (H: left, V: top)<br/><a href="www.sohu.com">Hyperlink: visit Sohu</a>
-STRID_RENDER_TEXT1_RICHTEXT_02    = RichText (H: left, V: middle)<br/><a href="www.sohu.com">Hyperlink: visit Sohu</a>
-STRID_RENDER_TEXT1_RICHTEXT_03    = RichText (H: left, V: bottom)<br/><a href="www.sohu.com">Hyperlink: visit Sohu</a>
-STRID_RENDER_TEXT1_RICHTEXT_04    = RichText (H: center, V: top)<br/><a href="www.sohu.com">Hyperlink: visit Sohu</a>
-STRID_RENDER_TEXT1_RICHTEXT_05    = RichText (H: center, V: middle)<br/><a href="www.sohu.com">Hyperlink: visit Sohu</a>
-STRID_RENDER_TEXT1_RICHTEXT_06    = RichText (H: center, V: bottom)<br/><a href="www.sohu.com">Hyperlink: visit Sohu</a>
-STRID_RENDER_TEXT1_RICHTEXT_07    = RichText (H: right, V: top)<br/><a href="www.sohu.com">Hyperlink: visit Sohu</a>
-STRID_RENDER_TEXT1_RICHTEXT_08    = RichText (H: right, V: middle)<br/><a href="www.sohu.com">Hyperlink: visit Sohu</a>
-STRID_RENDER_TEXT1_RICHTEXT_09    = RichText (H: right, V: bottom)<br/><a href="www.sohu.com">Hyperlink: visit Sohu</a>
+STRID_RENDER_TEXT1_RICHTEXT_01    = Left-top: the first sunlight lands on the windowsill and a new day begins.<br/><a href="www.sohu.com">Visit Sohu</a>
+STRID_RENDER_TEXT1_RICHTEXT_02    = Left-middle: reading flows from left to right, so left alignment feels natural.<br/><a href="www.sohu.com">Visit Sohu</a>
+STRID_RENDER_TEXT1_RICHTEXT_03    = Left-bottom: the last line hugs the left edge and keeps the paragraph tidy.<br/><a href="www.sohu.com">Visit Sohu</a>
+STRID_RENDER_TEXT1_RICHTEXT_04    = Center-top: a centered heading makes the visual weight more stable.<br/><a href="www.sohu.com">Visit Sohu</a>
+STRID_RENDER_TEXT1_RICHTEXT_05    = Center-middle: centered text stays balanced no matter how long it is.<br/><a href="www.sohu.com">Visit Sohu</a>
+STRID_RENDER_TEXT1_RICHTEXT_06    = Center-bottom: a centered caption at the card bottom reads calmly.<br/><a href="www.sohu.com">Visit Sohu</a>
+STRID_RENDER_TEXT1_RICHTEXT_07    = Right-top: right-aligned numbers and units are easier to compare.<br/><a href="www.sohu.com">Visit Sohu</a>
+STRID_RENDER_TEXT1_RICHTEXT_08    = Right-middle: right-aligned amounts line up their decimal points.<br/><a href="www.sohu.com">Visit Sohu</a>
+STRID_RENDER_TEXT1_RICHTEXT_09    = Right-bottom: right-aligned notes keep the reading flow consistent.<br/><a href="www.sohu.com">Visit Sohu</a>
 STRID_RENDER_MENU_FILE            = File
 STRID_RENDER_MENU_EDIT            = Edit
 STRID_RENDER_MENU_SELECTION       = Selection

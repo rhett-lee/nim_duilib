@@ -47,7 +47,7 @@
                 <PanelVBox width="stretch" height="auto" min_height="140" border_size="1"
                        border_color="border_control_normal" border_round="4,4" bkcolor="bg_container"
                        title_id="STRID_PANEL_TITLE_COLLAPSIBLE" title_height="30" title_bk_color="bg_overlay"
-                       title_text_color="text_link_normal" title_font="system_bold_14"
+                       title_text_color="text_default" title_font="system_bold_14"
                        collapsible="true" collapsed="false" collapse_anim="220"
                        padding="10,10,10,10">
                     <HBox height="auto" padding="0,0,0,6">
@@ -117,7 +117,7 @@
                     </HBox>
                     <HBox height="auto" padding="6,0,0,0">
                         <Label text_id="STRID_PANEL_STATUS_PREFIX" width="auto" valign="center" text_color="text_muted"/>
-                        <Label name="lbl_status" text_id="STRID_PANEL_STATUS_READY" width="stretch" valign="center" text_color="text_link_normal"/>
+                        <Label name="lbl_status" text_id="STRID_PANEL_STATUS_READY" width="stretch" valign="center" text_color="text_default"/>
                     </HBox>
                 </PanelVBox>
 

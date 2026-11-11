@@ -2360,6 +2360,57 @@ STRID_GALLERY_CARD_CHECK_DESC     = 复选框支持选中/未选中；单选框�
 STRID_GALLERY_CARD_SWITCH_DESC    = 开关支持选中、禁用、加载中与自定义轨道颜色。
 STRID_GALLERY_CARD_BADGE_DESC     = 角标支持数字、99+ 上限、红点与会话浮动定位。
 STRID_GALLERY_CARD_ELEMENT_DESC   = 文本、超链接、富文本与分割线等基础元素。
+STRID_GALLERY_RICHTEXT_TITLE      = RichText 排版样例
+STRID_GALLERY_RICHTEXT_SAMPLE     = <h3>标题层级：三级标题</h3><p>正文段落：支持 <b>粗体</b>、<i>斜体</i>、<u>下划线</u>、<s>删除线</s>，以及 <font color="#FF0078D4">自定义颜色</font> 与 <bgcolor color="#220078D4">行内背景</bgcolor>。</p><p>链接组：<a href="https://www.example.com">普通链接</a> 与 <a href="https://www.example.org" title="示例站点">带提示的链接</a> 之间保持自然间距。</p><ul><li>列表项一：用于验证列表排版</li><li>列表项二：包含 <a href="https://www.example.net">列表内链接</a></li></ul>
+STRID_GALLERY_RICHTEXT_WRAP_TITLE = 自动换行（word_wrap=true）
+STRID_GALLERY_RICHTEXT_WRAP_TEXT  = 自动换行的示例文本：当一行放不下时，文本会按照控件宽度自动折行，保持段落完整，不会溢出边界。
+STRID_GALLERY_RICHTEXT_TRUNC_TITLE = 截断显示（word_wrap=false）
+STRID_GALLERY_RICHTEXT_TRUNC_TEXT = 截断显示的示例文本：当一行放不下时，文本会被裁剪并显示省略号，不会溢出到相邻控件。
+
+# controls/RichText 控件测试页
+STRID_RICHTEXT_WINDOW_TITLE = RichText 富文本控件测试
+STRID_RICHTEXT_HINT = 提示：本页覆盖内联格式、链接（含 ToolTip 与访问色）、段落与块级标签、排版控制、内联图片与文本选择等全部特性。
+STRID_RICHTEXT_SEC_INLINE = 内联文本格式
+STRID_RICHTEXT_INLINE_EXAMPLE = <b>粗体</b> · <i>斜体</i> · <u>下划线</u> · <s>删除线</s> · <ins>插入</ins> · 上标 x<sup>2</sup> · 下标 H<sub>2</sub>O · <font color="#FF0078D4" size="15">字体颜色与字号</font> · <bgcolor color="#220078D4">行内背景</bgcolor> · <span color="#FFE85854">span 颜色</span>
+STRID_RICHTEXT_SEC_LINK = 链接与提示
+STRID_RICHTEXT_LINK_EXAMPLE = 链接规范：<a href="https://www.example.com">普通链接</a>、<a href="https://www.example.org" title="自定义提示：示例站点">带 title 的链接</a>、<a href="https://www.example.net">https://www.example.net</a>（显示文本与 URL 一致，不显示 ToolTip）
+STRID_RICHTEXT_LINK_NOUNDERLINE_EXAMPLE = link_font_underline=false：<a href="https://www.baidu.com">Baidu</a> 常态无下划线，Hover 与按下时补绘下划线并换色；点击过的链接使用访问色。
+STRID_RICHTEXT_LINK_EVENT_NONE = 链接事件：把鼠标移到上面的链接上，或点击链接查看事件回显。
+STRID_RICHTEXT_LINK_EVENT_CLICK = 链接事件（点击）：%s
+STRID_RICHTEXT_LINK_EVENT_HOVER = 链接事件（悬停）：%s
+STRID_RICHTEXT_LINK_EVENT_LEAVE = 链接事件（离开）：%s
+STRID_RICHTEXT_SEC_BLOCK = 段落与块级标签
+STRID_RICHTEXT_BLOCK_EXAMPLE = <h1>H1 一级标题</h1><h2>H2 二级标题</h2><h3>H3 三级标题</h3><p align="left">左对齐：段间距由 paragraph_spacing 控制。</p><p align="center">居中段落：p align="center"。</p><p align="right">右对齐段落：p align="right"。</p><p align="justify">两端对齐段落：用于说明 justify 的效果，文本会在两端对齐并均匀分布空格。</p><ul><li>无序列表项：带项目符号</li><li>无序列表项：包含 <a href="https://www.example.com">列表内链接</a></li></ul><ol><li>有序列表项</li></ol><hr color="#FFD0D7DE"/>
+STRID_RICHTEXT_SEC_LAYOUT = 排版控制
+STRID_RICHTEXT_LAYOUT_WRAP_TITLE = 自动换行（word_wrap=true）
+STRID_RICHTEXT_LAYOUT_WRAP_TEXT = 自动换行示例：当一行放不下时，文本会按照控件宽度自动折行，保持段落完整，不会溢出边界。
+STRID_RICHTEXT_LAYOUT_NOWRAP_TITLE = 单行截断与多行裁剪
+STRID_RICHTEXT_LAYOUT_NOWRAP_TEXT = 单行截断示例：文本超出控件宽度时按矩形裁剪并显示省略号，不会溢出到相邻控件。
+STRID_RICHTEXT_LAYOUT_MAXLINES_TEXT = 多行裁剪示例（max_lines=3、text_overflow=clip）：超过三行的内容会被裁剪，不再继续绘制。
+STRID_RICHTEXT_LAYOUT_SPACING_TEXT = <p>行间距 1.6 倍、字间距 1px、首行缩进 24px、内边距 8,6,8,6 的示例段落：用于验证 row_spacing_mul、letter_spacing、text_indent 与 text_padding 的组合效果。</p>
+STRID_RICHTEXT_SEC_INTERACTIVE = 内联图片与交互
+STRID_RICHTEXT_IMAGE_EXAMPLE = 内联图片：<img src="public/slider/slider_blue_fg.png" width="18" height="18"/> 图片底部与文字基线对齐。
+STRID_RICHTEXT_INTERACTIVE_EXAMPLE = 可交互文本：<a href="https://www.example.com">示例链接</a>，支持鼠标选择文本、全选复制与链接点击。
+STRID_RICHTEXT_STATUS_EMPTY = 状态：等待操作
+STRID_RICHTEXT_STATUS_FMT = 状态：对齐=%s  链接数=%d  选中字符=%d  自动换行=%s
+STRID_RICHTEXT_STATUS_COPIED = 状态：选中的文本已复制到剪贴板
+STRID_RICHTEXT_STATUS_NO_SELECTION = 状态：当前没有选中的文本
+STRID_RICHTEXT_ALIGN_LEFT = 左对齐
+STRID_RICHTEXT_ALIGN_CENTER = 居中
+STRID_RICHTEXT_ALIGN_RIGHT = 右对齐
+STRID_RICHTEXT_ALIGN_JUSTIFY = 两端对齐
+STRID_RICHTEXT_ON = 开启
+STRID_RICHTEXT_OFF = 关闭
+STRID_RICHTEXT_BTN_ALIGN = 切换对齐
+STRID_RICHTEXT_BTN_WRAP = 切换换行
+STRID_RICHTEXT_BTN_LINK_COLOR = 切换链接色
+STRID_RICHTEXT_BTN_APPEND = 追加文本
+STRID_RICHTEXT_BTN_CLEAR = 清空文本
+STRID_RICHTEXT_BTN_RESTORE = 恢复文本
+STRID_RICHTEXT_BTN_SELECT_ALL = 全选
+STRID_RICHTEXT_BTN_COPY = 复制选中
+STRID_RICHTEXT_BTN_CLEAR_SELECTION = 取消选择
+STRID_RICHTEXT_APPEND_TEXT = 追加的文本：<b>AppendText</b> 支持格式化标签，追加后链接数量会增加 <a href="https://www.example.com/append">追加链接</a>。
 STRID_GALLERY_CARD_RICHEDIT_DESC  = 单行/多行编辑、占位提示、数字 Spin、密码与拖放。
 STRID_GALLERY_CARD_PROGRESS_DESC  = 线性进度、滑块与环形进度，进度条实时滚动演示。
 STRID_GALLERY_CARD_SHOW_DESC      = 评分、步进器、头像与轮播等展示型组件。
@@ -2573,15 +2624,15 @@ STRID_RENDER_TEXT2_26             = 文本按实际高度显示，不使用固�
 STRID_RENDER_TEXT2_27             = 文本按实际高度显示，不使用固定字体高度，设置竖排字间距，设置列间距：1234567890-。长文字绘制测试: 1+2=3, 8/4=2 , 多列文本 qwertyuiopasdfghjkl-v. 长文字绘制测试, 多列文本结束。
 STRID_RENDER_TEXT1_RICHTEXT_ALL   = RichText文本<br/>内容1<b>粗体<bgcolor color="#FFFFFF"><u><a href="www.baidu.com">这里是超级链接：点击访问百度首页</a></u></bgcolor><font color="#FF0000">红色加粗</font></b><font face="宋体" size="12">宋体12号字演示1<font face="楷体" size="18">楷体效果演示：18号字</font>宋体12号字演示2</font><a href="www.sohu.com">这里是超级链接：点击访问搜狐首页</a><font face="宋体" size="8">宋体8号字演示</font><i>斜体号字演示</i><b>粗体号字演示</b><s>删除字演示</s><u>下划线字演示</u><font face="微软雅黑" size="14">微软雅黑14号字演示</font><bgcolor color="#802378">背景颜色演示</bgcolor>RichText文本内容2RichText文本内容3RichText文本内容4RichText文本内容5RichText文本内容6RichText文本内容7RichText文本内容8RichText文本内容9RichText文本内容10
 STRID_RENDER_TEXT1_RICHTEXT_SCROLL = 第1行: RichText in ScrollBox<br/>第2行: RichText文本<br/>第3行: RichText文本<br/>第4行: RichText文本<br/>第5行: RichText文本<br/>第6行: RichText文本<br/>第7行: RichText文本<br/>第8行: RichText文本<br/>第9行: RichText文本<br/>第10行: RichText文本内容2RichText文本内容3RichText文本内容4RichText文本内容5RichText文本内容6RichText文本内容7RichText文本内容8RichText文本内容9RichText文本内容10
-STRID_RENDER_TEXT1_RICHTEXT_01    = RichText文字(横向：左对齐，纵向：上对齐)<br/><a href="www.sohu.com">这里是超级链接：点击访问搜狐首页</a>
-STRID_RENDER_TEXT1_RICHTEXT_02    = RichText文字(横向：左对齐，纵向：中对齐)<br/><a href="www.sohu.com">这里是超级链接：点击访问搜狐首页</a>
-STRID_RENDER_TEXT1_RICHTEXT_03    = RichText文字(横向：左对齐，纵向：下对齐)<br/><a href="www.sohu.com">这里是超级链接：点击访问搜狐首页</a>
-STRID_RENDER_TEXT1_RICHTEXT_04    = RichText文字(横向：中对齐，纵向：上对齐)<br/><a href="www.sohu.com">这里是超级链接：点击访问搜狐首页</a>
-STRID_RENDER_TEXT1_RICHTEXT_05    = RichText文字(横向：中对齐，纵向：中对齐)<br/><a href="www.sohu.com">这里是超级链接：点击访问搜狐首页</a>
-STRID_RENDER_TEXT1_RICHTEXT_06    = RichText文字(横向：中对齐，纵向：下对齐)<br/><a href="www.sohu.com">这里是超级链接：点击访问搜狐首页</a>
-STRID_RENDER_TEXT1_RICHTEXT_07    = RichText文字(横向：右对齐，纵向：上对齐)<br/><a href="www.sohu.com">这里是超级链接：点击访问搜狐首页</a>
-STRID_RENDER_TEXT1_RICHTEXT_08    = RichText文字(横向：右对齐，纵向：中对齐)<br/><a href="www.sohu.com">这里是超级链接：点击访问搜狐首页</a>
-STRID_RENDER_TEXT1_RICHTEXT_09    = RichText文字(横向：右对齐，纵向：下对齐)<br/><a href="www.sohu.com">这里是超级链接：点击访问搜狐首页</a>
+STRID_RENDER_TEXT1_RICHTEXT_01    = 左上对齐：清晨的第一缕阳光落在窗台，新的一天由此开始。<br/><a href="www.sohu.com">访问搜狐首页</a>
+STRID_RENDER_TEXT1_RICHTEXT_02    = 左中对齐：阅读时视线从左向右移动，左侧对齐最为自然。<br/><a href="www.sohu.com">访问搜狐首页</a>
+STRID_RENDER_TEXT1_RICHTEXT_03    = 左下对齐：段落的最后一行同样紧贴左边界，整齐划一。<br/><a href="www.sohu.com">访问搜狐首页</a>
+STRID_RENDER_TEXT1_RICHTEXT_04    = 中上对齐：标题居中可以让画面的视觉重心更加稳定。<br/><a href="www.sohu.com">访问搜狐首页</a>
+STRID_RENDER_TEXT1_RICHTEXT_05    = 居中对齐：无论文字长短，居中的排版都保持左右平衡。<br/><a href="www.sohu.com">访问搜狐首页</a>
+STRID_RENDER_TEXT1_RICHTEXT_06    = 中下对齐：卡片底部的说明文字居中，层次清晰而克制。<br/><a href="www.sohu.com">访问搜狐首页</a>
+STRID_RENDER_TEXT1_RICHTEXT_07    = 右上对齐：数字与单位右对齐后，纵向比较更加容易。<br/><a href="www.sohu.com">访问搜狐首页</a>
+STRID_RENDER_TEXT1_RICHTEXT_08    = 右中对齐：金额列表右对齐，小数点位置一目了然。<br/><a href="www.sohu.com">访问搜狐首页</a>
+STRID_RENDER_TEXT1_RICHTEXT_09    = 右下对齐：备注信息右对齐，让阅读视线保持连贯。<br/><a href="www.sohu.com">访问搜狐首页</a>
 STRID_RENDER_MENU_FILE            = 文件
 STRID_RENDER_MENU_EDIT            = 编辑
 STRID_RENDER_MENU_SELECTION       = 选择
