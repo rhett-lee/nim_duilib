@@ -478,6 +478,11 @@ The OptionVBox control inherits the `VBox` attributes. For more available attrib
 | line_width | 1.0 | float | Line width |
 | line_color | | string | Line color (when empty it follows the theme: translucent white in dark mode, translucent gray in light mode) |
 | text_gap | 4 | int | Gap between the title text and the border line (added on both sides so the line does not touch the glyphs) |
+| collapsible | false | bool | Whether collapsing is allowed (click the title area to collapse/expand) |
+| collapsed | false | bool | Whether the control is collapsed (only effective when collapsible="true") |
+| collapse_icon_expanded | | string | Icon shown when expanded (SVG image supported); a default arrow is drawn when not set |
+| collapse_icon_collapsed | | string | Icon shown when collapsed (SVG image supported); a default arrow is drawn when not set |
+| collapse_anim | 200 | int | Duration of the collapse/expand animation in milliseconds; 0 disables the animation (switches immediately) |
 | text | | string | Text content (shown at the top-left; the border line is interrupted behind the text) |
 
 The GroupBox control inherits the `Label` attributes. For more available attributes, please refer to the `Label` attributes.
@@ -489,6 +494,16 @@ The GroupVBox control inherits the `VBox` attributes. For more available attribu
 ## Attributes of GroupHBox
 GroupHBox and GroupBox are implemented with the same template; for available attributes, please refer to the `GroupBox` attributes.    
 The GroupHBox control inherits the `HBox` attributes. For more available attributes, please refer to the `HBox` attributes.
+
+> **Tip**: The default theme provides a collapsible group style class `group_box_collapsible` in `global.xml`. It bundles the collapse switch, animation duration, and collapse icons (the icons live in the common resource directory `public/groupbox/`), so it can be used directly:
+>
+> ```xml
+> <GroupVBox class="group_box_round group_box_collapsible" text="Group title" height="auto">
+>     <!-- content -->
+> </GroupVBox>
+> ```
+>
+> You can also use only `class="group_box_collapsible"` (keeping the control's default line style) and override attributes such as `collapsed` or `collapse_anim` on the element as needed.
 
 ## Attributes of Combo
 | Attribute name | Default value | Parameter type | Purpose |

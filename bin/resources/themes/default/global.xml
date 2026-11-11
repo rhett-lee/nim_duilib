@@ -26,6 +26,7 @@
     <Var name="PATH_CHECKBOX" value="public/checkbox"/>
     <Var name="PATH_SWITCH" value="public/switch"/>
     <Var name="PATH_OPTION" value="public/option"/>
+    <Var name="PATH_GROUPBOX" value="public/groupbox"/>
     <Var name="PATH_TREE" value="public/tree"/>
     <Var name="PATH_LISTCTRL" value="public/listctrl"/>
     <Var name="PATH_ADDRESS_BAR" value="public/address_bar"/>
@@ -636,6 +637,11 @@
     <!-- 分组框 -->
     <Class name="group_box" line_width="1.0" line_color="border_group_box"/>
     <Class name="group_box_round" line_width="1.0" line_color="border_group_box" corner_size="3,3"/>
+    <!-- 可折叠分组框：点击标题区域折叠/展开，折叠图标使用公共资源（可与其他 group_box 样式类组合使用，
+         例如 class="group_box_round group_box_collapsible"）；不需要动画时在元素上覆盖 collapse_anim="0" -->
+    <Class name="group_box_collapsible" collapsible="true" collapse_anim="200"
+                                       collapse_icon_expanded="file='${PATH_GROUPBOX}/collapse_expanded.svg' width='14' height='14' svg_replace_colors='#1E1E1E|border_svg_image'"
+                                       collapse_icon_collapsed="file='${PATH_GROUPBOX}/collapse_collapsed.svg' width='14' height='14' svg_replace_colors='#1E1E1E|border_svg_image'"/>
     
     <!-- 编辑框基类 -->
     <Class name="richedit_base" bkcolor="bg_richedit" caret_color="bg_richedit_caret" multi_line="false" auto_hscroll="true" rich_text="false"

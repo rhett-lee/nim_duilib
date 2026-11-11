@@ -476,6 +476,11 @@ OptionVBox 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的�
 | line_width | 1.0 | float | 线条宽度 |
 | line_color | | string | 线条颜色（为空时跟随主题：深色主题为半透明白，浅色主题为半透明灰） |
 | text_gap | 4 | int | 标题文字与边框线之间的间距（左右各留出该间距，避免线条紧贴文字） |
+| collapsible | false | bool | 是否允许折叠（点击标题区域折叠/展开） |
+| collapsed | false | bool | 是否处于折叠状态（仅在 collapsible="true" 时生效） |
+| collapse_icon_expanded | | string | 展开状态下显示的图标（可配置 SVG 图片），未配置时绘制默认箭头 |
+| collapse_icon_collapsed | | string | 折叠状态下显示的图标（可配置 SVG 图片），未配置时绘制默认箭头 |
+| collapse_anim | 200 | int | 折叠/展开动画的时长（毫秒），0 表示不使用动画（立即切换） |
 | text | | string | 文本内容（显示在左上角，边框线自动在文字处断开） |
 
 GroupBox 控件继承了 `Label` 属性，更多可用属性请参考`Label`的属性
@@ -487,6 +492,16 @@ GroupVBox 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的�
 ## GroupHBox的属性
 GroupHBox 与 GroupBox 是相同模板实现，可用属性请参考`GroupBox`的属性    
 GroupHBox 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
+
+> **提示**：默认主题在 `global.xml` 中提供了可折叠分组样式类 `group_box_collapsible`，已内置折叠开关、动画时长与折叠图标（图标位于公共资源目录 `public/groupbox/`），可直接使用：
+>
+> ```xml
+> <GroupVBox class="group_box_round group_box_collapsible" text="分组标题" height="auto">
+>     <!-- 内容 -->
+> </GroupVBox>
+> ```
+>
+> 也可只写 `class="group_box_collapsible"`（线条样式沿用控件默认值），再在元素上按需覆盖 `collapsed`、`collapse_anim` 等属性。
 
 ## Combo的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |

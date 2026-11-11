@@ -187,6 +187,15 @@
   - 全局开关 `PopupAnimation::SetEnabled()`，并可配置时长（`SetTotalMillSeconds()`，默认 120ms）与缓动函数（默认 `EaseOutCubic`）。
   - 已接入 `Flyout`（`Popover`、`Popconfirm`、`CalendarFlyout` 自动继承）、`Menu` 及子菜单、`Combo` 下拉窗口（示例：`examples/controls` 的动画功能演示页）。
 - `Carousel` 新增 `transition_easing` 属性（默认 `EaseLinear`，与原有线性切换一致），对应 `SetTransitionEasingFunctionType()` / `GetTransitionEasingFunctionType()`，可把切换动画改为 `EaseOutCubic` 等曲线。
+- `GroupBox`（含 `GroupVBox`/`GroupHBox`）内置折叠功能：新增 `collapsible` 属性（默认 `false`，即默认不开启）与 `collapsed` 初始状态，
+  开启后点击标题区域即可折叠/展开分组；新增 `collapse_icon_expanded` / `collapse_icon_collapsed` 配置展开/折叠状态的图标（支持 SVG，未配置时绘制默认箭头），
+  对应 `SetCollapsible()` / `SetCollapsed()` / `ToggleCollapsed()` / `SetCollapseIconExpanded()` / `SetCollapseIconCollapsed()` 等接口；
+  `examples/RichEdit` 左侧演示面板改为使用该内置功能，不再自行维护标题标记与子控件可见性。
+- `GroupBox` 折叠/展开增加高度动画：新增 `collapse_anim` 属性（默认 200ms，`0` 表示不使用动画）与
+  `SetCollapseAnimMillSeconds()` / `GetCollapseAnimMillSeconds()` 接口；折叠时缓入、展开时缓出，动画过程中子控件按当前高度裁剪绘制，
+  支持动画中途反向切换；不修改自身高度模式与子控件可见性，展开后无副作用（示例：`examples/RichEdit`）。
+- 默认主题新增可折叠分组样式类 `group_box_collapsible`（`global.xml`，可与其他 `group_box*` 样式类组合使用），
+  折叠图标移至公共资源目录 `public/groupbox/`（新增 `PATH_GROUPBOX` 变量），其他示例程序可直接通过 `class` 复用。
 
 ### 变更
 

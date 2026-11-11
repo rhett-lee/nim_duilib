@@ -58,7 +58,6 @@ void MainForm::OnInitWindow()
     SetupViewTools();
     SetupTextEvents();
     SetupDropFile();
-    SetupCollapsibleGroups();
 
     LoadSettings();
     LoadRichEditData();
@@ -444,92 +443,6 @@ void MainForm::SetupDropFile()
         });
 }
 
-void MainForm::SetupCollapsibleGroups()
-{
-    //左侧演示面板的分组：点击标题区域可折叠/展开
-    const DString groupNames[] = {
-        _T("group_password"),
-        _T("group_basic"),
-        _T("group_common"),
-        _T("group_scrollbar")
-    };
-    for (const DString& groupName : groupNames) {
-        ui::GroupVBox* pGroup = dynamic_cast<ui::GroupVBox*>(FindControl(groupName));
-        if (pGroup == nullptr) {
-            continue;
-        }
-        //记录标题的原始文本，后续追加折叠/展开标记
-        m_groupTitleText[pGroup] = pGroup->GetText();
-
-        pGroup->AttachButtonUp([this, pGroup](const ui::EventArgs& args) {
-            //只有点击标题区域（第一个子控件上方）时才折叠/展开，点击分组内的控件不处理
-            ui::Control* pFirstChild = pGroup->GetItemAt(0);
-            if (pFirstChild == nullptr) {
-                return true;
-            }
-            if (pFirstChild->IsVisible()) {
-                //展开状态：先把鼠标坐标换算为分组内的相对坐标（分组位于滚动容器内，需要扣除滚动偏移）
-                ui::UiPoint ptLayout;
-                if (!pGroup->MousePosToLayoutPos(args.ptMouse, ptLayout)) {
-                    return true;
-                }
-                const int32_t nTitleHeight = pFirstChild->GetPos().top - pGroup->GetPos().top;
-                if ((nTitleHeight > 0) && (ptLayout.y >= nTitleHeight)) {
-                    return true;
-                }
-            }
-            ToggleGroupCollapsed(pGroup);
-            return true;
-            });
-
-        UpdateGroupTitle(pGroup);
-    }
-}
-
-void MainForm::ToggleGroupCollapsed(ui::GroupVBox* pGroup)
-{
-    if (pGroup == nullptr) {
-        return;
-    }
-    ui::Control* pFirstChild = pGroup->GetItemAt(0);
-    if (pFirstChild == nullptr) {
-        return;
-    }
-    //当前子控件可见时折叠（隐藏），不可见时展开（显示）
-    const bool bExpand = !pFirstChild->IsVisible();
-    const size_t nItemCount = pGroup->GetItemCount();
-    for (size_t nIndex = 0; nIndex < nItemCount; ++nIndex) {
-        ui::Control* pItem = pGroup->GetItemAt(nIndex);
-        if (pItem != nullptr) {
-            pItem->SetVisible(bExpand);
-        }
-    }
-    if (bExpand) {
-        //展开时恢复为自动高度
-        pGroup->SetFixedHeight(ui::UiFixedInt::MakeAuto(), true, true);
-    }
-    else {
-        //折叠时保留标题区域的高度，否则分组会收缩为0导致标题不可见
-        pGroup->SetFixedHeight(ui::UiFixedInt(32), true, true);
-    }
-    UpdateGroupTitle(pGroup);
-}
-
-void MainForm::UpdateGroupTitle(ui::GroupVBox* pGroup)
-{
-    if (pGroup == nullptr) {
-        return;
-    }
-    auto iter = m_groupTitleText.find(pGroup);
-    if (iter == m_groupTitleText.end()) {
-        return;
-    }
-    ui::Control* pFirstChild = pGroup->GetItemAt(0);
-    const bool bCollapsed = (pFirstChild != nullptr) && !pFirstChild->IsVisible();
-    //展开时显示"▼"，折叠时显示"►"
-    pGroup->SetText(iter->second + (bCollapsed ? _T("  ►") : _T("  ▼")));
-}
-
 void MainForm::UpdateEditButtonStatus()
 {
     ui::RichEdit* pRichEdit = GetRichEdit();
@@ -731,25 +644,6 @@ bool MainForm::OnLanguageChanged()
     UpdateZoomValue();
     UpdateStatusBar();
     UpdateEditButtonStatus();
-
-    //界面语言切换后，分组标题会被框架重置为原始文本，需要重新记录并刷新折叠标记
-    for (auto& groupItem : m_groupTitleText) {
-        ui::GroupVBox* pGroup = dynamic_cast<ui::GroupVBox*>(groupItem.first);
-        if (pGroup == nullptr) {
-            continue;
-        }
-        DString title = pGroup->GetText();
-        //去除可能残留的折叠/展开标记
-        DString::size_type nPos = title.find(_T("  ►"));
-        if (nPos == DString::npos) {
-            nPos = title.find(_T("  ▼"));
-        }
-        if (nPos != DString::npos) {
-            title = title.substr(0, nPos);
-        }
-        groupItem.second = title;
-        UpdateGroupTitle(pGroup);
-    }
 
     if (m_bSampleDocument && (m_pRichEdit != nullptr) && !m_pRichEdit->GetModify()) {
         //示例文档未修改时，重新加载以刷新示例中的语言文本
