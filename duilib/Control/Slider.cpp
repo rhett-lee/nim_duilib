@@ -28,6 +28,9 @@ Slider::Slider(Window* pWindow) :
 {
     SetTextStyle(TEXT_SINGLELINE | TEXT_HCENTER, false);
     m_nTickLength = 4;   //刻度线默认长度（未缩放原始值）
+
+    //滑块拖动需要即时响应，默认关闭值变化动画（Progress 默认开启）
+    SetAnimationEnabled(false);
 }
 
 DString Slider::GetType() const { return DUI_CTR_SLIDER; }

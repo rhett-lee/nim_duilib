@@ -42,6 +42,9 @@ RangeSlider::RangeSlider(Window* pWindow) :
     m_sImageModify()
 {
     SetTextStyle(TEXT_SINGLELINE | TEXT_HCENTER, false);
+
+    //滑块拖动需要即时响应，默认关闭值变化动画（Progress 默认开启）
+    SetAnimationEnabled(false);
 }
 
 RangeSlider::~RangeSlider()

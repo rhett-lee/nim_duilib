@@ -269,7 +269,7 @@ HTileBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属�
 | scrollbar_float | true | bool | 容器的滚动条是否悬浮在子控件上面,如"true" |
 | vscrollbar_left | false | bool | 容器的滚动条是否在左侧显示 |
 | hold_end | false | bool | 是否一直保持显示末尾位置,如"true" |
-| inertia_scroll | false | bool | 是否启用惯性滚动：滚轮滚动结束后按摩擦衰减继续滑行一段距离；仅在物理动画总开关开启时生效 |
+| inertia_scroll | true | bool | 是否启用惯性滚动（默认开启）：滚轮滚动结束后按摩擦衰减继续滑行一段距离；仅在物理动画总开关开启时生效 |
 | inertia_friction | 5.0 | double | 惯性滚动的摩擦系数（1/秒），越大停得越快 |
 | inertia_gain | 0.6 | double | 惯性增益：额外滑行距离 = 滚轮滚动距离 × 该系数，0 表示无额外滑行 |
 
@@ -277,7 +277,7 @@ ScrollBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属�
 
 #### 惯性滚动
 
-配置 `inertia_scroll="true"` 后，鼠标滚轮滚动结束时列表会按初速度继续滑行一小段距离，
+惯性滚动默认开启（可用 `inertia_scroll="false"` 关闭），鼠标滚轮滚动结束时列表会按初速度继续滑行一小段距离，
 速度按指数摩擦衰减（`v(t) = v0 * exp(-friction * t)`），滑行到内容边界时自然停住。
 行为说明：
 
@@ -514,7 +514,7 @@ Panel/PanelHBox/PanelVBox 是同一个模板类（`PanelTemplate`）的三个实
 | collapsible | false | bool | 是否可折叠：为 true 时，点击标题栏（或箭头热区）可折叠/展开内容区 |
 | collapsed | false | bool | 初始是否处于折叠状态；初始设置不触发事件、不播放动画 |
 | collapse_trigger | "title" | string | 折叠触发热区："title" 表示整个标题栏可点击；"arrow" 表示仅箭头区域可点击 |
-| collapse_anim | 0 | int | 折叠/展开动画时长（毫秒），0 表示无动画、立即切换，建议取值 150~300 |
+| collapse_anim | 200 | int | 折叠/展开动画时长（毫秒，默认 200），0 表示无动画、立即切换，建议取值 150~300 |
 | collapse_physics | false | bool | 折叠/展开是否使用弹簧物理动画；需同时满足 `collapse_anim > 0` 且物理动画总开关开启，否则自动回退为缓动函数 |
 | arrow_align | "right" | string | 折叠箭头的位置："right"（标题栏右侧，默认）或 "left"（标题栏左侧）|
 | group | | string | 手风琴分组名：同一窗口内同组面板同时只允许一个展开（允许全部折叠）；空字符串表示不分组 |

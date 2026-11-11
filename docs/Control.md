@@ -826,7 +826,7 @@ typedef std::function<void (const DString& menuItemId,
 | buffer_value | -1 | double | 次级进度值（缓冲/buffer，通常比主进度略靠前，如视频已缓存位置；≤min 不绘制） |
 | buffer_color |  | string | 次级进度颜色（语义色名或颜色值，为空则用前景色的浅色版） |
 | show_percent | false | bool | 是否自动显示百分比文本（覆盖控件 text） |
-| animation_enabled | false | bool | 是否启用值变化动画（默认关闭） |
+| animation_enabled | true | bool | 是否启用值变化动画（默认开启） |
 | animation_duration | 300 | int | 值变化动画时长（毫秒） |
 | animation_easing | EaseOutQuad | string | 值变化动画的缓动曲线，取值与 `EasingFunctionType` 枚举名完全一致，如"EaseLinear"、"EaseOutQuad"、"EaseOutElastic"、"EaseInOutBounce"（首字母大小写均可；无法识别时按 `EaseLinear` 处理） |
 | marquee | false | bool | 是否滚动显示 |
@@ -841,7 +841,7 @@ Progress 控件继承了 `Label` 属性，更多可用属性请参考`Label`的�
 - `progress_color` 与 `progress_image` 二选一作为前景；纯色前景可用 `progress_radius` 设圆角。轨道背景用 `bkcolor`（Control 通用属性）。
 - `buffer_value` 设置次级进度（视频/下载的"已缓冲 + 已播放"双进度），绘制在主进度下方的浅色条；`buffer_color` 不指定时用前景色的浅色版（约 40% 不透明度）。
 - `show_percent` 开启后控件文本自动更新为"xx%"（跟随值变化动画）；可用 `SetTextFormatCallback` 自定义格式（如 "5/10"、"3.2 GB"）。
-- `animation_enabled` 开启后 `SetValue` 会从当前值缓动到新值（时长 `animation_duration`，缓动曲线由 `animation_easing` 决定，默认 `EaseOutQuad`）；Slider 拖动为即时响应，通常无需开启。
+- `animation_enabled` 默认开启，`SetValue` 会从当前值缓动到新值（时长 `animation_duration`，缓动曲线由 `animation_easing` 决定，默认 `EaseOutQuad`）；Slider/RangeSlider 拖动为即时响应，构造函数中默认关闭该动画。
 - `min`/`max` 在运行时修改会**自动把当前值钳位回新区间**（含`buffer_value` 与动画中间值），因此 `GetValue()` 始终在 `[min, max]` 内，不会出现"绘制被钳位但成员值越界"的不一致。可手动调用 `ClampCurrentValue()` 主动钳位。
 - `progress_radius` 现在**同时作用于纯色主进度、buffer 次级进度与 marquee 滚动块**，三者风格一致。
 - marquee 以「轨道长度 + 滚动块宽度」为周期循环回绕（取模并处理负值），轨道长度 <= 0 时复位为 0。
@@ -2564,7 +2564,7 @@ Flyout是通用浮层（弹出卡片）窗口，继承自WindowImplBase，对应
 - 同一时刻只保留一个活动浮层，弹出新浮层时旧浮层自动关闭；
 - 浮层为带阴影的层窗口（`WS_POPUP | WS_EX_LAYERED`），内容XML按当前主题语义色自绘，深浅色主题自动适配；
 - 窗口阴影区域不拦截鼠标（仅Windows平台）：落在阴影上的鼠标消息会穿透给浮层下面的窗口，阴影也不参与"鼠标是否在浮层内"的判定（见`GetVisualRect`）；
-- 显示动画：开启全局开关`PopupAnimation::SetEnabled(true)`后，浮层显示时按分层窗口 Alpha 从 0 渐变到 255（默认关闭；时长与缓动可由`PopupAnimation::SetTotalMillSeconds()` / `SetEasingFunctionType()`配置，Menu 与 Combo 下拉窗口共用同一开关）。
+- 显示动画：默认开启（全局开关`PopupAnimation::SetEnabled(false)`可关闭），浮层显示时按分层窗口 Alpha 从 0 渐变到 255（瞬时显示可关闭该开关；时长与缓动可由`PopupAnimation::SetTotalMillSeconds()` / `SetEasingFunctionType()`配置，Menu 与 Combo 下拉窗口共用同一开关）。
 
 ### C++接口
 

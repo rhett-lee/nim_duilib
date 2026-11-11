@@ -221,10 +221,10 @@ void AnimationDemoForm::InitPhysicsDemo()
 
 void AnimationDemoForm::InitPopupDemo()
 {
-    //弹出层动画总开关：默认关闭；开启后对 Flyout/Popover、Menu、Combo 下拉同时生效
+    //弹出层动画总开关：默认开启；开启后对 Flyout/Popover、Menu、Combo 下拉同时生效
     ui::PopupAnimation::SetTotalMillSeconds(200);
     ui::PopupAnimation::SetEasingFunctionType(ui::EasingFunctionType::EaseOutCubic);
-    ui::PopupAnimation::SetEnabled(false);
+    ui::PopupAnimation::SetEnabled(true);
 
     BindButtonClick(_T("btn_popup_toggle"), [this]() {
         ui::PopupAnimation::SetEnabled(!ui::PopupAnimation::IsEnabled());

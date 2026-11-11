@@ -3917,7 +3917,7 @@
     </xs:attribute>
     <xs:attribute name="animation_enabled" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否启用值变化动画（默认关闭）</xs:documentation>
+        <xs:documentation>是否启用值变化动画（默认开启）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="animation_duration" type="xs:string">
@@ -4240,7 +4240,7 @@
     </xs:attribute>
     <xs:attribute name="inertia_scroll" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否启用惯性滚动：true/false，默认 false；滚轮滚动结束后按摩擦衰减继续滑行一段距离，仅在物理动画总开关开启时生效</xs:documentation>
+        <xs:documentation>是否启用惯性滚动：true/false，默认 true；滚轮滚动结束后按摩擦衰减继续滑行一段距离，仅在物理动画总开关开启时生效</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="inertia_friction" type="xs:string">
@@ -5887,7 +5887,7 @@
     </xs:attribute>
     <xs:attribute name="collapse_anim" type="xs:string">
       <xs:annotation>
-        <xs:documentation>折叠/展开动画时长（毫秒），0 表示无动画、立即切换，建议取值 150~300</xs:documentation>
+        <xs:documentation>折叠/展开动画时长（毫秒，默认 200），0 表示无动画、立即切换，建议取值 150~300</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="collapse_physics" type="xs:string">
@@ -6063,7 +6063,7 @@
     </xs:attribute>
     <xs:attribute name="collapse_anim" type="xs:string">
       <xs:annotation>
-        <xs:documentation>折叠/展开动画时长（毫秒），0 表示无动画、立即切换，建议取值 150~300</xs:documentation>
+        <xs:documentation>折叠/展开动画时长（毫秒，默认 200），0 表示无动画、立即切换，建议取值 150~300</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="collapse_physics" type="xs:string">
@@ -6186,7 +6186,7 @@
     </xs:attribute>
     <xs:attribute name="collapse_anim" type="xs:string">
       <xs:annotation>
-        <xs:documentation>折叠/展开动画时长（毫秒），0 表示无动画、立即切换，建议取值 150~300</xs:documentation>
+        <xs:documentation>折叠/展开动画时长（毫秒，默认 200），0 表示无动画、立即切换，建议取值 150~300</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="collapse_physics" type="xs:string">
@@ -6975,7 +6975,7 @@
     </xs:attribute>
     <xs:attribute name="inertia_scroll" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否启用惯性滚动：true/false，默认 false；滚轮滚动结束后按摩擦衰减继续滑行一段距离，仅在物理动画总开关开启时生效</xs:documentation>
+        <xs:documentation>是否启用惯性滚动：true/false，默认 true；滚轮滚动结束后按摩擦衰减继续滑行一段距离，仅在物理动画总开关开启时生效</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="inertia_friction" type="xs:string">

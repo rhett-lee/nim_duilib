@@ -7,8 +7,8 @@ namespace ui
 
 namespace
 {
-    //弹出层动画总开关（默认关闭，保持与原有行为一致）
-    bool g_bPopupAnimationEnabled = false;
+    //弹出层动画总开关（默认开启；关闭后弹出层恢复为瞬时显示）
+    bool g_bPopupAnimationEnabled = true;
 
     //淡入时长（毫秒）
     int32_t g_nPopupAnimationTotalMillSeconds = 120;

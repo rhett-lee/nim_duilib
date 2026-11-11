@@ -153,7 +153,7 @@
 | AnimationManager | [duilib/Animation/AnimationManager.h](../duilib/Animation/AnimationManager.h) | 图片动画管理器|
 | AnimationPlayer | [duilib/Animation/AnimationPlayer.h](../duilib/Animation/AnimationPlayer.h) | 控件动画播放状态管理（缓动函数/弹簧/惯性三种播放方式）|
 | PhysicsAnimation | [duilib/Animation/PhysicsAnimation.h](../duilib/Animation/PhysicsAnimation.h) | 物理动画：弹簧积分器与惯性积分器，以及全局总开关|
-| PopupAnimation | [duilib/Animation/PopupAnimation.h](../duilib/Animation/PopupAnimation.h) | 弹出层淡入动画：Flyout/Popover、Menu、Combo 下拉的全局开关与参数|
+| PopupAnimation | [duilib/Animation/PopupAnimation.h](../duilib/Animation/PopupAnimation.h) | 弹出层淡入动画（默认开启）：Flyout/Popover、Menu、Combo 下拉的全局开关与参数|
 
 * 颜色
 

@@ -22,7 +22,7 @@ ScrollBox::ScrollBox(Window* pWindow, Layout* pLayout) :
     m_rcScrollBarPadding(),
     m_nVScrollUnitPixels(0),
     m_nHScrollUnitPixels(0),
-    m_bInertiaScroll(false),
+    m_bInertiaScroll(true),
     m_inertiaFriction(5.0),
     m_inertiaGain(0.6),
     m_pInertiaPlayer(),

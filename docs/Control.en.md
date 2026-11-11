@@ -828,7 +828,7 @@ For a complete example, see the `examples/render` sample program and the "Menu b
 | buffer_value | -1 | double | Secondary progress value (buffer, usually slightly ahead of the main value, e.g. cached position; not drawn when <= min) |
 | buffer_color |  | string | Secondary progress color (semantic color name or value; empty = a lighter shade of the foreground color) |
 | show_percent | false | bool | Whether to auto-display the percentage text (overrides the control text) |
-| animation_enabled | false | bool | Whether to enable value-change animation (default off) |
+| animation_enabled | true | bool | Whether to enable value-change animation (default on) |
 | animation_duration | 300 | int | Value-change animation duration (ms) |
 | animation_easing | EaseOutQuad | string | Easing curve of the value-change animation; values are exactly the `EasingFunctionType` enum names, e.g. "EaseLinear", "EaseOutQuad", "EaseOutElastic", "EaseInOutBounce" (first letter case-insensitive; unrecognized values fall back to `EaseLinear`) |
 | marquee | false | bool | Whether to scroll/marquee display |
@@ -843,7 +843,7 @@ Notes:
 - Use either `progress_color` or `progress_image` as the foreground; the solid-color foreground can be rounded via `progress_radius`. The track background uses `bkcolor` (a common Control attribute).
 - `buffer_value` sets the secondary progress (the "buffered + played" dual progress of video/download), drawn as a lighter bar under the main progress; when `buffer_color` is not specified, a lighter shade (about 40% opacity) of the foreground color is used.
 - With `show_percent` enabled, the control text is auto-updated to "xx%" (following the value-change animation); customize the format via `SetTextFormatCallback` (e.g. "5/10", "3.2 GB").
-- With `animation_enabled` enabled, `SetValue` eases from the current value to the new value (duration `animation_duration`, easing curve given by `animation_easing`, default `EaseOutQuad`); Slider drags are instant and normally do not need this.
+- `animation_enabled` is on by default: `SetValue` eases from the current value to the new value (duration `animation_duration`, easing curve given by `animation_easing`, default `EaseOutQuad`); Slider/RangeSlider drags are instant, so their constructors disable this animation.
 - Changing `min`/`max` at runtime **automatically clamps the current value back into the new range** (including `buffer_value` and the animation intermediate value), so `GetValue()` is always within `[min, max]` and the member value never diverges from what is drawn. Call `ClampCurrentValue()` to clamp manually.
 - `progress_radius` now applies to the **solid main progress, the buffer progress, and the marquee block alike**, so all three share the same style.
 - The marquee wraps with a period of "track length + block width" (modulo, with negative-value handling) and resets to 0 when the track length is <= 0.
@@ -2566,7 +2566,7 @@ Key features:
 - Only one active flyout at a time: showing a new flyout closes the previous one;
 - The flyout is a layered popup window with shadow (`WS_POPUP | WS_EX_LAYERED`); the content XML is drawn with current-theme semantic colors, adapting to light/dark themes automatically;
 - The window shadow does not intercept the mouse (Windows only): mouse messages over the shadow are passed through to the window below, and the shadow is excluded from "is the pointer inside the flyout" checks (see `GetVisualRect`).
-- Show animation: when the global switch `PopupAnimation::SetEnabled(true)` is on, the flyout fades in by animating the layered window alpha from 0 to 255 (off by default; duration and easing are configurable via `PopupAnimation::SetTotalMillSeconds()` / `SetEasingFunctionType()`, and Menu and Combo drop-down windows share the same switch).
+- Show animation: on by default (`PopupAnimation::SetEnabled(false)` turns it off); the flyout fades in by animating the layered window alpha from 0 to 255 (disable the switch for instant show; duration and easing are configurable via `PopupAnimation::SetTotalMillSeconds()` / `SetEasingFunctionType()`, and Menu and Combo drop-down windows share the same switch).
 
 ### C++ Interfaces
 

@@ -22,7 +22,7 @@ Progress::Progress(Window* pWindow) :
     m_nMarqueeElapsed(50), // for 1s 25fps,will use 20fps default
     m_nMarqueePos(0),
     m_fDisplayValue(0),
-    m_bAnimationEnabled(false),
+    m_bAnimationEnabled(true),
     m_nAnimationDuration(300),
     m_easingAnimation(EaseOutQuad),
     m_strAnimationEasing(_T("EaseOutQuad")),

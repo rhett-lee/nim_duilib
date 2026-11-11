@@ -401,7 +401,7 @@ private:
     //用户设置的内容区 padding（已按 DPI 缩放，不含标题栏预留空间）
     UiPadding m_contentPadding;
 
-    //折叠/展开动画时长（毫秒），0 表示无动画
+    //折叠/展开动画时长（毫秒），默认 200，0 表示无动画
     int32_t m_nCollapseAnimMs;
 
     //折叠/展开是否使用物理动画（弹簧）
@@ -444,7 +444,7 @@ PanelTemplate<InheritType>::PanelTemplate(Window* pWindow):
     m_bCollapsible(false),
     m_bCollapsed(false),
     m_collapseTrigger(CollapseTrigger::kTitle),
-    m_nCollapseAnimMs(0),
+    m_nCollapseAnimMs(200),
     m_bCollapsePhysics(false),
     m_springStiffness(0.0),
     m_springDamping(0.0),

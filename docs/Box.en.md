@@ -274,7 +274,7 @@ The HTileBox control inherits the `Box` attributes. For more available attribute
 | scrollbar_float | true | bool | Whether the container's scrollbar floats above the child controls, e.g. "true" |
 | vscrollbar_left | false | bool | Whether the container's scrollbar is displayed on the left |
 | hold_end | false | bool | Whether to always keep displaying the end position, e.g. "true" |
-| inertia_scroll | false | bool | Whether to enable inertia scrolling: after the wheel stops, the view keeps gliding with exponential friction; effective only when the global physics animation switch is on |
+| inertia_scroll | true | bool | Whether to enable inertia scrolling (default on): after the wheel stops, the view keeps gliding with exponential friction; effective only when the global physics animation switch is on |
 | inertia_friction | 5.0 | double | Friction coefficient of inertia scrolling (1/second); larger values stop sooner |
 | inertia_gain | 0.6 | double | Inertia gain: extra glide distance = wheel scroll distance x this factor; 0 disables the extra glide |
 
@@ -282,7 +282,7 @@ The ScrollBox control inherits the `Box` attributes. For more available attribut
 
 #### Inertia scrolling
 
-With `inertia_scroll="true"`, the list keeps gliding a short distance after the wheel stops. The velocity
+With inertia scrolling on by default (`inertia_scroll="false"` disables it), the list keeps gliding a short distance after the wheel stops. The velocity
 decays exponentially (`v(t) = v0 * exp(-friction * t)`) and the glide stops naturally at the content boundary:
 
 - Each wheel event scrolls as usual first, then restarts the glide from the current position (the latest velocity wins);
@@ -519,7 +519,7 @@ Panel/PanelHBox/PanelVBox are three instances of the same template class (`Panel
 | collapsible | false | bool | Whether the panel is collapsible: when true, clicking the title bar (or the arrow hit area) collapses/expands the content area |
 | collapsed | false | bool | Initial collapsed state; the initial setting fires no events and plays no animation |
 | collapse_trigger | "title" | string | Collapse trigger hit area: "title" (the whole title bar) or "arrow" (only the arrow area) |
-| collapse_anim | 0 | int | Collapse/expand animation duration in milliseconds; 0 means no animation (instant switch), 150~300 is recommended |
+| collapse_anim | 200 | int | Collapse/expand animation duration in milliseconds (default 200); 0 means no animation (instant switch), 150~300 is recommended |
 | collapse_physics | false | bool | Whether to use the spring physics animation for collapse/expand; requires `collapse_anim > 0` and the global physics switch to be on, otherwise it falls back to easing |
 | arrow_align | "right" | string | Position of the collapse arrow: "right" (right side of the title bar, default) or "left" (left side) |
 | group | | string | Accordion group name: within the same window, only one panel of a group may be expanded at a time (all may be collapsed); empty string means no group |

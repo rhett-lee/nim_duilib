@@ -180,16 +180,18 @@
 - 新增示例程序 `examples/chat`：模拟 IM 客户端的完整演示，含登录窗口（提示任意用户名密码即可登录、标题栏可切换主题与语言）与聊天主窗口（会话列表与未读角标、搜索过滤、图片头像、图片/引用/撤回消息、拖选复制、右键菜单），中英双语且随语言切换实时刷新。
 - 物理动画（弹簧/惯性）：新增 `duilib/Animation/PhysicsAnimation.h`，内含 `SpringSimulation`（半隐式欧拉、固定小步长积分，用于有明确目标值的过渡）与 `InertiaSimulation`（指数摩擦解析解，用于只有初速度的滑行），并提供全局总开关 `PhysicsAnimation::SetEnabled()` 与默认参数接口。
   - `AnimationPlayer` 支持物理模式：新增 `SetPhysicsType()`、`SetSpringParameters()`、`SetInertiaParameters()`、`SetInertiaValueRange()`、`IsPhysicsEnabled()`，播放中修改结束值会从当前状态平滑过渡（不回跳）。
-  - `Panel` 新增 `collapse_physics` 属性（折叠/展开使用弹簧动画），对应 `SetCollapsePhysicsEnabled()` / `SetCollapseSpringParameters()`。
-  - `ScrollBox` 及其子类新增 `inertia_scroll` / `inertia_friction` / `inertia_gain` 属性（滚轮结束后按惯性滑行），对应 `SetInertiaScrollEnabled()` / `SetInertiaScrollParameters()`。
+  - `Panel` 新增 `collapse_physics` 属性（折叠/展开使用弹簧动画），对应 `SetCollapsePhysicsEnabled()` / `SetCollapseSpringParameters()`；`collapse_anim` 默认值由 0 改为 200ms（可折叠面板默认带缓动动画）。
+  - `ScrollBox` 及其子类新增 `inertia_scroll` / `inertia_friction` / `inertia_gain` 属性（滚轮结束后按惯性滑行），对应 `SetInertiaScrollEnabled()` / `SetInertiaScrollParameters()`；`inertia_scroll` 默认开启。
   - 关闭物理动画总开关后，以上功能自动回退为原有缓动动画/普通滚动（示例：`examples/controls` 的动画功能演示页）。
-- 弹出层淡入动画：新增 `duilib/Animation/PopupAnimation.h`，通过分层窗口 Alpha 由 0 渐变到 255 实现整体淡入，默认关闭；
+- 弹出层淡入动画：新增 `duilib/Animation/PopupAnimation.h`，通过分层窗口 Alpha 由 0 渐变到 255 实现整体淡入，默认开启（`PopupAnimation::SetEnabled(false)` 可关闭）；
   - 全局开关 `PopupAnimation::SetEnabled()`，并可配置时长（`SetTotalMillSeconds()`，默认 120ms）与缓动函数（默认 `EaseOutCubic`）。
   - 已接入 `Flyout`（`Popover`、`Popconfirm`、`CalendarFlyout` 自动继承）、`Menu` 及子菜单、`Combo` 下拉窗口（示例：`examples/controls` 的动画功能演示页）。
 - `Carousel` 新增 `transition_easing` 属性（默认 `EaseLinear`，与原有线性切换一致），对应 `SetTransitionEasingFunctionType()` / `GetTransitionEasingFunctionType()`，可把切换动画改为 `EaseOutCubic` 等曲线。
 
 ### 变更
 
+- 动画默认开启：`PopupAnimation`（弹出层淡入）、`Progress` 的 `animation_enabled`、`Panel` 的 `collapse_anim`（200ms）、`ScrollBox` 的 `inertia_scroll` 默认值统一改为开启，
+  业务可按需在 XML 或 C++ 中关闭（`animation_enabled="false"`、`collapse_anim="0"`、`inertia_scroll="false"`、`PopupAnimation::SetEnabled(false)`），关闭后与原行为一致。
 - CEF 默认版本升级到 156（`156.0.14+g4fa4ab5+chromium-156.0.8078.48`，2026-10-24），
   109 继续保留供 Windows 7 使用。`duilib/third_party/libcef/` 下的三个平台目录整体
   替换为 156 源码：156 发行包取消了 `lib/` 目录，Windows 导入库改从
