@@ -159,12 +159,18 @@ public:
     void Clear();
 
     /** 追加一个文本片段
+    * @param [in] textSlice 文本片段
+    * @param [in] bRedraw true表示立即触发重绘，false表示不触发重绘
+    *                    （批量追加或解析过程中设为false，完成后调用Redraw统一重绘）
     */
-    void AppendTextSlice(RichTextSlice&& textSlice);
+    void AppendTextSlice(RichTextSlice&& textSlice, bool bRedraw = true);
 
     /** 追加一个文本片段
+    * @param [in] textSlice 文本片段
+    * @param [in] bRedraw true表示立即触发重绘，false表示不触发重绘
+    *                    （批量追加或解析过程中设为false，完成后调用Redraw统一重绘）
     */
-    void AppendTextSlice(const RichTextSlice& textSlice);
+    void AppendTextSlice(const RichTextSlice& textSlice, bool bRedraw = true);
 
     /** 根据Trim方案，对文本进行Trim处理，去掉多余的空格
     * @param [in,out] text 传入需要处理的文本，传出处理完成后的文本

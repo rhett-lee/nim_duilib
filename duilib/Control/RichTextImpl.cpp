@@ -993,18 +993,26 @@ VerAlignType RichTextImpl::GetVAlignType() const
 }
 
 
-void RichTextImpl::AppendTextSlice(RichTextSlice&& textSlice)
+void RichTextImpl::AppendTextSlice(RichTextSlice&& textSlice, bool bRedraw)
 {
     m_textSlice.emplace_back(std::move(textSlice));
     m_textData.clear();
     m_spDrawRichTextCache.reset();
+    if (bRedraw) {
+        //追加内容后，需要重新布局与绘制
+        Redraw();
+    }
 }
 
-void RichTextImpl::AppendTextSlice(const RichTextSlice& textSlice)
+void RichTextImpl::AppendTextSlice(const RichTextSlice& textSlice, bool bRedraw)
 {
     m_textSlice.emplace_back(textSlice);
     m_textData.clear();
     m_spDrawRichTextCache.reset();
+    if (bRedraw) {
+        //追加内容后，需要重新布局与绘制
+        Redraw();
+    }
 }
 
 DString RichTextImpl::ToString() const

@@ -2058,7 +2058,8 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, RichText
             pTextSlice->m_children.emplace_back(std::move(textSlice));
         }
         else {
-            pRichTextImpl->AppendTextSlice(std::move(textSlice));
+            //解析过程中不触发重绘，解析完成后由SetText统一重绘，避免逐节点重绘
+            pRichTextImpl->AppendTextSlice(std::move(textSlice), false);
         }
     }
     return true;
