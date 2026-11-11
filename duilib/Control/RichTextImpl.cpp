@@ -173,6 +173,7 @@ bool RichTextImpl::SetAttribute(const DString& strName, const DString& strValue)
         }
         m_textData.clear();
         m_spDrawRichTextCache.reset();
+        ++m_nLayoutVersion;
     }    
     else if (strName == _T("font")) {
         SetFontId(strValue);
@@ -370,6 +371,7 @@ void RichTextImpl::Redraw()
     m_textData.clear();
     m_spDrawRichTextCache.reset();
     m_bCachedTextRectValid = false;
+    ++m_nLayoutVersion;
     //排版属性变化后，文本选择的几何信息需要重新计算
     InvalidateSelectLayout();
     if (IsEnableRedraw()) {
@@ -566,63 +568,62 @@ void RichTextImpl::PaintText(IRender* pRender)
             linkVisitedTextColor = m_pOwner->GetUiColor(m_linkVisitedTextColor.c_str());
         }
 
-        //复用成员缓冲区，避免每帧堆分配
-        std::vector<RichTextData>& richTextData = m_richTextDataBuffer;
-        richTextData.clear();
-        richTextData.reserve(m_textData.size());
-        std::vector<UiColor>& textColors = m_richTextTextColorBuffer;
-        textColors.clear();
-        textColors.reserve(m_textData.size());
-        int32_t nLinkGroup = -1;
-        DString lastLinkUrl;
-        for (const RichTextDataEx& textDataEx : m_textData) {
-            if (!textDataEx.m_linkUrl.empty() && (textDataEx.m_linkUrl != lastLinkUrl)) {
-                ++nLinkGroup;
-                lastLinkUrl = textDataEx.m_linkUrl.c_str();
-            }
-            if (!textDataEx.m_linkUrl.empty()) {
-                //对于超级链接，设置默认文本格式
+        //基础绘制数据只与解析结果相关（链接字体、基础颜色），解析后只重建一次；
+        //悬停/按下/访问等状态变化只影响颜色，通过textColors覆盖，不触发重新排版
+        if ((m_nRichTextLayoutDataVersion != m_nLayoutVersion) ||
+            (m_richTextLayoutData.size() != m_textData.size())) {
+            m_richTextLayoutData.clear();
+            m_richTextLayoutData.reserve(m_textData.size());
+            for (const RichTextDataEx& textDataEx : m_textData) {
                 RichTextData textData = textDataEx;
-                if (textDataEx.m_pLinkFontInfo != nullptr) {
-                    //链接字体在解析时已生成，此处直接共享，避免每帧创建字体对象
-                    textData.m_pFontInfo = textDataEx.m_pLinkFontInfo;
-                }
-                else {
-                    ASSERT(textDataEx.m_pFontInfo != nullptr);
-                    textData.m_pFontInfo = textDataEx.m_pFontInfo;
-                }
-                if (!m_linkNormalTextColor.empty()) {                    
+                if (!textDataEx.m_linkUrl.empty()) {
+                    //对于超级链接，设置默认文本格式
+                    if (textDataEx.m_pLinkFontInfo != nullptr) {
+                        //链接字体在解析时已生成，此处直接共享，避免每帧创建字体对象
+                        textData.m_pFontInfo = textDataEx.m_pLinkFontInfo;
+                    }
+                    else {
+                        ASSERT(textDataEx.m_pFontInfo != nullptr);
+                        textData.m_pFontInfo = textDataEx.m_pFontInfo;
+                    }
                     if (!normalLinkTextColor.IsEmpty()) {
                         textData.m_textColor = normalLinkTextColor;//标准状态的字体颜色
                     }
                 }
-                if (textDataEx.m_bMouseDown && !m_linkPressedTextColor.empty()) {                    
-                    if (!mouseDownLinkTextColor.IsEmpty()) {
-                        textData.m_textColor = mouseDownLinkTextColor;//鼠标按下时的字体颜色
-                    }
-                }
-                else if (textDataEx.m_bMouseHover && !m_linkHoveredTextColor.empty()) {                    
-                    if (!linkHoverTextColor.IsEmpty()) {
-                        textData.m_textColor = linkHoverTextColor;//鼠标Hover时的字体颜色
-                    }
-                }
-                else if ((nLinkGroup == m_nFocusedLinkGroup) && !m_linkHoveredTextColor.empty()) {
-                    if (!linkHoverTextColor.IsEmpty()) {
-                        textData.m_textColor = linkHoverTextColor;//键盘聚焦时的字体颜色
-                    }
-                }
-                else if ((m_visitedLinks.find(DString(textDataEx.m_linkUrl.c_str())) != m_visitedLinks.end()) &&
-                         !m_linkVisitedTextColor.empty()) {
-                    if (!linkVisitedTextColor.IsEmpty()) {
-                        textData.m_textColor = linkVisitedTextColor;//访问过的字体颜色
-                    }
-                }
-                richTextData.push_back(std::move(textData));
+                m_richTextLayoutData.emplace_back(std::move(textData));
             }
-            else {
-                richTextData.push_back(textDataEx);
+            m_nRichTextLayoutDataVersion = m_nLayoutVersion;
+        }
+
+        //逐片段计算本帧使用的颜色（只有颜色会随交互状态变化）
+        std::vector<UiColor>& textColors = m_richTextTextColorBuffer;
+        textColors.clear();
+        textColors.reserve(m_textData.size());
+        int32_t nLinkGroup = -1;
+        const UiString* pLastLinkUrl = nullptr;
+        for (size_t nIndex = 0; nIndex < m_textData.size(); ++nIndex) {
+            const RichTextDataEx& textDataEx = m_textData[nIndex];
+            UiColor textColor = m_richTextLayoutData[nIndex].m_textColor;
+            if (!textDataEx.m_linkUrl.empty()) {
+                if ((pLastLinkUrl == nullptr) || (*pLastLinkUrl != textDataEx.m_linkUrl)) {
+                    ++nLinkGroup;
+                    pLastLinkUrl = &textDataEx.m_linkUrl;
+                }
+                if (textDataEx.m_bMouseDown && !mouseDownLinkTextColor.IsEmpty()) {
+                    textColor = mouseDownLinkTextColor;//鼠标按下时的字体颜色
+                }
+                else if (textDataEx.m_bMouseHover && !linkHoverTextColor.IsEmpty()) {
+                    textColor = linkHoverTextColor;//鼠标Hover时的字体颜色
+                }
+                else if ((nLinkGroup == m_nFocusedLinkGroup) && !linkHoverTextColor.IsEmpty()) {
+                    textColor = linkHoverTextColor;//键盘聚焦时的字体颜色
+                }
+                else if (!linkVisitedTextColor.IsEmpty() &&
+                         (m_visitedLinks.find(DString(textDataEx.m_linkUrl.c_str())) != m_visitedLinks.end())) {
+                    textColor = linkVisitedTextColor;//访问过的字体颜色
+                }
             }
-            textColors.push_back(richTextData.back().m_textColor);
+            textColors.push_back(textColor);
         }
         std::vector<std::vector<UiRect>> richTextRects;
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
@@ -631,13 +632,21 @@ void RichTextImpl::PaintText(IRender* pRender)
         if (m_spDrawRichTextCache != nullptr) {
             //校验缓存，如果失效则重新生成
             //文字颜色不影响排版，悬停/按下时通过pTextColors覆盖，避免重新排版
-            if (!pRender->IsValidDrawRichTextCache(textRect, richTextData, m_spDrawRichTextCache, false)) {
-                m_spDrawRichTextCache.reset();
+            if ((m_nDrawCacheLayoutVersion != m_nLayoutVersion) || (m_drawCacheTextRect != textRect)) {
+                //布局版本或绘制区域变化时，才需要逐项比较内容
+                if (!pRender->IsValidDrawRichTextCache(textRect, m_richTextLayoutData, m_spDrawRichTextCache, false)) {
+                    m_spDrawRichTextCache.reset();
+                }
             }
         }
         if (m_spDrawRichTextCache == nullptr) {
-            bool bRet = pRender->CreateDrawRichTextCache(textRect, szScrollOffset, pRenderFactory, richTextData, m_spDrawRichTextCache);
-            if (!bRet) {
+            bool bRet = pRender->CreateDrawRichTextCache(textRect, szScrollOffset, pRenderFactory,
+                                                         m_richTextLayoutData, m_spDrawRichTextCache);
+            if (bRet) {
+                m_nDrawCacheLayoutVersion = m_nLayoutVersion;
+                m_drawCacheTextRect = textRect;
+            }
+            else {
                 m_spDrawRichTextCache.reset();
             }
         }
@@ -673,7 +682,7 @@ void RichTextImpl::PaintText(IRender* pRender)
 #if 0
             //测试代码结束(比较使用缓存绘制和不使用缓存绘制时结果是否相同)
             std::vector<std::vector<UiRect>> richTextRectsOld;
-            pRender->DrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, GetAlpha(), &richTextRectsOld);
+            pRender->DrawRichText(textRect, szScrollOffset, pRenderFactory, m_richTextLayoutData, GetAlpha(), &richTextRectsOld);
             ASSERT(richTextRects.size() == m_textData.size());
             ASSERT(richTextRectsOld.size() == m_textData.size());
             if (richTextRectsOld.size() == richTextRects.size()) {
@@ -693,7 +702,7 @@ void RichTextImpl::PaintText(IRender* pRender)
         }
         else {
             //不使用绘制缓存            
-            pRender->DrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, m_pOwner->GetAlpha(), &richTextRects);
+            pRender->DrawRichText(textRect, szScrollOffset, pRenderFactory, m_richTextLayoutData, m_pOwner->GetAlpha(), &richTextRects);
         }
         ASSERT(richTextRects.size() == m_textData.size());
         if (richTextRects.size() == m_textData.size()) {
@@ -717,6 +726,7 @@ void RichTextImpl::CheckParseText()
         m_textData.clear();
         m_spDrawRichTextCache.reset();
         m_bCachedTextRectValid = false;
+        ++m_nLayoutVersion;
         //文本的排版结果变化后，已选择的文本失效
         ResetTextSelect();
     }
@@ -726,6 +736,7 @@ void RichTextImpl::CheckParseText()
         m_nTextDataDisplayScaleFactor = m_pOwner->Dpi().GetDisplayScaleFactor();
         m_spDrawRichTextCache.reset();
         m_bCachedTextRectValid = false;
+        ++m_nLayoutVersion;
     }
 }
 
@@ -975,7 +986,14 @@ bool RichTextImpl::ParseTextSlice(const RichTextSlice& textSlice,
     if (!currentTextData.m_textView.empty() || currentTextData.m_bHorizontalRule ||
         (currentTextData.m_pImage != nullptr)) {
         //空文本节点不参与排版（链接的文本由子节点承载）；水平分割线和内联图片没有文本，需要参与排版
-        textData.push_back(currentTextData);
+        if (textSlice.m_children.empty()) {
+            //叶子节点：直接移动，避免解析结果拷贝
+            textData.emplace_back(std::move(currentTextData));
+        }
+        else {
+            //有子节点时，子节点需要继承当前节点的属性，不能移动
+            textData.push_back(currentTextData);
+        }
     }
         
     if (!textSlice.m_children.empty()) {
@@ -1111,6 +1129,7 @@ bool RichTextImpl::DoSetText(const DString& richText)
             m_textSlice.clear();
             m_textData.clear();
             m_spDrawRichTextCache.reset();
+            ++m_nLayoutVersion;
             DString formatedText = _T("<RichText>") + EscapeXmlText(richText) + _T("</RichText>");
             bResult = WindowBuilder::ParseRichTextXmlText(formatedText, m_pOwner);
         }
@@ -1150,6 +1169,7 @@ void RichTextImpl::Clear()
     m_textData.clear();
     m_spDrawRichTextCache.reset();
     m_bCachedTextRectValid = false;
+    ++m_nLayoutVersion;
     //文本内容变化后，已选择的文本失效
     ResetTextSelect();
     if (!m_textSlice.empty()) {
@@ -1261,6 +1281,7 @@ void RichTextImpl::AppendTextSlice(RichTextSlice&& textSlice, bool bRedraw)
     m_textSlice.emplace_back(std::move(textSlice));
     m_textData.clear();
     m_spDrawRichTextCache.reset();
+    ++m_nLayoutVersion;
     ResetTextSelect();
     if (bRedraw) {
         //追加内容后，需要重新布局与绘制
@@ -1273,6 +1294,7 @@ void RichTextImpl::AppendTextSlice(const RichTextSlice& textSlice, bool bRedraw)
     m_textSlice.emplace_back(textSlice);
     m_textData.clear();
     m_spDrawRichTextCache.reset();
+    ++m_nLayoutVersion;
     ResetTextSelect();
     if (bRedraw) {
         //追加内容后，需要重新布局与绘制
@@ -1582,7 +1604,7 @@ void RichTextImpl::MouseMove(const EventArgs& msg)
         //只有在链接的Hover状态发生变化时，才需要重绘
         Invalidate();
     }
-    if (!bOnLinkUrl) {
+    if (!bOnLinkUrl && !toolTipText.empty()) {
         m_pOwner->SetToolTipText(_T(""));
     }
     //更新悬停的链接，并派发Hover/Leave事件
@@ -1693,28 +1715,52 @@ void RichTextImpl::GetLinkGroups(std::vector<size_t>& groupStartIndexes, std::ve
 
 int32_t RichTextImpl::HitTestLinkGroup(const UiPoint& ptMouse) const
 {
-    std::vector<size_t> groupStartIndexes;
-    std::vector<DString> groupUrls;
-    GetLinkGroups(groupStartIndexes, groupUrls);
-    if (groupStartIndexes.empty()) {
-        return -1;
-    }
-    for (size_t nGroup = 0; nGroup < groupStartIndexes.size(); ++nGroup) {
-        const size_t nStartIndex = groupStartIndexes[nGroup];
-        const size_t nEndIndex = (nGroup + 1 < groupStartIndexes.size()) ? groupStartIndexes[nGroup + 1] : m_textData.size();
-        for (size_t nIndex = nStartIndex; nIndex < nEndIndex; ++nIndex) {
-            const RichTextDataEx& textData = m_textData[nIndex];
-            if (textData.m_linkUrl.empty()) {
-                continue;
-            }
-            for (const UiRect& textRect : textData.m_textRects) {
-                if (textRect.ContainsPt(ptMouse)) {
-                    return (int32_t)nGroup;
-                }
+    //直接遍历文本片段累计链接分组序号，避免每次鼠标移动都构建分组数组和复制URL
+    int32_t nGroup = -1;
+    const UiString* pLastLinkUrl = nullptr;
+    for (const RichTextDataEx& textData : m_textData) {
+        if (textData.m_linkUrl.empty()) {
+            pLastLinkUrl = nullptr;
+            continue;
+        }
+        if ((pLastLinkUrl == nullptr) || (*pLastLinkUrl != textData.m_linkUrl)) {
+            //连续出现并且URL相同的文本片段，属于同一个链接
+            ++nGroup;
+            pLastLinkUrl = &textData.m_linkUrl;
+        }
+        for (const UiRect& textRect : textData.m_textRects) {
+            if (textRect.ContainsPt(ptMouse)) {
+                return nGroup;
             }
         }
     }
     return -1;
+}
+
+DString RichTextImpl::GetLinkGroupUrl(int32_t nLinkGroupIndex) const
+{
+    if (nLinkGroupIndex < 0) {
+        return DString();
+    }
+    int32_t nGroup = -1;
+    const UiString* pLastLinkUrl = nullptr;
+    for (const RichTextDataEx& textData : m_textData) {
+        if (textData.m_linkUrl.empty()) {
+            pLastLinkUrl = nullptr;
+            continue;
+        }
+        if ((pLastLinkUrl == nullptr) || (*pLastLinkUrl != textData.m_linkUrl)) {
+            ++nGroup;
+            pLastLinkUrl = &textData.m_linkUrl;
+            if (nGroup == nLinkGroupIndex) {
+                return DString(textData.m_linkUrl.c_str());
+            }
+            if (nGroup > nLinkGroupIndex) {
+                break;
+            }
+        }
+    }
+    return DString();
 }
 
 void RichTextImpl::UpdateHoveredLink(int32_t nLinkGroupIndex)
@@ -1722,18 +1768,24 @@ void RichTextImpl::UpdateHoveredLink(int32_t nLinkGroupIndex)
     if (m_nHoveredLinkGroup == nLinkGroupIndex) {
         return;
     }
-    std::vector<size_t> groupStartIndexes;
-    std::vector<DString> groupUrls;
-    GetLinkGroups(groupStartIndexes, groupUrls);
     const int32_t nOldGroupIndex = m_nHoveredLinkGroup;
-    m_nHoveredLinkGroup = nLinkGroupIndex;
-    if ((nOldGroupIndex >= 0) && ((size_t)nOldGroupIndex < groupUrls.size())) {
-        //鼠标离开链接
-        m_pOwner->SendEvent(kEventLinkLeave, (WPARAM)groupUrls[(size_t)nOldGroupIndex].c_str());
+    //先取出新旧链接地址，再更新状态，保证事件参数在派发期间有效
+    DString oldLinkUrl;
+    if (nOldGroupIndex >= 0) {
+        oldLinkUrl = GetLinkGroupUrl(nOldGroupIndex);
     }
-    if ((nLinkGroupIndex >= 0) && ((size_t)nLinkGroupIndex < groupUrls.size())) {
+    DString newLinkUrl;
+    if (nLinkGroupIndex >= 0) {
+        newLinkUrl = GetLinkGroupUrl(nLinkGroupIndex);
+    }
+    m_nHoveredLinkGroup = nLinkGroupIndex;
+    if (!oldLinkUrl.empty()) {
+        //鼠标离开链接
+        m_pOwner->SendEvent(kEventLinkLeave, (WPARAM)oldLinkUrl.c_str());
+    }
+    if (!newLinkUrl.empty()) {
         //鼠标进入链接
-        m_pOwner->SendEvent(kEventLinkHover, (WPARAM)groupUrls[(size_t)nLinkGroupIndex].c_str());
+        m_pOwner->SendEvent(kEventLinkHover, (WPARAM)newLinkUrl.c_str());
     }
 }
 
@@ -2184,6 +2236,7 @@ bool RichTextImpl::AppendText(const DString& richText, bool bRedraw)
     m_textData.clear();
     m_spDrawRichTextCache.reset();
     m_bCachedTextRectValid = false;
+    ++m_nLayoutVersion;
     m_nHoveredLinkGroup = -1;
     ResetTextSelect();
     if (bRedraw) {

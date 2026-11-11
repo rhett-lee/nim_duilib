@@ -450,6 +450,12 @@ private:
     */
     int32_t HitTestLinkGroup(const UiPoint& ptMouse) const;
 
+    /** 获取指定分组的链接URL（不构建全部分组数据，供Hover/Leave事件使用）
+    * @param [in] nLinkGroupIndex 链接的分组索引
+    * @return 返回该分组的URL，索引无效时返回空字符串
+    */
+    DString GetLinkGroupUrl(int32_t nLinkGroupIndex) const;
+
     /** 更新鼠标悬停的链接，并派发Hover/Leave事件
     */
     void UpdateHoveredLink(int32_t nLinkGroupIndex);
@@ -538,13 +544,29 @@ private:
     */
     std::vector<RichTextDataEx> m_textData;
 
-    /** 绘制用的文本数据缓冲区（复用，避免每帧堆分配）
+    /** 绘制用的文本数据（与解析结果一一对应，仅在文本/排版变化时重建）
     */
-    std::vector<RichTextData> m_richTextDataBuffer;
+    std::vector<RichTextData> m_richTextLayoutData;
 
     /** 绘制用的文本颜色缓冲区（复用，避免每帧堆分配）
     */
     std::vector<UiColor> m_richTextTextColorBuffer;
+
+    /** 文本布局版本号：文本内容或排版相关属性变化时递增
+    */
+    uint32_t m_nLayoutVersion = 0;
+
+    /** m_richTextLayoutData 对应的布局版本
+    */
+    uint32_t m_nRichTextLayoutDataVersion = 0;
+
+    /** 绘制缓存对应的布局版本
+    */
+    uint32_t m_nDrawCacheLayoutVersion = 0;
+
+    /** 绘制缓存对应的文本绘制区域
+    */
+    UiRect m_drawCacheTextRect;
 
     /** 文本测量结果的缓存（避免重复测量）
     */
