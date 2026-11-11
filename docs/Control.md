@@ -3267,9 +3267,15 @@ RichText是带有格式的文本，其格式类似于HTML标签，格式文本�
 | max_lines | 0 | int | 最大显示行数，0表示不限制；超出时按 text_overflow 处理 |
 | text_overflow | "ellipsis" | string | 超出 max_lines 时的处理方式："ellipsis"表示在行尾显示省略号，"clip"表示直接裁剪 |
 | word_wrap | true| bool | 是否自动换行，如果为false，则只有在`<br/>`标签的时候才换行，且超出控件宽度的文本显示省略号 |
+| selection_bg_color | | string | 鼠标选择文本时，选中区域的背景颜色，如"#660099FF"（AARRGGBB）；未设置时使用默认的淡蓝色 |
+| enable_text_select | true | bool | 是否允许用鼠标拖拽选择文本 |
 
 链接相关运行时接口：`AppendText`（追加富文本，可选择是否立即重绘）、`SetLinkColor`（设置链接常规/Hover/按下/已访问颜色）、`GetLinkCount`/`GetLinkUrl`/`GetLinkRect`（按链接索引获取数量、URL 和命中矩形）。
+链接的无障碍信息接口：`GetLinkTitle`（获取链接的提示文本，未设置 title 时返回 URL）、`GetHoveredLinkIndex`/`GetFocusedLinkIndex`（获取鼠标悬停/键盘聚焦的链接索引，可用于在状态栏显示当前链接）。
 链接支持键盘 Tab/Shift+Tab 聚焦，Enter 触发点击；鼠标悬停/离开时派发 `kEventLinkHover`/`kEventLinkLeave` 事件，右键菜单支持“复制链接地址”。
+
+文本选择相关运行时接口：`HasSelection`（是否有选中的文本）、`GetSelectedText`（获取选中的文本，换行统一为"\r\n"）、`CopySelectedText`（复制到剪贴板）、`SelectAll`（全选）、`ClearSelection`（清除选择）、`SetEnableTextSelect`/`IsEnableTextSelect`（是否允许选择）。
+鼠标左键在非链接区域按下并拖拽即可选择文本（支持跨行、自动换行后的多行、对齐与内联图片混排）；控件获得焦点后支持 `Ctrl+A` 全选、`Ctrl+C` 复制。选中的文本按行绘制半透明背景，位置与文字逐字对齐。
 
 RichText 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
 

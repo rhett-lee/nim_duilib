@@ -310,6 +310,16 @@
   - 标签体系：新增 `<img src width height>` 内联图片标签，图片底部与文本基线对齐；
     `width`/`height` 为 96 DPI 下的像素值（省略时使用图片原始尺寸），
     图片高于文本时自动增大行高并保持行内基线一致，支持自动换行，图片位图随文本解析一次并缓存复用。
+  - 交互能力：新增文本选择/复制，鼠标在非链接区域按下并拖拽可选择文本（支持跨行、
+    自动换行后的多行、对齐与内联图片混排），按行绘制逐字对齐的半透明高亮背景；
+    控件获得焦点后支持 `Ctrl+A` 全选、`Ctrl+C` 复制（换行统一输出为 "\r\n"）。
+    新增属性 `selection_bg_color`（选中区域背景色）与 `enable_text_select`（是否允许选择，默认 true）；
+    新增运行时接口 `HasSelection`/`GetSelectedText`/`CopySelectedText`/`SelectAll`/`ClearSelection`/
+    `SetEnableTextSelect`/`IsEnableTextSelect`。
+  - 链接无障碍信息：新增 `GetLinkTitle`（链接提示文本，未设置 title 时回退为 URL）、
+    `GetHoveredLinkIndex`/`GetFocusedLinkIndex`（鼠标悬停/键盘聚焦的链接索引），
+    便于在状态栏等位置展示当前链接；同时修正 RichText 位于滚动容器内时，
+    链接的悬停判定、光标形态与鼠标选择未扣除滚动偏移导致命中位置偏移的问题。
 
 ### 移除
 

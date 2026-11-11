@@ -242,6 +242,21 @@ public:
     */
     bool GetLinkRect(size_t nLinkIndex, UiRect& rcLink) const;
 
+    /** 获取指定链接的提示文本（title属性；未设置title时返回URL）
+    * @param [in] nLinkIndex 链接的索引号，取值范围：[0, GetLinkCount())
+    * @return 返回链接的提示文本，索引无效时返回空字符串
+    */
+    DString GetLinkTitle(size_t nLinkIndex) const;
+
+    /** 获取鼠标当前悬停的链接索引（-1表示无）
+    * 说明：可用于无障碍信息的展示（例如在状态栏显示当前链接的URL）
+    */
+    int32_t GetHoveredLinkIndex() const { return m_nHoveredLinkGroup; }
+
+    /** 获取键盘当前聚焦的链接索引（-1表示无）
+    */
+    int32_t GetFocusedLinkIndex() const { return m_nFocusedLinkGroup; }
+
     /** 获取段落的段间距（96 DPI 下的像素值）
     */
     int32_t GetParagraphSpacing() const { return m_nParagraphSpacing; }
@@ -266,6 +281,36 @@ public:
     /** 获取是否允许重绘
     */
     bool IsEnableRedraw() const;
+
+public:
+    /** 设置是否允许鼠标选择文本（默认为true）
+    */
+    void SetEnableTextSelect(bool bEnable);
+
+    /** 获取是否允许鼠标选择文本
+    */
+    bool IsEnableTextSelect() const { return m_bEnableTextSelect; }
+
+    /** 是否已选中部分文本
+    */
+    bool HasSelection() const;
+
+    /** 获取选中的文本（换行符统一转换为"\r\n"）
+    */
+    DString GetSelectedText() const;
+
+    /** 复制选中的文本到剪贴板
+    * @return 返回true表示已复制，false表示没有选中的文本
+    */
+    bool CopySelectedText();
+
+    /** 全选文本
+    */
+    void SelectAll();
+
+    /** 清除选择
+    */
+    void ClearSelection();
 
 public:
     /** 输出带格式化文本
@@ -330,6 +375,35 @@ private:
         bool m_bMouseHover = false;
     };
 
+    /** 文本选择：一行文本的几何信息
+    */
+    struct TextSelectRow
+    {
+        /** 本行文本的左边界（相对文本绘制区域的坐标）
+        */
+        float m_fLeft = 0;
+
+        /** 本行文本的右边界（相对文本绘制区域的坐标）
+        */
+        float m_fRight = 0;
+
+        /** 本行的上边界（相对文本绘制区域的坐标）
+        */
+        int32_t m_nTop = 0;
+
+        /** 本行的下边界（相对文本绘制区域的坐标）
+        */
+        int32_t m_nBottom = 0;
+
+        /** 本行第一个字符在m_selectText中的索引
+        */
+        size_t m_nFirstChar = 0;
+
+        /** 本行每个字符的宽度（与m_selectText中的字符一一对应）
+        */
+        std::vector<float> m_charWidths;
+    };
+
 private:
     /** 设置格式的文本, 但不重绘
     * @param [in] richText 带有格式的文本内容
@@ -379,6 +453,41 @@ private:
     /** 更新鼠标悬停的链接，并派发Hover/Leave事件
     */
     void UpdateHoveredLink(int32_t nLinkGroupIndex);
+
+private:
+    /** 获取文本绘制的目标区域（包含垂直对齐产生的偏移）
+    */
+    UiRect GetTextDrawRect(IRender* pRender);
+
+    /** 构建选择的纯文本内容（将各文本片段拼接）
+    */
+    void BuildSelectText() const;
+
+    /** 清除文本选择的布局缓存与选择状态
+    */
+    void ResetTextSelect();
+
+    /** 清除文本选择的布局缓存（保留已选择的字符范围）
+    */
+    void InvalidateSelectLayout();
+
+    /** 更新文本选择的行/字符几何信息（按需构建）
+    * @param [in] pRender 渲染接口，用于测量文本
+    * @return 返回true表示布局有效
+    */
+    bool UpdateTextSelectLayout(IRender* pRender);
+
+    /** 将控件坐标转换为文本的字符索引
+    */
+    size_t HitTestTextPos(const UiPoint& ptMouse) const;
+
+    /** 获取选择范围的起止字符索引（已排序）
+    */
+    void GetSelectionRange(size_t& nBegin, size_t& nEnd) const;
+
+    /** 获取选择区域的矩形列表（相对文本绘制区域的坐标）
+    */
+    void GetSelectionRects(std::vector<UiRect>& selectionRects) const;
 
 private:
     /** 关联控件
@@ -536,6 +645,42 @@ private:
     /** 是否允许重绘
     */
     bool m_bEnableRedraw;
+
+    /** 是否允许鼠标选择文本
+    */
+    bool m_bEnableTextSelect = true;
+
+    /** 选择的纯文本内容（由各文本片段拼接而成，与m_selectRows中的字符索引对应）
+    */
+    mutable std::wstring m_selectText;
+
+    /** 文本选择的几何信息（每个可见逻辑行对应一项，按文本顺序排列）
+    */
+    std::vector<TextSelectRow> m_selectRows;
+
+    /** 文本选择几何信息是否有效
+    */
+    bool m_bSelectLayoutValid = false;
+
+    /** 构建文本选择几何信息时使用的文本绘制区域
+    */
+    UiRect m_selectLayoutRect;
+
+    /** 选择范围的起始字符索引（鼠标按下的位置）
+    */
+    size_t m_nSelectAnchor = 0;
+
+    /** 选择范围的结束字符索引（鼠标当前位置）
+    */
+    size_t m_nSelectCaret = 0;
+
+    /** 是否正在拖拽选择文本
+    */
+    bool m_bSelecting = false;
+
+    /** 选择区域的背景颜色（为空时使用默认颜色）
+    */
+    UiString m_selectBgColor;
 };
 
 } // namespace ui

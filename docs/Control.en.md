@@ -3263,9 +3263,15 @@ When `word_wrap="false"` (no automatic wrapping), text exceeding the control wid
 | max_lines | 0 | int | Maximum number of displayed lines; 0 means unlimited; overflow is handled according to text_overflow |
 | text_overflow | "ellipsis" | string | Overflow handling for max_lines: "ellipsis" appends an ellipsis at the end of the line; "clip" clips the text directly |
 | word_wrap | true| bool | Whether to automatically wrap; if false, line breaks only occur at the `<br/>` tag, and text exceeding the control width is displayed with an ellipsis |
+| selection_bg_color | | string | Background color of the selected text while dragging with the mouse, e.g. "#660099FF" (AARRGGBB); a default light blue is used when not set |
+| enable_text_select | true | bool | Whether text can be selected by dragging with the mouse |
 
 Link runtime APIs: `AppendText` (append rich text, optionally with an immediate redraw), `SetLinkColor` (set normal/hovered/pressed/visited link colors), `GetLinkCount`/`GetLinkUrl`/`GetLinkRect` (query the count, URL and hit rectangle by link index).
+Link accessibility APIs: `GetLinkTitle` (returns the link tooltip, falling back to the URL), `GetHoveredLinkIndex`/`GetFocusedLinkIndex` (index of the hovered/focused link, useful for showing the current link in a status bar).
 Links support keyboard focus with Tab/Shift+Tab and activation with Enter; hovering/leaving a link dispatches `kEventLinkHover`/`kEventLinkLeave`, and the context menu supports "Copy link address".
+
+Text selection APIs: `HasSelection` (whether any text is selected), `GetSelectedText` (returns the selected text, with line breaks normalized to "\r\n"), `CopySelectedText` (copy to clipboard), `SelectAll`, `ClearSelection`, `SetEnableTextSelect`/`IsEnableTextSelect`.
+Press and drag the left mouse button on a non-link area to select text (across lines, wrapped lines, and mixed with alignment and inline images); when the control has focus, `Ctrl+A` selects all and `Ctrl+C` copies. The selected text is highlighted per line with a translucent background aligned to individual characters.
 
 The RichText control inherits the `Control` attributes. For more available attributes, please refer to the `Control` attributes.
 

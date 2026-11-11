@@ -186,6 +186,49 @@ public:
     */
     bool GetLinkRect(size_t nLinkIndex, UiRect& rcLink) const;
 
+    /** 获取指定链接的提示文本（title属性；未设置title时返回URL）
+    * @param [in] nLinkIndex 链接的索引号，取值范围：[0, GetLinkCount())
+    * @return 返回链接的提示文本，索引无效时返回空字符串
+    */
+    DString GetLinkTitle(size_t nLinkIndex) const;
+
+    /** 获取鼠标当前悬停的链接索引（-1表示无）
+    */
+    int32_t GetHoveredLinkIndex() const;
+
+    /** 获取键盘当前聚焦的链接索引（-1表示无）
+    */
+    int32_t GetFocusedLinkIndex() const;
+
+    /** 设置是否允许鼠标选择文本（默认为true）
+    */
+    void SetEnableTextSelect(bool bEnable);
+
+    /** 获取是否允许鼠标选择文本
+    */
+    bool IsEnableTextSelect() const;
+
+    /** 是否已选中部分文本
+    */
+    bool HasSelection() const;
+
+    /** 获取选中的文本（换行符统一转换为"\r\n"）
+    */
+    DString GetSelectedText() const;
+
+    /** 复制选中的文本到剪贴板
+    * @return 返回true表示已复制，false表示没有选中的文本
+    */
+    bool CopySelectedText();
+
+    /** 全选文本
+    */
+    void SelectAll();
+
+    /** 清除选择
+    */
+    void ClearSelection();
+
     /** 重新布局与绘制（配合AppendTextSlice的bRedraw=false，在批量追加完成后调用一次）
     */
     void Redraw();
@@ -512,6 +555,66 @@ template<typename T>
 bool RichTextT<T>::GetLinkRect(size_t nLinkIndex, UiRect& rcLink) const
 {
     return m_impl->GetLinkRect(nLinkIndex, rcLink);
+}
+
+template<typename T>
+DString RichTextT<T>::GetLinkTitle(size_t nLinkIndex) const
+{
+    return m_impl->GetLinkTitle(nLinkIndex);
+}
+
+template<typename T>
+int32_t RichTextT<T>::GetHoveredLinkIndex() const
+{
+    return m_impl->GetHoveredLinkIndex();
+}
+
+template<typename T>
+int32_t RichTextT<T>::GetFocusedLinkIndex() const
+{
+    return m_impl->GetFocusedLinkIndex();
+}
+
+template<typename T>
+void RichTextT<T>::SetEnableTextSelect(bool bEnable)
+{
+    m_impl->SetEnableTextSelect(bEnable);
+}
+
+template<typename T>
+bool RichTextT<T>::IsEnableTextSelect() const
+{
+    return m_impl->IsEnableTextSelect();
+}
+
+template<typename T>
+bool RichTextT<T>::HasSelection() const
+{
+    return m_impl->HasSelection();
+}
+
+template<typename T>
+DString RichTextT<T>::GetSelectedText() const
+{
+    return m_impl->GetSelectedText();
+}
+
+template<typename T>
+bool RichTextT<T>::CopySelectedText()
+{
+    return m_impl->CopySelectedText();
+}
+
+template<typename T>
+void RichTextT<T>::SelectAll()
+{
+    m_impl->SelectAll();
+}
+
+template<typename T>
+void RichTextT<T>::ClearSelection()
+{
+    m_impl->ClearSelection();
 }
 
 template<typename T>

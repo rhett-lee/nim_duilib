@@ -219,6 +219,7 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
     int32_t nRowTopOffset = 0;//本行内容的向下偏移量（行内有高于文本的内联图片时，文本和图片整体下移）
     uint32_t nLineNumber = 0; //物理行号
     uint32_t nRowIndex = 0;   //逻辑行号
+    uint32_t nLineTextRowIndex = 0; //物理行内的逻辑行号(每个物理行中，从0开始编号，跨文本片段连续编号)
 
     FastVector<int32_t> rowHeightVector; //每行的实际行高表
     rowHeightVector.reserve(richTextData.size() * 2);
@@ -512,16 +513,13 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
         lineTextViewList.clear();
         SplitLines(textData.m_textView, lineSeprators, lineTextViewList);
 
-        //物理行内的逻辑行号(每个物理行中，从0开始编号)
-        uint32_t nLineTextRowIndex = 0;
-
         for (const std::wstring_view& lineTextView : lineTextViewList) {
             bDrawTabChar = false;
             if (lineTextView.size() == 1) {              
                 if (lineTextView[0] == L'\r') {
                     //处理回车
                     if (pLineInfoParam != nullptr) {
-                        OnDrawUnicodeChar(pLineInfoParam, lineTextView[0], 1, 2, nLineNumber, nLineTextRowIndex, xPos, yPos, 0, nRowHeight);
+                        OnDrawUnicodeChar(pLineInfoParam, lineTextView[0], 1, 2, nLineNumber, nLineTextRowIndex, xPos, yPos + nRowTopOffset, 0, nRowHeight);
                     }
                     continue; //忽略回车
                 }
@@ -532,7 +530,7 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                 else if (lineTextView[0] == L'\n') {
                     //处理换行符
                     if (pLineInfoParam != nullptr) {
-                        OnDrawUnicodeChar(pLineInfoParam, lineTextView[0], 1, 2, nLineNumber, nLineTextRowIndex, xPos, yPos, 0, nRowHeight);
+                        OnDrawUnicodeChar(pLineInfoParam, lineTextView[0], 1, 2, nLineNumber, nLineTextRowIndex, xPos, yPos + nRowTopOffset, 0, nRowHeight);
                     }
 
                     //换行：执行换行操作(物理换行)
@@ -554,7 +552,7 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                         nRowTopOffset = 0;
                         bRowHasText = false;
                         ++nRowIndex;
-                        ++nLineTextRowIndex;
+                        nLineTextRowIndex = 0; //新物理行内的逻辑行号从0开始
                         ++nLineNumber;
                         bParagraphStart = true;
                         if ((textData.m_nMaxLines > 0) && (nRowIndex >= (uint32_t)textData.m_nMaxLines)) {
@@ -726,7 +724,7 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                             ASSERT((glyphCharCount % sizeof(DStringW::value_type)) == 0);
                             glyphCharCount /= sizeof(DStringW::value_type); //转换为StringW编码字符数，内部使用
                             ASSERT((glyphCharCount == 1) || (glyphCharCount == 2)); //该字占几个字符（UTF16编码，可能是1或者2）
-                            OnDrawUnicodeChar(pLineInfoParam, 0, glyphCharCount, glyphCount, nLineNumber, nLineTextRowIndex, glyphLeft, yPos, glyphWidth, nRowHeight);
+                            OnDrawUnicodeChar(pLineInfoParam, 0, glyphCharCount, glyphCount, nLineNumber, nLineTextRowIndex, glyphLeft, yPos + nRowTopOffset, glyphWidth, nRowHeight);
                             glyphLeft += glyphWidth;
                         }
                     }

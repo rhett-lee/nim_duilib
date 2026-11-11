@@ -331,6 +331,15 @@ bool RichTextImpl::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("word_wrap")) {
         SetWordWrap(StringUtil::IsValueTrue(strValue));
     }
+    else if (strName == _T("selection_bg_color")) {
+        //文本选择区域的背景颜色
+        m_selectBgColor = strValue;
+        Invalidate();
+    }
+    else if ((strName == _T("enable_text_select")) || (strName == _T("text_select"))) {
+        //是否允许鼠标选择文本
+        SetEnableTextSelect(StringUtil::IsValueTrue(strValue));
+    }
     else {
         return false;
     }
@@ -361,6 +370,8 @@ void RichTextImpl::Redraw()
     m_textData.clear();
     m_spDrawRichTextCache.reset();
     m_bCachedTextRectValid = false;
+    //排版属性变化后，文本选择的几何信息需要重新计算
+    InvalidateSelectLayout();
     if (IsEnableRedraw()) {
         m_pOwner->Invalidate();
         m_pOwner->RelayoutOrRedraw();
@@ -527,31 +538,15 @@ void RichTextImpl::PaintText(IRender* pRender)
     if (pRender == nullptr) {
         return;
     }
-    UiRect rc = m_pOwner->GetRect();
-    rc.Deflate(m_pOwner->GetControlPadding());
-    rc.Deflate(GetTextPadding());
-
     //检查并更新文本
     CheckParseText();
 
-    //如果设置了对齐方式，需要评估绘制位置
-    //（水平方向的对齐在绘制时按行计算偏移，见DrawRichTextCacheData的逐行对齐处理）
-    const uint32_t uTextStyle = GetTextStyle();
-    if ((uTextStyle & (TEXT_VCENTER | TEXT_BOTTOM))) {
-        //计算绘制所占的区域大小
-        UiRect rect;
-        CalcDestRect(pRender, rc, rect);
-        if ((rect.Height() < rc.Height()) && (uTextStyle & (TEXT_VCENTER | TEXT_BOTTOM))) {
-            //垂直方向
-            int32_t diff = rc.Height() - rect.Height();
-            if (uTextStyle & TEXT_VCENTER) {
-                rc.Offset(0, diff / 2);
-            }
-            else if (uTextStyle & TEXT_BOTTOM) {
-                rc.Offset(0, diff);
-            }
-        }
+    //文本绘制的目标区域（水平方向的对齐在绘制时按行计算偏移）
+    const UiRect rc = GetTextDrawRect(pRender);
+    if (rc.IsEmpty()) {
+        return;
     }
+    const uint32_t uTextStyle = GetTextStyle();
 
     if (!m_textData.empty()) {
         UiColor normalLinkTextColor;
@@ -646,6 +641,29 @@ void RichTextImpl::PaintText(IRender* pRender)
                 m_spDrawRichTextCache.reset();
             }
         }
+
+        //绘制文本选择的背景（在绘制文字之前，避免遮挡文字）
+        if (HasSelection() && UpdateTextSelectLayout(pRender)) {
+            std::vector<UiRect> selectionRects;
+            GetSelectionRects(selectionRects);
+            if (!selectionRects.empty()) {
+                UiColor selectBgColor;
+                if (!m_selectBgColor.empty()) {
+                    selectBgColor = m_pOwner->GetUiColor(m_selectBgColor.c_str());
+                }
+                if (selectBgColor.IsEmpty()) {
+                    selectBgColor = UiColor(0x66, 0x33, 0x99, 0xFF);
+                }
+                for (UiRect& rcSelect : selectionRects) {
+                    rcSelect.Offset(textRect.left, textRect.top);
+                    UiRect rcDraw;
+                    if (UiRect::Intersect(rcDraw, rcSelect, textRect)) {
+                        pRender->FillRect(UiRectF::MakeFromRect(rcDraw), selectBgColor, m_pOwner->GetAlpha());
+                    }
+                }
+            }
+        }
+
         if (m_spDrawRichTextCache != nullptr) {
             //使用绘制缓存
             std::vector<int32_t> rowXOffset;//对齐方式为居中或者靠右时使用
@@ -699,6 +717,8 @@ void RichTextImpl::CheckParseText()
         m_textData.clear();
         m_spDrawRichTextCache.reset();
         m_bCachedTextRectValid = false;
+        //文本的排版结果变化后，已选择的文本失效
+        ResetTextSelect();
     }
 
     if (m_textData.empty()) {
@@ -989,6 +1009,8 @@ void RichTextImpl::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
         m_rcTextPadding.top = TruncateToUInt16(padding.top);
         m_rcTextPadding.right = TruncateToUInt16(padding.right);
         m_rcTextPadding.bottom = TruncateToUInt16(padding.bottom);
+        //文本区域变化后，文本选择的几何信息需要重新计算
+        InvalidateSelectLayout();
         if (IsEnableRedraw()) {
             m_pOwner->RelayoutOrRedraw();
         }        
@@ -1128,6 +1150,8 @@ void RichTextImpl::Clear()
     m_textData.clear();
     m_spDrawRichTextCache.reset();
     m_bCachedTextRectValid = false;
+    //文本内容变化后，已选择的文本失效
+    ResetTextSelect();
     if (!m_textSlice.empty()) {
         m_textSlice.clear();
         Invalidate();
@@ -1237,6 +1261,7 @@ void RichTextImpl::AppendTextSlice(RichTextSlice&& textSlice, bool bRedraw)
     m_textSlice.emplace_back(std::move(textSlice));
     m_textData.clear();
     m_spDrawRichTextCache.reset();
+    ResetTextSelect();
     if (bRedraw) {
         //追加内容后，需要重新布局与绘制
         Redraw();
@@ -1248,6 +1273,7 @@ void RichTextImpl::AppendTextSlice(const RichTextSlice& textSlice, bool bRedraw)
     m_textSlice.emplace_back(textSlice);
     m_textData.clear();
     m_spDrawRichTextCache.reset();
+    ResetTextSelect();
     if (bRedraw) {
         //追加内容后，需要重新布局与绘制
         Redraw();
@@ -1415,20 +1441,49 @@ void RichTextImpl::ButtonDown(const EventArgs& msg)
         return;
     }
     bool bInvalidate = false;
+    bool bOnLink = false;
+    //GetRect()返回的是布局坐标（不包含祖先滚动容器的滚动偏移），需要将鼠标坐标转换为布局坐标
+    UiPoint ptMouse = msg.ptMouse;
+    ptMouse.Offset(m_pOwner->GetScrollOffsetInScrollBox());
     for (RichTextDataEx& textData : m_textData) {
         bool bMouseDown = false;
         if (!textData.m_linkUrl.empty()) {
             for (const UiRect& textRect : textData.m_textRects) {
-                if (textRect.ContainsPt(msg.ptMouse)) {
+                if (textRect.ContainsPt(ptMouse)) {
                     //在超级链接上
                     bMouseDown = true;
                     break;
                 }
             }
         }
+        if (bMouseDown) {
+            bOnLink = true;
+        }
         if (textData.m_bMouseDown != bMouseDown) {
             textData.m_bMouseDown = bMouseDown;
             bInvalidate = true;
+        }
+    }
+
+    //在非链接区域按下鼠标左键：开始选择文本
+    if (!bOnLink && m_bEnableTextSelect) {
+        IRender* pRender = nullptr;
+        Window* pWindow = m_pOwner->GetWindow();
+        if (pWindow != nullptr) {
+            pRender = pWindow->GetRender();
+        }
+        if (UpdateTextSelectLayout(pRender)) {
+            if (!m_pOwner->IsFocused()) {
+                //获取键盘焦点，以便接收Ctrl+A、Ctrl+C等快捷键
+                m_pOwner->SetFocus();
+            }
+            const size_t nPos = HitTestTextPos(ptMouse);
+            if ((m_nSelectAnchor != nPos) || (m_nSelectCaret != nPos)) {
+                bInvalidate = true;
+            }
+            m_nSelectAnchor = nPos;
+            m_nSelectCaret = nPos;
+            m_bSelecting = true;
         }
     }
     if (bInvalidate) {
@@ -1441,6 +1496,18 @@ void RichTextImpl::ButtonUp(const EventArgs& msg)
 {
     if (msg.IsSenderExpired()) {
         return;
+    }
+    //GetRect()返回的是布局坐标（不包含祖先滚动容器的滚动偏移），需要将鼠标坐标转换为布局坐标
+    UiPoint ptMouse = msg.ptMouse;
+    ptMouse.Offset(m_pOwner->GetScrollOffsetInScrollBox());
+    if (m_bSelecting) {
+        //结束选择文本
+        m_bSelecting = false;
+        const size_t nPos = HitTestTextPos(ptMouse);
+        if (nPos != m_nSelectCaret) {
+            m_nSelectCaret = nPos;
+            Invalidate();
+        }
     }
     for (RichTextDataEx& textData : m_textData) {
         if (textData.m_linkUrl.empty()) {
@@ -1480,6 +1547,9 @@ void RichTextImpl::MouseMove(const EventArgs& msg)
 {
     bool bOnLinkUrl = false;
     bool bInvalidate = false;
+    //GetRect()返回的是布局坐标（不包含祖先滚动容器的滚动偏移），需要将鼠标坐标转换为布局坐标
+    UiPoint ptMouse = msg.ptMouse;
+    ptMouse.Offset(m_pOwner->GetScrollOffsetInScrollBox());
     for (RichTextDataEx& textData : m_textData) {
         if (textData.m_linkUrl.empty()) {
             if (textData.m_bMouseHover) {
@@ -1491,7 +1561,7 @@ void RichTextImpl::MouseMove(const EventArgs& msg)
         }
         bool bMouseHover = false;
         for (const UiRect& textRect : textData.m_textRects) {
-            if (textRect.ContainsPt(msg.ptMouse)) {
+            if (textRect.ContainsPt(ptMouse)) {
                 //在超级链接上
                 bMouseHover = true;
                 if (textData.m_linkUrl == m_pOwner->GetToolTipText()) {
@@ -1512,18 +1582,30 @@ void RichTextImpl::MouseMove(const EventArgs& msg)
         m_pOwner->SetToolTipText(_T(""));
     }
     //更新悬停的链接，并派发Hover/Leave事件
-    UpdateHoveredLink(HitTestLinkGroup(msg.ptMouse));
+    UpdateHoveredLink(HitTestLinkGroup(ptMouse));
+
+    //拖拽选择文本
+    if (m_bSelecting) {
+        const size_t nPos = HitTestTextPos(ptMouse);
+        if (nPos != m_nSelectCaret) {
+            m_nSelectCaret = nPos;
+            Invalidate();
+        }
+    }
 }
 
 void RichTextImpl::MouseHover(const EventArgs& msg)
 {
     bool hasHover = false;
+    //GetRect()返回的是布局坐标（不包含祖先滚动容器的滚动偏移），需要将鼠标坐标转换为布局坐标
+    UiPoint ptMouse = msg.ptMouse;
+    ptMouse.Offset(m_pOwner->GetScrollOffsetInScrollBox());
     for (const RichTextDataEx& textData : m_textData) {
         if (textData.m_linkUrl.empty()) {
             continue;
         }
         for (const UiRect& textRect : textData.m_textRects) {
-            if (textRect.ContainsPt(msg.ptMouse)) {
+            if (textRect.ContainsPt(ptMouse)) {
                 //超级链接, 显示ToolTip（优先使用title属性，未设置时使用URL）
                 if (!textData.m_linkTitle.empty()) {
                     m_pOwner->SetToolTipText(textData.m_linkTitle.c_str());
@@ -1566,12 +1648,15 @@ void RichTextImpl::MouseLeave(const EventArgs& /*msg*/)
 bool RichTextImpl::OnSetCursor(const EventArgs& msg)
 {
     if (m_pOwner->IsEnabled() && m_pOwner->IsVisible()) {
+        //GetRect()返回的是布局坐标（不包含祖先滚动容器的滚动偏移），需要将鼠标坐标转换为布局坐标
+        UiPoint ptMouse = msg.ptMouse;
+        ptMouse.Offset(m_pOwner->GetScrollOffsetInScrollBox());
         for (const RichTextDataEx& textData : m_textData) {
             if (textData.m_linkUrl.empty()) {
                 continue;
             }
             for (const UiRect& textRect : textData.m_textRects) {
-                if (textRect.ContainsPt(msg.ptMouse)) {
+                if (textRect.ContainsPt(ptMouse)) {
                     //超级链接，光标变成手型
                     m_pOwner->SetCursor(CursorType::kCursorHand);
                     return true;
@@ -1724,6 +1809,356 @@ bool RichTextImpl::GetLinkRect(size_t nLinkIndex, UiRect& rcLink) const
     return bFound;
 }
 
+DString RichTextImpl::GetLinkTitle(size_t nLinkIndex) const
+{
+    std::vector<size_t> groupStartIndexes;
+    std::vector<DString> groupUrls;
+    GetLinkGroups(groupStartIndexes, groupUrls);
+    if (nLinkIndex >= groupStartIndexes.size()) {
+        return DString();
+    }
+    //取该链接分组中第一个文本片段的提示文本
+    const RichTextDataEx& textData = m_textData[groupStartIndexes[nLinkIndex]];
+    if (!textData.m_linkTitle.empty()) {
+        return textData.m_linkTitle.c_str();
+    }
+    return groupUrls[nLinkIndex];
+}
+
+void RichTextImpl::SetEnableTextSelect(bool bEnable)
+{
+    if (m_bEnableTextSelect != bEnable) {
+        m_bEnableTextSelect = bEnable;
+        if (!bEnable) {
+            ClearSelection();
+        }
+    }
+}
+
+bool RichTextImpl::HasSelection() const
+{
+    return m_nSelectAnchor != m_nSelectCaret;
+}
+
+void RichTextImpl::GetSelectionRange(size_t& nBegin, size_t& nEnd) const
+{
+    if (m_nSelectAnchor <= m_nSelectCaret) {
+        nBegin = m_nSelectAnchor;
+        nEnd = m_nSelectCaret;
+    }
+    else {
+        nBegin = m_nSelectCaret;
+        nEnd = m_nSelectAnchor;
+    }
+}
+
+DString RichTextImpl::GetSelectedText() const
+{
+    size_t nBegin = 0;
+    size_t nEnd = 0;
+    GetSelectionRange(nBegin, nEnd);
+    if (nBegin >= nEnd) {
+        return DString();
+    }
+    BuildSelectText();
+    if (nBegin >= m_selectText.size()) {
+        return DString();
+    }
+    if (nEnd > m_selectText.size()) {
+        nEnd = m_selectText.size();
+    }
+    //去除回车符，换行符统一转换为"\r\n"（Windows剪贴板格式）
+    std::wstring selectedText;
+    selectedText.reserve(nEnd - nBegin + 8);
+    for (size_t nIndex = nBegin; nIndex < nEnd; ++nIndex) {
+        const wchar_t ch = m_selectText[nIndex];
+        if (ch == L'\r') {
+            continue;
+        }
+        if (ch == L'\n') {
+            selectedText += L"\r\n";
+            continue;
+        }
+        selectedText += ch;
+    }
+    return StringConvert::WStringToT(selectedText);
+}
+
+bool RichTextImpl::CopySelectedText()
+{
+    const DString selectedText = GetSelectedText();
+    if (selectedText.empty()) {
+        return false;
+    }
+    return Clipboard::SetClipboardText(StringConvert::TToWString(selectedText));
+}
+
+void RichTextImpl::SelectAll()
+{
+    if (!m_bEnableTextSelect) {
+        return;
+    }
+    //确保文本已经解析，才能获取文本内容
+    CheckParseText();
+    BuildSelectText();
+    if (m_selectText.empty()) {
+        ClearSelection();
+        return;
+    }
+    m_bSelecting = false;
+    if ((m_nSelectAnchor == 0) && (m_nSelectCaret == m_selectText.size())) {
+        return;
+    }
+    m_nSelectAnchor = 0;
+    m_nSelectCaret = m_selectText.size();
+    Invalidate();
+}
+
+void RichTextImpl::ClearSelection()
+{
+    m_bSelecting = false;
+    if ((m_nSelectAnchor == 0) && (m_nSelectCaret == 0)) {
+        return;
+    }
+    m_nSelectAnchor = 0;
+    m_nSelectCaret = 0;
+    Invalidate();
+}
+
+void RichTextImpl::BuildSelectText() const
+{
+    m_selectText.clear();
+    for (const RichTextDataEx& textData : m_textData) {
+        if (textData.m_textView.empty()) {
+            continue;
+        }
+        m_selectText.append(textData.m_textView.data(), textData.m_textView.size());
+    }
+}
+
+void RichTextImpl::ResetTextSelect()
+{
+    m_nSelectAnchor = 0;
+    m_nSelectCaret = 0;
+    m_bSelecting = false;
+    InvalidateSelectLayout();
+}
+
+void RichTextImpl::InvalidateSelectLayout()
+{
+    m_selectRows.clear();
+    m_selectText.clear();
+    m_bSelectLayoutValid = false;
+    m_selectLayoutRect.Clear();
+}
+
+UiRect RichTextImpl::GetTextDrawRect(IRender* pRender)
+{
+    UiRect rc = m_pOwner->GetRect();
+    rc.Deflate(m_pOwner->GetControlPadding());
+    rc.Deflate(GetTextPadding());
+    if (rc.IsEmpty() || (pRender == nullptr)) {
+        return rc;
+    }
+
+    //如果设置了对齐方式，需要评估绘制位置
+    const uint32_t uTextStyle = GetTextStyle();
+    if ((uTextStyle & (TEXT_VCENTER | TEXT_BOTTOM))) {
+        //计算绘制所占的区域大小
+        UiRect rect;
+        CalcDestRect(pRender, rc, rect);
+        if (rect.Height() < rc.Height()) {
+            //垂直方向
+            const int32_t diff = rc.Height() - rect.Height();
+            if (uTextStyle & TEXT_VCENTER) {
+                rc.Offset(0, diff / 2);
+            }
+            else if (uTextStyle & TEXT_BOTTOM) {
+                rc.Offset(0, diff);
+            }
+        }
+    }
+    return rc;
+}
+
+bool RichTextImpl::UpdateTextSelectLayout(IRender* pRender)
+{
+    if (pRender == nullptr) {
+        return false;
+    }
+    //确保文本已经解析
+    CheckParseText();
+    const UiRect rcText = GetTextDrawRect(pRender);
+    if (rcText.IsEmpty()) {
+        InvalidateSelectLayout();
+        return false;
+    }
+    if (m_bSelectLayoutValid &&
+        (m_selectLayoutRect.Width() == rcText.Width()) &&
+        (m_selectLayoutRect.Height() == rcText.Height())) {
+        //文本区域的大小未变化，只需更新位置（控件移动后坐标系原点会变化）
+        m_selectLayoutRect = rcText;
+        return !m_selectRows.empty();
+    }
+    InvalidateSelectLayout();
+    BuildSelectText();
+    m_bSelectLayoutValid = true;
+    m_selectLayoutRect = rcText;
+    if (m_selectText.empty() || m_textData.empty()) {
+        return false;
+    }
+
+    //为每个物理行预分配数据结构（文本中的换行符及<hr>都会产生新的物理行）
+    uint32_t nLineCount = 1;
+    for (const wchar_t ch : m_selectText) {
+        if (ch == L'\n') {
+            ++nLineCount;
+        }
+    }
+    for (const RichTextDataEx& textData : m_textData) {
+        if (textData.m_bHorizontalRule) {
+            nLineCount += 2;
+        }
+    }
+    nLineCount += 2; //预留余量，避免行数估算不足
+    RichTextLineInfoList lineInfoList;
+    lineInfoList.reserve(nLineCount);
+    for (uint32_t nLine = 0; nLine < nLineCount; ++nLine) {
+        lineInfoList.emplace_back(RichTextLineInfoPtr(new RichTextLineInfo));
+    }
+    RichTextLineInfoParam lineInfoParam;
+    lineInfoParam.m_pLineInfoList = &lineInfoList;
+
+    //测量用的数据（与绘制时保持一致，颜色不影响排版结果）
+    std::vector<RichTextData> measureTextData;
+    measureTextData.reserve(m_textData.size());
+    for (const RichTextDataEx& textData : m_textData) {
+        measureTextData.push_back(textData);
+    }
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    pRender->MeasureRichText2(rcText, UiSize(), pRenderFactory, measureTextData, &lineInfoParam, nullptr);
+
+    //逐行构建字符的几何信息（行内坐标是相对文本区域左上角的坐标）
+    const int32_t nAvailableWidth = rcText.Width();
+    const uint32_t uTextStyle = GetTextStyle();
+    size_t nCharOffset = 0;
+    m_selectRows.reserve(lineInfoList.size() * 2);
+    for (const RichTextLineInfoPtr& lineInfoPtr : lineInfoList) {
+        if (lineInfoPtr == nullptr) {
+            continue;
+        }
+        for (const RichTextRowInfoPtr& rowInfoPtr : lineInfoPtr->m_rowInfo) {
+            if ((rowInfoPtr == nullptr) || rowInfoPtr->m_charInfo.empty()) {
+                continue;
+            }
+            const RichTextRowInfo& rowInfo = *rowInfoPtr;
+            TextSelectRow selectRow;
+            selectRow.m_fLeft = rowInfo.m_rowRect.left;
+            selectRow.m_fRight = rowInfo.m_rowRect.right;
+            selectRow.m_nTop = (int32_t)rowInfo.m_rowRect.top;
+            selectRow.m_nBottom = (int32_t)rowInfo.m_rowRect.bottom;
+            selectRow.m_nFirstChar = nCharOffset;
+
+            //逐行水平对齐：测量结果中的坐标未包含对齐产生的偏移
+            const int32_t nRowWidth = (int32_t)rowInfo.m_rowRect.Width();
+            int32_t nXOffset = 0;
+            if ((nRowWidth > 0) && (nRowWidth < nAvailableWidth)) {
+                if (uTextStyle & DrawStringFormat::TEXT_HCENTER) {
+                    nXOffset = (nAvailableWidth - nRowWidth) / 2;
+                }
+                else if (uTextStyle & DrawStringFormat::TEXT_RIGHT) {
+                    nXOffset = nAvailableWidth - nRowWidth;
+                }
+            }
+            selectRow.m_fLeft += (float)nXOffset;
+            selectRow.m_fRight += (float)nXOffset;
+
+            selectRow.m_charWidths.reserve(rowInfo.m_charInfo.size());
+            for (const RichTextCharInfo& charInfo : rowInfo.m_charInfo) {
+                selectRow.m_charWidths.push_back(charInfo.CharWidth());
+            }
+            nCharOffset += rowInfo.m_charInfo.size();
+            m_selectRows.push_back(std::move(selectRow));
+        }
+    }
+    return !m_selectRows.empty();
+}
+
+size_t RichTextImpl::HitTestTextPos(const UiPoint& ptMouse) const
+{
+    if (m_selectRows.empty()) {
+        return 0;
+    }
+    //转换为相对文本区域的坐标
+    const int32_t nX = ptMouse.x - m_selectLayoutRect.left;
+    const int32_t nY = ptMouse.y - m_selectLayoutRect.top;
+
+    for (const TextSelectRow& selectRow : m_selectRows) {
+        if (nY < selectRow.m_nTop) {
+            //在第一行内文本的上方
+            return selectRow.m_nFirstChar;
+        }
+        if ((nY >= selectRow.m_nTop) && (nY < selectRow.m_nBottom)) {
+            //在本行内：按字符宽度查找插入位置
+            float fX = selectRow.m_fLeft;
+            const size_t nCharCount = selectRow.m_charWidths.size();
+            for (size_t nIndex = 0; nIndex < nCharCount; ++nIndex) {
+                const float fCharWidth = selectRow.m_charWidths[nIndex];
+                if (nX < (fX + fCharWidth * 0.5f)) {
+                    return selectRow.m_nFirstChar + nIndex;
+                }
+                fX += fCharWidth;
+            }
+            return selectRow.m_nFirstChar + nCharCount;
+        }
+    }
+    //在最后一行文本的下方
+    const TextSelectRow& lastRow = m_selectRows.back();
+    return lastRow.m_nFirstChar + lastRow.m_charWidths.size();
+}
+
+void RichTextImpl::GetSelectionRects(std::vector<UiRect>& selectionRects) const
+{
+    selectionRects.clear();
+    size_t nBegin = 0;
+    size_t nEnd = 0;
+    GetSelectionRange(nBegin, nEnd);
+    if ((nBegin >= nEnd) || m_selectRows.empty()) {
+        return;
+    }
+    for (const TextSelectRow& selectRow : m_selectRows) {
+        const size_t nRowCharCount = selectRow.m_charWidths.size();
+        if (nRowCharCount == 0) {
+            continue;
+        }
+        const size_t nRowBegin = selectRow.m_nFirstChar;
+        const size_t nRowEnd = nRowBegin + nRowCharCount;
+        if ((nEnd <= nRowBegin) || (nBegin >= nRowEnd)) {
+            continue;
+        }
+        const size_t nStart = (nBegin > nRowBegin) ? (nBegin - nRowBegin) : 0;
+        const size_t nStop = (nEnd < nRowEnd) ? (nEnd - nRowBegin) : nRowCharCount;
+        float fLeft = selectRow.m_fLeft;
+        for (size_t nIndex = 0; nIndex < nStart; ++nIndex) {
+            fLeft += selectRow.m_charWidths[nIndex];
+        }
+        float fRight = fLeft;
+        for (size_t nIndex = nStart; nIndex < nStop; ++nIndex) {
+            fRight += selectRow.m_charWidths[nIndex];
+        }
+        if (fRight <= fLeft) {
+            //仅选中了换行符等零宽字符
+            continue;
+        }
+        UiRect rcSelect;
+        rcSelect.left = (int32_t)fLeft;
+        rcSelect.top = selectRow.m_nTop;
+        rcSelect.right = (int32_t)CEILF(fRight);
+        rcSelect.bottom = selectRow.m_nBottom;
+        selectionRects.push_back(rcSelect);
+    }
+}
+
 bool RichTextImpl::AppendText(const DString& richText, bool bRedraw)
 {
     bool bResult = true;
@@ -1746,6 +2181,7 @@ bool RichTextImpl::AppendText(const DString& richText, bool bRedraw)
     m_spDrawRichTextCache.reset();
     m_bCachedTextRectValid = false;
     m_nHoveredLinkGroup = -1;
+    ResetTextSelect();
     if (bRedraw) {
         Redraw();
     }
@@ -1754,10 +2190,24 @@ bool RichTextImpl::AppendText(const DString& richText, bool bRedraw)
 
 bool RichTextImpl::OnKeyDown(const EventArgs& msg)
 {
+    if (!m_pOwner->IsFocused()) {
+        return false;
+    }
+    //文本选择的快捷键：Ctrl+A（全选）、Ctrl+C（复制）
+    if (m_bEnableTextSelect && ((msg.modifierKey & kControl) != 0)) {
+        if (msg.vkCode == kVK_A) {
+            SelectAll();
+            return true;
+        }
+        if (msg.vkCode == kVK_C) {
+            return CopySelectedText();
+        }
+    }
+
     std::vector<size_t> groupStartIndexes;
     std::vector<DString> groupUrls;
     GetLinkGroups(groupStartIndexes, groupUrls);
-    if (groupUrls.empty() || !m_pOwner->IsFocused()) {
+    if (groupUrls.empty()) {
         return false;
     }
     const int32_t nGroupCount = (int32_t)groupUrls.size();
