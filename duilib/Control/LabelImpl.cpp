@@ -15,7 +15,6 @@ namespace ui
 LabelImpl::LabelImpl(Control* pOwner):
     m_pOwner(pOwner),
     m_sFontId(),
-    m_nFontIdVersion(0),
     m_uTextStyle(TEXT_LEFT | TEXT_VCENTER | TEXT_END_ELLIPSIS | TEXT_SINGLELINE),
     m_bSingleLine(true),
     m_bAutoShowToolTipEnabled(false),
@@ -33,10 +32,8 @@ LabelImpl::LabelImpl(Control* pOwner):
     m_sTextCache(),
     m_bTextCacheValid(false),
     m_pFont(nullptr),
-    m_nFontCacheIdVersion(0),
-    m_nFontCacheDpiScale(0),
     m_nFontCacheVersion(0),
-    m_pToolTipCache()
+    m_pExtras()
 {
     Box* pBox = dynamic_cast<Box*>(pOwner);
     if (pBox != nullptr) {
@@ -51,7 +48,7 @@ LabelImpl::LabelImpl(Control* pOwner):
 
 LabelImpl::~LabelImpl()
 {
-    m_pTextDrawer.reset();
+    m_pExtras.reset();
 }
 
 bool LabelImpl::OnSetAttribute(const DString& strName, const DString& strValue)
@@ -218,8 +215,8 @@ bool LabelImpl::OnSetAttribute(const DString& strName, const DString& strValue)
 void LabelImpl::OnWindowChanged()
 {
     //RichText模式时，绘制缓存需要重新生成；同时同步RichText关联的窗口
-    if (m_pTextDrawer != nullptr) {
-        m_pTextDrawer->OnWindowChanged(m_pOwner);
+    if ((m_pExtras != nullptr) && (m_pExtras->m_pTextDrawer != nullptr)) {
+        m_pExtras->m_pTextDrawer->OnWindowChanged(m_pOwner);
     }
     InvalidateTextCache();
     InvalidateMeasureCache();
@@ -228,9 +225,7 @@ void LabelImpl::OnWindowChanged()
 void LabelImpl::OnLanguageChanged()
 {
     //RichText模式时，绘制缓存需要重新生成；必须先失效缓存，再重新测量
-    if (m_pTextDrawer != nullptr) {
-        m_pTextDrawer->SetTextChanged();
-    }
+    InvalidateRichTextCache();
     InvalidateTextCache();
     InvalidateMeasureCache();
     CheckShowToolTip();
@@ -238,6 +233,9 @@ void LabelImpl::OnLanguageChanged()
 
 void LabelImpl::OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t /*nNewDpiScale*/)
 {
+    //DPI变化后，字体缓存需要重新查询
+    m_pFont = nullptr;
+
     UiPadding rcTextPadding = GetTextPadding();
     rcTextPadding = m_pOwner->Dpi().GetScalePadding(rcTextPadding, nOldDpiScale);
     SetTextPadding(rcTextPadding, false);
@@ -253,9 +251,7 @@ void LabelImpl::OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t /*nNewDpiScale
     SetWordSpacing(fWordSpacing, false);
 
     //RichText模式时，绘制缓存需要重新生成
-    if (m_pTextDrawer != nullptr) {
-        m_pTextDrawer->SetTextChanged();
-    }
+    InvalidateRichTextCache();
 }
 
 uint32_t LabelImpl::GetValidTextStyle(uint32_t nTextFormat)
@@ -343,9 +339,7 @@ void LabelImpl::SetText(const DString& strText)
     InvalidateMeasureCache();
     //必须先使RichText的解析缓存失效，再重新布局：
     //重新布局时会重新测量文本（OnEstimateText），若缓存未失效，自动宽高会按旧文本计算
-    if (m_pTextDrawer != nullptr) {
-        m_pTextDrawer->SetTextChanged();
-    }
+    InvalidateRichTextCache();
     m_pOwner->RelayoutOrRedraw();
     CheckShowToolTip();
 }
@@ -364,9 +358,7 @@ void LabelImpl::SetTextId(const DString& strTextId)
     InvalidateTextCache();
     InvalidateMeasureCache();
     //先使RichText的解析缓存失效，再重新布局，避免自动宽高使用旧语言的文本计算
-    if (m_pTextDrawer != nullptr) {
-        m_pTextDrawer->SetTextChanged();
-    }
+    InvalidateRichTextCache();
     m_pOwner->RelayoutOrRedraw();
     CheckShowToolTip();
 }
@@ -416,9 +408,7 @@ void LabelImpl::SetRichText(bool bRichText)
     if (m_bRichText != bRichText) {
         m_bRichText = bRichText;
         //普通文本与富文本的解析、测量结果不同，需要使绘制缓存失效并重新布局
-        if (m_pTextDrawer != nullptr) {
-            m_pTextDrawer->SetTextChanged();
-        }
+        InvalidateRichTextCache();
         InvalidateMeasureCache();
         m_pOwner->RelayoutOrRedraw();
         CheckShowToolTip();
@@ -464,9 +454,7 @@ void LabelImpl::SetReplaceNewline(bool bReplaceNewline)
         //换行符替换会改变实际显示的文本内容，需要使解析缓存失效并重新布局
         InvalidateTextCache();
         InvalidateMeasureCache();
-        if (m_pTextDrawer != nullptr) {
-            m_pTextDrawer->SetTextChanged();
-        }
+        InvalidateRichTextCache();
         m_pOwner->RelayoutOrRedraw();
         CheckShowToolTip();
     }
@@ -660,10 +648,7 @@ void LabelImpl::CheckShowToolTip()
     //（缓存对象仅在启用auto_tooltip时创建，未使用该功能的控件不占用这部分内存）
     const uint32_t nDpiScale = m_pOwner->Dpi().GetDisplayScaleFactor();
     const uint32_t nFontVersion = GlobalManager::Instance().Font().GetCacheVersion();
-    if (m_pToolTipCache == nullptr) {
-        m_pToolTipCache = std::make_unique<ToolTipCache>();
-    }
-    ToolTipCache& cache = *m_pToolTipCache;
+    ToolTipCache& cache = EnsureToolTipCache();
     if (cache.m_bValid &&
         (cache.m_nFontVersion == nFontVersion) &&
         (cache.m_nRectSize == rectSize) &&
@@ -698,21 +683,15 @@ void LabelImpl::InvalidateTextCache()
 void LabelImpl::InvalidateMeasureCache()
 {
     //ToolTip缓存对象未创建时无需处理
-    if (m_pToolTipCache != nullptr) {
-        m_pToolTipCache->m_bValid = false;
+    if (m_pExtras != nullptr) {
+        m_pExtras->m_toolTipCache.m_bValid = false;
     }
 }
 
 IFont* LabelImpl::GetFont() const
 {
-    const uint32_t nDpiScale = m_pOwner->Dpi().GetDisplayScaleFactor();
     const uint32_t nFontCacheVersion = GlobalManager::Instance().Font().GetCacheVersion();
-    if ((m_pFont == nullptr) ||
-        (m_nFontCacheVersion != nFontCacheVersion) ||
-        (m_nFontCacheDpiScale != nDpiScale) ||
-        (m_nFontCacheIdVersion != m_nFontIdVersion)) {
-        m_nFontCacheIdVersion = m_nFontIdVersion;
-        m_nFontCacheDpiScale = nDpiScale;
+    if ((m_pFont == nullptr) || (m_nFontCacheVersion != nFontCacheVersion)) {
         m_nFontCacheVersion = nFontCacheVersion;
         m_pFont = m_pOwner->GetIFontById(m_sFontId.c_str());
     }
@@ -721,11 +700,32 @@ IFont* LabelImpl::GetFont() const
 
 TextDrawer* LabelImpl::GetTextDrawer()
 {
-    if ((m_pTextDrawer == nullptr) && m_bRichText) {
-        //仅RichText模式需要TextDrawer；普通文本直接调用渲染接口，避免每个控件都分配该对象
-        m_pTextDrawer = std::make_unique<TextDrawer>();
+    if (!m_bRichText) {
+        //普通文本不需要TextDrawer，直接调用渲染接口，避免每个控件都分配该对象
+        return nullptr;
     }
-    return m_pTextDrawer.get();
+    if (m_pExtras == nullptr) {
+        m_pExtras = std::make_unique<Extras>();
+    }
+    if (m_pExtras->m_pTextDrawer == nullptr) {
+        m_pExtras->m_pTextDrawer = std::make_unique<TextDrawer>();
+    }
+    return m_pExtras->m_pTextDrawer.get();
+}
+
+void LabelImpl::InvalidateRichTextCache()
+{
+    if ((m_pExtras != nullptr) && (m_pExtras->m_pTextDrawer != nullptr)) {
+        m_pExtras->m_pTextDrawer->SetTextChanged();
+    }
+}
+
+LabelImpl::ToolTipCache& LabelImpl::EnsureToolTipCache()
+{
+    if (m_pExtras == nullptr) {
+        m_pExtras = std::make_unique<Extras>();
+    }
+    return m_pExtras->m_toolTipCache;
 }
 
 UiRect LabelImpl::MeasureText(IRender* pRender, const DString& strText, const MeasureStringParam& measureParam)
@@ -1062,7 +1062,7 @@ void LabelImpl::SetFontId(const DString& strFontId)
     }
     m_sFontId = strFontId;
     //字体ID变化，字体缓存中的IFont*需要重新查询
-    ++m_nFontIdVersion;
+    m_pFont = nullptr;
     //字体变化会影响文本的测量结果，需要重新布局
     InvalidateMeasureCache();
     m_pOwner->RelayoutOrRedraw();

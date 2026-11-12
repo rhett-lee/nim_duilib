@@ -50,9 +50,9 @@ private:
     */
     Control* m_pControl;
 
-    /** 状态与颜色值的映射表
+    /** 状态与颜色值的映射表（状态数量固定为kControlStateCount，使用内置数组，避免额外的堆分配）
     */
-    std::vector<UiString> m_stateColors;
+    UiString m_stateColors[kControlStateCount];
 };
 
 } // namespace ui

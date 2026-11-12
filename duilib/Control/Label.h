@@ -257,21 +257,20 @@ protected:
     void DoPaintText(const UiRect& rc, IRender* pRender);
 
 private:
-    //功能内部实现
-    std::unique_ptr<LabelImpl> m_impl;
+    //功能内部实现（内嵌成员：与控件在同一块内存中，避免额外的堆分配并提高访问性能）
+    LabelImpl m_impl;
 };
 
 template<typename T>
 LabelTemplate<T>::LabelTemplate(Window* pWindow) :
-    T(pWindow)
+    T(pWindow),
+    m_impl(this)
 {
-    m_impl = std::make_unique<LabelImpl>(this);
 }
 
 template<typename T>
 LabelTemplate<T>::~LabelTemplate()
 {
-    m_impl.reset();
 }
 
 template<typename T>
@@ -290,7 +289,7 @@ template<typename T>
 void LabelTemplate<T>::SetAttribute(const DString& strName, const DString& strValue2)
 {
     DString strValue = this->GetExpandVarStrings(strValue2);
-    if (!m_impl->OnSetAttribute(strName, strValue)) {
+    if (!m_impl.OnSetAttribute(strName, strValue)) {
         BaseClass::SetAttribute(strName, strValue);
     }
 }
@@ -301,7 +300,7 @@ void LabelTemplate<T>::SetWindow(Window* pWindow)
     Window* pOldWindow = this->GetWindow();
     BaseClass::SetWindow(pWindow);
     if (pOldWindow != pWindow) {
-        m_impl->OnWindowChanged();
+        m_impl.OnWindowChanged();
     }
 }
 
@@ -311,7 +310,7 @@ void LabelTemplate<T>::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiSca
     if (!this->Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
-    m_impl->OnDpiScaleChanged(nOldDpiScale, nNewDpiScale);
+    m_impl.OnDpiScaleChanged(nOldDpiScale, nNewDpiScale);
     BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
@@ -321,7 +320,7 @@ void LabelTemplate<T>::OnLanguageChanged(bool bRedraw)
     BaseClass::OnLanguageChanged(bRedraw);
     //先更新文本缓存与ToolTip数据，再重新布局：
     //重新布局时会重新测量文本，若缓存未失效，自动宽高会按旧语言的文本计算
-    m_impl->OnLanguageChanged();
+    m_impl.OnLanguageChanged();
     this->RelayoutOrRedraw();
 }
 
@@ -334,104 +333,104 @@ uint32_t LabelTemplate<T>::GetValidTextStyle(uint32_t nTextFormat)
 template<typename T>
 void LabelTemplate<T>::SetAutoToolTip(bool bAutoShow)
 {
-    m_impl->SetAutoShowToolTipEnabled(bAutoShow);
+    m_impl.SetAutoShowToolTipEnabled(bAutoShow);
 }
 
 template<typename T>
 bool LabelTemplate<T>::IsAutoToolTip() const
 {
-    return m_impl->IsAutoShowToolTipEnabled();
+    return m_impl.IsAutoShowToolTipEnabled();
 }
 
 template<typename T>
 void LabelTemplate<T>::SetReplaceNewline(bool bReplaceNewline)
 {
-    m_impl->SetReplaceNewline(bReplaceNewline);
+    m_impl.SetReplaceNewline(bReplaceNewline);
 }
 
 template<typename T>
 bool LabelTemplate<T>::IsReplaceNewline() const
 {
-    return m_impl->IsReplaceNewline();
+    return m_impl.IsReplaceNewline();
 }
 
 template<typename T>
 void LabelTemplate<T>::SetVerticalText(bool bVerticalText)
 {
-    m_impl->SetVerticalText(bVerticalText);
+    m_impl.SetVerticalText(bVerticalText);
 }
 
 template<typename T>
 bool LabelTemplate<T>::IsVerticalText() const
 {
-    return m_impl->IsVerticalText();
+    return m_impl.IsVerticalText();
 }
 
 template<typename T>
 void LabelTemplate<T>::SetLineSpacing(float mul, float add, bool bNeedDpiScale)
 {
-    m_impl->SetLineSpacing(mul, add, bNeedDpiScale);
+    m_impl.SetLineSpacing(mul, add, bNeedDpiScale);
 }
 
 template<typename T>
 void LabelTemplate<T>::GetLineSpacing(float* mul, float* add) const
 {
-    m_impl->GetLineSpacing(mul, add);
+    m_impl.GetLineSpacing(mul, add);
 }
 
 template<typename T>
 void LabelTemplate<T>::SetWordSpacing(float fWordSpacing, bool bNeedDpiScale)
 {
-    m_impl->SetWordSpacing(fWordSpacing, bNeedDpiScale);
+    m_impl.SetWordSpacing(fWordSpacing, bNeedDpiScale);
 }
 
 template<typename T>
 float LabelTemplate<T>::GetWordSpacing() const
 {
-    return m_impl->GetWordSpacing();
+    return m_impl.GetWordSpacing();
 }
 
 template<typename T>
 void LabelTemplate<T>::SetUseFontHeight(bool bUseFontHeight)
 {
-    m_impl->SetUseFontHeight(bUseFontHeight);
+    m_impl.SetUseFontHeight(bUseFontHeight);
 }
 
 template<typename T>
 bool LabelTemplate<T>::IsUseFontHeight() const
 {
-    return m_impl->IsUseFontHeight();
+    return m_impl.IsUseFontHeight();
 }
 
 template<typename T>
 void LabelTemplate<T>::SetRotate90ForAscii(bool bRotate90ForAscii)
 {
-    m_impl->SetRotate90ForAscii(bRotate90ForAscii);
+    m_impl.SetRotate90ForAscii(bRotate90ForAscii);
 }
 
 template<typename T>
 bool LabelTemplate<T>::IsRotate90ForAscii() const
 {
-    return m_impl->IsRotate90ForAscii();
+    return m_impl.IsRotate90ForAscii();
 }
 
 template<typename T>
 MeasureStringParam LabelTemplate<T>::GetMeasureParam() const
 {
-    return m_impl->GetMeasureParam();
+    return m_impl.GetMeasureParam();
 }
 
 template<typename T>
 DrawStringParam LabelTemplate<T>::GetDrawParam() const
 {
-    return m_impl->GetDrawParam();
+    return m_impl.GetDrawParam();
 }
 
 template<typename T /*= Control*/>
 void ui::LabelTemplate<T>::SetPos(UiRect rc)
 {
     BaseClass::SetPos(rc);
-    m_impl->CheckShowToolTip();
+    m_impl.CheckShowToolTip();
 }
 
 template<typename T>
@@ -439,7 +438,7 @@ DString LabelTemplate<T>::GetToolTipText() const
 {
     DString toolTip = BaseClass::GetToolTipText();
     if (toolTip.empty()) {
-        toolTip = m_impl->GetAutoToolTipText();
+        toolTip = m_impl.GetAutoToolTipText();
     }
     return toolTip;
 }
@@ -447,67 +446,67 @@ DString LabelTemplate<T>::GetToolTipText() const
 template<typename T>
 DString LabelTemplate<T>::GetText() const
 {
-    return m_impl->GetText();
+    return m_impl.GetText();
 }
 
 template<typename T>
 void LabelTemplate<T>::SetText(const DString& strText)
 {
-    m_impl->SetText(strText);
+    m_impl.SetText(strText);
 }
 
 template<typename T>
 DString LabelTemplate<T>::GetTextId() const
 {
-    return m_impl->GetTextId();
+    return m_impl.GetTextId();
 }
 
 template<typename T>
 void LabelTemplate<T>::SetTextId(const DString& strTextId)
 {
-    m_impl->SetTextId(strTextId);
+    m_impl.SetTextId(strTextId);
 }
 
 template<typename T>
 std::string LabelTemplate<T>::GetUTF8Text() const
 {
-    return m_impl->GetUTF8Text();
+    return m_impl.GetUTF8Text();
 }
 
 template<typename T>
 void LabelTemplate<T>::SetUTF8Text(const std::string& strText)
 {
-    m_impl->SetUTF8Text(strText);
+    m_impl.SetUTF8Text(strText);
 }
 
 template<typename T>
 void LabelTemplate<T>::SetUTF8TextId(const std::string& strTextId)
 {
-    m_impl->SetUTF8TextId(strTextId);
+    m_impl.SetUTF8TextId(strTextId);
 }
 
 template<typename T>
 std::string LabelTemplate<T>::GetUTF8TextId() const
 {
-    return m_impl->GetUTF8TextId();
+    return m_impl.GetUTF8TextId();
 }
 
 template<typename T>
 void LabelTemplate<T>::SetRichText(bool bRichText)
 {
-    m_impl->SetRichText(bRichText);
+    m_impl.SetRichText(bRichText);
 }
 
 template<typename T>
 bool LabelTemplate<T>::IsRichText() const
 {
-    return m_impl->IsRichText();
+    return m_impl.IsRichText();
 }
 
 template<typename T>
 bool LabelTemplate<T>::IsTextEquals(const DString& text) const
 {
-    return m_impl->IsTextEquals(text);
+    return m_impl.IsTextEquals(text);
 }
 
 template<typename T>
@@ -516,103 +515,103 @@ bool LabelTemplate<T>::HasHoveredState()
     if (BaseClass::HasHoveredState()) {
         return true;
     }
-    return m_impl->HasHoveredStateColor();
+    return m_impl.HasHoveredStateColor();
 }
 
 template<typename T>
 UiSize LabelTemplate<T>::EstimateText(UiSize szAvailable)
 {
-    return m_impl->OnEstimateText(szAvailable);
+    return m_impl.OnEstimateText(szAvailable);
 }
 
 template<typename T>
 UiSize LabelTemplate<T>::EstimateTextWith(const DString& textValue, UiSize szAvailable)
 {
-    return m_impl->OnEstimateTextWith(textValue, szAvailable);
+    return m_impl.OnEstimateTextWith(textValue, szAvailable);
 }
 
 template<typename T>
 void LabelTemplate<T>::PaintText(IRender* pRender)
 {
-    m_impl->OnPaintText(pRender);
+    m_impl.OnPaintText(pRender);
 }
 
 template<typename T>
 void LabelTemplate<T>::SetTextStyle(uint32_t uStyle, bool bRedraw)
 {
-    m_impl->SetTextStyle(uStyle, bRedraw);
+    m_impl.SetTextStyle(uStyle, bRedraw);
 }
 
 template<typename T>
 void LabelTemplate<T>::SetDefaultTextStyle(bool bRedraw)
 {
-    m_impl->SetDefaultTextStyle(bRedraw);
+    m_impl.SetDefaultTextStyle(bRedraw);
 }
 
 template<typename T>
 uint32_t LabelTemplate<T>::GetTextStyle() const
 {
-    return m_impl->GetTextStyle();
+    return m_impl.GetTextStyle();
 }
 
 template<typename T>
 DString LabelTemplate<T>::GetStateTextColor(ControlStateType stateType) const
 {
-    return m_impl->GetStateTextColor(stateType);
+    return m_impl.GetStateTextColor(stateType);
 }
 
 template<typename T>
 void LabelTemplate<T>::SetStateTextColor(ControlStateType stateType, const DString& dwTextColor)
 {
-    m_impl->SetStateTextColor(stateType, dwTextColor);
+    m_impl.SetStateTextColor(stateType, dwTextColor);
 }
 
 template<typename T /*= Control*/>
 DString ui::LabelTemplate<T>::GetPaintStateTextColor(ControlStateType buttonStateType, ControlStateType& stateType)
 {
-    return m_impl->GetPaintStateTextColor(buttonStateType, stateType);
+    return m_impl.GetPaintStateTextColor(buttonStateType, stateType);
 }
 
 template<typename T>
 DString LabelTemplate<T>::GetFontId() const
 {
-    return m_impl->GetFontId();
+    return m_impl.GetFontId();
 }
 
 template<typename T>
 void LabelTemplate<T>::SetFontId(const DString& strFontId)
 {
-    m_impl->SetFontId(strFontId);
+    m_impl.SetFontId(strFontId);
 }
 
 template<typename T>
 UiPadding LabelTemplate<T>::GetTextPadding() const
 {
-    return m_impl->GetTextPadding();
+    return m_impl.GetTextPadding();
 }
 
 template<typename T>
 void LabelTemplate<T>::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
 {
-    m_impl->SetTextPadding(padding, bNeedDpiScale);   
+    m_impl.SetTextPadding(padding, bNeedDpiScale);   
 }
 
 template<typename T>
 bool LabelTemplate<T>::IsSingleLine() const
 {
-    return m_impl->IsSingleLine();
+    return m_impl.IsSingleLine();
 }
 
 template<typename T>
 void LabelTemplate<T>::SetSingleLine(bool bSingleLine)
 {
-    m_impl->SetSingleLine(bSingleLine);
+    m_impl.SetSingleLine(bSingleLine);
 }
 
 template<typename T>
 void LabelTemplate<T>::DoPaintText(const UiRect& rc, IRender* pRender)
 {
-    m_impl->DoPaintText(rc, pRender);
+    m_impl.DoPaintText(rc, pRender);
 }
 
 typedef LabelTemplate<Control> Label;

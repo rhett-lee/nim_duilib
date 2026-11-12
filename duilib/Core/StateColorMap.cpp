@@ -10,14 +10,13 @@ StateColorMap::StateColorMap(Control* pControl):
     m_pControl(pControl)
 {
     ASSERT(kControlStateCount > 0);
-    m_stateColors.resize(kControlStateCount);
 }
 
 void StateColorMap::SetStateColor(ControlStateType stateType, const DString& color)
 {
     size_t nIndex = (size_t)stateType;
-    ASSERT(nIndex < m_stateColors.size());
-    if (nIndex < m_stateColors.size()) {
+    ASSERT(nIndex < kControlStateCount);
+    if (nIndex < kControlStateCount) {
         m_stateColors[nIndex] = color;
     }
 }
@@ -40,7 +39,7 @@ bool StateColorMap::HasStateColors() const
 bool StateColorMap::HasStateColor(ControlStateType stateType) const
 {
     size_t nIndex = (size_t)stateType;
-    if (nIndex < m_stateColors.size()) {
+    if (nIndex < kControlStateCount) {
         return !m_stateColors[nIndex].empty();
     }
     return false;
@@ -49,7 +48,7 @@ bool StateColorMap::HasStateColor(ControlStateType stateType) const
 bool StateColorMap::EqualsStateColor(ControlStateType stateType, const DString& color) const
 {
     size_t nIndex = (size_t)stateType;
-    if (nIndex < m_stateColors.size()) {
+    if (nIndex < kControlStateCount) {
         return StringUtil::StringCompare(m_stateColors[nIndex].c_str(), color.c_str()) == 0;
     }
     return false;
@@ -58,7 +57,7 @@ bool StateColorMap::EqualsStateColor(ControlStateType stateType, const DString& 
 DString StateColorMap::GetStateColor(ControlStateType stateType) const
 {
     size_t nIndex = (size_t)stateType;
-    if (nIndex < m_stateColors.size()) {
+    if (nIndex < kControlStateCount) {
         return m_stateColors[nIndex].c_str();
     }
     return DString();

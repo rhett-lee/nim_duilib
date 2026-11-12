@@ -312,6 +312,18 @@ private:
     */
     TextDrawer* GetTextDrawer();
 
+    /** 使RichText的解析缓存失效（未创建TextDrawer时无操作）
+    */
+    void InvalidateRichTextCache();
+
+    /** ToolTip测量结果的缓存（定义见下方成员变量区域）
+    */
+    struct ToolTipCache;
+
+    /** ToolTip缓存的引用（首次使用时创建）
+    */
+    ToolTipCache& EnsureToolTipCache();
+
     /** 测量文本尺寸（RichText模式使用TextDrawer，普通文本直接使用渲染接口）
     */
     UiRect MeasureText(IRender* pRender, const DString& strText, const MeasureStringParam& measureParam);
@@ -325,10 +337,6 @@ private:
     */
     Control* m_pOwner;
 
-    /** 文本绘制的实现（仅在RichText模式下创建）
-    */
-    std::unique_ptr<TextDrawer> m_pTextDrawer;
-
     //文本内容
     UiString m_sText;
 
@@ -337,9 +345,6 @@ private:
 
     //字体ID
     UiString m_sFontId;
-
-    //字体ID的变更版本号（用于判断字体缓存中的IFont*是否需要重新查询）
-    uint32_t m_nFontIdVersion;
 
     //各个状态（默认/悬停/按下/禁用）的文本颜色映射表
     std::unique_ptr<StateColorMap> m_pTextColorMap;
@@ -395,12 +400,11 @@ private:
     mutable bool m_bTextCacheValid;
 
     //字体缓存：避免每次测量/绘制都查找字体；字体缓存版本变化时失效
+    //（字体ID变化、DPI变化时由SetFontId/OnDpiScaleChanged直接清空缓存，无需额外保存版本号）
     mutable IFont* m_pFont;
-    mutable uint32_t m_nFontCacheIdVersion;
-    mutable uint32_t m_nFontCacheDpiScale;
     mutable uint32_t m_nFontCacheVersion;
 
-    /** ToolTip测量结果的缓存（仅在启用auto_tooltip时分配，避免常规控件为未使用的功能付出内存）
+    /** ToolTip测量结果的缓存
     */
     struct ToolTipCache
     {
@@ -412,7 +416,20 @@ private:
         bool m_bValid = false;          //缓存是否有效
         bool m_bOverflow = false;       //缓存的结果：文本是否超出显示区域
     };
-    std::unique_ptr<ToolTipCache> m_pToolTipCache;
+
+    /** 可选功能的实现与缓存（TextDrawer与ToolTip缓存仅在需要时分配，避免普通控件付出这部分内存）
+    */
+    struct Extras
+    {
+        /** 文本绘制的实现（仅RichText模式下创建）
+        */
+        std::unique_ptr<TextDrawer> m_pTextDrawer;
+
+        /** ToolTip测量结果的缓存
+        */
+        ToolTipCache m_toolTipCache;
+    };
+    std::unique_ptr<Extras> m_pExtras;
 };
 
 }
