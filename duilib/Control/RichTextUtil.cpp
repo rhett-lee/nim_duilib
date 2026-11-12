@@ -141,11 +141,13 @@ bool IsSupportedRichTextTags(const DString& text)
 
 bool IsRichTextBlockTagName(const DString& tagName)
 {
-    return (tagName == _T("p")) ||
-           (tagName == _T("h1")) || (tagName == _T("h2")) || (tagName == _T("h3")) ||
-           (tagName == _T("h4")) || (tagName == _T("h5")) || (tagName == _T("h6")) ||
-           (tagName == _T("ul")) || (tagName == _T("ol")) || (tagName == _T("li")) ||
-           (tagName == _T("hr"));
+    //标签名称不区分大小写
+    const DString lowerTagName = StringUtil::MakeLowerString(tagName);
+    return (lowerTagName == _T("p")) ||
+           (lowerTagName == _T("h1")) || (lowerTagName == _T("h2")) || (lowerTagName == _T("h3")) ||
+           (lowerTagName == _T("h4")) || (lowerTagName == _T("h5")) || (lowerTagName == _T("h6")) ||
+           (lowerTagName == _T("ul")) || (lowerTagName == _T("ol")) || (lowerTagName == _T("li")) ||
+           (lowerTagName == _T("hr"));
 }
 
 bool HasRichTextVisibleText(const DString& text)
@@ -162,6 +164,8 @@ int8_t ParseRichTextHAlignValue(const DString& alignValue)
 {
     DString align = alignValue;
     StringUtil::Trim(align);
+    //取值不区分大小写（兼容 align="Center" 等写法）
+    StringUtil::LowerString(align);
     if (align == _T("center")) {
         return 1;
     }
@@ -219,10 +223,10 @@ DString TrimRichText(const DString& text, RichTextTrimPolicy policy)
         return text;
     }
 
-    //回车/换行/TAB键：替换为1个空格
+    //回车/换行：替换为1个空格（TAB保留，用于绘制制表位）
     DString tempText = text;
     for (DString::value_type& ch : tempText) {
-        if ((ch == _T('\r')) || (ch == _T('\n')) || (ch == _T('\t'))) {
+        if ((ch == _T('\r')) || (ch == _T('\n'))) {
             ch = _T(' ');
         }
     }

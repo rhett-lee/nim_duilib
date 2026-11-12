@@ -292,6 +292,12 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
     int32_t nTruncatedRowTop = 0;
     bool bTruncatedEllipsis = true;
 
+    //发生截断时所在的文本片段索引（用于省略号的绘制区域归属）
+    uint32_t nTruncatedDataIndex = 0;
+
+    //是否因不换行文本超出可视宽度而在当前行（尚未换行的行）被截断
+    bool bTruncatedAtCurrentRow = false;
+
     // const DString statHashBreakName = _T("DrawRichText::InternalDrawRichText Break");
     // PerformanceUtil::Instance().AddStat(statHashBreakName);
     // static const size_t statHashBreak = std::hash<DString>{}(statHashBreakName); //2710 ms
@@ -346,6 +352,7 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                 bTruncated = true;
                 nTruncatedRowTop = (int32_t)(yPos - nHrHeight);
                 bTruncatedEllipsis = textData.m_bTextOverflowEllipsis;
+                nTruncatedDataIndex = (uint32_t)index;
                 break;
             }
             continue;
@@ -424,6 +431,10 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
         const uint32_t uTextStyle = textData.m_textStyle;
         const bool bSingleLineMode = (uTextStyle & DrawStringFormat::TEXT_SINGLELINE) ? true : false; //是否为单行模式，单行模式下，不换行
         const bool bWordWrap = bSingleLineMode ? false : ((uTextStyle & DrawStringFormat::TEXT_WORD_WRAP) ? true : false);
+        //不换行/单行模式下：测量时按内容完整宽度布局；生成绘制缓存（实际绘制）时按可视宽度裁剪，避免越界绘制
+        //注意：带行信息的测量（pLineInfoParam != nullptr，如RichEdit的排版与光标定位）必须按完整内容测量，
+        //因此只对纯绘制缓存（pLineInfoParam == nullptr）启用裁剪
+        const bool bClipNoWrapText = (!bWordWrap || bSingleLineMode) && (pDrawRichTextCache != nullptr) && (pLineInfoParam == nullptr);
         bool bBreakAll = false;//标记是否终止
 
         if (textData.m_pImage != nullptr) {
@@ -461,6 +472,7 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                     bTruncated = true;
                     nTruncatedRowTop = (int32_t)(yPos - rowHeightVector[nRowIndex - 1]);
                     bTruncatedEllipsis = textData.m_bTextOverflowEllipsis;
+                    nTruncatedDataIndex = (uint32_t)index;
                     bBreakAll = true;
                     break;
                 }
@@ -560,6 +572,7 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                             bTruncated = true;
                             nTruncatedRowTop = (int32_t)(yPos - rowHeightVector[nRowIndex - 1]);
                             bTruncatedEllipsis = textData.m_bTextOverflowEllipsis;
+                            nTruncatedDataIndex = (uint32_t)index;
                             bBreakAll = true;
                             break;
                         }
@@ -576,8 +589,11 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                 size_t byteLength = (textCount - textStartIndex) * textCharSize;                
                 SkScalar maxWidth = SkIntToScalar(rcDrawRect.right) - xPos;//可用宽度
                 if (!bWordWrap || bSingleLineMode) {
-                    //不自动换行 或者 单行模式
-                    maxWidth = SK_FloatInfinity;
+                    //不自动换行 或者 单行模式：测量时使用完整内容宽度；
+                    //生成绘制缓存（实际绘制）时按可视宽度裁剪，避免文本越界绘制
+                    if (!bClipNoWrapText) {
+                        maxWidth = SK_FloatInfinity;
+                    }
                 }
                 //if (maxWidth <= 0.0f) {
                 //    ASSERT(maxWidth > 0);
@@ -624,6 +640,21 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                                                           byteLength, textEncoding,
                                                           skFont, fallbackFontCreator, skPaint,
                                                           maxWidth, &textMeasuredWidth, 
+                                                          measureTempData, &breakTextData);
+                }
+
+                if (bClipNoWrapText && (nDrawLength < byteLength) && textData.m_bTextOverflowEllipsis && !bDrawTabChar) {
+                    //不换行文本：剩余内容超出可视宽度，为末尾的省略号预留宽度后重新断行，
+                    //避免省略号覆盖最后一个可见字符
+                    const SkScalar fEllipsisWidth = skFont.measureText(g_ellipsisText, sizeof(DStringW::value_type), textEncoding, nullptr, &skPaint);
+                    maxWidth = std::max(maxWidth - fEllipsisWidth, 0.0f);
+                    breakTextData.glyphIDs.clear();
+                    breakTextData.glyphChars.clear();
+                    breakTextData.glyphWidths.clear();
+                    nDrawLength = DrawSkiaText::BreakText(lineTextView.data() + textStartIndex,
+                                                          byteLength, textEncoding,
+                                                          skFont, fallbackFontCreator, skPaint,
+                                                          maxWidth, &textMeasuredWidth,
                                                           measureTempData, &breakTextData);
                 }
 
@@ -682,6 +713,14 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                     const bool bAtRowStart = (xPos <= SkIntToScalar(rcDrawRect.left));
                     if (!bWordWrap || bSingleLineMode || bAtRowStart) {
                         //出错了(不能换行，或者换行后依然不够)
+                        if (bClipNoWrapText) {
+                            //不可换行文本超出可视宽度：按截断处理（必要时在行末追加省略号）
+                            bTruncated = true;
+                            bTruncatedAtCurrentRow = true;
+                            bTruncatedEllipsis = textData.m_bTextOverflowEllipsis;
+                            nTruncatedRowTop = yPos;
+                            nTruncatedDataIndex = (uint32_t)index;
+                        }
                         bBreakAll = true;
                         break;
                     }
@@ -728,6 +767,17 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                             glyphLeft += glyphWidth;
                         }
                     }
+                }
+
+                if (bClipNoWrapText && (nDrawLength < byteLength)) {
+                    //不可换行文本超出可视宽度：截断剩余内容，必要时在行末追加省略号
+                    bTruncated = true;
+                    bTruncatedAtCurrentRow = true;
+                    bTruncatedEllipsis = textData.m_bTextOverflowEllipsis;
+                    nTruncatedRowTop = yPos;
+                    nTruncatedDataIndex = (uint32_t)index;
+                    bBreakAll = true;
+                    break;
                 }
 
                 bool bNextRow = false; //是否需要换行的标志
@@ -781,6 +831,7 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                         bTruncated = true;
                         nTruncatedRowTop = (int32_t)(yPos - rowHeightVector[nRowIndex - 1]);
                         bTruncatedEllipsis = textData.m_bTextOverflowEllipsis;
+                        nTruncatedDataIndex = (uint32_t)index;
                         bBreakAll = true;
                         break;
                     }
@@ -801,14 +852,18 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
         }
     }
 
-    //记录最后一行的行高
-    SaveRowHeight(rowHeightVector, nRowIndex, nRowHeight);
-    SaveRowWidth(rowWidthVector, nRowIndex, SkScalarCeilToInt(rowRightX - rcDrawRect.left));
-    SaveRowTopOffset(rowTopOffsetVector, nRowIndex, nRowTopOffset);
+    //记录最后一行的行高：最后一行没有内容时不计入（如文本以换行结尾），避免多算一行；
+    //不换行文本在当前行被截断时，即使该行还没有绘制任何文本，也需要记录行高（用于绘制省略号）
+    if (bRowHasText || rowHeightVector.empty() || bTruncatedAtCurrentRow) {
+        SaveRowHeight(rowHeightVector, nRowIndex, nRowHeight);
+        SaveRowWidth(rowWidthVector, nRowIndex, SkScalarCeilToInt(rowRightX - rcDrawRect.left));
+        SaveRowTopOffset(rowTopOffsetVector, nRowIndex, nRowTopOffset);
+    }
 
-    //超过最大行数：在最后一行的末尾追加省略号（text_overflow="clip"时不追加）
-    if (bTruncated && bTruncatedEllipsis && (spLastSkiaFont != nullptr) && (nRowIndex > 0)) {
-        const uint32_t nLastRow = nRowIndex - 1;
+    //文本被截断：在最后一行的末尾追加省略号（text_overflow="clip"时不追加）
+    if (bTruncated && bTruncatedEllipsis && (spLastSkiaFont != nullptr) &&
+        ((nRowIndex > 0) || bTruncatedAtCurrentRow)) {
+        const uint32_t nLastRow = bTruncatedAtCurrentRow ? nRowIndex : (nRowIndex - 1);
         Font_Skia* pLastFont = dynamic_cast<Font_Skia*>(spLastSkiaFont.get());
         const SkFont* pLastSkFont = (pLastFont != nullptr) ? pLastFont->GetFontHandle() : nullptr;
         if ((pLastSkFont != nullptr) && (nLastRow < rowHeightVector.size()) && (nLastRow < rowWidthVector.size())) {
@@ -823,7 +878,7 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
             fLeft = std::max(fLeft, (SkScalar)rcDrawRect.left);
 
             TPendingDrawRichText& ellipsisData = pendingTextData.emplace_back();
-            ellipsisData.m_nDataIndex = richTextData.empty() ? 0 : (uint32_t)(richTextData.size() - 1);
+            ellipsisData.m_nDataIndex = nTruncatedDataIndex;
             ellipsisData.m_nLineNumber = nLineNumber;
             ellipsisData.m_nRowIndex = nLastRow;
             ellipsisData.m_textView = GetEllipsisTextView();

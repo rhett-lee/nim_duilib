@@ -3238,7 +3238,8 @@ List of supported tags:
    // Inline image: <img src="resource path" width="width" height="height"/> (width/height are pixels at 96 DPI; omit them to use the original image size; the image bottom is aligned to the text baseline, and the line height grows when the image is taller than the text)
 ```
 Unknown tags are ignored, but their inner text content is still preserved and displayed.
-When `word_wrap="false"` (no automatic wrapping), text exceeding the control width is displayed with an ellipsis.
+Tag names are case-insensitive (e.g. `<B>`, `<Font>` and `<richtext>` are all accepted), and the values of the `align` attribute are case-insensitive too.
+When `word_wrap="false"` (no automatic wrapping), text exceeding the control width is handled according to `text_overflow`: an ellipsis is shown by default (or the text is clipped when it is `clip`).
 See also the controls demo: the "Open test page" button in the "RichText layout sample" card opens a dedicated
 test page (`examples/controls/RichTextForm`, layout `controls/rich_text.xml`) that covers every attribute and
 interaction of this control (inline formats, links and tooltips, paragraphs and block tags, layout control,
@@ -3254,7 +3255,7 @@ Block-level tags (`<p>`/`<h1>`~`<h6>`/`<ul>`/`<ol>`/`<li>`/`<hr>`) start a new l
 | replace_brace | true | bool | When setting the text attribute, whether to allow replacing '{' with '<' and '}' with '>'; this attribute must be placed before the text attribute to take effect, e.g. replace_brace="false" means replace is disabled |
 | text | | string | Set the formatted text content, where '{' can be used instead of '<' and '}' instead of '>', thus avoiding escape characters and making it easier to read |
 | text_id | | string | Set the formatted text content ID, where the corresponding content allows using '{' instead of '<' and '}' instead of '>', thus avoiding escape characters and making it easier to read |
-| trim_policy | "all" | string | Set the text trim policy: "all" trims the leading/trailing whitespace of each text node while keeping one space between words (also across nodes); "none" leaves the text untouched; "keep_one" collapses consecutive whitespace into one space. If the formatted text fails to parse, it falls back to plain text so the content is not lost |
+| trim_policy | "all" | string | Set the text trim policy: "all" trims the leading/trailing whitespace of each text node while keeping one space between words (also across nodes); "none" leaves the text untouched; "keep_one" collapses consecutive whitespace into one space. Carriage returns and line feeds are replaced with spaces, while TAB ("\t") is preserved for tab-stop alignment (each tab stop is 4 standard character widths). This attribute takes effect when parsing the text/text_id content, so it must be placed before the text/text_id attribute. If the formatted text fails to parse, it falls back to plain text so the content is not lost |
 | default_link_font_color | | string | Hyperlink: normal text color value |
 | hovered_link_font_color | | string | Hyperlink: Hover state text color value |
 | pressed_link_font_color | | string | Hyperlink: pressed state text color value |
@@ -3266,15 +3267,15 @@ Block-level tags (`<p>`/`<h1>`~`<h6>`/`<ul>`/`<ol>`/`<li>`/`<hr>`) start a new l
 | text_indent | 0 | int | First-line indent (pixels), applies only to the first line of each paragraph |
 | paragraph_spacing | 0 | int | Paragraph spacing (pixels), additional spacing between `<p>`/`<h1>`~`<h6>`/`<ul>`/`<li>`/`<hr>` blocks |
 | max_lines | 0 | int | Maximum number of displayed lines; 0 means unlimited; overflow is handled according to text_overflow |
-| text_overflow | "ellipsis" | string | Overflow handling for max_lines: "ellipsis" appends an ellipsis at the end of the line; "clip" clips the text directly |
-| word_wrap | true| bool | Whether to automatically wrap; if false, line breaks only occur at the `<br/>` tag, and text exceeding the control width is displayed with an ellipsis |
+| text_overflow | "ellipsis" | string | Overflow handling: "ellipsis" appends an ellipsis at the end of the line; "clip" clips the text directly. Overflow includes two cases: exceeding the max_lines limit, and a single line exceeding the control width when word_wrap="false" |
+| word_wrap | true| bool | Whether to automatically wrap; if false, line breaks only occur at the `<br/>` tag, and text exceeding the control width is handled according to text_overflow (an ellipsis is shown by default) |
 | selection_bg_color | | string | Background color of the selected text while dragging with the mouse, e.g. "#660099FF" (AARRGGBB); a default light blue is used when not set |
 | enable_text_select | true | bool | Whether text can be selected by dragging with the mouse |
 
 Content runtime APIs: `SetText`/`SetTextId` (set formatted text / text ID), `Clear` (clear the content),
 `AppendText` (append rich text, optionally with an immediate redraw), `AppendTextSlice` (append one parsed
 text slice; pass `bRedraw=false` for batch appends and call `Redraw()` once at the end), `ToString` (emit
-formatted text that can be parsed again).
+formatted text that can be parsed again, including attributes such as the link `title` and paragraph `align`).
 
 Link runtime APIs: `SetLinkColor` (set normal/hovered/pressed/visited link colors), `GetLinkCount`/`GetLinkUrl`/`GetLinkRect` (query the count, URL and hit rectangle by link index).
 Link accessibility APIs: `GetLinkTitle` (returns the link tooltip, falling back to the URL), `GetHoveredLinkIndex`/`GetFocusedLinkIndex` (index of the hovered/focused link, useful for showing the current link in a status bar).

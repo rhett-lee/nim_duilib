@@ -3241,8 +3241,9 @@ RichText是带有格式的文本，其格式类似于HTML标签，格式文本�
    // 内联图片：   <img src="资源路径" width="宽度" height="高度"/>（width/height 为 96 DPI 下的像素值，省略时使用图片原始尺寸；图片底部与文本基线对齐，图片高于文本时行高自动增大）
 ```
 未识别的标签会被忽略，但其内部的文本内容仍会被保留并显示。
+标签名称不区分大小写（如 `<B>`、`<Font>`、`<richtext>` 均可正常解析），`align` 属性的取值也不区分大小写。
 块级标签（`<p>`/`<h1>`~`<h6>`/`<ul>`/`<ol>`/`<li>`/`<hr>`）在段前自动换行；块级标签结束后，紧跟其后的行内内容也会自动另起一段。
-当 `word_wrap="false"`（不自动换行）时，超出控件宽度的文本会显示省略号。
+当 `word_wrap="false"`（不自动换行）时，超出控件宽度的文本按 `text_overflow` 处理，默认为显示省略号（为 `clip` 时直接裁剪）。
 具体用法也可用参考示例程序：`controls` 首页“RichText 排版样例”卡片中的“打开测试页”按钮会打开专门的
 测试页（`examples/controls/RichTextForm`，布局文件 `controls/rich_text.xml`），覆盖本控件的全部属性与交互
 （内联格式、链接与提示、段落与块级标签、排版控制、内联图片、文本选择，以及运行期接口按钮）。
@@ -3256,7 +3257,7 @@ RichText是带有格式的文本，其格式类似于HTML标签，格式文本�
 | replace_brace | true | bool | 在设置text属性时，是否允许将'{'替换为'<' 和 将'}'替换为'>'，该属性需要放置在text属性前面才能生效，比如replace_brace="false"表示禁止替换 |
 | text | | string | 设置格式文本内容，其中允许使用'{'代替'<'，'}'代替'>'，从而避免使用转移字符，便于阅读 |
 | text_id | | string | 设置格式文本内容ID，其中对应的内容允许使用'{'代替'<'，'}'代替'>'，从而避免使用转移字符，便于阅读 |
-| trim_policy | "all" | string | 设置Trim文本的策略："all"表示去除每个文本节点首尾的空白，并保留词间的一个空格（跨节点时也保留一个空格）；"none"表示不对文本做任何处理；"keep_one"表示把连续的空白压缩为一个空格。如果格式文本解析失败，会自动按纯文本降级显示，避免内容丢失 |
+| trim_policy | "all" | string | 设置Trim文本的策略："all"表示去除每个文本节点首尾的空白，并保留词间的一个空格（跨节点时也保留一个空格）；"none"表示不对文本做任何处理；"keep_one"表示把连续的空白压缩为一个空格。回车和换行会被替换为空格，TAB（"\t"）则保留，用于制表位对齐（每个制表位为4个标准字符宽度）。该属性在解析 text/text_id 内容时生效，需要放置在 text/text_id 属性前面。如果格式文本解析失败，会自动按纯文本降级显示，避免内容丢失 |
 | default_link_font_color | | string | 超级链接：常规文本颜色值 |
 | hovered_link_font_color | | string | 超级链接：Hover状态文本颜色值 |
 | pressed_link_font_color | | string | 超级链接：鼠标按下状态文本颜色值 |
@@ -3268,14 +3269,14 @@ RichText是带有格式的文本，其格式类似于HTML标签，格式文本�
 | text_indent | 0 | int | 首行缩进（像素），只对段落的第一行生效 |
 | paragraph_spacing | 0 | int | 段落间距（像素），用于 `<p>`/`<h1>`~`<h6>`/`<ul>`/`<li>`/`<hr>` 之间的附加间距 |
 | max_lines | 0 | int | 最大显示行数，0表示不限制；超出时按 text_overflow 处理 |
-| text_overflow | "ellipsis" | string | 超出 max_lines 时的处理方式："ellipsis"表示在行尾显示省略号，"clip"表示直接裁剪 |
-| word_wrap | true| bool | 是否自动换行，如果为false，则只有在`<br/>`标签的时候才换行，且超出控件宽度的文本显示省略号 |
+| text_overflow | "ellipsis" | string | 超出显示范围时的处理方式："ellipsis"表示在行尾显示省略号，"clip"表示直接裁剪。超出显示范围包括两种情况：超过 max_lines 限制，以及 word_wrap="false" 时单行文本超出控件宽度 |
+| word_wrap | true| bool | 是否自动换行，如果为false，则只有在`<br/>`标签的时候才换行，且超出控件宽度的文本按 text_overflow 处理（默认为显示省略号） |
 | selection_bg_color | | string | 鼠标选择文本时，选中区域的背景颜色，如"#660099FF"（AARRGGBB）；未设置时使用默认的淡蓝色 |
 | enable_text_select | true | bool | 是否允许用鼠标拖拽选择文本 |
 
 内容相关运行时接口：`SetText`/`SetTextId`（设置格式文本/文本 ID）、`Clear`（清空内容）、
 `AppendText`（追加富文本，可选择是否立即重绘）、`AppendTextSlice`（追加单个解析后的文本片段，
-批量追加时可传 `bRedraw=false`，完成后调用 `Redraw()` 统一刷新）、`ToString`（输出可直接再次解析的格式文本）。
+批量追加时可传 `bRedraw=false`，完成后调用 `Redraw()` 统一刷新）、`ToString`（输出可直接再次解析的格式文本，包含链接 `title`、段落 `align` 等属性）。
 
 链接相关运行时接口：`SetLinkColor`（设置链接常规/Hover/按下/已访问颜色）、`GetLinkCount`/`GetLinkUrl`/`GetLinkRect`（按链接索引获取数量、URL 和命中矩形）。
 链接的无障碍信息接口：`GetLinkTitle`（获取链接的提示文本，未设置 title 时返回 URL）、`GetHoveredLinkIndex`/`GetFocusedLinkIndex`（获取鼠标悬停/键盘聚焦的链接索引，可用于在状态栏显示当前链接）。

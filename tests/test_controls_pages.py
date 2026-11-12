@@ -37,6 +37,11 @@
   R15 控件的 UI 文本属性（text、prompt_text、title、x_axis_title、
       y_axis_title、tooltip_text）禁止硬编码中文，必须改用对应的 *_id，
       否则切换语言后文本不会跟随变化。检查范围同 R6。
+  R16 text_align 的每个取值都必须在框架支持的取值白名单内
+      （left/hcenter/center/right/hright/hjustify/justify/top/vcenter/
+      bottom/vjustify），避免写出不生效的对齐方式。
+  R17 RichText 的文案（text 属性，或 text_id 对应的语言文件内容）不得使用
+      全角空格（U+3000）作为词间分隔，避免重新引入"跨节点空格丢失"的变通写法。
 
 退出码：全部通过为 0，存在失败项为 1。
 """
@@ -673,6 +678,78 @@ def main():
                             '{}: <{}> attribute {}="{}" hardcodes Chinese; '
                             "use the matching *_id attribute instead"
                             .format(path.name, element.tag, attr_name, attr_value))
+
+    # -----------------------------------------------------------------------
+    # R16：text_align 取值必须在白名单内
+    # -----------------------------------------------------------------------
+    text_align_tokens = {
+        "left", "hcenter", "center", "right", "hright", "hjustify", "justify",
+        "top", "vcenter", "bottom", "vjustify",
+    }
+    text_align_usages = 0
+    for path, root in all_documents:
+        for element in iter_page_elements(root):
+            value = element.get("text_align")
+            if value is None:
+                continue
+
+            text_align_usages += 1
+            tokens = [token.strip().lower() for token in re.split(r"[,;|\s]+", value)
+                      if token.strip()]
+            CHECKS += 1
+            if not tokens:
+                add_failure("R16-TEXT-ALIGN",
+                            '{}: <{}> has an empty text_align value'
+                            .format(path.name, element.tag))
+            for token in tokens:
+                CHECKS += 1
+                if token not in text_align_tokens:
+                    add_failure("R16-TEXT-ALIGN",
+                                '{}: <{}> has an unknown text_align value "{}"'
+                                .format(path.name, element.tag, token))
+
+    if text_align_usages == 0:
+        add_failure("R16-TEXT-ALIGN",
+                    "no text_align usage found; the alignment samples are not covered")
+
+    # -----------------------------------------------------------------------
+    # R17：RichText 文案不得用全角空格作为词间分隔
+    # -----------------------------------------------------------------------
+    full_width_space = "\u3000"
+    language_values = {}
+    for lang_name in ("zh_CN-examples.txt", "en_US-examples.txt"):
+        lang_file = lang_root / lang_name
+        if not lang_file.is_file():
+            add_failure("R17-FULLWIDTH-SPACE",
+                        "language file not found: {}".format(lang_file))
+            continue
+        for match in re.finditer(r"(?m)^\s*(STRID_[A-Z0-9_]+)\s*=\s*(.*)$",
+                                 read_text(lang_file)):
+            language_values.setdefault(match.group(1), []).append(match.group(2))
+
+    rich_text_count = 0
+    for path, root in all_documents:
+        for element in iter_page_elements(root):
+            if not element.tag.startswith("RichText"):
+                continue
+
+            rich_text_count += 1
+            texts = []
+            if element.get("text"):
+                texts.append(("text", element.get("text")))
+            text_id = element.get("text_id")
+            if text_id:
+                for value in language_values.get(text_id, []):
+                    texts.append((text_id, value))
+            for source, value in texts:
+                CHECKS += 1
+                if full_width_space in value:
+                    add_failure("R17-FULLWIDTH-SPACE",
+                                '{}: RichText copy ({}="{}") uses a full-width space'
+                                .format(path.name, source, value))
+
+    if rich_text_count == 0:
+        add_failure("R17-FULLWIDTH-SPACE", "no RichText sample found")
 
     # -----------------------------------------------------------------------
     # 汇总

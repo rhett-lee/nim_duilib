@@ -94,24 +94,40 @@ bool RichTextImpl::SetAttribute(const DString& strName, const DString& strValue)
         SetRowSpacingAdd(StringUtil::StringToFloat(strValue.c_str(), nullptr));
     }
     else if (strName == _T("default_link_font_color")) {
-        //超级链接：常规文本颜色值
-        m_linkNormalTextColor = strValue;
+        //超级链接：常规文本颜色值（参与绘制数据的生成，变化时需要重新解析并刷新绘制缓存）
+        if (m_linkNormalTextColor.c_str() != strValue) {
+            m_linkNormalTextColor = strValue.c_str();
+            Redraw();
+        }
     }
     else if ((strName == _T("hovered_link_font_color")) || (strName == _T("hover_link_font_color"))) {
-        //超级链接：Hover状态文本颜色值
-        m_linkHoveredTextColor = strValue;
+        //超级链接：Hover状态文本颜色值（仅在绘制时使用，无需重新排版）
+        if (m_linkHoveredTextColor.c_str() != strValue) {
+            m_linkHoveredTextColor = strValue.c_str();
+            Invalidate();
+        }
     }
     else if ((strName == _T("pressed_link_font_color")) || (strName == _T("mouse_down_link_font_color"))) {
-        //超级链接：鼠标按下状态文本颜色值
-        m_linkPressedTextColor = strValue;
+        //超级链接：鼠标按下状态文本颜色值（仅在绘制时使用，无需重新排版）
+        if (m_linkPressedTextColor.c_str() != strValue) {
+            m_linkPressedTextColor = strValue.c_str();
+            Invalidate();
+        }
     }
     else if (strName == _T("link_font_underline")) {
-        //超级链接：是否使用带下划线的字体
-        m_bLinkUnderlineFont = (StringUtil::IsValueTrue(strValue));
+        //超级链接：是否使用带下划线的字体（链接字体在解析时生成，变化时需要重新解析）
+        const bool bLinkUnderlineFont = StringUtil::IsValueTrue(strValue);
+        if (m_bLinkUnderlineFont != bLinkUnderlineFont) {
+            m_bLinkUnderlineFont = bLinkUnderlineFont;
+            Redraw();
+        }
     }
     else if (strName == _T("visited_link_font_color")) {
-        //超级链接：访问过（点击过）的文本颜色
-        m_linkVisitedTextColor = strValue;
+        //超级链接：访问过（点击过）的文本颜色（仅在绘制时使用，无需重新排版）
+        if (m_linkVisitedTextColor.c_str() != strValue) {
+            m_linkVisitedTextColor = strValue.c_str();
+            Invalidate();
+        }
     }
     else if (strName == _T("letter_spacing")) {
         //字间距（像素）
@@ -218,14 +234,17 @@ bool RichTextImpl::SetAttribute(const DString& strName, const DString& strValue)
         SetTextId(strValue);
     }
     else if (strName == _T("trim_policy")) {
+        //Trim策略在解析文本时生效，策略变化后需要重新解析
+        RichTextTrimPolicy trimPolicy = RichTextTrimPolicy::kAll;
         if (strValue == _T("none")) {
-            m_trimPolicy = RichTextTrimPolicy::kNone;
+            trimPolicy = RichTextTrimPolicy::kNone;
         }
         else if (strValue == _T("keep_one")) {
-            m_trimPolicy = RichTextTrimPolicy::kKeepOne;
+            trimPolicy = RichTextTrimPolicy::kKeepOne;
         }
-        else {
-            m_trimPolicy = RichTextTrimPolicy::kAll;
+        if (m_trimPolicy != trimPolicy) {
+            m_trimPolicy = trimPolicy;
+            Redraw();
         }
     }
     else if (strName == _T("word_wrap")) {
@@ -799,9 +818,16 @@ bool RichTextImpl::ParseTextSlice(const RichTextSlice& textSlice,
     }
     currentTextData.m_nBaselineOffset = parentTextData.m_nBaselineOffset + nBaselineOffset;
     if (!textSlice.m_textColor.empty()) {
-        currentTextData.m_textColor = m_pOwner->GetUiColor(textSlice.m_textColor.c_str());
+        //颜色值无效时（解析结果为空）保持继承父节点的颜色，避免文本变成透明色
+        const UiColor textColor = m_pOwner->GetUiColor(textSlice.m_textColor.c_str());
+        if (!textColor.IsEmpty()) {
+            currentTextData.m_textColor = textColor;
+        }
+        else {
+            currentTextData.m_textColor = parentTextData.m_textColor;
+        }
     }
-    if (textSlice.m_textColor.empty()) {
+    else {
         currentTextData.m_textColor = parentTextData.m_textColor;
     }
 
@@ -975,6 +1001,17 @@ bool RichTextImpl::IsEnableRedraw() const
     return m_bEnableRedraw;
 }
 
+/** 判断格式化文本是否以<RichText>根标签开始（标签名称不区分大小写）
+*/
+static bool HasRichTextRootTag(const DString& richText)
+{
+    //"<RichText>"至少需要10个字符
+    if ((richText.size() < 10) || (richText[0] != _T('<'))) {
+        return false;
+    }
+    return StringUtil::MakeLowerString(richText.substr(1, 8)) == _T("richtext");
+}
+
 bool RichTextImpl::DoSetText(const DString& richText)
 {
     Clear();
@@ -983,7 +1020,7 @@ bool RichTextImpl::DoSetText(const DString& richText)
     if (!richText.empty()) {
         DString trimmedText = richText;
         StringUtil::Trim(trimmedText);
-        if (trimmedText.find(_T("<RichText")) == 0) {
+        if (HasRichTextRootTag(trimmedText)) {
             bResult = WindowBuilder::ParseRichTextXmlText(trimmedText, m_pOwner);
         }
         else {
@@ -1223,6 +1260,34 @@ DString RichTextImpl::ToString(const RichTextSlice& textSlice, const DString& in
         }
         attrList += _T("href=\"");
         attrList += EscapeRichTextXmlAttribute(textSlice.m_linkUrl.c_str());
+        attrList += _T("\"");
+    }
+    if (!textSlice.m_linkTitle.empty()) {
+        //超级链接的自定义提示文本
+        if (!attrList.empty()) {
+            attrList += _T(" ");
+        }
+        attrList += _T("title=\"");
+        attrList += EscapeRichTextXmlAttribute(textSlice.m_linkTitle.c_str());
+        attrList += _T("\"");
+    }
+    if (textSlice.m_nHAlign >= 0) {
+        //段落/标题的水平对齐方式
+        const DString::value_type* pAlignValue = _T("left");
+        if (textSlice.m_nHAlign == 1) {
+            pAlignValue = _T("center");
+        }
+        else if (textSlice.m_nHAlign == 2) {
+            pAlignValue = _T("right");
+        }
+        else if (textSlice.m_nHAlign == 3) {
+            pAlignValue = _T("justify");
+        }
+        if (!attrList.empty()) {
+            attrList += _T(" ");
+        }
+        attrList += _T("align=\"");
+        attrList += pAlignValue;
         attrList += _T("\"");
     }
     if (!textSlice.m_bgColor.empty()) {
@@ -2091,7 +2156,7 @@ bool RichTextImpl::AppendText(const DString& richText, bool bRedraw)
     if (!richText.empty()) {
         DString trimmedText = richText;
         StringUtil::Trim(trimmedText);
-        if (trimmedText.find(_T("<RichText")) == 0) {
+        if (HasRichTextRootTag(trimmedText)) {
             bResult = WindowBuilder::ParseRichTextXmlText(trimmedText, m_pOwner);
         }
         else {

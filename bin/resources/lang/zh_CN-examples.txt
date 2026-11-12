@@ -2517,7 +2517,7 @@ STRID_CONTROLS_TRAY_BALLOON_TITLE = 提示
 STRID_CONTROLS_TRAY_BALLOON_TEXT  = 应用已启动！
 STRID_TEST_SEARCH_TITLE           = SearchBox 搜索框（建议 + 历史）
 STRID_TEST_SEARCH_PROMPT          = 搜索控件 / 输入关键词（回车记录历史）
-STRID_TEST_RICHTEXT_DEMO          = RichText 支持富文本与超链接：<a href="www.baidu.com">Baidu</a>　<a href="www.bing.com">Bing</a>
+STRID_TEST_RICHTEXT_DEMO          = RichText 支持富文本与超链接：<a href="www.baidu.com">Baidu</a> <a href="www.bing.com">Bing</a>
 STRID_NAVIGATION_STATUS_NONE      = （无）
 STRID_NAVIGATION_STATUS_INFO      = 序号=%zu，页面=%s
 STRID_NAVIGATION_STATUS_ITEM_CLICK = 点击项：%zu

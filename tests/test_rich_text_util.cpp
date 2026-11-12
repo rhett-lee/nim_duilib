@@ -138,6 +138,12 @@ void TestBlockTags()
     Check(ui::IsRichTextBlockTagName(_T("hr")), "block: hr");
     Check(ui::IsRichTextBlockTagName(_T("b")) == false, "block: b");
     Check(ui::IsRichTextBlockTagName(_T("")) == false, "block: empty");
+    //标签名称不区分大小写
+    Check(ui::IsRichTextBlockTagName(_T("P")), "block: uppercase p");
+    Check(ui::IsRichTextBlockTagName(_T("H1")), "block: uppercase h1");
+    Check(ui::IsRichTextBlockTagName(_T("LI")), "block: uppercase li");
+    Check(ui::IsRichTextBlockTagName(_T("HR")), "block: uppercase hr");
+    Check(ui::IsRichTextBlockTagName(_T("B")) == false, "block: uppercase b");
 }
 
 /** 可见文本判断 */
@@ -161,6 +167,9 @@ void TestHAlignValue()
     Check(ui::ParseRichTextHAlignValue(_T("")) == -1, "h align: empty");
     Check(ui::ParseRichTextHAlignValue(_T("middle")) == -1, "h align: unknown");
     Check(ui::ParseRichTextHAlignValue(_T(" center ")) == 1, "h align: trim");
+    //取值不区分大小写
+    Check(ui::ParseRichTextHAlignValue(_T("Center")) == 1, "h align: uppercase center");
+    Check(ui::ParseRichTextHAlignValue(_T("JUSTIFY")) == 3, "h align: uppercase justify");
 }
 
 /** 链接地址归一化 */
@@ -209,17 +218,20 @@ void TestTrimRichText()
               _T(" hello   world "), "trim all: inner spaces kept");
     CheckText(ui::TrimRichText(_T("\r\n\thello\r\n"), ui::RichTextTrimPolicy::kAll),
               _T(" hello "), "trim all: line breaks to spaces");
+    //TAB 保留，用于绘制制表位（不会被替换为空格）
+    CheckText(ui::TrimRichText(_T("a\tb"), ui::RichTextTrimPolicy::kAll), _T("a\tb"),
+              "trim all: tab kept");
     CheckText(ui::TrimRichText(_T("   "), ui::RichTextTrimPolicy::kAll), _T(" "),
               "trim all: only spaces");
     CheckText(ui::TrimRichText(_T(""), ui::RichTextTrimPolicy::kAll), _T(""), "trim all: empty");
     CheckText(ui::TrimRichText(_T("hello"), ui::RichTextTrimPolicy::kAll), _T("hello"),
               "trim all: no space");
 
-    //kKeepOne：连续空白压缩为一个空格
+    //kKeepOne：连续空格压缩为一个空格，TAB 保留
     CheckText(ui::TrimRichText(_T(" a  b "), ui::RichTextTrimPolicy::kKeepOne), _T(" a b "),
               "trim keep one: compress");
-    CheckText(ui::TrimRichText(_T("a\t \tb"), ui::RichTextTrimPolicy::kKeepOne), _T("a b"),
-              "trim keep one: tab compress");
+    CheckText(ui::TrimRichText(_T("a\t \tb"), ui::RichTextTrimPolicy::kKeepOne), _T("a\t \tb"),
+              "trim keep one: tab kept");
 }
 
 /** 跨文本节点的空格处理 */

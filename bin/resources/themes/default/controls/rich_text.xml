@@ -90,6 +90,9 @@
                     <RichText class="rich_text" name="richtext_spacing" width="stretch" height="auto"
                               row_spacing_mul="1.6" letter_spacing="1" text_indent="24" text_padding="8,6,8,6"
                               margin="0,12,0,0" text_id="STRID_RICHTEXT_LAYOUT_SPACING_TEXT"/>
+                    <!-- TAB 制表位：每个制表位为4个标准字符宽度 -->
+                    <RichText class="rich_text" name="richtext_tabstop" width="stretch" height="auto"
+                              margin="0,8,0,0" text="TAB:&#9;A&#9;BB&#9;CCC&#9;DDDD"/>
                 </VBox>
 
                 <!-- ========== 5. 内联图片与交互 ========== -->

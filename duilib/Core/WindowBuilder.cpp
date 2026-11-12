@@ -1945,8 +1945,11 @@ bool WindowBuilder::ParseRichTextXmlText(const DString& xmlText, Control* pContr
         root = doc.root().first_child();
     }
     rootName = root.name();
-    ASSERT(rootName == DUI_CTR_RICHTEXT);
-    if (rootName != DUI_CTR_RICHTEXT) {
+    //根标签名称不区分大小写（兼容 <RichText>、<richtext> 等写法）
+    const DString richtextTagName = StringUtil::MakeLowerString(DString(DUI_CTR_RICHTEXT));
+    const DString rootNameLower = StringUtil::MakeLowerString(rootName);
+    ASSERT(rootNameLower == richtextTagName);
+    if (rootNameLower != richtextTagName) {
         return false;
     }
     return ParseRichTextXmlNode(root, pControl, nullptr);
@@ -2001,12 +2004,14 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, RichText
         RichTextSlice textSlice;
         textSlice.m_nodeName = node.name();
         nodeName = textSlice.m_nodeName.c_str();
+        //标签名称不区分大小写（兼容HTML的写法，如 <B>、<Font>）
+        const DString lowerNodeName = StringUtil::MakeLowerString(nodeName);
 
-        const bool bBlockNode = IsRichTextBlockTagName(nodeName);
+        const bool bBlockNode = IsRichTextBlockTagName(lowerNodeName);
         //文本节点只有包含可见内容时才参与段落判断，避免格式化文本的换行/缩进产生空行
         const bool bHasVisibleText = !nodeName.empty() || HasRichTextVisibleText(node.value());
         if (!bFirstNode && (bBlockNode ||
-                            (bPrevBlockNode && bHasVisibleText && (nodeName != _T("br"))))) {
+                            (bPrevBlockNode && bHasVisibleText && (lowerNodeName != _T("br"))))) {
             //块级节点：先插入换行，保证另起一段（段间距附加在新行的行首元素上）
             RichTextSlice blockBreakSlice;
             blockBreakSlice.m_text = L"\n";
@@ -2033,24 +2038,24 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, RichText
 #endif
             bParseChildren = false;
         }        
-        else if (nodeName == _T("a")) {
+        else if (lowerNodeName == _T("a")) {
             //超级链接节点：href属性作用于所有子节点，子节点可以包含格式（如粗体、斜体等）
             textSlice.m_linkUrl = StringUtil::Trim(node.attribute(_T("href")).as_string());
             //自定义的链接提示文本（为空时使用URL作为提示）
             textSlice.m_linkTitle = StringUtil::Trim(node.attribute(_T("title")).as_string());
         }
-        else if (nodeName == _T("span")) {
+        else if (lowerNodeName == _T("span")) {
             //行内样式容器（别名）：仅承载颜色属性，文本格式由子节点决定
             textSlice.m_textColor = StringUtil::Trim(node.attribute(_T("color")).as_string());
         }
-        else if (nodeName == _T("p")) {
+        else if (lowerNodeName == _T("p")) {
             //段落：支持 align 属性（left/center/right/justify）
             textSlice.m_nHAlign = ParseRichTextHAlignValue(node.attribute(_T("align")).as_string());
         }
-        else if ((nodeName == _T("h1")) || (nodeName == _T("h2")) || (nodeName == _T("h3")) ||
-                 (nodeName == _T("h4")) || (nodeName == _T("h5")) || (nodeName == _T("h6"))) {
+        else if ((lowerNodeName == _T("h1")) || (lowerNodeName == _T("h2")) || (lowerNodeName == _T("h3")) ||
+                 (lowerNodeName == _T("h4")) || (lowerNodeName == _T("h5")) || (lowerNodeName == _T("h6"))) {
             //标题：按级别设置字号缩放比例，并使用粗体
-            const DString::value_type chLevel = nodeName[1];
+            const DString::value_type chLevel = lowerNodeName[1];
             static const float kHeadingScale[] = { 2.0f, 1.6f, 1.3f, 1.1f, 1.0f, 0.9f };
             const int32_t nLevelIndex = (int32_t)(chLevel - _T('1'));
             if ((nLevelIndex >= 0) && (nLevelIndex < (int32_t)(sizeof(kHeadingScale) / sizeof(kHeadingScale[0])))) {
@@ -2059,30 +2064,30 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, RichText
             textSlice.m_fontInfo.m_bBold = true;
             textSlice.m_nHAlign = ParseRichTextHAlignValue(node.attribute(_T("align")).as_string());
         }
-        else if ((nodeName == _T("ul")) || (nodeName == _T("ol"))) {
+        else if ((lowerNodeName == _T("ul")) || (lowerNodeName == _T("ol"))) {
             //列表容器：仅作为块级容器，不产生额外的显示内容
         }
-        else if (nodeName == _T("li")) {
+        else if (lowerNodeName == _T("li")) {
             //列表项：在内容前加项目符号（无序列表用实心圆点）
             textSlice.m_text = L"\u2022 ";
         }
-        else if (nodeName == _T("sup")) {
+        else if (lowerNodeName == _T("sup")) {
             //上标：字号缩小，并按父节点字号的比例向上偏移基线
             textSlice.m_fFontScale = 0.8f;
             textSlice.m_fBaselineScale = -0.15f;
         }
-        else if (nodeName == _T("sub")) {
+        else if (lowerNodeName == _T("sub")) {
             //下标：字号缩小，并按父节点字号的比例向下偏移基线（需抵消字号缩小时基线被抬高部分）
             textSlice.m_fFontScale = 0.8f;
             textSlice.m_fBaselineScale = 0.45f;
         }
-        else if (nodeName == _T("hr")) {
+        else if (lowerNodeName == _T("hr")) {
             //水平分割线：没有文本内容，独占一行绘制
             textSlice.m_bHorizontalRule = true;
             textSlice.m_textColor = StringUtil::Trim(node.attribute(_T("color")).as_string());
             bParseChildren = false;
         }
-        else if (nodeName == _T("img")) {
+        else if (lowerNodeName == _T("img")) {
             //内联图片：图片底部与当前文本的基线对齐
             textSlice.m_imageSrc = StringUtil::Trim(node.attribute(_T("src")).as_string());
             //显示尺寸(96 DPI)，未指定时使用图片的原始尺寸；限制有效范围，避免异常值
@@ -2096,27 +2101,27 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, RichText
             }
             bParseChildren = false;
         }
-        else if (nodeName == _T("b")) {
+        else if (lowerNodeName == _T("b")) {
             //粗体字
             textSlice.m_fontInfo.m_bBold = true;
         }
-        else if (nodeName == _T("i")) {
+        else if (lowerNodeName == _T("i")) {
             //斜体字
             textSlice.m_fontInfo.m_bItalic = true;
         }
-        else if ((nodeName == _T("del")) || (nodeName == _T("s")) || (nodeName == _T("strike"))) {
+        else if ((lowerNodeName == _T("del")) || (lowerNodeName == _T("s")) || (lowerNodeName == _T("strike"))) {
             //删除字
             textSlice.m_fontInfo.m_bStrikeOut = true;
         }
-        else if ( (nodeName == _T("ins")) || (nodeName == _T("u")) ){
+        else if ( (lowerNodeName == _T("ins")) || (lowerNodeName == _T("u")) ){
             //下划线
             textSlice.m_fontInfo.m_bUnderline = true;
         }
-        else if (nodeName == _T("bgcolor")) {
+        else if (lowerNodeName == _T("bgcolor")) {
             //背景颜色
             textSlice.m_bgColor = StringUtil::Trim(node.attribute(_T("color")).as_string());
         }
-        else if (nodeName == _T("font")) {
+        else if (lowerNodeName == _T("font")) {
             //字体设置：文本颜色
             textSlice.m_textColor = node.attribute(_T("color")).as_string();
             textSlice.m_fontInfo.m_fontName = node.attribute(_T("face")).as_string();
@@ -2126,7 +2131,7 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, RichText
                 textSlice.m_fontInfo.m_fontSize = std::clamp(nFontSize, 1, 512);
             }
         }
-        else if (nodeName == _T("br")) {
+        else if (lowerNodeName == _T("br")) {
             textSlice.m_text = L"\n";
             //换行节点, 不需要递归遍历子节点
             bParseChildren = false;
