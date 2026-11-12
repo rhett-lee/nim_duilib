@@ -320,6 +320,10 @@ private:
     */
     struct ToolTipCache;
 
+    /** 可选功能的实现与缓存（定义见下方成员变量区域）
+    */
+    struct Extras;
+
     /** ToolTip缓存的引用（首次使用时创建）
     */
     ToolTipCache& EnsureToolTipCache();
@@ -329,13 +333,22 @@ private:
     UiRect MeasureText(IRender* pRender, const DString& strText, const MeasureStringParam& measureParam);
 
     /** 绘制文本（RichText模式使用TextDrawer，普通文本直接使用渲染接口）
+    *  备注：不能命名为DrawText，Windows系统头文件中有宏定义：#define DrawText DrawTextW
     */
-    void DrawText(IRender* pRender, const DString& strText, const DrawStringParam& drawParam);
+    void DrawLabelText(IRender* pRender, const DString& strText, const DrawStringParam& drawParam);
 
 private:
+    //内存布局：按对齐宽度从大到小排列成员（8字节指针 → 4字节整数/浮点 → 2字节/1字节成员），
+    //其中1字节的bool标志用位域集中存储为一个4字节成员，使结构体内部不产生任何对齐填充
+    //（当前sizeof为104字节，x64下对齐宽度为8字节）
+
     /** 关联控件
     */
     Control* m_pOwner;
+
+    /** 关联控件对应的LabelOwner接口（构造时缓存，避免在绘制等热路径使用RTTI）
+    */
+    LabelOwner* m_pLabelOwner;
 
     //文本内容
     UiString m_sText;
@@ -346,14 +359,40 @@ private:
     //字体ID
     UiString m_sFontId;
 
+    //文本内容的解析缓存（仅用于文本ID查询与换行符替换场景，字面文本不缓存以节省内存）
+    mutable UiString m_sTextCache;
+
     //各个状态（默认/悬停/按下/禁用）的文本颜色映射表
     std::unique_ptr<StateColorMap> m_pTextColorMap;
 
-    //文本内边距
-    UiPadding16 m_rcTextPadding;
+    //字体缓存：避免每次测量/绘制都查找字体；字体缓存版本变化时失效
+    //（字体ID变化、DPI变化时由SetFontId/OnDpiScaleChanged直接清空缓存，无需额外保存版本号）
+    mutable IFont* m_pFont;
+
+    //可选功能的实现与缓存（定义见下方，仅在需要时分配，普通控件只占用该指针）
+    std::unique_ptr<Extras> m_pExtras;
 
     //文本对齐属性
     uint32_t m_uTextStyle;
+
+    //字体缓存对应的字体缓存版本号
+    mutable uint32_t m_nFontCacheVersion;
+
+    /** 布尔标志（使用位域集中存储，避免每个标志单独占用字节产生对齐填充）
+    */
+    struct Flags
+    {
+        bool m_bSingleLine : 1;             //是否单行文本: true表示单行文本，false表示多行文本
+        bool m_bAutoShowToolTipEnabled : 1; //是否开启自动显示Tooltip的功能
+        bool m_bAutoShowTooltip : 1;        //当前是否应自动显示Tooltip
+        bool m_bReplaceNewline : 1;         //是否替换换行符
+        bool m_bVerticalText : 1;           //文本方向：true为纵向文本，false为横向文本
+        bool m_bUseFontHeight : 1;          //纵向绘制时，使用字体的默认高度
+        bool m_bRotate90ForAscii : 1;       //纵向绘制时，对于字母数字等，顺时针旋转90度显示
+        bool m_bRichText : 1;               //文本内容是否为RichText
+        mutable bool m_bTextCacheValid : 1; //文本内容的解析缓存是否有效
+    };
+    Flags m_flags;
 
     //实际行间距 = 字体大小 × m_fSpacingMul + m_fSpacingAdd
     //行间距倍数: 字体大小的倍数比例（默认值通常为 1.0，即 100% 字体大小），用于按比例调整行间距
@@ -365,44 +404,8 @@ private:
     //每个字符之间的的间隔（像素）
     float m_fWordSpacing;
 
-    //是否单行文本: true表示单行文本，false表示多行文本
-    bool m_bSingleLine;
-
-    //是否开启自动显示Tooltip的功能
-    bool m_bAutoShowToolTipEnabled;
-
-    //当前是否应自动显示Tooltip
-    bool m_bAutoShowTooltip;
-
-    //是否替换换行符(将字符串"\\n"替换为换行符"\n"，这样可以在XML中使用括号中这两个字符(\n)来当作换行符，从而支持多行文本)
-    bool m_bReplaceNewline;
-
-    //文本方向：true为纵向文本，false为横向文本
-    //    横向文本：从左到右，从上到下
-    //    纵向文本：从上到下，从右到左
-    bool m_bVerticalText;
-
-    //纵向绘制时，使用字体的默认高度，而不是每个字体的高度（显示时所有字体等高）
-    bool m_bUseFontHeight;
-
-    //纵向绘制时，对于字母数字等，顺时针旋转90度显示
-    bool m_bRotate90ForAscii;
-
-    //文本内容是否为RichText
-    bool m_bRichText;
-
-    /** 关联控件对应的LabelOwner接口（构造时缓存，避免在绘制等热路径使用RTTI）
-    */
-    LabelOwner* m_pLabelOwner;
-
-    //文本内容的解析缓存（仅用于文本ID查询与换行符替换场景，字面文本不缓存以节省内存）
-    mutable UiString m_sTextCache;
-    mutable bool m_bTextCacheValid;
-
-    //字体缓存：避免每次测量/绘制都查找字体；字体缓存版本变化时失效
-    //（字体ID变化、DPI变化时由SetFontId/OnDpiScaleChanged直接清空缓存，无需额外保存版本号）
-    mutable IFont* m_pFont;
-    mutable uint32_t m_nFontCacheVersion;
+    //文本内边距
+    UiPadding16 m_rcTextPadding;
 
     /** ToolTip测量结果的缓存
     */
@@ -429,7 +432,6 @@ private:
         */
         ToolTipCache m_toolTipCache;
     };
-    std::unique_ptr<Extras> m_pExtras;
 };
 
 }

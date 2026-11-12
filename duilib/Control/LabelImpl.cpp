@@ -14,27 +14,25 @@ namespace ui
 {
 LabelImpl::LabelImpl(Control* pOwner):
     m_pOwner(pOwner),
+    m_pLabelOwner(dynamic_cast<LabelOwner*>(pOwner)),
     m_sFontId(),
+    m_sTextCache(),
+    m_pTextColorMap(),
+    m_pFont(nullptr),
+    m_pExtras(),
     m_uTextStyle(TEXT_LEFT | TEXT_VCENTER | TEXT_END_ELLIPSIS | TEXT_SINGLELINE),
-    m_bSingleLine(true),
-    m_bAutoShowToolTipEnabled(false),
-    m_bAutoShowTooltip(false),
-    m_bReplaceNewline(false),
+    m_nFontCacheVersion(0),
+    m_flags(),
     m_fSpacingMul(1.0f),
     m_fSpacingAdd(0),
     m_fWordSpacing(0),
-    m_bVerticalText(false),
-    m_bUseFontHeight(true),
-    m_bRotate90ForAscii(true),
-    m_rcTextPadding(),
-    m_bRichText(false),
-    m_pLabelOwner(dynamic_cast<LabelOwner*>(pOwner)),
-    m_sTextCache(),
-    m_bTextCacheValid(false),
-    m_pFont(nullptr),
-    m_nFontCacheVersion(0),
-    m_pExtras()
+    m_rcTextPadding()
 {
+    //布尔标志的默认值（其余标志由m_flags()初始化为false）
+    m_flags.m_bSingleLine = true;
+    m_flags.m_bUseFontHeight = true;
+    m_flags.m_bRotate90ForAscii = true;
+
     Box* pBox = dynamic_cast<Box*>(pOwner);
     if (pBox != nullptr) {
         pOwner->SetFixedWidth(UiFixedInt::MakeStretch(), false, false);
@@ -310,21 +308,21 @@ uint32_t LabelImpl::GetValidTextStyle(uint32_t nTextFormat)
 DString LabelImpl::GetText() const
 {
     //快速路径：有字面文本且无需换行符替换时无需缓存，避免额外占用内存
-    if (!m_bReplaceNewline && !m_sText.empty()) {
+    if (!m_flags.m_bReplaceNewline && !m_sText.empty()) {
         return m_sText.c_str();
     }
-    if (!m_bTextCacheValid) {
+    if (!m_flags.m_bTextCacheValid) {
         DString strText = m_sText.c_str();
         if (strText.empty() && !m_sTextId.empty()) {
             strText = GlobalManager::Instance().Lang().GetStringByID(m_sTextId.c_str());
         }
 
-        if (m_bReplaceNewline) {
+        if (m_flags.m_bReplaceNewline) {
             //将反斜杠+n这两个字符替换成换行符
             StringUtil::ReplaceAll(_T("\\n"), _T("\n"), strText);
         }
         m_sTextCache = strText.c_str();
-        m_bTextCacheValid = true;
+        m_flags.m_bTextCacheValid = true;
     }
     return m_sTextCache.c_str();
 }
@@ -405,8 +403,8 @@ std::string LabelImpl::GetUTF8TextId() const
 
 void LabelImpl::SetRichText(bool bRichText)
 {
-    if (m_bRichText != bRichText) {
-        m_bRichText = bRichText;
+    if (m_flags.m_bRichText != bRichText) {
+        m_flags.m_bRichText = bRichText;
         //普通文本与富文本的解析、测量结果不同，需要使绘制缓存失效并重新布局
         InvalidateRichTextCache();
         InvalidateMeasureCache();
@@ -417,7 +415,7 @@ void LabelImpl::SetRichText(bool bRichText)
 
 bool LabelImpl::IsRichText() const
 {
-    return m_bRichText;
+    return m_flags.m_bRichText;
 }
 
 bool LabelImpl::IsTextEquals(const DString& text) const
@@ -438,19 +436,19 @@ DString LabelImpl::GetOwnerText() const
 
 void LabelImpl::SetAutoShowToolTipEnabled(bool bAutoShow)
 {
-    m_bAutoShowToolTipEnabled = bAutoShow;
+    m_flags.m_bAutoShowToolTipEnabled = bAutoShow;
     CheckShowToolTip();
 }
 
 bool LabelImpl::IsAutoShowToolTipEnabled() const
 {
-    return m_bAutoShowToolTipEnabled;
+    return m_flags.m_bAutoShowToolTipEnabled;
 }
 
 void LabelImpl::SetReplaceNewline(bool bReplaceNewline)
 {
-    if (m_bReplaceNewline != bReplaceNewline) {
-        m_bReplaceNewline = bReplaceNewline;
+    if (m_flags.m_bReplaceNewline != bReplaceNewline) {
+        m_flags.m_bReplaceNewline = bReplaceNewline;
         //换行符替换会改变实际显示的文本内容，需要使解析缓存失效并重新布局
         InvalidateTextCache();
         InvalidateMeasureCache();
@@ -462,14 +460,14 @@ void LabelImpl::SetReplaceNewline(bool bReplaceNewline)
 
 bool LabelImpl::IsReplaceNewline() const
 {
-    return m_bReplaceNewline;
+    return m_flags.m_bReplaceNewline;
 }
 
 void LabelImpl::SetVerticalText(bool bVerticalText)
 {
-    if (m_bVerticalText != bVerticalText) {
-        m_bVerticalText = bVerticalText;
-        if (m_bVerticalText) {
+    if (m_flags.m_bVerticalText != bVerticalText) {
+        m_flags.m_bVerticalText = bVerticalText;
+        if (m_flags.m_bVerticalText) {
             m_uTextStyle |= TEXT_VERTICAL;
         }
         else {
@@ -484,7 +482,7 @@ void LabelImpl::SetVerticalText(bool bVerticalText)
 
 bool LabelImpl::IsVerticalText() const
 {
-    return m_bVerticalText;
+    return m_flags.m_bVerticalText;
 }
 
 void LabelImpl::SetLineSpacing(float mul, float add, bool bNeedDpiScale)
@@ -542,8 +540,8 @@ float LabelImpl::GetWordSpacing() const
 
 void LabelImpl::SetUseFontHeight(bool bUseFontHeight)
 {
-    if (m_bUseFontHeight != bUseFontHeight) {
-        m_bUseFontHeight = bUseFontHeight;
+    if (m_flags.m_bUseFontHeight != bUseFontHeight) {
+        m_flags.m_bUseFontHeight = bUseFontHeight;
         InvalidateMeasureCache();
         if (IsVerticalText()) {
             //纵向文本的测量结果会变化，需要重新布局
@@ -555,13 +553,13 @@ void LabelImpl::SetUseFontHeight(bool bUseFontHeight)
 
 bool LabelImpl::IsUseFontHeight() const
 {
-    return m_bUseFontHeight;
+    return m_flags.m_bUseFontHeight;
 }
 
 void LabelImpl::SetRotate90ForAscii(bool bRotate90ForAscii)
 {
-    if (m_bRotate90ForAscii != bRotate90ForAscii) {
-        m_bRotate90ForAscii = bRotate90ForAscii;
+    if (m_flags.m_bRotate90ForAscii != bRotate90ForAscii) {
+        m_flags.m_bRotate90ForAscii = bRotate90ForAscii;
         InvalidateMeasureCache();
         if (IsVerticalText()) {
             //纵向文本的测量结果会变化，需要重新布局
@@ -573,7 +571,7 @@ void LabelImpl::SetRotate90ForAscii(bool bRotate90ForAscii)
 
 bool LabelImpl::IsRotate90ForAscii() const
 {
-    return m_bRotate90ForAscii;
+    return m_flags.m_bRotate90ForAscii;
 }
 
 MeasureStringParam LabelImpl::GetMeasureParam() const
@@ -584,8 +582,8 @@ MeasureStringParam LabelImpl::GetMeasureParam() const
     measureParam.fSpacingMul = m_fSpacingMul;
     measureParam.fSpacingAdd = m_fSpacingAdd;
     measureParam.fWordSpacing = m_fWordSpacing;
-    measureParam.bUseFontHeight = m_bUseFontHeight;
-    measureParam.bRotate90ForAscii = m_bRotate90ForAscii;
+    measureParam.bUseFontHeight = m_flags.m_bUseFontHeight;
+    measureParam.bRotate90ForAscii = m_flags.m_bRotate90ForAscii;
     return measureParam;
 }
 
@@ -597,15 +595,15 @@ DrawStringParam LabelImpl::GetDrawParam() const
     drawParam.fSpacingMul = m_fSpacingMul;
     drawParam.fSpacingAdd = m_fSpacingAdd;
     drawParam.fWordSpacing = m_fWordSpacing;
-    drawParam.bUseFontHeight = m_bUseFontHeight;
-    drawParam.bRotate90ForAscii = m_bRotate90ForAscii;
+    drawParam.bUseFontHeight = m_flags.m_bUseFontHeight;
+    drawParam.bRotate90ForAscii = m_flags.m_bRotate90ForAscii;
     return drawParam;
 }
 
 DString LabelImpl::GetAutoToolTipText() const
 {
     DString toolTip;
-    if (m_bAutoShowToolTipEnabled && m_bAutoShowTooltip) {
+    if (m_flags.m_bAutoShowToolTipEnabled && m_flags.m_bAutoShowTooltip) {
         toolTip = GetOwnerText();
         if (IsRichText()) {
             //富文本模式下，提示内容需要去掉标记，避免把<b>、<font>等标记显示给用户
@@ -617,8 +615,8 @@ DString LabelImpl::GetAutoToolTipText() const
 
 void LabelImpl::CheckShowToolTip()
 {
-    m_bAutoShowTooltip = false;
-    if (!m_bAutoShowToolTipEnabled || (m_pOwner->GetWindow() == nullptr)) {
+    m_flags.m_bAutoShowTooltip = false;
+    if (!m_flags.m_bAutoShowToolTipEnabled || (m_pOwner->GetWindow() == nullptr)) {
         return;
     }
     auto pRender = m_pOwner->GetWindow()->GetRender();
@@ -640,7 +638,7 @@ void LabelImpl::CheckShowToolTip()
     //单行文本不限制测量宽度（高度），这样可以得到完整的文本尺寸，用于判断是否需要显示提示；
     //多行文本必须使用文本区域的宽（高）度，否则换行结果与实际绘制不一致
     int32_t rectSize = INT32_MAX;
-    if (!m_bSingleLine) {
+    if (!m_flags.m_bSingleLine) {
         rectSize = !IsVerticalText() ? rc.Width() : rc.Height();
     }
 
@@ -655,7 +653,7 @@ void LabelImpl::CheckShowToolTip()
         (cache.m_nWidth == rc.Width()) &&
         (cache.m_nHeight == rc.Height()) &&
         (cache.m_nDpiScale == nDpiScale)) {
-        m_bAutoShowTooltip = cache.m_bOverflow;
+        m_flags.m_bAutoShowTooltip = cache.m_bOverflow;
         return;
     }
 
@@ -671,12 +669,12 @@ void LabelImpl::CheckShowToolTip()
     cache.m_nHeight = rc.Height();
     cache.m_nDpiScale = nDpiScale;
     cache.m_bOverflow = bOverflow;
-    m_bAutoShowTooltip = bOverflow;
+    m_flags.m_bAutoShowTooltip = bOverflow;
 }
 
 void LabelImpl::InvalidateTextCache()
 {
-    m_bTextCacheValid = false;
+    m_flags.m_bTextCacheValid = false;
     m_sTextCache.clear();
 }
 
@@ -700,7 +698,7 @@ IFont* LabelImpl::GetFont() const
 
 TextDrawer* LabelImpl::GetTextDrawer()
 {
-    if (!m_bRichText) {
+    if (!m_flags.m_bRichText) {
         //普通文本不需要TextDrawer，直接调用渲染接口，避免每个控件都分配该对象
         return nullptr;
     }
@@ -740,7 +738,7 @@ UiRect LabelImpl::MeasureText(IRender* pRender, const DString& strText, const Me
     return pRender->MeasureString(strText, measureParam);
 }
 
-void LabelImpl::DrawText(IRender* pRender, const DString& strText, const DrawStringParam& drawParam)
+void LabelImpl::DrawLabelText(IRender* pRender, const DString& strText, const DrawStringParam& drawParam)
 {
     if (strText.empty()) {
         return;
@@ -788,7 +786,7 @@ UiSize LabelImpl::OnEstimateTextWith(const DString& textValue, UiSize szAvailabl
     int32_t nHeight = szAvailable.cy;   //最终计算结果为最大高度
     const UiPadding rcTextPadding = this->GetTextPadding();
     const UiPadding rcPadding = m_pOwner->GetControlPadding();
-    if (!m_bVerticalText) {
+    if (!m_flags.m_bVerticalText) {
         //文本方向：横向
         if (m_pOwner->GetFixedWidth().IsStretch()) {
             //如果是拉伸类型，使用外部宽度
@@ -876,7 +874,7 @@ UiSize LabelImpl::OnEstimateTextWith(const DString& textValue, UiSize szAvailabl
     }
     
     MeasureStringParam measureParam = GetMeasureParam();
-    measureParam.rectSize = !m_bVerticalText ? nWidth : nHeight;
+    measureParam.rectSize = !m_flags.m_bVerticalText ? nWidth : nHeight;
     UiRect rect = MeasureText(pRender, textValue, measureParam);
     fixedSize.cx = std::min(rect.Width(), nWidth);
     fixedSize.cx = std::max(fixedSize.cx, 0);
@@ -925,7 +923,7 @@ void LabelImpl::DoPaintText(const UiRect& rc, IRender* pRender)
             if (!clrColor.empty()) {                
                 drawParam.dwTextColor = m_pOwner->GetUiColor(clrColor);
                 drawParam.uFade = 255 - nHoveredAlpha;
-                DrawText(pRender, textValue, drawParam);
+                DrawLabelText(pRender, textValue, drawParam);
                 bPainted = true;
             }
             //绘制Hovered状态的文本（半透明）
@@ -933,7 +931,7 @@ void LabelImpl::DoPaintText(const UiRect& rc, IRender* pRender)
             if (!textColor.empty()) {
                 drawParam.dwTextColor = m_pOwner->GetUiColor(textColor);
                 drawParam.uFade = nHoveredAlpha;
-                DrawText(pRender, textValue, drawParam);
+                DrawLabelText(pRender, textValue, drawParam);
                 bPainted = true;
             }
             if (bPainted) {
@@ -944,31 +942,31 @@ void LabelImpl::DoPaintText(const UiRect& rc, IRender* pRender)
 
     drawParam.dwTextColor = dwClrColor;
     drawParam.uFade = 255;
-    DrawText(pRender, textValue, drawParam);
+    DrawLabelText(pRender, textValue, drawParam);
 }
 
 void LabelImpl::SetTextStyle(uint32_t uStyle, bool bRedraw)
 {
     //旧状态
     uint32_t uOldStyle = m_uTextStyle;
-    bool bOldSingleLine = m_bSingleLine;
-    bool bOldVerticalText = m_bVerticalText;
+    bool bOldSingleLine = m_flags.m_bSingleLine;
+    bool bOldVerticalText = m_flags.m_bVerticalText;
 
     m_uTextStyle = GetValidTextStyle(uStyle);
     if (m_uTextStyle & TEXT_SINGLELINE) {
-        m_bSingleLine = true;
+        m_flags.m_bSingleLine = true;
     }
     else {
-        m_bSingleLine = false;
+        m_flags.m_bSingleLine = false;
     }
     if (m_uTextStyle & TEXT_VERTICAL) {
-        m_bVerticalText = true;
+        m_flags.m_bVerticalText = true;
     }
     else {
-        m_bVerticalText = false;
+        m_flags.m_bVerticalText = false;
     }
     //仅在状态变化时使测量缓存失效（对齐、单行、竖向等属性会改变测量结果）
-    const bool bChanged = (uOldStyle != m_uTextStyle) || (bOldSingleLine != m_bSingleLine) || (bOldVerticalText != m_bVerticalText);
+    const bool bChanged = (uOldStyle != m_uTextStyle) || (bOldSingleLine != m_flags.m_bSingleLine) || (bOldVerticalText != m_flags.m_bVerticalText);
     if (bChanged) {
         //即使不立即重绘，也必须使缓存失效，避免后续布局沿用旧的测量结果
         InvalidateMeasureCache();
@@ -1096,14 +1094,14 @@ void LabelImpl::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
 
 bool LabelImpl::IsSingleLine() const
 {
-    return m_bSingleLine;
+    return m_flags.m_bSingleLine;
 }
 
 void LabelImpl::SetSingleLine(bool bSingleLine)
 {
-    if (m_bSingleLine != bSingleLine) {
-        m_bSingleLine = bSingleLine;
-        if (m_bSingleLine) {
+    if (m_flags.m_bSingleLine != bSingleLine) {
+        m_flags.m_bSingleLine = bSingleLine;
+        if (m_flags.m_bSingleLine) {
             m_uTextStyle |= TEXT_SINGLELINE;
         }
         else {
