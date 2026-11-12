@@ -1804,7 +1804,7 @@ C++ interfaces: `SetIndeterminateArc/GetIndeterminateArc`, `SetIndeterminateSpee
 | readonly | false | bool | Whether read-only, e.g. "false" |
 | password | false | bool | Whether in password mode, e.g. "true"|
 | show_password | false | bool | Whether to display the password character, e.g. "true"|
-| password_char || string | Set the password character; default is the " * " character, which can be changed via this attribute |
+| password_char || string | Set the password character; default is the " * " character, which can be changed via this attribute (masking is counted in UTF-16 code units: one emoji or other supplementary-plane character is displayed as 2 mask characters) |
 | flash_password_char | false | bool | Display the character first, then display the password character|
 | number_only | false | bool | Whether only numbers are allowed to be entered, e.g. "false" |
 | max_number | INT64_MAX | int64 | Maximum allowed number (only valid when number_only is true) |
@@ -1823,7 +1823,7 @@ C++ interfaces: `SetIndeterminateArc/GetIndeterminateArc`, `SetIndeterminateSpee
 | prompt_color |  | string | Color of the prompt text inside the text box |
 | focused_image |  | string | Image in focused state |
 | auto_detect_url | false | bool | Whether to automatically detect URLs; if it is a URL, display it as a hyperlink (invalid when using SDL implementation)|
-| limit_text | | int | Limit the maximum number of characters |
+| limit_text | | int | Limit the maximum number of characters (counted in UTF-16 code units: one emoji or other supplementary-plane character counts as 2) |
 | limit_chars | | string | Restrict which characters are allowed to be entered, e.g. "abc" means only a, b, c characters are allowed, other characters are not allowed |
 | allow_beep | false | bool | Whether to allow the Beep sound (invalid when using SDL implementation)|
 | word_wrap | false| bool | Whether to automatically wrap lines |

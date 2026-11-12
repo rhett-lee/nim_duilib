@@ -1504,11 +1504,12 @@ LRESULT Window::OnImeSetContextMsg(const NativeMsg& nativeMsg, bool& bHandled)
     return 0;
 }
 
-LRESULT Window::OnImeStartCompositionMsg(const NativeMsg& /*nativeMsg*/, bool& bHandled)
+LRESULT Window::OnImeStartCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled)
 {
     bHandled = false;
     if (m_pFocus != nullptr) {
-        m_pFocus->SendEvent(kEventImeStartComposition);
+        //wParam: 组合文本的地址，lParam: 字符数量（SDL下首个组合字符也随该事件送达）
+        m_pFocus->SendEvent(kEventImeStartComposition, nativeMsg.wParam, nativeMsg.lParam);
         if ((m_pFocus != nullptr) && m_pFocus->IsCefOsrImeMode()) {
             bHandled = true;
         }

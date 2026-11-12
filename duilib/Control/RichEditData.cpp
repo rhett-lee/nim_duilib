@@ -12,6 +12,7 @@ RichEditData::RichEditData(IRichTextData* pRichTextData):
     m_pRender(nullptr),
     m_pRenderFactory(nullptr),
     m_bCacheDirty(true),
+    m_bLastUndoCanMerge(false),
     m_nUndoLimit(64),
     m_bTextRectYOffsetUpdated(false),
     m_bTextRectXOffsetUpdated(false)
@@ -1051,7 +1052,7 @@ bool RichEditData::FindLineTextPos(int32_t nStartChar, int32_t nEndChar,
     return false;
 }
 
-bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStringW& text, bool bCanUndo, bool bClearRedo)
+bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStringW& text, bool bCanUndo, bool bClearRedo, bool bMergeUndo)
 {
     PerformanceUtil statPerformance(_T("RichEditData::ReplaceText"));
     ASSERT((nStartChar >= 0) && (nEndChar >= 0) && (nEndChar >= nStartChar));
@@ -1194,7 +1195,7 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
     }
     if (bCanUndo) {
         //生成撤销列表
-        AddToUndoList(nStartChar, text, oldText);
+        AddToUndoList(nStartChar, text, oldText, bMergeUndo);
     }
     else if (bClearRedo){
         ClearUndoList();
@@ -2656,6 +2657,7 @@ void RichEditData::ClearUndoList()
 {
     m_undoList.clear();
     m_redoList.clear();
+    m_bLastUndoCanMerge = false;
 }
 
 void RichEditData::EmptyUndoBuffer()
@@ -2663,7 +2665,7 @@ void RichEditData::EmptyUndoBuffer()
     ClearUndoList();
 }
 
-void RichEditData::AddToUndoList(int32_t nStartChar, const DStringW& newText, const DStringW& oldText)
+void RichEditData::AddToUndoList(int32_t nStartChar, const DStringW& newText, const DStringW& oldText, bool bMergeUndo)
 {
     ASSERT(nStartChar >= 0);
     if (nStartChar < 0) {
@@ -2672,6 +2674,38 @@ void RichEditData::AddToUndoList(int32_t nStartChar, const DStringW& newText, co
     if (m_nUndoLimit == 0) {
         //禁止功能
         return;
+    }
+
+    //连续输入或连续删除时，与上一条撤销记录合并，避免逐字符撤销
+    if (bMergeUndo && m_bLastUndoCanMerge && !m_undoList.empty()) {
+        TUndoData& lastUndoData = m_undoList.back();
+        const int32_t nLastStartChar = lastUndoData.m_nStartChar;
+        const int32_t nLastNewTextLen = (int32_t)lastUndoData.m_newText.size();
+        if (lastUndoData.m_oldText.empty() && oldText.empty()) {
+            //连续插入：新文本紧接在上次插入的文本之后
+            if ((newText.find_first_of(L"\r\n") == DStringW::npos) &&
+                (nStartChar == nLastStartChar + nLastNewTextLen)) {
+                lastUndoData.m_newText += newText;
+                m_redoList.clear();
+                return;
+            }
+        }
+        else if (newText.empty() && lastUndoData.m_newText.empty()) {
+            //连续删除
+            if (nStartChar + (int32_t)oldText.size() == nLastStartChar) {
+                //向前删除(Backspace)：撤销记录向左扩展
+                lastUndoData.m_nStartChar = nStartChar;
+                lastUndoData.m_oldText = oldText + lastUndoData.m_oldText;
+                m_redoList.clear();
+                return;
+            }
+            if (nStartChar == nLastStartChar) {
+                //向后删除(Delete)：撤销记录向右扩展
+                lastUndoData.m_oldText += oldText;
+                m_redoList.clear();
+                return;
+            }
+        }
     }
 
     TUndoData undoData;
@@ -2685,6 +2719,11 @@ void RichEditData::AddToUndoList(int32_t nStartChar, const DStringW& newText, co
 
     //添加到Undo列表尾部
     m_undoList.emplace_back(std::move(undoData));
+
+    //只有纯插入（不含换行）或纯删除的记录，才允许后续记录与之合并
+    m_bLastUndoCanMerge = bMergeUndo &&
+        ((oldText.empty() && !newText.empty() && (newText.find_first_of(L"\r\n") == DStringW::npos)) ||
+         (newText.empty() && !oldText.empty()));
 
     //每次添加Undo后，清空Redo列表
     m_redoList.clear();
@@ -2717,6 +2756,8 @@ bool RichEditData::Undo(int32_t& nEndCharIndex)
     //替换成功，迁移Undo列表到Redo列表
     m_undoList.pop_back();
     m_redoList.push_back(undoData);
+    //撤销后的输入应开启新的撤销记录，不与撤销前的记录合并
+    m_bLastUndoCanMerge = false;
 
     nEndCharIndex = nStartChar + (int32_t)undoData.m_oldText.size();
     return true;
@@ -2749,6 +2790,8 @@ bool RichEditData::Redo(int32_t& nEndCharIndex)
     //替换成功，迁移Redo列表到Undo列表
     m_redoList.pop_back();
     m_undoList.push_back(redoData);
+    //重做后的输入应开启新的撤销记录，不与重做前的记录合并
+    m_bLastUndoCanMerge = false;
 
     nEndCharIndex = nStartChar + (int32_t)redoData.m_newText.size();
     return true;

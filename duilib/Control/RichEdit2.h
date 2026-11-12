@@ -57,7 +57,7 @@ public:
     DStringA GetTextA() const;
     DStringW GetTextW() const;
 
-    /** 获取内容的长度(按UTF16编码的字符个数，TODO：有歧义)
+    /** 获取内容的长度（按 UTF-16 编码的码元个数，一个 emoji 等增补平面字符计为 2）
      * @return 返回内容长度
      */
     int32_t GetTextLength() const;
@@ -1043,6 +1043,14 @@ private:
      */
     void PaintCaret(IRender* pRender, const UiRect& rcPaint);
 
+    /** 绘制输入法组合输入过程中的组合文本（带下划线）
+    */
+    void PaintCompositionText(IRender* pRender);
+
+    /** 更新输入法组合文本的内容（组合过程中内联显示）
+    */
+    void UpdateCompositionText(const EventArgs& msg);
+
     /** 绘制当前编辑行的背景色
     */
     void PaintCurrentRowBkColor(IRender* pRender, const UiRect& rcPaint);
@@ -1224,6 +1232,7 @@ private:
     bool m_bNoSelOnKillFocus;   //失去焦点的时候，取消文本选择（针对 m_bEnabled && IsReadOnly()）
     bool m_bSelAllOnFocus;      //获取焦点的时候，全选文本（针对 m_bEnabled && !IsReadOnly()）
     bool m_bIsComposition;      //输入法合成窗口是否可见
+    DStringW m_strCompositionText; //输入法组合输入过程中的组合文本（内联显示用）
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)    
     #ifdef DUILIB_UNICODE

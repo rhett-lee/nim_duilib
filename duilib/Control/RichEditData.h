@@ -138,9 +138,10 @@ public:
      * @param [in] nEndChar 结束下标值
      * @param [in] bCanUndo 是否可以撤销，true 为可以，否则为 false
      * @param [in] bClearRedo 是否清空Redo列表, 仅当bCanUndo为false时生效
+     * @param [in] bMergeUndo 是否尝试与上一条撤销记录合并（连续输入/连续删除合并为一条）
      * @return 返回true表示文本有变化，返回false表示文本无变化
      */
-    bool ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStringW& text, bool bCanUndo = true, bool bClearRedo = true);
+    bool ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStringW& text, bool bCanUndo = true, bool bClearRedo = true, bool bMergeUndo = false);
 
     /** 获取文本
     */
@@ -394,7 +395,7 @@ private:
 
     /** 记录操作到撤销列表
     */
-    void AddToUndoList(int32_t nStartChar, const DStringW& newText, const DStringW& oldText);
+    void AddToUndoList(int32_t nStartChar, const DStringW& newText, const DStringW& oldText, bool bMergeUndo = false);
 
     /** 从缓存中计算文本所占的矩形区域
     */
@@ -577,6 +578,10 @@ private:
     /** Redo的数据列表
     */
     std::list<TUndoData> m_redoList;
+
+    /** 上一条撤销记录是否还允许继续合并（连续输入/连续删除时合并为一条记录）
+    */
+    bool m_bLastUndoCanMerge;
 
     /** 重做的最大次数限制
     */

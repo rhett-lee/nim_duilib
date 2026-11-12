@@ -1804,7 +1804,7 @@ pGauge->SetCenterCallback([pGauge](ui::IRender* pRender, const ui::UiRect& rcCen
 | readonly | false | bool | 是否只读,如"false" |
 | password | false | bool | 是否为密码模式,如"true"|
 | show_password | false | bool | 是否显示密码符,如"true"|
-| password_char || string | 设置密码字符，默认为 " * " 字符，可用通过这个属性改变|
+| password_char || string | 设置密码字符，默认为 " * " 字符，可用通过这个属性改变（密码掩码按 UTF-16 码元计数，一个 emoji 等增补平面字符显示为 2 个掩码字符）|
 | flash_password_char | false | bool | 先显示字符，然后再显示密码字符|
 | number_only | false | bool | 是否只允许输入数字,如"false" |
 | max_number | INT64_MAX | int64 | 允许的最大数字(仅当number_only为true的时候有效) |
@@ -1823,7 +1823,7 @@ pGauge->SetCenterCallback([pGauge](ui::IRender* pRender, const ui::UiRect& rcCen
 | prompt_color |  | string | 文本框内提示文字的颜色 |
 | focused_image |  | string | 焦点状态下的图片 |
 | auto_detect_url | false | bool | 是否自动检测URL，如果是URL则显示为超链接 (当为SDL实现时，该选项无效)|
-| limit_text | | int | 限制最多字符数 |
+| limit_text | | int | 限制最多字符数（按 UTF-16 码元计数，一个 emoji 等增补平面字符计为 2 个） |
 | limit_chars | | string | 限制允许输入哪些字符，比如"abc"表示只允许输入a、b、c字符，不允许输入其他字符 |
 | allow_beep | false | bool | 是否允许发出Beep声音 (当为SDL实现时，该选项无效)|
 | word_wrap | false| bool | 是否自动换行 |

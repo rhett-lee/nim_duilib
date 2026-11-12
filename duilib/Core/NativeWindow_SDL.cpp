@@ -635,10 +635,11 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
                     }
                 }
                 else if (!m_bImeComposing) {
-                    //开始组合
+                    //开始组合：同时传递组合文本（首个组合字符也需要内联显示）
                     m_bImeComposing = true;
+                    DStringW textW = StringConvert::UTF8ToWString(pEditingText);
                     lResult = m_pOwner->OnNativeImeStartCompositionMsg(
-                        NativeMsg(SDL_EVENT_TEXT_EDITING, 0, 0), bHandled);
+                        NativeMsg(SDL_EVENT_TEXT_EDITING, (WPARAM)textW.c_str(), (LPARAM)textW.size()), bHandled);
                 }
                 else {
                     //组合内容更新：wParam传组合文本的地址，lParam传字符数量

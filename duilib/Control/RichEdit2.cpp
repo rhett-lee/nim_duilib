@@ -55,6 +55,7 @@ RichEdit2::RichEdit2(Window* pWindow) :
     m_bNoSelOnKillFocus(true),
     m_bSelAllOnFocus(false),
     m_bIsComposition(false),
+    m_strCompositionText(),
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     #ifdef DUILIB_UNICODE
         m_chHighSurrogate(L'\0'),
@@ -1991,6 +1992,9 @@ void RichEdit2::Paint(IRender* pRender, const UiRect& rcPaint)
         }
     }
 
+    //绘制输入法组合文本（组合过程中光标被隐藏，这里内联显示组合内容）
+    PaintCompositionText(pRender);
+
     //绘制光标
     PaintCaret(pRender, rcPaint);
 }
@@ -2233,6 +2237,73 @@ void RichEdit2::ChangeCaretVisible()
 {
     m_bIsCaretVisible = !m_bIsCaretVisible;
     Invalidate();
+}
+
+void RichEdit2::PaintCompositionText(IRender* pRender)
+{
+    if ((pRender == nullptr) || !m_bIsComposition || m_strCompositionText.empty() || !IsEnabled()) {
+        return;
+    }
+    int32_t xPos = 0;
+    int32_t yPos = 0;
+    GetCaretPos(xPos, yPos);
+    int32_t xWidth = 0;
+    int32_t yHeight = 0;
+    GetCaretSize(xWidth, yHeight);
+    if (yHeight <= 0) {
+        yHeight = m_nRowHeight;
+    }
+    if (yHeight <= 0) {
+        return;
+    }
+    DString fontId = GetCurrentFontId();
+    if (fontId.empty()) {
+        return;
+    }
+    IFont* pFont = GetIFontInternal(fontId);
+    if (pFont == nullptr) {
+        return;
+    }
+    DString compositionText = StringConvert::WStringToT(m_strCompositionText);
+    if (compositionText.empty()) {
+        return;
+    }
+
+    //计算组合文本的显示区域（从插入点开始，单行显示）
+    MeasureStringParam measureParam;
+    measureParam.pFont = pFont;
+    const UiRect rcMeasure = pRender->MeasureString(compositionText, measureParam);
+    UiRect rcComposition(xPos, yPos, xPos + rcMeasure.Width(), yPos + yHeight);
+    UiRect rcDrawText = GetTextDrawRect(GetRect());
+    if (!rcComposition.Intersect(rcDrawText)) {
+        return;
+    }
+
+    UiColor textColor = GetUiColor(GetTextColor());
+    if (textColor.IsEmpty()) {
+        //默认使用当前主题的前景色
+        if ((GetWindow() != nullptr) && GetWindow()->IsColorThemeDarkMode()) {
+            textColor = UiColor(UiColors::White);
+        }
+        else {
+            textColor = UiColor(UiColors::Black);
+        }
+    }
+
+    //限制在文本绘制区域内，避免组合文本溢出到边框外
+    const int32_t nClipState = pRender->SetClip(rcDrawText);
+    DrawStringParam drawParam;
+    drawParam.pFont = pFont;
+    drawParam.uFormat = 0;
+    drawParam.textRect = rcComposition;
+    drawParam.dwTextColor = textColor;
+    drawParam.uFade = GetAlpha();
+    pRender->DrawString(compositionText, drawParam);
+    //组合文本的下划线
+    pRender->DrawLine(UiPointF((float)rcComposition.left, (float)(rcComposition.bottom - 1)),
+                      UiPointF((float)rcComposition.right, (float)(rcComposition.bottom - 1)),
+                      textColor, 1.0f);
+    pRender->ClearClip(nClipState);
 }
 
 void RichEdit2::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
@@ -3576,6 +3647,7 @@ bool RichEdit2::OnKillFocus(const EventArgs& msg)
     //失去焦点时务必清掉组合态：SDL 不保证在失焦时发出「空组合文本」事件，
     //若组合态残留，重新获得焦点后 PaintCaret 会因 m_bIsComposition 为真而不再绘制光标。
     m_bIsComposition = false;
+    m_strCompositionText.clear();
 
     if (m_pClearButton != nullptr) {
         m_pClearButton->SetFadeVisible(false);
@@ -3602,8 +3674,41 @@ void RichEdit2::CheckSelAllOnFocus()
     }
 }
 
-bool RichEdit2::OnImeStartComposition(const EventArgs& /*msg*/)
+void RichEdit2::UpdateCompositionText(const EventArgs& msg)
 {
+#if defined (DUILIB_BUILD_FOR_SDL)
+    //SDL：组合文本通过事件参数传递（wParam为文本地址，lParam为字符数量）
+    if ((msg.wParam != 0) && (msg.lParam > 0)) {
+        const wchar_t* pCompositionText = (const wchar_t*)(uintptr_t)msg.wParam;
+        m_strCompositionText.assign(pCompositionText, (size_t)msg.lParam);
+    }
+    else {
+        m_strCompositionText.clear();
+    }
+#elif defined (DUILIB_BUILD_FOR_WIN)
+    //Windows：从输入法上下文读取当前组合字符串
+    m_strCompositionText.clear();
+    HWND hWnd = GetWindowHWND();
+    if (hWnd != nullptr) {
+        HIMC hImc = ::ImmGetContext(hWnd);
+        if (hImc != nullptr) {
+            const LONG nCompositionBytes = ::ImmGetCompositionStringW(hImc, GCS_COMPSTR, nullptr, 0);
+            if (nCompositionBytes > 0) {
+                m_strCompositionText.resize((size_t)nCompositionBytes / sizeof(wchar_t));
+                ::ImmGetCompositionStringW(hImc, GCS_COMPSTR, &m_strCompositionText[0], nCompositionBytes);
+            }
+            ::ImmReleaseContext(hWnd, hImc);
+        }
+    }
+#else
+    (void)msg;
+#endif
+    Invalidate();
+}
+
+bool RichEdit2::OnImeStartComposition(const EventArgs& msg)
+{
+    UpdateCompositionText(msg);
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     HWND hWnd = GetWindowHWND();
     if (hWnd == nullptr) {
@@ -3652,8 +3757,10 @@ bool RichEdit2::OnImeStartComposition(const EventArgs& /*msg*/)
     return true;
 }
 
-bool RichEdit2::OnImeComposition(const EventArgs& /*msg*/)
+bool RichEdit2::OnImeComposition(const EventArgs& msg)
 {
+    //更新内联显示的组合文本
+    UpdateCompositionText(msg);
 #if defined (DUILIB_BUILD_FOR_SDL)
     //组合内容发生变化（拼音候选词变长、被替换等）时，候选框位置需要重新计算。
     //这里传 false 避免重启光标闪烁定时器——组合期间光标本就不该闪烁。
@@ -3666,6 +3773,9 @@ bool RichEdit2::OnImeComposition(const EventArgs& /*msg*/)
 
 bool RichEdit2::OnImeEndComposition(const EventArgs& /*msg*/)
 {
+    //组合结束，清除内联显示的组合文本
+    m_strCompositionText.clear();
+    Invalidate();
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     m_bIsComposition = false;
 #elif defined (DUILIB_BUILD_FOR_SDL)
@@ -5086,7 +5196,7 @@ void RichEdit2::OnInputChar(const EventArgs& msg)
         return;
     }
 
-    bool bRet = m_pTextData->ReplaceText(nSelStartChar, nSelEndChar, text, true);
+    bool bRet = m_pTextData->ReplaceText(nSelStartChar, nSelEndChar, text, true, true, true);
     if (!bRet) {
         return;
     }
