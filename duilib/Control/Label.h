@@ -323,9 +323,10 @@ template<typename T>
 void LabelTemplate<T>::OnLanguageChanged(bool bRedraw)
 {
     BaseClass::OnLanguageChanged(bRedraw);
-    //语言发生变化，字符串长度可能发生了变化，需要重新计算布局，更新ToolTip数据
-    this->RelayoutOrRedraw();
+    //先更新文本缓存与ToolTip数据，再重新布局：
+    //重新布局时会重新测量文本，若缓存未失效，自动宽高会按旧语言的文本计算
     m_impl->OnLanguageChanged();
+    this->RelayoutOrRedraw();
 }
 
 template<typename T>

@@ -3,6 +3,36 @@
 namespace ui
 {
 
+namespace
+{
+/** 去除富文本标记，返回纯文本
+*   只跳过"<...>"形式的标记，其余字符原样保留；
+*   若"<"之后没有对应的">"，则按普通字符处理。
+*/
+DString RemoveRichTextTags(const DString& strText)
+{
+    DString strPlainText;
+    strPlainText.reserve(strText.size());
+    const size_t nTextCount = strText.size();
+    bool bInTag = false;
+    for (size_t nIndex = 0; nIndex < nTextCount; ++nIndex) {
+        const DString::value_type ch = strText[nIndex];
+        if (bInTag) {
+            if (ch == _T('>')) {
+                bInTag = false;
+            }
+        }
+        else if ((ch == _T('<')) && (strText.find(_T('>'), nIndex + 1) != DString::npos)) {
+            bInTag = true;
+        }
+        else {
+            strPlainText.push_back(ch);
+        }
+    }
+    return strPlainText;
+}
+}//namespace
+
 TextDrawer::TextDrawer():
     m_bRichTextChanged(true)
 {
@@ -15,6 +45,20 @@ TextDrawer::~TextDrawer()
 void TextDrawer::SetTextChanged()
 {
     m_bRichTextChanged = true;
+}
+
+DString TextDrawer::ToPlainText(const DString& strRichText)
+{
+    return RemoveRichTextTags(strRichText);
+}
+
+const DString& TextDrawer::GetPlainText(const DString& strText)
+{
+    if (m_sPlainTextSource != strText) {
+        m_sPlainTextSource = strText;
+        m_sPlainText = RemoveRichTextTags(strText);
+    }
+    return m_sPlainText;
 }
 
 void TextDrawer::UpdateTextDrawProps(uint32_t uFormat, float fSpacingMul, float fSpacingAdd, const DString& fontId)
@@ -59,8 +103,12 @@ UiRect TextDrawer::MeasureString(IRender* pRender,
     if ((pRender == nullptr) || strText.empty()) {
         return UiRect();
     }
+    const DString* pText = &strText;
     if (measureParam.uFormat & TEXT_VERTICAL) {
-        //纵向文本，强制不启用RichText
+        //纵向文本不支持RichText：降级为去掉标记的纯文本，避免把标记当成文本显示
+        if (bRichText) {
+            pText = &GetPlainText(strText);
+        }
         bRichText = false;
     }
     UiRect rcMessure;
@@ -90,7 +138,7 @@ UiRect TextDrawer::MeasureString(IRender* pRender,
     }
     else {
         //普通文本
-        rcMessure = pRender->MeasureString(strText, measureParam);
+        rcMessure = pRender->MeasureString(*pText, measureParam);
     }
     return rcMessure;
 }
@@ -106,8 +154,12 @@ void TextDrawer::DrawString(IRender* pRender,
     if ((pRender == nullptr) || strText.empty()) {
         return;
     }
+    const DString* pText = &strText;
     if (drawParam.uFormat & TEXT_VERTICAL) {
-        //纵向文本，强制不启用RichText
+        //纵向文本不支持RichText：降级为去掉标记的纯文本，避免把标记当成文本显示
+        if (bRichText) {
+            pText = &GetPlainText(strText);
+        }
         bRichText = false;
     }
     if (bRichText && (pOwner != nullptr)) {
@@ -133,7 +185,7 @@ void TextDrawer::DrawString(IRender* pRender,
     }
     else {
         //普通文本
-        pRender->DrawString(strText, drawParam);
+        pRender->DrawString(*pText, drawParam);
     }
 }
 

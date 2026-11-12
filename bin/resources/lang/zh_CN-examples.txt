@@ -62,6 +62,16 @@ MULTI_LANG_ITEM_LABEL               = Label（普通文本）
 MULTI_LANG_ITEM_RICHTEXT            = RichText（富文本控件）
 MULTI_LANG_ITEM_LABEL_RICH          = Label（rich_text 属性）
 MULTI_LANG_HINT                     = 点击右上角的地球图标可以切换语言：菜单中会列出语言目录下的全部语言文件，切换后所有窗口的文本立即刷新，无需重启程序。
+MULTI_LANG_SECTION_LABEL            = Label 双语言验证（自动宽度 / 纵向降级 / 自动提示）
+MULTI_LANG_ITEM_RICH_AUTO           = 富文本 + 自动宽度
+MULTI_LANG_LABEL_RICH_AUTO          = <b>自动宽度</b>随语言变化
+MULTI_LANG_LABEL_AUTO_WIDTH_HINT    = 宽度随语言自动重算
+MULTI_LANG_ITEM_RICH_VERTICAL       = 富文本 + 纵向文本
+MULTI_LANG_LABEL_RICH_VERTICAL      = <b>富文本</b>
+MULTI_LANG_LABEL_VERTICAL_HINT      = 纵向不支持富文本，标记已去除
+MULTI_LANG_ITEM_RICH_TOOLTIP        = 富文本 + 自动提示
+MULTI_LANG_LABEL_RICH_TOOLTIP       = <b>悬停查看提示</b>：这段文字较长，用于验证富文本模式下的自动提示内容不包含标记。
+MULTI_LANG_LABEL_TOOLTIP_HINT       = 提示内容为纯文本
 
 # examples/chat
 STRID_CHAT_SIGN_UP  = 注册

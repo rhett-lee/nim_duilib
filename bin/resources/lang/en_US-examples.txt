@@ -61,6 +61,16 @@ MULTI_LANG_ITEM_LABEL               = Label (plain text)
 MULTI_LANG_ITEM_RICHTEXT            = RichText control
 MULTI_LANG_ITEM_LABEL_RICH          = Label (rich_text)
 MULTI_LANG_HINT                     = Click the globe icon at the top right to switch languages: every language file in the language folder is listed in the menu, and all windows refresh their text immediately, no restart needed.
+MULTI_LANG_SECTION_LABEL            = Label bilingual check (auto width / vertical fallback / tooltip)
+MULTI_LANG_ITEM_RICH_AUTO           = Rich text + auto width
+MULTI_LANG_LABEL_RICH_AUTO          = <b>Auto width</b> follows the language
+MULTI_LANG_LABEL_AUTO_WIDTH_HINT    = Width recalculated
+MULTI_LANG_ITEM_RICH_VERTICAL       = Rich text + vertical text
+MULTI_LANG_LABEL_RICH_VERTICAL      = <b>Rich</b>
+MULTI_LANG_LABEL_VERTICAL_HINT      = No rich text; markup removed
+MULTI_LANG_ITEM_RICH_TOOLTIP        = Rich text + auto tooltip
+MULTI_LANG_LABEL_RICH_TOOLTIP       = <b>Hover to see the tooltip</b>: this text is long enough to verify that the tooltip of rich text contains no markup.
+MULTI_LANG_LABEL_TOOLTIP_HINT       = Tooltip shows plain text
 
 # examples/chat
 STRID_CHAT_SIGN_UP  = Sign Up

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<Window text_id="MULTI_LANG_WINDOW_TEXT" size="720,480" min_size="640,440" caption="0,0,0,36" shadow_attached="true" size_box="4,4,4,4">
+<Window text_id="MULTI_LANG_WINDOW_TEXT" size="720,580" min_size="640,580" caption="0,0,0,36" shadow_attached="true" size_box="4,4,4,4">
     <VBox bkcolor="bg_window_main" visible="true">
         <!-- 标题栏区域 -->
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
@@ -47,8 +47,34 @@
                 </HBox>
             </VBox>
 
+            <!-- Label 双语言验证：富文本 + 自动宽度 / 纵向文本降级 / 自动提示 -->
+            <Label text_id="MULTI_LANG_SECTION_LABEL" height="20" margin="0,12,0,0" text_align="left,vcenter" text_color="color_gray"/>
+            <VBox bkcolor="bg_window_card" border_size="1" border_color="border_control_normal"
+                  border_round="6,6" padding="4,4,4,4" margin="0,6,0,0" height="auto">
+                <HBox height="40" padding="12,0,12,0">
+                    <Label text_id="MULTI_LANG_ITEM_RICH_AUTO" width="196" height="100%" text_align="left,vcenter" text_color="color_gray"/>
+                    <Label rich_text="true" text_id="MULTI_LANG_LABEL_RICH_AUTO" width="auto" height="100%"
+                           text_align="left,vcenter" padding="8,0,8,0" bkcolor="bg_container" border_round="4,4"/>
+                    <Label text_id="MULTI_LANG_LABEL_AUTO_WIDTH_HINT" width="stretch" height="100%" margin="12,0,0,0" text_align="left,vcenter" text_color="color_gray"/>
+                </HBox>
+                <Control height="1" bkcolor="border_control_normal" margin="12,0,12,0" mouse_enabled="false"/>
+                <HBox height="88" padding="12,0,12,0">
+                    <Label text_id="MULTI_LANG_ITEM_RICH_VERTICAL" width="196" height="100%" text_align="left,vcenter" text_color="color_gray"/>
+                    <Label rich_text="true" vertical_text="true" text_id="MULTI_LANG_LABEL_RICH_VERTICAL"
+                           width="auto" height="100%" text_align="left,top"/>
+                    <Label text_id="MULTI_LANG_LABEL_VERTICAL_HINT" width="stretch" height="100%" margin="12,0,0,0" text_align="left,vcenter" text_color="color_gray"/>
+                </HBox>
+                <Control height="1" bkcolor="border_control_normal" margin="12,0,12,0" mouse_enabled="false"/>
+                <HBox height="40" padding="12,0,12,0">
+                    <Label text_id="MULTI_LANG_ITEM_RICH_TOOLTIP" width="196" height="100%" text_align="left,vcenter" text_color="color_gray"/>
+                    <Label rich_text="true" auto_tooltip="true" text_id="MULTI_LANG_LABEL_RICH_TOOLTIP"
+                           width="220" height="100%" text_align="left,vcenter"/>
+                    <Label text_id="MULTI_LANG_LABEL_TOOLTIP_HINT" width="stretch" height="100%" margin="12,0,0,0" text_align="left,vcenter" text_color="color_gray"/>
+                </HBox>
+            </VBox>
+
             <!-- 操作提示 -->
-            <Label text_id="MULTI_LANG_HINT" height="44" margin="0,12,0,0" multi_line="true" text_align="left,top" text_color="color_gray"/>
+            <Label text_id="MULTI_LANG_HINT" width="stretch" height="auto" margin="0,8,0,0" multi_line="true" text_align="left,top" text_color="color_gray"/>
         </VBox>
     </VBox>
 </Window>

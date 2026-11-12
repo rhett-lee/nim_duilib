@@ -51,6 +51,16 @@ public:
     */
     void SetTextChanged();
 
+    /** 去除富文本标记，返回纯文本
+     *  用于纵向文本的降级绘制，以及富文本模式的ToolTip显示
+     */
+    static DString ToPlainText(const DString& strRichText);
+
+private:
+    /** 获取纵向文本降级显示时使用的纯文本（带缓存，避免每帧解析）
+    */
+    const DString& GetPlainText(const DString& strText);
+
 private:
     /** 同步文字绘制属性
     * @param [in] uFormat 文字的格式，参见 enum DrawStringFormat 类型定义
@@ -68,6 +78,14 @@ private:
     /** 原文本内容是否发生变化（当文本内容变化时，需要重新解析）
     */
     bool m_bRichTextChanged;
+
+    /** 纵向文本降级显示时，纯文本缓存的源文本
+    */
+    DString m_sPlainTextSource;
+
+    /** 纵向文本降级显示时，去标记后的纯文本
+    */
+    DString m_sPlainText;
 };
 
 }//namespace ui

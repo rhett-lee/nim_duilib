@@ -215,10 +215,9 @@ void LabelImpl::OnWindowChanged()
 
 void LabelImpl::OnLanguageChanged()
 {
-    CheckShowToolTip();
-
-    //RichText模式时，绘制缓存需要重新生成
+    //RichText模式时，绘制缓存需要重新生成；必须先失效缓存，再重新测量
     m_pTextDrawer->SetTextChanged();
+    CheckShowToolTip();
 }
 
 void LabelImpl::OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t /*nNewDpiScale*/)
@@ -314,8 +313,10 @@ void LabelImpl::SetText(const DString& strText)
         return;
     }
     m_sText = strText;
-    m_pOwner->RelayoutOrRedraw();
+    //必须先使RichText的解析缓存失效，再重新布局：
+    //重新布局时会重新测量文本（OnEstimateText），若缓存未失效，自动宽高会按旧文本计算
     m_pTextDrawer->SetTextChanged();
+    m_pOwner->RelayoutOrRedraw();
     CheckShowToolTip();
 }
 
@@ -330,8 +331,9 @@ void LabelImpl::SetTextId(const DString& strTextId)
         return;
     }
     m_sTextId = strTextId;
-    m_pOwner->RelayoutOrRedraw();
+    //先使RichText的解析缓存失效，再重新布局，避免自动宽高使用旧语言的文本计算
     m_pTextDrawer->SetTextChanged();
+    m_pOwner->RelayoutOrRedraw();
     CheckShowToolTip();
 }
 
@@ -564,6 +566,10 @@ DString LabelImpl::GetAutoToolTipText() const
     DString toolTip;
     if (m_bAutoShowToolTipEnabled && m_bAutoShowTooltip) {
         toolTip = GetOwnerText();
+        if (IsRichText()) {
+            //富文本模式下，提示内容需要去掉标记，避免把<b>、<font>等标记显示给用户
+            toolTip = TextDrawer::ToPlainText(toolTip);
+        }
     }
     return toolTip;
 }
@@ -590,34 +596,11 @@ void LabelImpl::CheckShowToolTip()
     rc.Deflate(rcPadding);
     rc.Deflate(this->GetTextPadding());
 
-    int32_t rectSize = 0;
-    if (!IsVerticalText()) {
-        int32_t width = m_pOwner->GetFixedWidth().GetInt32();
-        if (m_pOwner->GetFixedWidth().IsStretch()) {
-            width = 0;
-        }
-        if (width < 0) {
-            width = 0;
-        }
-        if (!m_bSingleLine && (width == 0)) {
-            //多行文本评估宽高的时候，必须指定宽度
-            width = rc.Width();
-        }
-        rectSize = width;
-    }
-    else {
-        int32_t height = m_pOwner->GetFixedHeight().GetInt32();
-        if (m_pOwner->GetFixedHeight().IsStretch()) {
-            height = 0;
-        }
-        if (height < 0) {
-            height = 0;
-        }
-        if (!m_bSingleLine && (height == 0)) {
-            //多行文本评估宽高的时候，必须指定高度
-            height = rc.Height();
-        }
-        rectSize = height;
+    //单行文本不限制测量宽度（高度），这样可以得到完整的文本尺寸，用于判断是否需要显示提示；
+    //多行文本必须使用文本区域的宽（高）度，否则换行结果与实际绘制不一致
+    int32_t rectSize = INT32_MAX;
+    if (!m_bSingleLine) {
+        rectSize = !IsVerticalText() ? rc.Width() : rc.Height();
     }
 
     MeasureStringParam measureParam = GetMeasureParam();
