@@ -111,6 +111,10 @@ public:
     */
     void ClearFontCache();
 
+    /** 获取字体缓存的版本号（每次清除字体缓存时递增，用于判断缓存的IFont*是否失效）
+    */
+    uint32_t GetCacheVersion() const;
+
 public:
     /** 获取可用的字体名称列表
     * @param [out] fontNameList 返回可用的字体名称列表
@@ -193,6 +197,10 @@ private:
     /** 回退字体列表是否已经完成初始化
     */
     bool m_bFallbackFontInited;
+
+    /** 字体缓存的版本号（每次清空字体缓存时递增）
+    */
+    uint32_t m_nCacheVersion;
 };
 
 }

@@ -51,17 +51,26 @@ public:
     */
     void SetTextChanged();
 
+    /** 关联控件的窗口发生变化（同步RichText关联的窗口，避免每次测量/绘制都切换窗口）
+    * @param [in] pOwner 关联的控件接口
+    */
+    void OnWindowChanged(Control* pOwner);
+
     /** 去除富文本标记，返回纯文本
      *  用于纵向文本的降级绘制，以及富文本模式的ToolTip显示
      */
     static DString ToPlainText(const DString& strRichText);
 
 private:
+    /** 同步RichText关联的窗口（仅在窗口真正变化时才切换，避免重复解析文本）
+    * @param [in] pOwner 关联的控件接口
+    */
+    void SyncWindow(Control* pOwner);
+
     /** 获取纵向文本降级显示时使用的纯文本（带缓存，避免每帧解析）
     */
     const DString& GetPlainText(const DString& strText);
 
-private:
     /** 同步文字绘制属性
     * @param [in] uFormat 文字的格式，参见 enum DrawStringFormat 类型定义
     * @param [in] fSpacingMul 行间距倍数: 字体大小的倍数比例（默认值通常为 1.0，即 100% 字体大小）

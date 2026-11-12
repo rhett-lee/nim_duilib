@@ -254,6 +254,15 @@ public:
     */
     bool IsEnableRedraw() const;
 
+    /** 设置绘制时使用的透明度（不触发重绘，供外部在绘制过程中设置）
+    * @param [in] nAlpha 透明度，取值范围：[0, 255]
+    */
+    void SetPaintAlpha(uint8_t nAlpha);
+
+    /** 获取绘制时使用的透明度
+    */
+    uint8_t GetPaintAlpha() const;
+
 public:
     /** 输出带格式化文本
     */
@@ -402,6 +411,18 @@ template<typename T>
 bool RichTextT<T>::IsEnableRedraw() const
 {
     return m_impl->IsEnableRedraw();
+}
+
+template<typename T>
+void RichTextT<T>::SetPaintAlpha(uint8_t nAlpha)
+{
+    m_impl->SetPaintAlpha(nAlpha);
+}
+
+template<typename T>
+uint8_t RichTextT<T>::GetPaintAlpha() const
+{
+    return m_impl->GetPaintAlpha();
 }
 
 template<typename T>

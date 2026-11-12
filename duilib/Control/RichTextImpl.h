@@ -288,6 +288,15 @@ public:
     */
     bool IsEnableRedraw() const;
 
+    /** 设置绘制时使用的透明度（不触发重绘，供外部在绘制过程中设置，避免产生窗口重绘）
+    * @param [in] nAlpha 透明度，取值范围：[0, 255]
+    */
+    void SetPaintAlpha(uint8_t nAlpha);
+
+    /** 获取绘制时使用的透明度（未显式设置时返回关联控件的透明度）
+    */
+    uint8_t GetPaintAlpha() const;
+
 public:
     /** 设置是否允许鼠标选择文本（默认为true）
     */
@@ -379,6 +388,10 @@ private:
         /** 是否处于鼠标悬停状态
         */
         bool m_bMouseHover = false;
+
+        /** 文本颜色是否继承自控件的默认颜色（true表示未显式指定颜色）
+        */
+        bool m_bDefaultTextColor = false;
     };
 
     /** 文本选择：一行文本的几何信息
@@ -419,6 +432,10 @@ private:
     /** 解析格式化文本, 生成解析后的数据结构
     */
     bool ParseText(std::vector<RichTextDataEx>& outTextData) const;
+
+    /** 获取控件的默认文本颜色（未设置有效颜色时使用黑色）
+    */
+    UiColor GetDefaultTextColor() const;
 
     /** 检查按需解析文本
     */
@@ -574,6 +591,14 @@ private:
     */
     uint32_t m_nRichTextLayoutDataVersion = 0;
 
+    /** 文本颜色版本号：默认文本颜色变化时递增（无需重新解析文本）
+    */
+    uint32_t m_nTextColorVersion = 0;
+
+    /** m_richTextLayoutData 对应的文本颜色版本
+    */
+    uint32_t m_nRichTextLayoutColorVersion = 0;
+
     /** 绘制缓存对应的布局版本
     */
     uint32_t m_nDrawCacheLayoutVersion = 0;
@@ -685,6 +710,14 @@ private:
     /** 是否允许重绘
     */
     bool m_bEnableRedraw;
+
+    /** 绘制时使用的透明度（由外部在绘制过程中设置，避免经由Control::SetAlpha触发窗口重绘）
+    */
+    uint8_t m_nPaintAlpha = 255;
+
+    /** 绘制透明度是否已由外部显式设置
+    */
+    bool m_bPaintAlphaSet = false;
 
     /** 是否允许鼠标选择文本
     */

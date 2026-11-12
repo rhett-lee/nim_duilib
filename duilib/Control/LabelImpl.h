@@ -296,6 +296,18 @@ private:
     */
     DString GetOwnerText() const;
 
+    /** 使解析后的文本缓存失效（文本内容、文本ID、语言或换行符替换变化时）
+    */
+    void InvalidateTextCache();
+
+    /** 使ToolTip的测量结果缓存失效（影响文本测量的属性变化时）
+    */
+    void InvalidateMeasureCache();
+
+    /** 获取当前字体（带缓存，避免每次测量/绘制都查找字体）
+    */
+    IFont* GetFont() const;
+
 private:
     /** 关联控件
     */
@@ -313,6 +325,9 @@ private:
 
     //字体ID
     UiString m_sFontId;
+
+    //字体ID的变更版本号（用于判断字体缓存中的IFont*是否需要重新查询）
+    uint32_t m_nFontIdVersion;
 
     //各个状态（默认/悬停/按下/禁用）的文本颜色映射表
     std::unique_ptr<StateColorMap> m_pTextColorMap;
@@ -358,6 +373,31 @@ private:
 
     //文本内容是否为RichText
     bool m_bRichText;
+
+    /** 关联控件对应的LabelOwner接口（构造时缓存，避免在绘制等热路径使用RTTI）
+    */
+    LabelOwner* m_pLabelOwner;
+
+    //文本内容的解析缓存（仅用于文本ID查询与换行符替换场景，字面文本不缓存以节省内存）
+    mutable UiString m_sTextCache;
+    mutable bool m_bTextCacheValid;
+
+    //字体缓存：避免每次测量/绘制都查找字体；字体缓存版本变化时失效
+    mutable IFont* m_pFont;
+    mutable uint32_t m_nFontCacheIdVersion;
+    mutable uint32_t m_nFontCacheDpiScale;
+    mutable uint32_t m_nFontCacheVersion;
+
+    //ToolTip测量结果的缓存：避免每次布局都重新测量文本
+    uint32_t m_nMeasureVersion;         //影响文本测量的属性版本号
+    uint32_t m_nToolTipCacheVersion;    //缓存对应的属性版本号
+    uint32_t m_nToolTipFontVersion;     //缓存对应的字体缓存版本号
+    int32_t m_nToolTipRectSize;         //缓存对应的测量限制尺寸
+    int32_t m_nToolTipWidth;            //缓存对应的可用宽度
+    int32_t m_nToolTipHeight;           //缓存对应的可用高度
+    uint32_t m_nToolTipDpiScale;        //缓存对应的DPI缩放百分比
+    bool m_bToolTipCacheValid;          //缓存是否有效
+    bool m_bToolTipOverflow;            //缓存的结果：文本是否超出显示区域
 };
 
 }

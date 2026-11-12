@@ -121,7 +121,8 @@ private:
 
 FontManager::FontManager():
     m_bDefaultFontInited(false),
-    m_bFallbackFontInited(false)
+    m_bFallbackFontInited(false),
+    m_nCacheVersion(0)
 {
     m_pFallbackFontMgr = std::make_unique<FallbackFontMgrImpl>(this);
 }
@@ -399,6 +400,7 @@ bool FontManager::RemoveFontId(const DString& fontId)
         return false;
     }
     bool bDeleted = false;
+    bool bFontDeleted = false;
     const DString zoomFontId = fontId + _T("@");
     auto iter = m_fontMap.begin();
     while (iter != m_fontMap.end()) {
@@ -407,6 +409,7 @@ bool FontManager::RemoveFontId(const DString& fontId)
             if (iter->second != nullptr) {
                 OnIFontDataRemoved(iter->second);
                 delete iter->second;//IFont指针
+                bFontDeleted = true;
             }
             bDeleted = true;
             iter = m_fontMap.erase(iter);
@@ -419,6 +422,10 @@ bool FontManager::RemoveFontId(const DString& fontId)
     if (pos != m_fontIdMap.end()) {
         m_fontIdMap.erase(pos);
         bDeleted = true;
+    }
+    if (bFontDeleted) {
+        //字体数据已删除，递增缓存版本号，使外部缓存的IFont*失效
+        ++m_nCacheVersion;
     }
     return bDeleted;
 }
@@ -434,6 +441,8 @@ bool FontManager::RemoveIFont(const DString& fontId, uint32_t nZoomPercent)
             if (iter->second != nullptr) {
                 OnIFontDataRemoved(iter->second);
                 delete iter->second;//IFont指针
+                //字体数据已删除，递增缓存版本号，使外部缓存的IFont*失效
+                ++m_nCacheVersion;
             }
             bDeleted = true;
             m_fontMap.erase(iter);
@@ -452,6 +461,9 @@ void FontManager::RemoveAllFonts()
 
 void FontManager::ClearFontCache()
 {
+    //字体缓存的版本号递增，用于使外部缓存的IFont*失效
+    ++m_nCacheVersion;
+
     //清理字体ID对应的字体缓存数据
     for (const auto& fontInfo : m_fontMap) {
         IFont* pFont = fontInfo.second;
@@ -481,6 +493,11 @@ void FontManager::ClearFontCache()
     if (pFontMgr != nullptr) {
         pFontMgr->ClearFontCache();
     }
+}
+
+uint32_t FontManager::GetCacheVersion() const
+{
+    return m_nCacheVersion;
 }
 
 bool FontManager::AddFontFile(const DString& strFontFile, const DString& /*strFontDesc*/)

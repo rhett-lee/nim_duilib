@@ -47,6 +47,33 @@ void TextDrawer::SetTextChanged()
     m_sRichTextText.clear();
 }
 
+void TextDrawer::OnWindowChanged(Control* pOwner)
+{
+    SetTextChanged();
+    if ((m_pRichText != nullptr) && (pOwner != nullptr)) {
+        Window* pWindow = pOwner->GetWindow();
+        if (m_pRichText->GetWindow() != pWindow) {
+            //切换窗口时RichText会重新解析；此处禁止产生Invalidate调用
+            m_pRichText->SetEnableRedraw(false);
+            m_pRichText->SetWindow(pWindow);
+            m_pRichText->SetEnableRedraw(true);
+        }
+    }
+}
+
+void TextDrawer::SyncWindow(Control* pOwner)
+{
+    ASSERT(m_pRichText != nullptr);
+    if (m_pRichText == nullptr) {
+        return;
+    }
+    Window* pWindow = pOwner->GetWindow();
+    if (m_pRichText->GetWindow() != pWindow) {
+        //仅在窗口真正变化时才切换窗口，避免每次测量/绘制都清空RichText的解析缓存
+        m_pRichText->SetWindow(pWindow);
+    }
+}
+
 DString TextDrawer::ToPlainText(const DString& strRichText)
 {
     return RemoveRichTextTags(strRichText);
@@ -119,10 +146,9 @@ UiRect TextDrawer::MeasureString(IRender* pRender,
             m_pRichText->SetAttribute(_T("trim_policy"), _T("none")); //对空格不执行trim操作
         }
         m_pRichText->SetEnableRedraw(false);
-        m_pRichText->SetWindow(nullptr); //不设置关联窗口，避免产生Invalidate调用
+        SyncWindow(pOwner); //仅在窗口变化时切换，避免每次测量都触发RichText重新解析
         UpdateTextDrawProps(measureParam.uFormat, measureParam.fSpacingMul, measureParam.fSpacingAdd, fontId);
 
-        m_pRichText->SetWindow(pOwner->GetWindow()); //绘制过程中和解析RichText的时候，需要关联窗口（需要Dpi缩放等操作）
         //以实际文本内容作为缓存键：测量文本与绘制文本不同时，也能正确重新解析
         if (m_sRichTextText != strText) {
             m_pRichText->SetText(strText, false);
@@ -170,13 +196,12 @@ void TextDrawer::DrawString(IRender* pRender,
             m_pRichText->SetAttribute(_T("trim_policy"), _T("none")); //对空格不执行trim操作
         }
         m_pRichText->SetEnableRedraw(false);
-        m_pRichText->SetWindow(nullptr); //不设置关联窗口，避免产生Invalidate调用
+        SyncWindow(pOwner); //仅在窗口变化时切换，避免每次绘制都触发RichText重新解析
         m_pRichText->SetRect(drawParam.textRect);//不调用SetPos函数，避免产生回调等事件
-        m_pRichText->SetAlpha(drawParam.uFade);
+        m_pRichText->SetPaintAlpha(drawParam.uFade);//仅设置绘制透明度，避免在绘制过程中触发窗口重绘
         m_pRichText->SetTextColor(pOwner->GetColorString(drawParam.dwTextColor));
         UpdateTextDrawProps(drawParam.uFormat, drawParam.fSpacingMul, drawParam.fSpacingAdd, fontId);
 
-        m_pRichText->SetWindow(pOwner->GetWindow()); //绘制过程中和解析RichText的时候，需要关联窗口（需要Dpi缩放等操作）
         //以实际文本内容作为缓存键：测量文本与绘制文本不同时，也能正确重新解析
         if (m_sRichTextText != strText) {
             m_pRichText->SetText(strText, false);

@@ -348,15 +348,21 @@ uint16_t RichTextImpl::GetTextStyle() const
 const std::vector<RichTextData>& RichTextImpl::GetRichTextLayoutData()
 {
     if ((m_nRichTextLayoutDataVersion != m_nLayoutVersion) ||
+        (m_nRichTextLayoutColorVersion != m_nTextColorVersion) ||
         (m_richTextLayoutData.size() != m_textData.size())) {
         UiColor normalLinkTextColor;
         if (!m_linkNormalTextColor.empty()) {
             normalLinkTextColor = m_pOwner->GetUiColor(m_linkNormalTextColor.c_str());
         }
+        //默认文本颜色：使用当前颜色，颜色变化时只需重建绘制数据，无需重新解析文本
+        const UiColor defaultTextColor = GetDefaultTextColor();
         m_richTextLayoutData.clear();
         m_richTextLayoutData.reserve(m_textData.size());
         for (const RichTextDataEx& textDataEx : m_textData) {
             RichTextData textData = textDataEx;
+            if (textDataEx.m_bDefaultTextColor) {
+                textData.m_textColor = defaultTextColor;
+            }
             if (!textDataEx.m_linkUrl.empty()) {
                 //对于超级链接，设置默认文本格式
                 if (textDataEx.m_pLinkFontInfo != nullptr) {
@@ -374,6 +380,7 @@ const std::vector<RichTextData>& RichTextImpl::GetRichTextLayoutData()
             m_richTextLayoutData.emplace_back(std::move(textData));
         }
         m_nRichTextLayoutDataVersion = m_nLayoutVersion;
+        m_nRichTextLayoutColorVersion = m_nTextColorVersion;
     }
     return m_richTextLayoutData;
 }
@@ -496,6 +503,8 @@ void RichTextImpl::PaintText(IRender* pRender)
     if (rc.IsEmpty()) {
         return;
     }
+    //绘制使用的透明度（支持外部指定，避免在绘制过程中经由Control::SetAlpha触发窗口重绘）
+    const uint8_t nPaintAlpha = GetPaintAlpha();
 
     if (!m_textData.empty()) {
         UiColor mouseDownLinkTextColor;
@@ -514,6 +523,8 @@ void RichTextImpl::PaintText(IRender* pRender)
         //基础绘制数据只与解析结果相关（链接字体、基础颜色），解析后只重建一次；
         //悬停/按下/访问等状态变化只影响颜色，通过textColors覆盖，不触发重新排版
         const std::vector<RichTextData>& richTextLayoutData = GetRichTextLayoutData();
+        //当前默认文本颜色（默认颜色的片段直接使用该值，颜色变化时无需重新解析文本）
+        const UiColor defaultTextColor = GetDefaultTextColor();
 
         //逐片段计算本帧使用的颜色（只有颜色会随交互状态变化）
         std::vector<UiColor>& textColors = m_richTextTextColorBuffer;
@@ -523,7 +534,7 @@ void RichTextImpl::PaintText(IRender* pRender)
         const UiString* pLastLinkUrl = nullptr;
         for (size_t nIndex = 0; nIndex < m_textData.size(); ++nIndex) {
             const RichTextDataEx& textDataEx = m_textData[nIndex];
-            UiColor textColor = richTextLayoutData[nIndex].m_textColor;
+            UiColor textColor = textDataEx.m_bDefaultTextColor ? defaultTextColor : richTextLayoutData[nIndex].m_textColor;
             if (!textDataEx.m_linkUrl.empty()) {
                 if ((pLastLinkUrl == nullptr) || (*pLastLinkUrl != textDataEx.m_linkUrl)) {
                     ++nLinkGroup;
@@ -592,7 +603,7 @@ void RichTextImpl::PaintText(IRender* pRender)
                     rcSelect.Offset(textRect.left, textRect.top);
                     UiRect rcDraw;
                     if (UiRect::Intersect(rcDraw, rcSelect, textRect)) {
-                        pRender->FillRect(UiRectF::MakeFromRect(rcDraw), selectBgColor, m_pOwner->GetAlpha());
+                        pRender->FillRect(UiRectF::MakeFromRect(rcDraw), selectBgColor, nPaintAlpha);
                     }
                 }
             }
@@ -602,7 +613,7 @@ void RichTextImpl::PaintText(IRender* pRender)
             //使用绘制缓存
             std::vector<int32_t> rowXOffset;//对齐方式为居中或者靠右时使用
             pRender->DrawRichTextCacheData(m_spDrawRichTextCache, textRect, szScrollOffset,
-                                           rowXOffset, m_pOwner->GetAlpha(), pRichTextRects, &textColors);
+                                           rowXOffset, nPaintAlpha, pRichTextRects, &textColors);
 
 #if 0
             //测试代码结束(比较使用缓存绘制和不使用缓存绘制时结果是否相同)
@@ -627,7 +638,7 @@ void RichTextImpl::PaintText(IRender* pRender)
         }
         else {
             //不使用绘制缓存            
-            pRender->DrawRichText(textRect, szScrollOffset, pRenderFactory, richTextLayoutData, m_pOwner->GetAlpha(), pRichTextRects);
+            pRender->DrawRichText(textRect, szScrollOffset, pRenderFactory, richTextLayoutData, nPaintAlpha, pRichTextRects);
         }
         if (pRichTextRects != nullptr) {
             ASSERT(richTextRects.size() == m_textData.size());
@@ -660,7 +671,7 @@ void RichTextImpl::PaintText(IRender* pRender)
                     rcLine.top = rcLine.bottom - nLineHeight;
                     UiRect rcDraw;
                     if (UiRect::Intersect(rcDraw, rcLine, textRect)) {
-                        pRender->FillRect(UiRectF::MakeFromRect(rcDraw), textColors[nIndex], m_pOwner->GetAlpha());
+                        pRender->FillRect(UiRectF::MakeFromRect(rcDraw), textColors[nIndex], nPaintAlpha);
                     }
                 }
             }
@@ -701,6 +712,15 @@ void RichTextImpl::CheckParseText()
     }
 }
 
+UiColor RichTextImpl::GetDefaultTextColor() const
+{
+    UiColor textColor = m_pOwner->GetUiColor(GetTextColor());
+    if (textColor.IsEmpty()) {
+        textColor = UiColor(UiColors::Black);
+    }
+    return textColor;
+}
+
 bool RichTextImpl::ParseText(std::vector<RichTextDataEx>& outTextData) const
 {
     //默认字体
@@ -712,11 +732,9 @@ bool RichTextImpl::ParseText(std::vector<RichTextDataEx>& outTextData) const
     }
 
     RichTextDataEx parentTextData;
-    //默认文本颜色
-    parentTextData.m_textColor = m_pOwner->GetUiColor(GetTextColor());
-    if (parentTextData.m_textColor.IsEmpty()) {
-        parentTextData.m_textColor = UiColor(UiColors::Black);
-    }
+    //默认文本颜色（记录该颜色为默认颜色，运行时修改默认颜色时无需重新解析文本）
+    parentTextData.m_textColor = GetDefaultTextColor();
+    parentTextData.m_bDefaultTextColor = true;
     parentTextData.m_pFontInfo.reset(new UiFontEx);
     parentTextData.m_pFontInfo->m_fontName = pFont->FontName();
     parentTextData.m_pFontInfo->m_fontSize = pFont->FontSize();
@@ -817,11 +835,14 @@ bool RichTextImpl::ParseTextSlice(const RichTextSlice& textSlice,
         nBaselineOffset += (int32_t)std::lround((float)parentTextData.m_pFontInfo->m_fontSize * textSlice.m_fBaselineScale);
     }
     currentTextData.m_nBaselineOffset = parentTextData.m_nBaselineOffset + nBaselineOffset;
+    //文本颜色：记录是否为默认颜色，用于运行时仅更新颜色而不重新解析文本
+    currentTextData.m_bDefaultTextColor = parentTextData.m_bDefaultTextColor;
     if (!textSlice.m_textColor.empty()) {
         //颜色值无效时（解析结果为空）保持继承父节点的颜色，避免文本变成透明色
         const UiColor textColor = m_pOwner->GetUiColor(textSlice.m_textColor.c_str());
         if (!textColor.IsEmpty()) {
             currentTextData.m_textColor = textColor;
+            currentTextData.m_bDefaultTextColor = false;
         }
         else {
             currentTextData.m_textColor = parentTextData.m_textColor;
@@ -1001,6 +1022,21 @@ bool RichTextImpl::IsEnableRedraw() const
     return m_bEnableRedraw;
 }
 
+void RichTextImpl::SetPaintAlpha(uint8_t nAlpha)
+{
+    //仅记录绘制使用的透明度，不触发重绘（避免在绘制过程中产生窗口重绘）
+    m_nPaintAlpha = nAlpha;
+    m_bPaintAlphaSet = true;
+}
+
+uint8_t RichTextImpl::GetPaintAlpha() const
+{
+    if (m_bPaintAlphaSet) {
+        return m_nPaintAlpha;
+    }
+    return m_pOwner->GetAlpha();
+}
+
 /** 判断格式化文本是否以<RichText>根标签开始（标签名称不区分大小写）
 */
 static bool HasRichTextRootTag(const DString& richText)
@@ -1108,7 +1144,11 @@ void RichTextImpl::SetTextColor(const DString& sTextColor)
 {
     if (m_sTextColor != sTextColor) {
         m_sTextColor = sTextColor;
-        Redraw();
+        //默认文本颜色只影响绘制数据，不影响排版：无需重新解析文本，仅更新颜色版本并重绘
+        ++m_nTextColorVersion;
+        if (IsEnableRedraw()) {
+            m_pOwner->Invalidate();
+        }
     }
 }
 
