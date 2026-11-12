@@ -2670,23 +2670,65 @@ void RichEdit::PaintRichEdit(IRender* pRender, const UiRect& rcPaint)
         return;
     }
 
-    //复制渲染引擎源位图数据
-    bRet = pRender->ReadPixels(rc, pBitmapBits, rc.Width() * rc.Height() * sizeof(uint32_t));
-    ASSERT(bRet);
-    if (!bRet) {
-        return;
-    }
-
     //更新区域（相对于位图左上角坐标）
     rcUpdate.Offset(-rc.left, -rc.top);
 
-    //清除Alpha通道（标记为全部透明）
     const int32_t nTop = std::max(rcUpdate.top, 0);
     const int32_t nBottom = std::min(rcUpdate.bottom, rc.Height());
     const int32_t nLeft = std::max(rcUpdate.left, 0);
     const int32_t nRight = std::min(rcUpdate.right, rc.Width());
     const int32_t nWidth = rc.Width();
 
+    //复制渲染引擎源位图数据
+    //优化：只回读更新区域，避免光标闪烁等小脏区触发整块 GPU->CPU 回读（大文本下开销明显）
+    bRet = true;
+    if ((nLeft == 0) && (nTop == 0) && (nRight == nWidth) && (nBottom == rc.Height())) {
+        //更新区域覆盖整个控件，直接整块回读
+        bRet = pRender->ReadPixels(rc, pBitmapBits, (size_t)nWidth * (size_t)rc.Height() * sizeof(uint32_t));
+    }
+    else {
+        const int32_t nUpdateWidth = nRight - nLeft;
+        const int32_t nUpdateHeight = nBottom - nTop;
+        if ((nUpdateWidth > 0) && (nUpdateHeight > 0)) {
+            const size_t nUpdateBytes = (size_t)nUpdateWidth * (size_t)nUpdateHeight * sizeof(uint32_t);
+            if (m_pReadBackPixels == nullptr) {
+                m_pReadBackPixels = std::make_unique<FastBytes>();
+            }
+            FastBytes& readBackPixels = *m_pReadBackPixels;
+            if ((size_t)readBackPixels.capacity() > 2 * nUpdateBytes) {
+                //当缓存过大时，释放内存，重新分配合适的内存，避免占用过多内存
+                readBackPixels.clear_release();
+            }
+            readBackPixels.reserve(nUpdateBytes);
+            if ((size_t)readBackPixels.capacity() < nUpdateBytes) {
+                return; //内存分配失败
+            }
+            UiRect rcRead = rc;
+            rcRead.left = rc.left + nLeft;
+            rcRead.top = rc.top + nTop;
+            rcRead.right = rc.left + nRight;
+            rcRead.bottom = rc.top + nBottom;
+            bRet = pRender->ReadPixels(rcRead, readBackPixels.data(), nUpdateBytes);
+            if (bRet) {
+                //把回读的局部数据按行拷贝到位图的对应位置（位图其余区域不会被绘制，也不会被写回）
+                const uint8_t* pSrc = readBackPixels.data();
+                uint8_t* pDst = (uint8_t*)pBitmapBits + ((size_t)nTop * (size_t)nWidth + (size_t)nLeft) * sizeof(uint32_t);
+                const size_t nRowBytes = (size_t)nUpdateWidth * sizeof(uint32_t);
+                const size_t nDstRowBytes = (size_t)nWidth * sizeof(uint32_t);
+                for (int32_t nRow = 0; nRow < nUpdateHeight; ++nRow) {
+                    std::memcpy(pDst, pSrc, nRowBytes);
+                    pSrc += nRowBytes;
+                    pDst += nDstRowBytes;
+                }
+            }
+        }
+    }
+    ASSERT(bRet);
+    if (!bRet) {
+        return;
+    }
+
+    //清除Alpha通道（标记为全部透明）
     const uint32_t alphaMask = 0xFF000000u; //Alpha通道掩码
     const uint32_t alphaClear = ~alphaMask; //清除Alpha后的像素掩码
 

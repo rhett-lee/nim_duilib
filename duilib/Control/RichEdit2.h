@@ -26,6 +26,7 @@ public:
     virtual void SetAttribute(const DString& pstrName, const DString& pstrValue) override;
     virtual void HandleEvent(const EventArgs& msg) override; 
     virtual void SetWindow(Window* pWindow) override;
+    virtual void SetPos(UiRect rc) override;
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
     virtual void PaintStateImages(IRender* pRender) override;
     virtual void ClearImageCache() override;
@@ -1072,6 +1073,14 @@ private:
     */
     void StopFlashPasswordChar();
 
+    /** 获取密码模式下用于绘制的掩码文本（带缓存，仅在文本/密码属性变化时重建）
+    */
+    const DStringW& GetPasswordTextForDraw();
+
+    /** 标记密码掩码文本缓存失效
+    */
+    void InvalidatePasswordTextCache();
+
     /** 获取下一个缩放百分比值
     * @param [in] nOldZoomPercent 当前的缩放百分比
     * @param [in] bZoomIn true表示放大，false表示缩小
@@ -1249,6 +1258,8 @@ private:
     DStringW::value_type m_chPasswordChar;   //密码字符
     bool m_bFlashPasswordChar;  //是否短暂的显示密码字符，然后再隐藏
     bool m_bInputPasswordChar;  //当前是否存在输入密码
+    bool m_bPasswordTextCacheValid;  //密码掩码文本缓存是否有效
+    DStringW m_passwordTextCache;    //密码模式下用于绘制的掩码文本缓存
 
     bool m_bNumberOnly;         //是否只允许输入数字
     bool m_bWordWrap;           //当显示超出边界时，是否自动换行

@@ -81,6 +81,8 @@ RichEdit2::RichEdit2(Window* pWindow) :
     m_chPasswordChar(L'*'),
     m_bFlashPasswordChar(false),
     m_bInputPasswordChar(false),
+    m_bPasswordTextCacheValid(false),
+    m_passwordTextCache(),
     m_bNumberOnly(false),
     m_bWordWrap(false),
     m_nLimitText(0),
@@ -584,8 +586,24 @@ void RichEdit2::StopFlashPasswordChar()
 {
     if (m_bInputPasswordChar) {
         m_bInputPasswordChar = false;
+        InvalidatePasswordTextCache();
         Invalidate();
     }
+}
+
+const DStringW& RichEdit2::GetPasswordTextForDraw()
+{
+    if (!m_bPasswordTextCacheValid) {
+        m_passwordTextCache = m_pTextData->GetText();
+        ReplacePasswordChar(m_passwordTextCache);
+        m_bPasswordTextCacheValid = true;
+    }
+    return m_passwordTextCache;
+}
+
+void RichEdit2::InvalidatePasswordTextCache()
+{
+    m_bPasswordTextCacheValid = false;
 }
 
 bool RichEdit2::IsPasswordMode() const
@@ -597,6 +615,7 @@ void RichEdit2::SetPasswordMode(bool bPasswordMode)
 {
     if (m_bPasswordMode != bPasswordMode) {
         m_bPasswordMode = bPasswordMode;
+        InvalidatePasswordTextCache();
         bool bUpdated = false;
         if (bPasswordMode) {
             //密码模式下，去掉文本中的回车，换行，TAB键
@@ -617,6 +636,7 @@ void RichEdit2::SetShowPassword(bool bShow)
 {
     if (m_bShowPassword != bShow) {
         m_bShowPassword = bShow;
+        InvalidatePasswordTextCache();
         m_pTextData->SetCacheDirty(true);
         Redraw();
     }
@@ -631,6 +651,7 @@ void RichEdit2::SetPasswordChar(DStringW::value_type ch)
 {
     if (m_chPasswordChar != ch) {
         m_chPasswordChar = ch;
+        InvalidatePasswordTextCache();
         if (IsPasswordMode()) {
             m_pTextData->SetCacheDirty(true);
             Redraw();
@@ -645,7 +666,10 @@ DStringW::value_type RichEdit2::GetPasswordChar() const
 
 void RichEdit2::SetFlashPasswordChar(bool bFlash)
 {
-    m_bFlashPasswordChar = bFlash;
+    if (m_bFlashPasswordChar != bFlash) {
+        m_bFlashPasswordChar = bFlash;
+        InvalidatePasswordTextCache();
+    }
 }
 
 bool RichEdit2::IsFlashPasswordChar() const
@@ -1721,6 +1745,17 @@ void RichEdit2::SetWindow(Window* pWindow)
     }
 }
 
+void RichEdit2::SetPos(UiRect rc)
+{
+    const bool bSizeChanged = (GetRect().Width() != rc.Width()) || (GetRect().Height() != rc.Height());
+    BaseClass::SetPos(rc);
+    if (bSizeChanged && IsInited()) {
+        //尺寸变化时提前完成文本排版（宽度变化需要重新计算文本区域），
+        //避免把排版开销延迟到首帧绘制中
+        m_pTextData->CheckCalcTextRects();
+    }
+}
+
 void RichEdit2::LineUp(int32_t deltaValue)
 {
     BaseClass::LineUp(deltaValue);
@@ -1975,10 +2010,9 @@ void RichEdit2::Paint(IRender* pRender, const UiRect& rcPaint)
         //密码模式：使用掩码后的文本走格式化文本绘制流程，
         //以支持横向滚动偏移和文本裁剪（原实现直接DrawString到未滚动坐标，
         //超宽密码输入时文字不移动，光标和选择区域会跑到可视区外）
-        DStringW passwordText = m_pTextData->GetText();
+        //掩码文本使用缓存，避免每帧都做 GetText() + ReplacePasswordChar() 的全量拷贝
+        const DStringW& passwordText = GetPasswordTextForDraw();
         if (!passwordText.empty()) {
-            //处理显示字符
-            ReplacePasswordChar(passwordText);
             //生成绘制数据（密码模式的文本排版也是按掩码文本计算的）
             std::vector<std::wstring_view> textViewList;
             textViewList.emplace_back(passwordText.c_str(), passwordText.size());
@@ -2913,6 +2947,9 @@ void RichEdit2::ShowPopupMenu(const ui::UiPoint& point)
 
 void RichEdit2::OnTextChanged()
 {
+    //文本变化后，密码掩码文本缓存失效
+    InvalidatePasswordTextCache();
+
     //设置已修改标志
     SetModify(true);
 
@@ -4770,21 +4807,28 @@ void RichEdit2::OnMouseWheel(int32_t wheelDelta, bool bCtrlDown)
 uint32_t RichEdit2::GetNextZoomPercent(uint32_t nOldZoomPercent, bool bZoomIn) const
 {
     //通过查表的方式设置缩放比例(放大和缩小的时候，能够按照原来的比例复原)
-    std::vector<uint32_t> zoomPercentList;
-    uint32_t nZoomPercent = 100;
-    while (nZoomPercent > 1) {
-        nZoomPercent = (uint32_t)(nZoomPercent * 0.90f);
-        zoomPercentList.insert(zoomPercentList.begin(), nZoomPercent);
-    }
-    nZoomPercent = 100;
-    while (nZoomPercent < MAX_ZOOM_PERCENT) {
-        zoomPercentList.insert(zoomPercentList.end(), nZoomPercent);
-        nZoomPercent = (uint32_t)(nZoomPercent * 1.10f);
-    }
-    zoomPercentList.insert(zoomPercentList.end(), MAX_ZOOM_PERCENT);
+    //缩放比例表只构建一次：原实现每次调用都重新构造 std::vector，且用 insert(begin) 导致 O(n²)
+    static const std::vector<uint32_t> zoomPercentList = []() {
+        std::vector<uint32_t> zoomPercentDownList;
+        uint32_t nZoomPercent = 100;
+        while (nZoomPercent > 1) {
+            nZoomPercent = (uint32_t)(nZoomPercent * 0.90f);
+            zoomPercentDownList.push_back(nZoomPercent);
+        }
+        std::vector<uint32_t> percentList;
+        percentList.reserve(zoomPercentDownList.size() + 32);
+        percentList.assign(zoomPercentDownList.rbegin(), zoomPercentDownList.rend());
+        nZoomPercent = 100;
+        while (nZoomPercent < MAX_ZOOM_PERCENT) {
+            percentList.push_back(nZoomPercent);
+            nZoomPercent = (uint32_t)(nZoomPercent * 1.10f);
+        }
+        percentList.push_back(MAX_ZOOM_PERCENT);
+        return percentList;
+    }();
 
     bool bFound = false;
-    nZoomPercent = nOldZoomPercent;
+    uint32_t nZoomPercent = nOldZoomPercent;
     const size_t nPercentCount = zoomPercentList.size();
     for (size_t nPercentIndex = 0; nPercentIndex < nPercentCount; ++nPercentIndex) {
         if ((zoomPercentList[nPercentIndex] > nZoomPercent) || (nPercentIndex == (nPercentCount - 1))) {
@@ -5279,6 +5323,7 @@ void RichEdit2::OnInputChar(const EventArgs& msg)
     if (IsPasswordMode() && !IsShowPassword() && IsFlashPasswordChar()) {
         if (nNewSelChar == GetTextLength()) {
             m_bInputPasswordChar = true;            
+            InvalidatePasswordTextCache();
             std::function<void()> closure = UiBind(&RichEdit2::StopFlashPasswordChar, this);
             GlobalManager::Instance().Timer().AddTimer(m_falshPasswordFlag.GetWeakFlag(), closure, 1500);
         }

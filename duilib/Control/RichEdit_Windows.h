@@ -1292,6 +1292,10 @@ private:
     class FastBytes;
     std::unique_ptr<FastBytes> m_pAlphaValues;
 
+    /** 局部回读位图时的临时缓冲区（仅回读脏区时使用）
+    */
+    std::unique_ptr<FastBytes> m_pReadBackPixels;
+
 private:
 #ifndef DUILIB_UNICODE
     /** MBCS时，输入的字符

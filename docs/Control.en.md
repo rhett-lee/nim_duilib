@@ -1806,7 +1806,7 @@ C++ interfaces: `SetIndeterminateArc/GetIndeterminateArc`, `SetIndeterminateSpee
 | show_password | false | bool | Whether to display the password character, e.g. "true"|
 | password_char || string | Set the password character; default is the " * " character, which can be changed via this attribute (masking is counted in UTF-16 code units: one emoji or other supplementary-plane character is displayed as 2 mask characters) |
 | flash_password_char | false | bool | Display the character first, then display the password character|
-| number_only | false | bool | Whether only numbers are allowed to be entered, e.g. "false" |
+| number_only | false | bool | Whether only signed integers are allowed (minus sign + digits); a decimal point and a plus sign are not supported. Use SpinBox (`decimals`/`step` etc.) for decimal or formatted numbers |
 | max_number | INT64_MAX | int64 | Maximum allowed number (only valid when number_only is true) |
 | min_number | INT64_MIN | int64 | Minimum allowed number (only valid when number_only is true) |
 | text_align | "left,top" | string | Horizontal and vertical alignment of the text, optional values: left, right, hcenter, top, vcenter, bottom, separated by commas, e.g. "hcenter,vcenter" |
@@ -1854,6 +1854,7 @@ The RichEdit control inherits the `ScrollBox` attributes. For more available att
 Functional description of the RichEdit2 class:    
 (1) On the Windows platform, the RichEdit class is implemented using the Windows system's own ITextServices interface, while RichEdit2 is implemented by this project itself; the two have different implementation methods but basically the same functionality.    
 (2) On non-Windows platforms, RichEdit is an alias of RichEdit2, and the two are identical.    
+(3) RichEdit2 is a self-drawn control and does not implement accessibility interfaces: the caret position, selection range, and link regions are not exposed to screen readers through IAccessible / UI Automation. The framework currently has no accessibility infrastructure; to support accessibility, handle WM_GETOBJECT at the window level and implement a read-only IAccessible text role (this is a known limitation for now).    
 
 ## Attributes of SpinBox
 SpinBox is a numeric input control derived from RichEdit. It enables `number_only` mode by default and provides numeric input plus spin buttons and up/down arrow key adjustment.    

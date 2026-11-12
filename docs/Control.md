@@ -1806,7 +1806,7 @@ pGauge->SetCenterCallback([pGauge](ui::IRender* pRender, const ui::UiRect& rcCen
 | show_password | false | bool | 是否显示密码符,如"true"|
 | password_char || string | 设置密码字符，默认为 " * " 字符，可用通过这个属性改变（密码掩码按 UTF-16 码元计数，一个 emoji 等增补平面字符显示为 2 个掩码字符）|
 | flash_password_char | false | bool | 先显示字符，然后再显示密码字符|
-| number_only | false | bool | 是否只允许输入数字,如"false" |
+| number_only | false | bool | 是否只允许输入有符号整数（负号 + 数字），不支持小数点与正号；需要小数或格式化数字时请使用 SpinBox（`decimals`/`step` 等属性） |
 | max_number | INT64_MAX | int64 | 允许的最大数字(仅当number_only为true的时候有效) |
 | min_number | INT64_MIN | int64 | 允许的最小数字(仅当number_only为true的时候有效) |
 | text_align | "left,top" | string | 文字的水平与垂直对齐方式, 可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter" |
@@ -1854,6 +1854,7 @@ RichEdit 控件继承了 `ScrollBox` 属性，更多可用属性请参考`Scroll
 RichEdit2类的功能说明：    
 （1）在Windows平台，RichEdit类是使用Windows系统本身的ITextServices接口实现的，RichEdit2是本项目自己实现的，两者实现方式不同，但功能基本一致    
 （2）在非Windows平台，RichEdit是RichEdit2的别名，两者没有区别。    
+（3）RichEdit2 是纯自绘控件，未实现辅助功能接口：光标位置、选择范围和链接区域不会通过 IAccessible / UI Automation 暴露给读屏软件。框架目前没有辅助功能基础设施；如需支持无障碍访问，建议在窗口层处理 WM_GETOBJECT 并实现只读的 IAccessible 文本角色（当前为已知限制）。    
 
 ## SpinBox的属性
 SpinBox是数字输入框控件，继承自RichEdit，默认开启`number_only`模式，提供数字输入 + 步进按钮 + 上下方向键调整的完整数字输入能力。    

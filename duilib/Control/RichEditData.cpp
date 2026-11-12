@@ -715,6 +715,9 @@ void RichEditData::CalcTextRectsPart(size_t nStartLine,
     UpdateRowTextOffsetX(m_lineTextInfo, GetHAlignType(), m_rowXOffset, m_bTextRectXOffsetUpdated);
     
 #ifdef _DEBUG
+    //增量布局结果与完整布局的一致性校验：开销较大（相当于再做一次全量排版），
+    //默认关闭；排查增量布局问题时，定义 DUILIB_RICHEDIT_DEBUG_FULL_LAYOUT_CHECK 开启
+    #ifdef DUILIB_RICHEDIT_DEBUG_FULL_LAYOUT_CHECK
     //比较与完整绘制时是否一致
     if (nStartLine != (size_t)-1) {
         std::vector<std::wstring_view> textView2;
@@ -775,6 +778,7 @@ void RichEditData::CalcTextRectsPart(size_t nStartLine,
             ASSERT(bRet);
         }
     }
+    #endif
 #endif
 }
 
