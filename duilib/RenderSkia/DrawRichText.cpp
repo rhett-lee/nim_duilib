@@ -1483,10 +1483,17 @@ bool DrawRichText::UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& s
     if (spUpdateDrawRichTextCache != nullptr) {
         DrawRichTextCache& updateData = *spUpdateDrawRichTextCache;
         if (!updateData.m_pendingTextData.empty()) {//容器可能为空（当本行为空行时为空）
-            ASSERT(updateData.m_textRect == oldData.m_textRect);
-            if (updateData.m_textRect != oldData.m_textRect) {
+            //缓存的文本矩形，其位置可能发生变化（如控件移动、滚动后重新布局），
+            //此时仍可复用缓存（绘制时按新的矩形位置计算目标区域），
+            //但宽度和高度必须一致，否则行数据（相对坐标）不能合并
+            ASSERT((updateData.m_textRect.Width() == oldData.m_textRect.Width()) &&
+                   (updateData.m_textRect.Height() == oldData.m_textRect.Height()));
+            if ((updateData.m_textRect.Width() != oldData.m_textRect.Width()) ||
+                (updateData.m_textRect.Height() != oldData.m_textRect.Height())) {
                 return false;
             }
+            //同步缓存中记录的文本矩形，避免后续比较（IsDrawRichTextCacheEqual）时位置不一致
+            oldData.m_textRect = updateData.m_textRect;
             ASSERT(updateData.m_textEncoding == oldData.m_textEncoding);
             if (updateData.m_textEncoding != oldData.m_textEncoding) {
                 return false;

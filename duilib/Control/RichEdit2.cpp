@@ -447,6 +447,20 @@ void RichEdit2::OnInit()
     if (pVScrollBar != nullptr) {
         pVScrollBar->SetScrollRange(0);
     }
+
+    //单行模式下，规整初始化阶段设置的文本：
+    //XML属性的设置顺序不固定，text属性可能先于single_line/multi_line属性被设置，
+    //因此不能在SetText时立即规整，需要等到全部属性设置完成后再统一处理
+    if (!IsMultiLine()) {
+        DStringW text = m_pTextData->GetText();
+        DStringW newText = text;
+        NormalizeSingleLineText(newText);
+        if (newText != text) {
+            //此处只需要更新文本数据，光标位置和滚动范围在后续布局时重新计算
+            m_pTextData->SetText(newText);
+            ClearCacheAndRedraw();
+        }
+    }
 }
 
 void RichEdit2::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
@@ -1160,8 +1174,12 @@ void RichEdit2::SetText(const DStringW& strText)
 {
     //目前内存占用情况：2MB的UTF16格式文本，Debug版本：占用约23MB的内存，Release版本：占用约12MB的内存。
     //单行模式下，需要把换行符规整为空格，避免存入换行符后显示时"吞字"
+    //注意：XML解析阶段(text属性可能先于multi_line/single_line属性设置)不做规整，
+    //      避免多行控件先设置text、后设置multi_line时丢失换行符；初始化完成后再统一规整
     DStringW text = strText;
-    NormalizeSingleLineText(text);
+    if (IsInited()) {
+        NormalizeSingleLineText(text);
+    }
 
     bool bChanged = false;
     if (IsPasswordMode()) {
@@ -2191,14 +2209,14 @@ void RichEdit2::ShowCaret(bool fShow)
         int32_t yHeight = 0;
         GetCaretSize(xWidth, yHeight);
 
-        //GetCaretPos返回的是控件局部坐标，转换为窗口客户区坐标：
-        //控件在窗口客户区中的位置 + 控件内光标位置 - 外层滚动容器的滚动偏移
+        //GetCaretPos返回的是布局坐标（已包含控件自身的位置，且已扣除控件内部滚动偏移），
+        //转换为窗口客户区坐标时，只需扣除外层滚动容器的滚动偏移，不能再叠加控件的位置
         UiRect rc = GetRect();
         UiPoint scrollOffset = GetScrollOffsetInScrollBox();
 
         UiRect inputRect;
-        inputRect.left = rc.left + xPos - scrollOffset.x;
-        inputRect.top = rc.top + yPos - scrollOffset.y;
+        inputRect.left = xPos - scrollOffset.x;
+        inputRect.top = yPos - scrollOffset.y;
         inputRect.right = rc.right - scrollOffset.x;
         if (inputRect.right <= inputRect.left) {
             inputRect.right = inputRect.left + 2;
@@ -2956,7 +2974,8 @@ void RichEdit2::OnTextChanged()
     //数字模式下，文本变化后统一把数字夹取到[min_number, max_number]范围内。
     //放在这里可以覆盖所有修改文本的入口(按键输入、粘贴、SetText、拖放等)，
     //与Windows原生RichEdit实现的行为保持一致
-    if (IsNumberOnly() && !IsReadOnly() && IsEnabled() &&
+    //注意：min_number大于max_number属于无效配置，此时不夹取，避免在最小值和最大值之间反复修正
+    if (IsNumberOnly() && !IsReadOnly() && IsEnabled() && (GetMinNumber() <= GetMaxNumber()) &&
         ((GetMinNumber() != INT64_MIN) || (GetMaxNumber() != INT64_MAX))) {
         DString newText = GetText();
         if (!newText.empty()) {
@@ -2971,7 +2990,6 @@ void RichEdit2::OnTextChanged()
             }
         }
     }
-
     if (!m_bDisableTextChangeEvent) {
         SendEvent(kEventTextChanged);
     }
@@ -3835,10 +3853,10 @@ bool RichEdit2::OnImeStartComposition(const EventArgs& msg)
     GetCaretPos(xPos, yPos);
 
     //ImmSetCompositionWindow使用的是窗口客户区坐标：
-    //GetCaretPos返回控件局部坐标，需要加上控件在窗口客户区中的位置，并扣除外层滚动容器的滚动偏移
-    UiRect rcControl = GetRect();
-    pt.x = rcControl.left + xPos - ptScrollOffset.x;
-    pt.y = rcControl.top + yPos - ptScrollOffset.y;
+    //GetCaretPos返回的是布局坐标（已包含控件自身的位置，且已扣除控件内部滚动偏移），
+    //转换为窗口客户区坐标时，只需扣除外层滚动容器的滚动偏移，不能再叠加控件的位置
+    pt.x = xPos - ptScrollOffset.x;
+    pt.y = yPos - ptScrollOffset.y;
 
     //pt.y += (m_iCaretHeight + lf.lfHeight) / 4;
     cfs.dwStyle = CFS_POINT;
