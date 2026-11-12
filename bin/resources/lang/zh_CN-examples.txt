@@ -2481,7 +2481,7 @@ STRID_LABEL_SEC_ELLIPSIS = 省略号与裁剪
 STRID_LABEL_ELLIPSIS_DEFAULT_TITLE = 结尾省略号（end_ellipsis=true，自动显示 ToolTip）
 STRID_LABEL_ELLIPSIS_SAMPLE = 这是一段很长的文本，用于验证控件宽度不足时结尾显示省略号的效果。
 STRID_LABEL_ELLIPSIS_PATH_TITLE = 路径省略号（path_ellipsis=true）
-STRID_LABEL_ELLIPSIS_PATH_SAMPLE = C:\Program Files\nim_duilib\bin\resources\themes\default\controls\label.xml
+STRID_LABEL_ELLIPSIS_PATH_SAMPLE = C:\\Program Files\\nim_duilib\\bin\\resources\\themes\\default\\controls\\label.xml
 STRID_LABEL_ELLIPSIS_NONE_TITLE = 不显示省略号（end_ellipsis=false）
 STRID_LABEL_SEC_INTERACTIVE = 运行时 API 测试
 STRID_LABEL_INTERACTIVE_TEXT = 这是可交互的 Label，点击下面的按钮可以修改单行/多行、对齐方式、纵向文本、换行符替换、RichText 模式、内边距、ToolTip 与字体。

@@ -2476,7 +2476,7 @@ STRID_LABEL_SEC_ELLIPSIS = Ellipsis and clipping
 STRID_LABEL_ELLIPSIS_DEFAULT_TITLE = End ellipsis (end_ellipsis=true, tooltip shown automatically)
 STRID_LABEL_ELLIPSIS_SAMPLE = This is a long piece of text used to verify the trailing ellipsis when the control is too narrow.
 STRID_LABEL_ELLIPSIS_PATH_TITLE = Path ellipsis (path_ellipsis=true)
-STRID_LABEL_ELLIPSIS_PATH_SAMPLE = C:\Program Files\nim_duilib\bin\resources\themes\default\controls\label.xml
+STRID_LABEL_ELLIPSIS_PATH_SAMPLE = C:\\Program Files\\nim_duilib\\bin\\resources\\themes\\default\\controls\\label.xml
 STRID_LABEL_ELLIPSIS_NONE_TITLE = No ellipsis (end_ellipsis=false)
 STRID_LABEL_SEC_INTERACTIVE = Runtime API tests
 STRID_LABEL_INTERACTIVE_TEXT = This is an interactive Label. The buttons below change single/multi-line mode, alignment, vertical text, newline replacement, RichText mode, padding, tooltip and font.

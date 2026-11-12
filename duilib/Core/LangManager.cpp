@@ -288,27 +288,42 @@ bool LangManager::LoadStringTableLine(const DString::value_type* lineData, int32
         return false;
     }
     if (stringValueTrim.IsValidString()) {
-        //有字符串ID，有合法的取值
-        //替换取值字符串中的转义字符: //将\n和\r替换为真实的换行符、回车符，将\s替换为空格
-        bool bEscapeCharacters = false;
-        for (int32_t i = 0; i < stringValueTrim.len; ++i) {
-            if (stringValueTrim.ptr[i] == _T('\\')) {
-                bEscapeCharacters = true; //可能含有转义字符
-                break;
+        //替换取值字符串中的转义字符（单次扫描，避免转义字符被重复解析）：
+        //  "\\" 替换为反斜杠("\")：用于显示Windows路径等含反斜杠的文本，此时反斜杠需要双写
+        //  "\r" 替换为回车符、"\n" 替换为换行符、"\s" 替换为空格
+        //  其他转义序列保持原样（如"\P"、"\t"等），避免影响正常文本
+        const DString::value_type* pValue = stringValueTrim.ptr;
+        const int32_t nValueLen = stringValueTrim.len;
+        DString stringValue;
+        stringValue.reserve((size_t)nValueLen);
+        for (int32_t i = 0; i < nValueLen; ++i) {
+            const DString::value_type ch = pValue[i];
+            if ((ch == _T('\\')) && ((i + 1) < nValueLen)) {
+                const DString::value_type chNext = pValue[i + 1];
+                if (chNext == _T('\\')) {
+                    stringValue += _T('\\');
+                    ++i;
+                    continue;
+                }
+                else if (chNext == _T('r')) {
+                    stringValue += _T('\r');
+                    ++i;
+                    continue;
+                }
+                else if (chNext == _T('n')) {
+                    stringValue += _T('\n');
+                    ++i;
+                    continue;
+                }
+                else if (chNext == _T('s')) {
+                    stringValue += _T(' ');
+                    ++i;
+                    continue;
+                }
             }
+            stringValue += ch;
         }
-        if (bEscapeCharacters) {
-            //可能含有转义字符，检测并替换转义字符
-            DString stringValue = DString(stringValueTrim.ptr, stringValueTrim.len);
-            StringUtil::ReplaceAll(_T("\\r"), _T("\r"), stringValue);
-            StringUtil::ReplaceAll(_T("\\n"), _T("\n"), stringValue);
-            StringUtil::ReplaceAll(_T("\\s"), _T(" "), stringValue);
-            m_stringTable[DString(stringIdTrim.ptr, stringIdTrim.len)] = std::move(stringValue);
-        }
-        else {
-            //无转义字符
-            m_stringTable[DString(stringIdTrim.ptr, stringIdTrim.len)] = DString(stringValueTrim.ptr, stringValueTrim.len);
-        }
+        m_stringTable[DString(stringIdTrim.ptr, stringIdTrim.len)] = std::move(stringValue);
     }
     else {
         //有字符串ID，但值为空

@@ -133,6 +133,25 @@ add_test(NAME rich_text
          COMMAND test_rich_text
 )
 
+# LangManager：语言文件取值的转义规则（\\、\r、\n、\s，其他转义保持原样、
+# 单次扫描避免重复解析），直接从内存加载语言表，不创建窗口
+add_executable(test_lang_manager
+    test_lang_manager.cpp
+)
+target_include_directories(test_lang_manager PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_lang_manager PRIVATE duilib)
+if(WIN32)
+    target_compile_definitions(test_lang_manager PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_lang_manager PRIVATE /utf-8)
+endif()
+add_test(NAME lang_manager
+         COMMAND test_lang_manager
+)
+
 # controls 示例页面的静态校验（XML 节点名、属性、class/颜色引用、语言词条、
 # Form 与 XML 的绑定关系）。该测试不创建窗口、不加载主题，仅用 Python3 解析
 # 资源文件，Windows/Linux/macOS 均可运行，可直接在命令行（含 CI）执行。

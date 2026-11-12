@@ -10,7 +10,11 @@ namespace ui
 {
 
 /** 多语言的支持
-*/
+ *
+ * 语言文件取值的转义规则（单次扫描解析，其他转义序列保持原样）：
+ *  "\\" 表示一个反斜杠：显示Windows路径时，路径中的反斜杠需要双写，例如"C:\\Program Files\\duilib"；
+ *  "\r" 表示回车符、"\n" 表示换行符、"\s" 表示空格（字符串两端的空格会被裁剪，需要空格时使用"\s"）。
+ */
 class DUILIB_API LangManager
 {
 public:
