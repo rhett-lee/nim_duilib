@@ -75,9 +75,9 @@ private:
     */
     std::unique_ptr<RichText> m_pRichText;
 
-    /** 原文本内容是否发生变化（当文本内容变化时，需要重新解析）
+    /** RichText当前解析的文本内容（作为解析缓存的键：文本内容不变时无需重新解析）
     */
-    bool m_bRichTextChanged;
+    DString m_sRichTextText;
 
     /** 纵向文本降级显示时，纯文本缓存的源文本
     */

@@ -387,6 +387,7 @@ void LabelImpl::SetRichText(bool bRichText)
         //普通文本与富文本的解析、测量结果不同，需要使绘制缓存失效并重新布局
         m_pTextDrawer->SetTextChanged();
         m_pOwner->RelayoutOrRedraw();
+        CheckShowToolTip();
     }
 }
 
@@ -397,12 +398,8 @@ bool LabelImpl::IsRichText() const
 
 bool LabelImpl::IsTextEquals(const DString& text) const
 {
-    if (m_sText.empty() && !m_sTextId.empty()) {
-        return StringUtil::StringCompare(GetText().c_str(), text.c_str()) == 0;
-    }
-    else {
-        return StringUtil::StringCompare(m_sText.c_str(), text.c_str()) == 0;
-    }
+    //与GetText()保持一致：文本ID、换行符替换等处理结果参与比较
+    return StringUtil::StringCompare(GetText().c_str(), text.c_str()) == 0;
 }
 
 DString LabelImpl::GetOwnerText() const
@@ -429,7 +426,13 @@ bool LabelImpl::IsAutoShowToolTipEnabled() const
 
 void LabelImpl::SetReplaceNewline(bool bReplaceNewline)
 {
-    m_bReplaceNewline = bReplaceNewline;
+    if (m_bReplaceNewline != bReplaceNewline) {
+        m_bReplaceNewline = bReplaceNewline;
+        //换行符替换会改变实际显示的文本内容，需要使解析缓存失效并重新布局
+        m_pTextDrawer->SetTextChanged();
+        m_pOwner->RelayoutOrRedraw();
+        CheckShowToolTip();
+    }
 }
 
 bool LabelImpl::IsReplaceNewline() const
@@ -447,7 +450,9 @@ void LabelImpl::SetVerticalText(bool bVerticalText)
         else {
             m_uTextStyle &= ~TEXT_VERTICAL;
         }
-        m_pOwner->Invalidate();
+        //文本方向变化会改变测量宽高，需要重新布局
+        m_pOwner->RelayoutOrRedraw();
+        CheckShowToolTip();
     }
 }
 
@@ -470,7 +475,9 @@ void LabelImpl::SetLineSpacing(float mul, float add, bool bNeedDpiScale)
     if ((mul != m_fSpacingMul) || (add != m_fSpacingAdd)) {
         m_fSpacingMul = mul;
         m_fSpacingAdd = add;
-        m_pOwner->Invalidate();
+        //行间距影响文本的测量高度，需要重新布局
+        m_pOwner->RelayoutOrRedraw();
+        CheckShowToolTip();
     }
 }
 
@@ -494,9 +501,9 @@ void LabelImpl::SetWordSpacing(float fWordSpacing, bool bNeedDpiScale)
     }
     if (m_fWordSpacing != fWordSpacing) {
         m_fWordSpacing = fWordSpacing;
-        if (IsVerticalText()) {
-            m_pOwner->Invalidate();
-        }
+        //字间距对横向和纵向文本的测量宽度均有影响，需要重新布局
+        m_pOwner->RelayoutOrRedraw();
+        CheckShowToolTip();
     }
 }
 
@@ -510,7 +517,9 @@ void LabelImpl::SetUseFontHeight(bool bUseFontHeight)
     if (m_bUseFontHeight != bUseFontHeight) {
         m_bUseFontHeight = bUseFontHeight;
         if (IsVerticalText()) {
-            m_pOwner->Invalidate();
+            //纵向文本的测量结果会变化，需要重新布局
+            m_pOwner->RelayoutOrRedraw();
+            CheckShowToolTip();
         }
     }
 }
@@ -525,7 +534,9 @@ void LabelImpl::SetRotate90ForAscii(bool bRotate90ForAscii)
     if (m_bRotate90ForAscii != bRotate90ForAscii) {
         m_bRotate90ForAscii = bRotate90ForAscii;
         if (IsVerticalText()) {
-            m_pOwner->Invalidate();
+            //纵向文本的测量结果会变化，需要重新布局
+            m_pOwner->RelayoutOrRedraw();
+            CheckShowToolTip();
         }
     }
 }
@@ -827,8 +838,9 @@ void LabelImpl::SetTextStyle(uint32_t uStyle, bool bRedraw)
     if (bRedraw) {
         bool bChanged = (uOldStyle != m_uTextStyle) || (bOldSingleLine != m_bSingleLine) || (bOldVerticalText != m_bVerticalText);
         if (bChanged) {
-            //仅在状态变化时重绘
-            m_pOwner->Invalidate();
+            //仅在状态变化时重新布局（对齐、单行、竖向等属性会改变测量结果）
+            m_pOwner->RelayoutOrRedraw();
+            CheckShowToolTip();
         }        
     }
 }
@@ -876,7 +888,8 @@ void LabelImpl::SetStateTextColor(ControlStateType stateType, const DString& dwT
             return;
         }
     }
-    if (stateType == kControlStateHovered) {
+    if ((stateType == kControlStateHovered) && !dwTextColor.empty()) {
+        //未设置悬停颜色时不启用淡入淡出，避免创建无用的动画播放器
         m_pOwner->SetFadeHovered(true);
     }
     if (m_pTextColorMap == nullptr) {
@@ -913,7 +926,9 @@ void LabelImpl::SetFontId(const DString& strFontId)
         return;
     }
     m_sFontId = strFontId;
-    m_pOwner->Invalidate();
+    //字体变化会影响文本的测量结果，需要重新布局
+    m_pOwner->RelayoutOrRedraw();
+    CheckShowToolTip();
 }
 
 UiPadding LabelImpl::GetTextPadding() const
@@ -955,7 +970,9 @@ void LabelImpl::SetSingleLine(bool bSingleLine)
         else {
             m_uTextStyle &= ~TEXT_SINGLELINE;
         }
-        m_pOwner->Invalidate();
+        //单行/多行模式会影响文本的测量结果，需要重新布局
+        m_pOwner->RelayoutOrRedraw();
+        CheckShowToolTip();
     }   
 }
 

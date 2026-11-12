@@ -33,8 +33,7 @@ DString RemoveRichTextTags(const DString& strText)
 }
 }//namespace
 
-TextDrawer::TextDrawer():
-    m_bRichTextChanged(true)
+TextDrawer::TextDrawer()
 {
 }
 
@@ -44,7 +43,8 @@ TextDrawer::~TextDrawer()
 
 void TextDrawer::SetTextChanged()
 {
-    m_bRichTextChanged = true;
+    //清除缓存键，使下次测量/绘制时重新解析文本
+    m_sRichTextText.clear();
 }
 
 DString TextDrawer::ToPlainText(const DString& strRichText)
@@ -123,9 +123,10 @@ UiRect TextDrawer::MeasureString(IRender* pRender,
         UpdateTextDrawProps(measureParam.uFormat, measureParam.fSpacingMul, measureParam.fSpacingAdd, fontId);
 
         m_pRichText->SetWindow(pOwner->GetWindow()); //绘制过程中和解析RichText的时候，需要关联窗口（需要Dpi缩放等操作）
-        if (m_bRichTextChanged) {
+        //以实际文本内容作为缓存键：测量文本与绘制文本不同时，也能正确重新解析
+        if (m_sRichTextText != strText) {
             m_pRichText->SetText(strText, false);
-            m_bRichTextChanged = false;
+            m_sRichTextText = strText;
         }
         m_pRichText->SetEnableRedraw(true);
 
@@ -176,9 +177,10 @@ void TextDrawer::DrawString(IRender* pRender,
         UpdateTextDrawProps(drawParam.uFormat, drawParam.fSpacingMul, drawParam.fSpacingAdd, fontId);
 
         m_pRichText->SetWindow(pOwner->GetWindow()); //绘制过程中和解析RichText的时候，需要关联窗口（需要Dpi缩放等操作）
-        if (m_bRichTextChanged) {
+        //以实际文本内容作为缓存键：测量文本与绘制文本不同时，也能正确重新解析
+        if (m_sRichTextText != strText) {
             m_pRichText->SetText(strText, false);
-            m_bRichTextChanged = false;
+            m_sRichTextText = strText;
         }
         m_pRichText->SetEnableRedraw(true);
         m_pRichText->PaintText(pRender);
