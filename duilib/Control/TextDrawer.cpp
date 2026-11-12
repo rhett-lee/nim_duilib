@@ -33,6 +33,27 @@ DString RemoveRichTextTags(const DString& strText)
 }
 }//namespace
 
+/** RichText模式使用的实现与缓存：仅在RichText模式下创建，普通文本模式不占用这部分内存
+*/
+struct TextDrawer::RichTextState
+{
+    /** RichText实现接口
+    */
+    std::unique_ptr<RichText> m_pRichText;
+
+    /** RichText当前解析的文本内容（作为解析缓存的键：文本内容不变时无需重新解析）
+    */
+    DString m_sRichTextText;
+
+    /** 纵向文本降级显示时，纯文本缓存的源文本
+    */
+    DString m_sPlainTextSource;
+
+    /** 纵向文本降级显示时，去标记后的纯文本
+    */
+    DString m_sPlainText;
+};
+
 TextDrawer::TextDrawer()
 {
 }
@@ -41,36 +62,45 @@ TextDrawer::~TextDrawer()
 {
 }
 
+TextDrawer::RichTextState& TextDrawer::EnsureRichTextState()
+{
+    if (m_pRichTextState == nullptr) {
+        m_pRichTextState = std::make_unique<RichTextState>();
+    }
+    return *m_pRichTextState;
+}
+
 void TextDrawer::SetTextChanged()
 {
     //清除缓存键，使下次测量/绘制时重新解析文本
-    m_sRichTextText.clear();
+    if (m_pRichTextState != nullptr) {
+        m_pRichTextState->m_sRichTextText.clear();
+    }
 }
 
 void TextDrawer::OnWindowChanged(Control* pOwner)
 {
     SetTextChanged();
-    if ((m_pRichText != nullptr) && (pOwner != nullptr)) {
+    if ((m_pRichTextState != nullptr) && (m_pRichTextState->m_pRichText != nullptr) && (pOwner != nullptr)) {
         Window* pWindow = pOwner->GetWindow();
-        if (m_pRichText->GetWindow() != pWindow) {
+        if (m_pRichTextState->m_pRichText->GetWindow() != pWindow) {
             //切换窗口时RichText会重新解析；此处禁止产生Invalidate调用
-            m_pRichText->SetEnableRedraw(false);
-            m_pRichText->SetWindow(pWindow);
-            m_pRichText->SetEnableRedraw(true);
+            m_pRichTextState->m_pRichText->SetEnableRedraw(false);
+            m_pRichTextState->m_pRichText->SetWindow(pWindow);
+            m_pRichTextState->m_pRichText->SetEnableRedraw(true);
         }
     }
 }
 
 void TextDrawer::SyncWindow(Control* pOwner)
 {
-    ASSERT(m_pRichText != nullptr);
-    if (m_pRichText == nullptr) {
+    if ((m_pRichTextState == nullptr) || (m_pRichTextState->m_pRichText == nullptr)) {
         return;
     }
     Window* pWindow = pOwner->GetWindow();
-    if (m_pRichText->GetWindow() != pWindow) {
+    if (m_pRichTextState->m_pRichText->GetWindow() != pWindow) {
         //仅在窗口真正变化时才切换窗口，避免每次测量/绘制都清空RichText的解析缓存
-        m_pRichText->SetWindow(pWindow);
+        m_pRichTextState->m_pRichText->SetWindow(pWindow);
     }
 }
 
@@ -81,48 +111,49 @@ DString TextDrawer::ToPlainText(const DString& strRichText)
 
 const DString& TextDrawer::GetPlainText(const DString& strText)
 {
-    if (m_sPlainTextSource != strText) {
-        m_sPlainTextSource = strText;
-        m_sPlainText = RemoveRichTextTags(strText);
+    RichTextState& richTextState = EnsureRichTextState();
+    if (richTextState.m_sPlainTextSource != strText) {
+        richTextState.m_sPlainTextSource = strText;
+        richTextState.m_sPlainText = RemoveRichTextTags(strText);
     }
-    return m_sPlainText;
+    return richTextState.m_sPlainText;
 }
 
 void TextDrawer::UpdateTextDrawProps(uint32_t uFormat, float fSpacingMul, float fSpacingAdd, float fWordSpacing, const DString& fontId)
 {
-    ASSERT(m_pRichText != nullptr);
-    if (m_pRichText == nullptr) {
+    if ((m_pRichTextState == nullptr) || (m_pRichTextState->m_pRichText == nullptr)) {
         return;
     }
-    m_pRichText->SetRowSpacingMul(fSpacingMul);
-    m_pRichText->SetRowSpacingAdd(fSpacingAdd);
+    RichText& richText = *(m_pRichTextState->m_pRichText);
+    richText.SetRowSpacingMul(fSpacingMul);
+    richText.SetRowSpacingAdd(fSpacingAdd);
     //两端对齐：RichText自身支持，映射后与其他控件保持一致
     //（含hjustify时，LabelImpl已保证不会同时存在left/hcenter/right，此处按靠左对齐处理）
-    m_pRichText->SetTextHAlignJustify((uFormat & TEXT_HJUSTIFY) != 0);
+    richText.SetTextHAlignJustify((uFormat & TEXT_HJUSTIFY) != 0);
     if (uFormat & TEXT_HCENTER) {
-        m_pRichText->SetTextHAlignType(HorAlignType::kAlignCenter);
+        richText.SetTextHAlignType(HorAlignType::kAlignCenter);
     }
     else if (uFormat & TEXT_RIGHT) {
-        m_pRichText->SetTextHAlignType(HorAlignType::kAlignRight);
+        richText.SetTextHAlignType(HorAlignType::kAlignRight);
     }
     else {
-        m_pRichText->SetTextHAlignType(HorAlignType::kAlignLeft);
+        richText.SetTextHAlignType(HorAlignType::kAlignLeft);
     }
 
     if (uFormat & TEXT_VCENTER) {
-        m_pRichText->SetTextVAlignType(VerAlignType::kAlignCenter);
+        richText.SetTextVAlignType(VerAlignType::kAlignCenter);
     }
     else if (uFormat & TEXT_BOTTOM) {
-        m_pRichText->SetTextVAlignType(VerAlignType::kAlignBottom);
+        richText.SetTextVAlignType(VerAlignType::kAlignBottom);
     }
     else {
-        m_pRichText->SetTextVAlignType(VerAlignType::kAlignTop);
+        richText.SetTextVAlignType(VerAlignType::kAlignTop);
     }
-    m_pRichText->SetWordWrap(uFormat & TEXT_SINGLELINE ? false : true);
+    richText.SetWordWrap(uFormat & TEXT_SINGLELINE ? false : true);
     //字间距与结尾省略号：与其他控件保持一致
-    m_pRichText->SetLetterSpacing(fWordSpacing);
-    m_pRichText->SetTextOverflowEllipsis((uFormat & TEXT_END_ELLIPSIS) != 0);
-    m_pRichText->SetFontId(fontId);
+    richText.SetLetterSpacing(fWordSpacing);
+    richText.SetTextOverflowEllipsis((uFormat & TEXT_END_ELLIPSIS) != 0);
+    richText.SetFontId(fontId);
 }
 
 UiRect TextDrawer::MeasureString(IRender* pRender,
@@ -147,25 +178,26 @@ UiRect TextDrawer::MeasureString(IRender* pRender,
     UiRect rcMessure;
     if (bRichText && (pOwner != nullptr)) {
         //RichText文本
-        if (m_pRichText == nullptr) {
-            m_pRichText = std::make_unique<RichText>(pOwner->GetWindow());
-            m_pRichText->SetAttribute(_T("trim_policy"), _T("none")); //对空格不执行trim操作
+        RichTextState& richTextState = EnsureRichTextState();
+        if (richTextState.m_pRichText == nullptr) {
+            richTextState.m_pRichText = std::make_unique<RichText>(pOwner->GetWindow());
+            richTextState.m_pRichText->SetAttribute(_T("trim_policy"), _T("none")); //对空格不执行trim操作
         }
-        m_pRichText->SetEnableRedraw(false);
+        richTextState.m_pRichText->SetEnableRedraw(false);
         SyncWindow(pOwner); //仅在窗口变化时切换，避免每次测量都触发RichText重新解析
         UpdateTextDrawProps(measureParam.uFormat, measureParam.fSpacingMul, measureParam.fSpacingAdd, measureParam.fWordSpacing, fontId);
 
         //以实际文本内容作为缓存键：测量文本与绘制文本不同时，也能正确重新解析
-        if (m_sRichTextText != strText) {
-            m_pRichText->SetText(strText, false);
-            m_sRichTextText = strText;
+        if (richTextState.m_sRichTextText != strText) {
+            richTextState.m_pRichText->SetText(strText, false);
+            richTextState.m_sRichTextText = strText;
         }
-        m_pRichText->SetEnableRedraw(true);
+        richTextState.m_pRichText->SetEnableRedraw(true);
 
         UiSize szAvailable;
         szAvailable.cx = measureParam.rectSize;
         szAvailable.cy = 0;
-        UiSize szEstimateSize = m_pRichText->EstimateText(szAvailable);
+        UiSize szEstimateSize = richTextState.m_pRichText->EstimateText(szAvailable);
         rcMessure.right = rcMessure.left + szEstimateSize.cx;
         rcMessure.bottom = rcMessure.top + szEstimateSize.cy;
     }
@@ -197,24 +229,25 @@ void TextDrawer::DrawString(IRender* pRender,
     }
     if (bRichText && (pOwner != nullptr)) {
         //RichText文本
-        if (m_pRichText == nullptr) {
-            m_pRichText = std::make_unique<RichText>(pOwner->GetWindow());
-            m_pRichText->SetAttribute(_T("trim_policy"), _T("none")); //对空格不执行trim操作
+        RichTextState& richTextState = EnsureRichTextState();
+        if (richTextState.m_pRichText == nullptr) {
+            richTextState.m_pRichText = std::make_unique<RichText>(pOwner->GetWindow());
+            richTextState.m_pRichText->SetAttribute(_T("trim_policy"), _T("none")); //对空格不执行trim操作
         }
-        m_pRichText->SetEnableRedraw(false);
+        richTextState.m_pRichText->SetEnableRedraw(false);
         SyncWindow(pOwner); //仅在窗口变化时切换，避免每次绘制都触发RichText重新解析
-        m_pRichText->SetRect(drawParam.textRect);//不调用SetPos函数，避免产生回调等事件
-        m_pRichText->SetPaintAlpha(drawParam.uFade);//仅设置绘制透明度，避免在绘制过程中触发窗口重绘
-        m_pRichText->SetTextColor(pOwner->GetColorString(drawParam.dwTextColor));
+        richTextState.m_pRichText->SetRect(drawParam.textRect);//不调用SetPos函数，避免产生回调等事件
+        richTextState.m_pRichText->SetPaintAlpha(drawParam.uFade);//仅设置绘制透明度，避免在绘制过程中触发窗口重绘
+        richTextState.m_pRichText->SetTextColor(pOwner->GetColorString(drawParam.dwTextColor));
         UpdateTextDrawProps(drawParam.uFormat, drawParam.fSpacingMul, drawParam.fSpacingAdd, drawParam.fWordSpacing, fontId);
 
         //以实际文本内容作为缓存键：测量文本与绘制文本不同时，也能正确重新解析
-        if (m_sRichTextText != strText) {
-            m_pRichText->SetText(strText, false);
-            m_sRichTextText = strText;
+        if (richTextState.m_sRichTextText != strText) {
+            richTextState.m_pRichText->SetText(strText, false);
+            richTextState.m_sRichTextText = strText;
         }
-        m_pRichText->SetEnableRedraw(true);
-        m_pRichText->PaintText(pRender);
+        richTextState.m_pRichText->SetEnableRedraw(true);
+        richTextState.m_pRichText->PaintText(pRender);
     }
     else {
         //普通文本

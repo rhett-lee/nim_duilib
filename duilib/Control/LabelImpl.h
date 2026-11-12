@@ -308,12 +308,24 @@ private:
     */
     IFont* GetFont() const;
 
+    /** 获取文本绘制实现（仅在RichText模式下创建；普通文本直接使用渲染接口，避免每个控件都分配该对象）
+    */
+    TextDrawer* GetTextDrawer();
+
+    /** 测量文本尺寸（RichText模式使用TextDrawer，普通文本直接使用渲染接口）
+    */
+    UiRect MeasureText(IRender* pRender, const DString& strText, const MeasureStringParam& measureParam);
+
+    /** 绘制文本（RichText模式使用TextDrawer，普通文本直接使用渲染接口）
+    */
+    void DrawText(IRender* pRender, const DString& strText, const DrawStringParam& drawParam);
+
 private:
     /** 关联控件
     */
     Control* m_pOwner;
 
-    /** 文本绘制的实现（支持RichText文本绘制）
+    /** 文本绘制的实现（仅在RichText模式下创建）
     */
     std::unique_ptr<TextDrawer> m_pTextDrawer;
 
@@ -388,16 +400,19 @@ private:
     mutable uint32_t m_nFontCacheDpiScale;
     mutable uint32_t m_nFontCacheVersion;
 
-    //ToolTip测量结果的缓存：避免每次布局都重新测量文本
-    uint32_t m_nMeasureVersion;         //影响文本测量的属性版本号
-    uint32_t m_nToolTipCacheVersion;    //缓存对应的属性版本号
-    uint32_t m_nToolTipFontVersion;     //缓存对应的字体缓存版本号
-    int32_t m_nToolTipRectSize;         //缓存对应的测量限制尺寸
-    int32_t m_nToolTipWidth;            //缓存对应的可用宽度
-    int32_t m_nToolTipHeight;           //缓存对应的可用高度
-    uint32_t m_nToolTipDpiScale;        //缓存对应的DPI缩放百分比
-    bool m_bToolTipCacheValid;          //缓存是否有效
-    bool m_bToolTipOverflow;            //缓存的结果：文本是否超出显示区域
+    /** ToolTip测量结果的缓存（仅在启用auto_tooltip时分配，避免常规控件为未使用的功能付出内存）
+    */
+    struct ToolTipCache
+    {
+        uint32_t m_nFontVersion = 0;    //缓存对应的字体缓存版本号
+        int32_t m_nRectSize = 0;        //缓存对应的测量限制尺寸
+        int32_t m_nWidth = 0;           //缓存对应的可用宽度
+        int32_t m_nHeight = 0;          //缓存对应的可用高度
+        uint32_t m_nDpiScale = 0;       //缓存对应的DPI缩放百分比
+        bool m_bValid = false;          //缓存是否有效
+        bool m_bOverflow = false;       //缓存的结果：文本是否超出显示区域
+    };
+    std::unique_ptr<ToolTipCache> m_pToolTipCache;
 };
 
 }

@@ -81,21 +81,17 @@ private:
     void UpdateTextDrawProps(uint32_t uFormat, float fSpacingMul, float fSpacingAdd, float fWordSpacing, const DString& fontId);
 
 private:
-    /** RichText实现接口
+    /** RichText模式使用的实现与缓存（仅在需要时创建，普通文本模式不占用这部分内存）
     */
-    std::unique_ptr<RichText> m_pRichText;
+    struct RichTextState;
 
-    /** RichText当前解析的文本内容（作为解析缓存的键：文本内容不变时无需重新解析）
+    /** 获取RichText状态，首次使用时创建
     */
-    DString m_sRichTextText;
+    RichTextState& EnsureRichTextState();
 
-    /** 纵向文本降级显示时，纯文本缓存的源文本
+    /** RichText相关状态（延迟创建，普通文本模式为空指针）
     */
-    DString m_sPlainTextSource;
-
-    /** 纵向文本降级显示时，去标记后的纯文本
-    */
-    DString m_sPlainText;
+    std::unique_ptr<RichTextState> m_pRichTextState;
 };
 
 }//namespace ui
