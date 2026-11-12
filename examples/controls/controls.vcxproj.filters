@@ -123,6 +123,9 @@
     <ClInclude Include="RichTextForm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LabelForm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main_windows.cpp">
@@ -228,6 +231,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="RichTextForm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LabelForm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
