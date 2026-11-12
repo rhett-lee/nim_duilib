@@ -1955,7 +1955,17 @@ void RichEdit2::Paint(IRender* pRender, const UiRect& rcPaint)
                 ASSERT(pRenderFactory != nullptr);
                 //与普通文本绘制保持一致，应用垂直对齐偏移（如居中对齐），
                 //否则密码字符会顶对齐绘制，与同一行绘制的省略号"..."位置不协调
-                rcDrawText.Offset(0, m_pTextData->GetTextRectOfssetY());
+                int32_t nOffsetY = m_pTextData->GetTextRectOfssetY();
+                if (nOffsetY > 0) {
+                    //密码掩码字符（"*"）的墨迹位于字行的偏上位置，字行垂直居中后视觉上仍然偏高；
+                    //这里再下移约六分之一字行高度，使掩码字符在框内视觉居中（不超过下方可用的空白）
+                    int32_t nExtraOffsetY = m_pTextData->GetTextRect().Height() / 6;
+                    if (nExtraOffsetY > nOffsetY) {
+                        nExtraOffsetY = nOffsetY;
+                    }
+                    nOffsetY += nExtraOffsetY;
+                }
+                rcDrawText.Offset(0, nOffsetY);
                 pRender->DrawRichText(rcDrawText, GetScrollOffset(), pRenderFactory, richTextDataList, GetAlpha());
             }
         }
