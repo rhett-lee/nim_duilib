@@ -1837,7 +1837,7 @@ pGauge->SetCenterCallback([pGauge](ui::IRender* pRender, const ui::UiRect& rcCen
 | clear_btn_class | | string | 设置清除按钮功能的Class名称，如果不为空则显示清楚按钮，详细用法参见示例程序 |
 | show_password_btn_class | | string |设置显示密码按钮功能的Class名称，如果不为空则显示显示密码按钮 ，详细用法参见示例程序 |
 | selection_bkcolor | "CornflowerBlue" | string |选择文本的背景色（焦点状态） 如果设置为空，则不显示|
-| inactive_selection_bkcolor | "DarkGray" | string | 选择文本的背景色（非焦点状态），如果设置为空，则不显示 |
+| inactive_selection_bkcolor | "" | string | 选择文本的背景色（非焦点状态）；如果设置为空，则用焦点状态的颜色降低不透明度派生（避免深色主题下对比度过低） |
 | current_row_bkcolor | "" | string | 当前行的背景色（焦点状态），如果设置为空，则在焦点状态不显示当前行的背景色|
 | inactive_current_row_bkcolor | "" | string |当前行的背景色（非焦点状态），如果设置为空，则在非焦点状态不显示当前行的背景色  |
 | select_all_on_focused |false| bool | 获取焦点的时候，是否全选 |

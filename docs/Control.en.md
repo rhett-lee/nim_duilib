@@ -1837,7 +1837,7 @@ C++ interfaces: `SetIndeterminateArc/GetIndeterminateArc`, `SetIndeterminateSpee
 | clear_btn_class | | string | Set the Class name of the clear button function; if not empty, the clear button is displayed; for detailed usage, please refer to the example program |
 | show_password_btn_class | | string |Set the Class name of the show-password button function; if not empty, the show-password button is displayed; for detailed usage, please refer to the example program |
 | selection_bkcolor | "CornflowerBlue" | string |Background color of the selected text (focused state); if empty, it is not displayed|
-| inactive_selection_bkcolor | "DarkGray" | string | Background color of the selected text (unfocused state); if empty, it is not displayed |
+| inactive_selection_bkcolor | "" | string | Background color of the selected text (unfocused state); if empty, it is derived from the focused-state color with reduced opacity (avoids low contrast on dark themes) |
 | current_row_bkcolor | "" | string | Background color of the current row (focused state); if empty, the current row's background color is not displayed in the focused state|
 | inactive_current_row_bkcolor | "" | string |Background color of the current row (unfocused state); if empty, the current row's background color is not displayed in the unfocused state  |
 | select_all_on_focused |false| bool | Whether to select all when gaining focus |

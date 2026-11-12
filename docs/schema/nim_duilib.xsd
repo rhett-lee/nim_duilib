@@ -6892,7 +6892,7 @@
     </xs:attribute>
     <xs:attribute name="inactive_selection_bkcolor" type="xs:string">
       <xs:annotation>
-        <xs:documentation>选择文本的背景色（非焦点状态），如果设置为空，则不显示</xs:documentation>
+        <xs:documentation>选择文本的背景色（非焦点状态）；如果设置为空，则用焦点状态的颜色降低不透明度派生（避免深色主题下对比度过低）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="current_row_bkcolor" type="xs:string">
@@ -7746,7 +7746,7 @@
     </xs:attribute>
     <xs:attribute name="inactive_selection_bkcolor" type="xs:string">
       <xs:annotation>
-        <xs:documentation>选择文本的背景色（非焦点状态），如果设置为空，则不显示</xs:documentation>
+        <xs:documentation>选择文本的背景色（非焦点状态）；如果设置为空，则用焦点状态的颜色降低不透明度派生（避免深色主题下对比度过低）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="current_row_bkcolor" type="xs:string">
@@ -8366,7 +8366,7 @@
     </xs:attribute>
     <xs:attribute name="inactive_selection_bkcolor" type="xs:string">
       <xs:annotation>
-        <xs:documentation>选择文本的背景色（非焦点状态），如果设置为空，则不显示</xs:documentation>
+        <xs:documentation>选择文本的背景色（非焦点状态）；如果设置为空，则用焦点状态的颜色降低不透明度派生（避免深色主题下对比度过低）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="current_row_bkcolor" type="xs:string">

@@ -17,6 +17,7 @@
 #include "duilib/Control/Menu.h"
 #include "duilib/Control/Button.h"
 #include "duilib/Box/VBox.h"
+#include "duilib/Render/AutoClip.h"
 #include <chrono>
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
@@ -41,6 +42,17 @@ namespace {
     {
         return (uint64_t)std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count();
+    }
+
+    /** 将颜色与控件透明度相乘，使绘制的纯色与文字一样受控件透明度影响
+    */
+    ui::UiColor ApplyControlAlpha(const ui::UiColor& color, uint8_t nAlpha)
+    {
+        if ((nAlpha >= 255) || color.IsEmpty()) {
+            return color;
+        }
+        return ui::UiColor((uint8_t)((uint32_t)color.GetA() * nAlpha / 255),
+                           color.GetR(), color.GetG(), color.GetB());
     }
 }
 
@@ -86,7 +98,7 @@ RichEdit2::RichEdit2(Window* pWindow) :
     m_sCurrentRowBkColor(_T("")),
     m_sInactiveCurrentRowBkColor(_T("")),
     m_sSelectionBkColor(_T("CornflowerBlue")),
-    m_sInactiveSelectionBkColor(_T("DarkGray")),
+    m_sInactiveSelectionBkColor(),
     m_sPromptColor(),
     m_sPromptText(),
     m_bAllowPrompt(false),
@@ -2087,7 +2099,8 @@ void RichEdit2::PaintBorder(IRender* pRender)
     DString borderColor = GetFocusedBottomBorderColor();
     int32_t borderSize = GetFocusedBottomBorderSize();
     if ((borderSize > 0) && !borderColor.empty()) {
-        UiColor dwBorderColor = GetUiColor(borderColor);
+        //应用控件透明度，与文字、选择背景保持一致
+        UiColor dwBorderColor = ApplyControlAlpha(GetUiColor(borderColor), GetAlpha());
         UiRect rcBorder = GetRect();
         float fRoundWidth = 0;
         float fRoundHeight = 0;
@@ -2299,11 +2312,33 @@ void RichEdit2::PaintCompositionText(IRender* pRender)
     drawParam.dwTextColor = textColor;
     drawParam.uFade = GetAlpha();
     pRender->DrawString(compositionText, drawParam);
-    //组合文本的下划线
+    //组合文本的下划线（颜色应用控件透明度）
+    const UiColor underlineColor = ApplyControlAlpha(textColor, GetAlpha());
     pRender->DrawLine(UiPointF((float)rcComposition.left, (float)(rcComposition.bottom - 1)),
                       UiPointF((float)rcComposition.right, (float)(rcComposition.bottom - 1)),
-                      textColor, 1.0f);
+                      underlineColor, 1.0f);
     pRender->ClearClip(nClipState);
+
+    //组合输入过程中，在组合文本末尾绘制1px细光标，替代完全隐藏光标
+    if (m_bIsCaretVisible && (rcComposition.right >= rcDrawText.left) && (rcComposition.right <= rcDrawText.right)) {
+        UiColor caretColor;
+        if (!m_sCaretColor.empty()) {
+            caretColor = GetUiColor(m_sCaretColor.c_str());
+        }
+        if (caretColor.IsEmpty()) {
+            if ((GetWindow() != nullptr) && GetWindow()->IsColorThemeDarkMode()) {
+                caretColor = UiColor(UiColors::White);
+            }
+            else {
+                caretColor = UiColor(UiColors::Black);
+            }
+        }
+        caretColor = ApplyControlAlpha(caretColor, GetAlpha());
+        const float fCaretWidth = Dpi().GetScaleFloat(1);
+        const float fCaretCenterX = (float)rcComposition.right + fCaretWidth / 2.0f;
+        pRender->DrawLine(UiPointF(fCaretCenterX, (float)yPos), UiPointF(fCaretCenterX, (float)(yPos + yHeight)),
+                          caretColor, fCaretWidth);
+    }
 }
 
 void RichEdit2::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
@@ -2345,6 +2380,8 @@ void RichEdit2::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
                     dwClrColor = UiColor(UiColors::Black);
                 }
             }
+            //绘制纯色时也应用控件透明度，避免控件淡入淡出时"文字淡了、底色不淡"
+            dwClrColor = ApplyControlAlpha(dwClrColor, GetAlpha());
             //插入点坐标为光标矩形的左边界；画笔以线宽中心对齐，因此绘制点取插入点加半个线宽，
             //使光标占据[xPos, xPos + xWidth)区间（与Windows原生实现一致，且不随DPI产生偏移）
             float fCaretCenterX = (float)xPos + (float)xWidth / 2.0f;
@@ -2376,6 +2413,14 @@ void RichEdit2::PaintCurrentRowBkColor(IRender* pRender, const UiRect& /*rcPaint
     if (currentRowBkColor.IsEmpty()) {
         return;
     }
+    //应用控件透明度，与文字绘制保持一致
+    currentRowBkColor = ApplyControlAlpha(currentRowBkColor, GetAlpha());
+
+    //按控件圆角裁剪，避免圆角皮肤下当前行背景溢出到圆角外
+    float fRoundWidth = 0;
+    float fRoundHeight = 0;
+    GetBorderRound(fRoundWidth, fRoundHeight);
+    AutoClip autoClip(pRender, GetRect(), fRoundWidth, fRoundHeight, (fRoundWidth > 0) || (fRoundHeight > 0));
 
     int32_t nStartChar = 0;
     int32_t nEndChar = 0;
@@ -2426,9 +2471,29 @@ void RichEdit2::PaintSelectionColor(IRender* pRender, const UiRect& /*rcPaint*/)
     if (!selectionBkColor.empty()) {
         selectionColor = GetUiColor(selectionBkColor);
     }
+    else if (!m_bActive) {
+        //未配置非激活状态的颜色时，用焦点状态的颜色降低不透明度派生，
+        //避免深色主题下使用固定的灰色(DarkGray)导致对比度过低
+        DString activeBkColor = GetSelectionBkColor();
+        if (!activeBkColor.empty()) {
+            UiColor activeColor = GetUiColor(activeBkColor);
+            if (!activeColor.IsEmpty()) {
+                selectionColor = UiColor((uint8_t)((uint32_t)activeColor.GetA() / 2),
+                                         activeColor.GetR(), activeColor.GetG(), activeColor.GetB());
+            }
+        }
+    }
     if (selectionColor.IsEmpty()) {
         selectionColor = UiColor(UiColors::SkyBlue);
     }
+    //应用控件透明度，与文字绘制保持一致
+    selectionColor = ApplyControlAlpha(selectionColor, GetAlpha());
+
+    //按控件圆角裁剪，避免圆角皮肤下选择背景溢出到圆角外
+    float fRoundWidth = 0;
+    float fRoundHeight = 0;
+    GetBorderRound(fRoundWidth, fRoundHeight);
+    AutoClip autoClip(pRender, GetRect(), fRoundWidth, fRoundHeight, (fRoundWidth > 0) || (fRoundHeight > 0));
 
     UiRect rcTemp;
     const UiRect rcDrawText = GetTextDrawRect(GetRect());
@@ -2546,9 +2611,11 @@ void RichEdit2::PaintPromptText(IRender* pRender)
 
     DrawStringParam drawParam;
     drawParam.pFont = GetIFontInternal(fontId);
-    drawParam.uFormat = GetTextStyle();
+    //单行截断并显示省略号，避免超长提示文字被硬切
+    drawParam.uFormat = GetTextStyle() | TEXT_SINGLELINE | TEXT_END_ELLIPSIS;
     drawParam.textRect = GetRichTextDrawRect();
     drawParam.dwTextColor = GetUiColor(promptTextColor);
+    drawParam.uFade = GetAlpha();
     pRender->DrawString(promptText, drawParam);
 }
 
@@ -2572,6 +2639,8 @@ void RichEdit2::SetFocusedImage( const DString& strImage )
 void RichEdit2::PaintStateImages(IRender* pRender)
 {
     if (IsReadOnly()) {
+        //只读状态下，空内容时仍然显示提示文字，避免只读空框看不到提示
+        PaintPromptText(pRender);
         return;
     }
 
