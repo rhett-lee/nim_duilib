@@ -1953,6 +1953,9 @@ void RichEdit2::Paint(IRender* pRender, const UiRect& rcPaint)
             if (GetRichTextForDraw(textViewList, richTextDataList)) {
                 IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
                 ASSERT(pRenderFactory != nullptr);
+                //与普通文本绘制保持一致，应用垂直对齐偏移（如居中对齐），
+                //否则密码字符会顶对齐绘制，与同一行绘制的省略号"..."位置不协调
+                rcDrawText.Offset(0, m_pTextData->GetTextRectOfssetY());
                 pRender->DrawRichText(rcDrawText, GetScrollOffset(), pRenderFactory, richTextDataList, GetAlpha());
             }
         }
