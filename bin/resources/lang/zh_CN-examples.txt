@@ -2439,6 +2439,69 @@ STRID_RICHTEXT_BTN_SELECT_ALL = 全选
 STRID_RICHTEXT_BTN_COPY = 复制选中
 STRID_RICHTEXT_BTN_CLEAR_SELECTION = 取消选择
 STRID_RICHTEXT_APPEND_TEXT = 追加的文本：<b>AppendText</b> 支持格式化标签，追加后链接数量会增加 <a href="https://www.example.com/append">追加链接</a>。
+
+# controls/Label 控件测试页
+STRID_GALLERY_LABEL_TITLE = Label 文本控件
+STRID_GALLERY_LABEL_DESC = 支持单行/多行、对齐方式、状态颜色、纵向文本、省略号、内边距与 RichText 模式。
+STRID_GALLERY_LABEL_SAMPLE = 多行文本与行间距、字间距的组合，并支持自动省略号与 ToolTip。
+STRID_GALLERY_LABEL_ALIGN_SAMPLE = 水平居中、垂直居中
+STRID_GALLERY_LABEL_VERTICAL_SAMPLE = 纵向文本
+STRID_LABEL_WINDOW_TITLE = Label 文本控件测试
+STRID_LABEL_HINT = 提示：本页覆盖文本内容、对齐方式、多行与间距、状态颜色、纵向文本、省略号、内边距、RichText 模式与运行时 API。
+STRID_LABEL_SEC_BASIC = 基础文本
+STRID_LABEL_BASIC_DEFAULT = 默认文本：使用默认字体与文本颜色，单行显示。
+STRID_LABEL_BASIC_COLOR = 字体与颜色：font="system_bold_15"、text_color="color_accent"。
+STRID_LABEL_BASIC_PADDING = 文字内边距：text_padding="8,4,8,4"，并带有边框。
+STRID_LABEL_SEC_MULTILINE = 多行文本与间距
+STRID_LABEL_MULTI_DEFAULT_TITLE = 多行文本（multi_line=true）
+STRID_LABEL_MULTI_DEFAULT = 多行文本可以按控件宽度自动折行，\n换行符也可以直接换行显示。
+STRID_LABEL_MULTI_SPACING_TITLE = 行间距与字间距（spacing_mul=1.5、spacing_add=4、word_spacing=1）
+STRID_LABEL_MULTI_SPACING = 行间距为字体大小的 1.5 倍再加 4 像素，字间距为 1 像素，用于验证排版参数。
+STRID_LABEL_SEC_ALIGN = 文本对齐
+STRID_LABEL_ALIGN_H_TITLE = 水平对齐：left / hcenter / right
+STRID_LABEL_ALIGN_H_LEFT = 左对齐
+STRID_LABEL_ALIGN_H_CENTER = 居中
+STRID_LABEL_ALIGN_H_RIGHT = 右对齐
+STRID_LABEL_ALIGN_V_TITLE = 垂直对齐：top / vcenter / bottom
+STRID_LABEL_ALIGN_V_TOP = 顶部
+STRID_LABEL_ALIGN_V_CENTER = 居中
+STRID_LABEL_ALIGN_V_BOTTOM = 底部
+STRID_LABEL_ALIGN_JUSTIFY_SAMPLE = 两端对齐（hjustify）：多行文本的每一行都会在水平方向均匀分布，最后一行保持左对齐。
+STRID_LABEL_SEC_STATE = 状态文本颜色
+STRID_LABEL_STATE_NORMAL = 悬停或按下时改变文字颜色
+STRID_LABEL_STATE_DISABLED = 控件禁用时的文字颜色
+STRID_LABEL_STATE_HOVER = 悬停为绿色、按下为橙色
+STRID_LABEL_SEC_VERTICAL = 纵向文本
+STRID_LABEL_VERTICAL_DEFAULT = 纵向文本（vertical_text=true）
+STRID_LABEL_VERTICAL_FONT_HEIGHT = 等字高（use_font_height=true）
+STRID_LABEL_VERTICAL_ASCII = 字母数字旋转（ascii_rotate_90=true）
+STRID_LABEL_VERTICAL_SAMPLE = 纵向文本示例
+STRID_LABEL_VERTICAL_ASCII_SAMPLE = Win2026
+STRID_LABEL_SEC_ELLIPSIS = 省略号与裁剪
+STRID_LABEL_ELLIPSIS_DEFAULT_TITLE = 结尾省略号（end_ellipsis=true，自动显示 ToolTip）
+STRID_LABEL_ELLIPSIS_SAMPLE = 这是一段很长的文本，用于验证控件宽度不足时结尾显示省略号的效果。
+STRID_LABEL_ELLIPSIS_PATH_TITLE = 路径省略号（path_ellipsis=true）
+STRID_LABEL_ELLIPSIS_PATH_SAMPLE = C:\Program Files\nim_duilib\bin\resources\themes\default\controls\label.xml
+STRID_LABEL_ELLIPSIS_NONE_TITLE = 不显示省略号（end_ellipsis=false）
+STRID_LABEL_SEC_INTERACTIVE = 运行时 API 测试
+STRID_LABEL_INTERACTIVE_TEXT = 这是可交互的 Label，点击下面的按钮可以修改单行/多行、对齐方式、纵向文本、换行符替换、RichText 模式、内边距、ToolTip 与字体。
+STRID_LABEL_RICH_SAMPLE = 标签支持 <b>粗体</b>、<i>斜体</i>、<u>下划线</u> 与 <font color="#FF0078D4">彩色文字</font>。
+STRID_LABEL_STATUS_EMPTY = 状态：等待操作
+STRID_LABEL_STATUS_FMT = 状态：对齐=%s  单行=%s  纵向=%s  换行替换=%s  RichText=%s
+STRID_LABEL_ALIGN_LEFT = 左对齐
+STRID_LABEL_ALIGN_CENTER = 居中
+STRID_LABEL_ALIGN_RIGHT = 右对齐
+STRID_LABEL_ALIGN_JUSTIFY = 两端对齐
+STRID_LABEL_ON = 开启
+STRID_LABEL_OFF = 关闭
+STRID_LABEL_BTN_SINGLE = 单行切换
+STRID_LABEL_BTN_ALIGN = 切换对齐
+STRID_LABEL_BTN_VERTICAL = 纵向文本
+STRID_LABEL_BTN_NEWLINE = 换行替换
+STRID_LABEL_BTN_RICH = RichText
+STRID_LABEL_BTN_PADDING = 内边距
+STRID_LABEL_BTN_TOOLTIP = ToolTip
+STRID_LABEL_BTN_FONT = 切换字体
 STRID_GALLERY_CARD_RICHEDIT_DESC  = 单行/多行编辑、占位提示、数字 Spin、密码与拖放。
 STRID_GALLERY_CARD_PROGRESS_DESC  = 线性进度、滑块与环形进度，进度条实时滚动演示。
 STRID_GALLERY_CARD_SHOW_DESC      = 评分、步进器、头像与轮播等展示型组件。

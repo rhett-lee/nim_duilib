@@ -3269,7 +3269,7 @@ RichText是带有格式的文本，其格式类似于HTML标签，格式文本�
 
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
-| text_align | "left,top" | string | 文字的水平与垂直对齐方式, 可取值: left、right、hcenter、center、justify、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter"（"center"与"hcenter"等价；"justify"为两端对齐，段落的最后一行保持左对齐；兼容别名 textalign） |
+| text_align | "left,vcenter" | string | 文字的水平与垂直对齐方式, 可取值: left、right、hcenter、center、justify、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter"（"center"与"hcenter"等价；"justify"为两端对齐，段落的最后一行保持左对齐；兼容别名 textalign；默认纵向居中，与Label保持一致） |
 | text_padding |  | rect | 文本内边距，如："2,2,2,2" |
 | font | | string | 字体ID |
 | text_color | | string | 默认文本颜色 |

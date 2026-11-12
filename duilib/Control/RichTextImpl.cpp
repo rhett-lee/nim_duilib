@@ -21,7 +21,8 @@ namespace ui
 RichTextImpl::RichTextImpl(Control* pOwner) :
     m_pOwner(pOwner),
     m_hAlignType(HorAlignType::kAlignLeft),
-    m_vAlignType(VerAlignType::kAlignTop),
+    //默认纵向对齐方式为居中，与Label控件保持一致
+    m_vAlignType(VerAlignType::kAlignCenter),
     m_fRowSpacingMul(1.0f),
     m_fRowSpacingAdd(0.0f),
     m_bLinkUnderlineFont(true),

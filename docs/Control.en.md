@@ -3267,7 +3267,7 @@ Block-level tags (`<p>`/`<h1>`~`<h6>`/`<ul>`/`<ol>`/`<li>`/`<hr>`) start a new l
 
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |
-| text_align | "left,top" | string | Horizontal and vertical alignment of the text, optional values: left, right, hcenter, center, justify, top, vcenter, bottom, separated by commas, e.g. "hcenter,vcenter" ("center" is equivalent to "hcenter"; "justify" stretches all lines except the last line of each paragraph; `textalign` is an accepted alias) |
+| text_align | "left,vcenter" | string | Horizontal and vertical alignment of the text, optional values: left, right, hcenter, center, justify, top, vcenter, bottom, separated by commas, e.g. "hcenter,vcenter" ("center" is equivalent to "hcenter"; "justify" stretches all lines except the last line of each paragraph; `textalign` is an accepted alias; vertical alignment defaults to center, consistent with Label) |
 | text_padding |  | rect | Text padding, e.g. "2,2,2,2" |
 | font | | string | Font ID |
 | text_color | | string | Default text color |

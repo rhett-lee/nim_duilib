@@ -3,6 +3,10 @@
 # 这些测试不创建窗口、不加载主题资源，只校验与界面无关的纯逻辑，
 # 因此可以在命令行（含 CI）直接运行：ctest --test-dir <build dir> -C Release
 
+# 解析第三方依赖的库路径/库名（与示例程序使用同一套规则）：
+# 实例化控件的测试目标需要链接 Skia 等静态库
+include("${CMAKE_CURRENT_LIST_DIR}/../cmake/duilib_common.cmake")
+
 # AddressBar 路径解析：覆盖盘符、UNC、扩展长度路径、相对路径与"~"展开
 add_executable(test_address_bar_path
     test_address_bar_path.cpp
@@ -59,6 +63,74 @@ if(MSVC)
 endif()
 add_test(NAME rich_text_util
          COMMAND test_rich_text_util
+)
+
+# Label 控件：覆盖默认属性、文本/文本ID/UTF8、对齐方式、单行/多行、
+# 省略号、字体与间距、纵向文本、状态颜色、文本样式、空文本尺寸估算
+add_executable(test_label
+    test_label.cpp
+)
+target_include_directories(test_label PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_label PRIVATE duilib)
+# 该测试会实例化控件对象，静态库模式下需要补齐 duilib 的第三方依赖（与示例程序一致）
+if(WIN32)
+    target_link_directories(test_label PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_label PRIVATE
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_label PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_label PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+endif()
+if(WIN32)
+    target_compile_definitions(test_label PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_label PRIVATE /utf-8)
+endif()
+add_test(NAME label
+         COMMAND test_label
+)
+
+# RichText 控件：覆盖默认属性、对齐方式、格式化文本的解析/追加/清空与序列化、
+# 花括号替换、Trim策略、链接与选择接口的安全行为、空文本尺寸估算
+add_executable(test_rich_text
+    test_rich_text.cpp
+)
+target_include_directories(test_rich_text PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_rich_text PRIVATE duilib)
+# 该测试会实例化控件对象，静态库模式下需要补齐 duilib 的第三方依赖（与示例程序一致）
+if(WIN32)
+    target_link_directories(test_rich_text PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_rich_text PRIVATE
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_rich_text PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_rich_text PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+endif()
+if(WIN32)
+    target_compile_definitions(test_rich_text PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_rich_text PRIVATE /utf-8)
+endif()
+add_test(NAME rich_text
+         COMMAND test_rich_text
 )
 
 # controls 示例页面的静态校验（XML 节点名、属性、class/颜色引用、语言词条、

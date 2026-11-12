@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="900,720" min_size="760,560" caption="0,0,0,36"
+        shadow_type="default" size_box="4,4,4,4">
+    <VBox bkcolor="bg_window_main">
+        <!-- 标题栏 -->
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
+            <Label name="label_title" text_id="STRID_LABEL_WINDOW_TITLE" valign="center" margin="8" mouse_enabled="false"/>
+            <Control/>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+        </HBox>
+
+        <VScrollBox width="stretch" height="stretch" vscrollbar="true" hscrollbar="false" padding="16,12,16,16">
+            <VBox width="stretch" height="auto">
+                <Label text_id="STRID_LABEL_HINT" font="system_regular_12" text_color="text_muted"
+                       margin="4,0,4,10" multi_line="true" auto_tooltip="true"/>
+
+                <!-- ========== 1. 基础文本 ========== -->
+                <HBox height="30" margin="4,0,4,8" valign="center">
+                    <Control width="4" height="16" bkcolor="color_accent" border_round="2,2" valign="center"/>
+                    <Label text_id="STRID_LABEL_SEC_BASIC" font="system_bold_15" text_color="text_default"
+                           margin="8,0,0,0" valign="center"/>
+                    <Control/>
+                </HBox>
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" height="auto" width="stretch">
+                    <Label name="label_basic_default" text_id="STRID_LABEL_BASIC_DEFAULT"
+                           font="system_regular_14" text_color="text_default"/>
+                    <Label name="label_basic_color" text_id="STRID_LABEL_BASIC_COLOR"
+                           font="system_bold_15" text_color="color_accent" margin="0,8,0,0"/>
+                    <Label name="label_basic_padding" text_id="STRID_LABEL_BASIC_PADDING"
+                           font="system_regular_14" text_color="text_default" margin="0,8,0,0"
+                           text_padding="8,4,8,4" border_size="1" bordercolor="border_window" border_round="4,4"/>
+                </VBox>
+
+                <!-- ========== 2. 多行文本与间距 ========== -->
+                <HBox height="30" margin="4,14,4,8" valign="center">
+                    <Control width="4" height="16" bkcolor="color_accent" border_round="2,2" valign="center"/>
+                    <Label text_id="STRID_LABEL_SEC_MULTILINE" font="system_bold_15" text_color="text_default"
+                           margin="8,0,0,0" valign="center"/>
+                    <Control/>
+                </HBox>
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" height="auto" width="stretch">
+                    <HBox height="auto" width="stretch" child_margin="16">
+                        <VBox width="stretch" height="auto">
+                            <Label text_id="STRID_LABEL_MULTI_DEFAULT_TITLE" font="system_regular_12"
+                                   text_color="text_muted"/>
+                            <Label name="label_multi_default" text_id="STRID_LABEL_MULTI_DEFAULT"
+                                   font="system_regular_14" text_color="text_default"
+                                   multi_line="true" width="stretch" margin="0,4,0,0"/>
+                        </VBox>
+                        <VBox width="stretch" height="auto">
+                            <Label text_id="STRID_LABEL_MULTI_SPACING_TITLE" font="system_regular_12"
+                                   text_color="text_muted"/>
+                            <Label name="label_multi_spacing" text_id="STRID_LABEL_MULTI_SPACING"
+                                   font="system_regular_14" text_color="text_default"
+                                   multi_line="true" width="stretch" margin="0,4,0,0"
+                                   spacing_mul="1.5" spacing_add="4" word_spacing="1"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- ========== 3. 文本对齐 ========== -->
+                <HBox height="30" margin="4,14,4,8" valign="center">
+                    <Control width="4" height="16" bkcolor="color_accent" border_round="2,2" valign="center"/>
+                    <Label text_id="STRID_LABEL_SEC_ALIGN" font="system_bold_15" text_color="text_default"
+                           margin="8,0,0,0" valign="center"/>
+                    <Control/>
+                </HBox>
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" height="auto" width="stretch">
+                    <HBox height="auto" width="stretch" child_margin="12">
+                        <VBox width="stretch" height="auto">
+                            <Label text_id="STRID_LABEL_ALIGN_H_TITLE" font="system_regular_12" text_color="text_muted"/>
+                            <HBox height="auto" margin="0,4,0,0" child_margin="8">
+                                <Label width="stretch" height="32" text_align="left,vcenter" text_id="STRID_LABEL_ALIGN_H_LEFT"
+                                       border_size="1" bordercolor="border_window" border_round="4,4"
+                                       text_padding="4,0,4,0"/>
+                                <Label width="stretch" height="32" text_align="hcenter,vcenter" text_id="STRID_LABEL_ALIGN_H_CENTER"
+                                       border_size="1" bordercolor="border_window" border_round="4,4"/>
+                                <Label width="stretch" height="32" text_align="right,vcenter" text_id="STRID_LABEL_ALIGN_H_RIGHT"
+                                       border_size="1" bordercolor="border_window" border_round="4,4"
+                                       text_padding="0,0,4,0"/>
+                            </HBox>
+                        </VBox>
+                        <VBox width="stretch" height="auto">
+                            <Label text_id="STRID_LABEL_ALIGN_V_TITLE" font="system_regular_12" text_color="text_muted"/>
+                            <HBox height="auto" margin="0,4,0,0" child_margin="8">
+                                <Label width="stretch" height="52" text_align="left,top" text_id="STRID_LABEL_ALIGN_V_TOP"
+                                       border_size="1" bordercolor="border_window" border_round="4,4"
+                                       text_padding="4,2,4,0"/>
+                                <Label width="stretch" height="52" text_align="left,vcenter" text_id="STRID_LABEL_ALIGN_V_CENTER"
+                                       border_size="1" bordercolor="border_window" border_round="4,4"
+                                       text_padding="4,0,4,0"/>
+                                <Label width="stretch" height="52" text_align="left,bottom" text_id="STRID_LABEL_ALIGN_V_BOTTOM"
+                                       border_size="1" bordercolor="border_window" border_round="4,4"
+                                       text_padding="4,0,4,2"/>
+                            </HBox>
+                        </VBox>
+                    </HBox>
+                    <Label name="label_align_justify" text_id="STRID_LABEL_ALIGN_JUSTIFY_SAMPLE"
+                           font="system_regular_14" text_color="text_default" multi_line="true"
+                           width="stretch" text_align="hjustify,top" margin="0,12,0,0"
+                           border_size="1" bordercolor="border_window" border_round="4,4" text_padding="8,6,8,6"/>
+                </VBox>
+
+                <!-- ========== 4. 状态文本颜色 ========== -->
+                <HBox height="30" margin="4,14,4,8" valign="center">
+                    <Control width="4" height="16" bkcolor="color_accent" border_round="2,2" valign="center"/>
+                    <Label text_id="STRID_LABEL_SEC_STATE" font="system_bold_15" text_color="text_default"
+                           margin="8,0,0,0" valign="center"/>
+                    <Control/>
+                </HBox>
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" height="auto" width="stretch">
+                    <HBox height="auto" width="stretch" child_margin="12">
+                        <Label width="stretch" height="36" text_id="STRID_LABEL_STATE_NORMAL"
+                               font="system_regular_14" text_color="text_default"
+                               hovered_text_color="#FF0078D4" pressed_text_color="#FFE85854"
+                               border_size="1" bordercolor="border_window" border_round="4,4"
+                               text_align="hcenter,vcenter"/>
+                        <Label width="stretch" height="36" text_id="STRID_LABEL_STATE_DISABLED"
+                               font="system_regular_14" normal_text_color="text_default"
+                               disabled_text_color="#FF9AA4B0" enabled="false"
+                               border_size="1" bordercolor="border_window" border_round="4,4"
+                               text_align="hcenter,vcenter"/>
+                        <Label width="stretch" height="36" text_id="STRID_LABEL_STATE_HOVER"
+                               font="system_regular_14" text_color="text_default"
+                               hovered_text_color="#FF22A95B" pressed_text_color="#FFD08700"
+                               border_size="1" bordercolor="border_window" border_round="4,4"
+                               text_align="hcenter,vcenter"/>
+                    </HBox>
+                </VBox>
+
+                <!-- ========== 5. 纵向文本 ========== -->
+                <HBox height="30" margin="4,14,4,8" valign="center">
+                    <Control width="4" height="16" bkcolor="color_accent" border_round="2,2" valign="center"/>
+                    <Label text_id="STRID_LABEL_SEC_VERTICAL" font="system_bold_15" text_color="text_default"
+                           margin="8,0,0,0" valign="center"/>
+                    <Control/>
+                </HBox>
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" height="auto" width="stretch">
+                    <HBox height="auto" width="stretch" child_margin="24">
+                        <VBox height="auto" width="auto">
+                            <Label text_id="STRID_LABEL_VERTICAL_DEFAULT" font="system_regular_12" text_color="text_muted"/>
+                            <Label name="label_vertical_default" text_id="STRID_LABEL_VERTICAL_SAMPLE"
+                                   font="system_regular_15" text_color="text_default"
+                                   vertical_text="true" width="34" height="120" margin="0,4,0,0"/>
+                        </VBox>
+                        <VBox height="auto" width="auto">
+                            <Label text_id="STRID_LABEL_VERTICAL_FONT_HEIGHT" font="system_regular_12" text_color="text_muted"/>
+                            <Label name="label_vertical_font_height" text_id="STRID_LABEL_VERTICAL_SAMPLE"
+                                   font="system_regular_15" text_color="text_default"
+                                   vertical_text="true" use_font_height="true" width="34" height="120" margin="0,4,0,0"/>
+                        </VBox>
+                        <VBox height="auto" width="auto">
+                            <Label text_id="STRID_LABEL_VERTICAL_ASCII" font="system_regular_12" text_color="text_muted"/>
+                            <Label name="label_vertical_ascii" text_id="STRID_LABEL_VERTICAL_ASCII_SAMPLE"
+                                   font="system_regular_15" text_color="text_default"
+                                   vertical_text="true" ascii_rotate_90="true" width="34" height="120" margin="0,4,0,0"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- ========== 6. 省略号 ========== -->
+                <HBox height="30" margin="4,14,4,8" valign="center">
+                    <Control width="4" height="16" bkcolor="color_accent" border_round="2,2" valign="center"/>
+                    <Label text_id="STRID_LABEL_SEC_ELLIPSIS" font="system_bold_15" text_color="text_default"
+                           margin="8,0,0,0" valign="center"/>
+                    <Control/>
+                </HBox>
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" height="auto" width="stretch">
+                    <Label text_id="STRID_LABEL_ELLIPSIS_DEFAULT_TITLE" font="system_regular_12" text_color="text_muted"/>
+                    <Label name="label_ellipsis_default" text_id="STRID_LABEL_ELLIPSIS_SAMPLE"
+                           font="system_regular_14" text_color="text_default"
+                           width="260" height="24" margin="0,4,0,0"
+                           end_ellipsis="true" auto_tooltip="true"/>
+                    <Label text_id="STRID_LABEL_ELLIPSIS_PATH_TITLE" font="system_regular_12" text_color="text_muted"
+                           margin="0,10,0,0"/>
+                    <Label name="label_ellipsis_path" text_id="STRID_LABEL_ELLIPSIS_PATH_SAMPLE"
+                           font="system_regular_14" text_color="text_default"
+                           width="260" height="24" margin="0,4,0,0"
+                           path_ellipsis="true" auto_tooltip="true"/>
+                    <Label text_id="STRID_LABEL_ELLIPSIS_NONE_TITLE" font="system_regular_12" text_color="text_muted"
+                           margin="0,10,0,0"/>
+                    <Label name="label_ellipsis_none" text_id="STRID_LABEL_ELLIPSIS_SAMPLE"
+                           font="system_regular_14" text_color="text_default"
+                           width="260" height="24" margin="0,4,0,0"
+                           end_ellipsis="false"/>
+                </VBox>
+
+                <!-- ========== 7. 运行时 API 测试 ========== -->
+                <HBox height="30" margin="4,14,4,8" valign="center">
+                    <Control width="4" height="16" bkcolor="color_accent" border_round="2,2" valign="center"/>
+                    <Label text_id="STRID_LABEL_SEC_INTERACTIVE" font="system_bold_15" text_color="text_default"
+                           margin="8,0,0,0" valign="center"/>
+                    <Control/>
+                </HBox>
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                      padding="16,14,16,14" height="auto" width="stretch">
+                    <Label name="label_interactive" text_id="STRID_LABEL_INTERACTIVE_TEXT"
+                           font="system_regular_14" text_color="text_default"
+                           width="stretch" height="96" multi_line="true" auto_tooltip="true"
+                           border_size="1" bordercolor="border_window" border_round="4,4"
+                           text_padding="8,6,8,6"/>
+                    <Label name="label_status" text_id="STRID_LABEL_STATUS_EMPTY" font="system_regular_12"
+                           text_color="text_muted" margin="0,8,0,0" width="stretch"
+                           multi_line="true" auto_tooltip="true"/>
+
+                    <HBox height="32" margin="0,10,0,0" child_margin="8">
+                        <Button class="btn_global" name="btn_label_single" text_id="STRID_LABEL_BTN_SINGLE"
+                                width="104" height="30" border_round="3,3"/>
+                        <Button class="btn_global" name="btn_label_align" text_id="STRID_LABEL_BTN_ALIGN"
+                                width="104" height="30" border_round="3,3"/>
+                        <Button class="btn_global" name="btn_label_vertical" text_id="STRID_LABEL_BTN_VERTICAL"
+                                width="104" height="30" border_round="3,3"/>
+                        <Button class="btn_global" name="btn_label_newline" text_id="STRID_LABEL_BTN_NEWLINE"
+                                width="104" height="30" border_round="3,3"/>
+                        <Control/>
+                    </HBox>
+                    <HBox height="32" margin="0,8,0,0" child_margin="8">
+                        <Button class="btn_global" name="btn_label_rich" text_id="STRID_LABEL_BTN_RICH"
+                                width="104" height="30" border_round="3,3"/>
+                        <Button class="btn_global" name="btn_label_padding" text_id="STRID_LABEL_BTN_PADDING"
+                                width="104" height="30" border_round="3,3"/>
+                        <Button class="btn_global" name="btn_label_tooltip" text_id="STRID_LABEL_BTN_TOOLTIP"
+                                width="104" height="30" border_round="3,3"/>
+                        <Button class="btn_global" name="btn_label_font" text_id="STRID_LABEL_BTN_FONT"
+                                width="104" height="30" border_round="3,3"/>
+                        <Control/>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </VScrollBox>
+    </VBox>
+</Window>

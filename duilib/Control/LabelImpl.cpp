@@ -229,6 +229,12 @@ void LabelImpl::OnLanguageChanged()
     CheckShowToolTip();
 }
 
+void LabelImpl::OnThemeChanged()
+{
+    //RichText模式时，文本颜色在解析时已按主题色解析为颜色值，需要使解析缓存失效
+    InvalidateRichTextCache();
+}
+
 void LabelImpl::OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t /*nNewDpiScale*/)
 {
     //DPI变化后，字体缓存需要重新查询

@@ -288,6 +288,40 @@
                     </VBox>
                 </HBox>
 
+                <!-- ========== Label 文本控件样例 ========== -->
+                <HBox height="auto" width="stretch" margin="4,12,4,0">
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="10,10"
+                          padding="16,14,16,14" height="auto" width="stretch">
+                        <HBox height="24" valign="center">
+                            <Control width="6" height="16" bkcolor="color_accent" border_round="3,3" valign="center"/>
+                            <Label text_id="STRID_GALLERY_LABEL_TITLE" font="system_bold_15" text_color="text_default"
+                                   margin="8,0,0,0" valign="center"/>
+                            <Label text="label / label_box / label_hbox / label_vbox" font="system_regular_12" text_color="text_muted"
+                                   margin="8,0,0,0" valign="center"/>
+                            <Control/>
+                        </HBox>
+                        <HBox height="auto" margin="0,10,0,0" child_margin="16">
+                            <VBox width="stretch" height="auto">
+                                <Label text_id="STRID_GALLERY_LABEL_DESC" font="system_regular_12" text_color="text_muted"
+                                       multi_line="true" auto_tooltip="true"/>
+                                <Label text_id="STRID_GALLERY_LABEL_SAMPLE" font="system_regular_14" text_color="text_default"
+                                       margin="0,6,0,0" multi_line="true"/>
+                            </VBox>
+                            <VBox width="220" height="auto">
+                                <Label text_id="STRID_GALLERY_LABEL_ALIGN_SAMPLE" width="stretch" height="32"
+                                       text_align="hcenter,vcenter" border_size="1" bordercolor="border_window" border_round="4,4"/>
+                                <Label text_id="STRID_GALLERY_LABEL_VERTICAL_SAMPLE" width="34" height="84"
+                                       vertical_text="true" font="system_regular_14" text_color="text_default" margin="0,8,0,0"/>
+                            </VBox>
+                        </HBox>
+                        <HBox height="28" margin="0,8,0,0">
+                            <Control/>
+                            <Button class="btn_global" name="btn_gallery_label" text_id="STRID_GALLERY_OPEN_TEST"
+                                    width="112" height="28" border_round="4,4"/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+
                 <!-- ========== 输入控件 ========== -->
                 <HBox height="34" margin="4,20,4,8" valign="center">
                     <Control width="4" height="18" bkcolor="color_success" border_round="2,2" valign="center"/>

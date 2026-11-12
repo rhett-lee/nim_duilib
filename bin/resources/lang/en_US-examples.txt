@@ -2434,6 +2434,69 @@ STRID_RICHTEXT_BTN_SELECT_ALL = Select all
 STRID_RICHTEXT_BTN_COPY = Copy selection
 STRID_RICHTEXT_BTN_CLEAR_SELECTION = Clear selection
 STRID_RICHTEXT_APPEND_TEXT = Appended text: <b>AppendText</b> accepts formatted tags, so the link count increases after appending <a href="https://www.example.com/append">appended link</a>.
+
+# controls/Label test page
+STRID_GALLERY_LABEL_TITLE = Label Text Control
+STRID_GALLERY_LABEL_DESC = Single/multi-line text, alignment, state colors, vertical text, ellipsis, padding and RichText mode.
+STRID_GALLERY_LABEL_SAMPLE = Multi-line text combined with line and word spacing, plus automatic ellipsis and tooltip.
+STRID_GALLERY_LABEL_ALIGN_SAMPLE = Centered horizontally and vertically
+STRID_GALLERY_LABEL_VERTICAL_SAMPLE = Vertical
+STRID_LABEL_WINDOW_TITLE = Label Test
+STRID_LABEL_HINT = Hint: this page covers text content, alignment, multi-line and spacing, state colors, vertical text, ellipsis, padding, RichText mode and runtime APIs.
+STRID_LABEL_SEC_BASIC = Basic text
+STRID_LABEL_BASIC_DEFAULT = Default text: default font and text color, single line.
+STRID_LABEL_BASIC_COLOR = Font and color: font="system_bold_15", text_color="color_accent".
+STRID_LABEL_BASIC_PADDING = Text padding: text_padding="8,4,8,4" with a border.
+STRID_LABEL_SEC_MULTILINE = Multi-line text and spacing
+STRID_LABEL_MULTI_DEFAULT_TITLE = Multi-line text (multi_line=true)
+STRID_LABEL_MULTI_DEFAULT = Multi-line text wraps by control width, and the \n escape also starts a new line.
+STRID_LABEL_MULTI_SPACING_TITLE = Line and word spacing (spacing_mul=1.5, spacing_add=4, word_spacing=1)
+STRID_LABEL_MULTI_SPACING = Line spacing is 1.5x the font size plus 4 pixels, with 1 pixel word spacing.
+STRID_LABEL_SEC_ALIGN = Text alignment
+STRID_LABEL_ALIGN_H_TITLE = Horizontal alignment: left / hcenter / right
+STRID_LABEL_ALIGN_H_LEFT = Left
+STRID_LABEL_ALIGN_H_CENTER = Center
+STRID_LABEL_ALIGN_H_RIGHT = Right
+STRID_LABEL_ALIGN_V_TITLE = Vertical alignment: top / vcenter / bottom
+STRID_LABEL_ALIGN_V_TOP = Top
+STRID_LABEL_ALIGN_V_CENTER = Center
+STRID_LABEL_ALIGN_V_BOTTOM = Bottom
+STRID_LABEL_ALIGN_JUSTIFY_SAMPLE = Justified (hjustify): every line is stretched across the width, and the last line stays left aligned.
+STRID_LABEL_SEC_STATE = State text colors
+STRID_LABEL_STATE_NORMAL = Text color changes on hover and press
+STRID_LABEL_STATE_DISABLED = Text color when the control is disabled
+STRID_LABEL_STATE_HOVER = Green on hover, orange when pressed
+STRID_LABEL_SEC_VERTICAL = Vertical text
+STRID_LABEL_VERTICAL_DEFAULT = Vertical text (vertical_text=true)
+STRID_LABEL_VERTICAL_FONT_HEIGHT = Equal glyph height (use_font_height=true)
+STRID_LABEL_VERTICAL_ASCII = Rotated ASCII (ascii_rotate_90=true)
+STRID_LABEL_VERTICAL_SAMPLE = Vertical sample
+STRID_LABEL_VERTICAL_ASCII_SAMPLE = Win2026
+STRID_LABEL_SEC_ELLIPSIS = Ellipsis and clipping
+STRID_LABEL_ELLIPSIS_DEFAULT_TITLE = End ellipsis (end_ellipsis=true, tooltip shown automatically)
+STRID_LABEL_ELLIPSIS_SAMPLE = This is a long piece of text used to verify the trailing ellipsis when the control is too narrow.
+STRID_LABEL_ELLIPSIS_PATH_TITLE = Path ellipsis (path_ellipsis=true)
+STRID_LABEL_ELLIPSIS_PATH_SAMPLE = C:\Program Files\nim_duilib\bin\resources\themes\default\controls\label.xml
+STRID_LABEL_ELLIPSIS_NONE_TITLE = No ellipsis (end_ellipsis=false)
+STRID_LABEL_SEC_INTERACTIVE = Runtime API tests
+STRID_LABEL_INTERACTIVE_TEXT = This is an interactive Label. The buttons below change single/multi-line mode, alignment, vertical text, newline replacement, RichText mode, padding, tooltip and font.
+STRID_LABEL_RICH_SAMPLE = The label supports <b>bold</b>, <i>italic</i>, <u>underline</u> and <font color="#FF0078D4">colored text</font>.
+STRID_LABEL_STATUS_EMPTY = Status: waiting for input
+STRID_LABEL_STATUS_FMT = Status: align=%s  single line=%s  vertical=%s  newline=%s  RichText=%s
+STRID_LABEL_ALIGN_LEFT = left
+STRID_LABEL_ALIGN_CENTER = center
+STRID_LABEL_ALIGN_RIGHT = right
+STRID_LABEL_ALIGN_JUSTIFY = justify
+STRID_LABEL_ON = on
+STRID_LABEL_OFF = off
+STRID_LABEL_BTN_SINGLE = Single line
+STRID_LABEL_BTN_ALIGN = Cycle align
+STRID_LABEL_BTN_VERTICAL = Vertical text
+STRID_LABEL_BTN_NEWLINE = Newline
+STRID_LABEL_BTN_RICH = RichText
+STRID_LABEL_BTN_PADDING = Padding
+STRID_LABEL_BTN_TOOLTIP = ToolTip
+STRID_LABEL_BTN_FONT = Cycle font
 STRID_GALLERY_CARD_RICHEDIT_DESC  = Single/multi-line editing, prompts, numeric spin, password and drag-drop.
 STRID_GALLERY_CARD_PROGRESS_DESC  = Linear progress, slider and circular progress demo.
 STRID_GALLERY_CARD_SHOW_DESC      = Rating, stepper, avatar and carousel components.

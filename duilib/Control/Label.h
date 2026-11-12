@@ -27,6 +27,7 @@ public:
     virtual bool HasHoveredState() override;
     virtual DString GetToolTipText() const override;
     virtual void OnLanguageChanged(bool bRedraw) override;
+    virtual void OnThemeChanged(bool bRedraw) override;
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
     /** 计算文本区域大小（宽和高）
@@ -322,6 +323,14 @@ void LabelTemplate<T>::OnLanguageChanged(bool bRedraw)
     //重新布局时会重新测量文本，若缓存未失效，自动宽高会按旧语言的文本计算
     m_impl.OnLanguageChanged();
     this->RelayoutOrRedraw();
+}
+
+template<typename T>
+void LabelTemplate<T>::OnThemeChanged(bool bRedraw)
+{
+    BaseClass::OnThemeChanged(bRedraw);
+    //RichText模式下的文本颜色在解析时生成，主题变化后需要使解析缓存失效
+    m_impl.OnThemeChanged();
 }
 
 template<typename T>
