@@ -17,6 +17,7 @@
 #include "duilib/Control/Menu.h"
 #include "duilib/Control/Button.h"
 #include "duilib/Box/VBox.h"
+#include <chrono>
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     #include "RichEditDropTarget_Windows.h"
@@ -33,6 +34,16 @@
 //缩放百分比的最大值
 #define MAX_ZOOM_PERCENT 800
 
+namespace {
+    /** 获取当前时间戳(毫秒)，用于识别鼠标三击
+    */
+    uint64_t GetCurrentTimeMilliSeconds()
+    {
+        return (uint64_t)std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
+    }
+}
+
 namespace ui {
 
 RichEdit2::RichEdit2(Window* pWindow) :
@@ -40,13 +51,10 @@ RichEdit2::RichEdit2(Window* pWindow) :
     m_bWantTab(false),
     m_bWantReturn(false),
     m_bWantCtrlReturn(false),
-    m_bAllowPrompt(false),
-    m_bSelAllEver(false),         
-    m_bNoSelOnKillFocus(true), 
-    m_bSelAllOnFocus(false),    
-    m_bNoCaretReadonly(false),
+    m_bSelAllEver(false),
+    m_bNoSelOnKillFocus(true),
+    m_bSelAllOnFocus(false),
     m_bIsComposition(false),
-    m_bIsCaretVisible(false),
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     #ifdef DUILIB_UNICODE
         m_chHighSurrogate(L'\0'),
@@ -54,29 +62,6 @@ RichEdit2::RichEdit2(Window* pWindow) :
         m_dwLastCharTime(0),
     #endif
 #endif
-    m_iCaretPosX(0),
-    m_iCaretPosY(0),
-    m_iCaretWidth(0),
-    m_iCaretHeight(0),
-    m_nRowHeight(0),
-    m_sFontId(),
-    m_sTextColor(),
-    m_sDisabledTextColor(),
-    m_sPromptColor(),
-    m_sPromptText(),
-    m_drawCaretFlag(),
-    m_pFocusedImage(nullptr),
-    m_bUseControlCursor(false),
-    m_nZoomPercent(100),
-    m_bEnableWheelZoom(false),
-    m_bEnableDefaultContextMenu(false),
-    m_bDisableTextChangeEvent(false),
-    m_maxNumber(INT64_MAX),
-    m_minNumber(INT64_MIN),
-    m_pSpinBox(nullptr),
-    m_nSpinStep(1),
-    m_pClearButton(nullptr),
-    m_pShowPasswordButton(nullptr),
     m_bReadOnly(false),
     m_bPasswordMode(false),
     m_bShowPassword(false),
@@ -87,34 +72,61 @@ RichEdit2::RichEdit2(Window* pWindow) :
     m_bWordWrap(false),
     m_nLimitText(0),
     m_bModified(false),
+    m_bNoCaretReadonly(false),
+    m_bIsCaretVisible(false),
+    m_iCaretPosX(0),
+    m_iCaretPosY(0),
+    m_iCaretWidth(0),
+    m_iCaretHeight(0),
+    m_nRowHeight(0),
+    m_sFontId(),
+    m_sTextColor(),
+    m_sDisabledTextColor(),
+    m_sCurrentRowBkColor(_T("")),
+    m_sInactiveCurrentRowBkColor(_T("")),
+    m_sSelectionBkColor(_T("CornflowerBlue")),
+    m_sInactiveSelectionBkColor(_T("DarkGray")),
+    m_sPromptColor(),
+    m_sPromptText(),
+    m_bAllowPrompt(false),
+    m_nFocusBottomBorderSize(0),
+    m_fRowSpacingMul(1.0f),
+    m_fRowSpacingAdd(0.0f),
+    m_bUseControlCursor(false),
+    m_nZoomPercent(100),
+    m_bEnableWheelZoom(false),
+    m_bEnableDefaultContextMenu(false),
+    m_bDisableTextChangeEvent(false),
+    m_bReplaceNewline(false),
+    m_maxNumber(INT64_MAX),
+    m_minNumber(INT64_MIN),
+    m_pSpinBox(nullptr),
+    m_nSpinStep(1),
+    m_pFocusedImage(nullptr),
+    m_pClearButton(nullptr),
+    m_pShowPasswordButton(nullptr),
+    m_bHideSelection(true),
+    m_bActive(false),
+    m_bTextInputMode(false),
+    m_pTextData(nullptr),
     m_nSelStartIndex(0),
     m_nSelEndCharIndex(0),
     m_nShiftStartIndex(-1),
     m_nCtrlStartIndex(-1),
     m_bSelForward(true),
     m_nSelXPos(-1),
-    m_bHideSelection(true),
-    m_bActive(false),
-    m_bTextInputMode(false),
+    m_nLastDoubleClickTime(0),
+    m_ptLastDoubleClick(),
     m_bMouseDownInView(false),
     m_bMouseDown(false),
     m_bRMouseDown(false),
     m_bInMouseMove(false),
     m_pMouseSender(nullptr),
-    m_pTextData(nullptr),
-    m_sSelectionBkColor(_T("CornflowerBlue")),
-    m_sInactiveSelectionBkColor(_T("DarkGray")),
-    m_sCurrentRowBkColor(_T("")),
-    m_sInactiveCurrentRowBkColor(_T("")),
-    m_nFocusBottomBorderSize(0),
-    m_fRowSpacingMul(1.0f),
-    m_fRowSpacingAdd(0.0f),
     m_pControlDropTarget(nullptr),
     m_bEnableDragOut(true),
-    m_bDraggingOut(false),
     m_bDraggingOutMouseDown(false),
-    m_nDropTextPos(-1),
-    m_bReplaceNewline(false)
+    m_bDraggingOut(false),
+    m_nDropTextPos(-1)
 {
     m_pTextData = new RichEditData(this);
 }
@@ -535,6 +547,14 @@ void RichEdit2::ReplacePasswordChar(DStringW& text) const
 int32_t RichEdit2::GetTextLimitLength() const
 {
     return GetLimitText();
+}
+
+void RichEdit2::OnTextLimitExceeded()
+{
+    //文本超过limit_text限制，本次修改被丢弃：触发文本超限事件，便于上层给出提示
+    if (!m_bDisableTextChangeEvent) {
+        SendEvent(kEventTextLimit);
+    }
 }
 
 bool RichEdit2::IsTextReadOnlyMode() const
@@ -1414,7 +1434,8 @@ bool RichEdit2::IsHideSelection() const
 
 void RichEdit2::SetFocusedBottomBorderSize(int32_t nBottomBorderSize)
 {
-    ASSERT(nBottomBorderSize > 0);
+    //该值允许为0，表示不绘制焦点状态的下边线
+    ASSERT(nBottomBorderSize >= 0);
     if (nBottomBorderSize < 0) {
         nBottomBorderSize = 0;
     }
@@ -1544,11 +1565,15 @@ void RichEdit2::Cut()
 
 void RichEdit2::Paste()
 {
-    if (!CanPaste()) {
+    if (IsReadOnly() || !IsEnabled()) {
         return;
     }
+    //只读取一次剪贴板内容并复用，避免CanPaste()与Paste()各读取一次导致的行为不一致
     DStringW text;
     Clipboard::GetClipboardText(text);
+    if (IsPasteLimited(text)) {
+        return;
+    }
     if (IsPasswordMode()) {
         RemoveInvalidPasswordChar(text);
     }
@@ -1576,10 +1601,9 @@ bool RichEdit2::CanPaste() const
     if (IsReadOnly() || !IsEnabled()) {
         return false;
     }
-    if (IsPasteLimited()) {
-        return false;
-    }
-    return true;
+    DStringW text;
+    Clipboard::GetClipboardText(text);
+    return !IsPasteLimited(text);
 }
 
 int32_t RichEdit2::GetLineCount() const
@@ -1797,12 +1821,10 @@ bool RichEdit2::IsInLimitChars(DStringW::value_type charValue) const
     return bInLimitChars;
 }
 
-bool RichEdit2::IsPasteLimited() const
+bool RichEdit2::IsPasteLimited(const DStringW& strClipText) const
 {
     if (m_pLimitChars != nullptr) {
         //有设置限制字符
-        DStringW strClipText;
-        Clipboard::GetClipboardText(strClipText);
         if (!strClipText.empty()) {
             size_t count = strClipText.size();
             for (size_t index = 0; index < count; ++index) {
@@ -1818,8 +1840,6 @@ bool RichEdit2::IsPasteLimited() const
     }
     else if (IsNumberOnly()) {
         //数字模式
-        DStringW strClipText;
-        Clipboard::GetClipboardText(strClipText);
         if (!strClipText.empty()) {
             size_t count = strClipText.size();
             for (size_t index = 0; index < count; ++index) {
@@ -2254,7 +2274,10 @@ void RichEdit2::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
                     dwClrColor = UiColor(UiColors::Black);
                 }
             }
-            pRender->DrawLine(UiPointF(xPos + 1, yPos), UiPointF(xPos + 1, yPos + yHeight), dwClrColor, (float)xWidth);
+            //插入点坐标为光标矩形的左边界；画笔以线宽中心对齐，因此绘制点取插入点加半个线宽，
+            //使光标占据[xPos, xPos + xWidth)区间（与Windows原生实现一致，且不随DPI产生偏移）
+            float fCaretCenterX = (float)xPos + (float)xWidth / 2.0f;
+            pRender->DrawLine(UiPointF(fCaretCenterX, (float)yPos), UiPointF(fCaretCenterX, (float)(yPos + yHeight)), dwClrColor, (float)xWidth);
         }
     }
 }
@@ -4411,6 +4434,40 @@ void RichEdit2::OnLButtonDown(const UiPoint& ptMouse, Control* pSender, bool bSh
 
     //调整光标位置到鼠标点击位置
     int32_t nCharPosIndex = CharFromPos(ptMouse);
+    //识别三击：与上次双击的时间间隔足够短，并且点击位置接近时，认为是三击
+    if (m_nLastDoubleClickTime != 0) {
+        int32_t nDx = ptMouse.x - m_ptLastDoubleClick.x;
+        int32_t nDy = ptMouse.y - m_ptLastDoubleClick.y;
+        if (nDx < 0) {
+            nDx = -nDx;
+        }
+        if (nDy < 0) {
+            nDy = -nDy;
+        }
+        const uint64_t nNowTime = GetCurrentTimeMilliSeconds();
+        if ((nNowTime >= m_nLastDoubleClickTime) && ((nNowTime - m_nLastDoubleClickTime) <= 500) &&
+            (nDx <= 3) && (nDy <= 3)) {
+            m_nLastDoubleClickTime = 0;
+            if (IsMultiLine()) {
+                //多行模式：选中当前段落（以换行符分隔的一行）
+                int32_t nRowStartIndex = m_pTextData->GetRowStartCharIndex(nCharPosIndex);
+                int32_t nRowEndIndex = m_pTextData->GetRowEndCharIndex(nCharPosIndex) + 1;
+                const int32_t nTextLength = GetTextLength();
+                if (nRowEndIndex > nTextLength) {
+                    nRowEndIndex = nTextLength;
+                }
+                if (nRowStartIndex < nRowEndIndex) {
+                    InternalSetSel(nRowStartIndex, nRowEndIndex);
+                }
+            }
+            else {
+                //单行模式：选中全部文本
+                SetSelAll();
+            }
+            m_nSelXPos = -1;
+            return;
+        }
+    }
     if (bShiftDown && (m_nShiftStartIndex != -1)) {
         //按住Shift键时，选择与原来起点的范围
         InternalSetSel(m_nShiftStartIndex, nCharPosIndex);
@@ -4438,6 +4495,10 @@ void RichEdit2::OnLButtonUp(const UiPoint& /*ptMouse*/, Control* /*pSender*/)
 
 void RichEdit2::OnLButtonDoubleClick(const UiPoint& ptMouse, Control* /*pSender*/)
 {
+    //记录本次双击的时间和位置，用于识别后续的三击操作
+    m_nLastDoubleClickTime = GetCurrentTimeMilliSeconds();
+    m_ptLastDoubleClick = ptMouse;
+
     if (IsReadOnly()) {
         //只读模式下，双击则全选文本
         SetSelAll();
@@ -4930,13 +4991,19 @@ void RichEdit2::OnInputChar(const EventArgs& msg)
         size_t nTextIndex = 0;
         if (text[0] == _T('-')) {
             //首字符是减号，对应的是负数
-            if (GetTextLength() > 0) {
-                //不是第一个字符，禁止输入减号
-                return;
-            }
-            else if (GetMinNumber() >= 0) {
+            if (GetMinNumber() >= 0) {
                 //最小数字是0或者正数，禁止输入减号
                 return;
+            }
+            if (GetTextLength() > 0) {
+                //已有文本时：仅当选中了全部文本（本次输入会整体替换）时才允许输入减号
+                int32_t nSelStartChar = -1;
+                int32_t nSelEndChar = -1;
+                GetSel(nSelStartChar, nSelEndChar);
+                if ((nSelStartChar != 0) || (nSelEndChar != GetTextLength())) {
+                    //不是全选状态，禁止输入减号
+                    return;
+                }
             }
             nTextIndex += 1;
         }

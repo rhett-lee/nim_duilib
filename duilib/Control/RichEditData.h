@@ -59,6 +59,10 @@ public:
     */
     virtual int32_t GetTextLimitLength() const = 0;
 
+    /** 文本长度超过限制，本次修改被丢弃时调用
+    */
+    virtual void OnTextLimitExceeded() = 0;
+
     /** 文本是否为只读模式
     */
     virtual bool IsTextReadOnlyMode() const = 0;

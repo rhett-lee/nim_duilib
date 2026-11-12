@@ -547,6 +547,12 @@ public:
      */
     void AttachTextChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventTextChanged, callback, callbackID); }
 
+    /* 监听输入文本超过限制事件（超过limit_text限制时，本次修改被丢弃）
+     * @param [in] callback 文本超限后的自定义回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+     */
+    void AttachTextLimit(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventTextLimit, callback, callbackID); }
+
     /* 监听文本选择变化事件
      * @param [in] callback 文本选择变化后的自定义回调函数
      * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
@@ -929,6 +935,10 @@ protected:
     */
     virtual int32_t GetTextLimitLength() const override;
 
+    /** 文本长度超过限制，本次修改被丢弃时调用
+    */
+    virtual void OnTextLimitExceeded() override;
+
     /** 文本是否为只读模式
     */
     virtual bool IsTextReadOnlyMode() const override;
@@ -970,9 +980,10 @@ private:
     bool IsInLimitChars(DStringW::value_type charValue) const;
 
     /** 判断是否可以进行粘贴操作(判断是否有字符限制、数字限制)
+    * @param [in] strClipText 剪贴板中的文本内容
     * @return 如果返回true, 表示不可用进行粘贴操作
     */
-    bool IsPasteLimited() const;
+    bool IsPasteLimited(const DStringW& strClipText) const;
 
 private:
     /** 触发文本变化事件
@@ -1376,6 +1387,14 @@ private:
     /** 方向键切换位置时的X坐标值
     */
     int32_t m_nSelXPos;
+
+    /** 上次双击的时间(毫秒)，与双击位置一起用于识别鼠标三击
+    */
+    uint64_t m_nLastDoubleClickTime;
+
+    /** 上次双击的位置(客户区坐标)，用于识别鼠标三击
+    */
+    UiPoint m_ptLastDoubleClick;
 
 private:
     /** 是否鼠标在视图中按下左键或者右键

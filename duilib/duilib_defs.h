@@ -462,6 +462,7 @@ namespace ui
 
         kEventZoom,                 //RichEdit类：当缩放比例发生变化时，wParam表示缩放百分比，比如200表示200%
         kEventTextChanged,          //RichEdit类：当文本内容发生变化时触发
+        kEventTextLimit,            //RichEdit2类：当输入的文本超过limit_text限制，导致本次修改被丢弃时触发
         kEventSelChanged,           //ListCtrl类：选择项发生变化，RichEdit类：当文本选择内容发生变化时触发
         kEventReturn,               //ListCtrl、VirtualListBox、ListBoxItem、RichEdit、AddressBar类：当收到回车键时触发
         kEventEsc,                  //RichEdit类、AddressBar类：当收到ESC键时触发

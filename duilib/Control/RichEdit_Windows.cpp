@@ -3065,7 +3065,6 @@ void RichEdit::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
     }
 
     if (m_bIsCaretVisible && !m_bIsComposition) {
-        UiRect rect(m_iCaretPosX, m_iCaretPosY, m_iCaretPosX, m_iCaretPosY + m_iCaretHeight);
         UiColor dwClrColor;
         if (!m_sCaretColor.empty()) {
             dwClrColor = this->GetUiColor(m_sCaretColor.c_str());
@@ -3081,7 +3080,10 @@ void RichEdit::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
                 dwClrColor = UiColor(UiColors::Black);
             }
         }
-        pRender->DrawLine(UiPointF(rect.left, rect.top), UiPointF(rect.right, rect.bottom), dwClrColor, (float)m_iCaretWidth);
+        //插入点坐标为光标矩形的左边界；画笔以线宽中心对齐，因此绘制点取插入点加半个线宽，
+        //使光标占据[m_iCaretPosX, m_iCaretPosX + m_iCaretWidth)区间（与RichEdit2实现一致）
+        const float fCaretCenterX = (float)m_iCaretPosX + (float)m_iCaretWidth / 2.0f;
+        pRender->DrawLine(UiPointF(fCaretCenterX, (float)m_iCaretPosY), UiPointF(fCaretCenterX, (float)(m_iCaretPosY + m_iCaretHeight)), dwClrColor, (float)m_iCaretWidth);
     }
 }
 

@@ -1065,7 +1065,8 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
         //字符串会变长，检查字符串长度是否超过限制
         int32_t nDestTextLen = (int32_t)GetTextLength() + nTextLenDiff;
         if (nDestTextLen > nLimitLength) {
-            //超过限制长度，返回错误
+            //超过限制长度：通知外部（用于触发文本超限事件），返回错误
+            m_pRichText->OnTextLimitExceeded();
             return false;
         }
     }
