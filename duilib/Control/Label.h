@@ -158,7 +158,7 @@ public:
      */
     bool IsSingleLine() const;
 
-    /** 设置为单行输入模式
+    /** 设置为单行文本模式
      * @param [in] bSingleLine 为 true 时为单行模式，否则为 false
      */
     void SetSingleLine(bool bSingleLine);

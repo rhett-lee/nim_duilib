@@ -3811,6 +3811,7 @@ void RichEdit2::UpdateCompositionText(const EventArgs& msg)
     }
 #elif defined (DUILIB_BUILD_FOR_WIN)
     //Windows：从输入法上下文读取当前组合字符串
+    UNUSED_VARIABLE(msg);
     m_strCompositionText.clear();
     HWND hWnd = GetWindowHWND();
     if (hWnd != nullptr) {

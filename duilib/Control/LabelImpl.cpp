@@ -121,7 +121,7 @@ bool LabelImpl::OnSetAttribute(const DString& strName, const DString& strValue)
             m_uTextStyle |= TEXT_BOTTOM;
         }
         else if (strValue.find(_T("vjustify")) != DString::npos) {
-            //垂直对齐：靠下
+            //垂直对齐：两端对齐
             m_uTextStyle &= ~TEXT_VALIGN_ALL;
             m_uTextStyle |= TEXT_VJUSTIFY;
         }
