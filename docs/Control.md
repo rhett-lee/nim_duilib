@@ -300,11 +300,11 @@ ScrollBar 控件继承了 `Control` 属性，更多可用属性请参考`Control
 | :--- | :--- | :--- | :--- |
 | text |  | string | 显示文本 |
 | text_id |  | string | 多语言功能的文本ID |
-| rich_text | false | bool | 设置文本内容是否为RichText <br> 使用示例如下：`<Label rich_text="true" text="一个简单<b>窗口</b><br/>带有<u>标题栏</u>和<u>常规按钮</u>，<b>粗体，<font color='#FF0000'>红色字体</font></b>" />` <br> 备注：在支持RichText的模式下，不支持如下功能：<br> （1）对齐方式不支持两端对齐<br> （2）不支持end_ellipsis属性<br>（3）不支持path_ellipsis属性<br>（4）不支持word_spacing属性<br>（5）与vertical_text同时使用时，自动降级为纯文本显示（去除富文本标记）<br>（6）auto_tooltip属性可以正常使用，提示内容为去除富文本标记后的纯文本|
-| text_align | "left,top" | string | 设置文字的水平与垂直对齐方式，用半角逗号分隔，如"hcenter,vcenter" 。<br>水平对齐方式可取值：left（靠左对齐）、hcenter（居中对齐）、right（靠右对齐）、hjustify（两端对齐） <br>垂直对齐方式可取值：top（靠上对齐）、vcenter（居中对齐）、bottom（靠下对齐）、vjustify（两端对齐）<br>注意：同一方向出现多个取值时，按 hcenter、right、left、hjustify 的先后顺序匹配（如同时包含"left"与"hjustify"时以 left 为准），垂直方向同理按 top、vcenter、bottom、vjustify 匹配 |
+| rich_text | false | bool | 设置文本内容是否为RichText <br> 使用示例如下：`<Label rich_text="true" text="一个简单<b>窗口</b><br/>带有<u>标题栏</u>和<u>常规按钮</u>，<b>粗体，<font color='#FF0000'>红色字体</font></b>" />` <br> 备注：在支持RichText的模式下，不支持如下功能：<br> （1）不支持path_ellipsis属性<br> （2）与vertical_text同时使用时，自动降级为纯文本显示（去除富文本标记）<br>（3）auto_tooltip属性可以正常使用，提示内容为去除富文本标记后的纯文本|
+| text_align | "left,vcenter" | string | 设置文字的水平与垂直对齐方式，用半角逗号分隔，如"hcenter,vcenter" 。<br>水平对齐方式可取值：left（靠左对齐）、hcenter（居中对齐）、right（靠右对齐）、hjustify（两端对齐） <br>垂直对齐方式可取值：top（靠上对齐）、vcenter（居中对齐）、bottom（靠下对齐）、vjustify（两端对齐）<br>注意：同一方向出现多个取值时，按 hcenter、right、left、hjustify 的先后顺序匹配（如同时包含"left"与"hjustify"时以 left 为准），垂直方向同理按 top、vcenter、bottom、vjustify 匹配 |
 | text_padding | 0,0,0,0 | rect | 文字显示的内边距, 格式为"left,top,right,bottom"，分别代表在目标区域的左侧、上方、右侧、下方设置内边距值，如："2,2,2,2" |
 | font | | string | 字体ID，该字体ID必须在 global.xml 中存在 |
-| end_ellipsis | false | bool | 句末显示不完整是否使用 ... 代替 |
+| end_ellipsis | true | bool | 句末显示不完整是否使用 ... 代替 |
 | path_ellipsis | false | bool | 对于路径，显示不完整时是否使用 ... 代替中间路径 |
 | text_color |  | string | 普通字体颜色,不指定则使用默认颜色，如 "blue" |
 | normal_text_color |  | string | 普通字体颜色,不指定则使用默认颜色，如 "blue"，该属性与`text_color`属性相同 |

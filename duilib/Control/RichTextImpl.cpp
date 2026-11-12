@@ -1218,6 +1218,36 @@ void RichTextImpl::SetTextVAlignType(VerAlignType alignType)
     }
 }
 
+void RichTextImpl::SetTextHAlignJustify(bool bJustify)
+{
+    if (m_bHAlignJustify != bJustify) {
+        m_bHAlignJustify = bJustify;
+        //两端对齐会影响每个文本片段的排版属性，需要重新解析
+        Redraw();
+    }
+}
+
+void RichTextImpl::SetLetterSpacing(float fLetterSpacing)
+{
+    if (fLetterSpacing < 0.0f) {
+        fLetterSpacing = 0.0f;
+    }
+    if (m_fLetterSpacing != fLetterSpacing) {
+        m_fLetterSpacing = fLetterSpacing;
+        //字间距影响测量结果与排版
+        Redraw();
+    }
+}
+
+void RichTextImpl::SetTextOverflowEllipsis(bool bEllipsis)
+{
+    if (m_bTextOverflowEllipsis != bEllipsis) {
+        m_bTextOverflowEllipsis = bEllipsis;
+        //超出可视区域时的截断方式发生变化，需要重新生成绘制数据
+        Redraw();
+    }
+}
+
 VerAlignType RichTextImpl::GetVAlignType() const
 {
     return m_vAlignType;

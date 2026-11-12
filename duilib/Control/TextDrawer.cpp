@@ -88,7 +88,7 @@ const DString& TextDrawer::GetPlainText(const DString& strText)
     return m_sPlainText;
 }
 
-void TextDrawer::UpdateTextDrawProps(uint32_t uFormat, float fSpacingMul, float fSpacingAdd, const DString& fontId)
+void TextDrawer::UpdateTextDrawProps(uint32_t uFormat, float fSpacingMul, float fSpacingAdd, float fWordSpacing, const DString& fontId)
 {
     ASSERT(m_pRichText != nullptr);
     if (m_pRichText == nullptr) {
@@ -96,6 +96,9 @@ void TextDrawer::UpdateTextDrawProps(uint32_t uFormat, float fSpacingMul, float 
     }
     m_pRichText->SetRowSpacingMul(fSpacingMul);
     m_pRichText->SetRowSpacingAdd(fSpacingAdd);
+    //两端对齐：RichText自身支持，映射后与其他控件保持一致
+    //（含hjustify时，LabelImpl已保证不会同时存在left/hcenter/right，此处按靠左对齐处理）
+    m_pRichText->SetTextHAlignJustify((uFormat & TEXT_HJUSTIFY) != 0);
     if (uFormat & TEXT_HCENTER) {
         m_pRichText->SetTextHAlignType(HorAlignType::kAlignCenter);
     }
@@ -116,6 +119,9 @@ void TextDrawer::UpdateTextDrawProps(uint32_t uFormat, float fSpacingMul, float 
         m_pRichText->SetTextVAlignType(VerAlignType::kAlignTop);
     }
     m_pRichText->SetWordWrap(uFormat & TEXT_SINGLELINE ? false : true);
+    //字间距与结尾省略号：与其他控件保持一致
+    m_pRichText->SetLetterSpacing(fWordSpacing);
+    m_pRichText->SetTextOverflowEllipsis((uFormat & TEXT_END_ELLIPSIS) != 0);
     m_pRichText->SetFontId(fontId);
 }
 
@@ -147,7 +153,7 @@ UiRect TextDrawer::MeasureString(IRender* pRender,
         }
         m_pRichText->SetEnableRedraw(false);
         SyncWindow(pOwner); //仅在窗口变化时切换，避免每次测量都触发RichText重新解析
-        UpdateTextDrawProps(measureParam.uFormat, measureParam.fSpacingMul, measureParam.fSpacingAdd, fontId);
+        UpdateTextDrawProps(measureParam.uFormat, measureParam.fSpacingMul, measureParam.fSpacingAdd, measureParam.fWordSpacing, fontId);
 
         //以实际文本内容作为缓存键：测量文本与绘制文本不同时，也能正确重新解析
         if (m_sRichTextText != strText) {
@@ -200,7 +206,7 @@ void TextDrawer::DrawString(IRender* pRender,
         m_pRichText->SetRect(drawParam.textRect);//不调用SetPos函数，避免产生回调等事件
         m_pRichText->SetPaintAlpha(drawParam.uFade);//仅设置绘制透明度，避免在绘制过程中触发窗口重绘
         m_pRichText->SetTextColor(pOwner->GetColorString(drawParam.dwTextColor));
-        UpdateTextDrawProps(drawParam.uFormat, drawParam.fSpacingMul, drawParam.fSpacingAdd, fontId);
+        UpdateTextDrawProps(drawParam.uFormat, drawParam.fSpacingMul, drawParam.fSpacingAdd, drawParam.fWordSpacing, fontId);
 
         //以实际文本内容作为缓存键：测量文本与绘制文本不同时，也能正确重新解析
         if (m_sRichTextText != strText) {

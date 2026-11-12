@@ -936,7 +936,8 @@ void LabelImpl::SetTextStyle(uint32_t uStyle, bool bRedraw)
 
 void LabelImpl::SetDefaultTextStyle(bool bRedraw)
 {
-    SetTextStyle(TEXT_LEFT | TEXT_VCENTER | TEXT_END_ELLIPSIS | TEXT_NOCLIP | TEXT_SINGLELINE, bRedraw);
+    //与构造函数中的默认文本风格保持一致（不含TEXT_NOCLIP，避免文本绘制到控件区域之外）
+    SetTextStyle(TEXT_LEFT | TEXT_VCENTER | TEXT_END_ELLIPSIS | TEXT_SINGLELINE, bRedraw);
 }
 
 uint32_t LabelImpl::GetTextStyle() const

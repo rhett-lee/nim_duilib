@@ -120,6 +120,18 @@ public:
     */
     void SetTextVAlignType(VerAlignType alignType);
 
+    /** 设置水平方向是否两端对齐（justify）
+    */
+    void SetTextHAlignJustify(bool bJustify);
+
+    /** 设置两个相邻字符之间的间隔（像素，已经完成DPI缩放）
+    */
+    void SetLetterSpacing(float fLetterSpacing);
+
+    /** 设置文本超出可视区域时，是否在结尾显示省略号
+    */
+    void SetTextOverflowEllipsis(bool bEllipsis);
+
     /** 获取文本垂直对齐方式
     */
     VerAlignType GetVAlignType() const;
@@ -519,6 +531,24 @@ template<typename T>
 void RichTextT<T>::SetTextVAlignType(VerAlignType alignType)
 {
     m_impl->SetTextVAlignType(alignType);
+}
+
+template<typename T>
+void RichTextT<T>::SetTextHAlignJustify(bool bJustify)
+{
+    m_impl->SetTextHAlignJustify(bJustify);
+}
+
+template<typename T>
+void RichTextT<T>::SetLetterSpacing(float fLetterSpacing)
+{
+    m_impl->SetLetterSpacing(fLetterSpacing);
+}
+
+template<typename T>
+void RichTextT<T>::SetTextOverflowEllipsis(bool bEllipsis)
+{
+    m_impl->SetTextOverflowEllipsis(bEllipsis);
 }
 
 template<typename T>

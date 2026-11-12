@@ -82,12 +82,8 @@ public:
      * @param [in] bRichText 表示支持RichText模式，设置的文本内容可以是RichText格式
      *             示例："一个简单<b>窗口</b><br/>带有<u>标题栏</u>和<u>常规按钮</u>，<b>粗体，<font color='#FF0000'>红色字体</font></b>"
      *             备注：RichText模式下，不支持如下功能：
-     *                  （1）对齐方式不支持两端对齐
+     *                  （1）不支持path_ellipsis属性
      *                  （2）不支持vertical_text属性（也不支持纵向文本相关属性）
-     *                  （3）不支持end_ellipsis属性
-     *                  （4）不支持path_ellipsis属性
-     *                  （5）不支持auto_tooltip属性
-     *                  （6）不支持word_spacing属性
      */
     void SetRichText(bool bRichText);
 
