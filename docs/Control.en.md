@@ -1793,23 +1793,23 @@ C++ interfaces: `SetIndeterminateArc/GetIndeterminateArc`, `SetIndeterminateSpee
 | :--- | :--- | :--- | :--- |
 | vscrollbar | false | bool | Whether to use a vertical scrollbar, e.g. "true"|
 | hscrollbar | false | bool | Whether to use a horizontal scrollbar, e.g. "true"|
-| auto_vscroll | false | bool | Whether to scroll vertically with input, e.g. "true" (invalid when using SDL implementation)|
-| auto_hscroll | false | bool | Whether to scroll horizontally with input, e.g. "true" (invalid when using SDL implementation)|
+| auto_vscroll | false | bool | Whether to scroll vertically with input, e.g. "true" (native RichEdit only; not supported by RichEdit2)|
+| auto_hscroll | false | bool | Whether to scroll horizontally with input, e.g. "true" (native RichEdit only; not supported by RichEdit2)|
 | want_tab | false | bool | Whether to accept the TAB key message, e.g. "true" |
 | want_return | false | bool | Whether to accept the Enter key message, e.g. "true" |
 | want_ctrl_return | false | bool | Whether to accept the Ctrl+Return key message, e.g. "true"|
-| rich_text | false | bool | Whether to use rich format, e.g. "true" (invalid when using SDL implementation)|
+| rich_text | false | bool | Whether to use rich format, e.g. "true" (native RichEdit only; ignored by RichEdit2, which always draws plain text)|
 | single_line | true | bool | Whether to use a single line, e.g. "true"|
 | multi_line | false | bool | Whether to use multiple lines; this attribute is mutually exclusive with single_line, e.g. "true"|
 | readonly | false | bool | Whether read-only, e.g. "false" |
 | password | false | bool | Whether in password mode, e.g. "true"|
 | show_password | false | bool | Whether to display the password character, e.g. "true"|
-| password_char || string | Set the password character; default is the " * " character, which can be changed via this attribute (masking is counted in UTF-16 code units: one emoji or other supplementary-plane character is displayed as 2 mask characters) |
-| flash_password_char | false | bool | Display the character first, then display the password character|
+| password_char || string | Set the password character; default is "*", changeable via this attribute (masking is counted in UTF-16 code units: one emoji or other supplementary-plane character is displayed as 2 mask characters) |
+| flash_password_char | false | bool | Briefly reveals the actual character after input (only the last character, about 1.5 seconds), then restores the password character; only valid in password mode|
 | number_only | false | bool | Whether only signed integers are allowed (minus sign + digits); a decimal point and a plus sign are not supported. Use SpinBox (`decimals`/`step` etc.) for decimal or formatted numbers |
 | max_number | INT64_MAX | int64 | Maximum allowed number (only valid when number_only is true) |
 | min_number | INT64_MIN | int64 | Minimum allowed number (only valid when number_only is true) |
-| text_align | "left,top" | string | Horizontal and vertical alignment of the text, optional values: left, right, hcenter, top, vcenter, bottom, separated by commas, e.g. "hcenter,vcenter" |
+| text_align | "left,top" | string | Horizontal and vertical alignment of the text, optional values: left, right, hcenter, top, vcenter, bottom, separated by commas, e.g. "hcenter,vcenter"; values are case-sensitive (must be lowercase) and hjustify / vjustify are not supported |
 | text_padding |  | rect | Text padding, e.g. "2,2,2,2" |
 | text |  | string | Display text |
 | text_id |  | string | Multilingual function ID of the displayed text |
@@ -1822,14 +1822,14 @@ C++ interfaces: `SetIndeterminateArc/GetIndeterminateArc`, `SetIndeterminateSpee
 | prompt_text_id |  | string | Multilingual function ID, e.g. "TEXT_OUT" |
 | prompt_color |  | string | Color of the prompt text inside the text box |
 | focused_image |  | string | Image in focused state |
-| auto_detect_url | false | bool | Whether to automatically detect URLs; if it is a URL, display it as a hyperlink (invalid when using SDL implementation)|
-| limit_text | | int | Limit the maximum number of characters (counted in UTF-16 code units: one emoji or other supplementary-plane character counts as 2) |
-| limit_chars | | string | Restrict which characters are allowed to be entered, e.g. "abc" means only a, b, c characters are allowed, other characters are not allowed |
-| allow_beep | false | bool | Whether to allow the Beep sound (invalid when using SDL implementation)|
+| auto_detect_url | false | bool | Whether to automatically detect URLs; if it is a URL, display it as a hyperlink (native RichEdit only; not supported by RichEdit2)|
+| limit_text | | int | Limit the maximum number of characters (counted in UTF-16 code units: one emoji or other supplementary-plane character counts as 2); RichEdit2 fires `kEventTextLimit` (no parameters, bind with `AttachTextLimit`) when this modification is discarded because the limit would be exceeded |
+| limit_chars | | string | Restrict which characters are allowed to be entered, e.g. "abc" means only a, b, c characters are allowed, other characters are not allowed; matching is per UTF-16 code unit (an emoji or other supplementary-plane character consists of 2 code units and cannot be configured as a single allowed character) |
+| allow_beep | false | bool | Whether to allow the Beep sound (native RichEdit only; not supported by RichEdit2)|
 | word_wrap | false| bool | Whether to automatically wrap lines |
 | no_caret_readonly |false| bool | Read-only mode, do not display the caret |
-| save_selection |false| bool | If true, when the control is inactive, the boundaries of the selection should be saved (invalid when using SDL implementation)|
-| hide_selection | true | bool | Whether to hide the selection |
+| save_selection |false| bool | If true, the boundaries of the selection are saved when the control is inactive (native RichEdit only; not supported by RichEdit2)|
+| hide_selection | true | bool | Whether to hide the selection highlight when the control is inactive (not focused); default true; when false, the selection stays visible while inactive. The current-row background is controlled separately by current_row_bkcolor / inactive_current_row_bkcolor |
 | zoom | | size | Set the zoom ratio: wParam: numerator of the zoom ratio, lParam: denominator of the zoom ratio. "wParam,lParam" means zooming displayed according to numerator/denominator of the zoom ratio; value range: 1/64 < (wParam / lParam) < 64. Example: "0,0" means disable the zoom function, "2,1" means enlarge to 200%, "1,2" means shrink to 50% |
 | wheel_zoom | | bool | Whether to allow Ctrl + wheel to adjust the zoom ratio |
 | default_context_menu | false | bool | Whether to use the default right-click menu |
@@ -1847,14 +1847,32 @@ C++ interfaces: `SetIndeterminateArc/GetIndeterminateArc`, `SetIndeterminateSpee
 | enable_drop_file |false| bool   | Whether to allow drag-and-drop file operations|
 | enable_drag_out  |true | bool   | Whether to allow text drag-out function (as a drag source); only supported on the Windows platform, not on other platforms; this option is only supported in RichEdit2|
 | drop_file_types  |     | string | List of supported file extensions for drag-and-drop file operations, e.g. ".txt;.csv" means only txt and csv files are supported; if empty, all files are supported|
-| row_spacing_mul  | 1.0 | float  | Line spacing multiple, e.g. 1.5 means 1.5x line spacing<br>Windows platform: only valid when the rich_text attribute is "true", because the Windows RichEdit control only supports setting line spacing in rich text mode;<br>When using SDL, it is always valid, i.e. on other platforms the line spacing attributes are all valid|
-| row_spacing_add  |0    | float  | Line spacing additional amount: a fixed additional pixel value (default is usually 0), used to add a fixed offset (pixels) on top of proportional adjustment; only valid when using SDL|
+| row_spacing_mul  | 1.0 | float  | Line spacing multiple, e.g. 1.5 means 1.5x line spacing<br>Windows platform: native RichEdit only supports it when rich_text="true" (RichEdit2 always supports it);<br>When using SDL, it is always valid, i.e. on other platforms the line spacing attributes are all valid|
+| row_spacing_add  |0    | float  | Line spacing additional amount: a fixed additional pixel value (default is usually 0), used to add a fixed offset (pixels) on top of proportional adjustment; only supported by RichEdit2 (ignored by native RichEdit)|
 
 The RichEdit control inherits the `ScrollBox` attributes. For more available attributes, please refer to the `ScrollBox` attributes.    
 Functional description of the RichEdit2 class:    
 (1) On the Windows platform, the RichEdit class is implemented using the Windows system's own ITextServices interface, while RichEdit2 is implemented by this project itself; the two have different implementation methods but basically the same functionality.    
 (2) On non-Windows platforms, RichEdit is an alias of RichEdit2, and the two are identical.    
 (3) RichEdit2 is a self-drawn control and does not implement accessibility interfaces: the caret position, selection range, and link regions are not exposed to screen readers through IAccessible / UI Automation. The framework currently has no accessibility infrastructure; to support accessibility, handle WM_GETOBJECT at the window level and implement a read-only IAccessible text role (this is a known limitation for now).    
+
+Pasting in single-line mode: RichEdit2 replaces `\r\n`, `\r`, and `\n` in the clipboard text with a single space (no line break is inserted), consistent with a system single-line edit control; native RichEdit is handled by the system edit control, and line breaks are not inserted into the text.
+
+### RichEdit vs RichEdit2 differences
+
+| Item | Native RichEdit (Windows, ITextServices) | RichEdit2 (self-drawn) |
+| :--- | :--- | :--- |
+| Paste filtering | Handled by the system edit control; line breaks are not inserted in single-line mode | In password mode, carriage returns, line breaks and TAB are stripped on paste; in single-line mode `\r\n`/`\r`/`\n` are replaced with one space |
+| Numeric clamping | Clamped to `min_number`/`max_number` after text changes | Clamped to `min_number`/`max_number` after text changes (also applies to paste) |
+| Undo granularity | Uses the system undo stack; consecutive input is grouped by system rules | Consecutive typing/deleting is merged into one undo record, split when the position or operation type changes |
+| Line spacing | `row_spacing_mul` only valid when `rich_text="true"`; `row_spacing_add` ignored | Both `row_spacing_mul` and `row_spacing_add` always valid |
+| Alignment | `text_align` supports left/hcenter/right and top/vcenter/bottom; values are case-sensitive; justification not supported | Same as the left column |
+| IME | Composition text and candidate window handled by the system RichEdit | Composition text drawn inline (underlined); candidate window position computed by the control |
+| Focused underline | Not drawn in read-only state | Also drawn in read-only state, inset by the border corner radius |
+| Password scrolling | Scrolling handled by the system edit control | Masked text goes through formatted drawing, supporting horizontal scrolling and clipping; `flash_password_char` briefly reveals only the last character |
+| Native-only attributes | `auto_vscroll`, `auto_hscroll`, `save_selection`, `allow_beep`, `rich_text`, `auto_detect_url` | The above attributes are ignored (no rich text, URL detection, auto scrolling, or system beep) |
+| Text limit event | No dedicated event (the system edit control truncates silently) | Fires `kEventTextLimit` (no parameters) when this modification is discarded because `limit_text` would be exceeded |
+| Accessibility | Exposes an IAccessible text interface | Not exposed (known limitation) |
 
 ## Attributes of SpinBox
 SpinBox is a numeric input control derived from RichEdit. It enables `number_only` mode by default and provides numeric input plus spin buttons and up/down arrow key adjustment.    

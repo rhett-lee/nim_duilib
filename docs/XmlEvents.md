@@ -176,6 +176,7 @@ if (msg.eventType == eventType) {
 |kEventTabNew|"TabNew"|"tab_new"|
 |kEventZoom|"Zoom"|"zoom"|
 |kEventTextChanged|"TextChanged"|"text_changed"|
+|kEventTextLimit|"TextLimit"|"text_limit"|
 |kEventSelChanged|"SelChanged"|"sel_changed"|
 |kEventReturn|"Return"|"return"|
 |kEventEsc|"Esc"|"esc"|

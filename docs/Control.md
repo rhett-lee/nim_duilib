@@ -1793,23 +1793,23 @@ pGauge->SetCenterCallback([pGauge](ui::IRender* pRender, const ui::UiRect& rcCen
 | :--- | :--- | :--- | :--- |
 | vscrollbar | false | bool | 是否使用竖向滚动条,如"true"|
 | hscrollbar | false | bool | 是否使用横向滚动条,如"true"|
-| auto_vscroll | false | bool | 是否随输入竖向滚动,如"true"(当为SDL实现时，该选项无效)|
-| auto_hscroll | false | bool | 是否随输入横向滚动,如"true" (当为SDL实现时，该选项无效)|
+| auto_vscroll | false | bool | 是否随输入竖向滚动,如"true"（仅原生 RichEdit 支持；RichEdit2 实现无效）|
+| auto_hscroll | false | bool | 是否随输入横向滚动,如"true"（仅原生 RichEdit 支持；RichEdit2 实现无效）|
 | want_tab | false | bool | 是否接受tab按键消息,如"true" |
 | want_return | false | bool | 是否接受回车按键消息,如"true" |
 | want_ctrl_return | false | bool | 是否接受ctrl+return按键消息,如"true"|
-| rich_text | false | bool | 是否使用富格式,如"true"(当为SDL实现时，该选项无效)|
+| rich_text | false | bool | 是否使用富格式,如"true"（仅原生 RichEdit 支持；RichEdit2 实现无效，始终按纯文本绘制）|
 | single_line | true | bool | 是否使用单行,如"true"|
 | multi_line | false | bool | 是否使用多行,该属性与single_line互斥,如"true"|
 | readonly | false | bool | 是否只读,如"false" |
 | password | false | bool | 是否为密码模式,如"true"|
 | show_password | false | bool | 是否显示密码符,如"true"|
-| password_char || string | 设置密码字符，默认为 " * " 字符，可用通过这个属性改变（密码掩码按 UTF-16 码元计数，一个 emoji 等增补平面字符显示为 2 个掩码字符）|
-| flash_password_char | false | bool | 先显示字符，然后再显示密码字符|
+| password_char || string | 设置密码字符，默认为 "*"，可通过此属性修改（密码掩码按 UTF-16 码元计数，一个 emoji 等增补平面字符显示为 2 个掩码字符）|
+| flash_password_char | false | bool | 输入后短暂显示实际字符（仅最后一个字符，约 1.5 秒），随后恢复为密码字符；仅在密码模式下有效|
 | number_only | false | bool | 是否只允许输入有符号整数（负号 + 数字），不支持小数点与正号；需要小数或格式化数字时请使用 SpinBox（`decimals`/`step` 等属性） |
 | max_number | INT64_MAX | int64 | 允许的最大数字(仅当number_only为true的时候有效) |
 | min_number | INT64_MIN | int64 | 允许的最小数字(仅当number_only为true的时候有效) |
-| text_align | "left,top" | string | 文字的水平与垂直对齐方式, 可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter" |
+| text_align | "left,top" | string | 文字的水平与垂直对齐方式, 可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter"；取值区分大小写（须为小写），不支持 hjustify / vjustify |
 | text_padding |  | rect | 文本内边距，如："2,2,2,2" |
 | text |  | string | 显示文本 |
 | text_id |  | string | 显示文本的多语言功能ID |
@@ -1822,14 +1822,14 @@ pGauge->SetCenterCallback([pGauge](ui::IRender* pRender, const ui::UiRect& rcCen
 | prompt_text_id |  | string | 多语言功能的ID,如"TEXT_OUT" |
 | prompt_color |  | string | 文本框内提示文字的颜色 |
 | focused_image |  | string | 焦点状态下的图片 |
-| auto_detect_url | false | bool | 是否自动检测URL，如果是URL则显示为超链接 (当为SDL实现时，该选项无效)|
-| limit_text | | int | 限制最多字符数（按 UTF-16 码元计数，一个 emoji 等增补平面字符计为 2 个） |
-| limit_chars | | string | 限制允许输入哪些字符，比如"abc"表示只允许输入a、b、c字符，不允许输入其他字符 |
-| allow_beep | false | bool | 是否允许发出Beep声音 (当为SDL实现时，该选项无效)|
+| auto_detect_url | false | bool | 是否自动检测URL，如果是URL则显示为超链接（仅原生 RichEdit 支持；RichEdit2 实现无效）|
+| limit_text | | int | 限制最多字符数（按 UTF-16 码元计数，一个 emoji 等增补平面字符计为 2 个）；RichEdit2 在本次修改因超限被丢弃时派发 `kEventTextLimit`（无参数，可用 `AttachTextLimit` 绑定） |
+| limit_chars | | string | 限制允许输入哪些字符，比如"abc"表示只允许输入a、b、c字符，不允许输入其他字符；按 UTF-16 码元逐一匹配（emoji 等增补平面字符由 2 个码元组成，无法作为单个允许字符配置） |
+| allow_beep | false | bool | 是否允许发出Beep声音（仅原生 RichEdit 支持；RichEdit2 实现无效）|
 | word_wrap | false| bool | 是否自动换行 |
 | no_caret_readonly |false| bool | 只读模式，不显示光标 |
-| save_selection |false| bool | 如果 为 true，则当控件处于非活动状态时，应保存所选内容的边界 (当为SDL实现时，该选项无效)|
-| hide_selection | true | bool | 是否隐藏选择内容 |
+| save_selection |false| bool | 如果为 true，则当控件处于非活动状态时，保存所选内容的边界（仅原生 RichEdit 支持；RichEdit2 实现无效）|
+| hide_selection | true | bool | 是否在控件非激活（失去焦点）时隐藏选择高亮；默认 true，为 false 时非激活状态下仍显示选择内容。当前行背景色由 current_row_bkcolor / inactive_current_row_bkcolor 单独控制 |
 | zoom | | size | 设置缩放比例：设 wParam：缩放比例的分子，lParam：缩放比例的分母。"wParam,lParam" 表示按缩放比例分子/分母显示的缩放，取值范围：1/64 < (wParam / lParam) < 64。举例：则："0,0"表示关闭缩放功能，"2,1"表示放大到200%，"1,2"表示缩小到50% |
 | wheel_zoom | | bool | 是否允许Ctrl + 滚轮来调整缩放比例 |
 | default_context_menu | false | bool | 是否使用默认的右键菜单 |
@@ -1847,14 +1847,32 @@ pGauge->SetCenterCallback([pGauge](ui::IRender* pRender, const ui::UiRect& rcCen
 | enable_drop_file |false| bool   | 是否允许拖放文件操作|
 | enable_drag_out  |true | bool   | 是否允许文本拖出功能（作为拖放源），仅Windows平台支持，其他平台不支持，该选项仅在RichEdit2中支持|
 | drop_file_types  |     | string | 拖放文件操作支持的后缀名列表，比如:".txt;.csv"，表示仅支持txt和csv文件；如果为空，表示支持所有文件|
-| row_spacing_mul  | 1.0 | float  | 行间距倍数, 比如1.5代表1.5倍行间距<br>Windows平台：仅当rich_text属性"true"时有效，因为Windows平台的RichEdit控件只有富文本模式时支持设置行间距；<br>使用SDL时，始终有效，即其他平台时，行间距属性均有效|
-| row_spacing_add  |0    | float  | 行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素），仅当使用SDL时有效|
+| row_spacing_mul  | 1.0 | float  | 行间距倍数, 比如1.5代表1.5倍行间距<br>Windows平台：原生 RichEdit 仅在 rich_text="true" 时有效（RichEdit2 始终有效）；<br>使用SDL时始终有效，即其他平台时，行间距属性均有效|
+| row_spacing_add  |0    | float  | 行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素）；仅 RichEdit2 有效（原生 RichEdit 忽略该属性）|
 
 RichEdit 控件继承了 `ScrollBox` 属性，更多可用属性请参考`ScrollBox`的属性    
 RichEdit2类的功能说明：    
 （1）在Windows平台，RichEdit类是使用Windows系统本身的ITextServices接口实现的，RichEdit2是本项目自己实现的，两者实现方式不同，但功能基本一致    
 （2）在非Windows平台，RichEdit是RichEdit2的别名，两者没有区别。    
 （3）RichEdit2 是纯自绘控件，未实现辅助功能接口：光标位置、选择范围和链接区域不会通过 IAccessible / UI Automation 暴露给读屏软件。框架目前没有辅助功能基础设施；如需支持无障碍访问，建议在窗口层处理 WM_GETOBJECT 并实现只读的 IAccessible 文本角色（当前为已知限制）。    
+
+单行模式下的粘贴：RichEdit2 会把剪贴板文本中的 `\r\n`、`\r`、`\n` 统一替换为一个空格（不会插入换行），与系统单行编辑框的行为一致；原生 RichEdit 由系统编辑控件处理，换行符不会插入到文本中。
+
+### RichEdit 与 RichEdit2 差异清单
+
+| 对比项 | 原生 RichEdit（Windows，ITextServices） | RichEdit2（自绘实现） |
+| :--- | :--- | :--- |
+| 粘贴过滤 | 由系统编辑控件处理，单行模式下换行符不会插入 | 密码模式下粘贴时剔除回车、换行与 TAB；单行模式下 `\r\n`/`\r`/`\n` 替换为一个空格 |
+| 数字夹取 | 文本变化后按 `min_number`/`max_number` 夹取 | 文本变化后按 `min_number`/`max_number` 夹取（粘贴同样生效） |
+| 撤销粒度 | 使用系统撤销栈，连续输入按系统规则分组 | 连续输入/连续删除合并为一条撤销记录，位置或操作类型变化时另起一条 |
+| 行距 | `row_spacing_mul` 仅在 `rich_text="true"` 时有效；`row_spacing_add` 忽略 | `row_spacing_mul` 与 `row_spacing_add` 均始终有效 |
+| 对齐 | `text_align` 支持 left/hcenter/right 与 top/vcenter/bottom，值区分大小写，不支持两端对齐 | 同左 |
+| IME | 组合文本与候选窗口由系统 RichEdit 处理 | 自绘内联组合文本（带下划线），候选窗口位置由控件计算 |
+| 焦点下划线 | 只读状态下不绘制焦点底部边框 | 只读状态下同样绘制，并按边框圆角内缩 |
+| 密码滚动 | 由系统编辑控件处理滚动 | 掩码文本走格式化绘制，支持横向滚动与裁剪；`flash_password_char` 仅短暂显示最后一个字符 |
+| 仅原生支持的属性 | `auto_vscroll`、`auto_hscroll`、`save_selection`、`allow_beep`、`rich_text`、`auto_detect_url` | 上述属性被忽略（不支持富文本/URL 检测/自动滚动/系统提示音等） |
+| 文本超限事件 | 不派发专用事件（由系统编辑控件静默截断） | 本次修改因超过 `limit_text` 被丢弃时派发 `kEventTextLimit`（无参数） |
+| 无障碍 | 暴露 IAccessible 文本接口 | 不暴露（已知限制） |
 
 ## SpinBox的属性
 SpinBox是数字输入框控件，继承自RichEdit，默认开启`number_only`模式，提供数字输入 + 步进按钮 + 上下方向键调整的完整数字输入能力。    

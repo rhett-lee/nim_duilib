@@ -6672,12 +6672,12 @@
     </xs:attribute>
     <xs:attribute name="auto_vscroll" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否随输入竖向滚动,如"true"(当为SDL实现时，该选项无效)</xs:documentation>
+        <xs:documentation>是否随输入竖向滚动,如"true"（仅原生 RichEdit 支持；RichEdit2 实现无效）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="auto_hscroll" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否随输入横向滚动,如"true" (当为SDL实现时，该选项无效)</xs:documentation>
+        <xs:documentation>是否随输入横向滚动,如"true"（仅原生 RichEdit 支持；RichEdit2 实现无效）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="want_tab" type="xs:string">
@@ -6697,7 +6697,7 @@
     </xs:attribute>
     <xs:attribute name="rich_text" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否使用富格式,如"true"(当为SDL实现时，该选项无效)</xs:documentation>
+        <xs:documentation>是否使用富格式,如"true"（仅原生 RichEdit 支持；RichEdit2 实现无效，始终按纯文本绘制）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="single_line" type="xs:string">
@@ -6727,12 +6727,12 @@
     </xs:attribute>
     <xs:attribute name="password_char" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置密码字符，默认为 " * " 字符，可用通过这个属性改变</xs:documentation>
+        <xs:documentation>设置密码字符，默认为"*"，可通过此属性修改；掩码按 UTF-16 码元计数（emoji 等增补平面字符显示为 2 个掩码字符）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="flash_password_char" type="xs:string">
       <xs:annotation>
-        <xs:documentation>先显示字符，然后再显示密码字符</xs:documentation>
+        <xs:documentation>输入后短暂显示实际字符（仅最后一个字符，约 1.5 秒），随后恢复为密码字符；仅在密码模式下有效</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="number_only" type="xs:string">
@@ -6752,7 +6752,7 @@
     </xs:attribute>
     <xs:attribute name="text_align" type="xs:string">
       <xs:annotation>
-        <xs:documentation>文字的水平与垂直对齐方式, 可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter"</xs:documentation>
+        <xs:documentation>文字的水平与垂直对齐方式, 可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter"；取值区分大小写（须为小写），不支持 hjustify / vjustify</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="text_padding" type="xs:string">
@@ -6817,22 +6817,22 @@
     </xs:attribute>
     <xs:attribute name="auto_detect_url" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否自动检测URL，如果是URL则显示为超链接 (当为SDL实现时，该选项无效)</xs:documentation>
+        <xs:documentation>是否自动检测URL，如果是URL则显示为超链接（仅原生 RichEdit 支持；RichEdit2 实现无效）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="limit_text" type="xs:string">
       <xs:annotation>
-        <xs:documentation>限制最多字符数</xs:documentation>
+        <xs:documentation>限制最多字符数（按 UTF-16 码元计数，一个 emoji 等增补平面字符计为 2 个）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="limit_chars" type="xs:string">
       <xs:annotation>
-        <xs:documentation>限制允许输入哪些字符，比如"abc"表示只允许输入a、b、c字符，不允许输入其他字符</xs:documentation>
+        <xs:documentation>限制允许输入哪些字符，比如"abc"表示只允许输入a、b、c字符，不允许输入其他字符；按 UTF-16 码元逐一匹配（emoji 等增补平面字符由 2 个码元组成，无法作为单个允许字符配置）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="allow_beep" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否允许发出Beep声音 (当为SDL实现时，该选项无效)</xs:documentation>
+        <xs:documentation>是否允许发出Beep声音（仅原生 RichEdit 支持；RichEdit2 实现无效）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="word_wrap" type="xs:string">
@@ -6847,12 +6847,12 @@
     </xs:attribute>
     <xs:attribute name="save_selection" type="xs:string">
       <xs:annotation>
-        <xs:documentation>如果 为 true，则当控件处于非活动状态时，应保存所选内容的边界 (当为SDL实现时，该选项无效)</xs:documentation>
+        <xs:documentation>如果为 true，则当控件处于非活动状态时，保存所选内容的边界（仅原生 RichEdit 支持；RichEdit2 实现无效）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="hide_selection" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否隐藏选择内容</xs:documentation>
+        <xs:documentation>是否在控件非激活（失去焦点）时隐藏选择高亮；默认 true，为 false 时非激活状态下仍显示选择内容。当前行背景色由 current_row_bkcolor / inactive_current_row_bkcolor 单独控制</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="zoom" type="xs:string">
@@ -6942,12 +6942,12 @@
     </xs:attribute>
     <xs:attribute name="row_spacing_mul" type="xs:string">
       <xs:annotation>
-        <xs:documentation>行间距倍数, 比如1.5代表1.5倍行间距 Windows平台：仅当rich_text属性"true"时有效，因为Windows平台的RichEdit控件只有富文本模式时支持设置行间距； 使用SDL时，始终有效，即其他平台时，行间距属性均有效</xs:documentation>
+        <xs:documentation>行间距倍数, 比如1.5代表1.5倍行间距 Windows平台：原生 RichEdit 仅在 rich_text="true" 时有效（RichEdit2 始终有效）； 使用SDL时始终有效，即其他平台时，行间距属性均有效</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="row_spacing_add" type="xs:string">
       <xs:annotation>
-        <xs:documentation>行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素），仅当使用SDL时有效</xs:documentation>
+        <xs:documentation>行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素）；仅 RichEdit2 有效（原生 RichEdit 忽略该属性）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>
@@ -7526,12 +7526,12 @@
     </xs:attribute>
     <xs:attribute name="auto_vscroll" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否随输入竖向滚动,如"true"(当为SDL实现时，该选项无效)</xs:documentation>
+        <xs:documentation>是否随输入竖向滚动,如"true"（仅原生 RichEdit 支持；RichEdit2 实现无效）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="auto_hscroll" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否随输入横向滚动,如"true" (当为SDL实现时，该选项无效)</xs:documentation>
+        <xs:documentation>是否随输入横向滚动,如"true"（仅原生 RichEdit 支持；RichEdit2 实现无效）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="want_tab" type="xs:string">
@@ -7551,7 +7551,7 @@
     </xs:attribute>
     <xs:attribute name="rich_text" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否使用富格式,如"true"(当为SDL实现时，该选项无效)</xs:documentation>
+        <xs:documentation>是否使用富格式,如"true"（仅原生 RichEdit 支持；RichEdit2 实现无效，始终按纯文本绘制）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="single_line" type="xs:string">
@@ -7581,12 +7581,12 @@
     </xs:attribute>
     <xs:attribute name="password_char" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置密码字符，默认为 " * " 字符，可用通过这个属性改变</xs:documentation>
+        <xs:documentation>设置密码字符，默认为"*"，可通过此属性修改；掩码按 UTF-16 码元计数（emoji 等增补平面字符显示为 2 个掩码字符）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="flash_password_char" type="xs:string">
       <xs:annotation>
-        <xs:documentation>先显示字符，然后再显示密码字符</xs:documentation>
+        <xs:documentation>输入后短暂显示实际字符（仅最后一个字符，约 1.5 秒），随后恢复为密码字符；仅在密码模式下有效</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="number_only" type="xs:string">
@@ -7606,7 +7606,7 @@
     </xs:attribute>
     <xs:attribute name="text_align" type="xs:string">
       <xs:annotation>
-        <xs:documentation>文字的水平与垂直对齐方式, 可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter"</xs:documentation>
+        <xs:documentation>文字的水平与垂直对齐方式, 可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter"；取值区分大小写（须为小写），不支持 hjustify / vjustify</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="text_padding" type="xs:string">
@@ -7671,22 +7671,22 @@
     </xs:attribute>
     <xs:attribute name="auto_detect_url" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否自动检测URL，如果是URL则显示为超链接 (当为SDL实现时，该选项无效)</xs:documentation>
+        <xs:documentation>是否自动检测URL，如果是URL则显示为超链接（仅原生 RichEdit 支持；RichEdit2 实现无效）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="limit_text" type="xs:string">
       <xs:annotation>
-        <xs:documentation>限制最多字符数</xs:documentation>
+        <xs:documentation>限制最多字符数（按 UTF-16 码元计数，一个 emoji 等增补平面字符计为 2 个）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="limit_chars" type="xs:string">
       <xs:annotation>
-        <xs:documentation>限制允许输入哪些字符，比如"abc"表示只允许输入a、b、c字符，不允许输入其他字符</xs:documentation>
+        <xs:documentation>限制允许输入哪些字符，比如"abc"表示只允许输入a、b、c字符，不允许输入其他字符；按 UTF-16 码元逐一匹配（emoji 等增补平面字符由 2 个码元组成，无法作为单个允许字符配置）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="allow_beep" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否允许发出Beep声音 (当为SDL实现时，该选项无效)</xs:documentation>
+        <xs:documentation>是否允许发出Beep声音（仅原生 RichEdit 支持；RichEdit2 实现无效）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="word_wrap" type="xs:string">
@@ -7701,12 +7701,12 @@
     </xs:attribute>
     <xs:attribute name="save_selection" type="xs:string">
       <xs:annotation>
-        <xs:documentation>如果 为 true，则当控件处于非活动状态时，应保存所选内容的边界 (当为SDL实现时，该选项无效)</xs:documentation>
+        <xs:documentation>如果为 true，则当控件处于非活动状态时，保存所选内容的边界（仅原生 RichEdit 支持；RichEdit2 实现无效）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="hide_selection" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否隐藏选择内容</xs:documentation>
+        <xs:documentation>是否在控件非激活（失去焦点）时隐藏选择高亮；默认 true，为 false 时非激活状态下仍显示选择内容。当前行背景色由 current_row_bkcolor / inactive_current_row_bkcolor 单独控制</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="zoom" type="xs:string">
@@ -7796,12 +7796,12 @@
     </xs:attribute>
     <xs:attribute name="row_spacing_mul" type="xs:string">
       <xs:annotation>
-        <xs:documentation>行间距倍数, 比如1.5代表1.5倍行间距 Windows平台：仅当rich_text属性"true"时有效，因为Windows平台的RichEdit控件只有富文本模式时支持设置行间距； 使用SDL时，始终有效，即其他平台时，行间距属性均有效</xs:documentation>
+        <xs:documentation>行间距倍数, 比如1.5代表1.5倍行间距 Windows平台：原生 RichEdit 仅在 rich_text="true" 时有效（RichEdit2 始终有效）； 使用SDL时始终有效，即其他平台时，行间距属性均有效</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="row_spacing_add" type="xs:string">
       <xs:annotation>
-        <xs:documentation>行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素），仅当使用SDL时有效</xs:documentation>
+        <xs:documentation>行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素）；仅 RichEdit2 有效（原生 RichEdit 忽略该属性）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>
@@ -7809,7 +7809,7 @@
     <!-- 来源：RichText -->
     <xs:attribute name="text_align" type="xs:string">
       <xs:annotation>
-        <xs:documentation>文字的水平与垂直对齐方式, 可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter"</xs:documentation>
+        <xs:documentation>文字的水平与垂直对齐方式, 可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter"；取值区分大小写（须为小写），不支持 hjustify / vjustify</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="text_padding" type="xs:string">
@@ -8156,12 +8156,12 @@
     </xs:attribute>
     <xs:attribute name="auto_vscroll" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否随输入竖向滚动,如"true"(当为SDL实现时，该选项无效)</xs:documentation>
+        <xs:documentation>是否随输入竖向滚动,如"true"（仅原生 RichEdit 支持；RichEdit2 实现无效）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="auto_hscroll" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否随输入横向滚动,如"true" (当为SDL实现时，该选项无效)</xs:documentation>
+        <xs:documentation>是否随输入横向滚动,如"true"（仅原生 RichEdit 支持；RichEdit2 实现无效）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="want_tab" type="xs:string">
@@ -8181,7 +8181,7 @@
     </xs:attribute>
     <xs:attribute name="rich_text" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否使用富格式,如"true"(当为SDL实现时，该选项无效)</xs:documentation>
+        <xs:documentation>是否使用富格式,如"true"（仅原生 RichEdit 支持；RichEdit2 实现无效，始终按纯文本绘制）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="single_line" type="xs:string">
@@ -8211,12 +8211,12 @@
     </xs:attribute>
     <xs:attribute name="password_char" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置密码字符，默认为 " * " 字符，可用通过这个属性改变</xs:documentation>
+        <xs:documentation>设置密码字符，默认为"*"，可通过此属性修改；掩码按 UTF-16 码元计数（emoji 等增补平面字符显示为 2 个掩码字符）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="flash_password_char" type="xs:string">
       <xs:annotation>
-        <xs:documentation>先显示字符，然后再显示密码字符</xs:documentation>
+        <xs:documentation>输入后短暂显示实际字符（仅最后一个字符，约 1.5 秒），随后恢复为密码字符；仅在密码模式下有效</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="number_only" type="xs:string">
@@ -8226,7 +8226,7 @@
     </xs:attribute>
     <xs:attribute name="text_align" type="xs:string">
       <xs:annotation>
-        <xs:documentation>文字的水平与垂直对齐方式, 可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter"</xs:documentation>
+        <xs:documentation>文字的水平与垂直对齐方式, 可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter"；取值区分大小写（须为小写），不支持 hjustify / vjustify</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="text_padding" type="xs:string">
@@ -8291,22 +8291,22 @@
     </xs:attribute>
     <xs:attribute name="auto_detect_url" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否自动检测URL，如果是URL则显示为超链接 (当为SDL实现时，该选项无效)</xs:documentation>
+        <xs:documentation>是否自动检测URL，如果是URL则显示为超链接（仅原生 RichEdit 支持；RichEdit2 实现无效）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="limit_text" type="xs:string">
       <xs:annotation>
-        <xs:documentation>限制最多字符数</xs:documentation>
+        <xs:documentation>限制最多字符数（按 UTF-16 码元计数，一个 emoji 等增补平面字符计为 2 个）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="limit_chars" type="xs:string">
       <xs:annotation>
-        <xs:documentation>限制允许输入哪些字符，比如"abc"表示只允许输入a、b、c字符，不允许输入其他字符</xs:documentation>
+        <xs:documentation>限制允许输入哪些字符，比如"abc"表示只允许输入a、b、c字符，不允许输入其他字符；按 UTF-16 码元逐一匹配（emoji 等增补平面字符由 2 个码元组成，无法作为单个允许字符配置）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="allow_beep" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否允许发出Beep声音 (当为SDL实现时，该选项无效)</xs:documentation>
+        <xs:documentation>是否允许发出Beep声音（仅原生 RichEdit 支持；RichEdit2 实现无效）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="word_wrap" type="xs:string">
@@ -8321,12 +8321,12 @@
     </xs:attribute>
     <xs:attribute name="save_selection" type="xs:string">
       <xs:annotation>
-        <xs:documentation>如果 为 true，则当控件处于非活动状态时，应保存所选内容的边界 (当为SDL实现时，该选项无效)</xs:documentation>
+        <xs:documentation>如果为 true，则当控件处于非活动状态时，保存所选内容的边界（仅原生 RichEdit 支持；RichEdit2 实现无效）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="hide_selection" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否隐藏选择内容</xs:documentation>
+        <xs:documentation>是否在控件非激活（失去焦点）时隐藏选择高亮；默认 true，为 false 时非激活状态下仍显示选择内容。当前行背景色由 current_row_bkcolor / inactive_current_row_bkcolor 单独控制</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="zoom" type="xs:string">
@@ -8416,12 +8416,12 @@
     </xs:attribute>
     <xs:attribute name="row_spacing_mul" type="xs:string">
       <xs:annotation>
-        <xs:documentation>行间距倍数, 比如1.5代表1.5倍行间距 Windows平台：仅当rich_text属性"true"时有效，因为Windows平台的RichEdit控件只有富文本模式时支持设置行间距； 使用SDL时，始终有效，即其他平台时，行间距属性均有效</xs:documentation>
+        <xs:documentation>行间距倍数, 比如1.5代表1.5倍行间距 Windows平台：原生 RichEdit 仅在 rich_text="true" 时有效（RichEdit2 始终有效）； 使用SDL时始终有效，即其他平台时，行间距属性均有效</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="row_spacing_add" type="xs:string">
       <xs:annotation>
-        <xs:documentation>行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素），仅当使用SDL时有效</xs:documentation>
+        <xs:documentation>行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素）；仅 RichEdit2 有效（原生 RichEdit 忽略该属性）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>

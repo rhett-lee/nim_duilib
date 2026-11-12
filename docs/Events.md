@@ -73,6 +73,7 @@
 | :---                      | :---          | :---         |:---           |:---          |:---               |:---            |:---      |
 |kEventZoom                 | 按缩放比例分子[0,64] | 按缩放比例分母(0,64] |     |     |       |     | RichEdit: Ctrl + 滚轮：缩放功能|
 |kEventTextChanged          |     |     |     |     |       |     | 无参数 |
+|kEventTextLimit            |     |     |     |     |       |     | 无参数；RichEdit2：输入文本超过limit_text限制、本次修改被丢弃时触发 |
 |kEventSelChanged           |     |     |     |     |       |     | 无参数 |
 |kEventReturn               |     |     |     |     |       |     | 无参数    |
 |kEventTab                  |     |     |     |     |       |     | 无参数   |

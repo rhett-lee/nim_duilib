@@ -75,6 +75,7 @@ The content related to control events is defined in the files [`duilib/Core/Even
 | :---                      | :---          | :---         |:---           |:---          |:---               |:---            |:---      |
 |kEventZoom                 | Scaling ratio numerator [0,64] | Scaling ratio denominator (0,64] |     |     |       |     | RichEdit: Ctrl + wheel: zoom function|
 |kEventTextChanged          |     |     |     |     |       |     | No parameters |
+|kEventTextLimit            |     |     |     |     |       |     | No parameters; RichEdit2: fired when the input text exceeds the limit_text limit and this modification is discarded |
 |kEventSelChanged           |     |     |     |     |       |     | No parameters |
 |kEventReturn               |     |     |     |     |       |     | No parameters    |
 |kEventTab                  |     |     |     |     |       |     | No parameters   |
