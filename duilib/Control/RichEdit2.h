@@ -1099,6 +1099,10 @@ private:
     */
     bool GetRichTextForDraw(std::vector<RichTextData>& richTextDataList) const;
 
+    /** 单行模式下，把换行符规整为空格(与Windows原生单行编辑框的行为一致)
+    */
+    void NormalizeSingleLineText(DStringW& text) const;
+
     /** 获取文本绘制区域
     * @param [in] rc 当前控件的矩形区域
     * @return 返回文本绘制区域（减去内边距，减去滚动条所占的宽度和高度）
@@ -1126,6 +1130,10 @@ private:
     /** 在当前光标位置，插入一个字符（文本输入模式）
     */
     void OnInputChar(const EventArgs& msg);
+
+    /** 回车键是否会被当作文本输入（用于决定按键事件是否需要继续向上层传递）
+    */
+    bool CanInputReturn(const EventArgs& msg) const;
 
     /** 检查Shift和Ctrl按键的标志
     */

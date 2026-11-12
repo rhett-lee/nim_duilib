@@ -2699,24 +2699,26 @@ bool RichEditData::Undo(int32_t& nEndCharIndex)
     //检查并计算字符位置
     CheckCalcTextRects();
 
-    bool bRet = false;
-    if (!m_undoList.empty()) {
-        //取出Undo列表尾部的数据
-        TUndoData undoData = m_undoList.back();
-        m_undoList.pop_back();
-
-        //添加到redo列表
-        m_redoList.push_back(undoData);
-
-        //执行Undo操作
-        nEndCharIndex = undoData.m_nStartChar + (int32_t)undoData.m_newText.size();
-        bRet = ReplaceText(undoData.m_nStartChar, nEndCharIndex, undoData.m_oldText, false, false);
-        nEndCharIndex = undoData.m_nStartChar + (int32_t)undoData.m_oldText.size();
+    nEndCharIndex = -1;
+    if (m_undoList.empty()) {
+        return false;
     }
-    if (!bRet) {
-        nEndCharIndex = -1;
+
+    //取出Undo列表尾部的数据，但先不修改列表：
+    //只有文本替换成功后才迁移到Redo列表，避免替换失败时撤销链与文本不一致
+    const TUndoData undoData = m_undoList.back();
+    const int32_t nStartChar = undoData.m_nStartChar;
+    const int32_t nOldEndChar = nStartChar + (int32_t)undoData.m_newText.size();
+    if (!ReplaceText(nStartChar, nOldEndChar, undoData.m_oldText, false, false)) {
+        return false;
     }
-    return bRet;
+
+    //替换成功，迁移Undo列表到Redo列表
+    m_undoList.pop_back();
+    m_redoList.push_back(undoData);
+
+    nEndCharIndex = nStartChar + (int32_t)undoData.m_oldText.size();
+    return true;
 }
 
 bool RichEditData::CanRedo() const
@@ -2729,24 +2731,26 @@ bool RichEditData::Redo(int32_t& nEndCharIndex)
     //检查并计算字符位置
     CheckCalcTextRects();
 
-    bool bRet = false;
-    if (!m_redoList.empty()) {
-        //取出Redo列表尾部的数据
-        TUndoData undoData = m_redoList.back();
-        m_redoList.pop_back();
-
-        //添加到undo列表
-        m_undoList.push_back(undoData);
-
-        //执行Redo操作
-        nEndCharIndex = undoData.m_nStartChar + (int32_t)undoData.m_oldText.size();
-        bRet = ReplaceText(undoData.m_nStartChar, nEndCharIndex, undoData.m_newText, false, false);
-        nEndCharIndex = undoData.m_nStartChar + (int32_t)undoData.m_newText.size();
+    nEndCharIndex = -1;
+    if (m_redoList.empty()) {
+        return false;
     }
-    if (!bRet) {
-        nEndCharIndex = -1;
+
+    //取出Redo列表尾部的数据，但先不修改列表：
+    //只有文本替换成功后才迁移到Undo列表，避免替换失败时撤销链与文本不一致
+    const TUndoData redoData = m_redoList.back();
+    const int32_t nStartChar = redoData.m_nStartChar;
+    const int32_t nOldEndChar = nStartChar + (int32_t)redoData.m_oldText.size();
+    if (!ReplaceText(nStartChar, nOldEndChar, redoData.m_newText, false, false)) {
+        return false;
     }
-    return bRet;
+
+    //替换成功，迁移Redo列表到Undo列表
+    m_redoList.pop_back();
+    m_undoList.push_back(redoData);
+
+    nEndCharIndex = nStartChar + (int32_t)redoData.m_newText.size();
+    return true;
 }
 
 void RichEditData::Clear()

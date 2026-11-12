@@ -167,6 +167,52 @@
                             <RichEdit class="simple_border" text="0123456789abcdefghigklmn0123456789abcdefghigklmn0123456789abcdefghigklmn0123456789abcdefghigklmn" multi_line="true" want_return="true" word_wrap="false" vscrollbar="true" hscrollbar="true" margin="8,6,4,4"/>
                         </HBox>
                     </GroupVBox>
+
+                    <!-- RichEdit2（自绘实现）确定性缺陷回归测试：用于手工验证修复效果 -->
+                    <GroupVBox class="group_box_collapsible" name="group_richedit2" margin="2,2,2,6" text_id="STRID_RICHEDIT2_DEFECT_TESTS" height="auto" corner_size="4,4" cursor_type="hand">
+                        <!-- 1. 密码模式横向滚动：输入超宽内容后，文字应随光标滚动，选择高亮不应错位 -->
+                        <HBox height="36" margin="8,24,8,0">
+                            <Label text_id="STRID_RICHEDIT2_PASSWORD_SCROLL" width="130" text_align="right,vcenter" valign="center"/>
+                            <RichEdit2 class="simple simple_border" name="test_re2_password" width="140" height="28" password="true" text="password1234567890abcdefghij" text_align="left,vcenter" valign="center" margin="8,6,4,4"/>
+                        </HBox>
+                        <!-- 2. 单行模式：粘贴"ab\r\ncd"后应显示为"ab cd"，GetText不包含换行符；同时可验证Ctrl+左右按词移动、Ctrl+Shift按词选择 -->
+                        <HBox height="36" margin="8,0,8,0">
+                            <Label text_id="STRID_RICHEDIT2_SINGLELINE_PASTE" width="130" text_align="right,vcenter" valign="center"/>
+                            <RichEdit2 class="simple simple_border" name="test_re2_singleline" height="28" text="word1 word2 word3" text_align="left,vcenter" valign="center" margin="8,6,4,4"/>
+                            <Button class="btn_global" name="btn_re2_paste_multiline" text_id="STRID_RICHEDIT2_PASTE_MULTILINE" width="auto" height="28" padding="8,0,8,0" font="system_regular_12" border_round="4,4" valign="center" margin="0,6,4,4"/>
+                        </HBox>
+                        <!-- 3. 数字范围：粘贴999后应被夹取到max_number(64) -->
+                        <HBox height="36" margin="8,0,8,0">
+                            <Label text_id="STRID_RICHEDIT2_NUMBER_CLAMP" width="130" text_align="right,vcenter" valign="center"/>
+                            <RichEdit2 class="simple simple_border" name="test_re2_number" height="28" number_only="true" min_number="0" max_number="64" limit_text="3" text="0" text_align="left,vcenter" valign="center" margin="8,6,4,4"/>
+                            <Button class="btn_global" name="btn_re2_paste_number" text_id="STRID_RICHEDIT2_PASTE_NUMBER" width="auto" height="28" padding="8,0,8,0" font="system_regular_12" border_round="4,4" valign="center" margin="0,6,4,4"/>
+                        </HBox>
+                        <!-- 4. 按键冒泡：焦点在该框内时按F5，状态栏应提示"F5已冒泡到窗口" -->
+                        <HBox height="36" margin="8,0,8,0">
+                            <Label text_id="STRID_RICHEDIT2_KEY_BUBBLE" width="130" text_align="right,vcenter" valign="center"/>
+                            <RichEdit2 class="simple simple_border" name="test_re2_key_bubble" height="28" text="focus here, press F5" text_align="left,vcenter" valign="center" margin="8,6,4,4"/>
+                        </HBox>
+                        <!-- 5. 圆角焦点下划线：聚焦后底部强调线左右对称，只读时也有焦点反馈 -->
+                        <HBox height="36" margin="8,0,8,0">
+                            <Label text_id="STRID_RICHEDIT2_FOCUS_BORDER" width="130" text_align="right,vcenter" valign="center"/>
+                            <RichEdit2 class="simple simple_border" name="test_re2_focus_border" height="28" border_round="8,8" focused_bottom_border_size="2" focused_bottom_border_color="border_richedit_bottom_focused" text="round=8, focused" text_align="left,vcenter" valign="center" margin="8,6,4,4"/>
+                        </HBox>
+                        <!-- 6. 当前行高亮：聚焦时使用current_row_bkcolor，失焦时使用inactive_current_row_bkcolor -->
+                        <HBox height="56" margin="8,0,8,0">
+                            <Label text_id="STRID_RICHEDIT2_CURRENT_ROW" width="130" text_align="right,vcenter" valign="center"/>
+                            <RichEdit2 class="simple simple_border" name="test_re2_current_row" height="52" multi_line="true" want_return="true" word_wrap="true" vscrollbar="true" current_row_bkcolor="bg_list_item_hovered" inactive_current_row_bkcolor="bg_list_item_selected" text="line 1" text_align="left,top" valign="center" margin="8,2,4,2"/>
+                        </HBox>
+                        <!-- 7. 滚动条预留：声明了vscrollbar但内容未溢出时，居中文本应真正居中（不偏向左侧） -->
+                        <HBox height="36" margin="8,0,8,0">
+                            <Label text_id="STRID_RICHEDIT2_CENTER" width="130" text_align="right,vcenter" valign="center"/>
+                            <RichEdit2 class="simple simple_border" name="test_re2_center" height="28" vscrollbar="true" text="center text" text_align="hcenter,vcenter" valign="center" margin="8,6,4,4"/>
+                        </HBox>
+                        <!-- 8. IME定位：控件不在(0,0)，滚动后输入中文，候选框应跟随光标而不是跑到窗口左上角 -->
+                        <HBox height="56" margin="8,0,8,0">
+                            <Label text_id="STRID_RICHEDIT2_IME" width="130" text_align="right,vcenter" valign="center"/>
+                            <RichEdit2 class="simple simple_border" name="test_re2_ime" height="52" multi_line="true" want_return="true" word_wrap="true" vscrollbar="true" text_id="STRID_RICHEDIT2_IME_TEXT" text_align="left,top" valign="center" margin="8,2,4,2"/>
+                        </HBox>
+                    </GroupVBox>
                 </VScrollBox>
 
                 <!-- 纵向分割条，用于调整左右区域大小 -->

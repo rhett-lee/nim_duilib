@@ -464,6 +464,23 @@ STRID_RICHEDIT_HORIZONTAL_SCROLLBAR = Horizontal Scrollbar:
 STRID_RICHEDIT_VERTICAL_SCROLLBAR = Vertical Scrollbar:  
 STRID_RICHEDIT_HORIZONTAL_VERTICAL_SCROLLBAR = Horizontal & Vertical Scrollbar:  
 
+# RichEdit2 Defect Regression Tests
+STRID_RICHEDIT2_DEFECT_TESTS = RichEdit2 Defect Regression Tests
+STRID_RICHEDIT2_PASSWORD_SCROLL = Password Horizontal Scroll:  
+STRID_RICHEDIT2_SINGLELINE_PASTE = Single Line Paste/Word Move:  
+STRID_RICHEDIT2_PASTE_MULTILINE = Paste Multiline
+STRID_RICHEDIT2_NUMBER_CLAMP = Paste Out-of-Range Number:  
+STRID_RICHEDIT2_PASTE_NUMBER = Paste 999
+STRID_RICHEDIT2_KEY_BUBBLE = Key Bubbling (F5):  
+STRID_RICHEDIT2_FOCUS_BORDER = Rounded Focus Bottom Border:  
+STRID_RICHEDIT2_CURRENT_ROW = Current Row Highlight:  
+STRID_RICHEDIT2_CENTER = Scrollbar Reserve/Center:  
+STRID_RICHEDIT2_IME = IME Candidate Position:  
+STRID_RICHEDIT2_IME_TEXT = Switch to a Chinese IME and type here
+STRID_RICHEDIT2_SINGLELINE_PASTE_DONE = Single line paste test: text should be "ab cd" without newline
+STRID_RICHEDIT2_NUMBER_CLAMP_DONE = Number clamp test: pasting 999 should become 64
+STRID_RICHEDIT2_KEY_BUBBLE_DONE = Key bubbling test: F5 bubbled from the edit box to the window
+
 # File Operations
 STRID_RICHEDIT_FILE = File:
 STRID_RICHEDIT_NEW_FILE = New(Ctrl+N)

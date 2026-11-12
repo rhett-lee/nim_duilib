@@ -691,6 +691,16 @@ void RichEdit2::SetMultiLine(bool bMultiLine)
     bool bSingleLineMode = !bMultiLine;
     if (m_pTextData->IsSingleLineMode() != bSingleLineMode) {
         m_pTextData->SetSingleLineMode(bSingleLineMode);
+        if (bSingleLineMode) {
+            //切换到单行模式时，把已有文本中的换行符规整为空格
+            //(XML属性解析时，text属性可能先于single_line属性被设置)
+            DStringW text = m_pTextData->GetText();
+            DStringW newText = text;
+            NormalizeSingleLineText(newText);
+            if (newText != text) {
+                m_pTextData->SetText(newText);
+            }
+        }
         //清除绘制缓存，并重绘
         ClearCacheAndRedraw();
     }
@@ -1092,15 +1102,19 @@ DStringW RichEdit2::GetTextW() const
 void RichEdit2::SetText(const DStringW& strText)
 {
     //目前内存占用情况：2MB的UTF16格式文本，Debug版本：占用约23MB的内存，Release版本：占用约12MB的内存。
+    //单行模式下，需要把换行符规整为空格，避免存入换行符后显示时"吞字"
+    DStringW text = strText;
+    NormalizeSingleLineText(text);
+
     bool bChanged = false;
     if (IsPasswordMode()) {
         //密码模式
-        DStringW passwordText = strText;
+        DStringW passwordText = text;
         RemoveInvalidPasswordChar(passwordText);
         bChanged = m_pTextData->SetText(passwordText);
     }
     else {
-        bChanged = m_pTextData->SetText(strText);
+        bChanged = m_pTextData->SetText(text);
     }
     if (bChanged && IsInited()) {
         //重新计算字符区域
@@ -1324,6 +1338,8 @@ bool RichEdit2::ReplaceSel(const DString& newText, bool bCanUndo)
     GetSel(nStartChar, nEndChar);
     bool bRet = false;
     DStringW text = StringConvert::TToWString(newText);
+    //单行模式下，把换行符规整为空格
+    NormalizeSingleLineText(text);
     if (IsPasswordMode()) {        
         RemoveInvalidPasswordChar(text);
         bRet = m_pTextData->ReplaceText(nStartChar, nEndChar, text, false);
@@ -1536,6 +1552,8 @@ void RichEdit2::Paste()
     if (IsPasswordMode()) {
         RemoveInvalidPasswordChar(text);
     }
+    //单行模式下，把剪贴板中的换行符规整为空格
+    NormalizeSingleLineText(text);
     if (!text.empty()) {
         int32_t nStartChar = -1;
         int32_t nEndChar = -1;
@@ -1865,8 +1883,8 @@ void RichEdit2::Paint(IRender* pRender, const UiRect& rcPaint)
     //检查并按需重新计算文本区域
     m_pTextData->CheckCalcTextRects();
 
-    //绘制当前编辑行的背景色
-    if (!IsReadOnly() && IsEnabled()) {
+    //绘制当前编辑行的背景色（只读时也绘制，通过焦点/非焦点颜色区分）
+    if (IsEnabled()) {
         if (IsEmpty()) {
             //文本为空，仅在有焦点时绘制
             if (m_bActive) {
@@ -1921,33 +1939,22 @@ void RichEdit2::Paint(IRender* pRender, const UiRect& rcPaint)
         }
     }
     else {
-        //密码模式，不使用绘制缓存
+        //密码模式：使用掩码后的文本走格式化文本绘制流程，
+        //以支持横向滚动偏移和文本裁剪（原实现直接DrawString到未滚动坐标，
+        //超宽密码输入时文字不移动，光标和选择区域会跑到可视区外）
         DStringW passwordText = m_pTextData->GetText();
-        //处理显示字符
-        ReplacePasswordChar(passwordText);
-
-        DString fontId = GetCurrentFontId();
-        ASSERT(!fontId.empty());
-        if (!passwordText.empty() && !fontId.empty()) {
-            UiRect rcDrawRect = GetRichTextDrawRect();
-            UiColor dwClrColor = GetUiColor(GetTextColor());
-            if (!IsEnabled()) {
-                dwClrColor = GetUiColor(GetDisabledTextColor());
+        if (!passwordText.empty()) {
+            //处理显示字符
+            ReplacePasswordChar(passwordText);
+            //生成绘制数据（密码模式的文本排版也是按掩码文本计算的）
+            std::vector<std::wstring_view> textViewList;
+            textViewList.emplace_back(passwordText.c_str(), passwordText.size());
+            std::vector<RichTextData> richTextDataList;
+            if (GetRichTextForDraw(textViewList, richTextDataList)) {
+                IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+                ASSERT(pRenderFactory != nullptr);
+                pRender->DrawRichText(rcDrawText, GetScrollOffset(), pRenderFactory, richTextDataList, GetAlpha());
             }
-            ASSERT(!dwClrColor.IsEmpty());
-
-            DrawStringParam drawParam;
-            drawParam.pFont = GetIFontInternal(fontId);
-            drawParam.uFormat = GetTextStyle();
-            drawParam.textRect = rcDrawRect;
-            drawParam.dwTextColor = dwClrColor;
-
-#ifdef DUILIB_UNICODE
-            pRender->DrawString(passwordText, drawParam);
-#else
-            pRender->DrawString(StringConvert::WStringToUTF8(passwordText), drawParam);
-#endif
-            
         }
     }
 
@@ -2036,7 +2043,7 @@ void RichEdit2::PaintChild(IRender* pRender, const UiRect& rcPaint)
 void RichEdit2::PaintBorder(IRender* pRender)
 {
     BaseClass::PaintBorder(pRender);
-    if (!IsFocused() || IsReadOnly() || !IsEnabled()) {
+    if (!IsFocused() || !IsEnabled()) {
         return;
     }
     //绘制下边线
@@ -2050,8 +2057,9 @@ void RichEdit2::PaintBorder(IRender* pRender)
         GetBorderRound(fRoundWidth, fRoundHeight);
 
         float fBottomBorderWidth = Dpi().GetScaleFloat(borderSize);
+        //两端都向内缩进圆角半径，保证下边线与圆角内切，左右对称
         rcBorder.right -= int32_t(fRoundWidth + 0.5f);
-        rcBorder.left -= int32_t(fRoundWidth + 0.5f);
+        rcBorder.left += int32_t(fRoundWidth + 0.5f);
         UiPointF pt1((float)rcBorder.left, (float)rcBorder.bottom - fBottomBorderWidth / 2);
         UiPointF pt2((float)rcBorder.right, (float)rcBorder.bottom - fBottomBorderWidth / 2);
         DrawBorderLine(pRender, pt1, pt2, fBottomBorderWidth, dwBorderColor, GetBorderDashStyle());
@@ -2099,17 +2107,15 @@ void RichEdit2::ShowCaret(bool fShow)
         int32_t yHeight = 0;
         GetCaretSize(xWidth, yHeight);
 
+        //GetCaretPos返回的是控件局部坐标，转换为窗口客户区坐标：
+        //控件在窗口客户区中的位置 + 控件内光标位置 - 外层滚动容器的滚动偏移
         UiRect rc = GetRect();
-        UiSize szScrollOffset = GetScrollOffset();
-        rc.Offset(-szScrollOffset.cx, -szScrollOffset.cy);
-
         UiPoint scrollOffset = GetScrollOffsetInScrollBox();
-        rc.Offset(-scrollOffset.x, -scrollOffset.y);
 
         UiRect inputRect;
-        inputRect.left = xPos - scrollOffset.x;
-        inputRect.top = yPos - scrollOffset.y;
-        inputRect.right = inputRect.left + (rc.right - inputRect.left);
+        inputRect.left = rc.left + xPos - scrollOffset.x;
+        inputRect.top = rc.top + yPos - scrollOffset.y;
+        inputRect.right = rc.right - scrollOffset.x;
         if (inputRect.right <= inputRect.left) {
             inputRect.right = inputRect.left + 2;
         }
@@ -2245,11 +2251,8 @@ void RichEdit2::PaintCurrentRowBkColor(IRender* pRender, const UiRect& /*rcPaint
     if (pRender == nullptr) {
         return;
     }
-    if (IsHideSelection() && !m_bActive) {
-        //当控件处于非激活状态时，隐藏选择内容
-        return;
-    }
-
+    //当前行背景色只由颜色配置决定是否绘制，不受"非激活时隐藏选择内容"的影响，
+    //否则hide_selection(默认true)会导致非焦点颜色(inactive_current_row_bkcolor)永远不生效
     UiColor currentRowBkColor;
     DString strCurrentRowBkColor;
     if (!m_bActive) {
@@ -2736,6 +2739,26 @@ void RichEdit2::OnTextChanged()
 {
     //设置已修改标志
     SetModify(true);
+
+    //数字模式下，文本变化后统一把数字夹取到[min_number, max_number]范围内。
+    //放在这里可以覆盖所有修改文本的入口(按键输入、粘贴、SetText、拖放等)，
+    //与Windows原生RichEdit实现的行为保持一致
+    if (IsNumberOnly() && !IsReadOnly() && IsEnabled() &&
+        ((GetMinNumber() != INT64_MIN) || (GetMaxNumber() != INT64_MAX))) {
+        DString newText = GetText();
+        if (!newText.empty()) {
+            int64_t nValue = StringUtil::StringToInt64(newText);
+            if (nValue < GetMinNumber()) {
+                //超过最小数字，进行修正
+                SetTextNoEvent(StringUtil::Int64ToString(GetMinNumber()));
+            }
+            else if (nValue > GetMaxNumber()) {
+                //超过最大数字，进行修正
+                SetTextNoEvent(StringUtil::Int64ToString(GetMaxNumber()));
+            }
+        }
+    }
+
     if (!m_bDisableTextChangeEvent) {
         SendEvent(kEventTextChanged);
     }
@@ -3216,6 +3239,45 @@ UiRect RichEdit2::GetRichTextDrawRect() const
     return GetTextDrawRect(GetRect());
 }
 
+void RichEdit2::NormalizeSingleLineText(DStringW& text) const
+{
+    if (IsMultiLine() || text.empty()) {
+        return;
+    }
+    //单行模式不支持换行符：把"\r\n"、"\r"、"\n"统一替换为一个空格
+    //(与Windows原生单行编辑框的行为保持一致，避免文本中残留不可见的换行符)
+    bool bHasNewline = false;
+    for (const wchar_t ch : text) {
+        if ((ch == L'\r') || (ch == L'\n')) {
+            bHasNewline = true;
+            break;
+        }
+    }
+    if (!bHasNewline) {
+        return;
+    }
+    DStringW newText;
+    newText.reserve(text.size());
+    const size_t nTextCount = text.size();
+    for (size_t nIndex = 0; nIndex < nTextCount; ++nIndex) {
+        const wchar_t ch = text[nIndex];
+        if (ch == L'\r') {
+            newText.push_back(L' ');
+            //"\r\n"作为一个换行符处理，只替换为一个空格
+            if (((nIndex + 1) < nTextCount) && (text[nIndex + 1] == L'\n')) {
+                ++nIndex;
+            }
+        }
+        else if (ch == L'\n') {
+            newText.push_back(L' ');
+        }
+        else {
+            newText.push_back(ch);
+        }
+    }
+    text.swap(newText);
+}
+
 uint8_t RichEdit2::GetDrawAlpha() const
 {
     return GetAlpha();
@@ -3325,8 +3387,10 @@ UiRect RichEdit2::GetTextDrawRect(const UiRect& rc) const
     rcAvailable.Deflate(GetTextPadding());
     rcAvailable.Deflate(GetControlPadding());
 
-    //按照有滚动条的状态进行估算，避免需要二次估算才能估算出最终结果
-    if (!GetScrollBarFloat() && (GetVScrollBar() != nullptr)) {
+    //只有滚动条真正显示(IsValid)时才扣除滚动条所占的宽度和高度，
+    //与CalcRequiredSize中把滚动条尺寸加回文本区域的处理保持一致，
+    //避免声明了滚动条但内容未溢出时，文本区域被多扣一列，导致居中等对齐出现偏移
+    if (!GetScrollBarFloat() && (GetVScrollBar() != nullptr) && GetVScrollBar()->IsValid()) {
         if (IsVScrollBarAtLeft()) {
             rcAvailable.left += GetVScrollBar()->GetFixedWidth().GetInt32();
         }
@@ -3334,7 +3398,7 @@ UiRect RichEdit2::GetTextDrawRect(const UiRect& rc) const
             rcAvailable.right -= GetVScrollBar()->GetFixedWidth().GetInt32();
         }
     }
-    if (!GetScrollBarFloat() && (GetHScrollBar() != nullptr)) {
+    if (!GetScrollBarFloat() && (GetHScrollBar() != nullptr) && GetHScrollBar()->IsValid()) {
         rcAvailable.bottom -= GetHScrollBar()->GetFixedHeight().GetInt32();
     }
     rcAvailable.Validate();
@@ -3345,10 +3409,12 @@ UiSize64 RichEdit2::CalcRequiredSize(const UiRect& rc, bool bEstimateOnly)
 {
     //计算子控件的大小
     UiSize64 requiredSize = BaseClass::CalcRequiredSize(rc, bEstimateOnly);
+    //子控件超出可用区域时，不计入控件大小(以文本大小为准)；
+    //宽度和高度需要独立判断，避免宽度超限时高度不再处理
     if (requiredSize.cx > rc.Width()) {
         requiredSize.cx = 0;
     }
-    else if (requiredSize.cy > rc.Height()) {
+    if (requiredSize.cy > rc.Height()) {
         requiredSize.cy = 0;
     }
 
@@ -3361,7 +3427,7 @@ UiSize64 RichEdit2::CalcRequiredSize(const UiRect& rc, bool bEstimateOnly)
     if (imageSize.cx > rc.Width()) {
         imageSize.cx = 0;
     }
-    else if (imageSize.cy > rc.Height()) {
+    if (imageSize.cy > rc.Height()) {
         imageSize.cy = 0;
     }
 
@@ -3369,12 +3435,7 @@ UiSize64 RichEdit2::CalcRequiredSize(const UiRect& rc, bool bEstimateOnly)
     UiSize textSize = EstimateText(UiSize(rc.Width(), rc.Height()));
     //文本区域，需要包含滚动条的宽度和高度(仅当滚动条设置为非浮动时)
     if (!GetScrollBarFloat() && (GetVScrollBar() != nullptr) && GetVScrollBar()->IsValid()) {
-        if (IsVScrollBarAtLeft()) {
-            textSize.cx += GetVScrollBar()->GetFixedWidth().GetInt32();
-        }
-        else {
-            textSize.cx += GetVScrollBar()->GetFixedWidth().GetInt32();
-        }
+        textSize.cx += GetVScrollBar()->GetFixedWidth().GetInt32();
     }
     if (!GetScrollBarFloat() && (GetHScrollBar() != nullptr) && GetHScrollBar()->IsValid()) {
         textSize.cy += GetHScrollBar()->GetFixedHeight().GetInt32();
@@ -3526,8 +3587,11 @@ bool RichEdit2::OnImeStartComposition(const EventArgs& /*msg*/)
     int32_t yPos = 0;
     GetCaretPos(xPos, yPos);
 
-    pt.x = xPos - ptScrollOffset.x;
-    pt.y = yPos - ptScrollOffset.y;
+    //ImmSetCompositionWindow使用的是窗口客户区坐标：
+    //GetCaretPos返回控件局部坐标，需要加上控件在窗口客户区中的位置，并扣除外层滚动容器的滚动偏移
+    UiRect rcControl = GetRect();
+    pt.x = rcControl.left + xPos - ptScrollOffset.x;
+    pt.y = rcControl.top + yPos - ptScrollOffset.y;
 
     //pt.y += (m_iCaretHeight + lf.lfHeight) / 4;
     cfs.dwStyle = CFS_POINT;
@@ -3639,50 +3703,81 @@ bool RichEdit2::OnKeyDown(const EventArgs& msg)
              (msg.vkCode == kVK_DELETE) || (msg.vkCode == kVK_BACK)) {
         //在KeyDown的时候，处理回车键, TAB键, 删除键，退格键
         OnInputChar(msg);
+        if (msg.vkCode == kVK_RETURN) {
+            //回车键未被当作文本输入时(如单行模式、want_return=false)，
+            //需要把按键继续向上层传递，以便上层处理默认按钮等逻辑
+            return CanInputReturn(msg);
+        }
+        return true;
     }
     else if (msg.vkCode == kVK_ESCAPE) {
         //ESC键
         SendEvent(kEventEsc);
+        return true;
     }
     else if ((msg.vkCode == 'A') && IsKeyDown(msg, ModifierKey::kControl)) {
         //Ctrl + A: 全选
         SetSelAll();
+        return true;
     }
     else if ((msg.vkCode == 'C') && IsKeyDown(msg, ModifierKey::kControl)) {
         //Ctrl + C, 复制
         Copy();
+        return true;
     }
     else if ((msg.vkCode == kVK_INSERT) && IsKeyDown(msg, ModifierKey::kControl)) {
         //Ctrl + Insert, 复制
         Copy();
+        return true;
     }
     else if ((msg.vkCode == 'X') && IsKeyDown(msg, ModifierKey::kControl)) {
         //Ctrl + X, 剪切
         Cut();
+        return true;
     }
     else if ((msg.vkCode == 'V') && IsKeyDown(msg, ModifierKey::kControl)) {
         //Ctrl + V, 粘贴
         Paste();
+        return true;
     }
     else if ((msg.vkCode == kVK_INSERT) && IsKeyDown(msg, ModifierKey::kShift)) {
         //Shift + Insert, 粘贴
         Paste();
+        return true;
     }
     else if ((msg.vkCode == 'Z') && IsKeyDown(msg, ModifierKey::kControl)) {
         //Ctrl + Z, 撤销
         Undo();
+        return true;
     }
     else if ((msg.vkCode == 'Y') && IsKeyDown(msg, ModifierKey::kControl)) {
         //Ctrl + Y, 重做
         Redo();
+        return true;
     }
     else if ((msg.vkCode == 'W') && IsKeyDown(msg, ModifierKey::kControl)) {
         //Ctrl + W, 切换自动换行
         if (IsMultiLine() && !IsPasswordMode() && IsEnabled()) {
             SetWordWrap(!IsWordWrap());
         }
+        return true;
     }
-    return true;
+    //未处理的按键返回false，让按键事件继续向上层传递，避免吞掉窗口级快捷键(如F5、Ctrl+F等)
+    return false;
+}
+
+bool RichEdit2::CanInputReturn(const EventArgs& msg) const
+{
+    if (IsReadOnly() || !IsEnabled() || IsPasswordMode() || !IsMultiLine()) {
+        //只读、Disable、密码模式、单行模式下，不支持输入换行符
+        return false;
+    }
+    const bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
+    const bool bCtrlDown = IsKeyDown(msg, ModifierKey::kControl);
+    if (bCtrlDown && !bShiftDown) {
+        return m_bWantCtrlReturn;
+    }
+    return m_bWantReturn;
 }
 
 bool RichEdit2::OnCtrlArrowKeyDownScrollView(const EventArgs& msg)
@@ -3699,21 +3794,29 @@ bool RichEdit2::OnCtrlArrowKeyDownScrollView(const EventArgs& msg)
         return false;
     }
 
+    bool bHandled = false;
     if (msg.vkCode == kVK_HOME) {
         //Ctrl + Home
         InternalSetSel(0, 0);
         m_nSelXPos = -1;
+        bHandled = true;
     }
     else if (msg.vkCode == kVK_END) {
         //Ctrl + End
         int32_t nTextLen = GetTextLength();
         InternalSetSel(nTextLen, nTextLen);
         m_nSelXPos = -1;
+        bHandled = true;
     }
     //按住Ctrl+方向键，触发ScrollBox的功能
+    //注意：Ctrl+Left/Right不在此处理，需要留给OnArrowKeyDown实现按词移动光标
+    const bool bScrollKey = (msg.vkCode == kVK_UP) || (msg.vkCode == kVK_DOWN) ||
+                            (msg.vkCode == kVK_PRIOR) || (msg.vkCode == kVK_NEXT) ||
+                            (msg.vkCode == kVK_HOME) || (msg.vkCode == kVK_END);
     ScrollBar* pVScrollBar = GetVScrollBar();
     ScrollBar* pHScrollBar = GetHScrollBar();
-    if ((pVScrollBar != nullptr) && pVScrollBar->IsValid() && pVScrollBar->IsEnabled()) {
+    if (bScrollKey && (pVScrollBar != nullptr) && pVScrollBar->IsValid() && pVScrollBar->IsEnabled()) {
+        bHandled = true;
         switch (msg.vkCode) {
         case kVK_DOWN:
             LineDown(GetLineScrollDeltaValue(true));
@@ -3737,7 +3840,8 @@ bool RichEdit2::OnCtrlArrowKeyDownScrollView(const EventArgs& msg)
             break;
         }
     }
-    else if ((pHScrollBar != nullptr) && pHScrollBar->IsValid() && pHScrollBar->IsEnabled()) {
+    else if (bScrollKey && (pHScrollBar != nullptr) && pHScrollBar->IsValid() && pHScrollBar->IsEnabled()) {
+        bHandled = true;
         switch (msg.vkCode) {
         case kVK_DOWN:
             LineRight();
@@ -3761,7 +3865,8 @@ bool RichEdit2::OnCtrlArrowKeyDownScrollView(const EventArgs& msg)
             break;
         }
     }
-    return true;
+    //没有滚动条时，Ctrl+方向键不处理，返回false交给后续的按键处理逻辑（如按词移动光标）
+    return bHandled;
 }
 
 bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
@@ -3798,15 +3903,17 @@ bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
         bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
         bool bCtrlDown = IsKeyDown(msg, ModifierKey::kControl);
         if (bShiftDown && (m_nShiftStartIndex != -1)) {
-            //Shift + Left键
+            //Shift + Left键(Ctrl + Shift + Left键时按词移动)
             if (nSelEndChar <= m_nShiftStartIndex) {
-                nSelStartChar = m_pTextData->GetPrevValidCharIndex(nSelStartChar);
+                nSelStartChar = bCtrlDown ? m_pTextData->GetPrevValidWordIndex(nSelStartChar)
+                                          : m_pTextData->GetPrevValidCharIndex(nSelStartChar);
                 nSelEndChar = m_nShiftStartIndex;
                 m_bSelForward = false;
             }
             else {
                 nSelStartChar = m_nShiftStartIndex;
-                nSelEndChar = m_pTextData->GetPrevValidCharIndex(nSelEndChar);
+                nSelEndChar = bCtrlDown ? m_pTextData->GetPrevValidWordIndex(nSelEndChar)
+                                        : m_pTextData->GetPrevValidCharIndex(nSelEndChar);
                 m_bSelForward = true;
             }
             InternalSetSel(nSelStartChar, nSelEndChar);
@@ -3846,15 +3953,17 @@ bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
         bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
         bool bCtrlDown = IsKeyDown(msg, ModifierKey::kControl);
         if (bShiftDown && (m_nShiftStartIndex != -1)) {
-            //Shift + Right键
+            //Shift + Right键(Ctrl + Shift + Right键时按词移动)
             if (nSelEndChar <= m_nShiftStartIndex) {
-                nSelStartChar = m_pTextData->GetNextValidCharIndex(nSelStartChar);
+                nSelStartChar = bCtrlDown ? m_pTextData->GetNextValidWordIndex(nSelStartChar)
+                                          : m_pTextData->GetNextValidCharIndex(nSelStartChar);
                 nSelEndChar = m_nShiftStartIndex;
                 m_bSelForward = false;
             }
             else {
                 nSelStartChar = m_nShiftStartIndex;
-                nSelEndChar = m_pTextData->GetNextValidCharIndex(nSelEndChar);
+                nSelEndChar = bCtrlDown ? m_pTextData->GetNextValidWordIndex(nSelEndChar)
+                                        : m_pTextData->GetNextValidCharIndex(nSelEndChar);
                 m_bSelForward = true;
             }
             InternalSetSel(nSelStartChar, nSelEndChar);
@@ -4897,13 +5006,6 @@ void RichEdit2::OnInputChar(const EventArgs& msg)
         return;
     }
 
-    //是否检测数字模式
-    bool bCheckNumberOnly = IsNumberOnly() && ((GetMinNumber() != INT64_MIN) || (GetMaxNumber() != INT64_MAX));
-    DStringW oldText;
-    if (bCheckNumberOnly) {
-        oldText = m_pTextData->GetText();
-    }
-
     bool bRet = m_pTextData->ReplaceText(nSelStartChar, nSelEndChar, text, true);
     if (!bRet) {
         return;
@@ -4929,31 +5031,8 @@ void RichEdit2::OnInputChar(const EventArgs& msg)
     //确保光标可见
     EnsureCharVisible(nNewSelChar);
 
-    bool bTextChanged = true;
-    if (bCheckNumberOnly) {
-        //数字模式，检查文本对应的数字是否在范围内
-        DString newText = GetText();
-        if (!newText.empty()) {
-            int64_t n = StringUtil::StringToInt64(newText);
-            if (n < GetMinNumber()) {
-                //超过最小数字，进行修正
-                int64_t newValue = GetMinNumber();
-                SetTextNoEvent(StringUtil::Int64ToString(newValue));
-                bTextChanged = (oldText != m_pTextData->GetText()) ? true : false;
-            }
-            else if (n > GetMaxNumber()) {
-                //超过最大数字，进行修正
-                int64_t newValue = GetMaxNumber();
-                SetTextNoEvent(StringUtil::Int64ToString(newValue));
-                bTextChanged = (oldText != m_pTextData->GetText()) ? true : false;
-            }
-        }
-    }
-
-    //触发文本变化事件
-    if (bTextChanged) {
-        OnTextChanged();
-    }
+    //触发文本变化事件（数字模式下，数字范围的夹取在OnTextChanged中统一处理）
+    OnTextChanged();
 }
 
 void RichEdit2::SetEnableDragDrop(bool bEnable)

@@ -93,6 +93,7 @@ public:
 private:
     //界面初始化
     void SetupTestControls();
+    void SetupRichEdit2Tests();
     void SetupFileTools();
     void SetupEditTools();
     void SetupFindTools();

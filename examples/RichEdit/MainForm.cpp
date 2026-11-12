@@ -3,6 +3,7 @@
 #include "ReplaceForm.h"
 #include "MainThread.h"
 #include "duilib/Utils/MessageBoxWnd.h"
+#include "duilib/Utils/Clipboard.h"
 
 MainForm::MainForm():
     m_pRichEdit(nullptr),
@@ -51,6 +52,7 @@ void MainForm::OnInitWindow()
     }
 
     SetupTestControls();
+    SetupRichEdit2Tests();
     SetupFileTools();
     SetupEditTools();
     SetupFindTools();
@@ -115,6 +117,37 @@ void MainForm::SetupTestControls()
             return true;
             });
     }
+}
+
+void MainForm::SetupRichEdit2Tests()
+{
+    //多行文本：XML属性中不便写入换行符，这里直接设置，用于验证当前行高亮
+    ui::RichEdit2* pCurrentRow = dynamic_cast<ui::RichEdit2*>(FindControl(_T("test_re2_current_row")));
+    if (pCurrentRow != nullptr) {
+        pCurrentRow->SetText(_T("line 1\nline 2\nline 3"));
+    }
+
+    //单行模式粘贴多行文本：换行符应被替换为空格，显示为"ab cd"且文本中不含换行符
+    BindClick(_T("btn_re2_paste_multiline"), [this]() {
+        ui::Clipboard::SetClipboardText(DStringW(L"ab\r\ncd"));
+        ui::RichEdit2* pEdit = dynamic_cast<ui::RichEdit2*>(FindControl(_T("test_re2_singleline")));
+        if (pEdit != nullptr) {
+            pEdit->SetSelAll();
+            pEdit->Paste();
+            ShowStatusMessage(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT2_SINGLELINE_PASTE_DONE")));
+        }
+        });
+
+    //数字模式粘贴越界：粘贴999应被夹取到max_number(64)
+    BindClick(_T("btn_re2_paste_number"), [this]() {
+        ui::Clipboard::SetClipboardText(DStringW(L"999"));
+        ui::RichEdit2* pEdit = dynamic_cast<ui::RichEdit2*>(FindControl(_T("test_re2_number")));
+        if (pEdit != nullptr) {
+            pEdit->SetSelAll();
+            pEdit->Paste();
+            ShowStatusMessage(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT2_NUMBER_CLAMP_DONE")));
+        }
+        });
 }
 
 void MainForm::SetupFileTools()
@@ -704,6 +737,11 @@ LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, 
         //查找下一个
         bShortcutHandled = true;
         OnFindNext();
+    }
+    if (!bControlDown && !bShiftDown && (vkCode == ui::kVK_F5)) {
+        //RichEdit2缺陷回归测试：焦点在RichEdit2中时，F5应能冒泡到窗口
+        bShortcutHandled = true;
+        ShowStatusMessage(ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT2_KEY_BUBBLE_DONE")));
     }
     if (bShortcutHandled) {
         bHandled = true;
