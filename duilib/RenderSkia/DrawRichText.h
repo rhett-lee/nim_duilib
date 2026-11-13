@@ -14,6 +14,7 @@ enum class SkTextEncoding;
 namespace ui 
 {
 class IRender;
+class TextGlyphRunList;
 
 /** RichText格式文本的绘制实现
 */
@@ -132,10 +133,14 @@ private:
     * @param [in] skPaint 绘制属性
     * @param [in] pFont 字体
     * @param [in] fSpacing 额外的字间距（像素），为0时按默认间距绘制
+    * @param [in] pGlyphRuns 布局阶段产出的字形运行结果，不为nullptr时直接批量提交（不再重新断行/解析字形）
+    * @param [in] fGlyphRunsWidth pGlyphRuns 中所有字形的宽度之和（用于水平对齐）
     */
     void DrawTextRun(const UiRect& textRect, const std::wstring_view& textView, size_t textCharSize,
                      SkTextEncoding textEncoding, uint32_t uFormat,
-                     const SkPaint& skPaint, IFont* pFont, float fSpacing) const;
+                     const SkPaint& skPaint, IFont* pFont, float fSpacing,
+                     const TextGlyphRunList* pGlyphRuns = nullptr,
+                     float fGlyphRunsWidth = 0) const;
 
     /** 获取文本编码
     */

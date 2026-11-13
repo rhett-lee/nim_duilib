@@ -43,9 +43,14 @@ struct MeasureTextTempData
 */
 struct BreakTextTempData
 {
-    FastVector<SkGlyphID> glyphIDs;    //文本对应的SkGlyphID列表（只可用于统计字符数量，不可用于绘制，因为对应的字体可能不同）
-    FastVector<uint8_t> glyphChars;    //每个SkGlyphID对应的输入字节数，容器大小与glyphIDs容器相同
-    FastVector<SkScalar> glyphWidths;  //每个SkGlyphID字符的所占的宽度，该宽度与字体名称和字体大小、是否斜体等属性均相关，容器大小与glyphIDs容器相同
+    FastVector<SkGlyphID> glyphIDs;          //文本对应的SkGlyphID列表（只可用于统计字符数量，不可用于绘制，因为对应的字体可能不同）
+    FastVector<uint8_t> glyphChars;          //每个SkGlyphID对应的输入字节数，容器大小与glyphIDs容器相同
+    FastVector<SkScalar> glyphWidths;        //每个SkGlyphID字符的所占的宽度，该宽度与字体名称和字体大小、是否斜体等属性均相关，容器大小与glyphIDs容器相同
+    FastVector<const SkFont*> glyphFonts;    //每个SkGlyphID实际命中的Skia字体（与glyphIDs容器大小相同），字形ID为0时为主字体
+
+    /** 是否需要产出每个字形命中的字体（只有构建绘制用run时才需要，避免纯测量时的无用开销）
+    */
+    bool m_bNeedGlyphFonts = false;
 };
 
 /** 调用Canvas绘制Skia的文本，二次封装Skia文本相关函数以支持回退字体的功能
@@ -199,6 +204,33 @@ public:
                                SkScalar x, SkScalar y, const SkPaint& paint,
                                TextGlyphRunList& glyphRuns);
 
+    /** 构建一段编码文本的运行结果（run）：run的起点为(0,0)，x为相对起点的偏移
+     * @param [in] font 主字体
+     * @param [in] fallbackFontCreator 回退字体管理器，为 nullptr 时不支持字体回退
+     * @param [in] text 文本起始地址
+     * @param [in] byteLength 文本字节数
+     * @param [in] textEncoding 文本编码
+     * @param [in] paint 绘制属性
+     * @param [out] glyphRuns 输出的文本运行结果（内部会先清空）
+     * @param [out] fWidth 返回所有字形步进宽度之和
+     */
+    static void BuildTextRuns(const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
+                              const void* text, size_t byteLength, SkTextEncoding textEncoding,
+                              const SkPaint& paint,
+                              TextGlyphRunList& glyphRuns, SkScalar& fWidth);
+
+    /** 使用布局阶段已经算好的字形数据构建运行结果（不再解析字符，也不再测量）
+     * @param [in] pGlyphIds 字形ID数组
+     * @param [in] pAdvances 每个字形的步进宽度（与 pGlyphIds 一一对应）
+     * @param [in] pGlyphFonts 每个字形实际命中的字体（与 pGlyphIds 一一对应）
+     * @param [in] nCount 字形个数
+     * @param [out] glyphRuns 输出的文本运行结果（内部会先清空）
+     * @param [out] fWidth 返回所有字形步进宽度之和
+     */
+    static void BuildTextRuns(const SkGlyphID* pGlyphIds, const SkScalar* pAdvances,
+                              const SkFont* const* pGlyphFonts, size_t nCount,
+                              TextGlyphRunList& glyphRuns, SkScalar& fWidth);
+
     /** 按 run 批量绘制文本运行结果
      * @param [in] skCanvas 绘制画布
      * @param [in] glyphRuns 文本运行结果
@@ -218,6 +250,14 @@ public:
     static void DrawGlyphRuns(SkCanvas* skCanvas, const TextGlyphRunList& glyphRuns,
                               size_t nFirstRun, size_t nRunCount,
                               SkScalar x, SkScalar y, const SkPaint& paint);
+
+    /** 按 run 批量绘制文本运行结果，并在每个字形之间插入额外的字间距
+     * @param [in] fSpacing 额外的字间距（像素），为0时按字形自身步进宽度绘制
+     */
+    static void DrawGlyphRuns(SkCanvas* skCanvas, const TextGlyphRunList& glyphRuns,
+                              size_t nFirstRun, size_t nRunCount,
+                              SkScalar x, SkScalar y, const SkPaint& paint,
+                              SkScalar fSpacing);
 
     /** 文本断行布局：一次断行同时产出每行的绘制用 run 与行宽
      * @param [in] text 文本字符串的起始地址
