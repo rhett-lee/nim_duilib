@@ -96,7 +96,7 @@ public:
     */
     static SkScalar MeasureTextChar(const SkFont& font, DUTF32Char ch,
                                     SkRect* bounds, const SkPaint* paint,
-                                    FallbackFontCreator fallbackFontCreator,
+                                    const FallbackFontCreator& fallbackFontCreator,
                                     bool bUseDefaultCharWhenFailed);
 
     /** 评估文字的宽度和绘制区域，支持字体回退
@@ -112,7 +112,7 @@ public:
     */
     static SkScalar MeasureText(const SkFont& font, const void* text, size_t byteLength, SkTextEncoding textEncoding,
                                 SkRect* bounds, const SkPaint* paint,
-                                FallbackFontCreator fallbackFontCreator,
+                                const FallbackFontCreator& fallbackFontCreator,
                                 MeasureTextTempData& tempData);
 
     /** 评估文字的宽度和绘制区域，支持字体回退
@@ -130,7 +130,7 @@ public:
     */
     static SkScalar MeasureText(const SkFont& font, const SkiaTextData& textData,
                                 SkRect* bounds, const SkPaint* paint,
-                                FallbackFontCreator fallbackFontCreator,
+                                const FallbackFontCreator& fallbackFontCreator,
                                 MeasureTextTempData& tempData);
 
 public:
@@ -144,7 +144,7 @@ public:
     */
     static SkScalar DrawSimpleText(SkCanvas* skCanvas, DUTF32Char ch, SkScalar x, SkScalar y,
                                    const SkFont& font, const SkPaint& paint,
-                                   FallbackFontCreator fallbackFontCreator);
+                                   const FallbackFontCreator& fallbackFontCreator);
 
     /** 绘制文本，支持字体回退
     */
@@ -158,7 +158,7 @@ public:
     static void DrawSimpleText(SkCanvas* skCanvas, const void* text, size_t byteLength, SkTextEncoding textEncoding,
                                SkScalar x, SkScalar y,
                                const SkFont& font, const SkPaint& paint,
-                               FallbackFontCreator fallbackFontCreator);
+                               const FallbackFontCreator& fallbackFontCreator);
 
     /** 绘制文本，支持字体回退
     * @param [in] textData 文本数据
@@ -174,7 +174,7 @@ public:
     static void DrawSimpleText(SkCanvas* skCanvas, const SkiaTextData& textData,
                                SkScalar x, SkScalar y,
                                const SkFont& font, const SkPaint& paint,
-                               FallbackFontCreator fallbackFontCreator);
+                               const FallbackFontCreator& fallbackFontCreator);
 
 public:
     //原始函数：SkPaint::breakText 这个函数在最新的Skia代码里面已经删除了，这个是自己实现的版本。
@@ -191,7 +191,7 @@ public:
      * @return 返回本行可绘制的字节数，总是小于或者等于byteLength     
      */
     static size_t BreakText(const void* text, size_t byteLength, SkTextEncoding textEncoding,
-                            const SkFont& font, FallbackFontCreator fallbackFontCreator,
+                            const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
                             const SkPaint& paint, SkScalar maxWidth, SkScalar* measuredWidth,
                             MeasureTextTempData& tempData);
 
@@ -200,7 +200,7 @@ public:
     * @param [int/out] breakTextData Break计算相关临时变量，用以提高性能，也可以返回有效数据
     */
     static size_t BreakText(const void* text, size_t byteLength, SkTextEncoding textEncoding,
-                            const SkFont& font, FallbackFontCreator fallbackFontCreator,
+                            const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
                             const SkPaint& paint, SkScalar maxWidth, SkScalar* measuredWidth,
                             MeasureTextTempData& tempData,
                             BreakTextTempData* breakTextData);
@@ -216,7 +216,7 @@ public:
     * @return 返回本行可绘制的字节数，总是小于或者等于byteLength
     */
     static size_t BreakText(const SkiaTextData& textData,
-                            const SkFont& font, FallbackFontCreator fallbackFontCreator,
+                            const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
                             const SkPaint& paint, SkScalar maxWidth, SkScalar* measuredWidth,
                             MeasureTextTempData& tempData);
 
@@ -233,7 +233,7 @@ public:
      * @param [out] lineLenList 返回每行文本数据的长度（字节）
      */
     static int32_t CountLines(const char* text, size_t len, SkTextEncoding textEncoding,
-                              const SkFont& font, FallbackFontCreator fallbackFontCreator,
+                              const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
                               const SkPaint& paint, SkScalar width, TextBoxLineMode lineMode,
                               std::vector<size_t>* lineLenList = nullptr);
 
@@ -247,7 +247,7 @@ public:
     * @param [out] lineLenList 返回每行文本数据的长度（字节）
     */
     static int32_t CountLines(const SkiaTextData& textData,
-                              const SkFont& font, FallbackFontCreator fallbackFontCreator,
+                              const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
                               const SkPaint& paint, SkScalar width, TextBoxLineMode lineMode,
                               std::vector<size_t>* lineLenList = nullptr);
 
@@ -265,7 +265,7 @@ public:
      * @param [out] trailing 返回尾部的字符占几个字节（字节）
      */
     static size_t Linebreak(const char* text, const char* stop, SkTextEncoding textEncoding,
-                            const SkFont& font, FallbackFontCreator fallbackFontCreator, const SkPaint& paint,
+                            const SkFont& font, const FallbackFontCreator& fallbackFontCreator, const SkPaint& paint,
                             SkScalar margin, TextBoxLineMode lineMode, MeasureTextTempData& tempData,
                             size_t* trailing = nullptr);
 
@@ -281,7 +281,7 @@ public:
     * @param [out] trailing 返回尾部的字符占几个字节（字节）
     */
     static size_t Linebreak(const SkiaTextData& textData, const char* stop,
-                            const SkFont& font, FallbackFontCreator fallbackFontCreator, const SkPaint& paint,
+                            const SkFont& font, const FallbackFontCreator& fallbackFontCreator, const SkPaint& paint,
                             SkScalar margin, TextBoxLineMode lineMode, MeasureTextTempData& tempData,
                             size_t* trailing = nullptr);
 

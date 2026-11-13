@@ -33,7 +33,8 @@ public:
         if ((pFont == nullptr) || (m_pFontManager == nullptr)) {
             return nullptr;
         }
-        std::vector<DString> fallbackFontFamilyNames = m_pFontManager->m_fallbackFontFamilyNames;
+        //注意：这里使用引用，避免每次回退时复制字体名称列表（热路径）
+        const std::vector<DString>& fallbackFontFamilyNames = m_pFontManager->m_fallbackFontFamilyNames;
         if (fallbackFontFamilyNames.empty()) {
             return nullptr;
         }

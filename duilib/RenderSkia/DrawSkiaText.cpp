@@ -9,19 +9,15 @@ namespace ui
 
 IFallbackFontMgr* DrawSkiaText::GetFallbackFontMgr(const IFont* pFont)
 {
-    IFallbackFontMgr* pFallbackFontMgr = nullptr;
-    if (pFont != nullptr) {
-        IFontMgr* pFontMgr = nullptr;
-        const Font_Skia* pSkiaFont = dynamic_cast<const Font_Skia*>(pFont);
-        ASSERT(pSkiaFont != nullptr);
-        if (pSkiaFont != nullptr) {
-            pFontMgr = pSkiaFont->GetFontMgr();
-        }
-        if (pFontMgr != nullptr) {
-            pFallbackFontMgr = pFontMgr->GetFallbackFontMgr();
-        }
+    if (pFont == nullptr) {
+        return nullptr;
     }
-    return pFallbackFontMgr;
+    //通过字体接口获取字体管理器（避免热路径中的dynamic_cast）
+    IFontMgr* pFontMgr = pFont->GetFontMgr();
+    if (pFontMgr == nullptr) {
+        return nullptr;
+    }
+    return pFontMgr->GetFallbackFontMgr();
 }
 
 const SkFont* DrawSkiaText::CreateFallbackFont(const IFont* pFont, SkUnichar unicodeChar, SkGlyphID* glyphId)
@@ -81,7 +77,7 @@ SkScalar DrawSkiaText::MeasureTextChar(const SkFont& font, DUTF32Char ch,
                                        bool bUseDefaultCharWhenFailed)
 {
     if (pFont != nullptr) {
-        FallbackFontCreator fallbackFontCreator = [pFont](SkUnichar unicodeChar, SkGlyphID* glyphId) {
+        const FallbackFontCreator& fallbackFontCreator = [pFont](SkUnichar unicodeChar, SkGlyphID* glyphId) {
             return DrawSkiaText::CreateFallbackFont(pFont, unicodeChar, glyphId);
             };
         return MeasureTextChar(font, ch, bounds, paint, fallbackFontCreator, bUseDefaultCharWhenFailed);
@@ -105,7 +101,7 @@ SkScalar DrawSkiaText::MeasureTextChar(const SkFont& font, DUTF32Char ch,
 
 SkScalar DrawSkiaText::MeasureTextChar(const SkFont& font, DUTF32Char ch,
                                        SkRect* bounds, const SkPaint* paint,
-                                       FallbackFontCreator fallbackFontCreator,
+                                       const FallbackFontCreator& fallbackFontCreator,
                                        bool bUseDefaultCharWhenFailed)
 {
     SkGlyphID glyphId = font.unicharToGlyph((SkUnichar)ch);
@@ -137,7 +133,7 @@ SkScalar DrawSkiaText::MeasureText(const SkFont& font, const void* text, size_t 
                                    MeasureTextTempData& tempData)
 {
     if (pFont != nullptr) {
-        FallbackFontCreator fallbackFontCreator = [pFont](SkUnichar unicodeChar, SkGlyphID* glyphId) {
+        const FallbackFontCreator& fallbackFontCreator = [pFont](SkUnichar unicodeChar, SkGlyphID* glyphId) {
             return DrawSkiaText::CreateFallbackFont(pFont, unicodeChar, glyphId);
             };
         return MeasureText(font, text, byteLength, textEncoding, bounds, paint, fallbackFontCreator, tempData);
@@ -169,7 +165,7 @@ static inline size_t GetCharBytes(SkTextEncoding textEncoding)
 
 SkScalar DrawSkiaText::MeasureText(const SkFont& font, const void* text, size_t byteLength, SkTextEncoding textEncoding,
                                    SkRect* bounds, const SkPaint* paint,
-                                   FallbackFontCreator fallbackFontCreator,
+                                   const FallbackFontCreator& fallbackFontCreator,
                                    MeasureTextTempData& tempData)
 {
 #if DUILIB_PERFORMANCE_STAT_ENABLED
@@ -321,7 +317,7 @@ SkScalar DrawSkiaText::DrawSimpleText(SkCanvas* skCanvas, DUTF32Char ch,
 {
     SkScalar fWidth = 0;
     if (pFont != nullptr) {
-        FallbackFontCreator fallbackFontCreator = [pFont](SkUnichar unicodeChar, SkGlyphID* glyphId) {
+        const FallbackFontCreator& fallbackFontCreator = [pFont](SkUnichar unicodeChar, SkGlyphID* glyphId) {
             return DrawSkiaText::CreateFallbackFont(pFont, unicodeChar, glyphId);
             };
         fWidth = DrawSimpleText(skCanvas, ch, x, y, font, paint, fallbackFontCreator);
@@ -336,7 +332,7 @@ SkScalar DrawSkiaText::DrawSimpleText(SkCanvas* skCanvas, DUTF32Char ch,
 
 SkScalar DrawSkiaText::DrawSimpleText(SkCanvas* skCanvas, DUTF32Char ch, SkScalar x, SkScalar y,
                                       const SkFont& font, const SkPaint& paint,
-                                      FallbackFontCreator fallbackFontCreator)
+                                      const FallbackFontCreator& fallbackFontCreator)
 {
     SkScalar fWidth = 0;
     if (skCanvas == nullptr) {
@@ -367,7 +363,7 @@ void DrawSkiaText::DrawSimpleText(SkCanvas* skCanvas, const void* text, size_t b
                                   const IFont* pFont)
 {
     if (pFont != nullptr) {
-        FallbackFontCreator fallbackFontCreator = [pFont](SkUnichar unicodeChar, SkGlyphID* glyphId) {
+        const FallbackFontCreator& fallbackFontCreator = [pFont](SkUnichar unicodeChar, SkGlyphID* glyphId) {
             return DrawSkiaText::CreateFallbackFont(pFont, unicodeChar, glyphId);
             };
         return DrawSimpleText(skCanvas, text, byteLength, textEncoding, x, y, font, paint, fallbackFontCreator);
@@ -380,7 +376,7 @@ void DrawSkiaText::DrawSimpleText(SkCanvas* skCanvas, const void* text, size_t b
 void DrawSkiaText::DrawSimpleText(SkCanvas* skCanvas, const void* text, size_t byteLength, SkTextEncoding textEncoding,
                                   SkScalar x, SkScalar y,
                                   const SkFont& font, const SkPaint& paint,
-                                  FallbackFontCreator fallbackFontCreator)
+                                  const FallbackFontCreator& fallbackFontCreator)
 {
 #if DUILIB_PERFORMANCE_STAT_ENABLED
     //性能统计
@@ -409,7 +405,7 @@ void DrawSkiaText::DrawSimpleText(SkCanvas* skCanvas, const void* text, size_t b
 }
 
 size_t DrawSkiaText::BreakText(const void* text, size_t byteLength, SkTextEncoding textEncoding,
-                               const SkFont& font, FallbackFontCreator fallbackFontCreator,
+                               const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
                                const SkPaint& paint, SkScalar maxWidth, SkScalar* measuredWidth,
                                MeasureTextTempData& tempData)
 {
@@ -419,7 +415,7 @@ size_t DrawSkiaText::BreakText(const void* text, size_t byteLength, SkTextEncodi
 }
 
 size_t DrawSkiaText::BreakText(const void* text, size_t byteLength, SkTextEncoding textEncoding,
-                               const SkFont& font, FallbackFontCreator fallbackFontCreator,
+                               const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
                                const SkPaint& paint, SkScalar maxWidth, SkScalar* measuredWidth,
                                MeasureTextTempData& tempData,
                                BreakTextTempData* breakTextData)
@@ -564,7 +560,7 @@ static inline SkUnichar SkUTF_NextUnichar(const void** ptr, const void* end, SkT
 }
 
 size_t DrawSkiaText::Linebreak(const char* text, const char* stop, SkTextEncoding textEncoding,
-                               const SkFont& font, FallbackFontCreator fallbackFontCreator, const SkPaint& paint,
+                               const SkFont& font, const FallbackFontCreator& fallbackFontCreator, const SkPaint& paint,
                                SkScalar margin, TextBoxLineMode lineMode, MeasureTextTempData& tempData,
                                size_t* trailing)
 {
@@ -689,7 +685,7 @@ size_t DrawSkiaText::Linebreak(const char* text, const char* stop, SkTextEncodin
 }
 
 int32_t DrawSkiaText::CountLines(const char* text, size_t len, SkTextEncoding textEncoding,
-                                 const SkFont& font, FallbackFontCreator fallbackFontCreator, const SkPaint& paint,
+                                 const SkFont& font, const FallbackFontCreator& fallbackFontCreator, const SkPaint& paint,
                                  SkScalar width, TextBoxLineMode lineMode,
                                  std::vector<size_t>* lineLenList)
 {
@@ -720,7 +716,7 @@ SkScalar DrawSkiaText::MeasureText(const SkFont& font, const SkiaTextData& textD
 
 SkScalar DrawSkiaText::MeasureText(const SkFont& font, const SkiaTextData& textData,
                                    SkRect* bounds, const SkPaint* paint,
-                                   FallbackFontCreator fallbackFontCreator,
+                                   const FallbackFontCreator& fallbackFontCreator,
                                    MeasureTextTempData& tempData)
 {
     return MeasureText(font, textData.GetText(), textData.GetByteLength(), textData.GetTextEncoding(),
@@ -739,14 +735,14 @@ void DrawSkiaText::DrawSimpleText(SkCanvas* skCanvas, const SkiaTextData& textDa
 void DrawSkiaText::DrawSimpleText(SkCanvas* skCanvas, const SkiaTextData& textData,
                                    SkScalar x, SkScalar y,
                                    const SkFont& font, const SkPaint& paint,
-                                   FallbackFontCreator fallbackFontCreator)
+                                   const FallbackFontCreator& fallbackFontCreator)
 {
     DrawSimpleText(skCanvas, textData.GetText(), textData.GetByteLength(), textData.GetTextEncoding(),
                    x, y, font, paint, fallbackFontCreator);
 }
 
 size_t DrawSkiaText::BreakText(const SkiaTextData& textData,
-                               const SkFont& font, FallbackFontCreator fallbackFontCreator,
+                               const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
                                const SkPaint& paint, SkScalar maxWidth,
                                SkScalar* measuredWidth, MeasureTextTempData& tempData)
 {
@@ -755,7 +751,7 @@ size_t DrawSkiaText::BreakText(const SkiaTextData& textData,
 }
 
 int32_t DrawSkiaText::CountLines(const SkiaTextData& textData,
-                                  const SkFont& font, FallbackFontCreator fallbackFontCreator,
+                                  const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
                                   const SkPaint& paint, SkScalar width, TextBoxLineMode lineMode,
                                   std::vector<size_t>* lineLenList)
 {
@@ -765,7 +761,7 @@ int32_t DrawSkiaText::CountLines(const SkiaTextData& textData,
 }
 
 size_t DrawSkiaText::Linebreak(const SkiaTextData& textData, const char* stop,
-                                const SkFont& font, FallbackFontCreator fallbackFontCreator, const SkPaint& paint,
+                                const SkFont& font, const FallbackFontCreator& fallbackFontCreator, const SkPaint& paint,
                                 SkScalar margin, TextBoxLineMode lineMode, MeasureTextTempData& tempData,
                                 size_t* trailing)
 {

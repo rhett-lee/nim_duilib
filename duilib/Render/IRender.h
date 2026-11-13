@@ -8,6 +8,8 @@
 
 namespace ui 
 {
+class IFontMgr;
+
 /** 字体接口
 */
 class DUILIB_API IFont: public virtual SupportWeakCallback
@@ -46,6 +48,11 @@ public:
     * @return 支持该字符返回true，否则返回false
     */
     virtual bool IsUnicodeCharSupported(uint32_t unicodeChar) = 0;
+
+    /** 获取字体所属的字体管理器
+    * @return 返回字体管理器接口；如果不支持该操作，则返回nullptr
+    */
+    virtual IFontMgr* GetFontMgr() const { return nullptr; }
 };
 
 /** 字体回退管理器（当支持的字体无法显示字符时，会查询回退字体管理器，以正确显示文字）

@@ -408,6 +408,7 @@ UiRect VerticalDrawText::MeasureString(const DString& strText, const MeasureStri
     const UTF32String textUTF32 = GetDrawStringUTF32(strText, bSingleLineMode);
 
     std::vector<TVerticalChar> charRects;
+    charRects.reserve(textUTF32.size());
     if (!CalculateTextCharBounds(textUTF32, measureParam.pFont, pSkFont, &skPaint,
                                  measureParam.bUseFontHeight, (float)fFontHeight,
                                  measureParam.bRotate90ForAscii, charRects)) {
@@ -514,6 +515,7 @@ void VerticalDrawText::DrawString(const DString& strText, const DrawStringParam&
     const UTF32String textUTF32 = GetDrawStringUTF32(strText, bSingleLineMode);
 
     std::vector<TVerticalChar> charRects;
+    charRects.reserve(textUTF32.size());
     if (!CalculateTextCharBounds(textUTF32, drawParam.pFont, pSkFont, &skPaint,
                                  drawParam.bUseFontHeight, (float)fFontHeight,
                                  drawParam.bRotate90ForAscii, charRects)) {
@@ -530,6 +532,9 @@ void VerticalDrawText::DrawString(const DString& strText, const DrawStringParam&
     std::vector<std::vector<int32_t>> columnRows;
     std::vector<float> columnWidths;
     std::vector<float> columnHeights;
+    columnRows.reserve(charRects.size());
+    columnWidths.reserve(charRects.size());
+    columnHeights.reserve(charRects.size());
     SkRect skTextBounds = CalculateVerticalTextBounds(charRects, drawParam.textRect.Height(), bSingleLineMode,
                                                       fSpacingMul, fSpacingAdd, fWordVerticalSpacing,
                                                       fDefaultCharWidth, fFontHeight,

@@ -8,6 +8,7 @@ class SkFontMgr;
 
 namespace ui 
 {
+class FontMgr_Skia;
 
 /** Skia字体接口的实现
 */
@@ -61,7 +62,7 @@ public:
 
     /** 获取字体管理器接口
     */
-    IFontMgr* GetFontMgr() const;
+    virtual IFontMgr* GetFontMgr() const override;
 
 private:
     /** 删除Skia字体
@@ -77,6 +78,9 @@ private:
 
     //字体管理器
     std::shared_ptr<IFontMgr> m_spFontMgr;
+
+    //Skia字体管理器（缓存，避免重复的dynamic_cast）
+    FontMgr_Skia* m_pSkiaFontMgr;
 };
 
 } // namespace ui

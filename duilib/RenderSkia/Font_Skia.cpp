@@ -10,24 +10,28 @@ namespace ui
 
 Font_Skia::Font_Skia(std::shared_ptr<IFontMgr>& spFontMgr):
     m_skFont(nullptr),
-    m_spFontMgr(spFontMgr)
+    m_spFontMgr(spFontMgr),
+    m_pSkiaFontMgr(nullptr)
 {
     ASSERT(m_spFontMgr != nullptr);
+    //缓存字体管理器指针，避免在热路径中重复dynamic_cast
+    m_pSkiaFontMgr = dynamic_cast<FontMgr_Skia*>(m_spFontMgr.get());
+    ASSERT(m_pSkiaFontMgr != nullptr);
 }
 
 Font_Skia::~Font_Skia()
 {
     ClearSkFont();
+    m_pSkiaFontMgr = nullptr;
     m_spFontMgr.reset();
 }
 
 void Font_Skia::ClearSkFont()
 {
     if (m_skFont != nullptr) {
-        FontMgr_Skia* pSkiaFontMgr = dynamic_cast<FontMgr_Skia*>(m_spFontMgr.get());
-        ASSERT(pSkiaFontMgr != nullptr);
-        if (pSkiaFontMgr != nullptr) {
-            pSkiaFontMgr->DeleteSkFont(m_skFont);
+        ASSERT(m_pSkiaFontMgr != nullptr);
+        if (m_pSkiaFontMgr != nullptr) {
+            m_pSkiaFontMgr->DeleteSkFont(m_skFont);
         }
         m_skFont = nullptr;
     }
@@ -51,10 +55,9 @@ const SkFont* Font_Skia::GetFontHandle()
     if (m_skFont != nullptr) {
         return m_skFont;
     }
-    FontMgr_Skia* pSkiaFontMgr = dynamic_cast<FontMgr_Skia*>(m_spFontMgr.get());
-    ASSERT(pSkiaFontMgr != nullptr);
-    if (pSkiaFontMgr != nullptr) {
-        m_skFont = pSkiaFontMgr->CreateSkFont(m_uiFont);
+    ASSERT(m_pSkiaFontMgr != nullptr);
+    if (m_pSkiaFontMgr != nullptr) {
+        m_skFont = m_pSkiaFontMgr->CreateSkFont(m_uiFont);
     }
     return m_skFont;
 }

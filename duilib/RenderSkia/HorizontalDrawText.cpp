@@ -345,6 +345,7 @@ UiRect HorizontalDrawText::MeasureString(const DString& strText, const MeasureSt
     const UTF32String textUTF32 = GetDrawStringUTF32(strText, bSingleLineMode);
 
     std::vector<THorizontalChar> charRects;
+    charRects.reserve(textUTF32.size());
     if (!CalculateTextCharBounds(textUTF32, measureParam.pFont, pSkFont, &skPaint, (float)fFontHeight, charRects)) {
         return UiRect();
     }
@@ -450,6 +451,7 @@ void HorizontalDrawText::DrawString(const DString& strText, const DrawStringPara
     const UTF32String textUTF32 = GetDrawStringUTF32(strText, bSingleLineMode);
 
     std::vector<THorizontalChar> charRects;
+    charRects.reserve(textUTF32.size());
     if (!CalculateTextCharBounds(textUTF32, drawParam.pFont, pSkFont, &skPaint, (float)fFontHeight, charRects)) {
         return;
     }
@@ -464,6 +466,9 @@ void HorizontalDrawText::DrawString(const DString& strText, const DrawStringPara
     std::vector<std::vector<int32_t>> rowColumns;
     std::vector<float> rowHeights;
     std::vector<float> rowWidths;
+    rowColumns.reserve(charRects.size());
+    rowHeights.reserve(charRects.size());
+    rowWidths.reserve(charRects.size());
     SkRect skTextBounds = CalculateHorizontalTextBounds(charRects, drawParam.textRect.Width(), bSingleLineMode,
                                                         fSpacingMul, fSpacingAdd, fWordHorizontalSpacing,
                                                         fDefaultCharWidth, fFontHeight,
