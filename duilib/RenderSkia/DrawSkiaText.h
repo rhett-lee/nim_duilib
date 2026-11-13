@@ -43,7 +43,7 @@ struct MeasureTextTempData
 */
 struct BreakTextTempData
 {
-    FastVector<SkGlyphID> glyphIDs;          //文本对应的SkGlyphID列表（只可用于统计字符数量，不可用于绘制，因为对应的字体可能不同）
+    FastVector<SkGlyphID> glyphIDs;          //文本对应的SkGlyphID列表（命中回退字体的字形ID已写回，配合glyphFonts可直接用于绘制）
     FastVector<uint8_t> glyphChars;          //每个SkGlyphID对应的输入字节数，容器大小与glyphIDs容器相同
     FastVector<SkScalar> glyphWidths;        //每个SkGlyphID字符的所占的宽度，该宽度与字体名称和字体大小、是否斜体等属性均相关，容器大小与glyphIDs容器相同
     FastVector<const SkFont*> glyphFonts;    //每个SkGlyphID实际命中的Skia字体（与glyphIDs容器大小相同），字形ID为0时为主字体

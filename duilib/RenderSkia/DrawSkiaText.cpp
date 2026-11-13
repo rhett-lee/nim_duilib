@@ -898,10 +898,8 @@ size_t DrawSkiaText::BreakText(const void* text, size_t byteLength, SkTextEncodi
                          {}, &paint);
 
     const bool bHasFallbackFontCreator = fallbackFontCreator != nullptr;
-    SkGlyphID glyphId = 0;      //Glyph字符ID
-    const SkFont* pFallbackSkFont = nullptr; //回退字体的接口
-
-    if ((breakTextData != nullptr) && breakTextData->m_bNeedGlyphFonts) {
+    const bool bNeedGlyphFonts = (breakTextData != nullptr) && breakTextData->m_bNeedGlyphFonts;
+    if (bNeedGlyphFonts) {
         //命中字体默认为主字体，命中回退字体时再更新
         breakTextData->glyphFonts.resize(tempData.glyphIDList.size());
         for (size_t nIndex = 0; nIndex < breakTextData->glyphFonts.size(); ++nIndex) {
@@ -909,26 +907,30 @@ size_t DrawSkiaText::BreakText(const void* text, size_t byteLength, SkTextEncodi
         }
     }
 
+    //说明：回退字形的宽度逐字符测量，不做"按字体分组批量测量"：
+    //      断点由宽度决定，批量化必须先测量整段剩余文本，多行断行时会退化为O(n²)；
+    //      逐字符测量在达到宽度上限时即可停止。
     size_t breakTextBytes = 0;  //可绘制文本数据的字节数
     SkScalar totalWidth = 0;    //绘制字符的总宽度
-    SkScalar glyphWidth = 0;    //单个字符的宽度
     const size_t nCount = tempData.glyphWidths.size();
     size_t glyphCount = nCount; //可绘制的glyph字符数
     for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
         if ((tempData.glyphIDList[nIndex] == 0) && bHasFallbackFontCreator) {
-            glyphId = 0;
-            pFallbackSkFont = fallbackFontCreator(tempData.unicharList[nIndex], &glyphId);
-            if (pFallbackSkFont != nullptr) {
-                //字体回退成功, 更新字符宽度
-                pFallbackSkFont->getWidthsBounds(SkSpan<const SkGlyphID>(&glyphId, 1),
-                                                 SkSpan<SkScalar>(&tempData.glyphWidths[nIndex], 1),
-                                                 {}, &paint);
-                if ((breakTextData != nullptr) && breakTextData->m_bNeedGlyphFonts && (glyphId != 0)) {
+            SkGlyphID fallbackGlyphId = 0;
+            const SkFont* pFallbackSkFont = fallbackFontCreator(tempData.unicharList[nIndex], &fallbackGlyphId);
+            if ((pFallbackSkFont != nullptr) && (fallbackGlyphId != 0)) {
+                //回退成功：把命中的字形ID写回列表，记录命中字体，并更新该字形的宽度
+                tempData.glyphIDList[nIndex] = fallbackGlyphId;
+                if (bNeedGlyphFonts) {
                     breakTextData->glyphFonts[nIndex] = pFallbackSkFont;
                 }
-           }
+                pFallbackSkFont->getWidthsBounds(SkSpan<const SkGlyphID>(&tempData.glyphIDList[nIndex], 1),
+                                                 SkSpan<SkScalar>(&tempData.glyphWidths[nIndex], 1),
+                                                 {}, &paint);
+            }
+            //回退失败时保持主字体0号字形的宽度（绘制时按占位方框处理）
         }
-        glyphWidth = tempData.glyphWidths[nIndex];
+        const SkScalar glyphWidth = tempData.glyphWidths[nIndex];
         if ((totalWidth > 0.01) && ((totalWidth + glyphWidth) > maxWidth)) {
             //已经达到宽度限制, 不需要再计算(但至少需要绘制一个字符，避免宽度过窄时，无法绘制)
             glyphCount = nIndex;

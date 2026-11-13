@@ -655,19 +655,38 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                                                           measureTempData, &breakTextData);
                 }
 
+                bool bEllipsisTruncated = false;    //是否为省略号预留宽度而截断了绘制内容
                 if (bClipNoWrapText && (nDrawLength < byteLength) && textData.m_bTextOverflowEllipsis && !bDrawTabChar) {
-                    //不换行文本：剩余内容超出可视宽度，为末尾的省略号预留宽度后重新断行，
-                    //避免省略号覆盖最后一个可见字符
+                    //不换行文本：剩余内容超出可视宽度，需要为末尾的省略号预留宽度。
+                    //直接从已断行的字形数据中截取能放下的前缀，避免对同一段文本再次全量断行
                     const SkScalar fEllipsisWidth = skFont.measureText(g_ellipsisText, sizeof(DStringW::value_type), textEncoding, nullptr, &skPaint);
-                    maxWidth = std::max(maxWidth - fEllipsisWidth, 0.0f);
-                    breakTextData.glyphIDs.clear();
-                    breakTextData.glyphChars.clear();
-                    breakTextData.glyphWidths.clear();
-                    nDrawLength = DrawSkiaText::BreakText(lineTextView.data() + textStartIndex,
-                                                          byteLength, textEncoding,
-                                                          skFont, fallbackFontCreator, skPaint,
-                                                          maxWidth, &textMeasuredWidth,
-                                                          measureTempData, &breakTextData);
+                    const SkScalar fPrefixWidth = std::max(maxWidth - fEllipsisWidth, 0.0f);
+                    const size_t nGlyphCount = breakTextData.glyphWidths.size();
+                    size_t nKeepCount = 0;      //保留下来的字形个数
+                    size_t nKeepBytes = 0;      //保留下来的文本字节数
+                    SkScalar fKeepWidth = 0;    //保留下来的文本宽度
+                    for (size_t nGlyph = 0; nGlyph < nGlyphCount; ++nGlyph) {
+                        const SkScalar fGlyphWidth = breakTextData.glyphWidths[nGlyph];
+                        if ((fKeepWidth > 0.01) && ((fKeepWidth + fGlyphWidth) > fPrefixWidth)) {
+                            //已经达到宽度限制（至少保留一个字符，与BreakText的行为保持一致）
+                            break;
+                        }
+                        fKeepWidth += fGlyphWidth;
+                        nKeepBytes += breakTextData.glyphChars[nGlyph];
+                        ++nKeepCount;
+                    }
+                    if (nKeepCount < nGlyphCount) {
+                        breakTextData.glyphIDs.resize(nKeepCount);
+                        breakTextData.glyphChars.resize(nKeepCount);
+                        breakTextData.glyphWidths.resize(nKeepCount);
+                        if (!breakTextData.glyphFonts.empty()) {
+                            breakTextData.glyphFonts.resize(nKeepCount);
+                        }
+                        nDrawLength = nKeepBytes;
+                        textMeasuredWidth = fKeepWidth;
+                        maxWidth = fPrefixWidth;
+                        bEllipsisTruncated = true;
+                    }
                 }
 
                 //字间距：BreakText按字体默认间距计算，这里按字间距修正可绘制的字形数量
@@ -753,7 +772,7 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
 
                     //构建绘制用的字形运行结果：绘制阶段直接批量提交，不再重新断行与解析字形。
                     //字形ID与宽度直接复用断行结果，保证绘制位置与布局阶段的排版一致。
-                    if (!bDrawTabChar && bBuildGlyphRuns) {
+                    if (!bDrawTabChar && bBuildGlyphRuns && !bEllipsisTruncated) {
                         size_t nGlyphCount = breakTextData.glyphIDs.size();
                         if (breakTextData.glyphFonts.size() < nGlyphCount) {
                             //字间距修正会裁掉末尾的字形，此时字形ID/宽度/字体数组取交集
