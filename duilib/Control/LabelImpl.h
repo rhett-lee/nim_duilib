@@ -270,7 +270,7 @@ public:
 
 public:
     /** 获取当前评估绘制文字的参数
-    * @return 返回当前设置的参数，不含rectSize字段的值
+    * @return 返回当前设置的参数，不含limitWidth/limitHeight字段的值
     */
     MeasureStringParam GetMeasureParam() const;
 
@@ -416,7 +416,7 @@ private:
     struct ToolTipCache
     {
         uint32_t m_nFontVersion = 0;    //缓存对应的字体缓存版本号
-        int32_t m_nRectSize = 0;        //缓存对应的测量限制尺寸
+        int32_t m_nLimitSize = 0;       //缓存对应的测量限制尺寸（横向文本为限制宽度，纵向文本为限制高度）
         int32_t m_nWidth = 0;           //缓存对应的可用宽度
         int32_t m_nHeight = 0;          //缓存对应的可用高度
         uint32_t m_nDpiScale = 0;       //缓存对应的DPI缩放百分比

@@ -52,7 +52,7 @@ public:
     /** 克隆生成新的的位图
     *@return 返回新生成的位图接口，由调用方释放资源
     */
-    virtual IBitmap* Clone() override;
+    virtual std::unique_ptr<IBitmap> Clone() const override;
 
 public:
     /** 获取Skia 位图

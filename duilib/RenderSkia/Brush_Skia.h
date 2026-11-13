@@ -15,7 +15,7 @@ public:
     Brush_Skia(const Brush_Skia& r);
     Brush_Skia& operator=(const Brush_Skia& r) = delete;
 
-    virtual IBrush* Clone() override;
+    virtual std::unique_ptr<IBrush> Clone() const override;
     virtual UiColor GetColor() const override;
 
 private:

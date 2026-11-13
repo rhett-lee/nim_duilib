@@ -46,24 +46,24 @@ public:
     virtual int32_t SetRoundClip(const UiRect& rc, float rx, float ry, bool bIntersect = true) override;
     virtual void ClearClip(int32_t nState) override;
 
-    virtual bool BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, RopMode rop) override;
-    virtual bool StretchBlt(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc, RopMode rop) override;
+    virtual bool BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, const IRender* pSrcRender, int32_t xSrc, int32_t ySrc, RopMode rop) override;
+    virtual bool StretchBlt(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest, const IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc, RopMode rop) override;
     virtual bool AlphaBlend(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc, uint8_t alpha = 255) override;
 
-    virtual void DrawImage(const UiRect& rcPaint, IBitmap* pBitmap, 
+    virtual void DrawImage(const UiRect& rcPaint, const IBitmap* pBitmap, 
                            const UiRect& rcDest, const UiRect& rcDestCorners,
                            const UiRect& rcSource, const UiRect& rcSourceCorners,
                            uint8_t uFade = 255,
                            const TiledDrawParam* pTiledDrawParam = nullptr,
                            bool bWindowShadowMode = false) override;
-    virtual void DrawImage(const UiRect& rcPaint, IBitmap* pBitmap, 
+    virtual void DrawImage(const UiRect& rcPaint, const IBitmap* pBitmap, 
                            const UiRect& rcDest,  const UiRect& rcSource, 
                            uint8_t uFade = 255,
                            const TiledDrawParam* pTiledDrawParam = nullptr,
                            bool bWindowShadowMode = false) override;
-    virtual void DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,
+    virtual void DrawImageRect(const UiRect& rcPaint, const IBitmap* pBitmap,
                                const UiRect& rcDest, const UiRect& rcSource,
-                               uint8_t uFade = 255, IMatrix* pMatrix = nullptr) override;
+                               uint8_t uFade = 255, const IMatrix* pMatrix = nullptr) override;
 
     virtual void DrawLine(const UiPointF& pt1, const UiPointF& pt2, UiColor penColor, float fWidth) override;
     virtual void DrawLine(const UiPointF& pt1, const UiPointF& pt2, IPen* pen) override;
@@ -86,7 +86,7 @@ public:
 
     virtual void DrawArc(const UiRect& rc, float startAngle, float sweepAngle, bool useCenter, 
                          const IPen* pen, 
-                         UiColor* gradientColor = nullptr, const UiRect* gradientRect = nullptr) override;
+                         const UiColor* gradientColor = nullptr, const UiRect* gradientRect = nullptr) override;
 
     virtual void DrawPath(const IPath* path, const IPen* pen) override;
     virtual void FillPath(const IPath* path, const IBrush* brush) override;
@@ -95,20 +95,20 @@ public:
     virtual UiRect MeasureString(const DString& strText, const MeasureStringParam& measureParam) override;
     virtual void DrawString(const DString& strText, const DrawStringParam& drawParam) override;
 
-    virtual void MeasureRichText(const UiRect& textRect,
+    virtual UiRect MeasureRichText(const UiRect& textRect,
                                  const UiSize& szScrollOffset,
                                  IRenderFactory* pRenderFactory, 
                                  const std::vector<RichTextData>& richTextData,
                                  std::vector<std::vector<UiRect>>* pRichTextRects) override;
 
-    virtual void MeasureRichText2(const UiRect& textRect,
+    virtual UiRect MeasureRichText2(const UiRect& textRect,
                                   const UiSize& szScrollOffset,
                                   IRenderFactory* pRenderFactory, 
                                   const std::vector<RichTextData>& richTextData,
                                   RichTextLineInfoParam* pLineInfoParam,
                                   std::vector<std::vector<UiRect>>* pRichTextRects) override;
 
-    virtual void MeasureRichText3(const UiRect& textRect,
+    virtual UiRect MeasureRichText3(const UiRect& textRect,
                                   const UiSize& szScrollOffset,
                                   IRenderFactory* pRenderFactory, 
                                   const std::vector<RichTextData>& richTextData,
@@ -159,7 +159,7 @@ public:
     virtual bool ReadPixels(const UiRect& rc, void* dstPixels, size_t dstPixelsLen) override;
     virtual bool WritePixels(const void* srcPixels, size_t srcPixelsLen, const UiRect& rc) override;
     virtual bool WritePixels(const void* srcPixels, size_t srcPixelsLen, const UiRect& rc, const UiRect& rcPaint) override;
-    virtual RenderClipType GetClipInfo(std::vector<UiRect>& clipRects) override;
+    virtual RenderClipType GetClipInfo(std::vector<UiRect>& clipRects) const override;
     virtual bool IsClipEmpty() const override;
     virtual bool IsEmpty() const override;
     virtual void SetRenderDpi(const IRenderDpiPtr& spRenderDpi) override;

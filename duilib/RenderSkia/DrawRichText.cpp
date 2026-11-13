@@ -156,28 +156,28 @@ inline static void SaveRowTopOffset(FastVector<int32_t>& rowTopOffsetVector, uin
     rowTopOffsetVector[nRowIndex] = nRowTopOffset;
 }
 
-void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
-                                        const UiSize& szScrollOffset,
-                                        IRenderFactory* pRenderFactory, 
-                                        const std::vector<RichTextData>& richTextData,
-                                        uint8_t uFade,
-                                        bool bMeasureOnly,
-                                        RichTextLineInfoParam* pLineInfoParam,
-                                        std::shared_ptr<DrawRichTextCache>* pDrawRichTextCache,
-                                        std::vector<std::vector<UiRect>>* pRichTextRects)
+UiRect DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
+                                          const UiSize& szScrollOffset,
+                                          IRenderFactory* pRenderFactory,
+                                          const std::vector<RichTextData>& richTextData,
+                                          uint8_t uFade,
+                                          bool bMeasureOnly,
+                                          RichTextLineInfoParam* pLineInfoParam,
+                                          std::shared_ptr<DrawRichTextCache>* pDrawRichTextCache,
+                                          std::vector<std::vector<UiRect>>* pRichTextRects)
 {
     ASSERT((m_pRender != nullptr) && (m_pSkCanvas != nullptr) && (m_pSkPaint != nullptr) && (m_pSkPointOrg != nullptr));
     if ((m_pRender == nullptr) || (m_pSkCanvas == nullptr) || (m_pSkPaint == nullptr) || (m_pSkPointOrg == nullptr)) {
-        return;
+        return UiRect();
     }
 
     //内部使用string_view实现，避免字符串复制影响性能
     if (rcTextRect.IsEmpty()) {
-        return;
+        return UiRect();
     }
     ASSERT(pRenderFactory != nullptr);
     if (pRenderFactory == nullptr) {
-        return;
+        return UiRect();
     }
 
 #if DUILIB_PERFORMANCE_STAT_ENABLED
@@ -198,7 +198,7 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
     if ((pLineInfoParam != nullptr) || (pDrawRichTextCache != nullptr)) {
         ASSERT(bMeasureOnly);
         if (!bMeasureOnly) {
-            return;
+            return UiRect();
         }
         //使用(0,0)坐标点，作为估算的(0,0)点
         rcDrawRect.Offset(-rcDrawRect.left, -rcDrawRect.top);
@@ -240,6 +240,17 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
     rowTopOffsetVector.reserve(richTextData.size() * 2);
     SkScalar rowRightX = (SkScalar)rcDrawRect.left; //本行文本的最右侧坐标
 
+    int32_t nMaxRowWidth = 0;                //内容的最大行宽（作为测量结果的宽度）
+    int32_t nContentBottom = rcDrawRect.top; //内容的最底端（作为测量结果的高度）
+
+    //保存行宽数据，并记录内容的最大行宽
+    auto saveRowWidth = [&rowWidthVector, &nMaxRowWidth](uint32_t nRow, int32_t nWidth) {
+        SaveRowWidth(rowWidthVector, nRow, nWidth);
+        if (nWidth > nMaxRowWidth) {
+            nMaxRowWidth = nWidth;
+        }
+    };
+
     //字体缓存(由于创建字体比较耗时，所以尽量复用相同的对象)
     SharePtr<UiFontEx> lastFont;
     std::shared_ptr<IFont> spLastSkiaFont;
@@ -249,11 +260,11 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
         nLineNumber = (uint32_t)pLineInfoParam->m_nStartLineIndex;
         ASSERT(pLineInfoParam->m_pLineInfoList != nullptr);
         if (pLineInfoParam->m_pLineInfoList == nullptr) {
-            return;
+            return UiRect();
         }
         ASSERT(nLineNumber < pLineInfoParam->m_pLineInfoList->size());
         if (nLineNumber >= pLineInfoParam->m_pLineInfoList->size()) {
-            return;
+            return UiRect();
         }
         //起始的逻辑行号
         nRowIndex = pLineInfoParam->m_nStartRowIndex;
@@ -319,8 +330,9 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
             if (xPos > (SkScalar)rcDrawRect.left) {
                 ASSERT(((int64_t)yPos + (int64_t)nRowHeight) < INT32_MAX);
                 yPos += nRowHeight;
+                nContentBottom = yPos;
                 SaveRowHeight(rowHeightVector, nRowIndex, nRowHeight);
-                SaveRowWidth(rowWidthVector, nRowIndex, SkScalarCeilToInt(rowRightX - rcDrawRect.left));
+                saveRowWidth(nRowIndex, SkScalarCeilToInt(rowRightX - rcDrawRect.left));
                 SaveRowTopOffset(rowTopOffsetVector, nRowIndex, nRowTopOffset);
                 markRowParagraphEnd(nRowIndex);
                 xPos = (SkScalar)rcDrawRect.left;
@@ -344,9 +356,10 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
             hrData.m_destRect.top = yPos;
             hrData.m_destRect.bottom = yPos + nHrHeight;
             SaveRowHeight(rowHeightVector, nRowIndex, nHrHeight);
-            SaveRowWidth(rowWidthVector, nRowIndex, rcDrawRect.Width());
+            saveRowWidth(nRowIndex, rcDrawRect.Width());
             SaveRowTopOffset(rowTopOffsetVector, nRowIndex, 0);
             yPos += nHrHeight;
+            nContentBottom = yPos;
             xPos = (SkScalar)rcDrawRect.left;
             rowRightX = xPos;
             nRowHeight = 0;
@@ -470,8 +483,9 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                 xPos = (SkScalar)rcDrawRect.left;
                 ASSERT(((int64_t)yPos + (int64_t)nRowHeight) < INT32_MAX);
                 yPos += nRowHeight;
+                nContentBottom = yPos;
                 SaveRowHeight(rowHeightVector, nRowIndex, nRowHeight);
-                SaveRowWidth(rowWidthVector, nRowIndex, SkScalarCeilToInt(rowRightX - rcDrawRect.left));
+                saveRowWidth(nRowIndex, SkScalarCeilToInt(rowRightX - rcDrawRect.left));
                 SaveRowTopOffset(rowTopOffsetVector, nRowIndex, nRowTopOffset);
                 rowRightX = (SkScalar)rcDrawRect.left;
                 nRowHeight = nFontHeight;
@@ -567,8 +581,9 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                         xPos = (SkScalar)rcDrawRect.left;
                         ASSERT(((int64_t)yPos + (int64_t)nRowHeight) < INT32_MAX);
                         yPos += nRowHeight;
+                        nContentBottom = yPos;
                         SaveRowHeight(rowHeightVector, nRowIndex, nRowHeight);
-                        SaveRowWidth(rowWidthVector, nRowIndex, SkScalarCeilToInt(rowRightX - rcDrawRect.left));
+                        saveRowWidth(nRowIndex, SkScalarCeilToInt(rowRightX - rcDrawRect.left));
                         SaveRowTopOffset(rowTopOffsetVector, nRowIndex, nRowTopOffset);
                         markRowParagraphEnd(nRowIndex);
                         rowRightX = (SkScalar)rcDrawRect.left;
@@ -881,8 +896,9 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                     xPos = (SkScalar)rcDrawRect.left;
                     ASSERT(((int64_t)yPos + (int64_t)nRowHeight) < INT32_MAX);
                     yPos += nRowHeight;
+                    nContentBottom = yPos;
                     SaveRowHeight(rowHeightVector, nRowIndex, nRowHeight);
-                    SaveRowWidth(rowWidthVector, nRowIndex, SkScalarCeilToInt(rowRightX - rcDrawRect.left));
+                    saveRowWidth(nRowIndex, SkScalarCeilToInt(rowRightX - rcDrawRect.left));
                     SaveRowTopOffset(rowTopOffsetVector, nRowIndex, nRowTopOffset);
                     rowRightX = (SkScalar)rcDrawRect.left;
                     nRowHeight = nFontHeight;
@@ -921,8 +937,9 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
     //不换行文本在当前行被截断时，即使该行还没有绘制任何文本，也需要记录行高（用于绘制省略号）
     if (bRowHasText || rowHeightVector.empty() || bTruncatedAtCurrentRow) {
         SaveRowHeight(rowHeightVector, nRowIndex, nRowHeight);
-        SaveRowWidth(rowWidthVector, nRowIndex, SkScalarCeilToInt(rowRightX - rcDrawRect.left));
+        saveRowWidth(nRowIndex, SkScalarCeilToInt(rowRightX - rcDrawRect.left));
         SaveRowTopOffset(rowTopOffsetVector, nRowIndex, nRowTopOffset);
+        nContentBottom = yPos + nRowHeight;
     }
 
     //文本被截断：在最后一行的末尾追加省略号（text_overflow="clip"时不追加）
@@ -1133,7 +1150,8 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
             }
         }
     }
-    return;
+    //返回内容的最大行宽和总高度（以(0,0)为起点，与入参的坐标系无关）
+    return UiRect(0, 0, nMaxRowWidth, nContentBottom - rcDrawRect.top);
 }
 
 void DrawRichText::DrawTextRun(const UiRect& textRect, const std::wstring_view& textView, size_t textCharSize,

@@ -191,7 +191,7 @@ void Bitmap_Skia::UnLockPixelBits()
     }    
 }
 
-IBitmap* Bitmap_Skia::Clone()
+std::unique_ptr<IBitmap> Bitmap_Skia::Clone() const
 {
     uint32_t nWidth = GetWidth();
     uint32_t nHeight = GetHeight();
@@ -199,17 +199,16 @@ IBitmap* Bitmap_Skia::Clone()
         return nullptr;
     }
 
-    void* pPixelBits = nullptr;
+    const void* pPixelBits = nullptr;
     SkPixmap pixmap;
     if (m_pSkBitmap->peekPixels(&pixmap)) {
-        pPixelBits = pixmap.writable_addr();
+        pPixelBits = pixmap.addr();
     }
     ASSERT(pPixelBits != nullptr);
        
-    IBitmap* pBitmap = new Bitmap_Skia();
+    std::unique_ptr<IBitmap> pBitmap = std::make_unique<Bitmap_Skia>();
     if (!pBitmap->Init(nWidth, nHeight, pPixelBits, 1.0f, FromSkAlphaType(m_pSkBitmap->info().alphaType()))) {
-        delete pBitmap;
-        pBitmap = nullptr;
+        pBitmap.reset();
     }
     return pBitmap;
 }

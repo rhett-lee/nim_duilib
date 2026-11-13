@@ -1,10 +1,10 @@
 下面的分析基于 `duilib/Render/IRender.h`，并对照 Skia 实现（`duilib/RenderSkia/Render_Skia.cpp`、`Bitmap_Skia.h`、`Path_Skia.h`、`DrawSkiaImage.cpp`）核实。
 
-> **文档状态（2026-11-13 更新）**：本报告已随"字体回退性能优化"（见 [字体回退性能优化分析.md](字体回退性能优化分析.md)）重新校准。文中代码行号以当前代码为准；每条问题均标注当前处理状态（已修复 / 部分修复 / 未处理 / 暂不处理）；新增"零、进度总览"与"九、字体回退相关接口变更记录"，便于后续跟进。
+> **文档状态（2026-11-14 更新）**：本报告已随"字体回退性能优化"（见 [字体回退性能优化分析.md](字体回退性能优化分析.md)）重新校准；2026-11-14 又完成了第四节"接口一致性问题"的第 1、2、5、6、7、8 条（`Clone` 家族、只读 const、测量返回值、魔法值、文本间距命名、取值风格）。文中代码行号以当前代码为准；每条问题均标注当前处理状态（已修复 / 部分修复 / 未处理 / 暂不处理）；"零、进度总览"与"九、字体回退相关接口变更记录"便于后续跟进。
 
-## 零、进度总览（2026-11-13）
+## 零、进度总览（2026-11-14）
 
-字体回退优化以渲染内部实现为主，但同时调整了 `IFont` / `IFontMgr` / `IFallbackFontMgr` 三个公共接口（见第九节），并顺带修复了本报告的部分"必须改"项。当前状态：
+字体回退优化以渲染内部实现为主，但同时调整了 `IFont` / `IFontMgr` / `IFallbackFontMgr` 三个公共接口（见第九节），并顺带修复了本报告的部分"必须改"项；2026-11-14 集中处理了第四节的接口一致性问题（第 1、2、5、6、7、8 条）。当前状态：
 
 | 编号 | 问题 | 位置（当前行号） | 状态 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -18,21 +18,21 @@
 | 三.4 | `RichTextData::m_textView` 编码不一致 | `IRender.h#L575-L577` | **暂不处理** | 与内部实现耦合，收益不明显 |
 | 三.5 | Windows 窗口语义混入通用接口 | `IRender.h#L1338-L1347`、`#L1412-L1429` | **部分修复** | `GetRenderDC` 已有条件编译；RGN 三个接口仍未加 `DUILIB_BUILD_FOR_WIN` |
 | 三.6 | 注释中直接写引擎名 | 见第三节第 6 条 | **部分修复** | 已清理 `AlphaType`、`DrawArc` 等处的引擎名，建议后续普查 |
-| 四.1 | `Clone` 家族所有权与 const 不统一 | `IRender.h#L186` 等 | 未处理 | 需统一为 `unique_ptr<T> Clone() const` |
-| 四.2 | 只读接口缺 const | 见第四节第 2 条 | 未处理 | 建议连同 `IFont::IsUnicodeCharSupported` 一并加 const |
+| 四.1 | `Clone` 家族所有权与 const 不统一 | `IRender.h#L185`、`#L280`、`#L289`、`#L424`、`#L1367` | **已修复** | 五个 `Clone` 统一为 `std::unique_ptr<T> Clone() const` |
+| 四.2 | 只读接口缺 const | 见第四节第 2 条 | **已修复** | 只读接口/只读指针参数全部补 const（含 `IsUnicodeCharSupported`、`BitBlt`） |
 | 四.3 | 两套裁剪状态机制并存 | `IRender.h#L897-L925` | 未处理 | 建议保留状态栈，`SetClip` 内部复用 |
-| 四.4 | `MeasureRichText*` 编号式重载膨胀 | `IRender.h#L1165-L1208` | 未处理 | 建议合并为可选出参的单接口 |
-| 四.5 | 返回值约定不一致 | 全文 | 未处理 | 测量/绘制的返回风格需统一 |
-| 四.6 | "未设置"用魔法值表达 | `IRender.h#L827` | 未处理 | 建议改为显式 `limitWidth/limitHeight` |
-| 四.7 | 文本间距模型分裂 | `IRender.h#L834`、`#L605` | 未处理 | `fWordSpacing` 与 `m_fLetterSpacing` 命名/单位需统一 |
-| 四.8 | 取值风格不一致 | `IRender.h#L24`、`#L91` | 未处理 | `FontName()` 按值返回、`GetFontName` 用出参 |
+| 四.4 | `MeasureRichText*` 编号式重载膨胀 | `IRender.h#L1174-L1219` | 未处理 | 建议合并为可选出参的单接口 |
+| 四.5 | 返回值约定不一致 | `IRender.h#L1174-L1219` | **已修复** | `MeasureRichText/2/3` 统一返回 `UiRect`（宽度=内容最大行宽，高度=内容总高度） |
+| 四.6 | "未设置"用魔法值表达 | `IRender.h#L826-L829` | **已修复** | `rectSize` 拆分为 `limitWidth` / `limitHeight`，`-1` 表示不限制 |
+| 四.7 | 文本间距模型分裂 | `IRender.h#L835`、`#L851`、`#L604` | **已修复** | `Measure/DrawStringParam::fLetterSpacing` 与 `RichTextData::m_fLetterSpacing` 命名统一 |
+| 四.8 | 取值风格不一致 | `IRender.h#L24`、`#L90` | **已修复** | `IFontMgr::GetFontName` 改为按值返回 `DString` |
 | 五.1 | `IRender` 职责过载 | 全文 | 未处理 | 需拆分绘制 / 窗口 Surface 职责 |
 | 五.2 | 富文本接口每次传 `IRenderFactory*` | `IRender.h#L1165-L1228` | 未处理 | 建议 Render 创建时注入 factory |
 | 五.3 | `rcPaint` 脏区参数 | `IRender.h#L986-L1010` | 未处理 | 建议在注释中明确空矩形语义 |
 | 五.4 | 测量依赖画布尺寸 | `Render_Skia.cpp#L1692-L1695` | 未处理 | 影响无 Surface 的纯测量场景 |
 | 六 | 缺失接口（P0/P1/P2） | 见第六节 | 未处理 | 字体回退优化未新增任何图元/裁剪/采样接口 |
 
-统计：已修复 7 项、部分修复 2 项、暂不处理 1 项、未处理 12 项、缺失接口 3 组待排期。
+统计：已修复 13 项、部分修复 2 项、暂不处理 1 项、未处理 6 项、缺失接口 3 组待排期。
 
 ## 一、结论
 
@@ -84,7 +84,7 @@
 - 位置：`IFont::IsUnicodeCharSupported(uint32_t)`（`IRender.h#L46-L50`）、`IFallbackFontMgr::CreateFallbackFont(const IFont*, uint32_t)`（`IRender.h#L63-L74`）。
 - 当前公共接口**不再出现 `SkGlyphID`**：`IsUnicodeCharSupported` 只返回 `bool`；回退接口只返回 `IFont*`，不输出字形索引。字形索引完全收敛到渲染层内部（`DrawSkiaText` / `Font_Skia`）。
 - 新增的配套接口：`IFont::GetFontMgr()`（`#L52-L55`）、`IFont::GetFontKey()`（`#L57-L60`）、`IFontMgr::SetFallbackFontMgr` / `GetFallbackFontMgr`（`#L125-L133`），详见第九节。
-- 遗留：`IsUnicodeCharSupported` 仍未加 `const`，与 `GetFontMgr() const` 风格不一致（见第四节第 2 条）。
+- `IsUnicodeCharSupported` 已于 2026-11-14 补 `const`（`Font_Skia::GetFontHandle()` 同步改为 const + `m_skFont` 声明为 `mutable`），与 `GetFontMgr() const` 风格一致（见第四节第 2 条）。
 
 ### 3. `RenderType` 是"假抽象" — **已修复**
 
@@ -108,26 +108,27 @@
 
 ## 四、接口一致性问题
 
-> 状态：本组问题截至 2026-11-13 **均未处理**（字体回退优化未触及这些接口），下列行号已按当前代码校准，可直接作为后续修改的定位依据。
+> 状态：第 1、2、5、6、7、8 条已于 2026-11-14 修复；第 3、4 条仍未处理。下列行号已按当前代码校准，可直接作为后续修改的定位依据。
 
-### 1. `Clone` 家族所有权与 const 不统一
+### 1. `Clone` 家族所有权与 const 不统一 — **已修复**
 
-| 接口 | 位置 | 返回 | const |
-| --- | --- | --- | --- |
-| `IRender::Clone` | `IRender.h#L1363` | `std::unique_ptr<IRender>` | 否 |
-| `IBitmap::Clone` | `IRender.h#L186` | `IBitmap*`（裸指针） | 否 |
-| `IPath::Clone` | `IRender.h#L425` | `IPath*`（裸指针） | 否 |
-| `IPen::Clone` | `IRender.h#L281` | `IPen*`（裸指针） | **是** |
-| `IBrush::Clone` | `IRender.h#L290` | `IBrush*`（裸指针） | 否 |
-| `IFont` / `IMatrix` | — | 无 Clone | — |
+| 接口 | 位置 | 现状 |
+| --- | --- | --- |
+| `IRender::Clone` | `IRender.h#L1367` | `std::unique_ptr<IRender> Clone() const` |
+| `IBitmap::Clone` | `IRender.h#L185` | `std::unique_ptr<IBitmap> Clone() const` |
+| `IPath::Clone` | `IRender.h#L424` | `std::unique_ptr<IPath> Clone() const` |
+| `IPen::Clone` | `IRender.h#L280` | `std::unique_ptr<IPen> Clone() const` |
+| `IBrush::Clone` | `IRender.h#L289` | `std::unique_ptr<IBrush> Clone() const` |
+| `IFont` / `IMatrix` | — | 无 Clone，维持原状 |
 
-- 建议：统一为 `std::unique_ptr<T> Clone() const`。至少要统一 const 修饰，避免"有的能克隆 const 对象、有的不能"。
+- 五个 `Clone` 已统一为 `std::unique_ptr<T> Clone() const`：所有权明确（调用方独占）、不再需要手工 `delete`、`const` 修饰一致。
+- 实现要点：`Bitmap_Skia::Clone` 在 const 方法内通过 `SkPixmap::addr()` 读像素（`Init` 入参为 `const void*`）；`Path_Skia::Clone` / `Transform` 使用新增的 `Matrix_Skia::GetMatrix() const` 重载。
 
-### 2. 只读接口缺 const
+### 2. 只读接口缺 const — **已修复**
 
-- `IPath::GetFillType()`（`IRender.h#L327`）、`IPath::GetBounds()`（`IRender.h#L413`）、`IRender::GetClipInfo()`（`IRender.h#L1393`）都只读取状态，应为 const。
-- 只读指针参数也应加 const：`IPath::Transform(IMatrix*)`（`IRender.h#L408`）、`DrawArc` 的 `UiColor* gradientColor`（`IRender.h#L1106`，实现中只读）、`DrawImage(IBitmap*)`（`IRender.h#L986`、`#L994`）、`DrawImageRect(IMatrix*)`（`IRender.h#L1008`）。
-- 字体回退优化后新增/保留的 `IFont::IsUnicodeCharSupported(uint32_t)`（`IRender.h#L50`）同样只读，建议一并加 `const`，与 `GetFontMgr() const` 保持一致。
+- 只读成员函数：`IPath::GetFillType()`（`IRender.h#L326`）、`IPath::GetBounds(const IPen*)`（`#L412`）、`IRender::GetClipInfo(std::vector<UiRect>&) const`（`#L1397`）、`IFont::IsUnicodeCharSupported(uint32_t) const`（`#L50`）均已加 `const`。
+- 只读指针参数：`IPath::Transform(const IMatrix*)`（`#L407`）、`DrawArc(..., const UiColor* gradientColor, const UiRect* gradientRect)`（`#L1105`）、`DrawImage(..., const IBitmap* pBitmap, ...)`（`#L987`、`#L995`）、`DrawImageRect(..., const IBitmap*, ..., const IMatrix* pMatrix)`（`#L1009`）、`BitBlt/StretchBlt(..., const IRender* pSrcRender, ...)`（`#L938`、`#L955`）均已加 `const`。
+- 连带改动：`Font_Skia::GetFontHandle()` 改为 `const`（字体句柄为懒加载，`m_skFont` 声明为 `mutable`），使 `IsUnicodeCharSupported` 可以保持 const；Skia 侧的 `dynamic_cast` 目标同步改为 `const Render_Skia*` / `const Bitmap_Skia*` / `const Matrix_Skia*`。
 
 ### 3. 两套裁剪状态机制并存
 
@@ -149,26 +150,32 @@
                                std::vector<std::vector<UiRect>>* pRichTextRects = nullptr) = 0;
   ```
 
-### 5. 返回值约定不一致
+### 5. 返回值约定不一致 — **已修复**
 
-- `MeasureString` 返回 `UiRect`，`MeasureRichText*` 返回 `void`（结果只能从出参拿）。
-- 绝大多数绘制接口返回 `void`，`CreateDrawRichTextCache` / `WritePixels` / `ReadPixels` 返回 `bool`。
-- 建议：测量类统一返回尺寸；绘制类要么统一 `void`（并明确"内部 ASSERT + 静默忽略"），要么统一 `bool`。不要同一族接口两种风格混用。
+- 测量族统一返回尺寸：`MeasureString` 原本就返回 `UiRect`；`MeasureRichText` / `MeasureRichText2` / `MeasureRichText3`（`IRender.h#L1174`、`#L1189`、`#L1206`）改为返回 `UiRect`，不再依赖出参。
+- 返回值约定：以 `(0,0)` 为起点，**宽度为内容的最大行宽，高度为内容的总高度**（与入参矩形的坐标无关，可直接作为布局尺寸使用）。实现上由 `DrawRichText::InternalDrawRichText` 在布局过程中同步累计最大行宽与内容底端坐标得到。
+- 绘制族保持统一 `void`（内部 ASSERT + 静默忽略失败），`CreateDrawRichTextCache` / `WritePixels` / `ReadPixels` 等"创建/IO"族保持 `bool`；两类职责清晰，不再出现同一族接口两种风格。
 
-### 6. "未设置"用魔法值表达
+### 6. "未设置"用魔法值表达 — **已修复**
 
-- 位置：`MeasureStringParam::rectSize = DUI_NOSET_VALUE`（`IRender.h#L827`）。
-- 同一字段在横向文本表示"限制宽度"、纵向文本表示"限制高度"，语义随 `uFormat` 变化，且用魔法值表示"不设置"。
-- 建议：改为 `int32_t limitWidth = -1; int32_t limitHeight = -1;`，或使用 `std::optional<int32_t>`。
+- `MeasureStringParam::rectSize`（原 `= DUI_NOSET_VALUE`）已拆分为两个语义明确的字段（`IRender.h#L826-L828`）：
+  ```cpp
+  int32_t limitWidth = -1;   //横向文本的限制宽度（像素），-1表示不限制
+  int32_t limitHeight = -1;  //纵向文本的限制高度（像素），-1表示不限制
+  ```
+- 调用方按文本方向二选一赋值：`TextDrawer` 用 `limitWidth`；`LabelImpl` 按 `IsVerticalText()` 赋值 `limitWidth` 或 `limitHeight`；`ChatMessageList` / `Stepper` / `Timeline` 的横向测量统一用 `limitWidth`。
+- `-1` 表示不限制，`0` 仍是合法的限制值（空宽度/高度），与原 `rectSize` 的语义边界保持一致。
 
-### 7. 文本间距模型分裂
+### 7. 文本间距模型分裂 — **已修复**
 
-- `DrawStringParam` / `MeasureStringParam` 只有 `fWordSpacing`（`IRender.h#L834`、`#L850`），`RichTextData` 有 `m_fLetterSpacing`（`IRender.h#L605`）。
-- 两者都描述"字与字之间的间距"，命名和单位却不统一，容易误用。字体回退优化后两个字段仍并存（内部实现分别处理），建议在接口注释中互相引用，或统一命名（如 `letterSpacing`）和语义。
+- `DrawStringParam` / `MeasureStringParam` 的 `fWordSpacing` 已改名为 `fLetterSpacing`（`IRender.h#L835`、`#L851`），与 `RichTextData::m_fLetterSpacing`（`#L604`）命名一致，注释中注明"与 `RichTextData::m_fLetterSpacing` 语义一致"，单位统一为像素。
+- 内部实现同步改名：`HorizontalDrawText` / `VerticalDrawText` 的局部变量与辅助函数入参（原 `fWordHorizontalSpacing` / `fWordVerticalSpacing`）、`TextDrawer::UpdateTextDrawProps` 的入参均统一为 `fLetterSpacing`。
+- 说明：控件层 `Label::SetWordSpacing` 及其 XML 属性 `word_spacing` 属于对外 UI 属性，名称保持不变，内部赋值到 `fLetterSpacing`，避免破坏现有资源文件。
 
-### 8. 取值风格不一致
+### 8. 取值风格不一致 — **已修复**
 
-- `IFont::FontName()` 按值返回 `DString`（`IRender.h#L24`），`IFontMgr::GetFontName(uint32_t, DString&)` 用出参（`IRender.h#L91`）。建议统一（优先按值返回，或返回 `const DString&`）。
+- `IFontMgr::GetFontName` 由出参 `bool GetFontName(uint32_t, DString&) const` 改为按值返回 `DString GetFontName(uint32_t) const`（`IRender.h#L90`），与 `IFont::FontName()`（`#L24`）风格一致；下标无效或获取失败时返回空字符串，调用方以 `empty()` 判断。
+- 调用方 `FontManager::GetFontNameList` 已同步改为返回值判断。
 
 ## 五、职责过载与结构性问题
 
@@ -271,7 +278,8 @@ virtual void SetImageSamplingQuality(ImageSamplingQuality quality) = 0;
    - ✅ `RopMode` 收敛（补齐四种模式的映射，并在注释中标注限制）；
    - ✅ `uFade` 语义明确为"与颜色 Alpha 相乘"，绘制类接口全部生效；
    - ✅ `WritePixels` 源数据改为 `const void*`；
-   - ⬜ **未完成：const 修正**——`GetFillType`、`GetBounds`、`GetClipInfo`、`Transform(IMatrix*)`、`DrawArc` 的 `gradientColor`、`DrawImage(IBitmap*)`、`DrawImageRect(IMatrix*)`，以及 `IFont::IsUnicodeCharSupported`。
+   - ✅ **const 修正（2026-11-14 完成）**：`GetFillType`、`GetBounds`、`GetClipInfo`、`Transform(IMatrix*)`、`DrawArc` 的 `gradientColor/gradientRect`、`DrawImage(IBitmap*)`、`DrawImageRect(IBitmap*/IMatrix*)`、`BitBlt/StretchBlt` 的源 `IRender*`，以及 `IFont::IsUnicodeCharSupported`；
+   - ✅ **一致性修正（2026-11-14 完成）**：`Clone` 家族统一为 `unique_ptr<T> Clone() const`；`MeasureRichText*` 返回 `UiRect`；`rectSize` 拆分为 `limitWidth`/`limitHeight`；`fWordSpacing` 统一为 `fLetterSpacing`；`IFontMgr::GetFontName` 改为按值返回（详见第十节）。
 
 2. **第二批（只增不改，补常用能力）— 未开始**
    - `DrawEllipse` / `FillEllipse`；
@@ -308,8 +316,31 @@ virtual void SetImageSamplingQuality(ImageSamplingQuality quality) = 0;
 | `BitmapAlphaType` | `BitmapAlphaType::{kUnknown_SkAlphaType, ...}` | `AlphaType::{kUnknown, kOpaque, kPremul, kUnpremul}` | 去 Skia 化，`Bitmap_Skia` 内部做双向映射；`IBitmap::Init` 的默认参数同步更新 |
 | `RenderType` / `IRender::GetRenderType` | `RenderType::kRenderType_Skia` | 已删除 | 使用 `GetRenderBackendType()` 区分后端；原调用方删除对应 `switch` 分支 |
 
-**未变化的接口**（调用方无需改动）：`DrawString` / `MeasureString` / `DrawRichText` / `MeasureRichText*` / `CreateDrawRichTextCache` / `DrawRichTextCacheData`、`RichTextData`、`DrawStringParam`、`MeasureStringParam`，以及 `IBitmap` 除 `AlphaType` 命名外的其它方法。
+**本轮（字体回退，2026-11-13）未变化的接口**：`DrawString` / `MeasureString` / `DrawRichText` / `CreateDrawRichTextCache` / `DrawRichTextCacheData`、`RichTextData`，以及 `IBitmap` 除 `AlphaType` 命名外的其它方法。
+
+> 注意：`MeasureRichText*` 的返回类型、`DrawStringParam` / `MeasureStringParam` 的字段（`rectSize`、`fWordSpacing`）已在 2026-11-14 的接口一致性调整中变更，见第十节。
 
 **渲染层内部类型（不属于公共接口，可自由调整）**：`DrawSkiaText` / `SkTextBox` / `TextGlyphRunList` / `TextLineLayout` 均在 `duilib/RenderSkia` 目录内，`SkGlyphID`、`SkFont`、run 批量绘制等细节只出现在这些头文件中；`IRender.h` 中已不再出现 Skia 类型。
 
 **测试覆盖**：`tests/test_text_draw.cpp` 通过真实的 `FontMgr_Skia` + 主字体 + 回退字体链，覆盖"主字体不支持 → 回退字体命中 → glyph 0 时绘制方框占位"的完整链路，以及测量、断行、run 构建与横排/竖排绘制；`ctest` 已注册 `text_draw` 用例。
+
+## 十、接口一致性调整记录（2026-11-14）
+
+本轮只做接口一致性修正，不改变绘制/测量的视觉效果。变更已同步 `Render_Skia` 实现、控件层调用方与单元测试，`ctest` 8/8 通过（`text_draw` 202 项检查，0 失败）。
+
+| 接口 / 字段 | 变更前 | 变更后 | 影响 |
+| --- | --- | --- | --- |
+| `IBitmap` / `IPath` / `IPen` / `IBrush` / `IRender::Clone` | 裸指针、const 不统一 | `std::unique_ptr<T> Clone() const` | 调用方改用 `unique_ptr` 持有并删除手工 `delete`；仓库内暂无其它调用方 |
+| `IPath::GetFillType` / `GetBounds` | 非 const | `const` | 可对 const 路径对象调用 |
+| `IPath::Transform(IMatrix*)` | 非 const 指针 | `const IMatrix*` | 实参不变，仅收紧 |
+| `IRender::GetClipInfo` | 非 const | `const` | 可对 const Render 调用 |
+| `DrawArc` 的渐变参数 | `UiColor*` / `UiRect*` | `const UiColor*` / `const UiRect*` | 实参不变 |
+| `DrawImage` / `DrawImageRect` | `IBitmap*` / `IMatrix*` | `const IBitmap*` / `const IMatrix*` | 实参不变 |
+| `BitBlt` / `StretchBlt` 的源 | `IRender*` | `const IRender*` | 实参不变 |
+| `IFont::IsUnicodeCharSupported` | 非 const | `const` | 自定义 `IFont` 实现需同步改签名 |
+| `MeasureRichText` / `MeasureRichText2` / `MeasureRichText3` | 返回 `void` | 返回 `UiRect`（宽=内容最大行宽，高=内容总高度，原点为 `(0,0)`） | 可忽略返回值；使用返回值的代码按新语义接入 |
+| `MeasureStringParam::rectSize` | `int32_t rectSize = DUI_NOSET_VALUE` | `int32_t limitWidth` / `int32_t limitHeight`（默认 `-1` 表示不限制） | 调用方按文本方向改用对应字段 |
+| `DrawStringParam` / `MeasureStringParam::fWordSpacing` | `fWordSpacing` | `fLetterSpacing` | 调用方改用新字段名；控件层 `SetWordSpacing` 与 XML 属性 `word_spacing` 保持不变 |
+| `IFontMgr::GetFontName` | `bool GetFontName(uint32_t, DString&) const` | `DString GetFontName(uint32_t) const` | 自定义 `IFontMgr` 实现需同步；调用方改为返回值判断空串 |
+
+**测试补充**：`tests/test_text_draw.cpp` 新增 `MeasureRichText` 返回值契约校验——原点为 `(0,0)`、宽度不超过限制宽度、限制宽度越小（换行越多）内容总高度越大（共 7 项检查）。

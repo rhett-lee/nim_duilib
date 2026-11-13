@@ -28,9 +28,9 @@ Path_Skia::Path_Skia(const Path_Skia& r)
     }
 }
 
-ui::IPath* Path_Skia::Clone()
+std::unique_ptr<IPath> Path_Skia::Clone() const
 {
-    return new Path_Skia(*this);
+    return std::make_unique<Path_Skia>(*this);
 }
 
 void Path_Skia::Reset()
@@ -63,7 +63,7 @@ void Path_Skia::SetFillType(FillType mode)
     }
 }
 
-IPath::FillType Path_Skia::GetFillType()
+IPath::FillType Path_Skia::GetFillType() const
 {
     IPath::FillType fillType = FillType::kWinding;
     SkPathFillType skPathFillType = m_skPathBuilder->fillType();
@@ -263,17 +263,17 @@ void Path_Skia::AddPolygon(const UiPointF* points, int32_t count)
     m_skPathBuilder->addPolygon(SkSpan<const SkPoint>(skPts.data(), count), false);
 }
 
-void Path_Skia::Transform(IMatrix* pMatrix)
+void Path_Skia::Transform(const IMatrix* pMatrix)
 {
     if (pMatrix != nullptr) {
-        Matrix_Skia* pSkMatrix = dynamic_cast<Matrix_Skia*>(pMatrix);
+        const Matrix_Skia* pSkMatrix = dynamic_cast<const Matrix_Skia*>(pMatrix);
         if (pSkMatrix != nullptr) {
             m_skPathBuilder->transform(*pSkMatrix->GetMatrix());
         }
     }
 }
 
-ui::UiRect Path_Skia::GetBounds(const IPen* /*pen*/)
+ui::UiRect Path_Skia::GetBounds(const IPen* /*pen*/) const
 {
     //修复：空路径/非有限路径时 computeFiniteBounds 返回 nullopt，bounds 必须是确定值（原来是未初始化内存）
     SkRect bounds = SkRect::MakeEmpty();

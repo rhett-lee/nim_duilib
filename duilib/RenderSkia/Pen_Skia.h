@@ -71,7 +71,7 @@ public:
 
     /** 复制Pen对象
     */
-    virtual IPen* Clone() const override;
+    virtual std::unique_ptr<IPen> Clone() const override;
 
 private:
     /** 画笔颜色

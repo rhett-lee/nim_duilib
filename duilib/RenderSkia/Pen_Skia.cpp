@@ -24,9 +24,9 @@ Pen_Skia::Pen_Skia(const Pen_Skia& r)
     m_dashStyle = r.m_dashStyle;
 }
 
-ui::IPen* Pen_Skia::Clone() const
+std::unique_ptr<IPen> Pen_Skia::Clone() const
 {
-    return new Pen_Skia(*this);
+    return std::make_unique<Pen_Skia>(*this);
 }
 
 void Pen_Skia::SetWidth(float fWidth)

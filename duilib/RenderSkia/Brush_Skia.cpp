@@ -12,9 +12,9 @@ Brush_Skia::Brush_Skia(const Brush_Skia& r):
 {
 }
 
-ui::IBrush* Brush_Skia::Clone()
+std::unique_ptr<IBrush> Brush_Skia::Clone() const
 {
-    return new Brush_Skia(*this);
+    return std::make_unique<Brush_Skia>(*this);
 }
 
 UiColor Brush_Skia::GetColor() const

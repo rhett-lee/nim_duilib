@@ -59,7 +59,7 @@ private:
      * @param [in] bSingleLineMode true表示单行文本模式，true表示多行文本模式
      * @param [in] fSpacingMul 行间距倍数: 字体大小的倍数比例（默认值通常为 1.0，即 100% 字体大小），用于按比例调整行间距
      * @param [in] fSpacingAdd 行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素）
-     * @param [in] fWordHorizontalSpacing 每个字在横向的间隔（像素）
+     * @param [in] fLetterSpacing 每个字在横向的间隔（像素）
      * @param [in] fDefaultCharWidth 默认的列宽
      * @param [in] fDefaultCharHeight 默认的行高
      * @param [out] pColumnRows 返回每列每行字符在charRects容器中对应的下标值
@@ -68,7 +68,7 @@ private:
      * @return 包含所有字符的总绘制矩形（SkRect）
      */
     SkRect CalculateHorizontalTextBounds(const std::vector<THorizontalChar>& charRects, int32_t width, bool bSingleLineMode,
-                                         float fSpacingMul, float fSpacingAdd, float fWordHorizontalSpacing,
+                                         float fSpacingMul, float fSpacingAdd, float fLetterSpacing,
                                          float fDefaultCharWidth, float fDefaultCharHeight,
                                          std::vector<std::vector<int32_t>>* pRowColumns,
                                          std::vector<float>* pRowHeights,

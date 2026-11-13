@@ -2055,7 +2055,7 @@ int32_t ChatMessageList::MeasureTextHeight(IRender* pRender, const DString& strT
     }
     MeasureStringParam param;
     param.pFont = GetIFontById(strFontId);
-    param.rectSize = nWidth;
+    param.limitWidth = nWidth;
     UiRect rc = pRender->MeasureString(strText, param);
     return rc.Height();
 }

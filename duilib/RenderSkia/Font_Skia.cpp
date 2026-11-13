@@ -87,7 +87,7 @@ bool Font_Skia::InitFont(const UiFont& fontInfo)
     return true;
 }
 
-const SkFont* Font_Skia::GetFontHandle()
+const SkFont* Font_Skia::GetFontHandle() const
 {
     if (m_skFont != nullptr) {
         return m_skFont;
@@ -99,7 +99,7 @@ const SkFont* Font_Skia::GetFontHandle()
     return m_skFont;
 }
 
-bool Font_Skia::IsUnicodeCharSupported(uint32_t unicodeChar)
+bool Font_Skia::IsUnicodeCharSupported(uint32_t unicodeChar) const
 {
     if (unicodeChar != 0) {
         const SkFont* pSkFont = GetFontHandle();

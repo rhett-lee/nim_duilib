@@ -29,16 +29,17 @@ public:
 public:
 
     /** 绘制格式文本
+    * @return 返回文字内容的宽度和高度（宽度为内容的最大行宽，高度为内容总高度）；返回值与入参坐标系无关，始终以(0,0)为起点
     */
-    void InternalDrawRichText(const UiRect& rcTextRect,
-                              const UiSize& szScrollOffset,
-                              IRenderFactory* pRenderFactory, 
-                              const std::vector<RichTextData>& richTextData,                   
-                              uint8_t uFade,
-                              bool bMeasureOnly,
-                              RichTextLineInfoParam* pLineInfoParam,
-                              std::shared_ptr<DrawRichTextCache>* pDrawRichTextCache,
-                              std::vector<std::vector<UiRect>>* pRichTextRects);
+    UiRect InternalDrawRichText(const UiRect& rcTextRect,
+                                const UiSize& szScrollOffset,
+                                IRenderFactory* pRenderFactory,
+                                const std::vector<RichTextData>& richTextData,
+                                uint8_t uFade,
+                                bool bMeasureOnly,
+                                RichTextLineInfoParam* pLineInfoParam,
+                                std::shared_ptr<DrawRichTextCache>* pDrawRichTextCache,
+                                std::vector<std::vector<UiRect>>* pRichTextRects);
 
     /** 判断RichText的绘制缓存是否有效
     * @param [in] textRect 绘制文本的矩形区域

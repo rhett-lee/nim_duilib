@@ -341,7 +341,7 @@ int main(int argc, char* argv[])
         benchCase.m_nCharCount = strSingleLine.length();
         benchCase.m_run = [&]() {
             ui::MeasureStringParam measureParam;
-            measureParam.rectSize = rcSingleLine.Width();
+            measureParam.limitWidth = rcSingleLine.Width();
             measureParam.pFont = pFont.get();
             measureParam.uFormat = ui::TEXT_LEFT | ui::TEXT_SINGLELINE;
             pRender->MeasureString(strSingleLine, measureParam);
@@ -374,7 +374,7 @@ int main(int argc, char* argv[])
         benchCase.m_nCharCount = strMultiLine.length();
         benchCase.m_run = [&]() {
             ui::MeasureStringParam measureParam;
-            measureParam.rectSize = rcMultiLine.Width();
+            measureParam.limitWidth = rcMultiLine.Width();
             measureParam.pFont = pFont.get();
             measureParam.uFormat = ui::TEXT_LEFT;
             pRender->MeasureString(strMultiLine, measureParam);
@@ -462,7 +462,7 @@ int main(int argc, char* argv[])
             drawParam.dwTextColor = textColor;
             drawParam.pFont = pFont.get();
             drawParam.uFormat = ui::TEXT_LEFT | ui::TEXT_TOP;
-            drawParam.fWordSpacing = 2.0f;
+            drawParam.fLetterSpacing = 2.0f;
             pRender->DrawString(strMultiLine, drawParam);
         };
         benchCaseList.push_back(benchCase);

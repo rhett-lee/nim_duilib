@@ -53,12 +53,12 @@ public:
     * @param [in] unicodeChar UTF32字符
     * @return 支持该字符返回true，否则返回false
     */
-    virtual bool IsUnicodeCharSupported(uint32_t unicodeChar) override;
+    virtual bool IsUnicodeCharSupported(uint32_t unicodeChar) const override;
 
 public:
-    /** 获取字体句柄
+    /** 获取字体句柄（懒加载：首次调用时创建Skia字体对象）
     */
-    const SkFont* GetFontHandle();
+    const SkFont* GetFontHandle() const;
 
     /** 获取字体管理器接口
     */
@@ -77,8 +77,8 @@ private:
     //字体信息
     UiFont m_uiFont;
 
-    //字体句柄
-    SkFont* m_skFont;
+    //字体句柄（懒加载，const接口中也可创建，故声明为mutable）
+    mutable SkFont* m_skFont;
 
     //字体管理器
     std::shared_ptr<IFontMgr> m_spFontMgr;

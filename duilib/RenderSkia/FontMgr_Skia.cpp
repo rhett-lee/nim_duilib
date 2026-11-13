@@ -233,30 +233,27 @@ uint32_t FontMgr_Skia::GetFontCount() const
     return nFontCount;
 }
 
-bool FontMgr_Skia::GetFontName(uint32_t nIndex, DString& fontName) const
+DString FontMgr_Skia::GetFontName(uint32_t nIndex) const
 {
-    fontName.clear();
     ASSERT(m_impl->m_pSkFontMgr != nullptr);
     if (m_impl->m_pSkFontMgr == nullptr) {
-        return false;
+        return DString();
     }
 
     uint32_t nFontCount = GetFontCount();
     ASSERT(nIndex < nFontCount);
     if (nIndex >= nFontCount) {
-        return false;
+        return DString();
     }
     if (nIndex < (uint32_t)m_impl->m_pSkFontMgr->countFamilies()) {
         SkString fontFamilyName;
         m_impl->m_pSkFontMgr->getFamilyName((int)nIndex, &fontFamilyName);
-        fontName = StringConvert::UTF8ToT(fontFamilyName.c_str());
+        return StringConvert::UTF8ToT(fontFamilyName.c_str());
     }
     else {
         uint32_t nFontFileIndex = nIndex - (uint32_t)m_impl->m_pSkFontMgr->countFamilies();
-        fontName = m_impl->m_fontFileMgr.GetFontName(nFontFileIndex);
+        return m_impl->m_fontFileMgr.GetFontName(nFontFileIndex);
     }
-
-    return !fontName.empty();
 }
 
 bool FontMgr_Skia::HasFontName(const DString& fontName) const

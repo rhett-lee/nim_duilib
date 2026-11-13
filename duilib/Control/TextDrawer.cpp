@@ -119,7 +119,7 @@ const DString& TextDrawer::GetPlainText(const DString& strText)
     return richTextState.m_sPlainText;
 }
 
-void TextDrawer::UpdateTextDrawProps(uint32_t uFormat, float fSpacingMul, float fSpacingAdd, float fWordSpacing, const DString& fontId)
+void TextDrawer::UpdateTextDrawProps(uint32_t uFormat, float fSpacingMul, float fSpacingAdd, float fLetterSpacing, const DString& fontId)
 {
     if ((m_pRichTextState == nullptr) || (m_pRichTextState->m_pRichText == nullptr)) {
         return;
@@ -151,7 +151,7 @@ void TextDrawer::UpdateTextDrawProps(uint32_t uFormat, float fSpacingMul, float 
     }
     richText.SetWordWrap(uFormat & TEXT_SINGLELINE ? false : true);
     //字间距与结尾省略号：与其他控件保持一致
-    richText.SetLetterSpacing(fWordSpacing);
+    richText.SetLetterSpacing(fLetterSpacing);
     richText.SetTextOverflowEllipsis((uFormat & TEXT_END_ELLIPSIS) != 0);
     richText.SetFontId(fontId);
 }
@@ -185,7 +185,7 @@ UiRect TextDrawer::MeasureString(IRender* pRender,
         }
         richTextState.m_pRichText->SetEnableRedraw(false);
         SyncWindow(pOwner); //仅在窗口变化时切换，避免每次测量都触发RichText重新解析
-        UpdateTextDrawProps(measureParam.uFormat, measureParam.fSpacingMul, measureParam.fSpacingAdd, measureParam.fWordSpacing, fontId);
+        UpdateTextDrawProps(measureParam.uFormat, measureParam.fSpacingMul, measureParam.fSpacingAdd, measureParam.fLetterSpacing, fontId);
 
         //以实际文本内容作为缓存键：测量文本与绘制文本不同时，也能正确重新解析
         if (richTextState.m_sRichTextText != strText) {
@@ -195,7 +195,7 @@ UiRect TextDrawer::MeasureString(IRender* pRender,
         richTextState.m_pRichText->SetEnableRedraw(true);
 
         UiSize szAvailable;
-        szAvailable.cx = measureParam.rectSize;
+        szAvailable.cx = (measureParam.limitWidth >= 0) ? measureParam.limitWidth : INT32_MAX;
         szAvailable.cy = 0;
         UiSize szEstimateSize = richTextState.m_pRichText->EstimateText(szAvailable);
         rcMessure.right = rcMessure.left + szEstimateSize.cx;
@@ -239,7 +239,7 @@ void TextDrawer::DrawString(IRender* pRender,
         richTextState.m_pRichText->SetRect(drawParam.textRect);//不调用SetPos函数，避免产生回调等事件
         richTextState.m_pRichText->SetPaintAlpha(drawParam.uFade);//仅设置绘制透明度，避免在绘制过程中触发窗口重绘
         richTextState.m_pRichText->SetTextColor(pOwner->GetColorString(drawParam.dwTextColor));
-        UpdateTextDrawProps(drawParam.uFormat, drawParam.fSpacingMul, drawParam.fSpacingAdd, drawParam.fWordSpacing, fontId);
+        UpdateTextDrawProps(drawParam.uFormat, drawParam.fSpacingMul, drawParam.fSpacingAdd, drawParam.fLetterSpacing, fontId);
 
         //以实际文本内容作为缓存键：测量文本与绘制文本不同时，也能正确重新解析
         if (richTextState.m_sRichTextText != strText) {

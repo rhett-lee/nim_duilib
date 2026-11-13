@@ -75,10 +75,10 @@ private:
     * @param [in] uFormat 文字的格式，参见 enum DrawStringFormat 类型定义
     * @param [in] fSpacingMul 行间距倍数: 字体大小的倍数比例（默认值通常为 1.0，即 100% 字体大小）
     * @param [in] fSpacingAdd 行间距附加量: 是固定的附加像素值（默认值通常为 0）
-    * @param [in] fWordSpacing 两个相邻字符之间的间隔（像素，已经完成DPI缩放）
+    * @param [in] fLetterSpacing 两个相邻字符之间的间隔（像素，已经完成DPI缩放）
     * @param [in] fontId 默认的字体ID
     */
-    void UpdateTextDrawProps(uint32_t uFormat, float fSpacingMul, float fSpacingAdd, float fWordSpacing, const DString& fontId);
+    void UpdateTextDrawProps(uint32_t uFormat, float fSpacingMul, float fSpacingAdd, float fLetterSpacing, const DString& fontId);
 
 private:
     /** RichText模式使用的实现与缓存（仅在需要时创建，普通文本模式不占用这部分内存）

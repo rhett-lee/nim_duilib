@@ -915,7 +915,7 @@ int32_t Stepper::MeasureTextHeight(IRender* pRender, const DString& strText, int
     }
     MeasureStringParam param;
     param.pFont = GetIFontById(strFontId);
-    param.rectSize = nWidth;
+    param.limitWidth = nWidth;
     UiRect rc = pRender->MeasureString(strText, param);
     return rc.Height();
 }

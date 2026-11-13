@@ -623,10 +623,10 @@ void FontManager::GetFontNameList(std::vector<DString>& fontNameList) const
     if (pFontMgr == nullptr) {
         return;
     }
-    DString fontName;
     uint32_t nFontCount = pFontMgr->GetFontCount();
     for (uint32_t nIndex = 0; nIndex < nFontCount; ++nIndex) {
-        if (pFontMgr->GetFontName(nIndex, fontName)) {
+        DString fontName = pFontMgr->GetFontName(nIndex);
+        if (!fontName.empty()) {
             fontNameList.push_back(fontName);
         }
     }

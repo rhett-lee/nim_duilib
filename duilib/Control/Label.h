@@ -235,7 +235,7 @@ public:
 
 public:
     /** 获取当前评估绘制文字的参数
-    * @return 返回当前设置的参数，不含rectSize字段的值
+    * @return 返回当前设置的参数，不含limitWidth/limitHeight字段的值
     */
     MeasureStringParam GetMeasureParam() const;
 

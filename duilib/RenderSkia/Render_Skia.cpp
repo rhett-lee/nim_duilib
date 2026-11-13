@@ -343,7 +343,7 @@ void Render_Skia::SetRopMode(SkPaint& skPaint, RopMode rop) const
     }
 }
 
-bool Render_Skia::BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, RopMode rop)
+bool Render_Skia::BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, const IRender* pSrcRender, int32_t xSrc, int32_t ySrc, RopMode rop)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     ASSERT(pSrcRender != nullptr);
@@ -355,7 +355,7 @@ bool Render_Skia::BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, IRender* 
         return false;
     }
 
-    Render_Skia* pSkiaRender = dynamic_cast<Render_Skia*>(pSrcRender);
+    const Render_Skia* pSkiaRender = dynamic_cast<const Render_Skia*>(pSrcRender);
     ASSERT(pSkiaRender != nullptr);
     if (pSkiaRender == nullptr) {
         return false;
@@ -391,7 +391,7 @@ bool Render_Skia::BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, IRender* 
     return false;
 }
 
-bool Render_Skia::StretchBlt(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc, RopMode rop)
+bool Render_Skia::StretchBlt(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest, const IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc, RopMode rop)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     ASSERT(pSrcRender != nullptr);
@@ -403,7 +403,7 @@ bool Render_Skia::StretchBlt(int32_t xDest, int32_t yDest, int32_t widthDest, in
         return false;
     }
 
-    Render_Skia* pSkiaRender = dynamic_cast<Render_Skia*>(pSrcRender);
+    const Render_Skia* pSkiaRender = dynamic_cast<const Render_Skia*>(pSrcRender);
     ASSERT(pSkiaRender != nullptr);
     if (pSkiaRender == nullptr) {
         return false;
@@ -563,7 +563,7 @@ static int32_t CalcDrawImageTimes(int32_t nAvailableSpace, int32_t nImageSize, i
     return drawTimes;
 }
 
-void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
+void Render_Skia::DrawImage(const UiRect& rcPaint, const IBitmap* pBitmap,
                             const UiRect& rcDest, const UiRect& rcDestCorners,
                             const UiRect& rcSource, const UiRect& rcSourceCorners,
                             uint8_t uFade,
@@ -595,7 +595,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
     if (skCanvas == nullptr) {
         return;
     }
-    Bitmap_Skia* skiaBitmap = dynamic_cast<Bitmap_Skia*>(pBitmap);
+    const Bitmap_Skia* skiaBitmap = dynamic_cast<const Bitmap_Skia*>(pBitmap);
     ASSERT(skiaBitmap != nullptr);
     if (skiaBitmap == nullptr) {
         return;
@@ -880,7 +880,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
     }
 }
 
-void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
+void Render_Skia::DrawImage(const UiRect& rcPaint, const IBitmap* pBitmap,
                             const UiRect& rcDest, const UiRect& rcSource,
                             uint8_t uFade,
                             const TiledDrawParam* pTiledDrawParam,
@@ -894,9 +894,9 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
                      uFade, pTiledDrawParam, bWindowShadowMode);
 }
 
-void Render_Skia::DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,
+void Render_Skia::DrawImageRect(const UiRect& rcPaint, const IBitmap* pBitmap,
                                 const UiRect& rcDest, const UiRect& rcSource,
-                                uint8_t uFade, IMatrix* pMatrix)
+                                uint8_t uFade, const IMatrix* pMatrix)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     if (pMatrix == nullptr) {
@@ -927,7 +927,7 @@ void Render_Skia::DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,
     //默认值就是kSrcOver
     skPaint.setBlendMode(SkBlendMode::kSrcOver);
 
-    Bitmap_Skia* skiaBitmap = dynamic_cast<Bitmap_Skia*>(pBitmap);
+    const Bitmap_Skia* skiaBitmap = dynamic_cast<const Bitmap_Skia*>(pBitmap);
     ASSERT(skiaBitmap != nullptr);
     if (skiaBitmap == nullptr) {
         return;
@@ -944,7 +944,7 @@ void Render_Skia::DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,
 
     bool isMatrixSet = false;
     if (pMatrix != nullptr) {
-        Matrix_Skia* pSkMatrix = dynamic_cast<Matrix_Skia*>(pMatrix);
+        const Matrix_Skia* pSkMatrix = dynamic_cast<const Matrix_Skia*>(pMatrix);
         if (pSkMatrix != nullptr) {
             SkM44 skM44(*pSkMatrix->GetMatrix());
             skCanvas->setMatrix(skM44);
@@ -1314,7 +1314,7 @@ void Render_Skia::FillCircle(const UiPointF& centerPt, float radius, UiColor dwC
 
 void Render_Skia::DrawArc(const UiRect& rc, float startAngle, float sweepAngle, bool useCenter, 
                           const IPen* pen, 
-                          UiColor* gradientColor,
+                          const UiColor* gradientColor,
                           const UiRect* gradientRect)
 {
     ASSERT(pen != nullptr);
@@ -1555,7 +1555,7 @@ void Render_Skia::DrawString(const DString& strText, const DrawStringParam& draw
         VerticalDrawText drawTextUtil(GetSkCanvas(), m_pSkPaint.get(), m_pSkPointOrg.get());
         return drawTextUtil.DrawString(strText, drawParam);
     }
-    else if ((drawParam.uFormat & TEXT_HJUSTIFY) || (drawParam.fWordSpacing > 0.0001f)) {
+    else if ((drawParam.uFormat & TEXT_HJUSTIFY) || (drawParam.fLetterSpacing > 0.0001f)) {
         //当横向文本，对齐方式设置为两端对齐时，或者设置了字间距时，使用该实现方案（因为修改SkTextBox的实现比较困难，维护难度高）
         HorizontalDrawText drawTextUtil(GetSkCanvas(), m_pSkPaint.get(), m_pSkPointOrg.get());
         return drawTextUtil.DrawString(strText, drawParam);
@@ -1698,7 +1698,7 @@ UiRect Render_Skia::MeasureString(const DString& strText, const MeasureStringPar
         VerticalDrawText drawTextUtil(GetSkCanvas(), m_pSkPaint.get(), m_pSkPointOrg.get());
         return drawTextUtil.MeasureString(strText, measureParam);
     }
-    else if ((measureParam.uFormat & TEXT_HJUSTIFY) || (measureParam.fWordSpacing > 0.0001f)) {
+    else if ((measureParam.uFormat & TEXT_HJUSTIFY) || (measureParam.fLetterSpacing > 0.0001f)) {
         //当横向文本，对齐方式设置为两端对齐时，或者设置了字间距时，使用该实现方案（因为修改SkTextBox的实现比较困难，维护难度高）
         HorizontalDrawText drawTextUtil(GetSkCanvas(), m_pSkPaint.get(), m_pSkPointOrg.get());
         return drawTextUtil.MeasureString(strText, measureParam);
@@ -1786,7 +1786,7 @@ UiRect Render_Skia::MeasureString(const DString& strText, const MeasureStringPar
     }
     else {
         //多行模式
-        int32_t nRectWidth = measureParam.rectSize;
+        int32_t nRectWidth = measureParam.limitWidth;
         if (nRectWidth <= 0) {
             nRectWidth = INT32_MAX;
         }
@@ -1849,17 +1849,17 @@ UiRect Render_Skia::MeasureString(const DString& strText, const MeasureStringPar
     }
 }
 
-void Render_Skia::MeasureRichText(const UiRect& textRect,
+UiRect Render_Skia::MeasureRichText(const UiRect& textRect,
                                   const UiSize& szScrollOffset,
                                   IRenderFactory* pRenderFactory,
                                   const std::vector<RichTextData>& richTextData,
                                   std::vector<std::vector<UiRect>>* pRichTextRects)
 {
-     ui::DrawRichText drawRichText(this, GetSkCanvas(), m_pSkPaint.get(), m_pSkPointOrg.get());
-    drawRichText.InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true, nullptr, nullptr, pRichTextRects);
+    ui::DrawRichText drawRichText(this, GetSkCanvas(), m_pSkPaint.get(), m_pSkPointOrg.get());
+    return drawRichText.InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true, nullptr, nullptr, pRichTextRects);
 }
 
-void Render_Skia::MeasureRichText2(const UiRect& textRect,
+UiRect Render_Skia::MeasureRichText2(const UiRect& textRect,
                                    const UiSize& szScrollOffset,
                                    IRenderFactory* pRenderFactory,
                                    const std::vector<RichTextData>& richTextData,
@@ -1867,10 +1867,10 @@ void Render_Skia::MeasureRichText2(const UiRect& textRect,
                                    std::vector<std::vector<UiRect>>* pRichTextRects)
 {
     ui::DrawRichText drawRichText(this, GetSkCanvas(), m_pSkPaint.get(), m_pSkPointOrg.get());
-    drawRichText.InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true, pLineInfoParam, nullptr, pRichTextRects);
+    return drawRichText.InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true, pLineInfoParam, nullptr, pRichTextRects);
 }
 
-void Render_Skia::MeasureRichText3(const UiRect& textRect,
+UiRect Render_Skia::MeasureRichText3(const UiRect& textRect,
                                    const UiSize& szScrollOffset,
                                    IRenderFactory* pRenderFactory, 
                                    const std::vector<RichTextData>& richTextData,
@@ -1879,7 +1879,7 @@ void Render_Skia::MeasureRichText3(const UiRect& textRect,
                                    std::vector<std::vector<UiRect>>* pRichTextRects)
 {
     ui::DrawRichText drawRichText(this, GetSkCanvas(), m_pSkPaint.get(), m_pSkPointOrg.get());
-    drawRichText.InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true, pLineInfoParam, &spDrawRichTextCache, pRichTextRects);
+    return drawRichText.InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true, pLineInfoParam, &spDrawRichTextCache, pRichTextRects);
 }
 
 void Render_Skia::DrawRichText(const UiRect& textRect,
@@ -2153,7 +2153,7 @@ bool Render_Skia::WritePixels(const void* srcPixels, size_t srcPixelsLen, const 
     return bRet;    
 }
 
-RenderClipType Render_Skia::GetClipInfo(std::vector<UiRect>& clipRects)
+RenderClipType Render_Skia::GetClipInfo(std::vector<UiRect>& clipRects) const
 {
     RenderClipType clipType = RenderClipType::kEmpty;
     clipRects.clear();

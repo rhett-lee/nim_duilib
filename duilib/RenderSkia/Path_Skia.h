@@ -16,7 +16,7 @@ public:
     Path_Skia(const Path_Skia& r);
     Path_Skia& operator=(const Path_Skia& r) = delete;
 
-    virtual IPath* Clone() override;
+    virtual std::unique_ptr<IPath> Clone() const override;
     virtual void Reset() override;
 
     /** 关闭当前绘图
@@ -24,7 +24,7 @@ public:
     virtual void Close() override;
 
     virtual void SetFillType(FillType mode) override;
-    virtual FillType GetFillType() override;
+    virtual FillType GetFillType() const override;
 
     virtual void AddLine(int32_t x1, int32_t y1, int32_t x2, int32_t y2) override;
     virtual void AddLine(float x1, float y1, float x2, float y2) override;
@@ -42,9 +42,9 @@ public:
     virtual void AddArc(const UiRectF& rect, float startAngle, float sweepAngle) override;
     virtual void AddPolygon(const UiPoint* points, int32_t count) override;
     virtual void AddPolygon(const UiPointF* points, int32_t count) override;
-    virtual void Transform(IMatrix* pMatrix) override;
+    virtual void Transform(const IMatrix* pMatrix) override;
 
-    virtual UiRect GetBounds(const IPen* pen) override;
+    virtual UiRect GetBounds(const IPen* pen) const override;
 
 public:
     /** 获取Skia Path

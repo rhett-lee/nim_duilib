@@ -129,7 +129,7 @@ int32_t Render_Skia_Windows::GetHeight() const
     return 0;
 }
 
-std::unique_ptr<ui::IRender> Render_Skia_Windows::Clone()
+std::unique_ptr<ui::IRender> Render_Skia_Windows::Clone() const
 {
     std::unique_ptr<ui::IRender> pClone = std::make_unique<ui::Render_Skia_Windows>(m_hWnd, m_backendType);
     pClone->Resize(GetWidth(), GetHeight());

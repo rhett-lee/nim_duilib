@@ -587,7 +587,7 @@ MeasureStringParam LabelImpl::GetMeasureParam() const
     measureParam.uFormat = m_uTextStyle;
     measureParam.fSpacingMul = m_fSpacingMul;
     measureParam.fSpacingAdd = m_fSpacingAdd;
-    measureParam.fWordSpacing = m_fWordSpacing;
+    measureParam.fLetterSpacing = m_fWordSpacing;
     measureParam.bUseFontHeight = m_flags.m_bUseFontHeight;
     measureParam.bRotate90ForAscii = m_flags.m_bRotate90ForAscii;
     return measureParam;
@@ -600,7 +600,7 @@ DrawStringParam LabelImpl::GetDrawParam() const
     drawParam.uFormat = m_uTextStyle;
     drawParam.fSpacingMul = m_fSpacingMul;
     drawParam.fSpacingAdd = m_fSpacingAdd;
-    drawParam.fWordSpacing = m_fWordSpacing;
+    drawParam.fLetterSpacing = m_fWordSpacing;
     drawParam.bUseFontHeight = m_flags.m_bUseFontHeight;
     drawParam.bRotate90ForAscii = m_flags.m_bRotate90ForAscii;
     return drawParam;
@@ -643,9 +643,10 @@ void LabelImpl::CheckShowToolTip()
 
     //单行文本不限制测量宽度（高度），这样可以得到完整的文本尺寸，用于判断是否需要显示提示；
     //多行文本必须使用文本区域的宽（高）度，否则换行结果与实际绘制不一致
-    int32_t rectSize = INT32_MAX;
+    const bool bVerticalText = IsVerticalText();
+    int32_t nLimitSize = INT32_MAX;
     if (!m_flags.m_bSingleLine) {
-        rectSize = !IsVerticalText() ? rc.Width() : rc.Height();
+        nLimitSize = bVerticalText ? rc.Height() : rc.Width();
     }
 
     //测量结果缓存：字体、测量限制尺寸、可用宽高和DPI均未变化时，直接复用上次结果
@@ -655,7 +656,7 @@ void LabelImpl::CheckShowToolTip()
     ToolTipCache& cache = EnsureToolTipCache();
     if (cache.m_bValid &&
         (cache.m_nFontVersion == nFontVersion) &&
-        (cache.m_nRectSize == rectSize) &&
+        (cache.m_nLimitSize == nLimitSize) &&
         (cache.m_nWidth == rc.Width()) &&
         (cache.m_nHeight == rc.Height()) &&
         (cache.m_nDpiScale == nDpiScale)) {
@@ -664,13 +665,18 @@ void LabelImpl::CheckShowToolTip()
     }
 
     MeasureStringParam measureParam = GetMeasureParam();
-    measureParam.rectSize = rectSize;
+    if (bVerticalText) {
+        measureParam.limitHeight = nLimitSize;
+    }
+    else {
+        measureParam.limitWidth = nLimitSize;
+    }
     UiRect rcMessure = MeasureText(pRender, sText, measureParam);
     const bool bOverflow = (rc.Width() < rcMessure.Width()) || (rc.Height() < rcMessure.Height());
 
     cache.m_bValid = true;
     cache.m_nFontVersion = nFontVersion;
-    cache.m_nRectSize = rectSize;
+    cache.m_nLimitSize = nLimitSize;
     cache.m_nWidth = rc.Width();
     cache.m_nHeight = rc.Height();
     cache.m_nDpiScale = nDpiScale;
@@ -880,7 +886,12 @@ UiSize LabelImpl::OnEstimateTextWith(const DString& textValue, UiSize szAvailabl
     }
     
     MeasureStringParam measureParam = GetMeasureParam();
-    measureParam.rectSize = !m_flags.m_bVerticalText ? nWidth : nHeight;
+    if (m_flags.m_bVerticalText) {
+        measureParam.limitHeight = nHeight;
+    }
+    else {
+        measureParam.limitWidth = nWidth;
+    }
     UiRect rect = MeasureText(pRender, textValue, measureParam);
     fixedSize.cx = std::min(rect.Width(), nWidth);
     fixedSize.cx = std::max(fixedSize.cx, 0);

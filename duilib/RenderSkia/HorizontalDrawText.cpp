@@ -95,7 +95,7 @@ bool HorizontalDrawText::CalculateTextCharBounds(const UTF32String& textUTF32, c
 }
 
 SkRect HorizontalDrawText::CalculateHorizontalTextBounds(const std::vector<THorizontalChar>& charRects, int32_t width, bool bSingleLineMode,
-                                                         float fSpacingMul, float fSpacingAdd, float fWordHorizontalSpacing,
+                                                         float fSpacingMul, float fSpacingAdd, float fLetterSpacing,
                                                          float fDefaultCharWidth, float fDefaultCharHeight,
                                                          std::vector<std::vector<int32_t>>* pRowColumns,
                                                          std::vector<float>* pRowHeights,
@@ -113,8 +113,8 @@ SkRect HorizontalDrawText::CalculateHorizontalTextBounds(const std::vector<THori
     if (fSpacingAdd < 0) {
         fSpacingAdd = 0;
     }
-    if (fWordHorizontalSpacing < 0) {
-        fWordHorizontalSpacing = 0;
+    if (fLetterSpacing < 0) {
+        fLetterSpacing = 0;
     }
 
     std::vector<std::vector<int32_t>> rowColumns;   // 每行每列字符在charRects中的索引
@@ -169,7 +169,7 @@ SkRect HorizontalDrawText::CalculateHorizontalTextBounds(const std::vector<THori
         float nextX = charRight;
 
         // 增加字间距（横向）
-        nextX += fWordHorizontalSpacing;
+        nextX += fLetterSpacing;
 
         // 判断是否需要换行
         if (!bSingleLineMode) {
@@ -348,9 +348,9 @@ UiRect HorizontalDrawText::MeasureString(const DString& strText, const MeasureSt
 
     //默认字符的宽度
     float fDefaultCharWidth = CalculateDefaultCharWidth(measureParam.pFont, pSkFont, &skPaint);
-    SkRect skTextBounds = CalculateHorizontalTextBounds(charRects, measureParam.rectSize, bSingleLineMode,
+    SkRect skTextBounds = CalculateHorizontalTextBounds(charRects, measureParam.limitWidth, bSingleLineMode,
                                                         measureParam.fSpacingMul, measureParam.fSpacingAdd,
-                                                        measureParam.fWordSpacing,
+                                                        measureParam.fLetterSpacing,
                                                         fDefaultCharWidth, fFontHeight,
                                                         nullptr, nullptr, nullptr);
 
@@ -428,15 +428,15 @@ void HorizontalDrawText::DrawString(const DString& strText, const DrawStringPara
     // 行间距设置
     float fSpacingMul = drawParam.fSpacingMul;
     float fSpacingAdd = drawParam.fSpacingAdd;
-    float fWordHorizontalSpacing = drawParam.fWordSpacing;
+    float fLetterSpacing = drawParam.fLetterSpacing;
     if (fSpacingMul <= 0.01f) {
         fSpacingMul = 1.0f;
     }
     if (fSpacingAdd < 0) {
         fSpacingAdd = 0;
     }
-    if (fWordHorizontalSpacing < 0) {
-        fWordHorizontalSpacing = 0;
+    if (fLetterSpacing < 0) {
+        fLetterSpacing = 0;
     }
 
     //绘制文本始终使用UTF32编码
@@ -463,7 +463,7 @@ void HorizontalDrawText::DrawString(const DString& strText, const DrawStringPara
     rowHeights.reserve(charRects.size());
     rowWidths.reserve(charRects.size());
     SkRect skTextBounds = CalculateHorizontalTextBounds(charRects, drawParam.textRect.Width(), bSingleLineMode,
-                                                        fSpacingMul, fSpacingAdd, fWordHorizontalSpacing,
+                                                        fSpacingMul, fSpacingAdd, fLetterSpacing,
                                                         fDefaultCharWidth, fFontHeight,
                                                         &rowColumns, &rowHeights, &rowWidths);
 
@@ -527,7 +527,7 @@ void HorizontalDrawText::DrawString(const DString& strText, const DrawStringPara
             charPos.yPos = yPos - fontMetrics.fAscent;
 
             // 更新下一个字符X位置
-            xPos += (horizontalChar.size.width() + fWordHorizontalSpacing);
+            xPos += (horizontalChar.size.width() + fLetterSpacing);
         }
 
         // 更新下一行Y位置

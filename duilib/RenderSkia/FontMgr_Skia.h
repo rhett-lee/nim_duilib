@@ -28,10 +28,9 @@ public:
 
     /** 获取字体名称
     * @param [in] nIndex 字体的下标值：[0, GetFontCount())
-    * @param [out] fontName 返回字体名称
-    * @return 成功返回true，失败返回false
+    * @return 返回字体名称；下标无效或获取失败时返回空字符串
     */
-    virtual bool GetFontName(uint32_t nIndex, DString& fontName) const override;
+    virtual DString GetFontName(uint32_t nIndex) const override;
 
     /** 判断是否含有该字体
     * @param [int] fontName 字体名称

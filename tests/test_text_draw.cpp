@@ -721,7 +721,7 @@ void TestHorizontalDrawText(ui::IRender* pRender, const FontContext& ctx)
     //默认横向路径（SkTextBox）的多行测量
     {
         ui::MeasureStringParam measureParam;
-        measureParam.rectSize = 100;
+        measureParam.limitWidth = 100;
         measureParam.pFont = ctx.pFont;
         measureParam.uFormat = ui::DrawStringFormat::TEXT_LEFT;
         const ui::UiRect rcText = pRender->MeasureString(_T("duilib font fallback text measure 多行测量"), measureParam);
@@ -747,7 +747,7 @@ void TestHorizontalDrawText(ui::IRender* pRender, const FontContext& ctx)
     //两端对齐路径（HorizontalDrawText）：测量与绘制
     {
         ui::MeasureStringParam measureParam;
-        measureParam.rectSize = 120;
+        measureParam.limitWidth = 120;
         measureParam.pFont = ctx.pFont;
         measureParam.uFormat = ui::DrawStringFormat::TEXT_HJUSTIFY | ui::DrawStringFormat::TEXT_TOP;
         const ui::UiRect rcText = pRender->MeasureString(_T("duilib font fallback text justify 两端对齐"), measureParam);
@@ -773,7 +773,7 @@ void TestHorizontalDrawText(ui::IRender* pRender, const FontContext& ctx)
         drawParam.dwTextColor = ui::UiColor(0xFF000000u);
         drawParam.pFont = ctx.pFont;
         drawParam.uFormat = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_TOP;
-        drawParam.fWordSpacing = 2.0f;
+        drawParam.fLetterSpacing = 2.0f;
         pRender->DrawString(_T("word spacing 字间距 绘制"), drawParam);
         CHECK(CountRenderedPixels(pRender) > 0);
     }
@@ -783,7 +783,7 @@ void TestVerticalDrawText(ui::IRender* pRender, const FontContext& ctx)
 {
     //纵向测量：高度不超过限制，宽度与字体高度相关
     ui::MeasureStringParam measureParam;
-    measureParam.rectSize = 200;
+    measureParam.limitHeight = 200;
     measureParam.pFont = ctx.pFont;
     measureParam.uFormat = ui::DrawStringFormat::TEXT_VERTICAL | ui::DrawStringFormat::TEXT_LEFT;
     const ui::UiRect rcText = pRender->MeasureString(_T("duilib vertical text 竖排文本测量"), measureParam);
@@ -832,6 +832,28 @@ void TestRichText(ui::IRender* pRender, ui::IRenderFactory* pRenderFactory, cons
 
     const ui::UiRect rcText(0, 0, 160, 40);
     const ui::UiSize szScrollOffset(0, 0);
+
+    //测量接口的返回值：以(0,0)为起点，宽度为内容最大行宽，高度为内容总高度
+    {
+        ui::RichTextData wrapMeasureData = richTextData;
+        wrapMeasureData.m_textStyle |= ui::DrawStringFormat::TEXT_WORD_WRAP;
+        std::vector<ui::RichTextData> wrapMeasureList;
+        wrapMeasureList.push_back(wrapMeasureData);
+
+        const ui::UiRect rcNarrow = pRender->MeasureRichText(ui::UiRect(0, 0, 120, 2000), szScrollOffset,
+                                                             pRenderFactory, wrapMeasureList, nullptr);
+        CHECK(rcNarrow.left == 0);
+        CHECK(rcNarrow.top == 0);
+        CHECK(rcNarrow.Width() > 0);
+        CHECK(rcNarrow.Width() <= 121);
+        CHECK(rcNarrow.Height() > 0);
+
+        //限制宽度越小，换行越多，内容总高度越大
+        const ui::UiRect rcWide = pRender->MeasureRichText(ui::UiRect(0, 0, 400, 2000), szScrollOffset,
+                                                           pRenderFactory, wrapMeasureList, nullptr);
+        CHECK(rcWide.Width() > 0);
+        CHECK(rcNarrow.Height() > rcWide.Height());
+    }
 
     //绘制缓存路径：不换行文本超宽时为省略号预留宽度，绘制区域不能超出文本矩形
     {

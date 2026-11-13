@@ -147,7 +147,7 @@ bool VerticalDrawText::CalculateTextCharBounds(const UTF32String& textUTF32, con
 }
 
 SkRect VerticalDrawText::CalculateVerticalTextBounds(const std::vector<TVerticalChar>& charRects, int32_t height, bool bSingleLineMode,
-                                                     float fSpacingMul, float fSpacingAdd, float fWordVerticalSpacing,
+                                                     float fSpacingMul, float fSpacingAdd, float fLetterSpacing,
                                                      float fDefaultCharWidth, float fDefaultCharHeight,
                                                      std::vector<std::vector<int32_t>>* pColumnRows,
                                                      std::vector<float>* pColumnWidths,
@@ -165,8 +165,8 @@ SkRect VerticalDrawText::CalculateVerticalTextBounds(const std::vector<TVertical
     if (fSpacingAdd < 0) {
         fSpacingAdd = 0;
     }
-    if (fWordVerticalSpacing < 0) {
-        fWordVerticalSpacing = 0;
+    if (fLetterSpacing < 0) {
+        fLetterSpacing = 0;
     }
 
     std::vector<std::vector<int32_t>> columnRows;   // 每列每行字符在charRects容器中对应的下标值
@@ -222,7 +222,7 @@ SkRect VerticalDrawText::CalculateVerticalTextBounds(const std::vector<TVertical
         float nextY = charBottom;
 
         // 增加字间距（纵向）
-        nextY += fWordVerticalSpacing;
+        nextY += fLetterSpacing;
 
         // 标记是否换行
         if (!bSingleLineMode) {
@@ -413,9 +413,9 @@ UiRect VerticalDrawText::MeasureString(const DString& strText, const MeasureStri
 
     //默认字符的宽度
     float fDefaultCharWidth = CalculateDefaultCharWidth(measureParam.pFont, pSkFont, &skPaint);
-    SkRect skTextBounds = CalculateVerticalTextBounds(charRects, measureParam.rectSize, bSingleLineMode,
+    SkRect skTextBounds = CalculateVerticalTextBounds(charRects, measureParam.limitHeight, bSingleLineMode,
                                                       measureParam.fSpacingMul, measureParam.fSpacingAdd,
-                                                      measureParam.fWordSpacing,
+                                                      measureParam.fLetterSpacing,
                                                       fDefaultCharWidth, fFontHeight,
                                                       nullptr, nullptr, nullptr);
     int32_t nTextWidth = SkScalarTruncToInt(skTextBounds.width() + 0.5f);
@@ -492,15 +492,15 @@ void VerticalDrawText::DrawString(const DString& strText, const DrawStringParam&
     // 列间距设置
     float fSpacingMul = drawParam.fSpacingMul;
     float fSpacingAdd = drawParam.fSpacingAdd;
-    float fWordVerticalSpacing = drawParam.fWordSpacing;
+    float fLetterSpacing = drawParam.fLetterSpacing;
     if (fSpacingMul <= 0.01f) {
         fSpacingMul = 1.0f;
     }
     if (fSpacingAdd < 0) {
         fSpacingAdd = 0;
     }
-    if (fWordVerticalSpacing < 0) {
-        fWordVerticalSpacing = 0;
+    if (fLetterSpacing < 0) {
+        fLetterSpacing = 0;
     }
 
     //绘制文本始终使用UTF32编码
@@ -529,7 +529,7 @@ void VerticalDrawText::DrawString(const DString& strText, const DrawStringParam&
     columnWidths.reserve(charRects.size());
     columnHeights.reserve(charRects.size());
     SkRect skTextBounds = CalculateVerticalTextBounds(charRects, drawParam.textRect.Height(), bSingleLineMode,
-                                                      fSpacingMul, fSpacingAdd, fWordVerticalSpacing,
+                                                      fSpacingMul, fSpacingAdd, fLetterSpacing,
                                                       fDefaultCharWidth, fFontHeight,
                                                       &columnRows, &columnWidths, &columnHeights);
 
@@ -625,7 +625,7 @@ void VerticalDrawText::DrawString(const DString& strText, const DrawStringParam&
             }
 
             //下一个字符的纵坐标更新(带纵向字间距)
-            yPos += (verticalChar.size.height() + fWordVerticalSpacing); //字体高度使用评估时确定的高度
+            yPos += (verticalChar.size.height() + fLetterSpacing); //字体高度使用评估时确定的高度
         }
 
         //下一列的坐标，带行间距

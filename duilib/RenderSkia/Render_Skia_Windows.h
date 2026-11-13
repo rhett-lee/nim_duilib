@@ -45,7 +45,7 @@ public:
 
     /** 复制一个新的渲染对象
     */
-    virtual std::unique_ptr<IRender> Clone() override;
+    virtual std::unique_ptr<IRender> Clone() const override;
 
     /** 绘制并刷新到屏幕（Render的实现已经与窗口关联）, 同步完成
     * @param [in] pRenderPaint 界面绘制所需的回调接口
