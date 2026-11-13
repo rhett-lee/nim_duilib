@@ -20,7 +20,7 @@ const TextGlyphRun& TextGlyphRunList::GetRun(size_t nIndex) const
 }
 
 void TextGlyphRunList::BeginRun(const IFont* pFont, const SkFont* pSkFont,
-                                SkScalar x, SkScalar y, bool bRotate90)
+                                SkScalar x, SkScalar y, bool bRotate90, bool bUsePositions)
 {
     if (m_bInRun) {
         //上一个 run 未结束，先结束它
@@ -32,6 +32,8 @@ void TextGlyphRunList::BeginRun(const IFont* pFont, const SkFont* pSkFont,
     RunData& runData = m_runPool[m_nRunCount];
     runData.m_glyphs.clear();
     runData.m_advances.clear();
+    runData.m_positions.clear();
+    runData.m_bUsePositions = bUsePositions;
     runData.m_run = TextGlyphRun();
     runData.m_run.m_pFont = pFont;
     runData.m_run.m_pSkFont = pSkFont;
@@ -42,7 +44,7 @@ void TextGlyphRunList::BeginRun(const IFont* pFont, const SkFont* pSkFont,
     m_bInRun = true;
 }
 
-void TextGlyphRunList::AddGlyph(SkGlyphID glyphId, SkScalar advance)
+void TextGlyphRunList::AddGlyph(SkGlyphID glyphId, SkScalar advance, const SkPoint& offset)
 {
     if (!m_bInRun || (m_nRunCount == 0)) {
         ASSERT(false);
@@ -50,7 +52,12 @@ void TextGlyphRunList::AddGlyph(SkGlyphID glyphId, SkScalar advance)
     }
     RunData& runData = m_runPool[m_nRunCount - 1];
     runData.m_glyphs.push_back(glyphId);
-    runData.m_advances.push_back(advance);
+    if (runData.m_bUsePositions) {
+        runData.m_positions.push_back(offset);
+    }
+    else {
+        runData.m_advances.push_back(advance);
+    }
 }
 
 void TextGlyphRunList::EndRun()
@@ -69,7 +76,14 @@ void TextGlyphRunList::EndRun()
         return;
     }
     runData.m_run.m_pGlyphs = runData.m_glyphs.data();
-    runData.m_run.m_pAdvances = runData.m_advances.data();
+    if (runData.m_bUsePositions) {
+        ASSERT(runData.m_positions.size() == runData.m_glyphs.size());
+        runData.m_run.m_pPositions = runData.m_positions.data();
+    }
+    else {
+        ASSERT(runData.m_advances.size() == runData.m_glyphs.size());
+        runData.m_run.m_pAdvances = runData.m_advances.data();
+    }
     runData.m_run.m_nCount = (uint32_t)runData.m_glyphs.size();
 }
 

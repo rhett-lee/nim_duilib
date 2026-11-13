@@ -57,6 +57,8 @@ struct TVerticalChar
     bool bRotate90; //该字符绘制时，需要旋转90度显示
     SkSize size;    //字符绘制后的宽度和高度
     SkRect bounds;  //字符绘制后的边界信息
+    const SkFont* pHitSkFont;   //绘制该字符实际命中的Skia字体
+    SkGlyphID glyphId;          //绘制该字符使用的字形ID（0表示绘制方框占位）
 };
 
 bool VerticalDrawText::CalculateTextCharBounds(const UTF32String& textUTF32, const IFont* pFont,
@@ -87,6 +89,8 @@ bool VerticalDrawText::CalculateTextCharBounds(const UTF32String& textUTF32, con
     TVerticalChar verticalChar;
     for (DUTF32Char ch : textUTF32) {
         verticalChar.ch = ch;
+        verticalChar.pHitSkFont = pSkFont;
+        verticalChar.glyphId = 0;
         if (ch == L'\n') {
             //换行符
             verticalChar.bNewLine = true;
@@ -98,8 +102,10 @@ bool VerticalDrawText::CalculateTextCharBounds(const UTF32String& textUTF32, con
         else {
             verticalChar.bNewLine = false;
             verticalChar.bRotate90 = false;
+            const SkFont* pHitSkFont = pSkFont;
+            SkGlyphID glyphId = 0;
             SkScalar fTextWidth = DrawSkiaText::MeasureTextChar(*pSkFont, ch, &verticalChar.bounds,//斜体字时，这个宽度包含了外延的宽度
-                                                                skPaint, pFont, true);
+                                                                skPaint, pFont, true, &pHitSkFont, &glyphId);
             if ((fTextWidth < fMinCharSize) || (verticalChar.bounds.width() < fMinCharSize) || (verticalChar.bounds.height() < fMinCharSize)) {
                 //空格或者不可见字符(按小写字母确定显示区域)
                 if (fTextWidth > fMinCharSize) {
@@ -110,6 +116,11 @@ bool VerticalDrawText::CalculateTextCharBounds(const UTF32String& textUTF32, con
                     ch = DrawSkiaText::GetMeasureDefaultChar();
                     fTextWidth = DrawSkiaText::MeasureTextChar(*pSkFont, ch, &verticalChar.bounds,//斜体字时，这个宽度包含了外延的宽度
                                                                 skPaint, pFont, true);
+                    if (!iswspace((wchar_t)verticalChar.ch)) {
+                        //不可见字符按主字体的方框占位绘制（与逐字符绘制时的处理保持一致）
+                        pHitSkFont = pSkFont;
+                        glyphId = 0;
+                    }
                 }
                 //用字体的实际高度，作为字的高度
                 verticalChar.size = SkSize::Make(std::max(fTextWidth, verticalChar.bounds.width()), verticalChar.bounds.height()); // 用实际高度
@@ -122,6 +133,8 @@ bool VerticalDrawText::CalculateTextCharBounds(const UTF32String& textUTF32, con
                 //用字体的实际高度，作为字的高度
                 verticalChar.size = SkSize::Make(std::max(fTextWidth, verticalChar.bounds.width()), verticalChar.bounds.height()); // 用实际高度
             }
+            verticalChar.pHitSkFont = pHitSkFont;
+            verticalChar.glyphId = glyphId;
             if (bRotate90ForAscii && NeedRotateForVertical(verticalChar.ch)) {
                 verticalChar.bRotate90 = true;
                 std::swap(verticalChar.size.fHeight, verticalChar.size.fWidth);
@@ -536,6 +549,8 @@ void VerticalDrawText::DrawString(const DString& strText, const DrawStringParam&
         SkScalar xPos = 0;          //绘制时的X坐标
         SkScalar yPos = 0;          //绘制时的Y坐标
         int32_t chHeight = 0;       //字符高度（用于绘制删除线和下划线）
+        const SkFont* pHitSkFont = nullptr; //绘制该字符实际命中的Skia字体
+        SkGlyphID glyphId = 0;      //绘制该字符使用的字形ID（0表示绘制方框占位）
     };
     std::vector<TDrawCharPos> drawCharPos;
     drawCharPos.reserve(charRects.size());
@@ -569,6 +584,8 @@ void VerticalDrawText::DrawString(const DString& strText, const DrawStringParam&
             charPos.nRowIndex = (int32_t)nRowIndex;
             charPos.bRotate90 = verticalChar.bRotate90;
             charPos.chHeight = (int32_t)verticalChar.size.height();
+            charPos.pHitSkFont = verticalChar.pHitSkFont;
+            charPos.glyphId = verticalChar.glyphId;
 
             if (charPos.bRotate90) { // 该字符需要旋转90度绘制                    
                 charPos.xPos = xPos + fontMetrics.fAscent / fFontHeight * fColumnWidth;
@@ -755,6 +772,56 @@ void VerticalDrawText::DrawString(const DString& strText, const DrawStringParam&
     }
 
     // 绘制字符
+    // 按run批量绘制：连续命中同一字体、同一列、同一旋转属性的字符合并为一个run，减少绘制调用次数
+    TextGlyphRunList glyphRuns;
+    struct TDrawRunBuffer
+    {
+        const SkFont* pSkFont = nullptr;   //当前run的字体
+        int32_t nColumnIndex = -1;         //当前run所在的列
+        bool bRotate90 = false;            //当前run是否旋转90度绘制
+        SkScalar fX = 0;                   //run起点X坐标（第一个字形的绘制位置）
+        SkScalar fY = 0;                   //run基线Y坐标
+        FastVector<SkGlyphID> glyphs;      //字形的字形ID
+        FastVector<SkScalar> xPos;         //每个字形的绘制X坐标（绝对坐标）
+        FastVector<SkScalar> yPos;         //每个字形的绘制Y坐标（绝对坐标）
+
+        void Clear()
+        {
+            pSkFont = nullptr;
+            nColumnIndex = -1;
+            bRotate90 = false;
+            glyphs.clear();
+            xPos.clear();
+            yPos.clear();
+        }
+    };
+    TDrawRunBuffer runBuffer;
+    //结束当前run，加入待绘制列表
+    auto flushRun = [&]() {
+        const size_t nGlyphCount = runBuffer.glyphs.size();
+        if ((runBuffer.pSkFont != nullptr) && (nGlyphCount > 0)) {
+            if (runBuffer.bRotate90) {
+                //旋转90度绘制：以run起点为原点旋转，步进宽度使用相邻字符的Y坐标差值
+                glyphRuns.BeginRun(nullptr, runBuffer.pSkFont, runBuffer.fX, runBuffer.fY, true, false);
+                for (size_t nIndex = 0; nIndex < nGlyphCount; ++nIndex) {
+                    SkScalar fAdvance = (nIndex + 1 < nGlyphCount) ? (runBuffer.yPos[nIndex + 1] - runBuffer.yPos[nIndex]) : 0;
+                    glyphRuns.AddGlyph(runBuffer.glyphs[nIndex], fAdvance);
+                }
+            }
+            else {
+                //正常绘制：每个字形使用相对run起点的偏移（纵向两端对齐时，字形的X和Y坐标都可能变化）
+                glyphRuns.BeginRun(nullptr, runBuffer.pSkFont, runBuffer.fX, runBuffer.fY, false, true);
+                for (size_t nIndex = 0; nIndex < nGlyphCount; ++nIndex) {
+                    SkPoint offset = SkPoint::Make(runBuffer.xPos[nIndex] - runBuffer.fX,
+                                                   runBuffer.yPos[nIndex] - runBuffer.fY);
+                    glyphRuns.AddGlyph(runBuffer.glyphs[nIndex], 0, offset);
+                }
+            }
+            glyphRuns.EndRun();
+        }
+        runBuffer.Clear();
+    };
+
     const size_t drawCharCount = drawCharPos.size();
     for (size_t charIndex = 0; charIndex < drawCharCount; ++charIndex) {
         TDrawCharPos& charPos = drawCharPos[charIndex];
@@ -787,6 +854,11 @@ void VerticalDrawText::DrawString(const DString& strText, const DrawStringParam&
                 bNeedDrawEllipsis = true;
             }
             if (bNeedDrawEllipsis) {
+                //先绘制已缓存的字符，再绘制省略号，保证绘制顺序与逐字符绘制时一致
+                flushRun();
+                DrawSkiaText::DrawGlyphRuns(skCanvas, glyphRuns, skPaint);
+                glyphRuns.Clear();
+
                 //字符越界，绘制 "..."
                 std::string ellipsis = "...";
                 skCanvas->save();
@@ -803,22 +875,33 @@ void VerticalDrawText::DrawString(const DString& strText, const DrawStringParam&
         }
 
         if (!skTextRect.contains(charPos.xPos, charPos.yPos)) {
-            //当前字符不在文本显示区域，不绘制
+            //当前字符不在文本显示区域，不绘制（同时中断当前run，避免跨越该字符产生错误的偏移）
+            flushRun();
             continue;
         }
+
+        //字体、列或旋转属性发生变化时，结束当前run
+        if ((runBuffer.pSkFont != charPos.pHitSkFont) || (runBuffer.nColumnIndex != charPos.nColumnIndex) ||
+            (runBuffer.bRotate90 != charPos.bRotate90)) {
+            flushRun();
+        }
+        if (runBuffer.glyphs.empty()) {
+            //记录run的起点坐标
+            runBuffer.pSkFont = charPos.pHitSkFont;
+            runBuffer.nColumnIndex = charPos.nColumnIndex;
+            runBuffer.bRotate90 = charPos.bRotate90;
+            runBuffer.fX = charPos.xPos;
+            runBuffer.fY = charPos.yPos;
+        }
+        runBuffer.glyphs.push_back(charPos.glyphId);
+        runBuffer.xPos.push_back(charPos.xPos);
+        runBuffer.yPos.push_back(charPos.yPos);
         charPos.bDrew = true;
-        if (charPos.bRotate90) {
-            //该字符需要旋转90度绘制
-            int saveCount = skCanvas->save();
-            skCanvas->translate(charPos.xPos, charPos.yPos);
-            skCanvas->rotate(90);
-            DrawSkiaText::DrawSimpleText(skCanvas, charPos.ch, 0, 0, *pSkFont, skPaint, drawParam.pFont);
-            skCanvas->restoreToCount(saveCount);
-        }
-        else {
-            DrawSkiaText::DrawSimpleText(skCanvas, charPos.ch, charPos.xPos, charPos.yPos, *pSkFont, skPaint, drawParam.pFont);
-        }
     }
+
+    //绘制缓存的字符
+    flushRun();
+    DrawSkiaText::DrawGlyphRuns(skCanvas, glyphRuns, skPaint);
 
     //绘制下划线/删除线
     if ((drawParam.pFont->IsUnderline() || drawParam.pFont->IsStrikeOut()) && !columnWidths.empty()) {

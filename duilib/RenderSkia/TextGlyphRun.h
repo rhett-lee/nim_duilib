@@ -36,6 +36,11 @@ struct TextGlyphRun
     */
     const SkScalar*  m_pAdvances = nullptr;
 
+    /** 每个字形相对 run 起点的偏移（与 m_pGlyphs 一一对应），指向 TextGlyphRunList 内部缓冲区
+    * 仅在构建 run 时启用 positions 模式时有效，非空时优先于 m_pAdvances
+    */
+    const SkPoint*   m_pPositions = nullptr;
+
     /** run 起点X坐标（第一个字形的绘制位置）
     */
     SkScalar         m_x = 0;
@@ -100,15 +105,17 @@ public:
     * @param [in] x run 起点X坐标
     * @param [in] y 基线Y坐标
     * @param [in] bRotate90 是否旋转90度绘制
+    * @param [in] bUsePositions 是否启用positions模式（每个字形携带相对run起点的偏移，优先于步进宽度）
     */
     void BeginRun(const IFont* pFont, const SkFont* pSkFont,
-                  SkScalar x, SkScalar y, bool bRotate90 = false);
+                  SkScalar x, SkScalar y, bool bRotate90 = false, bool bUsePositions = false);
 
     /** 向当前 run 追加一个字形（需先调用 BeginRun）
     * @param [in] glyphId 字形ID
     * @param [in] advance 该字形的步进宽度
+    * @param [in] offset 字形相对run起点的偏移（仅在positions模式下有效）
     */
-    void AddGlyph(SkGlyphID glyphId, SkScalar advance);
+    void AddGlyph(SkGlyphID glyphId, SkScalar advance, const SkPoint& offset = SkPoint());
 
     /** 结束当前 run（回填字形/宽度指针与计数；没有字形的 run 会被丢弃）
     */
@@ -148,6 +155,14 @@ private:
         /** 步进宽度缓冲区（与 m_glyphs 一一对应）
         */
         FastVector<SkScalar> m_advances;
+
+        /** 字形偏移缓冲区（与 m_glyphs 一一对应，仅positions模式下使用）
+        */
+        FastVector<SkPoint> m_positions;
+
+        /** 是否启用positions模式
+        */
+        bool m_bUsePositions = false;
     };
 
 private:

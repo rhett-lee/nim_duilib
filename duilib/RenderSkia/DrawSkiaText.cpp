@@ -138,20 +138,35 @@ DUTF32Char DrawSkiaText::GetMeasureDefaultChar()
 SkScalar DrawSkiaText::MeasureTextChar(const SkFont& font, DUTF32Char ch,
                                        SkRect* bounds, const SkPaint* paint,
                                        const IFont* pFont,
-                                       bool bUseDefaultCharWhenFailed)
+                                       bool bUseDefaultCharWhenFailed,
+                                       const SkFont** ppHitSkFont, SkGlyphID* pGlyphId)
 {
     if (pFont != nullptr) {
         const FallbackFontCreator& fallbackFontCreator = [pFont](SkUnichar unicodeChar, SkGlyphID* glyphId) {
             return DrawSkiaText::CreateFallbackFont(pFont, unicodeChar, glyphId);
             };
-        return MeasureTextChar(font, ch, bounds, paint, fallbackFontCreator, bUseDefaultCharWhenFailed);
+        return MeasureTextChar(font, ch, bounds, paint, fallbackFontCreator, bUseDefaultCharWhenFailed,
+                               ppHitSkFont, pGlyphId);
     }
     else {
         SkGlyphID glyphID = font.unicharToGlyph((SkUnichar)ch);
         if (glyphID != 0) {
             //只有当前不为0时可以调用，否则skia内部会导致崩溃
+            if (ppHitSkFont != nullptr) {
+                *ppHitSkFont = &font;
+            }
+            if (pGlyphId != nullptr) {
+                *pGlyphId = glyphID;
+            }
             return font.measureText(&ch, sizeof(ch), SkTextEncoding::kGlyphID, bounds, paint);
         }        
+    }
+    //无法绘制该字符，绘制阶段按方框占位处理
+    if (ppHitSkFont != nullptr) {
+        *ppHitSkFont = &font;
+    }
+    if (pGlyphId != nullptr) {
+        *pGlyphId = 0;
     }
     if (bUseDefaultCharWhenFailed) {
         DUTF32Char defaultChar = GetMeasureDefaultChar();
@@ -166,11 +181,18 @@ SkScalar DrawSkiaText::MeasureTextChar(const SkFont& font, DUTF32Char ch,
 SkScalar DrawSkiaText::MeasureTextChar(const SkFont& font, DUTF32Char ch,
                                        SkRect* bounds, const SkPaint* paint,
                                        const FallbackFontCreator& fallbackFontCreator,
-                                       bool bUseDefaultCharWhenFailed)
+                                       bool bUseDefaultCharWhenFailed,
+                                       const SkFont** ppHitSkFont, SkGlyphID* pGlyphId)
 {
     SkGlyphID glyphId = font.unicharToGlyph((SkUnichar)ch);
     if (glyphId != 0) {
         //只有当前不为0时可以调用，否则skia内部会导致崩溃
+        if (ppHitSkFont != nullptr) {
+            *ppHitSkFont = &font;
+        }
+        if (pGlyphId != nullptr) {
+            *pGlyphId = glyphId;
+        }
         return font.measureText(&glyphId, sizeof(SkGlyphID), SkTextEncoding::kGlyphID, bounds, paint);
     }
     else if (fallbackFontCreator != nullptr) {
@@ -178,8 +200,23 @@ SkScalar DrawSkiaText::MeasureTextChar(const SkFont& font, DUTF32Char ch,
         glyphId = 0;
         const SkFont* pFallbackSkFont = fallbackFontCreator(ch, &glyphId);
         if (pFallbackSkFont != nullptr) {
+            //回退字体也没有该字形时，绘制阶段仍按主字体的方框占位处理
+            const bool bHitFallback = (glyphId != 0);
+            if (ppHitSkFont != nullptr) {
+                *ppHitSkFont = bHitFallback ? pFallbackSkFont : &font;
+            }
+            if (pGlyphId != nullptr) {
+                *pGlyphId = bHitFallback ? glyphId : 0;
+            }
             return pFallbackSkFont->measureText(&glyphId, sizeof(SkGlyphID), SkTextEncoding::kGlyphID, bounds, paint);
         }
+    }
+    //无法绘制该字符，绘制阶段按主字体的方框占位处理
+    if (ppHitSkFont != nullptr) {
+        *ppHitSkFont = &font;
+    }
+    if (pGlyphId != nullptr) {
+        *pGlyphId = 0;
     }
     if (bUseDefaultCharWhenFailed) {
         DUTF32Char defaultChar = GetMeasureDefaultChar();
@@ -532,19 +569,24 @@ void DrawSkiaText::DrawGlyphRuns(SkCanvas* skCanvas, const TextGlyphRunList& gly
         if ((run.m_pSkFont == nullptr) || (run.m_pGlyphs == nullptr) || (run.m_nCount == 0)) {
             continue;
         }
-        positions.clear();
-        positions.reserve(run.m_nCount);
-        SkScalar fOffsetX = 0;
-        for (uint32_t nIndex = 0; nIndex < run.m_nCount; ++nIndex) {
-            positions.push_back(SkPoint::Make(fOffsetX, 0));
-            if (run.m_pAdvances != nullptr) {
-                fOffsetX += run.m_pAdvances[nIndex];
+        const SkPoint* pPositions = run.m_pPositions;
+        if (pPositions == nullptr) {
+            //按步进宽度计算每个字形的位置
+            positions.clear();
+            positions.reserve(run.m_nCount);
+            SkScalar fOffsetX = 0;
+            for (uint32_t nIndex = 0; nIndex < run.m_nCount; ++nIndex) {
+                positions.push_back(SkPoint::Make(fOffsetX, 0));
+                if (run.m_pAdvances != nullptr) {
+                    fOffsetX += run.m_pAdvances[nIndex];
+                }
             }
+            pPositions = positions.data();
         }
         const SkSpan<const SkGlyphID> glyphSpan(run.m_pGlyphs, run.m_nCount);
-        const SkSpan<const SkPoint> positionSpan(positions.data(), positions.size());
+        const SkSpan<const SkPoint> positionSpan(pPositions, run.m_nCount);
         if (run.m_bRotate90) {
-            //纵向文本的旋转字符：以run起点为原点旋转90度绘制（预留，纵向路径接入时校验）
+            //纵向文本的旋转字符：以run起点为原点旋转90度绘制，positions为旋转后坐标系内的偏移
             int nSaveCount = skCanvas->save();
             skCanvas->translate(run.m_x, run.m_y);
             skCanvas->rotate(90);

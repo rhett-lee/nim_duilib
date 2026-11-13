@@ -26,6 +26,8 @@ struct THorizontalChar
     bool bNewLine;  //是否为换行符
     SkSize size;    //字符绘制后的宽度和高度
     SkRect bounds;  //字符绘制后的边界信息
+    const SkFont* pHitSkFont;   //绘制该字符实际命中的Skia字体
+    SkGlyphID glyphId;          //绘制该字符使用的字形ID（0表示绘制方框占位）
 };
 
 bool HorizontalDrawText::CalculateTextCharBounds(const UTF32String& textUTF32, const IFont* pFont,
@@ -55,6 +57,8 @@ bool HorizontalDrawText::CalculateTextCharBounds(const UTF32String& textUTF32, c
     THorizontalChar horizontalChar;
     for (DUTF32Char ch : textUTF32) {
         horizontalChar.ch = ch;
+        horizontalChar.pHitSkFont = pSkFont;
+        horizontalChar.glyphId = 0;
         if (ch == L'\n') {
             //换行符
             horizontalChar.bNewLine = true;
@@ -64,14 +68,23 @@ bool HorizontalDrawText::CalculateTextCharBounds(const UTF32String& textUTF32, c
         }
         else {
             horizontalChar.bNewLine = false;
+            const SkFont* pHitSkFont = pSkFont;
+            SkGlyphID glyphId = 0;
             SkScalar fTextWidth = DrawSkiaText::MeasureTextChar(*pSkFont, ch, &horizontalChar.bounds,//斜体字时，这个宽度包含了外延的宽度
-                                                                skPaint, pFont, true);
+                                                                skPaint, pFont, true, &pHitSkFont, &glyphId);
             if ((fTextWidth < fMinCharSize) || (horizontalChar.bounds.width() < fMinCharSize) || (horizontalChar.bounds.height() < fMinCharSize)) {
                 //空格或者不可见字符(按小写字母确定显示区域)
                 ch = DrawSkiaText::GetMeasureDefaultChar();
                 fTextWidth = DrawSkiaText::MeasureTextChar(*pSkFont, ch, &horizontalChar.bounds,//斜体字时，这个宽度包含了外延的宽度
                                                            skPaint, pFont, true);
+                if (!iswspace((wchar_t)horizontalChar.ch)) {
+                    //不可见字符按主字体的方框占位绘制（与逐字符绘制时的处理保持一致）
+                    pHitSkFont = pSkFont;
+                    glyphId = 0;
+                }
             }
+            horizontalChar.pHitSkFont = pHitSkFont;
+            horizontalChar.glyphId = glyphId;
 
             //用字体高度作为字的高度，所有字都等高
             horizontalChar.size = SkSize::Make(std::max(fTextWidth, horizontalChar.bounds.width()), (SkScalar)fFontHeight);
@@ -469,6 +482,8 @@ void HorizontalDrawText::DrawString(const DString& strText, const DrawStringPara
         SkScalar yPos = 0;          //绘制时的Y坐标
         int32_t chWidth = 0;        //字符宽度（用于绘制删除线和下划线）
         bool bDrew = false;         //该字符是否完成绘制（用于绘制删除线和下划线）
+        const SkFont* pHitSkFont = nullptr; //绘制该字符实际命中的Skia字体
+        SkGlyphID glyphId = 0;      //绘制该字符使用的字形ID（0表示绘制方框占位）
     };
     std::vector<TDrawCharPos> drawCharPos;
     drawCharPos.reserve(charRects.size());
@@ -502,6 +517,8 @@ void HorizontalDrawText::DrawString(const DString& strText, const DrawStringPara
             charPos.nRowIndex = (int32_t)nRowIndex;
             charPos.nColumnIndex = (int32_t)nColIndex;
             charPos.chWidth = (int32_t)horizontalChar.size.width();
+            charPos.pHitSkFont = horizontalChar.pHitSkFont;
+            charPos.glyphId = horizontalChar.glyphId;
 
             // 水平位置
             charPos.xPos = xPos + (horizontalChar.bounds.left() < 0 ? -horizontalChar.bounds.left() : 0);
@@ -658,6 +675,41 @@ void HorizontalDrawText::DrawString(const DString& strText, const DrawStringPara
     }
 
     // 绘制字符
+    // 按run批量绘制：连续命中同一字体、同一行的字符合并为一个run，减少绘制调用次数
+    TextGlyphRunList glyphRuns;
+    struct TDrawRunBuffer
+    {
+        const SkFont* pSkFont = nullptr;   //当前run的字体
+        int32_t nRowIndex = -1;            //当前run所在的行
+        SkScalar fX = 0;                   //run起点X坐标（第一个字形的绘制位置）
+        SkScalar fY = 0;                   //run基线Y坐标
+        FastVector<SkGlyphID> glyphs;      //字形的字形ID
+        FastVector<SkScalar> xPos;         //每个字形的绘制X坐标（绝对坐标）
+
+        void Clear()
+        {
+            pSkFont = nullptr;
+            nRowIndex = -1;
+            glyphs.clear();
+            xPos.clear();
+        }
+    };
+    TDrawRunBuffer runBuffer;
+    //结束当前run，加入待绘制列表
+    auto flushRun = [&]() {
+        const size_t nGlyphCount = runBuffer.glyphs.size();
+        if ((runBuffer.pSkFont != nullptr) && (nGlyphCount > 0)) {
+            glyphRuns.BeginRun(nullptr, runBuffer.pSkFont, runBuffer.fX, runBuffer.fY);
+            for (size_t nIndex = 0; nIndex < nGlyphCount; ++nIndex) {
+                //步进宽度使用相邻字符的X坐标差值，保证两端对齐和字间距时的位置精确
+                SkScalar fAdvance = (nIndex + 1 < nGlyphCount) ? (runBuffer.xPos[nIndex + 1] - runBuffer.xPos[nIndex]) : 0;
+                glyphRuns.AddGlyph(runBuffer.glyphs[nIndex], fAdvance);
+            }
+            glyphRuns.EndRun();
+        }
+        runBuffer.Clear();
+    };
+
     const size_t drawCharCount = drawCharPos.size();
     for (size_t charIndex = 0; charIndex < drawCharCount; ++charIndex) {
         TDrawCharPos& charPos = drawCharPos[charIndex];
@@ -689,6 +741,11 @@ void HorizontalDrawText::DrawString(const DString& strText, const DrawStringPara
             }
 
             if (bNeedDrawEllipsis) {
+                //先绘制已缓存的字符，再绘制省略号，保证绘制顺序与逐字符绘制时一致
+                flushRun();
+                DrawSkiaText::DrawGlyphRuns(skCanvas, glyphRuns, skPaint);
+                glyphRuns.Clear();
+
                 //字符越界，绘制 "..."
                 std::string ellipsis = "...";
                 skCanvas->drawSimpleText(ellipsis.data(), ellipsis.size(), SkTextEncoding::kUTF8,
@@ -700,13 +757,30 @@ void HorizontalDrawText::DrawString(const DString& strText, const DrawStringPara
         }
 
         if (!skTextRect.contains(charPos.xPos, charPos.yPos)) {
-            //当前字符不在文本显示区域，不绘制
+            //当前字符不在文本显示区域，不绘制（同时中断当前run，避免跨越该字符产生错误的步进宽度）
+            flushRun();
             continue;
         }
 
+        //字体或行发生变化时，结束当前run
+        if ((runBuffer.pSkFont != charPos.pHitSkFont) || (runBuffer.nRowIndex != charPos.nRowIndex)) {
+            flushRun();
+        }
+        if (runBuffer.glyphs.empty()) {
+            //记录run的起点坐标
+            runBuffer.pSkFont = charPos.pHitSkFont;
+            runBuffer.nRowIndex = charPos.nRowIndex;
+            runBuffer.fX = charPos.xPos;
+            runBuffer.fY = charPos.yPos;
+        }
+        runBuffer.glyphs.push_back(charPos.glyphId);
+        runBuffer.xPos.push_back(charPos.xPos);
         charPos.bDrew = true;
-        DrawSkiaText::DrawSimpleText(skCanvas, charPos.ch, charPos.xPos, charPos.yPos, *pSkFont, skPaint, drawParam.pFont);
     }
+
+    //绘制缓存的字符
+    flushRun();
+    DrawSkiaText::DrawGlyphRuns(skCanvas, glyphRuns, skPaint);
 
     // 绘制下划线/删除线
     if ((drawParam.pFont->IsUnderline() || drawParam.pFont->IsStrikeOut()) && !rowHeights.empty()) {

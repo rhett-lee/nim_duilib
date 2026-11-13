@@ -79,12 +79,15 @@ public:
     * @param [in] paint 绘制属性
     * @param [in] pFont font字体关联的IFont接口，用于支持字体回退，如果为nullptr则不支持字体回退
     * @param [in] bUseDefaultCharWhenFailed 当估算失败时，是否使用默认字符估算
+    * @param [out] ppHitSkFont 如果不为nullptr，输出绘制该字符实际命中的Skia字体（绘制阶段直接使用）
+    * @param [out] pGlyphId 如果不为nullptr，输出绘制该字符使用的字形ID（无法绘制时为0，绘制方框占位）
     * @return 返回字符宽度，如果不支持绘制该字符(当bUseDefaultCharWhenFailed为false时)，返回0
     */
     static SkScalar MeasureTextChar(const SkFont& font, DUTF32Char ch,
                                     SkRect* bounds, const SkPaint* paint,
                                     const IFont* pFont,
-                                    bool bUseDefaultCharWhenFailed);
+                                    bool bUseDefaultCharWhenFailed,
+                                    const SkFont** ppHitSkFont = nullptr, SkGlyphID* pGlyphId = nullptr);
 
     /** 评估文字的宽度和绘制区域，支持字体回退
     * @param [in] font 字体
@@ -93,12 +96,15 @@ public:
     * @param [in] paint 绘制属性
     * @param [in] fallbackFontCreator 字体回退函数，如果为nullptr则不支持字体回退
     * @param [in] bUseDefaultCharWhenFailed 当估算失败时，是否使用默认字符估算
+    * @param [out] ppHitSkFont 如果不为nullptr，输出绘制该字符实际命中的Skia字体（绘制阶段直接使用）
+    * @param [out] pGlyphId 如果不为nullptr，输出绘制该字符使用的字形ID（无法绘制时为0，绘制方框占位）
     * @return 返回字符宽度，如果不支持绘制该字符(当bUseDefaultCharWhenFailed为false时)，返回0
     */
     static SkScalar MeasureTextChar(const SkFont& font, DUTF32Char ch,
                                     SkRect* bounds, const SkPaint* paint,
                                     const FallbackFontCreator& fallbackFontCreator,
-                                    bool bUseDefaultCharWhenFailed);
+                                    bool bUseDefaultCharWhenFailed,
+                                    const SkFont** ppHitSkFont = nullptr, SkGlyphID* pGlyphId = nullptr);
 
     /** 评估文字的宽度和绘制区域，支持字体回退
     * @return 返回字符宽度
