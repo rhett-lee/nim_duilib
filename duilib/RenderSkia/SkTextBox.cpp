@@ -153,8 +153,6 @@ SkScalar SkTextBox::Visit(Visitor& visitor) const
         return boxRect.fTop;
     }
 
-    const char* textStop = pText + nByteLen;
-
     SkScalar fontHeight = 0;
     SkFontMetrics metrics;
     fontHeight = font.getMetrics(&metrics);
@@ -164,16 +162,48 @@ SkScalar SkTextBox::Visit(Visitor& visitor) const
     SkScalar x = boxRect.fLeft;
     SkScalar y = boxRect.fTop;
 
+    //左上对齐时，可绘制行数是确定的，布局阶段可以提前结束，避免处理不可见的大量文本
+    int32_t nMaxLines = 0;
+    if ((spacingAlign == kStart_SpacingAlign) && (scaledSpacing > 0)) {
+        const SkScalar fBottomLimit = boxRect.fBottom - metrics.fAscent / 2;
+        nMaxLines = 1;
+        SkScalar fLineY = boxRect.fTop - metrics.fAscent + scaledSpacing;
+        while (fLineY < fBottomLimit) {
+            ++nMaxLines;
+            fLineY += scaledSpacing;
+        }
+    }
+
+    //一次断行同时产出每行的字形运行结果：
+    //纵向对齐需要的行数、水平对齐需要的行宽都直接复用这里的结果，不再重复断行/测量。
+    //启用省略号时绘制内容会被截断（需要重新解析），此时布局阶段只计算行宽，不构建run
+    const bool bBuildRuns = !(m_endEllipsis || m_pathEllipsis);
+    TextGlyphRunList glyphRuns;
+    std::vector<TextLineLayout> lineLayouts;
+    const int32_t nLineCount = DrawSkiaText::LayoutText(pText, nByteLen, textEncoding,
+                                                        font, fallbackFontCreator, paint,
+                                                        marginWidth, lineMode,
+                                                        glyphRuns, lineLayouts, nMaxLines, bBuildRuns);
+    if (nLineCount <= 0) {
+        return boxRect.fTop;
+    }
+
+    //布局是否因行数上限提前结束（后续还有未布局的文本）
+    bool bHasMoreLines = false;
+    {
+        size_t nLayoutBytes = 0;
+        for (const TextLineLayout& lineLayout : lineLayouts) {
+            nLayoutBytes += lineLayout.m_nByteLength;
+        }
+        bHasMoreLines = nLayoutBytes < nByteLen;
+    }
+
     //计算第一行文字的Y坐标位置（处理纵向对齐）
     {
         SkScalar textHeight = fontHeight;
 
         if (spacingAlign != kStart_SpacingAlign) {
-            int32_t nCount = DrawSkiaText::CountLines(pText, textStop - pText, textEncoding,
-                                                     font, fallbackFontCreator, paint, marginWidth, lineMode);
-            if (nCount > 0) {
-                textHeight += scaledSpacing * (nCount - 1);
-            }
+            textHeight += scaledSpacing * (nLineCount - 1);
         }
 
         switch (spacingAlign) {
@@ -199,12 +229,10 @@ SkScalar SkTextBox::Visit(Visitor& visitor) const
     }
 
     //遍历每一行文字并调用visitor回调
-    for (;;) {
-        size_t trailing = 0;
-        const size_t nLineByteLen = DrawSkiaText::Linebreak(pText, textStop, textEncoding,
-                                                            font, fallbackFontCreator, paint,
-                                                            marginWidth, lineMode,
-                                                            measureTempData, &trailing);
+    for (int32_t nLineIndex = 0; nLineIndex < nLineCount; ++nLineIndex) {
+        const TextLineLayout& lineLayout = lineLayouts[nLineIndex];
+        //后续还有没有待绘制文本
+        const bool bHasMoreText = ((nLineIndex + 1) < nLineCount) || bHasMoreLines;
         if (y + metrics.fDescent + metrics.fLeading > 0) {
             //计算当前行的水平对齐位置
             if (textAlign == kLeft_Align) {
@@ -212,11 +240,8 @@ SkScalar SkTextBox::Visit(Visitor& visitor) const
                 x = boxRect.fLeft;
             }
             else {
-                //右对齐或者中对齐
-                SkScalar textWidth = DrawSkiaText::MeasureText(font, pText,
-                                                               nLineByteLen - trailing,
-                                                               textEncoding,
-                                                               nullptr, &paint, fallbackFontCreator, measureTempData);
+                //右对齐或者中对齐（行宽直接复用布局结果，避免重复测量）
+                const SkScalar textWidth = lineLayout.m_fWidth;
                 if (textAlign == kCenter_Align) {
                     //横向：中对齐
                     x = boxRect.fLeft + (marginWidth - textWidth) * 0.5f;
@@ -232,20 +257,23 @@ SkScalar SkTextBox::Visit(Visitor& visitor) const
                     }
                 }
             }
-            //后续还有没有待绘制文本
-            bool bHasMoreText = (pText + nLineByteLen) < textStop;
             //当前是否为最后一行
             bool bIsLastLine = (y + scaledSpacing + metrics.fAscent / 2) >= boxRect.fBottom;
 
-            SkiaTextData lineTextData(pText, nLineByteLen - trailing, textEncoding);
-            visitor(lineTextData, x, y, font, paint, bHasMoreText, bIsLastLine, fallbackFontCreator, measureTempData);
+            SkiaTextData lineTextData(pText, lineLayout.m_nByteLength - lineLayout.m_nTrailing, textEncoding);
+            visitor(lineTextData, x, y, font, paint, bHasMoreText, bIsLastLine, fallbackFontCreator,
+                    measureTempData, glyphRuns, lineLayout);
         }
-        pText += nLineByteLen;
-        if (pText >= textStop) {
+        pText += lineLayout.m_nByteLength;
+        if (!bHasMoreText) {
             break;
         }
         y += scaledSpacing;
         if ((y + metrics.fAscent / 2) >= boxRect.fBottom) {
+            break;
+        }
+        if ((nLineIndex + 1) >= nLineCount) {
+            //布局受行数上限限制，其余行不可见，结束绘制
             break;
         }
     }
@@ -424,6 +452,8 @@ static void DrawTextLine(SkCanvas* pSkCanvas,
  * @param [in] bHasMoreText 是否还有更多文本
  * @param [in] bIsLastLine 是否是最后一行
  * @param [in] fallbackFontCreator 回退字体管理器
+ * @param [in] glyphRuns 全部行的字形运行结果
+ * @param [in] lineLayout 本行的布局结果
  */
 static void TextBox_DrawText(SkTextBox* pTextBox,
                              SkCanvas* pSkCanvas,
@@ -432,7 +462,9 @@ static void TextBox_DrawText(SkTextBox* pTextBox,
                              const SkFont& font, const SkPaint& paint,
                              bool bHasMoreText, bool bIsLastLine,
                              FallbackFontCreator fallbackFontCreator,
-                             MeasureTextTempData& measureTempData)
+                             MeasureTextTempData& measureTempData,
+                             const TextGlyphRunList& glyphRuns,
+                             const TextLineLayout& lineLayout)
 {
     ASSERT(pTextBox != nullptr);
     ASSERT(pSkCanvas != nullptr);
@@ -455,16 +487,20 @@ static void TextBox_DrawText(SkTextBox* pTextBox,
     //单行模式
     bool isSingleLine = pTextBox->GetLineMode() == TextBoxLineMode::kOneLine_Mode;
 
+    //布局阶段是否产出了可复用的run（启用省略号时布局只计算行宽，不产出run）
+    const bool bHasGlyphRuns = lineLayout.m_nRunCount > 0;
+
     if (!bEndEllipsis && !bPathEllipsis && !bUnderline && !bStrikeOut) {
-        DrawSkiaText::DrawSimpleText(pSkCanvas, textData, x, y, font, paint, fallbackFontCreator);
+        //复用布局阶段产出的run批量绘制，绘制阶段不再重新解析字形与回退字体
+        DrawSkiaText::DrawGlyphRuns(pSkCanvas, glyphRuns, lineLayout.m_nRunStart, lineLayout.m_nRunCount, x, y, paint);
         return;
     }
 
     bool needEllipsis = false;
     if (bEndEllipsis || bPathEllipsis) {
         if (isSingleLine) {
-            //单行模式
-            SkScalar textWidth = DrawSkiaText::MeasureText(font, textData, nullptr, &paint, fallbackFontCreator, measureTempData);
+            //单行模式（行宽直接复用布局结果，避免重复测量）
+            SkScalar textWidth = lineLayout.m_fWidth;
             if ((x + textWidth) > boxRect.fRight) {
                 //文字超出边界，需要增加"..."替代无法显示的文字
                 needEllipsis = true;
@@ -480,7 +516,13 @@ static void TextBox_DrawText(SkTextBox* pTextBox,
     }
 
     if (!needEllipsis && !bUnderline && !bStrikeOut) {
-        DrawSkiaText::DrawSimpleText(pSkCanvas, textData, x, y, font, paint, fallbackFontCreator);
+        //启用省略号但文本未超出边界：绘制内容与布局一致，优先复用run
+        if (bHasGlyphRuns) {
+            DrawSkiaText::DrawGlyphRuns(pSkCanvas, glyphRuns, lineLayout.m_nRunStart, lineLayout.m_nRunCount, x, y, paint);
+        }
+        else {
+            DrawSkiaText::DrawSimpleText(pSkCanvas, textData, x, y, font, paint, fallbackFontCreator);
+        }
         return;
     }
 
@@ -502,20 +544,30 @@ static void TextBox_DrawText(SkTextBox* pTextBox,
         }
     }
     //绘制文本
-    DrawSkiaText::DrawSimpleText(pSkCanvas, drawTextData, x, y, font, paint, fallbackFontCreator);
+    SkScalar textWidth = lineLayout.m_fWidth;
+    if (!needEllipsis && bHasGlyphRuns) {
+        //未截断时复用布局阶段产出的run批量绘制，绘制阶段不再重新解析
+        DrawSkiaText::DrawGlyphRuns(pSkCanvas, glyphRuns, lineLayout.m_nRunStart, lineLayout.m_nRunCount, x, y, paint);
+    }
+    else {
+        //文本被省略号截断（或布局未产出run），需要按当前内容重新解析
+        DrawSkiaText::DrawSimpleText(pSkCanvas, drawTextData, x, y, font, paint, fallbackFontCreator);
+        if ((bUnderline || bStrikeOut) && needEllipsis) {
+            textWidth = DrawSkiaText::MeasureText(font, drawTextData, nullptr, &paint, fallbackFontCreator, measureTempData);
+        }
+    }
 
     if (bUnderline || bStrikeOut) {
-        SkScalar width = DrawSkiaText::MeasureText(font, drawTextData, nullptr, &paint, fallbackFontCreator, measureTempData);
         SkScalar textSize = font.getSize();
 
         if (bStrikeOut) {
             //绘制删除线
-            DrawTextLine(pSkCanvas, x, y, width, textSize,
+            DrawTextLine(pSkCanvas, x, y, textWidth, textSize,
                          -SkTextBox::kStrikeThroughOffset, SkTextBox::kLineThicknessFactor, paint);
         }
         if (bUnderline) {
             //绘制下划线
-            DrawTextLine(pSkCanvas, x, y, width, textSize,
+            DrawTextLine(pSkCanvas, x, y, textWidth, textSize,
                          SkTextBox::kUnderlineOffset,
                          SkTextBox::kLineThicknessFactor * SkTextBox::kUnderlineThicknessFactor, paint);
         }
@@ -538,7 +590,9 @@ public:
                     const SkFont& font, const SkPaint& paint,
                     bool bHasMoreText, bool bIsLastLine,
                     FallbackFontCreator fallbackFontCreator,
-                    MeasureTextTempData& measureTempData) override
+                    MeasureTextTempData& measureTempData,
+                    const TextGlyphRunList& glyphRuns,
+                    const TextLineLayout& lineLayout) override
     {
         //调用单独封装的函数绘制文字，便于扩展
         TextBox_DrawText(m_pTextBox,
@@ -547,7 +601,8 @@ public:
                          x, y,
                          font, paint,
                          bHasMoreText, bIsLastLine,
-                         fallbackFontCreator, measureTempData);
+                         fallbackFontCreator, measureTempData,
+                         glyphRuns, lineLayout);
     }
 };
 

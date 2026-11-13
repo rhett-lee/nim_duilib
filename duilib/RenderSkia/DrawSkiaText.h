@@ -206,6 +206,42 @@ public:
      */
     static void DrawGlyphRuns(SkCanvas* skCanvas, const TextGlyphRunList& glyphRuns, const SkPaint& paint);
 
+    /** 按 run 批量绘制文本运行结果（只绘制指定范围的 run，并指定统一偏移）
+     * @param [in] skCanvas 绘制画布
+     * @param [in] glyphRuns 文本运行结果
+     * @param [in] nFirstRun 起始 run 下标
+     * @param [in] nRunCount 需要绘制的 run 个数
+     * @param [in] x 偏移X坐标（叠加到 run 自身的X坐标上）
+     * @param [in] y 偏移Y坐标（叠加到 run 自身的Y坐标上）
+     * @param [in] paint 绘制属性
+     */
+    static void DrawGlyphRuns(SkCanvas* skCanvas, const TextGlyphRunList& glyphRuns,
+                              size_t nFirstRun, size_t nRunCount,
+                              SkScalar x, SkScalar y, const SkPaint& paint);
+
+    /** 文本断行布局：一次断行同时产出每行的绘制用 run 与行宽
+     * @param [in] text 文本字符串的起始地址
+     * @param [in] len 文本字符串的长度（字节）
+     * @param [in] textEncoding 文本的编码, SkTextEncoding::kUTF8 or kUTF16 or kUTF32
+     * @param [in] font 主字体
+     * @param [in] fallbackFontCreator 回退字体管理器
+     * @param [in] paint 绘制属性
+     * @param [in] width 绘制区域的宽度
+     * @param [in] lineMode 换行模式
+     * @param [out] glyphRuns 每行的run（内部会先清空；run的x为相对本行起点的偏移，y为0）
+     * @param [out] lineLayouts 每行的布局信息（内部会先清空）
+     * @param [in] nMaxLines 最多布局多少行（0表示不限制）
+     * @param [in] bBuildRuns 是否构建绘制用的run（false表示只计算行宽，供省略号等需要重新解析的路径使用）
+     * @return 返回布局得到的行数
+     */
+    static int32_t LayoutText(const char* text, size_t len, SkTextEncoding textEncoding,
+                              const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
+                              const SkPaint& paint, SkScalar width, TextBoxLineMode lineMode,
+                              TextGlyphRunList& glyphRuns,
+                              std::vector<TextLineLayout>& lineLayouts,
+                              int32_t nMaxLines = 0,
+                              bool bBuildRuns = true);
+
 public:
     //原始函数：SkPaint::breakText 这个函数在最新的Skia代码里面已经删除了，这个是自己实现的版本。
     /** 返回适合最大宽度的文本字节
@@ -261,11 +297,13 @@ public:
      * @param [in] width 绘制区域的宽度
      * @param [in] lineMode 换行模式
      * @param [out] lineLenList 返回每行文本数据的长度（字节）
+     * @param [out] lineWidthList 返回每行文本的宽度（复用断行时的字形宽度，不再重复解析字符）
      */
     static int32_t CountLines(const char* text, size_t len, SkTextEncoding textEncoding,
                               const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
                               const SkPaint& paint, SkScalar width, TextBoxLineMode lineMode,
-                              std::vector<size_t>* lineLenList = nullptr);
+                              std::vector<size_t>* lineLenList = nullptr,
+                              std::vector<SkScalar>* lineWidthList = nullptr);
 
     /** 统计绘制需要多少行
     * @param [in] textData 文本数据
@@ -275,11 +313,13 @@ public:
     * @param [in] width 绘制区域的宽度
     * @param [in] lineMode 换行模式
     * @param [out] lineLenList 返回每行文本数据的长度（字节）
+    * @param [out] lineWidthList 返回每行文本的宽度（复用断行时的字形宽度，不再重复解析字符）
     */
     static int32_t CountLines(const SkiaTextData& textData,
                               const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
                               const SkPaint& paint, SkScalar width, TextBoxLineMode lineMode,
-                              std::vector<size_t>* lineLenList = nullptr);
+                              std::vector<size_t>* lineLenList = nullptr,
+                              std::vector<SkScalar>* lineWidthList = nullptr);
 
 
     /** 返回适合最大宽度的文本字节
@@ -293,11 +333,12 @@ public:
      * @param [in] lineMode 换行模式
      * @param [in] tempData 临时变量，用以提高性能
      * @param [out] trailing 返回尾部的字符占几个字节（字节）
+     * @param [out] pBreakTextData 如果不为 nullptr，返回断行时的逐字符字形宽度（供测量复用）
      */
     static size_t Linebreak(const char* text, const char* stop, SkTextEncoding textEncoding,
                             const SkFont& font, const FallbackFontCreator& fallbackFontCreator, const SkPaint& paint,
                             SkScalar margin, TextBoxLineMode lineMode, MeasureTextTempData& tempData,
-                            size_t* trailing = nullptr);
+                            size_t* trailing = nullptr, BreakTextTempData* pBreakTextData = nullptr);
 
     /** 返回适合最大宽度的文本字节
     * @param [in] textData 文本数据
@@ -313,7 +354,7 @@ public:
     static size_t Linebreak(const SkiaTextData& textData, const char* stop,
                             const SkFont& font, const FallbackFontCreator& fallbackFontCreator, const SkPaint& paint,
                             SkScalar margin, TextBoxLineMode lineMode, MeasureTextTempData& tempData,
-                            size_t* trailing = nullptr);
+                            size_t* trailing = nullptr, BreakTextTempData* pBreakTextData = nullptr);
 
     /** 将文本转换为UTF32字符串，并做预处理（各绘制路径共用的实现）
     * @param [in] strText 需要转换的文本内容

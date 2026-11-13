@@ -218,12 +218,27 @@ public:
     class Visitor {
     public:
         virtual ~Visitor() {}
+        /** 处理一行文字
+         * @param [in] textData 本行可绘制的文本数据
+         * @param [in] x 本行绘制X坐标
+         * @param [in] y 本行绘制Y坐标（基线位置）
+         * @param [in] skFont 主字体
+         * @param [in] skPaint 绘制属性
+         * @param [in] bHasMoreText 是否还有后续文本
+         * @param [in] bIsLastLine 是否为最后一行
+         * @param [in] fallbackFontCreator 回退字体管理器
+         * @param [in] measureTempData 测量用临时变量
+         * @param [in] glyphRuns 全部行的字形运行结果
+         * @param [in] lineLayout 本行的布局结果（run范围与本行宽度）
+         */
         virtual void operator()(const SkiaTextData& textData,
                                 SkScalar x, SkScalar y,
                                 const SkFont& skFont, const SkPaint& skPaint,
                                 bool bHasMoreText, bool bIsLastLine,
                                 FallbackFontCreator fallbackFontCreator,
-                                MeasureTextTempData& measureTempData) = 0;
+                                MeasureTextTempData& measureTempData,
+                                const TextGlyphRunList& glyphRuns,
+                                const TextLineLayout& lineLayout) = 0;
     };
 
 public:

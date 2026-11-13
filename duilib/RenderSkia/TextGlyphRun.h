@@ -12,7 +12,7 @@ namespace ui
 /** 文本运行结果（run）：一段命中同一字体的连续字形
  *
  * 设计目的：把"字符 -> 字形 -> 命中字体"的解析结果从栈上临时变量变成可传递的数据，
- *          由测量/布局阶段产出（BuildGlyphRuns），绘制阶段直接批量提交（DrawGlyphRuns），
+ *          由测量/布局阶段产出（BuildGlyphRuns / LayoutText），绘制阶段直接批量提交（DrawGlyphRuns），
  *          避免同一段文本在测量和绘制时各解析一次。
  *
  * 生命周期：m_pGlyphs / m_pAdvances 指向 TextGlyphRunList 内部的缓冲区，
@@ -56,6 +56,35 @@ struct TextGlyphRun
     /** 是否旋转90度绘制（纵向文本路径使用）
     */
     bool             m_bRotate90 = false;
+};
+
+/** 一行文本的布局结果：断行边界 + 该行的绘制用 run 范围
+ *
+ * 由 DrawSkiaText::LayoutText 一次产出：断行只做一次，行宽与字形解析结果同时得到，
+ * 绘制阶段直接按 run 批量提交，不再重新断行/测量。
+ * run 的 x 为相对本行起点的偏移，y 为占位值（绘制时由调用方给出行的基线坐标）。
+ */
+struct TextLineLayout
+{
+    /** 本行占用的字节数（含行尾空白与换行符）
+     */
+    size_t   m_nByteLength = 0;
+
+    /** 行尾不绘制部分的字节数（空白或换行符）
+     */
+    size_t   m_nTrailing = 0;
+
+    /** 本行可绘制内容的宽度（字形步进宽度之和，用于水平对齐）
+     */
+    SkScalar m_fWidth = 0;
+
+    /** 本行第一个 run 在 TextGlyphRunList 中的下标
+     */
+    size_t   m_nRunStart = 0;
+
+    /** 本行包含的 run 个数
+     */
+    size_t   m_nRunCount = 0;
 };
 
 /** 文本运行结果列表：持有所有 run 的字形与宽度缓冲区

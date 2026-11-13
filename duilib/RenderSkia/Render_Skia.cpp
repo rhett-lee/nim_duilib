@@ -1791,6 +1791,7 @@ UiRect Render_Skia::MeasureString(const DString& strText, const MeasureStringPar
             nRectWidth = INT32_MAX;
         }
         std::vector<size_t> lineLenList; //每行文本数据的长度（字节）
+        std::vector<SkScalar> lineWidthList; //每行文本的宽度（复用断行时的字形宽度）
         int32_t lineCount = DrawSkiaText::CountLines((const char*)strText.c_str(),
                                                      strText.size() * sizeof(DString::value_type),
                                                      GetTextEncoding(),
@@ -1798,23 +1799,31 @@ UiRect Render_Skia::MeasureString(const DString& strText, const MeasureStringPar
                                                      skPaint,
                                                      SkScalar(nRectWidth),
                                                      TextBoxLineMode::kWordBreak_Mode,
-                                                     &lineLenList);
+                                                     &lineLenList,
+                                                     &lineWidthList);
         //计算所需宽度
         int32_t textWidth = 0;
         ASSERT((int32_t)lineLenList.size() == lineCount);
-        if (!lineLenList.empty()) {
-            //优化：直接用文本指针+行字节长度测量，避免逐行 substr 产生大量临时 DString 对象
+        ASSERT(lineWidthList.size() == lineLenList.size());
+        if (!lineWidthList.empty()) {
+            //非斜体字：字形边界不会超出步进宽度，直接使用断行阶段已算好的行宽，避免逐行重新测量
+            const bool bUseLayoutWidth = !measureParam.pFont->IsItalic();
             const DString::value_type* pTextData = strText.c_str();
             size_t nTextPos = 0; //当前行在文本中的字节偏移
-            for (size_t len : lineLenList) {
-                SkRect bounds; //斜体字时，这个宽度包含了外延的宽度
-                SkScalar lineTextLen = DrawSkiaText::MeasureText(*pSkFont,
-                                                                 (const char*)(pTextData + nTextPos / sizeof(DString::value_type)),
-                                                                 len,
-                                                                 GetTextEncoding(), &bounds, &skPaint, fallbackFontCreator,
-                                                                 measureTempData);
-                nTextPos += len;
-                lineTextLen = std::max(lineTextLen, bounds.width());
+            for (size_t nLineIndex = 0; nLineIndex < lineWidthList.size(); ++nLineIndex) {
+                SkScalar lineTextLen = lineWidthList[nLineIndex];
+                if (!bUseLayoutWidth) {
+                    //斜体字：字形边界可能超出步进宽度，保留逐行完整测量
+                    const size_t len = lineLenList[nLineIndex];
+                    SkRect bounds;
+                    lineTextLen = DrawSkiaText::MeasureText(*pSkFont,
+                                                            (const char*)(pTextData + nTextPos / sizeof(DString::value_type)),
+                                                            len,
+                                                            GetTextEncoding(), &bounds, &skPaint, fallbackFontCreator,
+                                                            measureTempData);
+                    lineTextLen = std::max(lineTextLen, bounds.width());
+                }
+                nTextPos += lineLenList[nLineIndex];
                 int32_t lineTextIWidth = SkScalarTruncToInt(lineTextLen + 0.5f);
                 if (lineTextLen > lineTextIWidth) {
                     lineTextIWidth += 1;

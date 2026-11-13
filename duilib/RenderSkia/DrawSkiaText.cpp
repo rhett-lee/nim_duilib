@@ -505,6 +505,47 @@ void DrawSkiaText::DrawSimpleText(SkCanvas* skCanvas, const void* text, size_t b
     }
 }
 
+/** 解析单个字符：命中字体、字形、宽度与绘制边界
+ * @param [out] ppSkFont 输出命中的Skia字体（主字体或回退字体）
+ * @param [out] pGlyphId 输出绘制使用的字形ID（无法显示时为0，绘制时以方框占位）
+ * @param [out] pWidth 输出字形宽度
+ * @param [out] pBounds 输出字形边界
+ * @return 返回 true 表示字符可以正常绘制；返回 false 表示只能以方框占位
+ */
+static bool ResolveGlyphChar(const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
+                             SkUnichar ch, const SkPaint& paint,
+                             const SkFont** ppSkFont, SkGlyphID* pGlyphId,
+                             SkScalar* pWidth, SkRect* pBounds)
+{
+    const SkFont* pSkFont = &font;
+    SkGlyphID glyphId = font.unicharToGlyph(ch);
+    if ((glyphId == 0) && (fallbackFontCreator != nullptr)) {
+        //主字体不支持该字符，尝试使用回退字体
+        SkGlyphID fallbackGlyphId = 0;
+        const SkFont* pFallbackSkFont = fallbackFontCreator(ch, &fallbackGlyphId);
+        if ((pFallbackSkFont != nullptr) && (fallbackGlyphId != 0)) {
+            pSkFont = pFallbackSkFont;
+            glyphId = fallbackGlyphId;
+        }
+    }
+
+    SkScalar fGlyphWidth = 0;
+    pSkFont->getWidthsBounds(SkSpan<const SkGlyphID>(&glyphId, 1),
+                             SkSpan<SkScalar>(&fGlyphWidth, 1),
+                             SkSpan<SkRect>(pBounds, 1),
+                             &paint);
+    bool bCanDraw = true;
+    if (pBounds->isEmpty() && !iswspace((wchar_t)ch)) {
+        //该字符无法显示，使用glyph 0绘制占位方框（实际会显示一个方框）
+        glyphId = 0;
+        bCanDraw = false;
+    }
+    *ppSkFont = pSkFont;
+    *pGlyphId = glyphId;
+    *pWidth = fGlyphWidth;
+    return bCanDraw;
+}
+
 void DrawSkiaText::BuildGlyphRuns(const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
                                   const DUTF32Char* pText, size_t nCount,
                                   SkScalar x, SkScalar y, const SkPaint& paint,
@@ -520,30 +561,13 @@ void DrawSkiaText::BuildGlyphRuns(const SkFont& font, const FallbackFontCreator&
     for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
         const DUTF32Char ch = pText[nIndex];
 
-        //第一步：解析字符对应的字形与命中字体（每个字符只解析一次）
+        //第一步+第二步：解析字符对应的字形、命中字体、宽度与边界（每个字符只解析一次）
         const SkFont* pSkFont = &font;
-        SkGlyphID glyphId = font.unicharToGlyph((SkUnichar)ch);
-        if ((glyphId == 0) && (fallbackFontCreator != nullptr)) {
-            //主字体不支持该字符，尝试使用回退字体
-            SkGlyphID fallbackGlyphId = 0;
-            const SkFont* pFallbackSkFont = fallbackFontCreator((SkUnichar)ch, &fallbackGlyphId);
-            if ((pFallbackSkFont != nullptr) && (fallbackGlyphId != 0)) {
-                pSkFont = pFallbackSkFont;
-                glyphId = fallbackGlyphId;
-            }
-        }
-
-        //第二步：评估字形宽度与边界（与逐字符绘制时的处理保持一致）
-        SkRect bounds;
+        SkGlyphID glyphId = 0;
         SkScalar fGlyphWidth = 0;
-        pSkFont->getWidthsBounds(SkSpan<const SkGlyphID>(&glyphId, 1),
-                                 SkSpan<SkScalar>(&fGlyphWidth, 1),
-                                 SkSpan<SkRect>(&bounds, 1),
-                                 &paint);
-        if (bounds.isEmpty() && !iswspace((wchar_t)ch)) {
-            //该字符无法显示，使用glyph 0绘制占位方框（实际会显示一个方框）
-            glyphId = 0;
-        }
+        SkRect bounds;
+        ResolveGlyphChar(font, fallbackFontCreator, (SkUnichar)ch, paint,
+                         &pSkFont, &glyphId, &fGlyphWidth, &bounds);
 
         //第三步：按命中字体分组，连续命中同一字体的字符合并为一个run
         if ((pLastRunSkFont != pSkFont)) {
@@ -556,15 +580,127 @@ void DrawSkiaText::BuildGlyphRuns(const SkFont& font, const FallbackFontCreator&
     glyphRuns.EndRun();
 }
 
+/** 构建一行文本的运行结果（run），同时返回行宽
+ * @param [out] fWidth 返回本行字形步进宽度之和
+ */
+static void BuildLineRuns(const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
+                          const void* text, size_t byteLength, SkTextEncoding textEncoding,
+                          const SkPaint& paint, TextGlyphRunList& glyphRuns,
+                          SkScalar& fWidth)
+{
+    fWidth = 0;
+    if ((text == nullptr) || (byteLength == 0)) {
+        return;
+    }
+
+    const SkFont* pLastRunSkFont = nullptr;   //当前run使用的Skia字体
+    SkiaTextData textData(text, byteLength, textEncoding);
+    EnumTextCallback enumTextCallback = [&](SkUnichar unicodeChar, size_t /*charByteLength*/) {
+        const SkFont* pSkFont = &font;
+        SkGlyphID glyphId = 0;
+        SkScalar fGlyphWidth = 0;
+        SkRect bounds;
+        const bool bCanDraw = ResolveGlyphChar(font, fallbackFontCreator, unicodeChar, paint,
+                                               &pSkFont, &glyphId, &fGlyphWidth, &bounds);
+        //按命中字体分组，连续命中同一字体的字符合并为一个run
+        if (pLastRunSkFont != pSkFont) {
+            glyphRuns.BeginRun(nullptr, pSkFont, fWidth, 0);
+            pLastRunSkFont = pSkFont;
+        }
+        glyphRuns.AddGlyph(glyphId, fGlyphWidth);
+        fWidth += fGlyphWidth;
+        if (!bCanDraw) {
+            //占位方框单独作为一个run，不与其他字形混在一起
+            glyphRuns.EndRun();
+            pLastRunSkFont = nullptr;
+        }
+        return true;
+    };
+    textData.EnumChars(enumTextCallback);
+    glyphRuns.EndRun();
+}
+
+/** 计算一行的宽度（复用断行时已经算好的字形宽度，不再重复解析字符）
+ * @param [in] breakTextData 断行时产出的逐字符字形宽度
+ * @param [in] nLineByteLen 本行的字节数
+ */
+static SkScalar CalcLineWidth(const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
+                              const SkPaint& paint,
+                              const char* text, size_t nLineByteLen, SkTextEncoding textEncoding,
+                              MeasureTextTempData& tempData, const BreakTextTempData& breakTextData);
+
+int32_t DrawSkiaText::LayoutText(const char* text, size_t len, SkTextEncoding textEncoding,
+                                 const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
+                                 const SkPaint& paint, SkScalar width, TextBoxLineMode lineMode,
+                                 TextGlyphRunList& glyphRuns,
+                                 std::vector<TextLineLayout>& lineLayouts,
+                                 int32_t nMaxLines,
+                                 bool bBuildRuns)
+{
+    glyphRuns.Clear();
+    lineLayouts.clear();
+    if ((text == nullptr) || (len == 0) || (width <= 0)) {
+        return 0;
+    }
+
+    MeasureTextTempData tempData;   //内部临时变量，为提升执行速度，在循环外声明
+    BreakTextTempData breakTextData; //断行时的逐字符宽度，用于在不构建run时计算行宽
+    const char* pText = text;
+    const char* textStop = text + len;
+    while (pText < textStop) {
+        if ((nMaxLines > 0) && ((int32_t)lineLayouts.size() >= nMaxLines)) {
+            //已达到行数上限（其余行不可见），提前结束布局
+            break;
+        }
+        size_t trailing = 0;
+        const size_t nLineByteLen = Linebreak(pText, textStop, textEncoding,
+                                              font, fallbackFontCreator, paint,
+                                              width, lineMode, tempData, &trailing,
+                                              bBuildRuns ? nullptr : &breakTextData);
+        if (nLineByteLen == 0) {
+            //异常数据保护，避免死循环
+            break;
+        }
+        TextLineLayout lineLayout;
+        lineLayout.m_nByteLength = nLineByteLen;
+        lineLayout.m_nTrailing = (trailing < nLineByteLen) ? trailing : nLineByteLen;
+        lineLayout.m_nRunStart = glyphRuns.GetRunCount();
+        if (bBuildRuns) {
+            //只对实际绘制的内容（去除行尾空白与换行符）构建run
+            BuildLineRuns(font, fallbackFontCreator, pText,
+                          nLineByteLen - lineLayout.m_nTrailing, textEncoding,
+                          paint, glyphRuns, lineLayout.m_fWidth);
+        }
+        else {
+            //不构建run时，行宽直接复用断行时的字形宽度（不再额外解析一遍）
+            lineLayout.m_fWidth = CalcLineWidth(font, fallbackFontCreator, paint,
+                                                pText, nLineByteLen - lineLayout.m_nTrailing,
+                                                textEncoding, tempData, breakTextData);
+        }
+        lineLayout.m_nRunCount = glyphRuns.GetRunCount() - lineLayout.m_nRunStart;
+        lineLayouts.push_back(lineLayout);
+        pText += nLineByteLen;
+    }
+    return (int32_t)lineLayouts.size();
+}
+
 void DrawSkiaText::DrawGlyphRuns(SkCanvas* skCanvas, const TextGlyphRunList& glyphRuns, const SkPaint& paint)
 {
-    if ((skCanvas == nullptr) || glyphRuns.IsEmpty()) {
+    DrawGlyphRuns(skCanvas, glyphRuns, 0, glyphRuns.GetRunCount(), 0, 0, paint);
+}
+
+void DrawSkiaText::DrawGlyphRuns(SkCanvas* skCanvas, const TextGlyphRunList& glyphRuns,
+                                 size_t nFirstRun, size_t nRunCount,
+                                 SkScalar x, SkScalar y, const SkPaint& paint)
+{
+    if (skCanvas == nullptr) {
         return;
     }
     //run内每个字形的绘制位置（相对run起点的偏移），所有run复用同一块缓冲区
     FastVector<SkPoint> positions;
-    const size_t nRunCount = glyphRuns.GetRunCount();
-    for (size_t nRunIndex = 0; nRunIndex < nRunCount; ++nRunIndex) {
+    const size_t nRunEnd = ((nFirstRun + nRunCount) < glyphRuns.GetRunCount()) ?
+                           (nFirstRun + nRunCount) : glyphRuns.GetRunCount();
+    for (size_t nRunIndex = nFirstRun; nRunIndex < nRunEnd; ++nRunIndex) {
         const TextGlyphRun& run = glyphRuns.GetRun(nRunIndex);
         if ((run.m_pSkFont == nullptr) || (run.m_pGlyphs == nullptr) || (run.m_nCount == 0)) {
             continue;
@@ -583,18 +719,20 @@ void DrawSkiaText::DrawGlyphRuns(SkCanvas* skCanvas, const TextGlyphRunList& gly
             }
             pPositions = positions.data();
         }
+        const SkScalar fRunX = x + run.m_x;
+        const SkScalar fRunY = y + run.m_y;
         const SkSpan<const SkGlyphID> glyphSpan(run.m_pGlyphs, run.m_nCount);
         const SkSpan<const SkPoint> positionSpan(pPositions, run.m_nCount);
         if (run.m_bRotate90) {
             //纵向文本的旋转字符：以run起点为原点旋转90度绘制，positions为旋转后坐标系内的偏移
             int nSaveCount = skCanvas->save();
-            skCanvas->translate(run.m_x, run.m_y);
+            skCanvas->translate(fRunX, fRunY);
             skCanvas->rotate(90);
             skCanvas->drawGlyphs(glyphSpan, positionSpan, SkPoint::Make(0, 0), *run.m_pSkFont, paint);
             skCanvas->restoreToCount(nSaveCount);
         }
         else {
-            skCanvas->drawGlyphs(glyphSpan, positionSpan, SkPoint::Make(run.m_x, run.m_y), *run.m_pSkFont, paint);
+            skCanvas->drawGlyphs(glyphSpan, positionSpan, SkPoint::Make(fRunX, fRunY), *run.m_pSkFont, paint);
         }
     }
 }
@@ -757,13 +895,13 @@ static inline SkUnichar SkUTF_NextUnichar(const void** ptr, const void* end, SkT
 size_t DrawSkiaText::Linebreak(const char* text, const char* stop, SkTextEncoding textEncoding,
                                const SkFont& font, const FallbackFontCreator& fallbackFontCreator, const SkPaint& paint,
                                SkScalar margin, TextBoxLineMode lineMode, MeasureTextTempData& tempData,
-                               size_t* trailing)
+                               size_t* trailing, BreakTextTempData* pBreakTextData)
 {
     size_t lengthBreak = stop - text;//单行模式
     if (lineMode != TextBoxLineMode::kOneLine_Mode) {
         //多行模式
         lengthBreak = DrawSkiaText::BreakText(text, stop - text, textEncoding, font, fallbackFontCreator,
-                                              paint, margin, nullptr, tempData);
+                                              paint, margin, nullptr, tempData, pBreakTextData);
     }
 
     //Check for white space or line breakers before the lengthBreak
@@ -879,20 +1017,59 @@ size_t DrawSkiaText::Linebreak(const char* text, const char* stop, SkTextEncodin
     return text - start;
 }
 
+/** 计算一行的宽度（复用断行时已经算好的字形宽度，不再重复解析字符）
+ * @param [in] breakTextData 断行时产出的逐字符字形宽度
+ * @param [in] nLineByteLen 本行的字节数
+ */
+static SkScalar CalcLineWidth(const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
+                              const SkPaint& paint,
+                              const char* text, size_t nLineByteLen, SkTextEncoding textEncoding,
+                              MeasureTextTempData& tempData, const BreakTextTempData& breakTextData)
+{
+    if (breakTextData.glyphWidths.empty()) {
+        //断行时未产出字形宽度（例如单行模式不执行断行），回退到一次完整测量
+        return DrawSkiaText::MeasureText(font, text, nLineByteLen, textEncoding, nullptr, &paint,
+                                         fallbackFontCreator, tempData);
+    }
+    SkScalar fWidth = 0;
+    size_t nBytes = 0;
+    const size_t nCount = breakTextData.glyphWidths.size();
+    for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+        const size_t nCharBytes = breakTextData.glyphChars[nIndex];
+        if ((nBytes + nCharBytes) > nLineByteLen) {
+            break;
+        }
+        nBytes += nCharBytes;
+        fWidth += breakTextData.glyphWidths[nIndex];
+    }
+    return fWidth;
+}
+
 int32_t DrawSkiaText::CountLines(const char* text, size_t len, SkTextEncoding textEncoding,
                                  const SkFont& font, const FallbackFontCreator& fallbackFontCreator, const SkPaint& paint,
                                  SkScalar width, TextBoxLineMode lineMode,
-                                 std::vector<size_t>* lineLenList)
+                                 std::vector<size_t>* lineLenList,
+                                 std::vector<SkScalar>* lineWidthList)
 {
     MeasureTextTempData tempData;
+    BreakTextTempData breakTextData;
+    const bool bCalcLineWidth = (lineWidthList != nullptr);
     const char* stop = text + len;
     int32_t count = 0;
     if (width > 0) {
         do {
             count += 1;
-            size_t lineLen = DrawSkiaText::Linebreak(text, stop, textEncoding, font, fallbackFontCreator, paint, width, lineMode, tempData);
+            size_t lineLen = DrawSkiaText::Linebreak(text, stop, textEncoding, font, fallbackFontCreator, paint,
+                                                     width, lineMode, tempData, nullptr,
+                                                     bCalcLineWidth ? &breakTextData : nullptr);
             if (lineLenList != nullptr) {
                 lineLenList->push_back(lineLen);
+            }
+            if (bCalcLineWidth) {
+                //行宽直接复用断行时的字形宽度，避免测量阶段再解析一遍字符
+                lineWidthList->push_back(CalcLineWidth(font, fallbackFontCreator, paint,
+                                                       text, lineLen, textEncoding,
+                                                       tempData, breakTextData));
             }
             text += lineLen;
         } while (text < stop);
@@ -948,21 +1125,22 @@ size_t DrawSkiaText::BreakText(const SkiaTextData& textData,
 int32_t DrawSkiaText::CountLines(const SkiaTextData& textData,
                                   const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
                                   const SkPaint& paint, SkScalar width, TextBoxLineMode lineMode,
-                                  std::vector<size_t>* lineLenList)
+                                  std::vector<size_t>* lineLenList,
+                                  std::vector<SkScalar>* lineWidthList)
 {
     const char* text = static_cast<const char*>(textData.GetText());
     return CountLines(text, textData.GetByteLength(), textData.GetTextEncoding(),
-                      font, fallbackFontCreator, paint, width, lineMode, lineLenList);
+                      font, fallbackFontCreator, paint, width, lineMode, lineLenList, lineWidthList);
 }
 
 size_t DrawSkiaText::Linebreak(const SkiaTextData& textData, const char* stop,
                                 const SkFont& font, const FallbackFontCreator& fallbackFontCreator, const SkPaint& paint,
                                 SkScalar margin, TextBoxLineMode lineMode, MeasureTextTempData& tempData,
-                                size_t* trailing)
+                                size_t* trailing, BreakTextTempData* pBreakTextData)
 {
     const char* text = static_cast<const char*>(textData.GetText());
     return Linebreak(text, stop, textData.GetTextEncoding(),
-                     font, fallbackFontCreator, paint, margin, lineMode, tempData, trailing);
+                     font, fallbackFontCreator, paint, margin, lineMode, tempData, trailing, pBreakTextData);
 }
 
 } // namespace ui
