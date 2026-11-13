@@ -22,11 +22,11 @@ public:
     @param [in] nHeight 高度
     @param [in] pPixelBits 位图数据, 如果为nullptr表示窗口空位图，如果不为nullptr，其数据长度为：nHeight * nWidth * 4
     @param [in] fImageSizeScale 图片的缩放比例，1.0f表示原值
-    @param [in] alphaType 位图的Alpha类型，只有Skia引擎需要此参数
+    @param [in] alphaType 位图的Alpha类型
     */
     virtual bool Init(uint32_t nWidth, uint32_t nHeight,
                       const void* pPixelBits, float fImageSizeScale = 1.0f,
-                      BitmapAlphaType alphaType = BitmapAlphaType::kPremul_SkAlphaType) override;
+                      AlphaType alphaType = AlphaType::kPremul) override;
 
     /** 获取图片宽度
     */
@@ -66,7 +66,7 @@ private:
 
     /** 执行数据初始化
     */
-    bool InitImage(uint32_t nWidth, uint32_t nHeight, const void* pPixelBits, BitmapAlphaType alphaType);
+    bool InitImage(uint32_t nWidth, uint32_t nHeight, const void* pPixelBits, AlphaType alphaType);
 
 private:
     /** Skia 位图

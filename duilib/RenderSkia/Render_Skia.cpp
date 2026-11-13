@@ -58,11 +58,6 @@ Render_Skia::~Render_Skia()
 {
 }
 
-RenderType Render_Skia::GetRenderType() const
-{
-    return RenderType::kRenderType_Skia;
-}
-
 SkPoint& Render_Skia::GetPointOrg() const
 {
     return *m_pSkPointOrg;

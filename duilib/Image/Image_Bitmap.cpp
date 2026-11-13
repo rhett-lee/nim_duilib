@@ -168,7 +168,7 @@ Image_Bitmap::~Image_Bitmap()
 std::unique_ptr<IImage> Image_Bitmap::MakeImage(uint32_t nWidth, uint32_t nHeight,
                                                 const void* pPixelBits,
                                                 float fImageSizeScale,
-                                                BitmapAlphaType alphaType)
+                                                AlphaType alphaType)
 {
     
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();

@@ -11,7 +11,7 @@ class IBitmap;
  *  位图的数据格式为32位的位图(外部处理)：
  *    Windows平台为BGRA: struct BGRA { uint8_t b, g, r, a; };
  *    非Windows平台RGBA: struct RGBA { uint8_t r, g, b, a; };
- *  位图的alpha type为kPremul_SkAlphaType(外部预乘)
+ *  位图的Alpha类型为预乘（AlphaType::kPremul，外部预乘）
  *  线程模型：单线程，只能在UI线程中使用
  */
 class DUILIB_API IconControl : public Control

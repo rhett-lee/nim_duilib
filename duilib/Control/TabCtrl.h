@@ -719,7 +719,7 @@ public:
     */
     DString GetIcon() const;
 
-    /** 设置图标的位图数据(数据格式：ARGB格式，alpha type为kPremul_SkAlphaType)
+    /** 设置图标的位图数据(数据格式：ARGB格式，Alpha类型为预乘（AlphaType::kPremul）)
     * @param [in] nWidth 宽度
     * @param [in] nHeight 高度
     * @param [in] pPixelBits 位图数据

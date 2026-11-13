@@ -9,6 +9,39 @@
 namespace ui
 {
 
+namespace
+{
+/** 将 AlphaType 转换为 Skia 的 Alpha 类型
+*/
+SkAlphaType ToSkAlphaType(AlphaType alphaType)
+{
+    switch (alphaType) {
+    case AlphaType::kUnknown:   return SkAlphaType::kUnknown_SkAlphaType;
+    case AlphaType::kOpaque:    return SkAlphaType::kOpaque_SkAlphaType;
+    case AlphaType::kPremul:    return SkAlphaType::kPremul_SkAlphaType;
+    case AlphaType::kUnpremul:  return SkAlphaType::kUnpremul_SkAlphaType;
+    default:
+        ASSERT(false);
+        return SkAlphaType::kPremul_SkAlphaType;
+    }
+}
+
+/** 将 Skia 的 Alpha 类型转换为 AlphaType
+*/
+AlphaType FromSkAlphaType(SkAlphaType alphaType)
+{
+    switch (alphaType) {
+    case SkAlphaType::kUnknown_SkAlphaType:     return AlphaType::kUnknown;
+    case SkAlphaType::kOpaque_SkAlphaType:      return AlphaType::kOpaque;
+    case SkAlphaType::kPremul_SkAlphaType:      return AlphaType::kPremul;
+    case SkAlphaType::kUnpremul_SkAlphaType:    return AlphaType::kUnpremul;
+    default:
+        ASSERT(false);
+        return AlphaType::kPremul;
+    }
+}
+} // namespace
+
 Bitmap_Skia::Bitmap_Skia()
 {
     m_pSkBitmap = std::make_unique<SkBitmap>();
@@ -20,7 +53,7 @@ Bitmap_Skia::~Bitmap_Skia()
 }
 
 bool Bitmap_Skia::Init(uint32_t nWidth, uint32_t nHeight, const void* pPixelBits,
-                       float fImageSizeScale, BitmapAlphaType alphaType)
+                       float fImageSizeScale, AlphaType alphaType)
 {
     ASSERT((nWidth > 0) && (nHeight > 0));
     if ((nWidth == 0) || (nHeight == 0)) {
@@ -50,7 +83,7 @@ bool Bitmap_Skia::Init(uint32_t nWidth, uint32_t nHeight, const void* pPixelBits
             size_t nOutPixelBitsLen = (size_t)nNewWidth * (size_t)nNewHeight * 4;
 
             m_pSkBitmap->reset();
-            m_pSkBitmap->setInfo(SkImageInfo::Make(nNewWidth, nNewHeight, kN32_SkColorType, static_cast<SkAlphaType>(alphaType)));
+            m_pSkBitmap->setInfo(SkImageInfo::Make(nNewWidth, nNewHeight, kN32_SkColorType, ToSkAlphaType(alphaType)));
             m_pSkBitmap->allocPixels();
 
             void* pOutPixelBits = nullptr;
@@ -81,7 +114,7 @@ bool Bitmap_Skia::Init(uint32_t nWidth, uint32_t nHeight, const void* pPixelBits
     }
 }
 
-bool Bitmap_Skia::InitImage(uint32_t nWidth, uint32_t nHeight, const void* pPixelBits, BitmapAlphaType alphaType)
+bool Bitmap_Skia::InitImage(uint32_t nWidth, uint32_t nHeight, const void* pPixelBits, AlphaType alphaType)
 {
     ASSERT((nWidth > 0) && (nHeight > 0));
     if ((nWidth == 0) || (nHeight == 0)) {
@@ -89,7 +122,7 @@ bool Bitmap_Skia::InitImage(uint32_t nWidth, uint32_t nHeight, const void* pPixe
     }
 
     m_pSkBitmap->reset();
-    m_pSkBitmap->setInfo(SkImageInfo::Make(nWidth, nHeight, kN32_SkColorType, static_cast<SkAlphaType>(alphaType)));
+    m_pSkBitmap->setInfo(SkImageInfo::Make(nWidth, nHeight, kN32_SkColorType, ToSkAlphaType(alphaType)));
     m_pSkBitmap->allocPixels();
 
     void* pBits = nullptr;
@@ -174,7 +207,7 @@ IBitmap* Bitmap_Skia::Clone()
     ASSERT(pPixelBits != nullptr);
        
     IBitmap* pBitmap = new Bitmap_Skia();
-    if (!pBitmap->Init(nWidth, nHeight, pPixelBits, 1.0f, static_cast<BitmapAlphaType>(m_pSkBitmap->info().alphaType()))) {
+    if (!pBitmap->Init(nWidth, nHeight, pPixelBits, 1.0f, FromSkAlphaType(m_pSkBitmap->info().alphaType()))) {
         delete pBitmap;
         pBitmap = nullptr;
     }

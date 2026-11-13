@@ -24,11 +24,10 @@ public:
 
     /** 创建指定字体的回退字体接口
     * @param [in] pFont 当前字体接口
-    * @param [in] unicodeChar UTF32字符，如果为0表示不支持字符检测
-    * @param [out] glyphId 如果unicodeChar不为0，返回对应的SkGlyphID值
+    * @param [in] unicodeChar UTF32字符，如果为0表示不校验字符是否支持
     * @return 返回对应的回退字体接口
     */
-    virtual IFont* CreateFallbackFont(const IFont* pFont, uint32_t unicodeChar, uint16_t* glyphId) override
+    virtual IFont* CreateFallbackFont(const IFont* pFont, uint32_t unicodeChar) override
     {
         ASSERT((pFont != nullptr) && (m_pFontManager != nullptr));
         if ((pFont == nullptr) || (m_pFontManager == nullptr)) {
@@ -49,7 +48,7 @@ public:
                 //不校验是否支持该字符
                 return pCacheFont;
             }
-            else if (pCacheFont->IsUnicodeCharSupported(unicodeChar, glyphId)) {
+            else if (pCacheFont->IsUnicodeCharSupported(unicodeChar)) {
                 //支持该字符，直接返回
                 return pCacheFont;
             }
@@ -92,7 +91,7 @@ public:
             bool isInitOk = pFallbackFont->InitFont(fontInfo);
             ASSERT(isInitOk);
             if (unicodeChar != 0) {
-                if (!pFallbackFont->IsUnicodeCharSupported(unicodeChar, glyphId)) {
+                if (!pFallbackFont->IsUnicodeCharSupported(unicodeChar)) {
                     //该字体不支持这个字符
                     isInitOk = false;
                 }

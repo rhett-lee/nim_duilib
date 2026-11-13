@@ -30,7 +30,7 @@ const SkFont* DrawSkiaText::CreateFallbackFont(const IFont* pFont, SkUnichar uni
     IFallbackFontMgr* pFallbackFontMgr = GetFallbackFontMgr(pFont);
     if (pFallbackFontMgr != nullptr) {
         ASSERT(sizeof(SkUnichar) == sizeof(uint32_t));
-        pFallbackFont = pFallbackFontMgr->CreateFallbackFont(pFont, (uint32_t)unicodeChar, glyphId);
+        pFallbackFont = pFallbackFontMgr->CreateFallbackFont(pFont, (uint32_t)unicodeChar);
     }
 
     const SkFont* pFallbackSkFont = nullptr;
@@ -40,6 +40,10 @@ const SkFont* DrawSkiaText::CreateFallbackFont(const IFont* pFont, SkUnichar uni
         if (pSkiaFont != nullptr) {
             pFallbackSkFont = pSkiaFont->GetFontHandle();
             ASSERT(pFallbackSkFont != nullptr);
+            if ((pFallbackSkFont != nullptr) && (glyphId != nullptr)) {
+                //字形索引属于Skia的实现细节，由渲染层内部转换
+                *glyphId = pFallbackSkFont->unicharToGlyph(unicodeChar);
+            }
         }
     }
     return pFallbackSkFont;

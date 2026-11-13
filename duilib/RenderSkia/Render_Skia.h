@@ -24,10 +24,6 @@ public:
     Render_Skia& operator = (const Render_Skia& r) = delete;
     virtual ~Render_Skia() override;
 
-    /** 获取Render实现类型
-    */
-    virtual RenderType GetRenderType() const override;
-
     virtual void Clear(const UiColor& uiColor) override;
     virtual void ClearRect(const UiRect& rcDirty, const UiColor& uiColor) override;
 

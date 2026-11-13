@@ -64,12 +64,14 @@
 - 位置：`IRender.h#L560-L565`，类型是 `std::wstring_view`。
 - 框架的 `DString` 在非 Windows 平台是 UTF-8 的 `std::string`，而富文本数据强制 UTF-16，与 `DrawString(const DString&)` 的编码模型不一致。
 - 建议：改用与框架字符串一致的类型（或明确编码的 `std::string_view`），并在接口注释中写明编码。
+- **处理结论：暂不处理，保持现状。** 原因：富文本功能的内部实现统一使用 `std::wstring`，改为其他类型会波及内部实现，收益不明显。
 
 ### 5. Windows 窗口语义混入通用接口
 
 - 位置：`GetRenderDC(HWND)` / `ReleaseRenderDC`（`IRender.h#L1330-L1339`）、`SetWindowRoundRectRgn` / `SetWindowRectRgn` / `ClearWindowRgn`（`IRender.h#L1404-L1421`）。
 - 这些接口只有 Windows 有实际语义，其他平台只能空实现，却没有平台条件编译保护。
 - 建议：像 `GetRenderDC` 那样用 `DUILIB_BUILD_FOR_WIN` 保护 RGN 相关接口，或整体移到窗口层接口中（见第五节）。
+- **处理结论：暂不处理。** 原因：尚未确定拆分方式（平台条件编译保护还是拆分到窗口层接口），需要进一步评估后再处理。
 
 ### 6. 注释中直接写引擎名
 

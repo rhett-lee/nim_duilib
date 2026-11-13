@@ -43,9 +43,9 @@ public:
 
     /** 当前字体是否支持指定的Unicode字符
     * @param [in] unicodeChar UTF32字符
-    * @param [out] glyphId 如果unicodeChar不为0，返回对应的SkGlyphID值
+    * @return 支持该字符返回true，否则返回false
     */
-    virtual bool IsUnicodeCharSupported(uint32_t unicodeChar, uint16_t* glyphId) = 0;
+    virtual bool IsUnicodeCharSupported(uint32_t unicodeChar) = 0;
 };
 
 /** 字体回退管理器（当支持的字体无法显示字符时，会查询回退字体管理器，以正确显示文字）
@@ -55,11 +55,10 @@ class DUILIB_API IFallbackFontMgr : public virtual SupportWeakCallback
 public:
     /** 创建指定字体的回退字体接口
     * @param [in] pFont 当前字体接口
-    * @param [in] unicodeChar UTF32字符，如果为0表示不支持字符检测
-    * @param [out] glyphId 如果unicodeChar不为0，返回对应的SkGlyphID值
+    * @param [in] unicodeChar UTF32字符，如果为0表示不校验字符是否支持
     * @return 返回对应的回退字体接口
     */
-    virtual IFont* CreateFallbackFont(const IFont* pFont, uint32_t unicodeChar, uint16_t* glyphId) = 0;
+    virtual IFont* CreateFallbackFont(const IFont* pFont, uint32_t unicodeChar) = 0;
 };
 
 /** 字体管理器接口
@@ -122,14 +121,14 @@ public:
     virtual IFallbackFontMgr* GetFallbackFontMgr() const = 0;
 };
 
-/** Skia引擎需要传入Alpha类型
+/** 位图的Alpha类型（描述像素中Alpha通道的存储方式）
 */
-enum class DUILIB_API BitmapAlphaType: int
+enum class DUILIB_API AlphaType: int
 {
-    kUnknown_SkAlphaType,   //!< uninitialized
-    kOpaque_SkAlphaType,    //!< pixel is opaque
-    kPremul_SkAlphaType,    //!< pixel components are premultiplied by alpha
-    kUnpremul_SkAlphaType   //!< pixel components are independent of alpha
+    kUnknown,   //未知（未初始化）
+    kOpaque,    //不透明（像素中不含Alpha通道信息）
+    kPremul,    //预乘：像素的颜色分量已与Alpha值相乘
+    kUnpremul   //非预乘：像素的颜色分量与Alpha值相互独立
 };
 
 /** 位图接口
@@ -142,11 +141,11 @@ public:
     @param [in] nHeight 高度
     @param [in] pPixelBits 位图数据, 如果为nullptr表示窗口空位图，如果不为nullptr，其数据长度为：nHeight * nWidth * 4
     @param [in] fImageSizeScale 图片的缩放比例，1.0f表示原值
-    @param [in] alphaType 位图的Alpha类型，只有Skia引擎需要此参数
+    @param [in] alphaType 位图的Alpha类型
     */
     virtual bool Init(uint32_t nWidth, uint32_t nHeight,
                       const void* pPixelBits, float fImageSizeScale = 1.0f,
-                      BitmapAlphaType alphaType = BitmapAlphaType::kPremul_SkAlphaType) = 0;
+                      AlphaType alphaType = AlphaType::kPremul) = 0;
 
     /** 获取图片宽度
     */
@@ -556,13 +555,6 @@ enum DUILIB_API DrawStringFormat
     TEXT_END_ELLIPSIS   = 0x8000    //如果绘制区域不足，在结尾加"..."，省略部分文字
 };
 
-/** Render类型
-*/
-enum class RenderType
-{
-    kRenderType_Skia = 0
-};
-
 /** 格式文本数据
 */
 class RichTextData
@@ -855,10 +847,6 @@ class IRenderFactory;
 class DUILIB_API IRender : public virtual SupportWeakCallback
 {
 public:
-    /** 获取Render实现类型
-    */
-    virtual RenderType GetRenderType() const = 0;
-
     /** 获取后台渲染的类型
     */
     virtual RenderBackendType GetRenderBackendType() const = 0;
@@ -1096,7 +1084,7 @@ public:
     * @param [in] rc 包含圆弧的椭圆的矩形边界区域
     * @param [in] startAngle  x轴与弧起点之间的角度
     * @param [in] sweepAngle  圆弧起点和终点之间的角度，正数是顺时针方向，负数是逆时针方向
-    * @param [in] useCenter 如果为true，则包含椭圆的中心点（仅Skia引擎使用）
+    * @param [in] useCenter 如果为true，则绘制扇形（包含椭圆的中心点）；否则只绘制弧线
     * @param [in] pen 画笔的接口，设置画笔颜色和画笔宽度
     * @param [in] gradientColor 可选参数，渐变颜色
     * @param [in] gradientRect 可选参数，渐变颜色的矩形区域设置，仅当gradientColor不为nullptr时有效

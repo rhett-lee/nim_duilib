@@ -110,9 +110,9 @@ IBitmap* ColorSlider::GetColorBitmap(const UiRect& rect)
     }
 
     if (m_spBitmap != nullptr) {
-        BitmapAlphaType alphaType = BitmapAlphaType::kOpaque_SkAlphaType;
+        AlphaType alphaType = AlphaType::kOpaque;
         if (m_colorMode == ColorMode::kMode_ARGB) {
-            alphaType = BitmapAlphaType::kUnpremul_SkAlphaType;
+            alphaType = AlphaType::kUnpremul;
         }
         m_spBitmap->Init(nWidth, nHeight, nullptr, 1.0f, alphaType);
         void* pPixelBits = m_spBitmap->LockPixelBits();

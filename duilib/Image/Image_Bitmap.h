@@ -20,7 +20,7 @@ public:
     */
     static std::unique_ptr<IImage> MakeImage(uint32_t nWidth, uint32_t nHeight, const void* pPixelBits,
                                              float fImageSizeScale = 1.0f,
-                                             BitmapAlphaType alphaType = BitmapAlphaType::kPremul_SkAlphaType);
+                                             AlphaType alphaType = AlphaType::kPremul);
 
 
     /** 创建一个位图的图片数据（ARGB格式）

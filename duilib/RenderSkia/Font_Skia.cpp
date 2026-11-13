@@ -59,20 +59,13 @@ const SkFont* Font_Skia::GetFontHandle()
     return m_skFont;
 }
 
-bool Font_Skia::IsUnicodeCharSupported(uint32_t unicodeChar, uint16_t* glyphId)
+bool Font_Skia::IsUnicodeCharSupported(uint32_t unicodeChar)
 {
     if (unicodeChar != 0) {
         const SkFont* pSkFont = GetFontHandle();
         if (pSkFont != nullptr) {
-            ASSERT(sizeof(SkGlyphID) == sizeof(uint16_t));
             ASSERT(sizeof(SkUnichar) == sizeof(uint32_t));
-            SkGlyphID glyph = pSkFont->unicharToGlyph((SkUnichar)unicodeChar);
-            if (glyph != 0) {
-                if (glyphId) {
-                    *glyphId = glyph;
-                }
-                return true;
-            }
+            return pSkFont->unicharToGlyph((SkUnichar)unicodeChar) != 0;
         }
     }
     return false;
