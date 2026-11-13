@@ -2681,6 +2681,10 @@ STRID_RENDER_TEXT1_23             = Text - italic
 STRID_RENDER_TEXT1_24             = Text - all styles\nSecond column content
 STRID_RENDER_TEXT1_25             = Text align (H: left, V: middle)\nLine spacing is set for this case.\nword_spacing='6'
 STRID_RENDER_TEXT1_26             = Text align (H: left, V: middle)\nLine spacing is set for this case.\nspacing_mul='1.2' spacing_add='6'
+STRID_RENDER_TEXT1_27             = Emoji fallback test: 😀 🚀 👍🏽 👨‍👩‍👧‍👦
+STRID_RENDER_TEXT1_28             = Rare CJK characters test
+STRID_RENDER_TEXT1_29             = Supplementary plane test (surrogate pairs)
+STRID_RENDER_TEXT1_30             = Mixed text test: Chinese ABC
 STRID_RENDER_TEXT2_01             = Align L/T
 STRID_RENDER_TEXT2_02             = Align L/M
 STRID_RENDER_TEXT2_03             = Align L/B
@@ -2708,6 +2712,10 @@ STRID_RENDER_TEXT2_24             = Letters and digits are not rotated 90 degree
 STRID_RENDER_TEXT2_25             = Text height follows actual height, no fixed font height: 1234567890-.Long text test: 1+2=3, 8/4=2, multi-column qwertyuiopasdfghjkl-v. Long text test, multi-column end.
 STRID_RENDER_TEXT2_26             = Text height follows actual height, no fixed font height, vertical word spacing: 1234567890-.Long text test: 1+2=3, 8/4=2, multi-column qwertyuiopasdfghjkl-v. Long text test, multi-column end.
 STRID_RENDER_TEXT2_27             = Text height follows actual height, no fixed font height, vertical word spacing, column spacing: 1234567890-.Long text test: 1+2=3, 8/4=2, multi-column qwertyuiopasdfghjkl-v. Long text test, multi-column end.
+STRID_RENDER_TEXT2_28             = Emoji test: 😀 🚀 👍🏽 🌈
+STRID_RENDER_TEXT2_29             = Rare CJK test
+STRID_RENDER_TEXT2_30             = Supplementary plane test
+STRID_RENDER_TEXT2_31             = Mixed text test
 STRID_RENDER_TEXT1_RICHTEXT_ALL   = RichText text<br/>content 1<b>bold<bgcolor color="#FFFFFF"><u><a href="www.baidu.com">Hyperlink: visit Baidu</a></u></bgcolor><font color="#FF0000">bold red</font></b><font face="SimSun" size="12">SimSun 12pt demo 1<font face="KaiTi" size="18">KaiTi 18pt demo</font>SimSun 12pt demo 2</font><a href="www.sohu.com">Hyperlink: visit Sohu</a><font face="SimSun" size="8">SimSun 8pt demo</font><i>italic demo</i><b>bold demo</b><s>strikeout demo</s><u>underline demo</u><font face="Microsoft YaHei" size="14">Microsoft YaHei 14pt demo</font><bgcolor color="#802378">background color demo</bgcolor>RichText content 2RichText content 3RichText content 4RichText content 5RichText content 6RichText content 7RichText content 8RichText content 9RichText content 10
 STRID_RENDER_TEXT1_RICHTEXT_SCROLL = Line 1: RichText in ScrollBox<br/>Line 2: RichText text<br/>Line 3: RichText text<br/>Line 4: RichText text<br/>Line 5: RichText text<br/>Line 6: RichText text<br/>Line 7: RichText text<br/>Line 8: RichText text<br/>Line 9: RichText text<br/>Line 10: RichText content 2RichText content 3RichText content 4RichText content 5RichText content 6RichText content 7RichText content 8RichText content 9RichText content 10
 STRID_RENDER_TEXT1_RICHTEXT_01    = Left-top: the first sunlight lands on the windowsill and a new day begins.<br/><a href="www.sohu.com">Visit Sohu</a>

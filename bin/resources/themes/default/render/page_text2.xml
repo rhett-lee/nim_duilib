@@ -98,6 +98,27 @@
                     </HBox>
                 </HBox>
             </VBox>
+            <!-- 字符集覆盖测试：Emoji字体、中文生僻字、双Unicode扩展字符（用于人工观察绘制正确性） -->
+            <VBox width="auto" margin="4">
+                <HBox width="110" height="220" bkcolor="dark_gray">
+                    <Label height="stretch" width="stretch" text_id="STRID_RENDER_TEXT2_28" single_line="false" vertical_text="true" text_align="right,top"/>
+                </HBox>
+            </VBox>
+            <VBox width="auto" margin="4">
+                <HBox width="110" height="220" bkcolor="color_blue">
+                    <Label height="stretch" width="stretch" text_id="STRID_RENDER_TEXT2_29" single_line="false" vertical_text="true" text_align="right,top"/>
+                </HBox>
+            </VBox>
+            <VBox width="auto" margin="4">
+                <HBox width="110" height="220" bkcolor="dark_gray">
+                    <Label height="stretch" width="stretch" text_id="STRID_RENDER_TEXT2_30" single_line="false" vertical_text="true" text_align="right,top"/>
+                </HBox>
+            </VBox>
+            <VBox width="auto" margin="4">
+                <HBox width="110" height="220" bkcolor="color_blue">
+                    <Label height="stretch" width="stretch" text_id="STRID_RENDER_TEXT2_31" single_line="false" vertical_text="true" text_align="right,top"/>
+                </HBox>
+            </VBox>
         </HBox>
     </VScrollBox>
 </Window>

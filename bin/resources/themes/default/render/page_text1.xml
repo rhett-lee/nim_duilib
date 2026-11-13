@@ -147,6 +147,21 @@
                     <RichText height="stretch" width="stretch" text_align="right,bottom" text_id="STRID_RENDER_TEXT1_RICHTEXT_09"/>
                 </HBox>
             </VBox>
+            <!-- 字符集覆盖测试：Emoji字体、中文生僻字、双Unicode扩展字符（用于人工观察绘制正确性） -->
+            <VBox width="440" margin="4" height="auto">
+                <HBox height="80" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
+                    <Label height="stretch" width="stretch" text_id="STRID_RENDER_TEXT1_27" text_align="left,vcenter" multi_line="true" replace_newline="true" text_color="text_default"/>
+                </HBox>
+                <HBox height="80" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
+                    <Label height="stretch" width="stretch" text_id="STRID_RENDER_TEXT1_28" text_align="left,vcenter" multi_line="true" replace_newline="true" text_color="text_default"/>
+                </HBox>
+                <HBox height="80" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
+                    <Label height="stretch" width="stretch" text_id="STRID_RENDER_TEXT1_29" text_align="left,vcenter" multi_line="true" replace_newline="true" text_color="text_default"/>
+                </HBox>
+                <HBox height="80" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
+                    <Label height="stretch" width="stretch" text_id="STRID_RENDER_TEXT1_30" text_align="left,vcenter" multi_line="true" replace_newline="true" text_color="text_default"/>
+                </HBox>
+            </VBox>
         </HBox>
     </VScrollBox>
 </Window>
