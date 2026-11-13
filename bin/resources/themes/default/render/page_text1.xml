@@ -2,8 +2,8 @@
 <Window>
     <VScrollBox width="stretch" height="stretch" vscrollbar="true" hscrollbar="true">
         <HBox height="auto">
-            <!-- 对齐矩阵：Label -->
-            <VBox width="50%" min_width="220" margin="4" height="auto">
+            <!-- 对齐矩阵：Label（固定宽度，避免窗口变窄时被压缩导致文字溢出） -->
+            <VBox width="320" margin="4" height="auto">
                 <HBox height="56" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
                     <Label height="stretch" width="stretch" text_id="STRID_RENDER_TEXT1_01" text_align="left,top" text_color="text_default"/>
                 </HBox>
@@ -45,8 +45,8 @@
                 </HBox>
             </VBox>
 
-            <!-- 字体与截断：Label -->
-            <VBox width="50%" margin="4" height="auto">
+            <!-- 字体与截断：Label（固定宽度，避免窗口变窄时被压缩导致文字溢出） -->
+            <VBox width="320" margin="4" height="auto">
                 <HBox height="56" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
                     <Label height="stretch" width="stretch" text_id="STRID_RENDER_TEXT1_14" autotooltip="true" endellipsis="false" text_color="text_default"/>
                 </HBox>
@@ -100,50 +100,53 @@
                     <RichText class="rich_text" row_spacing_mul="1.5" width="auto" height="auto" word_wrap="false"
                               text_id="STRID_RENDER_TEXT1_RICHTEXT_SCROLL"/>
                 </ScrollBox>
-                <RichTextBox height="auto" text="{u}RichTextBox{/u}" bkcolor="bg_container" border_size="1"
-                             border_color="border_window" border_round="6,6" padding="8,6,8,6" margin="0,0,0,6"
+                <RichTextBox height="60" text="{u}RichTextBox{/u}" bkcolor="bg_container" border_size="1"
+                             border_color="border_window" border_round="6,6" padding="8,4,8,6"
+                             text_padding="8,2,8,2" text_align="left,top" margin="0,0,0,6"
                              text_color="text_default">
-                    <Label text="Label in RichTextBox" valign="center" text_color="text_default"/>
+                    <Label text="Label in RichTextBox" margin="0,24,0,0" text_color="text_default"/>
                 </RichTextBox>
-                <RichTextHBox height="auto" text="{s}RichTextHBox{/s}" bkcolor="bg_container" border_size="1"
-                              border_color="border_window" border_round="6,6" padding="8,6,8,6" margin="0,0,0,6"
+                <RichTextHBox height="60" text="{s}RichTextHBox{/s}" bkcolor="bg_container" border_size="1"
+                              border_color="border_window" border_round="6,6" padding="8,4,8,6"
+                              text_padding="8,2,8,2" text_align="left,top" margin="0,0,0,6"
                               text_color="text_default">
-                    <Label text="Label in RichTextHBox" valign="center" text_color="text_default"/>
+                    <Label text="Label in RichTextHBox" valign="bottom" margin="0,0,0,2" text_color="text_default"/>
                 </RichTextHBox>
-                <RichTextVBox height="auto" text="{i}RichTextVBox{/i}" bkcolor="bg_container" border_size="1"
-                              border_color="border_window" border_round="6,6" padding="8,6,8,6" child_valign="center"
+                <RichTextVBox height="60" text="{i}RichTextVBox{/i}" bkcolor="bg_container" border_size="1"
+                              border_color="border_window" border_round="6,6" padding="8,4,8,6"
+                              text_padding="8,2,8,2" text_align="left,top" margin="0,0,0,6"
                               text_color="text_default">
-                    <Label text="Label in RichTextVBox" valign="center" text_color="text_default"/>
+                    <Label text="Label in RichTextVBox" margin="0,24,0,0" text_color="text_default"/>
                 </RichTextVBox>
             </VBox>
 
             <!-- 对齐矩阵：RichText -->
-            <VBox width="300" margin="4" height="auto">
-                <HBox height="60" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
+            <VBox width="260" margin="4" height="auto">
+                <HBox height="80" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
                     <RichText height="stretch" width="stretch" text_align="left,top" text_id="STRID_RENDER_TEXT1_RICHTEXT_01"/>
                 </HBox>
-                <HBox height="60" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
+                <HBox height="80" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
                     <RichText height="stretch" width="stretch" text_align="left,vcenter" text_id="STRID_RENDER_TEXT1_RICHTEXT_02"/>
                 </HBox>
-                <HBox height="60" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
+                <HBox height="80" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
                     <RichText height="stretch" width="stretch" text_align="left,bottom" text_id="STRID_RENDER_TEXT1_RICHTEXT_03"/>
                 </HBox>
-                <HBox height="60" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
+                <HBox height="80" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
                     <RichText height="stretch" width="stretch" text_align="center,top" text_id="STRID_RENDER_TEXT1_RICHTEXT_04"/>
                 </HBox>
-                <HBox height="60" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
+                <HBox height="80" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
                     <RichText height="stretch" width="stretch" text_align="center,vcenter" text_id="STRID_RENDER_TEXT1_RICHTEXT_05"/>
                 </HBox>
-                <HBox height="60" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
+                <HBox height="80" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
                     <RichText height="stretch" width="stretch" text_align="center,bottom" text_id="STRID_RENDER_TEXT1_RICHTEXT_06"/>
                 </HBox>
-                <HBox height="60" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
+                <HBox height="80" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
                     <RichText height="stretch" width="stretch" text_align="right,top" text_id="STRID_RENDER_TEXT1_RICHTEXT_07"/>
                 </HBox>
-                <HBox height="60" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
+                <HBox height="80" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
                     <RichText height="stretch" width="stretch" text_align="right,vcenter" text_id="STRID_RENDER_TEXT1_RICHTEXT_08"/>
                 </HBox>
-                <HBox height="60" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
+                <HBox height="80" bkcolor="bg_window_card" border_size="1" border_color="border_window" border_round="6,6" margin="0,0,0,6" padding="8,4,8,4">
                     <RichText height="stretch" width="stretch" text_align="right,bottom" text_id="STRID_RENDER_TEXT1_RICHTEXT_09"/>
                 </HBox>
             </VBox>

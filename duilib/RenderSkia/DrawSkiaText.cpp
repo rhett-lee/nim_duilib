@@ -398,13 +398,12 @@ inline static SkScalar DrawSkGlyphChar(SkCanvas* skCanvas, const SkFont& font, c
                          SkSpan<SkScalar>(&fWidth, 1),
                          SkSpan<SkRect>(&bounds, 1),
                          &paint);
-    if (bounds.isEmpty() && !iswspace((wchar_t)ch)) {
-        //bounds是空的话，表示该字符无法显示，但此时fWidth却不是0，所以绘制一个方框，作为占位符
-        glyphID = 0;
+    if ((glyphID == 0) && !iswspace((wchar_t)ch)) {
+        //没有字体支持该字符：绘制glyph 0作为占位方框
         skCanvas->drawSimpleText(&glyphID, sizeof(SkGlyphID), SkTextEncoding::kGlyphID, x, y, font, paint);
     }
     else {
-        //skCanvas->drawSimpleText(&glyphID, sizeof(SkGlyphID), SkTextEncoding::kGlyphID, x, y, font, paint);
+        //glyphID不为0时正常绘制：零宽字形（如变体选择符、组合标记）的bounds为空，绘制后不可见，不能按方框处理
         SkPoint pt = SkPoint::Make(x, y);
         skCanvas->drawGlyphs(SkSpan<const SkGlyphID>(&glyphID, 1), SkSpan<const SkPoint>(&pt, 1), SkPoint(), font, paint);
     }
@@ -535,9 +534,9 @@ static bool ResolveGlyphChar(const SkFont& font, const FallbackFontCreator& fall
                              SkSpan<SkRect>(pBounds, 1),
                              &paint);
     bool bCanDraw = true;
-    if (pBounds->isEmpty() && !iswspace((wchar_t)ch)) {
-        //该字符无法显示，使用glyph 0绘制占位方框（实际会显示一个方框）
-        glyphId = 0;
+    if ((glyphId == 0) && !iswspace((wchar_t)ch)) {
+        //未找到任何支持该字符的字体：使用glyph 0绘制占位方框
+        //注意：字形存在但bounds为空（如变体选择符、组合标记）属于零宽字形，不能按占位方框处理
         bCanDraw = false;
     }
     *ppSkFont = pSkFont;

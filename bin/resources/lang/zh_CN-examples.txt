@@ -2686,7 +2686,7 @@ STRID_RENDER_TEXT1_23             = 文本绘制-斜体字
 STRID_RENDER_TEXT1_24             = 文本绘制-全部风格\n第二列内容
 STRID_RENDER_TEXT1_25             = 文字对齐(横向:靠左，纵向:居中)\n这个用例设置了行间距。\nword_spacing='6'
 STRID_RENDER_TEXT1_26             = 文字对齐(横向:靠左，纵向:居中)\n这个用例设置了行间距。\nspacing_mul='1.2' spacing_add='6'
-STRID_RENDER_TEXT1_27             = Emoji字体测试（验证回退到系统Emoji字体）：\n😀 😁 😂 🤩 😭 🥳 👍🏽 🙏 🚀 🌈 🎉\n组合Emoji：👨‍👩‍👧‍👦 🇨🇳 1️⃣
+STRID_RENDER_TEXT1_27             = Emoji字体测试（验证回退到系统Emoji字体）：\n😀 😁 😂 🤩 😭 🥳 👍🏽 🙏 🚀 🌈 🎉\n组合Emoji：👨‍👩‍👧‍👦 🇨🇳 ❤️
 STRID_RENDER_TEXT1_28             = 中文生僻字测试（验证按字符回退）：\n龘 靐 齉 爨 麤 龖 䶮 䨻 㵘 燚 䲜 㐀\n异体字：龑 犇 羴 猋 鱻
 STRID_RENDER_TEXT1_29             = 双Unicode扩展字符测试（UTF-16 需两个码元，U+20000 起）：\n𠀀 𠮷 𪛖 𪜀 𫝀 𫠠 𬺰 𰀀\n依次为扩展B/C/D/E/F/G 区首字
 STRID_RENDER_TEXT1_30             = 混合文本测试（中文/英文/生僻字/扩展字符/Emoji 混排）：\n中文ABC：龘靐齉 与 𠮷𪚥 与 😀🚀 混排显示

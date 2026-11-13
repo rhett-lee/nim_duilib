@@ -116,10 +116,10 @@ bool VerticalDrawText::CalculateTextCharBounds(const UTF32String& textUTF32, con
                     ch = DrawSkiaText::GetMeasureDefaultChar();
                     fTextWidth = DrawSkiaText::MeasureTextChar(*pSkFont, ch, &verticalChar.bounds,//斜体字时，这个宽度包含了外延的宽度
                                                                 skPaint, pFont, true);
-                    if (!iswspace((wchar_t)verticalChar.ch)) {
-                        //不可见字符按主字体的方框占位绘制（与逐字符绘制时的处理保持一致）
+                    if ((glyphId == 0) && !iswspace((wchar_t)verticalChar.ch)) {
+                        //没有字体支持该字符：按主字体的方框占位绘制
+                        //字形存在但bounds为空（如变体选择符、组合标记）时保留原字形，绘制后不可见
                         pHitSkFont = pSkFont;
-                        glyphId = 0;
                     }
                 }
                 //用字体的实际高度，作为字的高度
