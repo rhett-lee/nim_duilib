@@ -2,9 +2,6 @@
 #include "duilib/RenderSkia/Font_Skia.h"
 #include "duilib/RenderSkia/DrawSkiaText.h"
 
-#include "duilib/Utils/StringUtil.h"
-#include "duilib/Utils/StringConvert.h"
-
 #include "SkiaHeaderBegin.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkPaint.h"
@@ -19,25 +16,6 @@ HorizontalDrawText::HorizontalDrawText(SkCanvas* pSkCanvas, SkPaint* pSkPaint, S
     m_pSkPaint(pSkPaint),
     m_pSkPointOrg(pSkPointOrg)
 {
-}
-
-UTF32String HorizontalDrawText::GetDrawStringUTF32(const DString& strText, bool bSingleLineMode) const
-{
-    DString text = strText;
-    StringUtil::ReplaceAll(_T("\r\n"), _T("\n"), text);
-    StringUtil::ReplaceAll(_T("\r"), _T(""), text);
-    StringUtil::ReplaceAll(_T("\t"), _T(" "), text);
-    if (bSingleLineMode) {
-        StringUtil::ReplaceAll(_T("\n"), _T(" "), text);
-    }
-#if defined DUILIB_UNICODE && defined WCHAR_T_IS_UTF16
-    return StringConvert::UTF16ToUTF32(text.c_str(), text.size());
-#elif defined DUILIB_UNICODE && defined WCHAR_T_IS_UTF32
-    return text;
-#else
-    std::string textUTF8 = StringConvert::TToUTF8(text);
-    return StringConvert::UTF8ToUTF32(textUTF8.c_str(), textUTF8.size());
-#endif
 }
 
 /** 横向绘制文本的字符属性
@@ -342,7 +320,8 @@ UiRect HorizontalDrawText::MeasureString(const DString& strText, const MeasureSt
     }
 
     //绘制文本始终使用UTF32编码
-    const UTF32String textUTF32 = GetDrawStringUTF32(strText, bSingleLineMode);
+    UTF32String textUTF32;
+    DrawSkiaText::GetDrawStringUTF32(strText, bSingleLineMode, textUTF32);
 
     std::vector<THorizontalChar> charRects;
     charRects.reserve(textUTF32.size());
@@ -448,7 +427,8 @@ void HorizontalDrawText::DrawString(const DString& strText, const DrawStringPara
     }
 
     //绘制文本始终使用UTF32编码
-    const UTF32String textUTF32 = GetDrawStringUTF32(strText, bSingleLineMode);
+    UTF32String textUTF32;
+    DrawSkiaText::GetDrawStringUTF32(strText, bSingleLineMode, textUTF32);
 
     std::vector<THorizontalChar> charRects;
     charRects.reserve(textUTF32.size());

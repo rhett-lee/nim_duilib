@@ -46,6 +46,70 @@ const SkFont* DrawSkiaText::CreateFallbackFont(const IFont* pFont, SkUnichar uni
 }
 
 
+/** 将文本按当前字符编码转换为UTF32字符串
+*/
+static void TextToUTF32(const DString& text, UTF32String& textUTF32)
+{
+#if defined DUILIB_UNICODE && defined WCHAR_T_IS_UTF16
+    textUTF32 = StringConvert::UTF16ToUTF32(text.c_str(), text.size());
+#elif defined DUILIB_UNICODE && defined WCHAR_T_IS_UTF32
+    textUTF32 = text;
+#else
+    std::string textUTF8 = StringConvert::TToUTF8(text);
+    textUTF32 = StringConvert::UTF8ToUTF32(textUTF8.c_str(), textUTF8.size());
+#endif
+}
+
+void DrawSkiaText::GetDrawStringUTF32(const DString& strText, bool bSingleLineMode, UTF32String& textUTF32)
+{
+    textUTF32.clear();
+    const size_t nTextCount = strText.size();
+    if (nTextCount == 0) {
+        return;
+    }
+
+    //先检查是否需要进行预处理：大部分文本都不需要处理，直接转换编码即可，
+    //从而避免复制字符串和多次全串扫描
+    bool bNeedNormalize = false;
+    for (size_t nIndex = 0; nIndex < nTextCount; ++nIndex) {
+        const DString::value_type ch = strText[nIndex];
+        if ((ch == _T('\r')) || (ch == _T('\t')) || (bSingleLineMode && (ch == _T('\n')))) {
+            bNeedNormalize = true;
+            break;
+        }
+    }
+    if (!bNeedNormalize) {
+        TextToUTF32(strText, textUTF32);
+        return;
+    }
+
+    //需要预处理：使用单次扫描完成全部替换，避免多次全串扫描
+    //处理规则：\r\n转换为\n，单独的\r删除，\t转换为空格，单行模式下\n转换为空格
+    DString text;
+    text.reserve(nTextCount);
+    for (size_t nIndex = 0; nIndex < nTextCount; ++nIndex) {
+        const DString::value_type ch = strText[nIndex];
+        if (ch == _T('\r')) {
+            if (((nIndex + 1) < nTextCount) && (strText[nIndex + 1] == _T('\n'))) {
+                //"\r\n"转换为"\n"
+                text.push_back(_T('\n'));
+                ++nIndex;
+            }
+            //单独的"\r"字符，直接删除
+        }
+        else if (ch == _T('\t')) {
+            text.push_back(_T(' '));
+        }
+        else if (bSingleLineMode && (ch == _T('\n'))) {
+            text.push_back(_T(' '));
+        }
+        else {
+            text.push_back(ch);
+        }
+    }
+    TextToUTF32(text, textUTF32);
+}
+
 UTF32String DrawSkiaText::GetDrawStringUTF32(const void* text, size_t byteLength, SkTextEncoding textEncoding)
 {
     if ((text == nullptr) || (byteLength == 0)) {

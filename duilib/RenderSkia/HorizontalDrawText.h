@@ -41,10 +41,6 @@ public:
     void DrawString(const DString& strText, const DrawStringParam& drawParam);
 
 private:
-    /** 获取UTF32字符串，并做预处理（横向绘制文本）
-    */
-    UTF32String GetDrawStringUTF32(const DString& strText, bool bSingleLineMode) const;
-
     /** 计算每个字符的绘制所占的矩形范围
     * @param [in] textUTF32 字符串
     * @param [in] pFont 字体

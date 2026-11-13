@@ -285,6 +285,13 @@ public:
                             SkScalar margin, TextBoxLineMode lineMode, MeasureTextTempData& tempData,
                             size_t* trailing = nullptr);
 
+    /** 将文本转换为UTF32字符串，并做预处理（各绘制路径共用的实现）
+    * @param [in] strText 需要转换的文本内容
+    * @param [in] bSingleLineMode 是否为单行文本模式（true时，换行符会被替换为空格）
+    * @param [out] textUTF32 返回转换后的UTF32字符串
+    */
+    static void GetDrawStringUTF32(const DString& strText, bool bSingleLineMode, UTF32String& textUTF32);
+
 private:
     /** 获取UTF32字符串，内部操作时按UTF32编码处理
     */
