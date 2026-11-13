@@ -170,9 +170,22 @@ private:
     friend class FallbackFontMgrImpl;
     std::unique_ptr<FallbackFontMgrImpl> m_pFallbackFontMgr;
 
-    /** 回退字体信息：Key是IFont*
+    /** 回退字体缓存条目
     */
-    std::unordered_map<const IFont*, std::vector<IFont*>> m_fallbackFontMap;
+    struct FallbackFontCacheEntry
+    {
+        /** 源字体的字体信息（用于诊断与校验）
+        */
+        UiFont m_fontInfo;
+
+        /** 回退字体列表（管理其生命周期）
+        */
+        std::vector<IFont*> m_fallbackFonts;
+    };
+
+    /** 回退字体信息：Key是字体的签名(IFont::GetFontKey，不受IFont对象生命周期影响)
+    */
+    std::unordered_map<uint64_t, FallbackFontCacheEntry> m_fallbackFontMap;
 
     /** 默认字体ID
     */

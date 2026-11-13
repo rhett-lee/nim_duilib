@@ -64,6 +64,10 @@ public:
     */
     virtual IFontMgr* GetFontMgr() const override;
 
+    /** 获取字体签名（由字体名、字号与字体样式计算，在InitFont时计算一次）
+    */
+    virtual uint64_t GetFontKey() const override;
+
 private:
     /** 删除Skia字体
     */
@@ -78,6 +82,9 @@ private:
 
     //字体管理器
     std::shared_ptr<IFontMgr> m_spFontMgr;
+
+    //字体签名（用于字体相关的缓存，避免重复计算）
+    uint64_t m_fontKey;
 
     //Skia字体管理器（缓存，避免重复的dynamic_cast）
     FontMgr_Skia* m_pSkiaFontMgr;

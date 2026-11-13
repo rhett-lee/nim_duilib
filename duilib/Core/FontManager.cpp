@@ -9,6 +9,42 @@
 
 namespace ui 
 {
+
+/** 计算字体签名：混合字体名、字号与字体样式
+*   注意：该函数只在字体实现未提供签名(IFont::GetFontKey返回0)时使用，保证回退字体缓存可用
+*/
+static uint64_t CalcFontKey(const IFont* pFont)
+{
+    const uint64_t fnvPrime = 1099511628211ULL;
+    uint64_t fontKey = 14695981039346656037ULL;
+    const DString fontName = pFont->FontName();
+    const uint8_t* pData = (const uint8_t*)fontName.c_str();
+    const size_t byteCount = StringUtil::StringLen(fontName.c_str()) * sizeof(DString::value_type);
+    for (size_t i = 0; i < byteCount; ++i) {
+        fontKey ^= pData[i];
+        fontKey *= fnvPrime;
+    }
+    uint8_t flags = 0;
+    if (pFont->IsBold()) {
+        flags |= 0x01;
+    }
+    if (pFont->IsItalic()) {
+        flags |= 0x02;
+    }
+    if (pFont->IsUnderline()) {
+        flags |= 0x04;
+    }
+    if (pFont->IsStrikeOut()) {
+        flags |= 0x08;
+    }
+    fontKey ^= (uint64_t)(uint32_t)pFont->FontSize();
+    fontKey *= fnvPrime;
+    fontKey ^= flags;
+    fontKey *= fnvPrime;
+    //0表示字体不支持签名，不能作为缓存键
+    return (fontKey != 0) ? fontKey : 1;
+}
+
 /** 字体回退管理器（当支持的字体无法显示字符时，会查询回退字体管理器，以正确显示文字）
 *   当前用于Emoji文字的显示，用于扩展汉字的显示等
 */
@@ -39,19 +75,38 @@ public:
             return nullptr;
         }
 
+        //获取字体签名，作为回退字体缓存的键
+        //使用预计算的整数字体签名：查找成本与指针键持平，且不受IFont对象生命周期影响
+        uint64_t fontKey = pFont->GetFontKey();
+        if (fontKey == 0) {
+            //该字体实现未提供签名(仅第三方实现会走到这里)，使用字体信息现场计算
+            fontKey = CalcFontKey(pFont);
+        }
+
         //首先查询缓存，如果缓存中存在，则直接返回
-        std::vector<IFont*>& fallbackFontList = m_pFontManager->m_fallbackFontMap[pFont];
-        for (IFont* pCacheFont : fallbackFontList) {
-            if (pCacheFont == nullptr) {
-                continue;
-            }
-            if (unicodeChar == 0) {
-                //不校验是否支持该字符
-                return pCacheFont;
-            }
-            else if (pCacheFont->IsUnicodeCharSupported(unicodeChar)) {
-                //支持该字符，直接返回
-                return pCacheFont;
+        auto cacheIter = m_pFontManager->m_fallbackFontMap.find(fontKey);
+        if (cacheIter != m_pFontManager->m_fallbackFontMap.end()) {
+#ifdef _DEBUG
+            //签名相同的条目应属于同一种字体（64位签名的碰撞概率可忽略，此处校验常用字段）
+            ASSERT(cacheIter->second.m_fontInfo.m_fontSize == pFont->FontSize());
+            ASSERT(cacheIter->second.m_fontInfo.m_bBold == pFont->IsBold());
+            ASSERT(cacheIter->second.m_fontInfo.m_bItalic == pFont->IsItalic());
+            ASSERT(cacheIter->second.m_fontInfo.m_bUnderline == pFont->IsUnderline());
+            ASSERT(cacheIter->second.m_fontInfo.m_bStrikeOut == pFont->IsStrikeOut());
+#endif
+            const std::vector<IFont*>& fallbackFontList = cacheIter->second.m_fallbackFonts;
+            for (IFont* pCacheFont : fallbackFontList) {
+                if (pCacheFont == nullptr) {
+                    continue;
+                }
+                if (unicodeChar == 0) {
+                    //不校验是否支持该字符
+                    return pCacheFont;
+                }
+                else if (pCacheFont->IsUnicodeCharSupported(unicodeChar)) {
+                    //支持该字符，直接返回
+                    return pCacheFont;
+                }
             }
         }
 
@@ -64,6 +119,19 @@ public:
         if (pFontMgr == nullptr) {
             return nullptr;
         }
+
+        //源字体的字体信息（创建回退字体时，只替换字体名）
+        UiFont fontInfo;
+        fontInfo.m_fontName = pFont->FontName();
+        fontInfo.m_fontSize = pFont->FontSize();
+        fontInfo.m_bUnderline = pFont->IsUnderline();
+        fontInfo.m_bStrikeOut = pFont->IsStrikeOut();
+        fontInfo.m_bItalic = pFont->IsItalic();
+        fontInfo.m_bBold = pFont->IsBold();
+
+        //回退字体缓存条目（记录源字体信息，便于诊断与校验）
+        FontManager::FallbackFontCacheEntry& cacheEntry = m_pFontManager->m_fallbackFontMap[fontKey];
+        cacheEntry.m_fontInfo = fontInfo;
 
         IFont* pRetFallbackFont = nullptr;
         for (const DString& fallbackFontName : fallbackFontFamilyNames) {
@@ -81,13 +149,6 @@ public:
             }
             // RAII 包装：异常路径下也能正确释放
             std::unique_ptr<IFont> pFallbackFontHolder(pFallbackFont);
-            UiFont fontInfo;
-            fontInfo.m_fontSize = pFont->FontSize();
-            fontInfo.m_bUnderline = pFont->IsUnderline();
-            fontInfo.m_bStrikeOut = pFont->IsStrikeOut();
-            fontInfo.m_bItalic = pFont->IsItalic();
-            fontInfo.m_bBold = pFont->IsBold();
-
             fontInfo.m_fontName = fallbackFontName; //设置回退的字体名称
             bool isInitOk = pFallbackFont->InitFont(fontInfo);
             ASSERT(isInitOk);
@@ -109,7 +170,7 @@ public:
         }
         if (pRetFallbackFont != nullptr) {
             //放入缓存列表，管理其生命周期
-            fallbackFontList.push_back(pRetFallbackFont);
+            cacheEntry.m_fallbackFonts.push_back(pRetFallbackFont);
         }
         return pRetFallbackFont;
     }
@@ -475,7 +536,7 @@ void FontManager::ClearFontCache()
 
     //清理字体回退缓存
     for (const auto& fallbackFont : m_fallbackFontMap) {
-        const std::vector<IFont*>& fontList = fallbackFont.second;
+        const std::vector<IFont*>& fontList = fallbackFont.second.m_fallbackFonts;
         for (IFont* pFont : fontList) {
             if (pFont != nullptr) {
                 delete pFont;
@@ -660,15 +721,22 @@ IFallbackFontMgr* FontManager::GetFallbackFontMgr() const
 
 void FontManager::OnIFontDataRemoved(IFont* pIFont)
 {
-    auto iter = m_fallbackFontMap.find(pIFont);
+    if (pIFont == nullptr) {
+        return;
+    }
+    //按字体签名查找（签名不受IFont对象生命周期影响）
+    uint64_t fontKey = pIFont->GetFontKey();
+    if (fontKey == 0) {
+        fontKey = CalcFontKey(pIFont);
+    }
+    auto iter = m_fallbackFontMap.find(fontKey);
     if (iter != m_fallbackFontMap.end()) {
-        std::vector<IFont*>& fontList = iter->second;
-        for (IFont* pFont : fontList) {
+        for (IFont* pFont : iter->second.m_fallbackFonts) {
             if (pFont != nullptr) {
                 delete pFont;
             }
         }
-        fontList.clear();
+        m_fallbackFontMap.erase(iter);
     }
 }
 

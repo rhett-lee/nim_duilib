@@ -1,5 +1,6 @@
 #include "Font_Skia.h"
 #include "duilib/RenderSkia/FontMgr_Skia.h"
+#include "duilib/Utils/StringUtil.h"
 
 #include "SkiaHeaderBegin.h"
 #include "include/core/SkFont.h"
@@ -8,9 +9,44 @@
 namespace ui 
 {
 
+/** 计算字体签名：混合字体名、字号与字体样式
+*   注意：该签名在InitFont时只计算一次并缓存，避免在热路径中重复计算
+*/
+static uint64_t CalcFontKey(const UiFont& fontInfo)
+{
+    const uint64_t fnvPrime = 1099511628211ULL;
+    uint64_t fontKey = 14695981039346656037ULL;
+    const uint8_t* pData = (const uint8_t*)fontInfo.m_fontName.c_str();
+    const size_t byteCount = StringUtil::StringLen(fontInfo.m_fontName.c_str()) * sizeof(DString::value_type);
+    for (size_t i = 0; i < byteCount; ++i) {
+        fontKey ^= pData[i];
+        fontKey *= fnvPrime;
+    }
+    uint8_t flags = 0;
+    if (fontInfo.m_bBold) {
+        flags |= 0x01;
+    }
+    if (fontInfo.m_bItalic) {
+        flags |= 0x02;
+    }
+    if (fontInfo.m_bUnderline) {
+        flags |= 0x04;
+    }
+    if (fontInfo.m_bStrikeOut) {
+        flags |= 0x08;
+    }
+    fontKey ^= (uint64_t)(uint32_t)fontInfo.m_fontSize;
+    fontKey *= fnvPrime;
+    fontKey ^= flags;
+    fontKey *= fnvPrime;
+    //0表示字体不支持签名，不能作为缓存键
+    return (fontKey != 0) ? fontKey : 1;
+}
+
 Font_Skia::Font_Skia(std::shared_ptr<IFontMgr>& spFontMgr):
     m_skFont(nullptr),
     m_spFontMgr(spFontMgr),
+    m_fontKey(0),
     m_pSkiaFontMgr(nullptr)
 {
     ASSERT(m_spFontMgr != nullptr);
@@ -46,6 +82,7 @@ bool Font_Skia::InitFont(const UiFont& fontInfo)
     // 仅更新字体信息并清理旧的 SkFont 实例
     // 实际的 SkFont 创建会延迟到首次调用 GetFontHandle() 时（懒加载模式）
     m_uiFont = fontInfo;
+    m_fontKey = CalcFontKey(m_uiFont);
     ClearSkFont();
     return true;
 }
@@ -77,6 +114,11 @@ bool Font_Skia::IsUnicodeCharSupported(uint32_t unicodeChar)
 IFontMgr* Font_Skia::GetFontMgr() const
 {
     return m_spFontMgr.get();
+}
+
+uint64_t Font_Skia::GetFontKey() const
+{
+    return m_fontKey;
 }
 
 } // namespace ui

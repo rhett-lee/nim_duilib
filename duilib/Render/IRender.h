@@ -53,6 +53,11 @@ public:
     * @return 返回字体管理器接口；如果不支持该操作，则返回nullptr
     */
     virtual IFontMgr* GetFontMgr() const { return nullptr; }
+
+    /** 获取字体的签名（由字体名、字号与字体样式计算，用于字体相关的缓存）
+    * @return 返回字体签名；如果不支持该操作，则返回0
+    */
+    virtual uint64_t GetFontKey() const { return 0; }
 };
 
 /** 字体回退管理器（当支持的字体无法显示字符时，会查询回退字体管理器，以正确显示文字）
