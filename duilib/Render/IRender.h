@@ -80,7 +80,7 @@ public:
     virtual bool GetFontName(uint32_t nIndex, DString& fontName) const = 0;
 
     /** 判断是否含有该字体
-    * @param [int] fontName 字体名称
+    * @param [in] fontName 字体名称
     * @return 如果含有该字体名称对应的字体返回true，否则返回false
     */
     virtual bool HasFontName(const DString& fontName) const = 0;
@@ -513,13 +513,21 @@ public:
 };
 
 /** 光栅操作代码
-*/
+ *
+ *  各模式的实现依赖渲染引擎，Skia 后端的映射关系及限制：
+ *   kSrcCopy   -> SkBlendMode::kSrc       用源图像覆盖目标区域（完整支持）
+ *   kDstInvert -> SkBlendMode::kDifference 将源图像转为纯白色后与目标区域做差值混合，
+ *                                          等价于对目标区域取反（255 - dst）；源图像的像素颜色不参与绘制
+ *   kSrcInvert -> SkBlendMode::kXor       源图像与目标区域做异或运算（完整支持）
+ *   kSrcAnd    -> SkBlendMode::kSrcIn     近似实现：仅保留目标区域覆盖范围内的源图像，
+ *                                          与 GDI 的位与运算结果不完全等价
+ */
 enum class DUILIB_API RopMode
 {
-    kSrcCopy,    //对应于 SRCCOPY
-    kDstInvert, //对应于 DSTINVERT
-    kSrcInvert, //对应于 SRCINVERT
-    kSrcAnd     //对应于 SRCAND
+    kSrcCopy,    //对应于 SRCCOPY：用源图像覆盖目标区域
+    kDstInvert,  //对应于 DSTINVERT：目标区域颜色取反（源图像仅作为绘制区域使用）
+    kSrcInvert,  //对应于 SRCINVERT：源图像与目标区域做异或运算
+    kSrcAnd      //对应于 SRCAND：源图像与目标区域做逻辑与运算（Skia 下为近似实现）
 };
 
 /** 绘制文本时的格式
@@ -829,7 +837,7 @@ struct DrawStringParam
 {
     UiRect textRect;        //文字绘制的矩形区域
     UiColor dwTextColor;    //文字颜色值
-    uint8_t uFade = 255;    //文字的透明度[0 - 255]
+    uint8_t uFade = 255;    //文字的透明度[0 - 255]，与文字颜色的Alpha值相乘
 
     IFont* pFont = nullptr;             //文字的字体
     uint32_t uFormat = 0;               //文字的格式，参见 enum DrawStringFormat 类型定义    
@@ -912,7 +920,7 @@ public:
     virtual int32_t SetRoundClip(const UiRect& rcItem, float rx, float ry, bool bIntersect = true) = 0;
 
     /** 清除矩形剪辑区域，并恢复设备上下文到最近一次保存的状态
-    * @return [in] nState 设备上下文标志, 由SetClip或者SetRoundClip函数返回
+    * @param [in] nState 设备上下文标志, 由SetClip或者SetRoundClip函数返回
     */
     virtual void ClearClip(int32_t nState) = 0;
 
@@ -971,7 +979,7 @@ public:
     * @param [in] rcDestCorners 绘制的目标区域的边角信息，用于九宫格绘制
     * @param [in] rcSource 绘制的源图片区域
     * @param [in] rcSourceCorners 绘制源图片的边角信息，用于九宫格绘制
-    * @param [in] uFade 透明度（0 - 255）
+    * @param [in] uFade 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
     * @param [in] pTiledDrawParam 平铺相关参数，不平铺绘制时可传nullptr
     * @param [in] bWindowShadowMode 九宫格绘制时，不绘制中间部分（比如窗口阴影，只需要绘制边框，不需要绘制中间部分）
     */
@@ -994,7 +1002,7 @@ public:
     * @param [in] pBitmap 用于绘制的位图接口
     * @param [in] rcDest 绘制的目标区域
     * @param [in] rcSource 绘制的源图片区域
-    * @param [in] uFade 透明度（0 - 255）
+    * @param [in] uFade 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
     * @param [in] pMatrix 绘制时的变换矩阵接口
     */
     virtual void DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,
@@ -1034,7 +1042,7 @@ public:
     /** 用颜色填充矩形
     * @param [in] rc 目标矩形区域
     * @param [in] dwColor 颜色值
-    * @param [in] uFade 透明度（0 - 255）
+    * @param [in] uFade 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
     */
     virtual void FillRect(const UiRectF& rc, UiColor dwColor, uint8_t uFade = 255) = 0;
 
@@ -1043,7 +1051,7 @@ public:
     * @param [in] dwColor 第一颜色值
     * @param [in] dwColor2 第二颜色值
     * @param [in] nColor2Direction 渐变颜色的渐变方向，"1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
-    * @param [in] uFade 透明度（0 - 255）
+    * @param [in] uFade 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
     */
     virtual void FillRect(const UiRectF& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) = 0;
 
@@ -1069,7 +1077,7 @@ public:
     * @param [in] rx 圆角的宽度
     * @param [in] ry 圆角的高度
     * @param [in] dwColor 颜色值
-    * @param [in] uFade 透明度（0 - 255）
+    * @param [in] uFade 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
     */
     virtual void FillRoundRect(const UiRectF& rc, float rx, float ry, UiColor dwColor, uint8_t uFade = 255) = 0;
 
@@ -1080,7 +1088,7 @@ public:
     * @param [in] dwColor 颜色值
     * @param [in] dwColor2 第二颜色值
     * @param [in] nColor2Direction 渐变颜色的渐变方向，"1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
-    * @param [in] uFade 透明度（0 - 255）
+    * @param [in] uFade 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
     */
     virtual void FillRoundRect(const UiRectF& rc, float rx, float ry, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) = 0;
 
@@ -1116,7 +1124,7 @@ public:
     * @param [in] centerPt 圆心坐标点
     * @param [in] radius 圆的半径
     * @param [in] dwColor 颜色值
-    * @param [in] uFade 透明度（0 - 255）
+    * @param [in] uFade 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
     */
     virtual void FillCircle(const UiPointF& centerPt, float radius, UiColor dwColor, uint8_t uFade = 255) = 0;
 
@@ -1158,7 +1166,7 @@ public:
     * @param [in] textRect 绘制文本的矩形区域
     * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
     * @param [in] pRenderFactory 渲染接口，用于创建字体
-    * @param [in] richTextData 格式化文字内容，返回文字绘制的区域
+    * @param [in] richTextData 格式化文字内容
     * @param [out] pRichTextRects 如果不为nullptr，则返回richTextData中每个数据绘制的矩形范围列表
     */
     virtual void MeasureRichText(const UiRect& textRect,
@@ -1204,7 +1212,7 @@ public:
     * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
     * @param [in] pRenderFactory 渲染接口，用于创建字体
     * @param [in] richTextData 格式化文字内容
-    * @param [in] uFade 透明度（0 - 255）
+    * @param [in] uFade 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
     * @param [out] pRichTextRects 如果不为nullptr，则返回richTextData中每个数据绘制的矩形范围列表
     */
     virtual void DrawRichText(const UiRect& textRect,
@@ -1269,7 +1277,7 @@ public:
     * @param [in] rcNewTextRect 绘制文本的矩形区域
     * @param [in] szNewScrollOffset 新的滚动条位置
     * @param [in] rowXOffset 每行的横向偏移列表（逻辑行）
-    * @param [in] uFade 透明度（0 - 255）
+    * @param [in] uFade 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
     * @param [out] pRichTextRects 如果不为nullptr，则返回richTextData中每个数据绘制的矩形范围列表
     * @param [in] pTextColors 每个数据绘制时使用的文字颜色（下标与richTextData对应）；
     *             不为nullptr时覆盖缓存中的颜色，用于悬停/按下等仅改变颜色的场景
@@ -1292,7 +1300,7 @@ public:
     * @param [in] nSpreadRadius 扩展半径，即模糊区域距离rc矩形边缘多少个像素。
     *                           取正值时，阴影扩大；取负值时，阴影收缩。
     * @param [in] dwColor 阴影的颜色值
-    * @param [in] uAlpha 透明度（0 - 255）
+    * @param [in] uAlpha 透明度（0 - 255），与阴影颜色的Alpha值相乘
     */
     virtual void DrawBoxShadow(const UiRect& rc, 
                                const UiSize& roundSize, 
@@ -1366,7 +1374,7 @@ public:
     * @param [in] srcPixelsLen 源数据srcPixels缓冲区长度, 长度需要满足要求：srcPixelsLen == (rc.Width() * rc.Height() * sizeof(uint32_t))
     * @param [in] rc 在Render中的矩形范围，将位图数据写入到此矩形内，rc.Width()代表图像数据的宽度，rc.Height()代表图像数据的高度
     */
-    virtual bool WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc) = 0;
+    virtual bool WritePixels(const void* srcPixels, size_t srcPixelsLen, const UiRect& rc) = 0;
 
     /** 将数据写入到位图中去(数据是复制一份到目标数据，仅复制绘制部分)
     * @param [in] srcPixels 源数据的缓冲区起始地址
@@ -1374,7 +1382,7 @@ public:
     * @param [in] rc 在Render中的矩形范围，rc.Width()代表图像数据的宽度，rc.Height()代表图像数据的高度
     * @param [in] rcPaint 绘制的部分矩形范围，代表脏区域，仅绘制rcPaint与rc交集的部分区域
     */
-    virtual bool WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc, const UiRect& rcPaint) = 0;
+    virtual bool WritePixels(const void* srcPixels, size_t srcPixelsLen, const UiRect& rc, const UiRect& rcPaint) = 0;
 
     /** 获取当前的裁剪区域
     * @param [out] clipRects 返回裁剪区域的矩形数据，矩形区域坐标为客户区坐标
@@ -1439,7 +1447,7 @@ public:
 
     /** 创建一个Brush对象
     */
-    virtual IBrush* CreateBrush(UiColor corlor) = 0;
+    virtual IBrush* CreateBrush(UiColor color) = 0;
 
     /** 创建一个Path对象
     */

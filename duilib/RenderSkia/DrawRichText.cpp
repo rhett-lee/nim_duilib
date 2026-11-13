@@ -371,7 +371,9 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
         //设置文本颜色
         if (textColor != textData.m_textColor) {
             const UiColor& color = textData.m_textColor;
-            skPaint.setARGB(color.GetA(), color.GetR(), color.GetG(), color.GetB());
+            //颜色自身的Alpha与叠加透明度相乘（uFade 不再覆盖颜色的Alpha）
+            skPaint.setARGB((uint8_t)(((uint32_t)color.GetA() * (uint32_t)uFade + 127) / 255),
+                            color.GetR(), color.GetG(), color.GetB());
             textColor = textData.m_textColor;
         }
         
@@ -1033,7 +1035,9 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
 
             if (textColor != textData.m_textColor) {
                 const UiColor& color = textData.m_textColor;
-                skPaint.setARGB(color.GetA(), color.GetR(), color.GetG(), color.GetB());
+                //颜色自身的Alpha与叠加透明度相乘（uFade 不再覆盖颜色的Alpha）
+                skPaint.setARGB((uint8_t)(((uint32_t)color.GetA() * (uint32_t)uFade + 127) / 255),
+                                color.GetR(), color.GetG(), color.GetB());
                 textColor = textData.m_textColor;
             }
 
@@ -1841,7 +1845,9 @@ void DrawRichText::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache
         }
         if (textColor != *pDrawTextColor) {
             const UiColor& color = *pDrawTextColor;
-            skPaint.setARGB(color.GetA(), color.GetR(), color.GetG(), color.GetB());
+            //颜色自身的Alpha与叠加透明度相乘（uFade 不再覆盖颜色的Alpha）
+            skPaint.setARGB((uint8_t)(((uint32_t)color.GetA() * (uint32_t)uFade + 127) / 255),
+                            color.GetR(), color.GetG(), color.GetB());
             textColor = *pDrawTextColor;
         }
 

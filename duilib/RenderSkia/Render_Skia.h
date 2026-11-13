@@ -161,8 +161,8 @@ public:
     virtual void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int32_t nBlurRadius, int32_t nSpreadRadius, UiColor dwColor, uint8_t uAlpha) override;
 
     virtual bool ReadPixels(const UiRect& rc, void* dstPixels, size_t dstPixelsLen) override;
-    virtual bool WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc) override;
-    virtual bool WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc, const UiRect& rcPaint) override;
+    virtual bool WritePixels(const void* srcPixels, size_t srcPixelsLen, const UiRect& rc) override;
+    virtual bool WritePixels(const void* srcPixels, size_t srcPixelsLen, const UiRect& rc, const UiRect& rcPaint) override;
     virtual RenderClipType GetClipInfo(std::vector<UiRect>& clipRects) override;
     virtual bool IsClipEmpty() const override;
     virtual bool IsEmpty() const override;
@@ -187,7 +187,7 @@ protected:
     IRenderDpiPtr GetRenderDpi() const;
 
 private:
-    /** 获取GDI的光栅操作代码
+    /** 设置光栅操作模式（映射为Skia的混合模式，部分模式为近似实现）
     */
     void SetRopMode(SkPaint& skPaint, RopMode rop) const;
 

@@ -411,11 +411,10 @@ void HorizontalDrawText::DrawString(const DString& strText, const DrawStringPara
 
     // 设置绘制属性
     SkPaint skPaint = *m_pSkPaint;
-    skPaint.setARGB(drawParam.dwTextColor.GetA(), drawParam.dwTextColor.GetR(),
+    //颜色自身的Alpha与叠加透明度相乘（uFade 不再覆盖颜色的Alpha）
+    const uint8_t uTextAlpha = (uint8_t)(((uint32_t)drawParam.dwTextColor.GetA() * (uint32_t)drawParam.uFade + 127) / 255);
+    skPaint.setARGB(uTextAlpha, drawParam.dwTextColor.GetR(),
                     drawParam.dwTextColor.GetG(), drawParam.dwTextColor.GetB());
-    if (drawParam.uFade != 0xFF) {
-        skPaint.setAlpha(drawParam.uFade);
-    }
 
     // 绘制区域
     SkIRect rcSkDestI = { drawParam.textRect.left, drawParam.textRect.top,

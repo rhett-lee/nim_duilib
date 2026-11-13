@@ -18,7 +18,7 @@ public:
 
     virtual IFont* CreateIFont() override;
     virtual IPen* CreatePen(UiColor color, float fWidth = 1.0f) override;
-    virtual IBrush* CreateBrush(UiColor corlor) override;
+    virtual IBrush* CreateBrush(UiColor color) override;
     virtual IPath* CreatePath() override;
     virtual IMatrix* CreateMatrix() override;
     virtual IBitmap* CreateBitmap() override;

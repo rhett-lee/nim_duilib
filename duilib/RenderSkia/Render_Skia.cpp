@@ -23,6 +23,7 @@
 #include "include/core/SkCanvas.h"
 #include "include/core/SkSurface.h"
 #include "include/core/SkPaint.h"
+#include "include/core/SkColorFilter.h"
 #include "include/core/SkPath.h"
 #include "include/core/SkPathBuilder.h"
 #include "include/core/SkRegion.h"
@@ -323,10 +324,26 @@ void Render_Skia::SetRopMode(SkPaint& skPaint, RopMode rop) const
 {
     switch (rop) {
     case RopMode::kSrcCopy:
+        //用源图像覆盖目标区域
         skPaint.setBlendMode(SkBlendMode::kSrc);
         break;
+    case RopMode::kDstInvert:
+        //目标区域取反：把源图像转为纯白色（保留源图像的Alpha），再与目标区域做差值混合，
+        //结果为 255 - dst（等价于 DSTINVERT），源图像的像素颜色不参与绘制
+        skPaint.setBlendMode(SkBlendMode::kDifference);
+        skPaint.setColorFilter(SkColorFilters::Blend(SK_ColorWHITE, SkBlendMode::kSrcIn));
+        break;
+    case RopMode::kSrcInvert:
+        //源图像与目标区域做异或运算
+        skPaint.setBlendMode(SkBlendMode::kXor);
+        break;
+    case RopMode::kSrcAnd:
+        //Skia 没有位与混合模式，使用 kSrcIn 近似：仅保留目标区域覆盖范围内的源图像
+        skPaint.setBlendMode(SkBlendMode::kSrcIn);
+        break;
     default:
-        ASSERT(!"no impl!");
+        ASSERT(!"invalid RopMode");
+        skPaint.setBlendMode(SkBlendMode::kSrcOver);
         break;
     }
 }
@@ -953,10 +970,9 @@ void Render_Skia::FillRect(const UiRectF& rc, UiColor dwColor, uint8_t uFade)
         return;
     }
     SkPaint skPaint = *m_pSkPaint;
-    skPaint.setARGB(dwColor.GetA(), dwColor.GetR(), dwColor.GetG(), dwColor.GetB());
-    if (uFade != 0xFF) {
-        skPaint.setAlpha(uFade);
-    }
+    //颜色自身的Alpha与叠加透明度相乘（uFade 不再覆盖颜色的Alpha）
+    const uint8_t uAlpha = (uint8_t)(((uint32_t)dwColor.GetA() * (uint32_t)uFade + 127) / 255);
+    skPaint.setARGB(uAlpha, dwColor.GetR(), dwColor.GetG(), dwColor.GetB());
     skPaint.setStyle(SkPaint::kFill_Style);
     SkRect rcSkDest = SkRect::MakeLTRB(rc.left, rc.top, rc.right, rc.bottom);
     rcSkDest.offset(*m_pSkPointOrg);
@@ -1191,11 +1207,10 @@ void Render_Skia::FillRoundRect(const UiRectF& rc, float rx, float ry, UiColor d
         return;
     }
     SkPaint skPaint = *m_pSkPaint;
-    skPaint.setARGB(dwColor.GetA(), dwColor.GetR(), dwColor.GetG(), dwColor.GetB());
+    //颜色自身的Alpha与叠加透明度相乘（uFade 不再覆盖颜色的Alpha）
+    const uint8_t uAlpha = (uint8_t)(((uint32_t)dwColor.GetA() * (uint32_t)uFade + 127) / 255);
+    skPaint.setARGB(uAlpha, dwColor.GetR(), dwColor.GetG(), dwColor.GetB());
     skPaint.setStyle(SkPaint::kFill_Style);
-    if (uFade != 0xFF) {
-        skPaint.setAlpha(uFade);
-    }
 
     SkRect rcSkDest = SkRect::MakeLTRB(rc.left, rc.top, rc.right, rc.bottom);
     rcSkDest.offset(*m_pSkPointOrg);
@@ -1287,11 +1302,10 @@ void Render_Skia::FillCircle(const UiPointF& centerPt, float radius, UiColor dwC
         return;
     }
     SkPaint skPaint = *m_pSkPaint;
-    skPaint.setARGB(dwColor.GetA(), dwColor.GetR(), dwColor.GetG(), dwColor.GetB());
+    //颜色自身的Alpha与叠加透明度相乘（uFade 不再覆盖颜色的Alpha）
+    const uint8_t uAlpha = (uint8_t)(((uint32_t)dwColor.GetA() * (uint32_t)uFade + 127) / 255);
+    skPaint.setARGB(uAlpha, dwColor.GetR(), dwColor.GetG(), dwColor.GetB());
     skPaint.setStyle(SkPaint::kFill_Style);
-    if (uFade != 0xFF) {
-        skPaint.setAlpha(uFade);
-    }
 
     SkPoint rcSkPoint = SkPoint::Make(centerPt.x, centerPt.y);
     rcSkPoint.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
@@ -1598,13 +1612,12 @@ void Render_Skia::DrawString(const DString& strText, const DrawStringParam& draw
 
     //绘制属性设置
     SkPaint skPaint = *m_pSkPaint;
-    skPaint.setARGB(drawParam.dwTextColor.GetA(),
+    //颜色自身的Alpha与叠加透明度相乘（uFade 不再覆盖颜色的Alpha）
+    const uint8_t uTextAlpha = (uint8_t)(((uint32_t)drawParam.dwTextColor.GetA() * (uint32_t)drawParam.uFade + 127) / 255);
+    skPaint.setARGB(uTextAlpha,
                     drawParam.dwTextColor.GetR(),
                     drawParam.dwTextColor.GetG(),
                     drawParam.dwTextColor.GetB());
-    if (drawParam.uFade != 0xFF) {
-        skPaint.setAlpha(drawParam.uFade);
-    }
 
     //绘制区域
     SkIRect rcSkDestI = { drawParam.textRect.left, drawParam.textRect.top,
@@ -2011,7 +2024,8 @@ void Render_Skia::DrawBoxShadow(const UiRect& rc,
     mat.postTranslate(offsetX, offsetY);
     shadowPath.transform(mat);
     if (uAlpha != 0xFF) {
-        paint.setAlpha(uAlpha);
+        //颜色自身的Alpha与叠加透明度相乘（uAlpha 不再覆盖颜色的Alpha）
+        paint.setAlpha((uint8_t)(((uint32_t)dwColor.GetA() * (uint32_t)uAlpha + 127) / 255));
     }
     skCanvas->drawPath(shadowPath.snapshot(), paint);
 }
@@ -2047,7 +2061,7 @@ bool Render_Skia::ReadPixels(const UiRect& rc, void* dstPixels, size_t dstPixels
     return bRet;
 }
 
-bool Render_Skia::WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc)
+bool Render_Skia::WritePixels(const void* srcPixels, size_t srcPixelsLen, const UiRect& rc)
 {
     ASSERT(srcPixels != nullptr);
     if (srcPixels == nullptr) {
@@ -2072,14 +2086,15 @@ bool Render_Skia::WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect
 
     SkBitmap skBitmap;
     skBitmap.setInfo(SkImageInfo::Make(rc.Width(), rc.Height(), SkColorType::kN32_SkColorType, SkAlphaType::kPremul_SkAlphaType));
-    skBitmap.setPixels(srcPixels);
+    //Skia 的接口只接受非const指针，这里仅用于读取源数据，不会修改其内容
+    skBitmap.setPixels(const_cast<void*>(srcPixels));
 
     bool bRet = skCanvas->writePixels(skBitmap, rc.left + (int32_t)m_pSkPointOrg->fX, rc.top + (int32_t)m_pSkPointOrg->fY);
     ASSERT_UNUSED_VARIABLE(bRet);
     return bRet;
 }
 
-bool Render_Skia::WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc, const UiRect& rcPaint)
+bool Render_Skia::WritePixels(const void* srcPixels, size_t srcPixelsLen, const UiRect& rc, const UiRect& rcPaint)
 {
     if (rc == rcPaint) {
         return WritePixels(srcPixels, srcPixelsLen, rc);
@@ -2120,7 +2135,8 @@ bool Render_Skia::WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect
     SkImageInfo skImageInfo = SkImageInfo::Make(rc.Width(), rc.Height(), SkColorType::kN32_SkColorType, SkAlphaType::kPremul_SkAlphaType);
     SkBitmap skBitmap;
     skBitmap.setInfo(skImageInfo);
-    skBitmap.setPixels(srcPixels);
+    //Skia 的接口只接受非const指针，这里仅用于读取源数据，不会修改其内容
+    skBitmap.setPixels(const_cast<void*>(srcPixels));
 
     SkBitmap dstDirtyBitmap;
     SkIRect dstRect = SkIRect::MakeXYWH(updateRect.left, updateRect.top, updateRect.Width(), updateRect.Height());
