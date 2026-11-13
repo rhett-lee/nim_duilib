@@ -91,8 +91,8 @@ void DrawSkiaText::GetDrawStringUTF32(const DString& strText, bool bSingleLineMo
         const DString::value_type ch = strText[nIndex];
         if (ch == _T('\r')) {
             if (((nIndex + 1) < nTextCount) && (strText[nIndex + 1] == _T('\n'))) {
-                //"\r\n"转换为"\n"
-                text.push_back(_T('\n'));
+                //"\r\n"转换为"\n"（单行模式下转换为空格）
+                text.push_back(bSingleLineMode ? _T(' ') : _T('\n'));
                 ++nIndex;
             }
             //单独的"\r"字符，直接删除
@@ -158,7 +158,7 @@ SkScalar DrawSkiaText::MeasureTextChar(const SkFont& font, DUTF32Char ch,
             if (pGlyphId != nullptr) {
                 *pGlyphId = glyphID;
             }
-            return font.measureText(&ch, sizeof(ch), SkTextEncoding::kGlyphID, bounds, paint);
+            return font.measureText(&glyphID, sizeof(SkGlyphID), SkTextEncoding::kGlyphID, bounds, paint);
         }        
     }
     //无法绘制该字符，绘制阶段按方框占位处理
@@ -579,12 +579,19 @@ void DrawSkiaText::BuildGlyphRuns(const SkFont& font, const FallbackFontCreator&
     glyphRuns.EndRun();
 }
 
-void DrawSkiaText::BuildTextRuns(const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
-                                 const void* text, size_t byteLength, SkTextEncoding textEncoding,
-                                 const SkPaint& paint,
-                                 TextGlyphRunList& glyphRuns, SkScalar& fWidth)
+/** 构建一段编码文本的运行结果（内部实现）
+ * @param [in] bClearRuns 是否先清空已有的run
+ *                        （按行布局时，同一个容器中需要保留前面行已经生成的run，此时传false）
+ */
+static void BuildTextRunsInternal(const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
+                                  const void* text, size_t byteLength, SkTextEncoding textEncoding,
+                                  const SkPaint& paint,
+                                  TextGlyphRunList& glyphRuns, SkScalar& fWidth,
+                                  bool bClearRuns)
 {
-    glyphRuns.Clear();
+    if (bClearRuns) {
+        glyphRuns.Clear();
+    }
     fWidth = 0;
     if ((text == nullptr) || (byteLength == 0)) {
         return;
@@ -615,6 +622,15 @@ void DrawSkiaText::BuildTextRuns(const SkFont& font, const FallbackFontCreator& 
     };
     textData.EnumChars(enumTextCallback);
     glyphRuns.EndRun();
+}
+
+void DrawSkiaText::BuildTextRuns(const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
+                                 const void* text, size_t byteLength, SkTextEncoding textEncoding,
+                                 const SkPaint& paint,
+                                 TextGlyphRunList& glyphRuns, SkScalar& fWidth)
+{
+    BuildTextRunsInternal(font, fallbackFontCreator, text, byteLength, textEncoding,
+                          paint, glyphRuns, fWidth, true);
 }
 
 void DrawSkiaText::BuildTextRuns(const SkGlyphID* pGlyphIds, const SkScalar* pAdvances,
@@ -658,8 +674,9 @@ static void BuildLineRuns(const SkFont& font, const FallbackFontCreator& fallbac
                           const SkPaint& paint, TextGlyphRunList& glyphRuns,
                           SkScalar& fWidth)
 {
-    DrawSkiaText::BuildTextRuns(font, fallbackFontCreator, text, byteLength, textEncoding,
-                                paint, glyphRuns, fWidth);
+    //按行构建：不能清空前面行已经生成的run（LayoutText 会把一个文本块各行生成的run累积到同一个容器中）
+    BuildTextRunsInternal(font, fallbackFontCreator, text, byteLength, textEncoding,
+                          paint, glyphRuns, fWidth, false);
 }
 
 /** 计算一行的宽度（复用断行时已经算好的字形宽度，不再重复解析字符）

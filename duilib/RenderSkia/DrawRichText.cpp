@@ -789,6 +789,8 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                                 --nGlyphCount;
                                 nTextBytes -= textCharSize;
                             }
+                            //字形数量需要与参与绘制的字形保持一致（两端对齐时按实际绘制的字形数分配额外间距）
+                            newPendingTextData.m_nGlyphCount = (uint32_t)nGlyphCount;
                             if (nGlyphCount > 0) {
                                 std::shared_ptr<TextGlyphRunList> spGlyphRuns = std::make_shared<TextGlyphRunList>();
                                 DrawSkiaText::BuildTextRuns(breakTextData.glyphIDs.data(),

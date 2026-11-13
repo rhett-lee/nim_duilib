@@ -190,6 +190,44 @@ if(WIN32)
 endif()
 
 
+# 文字绘制相关类的单元测试：
+# 覆盖文本归一化、按编码枚举/转换、字形运行构建、单字符/整段测量、
+# 断行与布局、横向对齐/字间距/纵向文本测量与绘制、富文本省略号截断的绘制缓存路径。
+# 该测试使用离屏渲染（不创建窗口），但依赖系统字体资源，仅在 Windows 平台构建。
+if(WIN32)
+    add_executable(test_text_draw
+        test_text_draw.cpp
+    )
+    target_include_directories(test_text_draw PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../"
+        "${DUILIB_SKIA_SRC_ROOT_DIR}"
+    )
+    target_link_directories(test_text_draw PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_text_draw PRIVATE
+        duilib
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_text_draw PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_text_draw PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(test_text_draw PRIVATE UNICODE _UNICODE NOMINMAX WIN32_LEAN_AND_MEAN)
+    # 默认资源目录：源码树的 bin/resources（可在运行时用 --resources 覆盖）
+    target_compile_definitions(test_text_draw PRIVATE
+        DUILIB_TEST_RESOURCE_DIR="${CMAKE_SOURCE_DIR}/bin/resources"
+    )
+    if(MSVC)
+        target_compile_options(test_text_draw PRIVATE /utf-8)
+    endif()
+    add_test(NAME text_draw
+             COMMAND test_text_draw
+    )
+endif()
+
 # controls 示例页面的静态校验（XML 节点名、属性、class/颜色引用、语言词条、
 # Form 与 XML 的绑定关系）。该测试不创建窗口、不加载主题，仅用 Python3 解析
 # 资源文件，Windows/Linux/macOS 均可运行，可直接在命令行（含 CI）执行。

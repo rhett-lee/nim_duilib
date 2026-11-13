@@ -403,8 +403,10 @@ public:
     */
     static void GetDrawStringUTF32(const DString& strText, bool bSingleLineMode, UTF32String& textUTF32);
 
-private:
     /** 获取UTF32字符串，内部操作时按UTF32编码处理
+    * @param [in] text 文本起始地址
+    * @param [in] byteLength 文本字节数
+    * @param [in] textEncoding 文本编码
     */
     static UTF32String GetDrawStringUTF32(const void* text, size_t byteLength, SkTextEncoding textEncoding);
 };
