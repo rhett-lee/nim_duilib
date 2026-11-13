@@ -915,6 +915,9 @@
     <ClCompile Include="RenderSkia\SkUTF.cpp">
       <Filter>RenderSkia</Filter>
     </ClCompile>
+    <ClCompile Include="RenderSkia\TextGlyphRun.cpp">
+      <Filter>RenderSkia</Filter>
+    </ClCompile>
     <ClCompile Include="Core\ColorMap.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -1986,6 +1989,9 @@
       <Filter>RenderSkia</Filter>
     </ClInclude>
     <ClInclude Include="RenderSkia\FastVector.h">
+      <Filter>RenderSkia</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\TextGlyphRun.h">
       <Filter>RenderSkia</Filter>
     </ClInclude>
     <ClInclude Include="Control\RichEditDefs.h">

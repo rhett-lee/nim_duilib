@@ -4,6 +4,7 @@
 #include "duilib/Render/IRender.h"
 #include "duilib/RenderSkia/SkiaTextData.h"
 #include "duilib/RenderSkia/FastVector.h"
+#include "duilib/RenderSkia/TextGlyphRun.h"
 
 namespace ui
 {
@@ -175,6 +176,29 @@ public:
                                SkScalar x, SkScalar y,
                                const SkFont& font, const SkPaint& paint,
                                const FallbackFontCreator& fallbackFontCreator);
+
+public:
+    /** 构建文本运行结果（run）：每个字符只解析一次（字符 -> 字形 -> 命中字体）
+     * @param [in] font 主字体
+     * @param [in] fallbackFontCreator 回退字体管理器，为 nullptr 时不支持字体回退
+     * @param [in] pText 文本（UTF32字符数组）
+     * @param [in] nCount 字符个数
+     * @param [in] x 第一个字符的绘制X坐标
+     * @param [in] y 基线Y坐标
+     * @param [in] paint 绘制属性
+     * @param [out] glyphRuns 输出的文本运行结果（内部会先清空）
+     */
+    static void BuildGlyphRuns(const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
+                               const DUTF32Char* pText, size_t nCount,
+                               SkScalar x, SkScalar y, const SkPaint& paint,
+                               TextGlyphRunList& glyphRuns);
+
+    /** 按 run 批量绘制文本运行结果
+     * @param [in] skCanvas 绘制画布
+     * @param [in] glyphRuns 文本运行结果
+     * @param [in] paint 绘制属性
+     */
+    static void DrawGlyphRuns(SkCanvas* skCanvas, const TextGlyphRunList& glyphRuns, const SkPaint& paint);
 
 public:
     //原始函数：SkPaint::breakText 这个函数在最新的Skia代码里面已经删除了，这个是自己实现的版本。

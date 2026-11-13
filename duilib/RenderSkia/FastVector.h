@@ -4,6 +4,7 @@
 #include <cstdlib>   // malloc, free
 #include <cstring>   // memcpy
 #include <cstddef>   // size_t
+#include <utility>   // std::swap
 
 namespace ui 
 {

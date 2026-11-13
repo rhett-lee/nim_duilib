@@ -457,14 +457,103 @@ void DrawSkiaText::DrawSimpleText(SkCanvas* skCanvas, const void* text, size_t b
     }
     if (fallbackFontCreator != nullptr) {
         UTF32String utf32 = GetDrawStringUTF32(text, byteLength, textEncoding);
-        SkScalar fTotalWidth = 0;
-        const size_t nCount = utf32.size();
-        for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
-            fTotalWidth += DrawSimpleText(skCanvas, utf32[nIndex], x + fTotalWidth, y, font, paint, fallbackFontCreator);
-        }
+        //阶段一：一次解析，构建文本运行结果（每个字符只解析一次：字符 -> 字形 -> 命中字体）
+        TextGlyphRunList glyphRuns;
+        BuildGlyphRuns(font, fallbackFontCreator, utf32.c_str(), utf32.size(), x, y, paint, glyphRuns);
+        //阶段二：按run批量绘制，复用阶段一的解析结果
+        DrawGlyphRuns(skCanvas, glyphRuns, paint);
     }
     else {
         skCanvas->drawSimpleText(text, byteLength, textEncoding, x, y, font, paint);
+    }
+}
+
+void DrawSkiaText::BuildGlyphRuns(const SkFont& font, const FallbackFontCreator& fallbackFontCreator,
+                                  const DUTF32Char* pText, size_t nCount,
+                                  SkScalar x, SkScalar y, const SkPaint& paint,
+                                  TextGlyphRunList& glyphRuns)
+{
+    glyphRuns.Clear();
+    if ((pText == nullptr) || (nCount == 0)) {
+        return;
+    }
+
+    const SkFont* pLastRunSkFont = nullptr;   //当前run使用的Skia字体
+    SkScalar fTotalWidth = 0;                 //已解析字形的累计宽度
+    for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+        const DUTF32Char ch = pText[nIndex];
+
+        //第一步：解析字符对应的字形与命中字体（每个字符只解析一次）
+        const SkFont* pSkFont = &font;
+        SkGlyphID glyphId = font.unicharToGlyph((SkUnichar)ch);
+        if ((glyphId == 0) && (fallbackFontCreator != nullptr)) {
+            //主字体不支持该字符，尝试使用回退字体
+            SkGlyphID fallbackGlyphId = 0;
+            const SkFont* pFallbackSkFont = fallbackFontCreator((SkUnichar)ch, &fallbackGlyphId);
+            if ((pFallbackSkFont != nullptr) && (fallbackGlyphId != 0)) {
+                pSkFont = pFallbackSkFont;
+                glyphId = fallbackGlyphId;
+            }
+        }
+
+        //第二步：评估字形宽度与边界（与逐字符绘制时的处理保持一致）
+        SkRect bounds;
+        SkScalar fGlyphWidth = 0;
+        pSkFont->getWidthsBounds(SkSpan<const SkGlyphID>(&glyphId, 1),
+                                 SkSpan<SkScalar>(&fGlyphWidth, 1),
+                                 SkSpan<SkRect>(&bounds, 1),
+                                 &paint);
+        if (bounds.isEmpty() && !iswspace((wchar_t)ch)) {
+            //该字符无法显示，使用glyph 0绘制占位方框（实际会显示一个方框）
+            glyphId = 0;
+        }
+
+        //第三步：按命中字体分组，连续命中同一字体的字符合并为一个run
+        if ((pLastRunSkFont != pSkFont)) {
+            glyphRuns.BeginRun(nullptr, pSkFont, x + fTotalWidth, y);
+            pLastRunSkFont = pSkFont;
+        }
+        glyphRuns.AddGlyph(glyphId, fGlyphWidth);
+        fTotalWidth += fGlyphWidth;
+    }
+    glyphRuns.EndRun();
+}
+
+void DrawSkiaText::DrawGlyphRuns(SkCanvas* skCanvas, const TextGlyphRunList& glyphRuns, const SkPaint& paint)
+{
+    if ((skCanvas == nullptr) || glyphRuns.IsEmpty()) {
+        return;
+    }
+    //run内每个字形的绘制位置（相对run起点的偏移），所有run复用同一块缓冲区
+    FastVector<SkPoint> positions;
+    const size_t nRunCount = glyphRuns.GetRunCount();
+    for (size_t nRunIndex = 0; nRunIndex < nRunCount; ++nRunIndex) {
+        const TextGlyphRun& run = glyphRuns.GetRun(nRunIndex);
+        if ((run.m_pSkFont == nullptr) || (run.m_pGlyphs == nullptr) || (run.m_nCount == 0)) {
+            continue;
+        }
+        positions.clear();
+        positions.reserve(run.m_nCount);
+        SkScalar fOffsetX = 0;
+        for (uint32_t nIndex = 0; nIndex < run.m_nCount; ++nIndex) {
+            positions.push_back(SkPoint::Make(fOffsetX, 0));
+            if (run.m_pAdvances != nullptr) {
+                fOffsetX += run.m_pAdvances[nIndex];
+            }
+        }
+        const SkSpan<const SkGlyphID> glyphSpan(run.m_pGlyphs, run.m_nCount);
+        const SkSpan<const SkPoint> positionSpan(positions.data(), positions.size());
+        if (run.m_bRotate90) {
+            //纵向文本的旋转字符：以run起点为原点旋转90度绘制（预留，纵向路径接入时校验）
+            int nSaveCount = skCanvas->save();
+            skCanvas->translate(run.m_x, run.m_y);
+            skCanvas->rotate(90);
+            skCanvas->drawGlyphs(glyphSpan, positionSpan, SkPoint::Make(0, 0), *run.m_pSkFont, paint);
+            skCanvas->restoreToCount(nSaveCount);
+        }
+        else {
+            skCanvas->drawGlyphs(glyphSpan, positionSpan, SkPoint::Make(run.m_x, run.m_y), *run.m_pSkFont, paint);
+        }
     }
 }
 
