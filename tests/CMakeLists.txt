@@ -152,6 +152,44 @@ add_test(NAME lang_manager
          COMMAND test_lang_manager
 )
 
+# 文本绘制性能基准（不注册到 ctest，属于手工运行的评估工具）
+#
+# 用于对比"字体回退性能优化"前后的效果，覆盖全部文本测量/绘制路径，
+# 基准文本中约 1/3 的字符由回退字体渲染（运行时校验需 >= 20%）。
+# 评测请使用 Release 配置，例如：
+#   python build/build.py build --config Release --arch x64 --offline
+#   out/x64/Release/tests/bench_text_render.exe --iterations 200
+if(WIN32)
+    add_executable(bench_text_render
+        bench_text_render.cpp
+    )
+    target_include_directories(bench_text_render PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../"
+    )
+    target_link_directories(bench_text_render PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(bench_text_render PRIVATE
+        duilib
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(bench_text_render PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(bench_text_render PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(bench_text_render PRIVATE UNICODE _UNICODE)
+    # 默认资源目录：源码树的 bin/resources（可在运行时用 --resources 覆盖）
+    target_compile_definitions(bench_text_render PRIVATE
+        DUILIB_BENCH_RESOURCE_DIR="${CMAKE_SOURCE_DIR}/bin/resources"
+    )
+    if(MSVC)
+        target_compile_options(bench_text_render PRIVATE /utf-8)
+    endif()
+endif()
+
+
 # controls 示例页面的静态校验（XML 节点名、属性、class/颜色引用、语言词条、
 # Form 与 XML 的绑定关系）。该测试不创建窗口、不加载主题，仅用 Python3 解析
 # 资源文件，Windows/Linux/macOS 均可运行，可直接在命令行（含 CI）执行。
