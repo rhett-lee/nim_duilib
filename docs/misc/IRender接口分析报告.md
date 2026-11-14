@@ -17,7 +17,7 @@
 | 三.3 | `RenderType` 是"假抽象" | — | **已修复** | `RenderType` 与 `GetRenderType()` 已删除 |
 | 三.4 | `RichTextData::m_textView` 编码不一致 | `IRender.h#L575-L577` | **暂不处理** | 与内部实现耦合，收益不明显 |
 | 三.5 | Windows 窗口语义混入通用接口 | `IRender.h#L1338-L1347`、`#L1412-L1429` | **部分修复** | `GetRenderDC` 已有条件编译；RGN 三个接口仍未加 `DUILIB_BUILD_FOR_WIN` |
-| 三.6 | 注释中直接写引擎名 | 见第三节第 6 条 | **部分修复** | 已清理 `AlphaType`、`DrawArc` 等处的引擎名，建议后续普查 |
+| 三.6 | 注释中直接写引擎名 | 见第三节第 6 条 | **已修复** | `IRender.h` 的 `RopMode`、`SystemNotification.h` 已改为行为/平台描述，公共头文件普查完成 |
 | 四.1 | `Clone` 家族所有权与 const 不统一 | `IRender.h#L185`、`#L280`、`#L289`、`#L424`、`#L1367` | **已修复** | 五个 `Clone` 统一为 `std::unique_ptr<T> Clone() const` |
 | 四.2 | 只读接口缺 const | 见第四节第 2 条 | **已修复** | 只读接口/只读指针参数全部补 const（含 `IsUnicodeCharSupported`、`BitBlt`） |
 | 四.3 | 两套裁剪状态机制并存 | `IRender.h#L900-L921` | **已修复** | 保留 `SaveClip/RestoreClip`；`SetClip→ClipRect`、`SetRoundClip→ClipRoundRect`；删除 `ClearClip` |
@@ -45,7 +45,9 @@
 
 > 补充（2026-11-14 第八批）：第六节 P1、P2 已全部补齐——`IFont` 的 `GetFontMetrics`/`MeasureTextWidth`/`GetFontInfo`，`IBitmap` 的 `IsValid`/`GetRowBytes`/`GetAlphaType`/`GetImageSizeScale`/只读 `LockPixelBits`，`IRender` 的 `MeasureString` 轻量重载、`MakeImageSnapshot(rc)`、`SaveLayer`/`RestoreLayer`、`SetBlendMode`/`GetBlendMode`、`SetTransform`/`ConcatMatrix`，`IMatrix` 的 `Reset`/`Concat`/`Invert`/`IsIdentity`/`MapPoint`，`IPen` 的 `SetAntiAlias`/`SetMiterLimit`/`SetDashPattern`/`HasDashPattern`，`IBrush` 的线性/径向渐变，`IRenderFactory::CreateBitmap(w,h,alphaType)`；`DrawArc`/`FillArc` 的矩形参数统一为 `UiRectF`，并按"Draw 后紧跟 Fill"的分组规则调整了 `FillArc` 的位置；新增 `render_ext` 单元测试覆盖。
 
-统计：已修复 20 项、部分修复 2 项、暂不处理 1 项、未处理 2 项、缺失接口 P0/P1/P2 已全部补齐。
+> 补充（2026-11-14 第九批）：完成第三节第 6 条的公共头文件注释普查——`IRender.h` 的 `RopMode` 枚举改为纯"行为描述与限制"，`SystemNotification.h` 的 SDL 构建说明改为"跨平台构建"；仅保留 `SharePtr.h` 的来源署名与后端专用头文件中的引擎命名。
+
+统计：已修复 21 项、部分修复 1 项、暂不处理 1 项、未处理 2 项、缺失接口 P0/P1/P2 已全部补齐。
 
 ## 一、结论
 
@@ -114,10 +116,11 @@
 - 现状：`GetRenderDC` / `ReleaseRenderDC` 已用 `DUILIB_BUILD_FOR_WIN` 保护；三个 RGN 接口仍未加平台条件编译，其他平台实现只能空实现。
 - 后续：给 RGN 接口补 `DUILIB_BUILD_FOR_WIN`，或随第五节第 1 条一起移到窗口层接口。
 
-### 6. 注释中直接写引擎名 — **部分修复**
+### 6. 注释中直接写引擎名 — **已修复**
 
 - 已清理 `IBitmap::Init` 的"只有 Skia 引擎需要此参数"、`DrawArc` 的"仅 Skia 引擎使用"等表述（`IRender.h#L1095-L1106` 现为行为描述）。
-- 建议后续普查全部公共头文件，注释统一描述"行为与限制"，不写具体后端名。
+- 已完成公共头文件普查：`duilib/Render/IRender.h` 的 `RopMode` 枚举由"Skia 后端映射关系"改为"行为描述与限制"（不再写 `SkBlendMode`/`GDI`/`SRCCOPY`）；`duilib/Utils/SystemNotification.h` 的"使用 SDL 构建"改为"跨平台构建"，参数说明改为"仅跨平台通知通道实现生效"。
+- 保留项（不属于后端耦合）：`duilib/Core/SharePtr.h` 中"基于 Skia 源码 SkRefCnt.h 做的修改"是来源署名，予以保留；`RenderSkia/`、`NativeWindow_SDL`、`ControlDropTarget_SDL` 等后端/平台专用头文件本身即以后端命名，其注释不受此约束。
 
 ## 四、接口一致性问题
 
@@ -426,7 +429,7 @@ virtual IBitmap* CreateBitmap(uint32_t nWidth, uint32_t nHeight, AlphaType alpha
 
 ## 十、接口一致性调整记录（2026-11-14）
 
-本轮只做接口一致性修正，不改变绘制/测量的视觉效果。变更已同步 `Render_Skia` 实现、控件层调用方与单元测试，`ctest` 11/11 通过（`text_draw` 202 项、`image_draw` 22 项、`render_shape` 36 项、`render_ext` 80 项检查，0 失败）。分八批完成：第一批为第 1、2、5、6、7、8 条，第二批为第 3、4 条（`MeasureRichText` 合并行与末尾两行裁剪接口），第三批删除 `ClearClip`，第四批为第五节第 2 条（富文本接口去掉 `IRenderFactory*` 参数，改为 Render 创建时注入），第五批为第五节第 3 条（`rcPaint` 后移为可选参数并内部兜底），第六批为第五节第 5 条（三个绘图接口合并为两个入口 + `ImageDrawParam`），第七批为第六节 P0 缺失接口补齐，第八批为第六节 P1/P2 缺失接口补齐。
+本轮只做接口一致性修正，不改变绘制/测量的视觉效果。变更已同步 `Render_Skia` 实现、控件层调用方与单元测试，`ctest` 11/11 通过（`text_draw` 202 项、`image_draw` 22 项、`render_shape` 36 项、`render_ext` 80 项检查，0 失败）。分九批完成：第一批为第 1、2、5、6、7、8 条，第二批为第 3、4 条（`MeasureRichText` 合并行与末尾两行裁剪接口），第三批删除 `ClearClip`，第四批为第五节第 2 条（富文本接口去掉 `IRenderFactory*` 参数，改为 Render 创建时注入），第五批为第五节第 3 条（`rcPaint` 后移为可选参数并内部兜底），第六批为第五节第 5 条（三个绘图接口合并为两个入口 + `ImageDrawParam`），第七批为第六节 P0 缺失接口补齐，第八批为第六节 P1/P2 缺失接口补齐，第九批为第三节第 6 条（公共头文件注释去掉后端名）。
 
 | 接口 / 字段 | 变更前 | 变更后 | 影响 |
 | --- | --- | --- | --- |
@@ -471,6 +474,8 @@ virtual IBitmap* CreateBitmap(uint32_t nWidth, uint32_t nHeight, AlphaType alpha
 | `BlendMode` / `IRender::Set/GetBlendMode` | 无（固定 SrcOver） | 新增枚举 `{kSrcOver, kClear, kMultiply, kScreen, kXor, kPlus}` + 设置/读取接口（纯虚） | 写入 `m_pSkPaint`，对后续绘制生效；`BitBlt` 的 `RopMode` 语义不受影响 |
 | `IRender::SetTransform` / `ConcatMatrix` | 无（只能通过 `DrawImage` 的矩阵） | 新增 `SetTransform(const IMatrix*)`、`ConcatMatrix(const IMatrix*)`（纯虚） | 对应 `SkCanvas::setMatrix`/`concat`；`SetTransform(nullptr)` 恢复单位矩阵 |
 | `IRenderFactory::CreateBitmap` | 只有空位图 + 手动 `Init` | 新增 `CreateBitmap(w, h, alphaType = kPremul)`（纯虚） | 一步创建并初始化；失败返回 `nullptr` |
+| `RopMode` 枚举注释 | 逐个映射 `SkBlendMode`，并对比 `GDI` 位运算 | 改为"行为描述与限制"，说明各模式的语义与近似程度 | 仅注释变更，不影响任何实现或调用 |
+| `SystemNotification` 注释 | "使用 SDL 构建时…"、"仅 SDL 实现生效" | 改为"跨平台构建"、"仅跨平台通知通道实现生效" | 仅注释变更；平台差异信息保留 |
 
 **测试补充**：`tests/test_text_draw.cpp` 新增 `MeasureRichText` 返回值契约校验——原点为 `(0,0)`、宽度不超过限制宽度、限制宽度越小（换行越多）内容总高度越大（共 7 项检查）。
 

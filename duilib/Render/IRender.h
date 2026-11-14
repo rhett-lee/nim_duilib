@@ -668,20 +668,20 @@ public:
 
 /** 光栅操作代码
  *
- *  各模式的实现依赖渲染引擎，Skia 后端的映射关系及限制：
- *   kSrcCopy   -> SkBlendMode::kSrc       用源图像覆盖目标区域（完整支持）
- *   kDstInvert -> SkBlendMode::kDifference 将源图像转为纯白色后与目标区域做差值混合，
- *                                          等价于对目标区域取反（255 - dst）；源图像的像素颜色不参与绘制
- *   kSrcInvert -> SkBlendMode::kXor       源图像与目标区域做异或运算（完整支持）
- *   kSrcAnd    -> SkBlendMode::kSrcIn     近似实现：仅保留目标区域覆盖范围内的源图像，
- *                                          与 GDI 的位与运算结果不完全等价
+ *  各模式的行为描述与限制（不同渲染后端的实现细节可能不同，但语义保持一致）：
+ *   kSrcCopy   用源图像覆盖目标区域（完整支持）
+ *   kDstInvert 将目标区域颜色取反（255 - dst）；源图像仅用于确定绘制区域，
+ *              其像素颜色不参与运算（完整支持）
+ *   kSrcInvert 源图像与目标区域做异或运算（完整支持）
+ *   kSrcAnd    仅保留目标区域覆盖范围内的源图像（近似实现：与逐位"与"运算的
+ *              结果不完全等价，不保证逐像素精确）
  */
 enum class DUILIB_API RopMode
 {
-    kSrcCopy,    //对应于 SRCCOPY：用源图像覆盖目标区域
-    kDstInvert,  //对应于 DSTINVERT：目标区域颜色取反（源图像仅作为绘制区域使用）
-    kSrcInvert,  //对应于 SRCINVERT：源图像与目标区域做异或运算
-    kSrcAnd      //对应于 SRCAND：源图像与目标区域做逻辑与运算（Skia 下为近似实现）
+    kSrcCopy,    //用源图像覆盖目标区域
+    kDstInvert,  //目标区域颜色取反（源图像仅作为绘制区域使用）
+    kSrcInvert,  //源图像与目标区域做异或运算
+    kSrcAnd      //仅保留目标区域覆盖范围内的源图像（近似实现）
 };
 
 /** 绘制文本时的格式
