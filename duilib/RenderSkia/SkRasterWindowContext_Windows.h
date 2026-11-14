@@ -20,7 +20,7 @@
 namespace ui 
 {
 class UiRect;
-class IRender;
+class IRenderWindow;
 class IRenderPaint;
 
 /** 该类的来源：skia\tools\window\win\RasterWindowContext_win.cpp，做了修改
@@ -45,7 +45,7 @@ public:
     * @param [in] pRender 渲染引擎的接口
     * @param [in] pRenderPaint 界面绘制所需的回调接口
     */
-    bool PaintAndSwapBuffers(IRender* pRender, IRenderPaint* pRenderPaint);
+    bool PaintAndSwapBuffers(IRenderWindow* pRender, IRenderPaint* pRenderPaint);
 
     /** 获取位图GDI句柄
     */
@@ -61,7 +61,7 @@ protected:
     * @param [in] nLayeredWindowAlpha 窗口透明度，在UpdateLayeredWindow函数中作为参数使用
     * @return 成功返回true，失败则返回false
     */
-    bool SwapPaintBuffers(HDC hPaintDC, const UiRect& rcPaint, IRender* pRender, uint8_t nLayeredWindowAlpha) const;
+    bool SwapPaintBuffers(HDC hPaintDC, const UiRect& rcPaint, IRenderWindow* pRender, uint8_t nLayeredWindowAlpha) const;
 
     /** 获取当前窗口的客户区矩形
     * @param [out] rcClient 返回窗口的客户区坐标

@@ -17,7 +17,7 @@ namespace BitmapHelper {
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         ASSERT(pRenderFactory != nullptr);
         if (pRenderFactory != nullptr) {
-            pRender = pRenderFactory->CreateRender(nullptr);
+            pRender = pRenderFactory->CreateOffscreenRender(0, 0).release();
         }
         ASSERT(pRender != nullptr);
         if (pRender == nullptr) {

@@ -979,7 +979,7 @@ std::shared_ptr<IBitmap> CefControlOffScreen::MakeImageSnapshot()
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     ASSERT(pRenderFactory != nullptr);
     if (pRenderFactory != nullptr) {
-        render.reset(pRenderFactory->CreateRender(GetWindow()->GetRenderDpi()));
+        render = pRenderFactory->CreateOffscreenRender(0, 0, GetWindow()->GetRenderDpi());
     }
     if ((render != nullptr) && m_pCefMemData->MakeImageSnapshot(render.get())) {
         return std::shared_ptr<IBitmap>(render->MakeImageSnapshot());

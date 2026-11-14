@@ -1061,9 +1061,10 @@ bool WindowBase::OnNativePreparePaint()
     return OnPreparePaint();
 }
 
-IRender* WindowBase::OnNativeGetRender() const
+IRenderWindow* WindowBase::OnNativeGetRender() const
 {
-    return GetRender();
+    //窗口的渲染对象实现IRenderWindow接口；若当前渲染对象不支持（如空实现），则返回nullptr
+    return dynamic_cast<IRenderWindow*>(GetRender());
 }
 
 Control* WindowBase::OnNativeFindControl(const UiPoint& pt) const

@@ -3676,7 +3676,7 @@ std::unique_ptr<IRender> Control::CreateTempRender() const
         if (GetWindow() != nullptr) {
             spRenderDpi = GetWindow()->GetRenderDpi();
         }
-        spTempRender.reset(pRenderFactory->CreateRender(spRenderDpi));
+        spTempRender = pRenderFactory->CreateOffscreenRender(0, 0, spRenderDpi);
     }
     return spTempRender;
 }

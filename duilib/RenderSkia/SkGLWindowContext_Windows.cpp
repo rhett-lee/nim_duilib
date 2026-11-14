@@ -1,4 +1,5 @@
 #include "SkGLWindowContext_Windows.h"
+#include "SkOffscreenGLContext.h"
 #include "duilib/Render/IRender.h"
 
 // Skia 上游没有 Windows ARM64 的 WGL 实现：SkWGL_win.cpp 在 _M_ARM64 下被整体
@@ -28,10 +29,15 @@ SkGLWindowContext_Windows::SkGLWindowContext_Windows(HWND hWnd, std::unique_ptr<
     fWidth = 0;
     fHeight = 0;
     this->initializeContext();
+    if (isValid()) {
+        //注册到当前线程，供GPU离屏渲染复用该GL上下文
+        OffscreenGLContext::RegisterWindowContext(this);
+    }
 }
 
 SkGLWindowContext_Windows::~SkGLWindowContext_Windows()
 {
+    OffscreenGLContext::UnregisterWindowContext(this);
     this->destroyContext();
 }
 

@@ -94,7 +94,6 @@ void* Render_Skia::GetPixelBits() const
 {
     void* pPixelBits = nullptr;
     SkCanvas* skCanvas = GetSkCanvas();
-    ASSERT(skCanvas != nullptr);
     if (skCanvas != nullptr) {
         SkPixmap pixmap;
         if (skCanvas->peekPixels(&pixmap)) {
@@ -102,7 +101,8 @@ void* Render_Skia::GetPixelBits() const
         }
     }
     if (pPixelBits == nullptr) {
-        ASSERT(GetRenderBackendType() != RenderBackendType::kRaster_BackendType);
+        //画布为空（尺寸为0）属于正常情况；仅当画布尺寸有效但仍无法访问像素时，才说明后端类型不符合预期
+        ASSERT((GetWidth() <= 0) || (GetHeight() <= 0) || (GetRenderBackendType() != RenderBackendType::kRaster_BackendType));
     }
     return pPixelBits;
 }
@@ -136,6 +136,13 @@ void Render_Skia::Clear(const UiColor& uiColor)
             }
         }
     }
+    else {
+        //使用GPU后端时无法直接访问像素数据，改用Skia接口清屏
+        SkCanvas* skCanvas = GetSkCanvas();
+        if (skCanvas != nullptr) {
+            skCanvas->clear(SkColor(uiColor.GetARGB()));
+        }
+    }
 }
 
 void Render_Skia::ClearRect(const UiRect& rcDirty, const UiColor& uiColor)
@@ -166,6 +173,18 @@ void Render_Skia::ClearRect(const UiRect& rcDirty, const UiColor& uiColor)
             }
         }
     }
+    else {
+        //使用GPU后端时无法直接访问像素数据，改用Skia接口填充
+        SkCanvas* skCanvas = GetSkCanvas();
+        if (skCanvas != nullptr) {
+            SkPaint skPaint;
+            skPaint.setBlendMode(SkBlendMode::kSrc);
+            skPaint.setColor(SkColor(uiColor.GetARGB()));
+            SkRect skRect = SkRect::MakeLTRB((SkScalar)rcDirty.left, (SkScalar)rcDirty.top,
+                                             (SkScalar)rcDirty.right, (SkScalar)rcDirty.bottom);
+            skCanvas->drawRect(skRect, skPaint);
+        }
+    }
 }
 
 IBitmap* Render_Skia::MakeImageSnapshot()
@@ -176,11 +195,28 @@ IBitmap* Render_Skia::MakeImageSnapshot()
         return nullptr;
     }
     void* pPixelBits = GetPixelBits();
-    if (pPixelBits == nullptr) {
-        return nullptr;
-    }
     Bitmap_Skia* pBitmap = new Bitmap_Skia;
-    if (!pBitmap->Init(nWidth, nHeight, pPixelBits)) {
+    if (pPixelBits != nullptr) {
+        if (!pBitmap->Init(nWidth, nHeight, pPixelBits)) {
+            delete pBitmap;
+            pBitmap = nullptr;
+        }
+        return pBitmap;
+    }
+
+    //使用GPU后端时无法直接访问像素数据，先分配位图，再通过SkSurface回读像素
+    bool bRet = pBitmap->Init(nWidth, nHeight, nullptr);
+    if (bRet) {
+        SkSurface* pSkSurface = GetSkSurface();
+        void* pDstBits = pBitmap->LockPixelBits();
+        bRet = (pDstBits != nullptr) && (pSkSurface != nullptr);
+        if (bRet) {
+            SkImageInfo imageInfo = SkImageInfo::Make(nWidth, nHeight, SkColorType::kN32_SkColorType, SkAlphaType::kPremul_SkAlphaType);
+            bRet = pSkSurface->readPixels(imageInfo, pDstBits, pBitmap->GetRowBytes(), 0, 0);
+        }
+        pBitmap->UnLockPixelBits();
+    }
+    if (!bRet) {
         delete pBitmap;
         pBitmap = nullptr;
     }
@@ -202,21 +238,39 @@ IBitmap* Render_Skia::MakeImageSnapshot(const UiRect& rc)
     if ((nRight <= nLeft) || (nBottom <= nTop)) {
         return nullptr;
     }
-    const void* pPixelBits = GetPixelBits();
-    if (pPixelBits == nullptr) {
-        return nullptr;
-    }
     const uint32_t nCopyWidth = (uint32_t)(nRight - nLeft);
     const uint32_t nCopyHeight = (uint32_t)(nBottom - nTop);
-    const size_t nRowBytes = (size_t)nWidth * sizeof(uint32_t);
-    std::vector<uint32_t> pixels((size_t)nCopyWidth * (size_t)nCopyHeight);
-    const uint8_t* pSrcBase = (const uint8_t*)pPixelBits;
-    for (uint32_t i = 0; i < nCopyHeight; ++i) {
-        const uint32_t* pSrcLine = (const uint32_t*)(pSrcBase + (size_t)(nTop + (int32_t)i) * nRowBytes) + nLeft;
-        ::memcpy(pixels.data() + (size_t)i * nCopyWidth, pSrcLine, (size_t)nCopyWidth * sizeof(uint32_t));
+    const void* pPixelBits = GetPixelBits();
+    if (pPixelBits != nullptr) {
+        const size_t nRowBytes = (size_t)nWidth * sizeof(uint32_t);
+        std::vector<uint32_t> pixels((size_t)nCopyWidth * (size_t)nCopyHeight);
+        const uint8_t* pSrcBase = (const uint8_t*)pPixelBits;
+        for (uint32_t i = 0; i < nCopyHeight; ++i) {
+            const uint32_t* pSrcLine = (const uint32_t*)(pSrcBase + (size_t)(nTop + (int32_t)i) * nRowBytes) + nLeft;
+            ::memcpy(pixels.data() + (size_t)i * nCopyWidth, pSrcLine, (size_t)nCopyWidth * sizeof(uint32_t));
+        }
+        Bitmap_Skia* pBitmap = new Bitmap_Skia;
+        if (!pBitmap->Init(nCopyWidth, nCopyHeight, pixels.data())) {
+            delete pBitmap;
+            pBitmap = nullptr;
+        }
+        return pBitmap;
     }
+
+    //使用GPU后端时无法直接访问像素数据，先分配位图，再通过SkSurface回读像素
     Bitmap_Skia* pBitmap = new Bitmap_Skia;
-    if (!pBitmap->Init(nCopyWidth, nCopyHeight, pixels.data())) {
+    bool bRet = pBitmap->Init(nCopyWidth, nCopyHeight, nullptr);
+    if (bRet) {
+        SkSurface* pSkSurface = GetSkSurface();
+        void* pDstBits = pBitmap->LockPixelBits();
+        bRet = (pDstBits != nullptr) && (pSkSurface != nullptr);
+        if (bRet) {
+            SkImageInfo imageInfo = SkImageInfo::Make(nCopyWidth, nCopyHeight, SkColorType::kN32_SkColorType, SkAlphaType::kPremul_SkAlphaType);
+            bRet = pSkSurface->readPixels(imageInfo, pDstBits, pBitmap->GetRowBytes(), nLeft, nTop);
+        }
+        pBitmap->UnLockPixelBits();
+    }
+    if (!bRet) {
         delete pBitmap;
         pBitmap = nullptr;
     }
@@ -1094,7 +1148,10 @@ void Render_Skia::DrawImage(const IBitmap* pBitmap,
 
 void Render_Skia::FillRect(const UiRectF& rc, UiColor dwColor, uint8_t uFade)
 {
-    ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+    if ((GetWidth() <= 0) || (GetHeight() <= 0)) {
+        //画布尺寸为0（未初始化），跳过绘制
+        return;
+    }
     // 空矩形跳过：避免无效的 Skia drawRect 调用（含 NaN/Inf 退化为空矩形）
     if (rc.IsEmpty()) {
         return;
@@ -1152,7 +1209,10 @@ void Render_Skia::InitGradientColor(SkPaint& skPaint, const UiRectF& rc, UiColor
 
 void Render_Skia::FillRect(const UiRectF& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade)
 {
-    ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+    if ((GetWidth() <= 0) || (GetHeight() <= 0)) {
+        //画布尺寸为0（未初始化），跳过绘制
+        return;
+    }
     if (dwColor2.IsEmpty()) {
         return FillRect(rc, dwColor, uFade);
     }

@@ -24,10 +24,36 @@ public:
     virtual IBitmap* CreateBitmap() override;
     virtual IBitmap* CreateBitmap(uint32_t nWidth, uint32_t nHeight, AlphaType alphaType) override;
 
-    /** 创建一个Render对象
+    /** 查询指定后端是否支持离屏渲染
+    * @param [in] backendType 待查询的后端类型
+    */
+    virtual bool IsOffscreenBackendSupported(RenderBackendType backendType) const override;
+
+    /** 创建一个离屏渲染对象（不关联任何窗口）
+    * @param [in] nWidth 画布宽度（物理像素），可以为0
+    * @param [in] nHeight 画布高度（物理像素），可以为0
+    * @param [in] spRenderDpi 关联的DPI转换接口
+    * @param [in] backendType 离屏渲染后端
+    * @param [in] alphaType 画布的Alpha类型
+    */
+    virtual std::unique_ptr<IRender> CreateOffscreenRender(uint32_t nWidth, uint32_t nHeight,
+                                                           const IRenderDpiPtr& spRenderDpi = nullptr,
+                                                           RenderBackendType backendType = RenderBackendType::kRaster_BackendType,
+                                                           AlphaType alphaType = AlphaType::kPremul) override;
+
+    /** 创建一个窗口Render对象
     * @param [in] spRenderDpi 关联的DPI转换接口
     * @param [in] platformData 平台相关的数据，Windows平台该值是窗口句柄
-    * @parma [in] backendType 后台绘制方式
+    * @param [in] backendType 后台绘制方式
+    */
+    virtual IRenderWindow* CreateWindowRender(const IRenderDpiPtr& spRenderDpi,
+                                              void* platformData,
+                                              RenderBackendType backendType = RenderBackendType::kRaster_BackendType) override;
+
+    /** 创建一个Render对象（兼容入口）
+    * @param [in] spRenderDpi 关联的DPI转换接口
+    * @param [in] platformData 平台相关的数据，Windows平台该值是窗口句柄
+    * @param [in] backendType 后台绘制方式
     */
     virtual IRender* CreateRender(const IRenderDpiPtr& spRenderDpi,
                                   void* platformData = nullptr,

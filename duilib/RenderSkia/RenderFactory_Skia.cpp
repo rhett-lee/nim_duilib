@@ -6,6 +6,8 @@
 #include "duilib/RenderSkia/Pen_Skia.h"
 #include "duilib/RenderSkia/Path_Skia.h"
 #include "duilib/RenderSkia/Matrix_Skia.h"
+#include "duilib/RenderSkia/Render_Skia_Offscreen.h"
+#include "duilib/RenderSkia/SkOffscreenGLContext.h"
 
 #if defined (DUILIB_BUILD_FOR_SDL)
     #include "duilib/RenderSkia/Render_Skia_SDL.h"
@@ -80,26 +82,81 @@ IBitmap* RenderFactory_Skia::CreateBitmap(uint32_t nWidth, uint32_t nHeight, Alp
     return pBitmap;
 }
 
-IRender* RenderFactory_Skia::CreateRender(const IRenderDpiPtr& spRenderDpi, void* platformData, RenderBackendType backendType)
+bool RenderFactory_Skia::IsOffscreenBackendSupported(RenderBackendType backendType) const
+{
+    if (backendType == RenderBackendType::kRaster_BackendType) {
+        //Raster离屏渲染在所有平台均支持
+        return true;
+    }
+    if (backendType == RenderBackendType::kNativeGL_BackendType) {
+        //GPU离屏渲染依赖线程内的GL上下文：可复用窗口上下文，或创建后台隐藏窗口上下文
+        return OffscreenGLContext::IsSupported();
+    }
+    //其他后端暂不支持
+    return false;
+}
+
+std::unique_ptr<IRender> RenderFactory_Skia::CreateOffscreenRender(uint32_t nWidth, uint32_t nHeight,
+                                                                  const IRenderDpiPtr& spRenderDpi,
+                                                                  RenderBackendType backendType,
+                                                                  AlphaType alphaType)
+{
+    if (!IsOffscreenBackendSupported(backendType)) {
+        //请求的后端不支持时，不静默回退
+        return nullptr;
+    }
+    if ((nWidth > (uint32_t)Render_Skia_Offscreen::kMaxOffscreenSize) ||
+        (nHeight > (uint32_t)Render_Skia_Offscreen::kMaxOffscreenSize)) {
+        return nullptr;
+    }
+    if (((nWidth == 0) && (nHeight != 0)) || ((nWidth != 0) && (nHeight == 0))) {
+        //宽度和高度必须同时为0（表示创建后再Resize）或同时大于0
+        return nullptr;
+    }
+    if (((uint64_t)nWidth * (uint64_t)nHeight * 4) > ((uint64_t)0xFFFFFFFF)) {
+        //像素数据长度超出uint32_t的范围，拒绝创建
+        return nullptr;
+    }
+    auto pRender = std::make_unique<Render_Skia_Offscreen>(nWidth, nHeight, backendType, alphaType);
+    if (((nWidth > 0) && (nHeight > 0)) && !pRender->IsValid()) {
+        //画布创建失败（如内存不足）
+        return nullptr;
+    }
+    pRender->SetRenderDpi(spRenderDpi);
+    //注入渲染工厂：富文本等接口内部需要用它创建字体
+    pRender->SetRenderFactory(this);
+    return pRender;
+}
+
+IRenderWindow* RenderFactory_Skia::CreateWindowRender(const IRenderDpiPtr& spRenderDpi, void* platformData, RenderBackendType backendType)
 {
 #if defined (DUILIB_BUILD_FOR_SDL)
     SDL_Window* sdlWindow = (SDL_Window*)platformData;
-    IRender* pRender = new Render_Skia_SDL(sdlWindow, backendType);
+    IRenderWindow* pRender = new Render_Skia_SDL(sdlWindow, backendType);
 #elif defined(DUILIB_BUILD_FOR_WIN)
     HWND hWnd = (HWND)platformData;
-    IRender* pRender = new Render_Skia_Windows(hWnd, backendType);
+    IRenderWindow* pRender = new Render_Skia_Windows(hWnd, backendType);
 #else
     UNUSED_VARIABLE(platformData);
     UNUSED_VARIABLE(backendType);
-    IRender* pRender = nullptr;
+    IRenderWindow* pRender = nullptr;
 #endif
     ASSERT(pRender != nullptr);
     if (pRender != nullptr) {
         pRender->SetRenderDpi(spRenderDpi);
         //注入渲染工厂：富文本等接口内部需要用它创建字体
         pRender->SetRenderFactory(this);
-    }    
+    }
     return pRender;
+}
+
+IRender* RenderFactory_Skia::CreateRender(const IRenderDpiPtr& spRenderDpi, void* platformData, RenderBackendType backendType)
+{
+    if (platformData == nullptr) {
+        //兼容入口：platformData为空时，创建无窗口的离屏渲染对象（宽高为0，后续由调用方Resize）
+        return CreateOffscreenRender(0, 0, spRenderDpi, backendType, AlphaType::kPremul).release();
+    }
+    return CreateWindowRender(spRenderDpi, platformData, backendType);
 }
 
 IFontMgr* RenderFactory_Skia::GetFontMgr() const

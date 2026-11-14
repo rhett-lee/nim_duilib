@@ -84,19 +84,19 @@ public:
     * @param [out] metrics 返回字体度量信息
     * @return 成功返回true；如果不支持该操作，返回false（此时metrics内容不变）
     */
-    virtual bool GetFontMetrics(FontMetrics& metrics) const { return false; }
+    virtual bool GetFontMetrics(FontMetrics& /*metrics*/) const { return false; }
 
     /** 评估文本的绘制宽度（不依赖Render/Canvas；支持字体回退）
     * @param [in] text 文本内容
     * @return 返回文本的绘制宽度；如果不支持该操作，返回0
     */
-    virtual float MeasureTextWidth(const DString& text) const { return 0.0f; }
+    virtual float MeasureTextWidth(const DString& /*text*/) const { return 0.0f; }
 
     /** 获取创建该字体时使用的字体信息
     * @param [out] fontInfo 返回字体信息
     * @return 成功返回true；如果不支持该操作，返回false（此时fontInfo内容不变）
     */
-    virtual bool GetFontInfo(UiFont& fontInfo) const { return false; }
+    virtual bool GetFontInfo(UiFont& /*fontInfo*/) const { return false; }
 };
 
 /** 字体回退管理器（当支持的字体无法显示字符时，会查询回退字体管理器，以正确显示文字）
@@ -1660,7 +1660,14 @@ public:
     /** 获取图片缩放时的采样质量
     */
     virtual ImageSamplingQuality GetImageSamplingQuality() const = 0;
+};
 
+/** 窗口渲染接口：在通用渲染接口的基础上，增加窗口刷新、平台DC与窗口形状能力
+*   说明：IRender 只保留与窗口无关的绘制能力，离屏渲染实现不实现本接口。
+*/
+class DUILIB_API IRenderWindow : public virtual IRender
+{
+public:
     /** 绘制并刷新到屏幕（Render的实现已经与窗口关联）, 同步完成
     * @param [in] pRenderPaint 界面绘制所需的回调接口
     */
@@ -1699,7 +1706,6 @@ public:
     */
     virtual void ClearWindowRgn(bool bRedraw) = 0;
 #endif
-
 };
 
 /** 渲染接口管理，用于创建Font、Pen、Brush、Path、Matrix、Bitmap、Render等渲染实现对象
@@ -1741,10 +1747,43 @@ public:
     */
     virtual IBitmap* CreateBitmap(uint32_t nWidth, uint32_t nHeight, AlphaType alphaType = AlphaType::kPremul) = 0;
 
-    /** 创建一个Render对象
+    /** 查询指定后端是否支持离屏渲染
+    * @param [in] backendType 待查询的后端类型
+    * @return 支持返回true，否则返回false
+    * @note kRaster_BackendType 恒为true；GPU后端取决于当前平台与运行环境（如Windows ARM64不支持GL）
+    */
+    virtual bool IsOffscreenBackendSupported(RenderBackendType backendType) const = 0;
+
+    /** 创建一个离屏渲染对象（不关联任何窗口）
+    * @param [in] nWidth 画布宽度（物理像素），可以为0（表示创建后再Resize）
+    * @param [in] nHeight 画布高度（物理像素），可以为0（表示创建后再Resize）
+    * @param [in] spRenderDpi 关联的DPI转换接口（用于线宽、字体等缩放）
+    * @param [in] backendType 离屏渲染后端；不支持时返回nullptr，不做静默回退
+    * @param [in] alphaType 画布的Alpha类型
+    * @return 成功返回离屏渲染对象；后端不可用、尺寸非法或内存不足时返回nullptr
+    */
+    virtual std::unique_ptr<IRender> CreateOffscreenRender(uint32_t nWidth, uint32_t nHeight,
+                                                           const IRenderDpiPtr& spRenderDpi = nullptr,
+                                                           RenderBackendType backendType = RenderBackendType::kRaster_BackendType,
+                                                           AlphaType alphaType = AlphaType::kPremul) = 0;
+
+    /** 创建一个窗口Render对象
     * @param [in] spRenderDpi 关联的DPI转换接口
     * @param [in] platformData 平台相关的数据，Windows平台该值是窗口句柄
     * @param [in] backendType 后台绘制方式
+    * @return 返回窗口渲染接口，返回后由调用方管理资源；创建失败时返回nullptr
+    */
+    virtual IRenderWindow* CreateWindowRender(const IRenderDpiPtr& spRenderDpi,
+                                              void* platformData,
+                                              RenderBackendType backendType = RenderBackendType::kRaster_BackendType) = 0;
+
+    /** 创建一个Render对象（兼容入口）
+    * @param [in] spRenderDpi 关联的DPI转换接口
+    * @param [in] platformData 平台相关的数据，Windows平台该值是窗口句柄
+    * @param [in] backendType 后台绘制方式
+    * @note 该接口保留用于兼容既有调用：platformData 非空时创建窗口渲染对象；
+    *       platformData 为空时创建无窗口的Raster渲染对象（后续由调用方Resize）。
+    *       离屏渲染场景建议改用 CreateOffscreenRender 接口。
     */
     virtual IRender* CreateRender(const IRenderDpiPtr& spRenderDpi,
                                   void* platformData = nullptr,

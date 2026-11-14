@@ -17,7 +17,7 @@ IRender* BitmapHelper::CreateRenderObject(int srcRenderWidth, int srcRenderHeigh
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     ASSERT(pRenderFactory != nullptr);
     if (pRenderFactory != nullptr) {
-        pRender = pRenderFactory->CreateRender(nullptr);
+        pRender = pRenderFactory->CreateOffscreenRender(0, 0).release();
         bitmap.reset(pRenderFactory->CreateBitmap());
     }
     ASSERT(pRender != nullptr);
@@ -90,7 +90,7 @@ IRender* BitmapHelper::CreateRenderObject(IBitmap* pBitmap)
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     ASSERT(pRenderFactory != nullptr);
     if (pRenderFactory != nullptr) {
-        pRender = pRenderFactory->CreateRender(nullptr);
+        pRender = pRenderFactory->CreateOffscreenRender(0, 0).release();
     }
     ASSERT(pRender != nullptr);
     if (pRender == nullptr) {

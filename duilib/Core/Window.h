@@ -420,6 +420,10 @@ public:
     */
     virtual IRender* GetRender() const override;
 
+    /** 获取窗口绘制引擎对象（包含窗口刷新、平台DC与窗口形状等窗口相关能力）
+    */
+    IRenderWindow* GetRenderWindow() const;
+
     /** 获取为Render使用的本窗口关联的DPI转换对象
     */
     std::shared_ptr<IRenderDpi> GetRenderDpi();
@@ -1127,8 +1131,8 @@ private:
     //绘制时的偏移量（动画用）
     UiPoint m_renderOffset;
 
-    //绘制引擎
-    std::unique_ptr<IRender> m_render;
+    //绘制引擎（窗口渲染接口）
+    std::unique_ptr<IRenderWindow> m_render;
 
 private:
     /** 每个窗口的资源路径(相对于资源根目录的路径)

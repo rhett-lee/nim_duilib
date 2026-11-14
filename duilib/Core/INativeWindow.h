@@ -98,9 +98,9 @@ public:
     */
     virtual bool OnNativePreparePaint() = 0;
 
-    /** 获取绘制引擎对象
+    /** 获取窗口绘制引擎对象
     */
-    virtual IRender* OnNativeGetRender() const = 0;
+    virtual IRenderWindow* OnNativeGetRender() const = 0;
 
     /** 获取指定坐标点的控件接口
     * @param [in] pt 客户区坐标点

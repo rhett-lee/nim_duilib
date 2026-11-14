@@ -151,7 +151,7 @@ bool Window::SetRenderBackendType(RenderBackendType backendType)
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         ASSERT(pRenderFactory != nullptr);
         if (pRenderFactory != nullptr) {
-            m_render.reset(pRenderFactory->CreateRender(GetRenderDpi(), GetWindowHandle(), m_renderBackendType));
+            m_render.reset(pRenderFactory->CreateWindowRender(GetRenderDpi(), GetWindowHandle(), m_renderBackendType));
             bRet = (m_render != nullptr);
         }
     }
@@ -373,7 +373,7 @@ void Window::PostInitWindow()
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         ASSERT(pRenderFactory != nullptr);
         if (pRenderFactory != nullptr) {
-            m_render.reset(pRenderFactory->CreateRender(GetRenderDpi(), GetWindowHandle(), m_renderBackendType));
+            m_render.reset(pRenderFactory->CreateWindowRender(GetRenderDpi(), GetWindowHandle(), m_renderBackendType));
         }
     }
     ASSERT(m_render != nullptr);
@@ -2417,6 +2417,13 @@ void Window::PostQuitMsgWhenClosed(bool bPostQuitMsg)
 ui::IRender* Window::GetRender() const
 {
     //这里加断言：业务流程调用到此处，render必须是已经创建完成的，否则逻辑有问题（比如估算控件大小，自动设置ToolTip宽度等功能均会有异常）
+    ASSERT(m_render != nullptr);
+    ResizeRenderToClientSize();
+    return m_render.get();
+}
+
+ui::IRenderWindow* Window::GetRenderWindow() const
+{
     ASSERT(m_render != nullptr);
     ResizeRenderToClientSize();
     return m_render.get();

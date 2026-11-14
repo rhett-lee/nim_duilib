@@ -2804,7 +2804,7 @@ void NativeWindow_SDL::PaintWindow(bool bPaintAll)
         }
         else {
             //正常模式，由内部负责绘制流程管理
-            IRender* pRender = pOwner->OnNativeGetRender();
+            IRenderWindow* pRender = pOwner->OnNativeGetRender();
             ASSERT(pRender != nullptr);
             if ((pRender != nullptr) && !ownerFlag.expired()) {
                 NativeWindowRenderPaint renderPaint;
@@ -3326,7 +3326,7 @@ bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool /*bRedraw*/)
 bool NativeWindow_SDL::SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw)
 {
 #ifdef DUILIB_BUILD_FOR_WIN
-    IRender* pRender = m_pOwner->OnNativeGetRender();
+    IRenderWindow* pRender = m_pOwner->OnNativeGetRender();
     if (!IsChildWindow()) {
         ASSERT(pRender != nullptr);
     }
@@ -3346,7 +3346,7 @@ bool NativeWindow_SDL::SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, floa
 bool NativeWindow_SDL::SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw)
 {
 #ifdef DUILIB_BUILD_FOR_WIN
-    IRender* pRender = m_pOwner->OnNativeGetRender();
+    IRenderWindow* pRender = m_pOwner->OnNativeGetRender();
     if (!IsChildWindow()) {
         ASSERT(pRender != nullptr);
     }
@@ -3364,7 +3364,7 @@ bool NativeWindow_SDL::SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw)
 void NativeWindow_SDL::ClearWindowRgn(bool bRedraw)
 {
 #ifdef DUILIB_BUILD_FOR_WIN
-    IRender* pRender = m_pOwner->OnNativeGetRender();
+    IRenderWindow* pRender = m_pOwner->OnNativeGetRender();
     if (!IsChildWindow()) {
         ASSERT(pRender != nullptr);
     }

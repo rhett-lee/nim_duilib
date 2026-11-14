@@ -106,6 +106,9 @@
     <Filter Include="duilibDLL">
       <UniqueIdentifier>{4923e090-2969-48cd-8631-e305a81f3b0e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RenderSkia\Offscreen">
+      <UniqueIdentifier>{d790c2cf-aeef-44c7-bbc7-2b89bd32c6a3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Animation\AnimationPlayer.cpp">
@@ -1034,6 +1037,12 @@
     </ClCompile>
     <ClCompile Include="Control\RichTextUtil.cpp">
       <Filter>Control</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSkia\SkOffscreenGLContext.cpp">
+      <Filter>RenderSkia\Offscreen</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSkia\Render_Skia_Offscreen.cpp">
+      <Filter>RenderSkia\Offscreen</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2146,6 +2155,12 @@
     </ClInclude>
     <ClInclude Include="Control\RichTextUtil.h">
       <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\SkOffscreenGLContext.h">
+      <Filter>RenderSkia\Offscreen</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\Render_Skia_Offscreen.h">
+      <Filter>RenderSkia\Offscreen</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

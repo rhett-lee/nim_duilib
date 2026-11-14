@@ -1375,7 +1375,7 @@ private:
     virtual void OnNativePreCloseWindow() override final;
     virtual void OnNativePostCloseWindow() override final;
     virtual bool OnNativePreparePaint() override final;
-    virtual IRender* OnNativeGetRender() const override final;
+    virtual IRenderWindow* OnNativeGetRender() const override final;
     virtual Control* OnNativeFindControl(const UiPoint& pt) const override final;
     virtual bool OnNativeRequestSetLayeredWindow(bool bIsLayeredWindow, bool bRedraw) override final;
 

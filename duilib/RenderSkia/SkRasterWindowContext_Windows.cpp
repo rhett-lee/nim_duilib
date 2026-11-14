@@ -115,7 +115,7 @@ void SkRasterWindowContext_Windows::onSwapBuffers()
 {
 }
 
-bool SkRasterWindowContext_Windows::PaintAndSwapBuffers(IRender* pRender, IRenderPaint* pRenderPaint)
+bool SkRasterWindowContext_Windows::PaintAndSwapBuffers(IRenderWindow* pRender, IRenderPaint* pRenderPaint)
 {
     HWND hWnd = m_hWnd;
     ASSERT(::IsWindow(hWnd));
@@ -187,7 +187,7 @@ bool SkRasterWindowContext_Windows::PaintAndSwapBuffers(IRender* pRender, IRende
     return bRet;
 }
 
-bool SkRasterWindowContext_Windows::SwapPaintBuffers(HDC hPaintDC, const UiRect& rcPaint, IRender* pRender, uint8_t nLayeredWindowAlpha) const
+bool SkRasterWindowContext_Windows::SwapPaintBuffers(HDC hPaintDC, const UiRect& rcPaint, IRenderWindow* pRender, uint8_t nLayeredWindowAlpha) const
 {
 #if DUILIB_PERFORMANCE_STAT_ENABLED
     //性能统计

@@ -1481,7 +1481,7 @@ bool NativeWindow_Windows::IsCaptured() const
 
 bool NativeWindow_Windows::SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw)
 {
-    IRender* pRender = m_pOwner->OnNativeGetRender();
+    IRenderWindow* pRender = m_pOwner->OnNativeGetRender();
     if (!IsChildWindow()) {
         ASSERT(pRender != nullptr);
     }
@@ -1493,7 +1493,7 @@ bool NativeWindow_Windows::SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, 
 
 bool NativeWindow_Windows::SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw)
 {
-    IRender* pRender = m_pOwner->OnNativeGetRender();
+    IRenderWindow* pRender = m_pOwner->OnNativeGetRender();
     if (!IsChildWindow()) {
         ASSERT(pRender != nullptr);
     }
@@ -1505,7 +1505,7 @@ bool NativeWindow_Windows::SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw)
 
 void NativeWindow_Windows::ClearWindowRgn(bool bRedraw)
 {
-    IRender* pRender = m_pOwner->OnNativeGetRender();
+    IRenderWindow* pRender = m_pOwner->OnNativeGetRender();
     if (!IsChildWindow()) {
         ASSERT(pRender != nullptr);
     }
@@ -1621,7 +1621,7 @@ LRESULT NativeWindow_Windows::OnPaintMsg(UINT uMsg, WPARAM wParam, LPARAM lParam
         }
         else {
             //正常模式，由内部负责绘制流程管理
-            IRender* pRender = m_pOwner->OnNativeGetRender();
+            IRenderWindow* pRender = m_pOwner->OnNativeGetRender();
             ASSERT(pRender != nullptr);
             if (pRender != nullptr) {
                 NativeWindowRenderPaint renderPaint;

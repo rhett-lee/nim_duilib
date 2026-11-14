@@ -337,6 +337,43 @@ if(WIN32)
     )
 endif()
 
+# 覆盖离屏渲染接口（IRenderFactory::CreateOffscreenRender）：
+# 创建/Resize/超大尺寸、绘制与像素正确性、快照、Clone、多后端能力查询、
+# 线程与生命周期、兼容入口 CreateRender。
+# 该测试不创建窗口，仅在 Windows 平台构建。
+if(WIN32)
+    add_executable(test_offscreen_render
+        test_offscreen_render.cpp
+    )
+    target_include_directories(test_offscreen_render PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../"
+    )
+    target_link_directories(test_offscreen_render PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_offscreen_render PRIVATE
+        duilib
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_offscreen_render PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_offscreen_render PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(test_offscreen_render PRIVATE UNICODE _UNICODE NOMINMAX WIN32_LEAN_AND_MEAN)
+    # 默认资源目录：源码树的 bin/resources
+    target_compile_definitions(test_offscreen_render PRIVATE
+        DUILIB_TEST_RESOURCE_DIR="${CMAKE_SOURCE_DIR}/bin/resources"
+    )
+    if(MSVC)
+        target_compile_options(test_offscreen_render PRIVATE /utf-8)
+    endif()
+    add_test(NAME offscreen_render
+             COMMAND test_offscreen_render
+    )
+endif()
+
 # controls 示例页面的静态校验（XML 节点名、属性、class/颜色引用、语言词条、
 # Form 与 XML 的绑定关系）。该测试不创建窗口、不加载主题，仅用 Python3 解析
 # 资源文件，Windows/Linux/macOS 均可运行，可直接在命令行（含 CI）执行。

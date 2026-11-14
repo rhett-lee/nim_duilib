@@ -2372,8 +2372,14 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 
     if (bNeedPaint) {
 #if !defined (DUILIB_RICH_EDIT_DRAW_OPT) 
-        HDC hdc = pRender->GetRenderDC(GetWindow()->NativeWnd()->GetHWND());
+        //获取当前渲染对象对应的窗口渲染接口（离屏渲染对象没有该接口，此时采用位图绘制方式）
+        IRenderWindow* pRenderWindow = dynamic_cast<IRenderWindow*>(pRender);
+        HDC hdc = nullptr;
+        if (pRenderWindow != nullptr) {
+            hdc = pRenderWindow->GetRenderDC(GetWindow()->NativeWnd()->GetHWND());
+        }
 #else
+        IRenderWindow* pRenderWindow = nullptr;
         HDC hdc = nullptr;
 #endif
         if(hdc != nullptr){
@@ -2391,7 +2397,9 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
                                   0,                    // Call back parameter
                                   0);                   // What view of the object
 
-            pRender->ReleaseRenderDC(hdc);
+            if (pRenderWindow != nullptr) {
+                pRenderWindow->ReleaseRenderDC(hdc);
+            }
             //绘制完成后，做标记，避免重复绘制
             bNeedPaint = false;
         }
