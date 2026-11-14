@@ -1647,7 +1647,7 @@ public:
     */
     virtual void SetRenderDpi(const IRenderDpiPtr& spRenderDpi) = 0;
 
-    /** 设置创建本Render的渲染工厂接口（由 IRenderFactory::CreateRender 在创建时注入）
+    /** 设置创建本Render的渲染工厂接口（由 IRenderFactory::CreateWindowRender / CreateOffscreenRender 在创建时注入）
     * @param [in] pRenderFactory 渲染工厂接口，用于创建字体等内部资源；生命周期由调用方保证长于本Render
     */
     virtual void SetRenderFactory(IRenderFactory* pRenderFactory) = 0;
@@ -1776,18 +1776,6 @@ public:
     virtual IRenderWindow* CreateWindowRender(const IRenderDpiPtr& spRenderDpi,
                                               void* platformData,
                                               RenderBackendType backendType = RenderBackendType::kRaster_BackendType) = 0;
-
-    /** 创建一个Render对象（兼容入口）
-    * @param [in] spRenderDpi 关联的DPI转换接口
-    * @param [in] platformData 平台相关的数据，Windows平台该值是窗口句柄
-    * @param [in] backendType 后台绘制方式
-    * @note 该接口保留用于兼容既有调用：platformData 非空时创建窗口渲染对象；
-    *       platformData 为空时创建无窗口的Raster渲染对象（后续由调用方Resize）。
-    *       离屏渲染场景建议改用 CreateOffscreenRender 接口。
-    */
-    virtual IRender* CreateRender(const IRenderDpiPtr& spRenderDpi,
-                                  void* platformData = nullptr,
-                                  RenderBackendType backendType = RenderBackendType::kRaster_BackendType) = 0;
 
     /** 获取字体管理器接口（每个factory共享一个对象）
     */

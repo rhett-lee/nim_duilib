@@ -339,7 +339,7 @@ endif()
 
 # 覆盖离屏渲染接口（IRenderFactory::CreateOffscreenRender）：
 # 创建/Resize/超大尺寸、绘制与像素正确性、快照、Clone、多后端能力查询、
-# 线程与生命周期、兼容入口 CreateRender。
+# 线程与生命周期、窗口控件迁移回归（需窗口，打印 SKIP）。
 # 该测试不创建窗口，仅在 Windows 平台构建。
 if(WIN32)
     add_executable(test_offscreen_render

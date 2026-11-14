@@ -234,7 +234,7 @@ int main(int argc, char* argv[])
     //创建离屏渲染对象（不创建窗口，直接使用内存位图作为绘制目标）
     const int32_t nRenderWidth = 800;
     const int32_t nRenderHeight = 600;
-    std::unique_ptr<ui::IRender> pRender(pRenderFactory->CreateRender(nullptr, nullptr));
+    std::unique_ptr<ui::IRender> pRender = pRenderFactory->CreateOffscreenRender(0, 0);
     if ((pRender == nullptr) || !pRender->Resize(nRenderWidth, nRenderHeight)) {
         ::printf("[error] create render failed\n");
         return 1;

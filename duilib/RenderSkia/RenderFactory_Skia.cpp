@@ -150,15 +150,6 @@ IRenderWindow* RenderFactory_Skia::CreateWindowRender(const IRenderDpiPtr& spRen
     return pRender;
 }
 
-IRender* RenderFactory_Skia::CreateRender(const IRenderDpiPtr& spRenderDpi, void* platformData, RenderBackendType backendType)
-{
-    if (platformData == nullptr) {
-        //兼容入口：platformData为空时，创建无窗口的离屏渲染对象（宽高为0，后续由调用方Resize）
-        return CreateOffscreenRender(0, 0, spRenderDpi, backendType, AlphaType::kPremul).release();
-    }
-    return CreateWindowRender(spRenderDpi, platformData, backendType);
-}
-
 IFontMgr* RenderFactory_Skia::GetFontMgr() const
 {
     ASSERT(m_impl->m_pFontMgr != nullptr);

@@ -9,7 +9,7 @@
 //  E. 位图直绘（可选，未实现）OS-21 ~ OS-22（打印 SKIP）
 //  F. 多后端                OS-23 ~ OS-28（GPU 不可用时打印 SKIP）
 //  G. 线程与生命周期        OS-29 ~ OS-31
-//  H. 迁移回归              OS-32 ~ OS-33（需窗口，打印 SKIP）、OS-34
+//  H. 迁移回归              OS-32 ~ OS-33（需窗口，打印 SKIP）
 //
 // 本测试不创建窗口；未初始化尺寸的对象允许被安全使用。
 
@@ -563,28 +563,13 @@ void TestThreadAndLifetime(ui::IRenderFactory* pRenderFactory)
 }
 
 // ---------------------------------------------------------------------------
-// H. 迁移回归（OS-32 ~ OS-34）
+// H. 迁移回归（OS-32 ~ OS-33）
 // ---------------------------------------------------------------------------
-void TestCompatEntry(ui::IRenderFactory* pRenderFactory)
+void TestCompatEntry(ui::IRenderFactory* /*pRenderFactory*/)
 {
     //OS-32/OS-33 需要创建窗口控件，本测试不创建窗口，改为在集成环境中验证
     Skip("OS-32: Control::CreateTempRender migration requires a window");
     Skip("OS-33: ControlDragable migration requires a window");
-
-    //OS-34 兼容入口
-    {
-        std::unique_ptr<ui::IRender> pRender(pRenderFactory->CreateRender(nullptr, nullptr));
-        CHECK(pRender != nullptr);
-        if (pRender != nullptr) {
-            CHECK(pRender->GetWidth() == 0);
-            CHECK(pRender->GetHeight() == 0);
-            CHECK(pRender->GetRenderBackendType() == ui::RenderBackendType::kRaster_BackendType);
-            CHECK(pRender->Resize(32, 32));
-            pRender->Clear(ui::UiColor(kRedColor));
-            uint32_t nColor = 0;
-            CHECK(ReadPixel(pRender.get(), 16, 16, nColor) && (nColor == kRedColor));
-        }
-    }
 }
 
 }//namespace

@@ -9,6 +9,7 @@
 > - GL 离屏优先复用同线程窗口的 `GrDirectContext`（窗口上下文创建时注册到 `OffscreenGLContext`）；同线程无窗口上下文时，惰性创建隐藏窗口承载的后台 GL 上下文；
 > - `Render_Skia` 的 `Clear` / `ClearRect` / `MakeImageSnapshot` 在无法访问像素指针（GPU 后端）时改用 Skia 接口（`SkCanvas::clear`、`SkSurface::readPixels` 等）；
 > - 宽高约束：单边上限 16384；宽高必须同时为 0 或同时大于 0；
+> - `IRenderFactory::CreateRender` 已移除，窗口与离屏分别使用 `CreateWindowRender` / `CreateOffscreenRender`；
 > - 测试用例 OS-21/OS-22（位图直绘）本期不实现；OS-32/OS-33（窗口控件迁移回归）需在集成环境验证，测试中标记为 SKIP。
 
 ## 一、背景与问题
@@ -165,16 +166,10 @@ public:
         const IRenderDpiPtr& spRenderDpi,
         void* platformData,
         RenderBackendType backendType = RenderBackendType::kRaster_BackendType) = 0;
-
-    /** 兼容入口：platformData 非空 → 窗口渲染；为空 → Raster 离屏渲染（0×0，随后 Resize） */
-    virtual IRender* CreateRender(
-        const IRenderDpiPtr& spRenderDpi,
-        void* platformData = nullptr,
-        RenderBackendType backendType = RenderBackendType::kRaster_BackendType) = 0;
 };
 ```
 
-兼容策略：保留 `CreateRender`，内部按 `platformData` 分派，避免改动 examples、`BitmapHepler`、CEF 等 20 余处调用点；窗口层内部改用 `CreateWindowRender`；离屏场景逐步迁移到 `CreateOffscreenRender`。
+不使用兼容入口：原 `CreateRender` 已从接口移除，窗口层统一使用 `CreateWindowRender`，离屏场景统一使用 `CreateOffscreenRender`；examples、`BitmapHepler`、CEF、单元测试等全部调用点已同步迁移。
 
 显式请求 GPU 时，如果上下文不可用则返回 `nullptr`，由调用方先 `IsOffscreenBackendSupported()` 判断或降级到 Raster，避免隐藏的能力差异。
 
@@ -290,7 +285,6 @@ auto pGpuOffscreen = pRenderFactory->CreateOffscreenRender(1024, 1024, GetRender
 | --- | --- | --- | --- |
 | OS-32 | Control 缓存 | 迁移 `Control::CreateTempRender` 后，绘制带 Alpha 的控件 | 输出像素与迁移前一致（基准图对比） |
 | OS-33 | 拖拽图 | 迁移 `ControlDragable` 后创建拖拽图 | 尺寸与内容与迁移前一致 |
-| OS-34 | 兼容入口 | `CreateRender(spDpi, nullptr)` | 返回非空 Raster 离屏对象，宽高为 0，`Resize` 后可用 |
 
 ### 测试文件与构建
 
@@ -311,7 +305,7 @@ int main()
     TestClone();                // OS-18 ~ OS-20
     TestBackends();             // OS-23 ~ OS-28（含能力跳过）
     TestThreadAndLifetime();    // OS-29 ~ OS-31
-    TestCompatEntry();          // OS-34
+    TestCompatEntry();          // OS-32 ~ OS-33（需窗口，打印 SKIP）
     // 输出检查总数/失败数，返回失败数 ? 1 : 0
 }
 ```
@@ -323,7 +317,7 @@ int main()
 1. 新增 `IRenderWindow`，从 `IRender` 迁出 6 个窗口方法；
 2. `Render_Skia_Windows` / `Render_Skia_SDL` 增加 `IRenderWindow` 基类；
 3. `Window`、`INativeWindow::OnNativeGetRender` 调整类型；
-4. 工厂新增 `CreateWindowRender`，`CreateRender` 按 `platformData` 分派；
+4. 工厂新增 `CreateWindowRender`，同期移除 `CreateRender`；
 5. 编译并全量回归现有 11 个测试。
 
 **阶段 2：离屏渲染（Raster）**

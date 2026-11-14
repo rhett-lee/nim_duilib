@@ -210,7 +210,7 @@ void TestMeasureString(ui::IRender* pRender, const std::unique_ptr<ui::IFont>& p
 void TestMeasureWithoutCanvas(ui::IRenderFactory* pRenderFactory,
                               const std::unique_ptr<ui::IFont>& pFont, bool bFontValid)
 {
-    std::unique_ptr<ui::IRender> pRender(pRenderFactory->CreateRender(nullptr, nullptr));
+    std::unique_ptr<ui::IRender> pRender = pRenderFactory->CreateOffscreenRender(0, 0);
     CHECK(pRender != nullptr);
     if (pRender == nullptr) {
         return;
@@ -373,8 +373,8 @@ int main(int /*argc*/, char* /*argv*/[])
         ui::IRenderFactory* pRenderFactory = ui::GlobalManager::Instance().GetRenderFactory();
         Check(pRenderFactory != nullptr, "GetRenderFactory() is null");
         if (pRenderFactory != nullptr) {
-            std::unique_ptr<ui::IRender> pRender(pRenderFactory->CreateRender(nullptr, nullptr));
-            Check(pRender != nullptr, "CreateRender() is null");
+            std::unique_ptr<ui::IRender> pRender = pRenderFactory->CreateOffscreenRender(0, 0);
+            Check(pRender != nullptr, "CreateOffscreenRender() is null");
             if (pRender != nullptr) {
                 std::unique_ptr<ui::IFont> pFont = CreateTestFont(pRenderFactory);
                 const bool bFontValid = (pFont != nullptr);

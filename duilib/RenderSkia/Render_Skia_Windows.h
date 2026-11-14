@@ -12,6 +12,14 @@ namespace skwindow {
 
 namespace ui 
 {
+#if defined(_MSC_VER)
+//C4250: Render_Skia_Windows 同时继承 Render_Skia（实现）和 IRenderWindow（接口，虚继承 IRender），
+//由于虚基类的支配关系（dominance），编译器通过 Render_Skia 的实现继承 IRender 的成员；
+//这是本设计的预期结构，屏蔽该警告。
+#pragma warning(push)
+#pragma warning(disable: 4250)
+#endif
+
 /** 渲染引擎接口的Windows实现
 */
 class Render_Skia_Windows : public Render_Skia, public IRenderWindow
@@ -116,6 +124,10 @@ private:
     */
     HGDIOBJ m_hOldObj;
 };
+
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
 
 } // namespace ui
 

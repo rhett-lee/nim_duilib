@@ -1108,7 +1108,7 @@ std::shared_ptr<ui::IBitmap> BrowserForm::GenerateWebPageBitmap(ui::WebView2Cont
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     ASSERT(pRenderFactory != nullptr);
     if (pRenderFactory != nullptr) {
-        render.reset(pRenderFactory->CreateRender(GetRenderDpi()));
+        render = pRenderFactory->CreateOffscreenRender(0, 0, GetRenderDpi());
     }
     ASSERT(render != nullptr);
     if ((render != nullptr) && render->Resize(kDragImageWidth, kDragImageHeight)) {

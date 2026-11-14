@@ -50,15 +50,6 @@ public:
                                               void* platformData,
                                               RenderBackendType backendType = RenderBackendType::kRaster_BackendType) override;
 
-    /** 创建一个Render对象（兼容入口）
-    * @param [in] spRenderDpi 关联的DPI转换接口
-    * @param [in] platformData 平台相关的数据，Windows平台该值是窗口句柄
-    * @param [in] backendType 后台绘制方式
-    */
-    virtual IRender* CreateRender(const IRenderDpiPtr& spRenderDpi,
-                                  void* platformData = nullptr,
-                                  RenderBackendType backendType = RenderBackendType::kRaster_BackendType) override;
-
     /** 获取字体管理器接口（每个factory共享一个对象）
     */
     virtual IFontMgr* GetFontMgr() const override;

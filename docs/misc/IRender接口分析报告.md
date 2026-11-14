@@ -49,7 +49,7 @@
 
 > 补充（2026-11-14 第十批）：完成第三节第 5 条与第五节第 4 条——RGN 三个接口（`SetWindowRoundRectRgn` / `SetWindowRectRgn` / `ClearWindowRgn`）在 `IRender` 中加 `#ifdef DUILIB_BUILD_FOR_WIN`，`Render_Skia_SDL` 与 `NativeWindow_SDL` 同步做条件编译，非 Windows 平台不再暴露窗口形状语义；`Render_Skia::MeasureString` 去掉对 `GetWidth()/GetHeight()` 的依赖，并允许画布为 `nullptr`（`VerticalDrawText`/`HorizontalDrawText` 的测量路径同步放宽），无 Surface 的纯测量场景可正常返回结果；`render_ext` 新增 7 项检查。
 
-> 补充（2026-11-14 第十一批）：完成第五节第 1 条——新增 `IRenderWindow : public virtual IRender`，`PaintAndSwapBuffers` / `GetRenderDC` / `ReleaseRenderDC` / `SetWindowRoundRectRgn` / `SetWindowRectRgn` / `ClearWindowRgn` 从 `IRender` 迁出；`Render_Skia_Windows/SDL` 改为继承 `IRenderWindow`，`Window::m_render` 改为 `std::unique_ptr<IRenderWindow>`，`INativeWindow::OnNativeGetRender()` 返回 `IRenderWindow*`（`Window::GetRender()` 仍返回 `IRender*`，绘制代码零改动）。同时新增离屏渲染：`IRenderFactory::IsOffscreenBackendSupported` 与 `CreateOffscreenRender`——`kRaster` 全平台可用；`kNativeGL` 条件支持（复用同线程窗口 GL 上下文，或惰性创建后台隐藏窗口上下文；Windows ARM64 不支持）；离屏对象不实现 `IRenderWindow`，支持 `Resize` / `Clone` / 快照回读。`CreateRender(spDpi, nullptr)` 保留为兼容入口（内部转为 Raster 离屏）。新增 `offscreen_render` 单元测试（108 项检查），ctest 12/12 通过。
+> 补充（2026-11-14 第十一批）：完成第五节第 1 条——新增 `IRenderWindow : public virtual IRender`，`PaintAndSwapBuffers` / `GetRenderDC` / `ReleaseRenderDC` / `SetWindowRoundRectRgn` / `SetWindowRectRgn` / `ClearWindowRgn` 从 `IRender` 迁出；`Render_Skia_Windows/SDL` 改为继承 `IRenderWindow`，`Window::m_render` 改为 `std::unique_ptr<IRenderWindow>`，`INativeWindow::OnNativeGetRender()` 返回 `IRenderWindow*`（`Window::GetRender()` 仍返回 `IRender*`，绘制代码零改动）。同时新增离屏渲染：`IRenderFactory::IsOffscreenBackendSupported` 与 `CreateOffscreenRender`——`kRaster` 全平台可用；`kNativeGL` 条件支持（复用同线程窗口 GL 上下文，或惰性创建后台隐藏窗口上下文；Windows ARM64 不支持）；离屏对象不实现 `IRenderWindow`，支持 `Resize` / `Clone` / 快照回读。`IRenderFactory::CreateRender` 已从接口移除，窗口与离屏分别使用 `CreateWindowRender` / `CreateOffscreenRender`，examples/CEF/单元测试等调用点全部同步迁移。新增 `offscreen_render` 单元测试，ctest 12/12 通过。
 
 统计：已修复 24 项、部分修复 0 项、暂不处理 1 项、未处理 0 项、缺失接口 P0/P1/P2 已全部补齐。
 
@@ -220,7 +220,7 @@
 - `IRenderWindow : public virtual IRender`：`PaintAndSwapBuffers`、`SetWindow*Rgn`、`GetRenderDC/ReleaseRenderDC`（窗口形状与平台 DC 仍限定 Windows）；
 - `Render_Skia` 虚继承 `IRender`，`Render_Skia_Windows/SDL` 再同时继承 `IRenderWindow`；新增的 `Render_Skia_Offscreen` 只继承 `IRender`，编译期即无法调用窗口接口；
 - 工厂新增 `IsOffscreenBackendSupported` / `CreateOffscreenRender`：`kRaster` 必选，`kNativeGL` 条件支持（复用同线程窗口 GL 上下文或创建后台隐藏窗口上下文；Windows ARM64 不支持），显式请求不支持的后端返回 `nullptr`，不做静默回退；
-- 现有隐式离屏调用点（`Control::CreateTempRender`、`ControlDragable`、`BitmapHepler_Windows/SDL`、`CefControlOffScreen`）已迁移到 `CreateOffscreenRender`。
+- 现有隐式离屏调用点（`Control::CreateTempRender`、`ControlDragable`、`BitmapHepler_Windows/SDL`、`CefControlOffScreen`、examples、单元测试）已迁移到 `CreateOffscreenRender`；`CreateRender` 接口已移除。
 
 收益：离屏渲染（导出图片、控件离屏缓存）不再被迫依赖窗口相关接口；跨平台实现也不需要为窗口接口写空实现。
 

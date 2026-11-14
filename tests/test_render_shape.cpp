@@ -187,8 +187,8 @@ int main(int /*argc*/, char* /*argv*/[])
         Check(pRenderFactory != nullptr, "GetRenderFactory() is null");
         if (pRenderFactory != nullptr) {
             //离屏渲染对象（不创建窗口，使用内存位图作为绘制目标）
-            std::unique_ptr<ui::IRender> pRender(pRenderFactory->CreateRender(nullptr, nullptr));
-            Check(pRender != nullptr, "CreateRender() is null");
+            std::unique_ptr<ui::IRender> pRender = pRenderFactory->CreateOffscreenRender(0, 0);
+            Check(pRender != nullptr, "CreateOffscreenRender() is null");
             if (pRender != nullptr) {
                 TestEllipse(pRender.get());
                 TestArc(pRender.get());

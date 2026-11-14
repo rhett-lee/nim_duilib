@@ -1108,7 +1108,7 @@ int main(int argc, char* argv[])
                     ctx.bCjkFallback = (!bMainFontSupportCjk && bHasCjkFallbackFont);
 
                     //离屏渲染对象（不创建窗口，使用内存位图作为绘制目标）
-                    std::unique_ptr<ui::IRender> pRender(pRenderFactory->CreateRender(nullptr, nullptr));
+                    std::unique_ptr<ui::IRender> pRender = pRenderFactory->CreateOffscreenRender(0, 0);
                     CHECK(pRender != nullptr);
                     if (pRender != nullptr) {
                         CHECK(pRender->Resize(400, 300));
