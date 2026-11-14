@@ -3603,17 +3603,18 @@ bool Control::PaintImage(IRender* pRender,
             //矩阵绘制: 对不支持的属性，增加断言，避免出错
             ASSERT(newImageAttribute.GetImageCorner().IsEmpty());
             ASSERT(!newImageAttribute.IsTiledDraw());
-            pRender->DrawImageRect(m_rcPaint, pBitmap.get(), rcDest, rcSource, iFade, pMatrix);
+            pRender->DrawImageRect(pBitmap.get(), rcDest, rcSource, iFade, pMatrix, m_rcPaint);
         }
         else {
             TiledDrawParam tiledDrawParam;
             if (newImageAttribute.m_pTiledDrawParam != nullptr) {
                 tiledDrawParam = newImageAttribute.GetTiledDrawParam(Dpi());
             }
-            pRender->DrawImage(m_rcPaint, pBitmap.get(), rcDest, rcDestCorners, rcSource, rcSourceCorners,
+            pRender->DrawImage(pBitmap.get(), rcDest, rcDestCorners, rcSource, rcSourceCorners,
                                iFade,
                                newImageAttribute.IsTiledDraw() ? &tiledDrawParam : nullptr,
-                               newImageAttribute.m_bWindowShadowMode);
+                               newImageAttribute.m_bWindowShadowMode,
+                               m_rcPaint);
         }
 
         //绘制成功后，从延迟绘制列表中删除

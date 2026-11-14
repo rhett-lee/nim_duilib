@@ -1837,7 +1837,7 @@ void ChatMessageList::PaintAvatarImage(IRender* pRender, const UiRect& rcAvatar,
         PaintAvatar(pRender, rcAvatar, message.avatarText);
         return;
     }
-    pRender->DrawImageRect(GetRect(), pBitmap.get(), rcAvatar, rcSource);
+    pRender->DrawImageRect(pBitmap.get(), rcAvatar, rcSource, 255, nullptr, GetRect());
 }
 
 void ChatMessageList::PaintQuote(IRender* pRender, const Message& message, const BubbleLayout& layout)
@@ -1902,7 +1902,7 @@ void ChatMessageList::PaintChatImage(IRender* pRender, const Message& message, c
     if (pBitmap == nullptr) {
         return;
     }
-    pRender->DrawImageRect(GetRect(), pBitmap.get(), layout.rcImage, rcSource);
+    pRender->DrawImageRect(pBitmap.get(), layout.rcImage, rcSource, 255, nullptr, GetRect());
 }
 
 DString ChatMessageList::GetChatImagePath(const DString& strPath) const

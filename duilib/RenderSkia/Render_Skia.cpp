@@ -547,16 +547,19 @@ static int32_t CalcDrawImageTimes(int32_t nAvailableSpace, int32_t nImageSize, i
     return drawTimes;
 }
 
-void Render_Skia::DrawImage(const UiRect& rcPaint, const IBitmap* pBitmap,
+void Render_Skia::DrawImage(const IBitmap* pBitmap,
                             const UiRect& rcDest, const UiRect& rcDestCorners,
                             const UiRect& rcSource, const UiRect& rcSourceCorners,
                             uint8_t uFade,
                             const TiledDrawParam* pTiledDrawParam,    
-                            bool bWindowShadowMode)
+                            bool bWindowShadowMode,
+                            const UiRect& rcPaint)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+    //计算实际用于绘制判定的区域（rcPaint为空时，使用当前裁剪区域兜底）
+    const UiRect rcEffectivePaint = GetEffectivePaintRect(rcPaint);
     UiRect rcTestTemp;
-    if (!UiRect::Intersect(rcTestTemp, rcDest, rcPaint)) {
+    if (!UiRect::Intersect(rcTestTemp, rcDest, rcEffectivePaint)) {
         return;
     }
 #if DUILIB_PERFORMANCE_STAT_ENABLED
@@ -647,7 +650,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, const IBitmap* pBitmap,
         bWindowShadowMode = false;
     }
 
-    if (!bWindowShadowMode && UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
+    if (!bWindowShadowMode && UiRect::Intersect(rcTemp, rcEffectivePaint, rcDrawDest)) {
         //绘制中间部分
         if (!bTiledX && !bTiledY) {
             //拉伸的方式绘制
@@ -785,7 +788,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, const IBitmap* pBitmap,
                           int32_t dstL, int32_t dstT, int32_t dstR, int32_t dstB) {
         rcDrawSource = { srcL, srcT, srcR, srcB };
         rcDrawDest = { dstL, dstT, dstR, dstB };
-        if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
+        if (UiRect::Intersect(rcTemp, rcEffectivePaint, rcDrawDest)) {
             DrawSkiaImage::DrawImage(skCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
         }
     };
@@ -864,30 +867,34 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, const IBitmap* pBitmap,
     }
 }
 
-void Render_Skia::DrawImage(const UiRect& rcPaint, const IBitmap* pBitmap,
+void Render_Skia::DrawImage(const IBitmap* pBitmap,
                             const UiRect& rcDest, const UiRect& rcSource,
                             uint8_t uFade,
                             const TiledDrawParam* pTiledDrawParam,
-                            bool bWindowShadowMode)
+                            bool bWindowShadowMode,
+                            const UiRect& rcPaint)
 {
     UiRect rcDestCorners;
     UiRect rcSourceCorners;
-    return DrawImage(rcPaint, pBitmap, 
+    return DrawImage(pBitmap, 
                      rcDest, rcDestCorners,
                      rcSource, rcSourceCorners,
-                     uFade, pTiledDrawParam, bWindowShadowMode);
+                     uFade, pTiledDrawParam, bWindowShadowMode, rcPaint);
 }
 
-void Render_Skia::DrawImageRect(const UiRect& rcPaint, const IBitmap* pBitmap,
+void Render_Skia::DrawImageRect(const IBitmap* pBitmap,
                                 const UiRect& rcDest, const UiRect& rcSource,
-                                uint8_t uFade, const IMatrix* pMatrix)
+                                uint8_t uFade, const IMatrix* pMatrix,
+                                const UiRect& rcPaint)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     if (pMatrix == nullptr) {
         //仅在没有Matrix的情况下判断裁剪区域，
         //因为有Matrix时，实际绘制区域并不是rcDest，而是变换过后的位置，需要调整判断方法
+        //rcPaint为空时，使用当前裁剪区域兜底
+        const UiRect rcEffectivePaint = GetEffectivePaintRect(rcPaint);
         UiRect rcTestTemp;
-        if (!UiRect::Intersect(rcTestTemp, rcDest, rcPaint)) {
+        if (!UiRect::Intersect(rcTestTemp, rcDest, rcEffectivePaint)) {
             return;
         }
     }
@@ -2156,6 +2163,25 @@ RenderClipType Render_Skia::GetClipInfo(std::vector<UiRect>& clipRects) const
         }
     }
     return clipType;
+}
+
+UiRect Render_Skia::GetEffectivePaintRect(const UiRect& rcPaint) const
+{
+    if (!rcPaint.IsEmpty()) {
+        return rcPaint;
+    }
+    //rcPaint为空：表示不限制绘制区域，使用当前裁剪区域兜底。
+    //注意：这里取裁剪区域的最大边界（向外取整），不能直接复用GetClipInfo的返回值，
+    //因为后者向内缩小了1个像素（用于抵消Skia设置Clip时的放大），会导致边缘漏画。
+    UiRect rcClip;
+    SkCanvas* skCanvas = GetSkCanvas();
+    if (skCanvas != nullptr) {
+        const SkIRect skClip = skCanvas->getDeviceClipBounds();
+        rcClip = { skClip.fLeft, skClip.fTop, skClip.fRight, skClip.fBottom };
+        //将坐标转换到调用方使用的坐标空间（与绘制时的WindowOrg偏移相反）
+        rcClip.Offset(-(int32_t)m_pSkPointOrg->x(), -(int32_t)m_pSkPointOrg->y());
+    }
+    return rcClip;
 }
 
 bool Render_Skia::IsClipEmpty() const

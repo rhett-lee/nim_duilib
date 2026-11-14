@@ -969,7 +969,6 @@ public:
                             uint8_t alpha = 255) = 0;
 
     /** 绘制图片（采用九宫格方式绘制图片）
-    * @param [in] rcPaint 当前全部可绘制区域（用于避免非可绘制区域的绘制，以提高绘制性能）
     * @param [in] pBitmap 用于绘制的位图接口
     * @param [in] rcDest 绘制的目标区域
     * @param [in] rcDestCorners 绘制的目标区域的边角信息，用于九宫格绘制
@@ -978,32 +977,46 @@ public:
     * @param [in] uFade 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
     * @param [in] pTiledDrawParam 平铺相关参数，不平铺绘制时可传nullptr
     * @param [in] bWindowShadowMode 九宫格绘制时，不绘制中间部分（比如窗口阴影，只需要绘制边框，不需要绘制中间部分）
+    * @param [in] rcPaint 当前全部可绘制区域（可选，仅用于避免非可绘制区域的绘制，以提高绘制性能）。
+                          传 UiRect() 表示不限制，此时渲染接口使用当前裁剪区域兜底；
+                          传值时需覆盖本图片所有可能被绘制的区域，否则会漏画
     */
-    virtual void DrawImage(const UiRect& rcPaint, const IBitmap* pBitmap, 
+    virtual void DrawImage(const IBitmap* pBitmap, 
                            const UiRect& rcDest, const UiRect& rcDestCorners,
                            const UiRect& rcSource, const UiRect& rcSourceCorners,
                            uint8_t uFade = 255,
                            const TiledDrawParam* pTiledDrawParam = nullptr,
-                           bool bWindowShadowMode = false) = 0;
+                           bool bWindowShadowMode = false,
+                           const UiRect& rcPaint = UiRect()) = 0;
     /** 绘制图片（采用九宫格方式绘制图片）, 无圆角参数
+    * @param [in] pBitmap 用于绘制的位图接口
+    * @param [in] rcDest 绘制的目标区域
+    * @param [in] rcSource 绘制的源图片区域
+    * @param [in] uFade 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
+    * @param [in] pTiledDrawParam 平铺相关参数，不平铺绘制时可传nullptr
+    * @param [in] bWindowShadowMode 九宫格绘制时，不绘制中间部分
+    * @param [in] rcPaint 当前全部可绘制区域（可选，传 UiRect() 表示不限制）
     */
-    virtual void DrawImage(const UiRect& rcPaint, const IBitmap* pBitmap, 
+    virtual void DrawImage(const IBitmap* pBitmap, 
                            const UiRect& rcDest,  const UiRect& rcSource, 
                            uint8_t uFade = 255,
                            const TiledDrawParam* pTiledDrawParam = nullptr,
-                           bool bWindowShadowMode = false) = 0;
+                           bool bWindowShadowMode = false,
+                           const UiRect& rcPaint = UiRect()) = 0;
 
     /** 绘制图片
-    * @param [in] rcPaint 当前全部可绘制区域（用于避免非可绘制区域的绘制，以提高绘制性能）
     * @param [in] pBitmap 用于绘制的位图接口
     * @param [in] rcDest 绘制的目标区域
     * @param [in] rcSource 绘制的源图片区域
     * @param [in] uFade 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
     * @param [in] pMatrix 绘制时的变换矩阵接口
+    * @param [in] rcPaint 当前全部可绘制区域（可选，仅用于避免非可绘制区域的绘制，以提高绘制性能）。
+                          传 UiRect() 表示不限制，此时渲染接口使用当前裁剪区域兜底
     */
-    virtual void DrawImageRect(const UiRect& rcPaint, const IBitmap* pBitmap,
+    virtual void DrawImageRect(const IBitmap* pBitmap,
                                const UiRect& rcDest, const UiRect& rcSource,
-                               uint8_t uFade = 255, const IMatrix* pMatrix = nullptr) = 0;
+                               uint8_t uFade = 255, const IMatrix* pMatrix = nullptr,
+                               const UiRect& rcPaint = UiRect()) = 0;
 
     /** 绘制直线
     * @param [in] pt1 起始点坐标

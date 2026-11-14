@@ -1142,7 +1142,7 @@ std::shared_ptr<ui::IBitmap> BrowserForm::GenerateWebPageBitmap(ui::WebView2Cont
         rcSource.right = rcSource.left + spBitmap->GetWidth();
         rcSource.bottom = rcSource.top + spBitmap->GetHeight();
 
-        render->DrawImageRect(rcPaint, spBitmap.get(), rcDest, rcSource);
+        render->DrawImageRect(spBitmap.get(), rcDest, rcSource, 255, nullptr, rcPaint);
         return std::shared_ptr<ui::IBitmap>(render->MakeImageSnapshot());
     }
     return nullptr;

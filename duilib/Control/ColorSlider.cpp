@@ -81,7 +81,7 @@ void ColorSlider::PaintBkImage(IRender* pRender)
     }
 
     if (pBitmap != nullptr) {
-        pRender->DrawImageRect(rcPaint, pBitmap, rcDest, rcSource, uFade, pMatrix);
+        pRender->DrawImageRect(pBitmap, rcDest, rcSource, uFade, pMatrix, rcPaint);
     }        
 }
 

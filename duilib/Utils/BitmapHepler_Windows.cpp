@@ -70,12 +70,13 @@ IRender* BitmapHelper::CreateRenderObject(int srcRenderWidth, int srcRenderHeigh
             dest_width = (int)(srcRenderHeight * (float)srcDcWidth / (float)srcDcHeight);
         }
 
-        pRender->DrawImage(UiRect(0, 0, srcDcWidth, srcDcHeight),
-                            bitmap.get(),
+        pRender->DrawImage(bitmap.get(),
                             UiRect((srcRenderWidth - dest_width) / 2, 0, dest_width, dest_height),
                             UiRect(0, 0, 0, 0),
                             UiRect(0, 0, srcDcWidth, srcDcHeight),
-                            UiRect(0, 0, 0, 0));
+                            UiRect(0, 0, 0, 0),
+                            255, nullptr, false,
+                            UiRect(0, 0, srcDcWidth, srcDcHeight));
     }
     return pRender;
 }
@@ -98,7 +99,7 @@ IRender* BitmapHelper::CreateRenderObject(IBitmap* pBitmap)
     }
     if (pRender->Resize((int)pBitmap->GetWidth(), (int)pBitmap->GetHeight())) {
         UiRect rect = { 0, 0, (int)pBitmap->GetWidth(), (int)pBitmap->GetHeight() };
-        pRender->DrawImage(rect, pBitmap, rect, UiRect(), rect, UiRect());
+        pRender->DrawImage(pBitmap, rect, UiRect(), rect, UiRect(), 255, nullptr, false, rect);
     }        
     return pRender;
 }

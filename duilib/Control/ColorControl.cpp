@@ -35,7 +35,7 @@ void ColorControl::PaintBkImage(IRender* pRender)
     IMatrix* pMatrix = nullptr;
 
     if (pBitmap != nullptr) {
-        pRender->DrawImageRect(rcPaint, pBitmap, rcDest, rcSource, uFade, pMatrix);
+        pRender->DrawImageRect(pBitmap, rcDest, rcSource, uFade, pMatrix, rcPaint);
     }
 
     //画选择位置的显示标志

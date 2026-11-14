@@ -34,7 +34,7 @@ public:
                 destRect.left = destRect.CenterX() - srcRect.Width() / 2;
                 destRect.right = destRect.left + srcRect.Width();
             }
-            pRender->DrawImage(rcPaint, m_pBitmap.get(), destRect, rcCorners, srcRect, rcCorners);
+            pRender->DrawImage(m_pBitmap.get(), destRect, rcCorners, srcRect, rcCorners, 255, nullptr, false, rcPaint);
         }
     }
 

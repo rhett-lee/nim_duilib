@@ -1,6 +1,6 @@
 下面的分析基于 `duilib/Render/IRender.h`，并对照 Skia 实现（`duilib/RenderSkia/Render_Skia.cpp`、`Bitmap_Skia.h`、`Path_Skia.h`、`DrawSkiaImage.cpp`）核实。
 
-> **文档状态（2026-11-14 更新）**：本报告已随"字体回退性能优化"（见 [字体回退性能优化分析.md](字体回退性能优化分析.md)）重新校准；2026-11-14 又完成了第四节"接口一致性问题"的全部 8 条（第 1、2、5、6、7、8 条：`Clone` 家族、只读 const、测量返回值、魔法值、文本间距命名、取值风格；第 3、4 条：裁剪接口改名、`MeasureRichText` 重载合并）。文中代码行号以当前代码为准；每条问题均标注当前处理状态（已修复 / 部分修复 / 未处理 / 暂不处理）；"零、进度总览"与"九、字体回退相关接口变更记录"便于后续跟进。
+> **文档状态（2026-11-14 更新）**：本报告已随"字体回退性能优化"（见 [字体回退性能优化分析.md](字体回退性能优化分析.md)）重新校准；2026-11-14 完成了第四节"接口一致性问题"的全部 8 条（第 1、2、5、6、7、8 条：`Clone` 家族、只读 const、测量返回值、魔法值、文本间距命名、取值风格；第 3、4 条：裁剪接口改名、`MeasureRichText` 重载合并），并完成第五节第 2 条（富文本接口去掉 `IRenderFactory*` 参数）与第 3 条（`rcPaint` 后移为可选参数并内部兜底）。文中代码行号以当前代码为准；每条问题均标注当前处理状态（已修复 / 部分修复 / 未处理 / 暂不处理）；"零、进度总览"与"九、字体回退相关接口变更记录"便于后续跟进。
 
 ## 零、进度总览（2026-11-14）
 
@@ -28,7 +28,7 @@
 | 四.8 | 取值风格不一致 | `IRender.h#L24`、`#L90` | **已修复** | `IFontMgr::GetFontName` 改为按值返回 `DString` |
 | 五.1 | `IRender` 职责过载 | 全文 | 未处理 | 需拆分绘制 / 窗口 Surface 职责 |
 | 五.2 | 富文本接口每次传 `IRenderFactory*` | `IRender.h#L1170-L1199`、`#L1373` | **已修复** | Render 创建时注入 factory（`SetRenderFactory`），三个富文本接口不再传该参数 |
-| 五.3 | `rcPaint` 脏区参数 | `IRender.h#L986-L1010` | 未处理 | 建议在注释中明确空矩形语义 |
+| 五.3 | `rcPaint` 脏区参数 | `IRender.h#L984-L1021`、`Render_Skia.cpp#L2168` | **已修复** | `rcPaint` 后移为可选参数（默认 `UiRect()` = 不限制），内部用当前 clip 兜底 |
 | 五.4 | 测量依赖画布尺寸 | `Render_Skia.cpp#L1692-L1695` | 未处理 | 影响无 Surface 的纯测量场景 |
 | 六 | 缺失接口（P0/P1/P2） | 见第六节 | 未处理 | 字体回退优化未新增任何图元/裁剪/采样接口 |
 
@@ -36,7 +36,9 @@
 
 > 补充（2026-11-14 第四批）：`MeasureRichText` / `DrawRichText` / `CreateDrawRichTextCache` 的 `IRenderFactory*` 参数已删除，改由 `IRenderFactory::CreateRender` 通过 `IRender::SetRenderFactory` 注入（`Clone` 同步复制），行为不变。
 
-统计：已修复 16 项、部分修复 2 项、暂不处理 1 项、未处理 3 项、缺失接口 3 组待排期。
+> 补充（2026-11-14 第五批）：`DrawImage` / `DrawImageRect` 的 `rcPaint` 已后移为参数列表末尾的可选参数（默认 `UiRect()`），传空表示不限制，由 `Render_Skia::GetEffectivePaintRect` 用当前裁剪区域兜底；新增 `image_draw` 单元测试覆盖该语义。
+
+统计：已修复 17 项、部分修复 2 项、暂不处理 1 项、未处理 2 项、缺失接口 3 组待排期。
 
 ## 一、结论
 
@@ -214,11 +216,16 @@
   - `Render_Skia` 保存 `m_pRenderFactory`，三个富文本接口删除 `IRenderFactory*` 参数，改为使用注入的工厂创建字体；
   - 调用方（`RichTextImpl`、`RichEditData`、`RichEdit2`、单元测试、基准程序）删除对应实参。
 
-### 3. `rcPaint` 脏区参数把优化责任推给调用方
+### 3. `rcPaint` 脏区参数把优化责任推给调用方 — **已修复**
 
-- 位置：`DrawImage` 系列（`IRender.h#L986-L1010`）。
-- 每次绘制图片都要传"当前全部可绘制区域"，漏传或传错会导致多画/少画；脏区判断本可以由 Render 内部的 clip 统一处理。
-- 建议：保留该参数（现有调用方较多），但在注释中明确"传 `UiRect()` 表示不限制"，或内部用当前 clip 兜底。
+- 位置：`DrawImage` 系列（`IRender.h#L984-L1021`）。
+- 历史问题：每次绘制图片都要传"当前全部可绘制区域"，漏传或传错会导致多画/少画；脏区判断本可以由 Render 内部的 clip 统一处理。
+- 本质：`rcPaint` 在实现中只用于"与目标区域不相交时提前返回"，真正的裁剪一直由 canvas clip 承担（`Window::Paint` 已将根裁剪设为 `rcPaint`），因此它只是性能优化参数，不影响可见结果。
+- 当前实现（2026-11-14 第五批）：
+  - `rcPaint` 移到参数列表末尾并默认 `UiRect()`，传空表示"不限制"，新调用方可直接省略；
+  - `Render_Skia::GetEffectivePaintRect`（`Render_Skia.cpp#L2168`）在 `rcPaint` 为空时取 `getDeviceClipBounds()` 并减去 `GetWindowOrg()` 换算到绘制坐标空间兜底；刻意不复用 `GetClipInfo`（其向内缩 1 px，会导致边缘漏画）；
+  - `WritePixels` 的 `rcPaint` 是真实复制边界（写像素不受 clip 约束），保持"空 = 不复制"语义不变；
+  - 新增 `tests/test_image_draw.cpp`（`image_draw` 用例）覆盖三种情形。
 
 ### 4. 测量依赖画布尺寸
 
@@ -337,7 +344,7 @@ virtual void SetImageSamplingQuality(ImageSamplingQuality quality) = 0;
 
 ## 十、接口一致性调整记录（2026-11-14）
 
-本轮只做接口一致性修正，不改变绘制/测量的视觉效果。变更已同步 `Render_Skia` 实现、控件层调用方与单元测试，`ctest` 8/8 通过（`text_draw` 202 项检查，0 失败）。分四批完成：第一批为第 1、2、5、6、7、8 条，第二批为第 3、4 条（`MeasureRichText` 合并行与末尾两行裁剪接口），第三批删除 `ClearClip`，第四批为第五节第 2 条（富文本接口去掉 `IRenderFactory*` 参数，改为 Render 创建时注入）。
+本轮只做接口一致性修正，不改变绘制/测量的视觉效果。变更已同步 `Render_Skia` 实现、控件层调用方与单元测试，`ctest` 9/9 通过（`text_draw` 202 项、`image_draw` 21 项检查，0 失败）。分五批完成：第一批为第 1、2、5、6、7、8 条，第二批为第 3、4 条（`MeasureRichText` 合并行与末尾两行裁剪接口），第三批删除 `ClearClip`，第四批为第五节第 2 条（富文本接口去掉 `IRenderFactory*` 参数，改为 Render 创建时注入），第五批为第五节第 3 条（`rcPaint` 后移为可选参数并内部兜底）。
 
 | 接口 / 字段 | 变更前 | 变更后 | 影响 |
 | --- | --- | --- | --- |
@@ -358,5 +365,9 @@ virtual void SetImageSamplingQuality(ImageSamplingQuality quality) = 0;
 | `IRender::ClearClip` | `ClearClip(nState)` | **已删除**，统一使用 `RestoreClip(nState)` | `RestoreClip` 内部已包含 `restoreToCount` 与 `m_saveCount` 同步；7 处调用方与 `AutoClip` 已切换，行为不变 |
 | `IRender::MeasureRichText` / `DrawRichText` / `CreateDrawRichTextCache` | 每次调用传 `IRenderFactory* pRenderFactory` | 删除该参数，改用 Render 创建时注入的工厂 | 调用方（`RichTextImpl`、`RichEditData`、`RichEdit2`、测试与基准程序）删除实参；自定义 `IRender` 实现需从注入的工厂取字体 |
 | `IRender::SetRenderFactory` | 无 | 新增 `virtual void SetRenderFactory(IRenderFactory* pRenderFactory) = 0`（`IRender.h#L1373`） | 由 `IRenderFactory::CreateRender` 创建后注入，`Clone` 时同步复制；自定义 `IRender` 实现需实现该方法，直接 `new` 渲染对象时须手动注入 |
+| `IRender::DrawImage` / `DrawImageRect` 的 `rcPaint` | 首个参数，必传 | 后移到参数列表末尾，默认 `UiRect()`（空 = 不限制） | 控件层、工具类与示例的调用点调整参数位置；新调用方可省略，由当前裁剪区域兜底 |
+| `Render_Skia::GetEffectivePaintRect` | 无 | 新增内部辅助函数（`Render_Skia.cpp#L2168`） | `rcPaint` 为空时用 `getDeviceClipBounds()` 减去 `GetWindowOrg()` 兜底；不复用 `GetClipInfo`（其内缩 1 px 会漏画）；`WritePixels` 的 `rcPaint` 语义保持不变 |
 
 **测试补充**：`tests/test_text_draw.cpp` 新增 `MeasureRichText` 返回值契约校验——原点为 `(0,0)`、宽度不超过限制宽度、限制宽度越小（换行越多）内容总高度越大（共 7 项检查）。
+
+**测试补充**：新增 `tests/test_image_draw.cpp`（`image_draw` 用例）——覆盖 `rcPaint` 传 `UiRect()` 正常绘制、与目标不相交时跳过绘制、部分相交时按裁剪区域可见（共 21 项检查）。

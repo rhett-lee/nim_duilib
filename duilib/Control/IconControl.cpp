@@ -101,7 +101,7 @@ void IconControl::Paint(IRender* pRender, const UiRect& rcPaint)
                 rcDest.bottom = rcDest.bottom + rcSource.Height();
             }
         }
-        pRender->DrawImage(rcPaint, m_pBitmap.get(), rcDest, rcSource);
+        pRender->DrawImage(m_pBitmap.get(), rcDest, rcSource);
     }    
 }
 

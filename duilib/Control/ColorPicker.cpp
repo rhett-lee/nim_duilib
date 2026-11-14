@@ -542,7 +542,7 @@ public:
         uint8_t uFade = 255;
         IMatrix* pMatrix = nullptr;
         if (pBitmap != nullptr) {        
-            pRender->DrawImageRect(rcPaint, pBitmap, rcDest, rcSource, uFade, pMatrix);
+            pRender->DrawImageRect(pBitmap, rcDest, rcSource, uFade, pMatrix, rcPaint);
             if (GetTopBorderSize() > 0) {
                 pRender->DrawRect(UiRectF::MakeFromRect(rcDest), GetUiColor(GetBorderColor(kControlStateNormal)), GetTopBorderSize());
             }
@@ -663,7 +663,7 @@ private:
         IMatrix* pMatrix = nullptr;
 
         if (pBitmap != nullptr) {
-            pRender->DrawImageRect(rcPaint, pBitmap, rcDest, rcSource, uFade, pMatrix);
+            pRender->DrawImageRect(pBitmap, rcDest, rcSource, uFade, pMatrix, rcPaint);
         }
     }
 

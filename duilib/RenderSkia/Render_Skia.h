@@ -49,20 +49,23 @@ public:
     virtual bool StretchBlt(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest, const IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc, RopMode rop) override;
     virtual bool AlphaBlend(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc, uint8_t alpha = 255) override;
 
-    virtual void DrawImage(const UiRect& rcPaint, const IBitmap* pBitmap, 
+    virtual void DrawImage(const IBitmap* pBitmap, 
                            const UiRect& rcDest, const UiRect& rcDestCorners,
                            const UiRect& rcSource, const UiRect& rcSourceCorners,
                            uint8_t uFade = 255,
                            const TiledDrawParam* pTiledDrawParam = nullptr,
-                           bool bWindowShadowMode = false) override;
-    virtual void DrawImage(const UiRect& rcPaint, const IBitmap* pBitmap, 
+                           bool bWindowShadowMode = false,
+                           const UiRect& rcPaint = UiRect()) override;
+    virtual void DrawImage(const IBitmap* pBitmap, 
                            const UiRect& rcDest,  const UiRect& rcSource, 
                            uint8_t uFade = 255,
                            const TiledDrawParam* pTiledDrawParam = nullptr,
-                           bool bWindowShadowMode = false) override;
-    virtual void DrawImageRect(const UiRect& rcPaint, const IBitmap* pBitmap,
+                           bool bWindowShadowMode = false,
+                           const UiRect& rcPaint = UiRect()) override;
+    virtual void DrawImageRect(const IBitmap* pBitmap,
                                const UiRect& rcDest, const UiRect& rcSource,
-                               uint8_t uFade = 255, const IMatrix* pMatrix = nullptr) override;
+                               uint8_t uFade = 255, const IMatrix* pMatrix = nullptr,
+                               const UiRect& rcPaint = UiRect()) override;
 
     virtual void DrawLine(const UiPointF& pt1, const UiPointF& pt2, UiColor penColor, float fWidth) override;
     virtual void DrawLine(const UiPointF& pt1, const UiPointF& pt2, IPen* pen) override;
@@ -171,6 +174,12 @@ protected:
     IRenderFactory* GetRenderFactory() const;
 
 private:
+    /** 计算实际用于绘制判定的区域
+    * @param [in] rcPaint 调用方传入的可绘制区域；传空矩形表示不限制
+    * @return 返回rcPaint非空时原样返回；为空时使用当前裁剪区域（已转换为调用方坐标空间）
+    */
+    UiRect GetEffectivePaintRect(const UiRect& rcPaint) const;
+
     /** 设置光栅操作模式（映射为Skia的混合模式，部分模式为近似实现）
     */
     void SetRopMode(SkPaint& skPaint, RopMode rop) const;
