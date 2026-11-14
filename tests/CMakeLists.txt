@@ -208,6 +208,45 @@ if(WIN32)
     endif()
 endif()
 
+# RichEdit2 文本绘制性能基准（不注册到 ctest，属于手工运行的评估工具）
+#
+# 使用离屏渲染 + 轻量窗口桩对象驱动 RichEdit2::Paint，覆盖：
+#   1) 中文+英文（无字体回退）与中文+英文+大量 emoji（触发字体回退）两类文本；
+#   2) 缓存有效的稳态绘制、文本变化后的重新排版绘制、滚动绘制三类场景；
+#   3) 小文档（约一屏）与大文档（远大于一屏）两种规模。
+# 评测请使用 Release 配置，例如：
+#   python3 build/build.py build --config Release --arch x64 --offline
+#   out/x64/Release/tests/bench_richedit2.exe --iterations 200
+if(WIN32)
+    add_executable(bench_richedit2
+        bench_richedit2.cpp
+    )
+    target_include_directories(bench_richedit2 PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../"
+    )
+    target_link_directories(bench_richedit2 PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(bench_richedit2 PRIVATE
+        duilib
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(bench_richedit2 PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(bench_richedit2 PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(bench_richedit2 PRIVATE UNICODE _UNICODE)
+    # 默认资源目录：源码树的 bin/resources（可在运行时用 --resources 覆盖）
+    target_compile_definitions(bench_richedit2 PRIVATE
+        DUILIB_BENCH_RESOURCE_DIR="${CMAKE_SOURCE_DIR}/bin/resources"
+    )
+    if(MSVC)
+        target_compile_options(bench_richedit2 PRIVATE /utf-8)
+    endif()
+endif()
+
 
 # ClearAlpha / RestoreAlpha / Render Clear / Render ClearRect 的性能基准
 # （不注册到 ctest，属于手工运行的评估工具）。评测请使用 Release 配置，例如：

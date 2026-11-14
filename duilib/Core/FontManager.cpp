@@ -86,6 +86,14 @@ public:
         //首先查询缓存，如果缓存中存在，则直接返回
         auto cacheIter = m_pFontManager->m_fallbackFontMap.find(fontKey);
         if (cacheIter != m_pFontManager->m_fallbackFontMap.end()) {
+            //优先使用按字符维度的缓存：同一个字符（如emoji）的查询结果不会变化，
+            //直接命中可以避免每次排版都扫描回退字体列表（热路径优化）
+            if (unicodeChar != 0) {
+                auto charIter = cacheIter->second.m_charFontMap.find(unicodeChar);
+                if (charIter != cacheIter->second.m_charFontMap.end()) {
+                    return charIter->second;
+                }
+            }
 #ifdef _DEBUG
             //签名相同的条目应属于同一种字体（64位签名的碰撞概率可忽略，此处校验常用字段）
             ASSERT(cacheIter->second.m_fontInfo.m_fontSize == pFont->FontSize());
@@ -104,7 +112,8 @@ public:
                     return pCacheFont;
                 }
                 else if (pCacheFont->IsUnicodeCharSupported(unicodeChar)) {
-                    //支持该字符，直接返回
+                    //支持该字符，记录字符缓存并直接返回
+                    cacheIter->second.m_charFontMap[unicodeChar] = pCacheFont;
                     return pCacheFont;
                 }
             }
@@ -171,6 +180,10 @@ public:
         if (pRetFallbackFont != nullptr) {
             //放入缓存列表，管理其生命周期
             cacheEntry.m_fallbackFonts.push_back(pRetFallbackFont);
+        }
+        if (unicodeChar != 0) {
+            //记录该字符的查询结果（未找到时缓存nullptr，避免重复扫描）
+            cacheEntry.m_charFontMap[unicodeChar] = pRetFallbackFont;
         }
         return pRetFallbackFont;
     }

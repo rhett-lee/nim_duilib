@@ -1923,7 +1923,20 @@ void DrawRichText::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache
     UiColor textColor;
     for (const TPendingDrawRichText& textData : pendingTextData) {
         //通过缓存绘制的时候，不能使用textData.m_nDataIndex值，此值再增量绘制的情况下是不正确的
-        
+
+        //可视区域快速剔除：先判断片段是否落在文本矩形范围内，
+        //不可见时跳过后续的坐标偏移、逐行对齐等处理（大文档绘制时可减少大量无效计算）。
+        //注意：pRichTextRects不为空时需要返回所有片段的位置，不能提前跳过。
+        if (pRichTextRects == nullptr) {
+            const int32_t nChunkTop = rcNewTextRect.top + textData.m_destRect.top - szNewScrollOffset.cy;
+            if (nChunkTop >= rcNewTextRect.bottom) {
+                continue;
+            }
+            if ((nChunkTop + textData.m_destRect.Height()) <= rcNewTextRect.top) {
+                continue;
+            }
+        }
+
         //执行绘制        
         rcDestRect = textData.m_destRect;
         rcDestRect.Offset(rcNewTextRect.left, rcNewTextRect.top);

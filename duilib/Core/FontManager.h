@@ -181,6 +181,13 @@ private:
         /** 回退字体列表（管理其生命周期）
         */
         std::vector<IFont*> m_fallbackFonts;
+
+        /** 每个字符对应的回退字体缓存：Key是UTF32字符编码，Value是对应的回退字体
+            （nullptr表示没有找到可用的回退字体）。
+            同一个字符（如emoji）在每次排版时都会查询回退字体，使用该缓存可以避免
+            重复扫描回退字体列表，显著降低含emoji等回退字符文本的排版耗时。
+        */
+        std::unordered_map<uint32_t, IFont*> m_charFontMap;
     };
 
     /** 回退字体信息：Key是字体的签名(IFont::GetFontKey，不受IFont对象生命周期影响)

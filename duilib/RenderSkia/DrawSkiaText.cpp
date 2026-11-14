@@ -4,8 +4,50 @@
 #include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/PerformanceUtil.h"
 
+#include <unordered_map>
+
 namespace ui
 {
+
+namespace {
+
+/** 回退字体字形宽度缓存的Key
+*   同一个字体(按Typeface唯一ID与字号区分)、同一个字形，其宽度是固定不变的，
+*   因此可以缓存，避免每次重新排版都调用Skia测量(emoji等彩色字形测量开销较大)。
+*/
+struct FallbackGlyphWidthKey
+{
+    uint32_t m_typefaceId = 0;  //字体Typeface的唯一ID
+    float m_textSize = 0.0f;    //字号
+    SkGlyphID m_glyphId = 0;    //字形ID
+
+    bool operator==(const FallbackGlyphWidthKey& rhs) const
+    {
+        return (m_typefaceId == rhs.m_typefaceId) &&
+               (m_glyphId == rhs.m_glyphId) &&
+               (m_textSize == rhs.m_textSize);
+    }
+};
+
+struct FallbackGlyphWidthKeyHash
+{
+    size_t operator()(const FallbackGlyphWidthKey& key) const
+    {
+        size_t hashValue = std::hash<uint32_t>()(key.m_typefaceId);
+        hashValue ^= (std::hash<uint32_t>()((uint32_t)key.m_glyphId) + 0x9e3779b9 + (hashValue << 6) + (hashValue >> 2));
+        hashValue ^= (std::hash<float>()(key.m_textSize) + 0x9e3779b9 + (hashValue << 6) + (hashValue >> 2));
+        return hashValue;
+    }
+};
+
+/** 回退字形的宽度缓存的最大条目数（超过后不再新增，避免异常文本导致缓存无限增长） */
+constexpr size_t kMaxFallbackGlyphWidthCacheSize = 16384;
+
+/** 回退字形的宽度缓存（按线程隔离，避免多线程渲染时的数据竞争） */
+using FallbackGlyphWidthCache = std::unordered_map<FallbackGlyphWidthKey, SkScalar, FallbackGlyphWidthKeyHash>;
+thread_local FallbackGlyphWidthCache g_fallbackGlyphWidthCache;
+
+} // namespace
 
 IFallbackFontMgr* DrawSkiaText::GetFallbackFontMgr(const IFont* pFont)
 {
@@ -915,37 +957,104 @@ size_t DrawSkiaText::BreakText(const void* text, size_t byteLength, SkTextEncodi
 
     const bool bHasFallbackFontCreator = fallbackFontCreator != nullptr;
     const bool bNeedGlyphFonts = (breakTextData != nullptr) && breakTextData->m_bNeedGlyphFonts;
-    if (bNeedGlyphFonts) {
-        //命中字体默认为主字体，命中回退字体时再更新
-        breakTextData->glyphFonts.resize(tempData.glyphIDList.size());
-        for (size_t nIndex = 0; nIndex < breakTextData->glyphFonts.size(); ++nIndex) {
-            breakTextData->glyphFonts[nIndex] = &font;
+    const size_t nCount = tempData.glyphWidths.size();
+
+    //每个字符实际命中的Skia字体（默认是主字体，命中回退字体时更新为该回退字体）
+    FastVector<const SkFont*>* pGlyphFonts = bNeedGlyphFonts ? &breakTextData->glyphFonts : &tempData.glyphFonts;
+    bool bHasMissingGlyph = false; //是否存在主字体不支持、需要回退的字符
+    if (bHasFallbackFontCreator || bNeedGlyphFonts) {
+        pGlyphFonts->resize(nCount);
+        for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+            (*pGlyphFonts)[nIndex] = &font;
+            if (bHasFallbackFontCreator && (tempData.glyphIDList[nIndex] == 0)) {
+                bHasMissingGlyph = true;
+            }
         }
     }
 
-    //说明：回退字形的宽度逐字符测量，不做"按字体分组批量测量"：
-    //      断点由宽度决定，批量化必须先测量整段剩余文本，多行断行时会退化为O(n²)；
-    //      逐字符测量在达到宽度上限时即可停止。
-    size_t breakTextBytes = 0;  //可绘制文本数据的字节数
-    SkScalar totalWidth = 0;    //绘制字符的总宽度
-    const size_t nCount = tempData.glyphWidths.size();
-    size_t glyphCount = nCount; //可绘制的glyph字符数
-    for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
-        if ((tempData.glyphIDList[nIndex] == 0) && bHasFallbackFontCreator) {
+    if (bHasFallbackFontCreator && bHasMissingGlyph) {
+        //第一步：逐字符解析回退字形（字形ID与命中的回退字体），这里不做宽度测量
+        for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+            if (tempData.glyphIDList[nIndex] != 0) {
+                continue;
+            }
             SkGlyphID fallbackGlyphId = 0;
             const SkFont* pFallbackSkFont = fallbackFontCreator(tempData.unicharList[nIndex], &fallbackGlyphId);
             if ((pFallbackSkFont != nullptr) && (fallbackGlyphId != 0)) {
-                //回退成功：把命中的字形ID写回列表，记录命中字体，并更新该字形的宽度
                 tempData.glyphIDList[nIndex] = fallbackGlyphId;
-                if (bNeedGlyphFonts) {
-                    breakTextData->glyphFonts[nIndex] = pFallbackSkFont;
-                }
-                pFallbackSkFont->getWidthsBounds(SkSpan<const SkGlyphID>(&tempData.glyphIDList[nIndex], 1),
-                                                 SkSpan<SkScalar>(&tempData.glyphWidths[nIndex], 1),
-                                                 {}, &paint);
+                (*pGlyphFonts)[nIndex] = pFallbackSkFont;
             }
             //回退失败时保持主字体0号字形的宽度（绘制时按占位方框处理）
         }
+
+        //第二步：对连续命中同一个回退字体的字形分组，批量测量宽度
+        //说明：逐字符调用getWidthsBounds()时，每次都有Skia调用的固定开销，含大量emoji时非常耗时；
+        //      分组批量测量后，测量结果与逐字符测量完全一致，但Skia调用次数大幅减少。
+        size_t nIndex = 0;
+        while (nIndex < nCount) {
+            const SkFont* pRunFont = (*pGlyphFonts)[nIndex];
+            if (pRunFont == &font) {
+                ++nIndex;
+                continue;
+            }
+            size_t nRunEnd = nIndex + 1;
+            while ((nRunEnd < nCount) && ((*pGlyphFonts)[nRunEnd] == pRunFont)) {
+                ++nRunEnd;
+            }
+            const size_t nRunCount = nRunEnd - nIndex;
+            SkGlyphID* pGlyphIds = tempData.glyphIDList.data() + nIndex;
+            SkScalar* pRunWidths = tempData.glyphWidths.data() + nIndex;
+
+            const SkTypeface* pTypeface = pRunFont->getTypeface();
+            if (pTypeface == nullptr) {
+                pRunFont->getWidthsBounds(SkSpan<const SkGlyphID>(pGlyphIds, nRunCount),
+                                          SkSpan<SkScalar>(pRunWidths, nRunCount),
+                                          {}, &paint);
+                nIndex = nRunEnd;
+                continue;
+            }
+            //优先使用字形宽度缓存：全部命中缓存时，无需再调用Skia测量
+            //（emoji等彩色字形的测量开销较大，重复排版同一文本时可显著降低耗时）
+            const uint32_t nTypefaceId = pTypeface->uniqueID();
+            const float fTextSize = pRunFont->getSize();
+            bool bAllCached = true;
+            for (size_t i = 0; i < nRunCount; ++i) {
+                FallbackGlyphWidthKey cacheKey;
+                cacheKey.m_typefaceId = nTypefaceId;
+                cacheKey.m_textSize = fTextSize;
+                cacheKey.m_glyphId = pGlyphIds[i];
+                auto cacheIter = g_fallbackGlyphWidthCache.find(cacheKey);
+                if (cacheIter == g_fallbackGlyphWidthCache.end()) {
+                    bAllCached = false;
+                    break;
+                }
+                pRunWidths[i] = cacheIter->second;
+            }
+            if (!bAllCached) {
+                pRunFont->getWidthsBounds(SkSpan<const SkGlyphID>(pGlyphIds, nRunCount),
+                                          SkSpan<SkScalar>(pRunWidths, nRunCount),
+                                          {}, &paint);
+                //把测量结果记入缓存
+                for (size_t i = 0; i < nRunCount; ++i) {
+                    if (g_fallbackGlyphWidthCache.size() >= kMaxFallbackGlyphWidthCacheSize) {
+                        break;
+                    }
+                    FallbackGlyphWidthKey cacheKey;
+                    cacheKey.m_typefaceId = nTypefaceId;
+                    cacheKey.m_textSize = fTextSize;
+                    cacheKey.m_glyphId = pGlyphIds[i];
+                    g_fallbackGlyphWidthCache.emplace(cacheKey, pRunWidths[i]);
+                }
+            }
+            nIndex = nRunEnd;
+        }
+    }
+
+    //第三步：按宽度计算可绘制的字符数（达到宽度上限时提前结束）
+    size_t breakTextBytes = 0;  //可绘制文本数据的字节数
+    SkScalar totalWidth = 0;    //绘制字符的总宽度
+    size_t glyphCount = nCount; //可绘制的glyph字符数
+    for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
         const SkScalar glyphWidth = tempData.glyphWidths[nIndex];
         if ((totalWidth > 0.01) && ((totalWidth + glyphWidth) > maxWidth)) {
             //已经达到宽度限制, 不需要再计算(但至少需要绘制一个字符，避免宽度过窄时，无法绘制)

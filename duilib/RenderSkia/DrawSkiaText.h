@@ -36,6 +36,7 @@ struct MeasureTextTempData
 
     FastVector<uint8_t> glyphChars;   //每个Glyph字符，占几个字节
     FastVector<SkScalar> glyphWidths; //每个SkGlyphID字符的所占的宽度，该宽度与字体名称和字体大小、是否斜体等属性均相关，容器大小与glyphIDs容器相同
+    FastVector<const SkFont*> glyphFonts; //每个Glyph字符实际命中的Skia字体（主字体或回退字体），用于回退字形的分组批量宽度测量
 };
 
 /** 评估可绘制字符数量的临时变量（外部管理，以减少内存分配，提高性能）
