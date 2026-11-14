@@ -122,6 +122,7 @@ std::unique_ptr<ui::IRender> Render_Skia_SDL::Clone() const
     pClone->Resize(GetWidth(), GetHeight());
     pClone->SetRenderDpi(GetRenderDpi());
     pClone->SetRenderFactory(GetRenderFactory());
+    pClone->SetImageSamplingQuality(GetImageSamplingQuality());
     pClone->BitBlt(0, 0, GetWidth(), GetHeight(), this, 0, 0, RopMode::kSrcCopy);
     return pClone;
 }

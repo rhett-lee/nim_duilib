@@ -44,6 +44,7 @@ public:
     virtual void RestoreClip(int32_t nState) override;
     virtual int32_t ClipRect(const UiRect& rc, bool bIntersect = true) override;
     virtual int32_t ClipRoundRect(const UiRect& rc, float rx, float ry, bool bIntersect = true) override;
+    virtual int32_t ClipPath(const IPath* path, bool bIntersect = true) override;
 
     virtual bool BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, const IRender* pSrcRender, int32_t xSrc, int32_t ySrc, RopMode rop) override;
     virtual bool StretchBlt(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest, const IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc, RopMode rop) override;
@@ -72,6 +73,15 @@ public:
     virtual void DrawCircle(const UiPointF& centerPt, float radius, UiColor penColor, float fWidth) override;
     virtual void DrawCircle(const UiPointF& centerPt, float radius, IPen* pen) override;
     virtual void FillCircle(const UiPointF& centerPt, float radius, UiColor dwColor, uint8_t uFade = 255) override;
+
+    virtual void FillArc(const UiRect& rc, float startAngle, float sweepAngle, bool useCenter,
+                         UiColor dwColor, uint8_t uFade = 255) override;
+    virtual void DrawEllipse(const UiRectF& rc, UiColor penColor, float fWidth) override;
+    virtual void DrawEllipse(const UiRectF& rc, const IPen* pen) override;
+    virtual void FillEllipse(const UiRectF& rc, UiColor dwColor, uint8_t uFade = 255) override;
+    virtual void DrawPolygon(const UiPointF* points, int32_t count, UiColor penColor, float fWidth) override;
+    virtual void DrawPolygon(const UiPointF* points, int32_t count, const IPen* pen) override;
+    virtual void FillPolygon(const UiPointF* points, int32_t count, UiColor dwColor, uint8_t uFade = 255) override;
 
     virtual void DrawArc(const UiRect& rc, float startAngle, float sweepAngle, bool useCenter, 
                          const IPen* pen, 
@@ -137,6 +147,8 @@ public:
     virtual bool IsEmpty() const override;
     virtual void SetRenderDpi(const IRenderDpiPtr& spRenderDpi) override;
     virtual void SetRenderFactory(IRenderFactory* pRenderFactory) override;
+    virtual void SetImageSamplingQuality(ImageSamplingQuality quality) override;
+    virtual ImageSamplingQuality GetImageSamplingQuality() const override;
 
 public:
     /** 获取SkSurface接口
@@ -212,6 +224,10 @@ private:
     /** 创建本Render的渲染工厂接口（用于创建字体等内部资源）
     */
     IRenderFactory* m_pRenderFactory;
+
+    /** 图片缩放时的采样质量
+    */
+    ImageSamplingQuality m_imageSamplingQuality;
 };
 
 } // namespace ui

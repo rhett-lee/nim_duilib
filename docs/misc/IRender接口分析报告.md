@@ -1,6 +1,6 @@
 下面的分析基于 `duilib/Render/IRender.h`，并对照 Skia 实现（`duilib/RenderSkia/Render_Skia.cpp`、`Bitmap_Skia.h`、`Path_Skia.h`、`DrawSkiaImage.cpp`）核实。
 
-> **文档状态（2026-11-14 更新）**：本报告已随"字体回退性能优化"（见 [字体回退性能优化分析.md](字体回退性能优化分析.md)）重新校准；2026-11-14 完成了第四节"接口一致性问题"的全部 8 条（第 1、2、5、6、7、8 条：`Clone` 家族、只读 const、测量返回值、魔法值、文本间距命名、取值风格；第 3、4 条：裁剪接口改名、`MeasureRichText` 重载合并），并完成第五节第 2 条（富文本接口去掉 `IRenderFactory*` 参数）与第 3 条（`rcPaint` 后移为可选参数并内部兜底）。文中代码行号以当前代码为准；每条问题均标注当前处理状态（已修复 / 部分修复 / 未处理 / 暂不处理）；"零、进度总览"与"九、字体回退相关接口变更记录"便于后续跟进。
+> **文档状态（2026-11-14 更新）**：本报告已随"字体回退性能优化"（见 [字体回退性能优化分析.md](字体回退性能优化分析.md)）重新校准；2026-11-14 完成了第四节"接口一致性问题"的全部 8 条（第 1、2、5、6、7、8 条：`Clone` 家族、只读 const、测量返回值、魔法值、文本间距命名、取值风格；第 3、4 条：裁剪接口改名、`MeasureRichText` 重载合并），完成第五节第 2 条（富文本接口去掉 `IRenderFactory*` 参数）、第 3 条（`rcPaint` 后移为可选参数并内部兜底）与第 5 条（三个绘图接口合并为两个入口 + `ImageDrawParam`），并补齐第六节 P0 的全部常用能力（`FillArc`、`DrawEllipse`/`FillEllipse`、`DrawPolygon`/`FillPolygon`、`ClipPath`、`ImageSamplingQuality`）。文中代码行号以当前代码为准；每条问题均标注当前处理状态（已修复 / 部分修复 / 未处理 / 暂不处理）；"零、进度总览"与"九、字体回退相关接口变更记录"便于后续跟进。
 
 ## 零、进度总览（2026-11-14）
 
@@ -31,7 +31,7 @@
 | 五.3 | `rcPaint` 脏区参数 | `IRender.h#L859-L1019`、`Render_Skia.cpp#L2168` | **已修复** | `rcPaint` 后移为可选参数（默认 `UiRect()` = 不限制），内部用当前 clip 兜底 |
 | 五.4 | 测量依赖画布尺寸 | `Render_Skia.cpp#L1692-L1695` | 未处理 | 影响无 Surface 的纯测量场景 |
 | 五.5 | 三个绘图接口职责重叠、参数易错 | `IRender.h#L859-L1019` | **已修复** | 收敛为两个 `DrawImage` 重载 + `ImageDrawParam`；删除 `DrawImageRect` |
-| 六 | 缺失接口（P0/P1/P2） | 见第六节 | 未处理 | 字体回退优化未新增任何图元/裁剪/采样接口 |
+| 六 | 缺失接口（P0/P1/P2） | 见第六节 | **P0 已修复** | P0 的 8 组接口已全部补齐；P1/P2 待排期 |
 
 > 补充（2026-11-14 第三批）：`ClearClip` 已删除，其实现（`restoreToCount` + `m_saveCount` 同步）并入 `RestoreClip`，全部调用方改用 `RestoreClip`，行为与删除前一致。
 
@@ -41,7 +41,9 @@
 
 > 补充（2026-11-14 第六批）：`DrawImage` 的三个重载已合并为两个入口：`DrawImage(bitmap, rcDest)`（整图）与 `DrawImage(bitmap, rcDest, rcSource, const ImageDrawParam&)`；九宫格边距、平铺、窗口阴影、变换矩阵、脏区全部收敛到 `ImageDrawParam`，并删除 `DrawImageRect`。
 
-统计：已修复 18 项、部分修复 2 项、暂不处理 1 项、未处理 2 项、缺失接口 3 组待排期。
+> 补充（2026-11-14 第七批）：第六节 P0 的 8 组缺失接口已全部补齐——`FillArc`、`DrawEllipse`（2 个重载）、`FillEllipse`、`DrawPolygon`（2 个重载）、`FillPolygon`、`ClipPath`、`ImageSamplingQuality` + `Set/GetImageSamplingQuality`；新增 `render_shape` 单元测试覆盖。
+
+统计：已修复 19 项、部分修复 2 项、暂不处理 1 项、未处理 2 项、缺失接口 P0 已补齐（P1/P2 待排期）。
 
 ## 一、结论
 
@@ -255,30 +257,45 @@
 
 ## 六、常用但缺失的接口（建议补充）
 
-> 状态：截至 2026-11-13 **均未新增**（字体回退优化只调整了字体相关接口，未触及图元、裁剪、采样与位图读取能力）。以下接口描述可直接作为需求条目排期。
+> 状态：P0 已于 2026-11-14 **全部补齐**（见下方每项标注）；P1 / P2 截至 2026-11-14 仍未新增，以下描述可直接作为需求条目排期。
 
-### P0：高频、Skia 实现成本低
+### P0：高频、Skia 实现成本低 — **已全部补齐**
 
 ```cpp
-// 图元：当前画椭圆只能手工构造 Path
-virtual void DrawEllipse(const UiRectF& rc, UiColor penColor, float fWidth) = 0;
-virtual void DrawEllipse(const UiRectF& rc, IPen* pen) = 0;
-virtual void FillEllipse(const UiRectF& rc, UiColor color, uint8_t uFade = 255) = 0;
+// 图元：补齐 DrawArc 的填充对称项、椭圆、多边形的填充/描边
+virtual void FillArc(const UiRect& rc, float startAngle, float sweepAngle, bool useCenter,
+                     UiColor dwColor, uint8_t uFade = 255) = 0;              // 新增
+virtual void DrawEllipse(const UiRectF& rc, UiColor penColor, float fWidth) = 0;   // 新增
+virtual void DrawEllipse(const UiRectF& rc, const IPen* pen) = 0;                  // 新增
+virtual void FillEllipse(const UiRectF& rc, UiColor dwColor, uint8_t uFade = 255) = 0; // 新增
+virtual void DrawPolygon(const UiPointF* points, int32_t count, UiColor penColor, float fWidth) = 0; // 新增
+virtual void DrawPolygon(const UiPointF* points, int32_t count, const IPen* pen) = 0;                // 新增
+virtual void FillPolygon(const UiPointF* points, int32_t count, UiColor dwColor, uint8_t uFade = 255) = 0; // 新增
 
-// 多边形：IPath::AddPolygon 已存在，但 IRender 没有对应快捷方法
-//（图表、箭头、异形按钮会用到）
-virtual void DrawPolygon(const UiPointF* pts, int32_t count, IPen* pen) = 0;
-virtual void FillPolygon(const UiPointF* pts, int32_t count, IBrush* brush) = 0;
+// 非矩形裁剪：圆形头像、异形卡片（与 ClipRect / ClipRoundRect 同一套 save/restore 语义）
+virtual int32_t ClipPath(const IPath* path, bool bIntersect = true) = 0;      // 新增
 
-// 非矩形裁剪：圆形头像、异形卡片（目前只有矩形/圆角矩形裁剪）
-virtual int32_t SetPathClip(const IPath* path, bool bIntersect = true) = 0;
-
-// 图像缩放质量：当前全部使用 SkSamplingOptions()（即最近邻）
-// 见 DrawSkiaImage.cpp#L195-L208、Render_Skia.cpp#L376 等处
-virtual void SetImageSamplingQuality(ImageSamplingQuality quality) = 0;
+// 图像缩放质量：默认 kNearest 保持既有渲染效果，可按需切换
+enum class ImageSamplingQuality { kNearest = 0, kLinear = 1, kCubic = 2 };     // 新增
+virtual void SetImageSamplingQuality(ImageSamplingQuality quality) = 0;        // 新增
+virtual ImageSamplingQuality GetImageSamplingQuality() const = 0;             // 新增
 ```
 
-`SetImageSamplingQuality` 是最值得优先补的一项：DPI 缩放和缩略图场景下，最近邻采样会造成明显锯齿。
+已补齐项的实现说明：
+
+| 接口 | 实现位置 | 说明 |
+| --- | --- | --- |
+| `FillArc` | `Render_Skia.cpp` | 与 `DrawArc` 共用 `drawArc`，仅把画笔换成填充画刷；`useCenter=true` 为扇形，`false` 为弦与弧围成的区域；`uFade` 与颜色 Alpha 相乘 |
+| `DrawEllipse` ×2 | `Render_Skia.cpp` | 由矩形构造 `SkRect` 后 `drawOval`，描边由 `SetPaintByPen` 设置；带 `IPen*` 的重载支持虚线/线帽等线形 |
+| `FillEllipse` | `Render_Skia.cpp` | `drawOval` + 填充画刷，支持 `uFade` |
+| `DrawPolygon` ×2 | `Render_Skia.cpp` | 顶点数组内部构造闭合 `SkPath`（`moveTo`/`lineTo`/`close`），再 `drawPath`；`count < 3` 直接返回 |
+| `FillPolygon` | `Render_Skia.cpp` | 同上路径 + 填充画刷；任意顶点数 ≥ 3，支持凹多边形（Skia 默认非零环绕规则） |
+| `ClipPath` | `Render_Skia.cpp` | 路径按 `m_pSkPointOrg` 做 `makeOffset` 后 `clipPath`，与 `ClipRect`/`ClipRoundRect` 一致地同步 `m_saveCount` 并返回还原句柄；`bIntersect=false` 为反向裁剪 |
+| `ImageSamplingQuality` | `Render_Skia.cpp` | 内部 `ToSkSamplingOptions` 映射为 `kNearest` / `kLinear` / `kCubic(Mitchell)`；`DrawImage`、`BitBlt`、`StretchBlt`、`AlphaBlend` 全部接入；`Clone` 同步复制该设置 |
+
+> 默认值保持 `kNearest`，是为了不改变现有 UI 的渲染效果；DPI 缩放、缩略图等场景建议调用方显式设置为 `kLinear` 或 `kCubic`。
+>
+> 未纳入 P0 的相关能力：`DrawArc`/`FillArc` 目前只接受 `UiColor` 填充，弧形渐变仍走 `DrawArc` 的 `gradientColor` 参数；`DrawPolygon` 的 `IPen*` 重载使用 `const IPen*`（比既有的 `DrawCircle`/`DrawRoundRect` 的 `IPen*` 更严格，实参兼容）。
 
 ### P1：文本与位图能力
 
@@ -319,12 +336,13 @@ virtual void SetImageSamplingQuality(ImageSamplingQuality quality) = 0;
    - ✅ **一致性修正（2026-11-14 完成）**：`Clone` 家族统一为 `unique_ptr<T> Clone() const`；`MeasureRichText*` 返回 `UiRect`；`rectSize` 拆分为 `limitWidth`/`limitHeight`；`fWordSpacing` 统一为 `fLetterSpacing`；`IFontMgr::GetFontName` 改为按值返回（详见第十节）。
    - ✅ **裁剪与重载整理（2026-11-14 完成）**：保留 `SaveClip/RestoreClip`，`SetClip→ClipRect`、`SetRoundClip→ClipRoundRect`；`MeasureRichText2/3` 合并进 `MeasureRichText`（详见第十节）。
 
-2. **第二批（只增不改，补常用能力）— 未开始**
-   - `DrawEllipse` / `FillEllipse`；
-   - `DrawPolygon` / `FillPolygon`；
-   - `SetPathClip`；
-   - `SetImageSamplingQuality`；
-   - `IFont` 的度量接口。
+2. **第二批（只增不改，补常用能力）— 图元/裁剪/采样已完成**
+   - ✅ `FillArc`；
+   - ✅ `DrawEllipse` / `FillEllipse`；
+   - ✅ `DrawPolygon` / `FillPolygon`；
+   - ✅ `ClipPath`（原计划的 `SetPathClip`，按裁剪接口命名规则改为 `ClipPath`）；
+   - ✅ `SetImageSamplingQuality` / `GetImageSamplingQuality`；
+   - ⬜ `IFont` 的度量接口（属第六节 P1，待排期）。
 
 3. **第三批（结构性调整，需评估影响面）— 部分完成**
    - ✅ `BitmapAlphaType` 去 Skia 化（已改为中性 `AlphaType`）；
@@ -364,7 +382,7 @@ virtual void SetImageSamplingQuality(ImageSamplingQuality quality) = 0;
 
 ## 十、接口一致性调整记录（2026-11-14）
 
-本轮只做接口一致性修正，不改变绘制/测量的视觉效果。变更已同步 `Render_Skia` 实现、控件层调用方与单元测试，`ctest` 9/9 通过（`text_draw` 202 项、`image_draw` 22 项检查，0 失败）。分六批完成：第一批为第 1、2、5、6、7、8 条，第二批为第 3、4 条（`MeasureRichText` 合并行与末尾两行裁剪接口），第三批删除 `ClearClip`，第四批为第五节第 2 条（富文本接口去掉 `IRenderFactory*` 参数，改为 Render 创建时注入），第五批为第五节第 3 条（`rcPaint` 后移为可选参数并内部兜底），第六批为第五节第 5 条（三个绘图接口合并为两个入口 + `ImageDrawParam`）。
+本轮只做接口一致性修正，不改变绘制/测量的视觉效果。变更已同步 `Render_Skia` 实现、控件层调用方与单元测试，`ctest` 10/10 通过（`text_draw` 202 项、`image_draw` 22 项、`render_shape` 36 项检查，0 失败）。分七批完成：第一批为第 1、2、5、6、7、8 条，第二批为第 3、4 条（`MeasureRichText` 合并行与末尾两行裁剪接口），第三批删除 `ClearClip`，第四批为第五节第 2 条（富文本接口去掉 `IRenderFactory*` 参数，改为 Render 创建时注入），第五批为第五节第 3 条（`rcPaint` 后移为可选参数并内部兜底），第六批为第五节第 5 条（三个绘图接口合并为两个入口 + `ImageDrawParam`），第七批为第六节 P0 缺失接口补齐。
 
 | 接口 / 字段 | 变更前 | 变更后 | 影响 |
 | --- | --- | --- | --- |
@@ -391,7 +409,14 @@ virtual void SetImageSamplingQuality(ImageSamplingQuality quality) = 0;
 | `IRender::DrawImageRect` | 独立函数，名字不体现"矩阵"，能力与 `DrawImage` 重叠 | **已删除**，矩阵绘制改为 `ImageDrawParam::pMatrix` | 调用方合并到 `DrawImage`；实现改用 `save()/restore()`，不再 `resetMatrix()` |
 | `ImageInfo::ScaleImageSourceRect` | 4 个参数，`rcDestCorners` 出参与 `rcSourceCorners` 恒等 | 3 个参数，删除 `rcDestCorners` 出参 | 仅 `Control::PaintImage` 一处调用方 |
 | `Render_Skia::GetEffectivePaintRect` | 无 | 新增内部辅助函数（`Render_Skia.cpp#L2168`） | `rcPaint` 为空时用 `getDeviceClipBounds()` 减去 `GetWindowOrg()` 兜底；不复用 `GetClipInfo`（其内缩 1 px 会漏画）；`WritePixels` 的 `rcPaint` 语义保持不变 |
+| `IRender::FillArc` | 无 | 新增 `FillArc(rc, startAngle, sweepAngle, useCenter, UiColor, uFade = 255)` | 与 `DrawArc` 对称；`useCenter=true` 填充扇形，`false` 填充弦与弧围成的区域 |
+| `IRender::DrawEllipse` / `FillEllipse` | 无（只能手工构造 `IPath`） | 新增 `DrawEllipse(rc, UiColor, fWidth)`、`DrawEllipse(rc, const IPen*)`、`FillEllipse(rc, UiColor, uFade = 255)` | 椭圆绘制/填充不再需要手工拼路径；`IPen*` 重载支持虚线等线形 |
+| `IRender::DrawPolygon` / `FillPolygon` | 无（`IPath::AddPolygon` 存在但无快捷方法） | 新增 `DrawPolygon(points, count, UiColor, fWidth)`、`DrawPolygon(points, count, const IPen*)`、`FillPolygon(points, count, UiColor, uFade = 255)` | `count < 3` 直接返回；内部构造闭合路径，支持凹多边形 |
+| `IRender::ClipPath` | 无（只有矩形/圆角矩形裁剪） | 新增 `int32_t ClipPath(const IPath* path, bool bIntersect = true)` | 与 `ClipRect`/`ClipRoundRect` 同一套 `SaveClip`/`RestoreClip` 语义；路径按视图原点偏移后裁剪 |
+| `ImageSamplingQuality` / `IRender::Set/GetImageSamplingQuality` | 无（`DrawImage`、`BitBlt`/`StretchBlt`/`AlphaBlend` 固定最近邻采样） | 新增枚举 `{kNearest, kLinear, kCubic}` + 设置/读取接口，默认 `kNearest` | 默认值不变，既有渲染效果不受影响；`Clone` 同步复制该设置；DPI 缩放/缩略图场景可切换为 `kLinear`/`kCubic` |
 
 **测试补充**：`tests/test_text_draw.cpp` 新增 `MeasureRichText` 返回值契约校验——原点为 `(0,0)`、宽度不超过限制宽度、限制宽度越小（换行越多）内容总高度越大（共 7 项检查）。
 
 **测试补充**：新增 `tests/test_image_draw.cpp`（`image_draw` 用例）——覆盖 `rcPaint` 传 `UiRect()` 正常绘制、与目标不相交时跳过绘制、部分相交时按裁剪区域可见、整图绘制入口、矩阵绘制时 `rcPaint` 不参与可见性判断（共 22 项检查）。
+
+**测试补充**：新增 `tests/test_render_shape.cpp`（`render_shape` 用例）——覆盖 `FillEllipse`/`DrawEllipse`（中心填充、四角留白、描边位置）、`FillArc`（扇形内外象限）、`FillPolygon`/`DrawPolygon`（内部填充、外部留白、边框位置）、`ClipPath`（三角形内填充、外部留白）、`Set/GetImageSamplingQuality`（默认值与来回切换），共 36 项检查。

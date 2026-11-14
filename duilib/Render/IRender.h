@@ -854,6 +854,23 @@ struct DrawStringParam
     bool bRotate90ForAscii = true;      //纵向绘制时，对于字母数字等，旋转90度显示
 };
 
+/** 图片缩放时的采样质量
+*/
+enum class ImageSamplingQuality
+{
+    /** 最近邻采样：速度最快，图片缩放时锯齿明显（默认值，保持原有绘制效果）
+    */
+    kNearest = 0,
+
+    /** 双线性采样：质量与速度均衡，适合大多数缩放场景
+    */
+    kLinear = 1,
+
+    /** 三次卷积采样：质量最好，速度最慢，适合高质量缩略图
+    */
+    kCubic = 2,
+};
+
 /** 绘制图片的参数（除位图、目标区域、源区域之外的可选参数）
 */
 struct ImageDrawParam
@@ -953,6 +970,13 @@ public:
     * @return 返回当前设备上下文标志，在调用RestoreClip的时候需要传回该返回值，错误时返回-1
     */
     virtual int32_t ClipRoundRect(const UiRect& rcItem, float rx, float ry, bool bIntersect = true) = 0;
+
+    /** 设置路径剪辑区域，并保存当前设备上下文的状态（用于圆形头像、异形卡片等非矩形裁剪）
+    * @param [in] path 剪辑路径
+    * @param [in] bIntersect ClipOp操作标志，true表示kIntersect操作，false表示kDifference操作
+    * @return 返回当前设备上下文标志，在调用RestoreClip的时候需要传回该返回值，错误时返回-1
+    */
+    virtual int32_t ClipPath(const IPath* path, bool bIntersect = true) = 0;
 
     /** 函数执行与从指定源设备上下文到目标设备上下文中的像素矩形对应的颜色数据的位块传输
     * @param [in] x 目标矩形左上角的 x 坐标
@@ -1136,6 +1160,60 @@ public:
     * @param [in] uFade 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
     */
     virtual void FillCircle(const UiPointF& centerPt, float radius, UiColor dwColor, uint8_t uFade = 255) = 0;
+
+    /** 填充圆弧（椭圆的一部分）
+    * @param [in] rc 包含圆弧的椭圆的矩形边界区域
+    * @param [in] startAngle x轴与弧起点之间的角度
+    * @param [in] sweepAngle 圆弧起点和终点之间的角度，正数是顺时针方向，负数是逆时针方向
+    * @param [in] useCenter 如果为true，则填充扇形（包含椭圆的中心点）；否则填充弦与弧围成的区域
+    * @param [in] dwColor 填充颜色值
+    * @param [in] uFade 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
+    */
+    virtual void FillArc(const UiRect& rc, float startAngle, float sweepAngle, bool useCenter,
+                         UiColor dwColor, uint8_t uFade = 255) = 0;
+
+    /** 绘制椭圆
+    * @param [in] rc 椭圆的矩形边界区域
+    * @param [in] penColor 画笔的颜色值
+    * @param [in] fWidth 画笔的宽度
+    */
+    virtual void DrawEllipse(const UiRectF& rc, UiColor penColor, float fWidth) = 0;
+
+    /** 绘制椭圆，支持各种线形
+    * @param [in] rc 椭圆的矩形边界区域
+    * @param [in] pen 画笔的接口
+    */
+    virtual void DrawEllipse(const UiRectF& rc, const IPen* pen) = 0;
+
+    /** 填充椭圆
+    * @param [in] rc 椭圆的矩形边界区域
+    * @param [in] dwColor 颜色值
+    * @param [in] uFade 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
+    */
+    virtual void FillEllipse(const UiRectF& rc, UiColor dwColor, uint8_t uFade = 255) = 0;
+
+    /** 绘制多边形（按顶点顺序连接并闭合）
+    * @param [in] points 顶点坐标数组
+    * @param [in] count 顶点个数，必须大于等于3
+    * @param [in] penColor 画笔的颜色值
+    * @param [in] fWidth 画笔的宽度
+    */
+    virtual void DrawPolygon(const UiPointF* points, int32_t count, UiColor penColor, float fWidth) = 0;
+
+    /** 绘制多边形（按顶点顺序连接并闭合），支持各种线形
+    * @param [in] points 顶点坐标数组
+    * @param [in] count 顶点个数，必须大于等于3
+    * @param [in] pen 画笔的接口
+    */
+    virtual void DrawPolygon(const UiPointF* points, int32_t count, const IPen* pen) = 0;
+
+    /** 填充多边形
+    * @param [in] points 顶点坐标数组
+    * @param [in] count 顶点个数，必须大于等于3
+    * @param [in] dwColor 颜色值
+    * @param [in] uFade 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
+    */
+    virtual void FillPolygon(const UiPointF* points, int32_t count, UiColor dwColor, uint8_t uFade = 255) = 0;
 
     /** 绘制路径
     * @param [in] path 路径的接口
@@ -1384,6 +1462,15 @@ public:
     * @param [in] pRenderFactory 渲染工厂接口，用于创建字体等内部资源；生命周期由调用方保证长于本Render
     */
     virtual void SetRenderFactory(IRenderFactory* pRenderFactory) = 0;
+
+    /** 设置图片缩放时的采样质量（对后续的图片绘制生效）
+    * @param [in] quality 采样质量
+    */
+    virtual void SetImageSamplingQuality(ImageSamplingQuality quality) = 0;
+
+    /** 获取图片缩放时的采样质量
+    */
+    virtual ImageSamplingQuality GetImageSamplingQuality() const = 0;
 
     /** 绘制并刷新到屏幕（Render的实现已经与窗口关联）, 同步完成
     * @param [in] pRenderPaint 界面绘制所需的回调接口

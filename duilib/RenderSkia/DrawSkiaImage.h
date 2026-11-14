@@ -7,6 +7,7 @@
 #include "include/core/SkImage.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkPaint.h"
+#include "include/core/SkSamplingOptions.h"
 #include "SkiaHeaderEnd.h"
 
 namespace ui 
@@ -25,13 +26,15 @@ public:
     * @param [in] skSrcImage 需要绘制的图片接口
     * @param [in] rcSrc 需要绘制的图片内容在源图片中的矩形区域
     * @param [in] skPaint paint属性
+    * @param [in] skSampling 图片缩放时的采样参数
     */
     static void DrawImage(SkCanvas* pSkCanvas,
                           const UiRect& rcDest,
                           const SkPoint& skPointOrg,
                           const sk_sp<SkImage>& skSrcImage,
                           const UiRect& rcSrc,
-                          const SkPaint& skPaint);
+                          const SkPaint& skPaint,
+                          const SkSamplingOptions& skSampling);
 
 };
 

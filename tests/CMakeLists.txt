@@ -265,6 +265,41 @@ if(WIN32)
     )
 endif()
 
+# 覆盖常用图形绘制接口（FillEllipse/DrawEllipse/FillArc/FillPolygon/DrawPolygon/
+# ClipPath）与图片采样质量设置。该测试使用离屏渲染（不创建窗口），仅在 Windows 平台构建。
+if(WIN32)
+    add_executable(test_render_shape
+        test_render_shape.cpp
+    )
+    target_include_directories(test_render_shape PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../"
+    )
+    target_link_directories(test_render_shape PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_render_shape PRIVATE
+        duilib
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_render_shape PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_render_shape PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(test_render_shape PRIVATE UNICODE _UNICODE NOMINMAX WIN32_LEAN_AND_MEAN)
+    # 默认资源目录：源码树的 bin/resources
+    target_compile_definitions(test_render_shape PRIVATE
+        DUILIB_TEST_RESOURCE_DIR="${CMAKE_SOURCE_DIR}/bin/resources"
+    )
+    if(MSVC)
+        target_compile_options(test_render_shape PRIVATE /utf-8)
+    endif()
+    add_test(NAME render_shape
+             COMMAND test_render_shape
+    )
+endif()
+
 # controls 示例页面的静态校验（XML 节点名、属性、class/颜色引用、语言词条、
 # Form 与 XML 的绑定关系）。该测试不创建窗口、不加载主题，仅用 Python3 解析
 # 资源文件，Windows/Linux/macOS 均可运行，可直接在命令行（含 CI）执行。

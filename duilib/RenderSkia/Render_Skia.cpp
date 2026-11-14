@@ -23,6 +23,7 @@
 #include "include/core/SkCanvas.h"
 #include "include/core/SkSurface.h"
 #include "include/core/SkPaint.h"
+#include "include/core/SkSamplingOptions.h"
 #include "include/core/SkColorFilter.h"
 #include "include/core/SkPath.h"
 #include "include/core/SkPathBuilder.h"
@@ -44,9 +45,25 @@
 
 namespace ui {
 
+/** 将图片采样质量转换为Skia的采样参数
+*/
+static SkSamplingOptions ToSkSamplingOptions(ImageSamplingQuality quality)
+{
+    switch (quality) {
+    case ImageSamplingQuality::kLinear:
+        return SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kNone);
+    case ImageSamplingQuality::kCubic:
+        return SkSamplingOptions(SkCubicResampler::Mitchell());
+    case ImageSamplingQuality::kNearest:
+    default:
+        return SkSamplingOptions(SkFilterMode::kNearest, SkMipmapMode::kNone);
+    }
+}
+
 Render_Skia::Render_Skia():
     m_saveCount(0),
-    m_pRenderFactory(nullptr)
+    m_pRenderFactory(nullptr),
+    m_imageSamplingQuality(ImageSamplingQuality::kNearest)
 {
     m_pSkPointOrg = std::make_unique<SkPoint>();
     m_pSkPointOrg->iset(0, 0);
@@ -299,6 +316,35 @@ int32_t Render_Skia::ClipRoundRect(const UiRect& rc, float rx, float ry, bool bI
     return -1;
 }
 
+int32_t Render_Skia::ClipPath(const IPath* path, bool bIntersect)
+{
+    const Path_Skia* pSkiaPath = dynamic_cast<const Path_Skia*>(path);
+    ASSERT(pSkiaPath != nullptr);
+    if (pSkiaPath == nullptr) {
+        return -1;
+    }
+    //裁剪区域使用设备坐标，需要加上视图原点偏移
+    SkPath skPath = pSkiaPath->GetSkPathBuilder()->snapshot().makeOffset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
+    if (skPath.isEmpty()) {
+        return -1;
+    }
+
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        // 同步更新 m_saveCount，使其与 Skia 内部 save 栈保持一致
+        m_saveCount = skCanvas->save();
+        if (bIntersect) {
+            skCanvas->clipPath(skPath, SkClipOp::kIntersect, true);
+        }
+        else {
+            skCanvas->clipPath(skPath, SkClipOp::kDifference, true);
+        }
+        return m_saveCount;
+    }
+    return -1;
+}
+
 void Render_Skia::SetRopMode(SkPaint& skPaint, RopMode rop) const
 {
     switch (rop) {
@@ -369,7 +415,7 @@ bool Render_Skia::BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, const IRe
     SkCanvas* skCanvas = GetSkCanvas();
     ASSERT(skCanvas != nullptr);
     if (skCanvas != nullptr) {
-        skCanvas->drawImageRect(skSrcImage, rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kFast_SrcRectConstraint);
+        skCanvas->drawImageRect(skSrcImage, rcSkSrc, rcSkDest, ToSkSamplingOptions(m_imageSamplingQuality), &skPaint, SkCanvas::kFast_SrcRectConstraint);
         return true;
     }
     return false;
@@ -417,7 +463,7 @@ bool Render_Skia::StretchBlt(int32_t xDest, int32_t yDest, int32_t widthDest, in
     SkCanvas* skCanvas = GetSkCanvas();
     ASSERT(skCanvas != nullptr);
     if (skCanvas != nullptr) {
-        skCanvas->drawImageRect(skSrcImage, rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kFast_SrcRectConstraint);
+        skCanvas->drawImageRect(skSrcImage, rcSkSrc, rcSkDest, ToSkSamplingOptions(m_imageSamplingQuality), &skPaint, SkCanvas::kFast_SrcRectConstraint);
         return true;
     }
     return false;
@@ -483,7 +529,7 @@ bool Render_Skia::AlphaBlend(int32_t xDest, int32_t yDest, int32_t widthDest, in
                                       (SkScalar)heightSrc);
 
     // 6. 执行绘制: 使用 kFast_SrcRectConstraint 走 Skia 快速路径(本函数已校验源矩形合法性)
-    skCanvas->drawImageRect(skSrcImage, rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kFast_SrcRectConstraint);
+    skCanvas->drawImageRect(skSrcImage, rcSkSrc, rcSkDest, ToSkSamplingOptions(m_imageSamplingQuality), &skPaint, SkCanvas::kFast_SrcRectConstraint);
     return true;
 }
 
@@ -639,6 +685,9 @@ void Render_Skia::DrawImage(const IBitmap* pBitmap,
     // 默认值就是kSrcOver
     skPaint.setBlendMode(SkBlendMode::kSrcOver);
 
+    //图片缩放时的采样质量
+    const SkSamplingOptions skSampling = ToSkSamplingOptions(m_imageSamplingQuality);
+
     //使用变换矩阵绘制：只绘制一次整图，不支持九宫格、平铺、窗口阴影模式
     if (drawParam.pMatrix != nullptr) {
         const Matrix_Skia* pSkMatrix = dynamic_cast<const Matrix_Skia*>(drawParam.pMatrix);
@@ -648,7 +697,7 @@ void Render_Skia::DrawImage(const IBitmap* pBitmap,
         }
         skCanvas->save();
         skCanvas->setMatrix(SkM44(*pSkMatrix->GetMatrix()));
-        DrawSkiaImage::DrawImage(skCanvas, rcDest, *m_pSkPointOrg, skImage, rcDrawImageSource, skPaint);
+        DrawSkiaImage::DrawImage(skCanvas, rcDest, *m_pSkPointOrg, skImage, rcDrawImageSource, skPaint, skSampling);
         skCanvas->restore();
         return;
     }
@@ -701,7 +750,7 @@ void Render_Skia::DrawImage(const IBitmap* pBitmap,
         //绘制中间部分
         if (!bTiledX && !bTiledY) {
             //拉伸的方式绘制
-            DrawSkiaImage::DrawImage(skCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
+            DrawSkiaImage::DrawImage(skCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint, skSampling);
         }
         else if (bTiledX && bTiledY) {
             //平铺：横向和纵向均平铺绘制
@@ -749,7 +798,7 @@ void Render_Skia::DrawImage(const IBitmap* pBitmap,
                     rcDestTemp.right = lDestRight;
                     rcDestTemp.top = lDestTop;
                     rcDestTemp.bottom = lDestBottom;
-                    DrawSkiaImage::DrawImage(skCanvas, rcDestTemp, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
+                    DrawSkiaImage::DrawImage(skCanvas, rcDestTemp, *m_pSkPointOrg, skImage, rcDrawSource, skPaint, skSampling);
 
                     nPosX += lDrawWidth;
                 }
@@ -787,7 +836,7 @@ void Render_Skia::DrawImage(const IBitmap* pBitmap,
                 rcDestTemp.left = lDestLeft;
                 rcDestTemp.right = lDestRight;
 
-                DrawSkiaImage::DrawImage(skCanvas, rcDestTemp, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
+                DrawSkiaImage::DrawImage(skCanvas, rcDestTemp, *m_pSkPointOrg, skImage, rcDrawSource, skPaint, skSampling);
 
                 nPosX += lDrawWidth;
             }
@@ -823,7 +872,7 @@ void Render_Skia::DrawImage(const IBitmap* pBitmap,
                 rcDestTemp.top = lDestTop;
                 rcDestTemp.bottom = lDestBottom;
 
-                DrawSkiaImage::DrawImage(skCanvas, rcDestTemp, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
+                DrawSkiaImage::DrawImage(skCanvas, rcDestTemp, *m_pSkPointOrg, skImage, rcDrawSource, skPaint, skSampling);
                 nPosY += lDrawHeight;
             }
         }
@@ -836,7 +885,7 @@ void Render_Skia::DrawImage(const IBitmap* pBitmap,
         rcDrawSource = { srcL, srcT, srcR, srcB };
         rcDrawDest = { dstL, dstT, dstR, dstB };
         if (!bCheckPaintRect || UiRect::Intersect(rcTemp, rcEffectivePaint, rcDrawDest)) {
-            DrawSkiaImage::DrawImage(skCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
+            DrawSkiaImage::DrawImage(skCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint, skSampling);
         }
     };
 
@@ -1266,6 +1315,176 @@ void Render_Skia::FillCircle(const UiPointF& centerPt, float radius, UiColor dwC
     ASSERT(skCanvas != nullptr);
     if (skCanvas != nullptr) {
         skCanvas->drawCircle(rcSkPoint.fX, rcSkPoint.fY, radius, skPaint);
+    }
+}
+
+void Render_Skia::FillArc(const UiRect& rc, float startAngle, float sweepAngle, bool useCenter,
+                          UiColor dwColor, uint8_t uFade)
+{
+    ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+    if ((rc.right <= rc.left) || (rc.bottom <= rc.top)) {
+        return;
+    }
+    SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
+    SkRect ovalRect = SkRect::Make(rcSkDestI);
+    ovalRect.offset(*m_pSkPointOrg);
+
+    SkPaint skPaint = *m_pSkPaint;
+    //颜色自身的Alpha与叠加透明度相乘（uFade 不再覆盖颜色的Alpha）
+    const uint8_t uAlpha = (uint8_t)(((uint32_t)dwColor.GetA() * (uint32_t)uFade + 127) / 255);
+    skPaint.setARGB(uAlpha, dwColor.GetR(), dwColor.GetG(), dwColor.GetB());
+    skPaint.setStyle(SkPaint::kFill_Style);
+
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawArc(ovalRect, startAngle, sweepAngle, useCenter, skPaint);
+    }
+}
+
+void Render_Skia::DrawEllipse(const UiRectF& rc, UiColor penColor, float fWidth)
+{
+    ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+    //退化检查：宽或高小于等于0时跳过
+    if ((rc.right <= rc.left) || (rc.bottom <= rc.top)) {
+        return;
+    }
+    SkRect ovalRect = SkRect::MakeLTRB(rc.left, rc.top, rc.right, rc.bottom);
+    ovalRect.offset(*m_pSkPointOrg);
+
+    SkPaint skPaint = *m_pSkPaint;
+    skPaint.setARGB(penColor.GetA(), penColor.GetR(), penColor.GetG(), penColor.GetB());
+    skPaint.setStrokeWidth(fWidth);
+    skPaint.setStyle(SkPaint::kStroke_Style);
+
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawOval(ovalRect, skPaint);
+    }
+}
+
+void Render_Skia::DrawEllipse(const UiRectF& rc, const IPen* pen)
+{
+    ASSERT(pen != nullptr);
+    if (pen == nullptr) {
+        return;
+    }
+    ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+    if ((rc.right <= rc.left) || (rc.bottom <= rc.top)) {
+        return;
+    }
+    SkRect ovalRect = SkRect::MakeLTRB(rc.left, rc.top, rc.right, rc.bottom);
+    ovalRect.offset(*m_pSkPointOrg);
+
+    SkPaint skPaint = *m_pSkPaint;
+    SetPaintByPen(skPaint, pen);
+
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawOval(ovalRect, skPaint);
+    }
+}
+
+void Render_Skia::FillEllipse(const UiRectF& rc, UiColor dwColor, uint8_t uFade)
+{
+    ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+    if ((rc.right <= rc.left) || (rc.bottom <= rc.top)) {
+        return;
+    }
+    SkRect ovalRect = SkRect::MakeLTRB(rc.left, rc.top, rc.right, rc.bottom);
+    ovalRect.offset(*m_pSkPointOrg);
+
+    SkPaint skPaint = *m_pSkPaint;
+    //颜色自身的Alpha与叠加透明度相乘（uFade 不再覆盖颜色的Alpha）
+    const uint8_t uAlpha = (uint8_t)(((uint32_t)dwColor.GetA() * (uint32_t)uFade + 127) / 255);
+    skPaint.setARGB(uAlpha, dwColor.GetR(), dwColor.GetG(), dwColor.GetB());
+    skPaint.setStyle(SkPaint::kFill_Style);
+
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawOval(ovalRect, skPaint);
+    }
+}
+
+/** 由顶点数组构建闭合的多边形路径（顶点坐标加上视图原点偏移）
+*/
+static SkPath MakePolygonPath(const UiPointF* points, int32_t count, const SkPoint& skPointOrg)
+{
+    SkPathBuilder pathBuilder;
+    pathBuilder.moveTo(points[0].x + skPointOrg.fX, points[0].y + skPointOrg.fY);
+    for (int32_t nIndex = 1; nIndex < count; ++nIndex) {
+        pathBuilder.lineTo(points[nIndex].x + skPointOrg.fX, points[nIndex].y + skPointOrg.fY);
+    }
+    pathBuilder.close();
+    return pathBuilder.snapshot();
+}
+
+void Render_Skia::DrawPolygon(const UiPointF* points, int32_t count, UiColor penColor, float fWidth)
+{
+    ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+    ASSERT((points != nullptr) && (count >= 3));
+    if ((points == nullptr) || (count < 3)) {
+        return;
+    }
+    const SkPath skPath = MakePolygonPath(points, count, *m_pSkPointOrg);
+
+    SkPaint skPaint = *m_pSkPaint;
+    skPaint.setARGB(penColor.GetA(), penColor.GetR(), penColor.GetG(), penColor.GetB());
+    skPaint.setStrokeWidth(fWidth);
+    skPaint.setStyle(SkPaint::kStroke_Style);
+
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawPath(skPath, skPaint);
+    }
+}
+
+void Render_Skia::DrawPolygon(const UiPointF* points, int32_t count, const IPen* pen)
+{
+    ASSERT(pen != nullptr);
+    if (pen == nullptr) {
+        return;
+    }
+    ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+    ASSERT((points != nullptr) && (count >= 3));
+    if ((points == nullptr) || (count < 3)) {
+        return;
+    }
+    const SkPath skPath = MakePolygonPath(points, count, *m_pSkPointOrg);
+
+    SkPaint skPaint = *m_pSkPaint;
+    SetPaintByPen(skPaint, pen);
+
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawPath(skPath, skPaint);
+    }
+}
+
+void Render_Skia::FillPolygon(const UiPointF* points, int32_t count, UiColor dwColor, uint8_t uFade)
+{
+    ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+    ASSERT((points != nullptr) && (count >= 3));
+    if ((points == nullptr) || (count < 3)) {
+        return;
+    }
+    const SkPath skPath = MakePolygonPath(points, count, *m_pSkPointOrg);
+
+    SkPaint skPaint = *m_pSkPaint;
+    //颜色自身的Alpha与叠加透明度相乘（uFade 不再覆盖颜色的Alpha）
+    const uint8_t uAlpha = (uint8_t)(((uint32_t)dwColor.GetA() * (uint32_t)uFade + 127) / 255);
+    skPaint.setARGB(uAlpha, dwColor.GetR(), dwColor.GetG(), dwColor.GetB());
+    skPaint.setStyle(SkPaint::kFill_Style);
+
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawPath(skPath, skPaint);
     }
 }
 
@@ -2178,6 +2397,16 @@ void Render_Skia::SetRenderFactory(IRenderFactory* pRenderFactory)
 IRenderFactory* Render_Skia::GetRenderFactory() const
 {
     return m_pRenderFactory;
+}
+
+void Render_Skia::SetImageSamplingQuality(ImageSamplingQuality quality)
+{
+    m_imageSamplingQuality = quality;
+}
+
+ImageSamplingQuality Render_Skia::GetImageSamplingQuality() const
+{
+    return m_imageSamplingQuality;
 }
 
 SkTextEncoding Render_Skia::GetTextEncoding() const

@@ -174,7 +174,8 @@ void DrawSkiaImage::DrawImage(SkCanvas* pSkCanvas,
                               const SkPoint& skPointOrg,
                               const sk_sp<SkImage>& skSrcImage,
                               const UiRect& rcSrc,
-                              const SkPaint& skPaint)
+                              const SkPaint& skPaint,
+                              const SkSamplingOptions& skSampling)
 {
     if ((pSkCanvas == nullptr) || (skSrcImage == nullptr)) {
         return;
@@ -192,7 +193,7 @@ void DrawSkiaImage::DrawImage(SkCanvas* pSkCanvas,
         //PerformanceUtil statPerformance(_T("Render_Skia::DrawSkiaImage::DrawImage drawImageRect(OpenCV)"));
         rcSkSrc.fRight = rcSkSrc.fLeft + skNewImage->width();
         rcSkSrc.fBottom = rcSkSrc.fTop + skNewImage->height();
-        pSkCanvas->drawImageRect(skNewImage, rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kStrict_SrcRectConstraint);
+        pSkCanvas->drawImageRect(skNewImage, rcSkSrc, rcSkDest, skSampling, &skPaint, SkCanvas::kStrict_SrcRectConstraint);
     }
 #else
     sk_sp<SkImage> skNewImage;
@@ -200,12 +201,12 @@ void DrawSkiaImage::DrawImage(SkCanvas* pSkCanvas,
         //PerformanceUtil statPerformance(_T("Render_Skia::DrawSkiaImage::DrawImage drawImageRect(StbImage)"));
         rcSkSrc.fRight = rcSkSrc.fLeft + skNewImage->width();
         rcSkSrc.fBottom = rcSkSrc.fTop + skNewImage->height();
-        pSkCanvas->drawImageRect(skNewImage, rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kStrict_SrcRectConstraint);
+        pSkCanvas->drawImageRect(skNewImage, rcSkSrc, rcSkDest, skSampling, &skPaint, SkCanvas::kStrict_SrcRectConstraint);
     }
 #endif
     else {
         //PerformanceUtil statPerformance(_T("Render_Skia::DrawSkiaImage::DrawImage drawImageRect(Skia Only)"));
-        pSkCanvas->drawImageRect(skSrcImage, rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kStrict_SrcRectConstraint);
+        pSkCanvas->drawImageRect(skSrcImage, rcSkSrc, rcSkDest, skSampling, &skPaint, SkCanvas::kStrict_SrcRectConstraint);
     }
 }
 
