@@ -180,60 +180,6 @@ SkCanvas* Render_Skia_SDL::GetSkCanvas() const
     return backbuffer->getCanvas();
 }
 
-bool Render_Skia_SDL::SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw)
-{
-#ifdef DUILIB_BUILD_FOR_WIN
-    if (m_sdlWindow != nullptr) {
-        SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
-        HWND hWnd = (HWND)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
-        if (::IsWindow(hWnd)) {
-            return WindowRgn::SetWindowRoundRectRgn(hWnd, rcWnd, rx, ry, bRedraw);
-        }
-    }
-#else
-    //不需要支持，使用SDL时，可以设置窗口为支持透明，可以规避RGN的设置
-    (void)rcWnd;
-    (void)rx;
-    (void)ry;
-    (void)bRedraw;
-#endif
-    return false;
-}
-
-bool Render_Skia_SDL::SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw)
-{
-#ifdef DUILIB_BUILD_FOR_WIN
-    if (m_sdlWindow != nullptr) {
-        SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
-        HWND hWnd = (HWND)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
-        if (::IsWindow(hWnd)) {
-            return WindowRgn::SetWindowRectRgn(hWnd, rcWnd, bRedraw);
-        }
-    }
-#else
-    //不需要支持，使用SDL时，可以设置窗口为支持透明，可以规避RGN的设置
-    (void)rcWnd;
-    (void)bRedraw;
-#endif
-    return false;
-}
-
-void Render_Skia_SDL::ClearWindowRgn(bool bRedraw)
-{
-#ifdef DUILIB_BUILD_FOR_WIN
-    if (m_sdlWindow != nullptr) {
-        SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
-        HWND hWnd = (HWND)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
-        if (::IsWindow(hWnd)) {
-            return WindowRgn::ClearWindowRgn(hWnd, bRedraw);
-        }
-    }
-#else
-    //不需要支持，使用SDL时，可以设置窗口为支持透明，可以规避RGN的设置
-    (void)bRedraw;
-#endif
-}
-
 #ifdef DUILIB_BUILD_FOR_WIN
 
 HDC Render_Skia_SDL::GetRenderDC(HWND /*hWnd*/)
@@ -247,7 +193,42 @@ void Render_Skia_SDL::ReleaseRenderDC(HDC /*hdc*/)
     ASSERT(0);
 }
 
-#endif
+bool Render_Skia_SDL::SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw)
+{
+    if (m_sdlWindow != nullptr) {
+        SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
+        HWND hWnd = (HWND)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+        if (::IsWindow(hWnd)) {
+            return WindowRgn::SetWindowRoundRectRgn(hWnd, rcWnd, rx, ry, bRedraw);
+        }
+    }
+    return false;
+}
+
+bool Render_Skia_SDL::SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw)
+{
+    if (m_sdlWindow != nullptr) {
+        SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
+        HWND hWnd = (HWND)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+        if (::IsWindow(hWnd)) {
+            return WindowRgn::SetWindowRectRgn(hWnd, rcWnd, bRedraw);
+        }
+    }
+    return false;
+}
+
+void Render_Skia_SDL::ClearWindowRgn(bool bRedraw)
+{
+    if (m_sdlWindow != nullptr) {
+        SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
+        HWND hWnd = (HWND)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+        if (::IsWindow(hWnd)) {
+            WindowRgn::ClearWindowRgn(hWnd, bRedraw);
+        }
+    }
+}
+
+#endif // DUILIB_BUILD_FOR_WIN
 
 } // namespace ui
 

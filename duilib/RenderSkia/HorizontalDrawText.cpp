@@ -294,8 +294,9 @@ float HorizontalDrawText::CalculateDefaultCharWidth(const IFont* pFont, const Sk
 
 UiRect HorizontalDrawText::MeasureString(const DString& strText, const MeasureStringParam& measureParam)
 {
-    ASSERT((m_pSkCanvas != nullptr) && (m_pSkPaint != nullptr) && (m_pSkPointOrg != nullptr));
-    if ((m_pSkCanvas == nullptr) || (m_pSkPaint == nullptr) || (m_pSkPointOrg == nullptr)) {
+    //测量过程不使用画布，画布可以为nullptr（无Surface的纯测量场景）
+    ASSERT((m_pSkPaint != nullptr) && (m_pSkPointOrg != nullptr));
+    if ((m_pSkPaint == nullptr) || (m_pSkPointOrg == nullptr)) {
         return UiRect();
     }
     ASSERT(!strText.empty());

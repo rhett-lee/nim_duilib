@@ -3325,6 +3325,7 @@ bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool /*bRedraw*/)
 
 bool NativeWindow_SDL::SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
     IRender* pRender = m_pOwner->OnNativeGetRender();
     if (!IsChildWindow()) {
         ASSERT(pRender != nullptr);
@@ -3332,11 +3333,19 @@ bool NativeWindow_SDL::SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, floa
     if (pRender != nullptr) {
         return pRender->SetWindowRoundRectRgn(rcWnd, rx, ry, bRedraw);
     }
+#else
+    //非Windows平台：使用SDL时可以设置窗口为支持透明，无需设置RGN
+    (void)rcWnd;
+    (void)rx;
+    (void)ry;
+    (void)bRedraw;
+#endif
     return false;
 }
 
 bool NativeWindow_SDL::SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
     IRender* pRender = m_pOwner->OnNativeGetRender();
     if (!IsChildWindow()) {
         ASSERT(pRender != nullptr);
@@ -3344,11 +3353,17 @@ bool NativeWindow_SDL::SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw)
     if (pRender != nullptr) {
         return pRender->SetWindowRectRgn(rcWnd, bRedraw);
     }
+#else
+    //非Windows平台：使用SDL时可以设置窗口为支持透明，无需设置RGN
+    (void)rcWnd;
+    (void)bRedraw;
+#endif
     return false;
 }
 
 void NativeWindow_SDL::ClearWindowRgn(bool bRedraw)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
     IRender* pRender = m_pOwner->OnNativeGetRender();
     if (!IsChildWindow()) {
         ASSERT(pRender != nullptr);
@@ -3356,6 +3371,10 @@ void NativeWindow_SDL::ClearWindowRgn(bool bRedraw)
     if (pRender != nullptr) {
         pRender->ClearWindowRgn(bRedraw);
     }
+#else
+    //非Windows平台：使用SDL时可以设置窗口为支持透明，无需设置RGN
+    (void)bRedraw;
+#endif
 }
 
 void NativeWindow_SDL::OnDropBegin()

@@ -16,7 +16,7 @@
 | 三.2 | 字形 ID 泄漏到公共接口 | `IRender.h#L46-L74` | **已修复** | 公共接口不再出现 `SkGlyphID`（详见第九节） |
 | 三.3 | `RenderType` 是"假抽象" | — | **已修复** | `RenderType` 与 `GetRenderType()` 已删除 |
 | 三.4 | `RichTextData::m_textView` 编码不一致 | `IRender.h#L575-L577` | **暂不处理** | 与内部实现耦合，收益不明显 |
-| 三.5 | Windows 窗口语义混入通用接口 | `IRender.h#L1338-L1347`、`#L1412-L1429` | **部分修复** | `GetRenderDC` 已有条件编译；RGN 三个接口仍未加 `DUILIB_BUILD_FOR_WIN` |
+| 三.5 | Windows 窗口语义混入通用接口 | `IRender.h#L1338-L1347`、`#L1680-L1701` | **已修复** | RGN 三个接口已加 `DUILIB_BUILD_FOR_WIN`；非 Windows 平台不再暴露，`NativeWindow_SDL` 侧同步做条件编译 |
 | 三.6 | 注释中直接写引擎名 | 见第三节第 6 条 | **已修复** | `IRender.h` 的 `RopMode`、`SystemNotification.h` 已改为行为/平台描述，公共头文件普查完成 |
 | 四.1 | `Clone` 家族所有权与 const 不统一 | `IRender.h#L185`、`#L280`、`#L289`、`#L424`、`#L1367` | **已修复** | 五个 `Clone` 统一为 `std::unique_ptr<T> Clone() const` |
 | 四.2 | 只读接口缺 const | 见第四节第 2 条 | **已修复** | 只读接口/只读指针参数全部补 const（含 `IsUnicodeCharSupported`、`BitBlt`） |
@@ -29,7 +29,7 @@
 | 五.1 | `IRender` 职责过载 | 全文 | 未处理 | 需拆分绘制 / 窗口 Surface 职责 |
 | 五.2 | 富文本接口每次传 `IRenderFactory*` | `IRender.h#L1170-L1199`、`#L1373` | **已修复** | Render 创建时注入 factory（`SetRenderFactory`），三个富文本接口不再传该参数 |
 | 五.3 | `rcPaint` 脏区参数 | `IRender.h#L859-L1019`、`Render_Skia.cpp#L2168` | **已修复** | `rcPaint` 后移为可选参数（默认 `UiRect()` = 不限制），内部用当前 clip 兜底 |
-| 五.4 | 测量依赖画布尺寸 | `Render_Skia.cpp#L1692-L1695` | 未处理 | 影响无 Surface 的纯测量场景 |
+| 五.4 | 测量依赖画布尺寸 | `Render_Skia.cpp#L2021-L2039` | **已修复** | `MeasureString` 不再检查 `GetWidth()/GetHeight()`，无 Surface 时也可测量 |
 | 五.5 | 三个绘图接口职责重叠、参数易错 | `IRender.h#L859-L1019` | **已修复** | 收敛为两个 `DrawImage` 重载 + `ImageDrawParam`；删除 `DrawImageRect` |
 | 六 | 缺失接口（P0/P1/P2） | 见第六节 | **已全部修复** | P0/P1/P2 的缺失接口均已补齐 |
 
@@ -47,7 +47,9 @@
 
 > 补充（2026-11-14 第九批）：完成第三节第 6 条的公共头文件注释普查——`IRender.h` 的 `RopMode` 枚举改为纯"行为描述与限制"，`SystemNotification.h` 的 SDL 构建说明改为"跨平台构建"；仅保留 `SharePtr.h` 的来源署名与后端专用头文件中的引擎命名。
 
-统计：已修复 21 项、部分修复 1 项、暂不处理 1 项、未处理 2 项、缺失接口 P0/P1/P2 已全部补齐。
+> 补充（2026-11-14 第十批）：完成第三节第 5 条与第五节第 4 条——RGN 三个接口（`SetWindowRoundRectRgn` / `SetWindowRectRgn` / `ClearWindowRgn`）在 `IRender` 中加 `#ifdef DUILIB_BUILD_FOR_WIN`，`Render_Skia_SDL` 与 `NativeWindow_SDL` 同步做条件编译，非 Windows 平台不再暴露窗口形状语义；`Render_Skia::MeasureString` 去掉对 `GetWidth()/GetHeight()` 的依赖，并允许画布为 `nullptr`（`VerticalDrawText`/`HorizontalDrawText` 的测量路径同步放宽），无 Surface 的纯测量场景可正常返回结果；`render_ext` 新增 7 项检查。
+
+统计：已修复 23 项、部分修复 0 项、暂不处理 1 项、未处理 1 项（五.1）、缺失接口 P0/P1/P2 已全部补齐。
 
 ## 一、结论
 
@@ -110,11 +112,11 @@
 - 位置：`IRender.h#L575-L577`，类型仍是 `std::wstring_view`。
 - **处理结论：暂不处理，保持现状。** 原因：富文本功能的内部实现统一使用 `std::wstring`，改为其他类型会波及内部实现，收益不明显。
 
-### 5. Windows 窗口语义混入通用接口 — **部分修复**
+### 5. Windows 窗口语义混入通用接口 — **已修复**
 
-- 位置：`GetRenderDC(HWND)` / `ReleaseRenderDC`（`IRender.h#L1338-L1347`）、`SetWindowRoundRectRgn` / `SetWindowRectRgn` / `ClearWindowRgn`（`IRender.h#L1412-L1429`）。
-- 现状：`GetRenderDC` / `ReleaseRenderDC` 已用 `DUILIB_BUILD_FOR_WIN` 保护；三个 RGN 接口仍未加平台条件编译，其他平台实现只能空实现。
-- 后续：给 RGN 接口补 `DUILIB_BUILD_FOR_WIN`，或随第五节第 1 条一起移到窗口层接口。
+- 位置：`GetRenderDC(HWND)` / `ReleaseRenderDC`（`IRender.h#L1592-L1601`）、`SetWindowRoundRectRgn` / `SetWindowRectRgn` / `ClearWindowRgn`（`IRender.h#L1680-L1701`）。
+- 现状：`GetRenderDC` / `ReleaseRenderDC` 与三个 RGN 接口均已用 `DUILIB_BUILD_FOR_WIN` 保护，非 Windows 平台不再在通用渲染接口中暴露窗口形状语义。
+- 同步调整：`Render_Skia_SDL.h/.cpp` 的三个 RGN 重写也放入 `DUILIB_BUILD_FOR_WIN`（SDL 在 Windows 上仍通过 `HWND` 实现，非 Windows 平台直接不编译）；`NativeWindow_SDL.cpp` 的调用点做同样的条件编译，非 Windows 平台返回 `false`/空实现，窗口层（`WindowBase`、`NativeWindow_SDL`）对外接口保持不变。
 
 ### 6. 注释中直接写引擎名 — **已修复**
 
@@ -237,11 +239,15 @@
   - `WritePixels` 的 `rcPaint` 是真实复制边界（写像素不受 clip 约束），保持"空 = 不复制"语义不变；
   - 新增 `tests/test_image_draw.cpp`（`image_draw` 用例）覆盖三种情形。
 
-### 4. 测量依赖画布尺寸
+### 4. 测量依赖画布尺寸 — **已修复**
 
-- 位置：`Render_Skia::MeasureString` 在 `GetWidth() <= 0 || GetHeight() <= 0` 时直接返回空（`Render_Skia.cpp#L1692-L1695`）。
-- 影响：无 Surface 的纯测量场景（如提前估算布局）拿不到结果。
-- 建议：让测量不依赖画布尺寸；或在 `IFont` 上提供 `MeasureTextWidth` 之类的轻量度量接口（见第六节）。
+- 位置：`Render_Skia::MeasureString`（`Render_Skia.cpp#L2021-L2039`）。
+- 历史问题：在 `GetWidth() <= 0 || GetHeight() <= 0` 时直接返回空，影响无 Surface 的纯测量场景（如提前估算布局）。
+- 当前实现（2026-11-14 第十批）：
+  - 删除 `GetWidth()/GetHeight()` 判断：文本测量只依赖字体与绘制属性，与画布尺寸无关；
+  - 删除普通路径上的 `GetSkCanvas() == nullptr` 提前返回，测量过程不再获取画布；
+  - 纵向与两端对齐路径需要构造 `VerticalDrawText`/`HorizontalDrawText`，仅在画布存在时传入画布，否则传 `nullptr`；这两个类的 `MeasureString` 同步放宽为不要求画布非空（其测量过程也不使用画布）；
+  - 新增 `render_ext` 用例 `TestMeasureWithoutCanvas`：在未 `Resize()`（尺寸为 0）的离屏 Render 上验证单行与多行测量均可返回有效结果。
 
 ### 5. 三个绘图接口职责重叠、参数易错 — **已修复**
 
@@ -429,7 +435,7 @@ virtual IBitmap* CreateBitmap(uint32_t nWidth, uint32_t nHeight, AlphaType alpha
 
 ## 十、接口一致性调整记录（2026-11-14）
 
-本轮只做接口一致性修正，不改变绘制/测量的视觉效果。变更已同步 `Render_Skia` 实现、控件层调用方与单元测试，`ctest` 11/11 通过（`text_draw` 202 项、`image_draw` 22 项、`render_shape` 36 项、`render_ext` 80 项检查，0 失败）。分九批完成：第一批为第 1、2、5、6、7、8 条，第二批为第 3、4 条（`MeasureRichText` 合并行与末尾两行裁剪接口），第三批删除 `ClearClip`，第四批为第五节第 2 条（富文本接口去掉 `IRenderFactory*` 参数，改为 Render 创建时注入），第五批为第五节第 3 条（`rcPaint` 后移为可选参数并内部兜底），第六批为第五节第 5 条（三个绘图接口合并为两个入口 + `ImageDrawParam`），第七批为第六节 P0 缺失接口补齐，第八批为第六节 P1/P2 缺失接口补齐，第九批为第三节第 6 条（公共头文件注释去掉后端名）。
+本轮只做接口一致性修正，不改变绘制/测量的视觉效果。变更已同步 `Render_Skia` 实现、控件层调用方与单元测试，`ctest` 11/11 通过（`text_draw` 202 项、`image_draw` 22 项、`render_shape` 36 项、`render_ext` 87 项检查，0 失败）。分十批完成：第一批为第 1、2、5、6、7、8 条，第二批为第 3、4 条（`MeasureRichText` 合并行与末尾两行裁剪接口），第三批删除 `ClearClip`，第四批为第五节第 2 条（富文本接口去掉 `IRenderFactory*` 参数，改为 Render 创建时注入），第五批为第五节第 3 条（`rcPaint` 后移为可选参数并内部兜底），第六批为第五节第 5 条（三个绘图接口合并为两个入口 + `ImageDrawParam`），第七批为第六节 P0 缺失接口补齐，第八批为第六节 P1/P2 缺失接口补齐，第九批为第三节第 6 条（公共头文件注释去掉后端名），第十批为第三节第 5 条与第五节第 4 条（RGN 接口条件编译、测量不依赖画布尺寸）。
 
 | 接口 / 字段 | 变更前 | 变更后 | 影响 |
 | --- | --- | --- | --- |
@@ -476,6 +482,8 @@ virtual IBitmap* CreateBitmap(uint32_t nWidth, uint32_t nHeight, AlphaType alpha
 | `IRenderFactory::CreateBitmap` | 只有空位图 + 手动 `Init` | 新增 `CreateBitmap(w, h, alphaType = kPremul)`（纯虚） | 一步创建并初始化；失败返回 `nullptr` |
 | `RopMode` 枚举注释 | 逐个映射 `SkBlendMode`，并对比 `GDI` 位运算 | 改为"行为描述与限制"，说明各模式的语义与近似程度 | 仅注释变更，不影响任何实现或调用 |
 | `SystemNotification` 注释 | "使用 SDL 构建时…"、"仅 SDL 实现生效" | 改为"跨平台构建"、"仅跨平台通知通道实现生效" | 仅注释变更；平台差异信息保留 |
+| `IRender::SetWindowRoundRectRgn` / `SetWindowRectRgn` / `ClearWindowRgn` | 通用接口中无条件暴露（仅 Windows 有实际实现） | 三个接口包入 `#ifdef DUILIB_BUILD_FOR_WIN` | 非 Windows 平台不再暴露窗口形状语义；`Render_Skia_SDL` 与 `NativeWindow_SDL` 的调用点同步条件编译 |
+| `Render_Skia::MeasureString` | 尺寸为 0 或画布为空时返回空矩形 | 去掉画布尺寸/画布非空检查，无 Surface 时仍可测量 | 纯测量场景（提前估算布局）可正常返回；`VerticalDrawText`/`HorizontalDrawText` 的测量路径同步放宽 |
 
 **测试补充**：`tests/test_text_draw.cpp` 新增 `MeasureRichText` 返回值契约校验——原点为 `(0,0)`、宽度不超过限制宽度、限制宽度越小（换行越多）内容总高度越大（共 7 项检查）。
 
@@ -483,4 +491,4 @@ virtual IBitmap* CreateBitmap(uint32_t nWidth, uint32_t nHeight, AlphaType alpha
 
 **测试补充**：新增 `tests/test_render_shape.cpp`（`render_shape` 用例）——覆盖 `FillEllipse`/`DrawEllipse`（中心填充、四角留白、描边位置）、`FillArc`（扇形内外象限）、`FillPolygon`/`DrawPolygon`（内部填充、外部留白、边框位置）、`ClipPath`（三角形内填充、外部留白）、`Set/GetImageSamplingQuality`（默认值与来回切换），共 36 项检查。
 
-**测试补充**：新增 `tests/test_render_ext.cpp`（`render_ext` 用例）——覆盖 `IFont` 度量/文本宽度/字体信息、`IBitmap` 只读查询与新位图创建、`MeasureString` 轻量重载、`MakeImageSnapshot(rc)`（尺寸与像素校验）、`SaveLayer/RestoreLayer` 的 50% 图层混合、`Set/GetBlendMode`、`SetTransform`、`IMatrix` 的 `Reset/Concat/Invert/IsIdentity/MapPoint`、`IPen` 的抗锯齿/斜接限制/自定义虚线、`IBrush` 线性渐变填充（左右两端像素校验），共 80 项检查。
+**测试补充**：新增 `tests/test_render_ext.cpp`（`render_ext` 用例）——覆盖 `IFont` 度量/文本宽度/字体信息、`IBitmap` 只读查询与新位图创建、`MeasureString` 轻量重载、`MakeImageSnapshot(rc)`（尺寸与像素校验）、`SaveLayer/RestoreLayer` 的 50% 图层混合、`Set/GetBlendMode`、`SetTransform`、`IMatrix` 的 `Reset/Concat/Invert/IsIdentity/MapPoint`、`IPen` 的抗锯齿/斜接限制/自定义虚线、`IBrush` 线性渐变填充（左右两端像素校验）、无画布时的文本测量（`TestMeasureWithoutCanvas`），共 87 项检查。

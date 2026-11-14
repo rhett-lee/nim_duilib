@@ -1589,17 +1589,6 @@ public:
     */
     virtual void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding = UiPadding()) = 0;
 
-#ifdef DUILIB_BUILD_FOR_WIN
-    /** 获取DC句柄，当不使用后，需要调用ReleaseDC接口释放资源
-    */
-    virtual HDC GetRenderDC(HWND hWnd) = 0;
-
-    /** 释放DC资源
-    * @param [in] hdc 需要释放的DC句柄
-    */
-    virtual void ReleaseRenderDC(HDC hdc) = 0;
-#endif
-
 public:
     /** 清除位图数据，填充指定颜色（若要使位图数据全部清零，可传入UiColor()参数）
     * @param [in] uiColor 需要填充的颜色值
@@ -1677,24 +1666,39 @@ public:
     */
     virtual bool PaintAndSwapBuffers(IRenderPaint* pRenderPaint) = 0;
 
-    /** 设置窗口的形状为圆角矩形
+#ifdef DUILIB_BUILD_FOR_WIN
+    /** 获取DC句柄，当不使用后，需要调用ReleaseDC接口释放资源（仅Windows平台支持）
+    * @param [in] hWnd 窗口句柄
+    * @return 返回窗口句柄关联的DC句柄
+    */
+    virtual HDC GetRenderDC(HWND hWnd) = 0;
+
+    /** 释放DC资源（仅Windows平台支持）
+    * @param [in] hdc 需要释放的DC句柄
+    */
+    virtual void ReleaseRenderDC(HDC hdc) = 0;
+
+    /** 设置窗口的形状为圆角矩形（仅Windows平台支持）
     * @param [in] rcWnd 需要设置RGN的区域，坐标为屏幕坐标
     * @param [in] rx 圆角的宽度，其值不能为0
     * @param [in] ry 圆角的高度，其值不能为0
     * @param [in] bRedraw 是否重绘
+    * @return 设置成功返回true；平台不支持或参数无效时返回false
     */
     virtual bool SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw) = 0;
 
-    /** 设置窗口的形状为直角矩形
+    /** 设置窗口的形状为直角矩形（仅Windows平台支持）
     * @param [in] rcWnd 需要设置RGN的区域，坐标为屏幕坐标
     * @param [in] bRedraw 是否重绘
+    * @return 设置成功返回true；平台不支持或参数无效时返回false
     */
     virtual bool SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw) = 0;
 
-    /** 清除窗口的形状设置, 恢复为系统默认形状
+    /** 清除窗口的形状设置, 恢复为系统默认形状（仅Windows平台支持）
     * @param [in] bRedraw 是否重绘
     */
     virtual void ClearWindowRgn(bool bRedraw) = 0;
+#endif
 
 };
 

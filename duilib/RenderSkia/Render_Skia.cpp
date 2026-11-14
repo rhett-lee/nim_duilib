@@ -2020,18 +2020,21 @@ UiRect Render_Skia::MeasureString(const DString& strText, IFont* pFont, uint32_t
 
 UiRect Render_Skia::MeasureString(const DString& strText, const MeasureStringParam& measureParam)
 {
-    if ((GetWidth() <= 0) || (GetHeight() <= 0)) {
-        //这种情况是窗口大小为0的情况，返回空，不加断言
-        return UiRect();
+    //文本测量只依赖字体与绘制属性，不依赖画布尺寸，因此不检查 GetWidth()/GetHeight()：
+    //未创建画布（如无窗口的纯测量场景）时，仍可得到正确的测量结果。
+    //画布仅作为构造参数传给文本工具类，测量过程并不使用它，无画布时传nullptr即可
+    SkCanvas* skCanvas = nullptr;
+    if ((GetWidth() > 0) && (GetHeight() > 0)) {
+        skCanvas = GetSkCanvas();
     }
     if (measureParam.uFormat & TEXT_VERTICAL) {
         //纵向绘制文本
-        VerticalDrawText drawTextUtil(GetSkCanvas(), m_pSkPaint.get(), m_pSkPointOrg.get());
+        VerticalDrawText drawTextUtil(skCanvas, m_pSkPaint.get(), m_pSkPointOrg.get());
         return drawTextUtil.MeasureString(strText, measureParam);
     }
     else if ((measureParam.uFormat & TEXT_HJUSTIFY) || (measureParam.fLetterSpacing > 0.0001f)) {
         //当横向文本，对齐方式设置为两端对齐时，或者设置了字间距时，使用该实现方案（因为修改SkTextBox的实现比较困难，维护难度高）
-        HorizontalDrawText drawTextUtil(GetSkCanvas(), m_pSkPaint.get(), m_pSkPointOrg.get());
+        HorizontalDrawText drawTextUtil(skCanvas, m_pSkPaint.get(), m_pSkPointOrg.get());
         return drawTextUtil.MeasureString(strText, measureParam);
     }
 
@@ -2055,12 +2058,7 @@ UiRect Render_Skia::MeasureString(const DString& strText, const MeasureStringPar
         return UiRect();
     }
 
-    SkCanvas* skCanvas = GetSkCanvas();
-    ASSERT(skCanvas != nullptr);
-    if (skCanvas == nullptr) {
-        return UiRect();
-    }
-
+    //注意：此处不要求画布存在（GetSkCanvas() 可能为nullptr），测量过程不使用画布
     FallbackFontCreator fallbackFontCreator = [this, measureParam](SkUnichar unicodeChar, SkGlyphID* glyphId) {
         return DrawSkiaText::CreateFallbackFont(measureParam.pFont, unicodeChar, glyphId);
         };

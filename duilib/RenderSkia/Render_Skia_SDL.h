@@ -54,24 +54,39 @@ public:
     */
     virtual bool PaintAndSwapBuffers(IRenderPaint* pRenderPaint) override;
 
-    /** 设置窗口的形状为圆角矩形
+#ifdef DUILIB_BUILD_FOR_WIN
+    /** 获取DC句柄，当不使用后，需要调用ReleaseDC接口释放资源（仅Windows平台支持）
+    * @param [in] hWnd 窗口句柄
+    * @return 返回窗口句柄关联的DC句柄
+    */
+    virtual HDC GetRenderDC(HWND hWnd) override;
+
+    /** 释放DC资源（仅Windows平台支持）
+    * @param [in] hdc 需要释放的DC句柄
+    */
+    virtual void ReleaseRenderDC(HDC hdc) override;
+
+    /** 设置窗口的形状为圆角矩形（仅Windows平台支持）
     * @param [in] rcWnd 需要设置RGN的区域，坐标为屏幕坐标
     * @param [in] rx 圆角的宽度，其值不能为0
     * @param [in] ry 圆角的高度，其值不能为0
     * @param [in] bRedraw 是否重绘
+    * @return 设置成功返回true；平台不支持或参数无效时返回false
     */
     virtual bool SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw) override;
 
-    /** 设置窗口的形状为直角矩形
+    /** 设置窗口的形状为直角矩形（仅Windows平台支持）
     * @param [in] rcWnd 需要设置RGN的区域，坐标为屏幕坐标
     * @param [in] bRedraw 是否重绘
+    * @return 设置成功返回true；平台不支持或参数无效时返回false
     */
     virtual bool SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw) override;
 
-    /** 清除窗口的形状设置, 恢复为系统默认形状
+    /** 清除窗口的形状设置, 恢复为系统默认形状（仅Windows平台支持）
     * @param [in] bRedraw 是否重绘
     */
     virtual void ClearWindowRgn(bool bRedraw) override;
+#endif
 
     /** 获取SkSurface接口
     */
@@ -80,18 +95,6 @@ public:
     /** 获取SkCanvas接口
     */
     virtual SkCanvas* GetSkCanvas() const override;
-
-private:
-#ifdef DUILIB_BUILD_FOR_WIN
-    /** 获取DC句柄，当不使用后，需要调用ReleaseDC接口释放资源
-    */
-    virtual HDC GetRenderDC(HWND hWnd) override;
-
-    /** 释放DC资源
-    * @param [in] hdc 需要释放的DC句柄
-    */
-    virtual void ReleaseRenderDC(HDC hdc) override;
-#endif
    
 private:
     /** WindowContext对象

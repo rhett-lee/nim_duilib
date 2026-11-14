@@ -206,6 +206,36 @@ void TestMeasureString(ui::IRender* pRender, const std::unique_ptr<ui::IFont>& p
     CHECK(rcText.Height() > 0);
 }
 
+/** 验证：未创建画布（尺寸为0）时，文本测量仍可返回结果（测量不依赖画布尺寸） */
+void TestMeasureWithoutCanvas(ui::IRenderFactory* pRenderFactory,
+                              const std::unique_ptr<ui::IFont>& pFont, bool bFontValid)
+{
+    std::unique_ptr<ui::IRender> pRender(pRenderFactory->CreateRender(nullptr, nullptr));
+    CHECK(pRender != nullptr);
+    if (pRender == nullptr) {
+        return;
+    }
+    //未调用Resize时，画布尺寸为0
+    CHECK(pRender->GetWidth() <= 0);
+    CHECK(pRender->GetHeight() <= 0);
+    if (!bFontValid) {
+        return;
+    }
+
+    //单行文本
+    const ui::UiRect rcText = pRender->MeasureString(_T("Hello"), pFont.get());
+    CHECK(rcText.Width() > 0);
+    CHECK(rcText.Height() > 0);
+
+    //多行文本（限制宽度后自动换行，高度应大于单行）
+    ui::MeasureStringParam measureParam;
+    measureParam.pFont = pFont.get();
+    measureParam.limitWidth = 40;
+    const ui::UiRect rcMultiLine = pRender->MeasureString(_T("Hello World"), measureParam);
+    CHECK(rcMultiLine.Width() > 0);
+    CHECK(rcMultiLine.Height() > rcText.Height());
+}
+
 void TestBlendMode(ui::IRender* pRender)
 {
     CHECK(pRender->GetBlendMode() == ui::BlendMode::kSrcOver);
@@ -355,6 +385,7 @@ int main(int /*argc*/, char* /*argv*/[])
                 TestMatrix(pRenderFactory);
                 TestPen(pRenderFactory);
                 TestMeasureString(pRender.get(), pFont, bFontValid);
+                TestMeasureWithoutCanvas(pRenderFactory, pFont, bFontValid);
                 TestBlendMode(pRender.get());
                 TestTransform(pRender.get(), pRenderFactory);
                 TestSaveLayer(pRender.get());
