@@ -248,6 +248,45 @@ if(WIN32)
 endif()
 
 
+# RichEdit2 纯文本内存占用基准（不注册到 ctest，属于手工运行的评估工具）
+#
+# 用于评估"每增加 1MB 纯文本，RichEdit2 的内存占用增加多少"：
+#   1) 每个文本规模在独立进程中运行，避免不同规模的堆复用互相污染；
+#   2) 分阶段采样：空白基线 -> 生成调用方文本 -> SetText 后 -> 首次绘制后 -> 稳态绘制后；
+#   3) 使用 GetProcessMemoryInfo 读取进程私有提交内存与工作集。
+# 评测请使用 Release 配置，例如：
+#   python3 build/build.py build --config Release --arch x64 --offline --dll --target bench_richedit2_memory
+#   out/x64/Release/tests/bench_richedit2_memory.exe --mb 4
+if(WIN32)
+    add_executable(bench_richedit2_memory
+        bench_richedit2_memory.cpp
+    )
+    target_include_directories(bench_richedit2_memory PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../"
+    )
+    target_link_directories(bench_richedit2_memory PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(bench_richedit2_memory PRIVATE
+        duilib
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet Psapi
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(bench_richedit2_memory PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(bench_richedit2_memory PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(bench_richedit2_memory PRIVATE UNICODE _UNICODE)
+    # 默认资源目录：源码树的 bin/resources（可在运行时用 --resources 覆盖）
+    target_compile_definitions(bench_richedit2_memory PRIVATE
+        DUILIB_BENCH_RESOURCE_DIR="${CMAKE_SOURCE_DIR}/bin/resources"
+    )
+    if(MSVC)
+        target_compile_options(bench_richedit2_memory PRIVATE /utf-8)
+    endif()
+endif()
+
 # ClearAlpha / RestoreAlpha / Render Clear / Render ClearRect 的性能基准
 # （不注册到 ctest，属于手工运行的评估工具）。评测请使用 Release 配置，例如：
 #   python3 build/build.py build --config Release --arch x64 --offline
