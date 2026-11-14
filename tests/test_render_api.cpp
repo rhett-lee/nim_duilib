@@ -16,7 +16,8 @@
 //  8. RA-61 ~ RA-67  像素操作：ClearRect / ReadPixels / WritePixels（两个重载）/ IsEmpty
 //  9. RA-68 ~ RA-70  快照与克隆：MakeImageSnapshot(rc) 的非法参数、Clone 独立性
 // 10. RA-71 ~ RA-85  IPen / IBrush / IPath / IMatrix / IBitmap 属性与 Clone
-// 11. RA-86 ~ RA-89  视区原点平移下的 ReadPixels / WritePixels（ScrollBox 滚动容器场景）
+// 11. RA-86 ~ RA-92  视区原点平移下的 ReadPixels / WritePixels（ScrollBox 滚动容器场景，
+//                    含控件部分可见时脏区域超出画布的裁剪处理）
 //
 // 全部使用离屏渲染，不创建窗口。
 
@@ -1131,6 +1132,37 @@ void TestPixels(ui::IRenderFactory* pRenderFactory)
         CHECK(ReadPixel(pRender.get(), 5, 35, nColor));     //设备坐标(5,15)，在脏区域内
         CHECK(ColorNear(nColor, kGreenColor));
         CHECK(ReadPixel(pRender.get(), 5, 38, nColor));     //设备坐标(5,18)，在脏区域外
+        CHECK(ColorNear(nColor, kWhiteColor));
+
+        //RA-90 WritePixels(rc, rcPaint)：控件部分可见（rc 有一部分超出画布），
+        //     此时只写入画布内的部分，不能返回失败（ScrollBox 滚动时控件被裁剪的典型场景）
+        pRender->Clear(ui::UiColor(kWhiteColor));
+        const int32_t nPartialHeight = 40;
+        std::vector<uint32_t> writePixels3((size_t)nReadWidth * nPartialHeight, kBlueColor);
+        //客户区(0,30,10,70)映射到设备坐标(0,10,10,50)，画布高度40，底部10行超出画布
+        CHECK(pRender->WritePixels(writePixels3.data(), writePixels3.size() * sizeof(uint32_t),
+                                   ui::UiRect(0, 30, 10, 70), ui::UiRect(0, 30, 10, 70)));
+        CHECK(ReadPixel(pRender.get(), 5, 35, nColor));     //设备坐标(5,15)，画布内，已写入
+        CHECK(ColorNear(nColor, kBlueColor));
+        CHECK(ReadPixel(pRender.get(), 5, 59, nColor));     //设备坐标(5,39)，画布内，已写入
+        CHECK(ColorNear(nColor, kBlueColor));
+        CHECK(ReadPixel(pRender.get(), 5, 25, nColor));     //设备坐标(5,5)，在rc之外，未写入
+        CHECK(ColorNear(nColor, kWhiteColor));
+
+        //RA-91 WritePixels(rc, rcPaint)：脏区域部分超出画布下边缘，只写入画布内的脏区域
+        pRender->Clear(ui::UiColor(kWhiteColor));
+        CHECK(pRender->WritePixels(writePixels3.data(), writePixels3.size() * sizeof(uint32_t),
+                                   ui::UiRect(0, 30, 10, 70), ui::UiRect(0, 50, 10, 70)));
+        CHECK(ReadPixel(pRender.get(), 5, 55, nColor));     //设备坐标(5,35)，在脏区域内
+        CHECK(ColorNear(nColor, kBlueColor));
+        CHECK(ReadPixel(pRender.get(), 5, 35, nColor));     //设备坐标(5,15)，在脏区域外
+        CHECK(ColorNear(nColor, kWhiteColor));
+
+        //RA-92 WritePixels(rc, rcPaint)：脏区域完全在画布外，返回成功但不修改任何像素
+        pRender->Clear(ui::UiColor(kWhiteColor));
+        CHECK(pRender->WritePixels(writePixels3.data(), writePixels3.size() * sizeof(uint32_t),
+                                   ui::UiRect(0, 80, 10, 120), ui::UiRect(0, 80, 10, 120)));
+        CHECK(ReadPixel(pRender.get(), 5, 25, nColor));     //设备坐标(5,5)，未被修改
         CHECK(ColorNear(nColor, kWhiteColor));
 
         //恢复视区原点，避免影响后续用例

@@ -1641,9 +1641,12 @@ public:
     * @param [in] srcPixels 源数据的缓冲区起始地址
     * @param [in] srcPixelsLen 源数据srcPixels缓冲区长度，长度需要满足要求：srcPixelsLen == (rc.Width() * rc.Height() * sizeof(uint32_t))
     * @param [in] rc 在Render中的矩形范围（客户区坐标），rc.Width()代表图像数据的宽度，rc.Height()代表图像数据的高度；
-    *                必须完全位于画布内，否则返回false
-    * @param [in] rcPaint 绘制的部分矩形范围（与rc同一坐标系），代表脏区域，仅写入rcPaint与rc交集的部分区域
-    * @return 写入成功返回true；区域超出画布、画布不可用或缓冲区长度不匹配时返回false
+    *                可以部分位于画布外（例如容器通过平移视区原点实现滚动时，控件可能只有部分可见），
+    *                超出画布的部分会被裁剪，不会导致写入失败
+    * @param [in] rcPaint 绘制的部分矩形范围（与rc同一坐标系），代表脏区域，仅写入rcPaint与rc交集的部分区域；
+    *                     该区域超出画布的部分同样会被裁剪
+    * @return 写入成功返回true（脏区域全部位于画布外时，没有需要写入的数据，也返回true）；
+    *         画布不可用或缓冲区长度不匹配时返回false
     */
     virtual bool WritePixels(const void* srcPixels, size_t srcPixelsLen, const UiRect& rc, const UiRect& rcPaint) = 0;
 

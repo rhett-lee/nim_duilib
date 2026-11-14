@@ -2561,7 +2561,8 @@ bool Render_Skia::WritePixels(const void* srcPixels, size_t srcPixelsLen, const 
 
 bool Render_Skia::WritePixels(const void* srcPixels, size_t srcPixelsLen, const UiRect& rc, const UiRect& rcPaint)
 {
-    if (rc == rcPaint) {
+    if ((rc == rcPaint) && IsRectInsideCanvas(rc, *m_pSkPointOrg, GetWidth(), GetHeight())) {
+        //整块写入且完全位于画布内，走快速路径
         return WritePixels(srcPixels, srcPixelsLen, rc);
     }
     ASSERT(srcPixels != nullptr);
@@ -2570,11 +2571,6 @@ bool Render_Skia::WritePixels(const void* srcPixels, size_t srcPixelsLen, const 
     }
     ASSERT(!rc.IsEmpty());
     if (rc.IsEmpty()) {
-        return false;
-    }
-    //接口语义：写入区域必须完全位于画布内（rcPaint只用于限定实际写入的脏区域）
-    //rc 是客户区坐标，需要按视区原点换算到设备坐标后再判断
-    if (!IsRectInsideCanvas(rc, *m_pSkPointOrg, GetWidth(), GetHeight())) {
         return false;
     }
     //修复：宽高相乘可能溢出 int，统一提升为 size_t 计算
@@ -2590,18 +2586,30 @@ bool Render_Skia::WritePixels(const void* srcPixels, size_t srcPixelsLen, const 
         return false;
     }
 
+    //接口语义：仅写入 rcPaint 与 rc 交集的脏区域，因此 rc 可以部分位于画布外
+    //（例如 ScrollBox 通过平移视区原点实现滚动时，控件可能只有部分可见），
+    //超出画布的部分按画布范围裁剪，与 Skia writePixels 的裁剪语义保持一致。
+    const int32_t nOrgX = (int32_t)m_pSkPointOrg->fX;
+    const int32_t nOrgY = (int32_t)m_pSkPointOrg->fY;
     UiRect updateRect = rc;
     updateRect.Intersect(rcPaint);
-    ASSERT(!updateRect.IsEmpty());
-    if (updateRect.IsEmpty()) {
-        return false;
+    //脏区域按视区原点换算到设备坐标，再裁剪到画布范围内
+    int32_t nLeft = updateRect.left + nOrgX;
+    int32_t nTop = updateRect.top + nOrgY;
+    int32_t nRight = nLeft + updateRect.Width();
+    int32_t nBottom = nTop + updateRect.Height();
+    nLeft = std::max(nLeft, 0);
+    nTop = std::max(nTop, 0);
+    nRight = std::min(nRight, GetWidth());
+    nBottom = std::min(nBottom, GetHeight());
+    if ((nRight <= nLeft) || (nBottom <= nTop)) {
+        //脏区域全部位于画布外，没有需要写入的数据
+        return true;
     }
+    //设备坐标换算为源数据中的局部坐标（裁剪只会缩小区域，不会超出源数据范围）
+    const int32_t nSrcLeft = nLeft - nOrgX - (int32_t)rc.left;
+    const int32_t nSrcTop = nTop - nOrgY - (int32_t)rc.top;
 
-    int32_t destX = updateRect.left;
-    int32_t destY = updateRect.top;
-    updateRect.Offset(-rc.left, -rc.top);
-
-    
     SkImageInfo skImageInfo = SkImageInfo::Make(rc.Width(), rc.Height(), SkColorType::kN32_SkColorType, SkAlphaType::kPremul_SkAlphaType);
     SkBitmap skBitmap;
     skBitmap.setInfo(skImageInfo);
@@ -2609,11 +2617,12 @@ bool Render_Skia::WritePixels(const void* srcPixels, size_t srcPixelsLen, const 
     skBitmap.setPixels(const_cast<void*>(srcPixels));
 
     SkBitmap dstDirtyBitmap;
-    SkIRect dstRect = SkIRect::MakeXYWH(updateRect.left, updateRect.top, updateRect.Width(), updateRect.Height());
+    SkIRect dstRect = SkIRect::MakeXYWH(nSrcLeft, nSrcTop, nRight - nLeft, nBottom - nTop);
     bool bRet = skBitmap.extractSubset(&dstDirtyBitmap, dstRect);
     ASSERT(bRet);
     if(bRet) {
-        bRet = skCanvas->writePixels(dstDirtyBitmap, destX + (int32_t)m_pSkPointOrg->fX, destY + (int32_t)m_pSkPointOrg->fY);
+        //nLeft, nTop 已经是设备坐标
+        bRet = skCanvas->writePixels(dstDirtyBitmap, nLeft, nTop);
         ASSERT_UNUSED_VARIABLE(bRet);
     }
     return bRet;    
