@@ -404,7 +404,7 @@ void RichTextImpl::CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect
     if (!richTextData.empty()) {
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         std::vector<std::vector<UiRect>> richTextRects;
-        pRender->MeasureRichText(rc, UiSize(), pRenderFactory, richTextData, &richTextRects);
+        pRender->MeasureRichText(rc, UiSize(), pRenderFactory, richTextData, nullptr, nullptr, &richTextRects);
         ASSERT(richTextRects.size() == m_textData.size());
         if (richTextRects.size() == m_textData.size()) {
             for (size_t index = 0; index < m_textData.size(); ++index) {
@@ -2098,7 +2098,7 @@ bool RichTextImpl::UpdateTextSelectLayout(IRender* pRender)
         measureTextData.push_back(textData);
     }
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-    pRender->MeasureRichText2(rcText, UiSize(), pRenderFactory, measureTextData, &lineInfoParam, nullptr);
+    pRender->MeasureRichText(rcText, UiSize(), pRenderFactory, measureTextData, &lineInfoParam, nullptr, nullptr);
 
     //逐行构建字符的几何信息（行内坐标是相对文本区域左上角的坐标）
     const int32_t nAvailableWidth = rcText.Width();

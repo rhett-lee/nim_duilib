@@ -237,7 +237,7 @@ void Render_Skia::RestoreClip(int32_t nState)
     }
 }
 
-int32_t Render_Skia::SetClip(const UiRect& rc, bool bIntersect)
+int32_t Render_Skia::ClipRect(const UiRect& rc, bool bIntersect)
 {
     // 空矩形（rc.right <= rc.left）跳过：避免无意义的 save+clip 调用
     if (rc.right <= rc.left || rc.bottom <= rc.top) {
@@ -263,7 +263,7 @@ int32_t Render_Skia::SetClip(const UiRect& rc, bool bIntersect)
     return -1;
 }
 
-int32_t Render_Skia::SetRoundClip(const UiRect& rc, float rx, float ry, bool bIntersect)
+int32_t Render_Skia::ClipRoundRect(const UiRect& rc, float rx, float ry, bool bIntersect)
 {
     if (rc.right <= rc.left || rc.bottom <= rc.top) {
         return -1;
@@ -1850,36 +1850,16 @@ UiRect Render_Skia::MeasureString(const DString& strText, const MeasureStringPar
 }
 
 UiRect Render_Skia::MeasureRichText(const UiRect& textRect,
-                                  const UiSize& szScrollOffset,
-                                  IRenderFactory* pRenderFactory,
-                                  const std::vector<RichTextData>& richTextData,
-                                  std::vector<std::vector<UiRect>>* pRichTextRects)
-{
-    ui::DrawRichText drawRichText(this, GetSkCanvas(), m_pSkPaint.get(), m_pSkPointOrg.get());
-    return drawRichText.InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true, nullptr, nullptr, pRichTextRects);
-}
-
-UiRect Render_Skia::MeasureRichText2(const UiRect& textRect,
                                    const UiSize& szScrollOffset,
                                    IRenderFactory* pRenderFactory,
                                    const std::vector<RichTextData>& richTextData,
                                    RichTextLineInfoParam* pLineInfoParam,
+                                   std::shared_ptr<DrawRichTextCache>* spDrawRichTextCache,
                                    std::vector<std::vector<UiRect>>* pRichTextRects)
 {
     ui::DrawRichText drawRichText(this, GetSkCanvas(), m_pSkPaint.get(), m_pSkPointOrg.get());
-    return drawRichText.InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true, pLineInfoParam, nullptr, pRichTextRects);
-}
-
-UiRect Render_Skia::MeasureRichText3(const UiRect& textRect,
-                                   const UiSize& szScrollOffset,
-                                   IRenderFactory* pRenderFactory, 
-                                   const std::vector<RichTextData>& richTextData,
-                                   RichTextLineInfoParam* pLineInfoParam,
-                                   std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
-                                   std::vector<std::vector<UiRect>>* pRichTextRects)
-{
-    ui::DrawRichText drawRichText(this, GetSkCanvas(), m_pSkPaint.get(), m_pSkPointOrg.get());
-    return drawRichText.InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true, pLineInfoParam, &spDrawRichTextCache, pRichTextRects);
+    return drawRichText.InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true,
+                                             pLineInfoParam, spDrawRichTextCache, pRichTextRects);
 }
 
 void Render_Skia::DrawRichText(const UiRect& textRect,

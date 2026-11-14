@@ -2356,7 +2356,7 @@ void RichEdit2::PaintCompositionText(IRender* pRender)
     }
 
     //限制在文本绘制区域内，避免组合文本溢出到边框外
-    const int32_t nClipState = pRender->SetClip(rcDrawText);
+    const int32_t nClipState = pRender->ClipRect(rcDrawText);
     DrawStringParam drawParam;
     drawParam.pFont = pFont;
     drawParam.uFormat = 0;

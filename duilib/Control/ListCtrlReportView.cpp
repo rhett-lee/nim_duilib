@@ -961,7 +961,7 @@ void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
             UiRect rUnion;
             if (UiRect::Intersect(rUnion, rcTopControls, rcControlRect)) {
                 //有交集，需要设置裁剪，避免绘制置顶元素与其他元素重叠的区域
-                nClipState = pRender->SetClip(rUnion, false);
+                nClipState = pRender->ClipRect(rUnion, false);
             }
         }
 
@@ -1168,7 +1168,7 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
                 if (rcClip.left >= rcClip.right) {
                     continue;
                 }
-                nClipState = pRender->SetClip(rcClip, true);
+                nClipState = pRender->ClipRect(rcClip, true);
             }
             //横坐标位置放在每个子项控件的右侧部
             float fXPos = (float)xPos - (float)fColumnLineWidth / 2;

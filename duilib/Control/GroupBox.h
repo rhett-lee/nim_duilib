@@ -659,7 +659,7 @@ void GroupBoxTemplate<InheritType>::PaintChild(IRender* pRender, const UiRect& r
     }
     if (m_nAnimHeight >= 0) {
         //动画进行中：子控件仍按完整位置布局，裁剪到控件当前矩形内，形成高度收放效果
-        int32_t nClipState = pRender->SetClip(this->GetRect(), true);
+        int32_t nClipState = pRender->ClipRect(this->GetRect(), true);
         BaseClass::PaintChild(pRender, rcPaint);
         pRender->ClearClip(nClipState);
         return;
@@ -930,7 +930,7 @@ void GroupBoxTemplate<InheritType>::PaintText(IRender* pRender)
         rcClip.Union(iconRect);
     }
     if (!rcClip.IsEmpty()) {
-        nClipState = pRender->SetClip(rcClip, false);
+        nClipState = pRender->ClipRect(rcClip, false);
     }
 
     //在文字底部绘制边框

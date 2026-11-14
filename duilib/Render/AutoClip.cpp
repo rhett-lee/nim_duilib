@@ -2,8 +2,8 @@
 // -----------------------------------------------------------------------------
 // AutoClip 类的实现。
 // 本文件实现的是一个 RAII 风格的"裁剪区域作用域守卫"：
-//   - 构造时，根据用户传入的参数，调用 IRender::SetClip 或
-//     IRender::SetRoundClip 设置一个新的裁剪区域；
+//   - 构造时，根据用户传入的参数，调用 IRender::ClipRect 或
+//     IRender::ClipRoundRect 设置一个新的裁剪区域；
 //   - 析构时，如果确实设置过裁剪区域，则调用 IRender::ClearClip
 //     将渲染状态恢复到设置前的水平。
 //
@@ -40,17 +40,17 @@ AutoClip::AutoClip(IRender* pRender, const UiRect& rc, bool bClip)
         // 二次判空：在 Release 编译下避免对空指针解引用
         if (m_pRender != nullptr) {
             // 设置矩形裁剪区域，内部会与当前裁剪区取交集并保存旧状态
-            m_nClipState = m_pRender->SetClip(rc);
-            // SetClip 返回 -1 表示"没有实际设置裁剪"（例如矩形为空、渲染对象不可用），
+            m_nClipState = m_pRender->ClipRect(rc);
+            // ClipRect 返回 -1 表示"没有实际设置裁剪"（例如矩形为空、渲染对象不可用），
             // 此时析构函数不能再调用 ClearClip(-1)：该参数与 IRender 的约定
-            // （nState 必须由 SetClip/SetRoundClip 成功返回）不符，Debug 下会触发 ASSERT。
+            // （nState 必须由 ClipRect/ClipRoundRect 成功返回）不符，Debug 下会触发 ASSERT。
             m_bClip = (m_nClipState >= 0);
         }
     }
 }
 
 // 构造一个圆角矩形裁剪守卫。
-// 行为与矩形版本一致，只是最终调用的是 SetRoundClip。
+// 行为与矩形版本一致，只是最终调用的是 ClipRoundRect。
 AutoClip::AutoClip(IRender* pRender, const UiRect& rcRound,
                    float fRoundWidth, float fRoundHeight, bool bClip)
 {
@@ -66,7 +66,7 @@ AutoClip::AutoClip(IRender* pRender, const UiRect& rcRound,
 
         if (m_pRender != nullptr) {
             // 设置圆角矩形裁剪区域，内部会与当前裁剪区取交集并保存旧状态
-            m_nClipState = m_pRender->SetRoundClip(rcRound, fRoundWidth, fRoundHeight);
+            m_nClipState = m_pRender->ClipRoundRect(rcRound, fRoundWidth, fRoundHeight);
             // 同矩形裁剪：返回 -1 表示未实际设置裁剪，析构时不需要（也不应该）调用 ClearClip
             m_bClip = (m_nClipState >= 0);
         }
@@ -75,7 +75,7 @@ AutoClip::AutoClip(IRender* pRender, const UiRect& rcRound,
 
 // 析构函数：仅当确实设置过裁剪且渲染对象有效时，才清除裁剪区域。
 // 这样做的好处：
-//   1. 与构造时"对称"——有 SetClip/SetRoundClip 就有 ClearClip；
+//   1. 与构造时"对称"——有 ClipRect/ClipRoundRect 就有 ClearClip；
 //   2. 对 bClip=false 的"空操作"守卫，析构时不会产生任何副作用；
 //   3. 通过 m_pRender != nullptr 的检查，保证即使在 Release 下也不会
 //      对空指针调用 ClearClip，从而避免崩溃。

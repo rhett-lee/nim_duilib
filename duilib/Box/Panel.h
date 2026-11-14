@@ -1344,8 +1344,8 @@ void PanelTemplate<InheritType>::PaintChild(IRender* pRender, const UiRect& rcPa
         float fRoundHeight = 0;
         bool bHasRound = this->GetBorderRound(fRoundWidth, fRoundHeight);
         int32_t nClipState = bHasRound
-            ? pRender->SetRoundClip(rcClip, fRoundWidth, fRoundHeight, true)
-            : pRender->SetClip(rcClip, true);
+            ? pRender->ClipRoundRect(rcClip, fRoundWidth, fRoundHeight, true)
+            : pRender->ClipRect(rcClip, true);
         BaseClass::PaintChild(pRender, rcPaint);
         pRender->ClearClip(nClipState);
         return;
@@ -1429,9 +1429,9 @@ void PanelTemplate<InheritType>::PaintText(IRender* pRender)
     int32_t nClipState = -1;
     if (!m_titleBkColor.empty()) {
         if (bHasRound) {
-            //注意：SetRoundClip 第 4 个参数为 bIntersect，必须传 true（在圆角区域内绘制）；
+            //注意：ClipRoundRect 第 4 个参数为 bIntersect，必须传 true（在圆角区域内绘制）；
             //传 false 会使用 kDifference 反向裁剪，标题背景/文字/箭头会被整体挖空
-            nClipState = pRender->SetRoundClip(this->GetRect(), fRoundWidth, fRoundHeight, true);
+            nClipState = pRender->ClipRoundRect(this->GetRect(), fRoundWidth, fRoundHeight, true);
         }
         UiColor bkColor = this->GetUiColor(m_titleBkColor.c_str());
         if (!bkColor.IsEmpty()) {

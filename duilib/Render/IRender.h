@@ -909,7 +909,7 @@ public:
     * @param [in] bIntersect ClipOp操作标志，true表示kIntersect操作，false表示kDifference操作
     * @return 返回当前设备上下文标志，在调用ClearClip的时候需要传回该返回值，错误时返回-1
     */
-    virtual int32_t SetClip(const UiRect& rc, bool bIntersect = true) = 0;
+    virtual int32_t ClipRect(const UiRect& rc, bool bIntersect = true) = 0;
 
     /** 设置圆角矩形剪辑区域，并保存当前设备上下文的状态
     * @param [in] rcItem 剪辑区域，与当前剪辑区取交集作为新的剪辑区域
@@ -918,10 +918,10 @@ public:
     * @param [in] bIntersect ClipOp操作标志，true表示kIntersect操作，false表示kDifference操作
     * @return 返回当前设备上下文标志，在调用ClearClip的时候需要传回该返回值，错误时返回-1
     */
-    virtual int32_t SetRoundClip(const UiRect& rcItem, float rx, float ry, bool bIntersect = true) = 0;
+    virtual int32_t ClipRoundRect(const UiRect& rcItem, float rx, float ry, bool bIntersect = true) = 0;
 
     /** 清除矩形剪辑区域，并恢复设备上下文到最近一次保存的状态
-    * @param [in] nState 设备上下文标志, 由SetClip或者SetRoundClip函数返回
+    * @param [in] nState 设备上下文标志, 由ClipRect或者ClipRoundRect函数返回
     */
     virtual void ClearClip(int32_t nState) = 0;
 
@@ -1163,53 +1163,23 @@ public:
     */
     virtual void DrawString(const DString& strText, const DrawStringParam& drawParam) = 0;
 
-    /** 计算格式文本的宽度和高度
+    /** 计算格式文本的宽度和高度，可选输出每个字符的位置与绘制缓存
     * @param [in] textRect 绘制文本的矩形区域
     * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
     * @param [in] pRenderFactory 渲染接口，用于创建字体
     * @param [in] richTextData 格式化文字内容
+    * @param [in,out] pLineInfoParam 如果不为nullptr，则计算每个字符的区域
+    * @param [out] spDrawRichTextCache 如果不为nullptr，则返回绘制缓存
     * @param [out] pRichTextRects 如果不为nullptr，则返回richTextData中每个数据绘制的矩形范围列表
     * @return 返回文字的宽度和高度（宽度为内容的最大行宽，高度为内容总高度）
     */
     virtual UiRect MeasureRichText(const UiRect& textRect,
-                                 const UiSize& szScrollOffset,
-                                 IRenderFactory* pRenderFactory, 
-                                 const std::vector<RichTextData>& richTextData,
-                                 std::vector<std::vector<UiRect>>* pRichTextRects) = 0;
-
-    /** 计算格式文本的宽度和高度, 并计算每个字符的位置
-    * @param [in] textRect 绘制文本的矩形区域
-    * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
-    * @param [in] pRenderFactory 渲染接口，用于创建字体
-    * @param [in] richTextData 格式化文字内容
-    * @param [in,out] pLineInfoParam 如果不为nullptr，则计算每个字符的区域
-    * @param [out] pRichTextRects 如果不为nullptr，则返回richTextData中每个数据绘制的矩形范围列表
-    * @return 返回文字的宽度和高度（宽度为内容的最大行宽，高度为内容总高度）
-    */
-    virtual UiRect MeasureRichText2(const UiRect& textRect,
-                                  const UiSize& szScrollOffset,
-                                  IRenderFactory* pRenderFactory, 
-                                  const std::vector<RichTextData>& richTextData,
-                                  RichTextLineInfoParam* pLineInfoParam,
-                                  std::vector<std::vector<UiRect>>* pRichTextRects) = 0;
-
-    /** 计算格式文本的宽度和高度, 并计算每个字符的位置，并创建绘制缓存
-    * @param [in] textRect 绘制文本的矩形区域
-    * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
-    * @param [in] pRenderFactory 渲染接口，用于创建字体
-    * @param [in] richTextData 格式化文字内容
-    * @param [in,out] pLineInfoParam 如果不为nullptr，则计算每个字符的区域
-    * @param [out] spDrawRichTextCache 返回绘制缓存
-    * @param [out] pRichTextRects 如果不为nullptr，则返回richTextData中每个数据绘制的矩形范围列表
-    * @return 返回文字的宽度和高度（宽度为内容的最大行宽，高度为内容总高度）
-    */
-    virtual UiRect MeasureRichText3(const UiRect& textRect,
-                                  const UiSize& szScrollOffset,
-                                  IRenderFactory* pRenderFactory, 
-                                  const std::vector<RichTextData>& richTextData,
-                                  RichTextLineInfoParam* pLineInfoParam,
-                                  std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
-                                  std::vector<std::vector<UiRect>>* pRichTextRects) = 0;
+                                   const UiSize& szScrollOffset,
+                                   IRenderFactory* pRenderFactory,
+                                   const std::vector<RichTextData>& richTextData,
+                                   RichTextLineInfoParam* pLineInfoParam = nullptr,
+                                   std::shared_ptr<DrawRichTextCache>* spDrawRichTextCache = nullptr,
+                                   std::vector<std::vector<UiRect>>* pRichTextRects = nullptr) = 0;
 
     /** 绘制格式文本
     * @param [in] textRect 绘制文本的矩形区域

@@ -42,8 +42,8 @@ public:
 
     virtual void SaveClip(int32_t& nState) override;
     virtual void RestoreClip(int32_t nState) override;
-    virtual int32_t SetClip(const UiRect& rc, bool bIntersect = true) override;
-    virtual int32_t SetRoundClip(const UiRect& rc, float rx, float ry, bool bIntersect = true) override;
+    virtual int32_t ClipRect(const UiRect& rc, bool bIntersect = true) override;
+    virtual int32_t ClipRoundRect(const UiRect& rc, float rx, float ry, bool bIntersect = true) override;
     virtual void ClearClip(int32_t nState) override;
 
     virtual bool BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, const IRender* pSrcRender, int32_t xSrc, int32_t ySrc, RopMode rop) override;
@@ -96,25 +96,12 @@ public:
     virtual void DrawString(const DString& strText, const DrawStringParam& drawParam) override;
 
     virtual UiRect MeasureRichText(const UiRect& textRect,
-                                 const UiSize& szScrollOffset,
-                                 IRenderFactory* pRenderFactory, 
-                                 const std::vector<RichTextData>& richTextData,
-                                 std::vector<std::vector<UiRect>>* pRichTextRects) override;
-
-    virtual UiRect MeasureRichText2(const UiRect& textRect,
-                                  const UiSize& szScrollOffset,
-                                  IRenderFactory* pRenderFactory, 
-                                  const std::vector<RichTextData>& richTextData,
-                                  RichTextLineInfoParam* pLineInfoParam,
-                                  std::vector<std::vector<UiRect>>* pRichTextRects) override;
-
-    virtual UiRect MeasureRichText3(const UiRect& textRect,
-                                  const UiSize& szScrollOffset,
-                                  IRenderFactory* pRenderFactory, 
-                                  const std::vector<RichTextData>& richTextData,
-                                  RichTextLineInfoParam* pLineInfoParam,
-                                  std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
-                                  std::vector<std::vector<UiRect>>* pRichTextRects) override;
+                                   const UiSize& szScrollOffset,
+                                   IRenderFactory* pRenderFactory,
+                                   const std::vector<RichTextData>& richTextData,
+                                   RichTextLineInfoParam* pLineInfoParam = nullptr,
+                                   std::shared_ptr<DrawRichTextCache>* spDrawRichTextCache = nullptr,
+                                   std::vector<std::vector<UiRect>>* pRichTextRects = nullptr) override;
 
     virtual void DrawRichText(const UiRect& textRect,
                               const UiSize& szScrollOffset,

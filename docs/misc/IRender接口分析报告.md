@@ -1,10 +1,10 @@
 下面的分析基于 `duilib/Render/IRender.h`，并对照 Skia 实现（`duilib/RenderSkia/Render_Skia.cpp`、`Bitmap_Skia.h`、`Path_Skia.h`、`DrawSkiaImage.cpp`）核实。
 
-> **文档状态（2026-11-14 更新）**：本报告已随"字体回退性能优化"（见 [字体回退性能优化分析.md](字体回退性能优化分析.md)）重新校准；2026-11-14 又完成了第四节"接口一致性问题"的第 1、2、5、6、7、8 条（`Clone` 家族、只读 const、测量返回值、魔法值、文本间距命名、取值风格）。文中代码行号以当前代码为准；每条问题均标注当前处理状态（已修复 / 部分修复 / 未处理 / 暂不处理）；"零、进度总览"与"九、字体回退相关接口变更记录"便于后续跟进。
+> **文档状态（2026-11-14 更新）**：本报告已随"字体回退性能优化"（见 [字体回退性能优化分析.md](字体回退性能优化分析.md)）重新校准；2026-11-14 又完成了第四节"接口一致性问题"的全部 8 条（第 1、2、5、6、7、8 条：`Clone` 家族、只读 const、测量返回值、魔法值、文本间距命名、取值风格；第 3、4 条：裁剪接口改名、`MeasureRichText` 重载合并）。文中代码行号以当前代码为准；每条问题均标注当前处理状态（已修复 / 部分修复 / 未处理 / 暂不处理）；"零、进度总览"与"九、字体回退相关接口变更记录"便于后续跟进。
 
 ## 零、进度总览（2026-11-14）
 
-字体回退优化以渲染内部实现为主，但同时调整了 `IFont` / `IFontMgr` / `IFallbackFontMgr` 三个公共接口（见第九节），并顺带修复了本报告的部分"必须改"项；2026-11-14 集中处理了第四节的接口一致性问题（第 1、2、5、6、7、8 条）。当前状态：
+字体回退优化以渲染内部实现为主，但同时调整了 `IFont` / `IFontMgr` / `IFallbackFontMgr` 三个公共接口（见第九节），并顺带修复了本报告的部分"必须改"项；2026-11-14 已集中处理完第四节的 8 条接口一致性问题。当前状态：
 
 | 编号 | 问题 | 位置（当前行号） | 状态 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -20,9 +20,9 @@
 | 三.6 | 注释中直接写引擎名 | 见第三节第 6 条 | **部分修复** | 已清理 `AlphaType`、`DrawArc` 等处的引擎名，建议后续普查 |
 | 四.1 | `Clone` 家族所有权与 const 不统一 | `IRender.h#L185`、`#L280`、`#L289`、`#L424`、`#L1367` | **已修复** | 五个 `Clone` 统一为 `std::unique_ptr<T> Clone() const` |
 | 四.2 | 只读接口缺 const | 见第四节第 2 条 | **已修复** | 只读接口/只读指针参数全部补 const（含 `IsUnicodeCharSupported`、`BitBlt`） |
-| 四.3 | 两套裁剪状态机制并存 | `IRender.h#L897-L925` | 未处理 | 建议保留状态栈，`SetClip` 内部复用 |
-| 四.4 | `MeasureRichText*` 编号式重载膨胀 | `IRender.h#L1174-L1219` | 未处理 | 建议合并为可选出参的单接口 |
-| 四.5 | 返回值约定不一致 | `IRender.h#L1174-L1219` | **已修复** | `MeasureRichText/2/3` 统一返回 `UiRect`（宽度=内容最大行宽，高度=内容总高度） |
+| 四.3 | 两套裁剪状态机制并存 | `IRender.h#L900-L926` | **已修复** | 保留 `SaveClip/RestoreClip`；`SetClip→ClipRect`、`SetRoundClip→ClipRoundRect` |
+| 四.4 | `MeasureRichText*` 编号式重载膨胀 | `IRender.h#L1176` | **已修复** | 合并为单个 `MeasureRichText`，可选输出参数默认 `nullptr` |
+| 四.5 | 返回值约定不一致 | `IRender.h#L1176` | **已修复** | `MeasureRichText` 返回 `UiRect`（宽度=内容最大行宽，高度=内容总高度） |
 | 四.6 | "未设置"用魔法值表达 | `IRender.h#L826-L829` | **已修复** | `rectSize` 拆分为 `limitWidth` / `limitHeight`，`-1` 表示不限制 |
 | 四.7 | 文本间距模型分裂 | `IRender.h#L835`、`#L851`、`#L604` | **已修复** | `Measure/DrawStringParam::fLetterSpacing` 与 `RichTextData::m_fLetterSpacing` 命名统一 |
 | 四.8 | 取值风格不一致 | `IRender.h#L24`、`#L90` | **已修复** | `IFontMgr::GetFontName` 改为按值返回 `DString` |
@@ -32,7 +32,7 @@
 | 五.4 | 测量依赖画布尺寸 | `Render_Skia.cpp#L1692-L1695` | 未处理 | 影响无 Surface 的纯测量场景 |
 | 六 | 缺失接口（P0/P1/P2） | 见第六节 | 未处理 | 字体回退优化未新增任何图元/裁剪/采样接口 |
 
-统计：已修复 13 项、部分修复 2 项、暂不处理 1 项、未处理 6 项、缺失接口 3 组待排期。
+统计：已修复 15 项、部分修复 2 项、暂不处理 1 项、未处理 4 项、缺失接口 3 组待排期。
 
 ## 一、结论
 
@@ -108,7 +108,7 @@
 
 ## 四、接口一致性问题
 
-> 状态：第 1、2、5、6、7、8 条已于 2026-11-14 修复；第 3、4 条仍未处理。下列行号已按当前代码校准，可直接作为后续修改的定位依据。
+> 状态：本组 8 条问题已于 2026-11-14 全部修复（第 1、2、5、6、7、8 条为第一批，第 3、4 条为第二批）。下列行号已按当前代码校准。
 
 ### 1. `Clone` 家族所有权与 const 不统一 — **已修复**
 
@@ -130,29 +130,32 @@
 - 只读指针参数：`IPath::Transform(const IMatrix*)`（`#L407`）、`DrawArc(..., const UiColor* gradientColor, const UiRect* gradientRect)`（`#L1105`）、`DrawImage(..., const IBitmap* pBitmap, ...)`（`#L987`、`#L995`）、`DrawImageRect(..., const IBitmap*, ..., const IMatrix* pMatrix)`（`#L1009`）、`BitBlt/StretchBlt(..., const IRender* pSrcRender, ...)`（`#L938`、`#L955`）均已加 `const`。
 - 连带改动：`Font_Skia::GetFontHandle()` 改为 `const`（字体句柄为懒加载，`m_skFont` 声明为 `mutable`），使 `IsUnicodeCharSupported` 可以保持 const；Skia 侧的 `dynamic_cast` 目标同步改为 `const Render_Skia*` / `const Bitmap_Skia*` / `const Matrix_Skia*`。
 
-### 3. 两套裁剪状态机制并存
+### 3. 两套裁剪状态机制并存 — **已修复**
 
-- `SaveClip(int32_t&)` / `RestoreClip(int32_t)`（`IRender.h#L899`、`#L904`）与 `SetClip(...)` / `SetRoundClip(...)` / `ClearClip(int32_t)`（`IRender.h#L911`、`#L920`、`#L925`）功能重叠，状态码的来源与含义还不一致：前者通过出参返回，后者通过返回值返回。
-- 建议：只保留一套（保留 `SaveClip/RestoreClip` 作为底层状态栈，`SetClip` 内部复用），或让 `SetClip` 明确为 `SaveClip` + `clipRect` 的组合语义。
+- 保留底层状态栈：`SaveClip(int32_t&)` / `RestoreClip(int32_t)`（`IRender.h#L900`、`#L905`）语义不变（显式保存/恢复画布状态，配合 `OffsetWindowOrg` 等使用）。
+- 裁剪族按"动作"重命名，语义自解释，不再与状态栈混淆：
+  - `SetClip(rc, bIntersect)` → **`ClipRect(rc, bIntersect)`**（`IRender.h#L912`）；
+  - `SetRoundClip(rc, rx, ry, bIntersect)` → **`ClipRoundRect(rc, rx, ry, bIntersect)`**（`#L921`）；
+  - `ClearClip(nState)` 保持不变（`#L926`），与 `ClipRect/ClipRoundRect` 的返回值配对使用。
+- 调用方已同步：`AutoClip`、`Panel`、`GroupBox`、`ListCtrlReportView`、`RichEdit2`；`SaveClip/RestoreClip` 的调用方无需改动。
 
-### 4. `MeasureRichText` 编号式重载膨胀
+### 4. `MeasureRichText` 编号式重载膨胀 — **已修复**
 
-- 位置：`IRender.h#L1172-L1208`（`MeasureRichText` / `MeasureRichText2` / `MeasureRichText3`）。
-- 三个接口只差输出参数：是否输出行信息、是否创建绘制缓存。
-- 建议：合并为一个接口，用默认 `nullptr` 的可选输出参数控制：
+- 原 `MeasureRichText` / `MeasureRichText2` / `MeasureRichText3` 只差输出参数（是否输出行信息、是否创建绘制缓存），已合并为单个接口（`IRender.h#L1176`）：
   ```cpp
-  virtual void MeasureRichText(const UiRect& textRect,
-                               const UiSize& szScrollOffset,
-                               IRenderFactory* pRenderFactory,
-                               const std::vector<RichTextData>& richTextData,
-                               RichTextLineInfoParam* pLineInfoParam = nullptr,
-                               std::shared_ptr<DrawRichTextCache>* spDrawRichTextCache = nullptr,
-                               std::vector<std::vector<UiRect>>* pRichTextRects = nullptr) = 0;
+  virtual UiRect MeasureRichText(const UiRect& textRect,
+                                 const UiSize& szScrollOffset,
+                                 IRenderFactory* pRenderFactory,
+                                 const std::vector<RichTextData>& richTextData,
+                                 RichTextLineInfoParam* pLineInfoParam = nullptr,
+                                 std::shared_ptr<DrawRichTextCache>* spDrawRichTextCache = nullptr,
+                                 std::vector<std::vector<UiRect>>* pRichTextRects = nullptr) = 0;
   ```
+- 只测量时直接调用 5 参数形式；需要行信息/绘制缓存时按需追加实参。`Render_Skia` 只保留一份实现，`RichEditData`、`RichTextImpl`、基准测试与单元测试均已按新签名调用。
 
 ### 5. 返回值约定不一致 — **已修复**
 
-- 测量族统一返回尺寸：`MeasureString` 原本就返回 `UiRect`；`MeasureRichText` / `MeasureRichText2` / `MeasureRichText3`（`IRender.h#L1174`、`#L1189`、`#L1206`）改为返回 `UiRect`，不再依赖出参。
+- 测量族统一返回尺寸：`MeasureString` 原本就返回 `UiRect`；`MeasureRichText`（合并后位于 `IRender.h#L1176`）返回 `UiRect`，不再依赖出参。
 - 返回值约定：以 `(0,0)` 为起点，**宽度为内容的最大行宽，高度为内容的总高度**（与入参矩形的坐标无关，可直接作为布局尺寸使用）。实现上由 `DrawRichText::InternalDrawRichText` 在布局过程中同步累计最大行宽与内容底端坐标得到。
 - 绘制族保持统一 `void`（内部 ASSERT + 静默忽略失败），`CreateDrawRichTextCache` / `WritePixels` / `ReadPixels` 等"创建/IO"族保持 `bool`；两类职责清晰，不再出现同一族接口两种风格。
 
@@ -200,7 +203,7 @@
 
 ### 2. 富文本调用每次都传 `IRenderFactory*`
 
-- 位置：`MeasureRichText*` / `DrawRichText` / `CreateDrawRichTextCache` 等（`IRender.h#L1165-L1300`）。
+- 位置：`MeasureRichText` / `DrawRichText` / `CreateDrawRichTextCache` 等（`IRender.h#L1168-L1290`）。
 - `IRender` 本身就是 `IRenderFactory::CreateRender` 创建的，字体工厂应由 Render 创建时注入。
 - 建议：`CreateRender` 时注入并保存 factory，新增 `IRenderFactory* GetRenderFactory() const`；富文本接口不再要求调用方传 factory（可保留重载以兼容）。
 
@@ -280,6 +283,7 @@ virtual void SetImageSamplingQuality(ImageSamplingQuality quality) = 0;
    - ✅ `WritePixels` 源数据改为 `const void*`；
    - ✅ **const 修正（2026-11-14 完成）**：`GetFillType`、`GetBounds`、`GetClipInfo`、`Transform(IMatrix*)`、`DrawArc` 的 `gradientColor/gradientRect`、`DrawImage(IBitmap*)`、`DrawImageRect(IBitmap*/IMatrix*)`、`BitBlt/StretchBlt` 的源 `IRender*`，以及 `IFont::IsUnicodeCharSupported`；
    - ✅ **一致性修正（2026-11-14 完成）**：`Clone` 家族统一为 `unique_ptr<T> Clone() const`；`MeasureRichText*` 返回 `UiRect`；`rectSize` 拆分为 `limitWidth`/`limitHeight`；`fWordSpacing` 统一为 `fLetterSpacing`；`IFontMgr::GetFontName` 改为按值返回（详见第十节）。
+   - ✅ **裁剪与重载整理（2026-11-14 完成）**：保留 `SaveClip/RestoreClip`，`SetClip→ClipRect`、`SetRoundClip→ClipRoundRect`；`MeasureRichText2/3` 合并进 `MeasureRichText`（详见第十节）。
 
 2. **第二批（只增不改，补常用能力）— 未开始**
    - `DrawEllipse` / `FillEllipse`；
@@ -291,7 +295,7 @@ virtual void SetImageSamplingQuality(ImageSamplingQuality quality) = 0;
 3. **第三批（结构性调整，需评估影响面）— 部分完成**
    - ✅ `BitmapAlphaType` 去 Skia 化（已改为中性 `AlphaType`）；
    - ⬜ 拆分 `IRender` 的窗口/Surface 职责；
-   - ⬜ 合并 `MeasureRichText*` 编号重载；
+   - ✅ 合并 `MeasureRichText*` 编号重载（已合并为单个 `MeasureRichText`）；
    - ⬜ `IBrush` 支持渐变；
    - ⬜ `RichTextData::m_textView` 统一跨平台编码（当前结论为暂不处理）。
 
@@ -326,7 +330,7 @@ virtual void SetImageSamplingQuality(ImageSamplingQuality quality) = 0;
 
 ## 十、接口一致性调整记录（2026-11-14）
 
-本轮只做接口一致性修正，不改变绘制/测量的视觉效果。变更已同步 `Render_Skia` 实现、控件层调用方与单元测试，`ctest` 8/8 通过（`text_draw` 202 项检查，0 失败）。
+本轮只做接口一致性修正，不改变绘制/测量的视觉效果。变更已同步 `Render_Skia` 实现、控件层调用方与单元测试，`ctest` 8/8 通过（`text_draw` 202 项检查，0 失败）。分两批完成：第一批为第 1、2、5、6、7、8 条，第二批为第 3、4 条（`MeasureRichText` 合并行与末尾两行裁剪接口）。
 
 | 接口 / 字段 | 变更前 | 变更后 | 影响 |
 | --- | --- | --- | --- |
@@ -338,9 +342,11 @@ virtual void SetImageSamplingQuality(ImageSamplingQuality quality) = 0;
 | `DrawImage` / `DrawImageRect` | `IBitmap*` / `IMatrix*` | `const IBitmap*` / `const IMatrix*` | 实参不变 |
 | `BitBlt` / `StretchBlt` 的源 | `IRender*` | `const IRender*` | 实参不变 |
 | `IFont::IsUnicodeCharSupported` | 非 const | `const` | 自定义 `IFont` 实现需同步改签名 |
-| `MeasureRichText` / `MeasureRichText2` / `MeasureRichText3` | 返回 `void` | 返回 `UiRect`（宽=内容最大行宽，高=内容总高度，原点为 `(0,0)`） | 可忽略返回值；使用返回值的代码按新语义接入 |
+| `MeasureRichText` / `MeasureRichText2` / `MeasureRichText3` | 三个编号重载，返回 `void` | 合并为单个 `MeasureRichText`，返回 `UiRect`（宽=内容最大行宽，高=内容总高度，原点为 `(0,0)`）；`pLineInfoParam` / `spDrawRichTextCache` / `pRichTextRects` 改为默认 `nullptr` 的可选出参 | 可忽略返回值；`MeasureRichText2/3` 的调用方改用 `MeasureRichText` 并追加实参 |
 | `MeasureStringParam::rectSize` | `int32_t rectSize = DUI_NOSET_VALUE` | `int32_t limitWidth` / `int32_t limitHeight`（默认 `-1` 表示不限制） | 调用方按文本方向改用对应字段 |
 | `DrawStringParam` / `MeasureStringParam::fWordSpacing` | `fWordSpacing` | `fLetterSpacing` | 调用方改用新字段名；控件层 `SetWordSpacing` 与 XML 属性 `word_spacing` 保持不变 |
 | `IFontMgr::GetFontName` | `bool GetFontName(uint32_t, DString&) const` | `DString GetFontName(uint32_t) const` | 自定义 `IFontMgr` 实现需同步；调用方改为返回值判断空串 |
+| `IRender::SetClip` | `SetClip(rc, bIntersect)` | `ClipRect(rc, bIntersect)` | 调用方改名即可（实参、返回值、语义均不变） |
+| `IRender::SetRoundClip` | `SetRoundClip(rc, rx, ry, bIntersect)` | `ClipRoundRect(rc, rx, ry, bIntersect)` | 调用方改名即可（实参、返回值、语义均不变） |
 
 **测试补充**：`tests/test_text_draw.cpp` 新增 `MeasureRichText` 返回值契约校验——原点为 `(0,0)`、宽度不超过限制宽度、限制宽度越小（换行越多）内容总高度越大（共 7 项检查）。

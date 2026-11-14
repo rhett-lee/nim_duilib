@@ -41,7 +41,7 @@ public:
     /** @brief 构造一个矩形裁剪守卫。
       *
       * 当 @p bClip 为 true 时，构造函数会立即调用
-      * IRender::SetClip(rc)，将 @p rc 与当前裁剪区取交集作为新的裁剪区域；
+      * IRender::ClipRect(rc)，将 @p rc 与当前裁剪区取交集作为新的裁剪区域；
       * 当 @p bClip 为 false 时，本对象不会对 IRender 做任何操作，
       * 析构时也不会调用 ClearClip()，相当于一个"空操作"守卫。
       *
@@ -56,7 +56,7 @@ public:
     /** @brief 构造一个圆角矩形裁剪守卫。
       *
       * 当 @p bClip 为 true 时，构造函数会立即调用
-      * IRender::SetRoundClip(rcRound, fRoundWidth, fRoundHeight)，
+      * IRender::ClipRoundRect(rcRound, fRoundWidth, fRoundHeight)，
       * 将一个圆角矩形与当前裁剪区取交集作为新的裁剪区域；
       * 当 @p bClip 为 false 时，本对象不会对 IRender 做任何操作。
       *
@@ -103,7 +103,7 @@ private:
     int32_t m_nClipState;
 
     /** @brief 标记本次构造是否真的设置了裁剪区域。
-      *  - true  ：构造时调用了 SetClip/SetRoundClip，析构时需要 ClearClip；
+      *  - true  ：构造时调用了 ClipRect/ClipRoundRect，析构时需要 ClearClip；
       *  - false ：构造时未设置裁剪（用户传入 bClip=false 或 pRender 非法），
       *            析构时不需要做任何清理。
       */
