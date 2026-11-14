@@ -547,20 +547,53 @@ static int32_t CalcDrawImageTimes(int32_t nAvailableSpace, int32_t nImageSize, i
     return drawTimes;
 }
 
+void Render_Skia::DrawImage(const IBitmap* pBitmap, const UiRect& rcDest)
+{
+    //源图片区域无效时，绘制整个图片
+    UiRect rcSource;
+    if (pBitmap != nullptr) {
+        rcSource.right = (int32_t)pBitmap->GetWidth();
+        rcSource.bottom = (int32_t)pBitmap->GetHeight();
+    }
+    DrawImage(pBitmap, rcDest, rcSource, ImageDrawParam());
+}
+
 void Render_Skia::DrawImage(const IBitmap* pBitmap,
-                            const UiRect& rcDest, const UiRect& rcDestCorners,
-                            const UiRect& rcSource, const UiRect& rcSourceCorners,
-                            uint8_t uFade,
-                            const TiledDrawParam* pTiledDrawParam,    
-                            bool bWindowShadowMode,
-                            const UiRect& rcPaint)
+                            const UiRect& rcDest, const UiRect& rcSource,
+                            const ImageDrawParam& drawParam)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
-    //计算实际用于绘制判定的区域（rcPaint为空时，使用当前裁剪区域兜底）
-    const UiRect rcEffectivePaint = GetEffectivePaintRect(rcPaint);
-    UiRect rcTestTemp;
-    if (!UiRect::Intersect(rcTestTemp, rcDest, rcEffectivePaint)) {
+    ASSERT(pBitmap != nullptr);
+    if (pBitmap == nullptr) {
         return;
+    }
+    //变换矩阵与九宫格、平铺、窗口阴影模式互斥
+    ASSERT((drawParam.pMatrix == nullptr) || drawParam.rcImageBorder.IsEmpty());
+    ASSERT((drawParam.pMatrix == nullptr) || (drawParam.pTiledDrawParam == nullptr));
+    ASSERT((drawParam.pMatrix == nullptr) || !drawParam.bWindowShadowMode);
+
+    //源图片区域无效时，绘制整个图片
+    UiRect rcDrawImageSource = rcSource;
+    if (rcDrawImageSource.IsEmpty()) {
+        rcDrawImageSource.left = 0;
+        rcDrawImageSource.top = 0;
+        rcDrawImageSource.right = (int32_t)pBitmap->GetWidth();
+        rcDrawImageSource.bottom = (int32_t)pBitmap->GetHeight();
+    }
+    if (rcDrawImageSource.IsEmpty() || rcDest.IsEmpty()) {
+        return;
+    }
+
+    //使用矩阵绘制时，实际绘制位置由矩阵决定，无法用rcDest判断可见性，故不做提前返回
+    const bool bCheckPaintRect = (drawParam.pMatrix == nullptr);
+    UiRect rcEffectivePaint;
+    if (bCheckPaintRect) {
+        //计算实际用于绘制判定的区域（rcPaint为空时，使用当前裁剪区域兜底）
+        rcEffectivePaint = GetEffectivePaintRect(drawParam.rcPaint);
+        UiRect rcTestTemp;
+        if (!UiRect::Intersect(rcTestTemp, rcDest, rcEffectivePaint)) {
+            return;
+        }
     }
 #if DUILIB_PERFORMANCE_STAT_ENABLED
     //性能统计
@@ -573,10 +606,6 @@ void Render_Skia::DrawImage(const IBitmap* pBitmap,
     PerformanceUtilFast statPerformance(statNameHash);
 #endif //  DUILIB_PERFORMANCE_STAT_ENABLED
 
-    ASSERT(pBitmap != nullptr);
-    if (pBitmap == nullptr) {
-        return;
-    }
     SkCanvas* skCanvas = GetSkCanvas();
     ASSERT(skCanvas != nullptr);
     if (skCanvas == nullptr) {
@@ -603,12 +632,26 @@ void Render_Skia::DrawImage(const IBitmap* pBitmap,
     UiRect rcDrawDest;
 
     SkPaint skPaint = *m_pSkPaint;
-    if (uFade != 0xFF) {
-        skPaint.setAlpha(uFade);
+    if (drawParam.uFade != 0xFF) {
+        skPaint.setAlpha(drawParam.uFade);
     }
 
     // 默认值就是kSrcOver
     skPaint.setBlendMode(SkBlendMode::kSrcOver);
+
+    //使用变换矩阵绘制：只绘制一次整图，不支持九宫格、平铺、窗口阴影模式
+    if (drawParam.pMatrix != nullptr) {
+        const Matrix_Skia* pSkMatrix = dynamic_cast<const Matrix_Skia*>(drawParam.pMatrix);
+        ASSERT(pSkMatrix != nullptr);
+        if (pSkMatrix == nullptr) {
+            return;
+        }
+        skCanvas->save();
+        skCanvas->setMatrix(SkM44(*pSkMatrix->GetMatrix()));
+        DrawSkiaImage::DrawImage(skCanvas, rcDest, *m_pSkPointOrg, skImage, rcDrawImageSource, skPaint);
+        skCanvas->restore();
+        return;
+    }
 
     // 平铺绘制相关参数
     bool bTiledX = false;
@@ -618,21 +661,24 @@ void Render_Skia::DrawImage(const IBitmap* pBitmap,
     int32_t nTiledMarginX = 0;
     int32_t nTiledMarginY = 0;
     UiPadding rcTiledPadding;
-    if (pTiledDrawParam != nullptr) {
-        bTiledX = pTiledDrawParam->m_bTiledX;
-        bTiledY = pTiledDrawParam->m_bTiledY;
-        bFullTiledX = pTiledDrawParam->m_bFullTiledX;
-        bFullTiledY = pTiledDrawParam->m_bFullTiledY;
-        nTiledMarginX = pTiledDrawParam->m_nTiledMarginX;
-        nTiledMarginY = pTiledDrawParam->m_nTiledMarginY;
-        rcTiledPadding = pTiledDrawParam->m_rcTiledPadding;
+    if (drawParam.pTiledDrawParam != nullptr) {
+        bTiledX = drawParam.pTiledDrawParam->m_bTiledX;
+        bTiledY = drawParam.pTiledDrawParam->m_bTiledY;
+        bFullTiledX = drawParam.pTiledDrawParam->m_bFullTiledX;
+        bFullTiledY = drawParam.pTiledDrawParam->m_bFullTiledY;
+        nTiledMarginX = drawParam.pTiledDrawParam->m_nTiledMarginX;
+        nTiledMarginY = drawParam.pTiledDrawParam->m_nTiledMarginY;
+        rcTiledPadding = drawParam.pTiledDrawParam->m_rcTiledPadding;
     }
 
+    //九宫格边距（目标区域与源图片共用同一组边距）
+    const UiMargin& rcImageBorder = drawParam.rcImageBorder;
+
     // 绘制目标中间区域的矩形范围
-    rcDrawDest.left = rcDest.left + rcDestCorners.left;
-    rcDrawDest.top = rcDest.top + rcDestCorners.top;
-    rcDrawDest.right = rcDest.right - rcDestCorners.right;
-    rcDrawDest.bottom = rcDest.bottom - rcDestCorners.bottom;
+    rcDrawDest.left = rcDest.left + rcImageBorder.left;
+    rcDrawDest.top = rcDest.top + rcImageBorder.top;
+    rcDrawDest.right = rcDest.right - rcImageBorder.right;
+    rcDrawDest.bottom = rcDest.bottom - rcImageBorder.bottom;
 
     if (bTiledX || bTiledY) {
         //中间部分，剪去平铺绘制的内边距
@@ -640,12 +686,13 @@ void Render_Skia::DrawImage(const IBitmap* pBitmap,
     }
 
     // 绘制图片的源区域（中间部分）
-    rcDrawSource.left = rcSource.left + rcSourceCorners.left;
-    rcDrawSource.top = rcSource.top + rcSourceCorners.top;
-    rcDrawSource.right = rcSource.right - rcSourceCorners.right;
-    rcDrawSource.bottom = rcSource.bottom - rcSourceCorners.bottom;
+    rcDrawSource.left = rcDrawImageSource.left + rcImageBorder.left;
+    rcDrawSource.top = rcDrawImageSource.top + rcImageBorder.top;
+    rcDrawSource.right = rcDrawImageSource.right - rcImageBorder.right;
+    rcDrawSource.bottom = rcDrawImageSource.bottom - rcImageBorder.bottom;
 
-    if (rcDestCorners.IsZero()) {
+    bool bWindowShadowMode = drawParam.bWindowShadowMode;
+    if (rcImageBorder.IsEmpty()) {
         //不是九宫格绘制时，禁用，避免图片无法绘出
         bWindowShadowMode = false;
     }
@@ -658,11 +705,11 @@ void Render_Skia::DrawImage(const IBitmap* pBitmap,
         }
         else if (bTiledX && bTiledY) {
             //平铺：横向和纵向均平铺绘制
-            const int32_t nImageWidth = rcSource.Width() - rcSourceCorners.left - rcSourceCorners.right;
+            const int32_t nImageWidth = rcDrawImageSource.Width() - rcImageBorder.left - rcImageBorder.right;
             const int32_t nAvailableSpaceX = rcDrawDest.Width();
             const int32_t iTimesX = CalcDrawImageTimes(nAvailableSpaceX, nImageWidth, nTiledMarginX, bFullTiledX);
 
-            const int32_t nImageHeight = rcSource.Height() - rcSourceCorners.top - rcSourceCorners.bottom;
+            const int32_t nImageHeight = rcDrawImageSource.Height() - rcImageBorder.top - rcImageBorder.bottom;
             const int32_t nAvailableSpaceY = rcDrawDest.Height();
             const int32_t iTimesY = CalcDrawImageTimes(nAvailableSpaceY, nImageHeight, nTiledMarginY, bFullTiledY);
 
@@ -692,8 +739,8 @@ void Render_Skia::DrawImage(const IBitmap* pBitmap,
                         lDestRight = rcDrawDest.right;
                     }
 
-                    rcDrawSource.left = rcSource.left + rcSourceCorners.left;
-                    rcDrawSource.top = rcSource.top + rcSourceCorners.top;
+                    rcDrawSource.left = rcDrawImageSource.left + rcImageBorder.left;
+                    rcDrawSource.top = rcDrawImageSource.top + rcImageBorder.top;
                     rcDrawSource.right = rcDrawSource.left + lDrawWidth;
                     rcDrawSource.bottom = rcDrawSource.top + lDrawHeight;
 
@@ -711,7 +758,7 @@ void Render_Skia::DrawImage(const IBitmap* pBitmap,
         }
         else if (bTiledX) {
             //只有横向平铺绘制，纵向则拉伸绘制
-            const int32_t nImageWidth = rcSource.Width() - rcSourceCorners.left - rcSourceCorners.right;
+            const int32_t nImageWidth = rcDrawImageSource.Width() - rcImageBorder.left - rcImageBorder.right;
             const int32_t nAvailableSpaceX = rcDrawDest.Width();
             const int32_t iTimesX = CalcDrawImageTimes(nAvailableSpaceX, nImageWidth, nTiledMarginX, bFullTiledX);
 
@@ -729,10 +776,10 @@ void Render_Skia::DrawImage(const IBitmap* pBitmap,
                 }
 
                 //源区域：如果设置了边角，则仅包含中间区域
-                rcDrawSource.left = rcSource.left + rcSourceCorners.left;
-                rcDrawSource.top = rcSource.top + rcSourceCorners.top;
+                rcDrawSource.left = rcDrawImageSource.left + rcImageBorder.left;
+                rcDrawSource.top = rcDrawImageSource.top + rcImageBorder.top;
                 rcDrawSource.right = rcDrawSource.left + lDrawWidth;
-                rcDrawSource.bottom = rcSource.bottom - rcSourceCorners.bottom;
+                rcDrawSource.bottom = rcDrawImageSource.bottom - rcImageBorder.bottom;
 
                 UiRect rcDestTemp;
                 rcDestTemp.top = rcDrawDest.top;
@@ -747,7 +794,7 @@ void Render_Skia::DrawImage(const IBitmap* pBitmap,
         }
         else { // bTiledY
             //只有纵向平铺绘制，横向则拉伸绘制
-            const int32_t nImageHeight = rcSource.Height() - rcSourceCorners.top - rcSourceCorners.bottom;
+            const int32_t nImageHeight = rcDrawImageSource.Height() - rcImageBorder.top - rcImageBorder.bottom;
             const int32_t nAvailableSpaceY = rcDrawDest.Height();
             const int32_t iTimesY = CalcDrawImageTimes(nAvailableSpaceY, nImageHeight, nTiledMarginY, bFullTiledY);
 
@@ -765,9 +812,9 @@ void Render_Skia::DrawImage(const IBitmap* pBitmap,
                     lDestBottom = rcDrawDest.bottom;
                 }
 
-                rcDrawSource.left = rcSource.left + rcSourceCorners.left;
-                rcDrawSource.top = rcSource.top + rcSourceCorners.top;
-                rcDrawSource.right = rcSource.right - rcSourceCorners.right;
+                rcDrawSource.left = rcDrawImageSource.left + rcImageBorder.left;
+                rcDrawSource.top = rcDrawImageSource.top + rcImageBorder.top;
+                rcDrawSource.right = rcDrawImageSource.right - rcImageBorder.right;
                 rcDrawSource.bottom = rcDrawSource.top + lDrawHeight;
 
                 UiRect rcDestTemp;
@@ -788,163 +835,82 @@ void Render_Skia::DrawImage(const IBitmap* pBitmap,
                           int32_t dstL, int32_t dstT, int32_t dstR, int32_t dstB) {
         rcDrawSource = { srcL, srcT, srcR, srcB };
         rcDrawDest = { dstL, dstT, dstR, dstB };
-        if (UiRect::Intersect(rcTemp, rcEffectivePaint, rcDrawDest)) {
+        if (!bCheckPaintRect || UiRect::Intersect(rcTemp, rcEffectivePaint, rcDrawDest)) {
             DrawSkiaImage::DrawImage(skCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
         }
     };
 
     // left-top
-    if (rcSourceCorners.left > 0 && rcSourceCorners.top > 0) {
+    if (rcImageBorder.left > 0 && rcImageBorder.top > 0) {
         //左上角
         DrawCorner(
-            rcSource.left, rcSource.top,
-            rcSource.left + rcSourceCorners.left, rcSource.top + rcSourceCorners.top,
+            rcDrawImageSource.left, rcDrawImageSource.top,
+            rcDrawImageSource.left + rcImageBorder.left, rcDrawImageSource.top + rcImageBorder.top,
             rcDest.left, rcDest.top,
-            rcDest.left + rcDestCorners.left, rcDest.top + rcDestCorners.top);
+            rcDest.left + rcImageBorder.left, rcDest.top + rcImageBorder.top);
     }
     // top
-    if (rcSourceCorners.top > 0) {
+    if (rcImageBorder.top > 0) {
         //边框：上
         DrawCorner(
-            rcSource.left + rcSourceCorners.left, rcSource.top,
-            rcSource.right - rcSourceCorners.right, rcSource.top + rcSourceCorners.top,
-            rcDest.left + rcDestCorners.left, rcDest.top,
-            rcDest.right - rcDestCorners.right, rcDest.top + rcDestCorners.top);
+            rcDrawImageSource.left + rcImageBorder.left, rcDrawImageSource.top,
+            rcDrawImageSource.right - rcImageBorder.right, rcDrawImageSource.top + rcImageBorder.top,
+            rcDest.left + rcImageBorder.left, rcDest.top,
+            rcDest.right - rcImageBorder.right, rcDest.top + rcImageBorder.top);
     }
     // right-top
-    if (rcSourceCorners.right > 0 && rcSourceCorners.top > 0) {
+    if (rcImageBorder.right > 0 && rcImageBorder.top > 0) {
         //右上角
         DrawCorner(
-            rcSource.right - rcSourceCorners.right, rcSource.top,
-            rcSource.right, rcSource.top + rcSourceCorners.top,
-            rcDest.right - rcDestCorners.right, rcDest.top,
-            rcDest.right, rcDest.top + rcDestCorners.top);
+            rcDrawImageSource.right - rcImageBorder.right, rcDrawImageSource.top,
+            rcDrawImageSource.right, rcDrawImageSource.top + rcImageBorder.top,
+            rcDest.right - rcImageBorder.right, rcDest.top,
+            rcDest.right, rcDest.top + rcImageBorder.top);
     }
     // left
-    if (rcSourceCorners.left > 0) {
+    if (rcImageBorder.left > 0) {
         //边框：左
         DrawCorner(
-            rcSource.left, rcSource.top + rcSourceCorners.top,
-            rcSource.left + rcSourceCorners.left, rcSource.bottom - rcSourceCorners.bottom,
-            rcDest.left, rcDest.top + rcDestCorners.top,
-            rcDest.left + rcDestCorners.left, rcDest.bottom - rcDestCorners.bottom);
+            rcDrawImageSource.left, rcDrawImageSource.top + rcImageBorder.top,
+            rcDrawImageSource.left + rcImageBorder.left, rcDrawImageSource.bottom - rcImageBorder.bottom,
+            rcDest.left, rcDest.top + rcImageBorder.top,
+            rcDest.left + rcImageBorder.left, rcDest.bottom - rcImageBorder.bottom);
     }
     // right
-    if (rcSourceCorners.right > 0) {
+    if (rcImageBorder.right > 0) {
         //边框：右
         DrawCorner(
-            rcSource.right - rcSourceCorners.right, rcSource.top + rcSourceCorners.top,
-            rcSource.right, rcSource.bottom - rcSourceCorners.bottom,
-            rcDest.right - rcDestCorners.right, rcDest.top + rcDestCorners.top,
-            rcDest.right, rcDest.bottom - rcDestCorners.bottom);
+            rcDrawImageSource.right - rcImageBorder.right, rcDrawImageSource.top + rcImageBorder.top,
+            rcDrawImageSource.right, rcDrawImageSource.bottom - rcImageBorder.bottom,
+            rcDest.right - rcImageBorder.right, rcDest.top + rcImageBorder.top,
+            rcDest.right, rcDest.bottom - rcImageBorder.bottom);
     }
     // left-bottom
-    if (rcSourceCorners.left > 0 && rcSourceCorners.bottom > 0) {
+    if (rcImageBorder.left > 0 && rcImageBorder.bottom > 0) {
         //左下角
         DrawCorner(
-            rcSource.left, rcSource.bottom - rcSourceCorners.bottom,
-            rcSource.left + rcSourceCorners.left, rcSource.bottom,
-            rcDest.left, rcDest.bottom - rcDestCorners.bottom,
-            rcDest.left + rcDestCorners.left, rcDest.bottom);
+            rcDrawImageSource.left, rcDrawImageSource.bottom - rcImageBorder.bottom,
+            rcDrawImageSource.left + rcImageBorder.left, rcDrawImageSource.bottom,
+            rcDest.left, rcDest.bottom - rcImageBorder.bottom,
+            rcDest.left + rcImageBorder.left, rcDest.bottom);
     }
     // bottom
-    if (rcSourceCorners.bottom > 0) {
+    if (rcImageBorder.bottom > 0) {
         //边框：下
         DrawCorner(
-            rcSource.left + rcSourceCorners.left, rcSource.bottom - rcSourceCorners.bottom,
-            rcSource.right - rcSourceCorners.right, rcSource.bottom,
-            rcDest.left + rcDestCorners.left, rcDest.bottom - rcDestCorners.bottom,
-            rcDest.right - rcDestCorners.right, rcDest.bottom);
+            rcDrawImageSource.left + rcImageBorder.left, rcDrawImageSource.bottom - rcImageBorder.bottom,
+            rcDrawImageSource.right - rcImageBorder.right, rcDrawImageSource.bottom,
+            rcDest.left + rcImageBorder.left, rcDest.bottom - rcImageBorder.bottom,
+            rcDest.right - rcImageBorder.right, rcDest.bottom);
     }
     // right-bottom
-    if (rcSourceCorners.right > 0 && rcSourceCorners.bottom > 0) {
+    if (rcImageBorder.right > 0 && rcImageBorder.bottom > 0) {
         //右下角
         DrawCorner(
-            rcSource.right - rcSourceCorners.right, rcSource.bottom - rcSourceCorners.bottom,
-            rcSource.right, rcSource.bottom,
-            rcDest.right - rcDestCorners.right, rcDest.bottom - rcDestCorners.bottom,
+            rcDrawImageSource.right - rcImageBorder.right, rcDrawImageSource.bottom - rcImageBorder.bottom,
+            rcDrawImageSource.right, rcDrawImageSource.bottom,
+            rcDest.right - rcImageBorder.right, rcDest.bottom - rcImageBorder.bottom,
             rcDest.right, rcDest.bottom);
-    }
-}
-
-void Render_Skia::DrawImage(const IBitmap* pBitmap,
-                            const UiRect& rcDest, const UiRect& rcSource,
-                            uint8_t uFade,
-                            const TiledDrawParam* pTiledDrawParam,
-                            bool bWindowShadowMode,
-                            const UiRect& rcPaint)
-{
-    UiRect rcDestCorners;
-    UiRect rcSourceCorners;
-    return DrawImage(pBitmap, 
-                     rcDest, rcDestCorners,
-                     rcSource, rcSourceCorners,
-                     uFade, pTiledDrawParam, bWindowShadowMode, rcPaint);
-}
-
-void Render_Skia::DrawImageRect(const IBitmap* pBitmap,
-                                const UiRect& rcDest, const UiRect& rcSource,
-                                uint8_t uFade, const IMatrix* pMatrix,
-                                const UiRect& rcPaint)
-{
-    ASSERT((GetWidth() > 0) && (GetHeight() > 0));
-    if (pMatrix == nullptr) {
-        //仅在没有Matrix的情况下判断裁剪区域，
-        //因为有Matrix时，实际绘制区域并不是rcDest，而是变换过后的位置，需要调整判断方法
-        //rcPaint为空时，使用当前裁剪区域兜底
-        const UiRect rcEffectivePaint = GetEffectivePaintRect(rcPaint);
-        UiRect rcTestTemp;
-        if (!UiRect::Intersect(rcTestTemp, rcDest, rcEffectivePaint)) {
-            return;
-        }
-    }
-
-    ASSERT(pBitmap != nullptr);
-    if (pBitmap == nullptr) {
-        return;
-    }
-
-    SkCanvas* skCanvas = GetSkCanvas();
-    ASSERT(skCanvas != nullptr);
-    if (skCanvas == nullptr) {
-        return;
-    }
-
-    SkPaint skPaint = *m_pSkPaint;
-    if (uFade != 0xFF) {
-        skPaint.setAlpha(uFade);
-    }
-
-    //默认值就是kSrcOver
-    skPaint.setBlendMode(SkBlendMode::kSrcOver);
-
-    const Bitmap_Skia* skiaBitmap = dynamic_cast<const Bitmap_Skia*>(pBitmap);
-    ASSERT(skiaBitmap != nullptr);
-    if (skiaBitmap == nullptr) {
-        return;
-    }
-    const SkBitmap& skSrcBitmap = skiaBitmap->GetSkBitmap();
-    SkPixmap skSrcPixmap;
-    sk_sp<SkImage> skImage;
-    if (skSrcBitmap.peekPixels(&skSrcPixmap)) {
-        skImage = SkImages::RasterFromPixmap(skSrcPixmap, nullptr, nullptr);
-    }
-    if (skImage == nullptr) {
-        skImage = skSrcBitmap.asImage();
-    }
-
-    bool isMatrixSet = false;
-    if (pMatrix != nullptr) {
-        const Matrix_Skia* pSkMatrix = dynamic_cast<const Matrix_Skia*>(pMatrix);
-        if (pSkMatrix != nullptr) {
-            SkM44 skM44(*pSkMatrix->GetMatrix());
-            skCanvas->setMatrix(skM44);
-            isMatrixSet = true;
-        }
-    }
-    DrawSkiaImage::DrawImage(skCanvas, rcDest, *m_pSkPointOrg, skImage, rcSource, skPaint);
-    if (isMatrixSet) {
-        skCanvas->resetMatrix();
     }
 }
 

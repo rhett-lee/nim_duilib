@@ -488,7 +488,7 @@ void ImageInfo::CalcImageInfoSize(const ImageLoadParam& loadParam,
     }
 }
 
-void ImageInfo::ScaleImageSourceRect(const DpiManager& dpi, UiRect& rcDestCorners, UiRect& rcSource, UiRect& rcSourceCorners)
+void ImageInfo::ScaleImageSourceRect(const DpiManager& dpi, UiRect& rcSource, UiRect& rcSourceCorners)
 {
     int32_t nImageInfoWidth = GetWidth();
     int32_t nImageInfoHeight = GetHeight();
@@ -507,10 +507,6 @@ void ImageInfo::ScaleImageSourceRect(const DpiManager& dpi, UiRect& rcDestCorner
     else if (m_bEnableImageDpiScale) {
         dpi.ScaleRect(rcSourceCorners);
     }
-
-    //对rcDestCorners进行处理：由rcSourceCorners赋值，边角保持一致，避免绘制图片的时候四个角有变形；
-    //采用九宫格绘制的时候，四个角的存在，是为了避免绘制的时候四个角出现变形
-    rcDestCorners = rcSourceCorners;
 
     // 如果源位图已经按照DPI缩放过，那么对应的rcImageSource也需要缩放
     if ((rcSource.left < 0) || (rcSource.top < 0) ||
@@ -538,9 +534,8 @@ void ImageInfo::ScaleImageSourceRect(const DpiManager& dpi, UiRect& rcDestCorner
 
 void ImageInfo::ScaleImageSourceRect(const DpiManager& dpi, UiRect& rcSource)
 {
-    UiRect rcDestCorners;
     UiRect rcSourceCorners;
-    ScaleImageSourceRect(dpi, rcDestCorners, rcSource, rcSourceCorners);
+    ScaleImageSourceRect(dpi, rcSource, rcSourceCorners);
 }
 
 std::shared_ptr<IImage> ImageInfo::GetImageData() const

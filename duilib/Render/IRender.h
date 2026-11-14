@@ -854,6 +854,40 @@ struct DrawStringParam
     bool bRotate90ForAscii = true;      //纵向绘制时，对于字母数字等，旋转90度显示
 };
 
+/** 绘制图片的参数（除位图、目标区域、源区域之外的可选参数）
+*/
+struct ImageDrawParam
+{
+    /** 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
+    */
+    uint8_t uFade = 255;
+
+    /** 九宫格绘制的边距（目标区域与源图片共用同一组边距）
+    *   四个值分别代表四条边的内缩量，不代表矩形区域；
+    *   四个值都为0时，表示按普通方式拉伸绘制
+    */
+    UiMargin rcImageBorder;
+
+    /** 平铺绘制相关参数，不平铺绘制时可传nullptr（仅对九宫格绘制的中间区域有效）
+    */
+    const TiledDrawParam* pTiledDrawParam = nullptr;
+
+    /** 九宫格绘制时，不绘制中间部分（比如窗口阴影，只需要绘制边框，不需要绘制中间部分）
+    *   仅当 rcImageBorder 不全为0时有效
+    */
+    bool bWindowShadowMode = false;
+
+    /** 绘制时的变换矩阵，nullptr表示不使用矩阵（与九宫格、平铺、窗口阴影模式互斥）
+    */
+    const IMatrix* pMatrix = nullptr;
+
+    /** 当前全部可绘制区域（可选，仅用于避免非可绘制区域的绘制，以提高绘制性能）。
+    *   传 UiRect() 表示不限制，此时渲染接口使用当前裁剪区域兜底；
+    *   传值时需覆盖本图片所有可能被绘制的区域，否则会漏画
+    */
+    UiRect rcPaint;
+};
+
 /** 渲染接口
 */
 class IRenderFactory;
@@ -968,55 +1002,21 @@ public:
                             IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc,
                             uint8_t alpha = 255) = 0;
 
-    /** 绘制图片（采用九宫格方式绘制图片）
+    /** 绘制图片（将整个源图片绘制到目标区域）
     * @param [in] pBitmap 用于绘制的位图接口
     * @param [in] rcDest 绘制的目标区域
-    * @param [in] rcDestCorners 绘制的目标区域的边角信息，用于九宫格绘制
-    * @param [in] rcSource 绘制的源图片区域
-    * @param [in] rcSourceCorners 绘制源图片的边角信息，用于九宫格绘制
-    * @param [in] uFade 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
-    * @param [in] pTiledDrawParam 平铺相关参数，不平铺绘制时可传nullptr
-    * @param [in] bWindowShadowMode 九宫格绘制时，不绘制中间部分（比如窗口阴影，只需要绘制边框，不需要绘制中间部分）
-    * @param [in] rcPaint 当前全部可绘制区域（可选，仅用于避免非可绘制区域的绘制，以提高绘制性能）。
-                          传 UiRect() 表示不限制，此时渲染接口使用当前裁剪区域兜底；
-                          传值时需覆盖本图片所有可能被绘制的区域，否则会漏画
     */
-    virtual void DrawImage(const IBitmap* pBitmap, 
-                           const UiRect& rcDest, const UiRect& rcDestCorners,
-                           const UiRect& rcSource, const UiRect& rcSourceCorners,
-                           uint8_t uFade = 255,
-                           const TiledDrawParam* pTiledDrawParam = nullptr,
-                           bool bWindowShadowMode = false,
-                           const UiRect& rcPaint = UiRect()) = 0;
-    /** 绘制图片（采用九宫格方式绘制图片）, 无圆角参数
-    * @param [in] pBitmap 用于绘制的位图接口
-    * @param [in] rcDest 绘制的目标区域
-    * @param [in] rcSource 绘制的源图片区域
-    * @param [in] uFade 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
-    * @param [in] pTiledDrawParam 平铺相关参数，不平铺绘制时可传nullptr
-    * @param [in] bWindowShadowMode 九宫格绘制时，不绘制中间部分
-    * @param [in] rcPaint 当前全部可绘制区域（可选，传 UiRect() 表示不限制）
-    */
-    virtual void DrawImage(const IBitmap* pBitmap, 
-                           const UiRect& rcDest,  const UiRect& rcSource, 
-                           uint8_t uFade = 255,
-                           const TiledDrawParam* pTiledDrawParam = nullptr,
-                           bool bWindowShadowMode = false,
-                           const UiRect& rcPaint = UiRect()) = 0;
+    virtual void DrawImage(const IBitmap* pBitmap, const UiRect& rcDest) = 0;
 
     /** 绘制图片
     * @param [in] pBitmap 用于绘制的位图接口
     * @param [in] rcDest 绘制的目标区域
     * @param [in] rcSource 绘制的源图片区域
-    * @param [in] uFade 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
-    * @param [in] pMatrix 绘制时的变换矩阵接口
-    * @param [in] rcPaint 当前全部可绘制区域（可选，仅用于避免非可绘制区域的绘制，以提高绘制性能）。
-                          传 UiRect() 表示不限制，此时渲染接口使用当前裁剪区域兜底
+    * @param [in] drawParam 绘制参数（九宫格、平铺、变换矩阵、透明度、脏区等），按需设置
     */
-    virtual void DrawImageRect(const IBitmap* pBitmap,
-                               const UiRect& rcDest, const UiRect& rcSource,
-                               uint8_t uFade = 255, const IMatrix* pMatrix = nullptr,
-                               const UiRect& rcPaint = UiRect()) = 0;
+    virtual void DrawImage(const IBitmap* pBitmap,
+                           const UiRect& rcDest, const UiRect& rcSource,
+                           const ImageDrawParam& drawParam = ImageDrawParam()) = 0;
 
     /** 绘制直线
     * @param [in] pt1 起始点坐标

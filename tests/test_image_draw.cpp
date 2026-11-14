@@ -1,6 +1,6 @@
 // 图片绘制（rcPaint 可绘制区域）相关接口的单元测试
 //
-// 测试对象：ui::IRender::DrawImage / DrawImageRect 的 rcPaint 参数
+// 测试对象：ui::IRender::DrawImage 的 ImageDrawParam::rcPaint 参数
 //  1. 传 UiRect() 表示不限制，由渲染接口使用当前裁剪区域兜底；
 //  2. rcPaint 与目标区域不相交时，跳过绘制；
 //  3. rcPaint 与目标区域部分相交时，只绘制相交部分。
@@ -97,7 +97,7 @@ void TestImagePaintRect(ui::IRender* pRender, ui::IRenderFactory* pRenderFactory
 
     //用例1：rcPaint 传 UiRect()（不传）表示不限制，正常绘制
     pRender->Clear(ui::UiColor(0xFFFFFFFFu));
-    pRender->DrawImage(pBitmap.get(), rcDest, rcSource, 255, nullptr, false, ui::UiRect());
+    pRender->DrawImage(pBitmap.get(), rcDest, rcSource);
     uint32_t nColor = 0;
     CHECK(ReadPixel(pRender, 15, 15, nColor));
     CHECK(nColor == nImageColor);
@@ -106,7 +106,11 @@ void TestImagePaintRect(ui::IRender* pRender, ui::IRenderFactory* pRenderFactory
 
     //用例2：rcPaint 与目标区域不相交时，跳过绘制
     pRender->Clear(ui::UiColor(0xFFFFFFFFu));
-    pRender->DrawImage(pBitmap.get(), rcDest, rcSource, 255, nullptr, false, ui::UiRect(50, 50, 60, 60));
+    {
+        ui::ImageDrawParam drawParam;
+        drawParam.rcPaint = ui::UiRect(50, 50, 60, 60);
+        pRender->DrawImage(pBitmap.get(), rcDest, rcSource, drawParam);
+    }
     CHECK(ReadPixel(pRender, 15, 15, nColor));
     CHECK(nColor == nWhiteColor);
 
@@ -115,24 +119,36 @@ void TestImagePaintRect(ui::IRender* pRender, ui::IRenderFactory* pRenderFactory
     //      rcPaint 只用于跳过完全不可见的绘制，不承担裁剪职责
     pRender->Clear(ui::UiColor(0xFFFFFFFFu));
     const int32_t nClipState = pRender->ClipRect(ui::UiRect(0, 0, 15, 15));
-    pRender->DrawImage(pBitmap.get(), rcDest, rcSource, 255, nullptr, false, ui::UiRect(0, 0, 15, 15));
+    {
+        ui::ImageDrawParam drawParam;
+        drawParam.rcPaint = ui::UiRect(0, 0, 15, 15);
+        pRender->DrawImage(pBitmap.get(), rcDest, rcSource, drawParam);
+    }
     pRender->RestoreClip(nClipState);
     CHECK(ReadPixel(pRender, 12, 12, nColor));
     CHECK(nColor == nImageColor);
     CHECK(ReadPixel(pRender, 18, 18, nColor));
     CHECK(nColor == nWhiteColor);
 
-    //用例4：DrawImageRect 的 rcPaint 传 UiRect()，正常绘制
+    //用例4：整图绘制接口（不传源区域），正常绘制
     pRender->Clear(ui::UiColor(0xFFFFFFFFu));
-    pRender->DrawImageRect(pBitmap.get(), rcDest, rcSource);
+    pRender->DrawImage(pBitmap.get(), rcDest);
     CHECK(ReadPixel(pRender, 15, 15, nColor));
     CHECK(nColor == nImageColor);
 
-    //用例5：DrawImageRect 的 rcPaint 与目标区域不相交时，跳过绘制
+    //用例5：指定变换矩阵时，rcPaint 不参与可见性判断，按矩阵绘制
     pRender->Clear(ui::UiColor(0xFFFFFFFFu));
-    pRender->DrawImageRect(pBitmap.get(), rcDest, rcSource, 255, nullptr, ui::UiRect(50, 50, 60, 60));
-    CHECK(ReadPixel(pRender, 15, 15, nColor));
-    CHECK(nColor == nWhiteColor);
+    std::unique_ptr<ui::IMatrix> pMatrix(pRenderFactory->CreateMatrix());
+    CHECK(pMatrix != nullptr);
+    if (pMatrix != nullptr) {
+        pMatrix->Translate(50, 50);
+        ui::ImageDrawParam drawParam;
+        drawParam.pMatrix = pMatrix.get();
+        drawParam.rcPaint = ui::UiRect(50, 50, 60, 60);
+        pRender->DrawImage(pBitmap.get(), rcDest, rcSource, drawParam);
+        CHECK(ReadPixel(pRender, 65, 65, nColor));
+        CHECK(nColor == nImageColor);
+    }
 }
 
 }//namespace

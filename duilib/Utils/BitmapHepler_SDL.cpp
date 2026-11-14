@@ -25,7 +25,9 @@ namespace BitmapHelper {
         }
         if (pRender->Resize((int)pBitmap->GetWidth(), (int)pBitmap->GetHeight())) {
             UiRect rect = { 0, 0, (int)pBitmap->GetWidth(), (int)pBitmap->GetHeight() };
-            pRender->DrawImage(pBitmap, rect, UiRect(), rect, UiRect(), 255, nullptr, false, rect);
+            ImageDrawParam drawParam;
+            drawParam.rcPaint = rect;
+            pRender->DrawImage(pBitmap, rect, rect, drawParam);
         }        
         return pRender;
     }

@@ -721,7 +721,10 @@ void BitmapControl::PaintBitmap(IRender* pRender, const UiRect& rcPaint)
             rcDest.top = rcDest.bottom - nImageHeight;
         }
     }
-    pRender->DrawImage(m_pBitmap.get(), rcDest, rcSource, m_nBitmapAlpha, nullptr, false, rcPaint);
+    ImageDrawParam drawParam;
+    drawParam.uFade = m_nBitmapAlpha;
+    drawParam.rcPaint = rcPaint;
+    pRender->DrawImage(m_pBitmap.get(), rcDest, rcSource, drawParam);
 }
 
 }//namespace ui

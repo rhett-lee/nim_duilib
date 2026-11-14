@@ -63,7 +63,11 @@ void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
     if (pBitmap == nullptr) {
         return;
     }
-    pRender->DrawImage(pBitmap.get(), rect, UiRect(), rcImageSource, UiRect(), 255, nullptr, false, rcPaint);
+    {
+        ImageDrawParam drawParam;
+        drawParam.rcPaint = rcPaint;
+        pRender->DrawImage(pBitmap.get(), rect, rcImageSource, drawParam);
+    }
 
     //2. 半透明绘制图片
     rect.left = rect.right + marginLeft;
@@ -72,7 +76,10 @@ void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
     if (pBitmap == nullptr) {
         return;
     }
-    pRender->DrawImage(pBitmap.get(), rect, UiRect(), rcImageSource, UiRect(), 100, nullptr, false, rcPaint);
+    ImageDrawParam drawParamFade;
+    drawParamFade.uFade = 100;
+    drawParamFade.rcPaint = rcPaint;
+    pRender->DrawImage(pBitmap.get(), rect, rcImageSource, drawParamFade);
 
     //3. 缩小绘制
     rect.left = rect.right + marginLeft;
@@ -82,7 +89,11 @@ void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
     if (pBitmap == nullptr) {
         return;
     }
-    pRender->DrawImage(pBitmap.get(), rect, UiRect(), rcImageSource, UiRect(), 255, nullptr, false, rcPaint);
+    {
+        ImageDrawParam drawParam;
+        drawParam.rcPaint = rcPaint;
+        pRender->DrawImage(pBitmap.get(), rect, rcImageSource, drawParam);
+    }
 
     //4. BitBlt/StretchBlt/AlphaBlend三个绘制函数，需要先把图片绘制到一个Render对象中
     std::unique_ptr<IRender> pSrcRender(BitmapHelper::CreateRenderObject(pBitmap.get()));
@@ -154,33 +165,35 @@ void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
     rcImageSource.right = pTiledBitmap->GetWidth();
     rcImageSource.bottom = pTiledBitmap->GetHeight();
 
-    UiRect rcCorners;
     TiledDrawParam tiledParam;
+    ImageDrawParam drawParam;
 
     //平铺绘制
     tiledParam.m_bTiledX = true;
     tiledParam.m_bTiledY = true;
-    pRender->DrawImage(pTiledBitmap.get(), rect1, rcCorners, rcImageSource, rcCorners, 255, &tiledParam, false, rcPaint);
+    drawParam.pTiledDrawParam = &tiledParam;
+    drawParam.rcPaint = rcPaint;
+    pRender->DrawImage(pTiledBitmap.get(), rect1, rcImageSource, drawParam);
 
     //平铺绘制（指定边距）
     tiledParam.m_nTiledMarginX = Dpi().GetScaleInt(2);
     tiledParam.m_nTiledMarginY = Dpi().GetScaleInt(2);
-    pRender->DrawImage(pTiledBitmap.get(), rect2, rcCorners, rcImageSource, rcCorners, 255, &tiledParam, false, rcPaint);
+    pRender->DrawImage(pTiledBitmap.get(), rect2, rcImageSource, drawParam);
 
     //九宫格绘制
     tiledParam = TiledDrawParam();
     tiledParam.m_bTiledX = true;
     tiledParam.m_bTiledY = true;
     int32_t nCornerSize = Dpi().GetScaleInt(6);
-    rcCorners = UiRect(nCornerSize, nCornerSize, nCornerSize, nCornerSize);
-    pRender->DrawImage(pTiledBitmap.get(), rect3, rcCorners, rcImageSource, rcCorners, 255, &tiledParam, false, rcPaint);
+    drawParam.rcImageBorder = UiMargin(nCornerSize, nCornerSize, nCornerSize, nCornerSize);
+    pRender->DrawImage(pTiledBitmap.get(), rect3, rcImageSource, drawParam);
 
     //九宫格绘制（指定内边距）
     int32_t nPaddingSize = Dpi().GetScaleInt(2);
     tiledParam.m_nTiledMarginX = Dpi().GetScaleInt(2);
     tiledParam.m_nTiledMarginY = Dpi().GetScaleInt(2);
     tiledParam.m_rcTiledPadding = UiPadding(nPaddingSize, nPaddingSize, nPaddingSize, nPaddingSize);
-    pRender->DrawImage(pTiledBitmap.get(), rect4, rcCorners, rcImageSource, rcCorners, 255, &tiledParam, false, rcPaint);
+    pRender->DrawImage(pTiledBitmap.get(), rect4, rcImageSource, drawParam);
 }
 
 } //end of namespace ui

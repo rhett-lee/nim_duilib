@@ -20,7 +20,6 @@ public:
     {
         BaseClass::Paint(pRender, rcPaint);
         if ((pRender != nullptr) && (m_pBitmap != nullptr)) {
-            UiRect rcCorners;
             UiRect destRect = GetRect();
             UiRect srcRect;
             srcRect.right = m_pBitmap->GetWidth();
@@ -34,7 +33,9 @@ public:
                 destRect.left = destRect.CenterX() - srcRect.Width() / 2;
                 destRect.right = destRect.left + srcRect.Width();
             }
-            pRender->DrawImage(m_pBitmap.get(), destRect, rcCorners, srcRect, rcCorners, 255, nullptr, false, rcPaint);
+            ImageDrawParam drawParam;
+            drawParam.rcPaint = rcPaint;
+            pRender->DrawImage(m_pBitmap.get(), destRect, srcRect, drawParam);
         }
     }
 

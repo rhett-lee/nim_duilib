@@ -127,13 +127,12 @@ public:
     */
     std::shared_ptr<IImage> GetImageData() const;
 
-    /** 对图片的源区域、目标区域、圆角大小进行校验修正和DPI自适应
+    /** 对图片的源区域、圆角大小进行校验修正和DPI自适应
     * @param [in] dpi DPI缩放接口
-    * @param [out] rcDestCorners 绘制目标区域的圆角信息，传出参数，内部根据rcImageCorners来设置，然后传出
     * @param [in/out] rcSource 图片区域（传入值未作DPI缩放）
     * @param [in/out] rcSourceCorners 图片区域的圆角信息（传入值未作DPI缩放）
     */
-    void ScaleImageSourceRect(const DpiManager& dpi, UiRect& rcDestCorners, UiRect& rcSource, UiRect& rcSourceCorners);
+    void ScaleImageSourceRect(const DpiManager& dpi, UiRect& rcSource, UiRect& rcSourceCorners);
     void ScaleImageSourceRect(const DpiManager& dpi, UiRect& rcSource);
 
 private:

@@ -3428,10 +3428,9 @@ bool Control::PaintImage(IRender* pRender,
         rcDest.Offset(GetRect().left, GetRect().top);
     }
 
-    UiRect rcDestCorners;
     UiRect rcSource = newImageAttribute.GetImageSourceRect();
     UiRect rcSourceCorners = newImageAttribute.GetImageCorner();
-    imageInfo->ScaleImageSourceRect(Dpi(), rcDestCorners, rcSource, rcSourceCorners);
+    imageInfo->ScaleImageSourceRect(Dpi(), rcSource, rcSourceCorners);
     
     //运用rcMargin、hAlign、vAlign 三个图片属性
     rcDest.Deflate(newImageAttribute.GetImageMargin(Dpi()));
@@ -3599,23 +3598,27 @@ bool Control::PaintImage(IRender* pRender,
 
         //图片透明度属性
         uint8_t iFade = (nFade == DUI_NOSET_VALUE) ? newImageAttribute.m_bFade : static_cast<uint8_t>(nFade);
-        if (pMatrix != nullptr) {
-            //矩阵绘制: 对不支持的属性，增加断言，避免出错
-            ASSERT(newImageAttribute.GetImageCorner().IsEmpty());
-            ASSERT(!newImageAttribute.IsTiledDraw());
-            pRender->DrawImageRect(pBitmap.get(), rcDest, rcSource, iFade, pMatrix, m_rcPaint);
-        }
-        else {
-            TiledDrawParam tiledDrawParam;
+        ImageDrawParam drawParam;
+        drawParam.uFade = iFade;
+        drawParam.rcImageBorder = UiMargin(rcSourceCorners.left, rcSourceCorners.top,
+                                           rcSourceCorners.right, rcSourceCorners.bottom);
+        drawParam.pMatrix = pMatrix;
+        drawParam.rcPaint = m_rcPaint;
+
+        TiledDrawParam tiledDrawParam;
+        if (pMatrix == nullptr) {
             if (newImageAttribute.m_pTiledDrawParam != nullptr) {
                 tiledDrawParam = newImageAttribute.GetTiledDrawParam(Dpi());
             }
-            pRender->DrawImage(pBitmap.get(), rcDest, rcDestCorners, rcSource, rcSourceCorners,
-                               iFade,
-                               newImageAttribute.IsTiledDraw() ? &tiledDrawParam : nullptr,
-                               newImageAttribute.m_bWindowShadowMode,
-                               m_rcPaint);
+            drawParam.pTiledDrawParam = newImageAttribute.IsTiledDraw() ? &tiledDrawParam : nullptr;
+            drawParam.bWindowShadowMode = newImageAttribute.m_bWindowShadowMode;
         }
+        else {
+            //矩阵绘制: 对不支持的属性，增加断言，避免出错
+            ASSERT(rcSourceCorners.IsZero());
+            ASSERT(!newImageAttribute.IsTiledDraw());
+        }
+        pRender->DrawImage(pBitmap.get(), rcDest, rcSource, drawParam);
 
         //绘制成功后，从延迟绘制列表中删除
         GlobalManager::Instance().Image().RemoveDelayPaintData(pImage);

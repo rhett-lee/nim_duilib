@@ -229,7 +229,7 @@ if(WIN32)
 endif()
 
 # 图片绘制相关接口的单元测试：
-# 覆盖 DrawImage / DrawImageRect 的 rcPaint 参数（传 UiRect() 表示不限制、
+# 覆盖 DrawImage 的 ImageDrawParam::rcPaint 参数（传 UiRect() 表示不限制、
 # 与目标区域不相交时跳过绘制、部分相交时只绘制相交部分）。
 # 该测试使用离屏渲染（不创建窗口），仅在 Windows 平台构建。
 if(WIN32)

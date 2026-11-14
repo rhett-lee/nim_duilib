@@ -28,8 +28,9 @@
 | 四.8 | 取值风格不一致 | `IRender.h#L24`、`#L90` | **已修复** | `IFontMgr::GetFontName` 改为按值返回 `DString` |
 | 五.1 | `IRender` 职责过载 | 全文 | 未处理 | 需拆分绘制 / 窗口 Surface 职责 |
 | 五.2 | 富文本接口每次传 `IRenderFactory*` | `IRender.h#L1170-L1199`、`#L1373` | **已修复** | Render 创建时注入 factory（`SetRenderFactory`），三个富文本接口不再传该参数 |
-| 五.3 | `rcPaint` 脏区参数 | `IRender.h#L984-L1021`、`Render_Skia.cpp#L2168` | **已修复** | `rcPaint` 后移为可选参数（默认 `UiRect()` = 不限制），内部用当前 clip 兜底 |
+| 五.3 | `rcPaint` 脏区参数 | `IRender.h#L859-L1019`、`Render_Skia.cpp#L2168` | **已修复** | `rcPaint` 后移为可选参数（默认 `UiRect()` = 不限制），内部用当前 clip 兜底 |
 | 五.4 | 测量依赖画布尺寸 | `Render_Skia.cpp#L1692-L1695` | 未处理 | 影响无 Surface 的纯测量场景 |
+| 五.5 | 三个绘图接口职责重叠、参数易错 | `IRender.h#L859-L1019` | **已修复** | 收敛为两个 `DrawImage` 重载 + `ImageDrawParam`；删除 `DrawImageRect` |
 | 六 | 缺失接口（P0/P1/P2） | 见第六节 | 未处理 | 字体回退优化未新增任何图元/裁剪/采样接口 |
 
 > 补充（2026-11-14 第三批）：`ClearClip` 已删除，其实现（`restoreToCount` + `m_saveCount` 同步）并入 `RestoreClip`，全部调用方改用 `RestoreClip`，行为与删除前一致。
@@ -38,7 +39,9 @@
 
 > 补充（2026-11-14 第五批）：`DrawImage` / `DrawImageRect` 的 `rcPaint` 已后移为参数列表末尾的可选参数（默认 `UiRect()`），传空表示不限制，由 `Render_Skia::GetEffectivePaintRect` 用当前裁剪区域兜底；新增 `image_draw` 单元测试覆盖该语义。
 
-统计：已修复 17 项、部分修复 2 项、暂不处理 1 项、未处理 2 项、缺失接口 3 组待排期。
+> 补充（2026-11-14 第六批）：`DrawImage` 的三个重载已合并为两个入口：`DrawImage(bitmap, rcDest)`（整图）与 `DrawImage(bitmap, rcDest, rcSource, const ImageDrawParam&)`；九宫格边距、平铺、窗口阴影、变换矩阵、脏区全部收敛到 `ImageDrawParam`，并删除 `DrawImageRect`。
+
+统计：已修复 18 项、部分修复 2 项、暂不处理 1 项、未处理 2 项、缺失接口 3 组待排期。
 
 ## 一、结论
 
@@ -218,7 +221,7 @@
 
 ### 3. `rcPaint` 脏区参数把优化责任推给调用方 — **已修复**
 
-- 位置：`DrawImage` 系列（`IRender.h#L984-L1021`）。
+- 位置：`DrawImage` 系列（`IRender.h#L859-L1019`）。
 - 历史问题：每次绘制图片都要传"当前全部可绘制区域"，漏传或传错会导致多画/少画；脏区判断本可以由 Render 内部的 clip 统一处理。
 - 本质：`rcPaint` 在实现中只用于"与目标区域不相交时提前返回"，真正的裁剪一直由 canvas clip 承担（`Window::Paint` 已将根裁剪设为 `rcPaint`），因此它只是性能优化参数，不影响可见结果。
 - 当前实现（2026-11-14 第五批）：
@@ -232,6 +235,23 @@
 - 位置：`Render_Skia::MeasureString` 在 `GetWidth() <= 0 || GetHeight() <= 0` 时直接返回空（`Render_Skia.cpp#L1692-L1695`）。
 - 影响：无 Surface 的纯测量场景（如提前估算布局）拿不到结果。
 - 建议：让测量不依赖画布尺寸；或在 `IFont` 上提供 `MeasureTextWidth` 之类的轻量度量接口（见第六节）。
+
+### 5. 三个绘图接口职责重叠、参数易错 — **已修复**
+
+- 位置：`IRender.h#L859-L1019`（原 2 个 `DrawImage` + 1 个 `DrawImageRect`）、`Render_Skia.cpp#L550-L915`。
+- 历史问题：
+  - 九宫格版 `DrawImage` 有 9 个参数、4 个默认值，且 `rcDestCorners` / `rcSourceCorners` 两个相邻的 `UiRect` 实际语义是"四条边的边距"，框架内二者恒等（`ImageInfo::ScaleImageSourceRect` 中直接 `rcDestCorners = rcSourceCorners`），调用方必须重复传两遍，传反或漏传时编译期无法发现；
+  - 简化版 `DrawImage` 转发时传入空 corners，`Render_Skia` 内部会因为 `rcImageBorder.IsEmpty()` 强制关闭 `bWindowShadowMode`，该参数实际是死参数；
+  - `DrawImageRect` 的名字无法体现"带变换矩阵"，能力与 `DrawImage` 互斥又重叠（多数调用点传 `pMatrix == nullptr`），调用方难以判断该用哪个；
+  - 缺少"整图绘制"入口，调用方反复手写 `UiRect(0,0,w,h)`。
+- 当前实现（2026-11-14 第六批）：
+  - `DrawImage(bitmap, rcDest)`：整图绘制，源区域自动取整图；
+  - `DrawImage(bitmap, rcDest, rcSource, const ImageDrawParam&)`：其余全部能力，可选参数按名称赋值，顺序无关；
+  - `ImageDrawParam` 字段：`uFade`、`rcImageBorder`（`UiMargin`，目标与源共用）、`pTiledDrawParam`、`bWindowShadowMode`、`pMatrix`、`rcPaint`；
+  - 删除 `DrawImageRect`，矩阵绘制改为 `ImageDrawParam::pMatrix`，实现内用 `save()/restore()` 替代 `resetMatrix()`，不再遗留画布变换副作用；
+  - 矩阵与九宫格/平铺/窗口阴影的互斥关系由 `Render_Skia::DrawImage` 内部断言保证，`Control::PaintImage` 不再需要外层 `if/else` 分支；
+  - 删除 `ImageInfo::ScaleImageSourceRect` 的 `rcDestCorners` 出参，消除冗余的第二个 corners 值。
+- 影响：框架内 24 处、示例与测试 7 处调用点同步调整；`bWindowShadowMode` 现在在简化入口不再存在，只保留在 `ImageDrawParam` 中且仅在边距非空时生效。
 
 ## 六、常用但缺失的接口（建议补充）
 
@@ -344,7 +364,7 @@ virtual void SetImageSamplingQuality(ImageSamplingQuality quality) = 0;
 
 ## 十、接口一致性调整记录（2026-11-14）
 
-本轮只做接口一致性修正，不改变绘制/测量的视觉效果。变更已同步 `Render_Skia` 实现、控件层调用方与单元测试，`ctest` 9/9 通过（`text_draw` 202 项、`image_draw` 21 项检查，0 失败）。分五批完成：第一批为第 1、2、5、6、7、8 条，第二批为第 3、4 条（`MeasureRichText` 合并行与末尾两行裁剪接口），第三批删除 `ClearClip`，第四批为第五节第 2 条（富文本接口去掉 `IRenderFactory*` 参数，改为 Render 创建时注入），第五批为第五节第 3 条（`rcPaint` 后移为可选参数并内部兜底）。
+本轮只做接口一致性修正，不改变绘制/测量的视觉效果。变更已同步 `Render_Skia` 实现、控件层调用方与单元测试，`ctest` 9/9 通过（`text_draw` 202 项、`image_draw` 22 项检查，0 失败）。分六批完成：第一批为第 1、2、5、6、7、8 条，第二批为第 3、4 条（`MeasureRichText` 合并行与末尾两行裁剪接口），第三批删除 `ClearClip`，第四批为第五节第 2 条（富文本接口去掉 `IRenderFactory*` 参数，改为 Render 创建时注入），第五批为第五节第 3 条（`rcPaint` 后移为可选参数并内部兜底），第六批为第五节第 5 条（三个绘图接口合并为两个入口 + `ImageDrawParam`）。
 
 | 接口 / 字段 | 变更前 | 变更后 | 影响 |
 | --- | --- | --- | --- |
@@ -366,8 +386,12 @@ virtual void SetImageSamplingQuality(ImageSamplingQuality quality) = 0;
 | `IRender::MeasureRichText` / `DrawRichText` / `CreateDrawRichTextCache` | 每次调用传 `IRenderFactory* pRenderFactory` | 删除该参数，改用 Render 创建时注入的工厂 | 调用方（`RichTextImpl`、`RichEditData`、`RichEdit2`、测试与基准程序）删除实参；自定义 `IRender` 实现需从注入的工厂取字体 |
 | `IRender::SetRenderFactory` | 无 | 新增 `virtual void SetRenderFactory(IRenderFactory* pRenderFactory) = 0`（`IRender.h#L1373`） | 由 `IRenderFactory::CreateRender` 创建后注入，`Clone` 时同步复制；自定义 `IRender` 实现需实现该方法，直接 `new` 渲染对象时须手动注入 |
 | `IRender::DrawImage` / `DrawImageRect` 的 `rcPaint` | 首个参数，必传 | 后移到参数列表末尾，默认 `UiRect()`（空 = 不限制） | 控件层、工具类与示例的调用点调整参数位置；新调用方可省略，由当前裁剪区域兜底 |
+| `IRender::DrawImage`（九宫格版） | 9 个参数，`rcDestCorners` / `rcSourceCorners` 两个 `UiRect`（实为边距且恒等） | 合并为 `DrawImage(bitmap, rcDest, rcSource, const ImageDrawParam&)`，边距改为单个 `UiMargin rcImageBorder` | 调用方改用 `ImageDrawParam` 按名赋值；边距合并后行为不变 |
+| `IRender::DrawImage`（简化版） | 7 个参数，含实际无效的 `bWindowShadowMode` | 改为 `DrawImage(bitmap, rcDest)` 整图入口；`bWindowShadowMode` 仅保留在 `ImageDrawParam` | 去掉死参数；需要 `uFade` / 平铺 / 脏区的调用方改用 `ImageDrawParam` |
+| `IRender::DrawImageRect` | 独立函数，名字不体现"矩阵"，能力与 `DrawImage` 重叠 | **已删除**，矩阵绘制改为 `ImageDrawParam::pMatrix` | 调用方合并到 `DrawImage`；实现改用 `save()/restore()`，不再 `resetMatrix()` |
+| `ImageInfo::ScaleImageSourceRect` | 4 个参数，`rcDestCorners` 出参与 `rcSourceCorners` 恒等 | 3 个参数，删除 `rcDestCorners` 出参 | 仅 `Control::PaintImage` 一处调用方 |
 | `Render_Skia::GetEffectivePaintRect` | 无 | 新增内部辅助函数（`Render_Skia.cpp#L2168`） | `rcPaint` 为空时用 `getDeviceClipBounds()` 减去 `GetWindowOrg()` 兜底；不复用 `GetClipInfo`（其内缩 1 px 会漏画）；`WritePixels` 的 `rcPaint` 语义保持不变 |
 
 **测试补充**：`tests/test_text_draw.cpp` 新增 `MeasureRichText` 返回值契约校验——原点为 `(0,0)`、宽度不超过限制宽度、限制宽度越小（换行越多）内容总高度越大（共 7 项检查）。
 
-**测试补充**：新增 `tests/test_image_draw.cpp`（`image_draw` 用例）——覆盖 `rcPaint` 传 `UiRect()` 正常绘制、与目标不相交时跳过绘制、部分相交时按裁剪区域可见（共 21 项检查）。
+**测试补充**：新增 `tests/test_image_draw.cpp`（`image_draw` 用例）——覆盖 `rcPaint` 传 `UiRect()` 正常绘制、与目标不相交时跳过绘制、部分相交时按裁剪区域可见、整图绘制入口、矩阵绘制时 `rcPaint` 不参与可见性判断（共 22 项检查）。

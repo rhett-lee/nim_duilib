@@ -1102,8 +1102,11 @@ UiRect DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                     if (!textData.m_bgColor.IsEmpty()) {
                         m_pRender->FillRect(UiRectF::MakeFromRect(rcDestRect), textData.m_bgColor, uFade);
                     }
-                    m_pRender->DrawImageRect(textData.m_spImage.get(), rcDestRect,
-                                             UiRect(0, 0, nImageWidth, nImageHeight), uFade, nullptr, rcTemp);
+                    ImageDrawParam drawParam;
+                    drawParam.uFade = uFade;
+                    drawParam.rcPaint = rcTemp;
+                    m_pRender->DrawImage(textData.m_spImage.get(), rcDestRect,
+                                         UiRect(0, 0, nImageWidth, nImageHeight), drawParam);
                 }
                 continue;
             }
@@ -1979,8 +1982,11 @@ void DrawRichText::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache
                 if (!textData.m_bgColor.IsEmpty()) {
                     m_pRender->FillRect(UiRectF::MakeFromRect(rcDestRect), textData.m_bgColor, uFade);
                 }
-                m_pRender->DrawImageRect(textData.m_spImage.get(), rcDestRect,
-                                         UiRect(0, 0, nImageWidth, nImageHeight), uFade, nullptr, rcTemp);
+                ImageDrawParam drawParam;
+                drawParam.uFade = uFade;
+                drawParam.rcPaint = rcTemp;
+                m_pRender->DrawImage(textData.m_spImage.get(), rcDestRect,
+                                     UiRect(0, 0, nImageWidth, nImageHeight), drawParam);
             }
             continue;
         }
