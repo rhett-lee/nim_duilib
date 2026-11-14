@@ -44,7 +44,6 @@ public:
     virtual void RestoreClip(int32_t nState) override;
     virtual int32_t ClipRect(const UiRect& rc, bool bIntersect = true) override;
     virtual int32_t ClipRoundRect(const UiRect& rc, float rx, float ry, bool bIntersect = true) override;
-    virtual void ClearClip(int32_t nState) override;
 
     virtual bool BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, const IRender* pSrcRender, int32_t xSrc, int32_t ySrc, RopMode rop) override;
     virtual bool StretchBlt(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest, const IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc, RopMode rop) override;

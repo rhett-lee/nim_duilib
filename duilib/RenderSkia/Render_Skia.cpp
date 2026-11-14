@@ -232,8 +232,12 @@ void Render_Skia::RestoreClip(int32_t nState)
     if (m_saveCount != nState) {
         return;
     }
-    if (skCanvas != nullptr) {
+    if ((nState > 0) && (skCanvas != nullptr)) {
         skCanvas->restoreToCount(nState);
+        //恢复后同步保存状态标志，保证后续SaveClip/ClipRect/RestoreClip的断言一致
+        //（Skia的save()返回的是入栈前的栈深，restoreToCount(nState)后栈深即为nState，
+        //  当前栈顶对应的标志为nState - 1）
+        m_saveCount = skCanvas->getSaveCount() - 1;
     }
 }
 
@@ -292,27 +296,6 @@ int32_t Render_Skia::ClipRoundRect(const UiRect& rc, float rx, float ry, bool bI
         return m_saveCount;
     }
     return -1;
-}
-
-void Render_Skia::ClearClip(int32_t nState)
-{
-    ASSERT(nState >= 0);
-    if (nState < 0) {
-        return;
-    }
-    SkCanvas* skCanvas = GetSkCanvas();
-    ASSERT(skCanvas != nullptr);
-    if (skCanvas != nullptr) {
-        // 主动恢复一次 save 状态，使 m_saveCount 与 Skia 内部状态保持一致
-        ASSERT(m_saveCount == nState);
-        if (m_saveCount != nState) {
-            return;
-        }
-        if (m_saveCount > 0) {
-            skCanvas->restoreToCount(m_saveCount);
-            m_saveCount = skCanvas->getSaveCount() - 1;
-        }
-    }
 }
 
 void Render_Skia::SetRopMode(SkPaint& skPaint, RopMode rop) const

@@ -1347,7 +1347,7 @@ void PanelTemplate<InheritType>::PaintChild(IRender* pRender, const UiRect& rcPa
             ? pRender->ClipRoundRect(rcClip, fRoundWidth, fRoundHeight, true)
             : pRender->ClipRect(rcClip, true);
         BaseClass::PaintChild(pRender, rcPaint);
-        pRender->ClearClip(nClipState);
+        pRender->RestoreClip(nClipState);
         return;
     }
     BaseClass::PaintChild(pRender, rcPaint);
@@ -1534,7 +1534,7 @@ void PanelTemplate<InheritType>::PaintText(IRender* pRender)
     }
 
     if (nClipState >= 0) {
-        pRender->ClearClip(nClipState);
+        pRender->RestoreClip(nClipState);
     }
 }
 

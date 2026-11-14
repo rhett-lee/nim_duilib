@@ -899,15 +899,15 @@ public:
     */
     virtual void SaveClip(int32_t& nState) = 0;
 
-    /** 将设备上下文还原到最近一次保存的状态
-    * @param [in] 保存的设备上下文标志（由SaveClip返回）
+    /** 将设备上下文还原到最近一次保存的状态（清除由SaveClip/ClipRect/ClipRoundRect设置的剪辑区域）
+    * @param [in] 保存的设备上下文标志（由SaveClip/ClipRect/ClipRoundRect返回）
     */
     virtual void RestoreClip(int32_t nState) = 0;
 
     /** 设置矩形剪辑区域，并保存当前设备上下文的状态
     * @param [in] rc剪辑区域，与当前剪辑区取交集作为新的剪辑区域
     * @param [in] bIntersect ClipOp操作标志，true表示kIntersect操作，false表示kDifference操作
-    * @return 返回当前设备上下文标志，在调用ClearClip的时候需要传回该返回值，错误时返回-1
+    * @return 返回当前设备上下文标志，在调用RestoreClip的时候需要传回该返回值，错误时返回-1
     */
     virtual int32_t ClipRect(const UiRect& rc, bool bIntersect = true) = 0;
 
@@ -916,14 +916,9 @@ public:
     * @param [in] rx 圆角的宽度
     * @param [in] ry 圆角的的高度
     * @param [in] bIntersect ClipOp操作标志，true表示kIntersect操作，false表示kDifference操作
-    * @return 返回当前设备上下文标志，在调用ClearClip的时候需要传回该返回值，错误时返回-1
+    * @return 返回当前设备上下文标志，在调用RestoreClip的时候需要传回该返回值，错误时返回-1
     */
     virtual int32_t ClipRoundRect(const UiRect& rcItem, float rx, float ry, bool bIntersect = true) = 0;
-
-    /** 清除矩形剪辑区域，并恢复设备上下文到最近一次保存的状态
-    * @param [in] nState 设备上下文标志, 由ClipRect或者ClipRoundRect函数返回
-    */
-    virtual void ClearClip(int32_t nState) = 0;
 
     /** 函数执行与从指定源设备上下文到目标设备上下文中的像素矩形对应的颜色数据的位块传输
     * @param [in] x 目标矩形左上角的 x 坐标

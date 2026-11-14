@@ -20,7 +20,7 @@
 | 三.6 | 注释中直接写引擎名 | 见第三节第 6 条 | **部分修复** | 已清理 `AlphaType`、`DrawArc` 等处的引擎名，建议后续普查 |
 | 四.1 | `Clone` 家族所有权与 const 不统一 | `IRender.h#L185`、`#L280`、`#L289`、`#L424`、`#L1367` | **已修复** | 五个 `Clone` 统一为 `std::unique_ptr<T> Clone() const` |
 | 四.2 | 只读接口缺 const | 见第四节第 2 条 | **已修复** | 只读接口/只读指针参数全部补 const（含 `IsUnicodeCharSupported`、`BitBlt`） |
-| 四.3 | 两套裁剪状态机制并存 | `IRender.h#L900-L926` | **已修复** | 保留 `SaveClip/RestoreClip`；`SetClip→ClipRect`、`SetRoundClip→ClipRoundRect` |
+| 四.3 | 两套裁剪状态机制并存 | `IRender.h#L900-L921` | **已修复** | 保留 `SaveClip/RestoreClip`；`SetClip→ClipRect`、`SetRoundClip→ClipRoundRect`；删除 `ClearClip` |
 | 四.4 | `MeasureRichText*` 编号式重载膨胀 | `IRender.h#L1176` | **已修复** | 合并为单个 `MeasureRichText`，可选输出参数默认 `nullptr` |
 | 四.5 | 返回值约定不一致 | `IRender.h#L1176` | **已修复** | `MeasureRichText` 返回 `UiRect`（宽度=内容最大行宽，高度=内容总高度） |
 | 四.6 | "未设置"用魔法值表达 | `IRender.h#L826-L829` | **已修复** | `rectSize` 拆分为 `limitWidth` / `limitHeight`，`-1` 表示不限制 |
@@ -31,6 +31,8 @@
 | 五.3 | `rcPaint` 脏区参数 | `IRender.h#L986-L1010` | 未处理 | 建议在注释中明确空矩形语义 |
 | 五.4 | 测量依赖画布尺寸 | `Render_Skia.cpp#L1692-L1695` | 未处理 | 影响无 Surface 的纯测量场景 |
 | 六 | 缺失接口（P0/P1/P2） | 见第六节 | 未处理 | 字体回退优化未新增任何图元/裁剪/采样接口 |
+
+> 补充（2026-11-14 第三批）：`ClearClip` 已删除，其实现（`restoreToCount` + `m_saveCount` 同步）并入 `RestoreClip`，全部调用方改用 `RestoreClip`，行为与删除前一致。
 
 统计：已修复 15 项、部分修复 2 项、暂不处理 1 项、未处理 4 项、缺失接口 3 组待排期。
 
@@ -67,7 +69,7 @@
 
 ### 4. 注释与参数名错误（低，但会误导调用方）— **已修复**
 
-- `ClearClip` 的注释已改为 `@param [in] nState`（`IRender.h#L922-L925`）。
+- `ClearClip` 的注释曾修正为 `@param [in] nState`；该接口已于 2026-11-14 删除（并入 `RestoreClip`，见第四节第 3 条）。
 - `MeasureRichText` 的 `richTextData` 已改为 `@param [in]`，并补充 `@param [out] pRichTextRects`（`IRender.h#L1165-L1176`）。
 - `HasFontName` 的 `@param` 已改为 `[in]`（`IRender.h#L93-L97`）。
 - `CreateBrush(UiColor color)` 拼写已修正（`IRender.h#L1450`）。
@@ -136,8 +138,8 @@
 - 裁剪族按"动作"重命名，语义自解释，不再与状态栈混淆：
   - `SetClip(rc, bIntersect)` → **`ClipRect(rc, bIntersect)`**（`IRender.h#L912`）；
   - `SetRoundClip(rc, rx, ry, bIntersect)` → **`ClipRoundRect(rc, rx, ry, bIntersect)`**（`#L921`）；
-  - `ClearClip(nState)` 保持不变（`#L926`），与 `ClipRect/ClipRoundRect` 的返回值配对使用。
-- 调用方已同步：`AutoClip`、`Panel`、`GroupBox`、`ListCtrlReportView`、`RichEdit2`；`SaveClip/RestoreClip` 的调用方无需改动。
+  - 原 `ClearClip(nState)` 已删除，裁剪清理统一由 `RestoreClip(nState)` 承担（`#L905`），其内部即 `restoreToCount(nState)` + 同步 `m_saveCount`，与删除前的行为完全一致。
+- 调用方已同步：`AutoClip`、`Panel`、`GroupBox`、`ListCtrlReportView`、`RichEdit2` 均改用 `RestoreClip`；`SaveClip` 语义不变（当前无调用方）。
 
 ### 4. `MeasureRichText` 编号式重载膨胀 — **已修复**
 
@@ -348,5 +350,6 @@ virtual void SetImageSamplingQuality(ImageSamplingQuality quality) = 0;
 | `IFontMgr::GetFontName` | `bool GetFontName(uint32_t, DString&) const` | `DString GetFontName(uint32_t) const` | 自定义 `IFontMgr` 实现需同步；调用方改为返回值判断空串 |
 | `IRender::SetClip` | `SetClip(rc, bIntersect)` | `ClipRect(rc, bIntersect)` | 调用方改名即可（实参、返回值、语义均不变） |
 | `IRender::SetRoundClip` | `SetRoundClip(rc, rx, ry, bIntersect)` | `ClipRoundRect(rc, rx, ry, bIntersect)` | 调用方改名即可（实参、返回值、语义均不变） |
+| `IRender::ClearClip` | `ClearClip(nState)` | **已删除**，统一使用 `RestoreClip(nState)` | `RestoreClip` 内部已包含 `restoreToCount` 与 `m_saveCount` 同步；7 处调用方与 `AutoClip` 已切换，行为不变 |
 
 **测试补充**：`tests/test_text_draw.cpp` 新增 `MeasureRichText` 返回值契约校验——原点为 `(0,0)`、宽度不超过限制宽度、限制宽度越小（换行越多）内容总高度越大（共 7 项检查）。

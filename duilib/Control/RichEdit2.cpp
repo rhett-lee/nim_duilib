@@ -2369,7 +2369,7 @@ void RichEdit2::PaintCompositionText(IRender* pRender)
     pRender->DrawLine(UiPointF((float)rcComposition.left, (float)(rcComposition.bottom - 1)),
                       UiPointF((float)rcComposition.right, (float)(rcComposition.bottom - 1)),
                       underlineColor, 1.0f);
-    pRender->ClearClip(nClipState);
+    pRender->RestoreClip(nClipState);
 
     //组合输入过程中，在组合文本末尾绘制1px细光标，替代完全隐藏光标
     if (m_bIsCaretVisible && (rcComposition.right >= rcDrawText.left) && (rcComposition.right <= rcDrawText.right)) {

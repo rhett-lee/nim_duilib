@@ -969,7 +969,7 @@ void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
         pControl->AlphaPaint(pRender, rcNewPaint);
         pRender->SetWindowOrg(ptOldOrg);
         if (nClipState >= 0) {
-            pRender->ClearClip(nClipState);
+            pRender->RestoreClip(nClipState);
         }
     };
 
@@ -1176,7 +1176,7 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
             UiPointF pt2(fXPos, (float)viewRect.bottom);
             pRender->DrawLine(pt1, pt2, columnLineColor, fColumnLineWidth);
             if (nClipState >= 0) {
-                pRender->ClearClip(nClipState);
+                pRender->RestoreClip(nClipState);
             }
         }
     }
