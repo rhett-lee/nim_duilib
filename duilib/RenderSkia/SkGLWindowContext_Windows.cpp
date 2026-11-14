@@ -53,9 +53,16 @@ void SkGLWindowContext_Windows::resize(int nWidth, int nHeight)
     if ((fWidth == nWidth) && (fHeight == nHeight)) {
         return;
     }
-    BaseClass::resize(nWidth, nHeight);
-    ASSERT(fWidth == nWidth);
-    ASSERT(fHeight == nHeight);
+    //窗口缩放时只重建SkSurface，保持WGL上下文与GrDirectContext不变：
+    //这样拖动缩放时不会反复销毁/创建OpenGL上下文，避免卡顿和闪烁
+    if (!MakeCurrent()) {
+        return;
+    }
+    fWidth = nWidth;
+    fHeight = nHeight;
+    //下次getBackbufferSurface()时按新尺寸重建绘制表面
+    fSurface.reset();
+    glViewport(0, 0, nWidth, nHeight);
 }
 
 void SkGLWindowContext_Windows::onSwapBuffers()
@@ -275,8 +282,10 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* /*pRender*/, IRende
     ::ValidateRect(hWnd, nullptr);
 
     //提交绘制结果，并刷新到设备DC
+    //这里使用异步提交(kNo)：SwapBuffers本身会与显示同步，不需要每帧等待CPU完成绘制，
+    //否则会阻塞UI线程、显著降低帧率；需要在GPU绘制完成后读回像素的场景，由调用方显式同步
     if (auto dContext = this->directContext()) {
-        dContext->flushAndSubmit(backbuffer.get(), GrSyncCpu::kYes);
+        dContext->flushAndSubmit(backbuffer.get(), GrSyncCpu::kNo);
     }
 
     //绘制完成后，更新到窗口

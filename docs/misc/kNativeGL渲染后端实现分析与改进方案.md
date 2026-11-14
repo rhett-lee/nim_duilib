@@ -1,6 +1,6 @@
 # kNativeGL 渲染后端实现分析与改进方案
 
-> 状态：分析报告（2026-11-14）；阶段 1（正确性）已实施（2026-11-14）
+> 状态：分析报告（2026-11-14）；阶段 1（正确性）、阶段 2（性能）已实施（2026-11-14）
 > 适用范围：Windows 平台（`DUILIB_BUILD_FOR_WIN`，不含 `_M_ARM64`），Skia Ganesh + WGL
 > 关联文档：[IRender职责拆分与离屏渲染设计方案.md](IRender职责拆分与离屏渲染设计方案.md)、[IRender接口分析报告.md](IRender接口分析报告.md)
 
@@ -294,7 +294,7 @@ GL 默认帧缓冲在 `SwapBuffers` 后内容未定义，因此当前只能整�
 | 阶段 | 内容 | 验收标准 |
 | --- | --- | --- |
 | 阶段 1（正确性）**已实施** | MakeCurrent 管理、初始化失败回退、Vsync 顺序、destroy 顺序、layered 保护 | 同线程多 GL 窗口交替绘制正常；关闭任意窗口无断言；无 OpenGL 环境自动回退 CPU；Vsync 生效 |
-| 阶段 2（性能） | resize 不重建上下文、`kNo` 同步、启动单次初始化、Clone 修正 | 拖动缩放无闪烁、帧率稳定；启动只创建一次上下文；CPU 占用明显下降 |
+| 阶段 2（性能）**已实施** | resize 不重建上下文、`kNo` 同步、启动单次初始化、Clone 修正 | 拖动缩放无闪烁、帧率稳定；启动只创建一次上下文；CPU 占用明显下降 |
 | 阶段 3（体验） | 持久 FBO 局部刷新、离屏共享上下文、vsync/msaa 配置 | 4K 窗口小动画 CPU 占用明显下降；离屏 GL 在多窗口下可用 |
 | 阶段 4（工程化） | GL 多窗口冒烟测试、文档补充 | 回归测试可自动执行；文档说明 GL 后端限制与降级策略 |
 
@@ -338,5 +338,29 @@ GL 默认帧缓冲在 `SwapBuffers` 后内容未定义，因此当前只能整�
 
 - Debug x64 构建通过（`python build/build.py build --config Debug --arch x64 --jobs 4`）；
 - `ctest --test-dir out/x64/Debug`：12/12 通过（现有自动化用例均基于 CPU 离屏渲染，GL 窗口行为需按 6.5 的清单人工验证）；
-- 阶段 1 未改变 `resize` 策略（仍销毁重建上下文），拖动缩放卡顿/闪烁问题留待阶段 2 处理。
+- 阶段 1 未改变 `resize` 策略（仍销毁重建上下文），拖动缩放卡顿/闪烁问题留待阶段 2 处理（阶段 2 已处理）。
+
+## 十、阶段 2 实施记录（2026-11-14）
+
+### 10.1 修改内容
+
+| 目标 | 修改位置 | 具体做法 |
+| --- | --- | --- |
+| resize 不重建上下文 | `SkGLWindowContext_Windows::resize()` | 不再调用基类 `resize`（它会销毁并重建 WGL 上下文）；只 `MakeCurrent()` 后更新 `fWidth/fHeight`、`fSurface.reset()`、`glViewport()`，下次 `getBackbufferSurface()` 按新尺寸重建绘制表面 |
+| 去掉每帧 CPU 同步 | `SkGLWindowContext_Windows::PaintAndSwapBuffers()` | `flushAndSubmit(backbuffer, GrSyncCpu::kNo)`，由 `SwapBuffers` 与显示同步；读回像素的场景由 `SkSurface::readPixels` 内部保证 |
+| 启动单次初始化 | `SkGLWindowContext_Windows::resize()` | 由"resize 不重建上下文"直接解决：`Window::PostInitWindow()` 创建 Render 后再应用初始尺寸时，不再产生第二个 WGL 上下文，无需调整初始化顺序 |
+| Clone 修正 | `Render_Skia_Windows::Clone()` | GL 窗口不再在同一个 HWND 上创建第二个 GL 上下文，改为 `CreateOffscreenRender()` 创建离屏副本并用 `BitBlt` 拷贝内容；创建失败返回 `nullptr` |
+
+### 10.2 说明
+
+- `resize` 期间 `GrDirectContext` 保持存活，已录制的绘制命令由 Skia 管理引用计数，重置 `fSurface` 不会造成悬空引用；
+- `fStencilBits/fSampleCount` 只在上下文创建时读取，本次修改不再重建上下文，因此无需重新读取；
+- GL 窗口的 `Clone()` 返回值是离屏（CPU）副本，仅保证像素内容一致，不保证后端类型一致。
+
+### 10.3 验证结果
+
+- Debug x64 构建通过；
+- `ctest --test-dir out/x64/Debug`：12/12 通过；
+- 拖动缩放、帧率与 CPU 占用的量化验证需在带 OpenGL 的桌面环境按 6.5 清单人工执行。
+
 

@@ -137,6 +137,22 @@ int32_t Render_Skia_Windows::GetHeight() const
 
 std::unique_ptr<ui::IRender> Render_Skia_Windows::Clone() const
 {
+    if (m_backendType == RenderBackendType::kNativeGL_BackendType) {
+        //OpenGL绘制必须绑定窗口，同一个窗口上不能再创建第二个OpenGL上下文（否则会退化到CPU绘制），
+        //因此这里返回一个离屏渲染对象，并把当前窗口的内容拷贝到该对象中
+        IRenderFactory* pRenderFactory = GetRenderFactory();
+        if (pRenderFactory == nullptr) {
+            return nullptr;
+        }
+        std::unique_ptr<ui::IRender> pClone = pRenderFactory->CreateOffscreenRender(
+            (uint32_t)GetWidth(), (uint32_t)GetHeight(), GetRenderDpi());
+        if (pClone == nullptr) {
+            return nullptr;
+        }
+        pClone->SetImageSamplingQuality(GetImageSamplingQuality());
+        pClone->BitBlt(0, 0, GetWidth(), GetHeight(), this, 0, 0, RopMode::kSrcCopy);
+        return pClone;
+    }
     std::unique_ptr<ui::IRender> pClone = std::make_unique<ui::Render_Skia_Windows>(m_hWnd, m_backendType);
     pClone->Resize(GetWidth(), GetHeight());
     pClone->SetRenderDpi(GetRenderDpi());
