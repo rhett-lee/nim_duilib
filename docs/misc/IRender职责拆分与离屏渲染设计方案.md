@@ -1,6 +1,6 @@
 # IRender 职责拆分与离屏渲染设计方案
 
-> 状态：已实现（2026-11-14），三个阶段均已完成；Debug x64 构建通过、ctest 12/12 通过，离屏测试 108 项检查全部通过（GPU 后端能力查询结果为 true）。
+> 状态：已实现（2026-11-14），阶段 1~3 与可选的阶段 4 均已完成；Debug x64 构建通过、ctest 12/12 通过，离屏测试 127 项检查全部通过（GPU 后端能力查询结果为 true）。
 > 关联文档：[IRender接口分析报告.md](IRender接口分析报告.md) 第五节第 1 条。
 >
 > 实现备注：
@@ -10,7 +10,8 @@
 > - `Render_Skia` 的 `Clear` / `ClearRect` / `MakeImageSnapshot` 在无法访问像素指针（GPU 后端）时改用 Skia 接口（`SkCanvas::clear`、`SkSurface::readPixels` 等）；
 > - 宽高约束：单边上限 16384；宽高必须同时为 0 或同时大于 0；
 > - `IRenderFactory::CreateRender` 已移除，窗口与离屏分别使用 `CreateWindowRender` / `CreateOffscreenRender`；
-> - 测试用例 OS-21/OS-22（位图直绘）本期不实现；OS-32/OS-33（窗口控件迁移回归）需在集成环境验证，测试中标记为 SKIP。
+> - 阶段 4：新增 `duilib/RenderSkia/Render_Skia_Bitmap.h/.cpp`（`SkSurfaces::WrapPixels` 直接包装位图像素，零拷贝）；`IRenderFactory` 新增 `CreateBitmapRender`；新增 `Control::CreateSnapshot` / `Window::Snapshot` 高层封装；新增 `ImageUtil::SaveBitmapToBmpFile`（32 位 BMP，无第三方编码器）；
+> - 测试用例 OS-32/OS-33（窗口控件迁移回归）需在集成环境验证，测试中标记为 SKIP。
 
 ## 一、背景与问题
 
@@ -43,7 +44,7 @@
 
 不在本期范围：
 
-- 图片编码导出（PNG/JPEG）：当前仓库只有解码器，没有编码器；
+- PNG/JPEG 编码导出：当前仓库只有解码器；仅提供无第三方依赖的 BMP 导出（`ImageUtil::SaveBitmapToBmpFile`）；
 - Vulkan / Metal 等新后端接入（仅预留扩展点）。
 
 ## 三、接口分层设计
@@ -251,12 +252,12 @@ auto pGpuOffscreen = pRenderFactory->CreateOffscreenRender(1024, 1024, GetRender
 | OS-19 | Clone 独立性 | Clone 后修改原对象 | Clone 内容不变 |
 | OS-20 | Clone 属性 | 设置 DPI、`ImageSamplingQuality=kLinear` 后 Clone | Clone 的 DPI/采样质量与原对象一致 |
 
-### E. 位图直绘（阶段 3，可选）
+### E. 位图直绘
 
 | 编号 | 场景 | 步骤 | 预期 |
 | --- | --- | --- | --- |
-| OS-21 | 直绘到 IBitmap | `CreateBitmapRender(pBitmap)` 后绘制 | `pBitmap->LockPixelBits()` 立即可见绘制结果（零拷贝） |
-| OS-22 | 位图尺寸不匹配 | 传入未初始化的 `IBitmap` | 返回 nullptr，不崩溃 |
+| OS-21 | 直绘到 IBitmap | `CreateBitmapRender(pBitmap)` 后绘制 | `pBitmap->LockPixelBits()` 立即可见绘制结果（零拷贝）；`Resize` 仅接受相同尺寸 |
+| OS-22 | 位图无效 | 传入未初始化的 `IBitmap` 或 `nullptr` | 返回 nullptr，不崩溃 |
 
 ### F. 多后端
 
@@ -286,6 +287,13 @@ auto pGpuOffscreen = pRenderFactory->CreateOffscreenRender(1024, 1024, GetRender
 | OS-32 | Control 缓存 | 迁移 `Control::CreateTempRender` 后，绘制带 Alpha 的控件 | 输出像素与迁移前一致（基准图对比） |
 | OS-33 | 拖拽图 | 迁移 `ControlDragable` 后创建拖拽图 | 尺寸与内容与迁移前一致 |
 
+### I. 位图导出
+
+| 编号 | 场景 | 步骤 | 预期 |
+| --- | --- | --- | --- |
+| OS-35 | 导出 BMP | 位图绘制后 `ImageUtil::SaveBitmapToBmpFile` | 返回 true，文件存在；文件头为 `BM`，位深 32，首像素内容正确 |
+| OS-36 | 无效位图导出 | 传入 `nullptr` | 返回 false，不产生文件 |
+
 ### 测试文件与构建
 
 ```text
@@ -303,9 +311,11 @@ int main()
     TestRasterDraw();           // OS-07 ~ OS-12
     TestSnapshot();             // OS-13 ~ OS-17
     TestClone();                // OS-18 ~ OS-20
+    TestBitmapRender();         // OS-21 ~ OS-22
     TestBackends();             // OS-23 ~ OS-28（含能力跳过）
     TestThreadAndLifetime();    // OS-29 ~ OS-31
     TestCompatEntry();          // OS-32 ~ OS-33（需窗口，打印 SKIP）
+    TestBitmapExport();         // OS-35 ~ OS-36
     // 输出检查总数/失败数，返回失败数 ? 1 : 0
 }
 ```
@@ -334,11 +344,11 @@ int main()
 12. `IsOffscreenBackendSupported` + GL 离屏用例（F 组）；
 13. 明确 ARM64 Windows 不支持并回退 Raster。
 
-**阶段 4（可选）**
+**阶段 4（可选，已实现）**
 
-14. `CreateBitmapRender(IBitmap*)` 零拷贝直绘；
-15. `Control::CreateSnapshot()` / `Window::Snapshot()` 高层封装；
-16. 图片编码导出（需新增编码器）。
+14. `CreateBitmapRender(IBitmap*)` 零拷贝直绘（`Render_Skia_Bitmap`，`SkSurfaces::WrapPixels` 包装位图像素）；
+15. `Control::CreateSnapshot()` / `Window::Snapshot()` 高层封装（内部使用 `CreateOffscreenRender`）；
+16. 图片编码导出：不新增编码器，仅支持导出 BMP（`ImageUtil::SaveBitmapToBmpFile`，预乘 Alpha 会还原为非预乘 RGB）。
 
 ## 七、受影响文件清单（预估）
 
@@ -357,5 +367,5 @@ int main()
 
 1. GPU 离屏的上下文策略：**复用同线程窗口 GL 上下文 + 无窗口时惰性创建每线程后台上下文**（推荐） vs 只允许复用、无窗口时不支持 GPU。
 2. `CreateOffscreenRender` 显式请求 GPU 失败时：**返回 nullptr**（推荐，能力透明） vs 静默回退 Raster。
-3. 位图直绘（`CreateBitmapRender`）是否纳入本期（阶段 3/4）。
-4. 是否同期提供 `Control::CreateSnapshot()` / `Window::Snapshot()` 高层 API。
+3. 位图直绘（`CreateBitmapRender`）是否纳入本期（阶段 3/4）：**已实现**。
+4. 是否同期提供 `Control::CreateSnapshot()` / `Window::Snapshot()` 高层 API：**已实现**。

@@ -3681,6 +3681,51 @@ std::unique_ptr<IRender> Control::CreateTempRender() const
     return spTempRender;
 }
 
+std::shared_ptr<IBitmap> Control::CreateSnapshot(bool bIncludeChild)
+{
+    const UiRect rcCtrl = GetRect();
+    if (rcCtrl.IsEmpty()) {
+        return nullptr;
+    }
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    ASSERT(pRenderFactory != nullptr);
+    if (pRenderFactory == nullptr) {
+        return nullptr;
+    }
+    IRenderDpiPtr spRenderDpi;
+    if (GetWindow() != nullptr) {
+        spRenderDpi = GetWindow()->GetRenderDpi();
+    }
+    std::unique_ptr<IRender> pRender = pRenderFactory->CreateOffscreenRender(
+        (uint32_t)rcCtrl.Width(), (uint32_t)rcCtrl.Height(), spRenderDpi);
+    if (pRender == nullptr) {
+        return nullptr;
+    }
+    //快照背景保持透明，仅保留控件自身绘制的内容
+    pRender->Clear(UiColor());
+    //将控件的坐标映射到快照画布的坐标
+    const UiPoint ptOldWindowOrg = pRender->OffsetWindowOrg(UiPoint(rcCtrl.left, rcCtrl.top));
+    //控件整体透明度不为255时，使用离屏图层保证绘制结果与屏幕显示一致
+    const bool bNeedLayer = IsAlpha();
+    if (bNeedLayer) {
+        pRender->SaveLayer(UiRect(), GetAlpha());
+    }
+    Paint(pRender.get(), rcCtrl);
+    if (bIncludeChild) {
+        PaintChild(pRender.get(), rcCtrl);
+    }
+    if (IsBordersOnTop()) {
+        PaintBorder(pRender.get());
+    }
+    PaintLoading(pRender.get(), rcCtrl);
+    PaintForeColor(pRender.get());
+    if (bNeedLayer) {
+        pRender->RestoreLayer();
+    }
+    pRender->SetWindowOrg(ptOldWindowOrg);
+    return std::shared_ptr<IBitmap>(pRender->MakeImageSnapshot());
+}
+
 void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 {
     ASSERT(pRender != nullptr);

@@ -109,6 +109,9 @@
     <Filter Include="RenderSkia\Offscreen">
       <UniqueIdentifier>{d790c2cf-aeef-44c7-bbc7-2b89bd32c6a3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RenderSkia\Bitmap">
+      <UniqueIdentifier>{bc7f217b-c6d5-41ee-a731-34908551b90a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Animation\AnimationPlayer.cpp">
@@ -1043,6 +1046,9 @@
     </ClCompile>
     <ClCompile Include="RenderSkia\Render_Skia_Offscreen.cpp">
       <Filter>RenderSkia\Offscreen</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSkia\Render_Skia_Bitmap.cpp">
+      <Filter>RenderSkia\Bitmap</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2161,6 +2167,9 @@
     </ClInclude>
     <ClInclude Include="RenderSkia\Render_Skia_Offscreen.h">
       <Filter>RenderSkia\Offscreen</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\Render_Skia_Bitmap.h">
+      <Filter>RenderSkia\Bitmap</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

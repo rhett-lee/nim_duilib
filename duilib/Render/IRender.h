@@ -1747,6 +1747,16 @@ public:
     */
     virtual IBitmap* CreateBitmap(uint32_t nWidth, uint32_t nHeight, AlphaType alphaType = AlphaType::kPremul) = 0;
 
+    /** 创建一个直接绘制到指定位图上的Render对象（零拷贝）
+    * @param [in] pBitmap 绘制目标的位图（必须由本渲染后端创建，且已初始化成功）
+    * @param [in] spRenderDpi 关联的DPI转换接口（用于线宽、字体等缩放）
+    * @return 成功返回渲染对象；位图无效或后端不支持时返回nullptr
+    * @note 绘制内容直接写入位图的像素数据，不产生拷贝；
+    *       Render对象不拥有位图的所有权，位图的生命周期必须长于Render对象
+    */
+    virtual std::unique_ptr<IRender> CreateBitmapRender(IBitmap* pBitmap,
+                                                        const IRenderDpiPtr& spRenderDpi = nullptr) = 0;
+
     /** 查询指定后端是否支持离屏渲染
     * @param [in] backendType 待查询的后端类型
     * @return 支持返回true，否则返回false

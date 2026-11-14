@@ -24,6 +24,13 @@ public:
     virtual IBitmap* CreateBitmap() override;
     virtual IBitmap* CreateBitmap(uint32_t nWidth, uint32_t nHeight, AlphaType alphaType) override;
 
+    /** 创建一个直接绘制到指定位图上的Render对象（零拷贝）
+    * @param [in] pBitmap 绘制目标的位图
+    * @param [in] spRenderDpi 关联的DPI转换接口
+    */
+    virtual std::unique_ptr<IRender> CreateBitmapRender(IBitmap* pBitmap,
+                                                        const IRenderDpiPtr& spRenderDpi = nullptr) override;
+
     /** 查询指定后端是否支持离屏渲染
     * @param [in] backendType 待查询的后端类型
     */

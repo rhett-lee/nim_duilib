@@ -1,8 +1,10 @@
 #include "ImageUtil.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Utils/FileUtil.h"
 #include <cmath>
 #include <cstdint>
+#include <cstring>
 
 #pragma warning (push)
 #pragma warning (disable: 4505)
@@ -308,6 +310,103 @@ bool ImageUtil::GetBestImageScale(const UiSize& rcMaxDestRectSize,
         fScale = static_cast<float>(minImageSize) / nImageHeight;
     }
     return true;
+}
+
+namespace
+{
+/** 向缓冲区写入16位小端整数
+*/
+void WriteUint16LE(std::vector<uint8_t>& data, size_t offset, uint16_t value)
+{
+    data[offset] = (uint8_t)(value & 0xFF);
+    data[offset + 1] = (uint8_t)((value >> 8) & 0xFF);
+}
+
+/** 向缓冲区写入32位小端整数
+*/
+void WriteUint32LE(std::vector<uint8_t>& data, size_t offset, uint32_t value)
+{
+    data[offset] = (uint8_t)(value & 0xFF);
+    data[offset + 1] = (uint8_t)((value >> 8) & 0xFF);
+    data[offset + 2] = (uint8_t)((value >> 16) & 0xFF);
+    data[offset + 3] = (uint8_t)((value >> 24) & 0xFF);
+}
+} //namespace
+
+bool ImageUtil::SaveBitmapToBmpFile(IBitmap* pBitmap, const FilePath& filePath)
+{
+    if ((pBitmap == nullptr) || !pBitmap->IsValid()) {
+        return false;
+    }
+    const uint32_t nWidth = pBitmap->GetWidth();
+    const uint32_t nHeight = pBitmap->GetHeight();
+    const uint32_t nRowBytes = pBitmap->GetRowBytes();
+    if ((nWidth == 0) || (nHeight == 0)) {
+        return false;
+    }
+    //每行像素至少需要 nWidth * 4 个字节
+    if ((uint64_t)nRowBytes < ((uint64_t)nWidth * 4)) {
+        return false;
+    }
+    //计算像素数据长度与文件长度，避免整数溢出
+    const uint64_t nImageSize64 = (uint64_t)nWidth * (uint64_t)nHeight * 4;
+    const uint64_t nFileSize64 = 54 + nImageSize64;
+    if (nFileSize64 > (uint64_t)0xFFFFFFFF) {
+        return false;
+    }
+    const uint32_t nImageSize = (uint32_t)nImageSize64;
+    const uint32_t nFileSize = (uint32_t)nFileSize64;
+
+    const void* pPixelBits = pBitmap->LockPixelBits();
+    if (pPixelBits == nullptr) {
+        return false;
+    }
+
+    std::vector<uint8_t> fileData((size_t)nFileSize, 0);
+    //BITMAPFILEHEADER（14字节）
+    fileData[0] = 'B';
+    fileData[1] = 'M';
+    WriteUint32LE(fileData, 2, nFileSize);      //文件总长度
+    WriteUint32LE(fileData, 6, 0);              //保留字段
+    WriteUint32LE(fileData, 10, 54);            //像素数据偏移
+    //BITMAPINFOHEADER（40字节）
+    WriteUint32LE(fileData, 14, 40);            //头长度
+    WriteUint32LE(fileData, 18, nWidth);        //宽度
+    WriteUint32LE(fileData, 22, nHeight);       //高度（正数表示自下而上存储）
+    WriteUint16LE(fileData, 26, 1);             //颜色平面数
+    WriteUint16LE(fileData, 28, 32);            //每像素位数
+    WriteUint32LE(fileData, 30, 0);             //压缩方式：BI_RGB
+    WriteUint32LE(fileData, 34, nImageSize);    //像素数据长度
+    WriteUint32LE(fileData, 38, 0);             //水平分辨率
+    WriteUint32LE(fileData, 42, 0);             //垂直分辨率
+    WriteUint32LE(fileData, 46, 0);             //调色板颜色数
+    WriteUint32LE(fileData, 50, 0);             //重要颜色数
+
+    //像素数据：BMP为自下而上存储，内存中的字节序为BGRA，与位图（ARGB）在小端平台上一致
+    const bool bPremul = (pBitmap->GetAlphaType() == AlphaType::kPremul);
+    const size_t nDestRowBytes = (size_t)nWidth * 4;
+    for (uint32_t y = 0; y < nHeight; ++y) {
+        const uint8_t* pSrcRow = (const uint8_t*)pPixelBits + (size_t)(nHeight - 1 - y) * nRowBytes;
+        uint8_t* pDstRow = fileData.data() + 54 + (size_t)y * nDestRowBytes;
+        for (uint32_t x = 0; x < nWidth; ++x) {
+            uint32_t nColor = 0;
+            ::memcpy(&nColor, pSrcRow + (size_t)x * 4, sizeof(nColor));
+            const uint8_t nAlpha = (uint8_t)((nColor >> 24) & 0xFF);
+            if (bPremul && (nAlpha > 0) && (nAlpha < 255)) {
+                //还原为非预乘的RGB值，保证忽略Alpha通道的查看器中颜色正确
+                uint8_t nBlue  = (uint8_t)((nColor >> 0) & 0xFF);
+                uint8_t nGreen = (uint8_t)((nColor >> 8) & 0xFF);
+                uint8_t nRed   = (uint8_t)((nColor >> 16) & 0xFF);
+                nBlue  = (uint8_t)(((uint32_t)nBlue * 255 + nAlpha / 2) / nAlpha);
+                nGreen = (uint8_t)(((uint32_t)nGreen * 255 + nAlpha / 2) / nAlpha);
+                nRed   = (uint8_t)(((uint32_t)nRed * 255 + nAlpha / 2) / nAlpha);
+                nColor = ((uint32_t)nAlpha << 24) | ((uint32_t)nRed << 16) | ((uint32_t)nGreen << 8) | nBlue;
+            }
+            ::memcpy(pDstRow + (size_t)x * 4, &nColor, sizeof(nColor));
+        }
+    }
+    pBitmap->UnLockPixelBits();
+    return FileUtil::WriteFileData(filePath, fileData);
 }
 
 } //namespace ui

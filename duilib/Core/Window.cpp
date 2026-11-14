@@ -1431,6 +1431,42 @@ bool Window::Paint(const UiRect& rcPaint)
     return true;
 }
 
+std::shared_ptr<IBitmap> Window::Snapshot()
+{
+    GlobalManager::Instance().AssertUIThread();
+    if (!IsWindow()) {
+        return nullptr;
+    }
+    Box* pRoot = GetRoot();
+    if (pRoot == nullptr) {
+        return nullptr;
+    }
+    UiRect rcClient;
+    GetClientRect(rcClient);
+    if (rcClient.IsEmpty()) {
+        return nullptr;
+    }
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    ASSERT(pRenderFactory != nullptr);
+    if (pRenderFactory == nullptr) {
+        return nullptr;
+    }
+    std::unique_ptr<IRender> pRender = pRenderFactory->CreateOffscreenRender(
+        (uint32_t)rcClient.Width(), (uint32_t)rcClient.Height(), GetRenderDpi());
+    if (pRender == nullptr) {
+        return nullptr;
+    }
+    //快照背景保持透明，仅保留窗口内容
+    pRender->Clear(UiColor());
+    if (pRoot->IsVisible()) {
+        AutoClip rectClip(pRender.get(), rcClient, true);
+        const UiPoint ptOldWindowOrg = pRender->OffsetWindowOrg(m_renderOffset);
+        pRoot->AlphaPaint(pRender.get(), rcClient);
+        pRender->SetWindowOrg(ptOldWindowOrg);
+    }
+    return std::shared_ptr<IBitmap>(pRender->MakeImageSnapshot());
+}
+
 LRESULT Window::OnSetFocusMsg(WindowBase* /*pLostFocusWindow*/, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;

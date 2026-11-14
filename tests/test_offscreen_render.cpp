@@ -6,10 +6,11 @@
 //  B. 绘制与像素正确性      OS-07 ~ OS-12
 //  C. 快照                  OS-13 ~ OS-17
 //  D. Clone                 OS-18 ~ OS-20
-//  E. 位图直绘（可选，未实现）OS-21 ~ OS-22（打印 SKIP）
+//  E. 位图直绘              OS-21 ~ OS-22
 //  F. 多后端                OS-23 ~ OS-28（GPU 不可用时打印 SKIP）
 //  G. 线程与生命周期        OS-29 ~ OS-31
 //  H. 迁移回归              OS-32 ~ OS-33（需窗口，打印 SKIP）
+//  I. 位图导出              OS-35 ~ OS-36
 //
 // 本测试不创建窗口；未初始化尺寸的对象允许被安全使用。
 
@@ -21,13 +22,16 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/ResourceParam.h"
 #include "duilib/Core/UiFont.h"
+#include "duilib/Image/ImageUtil.h"
 #include "duilib/Render/IRender.h"
+#include "duilib/Utils/FileUtil.h"
 #include "duilib/Utils/FilePath.h"
 #include "duilib/Utils/StringConvert.h"
 
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <filesystem>
 #include <iostream>
 #include <memory>
 #include <thread>
@@ -450,6 +454,92 @@ void TestClone(ui::IRenderFactory* pRenderFactory)
 }
 
 // ---------------------------------------------------------------------------
+// E. 位图直绘（OS-21 ~ OS-22）
+// ---------------------------------------------------------------------------
+void TestBitmapRender(ui::IRenderFactory* pRenderFactory)
+{
+    //OS-21 直接绘制到IBitmap（零拷贝）
+    {
+        std::unique_ptr<ui::IBitmap> pBitmap(pRenderFactory->CreateBitmap(32, 24, ui::AlphaType::kPremul));
+        CHECK(pBitmap != nullptr);
+        if (pBitmap != nullptr) {
+            std::unique_ptr<ui::IRender> pRender = pRenderFactory->CreateBitmapRender(pBitmap.get());
+            CHECK(pRender != nullptr);
+            if (pRender != nullptr) {
+                CHECK(pRender->GetWidth() == 32);
+                CHECK(pRender->GetHeight() == 24);
+                CHECK(pRender->GetRenderBackendType() == ui::RenderBackendType::kRaster_BackendType);
+                pRender->Clear(ui::UiColor(kBlueColor));
+                //零拷贝：不经过快照，直接从位图读取像素
+                uint32_t nColor = 0;
+                CHECK(ReadBitmapPixel(pBitmap.get(), 16, 12, nColor) && (nColor == kBlueColor));
+                //位图尺寸不可调整
+                CHECK(!pRender->Resize(64, 64));
+                CHECK(pRender->Resize(32, 24));
+            }
+        }
+    }
+
+    //OS-22 无效位图时返回nullptr
+    {
+        std::unique_ptr<ui::IBitmap> pEmptyBitmap(pRenderFactory->CreateBitmap());
+        CHECK(pEmptyBitmap != nullptr);
+        if (pEmptyBitmap != nullptr) {
+            std::unique_ptr<ui::IRender> pRender = pRenderFactory->CreateBitmapRender(pEmptyBitmap.get());
+            CHECK(pRender == nullptr);
+        }
+        std::unique_ptr<ui::IRender> pRender = pRenderFactory->CreateBitmapRender(nullptr);
+        CHECK(pRender == nullptr);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// I. 位图导出（OS-35 ~ OS-36）
+// ---------------------------------------------------------------------------
+void TestBitmapExport(ui::IRenderFactory* pRenderFactory)
+{
+    //OS-35 导出BMP文件
+    {
+        std::unique_ptr<ui::IBitmap> pBitmap(pRenderFactory->CreateBitmap(8, 4, ui::AlphaType::kOpaque));
+        CHECK(pBitmap != nullptr);
+        if (pBitmap != nullptr) {
+            std::unique_ptr<ui::IRender> pRender = pRenderFactory->CreateBitmapRender(pBitmap.get());
+            CHECK(pRender != nullptr);
+            if (pRender != nullptr) {
+                pRender->Clear(ui::UiColor(kRedColor));
+            }
+            const ui::FilePath bmpFilePath(_T("offscreen_render_test.bmp"));
+            CHECK(ui::ImageUtil::SaveBitmapToBmpFile(pBitmap.get(), bmpFilePath));
+            CHECK(bmpFilePath.IsExistsFile());
+
+            std::vector<uint8_t> fileData;
+            CHECK(ui::FileUtil::ReadFileData(bmpFilePath, fileData));
+            if (fileData.size() >= 58) {
+                //文件头与信息头校验
+                CHECK(fileData[0] == 'B');
+                CHECK(fileData[1] == 'M');
+                const uint16_t nBitCount = (uint16_t)(fileData[28] | (fileData[29] << 8));
+                CHECK(nBitCount == 32);
+                //BMP自下而上存储，首像素为左下角红色（内存字节序：B G R A）
+                CHECK(fileData[54] == 0x00);
+                CHECK(fileData[55] == 0x00);
+                CHECK(fileData[56] == 0xFF);
+                CHECK(fileData[57] == 0xFF);
+            }
+            std::error_code ec;
+            std::filesystem::remove(bmpFilePath.NativePath(), ec);
+        }
+    }
+
+    //OS-36 无效位图导出返回false
+    {
+        const ui::FilePath bmpFilePath(_T("offscreen_render_invalid.bmp"));
+        CHECK(!ui::ImageUtil::SaveBitmapToBmpFile(nullptr, bmpFilePath));
+        CHECK(!bmpFilePath.IsExistsFile());
+    }
+}
+
+// ---------------------------------------------------------------------------
 // F. 多后端（OS-23 ~ OS-28）
 // ---------------------------------------------------------------------------
 void TestBackends(ui::IRenderFactory* pRenderFactory)
@@ -607,11 +697,11 @@ int main(int /*argc*/, char* /*argv*/[])
             TestRasterDraw(pRenderFactory, pFont.get());
             TestSnapshot(pRenderFactory);
             TestClone(pRenderFactory);
-            //OS-21/OS-22：位图直绘接口（CreateBitmapRender）不在本期范围内
-            Skip("OS-21/OS-22: CreateBitmapRender is not implemented");
+            TestBitmapRender(pRenderFactory);
             TestBackends(pRenderFactory);
             TestThreadAndLifetime(pRenderFactory);
             TestCompatEntry(pRenderFactory);
+            TestBitmapExport(pRenderFactory);
         }
     }
 

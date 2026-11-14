@@ -19,6 +19,7 @@ namespace ui
     class AnimationManager;
     class AnimationPlayer;
     class IRender;
+    class IBitmap;
     class IPath;
     class IFont;
     class AutoClip;
@@ -682,6 +683,12 @@ public:
     * @param[in] rcPaint 指定绘制区域
     */
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) { (void)pRender; (void)rcPaint; };
+
+    /** 创建控件的快照图片（将控件绘制到离屏画布，不依赖窗口刷新）
+    * @param [in] bIncludeChild 是否包含子控件（容器类控件有效）
+    * @return 返回快照位图，由调用方管理；控件为空或创建失败时返回nullptr
+    */
+    std::shared_ptr<IBitmap> CreateSnapshot(bool bIncludeChild = true);
 
     /** 设置控件透明度
      * @param [in] nAlpha 0 ~ 255 的透明度值，255 为不透明

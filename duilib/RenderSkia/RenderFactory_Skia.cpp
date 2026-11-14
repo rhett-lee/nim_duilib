@@ -7,6 +7,7 @@
 #include "duilib/RenderSkia/Path_Skia.h"
 #include "duilib/RenderSkia/Matrix_Skia.h"
 #include "duilib/RenderSkia/Render_Skia_Offscreen.h"
+#include "duilib/RenderSkia/Render_Skia_Bitmap.h"
 #include "duilib/RenderSkia/SkOffscreenGLContext.h"
 
 #if defined (DUILIB_BUILD_FOR_SDL)
@@ -80,6 +81,21 @@ IBitmap* RenderFactory_Skia::CreateBitmap(uint32_t nWidth, uint32_t nHeight, Alp
         pBitmap = nullptr;
     }
     return pBitmap;
+}
+
+std::unique_ptr<IRender> RenderFactory_Skia::CreateBitmapRender(IBitmap* pBitmap, const IRenderDpiPtr& spRenderDpi)
+{
+    if ((pBitmap == nullptr) || !pBitmap->IsValid()) {
+        return nullptr;
+    }
+    auto pRender = std::make_unique<Render_Skia_Bitmap>(pBitmap);
+    if (!pRender->IsValid()) {
+        return nullptr;
+    }
+    pRender->SetRenderDpi(spRenderDpi);
+    //注入渲染工厂：富文本等接口内部需要用它创建字体
+    pRender->SetRenderFactory(this);
+    return pRender;
 }
 
 bool RenderFactory_Skia::IsOffscreenBackendSupported(RenderBackendType backendType) const

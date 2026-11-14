@@ -2,6 +2,7 @@
 #define UI_IMAGE_IMAGE_UTIL_H_
 
 #include "duilib/Core/UiTypes.h"
+#include "duilib/Utils/FilePath.h"
 
 namespace ui
 {
@@ -100,6 +101,14 @@ public:
     * @param [in] nNewHeight 调整后的图像高度
     */
     static std::unique_ptr<IBitmap> ResizeImageBitmap(IBitmap* pBitmap, int32_t nNewWidth, int32_t nNewHeight);
+
+    /** 将位图导出为BMP格式的图片文件（32位ARGB，不依赖第三方编码器）
+    * @param [in] pBitmap 需要导出的位图接口（必须已初始化成功）
+    * @param [in] filePath 目标文件路径（建议使用.bmp扩展名）
+    * @return 成功返回true；位图无效、像素数据无法访问或写文件失败时返回false
+    * @note 预乘Alpha的位图会先还原为非预乘的RGB值，保证图片在忽略Alpha的查看器中颜色正确
+    */
+    static bool SaveBitmapToBmpFile(IBitmap* pBitmap, const FilePath& filePath);
 };
 
 } //namespace ui

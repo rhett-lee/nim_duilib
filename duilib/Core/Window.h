@@ -424,6 +424,12 @@ public:
     */
     IRenderWindow* GetRenderWindow() const;
 
+    /** 创建窗口内容的快照图片（将窗口客户区的内容绘制到离屏画布）
+    * @return 返回快照位图，由调用方管理；窗口未创建或创建失败时返回nullptr
+    * @note 必须在该窗口的UI线程中调用；快照不包含系统绘制的标题栏与系统阴影
+    */
+    std::shared_ptr<IBitmap> Snapshot();
+
     /** 获取为Render使用的本窗口关联的DPI转换对象
     */
     std::shared_ptr<IRenderDpi> GetRenderDpi();
