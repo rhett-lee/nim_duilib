@@ -402,9 +402,8 @@ void RichTextImpl::CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect
     //测量与绘制使用同一份布局数据，保证逐段对齐方式等属性一致
     const std::vector<RichTextData>& richTextData = GetRichTextLayoutData();
     if (!richTextData.empty()) {
-        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         std::vector<std::vector<UiRect>> richTextRects;
-        pRender->MeasureRichText(rc, UiSize(), pRenderFactory, richTextData, nullptr, nullptr, &richTextRects);
+        pRender->MeasureRichText(rc, UiSize(), richTextData, nullptr, nullptr, &richTextRects);
         ASSERT(richTextRects.size() == m_textData.size());
         if (richTextRects.size() == m_textData.size()) {
             for (size_t index = 0; index < m_textData.size(); ++index) {
@@ -563,7 +562,6 @@ void RichTextImpl::PaintText(IRender* pRender)
                                     (m_textRectsTextRect != textRect);
         std::vector<std::vector<UiRect>> richTextRects;
         std::vector<std::vector<UiRect>>* pRichTextRects = bNeedTextRects ? &richTextRects : nullptr;
-        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         UiSize szScrollOffset;
         if (m_spDrawRichTextCache != nullptr) {
             //校验缓存，如果失效则重新生成
@@ -576,7 +574,7 @@ void RichTextImpl::PaintText(IRender* pRender)
             }
         }
         if (m_spDrawRichTextCache == nullptr) {
-            bool bRet = pRender->CreateDrawRichTextCache(textRect, szScrollOffset, pRenderFactory,
+            bool bRet = pRender->CreateDrawRichTextCache(textRect, szScrollOffset,
                                                          richTextLayoutData, m_spDrawRichTextCache);
             if (bRet) {
                 m_nDrawCacheLayoutVersion = m_nLayoutVersion;
@@ -619,7 +617,7 @@ void RichTextImpl::PaintText(IRender* pRender)
 #if 0
             //测试代码结束(比较使用缓存绘制和不使用缓存绘制时结果是否相同)
             std::vector<std::vector<UiRect>> richTextRectsOld;
-            pRender->DrawRichText(textRect, szScrollOffset, pRenderFactory, m_richTextLayoutData, GetAlpha(), &richTextRectsOld);
+            pRender->DrawRichText(textRect, szScrollOffset, m_richTextLayoutData, GetAlpha(), &richTextRectsOld);
             ASSERT(richTextRects.size() == m_textData.size());
             ASSERT(richTextRectsOld.size() == m_textData.size());
             if (richTextRectsOld.size() == richTextRects.size()) {
@@ -639,7 +637,7 @@ void RichTextImpl::PaintText(IRender* pRender)
         }
         else {
             //不使用绘制缓存            
-            pRender->DrawRichText(textRect, szScrollOffset, pRenderFactory, richTextLayoutData, nPaintAlpha, pRichTextRects);
+            pRender->DrawRichText(textRect, szScrollOffset, richTextLayoutData, nPaintAlpha, pRichTextRects);
         }
         if (pRichTextRects != nullptr) {
             ASSERT(richTextRects.size() == m_textData.size());
@@ -2097,8 +2095,7 @@ bool RichTextImpl::UpdateTextSelectLayout(IRender* pRender)
     for (const RichTextDataEx& textData : m_textData) {
         measureTextData.push_back(textData);
     }
-    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-    pRender->MeasureRichText(rcText, UiSize(), pRenderFactory, measureTextData, &lineInfoParam, nullptr, nullptr);
+    pRender->MeasureRichText(rcText, UiSize(), measureTextData, &lineInfoParam, nullptr, nullptr);
 
     //逐行构建字符的几何信息（行内坐标是相对文本区域左上角的坐标）
     const int32_t nAvailableWidth = rcText.Width();

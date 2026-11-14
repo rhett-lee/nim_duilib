@@ -1161,7 +1161,6 @@ public:
     /** 计算格式文本的宽度和高度，可选输出每个字符的位置与绘制缓存
     * @param [in] textRect 绘制文本的矩形区域
     * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
-    * @param [in] pRenderFactory 渲染接口，用于创建字体
     * @param [in] richTextData 格式化文字内容
     * @param [in,out] pLineInfoParam 如果不为nullptr，则计算每个字符的区域
     * @param [out] spDrawRichTextCache 如果不为nullptr，则返回绘制缓存
@@ -1170,7 +1169,6 @@ public:
     */
     virtual UiRect MeasureRichText(const UiRect& textRect,
                                    const UiSize& szScrollOffset,
-                                   IRenderFactory* pRenderFactory,
                                    const std::vector<RichTextData>& richTextData,
                                    RichTextLineInfoParam* pLineInfoParam = nullptr,
                                    std::shared_ptr<DrawRichTextCache>* spDrawRichTextCache = nullptr,
@@ -1179,14 +1177,12 @@ public:
     /** 绘制格式文本
     * @param [in] textRect 绘制文本的矩形区域
     * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
-    * @param [in] pRenderFactory 渲染接口，用于创建字体
     * @param [in] richTextData 格式化文字内容
     * @param [in] uFade 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
     * @param [out] pRichTextRects 如果不为nullptr，则返回richTextData中每个数据绘制的矩形范围列表
     */
     virtual void DrawRichText(const UiRect& textRect,
                               const UiSize& szScrollOffset,
-                              IRenderFactory* pRenderFactory, 
                               const std::vector<RichTextData>& richTextData,
                               uint8_t uFade = 255,
                               std::vector<std::vector<UiRect>>* pRichTextRects = nullptr) = 0;
@@ -1194,13 +1190,11 @@ public:
     /** 创建RichText的绘制缓存
     * @param [in] textRect 绘制文本的矩形区域
     * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
-    * @param [in] pRenderFactory 渲染接口，用于创建字体
     * @param [in] richTextData 格式化文字内容
     * @param [out] spDrawRichTextCache 返回绘制缓存
     */
     virtual bool CreateDrawRichTextCache(const UiRect& textRect,
                                          const UiSize& szScrollOffset,
-                                         IRenderFactory* pRenderFactory,
                                          const std::vector<RichTextData>& richTextData,
                                          std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) = 0;
 
@@ -1372,6 +1366,11 @@ public:
     /** 设置Render使用的DPI转换接口
     */
     virtual void SetRenderDpi(const IRenderDpiPtr& spRenderDpi) = 0;
+
+    /** 设置创建本Render的渲染工厂接口（由 IRenderFactory::CreateRender 在创建时注入）
+    * @param [in] pRenderFactory 渲染工厂接口，用于创建字体等内部资源；生命周期由调用方保证长于本Render
+    */
+    virtual void SetRenderFactory(IRenderFactory* pRenderFactory) = 0;
 
     /** 绘制并刷新到屏幕（Render的实现已经与窗口关联）, 同步完成
     * @param [in] pRenderPaint 界面绘制所需的回调接口

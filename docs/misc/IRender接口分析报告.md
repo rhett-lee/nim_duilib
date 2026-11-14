@@ -27,14 +27,16 @@
 | 四.7 | 文本间距模型分裂 | `IRender.h#L835`、`#L851`、`#L604` | **已修复** | `Measure/DrawStringParam::fLetterSpacing` 与 `RichTextData::m_fLetterSpacing` 命名统一 |
 | 四.8 | 取值风格不一致 | `IRender.h#L24`、`#L90` | **已修复** | `IFontMgr::GetFontName` 改为按值返回 `DString` |
 | 五.1 | `IRender` 职责过载 | 全文 | 未处理 | 需拆分绘制 / 窗口 Surface 职责 |
-| 五.2 | 富文本接口每次传 `IRenderFactory*` | `IRender.h#L1165-L1228` | 未处理 | 建议 Render 创建时注入 factory |
+| 五.2 | 富文本接口每次传 `IRenderFactory*` | `IRender.h#L1170-L1199`、`#L1373` | **已修复** | Render 创建时注入 factory（`SetRenderFactory`），三个富文本接口不再传该参数 |
 | 五.3 | `rcPaint` 脏区参数 | `IRender.h#L986-L1010` | 未处理 | 建议在注释中明确空矩形语义 |
 | 五.4 | 测量依赖画布尺寸 | `Render_Skia.cpp#L1692-L1695` | 未处理 | 影响无 Surface 的纯测量场景 |
 | 六 | 缺失接口（P0/P1/P2） | 见第六节 | 未处理 | 字体回退优化未新增任何图元/裁剪/采样接口 |
 
 > 补充（2026-11-14 第三批）：`ClearClip` 已删除，其实现（`restoreToCount` + `m_saveCount` 同步）并入 `RestoreClip`，全部调用方改用 `RestoreClip`，行为与删除前一致。
 
-统计：已修复 15 项、部分修复 2 项、暂不处理 1 项、未处理 4 项、缺失接口 3 组待排期。
+> 补充（2026-11-14 第四批）：`MeasureRichText` / `DrawRichText` / `CreateDrawRichTextCache` 的 `IRenderFactory*` 参数已删除，改由 `IRenderFactory::CreateRender` 通过 `IRender::SetRenderFactory` 注入（`Clone` 同步复制），行为不变。
+
+统计：已修复 16 项、部分修复 2 项、暂不处理 1 项、未处理 3 项、缺失接口 3 组待排期。
 
 ## 一、结论
 
@@ -203,11 +205,14 @@
 
 收益：离屏渲染（导出图片、控件离屏缓存）不再被迫依赖窗口相关接口；跨平台实现也不需要为窗口接口写空实现。
 
-### 2. 富文本调用每次都传 `IRenderFactory*`
+### 2. 富文本调用每次都传 `IRenderFactory*` — **已修复**
 
-- 位置：`MeasureRichText` / `DrawRichText` / `CreateDrawRichTextCache` 等（`IRender.h#L1168-L1290`）。
-- `IRender` 本身就是 `IRenderFactory::CreateRender` 创建的，字体工厂应由 Render 创建时注入。
-- 建议：`CreateRender` 时注入并保存 factory，新增 `IRenderFactory* GetRenderFactory() const`；富文本接口不再要求调用方传 factory（可保留重载以兼容）。
+- 位置：`MeasureRichText` / `DrawRichText` / `CreateDrawRichTextCache`（原 `IRender.h#L1168-L1290`）。
+- 历史问题：`IRender` 本身就是 `IRenderFactory::CreateRender` 创建的，字体工厂却要在每次富文本调用时由调用方再传一遍。
+- 当前实现（2026-11-14 第四批）：
+  - `IRender` 新增 `SetRenderFactory(IRenderFactory*)`（`IRender.h#L1373`），由 `RenderFactory_Skia::CreateRender` 在创建 Render 时注入，`Clone` 时同步复制；
+  - `Render_Skia` 保存 `m_pRenderFactory`，三个富文本接口删除 `IRenderFactory*` 参数，改为使用注入的工厂创建字体；
+  - 调用方（`RichTextImpl`、`RichEditData`、`RichEdit2`、单元测试、基准程序）删除对应实参。
 
 ### 3. `rcPaint` 脏区参数把优化责任推给调用方
 
@@ -332,7 +337,7 @@ virtual void SetImageSamplingQuality(ImageSamplingQuality quality) = 0;
 
 ## 十、接口一致性调整记录（2026-11-14）
 
-本轮只做接口一致性修正，不改变绘制/测量的视觉效果。变更已同步 `Render_Skia` 实现、控件层调用方与单元测试，`ctest` 8/8 通过（`text_draw` 202 项检查，0 失败）。分两批完成：第一批为第 1、2、5、6、7、8 条，第二批为第 3、4 条（`MeasureRichText` 合并行与末尾两行裁剪接口）。
+本轮只做接口一致性修正，不改变绘制/测量的视觉效果。变更已同步 `Render_Skia` 实现、控件层调用方与单元测试，`ctest` 8/8 通过（`text_draw` 202 项检查，0 失败）。分四批完成：第一批为第 1、2、5、6、7、8 条，第二批为第 3、4 条（`MeasureRichText` 合并行与末尾两行裁剪接口），第三批删除 `ClearClip`，第四批为第五节第 2 条（富文本接口去掉 `IRenderFactory*` 参数，改为 Render 创建时注入）。
 
 | 接口 / 字段 | 变更前 | 变更后 | 影响 |
 | --- | --- | --- | --- |
@@ -351,5 +356,7 @@ virtual void SetImageSamplingQuality(ImageSamplingQuality quality) = 0;
 | `IRender::SetClip` | `SetClip(rc, bIntersect)` | `ClipRect(rc, bIntersect)` | 调用方改名即可（实参、返回值、语义均不变） |
 | `IRender::SetRoundClip` | `SetRoundClip(rc, rx, ry, bIntersect)` | `ClipRoundRect(rc, rx, ry, bIntersect)` | 调用方改名即可（实参、返回值、语义均不变） |
 | `IRender::ClearClip` | `ClearClip(nState)` | **已删除**，统一使用 `RestoreClip(nState)` | `RestoreClip` 内部已包含 `restoreToCount` 与 `m_saveCount` 同步；7 处调用方与 `AutoClip` 已切换，行为不变 |
+| `IRender::MeasureRichText` / `DrawRichText` / `CreateDrawRichTextCache` | 每次调用传 `IRenderFactory* pRenderFactory` | 删除该参数，改用 Render 创建时注入的工厂 | 调用方（`RichTextImpl`、`RichEditData`、`RichEdit2`、测试与基准程序）删除实参；自定义 `IRender` 实现需从注入的工厂取字体 |
+| `IRender::SetRenderFactory` | 无 | 新增 `virtual void SetRenderFactory(IRenderFactory* pRenderFactory) = 0`（`IRender.h#L1373`） | 由 `IRenderFactory::CreateRender` 创建后注入，`Clone` 时同步复制；自定义 `IRender` 实现需实现该方法，直接 `new` 渲染对象时须手动注入 |
 
 **测试补充**：`tests/test_text_draw.cpp` 新增 `MeasureRichText` 返回值契约校验——原点为 `(0,0)`、宽度不超过限制宽度、限制宽度越小（换行越多）内容总高度越大（共 7 项检查）。

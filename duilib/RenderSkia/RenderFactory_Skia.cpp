@@ -86,6 +86,8 @@ IRender* RenderFactory_Skia::CreateRender(const IRenderDpiPtr& spRenderDpi, void
     ASSERT(pRender != nullptr);
     if (pRender != nullptr) {
         pRender->SetRenderDpi(spRenderDpi);
+        //注入渲染工厂：富文本等接口内部需要用它创建字体
+        pRender->SetRenderFactory(this);
     }    
     return pRender;
 }

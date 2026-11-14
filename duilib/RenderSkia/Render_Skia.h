@@ -96,7 +96,6 @@ public:
 
     virtual UiRect MeasureRichText(const UiRect& textRect,
                                    const UiSize& szScrollOffset,
-                                   IRenderFactory* pRenderFactory,
                                    const std::vector<RichTextData>& richTextData,
                                    RichTextLineInfoParam* pLineInfoParam = nullptr,
                                    std::shared_ptr<DrawRichTextCache>* spDrawRichTextCache = nullptr,
@@ -104,14 +103,12 @@ public:
 
     virtual void DrawRichText(const UiRect& textRect,
                               const UiSize& szScrollOffset,
-                              IRenderFactory* pRenderFactory, 
                               const std::vector<RichTextData>& richTextData,
                               uint8_t uFade = 255,
                               std::vector<std::vector<UiRect>>* pRichTextRects = nullptr) override;
 
     virtual bool CreateDrawRichTextCache(const UiRect& textRect,
                                          const UiSize& szScrollOffset,
-                                         IRenderFactory* pRenderFactory,
                                          const std::vector<RichTextData>& richTextData,
                                          std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) override;
 
@@ -149,6 +146,7 @@ public:
     virtual bool IsClipEmpty() const override;
     virtual bool IsEmpty() const override;
     virtual void SetRenderDpi(const IRenderDpiPtr& spRenderDpi) override;
+    virtual void SetRenderFactory(IRenderFactory* pRenderFactory) override;
 
 public:
     /** 获取SkSurface接口
@@ -167,6 +165,10 @@ protected:
     /** 获取Render使用的DPI转换接口
     */
     IRenderDpiPtr GetRenderDpi() const;
+
+    /** 获取创建本Render的渲染工厂接口
+    */
+    IRenderFactory* GetRenderFactory() const;
 
 private:
     /** 设置光栅操作模式（映射为Skia的混合模式，部分模式为近似实现）
@@ -210,6 +212,10 @@ private:
     /** DPI转换辅助接口
     */
     IRenderDpiPtr m_spRenderDpi;
+
+    /** 创建本Render的渲染工厂接口（用于创建字体等内部资源）
+    */
+    IRenderFactory* m_pRenderFactory;
 };
 
 } // namespace ui

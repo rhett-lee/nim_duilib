@@ -187,7 +187,7 @@ UiRect RichEditData::EstimateTextDisplayBounds(const UiRect& rcAvailable)
             std::vector<RichTextData> richTextDataList;
             if (m_pRichText->GetRichTextForDraw(textView, richTextDataList)) {
                 std::vector<std::vector<UiRect>> richTextRects;
-                m_pRender->MeasureRichText(rcAvailable, UiSize(), m_pRenderFactory, richTextDataList, nullptr, nullptr, &richTextRects);
+                m_pRender->MeasureRichText(rcAvailable, UiSize(), richTextDataList, nullptr, nullptr, &richTextRects);
                 for (const std::vector<UiRect>& data : richTextRects) {
                     for (const UiRect& textRect : data) {
                         if (bFirst) {
@@ -417,15 +417,15 @@ void RichEditData::CalcTextRectsFull()
             m_pRichText->ReplacePasswordChar(text);
             ASSERT(!text.empty());
             richTextData.m_textView = text;
-            m_pRender->MeasureRichText(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList, &lineInfoParam, nullptr, nullptr);
+            m_pRender->MeasureRichText(rcDrawText, szScrollOffset, richTextDataList, &lineInfoParam, nullptr, nullptr);
             richTextData.m_textView = std::wstring_view();
         }
         else {
-            m_pRender->MeasureRichText(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList, &lineInfoParam, nullptr, nullptr);
+            m_pRender->MeasureRichText(rcDrawText, szScrollOffset, richTextDataList, &lineInfoParam, nullptr, nullptr);
         }
     }
     else {
-        m_pRender->MeasureRichText(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList, &lineInfoParam, &m_spDrawRichTextCache, nullptr);
+        m_pRender->MeasureRichText(rcDrawText, szScrollOffset, richTextDataList, &lineInfoParam, &m_spDrawRichTextCache, nullptr);
     }    
     SetTextDrawRect(rcDrawText, false);
     CalcCacheTextRects(m_rcTextRect);
@@ -662,7 +662,7 @@ void RichEditData::CalcTextRectsPart(size_t nStartLine,
         if (richTextDataListModified.empty()) {
             return;
         }
-        m_pRender->MeasureRichText(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataListModified, &lineInfoParam, &spDrawRichTextCacheUpdated, nullptr);
+        m_pRender->MeasureRichText(rcDrawText, szScrollOffset, richTextDataListModified, &lineInfoParam, &spDrawRichTextCacheUpdated, nullptr);
         std::unordered_set<uint32_t> modifiedLineSet;
         for (size_t nLine : modifiedLines) {
             modifiedLineSet.insert((uint32_t)nLine);
@@ -742,7 +742,7 @@ void RichEditData::CalcTextRectsPart(size_t nStartLine,
         lineInfoParam2.m_pLineInfoList = &lineTextInfoList;
         lineInfoParam2.m_nStartLineIndex = 0;
         lineInfoParam2.m_nStartRowIndex = 0;
-        m_pRender->MeasureRichText(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList2, &lineInfoParam2, &spDrawRichTextCacheNew, nullptr);
+        m_pRender->MeasureRichText(rcDrawText, szScrollOffset, richTextDataList2, &lineInfoParam2, &spDrawRichTextCacheNew, nullptr);
 
         if (nOffsetY > 0) {
             UpdateRowTextOffsetY(lineTextInfoList, nOffsetY);

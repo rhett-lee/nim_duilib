@@ -2011,9 +2011,7 @@ void RichEdit2::Paint(IRender* pRender, const UiRect& rcPaint)
         else if (!richTextDataList.empty()) {
             spDrawRichTextCache.reset();
 
-            IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-            ASSERT(pRenderFactory != nullptr);
-            pRender->CreateDrawRichTextCache(rcDrawText, szScrollOffset, pRenderFactory, richTextDataList, spDrawRichTextCache);
+            pRender->CreateDrawRichTextCache(rcDrawText, szScrollOffset, richTextDataList, spDrawRichTextCache);
             ASSERT(spDrawRichTextCache != nullptr);
             if (spDrawRichTextCache != nullptr) {
                 ASSERT(pRender->IsValidDrawRichTextCache(rcDrawText, richTextDataList, spDrawRichTextCache));
@@ -2036,8 +2034,6 @@ void RichEdit2::Paint(IRender* pRender, const UiRect& rcPaint)
             textViewList.emplace_back(passwordText.c_str(), passwordText.size());
             std::vector<RichTextData> richTextDataList;
             if (GetRichTextForDraw(textViewList, richTextDataList)) {
-                IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-                ASSERT(pRenderFactory != nullptr);
                 //与普通文本绘制保持一致，应用垂直对齐偏移（如居中对齐），
                 //否则密码字符会顶对齐绘制，与同一行绘制的省略号"..."位置不协调
                 int32_t nOffsetY = m_pTextData->GetTextRectOfssetY();
@@ -2051,7 +2047,7 @@ void RichEdit2::Paint(IRender* pRender, const UiRect& rcPaint)
                     nOffsetY += nExtraOffsetY;
                 }
                 rcDrawText.Offset(0, nOffsetY);
-                pRender->DrawRichText(rcDrawText, GetScrollOffset(), pRenderFactory, richTextDataList, GetAlpha());
+                pRender->DrawRichText(rcDrawText, GetScrollOffset(), richTextDataList, GetAlpha());
             }
         }
     }

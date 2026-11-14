@@ -814,7 +814,7 @@ void TestVerticalDrawText(ui::IRender* pRender, const FontContext& ctx)
 // 10. 富文本路径：省略号截断与绘制缓存（经 IRender）
 //////////////////////////////////////////////////////////////////////////
 
-void TestRichText(ui::IRender* pRender, ui::IRenderFactory* pRenderFactory, const FontContext& ctx)
+void TestRichText(ui::IRender* pRender, const FontContext& ctx)
 {
     //构造长文本（不自动换行，超出宽度时按省略号截断）
     const DString longText = _T("duilib rich text 富文本省略号 ellipsis 截断 字体回退 fallback 绘制 内容很长");
@@ -841,7 +841,7 @@ void TestRichText(ui::IRender* pRender, ui::IRenderFactory* pRenderFactory, cons
         wrapMeasureList.push_back(wrapMeasureData);
 
         const ui::UiRect rcNarrow = pRender->MeasureRichText(ui::UiRect(0, 0, 120, 2000), szScrollOffset,
-                                                             pRenderFactory, wrapMeasureList, nullptr);
+                                                             wrapMeasureList, nullptr);
         CHECK(rcNarrow.left == 0);
         CHECK(rcNarrow.top == 0);
         CHECK(rcNarrow.Width() > 0);
@@ -850,7 +850,7 @@ void TestRichText(ui::IRender* pRender, ui::IRenderFactory* pRenderFactory, cons
 
         //限制宽度越小，换行越多，内容总高度越大
         const ui::UiRect rcWide = pRender->MeasureRichText(ui::UiRect(0, 0, 400, 2000), szScrollOffset,
-                                                           pRenderFactory, wrapMeasureList, nullptr);
+                                                           wrapMeasureList, nullptr);
         CHECK(rcWide.Width() > 0);
         CHECK(rcNarrow.Height() > rcWide.Height());
     }
@@ -859,7 +859,7 @@ void TestRichText(ui::IRender* pRender, ui::IRenderFactory* pRenderFactory, cons
     {
         pRender->Clear(ui::UiColor(0xFFFFFFFFu));
         std::shared_ptr<ui::DrawRichTextCache> spCache;
-        const bool bCreated = pRender->CreateDrawRichTextCache(rcText, szScrollOffset, pRenderFactory,
+        const bool bCreated = pRender->CreateDrawRichTextCache(rcText, szScrollOffset,
                                                                richTextDataList, spCache);
         CHECK(bCreated);
         CHECK(spCache != nullptr);
@@ -890,7 +890,7 @@ void TestRichText(ui::IRender* pRender, ui::IRenderFactory* pRenderFactory, cons
 
         pRender->Clear(ui::UiColor(0xFFFFFFFFu));
         std::shared_ptr<ui::DrawRichTextCache> spCache;
-        const bool bCreated = pRender->CreateDrawRichTextCache(rcText, szScrollOffset, pRenderFactory,
+        const bool bCreated = pRender->CreateDrawRichTextCache(rcText, szScrollOffset,
                                                                wrapDataList, spCache);
         CHECK(bCreated);
 
@@ -917,7 +917,7 @@ void TestRichText(ui::IRender* pRender, ui::IRenderFactory* pRenderFactory, cons
         const ui::UiRect rcWrapText(0, 0, 90, 90);
         pRender->Clear(ui::UiColor(0xFFFFFFFFu));
         std::shared_ptr<ui::DrawRichTextCache> spCache;
-        const bool bCreated = pRender->CreateDrawRichTextCache(rcWrapText, szScrollOffset, pRenderFactory,
+        const bool bCreated = pRender->CreateDrawRichTextCache(rcWrapText, szScrollOffset,
                                                                wrapDataList, spCache);
         CHECK(bCreated);
 
@@ -945,7 +945,7 @@ void TestRichText(ui::IRender* pRender, ui::IRenderFactory* pRenderFactory, cons
     //直接绘制路径（不使用缓存）：不崩溃且产生可见文字
     {
         pRender->Clear(ui::UiColor(0xFFFFFFFFu));
-        pRender->DrawRichText(rcText, szScrollOffset, pRenderFactory, richTextDataList, 255, nullptr);
+        pRender->DrawRichText(rcText, szScrollOffset, richTextDataList, 255, nullptr);
         CHECK(CountRenderedPixels(pRender) > 0);
     }
 
@@ -957,7 +957,7 @@ void TestRichText(ui::IRender* pRender, ui::IRenderFactory* pRenderFactory, cons
         emptyDataList.push_back(emptyData);
 
         pRender->Clear(ui::UiColor(0xFFFFFFFFu));
-        pRender->DrawRichText(rcText, szScrollOffset, pRenderFactory, emptyDataList, 255, nullptr);
+        pRender->DrawRichText(rcText, szScrollOffset, emptyDataList, 255, nullptr);
         CHECK(CountRenderedPixels(pRender) == 0);
     }
 }
@@ -1123,7 +1123,7 @@ int main(int argc, char* argv[])
                     if (pRender != nullptr) {
                         TestHorizontalDrawText(pRender.get(), ctx);
                         TestVerticalDrawText(pRender.get(), ctx);
-                        TestRichText(pRender.get(), pRenderFactory, ctx);
+                        TestRichText(pRender.get(), ctx);
                     }
                 }
             }

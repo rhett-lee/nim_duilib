@@ -492,7 +492,7 @@ int main(int argc, char* argv[])
         benchCase.m_path = "P4 富文本布局";
         benchCase.m_nCharCount = nRichCharCount;
         benchCase.m_run = [&]() {
-            pRender->MeasureRichText(rcRichText, szScrollOffset, pRenderFactory, richTextData, nullptr);
+            pRender->MeasureRichText(rcRichText, szScrollOffset, richTextData, nullptr);
         };
         benchCaseList.push_back(benchCase);
     }
@@ -504,7 +504,7 @@ int main(int argc, char* argv[])
         benchCase.m_path = "P4 富文本直接绘制";
         benchCase.m_nCharCount = nRichCharCount;
         benchCase.m_run = [&]() {
-            pRender->DrawRichText(rcRichText, szScrollOffset, pRenderFactory, richTextData, 255, nullptr);
+            pRender->DrawRichText(rcRichText, szScrollOffset, richTextData, 255, nullptr);
         };
         benchCaseList.push_back(benchCase);
     }
@@ -517,7 +517,7 @@ int main(int argc, char* argv[])
         benchCase.m_nCharCount = nRichCharCount;
         benchCase.m_run = [&]() {
             std::shared_ptr<ui::DrawRichTextCache> spDrawRichTextCache;
-            pRender->CreateDrawRichTextCache(rcRichText, szScrollOffset, pRenderFactory,
+            pRender->CreateDrawRichTextCache(rcRichText, szScrollOffset,
                 richTextData, spDrawRichTextCache);
         };
         benchCaseList.push_back(benchCase);
@@ -526,7 +526,7 @@ int main(int argc, char* argv[])
     //P5：富文本使用已有缓存绘制（缓存有效时的稳态开销）
     {
         std::shared_ptr<ui::DrawRichTextCache> spDrawRichTextCache;
-        pRender->CreateDrawRichTextCache(rcRichText, szScrollOffset, pRenderFactory,
+        pRender->CreateDrawRichTextCache(rcRichText, szScrollOffset,
             richTextData, spDrawRichTextCache);
         BenchCase benchCase;
         benchCase.m_name = "rich_text_cached_draw";
@@ -547,7 +547,7 @@ int main(int argc, char* argv[])
         benchCase.m_path = "P6 富文本字间距绘制";
         benchCase.m_nCharCount = nRichCharCount;
         benchCase.m_run = [&]() {
-            pRender->DrawRichText(rcRichText, szScrollOffset, pRenderFactory,
+            pRender->DrawRichText(rcRichText, szScrollOffset,
                 richTextDataSpacing, 255, nullptr);
         };
         benchCaseList.push_back(benchCase);
