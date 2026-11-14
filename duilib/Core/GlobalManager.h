@@ -15,6 +15,7 @@
 #include "duilib/Core/IconManager.h"
 #include "duilib/Core/WindowManager.h"
 #include "duilib/Core/ThemeManager.h"
+#include "duilib/Render/IRender.h"
 #include "duilib/Image/ImageDecoderFactory.h"
 
 #include <string>
@@ -181,6 +182,47 @@ public:
     /** 获取绘制接口类对象
     */
     IRenderFactory* GetRenderFactory();
+
+public:
+    /** 设置全局的窗口渲染后端配置（全局开关）
+    *   启用后，所有窗口统一使用该配置（包括已创建的窗口和后续创建的窗口），
+    *   窗口XML中配置的 render_backend_type/vsync/msaa 属性将被忽略
+    * @param [in] backendType 渲染后端类型
+    * @param [in] nMsaaSampleCount MSAA的采样数（仅GPU/GL渲染有效；0表示使用默认值，非法值按0处理）
+    * @param [in] bDisableVsync 是否禁用垂直同步（仅GPU/GL渲染有效）
+    * @param [in] bEnable true表示启用全局配置，false表示关闭全局配置
+    * @param [in] bApplyToAllWindows true表示立即将该配置应用到当前已存在的所有窗口
+    */
+    void SetGlobalRenderBackendType(RenderBackendType backendType,
+                                    int32_t nMsaaSampleCount = 0,
+                                    bool bDisableVsync = false,
+                                    bool bEnable = true,
+                                    bool bApplyToAllWindows = true);
+
+    /** 关闭全局的窗口渲染后端配置开关
+    * @note 关闭后，新建的窗口使用窗口自身的配置；已经创建的窗口保持当前的渲染方式不变
+    */
+    void ClearGlobalRenderBackendType();
+
+    /** 是否启用了全局的窗口渲染后端配置
+    */
+    bool IsGlobalRenderBackendTypeEnabled() const;
+
+    /** 获取全局的渲染后端类型
+    */
+    RenderBackendType GetGlobalRenderBackendType() const;
+
+    /** 获取全局的MSAA采样数
+    */
+    int32_t GetGlobalMsaaSampleCount() const;
+
+    /** 获取全局的垂直同步设置（true表示禁用垂直同步）
+    */
+    bool IsGlobalDisableVsync() const;
+
+    /** 将全局的渲染后端配置应用到当前已存在的所有窗口
+    */
+    void ApplyGlobalRenderBackendTypeToAllWindows();
 
     /** 获取颜色管理器
     */
@@ -608,6 +650,22 @@ private:
     /** 变量管理（用于解析配置文件，比如global.xml等）
     */
     std::unordered_map<DString, DString> m_defineMap;
+
+    /** 是否启用全局的窗口渲染后端配置（全局开关）
+    */
+    bool m_bGlobalRenderBackendEnabled;
+
+    /** 全局的渲染后端类型（全局开关启用时生效）
+    */
+    RenderBackendType m_globalRenderBackendType;
+
+    /** 全局的MSAA采样数（仅GPU/GL渲染有效）
+    */
+    int32_t m_globalMsaaSampleCount;
+
+    /** 全局是否禁用垂直同步（仅GPU/GL渲染有效）
+    */
+    bool m_bGlobalDisableVsync;
 
     /** 是否开启控件动画（比如淡入淡出等动画）
     */

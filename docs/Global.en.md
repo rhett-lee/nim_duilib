@@ -294,7 +294,46 @@ Notes:
 - Referencing is **recursive**: a referenced file may also reference other files in the same directory via `Include`.
 - Resources with the same name (e.g. `Var`, `Class`, `ThemeColor` with identical names) follow the rule of **later-loaded overwriting earlier-loaded**, consistent with the ordering semantics of writing them directly in `global.xml`.
 
-## 8. Interfaces Related to Global Resource Management
+## 8. Global Render Backend (render_backend_type)
+
+Setting the `render_backend_type` attribute on the `Global` root node of `global.xml` enables the "global render backend" switch: all windows (both existing and newly created ones) use that configuration, and the `render_backend_type`, `vsync`, `msaa` attributes in window XML files are ignored.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Global render_backend_type="GL" vsync="true" msaa="4">
+    <Theme name="Default" type="Base" style="Combined" version="2.0"/>
+    ...
+</Global>
+```
+
+Attributes:
+
+| Attribute | Default | Type | Purpose |
+| :--- | :--- | :--- | :--- |
+| render_backend_type | | string | "CPU": CPU rendering; "GL"/"GPU": OpenGL rendering. Setting this attribute enables the global switch |
+| vsync | true | bool | Whether to enable vertical sync; only effective for GL rendering |
+| msaa | 0 | int | MSAA sample count; 0 disables MSAA; only effective for GL rendering |
+
+It can also be controlled at runtime through the API:
+
+```cpp
+// Enable the global switch and apply it to all existing windows immediately
+GlobalManager::Instance().SetGlobalRenderBackendType(RenderBackendType::kNativeGL_BackendType, 4, false, true, true);
+
+// Disable the global switch: new windows use their own configuration, existing windows keep their current rendering mode
+GlobalManager::Instance().ClearGlobalRenderBackendType();
+
+// Apply the current global configuration to all existing windows again
+GlobalManager::Instance().ApplyGlobalRenderBackendTypeToAllWindows();
+```
+
+Notes:
+
+- The global switch takes precedence over each window's own configuration;
+- OpenGL does not support layered windows (`layered_window="true"` or `opacity < 255`); such windows automatically use CPU rendering;
+- Switching at runtime recreates the render object (and the OpenGL context for GL); avoid calling it while a window is painting.
+
+## 9. Interfaces Related to Global Resource Management
 
 | Class Name | Associated Header File | Purpose |
 | :--- | :--- | :--- |

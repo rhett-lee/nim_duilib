@@ -1197,6 +1197,42 @@ static DString GetPlatformFontPropName()
 
 void WindowBuilder::ParseGlobalAttributes(const pugi::xml_node& root)
 {
+    //全局渲染配置（可选）：在Global节点上设置render_backend_type后，所有窗口统一使用该配置
+    //支持属性：render_backend_type（"CPU"/"GL"/"GPU"）、vsync（"true"/"false"）、msaa（整数）
+    {
+        DString renderBackendType;
+        int32_t nMsaaSampleCount = 0;
+        bool bDisableVsync = false;
+        for (pugi::xml_attribute attr : root.attributes()) {
+            const DString strAttrName = attr.name();
+            const DString strAttrValue = attr.value();
+            if (strAttrName == _T("render_backend_type")) {
+                renderBackendType = strAttrValue;
+            }
+            else if (strAttrName == _T("vsync")) {
+                bDisableVsync = !StringUtil::IsValueTrue(strAttrValue);
+            }
+            else if (strAttrName == _T("msaa")) {
+                nMsaaSampleCount = StringUtil::StringToInt32(strAttrValue);
+                if (nMsaaSampleCount < 0) {
+                    nMsaaSampleCount = 0;
+                }
+            }
+        }
+        if (!renderBackendType.empty()) {
+            RenderBackendType backendType = RenderBackendType::kRaster_BackendType;
+            if (StringUtil::IsEqualNoCase(renderBackendType, _T("GL")) ||
+                StringUtil::IsEqualNoCase(renderBackendType, _T("GPU"))) {
+                backendType = RenderBackendType::kNativeGL_BackendType;
+            }
+            else if (!StringUtil::IsEqualNoCase(renderBackendType, _T("CPU"))) {
+                ASSERT(0);
+            }
+            //启用全局开关，并应用到当前已经存在的所有窗口
+            GlobalManager::Instance().SetGlobalRenderBackendType(backendType, nMsaaSampleCount, bDisableVsync, true, true);
+        }
+    }
+
     const DString fontPropName = GetPlatformFontPropName();
     DString strClass;
     DString strName;

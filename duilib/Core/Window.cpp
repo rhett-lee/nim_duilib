@@ -13,6 +13,7 @@
 #include "duilib/Utils/PerformanceUtil.h"
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Utils/AttributeUtil.h"
+#include "duilib/Utils/LogUtil.h"
 
 namespace ui
 {
@@ -80,6 +81,32 @@ void Window::SetAttribute(const DString& strName, const DString& strValue)
         //是否允许拖放操作
         SetEnableDragDrop(StringUtil::IsValueTrue(strValue));
     }
+    else if (strName == _T("render_backend_type")) {
+        //渲染引擎的绘制方式（窗口运行过程中可以实时切换）
+        RenderBackendType backendType = RenderBackendType::kRaster_BackendType;
+        if (StringUtil::IsEqualNoCase(strValue, _T("GL")) || StringUtil::IsEqualNoCase(strValue, _T("GPU"))) {
+            backendType = RenderBackendType::kNativeGL_BackendType;
+        }
+        else if (StringUtil::IsEqualNoCase(strValue, _T("CPU"))) {
+            backendType = RenderBackendType::kRaster_BackendType;
+        }
+        else {
+            ASSERT(0);
+        }
+        SetRenderBackendType(backendType, m_nMsaaSampleCount, m_bDisableVsync);
+    }
+    else if (strName == _T("vsync")) {
+        //是否启用垂直同步（窗口运行过程中可以实时切换，仅GL绘制方式有效）
+        SetRenderBackendType(GetRenderBackendType(), m_nMsaaSampleCount, !StringUtil::IsValueTrue(strValue));
+    }
+    else if (strName == _T("msaa")) {
+        //MSAA采样数（窗口运行过程中可以实时切换，仅GL绘制方式有效）
+        int32_t nMsaaSampleCount = StringUtil::StringToInt32(strValue);
+        if (nMsaaSampleCount < 0) {
+            nMsaaSampleCount = 0;
+        }
+        SetRenderBackendType(GetRenderBackendType(), nMsaaSampleCount, m_bDisableVsync);
+    }
 }
 
 void Window::SetEnableDragDrop(bool bEnable)
@@ -137,32 +164,83 @@ Window* Window::GetParentWindow() const
 
 bool Window::SetRenderBackendType(RenderBackendType backendType, int32_t nMsaaSampleCount, bool bDisableVsync)
 {
-    m_nMsaaSampleCount = nMsaaSampleCount;
-    m_bDisableVsync = bDisableVsync;
+    //启用了全局开关时，所有窗口统一使用全局配置
+    GlobalManager& globalManager = GlobalManager::Instance();
+    if (globalManager.IsGlobalRenderBackendTypeEnabled()) {
+        backendType = globalManager.GetGlobalRenderBackendType();
+        nMsaaSampleCount = globalManager.GetGlobalMsaaSampleCount();
+        bDisableVsync = globalManager.IsGlobalDisableVsync();
+    }
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    m_renderBackendType = backendType;
+    //Windows平台支持GPU/GL绘制
 #else
     backendType = RenderBackendType::kRaster_BackendType;
-    m_renderBackendType = backendType;
+    nMsaaSampleCount = 0;
+    bDisableVsync = false;
 #endif
+    if (nMsaaSampleCount < 0) {
+        nMsaaSampleCount = 0;
+    }
+    if ((backendType == RenderBackendType::kNativeGL_BackendType) && IsWindow() && IsLayeredWindow()) {
+        //GL不支持层窗口：运行过程中切换到GL时，自动降级为CPU绘制
+        LogUtil::OutputLine(_T("GL render backend does not support layered window, use CPU rendering instead"));
+        backendType = RenderBackendType::kRaster_BackendType;
+    }
+
+    //判断是否需要重建Render对象（窗口运行过程中实时切换）
+    bool bRecreate = false;
+    if (m_render != nullptr) {
+        const RenderBackendType currentType = m_render->GetRenderBackendType();
+        if (currentType != backendType) {
+            bRecreate = true;
+        }
+        else if (currentType == RenderBackendType::kNativeGL_BackendType) {
+            //MSAA采样数和垂直同步只在GL绘制方式下生效
+            bRecreate = (m_nMsaaSampleCount != nMsaaSampleCount) || (m_bDisableVsync != bDisableVsync);
+        }
+    }
+    m_renderBackendType = backendType;
+    m_nMsaaSampleCount = nMsaaSampleCount;
+    m_bDisableVsync = bDisableVsync;
+
     ASSERT(IsWindow());
     if (!IsWindow()) {
-        return false;
+        //窗口尚未创建：只记录配置，等创建Render对象时生效
+        return true;
     }
+
+    if (bRecreate) {
+        //销毁旧的Render对象（GPU绘制时会同时销毁OpenGL上下文），然后按新配置重建
+        m_render.reset();
+    }
+
     bool bRet = false;
     if (m_render == nullptr) {
-        //首次调用时，初始化
-        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+        IRenderFactory* pRenderFactory = globalManager.GetRenderFactory();
         ASSERT(pRenderFactory != nullptr);
         if (pRenderFactory != nullptr) {
             m_render.reset(pRenderFactory->CreateWindowRender(GetRenderDpi(), GetWindowHandle(), m_renderBackendType,
                                                               m_nMsaaSampleCount, m_bDisableVsync));
             bRet = (m_render != nullptr);
+            if (!bRet && (m_renderBackendType != RenderBackendType::kRaster_BackendType)) {
+                //GPU绘制创建失败时，回退为CPU绘制
+                m_renderBackendType = RenderBackendType::kRaster_BackendType;
+                m_nMsaaSampleCount = 0;
+                m_bDisableVsync = false;
+                m_render.reset(pRenderFactory->CreateWindowRender(GetRenderDpi(), GetWindowHandle(), m_renderBackendType,
+                                                                  m_nMsaaSampleCount, m_bDisableVsync));
+                bRet = (m_render != nullptr);
+            }
         }
     }
     else {
-        ASSERT(m_render->GetRenderBackendType() == backendType);
-        bRet = (m_render->GetRenderBackendType() == backendType);
+        //配置未变化，无需重建
+        bRet = true;
+    }
+    if (bRet && bRecreate) {
+        //运行过程中切换渲染后端后：同步Render大小并重绘窗口
+        ResizeRenderToClientSize();
+        InvalidateAll();
     }
     ASSERT(bRet);
     return bRet;

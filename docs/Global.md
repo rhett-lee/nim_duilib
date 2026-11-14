@@ -293,7 +293,46 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 - 引用是**递归**的：被引用的文件中也可以继续通过 `Include` 引用同目录下的其它文件。
 - 同名资源（如相同名称的 `Var`、`Class`、`ThemeColor`）按**后加载覆盖先加载**的规则处理，与直接写在 `global.xml` 中的顺序语义一致。
 
-## 8. 全局资源管理相关的接口
+## 8. 全局渲染后端配置（render_backend_type）
+
+在 `global.xml` 的 `Global` 根节点上设置 `render_backend_type` 属性，即开启"全局渲染后端"开关：所有窗口（包括已经创建的窗口和之后新建的窗口）统一使用该配置，窗口XML中的 `render_backend_type`、`vsync`、`msaa` 属性会被忽略。
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Global render_backend_type="GL" vsync="true" msaa="4">
+    <Theme name="Default" type="Base" style="Combined" version="2.0"/>
+    ...
+</Global>
+```
+
+属性说明：
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| render_backend_type | | string | "CPU"：CPU绘制；"GL"/"GPU"：OpenGL绘制。设置该属性即启用全局开关 |
+| vsync | true | bool | 是否启用垂直同步，仅GL绘制有效 |
+| msaa | 0 | int | MSAA采样数，0表示不启用MSAA，仅GL绘制有效 |
+
+也可以通过接口在运行过程中动态控制：
+
+```cpp
+// 启用全局开关，并立即应用到所有已经存在的窗口
+GlobalManager::Instance().SetGlobalRenderBackendType(RenderBackendType::kNativeGL_BackendType, 4, false, true, true);
+
+// 关闭全局开关：之后新建的窗口使用自身的配置，已创建的窗口保持当前渲染方式
+GlobalManager::Instance().ClearGlobalRenderBackendType();
+
+// 将当前的全局配置再次应用到所有已经存在的窗口
+GlobalManager::Instance().ApplyGlobalRenderBackendTypeToAllWindows();
+```
+
+注意事项：
+
+- 全局开关的优先级高于窗口自身的配置；
+- OpenGL不支持层窗口（`layered_window="true"` 或 `opacity < 255`），此类窗口会自动使用CPU绘制；
+- 运行时切换会重建渲染对象（GL会重建OpenGL上下文），建议避免在窗口绘制过程中调用。
+
+## 9. 全局资源管理相关的接口
 
 | 类名称 | 关联头文件| 用途 |
 | :--- | :--- | :--- |

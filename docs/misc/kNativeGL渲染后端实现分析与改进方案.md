@@ -400,4 +400,20 @@ GL 默认帧缓冲在 `SwapBuffers` 后内容未定义，因此当前只能整�
 - `ctest --test-dir out/x64/Debug`：12/12 通过（现有用例均基于 CPU 离屏渲染）；
 - GL 局部刷新的 CPU 占用、多窗口离屏渲染行为需在带 OpenGL 的桌面环境按 6.5 清单人工验证。
 
+### 11.5 运行过程中实时切换与全局开关
+
+在上述配置透传的基础上，补充了运行过程中的动态控制能力：
+
+| 能力 | 位置 | 说明 |
+| --- | --- | --- |
+| 窗口属性实时切换 | `Window::SetAttribute` | 支持 `render_backend_type`、`vsync`、`msaa`；`Window::SetRenderBackendType()` 发现生效配置变化时，销毁并重建 Render 对象，随后同步尺寸并重绘窗口 |
+| 全局开关（属性） | `WindowBuilder::ParseGlobalAttributes` | 在 `global.xml` 的 `Global` 根节点设置 `render_backend_type`（可选 `vsync`、`msaa`）即启用全局开关，所有窗口统一使用该配置 |
+| 全局开关（函数） | `GlobalManager` | `SetGlobalRenderBackendType()` / `ClearGlobalRenderBackendType()` / `ApplyGlobalRenderBackendTypeToAllWindows()` 及配套 getter |
+
+注意事项：
+
+- 全局开关优先级高于窗口自身配置，`Window::SetRenderBackendType()` 入口处统一做覆盖；
+- 运行过程中切换到 GL 时，若窗口是层窗口则自动降级为 CPU 绘制（GL 不支持层窗口）；
+- 全局开关关闭后，已创建的窗口保持当前渲染方式，新建窗口恢复使用自身配置。
+
 

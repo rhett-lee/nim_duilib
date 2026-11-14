@@ -74,6 +74,10 @@ private:
 
 GlobalManager::GlobalManager():
     m_platformData(nullptr),
+    m_bGlobalRenderBackendEnabled(false),
+    m_globalRenderBackendType(RenderBackendType::kRaster_BackendType),
+    m_globalMsaaSampleCount(0),
+    m_bGlobalDisableVsync(false),
     m_bAnimationEnabled(true),
     m_bStartup(false)
 {
@@ -1328,6 +1332,63 @@ void GlobalManager::SetAnimationEnabled(bool bEnable)
 bool GlobalManager::IsAnimationEnabled() const
 {
     return m_bAnimationEnabled;
+}
+
+void GlobalManager::SetGlobalRenderBackendType(RenderBackendType backendType,
+                                               int32_t nMsaaSampleCount,
+                                               bool bDisableVsync,
+                                               bool bEnable,
+                                               bool bApplyToAllWindows)
+{
+    if (nMsaaSampleCount < 0) {
+        nMsaaSampleCount = 0;
+    }
+    m_bGlobalRenderBackendEnabled = bEnable;
+    m_globalRenderBackendType = backendType;
+    m_globalMsaaSampleCount = nMsaaSampleCount;
+    m_bGlobalDisableVsync = bDisableVsync;
+    if (bEnable && bApplyToAllWindows) {
+        ApplyGlobalRenderBackendTypeToAllWindows();
+    }
+}
+
+void GlobalManager::ClearGlobalRenderBackendType()
+{
+    m_bGlobalRenderBackendEnabled = false;
+}
+
+bool GlobalManager::IsGlobalRenderBackendTypeEnabled() const
+{
+    return m_bGlobalRenderBackendEnabled;
+}
+
+RenderBackendType GlobalManager::GetGlobalRenderBackendType() const
+{
+    return m_globalRenderBackendType;
+}
+
+int32_t GlobalManager::GetGlobalMsaaSampleCount() const
+{
+    return m_globalMsaaSampleCount;
+}
+
+bool GlobalManager::IsGlobalDisableVsync() const
+{
+    return m_bGlobalDisableVsync;
+}
+
+void GlobalManager::ApplyGlobalRenderBackendTypeToAllWindows()
+{
+    if (!m_bGlobalRenderBackendEnabled) {
+        return;
+    }
+    std::vector<WindowPtr> windowList = m_windowManager.GetAllWindowList();
+    for (const WindowPtr& pWindow : windowList) {
+        Window* pWnd = pWindow.get();
+        if (pWnd != nullptr) {
+            pWnd->SetRenderBackendType(m_globalRenderBackendType, m_globalMsaaSampleCount, m_bGlobalDisableVsync);
+        }
+    }
 }
 
 void GlobalManager::AddAlias(const DString& name, const DString& value)
