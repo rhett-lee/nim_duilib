@@ -22,6 +22,7 @@ public:
     virtual IPath* CreatePath() override;
     virtual IMatrix* CreateMatrix() override;
     virtual IBitmap* CreateBitmap() override;
+    virtual IBitmap* CreateBitmap(uint32_t nWidth, uint32_t nHeight, AlphaType alphaType) override;
 
     /** 创建一个Render对象
     * @param [in] spRenderDpi 关联的DPI转换接口

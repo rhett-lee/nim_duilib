@@ -25,6 +25,12 @@ public:
     virtual void Skew(float kx, float ky) override;
     virtual void Skew(float kx, float ky, float px, float py) override;
 
+    virtual void Reset() override;
+    virtual void Concat(const IMatrix* pMatrix) override;
+    virtual bool Invert() override;
+    virtual bool IsIdentity() const override;
+    virtual UiPointF MapPoint(const UiPointF& pt) const override;
+
     SkMatrix* GetMatrix() { return m_matrix.get(); }
     const SkMatrix* GetMatrix() const { return m_matrix.get(); }
 

@@ -5,6 +5,8 @@
 #include "duilib/RenderSkia/DrawSkiaText.h"
 #include "duilib/RenderSkia/Bitmap_Skia.h"
 #include "duilib/RenderSkia/Path_Skia.h"
+#include "duilib/RenderSkia/Brush_Skia.h"
+#include "duilib/RenderSkia/Pen_Skia.h"
 #include "duilib/RenderSkia/Matrix_Skia.h"
 #include "duilib/RenderSkia/Font_Skia.h"
 #include "duilib/RenderSkia/SkTextBox.h"
@@ -42,6 +44,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <cstdint>
+#include <vector>
 
 namespace ui {
 
@@ -63,7 +66,8 @@ static SkSamplingOptions ToSkSamplingOptions(ImageSamplingQuality quality)
 Render_Skia::Render_Skia():
     m_saveCount(0),
     m_pRenderFactory(nullptr),
-    m_imageSamplingQuality(ImageSamplingQuality::kNearest)
+    m_imageSamplingQuality(ImageSamplingQuality::kNearest),
+    m_blendMode(BlendMode::kSrcOver)
 {
     m_pSkPointOrg = std::make_unique<SkPoint>();
     m_pSkPointOrg->iset(0, 0);
@@ -183,6 +187,42 @@ IBitmap* Render_Skia::MakeImageSnapshot()
     return pBitmap;
 }
 
+IBitmap* Render_Skia::MakeImageSnapshot(const UiRect& rc)
+{
+    const int32_t nWidth = GetWidth();
+    const int32_t nHeight = GetHeight();
+    if ((nWidth <= 0) || (nHeight <= 0)) {
+        return nullptr;
+    }
+    //裁剪到画布范围内
+    const int32_t nLeft = std::max((int32_t)rc.left, 0);
+    const int32_t nTop = std::max((int32_t)rc.top, 0);
+    const int32_t nRight = std::min((int32_t)rc.right, nWidth);
+    const int32_t nBottom = std::min((int32_t)rc.bottom, nHeight);
+    if ((nRight <= nLeft) || (nBottom <= nTop)) {
+        return nullptr;
+    }
+    const void* pPixelBits = GetPixelBits();
+    if (pPixelBits == nullptr) {
+        return nullptr;
+    }
+    const uint32_t nCopyWidth = (uint32_t)(nRight - nLeft);
+    const uint32_t nCopyHeight = (uint32_t)(nBottom - nTop);
+    const size_t nRowBytes = (size_t)nWidth * sizeof(uint32_t);
+    std::vector<uint32_t> pixels((size_t)nCopyWidth * (size_t)nCopyHeight);
+    const uint8_t* pSrcBase = (const uint8_t*)pPixelBits;
+    for (uint32_t i = 0; i < nCopyHeight; ++i) {
+        const uint32_t* pSrcLine = (const uint32_t*)(pSrcBase + (size_t)(nTop + (int32_t)i) * nRowBytes) + nLeft;
+        ::memcpy(pixels.data() + (size_t)i * nCopyWidth, pSrcLine, (size_t)nCopyWidth * sizeof(uint32_t));
+    }
+    Bitmap_Skia* pBitmap = new Bitmap_Skia;
+    if (!pBitmap->Init(nCopyWidth, nCopyHeight, pixels.data())) {
+        delete pBitmap;
+        pBitmap = nullptr;
+    }
+    return pBitmap;
+}
+
 void Render_Skia::ClearAlpha(const UiRect& rcDirty, uint8_t alpha)
 {
     void* pPixelBits = GetPixelBits();
@@ -230,6 +270,61 @@ UiPoint Render_Skia::SetWindowOrg(UiPoint ptOffset)
 UiPoint Render_Skia::GetWindowOrg() const
 {
     return UiPoint { SkScalarTruncToInt(m_pSkPointOrg->fX), SkScalarTruncToInt(m_pSkPointOrg->fY) };
+}
+
+void Render_Skia::SetTransform(const IMatrix* pMatrix)
+{
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas == nullptr) {
+        return;
+    }
+    if (pMatrix == nullptr) {
+        //恢复为单位矩阵
+        skCanvas->resetMatrix();
+        return;
+    }
+    const Matrix_Skia* pSkiaMatrix = dynamic_cast<const Matrix_Skia*>(pMatrix);
+    ASSERT(pSkiaMatrix != nullptr);
+    if (pSkiaMatrix != nullptr) {
+        skCanvas->setMatrix(*pSkiaMatrix->GetMatrix());
+    }
+}
+
+void Render_Skia::ConcatMatrix(const IMatrix* pMatrix)
+{
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if ((skCanvas == nullptr) || (pMatrix == nullptr)) {
+        return;
+    }
+    const Matrix_Skia* pSkiaMatrix = dynamic_cast<const Matrix_Skia*>(pMatrix);
+    ASSERT(pSkiaMatrix != nullptr);
+    if (pSkiaMatrix != nullptr) {
+        skCanvas->concat(*pSkiaMatrix->GetMatrix());
+    }
+}
+
+void Render_Skia::SetBlendMode(BlendMode blendMode)
+{
+    m_blendMode = blendMode;
+    SkBlendMode skBlendMode = SkBlendMode::kSrcOver;
+    switch (blendMode) {
+    case BlendMode::kClear:    skBlendMode = SkBlendMode::kClear; break;
+    case BlendMode::kMultiply: skBlendMode = SkBlendMode::kMultiply; break;
+    case BlendMode::kScreen:   skBlendMode = SkBlendMode::kScreen; break;
+    case BlendMode::kXor:      skBlendMode = SkBlendMode::kXor; break;
+    case BlendMode::kPlus:     skBlendMode = SkBlendMode::kPlus; break;
+    case BlendMode::kSrcOver:
+    default:                   skBlendMode = SkBlendMode::kSrcOver; break;
+    }
+    //m_pSkPaint 是各绘制接口的绘制属性基板，修改后对后续绘制生效
+    m_pSkPaint->setBlendMode(skBlendMode);
+}
+
+BlendMode Render_Skia::GetBlendMode() const
+{
+    return m_blendMode;
 }
 
 void Render_Skia::SaveClip(int32_t& nState)
@@ -343,6 +438,40 @@ int32_t Render_Skia::ClipPath(const IPath* path, bool bIntersect)
         return m_saveCount;
     }
     return -1;
+}
+
+void Render_Skia::SaveLayer(const UiRect& rc, uint8_t alpha)
+{
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas == nullptr) {
+        return;
+    }
+    SkPaint layerPaint;
+    layerPaint.setAlphaf((SkScalar)alpha / 255.0f);
+    if ((rc.right > rc.left) && (rc.bottom > rc.top)) {
+        SkRect rcLayer = SkRect::MakeLTRB((SkScalar)rc.left, (SkScalar)rc.top, (SkScalar)rc.right, (SkScalar)rc.bottom);
+        rcLayer.offset(*m_pSkPointOrg);
+        skCanvas->saveLayer(&rcLayer, &layerPaint);
+    }
+    else {
+        //传空矩形表示整个画布
+        skCanvas->saveLayer(nullptr, &layerPaint);
+    }
+    // 同步更新 m_saveCount，使其与 Skia 内部 save 栈保持一致
+    m_saveCount = skCanvas->getSaveCount() - 1;
+}
+
+void Render_Skia::RestoreLayer()
+{
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas == nullptr) {
+        return;
+    }
+    skCanvas->restore();
+    // 同步更新 m_saveCount，使其与 Skia 内部 save 栈保持一致
+    m_saveCount = skCanvas->getSaveCount() - 1;
 }
 
 void Render_Skia::SetRopMode(SkPaint& skPaint, RopMode rop) const
@@ -1318,30 +1447,6 @@ void Render_Skia::FillCircle(const UiPointF& centerPt, float radius, UiColor dwC
     }
 }
 
-void Render_Skia::FillArc(const UiRect& rc, float startAngle, float sweepAngle, bool useCenter,
-                          UiColor dwColor, uint8_t uFade)
-{
-    ASSERT((GetWidth() > 0) && (GetHeight() > 0));
-    if ((rc.right <= rc.left) || (rc.bottom <= rc.top)) {
-        return;
-    }
-    SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
-    SkRect ovalRect = SkRect::Make(rcSkDestI);
-    ovalRect.offset(*m_pSkPointOrg);
-
-    SkPaint skPaint = *m_pSkPaint;
-    //颜色自身的Alpha与叠加透明度相乘（uFade 不再覆盖颜色的Alpha）
-    const uint8_t uAlpha = (uint8_t)(((uint32_t)dwColor.GetA() * (uint32_t)uFade + 127) / 255);
-    skPaint.setARGB(uAlpha, dwColor.GetR(), dwColor.GetG(), dwColor.GetB());
-    skPaint.setStyle(SkPaint::kFill_Style);
-
-    SkCanvas* skCanvas = GetSkCanvas();
-    ASSERT(skCanvas != nullptr);
-    if (skCanvas != nullptr) {
-        skCanvas->drawArc(ovalRect, startAngle, sweepAngle, useCenter, skPaint);
-    }
-}
-
 void Render_Skia::DrawEllipse(const UiRectF& rc, UiColor penColor, float fWidth)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
@@ -1488,10 +1593,10 @@ void Render_Skia::FillPolygon(const UiPointF* points, int32_t count, UiColor dwC
     }
 }
 
-void Render_Skia::DrawArc(const UiRect& rc, float startAngle, float sweepAngle, bool useCenter, 
-                          const IPen* pen, 
+void Render_Skia::DrawArc(const UiRectF& rc, float startAngle, float sweepAngle, bool useCenter,
+                          const IPen* pen,
                           const UiColor* gradientColor,
-                          const UiRect* gradientRect)
+                          const UiRectF* gradientRect)
 {
     ASSERT(pen != nullptr);
     if (pen == nullptr) {
@@ -1500,8 +1605,7 @@ void Render_Skia::DrawArc(const UiRect& rc, float startAngle, float sweepAngle, 
     SkPaint paint = *m_pSkPaint;
     SetPaintByPen(paint, pen);
 
-    SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
-    SkRect ovalRect = SkRect::Make(rcSkDestI);
+    SkRect ovalRect = SkRect::MakeLTRB(rc.left, rc.top, rc.right, rc.bottom);
     ovalRect.offset(*m_pSkPointOrg);
 
     if((gradientColor != nullptr) && (gradientRect != nullptr)) {
@@ -1510,8 +1614,7 @@ void Render_Skia::DrawArc(const UiRect& rc, float startAngle, float sweepAngle, 
         colors[0] = SkColor4f::FromColor(SkColorSetARGB(dwColor.GetA(), dwColor.GetR(), dwColor.GetG(), dwColor.GetB()));
         colors[1] = SkColor4f::FromColor(SkColorSetARGB(gradientColor->GetA(), gradientColor->GetR(), gradientColor->GetG(), gradientColor->GetB()));
         
-        SkIRect rcGradientDestI = { gradientRect->left, gradientRect->top, gradientRect->right, gradientRect->bottom };
-        SkRect rcGradientDest = SkRect::Make(rcGradientDestI);
+        SkRect rcGradientDest = SkRect::MakeLTRB(gradientRect->left, gradientRect->top, gradientRect->right, gradientRect->bottom);
         rcGradientDest.offset(*m_pSkPointOrg);
 
         SkPoint pts[2] = { {0, 0}, {0, 0} };
@@ -1527,6 +1630,29 @@ void Render_Skia::DrawArc(const UiRect& rc, float startAngle, float sweepAngle, 
     ASSERT(skCanvas != nullptr);
     if (skCanvas != nullptr) {
         skCanvas->drawArc(ovalRect, startAngle, sweepAngle, useCenter, paint);
+    }
+}
+
+void Render_Skia::FillArc(const UiRectF& rc, float startAngle, float sweepAngle, bool useCenter,
+                          UiColor dwColor, uint8_t uFade)
+{
+    ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+    if ((rc.right <= rc.left) || (rc.bottom <= rc.top)) {
+        return;
+    }
+    SkRect ovalRect = SkRect::MakeLTRB(rc.left, rc.top, rc.right, rc.bottom);
+    ovalRect.offset(*m_pSkPointOrg);
+
+    SkPaint skPaint = *m_pSkPaint;
+    //颜色自身的Alpha与叠加透明度相乘（uFade 不再覆盖颜色的Alpha）
+    const uint8_t uAlpha = (uint8_t)(((uint32_t)dwColor.GetA() * (uint32_t)uFade + 127) / 255);
+    skPaint.setARGB(uAlpha, dwColor.GetR(), dwColor.GetG(), dwColor.GetB());
+    skPaint.setStyle(SkPaint::kFill_Style);
+
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawArc(ovalRect, startAngle, sweepAngle, useCenter, skPaint);
     }
 }
 
@@ -1571,12 +1697,27 @@ void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
         return;
     }
     skPaint.setColor(pen->GetColor().GetARGB());
+    skPaint.setAntiAlias(pen->IsAntiAlias());
+    skPaint.setStrokeMiter(pen->GetMiterLimit());
 
     sk_sp<SkPathEffect> skPathEffect;
     IPen::DashStyle dashStyle = pen->GetDashStyle();
     //线宽的倍数
     float fRatio = pen->GetWidth() / GetScaleFloat(1.0f);
-    switch (dashStyle) {
+    const Pen_Skia* pSkiaPen = dynamic_cast<const Pen_Skia*>(pen);
+    if ((pSkiaPen != nullptr) && !pSkiaPen->GetDashPattern().empty()) {
+        //自定义虚线样式：数组元素按DPI缩放后使用（与画笔宽度无关）
+        const std::vector<float>& dashPattern = pSkiaPen->GetDashPattern();
+        const float fDpiScale = GetScaleFloat(1.0f);
+        std::vector<SkScalar> intervals;
+        intervals.reserve(dashPattern.size());
+        for (float fValue : dashPattern) {
+            intervals.push_back((SkScalar)(fValue * fDpiScale));
+        }
+        skPathEffect = SkDashPathEffect::Make(SkSpan<const SkScalar>(intervals.data(), intervals.size()), 0.0f);
+    }
+    else {
+        switch (dashStyle) {
     case IPen::kDashStyleSolid:
     {
         //优化：实线不再创建 {w, 0} 的退化 DashPathEffect，避免每条实线都走 PathEffect 绘制路径（更快且无退化参数）
@@ -1617,6 +1758,7 @@ void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
     {
         //优化：未知样式按实线处理，同样不创建退化的 DashPathEffect
         break;
+    }
     }
     }
     skPaint.setPathEffect(skPathEffect);
@@ -1679,6 +1821,11 @@ void Render_Skia::FillPath(const IPath* path, const IBrush* brush)
     SkPaint paint = *m_pSkPaint;
     paint.setColor(brush->GetColor().GetARGB());
     paint.setStyle(SkPaint::kFill_Style);
+    const Brush_Skia* pSkiaBrush = dynamic_cast<const Brush_Skia*>(brush);
+    if (pSkiaBrush != nullptr) {
+        //渐变画刷：设置着色器（会覆盖纯色）
+        pSkiaBrush->ApplyShader(paint, m_pSkPointOrg->fX, m_pSkPointOrg->fY);
+    }
 
     //优化：先 snapshot 再一次性平移，避免对整个 SkPathBuilder 做一次多余拷贝
     SkPath skPath = pSkiaPath->GetSkPathBuilder()->snapshot().makeOffset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
@@ -1861,6 +2008,14 @@ void Render_Skia::DrawString(const DString& strText, const DrawStringParam& draw
 
     SkiaTextData textData((const char*)strText.c_str(), strText.size() * sizeof(DString::value_type), textEncoding);
     skTextBox.Draw(skCanvas, textData, *pSkFont, skPaint, fallbackFontCreator);
+}
+
+UiRect Render_Skia::MeasureString(const DString& strText, IFont* pFont, uint32_t uFormat)
+{
+    MeasureStringParam measureParam;
+    measureParam.pFont = pFont;
+    measureParam.uFormat = uFormat;
+    return MeasureString(strText, measureParam);
 }
 
 UiRect Render_Skia::MeasureString(const DString& strText, const MeasureStringParam& measureParam)

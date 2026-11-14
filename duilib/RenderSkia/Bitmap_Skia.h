@@ -41,9 +41,29 @@ public:
     */
     virtual UiSize GetSize() const override;
 
+    /** 判断位图是否有效（已成功初始化）
+    */
+    virtual bool IsValid() const override;
+
+    /** 获取每行像素数据的字节数
+    */
+    virtual uint32_t GetRowBytes() const override;
+
+    /** 获取位图的Alpha类型
+    */
+    virtual AlphaType GetAlphaType() const override;
+
+    /** 获取初始化位图时使用的图片缩放比例
+    */
+    virtual float GetImageSizeScale() const override;
+
     /** 锁定位图数据，数据长度 = GetWidth() * GetHeight() * 4
     */
     virtual void* LockPixelBits() override;
+
+    /** 只读锁定位图数据，数据长度 = GetWidth() * GetHeight() * 4
+    */
+    virtual const void* LockPixelBits() const override;
 
     /** 释放位图数据
     */
@@ -72,6 +92,10 @@ private:
     /** Skia 位图
     */
     std::unique_ptr<SkBitmap> m_pSkBitmap;
+
+    /** 初始化位图时使用的图片缩放比例
+    */
+    float m_fImageSizeScale = 1.0f;
 };
 
 } // namespace ui

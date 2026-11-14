@@ -1,9 +1,12 @@
 #include "Font_Skia.h"
 #include "duilib/RenderSkia/FontMgr_Skia.h"
+#include "duilib/RenderSkia/DrawSkiaText.h"
 #include "duilib/Utils/StringUtil.h"
 
 #include "SkiaHeaderBegin.h"
 #include "include/core/SkFont.h"
+#include "include/core/SkFontMetrics.h"
+#include "include/core/SkPaint.h"
 #include "SkiaHeaderEnd.h"
 
 namespace ui 
@@ -119,6 +122,51 @@ IFontMgr* Font_Skia::GetFontMgr() const
 uint64_t Font_Skia::GetFontKey() const
 {
     return m_fontKey;
+}
+
+bool Font_Skia::GetFontMetrics(FontMetrics& metrics) const
+{
+    const SkFont* pSkFont = GetFontHandle();
+    if (pSkFont == nullptr) {
+        return false;
+    }
+    SkFontMetrics skMetrics;
+    const SkScalar fLineHeight = pSkFont->getMetrics(&skMetrics);
+    metrics.fAscent = skMetrics.fAscent;
+    metrics.fDescent = skMetrics.fDescent;
+    metrics.fLeading = skMetrics.fLeading;
+    metrics.fLineHeight = fLineHeight;
+    return true;
+}
+
+float Font_Skia::MeasureTextWidth(const DString& text) const
+{
+    if (text.empty()) {
+        return 0.0f;
+    }
+    const SkFont* pSkFont = GetFontHandle();
+    if (pSkFont == nullptr) {
+        return 0.0f;
+    }
+    SkPaint skPaint;
+    skPaint.setAntiAlias(true);
+    MeasureTextTempData tempData;
+    SkRect bounds;
+    //DString 的字符宽度决定Skia的文本编码（Windows/macOS 为 UTF-16，Linux 为 UTF-32）
+    constexpr SkTextEncoding textEncoding = (sizeof(DString::value_type) == sizeof(uint32_t))
+                                            ? SkTextEncoding::kUTF32 : SkTextEncoding::kUTF16;
+    return DrawSkiaText::MeasureText(*pSkFont,
+                                     text.c_str(), text.size() * sizeof(DString::value_type),
+                                     textEncoding, &bounds, &skPaint, this, tempData);
+}
+
+bool Font_Skia::GetFontInfo(UiFont& fontInfo) const
+{
+    if (m_uiFont.m_fontName.empty()) {
+        return false;
+    }
+    fontInfo = m_uiFont;
+    return true;
 }
 
 } // namespace ui

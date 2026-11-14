@@ -59,7 +59,7 @@ bool Bitmap_Skia::Init(uint32_t nWidth, uint32_t nHeight, const void* pPixelBits
     if ((nWidth == 0) || (nHeight == 0)) {
         return false;
     }
-
+    m_fImageSizeScale = fImageSizeScale;
     if (ImageUtil::NeedResizeImage(fImageSizeScale)) {
         //调整图像大小
         const uint32_t nNewWidth = ImageUtil::GetScaledImageSize(nWidth, fImageSizeScale);
@@ -167,6 +167,30 @@ UiSize Bitmap_Skia::GetSize() const
     return UiSize(m_pSkBitmap->width(), m_pSkBitmap->height());
 }
 
+bool Bitmap_Skia::IsValid() const
+{
+    return (m_pSkBitmap != nullptr) && (m_pSkBitmap->width() > 0) && (m_pSkBitmap->height() > 0) && m_pSkBitmap->readyToDraw();
+}
+
+uint32_t Bitmap_Skia::GetRowBytes() const
+{
+    SkPixmap pixmap;
+    if (m_pSkBitmap->peekPixels(&pixmap)) {
+        return (uint32_t)pixmap.rowBytes();
+    }
+    return 0;
+}
+
+AlphaType Bitmap_Skia::GetAlphaType() const
+{
+    return FromSkAlphaType(m_pSkBitmap->info().alphaType());
+}
+
+float Bitmap_Skia::GetImageSizeScale() const
+{
+    return m_fImageSizeScale;
+}
+
 void* Bitmap_Skia::LockPixelBits()
 {
     void* pPixelBits = nullptr;
@@ -175,6 +199,16 @@ void* Bitmap_Skia::LockPixelBits()
         pPixelBits = pixmap.writable_addr();
     }
     ASSERT(pPixelBits != nullptr);
+    return pPixelBits;
+}
+
+const void* Bitmap_Skia::LockPixelBits() const
+{
+    const void* pPixelBits = nullptr;
+    SkPixmap pixmap;
+    if (m_pSkBitmap->peekPixels(&pixmap)) {
+        pPixelBits = pixmap.addr();
+    }
     return pPixelBits;
 }
 

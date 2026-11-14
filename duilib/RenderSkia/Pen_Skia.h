@@ -3,6 +3,8 @@
 
 #include "duilib/Render/IRender.h"
 
+#include <vector>
+
 namespace ui 
 {
 
@@ -69,6 +71,34 @@ public:
     */
     virtual DashStyle GetDashStyle() const override;
 
+    /** 设置自定义虚线样式
+    */
+    virtual void SetDashPattern(const float* intervals, int32_t count) override;
+
+    /** 是否设置了自定义虚线样式
+    */
+    virtual bool HasDashPattern() const override;
+
+    /** 设置是否启用抗锯齿
+    */
+    virtual void SetAntiAlias(bool bAntiAlias) override;
+
+    /** 是否启用抗锯齿
+    */
+    virtual bool IsAntiAlias() const override;
+
+    /** 设置联接处的斜接限制
+    */
+    virtual void SetMiterLimit(float fMiterLimit) override;
+
+    /** 获取联接处的斜接限制
+    */
+    virtual float GetMiterLimit() const override;
+
+    /** 获取自定义虚线样式的元素列表（为空表示未设置）
+    */
+    const std::vector<float>& GetDashPattern() const;
+
     /** 复制Pen对象
     */
     virtual std::unique_ptr<IPen> Clone() const override;
@@ -101,6 +131,18 @@ private:
     /** 短划线样式
     */
     DashStyle m_dashStyle;
+
+    /** 自定义虚线样式（成对的实线长度、空白长度）
+    */
+    std::vector<float> m_dashPattern;
+
+    /** 是否启用抗锯齿
+    */
+    bool m_bAntiAlias;
+
+    /** 联接处的斜接限制
+    */
+    float m_fMiterLimit;
 };
 
 } // namespace ui

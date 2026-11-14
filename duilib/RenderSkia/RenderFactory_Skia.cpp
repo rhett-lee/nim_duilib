@@ -70,6 +70,16 @@ IBitmap* RenderFactory_Skia::CreateBitmap()
     return new Bitmap_Skia();
 }
 
+IBitmap* RenderFactory_Skia::CreateBitmap(uint32_t nWidth, uint32_t nHeight, AlphaType alphaType)
+{
+    Bitmap_Skia* pBitmap = new Bitmap_Skia;
+    if (!pBitmap->Init(nWidth, nHeight, nullptr, 1.0f, alphaType)) {
+        delete pBitmap;
+        pBitmap = nullptr;
+    }
+    return pBitmap;
+}
+
 IRender* RenderFactory_Skia::CreateRender(const IRenderDpiPtr& spRenderDpi, void* platformData, RenderBackendType backendType)
 {
 #if defined (DUILIB_BUILD_FOR_SDL)

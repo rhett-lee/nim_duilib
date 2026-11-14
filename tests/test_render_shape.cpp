@@ -82,7 +82,7 @@ void TestArc(ui::IRender* pRender)
 
     //左上象限的扇形（Skia的角度以x轴正方向为0度，顺时针为正）
     pRender->Clear(ui::UiColor(kWhiteColor));
-    pRender->FillArc(ui::UiRect(20, 20, 80, 80), 0.0f, 90.0f, true, ui::UiColor(kRedColor));
+    pRender->FillArc(ui::UiRectF(20, 20, 80, 80), 0.0f, 90.0f, true, ui::UiColor(kRedColor));
     uint32_t nColor = 0;
     //右下象限在扇形内
     CHECK(ReadPixel(pRender, 70, 70, nColor));

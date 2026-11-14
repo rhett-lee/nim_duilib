@@ -68,6 +68,18 @@ public:
     */
     virtual uint64_t GetFontKey() const override;
 
+    /** 获取字体度量信息（不依赖Render/Canvas）
+    */
+    virtual bool GetFontMetrics(FontMetrics& metrics) const override;
+
+    /** 评估文本的绘制宽度（不依赖Render/Canvas；支持字体回退）
+    */
+    virtual float MeasureTextWidth(const DString& text) const override;
+
+    /** 获取创建该字体时使用的字体信息
+    */
+    virtual bool GetFontInfo(UiFont& fontInfo) const override;
+
 private:
     /** 删除Skia字体
     */

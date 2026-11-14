@@ -1,6 +1,6 @@
 下面的分析基于 `duilib/Render/IRender.h`，并对照 Skia 实现（`duilib/RenderSkia/Render_Skia.cpp`、`Bitmap_Skia.h`、`Path_Skia.h`、`DrawSkiaImage.cpp`）核实。
 
-> **文档状态（2026-11-14 更新）**：本报告已随"字体回退性能优化"（见 [字体回退性能优化分析.md](字体回退性能优化分析.md)）重新校准；2026-11-14 完成了第四节"接口一致性问题"的全部 8 条（第 1、2、5、6、7、8 条：`Clone` 家族、只读 const、测量返回值、魔法值、文本间距命名、取值风格；第 3、4 条：裁剪接口改名、`MeasureRichText` 重载合并），完成第五节第 2 条（富文本接口去掉 `IRenderFactory*` 参数）、第 3 条（`rcPaint` 后移为可选参数并内部兜底）与第 5 条（三个绘图接口合并为两个入口 + `ImageDrawParam`），并补齐第六节 P0 的全部常用能力（`FillArc`、`DrawEllipse`/`FillEllipse`、`DrawPolygon`/`FillPolygon`、`ClipPath`、`ImageSamplingQuality`）。文中代码行号以当前代码为准；每条问题均标注当前处理状态（已修复 / 部分修复 / 未处理 / 暂不处理）；"零、进度总览"与"九、字体回退相关接口变更记录"便于后续跟进。
+> **文档状态（2026-11-14 更新）**：本报告已随"字体回退性能优化"（见 [字体回退性能优化分析.md](字体回退性能优化分析.md)）重新校准；2026-11-14 完成了第四节"接口一致性问题"的全部 8 条（第 1、2、5、6、7、8 条：`Clone` 家族、只读 const、测量返回值、魔法值、文本间距命名、取值风格；第 3、4 条：裁剪接口改名、`MeasureRichText` 重载合并），完成第五节第 2 条（富文本接口去掉 `IRenderFactory*` 参数）、第 3 条（`rcPaint` 后移为可选参数并内部兜底）与第 5 条（三个绘图接口合并为两个入口 + `ImageDrawParam`），并补齐第六节 P0/P1/P2 的全部缺失能力（`FillArc`、`DrawEllipse`/`FillEllipse`、`DrawPolygon`/`FillPolygon`、`ClipPath`、`ImageSamplingQuality`；`IFont` 度量/宽度/信息、`IBitmap` 只读查询、`MeasureString` 轻量重载、局部快照、`SaveLayer`/`RestoreLayer`；`IMatrix`/`IPen`/`IBrush` 扩展、`BlendMode`、`SetTransform`、`CreateBitmap` 重载）。文中代码行号以当前代码为准；每条问题均标注当前处理状态（已修复 / 部分修复 / 未处理 / 暂不处理）；"零、进度总览"与"九、字体回退相关接口变更记录"便于后续跟进。
 
 ## 零、进度总览（2026-11-14）
 
@@ -31,7 +31,7 @@
 | 五.3 | `rcPaint` 脏区参数 | `IRender.h#L859-L1019`、`Render_Skia.cpp#L2168` | **已修复** | `rcPaint` 后移为可选参数（默认 `UiRect()` = 不限制），内部用当前 clip 兜底 |
 | 五.4 | 测量依赖画布尺寸 | `Render_Skia.cpp#L1692-L1695` | 未处理 | 影响无 Surface 的纯测量场景 |
 | 五.5 | 三个绘图接口职责重叠、参数易错 | `IRender.h#L859-L1019` | **已修复** | 收敛为两个 `DrawImage` 重载 + `ImageDrawParam`；删除 `DrawImageRect` |
-| 六 | 缺失接口（P0/P1/P2） | 见第六节 | **P0 已修复** | P0 的 8 组接口已全部补齐；P1/P2 待排期 |
+| 六 | 缺失接口（P0/P1/P2） | 见第六节 | **已全部修复** | P0/P1/P2 的缺失接口均已补齐 |
 
 > 补充（2026-11-14 第三批）：`ClearClip` 已删除，其实现（`restoreToCount` + `m_saveCount` 同步）并入 `RestoreClip`，全部调用方改用 `RestoreClip`，行为与删除前一致。
 
@@ -43,7 +43,9 @@
 
 > 补充（2026-11-14 第七批）：第六节 P0 的 8 组缺失接口已全部补齐——`FillArc`、`DrawEllipse`（2 个重载）、`FillEllipse`、`DrawPolygon`（2 个重载）、`FillPolygon`、`ClipPath`、`ImageSamplingQuality` + `Set/GetImageSamplingQuality`；新增 `render_shape` 单元测试覆盖。
 
-统计：已修复 19 项、部分修复 2 项、暂不处理 1 项、未处理 2 项、缺失接口 P0 已补齐（P1/P2 待排期）。
+> 补充（2026-11-14 第八批）：第六节 P1、P2 已全部补齐——`IFont` 的 `GetFontMetrics`/`MeasureTextWidth`/`GetFontInfo`，`IBitmap` 的 `IsValid`/`GetRowBytes`/`GetAlphaType`/`GetImageSizeScale`/只读 `LockPixelBits`，`IRender` 的 `MeasureString` 轻量重载、`MakeImageSnapshot(rc)`、`SaveLayer`/`RestoreLayer`、`SetBlendMode`/`GetBlendMode`、`SetTransform`/`ConcatMatrix`，`IMatrix` 的 `Reset`/`Concat`/`Invert`/`IsIdentity`/`MapPoint`，`IPen` 的 `SetAntiAlias`/`SetMiterLimit`/`SetDashPattern`/`HasDashPattern`，`IBrush` 的线性/径向渐变，`IRenderFactory::CreateBitmap(w,h,alphaType)`；`DrawArc`/`FillArc` 的矩形参数统一为 `UiRectF`，并按"Draw 后紧跟 Fill"的分组规则调整了 `FillArc` 的位置；新增 `render_ext` 单元测试覆盖。
+
+统计：已修复 20 项、部分修复 2 项、暂不处理 1 项、未处理 2 项、缺失接口 P0/P1/P2 已全部补齐。
 
 ## 一、结论
 
@@ -257,13 +259,14 @@
 
 ## 六、常用但缺失的接口（建议补充）
 
-> 状态：P0 已于 2026-11-14 **全部补齐**（见下方每项标注）；P1 / P2 截至 2026-11-14 仍未新增，以下描述可直接作为需求条目排期。
+> 状态：P0/P1/P2 均已于 2026-11-14 **全部补齐**（见下方每项标注）。
 
 ### P0：高频、Skia 实现成本低 — **已全部补齐**
 
 ```cpp
 // 图元：补齐 DrawArc 的填充对称项、椭圆、多边形的填充/描边
-virtual void FillArc(const UiRect& rc, float startAngle, float sweepAngle, bool useCenter,
+//（DrawArc/FillArc 的矩形参数与其余图元接口一致，使用 UiRectF）
+virtual void FillArc(const UiRectF& rc, float startAngle, float sweepAngle, bool useCenter,
                      UiColor dwColor, uint8_t uFade = 255) = 0;              // 新增
 virtual void DrawEllipse(const UiRectF& rc, UiColor penColor, float fWidth) = 0;   // 新增
 virtual void DrawEllipse(const UiRectF& rc, const IPen* pen) = 0;                  // 新增
@@ -297,33 +300,74 @@ virtual ImageSamplingQuality GetImageSamplingQuality() const = 0;             //
 >
 > 未纳入 P0 的相关能力：`DrawArc`/`FillArc` 目前只接受 `UiColor` 填充，弧形渐变仍走 `DrawArc` 的 `gradientColor` 参数；`DrawPolygon` 的 `IPen*` 重载使用 `const IPen*`（比既有的 `DrawCircle`/`DrawRoundRect` 的 `IPen*` 更严格，实参兼容）。
 
-### P1：文本与位图能力
+### P1：文本与位图能力 — **已全部补齐**
 
-- `IFont`：
-  - `bool GetFontMetrics(FontMetrics& metrics) const`（ascent / descent / lineGap / 行高）；
-  - `float MeasureTextWidth(const DString& text) const`（不依赖 Render/Canvas 的快速测量）；
-  - `bool GetFontInfo(UiFont& fontInfo) const`（回读创建参数，便于缓存键比较）。
-- `IRender`：
-  - `UiRect MeasureString(const DString& text, IFont* font, uint32_t uFormat)` 轻量重载，避免每次拼装 `MeasureStringParam`；
-  - `IBitmap* MakeImageSnapshot(const UiRect& rc)`：当前只能整画布快照，做局部缓存不方便。
-- `IBitmap`：
-  - `bool IsValid() const`、`uint32_t GetRowBytes() const`、`GetAlphaType()`、`GetPixelFormat()`；
-  - `float GetImageSizeScale() const`（`Init` 有该入参，却没有读取接口）；
-  - `const void* LockPixelBits() const`（只读访问，避免调用方误改）。
-- 分组透明度：
-  ```cpp
-  virtual void SaveLayer(const UiRect& rc, uint8_t alpha = 255) = 0;
-  virtual void RestoreLayer() = 0;
-  ```
-  用于整组淡出/离屏合成。当前只能逐元素乘 Alpha，重叠区域会出现叠加误差。
+```cpp
+// IFont
+struct FontMetrics { float fAscent; float fDescent; float fLeading; float fLineHeight; };
+virtual bool  GetFontMetrics(FontMetrics& metrics) const;         // 新增
+virtual float MeasureTextWidth(const DString& text) const;        // 新增（不依赖Render/Canvas，支持字体回退）
+virtual bool  GetFontInfo(UiFont& fontInfo) const;                // 新增（回读创建参数）
 
-### P2：抽象能力完善
+// IRender
+virtual UiRect MeasureString(const DString& text, IFont* pFont, uint32_t uFormat = 0); // 新增轻量重载
+virtual IBitmap* MakeImageSnapshot(const UiRect& rc);                                  // 新增局部快照
+virtual void SaveLayer(const UiRect& rc, uint8_t alpha = 255);                          // 新增分组透明度
+virtual void RestoreLayer();                                                            // 新增
 
-- `IMatrix`（`IRender.h#L430`）只有变换、没有读取：补 `Reset()`、`Concat(const IMatrix&)`、`Invert()`、`MapPoint`、`IsIdentity()`。
-- `IPen`（`IRender.h#L191`）：补 `SetAntiAlias`、`SetMiterLimit`、`SetDashPattern(const float*, int32_t)`（现在虚线只能用 5 种预设样式）。
-- `IBrush`（`IRender.h#L287`）目前只支持纯色：建议支持线性/径向渐变。现在 `FillRect`、`FillRoundRect`、`FillPath` 各有一套"两色 + 4 方向"的渐变参数，重复且表达能力有限。
-- `IRender`：补 `SetBlendMode`（Multiply / Screen / Xor / Clear）与 `SetTransform` / `ConcatMatrix`（整组旋转缩放）。
-- `IRenderFactory`：补 `CreateBitmap(width, height, alphaType)` 便捷重载（`GetRenderType` 已随第三节第 3 条删除，不再新增）。
+// IBitmap
+virtual bool IsValid() const; virtual uint32_t GetRowBytes() const; virtual AlphaType GetAlphaType() const;
+virtual float GetImageSizeScale() const; virtual const void* LockPixelBits() const;     // 均新增
+```
+
+| 接口 | 实现位置 | 说明 |
+| --- | --- | --- |
+| `IFont::GetFontMetrics` | `Font_Skia.cpp` | `SkFont::getMetrics`，换算为 ascent/descent/leading/行高；字体无效时返回 `false` |
+| `IFont::MeasureTextWidth` | `Font_Skia.cpp` | 复用 `DrawSkiaText::MeasureText`，与绘制使用同一字体回退链；空串返回 0 |
+| `IFont::GetFontInfo` | `Font_Skia.cpp` | 回读 `InitFont` 时的 `UiFont`（字体名/字号/样式），便于缓存键比较 |
+| `IRender::MeasureString`（轻量重载） | `Render_Skia.cpp` | 内部组装 `MeasureStringParam` 后复用原实现，调用方无需再拼参数结构体 |
+| `IRender::MakeImageSnapshot(rc)` | `Render_Skia.cpp` | 区域先裁剪到画布范围，再逐行 `memcpy` 到新位图；区域无效返回 `nullptr` |
+| `IRender::SaveLayer/RestoreLayer` | `Render_Skia.cpp` | `SkCanvas::saveLayer` + 图层 Alpha；同步维护 `m_saveCount`，与 `RestoreClip` 的断言保持一致 |
+| `IBitmap` 只读查询 | `Bitmap_Skia.cpp` | `IsValid` 用 `readyToDraw()`；`GetRowBytes` 取 `SkPixmap::rowBytes()`；`GetAlphaType` 复用既有映射；`GetImageSizeScale` 记录 `Init` 入参；新增 `const` 版 `LockPixelBits` 返回 `SkPixmap::addr()` |
+
+> 未新增 `IBitmap::GetPixelFormat`：框架内位图恒为 ARGB8888（N32），新增单值枚举与第三节已删除的 `RenderType` 属同类"假抽象"，故不引入。若后续支持多像素格式，再随格式一起增加。
+
+### P2：抽象能力完善 — **已全部补齐**
+
+```cpp
+// IMatrix：新增读取与组合能力
+virtual void Reset();  virtual void Concat(const IMatrix* pMatrix);
+virtual bool Invert(); virtual bool IsIdentity() const; virtual UiPointF MapPoint(const UiPointF& pt) const;
+
+// IPen：抗锯齿 / 斜接限制 / 自定义虚线
+virtual void SetAntiAlias(bool bAntiAlias); virtual bool IsAntiAlias() const;
+virtual void SetMiterLimit(float fMiterLimit); virtual float GetMiterLimit() const;
+virtual void SetDashPattern(const float* intervals, int32_t count); virtual bool HasDashPattern() const;
+
+// IBrush：纯色 / 线性渐变 / 径向渐变
+enum class BrushType { kSolid, kLinearGradient, kRadialGradient };
+virtual BrushType GetBrushType() const;
+virtual void SetSolid(UiColor color);
+virtual void SetLinearGradient(UiColor endColor, const UiPointF& startPt, const UiPointF& endPt);
+virtual void SetRadialGradient(UiColor endColor, const UiPointF& center, float radius);
+
+// IRender / IRenderFactory
+enum class BlendMode { kSrcOver, kClear, kMultiply, kScreen, kXor, kPlus };
+virtual void SetBlendMode(BlendMode blendMode); virtual BlendMode GetBlendMode() const;
+virtual void SetTransform(const IMatrix* pMatrix); virtual void ConcatMatrix(const IMatrix* pMatrix);
+virtual IBitmap* CreateBitmap(uint32_t nWidth, uint32_t nHeight, AlphaType alphaType = kPremul);
+```
+
+| 接口 | 实现位置 | 说明 |
+| --- | --- | --- |
+| `IMatrix` 扩展 | `Matrix_Skia.cpp` | `Concat` 用 `SkMatrix::postConcat`（先当前变换、后入参变换）；`Invert` 失败时矩阵保持不变；`MapPoint` 用 `mapPoint` |
+| `IPen` 扩展 | `Pen_Skia.cpp` + `Render_Skia::SetPaintByPen` | 抗锯齿与斜接限制直接映射到 `SkPaint`；自定义虚线用 `SkDashPathEffect`，长度按 DPI 缩放；调用 `SetDashStyle` 会清除自定义样式（以最后一次设置为准） |
+| `IBrush` 渐变 | `Brush_Skia.cpp` + `Render_Skia::FillPath` | 线性/径向渐变生成 `SkShaders` 着色器；渐变坐标加上视图原点偏移；纯色时行为不变 |
+| `IRender::SetBlendMode` | `Render_Skia.cpp` | 映射为 `SkBlendMode` 并写入 `m_pSkPaint`，对后续绘制生效；`GetBlendMode` 回读 |
+| `IRender::SetTransform/ConcatMatrix` | `Render_Skia.cpp` | 对应 `SkCanvas::setMatrix` / `concat`；`SetTransform(nullptr)` 重置为单位矩阵 |
+| `IRenderFactory::CreateBitmap` | `RenderFactory_Skia.cpp` | 分配并初始化指定位图，失败返回 `nullptr` |
+
+> `FillPath` 目前是唯一接受 `IBrush` 的填充接口；`FillRect`/`FillRoundRect` 仍使用"颜色 + 可选渐变参数"的既有形式，保持不变以兼容调用方。
 
 ## 七、建议的落地顺序
 
@@ -336,19 +380,19 @@ virtual ImageSamplingQuality GetImageSamplingQuality() const = 0;             //
    - ✅ **一致性修正（2026-11-14 完成）**：`Clone` 家族统一为 `unique_ptr<T> Clone() const`；`MeasureRichText*` 返回 `UiRect`；`rectSize` 拆分为 `limitWidth`/`limitHeight`；`fWordSpacing` 统一为 `fLetterSpacing`；`IFontMgr::GetFontName` 改为按值返回（详见第十节）。
    - ✅ **裁剪与重载整理（2026-11-14 完成）**：保留 `SaveClip/RestoreClip`，`SetClip→ClipRect`、`SetRoundClip→ClipRoundRect`；`MeasureRichText2/3` 合并进 `MeasureRichText`（详见第十节）。
 
-2. **第二批（只增不改，补常用能力）— 图元/裁剪/采样已完成**
+2. **第二批（只增不改，补常用能力）— 已完成**
    - ✅ `FillArc`；
    - ✅ `DrawEllipse` / `FillEllipse`；
    - ✅ `DrawPolygon` / `FillPolygon`；
    - ✅ `ClipPath`（原计划的 `SetPathClip`，按裁剪接口命名规则改为 `ClipPath`）；
    - ✅ `SetImageSamplingQuality` / `GetImageSamplingQuality`；
-   - ⬜ `IFont` 的度量接口（属第六节 P1，待排期）。
+   - ✅ `IFont` 的度量接口（`GetFontMetrics` / `MeasureTextWidth` / `GetFontInfo`）。
 
 3. **第三批（结构性调整，需评估影响面）— 部分完成**
    - ✅ `BitmapAlphaType` 去 Skia 化（已改为中性 `AlphaType`）；
    - ⬜ 拆分 `IRender` 的窗口/Surface 职责；
    - ✅ 合并 `MeasureRichText*` 编号重载（已合并为单个 `MeasureRichText`）；
-   - ⬜ `IBrush` 支持渐变；
+   - ✅ `IBrush` 支持渐变（线性/径向，已在 `FillPath` 生效）；
    - ⬜ `RichTextData::m_textView` 统一跨平台编码（当前结论为暂不处理）。
 
 ## 八、附：值得保留的设计
@@ -382,7 +426,7 @@ virtual ImageSamplingQuality GetImageSamplingQuality() const = 0;             //
 
 ## 十、接口一致性调整记录（2026-11-14）
 
-本轮只做接口一致性修正，不改变绘制/测量的视觉效果。变更已同步 `Render_Skia` 实现、控件层调用方与单元测试，`ctest` 10/10 通过（`text_draw` 202 项、`image_draw` 22 项、`render_shape` 36 项检查，0 失败）。分七批完成：第一批为第 1、2、5、6、7、8 条，第二批为第 3、4 条（`MeasureRichText` 合并行与末尾两行裁剪接口），第三批删除 `ClearClip`，第四批为第五节第 2 条（富文本接口去掉 `IRenderFactory*` 参数，改为 Render 创建时注入），第五批为第五节第 3 条（`rcPaint` 后移为可选参数并内部兜底），第六批为第五节第 5 条（三个绘图接口合并为两个入口 + `ImageDrawParam`），第七批为第六节 P0 缺失接口补齐。
+本轮只做接口一致性修正，不改变绘制/测量的视觉效果。变更已同步 `Render_Skia` 实现、控件层调用方与单元测试，`ctest` 11/11 通过（`text_draw` 202 项、`image_draw` 22 项、`render_shape` 36 项、`render_ext` 80 项检查，0 失败）。分八批完成：第一批为第 1、2、5、6、7、8 条，第二批为第 3、4 条（`MeasureRichText` 合并行与末尾两行裁剪接口），第三批删除 `ClearClip`，第四批为第五节第 2 条（富文本接口去掉 `IRenderFactory*` 参数，改为 Render 创建时注入），第五批为第五节第 3 条（`rcPaint` 后移为可选参数并内部兜底），第六批为第五节第 5 条（三个绘图接口合并为两个入口 + `ImageDrawParam`），第七批为第六节 P0 缺失接口补齐，第八批为第六节 P1/P2 缺失接口补齐。
 
 | 接口 / 字段 | 变更前 | 变更后 | 影响 |
 | --- | --- | --- | --- |
@@ -414,9 +458,24 @@ virtual ImageSamplingQuality GetImageSamplingQuality() const = 0;             //
 | `IRender::DrawPolygon` / `FillPolygon` | 无（`IPath::AddPolygon` 存在但无快捷方法） | 新增 `DrawPolygon(points, count, UiColor, fWidth)`、`DrawPolygon(points, count, const IPen*)`、`FillPolygon(points, count, UiColor, uFade = 255)` | `count < 3` 直接返回；内部构造闭合路径，支持凹多边形 |
 | `IRender::ClipPath` | 无（只有矩形/圆角矩形裁剪） | 新增 `int32_t ClipPath(const IPath* path, bool bIntersect = true)` | 与 `ClipRect`/`ClipRoundRect` 同一套 `SaveClip`/`RestoreClip` 语义；路径按视图原点偏移后裁剪 |
 | `ImageSamplingQuality` / `IRender::Set/GetImageSamplingQuality` | 无（`DrawImage`、`BitBlt`/`StretchBlt`/`AlphaBlend` 固定最近邻采样） | 新增枚举 `{kNearest, kLinear, kCubic}` + 设置/读取接口，默认 `kNearest` | 默认值不变，既有渲染效果不受影响；`Clone` 同步复制该设置；DPI 缩放/缩略图场景可切换为 `kLinear`/`kCubic` |
+| `IRender::DrawArc` / `FillArc` 的矩形参数 | `UiRect` / `const UiRect*` | `UiRectF` / `const UiRectF*`（与其它图元接口一致） | 调用方（`CircleProgress`）改用 `UiRectF::MakeFromRect`；浮点坐标不再被截断 |
+| `IRender::FillArc` 的声明位置 | 位于 `FillCircle` 之后 | 移到 `DrawArc` 之后（Draw/Fill 成对分组） | 仅头文件顺序调整，无语义变化 |
+| `IFont` 文本能力 | 无度量/宽度/信息读取接口 | 新增 `FontMetrics` 结构 + `GetFontMetrics`、`MeasureTextWidth`、`GetFontInfo`（均有默认实现返回 `false`/`0`） | 自定义 `IFont` 实现可按需覆盖；`MeasureTextWidth` 不依赖 Render/Canvas |
+| `IBitmap` 只读查询 | 只能 `GetSize` 与非常量 `LockPixelBits` | 新增 `IsValid`、`GetRowBytes`、`GetAlphaType`、`GetImageSizeScale`、`const void* LockPixelBits() const`（纯虚） | 自定义 `IBitmap` 实现需补齐这 5 个方法；未新增 `GetPixelFormat`（恒为 ARGB8888，避免假抽象） |
+| `IRender::MeasureString` | 只有 `MeasureStringParam` 版本 | 新增轻量重载 `MeasureString(text, IFont*, uFormat = 0)`（纯虚） | 自定义 `IRender` 实现需补齐；内部复用原测量逻辑 |
+| `IRender::MakeImageSnapshot` | 只有整画布版本 | 新增 `MakeImageSnapshot(const UiRect& rc)`（纯虚） | 局部快照，区域无效返回 `nullptr` |
+| `IRender::SaveLayer` / `RestoreLayer` | 无（只能逐元素乘 Alpha） | 新增 `SaveLayer(rc, alpha = 255)` / `RestoreLayer()`（纯虚） | 用于整组淡出/离屏合成；与 `SaveClip`/`RestoreClip` 共用 `m_saveCount` 同步机制 |
+| `IMatrix` | 只有变换接口 | 新增 `Reset`、`Concat`、`Invert`、`IsIdentity`、`MapPoint`（纯虚） | `Concat` 等价 `postConcat`（先当前变换、后入参变换）；`Invert` 失败时矩阵不变 |
+| `IPen` | 抗锯齿/斜接/虚线不可控 | 新增 `SetAntiAlias`/`IsAntiAlias`、`SetMiterLimit`/`GetMiterLimit`、`SetDashPattern`/`HasDashPattern`（纯虚） | 自定义 `IPen` 实现需补齐；`SetDashStyle` 会清除自定义虚线样式 |
+| `IBrush` | 只有纯色 | 新增 `BrushType`、`GetBrushType`、`SetSolid`、`SetLinearGradient`、`SetRadialGradient`（纯虚） | 自定义 `IBrush` 实现需补齐；渐变色刷在 `FillPath` 生效，`FillRect`/`FillRoundRect` 的既有渐变参数保持不变 |
+| `BlendMode` / `IRender::Set/GetBlendMode` | 无（固定 SrcOver） | 新增枚举 `{kSrcOver, kClear, kMultiply, kScreen, kXor, kPlus}` + 设置/读取接口（纯虚） | 写入 `m_pSkPaint`，对后续绘制生效；`BitBlt` 的 `RopMode` 语义不受影响 |
+| `IRender::SetTransform` / `ConcatMatrix` | 无（只能通过 `DrawImage` 的矩阵） | 新增 `SetTransform(const IMatrix*)`、`ConcatMatrix(const IMatrix*)`（纯虚） | 对应 `SkCanvas::setMatrix`/`concat`；`SetTransform(nullptr)` 恢复单位矩阵 |
+| `IRenderFactory::CreateBitmap` | 只有空位图 + 手动 `Init` | 新增 `CreateBitmap(w, h, alphaType = kPremul)`（纯虚） | 一步创建并初始化；失败返回 `nullptr` |
 
 **测试补充**：`tests/test_text_draw.cpp` 新增 `MeasureRichText` 返回值契约校验——原点为 `(0,0)`、宽度不超过限制宽度、限制宽度越小（换行越多）内容总高度越大（共 7 项检查）。
 
 **测试补充**：新增 `tests/test_image_draw.cpp`（`image_draw` 用例）——覆盖 `rcPaint` 传 `UiRect()` 正常绘制、与目标不相交时跳过绘制、部分相交时按裁剪区域可见、整图绘制入口、矩阵绘制时 `rcPaint` 不参与可见性判断（共 22 项检查）。
 
 **测试补充**：新增 `tests/test_render_shape.cpp`（`render_shape` 用例）——覆盖 `FillEllipse`/`DrawEllipse`（中心填充、四角留白、描边位置）、`FillArc`（扇形内外象限）、`FillPolygon`/`DrawPolygon`（内部填充、外部留白、边框位置）、`ClipPath`（三角形内填充、外部留白）、`Set/GetImageSamplingQuality`（默认值与来回切换），共 36 项检查。
+
+**测试补充**：新增 `tests/test_render_ext.cpp`（`render_ext` 用例）——覆盖 `IFont` 度量/文本宽度/字体信息、`IBitmap` 只读查询与新位图创建、`MeasureString` 轻量重载、`MakeImageSnapshot(rc)`（尺寸与像素校验）、`SaveLayer/RestoreLayer` 的 50% 图层混合、`Set/GetBlendMode`、`SetTransform`、`IMatrix` 的 `Reset/Concat/Invert/IsIdentity/MapPoint`、`IPen` 的抗锯齿/斜接限制/自定义虚线、`IBrush` 线性渐变填充（左右两端像素校验），共 80 项检查。

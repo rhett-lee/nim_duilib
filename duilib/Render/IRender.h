@@ -10,6 +10,27 @@ namespace ui
 {
 class IFontMgr;
 
+/** 字体度量信息（单位：像素，与字体大小的坐标系一致）
+*/
+struct DUILIB_API FontMetrics
+{
+    /** 基线以上的高度（负值，向上为负）
+    */
+    float fAscent = 0;
+
+    /** 基线以下的高度（正值，向下为正）
+    */
+    float fDescent = 0;
+
+    /** 行间距（相邻两行之间的推荐间距）
+    */
+    float fLeading = 0;
+
+    /** 行高（= fDescent - fAscent + fLeading）
+    */
+    float fLineHeight = 0;
+};
+
 /** 字体接口
 */
 class DUILIB_API IFont: public virtual SupportWeakCallback
@@ -58,6 +79,24 @@ public:
     * @return 返回字体签名；如果不支持该操作，则返回0
     */
     virtual uint64_t GetFontKey() const { return 0; }
+
+    /** 获取字体度量信息（不依赖Render/Canvas）
+    * @param [out] metrics 返回字体度量信息
+    * @return 成功返回true；如果不支持该操作，返回false（此时metrics内容不变）
+    */
+    virtual bool GetFontMetrics(FontMetrics& metrics) const { return false; }
+
+    /** 评估文本的绘制宽度（不依赖Render/Canvas；支持字体回退）
+    * @param [in] text 文本内容
+    * @return 返回文本的绘制宽度；如果不支持该操作，返回0
+    */
+    virtual float MeasureTextWidth(const DString& text) const { return 0.0f; }
+
+    /** 获取创建该字体时使用的字体信息
+    * @param [out] fontInfo 返回字体信息
+    * @return 成功返回true；如果不支持该操作，返回false（此时fontInfo内容不变）
+    */
+    virtual bool GetFontInfo(UiFont& fontInfo) const { return false; }
 };
 
 /** 字体回退管理器（当支持的字体无法显示字符时，会查询回退字体管理器，以正确显示文字）
@@ -171,9 +210,30 @@ public:
     */
     virtual UiSize GetSize() const = 0;
 
+    /** 判断位图是否有效（已成功初始化）
+    */
+    virtual bool IsValid() const = 0;
+
+    /** 获取每行像素数据的字节数（通常为 GetWidth() * 4）
+    */
+    virtual uint32_t GetRowBytes() const = 0;
+
+    /** 获取位图的Alpha类型
+    */
+    virtual AlphaType GetAlphaType() const = 0;
+
+    /** 获取初始化位图时使用的图片缩放比例（1.0f 表示原值）
+    */
+    virtual float GetImageSizeScale() const = 0;
+
     /** 锁定位图数据，数据长度 = GetWidth() * GetHeight() * 4
     */
     virtual void* LockPixelBits() = 0;
+
+    /** 只读锁定位图数据，数据长度 = GetWidth() * GetHeight() * 4
+    * @return 返回只读的位图数据；位图无效时返回nullptr
+    */
+    virtual const void* LockPixelBits() const = 0;
 
     /** 释放位图数据
     */
@@ -275,6 +335,33 @@ public:
     */
     virtual DashStyle GetDashStyle() const = 0;
 
+    /** 设置自定义虚线样式（成对的"实线长度、空白长度"，像素值；按DPI缩放后使用）
+    *   设置后覆盖 SetDashStyle 的效果；传入的数组会被复制，调用方无需保持数据有效
+    * @param [in] intervals 虚实线段长度数组，元素个数必须为偶数
+    * @param [in] count 数组元素个数；传0表示清除自定义样式（恢复为 GetDashStyle 的效果）
+    */
+    virtual void SetDashPattern(const float* intervals, int32_t count) = 0;
+
+    /** 是否设置了自定义虚线样式
+    */
+    virtual bool HasDashPattern() const = 0;
+
+    /** 设置是否启用抗锯齿（默认启用）
+    */
+    virtual void SetAntiAlias(bool bAntiAlias) = 0;
+
+    /** 是否启用抗锯齿
+    */
+    virtual bool IsAntiAlias() const = 0;
+
+    /** 设置联接处的斜接限制（仅对 kMiter_Join 生效，取值需大于等于1，默认4）
+    */
+    virtual void SetMiterLimit(float fMiterLimit) = 0;
+
+    /** 获取联接处的斜接限制
+    */
+    virtual float GetMiterLimit() const = 0;
+
     /** 复制Pen对象
     */
     virtual std::unique_ptr<IPen> Clone() const = 0;
@@ -282,12 +369,45 @@ public:
 
 /** 画刷接口
 */
-//目前只支持一个SolidBrush
 class DUILIB_API IBrush : public virtual SupportWeakCallback
 {
 public:
+    /** 画刷类型
+    */
+    enum class BrushType
+    {
+        kSolid = 0,         //纯色画刷（默认）
+        kLinearGradient,    //线性渐变画刷
+        kRadialGradient     //径向渐变画刷
+    };
+
     virtual std::unique_ptr<IBrush> Clone() const = 0;
+
+    /** 获取画刷类型
+    */
+    virtual BrushType GetBrushType() const = 0;
+
+    /** 获取画刷颜色（渐变画刷时为起始颜色）
+    */
     virtual UiColor GetColor() const = 0;
+
+    /** 设置画刷为纯色画刷
+    */
+    virtual void SetSolid(UiColor color) = 0;
+
+    /** 设置画刷为线性渐变：从起始颜色（GetColor）渐变到结束颜色
+    * @param [in] endColor 结束颜色
+    * @param [in] startPt 渐变起点（画布坐标）
+    * @param [in] endPt 渐变终点（画布坐标）
+    */
+    virtual void SetLinearGradient(UiColor endColor, const UiPointF& startPt, const UiPointF& endPt) = 0;
+
+    /** 设置画刷为径向渐变：从起始颜色（GetColor）渐变到结束颜色
+    * @param [in] endColor 结束颜色
+    * @param [in] center 渐变中心点（画布坐标）
+    * @param [in] radius 渐变半径
+    */
+    virtual void SetRadialGradient(UiColor endColor, const UiPointF& center, float radius) = 0;
 };
 
 /** 路径接口
@@ -474,6 +594,30 @@ public:
     * @param [in] py Y轴方向的中心点
     */
     virtual void Skew(float kx, float ky, float px, float py) = 0;
+
+    /** 重置为单位矩阵（取消所有变换）
+    */
+    virtual void Reset() = 0;
+
+    /** 在当前变换的基础上叠加另一个矩阵的变换（先执行当前变换，再执行pMatrix）
+    * @param [in] pMatrix 需要叠加的矩阵，不可为nullptr
+    */
+    virtual void Concat(const IMatrix* pMatrix) = 0;
+
+    /** 求逆矩阵（就地取逆）
+    * @return 成功返回true；矩阵不可逆时返回false，此时矩阵内容不变
+    */
+    virtual bool Invert() = 0;
+
+    /** 判断是否为单位矩阵
+    */
+    virtual bool IsIdentity() const = 0;
+
+    /** 对点坐标应用当前变换
+    * @param [in] pt 原始点坐标
+    * @return 返回变换后的点坐标
+    */
+    virtual UiPointF MapPoint(const UiPointF& pt) const = 0;
 };
 
 /** 渲染接口中使用的DPI转换辅助接口
@@ -905,6 +1049,18 @@ struct ImageDrawParam
     UiRect rcPaint;
 };
 
+/** 混合模式（用于整组绘制时的合成效果）
+*/
+enum class BlendMode
+{
+    kSrcOver = 0,   //源覆盖目标（默认）
+    kClear,         //清除目标区域
+    kMultiply,      //正片叠底
+    kScreen,        //滤色
+    kXor,           //异或
+    kPlus           //相加（提亮）
+};
+
 /** 渲染接口
 */
 class IRenderFactory;
@@ -944,6 +1100,25 @@ public:
      * @return 返回当前的视区原点坐标(x,y)
      */
     virtual UiPoint GetWindowOrg() const = 0;
+
+    /** 设置画布的变换矩阵（替换当前变换）
+    * @param [in] pMatrix 变换矩阵；传nullptr表示恢复为单位矩阵
+    */
+    virtual void SetTransform(const IMatrix* pMatrix) = 0;
+
+    /** 在当前画布变换的基础上叠加一个变换矩阵（先执行当前变换，再执行pMatrix）
+    * @param [in] pMatrix 变换矩阵；传nullptr时不做任何操作
+    */
+    virtual void ConcatMatrix(const IMatrix* pMatrix) = 0;
+
+    /** 设置后续绘制使用的混合模式（默认 kSrcOver）
+    * @param [in] blendMode 混合模式
+    */
+    virtual void SetBlendMode(BlendMode blendMode) = 0;
+
+    /** 获取当前绘制使用的混合模式
+    */
+    virtual BlendMode GetBlendMode() const = 0;
     
     /** 保存指定设备上下文的当前状态
     * @param [out] 返回保存的设备上下文标志，在RestoreClip的时候，作为参数传入
@@ -977,6 +1152,17 @@ public:
     * @return 返回当前设备上下文标志，在调用RestoreClip的时候需要传回该返回值，错误时返回-1
     */
     virtual int32_t ClipPath(const IPath* path, bool bIntersect = true) = 0;
+
+    /** 保存当前设备上下文状态，并启用离屏图层（用于整组淡出/离屏合成）
+    *   图层内容绘制完成后，需调用 RestoreLayer 把图层合成到画布（按 alpha 整体淡化）
+    * @param [in] rc 图层的矩形区域，传 UiRect() 表示整个画布
+    * @param [in] alpha 图层合成时的整体透明度（0 - 255）
+    */
+    virtual void SaveLayer(const UiRect& rc, uint8_t alpha = 255) = 0;
+
+    /** 结束离屏图层，并把图层内容合成到画布（与 SaveLayer 配对使用）
+    */
+    virtual void RestoreLayer() = 0;
 
     /** 函数执行与从指定源设备上下文到目标设备上下文中的像素矩形对应的颜色数据的位块传输
     * @param [in] x 目标矩形左上角的 x 坐标
@@ -1134,9 +1320,20 @@ public:
     * @param [in] gradientColor 可选参数，渐变颜色
     * @param [in] gradientRect 可选参数，渐变颜色的矩形区域设置，仅当gradientColor不为nullptr时有效
     */
-    virtual void DrawArc(const UiRect& rc, float startAngle, float sweepAngle, bool useCenter, 
+    virtual void DrawArc(const UiRectF& rc, float startAngle, float sweepAngle, bool useCenter, 
                          const IPen* pen, 
-                         const UiColor* gradientColor = nullptr, const UiRect* gradientRect = nullptr) = 0;
+                         const UiColor* gradientColor = nullptr, const UiRectF* gradientRect = nullptr) = 0;
+
+    /** 填充圆弧（椭圆的一部分）
+    * @param [in] rc 包含圆弧的椭圆的矩形边界区域
+    * @param [in] startAngle x轴与弧起点之间的角度
+    * @param [in] sweepAngle 圆弧起点和终点之间的角度，正数是顺时针方向，负数是逆时针方向
+    * @param [in] useCenter 如果为true，则填充扇形（包含椭圆的中心点）；否则填充弦与弧围成的区域
+    * @param [in] dwColor 填充颜色值
+    * @param [in] uFade 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
+    */
+    virtual void FillArc(const UiRectF& rc, float startAngle, float sweepAngle, bool useCenter,
+                         UiColor dwColor, uint8_t uFade = 255) = 0;
 
     /** 绘制圆形
     * @param [in] centerPt 圆心坐标点
@@ -1160,17 +1357,6 @@ public:
     * @param [in] uFade 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
     */
     virtual void FillCircle(const UiPointF& centerPt, float radius, UiColor dwColor, uint8_t uFade = 255) = 0;
-
-    /** 填充圆弧（椭圆的一部分）
-    * @param [in] rc 包含圆弧的椭圆的矩形边界区域
-    * @param [in] startAngle x轴与弧起点之间的角度
-    * @param [in] sweepAngle 圆弧起点和终点之间的角度，正数是顺时针方向，负数是逆时针方向
-    * @param [in] useCenter 如果为true，则填充扇形（包含椭圆的中心点）；否则填充弦与弧围成的区域
-    * @param [in] dwColor 填充颜色值
-    * @param [in] uFade 透明度（0 - 255），与颜色值（或图像）自身的Alpha相乘
-    */
-    virtual void FillArc(const UiRect& rc, float startAngle, float sweepAngle, bool useCenter,
-                         UiColor dwColor, uint8_t uFade = 255) = 0;
 
     /** 绘制椭圆
     * @param [in] rc 椭圆的矩形边界区域
@@ -1242,6 +1428,14 @@ public:
     * @return 返回文本字符串的宽度和高度，以矩形表示结果
     */
     virtual UiRect MeasureString(const DString& strText, const MeasureStringParam& measureParam) = 0;
+
+    /** 计算单行文本的宽度和高度（默认格式：单行、不换行、不限制宽高）
+    * @param [in] strText 文字内容
+    * @param [in] pFont 文字的字体数据接口，不可为nullptr
+    * @param [in] uFormat 文字的格式，参见 enum DrawStringFormat 类型定义
+    * @return 返回文本字符串的宽度和高度，以矩形表示结果
+    */
+    virtual UiRect MeasureString(const DString& strText, IFont* pFont, uint32_t uFormat = 0) = 0;
 
     /** 绘制文字
     * @param [in] strText 文字内容
@@ -1369,6 +1563,12 @@ public:
     *@return 返回位图接口，返回后由调用方管理资源（包括释放资源等）
     */
     virtual IBitmap* MakeImageSnapshot() = 0;
+
+    /** 分离指定区域的位图（用于局部缓存）
+    * @param [in] rc 需要分离的矩形区域（画布坐标），超出画布的部分会被裁剪
+    * @return 返回位图接口，返回后由调用方管理资源；区域无效时返回nullptr
+    */
+    virtual IBitmap* MakeImageSnapshot(const UiRect& rc) = 0;
 
     /** 将矩形区域内的图像Alpha设定为指定值alpha(0 - 255)
     * @param [in] rcDirty 矩形区域
@@ -1528,6 +1728,14 @@ public:
     /** 创建一个Bitmap对象
     */
     virtual IBitmap* CreateBitmap() = 0;
+
+    /** 创建一个指定大小与Alpha类型的位图对象（像素数据未初始化）
+    * @param [in] nWidth 位图宽度（像素）
+    * @param [in] nHeight 位图高度（像素）
+    * @param [in] alphaType 位图的Alpha类型
+    * @return 返回位图接口，返回后由调用方管理资源；创建或初始化失败时返回nullptr
+    */
+    virtual IBitmap* CreateBitmap(uint32_t nWidth, uint32_t nHeight, AlphaType alphaType = AlphaType::kPremul) = 0;
 
     /** 创建一个Render对象
     * @param [in] spRenderDpi 关联的DPI转换接口

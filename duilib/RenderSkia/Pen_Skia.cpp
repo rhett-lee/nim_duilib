@@ -1,5 +1,7 @@
 #include "Pen_Skia.h"
 
+#include <algorithm>
+
 namespace ui {
 
 Pen_Skia::Pen_Skia(UiColor color, float fWidth):
@@ -9,7 +11,9 @@ Pen_Skia::Pen_Skia(UiColor color, float fWidth):
     m_dashCap(kButt_Cap),
     m_endCap(kButt_Cap),
     m_lineJoin(kMiter_Join),
-    m_dashStyle(kDashStyleSolid)
+    m_dashStyle(kDashStyleSolid),
+    m_bAntiAlias(true),
+    m_fMiterLimit(4.0f)
 {
 }
 
@@ -22,6 +26,9 @@ Pen_Skia::Pen_Skia(const Pen_Skia& r)
     m_endCap = r.m_endCap;
     m_lineJoin = r.m_lineJoin;
     m_dashStyle = r.m_dashStyle;
+    m_dashPattern = r.m_dashPattern;
+    m_bAntiAlias = r.m_bAntiAlias;
+    m_fMiterLimit = r.m_fMiterLimit;
 }
 
 std::unique_ptr<IPen> Pen_Skia::Clone() const
@@ -92,11 +99,54 @@ IPen::LineJoin Pen_Skia::GetLineJoin() const
 void Pen_Skia::SetDashStyle(DashStyle style)
 {
     m_dashStyle = style;
+    //切换预设样式时，清除自定义虚线样式（以最后一次设置为准）
+    m_dashPattern.clear();
 }
 
 IPen::DashStyle Pen_Skia::GetDashStyle() const
 {
     return m_dashStyle;
+}
+
+void Pen_Skia::SetDashPattern(const float* intervals, int32_t count)
+{
+    m_dashPattern.clear();
+    if ((intervals == nullptr) || (count <= 0) || ((count % 2) != 0)) {
+        //传0或非法参数表示清除自定义虚线样式
+        return;
+    }
+    m_dashPattern.assign(intervals, intervals + count);
+}
+
+bool Pen_Skia::HasDashPattern() const
+{
+    return !m_dashPattern.empty();
+}
+
+void Pen_Skia::SetAntiAlias(bool bAntiAlias)
+{
+    m_bAntiAlias = bAntiAlias;
+}
+
+bool Pen_Skia::IsAntiAlias() const
+{
+    return m_bAntiAlias;
+}
+
+void Pen_Skia::SetMiterLimit(float fMiterLimit)
+{
+    //斜接限制的合法取值为大于等于1
+    m_fMiterLimit = std::max(fMiterLimit, 1.0f);
+}
+
+float Pen_Skia::GetMiterLimit() const
+{
+    return m_fMiterLimit;
+}
+
+const std::vector<float>& Pen_Skia::GetDashPattern() const
+{
+    return m_dashPattern;
 }
 
 } // namespace ui

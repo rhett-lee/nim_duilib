@@ -249,28 +249,30 @@ void CircleProgress::PaintStateImages(IRender* pRender)
     outer.Inflate(-1 * (int32_t)(m_fCircleWidth / 2), -1 * (int32_t)(m_fCircleWidth / 2));
     int inflateValue = Dpi().GetScaleInt(-1);
     outer.Inflate(inflateValue, inflateValue);
+    const UiRectF outerF = UiRectF::MakeFromRect(outer);
+    const UiRectF rcBorderF = UiRectF::MakeFromRect(rcBorder);
 
     //背景弧：起点与跨度均可配置（span<360 即为缺口环/仪表盘）
-    pRender->DrawArc(outer, fStartAngle, m_fSpanAngle, false, bgPen);
+    pRender->DrawArc(outerF, fStartAngle, m_fSpanAngle, false, bgPen);
 
     //前景弧：indeterminate 时为旋转的定长弧，否则按进度值扫过 span
     if (m_bIndeterminate) {
         //旋转弧：起点随旋转角前进，弧长可配置
         const float fRotateStart = m_fStartAngle + m_fIndeterminateAngle;
         if (m_dwGradientColor.GetARGB() == 0) {
-            pRender->DrawArc(outer, fRotateStart, m_fIndeterminateArc, false, fgPen);
+            pRender->DrawArc(outerF, fRotateStart, m_fIndeterminateArc, false, fgPen);
         }
         else {
-            pRender->DrawArc(outer, fRotateStart, m_fIndeterminateArc, false, fgPen, &m_dwGradientColor, &rcBorder);
+            pRender->DrawArc(outerF, fRotateStart, m_fIndeterminateArc, false, fgPen, &m_dwGradientColor, &rcBorderF);
         }
     }
     else if (m_dwGradientColor.GetARGB() == 0) {
         //不使用渐变色，直接用前景色铺满
-        pRender->DrawArc(outer, fStartAngle, fSweepAngle, false, fgPen);
+        pRender->DrawArc(outerF, fStartAngle, fSweepAngle, false, fgPen);
     }
     else {
         //使用渐变色
-        pRender->DrawArc(outer, fStartAngle, fSweepAngle, false, fgPen, &m_dwGradientColor, &rcBorder);
+        pRender->DrawArc(outerF, fStartAngle, fSweepAngle, false, fgPen, &m_dwGradientColor, &rcBorderF);
     }
 
     if (pIndicatorImageInfo != nullptr) {

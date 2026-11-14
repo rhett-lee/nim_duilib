@@ -31,6 +31,7 @@ public:
     *@return 返回位图接口，返回后由调用方管理资源（包括释放资源等）
     */
     virtual IBitmap* MakeImageSnapshot() override;
+    virtual IBitmap* MakeImageSnapshot(const UiRect& rc) override;
 
     virtual void ClearAlpha(const UiRect& rcDirty, uint8_t alpha = 0) override;
     virtual void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding, uint8_t alpha) override;
@@ -39,12 +40,18 @@ public:
     virtual UiPoint OffsetWindowOrg(UiPoint ptOffset) override;
     virtual UiPoint SetWindowOrg(UiPoint ptOffset) override;
     virtual UiPoint GetWindowOrg() const override;
+    virtual void SetTransform(const IMatrix* pMatrix) override;
+    virtual void ConcatMatrix(const IMatrix* pMatrix) override;
+    virtual void SetBlendMode(BlendMode blendMode) override;
+    virtual BlendMode GetBlendMode() const override;
 
     virtual void SaveClip(int32_t& nState) override;
     virtual void RestoreClip(int32_t nState) override;
     virtual int32_t ClipRect(const UiRect& rc, bool bIntersect = true) override;
     virtual int32_t ClipRoundRect(const UiRect& rc, float rx, float ry, bool bIntersect = true) override;
     virtual int32_t ClipPath(const IPath* path, bool bIntersect = true) override;
+    virtual void SaveLayer(const UiRect& rc, uint8_t alpha = 255) override;
+    virtual void RestoreLayer() override;
 
     virtual bool BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, const IRender* pSrcRender, int32_t xSrc, int32_t ySrc, RopMode rop) override;
     virtual bool StretchBlt(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest, const IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc, RopMode rop) override;
@@ -74,7 +81,10 @@ public:
     virtual void DrawCircle(const UiPointF& centerPt, float radius, IPen* pen) override;
     virtual void FillCircle(const UiPointF& centerPt, float radius, UiColor dwColor, uint8_t uFade = 255) override;
 
-    virtual void FillArc(const UiRect& rc, float startAngle, float sweepAngle, bool useCenter,
+    virtual void DrawArc(const UiRectF& rc, float startAngle, float sweepAngle, bool useCenter,
+                         const IPen* pen,
+                         const UiColor* gradientColor = nullptr, const UiRectF* gradientRect = nullptr) override;
+    virtual void FillArc(const UiRectF& rc, float startAngle, float sweepAngle, bool useCenter,
                          UiColor dwColor, uint8_t uFade = 255) override;
     virtual void DrawEllipse(const UiRectF& rc, UiColor penColor, float fWidth) override;
     virtual void DrawEllipse(const UiRectF& rc, const IPen* pen) override;
@@ -83,15 +93,12 @@ public:
     virtual void DrawPolygon(const UiPointF* points, int32_t count, const IPen* pen) override;
     virtual void FillPolygon(const UiPointF* points, int32_t count, UiColor dwColor, uint8_t uFade = 255) override;
 
-    virtual void DrawArc(const UiRect& rc, float startAngle, float sweepAngle, bool useCenter, 
-                         const IPen* pen, 
-                         const UiColor* gradientColor = nullptr, const UiRect* gradientRect = nullptr) override;
-
     virtual void DrawPath(const IPath* path, const IPen* pen) override;
     virtual void FillPath(const IPath* path, const IBrush* brush) override;
     virtual void FillPath(const IPath* path, const UiRectF& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) override;
 
     virtual UiRect MeasureString(const DString& strText, const MeasureStringParam& measureParam) override;
+    virtual UiRect MeasureString(const DString& strText, IFont* pFont, uint32_t uFormat = 0) override;
     virtual void DrawString(const DString& strText, const DrawStringParam& drawParam) override;
 
     virtual UiRect MeasureRichText(const UiRect& textRect,
@@ -228,6 +235,10 @@ private:
     /** 图片缩放时的采样质量
     */
     ImageSamplingQuality m_imageSamplingQuality;
+
+    /** 当前的混合模式
+    */
+    BlendMode m_blendMode;
 };
 
 } // namespace ui
