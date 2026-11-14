@@ -134,6 +134,13 @@ uint8_t WindowBase::GetLayeredWindowAlpha() const
 
 bool WindowBase::SetLayeredWindowOpacity(int32_t nAlpha)
 {
+    if ((nAlpha >= 0) && (nAlpha < 255)) {
+        //OpenGL渲染后端不支持层窗口：需要透明度的窗口无法使用GL绘制，直接忽略该设置
+        IRender* pRender = GetRender();
+        if ((pRender != nullptr) && (pRender->GetRenderBackendType() == RenderBackendType::kNativeGL_BackendType)) {
+            return false;
+        }
+    }
     if (m_pNativeWindow->SetLayeredWindowOpacity(nAlpha)) {
         OnWindowAlphaChanged();
         return true;
@@ -148,6 +155,13 @@ uint8_t WindowBase::GetLayeredWindowOpacity() const
 
 bool WindowBase::SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
 {
+    if (bIsLayeredWindow) {
+        //OpenGL渲染后端不支持层窗口：GL绘制的内容无法通过UpdateLayeredWindow提交
+        IRender* pRender = GetRender();
+        if ((pRender != nullptr) && (pRender->GetRenderBackendType() == RenderBackendType::kNativeGL_BackendType)) {
+            return false;
+        }
+    }
     bool bRet = m_pNativeWindow->SetLayeredWindow(bIsLayeredWindow, bRedraw);
     if (bRet) {
         //设置成功后才标记外部设置过该属性，避免设置失败（如Windows 7的子窗口不支持分层属性）后，

@@ -61,9 +61,25 @@ protected:
     bool SwapPaintBuffers(HDC hPaintDC, const UiRect& rcPaint, IRender* pRender, uint8_t nWindowAlpha) const;
 
 private:
+    /** 将本窗口的OpenGL上下文设置为当前上下文
+    * @return 成功返回true，失败返回false
+    * @note 同一线程内可能存在多个使用OpenGL绘制的窗口，而每个线程只能有一个当前上下文，
+    *       所有访问OpenGL的入口（绘制、读取后台缓冲、销毁等）都必须先调用该函数
+    */
+    bool MakeCurrent();
+
+    /** 释放窗口的DC
+    */
+    void ReleaseWindowDC();
+
+private:
     /** 窗口句柄
     */
     HWND m_hWnd;
+
+    /** 创建OpenGL上下文时使用的窗口DC，与上下文生命周期一致
+    */
+    HDC m_hDC;
 
     /** OpenGL的渲染上下文
     */

@@ -23,6 +23,7 @@ namespace ui {
 SkGLWindowContext_Windows::SkGLWindowContext_Windows(HWND hWnd, std::unique_ptr<const skwindow::DisplayParams> params):
     skwindow::internal::GLWindowContext(std::move(params)),
     m_hWnd(hWnd),
+    m_hDC(nullptr),
     m_fHGLRC(nullptr)
 {
     ASSERT(::IsWindow(hWnd));
@@ -59,20 +60,50 @@ void SkGLWindowContext_Windows::resize(int nWidth, int nHeight)
 
 void SkGLWindowContext_Windows::onSwapBuffers()
 {
-    HDC dc = ::GetDC(m_hWnd);
-    ::SwapBuffers(dc);
-    ::ReleaseDC(m_hWnd, dc);
+    if (m_hDC == nullptr) {
+        return;
+    }
+    ::SwapBuffers(m_hDC);
+}
+
+bool SkGLWindowContext_Windows::MakeCurrent()
+{
+    if (m_fHGLRC == nullptr) {
+        return false;
+    }
+    //如果当前上下文已经是本窗口的上下文，则无需重复设置（该检查开销极小，可避免每帧多次调用wglMakeCurrent）
+    if (::wglGetCurrentContext() == m_fHGLRC) {
+        return true;
+    }
+    if (m_hDC == nullptr) {
+        ASSERT(::IsWindow(m_hWnd));
+        if (!::IsWindow(m_hWnd)) {
+            return false;
+        }
+        m_hDC = ::GetDC(m_hWnd);
+        if (m_hDC == nullptr) {
+            return false;
+        }
+    }
+    return ::wglMakeCurrent(m_hDC, m_fHGLRC) != FALSE;
+}
+
+void SkGLWindowContext_Windows::ReleaseWindowDC()
+{
+    if (m_hDC != nullptr) {
+        if (::IsWindow(m_hWnd)) {
+            ::ReleaseDC(m_hWnd, m_hDC);
+        }
+        m_hDC = nullptr;
+    }
 }
 
 sk_sp<SkSurface> SkGLWindowContext_Windows::getBackbufferSurface()
 {
-#ifdef _DEBUG
-    ASSERT(m_fHGLRC != nullptr);
-    //每个线程内，只能有一个当前的OpenGL Context，所以一个线程内，只能有一个窗口使用OpenGL绘制，其他线程必须用CPU绘制
-    HGLRC hHGLRC = wglGetCurrentContext();
-    ASSERT(m_fHGLRC == hHGLRC);
-#endif
-
+    //同一线程内可能存在多个使用OpenGL绘制的窗口，读取后台缓冲前必须确保本窗口的上下文是当前上下文
+    if (!MakeCurrent()) {
+        return nullptr;
+    }
     return BaseClass::getBackbufferSurface();
 }
 
@@ -92,80 +123,108 @@ sk_sp<const GrGLInterface> SkGLWindowContext_Windows::onInitializeContext()
         destroyContext();
     }
 
-    HDC dc = ::GetDC(m_hWnd);
-    m_fHGLRC = SkCreateWGLContext(dc, pDisplayParams->msaaSampleCount(), false /* deepColor */,
-                                  kGLPreferCompatibilityProfile_SkWGLContextRequest);
-    if (nullptr == m_fHGLRC) {
-        ::ReleaseDC(m_hWnd, dc);
+    if (m_hDC == nullptr) {
+        m_hDC = ::GetDC(m_hWnd);
+    }
+    if (m_hDC == nullptr) {
         return nullptr;
     }
 
+    m_fHGLRC = SkCreateWGLContext(m_hDC, pDisplayParams->msaaSampleCount(), false /* deepColor */,
+                                  kGLPreferCompatibilityProfile_SkWGLContextRequest);
+    if (nullptr == m_fHGLRC) {
+        ReleaseWindowDC();
+        return nullptr;
+    }
+
+    //创建成功后必须立即设置为当前上下文：后续的Vsync设置和状态初始化都依赖当前上下文
+    if (!::wglMakeCurrent(m_hDC, m_fHGLRC)) {
+        //上下文不可用时，必须清理已创建的上下文并返回失败，由上层回退到CPU绘制
+        ::wglDeleteContext(m_fHGLRC);
+        m_fHGLRC = nullptr;
+        ReleaseWindowDC();
+        return nullptr;
+    }
+
+    //Vsync必须在上下文成为当前上下文后设置，否则设置无效
     SkWGLExtensions extensions;
-    if (extensions.hasExtension(dc, "WGL_EXT_swap_control")) {
+    if (extensions.hasExtension(m_hDC, "WGL_EXT_swap_control")) {
         extensions.swapInterval(pDisplayParams->disableVsync() ? 0 : 1);
     }
 
-    // Look to see if RenderDoc is attached. If so, re-create the context with a core profile
-    if (wglMakeCurrent(dc, m_fHGLRC)) {
-        auto interface = GrGLMakeNativeInterface();
-        bool renderDocAttached = interface->hasExtension("GL_EXT_debug_tool");
-        interface.reset(nullptr);
+    //检测是否附加了RenderDoc，如果附加了，则使用Core Profile重新创建上下文
+    {
+        sk_sp<const GrGLInterface> glInterface = GrGLMakeNativeInterface();
+        const bool renderDocAttached = (glInterface != nullptr) && glInterface->hasExtension("GL_EXT_debug_tool");
+        glInterface.reset();
         if (renderDocAttached) {
-            wglDeleteContext(m_fHGLRC);
-            m_fHGLRC = SkCreateWGLContext(dc, pDisplayParams->msaaSampleCount(), false /* deepColor */,
+            //删除当前上下文前，必须先取消当前上下文，否则删除会失败
+            ::wglMakeCurrent(nullptr, nullptr);
+            ::wglDeleteContext(m_fHGLRC);
+            m_fHGLRC = SkCreateWGLContext(m_hDC, pDisplayParams->msaaSampleCount(), false /* deepColor */,
                                           kGLPreferCoreProfile_SkWGLContextRequest);
             if (nullptr == m_fHGLRC) {
-                ::ReleaseDC(m_hWnd, dc);
+                ReleaseWindowDC();
                 return nullptr;
+            }
+            if (!::wglMakeCurrent(m_hDC, m_fHGLRC)) {
+                ::wglDeleteContext(m_fHGLRC);
+                m_fHGLRC = nullptr;
+                ReleaseWindowDC();
+                return nullptr;
+            }
+            //重新创建上下文后，需要重新设置Vsync
+            SkWGLExtensions coreExtensions;
+            if (coreExtensions.hasExtension(m_hDC, "WGL_EXT_swap_control")) {
+                coreExtensions.swapInterval(pDisplayParams->disableVsync() ? 0 : 1);
             }
         }
     }
 
-    if (wglMakeCurrent(dc, m_fHGLRC)) {
-        glClearStencil(0);
-        glClearColor(0, 0, 0, 0);
-        glStencilMask(0xffffffff);
-        glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    glClearStencil(0);
+    glClearColor(0, 0, 0, 0);
+    glStencilMask(0xffffffff);
+    glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-        // use DescribePixelFormat to get the stencil and color bit depth.
-        int pixelFormat = ::GetPixelFormat(dc);
-        PIXELFORMATDESCRIPTOR pfd = {0, };
-        DescribePixelFormat(dc, pixelFormat, sizeof(pfd), &pfd);
-        fStencilBits = pfd.cStencilBits;
+    // use DescribePixelFormat to get the stencil and color bit depth.
+    int pixelFormat = ::GetPixelFormat(m_hDC);
+    PIXELFORMATDESCRIPTOR pfd = {0, };
+    DescribePixelFormat(m_hDC, pixelFormat, sizeof(pfd), &pfd);
+    fStencilBits = pfd.cStencilBits;
 
-        // Get sample count if the MSAA WGL extension is present
-        if (extensions.hasExtension(dc, "WGL_ARB_multisample")) {
-            static const int kSampleCountAttr = SK_WGL_SAMPLES;
-            extensions.getPixelFormatAttribiv(dc,
-                pixelFormat,
-                0,
-                1,
-                &kSampleCountAttr,
-                &fSampleCount);
-            fSampleCount = std::max(fSampleCount, 1);
-        }
-        else {
-            fSampleCount = 1;
-        }
-
-        RECT rect;
-        ::GetClientRect(m_hWnd, &rect);
-        fWidth = rect.right - rect.left;
-        fHeight = rect.bottom - rect.top;
-        glViewport(0, 0, fWidth, fHeight);
+    // Get sample count if the MSAA WGL extension is present
+    if (extensions.hasExtension(m_hDC, "WGL_ARB_multisample")) {
+        static const int kSampleCountAttr = SK_WGL_SAMPLES;
+        extensions.getPixelFormatAttribiv(m_hDC,
+            pixelFormat,
+            0,
+            1,
+            &kSampleCountAttr,
+            &fSampleCount);
+        fSampleCount = std::max(fSampleCount, 1);
     }
-    ::ReleaseDC(m_hWnd, dc);
+    else {
+        fSampleCount = 1;
+    }
+
+    RECT rect;
+    ::GetClientRect(m_hWnd, &rect);
+    fWidth = rect.right - rect.left;
+    fHeight = rect.bottom - rect.top;
+    glViewport(0, 0, fWidth, fHeight);
     return GrGLMakeNativeInterface();
 }
 
 void SkGLWindowContext_Windows::onDestroyContext()
 {
     if (m_fHGLRC != nullptr) {
-        ASSERT(m_fHGLRC == wglGetCurrentContext());
-        wglMakeCurrent(nullptr, nullptr);
-        wglDeleteContext(m_fHGLRC);
+        //不再依赖"本上下文恰好是当前上下文"这一前提，先切换为本窗口的上下文，再取消当前上下文并删除
+        MakeCurrent();
+        ::wglMakeCurrent(nullptr, nullptr);
+        ::wglDeleteContext(m_fHGLRC);
         m_fHGLRC = nullptr;
     }
+    ReleaseWindowDC();
 }
 
 bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* /*pRender*/, IRenderPaint* pRenderPaint)
@@ -177,6 +236,11 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* /*pRender*/, IRende
     }
     ASSERT(pRenderPaint != nullptr);
     if (pRenderPaint == nullptr) {
+        return false;
+    }
+
+    //同一线程内可能存在多个使用OpenGL绘制的窗口，绘制前必须切换到本窗口的上下文
+    if (!MakeCurrent()) {
         return false;
     }
 

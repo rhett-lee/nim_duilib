@@ -705,12 +705,12 @@ bool WindowBuilder::ParseWindowCreateAttributes(Window* pWindow, WindowCreateAtt
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     if (backendType == RenderBackendType::kNativeGL_BackendType) {
-        //使用OpenGL时，不能使用层窗口
-        if (!createAttributes.m_bLayeredWindowOpacityDefined &&
-            createAttributes.m_bIsLayeredWindowDefined && createAttributes.m_bIsLayeredWindow) {
-            ASSERT(!createAttributes.m_bIsLayeredWindow);
+        //使用OpenGL时，不能使用层窗口：GL绘制的内容无法通过UpdateLayeredWindow提交
+        if (!createAttributes.m_bLayeredWindowOpacityDefined) {
             createAttributes.m_bIsLayeredWindow = false;
         }
+        //如果XML显式设置了opacity(<255)，则窗口必须以层窗口方式工作，而GL后端无法满足该要求，
+        //窗口创建时会自动降级为CPU绘制（见ParseWindowAttributes的实现）
     }
 #else
     UNUSED_VARIABLE(backendType);
@@ -799,6 +799,16 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
     DString strName;
     DString strValue;
 
+    //检查XML中是否显式设置了不透明度(opacity)：该属性要求窗口必须是层窗口
+    bool bNeedLayeredWindowOpacity = false;
+    for (pugi::xml_attribute attr : root.attributes()) {
+        if (StringUtil::IsEqualNoCase(attr.name(), _T("opacity"))) {
+            const int32_t nWindowOpacity = StringUtil::StringToInt32(attr.value());
+            bNeedLayeredWindowOpacity = (nWindowOpacity >= 0) && (nWindowOpacity < 255);
+            break;
+        }
+    }
+
     bool bInitRenderBackendType = false;
     //首先设置"render_backend_type"属性
     for (pugi::xml_attribute attr : root.attributes()) {
@@ -815,6 +825,11 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
             }
             else {
                 ASSERT(0);
+            }
+            if ((backendType == RenderBackendType::kNativeGL_BackendType) && bNeedLayeredWindowOpacity) {
+                //GL不支持层窗口：需要透明度的窗口无法使用GL绘制，自动降级为CPU绘制，避免窗口黑屏或不可见
+                LogUtil::OutputLine(_T("render_backend_type=\"GL\" does not support layered window (opacity < 255), use CPU rendering instead"));
+                backendType = RenderBackendType::kRaster_BackendType;
             }
             pWindow->SetRenderBackendType(backendType);
             bInitRenderBackendType = true;
@@ -1053,10 +1068,13 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     if (pWindow->GetRenderBackendType() == RenderBackendType::kNativeGL_BackendType) {
-        //使用OpenGL时，不能使用层窗口
-        if (!bLayeredWindowOpacityDefined || (pWindow->GetLayeredWindowOpacity() == 255)) {
-            pWindow->SetLayeredWindow(false, false);
+        //使用OpenGL时，不能使用层窗口：GL绘制的内容无法通过UpdateLayeredWindow提交。
+        //需要层窗口的配置（opacity < 255）已在设置渲染后端时降级为CPU绘制，这里仅作兜底告警
+        if (bLayeredWindowOpacityDefined && (pWindow->GetLayeredWindowOpacity() != 255)) {
+            LogUtil::OutputLine(_T("OpenGL backend does not support layered window, fall back to CPU rendering is expected"));
         }
+        //GL窗口一律关闭层窗口，避免阴影等逻辑再次开启层窗口
+        pWindow->SetLayeredWindow(false, false);
         if (pWindow->IsShadowAttached() && !pWindow->IsUseSystemCaption()) {
             //如果使用了阴影，则自动切换为使用系统标题栏，避免出现显示异常
             pWindow->SetUseSystemCaption(true);

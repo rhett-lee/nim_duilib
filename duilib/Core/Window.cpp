@@ -946,6 +946,13 @@ UiSize Window::GetWindowRgnRoundCorner() const
 void Window::UpdateLayeredWindowStyleEx(bool bRedraw)
 {
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    if (GetRenderBackendType() == RenderBackendType::kNativeGL_BackendType) {
+        //OpenGL渲染后端不支持层窗口：如果当前已经是层窗口（例如切换阴影类型后），需要关闭层窗口
+        if (IsLayeredWindow()) {
+            OnRequestSetLayeredWindow(false, bRedraw);
+        }
+        return;
+    }
     bool bNeedLayeredWindow = false;
     if (IsShadowAttached()) {
         ShadowType shadowType = GetShadowType();

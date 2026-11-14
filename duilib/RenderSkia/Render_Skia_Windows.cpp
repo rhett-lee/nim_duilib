@@ -6,6 +6,8 @@
 #include "SkGLWindowContext_Windows.h"
 #include "WindowRgn_Windows.h"
 
+#include "duilib/Utils/LogUtil.h"
+
 #include "SkiaHeaderBegin.h"
 
 #include "include/core/SkCanvas.h"
@@ -65,7 +67,11 @@ Render_Skia_Windows::Render_Skia_Windows(HWND hWnd, RenderBackendType backendTyp
         //GPU绘制
         m_pWindowContext = MakeGLForWin(hWnd, std::make_unique<skwindow::DisplayParams>());
 #if !defined(_M_ARM64)
-        ASSERT(m_pWindowContext != nullptr);
+        if (m_pWindowContext == nullptr) {
+            //部分运行环境（远程桌面、虚拟机、缺少OpenGL驱动等）无法创建OpenGL上下文，
+            //属于正常场景：此处自动回退为CPU绘制，不做断言
+            LogUtil::OutputLine(_T("Render_Skia_Windows: OpenGL is not available, fall back to CPU rendering"));
+        }
 #endif
         if (m_pWindowContext != nullptr) {
             m_backendType = RenderBackendType::kNativeGL_BackendType;
