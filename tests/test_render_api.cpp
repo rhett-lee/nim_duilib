@@ -16,6 +16,7 @@
 //  8. RA-61 ~ RA-67  像素操作：ClearRect / ReadPixels / WritePixels（两个重载）/ IsEmpty
 //  9. RA-68 ~ RA-70  快照与克隆：MakeImageSnapshot(rc) 的非法参数、Clone 独立性
 // 10. RA-71 ~ RA-85  IPen / IBrush / IPath / IMatrix / IBitmap 属性与 Clone
+// 11. RA-86 ~ RA-89  视区原点平移下的 ReadPixels / WritePixels（ScrollBox 滚动容器场景）
 //
 // 全部使用离屏渲染，不创建窗口。
 
@@ -1091,6 +1092,49 @@ void TestPixels(ui::IRenderFactory* pRenderFactory)
         CHECK(ColorNear(nColor, kGreenColor));
         CHECK(ReadPixel(pRender.get(), 6, 6, nColor));
         CHECK(ColorNear(nColor, kWhiteColor));
+    }
+
+    //RA-86 ~ RA-89 视区原点平移下的像素读写（ScrollBox 滚动容器场景）
+    //ScrollBox 通过平移视区原点来滚动内容，此时控件的客户区坐标可以超出画布尺寸，
+    //但按视区原点换算后的设备坐标仍在画布内，读写必须成功。
+    {
+        const int32_t nReadWidth = 10;
+        const int32_t nReadHeight = 16;
+
+        //RA-86 ReadPixels：客户区矩形(0,30,10,46)在原点(0,20)下映射到设备坐标(0,10,10,26)
+        std::vector<uint32_t> readPixels((size_t)nReadWidth * nReadHeight, 0);
+        pRender->Clear(ui::UiColor(kWhiteColor));
+        pRender->SetWindowOrg(ui::UiPoint(0, 20));
+        pRender->ClearRect(ui::UiRect(0, 30, 10, 46), ui::UiColor(kRedColor));
+        CHECK(pRender->ReadPixels(ui::UiRect(0, 30, 10, 46), readPixels.data(), readPixels.size() * sizeof(uint32_t)));
+        CHECK(ColorNear(readPixels[0], kRedColor));
+        CHECK(ColorNear(readPixels[(size_t)(nReadHeight - 1) * nReadWidth + (nReadWidth - 1)], kRedColor));
+
+        //RA-87 客户区坐标超出画布，且换算到设备坐标后仍然越界：必须返回失败
+        CHECK(!pRender->ReadPixels(ui::UiRect(0, 10, 10, 26), readPixels.data(), readPixels.size() * sizeof(uint32_t)));
+        CHECK(!pRender->ReadPixels(ui::UiRect(0, 50, 10, 66), readPixels.data(), readPixels.size() * sizeof(uint32_t)));
+
+        //RA-88 WritePixels：客户区矩形超出画布，但设备坐标在画布内，写入成功
+        pRender->Clear(ui::UiColor(kWhiteColor));
+        std::vector<uint32_t> writePixels((size_t)nReadWidth * nReadHeight, kBlueColor);
+        CHECK(pRender->WritePixels(writePixels.data(), writePixels.size() * sizeof(uint32_t), ui::UiRect(0, 30, 10, 46)));
+        CHECK(ReadPixel(pRender.get(), 5, 35, nColor));     //设备坐标(5,15)
+        CHECK(ColorNear(nColor, kBlueColor));
+        CHECK(ReadPixel(pRender.get(), 5, 25, nColor));     //设备坐标(5,5)，未被写入
+        CHECK(ColorNear(nColor, kWhiteColor));
+
+        //RA-89 WritePixels(rc, rcPaint)：脏区域按视区原点换算后只写入脏区域
+        pRender->Clear(ui::UiColor(kWhiteColor));
+        std::vector<uint32_t> writePixels2((size_t)nReadWidth * nReadHeight, kGreenColor);
+        CHECK(pRender->WritePixels(writePixels2.data(), writePixels2.size() * sizeof(uint32_t),
+                                   ui::UiRect(0, 30, 10, 46), ui::UiRect(0, 30, 10, 36)));
+        CHECK(ReadPixel(pRender.get(), 5, 35, nColor));     //设备坐标(5,15)，在脏区域内
+        CHECK(ColorNear(nColor, kGreenColor));
+        CHECK(ReadPixel(pRender.get(), 5, 38, nColor));     //设备坐标(5,18)，在脏区域外
+        CHECK(ColorNear(nColor, kWhiteColor));
+
+        //恢复视区原点，避免影响后续用例
+        pRender->SetWindowOrg(ui::UiPoint(0, 0));
     }
 
     //RA-69 IsEmpty：未初始化的离屏对象为空，Resize 后不为空

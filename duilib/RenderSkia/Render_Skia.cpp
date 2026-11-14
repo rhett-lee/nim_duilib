@@ -2472,6 +2472,19 @@ void Render_Skia::DrawBoxShadow(const UiRect& rc,
     skCanvas->drawPath(shadowPath.snapshot(), paint);
 }
 
+/** 判断客户区坐标的矩形，按视区原点换算为设备坐标后，是否完全位于画布内
+*   注意：ScrollBox 等容器通过平移视区原点来实现滚动，此时客户区坐标可以超出画布尺寸，
+*        因此边界判断必须使用换算后的设备坐标，不能直接使用客户区坐标。
+*/
+static bool IsRectInsideCanvas(const UiRect& rc, const SkPoint& ptOrg, int32_t nCanvasWidth, int32_t nCanvasHeight)
+{
+    const int32_t nLeft = rc.left + (int32_t)ptOrg.fX;
+    const int32_t nTop = rc.top + (int32_t)ptOrg.fY;
+    const int32_t nRight = nLeft + rc.Width();
+    const int32_t nBottom = nTop + rc.Height();
+    return (nLeft >= 0) && (nTop >= 0) && (nRight <= nCanvasWidth) && (nBottom <= nCanvasHeight);
+}
+
 bool Render_Skia::ReadPixels(const UiRect& rc, void* dstPixels, size_t dstPixelsLen)
 {
     ASSERT(dstPixels != nullptr);
@@ -2483,7 +2496,8 @@ bool Render_Skia::ReadPixels(const UiRect& rc, void* dstPixels, size_t dstPixels
         return false;
     }
     //接口语义：读取区域必须完全位于画布内，否则无法保证目标缓冲区的数据完整，返回失败
-    if ((rc.left < 0) || (rc.top < 0) || (rc.right > GetWidth()) || (rc.bottom > GetHeight())) {
+    //rc 是客户区坐标，需要按视区原点换算到设备坐标后再判断
+    if (!IsRectInsideCanvas(rc, *m_pSkPointOrg, GetWidth(), GetHeight())) {
         return false;
     }
     //修复：宽高相乘可能溢出 int，统一提升为 size_t 计算
@@ -2518,7 +2532,8 @@ bool Render_Skia::WritePixels(const void* srcPixels, size_t srcPixelsLen, const 
         return false;
     }
     //接口语义：写入区域必须完全位于画布内，否则只写入部分数据会导致语义不明确，返回失败
-    if ((rc.left < 0) || (rc.top < 0) || (rc.right > GetWidth()) || (rc.bottom > GetHeight())) {
+    //rc 是客户区坐标，需要按视区原点换算到设备坐标后再判断
+    if (!IsRectInsideCanvas(rc, *m_pSkPointOrg, GetWidth(), GetHeight())) {
         return false;
     }
     //修复：宽高相乘可能溢出 int，统一提升为 size_t 计算
@@ -2558,7 +2573,8 @@ bool Render_Skia::WritePixels(const void* srcPixels, size_t srcPixelsLen, const 
         return false;
     }
     //接口语义：写入区域必须完全位于画布内（rcPaint只用于限定实际写入的脏区域）
-    if ((rc.left < 0) || (rc.top < 0) || (rc.right > GetWidth()) || (rc.bottom > GetHeight())) {
+    //rc 是客户区坐标，需要按视区原点换算到设备坐标后再判断
+    if (!IsRectInsideCanvas(rc, *m_pSkPointOrg, GetWidth(), GetHeight())) {
         return false;
     }
     //修复：宽高相乘可能溢出 int，统一提升为 size_t 计算
