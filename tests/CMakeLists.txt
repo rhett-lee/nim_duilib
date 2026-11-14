@@ -372,6 +372,40 @@ if(WIN32)
     add_test(NAME offscreen_render
              COMMAND test_offscreen_render
     )
+
+    # GL 多窗口冒烟测试：两个真实窗口的GL渲染、交替绘制、窗口缩放、
+    # 运行过程中切换后端（GL/CPU）、离屏GPU渲染复用窗口上下文。
+    # 运行环境不支持OpenGL时测试内部打印 SKIP，仍返回成功，可在CI自动执行。
+    add_executable(test_gl_window_smoke
+        test_gl_window_smoke.cpp
+    )
+    target_include_directories(test_gl_window_smoke PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../"
+    )
+    target_link_directories(test_gl_window_smoke PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_gl_window_smoke PRIVATE
+        duilib
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_gl_window_smoke PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_gl_window_smoke PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(test_gl_window_smoke PRIVATE UNICODE _UNICODE NOMINMAX WIN32_LEAN_AND_MEAN)
+    # 默认资源目录：源码树的 bin/resources
+    target_compile_definitions(test_gl_window_smoke PRIVATE
+        DUILIB_TEST_RESOURCE_DIR="${CMAKE_SOURCE_DIR}/bin/resources"
+    )
+    if(MSVC)
+        target_compile_options(test_gl_window_smoke PRIVATE /utf-8)
+    endif()
+    add_test(NAME gl_window_smoke
+             COMMAND test_gl_window_smoke
+    )
 endif()
 
 # controls 示例页面的静态校验（XML 节点名、属性、class/颜色引用、语言词条、

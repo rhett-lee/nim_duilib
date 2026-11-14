@@ -37,12 +37,11 @@ Render_Skia_Offscreen::Render_Skia_Offscreen(uint32_t nWidth, uint32_t nHeight,
                                              RenderBackendType backendType,
                                              AlphaType alphaType):
     m_backendType(backendType),
-    m_alphaType(alphaType),
-    m_pGrContext(nullptr)
+    m_alphaType(alphaType)
 {
     if (m_backendType != RenderBackendType::kRaster_BackendType) {
-        //GPU后端：获取当前线程共享的图形上下文
-        m_pGrContext = OffscreenGLContext::GetDirectContext();
+        //GPU后端：获取当前线程共享的图形上下文（增加引用计数，防止上下文提前释放）
+        m_pGrContext = sk_ref_sp(OffscreenGLContext::GetDirectContext());
     }
     if ((nWidth > 0) || (nHeight > 0)) {
         Resize((int32_t)nWidth, (int32_t)nHeight);
@@ -81,10 +80,10 @@ bool Render_Skia_Offscreen::CreateSurface(int32_t width, int32_t height)
     }
     else {
         //GPU后端：创建独立的RenderTarget画布（不使用共享上下文的后备缓冲）
-        if (m_pGrContext == nullptr) {
+        if (!m_pGrContext) {
             return false;
         }
-        m_skSurface = SkSurfaces::RenderTarget(m_pGrContext, skgpu::Budgeted::kNo, imageInfo);
+        m_skSurface = SkSurfaces::RenderTarget(m_pGrContext.get(), skgpu::Budgeted::kNo, imageInfo);
     }
     return m_skSurface != nullptr;
 }

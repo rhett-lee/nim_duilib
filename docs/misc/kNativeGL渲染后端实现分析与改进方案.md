@@ -1,6 +1,6 @@
 # kNativeGL 渲染后端实现分析与改进方案
 
-> 状态：分析报告（2026-11-14）；阶段 1（正确性）、阶段 2（性能）、阶段 3（体验）已实施（2026-11-14）
+> 状态：分析报告（2026-11-14）；阶段 1（正确性）、阶段 2（性能）、阶段 3（体验）、阶段 4（工程化）已实施（2026-11-14）
 > 适用范围：Windows 平台（`DUILIB_BUILD_FOR_WIN`，不含 `_M_ARM64`），Skia Ganesh + WGL
 > 关联文档：[IRender职责拆分与离屏渲染设计方案.md](IRender职责拆分与离屏渲染设计方案.md)、[IRender接口分析报告.md](IRender接口分析报告.md)
 
@@ -296,9 +296,9 @@ GL 默认帧缓冲在 `SwapBuffers` 后内容未定义，因此当前只能整�
 | 阶段 1（正确性）**已实施** | MakeCurrent 管理、初始化失败回退、Vsync 顺序、destroy 顺序、layered 保护 | 同线程多 GL 窗口交替绘制正常；关闭任意窗口无断言；无 OpenGL 环境自动回退 CPU；Vsync 生效 |
 | 阶段 2（性能）**已实施** | resize 不重建上下文、`kNo` 同步、启动单次初始化、Clone 修正 | 拖动缩放无闪烁、帧率稳定；启动只创建一次上下文；CPU 占用明显下降 |
 | 阶段 3（体验）**已实施** | 持久 FBO 局部刷新、离屏共享上下文、vsync/msaa 配置 | 4K 窗口小动画 CPU 占用明显下降；离屏 GL 在多窗口下可用 |
-| 阶段 4（工程化） | GL 多窗口冒烟测试、文档补充 | 回归测试可自动执行；文档说明 GL 后端限制与降级策略 |
+| 阶段 4（工程化）**已实施** | GL 多窗口冒烟测试、文档补充 | 回归测试可自动执行；文档说明 GL 后端限制与降级策略 |
 
-完成阶段 1、2 后，GL 后端才具备"多窗口、可缩放、不透明窗口"的日常可用性；阶段 3 才解决"大面积重绘带来的 CPU 占用"。
+完成阶段 1、2 后，GL 后端才具备"多窗口、可缩放、不透明窗口"的日常可用性；阶段 3 才解决"大面积重绘带来的 CPU 占用"；阶段 4 把上述能力固化为可自动执行的回归测试，并明确限制与降级策略。
 
 ## 八、关键代码位置索引
 
@@ -307,6 +307,8 @@ GL 默认帧缓冲在 `SwapBuffers` 后内容未定义，因此当前只能整�
 | `duilib/RenderSkia/SkGLWindowContext_Windows.h/.cpp` | WGL 上下文创建、绘制、交换、销毁 |
 | `duilib/RenderSkia/Render_Skia_Windows.h/.cpp` | 窗口 Render 实现、GL/CPU 选择与回退、Clone |
 | `duilib/RenderSkia/SkOffscreenGLContext.h/.cpp` | 每线程 GL 上下文复用与后台隐藏窗口上下文 |
+| `duilib/RenderSkia/Render_Skia_Offscreen.h/.cpp` | 离屏渲染（GPU 时共享窗口 `GrDirectContext`） |
+| `tests/test_gl_window_smoke.cpp` | GL 多窗口冒烟测试（GS-01 ~ GS-16） |
 | `duilib/RenderSkia/RenderFactory_Skia.cpp` | 窗口/离屏渲染创建入口 |
 | `duilib/Core/Window.cpp` | `PostInitWindow`、`SetRenderBackendType`、Render 尺寸同步 |
 | `duilib/Core/WindowBuilder.cpp` | `render_backend_type` 解析、layered 与 GL 的兼容处理 |
@@ -415,5 +417,56 @@ GL 默认帧缓冲在 `SwapBuffers` 后内容未定义，因此当前只能整�
 - 全局开关优先级高于窗口自身配置，`Window::SetRenderBackendType()` 入口处统一做覆盖；
 - 运行过程中切换到 GL 时，若窗口是层窗口则自动降级为 CPU 绘制（GL 不支持层窗口）；
 - 全局开关关闭后，已创建的窗口保持当前渲染方式，新建窗口恢复使用自身配置。
+
+## 十二、阶段 4 实施记录（2026-11-14）
+
+### 12.1 代码 Review 与修复
+
+对阶段 1~3 的全部改动做了一次完整审查，发现并修复以下问题：
+
+| 问题 | 位置 | 影响 | 修复方式 |
+| --- | --- | --- | --- |
+| 窗口后台缓冲包装了错误的 FBO | `SkGLWindowContext_Windows` | 持久化 RenderTarget 创建/使用后，OpenGL 当前绑定的 FBO 已不是窗口默认帧缓冲；基类 `getBackbufferSurface()` 按"当前绑定"包装，会把持久表面自身当成窗口后台缓冲，导致整窗黑屏/画面冻结（缩放后必现） | 新增 `GetWindowSurface()`：用 `GrBackendRenderTargets::MakeGL(fWidth, fHeight, fSampleCount, fStencilBits, {fFBOID = 0, GL_RGBA8})` + `SkSurfaces::WrapBackendRenderTarget()` 显式包装默认帧缓冲（FBO 0），缓存于 `m_windowSurface`，`resize()`/析构时释放；`PaintAndSwapBuffers()` 不再调用基类实现 |
+| 共享上下文在窗口销毁后被继续使用 | `SkGLWindowContext_Windows` 析构、`Render_Skia_Offscreen` | 离屏 GPU 渲染共享窗口的 `GrDirectContext`；窗口销毁后离屏对象仍持有该上下文，后续访问为未定义行为 | 窗口析构时在销毁 GL 上下文前调用 `abandonContext()`（离屏对象后续调用变为安全空操作）；`Render_Skia_Offscreen::m_pGrContext` 由裸指针改为 `sk_sp<GrDirectContext>`（`sk_ref_sp` 增加引用计数），避免堆内存 UAF |
+| 记录的渲染后端与实际不一致 | `Window::SetRenderBackendType()` | GL 创建失败时 `Render_Skia_Windows` 内部已回退 CPU，但 `m_renderBackendType` 仍是 GL；重复设置 `render_backend_type="GL"` 会反复销毁重建 Render | 创建成功后以 `m_render->GetRenderBackendType()` 为准同步 `m_renderBackendType`（回退 CPU 时同时清零 `msaa`/`vsync` 配置） |
+
+### 12.2 自动化回归测试
+
+新增 `tests/test_gl_window_smoke.cpp`（仅 Windows 构建，已在 `tests/CMakeLists.txt` 注册为 `gl_window_smoke`），在真实窗口上覆盖：
+
+| 编号 | 覆盖点 |
+| --- | --- |
+| GS-01 ~ GS-02 | 同一线程创建两个窗口的 GL 渲染对象，校验后端类型为 `kNativeGL` |
+| GS-03 ~ GS-05 | 两窗口交替绘制 3 轮（验证每帧绘制前 `MakeCurrent()` 切换上下文），绘制次数与 `rcPaint` 正确 |
+| GS-06 ~ GS-08 | 缩小/放大窗口后 `Resize()` 重建持久表面与窗口后台缓冲，继续绘制；另一窗口不受影响 |
+| GS-09 ~ GS-12 | 运行过程中切换后端：GL → CPU → GL（模拟 `Window::SetRenderBackendType()` 的销毁重建流程） |
+| GS-13 ~ GS-16 | 两个 GL 窗口存活时创建离屏 GPU 渲染，绘制并读回像素校验颜色，随后窗口继续绘制 |
+
+测试特性：
+
+- 窗口创建在屏幕外并显示（`SW_SHOWNOACTIVATE`）——隐藏窗口不产生更新区域，无法触发 GL 的局部重绘路径；
+- 运行环境不支持 OpenGL 时（远程桌面、无驱动、ARM64 等），工厂会把 GL 降级为 CPU，此时测试打印 `[SKIP]` 并返回成功，保证在 CI/无人值守环境可自动执行；
+- 断言输出重定向到标准错误，避免无界面环境下弹出断言对话框卡住进程。
+
+### 12.3 GL 后端限制与降级策略
+
+| 限制/场景 | 现象或原因 | 策略 |
+| --- | --- | --- |
+| 分层窗口（`WS_EX_LAYERED`、`opacity < 255`、透明窗口） | GL 渲染到窗口默认帧缓冲后由 DWM 合成，无法实现逐像素 Alpha | `Window::SetRenderBackendType()` 检测到层窗口请求 GL 时记录日志并降级为 CPU 绘制 |
+| Windows ARM64 | Skia 未提供 ARM64 的 WGL 实现（`SkWGL_win.cpp` 被排除，`GrGLMakeNativeInterface()` 返回 `nullptr`） | 编译期排除 GL 上下文实现，始终使用 CPU 绘制 |
+| 非 Windows 平台 / SDL 后端 | 无 WGL | `SetRenderBackendType()` 内部强制 CPU |
+| 无 OpenGL 环境（远程桌面、虚拟机、缺少驱动、像素格式不支持、`wglMakeCurrent` 失败） | `SkCreateWGLContext()` 或初始化失败 | `Render_Skia_Windows` 记录日志并自动改用 CPU 渲染，`GetRenderBackendType()` 返回 `kRaster`，调用方无需特殊处理 |
+| 运行过程中切换后端 | 需要销毁并重建 Render 对象 | `SetRenderBackendType()` 重建后同步尺寸并整窗重绘；切换瞬间 GPU 资源（含离屏快照）失效，调用方不能缓存旧的绘制结果 |
+| 同一线程多个 GL 窗口 | 每个窗口有独立的 WGL 上下文与 `GrDirectContext` | 绘制、读取后台缓冲前显式 `MakeCurrent()`；`Render` 对象不能跨线程使用 |
+| 离屏 GPU 渲染共享窗口上下文 | 共享"最近注册且 `MakeCurrent()` 成功"的窗口 `GrDirectContext` | 离屏 Render 的生命周期必须短于（或等于）共享窗口；窗口销毁时上下文被 `abandonContext()`，离屏对象退化为空操作而非崩溃 |
+| 持久化 FBO 的显存占用 | 额外一份 `宽 × 高 × 4` 字节（4K 约 33MB），MSAA 时更高 | 仅在需要时开启 GL 与 MSAA；4K + 高倍 MSAA 需评估显存 |
+| 每帧整幅拷贝 | `SwapBuffers` 后默认帧缓冲内容未定义，无法增量保留 | 每帧用 `drawImage(..., kSrc)` 把持久表面贴到默认帧缓冲（GPU 内拷贝，CPU 侧只重绘脏区）；因此不能对默认帧缓冲做混合绘制 |
+| MSAA / Vsync | 依赖显卡与驱动扩展（`WGL_ARB_multisample`、`WGL_EXT_swap_control`） | MSAA 不支持时 Skia 自动折半重试；无 `WGL_EXT_swap_control` 时 Vsync 设置被忽略 |
+| 像素直接访问 | GL 表面不支持 `peekPixels` | `Clear()`/`ClearRect()` 走 Skia 绘制接口；`GetRenderDC()` 对 GL 返回 `nullptr`（RichEdit 等控件自动走其它绘制路径） |
+
+### 12.4 验证结果
+
+- Debug x64 构建通过（`python build/build.py build --config Debug --arch x64 --jobs 4`）；
+- `ctest --test-dir out/x64/Debug`：13/13 通过（新增 `gl_window_smoke` 在带 OpenGL 的桌面环境实际执行，33 项检查全部通过；无 OpenGL 环境自动 SKIP）。
 
 

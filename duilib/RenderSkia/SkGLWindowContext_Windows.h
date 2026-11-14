@@ -30,7 +30,6 @@ class IRenderPaint;
 */
 class SkGLWindowContext_Windows: public skwindow::internal::GLWindowContext
 {
-    typedef skwindow::internal::GLWindowContext BaseClass;
 public:
     SkGLWindowContext_Windows(HWND hWnd, std::unique_ptr<const skwindow::DisplayParams> params);
     SkGLWindowContext_Windows(const SkGLWindowContext_Windows& r) = delete;
@@ -73,6 +72,12 @@ private:
     */
     void ReleaseWindowDC();
 
+    /** 获取窗口后台缓冲对应的SkSurface（惰性创建并缓存，窗口缩放后重建）
+    * @return 返回包装窗口默认帧缓冲的SkSurface；窗口尺寸无效或上下文不可用时返回nullptr
+    * @note 该函数必须在本窗口的OpenGL上下文为当前上下文时调用
+    */
+    sk_sp<SkSurface> GetWindowSurface();
+
 private:
     /** 窗口句柄
     */
@@ -91,6 +96,12 @@ private:
     * 避免每帧重绘整个窗口（大窗口下的小动画可显著降低CPU/GPU占用）
     */
     sk_sp<SkSurface> m_persistentSurface;
+
+    /** 窗口后台缓冲（OpenGL默认帧缓冲，即FBO 0）对应的SkSurface
+    * 注：不能使用基类的getBackbufferSurface()，因为基类按"当前绑定的FBO"来包装，
+    *     而持久化表面创建或使用后，当前绑定的FBO可能已经不是窗口的默认帧缓冲
+    */
+    sk_sp<SkSurface> m_windowSurface;
 
     /** 是否需要完整重绘（首次绘制、尺寸变化、持久化表面重建后为true）
     */

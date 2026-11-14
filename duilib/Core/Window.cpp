@@ -237,6 +237,18 @@ bool Window::SetRenderBackendType(RenderBackendType backendType, int32_t nMsaaSa
         //配置未变化，无需重建
         bRet = true;
     }
+    if (bRet) {
+        //以Render对象实际使用的后端为准：GPU绘制创建失败时，内部可能已经回退为CPU绘制，
+        //如果不更新记录的状态，后续再次设置相同属性时会反复触发Render重建
+        const RenderBackendType actualType = m_render->GetRenderBackendType();
+        if (actualType != m_renderBackendType) {
+            m_renderBackendType = actualType;
+            if (actualType != RenderBackendType::kNativeGL_BackendType) {
+                m_nMsaaSampleCount = 0;
+                m_bDisableVsync = false;
+            }
+        }
+    }
     if (bRet && bRecreate) {
         //运行过程中切换渲染后端后：同步Render大小并重绘窗口
         ResizeRenderToClientSize();

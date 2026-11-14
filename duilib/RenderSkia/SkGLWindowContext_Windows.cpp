@@ -9,8 +9,10 @@
 
 #include "SkiaHeaderBegin.h"
 
+#include "include/gpu/ganesh/GrBackendSurface.h"
 #include "include/gpu/ganesh/GrDirectContext.h"
 #include "include/gpu/ganesh/SkSurfaceGanesh.h"
+#include "include/gpu/ganesh/gl/GrGLBackendSurface.h"
 #include "include/gpu/ganesh/gl/GrGLInterface.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkImage.h"
@@ -45,10 +47,16 @@ SkGLWindowContext_Windows::SkGLWindowContext_Windows(HWND hWnd, std::unique_ptr<
 SkGLWindowContext_Windows::~SkGLWindowContext_Windows()
 {
     OffscreenGLContext::UnregisterWindowContext(this);
-    //销毁GL上下文之前必须先释放持久化表面，避免Skia访问已销毁的GL资源
+    //销毁GL上下文之前必须先释放表面对象，避免Skia访问已销毁的GL资源
     //释放GPU资源需要本窗口的上下文是当前上下文
     MakeCurrent();
     m_persistentSurface.reset();
+    m_windowSurface.reset();
+    //离屏渲染可能共享本窗口的GrDirectContext：销毁GL上下文前先将其标记为废弃状态，
+    //使其后续的绘制调用变为安全的空操作，避免访问已经销毁的OpenGL上下文
+    if (auto pDirectContext = this->directContext()) {
+        pDirectContext->abandonContext();
+    }
     this->destroyContext();
 }
 
@@ -73,6 +81,7 @@ void SkGLWindowContext_Windows::resize(int nWidth, int nHeight)
     //下次getBackbufferSurface()时按新尺寸重建绘制表面
     fSurface.reset();
     m_persistentSurface.reset();
+    m_windowSurface.reset();
     m_bNeedFullRedraw = true;
     glViewport(0, 0, nWidth, nHeight);
 }
@@ -135,13 +144,13 @@ sk_sp<SkSurface> SkGLWindowContext_Windows::getBackbufferSurface()
     }
 
     if ((fWidth <= 0) || (fHeight <= 0)) {
-        //窗口最小化等场景：没有可用的绘制尺寸，使用基类实现（零尺寸表面）
-        return BaseClass::getBackbufferSurface();
+        //窗口最小化等场景：没有可用的绘制尺寸
+        return nullptr;
     }
 
     GrDirectContext* pDirectContext = this->directContext();
     if (pDirectContext == nullptr) {
-        return BaseClass::getBackbufferSurface();
+        return nullptr;
     }
 
     //创建持久化的GPU渲染目标：界面绘制到该表面，每帧只在脏区域内重绘，内容在帧间保留
@@ -155,13 +164,54 @@ sk_sp<SkSurface> SkGLWindowContext_Windows::getBackbufferSurface()
                                                    kTopLeft_GrSurfaceOrigin,
                                                    (pDisplayParams != nullptr) ? &pDisplayParams->surfaceProps() : nullptr);
     if (m_persistentSurface == nullptr) {
-        //无法创建GPU渲染目标时，退化为基类实现（直接绘制到窗口的后台缓冲）
-        return BaseClass::getBackbufferSurface();
+        //无法创建GPU渲染目标时，退化为直接绘制到窗口的后台缓冲
+        return GetWindowSurface();
     }
     //新创建的表面内容未定义：清空并标记需要完整重绘
     m_persistentSurface->getCanvas()->clear(SK_ColorTRANSPARENT);
     m_bNeedFullRedraw = true;
     return m_persistentSurface;
+}
+
+sk_sp<SkSurface> SkGLWindowContext_Windows::GetWindowSurface()
+{
+    //尺寸变化后需要重建（窗口缩放时fWidth/fHeight已更新）
+    if ((m_windowSurface != nullptr) &&
+        ((m_windowSurface->width() != fWidth) || (m_windowSurface->height() != fHeight))) {
+        m_windowSurface.reset();
+    }
+    if (m_windowSurface != nullptr) {
+        return m_windowSurface;
+    }
+    GrDirectContext* pDirectContext = this->directContext();
+    if ((pDirectContext == nullptr) || (fWidth <= 0) || (fHeight <= 0)) {
+        return nullptr;
+    }
+
+    //显式包装窗口的默认帧缓冲(FBO 0)，不能使用基类的实现：
+    //基类按"当前绑定的FBO"来包装，而持久化表面创建或使用之后，当前绑定的FBO可能已不是默认帧缓冲，
+    //这会导致把持久化表面自身当成窗口后台缓冲，界面无法显示
+    GrGLFramebufferInfo fbInfo;
+    fbInfo.fFBOID = 0;
+    fbInfo.fFormat = 0x8058; //GL_RGBA8
+    fbInfo.fProtected = skgpu::Protected::kNo;
+    GrBackendRenderTarget backendRenderTarget =
+        GrBackendRenderTargets::MakeGL(fWidth, fHeight, fSampleCount, fStencilBits, fbInfo);
+
+    const skwindow::DisplayParams* pDisplayParams = getDisplayParams();
+    sk_sp<SkColorSpace> colorSpace;
+    const SkSurfaceProps* pSurfaceProps = nullptr;
+    if (pDisplayParams != nullptr) {
+        colorSpace = pDisplayParams->colorSpace();
+        pSurfaceProps = &pDisplayParams->surfaceProps();
+    }
+    m_windowSurface = SkSurfaces::WrapBackendRenderTarget(pDirectContext,
+                                                         backendRenderTarget,
+                                                         kBottomLeft_GrSurfaceOrigin,
+                                                         kRGBA_8888_SkColorType,
+                                                         colorSpace,
+                                                         pSurfaceProps);
+    return m_windowSurface;
 }
 
 sk_sp<const GrGLInterface> SkGLWindowContext_Windows::onInitializeContext()
@@ -309,13 +359,14 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* /*pRender*/, IRende
     //是否使用持久化表面：使用时可只重绘脏区域，否则必须重绘整个窗口
     const bool bUsePersistentSurface = (m_persistentSurface.get() == paintSurface.get());
 
-    //使用持久化表面时，先获取窗口的后台缓冲表面（此时OpenGL的默认帧缓冲肯定处于绑定状态，
-    //不能在绘制提交之后再获取，否则可能绑定到持久化表面的FBO上）
+    //使用持久化表面时，获取窗口的后台缓冲表面，用于把持久化表面的内容拷贝到窗口
     sk_sp<SkSurface> backbuffer;
     if (bUsePersistentSurface) {
-        backbuffer = BaseClass::getBackbufferSurface();
+        backbuffer = GetWindowSurface();
+        if (backbuffer == nullptr) {
+            return false;
+        }
     }
-
     //设置需要绘制的区域
     UiRect rcPaint;
     if (!bUsePersistentSurface || m_bNeedFullRedraw) {
@@ -349,15 +400,13 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* /*pRender*/, IRende
 
     if (bUsePersistentSurface) {
         //把持久化表面的整幅内容拷贝到窗口的后台缓冲
-        if (backbuffer != nullptr) {
-            SkCanvas* pCanvas = backbuffer->getCanvas();
-            sk_sp<SkImage> image = paintSurface->makeImageSnapshot();
-            if ((pCanvas != nullptr) && (image != nullptr)) {
-                //使用kSrc覆盖目标内容（后台缓冲在交换后内容未定义，不能做混合）
-                SkPaint paint;
-                paint.setBlendMode(SkBlendMode::kSrc);
-                pCanvas->drawImage(image, 0, 0, SkSamplingOptions(SkFilterMode::kNearest), &paint);
-            }
+        SkCanvas* pCanvas = backbuffer->getCanvas();
+        sk_sp<SkImage> image = paintSurface->makeImageSnapshot();
+        if ((pCanvas != nullptr) && (image != nullptr)) {
+            //使用kSrc覆盖目标内容（后台缓冲在交换后内容未定义，不能做混合）
+            SkPaint paint;
+            paint.setBlendMode(SkBlendMode::kSrc);
+            pCanvas->drawImage(image, 0, 0, SkSamplingOptions(SkFilterMode::kNearest), &paint);
         }
     }
 

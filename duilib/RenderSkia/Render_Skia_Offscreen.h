@@ -85,9 +85,11 @@ private:
     */
     AlphaType m_alphaType;
 
-    /** GPU后端使用的图形上下文（Raster后端为nullptr；生命周期由GL上下文管理器管理）
+    /** GPU后端使用的图形上下文（Raster后端为nullptr）
+    * 注：使用sk_sp持有引用，避免共享的窗口上下文被销毁后访问已释放的对象；
+    *     上下文被废弃(abandonContext)后，Skia的绘制调用会变成安全的空操作
     */
-    GrDirectContext* m_pGrContext;
+    sk_sp<GrDirectContext> m_pGrContext;
 };
 
 } // namespace ui
