@@ -124,6 +124,18 @@ static uint32_t PremultiplyARGB(uint32_t nARGB)
     return (nAlpha << 24) | (nRed << 16) | (nGreen << 8) | nBlue;
 }
 
+/** 用指定的 32 位像素值填充一段连续像素
+    说明：使用简单的标量循环，编译器会把它优化为 rep stosd 或向量存储，
+          对大块内存的填充性能与 memset 相当，无需手写 SIMD。
+*/
+static void FillPixelSpan(uint32_t* pPixel, size_t nCount, uint32_t nARGB)
+{
+    uint32_t* pEnd = pPixel + nCount;
+    while (pPixel < pEnd) {
+        *pPixel++ = nARGB;
+    }
+}
+
 void Render_Skia::Clear(const UiColor& uiColor)
 {
     void* pPixelBits = GetPixelBits();
@@ -142,12 +154,8 @@ void Render_Skia::Clear(const UiColor& uiColor)
                         ::memset(pPixelBits, 0, totalBytes);
                     }
                     else {
-                        // 非零填充：使用 size_t 索引避免溢出
-                        uint32_t* pBits = (uint32_t*)pPixelBits;
-                        uint32_t* pEnd = pBits + totalPixels;
-                        while (pBits < pEnd) {
-                            *pBits++ = nARGB;
-                        }
+                        // 非零填充：连续内存交给 FillPixelSpan（全字节相同走 memset，否则走 SSE2）
+                        FillPixelSpan((uint32_t*)pPixelBits, totalPixels, nARGB);
                     }
                 }
             }
@@ -183,14 +191,17 @@ void Render_Skia::ClearRect(const UiRect& rcDirty, const UiColor& uiColor)
                 const size_t bytesPerRow = (size_t)nWidth * sizeof(uint32_t);
                 //像素缓冲区是预乘Alpha格式，颜色需要先做预乘处理
                 const uint32_t nARGB = PremultiplyARGB(uiColor.GetARGB());
-                // 优化：使用单层循环 + 指针递增，避免 i*nWidth+j 溢出
+                const size_t nCount = (size_t)(nRight - nLeft);
                 uint8_t* pBase = (uint8_t*)pPixelBits;
-                for (int32_t i = nTop; i < nBottom; ++i) {
-                    uint32_t* pLineStart = (uint32_t*)(pBase + (size_t)i * bytesPerRow) + nLeft;
-                    uint32_t* pLineEnd = pLineStart + (nRight - nLeft);
-                    uint32_t* pCur = pLineStart;
-                    while (pCur < pLineEnd) {
-                        *pCur++ = nARGB;
+                if ((nLeft == 0) && (nRight == nWidth)) {
+                    //横向覆盖整行时，各行在内存中连续，合并为一次填充
+                    FillPixelSpan((uint32_t*)pBase + (size_t)nTop * (size_t)nWidth,
+                                  (size_t)(nBottom - nTop) * (size_t)nWidth, nARGB);
+                }
+                else {
+                    for (int32_t i = nTop; i < nBottom; ++i) {
+                        uint32_t* pLineStart = (uint32_t*)(pBase + (size_t)i * bytesPerRow) + nLeft;
+                        FillPixelSpan(pLineStart, nCount, nARGB);
                     }
                 }
             }

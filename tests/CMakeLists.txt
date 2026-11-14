@@ -152,6 +152,25 @@ add_test(NAME lang_manager
          COMMAND test_lang_manager
 )
 
+# BitmapAlpha 的单元测试：覆盖 ClearAlpha 与 RestoreAlpha（两个重载）的
+# 整图/局部清除、越界裁剪、阴影边距、RGB 保持不变等全部语义
+add_executable(test_bitmap_alpha
+    test_bitmap_alpha.cpp
+)
+target_include_directories(test_bitmap_alpha PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_bitmap_alpha PRIVATE duilib)
+if(WIN32)
+    target_compile_definitions(test_bitmap_alpha PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_bitmap_alpha PRIVATE /utf-8)
+endif()
+add_test(NAME bitmap_alpha
+         COMMAND test_bitmap_alpha
+)
+
 # 文本绘制性能基准（不注册到 ctest，属于手工运行的评估工具）
 #
 # 用于对比"字体回退性能优化"前后的效果，覆盖全部文本测量/绘制路径，
@@ -189,6 +208,39 @@ if(WIN32)
     endif()
 endif()
 
+
+# ClearAlpha / RestoreAlpha / Render Clear / Render ClearRect 的性能基准
+# （不注册到 ctest，属于手工运行的评估工具）。评测请使用 Release 配置，例如：
+#   python3 build/build.py build --config Release --arch x64 --offline
+#   out/x64/Release/tests/bench_clear_alpha.exe --iterations 200
+if(WIN32)
+    add_executable(bench_clear_alpha
+        bench_clear_alpha.cpp
+    )
+    target_include_directories(bench_clear_alpha PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../"
+    )
+    target_link_directories(bench_clear_alpha PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(bench_clear_alpha PRIVATE
+        duilib
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(bench_clear_alpha PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(bench_clear_alpha PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(bench_clear_alpha PRIVATE UNICODE _UNICODE)
+    target_compile_definitions(bench_clear_alpha PRIVATE
+        DUILIB_BENCH_RESOURCE_DIR="${CMAKE_SOURCE_DIR}/bin/resources"
+    )
+    if(MSVC)
+        target_compile_options(bench_clear_alpha PRIVATE /utf-8)
+    endif()
+endif()
 
 # 文字绘制相关类的单元测试：
 # 覆盖文本归一化、按编码枚举/转换、字形运行构建、单字符/整段测量、

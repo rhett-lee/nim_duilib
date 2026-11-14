@@ -870,7 +870,172 @@ void TestAlpha(ui::IRenderFactory* pRenderFactory)
 }
 
 // ---------------------------------------------------------------------------
-// 8. 像素操作（RA-62 ~ RA-69）
+// 8. Clear / ClearRect（RC-01 ~ RC-14）
+// ---------------------------------------------------------------------------
+/** 读取整个画布的像素数据 */
+bool ReadAllPixels(ui::IRender* pRender, std::vector<uint32_t>& pixels)
+{
+    const int32_t nWidth = pRender->GetWidth();
+    const int32_t nHeight = pRender->GetHeight();
+    pixels.assign((size_t)nWidth * (size_t)nHeight, 0);
+    return pRender->ReadPixels(ui::UiRect(0, 0, nWidth, nHeight),
+                               pixels.data(), pixels.size() * sizeof(uint32_t));
+}
+
+/** 判断所有像素是否都等于指定颜色 */
+bool AllPixelsEqual(const std::vector<uint32_t>& pixels, uint32_t color)
+{
+    for (uint32_t nPixel : pixels) {
+        if (nPixel != color) {
+            char buf[128] = { 0 };
+            std::snprintf(buf, sizeof(buf), "[PIXEL] actual=0x%08X, expected=0x%08X", nPixel, color);
+            std::cerr << buf << std::endl;
+            return false;
+        }
+    }
+    return true;
+}
+
+void TestClearAndClearRect(ui::IRenderFactory* pRenderFactory)
+{
+    Section("TestClearAndClearRect");
+    std::unique_ptr<ui::IRender> pRender = CreateRender(pRenderFactory, 40, 30);
+    CHECK(pRender != nullptr);
+    if (pRender == nullptr) {
+        return;
+    }
+    uint32_t nColor = 0;
+    std::vector<uint32_t> pixels;
+
+    //RC-01 Clear 不透明黑色：整个画布被填充
+    pRender->Clear(ui::UiColor(kBlackColor));
+    CHECK(ReadAllPixels(pRender.get(), pixels));
+    CHECK(AllPixelsEqual(pixels, kBlackColor));
+
+    //RC-02 Clear 全透明色：整个画布清零
+    pRender->Clear(ui::UiColor());
+    CHECK(ReadAllPixels(pRender.get(), pixels));
+    CHECK(AllPixelsEqual(pixels, 0u));
+
+    //RC-03 Clear 半透明颜色：写入前会做Alpha预乘（0x80FF0000 -> 0x80800000）
+    pRender->Clear(ui::UiColor(0x80FF0000u));
+    CHECK(ReadAllPixels(pRender.get(), pixels));
+    CHECK(AllPixelsEqual(pixels, 0x80800000u));
+
+    //RC-04 Clear 不受视区原点影响：即使设置了视区原点，仍清除整个画布
+    pRender->SetWindowOrg(ui::UiPoint(7, 5));
+    pRender->Clear(ui::UiColor(kWhiteColor));
+    CHECK(pRender->GetWindowOrg().x == 7);
+    CHECK(pRender->GetWindowOrg().y == 5);
+    pRender->SetWindowOrg(ui::UiPoint(0, 0));
+    CHECK(ReadAllPixels(pRender.get(), pixels));
+    CHECK(AllPixelsEqual(pixels, kWhiteColor));
+
+    //RC-05 Resize 后 Clear：新的画布区域全部被填充
+    CHECK(pRender->Resize(20, 10));
+    pRender->Clear(ui::UiColor(kGreenColor));
+    CHECK(ReadAllPixels(pRender.get(), pixels));
+    CHECK(pixels.size() == 200);
+    CHECK(AllPixelsEqual(pixels, kGreenColor));
+    //恢复画布尺寸，供后面的用例使用
+    CHECK(pRender->Resize(40, 30));
+    pRender->Clear(ui::UiColor(kWhiteColor));
+
+    //RC-06 ClearRect 基本用法：只清除指定区域
+    pRender->ClearRect(ui::UiRect(10, 5, 20, 15), ui::UiColor(kRedColor));
+    CHECK(ReadPixel(pRender.get(), 10, 5, nColor));
+    CHECK(ColorNear(nColor, kRedColor));
+    CHECK(ReadPixel(pRender.get(), 19, 14, nColor));
+    CHECK(ColorNear(nColor, kRedColor));
+    CHECK(ReadPixel(pRender.get(), 9, 5, nColor));
+    CHECK(ColorNear(nColor, kWhiteColor));
+    CHECK(ReadPixel(pRender.get(), 20, 5, nColor));
+    CHECK(ColorNear(nColor, kWhiteColor));
+    CHECK(ReadPixel(pRender.get(), 10, 4, nColor));
+    CHECK(ColorNear(nColor, kWhiteColor));
+    CHECK(ReadPixel(pRender.get(), 10, 15, nColor));
+    CHECK(ColorNear(nColor, kWhiteColor));
+
+    //RC-07 ClearRect 1x1 像素
+    pRender->Clear(ui::UiColor(kWhiteColor));
+    pRender->ClearRect(ui::UiRect(3, 3, 4, 4), ui::UiColor(kBlueColor));
+    CHECK(ReadPixel(pRender.get(), 3, 3, nColor));
+    CHECK(ColorNear(nColor, kBlueColor));
+    CHECK(ReadPixel(pRender.get(), 4, 3, nColor));
+    CHECK(ColorNear(nColor, kWhiteColor));
+    CHECK(ReadPixel(pRender.get(), 3, 4, nColor));
+    CHECK(ColorNear(nColor, kWhiteColor));
+
+    //RC-08 ClearRect 区域越界（左上角为负）：只清除与画布相交的部分
+    pRender->Clear(ui::UiColor(kWhiteColor));
+    pRender->ClearRect(ui::UiRect(-5, -5, 5, 5), ui::UiColor(kRedColor));
+    for (int32_t y = 0; y < 10; ++y) {
+        for (int32_t x = 0; x < 10; ++x) {
+            CHECK(ReadPixel(pRender.get(), x, y, nColor));
+            CHECK(ColorNear(nColor, (x < 5 && y < 5) ? kRedColor : kWhiteColor));
+        }
+    }
+
+    //RC-09 ClearRect 区域越界（右下角超出画布）
+    pRender->Clear(ui::UiColor(kWhiteColor));
+    pRender->ClearRect(ui::UiRect(15, 5, 40, 30), ui::UiColor(kBlueColor));
+    CHECK(ReadPixel(pRender.get(), 15, 5, nColor));
+    CHECK(ColorNear(nColor, kBlueColor));
+    CHECK(ReadPixel(pRender.get(), 19, 9, nColor));
+    CHECK(ColorNear(nColor, kBlueColor));
+    CHECK(ReadPixel(pRender.get(), 14, 5, nColor));
+    CHECK(ColorNear(nColor, kWhiteColor));
+
+    //RC-10 ClearRect 区域完全在画布外：不修改任何像素
+    pRender->Clear(ui::UiColor(kWhiteColor));
+    CHECK(ReadAllPixels(pRender.get(), pixels));
+    {
+        std::vector<uint32_t> before = pixels;
+        pRender->ClearRect(ui::UiRect(50, 50, 60, 60), ui::UiColor(kRedColor));
+        pRender->ClearRect(ui::UiRect(-20, -20, -10, -10), ui::UiColor(kRedColor));
+        pRender->ClearRect(ui::UiRect(25, 25, 25, 25), ui::UiColor(kRedColor));
+        //空矩形（宽度为0）同样不修改像素
+        pRender->ClearRect(ui::UiRect(5, 5, 5, 10), ui::UiColor(kRedColor));
+        pRender->ClearRect(ui::UiRect(5, 5, 10, 5), ui::UiColor(kRedColor));
+        CHECK(ReadAllPixels(pRender.get(), pixels));
+        CHECK(pixels == before);
+    }
+
+    //RC-11 ClearRect 半透明颜色：写入前会做Alpha预乘（0x4000FF00 -> 0x40004000）
+    pRender->Clear(ui::UiColor(kWhiteColor));
+    pRender->ClearRect(ui::UiRect(2, 2, 6, 6), ui::UiColor(0x4000FF00u));
+    CHECK(ReadPixel(pRender.get(), 3, 3, nColor));
+    CHECK(nColor == 0x40004000u);
+
+    //RC-12 ClearRect 按视区原点换算坐标：客户区坐标 + 视区原点的反向偏移 = 设备坐标
+    pRender->Clear(ui::UiColor(kWhiteColor));
+    pRender->SetWindowOrg(ui::UiPoint(10, 10));
+    pRender->ClearRect(ui::UiRect(10, 10, 15, 13), ui::UiColor(kRedColor));
+    pRender->SetWindowOrg(ui::UiPoint(0, 0));
+    CHECK(ReadPixel(pRender.get(), 0, 0, nColor));
+    CHECK(ColorNear(nColor, kRedColor));
+    CHECK(ReadPixel(pRender.get(), 4, 2, nColor));
+    CHECK(ColorNear(nColor, kRedColor));
+    CHECK(ReadPixel(pRender.get(), 5, 0, nColor));
+    CHECK(ColorNear(nColor, kWhiteColor));
+    CHECK(ReadPixel(pRender.get(), 0, 3, nColor));
+    CHECK(ColorNear(nColor, kWhiteColor));
+
+    //RC-13 ClearRect 清除整个画布：结果与 Clear 一致
+    pRender->Clear(ui::UiColor(kWhiteColor));
+    pRender->ClearRect(ui::UiRect(0, 0, pRender->GetWidth(), pRender->GetHeight()), ui::UiColor(kBlackColor));
+    CHECK(ReadAllPixels(pRender.get(), pixels));
+    CHECK(AllPixelsEqual(pixels, kBlackColor));
+
+    //RC-14 Clear 传入0值颜色：整个画布清零
+    pRender->Clear(ui::UiColor(kWhiteColor));
+    pRender->Clear(ui::UiColor(0u));
+    CHECK(ReadAllPixels(pRender.get(), pixels));
+    CHECK(AllPixelsEqual(pixels, 0u));
+}
+
+// ---------------------------------------------------------------------------
+// 9. 像素操作（RA-62 ~ RA-69）
 // ---------------------------------------------------------------------------
 void TestPixels(ui::IRenderFactory* pRenderFactory)
 {
@@ -1342,6 +1507,7 @@ int main(int /*argc*/, char* /*argv*/[])
             TestBlt(pRenderFactory);
             TestShapes(pRenderFactory);
             TestAlpha(pRenderFactory);
+            TestClearAndClearRect(pRenderFactory);
             TestPixels(pRenderFactory);
             TestSnapshotAndClone(pRenderFactory);
             TestPen(pRenderFactory);

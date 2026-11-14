@@ -3,8 +3,99 @@
 #include <algorithm>
 #include <cstring>
 
+//x64/MSVC 与常见 GCC/Clang 目标默认具备 SSE2，可一次处理 4 个像素；
+//其他平台（如 ARM64）保留标量实现，行为完全一致
+#if defined(_M_X64) || defined(_M_AMD64) || defined(__SSE2__) || (defined(_M_IX86_FP) && (_M_IX86_FP >= 2))
+    #include <emmintrin.h>
+    #define DUILIB_BITMAP_ALPHA_SSE2 1
+#else
+    #define DUILIB_BITMAP_ALPHA_SSE2 0
+#endif
+
 namespace ui
 {
+
+namespace
+{
+/** Alpha 通道掩码（像素格式为 32 位，Alpha 位于第 4 个字节） */
+constexpr uint32_t kAlphaMask = 0xFF000000u;
+
+/** RGB 通道掩码 */
+constexpr uint32_t kRgbMask = 0x00FFFFFFu;
+
+/** 恢复一段连续像素的 Alpha（Alpha 为 0 的像素恢复为 255，RGB 通道保持不变）
+* @param [in,out] pPixel 像素起始地址
+* @param [in] nCount 像素个数
+*/
+void RestoreAlphaZeroSpan(uint32_t* pPixel, int32_t nCount)
+{
+    int32_t i = 0;
+#if DUILIB_BITMAP_ALPHA_SSE2
+    const __m128i alphaMask = _mm_set1_epi32((int32_t)kAlphaMask);
+    const __m128i zero = _mm_setzero_si128();
+    for (; i + 4 <= nCount; i += 4) {
+        __m128i value = _mm_loadu_si128((const __m128i*)(pPixel + i));
+        //Alpha == 0 时，将 Alpha 字节置为 0xFF（单指令分支消除，可被向量化）
+        const __m128i isZero = _mm_cmpeq_epi32(_mm_and_si128(value, alphaMask), zero);
+        value = _mm_or_si128(value, _mm_and_si128(isZero, alphaMask));
+        _mm_storeu_si128((__m128i*)(pPixel + i), value);
+    }
+#endif
+    for (; i < nCount; ++i) {
+        if ((pPixel[i] & kAlphaMask) == 0) {
+            pPixel[i] |= kAlphaMask;    //Alpha 字节: 0 -> 255，RGB 保持不变
+        }
+    }
+}
+
+/** 恢复一段连续像素的 Alpha（按指定 alpha 值恢复，RGB 通道保持不变）
+* 规则：Alpha 等于 alpha 的像素恢复为 0；Alpha 为 0 的像素恢复为 255；其余保持原值
+*/
+void RestoreAlphaValueSpan(uint32_t* pPixel, int32_t nCount, uint8_t alpha)
+{
+    const uint32_t nAlphaValue = (uint32_t)alpha << 24;
+    int32_t i = 0;
+#if DUILIB_BITMAP_ALPHA_SSE2
+    const __m128i alphaMask = _mm_set1_epi32((int32_t)kAlphaMask);
+    const __m128i alphaValue = _mm_set1_epi32((int32_t)nAlphaValue);
+    const __m128i rgbMask = _mm_set1_epi32((int32_t)kRgbMask);
+    const __m128i zero = _mm_setzero_si128();
+    for (; i + 4 <= nCount; i += 4) {
+        __m128i value = _mm_loadu_si128((const __m128i*)(pPixel + i));
+        const __m128i pixelAlpha = _mm_and_si128(value, alphaMask);
+        const __m128i isAlphaValue = _mm_cmpeq_epi32(pixelAlpha, alphaValue);
+        const __m128i isZero = _mm_cmpeq_epi32(pixelAlpha, zero);
+        //不等于 alpha 的像素保留原值；等于 alpha 的像素 Alpha 置 0；等于 0 的像素 Alpha 置 255
+        __m128i result = _mm_andnot_si128(isAlphaValue, value);
+        result = _mm_or_si128(result, _mm_and_si128(isAlphaValue, _mm_and_si128(value, rgbMask)));
+        result = _mm_or_si128(result, _mm_and_si128(isZero, alphaMask));
+        _mm_storeu_si128((__m128i*)(pPixel + i), result);
+    }
+#endif
+    for (; i < nCount; ++i) {
+        const uint32_t pixel = pPixel[i];
+        const uint32_t pixelAlpha = pixel & kAlphaMask;
+        if (pixelAlpha == nAlphaValue) {
+            pPixel[i] = pixel & kRgbMask;       //Alpha 字节: alpha -> 0，RGB 保持不变
+        }
+        else if (pixelAlpha == 0) {
+            pPixel[i] = pixel | kAlphaMask;     //Alpha 字节: 0 -> 255，RGB 保持不变
+        }
+    }
+}
+
+/** 恢复一段连续像素的 Alpha（无条件置为 255，RGB 通道保持不变）
+    说明：使用简单的标量循环，编译器可把它优化为向量存储（性能与 memset 相当）。
+*/
+void RestoreAlphaOpaqueSpan(uint32_t* pPixel, int32_t nCount)
+{
+    uint32_t* pEnd = pPixel + nCount;
+    while (pPixel < pEnd) {
+        *pPixel++ |= kAlphaMask;
+    }
+}
+
+} // namespace
 
 BitmapAlpha::BitmapAlpha(uint8_t* pPixel, int32_t nWidth, int32_t nHeight, int32_t nChannels):
     m_pPixel(pPixel),
@@ -51,11 +142,17 @@ void BitmapAlpha::ClearAlpha(const UiRect& rcDirty, uint8_t alpha) const
     }
     //性能优化：
     //1. 预计算每行的字节跨度 rowStrideBytes（size_t 类型，避免行号乘法溢出）；
-    //2. 行首指针逐行递增，替代循环内 "i * rowStrideBytes" 的重复乘法。
+    //2. 行首指针逐行递增，替代循环内 "i * rowStrideBytes" 的重复乘法；
+    //3. 区域横向覆盖整行时，把这些行合并成一次 memset 调用。
     const size_t rowStrideBytes = (size_t)m_nWidth * (size_t)m_nChannels;
     const size_t nBytes = (size_t)(nRight - nLeft) * (size_t)m_nChannels;
     //起始位置：第 nTop 行、第 nLeft 个像素
     uint8_t* pRowStart = m_pPixel + (size_t)nTop * rowStrideBytes + (size_t)nLeft * (size_t)m_nChannels;
+    if (nBytes == rowStrideBytes) {
+        //横向覆盖整行时，各行在内存中连续，合并为一次 memset
+        ::memset(pRowStart, alpha, (size_t)(nBottom - nTop) * rowStrideBytes);
+        return;
+    }
     for (int32_t i = nTop; i < nBottom; ++i) {
         //每行从 pRowStart 开始填充 nBytes 字节；行末下移 rowStrideBytes
         ::memset(pRowStart, alpha, nBytes);
@@ -98,21 +195,17 @@ void BitmapAlpha::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowP
     //性能优化：
     //1. 以 32 位整像素为单位读写：一次访存即可读取/写回 Alpha 字节，避免逐字节指针运算；
     //2. 行首指针逐行递增，避免每行重复计算 "i * m_nWidth"；
-    //3. 保持原有的判断语义（仅修改需要的像素，不做无谓的全量写回）。
-    uint32_t* pRow = pBmpBits + (size_t)nTop * (size_t)m_nWidth;
+    //3. 每行的连续像素交给 SSE2/标量实现整段处理，分支判断不再逐像素进行；
+    //4. 保持原有的判断语义（仅修改需要的像素，不做无谓的全量写回）。
+    const int32_t nCount = nRight - nLeft;
+    uint32_t* pRow = pBmpBits + (size_t)nTop * (size_t)m_nWidth + (size_t)nLeft;
     if (alpha == 0) {
         // 常用情况：alpha == 0（ClearAlpha 时填的 alpha 就是 0）
         // 逻辑：if (*a == 0) *a = 255;
         // 说明：不做 "无条件 OR" 的改写 —— ClearAlpha 后由上层直接修改过 Alpha 的像素，
         //       必须保留其原值，不能统一置为 255。
-        const uint32_t alphaMask = (uint32_t)0xFF000000;
         for (int32_t i = nTop; i < nBottom; ++i) {
-            for (int32_t j = nLeft; j < nRight; ++j) {
-                const uint32_t pixel = pRow[j];
-                if ((pixel & alphaMask) == 0) {
-                    pRow[j] = pixel | alphaMask;    //Alpha 字节: 0 -> 255，RGB 保持不变
-                }
-            }
+            RestoreAlphaZeroSpan(pRow, nCount);
             pRow += (size_t)m_nWidth;
         }
         return;
@@ -122,18 +215,8 @@ void BitmapAlpha::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowP
     // 逻辑：
     //   if (*a == alpha) *a = 0;
     //   else if (*a == 0) *a = 255;
-    const uint32_t alphaMask = (uint32_t)alpha << 24;
     for (int32_t i = nTop; i < nBottom; ++i) {
-        for (int32_t j = nLeft; j < nRight; ++j) {
-            const uint32_t pixel = pRow[j];
-            const uint32_t pixelAlpha = pixel & (uint32_t)0xFF000000;
-            if (pixelAlpha == alphaMask) {
-                pRow[j] = pixel & 0x00FFFFFF;       //Alpha 字节: alpha -> 0，RGB 保持不变
-            }
-            else if (pixelAlpha == 0) {
-                pRow[j] = pixel | 0xFF000000;       //Alpha 字节: 0 -> 255，RGB 保持不变
-            }
-        }
+        RestoreAlphaValueSpan(pRow, nCount, alpha);
         pRow += (size_t)m_nWidth;
     }
 }
@@ -166,17 +249,14 @@ void BitmapAlpha::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowP
     }
 
     //性能优化：
-    //1. 用单条 OR 指令 (| 0xFF000000) 替代 "if (*a != 255) *a = 255;" 的条件写：
-    //   分支预测开销被消除，且编译器可自动向量化（AVX2 可一次处理 8 个像素）；
+    //1. 每行的连续像素交给 SSE2/标量实现整段处理，一次写回 4 个像素；
     //2. 行首指针逐行递增，避免每行重复计算 "i * m_nWidth"；
     //3. 循环内使用 size_t 行偏移，避免 int32_t 乘法溢出。
-    const uint32_t alphaMask = (uint32_t)0xFF000000;
-    uint32_t* pRow = pBmpBits + (size_t)nTop * (size_t)m_nWidth;
+    const int32_t nCount = nRight - nLeft;
+    uint32_t* pRow = pBmpBits + (size_t)nTop * (size_t)m_nWidth + (size_t)nLeft;
     for (int32_t i = nTop; i < nBottom; ++i) {
-        for (int32_t j = nLeft; j < nRight; ++j) {
-            //单条 OR 指令：将 ARGB 像素的最高字节（Alpha）置为 0xFF，RGB 保持不变
-            pRow[j] |= alphaMask;
-        }
+        //Alpha 字节置为 0xFF，RGB 保持不变
+        RestoreAlphaOpaqueSpan(pRow, nCount);
         pRow += (size_t)m_nWidth;
     }
 }
