@@ -2,6 +2,7 @@
 #include "duilib/RenderSkia/Matrix_Skia.h"
 
 #include <vector>
+#include <cmath>
 
 #include "SkiaHeaderBegin.h"
 #include "include/core/SkPathBuilder.h"
@@ -86,12 +87,22 @@ IPath::FillType Path_Skia::GetFillType() const
     return fillType;
 }
 
+namespace {
+/** 判断两个坐标点是否相同（使用容差，避免浮点运算误差导致路径被意外断开）
+*/
+bool IsSamePoint(const SkPoint& pt1, const SkPoint& pt2)
+{
+    constexpr float kEpsilon = 1e-4f;
+    return (std::abs(pt1.fX - pt2.fX) <= kEpsilon) && (std::abs(pt1.fY - pt2.fY) <= kEpsilon);
+}
+}
+
 void Path_Skia::MoveToPoint(int32_t x1, int32_t y1)
 {
     // 仅在 lastPt 与目标点不同时才调用 moveTo，避免连续 moveTo 破坏路径闭合逻辑
     const SkPoint newPt = SkPoint::Make(static_cast<float>(x1), static_cast<float>(y1));
     std::optional<SkPoint> lastPt = m_skPathBuilder->getLastPt();
-    if (!lastPt.has_value() || *lastPt != newPt) {
+    if (!lastPt.has_value() || !IsSamePoint(*lastPt, newPt)) {
         m_skPathBuilder->moveTo(newPt);
     }
 }
@@ -101,7 +112,7 @@ void Path_Skia::MoveToPoint(float x1, float y1)
     // 仅在 lastPt 与目标点不同时才调用 moveTo，避免连续 moveTo 破坏路径闭合逻辑
     const SkPoint newPt = SkPoint::Make(x1, y1);
     std::optional<SkPoint> lastPt = m_skPathBuilder->getLastPt();
-    if (!lastPt.has_value() || *lastPt != newPt) {
+    if (!lastPt.has_value() || !IsSamePoint(*lastPt, newPt)) {
         m_skPathBuilder->moveTo(newPt);
     }
 }
@@ -175,7 +186,8 @@ void Path_Skia::AddBeziers(const UiPoint* points, int32_t count)
                                  SkPoint::Make(static_cast<float>(points[i + 1].x), static_cast<float>(points[i + 1].y)),
                                  SkPoint::Make(static_cast<float>(points[i + 2].x), static_cast<float>(points[i + 2].y)));
     }
-    ASSERT(i == (count - 1));
+    //循环结束后 i 等于 count（count = 1 + 3n 时所有点都被消费），而不是 count - 1
+    ASSERT(i == count);
 }
 
 void Path_Skia::AddBeziers(const UiPointF* points, int32_t count)
@@ -193,7 +205,8 @@ void Path_Skia::AddBeziers(const UiPointF* points, int32_t count)
                                  SkPoint::Make(points[i + 1].x, points[i + 1].y),
                                  SkPoint::Make(points[i + 2].x, points[i + 2].y));
     }
-    ASSERT(i == (count - 1));
+    //循环结束后 i 等于 count（count = 1 + 3n 时所有点都被消费），而不是 count - 1
+    ASSERT(i == count);
 }
 
 void Path_Skia::AddRect(const UiRect& rect)
@@ -273,18 +286,26 @@ void Path_Skia::Transform(const IMatrix* pMatrix)
     }
 }
 
-ui::UiRect Path_Skia::GetBounds(const IPen* /*pen*/) const
+ui::UiRect Path_Skia::GetBounds(const IPen* pen) const
 {
     //修复：空路径/非有限路径时 computeFiniteBounds 返回 nullopt，bounds 必须是确定值（原来是未初始化内存）
     SkRect bounds = SkRect::MakeEmpty();
     std::optional<SkRect> optBounds = m_skPathBuilder->computeFiniteBounds();
     if (optBounds.has_value()) {
         bounds = *optBounds;
-    }    
-    return ui::UiRect(SkScalarTruncToInt(bounds.fLeft), 
-                      SkScalarTruncToInt(bounds.fTop), 
-                      SkScalarTruncToInt(bounds.fRight), 
-                      SkScalarTruncToInt(bounds.fBottom));
+    }
+    if (pen != nullptr) {
+        //接口语义：返回的边界需要包含画笔宽度（描边会向外扩展线宽的一半）
+        const SkScalar fHalfWidth = SkFloatToScalar(pen->GetWidth() / 2.0f);
+        if (fHalfWidth > 0) {
+            bounds.outset(fHalfWidth, fHalfWidth);
+        }
+    }
+    //边界向外取整，避免负坐标时向零截断导致边界向内收缩
+    return ui::UiRect(SkScalarFloorToInt(bounds.fLeft), 
+                      SkScalarFloorToInt(bounds.fTop), 
+                      SkScalarCeilToInt(bounds.fRight), 
+                      SkScalarCeilToInt(bounds.fBottom));
 }
 
 SkPathBuilder* Path_Skia::GetSkPathBuilder() const

@@ -337,6 +337,45 @@ if(WIN32)
     )
 endif()
 
+# 覆盖 IRender 中尚未被其他测试覆盖的接口：
+# 窗口原点（SetWindowOrg/OffsetWindowOrg/GetWindowOrg）、IMatrix 全部变换与 ConcatMatrix、
+# 裁剪（SaveClip/RestoreClip/ClipRect 交集与差集/ClipRoundRect/ClipPath/GetClipInfo/IsClipEmpty）、
+# 图层、BitBlt/StretchBlt/AlphaBlend、常用图形绘制、ClearAlpha/RestoreAlpha、
+# WritePixels 两个重载、ClearRect、快照与克隆、IPen/IBrush/IPath/IBitmap 属性与 Clone。
+# 该测试使用离屏渲染（不创建窗口），仅在 Windows 平台构建。
+if(WIN32)
+    add_executable(test_render_api
+        test_render_api.cpp
+    )
+    target_include_directories(test_render_api PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../"
+    )
+    target_link_directories(test_render_api PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_render_api PRIVATE
+        duilib
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_render_api PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_render_api PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(test_render_api PRIVATE UNICODE _UNICODE NOMINMAX WIN32_LEAN_AND_MEAN)
+    # 默认资源目录：源码树的 bin/resources
+    target_compile_definitions(test_render_api PRIVATE
+        DUILIB_TEST_RESOURCE_DIR="${CMAKE_SOURCE_DIR}/bin/resources"
+    )
+    if(MSVC)
+        target_compile_options(test_render_api PRIVATE /utf-8)
+    endif()
+    add_test(NAME render_api
+             COMMAND test_render_api
+    )
+endif()
+
 # 覆盖离屏渲染接口（IRenderFactory::CreateOffscreenRender）：
 # 创建/Resize/超大尺寸、绘制与像素正确性、快照、Clone、多后端能力查询、
 # 线程与生命周期、窗口控件迁移回归（需窗口，打印 SKIP）。

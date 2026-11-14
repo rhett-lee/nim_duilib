@@ -22,7 +22,11 @@ BitmapAlpha::~BitmapAlpha()
 {
 }
 
-//这个函数是必须执行的，否则半透明的界面会出现异常，目前调用的情况，alpha值传入的都是0
+/** 将矩形区域内的图像Alpha设定为指定值alpha(0 - 255)，同时清除图像数据，也设置为alpha
+    说明：该函数是必须执行的，否则半透明的界面会出现异常；目前调用时 alpha 传入的都是 0。
+    实现：按字节覆盖整个区域（RGB 与 Alpha 通道都设置为 alpha），因此区域内的图像内容会被清空；
+          全图清除时调用一次 memset，局部清除时按行 memset，保证性能。
+*/
 void BitmapAlpha::ClearAlpha(const UiRect& rcDirty, uint8_t alpha) const
 {
     ASSERT((m_pPixel != nullptr) && (m_nChannels == 4) && (m_nWidth > 0) && (m_nHeight > 0));
@@ -59,11 +63,18 @@ void BitmapAlpha::ClearAlpha(const UiRect& rcDirty, uint8_t alpha) const
     }
 }
 
-//这个函数目前影响：RichEdit控件，若不调用，其他的控件均不受影响。
+/** 恢复矩形区域内的图像Alpha值（按 ClearAlpha 时使用的 alpha 值恢复）
+    说明：该函数目前影响 RichEdit 控件，若不调用，其他控件均不受影响。
+    适用场景：GDI 等 API 渲染位图会导致 Alpha 通道丢失，用该函数把 Alpha 通道补回来；
+              但如果渲染位图时通过 GDI+、AlphaBlend 等 API 设置了半透明的 Alpha 通道，
+              则可能无法正确修正 Alpha 通道。
+    恢复规则（只修改 Alpha 通道，RGB 通道保持不变）：
+    - alpha 为 0 时：Alpha 为 0 的像素恢复为 255，其余像素保持原值；
+    - alpha 不为 0 时：Alpha 等于 alpha 的像素恢复为 0，Alpha 为 0 的像素恢复为 255，其余像素保持原值。
+*/
 void BitmapAlpha::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding, uint8_t alpha) const
 {
-    // 此函数适用于GDI等API渲染位图，导致丢失alpha通道的情况，可以把alpha通道补回来
-    // 但是渲染位图时，还有GDI+、AlphaBlend等API给位图设置了半透明的alpha通道时，可能导致没法正确的修正alpha通道
+    //此函数适用于GDI等API渲染位图导致Alpha通道丢失的情况，可以把Alpha通道补回来
     ASSERT((m_pPixel != nullptr) && (m_nChannels == 4) && (m_nWidth > 0) && (m_nHeight > 0));
     if ((m_pPixel == nullptr) || (m_nChannels != 4) || (m_nWidth <= 0) || (m_nHeight <= 0)) {
         return;
@@ -127,7 +138,10 @@ void BitmapAlpha::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowP
     }
 }
 
-//这个函数目前影响：RichEdit控件，若不调用，其他的控件均不受影响。
+/** 恢复矩形区域内的图像Alpha值（无条件把区域内所有像素的Alpha设为255，即完全不透明）
+    说明：该函数目前影响 RichEdit 控件，若不调用，其他控件均不受影响。
+    与上一个重载的区别：不区分像素当前的 Alpha 值，统一置为 255，RGB 通道保持不变。
+*/
 void BitmapAlpha::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding) const
 {
     // 无论什么情况，都把此区域的alpha通道设置为255

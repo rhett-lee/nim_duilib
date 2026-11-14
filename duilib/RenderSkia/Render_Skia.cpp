@@ -29,6 +29,7 @@
 #include "include/core/SkColorFilter.h"
 #include "include/core/SkPath.h"
 #include "include/core/SkPathBuilder.h"
+#include "include/core/SkRRect.h"
 #include "include/core/SkRegion.h"
 #include "include/core/SkTypeface.h"
 #include "include/core/SkFont.h"
@@ -44,6 +45,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <cstdint>
+#include <cmath>
 #include <vector>
 
 namespace ui {
@@ -107,6 +109,21 @@ void* Render_Skia::GetPixelBits() const
     return pPixelBits;
 }
 
+/** 将非预乘的ARGB颜色转换为预乘Alpha格式
+    （离屏画布的像素格式默认是预乘Alpha的，直接写入非预乘颜色会导致颜色偏亮）
+*/
+static uint32_t PremultiplyARGB(uint32_t nARGB)
+{
+    const uint32_t nAlpha = (nARGB >> 24) & 0xFF;
+    if ((nAlpha == 0) || (nAlpha == 0xFF)) {
+        return (nAlpha == 0) ? 0 : nARGB;
+    }
+    const uint32_t nRed = (((nARGB >> 16) & 0xFF) * nAlpha + 127) / 255;
+    const uint32_t nGreen = (((nARGB >> 8) & 0xFF) * nAlpha + 127) / 255;
+    const uint32_t nBlue = ((nARGB & 0xFF) * nAlpha + 127) / 255;
+    return (nAlpha << 24) | (nRed << 16) | (nGreen << 8) | nBlue;
+}
+
 void Render_Skia::Clear(const UiColor& uiColor)
 {
     void* pPixelBits = GetPixelBits();
@@ -119,7 +136,7 @@ void Render_Skia::Clear(const UiColor& uiColor)
                 const size_t totalPixels = (size_t)nWidth * (size_t)nHeight;
                 if (totalPixels <= (SIZE_MAX / sizeof(uint32_t))) {
                     const size_t totalBytes = totalPixels * sizeof(uint32_t);
-                    uint32_t nARGB = uiColor.GetARGB();
+                    uint32_t nARGB = PremultiplyARGB(uiColor.GetARGB());
                     if (nARGB == 0) {
                         // nARGB == 0 时，使用 memset 高效清零
                         ::memset(pPixelBits, 0, totalBytes);
@@ -147,19 +164,25 @@ void Render_Skia::Clear(const UiColor& uiColor)
 
 void Render_Skia::ClearRect(const UiRect& rcDirty, const UiColor& uiColor)
 {
+    //与其他绘制接口保持一致：rcDirty 是客户区坐标，需要按视区原点换算到设备坐标
+    const UiRect rcDevice((int32_t)rcDirty.left + (int32_t)m_pSkPointOrg->fX,
+                          (int32_t)rcDirty.top + (int32_t)m_pSkPointOrg->fY,
+                          (int32_t)rcDirty.right + (int32_t)m_pSkPointOrg->fX,
+                          (int32_t)rcDirty.bottom + (int32_t)m_pSkPointOrg->fY);
     void* pPixelBits = GetPixelBits();
     if (pPixelBits != nullptr) {
         const int32_t nWidth = GetWidth();
         const int32_t nHeight = GetHeight();
         if (nWidth > 0 && nHeight > 0) {
-            const int32_t nLeft = std::max((int32_t)rcDirty.left, 0);
-            const int32_t nTop = std::max((int32_t)rcDirty.top, 0);
-            const int32_t nRight = std::min((int32_t)rcDirty.right, nWidth);
-            const int32_t nBottom = std::min((int32_t)rcDirty.bottom, nHeight);
+            const int32_t nLeft = std::max((int32_t)rcDevice.left, 0);
+            const int32_t nTop = std::max((int32_t)rcDevice.top, 0);
+            const int32_t nRight = std::min((int32_t)rcDevice.right, nWidth);
+            const int32_t nBottom = std::min((int32_t)rcDevice.bottom, nHeight);
             if ((nRight > nLeft) && (nBottom > nTop)) {
                 // 计算每行字节数（先做 size_t 提升再相乘，避免 nWidth*4 溢出）
                 const size_t bytesPerRow = (size_t)nWidth * sizeof(uint32_t);
-                const uint32_t nARGB = uiColor.GetARGB();
+                //像素缓冲区是预乘Alpha格式，颜色需要先做预乘处理
+                const uint32_t nARGB = PremultiplyARGB(uiColor.GetARGB());
                 // 优化：使用单层循环 + 指针递增，避免 i*nWidth+j 溢出
                 uint8_t* pBase = (uint8_t*)pPixelBits;
                 for (int32_t i = nTop; i < nBottom; ++i) {
@@ -180,8 +203,8 @@ void Render_Skia::ClearRect(const UiRect& rcDirty, const UiColor& uiColor)
             SkPaint skPaint;
             skPaint.setBlendMode(SkBlendMode::kSrc);
             skPaint.setColor(SkColor(uiColor.GetARGB()));
-            SkRect skRect = SkRect::MakeLTRB((SkScalar)rcDirty.left, (SkScalar)rcDirty.top,
-                                             (SkScalar)rcDirty.right, (SkScalar)rcDirty.bottom);
+            SkRect skRect = SkRect::MakeLTRB((SkScalar)rcDevice.left, (SkScalar)rcDevice.top,
+                                             (SkScalar)rcDevice.right, (SkScalar)rcDevice.bottom);
             skCanvas->drawRect(skRect, skPaint);
         }
     }
@@ -306,24 +329,28 @@ void Render_Skia::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowP
 
 UiPoint Render_Skia::OffsetWindowOrg(UiPoint ptOffset)
 {
-    UiPoint ptOldWindowOrg = { SkScalarTruncToInt(m_pSkPointOrg->fX), SkScalarTruncToInt(m_pSkPointOrg->fY) };
-    SkPoint ptOff = { SkIntToScalar(ptOffset.x), SkIntToScalar(ptOffset.y) };
-    //Skia内部是用的SetViewportOrgEx逻辑(与SetWindowOrgEx相反)，所以这里要符号取反
-    m_pSkPointOrg->offset(-ptOff.fX, -ptOff.fY);
+    //内部变量 m_pSkPointOrg 保存的是"绘制内容的整体偏移量"：
+    //  设备坐标 = 客户区坐标 + m_pSkPointOrg
+    //而"视区原点"(WindowOrg) 的含义是：客户区坐标 pt 被映射到设备坐标(0,0)，
+    //即 设备坐标 = 客户区坐标 - WindowOrg，
+    //因此 m_pSkPointOrg == -WindowOrg（两者符号相反，对外接口统一使用 WindowOrg 语义）
+    UiPoint ptOldWindowOrg = { -SkScalarTruncToInt(m_pSkPointOrg->fX), -SkScalarTruncToInt(m_pSkPointOrg->fY) };
+    //视区原点增加 ptOffset 后，绘制内容的偏移量需要相应减少
+    m_pSkPointOrg->offset(-SkIntToScalar(ptOffset.x), -SkIntToScalar(ptOffset.y));
     return ptOldWindowOrg;
 }
 
 UiPoint Render_Skia::SetWindowOrg(UiPoint ptOffset)
 {
-    UiPoint ptOldWindowOrg = { SkScalarTruncToInt(m_pSkPointOrg->fX), SkScalarTruncToInt(m_pSkPointOrg->fY)};
-    m_pSkPointOrg->fX = SkIntToScalar(ptOffset.x);
-    m_pSkPointOrg->fY = SkIntToScalar(ptOffset.y);
+    UiPoint ptOldWindowOrg = { -SkScalarTruncToInt(m_pSkPointOrg->fX), -SkScalarTruncToInt(m_pSkPointOrg->fY) };
+    m_pSkPointOrg->fX = -SkIntToScalar(ptOffset.x);
+    m_pSkPointOrg->fY = -SkIntToScalar(ptOffset.y);
     return ptOldWindowOrg;
 }
 
 UiPoint Render_Skia::GetWindowOrg() const
 {
-    return UiPoint { SkScalarTruncToInt(m_pSkPointOrg->fX), SkScalarTruncToInt(m_pSkPointOrg->fY) };
+    return UiPoint { -SkScalarTruncToInt(m_pSkPointOrg->fX), -SkScalarTruncToInt(m_pSkPointOrg->fY) };
 }
 
 void Render_Skia::SetTransform(const IMatrix* pMatrix)
@@ -395,10 +422,8 @@ void Render_Skia::RestoreClip(int32_t nState)
 {
     SkCanvas* skCanvas = GetSkCanvas();
     ASSERT(skCanvas != nullptr);
-    ASSERT(m_saveCount == nState);
-    if (m_saveCount != nState) {
-        return;
-    }
+    //nState 可能来自更早的SaveClip/ClipRect/ClipRoundRect/ClipPath调用（多层嵌套），
+    //此时当前保存状态已不是 nState，但仍然可以恢复到该状态，因此不能断言两者相等
     if ((nState > 0) && (skCanvas != nullptr)) {
         skCanvas->restoreToCount(nState);
         //恢复后同步保存状态标志，保证后续SaveClip/ClipRect/RestoreClip的断言一致
@@ -410,10 +435,9 @@ void Render_Skia::RestoreClip(int32_t nState)
 
 int32_t Render_Skia::ClipRect(const UiRect& rc, bool bIntersect)
 {
-    // 空矩形（rc.right <= rc.left）跳过：避免无意义的 save+clip 调用
-    if (rc.right <= rc.left || rc.bottom <= rc.top) {
-        return -1;
-    }
+    //空矩形是合法输入（表示裁剪后没有可绘制区域），不能直接返回-1：
+    //-1表示"没有压入裁剪状态"，调用方无法用RestoreClip恢复；
+    //因此这里照常save+clip，由Skia得到一个空裁剪区域，IsClipEmpty()返回true
     SkIRect rcSkI = { rc.left, rc.top, rc.right, rc.bottom };
     SkRect rcSk = SkRect::Make(rcSkI);
     rcSk.offset(*m_pSkPointOrg);
@@ -436,53 +460,57 @@ int32_t Render_Skia::ClipRect(const UiRect& rc, bool bIntersect)
 
 int32_t Render_Skia::ClipRoundRect(const UiRect& rc, float rx, float ry, bool bIntersect)
 {
-    if (rc.right <= rc.left || rc.bottom <= rc.top) {
-        return -1;
-    }
     SkIRect rcSkI = { rc.left, rc.top, rc.right, rc.bottom };
-    SkRect rcSk = SkRect::Make(rcSkI);
-
-    SkPath skPath = SkPath::RRect(rcSk, rx, ry);
-    SkRegion clip;
-    clip.setRect(rcSkI);
-    SkRegion rgn;
-    rgn.setPath(skPath, clip);
-    rgn.translate((int)m_pSkPointOrg->fX, (int)m_pSkPointOrg->fY);
 
     SkCanvas* skCanvas = GetSkCanvas();
     ASSERT(skCanvas != nullptr);
-    if (skCanvas != nullptr) {
-        // 同步更新 m_saveCount，使其与 Skia 内部 save 栈保持一致
-        m_saveCount = skCanvas->save();
-        if (bIntersect) {
-            skCanvas->clipRegion(rgn, SkClipOp::kIntersect);
-        }
-        else {
-            skCanvas->clipRegion(rgn, SkClipOp::kDifference);
-        }
+    if (skCanvas == nullptr) {
+        return -1;
+    }
+    // 同步更新 m_saveCount，使其与 Skia 内部 save 栈保持一致
+    m_saveCount = skCanvas->save();
+
+    if ((rc.right <= rc.left) || (rc.bottom <= rc.top)) {
+        //空矩形：裁剪为空区域（与ClipRect保持一致，仍然压入裁剪状态）
+        SkRect rcEmpty = SkRect::Make(rcSkI);
+        rcEmpty.offset(*m_pSkPointOrg);
+        skCanvas->clipRect(rcEmpty, SkClipOp::kIntersect, true);
         return m_saveCount;
     }
-    return -1;
+
+    SkRect rcSk = SkRect::Make(rcSkI);
+    rcSk.offset(*m_pSkPointOrg);
+    //圆角半径不能为负数
+    const SkScalar fRx = std::max<SkScalar>(0, (SkScalar)rx);
+    const SkScalar fRy = std::max<SkScalar>(0, (SkScalar)ry);
+    const SkRRect skRRect = SkRRect::MakeRectXY(rcSk, fRx, fRy);
+    //使用 clipRRect 而不是基于 SkRegion 的实现：由Skia直接处理圆角裁剪，支持抗锯齿，边缘更平滑
+    if (bIntersect) {
+        skCanvas->clipRRect(skRRect, SkClipOp::kIntersect, true);
+    }
+    else {
+        skCanvas->clipRRect(skRRect, SkClipOp::kDifference, true);
+    }
+    return m_saveCount;
 }
 
 int32_t Render_Skia::ClipPath(const IPath* path, bool bIntersect)
 {
     const Path_Skia* pSkiaPath = dynamic_cast<const Path_Skia*>(path);
-    ASSERT(pSkiaPath != nullptr);
+    //path为nullptr属于调用方错误，返回-1；但path有效而类型不匹配时才需要断言
+    ASSERT((path == nullptr) || (pSkiaPath != nullptr));
     if (pSkiaPath == nullptr) {
         return -1;
     }
     //裁剪区域使用设备坐标，需要加上视图原点偏移
     SkPath skPath = pSkiaPath->GetSkPathBuilder()->snapshot().makeOffset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
-    if (skPath.isEmpty()) {
-        return -1;
-    }
 
     SkCanvas* skCanvas = GetSkCanvas();
     ASSERT(skCanvas != nullptr);
     if (skCanvas != nullptr) {
         // 同步更新 m_saveCount，使其与 Skia 内部 save 栈保持一致
         m_saveCount = skCanvas->save();
+        //空路径是合法输入（裁剪后没有可绘制区域），仍然压入裁剪状态，便于调用方统一恢复
         if (bIntersect) {
             skCanvas->clipPath(skPath, SkClipOp::kIntersect, true);
         }
@@ -564,7 +592,7 @@ bool Render_Skia::BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, const IRe
         return false;
     }
     // 防止负值或零尺寸导致 Skia::drawImageRect 内部 UB
-    if (cx <= 0 || cy <= 0 || xSrc < 0 || ySrc < 0) {
+    if (cx <= 0 || cy <= 0) {
         return false;
     }
 
@@ -588,11 +616,19 @@ bool Render_Skia::BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, const IRe
     skPaint.setStyle(SkPaint::kFill_Style);
     SetRopMode(skPaint, rop);
 
-    SkIRect rcSkDestI = SkIRect::MakeXYWH(x, y, cx, cy);
+    //源区域与源画布求交：超出源画布的部分裁剪掉，并按偏移量同步调整目标位置
+    //(与Win32 BitBlt的语义一致：越界部分裁剪后仍然返回成功，而不是直接失败)
+    SkIRect rcSkSrcI = SkIRect::MakeXYWH(xSrc, ySrc, cx, cy);
+    if (!rcSkSrcI.intersect(SkIRect::MakeWH(skSrcImage->width(), skSrcImage->height()))) {
+        return false;
+    }
+    const int32_t nDstOffsetX = rcSkSrcI.left() - xSrc;
+    const int32_t nDstOffsetY = rcSkSrcI.top() - ySrc;
+
+    SkIRect rcSkDestI = SkIRect::MakeXYWH(x + nDstOffsetX, y + nDstOffsetY, rcSkSrcI.width(), rcSkSrcI.height());
     SkRect rcSkDest = SkRect::Make(rcSkDestI);
     rcSkDest.offset(*m_pSkPointOrg);
 
-    SkIRect rcSkSrcI = SkIRect::MakeXYWH(xSrc, ySrc, cx, cy);
     SkRect rcSkSrc = SkRect::Make(rcSkSrcI);
 
     SkCanvas* skCanvas = GetSkCanvas();
@@ -612,7 +648,7 @@ bool Render_Skia::StretchBlt(int32_t xDest, int32_t yDest, int32_t widthDest, in
         return false;
     }
     // 防止负值或零尺寸导致 Skia::drawImageRect 内部 UB
-    if (widthDest <= 0 || heightDest <= 0 || widthSrc <= 0 || heightSrc <= 0 || xSrc < 0 || ySrc < 0) {
+    if (widthDest <= 0 || heightDest <= 0 || widthSrc <= 0 || heightSrc <= 0) {
         return false;
     }
 
@@ -636,11 +672,25 @@ bool Render_Skia::StretchBlt(int32_t xDest, int32_t yDest, int32_t widthDest, in
     skPaint.setStyle(SkPaint::kFill_Style);
     SetRopMode(skPaint, rop);
 
-    SkIRect rcSkDestI = SkIRect::MakeXYWH(xDest, yDest, widthDest, heightDest);
+    //源区域与源画布求交：超出源画布的部分裁剪掉，并按缩放比例同步调整目标区域
+    SkIRect rcSkSrcI = SkIRect::MakeXYWH(xSrc, ySrc, widthSrc, heightSrc);
+    if (!rcSkSrcI.intersect(SkIRect::MakeWH(skSrcImage->width(), skSrcImage->height()))) {
+        return false;
+    }
+    const double fScaleX = (double)widthDest / (double)widthSrc;
+    const double fScaleY = (double)heightDest / (double)heightSrc;
+    const int32_t nDstOffsetX = (int32_t)std::lround((rcSkSrcI.left() - xSrc) * fScaleX);
+    const int32_t nDstOffsetY = (int32_t)std::lround((rcSkSrcI.top() - ySrc) * fScaleY);
+    const int32_t nDstWidth = (int32_t)std::lround(rcSkSrcI.width() * fScaleX);
+    const int32_t nDstHeight = (int32_t)std::lround(rcSkSrcI.height() * fScaleY);
+    if ((nDstWidth <= 0) || (nDstHeight <= 0)) {
+        return false;
+    }
+
+    SkIRect rcSkDestI = SkIRect::MakeXYWH(xDest + nDstOffsetX, yDest + nDstOffsetY, nDstWidth, nDstHeight);
     SkRect rcSkDest = SkRect::Make(rcSkDestI);
     rcSkDest.offset(*m_pSkPointOrg);
 
-    SkIRect rcSkSrcI = SkIRect::MakeXYWH(xSrc, ySrc, widthSrc, heightSrc);
     SkRect rcSkSrc = SkRect::Make(rcSkSrcI);
 
     SkCanvas* skCanvas = GetSkCanvas();
@@ -655,8 +705,8 @@ bool Render_Skia::StretchBlt(int32_t xDest, int32_t yDest, int32_t widthDest, in
 bool Render_Skia::AlphaBlend(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc, uint8_t alpha)
 {
     // 1. 参数验证: 与 StretchBlt/BitBlt 保持一致, 提前过滤无效调用, 避免 Skia 内部 UB
-    //    (xSrc/ySrc 不能为负; width*/height* 必须为正)
-    if (widthDest <= 0 || heightDest <= 0 || widthSrc <= 0 || heightSrc <= 0 || xSrc < 0 || ySrc < 0) {
+    //    (width*/height* 必须为正)
+    if (widthDest <= 0 || heightDest <= 0 || widthSrc <= 0 || heightSrc <= 0) {
         return false;
     }
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
@@ -698,18 +748,28 @@ bool Render_Skia::AlphaBlend(int32_t xDest, int32_t yDest, int32_t widthDest, in
         skPaint.setAlpha(alpha);
     }
 
-    // 5. 直接构造 SkRect: 消除 SkIRect 中间对象和 SkRect::Make/offset 多次调用,
-    //    减少内存访问与函数调用开销
+    // 5. 源区域与源画布求交：超出源画布的部分裁剪掉，并按缩放比例同步调整目标区域
+    SkIRect rcSkSrcI = SkIRect::MakeXYWH(xSrc, ySrc, widthSrc, heightSrc);
+    if (!rcSkSrcI.intersect(SkIRect::MakeWH(skSrcImage->width(), skSrcImage->height()))) {
+        return false;
+    }
+    const double fScaleX = (double)widthDest / (double)widthSrc;
+    const double fScaleY = (double)heightDest / (double)heightSrc;
+    const int32_t nDstX = xDest + (int32_t)std::lround((rcSkSrcI.left() - xSrc) * fScaleX);
+    const int32_t nDstY = yDest + (int32_t)std::lround((rcSkSrcI.top() - ySrc) * fScaleY);
+    const int32_t nDstWidth = (int32_t)std::lround(rcSkSrcI.width() * fScaleX);
+    const int32_t nDstHeight = (int32_t)std::lround(rcSkSrcI.height() * fScaleY);
+    if ((nDstWidth <= 0) || (nDstHeight <= 0)) {
+        return false;
+    }
+
     const SkScalar orgX = m_pSkPointOrg->fX;
     const SkScalar orgY = m_pSkPointOrg->fY;
-    SkRect rcSkDest = SkRect::MakeXYWH((SkScalar)xDest + orgX,
-                                       (SkScalar)yDest + orgY,
-                                       (SkScalar)widthDest,
-                                       (SkScalar)heightDest);
-    SkRect rcSkSrc = SkRect::MakeXYWH((SkScalar)xSrc,
-                                      (SkScalar)ySrc,
-                                      (SkScalar)widthSrc,
-                                      (SkScalar)heightSrc);
+    SkRect rcSkDest = SkRect::MakeXYWH((SkScalar)nDstX + orgX,
+                                       (SkScalar)nDstY + orgY,
+                                       (SkScalar)nDstWidth,
+                                       (SkScalar)nDstHeight);
+    SkRect rcSkSrc = SkRect::Make(rcSkSrcI);
 
     // 6. 执行绘制: 使用 kFast_SrcRectConstraint 走 Skia 快速路径(本函数已校验源矩形合法性)
     skCanvas->drawImageRect(skSrcImage, rcSkSrc, rcSkDest, ToSkSamplingOptions(m_imageSamplingQuality), &skPaint, SkCanvas::kFast_SrcRectConstraint);
@@ -1823,8 +1883,10 @@ void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
     }
     skPaint.setPathEffect(skPathEffect);
 
+    //说明：Skia 只支持一种线帽样式（同时作用于线段两端），因此使用起始笔帽样式；
+    //结束笔帽与虚线笔帽的样式无法在 Skia 中分别表达（保持一致性与可预期性，优先取起始笔帽）
     SkPaint::Cap cap = SkPaint::Cap::kDefault_Cap;
-    switch (pen->GetDashCap()) {
+    switch (pen->GetStartCap()) {
     case IPen::kButt_Cap:
         cap = SkPaint::Cap::kButt_Cap;
         break;
@@ -1857,12 +1919,11 @@ void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
 
     skPaint.setStrokeJoin(join);
     skPaint.setStyle(SkPaint::kStroke_Style);
-    if (skPaint.isAntiAlias()) {
-        skPaint.setStrokeWidth((SkScalar)pen->GetWidth() - 0.5f);
-    }
-    else {
-        skPaint.setStrokeWidth((SkScalar)pen->GetWidth());
-    }
+    //说明：这里必须使用画笔的原始线宽。
+    //（历史实现对开启抗锯齿的画笔使用了 "线宽 - 0.5" 的修正，导致实际线宽小于指定值，
+    //  且与 DrawRect/DrawRoundRect 等直接指定线宽的重载行为不一致；
+    //  线宽的像素对齐应由调用方通过坐标处理，接口语义是"按指定线宽绘制"）
+    skPaint.setStrokeWidth((SkScalar)pen->GetWidth());
 }
 
 void Render_Skia::FillPath(const IPath* path, const IBrush* brush)
@@ -2410,6 +2471,10 @@ bool Render_Skia::ReadPixels(const UiRect& rc, void* dstPixels, size_t dstPixels
     if (rc.IsEmpty()) {
         return false;
     }
+    //接口语义：读取区域必须完全位于画布内，否则无法保证目标缓冲区的数据完整，返回失败
+    if ((rc.left < 0) || (rc.top < 0) || (rc.right > GetWidth()) || (rc.bottom > GetHeight())) {
+        return false;
+    }
     //修复：宽高相乘可能溢出 int，统一提升为 size_t 计算
     const size_t needBytes = (size_t)rc.Width() * (size_t)rc.Height() * sizeof(uint32_t);
     ASSERT(dstPixelsLen >= needBytes);
@@ -2439,6 +2504,10 @@ bool Render_Skia::WritePixels(const void* srcPixels, size_t srcPixelsLen, const 
     }
     ASSERT(!rc.IsEmpty());
     if (rc.IsEmpty()) {
+        return false;
+    }
+    //接口语义：写入区域必须完全位于画布内，否则只写入部分数据会导致语义不明确，返回失败
+    if ((rc.left < 0) || (rc.top < 0) || (rc.right > GetWidth()) || (rc.bottom > GetHeight())) {
         return false;
     }
     //修复：宽高相乘可能溢出 int，统一提升为 size_t 计算
@@ -2475,6 +2544,10 @@ bool Render_Skia::WritePixels(const void* srcPixels, size_t srcPixelsLen, const 
     }
     ASSERT(!rc.IsEmpty());
     if (rc.IsEmpty()) {
+        return false;
+    }
+    //接口语义：写入区域必须完全位于画布内（rcPaint只用于限定实际写入的脏区域）
+    if ((rc.left < 0) || (rc.top < 0) || (rc.right > GetWidth()) || (rc.bottom > GetHeight())) {
         return false;
     }
     //修复：宽高相乘可能溢出 int，统一提升为 size_t 计算
@@ -2531,12 +2604,9 @@ RenderClipType Render_Skia::GetClipInfo(std::vector<UiRect>& clipRects) const
         }
         else if (skCanvas->isClipRect()) {
             clipType = RenderClipType::kRect;
-            SkRect rcClip;
-            if (skCanvas->getLocalClipBounds(&rcClip)) {
-                UiRect rect = { (int32_t)rcClip.left(), (int32_t)rcClip.top(), (int32_t)rcClip.right(), (int32_t)rcClip.bottom() };
-                rect.Deflate(1, 1); //注意需要向内缩小一个象素（Skia在设置Clip的时候，会放大一个像素）
-                clipRects.push_back(rect);
-            }
+            //统一使用设备空间的裁剪边界：区域裁剪与矩形裁剪的坐标空间保持一致
+            const SkIRect skClip = skCanvas->getDeviceClipBounds();
+            clipRects.push_back(UiRect(skClip.fLeft, skClip.fTop, skClip.fRight, skClip.fBottom));
         }
         else {
             clipType = RenderClipType::kRegion;
@@ -2544,10 +2614,8 @@ RenderClipType Render_Skia::GetClipInfo(std::vector<UiRect>& clipRects) const
             skCanvas->temporary_internal_getRgnClip(&rgn);
             SkRegion::Iterator it(rgn);
             for (; !it.done(); it.next()) {
-                SkIRect skrc = it.rect();
-                UiRect rect = { skrc.fLeft, skrc.fTop, skrc.fRight, skrc.fBottom };
-                rect.Deflate(1, 1); //注意需要向内缩小一个象素（Skia在设置Clip的时候，会放大一个像素）
-                clipRects.push_back(rect);
+                const SkIRect skrc = it.rect();
+                clipRects.push_back(UiRect(skrc.fLeft, skrc.fTop, skrc.fRight, skrc.fBottom));
             }
         }
     }
@@ -2593,8 +2661,9 @@ bool Render_Skia::IsClipEmpty() const
 
 bool Render_Skia::IsEmpty() const
 {
+    //接口语义：绘制区域为空（宽度或高度为0，或者没有可用的画布）时返回true
     SkCanvas* skCanvas = GetSkCanvas();
-    return (skCanvas != nullptr) && (GetWidth() > 0) && (GetHeight() > 0);
+    return (skCanvas == nullptr) || (GetWidth() <= 0) || (GetHeight() <= 0);
 }
 
 void Render_Skia::SetRenderDpi(const IRenderDpiPtr& spRenderDpi)

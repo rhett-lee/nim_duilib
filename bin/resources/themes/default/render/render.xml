@@ -36,8 +36,8 @@
                 <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_RENDER_TAB_IMAGE3" width="76" tab_box_item_index="2"/>
                 <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_RENDER_TAB_TEXT_HORIZONTAL" width="130" tab_box_item_index="3"/>
                 <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_RENDER_TAB_TEXT_VERTICAL" width="118" tab_box_item_index="4"/>
-                <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_RENDER_TAB_DRAW" width="72" tab_box_item_index="5"/>
-                <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_RENDER_TAB_PAINT" width="72" tab_box_item_index="6"/>
+                <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_RENDER_TAB_DRAW" width="100" tab_box_item_index="5"/>
+                <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_RENDER_TAB_PAINT" width="110" tab_box_item_index="6"/>
                 <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_RENDER_TAB_BOX_SHADOW" width="100" tab_box_item_index="7"/>
                 <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_RENDER_TAB_PROPERTY_TAB" width="150" tab_box_item_index="8"/>
                 <TabCtrlItem class="tab_ctrl_item tab_ctrl_item_indicator" title_id="STRID_RENDER_TAB_WINDOW_SHADOW" width="120" tab_box_item_index="9"/>
@@ -71,14 +71,18 @@
                     <Label text_id="STRID_RENDER_PAGE5_DESC" normal_text_color="text_muted" margin="0,0,0,8"/>
                     <Include src="page_text2.xml"/>
                 </VBox>
-                <VBox name="main_view_page_05" padding="10,10,10,10">
-                    <Label text_id="STRID_RENDER_PAGE6_DESC" normal_text_color="text_muted" margin="0,0,0,8"/>
-                    <RenderTest1 width="stretch" height="stretch"/>
-                </VBox>
-                <VBox name="main_view_page_06" padding="10,10,10,10">
-                    <Label text_id="STRID_RENDER_PAGE7_DESC" normal_text_color="text_muted" margin="0,0,0,8"/>
-                    <RenderTest2 width="stretch" height="stretch"/>
-                </VBox>
+                <ScrollBox name="main_view_page_05" padding="10,10,10,10" vscrollbar="true" hscrollbar="false">
+                    <VBox width="stretch" height="auto">
+                        <Label text_id="STRID_RENDER_PAGE6_DESC" normal_text_color="text_muted" margin="0,0,0,8" width="stretch" height="44" single_line="false"/>
+                        <RenderTest1 width="stretch" height="auto"/>
+                    </VBox>
+                </ScrollBox>
+                <ScrollBox name="main_view_page_06" padding="10,10,10,10" vscrollbar="true" hscrollbar="false">
+                    <VBox width="stretch" height="auto">
+                        <Label text_id="STRID_RENDER_PAGE7_DESC" normal_text_color="text_muted" margin="0,0,0,8" width="stretch" height="44" single_line="false"/>
+                        <RenderTest2 width="stretch" height="auto"/>
+                    </VBox>
+                </ScrollBox>
                 <VBox name="main_view_page_07" padding="10,10,10,10">
                     <Label text_id="STRID_RENDER_PAGE8_DESC" normal_text_color="text_muted" margin="0,0,0,8"/>
                     <Include src="page_boxshadow.xml"/>

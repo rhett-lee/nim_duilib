@@ -187,11 +187,13 @@ class DUILIB_API IBitmap : public virtual SupportWeakCallback
 {
 public:
     /** 从数据初始化（ARGB格式）
-    @param [in] nWidth 宽度
-    @param [in] nHeight 高度
+    @param [in] nWidth 宽度（像素）
+    @param [in] nHeight 高度（像素）
     @param [in] pPixelBits 位图数据, 如果为nullptr表示窗口空位图，如果不为nullptr，其数据长度为：nHeight * nWidth * 4
-    @param [in] fImageSizeScale 图片的缩放比例，1.0f表示原值
+    @param [in] fImageSizeScale 图片的缩放比例，1.0f表示原值；
+               不等于1.0f时，位图的实际尺寸会缩放为 (nWidth, nHeight) * fImageSizeScale
     @param [in] alphaType 位图的Alpha类型
+    @return 初始化成功返回true，失败返回false
     */
     virtual bool Init(uint32_t nWidth, uint32_t nHeight,
                       const void* pPixelBits, float fImageSizeScale = 1.0f,
@@ -276,6 +278,8 @@ public:
     };
 
     /** 设置线段起始的笔帽样式
+    * @note Skia后端只支持一种线帽样式（同时作用于线段两端），绘制时使用起始笔帽样式；
+    *       结束笔帽与虚线笔帽的样式会被保存，但不参与绘制
     */
     virtual void SetStartCap(LineCap cap) = 0;
 
@@ -485,7 +489,7 @@ public:
     *                   第一个样条从第一个点到数组的第四个点构造，并使用第二和第三个点作为控制点。 
     *                    序列中的每个后续样条只需要另外三个点：
     *                    前一个样条的终点用作起点，序列中的下两个点是控制点，第三个点是终点。
-    * @param [in] count 数组中的元素数
+    * @param [in] count 数组中的元素数，必须满足：count == 1 + 3 * n（n为样条个数，n >= 1）
     */
     virtual void AddBeziers(const UiPoint* points, int32_t count) = 0;
     virtual void AddBeziers(const UiPointF* points, int32_t count) = 0;
@@ -527,7 +531,8 @@ public:
     virtual void Transform(const IMatrix* pMatrix) = 0;
 
     /** 获取此路径的边界矩形
-    * @param [in] pen 关联的Pen对象，可以为nullptr
+    * @param [in] pen 关联的Pen对象，可以为nullptr；不为nullptr时，边界会向外扩展线宽的一半
+    * @return 返回路径的边界矩形（向外取整，确保包含路径的全部像素）
     */
     virtual UiRect GetBounds(const IPen* pen) const = 0;
 
@@ -549,19 +554,21 @@ public:
 class DUILIB_API IMatrix : public SupportWeakCallback
 {
 public:
-    /** 平移操作
+    /** 平移操作（设置当前矩阵为纯平移矩阵，覆盖之前的变换）
+    * 注意：本接口以及下面的 Scale/Rotate/Skew 都是"设置"矩阵，不是"叠加"变换；
+    *       需要组合多种变换时，请分别创建矩阵，并使用 Concat 按顺序叠加。
     * @param [in] offsetX X轴方向平移的偏移量
     * @param [in] offsetY Y轴方向平移的偏移量
     */
     virtual void Translate(float offsetX, float offsetY) = 0;
 
-    /** 缩放操作（以原点为中心）
+    /** 缩放操作（以原点为中心，设置当前矩阵，覆盖之前的变换）
     * @param [in] scaleX X轴方向缩放比例
     * @param [in] scaleY Y轴方向缩放比例
     */
     virtual void Scale(float scaleX, float scaleY) = 0;
 
-    /** 缩放操作（以 (px, py) 为中心）
+    /** 缩放操作（以 (px, py) 为中心，设置当前矩阵，覆盖之前的变换）
     * @param [in] scaleX X轴方向缩放比例
     * @param [in] scaleY Y轴方向缩放比例
     * @param [in] px X轴方向的中心点
@@ -569,25 +576,25 @@ public:
     */
     virtual void Scale(float scaleX, float scaleY, float px, float py) = 0;
 
-    /** 旋转操作（以原点为中心）
+    /** 旋转操作（以原点为中心，设置当前矩阵，覆盖之前的变换）
     * @param [in] angle 旋转的角度，正数为顺时针操作，负数为逆时针操作
     */
     virtual void Rotate(float angle) = 0;
 
-    /** 旋转操作，以坐标(px,py)为中心点做旋转操作
+    /** 旋转操作，以坐标(px,py)为中心点做旋转操作（设置当前矩阵，覆盖之前的变换）
     * @param [in] angle 旋转的角度，正数为顺时针操作，负数为逆时针操作
     * @param [in] px 旋转的中心点X坐标值
     * @param [in] py 旋转的中心点Y坐标值
     */
     virtual void RotateAt(float angle, float px, float py) = 0;
 
-    /** 错切操作（以原点为中心）
+    /** 错切操作（以原点为中心，设置当前矩阵，覆盖之前的变换）
     * @param [in] kx X 轴错切因子
     * @param [in] ky Y 轴错切因子
     */
     virtual void Skew(float kx, float ky) = 0;
 
-    /** 错切操作（以 (px, py) 为中心）
+    /** 错切操作（以 (px, py) 为中心，设置当前矩阵，覆盖之前的变换）
     * @param [in] kx X 轴错切因子
     * @param [in] ky Y 轴错切因子
     * @param [in] px X轴方向的中心点
@@ -669,10 +676,12 @@ public:
 /** 光栅操作代码
  *
  *  各模式的行为描述与限制（不同渲染后端的实现细节可能不同，但语义保持一致）：
- *   kSrcCopy   用源图像覆盖目标区域（完整支持）
+ *   kSrcCopy   用源图像覆盖目标区域（完整支持，源图像中的Alpha通道参与混合）
  *   kDstInvert 将目标区域颜色取反（255 - dst）；源图像仅用于确定绘制区域，
  *              其像素颜色不参与运算（完整支持）
- *   kSrcInvert 源图像与目标区域做异或运算（完整支持）
+ *   kSrcInvert 源图像与目标区域做异或运算（近似实现：Skia后端使用 kXor 混合模式，
+ *              其效果是按Alpha覆盖率做异或合成，并不等价于逐通道的颜色按位异或，
+ *              不保证与GDI的像素级结果完全一致）
  *   kSrcAnd    仅保留目标区域覆盖范围内的源图像（近似实现：与逐位"与"运算的
  *              结果不完全等价，不保证逐像素精确）
  */
@@ -680,8 +689,8 @@ enum class DUILIB_API RopMode
 {
     kSrcCopy,    //用源图像覆盖目标区域
     kDstInvert,  //目标区域颜色取反（源图像仅作为绘制区域使用）
-    kSrcInvert,  //源图像与目标区域做异或运算
-    kSrcAnd      //仅保留目标区域覆盖范围内的源图像（近似实现）
+    kSrcInvert,  //源图像与目标区域做异或运算（近似实现，见上方说明）
+    kSrcAnd      //仅保留目标区域覆盖范围内的源图像（近似实现，见上方说明）
 };
 
 /** 绘制文本时的格式
@@ -1088,6 +1097,8 @@ public:
      *  将原视区原点y值增加ptOffset.y后，作为新的视区原点y;
      * @param [in] ptOffset 视区原点坐标偏移量
      *@return 返回原来的视区原点坐标(x,y)
+     * @note 视区原点用于滚动等场景：设置后，所有绘制接口传入的客户区坐标都会整体平移，
+     *       使客户区坐标 pt 显示在设备坐标 (pt - 视区原点) 处
      */
     virtual UiPoint OffsetWindowOrg(UiPoint ptOffset) = 0;
 
@@ -1120,36 +1131,39 @@ public:
     */
     virtual BlendMode GetBlendMode() const = 0;
     
-    /** 保存指定设备上下文的当前状态
-    * @param [out] 返回保存的设备上下文标志，在RestoreClip的时候，作为参数传入
+    /** 保存当前设备上下文的状态（包括剪辑区域、变换矩阵等）
+    * @param [out] nState 返回保存的状态标志，在调用 RestoreClip 时作为参数传入
     */
     virtual void SaveClip(int32_t& nState) = 0;
 
-    /** 将设备上下文还原到最近一次保存的状态（清除由SaveClip/ClipRect/ClipRoundRect设置的剪辑区域）
-    * @param [in] 保存的设备上下文标志（由SaveClip/ClipRect/ClipRoundRect返回）
+    /** 将设备上下文还原到指定标志对应的状态（清除该状态之后设置的剪辑区域）
+    * @param [in] nState 状态标志（由 SaveClip / ClipRect / ClipRoundRect / ClipPath 返回）
+    * @note 支持多层嵌套：可以传回任意一次保存时返回的标志，此时该标志之后的所有保存状态都会被丢弃；
+    *       标志无效（<=0）时不做任何处理
     */
     virtual void RestoreClip(int32_t nState) = 0;
 
     /** 设置矩形剪辑区域，并保存当前设备上下文的状态
-    * @param [in] rc剪辑区域，与当前剪辑区取交集作为新的剪辑区域
-    * @param [in] bIntersect ClipOp操作标志，true表示kIntersect操作，false表示kDifference操作
-    * @return 返回当前设备上下文标志，在调用RestoreClip的时候需要传回该返回值，错误时返回-1
+    * @param [in] rc 剪辑区域（客户区坐标，会按视区原点换算到设备坐标）
+    * @param [in] bIntersect ClipOp操作标志，true表示与当前剪辑区取交集（kIntersect），false表示从当前剪辑区中减去该区域（kDifference）
+    * @return 返回当前设备上下文标志，在调用RestoreClip的时候需要传回该返回值；画布不可用时返回-1
+    * @note 传入空矩形时，交集操作得到的剪辑区域为空（不会绘制任何内容），但依然返回有效的状态标志
     */
     virtual int32_t ClipRect(const UiRect& rc, bool bIntersect = true) = 0;
 
     /** 设置圆角矩形剪辑区域，并保存当前设备上下文的状态
-    * @param [in] rcItem 剪辑区域，与当前剪辑区取交集作为新的剪辑区域
+    * @param [in] rcItem 剪辑区域（客户区坐标，会按视区原点换算到设备坐标）
     * @param [in] rx 圆角的宽度
     * @param [in] ry 圆角的的高度
-    * @param [in] bIntersect ClipOp操作标志，true表示kIntersect操作，false表示kDifference操作
-    * @return 返回当前设备上下文标志，在调用RestoreClip的时候需要传回该返回值，错误时返回-1
+    * @param [in] bIntersect ClipOp操作标志，true表示与当前剪辑区取交集（kIntersect），false表示从当前剪辑区中减去该区域（kDifference）
+    * @return 返回当前设备上下文标志，在调用RestoreClip的时候需要传回该返回值；画布不可用时返回-1
     */
     virtual int32_t ClipRoundRect(const UiRect& rcItem, float rx, float ry, bool bIntersect = true) = 0;
 
     /** 设置路径剪辑区域，并保存当前设备上下文的状态（用于圆形头像、异形卡片等非矩形裁剪）
-    * @param [in] path 剪辑路径
-    * @param [in] bIntersect ClipOp操作标志，true表示kIntersect操作，false表示kDifference操作
-    * @return 返回当前设备上下文标志，在调用RestoreClip的时候需要传回该返回值，错误时返回-1
+    * @param [in] path 剪辑路径（客户区坐标，会按视区原点换算到设备坐标）；不可为nullptr
+    * @param [in] bIntersect ClipOp操作标志，true表示与当前剪辑区取交集（kIntersect），false表示从当前剪辑区中减去该区域（kDifference）
+    * @return 返回当前设备上下文标志，在调用RestoreClip的时候需要传回该返回值；参数无效（path为nullptr或类型不匹配）或画布不可用时返回-1
     */
     virtual int32_t ClipPath(const IPath* path, bool bIntersect = true) = 0;
 
@@ -1570,9 +1584,9 @@ public:
     */
     virtual IBitmap* MakeImageSnapshot(const UiRect& rc) = 0;
 
-    /** 将矩形区域内的图像Alpha设定为指定值alpha(0 - 255)
-    * @param [in] rcDirty 矩形区域
-    * @param [in] alpha 需要设定的Aplpa值
+    /** 将矩形区域内的图像Alpha设定为指定值alpha(0 - 255)，同时清除图像数据，也设置为alpha
+    * @param [in] rcDirty 矩形区域（超出图像范围的部分会被裁剪）
+    * @param [in] alpha 需要设定的Alpha值（0 - 255），图像数据（RGB通道）同时被清除为该值
     */
     virtual void ClearAlpha(const UiRect& rcDirty, uint8_t alpha = 0) = 0;
 
@@ -1591,13 +1605,13 @@ public:
 
 public:
     /** 清除位图数据，填充指定颜色（若要使位图数据全部清零，可传入UiColor()参数）
-    * @param [in] uiColor 需要填充的颜色值
+    * @param [in] uiColor 需要填充的颜色值（非预乘格式，内部会按画布的Alpha类型做预乘处理）
     */
     virtual void Clear(const UiColor& uiColor) = 0;
 
     /** 清除位图指定区域的数据，填充指定颜色（若要使位图数据全部清零，可传入UiColor()参数）
-    * @param [in] rcDirty 需要清除的区域
-    * @param [in] uiColor 需要填充的颜色值
+    * @param [in] rcDirty 需要清除的区域（客户区坐标）
+    * @param [in] uiColor 需要填充的颜色值（非预乘格式，内部会按画布的Alpha类型做预乘处理）
     */
     virtual void ClearRect(const UiRect& rcDirty, const UiColor& uiColor) = 0;
 
@@ -1606,32 +1620,38 @@ public:
     virtual std::unique_ptr<IRender> Clone() const = 0;
 
     /** 读取指定矩形范围内的位图数据（数据是从目标数据复制一份）
-    * @param [in] rc 在Render中的矩形范围
+    * @param [in] rc 在Render中的矩形范围（客户区坐标，会按视区原点换算到设备坐标）；
+    *                必须完全位于画布内，否则返回false
     * @param [in] dstPixels 读取的目标缓冲区起始地址
     * @param [in] dstPixelsLen 目标dstPixels的缓冲区长度, 长度需要满足要求：dstPixelsLen >= (rc.Width() * rc.Height() * sizeof(uint32_t))
+    * @return 读取成功返回true；区域超出画布、画布不可用或缓冲区长度不足时返回false
     */
     virtual bool ReadPixels(const UiRect& rc, void* dstPixels, size_t dstPixelsLen) = 0;
 
     /** 将数据写入到位图中去（数据是复制一份到目标数据）
     * @param [in] srcPixels 源数据的缓冲区起始地址
     * @param [in] srcPixelsLen 源数据srcPixels缓冲区长度, 长度需要满足要求：srcPixelsLen == (rc.Width() * rc.Height() * sizeof(uint32_t))
-    * @param [in] rc 在Render中的矩形范围，将位图数据写入到此矩形内，rc.Width()代表图像数据的宽度，rc.Height()代表图像数据的高度
+    * @param [in] rc 在Render中的矩形范围（客户区坐标），将位图数据写入到此矩形内，rc.Width()代表图像数据的宽度，rc.Height()代表图像数据的高度；
+    *                必须完全位于画布内，否则返回false
+    * @return 写入成功返回true；区域超出画布、画布不可用或缓冲区长度不匹配时返回false
     */
     virtual bool WritePixels(const void* srcPixels, size_t srcPixelsLen, const UiRect& rc) = 0;
 
     /** 将数据写入到位图中去(数据是复制一份到目标数据，仅复制绘制部分)
     * @param [in] srcPixels 源数据的缓冲区起始地址
-    * @param [in] srcPixelsLen 源数据srcPixels缓冲区长度，长度需要满足要求：srcPixelsLen >= (rc.Width() * rc.Height() * sizeof(uint32_t))
-    * @param [in] rc 在Render中的矩形范围，rc.Width()代表图像数据的宽度，rc.Height()代表图像数据的高度
-    * @param [in] rcPaint 绘制的部分矩形范围，代表脏区域，仅绘制rcPaint与rc交集的部分区域
+    * @param [in] srcPixelsLen 源数据srcPixels缓冲区长度，长度需要满足要求：srcPixelsLen == (rc.Width() * rc.Height() * sizeof(uint32_t))
+    * @param [in] rc 在Render中的矩形范围（客户区坐标），rc.Width()代表图像数据的宽度，rc.Height()代表图像数据的高度；
+    *                必须完全位于画布内，否则返回false
+    * @param [in] rcPaint 绘制的部分矩形范围（与rc同一坐标系），代表脏区域，仅写入rcPaint与rc交集的部分区域
+    * @return 写入成功返回true；区域超出画布、画布不可用或缓冲区长度不匹配时返回false
     */
     virtual bool WritePixels(const void* srcPixels, size_t srcPixelsLen, const UiRect& rc, const UiRect& rcPaint) = 0;
 
     /** 获取当前的裁剪区域
-    * @param [out] clipRects 返回裁剪区域的矩形数据，矩形区域坐标为客户区坐标
+    * @param [out] clipRects 返回裁剪区域的矩形数据，矩形区域坐标为客户区坐标（可直接用于绘制代码）
                              如果是 RenderClipType::kRect类型，容器中只有一个元素，
                              如果是RenderClipType::kRegion类型，容器中有多个元素，用于构建Region
-    * @return 返回裁剪区域类型
+    * @return 返回裁剪区域类型；没有设置裁剪时返回 RenderClipType::kEmpty
     */
     virtual RenderClipType GetClipInfo(std::vector<UiRect>& clipRects) const = 0;
 

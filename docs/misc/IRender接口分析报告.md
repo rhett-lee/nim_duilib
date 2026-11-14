@@ -2,6 +2,8 @@
 
 > **文档状态（2026-11-14 更新）**：本报告已随"字体回退性能优化"（见 [字体回退性能优化分析.md](字体回退性能优化分析.md)）重新校准；2026-11-14 完成了第四节"接口一致性问题"的全部 8 条（第 1、2、5、6、7、8 条：`Clone` 家族、只读 const、测量返回值、魔法值、文本间距命名、取值风格；第 3、4 条：裁剪接口改名、`MeasureRichText` 重载合并），完成第五节第 2 条（富文本接口去掉 `IRenderFactory*` 参数）、第 3 条（`rcPaint` 后移为可选参数并内部兜底）与第 5 条（三个绘图接口合并为两个入口 + `ImageDrawParam`），并补齐第六节 P0/P1/P2 的全部缺失能力（`FillArc`、`DrawEllipse`/`FillEllipse`、`DrawPolygon`/`FillPolygon`、`ClipPath`、`ImageSamplingQuality`；`IFont` 度量/宽度/信息、`IBitmap` 只读查询、`MeasureString` 轻量重载、局部快照、`SaveLayer`/`RestoreLayer`；`IMatrix`/`IPen`/`IBrush` 扩展、`BlendMode`、`SetTransform`、`CreateBitmap` 重载）。文中代码行号以当前代码为准；每条问题均标注当前处理状态（已修复 / 部分修复 / 未处理 / 暂不处理）；"零、进度总览"与"九、字体回退相关接口变更记录"便于后续跟进。
 
+> **2026-11-14 第三轮补充**：新增 `tests/test_render_api.cpp`（`render_api` 用例，373 项检查），覆盖全部可单元测试的 `IRender.h` 接口；同步完成实现层 Review 修复（裁剪状态、位块传输越界、像素读写边界、预乘 Alpha、画笔线宽、路径连续性等）、接口注释复查，以及 `render.exe` 的"绘制图片 / 绘制图形"页面重构。详见第十一节。
+
 ## 零、进度总览（2026-11-14）
 
 字体回退优化以渲染内部实现为主，但同时调整了 `IFont` / `IFontMgr` / `IFallbackFontMgr` 三个公共接口（见第九节），并顺带修复了本报告的部分"必须改"项；2026-11-14 已集中处理完第四节的 8 条接口一致性问题。当前状态：
@@ -51,7 +53,9 @@
 
 > 补充（2026-11-14 第十一批）：完成第五节第 1 条——新增 `IRenderWindow : public virtual IRender`，`PaintAndSwapBuffers` / `GetRenderDC` / `ReleaseRenderDC` / `SetWindowRoundRectRgn` / `SetWindowRectRgn` / `ClearWindowRgn` 从 `IRender` 迁出；`Render_Skia_Windows/SDL` 改为继承 `IRenderWindow`，`Window::m_render` 改为 `std::unique_ptr<IRenderWindow>`，`INativeWindow::OnNativeGetRender()` 返回 `IRenderWindow*`（`Window::GetRender()` 仍返回 `IRender*`，绘制代码零改动）。同时新增离屏渲染：`IRenderFactory::IsOffscreenBackendSupported` 与 `CreateOffscreenRender`——`kRaster` 全平台可用；`kNativeGL` 条件支持（复用同线程窗口 GL 上下文，或惰性创建后台隐藏窗口上下文；Windows ARM64 不支持）；离屏对象不实现 `IRenderWindow`，支持 `Resize` / `Clone` / 快照回读。`IRenderFactory::CreateRender` 已从接口移除，窗口与离屏分别使用 `CreateWindowRender` / `CreateOffscreenRender`，examples/CEF/单元测试等调用点全部同步迁移。新增 `offscreen_render` 单元测试，ctest 12/12 通过。
 
-统计：已修复 24 项、部分修复 0 项、暂不处理 1 项、未处理 0 项、缺失接口 P0/P1/P2 已全部补齐。
+> 补充（2026-11-14 第十二批）：新增 `tests/test_render_api.cpp`（`render_api` 用例，373 项检查，RA-1 ~ RA-101），按接口族逐项覆盖 `IRender` / `IRenderFactory` / `IPen` / `IBrush` / `IPath` / `IMatrix` / `IBitmap` 的可单元测试接口；同步修复实现层问题（`RestoreClip` 嵌套、裁剪空区域、`ClipRoundRect` 抗锯齿、`GetClipInfo`、`IsEmpty`、像素读写越界、位块传输源区域裁剪、预乘 Alpha、画笔线宽与线帽、`FillPath(brush)`、`DrawPath` 画布状态、路径浮点端点容差、`AddBeziers` 断言、`GetBounds` 边界）；`render.exe` 的"绘制图片 / 绘制图形"两页完成改名、纵向滚动与全用法展示。详见第十一节。
+
+统计：已修复 24 项、部分修复 0 项、暂不处理 1 项、未处理 0 项、缺失接口 P0/P1/P2 已全部补齐；实现层 Review 另修复 16 项（见第十一节），`ctest` 用例增至 14 个（新增 `render_api`），14/14 通过。
 
 ## 一、结论
 
@@ -497,3 +501,63 @@ virtual IBitmap* CreateBitmap(uint32_t nWidth, uint32_t nHeight, AlphaType alpha
 **测试补充**：新增 `tests/test_render_shape.cpp`（`render_shape` 用例）——覆盖 `FillEllipse`/`DrawEllipse`（中心填充、四角留白、描边位置）、`FillArc`（扇形内外象限）、`FillPolygon`/`DrawPolygon`（内部填充、外部留白、边框位置）、`ClipPath`（三角形内填充、外部留白）、`Set/GetImageSamplingQuality`（默认值与来回切换），共 36 项检查。
 
 **测试补充**：新增 `tests/test_render_ext.cpp`（`render_ext` 用例）——覆盖 `IFont` 度量/文本宽度/字体信息、`IBitmap` 只读查询与新位图创建、`MeasureString` 轻量重载、`MakeImageSnapshot(rc)`（尺寸与像素校验）、`SaveLayer/RestoreLayer` 的 50% 图层混合、`Set/GetBlendMode`、`SetTransform`、`IMatrix` 的 `Reset/Concat/Invert/IsIdentity/MapPoint`、`IPen` 的抗锯齿/斜接限制/自定义虚线、`IBrush` 线性渐变填充（左右两端像素校验）、无画布时的文本测量（`TestMeasureWithoutCanvas`），共 87 项检查。
+
+## 十一、实现 Review、单元测试与示例页重构记录（2026-11-14 第三轮）
+
+本轮把接口族的正确性验证从"抽样"提升到"可测接口全覆盖"，并把 Review 发现的问题直接落到实现、注释与示例程序中。
+
+### 1. 单元测试（新增 `tests/test_render_api.cpp`，`ctest` 用例名 `render_api`）
+
+- 覆盖规模：373 项检查，13 个分组（`TestWindowOrg`、`TestMatrix`、`TestClip`、`TestLayer`、`TestBlt`、`TestShapes`、`TestAlpha`、`TestPixels`、`TestSnapshotAndClone`、`TestPen`、`TestBrush`、`TestPath`、`TestBitmap`），用例编号 RA-1 ~ RA-101。
+- 验证方式：`IRenderFactory::CreateOffscreenRender(1024, 768)` 创建离屏 Raster 画布，绘制后通过 `ReadPixels` 回读像素断言（颜色比较带容差），并配合 `GetBounds` / `GetClipInfo` / `MapPoint` 等返回值断言。
+- 已覆盖（可单元测试的接口全部覆盖）：
+  - 视区原点：`OffsetWindowOrg` / `SetWindowOrg` / `GetWindowOrg` 的偏移语义与绘制结果一致；
+  - 矩阵：`Translate` / `Scale`（含中心点）/ `Rotate` / `RotateAt` / `Skew` / `Concat` / `Invert` / `IsIdentity` / `MapPoint`；
+  - 裁剪：`SaveClip` / `RestoreClip`（含嵌套）、`ClipRect` / `ClipRoundRect` / `ClipPath`（含空区域）、`GetClipInfo`；
+  - 图层与混合：`SaveLayer` / `RestoreLayer`、`SetBlendMode` / `GetBlendMode`；
+  - 位块传输：`BitBlt` / `StretchBlt` / `AlphaBlend`（含源区域越界裁剪、`RopMode`、`uFade`）；
+  - 图元：`DrawLine` / `DrawRect` / `FillRect` / `DrawRoundRect` / `FillRoundRect` / `DrawCircle` / `FillCircle` / `DrawEllipse` / `FillEllipse` / `DrawArc` / `FillArc` / `DrawPolygon` / `FillPolygon` / `DrawPath` / `FillPath` / `DrawBoxShadow`；
+  - 像素：`Clear` / `ClearRect`（预乘 Alpha）、`ReadPixels` / `WritePixels`（越界返回 `false`）；
+  - 快照与克隆：`MakeImageSnapshot`（整画布 / 局部）、`Clone`；
+  - `IPen`（线宽、线型、抗锯齿、斜接限制、自定义虚线、起止线帽）、`IBrush`（纯色 / 线性渐变 / 径向渐变）、`IPath`（`AddLine` / `AddBezier(s)` / `AddRect` / `AddEllipse` / `AddArc` / `AddPolygon` / `Transform` / `GetBounds` / `FillType` / `Clone`）、`IBitmap`（`Init` / 只读查询 / `LockPixelBits` / `Clone`）。
+- 未纳入本用例的接口及原因：文本与富文本接口（`DrawString` / `MeasureString` / `DrawRichText` / 富文本缓存）由 `text_draw`、`rich_text`、`rich_text_util` 覆盖；窗口渲染与刷新（`CreateWindowRender` / `PaintAndSwapBuffers` / 平台 DC / 窗口 RGN）依赖真实窗口与消息循环，由 `offscreen_render`、`gl_window_smoke`、`controls_pages_xml` 覆盖。
+- 执行结果：`render_api` 373 项检查 0 失败；`ctest` 14/14 通过。
+
+### 2. 实现 Review 修复（`Render_Skia.cpp` / `Path_Skia.cpp`）
+
+| 问题 | 修复 |
+| --- | --- |
+| `RestoreClip` 的 `ASSERT(m_saveCount == nState)` 拦截嵌套还原 | 删除断言，按 `restoreToCount(nState)` 语义允许嵌套还原 |
+| `ClipRect` / `ClipRoundRect` / `ClipPath` 空区域返回 `-1`，与"返回保存状态"契约冲突 | 空区域仍保存状态并返回有效状态值 |
+| `ClipRoundRect` 关闭抗锯齿，圆角边缘有锯齿 | 改用 `SkRRect::MakeRectXY` + `clipRRect(..., true)` |
+| `GetClipInfo` 使用 `getClipBounds()`，受抗锯齿外扩影响 | 改用 `getDeviceClipBounds()` |
+| `IsEmpty` 判断写反 | 修正为按宽高判断 |
+| `ReadPixels` / `WritePixels` 越界读写 | 越界返回 `false` |
+| `BitBlt` / `StretchBlt` / `AlphaBlend` 源区域越界 | 用 `SkIRect::intersect` 裁剪源区域 |
+| `Clear` / `ClearRect` 直接写入非预乘颜色，颜色偏亮 | 新增 `PremultiplyARGB`；`ClearRect` 补齐视区原点换算 |
+| `SetPaintByPen` 用 `width - 0.5f` 改写线宽、忽略起始线帽 | 使用原始线宽与 `SetStartCap` 设置的线帽 |
+| `FillPath(const IPath*, const IBrush*)` 未实现 | 补齐实现（含渐变色刷 shader 与视区原点偏移） |
+| `DrawPath` 用 `resetMatrix()` 破坏后续绘制状态 | 改为 `save()` / `translate()` / `drawPath()` / `restore()` |
+| `Path_Skia::MoveToPoint` 用精确比较浮点坐标；圆弧端点与连线端点相差 0.5 px 时路径被 `moveTo` 断开，`FillPath` 表现为空心 | 新增 `IsSamePoint`（1e-4 容差）后再决定是否 `moveTo` |
+| `Path_Skia::AddBeziers` 断言 `i == count - 1`，实际循环结束 `i == count` | 修正断言 |
+| `Path_Skia::GetBounds` 未包含画笔宽度，负坐标向零截断导致边界收缩 | 按 `pen` 外扩半线宽，并向外取整 |
+| `Path_Skia::AddPolygon` 使用裸 `new[]` / `delete[]` | 改为 `std::vector<SkPoint>` |
+| 视区原点在 `OffsetWindowOrg` / `SetWindowOrg` / `GetWindowOrg` 三者间语义不一致 | 统一为"内部偏移 = `-origin`"，设备坐标 = 客户区坐标 + 偏移 |
+
+### 3. 接口注释复查（`IRender.h`）
+
+修正或补齐：`RopMode`（各模式语义与近似程度）、`SaveClip` / `RestoreClip`（支持嵌套）、`ClipRect` / `ClipRoundRect` / `ClipPath`（客户区坐标、返回值含义、空区域处理）、`IPen::SetStartCap`、`IPath::GetBounds`（含画笔宽度、向外取整）、`AddBeziers`（`count = 1 + 3n`）、`ReadPixels` / `WritePixels`（越界返回 `false`）、`GetClipInfo`（客户区坐标）、`ClearAlpha`（错别字）、`IBitmap::Init`（`fImageSizeScale`）、`OffsetWindowOrg`；`IMatrix` 的 `Translate` / `Scale` / `Rotate` / `RotateAt` / `Skew` 明确"设置矩阵（覆盖已有变换）"，组合变换须用 `Concat` 叠加。
+
+### 4. 示例程序 `render.exe`
+
+- 页签改名："绘制" → "绘制图片"（`STRID_RENDER_TAB_DRAW`）、"画图" → "绘制图形"（`STRID_RENDER_TAB_PAINT`）；中英文案同步更新，页签宽度按文案调整，保证两种语言下均不截断。
+- 两页均改为 `ScrollBox(vscrollbar="true")` + 内层 `VBox(width="stretch" height="auto")`，实现纵向滚动；自定义控件重写 `EstimateSize` 返回内容高度。
+- "绘制图片"页（`RenderTest1`）：4 列 14 项，覆盖 `DrawImage` 整图 / 淡入 / 最近邻与线性缩放 / 矩阵旋转 + 裁剪 / 路径裁剪、`BitBlt`、`StretchBlt`、`AlphaBlend`、平铺、平铺 + 边距、九宫格、九宫格 + 平铺、窗口阴影。旋转用例先按旋转后的包围盒缩小再旋转（用 `IMatrix::Concat` 组合 `Scale` 与 `RotateAt`），保证图片完整显示。
+- "绘制图形"页（`RenderTest2`）：6 列 39 项，覆盖直线（线宽 / 画笔 / 实线 / 虚线 / 点线 / 点划线）、矩形与圆角矩形（描边 / 虚线 / 线宽内绘 / 填充 / 半透明 / 渐变）、圆与椭圆、圆弧（`useCenter` / 虚线 / 填充）、多边形、路径（描边 / 画刷填充 / 渐变填充）、`DrawBoxShadow`（圆角 / 直角 / 偏移）、正六边形（多边形接口 / 路径分区填充）、正六边形拼贴的 ColorMap。
+- 标题改为按测量宽度自动拆分为两行并裁剪到标题区域，避免长标题溢出；六边形半径改为按宽高共同约束，避免图形覆盖标题。
+
+### 5. 验证
+
+- `python build/build.py build --config Debug --arch x64 --jobs 6` 编译通过；
+- `ctest --test-dir out/x64/Debug` 14/14 通过（含新增 `render_api`）；
+- `render.exe` 两个页面目视验证：纵向滚动、标题换行、`FillPath` 实心填充、旋转图片、六边形与 ColorMap 均正常。
