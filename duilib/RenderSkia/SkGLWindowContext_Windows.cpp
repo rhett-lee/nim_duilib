@@ -414,10 +414,14 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* /*pRender*/, IRende
     ::ValidateRect(hWnd, nullptr);
 
     //提交绘制结果，并刷新到设备DC
+    //注意：必须使用刷新整个上下文的重载 flushAndSubmit(GrSyncCpu)，
+    //不能调用 flushAndSubmit(nullptr, ...)：该重载的第一个参数是"要刷新的表面"，
+    //传入nullptr时Skia会直接跳过flush（只执行submit），导致绘制命令一直留在
+    //延迟命令缓冲中，窗口内容显示为黑色（SwapBuffers交换的是内容未更新的后台缓冲）。
     //这里使用异步提交(kNo)：SwapBuffers本身会与显示同步，不需要每帧等待CPU完成绘制，
     //否则会阻塞UI线程、显著降低帧率；需要在GPU绘制完成后读回像素的场景，由调用方显式同步
     if (auto dContext = this->directContext()) {
-        dContext->flushAndSubmit(nullptr, GrSyncCpu::kNo);
+        dContext->flushAndSubmit(GrSyncCpu::kNo);
     }
 
     //绘制完成后，更新到窗口

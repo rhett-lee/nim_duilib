@@ -469,4 +469,27 @@ GL 默认帧缓冲在 `SwapBuffers` 后内容未定义，因此当前只能整�
 - Debug x64 构建通过（`python build/build.py build --config Debug --arch x64 --jobs 4`）；
 - `ctest --test-dir out/x64/Debug`：13/13 通过（新增 `gl_window_smoke` 在带 OpenGL 的桌面环境实际执行，33 项检查全部通过；无 OpenGL 环境自动 SKIP）。
 
+### 12.5 缺陷修复：开启 GL 后窗口内容全黑（2026-11-14）
+
+问题现象：在 `controls.exe` 的 Window 节点配置 `render_backend_type="GL" vsync="true" msaa="0"` 后，窗口边框正常但客户区（含标题栏）全部为黑色。
+
+排查过程：
+
+1. 临时在 `SkGLWindowContext_Windows.cpp` 中埋点记录构造、`resize()`、`PaintAndSwapBuffers()` 各阶段状态，确认 GL 上下文创建成功（`samples=1`、`stencil=8`）、绘制流程正常执行且 `glGetError()` 为 0；
+2. 在持久化表面与窗口后台缓冲（FBO 0）上分别 `readPixels` 取点，两者像素值均正确（如 `FFFAFAFA`），说明绘制与拷贝逻辑本身没有问题，黑屏发生在"命令提交/呈现"阶段；
+3. 对比发现：加入 `readPixels` 探针后画面即恢复正常——`readPixels` 会隐式触发 Skia 刷新；去掉探针后再次全黑。
+
+根因：`PaintAndSwapBuffers()` 末尾调用的是 `dContext->flushAndSubmit(nullptr, GrSyncCpu::kNo)`。该重载签名为 `flushAndSubmit(SkSurface* surface, GrSyncCpu)`，第一个参数是"要刷新的表面"；Skia 实现中 `GrDirectContext::flush(SkSurface*)` 对 `surface == nullptr` 直接返回（`return {false, GrSemaphoresSubmitted::kNo}`），因此 `flushAndSubmit(nullptr, ...)` 只执行了 `submit()`，**没有 flush 任何绘制命令**。所有绘制（含把持久化表面贴到 FBO 0 的 `drawImage`）都停留在 Skia 的延迟命令缓冲中，`SwapBuffers()` 交换的是内容未更新的后台缓冲，窗口因此显示为黑色。
+
+修复：改用刷新整个上下文的重载 `dContext->flushAndSubmit(GrSyncCpu::kNo)`（等价于 `flush(GrFlushInfo())` + `submit(sync)`），并在代码中补充注释说明不能传入 `nullptr`。
+
+验证：
+
+- Debug x64 构建通过，`ctest` 13/13 通过（含 `gl_window_smoke`）；
+- 带 GL 配置启动 `controls.exe` 截图确认界面完整显示，标题栏、卡片、按钮等渲染正常；
+- 验证完成后已还原 `controls.xml` 中的临时 GL 配置。
+
+补充说明：该缺陷仅在"把绘制结果提交到窗口"这一环节，`gl_window_smoke` 只校验了 `PaintAndSwapBuffers()` 的返回值与离屏读回像素，无法覆盖"窗口实际呈现内容"，因此原有自动化测试未发现该问题；日常验收仍建议开启 GL 后目视确认一次画面。
+
+
 
