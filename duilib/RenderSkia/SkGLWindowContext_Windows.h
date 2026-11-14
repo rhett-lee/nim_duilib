@@ -44,6 +44,14 @@ public:
     */
     bool PaintAndSwapBuffers(IRender* pRender, IRenderPaint* pRenderPaint);
 
+    /** 将本窗口的OpenGL上下文设置为当前上下文
+    * @return 成功返回true，失败返回false
+    * @note 同一线程内可能存在多个使用OpenGL绘制的窗口，而每个线程只能有一个当前上下文，
+    *       所有访问OpenGL的入口（绘制、读取后台缓冲、销毁等）都必须先调用该函数；
+    *       离屏渲染复用窗口上下文时，也需要先调用该函数（因此为public）
+    */
+    bool MakeCurrent();
+
 protected:
     virtual void resize(int w, int h) override;
     virtual void onSwapBuffers() override;
@@ -61,13 +69,6 @@ protected:
     bool SwapPaintBuffers(HDC hPaintDC, const UiRect& rcPaint, IRender* pRender, uint8_t nWindowAlpha) const;
 
 private:
-    /** 将本窗口的OpenGL上下文设置为当前上下文
-    * @return 成功返回true，失败返回false
-    * @note 同一线程内可能存在多个使用OpenGL绘制的窗口，而每个线程只能有一个当前上下文，
-    *       所有访问OpenGL的入口（绘制、读取后台缓冲、销毁等）都必须先调用该函数
-    */
-    bool MakeCurrent();
-
     /** 释放窗口的DC
     */
     void ReleaseWindowDC();
@@ -84,6 +85,16 @@ private:
     /** OpenGL的渲染上下文
     */
     HGLRC m_fHGLRC;
+
+    /** 持久化的GPU绘制表面（FBO）
+    * 界面绘制到该表面，每帧只重绘脏区域，然后把整幅内容拷贝到窗口的后台缓冲，
+    * 避免每帧重绘整个窗口（大窗口下的小动画可显著降低CPU/GPU占用）
+    */
+    sk_sp<SkSurface> m_persistentSurface;
+
+    /** 是否需要完整重绘（首次绘制、尺寸变化、持久化表面重建后为true）
+    */
+    bool m_bNeedFullRedraw;
 };
 
 } // namespace ui

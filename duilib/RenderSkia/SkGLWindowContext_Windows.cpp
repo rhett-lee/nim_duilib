@@ -10,7 +10,12 @@
 #include "SkiaHeaderBegin.h"
 
 #include "include/gpu/ganesh/GrDirectContext.h"
+#include "include/gpu/ganesh/SkSurfaceGanesh.h"
 #include "include/gpu/ganesh/gl/GrGLInterface.h"
+#include "include/core/SkCanvas.h"
+#include "include/core/SkImage.h"
+#include "include/core/SkPaint.h"
+#include "include/core/SkSurface.h"
 #include "tools/ganesh/gl/win/SkWGL.h"
 #include "tools/window/GLWindowContext.h"
 
@@ -24,7 +29,8 @@ SkGLWindowContext_Windows::SkGLWindowContext_Windows(HWND hWnd, std::unique_ptr<
     skwindow::internal::GLWindowContext(std::move(params)),
     m_hWnd(hWnd),
     m_hDC(nullptr),
-    m_fHGLRC(nullptr)
+    m_fHGLRC(nullptr),
+    m_bNeedFullRedraw(true)
 {
     ASSERT(::IsWindow(hWnd));
     fWidth = 0;
@@ -39,6 +45,10 @@ SkGLWindowContext_Windows::SkGLWindowContext_Windows(HWND hWnd, std::unique_ptr<
 SkGLWindowContext_Windows::~SkGLWindowContext_Windows()
 {
     OffscreenGLContext::UnregisterWindowContext(this);
+    //销毁GL上下文之前必须先释放持久化表面，避免Skia访问已销毁的GL资源
+    //释放GPU资源需要本窗口的上下文是当前上下文
+    MakeCurrent();
+    m_persistentSurface.reset();
     this->destroyContext();
 }
 
@@ -62,6 +72,8 @@ void SkGLWindowContext_Windows::resize(int nWidth, int nHeight)
     fHeight = nHeight;
     //下次getBackbufferSurface()时按新尺寸重建绘制表面
     fSurface.reset();
+    m_persistentSurface.reset();
+    m_bNeedFullRedraw = true;
     glViewport(0, 0, nWidth, nHeight);
 }
 
@@ -111,7 +123,45 @@ sk_sp<SkSurface> SkGLWindowContext_Windows::getBackbufferSurface()
     if (!MakeCurrent()) {
         return nullptr;
     }
-    return BaseClass::getBackbufferSurface();
+
+    //尺寸变化后，持久化表面需要重建
+    if ((m_persistentSurface != nullptr) &&
+        ((m_persistentSurface->width() != fWidth) || (m_persistentSurface->height() != fHeight))) {
+        m_persistentSurface.reset();
+        m_bNeedFullRedraw = true;
+    }
+    if (m_persistentSurface != nullptr) {
+        return m_persistentSurface;
+    }
+
+    if ((fWidth <= 0) || (fHeight <= 0)) {
+        //窗口最小化等场景：没有可用的绘制尺寸，使用基类实现（零尺寸表面）
+        return BaseClass::getBackbufferSurface();
+    }
+
+    GrDirectContext* pDirectContext = this->directContext();
+    if (pDirectContext == nullptr) {
+        return BaseClass::getBackbufferSurface();
+    }
+
+    //创建持久化的GPU渲染目标：界面绘制到该表面，每帧只在脏区域内重绘，内容在帧间保留
+    const skwindow::DisplayParams* pDisplayParams = getDisplayParams();
+    SkImageInfo info = SkImageInfo::Make(fWidth, fHeight, kRGBA_8888_SkColorType, kPremul_SkAlphaType,
+                                         (pDisplayParams != nullptr) ? pDisplayParams->colorSpace() : nullptr);
+    m_persistentSurface = SkSurfaces::RenderTarget(pDirectContext,
+                                                   skgpu::Budgeted::kNo,
+                                                   info,
+                                                   fSampleCount,
+                                                   kTopLeft_GrSurfaceOrigin,
+                                                   (pDisplayParams != nullptr) ? &pDisplayParams->surfaceProps() : nullptr);
+    if (m_persistentSurface == nullptr) {
+        //无法创建GPU渲染目标时，退化为基类实现（直接绘制到窗口的后台缓冲）
+        return BaseClass::getBackbufferSurface();
+    }
+    //新创建的表面内容未定义：清空并标记需要完整重绘
+    m_persistentSurface->getCanvas()->clear(SK_ColorTRANSPARENT);
+    m_bNeedFullRedraw = true;
+    return m_persistentSurface;
 }
 
 sk_sp<const GrGLInterface> SkGLWindowContext_Windows::onInitializeContext()
@@ -251,24 +301,43 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* /*pRender*/, IRende
         return false;
     }
 
-    //设置需要绘制的区域（需要对整个客户区全部绘制，GL不支持局部绘制）
-    RECT rectUpdate = { 0, };
-    ::GetClientRect(m_hWnd, &rectUpdate);
+    sk_sp<SkSurface> paintSurface = getBackbufferSurface();
+    ASSERT(paintSurface != nullptr);
+    if (paintSurface == nullptr) {
+        return false;
+    }
+    //是否使用持久化表面：使用时可只重绘脏区域，否则必须重绘整个窗口
+    const bool bUsePersistentSurface = (m_persistentSurface.get() == paintSurface.get());
+
+    //使用持久化表面时，先获取窗口的后台缓冲表面（此时OpenGL的默认帧缓冲肯定处于绑定状态，
+    //不能在绘制提交之后再获取，否则可能绑定到持久化表面的FBO上）
+    sk_sp<SkSurface> backbuffer;
+    if (bUsePersistentSurface) {
+        backbuffer = BaseClass::getBackbufferSurface();
+    }
+
+    //设置需要绘制的区域
     UiRect rcPaint;
-    rcPaint.left = rectUpdate.left;
-    rcPaint.top = rectUpdate.top;
-    rcPaint.right = rectUpdate.right;
-    rcPaint.bottom = rectUpdate.bottom;
+    if (!bUsePersistentSurface || m_bNeedFullRedraw) {
+        //不支持局部刷新，或者需要完整重绘时，绘制整个客户区
+        RECT rectClient = { 0, };
+        ::GetClientRect(m_hWnd, &rectClient);
+        rcPaint = UiRect(rectClient.left, rectClient.top, rectClient.right, rectClient.bottom);
+    }
+    else {
+        //持久化表面保留了上一帧的内容，只需重绘窗口的更新区域
+        RECT rectUpdate = { 0, };
+        if (!::GetUpdateRect(m_hWnd, &rectUpdate, FALSE)) {
+            //无需绘制
+            return false;
+        }
+        rcPaint = UiRect(rectUpdate.left, rectUpdate.top, rectUpdate.right, rectUpdate.bottom);
+    }
     if (rcPaint.IsEmpty()) {
         //无需绘制
         return false;
     }
-
-    sk_sp<SkSurface> backbuffer = getBackbufferSurface();
-    ASSERT(backbuffer != nullptr);
-    if (backbuffer == nullptr) {
-        return false;
-    }
+    m_bNeedFullRedraw = false;
 
     //开始绘制
     PAINTSTRUCT ps = { 0, };
@@ -278,6 +347,20 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* /*pRender*/, IRende
     //执行绘制
     pRenderPaint->DoPaint(rcPaint);
 
+    if (bUsePersistentSurface) {
+        //把持久化表面的整幅内容拷贝到窗口的后台缓冲
+        if (backbuffer != nullptr) {
+            SkCanvas* pCanvas = backbuffer->getCanvas();
+            sk_sp<SkImage> image = paintSurface->makeImageSnapshot();
+            if ((pCanvas != nullptr) && (image != nullptr)) {
+                //使用kSrc覆盖目标内容（后台缓冲在交换后内容未定义，不能做混合）
+                SkPaint paint;
+                paint.setBlendMode(SkBlendMode::kSrc);
+                pCanvas->drawImage(image, 0, 0, SkSamplingOptions(SkFilterMode::kNearest), &paint);
+            }
+        }
+    }
+
     //标记绘制区域为有效区域
     ::ValidateRect(hWnd, nullptr);
 
@@ -285,7 +368,7 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* /*pRender*/, IRende
     //这里使用异步提交(kNo)：SwapBuffers本身会与显示同步，不需要每帧等待CPU完成绘制，
     //否则会阻塞UI线程、显著降低帧率；需要在GPU绘制完成后读回像素的场景，由调用方显式同步
     if (auto dContext = this->directContext()) {
-        dContext->flushAndSubmit(backbuffer.get(), GrSyncCpu::kNo);
+        dContext->flushAndSubmit(nullptr, GrSyncCpu::kNo);
     }
 
     //绘制完成后，更新到窗口

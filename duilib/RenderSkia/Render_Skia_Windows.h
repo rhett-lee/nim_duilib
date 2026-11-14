@@ -28,8 +28,11 @@ public:
     /** 构造函数
     * @param [in] hWnd 关联的窗口句柄，可以为nullptr
     * @param [in] backendType 后台绘制方式
+    * @param [in] nMsaaSampleCount MSAA的采样数（0表示使用默认值；最小值1，非法值按1处理）
+    * @param [in] bDisableVsync 是否禁用垂直同步（true表示禁用，false表示启用）
     */
-    Render_Skia_Windows(HWND hWnd, RenderBackendType backendType);
+    Render_Skia_Windows(HWND hWnd, RenderBackendType backendType,
+                        int32_t nMsaaSampleCount = 0, bool bDisableVsync = false);
     Render_Skia_Windows(const Render_Skia_Windows& r) = delete;
     Render_Skia_Windows& operator = (const Render_Skia_Windows& r) = delete;
     virtual ~Render_Skia_Windows() override;

@@ -144,17 +144,23 @@ std::unique_ptr<IRender> RenderFactory_Skia::CreateOffscreenRender(uint32_t nWid
     return pRender;
 }
 
-IRenderWindow* RenderFactory_Skia::CreateWindowRender(const IRenderDpiPtr& spRenderDpi, void* platformData, RenderBackendType backendType)
+IRenderWindow* RenderFactory_Skia::CreateWindowRender(const IRenderDpiPtr& spRenderDpi, void* platformData, RenderBackendType backendType,
+                                                     int32_t nMsaaSampleCount, bool bDisableVsync)
 {
 #if defined (DUILIB_BUILD_FOR_SDL)
     SDL_Window* sdlWindow = (SDL_Window*)platformData;
+    //SDL平台暂不支持MSAA和垂直同步的配置
+    UNUSED_VARIABLE(nMsaaSampleCount);
+    UNUSED_VARIABLE(bDisableVsync);
     IRenderWindow* pRender = new Render_Skia_SDL(sdlWindow, backendType);
 #elif defined(DUILIB_BUILD_FOR_WIN)
     HWND hWnd = (HWND)platformData;
-    IRenderWindow* pRender = new Render_Skia_Windows(hWnd, backendType);
+    IRenderWindow* pRender = new Render_Skia_Windows(hWnd, backendType, nMsaaSampleCount, bDisableVsync);
 #else
     UNUSED_VARIABLE(platformData);
     UNUSED_VARIABLE(backendType);
+    UNUSED_VARIABLE(nMsaaSampleCount);
+    UNUSED_VARIABLE(bDisableVsync);
     IRenderWindow* pRender = nullptr;
 #endif
     ASSERT(pRender != nullptr);

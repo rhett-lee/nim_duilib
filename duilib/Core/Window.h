@@ -83,9 +83,11 @@ public:
     /** 设置该窗口的渲染引擎绘制后台类型
     *   该属性值只能在创建窗口前设置，或者在XML配置中指定，应用后不支持修改
     * @param [in] backendType 渲染引擎绘制后台类型
+    * @param [in] nMsaaSampleCount MSAA的采样数（仅OpenGL绘制有效；0表示使用默认值，最小值1，非法值按1处理）
+    * @param [in] bDisableVsync 是否禁用垂直同步（仅OpenGL绘制有效；true表示禁用，false表示启用）
     * @return 如果设置成功返回true, 否则返回false
     */
-    bool SetRenderBackendType(RenderBackendType backendType);
+    bool SetRenderBackendType(RenderBackendType backendType, int32_t nMsaaSampleCount = 0, bool bDisableVsync = false);
 
     /** 获取渲染引擎绘制后台类型
     */
@@ -1189,6 +1191,14 @@ private:
     /** 渲染引擎的后台绘制方式（CPU、OpenGL等）
     */
     RenderBackendType m_renderBackendType;
+
+    /** OpenGL绘制时的MSAA采样数（0表示使用默认值）
+    */
+    int32_t m_nMsaaSampleCount;
+
+    /** OpenGL绘制时是否禁用垂直同步
+    */
+    bool m_bDisableVsync;
 
     /** 窗口的初始大小
     */

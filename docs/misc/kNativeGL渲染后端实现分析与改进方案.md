@@ -1,6 +1,6 @@
 # kNativeGL 渲染后端实现分析与改进方案
 
-> 状态：分析报告（2026-11-14）；阶段 1（正确性）、阶段 2（性能）已实施（2026-11-14）
+> 状态：分析报告（2026-11-14）；阶段 1（正确性）、阶段 2（性能）、阶段 3（体验）已实施（2026-11-14）
 > 适用范围：Windows 平台（`DUILIB_BUILD_FOR_WIN`，不含 `_M_ARM64`），Skia Ganesh + WGL
 > 关联文档：[IRender职责拆分与离屏渲染设计方案.md](IRender职责拆分与离屏渲染设计方案.md)、[IRender接口分析报告.md](IRender接口分析报告.md)
 
@@ -295,7 +295,7 @@ GL 默认帧缓冲在 `SwapBuffers` 后内容未定义，因此当前只能整�
 | --- | --- | --- |
 | 阶段 1（正确性）**已实施** | MakeCurrent 管理、初始化失败回退、Vsync 顺序、destroy 顺序、layered 保护 | 同线程多 GL 窗口交替绘制正常；关闭任意窗口无断言；无 OpenGL 环境自动回退 CPU；Vsync 生效 |
 | 阶段 2（性能）**已实施** | resize 不重建上下文、`kNo` 同步、启动单次初始化、Clone 修正 | 拖动缩放无闪烁、帧率稳定；启动只创建一次上下文；CPU 占用明显下降 |
-| 阶段 3（体验） | 持久 FBO 局部刷新、离屏共享上下文、vsync/msaa 配置 | 4K 窗口小动画 CPU 占用明显下降；离屏 GL 在多窗口下可用 |
+| 阶段 3（体验）**已实施** | 持久 FBO 局部刷新、离屏共享上下文、vsync/msaa 配置 | 4K 窗口小动画 CPU 占用明显下降；离屏 GL 在多窗口下可用 |
 | 阶段 4（工程化） | GL 多窗口冒烟测试、文档补充 | 回归测试可自动执行；文档说明 GL 后端限制与降级策略 |
 
 完成阶段 1、2 后，GL 后端才具备"多窗口、可缩放、不透明窗口"的日常可用性；阶段 3 才解决"大面积重绘带来的 CPU 占用"。
@@ -362,5 +362,42 @@ GL 默认帧缓冲在 `SwapBuffers` 后内容未定义，因此当前只能整�
 - Debug x64 构建通过；
 - `ctest --test-dir out/x64/Debug`：12/12 通过；
 - 拖动缩放、帧率与 CPU 占用的量化验证需在带 OpenGL 的桌面环境按 6.5 清单人工执行。
+
+## 十一、阶段 3 实施记录（2026-11-14）
+
+### 11.1 修改内容
+
+| 目标 | 修改位置 | 具体做法 |
+| --- | --- | --- |
+| 持久 FBO | `SkGLWindowContext_Windows.h/.cpp` | 新增 `m_persistentSurface` 与 `m_bNeedFullRedraw`；`getBackbufferSurface()` 优先返回持久化的 GPU 渲染目标（`SkSurfaces::RenderTarget`，`kTopLeft` 原点、`kRGBA_8888`、采样数与窗口一致），创建后清空并标记完整重绘；`resize()` 中一并释放该表面 |
+| 局部刷新 | `SkGLWindowContext_Windows::PaintAndSwapBuffers()` | 使用 `GetUpdateRect()` 的脏区作为 `DoPaint()` 的绘制区域（`m_bNeedFullRedraw` 或持久表面不可用时使用整客户区）；绘制完成后用 `drawImage(..., kSrc)` 把整幅持久表面贴到默认帧缓冲，再 `flushAndSubmit(kNo)` + `SwapBuffers()` |
+| 多窗口离屏共享 | `SkOffscreenGLContext.h/.cpp` | 线程内的单个窗口上下文指针改为上下文列表（堆对象故意不析构，规避线程退出时的析构顺序问题）；`GetDirectContext()` 逆序遍历，对 `SkGLWindowContext_Windows` 先 `MakeCurrent()`，成功者优先复用；注册/注销改为增删列表 |
+| MakeCurrent 可见性 | `SkGLWindowContext_Windows.h` | `MakeCurrent()` 由 `private` 调整为 `public`，供离屏上下文复用窗口上下文时调用 |
+| vsync/msaa 透传 | `IRender.h`、`RenderFactory_Skia`、`Render_Skia_Windows` | `IRenderFactory::CreateWindowRender()` 增加 `nMsaaSampleCount`、`bDisableVsync`（默认 0/false，保持原有行为）；Windows 实现用 `DisplayParamsBuilder` 设置 MSAA 与垂直同步 |
+| 窗口属性 | `Window.h/.cpp`、`WindowBuilder.cpp` | `Window::SetRenderBackendType()` 增加两个参数并保存，两处 `CreateWindowRender()` 调用透传；XML 新增 `vsync`、`msaa` 属性解析并纳入已知属性 |
+
+### 11.2 XML 配置说明
+
+```xml
+<Window render_backend_type="GL" vsync="true" msaa="4" ...>
+```
+
+- `vsync`：`true`/`false`，默认 `true`；`false` 等价于禁用垂直同步（`swapInterval(0)`）。
+- `msaa`：MSAA 采样数，默认 `0`（使用 1 倍采样，即不启用 MSAA）；非 2 的幂会被 Skia 向上取整，显卡不支持时 Skia 会自动折半重试。
+- 两个属性仅在 `render_backend_type` 为 GL/GPU 时生效，CPU 绘制时被忽略。
+
+### 11.3 说明与限制
+
+- 持久 FBO 会额外占用一份显存（宽 x 高 x 4 字节，4K 下约 33MB）；
+- 每帧仍需把整幅持久表面拷贝到默认帧缓冲：这是"GL 默认帧缓冲在 `SwapBuffers` 后内容未定义"的必要代价，但拷贝发生在 GPU 内，CPU 侧不再重绘整窗；
+- 局部刷新依赖 WM_PAINT 的更新区域，控件树需按 `rcPaint` 正确裁剪（`Window::Paint()` 已用 `AutoClip` 处理）；
+- 多窗口场景下，离屏 GPU 渲染与"最近注册且 `MakeCurrent()` 成功"的窗口共享 `GrDirectContext`；窗口销毁后自动回退到其它窗口上下文或后台隐藏窗口上下文；
+- `Render_Skia_Windows::Clone()` 对 GL 仍返回 CPU 离屏副本，本次未改变。
+
+### 11.4 验证结果
+
+- Debug x64 构建通过（`python build/build.py build --config Debug --arch x64 --jobs 4`）；
+- `ctest --test-dir out/x64/Debug`：12/12 通过（现有用例均基于 CPU 离屏渲染）；
+- GL 局部刷新的 CPU 占用、多窗口离屏渲染行为需在带 OpenGL 的桌面环境按 6.5 清单人工验证。
 
 

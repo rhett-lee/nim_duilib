@@ -29,7 +29,9 @@
 | layered_window    | 窗口绘制| false   | bool   | SetLayeredWindow        |设置是否为层窗口，使用注意事项：<br>（1）该属性在使用窗口阴影（即设置了shadow_type属性）时不需要设置，窗口阴影功能会根据需要来管理该属性<br>（2）当使用系统标题栏时（即use_system_caption="true"），不应设置该属性 |
 | alpha             | 窗口绘制| 255     | int    | SetLayeredWindowAlpha   |设置透明度数值[0, 255]，当 alpha 为 0 时，窗口是完全透明的。 当 alpha 为 255 时，窗口是不透明的。<br>仅当layered_window="true"时有效，<br>该参数在UpdateLayeredWindow函数中作为参数使用(BLENDFUNCTION.SourceConstantAlpha)|
 | opacity           | 窗口绘制| 255     | int    | SetLayeredWindowOpacity |设置不透明度数值[0, 255]，当 opacity 为 0 时，窗口是完全透明的。 当 opacity 为 255 时，窗口是不透明的。<br> 仅当layered_window="true"时有效，所以如果当前不是分层窗口，内部会自动设置为分层窗口 <br>该参数在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)|
-| render_backend_type|窗口绘制| "CPU"   | string |SetRenderBackendType     | "CPU": CPU绘制 <br> "GL": 使用OpenGL绘制 <br> 注意事项: <br> （1）一个线程内，只允许有一个窗口使用OpenGL绘制，否则会出现导致程序崩溃的问题 <br> （2）OpenGL绘制的窗口，不能是分层窗口（即带有WS_EX_LAYERED属性的窗口），因此使用GL渲染时，`layered_window`、`alpha`、`opacity` 属性均无效 <br> （3）使用OpenGL的窗口，每次绘制都是绘制整个窗口，不支持局部绘制，所以不一定比使用CPU绘制的情况下性能更好|
+| render_backend_type|窗口绘制| "CPU"   | string |SetRenderBackendType     | "CPU": CPU绘制 <br> "GL": 使用OpenGL绘制 <br> 注意事项: <br> （1）同一线程内可以有多个窗口使用OpenGL绘制，绘制前会自动切换当前上下文；但每个窗口都会创建一个独立的 GL 上下文，注意显存占用 <br> （2）OpenGL绘制的窗口，不能是分层窗口（即带有WS_EX_LAYERED属性的窗口），因此使用GL渲染时，`layered_window`、`alpha`、`opacity` 属性均无效 <br> （3）OpenGL绘制使用持久 FBO 做局部刷新，小区域动画不会整窗重绘，性能通常优于整窗重绘|
+| vsync             | 窗口绘制| "true"  | bool   | SetRenderBackendType    |是否启用垂直同步，false 表示禁用；<br>仅当 render_backend_type="GL" 时有效|
+| msaa              | 窗口绘制| "0"     | int    | SetRenderBackendType    |MSAA 采样数，0 表示不启用 MSAA（按 1 倍采样）；<br>仅当 render_backend_type="GL" 时有效|
 
 备注：窗口阴影相关的内容，请参考文档：[WindowShadow.md](WindowShadow.md)    
 备注：窗口属性的解析函数参见：[WindowBuilder::ParseWindowAttributes函数](../duilib/Core/WindowBuilder.cpp)    

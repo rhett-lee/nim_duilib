@@ -809,6 +809,25 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         }
     }
 
+    //解析"vsync"和"msaa"属性（仅对OpenGL绘制方式有效）
+    bool bDisableVsync = false;
+    int32_t nMsaaSampleCount = 0;
+    for (pugi::xml_attribute attr : root.attributes()) {
+        strName = attr.name();
+        strValue = attr.value();
+        if (strName == _T("vsync")) {
+            knownNames.insert(strName);
+            bDisableVsync = !StringUtil::IsValueTrue(strValue);
+        }
+        else if (strName == _T("msaa")) {
+            knownNames.insert(strName);
+            nMsaaSampleCount = StringUtil::StringToInt32(strValue);
+            if (nMsaaSampleCount < 0) {
+                nMsaaSampleCount = 0;
+            }
+        }
+    }
+
     bool bInitRenderBackendType = false;
     //首先设置"render_backend_type"属性
     for (pugi::xml_attribute attr : root.attributes()) {
@@ -831,7 +850,7 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
                 LogUtil::OutputLine(_T("render_backend_type=\"GL\" does not support layered window (opacity < 255), use CPU rendering instead"));
                 backendType = RenderBackendType::kRaster_BackendType;
             }
-            pWindow->SetRenderBackendType(backendType);
+            pWindow->SetRenderBackendType(backendType, nMsaaSampleCount, bDisableVsync);
             bInitRenderBackendType = true;
             break;
         }

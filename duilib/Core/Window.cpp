@@ -27,6 +27,8 @@ Window::Window() :
     m_bIsArranged(false),
     m_bPostQuitMsgWhenClosed(false),
     m_renderBackendType(RenderBackendType::kRaster_BackendType),
+    m_nMsaaSampleCount(0),
+    m_bDisableVsync(false),
     m_bWindowAttributesApplied(false),
     m_bCheckSetWindowFocus(false),
     m_bWindowShadowInited(false)
@@ -133,8 +135,10 @@ Window* Window::GetParentWindow() const
     }
 }
 
-bool Window::SetRenderBackendType(RenderBackendType backendType)
+bool Window::SetRenderBackendType(RenderBackendType backendType, int32_t nMsaaSampleCount, bool bDisableVsync)
 {
+    m_nMsaaSampleCount = nMsaaSampleCount;
+    m_bDisableVsync = bDisableVsync;
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     m_renderBackendType = backendType;
 #else
@@ -151,7 +155,8 @@ bool Window::SetRenderBackendType(RenderBackendType backendType)
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         ASSERT(pRenderFactory != nullptr);
         if (pRenderFactory != nullptr) {
-            m_render.reset(pRenderFactory->CreateWindowRender(GetRenderDpi(), GetWindowHandle(), m_renderBackendType));
+            m_render.reset(pRenderFactory->CreateWindowRender(GetRenderDpi(), GetWindowHandle(), m_renderBackendType,
+                                                              m_nMsaaSampleCount, m_bDisableVsync));
             bRet = (m_render != nullptr);
         }
     }
@@ -373,7 +378,8 @@ void Window::PostInitWindow()
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         ASSERT(pRenderFactory != nullptr);
         if (pRenderFactory != nullptr) {
-            m_render.reset(pRenderFactory->CreateWindowRender(GetRenderDpi(), GetWindowHandle(), m_renderBackendType));
+            m_render.reset(pRenderFactory->CreateWindowRender(GetRenderDpi(), GetWindowHandle(), m_renderBackendType,
+                                                              m_nMsaaSampleCount, m_bDisableVsync));
         }
     }
     ASSERT(m_render != nullptr);

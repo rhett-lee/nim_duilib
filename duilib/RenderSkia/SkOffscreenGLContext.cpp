@@ -12,7 +12,9 @@
 
 #include "SkiaHeaderEnd.h"
 
+#include <algorithm>
 #include <memory>
+#include <vector>
 
 namespace ui {
 
@@ -22,9 +24,15 @@ std::unique_ptr<skwindow::WindowContext> MakeGLForWin(HWND hWnd, std::unique_ptr
 
 namespace {
 
-/** 当前线程的窗口GL上下文（存在时优先复用）
+/** 当前线程的窗口GL上下文列表（可能存在多个使用OpenGL绘制的窗口，后注册的优先复用）
+* 注：这里故意使用不会在线程退出时析构的堆对象，避免线程退出时与GL上下文、隐藏窗口的析构顺序冲突
 */
-thread_local skwindow::WindowContext* g_pWindowContext = nullptr;
+std::vector<skwindow::WindowContext*>& GetWindowContexts()
+{
+    static thread_local std::vector<skwindow::WindowContext*>* pWindowContexts =
+        new std::vector<skwindow::WindowContext*>();
+    return *pWindowContexts;
+}
 
 /** 后台GL上下文（隐藏窗口 + GL上下文）
 */
@@ -118,9 +126,23 @@ bool OffscreenGLContext::IsSupported()
 
 GrDirectContext* OffscreenGLContext::GetDirectContext()
 {
-    if (g_pWindowContext != nullptr) {
-        //复用当前线程已存在的窗口GL上下文
-        return g_pWindowContext->directContext();
+    //优先复用当前线程已存在的窗口GL上下文（后注册的窗口优先）
+    std::vector<skwindow::WindowContext*>& windowContexts = GetWindowContexts();
+    for (auto it = windowContexts.rbegin(); it != windowContexts.rend(); ++it) {
+        skwindow::WindowContext* pContext = *it;
+        if (pContext == nullptr) {
+            continue;
+        }
+        //窗口的GL上下文必须成为当前上下文，离屏渲染才能真正复用它的GrDirectContext
+        SkGLWindowContext_Windows* pGlContext = dynamic_cast<SkGLWindowContext_Windows*>(pContext);
+        if ((pGlContext != nullptr) && !pGlContext->MakeCurrent()) {
+            //该窗口的上下文不可用（窗口已销毁等），尝试下一个
+            continue;
+        }
+        GrDirectContext* pDirectContext = pContext->directContext();
+        if (pDirectContext != nullptr) {
+            return pDirectContext;
+        }
     }
     skwindow::WindowContext* pBackgroundContext = GetBackgroundContext();
     return (pBackgroundContext != nullptr) ? pBackgroundContext->directContext() : nullptr;
@@ -128,14 +150,24 @@ GrDirectContext* OffscreenGLContext::GetDirectContext()
 
 void OffscreenGLContext::RegisterWindowContext(skwindow::WindowContext* pContext)
 {
-    g_pWindowContext = pContext;
+    if (pContext == nullptr) {
+        return;
+    }
+    std::vector<skwindow::WindowContext*>& windowContexts = GetWindowContexts();
+    auto it = std::find(windowContexts.begin(), windowContexts.end(), pContext);
+    if (it == windowContexts.end()) {
+        windowContexts.push_back(pContext);
+    }
 }
 
 void OffscreenGLContext::UnregisterWindowContext(skwindow::WindowContext* pContext)
 {
-    if (g_pWindowContext == pContext) {
-        g_pWindowContext = nullptr;
+    if (pContext == nullptr) {
+        return;
     }
+    std::vector<skwindow::WindowContext*>& windowContexts = GetWindowContexts();
+    windowContexts.erase(std::remove(windowContexts.begin(), windowContexts.end(), pContext),
+                         windowContexts.end());
 }
 
 } // namespace ui

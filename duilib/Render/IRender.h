@@ -1781,11 +1781,15 @@ public:
     * @param [in] spRenderDpi 关联的DPI转换接口
     * @param [in] platformData 平台相关的数据，Windows平台该值是窗口句柄
     * @param [in] backendType 后台绘制方式
+    * @param [in] nMsaaSampleCount MSAA的采样数（0表示使用默认值；最小值1，非法值按1处理）
+    * @param [in] bDisableVsync 是否禁用垂直同步（true表示禁用，false表示启用）
     * @return 返回窗口渲染接口，返回后由调用方管理资源；创建失败时返回nullptr
     */
     virtual IRenderWindow* CreateWindowRender(const IRenderDpiPtr& spRenderDpi,
                                               void* platformData,
-                                              RenderBackendType backendType = RenderBackendType::kRaster_BackendType) = 0;
+                                              RenderBackendType backendType = RenderBackendType::kRaster_BackendType,
+                                              int32_t nMsaaSampleCount = 0,
+                                              bool bDisableVsync = false) = 0;
 
     /** 获取字体管理器接口（每个factory共享一个对象）
     */

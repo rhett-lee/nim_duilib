@@ -13,6 +13,7 @@
 #include "include/core/SkCanvas.h"
 #include "include/core/SkSurface.h"
 #include "include/core/SkRegion.h"
+#include "tools/window/DisplayParams.h"
 
 #include "SkiaHeaderEnd.h"
 
@@ -49,7 +50,8 @@ std::unique_ptr<skwindow::WindowContext> MakeGLForWin(HWND hWnd, std::unique_ptr
 #endif
 }
 
-Render_Skia_Windows::Render_Skia_Windows(HWND hWnd, RenderBackendType backendType):
+Render_Skia_Windows::Render_Skia_Windows(HWND hWnd, RenderBackendType backendType,
+                                         int32_t nMsaaSampleCount, bool bDisableVsync):
     m_hWnd(hWnd),
     m_backendType(backendType),
     m_hDC(nullptr),
@@ -64,8 +66,15 @@ Render_Skia_Windows::Render_Skia_Windows(HWND hWnd, RenderBackendType backendTyp
     }
     //创建WindowContext
     if (backendType == RenderBackendType::kNativeGL_BackendType) {
-        //GPU绘制
-        m_pWindowContext = MakeGLForWin(hWnd, std::make_unique<skwindow::DisplayParams>());
+        //GPU绘制：按配置设置MSAA采样数和垂直同步
+        skwindow::DisplayParamsBuilder displayParamsBuilder;
+        if (nMsaaSampleCount > 0) {
+            displayParamsBuilder.msaaSampleCount(nMsaaSampleCount);
+        }
+        if (bDisableVsync) {
+            displayParamsBuilder.disableVsync(true);
+        }
+        m_pWindowContext = MakeGLForWin(hWnd, displayParamsBuilder.detach());
 #if !defined(_M_ARM64)
         if (m_pWindowContext == nullptr) {
             //部分运行环境（远程桌面、虚拟机、缺少OpenGL驱动等）无法创建OpenGL上下文，
