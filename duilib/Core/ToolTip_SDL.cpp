@@ -208,12 +208,17 @@ void ToolTip::TImpl::ShowToolTip(WindowBase* pParentWnd,
     xmlPath += skinFile;
 
     UiPadding rcShadowCorner;
-    WindowBuilder windowBuilder;
-    if (windowBuilder.ParseXmlFile(xmlPath)) {
-        WindowCreateAttributes createAttributes;
-        if (windowBuilder.ParseWindowCreateAttributes(m_pTooltipWnd.get(), createAttributes)) {
-            rcShadowCorner = createAttributes.m_rcShadowCorner;
+    if (!m_pTooltipWnd->IsWindow()) {
+        WindowBuilder windowBuilder;
+        if (windowBuilder.ParseXmlFile(xmlPath)) {
+            WindowCreateAttributes createAttributes;
+            if (windowBuilder.ParseWindowCreateAttributes(m_pTooltipWnd.get(), createAttributes)) {
+                rcShadowCorner = createAttributes.m_rcShadowCorner;
+            }
         }
+    }
+    else {
+        rcShadowCorner = m_pTooltipWnd->GetCurrentShadowCorner();
     }
 
     WindowCreateParam createParam;
