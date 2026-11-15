@@ -396,16 +396,15 @@ public:
     */
     bool IsEnableSysMenu() const;
 
-    /** 获取窗口圆角大小，对应 XML 中 round_corner 属性
+    /** 获取窗口圆角大小，对应 XML 中 round_corner 属性, 未经DPI缩放
     */
     const UiSize& GetRoundCorner() const;
 
-    /** 设置窗口圆角大小
+    /** 设置窗口圆角大小（未经DPI缩放的值）
     * @param [in] cx 圆角宽
     * @param [in] cy 圆角高
-    * @param [in] bNeedDpiScale 为 false 表示不根据 DPI 调整
     */
-    void SetRoundCorner(int cx, int cy, bool bNeedDpiScale);
+    void SetRoundCorner(int32_t cx, int32_t cy);
 
     /** 设置窗口大小的最小值（宽度和高度）
     * @param [in] szMinWindow 窗口的最小宽度和最小高度，如果值为0，表示不做限制
@@ -1000,6 +999,7 @@ protected:
     virtual void ClearWindowRgn(bool bRedraw);
 
     /** 获取设置窗口RGN的圆角值, 默认为窗口的圆角值，如果窗口未设置圆角值，则获取阴影的圆角值
+    * @return 返回圆角值（未经DPI缩放）
     */
     virtual UiSize GetWindowRgnRoundCorner() const;
 
@@ -1467,7 +1467,7 @@ private:
     //窗口四边可拉伸范围信息
     UiRect m_rcSizeBox;
 
-    //窗口圆角信息
+    //窗口圆角信息(未经DPI缩放)
     UiSize m_szRoundCorner;
 
     //标题栏区域信息

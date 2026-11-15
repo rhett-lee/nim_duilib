@@ -924,7 +924,7 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
             knownNames.insert(strName);
             UiSize size;
             AttributeUtil::ParseSizeValue(strValue.c_str(), size);
-            pWindow->SetRoundCorner(size.cx, size.cy, true);
+            pWindow->SetRoundCorner(size.cx, size.cy);
         }
         else if (strName == _T("size_contain_shadow")) {
             knownNames.insert(strName);

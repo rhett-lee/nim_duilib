@@ -731,7 +731,6 @@ void WindowBase::OnDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewSc
     NativeWnd()->SetWindowMaximumSize(szMaxWindow);
 
     m_rcSizeBox = Dpi().GetScaleRect(m_rcSizeBox, nOldScaleFactor);
-    m_szRoundCorner = Dpi().GetScaleSize(m_szRoundCorner, nOldScaleFactor);
     m_rcCaption = Dpi().GetScaleRect(m_rcCaption, nOldScaleFactor);
 }
 
@@ -767,8 +766,10 @@ void WindowBase::UpdateWindowRGN(bool bRedraw)
             //该窗口的配置为圆角窗口
             UiRect rcWnd;
             GetWindowRect(rcWnd);
-            rcWnd.Offset(-rcWnd.left, -rcWnd.top);
-            SetWindowRoundRectRgn(rcWnd, (float)szRoundCorner.cx, (float)szRoundCorner.cy, bRedraw);
+            //进行DPI缩放
+            float rx = Dpi().GetScaleFloat((float)szRoundCorner.cx);
+            float ry = Dpi().GetScaleFloat((float)szRoundCorner.cy);
+            SetWindowRoundRectRgn(rcWnd, rx, ry, bRedraw);
         }
         else {
             //配置为直角窗口
@@ -898,7 +899,7 @@ const UiSize& WindowBase::GetRoundCorner() const
     return m_szRoundCorner;
 }
 
-void WindowBase::SetRoundCorner(int cx, int cy, bool bNeedDpiScale)
+void WindowBase::SetRoundCorner(int32_t cx, int32_t cy)
 {
     ASSERT(cx >= 0);
     ASSERT(cy >= 0);
@@ -916,10 +917,6 @@ void WindowBase::SetRoundCorner(int cx, int cy, bool bNeedDpiScale)
         if (cy == 0) {
             return;
         }
-    }
-    if (bNeedDpiScale) {
-        Dpi().ScaleInt(cx);
-        Dpi().ScaleInt(cy);
     }
     m_szRoundCorner.cx = cx;
     m_szRoundCorner.cy = cy;

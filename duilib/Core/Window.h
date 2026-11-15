@@ -659,6 +659,7 @@ protected:
     virtual bool NeedSetWindowRgn() override;
 
     /** 获取设置窗口RGN的圆角值, 默认为窗口的圆角值，如果窗口未设置圆角值，则获取阴影的圆角值
+    * @return 返回圆角值（未经DPI缩放）
     */
     virtual UiSize GetWindowRgnRoundCorner() const override;
 

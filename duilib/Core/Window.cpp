@@ -1068,13 +1068,28 @@ bool Window::NeedSetWindowRgn()
         if (Shadow::IsShadowTypeNeedWindowRGN(shadowType)) {
             return true;//需要设置RGN
         }
+        if (!IsLayeredWindow() && (GetShadowType() == ShadowType::kShadowNoneRound)) {
+            //该类型的阴影，有圆角，需要通过设置RGN来保持窗口圆角
+            UiSize szCorner = GetWindowRgnRoundCorner();
+            if (!szCorner.IsEmpty()) {
+                return true;
+            }
+        }
+
     }
     return false;
 }
 
 UiSize Window::GetWindowRgnRoundCorner() const
 {
-    return WindowBase::GetWindowRgnRoundCorner();
+    UiSize szCorner = WindowBase::GetWindowRgnRoundCorner();
+#if defined (DUILIB_BUILD_FOR_WIN) 
+    if (szCorner.IsEmpty() && !IsLayeredWindow() && (GetShadowType() == ShadowType::kShadowNoneRound)) {
+        //该类型的阴影，有圆角，需要通过设置RGN来保持窗口圆角
+        szCorner = GetShadowBorderRound();
+    }
+#endif
+    return szCorner;
 }
 
 void Window::UpdateLayeredWindowStyleEx(bool bRedraw)
