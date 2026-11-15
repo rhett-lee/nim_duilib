@@ -1586,7 +1586,7 @@ void DrawRichText::OnDrawUnicodeChar(RichTextLineInfoParam* pLineInfoParam,
         rowInfo.m_rowRect.bottom = rowInfo.m_rowRect.top + nRowHeight;
         ASSERT(nRowHeight > 0);
 
-        rowInfo.m_charInfo.reserve(glyphCount + 2);
+        rowInfo.m_charInfo.Reserve(glyphCount + 2);
     }
     else {
         rowInfo.m_rowRect.right += glyphWidth;
@@ -1597,31 +1597,26 @@ void DrawRichText::OnDrawUnicodeChar(RichTextLineInfoParam* pLineInfoParam,
         }
     }
 
-    RichTextCharInfo charInfo;
-    charInfo.SetCharWidth(glyphWidth);    
+    //字符位置按"相对本行左边界的 x 偏移量"保存（超宽行由字符表内部自动切换为 32 位偏移）
+    const float fCharX = xPos - rowInfo.m_rowRect.left;
+    uint8_t charFlag = 0;
+    float fCharWidth = glyphWidth;
     if (ch == '\r') {
         //回车
-        charInfo.SetCharFlag(0);
-        charInfo.AddCharFlag(RichTextCharFlag::kIsIgnoredChar);
-        charInfo.AddCharFlag(RichTextCharFlag::kIsReturn);
-        charInfo.SetCharWidth(0);
+        charFlag = (uint8_t)(RichTextCharFlag::kIsIgnoredChar | RichTextCharFlag::kIsReturn);
+        fCharWidth = 0;
     }
     else if (ch == '\n') {
         //换行
-        charInfo.SetCharFlag(0);
-        charInfo.AddCharFlag(RichTextCharFlag::kIsNewLine);
-        charInfo.SetCharWidth(0);
+        charFlag = (uint8_t)RichTextCharFlag::kIsNewLine;
+        fCharWidth = 0;
     }
-
-    rowInfo.m_charInfo.emplace_back(std::move(charInfo));
+    rowInfo.m_charInfo.PushBack(fCharX, fCharWidth, charFlag);
 
     if (glyphChars == 2) {
-        RichTextCharInfo charInfo2;
-        charInfo2.SetCharWidth(0);
-        charInfo2.SetCharFlag(0);
-        charInfo2.AddCharFlag(RichTextCharFlag::kIsIgnoredChar);
-        charInfo2.AddCharFlag(RichTextCharFlag::kIsLowSurrogate);
-        rowInfo.m_charInfo.emplace_back(std::move(charInfo2));
+        //低代理字符（不绘制，不占宽度）
+        rowInfo.m_charInfo.PushBack(fCharX, 0,
+                                    (uint8_t)(RichTextCharFlag::kIsIgnoredChar | RichTextCharFlag::kIsLowSurrogate));
     }
     ASSERT((glyphChars == 1) || (glyphChars == 2));
 }

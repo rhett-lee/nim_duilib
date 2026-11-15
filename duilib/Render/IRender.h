@@ -5,6 +5,7 @@
 #include "duilib/Core/UiTypes.h"
 #include "duilib/Core/SharePtr.h"
 #include <map>
+#include <algorithm>
 
 namespace ui 
 {
@@ -1071,99 +1072,226 @@ enum RichTextCharFlag: uint8_t
     kIsNewLine      = 0x08,     //当前字符是否为换行'\n'
 };
 
-/** 绘制的字符属性（共4个字节）
+/** 行内字符的排版信息：每个字符保存"相对本行左边界的 x 偏移量"和 4 位属性标志
+*   存储方式：
+*   （1）常规行：x 偏移用 uint16 保存（单位 1/8 像素，单行宽度的可表示上限为 8191 像素），约 2B/字符；
+*   （2）超宽行：构建过程中一旦超出上述范围，本行自动切换为 32 位偏移（两个 uint16 保存），
+*        可表示约 5.36 亿像素的行宽，**不限制单行宽度**，约 4B/字符（与压缩前相同，不产生回退）；
+*   属性标志采用稀疏存储：只记录属性不为 0 的字符（4B/个），普通文本每行通常只有末尾的换行符。
+*   说明：偏移量是"绝对位置"的四舍五入值，误差不随字符数累积（单个字符的误差 ≤ 1/16 像素）。
 */
-struct RichTextCharInfo
+class DUILIB_API RichTextCharLayout
 {
-    /** 属性标志(读取)
+public:
+    /** x 偏移的存储单位：1/8 像素 */
+    static constexpr uint32_t kOffsetUnit = 8;
+
+    /** 常规行 x 偏移的最大原始值（uint16 可表示的范围） */
+    static constexpr uint32_t kOffsetMaxValue = 0xFFFF;
+
+public:
+    /** 字符个数
     */
-    inline uint8_t CharFlag() const
+    size_t CharCount() const
     {
-        uint32_t v = m_value;
-        v >>= 24;
-        return (uint8_t)v;
+        return m_bWide ? (m_xOffsets.size() / 2) : m_xOffsets.size();
     }
 
-    /** 属性标志(设置)
+    /** 是否为空
     */
-    inline void SetCharFlag(uint8_t flag)
+    bool Empty() const { return m_xOffsets.empty(); }
+
+    /** 是否已切换为超宽行存储
+    */
+    bool IsWideRow() const { return m_bWide; }
+
+    /** 清空
+    */
+    void Clear()
     {
-        uint32_t v = flag;
-        v <<= 24;
-        m_value &= 0x00FFFFFF;
-        m_value |= v;
+        m_xOffsets.clear();
+        m_charFlags.clear();
+        m_fLastCharWidth = 0.0f;
+        m_bWide = false;
     }
 
-    /** 属性标志(添加)
+    /** 预留容量
+    * @param [in] nCharCount 本行的字符个数
     */
-    inline void AddCharFlag(uint8_t flag)
+    void Reserve(size_t nCharCount)
     {
-        uint32_t v = flag;
-        v <<= 24;
-        m_value |= v;
+        //x 偏移必须预留：几乎每个字符都会写入
+        m_xOffsets.reserve(nCharCount * (m_bWide ? 2 : 1));
+        //属性标志是稀疏的（普通文本每行通常只有末尾的换行符），不做预留：
+        //预留会在每一行产生一次固定大小的堆分配，抵消压缩带来的收益
     }
 
-    /** 字符宽度(读取)
+    /** 添加一个字符
+    * @param [in] xOffset 该字符相对本行左边界的 x 偏移量（像素）
+    * @param [in] charWidth 该字符的宽度（像素）
+    * @param [in] charFlag 该字符的属性标志（RichTextCharFlag）
     */
-    inline float CharWidth() const
+    void PushBack(float xOffset, float charWidth, uint8_t charFlag)
     {
-        uint32_t v = m_value & 0x00FFFFFF;
-        float fValue = (float)v;
-        fValue /= 1000.0f;
-        return fValue;
-    }
-
-    /** 字符宽度(设置)
-    */
-    inline void SetCharWidth(float charWidth)
-    {
-        //防御异常输入：浮点负值转换为无符号整数属于未定义行为，统一按 0 处理
-        const float fWidth = charWidth * 1000.0f;
-        uint32_t v = (fWidth > 0.0f) ? (uint32_t)(ui::CEILF(fWidth)) : 0;
-        ASSERT(v <= 0x00FFFFFE);
-        //宽度使用 24 位存储：超出可表示范围时按上限截断，避免 Release 下截断成错误的宽度值
-        if (v > 0x00FFFFFE) {
-            v = 0x00FFFFFE;
+        const uint32_t nRawOffset = ToRawOffset(xOffset);
+        if (!m_bWide && (nRawOffset > kOffsetMaxValue)) {
+            ConvertToWideRow();
         }
-        v &= 0x00FFFFFF;
-        m_value &= 0xFF000000;
-        m_value |= v;
+        if (m_bWide) {
+            m_xOffsets.push_back((uint16_t)(nRawOffset & 0xFFFF));
+            m_xOffsets.push_back((uint16_t)((nRawOffset >> 16) & 0xFFFF));
+        }
+        else {
+            m_xOffsets.push_back((uint16_t)nRawOffset);
+        }
+        m_fLastCharWidth = charWidth;
+        if (charFlag != 0) {
+            const uint32_t nIndex = (uint32_t)(CharCount() - 1);
+            m_charFlags.push_back((nIndex << 8) | (uint32_t)charFlag);
+        }
+    }
+
+    /** 获取字符相对本行左边界的 x 偏移量（像素）
+    * @param [in] nIndex 字符下标；取值 CharCount() 时返回本行的宽度（最后一个字符的右边界）
+    */
+    float CharX(size_t nIndex) const
+    {
+        const size_t nCount = CharCount();
+        if (nCount == 0) {
+            return 0.0f;
+        }
+        if (nIndex >= nCount) {
+            return ((float)GetRawOffset(nCount - 1) / (float)kOffsetUnit) + m_fLastCharWidth;
+        }
+        return (float)GetRawOffset(nIndex) / (float)kOffsetUnit;
+    }
+
+    /** 获取字符宽度（像素）
+    */
+    float CharWidth(size_t nIndex) const
+    {
+        const size_t nCount = CharCount();
+        if (nIndex >= nCount) {
+            return 0.0f;
+        }
+        if (nIndex + 1 >= nCount) {
+            return m_fLastCharWidth;
+        }
+        return (float)(GetRawOffset(nIndex + 1) - GetRawOffset(nIndex)) / (float)kOffsetUnit;
+    }
+
+    /** 获取字符的属性标志
+    */
+    uint8_t CharFlag(size_t nIndex) const
+    {
+        if (m_charFlags.empty()) {
+            return 0;
+        }
+        const uint32_t nKey = (uint32_t)nIndex;
+        auto iter = std::lower_bound(m_charFlags.begin(), m_charFlags.end(), nKey,
+                                     [](uint32_t nValue, uint32_t nFind) {
+                                         return (nValue >> 8) < nFind;
+                                     });
+        if ((iter != m_charFlags.end()) && (((*iter) >> 8) == nKey)) {
+            return (uint8_t)((*iter) & 0xFF);
+        }
+        return 0;
     }
 
     /** 该字符是否为回车
     */
-    inline bool IsReturn() const { return CharFlag() & RichTextCharFlag::kIsReturn; }
+    bool IsReturn(size_t nIndex) const { return (CharFlag(nIndex) & RichTextCharFlag::kIsReturn) != 0; }
 
     /** 该字符是否为换行符
     */
-    inline bool IsNewLine() const { return CharFlag() & RichTextCharFlag::kIsNewLine; }
+    bool IsNewLine(size_t nIndex) const { return (CharFlag(nIndex) & RichTextCharFlag::kIsNewLine) != 0; }
 
     /** 该字符是否为非绘制字符
     */
-    inline bool IsIgnoredChar() const { return CharFlag() & RichTextCharFlag::kIsIgnoredChar; }
+    bool IsIgnoredChar(size_t nIndex) const { return (CharFlag(nIndex) & RichTextCharFlag::kIsIgnoredChar) != 0; }
 
     /** 该字符是否为低代理字符
     */
-    inline bool IsLowSurrogate() const { return CharFlag() & RichTextCharFlag::kIsLowSurrogate; }
+    bool IsLowSurrogate(size_t nIndex) const { return (CharFlag(nIndex) & RichTextCharFlag::kIsLowSurrogate) != 0; }
 
-    /** 比较操作符
+    /** 比较两个字符表的内容是否相同
     */
-    inline bool operator == (const RichTextCharInfo& r) const { return m_value == r.m_value; }
-    inline bool operator != (const RichTextCharInfo& r) const { return m_value != r.m_value; }
+    bool operator==(const RichTextCharLayout& r) const
+    {
+        return (m_bWide == r.m_bWide) &&
+               (m_xOffsets == r.m_xOffsets) &&
+               (m_charFlags == r.m_charFlags) &&
+               (m_fLastCharWidth == r.m_fLastCharWidth);
+    }
+    bool operator!=(const RichTextCharLayout& r) const { return !((*this) == r); }
 
 private:
-    /** 使用整型存储，减少内存占有量
+    /** 像素值转换为内部存储的原始偏移值
     */
-    uint32_t m_value = 0;
+    uint32_t ToRawOffset(float xOffset) const
+    {
+        //防御异常输入：浮点负值转换为无符号整数属于未定义行为，统一按 0 处理
+        if (!(xOffset > 0.0f)) { //同时处理 NaN 的情况
+            return 0;
+        }
+        const float fValue = (xOffset * (float)kOffsetUnit) + 0.5f;
+        if (fValue >= 4294967040.0f) { //防止超出 uint32 的表示范围（float 在该值以上无法精确表示）
+            return 0xFFFFFFFF;
+        }
+        return (uint32_t)fValue;
+    }
+
+    /** 获取内部存储的原始偏移值
+    */
+    uint32_t GetRawOffset(size_t nIndex) const
+    {
+        if (m_bWide) {
+            return (uint32_t)m_xOffsets[nIndex * 2] | ((uint32_t)m_xOffsets[nIndex * 2 + 1] << 16);
+        }
+        return m_xOffsets[nIndex];
+    }
+
+    /** 切换为超宽行的存储方式（每个字符使用 32 位偏移，每行最多触发一次）
+    */
+    void ConvertToWideRow()
+    {
+        const size_t nCount = CharCount();
+        std::vector<uint16_t> xOffsets;
+        xOffsets.resize(nCount * 2);
+        for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+            const uint32_t nRawOffset = m_xOffsets[nIndex];
+            xOffsets[nIndex * 2] = (uint16_t)(nRawOffset & 0xFFFF);
+            xOffsets[nIndex * 2 + 1] = (uint16_t)((nRawOffset >> 16) & 0xFFFF);
+        }
+        m_xOffsets.swap(xOffsets);
+        m_bWide = true;
+    }
+
+private:
+    /** 字符的 x 偏移量（常规行：1个 uint16/字符；超宽行：2个 uint16/字符）
+    */
+    std::vector<uint16_t> m_xOffsets;
+
+    /** 字符的属性标志，按字符下标升序排列，每个元素为：(字符下标 << 8) | 属性标志
+    */
+    std::vector<uint32_t> m_charFlags;
+
+    /** 最后一个字符的宽度（像素），用于计算最后一个字符的宽度和行宽
+    */
+    float m_fLastCharWidth = 0.0f;
+
+    /** 是否已切换为超宽行存储
+    */
+    bool m_bWide = false;
 };
 
 /** 逻辑行(矩形区域内显示的行，物理行数据在自动换行的情况下会对应多个逻辑行)的基本信息
 */
 struct RichTextRowInfo
 {
-    /** 本行中的字符个数，字符属性
+    /** 本行中的字符个数，字符属性（紧凑存储：每个字符只保存行内 x 偏移与稀疏属性位）
     */
-    std::vector<RichTextCharInfo> m_charInfo;
+    RichTextCharLayout m_charInfo;
 
     /** 该行的文字所占矩形区域
     */

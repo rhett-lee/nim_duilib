@@ -290,15 +290,15 @@ steady paints     : 1 (after the first paint)
 | O1 | **绘制缓存按可视区域懒构建**：只为可见行（+预取 1 屏）生成 `TPendingDrawRichText` 与 `TextGlyphRunList`，离屏行只保留排版数据；滚动时按需增量构建并淘汰离屏行 | 约 6.0 ~ 6.5MB | 约 -45% ~ -50% | 中：需处理滚动重建、缓存失效与选中/光标路径；滚动时有一定 CPU 成本（可按行预取平滑） | 高 | **已实施**（第 12 节） |
 | O2 | **行结构瘦身**：`std::vector<SharePtr<RichTextRowInfo>>` 改为 `std::vector<RichTextRowInfo>`；`RichTextData` 用字体索引/颜色索引替代 `SharePtr<UiFontEx>`(16B) 与两个 `UiColor`，目标 88B → 约 40B | 约 5.5 ~ 6.0MB | 约 -5% | 低：改动集中在 `RichEditData` 与 `GetRichTextForDraw`，需保证富文本字体/颜色语义不变 | 中 | **已实施**（第 13 节） |
 | O3 | **行文本共享**：`RichTextLineInfo::m_lineText` 改为"整篇文本 + (offset, len) 视图"，同时去掉 `RichEdit2::SetText` 中的整篇临时副本（`DStringW text = strText;`） | 约 5.3 ~ 5.8MB | 约 -3%（峰值额外 -1 倍文本） | 中：编辑/替换文本时视图失效需重建；需谨慎处理单行模式规整 | 中 | **已实施**（第 15 节） |
-| O4 | **压缩字符信息**：`RichTextCharInfo` 由 4B/字符 压缩为行内 x 偏移（uint16）+ 属性位，约 2.5B/字符 | 约 4.5 ~ 5.0MB | 约 -8% | 中高：需要评估超大行宽、字体混排与对齐精度 | 低 | 未开始 |
+| O4 | **压缩字符信息**：逐字符 4B（24 位宽度 + 8 位标志）改为"行内 x 偏移（uint16，1/8px）+ 稀疏属性表"，约 2B/字符；超宽行自动切 32 位偏移 | 每字符 -1.26B（16MB 文本约 -10.1MB） | 约 -14.3% | 中高：已解决超大行宽（32 位回退，不限制行宽）、混排与对齐精度 | 中 | **已实施**（第 16 节） |
 | O5 | **大文本模式/分页 API**：提供分段加载（只保留窗口附近若干段），或允许设置"仅排版可视区域、滚动时增量排版" | 可降到 1 ~ 2 倍文本 | 约 -80% 以上 | 高：涉及控件模型与滚动条、选中、查找等全部功能 | 长期 | **暂不实施**（产品暂无此需求，2026-11-15 决策） |
 | O6 | **内存归还**：文本清空/控件隐藏/缓存失效时显式释放绘制缓存并 `shrink_to_fit`；复用 `GetRichTextForDraw` 的 `vector<RichTextData>` 而非每帧新建 | 峰值下降，稳态持平 | 约 -5% ~ -10%（消除峰值常驻） | 低 | 中 | **已实施**（第 14 节） |
 
 > O1、O2、O3 组合后，预计可从 **12.1MB/MB 降到约 5.5 ~ 6.5MB/MB（约 -45% ~ -55%）**；
-> 再叠加 O4 可到约 5MB/MB。O5 是数量级方案，但工作量和回归面最大，已明确不做。
+> 再叠加 O4（实测 16MB 文本 -14.3%）后，16MB 文本的控件内存为 60.5MB，约为 UTF-16 文本的 3.8 倍。O5 是数量级方案，但工作量和回归面最大，已明确不做。
 >
-> 状态汇总：**O1、O2、O3、O6 已实施**；**O4 未开始**；**O5 暂不实施**。
-> 实现方式与实测结果：O1 见第 12 节、O2 见第 13 节、O6 见第 14 节、O3 见第 15 节。
+> 状态汇总：**O1、O2、O3、O4、O6 已实施**；**O5 暂不实施**。
+> 实现方式与实测结果：O1 见第 12 节、O2 见第 13 节、O6 见第 14 节、O3 见第 15 节、O4 见第 16 节。
 
 ### 9.2 O1 的实现要点
 
@@ -1170,5 +1170,175 @@ out\x64\Release\tests\bench_richedit2_memory.exe --mb 4
 out\x64\Release\tests\bench_richedit2_memory.exe --mb 8
 out\x64\Release\tests\bench_richedit2_memory.exe --mb 16
 ```
+
+## 16. O4 实施效果：字符排版信息压缩（2026-11-15）
+
+> 状态：**已实施**。16MB 文本的控件内存 70.6 → **60.5MB（-14.3%）**，`per_char_bytes` 8.83 → **7.57**；
+> 超宽行自动切换为 32 位偏移，**不限制行宽**；`[layout signature]` 与实施前完全一致。
+> 16.1 ~ 16.4 为实施前的评估与设计（保留以便追溯），16.5 起为实测结果。
+
+### 16.1 现状与收益测算
+
+`RichTextCharInfo`（[IRender.h](file:///e:/develop/nim_duilib/duilib/Render/IRender.h#L1064-L1158)）每个字符占 4B：
+低 24 位是字符宽度（单位 1/1000px），高 8 位是 4 个标志位（忽略字符 / 低代理 / 回车 / 换行）。
+O1/O2/O3/O6 实施后，它是**剩余最大单项**（16MB 文本，8,388,608 字符 × 4B = 32.0MB，约占控件内存 70.6MB 的 45%）。
+
+压缩到 2.5B/字符后：
+
+| 文本规模 | 字符数 | 字符信息现状 | O4 后 | 节省 | 占当前控件内存 |
+| --- | --- | --- | --- | --- | --- |
+| 2MB | 1,048,576 | 4.0MB | 2.5MB | 约 1.5MB | 约 -16% |
+| 16MB | 8,388,608 | 32.0MB | 20.0MB | 约 12.0MB | 约 -16%（扣除行结构 +8B/行后约 -15.6%） |
+
+- 预期 16MB 的 `per_char_bytes` 从 **8.82 降到约 7.4**；
+- 附带性能收益：`PosFromChar` / `CaretPosFromChar` 由"逐字符累加宽度 O(n)"变为"查表 O(1)"；
+  `CharFromPos`、选中区计算仍是 O(n)，但每次访问从 4B 降到 2B，缓存更友好；
+- 附带内存一致性收益：行宽不再参与逐字符累加，字符坐标只由偏移表决定，避免 float 累加的漂移。
+
+### 16.2 表示设计（含超大行宽方案）
+
+**核心思路**：不再存"每个字符的宽度"，改存"每个字符相对本行左边界的 x 偏移"（单调递增）。
+偏移是绝对位置，四舍五入误差**不随字符数累积**（现状的宽度量化误差会随累加漂移）。
+
+正常行（占绝大多数）的存储布局（两个容器：偏移表 + 稀疏属性表）：
+
+```text
+m_xOffsets:  [x0][x1][x2] ... [xN-1]                 ← N 个 uint16（相对行左边界的 x 偏移，单位 1/8px）
+m_charFlags: [(i0<<8)|f0][(i1<<8)|f1] ...            ← 只记录属性非 0 的字符（4B/项，按下标升序）
+总大小 ≈ 2B/字符 + 稀疏属性项（普通文本每行只有末尾换行符 1 项）
+```
+
+> 实施时对两种备选做过权衡：
+> （1）"偏移 + 4bit 标志"打包进**单个** `vector<uint16_t>`（2.5B/字符、单次分配）需要在行末做一次
+> 合并整理（写入方 `OnDrawUnicodeChar` 逐字符调用，行结束没有统一的收口点），实现复杂且易错；
+> （2）实际采用**偏移表 + 稀疏属性表**：偏移表预留容量（每行必有），属性表**不预留**，
+> 只在出现 `\r`/`\n`/低代理时按需增长（普通行仅一次 16B 级的小分配）。
+> 实测该方案比"属性表预留 `N/8+2` 项"多省约 4MB（16MB 文本），见 16.5。
+
+**超大行宽方案（不限制行宽）**：
+
+| 项 | 正常行 | 超宽行 |
+| --- | --- | --- |
+| 偏移宽度 | uint16，单位 1/8px，单行上限 **8191px** | 32 位（hi/lo 两个 uint16 仍按 1/8px），上限约 **5.36 亿 px**（约 3300 万汉字一行） |
+| 触发条件 | 行宽 ≤ 8191px | 构建过程中 x 偏移超过 8191px（单行模式、不换行的超长 URL/长串、超宽内联图片行） |
+| 内存 | 约 2B/字符 + 稀疏属性表 | 4B/字符 + 稀疏属性表（与压缩前持平，不产生回归） |
+| 限制 | 无 | **无**：不截断、不强制换行、不丢字符 |
+
+- 切换时机：由写入方（`DrawRichText::OnDrawUnicodeChar`，已经拿到每个字符的 `xPos`）在
+  `PushBack(xCharOffset, charWidth, charFlag)` 时检测；一旦越界，把本行已写入的 uint16 展开为 32 位，
+  并把本行标记为"宽行"，**每行最多发生一次**；
+- 读取统一走行级接口（`CharCount()` / `CharX(i)` / `CharWidth(i)` / `CharFlag(i)`），调用方无需感知是哪种表示；
+- 宽行阈值 8191px 的覆盖能力：4K（3840px）、8K（7680px）在 100% DPI 下都在正常行范围内；
+  更高 DPI 或超宽窗口才进入宽行模式，此时内存与压缩前持平，**仍然可用**；
+- 理论极限：32 位偏移（1/8px）支持约 5.36 亿 px 的行宽；属性表的键为 `(字符下标 << 8) | 标志`，
+  字符下标占 24 位，因此**单行上限约 1677 万字符**（约 1600 万汉字、1.6 亿 px），
+  远超实际文档；如需突破，只需把属性表键扩为 64 位，不影响其它部分。
+
+**精度分析**：
+
+- 单位 1/8px，单字符误差 ≤1/16px（0.0625px），且不累积；
+- 现状为 1/1000px 量化 + float 累加，误差约 0.001px/字符；两者最终都按整型像素用于
+  光标位置、命中测试和选中区绘制，实际差异不超过 1px（大多数情况完全相同）；
+- 行宽、居中对齐、右对齐使用的是 `m_rowRect`（float，由 `MeasureRichText` 直接给出），
+  **不受字符偏移精度影响**，因此"混排 + 对齐"精度不变；
+- 中点命中测试（`CharFromPos` 用 `x + width/2` 判断）改用偏移后，等价于比较
+  `CharX(i) + (CharX(i+1) - CharX(i))/2`，语义不变。
+
+### 16.3 改动范围
+
+| 位置 | 改动 |
+| --- | --- |
+| [IRender.h](file:///e:/develop/nim_duilib/duilib/Render/IRender.h#L1075-L1286) | 新增 `RichTextCharLayout` 替换 `RichTextCharInfo`：`m_xOffsets`（uint16，常规行 1 项/字符、宽行 2 项/字符）+ `m_charFlags`（稀疏 `(下标<<8)|标志`，升序二分查找）+ `m_fLastCharWidth` + `m_bWide`；提供 `Reserve/PushBack/CharCount/CharX/CharWidth/CharFlag/IsReturn/IsNewLine/IsIgnoredChar/IsLowSurrogate/operator==`；`ConvertToWideRow()` 在首次越界时展开为 32 位。`RichTextRowInfo::m_charInfo` 类型切换，结构体由 48B 增至 80B（+32B/行） |
+| [DrawRichText.cpp](file:///e:/develop/nim_duilib/duilib/RenderSkia/DrawRichText.cpp#L1589-L1620) | 唯一写入方：`reserve` → `Reserve`；两处 `emplace_back` 改为 `PushBack(xPos - rowRect.left, charWidth, flag)`，直接写入偏移（`\r`/`\n` 宽度仍为 0） |
+| [RichEditData.cpp](file:///e:/develop/nim_duilib/duilib/Control/RichEditData.cpp) | 全部读取点适配：`size()/empty()` → `CharCount()/Empty()`；`CaretPosFromChar`/`PosFromChar`/`CharFromPos`/`GetCharWidthValue`/`GetCharRangeRects` 由"逐字符累加宽度"改为"偏移查表"，删除 5 处累加循环（含忽略字符跳过逻辑，忽略字符宽度为 0，语义等价）；第 480 行空行占位字符改 `PushBack(0,0,0)`；第 747 行调试一致性断言改用 `operator==` |
+| [RichTextImpl.cpp](file:///e:/develop/nim_duilib/duilib/Control/RichTextImpl.cpp#L2148-L2153) | 选中行的 `m_charWidths` 由 `CharWidth(i)` 逐项填充（相邻偏移差） |
+| [bench_richedit2_memory.cpp](file:///e:/develop/nim_duilib/tests/bench_richedit2_memory.cpp) | `[size]` 输出由 `RichTextCharInfo` 改为 `RichTextCharLayout` |
+| [test_richedit2_edit.cpp](file:///e:/develop/nim_duilib/tests/test_richedit2_edit.cpp#L1820-L1860) | 新增 `TestWideRow`：单行 10000 个汉字（行宽 > 65535px），校验文本、x 单调、8 个下标的 `CharFromPos(PosFromChar(i)) == i`、右对齐往返、绘制有内容 |
+
+### 16.4 风险与缓解
+
+| 风险 | 等级 | 缓解 |
+| --- | --- | --- |
+| 坐标精度下降 | 中 | 1/8px + 绝对偏移（误差不累积）；现有 `PosFromChar/CharFromPos` 往返、光标单调性、对齐测试可直接覆盖；实施时先与旧实现逐字符对比一次 |
+| 超大行宽溢出/截断 | 中 | 32 位回退 + 构建期升级；用"单行 10 万字符""超宽图片行"专项测试验证 |
+| 标志位遗漏或错位 | 中 | 位打包集中在单一类型内，读写只有唯一入口；调试期保留新旧两套数据的一致性断言 |
+| 命中测试/边界语义变化 | 中 | 保留现有分支（行首、行尾、回车换行结尾、空行、低代理跳过），只替换"取宽度"的底层 |
+| 公共头文件 API 变化 | 中 | `RichTextRowInfo::m_charInfo` 是公开字段；仓库内只有 `Render_Skia` 一个实现，外部渲染后端需同步适配（发布说明中注明） |
+| 行结构变大 | 低 | 实际 **+32B/行**（字符表由 24B 的单个 vector 变为 48B 的两个 vector + 8B 附加字段），131072 行约 4.2MB；已计入实测收益（-14.3%，见 16.5） |
+
+### 16.5 内存 A/B（同机、静态 Release、每行 64 字符）
+
+| 规模 | 每字符字节（O3 → O4） | 控件内存 MiB（O3 → O4） | 峰值工作集 MiB（O3 → O4） | 降幅 |
+| --- | --- | --- | --- | --- |
+| 2MB | 9.06 → **7.90** | 9.1 → **7.9** | 28.10 → **26.9** | **-12.7%** |
+| 4MB | 8.87 → **8.10** | 17.7 → **15.4** | 41.80 → **39.4** | **-13.0%** |
+| 8MB | 9.04 → **7.80** | 36.2 → **31.2** | 69.61 → **64.6** | **-13.8%** |
+| 16MB | 8.83 → **7.57** | 70.6 → **60.5** | 125.02 → **115.0** | **-14.3%** |
+
+- 16MB 文本稳态省 **10.1MB**，逐字符 **-1.26B**（评估预期 -1.5B）；
+- `[size]` 输出：`RichTextCharLayout` 56B、`RichTextRowInfo` 48 → 80B、`RichTextLineInfo` 56B（O3 起）；
+- **与评估偏差的原因**：字符数据本身确实从 4B/字符降到约 2B/字符（16MB 约 -16.7MB），
+  但 `RichTextRowInfo` 由 48B 增至 80B（两个 vector 48B + 附加字段 8B，131072 行约 **+4.2MB**），
+  再叠加每行稀疏属性表的一次小分配（约 2MB），最终净收益为 -10.1MB；
+- **实施过程中的一次修正**：最初 `Reserve()` 里按 `N/8+2` 预留属性表，每行固定占 40 ~ 64B
+  （16MB 文本约 5MB），实测只有 -8.3%；改为**属性表不预留、按需增长**后提升到 -14.3%
+  （16MB 控件内存 64.8MB → 60.5MB）。
+
+### 16.6 性能 A/B（`bench_richedit2`，同机，12 轮弃前 2 轮取中位数，单位 `us/帧`）
+
+| 场景 | O3 | O4 | 变化 |
+| --- | --- | --- | --- |
+| `steady_zhen_small` | 163.06 | 154.06 | -5.5% |
+| `steady_zhen_large` | 161.66 | 153.79 | -4.9% |
+| `steady_zhen_xlarge` | 161.45 | 152.92 | -5.3% |
+| `steady_emoji_small` | 428.40 | 394.34 | -8.0% |
+| `steady_emoji_large` | 411.99 | 392.79 | -4.7% |
+| `steady_emoji_xlarge` | 406.37 | 403.29 | -0.8% |
+| `scroll_zhen_large` | 160.63 | 155.67 | -3.1% |
+| `scroll_emoji_large` | 411.47 | 397.60 | -3.4% |
+| `typing_zhen_large` | 311.74 | 299.73 | -3.9% |
+| `typing_emoji_large` | 865.82 | 857.82 | -0.9% |
+| `relayout_zhen_small` | 290.54 | 293.92 | +1.2% |
+| `relayout_zhen_large` | 1612.86 | 1612.08 | -0.1% |
+| `relayout_emoji_small` | 1138.62 | 1187.82 | +4.3% |
+| `relayout_emoji_large` | 11852.85 | 12252.01 | +3.4% |
+
+- 稳态绘制与滚动场景普遍 **-0.8% ~ -8%**：字符数据从 4B/字符降到 2B/字符，缓存局部性更好；
+- `relayout_emoji_*` 为 **+3.4% ~ +4.3%**：emoji 行的属性表项多（每个 emoji 有 1 个低代理标志），
+  属性表不预留后需要按指数扩容；仍在项目既定的 ±6% 噪声带内，且换来的是普通文本行的内存收益，
+  接受该折中；
+- `[layout signature]` 仍为 **798x668 / 798x17608 / 799x1328 / 799x35208**，排版结果与实施前完全一致。
+
+### 16.7 超宽行专项验证
+
+新增 `TestWideRow`（[test_richedit2_edit.cpp](file:///e:/develop/nim_duilib/tests/test_richedit2_edit.cpp#L1820-L1860)），
+单行模式写入 10000 个汉字（行宽 > 65535px，必然触发 32 位偏移升级），验证：
+
+- `GetText()` 与原文一致（不截断、不丢字符）；
+- `PosFromChar(n-1).x > 65535` 且 x 随下标单调递增；
+- 下标 `{0,1,511,512,1024,5000,n-2,n-1}` 的 `CharFromPos(PosFromChar(i)) == i`（定位与命中往返一致）；
+- 右对齐时往返一致；
+- `PaintFrame` 后绘制像素非空。
+
+结论：**不限制行宽**，超宽行的光标定位、命中测试、对齐与绘制均正确；宽行内存与压缩前持平（4B/字符）。
+
+### 16.8 结论与复跑
+
+- **收益达成**：16MB 文本稳态 **-14.3%**（70.6MB → 60.5MB），峰值 **-8.0%**（125.0MB → 115.0MB）；
+  连带收益是 `PosFromChar`/`CaretPosFromChar` 由 O(n) 累加改为 O(1) 查表，且坐标误差不再随字符数累积；
+- **不限制行宽**：常规行 uint16（≤8191px），越界自动升级为 32 位（上限约 5.36 亿 px / 每行约 1677 万字符）；
+- **回归**：`ctest` **16/16 通过**（含新增超宽行用例），`[layout signature]` 与实施前一致；
+- 复跑命令：
+
+```bat
+set PATH=%CD%\bin;%PATH%
+out\x64\Release\tests\bench_richedit2_memory.exe --mb 2
+out\x64\Release\tests\bench_richedit2_memory.exe --mb 4
+out\x64\Release\tests\bench_richedit2_memory.exe --mb 8
+out\x64\Release\tests\bench_richedit2_memory.exe --mb 16
+out\x64\Release\tests\bench_richedit2.exe --iterations 200
+ctest --test-dir out\x64\Release -C Release --output-on-failure
+```
+
 
 

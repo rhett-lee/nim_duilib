@@ -2121,7 +2121,7 @@ bool RichTextImpl::UpdateTextSelectLayout(IRender* pRender)
             continue;
         }
         for (const RichTextRowInfo& rowInfo : lineInfoPtr->m_rowInfo) {
-            if (rowInfo.m_charInfo.empty()) {
+            if (rowInfo.m_charInfo.Empty()) {
                 continue;
             }
             TextSelectRow selectRow;
@@ -2145,11 +2145,12 @@ bool RichTextImpl::UpdateTextSelectLayout(IRender* pRender)
             selectRow.m_fLeft += (float)nXOffset;
             selectRow.m_fRight += (float)nXOffset;
 
-            selectRow.m_charWidths.reserve(rowInfo.m_charInfo.size());
-            for (const RichTextCharInfo& charInfo : rowInfo.m_charInfo) {
-                selectRow.m_charWidths.push_back(charInfo.CharWidth());
+            const size_t nCharCount = rowInfo.m_charInfo.CharCount();
+            selectRow.m_charWidths.reserve(nCharCount);
+            for (size_t nCharIndex = 0; nCharIndex < nCharCount; ++nCharIndex) {
+                selectRow.m_charWidths.push_back(rowInfo.m_charInfo.CharWidth(nCharIndex));
             }
-            nCharOffset += rowInfo.m_charInfo.size();
+            nCharOffset += nCharCount;
             m_selectRows.push_back(std::move(selectRow));
         }
     }

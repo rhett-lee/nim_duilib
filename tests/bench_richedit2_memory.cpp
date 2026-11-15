@@ -407,8 +407,8 @@ int main(int argc, char* argv[])
         ::printf("[ratio] control_vs_utf8_text,%.3f\n",
             (nUtf8Bytes > 0) ? ((double)nControlBytes / (double)nUtf8Bytes) : 0.0);
     }
-    ::printf("[size] RichTextCharInfo,%zu,RichTextData,%zu,RichTextRowInfo,%zu,RichTextLineInfo,%zu\n",
-        sizeof(ui::RichTextCharInfo), sizeof(ui::RichTextData),
+    ::printf("[size] RichTextCharLayout,%zu,RichTextData,%zu,RichTextRowInfo,%zu,RichTextLineInfo,%zu\n",
+        sizeof(ui::RichTextCharLayout), sizeof(ui::RichTextData),
         sizeof(ui::RichTextRowInfo), sizeof(ui::RichTextLineInfo));
 
     richEdit.SetWindow(nullptr);

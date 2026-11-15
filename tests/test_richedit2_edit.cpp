@@ -1817,6 +1817,48 @@ void TestTextAlign(TestEnv& env)
     CHECK_MSG(CountInkPixels(env) > 0, "align: text should be painted");
 }
 
+/** 超宽行：单行模式下文本宽度超过 uint16 可表示范围时，字符定位仍然正确（不限制行宽） */
+void TestWideRow(TestEnv& env)
+{
+    ResetEdit(env);
+    TestRichEdit2& richEdit = env.Edit();
+    richEdit.SetMultiLine(false);
+
+    //构造超宽单行文本：字符数足够使行宽超过 65535 像素（触发 32 位偏移存储）
+    DStringW text;
+    text.reserve(10000);
+    for (int32_t nIndex = 0; nIndex < 10000; ++nIndex) {
+        text.push_back((wchar_t)(0x4E00 + (nIndex % 1000)));//常用汉字
+    }
+    richEdit.SetText(text);
+    CHECK_MSG(richEdit.GetText() == text, "wide row: text should be set unchanged");
+
+    const int32_t nTextLength = (int32_t)text.size();
+    const ui::UiPoint ptFirst = richEdit.PosFromChar(0);
+    const ui::UiPoint ptLast = richEdit.PosFromChar(nTextLength - 1);
+    CHECK_MSG(ptLast.x > 65535, "wide row: row width should exceed 65535 pixels");
+    CHECK_MSG(ptLast.x > ptFirst.x, "wide row: x should increase with char index");
+
+    //光标定位与命中测试的往返一致性
+    const int32_t checkIndexes[] = { 0, 1, 511, 512, 1024, 5000, nTextLength - 2, nTextLength - 1 };
+    for (int32_t nIndex : checkIndexes) {
+        if ((nIndex < 0) || (nIndex >= nTextLength)) {
+            continue;
+        }
+        const ui::UiPoint pt = richEdit.PosFromChar(nIndex);
+        CHECK_MSG(richEdit.CharFromPos(pt) == nIndex, "wide row: round trip at index " + std::to_string(nIndex));
+    }
+
+    //右对齐时同样保持往返一致
+    richEdit.SetTextHAlignType(ui::HorAlignType::kAlignRight);
+    CHECK_MSG(richEdit.CharFromPos(richEdit.PosFromChar(5000)) == 5000, "wide row: round trip should hold when right aligned");
+    richEdit.SetTextHAlignType(ui::HorAlignType::kAlignLeft);
+
+    //超宽行也要能正常绘制
+    PaintFrame(env);
+    CHECK_MSG(CountInkPixels(env) > 0, "wide row: text should be painted");
+}
+
 /** 单行/多行与按键选项：回车、TAB、Ctrl+回车 */
 void TestLineAndKeyOptions(TestEnv& env)
 {
@@ -2797,6 +2839,7 @@ int main()
     TestPasswordMode(env);
     TestNumberOnly(env);
     TestTextAlign(env);
+    TestWideRow(env);
     TestLineAndKeyOptions(env);
     TestRowSpacingAndZoom(env);
     TestUndoRedo(env);
