@@ -852,7 +852,7 @@ protected:
     virtual bool CanPlaceCaptionBar() const override;
     virtual void OnInit() override;
     virtual uint32_t GetControlFlags() const override;
-
+    virtual void OnSetVisible(bool bChanged) override;
     //消息处理函数
     virtual bool OnSetCursor(const EventArgs& msg) override;
     virtual bool OnSetFocus(const EventArgs& msg) override;
@@ -1127,6 +1127,10 @@ private:
     */
     bool GetRichTextForDraw(RichTextDataList& richTextDataList) const;
 
+    /** 释放绘制缓存与复用的绘制数据容器（文本清空、控件隐藏时调用，归还占用的内存）
+    */
+    void ReleaseDrawData();
+
     /** 将指定行范围的文本生成可绘制的格式
     * @param [out] richTextDataList 返回格式化的文本数据
     * @param [in] nFirstLine 起始行号
@@ -1389,6 +1393,10 @@ private:
     /** 文本内容管理接口
     */
     RichEditData* m_pTextData;
+
+    /** 绘制数据的复用容器：避免每帧新建文本片段数组，文本清空/控件隐藏时释放容量
+    */
+    RichTextDataList m_richTextDrawData;
 
 private:
     /** 选择的起始字符

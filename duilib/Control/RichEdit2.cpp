@@ -463,6 +463,15 @@ void RichEdit2::OnInit()
     }
 }
 
+void RichEdit2::OnSetVisible(bool bChanged)
+{
+    BaseClass::OnSetVisible(bChanged);
+    if (!IsVisible()) {
+        //控件隐藏时归还绘制缓存与绘制数据，再次显示时按需重建
+        ReleaseDrawData();
+    }
+}
+
 void RichEdit2::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
     if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
@@ -1192,6 +1201,10 @@ void RichEdit2::SetText(const DStringW& strText)
     }
     else {
         bChanged = m_pTextData->SetText(text);
+    }
+    if (text.empty()) {
+        //文本被清空：立即归还未使用的绘制内存，避免大文本清空后容量长期常驻
+        ReleaseDrawData();
     }
     if (bChanged && IsInited()) {
         //重新计算字符区域
@@ -2004,7 +2017,8 @@ void RichEdit2::Paint(IRender* pRender, const UiRect& rcPaint)
 
         size_t nFirstLine = 0;
         size_t nLineCount = 0;
-        RichTextDataList richTextDataList;
+        //复用成员容器，避免每帧新建文本片段数组（稳态时不产生内存抖动）
+        RichTextDataList& richTextDataList = m_richTextDrawData;
         if (bHasVisibleRange) {
             nFirstLine = visibleRange.m_nFirstLine;
             nLineCount = visibleRange.m_nLastLine + 1 - visibleRange.m_nFirstLine;
@@ -3414,6 +3428,14 @@ bool RichEdit2::GetRichTextForDraw(RichTextDataList& richTextDataList, size_t nF
     m_pTextData->GetTextView(textView, nFirstLine, nLineCount);
     GetRichTextForDraw(textView, richTextDataList);
     return !richTextDataList.IsEmpty();
+}
+
+void RichEdit2::ReleaseDrawData()
+{
+    if (m_pTextData != nullptr) {
+        m_pTextData->ClearDrawRichTextCache();
+    }
+    m_richTextDrawData.Release();
 }
 
 bool RichEdit2::GetRichTextForDraw(const std::vector<std::wstring_view>& textView,

@@ -896,6 +896,15 @@ public:
         m_imageList.clear();
     }
 
+    /** 清空并释放容量（用于需要归还内存的场景，如文本清空、控件隐藏）
+    */
+    void Release()
+    {
+        std::vector<SharePtr<UiFontEx>>().swap(m_fontList);
+        std::vector<UiColor>().swap(m_colorList);
+        std::vector<RichTextImageInfo>().swap(m_imageList);
+    }
+
     /** 交换两个表的数据
      */
     void Swap(RichTextAttrTable& other)
@@ -1012,6 +1021,14 @@ public:
     {
         m_data.clear();
         m_attrs.Clear();
+    }
+
+    /** 清空并释放容量（用于需要归还内存的场景，如文本清空、控件隐藏）
+    */
+    void Release()
+    {
+        std::vector<RichTextData>().swap(m_data);
+        m_attrs.Release();
     }
 
     /** 是否为空

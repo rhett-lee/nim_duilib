@@ -2924,8 +2924,11 @@ void RichEditData::Clear()
     RichTextLineInfoList lineTextInfo;
     m_lineTextInfo.swap(lineTextInfo);
     ClearDrawRichTextCache();
-    m_lineRowBeginIndex.clear();
-    m_lineTop.clear();
+    //释放行索引与行顶部坐标的容量（文本清空时归还内存）
+    std::vector<uint32_t> lineRowBeginIndex;
+    m_lineRowBeginIndex.swap(lineRowBeginIndex);
+    std::vector<int32_t> lineTop;
+    m_lineTop.swap(lineTop);
     m_rcTextRect.Clear();
 
     std::vector<int32_t> temp;

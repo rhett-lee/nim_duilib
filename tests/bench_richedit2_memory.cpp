@@ -6,7 +6,8 @@
 // 测量方式：
 //   1) 每个文本规模在独立进程中运行（避免不同规模的堆复用互相污染）；
 //   2) 使用 Windows GetProcessMemoryInfo 读取进程私有提交内存（PrivateUsage）与工作集；
-//   3) 分阶段采样：空白基线 -> 生成调用方文本 -> SetText 后 -> 首次绘制后 -> 稳态绘制后；
+//   3) 分阶段采样：空白基线 -> 生成调用方文本 -> SetText 后 -> 首次绘制后 -> 稳态绘制后
+//      -> 隐藏控件后 -> 清空文本后；
 //   4) 所有文本使用同一份"中文+英文"行模板重复拼接，保证字符集一致（字形缓存为常量）。
 //
 // 运行要求：
@@ -21,6 +22,7 @@
 //
 // 输出：
 //   [stage] 行：各阶段的私有提交内存/工作集（字节），供外部汇总与回归分析；
+//   [release] 行：隐藏控件、清空文本时归还的字节数（正数表示释放，负数表示反而增加）；
 //   [result] 行：本规模的关键增量（MB）与文本规模信息。
 
 #include "duilib/Core/GlobalManager.h"
@@ -171,6 +173,15 @@ void PrintDelta(const char* deltaName, unsigned long long nBaseBytes, unsigned l
 {
     const unsigned long long nDelta = (nNowBytes >= nBaseBytes) ? (nNowBytes - nBaseBytes) : 0;
     ::printf("[delta] %s,%llu,%.3f\n", deltaName, nDelta, ToMB(nDelta));
+}
+
+/** 输出一个释放量（字节）：正数表示该阶段归还了内存，负数表示内存反而增加
+*/
+void PrintRelease(const char* stageName, unsigned long long nBaseBytes, unsigned long long nNowBytes)
+{
+    const long long nDiff = (long long)nNowBytes - (long long)nBaseBytes;
+    const unsigned long long nAbsBytes = (unsigned long long)((nDiff < 0) ? -nDiff : nDiff);
+    ::printf("[release] %s,%lld,%.3f\n", stageName, -nDiff, ToMB(nAbsBytes));
 }
 
 /** 统计文本按 UTF-8 编码后的字节数（不分配额外的大缓冲区）
@@ -354,6 +365,21 @@ int main(int argc, char* argv[])
     const MemSnapshot memAfterSteadyPaints = GetMemSnapshot();
     PrintStage("after_steady_paints", memAfterSteadyPaints);
 
+    //阶段5：隐藏控件之后（应释放绘制缓存与绘制数据）
+    richEdit.SetVisible(false);
+    const MemSnapshot memAfterHide = GetMemSnapshot();
+    PrintStage("after_hide", memAfterHide);
+
+    //重新显示并绘制，使后续"清空文本"阶段测量的是"已有绘制缓存"的状态
+    richEdit.SetVisible(true);
+    richEdit.Paint(pRender.get(), rcControl);
+    const MemSnapshot memBeforeClearText = GetMemSnapshot();
+
+    //阶段6：清空文本之后（应释放排版结构与绘制缓存，归还内存）
+    richEdit.SetText(DStringW());
+    const MemSnapshot memAfterClearText = GetMemSnapshot();
+    PrintStage("after_clear_text", memAfterClearText);
+
     //输出结果摘要（文本规模 + 各阶段增量）
     const unsigned long long nUtf8Bytes = CalcUTF8Bytes(strText);
     ::printf("\n[root] mb,%.3f,chars,%llu,lines,%llu,utf16_bytes,%llu,utf8_bytes,%llu\n",
@@ -365,6 +391,8 @@ int main(int argc, char* argv[])
     PrintDelta("control_total_excluding_caller_text", memTextCreated.m_privateBytes, memAfterSteadyPaints.m_privateBytes);
     PrintDelta("control_total_including_caller_text", memEmpty.m_privateBytes, memAfterSteadyPaints.m_privateBytes);
     PrintDelta("caller_text_buffer", memEmpty.m_privateBytes, memTextCreated.m_privateBytes);
+    PrintRelease("hide_control", memAfterSteadyPaints.m_privateBytes, memAfterHide.m_privateBytes);
+    PrintRelease("clear_text", memBeforeClearText.m_privateBytes, memAfterClearText.m_privateBytes);
     ::printf("[peak] working_set_peak,%llu,%.3f\n",
         memAfterSteadyPaints.m_peakWorkingSet, ToMB(memAfterSteadyPaints.m_peakWorkingSet));
 

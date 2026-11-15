@@ -296,6 +296,8 @@ steady paints     : 1 (after the first paint)
 
 > O1、O2、O3 组合后，预计可从 **12.1MB/MB 降到约 5.5 ~ 6.5MB/MB（约 -45% ~ -55%）**；
 > 再叠加 O4 可到约 5MB/MB。O5 是数量级方案，但工作量和回归面最大。
+>
+> 状态：**O1、O2、O6 已实施**，实现方式与实测结果分别见第 12、13、14 节。
 
 ### 9.2 O1 的实现要点
 
@@ -1002,3 +1004,83 @@ for /L %i in (1,1,12) do out\x64\Release\tests\bench_richedit2.exe --iterations 
 | `CanPaste` | 剪贴板中没有文本时返回 `false` |
 
 验证：静态 Release 构建通过，`ctest` **16/16 全部通过**，`richedit2_edit` 548 项检查 0 失败。
+
+## 14. O6 实施效果：内存归还与绘制数据复用（2026-11-15）
+
+### 14.1 实现方式
+
+| 改动点 | 位置 | 说明 |
+| --- | --- | --- |
+| 属性表/数据表支持归还容量 | [IRender.h](file:///e:/develop/nim_duilib/duilib/Render/IRender.h) | `RichTextAttrTable::Release()`、`RichTextDataList::Release()` 用 `swap` 与空容器交换，清空且归还容量 |
+| 绘制数据复用容器 | [RichEdit2.h](file:///e:/develop/nim_duilib/duilib/Control/RichEdit2.h)、[RichEdit2.cpp](file:///e:/develop/nim_duilib/duilib/Control/RichEdit2.cpp) | `Paint()` 中的局部 `RichTextDataList` 改为成员 `m_richTextDrawData`；`GetRichTextForDraw` 内部先 `Clear()` 再填充，容量跨帧复用，稳态不再每帧申请/释放文本片段数组 |
+| 文本清空时归还 | [RichEdit2.cpp](file:///e:/develop/nim_duilib/duilib/Control/RichEdit2.cpp) | `SetText()` 在文本为空时调用 `ReleaseDrawData()`：清除 `DrawRichTextCache` 并 `m_richTextDrawData.Release()` |
+| 控件隐藏时归还 | [RichEdit2.cpp](file:///e:/develop/nim_duilib/duilib/Control/RichEdit2.cpp) | 新增 `OnSetVisible()` override，`!IsVisible()` 时调用 `ReleaseDrawData()`，再次显示时由 `Paint()` 按需重建 |
+| 行索引容量归还 | [RichEditData.cpp](file:///e:/develop/nim_duilib/duilib/Control/RichEditData.cpp) | `RichEditData::Clear()` 中 `m_lineRowBeginIndex`、`m_lineTop` 由 `clear()` 改为 `swap` 归还容量（每逻辑行 8 字节，O6 前会随大文本长期常驻） |
+| 缓存失效 | 不额外动作 | `IsValidDrawRichTextCache()` 失效时已由 `ClearDrawRichTextCache()` 释放缓存对象；复用容器**不做**同步 `shrink_to_fit`，避免逐字符输入场景每帧重新分配导致抖动（容量上限为一屏窗口的数据量） |
+
+> 复用容器是安全的：`DrawRichText::CreateDrawRichTextCacheInRange` 内部执行
+> `spDrawRichTextCache->m_richTextData = richTextData;`（值拷贝），缓存不持有成员容器的引用。
+
+### 14.2 内存 A/B（同机、静态 Release、每行 64 字符）
+
+`bench_richedit2_memory` 新增两个阶段与 `[release]` 输出：`after_hide`（隐藏控件后）、
+`after_clear_text`（重新显示并绘制后再清空文本），用于量化"内存归还"。
+
+| 规模 | 稳态每字符字节（O6 前 → O6） | 清空后常驻（O6 前） | 清空后常驻（O6） | 变化 | 峰值工作集（前 → 后） |
+| --- | --- | --- | --- | --- | --- |
+| 2MB | 9.09 → 9.11 | 9.11 MB | **8.39 MB** | **-7.8%** | 30.07 → 30.20 MB |
+| 4MB | 9.51 → 9.46 | 10.53 MB | **10.25 MB** | **-2.6%** | 46.22 → 46.18 MB |
+| 8MB | 9.20 → 9.16 | 14.67 MB | **13.94 MB** | **-5.0%** | 78.17 → 78.07 MB |
+| 16MB | 8.88 → 8.90 | 23.61 MB | **22.46 MB** | **-4.9%** | 141.33 → 141.25 MB |
+
+结论：
+
+- **稳态持平**：`per_char_bytes` 四档差异均 ≤ 0.6%，在噪声范围内；复用容器只保留一屏窗口的数据量，
+  不会把峰值缓存常驻下来；
+- **清空文本后常驻下降 2.6%~7.8%**：这是 O6 的主要收益，来源是行索引/行顶部坐标的容量归还
+  （2/4/8/16MB 文本对应约 0.13/0.26/0.52/1.05MB），加上复用容器的释放；
+- **隐藏控件释放量在 `PrivateUsage` 上读数为 0**：窗口化缓存只有几十 KB，低于堆向系统归还内存的粒度，
+  但缓存对象与复用容器在逻辑上已释放，再次显示时按需重建；
+- **峰值工作集基本不变**：窗口化绘制缓存（O1 + 13.8）已经把峰值限制在一屏范围内，O6 的收益集中在
+  "清空/隐藏后的常驻内存"，而不是运行期峰值。
+
+### 14.3 性能 A/B（`bench_richedit2`，同机，12 轮弃前 2 轮取中位数，单位 `us/帧`）
+
+| 场景 | 14 节前（13.8.3） | O6 | 变化 |
+| --- | --- | --- | --- |
+| `steady_zhen_small` | 173.93 | 157.13 | -9.7% |
+| `steady_zhen_large` | 176.68 | 155.30 | -12.1% |
+| `steady_zhen_xlarge` | 174.25 | 152.26 | -12.6% |
+| `steady_emoji_small` | 427.13 | 404.65 | -5.3% |
+| `steady_emoji_large` | 431.07 | 439.55 | +2.0% |
+| `steady_emoji_xlarge` | 434.38 | 404.77 | -6.8% |
+| `scroll_zhen_large` | 174.24 | 162.14 | -6.9% |
+| `scroll_emoji_large` | 440.96 | 408.05 | -7.5% |
+| `typing_zhen_large` | 333.49 | 301.14 | -9.7% |
+| `typing_emoji_large` | 972.05 | 911.85 | -6.2% |
+| `relayout_zhen_small` | 320.86 | 292.00 | -9.0% |
+| `relayout_zhen_large` | 1786.53 | 1664.85 | -6.8% |
+| `relayout_emoji_small` | 1219.47 | 1178.73 | -3.3% |
+| `relayout_emoji_large` | 12265.38 | 12451.27 | +1.5% |
+
+- 全部场景在 ±10% 噪声区间内或略有改善，无回退；
+- `typing_*` 的改善（-6.2%~-9.7%）来自复用容器后每帧不再新建文本片段数组；
+- `[layout signature]` 仍为 798x668 / 798x17608 / 799x1328 / 799x35208，排版结果未变。
+
+### 14.4 验证与复跑
+
+- 静态 Release 构建（411 个目标）全部成功，`ctest` **16/16 通过**；
+- 复跑命令：
+
+```bat
+rem 内存（含隐藏/清空阶段与 [release] 输出）
+set PATH=%CD%\bin;%PATH%
+out\x64\Release\tests\bench_richedit2_memory.exe --mb 2
+out\x64\Release\tests\bench_richedit2_memory.exe --mb 4
+out\x64\Release\tests\bench_richedit2_memory.exe --mb 8
+out\x64\Release\tests\bench_richedit2_memory.exe --mb 16
+
+rem 性能（12 轮弃前 2 轮取中位数）
+for /L %i in (1,1,12) do out\x64\Release\tests\bench_richedit2.exe --iterations 200 > out\o6\bench_r%i.txt
+```
+
