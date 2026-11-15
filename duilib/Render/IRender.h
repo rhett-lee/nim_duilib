@@ -772,6 +772,13 @@ public:
     */
     bool m_bTextOverflowEllipsis = true;
 
+    /** 绘制缓存是否按文本的完整宽度构建（不按可视宽度裁剪）
+        默认false，缓存只包含可视宽度内的内容；
+        支持横向滚动的控件（如RichEdit2）需要设置为true，否则缓存不包含首屏之外的文本，
+        横向滚动后新出现的区域会显示为空白
+    */
+    bool m_bCacheFullTextWidth = false;
+
     /** 是否绘制水平分割线（用于 <hr> 标签）
     */
     bool m_bHorizontalRule = false;

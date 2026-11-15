@@ -947,6 +947,98 @@ void TestScrollByScrollBar(TestEnv& env)
     CHECK_MSG(DiffPixels(pixelsBefore, pixelsReset) == 0, "scrolling back to top should restore the view");
 }
 
+/** 横向滚动：滚动后新出现的区域必须绘制文字（回归：缓存按可视宽度裁剪导致的空白） */
+void TestHScrollPaint(TestEnv& env)
+{
+    TestRichEdit2& richEdit = env.Edit();
+    ui::IRender* pRender = env.Render();
+
+    const ui::UiRect rcOldControl = env.m_rcControl;
+    env.m_rcControl = ui::UiRect(0, 0, 200, 60);
+    richEdit.EnableScrollBar(false, true);
+    richEdit.SetPos(env.m_rcControl);
+    richEdit.SetWordWrap(false);
+    richEdit.SetText(_T("Horizontal scroll paint regression: 0123456789 ")
+                     _T("ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz"));
+    richEdit.SetSel(0, 0);
+
+    ui::ScrollBar* pHScrollBar = richEdit.GetHScrollBar();
+    CHECK_MSG(pHScrollBar != nullptr, "horizontal scroll bar should be created");
+    if (pHScrollBar == nullptr) {
+        richEdit.EnableScrollBar(false, false);
+        env.m_rcControl = rcOldControl;
+        richEdit.SetPos(rcOldControl);
+        return;
+    }
+
+    //离屏环境没有布局引擎，手动设置横向滚动范围（正常运行时由布局计算）
+    const int32_t nViewWidth = (int32_t)env.m_rcControl.Width();
+    const int32_t nScrollX = 40;
+    const int32_t nMargin = 8;
+    pHScrollBar->SetScrollRange(400);
+    richEdit.SetScrollPosX(0);
+    CHECK_MSG(richEdit.GetScrollOffset().cx == 0, "horizontal scroll offset should be 0 initially");
+
+    PaintFrame(env);
+    std::vector<uint32_t> pixelsBefore;
+    CHECK_MSG(ReadFrame(pRender, env.m_rcControl, pixelsBefore), "ReadPixels(hscroll=0) should succeed");
+
+    //滚动前：右侧区域应有文字
+    int32_t nRightInkBefore = 0;
+    for (int32_t y = nMargin; y < 28; ++y) {
+        for (int32_t x = nViewWidth - nScrollX; x < nViewWidth; ++x) {
+            if ((pixelsBefore[(size_t)y * nViewWidth + x] & 0x00FFFFFFu) != 0x00FFFFFFu) {
+                ++nRightInkBefore;
+            }
+        }
+    }
+    CHECK_MSG(nRightInkBefore > 0, "text should be painted at the right side when hscroll=0");
+
+    //横向滚动 40 像素：复用同一份绘制缓存
+    richEdit.SetScrollPosX(nScrollX);
+    CHECK_MSG(richEdit.GetScrollOffset().cx == nScrollX, "horizontal scroll offset should be updated");
+    PaintFrame(env);
+    std::vector<uint32_t> pixelsAfter;
+    CHECK_MSG(ReadFrame(pRender, env.m_rcControl, pixelsAfter), "ReadPixels(hscrolled) should succeed");
+
+    //回归点：滚动后，右侧新出现的区域必须有文字（修复前该区域为空白）
+    int32_t nRightInkAfter = 0;
+    for (int32_t y = nMargin; y < 28; ++y) {
+        for (int32_t x = nViewWidth - nScrollX; x < nViewWidth; ++x) {
+            if ((pixelsAfter[(size_t)y * nViewWidth + x] & 0x00FFFFFFu) != 0x00FFFFFFu) {
+                ++nRightInkAfter;
+            }
+        }
+    }
+    CHECK_MSG(nRightInkAfter > 0, "text should be painted in the newly exposed area after horizontal scrolling");
+
+    //滚动后的内容应与滚动前的内容整体左移一致
+    int32_t nShiftMismatch = 0;
+    for (int32_t y = nMargin; y < 28; ++y) {
+        for (int32_t x = nMargin; (x + nScrollX + nMargin) < nViewWidth; ++x) {
+            const size_t nBefore = (size_t)y * nViewWidth + (x + nScrollX);
+            const size_t nAfter = (size_t)y * nViewWidth + x;
+            if (pixelsBefore[nBefore] != pixelsAfter[nAfter]) {
+                ++nShiftMismatch;
+            }
+        }
+    }
+    CHECK_MSG(nShiftMismatch == 0, "horizontal scrolling should shift the view, mismatch=" +
+              std::to_string(nShiftMismatch));
+
+    //滚动回左侧，画面应恢复
+    richEdit.SetScrollPosX(0);
+    PaintFrame(env);
+    std::vector<uint32_t> pixelsReset;
+    CHECK_MSG(ReadFrame(pRender, env.m_rcControl, pixelsReset), "ReadPixels(reset) should succeed");
+    CHECK_MSG(DiffPixels(pixelsBefore, pixelsReset) == 0, "scrolling back to left should restore the view");
+
+    //恢复测试环境
+    richEdit.EnableScrollBar(false, false);
+    env.m_rcControl = rcOldControl;
+    richEdit.SetPos(rcOldControl);
+}
+
 /** 构造类似源码文件的文本：长短行混合、含空行，用于验证粘贴大文本后的滚动绘制 */
 DStringW MakeSourceLikeText(int32_t nLines, std::vector<DStringW>& lineTextList)
 {
@@ -2688,6 +2780,7 @@ int main()
     TestReplaceTextLine(env);
     TestArrowKeys(env);
     TestScrollByScrollBar(env);
+    TestHScrollPaint(env);
     TestArrowKeysScrollView(env);
     TestScrollViewSwitch(env);
     TestPaintAfterEdit(env);

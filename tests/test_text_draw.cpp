@@ -137,6 +137,39 @@ int32_t CountRenderedPixels(ui::IRender* pRender)
     return CountNonWhitePixels(pRender, ui::UiRect(0, 0, pRender->GetWidth(), pRender->GetHeight()));
 }
 
+/** 读取指定区域的像素数据（读取失败时返回空数组） */
+std::vector<uint32_t> ReadPixels(ui::IRender* pRender, const ui::UiRect& rcRead)
+{
+    if ((pRender == nullptr) || (rcRead.Width() <= 0) || (rcRead.Height() <= 0)) {
+        return std::vector<uint32_t>();
+    }
+    std::vector<uint32_t> pixels((size_t)rcRead.Width() * (size_t)rcRead.Height());
+    if (!pRender->ReadPixels(rcRead, pixels.data(), pixels.size() * sizeof(uint32_t))) {
+        pixels.clear();
+    }
+    return pixels;
+}
+
+/** 比较两幅图像中指定的横向区间是否完全一致（用于检查滚动后的内容偏移） */
+bool IsPixelBandEqual(const std::vector<uint32_t>& firstPixels, int32_t nFirstX,
+                      const std::vector<uint32_t>& secondPixels, int32_t nSecondX,
+                      int32_t nWidth, int32_t nHeight, int32_t nImageWidth)
+{
+    if ((nWidth <= 0) || (nHeight <= 0) ||
+        (firstPixels.size() < (size_t)nImageWidth * (size_t)nHeight) ||
+        (secondPixels.size() < (size_t)nImageWidth * (size_t)nHeight)) {
+        return false;
+    }
+    for (int32_t nRow = 0; nRow < nHeight; ++nRow) {
+        const uint32_t* pFirst = firstPixels.data() + (size_t)nRow * (size_t)nImageWidth + (size_t)nFirstX;
+        const uint32_t* pSecond = secondPixels.data() + (size_t)nRow * (size_t)nImageWidth + (size_t)nSecondX;
+        if (std::memcmp(pFirst, pSecond, sizeof(uint32_t) * (size_t)nWidth) != 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // 1. 文本归一化（不依赖字体）
 //////////////////////////////////////////////////////////////////////////
@@ -962,6 +995,103 @@ void TestRichText(ui::IRender* pRender, const FontContext& ctx)
     }
 }
 
+//////////////////////////////////////////////////////////////////////////
+// 11. 富文本横向滚动：绘制缓存必须覆盖整行文本
+//   回归点：缓存按可视宽度裁剪时，向右滚动后新出现的区域没有绘制数据（空白）
+//////////////////////////////////////////////////////////////////////////
+
+void TestRichTextHScroll(ui::IRender* pRender, const FontContext& ctx)
+{
+    const DString longText = _T("Duilib RichEdit2 horizontal scroll redraw regression: ")
+                             _T("ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 abcdefghijklmnopqrstuvwxyz");
+    ui::RichTextData richTextData;
+    richTextData.m_textView = longText;
+    richTextData.m_textColor = ui::UiColor(0xFF202020u);
+    ui::SharePtr<ui::UiFontEx> pFontEx(new ui::UiFontEx);
+    pFontEx->CopyFrom(MakeUiFont(ctx.pFont));
+    richTextData.m_pFontInfo = pFontEx;
+    richTextData.m_textStyle = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_TOP;
+    //与RichEdit2一致：不绘制省略号，且绘制缓存按整行文本构建
+    richTextData.m_bTextOverflowEllipsis = false;
+    richTextData.m_bCacheFullTextWidth = true;
+
+    std::vector<ui::RichTextData> richTextDataList;
+    richTextDataList.push_back(richTextData);
+
+    const ui::UiRect rcText(0, 0, 120, 30);
+    const std::vector<int32_t> rowXOffset;
+
+    pRender->Clear(ui::UiColor(0xFFFFFFFFu));
+    std::shared_ptr<ui::DrawRichTextCache> spCache;
+    const bool bCreated = pRender->CreateDrawRichTextCache(rcText, ui::UiSize(0, 0),
+                                                           richTextDataList, spCache);
+    CHECK(bCreated);
+    CHECK(spCache != nullptr);
+    if (!bCreated || (spCache == nullptr)) {
+        return;
+    }
+
+    //缓存中的文本片段应覆盖可视宽度之外的文本（整行），且不包含省略号片段
+    {
+        std::vector<std::vector<ui::UiRect>> textRects;
+        textRects.resize(richTextDataList.size());
+        pRender->DrawRichTextCacheData(spCache, rcText, ui::UiSize(0, 0), rowXOffset, 255, &textRects);
+        CHECK(textRects.size() == 1);
+        if ((textRects.size() == 1) && !textRects[0].empty()) {
+            CHECK(textRects[0].size() == 1);
+            CHECK(textRects[0][0].right > rcText.right);
+        }
+    }
+
+    //滚动前：记录可视区域的像素
+    pRender->Clear(ui::UiColor(0xFFFFFFFFu));
+    pRender->DrawRichTextCacheData(spCache, rcText, ui::UiSize(0, 0), rowXOffset, 255, nullptr);
+    const std::vector<uint32_t> pixelsAt0 = ReadPixels(pRender, rcText);
+    CHECK(!pixelsAt0.empty());
+
+    //横向滚动 40 像素：复用同一份绘制缓存
+    const int32_t nScrollX = 40;
+    pRender->Clear(ui::UiColor(0xFFFFFFFFu));
+    pRender->DrawRichTextCacheData(spCache, rcText, ui::UiSize(nScrollX, 0), rowXOffset, 255, nullptr);
+    const std::vector<uint32_t> pixelsAtScroll = ReadPixels(pRender, rcText);
+    CHECK(!pixelsAtScroll.empty());
+
+    //回归点：滚动后，右侧新出现的区域必须有文字（修复前该区域为空白）
+    CHECK(CountNonWhitePixels(pRender, ui::UiRect(rcText.Width() - nScrollX, 0,
+                                                  rcText.Width(), rcText.Height())) > 0);
+
+    //滚动后的内容应与滚动前的内容整体左移一致（不能有错位或缺失）
+    CHECK(IsPixelBandEqual(pixelsAtScroll, 0, pixelsAt0, nScrollX,
+                           rcText.Width() - nScrollX, rcText.Height(), rcText.Width()));
+    CHECK(pixelsAtScroll != pixelsAt0);
+
+    //默认（不按整行构建缓存）时保持原有行为：文本截断在可视区域内
+    {
+        ui::RichTextData clipData = richTextData;
+        clipData.m_bCacheFullTextWidth = false;
+        clipData.m_bTextOverflowEllipsis = true;
+        std::vector<ui::RichTextData> clipDataList;
+        clipDataList.push_back(clipData);
+
+        std::shared_ptr<ui::DrawRichTextCache> spClipCache;
+        const bool bClipCreated = pRender->CreateDrawRichTextCache(rcText, ui::UiSize(0, 0),
+                                                                   clipDataList, spClipCache);
+        CHECK(bClipCreated);
+        if (bClipCreated && (spClipCache != nullptr)) {
+            std::vector<std::vector<ui::UiRect>> textRects;
+            textRects.resize(clipDataList.size());
+            pRender->DrawRichTextCacheData(spClipCache, rcText, ui::UiSize(0, 0), rowXOffset, 255, &textRects);
+            CHECK(textRects.size() == 1);
+            if (textRects.size() == 1) {
+                CHECK(!textRects[0].empty());
+                for (const ui::UiRect& rcDraw : textRects[0]) {
+                    CHECK(rcDraw.right <= rcText.right + 1);
+                }
+            }
+        }
+    }
+}
+
 } // namespace
 
 int main(int argc, char* argv[])
@@ -1124,6 +1254,7 @@ int main(int argc, char* argv[])
                         TestHorizontalDrawText(pRender.get(), ctx);
                         TestVerticalDrawText(pRender.get(), ctx);
                         TestRichText(pRender.get(), ctx);
+                        TestRichTextHScroll(pRender.get(), ctx);
                     }
                 }
             }

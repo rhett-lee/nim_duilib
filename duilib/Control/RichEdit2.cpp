@@ -3406,6 +3406,8 @@ bool RichEdit2::GetRichTextForDraw(const std::vector<std::wstring_view>& textVie
     //(Windows RichEdit的省略号默认关闭，只有调用EM_SETELLIPSISMODE显式开启，
     // 且仅在控件未激活时才会显示)
     richTextData.m_bTextOverflowEllipsis = false;
+    //控件支持横向滚动：绘制缓存必须包含整行文本，否则横向滚动后新出现的区域没有绘制数据
+    richTextData.m_bCacheFullTextWidth = true;
     //默认文本属性
     richTextData.m_textStyle = GetTextStyle();
     //默认文本颜色

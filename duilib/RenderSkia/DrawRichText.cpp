@@ -54,6 +54,10 @@ struct TPendingDrawRichText
     */
     uint16_t m_textStyle = 0;
 
+    /** 文本超出可用宽度时是否使用省略号（来自RichTextData::m_bTextOverflowEllipsis）
+    */
+    bool m_bTextOverflowEllipsis = true;
+
     /** 字间距（像素） */
     SkScalar m_fLetterSpacing = 0;
 
@@ -494,8 +498,10 @@ UiRect DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
         const bool bWordWrap = bSingleLineMode ? false : ((uTextStyle & DrawStringFormat::TEXT_WORD_WRAP) ? true : false);
         //不换行/单行模式下：测量时按内容完整宽度布局；生成绘制缓存（实际绘制）时按可视宽度裁剪，避免越界绘制
         //注意：带行信息的测量（pLineInfoParam != nullptr，如RichEdit的排版与光标定位）必须按完整内容测量，
-        //因此只对纯绘制缓存（pLineInfoParam == nullptr）启用裁剪
-        const bool bClipNoWrapText = (!bWordWrap || bSingleLineMode) && (pDrawRichTextCache != nullptr) && (pLineInfoParam == nullptr);
+        //因此只对纯绘制缓存（pLineInfoParam == nullptr）启用裁剪；
+        //支持横向滚动的控件（m_bCacheFullTextWidth == true）需要缓存整行文本，不能按可视宽度裁剪
+        const bool bClipNoWrapText = (!bWordWrap || bSingleLineMode) && (pDrawRichTextCache != nullptr) &&
+                                     (pLineInfoParam == nullptr) && !textData.m_bCacheFullTextWidth;
         bool bBreakAll = false;//标记是否终止
 
         if (textData.m_pImage != nullptr) {
@@ -660,6 +666,7 @@ UiRect DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                 if (!bWordWrap || bSingleLineMode) {
                     //不自动换行 或者 单行模式：测量时使用完整内容宽度；
                     //生成绘制缓存（实际绘制）时按可视宽度裁剪，避免文本越界绘制
+                    //（支持横向滚动的控件不裁剪，缓存整行文本）
                     if (!bClipNoWrapText) {
                         maxWidth = SK_FloatInfinity;
                     }
@@ -824,6 +831,7 @@ UiRect DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                     newPendingTextData.m_bgColor = textData.m_bgColor;
                     newPendingTextData.m_textColor = textData.m_textColor;
                     newPendingTextData.m_textStyle = textData.m_textStyle;
+                    newPendingTextData.m_bTextOverflowEllipsis = textData.m_bTextOverflowEllipsis;
                     newPendingTextData.m_fLetterSpacing = textData.m_fLetterSpacing;
                     newPendingTextData.m_nGlyphCount = (uint32_t)breakTextData.glyphIDs.size();
 
@@ -1240,10 +1248,11 @@ UiRect DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                 textColor = textData.m_textColor;
             }
 
-            //不自动换行时，超出的部分裁剪到控件区域内，并用省略号表示
+            //不自动换行时，超出的部分裁剪到控件区域内；启用省略号时在裁剪处显示省略号
             uint32_t uDrawFormat = textData.m_textStyle | DrawStringFormat::TEXT_SINGLELINE;
             UiRect rcDrawText = rcDestRect;
-            if (!(textData.m_textStyle & DrawStringFormat::TEXT_WORD_WRAP) && (rcDrawText.right > rcTextRect.right)) {
+            if (!(textData.m_textStyle & DrawStringFormat::TEXT_WORD_WRAP) &&
+                textData.m_bTextOverflowEllipsis && (rcDrawText.right > rcTextRect.right)) {
                 rcDrawText.right = rcTextRect.right;
                 uDrawFormat |= DrawStringFormat::TEXT_END_ELLIPSIS;
             }
@@ -1685,7 +1694,8 @@ bool DrawRichText::IsValidDrawRichTextCache(const UiRect& textRect,
             bValid = false;
         }
         else if ((textData.m_nMaxLines != textDataCache.m_nMaxLines) ||
-                 (textData.m_bTextOverflowEllipsis != textDataCache.m_bTextOverflowEllipsis)) {
+                 (textData.m_bTextOverflowEllipsis != textDataCache.m_bTextOverflowEllipsis) ||
+                 (textData.m_bCacheFullTextWidth != textDataCache.m_bCacheFullTextWidth)) {
             bValid = false;
         }
         else if (textData.m_bHorizontalRule != textDataCache.m_bHorizontalRule) {
@@ -1929,6 +1939,14 @@ bool DrawRichText::IsDrawRichTextCacheEqual(const DrawRichTextCache& first, cons
         if (v1.m_textStyle != v2.m_textStyle) {
             return false;
         }
+        ASSERT(v1.m_bTextOverflowEllipsis == v2.m_bTextOverflowEllipsis);
+        if (v1.m_bTextOverflowEllipsis != v2.m_bTextOverflowEllipsis) {
+            return false;
+        }
+        ASSERT(v1.m_bCacheFullTextWidth == v2.m_bCacheFullTextWidth);
+        if (v1.m_bCacheFullTextWidth != v2.m_bCacheFullTextWidth) {
+            return false;
+        }
     }
 
     ASSERT(first.m_pendingTextData.size() == second.m_pendingTextData.size());
@@ -1956,6 +1974,10 @@ bool DrawRichText::IsDrawRichTextCacheEqual(const DrawRichTextCache& first, cons
         }
         ASSERT(v1.m_destRect == v2.m_destRect);
         if (v1.m_destRect != v2.m_destRect) {
+            return false;
+        }
+        ASSERT(v1.m_bTextOverflowEllipsis == v2.m_bTextOverflowEllipsis);
+        if (v1.m_bTextOverflowEllipsis != v2.m_bTextOverflowEllipsis) {
             return false;
         }
 
@@ -2057,6 +2079,18 @@ void DrawRichText::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache
     }
 
     UiColor textColor;
+
+    //横向裁剪到可视文本区域：按文本完整宽度构建的绘制缓存（用于支持横向滚动的控件）中，
+    //滚动后片段的坐标会超出可视区域，这里统一裁剪，避免文本绘制到控件区域之外
+    SkCanvas* skCanvas = m_pSkCanvas;
+    skCanvas->save();
+    {
+        SkRect rcClip = SkRect::MakeLTRB(SkIntToScalar(rcNewTextRect.left), -1.0e9f,
+                                         SkIntToScalar(rcNewTextRect.right), 1.0e9f);
+        rcClip.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
+        skCanvas->clipRect(rcClip);
+    }
+
     for (const TPendingDrawRichText& textData : pendingTextData) {
         //通过缓存绘制的时候，不能使用textData.m_nDataIndex值，此值再增量绘制的情况下是不正确的
 
@@ -2158,11 +2192,12 @@ void DrawRichText::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache
             textColor = *pDrawTextColor;
         }
 
-        //不自动换行时，超出的部分裁剪到控件区域内，并用省略号表示
+        //不自动换行时，超出的部分裁剪到控件区域内；启用省略号时在裁剪处显示省略号
         uint32_t uDrawFormat = textData.m_textStyle | DrawStringFormat::TEXT_SINGLELINE;
         UiRect rcDrawText = rcDestRect;
         rcDrawText.right = std::min(rcDrawText.right, rcNewTextRect.right);
-        if (!(textData.m_textStyle & DrawStringFormat::TEXT_WORD_WRAP) && (rcDestRect.right > rcNewTextRect.right)) {
+        if (!(textData.m_textStyle & DrawStringFormat::TEXT_WORD_WRAP) &&
+            textData.m_bTextOverflowEllipsis && (rcDestRect.right > rcNewTextRect.right)) {
             uDrawFormat |= DrawStringFormat::TEXT_END_ELLIPSIS;
         }
         if (rcDrawText.right <= rcDrawText.left) {
@@ -2186,6 +2221,7 @@ void DrawRichText::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache
                         textData.m_spGlyphRuns.get(), textData.m_fGlyphRunsWidth);
         }
     }
+    skCanvas->restore();
 }
 
 void DrawRichText::DrawTextString(const UiRect& textRect, const DString& strText, uint32_t uFormat,
