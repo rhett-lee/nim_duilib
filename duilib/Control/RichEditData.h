@@ -468,12 +468,10 @@ private:
     * @param [in] nStartLine 重新计算的起始行号
     * @param [in] modifiedLines 有修改的行号
     * @param [in] deletedLines 删除的行
-    * @param [in] nDeletedRows 删除了几行
     */
     void CalcTextRectsPart(size_t nStartLine,
                            const std::vector<size_t>& modifiedLines,
-                           const std::vector<size_t>& deletedLines,
-                           size_t nDeletedRows);
+                           const std::vector<size_t>& deletedLines);
 
     /** 在编辑状态下，如果最后的字符是换行符，追加一个空行，从而使得光标可以定位到最后的空行
     */

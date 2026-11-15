@@ -553,8 +553,7 @@ void RichEditData::CheckLineTextData(const RichTextLineInfoList& lineTextInfo, s
 
 void RichEditData::CalcTextRectsPart(size_t nStartLine,
                                      const std::vector<size_t>& modifiedLines,
-                                     const std::vector<size_t>& deletedLines,
-                                     size_t nDeletedRows)
+                                     const std::vector<size_t>& deletedLines)
 {
     PerformanceUtil statPerformance(_T("RichEditData::CalcTextRectsPart"));
     ASSERT(!m_pRichText->IsTextPasswordMode());//密码模式下，不应使用该函数
@@ -1152,14 +1151,11 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
     for (size_t nIndex = nStartLine; nIndex <= nEndLine; ++nIndex) {
         deletedLines.push_back(nIndex);
     }
-    //删除了几行
-    size_t nDeletedRows = 0;
     //倒序删除
     if (!deletedLines.empty()) {
         int32_t nDelIndex = (int32_t)deletedLines.size() - 1;
         for (; nDelIndex >= 0; --nDelIndex) {
             if (deletedLines[nDelIndex] < m_lineTextInfo.size()) {
-                nDeletedRows += m_lineTextInfo[deletedLines[nDelIndex]]->m_rowInfo.size();
                 m_lineTextInfo.erase(m_lineTextInfo.begin() + deletedLines[nDelIndex]);
             }
         }
@@ -1196,7 +1192,7 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
         else {
             //多行模式时，使用增量绘制
             RemoveEmptyLine(m_lineTextInfo);
-            CalcTextRectsPart(nStartLine, modifiedLines, deletedLines, nDeletedRows);
+            CalcTextRectsPart(nStartLine, modifiedLines, deletedLines);
             AppendEmptyLine(m_lineTextInfo);
         }
     }
