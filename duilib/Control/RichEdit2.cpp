@@ -1127,14 +1127,15 @@ int32_t RichEdit2::GetTextLength() const
 
 int32_t RichEdit2::InsertText(int32_t nInsertAfterChar, const DString& text, bool bCanUndo)
 {
-    int32_t nRet = SetSel(nInsertAfterChar, nInsertAfterChar);
+    SetSel(nInsertAfterChar, nInsertAfterChar);
     ReplaceSel(text, bCanUndo);
-    return nRet;
+    //返回插入后的文本位置
+    return nInsertAfterChar + (int32_t)StringConvert::TToWString(text).size();
 }
 
 int32_t RichEdit2::AppendText(const DString& text, bool bCanUndo, bool bScrollBottom)
 {
-    int32_t nRet = SetSel(-1, -1);
+    SetSel(-1, -1);
     ReplaceSel(text, bCanUndo);
     if (bScrollBottom) {
         int64_t nScrollRangeY = GetScrollRange().cy;
@@ -1142,7 +1143,8 @@ int32_t RichEdit2::AppendText(const DString& text, bool bCanUndo, bool bScrollBo
             SetScrollPosY(nScrollRangeY);
         }
     }
-    return nRet;
+    //返回追加后的文本位置
+    return GetTextLength();
 }
 
 bool RichEdit2::IsEmpty() const
@@ -1423,8 +1425,9 @@ bool RichEdit2::ReplaceSel(const DString& newText, bool bCanUndo)
         bRet = m_pTextData->ReplaceText(nStartChar, nEndChar, text, bCanUndo);
     }
     if (bRet) {
+        //替换完成后，光标位于插入文本的末尾（与Win32的EM_REPLACESEL行为一致）
         nEndChar = nStartChar + (int32_t)text.size();
-        SetSel(nStartChar, nEndChar);
+        SetSel(nEndChar, nEndChar);
         UpdateScrollRange();
         OnTextChanged();
     }    
@@ -1590,6 +1593,10 @@ void RichEdit2::Copy()
     int32_t nEndChar = -1;
     GetSel(nStartChar, nEndChar);
     DStringW text = m_pTextData->GetTextRange(nStartChar, nEndChar);
+    if (text.empty()) {
+        //没有选择文本时，不复制，也不修改剪贴板的内容（与系统编辑框行为一致）
+        return;
+    }
     Clipboard::SetClipboardText(text);
 }
 
@@ -1658,7 +1665,8 @@ bool RichEdit2::CanPaste() const
     }
     DStringW text;
     Clipboard::GetClipboardText(text);
-    return !IsPasteLimited(text);
+    //剪贴板中没有文本时不可粘贴
+    return !text.empty() && !IsPasteLimited(text);
 }
 
 int32_t RichEdit2::GetLineCount() const
@@ -1988,37 +1996,63 @@ void RichEdit2::Paint(IRender* pRender, const UiRect& rcPaint)
 
     //绘制文字
     if (!IsPasswordMode()) {
-        //非密码模式，使用绘制缓存来绘制
-        std::vector<RichTextData> richTextDataList;
-        GetRichTextForDraw(richTextDataList);
+        //非密码模式，使用绘制缓存来绘制：缓存只覆盖可视区域附近的行（上下各预取一屏），
+        //避免为全文建立绘制数据（大文本时内存占用与每帧遍历的片段数都大幅下降）
+        const UiSize szScrollOffset = GetScrollOffset();
+        RichTextVisibleRange visibleRange;
+        const bool bHasVisibleRange = m_pTextData->GetVisibleLineRange(rcDrawText, szScrollOffset, visibleRange);
 
-        std::shared_ptr<DrawRichTextCache> spDrawRichTextCache = m_pTextData->GetDrawRichTextCache();
-        if (spDrawRichTextCache != nullptr) {
-            //校验缓存是否失效
-            if (!pRender->IsValidDrawRichTextCache(rcDrawText, richTextDataList, spDrawRichTextCache)) {
-                spDrawRichTextCache.reset();
-                m_pTextData->ClearDrawRichTextCache();
-            }
+        size_t nFirstLine = 0;
+        size_t nLineCount = 0;
+        RichTextDataList richTextDataList;
+        if (bHasVisibleRange) {
+            nFirstLine = visibleRange.m_nFirstLine;
+            nLineCount = visibleRange.m_nLastLine + 1 - visibleRange.m_nFirstLine;
+            GetRichTextForDraw(richTextDataList, nFirstLine, nLineCount);
+            nLineCount = richTextDataList.Size();
         }
-
-        //绘制文字
-        UiSize szScrollOffset = GetScrollOffset();
-        if (spDrawRichTextCache != nullptr) {
-            //通过缓存绘制
-            rcDrawText.Offset(0, m_pTextData->GetTextRectOfssetY());
-            pRender->DrawRichTextCacheData(spDrawRichTextCache, rcDrawText, szScrollOffset, m_pTextData->GetTextRowXOffset(), GetAlpha());
+        else {
+            //行数据尚未准备好（例如还没完成首次排版）：回退到全量构建
+            GetRichTextForDraw(richTextDataList);
+            nLineCount = richTextDataList.Size();
         }
-        else if (!richTextDataList.empty()) {
-            spDrawRichTextCache.reset();
-
-            pRender->CreateDrawRichTextCache(rcDrawText, szScrollOffset, richTextDataList, spDrawRichTextCache);
-            ASSERT(spDrawRichTextCache != nullptr);
+        if (!richTextDataList.IsEmpty()) {
+            std::shared_ptr<DrawRichTextCache> spDrawRichTextCache = m_pTextData->GetDrawRichTextCache();
             if (spDrawRichTextCache != nullptr) {
-                ASSERT(pRender->IsValidDrawRichTextCache(rcDrawText, richTextDataList, spDrawRichTextCache));
+                //校验缓存覆盖的行范围与内容是否仍然有效
+                bool bCacheValid = bHasVisibleRange ? m_pTextData->IsDrawRichTextCacheRangeMatched(nFirstLine, nLineCount) : true;
+                if (bCacheValid) {
+                    bCacheValid = pRender->IsValidDrawRichTextCache(rcDrawText, richTextDataList, spDrawRichTextCache);
+                }
+                if (!bCacheValid) {
+                    spDrawRichTextCache.reset();
+                    m_pTextData->ClearDrawRichTextCache();
+                }
+            }
+            if (spDrawRichTextCache == nullptr) {
+                if (bHasVisibleRange) {
+                    //按可视区域构建缓存
+                    RichTextDrawWindow drawWindow;
+                    drawWindow.m_nFirstLineNumber = (uint32_t)nFirstLine;
+                    drawWindow.m_nFirstRowIndex = visibleRange.m_nFirstRowIndex;
+                    drawWindow.m_nFirstRowTop = visibleRange.m_nFirstLineTop;
+                    drawWindow.m_nBottom = visibleRange.m_nBottom;
+                    drawWindow.m_nTotalRowCount = visibleRange.m_nTotalRowCount;
+                    pRender->CreateDrawRichTextCacheInRange(rcDrawText, szScrollOffset, richTextDataList, drawWindow, spDrawRichTextCache);
+                }
+                else {
+                    pRender->CreateDrawRichTextCache(rcDrawText, szScrollOffset, richTextDataList, spDrawRichTextCache);
+                }
+                ASSERT(spDrawRichTextCache != nullptr);
+                if (spDrawRichTextCache != nullptr) {
+                    m_pTextData->SetDrawRichTextCache(spDrawRichTextCache);
+                    m_pTextData->SetDrawRichTextCacheRange(nFirstLine, nLineCount);
+                }
+            }
+            if (spDrawRichTextCache != nullptr) {
                 //通过缓存绘制
                 rcDrawText.Offset(0, m_pTextData->GetTextRectOfssetY());
                 pRender->DrawRichTextCacheData(spDrawRichTextCache, rcDrawText, szScrollOffset, m_pTextData->GetTextRowXOffset(), GetAlpha());
-                m_pTextData->SetDrawRichTextCache(spDrawRichTextCache);
             }
         }
     }
@@ -2032,7 +2066,7 @@ void RichEdit2::Paint(IRender* pRender, const UiRect& rcPaint)
             //生成绘制数据（密码模式的文本排版也是按掩码文本计算的）
             std::vector<std::wstring_view> textViewList;
             textViewList.emplace_back(passwordText.c_str(), passwordText.size());
-            std::vector<RichTextData> richTextDataList;
+            RichTextDataList richTextDataList;
             if (GetRichTextForDraw(textViewList, richTextDataList)) {
                 //与普通文本绘制保持一致，应用垂直对齐偏移（如居中对齐），
                 //否则密码字符会顶对齐绘制，与同一行文本的垂直位置不协调
@@ -3366,16 +3400,24 @@ uint16_t RichEdit2::GetTextStyle() const
     return ui::TruncateToUInt16(uTextStyle);
 }
 
-bool RichEdit2::GetRichTextForDraw(std::vector<RichTextData>& richTextDataList) const
+bool RichEdit2::GetRichTextForDraw(RichTextDataList& richTextDataList) const
 {
     std::vector<std::wstring_view> textView;
     m_pTextData->GetTextView(textView);
     GetRichTextForDraw(textView, richTextDataList);
-    return !richTextDataList.empty();
+    return !richTextDataList.IsEmpty();
+}
+
+bool RichEdit2::GetRichTextForDraw(RichTextDataList& richTextDataList, size_t nFirstLine, size_t nLineCount) const
+{
+    std::vector<std::wstring_view> textView;
+    m_pTextData->GetTextView(textView, nFirstLine, nLineCount);
+    GetRichTextForDraw(textView, richTextDataList);
+    return !richTextDataList.IsEmpty();
 }
 
 bool RichEdit2::GetRichTextForDraw(const std::vector<std::wstring_view>& textView,
-                                  std::vector<RichTextData>& richTextDataList,
+                                  RichTextDataList& richTextDataList,
                                   size_t nStartLine,
                                   const std::vector<size_t>& modifiedLines) const
 {
@@ -3387,7 +3429,7 @@ bool RichEdit2::GetRichTextForDraw(const std::vector<std::wstring_view>& textVie
             }
         }
     }
-    richTextDataList.clear();
+    richTextDataList.Clear();
     if (textView.empty()) {
         return false;
     }
@@ -3411,23 +3453,26 @@ bool RichEdit2::GetRichTextForDraw(const std::vector<std::wstring_view>& textVie
     //默认文本属性
     richTextData.m_textStyle = GetTextStyle();
     //默认文本颜色
+    UiColor textColor;
     if (!IsEnabled()) {
-        richTextData.m_textColor = GetUiColor(GetDisabledTextColor());
+        textColor = GetUiColor(GetDisabledTextColor());
     }
     else {
-        richTextData.m_textColor = GetUiColor(GetTextColor());
+        textColor = GetUiColor(GetTextColor());
     }
-    if (richTextData.m_textColor.IsEmpty()) {
-        richTextData.m_textColor = UiColor(UiColors::Black);
+    if (textColor.IsEmpty()) {
+        textColor = UiColor(UiColors::Black);
     }
+    richTextData.m_nTextColorIndex = richTextDataList.m_attrs.AddColor(textColor);
     //文本的字体信息
-    richTextData.m_pFontInfo.reset(new UiFontEx);
-    richTextData.m_pFontInfo->m_fontName = pFont->FontName();
-    richTextData.m_pFontInfo->m_fontSize = pFont->FontSize();
-    richTextData.m_pFontInfo->m_bBold = pFont->IsBold();
-    richTextData.m_pFontInfo->m_bUnderline = pFont->IsUnderline();
-    richTextData.m_pFontInfo->m_bItalic = pFont->IsItalic();
-    richTextData.m_pFontInfo->m_bStrikeOut = pFont->IsStrikeOut();
+    UiFontEx fontInfo;
+    fontInfo.m_fontName = pFont->FontName();
+    fontInfo.m_fontSize = pFont->FontSize();
+    fontInfo.m_bBold = pFont->IsBold();
+    fontInfo.m_bUnderline = pFont->IsUnderline();
+    fontInfo.m_bItalic = pFont->IsItalic();
+    fontInfo.m_bStrikeOut = pFont->IsStrikeOut();
+    richTextData.m_nFontIndex = richTextDataList.m_attrs.AddFont(&fontInfo);
 
     //行间距倍数
     richTextData.m_fRowSpacingMul = GetRowSpacingMul();
@@ -3437,7 +3482,7 @@ bool RichEdit2::GetRichTextForDraw(const std::vector<std::wstring_view>& textVie
         //增量绘制，只绘制变化的部分
         size_t nLineIndex = 0;
         const size_t nCount = modifiedLines.size();
-        richTextDataList.reserve(nCount);
+        richTextDataList.Reserve(nCount);
         for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
             nLineIndex = modifiedLines[nIndex];
             ASSERT(nLineIndex < textView.size());
@@ -3445,7 +3490,7 @@ bool RichEdit2::GetRichTextForDraw(const std::vector<std::wstring_view>& textVie
                 ASSERT(!textView[nLineIndex].empty());
                 if (!textView[nLineIndex].empty()) {
                     richTextData.m_textView = textView[nLineIndex];
-                    richTextDataList.emplace_back(richTextData);
+                    richTextDataList.PushBack(richTextData);
                 }
             }
             else {
@@ -3456,16 +3501,16 @@ bool RichEdit2::GetRichTextForDraw(const std::vector<std::wstring_view>& textVie
     else {
         //全部绘制
         const size_t nCount = textView.size();
-        richTextDataList.reserve(nCount);
+        richTextDataList.Reserve(nCount);
         for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
             ASSERT(!textView[nIndex].empty());
             if (!textView[nIndex].empty()) {
                 richTextData.m_textView = textView[nIndex];
-                richTextDataList.emplace_back(richTextData);
+                richTextDataList.PushBack(richTextData);
             }
         }
     }    
-    return !richTextDataList.empty();
+    return !richTextDataList.IsEmpty();
 }
 
 UiRect RichEdit2::GetRichTextDrawRect() const

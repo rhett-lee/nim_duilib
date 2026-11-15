@@ -853,15 +853,16 @@ void TestRichText(ui::IRender* pRender, const FontContext& ctx)
     const DString longText = _T("duilib rich text 富文本省略号 ellipsis 截断 字体回退 fallback 绘制 内容很长");
     ui::RichTextData richTextData;
     richTextData.m_textView = longText;
-    richTextData.m_textColor = ui::UiColor(0xFF202020u);
-    ui::SharePtr<ui::UiFontEx> pFontEx(new ui::UiFontEx);
-    pFontEx->CopyFrom(MakeUiFont(ctx.pFont));
-    richTextData.m_pFontInfo = pFontEx;
     richTextData.m_textStyle = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_TOP;
     richTextData.m_bTextOverflowEllipsis = true;
 
-    std::vector<ui::RichTextData> richTextDataList;
-    richTextDataList.push_back(richTextData);
+    ui::RichTextDataList richTextDataList;
+    richTextDataList.m_attrs.AddColor(ui::UiColor(0xFF202020u));
+    richTextData.m_nTextColorIndex = 1;
+    ui::UiFontEx fontEx;
+    fontEx.CopyFrom(MakeUiFont(ctx.pFont));
+    richTextData.m_nFontIndex = richTextDataList.m_attrs.AddFont(&fontEx);
+    richTextDataList.PushBack(richTextData);
 
     const ui::UiRect rcText(0, 0, 160, 40);
     const ui::UiSize szScrollOffset(0, 0);
@@ -870,8 +871,9 @@ void TestRichText(ui::IRender* pRender, const FontContext& ctx)
     {
         ui::RichTextData wrapMeasureData = richTextData;
         wrapMeasureData.m_textStyle |= ui::DrawStringFormat::TEXT_WORD_WRAP;
-        std::vector<ui::RichTextData> wrapMeasureList;
-        wrapMeasureList.push_back(wrapMeasureData);
+        ui::RichTextDataList wrapMeasureList;
+        wrapMeasureList.m_attrs = richTextDataList.m_attrs;
+        wrapMeasureList.PushBack(wrapMeasureData);
 
         const ui::UiRect rcNarrow = pRender->MeasureRichText(ui::UiRect(0, 0, 120, 2000), szScrollOffset,
                                                              wrapMeasureList, nullptr);
@@ -898,7 +900,7 @@ void TestRichText(ui::IRender* pRender, const FontContext& ctx)
         CHECK(spCache != nullptr);
 
         std::vector<std::vector<ui::UiRect>> textRects;
-        textRects.resize(richTextDataList.size());
+        textRects.resize(richTextDataList.Size());
         const std::vector<int32_t> rowXOffset;
         pRender->DrawRichTextCacheData(spCache, rcText, szScrollOffset, rowXOffset, 255, &textRects);
         CHECK(textRects.size() == 1);
@@ -918,8 +920,9 @@ void TestRichText(ui::IRender* pRender, const FontContext& ctx)
         wrapData.m_textStyle = ui::DrawStringFormat::TEXT_WORD_WRAP | ui::DrawStringFormat::TEXT_LEFT |
                                ui::DrawStringFormat::TEXT_TOP;
         wrapData.m_fLetterSpacing = 2.0f;
-        std::vector<ui::RichTextData> wrapDataList;
-        wrapDataList.push_back(wrapData);
+        ui::RichTextDataList wrapDataList;
+        wrapDataList.m_attrs = richTextDataList.m_attrs;
+        wrapDataList.PushBack(wrapData);
 
         pRender->Clear(ui::UiColor(0xFFFFFFFFu));
         std::shared_ptr<ui::DrawRichTextCache> spCache;
@@ -928,7 +931,7 @@ void TestRichText(ui::IRender* pRender, const FontContext& ctx)
         CHECK(bCreated);
 
         std::vector<std::vector<ui::UiRect>> textRects;
-        textRects.resize(wrapDataList.size());
+        textRects.resize(wrapDataList.Size());
         const std::vector<int32_t> rowXOffset;
         pRender->DrawRichTextCacheData(spCache, rcText, szScrollOffset, rowXOffset, 255, &textRects);
         for (const ui::UiRect& rcDraw : textRects[0]) {
@@ -943,8 +946,9 @@ void TestRichText(ui::IRender* pRender, const FontContext& ctx)
         ui::RichTextData wrapData = richTextData;
         wrapData.m_textStyle = ui::DrawStringFormat::TEXT_WORD_WRAP | ui::DrawStringFormat::TEXT_LEFT |
                                ui::DrawStringFormat::TEXT_TOP;
-        std::vector<ui::RichTextData> wrapDataList;
-        wrapDataList.push_back(wrapData);
+        ui::RichTextDataList wrapDataList;
+        wrapDataList.m_attrs = richTextDataList.m_attrs;
+        wrapDataList.PushBack(wrapData);
 
         //使用较窄的绘制区域，保证文本会换行成多行
         const ui::UiRect rcWrapText(0, 0, 90, 90);
@@ -955,7 +959,7 @@ void TestRichText(ui::IRender* pRender, const FontContext& ctx)
         CHECK(bCreated);
 
         std::vector<std::vector<ui::UiRect>> textRects;
-        textRects.resize(wrapDataList.size());
+        textRects.resize(wrapDataList.Size());
         const std::vector<int32_t> rowXOffset;
         pRender->DrawRichTextCacheData(spCache, rcWrapText, szScrollOffset, rowXOffset, 255, &textRects);
         CHECK(!textRects[0].empty());
@@ -984,10 +988,11 @@ void TestRichText(ui::IRender* pRender, const FontContext& ctx)
 
     //空文本：不绘制
     {
-        std::vector<ui::RichTextData> emptyDataList;
+        ui::RichTextDataList emptyDataList;
         ui::RichTextData emptyData = richTextData;
         emptyData.m_textView = std::wstring_view();
-        emptyDataList.push_back(emptyData);
+        emptyDataList.m_attrs = richTextDataList.m_attrs;
+        emptyDataList.PushBack(emptyData);
 
         pRender->Clear(ui::UiColor(0xFFFFFFFFu));
         pRender->DrawRichText(rcText, szScrollOffset, emptyDataList, 255, nullptr);
@@ -1006,17 +1011,17 @@ void TestRichTextHScroll(ui::IRender* pRender, const FontContext& ctx)
                              _T("ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 abcdefghijklmnopqrstuvwxyz");
     ui::RichTextData richTextData;
     richTextData.m_textView = longText;
-    richTextData.m_textColor = ui::UiColor(0xFF202020u);
-    ui::SharePtr<ui::UiFontEx> pFontEx(new ui::UiFontEx);
-    pFontEx->CopyFrom(MakeUiFont(ctx.pFont));
-    richTextData.m_pFontInfo = pFontEx;
     richTextData.m_textStyle = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_TOP;
     //与RichEdit2一致：不绘制省略号，且绘制缓存按整行文本构建
     richTextData.m_bTextOverflowEllipsis = false;
     richTextData.m_bCacheFullTextWidth = true;
 
-    std::vector<ui::RichTextData> richTextDataList;
-    richTextDataList.push_back(richTextData);
+    ui::RichTextDataList richTextDataList;
+    richTextData.m_nTextColorIndex = richTextDataList.m_attrs.AddColor(ui::UiColor(0xFF202020u));
+    ui::UiFontEx fontEx;
+    fontEx.CopyFrom(MakeUiFont(ctx.pFont));
+    richTextData.m_nFontIndex = richTextDataList.m_attrs.AddFont(&fontEx);
+    richTextDataList.PushBack(richTextData);
 
     const ui::UiRect rcText(0, 0, 120, 30);
     const std::vector<int32_t> rowXOffset;
@@ -1034,7 +1039,7 @@ void TestRichTextHScroll(ui::IRender* pRender, const FontContext& ctx)
     //缓存中的文本片段应覆盖可视宽度之外的文本（整行），且不包含省略号片段
     {
         std::vector<std::vector<ui::UiRect>> textRects;
-        textRects.resize(richTextDataList.size());
+        textRects.resize(richTextDataList.Size());
         pRender->DrawRichTextCacheData(spCache, rcText, ui::UiSize(0, 0), rowXOffset, 255, &textRects);
         CHECK(textRects.size() == 1);
         if ((textRects.size() == 1) && !textRects[0].empty()) {
@@ -1070,8 +1075,9 @@ void TestRichTextHScroll(ui::IRender* pRender, const FontContext& ctx)
         ui::RichTextData clipData = richTextData;
         clipData.m_bCacheFullTextWidth = false;
         clipData.m_bTextOverflowEllipsis = true;
-        std::vector<ui::RichTextData> clipDataList;
-        clipDataList.push_back(clipData);
+        ui::RichTextDataList clipDataList;
+        clipDataList.m_attrs = richTextDataList.m_attrs;
+        clipDataList.PushBack(clipData);
 
         std::shared_ptr<ui::DrawRichTextCache> spClipCache;
         const bool bClipCreated = pRender->CreateDrawRichTextCache(rcText, ui::UiSize(0, 0),
@@ -1079,7 +1085,7 @@ void TestRichTextHScroll(ui::IRender* pRender, const FontContext& ctx)
         CHECK(bClipCreated);
         if (bClipCreated && (spClipCache != nullptr)) {
             std::vector<std::vector<ui::UiRect>> textRects;
-            textRects.resize(clipDataList.size());
+            textRects.resize(clipDataList.Size());
             pRender->DrawRichTextCacheData(spClipCache, rcText, ui::UiSize(0, 0), rowXOffset, 255, &textRects);
             CHECK(textRects.size() == 1);
             if (textRects.size() == 1) {

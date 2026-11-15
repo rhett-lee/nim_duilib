@@ -2312,7 +2312,7 @@ UiRect Render_Skia::MeasureString(const DString& strText, const MeasureStringPar
 
 UiRect Render_Skia::MeasureRichText(const UiRect& textRect,
                                    const UiSize& szScrollOffset,
-                                   const std::vector<RichTextData>& richTextData,
+                                   const RichTextDataList& richTextData,
                                    RichTextLineInfoParam* pLineInfoParam,
                                    std::shared_ptr<DrawRichTextCache>* spDrawRichTextCache,
                                    std::vector<std::vector<UiRect>>* pRichTextRects)
@@ -2324,7 +2324,7 @@ UiRect Render_Skia::MeasureRichText(const UiRect& textRect,
 
 void Render_Skia::DrawRichText(const UiRect& textRect,
                                const UiSize& szScrollOffset,
-                               const std::vector<RichTextData>& richTextData,
+                               const RichTextDataList& richTextData,
                                uint8_t uFade,
                                std::vector<std::vector<UiRect>>* pRichTextRects)
 {
@@ -2334,7 +2334,7 @@ void Render_Skia::DrawRichText(const UiRect& textRect,
 
 bool Render_Skia::CreateDrawRichTextCache(const UiRect& textRect,
                                           const UiSize& szScrollOffset,
-                                          const std::vector<RichTextData>& richTextData,
+                                          const RichTextDataList& richTextData,
                                           std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache)
 {
     spDrawRichTextCache.reset();
@@ -2345,7 +2345,7 @@ bool Render_Skia::CreateDrawRichTextCache(const UiRect& textRect,
 
 bool Render_Skia::CreateDrawRichTextCacheInRange(const UiRect& textRect,
                                                  const UiSize& szScrollOffset,
-                                                 const std::vector<RichTextData>& richTextData,
+                                                 const RichTextDataList& richTextData,
                                                  const RichTextDrawWindow& drawWindow,
                                                  std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache)
 {
@@ -2356,7 +2356,7 @@ bool Render_Skia::CreateDrawRichTextCacheInRange(const UiRect& textRect,
 }
 
 bool Render_Skia::IsValidDrawRichTextCache(const UiRect& textRect,
-                                           const std::vector<RichTextData>& richTextData,
+                                           const RichTextDataList& richTextData,
                                            const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
                                            bool bCompareTextColor)
 {
@@ -2366,7 +2366,7 @@ bool Render_Skia::IsValidDrawRichTextCache(const UiRect& textRect,
 
 bool Render_Skia::UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& spOldDrawRichTextCache,
                                           const std::shared_ptr<DrawRichTextCache>& spUpdateDrawRichTextCache,
-                                          std::vector<RichTextData>& richTextDataNew,
+                                          RichTextDataList& richTextDataNew,
                                           size_t nStartLine,
                                           const std::vector<size_t>& modifiedLines,
                                           size_t nModifiedRows,

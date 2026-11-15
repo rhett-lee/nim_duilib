@@ -103,36 +103,36 @@ public:
 
     virtual UiRect MeasureRichText(const UiRect& textRect,
                                    const UiSize& szScrollOffset,
-                                   const std::vector<RichTextData>& richTextData,
+                                   const RichTextDataList& richTextData,
                                    RichTextLineInfoParam* pLineInfoParam = nullptr,
                                    std::shared_ptr<DrawRichTextCache>* spDrawRichTextCache = nullptr,
                                    std::vector<std::vector<UiRect>>* pRichTextRects = nullptr) override;
 
     virtual void DrawRichText(const UiRect& textRect,
                               const UiSize& szScrollOffset,
-                              const std::vector<RichTextData>& richTextData,
+                              const RichTextDataList& richTextData,
                               uint8_t uFade = 255,
                               std::vector<std::vector<UiRect>>* pRichTextRects = nullptr) override;
 
     virtual bool CreateDrawRichTextCache(const UiRect& textRect,
                                          const UiSize& szScrollOffset,
-                                         const std::vector<RichTextData>& richTextData,
+                                         const RichTextDataList& richTextData,
                                          std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) override;
 
     virtual bool CreateDrawRichTextCacheInRange(const UiRect& textRect,
                                                 const UiSize& szScrollOffset,
-                                                const std::vector<RichTextData>& richTextData,
+                                                const RichTextDataList& richTextData,
                                                 const RichTextDrawWindow& drawWindow,
                                                 std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) override;
 
     virtual bool IsValidDrawRichTextCache(const UiRect& textRect,
-                                          const std::vector<RichTextData>& richTextData,
+                                          const RichTextDataList& richTextData,
                                           const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
                                           bool bCompareTextColor = true) override;
 
     virtual bool UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& spOldDrawRichTextCache,
                                          const std::shared_ptr<DrawRichTextCache>& spUpdateDrawRichTextCache,
-                                         std::vector<RichTextData>& richTextDataNew,
+                                         RichTextDataList& richTextDataNew,
                                          size_t nStartLine,
                                          const std::vector<size_t>& modifiedLines,
                                          size_t nModifiedRows,

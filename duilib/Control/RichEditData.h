@@ -45,7 +45,7 @@ public:
     * @param [in] modifiedLines 有修改的行号（增量计算时使用）
     */
     virtual bool GetRichTextForDraw(const std::vector<std::wstring_view>& textView,
-                                    std::vector<RichTextData>& richTextDataList,
+                                    RichTextDataList& richTextDataList,
                                     size_t nStartLine = (size_t)-1,
                                     const std::vector<size_t>& modifiedLines = std::vector<size_t>()) const = 0;
 
@@ -518,23 +518,23 @@ private:
     * @param [in] nCharIndex 字符索引位置
     * @param [out] nStartCharRowOffset 在逻辑行中的字符偏移量
     */
-    RichTextRowInfoPtr GetCharRowInfo(int32_t nCharIndex, size_t& nStartCharRowOffset) const;
+    const RichTextRowInfo* GetCharRowInfo(int32_t nCharIndex, size_t& nStartCharRowOffset) const;
 
     /** 获取一个点所在的行
     */
-    RichTextRowInfoPtr GetRowInfoFromPoint(const UiPoint& pt) const;
+    const RichTextRowInfo* GetRowInfoFromPoint(const UiPoint& pt) const;
 
     /** 获取首行的数据
     */
-    RichTextRowInfoPtr GetFirstRowInfo() const;
+    const RichTextRowInfo* GetFirstRowInfo() const;
 
     /** 获取尾行的数据
     */
-    RichTextRowInfoPtr GetLastRowInfo() const;
+    const RichTextRowInfo* GetLastRowInfo() const;
 
     /** 获取一行数据的起始字符下标值，如果找不到返回(size_t)-1
     */
-    size_t GetRowInfoStartIndex(const RichTextRowInfoPtr& spRowInfo) const;
+    size_t GetRowInfoStartIndex(const RichTextRowInfo* pRowInfo) const;
 
     /** 更新行高数据（增量绘制后的更新）
     * @param [in] nDrawStartLineIndex 从哪一行数据开始处理

@@ -34,7 +34,7 @@ public:
     UiRect InternalDrawRichText(const UiRect& rcTextRect,
                                 const UiSize& szScrollOffset,
                                 IRenderFactory* pRenderFactory,
-                                const std::vector<RichTextData>& richTextData,
+                                const RichTextDataList& richTextData,
                                 uint8_t uFade,
                                 bool bMeasureOnly,
                                 RichTextLineInfoParam* pLineInfoParam,
@@ -54,7 +54,7 @@ public:
     bool CreateDrawRichTextCacheInRange(const UiRect& rcTextRect,
                                         const UiSize& szScrollOffset,
                                         IRenderFactory* pRenderFactory,
-                                        const std::vector<RichTextData>& richTextData,
+                                        const RichTextDataList& richTextData,
                                         const RichTextDrawWindow& drawWindow,
                                         std::shared_ptr<DrawRichTextCache>& pDrawRichTextCache);
 
@@ -65,7 +65,7 @@ public:
     * @param [in] bCompareTextColor 是否比较文字颜色；为false时忽略颜色差异（颜色在绘制时覆盖）
     */
     bool IsValidDrawRichTextCache(const UiRect& textRect,
-                                  const std::vector<RichTextData>& richTextData,
+                                  const RichTextDataList& richTextData,
                                   const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
                                   bool bCompareTextColor = true);
 
@@ -82,7 +82,7 @@ public:
     */
     bool UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& spOldDrawRichTextCache,
                                  const std::shared_ptr<DrawRichTextCache>& spUpdateDrawRichTextCache,
-                                 std::vector<RichTextData>& richTextDataNew,
+                                 RichTextDataList& richTextDataNew,
                                  size_t nStartLine,
                                  const std::vector<size_t>& modifiedLines,
                                  size_t nModifiedRows,

@@ -719,6 +719,210 @@ enum DUILIB_API DrawStringFormat
     TEXT_END_ELLIPSIS   = 0x8000    //如果绘制区域不足，在结尾加"..."，省略部分文字
 };
 
+/** 内联图片的信息（用于 <img> 标签）
+*/
+struct DUILIB_API RichTextImageInfo
+{
+    /** 图片的位图
+    */
+    std::shared_ptr<IBitmap> m_pImage;
+
+    /** 显示宽度（像素），0表示使用位图的原始宽度
+    */
+    int32_t m_nWidth = 0;
+
+    /** 显示高度（像素），0表示使用位图的原始高度
+    */
+    int32_t m_nHeight = 0;
+};
+
+/** 格式化文本的属性索引表：保存文本片段引用的字体、颜色与内联图片
+ *
+ *  RichTextData 中只保存索引（uint16_t），实际的字体对象、颜色值与图片保存在本表中，
+ *  由数据提供方（RichEdit2 / RichText）与绘制缓存共同持有。
+ *  这样每个文本片段不再重复保存 SharePtr<UiFontEx>（16B）与两个 UiColor（8B），
+ *  避免同一字体/颜色被每个文本片段重复保存。
+ */
+class DUILIB_API RichTextAttrTable
+{
+public:
+    RichTextAttrTable() = default;
+
+    /** 添加字体（按字体属性去重）
+     * @param [in] pFont 字体属性，可以为nullptr
+     * @return 返回字体索引，索引从1开始；返回0表示未设置字体
+     */
+    uint16_t AddFont(const UiFontEx* pFont)
+    {
+        if (pFont == nullptr) {
+            return 0;
+        }
+        for (size_t nIndex = 0; nIndex < m_fontList.size(); ++nIndex) {
+            const UiFontEx* pExistFont = m_fontList[nIndex].get();
+            if ((pExistFont != nullptr) && (*pExistFont == *pFont)) {
+                return (uint16_t)(nIndex + 1);
+            }
+        }
+        SharePtr<UiFontEx> spFontInfo(new UiFontEx);
+        spFontInfo->CopyFrom(*pFont);
+        m_fontList.push_back(spFontInfo);
+        return (uint16_t)m_fontList.size();
+    }
+
+    /** 添加颜色（按颜色值去重）
+     * @param [in] color 颜色值
+     * @return 返回颜色索引，索引从1开始；返回0表示未设置颜色（空颜色）
+     */
+    uint16_t AddColor(const UiColor& color)
+    {
+        if (color.IsEmpty()) {
+            return 0;
+        }
+        for (size_t nIndex = 0; nIndex < m_colorList.size(); ++nIndex) {
+            if (m_colorList[nIndex] == color) {
+                return (uint16_t)(nIndex + 1);
+            }
+        }
+        m_colorList.push_back(color);
+        return (uint16_t)m_colorList.size();
+    }
+
+    /** 添加内联图片（按图片指针与显示大小去重）
+     * @param [in] pImage 图片的位图
+     * @param [in] nWidth 显示宽度，0表示使用原始宽度
+     * @param [in] nHeight 显示高度，0表示使用原始高度
+     * @return 返回图片索引，索引从1开始；返回0表示无图片
+     */
+    uint16_t AddImage(const std::shared_ptr<IBitmap>& pImage, int32_t nWidth, int32_t nHeight)
+    {
+        if (pImage == nullptr) {
+            return 0;
+        }
+        for (size_t nIndex = 0; nIndex < m_imageList.size(); ++nIndex) {
+            const RichTextImageInfo& existImage = m_imageList[nIndex];
+            if ((existImage.m_pImage == pImage) &&
+                (existImage.m_nWidth == nWidth) &&
+                (existImage.m_nHeight == nHeight)) {
+                return (uint16_t)(nIndex + 1);
+            }
+        }
+        RichTextImageInfo imageInfo;
+        imageInfo.m_pImage = pImage;
+        imageInfo.m_nWidth = nWidth;
+        imageInfo.m_nHeight = nHeight;
+        m_imageList.push_back(imageInfo);
+        return (uint16_t)m_imageList.size();
+    }
+
+    /** 获取字体
+     * @param [in] nIndex 字体索引
+     * @return 返回字体属性，索引无效时返回nullptr
+     */
+    const UiFontEx* GetFont(uint16_t nIndex) const
+    {
+        if ((nIndex == 0) || (nIndex > m_fontList.size())) {
+            return nullptr;
+        }
+        return m_fontList[nIndex - 1].get();
+    }
+
+    /** 获取颜色
+     * @param [in] nIndex 颜色索引
+     * @return 返回颜色值，索引无效时返回空颜色
+     */
+    UiColor GetColor(uint16_t nIndex) const
+    {
+        if ((nIndex == 0) || (nIndex > m_colorList.size())) {
+            return UiColor();
+        }
+        return m_colorList[nIndex - 1];
+    }
+
+    /** 获取内联图片的信息
+     * @param [in] nIndex 图片索引
+     * @return 返回图片信息，索引无效时返回空信息（m_pImage为nullptr）
+     */
+    const RichTextImageInfo& GetImage(uint16_t nIndex) const
+    {
+        static const RichTextImageInfo g_emptyImageInfo;
+        if ((nIndex == 0) || (nIndex > m_imageList.size())) {
+            return g_emptyImageInfo;
+        }
+        return m_imageList[nIndex - 1];
+    }
+
+    /** 判断两个表中的字体是否相同（用于比较绘制缓存的数据）
+     */
+    static bool IsFontEqual(const RichTextAttrTable& first, uint16_t nFirstIndex,
+                            const RichTextAttrTable& second, uint16_t nSecondIndex)
+    {
+        const UiFontEx* pFirstFont = first.GetFont(nFirstIndex);
+        const UiFontEx* pSecondFont = second.GetFont(nSecondIndex);
+        if (pFirstFont == pSecondFont) {
+            return true;
+        }
+        if ((pFirstFont == nullptr) || (pSecondFont == nullptr)) {
+            return false;
+        }
+        return *pFirstFont == *pSecondFont;
+    }
+
+    /** 判断两个表中的颜色是否相同
+     */
+    static bool IsColorEqual(const RichTextAttrTable& first, uint16_t nFirstIndex,
+                             const RichTextAttrTable& second, uint16_t nSecondIndex)
+    {
+        return first.GetColor(nFirstIndex) == second.GetColor(nSecondIndex);
+    }
+
+    /** 判断两个表中的图片是否相同
+     */
+    static bool IsImageEqual(const RichTextAttrTable& first, uint16_t nFirstIndex,
+                             const RichTextAttrTable& second, uint16_t nSecondIndex)
+    {
+        const RichTextImageInfo& firstImage = first.GetImage(nFirstIndex);
+        const RichTextImageInfo& secondImage = second.GetImage(nSecondIndex);
+        return (firstImage.m_pImage == secondImage.m_pImage) &&
+               (firstImage.m_nWidth == secondImage.m_nWidth) &&
+               (firstImage.m_nHeight == secondImage.m_nHeight);
+    }
+
+    /** 清空所有数据
+     */
+    void Clear()
+    {
+        m_fontList.clear();
+        m_colorList.clear();
+        m_imageList.clear();
+    }
+
+    /** 交换两个表的数据
+     */
+    void Swap(RichTextAttrTable& other)
+    {
+        m_fontList.swap(other.m_fontList);
+        m_colorList.swap(other.m_colorList);
+        m_imageList.swap(other.m_imageList);
+    }
+
+    /** 字体数量（不含索引0）
+     */
+    size_t GetFontCount() const { return m_fontList.size(); }
+
+private:
+    /** 字体列表（索引0不使用）
+    */
+    std::vector<SharePtr<UiFontEx>> m_fontList;
+
+    /** 颜色列表（索引0不使用）
+    */
+    std::vector<UiColor> m_colorList;
+
+    /** 内联图片列表（索引0不使用）
+    */
+    std::vector<RichTextImageInfo> m_imageList;
+};
+
 /** 格式文本数据
 */
 class RichTextData
@@ -728,17 +932,21 @@ public:
     */
     std::wstring_view m_textView;
 
-    /** 文字颜色
+    /** 字体索引（RichTextAttrTable::AddFont 的返回值，0表示未设置字体）
     */
-    UiColor m_textColor;
+    uint16_t m_nFontIndex = 0;
 
-    /** 背景颜色
+    /** 文字颜色索引（0表示未设置颜色，使用默认颜色）
     */
-    UiColor m_bgColor;
+    uint16_t m_nTextColorIndex = 0;
 
-    /** 字体信息
+    /** 背景颜色索引（0表示无背景颜色）
     */
-    SharePtr<UiFontEx> m_pFontInfo;
+    uint16_t m_nBgColorIndex = 0;
+
+    /** 内联图片索引（0表示无图片）
+    */
+    uint16_t m_nImageIndex = 0;
 
     /** 行间距倍数: 字体大小的倍数比例（默认值通常为 1.0，即 100% 字体大小），用于按比例调整行间距
     */
@@ -747,10 +955,6 @@ public:
     /** 行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素）
     */
     float m_fRowSpacingAdd = 0.0f;
-
-    /** 绘制文字的属性(包含文本对齐方式等属性，参见 enum DrawStringFormat)
-    */
-    uint16_t m_textStyle = 0;
 
     /** 字间距（像素），0表示使用字体默认间距
     */
@@ -768,6 +972,10 @@ public:
     */
     int32_t m_nMaxLines = 0;
 
+    /** 绘制文字的属性(包含文本对齐方式等属性，参见 enum DrawStringFormat)
+    */
+    uint16_t m_textStyle = 0;
+
     /** 超出最大行数时是否显示省略号：true显示省略号，false直接裁剪
     */
     bool m_bTextOverflowEllipsis = true;
@@ -782,18 +990,58 @@ public:
     /** 是否绘制水平分割线（用于 <hr> 标签）
     */
     bool m_bHorizontalRule = false;
+};
 
-    /** 内联图片的位图（用于 <img> 标签），非空时绘制图片，忽略文字内容
+/** 格式文本的绘制数据：文本片段列表 + 字体/颜色/图片的索引表
+*/
+class DUILIB_API RichTextDataList
+{
+public:
+    /** 文本片段列表
     */
-    std::shared_ptr<IBitmap> m_pImage;
+    std::vector<RichTextData> m_data;
 
-    /** 内联图片的显示宽度（像素），0表示使用位图的原始宽度
+    /** 文本片段引用的字体/颜色/图片
     */
-    int32_t m_nImageWidth = 0;
+    RichTextAttrTable m_attrs;
 
-    /** 内联图片的显示高度（像素），0表示使用位图的原始高度
+public:
+    /** 清空
     */
-    int32_t m_nImageHeight = 0;
+    void Clear()
+    {
+        m_data.clear();
+        m_attrs.Clear();
+    }
+
+    /** 是否为空
+    */
+    bool IsEmpty() const { return m_data.empty(); }
+
+    /** 文本片段个数
+    */
+    size_t Size() const { return m_data.size(); }
+
+    /** 预留容量
+    */
+    void Reserve(size_t nCount) { m_data.reserve(nCount); }
+
+    /** 添加一个文本片段
+    */
+    void PushBack(const RichTextData& data) { m_data.push_back(data); }
+
+    /** 交换两个数据对象（文本片段与属性索引表一起交换）
+    */
+    void Swap(RichTextDataList& other)
+    {
+        m_data.swap(other.m_data);
+        m_attrs.Swap(other.m_attrs);
+    }
+
+    /** 获取文本片段
+    */
+    RichTextData& operator[](size_t nIndex) { return m_data[nIndex]; }
+    const RichTextData& operator[](size_t nIndex) const { return m_data[nIndex]; }
 };
 
 /** 绘制的字符标记位
@@ -894,7 +1142,7 @@ private:
 
 /** 逻辑行(矩形区域内显示的行，物理行数据在自动换行的情况下会对应多个逻辑行)的基本信息
 */
-struct RichTextRowInfo: public NVRefCount<RichTextRowInfo>
+struct RichTextRowInfo
 {
     /** 本行中的字符个数，字符属性
     */
@@ -908,7 +1156,6 @@ struct RichTextRowInfo: public NVRefCount<RichTextRowInfo>
     */
     int32_t m_xOffset = 0;
 };
-typedef SharePtr<RichTextRowInfo> RichTextRowInfoPtr;
 
 /** 物理行文本的数据
 */
@@ -922,9 +1169,9 @@ struct RichTextLineInfo: public NVRefCount<RichTextLineInfo>
     */
     UiStringW m_lineText;
 
-    /** 逻辑行的基本信息
+    /** 逻辑行的基本信息（按值保存，避免每个逻辑行一次堆分配与指针开销）
     */
-    std::vector<RichTextRowInfoPtr> m_rowInfo;
+    std::vector<RichTextRowInfo> m_rowInfo;
 };
 typedef SharePtr<RichTextLineInfo> RichTextLineInfoPtr;
 
@@ -1496,7 +1743,7 @@ public:
     */
     virtual UiRect MeasureRichText(const UiRect& textRect,
                                    const UiSize& szScrollOffset,
-                                   const std::vector<RichTextData>& richTextData,
+                                   const RichTextDataList& richTextData,
                                    RichTextLineInfoParam* pLineInfoParam = nullptr,
                                    std::shared_ptr<DrawRichTextCache>* spDrawRichTextCache = nullptr,
                                    std::vector<std::vector<UiRect>>* pRichTextRects = nullptr) = 0;
@@ -1510,7 +1757,7 @@ public:
     */
     virtual void DrawRichText(const UiRect& textRect,
                               const UiSize& szScrollOffset,
-                              const std::vector<RichTextData>& richTextData,
+                              const RichTextDataList& richTextData,
                               uint8_t uFade = 255,
                               std::vector<std::vector<UiRect>>* pRichTextRects = nullptr) = 0;
 
@@ -1522,7 +1769,7 @@ public:
     */
     virtual bool CreateDrawRichTextCache(const UiRect& textRect,
                                          const UiSize& szScrollOffset,
-                                         const std::vector<RichTextData>& richTextData,
+                                         const RichTextDataList& richTextData,
                                          std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) = 0;
 
     /** 创建RichText的绘制缓存（只构建指定物理行窗口内的行，用于按可视区域懒构建缓存）
@@ -1535,7 +1782,7 @@ public:
     */
     virtual bool CreateDrawRichTextCacheInRange(const UiRect& textRect,
                                                 const UiSize& szScrollOffset,
-                                                const std::vector<RichTextData>& richTextData,
+                                                const RichTextDataList& richTextData,
                                                 const RichTextDrawWindow& drawWindow,
                                                 std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache)
     {
@@ -1552,7 +1799,7 @@ public:
     *             用于悬停/按下等仅改变颜色的场景，避免重新排版）
     */
     virtual bool IsValidDrawRichTextCache(const UiRect& textRect,
-                                          const std::vector<RichTextData>& richTextData,
+                                          const RichTextDataList& richTextData,
                                           const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
                                           bool bCompareTextColor = true) = 0;
 
@@ -1569,7 +1816,7 @@ public:
     */
     virtual bool UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& spOldDrawRichTextCache,
                                          const std::shared_ptr<DrawRichTextCache>& spUpdateDrawRichTextCache,
-                                         std::vector<RichTextData>& richTextDataNew,
+                                         RichTextDataList& richTextDataNew,
                                          size_t nStartLine,
                                          const std::vector<size_t>& modifiedLines,
                                          size_t nModifiedRows,

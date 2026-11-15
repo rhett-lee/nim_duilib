@@ -111,7 +111,7 @@ public:
     /** 原始参数
     */
     UiRect m_textRect;
-    std::vector<RichTextData> m_richTextData;
+    RichTextDataList m_richTextData;
 
     SkTextEncoding m_textEncoding = SkTextEncoding::kUTF16;
     size_t m_textCharSize = sizeof(DStringW::value_type);
@@ -180,7 +180,7 @@ inline static void SaveRowTopOffset(FastVector<int32_t>& rowTopOffsetVector, uin
 UiRect DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                                           const UiSize& szScrollOffset,
                                           IRenderFactory* pRenderFactory,
-                                          const std::vector<RichTextData>& richTextData,
+                                          const RichTextDataList& richTextData,
                                           uint8_t uFade,
                                           bool bMeasureOnly,
                                           RichTextLineInfoParam* pLineInfoParam,
@@ -239,7 +239,7 @@ UiRect DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
     const bool bBuildGlyphRuns = !bMeasureOnly || (pDrawRichTextCache != nullptr);
 
     std::vector<TPendingDrawRichText> pendingTextData;
-    pendingTextData.reserve(richTextData.size());
+    pendingTextData.reserve(richTextData.Size());
 
     const int32_t nTextRectRightMax = (int32_t)rcTextRect.right;   //绘制区域的最右侧
     const int32_t nTextRectBottomMax = (int32_t)rcTextRect.bottom; //绘制区域的最底端
@@ -259,13 +259,13 @@ UiRect DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
     uint32_t nLineTextRowIndex = 0; //物理行内的逻辑行号(每个物理行中，从0开始编号，跨文本片段连续编号)
 
     FastVector<int32_t> rowHeightVector; //每行的实际行高表
-    rowHeightVector.reserve(richTextData.size() * 2);
+    rowHeightVector.reserve(richTextData.Size() * 2);
 
     FastVector<int32_t> rowWidthVector; //每行的实际文本宽度表（用于逐行水平对齐）
-    rowWidthVector.reserve(richTextData.size() * 2);
+    rowWidthVector.reserve(richTextData.Size() * 2);
 
     FastVector<int32_t> rowTopOffsetVector; //每行内容的向下偏移量表
-    rowTopOffsetVector.reserve(richTextData.size() * 2);
+    rowTopOffsetVector.reserve(richTextData.Size() * 2);
     SkScalar rowRightX = (SkScalar)rcDrawRect.left; //本行文本的最右侧坐标
 
     int32_t nMaxRowWidth = 0;                //内容的最大行宽（作为测量结果的宽度）
@@ -279,8 +279,8 @@ UiRect DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
         }
     };
 
-    //字体缓存(由于创建字体比较耗时，所以尽量复用相同的对象)
-    SharePtr<UiFontEx> lastFont;
+    //字体缓存(由于创建字体比较耗时，所以尽量复用相同的对象；索引表中相同字体始终对应同一对象)
+    const UiFontEx* pLastFontInfo = nullptr;
     std::shared_ptr<IFont> spLastSkiaFont;
 
     if (pLineInfoParam != nullptr) {
@@ -363,8 +363,14 @@ UiRect DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
     // PerformanceUtil::Instance().AddStat(statHashBreakName);
     // static const size_t statHashBreak = std::hash<DString>{}(statHashBreakName); //2710 ms
 
-    for (size_t index = 0; index < richTextData.size(); ++index) {
+    for (size_t index = 0; index < richTextData.Size(); ++index) {
         const RichTextData& textData = richTextData[index];
+        //解析本片段引用的字体、颜色与内联图片
+        const UiFontEx* pFontInfo = richTextData.m_attrs.GetFont(textData.m_nFontIndex);
+        const UiColor dataTextColor = richTextData.m_attrs.GetColor(textData.m_nTextColorIndex);
+        const UiColor dataBgColor = richTextData.m_attrs.GetColor(textData.m_nBgColorIndex);
+        const RichTextImageInfo& imageInfo = richTextData.m_attrs.GetImage(textData.m_nImageIndex);
+        const std::shared_ptr<IBitmap>& pImage = imageInfo.m_pImage;
         if (textData.m_bHorizontalRule) {
             //水平分割线：独占一行
             if (xPos > (SkScalar)rcDrawRect.left) {
@@ -389,7 +395,7 @@ UiRect DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
             hrData.m_nLineNumber = nLineNumber;
             hrData.m_nRowIndex = nRowIndex;
             hrData.m_textStyle = textData.m_textStyle;
-            hrData.m_textColor = textData.m_textColor;
+            hrData.m_textColor = dataTextColor;
             hrData.m_bHorizontalRule = true;
             hrData.m_destRect.left = rcDrawRect.left;
             hrData.m_destRect.right = rcDrawRect.right;
@@ -420,30 +426,28 @@ UiRect DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
             }
             continue;
         }
-        if (textData.m_textView.empty() && (textData.m_pImage == nullptr)) {
+        if (textData.m_textView.empty() && (pImage == nullptr)) {
             continue;
         }
 
         //首行缩进：仅对段落的第一行生效（纯换行符不缩进，避免产生空行占位）
         if (bParagraphStart && (textData.m_nFirstLineIndent > 0) && (xPos <= (SkScalar)rcDrawRect.left) &&
-            (HasDrawableText(textData.m_textView) || (textData.m_pImage != nullptr))) {
+            (HasDrawableText(textData.m_textView) || (pImage != nullptr))) {
             xPos += (SkScalar)textData.m_nFirstLineIndent;
             rowRightX = std::max(rowRightX, xPos);
         }
 
         //设置文本颜色
-        if (textColor != textData.m_textColor) {
-            const UiColor& color = textData.m_textColor;
+        if (textColor != dataTextColor) {
+            const UiColor& color = dataTextColor;
             //颜色自身的Alpha与叠加透明度相乘（uFade 不再覆盖颜色的Alpha）
             skPaint.setARGB((uint8_t)(((uint32_t)color.GetA() * (uint32_t)uFade + 127) / 255),
                             color.GetR(), color.GetG(), color.GetB());
-            textColor = textData.m_textColor;
+            textColor = dataTextColor;
         }
         
         std::shared_ptr<IFont> spSkiaFont;
-        if ((spLastSkiaFont != nullptr) &&
-            (textData.m_pFontInfo != nullptr) && (lastFont != nullptr) &&
-            ((textData.m_pFontInfo == lastFont) || (*textData.m_pFontInfo == *lastFont))) {
+        if ((spLastSkiaFont != nullptr) && (pFontInfo != nullptr) && (pFontInfo == pLastFontInfo)) {
             //复用缓存中的字体对象
             spSkiaFont = spLastSkiaFont;
         }
@@ -453,14 +457,16 @@ UiRect DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
             if (spSkiaFont == nullptr) {
                 continue;
             }
-            ASSERT(textData.m_pFontInfo != nullptr);
-            if (textData.m_pFontInfo == nullptr) {
+            ASSERT(pFontInfo != nullptr);
+            if (pFontInfo == nullptr) {
                 continue;
             }
-            if (!spSkiaFont->InitFont(*textData.m_pFontInfo)) {
+            if (!spSkiaFont->InitFont(*pFontInfo)) {
                 spSkiaFont.reset();
                 continue;
             }
+            spLastSkiaFont = spSkiaFont;
+            pLastFontInfo = pFontInfo;
         }
 
         Font_Skia* pSkiaFont = dynamic_cast<Font_Skia*>(spSkiaFont.get());
@@ -472,11 +478,6 @@ UiRect DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
         ASSERT(pSkFont != nullptr);
         if (pSkFont == nullptr) {
             continue;
-        }
-
-        if (spLastSkiaFont != spSkiaFont) {
-            spLastSkiaFont = spSkiaFont;
-            lastFont = textData.m_pFontInfo;
         }
 
         FallbackFontCreator fallbackFontCreator = [this, spSkiaFont](SkUnichar unicodeChar, SkGlyphID* glyphId) {
@@ -504,15 +505,15 @@ UiRect DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                                      (pLineInfoParam == nullptr) && !textData.m_bCacheFullTextWidth;
         bool bBreakAll = false;//标记是否终止
 
-        if (textData.m_pImage != nullptr) {
+        if (pImage != nullptr) {
             //内联图片：图片底部与当前文本的基线对齐，图片独占一个绘制片段
-            int32_t nImageWidth = textData.m_nImageWidth;
-            int32_t nImageHeight = textData.m_nImageHeight;
+            int32_t nImageWidth = imageInfo.m_nWidth;
+            int32_t nImageHeight = imageInfo.m_nHeight;
             if (nImageWidth <= 0) {
-                nImageWidth = (int32_t)textData.m_pImage->GetWidth();
+                nImageWidth = (int32_t)pImage->GetWidth();
             }
             if (nImageHeight <= 0) {
-                nImageHeight = (int32_t)textData.m_pImage->GetHeight();
+                nImageHeight = (int32_t)pImage->GetHeight();
             }
             if ((nImageWidth <= 0) || (nImageHeight <= 0)) {
                 //无法获取图片尺寸，忽略该图片
@@ -574,10 +575,10 @@ UiRect DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
             imgData.m_nDataIndex = (uint32_t)index;
             imgData.m_nLineNumber = nLineNumber;
             imgData.m_nRowIndex = nRowIndex;
-            imgData.m_spImage = textData.m_pImage;
+            imgData.m_spImage = pImage;
             imgData.m_textStyle = textData.m_textStyle;
-            imgData.m_textColor = textData.m_textColor;
-            imgData.m_bgColor = textData.m_bgColor;
+            imgData.m_textColor = dataTextColor;
+            imgData.m_bgColor = dataBgColor;
             imgData.m_destRect.left = SkScalarTruncToInt(xPos);
             imgData.m_destRect.right = SkScalarTruncToInt(xPos) + nImageWidth;
             imgData.m_destRect.top = nImageTop;
@@ -828,8 +829,8 @@ UiRect DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                     newPendingTextData.m_textView = std::wstring_view(lineTextView.data() + textStartIndex, nDrawLength / textCharSize);
                     newPendingTextData.m_spFont = spSkiaFont;
 
-                    newPendingTextData.m_bgColor = textData.m_bgColor;
-                    newPendingTextData.m_textColor = textData.m_textColor;
+                    newPendingTextData.m_bgColor = dataBgColor;
+                    newPendingTextData.m_textColor = dataTextColor;
                     newPendingTextData.m_textStyle = textData.m_textStyle;
                     newPendingTextData.m_bTextOverflowEllipsis = textData.m_bTextOverflowEllipsis;
                     newPendingTextData.m_fLetterSpacing = textData.m_fLetterSpacing;
@@ -919,7 +920,7 @@ UiRect DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                         rowData.m_nDataIndex = (uint32_t)index;
                         rowData.m_nRowTop = yPos;
                         rowData.m_spFont = spSkiaFont;
-                        rowData.m_textColor = textData.m_textColor;
+                        rowData.m_textColor = dataTextColor;
                         truncatedRowList.push_back(rowData);
                     }
                     ASSERT(((int64_t)xPos + (int64_t)textMeasuredWidth) < INT32_MAX);
@@ -945,7 +946,7 @@ UiRect DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
                     ASSERT(((int64_t)xPos + (int64_t)textMeasuredWidth) < INT32_MAX);
                     xPos += textMeasuredWidth;
                     //文本恰好占满一行时，如果后面没有其他文本，则不需要换行（避免多算一行）
-                    const bool bHasMoreData = (index + 1) < richTextData.size();
+                    const bool bHasMoreData = (index + 1) < richTextData.Size();
                     if ((xPos > nTextRectRightMax) || ((xPos >= nTextRectRightMax) && bHasMoreData)) {
                         //X坐标右侧已经超出目标矩形的范围
                         if (bBreakWhenOutOfRect && bSingleLineMode) {
@@ -1167,7 +1168,7 @@ UiRect DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
 
     if (pRichTextRects != nullptr) {
         pRichTextRects->clear();
-        pRichTextRects->resize(richTextData.size());
+        pRichTextRects->resize(richTextData.Size());
         for (const TPendingDrawRichText& textData : pendingTextData) {
             //保存绘制的目标区域，同一个文本，可能会有多个区域（换行时）
             ASSERT(textData.m_nDataIndex < pRichTextRects->size());
@@ -1196,7 +1197,7 @@ UiRect DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
             }
             spDrawRichTextCache->m_nFirstRowIndex = nRowBase;
             spDrawRichTextCache->m_nFirstLineNumber = nLineBase;
-            spDrawRichTextCache->m_nLineCount = (uint32_t)richTextData.size();
+            spDrawRichTextCache->m_nLineCount = (uint32_t)richTextData.Size();
             spDrawRichTextCache->m_nTotalRowCount = pDrawWindow->m_nTotalRowCount;
         }
 
@@ -1285,12 +1286,12 @@ UiRect DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
 bool DrawRichText::CreateDrawRichTextCacheInRange(const UiRect& rcTextRect,
                                                   const UiSize& szScrollOffset,
                                                   IRenderFactory* pRenderFactory,
-                                                  const std::vector<RichTextData>& richTextData,
+                                                  const RichTextDataList& richTextData,
                                                   const RichTextDrawWindow& drawWindow,
                                                   std::shared_ptr<DrawRichTextCache>& pDrawRichTextCache)
 {
     pDrawRichTextCache.reset();
-    if (richTextData.empty()) {
+    if (richTextData.IsEmpty()) {
         return false;
     }
     InternalDrawRichText(rcTextRect, szScrollOffset, pRenderFactory, richTextData, 255, true,
@@ -1574,13 +1575,9 @@ void DrawRichText::OnDrawUnicodeChar(RichTextLineInfoParam* pLineInfoParam,
             ASSERT(nLineTextRowIndex == lineInfo.m_rowInfo.size());
             return;
         }
-        lineInfo.m_rowInfo.push_back(RichTextRowInfoPtr(new RichTextRowInfo));        
+        lineInfo.m_rowInfo.push_back(RichTextRowInfo());        
     }    
-    if (lineInfo.m_rowInfo[nLineTextRowIndex] == nullptr) {
-        ASSERT(lineInfo.m_rowInfo[nLineTextRowIndex] != nullptr);
-        return;
-    }
-    RichTextRowInfo& rowInfo = *lineInfo.m_rowInfo[nLineTextRowIndex];
+    RichTextRowInfo& rowInfo = lineInfo.m_rowInfo[nLineTextRowIndex];
     if (!bFound) {
         //该行的第一个字符：行矩形的高度取当前行高
         rowInfo.m_rowRect.left = xPos;
@@ -1630,7 +1627,7 @@ void DrawRichText::OnDrawUnicodeChar(RichTextLineInfoParam* pLineInfoParam,
 }
 
 bool DrawRichText::IsValidDrawRichTextCache(const UiRect& textRect,
-                                            const std::vector<RichTextData>& richTextData,
+                                            const RichTextDataList& richTextData,
                                             const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
                                             bool bCompareTextColor)
 {
@@ -1646,11 +1643,11 @@ bool DrawRichText::IsValidDrawRichTextCache(const UiRect& textRect,
         //矩形大小发生变化，不能使用缓存(位置变化时，可以使用缓存)
         return false;
     }
-    if (spDrawRichTextCache->m_richTextData.size() != richTextData.size()) {
+    if (spDrawRichTextCache->m_richTextData.Size() != richTextData.Size()) {
         return false;
     }
     bool bValid = true;
-    const size_t nCount = richTextData.size();
+    const size_t nCount = richTextData.Size();
     for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
         const RichTextData& textData = richTextData[nIndex];
         const RichTextData& textDataCache = spDrawRichTextCache->m_richTextData[nIndex];
@@ -1660,20 +1657,19 @@ bool DrawRichText::IsValidDrawRichTextCache(const UiRect& textRect,
         else if (textData.m_textView.size() != textDataCache.m_textView.size()) {
             bValid = false;
         }
-        else if (bCompareTextColor && (textData.m_textColor != textDataCache.m_textColor)) {
+        else if (bCompareTextColor &&
+                 !RichTextAttrTable::IsColorEqual(richTextData.m_attrs, textData.m_nTextColorIndex,
+                                                  spDrawRichTextCache->m_richTextData.m_attrs, textDataCache.m_nTextColorIndex)) {
             //文字颜色不影响排版：绘制时可通过pTextColors覆盖，避免悬停/按下时重新排版
             bValid = false;
         }
-        else if (textData.m_bgColor != textDataCache.m_bgColor) {
+        else if (!RichTextAttrTable::IsColorEqual(richTextData.m_attrs, textData.m_nBgColorIndex,
+                                                  spDrawRichTextCache->m_richTextData.m_attrs, textDataCache.m_nBgColorIndex)) {
             bValid = false;
         }
-        else if (textData.m_pFontInfo != textDataCache.m_pFontInfo) {
-            if ((textData.m_pFontInfo == nullptr) || (textDataCache.m_pFontInfo == nullptr)) {
-                bValid = false;
-            }
-            else if (*textData.m_pFontInfo != *textDataCache.m_pFontInfo) {
-                bValid = false;
-            }
+        else if (!RichTextAttrTable::IsFontEqual(richTextData.m_attrs, textData.m_nFontIndex,
+                                                 spDrawRichTextCache->m_richTextData.m_attrs, textDataCache.m_nFontIndex)) {
+            bValid = false;
         }
         else if (textData.m_fRowSpacingMul != textDataCache.m_fRowSpacingMul) {
             bValid = false;
@@ -1701,9 +1697,8 @@ bool DrawRichText::IsValidDrawRichTextCache(const UiRect& textRect,
         else if (textData.m_bHorizontalRule != textDataCache.m_bHorizontalRule) {
             bValid = false;
         }
-        else if ((textData.m_pImage != textDataCache.m_pImage) ||
-                 (textData.m_nImageWidth != textDataCache.m_nImageWidth) ||
-                 (textData.m_nImageHeight != textDataCache.m_nImageHeight)) {
+        else if (!RichTextAttrTable::IsImageEqual(richTextData.m_attrs, textData.m_nImageIndex,
+                                                  spDrawRichTextCache->m_richTextData.m_attrs, textDataCache.m_nImageIndex)) {
             bValid = false;
         }
 
@@ -1716,7 +1711,7 @@ bool DrawRichText::IsValidDrawRichTextCache(const UiRect& textRect,
 
 bool DrawRichText::UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& spOldDrawRichTextCache,
                                            const std::shared_ptr<DrawRichTextCache>& spUpdateDrawRichTextCache,
-                                           std::vector<RichTextData>& richTextDataNew,
+                                           RichTextDataList& richTextDataNew,
                                            size_t nStartLine,
                                            const std::vector<size_t>& modifiedLines,
                                            size_t nModifiedRows,
@@ -1761,7 +1756,7 @@ bool DrawRichText::UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& s
 
     //删除的行数据，对应移除
     DrawRichTextCache& oldData = *spOldDrawRichTextCache;
-    oldData.m_richTextData.swap(richTextDataNew);
+    oldData.m_richTextData.Swap(richTextDataNew);
 
     if (!deletedLines.empty()) {
         std::unordered_set<uint32_t> deletedLineSet;
@@ -1899,11 +1894,11 @@ bool DrawRichText::IsDrawRichTextCacheEqual(const DrawRichTextCache& first, cons
         return false;
     }
 
-    ASSERT(first.m_richTextData.size() == second.m_richTextData.size());
-    if (first.m_richTextData.size() != second.m_richTextData.size()) {
+    ASSERT(first.m_richTextData.Size() == second.m_richTextData.Size());
+    if (first.m_richTextData.Size() != second.m_richTextData.Size()) {
         return false;
     }
-    const size_t nDataCount = first.m_richTextData.size();
+    const size_t nDataCount = first.m_richTextData.Size();
     for (size_t nIndex = 0; nIndex < nDataCount; ++nIndex) {
         const RichTextData& v1 = first.m_richTextData[nIndex];
         const RichTextData& v2 = second.m_richTextData[nIndex];
@@ -1911,20 +1906,22 @@ bool DrawRichText::IsDrawRichTextCacheEqual(const DrawRichTextCache& first, cons
         if (v1.m_textView != v2.m_textView) {
             return false;
         }
-        ASSERT(v1.m_textColor == v2.m_textColor);
-        if (v1.m_textColor != v2.m_textColor) {
+        ASSERT(RichTextAttrTable::IsColorEqual(first.m_richTextData.m_attrs, v1.m_nTextColorIndex,
+                                               second.m_richTextData.m_attrs, v2.m_nTextColorIndex));
+        if (!RichTextAttrTable::IsColorEqual(first.m_richTextData.m_attrs, v1.m_nTextColorIndex,
+                                             second.m_richTextData.m_attrs, v2.m_nTextColorIndex)) {
             return false;
         }
-        ASSERT(v1.m_bgColor == v2.m_bgColor);
-        if (v1.m_bgColor != v2.m_bgColor) {
+        ASSERT(RichTextAttrTable::IsColorEqual(first.m_richTextData.m_attrs, v1.m_nBgColorIndex,
+                                               second.m_richTextData.m_attrs, v2.m_nBgColorIndex));
+        if (!RichTextAttrTable::IsColorEqual(first.m_richTextData.m_attrs, v1.m_nBgColorIndex,
+                                             second.m_richTextData.m_attrs, v2.m_nBgColorIndex)) {
             return false;
         }
-        ASSERT((v1.m_pFontInfo != nullptr) && (v2.m_pFontInfo != nullptr));
-        if ((v1.m_pFontInfo == nullptr) || (v2.m_pFontInfo == nullptr)) {
-            return false;
-        }
-        ASSERT(*v1.m_pFontInfo == *v2.m_pFontInfo);
-        if (*v1.m_pFontInfo != *v2.m_pFontInfo) {
+        ASSERT(RichTextAttrTable::IsFontEqual(first.m_richTextData.m_attrs, v1.m_nFontIndex,
+                                              second.m_richTextData.m_attrs, v2.m_nFontIndex));
+        if (!RichTextAttrTable::IsFontEqual(first.m_richTextData.m_attrs, v1.m_nFontIndex,
+                                            second.m_richTextData.m_attrs, v2.m_nFontIndex)) {
             return false;
         }
         ASSERT(v1.m_fRowSpacingMul == v2.m_fRowSpacingMul);
@@ -2075,7 +2072,7 @@ void DrawRichText::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache
 
     if (pRichTextRects != nullptr) {
         pRichTextRects->clear();
-        pRichTextRects->resize(spDrawRichTextCache->m_richTextData.size());
+        pRichTextRects->resize(spDrawRichTextCache->m_richTextData.Size());
     }
 
     UiColor textColor;

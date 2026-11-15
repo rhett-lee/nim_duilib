@@ -346,39 +346,37 @@ uint16_t RichTextImpl::GetTextStyle() const
     return ui::TruncateToUInt16(uTextStyle);
 }
 
-const std::vector<RichTextData>& RichTextImpl::GetRichTextLayoutData()
+const RichTextDataList& RichTextImpl::GetRichTextLayoutData()
 {
     if ((m_nRichTextLayoutDataVersion != m_nLayoutVersion) ||
         (m_nRichTextLayoutColorVersion != m_nTextColorVersion) ||
-        (m_richTextLayoutData.size() != m_textData.size())) {
+        (m_richTextLayoutData.Size() != m_textData.size())) {
         UiColor normalLinkTextColor;
         if (!m_linkNormalTextColor.empty()) {
             normalLinkTextColor = m_pOwner->GetUiColor(m_linkNormalTextColor.c_str());
         }
         //默认文本颜色：使用当前颜色，颜色变化时只需重建绘制数据，无需重新解析文本
         const UiColor defaultTextColor = GetDefaultTextColor();
-        m_richTextLayoutData.clear();
-        m_richTextLayoutData.reserve(m_textData.size());
+        m_richTextLayoutData.Clear();
+        //字体/颜色/图片的索引表与解析结果保持一致，避免逐个片段重复保存字体对象与颜色
+        m_richTextLayoutData.m_attrs = m_textDataAttrs;
+        m_richTextLayoutData.Reserve(m_textData.size());
         for (const RichTextDataEx& textDataEx : m_textData) {
             RichTextData textData = textDataEx;
             if (textDataEx.m_bDefaultTextColor) {
-                textData.m_textColor = defaultTextColor;
+                textData.m_nTextColorIndex = m_richTextLayoutData.m_attrs.AddColor(defaultTextColor);
             }
             if (!textDataEx.m_linkUrl.empty()) {
                 //对于超级链接，设置默认文本格式
                 if (textDataEx.m_pLinkFontInfo != nullptr) {
                     //链接字体在解析时已生成，此处直接共享，避免每帧创建字体对象
-                    textData.m_pFontInfo = textDataEx.m_pLinkFontInfo;
-                }
-                else {
-                    ASSERT(textDataEx.m_pFontInfo != nullptr);
-                    textData.m_pFontInfo = textDataEx.m_pFontInfo;
+                    textData.m_nFontIndex = m_richTextLayoutData.m_attrs.AddFont(textDataEx.m_pLinkFontInfo.get());
                 }
                 if (!normalLinkTextColor.IsEmpty()) {
-                    textData.m_textColor = normalLinkTextColor;//标准状态的字体颜色
+                    textData.m_nTextColorIndex = m_richTextLayoutData.m_attrs.AddColor(normalLinkTextColor);//标准状态的字体颜色
                 }
             }
-            m_richTextLayoutData.emplace_back(std::move(textData));
+            m_richTextLayoutData.PushBack(textData);
         }
         m_nRichTextLayoutDataVersion = m_nLayoutVersion;
         m_nRichTextLayoutColorVersion = m_nTextColorVersion;
@@ -400,8 +398,8 @@ void RichTextImpl::CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect
     }
     rect.Clear();
     //测量与绘制使用同一份布局数据，保证逐段对齐方式等属性一致
-    const std::vector<RichTextData>& richTextData = GetRichTextLayoutData();
-    if (!richTextData.empty()) {
+    const RichTextDataList& richTextData = GetRichTextLayoutData();
+    if (!richTextData.IsEmpty()) {
         std::vector<std::vector<UiRect>> richTextRects;
         pRender->MeasureRichText(rc, UiSize(), richTextData, nullptr, nullptr, &richTextRects);
         ASSERT(richTextRects.size() == m_textData.size());
@@ -522,7 +520,7 @@ void RichTextImpl::PaintText(IRender* pRender)
 
         //基础绘制数据只与解析结果相关（链接字体、基础颜色），解析后只重建一次；
         //悬停/按下/访问等状态变化只影响颜色，通过textColors覆盖，不触发重新排版
-        const std::vector<RichTextData>& richTextLayoutData = GetRichTextLayoutData();
+        const RichTextDataList& richTextLayoutData = GetRichTextLayoutData();
         //当前默认文本颜色（默认颜色的片段直接使用该值，颜色变化时无需重新解析文本）
         const UiColor defaultTextColor = GetDefaultTextColor();
 
@@ -534,7 +532,8 @@ void RichTextImpl::PaintText(IRender* pRender)
         const UiString* pLastLinkUrl = nullptr;
         for (size_t nIndex = 0; nIndex < m_textData.size(); ++nIndex) {
             const RichTextDataEx& textDataEx = m_textData[nIndex];
-            UiColor textColor = textDataEx.m_bDefaultTextColor ? defaultTextColor : richTextLayoutData[nIndex].m_textColor;
+            UiColor textColor = textDataEx.m_bDefaultTextColor ? defaultTextColor :
+                richTextLayoutData.m_attrs.GetColor(richTextLayoutData[nIndex].m_nTextColorIndex);
             if (!textDataEx.m_linkUrl.empty()) {
                 if ((pLastLinkUrl == nullptr) || (*pLastLinkUrl != textDataEx.m_linkUrl)) {
                     ++nLinkGroup;
@@ -768,6 +767,20 @@ bool RichTextImpl::ParseText(std::vector<RichTextDataEx>& outTextData) const
         TrimRichTextSlices(textViews);
         for (size_t nIndex = 0; nIndex < textData.size(); ++nIndex) {
             textData[nIndex].m_textView = textViews[nIndex];
+        }
+    }
+
+    //生成绘制数据使用的字体/颜色/图片索引：同一字体/颜色在索引表中只保存一份，
+    //绘制数据(RichTextData)中只保存索引，避免每个文本片段重复保存字体对象与颜色值
+    m_textDataAttrs.Clear();
+    for (RichTextDataEx& textDataItem : textData) {
+        textDataItem.m_nTextColorIndex = m_textDataAttrs.AddColor(textDataItem.m_textColor);
+        textDataItem.m_nBgColorIndex = m_textDataAttrs.AddColor(textDataItem.m_bgColor);
+        textDataItem.m_nFontIndex = m_textDataAttrs.AddFont(textDataItem.m_pFontInfo.get());
+        if (textDataItem.m_pImage != nullptr) {
+            textDataItem.m_nImageIndex = m_textDataAttrs.AddImage(textDataItem.m_pImage,
+                                                                  textDataItem.m_nImageWidth,
+                                                                  textDataItem.m_nImageHeight);
         }
     }
 
@@ -2090,10 +2103,11 @@ bool RichTextImpl::UpdateTextSelectLayout(IRender* pRender)
     lineInfoParam.m_pLineInfoList = &lineInfoList;
 
     //测量用的数据（与绘制时保持一致，颜色不影响排版结果）
-    std::vector<RichTextData> measureTextData;
-    measureTextData.reserve(m_textData.size());
+    RichTextDataList measureTextData;
+    measureTextData.m_attrs = m_textDataAttrs;
+    measureTextData.Reserve(m_textData.size());
     for (const RichTextDataEx& textData : m_textData) {
-        measureTextData.push_back(textData);
+        measureTextData.PushBack(textData);
     }
     pRender->MeasureRichText(rcText, UiSize(), measureTextData, &lineInfoParam, nullptr, nullptr);
 
@@ -2106,11 +2120,10 @@ bool RichTextImpl::UpdateTextSelectLayout(IRender* pRender)
         if (lineInfoPtr == nullptr) {
             continue;
         }
-        for (const RichTextRowInfoPtr& rowInfoPtr : lineInfoPtr->m_rowInfo) {
-            if ((rowInfoPtr == nullptr) || rowInfoPtr->m_charInfo.empty()) {
+        for (const RichTextRowInfo& rowInfo : lineInfoPtr->m_rowInfo) {
+            if (rowInfo.m_charInfo.empty()) {
                 continue;
             }
-            const RichTextRowInfo& rowInfo = *rowInfoPtr;
             TextSelectRow selectRow;
             selectRow.m_fLeft = rowInfo.m_rowRect.left;
             selectRow.m_fRight = rowInfo.m_rowRect.right;

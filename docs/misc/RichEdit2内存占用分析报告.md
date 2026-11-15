@@ -775,3 +775,230 @@ out\x64\Release\tests\bench_richedit2_memory.exe --mb 16
 rem 4) 性能（12 轮弃前 2 轮取中位数，对比 12.4；核对 [layout signature]）
 for /L %i in (1,1,12) do out\x64\Release\tests\bench_richedit2.exe --iterations 200 > out\bench_richedit2_r%i.txt
 ```
+
+## 13. O2 实施效果：行结构瘦身（2026-11-15）
+
+### 13.1 实现方式
+
+方案：**索引表随数据传入**。新增 `RichTextDataList`（`RichTextData` 数组 + 字体/颜色/图片索引表 `RichTextAttrTable`），
+绘制/测量接口以它作为参数，不再在 `RichTextData` 内保存 `SharePtr<UiFontEx>` 与颜色值，也不引入任何全局状态。
+
+| 层 | 文件 | 改动 |
+| --- | --- | --- |
+| 渲染接口 | `duilib/Render/IRender.h` | 新增 `RichTextImageInfo`（图片 + 尺寸）、`RichTextAttrTable`（1-based 索引表，0 表示"未设置"；`AddFont` 按 `UiFontEx::operator==` 去重、`AddColor` 按值去重、`AddImage` 按"指针 + 尺寸"去重）、`RichTextDataList`（`m_data` + `m_attrs`）；`RichTextData` 删除 `SharePtr<UiFontEx>` 与两个 `UiColor`，改为 `uint16` 的 `m_nFontIndex`/`m_nTextColorIndex`/`m_nBgColorIndex`/`m_nImageIndex`，图片宽高改由 `RichTextImageInfo` 提供；`MeasureRichText`/`DrawRichText`/`CreateDrawRichTextCache`/`CreateDrawRichTextCacheInRange`/`IsValidDrawRichTextCache`/`UpdateDrawRichTextCache` 的参数改为 `RichTextDataList` |
+| 行容器 | `IRender.h`、`Control/RichEditData.cpp` | `RichTextLineInfo::m_rowInfo`：`std::vector<SharePtr<RichTextRowInfo>>` → `std::vector<RichTextRowInfo>`；`RichTextRowInfo` 去掉 `NVRefCount` 基类（其删除拷贝构造，无法按值存入 vector）；删除 `RichTextRowInfoPtr`，行访问器返回 `const RichTextRowInfo*` |
+| 富文本解析 | `Control/RichTextImpl.h/.cpp` | `RichTextDataEx` 承担解析期字段（字体指针、两种颜色、图片与尺寸）；`ParseText()` 末尾一次性生成 `m_textDataAttrs` 与每个片段的索引；`GetRichTextLayoutData()` 复制索引表后按片段 `PushBack`；`CalcDestRect()` 通过索引取色 |
+| Skia 绘制 | `RenderSkia/DrawRichText.cpp`、`Render_Skia.cpp/.h` | 循环内按索引解析出 `const UiFontEx*`/`UiColor`/`RichTextImageInfo` 局部变量；字体缓存改用**指针身份**比较（同一索引表内相同字体必为同一对象）；缓存有效性比较改用索引表逐项 `IsFontEqual`/`IsColorEqual`/`IsImageEqual` |
+| 控件 | `Control/RichEdit2.h/.cpp` | `GetRichTextForDraw(RichTextDataList&)` 直接写索引并 `PushBack`，去掉逐行 `new` 与 `SharePtr` 计数 |
+| 测试 | `tests/bench_text_render.cpp`、`test_text_draw.cpp`、`test_richedit2_edit.cpp` | 按 `RichTextDataList` 构造数据（先 `AddFont`/`AddColor` 再 `PushBack`） |
+
+去重效果：纯文本场景索引表只有 1 个字体、2 个颜色（文字/背景），索引表开销可忽略；富文本混排时索引数等于不同字体/颜色的数量。
+
+### 13.2 结构大小变化（`bench_richedit2_memory` 的 `[size]` 输出）
+
+| 结构 | 优化前 | 优化后 | 变化 |
+| --- | --- | --- | --- |
+| `RichTextData` | 88 B | **56 B** | **-32 B（-36%）** |
+| `RichTextRowInfo` | 56 B | **48 B** | **-8 B（-14%）** |
+| `RichTextLineInfo` | 40 B | 40 B | 0 |
+| `RichTextCharInfo` | 4 B | 4 B | 0 |
+
+关于"目标约 40B"：按字段实际计算为 `16(wstring_view) + 4×2(索引) + 3×4(浮点) + 3×4(整型) + 2(样式) + 3(bool) = 53`，
+对齐后 56B。剩余 12B 是 `m_nBaselineOffset`/`m_nFirstLineIndent`/`m_nMaxLines` 三个排版参数，
+压缩它们需要牺牲布局精度或引入解包分支，收益（每行 12B）小于维护成本，因此本轮不做。
+
+### 13.3 内存对比（同机同构建 A/B，`bench_richedit2_memory`，每行 64 字符）
+
+方法：先备份改动 → `git stash` 回到优化前代码构建并测量 → 恢复改动重新构建测量；两次均为 **DLL 模式 Release / 800x600 离屏 / steady paints = 3**。
+
+| 文本规模 | 行数 | 优化前控件合计 | 优化后控件合计 | 变化 | 优化前每字符 | 优化后每字符 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2MB | 16,384 | 26.38 MB | 26.84 MB | +1.7% | 25.16 B | 25.59 B |
+| 4MB | 32,768 | 53.06 MB | **51.43 MB** | **-3.1%** | 25.30 B | **24.52 B** |
+| 8MB | 65,536 | 104.16 MB | **101.49 MB** | **-2.6%** | 24.83 B | **24.20 B** |
+| 16MB | 131,072 | 205.24 MB | **198.70 MB** | **-3.2%** | 24.47 B | **23.69 B** |
+
+含调用方文本：2MB 28.49→28.90、4MB 57.27→55.63、8MB 112.57→109.90、16MB 222.05→215.52（MB）。
+
+说明：
+
+- 4MB 以上收益随规模单调增长（每物理行 -32B × 布局数据与绘制缓存两处 + 行信息 -8B），与结构大小变化一致；
+- 2MB 的 +0.46MB 在测量噪声量级（同构建重复测量波动约 ±0.2MB，另有约 1.5MB 固定偏移），
+  且解析期 `RichTextDataEx` 新增了图片相关字段（+32B/片段），小规模下会抵消部分收益，故判定为**基本持平**；
+- 本轮不改动绘制缓存范围，因此绝对内存仍是"全量缓存"口径（24~25 B/字符），显著高于 12.3 的 O1 数据（约 9 B/字符）——
+  原因见 13.6。
+
+### 13.4 性能对比（同机 A/B，`bench_richedit2`，12 轮弃前 2 轮取中位数）
+
+单位 `us/帧`；判定规则同 11.6 节（≤±10% 为噪声）。
+
+| 场景 | 优化前中位数 | 优化后中位数 | 变化 | 优化后最小值 | 判定 |
+| --- | --- | --- | --- | --- | --- |
+| `steady_empty` | 0.13 | 0.14 | +0.01us | 0.11 | 持平 |
+| `steady_zhen_small` | 167.03 | 173.36 | +3.8% | 153.45 | 持平 |
+| `steady_zhen_large` | 179.26 | 186.12 | +3.8% | 169.90 | 持平 |
+| `steady_zhen_xlarge` | 243.52 | 247.61 | +1.7% | 223.45 | 持平 |
+| `steady_emoji_small` | 423.44 | 413.82 | -2.3% | 389.95 | 持平 |
+| `steady_emoji_large` | 432.52 | 440.02 | +1.7% | 419.90 | 持平 |
+| `steady_emoji_xlarge` | 527.19 | 518.28 | -1.7% | 490.89 | 持平 |
+| `scroll_zhen_large` | 188.29 | 176.14 | -6.5% | 170.43 | 持平 |
+| `scroll_emoji_large` | 425.00 | 465.03 | +9.4% | 421.75 | 持平（接近上限） |
+| `typing_zhen_large` | 1681.12 | 1709.34 | +1.7% | 1609.63 | 持平 |
+| `typing_emoji_large` | 11716.28 | 11863.71 | +1.3% | 11649.48 | 持平 |
+| `relayout_zhen_small` | 272.34 | 295.03 | +8.3% | 267.39 | 持平（接近上限） |
+| `relayout_zhen_large` | 3425.22 | 3522.84 | +2.9% | 2987.34 | 持平 |
+| `relayout_emoji_small` | 1190.99 | 1187.39 | -0.3% | 1125.50 | 持平 |
+| `relayout_emoji_large` | 21857.91 | 22168.53 | +1.4% | 21303.71 | 持平 |
+
+结论：**全部场景在 ±10% 噪声内，无性能回归**；`[layout signature]` 与 11.3 节一致（`zhen_small 798x668`、
+`zhen_large 798x17608`、`emoji_small 799x1328`、`emoji_large 799x35208`），排版结果未变。
+
+### 13.5 字体回退路径对比（同机 A/B，`bench_text_render`，3 轮取最小值）
+
+| 场景 | 优化前最小值 | 优化后最小值 | 变化 |
+| --- | --- | --- | --- |
+| `single_line_measure` | 4.17 | 4.35 | +4.3% |
+| `single_line_draw` | 21.56 | 22.15 | +2.7% |
+| `multi_line_measure` | 41.33 | 35.84 | -13.3% |
+| `multi_line_draw` | 180.99 | 183.28 | +1.3% |
+| `hcenter_vcenter_draw` | 179.04 | 180.39 | +0.8% |
+| `ellipsis_draw` | 21.03 | 19.12 | -9.1% |
+| `justify_draw` | 171.45 | 159.30 | -7.1% |
+| `word_spacing_draw` | 173.81 | 160.19 | -7.8% |
+| `vertical_draw` | 203.38 | 197.76 | -2.8% |
+| `rich_text_measure` | 17.05 | 17.49 | +2.6% |
+| `rich_text_draw` | 41.98 | 41.76 | -0.5% |
+| `rich_text_cache_create` | 21.03 | 21.37 | +1.6% |
+| `rich_text_cached_draw` | 19.19 | 20.86 | +8.7% |
+| `rich_text_letter_spacing` | 51.22 | 51.33 | +0.2% |
+
+富文本相关路径（P4/P5/P6）与普通文本路径均在噪声内；`multi_line_measure` 的 -13.3% 是 3 轮最小值的高方差表现，不作结论。
+
+### 13.6 与第 11 节基线的对比（全量绘制缓存状态下的数据）
+
+13.3~13.5 的 A/B 是在"全量绘制缓存"状态下测得的：`b6db237e` 曾把 `RichEdit2::Paint()` 从
+"按可视区窗口构建"改回"全量构建"（删除 `GetVisibleLineRange` 分支与 `CreateDrawRichTextCacheInRange` 调用），
+因此当时"优化前"的内存为 24.5~25.3 B/字符（与第 3 节原始口径一致），而 12.3/12.4 的 O1 数据不适用于该状态。
+**该回退已被判定为错误修改，并已在 13.8 中恢复**，最终数据以 13.8 为准；本节表格仅用于说明
+"全量缓存 + O2"这一中间状态的性能水平。
+
+以第 11.3 节基线（同为全量缓存时代）对照该中间状态：
+
+| 场景 | 11.3 基线中位数 | O2 后中位数 | 变化 | 归因 |
+| --- | --- | --- | --- | --- |
+| `steady_zhen_small` | 158.84 | 173.36 | +9.1% | 噪声/小幅 |
+| `steady_zhen_large` | 178.35 | 186.12 | +4.4% | 噪声 |
+| `steady_zhen_xlarge` | 234.62 | 247.61 | +5.5% | 噪声 |
+| `steady_emoji_small` | 384.06 | 413.82 | +7.7% | 噪声 |
+| `steady_emoji_large` | 408.40 | 440.02 | +7.7% | 噪声 |
+| `steady_emoji_xlarge` | 483.83 | 518.28 | +7.1% | 噪声 |
+| `scroll_zhen_large` | 174.94 | 176.14 | +0.7% | 持平 |
+| `scroll_emoji_large` | 412.90 | 465.03 | +12.6% | 小幅变慢 |
+| `typing_zhen_large` | 231.64 | 1709.34 | **+638%** | **非 O2**：增量合并路径缺失 |
+| `typing_emoji_large` | 552.30 | 11863.71 | **+2048%** | **非 O2**：同上 |
+| `relayout_zhen_small` | 236.79 | 295.03 | +24.6% | 非 O2：同上 |
+| `relayout_zhen_large` | 2,285.42 | 3,522.84 | **+54.1%** | 非 O2：全量重建 |
+| `relayout_emoji_small` | 805.91 | 1,187.39 | **+47.3%** | 非 O2：全量重建 |
+| `relayout_emoji_large` | 13,182.06 | 22,168.53 | **+68.2%** | 非 O2：全量重建 |
+
+归因依据：13.4 的同机 A/B 中，优化前后 `typing_*`/`relayout_*` 完全一致（±3%），说明该差异来自
+`b6db237e`（窗口化缓存被移除，每次绘制为全文构建绘制数据），与 O2 无关。影响面：
+
+- 每帧绘制（`steady_*`/`scroll_*`）与 11 节基线基本一致，用户滚动/查看无感知差异；
+- **每次按键与每次重新排版需要为全文重建字形运行结果**，31,599 字符文档约 1.7ms/帧、
+  102,399 字符 emoji 文档约 11.9ms/帧，已接近或超过 16.7ms 帧预算的一半，属需要优先处理的性能问题。
+
+处理结果：窗口化绘制缓存已按 13.8 恢复；`UpdateDrawRichTextCache()` 的增量合并路径仍未使用（见 13.8.4）。
+
+### 13.7 验证与遗留项
+
+| 项目 | 结果 |
+| --- | --- |
+| 构建（DLL 模式） | `duilib.dll` 与全部基准/测试目标编译通过；`test_text_draw` 仍受既有 DLL 导出限制 |
+| 构建（静态库模式） | `python build/build.py build --offline` → `[OK] 编译完成`（873 个构建目标） |
+| 单元测试（静态 Release） | `ctest` → **16/16 通过**；`text_draw`（覆盖 `RichTextDataList` 的测量/绘制/缓存路径）、`richedit2_edit`（548 项检查）、`rich_text`、`label`、`rich_text_util`、`image_draw`、`render_*`、`controls_pages_xml` 等全部通过 |
+| 编辑行为回归 | `richedit2_edit` 548 项检查全部通过；此前 5 项失败的行为（`AppendText`/`InsertText` 返回位置、光标无选区、无选区 `Copy`、空剪贴板 `CanPaste`）被 `b6db237e` 一并回退，已在 13.9 恢复 |
+| 排版一致性 | `bench_richedit2` 的 `[layout signature]` 与 11.3 完全一致 |
+
+遗留可选项：`RichTextData` 从 56B 进一步压缩到 48B（打包三个 bool/样式位、把 `m_nMaxLines` 改为 `uint16`），
+预计再省约 1MB/8MB 文本，收益小于本轮，暂不实施。
+
+### 13.8 恢复窗口化绘制缓存（修正 b6db237e 的错误改动）
+
+#### 13.8.1 改动内容
+
+`b6db237e` 在修正"文本溢出不应绘制省略号"的同时，把 `RichEdit2::Paint()` 的窗口化绘制缓存一并删除了。
+本轮恢复窗口化路径，并保留该提交真正需要修复的行为：
+
+| 项 | 处理 |
+| --- | --- |
+| 可视行窗口 | 恢复 `m_pTextData->GetVisibleLineRange(rcDrawText, szScrollOffset, visibleRange)`（上下各预取一屏） |
+| 窗口数据生成 | 恢复 `GetRichTextForDraw(RichTextDataList&, size_t nFirstLine, size_t nLineCount)`，内部调用 `RichEditData::GetTextView(textView, nFirstLine, nLineCount)`，按 O2 的 `RichTextDataList` 生成 |
+| 窗口缓存构建 | 恢复 `CreateDrawRichTextCacheInRange(rcDrawText, szScrollOffset, richTextDataList, drawWindow, cache)`，`drawWindow` 填入全局行号、首个逻辑行索引、首行顶部坐标、窗口底部与总逻辑行数 |
+| 缓存有效性 | 行范围变化用 `IsDrawRichTextCacheRangeMatched(nFirstLine, nLineCount)` 判断，内容变化用 `IsValidDrawRichTextCache()` 判断；任一失效则清除并重建 |
+| 省略号行为（保留 b6db237e 的修复） | `m_bTextOverflowEllipsis = false`，文本超出绘制区域时直接裁剪，由滚动条显示 |
+| 横向滚动（保留 8671011e 的修复） | `m_bCacheFullTextWidth = true`，窗口内每行缓存整行宽度，横向滚动后新区域有绘制数据 |
+| 回退路径 | 行索引数据尚未就绪（首次排版前）时，回退到全量构建 |
+
+#### 13.8.2 内存（DLL Release，每行 64 字符，控件合计）
+
+| 规模 | 12.3（O1，优化前口径） | 13.3（全量缓存 + O2） | 最终（窗口缓存 + O2） | 对比 12.3 |
+| --- | --- | --- | --- | --- |
+| 2MB | 10.43 MB（9.95 B/字符） | 26.84 MB（25.59） | **9.52 MB（9.08）** | **-8.7%** |
+| 4MB | 20.25 MB（9.66） | 51.43 MB（24.52） | **19.87 MB（9.47）** | **-2.0%** |
+| 8MB | 40.12 MB（9.57） | 101.49 MB（24.20） | **38.54 MB（9.19）** | **-4.0%** |
+| 16MB | 75.53 MB（9.01） | 198.70 MB（23.69） | **74.42 MB（8.87）** | **-1.6%** |
+
+相比"全量缓存 + O2"，恢复窗口化后内存下降约 **61%~64%**；相比 O1 原始数据，O2 的行结构瘦身再带来 1.6%~8.7% 的收益。
+用户最初的目标（O1 + O2 叠加）至此达成。
+
+#### 13.8.3 性能（`bench_richedit2`，同机，12 轮弃前 2 轮取中位数，单位 `us/帧`）
+
+| 场景 | 全量缓存 + O2 | 窗口缓存 + O2 | 变化 | 11.3 基线 | 对比基线 |
+| --- | --- | --- | --- | --- | --- |
+| `steady_zhen_small` | 173.36 | 173.93 | +0.3% | 158.84 | +9.5% |
+| `steady_zhen_large` | 186.12 | 176.68 | -5.1% | 178.35 | -0.9% |
+| `steady_zhen_xlarge` | 247.61 | **174.25** | **-29.6%** | 234.62 | **-25.7%** |
+| `steady_emoji_small` | 413.82 | 427.13 | +3.2% | 384.06 | +11.2% |
+| `steady_emoji_large` | 440.02 | 431.07 | -2.0% | 408.40 | +5.6% |
+| `steady_emoji_xlarge` | 518.28 | **434.38** | **-16.2%** | 483.83 | **-10.2%** |
+| `scroll_zhen_large` | 176.14 | 174.24 | -1.1% | 174.94 | -0.4% |
+| `scroll_emoji_large` | 465.03 | 440.96 | -5.2% | 412.90 | +6.8% |
+| `typing_zhen_large` | 1709.34 | **333.49** | **-80.5%** | 231.64 | +44.0% |
+| `typing_emoji_large` | 11863.71 | **972.05** | **-91.8%** | 552.30 | +76.0% |
+| `relayout_zhen_small` | 295.03 | 320.86 | +8.8% | 236.79 | +35.5% |
+| `relayout_zhen_large` | 3522.84 | **1786.53** | **-49.3%** | 2285.42 | **-21.8%** |
+| `relayout_emoji_small` | 1187.39 | 1219.47 | +2.7% | 805.91 | +51.3% |
+| `relayout_emoji_large` | 22168.53 | **12265.38** | **-44.7%** | 13182.06 | **-7.0%** |
+
+结论：
+
+- 大文档的每帧绘制（`steady_*_xlarge`）与重新排版（`relayout_*_large`）显著改善，其中
+  `relayout_zhen_large` 已优于 11.3 基线 21.8%；
+- 文本规模较小（`*_small`）时窗口构建的固定开销占比更高，`relayout_*_small` 比基线慢 35%~51%
+  （绝对值 236→321us / 806→1219us），其中窗口化本身带来的变化为 +2.7%~+8.8%，其余差异来自基线之后的排版改动；
+  整体符合"窗口化以少量固定开销换取大文档线性收益"的权衡；
+- `typing_*` 相对基线仍慢 44%~76%，原因是 `UpdateDrawRichTextCache()` 增量合并路径早已不被
+  `Paint()` 调用（早于 `b6db237e`），每次编辑后需要重建一屏窗口缓存。该项与 `b6db237e` 无关，
+  属后续独立优化（可基于 O2 的按值行结构做整行替换，替代旧的 `SharePtr` 合并）。
+
+#### 13.8.4 验证
+
+- `richedit2_edit` 的 `TestHScrollPaint`（横向滚动后新区域必须绘制文字）与 `TestScrollViewSwitch`
+  （窗口缓存与全量缓存逐像素一致、滚动后画面按偏移平移一致）均通过；
+- 静态 Release 构建 873 个目标全部成功，`ctest` **16/16 通过**（`text_draw`、`richedit2_edit` 均通过）；
+- `[layout signature]` 与 11.3 一致，窗口化未改变排版结果。
+
+### 13.9 恢复 b6db237e 一并回退的编辑行为
+
+`b6db237e` 除删除窗口化绘制缓存外，还回退了 12.6/12.9 中已修复的 5 项编辑行为，本轮一并恢复：
+
+| 行为 | 恢复内容 |
+| --- | --- |
+| `InsertText` | 返回插入文本后的字符位置：`nInsertAfterChar + 插入文本的 UTF-16 长度` |
+| `AppendText` | 返回追加后的文本长度：`GetTextLength()` |
+| `ReplaceSel` | 替换完成后光标位于插入文本末尾（与 Win32 `EM_REPLACESEL` 一致），不再保留选区 |
+| `Copy` | 无选区时不写剪贴板，保持用户剪贴板原内容不变 |
+| `CanPaste` | 剪贴板中没有文本时返回 `false` |
+
+验证：静态 Release 构建通过，`ctest` **16/16 全部通过**，`richedit2_edit` 548 项检查 0 失败。

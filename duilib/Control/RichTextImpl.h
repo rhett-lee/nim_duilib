@@ -393,6 +393,30 @@ private:
         */
         SharePtr<UiFontEx> m_pLinkFontInfo;
 
+        /** 解析阶段的字体信息（绘制数据中只保存字体索引）
+        */
+        SharePtr<UiFontEx> m_pFontInfo;
+
+        /** 解析阶段的文字颜色（绘制数据中只保存颜色索引）
+        */
+        UiColor m_textColor;
+
+        /** 解析阶段的背景颜色（绘制数据中只保存颜色索引）
+        */
+        UiColor m_bgColor;
+
+        /** 解析阶段的内联图片（绘制数据中只保存图片索引）
+        */
+        std::shared_ptr<IBitmap> m_pImage;
+
+        /** 内联图片的显示宽度（像素），0表示使用位图的原始宽度
+        */
+        int32_t m_nImageWidth = 0;
+
+        /** 内联图片的显示高度（像素），0表示使用位图的原始高度
+        */
+        int32_t m_nImageHeight = 0;
+
         /** 鼠标是否按下
         */
         bool m_bMouseDown = false;
@@ -472,7 +496,7 @@ private:
 
     /** 获取绘制与测量共用的文本布局数据（仅在文本或排版变化时重建）
     */
-    const std::vector<RichTextData>& GetRichTextLayoutData();
+    const RichTextDataList& GetRichTextLayoutData();
 
     /** 计算绘制后的目标区域大小
     */
@@ -589,7 +613,11 @@ private:
 
     /** 绘制用的文本数据（与解析结果一一对应，仅在文本/排版变化时重建）
     */
-    std::vector<RichTextData> m_richTextLayoutData;
+    RichTextDataList m_richTextLayoutData;
+
+    /** 解析结果引用的字体/颜色/图片（索引表，与 m_textData 中的索引对应）
+    */
+    mutable RichTextAttrTable m_textDataAttrs;
 
     /** 绘制用的文本颜色缓冲区（复用，避免每帧堆分配）
     */

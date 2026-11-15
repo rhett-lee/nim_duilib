@@ -299,25 +299,23 @@ int main(int argc, char* argv[])
     pBoldFontEx->m_bBold = true;
 
     const ui::UiColor textColor(0xFF202020u);
-    std::vector<ui::RichTextData> richTextData;
-    richTextData.resize(4);
-    richTextData[0].m_textView = strRichSegment1;
-    richTextData[0].m_textColor = textColor;
-    richTextData[0].m_pFontInfo = pNormalFontEx;
-    richTextData[1].m_textView = strRichSegment2;
-    richTextData[1].m_textColor = textColor;
-    richTextData[1].m_pFontInfo = pBoldFontEx;
-    richTextData[2].m_textView = strRichSegment3;
-    richTextData[2].m_textColor = textColor;
-    richTextData[2].m_pFontInfo = pNormalFontEx;
-    richTextData[3].m_textView = strRichSegment4;
-    richTextData[3].m_textColor = textColor;
-    richTextData[3].m_pFontInfo = pBoldFontEx;
+    ui::RichTextDataList richTextData;
+    richTextData.Reserve(4);
+    for (int32_t nIndex = 0; nIndex < 4; ++nIndex) {
+        richTextData.PushBack(ui::RichTextData());
+    }
+    const DString* richSegments[4] = { &strRichSegment1, &strRichSegment2, &strRichSegment3, &strRichSegment4 };
+    for (int32_t nIndex = 0; nIndex < 4; ++nIndex) {
+        ui::RichTextData& richText = richTextData[nIndex];
+        richText.m_textView = *richSegments[nIndex];
+        richText.m_nTextColorIndex = richTextData.m_attrs.AddColor(textColor);
+        richText.m_nFontIndex = richTextData.m_attrs.AddFont((nIndex % 2 == 0) ? pNormalFontEx.get() : pBoldFontEx.get());
+    }
 
     //带字间距的富文本（覆盖富文本的字间距分支）
-    std::vector<ui::RichTextData> richTextDataSpacing = richTextData;
-    for (ui::RichTextData& richText : richTextDataSpacing) {
-        richText.m_fLetterSpacing = 2.0f;
+    ui::RichTextDataList richTextDataSpacing = richTextData;
+    for (size_t nIndex = 0; nIndex < richTextDataSpacing.Size(); ++nIndex) {
+        richTextDataSpacing[nIndex].m_fLetterSpacing = 2.0f;
     }
 
     const ui::UiRect rcSingleLine(10, 10, 780, 40);

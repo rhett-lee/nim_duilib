@@ -1273,7 +1273,7 @@ void TestArrowKeysScrollView(TestEnv& env)
 
 //==== 滚动切换视图（绘制缓存层）====
 /** 构造 300 行、每行一个逻辑行的富文本 */
-void BuildLineList(std::vector<DStringW>& lineTextList, std::vector<ui::RichTextData>& richTextDataList)
+void BuildLineList(std::vector<DStringW>& lineTextList, ui::RichTextDataList& richTextDataList)
 {
     const int32_t nTestLines = 300;
     lineTextList.clear();
@@ -1286,20 +1286,22 @@ void BuildLineList(std::vector<DStringW>& lineTextList, std::vector<ui::RichText
         lineTextList.push_back(lineText);
     }
 
-    ui::SharePtr<ui::UiFontEx> pFontEx(new ui::UiFontEx);
-    pFontEx->m_fontName = _T("Microsoft YaHei");
-    pFontEx->m_fontSize = 16;
+    ui::UiFontEx fontEx;
+    fontEx.m_fontName = _T("Microsoft YaHei");
+    fontEx.m_fontSize = 16;
 
-    richTextDataList.clear();
-    richTextDataList.reserve(nTestLines);
+    richTextDataList.Clear();
+    const uint16_t nFontIndex = richTextDataList.m_attrs.AddFont(&fontEx);
+    const uint16_t nTextColorIndex = richTextDataList.m_attrs.AddColor(ui::UiColor(0xFF202020u));
+    richTextDataList.Reserve(nTestLines);
     for (int32_t i = 0; i < nTestLines; ++i) {
         ui::RichTextData richTextData;
         richTextData.m_textView = std::wstring_view(lineTextList[(size_t)i]);
-        richTextData.m_textColor = ui::UiColor(0xFF202020u);
-        richTextData.m_pFontInfo = pFontEx;
+        richTextData.m_nTextColorIndex = nTextColorIndex;
+        richTextData.m_nFontIndex = nFontIndex;
         richTextData.m_textStyle = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_TOP |
                                    ui::DrawStringFormat::TEXT_WORD_WRAP;
-        richTextDataList.push_back(richTextData);
+        richTextDataList.PushBack(richTextData);
     }
 }
 
@@ -1357,12 +1359,12 @@ void TestScrollViewSwitch(TestEnv& env)
     const ui::UiRect rcControl = env.m_rcControl;
 
     std::vector<DStringW> lineTextList;
-    std::vector<ui::RichTextData> richTextDataList;
+    ui::RichTextDataList richTextDataList;
     BuildLineList(lineTextList, richTextDataList);
 
     std::vector<std::vector<ui::UiRect>> lineRects;
     pRender->MeasureRichText(rcControl, ui::UiSize(), richTextDataList, nullptr, nullptr, &lineRects);
-    if ((lineRects.size() != richTextDataList.size()) || lineRects.empty()) {
+    if ((lineRects.size() != richTextDataList.Size()) || lineRects.empty()) {
         CHECK_MSG(false, "MeasureRichText should return one rect list per RichTextData");
         return;
     }
@@ -1402,8 +1404,12 @@ void TestScrollViewSwitch(TestEnv& env)
             nLastLine = (size_t)nLineCount - 1;
         }
 
-        std::vector<ui::RichTextData> windowList(richTextDataList.begin() + (std::ptrdiff_t)nFirstLine,
-                                                 richTextDataList.begin() + (std::ptrdiff_t)nLastLine + 1);
+        ui::RichTextDataList windowList;
+        windowList.m_attrs = richTextDataList.m_attrs;
+        windowList.Reserve((size_t)(nLastLine + 1 - nFirstLine));
+        for (size_t nLine = nFirstLine; nLine <= nLastLine; ++nLine) {
+            windowList.PushBack(richTextDataList[nLine]);
+        }
         ui::RichTextDrawWindow drawWindow;
         drawWindow.m_nFirstLineNumber = (uint32_t)nFirstLine;
         drawWindow.m_nFirstRowIndex = (uint32_t)nFirstLine; //每行一个逻辑行

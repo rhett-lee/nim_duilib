@@ -899,7 +899,7 @@ protected:
     * @param [in] modifiedLines 有修改的行号（增量计算时使用）
     */
     virtual bool GetRichTextForDraw(const std::vector<std::wstring_view>& textView,
-                                    std::vector<RichTextData>& richTextDataList,
+                                    RichTextDataList& richTextDataList,
                                     size_t nStartLine = (size_t)-1,
                                     const std::vector<size_t>& modifiedLines = std::vector<size_t>()) const override;
 
@@ -1125,14 +1125,14 @@ private:
 
     /** 将文本生成可绘制的格式
     */
-    bool GetRichTextForDraw(std::vector<RichTextData>& richTextDataList) const;
+    bool GetRichTextForDraw(RichTextDataList& richTextDataList) const;
 
-    /** 将指定物理行范围的文本生成可绘制的格式（用于按可视区域懒构建绘制缓存）
-    * @param [out] richTextDataList 返回格式化的文本
-    * @param [in] nFirstLine 起始物理行号
+    /** 将指定行范围的文本生成可绘制的格式
+    * @param [out] richTextDataList 返回格式化的文本数据
+    * @param [in] nFirstLine 起始行号
     * @param [in] nLineCount 行数
     */
-    bool GetRichTextForDraw(std::vector<RichTextData>& richTextDataList, size_t nFirstLine, size_t nLineCount) const;
+    bool GetRichTextForDraw(RichTextDataList& richTextDataList, size_t nFirstLine, size_t nLineCount) const;
 
     /** 单行模式下，把换行符规整为空格(与Windows原生单行编辑框的行为一致)
     */
