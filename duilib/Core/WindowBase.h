@@ -88,6 +88,10 @@ public:
     */
     bool IsUseSystemCaption() const;
 
+    /** 是否支持系统级别的窗口阴影
+    */
+    bool IsSystemShadowSupported() const;
+
     /** 获取是否使用系统的窗口阴影
     */
     bool IsUseSystemShadow() const;
@@ -392,7 +396,7 @@ public:
     */
     bool IsEnableSysMenu() const;
 
-    /** 获取窗口圆角大小，对应 XML 中 roundcorner 属性
+    /** 获取窗口圆角大小，对应 XML 中 round_corner 属性
     */
     const UiSize& GetRoundCorner() const;
 
@@ -944,6 +948,10 @@ protected:
     * @param [in] nNewScaleFactor 新的DPI缩放百分比，与Dpi().GetDisplayScaleFactor()的值一致
     */
     virtual void OnDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewScaleFactor);
+
+    /** 判断绘制引擎对象是否已经创建
+    */
+    virtual bool IsRenderCreated() const = 0;
 
     /** 获取绘制引擎对象
     */

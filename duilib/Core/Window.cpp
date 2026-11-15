@@ -164,13 +164,6 @@ Window* Window::GetParentWindow() const
 
 bool Window::SetRenderBackendType(RenderBackendType backendType, int32_t nMsaaSampleCount, bool bDisableVsync)
 {
-    //启用了全局开关时，所有窗口统一使用全局配置
-    GlobalManager& globalManager = GlobalManager::Instance();
-    if (globalManager.IsGlobalRenderBackendTypeEnabled()) {
-        backendType = globalManager.GetGlobalRenderBackendType();
-        nMsaaSampleCount = globalManager.GetGlobalMsaaSampleCount();
-        bDisableVsync = globalManager.IsGlobalDisableVsync();
-    }
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     //Windows平台支持GPU/GL绘制
 #else
@@ -181,12 +174,6 @@ bool Window::SetRenderBackendType(RenderBackendType backendType, int32_t nMsaaSa
     if (nMsaaSampleCount < 0) {
         nMsaaSampleCount = 0;
     }
-    if ((backendType == RenderBackendType::kNativeGL_BackendType) && IsWindow() && IsLayeredWindow()) {
-        //GL不支持层窗口：运行过程中切换到GL时，自动降级为CPU绘制
-        LogUtil::OutputLine(_T("GL render backend does not support layered window, use CPU rendering instead"));
-        backendType = RenderBackendType::kRaster_BackendType;
-    }
-
     //判断是否需要重建Render对象（窗口运行过程中实时切换）
     bool bRecreate = false;
     if (m_render != nullptr) {
@@ -216,6 +203,7 @@ bool Window::SetRenderBackendType(RenderBackendType backendType, int32_t nMsaaSa
 
     bool bRet = false;
     if (m_render == nullptr) {
+        GlobalManager& globalManager = GlobalManager::Instance();
         IRenderFactory* pRenderFactory = globalManager.GetRenderFactory();
         ASSERT(pRenderFactory != nullptr);
         if (pRenderFactory != nullptr) {
@@ -252,10 +240,47 @@ bool Window::SetRenderBackendType(RenderBackendType backendType, int32_t nMsaaSa
     if (bRet && bRecreate) {
         //运行过程中切换渲染后端后：同步Render大小并重绘窗口
         ResizeRenderToClientSize();
+
+        //重建后，需要更新窗口属性
+        OnWindowRenderCreated();
+
+        //重回窗口
         InvalidateAll();
+    }
+    else if (m_render != nullptr) {
+        //Render创建后，需要更新窗口属性
+        OnWindowRenderCreated();
     }
     ASSERT(bRet);
     return bRet;
+}
+
+void Window::OnWindowRenderCreated()
+{
+    if (m_render != nullptr) {
+        if (m_render->GetRenderBackendType() == RenderBackendType::kNativeGL_BackendType) {
+            //GL后端: 不支持分层窗口，需要关闭自绘阴影
+            Shadow* pShadow = GetShadow();
+            if ((pShadow != nullptr) && pShadow->IsShadowAttached()) {                
+                if (!pShadow->IsSystemShadowType(pShadow->GetShadowType())) {
+                    if (IsSystemShadowSupported()) {
+                        SetShadowType(ShadowType::kShadowSystemDefault);
+                    }
+                    else {
+                        SetShadowType(ShadowType::kShadowNone);
+                    }
+                }
+            }
+            //不支持分层窗口，需要关闭分层窗口属性
+            if (IsLayeredWindow()) {
+                SetLayeredWindow(false, true);
+            }
+        }
+        else {
+            //CPU后端(暂无需要处理的内容)
+
+        }
+    }
 }
 
 RenderBackendType Window::GetRenderBackendType() const
@@ -265,6 +290,16 @@ RenderBackendType Window::GetRenderBackendType() const
         backendType = m_render->GetRenderBackendType();
     }
     return backendType;
+}
+
+int32_t Window::GetRenderMsaaSampleCount() const
+{
+    return m_nMsaaSampleCount;
+}
+
+bool Window::IsRenderDisableVsync() const
+{
+    return m_bDisableVsync;
 }
 
 bool Window::SetWindowIcon(const DString& iconFilePath)
@@ -470,6 +505,9 @@ void Window::PostInitWindow()
         if (pRenderFactory != nullptr) {
             m_render.reset(pRenderFactory->CreateWindowRender(GetRenderDpi(), GetWindowHandle(), m_renderBackendType,
                                                               m_nMsaaSampleCount, m_bDisableVsync));
+        }
+        if (m_render != nullptr) {
+            OnWindowRenderCreated();
         }
     }
     ASSERT(m_render != nullptr);
@@ -1042,13 +1080,6 @@ UiSize Window::GetWindowRgnRoundCorner() const
 void Window::UpdateLayeredWindowStyleEx(bool bRedraw)
 {
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    if (GetRenderBackendType() == RenderBackendType::kNativeGL_BackendType) {
-        //OpenGL渲染后端不支持层窗口：如果当前已经是层窗口（例如切换阴影类型后），需要关闭层窗口
-        if (IsLayeredWindow()) {
-            OnRequestSetLayeredWindow(false, bRedraw);
-        }
-        return;
-    }
     bool bNeedLayeredWindow = false;
     if (IsShadowAttached()) {
         ShadowType shadowType = GetShadowType();
@@ -1056,6 +1087,10 @@ void Window::UpdateLayeredWindowStyleEx(bool bRedraw)
             shadowType = Shadow::GetDefaultShadowType(this);
         }
         bNeedLayeredWindow = Shadow::IsShadowTypeNeedLayeredWindow(shadowType);
+    }
+    IRender* pRender = IsRenderCreated() ? GetRender() : nullptr;
+    if ((pRender != nullptr) && (pRender->GetRenderBackendType() == RenderBackendType::kNativeGL_BackendType)) {
+        bNeedLayeredWindow = false;
     }
     if (IsLayeredWindow() != bNeedLayeredWindow) {
         OnRequestSetLayeredWindow(bNeedLayeredWindow, bRedraw);
@@ -1078,9 +1113,8 @@ void Window::SetShadowAttached(bool bShadowAttached)
     }
     m_bWindowShadowInited = true;
     m_windowRoot->SetShadowAttached(bShadowAttached);
-    UpdateWindowRGN(true); //处理RGN
-    UpdateLayeredWindowStyleEx(true); //更新窗口的分层窗口属性
-    OnWindowShadowTypeChanged();
+
+    ProcessWindowShadowTypeChanged();
 }
 
 void Window::SetShadowType(ShadowType nShadowType)
@@ -1089,8 +1123,26 @@ void Window::SetShadowType(ShadowType nShadowType)
     if (m_windowRoot->IsControlFullscreen()) {
         return;
     }
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    IRender* pRender = IsRenderCreated() ? GetRender() : nullptr;
+    if ((pRender != nullptr) && (pRender->GetRenderBackendType() == RenderBackendType::kNativeGL_BackendType)) {
+        //GL后端，禁止切换到自绘阴影，避免无法显示
+        Shadow* pShadow = GetShadow();
+        if ((pShadow != nullptr) && !pShadow->IsSystemShadowType(nShadowType)) {
+            if ((nShadowType != ShadowType::kShadowNone) && (nShadowType != ShadowType::kShadowNoneRound)) {
+                return;
+            }
+        }
+    }
+#endif
     m_bWindowShadowInited = true;
     m_windowRoot->SetShadowType(nShadowType);
+
+    ProcessWindowShadowTypeChanged();
+}
+
+void Window::ProcessWindowShadowTypeChanged()
+{
     UpdateWindowRGN(true); //处理RGN
     UpdateLayeredWindowStyleEx(true); //更新窗口的分层窗口属性
     OnWindowShadowTypeChanged();
@@ -2551,6 +2603,11 @@ void Window::SetArrange(bool bArrange)
 void Window::PostQuitMsgWhenClosed(bool bPostQuitMsg)
 {
     m_bPostQuitMsgWhenClosed = bPostQuitMsg;
+}
+
+bool Window::IsRenderCreated() const
+{
+    return m_render != nullptr;
 }
 
 ui::IRender* Window::GetRender() const

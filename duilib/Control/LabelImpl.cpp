@@ -624,10 +624,6 @@ void LabelImpl::CheckShowToolTip()
     m_flags.m_bAutoShowTooltip = false;
     if (!m_flags.m_bAutoShowToolTipEnabled || (m_pOwner->GetWindow() == nullptr)) {
         return;
-    }
-    auto pRender = m_pOwner->GetWindow()->GetRender();
-    if (pRender == nullptr) {
-        return;
     }    
     const DString sText = GetOwnerText();
     if (sText.empty()) {
@@ -635,6 +631,10 @@ void LabelImpl::CheckShowToolTip()
     }
     UiRect rc = m_pOwner->GetRect();
     if (rc.IsEmpty()) {
+        return;
+    }
+    auto pRender = m_pOwner->GetWindow()->GetRender();
+    if (pRender == nullptr) {
         return;
     }
     UiPadding rcPadding = m_pOwner->GetControlPadding();

@@ -139,6 +139,10 @@ protected:
     */
     virtual void OnDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewScaleFactor) override;
 
+    /** 判断绘制引擎对象是否已经创建
+    */
+    virtual bool IsRenderCreated() const override;
+
     /** 获取绘制引擎对象
     */
     virtual IRender* GetRender() const override;

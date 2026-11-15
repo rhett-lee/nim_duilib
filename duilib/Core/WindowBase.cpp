@@ -113,6 +113,11 @@ bool WindowBase::IsUseSystemCaption() const
     return m_pNativeWindow->IsUseSystemCaption();
 }
 
+bool WindowBase::IsSystemShadowSupported() const
+{
+    return m_pNativeWindow->IsSystemShadowSupported();
+}
+
 bool WindowBase::IsUseSystemShadow() const
 {
     return m_pNativeWindow->IsSystemShadowEnabled();
@@ -136,7 +141,7 @@ bool WindowBase::SetLayeredWindowOpacity(int32_t nAlpha)
 {
     if ((nAlpha >= 0) && (nAlpha < 255)) {
         //OpenGL渲染后端不支持层窗口：需要透明度的窗口无法使用GL绘制，直接忽略该设置
-        IRender* pRender = GetRender();
+        IRender* pRender = IsRenderCreated() ? GetRender() : nullptr;
         if ((pRender != nullptr) && (pRender->GetRenderBackendType() == RenderBackendType::kNativeGL_BackendType)) {
             return false;
         }
@@ -157,7 +162,7 @@ bool WindowBase::SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
 {
     if (bIsLayeredWindow) {
         //OpenGL渲染后端不支持层窗口：GL绘制的内容无法通过UpdateLayeredWindow提交
-        IRender* pRender = GetRender();
+        IRender* pRender = IsRenderCreated() ? GetRender() : nullptr;
         if ((pRender != nullptr) && (pRender->GetRenderBackendType() == RenderBackendType::kNativeGL_BackendType)) {
             return false;
         }

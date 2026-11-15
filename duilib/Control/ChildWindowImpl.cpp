@@ -165,6 +165,11 @@ void ChildWindowImpl::OnDisplayScaleChanged(uint32_t /*nOldScaleFactor*/, uint32
     // 空实现
 }
 
+bool ChildWindowImpl::IsRenderCreated() const
+{
+    return false;
+}
+
 IRender* ChildWindowImpl::GetRender() const
 {
     // 空实现，默认返回nullptr

@@ -93,6 +93,14 @@ public:
     */
     RenderBackendType GetRenderBackendType() const;
 
+    /** 获取渲染引擎的MSAA采样数
+    */
+    int32_t GetRenderMsaaSampleCount() const;
+
+    /** 获取渲染引擎的垂直同步设置（true表示禁用垂直同步）
+    */
+    bool IsRenderDisableVsync() const;
+
     /** 设置窗口图标（支持*.ico格式，其他格式也支持，但推荐ICO格式）
     *  @param [in] iconFilePath 图标文件的路径（在资源根目录内的相对路径）
     */
@@ -418,6 +426,10 @@ public:
     */
     bool IsKeyDown(const EventArgs& msg, ModifierKey modifierKey) const;
 
+    /** 判断绘制引擎对象是否已经创建
+    */
+    virtual bool IsRenderCreated() const override;
+
     /** 获取绘制引擎对象
     */
     virtual IRender* GetRender() const override;
@@ -560,6 +572,10 @@ protected:
     /** 窗口的阴影类型发生了变化
     */
     virtual void OnWindowShadowTypeChanged() {};
+
+    /** 窗口的渲染对象创建事件（新建或者重建）
+    */
+    virtual void OnWindowRenderCreated();
 
     /** 语言切换事件（当前语言可通过GlobalManager获取）
     * @return 返回false表示不再触发窗口的kWindowLanguageChangedMsg事件, 否则触发该事件
@@ -1092,6 +1108,10 @@ private:
     /** 获取阴影操作接口
     */
     Shadow* GetShadow() const;
+
+    /** 处理阴影变化事件相关业务
+    */
+    void ProcessWindowShadowTypeChanged();
 
 private:
     //焦点控件

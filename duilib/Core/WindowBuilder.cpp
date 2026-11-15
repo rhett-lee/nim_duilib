@@ -541,6 +541,10 @@ Control* WindowBuilder::CreateControls(Window* pWindow, CreateControlCallback pC
 
 bool WindowBuilder::ParseWindowCreateAttributes(Window* pWindow, WindowCreateAttributes& createAttributes)
 {
+    //该函数应在窗口创建前调用
+    if (pWindow != nullptr) {
+        ASSERT(!pWindow->IsWindow());
+    }
     pugi::xml_node root = m_xml->root().first_child();
     ASSERT(!root.empty());
     if (root.empty()) {
@@ -569,21 +573,12 @@ bool WindowBuilder::ParseWindowCreateAttributes(Window* pWindow, WindowCreateAtt
     ShadowType nShadowType = ShadowType::kShadowDefault;
     UiPadding rcShadowCorner;
 
-    RenderBackendType backendType = RenderBackendType::kRaster_BackendType;
     DString strName;
     DString strValue;
     for (pugi::xml_attribute attr : root.attributes()) {
         strName = attr.name();
         strValue = attr.value();
-        if (strName == _T("render_backend_type")) {            
-            if (StringUtil::IsEqualNoCase(strValue, _T("GL")) || StringUtil::IsEqualNoCase(strValue, _T("GPU"))) {
-                backendType = RenderBackendType::kNativeGL_BackendType;
-            }
-            else if (StringUtil::IsEqualNoCase(strValue, _T("CPU"))) {
-                backendType = RenderBackendType::kRaster_BackendType;
-            }
-        }
-        else if (strName == _T("use_system_caption")) {
+        if (strName == _T("use_system_caption")) {
             createAttributes.m_bUseSystemCaption = (StringUtil::IsValueTrue(strValue));
             createAttributes.m_bUseSystemCaptionDefined = true;
         }
@@ -701,19 +696,6 @@ bool WindowBuilder::ParseWindowCreateAttributes(Window* pWindow, WindowCreateAtt
 #else
     //仅SDL构建使用该变量（XML中是否定义了分层窗口属性），非SDL构建时显式标记为未使用
     UNUSED_VARIABLE(bIsLayeredWindowDefined);
-#endif
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    if (backendType == RenderBackendType::kNativeGL_BackendType) {
-        //使用OpenGL时，不能使用层窗口：GL绘制的内容无法通过UpdateLayeredWindow提交
-        if (!createAttributes.m_bLayeredWindowOpacityDefined) {
-            createAttributes.m_bIsLayeredWindow = false;
-        }
-        //如果XML显式设置了opacity(<255)，则窗口必须以层窗口方式工作，而GL后端无法满足该要求，
-        //窗口创建时会自动降级为CPU绘制（见ParseWindowAttributes的实现）
-    }
-#else
-    UNUSED_VARIABLE(backendType);
 #endif
 
     //评估阴影的九宫格属性, 用于确定最终的窗口大小
@@ -845,19 +827,23 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
             else {
                 ASSERT(0);
             }
-            if ((backendType == RenderBackendType::kNativeGL_BackendType) && bNeedLayeredWindowOpacity) {
-                //GL不支持层窗口：需要透明度的窗口无法使用GL绘制，自动降级为CPU绘制，避免窗口黑屏或不可见
-                LogUtil::OutputLine(_T("render_backend_type=\"GL\" does not support layered window (opacity < 255), use CPU rendering instead"));
-                backendType = RenderBackendType::kRaster_BackendType;
-            }
             pWindow->SetRenderBackendType(backendType, nMsaaSampleCount, bDisableVsync);
             bInitRenderBackendType = true;
             break;
         }
     }
     if (!bInitRenderBackendType) {
-        //首先初始化Render后台绘制方式, 此调用会创建Render
-        pWindow->SetRenderBackendType(RenderBackendType::kRaster_BackendType);
+        //[必须步骤]首先初始化Render后台绘制方式, 此调用会创建Render, 因后续解析流程需要用到Render
+        RenderBackendType renderBackendType = pWindow->GetRenderBackendType();
+        int32_t nRenderMsaaSampleCount = pWindow->GetRenderMsaaSampleCount();
+        bool bRenderDisableVsync = pWindow->IsRenderDisableVsync();
+        const GlobalManager& globalManager = GlobalManager::Instance();
+        if (globalManager.IsGlobalRenderBackendTypeEnabled()) {
+            renderBackendType = globalManager.GetGlobalRenderBackendType();
+            nRenderMsaaSampleCount = globalManager.GetGlobalMsaaSampleCount();
+            bRenderDisableVsync = globalManager.IsGlobalDisableVsync();
+        }
+        pWindow->SetRenderBackendType(renderBackendType, nRenderMsaaSampleCount, bRenderDisableVsync);
     }
      
     //首先处理min_size/max_size/use_system_caption，因为其他属性有用到这些个属性的
@@ -1084,24 +1070,6 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
             }
         }
     }
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    if (pWindow->GetRenderBackendType() == RenderBackendType::kNativeGL_BackendType) {
-        //使用OpenGL时，不能使用层窗口：GL绘制的内容无法通过UpdateLayeredWindow提交。
-        //需要层窗口的配置（opacity < 255）已在设置渲染后端时降级为CPU绘制，这里仅作兜底告警
-        if (bLayeredWindowOpacityDefined && (pWindow->GetLayeredWindowOpacity() != 255)) {
-            LogUtil::OutputLine(_T("OpenGL backend does not support layered window, fall back to CPU rendering is expected"));
-        }
-        //GL窗口一律关闭层窗口，避免阴影等逻辑再次开启层窗口
-        pWindow->SetLayeredWindow(false, false);
-        if (pWindow->IsShadowAttached() && !pWindow->IsUseSystemCaption()) {
-            //如果使用了阴影，则自动切换为使用系统标题栏，避免出现显示异常
-            pWindow->SetUseSystemCaption(true);
-        }
-    }
-#else
-    UNUSED_VARIABLE(bLayeredWindowOpacityDefined);
-#endif
 
 #ifdef _DEBUG
     //检查是否有不支持的属性，然后预警，减少配置错误问题
