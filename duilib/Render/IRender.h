@@ -1174,6 +1174,58 @@ struct RichTextRowInfo
     int32_t m_xOffset = 0;
 };
 
+/** 物理行的文本数据：共享整篇文本的存储，只记录本行文本在整篇文本中的偏移量
+*   说明：为避免每行都分配一份字符串，行文本统一共享整篇文本的存储；
+*        行文本不保证以'\0'结尾（长度由 RichTextLineInfo::m_nLineTextLen 记录），
+*        因此不提供 c_str() 接口，使用方只能通过 data() + 长度访问，避免误用。
+*/
+class DUILIB_API RichTextLineText
+{
+public:
+    RichTextLineText() = default;
+    ~RichTextLineText() = default;
+    RichTextLineText(const RichTextLineText&) = default;
+    RichTextLineText& operator=(const RichTextLineText&) = default;
+
+    /** 共享整篇文本的存储，并指定本行文本的起始偏移量
+    * @param [in] spText 整篇文本的存储（生命周期由共享指针保证）
+    * @param [in] nOffset 本行文本在整篇文本中的起始偏移量
+    */
+    void SetShareText(const std::shared_ptr<const UiStringW>& spText, uint32_t nOffset)
+    {
+        m_spText = spText;
+        m_nOffset = nOffset;
+    }
+
+    /** 设置本行文本的内容（文本内容复制一份，独立存储）
+    */
+    RichTextLineText& operator=(const std::wstring_view& textView)
+    {
+        m_spText = std::make_shared<UiStringW>(DStringW(textView));
+        m_nOffset = 0;
+        return *this;
+    }
+
+    /** 本行文本数据的起始地址（不保证以'\0'结尾，长度由调用方记录）
+    */
+    const DStringW::value_type* data() const
+    {
+        if (m_spText == nullptr) {
+            return L"";
+        }
+        return m_spText->data() + m_nOffset;
+    }
+
+private:
+    /** 整篇文本的存储（各行文本共享使用）
+    */
+    std::shared_ptr<const UiStringW> m_spText;
+
+    /** 本行文本在整篇文本中的起始偏移量
+    */
+    uint32_t m_nOffset = 0;
+};
+
 /** 物理行文本的数据
 */
 struct RichTextLineInfo: public NVRefCount<RichTextLineInfo>
@@ -1182,13 +1234,20 @@ struct RichTextLineInfo: public NVRefCount<RichTextLineInfo>
     */
     uint32_t m_nLineTextLen = 0;
 
-    /** 文本数据
+    /** 文本数据（共享整篇文本的存储，只记录偏移量）
     */
-    UiStringW m_lineText;
+    RichTextLineText m_lineText;
 
     /** 逻辑行的基本信息（按值保存，避免每个逻辑行一次堆分配与指针开销）
     */
     std::vector<RichTextRowInfo> m_rowInfo;
+
+    /** 获取本行文本的视图
+    */
+    std::wstring_view GetLineTextView() const
+    {
+        return std::wstring_view(m_lineText.data(), m_nLineTextLen);
+    }
 };
 typedef SharePtr<RichTextLineInfo> RichTextLineInfoPtr;
 

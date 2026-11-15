@@ -285,19 +285,20 @@ steady paints     : 1 (after the first paint)
 
 ### 9.1 方案清单（按收益排序）
 
-| # | 措施 | 预期每 1MB 文本内存 | 预期降幅 | 风险/成本 | 优先级 |
-| --- | --- | --- | --- | --- | --- |
-| O1 | **绘制缓存按可视区域懒构建**：只为可见行（+预取 1 屏）生成 `TPendingDrawRichText` 与 `TextGlyphRunList`，离屏行只保留排版数据；滚动时按需增量构建并淘汰离屏行 | 约 6.0 ~ 6.5MB | 约 -45% ~ -50% | 中：需处理滚动重建、缓存失效与选中/光标路径；滚动时有一定 CPU 成本（可按行预取平滑） | 高 |
-| O2 | **行结构瘦身**：`std::vector<SharePtr<RichTextRowInfo>>` 改为 `std::vector<RichTextRowInfo>`；`RichTextData` 用字体索引/颜色索引替代 `SharePtr<UiFontEx>`(16B) 与两个 `UiColor`，目标 88B → 约 40B | 约 5.5 ~ 6.0MB | 约 -5% | 低：改动集中在 `RichEditData` 与 `GetRichTextForDraw`，需保证富文本字体/颜色语义不变 | 中 |
-| O3 | **行文本共享**：`RichTextLineInfo::m_lineText` 改为"整篇文本 + (offset, len) 视图"，同时去掉 `RichEdit2::SetText` 中的整篇临时副本（`DStringW text = strText;`） | 约 5.3 ~ 5.8MB | 约 -3%（峰值额外 -1 倍文本） | 中：编辑/替换文本时视图失效需重建；需谨慎处理单行模式规整 | 中 |
-| O4 | **压缩字符信息**：`RichTextCharInfo` 由 4B/字符 压缩为行内 x 偏移（uint16）+ 属性位，约 2.5B/字符 | 约 4.5 ~ 5.0MB | 约 -8% | 中高：需要评估超大行宽、字体混排与对齐精度 | 低 |
-| O5 | **大文本模式/分页 API**：提供分段加载（只保留窗口附近若干段），或允许设置"仅排版可视区域、滚动时增量排版" | 可降到 1 ~ 2 倍文本 | 约 -80% 以上 | 高：涉及控件模型与滚动条、选中、查找等全部功能 | 长期 |
-| O6 | **内存归还**：文本清空/控件隐藏/缓存失效时显式释放绘制缓存并 `shrink_to_fit`；复用 `GetRichTextForDraw` 的 `vector<RichTextData>` 而非每帧新建 | 峰值下降，稳态持平 | 约 -5% ~ -10%（消除峰值常驻） | 低 | 中 |
+| # | 措施 | 预期每 1MB 文本内存 | 预期降幅 | 风险/成本 | 优先级 | 状态 |
+| --- | --- | --- | --- | --- | --- | --- |
+| O1 | **绘制缓存按可视区域懒构建**：只为可见行（+预取 1 屏）生成 `TPendingDrawRichText` 与 `TextGlyphRunList`，离屏行只保留排版数据；滚动时按需增量构建并淘汰离屏行 | 约 6.0 ~ 6.5MB | 约 -45% ~ -50% | 中：需处理滚动重建、缓存失效与选中/光标路径；滚动时有一定 CPU 成本（可按行预取平滑） | 高 | **已实施**（第 12 节） |
+| O2 | **行结构瘦身**：`std::vector<SharePtr<RichTextRowInfo>>` 改为 `std::vector<RichTextRowInfo>`；`RichTextData` 用字体索引/颜色索引替代 `SharePtr<UiFontEx>`(16B) 与两个 `UiColor`，目标 88B → 约 40B | 约 5.5 ~ 6.0MB | 约 -5% | 低：改动集中在 `RichEditData` 与 `GetRichTextForDraw`，需保证富文本字体/颜色语义不变 | 中 | **已实施**（第 13 节） |
+| O3 | **行文本共享**：`RichTextLineInfo::m_lineText` 改为"整篇文本 + (offset, len) 视图"，同时去掉 `RichEdit2::SetText` 中的整篇临时副本（`DStringW text = strText;`） | 约 5.3 ~ 5.8MB | 约 -3%（峰值额外 -1 倍文本） | 中：编辑/替换文本时视图失效需重建；需谨慎处理单行模式规整 | 中 | **已实施**（第 15 节） |
+| O4 | **压缩字符信息**：`RichTextCharInfo` 由 4B/字符 压缩为行内 x 偏移（uint16）+ 属性位，约 2.5B/字符 | 约 4.5 ~ 5.0MB | 约 -8% | 中高：需要评估超大行宽、字体混排与对齐精度 | 低 | 未开始 |
+| O5 | **大文本模式/分页 API**：提供分段加载（只保留窗口附近若干段），或允许设置"仅排版可视区域、滚动时增量排版" | 可降到 1 ~ 2 倍文本 | 约 -80% 以上 | 高：涉及控件模型与滚动条、选中、查找等全部功能 | 长期 | **暂不实施**（产品暂无此需求，2026-11-15 决策） |
+| O6 | **内存归还**：文本清空/控件隐藏/缓存失效时显式释放绘制缓存并 `shrink_to_fit`；复用 `GetRichTextForDraw` 的 `vector<RichTextData>` 而非每帧新建 | 峰值下降，稳态持平 | 约 -5% ~ -10%（消除峰值常驻） | 低 | 中 | **已实施**（第 14 节） |
 
 > O1、O2、O3 组合后，预计可从 **12.1MB/MB 降到约 5.5 ~ 6.5MB/MB（约 -45% ~ -55%）**；
-> 再叠加 O4 可到约 5MB/MB。O5 是数量级方案，但工作量和回归面最大。
+> 再叠加 O4 可到约 5MB/MB。O5 是数量级方案，但工作量和回归面最大，已明确不做。
 >
-> 状态：**O1、O2、O6 已实施**，实现方式与实测结果分别见第 12、13、14 节。
+> 状态汇总：**O1、O2、O3、O6 已实施**；**O4 未开始**；**O5 暂不实施**。
+> 实现方式与实测结果：O1 见第 12 节、O2 见第 13 节、O6 见第 14 节、O3 见第 15 节。
 
 ### 9.2 O1 的实现要点
 
@@ -1083,4 +1084,91 @@ out\x64\Release\tests\bench_richedit2_memory.exe --mb 16
 rem 性能（12 轮弃前 2 轮取中位数）
 for /L %i in (1,1,12) do out\x64\Release\tests\bench_richedit2.exe --iterations 200 > out\o6\bench_r%i.txt
 ```
+
+## 15. O3 实施效果：行文本共享（2026-11-15）
+
+### 15.1 风险评估（实施前分析）
+
+| 风险点 | 说明 | 处理方式 | 结论 |
+| --- | --- | --- | --- |
+| 行文本视图悬垂 | 行文本改为"整篇文本 + 偏移量"后，行数据不再自己持有字符串，若整篇文本提前释放会读到野指针 | 行文本用 `std::shared_ptr<const UiStringW>` 持有整篇文本；`DrawRichTextCache` 里的 `wstring_view` 也引用同一存储，引用计数保证生命周期 | 低 |
+| 编辑/替换后视图失效 | `ReplaceText` 会重建被修改的行，旧视图不能继续使用 | 被修改的行仍像现在一样**独立存储一份**（`operator=` 物化，偏移量置 0），未修改的行继续共享原整篇文本；原整篇文本在所有引用它的行释放前保持常驻 | 低 |
+| 旧整篇文本常驻 | 编辑少量行后，旧整篇文本仍被未修改行引用 | 额外占用最多 1 份旧文本，随整行替换逐步释放；不会随编辑次数累积 | 低 |
+| 单行模式规整/密码模式 | 这两种模式需要改写文本内容（换行符→空格、过滤非法字符），不能直接共享调用方传入的文本 | 只在"需要规整"时复制一份（单行模式、密码模式），多行模式直接传入原文本 | 低 |
+| `c_str()` 误用 | 行文本指向整篇文本的中间位置，**不保证以 `'\0'` 结尾**，沿用 `c_str()` 会读越界 | 新类型 `RichTextLineText` **刻意不提供 `c_str()`**，让全部不安全用法在编译期暴露；实测共 14 处，逐一改为 `data()` 或按长度取 `wstring_view` | 低 |
+| 收益可能低于预期 | 每行结构体由 40B 增至 56B（`shared_ptr` 16B 取代 `UiStringW` 8B），会抵消部分逐行字符串的堆开销 | 主要收益改为"去掉 `SetText` 的整篇临时副本"（峰值 -1 倍文本），稳态收益作为附带项 | 中 → 可接受 |
+
+结论：风险可控，且核心收益（峰值）与实现复杂度无关，实施本项。
+
+### 15.2 实现方式
+
+| 改动点 | 位置 | 说明 |
+| --- | --- | --- |
+| 新增行文本视图类型 | [IRender.h](file:///e:/develop/nim_duilib/duilib/Render/IRender.h) | `RichTextLineText`：`std::shared_ptr<const UiStringW> + uint32_t m_nOffset`（24B）；提供 `data()`、`SetShareText()`、`operator=(wstring_view)`；**不提供 `c_str()`** |
+| 行结构 | [IRender.h](file:///e:/develop/nim_duilib/duilib/Render/IRender.h) | `RichTextLineInfo::m_lineText` 类型改为 `RichTextLineText`，长度仍由 `m_nLineTextLen` 记录；新增 `GetLineTextView()` 返回 `wstring_view` |
+| SetText 整篇共享 | [RichEditData.cpp](file:///e:/develop/nim_duilib/duilib/Control/RichEditData.cpp) | 先确定文本来源（超长截断、含 `'\0'` 时使用临时串），`SplitLines` 得到行视图后**只复制一份整篇文本**到 `shared_ptr<UiStringW>`，各行按 `view.data() - 源文本起始地址` 记录偏移量 |
+| 编辑路径 | [RichEditData.cpp](file:///e:/develop/nim_duilib/duilib/Control/RichEditData.cpp) | `ReplaceText` 中被替换的行仍独立存储（`operator=` 物化一份，偏移量为 0），未修改的行继续共享原整篇文本 |
+| 去掉整篇临时副本 | [RichEdit2.cpp](file:///e:/develop/nim_duilib/duilib/Control/RichEdit2.cpp) | `SetText` 只在单行模式/密码模式需要规整时才复制一份文本；多行模式直接把调用方文本传给 `RichEditData::SetText`，不再无条件执行 `DStringW text = strText;` |
+| 不安全用法清理 | [RichEditData.cpp](file:///e:/develop/nim_duilib/duilib/Control/RichEditData.cpp) | 14 处 `.c_str()` 改为 `.data()`（字符级扫描）或 `GetLineTextView()`（按长度的子串/比较） |
+
+> 安全性不变量：整篇文本由所有行共享的 `shared_ptr` 保活，行视图只在"文本内容未变"期间有效；
+> 原有"编辑即清绘制缓存"的机制不变，因此 `DrawRichTextCache` 中引用行文本的 `wstring_view` 不会悬垂。
+
+### 15.3 内存 A/B（同机、静态 Release、每行 64 字符）
+
+| 规模 | 稳态每字符字节（O6 → O3） | 峰值工作集（O6 → O3） | 峰值变化 | 清空后常驻（O6 → O3） |
+| --- | --- | --- | --- | --- |
+| 2MB | 9.11 → **9.06** | 30.20 → **28.10 MB** | **-6.9%** | 8.39 → 8.54 MB |
+| 4MB | 9.46 → **8.87** | 46.18 → **41.80 MB** | **-9.5%** | 10.25 → 10.59 MB |
+| 8MB | 9.16 → **9.04** | 78.07 → **69.61 MB** | **-10.8%** | 13.94 → 14.63 MB |
+| 16MB | 8.90 → **8.83** | 141.25 → **125.02 MB** | **-11.5%** | 22.46 → 23.48 MB |
+
+结论：
+
+- **峰值下降 6.9% ~ 11.5%（约 1 倍文本）**：这是 O3 的主要收益，来源是去掉 `RichEdit2::SetText`
+  在 `SetText` 期间持有的整篇临时副本（16MB 文本时约 -16MB）；
+- **稳态每字符 -0.5% ~ -6%**：逐行字符串的堆块头与容量取整开销（16MB、131072 行约 2 ~ 4MB）被
+  "行结构体从 40B 增至 56B"（`sizeof(RichTextLineInfo)`，131072 行约 2MB）大部分抵消；
+  本测试每行 64 字符、行数偏少，**行长越短、行数越多，稳态收益越明显**；
+- **清空后常驻上升 0.15 ~ 1.0MB**：整篇文本改为一整块大分配，释放后 CRT 堆向系统归还的粒度更大，
+  属分配器行为，不影响稳态与峰值；
+- `[size]` 输出中 `RichTextLineInfo` 由 40 变为 56（其余结构不变）。
+
+### 15.4 性能 A/B（`bench_richedit2`，同机，12 轮弃前 2 轮取中位数，单位 `us/帧`）
+
+| 场景 | O6 | O3 | 变化 |
+| --- | --- | --- | --- |
+| `steady_zhen_small` | 157.13 | 163.06 | +3.8% |
+| `steady_zhen_large` | 155.30 | 161.66 | +4.1% |
+| `steady_zhen_xlarge` | 152.26 | 161.45 | +6.0% |
+| `steady_emoji_small` | 404.65 | 428.40 | +5.9% |
+| `steady_emoji_large` | 439.55 | 411.99 | -6.3% |
+| `steady_emoji_xlarge` | 404.77 | 406.37 | +0.4% |
+| `scroll_zhen_large` | 162.14 | 160.63 | -0.9% |
+| `scroll_emoji_large` | 408.05 | 411.47 | +0.8% |
+| `typing_zhen_large` | 301.14 | 311.74 | +3.5% |
+| `typing_emoji_large` | 911.85 | 865.82 | -5.0% |
+| `relayout_zhen_small` | 292.00 | 290.54 | -0.5% |
+| `relayout_zhen_large` | 1664.85 | 1612.86 | -3.1% |
+| `relayout_emoji_small` | 1178.73 | 1138.62 | -3.4% |
+| `relayout_emoji_large` | 12451.27 | 11852.85 | -4.8% |
+
+- 全部场景在 ±6% 噪声区间内，无系统性回退；`relayout_*` 略有改善（-0.5% ~ -4.8%），
+  共享的大块连续文本对排版期的顺序读略有利；
+- `typing_*` 为 +3.5% / -5.0%，属噪声（输入路径的分配次数与改动前相同：仍只物化被修改的行）；
+- `[layout signature]` 仍为 798x668 / 798x17608 / 799x1328 / 799x35208，排版结果未变。
+
+### 15.5 验证与复跑
+
+- 静态 Release 构建全部成功，`ctest` **16/16 通过**（含 `richedit2_edit` 覆盖的编辑/撤销/查找回归）；
+- 复跑命令与 14.4 相同（内存 4 档 + 性能 12 轮）：
+
+```bat
+set PATH=%CD%\bin;%PATH%
+out\x64\Release\tests\bench_richedit2_memory.exe --mb 2
+out\x64\Release\tests\bench_richedit2_memory.exe --mb 4
+out\x64\Release\tests\bench_richedit2_memory.exe --mb 8
+out\x64\Release\tests\bench_richedit2_memory.exe --mb 16
+```
+
 

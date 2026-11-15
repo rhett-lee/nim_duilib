@@ -707,7 +707,7 @@ void RichEditData::CalcTextRectsPart(size_t nStartLine,
             RichTextLineInfoPtr spLineInfo(new RichTextLineInfo);
             spLineInfo->m_nLineTextLen = pLineInfo->m_nLineTextLen;
             spLineInfo->m_lineText = pLineInfo->m_lineText;
-            textView2.push_back(std::wstring_view(spLineInfo->m_lineText.c_str(), spLineInfo->m_nLineTextLen));
+            textView2.push_back(spLineInfo->GetLineTextView());
             lineTextInfoList.push_back(spLineInfo);
         }
         RichTextDataList richTextDataList2;
@@ -735,7 +735,7 @@ void RichEditData::CalcTextRectsPart(size_t nStartLine,
         for (size_t nDataIndex = 0; nDataIndex < nDataCount; ++nDataIndex) {
             const RichTextLineInfo& infoOld = *m_lineTextInfo[nDataIndex];
             const RichTextLineInfo& infoNew = *lineTextInfoList[nDataIndex];
-            ASSERT(infoOld.m_lineText == infoNew.m_lineText);
+            ASSERT(infoOld.GetLineTextView() == infoNew.GetLineTextView());
             ASSERT(infoOld.m_nLineTextLen == infoNew.m_nLineTextLen);
             ASSERT(infoOld.m_rowInfo.size() == infoNew.m_rowInfo.size());
 
@@ -770,9 +770,10 @@ bool RichEditData::SetText(const DStringW& text)
     //清空追加的空行
     RemoveEmptyLine(m_lineTextInfo);
 
+    //整篇文本的来源（需要截断或者含L'\0'字符时，使用临时字符串）
+    const DStringW* pSourceText = &text;
     DStringW textLimit;
     DStringW validText;
-    std::vector<std::wstring_view> lineTextViewList;
     int32_t nLimitLength = m_pRichText->GetTextLimitLength();
     if ((nLimitLength > 0) && ((int32_t)text.size() > nLimitLength)){
         //截断字符串
@@ -782,20 +783,18 @@ bool RichEditData::SetText(const DStringW& text)
             textLimit = text.c_str();
         }
         TruncateLimitText(textLimit, nLimitLength);
-        std::wstring_view textView = textLimit;
-        SplitLines(textView, lineTextViewList);
+        pSourceText = &textLimit;
     }
-    else {
-        if (text.find(L'\0') != DStringW::npos) {
-            //如果包含L'\0'字符，需要截断处理
-            validText = text.c_str();
-            std::wstring_view textView = validText;
-            SplitLines(textView, lineTextViewList);
-        }
-        else {
-            std::wstring_view textView = text;
-            SplitLines(textView, lineTextViewList);
-        }        
+    else if (text.find(L'\0') != DStringW::npos) {
+        //如果包含L'\0'字符，需要截断处理
+        validText = text.c_str();
+        pSourceText = &validText;
+    }
+
+    std::vector<std::wstring_view> lineTextViewList;
+    {
+        std::wstring_view textView = *pSourceText;
+        SplitLines(textView, lineTextViewList);
     }
     
     const size_t nLineCount = lineTextViewList.size();
@@ -811,7 +810,7 @@ bool RichEditData::SetText(const DStringW& text)
         if (!bTextChanged) {
             //如果长度都一致，则比较字符串的内容
             for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
-                if (std::wstring_view(m_lineTextInfo[nIndex]->m_lineText.c_str(), m_lineTextInfo[nIndex]->m_nLineTextLen) != lineTextViewList[nIndex]) {
+                if (m_lineTextInfo[nIndex]->GetLineTextView() != lineTextViewList[nIndex]) {
                     bTextChanged = true;
                     break;
                 }
@@ -824,12 +823,18 @@ bool RichEditData::SetText(const DStringW& text)
     if (bTextChanged) {
         RichTextLineInfoList lineTextInfo;
         if (nLineCount > 0) {
+            //整篇文本只保存一份，各行文本通过偏移量共享这篇文本的存储，避免逐行复制
+            //(偏移量相对整篇文本的起始位置计算，这里的复制与来源文本的内容完全相同)
+            std::shared_ptr<UiStringW> spText = std::make_shared<UiStringW>(*pSourceText);
+            const DStringW::value_type* pSourceData = pSourceText->c_str();
+            const size_t nTextSize = pSourceText->size();
             lineTextInfo.resize(nLineCount);
             for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
                 const std::wstring_view& lineTextView = lineTextViewList[nIndex];
+                ASSERT((lineTextView.data() >= pSourceData) && ((lineTextView.data() + lineTextView.size()) <= (pSourceData + nTextSize)));
                 RichTextLineInfoPtr& lineText = lineTextInfo[nIndex];
                 lineText.reset(new RichTextLineInfo);
-                lineText->m_lineText = lineTextView; //文本数据复制一份，保存起来
+                lineText->m_lineText.SetShareText(spText, (uint32_t)(lineTextView.data() - pSourceData));
                 lineText->m_nLineTextLen = (uint32_t)lineTextView.size();
                 CheckLineTextData(lineTextInfo, nIndex);
             }
@@ -1105,7 +1110,7 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
         //在相同行
         if (nStartLine < m_lineTextInfo.size()) {
             const RichTextLineInfo& lineText = *m_lineTextInfo[nStartLine];
-            std::wstring_view textView(lineText.m_lineText.c_str(), lineText.m_nLineTextLen);
+            std::wstring_view textView = lineText.GetLineTextView();
             startLineTextView = textView.substr(0, nStartCharLineOffset); //保留到行首的文本
             if (nEndCharLineOffset < textView.size()) {
                 endLineTextView = textView.substr(nEndCharLineOffset);        //保留到行尾的文本
@@ -1121,7 +1126,7 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
         }
         for (size_t nIndex = nStartLine; nIndex <= nEndLine; ++nIndex) {
             const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
-            std::wstring_view textView(lineText.m_lineText.c_str(), lineText.m_nLineTextLen);
+            std::wstring_view textView = lineText.GetLineTextView();
             if (nIndex == nStartLine) {
                 //首行，保留到行首的文本
                 startLineTextView = textView.substr(0, nStartCharLineOffset);
@@ -1224,7 +1229,7 @@ DStringW RichEditData::GetTextRange(int32_t nStartChar, int32_t nEndChar) const
     if (nStartLine == nEndLine) {
         //在相同行
         const RichTextLineInfo& lineText = *m_lineTextInfo[nStartLine];
-        DStringW newText = lineText.m_lineText.c_str();
+        DStringW newText(lineText.GetLineTextView());
         if (nEndCharLineOffset > nStartCharLineOffset) {
             //有选择的文本
             size_t nCharCount = nEndCharLineOffset - nStartCharLineOffset;
@@ -1236,21 +1241,21 @@ DStringW RichEditData::GetTextRange(int32_t nStartChar, int32_t nEndChar) const
         DStringW newText;
         for (size_t nIndex = nStartLine; nIndex <= nEndLine; ++nIndex) {
             const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
-            newText = lineText.m_lineText.c_str();
+            newText = lineText.GetLineTextView();
             if (nIndex == nStartLine) {
                 //首行, 选择到行尾
                 selText = newText.substr(nStartCharLineOffset);
             }
             else if (nIndex == nEndLine) {
                 //末行，选择到行首
-                newText = lineText.m_lineText.c_str();
+                newText = lineText.GetLineTextView();
                 if (nEndCharLineOffset > 0) {
                     selText += newText.substr(0, nEndCharLineOffset);
                 }                    
             }
             else {
                 //中间行
-                selText += lineText.m_lineText.c_str();
+                selText += lineText.GetLineTextView();
             }
         }
     }
@@ -1858,7 +1863,7 @@ int32_t RichEditData::GetNextValidCharIndex(const int32_t nCharIndex)
             size_t i = nStartCharLineOffset + 1;
             while ( i < lineText.m_nLineTextLen) {
 #if defined(WCHAR_T_IS_UTF16)
-                const uint16_t* src = (const uint16_t*)(lineText.m_lineText.c_str() + i);
+                const uint16_t* src = (const uint16_t*)(lineText.m_lineText.data() + i);
                 if (SkUTF16_IsHighSurrogate(*src)) {
                     ASSERT(SkUTF16_IsLowSurrogate(*(src + 1)));
                     nNewCharIndex = (int32_t)(nStartCharBaseLen + i);
@@ -1929,7 +1934,7 @@ int32_t RichEditData::GetPrevValidCharIndex(int32_t nCharIndex)
             int32_t i = (int32_t)nStartCharLineOffset - 1;
             while (i >= 0) {
 #if defined(WCHAR_T_IS_UTF16)
-                const uint16_t* src = (const uint16_t*)(lineText.m_lineText.c_str() + i);
+                const uint16_t* src = (const uint16_t*)(lineText.m_lineText.data() + i);
                 if (SkUTF16_IsHighSurrogate(*src)) {
                     ASSERT(SkUTF16_IsLowSurrogate(*(src + 1)));
                     nNewCharIndex = (int32_t)(nStartCharBaseLen + i);
@@ -2082,7 +2087,7 @@ int32_t RichEditData::GetNextValidWordIndex(int32_t nCharIndex)
                     break;
                 }
 #if defined(WCHAR_T_IS_UTF16)
-                const uint16_t* src = (const uint16_t*)(lineText.m_lineText.c_str() + i);
+                const uint16_t* src = (const uint16_t*)(lineText.m_lineText.data() + i);
                 if (SkUTF16_IsHighSurrogate(*src)) {
                     ASSERT(SkUTF16_IsLowSurrogate(*(src + 1)));
                     i += 2;//跳过该双字节字符
@@ -2155,7 +2160,7 @@ int32_t RichEditData::GetPrevValidWordIndex(int32_t nCharIndex)
 
 #if defined(WCHAR_T_IS_UTF16)
                 if (i > 0) {
-                    const uint16_t* src = (const uint16_t*)(lineText.m_lineText.c_str() + i);
+                    const uint16_t* src = (const uint16_t*)(lineText.m_lineText.data() + i);
                     if (SkUTF16_IsLowSurrogate(*src)) {
                         i -= 1;//跳过低代理字符
                     }
@@ -2300,7 +2305,7 @@ bool RichEditData::GetCurrentWordIndex(int32_t nCharIndex, int32_t& nWordStartIn
                     break;
                 }
 #if defined(WCHAR_T_IS_UTF16)
-                const uint16_t* src = (const uint16_t*)(lineText.m_lineText.c_str() + i);
+                const uint16_t* src = (const uint16_t*)(lineText.m_lineText.data() + i);
                 if (SkUTF16_IsHighSurrogate(*src)) {
                     ASSERT(SkUTF16_IsLowSurrogate(*(src + 1)));
                     i += 2;//跳过该双字节字符
@@ -2978,7 +2983,7 @@ DStringW RichEditData::GetRowText(int32_t nRowIndex)
                 }
                 if (!lineText.m_rowInfo[nRow].m_charInfo.empty()) {
                     ASSERT(nStartIndex < lineText.m_nLineTextLen);
-                    std::wstring_view lineView(lineText.m_lineText.c_str(), lineText.m_nLineTextLen);
+                    std::wstring_view lineView = lineText.GetLineTextView();
                     rowText = lineView.substr(nStartIndex, lineText.m_rowInfo[nRow].m_charInfo.size());
                 }
                 bFound = true;

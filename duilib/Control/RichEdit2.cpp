@@ -1187,23 +1187,29 @@ void RichEdit2::SetText(const DStringW& strText)
     //单行模式下，需要把换行符规整为空格，避免存入换行符后显示时"吞字"
     //注意：XML解析阶段(text属性可能先于multi_line/single_line属性设置)不做规整，
     //      避免多行控件先设置text、后设置multi_line时丢失换行符；初始化完成后再统一规整
-    DStringW text = strText;
-    if (IsInited()) {
-        NormalizeSingleLineText(text);
-    }
-
+    //说明：只有需要规整（单行模式、密码模式）时才复制一份文本，
+    //      多行模式直接传入原文本，避免大文本的临时副本
     bool bChanged = false;
     if (IsPasswordMode()) {
         //密码模式
-        DStringW passwordText = text;
+        DStringW passwordText = strText;
+        if (IsInited()) {
+            NormalizeSingleLineText(passwordText);
+        }
         RemoveInvalidPasswordChar(passwordText);
         bChanged = m_pTextData->SetText(passwordText);
     }
-    else {
+    else if (IsInited() && !IsMultiLine()) {
+        //单行模式：把换行符规整为空格
+        DStringW text = strText;
+        NormalizeSingleLineText(text);
         bChanged = m_pTextData->SetText(text);
     }
-    if (text.empty()) {
-        //文本被清空：立即归还未使用的绘制内存，避免大文本清空后容量长期常驻
+    else {
+        //多行模式：不需要规整，直接设置文本
+        bChanged = m_pTextData->SetText(strText);
+    }
+    if (strText.empty()) {
         ReleaseDrawData();
     }
     if (bChanged && IsInited()) {
