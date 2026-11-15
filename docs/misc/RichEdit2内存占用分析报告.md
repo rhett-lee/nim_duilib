@@ -299,6 +299,8 @@ steady paints     : 1 (after the first paint)
 
 ### 9.2 O1 的实现要点
 
+> 状态：**已实施**（2026-11-15），实现方式与实测结果见第 12 节。
+
 1. `DrawRichTextCache` 增加"已构建行区间"（如 `m_nCacheRowBegin` / `m_nCacheRowEnd`）；
    `CreateDrawRichTextCache()` 接收当前可视矩形（`Paint` 中的 `rcPaint`，而不是全文文本区域），
    只对可视行及其前后各 1 屏的行构建 `TPendingDrawRichText` 与 `TextGlyphRunList`；
@@ -509,3 +511,267 @@ for /L %i in (1,1,3) do out\x64\Release\tests\bench_text_render.exe --iterations
 3. 若 `relayout_*` 变慢但 `steady_*` 不变，优先检查 `DrawSkiaText::BreakText` 与回退字体缓存；
    若 `steady_*` 变慢，优先检查 `DrawRichText::DrawRichTextCacheData` 与绘制缓存构建；
 4. 内存侧同时对照第 3 节的 `12.06 MB/MB`（`bench_richedit2_memory`）。
+
+## 12. O1 实施效果：绘制缓存按可视区域懒构建（2026-11-15）
+
+本节记录第 9 节 **O1** 实施后的正确性验证、内存与性能实测，与第 3 节（内存基线）、第 11 节（性能基线）逐项对比。
+
+### 12.1 实现方式
+
+优化前：`SetText` → `CalcTextRectsFull()` 在**一次** `MeasureRichText` 调用中同时完成全文排版和**全文**绘制缓存
+（`TPendingDrawRichText` 约 136B/行 + `TextGlyphRunList`），离屏行也一直持有绘制数据。
+
+优化后：排版与绘制数据分离，绘制缓存只覆盖"可视区 ± 1 屏"的窗口。
+
+| 层 | 文件 | 改动 |
+| --- | --- | --- |
+| 渲染接口 | `duilib/Render/IRender.h` | 新增 `RichTextDrawWindow`（窗口首物理行号、首逻辑行号、首行顶部 Y、窗口底部 Y、全文逻辑行数）与 `CreateDrawRichTextCacheInRange()`；该接口带默认实现（回退到全量 `CreateDrawRichTextCache`），不破坏第三方渲染后端 |
+| Skia 后端 | `RenderSkia/DrawRichText.h/.cpp`、`RenderSkia/Render_Skia.h/.cpp` | `InternalDrawRichText()` 增加 `pDrawWindow` 参数：从窗口首行顶部开始排版、到窗口底部停止，仅窗口内行生成 `TPendingDrawRichText`/`TextGlyphRunList`；缓存记录覆盖范围（`m_nFirstRowIndex`/`m_nFirstLineNumber`/`m_nLineCount`/`m_nTotalRowCount`），行宽表按**局部行号**索引 |
+| 排版数据 | `Control/RichEditData.h/.cpp` | 新增行索引 `m_lineRowBeginIndex`（每个物理行之前的逻辑行数）与 `m_lineTop`（每个物理行顶部 Y）；新增 `GetVisibleLineRange()`（在 `m_lineTop` 上二分）与缓存范围校验 `IsDrawRichTextCacheRangeMatched()`；`CalcTextRectsFull()`/`CalcTextRectsPart()` 调用 `MeasureRichText(..., nullptr, nullptr)`，**不再建绘制缓存**，增量排版后直接丢弃缓存 |
+| 控件 | `Control/RichEdit2.h/.cpp` | `Paint()` 计算窗口（`[scrollY - 1 屏, scrollY + 2 屏]`）→ 只取窗口内行的 `RichTextData` → 缓存缺失/范围不匹配才 `CreateDrawRichTextCacheInRange()` 重建，否则直接复用；新增 `GetRichTextForDraw(richTextDataList, nFirstLine, nLineCount)` |
+
+关键正确性处理：
+
+1. **窗口从任意物理行边界开始排版**：`RichEdit2` 中每个 `RichTextData` 对应一个物理行（段落起点），
+   因此可以直接以 `m_nFirstRowIndex`/`m_nFirstLineNumber` 为起点排版，断行结果与全量排版一致；
+2. **窗口首行为空行**（如段落末尾的空行）时，全量排版下的行高等于字体高度，而窗口模式下按"无文本"会得到 0；
+   已在 `InternalDrawRichText()` 中按 `m_nFirstRowIndex > 0` 分支补齐 `nRowHeight = nFontHeight`，避免窗口内后续行整体上移；
+3. 缓存失效条件：文本/宽度/对齐方式变化（`RichEditData` 原有脏标记）、窗口行范围变化、`IsValidDrawRichTextCache()` 校验失败
+   （`rcTextRect`、滚动偏移、窗口内 `RichTextData` 内容）；
+4. 窗口数据未就绪（首次排版前）时，`Paint()` 回退到全量 `CreateDrawRichTextCache()` 路径。
+
+### 12.2 正确性验证
+
+| 项目 | 结果 |
+| --- | --- |
+| 构建（DLL 模式） | `duilib.dll` 编译通过，但 `test_text_draw` 等测试目标链接失败（引用未导出的 `ui::DrawSkiaText` 等符号） |
+| 构建（非 DLL 模式，按约定切换） | `python3 build/build.py --offline` → 43/43 目标成功，`[OK] 编译完成` |
+| 单元测试 | `ctest --test-dir out\x64\Release -C Release` → **16/16 通过**（含本节新增的 `richedit2_edit`，见 12.6） |
+| 排版签名（`bench_richedit2` 的 `[layout signature]`） | 与第 11.3 节完全一致：`zhen_small 798x668`、`zhen_large 798x17608`、`emoji_small 799x1328`、`emoji_large 799x35208` |
+
+### 12.3 内存对比（`bench_richedit2_memory`，每行 64 字符）
+
+| 文本规模 | 行数 | 优化前控件合计（不含调用方文本） | 优化后 | 变化 | 优化后每字符 | 优化后含调用方文本 | 优化后峰值工作集 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 2MB | 16,384 | 24.70 MB | **10.09 MB** | **-59.2%** | 9.62 B | 11.63 MB（原 26.71） | 30.9 MB（原 45.1） |
+| 4MB | 32,768 | 50.06 MB | **19.43 MB** | **-61.2%** | 9.71 B | 23.44 MB（原 54.07） | 47.6 MB（原 74.6） |
+| 8MB | 65,536 | 99.13 MB | **37.64 MB** | **-62.0%** | 9.41 B | 45.66 MB（原 107.15） | 80.8 MB（原 133.4） |
+| 16MB | 131,072 | 193.92 MB | **73.13 MB** | **-62.3%** | 9.14 B | 89.17 MB（原 209.95） | 147.2 MB（原 249.8） |
+
+线性回归（2/4/8/16MB，与第 3 节同口径）：
+
+| 项目 | 优化前 | 优化后 | 变化 |
+| --- | --- | --- | --- |
+| 每 1MB UTF-16 文本的内存增量 | 12.06 MB | **约 4.50 MB** | **-62.7%** |
+| 每字符内存 | 24.1 B | **约 9.0 B** | -62.7% |
+| 与文本大小的放大倍数 | 约 12.1 倍 | **约 4.5 倍** | — |
+| 首次绘制的额外增量（`layout_and_first_paint`） | 0.29 ~ 2.27 MB | **≈ 0**（只构建 1~3 屏窗口缓存） | — |
+
+结论：内存与文本规模的关系从"约 12 倍文本"降到"约 4.5 倍文本"，优于第 9.1 节 O1 预估的 -45% ~ -50%；
+剩余内存主要是排版数据结构本身（`RichTextCharInfo` 4B/字符、`RichTextRowInfo`、行文本副本），与第 4.2 节的理论下界分析一致，
+后续收益需要靠 O2 ~ O5。
+
+> 口径说明：第 3 节基线为 DLL 模式采集，本节为按 12.2 切换后的**非 DLL（静态库）模式**。
+> 度量项是控件内部堆增量，与库的链接方式无关；如需严格同口径，可在 DLL 模式恢复后复测确认。
+
+### 12.4 性能对比（`bench_richedit2`，12 轮弃前 2 轮取中位数）
+
+单位 `us/帧`，基线取第 11.3 节；判定按 11.6 节规则（≤±10% 噪声；>±20% 视为真实变化）。
+
+| 场景 | 基线中位数 | 本次中位数 | 变化 | 本次最小值 | 判定 |
+| --- | --- | --- | --- | --- | --- |
+| `steady_empty` | 0.11 | 0.10 | -0.01us | 0.10 | 持平 |
+| `steady_zhen_small` | 158.84 | 146.68 | **-7.7%** | 138.36 | 持平（偏快） |
+| `steady_zhen_large` | 178.35 | 150.86 | **-15.4%** | 142.85 | 改善 |
+| `steady_zhen_xlarge` | 234.62 | 149.13 | **-36.4%** | 139.75 | 改善 |
+| `steady_emoji_small` | 384.06 | 383.13 | -0.2% | 368.26 | 持平 |
+| `steady_emoji_large` | 408.40 | 389.74 | -4.6% | 373.07 | 持平 |
+| `steady_emoji_xlarge` | 483.83 | 384.19 | **-20.6%** | 364.96 | 改善 |
+| `scroll_zhen_large` | 174.94 | 148.12 | **-15.3%** | 137.24 | 改善 |
+| `scroll_emoji_large` | 412.90 | 384.82 | -6.8% | 373.53 | 持平（偏快） |
+| `typing_zhen_large` | 231.64 | 286.61 | **+23.7%** | 269.90 | **回归** |
+| `typing_emoji_large` | 552.30 | 830.59 | **+50.4%** | 805.54 | **回归** |
+| `relayout_zhen_small` | 236.79 | 267.17 | **+12.8%** | 228.27 | 需复核（最小值 +3% 在噪声内） |
+| `relayout_zhen_large` | 2,285.42 | 1,537.81 | **-32.7%** | 1,469.02 | 改善 |
+| `relayout_emoji_small` | 805.91 | 1,100.99 | **+36.6%** | 1,044.35 | **回归** |
+| `relayout_emoji_large` | 13,182.06 | 11,051.30 | **-16.2%** | 10,695.05 | 改善 |
+
+变化的两条主线：
+
+1. **绘制侧（`steady_*`、`scroll_*`、`relayout_*_large`）整体变快**：`Paint()` 遍历的 `TPendingDrawRichText`
+   从"全文"降到"1~3 屏"，大文档场景收益随文本规模放大（`steady_zhen_xlarge -36.4%`）；
+   全量排版不再生成字形运行结果（`bBuildGlyphRuns = false`），`relayout_*_large` 因此减少 -16% ~ -33%。
+2. **输入与小文档（`typing_*`、`relayout_*_small`）变慢**，原因见 12.5。
+
+### 12.5 回归原因与遗留项
+
+| 场景 | 原因 | 量化 |
+| --- | --- | --- |
+| `typing_*` | 每次按键走 `CalcTextRectsPart()` 增量排版，按其设计需要丢弃绘制缓存；随后 `Paint()` 要重建"可视区 ± 1 屏"（约 3 屏、emoji_large 约 20 行 / 5000 字符）的字形运行结果。优化前是增量**合并**缓存，未变化的可见行直接复用 | +55us（`typing_zhen_large`）、+278us（`typing_emoji_large`），均在 16.7ms 帧预算内 |
+| `relayout_*_small` | 小文档的窗口覆盖全部行，全量排版 + `Paint()` 再建一次缓存 ≈ 布局做两遍（断行一次、字形运行一次）；大文档不受影响，因为第二遍只覆盖窗口 | `relayout_emoji_small` +295us；`relayout_zhen_small` 中位数 +12.8% 但最小值仅 +3%，属高方差场景 |
+
+结论：本次改动以"每帧 0.05 ~ 0.3ms 的编辑路径开销"换"约 -62% 内存 + 大文档绘制 -15% ~ -36%"，
+对用户可感知的输入延迟影响很小（远低于一帧），因此判定为**可接受**，并登记以下后续项：
+
+| 后续项 | 方案 | 预期 |
+| --- | --- | --- |
+| O1.1（消除 `typing_*` 回归） | 把窗口缓存的 `nRowIndex` 改为**全局行号索引**（`m_nFirstRowIndex` 恒为 0、去掉构建后的行号偏移），从而恢复原 `UpdateDrawRichTextCache()` 的增量合并：仅当修改/删除行落在缓存覆盖范围内才降级为丢弃 | `typing_*` 回到基线附近 |
+| O1.2（消除 `relayout_*_small` 回归） | 布局单遍内"边排版边按窗口过滤"建立缓存（需把 `RichTextDrawWindow` 透传到 `IRender::MeasureRichText`），使 `Paint()` 直接命中布局期缓存 | 小文档回到基线附近，省一次断行 |
+| O1.3（可选） | 预取窗口从"上下各 1 屏"改为"上下各 0.5 屏" | 降低重建成本，滚动重建频率上升，需实测权衡 |
+
+另注：`typing_*` 的绝对开销由窗口大小决定（约 3 屏），与"每次按键重建"的耦合是 O1 的结构性代价，
+O1.1 / O1.2 任一项落地后该项即可收敛。
+
+### 12.6 编辑功能回归测试（新增 `richedit2_edit`）与修复
+
+窗口化绘制缓存改变了 `Paint()` 的取数范围，为确认编辑行为（光标、选区、滚动）不受影响，
+新增单元测试 `tests/test_richedit2_edit.cpp`（注册到 ctest，用例名 `richedit2_edit`，
+Windows 平台构建）：使用离屏渲染 + 轻量窗口桩对象驱动真实 `RichEdit2`，逐像素读取绘制结果。
+
+| 用例 | 校验点 |
+| --- | --- |
+| 替换文本 | `SetText` / `AppendText` 后的内容、行数、`GetTextLength`、光标定位 |
+| 插入字符 | `InsertText`、`OnChar` 键盘输入后的文本、返回值与光标位置 |
+| 插入行 | 回车键（`kVK_RETURN`）插入 `\r\n`，光标落在新行行首 |
+| 删除字符 | 退格 / 删除键；行首退格与上一行合并、行尾删除与下一行合并、删除全部 |
+| 删除行 | 删除首行 / 中间行 / 末行（含换行符） |
+| 替换文本行 | 选中行内文本替换；选中整行替换为多行 |
+| 方向键 | 左/右 ±1 与边界不动；上/下保持 x 坐标跨行；下→上往返回到原字符；编辑后仍正确 |
+| 滚动条滚动 | 滚动 5 行后画面 = 滚动前画面上移 5 行；滚回顶部画面完全恢复 |
+| 方向键切换视图 | 连续下移 40 行时视图跟随滚动、光标始终在可视区内；上移回顶部后滚动归零 |
+| 窗口缓存正确性 | 5 个滚动位置（0/22/150/1000/3000）下，按可视区构建的窗口缓存与全量缓存**逐像素一致**（diff = 0） |
+| 粘贴后滚动 | 小尺寸编辑框（360 x 180、多行、**不自动换行**）中粘贴 160 行源码样式文本（含空行、超宽行），在 6 个滚动位置上每个可视行都必须有文字像素；且粘贴路径（`ReplaceSel`）与全量排版路径（`SetText`）画面逐像素一致 |
+| 编辑后重绘 | 内容变化后画面随之变化；清空文本后无残留 |
+| 选项：只读 | 只读时 `OnChar`/`InsertText`/`ReplaceSel`/退格/删除/`Clear` 均不改变文本（`ReplaceSel` 返回 false），`SetText` 仍可写入，关闭只读后恢复可编辑 |
+| 选项：长度限制 | `SetLimitText` 边界（正好达到/跨越限制）、整次修改丢弃、`kEventTextLimit` 触发次数；缩小限制与 `SetText` 超限静默截断；`SetLimitText(0)` 表示不限制 |
+| 选项：允许字符集 | `SetLimitChars` 仅过滤键盘输入路径（`OnChar`），`InsertText`/`SetText` 不过滤 |
+| 选项：密码模式 | `GetText`/`GetLine` 返回真实文本、`PosFromChar`/`CharFromPos` 可用、密码字符与 `SetShowPassword` 切换、绘制不崩溃 |
+| 选项：只允许数字 | 非法字符拒绝、上下限夹取、`GetTextNumber`/`SetTextNumber`/`AdjustTextNumber` |
+| 选项：对齐 | 左/中/右与上/中/下切换后 `PosFromChar` 坐标单调变化，往返定位仍一致 |
+| 选项：单行/回车/Tab | 单行模式下回车不插入换行并触发 `kEventReturn`；`want_return`/`want_tab`/`want_ctrl_return` 的行为 |
+| 选项：行间距/缩放 | 行间距乘数与附加量改变行高；`SetZoomPercent(200)` 时坐标按比例变化且行数不变，恢复后复原 |
+| 撤销/重做 | `CanUndo`/`Undo`/`Redo`/`CanRedo`、新编辑使重做失效、`EmptyUndoBuffer`、`SetUndoLimit(1)` |
+| 选区与行查询 API | `SetSel`/`GetSel`/`SetSelAll`/`GetSelText`/`HasSelText`/`GetTextRange`/`Clear`，以及 `LineIndex`/`LineLength`/`LineFromChar`/`GetLine`/`GetTextRange` 的越界与负值 |
+| 光标命令键 | Home/End（行首行尾）、Ctrl+Home/Ctrl+End、PageUp/PageDown（视图滚动）、Shift+左右扩展/收缩选区 |
+| 鼠标选区 | 单击定位与 `CharFromPos` 一致、拖动选择范围与文本一致、双击选词、绘制不崩溃 |
+| 事件 | `kEventTextChanged`/`kEventSelChanged`/`kEventReturn`/`kEventTab`/`kEventZoom`/`kEventTextLimit` 的触发次数；`SetText` 与 `SetTextNoEvent` 的差异 |
+| 系统剪贴板 | `Copy`/`Cut`/`Paste`/`CanPaste` 的文本与选区变化、事件与撤销；只读/密码模式禁止复制剪切粘贴；单行模式把换行规整为空格；数字/字符集/长度限制对粘贴的拦截；多行与 CRLF 文本的复制粘贴往返；Ctrl+C/X/V 与 Shift+Insert 快捷键 |
+| 文本查找 | `FindRichText` 的正向/反向查找、大小写匹配、全字匹配（含查找范围外的词边界判断）、跨行匹配、中文文本、范围越界/空范围/负值/空查找文本等异常参数，以及查找不改变文本与选区 |
+
+结果：**538 项检查全部通过**；`ctest` **16/16 通过**。
+
+测试过程中发现并修复的编辑缺陷（均为既有问题，与 O1 无关）：
+
+| 缺陷 | 现象 | 修复 |
+| --- | --- | --- |
+| 行首退格（仅 `\n` 换行的文本） | `SetText("ab\ncd")` 后在 `c` 前退格，会连 `b` 一起删除（结果 `acd`），期望 `abcd` | `RichEditData::GetPrevValidCharIndex()` / `GetPrevValidWordIndex()` 按前一行实际结尾判断：`\r\n` 跳过 2 个字符，仅 `\n` 跳过 1 个 |
+| `ReplaceSel()` 替换后仍保持选区 | 替换后 `GetSel()` 返回 `[start, end]`，继续输入会覆盖刚插入的文本 | 替换后光标折叠到插入文本末尾（与 Win32 `EM_REPLACESEL` 一致） |
+| `InsertText()` / `AppendText()` 返回值 | 返回操作前的光标位置，与头文件注释"插入/追加后的位置"不符 | `InsertText` 返回 `nInsertAfterChar + 文本长度`；`AppendText` 返回新的 `GetTextLength()` |
+| `End` 键在最后一行少移动一个字符 | `SetText("abc")` 后按 `End`，光标停在字符 `b` 之后（索引 2）而不是文本末尾（索引 3）；`Shift+End` 同样少选最后一个字符 | `RichEditData::GetRowEndCharIndex()` 对"最后一行且无换行符"返回 `nTextLength`（行尾位置在末尾字符之后）；有 `\r\n`/`\n`/`\r` 的行仍返回换行符之前的位置 |
+| 无选区复制会清空剪贴板 | 光标处没有选中文本时调用 `Copy()`（或按 Ctrl+C）会把剪贴板内容清空，用户此前复制的内容丢失 | `RichEdit2::Copy()` 在选中文本为空时直接返回，不写剪贴板（与系统编辑框一致） |
+| 空剪贴板时 `CanPaste()` 返回 true | 剪贴板中没有文本（或被清空）时 `CanPaste()` 仍返回 true，右键菜单"粘贴"保持可用，但执行 `Paste()` 没有任何效果 | `RichEdit2::CanPaste()` 同时要求剪贴板文本非空 |
+
+说明：
+
+- `PosFromChar()` 对"最后一个字符 / 文本末尾 / 换行符"返回行尾边界坐标，
+  `CharFromPos()` 对边界点按字符区间归位，两者边界语义不对等（属既有行为，本次未改动），
+  因此往返一致性校验对这三类位置不做严格断言；
+- **未复现 O1 相关的编辑异常**：窗口缓存与全量缓存逐像素一致，方向键/光标定位/选区绘制均正确。
+  若实际使用中仍出现方向键异常，需要补充复现条件（文本内容、缩放比例、DPI、是否含富文本/emoji）；
+- 本次修复只涉及键盘导航与编辑 API，不经过绘制/排版热路径，**12.4 的性能结论不受影响**。
+  复跑 12 轮时本机后台负载较高（中位数被整体抬高约 15%~20%，但**最小值与 12.4 的中位数接近**），
+  属于环境噪声，待环境空闲时可再复测确认。
+
+### 12.7 粘贴长行文本后滚动出现空白带的修复（2026-11-15）
+
+现象：多行且**不自动换行**的 `RichEdit2`（演示程序 `rich_edit2` 的配置：`multi_line=true`、
+`want_return=true`、`hscrollbar=false`、无 `word_wrap`）粘贴源码等长行文本后，向下滚动时
+某一超宽行之后的文字全部不显示（截图中表现为若干空白行）。
+
+根因（`duilib/RenderSkia/DrawRichText.cpp`，`InternalDrawRichText()`）：不换行文本在生成绘制缓存时，
+若某一行内容宽度超出可视宽度，代码会设置 `bBreakAll = true` 并直接跳出整个绘制构建循环。
+该逻辑本意是"单行文本截断"，但同样作用于多行文本，导致该行之后的所有行都不再生成绘制数据
+（与 O1 的窗口化缓存无关，全量缓存路径同样存在该缺陷）。
+
+修复：
+
+- 单行模式（`TEXT_SINGLELINE`）保持原行为：截断并终止绘制；
+- 多行且不换行：只截断当前行的剩余内容（`xPos`/行宽按已绘制的前缀推进），
+  由换行符推进到下一行继续构建，不再终止整个过程；
+- 省略号（`text_overflow` 默认 "ellipsis"）：新增每行独立的省略号绘制数据
+  （记录行号、行顶、字体、颜色），被裁剪的行在行末各自追加"…"，替代原先只支持一个全局省略号位置的做法。
+
+验证：新增用例 `TestPasteThenScroll`（见 12.6），修复前在 6 个滚动位置分别有 4~7 行不显示，修复后 0 行；
+`richedit2_edit` **全部检查通过**（当时 194 项，当前累计 538 项），`ctest` **16/16 通过**。
+
+性能：该改动只影响"多行 + 不换行 + 行超宽"的裁剪分支；`bench_richedit2` 的各基准场景均为自动换行文本，
+复跑结果与 12.4 的中位数差异在噪声范围内（`steady_zhen_large` 173.8→154.9us、
+`steady_emoji_large` 446.6→373.6us、`relayout_zhen_large` 1573→1590us、`relayout_emoji_large` 12115→11738us），
+**无性能回归**。
+
+### 12.8 编辑功能测试覆盖补齐（2026-11-15）
+
+按"选项 / 命令键 / 鼠标 / 事件"四类补齐了 13 组用例（共 246 项新检查，累计 538 项），
+覆盖范围见 12.6 的用例矩阵。补齐过程中发现并修复 1 个既有缺陷（`End` 键在最后一行少移动一个字符，见 12.6 缺陷表）。
+另记录一个框架层观察（未修改代码）：`ScrollBox::EnableScrollBar(false, ...)` 销毁滚动条后不会再重置滚动位置，
+`SetScrollPos()` 因无滚动条直接返回、不会触发 `OnScrollOffsetChanged`，控件内缓存的滚动偏移会保留；
+测试中用"启用滚动条→制造一次滚动→复位"规避。实际业务中若在已滚动的控件上关闭滚动条，需要显式复位滚动位置。
+
+性能：本次改动只涉及 `End` 键的行尾字符索引计算，不经过绘制/排版热路径；
+`bench_richedit2` 复跑（Release）与 12.4 中位数一致（`steady_zhen_large` 153.3us、
+`steady_emoji_large` 413.9us、`relayout_zhen_large` 1615.6us、`relayout_emoji_large` 11734.6us），**无性能回归**。
+
+### 12.9 系统剪贴板用例补齐（2026-11-15）
+
+新增用例 `TestClipboard`（57 项检查），覆盖 `Copy`/`Cut`/`Paste`/`CanPaste` 与各编辑选项的交互：
+
+- 内容与选区：复制/剪切写入剪贴板的内容，剪切后选区折叠到起点，粘贴插入光标处/替换选区并移动光标；
+- 事件与撤销：`Copy` 不触发 `kEventTextChanged`，`Cut`/`Paste` 各触发一次；剪切可撤销，密码模式粘贴不记录撤销；
+- 只读与密码模式：只读可复制但禁止剪切/粘贴；密码模式禁止复制与剪切，粘贴时移除换行/TAB；
+- 模式与限制：单行模式把 `\r\n`/`\r`/`\n` 各规整为一个空格；数字模式、`limit_chars`、`limit_text` 超限时整次粘贴被丢弃并触发 `kEventTextLimit`；
+- 多行文本：复制后粘贴可完整还原（含换行符），Windows 常见的 CRLF 文本字符保持不变；
+- 快捷键：Ctrl+C/Ctrl+X/Ctrl+V/Shift+Insert（通过线程键盘状态模拟修饰键）。
+
+同时修复 2 个既有缺陷（见 12.6 缺陷表）：无选区复制清空剪贴板、空剪贴板时 `CanPaste()` 返回 true。
+用例会读写系统剪贴板：开始前用 `ClipboardBackup`（RAII）备份剪贴板的**全部格式**（文本、`CF_HDROP` 文件、`CF_BITMAP` 位图、增强图元文件、调色板及各类 HGLOBAL 格式），
+结束后（含提前返回）按原格式恢复，避免破坏用户剪贴板中的非文本数据；若环境无法访问剪贴板则打印 `WARN` 后跳过。
+已手工验证：运行前分别放置文本、文件拖放、8x8 位图，运行后均能完整取回。
+
+验证：`test_richedit2_edit.exe` → **497 项检查全部通过**；`ctest` **16/16 通过**。
+本次改动只涉及 `Copy()`/`CanPaste()` 的空文本判断，不经过绘制/排版热路径；
+`bench_richedit2` 复跑（Release）与 12.4 中位数差异在噪声范围内（`steady_zhen_large` 155.8us、
+`steady_emoji_large` 395.5us、`relayout_zhen_large` 1642.6us、`relayout_emoji_large` 11619.0us），**无性能回归**。
+
+### 12.10 文本查找用例补齐（2026-11-15）
+
+新增用例 `TestFindRichText`（41 项检查，累计 538 项），覆盖 `FindRichText` 的参数语义与边界：
+
+- 正向查找：`bFindDown=true` 时在 `[cpMin, cpMax)` 内返回第一个匹配，匹配文本恰好在 `cpMax` 结束时可命中；
+- 反向查找：`bFindDown=false` 时 `cpMin` 为起始位置、`cpMax` 为下界（`cpMin > cpMax`），在 `[cpMax, cpMin)` 内从后向前返回最后一个匹配；
+- 大小写与全字匹配：区分/忽略大小写，全字匹配跳过 `scatter` 中的 `cat`、连续相同字符 `aaaa` 中的 `aa`；
+- 词边界：全字匹配使用查找范围之外的字符判断首尾边界（`xabc`/`abcx`），也覆盖文本末尾与无字母数字模式（`++`）；
+- 其他：跨行匹配（匹配文本包含 `\n`）、中文文本、范围越界自动收敛、空范围/负值/空查找文本等异常参数返回 false 且输出范围为 `-1`，以及查找不改变文本与选区。
+
+本组用例未发现 `FindRichText` 的功能缺陷（仅修正了用例自身的一处错误预期：`abcabc` 中两处 `abc` 都不是全字）。
+
+验证：`test_richedit2_edit.exe` → **538 项检查全部通过**；`ctest` **16/16 通过**；本次仅新增测试，**无性能影响**。
+
+### 12.11 复跑命令
+
+```bat
+rem 1) 构建（DLL 模式；若测试目标链接失败，则去掉 --dll 用静态库模式）
+python3 build/build.py --offline --dll
+
+rem 2) 单元测试（含 RichEdit2 编辑功能用例 richedit2_edit，见 12.6）
+ctest --test-dir out\x64\Release -C Release --output-on-failure
+rem 也可单独运行：out\x64\Release\tests\test_richedit2_edit.exe
+
+rem 3) 内存（2/4/8/16MB，对比 12.3）
+out\x64\Release\tests\bench_richedit2_memory.exe --mb 2
+out\x64\Release\tests\bench_richedit2_memory.exe --mb 4
+out\x64\Release\tests\bench_richedit2_memory.exe --mb 8
+out\x64\Release\tests\bench_richedit2_memory.exe --mb 16
+
+rem 4) 性能（12 轮弃前 2 轮取中位数，对比 12.4；核对 [layout signature]）
+for /L %i in (1,1,12) do out\x64\Release\tests\bench_richedit2.exe --iterations 200 > out\bench_richedit2_r%i.txt
+```

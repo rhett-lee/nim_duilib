@@ -1127,6 +1127,13 @@ private:
     */
     bool GetRichTextForDraw(std::vector<RichTextData>& richTextDataList) const;
 
+    /** 将指定物理行范围的文本生成可绘制的格式（用于按可视区域懒构建绘制缓存）
+    * @param [out] richTextDataList 返回格式化的文本
+    * @param [in] nFirstLine 起始物理行号
+    * @param [in] nLineCount 行数
+    */
+    bool GetRichTextForDraw(std::vector<RichTextData>& richTextDataList, size_t nFirstLine, size_t nLineCount) const;
+
     /** 单行模式下，把换行符规整为空格(与Windows原生单行编辑框的行为一致)
     */
     void NormalizeSingleLineText(DStringW& text) const;

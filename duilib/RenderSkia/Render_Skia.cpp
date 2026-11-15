@@ -2343,6 +2343,18 @@ bool Render_Skia::CreateDrawRichTextCache(const UiRect& textRect,
     return spDrawRichTextCache != nullptr;
 }
 
+bool Render_Skia::CreateDrawRichTextCacheInRange(const UiRect& textRect,
+                                                 const UiSize& szScrollOffset,
+                                                 const std::vector<RichTextData>& richTextData,
+                                                 const RichTextDrawWindow& drawWindow,
+                                                 std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache)
+{
+    spDrawRichTextCache.reset();
+    ui::DrawRichText drawRichText(this, GetSkCanvas(), m_pSkPaint.get(), m_pSkPointOrg.get());
+    drawRichText.CreateDrawRichTextCacheInRange(textRect, szScrollOffset, m_pRenderFactory, richTextData, drawWindow, spDrawRichTextCache);
+    return spDrawRichTextCache != nullptr;
+}
+
 bool Render_Skia::IsValidDrawRichTextCache(const UiRect& textRect,
                                            const std::vector<RichTextData>& richTextData,
                                            const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,

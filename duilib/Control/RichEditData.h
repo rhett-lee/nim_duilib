@@ -10,6 +10,29 @@
 
 namespace ui
 {
+/** 文本可视区域对应的物理行范围（用于按可视区域懒构建绘制缓存）
+*/
+struct RichTextVisibleRange
+{
+    /** 起始物理行号（含） */
+    size_t m_nFirstLine = 0;
+
+    /** 结束物理行号（含） */
+    size_t m_nLastLine = 0;
+
+    /** 起始物理行对应的逻辑行号 */
+    uint32_t m_nFirstRowIndex = 0;
+
+    /** 起始物理行的顶部Y坐标（内容坐标，不含垂直对齐偏移） */
+    int32_t m_nFirstLineTop = 0;
+
+    /** 绘制缓存构建的内容底部Y坐标（到达该位置后停止构建） */
+    int32_t m_nBottom = 0;
+
+    /** 全文的逻辑行总数 */
+    uint32_t m_nTotalRowCount = 0;
+};
+
 /** 生成格式化文本的接口，用于绘制文本
 */
 class DUILIB_API IRichTextData
@@ -150,6 +173,21 @@ public:
     /** 获取文本视图，文本视图是按行组织，每行一条数据（以'\n'切分的行）
     */
     void GetTextView(std::vector<std::wstring_view>& textView) const;
+
+    /** 获取指定物理行范围的文本视图（用于按可视区域懒构建绘制缓存）
+    * @param [out] textView 返回的文本视图，每行一条数据
+    * @param [in] nFirstLine 起始物理行号
+    * @param [in] nLineCount 行数
+    */
+    void GetTextView(std::vector<std::wstring_view>& textView, size_t nFirstLine, size_t nLineCount) const;
+
+    /** 获取可视区域对应的物理行范围（上下各预取一屏，用于按可视区域懒构建绘制缓存）
+    * @param [in] rcDrawText 文本绘制区域（不含滚动偏移）
+    * @param [in] szScrollOffset 滚动条位置
+    * @param [out] range 返回的行范围信息
+    * @return 返回true表示成功，返回false表示行数据还未准备好（调用方应回退到全量构建）
+    */
+    bool GetVisibleLineRange(const UiRect& rcDrawText, const UiSize& szScrollOffset, RichTextVisibleRange& range) const;
 
     /** 获取内容的长度(按UTF16编码的字符个数)
      * @return 返回文本内容长度
@@ -344,6 +382,14 @@ public:
     */
     void ClearDrawRichTextCache();
 
+    /** 设置绘制缓存覆盖的物理行范围
+    */
+    void SetDrawRichTextCacheRange(size_t nFirstLine, size_t nLineCount);
+
+    /** 绘制缓存覆盖的物理行范围是否与指定范围一致
+    */
+    bool IsDrawRichTextCacheRangeMatched(size_t nFirstLine, size_t nLineCount) const;
+
     /** 对重新计算做标记
     */
     void SetCacheDirty(bool bDirty);
@@ -408,6 +454,11 @@ private:
     /** 按对齐方式，更新每行文本的横坐标
     */
     void UpdateRowTextOffsetX(RichTextLineInfoList& lineTextInfo, HorAlignType hAlignType, std::vector<int32_t>& rowXOffset, bool& bTextRectXOffsetUpdated) const;
+
+    /** 更新物理行的索引数据：行号范围（m_lineRowBeginIndex）与行顶部坐标（m_lineTop）
+    * @param [in] nStartLine 从哪个物理行开始更新（之前的行数据保持不变）
+    */
+    void UpdateLineIndexData(size_t nStartLine);
 
     /** 计算文本的区域信息（全部重新计算）
     */
@@ -556,6 +607,23 @@ private:
     /** 文本绘制缓存
     */
     std::shared_ptr<DrawRichTextCache> m_spDrawRichTextCache;
+
+    /** 绘制缓存覆盖的起始物理行号（绘制缓存按可视区域懒构建，只覆盖部分行）
+    */
+    size_t m_nDrawCacheFirstLine = 0;
+
+    /** 绘制缓存覆盖的物理行数（0表示绘制缓存为空）
+    */
+    size_t m_nDrawCacheLineCount = 0;
+
+    /** 每个物理行的第一个逻辑行号（m_lineRowBeginIndex[i] 表示第 i 行之前的逻辑行数，
+        末尾多一个元素，表示全文的逻辑行总数）
+    */
+    std::vector<uint32_t> m_lineRowBeginIndex;
+
+    /** 每个物理行的顶部Y坐标（内容坐标，不包含垂直对齐的偏移）
+    */
+    std::vector<int32_t> m_lineTop;
 
     /** 缓存数据有效性标志
     */

@@ -119,6 +119,12 @@ public:
                                          const std::vector<RichTextData>& richTextData,
                                          std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) override;
 
+    virtual bool CreateDrawRichTextCacheInRange(const UiRect& textRect,
+                                                const UiSize& szScrollOffset,
+                                                const std::vector<RichTextData>& richTextData,
+                                                const RichTextDrawWindow& drawWindow,
+                                                std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) override;
+
     virtual bool IsValidDrawRichTextCache(const UiRect& textRect,
                                           const std::vector<RichTextData>& richTextData,
                                           const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,

@@ -946,6 +946,27 @@ struct RichTextLineInfoParam
 */
 class DrawRichTextCache;
 
+/** 绘制缓存的构建窗口：只构建可视区域附近的行，避免为全文建立绘制数据
+*/
+struct RichTextDrawWindow
+{
+    /** 窗口对应的第一个逻辑行号（全局行号） */
+    uint32_t m_nFirstRowIndex = 0;
+
+    /** 窗口对应的第一个物理行号 */
+    uint32_t m_nFirstLineNumber = 0;
+
+    /** 窗口第一行的顶部Y坐标（内容坐标，以文本绘制区域的左上角为原点） */
+    int32_t m_nFirstRowTop = 0;
+
+    /** 窗口的内容底部Y坐标：构建位置到达该值后停止（内容坐标）
+        （用于限制单行文本被折行成很多逻辑行时的构建范围） */
+    int32_t m_nBottom = 0;
+
+    /** 全文逻辑行总数（用于判断文本的最后一行） */
+    uint32_t m_nTotalRowCount = 0;
+};
+
 /** 裁剪区域类型
 */
 enum class RenderClipType
@@ -1496,6 +1517,25 @@ public:
                                          const UiSize& szScrollOffset,
                                          const std::vector<RichTextData>& richTextData,
                                          std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) = 0;
+
+    /** 创建RichText的绘制缓存（只构建指定物理行窗口内的行，用于按可视区域懒构建缓存）
+    * @param [in] textRect 绘制文本的矩形区域
+    * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
+    * @param [in] richTextData 窗口内的格式化文字内容（与 drawWindow 指定的物理行范围对应）
+    * @param [in] drawWindow 构建窗口的参数
+    * @param [out] spDrawRichTextCache 返回绘制缓存
+    * @return 返回true表示创建成功
+    */
+    virtual bool CreateDrawRichTextCacheInRange(const UiRect& textRect,
+                                                const UiSize& szScrollOffset,
+                                                const std::vector<RichTextData>& richTextData,
+                                                const RichTextDrawWindow& drawWindow,
+                                                std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache)
+    {
+        //默认实现：忽略窗口参数，构建全部行（保证接口兼容性）
+        UNUSED_VARIABLE(drawWindow);
+        return CreateDrawRichTextCache(textRect, szScrollOffset, richTextData, spDrawRichTextCache);
+    }
 
     /** 判断RichText的绘制缓存是否有效
     * @param [in] textRect 绘制文本的矩形区域

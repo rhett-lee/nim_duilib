@@ -1,6 +1,7 @@
 #include "RichEditData.h"
 #include "duilib/Utils/PerformanceUtil.h"
 #include <unordered_set>
+#include <algorithm>
 
 namespace ui
 {
@@ -392,6 +393,9 @@ void RichEditData::CalcTextRectsFull()
         m_rowXOffset.swap(temp);
         m_bTextRectXOffsetUpdated = false;
         m_bTextRectYOffsetUpdated = false;
+        ClearDrawRichTextCache();
+        m_lineRowBeginIndex.clear();
+        m_lineTop.clear();
         return;
     }
     //估算的时候，滚动条位置始终为(0,0)
@@ -425,7 +429,8 @@ void RichEditData::CalcTextRectsFull()
         }
     }
     else {
-        m_pRender->MeasureRichText(rcDrawText, szScrollOffset, richTextDataList, &lineInfoParam, &m_spDrawRichTextCache, nullptr);
+        //全量排版时不构建绘制缓存：绘制缓存按可视区域懒构建（见 RichEdit2::Paint）
+        m_pRender->MeasureRichText(rcDrawText, szScrollOffset, richTextDataList, &lineInfoParam, nullptr, nullptr);
     }    
     SetTextDrawRect(rcDrawText, false);
     CalcCacheTextRects(m_rcTextRect);
@@ -441,6 +446,9 @@ void RichEditData::CalcTextRectsFull()
 
     //检查并按需插入空行
     AppendEmptyLine(m_lineTextInfo);
+
+    //更新物理行索引数据（行号范围与行顶部坐标），供绘制缓存按可视区域懒构建使用
+    UpdateLineIndexData(0);
 }
 
 void RichEditData::AppendEmptyLine(RichTextLineInfoList& lineTextInfo) const
@@ -628,6 +636,9 @@ void RichEditData::CalcTextRectsPart(size_t nStartLine,
         m_rowXOffset.swap(temp);
         m_bTextRectXOffsetUpdated = false;
         m_bTextRectYOffsetUpdated = false;
+        ClearDrawRichTextCache();
+        m_lineRowBeginIndex.clear();
+        m_lineTop.clear();
         return;
     }
 
@@ -645,16 +656,9 @@ void RichEditData::CalcTextRectsPart(size_t nStartLine,
         }
     }
 
-    //当前最新的待绘制数据
-    std::vector<RichTextData> richTextDataListAll;
-    if (m_spDrawRichTextCache != nullptr) {
-        //比较绘制缓存是否失效，如果失效则清空
-        m_pRichText->GetRichTextForDraw(textView, richTextDataListAll);
-    }
-    //修改后的文本，重新生成的绘制缓存
-    std::shared_ptr<DrawRichTextCache> spDrawRichTextCacheUpdated;
+    //增量排版后，绘制缓存失效：直接丢弃，由 RichEdit2::Paint 按可视区域重新懒构建
+    ClearDrawRichTextCache();
 
-    size_t nModifiedRows = 0;//修改后的文本，计算后切分为几行（逻辑行）
     if (!modifiedLines.empty()) {
         //有修改的行，重新计算行数据
         std::vector<RichTextData> richTextDataListModified;
@@ -662,18 +666,7 @@ void RichEditData::CalcTextRectsPart(size_t nStartLine,
         if (richTextDataListModified.empty()) {
             return;
         }
-        m_pRender->MeasureRichText(rcDrawText, szScrollOffset, richTextDataListModified, &lineInfoParam, &spDrawRichTextCacheUpdated, nullptr);
-        std::unordered_set<uint32_t> modifiedLineSet;
-        for (size_t nLine : modifiedLines) {
-            modifiedLineSet.insert((uint32_t)nLine);
-        }
-        const size_t nLineCount = m_lineTextInfo.size();
-        for (uint32_t nLine = 0; nLine < nLineCount; ++nLine) {
-            if (modifiedLineSet.find(nLine) != modifiedLineSet.end()) {
-                const RichTextLineInfo& lineInfo = *m_lineTextInfo[nLine];
-                nModifiedRows += (uint32_t)lineInfo.m_rowInfo.size();
-            }
-        }
+        m_pRender->MeasureRichText(rcDrawText, szScrollOffset, richTextDataListModified, &lineInfoParam, nullptr, nullptr);
     }
 
     //绘制后，增量绘制后的行高数据
@@ -685,25 +678,6 @@ void RichEditData::CalcTextRectsPart(size_t nStartLine,
     }
     UpdateRowTextOffsetX(m_lineTextInfo, HorAlignType::kAlignLeft, m_rowXOffset, m_bTextRectXOffsetUpdated);
     
-    //更新绘制缓存
-    if (m_spDrawRichTextCache != nullptr) {
-        std::vector<int32_t> rowRectTopList;
-        const size_t nLineCount = m_lineTextInfo.size();
-        rowRectTopList.reserve(nLineCount);
-        for (size_t nLineIndex = 0; nLineIndex < nLineCount; ++nLineIndex) {
-            const RichTextLineInfo& lineInfo = *m_lineTextInfo[nLineIndex];
-            const size_t nRowCount = lineInfo.m_rowInfo.size();
-            for (size_t nRow = 0; nRow < nRowCount; ++nRow) {
-                rowRectTopList.push_back((int32_t)lineInfo.m_rowInfo[nRow]->m_rowRect.top);
-            }
-        }
-        if (!m_pRender->UpdateDrawRichTextCache(m_spDrawRichTextCache, spDrawRichTextCacheUpdated, richTextDataListAll,
-                                                nStartLine, modifiedLines, nModifiedRows, deletedLines, nDeletedRows, rowRectTopList)) {
-            m_spDrawRichTextCache.reset();
-        }
-        //该数据已经交还给缓存，不能再使用
-        richTextDataListAll.clear();
-    }
     CalcCacheTextRects(m_rcTextRect);
 
     m_bTextRectYOffsetUpdated = false;
@@ -713,7 +687,10 @@ void RichEditData::CalcTextRectsPart(size_t nStartLine,
         m_bTextRectYOffsetUpdated = true;
     }
     UpdateRowTextOffsetX(m_lineTextInfo, GetHAlignType(), m_rowXOffset, m_bTextRectXOffsetUpdated);
-    
+
+    //更新物理行索引数据（从变化的行开始，后续行的行号与行顶部坐标可能变化）
+    UpdateLineIndexData(nStartLine);
+
 #ifdef _DEBUG
     //增量布局结果与完整布局的一致性校验：开销较大（相当于再做一次全量排版），
     //默认关闭；排查增量布局问题时，定义 DUILIB_RICHEDIT_DEBUG_FULL_LAYOUT_CHECK 开启
@@ -937,6 +914,27 @@ void RichEditData::GetTextView(std::vector<std::wstring_view>& textView) const
 {
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
+        const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
+        CheckLineTextData(m_lineTextInfo, nIndex);
+        if (lineText.m_nLineTextLen > 0) {
+            textView.push_back(std::wstring_view(lineText.m_lineText.data(), lineText.m_nLineTextLen));
+        }
+    }
+}
+
+void RichEditData::GetTextView(std::vector<std::wstring_view>& textView, size_t nFirstLine, size_t nLineCount) const
+{
+    textView.clear();
+    const size_t nTotalLineCount = m_lineTextInfo.size();
+    if ((nFirstLine >= nTotalLineCount) || (nLineCount == 0)) {
+        return;
+    }
+    size_t nEndLine = nFirstLine + nLineCount;
+    if (nEndLine > nTotalLineCount) {
+        nEndLine = nTotalLineCount;
+    }
+    textView.reserve(nEndLine - nFirstLine);
+    for (size_t nIndex = nFirstLine; nIndex < nEndLine; ++nIndex) {
         const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
         CheckLineTextData(m_lineTextInfo, nIndex);
         if (lineText.m_nLineTextLen > 0) {
@@ -1963,7 +1961,12 @@ int32_t RichEditData::GetPrevValidCharIndex(int32_t nCharIndex)
                 CheckLineTextData(m_lineTextInfo, nIndex - 1);
                 if (prevLineText.m_nLineTextLen > 1) {
                     ASSERT(prevLineText.m_lineText.data()[prevLineText.m_nLineTextLen - 1] == L'\n');
-                    nNewCharIndex = nCharIndex - 2; //跳过最后一个'\n'字符
+                    if (prevLineText.m_lineText.data()[prevLineText.m_nLineTextLen - 2] == L'\r') {
+                        nNewCharIndex = nCharIndex - 2; //跳过"\r\n"两个字符
+                    }
+                    else {
+                        nNewCharIndex = nCharIndex - 1; //只有'\n'时，只跳过这一个字符
+                    }
                 }
                 else if (prevLineText.m_nLineTextLen == 1) {
                     nNewCharIndex = nCharIndex - 1; //指向此字符
@@ -2192,7 +2195,12 @@ int32_t RichEditData::GetPrevValidWordIndex(int32_t nCharIndex)
                 CheckLineTextData(m_lineTextInfo, nIndex - 1);
                 if (prevLineText.m_nLineTextLen > 1) {
                     ASSERT(prevLineText.m_lineText.data()[prevLineText.m_nLineTextLen - 1] == L'\n');
-                    nNewCharIndex = nCharIndex - 2; //跳过最后一个'\n'字符
+                    if (prevLineText.m_lineText.data()[prevLineText.m_nLineTextLen - 2] == L'\r') {
+                        nNewCharIndex = nCharIndex - 2; //跳过"\r\n"两个字符
+                    }
+                    else {
+                        nNewCharIndex = nCharIndex - 1; //只有'\n'时，只跳过这一个字符
+                    }
                 }
                 else if (prevLineText.m_nLineTextLen == 1) {
                     nNewCharIndex = nCharIndex - 1; //指向此字符
@@ -2399,8 +2407,15 @@ int32_t RichEditData::GetRowEndCharIndex(int32_t nCharIndex)
             //在本行中寻找
             const size_t nStartCharBaseLen = nTextLen - lineText.m_nLineTextLen;
             nNewCharIndex = (int32_t)(nTextLen - 1);
-            size_t nNewOffset = (size_t)nNewCharIndex - nStartCharBaseLen;
-            if ((nNewOffset == (lineText.m_nLineTextLen - 1)) && (lineText.m_lineText.data()[nNewOffset] == L'\n')) {
+            const size_t nNewOffset = (size_t)nNewCharIndex - nStartCharBaseLen;
+            const bool bHasLineBreak = (nNewOffset < lineText.m_nLineTextLen) &&
+                                       ((lineText.m_lineText.data()[nNewOffset] == L'\n') ||
+                                        (lineText.m_lineText.data()[nNewOffset] == L'\r'));
+            if (!bHasLineBreak) {
+                //最后一行没有换行符：行尾位置在最后一个字符之后，光标可以停在该位置
+                nNewCharIndex += 1;
+            }
+            else if (lineText.m_lineText.data()[nNewOffset] == L'\n') {
                 //如果已经指向换行符，那么跳到前面的回车符'\r'
                 if ((nNewOffset >= 1) && (lineText.m_lineText.data()[nNewOffset - 1] == L'\r')) {
                     nNewCharIndex -= 1;
@@ -2629,6 +2644,10 @@ void RichEditData::SetCacheDirty(bool bDirty)
 void RichEditData::SetDrawRichTextCache(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache)
 {
     m_spDrawRichTextCache = spDrawRichTextCache;
+    if (m_spDrawRichTextCache == nullptr) {
+        m_nDrawCacheFirstLine = 0;
+        m_nDrawCacheLineCount = 0;
+    }
 }
 
 const std::shared_ptr<DrawRichTextCache>& RichEditData::GetDrawRichTextCache() const
@@ -2639,6 +2658,114 @@ const std::shared_ptr<DrawRichTextCache>& RichEditData::GetDrawRichTextCache() c
 void RichEditData::ClearDrawRichTextCache()
 {
     m_spDrawRichTextCache.reset();
+    m_nDrawCacheFirstLine = 0;
+    m_nDrawCacheLineCount = 0;
+}
+
+void RichEditData::SetDrawRichTextCacheRange(size_t nFirstLine, size_t nLineCount)
+{
+    m_nDrawCacheFirstLine = nFirstLine;
+    m_nDrawCacheLineCount = nLineCount;
+}
+
+bool RichEditData::IsDrawRichTextCacheRangeMatched(size_t nFirstLine, size_t nLineCount) const
+{
+    return (m_spDrawRichTextCache != nullptr) &&
+           (m_nDrawCacheFirstLine == nFirstLine) &&
+           (m_nDrawCacheLineCount == nLineCount);
+}
+
+void RichEditData::UpdateLineIndexData(size_t nStartLine)
+{
+    const size_t nLineCount = m_lineTextInfo.size();
+
+    //行数变化后，之前的索引数据可能不完整，需要从头重新计算
+    if ((m_lineRowBeginIndex.size() != (nLineCount + 1)) || (m_lineTop.size() != nLineCount)) {
+        nStartLine = 0;
+    }
+    m_lineRowBeginIndex.resize(nLineCount + 1);
+    m_lineTop.resize(nLineCount);
+    if (nStartLine > nLineCount) {
+        nStartLine = nLineCount;
+    }
+    if (nStartLine == 0) {
+        m_lineRowBeginIndex[0] = 0;
+    }
+    //行矩形中是否已经包含垂直对齐的偏移
+    const int32_t nRowOffsetY = m_bTextRectYOffsetUpdated ? GetTextRectOfssetY() : 0;
+    for (size_t nLine = nStartLine; nLine < nLineCount; ++nLine) {
+        const RichTextLineInfo* pLineInfo = m_lineTextInfo[nLine].get();
+        size_t nRowCount = 0;
+        int32_t nLineTop = (nLine > 0) ? m_lineTop[nLine - 1] : 0;
+        if (pLineInfo != nullptr) {
+            nRowCount = pLineInfo->m_rowInfo.size();
+            if (nRowCount > 0) {
+                nLineTop = (int32_t)pLineInfo->m_rowInfo[0]->m_rowRect.top - nRowOffsetY;
+            }
+        }
+        m_lineTop[nLine] = nLineTop;
+        m_lineRowBeginIndex[nLine + 1] = m_lineRowBeginIndex[nLine] + (uint32_t)nRowCount;
+    }
+}
+
+bool RichEditData::GetVisibleLineRange(const UiRect& rcDrawText, const UiSize& szScrollOffset, RichTextVisibleRange& range) const
+{
+    range = RichTextVisibleRange();
+    const size_t nLineCount = m_lineTextInfo.size();
+    if ((nLineCount == 0) || (m_lineTop.size() != nLineCount) || (m_lineRowBeginIndex.size() != (nLineCount + 1))) {
+        //行索引数据还未准备好
+        return false;
+    }
+    const int32_t nViewHeight = (int32_t)rcDrawText.Height();
+    if (nViewHeight <= 0) {
+        return false;
+    }
+
+    //上下各预取一屏，滚动时避免频繁重建绘制缓存
+    const int32_t nWindowTop = szScrollOffset.cy - nViewHeight;
+    const int32_t nWindowBottom = szScrollOffset.cy + 2 * nViewHeight;
+
+    //查找第一个顶部 >= 窗口顶部的行，其前一行可能跨越窗口顶部（需要包含）
+    size_t nFirstLine = (size_t)(std::lower_bound(m_lineTop.begin(), m_lineTop.end(), nWindowTop) - m_lineTop.begin());
+    if (nFirstLine > 0) {
+        --nFirstLine;
+    }
+    //查找第一个顶部 > 窗口底部的行，其前一行是最后一行需要构建的行
+    size_t nLastLine = (size_t)(std::upper_bound(m_lineTop.begin(), m_lineTop.end(), nWindowBottom) - m_lineTop.begin());
+    if (nLastLine > 0) {
+        --nLastLine;
+    }
+    if (nLastLine < nFirstLine) {
+        nLastLine = nFirstLine;
+    }
+    if (nLastLine >= nLineCount) {
+        nLastLine = nLineCount - 1;
+    }
+
+    range.m_nFirstLine = nFirstLine;
+    range.m_nLastLine = nLastLine;
+    range.m_nFirstRowIndex = m_lineRowBeginIndex[nFirstLine];
+    range.m_nFirstLineTop = m_lineTop[nFirstLine];
+    range.m_nTotalRowCount = m_lineRowBeginIndex[nLineCount];
+
+    //构建范围的内容底部坐标
+    if ((nLastLine + 1) < nLineCount) {
+        range.m_nBottom = m_lineTop[nLastLine + 1];
+    }
+    else {
+        const RichTextLineInfo* pLastLineInfo = m_lineTextInfo[nLineCount - 1].get();
+        const int32_t nRowOffsetY = m_bTextRectYOffsetUpdated ? GetTextRectOfssetY() : 0;
+        if ((pLastLineInfo != nullptr) && !pLastLineInfo->m_rowInfo.empty()) {
+            range.m_nBottom = (int32_t)pLastLineInfo->m_rowInfo.back()->m_rowRect.bottom - nRowOffsetY;
+        }
+        else {
+            range.m_nBottom = m_lineTop[nLineCount - 1] + nViewHeight;
+        }
+    }
+    if (range.m_nBottom <= range.m_nFirstLineTop) {
+        range.m_nBottom = range.m_nFirstLineTop + nViewHeight;
+    }
+    return true;
 }
 
 void RichEditData::SetUndoLimit(uint32_t nUndoLimit)
@@ -2805,7 +2932,9 @@ void RichEditData::Clear()
 {
     RichTextLineInfoList lineTextInfo;
     m_lineTextInfo.swap(lineTextInfo);
-    m_spDrawRichTextCache.reset();
+    ClearDrawRichTextCache();
+    m_lineRowBeginIndex.clear();
+    m_lineTop.clear();
     m_rcTextRect.Clear();
 
     std::vector<int32_t> temp;

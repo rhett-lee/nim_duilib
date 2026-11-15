@@ -39,7 +39,24 @@ public:
                                 bool bMeasureOnly,
                                 RichTextLineInfoParam* pLineInfoParam,
                                 std::shared_ptr<DrawRichTextCache>* pDrawRichTextCache,
-                                std::vector<std::vector<UiRect>>* pRichTextRects);
+                                std::vector<std::vector<UiRect>>* pRichTextRects,
+                                const RichTextDrawWindow* pDrawWindow = nullptr);
+
+    /** 创建格式文本的绘制缓存（只构建指定物理行窗口内的行，用于按可视区域懒构建缓存）
+    * @param [in] rcTextRect 绘制文本的矩形区域
+    * @param [in] szScrollOffset 滚动条位置
+    * @param [in] pRenderFactory 渲染接口工厂
+    * @param [in] richTextData 窗口内的格式化文字内容（与 drawWindow 指定的物理行范围对应）
+    * @param [in] drawWindow 构建窗口的参数
+    * @param [out] pDrawRichTextCache 返回绘制缓存
+    * @return 返回true表示创建成功
+    */
+    bool CreateDrawRichTextCacheInRange(const UiRect& rcTextRect,
+                                        const UiSize& szScrollOffset,
+                                        IRenderFactory* pRenderFactory,
+                                        const std::vector<RichTextData>& richTextData,
+                                        const RichTextDrawWindow& drawWindow,
+                                        std::shared_ptr<DrawRichTextCache>& pDrawRichTextCache);
 
     /** 判断RichText的绘制缓存是否有效
     * @param [in] textRect 绘制文本的矩形区域

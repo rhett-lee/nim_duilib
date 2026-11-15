@@ -287,6 +287,44 @@ if(WIN32)
     endif()
 endif()
 
+# RichEdit2 编辑功能单元测试：
+# 覆盖替换文本、插入字符（InsertText/键盘输入）、插入行（回车）、删除字符
+# （退格/删除）、删除行、替换文本行、方向键（上/下/左/右）移动光标，
+# 以及滚动切换视图时按可视区域构建的绘制缓存与全量缓存逐像素一致。
+# 该测试使用离屏渲染（不创建窗口），仅在 Windows 平台构建。
+if(WIN32)
+    add_executable(test_richedit2_edit
+        test_richedit2_edit.cpp
+    )
+    target_include_directories(test_richedit2_edit PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../"
+    )
+    target_link_directories(test_richedit2_edit PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_richedit2_edit PRIVATE
+        duilib
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_richedit2_edit PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_richedit2_edit PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(test_richedit2_edit PRIVATE UNICODE _UNICODE NOMINMAX WIN32_LEAN_AND_MEAN)
+    # 默认资源目录：源码树的 bin/resources
+    target_compile_definitions(test_richedit2_edit PRIVATE
+        DUILIB_TEST_RESOURCE_DIR="${CMAKE_SOURCE_DIR}/bin/resources"
+    )
+    if(MSVC)
+        target_compile_options(test_richedit2_edit PRIVATE /utf-8)
+    endif()
+    add_test(NAME richedit2_edit
+             COMMAND test_richedit2_edit
+    )
+endif()
+
 # ClearAlpha / RestoreAlpha / Render Clear / Render ClearRect 的性能基准
 # （不注册到 ctest，属于手工运行的评估工具）。评测请使用 Release 配置，例如：
 #   python3 build/build.py build --config Release --arch x64 --offline
