@@ -970,6 +970,12 @@ private:
     void OnMouseWheel(int32_t wheelDelta, bool bCtrlDown);
     void OnWindowKillFocus();
 
+    /** 判断当前鼠标按下是否属于三击（与上次双击的时间间隔足够短，并且点击位置接近）
+    * @param [in] ptMouse 鼠标位置
+    * @param [in] bReset 匹配时是否复位双击状态（复位后不再识别三击）
+    */
+    bool IsTripleClick(const UiPoint& ptMouse, bool bReset);
+
 private:
     /** 显示RichEdit上的菜单
     * @param [in] point 客户区的坐标

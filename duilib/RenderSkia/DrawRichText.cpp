@@ -1614,8 +1614,9 @@ void DrawRichText::OnDrawUnicodeChar(RichTextLineInfoParam* pLineInfoParam,
     rowInfo.m_charInfo.PushBack(fCharX, fCharWidth, charFlag);
 
     if (glyphChars == 2) {
-        //低代理字符（不绘制，不占宽度）
-        rowInfo.m_charInfo.PushBack(fCharX, 0,
+        //低代理字符（不绘制，不占宽度）：位置取高代理字符的结束位置，
+        //保证代理对整体的字符宽度等于所绘制字形的宽度（光标定位与鼠标命中的计算依赖该宽度）
+        rowInfo.m_charInfo.PushBack(fCharX + glyphWidth, 0,
                                     (uint8_t)(RichTextCharFlag::kIsIgnoredChar | RichTextCharFlag::kIsLowSurrogate));
     }
     ASSERT((glyphChars == 1) || (glyphChars == 2));

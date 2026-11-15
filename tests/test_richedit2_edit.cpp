@@ -2277,6 +2277,224 @@ void TestMouseSelection(TestEnv& env)
     CHECK_MSG(CountInkPixels(env) > 0, "mouse: text should be painted after double click");
 }
 
+/** 不自动换行 + 横向滚动：光标定位、鼠标点击与拖动选择（坐标需扣减滚动偏移） */
+void TestCaretSelectionScrolled(TestEnv& env)
+{
+    ResetEdit(env);
+    TestRichEdit2& richEdit = env.Edit();
+    richEdit.SetEnableDragOut(false);
+    richEdit.EnableScrollBar(false, true);
+    richEdit.SetWordWrap(false);
+    richEdit.SetMultiLine(true);
+
+    DStringW text;
+    for (int32_t i = 0; i < 30; ++i) {
+        text += L"0123456789";
+    }
+    richEdit.SetText(text);
+    richEdit.SetSel(0, 0);
+
+    ui::ScrollBar* pHScrollBar = richEdit.GetHScrollBar();
+    CHECK_MSG(pHScrollBar != nullptr, "hscroll: horizontal scroll bar should be created");
+    if (pHScrollBar == nullptr) {
+        richEdit.EnableScrollBar(false, false);
+        return;
+    }
+    pHScrollBar->SetScrollRange(2400);
+
+    //滚动前，记录字符位置与宽度
+    const int32_t nChar = 60;
+    const ui::UiPoint ptBefore = richEdit.PosFromChar(nChar);
+    const int32_t nCharWidth = richEdit.PosFromChar(nChar + 1).x - ptBefore.x;
+    CHECK_MSG(nCharWidth > 0, "hscroll: character width should be positive");
+
+    //横向滚动后，PosFromChar 应整体左移滚动量
+    const int32_t nScrollX = 400;
+    richEdit.SetScrollPosX(nScrollX);
+    CHECK_MSG(richEdit.GetScrollOffset().cx == nScrollX, "hscroll: scroll offset should be applied");
+    PaintFrame(env);
+    const ui::UiPoint ptScrolled = richEdit.PosFromChar(nChar);
+    CHECK_MSG(ptScrolled.x == ptBefore.x - nScrollX, "hscroll: PosFromChar should shift by the scroll offset");
+    CHECK_MSG(ptScrolled.y == ptBefore.y, "hscroll: PosFromChar y should not change when scrolling horizontally");
+
+    //点击字符左半/右半：命中结果应正确
+    const int32_t nBackLeft = richEdit.CharFromPos(ui::UiPoint(ptScrolled.x + nCharWidth / 4, ptScrolled.y + 1));
+    CHECK_MSG(nBackLeft == nChar, "hscroll: click left half of char -> " + std::to_string(nBackLeft));
+    const int32_t nBackRight = richEdit.CharFromPos(ui::UiPoint(ptScrolled.x + nCharWidth * 3 / 4 + 1, ptScrolled.y + 1));
+    CHECK_MSG(nBackRight == nChar + 1, "hscroll: click right half of char -> " + std::to_string(nBackRight));
+
+    //单击：清除原有选区并定位光标
+    richEdit.SetSel(50, 60);
+    const ui::UiPoint ptCaret = richEdit.PosFromChar(55);
+    SendMouseDown(richEdit, ui::UiPoint(ptCaret.x + 2, ptCaret.y + 1));
+    SendMouseUp(richEdit, ui::UiPoint(ptCaret.x + 2, ptCaret.y + 1));
+    int32_t nSelStart = -1;
+    int32_t nSelEnd = -1;
+    richEdit.GetSel(nSelStart, nSelEnd);
+    CHECK_MSG(nSelStart == 55 && nSelEnd == 55, "hscroll: click should collapse the selection (" +
+              std::to_string(nSelStart) + "," + std::to_string(nSelEnd) + ")");
+
+    //拖动选择：起点与终点都在滚动后的可视区域内
+    const ui::UiPoint ptDragStart = richEdit.PosFromChar(40);
+    const ui::UiPoint ptDragEnd = richEdit.PosFromChar(70);
+    SendMouseDown(richEdit, ui::UiPoint(ptDragStart.x + 2, ptDragStart.y + 1));
+    SendMouseMove(richEdit, ui::UiPoint(ptDragEnd.x + 2, ptDragEnd.y + 1));
+    SendMouseUp(richEdit, ui::UiPoint(ptDragEnd.x + 2, ptDragEnd.y + 1));
+    richEdit.GetSel(nSelStart, nSelEnd);
+    CHECK_MSG(nSelStart == 40 && nSelEnd == 70, "hscroll: drag selection (" +
+              std::to_string(nSelStart) + "," + std::to_string(nSelEnd) + ")");
+    CHECK_MSG(richEdit.GetSelText() == text.substr(40, 30), "hscroll: drag selected text");
+
+    //Shift + 单击扩展选区
+    {
+        const ui::UiPoint ptShiftClick = richEdit.PosFromChar(80);
+        SendKeyUp(richEdit, ui::kVK_SHIFT);
+        richEdit.SetSel(40, 70);
+        {
+            ScopedKeyPressed shiftKey(ui::kVK_SHIFT);
+            CHECK_MSG(shiftKey.IsEffective(), "hscroll: shift key should be effective");
+            SendKey(richEdit, ui::kVK_SHIFT);
+            SendMouseDown(richEdit, ui::UiPoint(ptShiftClick.x + 2, ptShiftClick.y + 1),
+                          (uint32_t)ui::ModifierKey::kShift);
+            SendMouseUp(richEdit, ui::UiPoint(ptShiftClick.x + 2, ptShiftClick.y + 1),
+                        (uint32_t)ui::ModifierKey::kShift);
+        }
+        SendKeyUp(richEdit, ui::kVK_SHIFT);
+        richEdit.GetSel(nSelStart, nSelEnd);
+        CHECK_MSG(nSelStart == 40 && nSelEnd == 80, "hscroll: shift+click selection (" +
+                  std::to_string(nSelStart) + "," + std::to_string(nSelEnd) + ")");
+    }
+
+    PaintFrame(env);
+    CHECK_MSG(CountInkPixels(env) > 0, "hscroll: text and selection should be painted");
+
+    richEdit.SetScrollPosX(0);
+    richEdit.EnableScrollBar(false, false);
+}
+
+/** 按词移动（Ctrl+Left/Right）、Ctrl+Shift+方向键与 Shift+Home/End */
+void TestCaretWordAndLineKeys(TestEnv& env)
+{
+    ResetEdit(env);
+    TestRichEdit2& richEdit = env.Edit();
+    richEdit.EnableScrollBar(false, false);
+    richEdit.SetWordWrap(false);
+    richEdit.SetText(L"alpha beta gamma\ndelta epsilon");
+
+#if defined(_WIN32)
+    //Ctrl + Right/Left：按词移动
+    //注意：基线行为是 Ctrl+方向键在移动时调整"按词选区"（m_nCtrlStartIndex 记录锚点），
+    //因此这里校验选区范围与文本，与现有实现保持一致。
+    {
+        int32_t nSelStart = -1;
+        int32_t nSelEnd = -1;
+        richEdit.SetSel(0, 0);
+        {
+            ScopedKeyPressed ctrlKey(ui::kVK_CONTROL);
+            CHECK_MSG(ctrlKey.IsEffective(), "word: ctrl key should be effective");
+            SendKey(richEdit, ui::kVK_CONTROL);
+            SendKey(richEdit, ui::kVK_RIGHT);
+            richEdit.GetSel(nSelStart, nSelEnd);
+            CHECK_MSG(nSelStart == 0 && nSelEnd == 6, "word: Ctrl+Right should reach the next word boundary (" +
+                      std::to_string(nSelStart) + "," + std::to_string(nSelEnd) + ")");
+            CHECK_MSG(richEdit.GetSelText() == _T("alpha "), "word: Ctrl+Right selected text");
+            SendKey(richEdit, ui::kVK_RIGHT);
+            richEdit.GetSel(nSelStart, nSelEnd);
+            CHECK_MSG(nSelStart == 0 && nSelEnd == 11, "word: second Ctrl+Right should reach the next word boundary (" +
+                      std::to_string(nSelStart) + "," + std::to_string(nSelEnd) + ")");
+
+            //连续 Ctrl + Left：选区尾部逐步向左收缩，最终回到文本开头
+            int32_t nSteps = 0;
+            while ((nSelEnd > 0) && (nSteps < 20)) {
+                SendKey(richEdit, ui::kVK_LEFT);
+                int32_t nNewStart = -1;
+                int32_t nNewEnd = -1;
+                richEdit.GetSel(nNewStart, nNewEnd);
+                CHECK_MSG(nNewStart == 0 && nNewEnd < nSelEnd,
+                          "word: Ctrl+Left should shrink the selection leftwards (" +
+                          std::to_string(nSelEnd) + " -> " + std::to_string(nNewEnd) + ")");
+                if ((nNewStart != 0) || (nNewEnd >= nSelEnd)) {
+                    break;
+                }
+                nSelEnd = nNewEnd;
+                ++nSteps;
+            }
+            CHECK_MSG(nSelEnd == 0, "word: repeated Ctrl+Left should reach the text start");
+        }
+        SendKeyUp(richEdit, ui::kVK_CONTROL);
+    }
+
+    //Ctrl + Shift + Right：按词扩展选区
+    {
+        int32_t nSelStart = -1;
+        int32_t nSelEnd = -1;
+        SendKeyUp(richEdit, ui::kVK_SHIFT);
+        richEdit.SetSel(0, 0);
+        {
+            ScopedKeyPressed ctrlKey(ui::kVK_CONTROL);
+            ScopedKeyPressed shiftKey(ui::kVK_SHIFT);
+            SendKey(richEdit, ui::kVK_CONTROL);
+            SendKey(richEdit, ui::kVK_SHIFT);
+            SendKey(richEdit, ui::kVK_RIGHT);
+            richEdit.GetSel(nSelStart, nSelEnd);
+            CHECK_MSG(nSelStart == 0 && nSelEnd == 6, "word: Ctrl+Shift+Right should extend selection to word boundary (" +
+                      std::to_string(nSelStart) + "," + std::to_string(nSelEnd) + ")");
+            SendKey(richEdit, ui::kVK_RIGHT);
+            richEdit.GetSel(nSelStart, nSelEnd);
+            CHECK_MSG(nSelStart == 0 && nSelEnd == 11, "word: second Ctrl+Shift+Right should extend selection (" +
+                      std::to_string(nSelStart) + "," + std::to_string(nSelEnd) + ")");
+            SendKey(richEdit, ui::kVK_LEFT);
+            richEdit.GetSel(nSelStart, nSelEnd);
+            CHECK_MSG((nSelStart == 0) && (nSelEnd < 11) && (nSelEnd > 0),
+                      "word: Ctrl+Shift+Left should shrink the selection (" +
+                      std::to_string(nSelStart) + "," + std::to_string(nSelEnd) + ")");
+        }
+        SendKeyUp(richEdit, ui::kVK_SHIFT);
+        SendKeyUp(richEdit, ui::kVK_CONTROL);
+    }
+
+    //Shift + Home/End：扩展到行首/行尾
+    richEdit.SetText(L"abc\ndef\nghi");
+    {
+        ScopedKeyPressed shiftKey(ui::kVK_SHIFT);
+        int32_t nSelStart = -1;
+        int32_t nSelEnd = -1;
+        richEdit.SetSel(6, 6); //位于第二行中间
+        SendKey(richEdit, ui::kVK_SHIFT);
+        SendKey(richEdit, ui::kVK_HOME);
+        richEdit.GetSel(nSelStart, nSelEnd);
+        CHECK_MSG(nSelStart == 4 && nSelEnd == 6, "word: Shift+Home should select to the row start (" +
+                  std::to_string(nSelStart) + "," + std::to_string(nSelEnd) + ")");
+        SendKey(richEdit, ui::kVK_END);
+        richEdit.GetSel(nSelStart, nSelEnd);
+        CHECK_MSG(nSelStart == 6 && nSelEnd == 7, "word: Shift+End should select to the row end (" +
+                  std::to_string(nSelStart) + "," + std::to_string(nSelEnd) + ")");
+    }
+    SendKeyUp(richEdit, ui::kVK_SHIFT);
+
+    //Shift + Down：向下扩展一行（保持 x 坐标）
+    {
+        ScopedKeyPressed shiftKey(ui::kVK_SHIFT);
+        richEdit.SetSel(6, 6);
+        SendKey(richEdit, ui::kVK_SHIFT);
+        SendKey(richEdit, ui::kVK_DOWN);
+        int32_t nSelStart = -1;
+        int32_t nSelEnd = -1;
+        richEdit.GetSel(nSelStart, nSelEnd);
+        CHECK_MSG(nSelStart == 6 && nSelEnd > 6 && nSelEnd <= 11,
+                  "word: Shift+Down should extend the selection to the next row (" +
+                  std::to_string(nSelStart) + "," + std::to_string(nSelEnd) + ")");
+        const ui::UiPoint ptStart = richEdit.PosFromChar(nSelStart);
+        const ui::UiPoint ptEnd = richEdit.PosFromChar(nSelEnd);
+        CHECK_MSG(ptEnd.y > ptStart.y, "word: Shift+Down should extend to a lower row");
+        //列位置允许 1~2 像素的量化误差
+        const int32_t nDeltaX = ptEnd.x - ptStart.x;
+        CHECK_MSG((nDeltaX >= -2) && (nDeltaX <= 2), "word: Shift+Down should keep the same x position");
+    }
+    SendKeyUp(richEdit, ui::kVK_SHIFT);
+#endif
+}
+
 /** 事件：TextChanged/SelChanged/Return/Tab/Zoom/TextLimit 的触发次数与 SetTextNoEvent 差异 */
 void TestEditEvents(TestEnv& env)
 {
@@ -2799,6 +3017,332 @@ void TestFindRichText(TestEnv& env)
     CHECK_MSG(nSelStart == 2 && nSelEnd == 4, "find: should not change the selection");
 }
 
+//==== 光标显示与文本选择（自动换行 / 不自动换行） ====
+
+/** 获取文本在视觉行上的起始字符下标（通过 PosFromChar 的 y 坐标变化识别） */
+std::vector<int32_t> CollectRowStartIndexes(TestRichEdit2& richEdit, int32_t nTextLen)
+{
+    std::vector<int32_t> rowStarts;
+    int32_t nLastY = (std::numeric_limits<int32_t>::min)();
+    for (int32_t nIndex = 0; nIndex < nTextLen; ++nIndex) {
+        const ui::UiPoint pt = richEdit.PosFromChar(nIndex);
+        if (pt.y != nLastY) {
+            rowStarts.push_back(nIndex);
+            nLastY = pt.y;
+        }
+    }
+    return rowStarts;
+}
+
+/** 光标显示与文本选择：自动换行 / 不自动换行两种情况下的方向键、鼠标点击与选择 */
+void TestCaretSelectionMatrix(TestEnv& env)
+{
+    TestRichEdit2& richEdit = env.Edit();
+
+    //构造跨多行的长文本，末尾附加 emoji（UTF16 代理对）
+    const DStringW wrapText = []
+    {
+        DStringW text;
+        for (int32_t i = 0; i < 20; ++i) {
+            text += L"abcdefghij 中文文本 ";
+        }
+        return text;
+    }();
+    const DStringW nowrapText = []
+    {
+        DStringW text;
+        for (int32_t i = 0; i < 6; ++i) {
+            text += L"abcdefghij 中文文本 abcdefghij";
+            text += L'\n';
+        }
+        text += L"abcdefghij 中文文本";
+        return text;
+    }();
+
+    for (int32_t nMode = 0; nMode < 2; ++nMode) {
+        const bool bWordWrap = (nMode == 0);
+        const std::string tag = bWordWrap ? "wrap" : "nowrap";
+
+        DStringW textValue = bWordWrap ? wrapText : nowrapText;
+        textValue += L"x\xD83D\xDE00y"; // x + emoji + y
+        const int32_t nTextLen = (int32_t)textValue.size();
+        const int32_t nEmojiHigh = nTextLen - 3;
+        const int32_t nEmojiLow = nTextLen - 2;
+
+        ResetEdit(env);
+        richEdit.SetWordWrap(bWordWrap);
+        richEdit.SetText(textValue);
+        richEdit.SetSel(0, 0);
+        PaintFrame(env);
+
+        //1) 点击每个字符的中心点 -> CharFromPos 应返回该字符
+        for (int32_t nIndex = 0; nIndex < nTextLen; ++nIndex) {
+            if ((textValue[nIndex] == L'\r') || (textValue[nIndex] == L'\n')) {
+                continue;
+            }
+            if ((textValue[nIndex] >= 0xDC00) && (textValue[nIndex] <= 0xDFFF)) {
+                continue; //低代理字符不能作为光标位置，跳过
+            }
+            const ui::UiPoint ptChar = richEdit.PosFromChar(nIndex);
+            //查找下一个位置发生变化的字符下标（跳过代理对的第二个字符）
+            int32_t nNext = nIndex + 1;
+            ui::UiPoint ptNext = richEdit.PosFromChar(nNext);
+            while ((nNext < nTextLen) && (ptNext.x == ptChar.x) && (ptNext.y == ptChar.y)) {
+                ++nNext;
+                ptNext = richEdit.PosFromChar(nNext);
+            }
+            if ((ptNext.y != ptChar.y) || (ptNext.x <= ptChar.x)) {
+                continue; //自动换行的行尾字符，没有可点击的右半部分
+            }
+            const ui::UiPoint ptCenter((ptChar.x + ptNext.x) / 2, ptChar.y + 1);
+            const int32_t nBack = richEdit.CharFromPos(ptCenter);
+            CHECK_MSG(nBack == nIndex, tag + ": CharFromPos(center of char " + std::to_string(nIndex) +
+                                       ") = " + std::to_string(nBack));
+
+            //点击字符的右半部分 -> 下一个有效字符（代理对不拆分）
+            if (nNext < nTextLen) {
+                //命中的光标位置不会落在低代理字符上，需要跳过
+                int32_t nExpectRight = nNext;
+                while ((nExpectRight < nTextLen) &&
+                       (textValue[(size_t)nExpectRight] >= 0xDC00) && (textValue[(size_t)nExpectRight] <= 0xDFFF)) {
+                    ++nExpectRight;
+                }
+                const ui::UiPoint ptRight(ptChar.x + (ptNext.x - ptChar.x) * 3 / 4 + 1, ptChar.y + 1);
+                const int32_t nBackRight = richEdit.CharFromPos(ptRight);
+                CHECK_MSG(nBackRight == nExpectRight, tag + ": CharFromPos(right of char " + std::to_string(nIndex) +
+                                                       ") = " + std::to_string(nBackRight));
+            }
+        }
+
+        //2) 视觉行：行首左侧点击 -> 行首字符；行尾右侧点击 -> 下一行行首
+        const std::vector<int32_t> rowStarts = CollectRowStartIndexes(richEdit, nTextLen);
+        CHECK_MSG(rowStarts.size() >= 3, tag + ": text should span multiple rows");
+        if (rowStarts.size() < 3) {
+            continue;
+        }
+        for (size_t nRow = 0; nRow < rowStarts.size(); ++nRow) {
+            const int32_t nRowStart = rowStarts[nRow];
+            const ui::UiPoint ptRowStart = richEdit.PosFromChar(nRowStart);
+            const int32_t nBackLeft = richEdit.CharFromPos(ui::UiPoint(ptRowStart.x - 5, ptRowStart.y + 1));
+            CHECK_MSG(nBackLeft == nRowStart, tag + ": click left of row " + std::to_string(nRow) +
+                                              " -> " + std::to_string(nBackLeft));
+            const int32_t nRowEnd = (nRow + 1 < rowStarts.size())
+                                    ? ((textValue[(size_t)rowStarts[nRow + 1] - 1] == L'\n') ? (rowStarts[nRow + 1] - 1) : rowStarts[nRow + 1])
+                                    : nTextLen;
+            const int32_t nBackRight = richEdit.CharFromPos(ui::UiPoint(kWidth + 20, ptRowStart.y + 1));
+            CHECK_MSG(nBackRight == nRowEnd, tag + ": click right of row " + std::to_string(nRow) +
+                                             " -> " + std::to_string(nBackRight) +
+                                             ", expect " + std::to_string(nRowEnd));
+        }
+
+        //3) 左右方向键：跨视觉行边界连续移动
+        for (size_t nRow = 1; nRow < rowStarts.size(); ++nRow) {
+            const int32_t nRowStart = rowStarts[nRow];
+            richEdit.SetSel(nRowStart - 1, nRowStart - 1);
+            SendKey(richEdit, ui::kVK_RIGHT);
+            CHECK_MSG(GetCaretChar(richEdit) == nRowStart, tag + ": RIGHT at end of row " +
+                                                              std::to_string(nRow - 1) + " should move to next row");
+            richEdit.SetSel(nRowStart, nRowStart);
+            SendKey(richEdit, ui::kVK_LEFT);
+            CHECK_MSG(GetCaretChar(richEdit) == nRowStart - 1, tag + ": LEFT at start of row " +
+                                                                std::to_string(nRow) + " should move to previous row");
+        }
+
+        //4) 上下方向键：行间移动并保持 x 坐标，连续按键不跳行
+        for (size_t nRow = 0; nRow + 1 < rowStarts.size(); ++nRow) {
+            const int32_t nRowStart = rowStarts[nRow];
+            richEdit.SetSel(nRowStart, nRowStart);
+            SendKey(richEdit, ui::kVK_DOWN);
+            const int32_t nDown = GetCaretChar(richEdit);
+            CHECK_MSG(nDown == rowStarts[nRow + 1], tag + ": DOWN from row " + std::to_string(nRow) +
+                                                    " start -> " + std::to_string(nDown) +
+                                                    ", expect " + std::to_string(rowStarts[nRow + 1]));
+            SendKey(richEdit, ui::kVK_UP);
+            CHECK_MSG(GetCaretChar(richEdit) == nRowStart, tag + ": UP after DOWN should return to row " +
+                                                            std::to_string(nRow) + " start");
+        }
+        //连续按 Down 三次，应向下移动三行
+        const int32_t nDownSteps = (int32_t)(std::min<size_t>)(rowStarts.size() - 1, 3);
+        richEdit.SetSel(rowStarts[0], rowStarts[0]);
+        int32_t nY = richEdit.PosFromChar(GetCaretChar(richEdit)).y;
+        for (int32_t nStep = 1; nStep <= nDownSteps; ++nStep) {
+            SendKey(richEdit, ui::kVK_DOWN);
+            const int32_t nCaret = GetCaretChar(richEdit);
+            const int32_t nNewY = richEdit.PosFromChar(nCaret).y;
+            CHECK_MSG(nNewY > nY, tag + ": DOWN step " + std::to_string(nStep) + " should move to a lower row");
+            CHECK_MSG(nCaret == rowStarts[(size_t)nStep], tag + ": DOWN step " + std::to_string(nStep) +
+                                                              " should reach row start " + std::to_string(rowStarts[(size_t)nStep]));
+            nY = nNewY;
+        }
+
+        //5) 鼠标拖动选择（跨行，正向与反向）
+        {
+            const int32_t nSelectStart = rowStarts[0] + 3;
+            const int32_t nSelectEnd = rowStarts[2] + 5;
+            const ui::UiPoint ptStart = richEdit.PosFromChar(nSelectStart);
+            const ui::UiPoint ptEnd = richEdit.PosFromChar(nSelectEnd);
+            //正向拖动
+            SendMouseDown(richEdit, ptStart);
+            SendMouseMove(richEdit, ptEnd);
+            SendMouseUp(richEdit, ptEnd);
+            int32_t nSelStart = -1;
+            int32_t nSelEnd = -1;
+            richEdit.GetSel(nSelStart, nSelEnd);
+            CHECK_MSG(nSelStart == nSelectStart && nSelEnd == nSelectEnd,
+                      tag + ": drag forward selection (" + std::to_string(nSelStart) + "," + std::to_string(nSelEnd) + ")");
+            CHECK_MSG(richEdit.GetSelText() == textValue.substr(nSelectStart, nSelectEnd - nSelectStart),
+                      tag + ": drag forward selected text");
+            //反向拖动
+            SendMouseDown(richEdit, ptEnd);
+            SendMouseMove(richEdit, ptStart);
+            SendMouseUp(richEdit, ptStart);
+            richEdit.GetSel(nSelStart, nSelEnd);
+            CHECK_MSG(nSelStart == nSelectStart && nSelEnd == nSelectEnd,
+                      tag + ": drag backward selection (" + std::to_string(nSelStart) + "," + std::to_string(nSelEnd) + ")");
+        }
+
+        //6) Shift + 单击：从原光标位置选择到点击位置
+        {
+            const int32_t nAnchor = rowStarts[1] + 2;
+            const int32_t nClick = rowStarts[2] + 4;
+            SendKeyUp(richEdit, ui::kVK_SHIFT);
+            richEdit.SetSel(nAnchor, nAnchor);
+            {
+                ScopedKeyPressed shiftKey(ui::kVK_SHIFT);
+                CHECK_MSG(shiftKey.IsEffective(), "shift key should be effective");
+                SendKey(richEdit, ui::kVK_SHIFT);
+                SendMouseDown(richEdit, richEdit.PosFromChar(nClick), (uint32_t)ui::ModifierKey::kShift);
+                SendMouseUp(richEdit, richEdit.PosFromChar(nClick), (uint32_t)ui::ModifierKey::kShift);
+            }
+            SendKeyUp(richEdit, ui::kVK_SHIFT);
+            int32_t nSelStart = -1;
+            int32_t nSelEnd = -1;
+            richEdit.GetSel(nSelStart, nSelEnd);
+            CHECK_MSG(nSelStart == nAnchor && nSelEnd == nClick,
+                      tag + ": shift+click selection (" + std::to_string(nSelStart) + "," + std::to_string(nSelEnd) + ")");
+        }
+
+        //7) Shift + 左右方向键：扩展/收缩选区
+        {
+            const int32_t nAnchor = rowStarts[0] + 4;
+            SendKeyUp(richEdit, ui::kVK_SHIFT);
+            richEdit.SetSel(nAnchor, nAnchor);
+            {
+                ScopedKeyPressed shiftKey(ui::kVK_SHIFT);
+                SendKey(richEdit, ui::kVK_SHIFT);
+                SendKey(richEdit, ui::kVK_RIGHT);
+                SendKey(richEdit, ui::kVK_RIGHT);
+            }
+            int32_t nSelStart = -1;
+            int32_t nSelEnd = -1;
+            richEdit.GetSel(nSelStart, nSelEnd);
+            CHECK_MSG(nSelStart == nAnchor && nSelEnd == nAnchor + 2,
+                      tag + ": shift+RIGHT selection (" + std::to_string(nSelStart) + "," + std::to_string(nSelEnd) + ")");
+            {
+                ScopedKeyPressed shiftKey(ui::kVK_SHIFT);
+                SendKey(richEdit, ui::kVK_SHIFT);
+                SendKey(richEdit, ui::kVK_LEFT);
+            }
+            SendKeyUp(richEdit, ui::kVK_SHIFT);
+            richEdit.GetSel(nSelStart, nSelEnd);
+            CHECK_MSG(nSelStart == nAnchor && nSelEnd == nAnchor + 1,
+                      tag + ": shift+LEFT should shrink the selection");
+        }
+
+        //8) 双击选词、三击选段落
+        {
+            int32_t nWordPos = rowStarts[1];
+            if (textValue[(size_t)nWordPos] == L' ') {
+                ++nWordPos;
+            }
+            //计算该字符所在段落（以换行符分隔）的范围
+            int32_t nParagraphStart = nWordPos;
+            while ((nParagraphStart > 0) && (textValue[(size_t)nParagraphStart - 1] != L'\n')) {
+                --nParagraphStart;
+            }
+            int32_t nParagraphEnd = nWordPos;
+            while ((nParagraphEnd < nTextLen) && (textValue[(size_t)nParagraphEnd] != L'\n')) {
+                ++nParagraphEnd;
+            }
+
+            SendMouseDown(richEdit, richEdit.PosFromChar(nWordPos));
+            SendMouseUp(richEdit, richEdit.PosFromChar(nWordPos));
+            SendMouseDoubleClick(richEdit, richEdit.PosFromChar(nWordPos));
+            int32_t nSelStart = -1;
+            int32_t nSelEnd = -1;
+            richEdit.GetSel(nSelStart, nSelEnd);
+            CHECK_MSG((nSelStart <= nWordPos) && (nSelEnd > nWordPos), tag + ": double click should select a word");
+            CHECK_MSG(richEdit.GetSelText().find(L' ') == DStringW::npos, tag + ": double click should not include spaces");
+            const int32_t nWordLen = nSelEnd - nSelStart;
+            CHECK_MSG(nWordLen > 0 && nWordLen <= 10, tag + ": double click word length");
+            //三击：选中当前段落（包含行尾的换行符）
+            int32_t nParagraphSelEnd = nParagraphEnd;
+            if ((nParagraphSelEnd < nTextLen) && (textValue[(size_t)nParagraphSelEnd] == L'\n')) {
+                ++nParagraphSelEnd;
+            }
+            SendMouseDown(richEdit, richEdit.PosFromChar(nWordPos));
+            SendMouseUp(richEdit, richEdit.PosFromChar(nWordPos));
+            richEdit.GetSel(nSelStart, nSelEnd);
+            CHECK_MSG(nSelStart == nParagraphStart && nSelEnd == nParagraphSelEnd,
+                      tag + ": triple click should select the paragraph (" + std::to_string(nSelStart) + "," +
+                      std::to_string(nSelEnd) + ")");
+        }
+
+        //9) emoji（代理对）：点击与方向键都不应停在代理对中间
+        {
+            const ui::UiPoint ptEmoji = richEdit.PosFromChar(nEmojiHigh);
+            const ui::UiPoint ptLow = richEdit.PosFromChar(nEmojiLow);
+            const ui::UiPoint ptAfter = richEdit.PosFromChar(nEmojiHigh + 2);
+            CHECK_MSG(ptEmoji.x < ptLow.x, tag + ": low surrogate should follow the visible glyph");
+            CHECK_MSG(ptLow.x == ptAfter.x, tag + ": low surrogate should share the position after the emoji");
+            CHECK_MSG(ptAfter.x > ptEmoji.x, tag + ": surrogate pair should have a visible width");
+            const int32_t nBackLeftHalf = richEdit.CharFromPos(ui::UiPoint(ptEmoji.x + (ptAfter.x - ptEmoji.x) / 4, ptEmoji.y + 1));
+            CHECK_MSG(nBackLeftHalf == nEmojiHigh, tag + ": click left half of emoji -> " + std::to_string(nBackLeftHalf));
+            const int32_t nBackRightHalf = richEdit.CharFromPos(ui::UiPoint(ptEmoji.x + (ptAfter.x - ptEmoji.x) * 3 / 4, ptEmoji.y + 1));
+            CHECK_MSG(nBackRightHalf == nEmojiHigh + 2, tag + ": click right half of emoji -> " + std::to_string(nBackRightHalf));
+            richEdit.SetSel(nEmojiHigh - 1, nEmojiHigh - 1);
+            SendKey(richEdit, ui::kVK_RIGHT);
+            CHECK_MSG(GetCaretChar(richEdit) == nEmojiHigh, tag + ": RIGHT should move onto the high surrogate");
+            SendKey(richEdit, ui::kVK_RIGHT);
+            CHECK_MSG(GetCaretChar(richEdit) == nEmojiHigh + 2, tag + ": RIGHT should skip the low surrogate");
+            SendKey(richEdit, ui::kVK_LEFT);
+            CHECK_MSG(GetCaretChar(richEdit) == nEmojiHigh, tag + ": LEFT should skip the whole emoji");
+        }
+
+        //10) 文末：End 键与点击最后一行空白处
+        {
+            richEdit.SetSel(nTextLen - 1, nTextLen - 1);
+            SendKey(richEdit, ui::kVK_END);
+            CHECK_MSG(GetCaretChar(richEdit) == nTextLen, tag + ": END on the last line should move to text end");
+            const ui::UiPoint ptEndOfText = richEdit.PosFromChar(nTextLen);
+            const int32_t nBack = richEdit.CharFromPos(ui::UiPoint(ptEndOfText.x + 40, ptEndOfText.y + 1));
+            CHECK_MSG(nBack == nTextLen, tag + ": click after text end -> " + std::to_string(nBack));
+            richEdit.SetSel(nTextLen, nTextLen);
+            SendKey(richEdit, ui::kVK_RIGHT);
+            CHECK_MSG(GetCaretChar(richEdit) == nTextLen, tag + ": RIGHT at text end should stay");
+        }
+
+        //11) 已有选区时，单击文本下方的空白区域：取消选择，光标落在文末
+        {
+            richEdit.SetSel(0, 5);
+            const ui::UiPoint ptBlank(kWidth - 10, 500);
+            const int32_t nHit = richEdit.CharFromPos(ptBlank);
+            CHECK_MSG(nHit == nTextLen, tag + ": click blank below text -> " + std::to_string(nHit));
+            SendMouseDown(richEdit, ptBlank);
+            SendMouseUp(richEdit, ptBlank);
+            int32_t nSelStart = -1;
+            int32_t nSelEnd = -1;
+            richEdit.GetSel(nSelStart, nSelEnd);
+            CHECK_MSG(nSelStart == nTextLen && nSelEnd == nTextLen,
+                      tag + ": click blank should collapse the selection (" +
+                      std::to_string(nSelStart) + "," + std::to_string(nSelEnd) + ")");
+        }
+
+        PaintFrame(env);
+        CHECK_MSG(CountInkPixels(env) > 0, tag + ": text should be painted");
+    }
+}
+
 } // namespace
 
 int main()
@@ -2846,6 +3390,9 @@ int main()
     TestSelectionApis(env);
     TestCaretCommandKeys(env);
     TestMouseSelection(env);
+    TestCaretSelectionScrolled(env);
+    TestCaretWordAndLineKeys(env);
+    TestCaretSelectionMatrix(env);
     TestEditEvents(env);
     TestClipboard(env);
     TestFindRichText(env);

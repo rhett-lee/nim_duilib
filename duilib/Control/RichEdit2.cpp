@@ -4632,14 +4632,18 @@ bool RichEdit2::ButtonDown(const EventArgs& msg)
 
     // 记录鼠标按下位置，用于检测拖动文本功能
     m_bDraggingOutMouseDown = false;
-    CheckDragOutStart(msg.ptMouse);
+    const bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
+    //按住Shift点击或三击用于调整文本选择，不能触发"拖动文本到外部"的操作
+    if (!bShiftDown && !IsTripleClick(msg.ptMouse, false)) {
+        CheckDragOutStart(msg.ptMouse);
+    }
 
     if (!m_bDraggingOutMouseDown) {
         //鼠标点击时，检查按键状态（因按住Shift/Ctrl的时候，如果按组合键，则Shift/Ctrl的Up消息会丢失，导致状态异常）
         CheckKeyDownStartIndex(msg);
 
         //响应鼠标按下事件，记录状态
-        OnLButtonDown(msg.ptMouse, msg.GetSender(), IsKeyDown(msg, ModifierKey::kShift));
+        OnLButtonDown(msg.ptMouse, msg.GetSender(), bShiftDown);
     }
     return bRet;
 }
@@ -4730,6 +4734,29 @@ bool RichEdit2::OnWindowKillFocus(const EventArgs& msg)
     return bRet;
 }
 
+bool RichEdit2::IsTripleClick(const UiPoint& ptMouse, bool bReset)
+{
+    if (m_nLastDoubleClickTime == 0) {
+        return false;
+    }
+    int32_t nDx = ptMouse.x - m_ptLastDoubleClick.x;
+    int32_t nDy = ptMouse.y - m_ptLastDoubleClick.y;
+    if (nDx < 0) {
+        nDx = -nDx;
+    }
+    if (nDy < 0) {
+        nDy = -nDy;
+    }
+    const uint64_t nNowTime = GetCurrentTimeMilliSeconds();
+    const bool bTripleClick = (nNowTime >= m_nLastDoubleClickTime) &&
+                              ((nNowTime - m_nLastDoubleClickTime) <= 500) &&
+                              (nDx <= 3) && (nDy <= 3);
+    if (bTripleClick && bReset) {
+        m_nLastDoubleClickTime = 0;
+    }
+    return bTripleClick;
+}
+
 void RichEdit2::OnLButtonDown(const UiPoint& ptMouse, Control* pSender, bool bShiftDown)
 {
     if (m_bInMouseMove) {
@@ -4746,38 +4773,25 @@ void RichEdit2::OnLButtonDown(const UiPoint& ptMouse, Control* pSender, bool bSh
     //调整光标位置到鼠标点击位置
     int32_t nCharPosIndex = CharFromPos(ptMouse);
     //识别三击：与上次双击的时间间隔足够短，并且点击位置接近时，认为是三击
-    if (m_nLastDoubleClickTime != 0) {
-        int32_t nDx = ptMouse.x - m_ptLastDoubleClick.x;
-        int32_t nDy = ptMouse.y - m_ptLastDoubleClick.y;
-        if (nDx < 0) {
-            nDx = -nDx;
-        }
-        if (nDy < 0) {
-            nDy = -nDy;
-        }
-        const uint64_t nNowTime = GetCurrentTimeMilliSeconds();
-        if ((nNowTime >= m_nLastDoubleClickTime) && ((nNowTime - m_nLastDoubleClickTime) <= 500) &&
-            (nDx <= 3) && (nDy <= 3)) {
-            m_nLastDoubleClickTime = 0;
-            if (IsMultiLine()) {
-                //多行模式：选中当前段落（以换行符分隔的一行）
-                int32_t nRowStartIndex = m_pTextData->GetRowStartCharIndex(nCharPosIndex);
-                int32_t nRowEndIndex = m_pTextData->GetRowEndCharIndex(nCharPosIndex) + 1;
-                const int32_t nTextLength = GetTextLength();
-                if (nRowEndIndex > nTextLength) {
-                    nRowEndIndex = nTextLength;
-                }
-                if (nRowStartIndex < nRowEndIndex) {
-                    InternalSetSel(nRowStartIndex, nRowEndIndex);
-                }
+    if (IsTripleClick(ptMouse, true)) {
+        if (IsMultiLine()) {
+            //多行模式：选中当前段落（以换行符分隔的一行）
+            int32_t nRowStartIndex = m_pTextData->GetRowStartCharIndex(nCharPosIndex);
+            int32_t nRowEndIndex = m_pTextData->GetRowEndCharIndex(nCharPosIndex) + 1;
+            const int32_t nTextLength = GetTextLength();
+            if (nRowEndIndex > nTextLength) {
+                nRowEndIndex = nTextLength;
             }
-            else {
-                //单行模式：选中全部文本
-                SetSelAll();
+            if (nRowStartIndex < nRowEndIndex) {
+                InternalSetSel(nRowStartIndex, nRowEndIndex);
             }
-            m_nSelXPos = -1;
-            return;
         }
+        else {
+            //单行模式：选中全部文本
+            SetSelAll();
+        }
+        m_nSelXPos = -1;
+        return;
     }
     if (bShiftDown && (m_nShiftStartIndex != -1)) {
         //按住Shift键时，选择与原来起点的范围
