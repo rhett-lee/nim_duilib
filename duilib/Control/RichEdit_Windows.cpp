@@ -3412,13 +3412,31 @@ void RichEdit::SetEnableDefaultContextMenu(bool bEnable)
                 if (args.eventType == ui::kEventContextMenu) {
                     ui::UiPoint pt = args.ptMouse;
                     if ((pt.x != -1) && (pt.y != -1)) {
-                        //鼠标右键点击产生的上下文菜单                        
-                        ShowPopupMenu(pt);
+                        //鼠标右键点击产生的上下文菜单：光标移动到点击位置
+                        ShowPopupMenu(pt, true);
                     }
                     else {
-                        //按Shift + F10，由系统产生上下文菜单
-                        pt = { 100, 100 };
-                        ShowPopupMenu(pt);
+                        //按Shift + F10，由系统产生上下文菜单：保持光标位置不变，菜单在光标位置弹出
+                        int32_t nSelStart = 0;
+                        int32_t nSelEnd = 0;
+                        GetSel(nSelStart, nSelEnd);
+                        //系统控件返回的坐标是文本编辑区的客户区坐标，需要转换为窗口客户区坐标
+                        UiPoint caretPt = PosFromChar(nSelEnd);
+                        UiRect rcText = GetRectWithoutPadding();
+                        if (!GetScrollBarFloat()) {
+                            ScrollBar* pVScrollBar = GetVScrollBar();
+                            if ((pVScrollBar != nullptr) && pVScrollBar->IsValid()) {
+                                rcText.right -= pVScrollBar->GetFixedWidth().GetInt32();
+                            }
+                            ScrollBar* pHScrollBar = GetHScrollBar();
+                            if ((pHScrollBar != nullptr) && pHScrollBar->IsValid()) {
+                                rcText.bottom -= pHScrollBar->GetFixedHeight().GetInt32();
+                            }
+                        }
+                        rcText.Deflate(GetTextPadding());
+                        caretPt.x += rcText.left;
+                        caretPt.y += rcText.top;
+                        ShowPopupMenu(caretPt, false);
                     }
                 }
                 return true;
@@ -3435,18 +3453,18 @@ bool RichEdit::IsEnableDefaultContextMenu() const
     return m_bEnableDefaultContextMenu;
 }
 
-void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
+void RichEdit::ShowPopupMenu(const ui::UiPoint& point, bool bUpdateCaretPos)
 {
     RichEdit* pRichEdit = this;
     if ((pRichEdit == nullptr) || !pRichEdit->IsEnabled() || pRichEdit->IsPasswordMode()) {
         return;
     }
 
-    //如果没有选中文本，则将光标切换到当前点击的位置
+    //如果没有选中文本，则将光标切换到当前点击的位置（键盘快捷键产生的菜单不改变光标位置）
     int32_t nStartChar = 0; 
     int32_t nEndChar = 0;
     pRichEdit->GetSel(nStartChar, nEndChar);
-    if (nStartChar == nEndChar) {
+    if (bUpdateCaretPos && (nStartChar == nEndChar)) {
         int32_t pos = pRichEdit->m_richCtrl.CharFromPos(POINT{ point.x, point.y });
         if (pos > 0) {
             pRichEdit->SetSel(pos, pos);

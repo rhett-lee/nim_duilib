@@ -991,9 +991,11 @@ protected:
 
 private:
     /** 显示RichEdit上的菜单
-    * @param [in] point 客户区的坐标
+    * @param [in] point 客户区的坐标（菜单弹出位置）
+    * @param [in] bUpdateCaretPos 是否将光标移动到point所在位置（鼠标点击产生的菜单为true；
+    *                             键盘快捷键产生的菜单为false，此时保持光标位置不变）
     */
-    void ShowPopupMenu(const ui::UiPoint& point);
+    void ShowPopupMenu(const ui::UiPoint& point, bool bUpdateCaretPos);
 
     /** 判断一个字符，是否在限制字符列表中
     */

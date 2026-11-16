@@ -17,7 +17,6 @@
 #include "duilib/Control/Menu.h"
 #include "duilib/Control/Button.h"
 #include "duilib/Box/VBox.h"
-#include "duilib/Render/AutoClip.h"
 #include <chrono>
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
@@ -2910,13 +2909,13 @@ void RichEdit2::SetEnableDefaultContextMenu(bool bEnable)
                 if (args.eventType == ui::kEventContextMenu) {
                     ui::UiPoint pt = args.ptMouse;
                     if ((pt.x != -1) && (pt.y != -1)) {
-                        //鼠标右键点击产生的上下文菜单                        
-                        ShowPopupMenu(pt);
+                        //鼠标右键点击产生的上下文菜单：光标移动到点击位置
+                        ShowPopupMenu(pt, true);
                     }
                     else {
-                        //按Shift + F10，由系统产生上下文菜单
-                        pt = { 100, 100 };
-                        ShowPopupMenu(pt);
+                        //按Shift + F10，由系统产生上下文菜单：保持光标位置不变，菜单在光标位置弹出
+                        const UiRect rcCaret = GetCaretRect();
+                        ShowPopupMenu(UiPoint(rcCaret.left, rcCaret.top), false);
                     }
                 }
                 return true;
@@ -2933,18 +2932,18 @@ bool RichEdit2::IsEnableDefaultContextMenu() const
     return m_bEnableDefaultContextMenu;
 }
 
-void RichEdit2::ShowPopupMenu(const ui::UiPoint& point)
+void RichEdit2::ShowPopupMenu(const ui::UiPoint& point, bool bUpdateCaretPos)
 {
     RichEdit2* pRichEdit = this;
     if ((pRichEdit == nullptr) || !pRichEdit->IsEnabled() || pRichEdit->IsPasswordMode()) {
         return;
     }
 
-    //如果没有选中文本，则将光标切换到当前点击的位置
+    //如果没有选中文本，则将光标切换到当前点击的位置（键盘快捷键产生的菜单不改变光标位置）
     int32_t nStartChar = 0; 
     int32_t nEndChar = 0;
     pRichEdit->GetSel(nStartChar, nEndChar);
-    if (nStartChar == nEndChar) {
+    if (bUpdateCaretPos && (nStartChar == nEndChar)) {
         bool bAtRowEnd = false;
         int32_t pos = pRichEdit->CharFromPos(point, bAtRowEnd);
         if (pos >= 0) {
