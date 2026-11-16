@@ -210,7 +210,7 @@
                         <!-- 8. IME定位：控件不在(0,0)，滚动后输入中文，候选框应跟随光标而不是跑到窗口左上角 -->
                         <HBox height="56" margin="8,0,8,0">
                             <Label text_id="STRID_RICHEDIT2_IME" width="130" text_align="right,vcenter" valign="center"/>
-                            <RichEdit2 class="simple simple_border" name="test_re2_ime" height="52" multi_line="true" want_return="true" word_wrap="true" vscrollbar="true" text_id="STRID_RICHEDIT2_IME_TEXT" text_align="left,top" valign="center" margin="8,2,4,2"/>
+                            <RichEdit2 class="simple simple_border" name="test_re2_ime" height="52" multi_line="true" want_return="true" word_wrap="true" vscrollbar="true" text_id="STRID_RICHEDIT2_IME_TEXT" text_align="left,top" valign="center" margin="8,2,4,2" default_context_menu="true"/>
                         </HBox>
                     </GroupVBox>
                 </VScrollBox>

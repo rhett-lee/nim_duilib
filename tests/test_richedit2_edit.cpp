@@ -3131,6 +3131,222 @@ void TestCaretKeysWithOuterScroll(TestEnv& env)
     richEdit.SetPos(env.m_rcControl);
 }
 
+/** 不自动换行 + 长单行文本：文本末尾按 Right 后光标必须可见（回归测试）
+    说明：滚动到最右端时，文本末尾的光标位置正好在文本绘制区域的右边界上，需要保证光标仍可绘制 */
+void TestCaretNoWrapEndVisible(TestEnv& env)
+{
+    TestRichEdit2& richEdit = env.Edit();
+    ResetEdit(env);
+    const ui::UiRect rcOldControl = env.m_rcControl;
+
+    env.m_rcControl = ui::UiRect(0, 0, 200, 60);
+    richEdit.SetPos(env.m_rcControl);
+    //去掉内边距，使文本绘制区域的右边界与控件右边界重合，便于校验光标是否可见
+    richEdit.SetTextPadding(ui::UiPadding(0, 0, 0, 0), false);
+    richEdit.SetWordWrap(false);
+    richEdit.SetMultiLine(false);
+    richEdit.EnableScrollBar(false, true);
+
+    DStringW text;
+    for (int32_t i = 0; i < 20; ++i) {
+        text += L"0123456789";
+    }
+    richEdit.SetText(text);
+    richEdit.SetSel(0, 0);
+    //光标使用红色，便于在绘制结果中与文本（深灰色）区分
+    richEdit.SetCaretColor(_T("#FFFF0000"));
+    PaintFrame(env);
+
+    //判断像素是否为红色（用于识别光标绘制的像素，兼容不同的字节序）
+    auto isCaretPixel = [](uint32_t color) {
+        const int32_t c1 = (int32_t)(color & 0xFF);
+        const int32_t c2 = (int32_t)((color >> 8) & 0xFF);
+        const int32_t c3 = (int32_t)((color >> 16) & 0xFF);
+        const int32_t nMax = (std::max)(c1, (std::max)(c2, c3));
+        const int32_t nMin = (std::min)(c1, (std::min)(c2, c3));
+        return (nMax >= 0x80) && ((nMax - nMin) >= 0x80);
+    };
+    //统计文本绘制区域右边界附近的红色像素（即光标）
+    auto countCaretPixels = [&env, &isCaretPixel](const ui::UiRect& rcCaret) {
+        std::vector<uint32_t> pixels;
+        if (!ReadFrame(env.Render(), env.m_rcControl, pixels)) {
+            return -1;
+        }
+        const int32_t nWidth = (int32_t)env.m_rcControl.Width();
+        const int32_t nHeight = (int32_t)env.m_rcControl.Height();
+        int32_t nCount = 0;
+        for (int32_t y = (std::max)(rcCaret.top, 0); y < (std::min)(rcCaret.bottom, nHeight); ++y) {
+            for (int32_t x = nWidth - 4; x < nWidth; ++x) {
+                if ((x < 0) || !isCaretPixel(pixels[(size_t)y * (size_t)nWidth + (size_t)x])) {
+                    continue;
+                }
+                ++nCount;
+            }
+        }
+        return nCount;
+    };
+
+    const int32_t nTextLen = (int32_t)text.size();
+    CHECK_MSG(richEdit.GetTextLength() == nTextLen, "no-wrap: unexpected text length");
+
+    //SetSel到文本末尾时会自动滚动（滚动偏移为0时，光标在文本末尾的显示位置即为文本宽度）
+    richEdit.SetSel(nTextLen, nTextLen);
+    const int32_t nScrollX = (int32_t)richEdit.GetScrollOffset().cx;
+    const int32_t nTextEndX = richEdit.GetCaretRect().left + nScrollX;
+    CHECK_MSG(nTextEndX > (int32_t)env.m_rcControl.Width(), "no-wrap: text should be wider than the view, endX=" +
+              std::to_string(nTextEndX) + ", scrollX=" + std::to_string(nScrollX));
+
+    ui::ScrollBar* pHScrollBar = richEdit.GetHScrollBar();
+    CHECK_MSG(pHScrollBar != nullptr, "no-wrap: horizontal scroll bar should be created");
+    if (pHScrollBar == nullptr) {
+        richEdit.EnableScrollBar(false, false);
+        richEdit.SetTextPadding(ui::UiPadding(4, 4, 4, 4), false);
+        env.m_rcControl = rcOldControl;
+        richEdit.SetPos(rcOldControl);
+        return;
+    }
+    //离屏环境没有布局引擎，手动设置横向滚动范围（正常运行时由布局计算）
+    pHScrollBar->SetScrollRange(nTextEndX - (int32_t)env.m_rcControl.Width());
+    richEdit.SetScrollPosX(0);
+
+    //1) 光标定位到最后一个字符前面（横向滚动到最右端）：光标不在最右侧，不应在右边界处绘制光标
+    richEdit.SetSel(nTextLen - 1, nTextLen - 1);
+    richEdit.ShowCaret(true);
+    PaintFrame(env);
+    const int32_t nLastCharCaretPixels = countCaretPixels(richEdit.GetCaretRect());
+    CHECK_MSG(nLastCharCaretPixels == 0, "no-wrap: caret at the last char should not be painted at the right edge, pixels=" +
+              std::to_string(nLastCharCaretPixels));
+
+    //2) 按 Right：应定位到文本末尾，且光标在绘制区域右边界处仍然可见
+    SendKey(richEdit, ui::kVK_RIGHT);
+    CHECK_MSG(GetCaretChar(richEdit) == nTextLen,
+              "no-wrap: Right at the last char should move the caret to the text end, caret=" +
+              std::to_string(GetCaretChar(richEdit)));
+    const ui::UiRect rcCaretEnd = richEdit.GetCaretRect();
+    CHECK_MSG(rcCaretEnd.left <= (int32_t)env.m_rcControl.Width(),
+              "no-wrap: caret at the text end should not exceed the view, left=" +
+              std::to_string(rcCaretEnd.left) + ", width=" + std::to_string((int32_t)env.m_rcControl.Width()));
+    richEdit.ShowCaret(true);
+    PaintFrame(env);
+    const int32_t nCaretPixelsAtEnd = countCaretPixels(rcCaretEnd);
+    CHECK_MSG(nCaretPixelsAtEnd > 0,
+              "no-wrap: caret at the text end should be painted after Right, pixels=" +
+              std::to_string(nCaretPixelsAtEnd) + ", caretLeft=" + std::to_string(rcCaretEnd.left));
+
+    //3) Left/Right 来回：光标应在最后一个字符与文本末尾之间正确切换显示
+    SendKey(richEdit, ui::kVK_LEFT);
+    CHECK_MSG(GetCaretChar(richEdit) == nTextLen - 1,
+              "no-wrap: Left from the text end should move back to the last char, caret=" +
+              std::to_string(GetCaretChar(richEdit)));
+    richEdit.ShowCaret(true);
+    PaintFrame(env);
+    CHECK_MSG(countCaretPixels(richEdit.GetCaretRect()) == 0,
+              "no-wrap: caret at the last char should not be painted at the right edge again");
+
+    SendKey(richEdit, ui::kVK_RIGHT);
+    CHECK_MSG(GetCaretChar(richEdit) == nTextLen,
+              "no-wrap: Right at the last char again should return to the text end, caret=" +
+              std::to_string(GetCaretChar(richEdit)));
+    richEdit.ShowCaret(true);
+    PaintFrame(env);
+    CHECK_MSG(countCaretPixels(richEdit.GetCaretRect()) > 0,
+              "no-wrap: caret should be painted at the text end after Left/Right round trip");
+
+    richEdit.EnableScrollBar(false, false);
+    richEdit.SetTextPadding(ui::UiPadding(4, 4, 4, 4), false);
+    env.m_rcControl = rcOldControl;
+    richEdit.SetPos(rcOldControl);
+    richEdit.SetMultiLine(true);
+    richEdit.SetWordWrap(true);
+}
+
+/** PageUp/PageDown：目标位置超出文本范围时应定位到文本开头/末尾（回归测试） */
+void TestPageKeysToTextBounds(TestEnv& env)
+{
+    TestRichEdit2& richEdit = env.Edit();
+    ResetEdit(env);
+    richEdit.SetText(L"0123456789\nabcdefghij\nABCDEFGHIJ");
+    richEdit.SetSel(0, 0);
+    PaintFrame(env);
+
+    const int32_t nTextLen = richEdit.GetTextLength();
+    const int32_t nLastLineStart = 22;//最后一行"ABCDEFGHIJ"的起始索引
+    CHECK_MSG(nTextLen == 32, "page keys: unexpected text length, len=" + std::to_string(nTextLen));
+
+    //1) 第一行中间按 PageUp：光标应定位到第一个字符前面
+    richEdit.SetSel(5, 5);
+    SendKey(richEdit, ui::kVK_PRIOR);
+    CHECK_MSG(GetCaretChar(richEdit) == 0, "page keys: PageUp on the first row should move to index 0, caret=" +
+              std::to_string(GetCaretChar(richEdit)));
+
+    //2) 最后一行中间按 PageDown：光标应定位到最后一个字符后面
+    richEdit.SetSel(nLastLineStart + 5, nLastLineStart + 5);
+    SendKey(richEdit, ui::kVK_NEXT);
+    CHECK_MSG(GetCaretChar(richEdit) == nTextLen, "page keys: PageDown on the last row should move to the text end, caret=" +
+              std::to_string(GetCaretChar(richEdit)) + ", expect=" + std::to_string(nTextLen));
+
+    //3) 文本框高度足够容纳全部文本时，PageDown/PageUp 也应分别到文本末尾/开头
+    SendKey(richEdit, ui::kVK_PRIOR);
+    CHECK_MSG(GetCaretChar(richEdit) == 0, "page keys: PageUp from the text end should move to index 0, caret=" +
+              std::to_string(GetCaretChar(richEdit)));
+    SendKey(richEdit, ui::kVK_NEXT);
+    CHECK_MSG(GetCaretChar(richEdit) == nTextLen, "page keys: PageDown from index 0 should move to the text end, caret=" +
+              std::to_string(GetCaretChar(richEdit)));
+}
+
+/** 控件位于已水平滚动的滚动容器内时，鼠标点击定位仍应正确（回归测试）
+    说明：鼠标事件的坐标需要补上外层滚动容器的偏移，才能得到控件内的真实位置 */
+void TestMouseClickWithOuterScroll(TestEnv& env)
+{
+    TestRichEdit2& richEdit = env.Edit();
+    ResetEdit(env);
+    richEdit.SetEnableDragOut(false);
+    env.m_rcControl = ui::UiRect(0, 0, 400, 100);
+    richEdit.SetPos(env.m_rcControl);
+    richEdit.SetWordWrap(false);
+    richEdit.SetMultiLine(false);
+    richEdit.SetText(_T("abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+    richEdit.SetSel(0, 0);
+    PaintFrame(env);
+
+    //无外层偏移时的点击位置（控件坐标系）
+    const ui::UiPoint ptLocal(60, 20);
+    SendMouseDown(richEdit, ptLocal);
+    SendMouseUp(richEdit, ptLocal);
+    const int32_t nCaretNoOffset = GetCaretChar(richEdit);
+    CHECK_MSG(nCaretNoOffset > 0, "outer scroll mouse: click should position the caret, caret=" +
+              std::to_string(nCaretNoOffset));
+
+    //模拟控件位于水平滚动容器内：鼠标的窗口坐标 = 控件坐标 - 外层偏移
+    const ui::UiPoint ptOuterOffset(40, 0);
+    richEdit.SetFakeScrollOffset(ptOuterOffset);
+    const ui::UiPoint ptMouse(ptLocal.x - ptOuterOffset.x, ptLocal.y - ptOuterOffset.y);
+    SendMouseDown(richEdit, ptMouse);
+    SendMouseUp(richEdit, ptMouse);
+    CHECK_MSG(GetCaretChar(richEdit) == nCaretNoOffset,
+              "outer scroll mouse: click should map to the same char with outer scroll offset, caret=" +
+              std::to_string(GetCaretChar(richEdit)) + ", expect=" + std::to_string(nCaretNoOffset));
+
+    //鼠标按下的选择起点也应使用相同的坐标转换
+    SendMouseDown(richEdit, ptMouse);
+    const ui::UiPoint ptMouseMove(ptMouse.x + 20, ptMouse.y);
+    SendMouseMove(richEdit, ptMouseMove);
+    SendMouseUp(richEdit, ptMouseMove);
+    {
+        int32_t nSelStart = -1;
+        int32_t nSelEnd = -1;
+        richEdit.GetSel(nSelStart, nSelEnd);
+        CHECK_MSG(nSelEnd > nSelStart, "outer scroll mouse: drag should select text, sel=(" +
+                  std::to_string(nSelStart) + "," + std::to_string(nSelEnd) + ")");
+    }
+
+    richEdit.SetFakeScrollOffset(ui::UiPoint());
+    env.m_rcControl = ui::UiRect(0, 0, kWidth, kHeight);
+    richEdit.SetPos(env.m_rcControl);
+    richEdit.SetMultiLine(true);
+    richEdit.SetWordWrap(true);
+}
+
 /** 窄宽度 + 自动换行：上下方向键应在可视行之间移动，Home/End 应作用于当前可视行 */
 void TestCaretWrapRowKeys(TestEnv& env)
 {
@@ -3646,6 +3862,9 @@ int main()
     TestCaretWordAndLineKeys(env);
     TestCaretWrapRowKeys(env);
     TestCaretKeysWithOuterScroll(env);
+    TestCaretNoWrapEndVisible(env);
+    TestPageKeysToTextBounds(env);
+    TestMouseClickWithOuterScroll(env);
     TestCaretSelectionMatrix(env);
     TestEditEvents(env);
     TestClipboard(env);

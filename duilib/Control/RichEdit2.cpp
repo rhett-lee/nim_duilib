@@ -1369,6 +1369,10 @@ void RichEdit2::EnsureCharVisible(int32_t nCharIndex)
         //光标显示在上一可视行的行尾
         pt = m_pTextData->CaretPosFromVisualRowEnd(nCharIndex);
     }
+    else if (nCharIndex >= GetTextLength()) {
+        //文本末尾：PosFromChar返回的是最后一个字符的左边界，此处的光标位于最后一个字符的右侧
+        pt = m_pTextData->CaretPosFromChar(nCharIndex);
+    }
     else {
         pt = PosFromChar(nCharIndex);
     }
@@ -1395,9 +1399,17 @@ void RichEdit2::EnsureCharVisible(int32_t nCharIndex)
         }
         else if (pt.x >= rcDrawRect.right) {
             //向右滚动
+            int32_t nCaretWidth = m_pTextData->GetCharWidthValue(nCharIndex);
+            if (nCaretWidth <= 0) {
+                //文本末尾处（索引为文本长度）没有字符宽度，需要按光标的宽度预留显示空间
+                int32_t nWidth = 0;
+                int32_t nHeight = 0;
+                GetCaretSize(nWidth, nHeight);
+                nCaretWidth = nWidth;
+            }
             UiSize64 scrollPos = GetScrollPos();
             scrollPos.cx += (pt.x - rcDrawRect.right);
-            scrollPos.cx += m_pTextData->GetCharWidthValue(nCharIndex);
+            scrollPos.cx += nCaretWidth;
             SetScrollPos(scrollPos);
         }
     }
@@ -2499,6 +2511,12 @@ void RichEdit2::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
         GetCaretSize(xWidth, yHeight);
 
         UiRect rcDrawText = GetTextDrawRect(GetRect());
+        if (!rcDrawText.IsEmpty() && (xPos >= rcDrawText.right) && (xPos < (rcDrawText.right + xWidth))) {
+            //滚动到最右端时，文本末尾的光标位置正好在绘制区域的右边界上，
+            //此时光标矩形与绘制区域没有交集（不会被绘制），需要向左移动1像素保证光标可见。
+            //（仅处理光标紧邻右边界的情况，光标远在可视区域外时不绘制）
+            xPos = rcDrawText.right - 1;
+        }
         UiRect rcCaret(xPos, yPos, xPos + xWidth, yPos + yHeight);
         if(rcCaret.Intersect(rcDrawText)) {
             //光标在文字显示区域范围内时，绘制光标
@@ -2927,9 +2945,11 @@ void RichEdit2::ShowPopupMenu(const ui::UiPoint& point)
     int32_t nEndChar = 0;
     pRichEdit->GetSel(nStartChar, nEndChar);
     if (nStartChar == nEndChar) {
-        int32_t pos = m_pTextData->CharFromPos(point);
+        bool bAtRowEnd = false;
+        int32_t pos = pRichEdit->CharFromPos(point, bAtRowEnd);
         if (pos >= 0) {
             pRichEdit->SetSel(pos, pos);
+            pRichEdit->UpdateCaretRowEndAffinity(pos, bAtRowEnd);
             pRichEdit->GetSel(nStartChar, nEndChar);
         }
     }
@@ -4489,7 +4509,14 @@ bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
         const UiRect rcRow = m_pTextData->GetCharRowRect(nRefIndex);
         UiPoint pt(m_nSelXPos, rcRow.top + nPageHeight);
         bool bAtRowEnd = false;
-        nSelEndChar = CharFromLayoutPos(pt, bAtRowEnd);
+        const int32_t nTextLength = GetTextLength();
+        if ((nTextLength > 0) && (pt.y >= m_pTextData->GetCharRowRect(nTextLength - 1).bottom)) {
+            //翻页目标位置超出文本末尾时，光标定位到文本末尾（最后一个字符的后面）
+            nSelEndChar = nTextLength;
+        }
+        else {
+            nSelEndChar = CharFromLayoutPos(pt, bAtRowEnd);
+        }
 
         bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
         if (bShiftDown) {
@@ -4529,7 +4556,13 @@ bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
         const UiRect rcRow = m_pTextData->GetCharRowRect(nRefIndex);
         UiPoint pt(m_nSelXPos, rcRow.top - nPageHeight);
         bool bAtRowEnd = false;
-        nSelStartChar = CharFromLayoutPos(pt, bAtRowEnd);
+        if (pt.y < m_pTextData->GetCharRowRect(0).top) {
+            //翻页目标位置超出文本开头时，光标定位到第一个字符的前面
+            nSelStartChar = 0;
+        }
+        else {
+            nSelStartChar = CharFromLayoutPos(pt, bAtRowEnd);
+        }
         bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
         if (bShiftDown) {
             //Shift + PageUp键

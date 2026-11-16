@@ -40,15 +40,12 @@ void RichEditDropTarget_SDL::OnDropPosition(const UiPoint& pt)
     if (!m_pRichEdit->IsFocused()) {
         m_pRichEdit->SetFocus();
     }
-    int32_t pos = m_pRichEdit->CharFromPos(pt);
-    if (pos >= 0) {
-        UiPoint charPt = m_pRichEdit->PosFromChar(pos);
-        m_pRichEdit->SetCaretPos(charPt.x, charPt.y);
-        m_pRichEdit->ShowCaret(true);
+    //按拖放位置设置光标：pt是窗口坐标，直接调用SetCaretPos(x, y)即可（内部会转换坐标并处理软换行行尾）
+    m_pRichEdit->SetCaretPos(pt.x, pt.y);
+    m_pRichEdit->ShowCaret(true);
 
-        //检查是否需要滚动
-        CheckTextScroll(pt);
-    }
+    //检查是否需要滚动
+    CheckTextScroll(pt);
 }
 
 void RichEditDropTarget_SDL::OnDropTexts(const std::vector<DString>& textList, const UiPoint& pt)

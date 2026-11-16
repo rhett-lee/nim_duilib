@@ -109,8 +109,8 @@ int32_t RichEditDropTarget_Windows::DragOver(uint32_t grfKeyState, const UiPoint
     }
     int32_t pos = m_pRichEdit->CharFromPos(clientPt);
     if (pos >= 0) {
-        UiPoint charPt = m_pRichEdit->PosFromChar(pos);
-        m_pRichEdit->SetCaretPos(charPt.x, charPt.y);
+        //clientPt是窗口坐标，直接调用SetCaretPos(x, y)即可（内部会转换坐标并处理软换行行尾）
+        m_pRichEdit->SetCaretPos(clientPt.x, clientPt.y);
         m_pRichEdit->ShowCaret(true);
 
         //检查是否需要滚动
