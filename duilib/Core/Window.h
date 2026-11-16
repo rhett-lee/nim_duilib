@@ -1114,6 +1114,22 @@ private:
     */
     void ProcessWindowShadowTypeChanged();
 
+    /** 获取GL绘制方式下可用的阴影类型（GL不支持自绘阴影）
+    */
+    ShadowType GetGLShadowType(ShadowType nShadowType) const;
+
+    /** 应用阴影类型（内部使用，不保存阴影类型）
+    */
+    void ApplyShadowType(ShadowType nShadowType);
+
+    /** GL绘制方式下，应用可用的阴影类型（同时保存原来的阴影类型，供切换回CPU绘制时恢复）
+    */
+    void ApplyGLShadowType();
+
+    /** 切换回CPU绘制方式后，恢复原来保存的阴影类型
+    */
+    void RestoreShadowType();
+
 private:
     //焦点控件
     ControlPtr m_pFocus;
@@ -1233,9 +1249,17 @@ private:
     */
     bool m_bWindowAttributesApplied;
 
-    /** 窗口阴影是否进行过初始化
+    /** 窗口的初始化是否已经完成（PostInitWindow是否已经执行）
     */
-    bool m_bWindowShadowInited;
+    bool m_bWindowInitFinished;
+
+    /** 切换到GL绘制方式前保存的阴影类型（切换回CPU绘制时恢复，避免显示异常）
+    */
+    ShadowType m_savedShadowType;
+
+    /** 是否保存了阴影类型
+    */
+    bool m_bShadowTypeSaved;
 };
 
 } // namespace ui

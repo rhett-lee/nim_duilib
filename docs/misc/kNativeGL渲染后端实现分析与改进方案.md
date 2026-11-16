@@ -1,6 +1,6 @@
 # kNativeGL 渲染后端实现分析与改进方案
 
-> 状态：分析报告（2026-11-14）；阶段 1（正确性）、阶段 2（性能）、阶段 3（体验）、阶段 4（工程化）已实施（2026-11-14）
+> 状态：分析报告（2026-11-14）；阶段 1（正确性）、阶段 2（性能）、阶段 3（体验）、阶段 4（工程化）已实施（2026-11-14）；阴影/分层窗口规则完善（2026-11-16，见 12.6）
 > 适用范围：Windows 平台（`DUILIB_BUILD_FOR_WIN`，不含 `_M_ARM64`），Skia Ganesh + WGL
 > 关联文档：[IRender职责拆分与离屏渲染设计方案.md](IRender职责拆分与离屏渲染设计方案.md)、[IRender接口分析报告.md](IRender接口分析报告.md)
 
@@ -452,7 +452,7 @@ GL 默认帧缓冲在 `SwapBuffers` 后内容未定义，因此当前只能整�
 
 | 限制/场景 | 现象或原因 | 策略 |
 | --- | --- | --- |
-| 分层窗口（`WS_EX_LAYERED`、`opacity < 255`、透明窗口） | GL 渲染到窗口默认帧缓冲后由 DWM 合成，无法实现逐像素 Alpha | `Window::SetRenderBackendType()` 检测到层窗口请求 GL 时记录日志并降级为 CPU 绘制 |
+| 分层窗口（`WS_EX_LAYERED`、`opacity < 255`、透明窗口） | GL 渲染到窗口默认帧缓冲后由 DWM 合成，无法实现逐像素 Alpha | ① XML 同时要求 `render_backend_type="GL"` 与 `opacity < 255` 时，自动降级为 CPU 绘制并输出日志；② 因自绘阴影而自动开启的分层窗口，在 GL 模式下先关闭分层属性（阴影切换为系统阴影后不再需要）；③ 应用层显式设置、无法关闭的分层窗口降级为 CPU 绘制 |
 | Windows ARM64 | Skia 未提供 ARM64 的 WGL 实现（`SkWGL_win.cpp` 被排除，`GrGLMakeNativeInterface()` 返回 `nullptr`） | 编译期排除 GL 上下文实现，始终使用 CPU 绘制 |
 | 非 Windows 平台 / SDL 后端 | 无 WGL | `SetRenderBackendType()` 内部强制 CPU |
 | 无 OpenGL 环境（远程桌面、虚拟机、缺少驱动、像素格式不支持、`wglMakeCurrent` 失败） | `SkCreateWGLContext()` 或初始化失败 | `Render_Skia_Windows` 记录日志并自动改用 CPU 渲染，`GetRenderBackendType()` 返回 `kRaster`，调用方无需特殊处理 |
@@ -490,6 +490,30 @@ GL 默认帧缓冲在 `SwapBuffers` 后内容未定义，因此当前只能整�
 - 验证完成后已还原 `controls.xml` 中的临时 GL 配置。
 
 补充说明：该缺陷仅在"把绘制结果提交到窗口"这一环节，`gl_window_smoke` 只校验了 `PaintAndSwapBuffers()` 的返回值与离屏读回像素，无法覆盖"窗口实际呈现内容"，因此原有自动化测试未发现该问题；日常验收仍建议开启 GL 后目视确认一次画面。
+
+### 12.6 阴影与分层窗口规则完善（2026-11-16）
+
+本轮针对 GL 后端与窗口阴影、分层窗口的配合规则做了复查与实现补齐，代码位置如下：
+
+1. **创建失败回退 CPU**：`Window::PostInitWindow()` 统一调用 `Window::SetRenderBackendType()` 创建渲染对象，GL 上下文创建失败（`Render_Skia_Windows` 内部回退）或 Render 工厂返回空时，都会以 CPU 绘制方式继续工作，并同步 `m_renderBackendType` 与实际后端一致（关闭 MSAA / Vsync 配置）。
+2. **GL 不支持分层窗口**：
+   - `WindowBuilder::ParseWindowAttributes()`：XML 同时要求 `render_backend_type="GL"` 与 `opacity < 255` 时，降级为 `kRaster_BackendType` 并输出日志（`bNeedLayeredWindowOpacity`，含全局后端开关分支）；
+   - `Window::SetRenderBackendType()`：请求 GL 且窗口已是分层窗口时，先通过 `OnRequestSetLayeredWindow(false, ...)` 关闭分层属性（适用于因自绘阴影自动开启的分层窗口）；若分层属性为应用层显式设置、无法关闭，则降级为 CPU 绘制并输出日志；
+   - `Window::OnWindowRenderCreated()`：GL 窗口再次确认关闭分层属性。
+3. **GL 不支持自绘阴影**（`Window::ApplyGLShadowType()` / `Window::GetGLShadowType()`）：
+   - 仅在"未使用系统工具栏"且 `IsShadowAttached() == true` 时处理；
+   - 窗口支持系统阴影：系统阴影类型与 `kShadowNone` 保持不变；`kShadowNoneRound` 在 Windows 保持不变，其他系统切换为 `kShadowSystemDefault`；其他类型切换为 `kShadowSystemDefault`；
+   - 窗口不支持系统阴影：切换为 `kShadowNone`。
+4. **GL 与 CPU 动态切换的阴影恢复**：`Window` 保存切换前的阴影类型（`m_savedShadowType` / `m_bShadowTypeSaved`）。应用层在 GL 模式下设置自绘阴影类型时记录该类型并替换为可用类型；切换回 CPU 绘制时（`Window::RestoreShadowType()`）恢复保存的类型，避免来回切换后阴影显示异常。
+5. **系统工具栏**：`IsUseSystemCaption()` 为 `true` 时不处理阴影（此状态下阴影默认关闭）。
+6. **阴影已关闭**：`IsShadowAttached() == false` 时不做任何阴影处理。
+7. **减少阴影初始化的重复调用**：
+   - `Shadow::SetShadowAttached()` / `Shadow::SetShadowType()` 在状态未变化时直接返回（`m_bShadowInited`），避免重复执行 `OnShadowAttached()`；
+   - `Window::PreInitWindow()` 不再对同一种状态多次调用 `SetShadowAttached()`；`Window::OnUseSystemCaptionBarChanged()` 在窗口创建过程中不主动开启阴影（以 XML 配置为准），仅在运行过程中切换标题栏时调整；
+   - `Window::PostInitWindow()` 调用 `Shadow::InitializeShadow()`，保证窗口初次显示前 `OnShadowAttached()` 至少执行一次（若此时才完成首次初始化，同时同步窗口 RGN 等属性）；
+   - `Shadow` 的默认附加状态调整为"层窗口或非系统标题栏时默认开启"，与 `WindowCreateAttributes` 中的默认值保持一致，避免创建期反复切换阴影状态。
+
+验证：默认静态 Release 构建通过，`ctest --test-dir out\x64\Release -C Release` 16/16 通过（含 `gl_window_smoke`）。
 
 
 

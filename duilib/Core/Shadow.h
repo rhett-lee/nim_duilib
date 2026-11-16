@@ -97,6 +97,12 @@ public:
      */
     bool IsShadowAttached() const;
 
+    /** 初始化阴影状态：保证 OnShadowAttached 至少执行一次
+     *  窗口初次显示前必须调用一次，否则阴影相关流程会出现异常
+     * @return 是否执行了阴影初始化（返回true时，调用方需要处理窗口RGN等属性）
+     */
+    bool InitializeShadow();
+
     /** 设置阴影类型
     */
     void SetShadowType(ShadowType nShadowType);
@@ -295,6 +301,9 @@ private:
 
     //阴影类型
     ShadowType m_nShadowType;
+
+    //阴影状态是否已经初始化（OnShadowAttached是否已经执行过）
+    bool m_bShadowInited;
 };
 
 }

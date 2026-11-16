@@ -224,7 +224,8 @@ Shadow::Shadow(Window* pWindow, bool bShadowAttached):
     m_bRightSnap(false),
     m_bBottomSnap(false),
     m_nShadowBorderSize(2),
-    m_shadowBorderColor(_T(""))
+    m_shadowBorderColor(_T("")),
+    m_bShadowInited(false)
 {
     //默认阴影边框的颜色
     ASSERT(m_pWindow != nullptr);
@@ -257,6 +258,10 @@ void Shadow::SetShadowAttached(bool bShadowAttached)
     if (m_nShadowType == ShadowType::kShadowDefault) {
         m_nShadowType = GetDefaultShadowType(m_pWindow);
     }
+    if (m_bShadowInited && (m_bShadowAttached == bShadowAttached)) {
+        //阴影状态未变化：直接返回，避免重复执行阴影初始化（减少开销）
+        return;
+    }
     m_bShadowAttached = bShadowAttached;
     OnShadowAttached(GetShadowType());
 }
@@ -266,18 +271,38 @@ bool Shadow::IsShadowAttached() const
     return m_bShadowAttached;
 }
 
+bool Shadow::InitializeShadow()
+{
+    if (m_bShadowInited) {
+        //已经初始化过，无需重复执行
+        return false;
+    }
+    if (m_nShadowType == ShadowType::kShadowDefault) {
+        m_nShadowType = GetDefaultShadowType(m_pWindow);
+    }
+    OnShadowAttached(GetShadowType());
+    return true;
+}
+
 void Shadow::SetShadowType(ShadowType nShadowType)
 {
     ASSERT(m_pWindow->GetFullscreenControl() == nullptr);
     if (m_pWindow->GetFullscreenControl() != nullptr) {
         return;
     }
-    m_nShadowType = GetSupportedShadowType(m_pWindow, nShadowType);
+    nShadowType = GetSupportedShadowType(m_pWindow, nShadowType);
 
+    bool bShadowAttached = m_bShadowAttached;
     if (!m_pWindow->IsUseSystemCaption()) {
         //如果未启用系统标题栏，则自动开启阴影
-        m_bShadowAttached = true;
-    }    
+        bShadowAttached = true;
+    }
+    if (m_bShadowInited && (m_nShadowType == nShadowType) && (m_bShadowAttached == bShadowAttached)) {
+        //阴影类型和阴影状态均未变化：直接返回，避免重复执行阴影初始化（减少开销）
+        return;
+    }
+    m_nShadowType = nShadowType;
+    m_bShadowAttached = bShadowAttached;
     OnShadowAttached(GetShadowType());
 }
 
@@ -351,6 +376,8 @@ void Shadow::OnShadowAttached(ShadowType nShadowType)
 #endif
         }
     }
+    //标记阴影状态已经初始化（后续重复设置相同状态时，不再执行本函数）
+    m_bShadowInited = true;
 }
 
 void Shadow::UpdateShadow()

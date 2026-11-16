@@ -31,8 +31,10 @@ Window::Window() :
     m_nMsaaSampleCount(0),
     m_bDisableVsync(false),
     m_bWindowAttributesApplied(false),
+    m_bWindowInitFinished(false),
     m_bCheckSetWindowFocus(false),
-    m_bWindowShadowInited(false)
+    m_savedShadowType(ShadowType::kShadowDefault),
+    m_bShadowTypeSaved(false)
 {
     m_toolTip = std::make_unique<ToolTip>();
     m_windowRoot = std::make_unique<WindowRoot>(this);
@@ -171,6 +173,18 @@ bool Window::SetRenderBackendType(RenderBackendType backendType, int32_t nMsaaSa
     nMsaaSampleCount = 0;
     bDisableVsync = false;
 #endif
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    if ((backendType == RenderBackendType::kNativeGL_BackendType) && IsWindow() && IsLayeredWindow()) {
+        //GL绘制方式不支持分层窗口：先尝试关闭分层窗口属性（阴影会在切换为系统阴影后不再需要分层窗口）
+        if (!OnRequestSetLayeredWindow(false, false)) {
+            //分层窗口属性由应用层显式设置，无法关闭：降级为CPU绘制，否则窗口内容无法显示
+            backendType = RenderBackendType::kRaster_BackendType;
+            nMsaaSampleCount = 0;
+            bDisableVsync = false;
+            LogUtil::OutputLine(_T("Window: OpenGL does not support layered windows, fall back to CPU rendering"));
+        }
+    }
+#endif
     if (nMsaaSampleCount < 0) {
         nMsaaSampleCount = 0;
     }
@@ -257,29 +271,95 @@ bool Window::SetRenderBackendType(RenderBackendType backendType, int32_t nMsaaSa
 
 void Window::OnWindowRenderCreated()
 {
-    if (m_render != nullptr) {
-        if (m_render->GetRenderBackendType() == RenderBackendType::kNativeGL_BackendType) {
-            //GL后端: 不支持分层窗口，需要关闭自绘阴影
-            Shadow* pShadow = GetShadow();
-            if ((pShadow != nullptr) && pShadow->IsShadowAttached()) {                
-                if (!pShadow->IsSystemShadowType(pShadow->GetShadowType())) {
-                    if (IsSystemShadowSupported()) {
-                        SetShadowType(ShadowType::kShadowSystemDefault);
-                    }
-                    else {
-                        SetShadowType(ShadowType::kShadowNone);
-                    }
-                }
-            }
-            //不支持分层窗口，需要关闭分层窗口属性
-            if (IsLayeredWindow()) {
-                SetLayeredWindow(false, true);
-            }
+    if (m_render == nullptr) {
+        return;
+    }
+    if (m_render->GetRenderBackendType() == RenderBackendType::kNativeGL_BackendType) {
+        //GL后端不支持分层窗口：关闭分层窗口属性（内容无法通过UpdateLayeredWindow提交）
+        if (IsLayeredWindow()) {
+            OnRequestSetLayeredWindow(false, true);
         }
-        else {
-            //CPU后端(暂无需要处理的内容)
+        //GL后端不支持自绘阴影：切换到可用的阴影类型（系统阴影，或者无阴影）
+        ApplyGLShadowType();
+    }
+    else {
+        //CPU绘制方式：恢复切换到GL绘制前保存的阴影属性，避免来回切换时显示异常
+        RestoreShadowType();
+    }
+}
 
+ShadowType Window::GetGLShadowType(ShadowType nShadowType) const
+{
+    if (nShadowType == ShadowType::kShadowDefault) {
+        nShadowType = Shadow::GetDefaultShadowType(this);
+    }
+    if (IsSystemShadowSupported()) {
+        //窗口支持系统阴影：系统阴影、无阴影可以直接使用
+        if (Shadow::IsSystemShadowType(nShadowType) || (nShadowType == ShadowType::kShadowNone)) {
+            return nShadowType;
         }
+#if defined (DUILIB_BUILD_FOR_WIN)
+        //Windows系统可以通过设置RGN实现圆角窗口，保持该阴影类型
+        if (nShadowType == ShadowType::kShadowNoneRound) {
+            return nShadowType;
+        }
+#endif
+        //其他阴影类型：切换到默认的系统阴影
+        return ShadowType::kShadowSystemDefault;
+    }
+    //窗口不支持系统阴影：GL无法绘制自绘阴影，关闭阴影
+    return ShadowType::kShadowNone;
+}
+
+void Window::ApplyGLShadowType()
+{
+    Shadow* pShadow = GetShadow();
+    if ((pShadow == nullptr) || !pShadow->IsShadowAttached()) {
+        //阴影未开启时，无需处理
+        return;
+    }
+    if (IsUseSystemCaption()) {
+        //使用系统工具栏时，阴影默认是关闭的，无需处理
+        return;
+    }
+    IRender* pRender = IsRenderCreated() ? GetRender() : nullptr;
+    if ((pRender == nullptr) || (pRender->GetRenderBackendType() != RenderBackendType::kNativeGL_BackendType)) {
+        return;
+    }
+    ShadowType nShadowType = GetShadowType();
+    if (nShadowType == ShadowType::kShadowDefault) {
+        nShadowType = Shadow::GetDefaultShadowType(this);
+    }
+    const ShadowType nNewShadowType = GetGLShadowType(nShadowType);
+    if (nNewShadowType == nShadowType) {
+        //当前阴影类型在GL绘制方式下可以直接使用，无需切换
+        return;
+    }
+    if (!m_bShadowTypeSaved) {
+        //保存原来的阴影属性，切换回CPU绘制方式时恢复
+        m_savedShadowType = nShadowType;
+        m_bShadowTypeSaved = true;
+    }
+    ApplyShadowType(nNewShadowType);
+}
+
+void Window::RestoreShadowType()
+{
+    if (!m_bShadowTypeSaved) {
+        return;
+    }
+    Shadow* pShadow = GetShadow();
+    if ((pShadow == nullptr) || !pShadow->IsShadowAttached()) {
+        //阴影未开启时，无需恢复
+        m_savedShadowType = ShadowType::kShadowDefault;
+        m_bShadowTypeSaved = false;
+        return;
+    }
+    const ShadowType nShadowType = m_savedShadowType;
+    m_savedShadowType = ShadowType::kShadowDefault;
+    m_bShadowTypeSaved = false;
+    if (nShadowType != GetShadowType()) {
+        ApplyShadowType(nShadowType);
     }
 }
 
@@ -442,7 +522,8 @@ void Window::PreInitWindow()
     if (m_windowRoot == nullptr) {
         return;
     }
-    m_windowRoot->CreateShadow(IsLayeredWindow());
+    //阴影的默认状态：层窗口或者非系统标题栏时，默认开启阴影（与窗口创建属性中的默认值保持一致）
+    m_windowRoot->CreateShadow(IsLayeredWindow() || !IsUseSystemCaption());
     //解析窗口关联的XML文件
     if (m_windowBuilder == nullptr) {
         ParseWindowXml();
@@ -470,29 +551,16 @@ void Window::PreInitWindow()
         //关联窗口附加阴影
         pRoot = AttachShadow(pRoot);
 
-        if (IsUseSystemCaption()) {
-            //使用系统标题栏的时候，关闭阴影
+        //使用系统标题栏时，阴影必须关闭（此时阴影默认也是关闭的）
+        if (IsUseSystemCaption() && IsShadowAttached()) {
             SetShadowAttached(false);
         }
 
         //关联Root对象
         AttachBox(pRoot);
 
-        //当前阴影状态
-        bool bShadowAttached = IsShadowAttached();
-
         //更新自绘制标题栏状态
         OnUseSystemCaptionBarChanged();
-
-        //初始化阴影        
-        if (!m_bWindowShadowInited) {
-            m_bWindowShadowInited = true;
-            SetShadowAttached(bShadowAttached);
-        }
-        else if (!IsUseSystemCaption()) {
-            //保持原有的阴影状态
-            SetShadowAttached(bShadowAttached);
-        }
     }
 }
 
@@ -500,15 +568,8 @@ void Window::PostInitWindow()
 {
     //创建渲染接口
     if (m_render == nullptr) {
-        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-        ASSERT(pRenderFactory != nullptr);
-        if (pRenderFactory != nullptr) {
-            m_render.reset(pRenderFactory->CreateWindowRender(GetRenderDpi(), GetWindowHandle(), m_renderBackendType,
-                                                              m_nMsaaSampleCount, m_bDisableVsync));
-        }
-        if (m_render != nullptr) {
-            OnWindowRenderCreated();
-        }
+        //统一走SetRenderBackendType，保证GL创建失败时回退到CPU绘制，并同步实际的渲染后端状态
+        SetRenderBackendType(m_renderBackendType, m_nMsaaSampleCount, m_bDisableVsync);
     }
     ASSERT(m_render != nullptr);
 
@@ -527,6 +588,16 @@ void Window::PostInitWindow()
 
     //创建后，Render大小与客户区大小同步
     ResizeRenderToClientSize();
+
+    //保证阴影状态已经初始化：窗口初次显示前Shadow::OnShadowAttached必须执行一次，否则阴影相关流程会出现异常
+    Shadow* pShadow = GetShadow();
+    if ((pShadow != nullptr) && pShadow->InitializeShadow()) {
+        //阴影状态发生变化，需要同步窗口RGN等属性
+        ProcessWindowShadowTypeChanged();
+    }
+
+    //窗口初始化完成
+    m_bWindowInitFinished = true;
 }
 
 void Window::PreCloseWindow()
@@ -984,12 +1055,17 @@ void Window::ClearImageCache()
 void Window::OnUseSystemCaptionBarChanged()
 {
     if (IsUseSystemCaption()) {
-        //当开启系统标题栏时，需要关闭阴影
-        SetShadowAttached(false);
+        //使用系统标题栏时，阴影必须关闭
+        if (IsShadowAttached()) {
+            SetShadowAttached(false);
+        }
     }
     else {
-        //当关闭系统标题栏时，需要开启阴影
-        SetShadowAttached(true);
+        //运行过程中关闭系统标题栏时，需要开启阴影；
+        //窗口创建过程中，阴影状态以XML配置为准，避免重复设置阴影（减少开销）
+        if (!IsShadowAttached() && m_bWindowInitFinished) {
+            SetShadowAttached(true);
+        }
     }
 }
 
@@ -1126,10 +1202,14 @@ void Window::SetShadowAttached(bool bShadowAttached)
     if (m_windowRoot->IsControlFullscreen()) {
         return;
     }
-    m_bWindowShadowInited = true;
     m_windowRoot->SetShadowAttached(bShadowAttached);
 
     ProcessWindowShadowTypeChanged();
+
+    if (bShadowAttached) {
+        //GL绘制方式不支持自绘阴影：开启阴影后，需要切换到可用的阴影类型
+        ApplyGLShadowType();
+    }
 }
 
 void Window::SetShadowType(ShadowType nShadowType)
@@ -1140,17 +1220,24 @@ void Window::SetShadowType(ShadowType nShadowType)
     }
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     IRender* pRender = IsRenderCreated() ? GetRender() : nullptr;
-    if ((pRender != nullptr) && (pRender->GetRenderBackendType() == RenderBackendType::kNativeGL_BackendType)) {
-        //GL后端，禁止切换到自绘阴影，避免无法显示
-        Shadow* pShadow = GetShadow();
-        if ((pShadow != nullptr) && !pShadow->IsSystemShadowType(nShadowType)) {
-            if ((nShadowType != ShadowType::kShadowNone) && (nShadowType != ShadowType::kShadowNoneRound)) {
-                return;
-            }
+    if ((pRender != nullptr) && (pRender->GetRenderBackendType() == RenderBackendType::kNativeGL_BackendType) &&
+        !IsUseSystemCaption()) {
+        ShadowType nAppShadowType = nShadowType;
+        if (nAppShadowType == ShadowType::kShadowDefault) {
+            nAppShadowType = Shadow::GetDefaultShadowType(this);
         }
+        //记录应用层期望的阴影类型，切换回CPU绘制方式时恢复，避免来回切换时显示异常
+        m_savedShadowType = nAppShadowType;
+        m_bShadowTypeSaved = true;
+        //GL后端不支持自绘阴影，替换为可用的阴影类型，避免无法显示
+        nShadowType = GetGLShadowType(nAppShadowType);
     }
 #endif
-    m_bWindowShadowInited = true;
+    ApplyShadowType(nShadowType);
+}
+
+void Window::ApplyShadowType(ShadowType nShadowType)
+{
     m_windowRoot->SetShadowType(nShadowType);
 
     ProcessWindowShadowTypeChanged();

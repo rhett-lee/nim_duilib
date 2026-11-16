@@ -8,6 +8,7 @@
 #include "duilib/Core/ControlResizable.h"
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Core/WindowCreateAttributes.h"
+#include "duilib/Utils/LogUtil.h"
 
 #include "duilib/Control/TreeView.h"
 #include "duilib/Control/DirectoryTree.h"
@@ -827,6 +828,11 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
             else {
                 ASSERT(0);
             }
+            if ((backendType == RenderBackendType::kNativeGL_BackendType) && bNeedLayeredWindowOpacity) {
+                //GL绘制方式不支持分层窗口：XML要求设置不透明度时，降级为CPU绘制（否则窗口内容无法显示）
+                backendType = RenderBackendType::kRaster_BackendType;
+                LogUtil::OutputLine(_T("WindowBuilder: OpenGL does not support layered windows, fall back to CPU rendering"));
+            }
             pWindow->SetRenderBackendType(backendType, nMsaaSampleCount, bDisableVsync);
             bInitRenderBackendType = true;
             break;
@@ -842,6 +848,13 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
             renderBackendType = globalManager.GetGlobalRenderBackendType();
             nRenderMsaaSampleCount = globalManager.GetGlobalMsaaSampleCount();
             bRenderDisableVsync = globalManager.IsGlobalDisableVsync();
+        }
+        if ((renderBackendType == RenderBackendType::kNativeGL_BackendType) && bNeedLayeredWindowOpacity) {
+            //GL绘制方式不支持分层窗口：XML要求设置不透明度时，降级为CPU绘制（否则窗口内容无法显示）
+            renderBackendType = RenderBackendType::kRaster_BackendType;
+            nRenderMsaaSampleCount = 0;
+            bRenderDisableVsync = false;
+            LogUtil::OutputLine(_T("WindowBuilder: OpenGL does not support layered windows, fall back to CPU rendering"));
         }
         pWindow->SetRenderBackendType(renderBackendType, nRenderMsaaSampleCount, bRenderDisableVsync);
     }
