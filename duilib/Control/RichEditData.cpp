@@ -2408,6 +2408,120 @@ int32_t RichEditData::GetRowEndCharIndex(int32_t nCharIndex)
     return nNewCharIndex;
 }
 
+int32_t RichEditData::GetVisualRowStartCharIndex(int32_t nCharIndex)
+{
+    ASSERT(nCharIndex >= 0);
+    if (nCharIndex < 0) {
+        return 0;
+    }
+    const int32_t nTextLength = (int32_t)GetTextLength();
+    if (nTextLength < 1) {
+        return 0;
+    }
+    if (nCharIndex > nTextLength) {
+        nCharIndex = nTextLength;
+    }
+    //检查并计算字符位置
+    CheckCalcTextRects();
+
+    size_t nStartCharRowOffset = 0;
+    const RichTextRowInfo* pRowInfo = GetCharRowInfo(nCharIndex, nStartCharRowOffset);
+    if (pRowInfo == nullptr) {
+        return GetRowStartCharIndex(nCharIndex);
+    }
+    const size_t nStartIndex = GetRowInfoStartIndex(pRowInfo);
+    if (nStartIndex == (size_t)-1) {
+        return GetRowStartCharIndex(nCharIndex);
+    }
+    return (int32_t)nStartIndex;
+}
+
+int32_t RichEditData::GetVisualRowEndCharIndex(int32_t nCharIndex)
+{
+    ASSERT(nCharIndex >= 0);
+    if (nCharIndex < 0) {
+        return 0;
+    }
+    const int32_t nTextLength = (int32_t)GetTextLength();
+    if (nTextLength < 1) {
+        return 0;
+    }
+    if (nCharIndex > nTextLength) {
+        nCharIndex = nTextLength;
+    }
+    //检查并计算字符位置
+    CheckCalcTextRects();
+
+    size_t nStartCharRowOffset = 0;
+    const RichTextRowInfo* pRowInfo = GetCharRowInfo(nCharIndex, nStartCharRowOffset);
+    if (pRowInfo == nullptr) {
+        return GetRowEndCharIndex(nCharIndex);
+    }
+    const size_t nStartIndex = GetRowInfoStartIndex(pRowInfo);
+    if (nStartIndex == (size_t)-1) {
+        return GetRowEndCharIndex(nCharIndex);
+    }
+    const size_t nCharCount = pRowInfo->m_charInfo.CharCount();
+    int32_t nEndIndex = (int32_t)(nStartIndex + nCharCount);
+    if ((nCharCount >= 1) && pRowInfo->m_charInfo.IsNewLine(nCharCount - 1)) {
+        //本可视行以换行符结尾（硬换行）：光标停在换行符之前
+        nEndIndex -= 1;
+        if ((nCharCount >= 2) && pRowInfo->m_charInfo.IsReturn(nCharCount - 2)) {
+            nEndIndex -= 1;
+        }
+    }
+    if (nEndIndex < 0) {
+        nEndIndex = 0;
+    }
+    if (nEndIndex > nTextLength) {
+        nEndIndex = nTextLength;
+    }
+    return nEndIndex;
+}
+
+bool RichEditData::IsSoftWrapRowStartCharIndex(int32_t nCharIndex)
+{
+    const int32_t nTextLength = (int32_t)GetTextLength();
+    if ((nCharIndex <= 0) || (nCharIndex >= nTextLength)) {
+        return false;
+    }
+    //检查并计算字符位置
+    CheckCalcTextRects();
+
+    size_t nLineNumber = 0;
+    size_t nLineRowIndex = 0;
+    size_t nStartCharRowOffset = 0;
+    if (!GetCharLineRowIndex(nCharIndex, nLineNumber, nLineRowIndex, nStartCharRowOffset)) {
+        return false;
+    }
+    //在物理行中不是第一个逻辑行，且位于该逻辑行的行首
+    return (nLineRowIndex > 0) && (nStartCharRowOffset == 0);
+}
+
+UiPoint RichEditData::CaretPosFromVisualRowEnd(int32_t nCharIndex)
+{
+    //检查并计算字符位置
+    CheckCalcTextRects();
+
+    if ((nCharIndex <= 0) || m_lineTextInfo.empty()) {
+        return CaretPosFromChar(nCharIndex);
+    }
+
+    UiPoint cursorPos;
+    size_t nStartCharRowOffset = 0;
+    const RichTextRowInfo* pRowInfo = GetCharRowInfo(nCharIndex - 1, nStartCharRowOffset);
+    if (pRowInfo == nullptr) {
+        return CaretPosFromChar(nCharIndex);
+    }
+    const RichTextRowInfo& rowInfo = *pRowInfo;
+    cursorPos.y = (int32_t)rowInfo.m_rowRect.top;
+    cursorPos.x = (int32_t)ui::CEILF(rowInfo.m_rowRect.left + rowInfo.m_charInfo.CharX(rowInfo.m_charInfo.CharCount()));
+
+    //转换为外部坐标
+    ConvertToExternal(cursorPos);
+    return cursorPos;
+}
+
 int32_t RichEditData::GetCharWidthValue(int32_t nCharIndex)
 {
     //检查并计算字符位置

@@ -364,6 +364,32 @@ public:
     */
     int32_t GetRowEndCharIndex(int32_t nCharIndex);
 
+    /** 获取本可视行（自动换行后的逻辑行）的行首的字符索引下标值
+    * @param [in] nCharIndex 字符的索引下标
+    * @return 返回本可视行的行首的字符索引下标值
+    */
+    int32_t GetVisualRowStartCharIndex(int32_t nCharIndex);
+
+    /** 获取本可视行（自动换行后的逻辑行）的行尾的光标索引下标值
+    * 软换行时，返回下一可视行的行首索引（光标需要显示在本可视行的行尾）；
+    * 硬换行时，返回换行符之前的位置（与GetRowEndCharIndex的返回值一致）
+    * @param [in] nCharIndex 字符的索引下标
+    * @return 返回本可视行的行尾的光标索引下标值
+    */
+    int32_t GetVisualRowEndCharIndex(int32_t nCharIndex);
+
+    /** 判断指定的索引下标是否为软换行（自动换行）产生的续行行首
+    * @param [in] nCharIndex 字符的索引下标
+    * @return 返回true表示该索引是软换行产生的行首（此时光标显示在上一可视行的行尾）
+    */
+    bool IsSoftWrapRowStartCharIndex(int32_t nCharIndex);
+
+    /** 获取指定索引下标显示在上一可视行行尾时的光标坐标
+    * @param [in] nCharIndex 字符的索引下标（必须是软换行产生的行首索引）
+    * @return 返回光标坐标（客户区坐标）
+    */
+    UiPoint CaretPosFromVisualRowEnd(int32_t nCharIndex);
+
     /** 获取索引下标对应的字符宽度
     * @param [in] nCharIndex 字符的索引下标
     */

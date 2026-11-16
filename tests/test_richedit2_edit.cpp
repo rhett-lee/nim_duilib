@@ -3034,6 +3034,107 @@ std::vector<int32_t> CollectRowStartIndexes(TestRichEdit2& richEdit, int32_t nTe
     return rowStarts;
 }
 
+/** 窄宽度 + 自动换行：上下方向键应在可视行之间移动，Home/End 应作用于当前可视行 */
+void TestCaretWrapRowKeys(TestEnv& env)
+{
+    TestRichEdit2& richEdit = env.Edit();
+    ResetEdit(env);
+    env.m_rcControl = ui::UiRect(0, 0, 202, 38);
+    richEdit.SetPos(env.m_rcControl);
+    ui::UiFont fontInfo;
+    fontInfo.m_fontName = _T("Microsoft YaHei");
+    fontInfo.m_fontSize = 12;
+    richEdit.SetFontInfo(fontInfo);
+    richEdit.SetWordWrap(true);
+    richEdit.SetMultiLine(true);
+    richEdit.SetAttribute(_T("text_align"), _T("left,vcenter"));
+    richEdit.SetAttribute(_T("vscrollbar"), _T("true"));
+
+    DStringW text;
+    for (int32_t i = 0; i < 4; ++i) {
+        text += L"0123456789abcdefghigklmn";
+    }
+    richEdit.SetText(text);
+    richEdit.SetSel(0, 0);
+    PaintFrame(env);
+
+    const int32_t nTextLen = (int32_t)text.size();
+    const std::vector<int32_t> rowStarts = CollectRowStartIndexes(richEdit, nTextLen);
+    CHECK_MSG(rowStarts.size() >= 3, "narrow wrap: text should span multiple visual rows");
+    if (rowStarts.size() < 3) {
+        env.m_rcControl = ui::UiRect(0, 0, kWidth, kHeight);
+        richEdit.SetPos(env.m_rcControl);
+        return;
+    }
+    const int32_t nLastRow = (int32_t)rowStarts.size() - 1;
+
+    //1) 从最后一行逐字符向上：Up 必须移动到上一可视行，不能没有响应
+    for (int32_t nCaret = rowStarts[nLastRow]; nCaret < nTextLen; ++nCaret) {
+        richEdit.SetSel(nCaret, nCaret);
+        const ui::UiPoint ptBefore = richEdit.PosFromChar(nCaret);
+        SendKey(richEdit, ui::kVK_UP);
+        const int32_t nNewCaret = GetCaretChar(richEdit);
+        const ui::UiPoint ptAfter = richEdit.PosFromChar(nNewCaret);
+        CHECK_MSG(ptAfter.y < ptBefore.y, "narrow wrap: Up from char " + std::to_string(nCaret) +
+                  " should move to the previous visual row, caret=" + std::to_string(nNewCaret));
+        CHECK_MSG(nNewCaret >= rowStarts[nLastRow - 1] && nNewCaret < rowStarts[nLastRow],
+                  "narrow wrap: Up from char " + std::to_string(nCaret) + " should stay in the previous row, caret=" +
+                  std::to_string(nNewCaret));
+    }
+
+    //2) 连续 Up 直到第一行，再按 Up 位置不变
+    richEdit.SetSel(nTextLen - 1, nTextLen - 1);
+    SendKey(richEdit, ui::kVK_UP); //先离开最后一行，清除并记录列位置
+    for (int32_t k = nLastRow - 1; k > 0; --k) {
+        SendKey(richEdit, ui::kVK_UP);
+    }
+    int32_t nCaretTop = GetCaretChar(richEdit);
+    CHECK_MSG(richEdit.PosFromChar(nCaretTop).y == richEdit.PosFromChar(0).y,
+              "narrow wrap: repeated Up should reach the first visual row, caret=" + std::to_string(nCaretTop));
+    SendKey(richEdit, ui::kVK_UP);
+    CHECK_MSG(GetCaretChar(richEdit) == nCaretTop, "narrow wrap: Up on the first row should keep the caret");
+
+    //3) 连续 Down 回到最后一行的列位置
+    for (int32_t k = 0; k < nLastRow; ++k) {
+        SendKey(richEdit, ui::kVK_DOWN);
+    }
+    const int32_t nCaretBottom = GetCaretChar(richEdit);
+    const ui::UiPoint ptBottom = richEdit.PosFromChar(nCaretBottom);
+    CHECK_MSG(ptBottom.y >= richEdit.PosFromChar(rowStarts[nLastRow]).y,
+              "narrow wrap: repeated Down should reach the last visual row, caret=" + std::to_string(nCaretBottom));
+
+    //4) End：光标应移动到当前可视行的行尾，并停留在当前行（不是硬换行/文本末尾）
+    const int32_t nRow = 1;
+    richEdit.SetSel(rowStarts[nRow] + 5, rowStarts[nRow] + 5);
+    SendKey(richEdit, ui::kVK_END);
+    const int32_t nEndCaret = GetCaretChar(richEdit);
+    CHECK_MSG(nEndCaret == rowStarts[nRow + 1], "narrow wrap: End should move to the visual row end, caret=" +
+              std::to_string(nEndCaret) + ", expect=" + std::to_string(rowStarts[nRow + 1]));
+    const ui::UiRect rcEndCaret = richEdit.GetCaretRect();
+    CHECK_MSG(rcEndCaret.top == richEdit.PosFromChar(rowStarts[nRow]).y,
+              "narrow wrap: End caret should stay on the same visual row");
+
+    //5) Home：光标应移动到当前可视行的行首
+    richEdit.SetSel(rowStarts[nRow] + 5, rowStarts[nRow] + 5);
+    SendKey(richEdit, ui::kVK_HOME);
+    CHECK_MSG(GetCaretChar(richEdit) == rowStarts[nRow], "narrow wrap: Home should move to the visual row start, caret=" +
+              std::to_string(GetCaretChar(richEdit)));
+
+    //6) 文本含硬换行时：End 仍应停在换行符之前
+    richEdit.SetText(L"abc\ndefghijklmn\nopq");
+    richEdit.SetSel(5, 5);
+    SendKey(richEdit, ui::kVK_END);
+    CHECK_MSG(GetCaretChar(richEdit) == 15, "narrow wrap: End before hard line break, caret=" +
+              std::to_string(GetCaretChar(richEdit)));
+
+    env.m_rcControl = ui::UiRect(0, 0, kWidth, kHeight);
+    richEdit.SetPos(env.m_rcControl);
+    ui::UiFont fontDefault;
+    fontDefault.m_fontName = _T("Microsoft YaHei");
+    fontDefault.m_fontSize = 16;
+    richEdit.SetFontInfo(fontDefault);
+}
+
 /** 光标显示与文本选择：自动换行 / 不自动换行两种情况下的方向键、鼠标点击与选择 */
 void TestCaretSelectionMatrix(TestEnv& env)
 {
@@ -3392,6 +3493,7 @@ int main()
     TestMouseSelection(env);
     TestCaretSelectionScrolled(env);
     TestCaretWordAndLineKeys(env);
+    TestCaretWrapRowKeys(env);
     TestCaretSelectionMatrix(env);
     TestEditEvents(env);
     TestClipboard(env);

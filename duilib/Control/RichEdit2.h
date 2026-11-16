@@ -1119,6 +1119,12 @@ private:
     */
     void SetCaretPos(int32_t nCharPosIndex);
 
+    /** 根据字符索引更新光标的位置：如果该索引是软换行产生的续行行首，则光标显示在上一可视行的行尾
+    * @param [in] nCharIndex 光标所在的字符索引
+    * @param [in] nCaretX 期望的光标X坐标（小于0表示不限制，用于End键）
+    */
+    void UpdateCaretRowEndAffinity(int32_t nCharIndex, int32_t nCaretX = -1);
+
     /** 设置光标位置
      * @param [in] xPos X 轴坐标
      * @param [in] yPos Y 轴坐标
@@ -1428,6 +1434,10 @@ private:
     /** 方向键切换位置时的X坐标值
     */
     int32_t m_nSelXPos;
+
+    /** 光标显示在上一可视行行尾时对应的字符索引（软换行续行的行首），-1表示不适用
+    */
+    int32_t m_nCaretRowEndIndex;
 
     /** 上次双击的时间(毫秒)，与双击位置一起用于识别鼠标三击
     */
