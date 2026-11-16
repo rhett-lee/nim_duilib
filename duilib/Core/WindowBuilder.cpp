@@ -8,6 +8,7 @@
 #include "duilib/Core/ControlResizable.h"
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Core/WindowCreateAttributes.h"
+#include "duilib/Core/WindowAttributes.h"
 #include "duilib/Utils/LogUtil.h"
 
 #include "duilib/Control/TreeView.h"
@@ -93,7 +94,6 @@
 #include "duilib/Utils/LogUtil.h"
 
 #include "duilib/third_party/xml/pugixml.hpp"
-#include <set>
 
 namespace ui 
 {
@@ -551,224 +551,216 @@ bool WindowBuilder::ParseWindowCreateAttributes(Window* pWindow, WindowCreateAtt
     if (root.empty()) {
         return false;
     }
-    DString strClass = root.name();
-    ASSERT(strClass == _T("Window"));
-    if (strClass != _T("Window")) {
+    ASSERT(StringUtil::StringCompare(root.name(), _T("Window")) == 0);
+
+    //单趟解析XML中窗口的全部属性（属性的书写顺序不影响解析结果）
+    WindowAttributeValues values;
+    if (!ParseWindowAttributeValues(root, values, nullptr)) {
         return false;
     }
 
-    UiSize szMinSize;
-    UiSize szMaxSize;
-    bool bScaledCX = false;
-    bool bScaledCY = false;
-    bool bPercentCX = false;
-    bool bPercentCY = false;
+    //窗口创建依赖的属性：直接映射解析结果
+    createAttributes.m_bUseSystemCaption = values.m_bUseSystemCaption;
+    createAttributes.m_bUseSystemCaptionDefined = values.m_bUseSystemCaptionDefined;
 
-    //窗口配置的size是否包含阴影
-    bool bSizeContainShadow = false;
+    createAttributes.m_rcSizeBox = values.m_rcSizeBox;
+    createAttributes.m_bSizeBoxDefined = values.m_bSizeBoxDefined;
 
-    //XML文件中是否定义了分层窗口属性
-    bool bIsLayeredWindowDefined = false;
+    createAttributes.m_rcCaption = values.m_rcCaption;
+    createAttributes.m_bCaptionDefined = values.m_bCaptionDefined;
 
-    //阴影相关参数
-    ShadowType nShadowType = ShadowType::kShadowDefault;
-    UiPadding rcShadowCorner;
+    createAttributes.m_bShadowAttached = values.m_bShadowAttached;
+    createAttributes.m_bShadowAttachedDefined = values.m_bShadowAttachedDefined;
 
-    DString strName;
-    DString strValue;
-    for (pugi::xml_attribute attr : root.attributes()) {
-        strName = attr.name();
-        strValue = attr.value();
-        if (strName == _T("use_system_caption")) {
-            createAttributes.m_bUseSystemCaption = (StringUtil::IsValueTrue(strValue));
-            createAttributes.m_bUseSystemCaptionDefined = true;
-        }
-        else if ((strName == _T("size_box")) || (strName == _T("sizebox"))) {
-            AttributeUtil::ParseRectValue(strValue.c_str(), createAttributes.m_rcSizeBox);
-            createAttributes.m_bSizeBoxDefined = true;
-        }
-        else if (strName == _T("caption")) {
-            AttributeUtil::ParseRectValue(strValue.c_str(), createAttributes.m_rcCaption);
-            createAttributes.m_bCaptionDefined = true;
-        }
-        else if ((strName == _T("shadow_attached")) || (strName == _T("shadowattached"))) {
-            createAttributes.m_bShadowAttached = (StringUtil::IsValueTrue(strValue));
-            createAttributes.m_bShadowAttachedDefined = true;
-        }
-        else if (strName == _T("shadow_type")) {
-            //设置阴影类型
-            Shadow::GetShadowType(strValue, nShadowType);
-        }
-        else if ((strName == _T("shadow_corner")) || (strName == _T("shadowcorner"))) {
-            //设置窗口阴影的九宫格属性            
-            AttributeUtil::ParsePaddingValue(strValue.c_str(), rcShadowCorner);
-        }
-        else if ((strName == _T("layered_window")) || (strName == _T("layeredwindow"))) {
-            createAttributes.m_bIsLayeredWindow = (StringUtil::IsValueTrue(strValue));
-            createAttributes.m_bIsLayeredWindowDefined = true;
-            bIsLayeredWindowDefined = true;
-        }
-        else if (strName == _T("alpha")) {
-            //设置窗口的透明度（0 - 255），仅当使用层窗口时有效，在在UpdateLayeredWindow函数中作为参数使用
-            int32_t nAlpha = StringUtil::StringToInt32(strValue);
-            ASSERT(nAlpha >= 0 && nAlpha <= 255);
-            if ((nAlpha >= 0) && (nAlpha < 255)) {
-                createAttributes.m_nLayeredWindowAlpha = (uint8_t)nAlpha;
-                createAttributes.m_bLayeredWindowAlphaDefined = true;
-            }
-        }
-        else if (strName == _T("opacity")) {
-            //设置窗口的不透明度（0 - 255），该值在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)
-            const int32_t nAlpha = StringUtil::StringToInt32(strValue);
-            ASSERT(nAlpha >= 0 && nAlpha <= 255);
-            if ((nAlpha >= 0) && (nAlpha < 255)) {
-                createAttributes.m_nLayeredWindowOpacity = (uint8_t)nAlpha;
-                createAttributes.m_bLayeredWindowOpacityDefined = true;
-            }
-        }
-        else if (strName == _T("size")) {
-            AttributeUtil::ParseWindowSize(nullptr, strValue.c_str(), createAttributes.m_szInitSize, &bScaledCX, &bScaledCY, &bPercentCX, &bPercentCY);
-            createAttributes.m_bInitSizeDefined = true;
-        }
-        else if (strName == _T("size_contain_shadow")) {
-            //窗口配置的size是否包含阴影
-            bSizeContainShadow = (StringUtil::IsValueTrue(strValue));
-        }
-        else if ((strName == _T("min_size")) || (strName == _T("mininfo"))) {
-            AttributeUtil::ParseSizeValue(strValue.c_str(), szMinSize);
-        }
-        else if ((strName == _T("max_size")) || (strName == _T("maxinfo"))) {
-            AttributeUtil::ParseSizeValue(strValue.c_str(), szMaxSize);
-        }
-        else if (strName == _T("sdl_render_name")) {
-            //期望的SDL Render的名称
-            createAttributes.m_sdlRenderName = strValue;
-        }
+    createAttributes.m_sdlRenderName = values.m_sdlRenderName;
+
+    //窗口尚不存在，此时不是分层窗口
+    ShadowResolveParam layeredParam;
+    if (pWindow != nullptr) {
+        layeredParam.m_bSystemShadowSupported = pWindow->NativeWnd()->IsSystemShadowSupported();
     }
+    layeredParam.m_bLayeredWindow = false;
 
-    //设置分层窗口的默认值
-    const bool bUseSystemCaption = createAttributes.m_bUseSystemCaptionDefined && createAttributes.m_bUseSystemCaption;
-    const bool bShadowAttached = !createAttributes.m_bShadowAttachedDefined || (createAttributes.m_bShadowAttachedDefined && createAttributes.m_bShadowAttached);
-    if (!createAttributes.m_bIsLayeredWindowDefined &&
-        !bUseSystemCaption &&
-        createAttributes.m_bLayeredWindowOpacityDefined) {
-        //使用Opacity属性，默认需要开启分层窗口
-        createAttributes.m_bIsLayeredWindowDefined = true;
-        createAttributes.m_bIsLayeredWindow = true;
-    }
-    else if (!createAttributes.m_bIsLayeredWindowDefined && bUseSystemCaption) {
-        //使用系统标题栏属性，默认不开启分层窗口
-        createAttributes.m_bIsLayeredWindowDefined = true;
-        createAttributes.m_bIsLayeredWindow = false;
-    }
-    if (!createAttributes.m_bIsLayeredWindowDefined && bShadowAttached && !bUseSystemCaption) {
-        //阴影启用
-        ShadowType shadowType = nShadowType;
-        if (shadowType == ShadowType::kShadowDefault) {
-            shadowType = Shadow::GetDefaultShadowType(pWindow);
-        }
-        if (Shadow::IsShadowTypeNeedLayeredWindow(shadowType)) {
-            //使用自绘阴影，默认需要开启分层窗口
-            createAttributes.m_bIsLayeredWindowDefined = true;
-            createAttributes.m_bIsLayeredWindow = true;
-        }
-    }
+    //分层窗口属性（系统标题栏互斥、SDL默认值等规则在Resolve中统一处理）
+    const LayeredWindowAttributes layered = ResolveLayeredWindowAttributes(values, layeredParam);
+    createAttributes.m_bIsLayeredWindow = layered.m_bIsLayeredWindow;
+    createAttributes.m_bIsLayeredWindowDefined = layered.m_bIsLayeredWindowDefined;
+    createAttributes.m_nLayeredWindowAlpha = (uint8_t)layered.m_nAlpha;
+    createAttributes.m_bLayeredWindowAlphaDefined = layered.m_bAlphaDefined;
+    createAttributes.m_nLayeredWindowOpacity = (uint8_t)layered.m_nOpacity;
+    createAttributes.m_bLayeredWindowOpacityDefined = layered.m_bOpacityDefined;
 
-    //校验
 #ifdef _DEBUG
     //使用Opacity属性时，应该开启分层窗口属性
     if (createAttributes.m_bLayeredWindowOpacityDefined) {
         ASSERT(createAttributes.m_bIsLayeredWindow);
     }
 #endif
-    if (bUseSystemCaption && createAttributes.m_bIsLayeredWindow) {
-        //系统标题栏与分层窗口属性互斥，使用系统标题栏时必须关闭分层窗口属性：
-        //分层窗口由应用层调用UpdateLayeredWindow提交整个窗口的内容，系统标题栏无法正常显示；
-        //并且提交的尺寸与客户区尺寸不一致时，会导致窗口大小逐帧变小
-        createAttributes.m_bIsLayeredWindow = false;
-    }
 
-#if defined (DUILIB_BUILD_FOR_SDL)
-    //默认开启支持透明度(SDL在Windows系统中，未使用分层窗口属性)
-    if (!bIsLayeredWindowDefined) {
-        createAttributes.m_bIsLayeredWindowDefined = true;
-        createAttributes.m_bIsLayeredWindow = true;
-    }
-#else
-    //仅SDL构建使用该变量（XML中是否定义了分层窗口属性），非SDL构建时显式标记为未使用
-    UNUSED_VARIABLE(bIsLayeredWindowDefined);
-#endif
+    //阴影属性（默认阴影类型依赖分层窗口状态，与窗口创建后的状态保持一致）
+    ShadowResolveParam shadowParam = layeredParam;
+    shadowParam.m_bLayeredWindow = layered.m_bIsLayeredWindow;
+    const ShadowAttributes shadow = ResolveShadowAttributes(values, shadowParam);
+    createAttributes.m_rcShadowCorner = shadow.m_rcShadowCorner;
 
-    //评估阴影的九宫格属性, 用于确定最终的窗口大小
-    if (createAttributes.m_bShadowAttachedDefined && !createAttributes.m_bShadowAttached) {
-        //阴影被禁用
-        rcShadowCorner.Clear();
+    //评估窗口的初始大小（必须依据最终的阴影九宫格与min/max属性）
+    if (values.m_bSizeDefined) {
+        WindowInitSizeResolveParam sizeParam;
+        sizeParam.m_szMinSize = values.m_szMinSize;
+        sizeParam.m_szMaxSize = values.m_szMaxSize;
+        sizeParam.m_rcShadowCorner = shadow.m_rcShadowCorner;
+        sizeParam.m_bShadowAttached = shadow.m_bShadowAttached;
+        sizeParam.m_bSizeContainShadow = values.m_bSizeContainShadow;
+        sizeParam.m_pWindow = nullptr;
+        createAttributes.m_szInitSize = ResolveWindowInitSize(values, sizeParam, GlobalManager::Instance().Dpi());
+        createAttributes.m_bInitSizeDefined = true;
     }
-    else if (rcShadowCorner.IsEmpty()) {
-        UiSize szBorderRound;
-        DString shadowImage;
-        if (pWindow != nullptr) {
-            bool bLayeredWindow = createAttributes.m_bIsLayeredWindowDefined && createAttributes.m_bIsLayeredWindow;
-            bool bOldLayeredWindow = pWindow->IsLayeredWindow();
-            pWindow->SetLayeredWindow(bLayeredWindow, false);
-            Shadow::GetShadowParam(pWindow, nShadowType, szBorderRound, rcShadowCorner, shadowImage);
-            pWindow->SetLayeredWindow(bOldLayeredWindow, false);
-        }
-        else {
-            Shadow::GetShadowParam(pWindow, nShadowType, szBorderRound, rcShadowCorner, shadowImage);
-        }
-    }
-    createAttributes.m_rcShadowCorner = rcShadowCorner;
-
-    if (createAttributes.m_bInitSizeDefined) {
-        int32_t cx = createAttributes.m_szInitSize.cx;
-        int32_t cy = createAttributes.m_szInitSize.cy;
-        UiSize minSize = szMinSize;
-        UiSize maxSize = szMaxSize;
-        if (bScaledCX) {
-            GlobalManager::Instance().Dpi().ScaleWindowSize(minSize.cx);
-            GlobalManager::Instance().Dpi().ScaleWindowSize(maxSize.cx);
-        }
-        if (bScaledCY) {
-            GlobalManager::Instance().Dpi().ScaleWindowSize(minSize.cy);
-            GlobalManager::Instance().Dpi().ScaleWindowSize(maxSize.cy);
-        }
-        if ((minSize.cx > 0) && (cx < minSize.cx)) {
-            cx = minSize.cx;
-        }
-        if ((maxSize.cx > 0) && (cx > maxSize.cx)) {
-            cx = maxSize.cx;
-        }
-        if ((minSize.cy > 0) && (cy < minSize.cy)) {
-            cy = minSize.cy;
-        }
-        if ((maxSize.cy > 0) && (cy > maxSize.cy)) {
-            cy = maxSize.cy;
-        }
-        if (!bScaledCX) {
-            GlobalManager::Instance().Dpi().ScaleWindowSize(cx);
-        }
-        if (!bScaledCY) {
-            GlobalManager::Instance().Dpi().ScaleWindowSize(cy);
-        }
-        if (!bSizeContainShadow) {
-            if (!bPercentCX) {
-                GlobalManager::Instance().Dpi().ScaleWindowSize(rcShadowCorner.left);
-                GlobalManager::Instance().Dpi().ScaleWindowSize(rcShadowCorner.right);
-                cx += rcShadowCorner.left + rcShadowCorner.right;
-            }
-            if (!bPercentCY) {
-                GlobalManager::Instance().Dpi().ScaleWindowSize(rcShadowCorner.top);
-                GlobalManager::Instance().Dpi().ScaleWindowSize(rcShadowCorner.bottom);
-                cy += rcShadowCorner.top + rcShadowCorner.bottom;
-            }
-        }
-        AttributeUtil::ValidateWindowSize(nullptr, cx, cy);
-        createAttributes.m_szInitSize.cx = cx;
-        createAttributes.m_szInitSize.cy = cy;
-    }
-
     return true;
+}
+
+namespace
+{
+    /** 将解析后的窗口属性应用到窗口
+    *   按固定阶段执行，每个属性只出现一处，不依赖XML中属性的书写顺序：
+    *   1. 渲染后端（后续属性的设置依赖Render对象）；
+    *   2. 结构性属性（min/max大小、系统标题栏、标题栏区域等）；
+    *   3. 阴影（先阴影类型，再显式配置，最后设置是否支持阴影）；
+    *   4. 层窗口与透明度；
+    *   5. 无依赖的属性；
+    *   6. 窗口的初始大小（最后设置）。
+    */
+    void ApplyWindowAttributes(Window* pWindow, const WindowAttributeValues& values)
+    {
+        ASSERT(pWindow != nullptr);
+        if (pWindow == nullptr) {
+            return;
+        }
+
+        //【阶段1】渲染后端：必须最先设置，后续属性依赖Render对象
+        RenderBackendResolveParam renderParam;
+        renderParam.m_defaultBackendType = pWindow->GetRenderBackendType();
+        renderParam.m_nDefaultMsaaSampleCount = pWindow->GetRenderMsaaSampleCount();
+        renderParam.m_bDefaultDisableVsync = pWindow->IsRenderDisableVsync();
+        const GlobalManager& globalManager = GlobalManager::Instance();
+        if (globalManager.IsGlobalRenderBackendTypeEnabled()) {
+            renderParam.m_defaultBackendType = globalManager.GetGlobalRenderBackendType();
+            renderParam.m_nDefaultMsaaSampleCount = globalManager.GetGlobalMsaaSampleCount();
+            renderParam.m_bDefaultDisableVsync = globalManager.IsGlobalDisableVsync();
+        }
+        const RenderBackendAttributes render = ResolveRenderBackendAttributes(values, renderParam);
+        if (render.m_bFallbackToRaster) {
+            LogUtil::OutputLine(_T("WindowBuilder: OpenGL does not support layered windows, fall back to CPU rendering"));
+        }
+        pWindow->SetRenderBackendType(render.m_backendType, render.m_nMsaaSampleCount, render.m_bDisableVsync);
+
+        //【阶段2】结构性属性：其他属性依赖这些属性（尤其是use_system_caption）
+        if (values.m_bMinSizeDefined) {
+            pWindow->SetWindowMinimumSize(values.m_szMinSize, true);
+        }
+        if (values.m_bMaxSizeDefined) {
+            pWindow->SetWindowMaximumSize(values.m_szMaxSize, true);
+        }
+        if (values.m_bUseSystemCaptionDefined) {
+            pWindow->SetUseSystemCaption(values.m_bUseSystemCaption);
+        }
+        if (values.m_bSizeBoxDefined) {
+            pWindow->SetSizeBox(values.m_rcSizeBox, true);
+        }
+        if (values.m_bCaptionDefined) {
+            pWindow->SetCaptionRect(values.m_rcCaption, true);
+        }
+        if (values.m_bEnableSnapLayoutMenuDefined) {
+            pWindow->SetEnableSnapLayoutMenu(values.m_bEnableSnapLayoutMenu);
+        }
+        if (values.m_bEnableSysMenuDefined) {
+            pWindow->SetEnableSysMenu(values.m_bEnableSysMenu);
+        }
+        if (values.m_bSysMenuRectDefined) {
+            pWindow->SetSysMenuRect(values.m_rcSysMenuRect, true);
+        }
+        if (values.m_bWindowIconDefined && !values.m_windowIcon.empty()) {
+            pWindow->SetWindowIcon(values.m_windowIcon);
+        }
+        if (values.m_bWindowTextDefined) {
+            pWindow->SetText(values.m_windowText);
+        }
+        if (values.m_bWindowTextIdDefined) {
+            pWindow->SetTextId(values.m_windowTextId);
+        }
+        if (values.m_bRoundCornerDefined) {
+            pWindow->SetRoundCorner(values.m_szRoundCorner.cx, values.m_szRoundCorner.cy);
+        }
+
+        //【阶段3】阴影：先设置阴影类型（会重置默认的图片与九宫格），再应用显式配置
+        const bool bUseSystemCaption = pWindow->IsUseSystemCaption();
+        if (values.m_bShadowTypeDefined) {
+            pWindow->SetShadowType(values.m_nShadowType);
+        }
+        if (values.m_bShadowImageDefined) {
+            pWindow->SetShadowImage(values.m_shadowImage);
+        }
+        if (values.m_bShadowCornerDefined) {
+            pWindow->SetShadowCorner(values.m_rcShadowCorner);
+        }
+        if (values.m_bShadowBorderRoundDefined) {
+            pWindow->SetShadowBorderRound(values.m_szShadowBorderRound);
+        }
+        if (values.m_bShadowBorderSizeDefined) {
+            pWindow->SetShadowBorderSize(values.m_nShadowBorderSize);
+        }
+        if (values.m_bShadowBorderColorDefined) {
+            pWindow->SetShadowBorderColor(values.m_shadowBorderColor);
+        }
+        if (values.m_bEnableShadowSnapDefined) {
+            pWindow->SetEnableShadowSnap(values.m_bEnableShadowSnap);
+        }
+        if (values.m_bShadowAttachedDefined) {
+            //最后设置，避免受到"shadow_type"的影响
+            if (!values.m_bShadowAttached) {
+                pWindow->SetShadowAttached(false);
+            }
+            else if (!bUseSystemCaption) {
+                pWindow->SetShadowAttached(true);
+            }
+        }
+
+        //【阶段4】层窗口与透明度（互斥与降级规则已在Resolve中统一处理）
+        ShadowResolveParam layeredParam;
+        layeredParam.m_bLayeredWindow = false;
+        layeredParam.m_bSystemShadowSupported = pWindow->NativeWnd()->IsSystemShadowSupported();
+        const LayeredWindowAttributes layered = ResolveLayeredWindowAttributes(values, layeredParam);
+        if (!bUseSystemCaption && layered.m_bIsLayeredWindowDefined &&
+            (values.m_bLayeredWindowDefined || (layered.m_bIsLayeredWindow != pWindow->IsLayeredWindow()))) {
+            //窗口创建时已按相同规则设置过分层属性，这里只应用XML中的显式配置或者与当前状态不同的结果
+            pWindow->SetLayeredWindow(layered.m_bIsLayeredWindow, false);
+        }
+        if (layered.m_bAlphaDefined) {
+            pWindow->SetLayeredWindowAlpha(layered.m_nAlpha);
+        }
+        if (layered.m_bOpacityDefined) {
+            pWindow->SetLayeredWindowOpacity(layered.m_nOpacity);
+        }
+
+        //【阶段5】无依赖的属性
+        if (values.m_bEnableDragDropDefined) {
+            pWindow->SetEnableDragDrop(values.m_bEnableDragDrop);
+        }
+
+        //【阶段6】窗口的初始化大小：最后设置，因为初始化大小与阴影、最小/最大尺寸相关
+        if (values.m_bSizeDefined) {
+            WindowInitSizeResolveParam sizeParam;
+            sizeParam.m_szMinSize = pWindow->GetWindowMinimumSize();
+            sizeParam.m_szMaxSize = pWindow->GetWindowMaximumSize();
+            sizeParam.m_bMinMaxScaled = true;//窗口中的min/max已经是DPI缩放后的值
+            sizeParam.m_rcShadowCorner = pWindow->GetShadowCorner();
+            sizeParam.m_bShadowAttached = pWindow->IsShadowAttached();
+            sizeParam.m_bSizeContainShadow = values.m_bSizeContainShadow;
+            sizeParam.m_bWindowMaximized = pWindow->IsWindowMaximized();
+            sizeParam.m_pWindow = pWindow;
+            const UiSize initSize = ResolveWindowInitSize(values, sizeParam, pWindow->Dpi());
+            pWindow->SetInitSize(initSize.cx, initSize.cy);
+        }
+    }
 }
 
 void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node& root) const
@@ -778,323 +770,22 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         return;
     }
 
-    std::set<DString> knownNames;//支持的属性名称
-    DString strName;
-    DString strValue;
-
-    //检查XML中是否显式设置了不透明度(opacity)：该属性要求窗口必须是层窗口
-    bool bNeedLayeredWindowOpacity = false;
-    for (pugi::xml_attribute attr : root.attributes()) {
-        if (StringUtil::IsEqualNoCase(attr.name(), _T("opacity"))) {
-            const int32_t nWindowOpacity = StringUtil::StringToInt32(attr.value());
-            bNeedLayeredWindowOpacity = (nWindowOpacity >= 0) && (nWindowOpacity < 255);
-            break;
-        }
+    //1. 单趟解析XML中的窗口属性（无副作用）
+    WindowAttributeValues values;
+    if (!ParseWindowAttributeValues(root, values, pWindow)) {
+        return;
     }
 
-    //解析"vsync"和"msaa"属性（仅对OpenGL绘制方式有效）
-    bool bDisableVsync = false;
-    int32_t nMsaaSampleCount = 0;
-    for (pugi::xml_attribute attr : root.attributes()) {
-        strName = attr.name();
-        strValue = attr.value();
-        if (strName == _T("vsync")) {
-            knownNames.insert(strName);
-            bDisableVsync = !StringUtil::IsValueTrue(strValue);
-        }
-        else if (strName == _T("msaa")) {
-            knownNames.insert(strName);
-            nMsaaSampleCount = StringUtil::StringToInt32(strValue);
-            if (nMsaaSampleCount < 0) {
-                nMsaaSampleCount = 0;
-            }
-        }
-    }
-
-    bool bInitRenderBackendType = false;
-    //首先设置"render_backend_type"属性
-    for (pugi::xml_attribute attr : root.attributes()) {
-        strName = attr.name();
-        strValue = attr.value();
-        if (strName == _T("render_backend_type")) {
-            knownNames.insert(strName);
-            RenderBackendType backendType = RenderBackendType::kRaster_BackendType;
-            if (StringUtil::IsEqualNoCase(strValue, _T("GL")) || StringUtil::IsEqualNoCase(strValue, _T("GPU"))) {
-                backendType = RenderBackendType::kNativeGL_BackendType;
-            }
-            else if (StringUtil::IsEqualNoCase(strValue, _T("CPU"))) {
-                backendType = RenderBackendType::kRaster_BackendType;
-            }
-            else {
-                ASSERT(0);
-            }
-            if ((backendType == RenderBackendType::kNativeGL_BackendType) && bNeedLayeredWindowOpacity) {
-                //GL绘制方式不支持分层窗口：XML要求设置不透明度时，降级为CPU绘制（否则窗口内容无法显示）
-                backendType = RenderBackendType::kRaster_BackendType;
-                LogUtil::OutputLine(_T("WindowBuilder: OpenGL does not support layered windows, fall back to CPU rendering"));
-            }
-            pWindow->SetRenderBackendType(backendType, nMsaaSampleCount, bDisableVsync);
-            bInitRenderBackendType = true;
-            break;
-        }
-    }
-    if (!bInitRenderBackendType) {
-        //[必须步骤]首先初始化Render后台绘制方式, 此调用会创建Render, 因后续解析流程需要用到Render
-        RenderBackendType renderBackendType = pWindow->GetRenderBackendType();
-        int32_t nRenderMsaaSampleCount = pWindow->GetRenderMsaaSampleCount();
-        bool bRenderDisableVsync = pWindow->IsRenderDisableVsync();
-        const GlobalManager& globalManager = GlobalManager::Instance();
-        if (globalManager.IsGlobalRenderBackendTypeEnabled()) {
-            renderBackendType = globalManager.GetGlobalRenderBackendType();
-            nRenderMsaaSampleCount = globalManager.GetGlobalMsaaSampleCount();
-            bRenderDisableVsync = globalManager.IsGlobalDisableVsync();
-        }
-        if ((renderBackendType == RenderBackendType::kNativeGL_BackendType) && bNeedLayeredWindowOpacity) {
-            //GL绘制方式不支持分层窗口：XML要求设置不透明度时，降级为CPU绘制（否则窗口内容无法显示）
-            renderBackendType = RenderBackendType::kRaster_BackendType;
-            nRenderMsaaSampleCount = 0;
-            bRenderDisableVsync = false;
-            LogUtil::OutputLine(_T("WindowBuilder: OpenGL does not support layered windows, fall back to CPU rendering"));
-        }
-        pWindow->SetRenderBackendType(renderBackendType, nRenderMsaaSampleCount, bRenderDisableVsync);
-    }
-     
-    //首先处理min_size/max_size/use_system_caption，因为其他属性有用到这些个属性的
-    for (pugi::xml_attribute attr : root.attributes()) {
-        strName = attr.name();
-        strValue = attr.value();
-        if ((strName == _T("min_size")) || (strName == _T("mininfo"))) {
-            knownNames.insert(strName);
-            UiSize size;
-            AttributeUtil::ParseSizeValue(strValue.c_str(), size);
-            pWindow->SetWindowMinimumSize(size, true);
-        }
-        else if ((strName == _T("max_size")) || (strName == _T("maxinfo"))) {
-            knownNames.insert(strName);
-            UiSize size;
-            AttributeUtil::ParseSizeValue(strValue.c_str(), size);
-            pWindow->SetWindowMaximumSize(size, true);
-        }
-        else if (strName == _T("use_system_caption")) {
-            knownNames.insert(strName);
-            pWindow->SetUseSystemCaption(StringUtil::IsValueTrue(strValue));
-        }
-    }
-    //窗口配置的size是否包含阴影
-    bool bSizeContainShadow = false;
-
-    //窗口阴影是否开启
-    bool bShadowAttached = false;
-    bool bHasShadowAttached = false;
-    ShadowType nShadowType = ShadowType::kShadowDefault;
-
-    //注：如果use_system_caption为true，则层窗口关闭（因为这两个属性互斥的）
-    for (pugi::xml_attribute attr : root.attributes()) {
-        strName = attr.name();
-        strValue = attr.value();
-        if ((strName == _T("size_box")) || (strName == _T("sizebox"))) {
-            knownNames.insert(strName);
-            UiRect rcSizeBox;
-            AttributeUtil::ParseRectValue(strValue.c_str(), rcSizeBox, false);
-            pWindow->SetSizeBox(rcSizeBox, true);
-        }
-        else if (strName == _T("caption")) {
-            knownNames.insert(strName);
-            UiRect rcCaption;
-            AttributeUtil::ParseRectValue(strValue.c_str(), rcCaption);
-            pWindow->SetCaptionRect(rcCaption, true);
-        }
-        else if (strName == _T("snap_layout_menu")) {
-            knownNames.insert(strName);
-            pWindow->SetEnableSnapLayoutMenu(StringUtil::IsValueTrue(strValue));
-        }
-        else if (strName == _T("sys_menu")) {
-            knownNames.insert(strName);
-            pWindow->SetEnableSysMenu(StringUtil::IsValueTrue(strValue));
-        }
-        else if (strName == _T("sys_menu_rect")) {
-            knownNames.insert(strName);
-            UiRect rcSysMenuRect;
-            AttributeUtil::ParseRectValue(strValue.c_str(), rcSysMenuRect);
-            pWindow->SetSysMenuRect(rcSysMenuRect, true);
-        }
-        else if (strName == _T("icon")) {
-            knownNames.insert(strName);
-            if (!strValue.empty()) {
-                //设置窗口图标
-                pWindow->SetWindowIcon(strValue);
-            }
-        }
-        else if (strName == _T("text")) {
-            knownNames.insert(strName);
-            pWindow->SetText(strValue);
-        }
-        else if ((strName == _T("text_id")) || (strName == _T("textid"))) {
-            knownNames.insert(strName);
-            pWindow->SetTextId(strValue);
-        }
-        else if (strName == _T("round_corner") || strName == _T("roundcorner")) {
-            knownNames.insert(strName);
-            UiSize size;
-            AttributeUtil::ParseSizeValue(strValue.c_str(), size);
-            pWindow->SetRoundCorner(size.cx, size.cy);
-        }
-        else if (strName == _T("size_contain_shadow")) {
-            knownNames.insert(strName);
-            //窗口配置的size是否包含阴影
-            bSizeContainShadow = (StringUtil::IsValueTrue(strValue));
-        }
-        else if ((strName == _T("shadow_attached")) || (strName == _T("shadowattached"))) {
-            knownNames.insert(strName);
-            //设置是否支持窗口阴影（阴影实现有两种：分层窗口和普通窗口）
-            bShadowAttached = (StringUtil::IsValueTrue(strValue));
-            bHasShadowAttached = true;            
-        }
-        else if (strName == _T("shadow_type")) {
-            knownNames.insert(strName);
-            //设置阴影类型
-            if (Shadow::GetShadowType(strValue, nShadowType)) {
-                pWindow->SetShadowType(nShadowType);
-            }
-        }
-        else if ((strName == _T("shadow_image")) || (strName == _T("shadowimage"))) {
-            knownNames.insert(strName);
-            //设置阴影图片
-            pWindow->SetShadowImage(strValue);
-        }
-        else if ((strName == _T("shadow_corner")) || (strName == _T("shadowcorner"))) {
-            knownNames.insert(strName);
-            //设置窗口阴影的九宫格属性
-            UiPadding padding;
-            AttributeUtil::ParsePaddingValue(strValue.c_str(), padding);
-            pWindow->SetShadowCorner(padding);
-        }
-        else if (strName == _T("shadow_border_round")) {
-            knownNames.insert(strName);
-            //设置窗口阴影的圆角大小
-            UiSize szBorderRound;
-            AttributeUtil::ParseSizeValue(strValue.c_str(), szBorderRound);
-            pWindow->SetShadowBorderRound(szBorderRound);
-        }
-        else if (strName == _T("shadow_border_size")) {
-            knownNames.insert(strName);
-            //设置窗口阴影的边框大小
-            pWindow->SetShadowBorderSize(StringUtil::StringToInt32(strValue));
-        }
-        else if (strName == _T("shadow_border_color")) {
-            knownNames.insert(strName);
-            //设置窗口阴影的边框颜色
-            pWindow->SetShadowBorderColor(strValue);
-        }
-        else if (strName == _T("shadow_snap")) {
-            knownNames.insert(strName);
-            //设置阴影是否支持窗口贴边操作
-            pWindow->SetEnableShadowSnap(StringUtil::IsValueTrue(strValue));
-        }
-        else if ((strName == _T("layered_window")) || (strName == _T("layeredwindow"))) {
-            knownNames.insert(strName);
-            //设置是否设置分层窗口属性（分层窗口还是普通窗口）
-            //使用系统标题栏时，分层窗口属性无效（这两个属性互斥）
-            if (!pWindow->IsUseSystemCaption()) {
-                pWindow->SetLayeredWindow(StringUtil::IsValueTrue(strValue), false);
-            }
-        }
-        else if (strName == _T("alpha")) {
-            knownNames.insert(strName);
-            //设置窗口的透明度（0 - 255），仅当使用层窗口时有效，在在UpdateLayeredWindow函数中作为参数使用
-            int32_t nAlpha = StringUtil::StringToInt32(strValue);
-            ASSERT(nAlpha >= 0 && nAlpha <= 255);
-            if ((nAlpha >= 0) && (nAlpha <= 255)) {
-                pWindow->SetLayeredWindowAlpha(nAlpha);
-            }
-        }
-        else if (strName == _T("drag_drop")) {
-            knownNames.insert(strName);
-            pWindow->SetEnableDragDrop(StringUtil::IsValueTrue(strValue));
-        }
-    }
-
-    if (bHasShadowAttached) {
-        //后设置，避免受到"shadow_type"的影响
-        if (!bShadowAttached) {
-            pWindow->SetShadowAttached(bShadowAttached);
-        }
-        else if (!pWindow->IsUseSystemCaption()) {
-            pWindow->SetShadowAttached(bShadowAttached);
-        }
-    }
-
-    bool bScaledCX = false;
-    bool bScaledCY = false;
-    bool bPercentCX = false;
-    bool bPercentCY = false;
-
-    //最后设置窗口的初始化大小，因为初始化大小与是否阴影等相关
-    bool bLayeredWindowOpacityDefined = false;
-    for (pugi::xml_attribute attr : root.attributes()) {
-        strName = attr.name();
-        strValue = attr.value();
-        if (strName == _T("size")) {
-            knownNames.insert(strName);
-            UiSize windowSize;
-            AttributeUtil::ParseWindowSize(pWindow, strValue.c_str(), windowSize, &bScaledCX, &bScaledCY, &bPercentCX, &bPercentCY);
-            int32_t cx = windowSize.cx;
-            int32_t cy = windowSize.cy;
-            UiSize minSize = pWindow->GetWindowMinimumSize();
-            UiSize maxSize = pWindow->GetWindowMaximumSize();
-            if ((minSize.cx > 0) && (cx < minSize.cx)) {
-                cx = minSize.cx;
-            }
-            if ((maxSize.cx > 0) && (cx > maxSize.cx)) {
-                cx = maxSize.cx;
-            }
-            if ((minSize.cy > 0) && (cy < minSize.cy)) {
-                cy = minSize.cy;
-            }
-            if ((maxSize.cy > 0) && (cy > maxSize.cy)) {
-                cy = maxSize.cy;
-            }
-
-            if (!bSizeContainShadow) {
-                //XML配置中指定的窗口大小，如果设置的是固定值，则不包含阴影部分
-                UiPadding rcShadowCorner = pWindow->GetShadowCorner();                
-                if (!bPercentCX && pWindow->IsShadowAttached() && !pWindow->IsWindowMaximized()) {
-                    pWindow->Dpi().ScaleWindowSize(rcShadowCorner.left);
-                    pWindow->Dpi().ScaleWindowSize(rcShadowCorner.right);
-                    cx += rcShadowCorner.left + rcShadowCorner.right;
-                }
-                if (!bPercentCY && pWindow->IsShadowAttached() && !pWindow->IsWindowMaximized()) {
-                    pWindow->Dpi().ScaleWindowSize(rcShadowCorner.top);
-                    pWindow->Dpi().ScaleWindowSize(rcShadowCorner.bottom);
-                    cy += rcShadowCorner.top + rcShadowCorner.bottom;
-                }
-            }
-            AttributeUtil::ValidateWindowSize(pWindow, cx, cy);
-            pWindow->SetInitSize(cx, cy);
-        }
-        else if (strName == _T("opacity")) {
-            knownNames.insert(strName);
-            //设置窗口的不透明度（0 - 255），该值在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)
-            const int32_t nAlpha = StringUtil::StringToInt32(strValue);
-            ASSERT(nAlpha >= 0 && nAlpha <= 255);
-            if ((nAlpha >= 0) && (nAlpha <= 255)) {
-                pWindow->SetLayeredWindowOpacity(nAlpha);
-                bLayeredWindowOpacityDefined = true;
-            }
-        }
-    }
-
+    //2. 预警不认识的属性（减少配置错误问题）
 #ifdef _DEBUG
-    //检查是否有不支持的属性，然后预警，减少配置错误问题
-    std::vector<DString> unknownNames;
-    for (pugi::xml_attribute attr : root.attributes()) {
-        strName = attr.name();
-        if (knownNames.find(strName) == knownNames.end()) {
-            unknownNames.push_back(strName);
-        }
-    }
-    ASSERT_UNUSED_VARIABLE(unknownNames.empty() && "Found unknown window attributes in xml!");
+    ASSERT_UNUSED_VARIABLE(values.m_unknownAttributes.empty() && "Found unknown window attributes in xml!");
 #endif
+    for (const DString& unknownName : values.m_unknownAttributes) {
+        LogUtil::OutputLine(StringUtil::Printf(_T("WindowBuilder: unknown window attribute: %s"), unknownName.c_str()));
+    }
+
+    //3. 按固定阶段应用到窗口
+    ApplyWindowAttributes(pWindow, values);
 }
 
 void WindowBuilder::ParseWindowShareAttributes(Window* pWindow, const pugi::xml_node& root)

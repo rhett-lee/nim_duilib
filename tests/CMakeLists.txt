@@ -185,6 +185,40 @@ add_test(NAME bitmap_alpha
          COMMAND test_bitmap_alpha
 )
 
+# 窗口属性解析与推导（WindowAttributes）：覆盖单趟解析、属性别名/大小写不敏感、
+# 未知属性记录，以及阴影/层窗口/渲染后端/初始大小的统一推导规则，不创建窗口
+add_executable(test_window_attributes
+    test_window_attributes.cpp
+)
+target_include_directories(test_window_attributes PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_window_attributes PRIVATE duilib)
+# 该测试会链接窗口属性解析所依赖的模块（DPI、阴影等），静态库模式下需要补齐第三方依赖
+if(WIN32)
+    target_link_directories(test_window_attributes PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_window_attributes PRIVATE
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_window_attributes PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_window_attributes PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+endif()
+if(WIN32)
+    target_compile_definitions(test_window_attributes PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_window_attributes PRIVATE /utf-8)
+endif()
+add_test(NAME window_attributes
+         COMMAND test_window_attributes
+)
+
 # 文本绘制性能基准（不注册到 ctest，属于手工运行的评估工具）
 #
 # 用于对比"字体回退性能优化"前后的效果，覆盖全部文本测量/绘制路径，

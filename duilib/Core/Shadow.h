@@ -54,6 +54,12 @@ public:
     */
     static ShadowType GetSupportedShadowType(const Window* pWindow, ShadowType nShadowType);
 
+    /** 根据"是否支持系统阴影"获取支持的阴影类型（不依赖窗口对象，可用于解析阶段的推导）
+    * @param [in] nShadowType 阴影类型（不能是ShadowType::kShadowDefault）
+    * @param [in] bSystemShadowSupported 窗口是否支持系统阴影
+    */
+    static ShadowType GetSupportedShadowType(ShadowType nShadowType, bool bSystemShadowSupported);
+
     /** 是否为系统阴影类型
     */
     static bool IsSystemShadowType(ShadowType nShadowType);

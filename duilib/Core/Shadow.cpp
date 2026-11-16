@@ -602,11 +602,16 @@ ShadowType Shadow::GetSupportedShadowType(const Window* pWindow, ShadowType nSha
     if (nShadowType == ShadowType::kShadowDefault) {
         nShadowType = GetDefaultShadowType(pWindow);
     }
-    ASSERT(pWindow != nullptr);
     if (pWindow == nullptr) {
+        //未关联窗口时，无法判断系统阴影的支持情况，直接返回推导的阴影类型
         return nShadowType;
     }
-    if (!pWindow->NativeWnd()->IsSystemShadowSupported()) {
+    return GetSupportedShadowType(nShadowType, pWindow->NativeWnd()->IsSystemShadowSupported());
+}
+
+ShadowType Shadow::GetSupportedShadowType(ShadowType nShadowType, bool bSystemShadowSupported)
+{
+    if (!bSystemShadowSupported) {
         //当不支持系统阴影时，自动选择自绘阴影
 #ifdef DUILIB_BUILD_FOR_WIN
         //只有Win7系统会到这个流程，Win8开始，DWM默认都是开启的，且无法关闭

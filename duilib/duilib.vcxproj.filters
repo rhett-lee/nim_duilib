@@ -1050,6 +1050,9 @@
     <ClCompile Include="RenderSkia\Render_Skia_Bitmap.cpp">
       <Filter>RenderSkia\Bitmap</Filter>
     </ClCompile>
+    <ClCompile Include="Core\WindowAttributes.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -2170,6 +2173,9 @@
     </ClInclude>
     <ClInclude Include="RenderSkia\Render_Skia_Bitmap.h">
       <Filter>RenderSkia\Bitmap</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\WindowAttributes.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
