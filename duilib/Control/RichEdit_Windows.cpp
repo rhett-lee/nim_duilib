@@ -3422,8 +3422,11 @@ void RichEdit::SetEnableDefaultContextMenu(bool bEnable)
                         GetSel(nSelStart, nSelEnd);
                         //光标不在可视范围内时，先滚动到可视区域内，保证菜单弹出位置正确
                         ScrollCaret();
-                        //系统控件的字符坐标与窗口客户区坐标一致，不需要再做偏移换算
-                        ShowPopupMenu(PosFromChar(nSelEnd), false);
+                        //系统控件的字符坐标是布局坐标，需要扣减外层滚动容器的偏移，转换为窗口客户区坐标
+                        UiPoint caretPt = PosFromChar(nSelEnd);
+                        const UiPoint scrollOffset = GetScrollOffsetInScrollBox();
+                        caretPt.Offset(-scrollOffset.x, -scrollOffset.y);
+                        ShowPopupMenu(caretPt, false);
                     }
                 }
                 return true;
@@ -3452,8 +3455,12 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point, bool bUpdateCaretPos)
     int32_t nEndChar = 0;
     pRichEdit->GetSel(nStartChar, nEndChar);
     if (bUpdateCaretPos && (nStartChar == nEndChar)) {
-        int32_t pos = pRichEdit->m_richCtrl.CharFromPos(POINT{ point.x, point.y });
-        if (pos > 0) {
+        //point是窗口客户区坐标，需要加上外层滚动容器的偏移，转换为系统控件的布局坐标
+        UiPoint ptLayout = point;
+        const UiPoint scrollOffset = GetScrollOffsetInScrollBox();
+        ptLayout.Offset(scrollOffset.x, scrollOffset.y);
+        int32_t pos = pRichEdit->m_richCtrl.CharFromPos(POINT{ ptLayout.x, ptLayout.y });
+        if (pos >= 0) {
             pRichEdit->SetSel(pos, pos);
             pRichEdit->GetSel(nStartChar, nEndChar);
         }

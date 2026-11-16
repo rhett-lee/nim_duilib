@@ -2920,7 +2920,11 @@ void RichEdit2::SetEnableDefaultContextMenu(bool bEnable)
                         //光标不在可视范围内时，先滚动到可视区域内，保证菜单弹出位置正确
                         EnsureCharVisible(m_bSelForward ? nSelEnd : nSelStart);
                         const UiRect rcCaret = GetCaretRect();
-                        ShowPopupMenu(UiPoint(rcCaret.left, rcCaret.top), false);
+                        //光标坐标是布局坐标，需要扣减外层滚动容器的偏移，转换为窗口客户区坐标
+                        UiPoint caretPt(rcCaret.left, rcCaret.top);
+                        const UiPoint scrollOffset = GetScrollOffsetInScrollBox();
+                        caretPt.Offset(-scrollOffset.x, -scrollOffset.y);
+                        ShowPopupMenu(caretPt, false);
                     }
                 }
                 return true;
