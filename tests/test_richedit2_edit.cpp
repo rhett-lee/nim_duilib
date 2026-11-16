@@ -1507,6 +1507,68 @@ void TestPaintAfterEdit(TestEnv& env)
     CHECK_MSG(CountInkPixels(env) == 0, "empty text should not paint anything");
 }
 
+/** 增量排版后复用绘制缓存：修改位置位于可视窗口之后时，可视区域画面不应变化；
+ *  复用缓存的绘制结果必须与全量重新排版（SetText）的绘制结果一致 */
+void TestIncrementalCacheReuse(TestEnv& env)
+{
+    ResetEdit(env);
+    TestRichEdit2& richEdit = env.Edit();
+    ui::IRender* pRender = env.Render();
+
+    //300 行文本，可视区域（600 像素高）只覆盖最前面的一部分行
+    richEdit.SetText(MakeTextLines(300));
+    richEdit.SetSel(0, 0);
+    PaintFrame(env);
+    std::vector<uint32_t> pixelsBefore;
+    CHECK_MSG(ReadFrame(pRender, env.m_rcControl, pixelsBefore), "ReadPixels(before) should succeed");
+    CHECK_MSG(CountInkPixels(env) > 0, "text should be painted");
+
+    //在文档末尾输入字符（位于可视窗口之后）：可视区域内容不变，画面必须保持不变
+    for (int32_t i = 0; i < 5; ++i) {
+        const int32_t nTextLen = richEdit.GetTextLength();
+        richEdit.SetSel(nTextLen, nTextLen);
+        SendChar(richEdit, (wchar_t)(L'A' + i));
+        PaintFrame(env);
+        std::vector<uint32_t> pixelsAfterEdit;
+        CHECK_MSG(ReadFrame(pRender, env.m_rcControl, pixelsAfterEdit), "ReadPixels(after edit) should succeed");
+        Check(DiffPixels(pixelsBefore, pixelsAfterEdit) == 0, [&]() {
+            return "edit #" + std::to_string(i) + " below the visible window should not change the view, diff pixels=" +
+                   std::to_string(DiffPixels(pixelsBefore, pixelsAfterEdit));
+        });
+    }
+
+    //复用缓存的绘制结果，必须与全量重新排版（SetText）后的绘制结果逐像素一致
+    std::vector<uint32_t> pixelsReused;
+    CHECK_MSG(ReadFrame(pRender, env.m_rcControl, pixelsReused), "ReadPixels(reused) should succeed");
+    const DStringW textEdited = richEdit.GetTextW();
+    richEdit.SetText(textEdited);
+    richEdit.SetSel(0, 0);
+    PaintFrame(env);
+    std::vector<uint32_t> pixelsFullLayout;
+    CHECK_MSG(ReadFrame(pRender, env.m_rcControl, pixelsFullLayout), "ReadPixels(full layout) should succeed");
+    Check(DiffPixels(pixelsReused, pixelsFullLayout) == 0, [&]() {
+        return "reused draw cache should match full relayout, diff pixels=" +
+               std::to_string(DiffPixels(pixelsReused, pixelsFullLayout));
+    });
+
+    //在可视区域内输入字符：画面应变化，并与全量重新排版一致
+    richEdit.SetSel(0, 0);
+    SendChar(richEdit, L'X');
+    PaintFrame(env);
+    std::vector<uint32_t> pixelsInWindowEdit;
+    CHECK_MSG(ReadFrame(pRender, env.m_rcControl, pixelsInWindowEdit), "ReadPixels(in-window edit) should succeed");
+    CHECK_MSG(DiffPixels(pixelsBefore, pixelsInWindowEdit) > 0, "editing inside the window should change the view");
+    richEdit.SetText(richEdit.GetTextW());
+    richEdit.SetSel(0, 0);
+    PaintFrame(env);
+    std::vector<uint32_t> pixelsInWindowFull;
+    CHECK_MSG(ReadFrame(pRender, env.m_rcControl, pixelsInWindowFull), "ReadPixels(in-window full) should succeed");
+    Check(DiffPixels(pixelsInWindowEdit, pixelsInWindowFull) == 0, [&]() {
+        return "in-window edit should match full relayout, diff pixels=" +
+               std::to_string(DiffPixels(pixelsInWindowEdit, pixelsInWindowFull));
+    });
+}
+
 /** 只读模式：所有编辑入口都不改变文本，SetText 仍可设置文本 */
 void TestReadOnly(TestEnv& env)
 {
@@ -3844,6 +3906,7 @@ int main()
     TestArrowKeysScrollView(env);
     TestScrollViewSwitch(env);
     TestPaintAfterEdit(env);
+    TestIncrementalCacheReuse(env);
     TestPasteThenScroll(env);
     TestReadOnly(env);
     TestLimitText(env);

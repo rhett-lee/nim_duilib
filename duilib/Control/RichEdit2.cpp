@@ -2045,25 +2045,24 @@ void RichEdit2::Paint(IRender* pRender, const UiRect& rcPaint)
         const bool bHasVisibleRange = m_pTextData->GetVisibleLineRange(rcDrawText, szScrollOffset, visibleRange);
 
         size_t nFirstLine = 0;
-        size_t nLineCount = 0;
+        //窗口覆盖的物理行数（用于校验缓存覆盖范围；空行不生成绘制数据，实际行数可能小于该值）
+        size_t nCoveredLineCount = 0;
         //复用成员容器，避免每帧新建文本片段数组（稳态时不产生内存抖动）
         RichTextDataList& richTextDataList = m_richTextDrawData;
         if (bHasVisibleRange) {
             nFirstLine = visibleRange.m_nFirstLine;
-            nLineCount = visibleRange.m_nLastLine + 1 - visibleRange.m_nFirstLine;
-            GetRichTextForDraw(richTextDataList, nFirstLine, nLineCount);
-            nLineCount = richTextDataList.Size();
+            nCoveredLineCount = visibleRange.m_nLastLine + 1 - visibleRange.m_nFirstLine;
+            GetRichTextForDraw(richTextDataList, nFirstLine, nCoveredLineCount);
         }
         else {
             //行数据尚未准备好（例如还没完成首次排版）：回退到全量构建
             GetRichTextForDraw(richTextDataList);
-            nLineCount = richTextDataList.Size();
         }
         if (!richTextDataList.IsEmpty()) {
             std::shared_ptr<DrawRichTextCache> spDrawRichTextCache = m_pTextData->GetDrawRichTextCache();
             if (spDrawRichTextCache != nullptr) {
                 //校验缓存覆盖的行范围与内容是否仍然有效
-                bool bCacheValid = bHasVisibleRange ? m_pTextData->IsDrawRichTextCacheRangeMatched(nFirstLine, nLineCount) : true;
+                bool bCacheValid = bHasVisibleRange ? m_pTextData->IsDrawRichTextCacheRangeMatched(nFirstLine, nCoveredLineCount) : true;
                 if (bCacheValid) {
                     bCacheValid = pRender->IsValidDrawRichTextCache(rcDrawText, richTextDataList, spDrawRichTextCache);
                 }
@@ -2089,7 +2088,13 @@ void RichEdit2::Paint(IRender* pRender, const UiRect& rcPaint)
                 ASSERT(spDrawRichTextCache != nullptr);
                 if (spDrawRichTextCache != nullptr) {
                     m_pTextData->SetDrawRichTextCache(spDrawRichTextCache);
-                    m_pTextData->SetDrawRichTextCacheRange(nFirstLine, nLineCount);
+                    if (bHasVisibleRange) {
+                        m_pTextData->SetDrawRichTextCacheRange(nFirstLine, nCoveredLineCount);
+                    }
+                    else {
+                        //全量缓存：覆盖全文，任何增量修改都需要重建缓存
+                        m_pTextData->SetDrawRichTextCacheRange(0, (size_t)-1);
+                    }
                 }
             }
             if (spDrawRichTextCache != nullptr) {

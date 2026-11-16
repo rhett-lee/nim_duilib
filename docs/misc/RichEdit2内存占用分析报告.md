@@ -618,7 +618,7 @@ for /L %i in (1,1,3) do out\x64\Release\tests\bench_text_render.exe --iterations
 
 | 后续项 | 方案 | 预期 |
 | --- | --- | --- |
-| O1.1（消除 `typing_*` 回归） | 把窗口缓存的 `nRowIndex` 改为**全局行号索引**（`m_nFirstRowIndex` 恒为 0、去掉构建后的行号偏移），从而恢复原 `UpdateDrawRichTextCache()` 的增量合并：仅当修改/删除行落在缓存覆盖范围内才降级为丢弃 | `typing_*` 回到基线附近 |
+| O1.1（消除 `typing_*` 回归） | 把窗口缓存的 `nRowIndex` 改为**全局行号索引**（`m_nFirstRowIndex` 恒为 0、去掉构建后的行号偏移），从而恢复原 `UpdateDrawRichTextCache()` 的增量合并：仅当修改/删除行落在缓存覆盖范围内才降级为丢弃（**已于第 17 节落地**） | `typing_*` 回到基线附近 |
 | O1.2（消除 `relayout_*_small` 回归） | 布局单遍内"边排版边按窗口过滤"建立缓存（需把 `RichTextDrawWindow` 透传到 `IRender::MeasureRichText`），使 `Paint()` 直接命中布局期缓存 | 小文档回到基线附近，省一次断行 |
 | O1.3（可选） | 预取窗口从"上下各 1 屏"改为"上下各 0.5 屏" | 降低重建成本，滚动重建频率上升，需实测权衡 |
 
@@ -1340,5 +1340,72 @@ out\x64\Release\tests\bench_richedit2.exe --iterations 200
 ctest --test-dir out\x64\Release -C Release --output-on-failure
 ```
 
+## 17. O1.1 实施效果：增量排版后复用绘制缓存（2026-11-16）
 
+### 17.1 实现方式
 
+第 12.5 节登记的 O1.1 目标为消除 `typing_*` 回归。定位后确认真正的开销来源是：
+`RichEditData::CalcTextRectsPart()`（增量排版）在结束时**无条件**调用 `ClearDrawRichTextCache()`，
+于是每次输入一个字符，下一次 `Paint()` 都要重建"可视区上下各 1 屏"（约 3 屏）的字形运行缓存。
+
+- **条件化失效**（[RichEditData.cpp](file:///e:/develop/nim_duilib/duilib/Control/RichEditData.cpp#L656-L665)）：
+  增量排版后只有当修改/删除行的起始行落在缓存覆盖的物理行范围**之内**时才丢弃缓存；
+  位于范围**之后**时，缓存内的行内容、行号与行位置都不受影响，直接复用。
+- **覆盖范围按物理行数记录**（[RichEdit2.cpp](file:///e:/develop/nim_duilib/duilib/Control/RichEdit2.cpp#L2045-L2100)）：
+  原实现把 `GetRichTextForDraw()` 返回的**非空行数**（该函数会跳过空行）记为覆盖行数，
+  窗口内含空行时会低估覆盖范围，按上一条判定即可误复用；改为记录窗口覆盖的**物理行数**
+  （`m_nLastLine + 1 - m_nFirstLine`）。行数据尚未就绪时的全量回退缓存记为 `(0, SIZE_MAX)`，
+  任何增量修改都会重建，行为与实施前一致。
+- **绘制侧未改动**：`TPendingDrawRichText::m_nRowIndex` 自 13.8 恢复窗口化缓存后已是全局行号，
+  `m_rowWidthVector` 用 `m_nRowIndex - m_nFirstRowIndex` 索引，`m_rowXOffset`（水平居中/右对齐）
+  也按全局行号索引；因此本次只调整失效判定与覆盖范围口径，窗口裁剪、逐行对齐等逻辑保持不变。
+
+### 17.2 正确性验证
+
+新增 `TestIncrementalCacheReuse`（[test_richedit2_edit.cpp](file:///e:/develop/nim_duilib/tests/test_richedit2_edit.cpp#L1510-L1570)）：
+
+- 300 行文本、滚动位置固定在顶部；在文档末尾连续输入 5 个字符（位于可视窗口之后），
+  逐帧与输入前的画面**逐像素一致**；
+- 复用缓存的画面与随后 `SetText()` 全量重排后的画面**逐像素一致**；
+- 在可视窗口内输入字符：画面发生变化，且与全量重排后**逐像素一致**（丢弃缓存路径正确）。
+
+回归结果：`richedit2_edit` **1871 项检查全部通过**，`ctest` **16/16 通过**；
+`[layout signature]` 仍为 `798x668 / 798x17608 / 799x1328 / 799x35208`，排版结果未变。
+
+### 17.3 性能对比
+
+同机、静态 Release，`bench_richedit2 --iterations 200` 跑 4 轮取中位数，单位 `us/帧`；
+"16.6 节"列为 O4 完成后的同机数据，判定规则同 11.6 节。
+
+| 场景 | 16.6（O4 后） | 本次 | 变化 | 11.3 基线 | 相对基线 |
+| --- | --- | --- | --- | --- | --- |
+| `typing_zhen_large` | 299.73 | 185.31 | **-38.2%** | 231.64 | **-20.0%** |
+| `typing_emoji_large` | 857.82 | 479.11 | **-44.2%** | 552.30 | **-13.3%** |
+| `steady_zhen_large` | 153.79 | 146.12 | -5.0% | 178.35 | -18.1% |
+| `steady_emoji_large` | 392.79 | 375.39 | -4.4% | 408.40 | -8.1% |
+| `scroll_zhen_large` | 155.67 | 145.31 | -6.7% | 174.94 | -16.9% |
+| `scroll_emoji_large` | 397.60 | 379.37 | -4.6% | 412.90 | -8.1% |
+
+- `typing_*` 不仅回到 11.3 基线，还比基线快 20.0% / 13.3%：输入路径只剩增量排版 + 窗口内少量片段的绘制，
+  不再重建约 3 屏缓存；
+- `steady_*` / `scroll_*` 在噪声带内且略快（同一台机器不同时段采集，属正常波动）。
+
+### 17.4 结论与局限
+
+- **O1.1 已落地**，`typing_*` 回归消除；本次不涉及排版结果，`[layout signature]`、内存占用均无变化。
+- **适用范围**：复用条件是"修改/删除的行都位于缓存覆盖范围之后"。光标位于可视区内输入时，
+  修改行在覆盖范围内，仍会丢弃并重建窗口缓存（与实施前一致）。因此收益集中在
+  "编辑点不在可视窗口内"的路径：程序化追加文本、日志/聊天类"窗口停在别处、内容在末尾增长"的更新，
+  以及性能基准中"滚动位置不动、在文档末尾输入"的场景。
+- 若要让"光标在可视区内输入"也命中缓存，需要在窗口缓存上实现**按行局部拼接/合并**
+  （替换被修改行的片段、按 `rowRectTopList` 平移其后行、同步 `rowWidthVector` 与总行数），
+  属于独立的结构性改动，收益上限约为当前 `typing_*` 剩余的 185us / 479us，暂不纳入本次范围。
+
+### 17.5 复跑命令
+
+```bat
+set PATH=%CD%\bin;%PATH%
+out\x64\Release\tests\bench_richedit2.exe --iterations 200
+out\x64\Release\tests\test_richedit2_edit.exe
+ctest --test-dir out\x64\Release -C Release --output-on-failure
+```

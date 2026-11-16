@@ -655,8 +655,13 @@ void RichEditData::CalcTextRectsPart(size_t nStartLine,
         }
     }
 
-    //增量排版后，绘制缓存失效：直接丢弃，由 RichEdit2::Paint 按可视区域重新懒构建
-    ClearDrawRichTextCache();
+    //增量排版后，绘制缓存的处理：
+    //绘制缓存按可视区域懒构建，只覆盖一部分物理行；当修改/删除的行都位于缓存覆盖的范围之后时，
+    //缓存内的行内容、行号与行位置均不受影响，可以继续复用（避免每次输入都重建约 3 屏的缓存）；
+    //否则丢弃缓存，由 RichEdit2::Paint 按新的可视区域重新懒构建。
+    if ((m_spDrawRichTextCache == nullptr) || (nStartLine < (m_nDrawCacheFirstLine + m_nDrawCacheLineCount))) {
+        ClearDrawRichTextCache();
+    }
 
     if (!modifiedLines.empty()) {
         //有修改的行，重新计算行数据
