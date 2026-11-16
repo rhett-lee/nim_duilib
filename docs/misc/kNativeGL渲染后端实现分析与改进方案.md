@@ -1,6 +1,6 @@
 # kNativeGL 渲染后端实现分析与改进方案
 
-> 状态：分析报告（2026-11-14）；阶段 1（正确性）、阶段 2（性能）、阶段 3（体验）、阶段 4（工程化）已实施（2026-11-14）；阴影/分层窗口规则完善（2026-11-16，见 12.6）
+> 状态：分析报告（2026-11-14）；阶段 1（正确性）、阶段 2（性能）、阶段 3（体验）、阶段 4（工程化）已实施（2026-11-14）；阴影/分层窗口规则完善（2026-11-16，见 12.6）；启动期 `GetSkCanvas()` 断言修复（2026-11-16，见 12.7）
 > 适用范围：Windows 平台（`DUILIB_BUILD_FOR_WIN`，不含 `_M_ARM64`），Skia Ganesh + WGL
 > 关联文档：[IRender职责拆分与离屏渲染设计方案.md](IRender职责拆分与离屏渲染设计方案.md)、[IRender接口分析报告.md](IRender接口分析报告.md)
 
@@ -514,6 +514,20 @@ GL 默认帧缓冲在 `SwapBuffers` 后内容未定义，因此当前只能整�
    - `Shadow` 的默认附加状态调整为"层窗口或非系统标题栏时默认开启"，与 `WindowCreateAttributes` 中的默认值保持一致，避免创建期反复切换阴影状态。
 
 验证：默认静态 Release 构建通过，`ctest --test-dir out\x64\Release -C Release` 16/16 通过（含 `gl_window_smoke`）。
+
+### 12.7 缺陷修复：开启 GL 后启动即触发 `GetSkCanvas()` 断言（2026-11-16）
+
+现象：设置 `render_backend_type="GL"` 后程序启动即断言，调用栈为 XML 解析期的文本测量（`RichEdit2::OnInit` → `SetFontIdInternal` → `IRender::MeasureString` → `Render_Skia_Windows::GetSkCanvas()`），断言条件为 `backbuffer != nullptr`。
+
+原因：窗口创建期（`WindowBuilder::ParseWindowAttributes()` 会先创建 Render 供后续解析使用）控件测量文本时，GL 后端的绘制表面是惰性创建的，若 `GrDirectContext` 创建失败或渲染目标创建失败，`getBackbufferSurface()` 会返回空指针；而 `MeasureString()` 本身允许没有画布，`GetSkCanvas()` 中的断言把这个合法状态当成了错误。
+
+修复（`duilib/RenderSkia/Render_Skia_Windows.cpp`）：
+
+1. `MakeGLForWin()`：创建 `SkGLWindowContext_Windows` 后，除校验 `isValid()` 外，再校验 `directContext()` 非空；窗口客户区尺寸有效时还会试建一次后台缓冲表面。任一校验失败即视为 GL 不可用，回退到 `kRaster_BackendType` 并输出日志，与"GL 创建失败必须回退 CPU"的规则一致。
+2. `GetSkCanvas()` / `GetSkSurface()`：去掉"表面必须存在"的断言，表面暂时不可用（窗口最小化、尺寸无效、上下文异常）时返回 `nullptr`，由调用方按既有逻辑处理（如文本测量不使用画布）。
+
+验证：Debug 静态构建下以 `render_backend_type="GL"` 启动 RichEdit 示例，窗口正常显示且不再断言；默认静态 Release 构建通过，`ctest --test-dir out\x64\Release -C Release` 16/16 通过。
+
 
 
 

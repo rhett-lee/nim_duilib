@@ -46,6 +46,18 @@ std::unique_ptr<skwindow::WindowContext> MakeGLForWin(HWND hWnd, std::unique_ptr
     if (!ctx->isValid()) {
         return nullptr;
     }
+    //部分运行环境（远程桌面、虚拟机、驱动异常）可以创建WGL上下文，但创建GrDirectContext失败：
+    //此时该后端没有任何可用的绘制画布，必须回退为CPU绘制，否则GetSkCanvas()始终返回空指针
+    if (ctx->directContext() == nullptr) {
+        LogUtil::OutputLine(_T("Render_Skia_Windows: failed to create GrDirectContext, fall back to CPU rendering"));
+        return nullptr;
+    }
+    //进一步验证渲染目标是否可以创建：创建失败时同样回退为CPU绘制，
+    //避免后续绘制流程（如窗口创建阶段的文本测量）取不到画布
+    if ((ctx->width() > 0) && (ctx->height() > 0) && (ctx->getBackbufferSurface() == nullptr)) {
+        LogUtil::OutputLine(_T("Render_Skia_Windows: failed to create GL surface, fall back to CPU rendering"));
+        return nullptr;
+    }
     return ctx;
 #endif
 }
@@ -209,8 +221,8 @@ SkSurface* Render_Skia_Windows::GetSkSurface() const
         return nullptr;
     }
     //由于m_pWindowContext内部保存了成员变量，返回SkSurface的裸指针是安全的
+    //注意：绘制表面是惰性创建的，窗口最小化或者尺寸无效时可能暂时不可用，此时返回nullptr，不能断言
     sk_sp<SkSurface> backbuffer = m_pWindowContext->getBackbufferSurface();
-    ASSERT(backbuffer != nullptr);
     return backbuffer.get();
 }
 
@@ -220,8 +232,9 @@ SkCanvas* Render_Skia_Windows::GetSkCanvas() const
     if (m_pWindowContext == nullptr) {
         return nullptr;
     }
+    //注意：绘制表面是惰性创建的，窗口最小化或者尺寸无效时可能暂时不可用，此时返回nullptr由调用者处理
+    //（例如文本测量不需要画布），不能断言失败
     sk_sp<SkSurface> backbuffer = m_pWindowContext->getBackbufferSurface();
-    ASSERT(backbuffer != nullptr);
     if (backbuffer == nullptr) {
         return nullptr;
     }
