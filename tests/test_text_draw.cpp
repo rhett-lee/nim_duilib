@@ -10,6 +10,21 @@
 // 本测试使用离屏渲染，不创建窗口；需要 duilib 的资源目录（编译期宏
 // DUILIB_TEST_RESOURCE_DIR，默认指向源码树的 bin/resources）。
 
+#if defined(DUILIB_DLL)
+// DLL 模式下，RenderSkia 的内部实现类（ui::DrawSkiaText / ui::SkiaTextData /
+// ui::TextGlyphRun / ui::Font_Skia 等）没有导出（未标记 DUILIB_API），
+// 本文件的全部用例都无法链接到这些符号，因此在 DLL 模式下整体跳过；
+// 这些用例由静态库模式下的同名测试覆盖。
+#include <iostream>
+
+int main()
+{
+    std::cout << "[SKIP] test_text_draw: DLL mode, RenderSkia internals are not exported" << std::endl;
+    return 0;
+}
+
+#else // !DUILIB_DLL
+
 #if defined(_WIN32)
 #include <crtdbg.h>
 #include <windows.h>
@@ -1277,3 +1292,5 @@ int main(int argc, char* argv[])
     std::cout << "text_draw: PASSED" << std::endl;
     return 0;
 }
+
+#endif // !DUILIB_DLL

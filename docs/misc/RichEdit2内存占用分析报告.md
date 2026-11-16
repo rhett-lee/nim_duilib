@@ -622,6 +622,8 @@ for /L %i in (1,1,3) do out\x64\Release\tests\bench_text_render.exe --iterations
 | O1.2（消除 `relayout_*_small` 回归） | 布局单遍内"边排版边按窗口过滤"建立缓存（需把 `RichTextDrawWindow` 透传到 `IRender::MeasureRichText`），使 `Paint()` 直接命中布局期缓存 | 小文档回到基线附近，省一次断行 |
 | O1.3（可选） | 预取窗口从"上下各 1 屏"改为"上下各 0.5 屏" | 降低重建成本，滚动重建频率上升，需实测权衡 |
 
+> **决策（2026-11-16）**：O1.2、O1.3 不再实施；O1 的后续优化仅落地 O1.1（见第 17 节），其余遗留项到此结束。
+
 另注：`typing_*` 的绝对开销由窗口大小决定（约 3 屏），与"每次按键重建"的耦合是 O1 的结构性代价，
 O1.1 / O1.2 任一项落地后该项即可收敛。
 
@@ -917,14 +919,14 @@ for /L %i in (1,1,12) do out\x64\Release\tests\bench_richedit2.exe --iterations 
 
 | 项目 | 结果 |
 | --- | --- |
-| 构建（DLL 模式） | `duilib.dll` 与全部基准/测试目标编译通过；`test_text_draw` 仍受既有 DLL 导出限制 |
+| 构建（DLL 模式） | `duilib.dll` 与全部基准/测试目标编译、链接通过；`test_text_draw` 在 DLL 模式下输出 `[SKIP]`（RenderSkia 内部实现类未导出，这些用例只在静态库模式覆盖）并返回成功，因此 ctest 在 DLL 模式下也能正常执行 |
 | 构建（静态库模式） | `python build/build.py build --offline` → `[OK] 编译完成`（873 个构建目标） |
 | 单元测试（静态 Release） | `ctest` → **16/16 通过**；`text_draw`（覆盖 `RichTextDataList` 的测量/绘制/缓存路径）、`richedit2_edit`（548 项检查）、`rich_text`、`label`、`rich_text_util`、`image_draw`、`render_*`、`controls_pages_xml` 等全部通过 |
 | 编辑行为回归 | `richedit2_edit` 548 项检查全部通过；此前 5 项失败的行为（`AppendText`/`InsertText` 返回位置、光标无选区、无选区 `Copy`、空剪贴板 `CanPaste`）被 `b6db237e` 一并回退，已在 13.9 恢复 |
 | 排版一致性 | `bench_richedit2` 的 `[layout signature]` 与 11.3 完全一致 |
 
 遗留可选项：`RichTextData` 从 56B 进一步压缩到 48B（打包三个 bool/样式位、把 `m_nMaxLines` 改为 `uint16`），
-预计再省约 1MB/8MB 文本，收益小于本轮，暂不实施。
+预计再省约 1MB/8MB 文本，收益小于本轮，暂不实施。**决策（2026-11-16）：不实施。**
 
 ### 13.8 恢复窗口化绘制缓存（修正 b6db237e 的错误改动）
 
@@ -984,6 +986,7 @@ for /L %i in (1,1,12) do out\x64\Release\tests\bench_richedit2.exe --iterations 
 - `typing_*` 相对基线仍慢 44%~76%，原因是 `UpdateDrawRichTextCache()` 增量合并路径早已不被
   `Paint()` 调用（早于 `b6db237e`），每次编辑后需要重建一屏窗口缓存。该项与 `b6db237e` 无关，
   属后续独立优化（可基于 O2 的按值行结构做整行替换，替代旧的 `SharePtr` 合并）。
+  **该项已由第 17 节的 O1.1 收敛**（不再单独实施）。
 
 #### 13.8.4 验证
 
@@ -1400,6 +1403,7 @@ ctest --test-dir out\x64\Release -C Release --output-on-failure
 - 若要让"光标在可视区内输入"也命中缓存，需要在窗口缓存上实现**按行局部拼接/合并**
   （替换被修改行的片段、按 `rowRectTopList` 平移其后行、同步 `rowWidthVector` 与总行数），
   属于独立的结构性改动，收益上限约为当前 `typing_*` 剩余的 185us / 479us，暂不纳入本次范围。
+  **决策（2026-11-16）：不实施。**
 
 ### 17.5 复跑命令
 
@@ -1409,3 +1413,34 @@ out\x64\Release\tests\bench_richedit2.exe --iterations 200
 out\x64\Release\tests\test_richedit2_edit.exe
 ctest --test-dir out\x64\Release -C Release --output-on-failure
 ```
+
+## 18. DLL 模式下测试的可用性（2026-11-16）
+
+此前 `DUILIB_DLL=ON` 时构建在链接阶段失败，测试无法执行。本轮把 DLL 模式修到可用，
+并明确哪些测试在 DLL 模式下不适用。
+
+### 18.1 构建问题与修复
+
+| 现象 | 根因 | 修复 |
+| --- | --- | --- |
+| `ColorTheme.exe` 链接失败，`pugi::xml_*` 大量未解析外部符号 | pugixml 实现编译在 `duilib.dll` 内，但 `pugiconfig.hpp` 未配置 `PUGIXML_API`（默认为空，不导出） | [pugiconfig.hpp](file:///e:/develop/nim_duilib/duilib/third_party/xml/pugiconfig.hpp) 中按 `DUILIB_DLL`/`DUILIB_EXPORTS` 设置 `PUGIXML_API` 为 `dllexport`/`dllimport`，使直接使用 pugixml 的下游（示例 ColorTheme）可正常链接 |
+| `ChildWindow.exe` 链接失败，`ui::UiIsWindows7OrOlder()` 未解析 | 声明在 [ApiWrapper_Windows.h](file:///e:/develop/nim_duilib/duilib/Utils/ApiWrapper_Windows.h)，但该头文件未使用 `DUILIB_API`，DLL 模式下未导出 | 给该函数声明加 `DUILIB_API`（示例程序直接调用，DLL 模式必须导出） |
+
+### 18.2 测试适用性
+
+| 测试 | DLL 模式 | 说明 |
+| --- | --- | --- |
+| `text_draw` | **跳过（输出 `[SKIP]` 并返回成功）** | 用例直接使用 `ui::DrawSkiaText`、`ui::SkiaTextData`、`ui::TextGlyphRun`、`ui::Font_Skia` 等 RenderSkia 内部实现类，这些类没有标记 `DUILIB_API`，DLL 模式下无法链接。该文件用 `#if defined(DUILIB_DLL)` 整体跳过，用例覆盖以静态库模式（默认开发模式）为准 |
+| 其余 15 个测试 | 正常执行 | 只使用 `duilib` 的公开接口，DLL 模式下可直接链接 |
+
+### 18.3 验证结果
+
+| 模式 | 命令 | 结果 |
+| --- | --- | --- |
+| DLL | `python build/build.py build --offline --dll` | `[OK] 编译完成`（含全部示例） |
+| DLL | `set PATH=%CD%\bin;%PATH%` + `ctest --test-dir out\x64\Release -C Release --output-on-failure` | **16/16 通过**（`text_draw` 为 `[SKIP]`） |
+| 静态库（默认） | `python build/build.py build --offline` | `[OK] 编译完成` |
+| 静态库（默认） | 同一条 `ctest` 命令 | **16/16 通过**（`text_draw` 实际执行） |
+
+> 说明：库自身的日常开发与测试仍以静态库模式为准（见 `Rule`：DLL 模式下部分单元测试受导出限制），
+> DLL 模式仅保证可构建、可运行、不误报失败。

@@ -72,7 +72,8 @@ namespace ui
     bool UiIsWindows11OrGreater();
 
     //判断是否为Windows 7的函数
-    bool UiIsWindows7OrOlder();
+    //(DLL 模式下示例程序直接使用，需要导出)
+    DUILIB_API bool UiIsWindows7OrOlder();
 
     /** 判断DWM服务是否可用
     */

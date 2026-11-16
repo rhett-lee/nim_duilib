@@ -38,6 +38,17 @@
 // #define PUGIXML_FUNCTION __fastcall // to set calling conventions to all public functions to fastcall
 // In absence of PUGIXML_CLASS/PUGIXML_FUNCTION definitions PUGIXML_API is used instead
 
+// duilib: DLL 模式下 pugixml 的实现编译在 duilib.dll 内，需要导出这些符号，
+// 否则直接使用 pugixml 的下游程序（如示例 ColorTheme）链接时会报未解析的外部符号。
+// 使用方通过 duilib 目标的 INTERFACE 编译定义 DUILIB_DLL 得到 dllimport 声明。
+#if defined(DUILIB_DLL) && defined(_WIN32) && !defined(PUGIXML_API)
+    #if defined(DUILIB_EXPORTS)
+        #define PUGIXML_API __declspec(dllexport)
+    #else
+        #define PUGIXML_API __declspec(dllimport)
+    #endif
+#endif
+
 // Tune these constants to adjust memory-related behavior
 // #define PUGIXML_MEMORY_PAGE_SIZE 32768
 // #define PUGIXML_MEMORY_OUTPUT_STACK 10240

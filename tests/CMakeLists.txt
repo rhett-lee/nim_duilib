@@ -362,6 +362,10 @@ endif()
 # 覆盖文本归一化、按编码枚举/转换、字形运行构建、单字符/整段测量、
 # 断行与布局、横向对齐/字间距/纵向文本测量与绘制、富文本省略号截断的绘制缓存路径。
 # 该测试使用离屏渲染（不创建窗口），但依赖系统字体资源，仅在 Windows 平台构建。
+# 注意：本测试直接使用 RenderSkia 的内部实现类（ui::DrawSkiaText / ui::SkiaTextData /
+# ui::Font_Skia 等），这些类没有导出（未标记 DUILIB_API）。DLL 模式下测试目标改为
+# 输出 [SKIP] 并返回成功（见 test_text_draw.cpp 顶部的条件编译），用例覆盖以静态库模式为准，
+# 这样 DLL 模式下 ctest 也能正常执行，不会因链接失败而缺少用例。
 if(WIN32)
     add_executable(test_text_draw
         test_text_draw.cpp

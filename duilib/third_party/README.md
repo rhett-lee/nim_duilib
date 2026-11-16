@@ -15,7 +15,7 @@
 | libjpeg-turbo| 2026-10-28 |v3.2.1|无 |https://github.com/libjpeg-turbo/libjpeg-turbo|无修改，直接取其release的代码和lib|
 | svg         | 2026-10-28 |无（2026-07-10）     |有 |https://github.com/memononen/nanosvg| 代码更新到2026-07-10，修改参见提交记录|
 | zlib        | 2026-03-24 |v1.3.2（2026-02-17） |有 |https://github.com/madler/zlib | 修改了以下文件：<br> 1.zlib\contrib\minizip\ioapi.h(1处代码) 2.zlib\contrib\minizip\unzip.h(1处代码) 3.zlib\contrib\minizip\unzip.c(1处代码) <br> 4.CMakeLists.txt(修改内容用duilib注释) <br> 5. win32/zlib.vcxproj(兼容libjpeg-turbo的修改) <br> 6.如果文件名或个数有变更，需要修改VC工程|
-| xml         | 2026-10-28 |v1.16（2026-06-16）  |无 |https://github.com/zeux/pugixml| pugixml|
+| xml         | 2026-10-28 |v1.16（2026-06-16）  |无 |https://github.com/zeux/pugixml| pugixml，修改了以下文件：pugiconfig.hpp|
 | convert_utf | 2025-03-11 |v20.1.0|无 |https://releases.llvm.org      | 下载最新版的源码包，解压后找到这两个文件  |
 | udis86      | 2025-04-11 |v1.7.2 |有 |https://sourceforge.net/projects/udis86/      |  udint.h 有修改|
 | libcef/libcef_win_109|2025-03-10|<div style="width: 160px">cef_binary 109.1.18+gf1c41e4<br>chromium-109.0.5414.120</div>|有 |<div style="width: 360px">x64版本：https://cef-builds.spotifycdn.com/index.html#windows64:109 <br> Win32版本：https://cef-builds.spotifycdn.com/index.html#windows32:109 <br> ARM64版本：https://cef-builds.spotifycdn.com/index.html#windowsarm64:109</div>| <div style="width: 360px">x64版本：https://cef-builds.spotifycdn.com/cef_binary_109.1.18%2Bgf1c41e4%2Bchromium-109.0.5414.120_windows64.tar.bz2 <br> Win32版本：https://cef-builds.spotifycdn.com/cef_binary_109.1.18%2Bgf1c41e4%2Bchromium-109.0.5414.120_windows32.tar.bz2 <br> ARM64版本：https://cef-builds.spotifycdn.com/cef_binary_109.1.18%2Bgf1c41e4%2Bchromium-109.0.5414.120_windowsarm64.tar.bz2</div>|
