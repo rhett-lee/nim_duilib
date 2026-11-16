@@ -7,6 +7,20 @@
 # 实例化控件的测试目标需要链接 Skia 等静态库
 include("${CMAKE_CURRENT_LIST_DIR}/../cmake/duilib_common.cmake")
 
+# SDL 模式下，测试目标需要与 duilib 库使用相同的平台宏（与 cmake/duilib_bin_windows.cmake
+# 中示例目标的处理一致）：头文件里存在按平台区分的成员/类型，宏不一致会导致测试与库的
+# 类布局不一致；同时测试代码也据此选择与平台匹配的输入消息模型。
+if(DUILIB_ENABLE_SDL AND DUILIB_OS_WINDOWS)
+    add_compile_definitions(DUILIB_SDL=1)
+endif()
+
+# SDL3 静态库在 Windows 上直接引用 Version/Winmm/Setupapi/Hid/Mincore/Dinput8 中的符号，
+# 测试目标需要补齐这些系统库（与 cmake/duilib_bin_windows.cmake 中示例目标的处理一致），
+# 否则 SDL 模式下测试目标链接时会报未解析的外部符号。
+if(DUILIB_ENABLE_SDL AND DUILIB_OS_WINDOWS)
+    list(APPEND DUILIB_SDL_LIBS Version Winmm Setupapi Hid Mincore Dinput8)
+endif()
+
 # AddressBar 路径解析：覆盖盘符、UNC、扩展长度路径、相对路径与"~"展开
 add_executable(test_address_bar_path
     test_address_bar_path.cpp
@@ -292,6 +306,8 @@ endif()
 # （退格/删除）、删除行、替换文本行、方向键（上/下/左/右）移动光标，
 # 以及滚动切换视图时按可视区域构建的绘制缓存与全量缓存逐像素一致。
 # 该测试使用离屏渲染（不创建窗口），仅在 Windows 平台构建。
+# SDL 模式下整体跳过（输出 [SKIP] 并返回成功）：用例按 Windows 原生输入模型编写
+# （WM_CHAR 消息、GetKeyState 模拟按键状态、"\r\n" 换行），与 SDL 的输入路径不同。
 if(WIN32)
     add_executable(test_richedit2_edit
         test_richedit2_edit.cpp

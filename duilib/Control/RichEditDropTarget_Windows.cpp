@@ -73,11 +73,21 @@ int32_t RichEditDropTarget_Windows::DragEnter(void* pDataObj, uint32_t /*grfKeyS
 
 int32_t RichEditDropTarget_Windows::DragOver(uint32_t grfKeyState, const UiPoint& pt, uint32_t* pdwEffect)
 {
+    //拒绝拖放时，必须把拖放效果设置为"无操作"：否则OLE会沿用上一次的拖放效果（如DROPEFFECT_MOVE），
+    //导致拖放源端按"移动"处理并删除原有文本（文本丢失）
+    auto setNoDropEffect = [pdwEffect]() {
+        if (pdwEffect != nullptr) {
+            *pdwEffect = DROPEFFECT_NONE;
+        }
+    };
+
     HRESULT hr = S_FALSE;
     if ((m_pRichEdit == nullptr) || m_pRichEdit->IsReadOnly() || !m_pRichEdit->IsEnabled() || m_pRichEdit->IsPasswordMode()) {
+        setNoDropEffect();
         return hr;
     }
     if (m_dropFileList.empty() && m_dropTextList.empty()) {
+        setNoDropEffect();
         return hr;
     }
 
@@ -99,7 +109,8 @@ int32_t RichEditDropTarget_Windows::DragOver(uint32_t grfKeyState, const UiPoint
     UiPoint clientPt = pt;
     m_pRichEdit->ScreenToClient(clientPt);
     if (!CheckDropText(clientPt)) {
-        //拖入文本操作：进行有效性判断
+        //拖入文本操作：进行有效性判断（如落点在正在拖出的选中文本范围内，则拒绝拖放）
+        setNoDropEffect();
         return hr;
     }
 
@@ -127,6 +138,7 @@ int32_t RichEditDropTarget_Windows::DragOver(uint32_t grfKeyState, const UiPoint
         }
         return S_OK;
     }
+    setNoDropEffect();
     return hr;
 }
 
@@ -143,18 +155,29 @@ int32_t RichEditDropTarget_Windows::DragLeave(void)
 
 int32_t RichEditDropTarget_Windows::Drop(void* pDataObj, uint32_t grfKeyState, const UiPoint& pt, uint32_t* pdwEffect)
 {
+    //未完成文本插入时，必须把拖放效果设置为"无操作"：否则OLE会沿用上一次的拖放效果（如DROPEFFECT_MOVE），
+    //导致拖放源端按"移动"处理并删除原有文本（文本丢失）
+    auto setNoDropEffect = [pdwEffect]() {
+        if (pdwEffect != nullptr) {
+            *pdwEffect = DROPEFFECT_NONE;
+        }
+    };
+
     ASSERT(m_pDataObj == pDataObj);
     if (m_pDataObj != pDataObj) {
+        setNoDropEffect();
         return S_FALSE;
     }
 
     HRESULT hr = S_FALSE;
     if ((m_pRichEdit == nullptr) || m_pRichEdit->IsReadOnly() || !m_pRichEdit->IsEnabled() || m_pRichEdit->IsPasswordMode()) {
         ClearDragStatus();
+        setNoDropEffect();
         return hr;
     }
     if (m_dropFileList.empty() && m_dropTextList.empty()) {
         ClearDragStatus();
+        setNoDropEffect();
         return hr;
     }
 
@@ -162,6 +185,7 @@ int32_t RichEditDropTarget_Windows::Drop(void* pDataObj, uint32_t grfKeyState, c
         //拖入文件操作
         if (!m_pRichEdit->IsEnableDropFile()) {
             ClearDragStatus();
+            setNoDropEffect();
 			//不支持文件拖放操作
             return hr;
         }
@@ -169,6 +193,7 @@ int32_t RichEditDropTarget_Windows::Drop(void* pDataObj, uint32_t grfKeyState, c
         DString fileTypes = m_pRichEdit->GetDropFileTypes();
         if (!ControlDropTargetUtils::IsFilteredFileTypes(fileTypes, m_dropFileList)) {
             ClearDragStatus();
+            setNoDropEffect();
 			//文件类型不满足过滤条件
             return hr;
         }
@@ -178,6 +203,7 @@ int32_t RichEditDropTarget_Windows::Drop(void* pDataObj, uint32_t grfKeyState, c
         ControlDropTargetUtils::RemoveUnsupportedFiles(filteredFileList, fileTypes);
         if (filteredFileList.empty()) {
             ClearDragStatus();
+            setNoDropEffect();
             return hr;
         }
 
@@ -210,12 +236,14 @@ int32_t RichEditDropTarget_Windows::Drop(void* pDataObj, uint32_t grfKeyState, c
     UiPoint clientPt = pt;
     m_pRichEdit->ScreenToClient(clientPt);
     if (!CheckDropText(clientPt)) {
-        //校验拖入的文本
+        //校验拖入的文本（如落点在正在拖出的选中文本范围内，则拒绝拖放）
         ClearDragStatus();
+        setNoDropEffect();
         return hr;
     }
 
     int32_t nDropPos = m_pRichEdit->CharFromPos(clientPt);
+    uint32_t dwEffect = DROPEFFECT_NONE;
     if ((nDropPos >= 0) && !m_dropTextList.empty()) {
         DString dropText;
         for (size_t i = 0; i < m_dropTextList.size(); ++i) {
@@ -228,15 +256,17 @@ int32_t RichEditDropTarget_Windows::Drop(void* pDataObj, uint32_t grfKeyState, c
         m_pRichEdit->SetSel(nDropPos, nDropPos);
         m_pRichEdit->ReplaceSel(dropText, true);
         hr = S_OK;
-    }
-    if (pdwEffect != nullptr) {
+
         //操作：按住Control键时，是复制，否则移动
         if (grfKeyState & MK_CONTROL) {
-            *pdwEffect = DROPEFFECT_COPY;
+            dwEffect = DROPEFFECT_COPY;
         }
         else {
-            *pdwEffect = DROPEFFECT_MOVE;
+            dwEffect = DROPEFFECT_MOVE;
         }
+    }
+    if (pdwEffect != nullptr) {
+        *pdwEffect = dwEffect;
     }
     ClearDragStatus();
     return hr;

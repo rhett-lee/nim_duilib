@@ -27,6 +27,18 @@ public:
     explicit RichEditDropTarget_SDL(RichEdit2* pRichEdit);
 
 public:
+    /** 重置"拖放文本已被接收"标记（每次拖放开始前调用）
+    */
+    static void ResetDropTextAccepted();
+
+    /** 本次拖放是否已被RichEdit2控件接收并插入了文本
+     * @return 已接收返回true
+     * @note SDL平台下，拖放目标端由SDL内部实现，总是向OLE返回DROPEFFECT_COPY；
+     *       拖放源端需要借助该标记判断是否为本应用内的拖放，从而决定是移动还是复制
+     */
+    static bool IsDropTextAccepted();
+
+public:
     /** SDL事件：拖放开始
      * @param [in] pt 客户区坐标（此参数在SDL版本中未使用）
      * @return 成功返回S_OK，失败返回S_FALSE

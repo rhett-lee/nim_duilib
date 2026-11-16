@@ -21,6 +21,7 @@ RichEditDragSource_Windows* RichEditDragSource_Windows::Create()
 
 RichEditDragSource_Windows::RichEditDragSource_Windows(RichEdit2* pRichEdit)
     : m_pRichEdit(pRichEdit)
+    , m_bCtrlPressedAtDrop(false)
     , m_refCount(0)
 {
 }
@@ -74,6 +75,9 @@ HRESULT RichEditDragSource_Windows::QueryContinueDrag(BOOL fEscapePressed, DWORD
     //SDL平台：鼠标移动过程中此函数会被频繁调用，在此及时派发消息队列中的拖放事件
     MessageLoop_SDL::DispatchDropEvents();
 #endif
+    //记录按键状态：鼠标释放前最后一次调用时的状态，即为拖放结束时的状态
+    m_bCtrlPressedAtDrop = (grfKeyState & MK_CONTROL) != 0;
+
     if (fEscapePressed) {
         return DRAGDROP_S_CANCEL;
     }
@@ -83,6 +87,11 @@ HRESULT RichEditDragSource_Windows::QueryContinueDrag(BOOL fEscapePressed, DWORD
     }
 
     return S_OK;
+}
+
+bool RichEditDragSource_Windows::IsCtrlPressedAtDrop() const
+{
+    return m_bCtrlPressedAtDrop;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

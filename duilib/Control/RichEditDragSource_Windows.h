@@ -48,6 +48,13 @@ public:
      */
     HRESULT __stdcall QueryContinueDrag(BOOL fEscapePressed, DWORD grfKeyState) override;
 
+    /** 拖放结束（鼠标释放）时是否按住了Ctrl键
+     * @return 按住Ctrl键返回true
+     * @note SDL平台下，拖放目标端总是向OLE返回DROPEFFECT_COPY，
+     *       拖放源端需要用该状态区分"复制"和"移动"
+     */
+    bool IsCtrlPressedAtDrop() const;
+
 private:
     RichEditDragSource_Windows();
     virtual ~RichEditDragSource_Windows() = default;
@@ -55,6 +62,9 @@ private:
 private:
     /** 关联的RichEdit2控件指针 */
     RichEdit2* m_pRichEdit;
+
+    /** 拖放结束（鼠标释放）时是否按住了Ctrl键 */
+    bool m_bCtrlPressedAtDrop;
 
     /** 引用计数 */
     ULONG m_refCount;

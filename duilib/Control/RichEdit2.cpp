@@ -28,6 +28,7 @@
 
 #ifdef DUILIB_BUILD_FOR_SDL
     #include "RichEditDropTarget_SDL.h"
+    #include "duilib/Core/MessageLoop_SDL.h"
     #include <SDL3/SDL.h>
 #endif //DUILIB_BUILD_FOR_SDL
 
@@ -5792,8 +5793,24 @@ void RichEdit2::CheckDoDragDrop(const UiPoint& ptMouse)
         if (!selectedText.empty()) {
             // 执行拖放操作
             m_nDropTextPos = -1;
-            uint32_t effect = DoDragDrop(selectedText);
-            
+#if defined(DUILIB_BUILD_FOR_SDL)
+            //SDL平台：拖放的目标端由SDL内部实现，总是向OLE返回DROPEFFECT_COPY，
+            //因此需要自行记录"本次拖放的文本是否被本应用内的RichEdit2接收"
+            RichEditDropTarget_SDL::ResetDropTextAccepted();
+#endif
+            bool bCtrlPressedAtDrop = false;
+            uint32_t effect = DoDragDrop(selectedText, bCtrlPressedAtDrop);
+#if defined(DUILIB_BUILD_FOR_SDL)
+            //SDL平台：DoDragDrop返回时，队列中可能还有未派发的拖放事件（如DROP_TEXT/DROP_COMPLETE），
+            //先派发它们，保证目标控件已完成文本插入（m_nDropTextPos等状态也已更新）
+            MessageLoop_SDL::DispatchDropEvents();
+
+            //行为与Windows的RichEdit保持一致：按住Ctrl键拖放为复制，否则为移动；
+            //仅在文本已被本应用内的RichEdit2接收时按移动处理，避免外部程序只做复制时误删原文
+            if ((effect == DROPEFFECT_COPY) && !bCtrlPressedAtDrop && RichEditDropTarget_SDL::IsDropTextAccepted()) {
+                effect = DROPEFFECT_MOVE;
+            }
+#endif
             // 根据拖放结果处理
             if ((effect == DROPEFFECT_MOVE) && !IsReadOnly()) {
                 // 移动操作：删除原文本
@@ -5830,7 +5847,8 @@ void RichEdit2::CheckDoDragDrop(const UiPoint& ptMouse)
                         SetSel(nDropStart, nDropEnd);
                     }
                     else {
-                        ASSERT(0);
+                        //落点在原选中文本的范围内：拖放目标端已拒绝该拖放操作，正常流程不会进入此分支；
+                        //此处做兜底处理，不删除任何文本，避免出现文本丢失或者重复
                     }
                 }
             }
@@ -5843,8 +5861,9 @@ void RichEdit2::CheckDoDragDrop(const UiPoint& ptMouse)
 #endif
 }
 
-uint32_t RichEdit2::DoDragDrop(const DStringW& text)
+uint32_t RichEdit2::DoDragDrop(const DStringW& text, bool& bCtrlPressedAtDrop)
 {
+    bCtrlPressedAtDrop = false;
 #if defined(DUILIB_BUILD_FOR_WIN)
     if (text.empty() || !IsEnableDragOut() || IsPasswordMode() || !IsEnabled()) {
         return DROPEFFECT_NONE;
@@ -5865,6 +5884,9 @@ uint32_t RichEdit2::DoDragDrop(const DStringW& text)
 
     DWORD dwEffect = DROPEFFECT_COPY;
     HRESULT hr = ::DoDragDrop(pDataObject, pDropSource, DROPEFFECT_COPY | DROPEFFECT_MOVE, &dwEffect);
+
+    //拖放结束（鼠标释放）时是否按下了Ctrl键（SDL平台下用于区分移动与复制）
+    bCtrlPressedAtDrop = pDropSource->IsCtrlPressedAtDrop();
 
     pDropSource->Release();
     pDataObject->Release();

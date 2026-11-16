@@ -18,6 +18,23 @@
 // 说明：测试使用离屏渲染 + 轻量窗口桩对象，不创建真实窗口，可在命令行（含 CI）执行。
 // 滚动条需要真实窗口才会生效，因此第 8 项在绘制缓存层验证"按可视区域构建 + 滚动绘制"。
 
+#if defined(DUILIB_SDL) && (DUILIB_SDL)
+// SDL 模式下整体跳过：本文件的用例按 Windows 原生输入模型编写，
+//   1) 字符输入使用 WM_CHAR/WM_SYSCHAR 消息；
+//   2) Ctrl/Shift 等按键状态通过 Windows API（GetKeyState）模拟；
+//   3) 换行符按 "\r\n" 断言。
+// SDL 模式的输入路径是 SDL_EVENT_TEXT_INPUT + SDL 键盘状态，与上述模型不同，
+// 因此这些用例在 SDL 模式下不适用；编辑逻辑本身由静态库（Windows）模式的同一套用例覆盖。
+#include <iostream>
+
+int main()
+{
+    std::cout << "[SKIP] test_richedit2_edit: SDL mode, the test uses Windows native input model" << std::endl;
+    return 0;
+}
+
+#else // !(defined(DUILIB_SDL) && (DUILIB_SDL))
+
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/ResourceParam.h"
 #include "duilib/Core/UiFont.h"
@@ -3937,3 +3954,5 @@ int main()
               << g_failedCount << " failure(s)" << std::endl;
     return (g_failedCount == 0) ? 0 : 1;
 }
+
+#endif // !(defined(DUILIB_SDL) && (DUILIB_SDL))

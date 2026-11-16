@@ -10,11 +10,28 @@
 namespace ui 
 {
 
+namespace {
+    /** 本次拖放会话中，拖放的文本是否已被某个RichEdit2控件接收并插入
+        （SDL平台下拖放目标端总是向OLE返回DROPEFFECT_COPY，源端用它区分"移动"与"复制"）
+    */
+    bool g_bDropTextAccepted = false;
+}
+
 RichEditDropTarget_SDL::RichEditDropTarget_SDL(RichEdit2* pRichEdit) :
     m_pRichEdit(pRichEdit),
     m_nStartChar(0),
     m_nEndChar(0)
 {
+}
+
+void RichEditDropTarget_SDL::ResetDropTextAccepted()
+{
+    g_bDropTextAccepted = false;
+}
+
+bool RichEditDropTarget_SDL::IsDropTextAccepted()
+{
+    return g_bDropTextAccepted;
 }
 
 int32_t RichEditDropTarget_SDL::OnDropBegin(const UiPoint& /*pt*/)
@@ -35,6 +52,10 @@ int32_t RichEditDropTarget_SDL::OnDropBegin(const UiPoint& /*pt*/)
 void RichEditDropTarget_SDL::OnDropPosition(const UiPoint& pt)
 {
     if ((m_pRichEdit == nullptr) || m_pRichEdit->IsReadOnly() || !m_pRichEdit->IsEnabled() || m_pRichEdit->IsPasswordMode()) {
+        return;
+    }
+    if (!m_pRichEdit->CanDropTextOnMousePosition(pt)) {
+        //该位置不接受拖放（如落点在正在拖出的选中文本范围内），不移动光标位置
         return;
     }
     if (!m_pRichEdit->IsFocused()) {
@@ -75,6 +96,9 @@ void RichEditDropTarget_SDL::OnDropTexts(const std::vector<DString>& textList, c
         m_pRichEdit->SetDropTextPosition(nDropPos);
         m_pRichEdit->SetSel(nDropPos, nDropPos);
         m_pRichEdit->ReplaceSel(dropText, true);
+
+        //已接收文本：通知拖放源端，本次拖放为本应用内的拖放
+        g_bDropTextAccepted = true;
     }
 
     m_dropTextList.clear();

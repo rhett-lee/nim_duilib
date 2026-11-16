@@ -1263,10 +1263,11 @@ private:
 
     /** 执行拖放操作
     * @param [in] text 要拖放的文本内容
+    * @param [out] bCtrlPressedAtDrop 拖放结束（鼠标释放）时是否按下了Ctrl键
     * @return 返回拖放效果：DROPEFFECT_NONE表示取消，DROPEFFECT_COPY表示复制，DROPEFFECT_MOVE表示移动
     * @note 仅Windows平台支持
     */
-    uint32_t DoDragDrop(const DStringW& text);
+    uint32_t DoDragDrop(const DStringW& text, bool& bCtrlPressedAtDrop);
 
 private:
     bool m_bWantTab;            //是否接收TAB键，如果为true的时候，TAB键会当作文本输入，否则过滤掉TAB键
