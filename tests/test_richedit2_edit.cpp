@@ -110,6 +110,15 @@ public:
     using ui::RichEdit2::ButtonDoubleClick;
     using ui::RichEdit2::MouseMove;
     using ui::RichEdit2::FindRichText;
+
+    /** 伪造外层滚动容器的偏移，用于模拟控件位于已滚动的滚动容器内的情况 */
+    virtual ui::UiPoint GetScrollOffsetInScrollBox() const override { return m_ptFakeScrollOffset; }
+
+    /** 设置伪造的外层滚动偏移 */
+    void SetFakeScrollOffset(const ui::UiPoint& pt) { m_ptFakeScrollOffset = pt; }
+
+private:
+    ui::UiPoint m_ptFakeScrollOffset;
 };
 
 constexpr int32_t kWidth = 800;
@@ -3034,6 +3043,94 @@ std::vector<int32_t> CollectRowStartIndexes(TestRichEdit2& richEdit, int32_t nTe
     return rowStarts;
 }
 
+/** 控件位于已滚动的滚动容器内时，方向键与翻页键仍应按可视行移动光标（回归测试）
+    说明：PosFromChar/GetCharRowRect返回的是布局坐标，不能再叠加外层滚动容器的偏移 */
+void TestCaretKeysWithOuterScroll(TestEnv& env)
+{
+    TestRichEdit2& richEdit = env.Edit();
+    ResetEdit(env);
+    env.m_rcControl = ui::UiRect(0, 0, 202, 38);
+    richEdit.SetPos(env.m_rcControl);
+    ui::UiFont fontInfo;
+    fontInfo.m_fontName = _T("Microsoft YaHei");
+    fontInfo.m_fontSize = 12;
+    richEdit.SetFontInfo(fontInfo);
+    richEdit.SetWordWrap(true);
+    richEdit.SetMultiLine(true);
+    richEdit.SetAttribute(_T("text_align"), _T("left,vcenter"));
+    richEdit.SetAttribute(_T("vscrollbar"), _T("true"));
+
+    DStringW text;
+    for (int32_t i = 0; i < 4; ++i) {
+        text += L"0123456789abcdefghigklmn";
+    }
+    richEdit.SetText(text);
+    richEdit.SetSel(0, 0);
+    PaintFrame(env);
+
+    const int32_t nTextLen = (int32_t)text.size();
+    const std::vector<int32_t> rowStarts = CollectRowStartIndexes(richEdit, nTextLen);
+    CHECK_MSG(rowStarts.size() >= 3, "outer scroll: text should span multiple visual rows");
+    if (rowStarts.size() < 3) {
+        env.m_rcControl = ui::UiRect(0, 0, kWidth, kHeight);
+        richEdit.SetPos(env.m_rcControl);
+        return;
+    }
+    const int32_t nLastRow = (int32_t)rowStarts.size() - 1;
+
+    //模拟外层滚动容器的偏移：偏移量大于控件高度，若被重复叠加会导致坐标越界
+    richEdit.SetFakeScrollOffset(ui::UiPoint(0, 137));
+
+    //1) 在最后一行最后一个字符前按 Up：应移动到上一可视行
+    const int32_t nCaret = nTextLen - 1;
+    richEdit.SetSel(nCaret, nCaret);
+    const ui::UiPoint ptBefore = richEdit.PosFromChar(nCaret);
+    SendKey(richEdit, ui::kVK_UP);
+    const int32_t nAfterUp = GetCaretChar(richEdit);
+    const ui::UiPoint ptAfterUp = richEdit.PosFromChar(nAfterUp);
+    CHECK_MSG(nAfterUp != nCaret, "outer scroll: Up from the last char should move the caret, before=" +
+              std::to_string(nCaret) + ", after=" + std::to_string(nAfterUp));
+    CHECK_MSG(ptAfterUp.y < ptBefore.y, "outer scroll: Up should move to the previous visual row, y=" +
+              std::to_string(ptAfterUp.y) + ", before y=" + std::to_string(ptBefore.y));
+    CHECK_MSG((nAfterUp >= rowStarts[nLastRow - 1]) && (nAfterUp < rowStarts[nLastRow]),
+              "outer scroll: Up should stay in the previous visual row, caret=" + std::to_string(nAfterUp));
+
+    //2) 按 Down：应回到最后一行
+    SendKey(richEdit, ui::kVK_DOWN);
+    const int32_t nAfterDown = GetCaretChar(richEdit);
+    CHECK_MSG(richEdit.PosFromChar(nAfterDown).y >= richEdit.PosFromChar(rowStarts[nLastRow]).y,
+              "outer scroll: Down should return to the last visual row, caret=" + std::to_string(nAfterDown));
+
+    //3) PageUp / PageDown：应按页移动光标
+    richEdit.SetSel(nCaret, nCaret);
+    const int32_t nPageUpBefore = GetCaretChar(richEdit);
+    SendKey(richEdit, ui::kVK_PRIOR);
+    const int32_t nPageUpAfter = GetCaretChar(richEdit);
+    CHECK_MSG(richEdit.PosFromChar(nPageUpAfter).y < richEdit.PosFromChar(nPageUpBefore).y,
+              "outer scroll: PageUp should move the caret up, before=" + std::to_string(nPageUpBefore) +
+              ", after=" + std::to_string(nPageUpAfter));
+    SendKey(richEdit, ui::kVK_NEXT);
+    CHECK_MSG(richEdit.PosFromChar(GetCaretChar(richEdit)).y > richEdit.PosFromChar(nPageUpAfter).y,
+              "outer scroll: PageDown should move the caret down, after=" + std::to_string(GetCaretChar(richEdit)));
+
+    //4) End / Home：仍应停留在当前可视行
+    const int32_t nRow = 1;
+    richEdit.SetSel(rowStarts[nRow] + 5, rowStarts[nRow] + 5);
+    SendKey(richEdit, ui::kVK_END);
+    CHECK_MSG(GetCaretChar(richEdit) == rowStarts[nRow + 1],
+              "outer scroll: End should move to the visual row end, caret=" + std::to_string(GetCaretChar(richEdit)));
+    CHECK_MSG(richEdit.GetCaretRect().top == richEdit.PosFromChar(rowStarts[nRow]).y,
+              "outer scroll: End should keep the caret on the same visual row");
+    SendKey(richEdit, ui::kVK_HOME);
+    CHECK_MSG(GetCaretChar(richEdit) == rowStarts[nRow],
+              "outer scroll: Home should move to the visual row start, caret=" + std::to_string(GetCaretChar(richEdit)));
+
+    //恢复外层滚动偏移与控件尺寸
+    richEdit.SetFakeScrollOffset(ui::UiPoint());
+    env.m_rcControl = ui::UiRect(0, 0, kWidth, kHeight);
+    richEdit.SetPos(env.m_rcControl);
+}
+
 /** 窄宽度 + 自动换行：上下方向键应在可视行之间移动，Home/End 应作用于当前可视行 */
 void TestCaretWrapRowKeys(TestEnv& env)
 {
@@ -3548,6 +3645,7 @@ int main()
     TestCaretSelectionScrolled(env);
     TestCaretWordAndLineKeys(env);
     TestCaretWrapRowKeys(env);
+    TestCaretKeysWithOuterScroll(env);
     TestCaretSelectionMatrix(env);
     TestEditEvents(env);
     TestClipboard(env);

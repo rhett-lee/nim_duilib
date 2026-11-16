@@ -1131,6 +1131,12 @@ private:
     */
     int32_t CharFromPos(UiPoint pt, bool& bAtRowEnd);
 
+    /** 由布局坐标计算距离最近的字符索引
+    * @param [in] pt 布局坐标（与PosFromChar的返回值是同一个坐标系，已包含外层滚动容器的偏移）
+    * @param [out] bAtRowEnd 返回true表示该点位于所在可视行内容的右侧
+    */
+    int32_t CharFromLayoutPos(UiPoint pt, bool& bAtRowEnd);
+
     /** 设置光标位置
      * @param [in] xPos X 轴坐标
      * @param [in] yPos Y 轴坐标

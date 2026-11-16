@@ -3420,7 +3420,14 @@ int32_t RichEdit2::CharFromPos(UiPoint pt)
 
 int32_t RichEdit2::CharFromPos(UiPoint pt, bool& bAtRowEnd)
 {
-    pt.Offset(GetScrollOffsetInScrollBox());
+    const UiPoint szOffset = GetScrollOffsetInScrollBox();
+    pt.Offset(szOffset);
+    return m_pTextData->CharFromPos(pt, bAtRowEnd);
+}
+
+int32_t RichEdit2::CharFromLayoutPos(UiPoint pt, bool& bAtRowEnd)
+{
+    //pt 为布局坐标（与PosFromChar的返回值是同一个坐标系），不需要叠加外层滚动容器的偏移
     return m_pTextData->CharFromPos(pt, bAtRowEnd);
 }
 
@@ -4404,7 +4411,7 @@ bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
         const UiRect rcRow = m_pTextData->GetCharRowRect(nRefIndex);
         UiPoint pt(m_nSelXPos, rcRow.bottom);
         bool bAtRowEnd = false;
-        nSelEndChar = CharFromPos(pt, bAtRowEnd);
+        nSelEndChar = CharFromLayoutPos(pt, bAtRowEnd);
 
         bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
         if (bShiftDown) {
@@ -4442,7 +4449,7 @@ bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
         const UiRect rcRow = m_pTextData->GetCharRowRect(nRefIndex);
         UiPoint pt(m_nSelXPos, rcRow.top - 1);
         bool bAtRowEnd = false;
-        nSelStartChar = CharFromPos(pt, bAtRowEnd);
+        nSelStartChar = CharFromLayoutPos(pt, bAtRowEnd);
 
         bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
         if (bShiftDown) {
@@ -4482,7 +4489,7 @@ bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
         const UiRect rcRow = m_pTextData->GetCharRowRect(nRefIndex);
         UiPoint pt(m_nSelXPos, rcRow.top + nPageHeight);
         bool bAtRowEnd = false;
-        nSelEndChar = CharFromPos(pt, bAtRowEnd);
+        nSelEndChar = CharFromLayoutPos(pt, bAtRowEnd);
 
         bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
         if (bShiftDown) {
@@ -4522,7 +4529,7 @@ bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
         const UiRect rcRow = m_pTextData->GetCharRowRect(nRefIndex);
         UiPoint pt(m_nSelXPos, rcRow.top - nPageHeight);
         bool bAtRowEnd = false;
-        nSelStartChar = CharFromPos(pt, bAtRowEnd);
+        nSelStartChar = CharFromLayoutPos(pt, bAtRowEnd);
         bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
         if (bShiftDown) {
             //Shift + PageUp键
