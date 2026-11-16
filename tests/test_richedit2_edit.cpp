@@ -3127,6 +3127,60 @@ void TestCaretWrapRowKeys(TestEnv& env)
     CHECK_MSG(GetCaretChar(richEdit) == 15, "narrow wrap: End before hard line break, caret=" +
               std::to_string(GetCaretChar(richEdit)));
 
+    //恢复自动换行的长文本
+    richEdit.SetText(text);
+    richEdit.SetSel(0, 0);
+    PaintFrame(env);
+
+    //7) 连续按两次 End：光标应保持在同一个可视行的行尾
+    richEdit.SetSel(rowStarts[nRow] + 3, rowStarts[nRow] + 3);
+    SendKey(richEdit, ui::kVK_END);
+    const int32_t nEndCaret1 = GetCaretChar(richEdit);
+    SendKey(richEdit, ui::kVK_END);
+    const int32_t nEndCaret2 = GetCaretChar(richEdit);
+    CHECK_MSG(nEndCaret1 == nEndCaret2, "narrow wrap: End twice should keep the caret, caret=" +
+              std::to_string(nEndCaret2));
+    CHECK_MSG(richEdit.GetCaretRect().top == richEdit.PosFromChar(rowStarts[nRow]).y,
+              "narrow wrap: End twice should keep the caret on the same visual row");
+
+    //8) End 后按 Home：应回到同一个可视行的行首
+    SendKey(richEdit, ui::kVK_HOME);
+    CHECK_MSG(GetCaretChar(richEdit) == rowStarts[nRow],
+              "narrow wrap: Home after End should go to the same visual row start, caret=" +
+              std::to_string(GetCaretChar(richEdit)));
+
+    //9) 鼠标点击在软换行行尾的右侧：光标应显示在该可视行的行尾（而不是下一可视行的行首）
+    {
+        const ui::UiPoint ptRowStart = richEdit.PosFromChar(rowStarts[nRow]);
+        const ui::UiPoint ptRowEndClick(env.m_rcControl.right - 2, ptRowStart.y + 2);
+        SendMouseDown(richEdit, ptRowEndClick);
+        SendMouseUp(richEdit, ptRowEndClick);
+        CHECK_MSG(GetCaretChar(richEdit) == rowStarts[nRow + 1],
+                  "narrow wrap: click right of a row should place the caret at the row end, caret=" +
+                  std::to_string(GetCaretChar(richEdit)));
+        CHECK_MSG(richEdit.GetCaretRect().top == richEdit.PosFromChar(rowStarts[nRow]).y,
+                  "narrow wrap: click right of a row should keep the caret on the clicked visual row");
+
+        //点击在下一可视行的行首附近：光标应显示在下一可视行
+        const ui::UiPoint ptNextRow = richEdit.PosFromChar(rowStarts[nRow + 1]);
+        const ui::UiPoint ptNextClick(ptNextRow.x + 1, ptNextRow.y + 2);
+        SendMouseDown(richEdit, ptNextClick);
+        SendMouseUp(richEdit, ptNextClick);
+        CHECK_MSG(richEdit.GetCaretRect().top == ptNextRow.y,
+                  "narrow wrap: click at the next row start should keep the caret on the next visual row");
+    }
+
+    //10) PageDown/PageUp：光标应在可视行之间移动
+    richEdit.SetSel(rowStarts[0], rowStarts[0]);
+    SendKey(richEdit, ui::kVK_NEXT);
+    const int32_t nPageDownCaret = GetCaretChar(richEdit);
+    CHECK_MSG(richEdit.PosFromChar(nPageDownCaret).y > richEdit.PosFromChar(rowStarts[0]).y,
+              "narrow wrap: PageDown should move to a lower visual row, caret=" + std::to_string(nPageDownCaret));
+    SendKey(richEdit, ui::kVK_PRIOR);
+    CHECK_MSG(richEdit.PosFromChar(GetCaretChar(richEdit)).y == richEdit.PosFromChar(rowStarts[0]).y,
+              "narrow wrap: PageUp should move back to the first visual row, caret=" +
+              std::to_string(GetCaretChar(richEdit)));
+
     env.m_rcControl = ui::UiRect(0, 0, kWidth, kHeight);
     richEdit.SetPos(env.m_rcControl);
     ui::UiFont fontDefault;

@@ -300,7 +300,7 @@
 
                     <!-- 编辑区 -->
                     <HBox class="panel_card" height="stretch" margin="0,8,0,0" padding="4,4,4,4" min_width="60">
-                        <RichEdit name="rich_edit" enable_drag_drop="true" zoom="0,0" wheel_zoom="true" multi_line="true" want_return="true" word_wrap="true" rich_text="false" default_context_menu="true" save_selection="true" hide_selection="false" vscrollbar="true" auto_vscroll="true" bkcolor="bg_richedit"/>
+                        <RichEdit name="rich_edit" enable_drag_drop="true" zoom="0,0" wheel_zoom="true" multi_line="true" want_return="true" word_wrap="true" rich_text="false" default_context_menu="true" save_selection="true" hide_selection="false" vscrollbar="true" hscrollbar="true" auto_vscroll="true" bkcolor="bg_richedit"/>
                     </HBox>
                 </VBox>
             </HBox>

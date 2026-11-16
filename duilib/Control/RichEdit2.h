@@ -1121,9 +1121,15 @@ private:
 
     /** 根据字符索引更新光标的位置：如果该索引是软换行产生的续行行首，则光标显示在上一可视行的行尾
     * @param [in] nCharIndex 光标所在的字符索引
-    * @param [in] nCaretX 期望的光标X坐标（小于0表示不限制，用于End键）
+    * @param [in] bAtRowEnd 该光标位置是否位于可视行内容的右侧（软换行时需要显示在上一可视行的行尾）
     */
-    void UpdateCaretRowEndAffinity(int32_t nCharIndex, int32_t nCaretX = -1);
+    void UpdateCaretRowEndAffinity(int32_t nCharIndex, bool bAtRowEnd);
+
+    /** 获取距离指定点最近的字符索引
+    * @param [in] pt 坐标信息（调用方负责处理滚动条的偏移）
+    * @param [out] bAtRowEnd 返回true表示该点位于所在可视行内容的右侧
+    */
+    int32_t CharFromPos(UiPoint pt, bool& bAtRowEnd);
 
     /** 设置光标位置
      * @param [in] xPos X 轴坐标

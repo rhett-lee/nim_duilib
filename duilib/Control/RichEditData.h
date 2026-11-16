@@ -308,6 +308,13 @@ public:
      */
     int32_t CharFromPos(UiPoint pt);
 
+    /** 获取有关距离编辑控件客户区中指定点最近的字符的信息
+     * @param[in] pt 坐标信息（调用方负责处理滚动条的偏移）
+     * @param[out] bAtRowEnd 返回true表示该点位于所在可视行内容的右侧（软换行时，光标需要显示在上一可视行的行尾）
+     * @return 返回值指定了距指定点最近字符的从零开始的字符索引。 如果指定点超出控件中的最后一个字符，则返回值会指示编辑控件中的最后一个字符。
+     */
+    int32_t CharFromPos(UiPoint pt, bool& bAtRowEnd);
+
     /** 获取指定字符所在行的区域（包含无文字的区域）
     * @param[in] nCharIndex 字符的索引下标
     */

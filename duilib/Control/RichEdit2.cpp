@@ -1364,7 +1364,8 @@ void RichEdit2::EnsureCharVisible(int32_t nCharIndex)
         return;
     }
     UiPoint pt;
-    if ((m_nCaretRowEndIndex == nCharIndex) && (nCharIndex > 0)) {
+    if ((m_nCaretRowEndIndex == nCharIndex) && (nCharIndex > 0) &&
+        m_pTextData->IsSoftWrapRowStartCharIndex(nCharIndex)) {
         //光标显示在上一可视行的行尾
         pt = m_pTextData->CaretPosFromVisualRowEnd(nCharIndex);
     }
@@ -2327,14 +2328,18 @@ void RichEdit2::SetCaretPos(int32_t xPos, int32_t yPos)
 
 void RichEdit2::SetCaretPos(const UiPoint& pt)
 {
-    int32_t nCharPosIndex = CharFromPos(pt);
+    bool bAtRowEnd = false;
+    int32_t nCharPosIndex = CharFromPos(pt, bAtRowEnd);
+    m_nCaretRowEndIndex = -1;
     SetCaretPos(nCharPosIndex);
+    UpdateCaretRowEndAffinity(nCharPosIndex, bAtRowEnd);
 }
 
 void RichEdit2::SetCaretPos(int32_t nCharPosIndex)
 {
     UiPoint cursorPos;
-    if ((m_nCaretRowEndIndex == nCharPosIndex) && (nCharPosIndex > 0)) {
+    if ((m_nCaretRowEndIndex == nCharPosIndex) && (nCharPosIndex > 0) &&
+        m_pTextData->IsSoftWrapRowStartCharIndex(nCharPosIndex)) {
         //光标显示在上一可视行的行尾（软换行产生的续行行首）
         cursorPos = m_pTextData->CaretPosFromVisualRowEnd(nCharPosIndex);
     }
@@ -2344,17 +2349,16 @@ void RichEdit2::SetCaretPos(int32_t nCharPosIndex)
     SetCaretPosInternal(cursorPos.x, cursorPos.y);
 }
 
-void RichEdit2::UpdateCaretRowEndAffinity(int32_t nCharIndex, int32_t nCaretX)
+void RichEdit2::UpdateCaretRowEndAffinity(int32_t nCharIndex, bool bAtRowEnd)
 {
-    if ((nCharIndex > 0) && m_pTextData->IsSoftWrapRowStartCharIndex(nCharIndex)) {
-        if ((nCaretX < 0) || (nCaretX > PosFromChar(nCharIndex).x)) {
-            //该索引是软换行产生的续行行首，光标显示在上一可视行的行尾
-            m_nCaretRowEndIndex = nCharIndex;
-            SetCaretPos(nCharIndex);
-            return;
-        }
+    if (bAtRowEnd && (nCharIndex > 0) && m_pTextData->IsSoftWrapRowStartCharIndex(nCharIndex)) {
+        //该索引是软换行产生的续行行首，光标显示在上一可视行的行尾
+        m_nCaretRowEndIndex = nCharIndex;
+        SetCaretPos(nCharIndex);
     }
-    m_nCaretRowEndIndex = -1;
+    else {
+        m_nCaretRowEndIndex = -1;
+    }
 }
 
 void RichEdit2::SetCaretPosInternal(int32_t xPos, int32_t yPos)
@@ -3414,6 +3418,12 @@ int32_t RichEdit2::CharFromPos(UiPoint pt)
     return m_pTextData->CharFromPos(pt);
 }
 
+int32_t RichEdit2::CharFromPos(UiPoint pt, bool& bAtRowEnd)
+{
+    pt.Offset(GetScrollOffsetInScrollBox());
+    return m_pTextData->CharFromPos(pt, bAtRowEnd);
+}
+
 uint16_t RichEdit2::GetTextStyle() const
 {
     uint32_t uTextStyle = 0;
@@ -4393,7 +4403,8 @@ bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
         //移动到下一可视行（使用本行实际的矩形区域，避免行高不一致时无法移动）
         const UiRect rcRow = m_pTextData->GetCharRowRect(nRefIndex);
         UiPoint pt(m_nSelXPos, rcRow.bottom);
-        nSelEndChar = CharFromPos(pt);
+        bool bAtRowEnd = false;
+        nSelEndChar = CharFromPos(pt, bAtRowEnd);
 
         bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
         if (bShiftDown) {
@@ -4403,7 +4414,7 @@ bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
         else {
             InternalSetSel(nSelEndChar, nSelEndChar);
         }
-        UpdateCaretRowEndAffinity(nSelEndChar, m_nSelXPos);
+        UpdateCaretRowEndAffinity(nSelEndChar, bAtRowEnd);
         EnsureCharVisible(nSelEndChar);
         m_bSelForward = true;
     }
@@ -4430,7 +4441,8 @@ bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
         //移动到上一可视行（使用本行实际的矩形区域，避免行高不一致时无法移动）
         const UiRect rcRow = m_pTextData->GetCharRowRect(nRefIndex);
         UiPoint pt(m_nSelXPos, rcRow.top - 1);
-        nSelStartChar = CharFromPos(pt);
+        bool bAtRowEnd = false;
+        nSelStartChar = CharFromPos(pt, bAtRowEnd);
 
         bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
         if (bShiftDown) {
@@ -4440,7 +4452,7 @@ bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
         else {
             InternalSetSel(nSelStartChar, nSelStartChar);
         }
-        UpdateCaretRowEndAffinity(nSelStartChar, m_nSelXPos);
+        UpdateCaretRowEndAffinity(nSelStartChar, bAtRowEnd);
         EnsureCharVisible(nSelStartChar);
         m_bSelForward = false;
     }
@@ -4454,15 +4466,23 @@ bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
         GetSel(nSelStartChar, nSelEndChar);
         ASSERT(nSelEndChar >= nSelStartChar);
 
-        UiPoint pt = PosFromChar(nSelEndChar);
-        if (m_nSelXPos == -1) {
-            m_nSelXPos = pt.x;
+        //参考的可视行：如果光标显示在上一可视行的行尾，则以该行的最后一个字符为参考
+        int32_t nRefIndex = nSelEndChar;
+        UiPoint ptCaret;
+        if ((m_nCaretRowEndIndex == nSelEndChar) && (nSelEndChar > 0)) {
+            nRefIndex = m_pTextData->GetPrevValidCharIndex(nSelEndChar);
+            ptCaret = m_pTextData->CaretPosFromVisualRowEnd(nSelEndChar);
         }
         else {
-            pt.x = m_nSelXPos;
+            ptCaret = PosFromChar(nSelEndChar);
         }
-        pt.y += nPageHeight;
-        nSelEndChar = CharFromPos(pt);
+        if (m_nSelXPos == -1) {
+            m_nSelXPos = ptCaret.x;
+        }
+        const UiRect rcRow = m_pTextData->GetCharRowRect(nRefIndex);
+        UiPoint pt(m_nSelXPos, rcRow.top + nPageHeight);
+        bool bAtRowEnd = false;
+        nSelEndChar = CharFromPos(pt, bAtRowEnd);
 
         bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
         if (bShiftDown) {
@@ -4472,6 +4492,7 @@ bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
         else {
             InternalSetSel(nSelEndChar, nSelEndChar);
         }
+        UpdateCaretRowEndAffinity(nSelEndChar, bAtRowEnd);
         EnsureCharVisible(nSelEndChar);
         m_bSelForward = true;
     }
@@ -4485,15 +4506,23 @@ bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
         GetSel(nSelStartChar, nSelEndChar);
         ASSERT(nSelEndChar >= nSelStartChar);
 
-        UiPoint pt = PosFromChar(nSelStartChar);
-        if (m_nSelXPos == -1) {
-            m_nSelXPos = pt.x;
+        //参考的可视行：如果光标显示在上一可视行的行尾，则以该行的最后一个字符为参考
+        int32_t nRefIndex = nSelStartChar;
+        UiPoint ptCaret;
+        if ((m_nCaretRowEndIndex == nSelStartChar) && (nSelStartChar > 0)) {
+            nRefIndex = m_pTextData->GetPrevValidCharIndex(nSelStartChar);
+            ptCaret = m_pTextData->CaretPosFromVisualRowEnd(nSelStartChar);
         }
         else {
-            pt.x = m_nSelXPos;
+            ptCaret = PosFromChar(nSelStartChar);
         }
-        pt.y -= nPageHeight;
-        nSelStartChar = CharFromPos(pt);
+        if (m_nSelXPos == -1) {
+            m_nSelXPos = ptCaret.x;
+        }
+        const UiRect rcRow = m_pTextData->GetCharRowRect(nRefIndex);
+        UiPoint pt(m_nSelXPos, rcRow.top - nPageHeight);
+        bool bAtRowEnd = false;
+        nSelStartChar = CharFromPos(pt, bAtRowEnd);
         bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
         if (bShiftDown) {
             //Shift + PageUp键
@@ -4502,6 +4531,7 @@ bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
         else {
             InternalSetSel(nSelStartChar, nSelStartChar);
         }
+        UpdateCaretRowEndAffinity(nSelStartChar, bAtRowEnd);
         EnsureCharVisible(nSelStartChar);
         m_bSelForward = false;
     }
@@ -4513,12 +4543,20 @@ bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
         GetSel(nSelStartChar, nSelEndChar);
         ASSERT(nSelEndChar >= nSelStartChar);
 
+        //获取可视行的行首索引（如果光标显示在上一可视行的行尾，则以该行的最后一个字符为参考）
+        auto getVisualRowStart = [this](int32_t nCharIndex) {
+            if ((m_nCaretRowEndIndex == nCharIndex) && (nCharIndex > 0)) {
+                nCharIndex = m_pTextData->GetPrevValidCharIndex(nCharIndex);
+            }
+            return m_pTextData->GetVisualRowStartCharIndex(nCharIndex);
+        };
+
         bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
         if (bShiftDown && (m_nShiftStartIndex != -1)) {
             //Shift + Home 键
-            int32_t nShiftRowStartIndex = m_pTextData->GetVisualRowStartCharIndex(m_nShiftStartIndex);
-            int32_t nRowStartIndex = m_pTextData->GetVisualRowStartCharIndex(nSelStartChar);
-            int32_t nRowStartIndex2 = m_pTextData->GetVisualRowStartCharIndex(nSelEndChar);
+            int32_t nShiftRowStartIndex = getVisualRowStart(m_nShiftStartIndex);
+            int32_t nRowStartIndex = getVisualRowStart(nSelStartChar);
+            int32_t nRowStartIndex2 = getVisualRowStart(nSelEndChar);
             if (nRowStartIndex == nRowStartIndex2) {
                 //在同一行, 不需要区分操作方向
                 if (nShiftRowStartIndex == nRowStartIndex) {
@@ -4533,12 +4571,12 @@ bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
                 //在不同行
                 if (m_bSelForward) {
                     //操作方向：向前
-                    nSelEndChar = m_pTextData->GetVisualRowStartCharIndex(nSelEndChar);
+                    nSelEndChar = getVisualRowStart(nSelEndChar);
                     InternalSetSel(nSelStartChar, nSelEndChar);
                 }
                 else {
                     //操作方向：向后
-                    nSelStartChar = m_pTextData->GetVisualRowStartCharIndex(nSelStartChar);
+                    nSelStartChar = getVisualRowStart(nSelStartChar);
                     InternalSetSel(nSelStartChar, nSelEndChar);
                 }
                 EnsureCharVisible(nSelStartChar);
@@ -4546,7 +4584,7 @@ bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
         }
         else {
             //Home 键
-            nSelStartChar = m_pTextData->GetVisualRowStartCharIndex(nSelStartChar);
+            nSelStartChar = getVisualRowStart(nSelStartChar);
             InternalSetSel(nSelStartChar, nSelStartChar);
             EnsureCharVisible(nSelStartChar);
             m_bSelForward = true;
@@ -4560,12 +4598,20 @@ bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
         GetSel(nSelStartChar, nSelEndChar);
         ASSERT(nSelEndChar >= nSelStartChar);
 
+        //获取可视行的行尾索引（如果光标显示在上一可视行的行尾，则以该行的最后一个字符为参考）
+        auto getVisualRowEnd = [this](int32_t nCharIndex) {
+            if ((m_nCaretRowEndIndex == nCharIndex) && (nCharIndex > 0)) {
+                nCharIndex = m_pTextData->GetPrevValidCharIndex(nCharIndex);
+            }
+            return m_pTextData->GetVisualRowEndCharIndex(nCharIndex);
+        };
+
         bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
         if (bShiftDown && (m_nShiftStartIndex != -1)) {
             //Shift + End 键
-            int32_t nShiftRowEndIndex = m_pTextData->GetVisualRowEndCharIndex(m_nShiftStartIndex);
-            int32_t nRowEndIndex = m_pTextData->GetVisualRowEndCharIndex(nSelStartChar);
-            int32_t nRowEndIndex2 = m_pTextData->GetVisualRowEndCharIndex(nSelEndChar);
+            int32_t nShiftRowEndIndex = getVisualRowEnd(m_nShiftStartIndex);
+            int32_t nRowEndIndex = getVisualRowEnd(nSelStartChar);
+            int32_t nRowEndIndex2 = getVisualRowEnd(nSelEndChar);
             if (nRowEndIndex == nRowEndIndex2) {
                 //在同一行, 不需要区分操作方向
                 if (nShiftRowEndIndex == nRowEndIndex) {
@@ -4574,20 +4620,20 @@ bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
                 else {
                     InternalSetSel(nSelStartChar, nRowEndIndex);
                 }
-                UpdateCaretRowEndAffinity(nRowEndIndex);
+                UpdateCaretRowEndAffinity(nRowEndIndex, true);
                 EnsureCharVisible(nRowEndIndex);
             }
             else {
                 //在不同行
                 if (m_bSelForward) {
                     //操作方向：向前
-                    nSelEndChar = m_pTextData->GetVisualRowEndCharIndex(nSelEndChar);
+                    nSelEndChar = getVisualRowEnd(nSelEndChar);
                     InternalSetSel(nSelStartChar, nSelEndChar);
-                    UpdateCaretRowEndAffinity(nSelEndChar);
+                    UpdateCaretRowEndAffinity(nSelEndChar, true);
                 }
                 else {
                     //操作方向：向后
-                    nSelStartChar = m_pTextData->GetVisualRowEndCharIndex(nSelStartChar);
+                    nSelStartChar = getVisualRowEnd(nSelStartChar);
                     InternalSetSel(nSelStartChar, nSelEndChar);
                 }
                 EnsureCharVisible(nSelEndChar);
@@ -4595,9 +4641,9 @@ bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
         }
         else {
             //End 键
-            nSelEndChar = m_pTextData->GetVisualRowEndCharIndex(nSelEndChar);
+            nSelEndChar = getVisualRowEnd(nSelEndChar);
             InternalSetSel(nSelEndChar, nSelEndChar);
-            UpdateCaretRowEndAffinity(nSelEndChar);
+            UpdateCaretRowEndAffinity(nSelEndChar, true);
             EnsureCharVisible(nSelEndChar);
             m_bSelForward = true;
         }
@@ -4707,8 +4753,10 @@ bool RichEdit2::ButtonUp(const EventArgs& msg)
     OnLButtonUp(msg.ptMouse, msg.GetSender());
     if (m_bDraggingOutMouseDown) {
         //调整光标位置到鼠标点击位置
-        int32_t nCharPosIndex = CharFromPos(msg.ptMouse);
+        bool bAtRowEnd = false;
+        int32_t nCharPosIndex = CharFromPos(msg.ptMouse, bAtRowEnd);
         InternalSetSel(nCharPosIndex, nCharPosIndex);
+        UpdateCaretRowEndAffinity(nCharPosIndex, bAtRowEnd);
         m_bDraggingOutMouseDown = false;
     }    
     return bRet;
@@ -4821,7 +4869,8 @@ void RichEdit2::OnLButtonDown(const UiPoint& ptMouse, Control* pSender, bool bSh
     m_ptMouseDown.cy = ptMouse.y + scrollPos.cy;
 
     //调整光标位置到鼠标点击位置
-    int32_t nCharPosIndex = CharFromPos(ptMouse);
+    bool bAtRowEnd = false;
+    int32_t nCharPosIndex = CharFromPos(ptMouse, bAtRowEnd);
     //识别三击：与上次双击的时间间隔足够短，并且点击位置接近时，认为是三击
     if (IsTripleClick(ptMouse, true)) {
         if (IsMultiLine()) {
@@ -4847,10 +4896,14 @@ void RichEdit2::OnLButtonDown(const UiPoint& ptMouse, Control* pSender, bool bSh
         //按住Shift键时，选择与原来起点的范围
         InternalSetSel(m_nShiftStartIndex, nCharPosIndex);
         m_bSelForward = (nCharPosIndex >= m_nShiftStartIndex) ? true : false;
+        if (m_bSelForward) {
+            UpdateCaretRowEndAffinity(nCharPosIndex, bAtRowEnd);
+        }
     }
     else {
         InternalSetSel(nCharPosIndex, nCharPosIndex);
         m_bSelForward = true;
+        UpdateCaretRowEndAffinity(nCharPosIndex, bAtRowEnd);
     }
     m_nSelXPos = -1;
 
@@ -4880,7 +4933,12 @@ void RichEdit2::OnLButtonDoubleClick(const UiPoint& ptMouse, Control* /*pSender*
     }
     else {
         //非只读模式下，选择单词
-        int32_t nCharPosIndex = CharFromPos(ptMouse);
+        bool bAtRowEnd = false;
+        int32_t nCharPosIndex = CharFromPos(ptMouse, bAtRowEnd);
+        if (bAtRowEnd && (nCharPosIndex > 0) && m_pTextData->IsSoftWrapRowStartCharIndex(nCharPosIndex)) {
+            //点击位置在软换行的行尾，按本可视行的最后一个字符处理
+            nCharPosIndex = m_pTextData->GetPrevValidCharIndex(nCharPosIndex);
+        }
         int32_t nWordStartIndex = 0;
         int32_t nWordEndIndex = 0;
         if (m_pTextData->GetCurrentWordIndex(nCharPosIndex, nWordStartIndex, nWordEndIndex)) {
@@ -4905,8 +4963,10 @@ void RichEdit2::OnRButtonDown(const UiPoint& ptMouse, Control* pSender)
 
     if (!HasSelText()) {
         //调整光标位置到鼠标点击位置
-        int32_t nCharPosIndex = CharFromPos(ptMouse);
+        bool bAtRowEnd = false;
+        int32_t nCharPosIndex = CharFromPos(ptMouse, bAtRowEnd);
         InternalSetSel(nCharPosIndex, nCharPosIndex);
+        UpdateCaretRowEndAffinity(nCharPosIndex, bAtRowEnd);
         m_nSelXPos = -1;
     }
 
@@ -5138,11 +5198,19 @@ void RichEdit2::OnFrameSelection(UiSize64 ptMouseDown64, UiSize64 ptMouseMove64)
     //触发重绘, 但不需要重新计算
     Invalidate();
 
-    int32_t nStart = CharFromPos(ptMouseDown);
-    int32_t nEnd = CharFromPos(ptMouseMove);
+    bool bStartAtRowEnd = false;
+    bool bEndAtRowEnd = false;
+    int32_t nStart = CharFromPos(ptMouseDown, bStartAtRowEnd);
+    int32_t nEnd = CharFromPos(ptMouseMove, bEndAtRowEnd);
     m_bSelForward = nEnd >= nStart ? true : false;
 
     InternalSetSel(nStart, nEnd);
+    if (m_bSelForward) {
+        UpdateCaretRowEndAffinity(nEnd, bEndAtRowEnd);
+    }
+    else {
+        UpdateCaretRowEndAffinity(nStart, bStartAtRowEnd);
+    }
     m_nSelXPos = -1;
 }
 

@@ -1689,6 +1689,13 @@ UiPoint RichEditData::PosFromChar(int32_t nCharIndex)
 
 int32_t RichEditData::CharFromPos(UiPoint pt)
 {
+    bool bAtRowEnd = false;
+    return CharFromPos(pt, bAtRowEnd);
+}
+
+int32_t RichEditData::CharFromPos(UiPoint pt, bool& bAtRowEnd)
+{
+    bAtRowEnd = false;
     const int32_t nTextLength = (int32_t)GetTextLength();
     if (nTextLength == 0) {
         return 0;
@@ -1741,7 +1748,8 @@ int32_t RichEditData::CharFromPos(UiPoint pt)
             nCharPosIndex = (int32_t)GetRowInfoStartIndex(spDestRow);
         }
         else if (pt.x >= rowInfo.m_rowRect.right) {
-            //该点在本行的右侧，指向本行的尾字符
+            //该点在本行内容的右侧，指向本行的尾字符
+            bAtRowEnd = true;
             if ((nCharCount >= 2) && rowInfo.m_charInfo.IsNewLine(nCharCount - 1) && rowInfo.m_charInfo.IsReturn(nCharCount - 2)){
                 //该行以回车+换行结尾: 指向回车字符
                 nCharPosIndex = (int32_t)(GetRowInfoStartIndex(spDestRow) + rowInfo.m_charInfo.CharCount() - 2);
