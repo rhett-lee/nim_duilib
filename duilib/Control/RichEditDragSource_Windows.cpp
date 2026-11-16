@@ -4,6 +4,10 @@
 
 #include <shellapi.h>
 
+#if defined (DUILIB_BUILD_FOR_SDL)
+    #include "duilib/Core/MessageLoop_SDL.h"
+#endif
+
 namespace ui 
 {
 
@@ -55,11 +59,21 @@ ULONG RichEditDragSource_Windows::Release()
 
 HRESULT RichEditDragSource_Windows::GiveFeedback(DWORD /*dwEffect*/)
 {
+#if defined (DUILIB_BUILD_FOR_SDL)
+    //SDL平台：DoDragDrop是阻塞式调用，期间应用层的消息循环无法运行，
+    //而SDL会把拖放事件放入消息队列；这里主动派发消息队列中的拖放事件，
+    //使拖放位置（如RichEdit的光标）在拖放过程中能够实时更新
+    MessageLoop_SDL::DispatchDropEvents();
+#endif
     return DRAGDROP_S_USEDEFAULTCURSORS;
 }
 
 HRESULT RichEditDragSource_Windows::QueryContinueDrag(BOOL fEscapePressed, DWORD grfKeyState)
 {
+#if defined (DUILIB_BUILD_FOR_SDL)
+    //SDL平台：鼠标移动过程中此函数会被频繁调用，在此及时派发消息队列中的拖放事件
+    MessageLoop_SDL::DispatchDropEvents();
+#endif
     if (fEscapePressed) {
         return DRAGDROP_S_CANCEL;
     }

@@ -95,6 +95,14 @@ public:
     */
     static float GetPrimaryDisplayContentScale();
 
+    /** 立即派发消息队列中的拖放事件（SDL_EVENT_DROP_*），并同步绘制相关窗口
+    * @note Windows平台通过OLE执行拖放操作时，DoDragDrop是阻塞式调用，期间应用层的消息循环无法运行；
+    *       而SDL在拖放过程中会把拖放事件（如SDL_EVENT_DROP_POSITION）放入消息队列，
+    *       调用此函数可及时派发这些事件，并立即绘制窗口，使拖放位置（如RichEdit的光标位置）在拖放过程中实时更新。
+    *       其他类型的事件不受影响，仍由消息循环按原有流程处理。
+    */
+    static void DispatchDropEvents();
+
 private:
     /** 处理一条队列中的SDL事件(消息循环中的一个子功能)
     */

@@ -1,5 +1,7 @@
 #include "MessageLoop_SDL.h"
 #include "duilib/Utils/StringConvert.h"
+#include <algorithm>
+#include <vector>
 
 #if defined(DUILIB_BUILD_FOR_SDL)
 
@@ -74,6 +76,30 @@ float MessageLoop_SDL::GetPrimaryDisplayContentScale()
         scale = SDL_GetDisplayContentScale(displayID);
     }
     return scale;
+}
+
+void MessageLoop_SDL::DispatchDropEvents()
+{
+    SDL_Event sdlEvent;
+    memset(&sdlEvent, 0, sizeof(sdlEvent));
+    std::vector<SDL_WindowID> dropWindowIds;
+    //只取出拖放事件进行派发，其他事件保留在消息队列中，由消息循环按原有流程处理
+    while (SDL_PeepEvents(&sdlEvent, 1, SDL_GETEVENT, SDL_EVENT_DROP_FIRST, SDL_EVENT_DROP_LAST) > 0) {
+        DispatchSDLEvent(sdlEvent);
+        SDL_WindowID windowID = NativeWindow_SDL::GetWindowIdFromEvent(sdlEvent);
+        if ((windowID != 0) && (std::find(dropWindowIds.begin(), dropWindowIds.end(), windowID) == dropWindowIds.end())) {
+            dropWindowIds.push_back(windowID);
+        }
+    }
+
+    //拖放过程中应用层的消息循环被阻塞，队列中的绘制消息无法被处理，
+    //这里同步绘制窗口，使拖放位置的变化（如RichEdit的光标位置）能够立即显示
+    for (SDL_WindowID windowID : dropWindowIds) {
+        NativeWindow_SDL* pNativeWindow = NativeWindow_SDL::GetWindowFromID(windowID);
+        if (pNativeWindow != nullptr) {
+            pNativeWindow->PaintWindow(false);
+        }
+    }
 }
 
 int32_t MessageLoop_SDL::Run(MessageLoopIdleCallback idleCallback)
