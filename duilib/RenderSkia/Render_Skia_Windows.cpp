@@ -7,6 +7,7 @@
 #include "WindowRgn_Windows.h"
 
 #include "duilib/Utils/LogUtil.h"
+#include "duilib/Utils/StringUtil.h"
 
 #include "SkiaHeaderBegin.h"
 
@@ -55,7 +56,8 @@ std::unique_ptr<skwindow::WindowContext> MakeGLForWin(HWND hWnd, std::unique_ptr
     //进一步验证渲染目标是否可以创建：创建失败时同样回退为CPU绘制，
     //避免后续绘制流程（如窗口创建阶段的文本测量）取不到画布
     if ((ctx->width() > 0) && (ctx->height() > 0) && (ctx->getBackbufferSurface() == nullptr)) {
-        LogUtil::OutputLine(_T("Render_Skia_Windows: failed to create GL surface, fall back to CPU rendering"));
+        LogUtil::OutputLine(StringUtil::Printf(_T("Render_Skia_Windows: failed to create GL surface (size=%dx%d, samples=%d, stencil=%d), fall back to CPU rendering"),
+                                              ctx->width(), ctx->height(), ctx->sampleCount(), ctx->stencilBits()));
         return nullptr;
     }
     return ctx;

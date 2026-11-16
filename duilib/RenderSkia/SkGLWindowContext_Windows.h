@@ -78,6 +78,12 @@ private:
     */
     sk_sp<SkSurface> GetWindowSurface();
 
+    /** 获取创建Skia绘制表面时使用的采样数
+    * 正常情况下使用WGL像素格式报告的采样数（即多重采样数）；
+    * 当GPU不支持多重采样的渲染目标时，退化为单采样（见m_bSingleSampleSurfaces）
+    */
+    int GetSurfaceSampleCount() const;
+
 private:
     /** 窗口句柄
     */
@@ -106,6 +112,13 @@ private:
     /** 是否需要完整重绘（首次绘制、尺寸变化、持久化表面重建后为true）
     */
     bool m_bNeedFullRedraw;
+
+    /** 是否退化为单采样的绘制表面
+    * 部分GPU支持多重采样的窗口缓冲（默认帧缓冲），但不支持多重采样的渲染目标（渲染到纹理），
+    * 此时按像素格式报告的采样数创建Skia的绘制表面会失败，导致整个GL后端不可用；
+    * 这种情况下退化为单采样表面，保证GL后端可用（只是失去MSAA的抗锯齿效果）
+    */
+    bool m_bSingleSampleSurfaces;
 };
 
 } // namespace ui

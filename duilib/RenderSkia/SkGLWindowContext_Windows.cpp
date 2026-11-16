@@ -32,7 +32,8 @@ SkGLWindowContext_Windows::SkGLWindowContext_Windows(HWND hWnd, std::unique_ptr<
     m_hWnd(hWnd),
     m_hDC(nullptr),
     m_fHGLRC(nullptr),
-    m_bNeedFullRedraw(true)
+    m_bNeedFullRedraw(true),
+    m_bSingleSampleSurfaces(false)
 {
     ASSERT(::IsWindow(hWnd));
     fWidth = 0;
@@ -157,12 +158,26 @@ sk_sp<SkSurface> SkGLWindowContext_Windows::getBackbufferSurface()
     const skwindow::DisplayParams* pDisplayParams = getDisplayParams();
     SkImageInfo info = SkImageInfo::Make(fWidth, fHeight, kRGBA_8888_SkColorType, kPremul_SkAlphaType,
                                          (pDisplayParams != nullptr) ? pDisplayParams->colorSpace() : nullptr);
+    const SkSurfaceProps* pSurfaceProps = (pDisplayParams != nullptr) ? &pDisplayParams->surfaceProps() : nullptr;
+    int nSampleCount = GetSurfaceSampleCount();
     m_persistentSurface = SkSurfaces::RenderTarget(pDirectContext,
                                                    skgpu::Budgeted::kNo,
                                                    info,
-                                                   fSampleCount,
+                                                   nSampleCount,
                                                    kTopLeft_GrSurfaceOrigin,
-                                                   (pDisplayParams != nullptr) ? &pDisplayParams->surfaceProps() : nullptr);
+                                                   pSurfaceProps);
+    if ((m_persistentSurface == nullptr) && (nSampleCount > 1)) {
+        //部分GPU支持多重采样的窗口缓冲（默认帧缓冲），但不支持多重采样的渲染目标（渲染到纹理）：
+        //此时按像素格式的采样数创建表面会失败，导致整个GL后端不可用，因此退化为单采样表面
+        m_bSingleSampleSurfaces = true;
+        nSampleCount = 1;
+        m_persistentSurface = SkSurfaces::RenderTarget(pDirectContext,
+                                                       skgpu::Budgeted::kNo,
+                                                       info,
+                                                       nSampleCount,
+                                                       kTopLeft_GrSurfaceOrigin,
+                                                       pSurfaceProps);
+    }
     if (m_persistentSurface == nullptr) {
         //无法创建GPU渲染目标时，退化为直接绘制到窗口的后台缓冲
         return GetWindowSurface();
@@ -195,8 +210,6 @@ sk_sp<SkSurface> SkGLWindowContext_Windows::GetWindowSurface()
     fbInfo.fFBOID = 0;
     fbInfo.fFormat = 0x8058; //GL_RGBA8
     fbInfo.fProtected = skgpu::Protected::kNo;
-    GrBackendRenderTarget backendRenderTarget =
-        GrBackendRenderTargets::MakeGL(fWidth, fHeight, fSampleCount, fStencilBits, fbInfo);
 
     const skwindow::DisplayParams* pDisplayParams = getDisplayParams();
     sk_sp<SkColorSpace> colorSpace;
@@ -205,13 +218,36 @@ sk_sp<SkSurface> SkGLWindowContext_Windows::GetWindowSurface()
         colorSpace = pDisplayParams->colorSpace();
         pSurfaceProps = &pDisplayParams->surfaceProps();
     }
+    int nSampleCount = GetSurfaceSampleCount();
+    GrBackendRenderTarget backendRenderTarget =
+        GrBackendRenderTargets::MakeGL(fWidth, fHeight, nSampleCount, fStencilBits, fbInfo);
     m_windowSurface = SkSurfaces::WrapBackendRenderTarget(pDirectContext,
                                                          backendRenderTarget,
                                                          kBottomLeft_GrSurfaceOrigin,
                                                          kRGBA_8888_SkColorType,
                                                          colorSpace,
                                                          pSurfaceProps);
+    if ((m_windowSurface == nullptr) && (nSampleCount > 1)) {
+        //同getBackbufferSurface()：不支持多重采样渲染目标时，退化为单采样的窗口表面
+        m_bSingleSampleSurfaces = true;
+        nSampleCount = 1;
+        backendRenderTarget = GrBackendRenderTargets::MakeGL(fWidth, fHeight, nSampleCount, fStencilBits, fbInfo);
+        m_windowSurface = SkSurfaces::WrapBackendRenderTarget(pDirectContext,
+                                                             backendRenderTarget,
+                                                             kBottomLeft_GrSurfaceOrigin,
+                                                             kRGBA_8888_SkColorType,
+                                                             colorSpace,
+                                                             pSurfaceProps);
+    }
     return m_windowSurface;
+}
+
+int SkGLWindowContext_Windows::GetSurfaceSampleCount() const
+{
+    if (m_bSingleSampleSurfaces) {
+        return 1;
+    }
+    return (fSampleCount > 0) ? fSampleCount : 1;
 }
 
 sk_sp<const GrGLInterface> SkGLWindowContext_Windows::onInitializeContext()
