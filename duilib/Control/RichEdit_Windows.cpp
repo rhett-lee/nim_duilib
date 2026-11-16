@@ -3420,23 +3420,10 @@ void RichEdit::SetEnableDefaultContextMenu(bool bEnable)
                         int32_t nSelStart = 0;
                         int32_t nSelEnd = 0;
                         GetSel(nSelStart, nSelEnd);
-                        //系统控件返回的坐标是文本编辑区的客户区坐标，需要转换为窗口客户区坐标
-                        UiPoint caretPt = PosFromChar(nSelEnd);
-                        UiRect rcText = GetRectWithoutPadding();
-                        if (!GetScrollBarFloat()) {
-                            ScrollBar* pVScrollBar = GetVScrollBar();
-                            if ((pVScrollBar != nullptr) && pVScrollBar->IsValid()) {
-                                rcText.right -= pVScrollBar->GetFixedWidth().GetInt32();
-                            }
-                            ScrollBar* pHScrollBar = GetHScrollBar();
-                            if ((pHScrollBar != nullptr) && pHScrollBar->IsValid()) {
-                                rcText.bottom -= pHScrollBar->GetFixedHeight().GetInt32();
-                            }
-                        }
-                        rcText.Deflate(GetTextPadding());
-                        caretPt.x += rcText.left;
-                        caretPt.y += rcText.top;
-                        ShowPopupMenu(caretPt, false);
+                        //光标不在可视范围内时，先滚动到可视区域内，保证菜单弹出位置正确
+                        ScrollCaret();
+                        //系统控件的字符坐标与窗口客户区坐标一致，不需要再做偏移换算
+                        ShowPopupMenu(PosFromChar(nSelEnd), false);
                     }
                 }
                 return true;

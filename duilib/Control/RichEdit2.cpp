@@ -2914,6 +2914,11 @@ void RichEdit2::SetEnableDefaultContextMenu(bool bEnable)
                     }
                     else {
                         //按Shift + F10，由系统产生上下文菜单：保持光标位置不变，菜单在光标位置弹出
+                        int32_t nSelStart = 0;
+                        int32_t nSelEnd = 0;
+                        GetSel(nSelStart, nSelEnd);
+                        //光标不在可视范围内时，先滚动到可视区域内，保证菜单弹出位置正确
+                        EnsureCharVisible(m_bSelForward ? nSelEnd : nSelStart);
                         const UiRect rcCaret = GetCaretRect();
                         ShowPopupMenu(UiPoint(rcCaret.left, rcCaret.top), false);
                     }
