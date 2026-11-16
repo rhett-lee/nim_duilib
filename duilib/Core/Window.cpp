@@ -1801,7 +1801,17 @@ LRESULT Window::OnContextMenuMsg(const UiPoint& pt, const NativeMsg& /*nativeMsg
     else {
         //如果用户键入 SHIFT+F10，则上下文菜单为 -1, -1，
         //应用程序应在当前所选内容的位置（而不是 (xPos、yPos) ）显示上下文菜单。
-        Control* pControl = FindContextMenuControl(nullptr);
+        Control* pControl = nullptr;
+        Control* pFocusControl = GetFocusControl();
+        if (pFocusControl != nullptr) {
+            //优先匹配当前焦点控件
+            if (pFocusControl->IsContextMenuUsed() && pFocusControl->IsEnabled() && pFocusControl->IsVisible()) {
+                pControl = pFocusControl;
+            }
+        }
+        if (pControl == nullptr) {
+            pControl = FindContextMenuControl(nullptr);
+        }        
         if (pControl != nullptr) {
             std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
             EventArgs msgData;
