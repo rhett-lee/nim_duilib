@@ -25,7 +25,7 @@
 | min_size          | 窗口大小| "0,0"     | size   | SetWindowMinimumSize    |窗口最小大小, 如"320,240" |
 | max_size          | 窗口大小| "0,0"     | size   | SetWindowMaximumSize    |窗口最大大小, 如"1600,1200" |
 | size_box          | 窗口大小| "0,0,0,0" | rect   | SetSizeBox              |窗口可拖动改变窗口大小的边距, 如"4,4,4,4" |
-| round_corner      | 窗口形状| "0,0"     | size   | SetRoundCorner          |窗口圆角大小, 如"4,4"，该属性在使用窗口阴影（即设置了shadow_type属性）时，一般不需要设置 |
+| round_corner      | 窗口形状| "0,0"     | size   | SetRoundCorner          |窗口圆角大小, 如"4,4"，该值**未经DPI缩放**（即逻辑像素值）。<br>该属性在使用自绘窗口阴影（即设置了shadow_type属性为非系统阴影）时，一般不需要设置，系统会自动根据阴影类型设置圆角。<br>当阴影类型为 `none_round` 时，框架会自动设置窗口圆角以避免窗口四个角出现黑色内容，无需手动指定此属性。 |
 | layered_window    | 窗口绘制| false   | bool   | SetLayeredWindow        |设置是否为层窗口，使用注意事项：<br>（1）该属性在使用窗口阴影（即设置了shadow_type属性）时不需要设置，窗口阴影功能会根据需要来管理该属性<br>（2）当使用系统标题栏时（即use_system_caption="true"），不应设置该属性 |
 | alpha             | 窗口绘制| 255     | int    | SetLayeredWindowAlpha   |设置透明度数值[0, 255]，当 alpha 为 0 时，窗口是完全透明的。 当 alpha 为 255 时，窗口是不透明的。<br>仅当layered_window="true"时有效，<br>该参数在UpdateLayeredWindow函数中作为参数使用(BLENDFUNCTION.SourceConstantAlpha)|
 | opacity           | 窗口绘制| 255     | int    | SetLayeredWindowOpacity |设置不透明度数值[0, 255]，当 opacity 为 0 时，窗口是完全透明的。 当 opacity 为 255 时，窗口是不透明的。<br> 仅当layered_window="true"时有效，所以如果当前不是分层窗口，内部会自动设置为分层窗口 <br>该参数在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)|
@@ -125,7 +125,7 @@ if (pBtn != nullptr) {
 | `void SetShadowCorner(const UiPadding& rcShadowCorner)` | 设置阴影图片的九宫格（未做 DPI 缩放） |
 | `void SetShadowBorderRound(UiSize szBorderRound)` / `void SetShadowBorderSize(int32_t nShadowBorderSize)` / `void SetShadowBorderColor(const DString& shadowBorderColor)` | 设置阴影圆角、边框粗细、边框颜色 |
 | `void SetEnableShadowSnap(bool bEnable)` | 是否允许窗口贴边时自动隐藏该侧阴影（仅自绘阴影有效） |
-| `void SetRoundCorner(int cx, int cy, bool bNeedDpiScale)` | 设置窗口圆角大小 |
+| `void SetRoundCorner(int32_t cx, int32_t cy)` | 设置窗口圆角大小（传入值为未经DPI缩放的逻辑像素值）；`GetRoundCorner()` 返回同样是未经DPI缩放的值 |
 | `void SetSizeBox(const UiRect& rcSizeBox, bool bNeedDpiScale)` | 设置窗口四边可拉伸区域 |
 | `void SetCaptionRect(const UiRect& rcCaption, bool bNeedDpiScale)` | 设置标题栏可拖动区域 |
 | `void SetSysMenuRect(const UiRect& rcSysMenuRect, bool bNeedDpiScale)` | 设置系统菜单区域（点击显示系统菜单，双击关闭窗口） |

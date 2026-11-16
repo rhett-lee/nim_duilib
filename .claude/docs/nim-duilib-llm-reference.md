@@ -44,7 +44,7 @@
 | shadow_attached | bool | 是否附加阴影 |
 | layered_window | bool | 是否为层窗口 |
 | alpha | int | 透明度 0-255 |
-| round_corner | size | 窗口圆角 "4,4" |
+| round_corner | size | 窗口圆角 "4,4"，该值未经 DPI 缩放（逻辑像素）。使用自绘阴影时无需设置；`none_round` 类型会自动设置 |
 | icon | string | 窗口图标路径(ico) |
 | use_system_caption | bool | 使用系统标题栏 |
 | text / textid | string | 窗口标题/多语言ID |

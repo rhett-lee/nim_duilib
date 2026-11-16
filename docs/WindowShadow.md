@@ -80,7 +80,7 @@ duilib 的窗口阴影为窗口提供"立体悬浮"的视觉外观。实现方�
 | `menu` | 小阴影，直角，有边框 | 弹出式窗口、菜单 |
 | `menu_round` | 小阴影，圆角，有边框 | 弹出式窗口、菜单（推荐） |
 | `none` | 无阴影，直角，仅有边框 | 无阴影窗口 |
-| `none_round` | 无阴影，圆角，仅有边框 | 无阴影窗口 |
+| `none_round` | 无阴影，圆角，仅有边框。框架会自动设置窗口圆角（通过 RGN 裁剪）以避免四个角出现黑色内容，无需额外配置 | 无阴影窗口 |
 | `custom` | 自定义自绘阴影，需配合 `shadow_image` 等使用 | 个性化阴影 |
 
 ### 4.2 系统阴影（使用操作系统原生阴影）
@@ -245,7 +245,7 @@ pWindow->SetEnableShadowSnap(true);
 - **`use_system_caption`**：若启用系统标题栏，未显式设置 `shadow_attached="false"` 时，duilib 会自动关闭自绘阴影以避免双重阴影；如需自绘阴影，请同时设置 `shadow_attached="true"` 并选择自绘类型。
 - **`layered_window`**：使用自绘阴影时无需手动设置 `layered_window`，duilib 会按需开启分层窗口属性。系统阴影与分层窗口互斥。
 - **`size`**：默认情况下，`size` 只表示客户区大小，不包含阴影。设置 `size_contain_shadow="true"` 可让 `size` 包含阴影的尺寸。
-- **`round_corner`**：使用自绘阴影时窗口自然有圆角（由 `shadow_*` 决定），一般不必再设置 `round_corner`。
+- **`round_corner`**：使用自绘阴影时窗口自然有圆角（由 `shadow_*` 决定），一般不必再设置 `round_corner`。`round_corner` 的值**未经 DPI 缩放**（逻辑像素），框架内部会按当前 DPI 自动缩放后应用。当阴影类型为 `none_round` 时，框架会自动设置窗口圆角（取 `shadow_border_round` 的值），无需手动配置 `round_corner`。
 - **`render_backend_type="GL"`**：OpenGL 渲染的窗口不能是分层窗口，因此与自绘阴影不兼容；通常配合系统阴影使用。
 
 ---
