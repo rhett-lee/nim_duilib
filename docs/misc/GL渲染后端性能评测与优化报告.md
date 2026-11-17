@@ -261,15 +261,98 @@ ctest --test-dir out\x64\Release -C Release --output-on-failure
 
 ---
 
-## 七、进一步优化方向
+## 七、进一步优化方向（按代码扫描结果重新排序）
 
-| 方向 | 预期收益 | 难度 | 备注 |
-|------|---------|------|------|
-| **纹理上传缓存** | 高 | 中 | 图片绘制时避免每帧重新上传纹理到 GPU |
-| **批量 DrawCall 合并** | 中 | 高 | Skia 内部已有 batching，但可检查是否被 `flushAndSubmit` 截断 |
-| **vsync 禁用策略** | 中 | 低 | 当前 `bDisableVsync=true` 由调用方传入；某些显卡驱动 vsync 会强制 SwapBuffers 阻塞 |
-| **Skia GrDirectContext 调优** | 中 | 中 | 可尝试 `GrContextOptions` 中启用 GPU 侧字体缓存、降低 atlas 尺寸等 |
-| **局部增量刷新模式** | 高 | 中 | 让应用层只 invalidate 脏区域而非整窗口——当前 benchmark 用的是全量 invalidate，如果应用层能做到局部刷新，persistent surface 的拷贝开销相对于"增量绘制省下来的 CPU/GPU"就值得了 |
+> 下面的分析基于对实际代码的扫描确认，而非纯理论推断。
+> 优先级按"收益/难度/风险"综合排序。
+
+### 7.1 方向一：vsync 默认禁用（★★★★★ 先做）
+
+**扫描确认的问题**：
+
+`duilib/Core/Window.cpp:32` — `Window` 构造函数中：
+```cpp
+m_bDisableVsync(false),  // 默认启用垂直同步
+```
+
+这意味着 controls.exe 等应用通过 XML 设置 GL 后端时，`SetRenderBackendType` 会把当前 `m_bDisableVsync`（false）传给 GL 工厂 → `wglSwapIntervalEXT(1)` → **SwapBuffers 阻塞等显示器刷新**（通常 60Hz → 每帧卡 16.67ms）。
+
+benchmark 里手动传了 `bDisableVsync=true` 所以数据好看（能到 800+ fps），但实际 controls.exe 默认 vsync 开启，fps 上限就是 ~60。
+
+**改法**（1 行代码，零风险）：
+- 把 `Window.cpp` 构造函数 `m_bDisableVsync(false)` 改为 `m_bDisableVsync(true)`
+- Raster 后端的"呈现"是 GDI `BitBlt`，不受 vsync 控制，所以这个默认值只影响 GL
+
+**验证**：controls.exe 设置 GL 后端后，fps 应该不再被 60Hz 卡上限。
+
+---
+
+### 7.2 方向二：纹理上传缓存（★★★★★ 收益极高）
+
+**扫描确认的瓶颈**：
+
+`duilib/RenderSkia/Bitmap_Skia.h:94` — `Bitmap_Skia` 只持有 CPU-side 的 raster bitmap：
+```cpp
+std::unique_ptr<SkBitmap> m_pSkBitmap;  // CPU raster bitmap
+// 没有任何 GPU-backed SkImage / GrBackendTexture 缓存！
+```
+
+而 `duilib/RenderSkia/Render_Skia.cpp:920-928` 的 `DrawImage` 每次都：
+```cpp
+const SkBitmap& skSrcBitmap = skiaBitmap->GetSkBitmap();
+SkPixmap skSrcPixmap;
+if (skSrcBitmap.peekPixels(&skSrcPixmap)) {
+    skImage = SkImages::RasterFromPixmap(skSrcPixmap, ...);  // 每帧新创建 SkImage
+}
+// Ganesh 在 drawImage 时把 raster image 上传成 GPU texture
+```
+
+**后果**：每帧每张图都走 **CPU raster → GPU texture** 上传。如果 controls.exe 有 50 张图、60fps → **3000 次 GPU 上传/秒**。而 GL 加速的核心优势就是"纹理在 GPU 端一次上传、反复复用"，现在完全浪费了。
+
+**改法**（中难度）：
+- 给 `Bitmap_Skia` 加成员 `sk_sp<SkImage> m_pGpuImage`（初始为 null）
+- 首次 `DrawImage` 时通过 `SkImages::RasterFromPixmap` 创建 SkImage，然后**缓存** `m_pGpuImage`
+- 后续每帧直接复用缓存的 GPU-backed SkImage，避免重复上传
+- 关键点：需要能拿到 `GrDirectContext*` 来创建 GPU 纹理上下文（`Render_Skia_Windows` 持有 `m_pWindowContext`，可以通过接口传递）
+
+---
+
+### 7.3 方向三：Skia GrDirectContext 调优（★★★☆☆ 后续）
+
+**扫描确认**：`Render_Skia_Windows` 创建 `GrDirectContext` 时没有传 `GrContextOptions`，用的是 Skia 默认值。
+
+可尝试开启：
+- `fShaderCache` / `fShaderCacheType` — GL 后端每个 shader 首次使用都要编译，缓存后第二次绘制相同内容直接复用
+- `fGpuFontCache` — GPU 侧字形 atlas，减少字体位图 CPU→GPU 上传
+- `fMaxTextureSize` / `fAtlasMaxSize` — 按需调整
+
+---
+
+### 7.4 方向四：局部增量刷新模式（★★★☆☆ 暂不动）
+
+分两层：
+- **GL 底层**：persistent surface + 拷贝路径已优化，拷贝开销在 GPU 端（`drawImage + kSrc blend`），已高效，GL 底层基本就绪
+- **应用层**：要让 controls.exe（或通用控件树）只 invalidate 脏区域而非整窗口 `InvalidateRect(nullptr)`，需要改 `Window::OnPaint` 的 InvalidateRect 策略 + 控件树脏区域传播机制 —— **改动面大**、**涉及上层架构**、**风险高**
+
+建议先不动，等纹理缓存做好后先看实际收益再决定。
+
+---
+
+### 7.5 方向五：批量 DrawCall 合并（★★☆☆☆ 不动）
+
+扫描 `SkGLWindowContext_Windows.cpp:496-498`，`flushAndSubmit` **每帧只调一次**——Skia Ganesh 内部的 batching 完全没有被截断。这个方向的瓶颈不在我们的代码，在 Skia 内部的 batching 策略（它已经做得很好了）。**暂时不动**。
+
+---
+
+### 优先级排序（最终）
+
+| 序 | 方向 | 收益 | 难度 | 一句话 |
+|----|------|------|------|--------|
+| **① 先做** | **vsync 默认禁用** | 高 | **极低**（1 行） | GL 默认被 vsync 卡 16ms/帧上限，改掉立即生效、零风险 |
+| **② 再做** | **纹理上传缓存** | **极高** | 中 | 解决 GL 后端最大浪费——每帧 CPU→GPU 重复上传 |
+| ③ 后续 | Skia GrDirectContext 调优 | 中 | 中 | shader cache + GPU font atlas |
+| ④ 暂不动 | 局部增量刷新 | 条件性 | 高 | 应用层改动面大 |
+| ⑤ 不动 | DrawCall 合并 | 低 | 高 | 不是我们代码的瓶颈 |
 
 ---
 

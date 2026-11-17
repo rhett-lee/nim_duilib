@@ -87,7 +87,7 @@ public:
     * @param [in] bDisableVsync 是否禁用垂直同步（仅OpenGL绘制有效；true表示禁用，false表示启用）
     * @return 如果设置成功返回true, 否则返回false
     */
-    bool SetRenderBackendType(RenderBackendType backendType, int32_t nMsaaSampleCount = 0, bool bDisableVsync = false);
+    bool SetRenderBackendType(RenderBackendType backendType, int32_t nMsaaSampleCount = 0, bool bDisableVsync = true);
 
     /** 获取渲染引擎绘制后台类型
     */

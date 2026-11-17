@@ -874,7 +874,7 @@ void WindowBuilder::ParseGlobalAttributes(const pugi::xml_node& root)
     {
         DString renderBackendType;
         int32_t nMsaaSampleCount = 0;
-        bool bDisableVsync = false;
+        bool bDisableVsync = true;
         for (pugi::xml_attribute attr : root.attributes()) {
             const DString strAttrName = attr.name();
             const DString strAttrValue = attr.value();

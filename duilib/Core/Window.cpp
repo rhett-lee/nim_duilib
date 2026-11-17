@@ -29,7 +29,7 @@ Window::Window() :
     m_bPostQuitMsgWhenClosed(false),
     m_renderBackendType(RenderBackendType::kRaster_BackendType),
     m_nMsaaSampleCount(0),
-    m_bDisableVsync(false),
+    m_bDisableVsync(true),
     m_bWindowAttributesApplied(false),
     m_bWindowInitFinished(false),
     m_bCheckSetWindowFocus(false),

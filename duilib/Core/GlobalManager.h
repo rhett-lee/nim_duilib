@@ -195,7 +195,7 @@ public:
     */
     void SetGlobalRenderBackendType(RenderBackendType backendType,
                                     int32_t nMsaaSampleCount = 0,
-                                    bool bDisableVsync = false,
+                                    bool bDisableVsync = true,
                                     bool bEnable = true,
                                     bool bApplyToAllWindows = true);
 
