@@ -3741,10 +3741,10 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
     }
 
     UiRect rcTemp; //本控件范围内的脏区域，本次需要绘制的区域
-    if (!UiRect::Intersect(rcTemp, rcPaint, GetBoxShadowExpandedRect(GetRect()))) {//如果包含box-shadow的区域内为脏区域，就需要进行绘制
+    if (!pRender->IntersectPaintRect(GetBoxShadowExpandedRect(GetRect()), rcPaint, rcTemp)) {//如果包含box-shadow的区域内为脏区域，就需要进行绘制
         return;
     }
-    UiRect::Intersect(m_rcPaint, rcPaint, GetRect()); //设置m_rcPaint的值
+    UiRect::Intersect(m_rcPaint, rcTemp, GetRect()); //设置m_rcPaint的值
 
     //是否为直角矩形区域设置为剪辑区域
     const bool bRectClip = IsClip();

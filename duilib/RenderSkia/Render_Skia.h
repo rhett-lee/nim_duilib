@@ -157,6 +157,9 @@ public:
     virtual bool WritePixels(const void* srcPixels, size_t srcPixelsLen, const UiRect& rc, const UiRect& rcPaint) override;
     virtual RenderClipType GetClipInfo(std::vector<UiRect>& clipRects) const override;
     virtual bool IsClipEmpty() const override;
+    virtual int32_t BeginPaintRects(const std::vector<UiRect>& rcPaintList) override;
+    virtual void EndPaintRects(int32_t nClipState) override;
+    virtual bool IntersectPaintRect(const UiRect& rcItem, const UiRect& rcPaint, UiRect& rcResult) const override;
     virtual bool IsEmpty() const override;
     virtual void SetRenderDpi(const IRenderDpiPtr& spRenderDpi) override;
     virtual void SetRenderFactory(IRenderFactory* pRenderFactory) override;
@@ -245,6 +248,10 @@ private:
     /** 当前的混合模式
     */
     BlendMode m_blendMode;
+
+    /** 本次绘制的脏区列表（客户区坐标），为空表示未设置脏区（按rcPaint绘制）
+    */
+    std::vector<UiRect> m_paintRects;
 };
 
 } // namespace ui

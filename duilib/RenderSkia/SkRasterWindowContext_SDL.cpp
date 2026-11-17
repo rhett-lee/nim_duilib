@@ -121,18 +121,29 @@ bool SkRasterWindowContext_SDL::PaintAndSwapBuffers(IRender* pRender, IRenderPai
         return false;
     }
 
-    //获取需要绘制的区域
-    UiRect rcPaint;
-    bool bUpdateRect = pRenderPaint->GetUpdateRect(rcPaint); //返回true表示支持局部绘制，只绘制更新的部分区域，以提高效率
-    if (bUpdateRect && !rcPaint.IsEmpty()) {
+    //获取需要绘制的区域列表（可能是多个不连续的脏矩形）
+    std::vector<UiRect> rcPaintList;
+    bool bUpdateRect = pRenderPaint->GetUpdateRects(rcPaintList); //返回true表示支持局部绘制，只绘制更新的部分区域，以提高效率
+    UiRect rcClient;
+    GetClientRect(rcClient);
+    UiRect rcPaint; //所有脏矩形的并集边界
+    if (bUpdateRect) {
         //确保区域的有效性
-        UiRect rcClient;
-        GetClientRect(rcClient);
-        rcPaint.Intersect(rcClient);
+        std::vector<UiRect> rcValidList;
+        for (UiRect& rcItem : rcPaintList) {
+            rcItem.Intersect(rcClient);
+            if (!rcItem.IsEmpty()) {
+                rcValidList.push_back(rcItem);
+                rcPaint.Union(rcItem);
+            }
+        }
+        rcPaintList.swap(rcValidList);
     }
     if (rcPaint.IsEmpty()) {
         //不支持局部绘制，每次都是需要重绘整个窗口的客户区域
-        GetClientRect(rcPaint);
+        rcPaintList.clear();
+        rcPaintList.push_back(rcClient);
+        rcPaint = rcClient;
     }
     if (rcPaint.IsEmpty()) {
         //无需绘制
@@ -144,39 +155,38 @@ bool SkRasterWindowContext_SDL::PaintAndSwapBuffers(IRender* pRender, IRenderPai
 
     //是否为完全绘制
     const bool bFullPaint = (rcPaint.Width() == width()) && (rcPaint.Height() == height());
-    SkCanvas* skCanvas = nullptr;
-    if (!bFullPaint) {
-        //使用裁剪区域，避免绘制其他无关区域的数据
-        skCanvas = m_fBackbufferSurface->getCanvas();
-        if (skCanvas != nullptr) {
-            skCanvas->save();
-            skCanvas->clipIRect(SkIRect::MakeLTRB(rcPaint.left, rcPaint.top, rcPaint.right, rcPaint.bottom));
-        }
+    if (bFullPaint) {
+        //完全绘制时，使用单个矩形，走快速路径
+        rcPaintList.clear();
+        rcPaintList.push_back(rcClient);
     }
 
-    //执行绘制
+    //设置本次绘制的脏区列表及画布的裁剪区域（多个脏矩形的并集，脏区之外不会被重新光栅化）
+    int32_t nClipState = pRender->BeginPaintRects(rcPaintList);
+
+    //执行绘制（使用并集边界作为绘制范围，控件级使用脏区列表精确剔除）
     bool bRet = pRenderPaint->DoPaint(rcPaint);
+
+    //恢复裁剪状态
+    pRender->EndPaintRects(nClipState);
+
     if (bRet) {
         //绘制完成后，更新到窗口
-        SwapPaintBuffers(rcPaint, nLayeredWindowAlpha);
+        SwapPaintBuffers(rcPaintList, nLayeredWindowAlpha);
     }
 
     //绘制完成后，将已经绘制的区域标记为有效区域
     if (bUpdateRect) {
-        ValidateRect(rcPaint);
-    }
-
-    if (skCanvas != nullptr) {
-        skCanvas->restore();
+        ValidateRect(rcPaintList);
     }
     return bRet;
 }
 
-bool SkRasterWindowContext_SDL::SwapPaintBuffers(const UiRect& rcPaint, uint8_t nLayeredWindowAlpha)
+bool SkRasterWindowContext_SDL::SwapPaintBuffers(const std::vector<UiRect>& rcPaintList, uint8_t nLayeredWindowAlpha)
 {
     PerformanceUtil statPerformance(_T("PaintWindow 9, SkRasterWindowContext_SDL::SwapPaintBuffers"));
-    ASSERT(!rcPaint.IsEmpty());
-    if (rcPaint.IsEmpty()) {
+    ASSERT(!rcPaintList.empty());
+    if (rcPaintList.empty()) {
         return false;
     }
     ASSERT(m_sdlWindow != nullptr);
@@ -192,7 +202,7 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffers(const UiRect& rcPaint, uint8_t 
         return false;
     }
 
-    if (SwapPaintBuffersFast(rcPaint, nLayeredWindowAlpha)) {
+    if (SwapPaintBuffersFast(rcPaintList, nLayeredWindowAlpha)) {
         //直接通过窗口的Surface更新绘制数据到窗口设备(不使用GPU，速度更快)
         return true;
     }
@@ -220,21 +230,29 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffers(const UiRect& rcPaint, uint8_t 
 
     //将界面数据复制到纹理
     bool bDrawOk = false;
-    if ((rcPaint.Width() != width()) || (rcPaint.Height() != height())) {
-        //局部绘制：只绘制更新的部分
-        SDL_Rect rect;
-        rect.x = rcPaint.left;
-        rect.y = rcPaint.top;
-        rect.w = rcPaint.Width();
-        rect.h = rcPaint.Height();        
-        SkIRect bounds = SkIRect::MakeLTRB(rcPaint.left, rcPaint.top, rcPaint.right, rcPaint.bottom);
-        sk_sp<SkImage> snapshotImage = m_fBackbufferSurface->makeImageSnapshot(bounds);
-        if (snapshotImage != nullptr) {
-            SkPixmap pixmap;
-            if (snapshotImage->peekPixels(&pixmap) && (pixmap.addr() != nullptr) && (pixmap.width() == rcPaint.Width()) && (pixmap.height() == rcPaint.Height())) {
-                SDL_UpdateTexture(m_sdlTextrue, &rect, pixmap.addr(), (int)pixmap.rowBytes());
-                bDrawOk = true;
+    if (!((rcPaintList.size() == 1) && (rcPaintList[0].Width() == width()) && (rcPaintList[0].Height() == height()))) {
+        //局部绘制：只绘制更新的部分（按矩形列表逐个更新）
+        bDrawOk = true;
+        for (const UiRect& rcPaint : rcPaintList) {
+            if (rcPaint.IsEmpty()) {
+                continue;
             }
+            SDL_Rect rect;
+            rect.x = rcPaint.left;
+            rect.y = rcPaint.top;
+            rect.w = rcPaint.Width();
+            rect.h = rcPaint.Height();
+            SkIRect bounds = SkIRect::MakeLTRB(rcPaint.left, rcPaint.top, rcPaint.right, rcPaint.bottom);
+            sk_sp<SkImage> snapshotImage = m_fBackbufferSurface->makeImageSnapshot(bounds);
+            bool bRectOk = false;
+            if (snapshotImage != nullptr) {
+                SkPixmap pixmap;
+                if (snapshotImage->peekPixels(&pixmap) && (pixmap.addr() != nullptr) && (pixmap.width() == rcPaint.Width()) && (pixmap.height() == rcPaint.Height())) {
+                    SDL_UpdateTexture(m_sdlTextrue, &rect, pixmap.addr(), (int)pixmap.rowBytes());
+                    bRectOk = true;
+                }
+            }
+            bDrawOk = bDrawOk && bRectOk;
         }
         ASSERT(bDrawOk);
     }
@@ -258,10 +276,10 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffers(const UiRect& rcPaint, uint8_t 
     return true;
 }
 
-bool SkRasterWindowContext_SDL::SwapPaintBuffersFast(const UiRect& rcPaint, uint8_t nLayeredWindowAlpha)
+bool SkRasterWindowContext_SDL::SwapPaintBuffersFast(const std::vector<UiRect>& rcPaintList, uint8_t nLayeredWindowAlpha)
 {
-    ASSERT(!rcPaint.IsEmpty());
-    if (rcPaint.IsEmpty()) {
+    ASSERT(!rcPaintList.empty());
+    if (rcPaintList.empty()) {
         return false;
     }
     ASSERT(m_sdlWindow != nullptr);
@@ -309,36 +327,50 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffersFast(const UiRect& rcPaint, uint
     PerformanceUtil statPerformance(_T("PaintWindow 9, SkRasterWindowContext_SDL::SwapPaintBuffersFast"));
 
     bool bDrawOk = false;
-    if ((rcPaint.Width() != width()) || (rcPaint.Height() != height())) {
-        //局部绘制：只绘制更新的部分
-        SDL_Rect rect;
-        rect.x = rcPaint.left;
-        rect.y = rcPaint.top;
-        rect.w = rcPaint.Width();
-        rect.h = rcPaint.Height();
-        //按行复制数据(每次复制1行数据)
-        const int32_t nMaxRow = rcPaint.top + rcPaint.Height();
-        const int32_t nWidth = rcPaint.Width();
-        for (int32_t nRow = rcPaint.top; nRow < nMaxRow; ++nRow) {
-            //注意：nRow * sdlSurface->w 是 int * int，溢出后转 size_t 错误；必须先转为 size_t
-            const size_t nRowOffset = (size_t)nRow * sdlSurface->w;
-            ::memcpy((uint32_t*)sdlSurface->pixels + nRowOffset + rcPaint.left,
-                     (uint32_t*)m_fSurfaceMemory.get() + nRowOffset + rcPaint.left,
-                     (size_t)nWidth * sizeof(uint32_t));
-        }
+    const bool bFullPaint = (rcPaintList.size() == 1) && (rcPaintList[0].Width() == width()) && (rcPaintList[0].Height() == height());
+    if (!bFullPaint) {
+        //局部绘制：只绘制更新的部分（按矩形列表逐个复制）
+        std::vector<SDL_Rect> sdlRects;
+        sdlRects.reserve(rcPaintList.size());
+        for (const UiRect& rcPaint : rcPaintList) {
+            if (rcPaint.IsEmpty()) {
+                continue;
+            }
+            SDL_Rect rect;
+            rect.x = rcPaint.left;
+            rect.y = rcPaint.top;
+            rect.w = rcPaint.Width();
+            rect.h = rcPaint.Height();
+            sdlRects.push_back(rect);
 
-        //处理颜色顺序
-        UpdateColorByteOrder(sdlSurface->pixels, sdlSurface->w, rcPaint, backR, backG, backB, backA, sdlR, sdlG, sdlB, sdlA);
-        UpdateColorAlpha(sdlSurface->pixels, sdlSurface->w, rcPaint, nLayeredWindowAlpha, sdlR, sdlG, sdlB, sdlA);
-        SDL_UpdateWindowSurfaceRects(m_sdlWindow, &rect, 1);
-        bDrawOk = true;
-        ASSERT(bDrawOk);
+            //按行复制数据(每次复制1行数据)
+            const int32_t nMaxRow = rcPaint.top + rcPaint.Height();
+            const int32_t nWidth = rcPaint.Width();
+            for (int32_t nRow = rcPaint.top; nRow < nMaxRow; ++nRow) {
+                //注意：nRow * sdlSurface->w 是 int * int，溢出后转 size_t 错误；必须先转为 size_t
+                const size_t nRowOffset = (size_t)nRow * sdlSurface->w;
+                ::memcpy((uint32_t*)sdlSurface->pixels + nRowOffset + rcPaint.left,
+                         (uint32_t*)m_fSurfaceMemory.get() + nRowOffset + rcPaint.left,
+                         (size_t)nWidth * sizeof(uint32_t));
+            }
+
+            //处理颜色顺序
+            UpdateColorByteOrder(sdlSurface->pixels, sdlSurface->w, rcPaint, backR, backG, backB, backA, sdlR, sdlG, sdlB, sdlA);
+            UpdateColorAlpha(sdlSurface->pixels, sdlSurface->w, rcPaint, nLayeredWindowAlpha, sdlR, sdlG, sdlB, sdlA);
+        }
+        if (!sdlRects.empty()) {
+            SDL_UpdateWindowSurfaceRects(m_sdlWindow, sdlRects.data(), (int)sdlRects.size());
+            bDrawOk = true;
+            ASSERT(bDrawOk);
+        }
     }
     if (!bDrawOk) {
         //完整绘制
         ::memcpy(sdlSurface->pixels, m_fSurfaceMemory.get(), sdlSurface->h * sdlSurface->pitch);
-        UpdateColorByteOrder(sdlSurface->pixels, sdlSurface->w, rcPaint, backR, backG, backB, backA, sdlR, sdlG, sdlB, sdlA);
-        UpdateColorAlpha(sdlSurface->pixels, sdlSurface->w, rcPaint, nLayeredWindowAlpha, sdlR, sdlG, sdlB, sdlA);
+        UiRect rcClient;
+        GetClientRect(rcClient);
+        UpdateColorByteOrder(sdlSurface->pixels, sdlSurface->w, rcClient, backR, backG, backB, backA, sdlR, sdlG, sdlB, sdlA);
+        UpdateColorAlpha(sdlSurface->pixels, sdlSurface->w, rcClient, nLayeredWindowAlpha, sdlR, sdlG, sdlB, sdlA);
         SDL_UpdateWindowSurface(m_sdlWindow);
     }
     return true;
@@ -481,21 +513,26 @@ void SkRasterWindowContext_SDL::GetClientRect(UiRect& rcClient) const
     rcClient.bottom = rcClient.top + height();
 }
 
-void SkRasterWindowContext_SDL::ValidateRect(UiRect& rcPaint) const
+void SkRasterWindowContext_SDL::ValidateRect(const std::vector<UiRect>& rcPaintList) const
 {
-    if ((m_sdlWindow == nullptr) || rcPaint.IsEmpty()) {
+    if ((m_sdlWindow == nullptr) || rcPaintList.empty()) {
         return;
     }
 #ifdef DUILIB_BUILD_FOR_WIN
     SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
     HWND hWnd = (HWND)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
     if ((hWnd != nullptr) && ::IsWindow(hWnd)) {
-        RECT rectPaint = { 0, };
-        rectPaint.left = rcPaint.left;
-        rectPaint.top = rcPaint.top;
-        rectPaint.right = rcPaint.right;
-        rectPaint.bottom = rcPaint.bottom;
-        ::ValidateRect(hWnd, &rectPaint);
+        for (const UiRect& rcPaint : rcPaintList) {
+            if (rcPaint.IsEmpty()) {
+                continue;
+            }
+            RECT rectPaint = { 0, };
+            rectPaint.left = rcPaint.left;
+            rectPaint.top = rcPaint.top;
+            rectPaint.right = rcPaint.right;
+            rectPaint.bottom = rcPaint.bottom;
+            ::ValidateRect(hWnd, &rectPaint);
+        }
     }
 #endif
 }

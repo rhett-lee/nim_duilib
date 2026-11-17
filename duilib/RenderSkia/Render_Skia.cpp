@@ -2706,6 +2706,93 @@ bool Render_Skia::IsClipEmpty() const
     return false;
 }
 
+int32_t Render_Skia::BeginPaintRects(const std::vector<UiRect>& rcPaintList)
+{
+    m_paintRects = rcPaintList;
+    if (rcPaintList.empty()) {
+        return -1;
+    }
+    SkCanvas* skCanvas = GetSkCanvas();
+    if (skCanvas == nullptr) {
+        return -1;
+    }
+
+    //构建多个脏矩形的并集区域（设备坐标）
+    SkRegion skRegion;
+    UiRect rcUnion;
+    for (const UiRect& rcPaint : rcPaintList) {
+        if (rcPaint.IsEmpty()) {
+            continue;
+        }
+        rcUnion.Union(rcPaint);
+        SkIRect rcRect = { rcPaint.left, rcPaint.top, rcPaint.right, rcPaint.bottom };
+        SkRect rcSk = SkRect::Make(rcRect);
+        rcSk.offset(*m_pSkPointOrg);
+        rcSk.roundOut(&rcRect);
+        skRegion.op(rcRect, SkRegion::kUnion_Op);
+    }
+    if (rcUnion.IsEmpty() || skRegion.isEmpty()) {
+        m_paintRects.clear();
+        return -1;
+    }
+
+    //如果脏区覆盖整个画布，则不需要设置裁剪区域（裁剪比不裁剪略慢）
+    const SkImageInfo skImageInfo = skCanvas->imageInfo();
+    if (skRegion.isRect() && (skRegion.getBounds() == SkIRect::MakeWH(skImageInfo.width(), skImageInfo.height()))) {
+        return -1;
+    }
+
+    m_saveCount = skCanvas->save();
+    if (skRegion.isRect()) {
+        //单个矩形：使用矩形裁剪，走Skia的快速路径
+        skCanvas->clipIRect(skRegion.getBounds());
+    }
+    else {
+        //多个不连续的矩形：使用区域裁剪。
+        //实测：Raster后端下区域裁剪与并集矩形裁剪的耗时相当（图片绘制无差异），
+        //但区域裁剪不会重绘脏区之间的内容，因此优先使用
+        skCanvas->clipRegion(skRegion, SkClipOp::kIntersect);
+    }
+    return m_saveCount;
+}
+
+void Render_Skia::EndPaintRects(int32_t nClipState)
+{
+    m_paintRects.clear();
+    if (nClipState >= 0) {
+        RestoreClip(nClipState);
+    }
+}
+
+bool Render_Skia::IntersectPaintRect(const UiRect& rcItem, const UiRect& rcPaint, UiRect& rcResult) const
+{
+    rcResult.Clear();
+    if (rcItem.IsEmpty()) {
+        return false;
+    }
+    if (m_paintRects.size() <= 1) {
+        //未设置脏区列表或只有一个脏矩形（包含完整绘制的情况）：与原逻辑一致，避免额外开销
+        const UiRect& rcPaintArea = m_paintRects.empty() ? rcPaint : m_paintRects[0];
+        return UiRect::Intersect(rcResult, rcItem, rcPaintArea);
+    }
+
+    //多个脏矩形：只要与其中一个相交，就需要绘制；返回所有交集的并集边界
+    bool bIntersect = false;
+    UiRect rcTemp;
+    for (const UiRect& rcPaintItem : m_paintRects) {
+        if (UiRect::Intersect(rcTemp, rcItem, rcPaintItem)) {
+            if (!bIntersect) {
+                rcResult = rcTemp;
+                bIntersect = true;
+            }
+            else {
+                rcResult.Union(rcTemp);
+            }
+        }
+    }
+    return bIntersect;
+}
+
 bool Render_Skia::IsEmpty() const
 {
     //接口语义：绘制区域为空（宽度或高度为0，或者没有可用的画布）时返回true

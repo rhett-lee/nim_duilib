@@ -574,8 +574,13 @@ public:
     void PaintWindow(bool bPaintAll);
 
     /** 窗口更新的区域（需要绘制）
+    *   返回值为所有更新区域的并集边界，用于兼容单矩形绘制的场景
     */
     const UiRect& GetUpdateRect() const;
+
+    /** 窗口更新的区域列表（需要绘制，多个不连续的矩形）
+    */
+    const std::vector<UiRect>& GetUpdateRects() const;
 
     /** 设置输入法的开关状态（关闭再打开以后，能够保持原输入法状态）
     * @param [in] bOpen true标识打开输入法，false标识关闭输入法
@@ -857,9 +862,13 @@ private:
     */
     bool m_bImeComposing;
 
-    /** 窗口更新的区域（需要绘制）
+    /** 窗口更新的区域（需要绘制，所有更新区域的并集边界）
     */
     UiRect m_rcUpdateRect;
+
+    /** 窗口更新的区域列表（需要绘制，多个不连续的矩形，避免单矩形合并导致重绘面积被放大）
+    */
+    std::vector<UiRect> m_updateRects;
 
     /** 拖放的支持
     */

@@ -662,6 +662,84 @@ void TestCompatEntry(ui::IRenderFactory* /*pRenderFactory*/)
     Skip("OS-33: ControlDragable migration requires a window");
 }
 
+// ---------------------------------------------------------------------------
+// J. 多脏矩形局部绘制（OS-37 ~ OS-39）
+// ---------------------------------------------------------------------------
+void TestMultiPaintRects(ui::IRenderFactory* pRenderFactory)
+{
+    //OS-37 多个不连续的脏矩形：只有脏矩形内的像素被更新，脏矩形之间的像素保持不变
+    {
+        std::unique_ptr<ui::IRender> pRender = pRenderFactory->CreateOffscreenRender(60, 40);
+        CHECK(pRender != nullptr);
+        if (pRender != nullptr) {
+            pRender->Clear(ui::UiColor(kWhiteColor));
+
+            std::vector<ui::UiRect> rcPaintList;
+            rcPaintList.push_back(ui::UiRect(0, 0, 20, 20));   //左上角
+            rcPaintList.push_back(ui::UiRect(40, 20, 60, 40)); //右下角
+            const int32_t nClipState = pRender->BeginPaintRects(rcPaintList);
+            pRender->FillRect(ui::UiRectF(0.0f, 0.0f, 60.0f, 40.0f), ui::UiColor(kRedColor));
+            pRender->EndPaintRects(nClipState);
+
+            uint32_t nColor = 0;
+            //脏矩形内的像素被更新为红色
+            CHECK(ReadBitmapPixel(nullptr, 0, 0, nColor) == false);
+            CHECK(ReadPixel(pRender.get(), 10, 10, nColor) && (nColor == kRedColor));
+            CHECK(ReadPixel(pRender.get(), 50, 30, nColor) && (nColor == kRedColor));
+            //脏矩形之外的像素保持原来的白色（不被绘制覆盖）
+            CHECK(ReadPixel(pRender.get(), 30, 10, nColor) && (nColor == kWhiteColor));
+            CHECK(ReadPixel(pRender.get(), 10, 30, nColor) && (nColor == kWhiteColor));
+            CHECK(ReadPixel(pRender.get(), 59, 0, nColor) && (nColor == kWhiteColor));
+        }
+    }
+
+    //OS-38 控件级精确剔除：与脏区不相交的矩形判定为不需要绘制
+    {
+        std::unique_ptr<ui::IRender> pRender = pRenderFactory->CreateOffscreenRender(60, 40);
+        CHECK(pRender != nullptr);
+        if (pRender != nullptr) {
+            std::vector<ui::UiRect> rcPaintList;
+            rcPaintList.push_back(ui::UiRect(0, 0, 20, 20));
+            rcPaintList.push_back(ui::UiRect(40, 20, 60, 40));
+            const int32_t nClipState = pRender->BeginPaintRects(rcPaintList);
+
+            ui::UiRect rcResult;
+            //与两个脏矩形都不相交
+            CHECK(!pRender->IntersectPaintRect(ui::UiRect(25, 5, 35, 15), ui::UiRect(0, 0, 60, 40), rcResult));
+            CHECK(rcResult.IsEmpty());
+            //与第一个脏矩形相交
+            CHECK(pRender->IntersectPaintRect(ui::UiRect(0, 0, 10, 10), ui::UiRect(0, 0, 60, 40), rcResult));
+            CHECK(rcResult == ui::UiRect(0, 0, 10, 10));
+            //跨越两个脏矩形：交集为两者的并集边界
+            CHECK(pRender->IntersectPaintRect(ui::UiRect(0, 0, 60, 40), ui::UiRect(0, 0, 60, 40), rcResult));
+            CHECK(rcResult == ui::UiRect(0, 0, 60, 40));
+            pRender->EndPaintRects(nClipState);
+
+            //结束局部绘制后：恢复为按传入的rcPaint判断（与原逻辑一致）
+            CHECK(pRender->IntersectPaintRect(ui::UiRect(25, 5, 35, 15), ui::UiRect(0, 0, 60, 40), rcResult));
+            CHECK(!pRender->IntersectPaintRect(ui::UiRect(25, 5, 35, 15), ui::UiRect(0, 0, 20, 20), rcResult));
+        }
+    }
+
+    //OS-39 脏区覆盖整个画布时，不设置裁剪区域，完整绘制的结果正确
+    {
+        std::unique_ptr<ui::IRender> pRender = pRenderFactory->CreateOffscreenRender(40, 30);
+        CHECK(pRender != nullptr);
+        if (pRender != nullptr) {
+            pRender->Clear(ui::UiColor(kWhiteColor));
+            std::vector<ui::UiRect> rcPaintList;
+            rcPaintList.push_back(ui::UiRect(0, 0, 40, 30));
+            const int32_t nClipState = pRender->BeginPaintRects(rcPaintList);
+            pRender->FillRect(ui::UiRectF(0.0f, 0.0f, 40.0f, 30.0f), ui::UiColor(kGreenColor));
+            pRender->EndPaintRects(nClipState);
+
+            uint32_t nColor = 0;
+            CHECK(ReadPixel(pRender.get(), 0, 0, nColor) && (nColor == kGreenColor));
+            CHECK(ReadPixel(pRender.get(), 39, 29, nColor) && (nColor == kGreenColor));
+        }
+    }
+}
+
 }//namespace
 
 int main(int /*argc*/, char* /*argv*/[])
@@ -702,6 +780,7 @@ int main(int /*argc*/, char* /*argv*/[])
             TestThreadAndLifetime(pRenderFactory);
             TestCompatEntry(pRenderFactory);
             TestBitmapExport(pRenderFactory);
+            TestMultiPaintRects(pRenderFactory);
         }
     }
 

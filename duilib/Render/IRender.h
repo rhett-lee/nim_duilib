@@ -672,6 +672,22 @@ public:
     * @return 返回true表示支持局部绘制，返回false表示不支持局部绘制
     */
     virtual bool GetUpdateRect(UiRect& rcUpdate) const = 0;
+
+    /** 获取界面需要绘制的区域列表，以实现更精细的局部绘制（多个不连续的脏矩形）
+    *   默认实现：退化为 GetUpdateRect 返回的单个矩形，保证兼容性
+    * @param [out] rcUpdateList 返回需要绘制的矩形列表（客户区坐标），矩形之间允许重叠
+    * @return 返回true表示支持局部绘制；返回false表示不支持局部绘制（需要绘制整个客户区）
+    */
+    virtual bool GetUpdateRects(std::vector<UiRect>& rcUpdateList) const
+    {
+        rcUpdateList.clear();
+        UiRect rcUpdate;
+        if (!GetUpdateRect(rcUpdate) || rcUpdate.IsEmpty()) {
+            return false;
+        }
+        rcUpdateList.push_back(rcUpdate);
+        return true;
+    }
 };
 
 /** 光栅操作代码
@@ -2165,6 +2181,27 @@ public:
     /** 判断裁剪区域是否为空(如果为空不需要绘制)
     */
     virtual bool IsClipEmpty() const = 0;
+
+    /** 开始局部绘制：设置本次绘制的脏区列表，并把画布的裁剪区域设置为这些脏矩形的并集
+    *   说明：脏区列表用于控件绘制时的精确剔除（见 IntersectPaintRect），裁剪区域用于像素级限制，
+    *         两者都设置为脏区后，脏区之外的内容不会被重新光栅化，也不会覆盖已有的正确内容
+    * @param [in] rcPaintList 本次需要绘制的脏区矩形列表（客户区坐标）
+    * @return 返回保存的裁剪状态值，可传给 EndPaintRects 恢复裁剪状态（<0 表示无需恢复）
+    */
+    virtual int32_t BeginPaintRects(const std::vector<UiRect>& rcPaintList) = 0;
+
+    /** 结束局部绘制：清除脏区列表，并恢复 BeginPaintRects 保存的裁剪状态
+    * @param [in] nClipState BeginPaintRects 返回的状态值
+    */
+    virtual void EndPaintRects(int32_t nClipState) = 0;
+
+    /** 计算控件矩形与本次绘制脏区的交集，用于精确剔除不需要绘制的控件
+    * @param [in] rcItem 控件矩形（客户区坐标）
+    * @param [in] rcPaint 本次绘制的区域（客户区坐标）；未设置脏区列表时，作为脏区使用
+    * @param [out] rcResult 返回交集区域的边界（多个脏矩形与rcItem交集的并集边界）
+    * @return 返回false表示无交集，不需要绘制该控件
+    */
+    virtual bool IntersectPaintRect(const UiRect& rcItem, const UiRect& rcPaint, UiRect& rcResult) const = 0;
 
     /** 是否为空（宽度或者高度为0）
     */

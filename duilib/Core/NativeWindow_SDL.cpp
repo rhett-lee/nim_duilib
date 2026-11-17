@@ -200,6 +200,16 @@ public:
         rcUpdate = m_pNativeWindow->GetUpdateRect();
         return !rcUpdate.IsEmpty();
     }
+
+    /** 获取界面需要绘制的区域列表（多个不连续的脏矩形），以实现更精细的局部绘制
+    * @param [out] rcUpdateList 返回需要绘制的矩形列表
+    * @return 返回true表示支持局部绘制，返回false表示不支持局部绘制
+    */
+    virtual bool GetUpdateRects(std::vector<UiRect>& rcUpdateList) const override
+    {
+        rcUpdateList = m_pNativeWindow->GetUpdateRects();
+        return !rcUpdateList.empty();
+    }
 };
 
 void NativeWindow_SDL::CheckWindowSnap(SDL_Window* window)
@@ -2750,11 +2760,33 @@ static bool SDLCALL FilterNativeWindowExposedEvent(void* userdata, SDL_Event* ev
 
 void NativeWindow_SDL::Invalidate(const UiRect& rcItem)
 {
-    if (m_rcUpdateRect.IsZero()) {
-        m_rcUpdateRect = rcItem;
-    }
-    else {
-        m_rcUpdateRect.Union(rcItem);
+    //记录更新的区域列表（多个不连续的矩形，避免合并为单矩形后导致重绘面积被放大）
+    if (!rcItem.IsEmpty()) {
+        bool bContained = false;
+        for (const UiRect& rcUpdate : m_updateRects) {
+            if (rcUpdate.ContainsRect(rcItem)) {
+                //已经包含在已有的更新区域中，无需重复记录
+                bContained = true;
+                break;
+            }
+        }
+        if (!bContained) {
+            m_updateRects.push_back(rcItem);
+            if (m_rcUpdateRect.IsZero()) {
+                m_rcUpdateRect = rcItem;
+            }
+            else {
+                m_rcUpdateRect.Union(rcItem);
+            }
+            /** 更新区域的数量上限：超过上限时合并为一个矩形，
+            *   避免控件绘制时需要判断的脏矩形数量过多，反而降低性能
+            */
+            constexpr size_t kMaxUpdateRects = 12;
+            if (m_updateRects.size() > kMaxUpdateRects) {
+                m_updateRects.clear();
+                m_updateRects.push_back(m_rcUpdateRect);
+            }
+        }
     }
 
     //暂时没有此功能, 只能发送一个绘制消息，触发界面绘制
@@ -2783,6 +2815,7 @@ void NativeWindow_SDL::PaintWindow(bool bPaintAll)
     if (bPaintAll) {
         //绘制全部
         m_rcUpdateRect.Clear();
+        m_updateRects.clear();
     }
     INativeWindow* pOwner = m_pOwner;
     ASSERT(pOwner != nullptr);
@@ -2817,11 +2850,17 @@ void NativeWindow_SDL::PaintWindow(bool bPaintAll)
         }
     }
     m_rcUpdateRect.Clear();
+    m_updateRects.clear();
 }
 
 const UiRect& NativeWindow_SDL::GetUpdateRect() const
 {
     return m_rcUpdateRect;
+}
+
+const std::vector<UiRect>& NativeWindow_SDL::GetUpdateRects() const
+{
+    return m_updateRects;
 }
 
 void NativeWindow_SDL::SetImeOpenStatus(bool bOpen)

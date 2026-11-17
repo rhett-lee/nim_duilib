@@ -378,11 +378,15 @@ void SkGLWindowContext_Windows::onDestroyContext()
     ReleaseWindowDC();
 }
 
-bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* /*pRender*/, IRenderPaint* pRenderPaint)
+bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* pRender, IRenderPaint* pRenderPaint)
 {
     HWND hWnd = m_hWnd;
     ASSERT(::IsWindow(hWnd));
     if ((hWnd == nullptr) || !::IsWindow(hWnd)) {
+        return false;
+    }
+    ASSERT(pRender != nullptr);
+    if (pRender == nullptr) {
         return false;
     }
     ASSERT(pRenderPaint != nullptr);
@@ -405,17 +409,37 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* /*pRender*/, IRende
     RECT rectUpdate = { 0, };
     const bool bHasUpdateRect = (::GetUpdateRect(m_hWnd, &rectUpdate, FALSE) != FALSE);
 
+    // ---- 查询更新区域列表（多个不连续的脏矩形，用于更精细的局部绘制） ----
+    const UiRect rcClient(rectClient.left, rectClient.top, rectClient.right, rectClient.bottom);
+    std::vector<UiRect> rcPaintList;
+    UiRect rcUpdate;
+    if (bHasUpdateRect && pRenderPaint->GetUpdateRects(rcPaintList)) {
+        std::vector<UiRect> rcValidList;
+        for (UiRect& rcItem : rcPaintList) {
+            rcItem.Intersect(rcClient);
+            if (!rcItem.IsEmpty()) {
+                rcValidList.push_back(rcItem);
+                rcUpdate.Union(rcItem);
+            }
+        }
+        rcPaintList.swap(rcValidList);
+    }
+    if (rcUpdate.IsEmpty() && bHasUpdateRect) {
+        //退化处理：使用更新区域的并集边界
+        rcUpdate = UiRect(rectUpdate.left, rectUpdate.top, rectUpdate.right, rectUpdate.bottom);
+    }
+
     // ---- 判断本次是否全量重绘 ----
     bool bFullRedraw = m_bNeedFullRedraw;
     if (!bFullRedraw) {
-        if (!bHasUpdateRect) {
+        if (!bHasUpdateRect || rcUpdate.IsEmpty()) {
             //没有更新区域（例如直接调用绘制、窗口尺寸为0等场景）：退化为全量重绘，
             //保证窗口内容始终正确（不能直接跳过绘制）
             bFullRedraw = true;
         }
         else {
-            const int32_t updateW = rectUpdate.right - rectUpdate.left;
-            const int32_t updateH = rectUpdate.bottom - rectUpdate.top;
+            const int32_t updateW = rcUpdate.Width();
+            const int32_t updateH = rcUpdate.Height();
             if ((updateW >= clientW) && (updateH >= clientH)) {
                 //更新区域覆盖整个客户区：按全量重绘处理
                 bFullRedraw = true;
@@ -458,11 +482,16 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* /*pRender*/, IRende
     // ---- 确定 rcPaint ----
     UiRect rcPaint;
     if (bFullRedraw) {
-        rcPaint = UiRect(rectClient.left, rectClient.top, rectClient.right, rectClient.bottom);
+        rcPaint = rcClient;
+        rcPaintList.clear();
+        rcPaintList.push_back(rcClient);
     }
     else {
         //局部重绘：只绘制脏区域
-        rcPaint = UiRect(rectUpdate.left, rectUpdate.top, rectUpdate.right, rectUpdate.bottom);
+        rcPaint = rcUpdate;
+        if (rcPaintList.empty()) {
+            rcPaintList.push_back(rcPaint);
+        }
     }
     if (rcPaint.IsEmpty()) {
         m_bRenderDirectToFBO0 = false;
@@ -474,10 +503,16 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* /*pRender*/, IRende
     PAINTSTRUCT ps = { 0, };
     ::BeginPaint(hWnd, &ps);
 
+    // ---- 设置本次绘制的脏区列表及画布的裁剪区域（多个脏矩形的并集，脏区之外不会被重新光栅化） ----
+    int32_t nClipState = pRender->BeginPaintRects(rcPaintList);
+
     // ---- 执行绘制 ----
     // DoPaint 内部通过 IRender::GetSkCanvas() → Render_Skia_Windows::GetSkCanvas()
     //   → m_pWindowContext->getBackbufferSurface() → 我们设的模式标志自动生效
     pRenderPaint->DoPaint(rcPaint);
+
+    // ---- 恢复裁剪状态 ----
+    pRender->EndPaintRects(nClipState);
 
     // ---- 局部重绘：把持久化表面的整幅内容拷贝到 FBO 0 ----
     if (bUsePersistentCopy) {

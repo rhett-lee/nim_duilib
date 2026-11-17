@@ -58,22 +58,18 @@ protected:
     virtual void onSwapBuffers() override;
 
     /** 绘制结束后，绘制数据从渲染引擎更新到窗口
-    * @param [in] hPaintDC 当前绘制的DC
-    * @param [in] rcPaint 绘制的区域
-    * @param [in] pRender 绘制引擎接口，用于将绘制结果应用到窗口
+    * @param [in] rcPaintList 绘制的区域列表（多个不连续的脏矩形）
     * @param [in] nLayeredWindowAlpha 窗口透明度，在UpdateLayeredWindow函数中作为参数使用
     * @return 成功返回true，失败则返回false
     */
-    bool SwapPaintBuffers(const UiRect& rcPaint, uint8_t nLayeredWindowAlpha);
+    bool SwapPaintBuffers(const std::vector<UiRect>& rcPaintList, uint8_t nLayeredWindowAlpha);
 
     /** 绘制结束后，绘制数据从渲染引擎更新到窗口(直接通过窗口的Surface更新绘制数据到窗口设备)
-    * @param [in] hPaintDC 当前绘制的DC
-    * @param [in] rcPaint 绘制的区域
-    * @param [in] pRender 绘制引擎接口，用于将绘制结果应用到窗口
+    * @param [in] rcPaintList 绘制的区域列表（多个不连续的脏矩形）
     * @param [in] nLayeredWindowAlpha 窗口透明度，在UpdateLayeredWindow函数中作为参数使用
     * @return 成功返回true，失败则返回false
     */
-    bool SwapPaintBuffersFast(const UiRect& rcPaint, uint8_t nLayeredWindowAlpha);
+    bool SwapPaintBuffersFast(const std::vector<UiRect>& rcPaintList, uint8_t nLayeredWindowAlpha);
 
     /** 获取当前窗口的客户区矩形
     * @param [out] rcClient 返回窗口的客户区坐标
@@ -82,7 +78,7 @@ protected:
 
     /** 将已经绘制的区域标记为有效区域
     */
-    void ValidateRect(UiRect& rcPaint) const;
+    void ValidateRect(const std::vector<UiRect>& rcPaintList) const;
 
     /** 清理资源
     */

@@ -138,6 +138,31 @@ bool SkRasterWindowContext_Windows::PaintAndSwapBuffers(IRenderWindow* pRender, 
         return false;
     }
 
+    //获取需要绘制的区域列表（可能是多个不连续的脏矩形）
+    std::vector<UiRect> rcPaintList;
+    UiRect rcPaint; //所有脏矩形的并集边界
+    UiRect rcClient;
+    GetClientRect(rcClient);
+    if (pRenderPaint->GetUpdateRects(rcPaintList)) {
+        std::vector<UiRect> rcValidList;
+        for (UiRect& rcItem : rcPaintList) {
+            rcItem.Intersect(rcClient);
+            if (!rcItem.IsEmpty()) {
+                rcValidList.push_back(rcItem);
+                rcPaint.Union(rcItem);
+            }
+        }
+        rcPaintList.swap(rcValidList);
+    }
+    if (rcPaint.IsEmpty()) {
+        rcPaint.left = rectUpdate.left;
+        rcPaint.top = rectUpdate.top;
+        rcPaint.right = rectUpdate.right;
+        rcPaint.bottom = rectUpdate.bottom;
+        rcPaintList.clear();
+        rcPaintList.push_back(rcPaint);
+    }
+
     //窗口透明度
     uint8_t nLayeredWindowAlpha = pRenderPaint->GetLayeredWindowAlpha();
 
@@ -145,17 +170,24 @@ bool SkRasterWindowContext_Windows::PaintAndSwapBuffers(IRenderWindow* pRender, 
     bool bRet = false;
     PAINTSTRUCT ps = { 0, };
     HDC hPaintDC = ::BeginPaint(hWnd, &ps);
-    UiRect rcPaint;
-    rcPaint.left = ps.rcPaint.left;
-    rcPaint.top = ps.rcPaint.top;
-    rcPaint.right = ps.rcPaint.right;
-    rcPaint.bottom = ps.rcPaint.bottom;
     if (!rcPaint.IsEmpty() && (hPaintDC != nullptr)) {
-        //执行绘制
+        //完全绘制时，使用单个矩形，走快速路径
+        if ((rcPaint.Width() == rcClient.Width()) && (rcPaint.Height() == rcClient.Height())) {
+            rcPaintList.clear();
+            rcPaintList.push_back(rcClient);
+        }
+
+        //设置本次绘制的脏区列表及画布的裁剪区域（多个脏矩形的并集，脏区之外不会被重新光栅化）
+        int32_t nClipState = static_cast<IRender*>(pRender)->BeginPaintRects(rcPaintList);
+
+        //执行绘制（使用并集边界作为绘制范围，控件级使用脏区列表精确剔除）
         bRet = pRenderPaint->DoPaint(rcPaint);
 
+        //恢复裁剪状态
+        static_cast<IRender*>(pRender)->EndPaintRects(nClipState);
+
         //绘制完成后，更新到窗口
-        SwapPaintBuffers(hPaintDC, rcPaint, pRender, nLayeredWindowAlpha);
+        SwapPaintBuffers(hPaintDC, rcPaintList, pRender, nLayeredWindowAlpha);
 
         //结束本次绘制
         ::EndPaint(hWnd, &ps);
@@ -172,13 +204,21 @@ bool SkRasterWindowContext_Windows::PaintAndSwapBuffers(IRenderWindow* pRender, 
         rcUpdate.top = rectUpdate.top;
         rcUpdate.right = rectUpdate.right;
         rcUpdate.bottom = rectUpdate.bottom;
+        rcPaintList.clear();
+        rcPaintList.push_back(rcUpdate);
+
+        //设置本次绘制的脏区列表及画布的裁剪区域
+        int32_t nClipState = static_cast<IRender*>(pRender)->BeginPaintRects(rcPaintList);
 
         //执行绘制
         bRet = pRenderPaint->DoPaint(rcUpdate);
 
+        //恢复裁剪状态
+        static_cast<IRender*>(pRender)->EndPaintRects(nClipState);
+
         //绘制完成后，更新到窗口
         hPaintDC = ::GetDC(hWnd);
-        SwapPaintBuffers(hPaintDC, rcUpdate, pRender, nLayeredWindowAlpha);
+        SwapPaintBuffers(hPaintDC, rcPaintList, pRender, nLayeredWindowAlpha);
         ::ReleaseDC(hWnd, hPaintDC);
 
         //标记绘制区域为有效区域
@@ -187,7 +227,7 @@ bool SkRasterWindowContext_Windows::PaintAndSwapBuffers(IRenderWindow* pRender, 
     return bRet;
 }
 
-bool SkRasterWindowContext_Windows::SwapPaintBuffers(HDC hPaintDC, const UiRect& rcPaint, IRenderWindow* pRender, uint8_t nLayeredWindowAlpha) const
+bool SkRasterWindowContext_Windows::SwapPaintBuffers(HDC hPaintDC, const std::vector<UiRect>& rcPaintList, IRenderWindow* pRender, uint8_t nLayeredWindowAlpha) const
 {
 #if DUILIB_PERFORMANCE_STAT_ENABLED
     //性能统计
@@ -204,8 +244,8 @@ bool SkRasterWindowContext_Windows::SwapPaintBuffers(HDC hPaintDC, const UiRect&
     if (hPaintDC == nullptr) {
         return false;
     }
-    //ASSERT(!rcPaint.IsEmpty()); //当窗口部分在屏幕外时，会出现为空的情况
-    if (rcPaint.IsEmpty()) {
+    //ASSERT(!rcPaintList.empty()); //当窗口部分在屏幕外时，会出现为空的情况
+    if (rcPaintList.empty()) {
         return false;
     }
     ASSERT(pRender != nullptr);
@@ -249,8 +289,36 @@ bool SkRasterWindowContext_Windows::SwapPaintBuffers(HDC hPaintDC, const UiRect&
     }
     if (!bPainted) {
         //按普通窗口模式绘制
-        bPainted = ::BitBlt(hPaintDC, rcPaint.left, rcPaint.top, rcPaint.Width(), rcPaint.Height(),
-                            hRenderDC, rcPaint.left, rcPaint.top, SRCCOPY) != FALSE;
+        bPainted = true;
+        //决定像素拷贝方式：脏矩形比较分散时按矩形逐个拷贝（减少拷贝的像素量），
+        //否则按并集边界一次拷贝（减少 BitBlt 的调用次数，每次调用都有固定的驱动开销）
+        UiRect rcUnion;
+        int64_t nRectsArea = 0;
+        for (const UiRect& rcPaint : rcPaintList) {
+            if (rcPaint.IsEmpty()) {
+                continue;
+            }
+            rcUnion.Union(rcPaint);
+            nRectsArea += (int64_t)rcPaint.Width() * rcPaint.Height();
+        }
+        const int64_t nUnionArea = (int64_t)rcUnion.Width() * rcUnion.Height();
+        const bool bCopyByRects = (rcPaintList.size() > 1) && (rcPaintList.size() <= 6) &&
+                                  (nRectsArea * 2 <= nUnionArea);
+        if (bCopyByRects) {
+            for (const UiRect& rcPaint : rcPaintList) {
+                if (rcPaint.IsEmpty()) {
+                    continue;
+                }
+                if (!::BitBlt(hPaintDC, rcPaint.left, rcPaint.top, rcPaint.Width(), rcPaint.Height(),
+                              hRenderDC, rcPaint.left, rcPaint.top, SRCCOPY)) {
+                    bPainted = false;
+                }
+            }
+        }
+        else if (!rcUnion.IsEmpty()) {
+            bPainted = ::BitBlt(hPaintDC, rcUnion.left, rcUnion.top, rcUnion.Width(), rcUnion.Height(),
+                                hRenderDC, rcUnion.left, rcUnion.top, SRCCOPY) != FALSE;
+        }
     }
     pRender->ReleaseRenderDC(hRenderDC);
     ASSERT(bPainted);

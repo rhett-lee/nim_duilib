@@ -1587,6 +1587,57 @@ public:
         }
         return !rcUpdate.IsEmpty();
     }
+
+    /** 获取界面需要绘制的区域列表（多个不连续的脏矩形），以实现更精细的局部绘制
+    * @param [out] rcUpdateList 返回需要绘制的矩形列表（客户区坐标）
+    * @return 返回true表示支持局部绘制，返回false表示不支持局部绘制
+    */
+    virtual bool GetUpdateRects(std::vector<UiRect>& rcUpdateList) const override
+    {
+        rcUpdateList.clear();
+        HWND hWnd = m_pNativeWindow->GetHWND();
+        if ((hWnd == nullptr) || !::IsWindow(hWnd)) {
+            return false;
+        }
+        HRGN hRgn = ::CreateRectRgn(0, 0, 0, 0);
+        if (hRgn == nullptr) {
+            return false;
+        }
+        bool bRet = false;
+        if (::GetUpdateRgn(hWnd, hRgn, FALSE) != ERROR) {
+            //获取区域的矩形列表
+            DWORD dwSize = ::GetRegionData(hRgn, 0, nullptr);
+            if (dwSize > 0) {
+                std::vector<uint8_t> regionData(dwSize);
+                LPRGNDATA pRgnData = (LPRGNDATA)regionData.data();
+                if (::GetRegionData(hRgn, dwSize, pRgnData) > 0) {
+                    const RECT* pRects = (const RECT*)(pRgnData->Buffer);
+                    const DWORD nRectCount = pRgnData->rdh.nCount;
+                    //脏矩形数量上限，超过上限时退化为单矩形（避免控件绘制时的判断开销过大）
+                    const DWORD kMaxUpdateRects = 12;
+                    if (nRectCount <= kMaxUpdateRects) {
+                        rcUpdateList.reserve(nRectCount);
+                        for (DWORD i = 0; i < nRectCount; ++i) {
+                            UiRect rcUpdate(pRects[i].left, pRects[i].top, pRects[i].right, pRects[i].bottom);
+                            if (!rcUpdate.IsEmpty()) {
+                                rcUpdateList.push_back(rcUpdate);
+                            }
+                        }
+                    }
+                }
+            }
+            if (rcUpdateList.empty()) {
+                //退化处理：使用更新区域的并集边界
+                UiRect rcUpdate;
+                if (GetUpdateRect(rcUpdate)) {
+                    rcUpdateList.push_back(rcUpdate);
+                }
+            }
+            bRet = !rcUpdateList.empty();
+        }
+        ::DeleteObject(hRgn);
+        return bRet;
+    }
 };
 
 LRESULT NativeWindow_Windows::OnPaintMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
