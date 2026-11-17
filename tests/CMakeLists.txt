@@ -682,3 +682,38 @@ if(Python3_Interpreter_FOUND)
 else()
     message(STATUS "Python3 not found: the controls_pages_xml test is disabled")
 endif()
+
+# GL vs Raster 渲染后端性能基准（不注册到 ctest，属于手工运行的评估工具）
+#
+# 对比同一绘制负载在 Raster/GL 后端下的墙钟时间与 CPU 时间，识别 GPU 红利是否被
+# CPU 侧开销抵消。默认 150 帧 960x600 medium 负载，Release 构建运行：
+#   python build/build.py build --offline --target test_gl_benchmark
+#   out/x64/Release/tests/test_gl_benchmark.exe frames=200 size=1280x800 workload=heavy
+if(WIN32)
+    add_executable(test_gl_benchmark
+        test_gl_benchmark.cpp
+    )
+    target_include_directories(test_gl_benchmark PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../"
+    )
+    target_link_directories(test_gl_benchmark PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_gl_benchmark PRIVATE
+        duilib
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet Psapi
+    )
+    target_compile_definitions(test_gl_benchmark PRIVATE
+        UNICODE _UNICODE NOMINMAX WIN32_LEAN_AND_MEAN
+        DUILIB_TEST_RESOURCE_DIR="${CMAKE_SOURCE_DIR}/bin/resources"
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_gl_benchmark PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_gl_benchmark PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    if(MSVC)
+        target_compile_options(test_gl_benchmark PRIVATE /utf-8)
+    endif()
+endif()

@@ -43,8 +43,13 @@ std::unique_ptr<skwindow::WindowContext> MakeGLForWin(HWND hWnd, std::unique_ptr
     (void)params;
     return nullptr;
 #else
+    if (!::IsWindow(hWnd)) {
+        LogUtil::OutputLine(_T("MakeGLForWin: hWnd is not a valid window"));
+        return nullptr;
+    }
     std::unique_ptr<skwindow::WindowContext> ctx(new SkGLWindowContext_Windows(hWnd, std::move(params)));
     if (!ctx->isValid()) {
+        LogUtil::OutputLine(_T("MakeGLForWin: ctx is not valid (WGL context creation failed or directContext is null)"));
         return nullptr;
     }
     //部分运行环境（远程桌面、虚拟机、驱动异常）可以创建WGL上下文，但创建GrDirectContext失败：
