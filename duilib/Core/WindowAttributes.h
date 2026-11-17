@@ -288,7 +288,7 @@ struct DUILIB_API RenderBackendResolveParam
 
     /** 默认是否关闭垂直同步
     */
-    bool m_bDefaultDisableVsync = true;
+    bool m_bDefaultDisableVsync = kDefaultDisableVsync;
 };
 
 /** 渲染后端属性的推导结果
@@ -305,7 +305,7 @@ struct DUILIB_API RenderBackendAttributes
 
     /** 最终是否关闭垂直同步
     */
-    bool m_bDisableVsync = true;
+    bool m_bDisableVsync = kDefaultDisableVsync;
 
     /** 是否因"OpenGL不支持层窗口"而降级为CPU绘制（调用方负责输出日志）
     */

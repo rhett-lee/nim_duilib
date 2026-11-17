@@ -32,7 +32,7 @@ public:
     * @param [in] bDisableVsync 是否禁用垂直同步（true表示禁用，false表示启用）
     */
     Render_Skia_Windows(HWND hWnd, RenderBackendType backendType,
-                        int32_t nMsaaSampleCount = 0, bool bDisableVsync = true);
+                        int32_t nMsaaSampleCount = 0, bool bDisableVsync = kDefaultDisableVsync);
     Render_Skia_Windows(const Render_Skia_Windows& r) = delete;
     Render_Skia_Windows& operator = (const Render_Skia_Windows& r) = delete;
     virtual ~Render_Skia_Windows() override;

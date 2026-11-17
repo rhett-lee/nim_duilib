@@ -59,7 +59,7 @@ public:
                                               void* platformData,
                                               RenderBackendType backendType = RenderBackendType::kRaster_BackendType,
                                               int32_t nMsaaSampleCount = 0,
-                                              bool bDisableVsync = true) override;
+                                              bool bDisableVsync = kDefaultDisableVsync) override;
 
     /** 获取字体管理器接口（每个factory共享一个对象）
     */

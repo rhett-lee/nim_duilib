@@ -312,8 +312,8 @@ RenderBackendAttributes ResolveRenderBackendAttributes(const WindowAttributeValu
         //XML中配置了绘制方式：MSAA与垂直同步只取XML配置值（未配置时使用默认值）
         result.m_backendType = values.m_renderBackendType;
         result.m_nMsaaSampleCount = values.m_bMsaaDefined ? values.m_nMsaaSampleCount : 0;
-        //XML中的vsync属性为true表示开启垂直同步；未配置时使用默认值（禁用垂直同步，与全局默认配置一致）
-        result.m_bDisableVsync = values.m_bVsyncDefined ? !values.m_bVsync : true;
+        //XML中的vsync属性为true表示开启垂直同步；未配置时使用默认值
+        result.m_bDisableVsync = values.m_bVsyncDefined ? !values.m_bVsync : kDefaultDisableVsync;
     }
     else {
         //XML中未配置绘制方式：使用传入的默认配置

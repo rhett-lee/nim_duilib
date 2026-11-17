@@ -77,7 +77,7 @@ GlobalManager::GlobalManager():
     m_bGlobalRenderBackendEnabled(false),
     m_globalRenderBackendType(RenderBackendType::kRaster_BackendType),
     m_globalMsaaSampleCount(0),
-    m_bGlobalDisableVsync(true),
+    m_bGlobalDisableVsync(kDefaultDisableVsync),
     m_bAnimationEnabled(true),
     m_bStartup(false)
 {

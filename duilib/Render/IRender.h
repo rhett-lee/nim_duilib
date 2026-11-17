@@ -1451,6 +1451,12 @@ enum class RenderBackendType
     kNativeGL_BackendType = 1
 };
 
+/** GL绘制方式下，是否默认禁用垂直同步（true表示禁用，false表示启用）
+*   注意：这是全局唯一的默认值定义，所有涉及vsync默认值的位置都必须引用该常量，
+*   后续调整默认vsync行为时只需修改这里
+*/
+constexpr bool kDefaultDisableVsync = true;
+
 /** 计算指定文本字符串的宽度和高度使用的参数
 */
 struct MeasureStringParam
@@ -2310,7 +2316,7 @@ public:
                                               void* platformData,
                                               RenderBackendType backendType = RenderBackendType::kRaster_BackendType,
                                               int32_t nMsaaSampleCount = 0,
-                                              bool bDisableVsync = true) = 0;
+                                              bool bDisableVsync = kDefaultDisableVsync) = 0;
 
     /** 获取字体管理器接口（每个factory共享一个对象）
     */

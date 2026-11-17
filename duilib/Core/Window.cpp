@@ -29,7 +29,7 @@ Window::Window() :
     m_bPostQuitMsgWhenClosed(false),
     m_renderBackendType(RenderBackendType::kRaster_BackendType),
     m_nMsaaSampleCount(0),
-    m_bDisableVsync(true),
+    m_bDisableVsync(kDefaultDisableVsync),
     m_bWindowAttributesApplied(false),
     m_bWindowInitFinished(false),
     m_bCheckSetWindowFocus(false),
@@ -267,6 +267,11 @@ bool Window::SetRenderBackendType(RenderBackendType backendType, int32_t nMsaaSa
     }
     ASSERT(bRet);
     return bRet;
+}
+
+bool Window::SetRenderBackendType(RenderBackendType backendType)
+{
+    return SetRenderBackendType(backendType, m_nMsaaSampleCount, m_bDisableVsync);
 }
 
 void Window::OnWindowRenderCreated()
