@@ -113,6 +113,12 @@ private:
     */
     bool m_bNeedFullRedraw;
 
+    /** 是否跳过 persistent surface 直接绘制到 FBO 0
+    * 全量重绘时置 true：让 getBackbufferSurface() 和 GetSkCanvas() 都返回 FBO 0 的 surface，
+    * 避免 DoPaint 画到 persistent surface 再做 makeImageSnapshot + drawImage 的中间拷贝
+    */
+    bool m_bRenderDirectToFBO0;
+
     /** 是否退化为单采样的绘制表面
     * 部分GPU支持多重采样的窗口缓冲（默认帧缓冲），但不支持多重采样的渲染目标（渲染到纹理），
     * 此时按像素格式报告的采样数创建Skia的绘制表面会失败，导致整个GL后端不可用；

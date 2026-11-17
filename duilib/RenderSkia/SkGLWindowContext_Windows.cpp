@@ -33,6 +33,7 @@ SkGLWindowContext_Windows::SkGLWindowContext_Windows(HWND hWnd, std::unique_ptr<
     m_hDC(nullptr),
     m_fHGLRC(nullptr),
     m_bNeedFullRedraw(true),
+    m_bRenderDirectToFBO0(false),
     m_bSingleSampleSurfaces(false)
 {
     ASSERT(::IsWindow(hWnd));
@@ -132,6 +133,13 @@ sk_sp<SkSurface> SkGLWindowContext_Windows::getBackbufferSurface()
     //同一线程内可能存在多个使用OpenGL绘制的窗口，读取后台缓冲前必须确保本窗口的上下文是当前上下文
     if (!MakeCurrent()) {
         return nullptr;
+    }
+
+    // ---- 渲染模式感知 ----
+    // 当 m_bRenderDirectToFBO0 为 true 时，跳过 persistent surface 直接返回 FBO 0 的 surface
+    // 这样整条链路（GetSkCanvas → IRender::DoPaint）都画到 FBO 0，避免中间拷贝
+    if (m_bRenderDirectToFBO0) {
+        return GetWindowSurface();
     }
 
     //尺寸变化后，持久化表面需要重建
@@ -387,83 +395,90 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* /*pRender*/, IRende
         return false;
     }
 
-    // ---- 先判断是否需要全量重绘 ----
-    // 全量重绘时直接绘制到窗口FBO 0，跳过persistent surface的中间拷贝
-    // （拷贝开销 makeImageSnapshot + drawImage 占了 GL 每帧开销的一半以上）
+    // ---- 先处理 Win32 PAINT 协议 ----
+    PAINTSTRUCT ps = { 0, };
+    ::BeginPaint(hWnd, &ps);
+
     RECT rectClient = { 0, };
     ::GetClientRect(m_hWnd, &rectClient);
     const int32_t clientW = rectClient.right - rectClient.left;
     const int32_t clientH = rectClient.bottom - rectClient.top;
-    bool bNeedFullRedraw = m_bNeedFullRedraw;
-    if (!bNeedFullRedraw && (m_persistentSurface != nullptr)) {
-        // persistent surface 可用：检查 GetUpdateRect 是否返回了整个客户区（表示全量重绘）
-        RECT rectUpdate = { 0, };
-        if (::GetUpdateRect(m_hWnd, &rectUpdate, FALSE)) {
+    RECT rectUpdate = { 0, };
+    const bool bHasUpdateRect = ::GetUpdateRect(m_hWnd, &rectUpdate, FALSE);
+
+    // ---- 判断本次是否全量重绘 ----
+    bool bFullRedraw = m_bNeedFullRedraw;
+    if (!bFullRedraw) {
+        // 注意：屏幕外窗口、已 BeginPaint 的窗口等场景下 GetUpdateRect 可能返回 false，
+        // 此时退化为全量重绘（保证不会因为 GetUpdateRect 无而跳过绘制）
+        if (!bHasUpdateRect) {
+            bFullRedraw = true;
+        }
+        else {
             int32_t updateW = rectUpdate.right - rectUpdate.left;
             int32_t updateH = rectUpdate.bottom - rectUpdate.top;
             if ((updateW >= clientW) && (updateH >= clientH)) {
-                // UpdateRect 覆盖整个客户区 → 全量重绘
-                bNeedFullRedraw = true;
+                bFullRedraw = true;
             }
         }
     }
 
-    // ---- 选择绘制目标 surface ----
-    sk_sp<SkSurface> paintSurface;
-    bool bUsePersistentSurface = false;
-    if (bNeedFullRedraw) {
-        // 全量重绘：直接用窗口的 FBO 0，跳过 persistent surface 拷贝
-        paintSurface = GetWindowSurface();
-        // 如果 persistent surface 存在，reset 掉让它下次按需重建（内容已过期）
+    // ---- 设置渲染模式标志，让整条 DoPaint 链路跟随 ----
+    bool bUsePersistentCopy = false;
+    m_bRenderDirectToFBO0 = false;
+    if (bFullRedraw) {
+        // 全量重绘：跳过 persistent surface，直接画 FBO 0
+        // 这样 DoPaint 里的所有 GetSkCanvas() 都会返回 FBO 0 的 canvas
+        m_bRenderDirectToFBO0 = true;
+        // persistent surface 内容已过期（这次全量重绘会覆盖所有内容），reset 掉释放内存
         if (m_persistentSurface != nullptr) {
             m_persistentSurface.reset();
         }
     }
     else {
-        // 局部重绘：使用 persistent surface（保留帧间内容，只需重绘脏区域）
-        paintSurface = getBackbufferSurface();
-        bUsePersistentSurface = (m_persistentSurface.get() == paintSurface.get());
+        // 局部重绘：必须用 persistent surface（保留帧间内容，只补脏区域）
+        // 先调 getBackbufferSurface 创建/获取 persistent surface
+        sk_sp<SkSurface> persistentSurface = getBackbufferSurface();
+        if (persistentSurface == nullptr) {
+            ::EndPaint(hWnd, &ps);
+            return false;
+        }
+        bUsePersistentCopy = true;
     }
 
-    if (paintSurface == nullptr) {
-        return false;
-    }
-
-    // ---- 确定绘制区域 ----
+    // ---- 确定 rcPaint ----
     UiRect rcPaint;
-    if (bUsePersistentSurface) {
-        // 持久化表面：只需重绘窗口的更新区域
-        RECT rectUpdate = { 0, };
-        if (!::GetUpdateRect(m_hWnd, &rectUpdate, FALSE)) {
-            // 无需绘制
+    if (bFullRedraw) {
+        rcPaint = UiRect(rectClient.left, rectClient.top, rectClient.right, rectClient.bottom);
+    }
+    else {
+        // 局部重绘：只画脏区域
+        if (!bHasUpdateRect) {
+            ::EndPaint(hWnd, &ps);
             return false;
         }
         rcPaint = UiRect(rectUpdate.left, rectUpdate.top, rectUpdate.right, rectUpdate.bottom);
     }
-    else {
-        // 非持久化表面：绘制整个客户区
-        rcPaint = UiRect(rectClient.left, rectClient.top, rectClient.right, rectClient.bottom);
-    }
     if (rcPaint.IsEmpty()) {
-        //无需绘制
+        ::EndPaint(hWnd, &ps);
         return false;
     }
     m_bNeedFullRedraw = false;
 
-    //开始绘制（GL后端不需要 BeginPaint/EndPaint，跳过以减少开销）
-
-    //执行绘制
+    // ---- 执行绘制 ----
+    // DoPaint 内部通过 IRender::GetSkCanvas() → Render_Skia_Windows::GetSkCanvas()
+    //   → m_pWindowContext->getBackbufferSurface() → 我们设的模式标志自动生效
     pRenderPaint->DoPaint(rcPaint);
 
-    if (bUsePersistentSurface) {
-        //局部重绘时：把持久化表面的整幅内容拷贝到窗口的后台缓冲（FBO 0）
+    // ---- 条件性拷贝 persistent surface → FBO 0 ----
+    if (bUsePersistentCopy) {
         sk_sp<SkSurface> backbuffer = GetWindowSurface();
         if (backbuffer != nullptr) {
             SkCanvas* pCanvas = backbuffer->getCanvas();
-            if (pCanvas != nullptr) {
+            if ((pCanvas != nullptr) && (m_persistentSurface != nullptr)) {
                 SkPaint paint;
-                paint.setBlendMode(SkBlendMode::kSrc); // 覆盖，因为 SwapBuffers 后内容未定义
-                sk_sp<SkImage> snapshot = paintSurface->makeImageSnapshot();
+                paint.setBlendMode(SkBlendMode::kSrc);
+                sk_sp<SkImage> snapshot = m_persistentSurface->makeImageSnapshot();
                 if (snapshot != nullptr) {
                     pCanvas->drawImage(snapshot, 0, 0, SkSamplingOptions(SkFilterMode::kNearest), &paint);
                 }
@@ -471,16 +486,17 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* /*pRender*/, IRende
         }
     }
 
-    //标记绘制区域为有效区域
+    // 清理渲染模式标志（必须在 EndPaint + ValidateRect 之前，因为这些 API 可能触发重绘）
+    m_bRenderDirectToFBO0 = false;
+
+    ::EndPaint(hWnd, &ps);
     ::ValidateRect(hWnd, nullptr);
 
-    //提交绘制结果，并刷新到设备DC
     //异步提交(kNo)：SwapBuffers本身会与显示同步，不需要每帧等待CPU完成绘制
     if (auto dContext = this->directContext()) {
         dContext->flushAndSubmit(GrSyncCpu::kNo);
     }
 
-    //绘制完成后，更新到窗口
     swapBuffers();
     return true;
 }
