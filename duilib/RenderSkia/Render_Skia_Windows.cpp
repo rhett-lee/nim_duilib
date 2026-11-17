@@ -14,6 +14,7 @@
 #include "include/core/SkCanvas.h"
 #include "include/core/SkSurface.h"
 #include "include/core/SkRegion.h"
+#include "include/gpu/ganesh/GrContextOptions.h"
 #include "tools/window/DisplayParams.h"
 
 #include "SkiaHeaderEnd.h"
@@ -93,6 +94,18 @@ Render_Skia_Windows::Render_Skia_Windows(HWND hWnd, RenderBackendType backendTyp
         if (bDisableVsync) {
             displayParamsBuilder.disableVsync(true);
         }
+        // 设置 GrContextOptions 优化 GPU 渲染性能
+        // - fAllowMultipleGlyphCacheTextures: 允许 glyph atlas 使用多张纹理，
+        //   减少 atlas 满时的 purge + 重建抖动（DrawString 是 CPU 大头）
+        // - fMinimumStagingBufferSize: 增大到 128KB，让更多小纹理上传
+        //   合并到一个 buffer，减少 glBufferData 调用次数
+        // - fRuntimeProgramCacheSize: 增大到 512，缓存更多 shader program，
+        //   减少 shader 编译（窗口首次创建时 shader 编译开销大）
+        GrContextOptions ctxOptions;
+        ctxOptions.fAllowMultipleGlyphCacheTextures = GrContextOptions::Enable::kYes;
+        ctxOptions.fMinimumStagingBufferSize = 128 * 1024;
+        ctxOptions.fRuntimeProgramCacheSize = 512;
+        displayParamsBuilder.grContextOptions(ctxOptions);
         m_pWindowContext = MakeGLForWin(hWnd, displayParamsBuilder.detach());
 #if !defined(_M_ARM64)
         if (m_pWindowContext == nullptr) {
