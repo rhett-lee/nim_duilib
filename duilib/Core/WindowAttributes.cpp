@@ -312,8 +312,8 @@ RenderBackendAttributes ResolveRenderBackendAttributes(const WindowAttributeValu
         //XML中配置了绘制方式：MSAA与垂直同步只取XML配置值（未配置时使用默认值）
         result.m_backendType = values.m_renderBackendType;
         result.m_nMsaaSampleCount = values.m_bMsaaDefined ? values.m_nMsaaSampleCount : 0;
-        //XML中的vsync属性为true表示开启垂直同步
-        result.m_bDisableVsync = values.m_bVsyncDefined ? !values.m_bVsync : false;
+        //XML中的vsync属性为true表示开启垂直同步；未配置时使用默认值（禁用垂直同步，与全局默认配置一致）
+        result.m_bDisableVsync = values.m_bVsyncDefined ? !values.m_bVsync : true;
     }
     else {
         //XML中未配置绘制方式：使用传入的默认配置
@@ -327,7 +327,7 @@ RenderBackendAttributes ResolveRenderBackendAttributes(const WindowAttributeValu
     if ((result.m_backendType == RenderBackendType::kNativeGL_BackendType) && bNeedLayeredWindowOpacity) {
         result.m_backendType = RenderBackendType::kRaster_BackendType;
         if (!values.m_bRenderBackendTypeDefined) {
-            //使用默认配置降级时，MSAA与垂直同步同时复位
+            //使用默认配置降级时，MSAA与垂直同步同时复位（降级为CPU绘制后不再需要这些配置）
             result.m_nMsaaSampleCount = 0;
             result.m_bDisableVsync = false;
         }

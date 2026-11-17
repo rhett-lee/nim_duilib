@@ -395,55 +395,64 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* /*pRender*/, IRende
         return false;
     }
 
-    // ---- 先处理 Win32 PAINT 协议 ----
-    PAINTSTRUCT ps = { 0, };
-    ::BeginPaint(hWnd, &ps);
-
+    // ---- 查询更新区域 ----
+    // 必须在BeginPaint之前查询：BeginPaint会验证（清空）窗口的更新区域，
+    // 之后再调用GetUpdateRect会恒返回false，局部增量刷新将无法生效
     RECT rectClient = { 0, };
     ::GetClientRect(m_hWnd, &rectClient);
     const int32_t clientW = rectClient.right - rectClient.left;
     const int32_t clientH = rectClient.bottom - rectClient.top;
     RECT rectUpdate = { 0, };
-    const bool bHasUpdateRect = ::GetUpdateRect(m_hWnd, &rectUpdate, FALSE);
+    const bool bHasUpdateRect = (::GetUpdateRect(m_hWnd, &rectUpdate, FALSE) != FALSE);
 
     // ---- 判断本次是否全量重绘 ----
     bool bFullRedraw = m_bNeedFullRedraw;
     if (!bFullRedraw) {
-        // 注意：屏幕外窗口、已 BeginPaint 的窗口等场景下 GetUpdateRect 可能返回 false，
-        // 此时退化为全量重绘（保证不会因为 GetUpdateRect 无而跳过绘制）
         if (!bHasUpdateRect) {
+            //没有更新区域（例如直接调用绘制、窗口尺寸为0等场景）：退化为全量重绘，
+            //保证窗口内容始终正确（不能直接跳过绘制）
             bFullRedraw = true;
         }
         else {
-            int32_t updateW = rectUpdate.right - rectUpdate.left;
-            int32_t updateH = rectUpdate.bottom - rectUpdate.top;
+            const int32_t updateW = rectUpdate.right - rectUpdate.left;
+            const int32_t updateH = rectUpdate.bottom - rectUpdate.top;
             if ((updateW >= clientW) && (updateH >= clientH)) {
+                //更新区域覆盖整个客户区：按全量重绘处理
                 bFullRedraw = true;
             }
         }
     }
 
-    // ---- 设置渲染模式标志，让整条 DoPaint 链路跟随 ----
+    // ---- 设置绘制目标，让整条 DoPaint 链路跟随 ----
     bool bUsePersistentCopy = false;
     m_bRenderDirectToFBO0 = false;
     if (bFullRedraw) {
-        // 全量重绘：跳过 persistent surface，直接画 FBO 0
-        // 这样 DoPaint 里的所有 GetSkCanvas() 都会返回 FBO 0 的 canvas
+        //全量重绘：跳过持久化表面，直接绘制到 FBO 0，避免中间拷贝
         m_bRenderDirectToFBO0 = true;
-        // persistent surface 内容已过期（这次全量重绘会覆盖所有内容），reset 掉释放内存
+        //持久化表面的内容已过期（本次重绘覆盖窗口的全部内容），释放其占用的GPU内存
         if (m_persistentSurface != nullptr) {
             m_persistentSurface.reset();
         }
     }
     else {
-        // 局部重绘：必须用 persistent surface（保留帧间内容，只补脏区域）
-        // 先调 getBackbufferSurface 创建/获取 persistent surface
-        sk_sp<SkSurface> persistentSurface = getBackbufferSurface();
-        if (persistentSurface == nullptr) {
-            ::EndPaint(hWnd, &ps);
+        //局部重绘：绘制到持久化表面（保留帧间内容，只补脏区域），再整体拷贝到 FBO 0
+        if (getBackbufferSurface() == nullptr) {
             return false;
         }
-        bUsePersistentCopy = true;
+        if (m_persistentSurface == nullptr) {
+            //持久化表面不可用（GPU不支持渲染到纹理）：后台缓冲交换后内容未定义，
+            //无法保留上一帧的内容，只能退化为直接绘制到FBO 0的全量重绘
+            m_bRenderDirectToFBO0 = true;
+            bFullRedraw = true;
+        }
+        else {
+            bUsePersistentCopy = true;
+            if (m_bNeedFullRedraw) {
+                //持久化表面刚创建（内容已清为透明）或因窗口尺寸变化重建：
+                //本次必须完整绘制，否则把整幅表面拷贝到窗口后，脏区域以外的内容会被清空
+                bFullRedraw = true;
+            }
+        }
     }
 
     // ---- 确定 rcPaint ----
@@ -452,25 +461,25 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* /*pRender*/, IRende
         rcPaint = UiRect(rectClient.left, rectClient.top, rectClient.right, rectClient.bottom);
     }
     else {
-        // 局部重绘：只画脏区域
-        if (!bHasUpdateRect) {
-            ::EndPaint(hWnd, &ps);
-            return false;
-        }
+        //局部重绘：只绘制脏区域
         rcPaint = UiRect(rectUpdate.left, rectUpdate.top, rectUpdate.right, rectUpdate.bottom);
     }
     if (rcPaint.IsEmpty()) {
-        ::EndPaint(hWnd, &ps);
+        m_bRenderDirectToFBO0 = false;
         return false;
     }
     m_bNeedFullRedraw = false;
+
+    // ---- 按Win32的PAINT协议处理：BeginPaint验证窗口的更新区域 ----
+    PAINTSTRUCT ps = { 0, };
+    ::BeginPaint(hWnd, &ps);
 
     // ---- 执行绘制 ----
     // DoPaint 内部通过 IRender::GetSkCanvas() → Render_Skia_Windows::GetSkCanvas()
     //   → m_pWindowContext->getBackbufferSurface() → 我们设的模式标志自动生效
     pRenderPaint->DoPaint(rcPaint);
 
-    // ---- 条件性拷贝 persistent surface → FBO 0 ----
+    // ---- 局部重绘：把持久化表面的整幅内容拷贝到 FBO 0 ----
     if (bUsePersistentCopy) {
         sk_sp<SkSurface> backbuffer = GetWindowSurface();
         if (backbuffer != nullptr) {
@@ -486,11 +495,10 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* /*pRender*/, IRende
         }
     }
 
-    // 清理渲染模式标志（必须在 EndPaint + ValidateRect 之前，因为这些 API 可能触发重绘）
+    // 清理渲染模式标志（必须在 EndPaint 之前：EndPaint 内部可能触发重绘消息的回调）
     m_bRenderDirectToFBO0 = false;
 
     ::EndPaint(hWnd, &ps);
-    ::ValidateRect(hWnd, nullptr);
 
     //异步提交(kNo)：SwapBuffers本身会与显示同步，不需要每帧等待CPU完成绘制
     if (auto dContext = this->directContext()) {

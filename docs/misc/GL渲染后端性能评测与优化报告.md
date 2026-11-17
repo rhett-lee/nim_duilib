@@ -204,9 +204,10 @@ if (bNeedFullRedraw) {
 - 全量重绘：直接 `DoPaint(rcPaint)` → `flushAndSubmit` → `swapBuffers`，**零拷贝**
 - 局部重绘：`DoPaint(脏区域)` → `makeImageSnapshot + drawImage`（persistent surface 拷贝） → `flushAndSubmit` → `swapBuffers`
 
-### 5.3 附加优化
+### 5.3 附加优化（历史方案，已被 5.5 推翻）
 
-- 移除 GL 后端的 `BeginPaint/EndPaint` 调用——GL 后端通过 `InvalidateRect` + `GetUpdateRect` 已经能获取绘制区域，不需要 GDI 的 PAINTSTRUCT 机制，这对每帧都有开销
+- ~~移除 GL 后端的 `BeginPaint/EndPaint` 调用~~——实际实现中发现：不调用 `BeginPaint` 会导致更新区域一直有效、窗口反复重绘，
+  必须保留 PAINT 协议；最终实现见 5.5
 
 ### 5.4 安全性分析
 
@@ -218,6 +219,51 @@ if (bNeedFullRedraw) {
 | 局部增量刷新（理想场景） | persistent surface 脏区域 + 拷贝 | **保留** persistent surface + 拷贝 | ✅ |
 | FBO 0 包装失败 | 已 fallback 到 persistent surface | 同左 | ✅ |
 | MSAA 退化 | 已在 getBackbufferSurface 处理 | 同左 | ✅ |
+
+### 5.5 最终实现（代码 Review 后的调整）
+
+上面的 5.2 是最初的实现思路，实现过程中有一处与最终代码不同（Review 后已修正）：
+
+1. **恢复 `BeginPaint` / `EndPaint`**（5.3 中"移除 BeginPaint/EndPaint"的做法已被推翻）：
+   GL 后端不响应 `WM_PAINT` 会导致更新区域一直有效、窗口反复收到绘制消息，
+   必须按 Win32 的 PAINT 协议验证更新区域。
+2. **`GetUpdateRect` 必须移到 `BeginPaint` 之前**（详见第十二节问题 1）：
+   `::BeginPaint` 会验证（清空）更新区域，在其之后调用 `::GetUpdateRect` 恒返回 `FALSE`，
+   局部重绘分支会变成永不执行的死代码。修正后的最终实现（保留局部增量刷新）：
+
+```cpp
+// 1. 先查询更新区域（必须在 BeginPaint 之前）
+::GetClientRect(hWnd, &rectClient);
+bHasUpdateRect = ::GetUpdateRect(hWnd, &rectUpdate, FALSE);
+bFullRedraw = m_bNeedFullRedraw || !bHasUpdateRect || (更新区域覆盖整个客户区);
+
+if (bFullRedraw) {
+    m_bRenderDirectToFBO0 = true;           // DoPaint 的 GetSkCanvas() 直接返回 FBO 0
+    m_persistentSurface.reset();            // 释放持久化表面占用的 GPU 内存
+    rcPaint = 整个客户区;
+}
+else {
+    getBackbufferSurface();                 // 创建/获取持久化表面
+    bUsePersistentCopy = (m_persistentSurface != nullptr);
+    if (!bUsePersistentCopy) { /* 无持久化表面：退化为整幅重绘直绘 FBO 0 */ }
+    else if (m_bNeedFullRedraw) { /* 表面刚重建：本次完整绘制 */ rcPaint = 整个客户区; }
+    else { rcPaint = 脏区域; }
+}
+
+// 2. 按 PAINT 协议验证更新区域
+::BeginPaint(hWnd, &ps);
+DoPaint(rcPaint);
+if (bUsePersistentCopy) {
+    // 3. 局部重绘：整幅表面拷贝到 FBO 0（脏区域以外的内容来自上一帧）
+    pCanvas->drawImage(m_persistentSurface->makeImageSnapshot(), 0, 0, kSrc);
+}
+m_bRenderDirectToFBO0 = false;
+::EndPaint(hWnd, &ps);
+flushAndSubmit(kNo);
+SwapBuffers();
+```
+
+即：**全量重绘直绘 FBO 0（零拷贝）；局部重绘绘制到持久化表面后整幅拷贝到 FBO 0（保留脏区域以外的内容）**。
 
 ---
 
@@ -328,19 +374,25 @@ if (skSrcBitmap.peekPixels(&skSrcPixmap)) {
 
 ---
 
-### 7.4 方向四：局部增量刷新模式（★★★☆☆ 暂不动）
+### 7.4 方向四：局部增量刷新模式（★★★☆☆ 已支持，不做新开发）
 
 分两层：
-- **GL 底层**：persistent surface + 拷贝路径已优化，拷贝开销在 GPU 端（`drawImage + kSrc blend`），已高效，GL 底层基本就绪
+- **GL 底层**：**已经支持**——persistent surface + 脏区域重绘 + 整幅拷贝到 FBO 0 的路径在实现"全量重绘直绘 FBO 0"时就已经存在
+  （全量重绘走零拷贝，局部重绘走持久化表面），本次不需要重新开发；
 - **应用层**：要让 controls.exe（或通用控件树）只 invalidate 脏区域而非整窗口 `InvalidateRect(nullptr)`，需要改 `Window::OnPaint` 的 InvalidateRect 策略 + 控件树脏区域传播机制 —— **改动面大**、**涉及上层架构**、**风险高**
 
-建议先不动，等纹理缓存做好后先看实际收益再决定。
+**结论（2026-11-17）：GL 底层的局部增量刷新保持现状（已支持，不做新开发）；应用层的脏区域传播不做。** 原因：
+1. 用户明确决定不再重新开发该优化（原有能力保留，不能删除）；
+2. 代码 Review 发现原实现中 `::GetUpdateRect` 被放在 `::BeginPaint` 之后，导致该能力实际失效（详见第十二节问题 1），已修复为在 `BeginPaint` 之前查询；
+3. 应用层改造风险高，且 `Window::Paint` 会对整棵控件树按 `rcPaint` 裁剪遍历，节省的主要是 GPU 光栅化开销。
 
 ---
 
-### 7.5 方向五：批量 DrawCall 合并（★★☆☆☆ 不动）
+### 7.5 方向五：批量 DrawCall 合并（★★☆☆☆ 不做）
 
-扫描 `SkGLWindowContext_Windows.cpp:496-498`，`flushAndSubmit` **每帧只调一次**——Skia Ganesh 内部的 batching 完全没有被截断。这个方向的瓶颈不在我们的代码，在 Skia 内部的 batching 策略（它已经做得很好了）。**暂时不动**。
+扫描 `SkGLWindowContext_Windows.cpp`，`flushAndSubmit` **每帧只调一次**——Skia Ganesh 内部的 batching 完全没有被截断。这个方向的瓶颈不在我们的代码，在 Skia 内部的 batching 策略（它已经做得很好了）。
+
+**结论（2026-11-17）：本项不做**（用户明确决定）。
 
 ---
 
@@ -351,8 +403,8 @@ if (skSrcBitmap.peekPixels(&skSrcPixmap)) {
 | **① 先做** | **vsync 默认禁用** | 高 | **极低**（1 行） | GL 默认被 vsync 卡 16ms/帧上限，改掉立即生效、零风险 |
 | **② 再做** | **纹理上传缓存** | **极高** | 中 | 解决 GL 后端最大浪费——每帧 CPU→GPU 重复上传 |
 | ③ 后续 | Skia GrDirectContext 调优 | 中 | 中 | shader cache + GPU font atlas |
-| ④ 暂不动 | 局部增量刷新 | 条件性 | 高 | 应用层改动面大 |
-| ⑤ 不动 | DrawCall 合并 | 低 | 高 | 不是我们代码的瓶颈 |
+| ④ 不做新开发 | 局部增量刷新 | 条件性 | 高 | GL 底层已支持（Review 修复了失效问题）；应用层脏区域传播不做 |
+| ⑤ 不做 | DrawCall 合并 | 低 | 高 | 不是我们代码的瓶颈 |
 
 ---
 
@@ -739,6 +791,18 @@ heavy_image workload DrawString 占比低于 medium，ctxOptions 收益相应减
 |------|---------|------|
 | `duilib/RenderSkia/Render_Skia_Windows.cpp` | 性能优化 | 新增 `#include GrContextOptions.h`；GL 后端创建时设置三项选项：`fAllowMultipleGlyphCacheTextures=kYes`、`fMinimumStagingBufferSize=128KB`、`fRuntimeProgramCacheSize=512` |
 
+### 9.6 代码 Review 修复（本轮）
+
+| 文件 | 变更类型 | 说明 |
+|------|---------|------|
+| `duilib/RenderSkia/SkGLWindowContext_Windows.cpp` | 缺陷修复 | `::GetUpdateRect` 移到 `::BeginPaint` 之前（修复局部增量刷新失效）；局部重绘分支增加"持久化表面刚重建时必须完整绘制"的判断；去掉冗余的 `ValidateRect(nullptr)` |
+| `duilib/RenderSkia/SkGLWindowContext_Windows.h` | 缺陷修复 | 修正持久化表面/渲染模式标志的注释（局部增量刷新保留） |
+| `duilib/RenderSkia/Render_Skia_Bitmap.cpp` | 缺陷修复 | 构造与析构时失效 `Bitmap_Skia` 的 SkImage 缓存（零拷贝写入位图像素后缓存内容过期） |
+| `duilib/Core/GlobalManager.cpp` | 一致性修复 | `m_bGlobalDisableVsync` 初值 `false` → `true`，与新的"默认禁用 vsync"保持一致 |
+| `duilib/Core/WindowAttributes.h` | 一致性修复 | `RenderBackendResolveParam::m_bDefaultDisableVsync` 初值 → `true` |
+| `tests/test_gl_window_smoke.cpp` | 测试补充 | 新增 GS-17~GS-19（验证局部增量刷新：脏区域外内容保留、只重绘脏区域） |
+| `tests/test_gl_benchmark.cpp` / `tests/CMakeLists.txt` | 注释修正 | 修正与实现不一致的设计说明与默认参数说明 |
+
 ---
 
 ## 十、结论
@@ -754,7 +818,8 @@ heavy_image workload DrawString 占比低于 medium，ctxOptions 收益相应减
    - benchmark heavy_image (真实 DrawImage)：GL avg **1.30ms** vs 优化前 1.74ms，**快 25%**；CPU 62.5ms vs 234ms，**降 73%**
    - controls.exe / render.exe 真实界面：GL CPU 降幅 2-6%（FILETIME 精度范围内，DrawImage 在真实控件树中占比被稀释）
 7. **四个维度的优化已全部完成**：持久化表面 → vsync → 纹理缓存 → GrContextOptions，GL 后端已发挥出 GPU 加速的完整潜力
-8. **后续方向**：局部增量刷新（应用层架构改动，改动面大、风险高）——暂不实施
+8. **不做项**：GL 底层的局部增量刷新**保持现状（原本已支持，不做新开发）**，应用层的脏区域传播不做；DrawCall 合并不做（原因见 7.4 / 7.5）
+9. **代码 Review**：对 5 次提交做了一次全面 Review，发现并修复 5 个问题（见第十二节），其中"局部增量刷新实际失效"是最关键的缺陷；全部验证通过
 
 ---
 
@@ -830,3 +895,115 @@ heavy_image workload DrawString 占比低于 medium，ctxOptions 收益相应减
 ```
 
 （按规则，仅生成提交日志，不执行 git commit）
+
+---
+
+## 十二、代码 Review 记录（2026-11-17）
+
+**Review 范围**：本报告涉及的 5 次提交 —— `f53092b0`、`97fce0d6`、`4ee76993`、`e7a53bfc`、`d59e7983`
+（共 17 个文件，+1486 / −61 行，含文档）。
+
+**Review 结论**：整体实现方向正确，性能数据可复现；发现 5 个问题（3 个缺陷、2 个一致性/注释问题），已全部修复并验证。
+
+### 12.1 问题清单
+
+| # | 级别 | 位置 | 问题 | 处理 |
+|---|------|------|------|------|
+| 1 | **高** | `SkGLWindowContext_Windows::PaintAndSwapBuffers` | `::GetUpdateRect` 在 `::BeginPaint` **之后**调用。`BeginPaint` 会验证（清空）窗口更新区域，因此 `bHasUpdateRect` 恒为 `FALSE`、`bFullRedraw` 恒为 `TRUE`——**已支持的"局部增量刷新"分支永远不可达（死代码）**，但代码与注释仍表现为"会自动增量绘制" | 把 `::GetUpdateRect` 移到 `::BeginPaint` **之前**查询，恢复局部增量刷新；并把该行为固化为 GS-17~GS-19 |
+| 2 | **高** | `SkGLWindowContext_Windows::PaintAndSwapBuffers`（局部分支） | 局部重绘分支忽略 `getBackbufferSurface()` 内部因"表面刚创建/尺寸变化"而置位的完整重绘状态，随后又无条件清掉该状态：持久化表面刚重建（内容为透明）时只画脏区域，再整幅拷贝到窗口，会清空脏区域以外的内容（内容丢失） | 局部分支判断 `m_bNeedFullRedraw`：表面刚重建时本次按整幅绘制，之后再进入增量模式 |
+| 3 | **中** | `Render_Skia_Bitmap` | 纹理上传缓存只覆盖了 `Bitmap_Skia` 自身 4 个失效点，漏掉零拷贝写入路径：`SkSurfaces::WrapPixels()` 直接写位图像素，不会触发 `InvalidateSkImageCache()`，导致"先 DrawImage、后绘制到位图"时显示旧内容 | 构造函数（WrapPixels 之前）与析构函数均失效缓存 |
+| 4 | **低** | `GlobalManager` / `WindowAttributes.h` | vsync 默认禁用只改了 8 处源码，遗漏 `GlobalManager::m_bGlobalDisableVsync` 成员初值与 `RenderBackendResolveParam::m_bDefaultDisableVsync` 默认值（仍为 `false`，与"默认禁用"矛盾） | 两处初值改为 `true`；GL 降级为 CPU 时的复位值保持 `false`（与 `test_window_attributes` 的既有约定一致） |
+| 5 | **低** | `tests/test_gl_benchmark.cpp`、`tests/CMakeLists.txt` | 注释与实现不一致：benchmark 头部说明有"重新创建窗口跑对称第二组"（实际未实现），CMake 注释写"默认 150 帧"（实际 200 帧） | 按实际实现修正注释 |
+
+问题 1 的证据（临时调试输出，已删除）：
+
+```text
+[DBG] hasUpdate=1 update=20,20,60,40        ← BeginPaint 之前查询：能拿到真实脏区域
+[DBG] painted=0,0,180,140 client=180x140    ← BeginPaint 之后查询：绘制区域恒为整幅客户区
+```
+
+问题 1 的附带结论：**本报告中的所有 GL 性能数据都是在"整幅重绘 + 直绘 FBO 0"路径下测得的**
+（修复前局部路径从未生效），因此本轮修复不改变任何历史性能结论；修复后局部路径才真正开始工作。
+
+### 12.2 修复后的验证
+
+| 验证项 | 结果 |
+|--------|------|
+| Release 静态编译（`DUILIB_DLL=OFF`） | 通过 |
+| `ctest --test-dir out\x64\Release -C Release` | **17/17 通过** |
+| `test_gl_window_smoke.exe` | **41 checks, 0 failed, 0 skipped**（GS-17~GS-19 验证：整幅绘制后第一次局部绘制完整重绘、第二次只重绘脏区域） |
+| `controls.exe`（XML 临时启用 GL）截屏 | 非白像素 **74.2%**，控件/文字/色块均正常 |
+| `render.exe`（XML 临时启用 GL）截屏 | 非白像素 **64.5%**，BMP/WEBP/JPG/ICO/PNG 图片、文字、控件均正常，无全白、无花屏 |
+
+验证用的临时改动（`bin/resources/themes/default/global.xml` 中的 `render_backend_type="GL"`）已还原。
+
+---
+
+## 十三、工作全面总结
+
+### 13.1 起因与目标
+
+用户实测发现：**开启 GL 后端后 CPU 占用与 CPU 绘制相差不大**，怀疑 GPU 加速没有带来实际收益。
+本项工作的目标是：系统评测 GL/Raster 两个后端的执行性能，定位 GPU 红利被抵消的根因，逐项优化并量化收益。
+
+### 13.2 五次提交的脉络
+
+| 提交 | 主题 | 关键改动 | 结果 |
+|------|------|---------|------|
+| `f53092b0` | 性能评测 + 瓶颈修复 | 新增 `test_gl_benchmark`（GL vs Raster）；定位到 persistent surface 的 `makeImageSnapshot + drawImage` 中间拷贝是最大瓶颈；全量重绘时跳过持久化表面直绘 FBO 0（`m_bRenderDirectToFBO0`） | medium 2.16ms → 1.36ms，heavy 2.06ms → 1.15ms |
+| `97fce0d6` | 全白问题修复 | 修正绘制目标选择（FBO 0 与持久化表面混用导致内容错乱）；恢复 `BeginPaint/EndPaint`；修正 smoke 测试挂 6 项 | controls.exe 恢复正常显示 |
+| `4ee76993` | vsync 默认禁用 | 8 处源码默认值 `bDisableVsync = true`（禁用垂直同步），并给出优化方向的优先级排序 | 解除 16ms/帧的 SwapBuffers 阻塞上限 |
+| `e7a53bfc` | 纹理上传缓存 | `Bitmap_Skia` 新增 SkImage 懒创建缓存 + 失效点；`Render_Skia::DrawImage` 复用缓存（Ganesh 纹理只上传一次）；benchmark 新增 `workload=heavy_image` | heavy_image CPU 降 66.7%，Raster 无降级 |
+| `d59e7983` | GrContextOptions 调优 | glyph atlas 允许多纹理、staging buffer 128KB、runtime program cache 512 | medium CPU 降 87%、wall 快 3.2×、FPS 303 → 962（单项收益最大） |
+
+### 13.3 优化收益汇总（最终版）
+
+| 场景 | 指标 | Raster | GL 最终版 | 结论 |
+|------|------|--------|----------|------|
+| benchmark medium（FillRect + DrawString 密集） | avg / CPU | 0.91ms / 141ms | **1.04ms / 31ms** | wall 略慢 14%，CPU **降 78%** |
+| benchmark heavy（FillRect + DrawString） | avg / CPU | 2.12ms / 453ms | **1.58ms / 78ms** | wall **快 34%**，CPU **降 83%** |
+| benchmark heavy_image（真实 DrawImage） | avg / CPU | — | **1.30ms / 62.5ms**（优化前 1.74ms / 234ms） | wall **快 25%**，CPU **降 73%** |
+| controls.exe（真实界面） | CPU | 基线 | 降 2~6% | 真实控件树中 DrawImage 占比被稀释 |
+| render.exe（真实界面，图片多） | CPU | 基线 | 降 2~6% | 同上 |
+
+核心结论：**GL 后端的价值主要体现为"把 CPU 从光栅化中解放出来"（CPU 降 73%~87%），
+而不是单帧 wall-clock 的绝对领先**；当绘制负载以文字/几何为主时，Ganesh 的命令提交开销会让 wall-clock 与 Raster 接近。
+
+### 13.4 验证矩阵
+
+| 维度 | 工具/方法 | 覆盖内容 |
+|------|-----------|---------|
+| 单元测试 | ctest 17 个用例 | 渲染 API、位图、窗口属性、XML 页面、GL 多窗口冒烟 |
+| GL 专项 | `test_gl_window_smoke`（41 checks） | 双窗口/双上下文交替绘制、缩放、运行中切换后端、离屏复用、局部增量刷新 |
+| 微基准 | `test_gl_benchmark`（4 种 workload） | 同一窗口先 Raster 后 GL，wall-clock / CPU / 分位数 / 直方图 |
+| 真实程序 | `controls.exe`、`render.exe` + 截屏 | 真实控件树下的显示正确性与 CPU 占用 |
+| 回归对比 | `git stash` 开关单项优化 | 保证每次优化的收益可单独归因，Raster 无降级 |
+
+### 13.5 经验与教训
+
+1. **Win32 PAINT 协议**：`BeginPaint` 会验证（清空）更新区域，`GetUpdateRect` 必须在它之前调用；否则判断恒为"无脏区域"。
+2. **不可达分支要靠运行时证据确认**：本次"局部增量刷新"看起来逻辑完整，实际从未执行；用临时打印 + 断言才发现。
+3. **缓存失效点必须列全**：`Bitmap_Skia` 的像素可能被 `Init`、`InitImage`、`UnLockPixelBits`，以及 `Render_Skia_Bitmap` 的零拷贝写入修改，任何一条路径遗漏都会显示旧内容。
+4. **默认值修改要全局搜索**：函数默认参数、成员初值、结构体默认值、XML 解析默认值四类位置都要覆盖。
+5. **GL 的后台缓冲交换后内容未定义**：需要跨帧复用的内容必须放在持久化表面，直接读 FBO 0 的历史内容不可靠。
+6. **测试要能观测真实行为**：原 `SmokePaint` 每帧 `Clear` 整幅画布，天然掩盖了"脏区外内容被清空"的问题；新断言改为检查 `DoPaint` 收到的 `rcPaint`。
+7. **性能评测要两条腿走路**：微基准负责归因（变量单一），真实程序负责确认端到端收益。
+
+### 13.6 不做项与后续可选方向
+
+**不做**（本次明确决策）：
+- 局部增量刷新的**应用层**改造（第 7.4 节）：GL 底层原本已支持该能力（Review 修复后已真正生效），不需要重新开发；
+  应用层让控件树只 invalidate 脏区域的改造收益有限、风险高，不做；
+- DrawCall 合并（第 7.5 节）：`flushAndSubmit` 每帧仅一次，瓶颈在 Skia 内部分批策略，不在本库代码。
+
+**后续可选**（未排期）：
+- 继续评估 `GrContextOptions` 的 `fGpuFontCache`、`fAtlasMaxSize` 等选项；
+- 大图纹理的降采样/图集化，减少超尺寸纹理的显存与上传开销；
+- 评估 Skia Graphite 后端在 Windows 上的成熟度（需另做可行性验证）。
+
+### 13.7 最终状态
+
+- GL 后端：**全量重绘直绘 FBO 0（零拷贝）；局部重绘绘制到持久化表面后整幅拷贝到 FBO 0（脏区域外内容保留）**；vsync 默认禁用；GrContextOptions 已调优；
+- 纹理：同一 `Bitmap_Skia` 的 SkImage 跨帧复用，失效点齐全；
+- 质量：ctest 17/17、GL 冒烟 41/41、controls.exe / render.exe 显示正常；
+- 结论：GL 后端已经把"GPU 加速应有的收益"（CPU 占用大幅下降）落实到位，剩余空间属于应用层与 Skia 上游，不在本次范围内。

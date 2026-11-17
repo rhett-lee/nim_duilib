@@ -288,7 +288,7 @@ struct DUILIB_API RenderBackendResolveParam
 
     /** 默认是否关闭垂直同步
     */
-    bool m_bDefaultDisableVsync = false;
+    bool m_bDefaultDisableVsync = true;
 };
 
 /** 渲染后端属性的推导结果

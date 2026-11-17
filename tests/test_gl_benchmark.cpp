@@ -3,9 +3,8 @@
 //
 // 设计：
 //   同一窗口实例上，先运行 Raster 绘制 N 帧，再切换为 GL 绘制 N 帧，
-//   记录 wall-clock 耗时、CPU 时间、以及每帧耗时分布。
-//   然后销毁窗口，重新创建后跑对称的第二组，以便排除"先后顺序"效应。
-//   最终取两组中 Raster/GL 各自较好的数字（warmup 完成后）。
+//   每种后端先 warmup 30 帧，再记录 wall-clock 耗时、CPU 时间、以及每帧耗时分布。
+//   窗口只创建一次（保持变量单一），退出前切回 Raster 再销毁。
 //
 // 用法：直接运行；或 benchmark.exe frames=200 size=1280x800 workload=heavy
 

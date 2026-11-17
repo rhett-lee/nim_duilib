@@ -30,11 +30,21 @@ Render_Skia_Bitmap::Render_Skia_Bitmap(IBitmap* pBitmap):
     if (!pBitmapSkia->GetSkBitmap().peekPixels(&pixmap)) {
         return;
     }
+    //该位图即将被绘制（像素内容会改变）：先失效 SkImage 缓存，避免绘制过程中复用旧内容
+    pBitmapSkia->InvalidateSkImageCache();
     //零拷贝：直接包装位图的像素内存，绘制结果写入位图
     m_skSurface = SkSurfaces::WrapPixels(pixmap);
 }
 
-Render_Skia_Bitmap::~Render_Skia_Bitmap() = default;
+Render_Skia_Bitmap::~Render_Skia_Bitmap()
+{
+    //像素内容已被修改：失效 SkImage 缓存，
+    //否则后续用 DrawImage 绘制该位图时会复用旧的 SkImage（内容过期）
+    Bitmap_Skia* pBitmapSkia = dynamic_cast<Bitmap_Skia*>(m_pBitmap);
+    if (pBitmapSkia != nullptr) {
+        pBitmapSkia->InvalidateSkImageCache();
+    }
+}
 
 RenderBackendType Render_Skia_Bitmap::GetRenderBackendType() const
 {

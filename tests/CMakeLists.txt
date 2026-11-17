@@ -686,7 +686,7 @@ endif()
 # GL vs Raster 渲染后端性能基准（不注册到 ctest，属于手工运行的评估工具）
 #
 # 对比同一绘制负载在 Raster/GL 后端下的墙钟时间与 CPU 时间，识别 GPU 红利是否被
-# CPU 侧开销抵消。默认 150 帧 960x600 medium 负载，Release 构建运行：
+# CPU 侧开销抵消。默认 200 帧 960x600 medium 负载，Release 构建运行：
 #   python build/build.py build --offline --target test_gl_benchmark
 #   out/x64/Release/tests/test_gl_benchmark.exe frames=200 size=1280x800 workload=heavy
 if(WIN32)

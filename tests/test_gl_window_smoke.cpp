@@ -7,6 +7,7 @@
 //  GS-06 ~ GS-08  窗口缩放（重建持久化表面与窗口后台缓冲表面）
 //  GS-09 ~ GS-12  运行过程中切换后端（GL -> CPU -> GL，模拟 Window::SetRenderBackendType）
 //  GS-13 ~ GS-16  两个GL窗口存活时，离屏GPU渲染复用窗口上下文
+//  GS-17 ~ GS-19  局部更新区域下只重绘脏区域（局部增量刷新）
 //
 // 说明：
 //  1. 本测试会创建真实窗口（位于屏幕外、不激活），因此仅在 Windows 平台构建；
@@ -269,6 +270,28 @@ void TestGLMultiWindow(ui::IRenderFactory* pRenderFactory)
         //离屏渲染结束后，窗口渲染仍可继续绘制
         CHECK(PaintOnce(pRenderA.get(), painterA, hWndA));
         CHECK(PaintOnce(pRenderB.get(), painterB, hWndB));
+    }
+
+    //GS-17 ~ GS-19：局部增量刷新
+    //GL后端在持久化表面可用时，只重绘窗口的更新区域，再把整幅表面拷贝到窗口
+    {
+        //先做一次整幅绘制（此时持久化表面会被释放）
+        CHECK(PaintOnce(pRenderA.get(), painterA, hWndA));
+        RECT rcPartial = { 20, 20, 60, 40 };
+        //第一次局部绘制：持久化表面需要重建，本次必须完整绘制一遍
+        ::InvalidateRect(hWndA, &rcPartial, FALSE);
+        CHECK(pRenderA->PaintAndSwapBuffers(&painterA));
+        CHECK(!painterA.GetLastPaintRect().IsEmpty());
+        //第二次局部绘制：只重绘脏区域
+        ::InvalidateRect(hWndA, &rcPartial, FALSE);
+        CHECK(pRenderA->PaintAndSwapBuffers(&painterA));
+        const ui::UiRect& rcPainted = painterA.GetLastPaintRect();
+        CHECK(!rcPainted.IsEmpty());
+        //绘制区域必须落在更新区域内
+        CHECK((rcPainted.left >= rcPartial.left) && (rcPainted.top >= rcPartial.top));
+        CHECK((rcPainted.right <= rcPartial.right) && (rcPainted.bottom <= rcPartial.bottom));
+        //确认没有被扩大为整幅重绘
+        CHECK((rcPainted.Width() < pRenderA->GetWidth()) || (rcPainted.Height() < pRenderA->GetHeight()));
     }
 
     //按"先销毁渲染对象、后销毁窗口"的顺序清理（与窗口的生命周期约束一致）
