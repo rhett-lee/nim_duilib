@@ -3,6 +3,8 @@
 
 #include "duilib/Core/UiRect.h"
 
+#include <cstddef>
+
 #include "SkiaHeaderBegin.h"
 #include "include/core/SkImage.h"
 #include "include/core/SkCanvas.h"
@@ -35,6 +37,23 @@ public:
                           const UiRect& rcSrc,
                           const SkPaint& skPaint,
                           const SkSamplingOptions& skSampling);
+
+public:
+    /** 清空图片缩放结果缓存（同时清零命中计数，用于测试与内存回收）
+    */
+    static void ClearImageScaleCache();
+
+    /** 获取图片缩放结果缓存的条目数
+    */
+    static size_t GetImageScaleCacheCount();
+
+    /** 获取图片缩放结果缓存的命中次数（累计值）
+    */
+    static size_t GetImageScaleCacheHitCount();
+
+    /** 启用/禁用图片缩放结果缓存（禁用时会清空已有缓存，用于A/B性能对比与问题定位）
+    */
+    static void EnableImageScaleCache(bool bEnable);
 
 };
 

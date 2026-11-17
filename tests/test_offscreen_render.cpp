@@ -24,6 +24,7 @@
 #include "duilib/Core/UiFont.h"
 #include "duilib/Image/ImageUtil.h"
 #include "duilib/Render/IRender.h"
+#include "duilib/RenderSkia/DrawSkiaImage.h"
 #include "duilib/Utils/FileUtil.h"
 #include "duilib/Utils/FilePath.h"
 #include "duilib/Utils/StringConvert.h"
@@ -740,6 +741,212 @@ void TestMultiPaintRects(ui::IRenderFactory* pRenderFactory)
     }
 }
 
+// ---------------------------------------------------------------------------
+// K. 图片缩放结果缓存（OS-40 ~ OS-44）
+// ---------------------------------------------------------------------------
+/** 创建四象限位图：左上红、右上绿、左下蓝、右下白（用于校验缩放后的像素） */
+std::unique_ptr<ui::IBitmap> CreateQuadrantBitmap(ui::IRenderFactory* pRenderFactory,
+                                                  uint32_t nWidth, uint32_t nHeight)
+{
+    if ((pRenderFactory == nullptr) || (nWidth < 2) || (nHeight < 2)) {
+        return nullptr;
+    }
+    std::unique_ptr<ui::IBitmap> pBitmap(pRenderFactory->CreateBitmap(nWidth, nHeight, ui::AlphaType::kPremul));
+    if ((pBitmap == nullptr) || !pBitmap->IsValid()) {
+        return nullptr;
+    }
+    uint32_t* pBits = (uint32_t*)pBitmap->LockPixelBits();
+    if (pBits == nullptr) {
+        return nullptr;
+    }
+    const uint32_t nHalfWidth = nWidth / 2;
+    const uint32_t nHalfHeight = nHeight / 2;
+    for (uint32_t y = 0; y < nHeight; ++y) {
+        for (uint32_t x = 0; x < nWidth; ++x) {
+            uint32_t nColor = kRedColor;
+            if (x < nHalfWidth) {
+                nColor = (y < nHalfHeight) ? kRedColor : kBlueColor;
+            }
+            else {
+                nColor = (y < nHalfHeight) ? kGreenColor : kWhiteColor;
+            }
+            pBits[(size_t)y * nWidth + x] = nColor;
+        }
+    }
+    pBitmap->UnLockPixelBits();
+    return pBitmap;
+}
+
+void TestImageScaleCache(ui::IRenderFactory* pRenderFactory)
+{
+    using ui::DrawSkiaImage;
+
+    DrawSkiaImage::EnableImageScaleCache(true);
+    DrawSkiaImage::ClearImageScaleCache();
+
+    std::unique_ptr<ui::IBitmap> pBitmap = CreateQuadrantBitmap(pRenderFactory, 64, 64);
+    CHECK(pBitmap != nullptr);
+    if (pBitmap == nullptr) {
+        return;
+    }
+
+    //OS-40 缓存基本行为：首次出现只记录准入，第二次出现创建缓存，之后命中；
+    //      目标尺寸变化时按新key重新走准入流程
+    {
+        std::unique_ptr<ui::IRender> pRender = pRenderFactory->CreateOffscreenRender(32, 32);
+        CHECK(pRender != nullptr);
+        if (pRender != nullptr) {
+            pRender->Clear(ui::UiColor(kWhiteColor));
+            //第1次：只记录，不缓存（一次性绘制的内容不付出额外开销）
+            pRender->DrawImage(pBitmap.get(), ui::UiRect(0, 0, 32, 32));
+            CHECK(DrawSkiaImage::GetImageScaleCacheCount() == 0);
+            CHECK(DrawSkiaImage::GetImageScaleCacheHitCount() == 0);
+
+            //第2次：创建缓存条目
+            pRender->DrawImage(pBitmap.get(), ui::UiRect(0, 0, 32, 32));
+            CHECK(DrawSkiaImage::GetImageScaleCacheCount() == 1);
+            CHECK(DrawSkiaImage::GetImageScaleCacheHitCount() == 0);
+
+            //第3次：命中缓存
+            pRender->DrawImage(pBitmap.get(), ui::UiRect(0, 0, 32, 32));
+            CHECK(DrawSkiaImage::GetImageScaleCacheCount() == 1);
+            CHECK(DrawSkiaImage::GetImageScaleCacheHitCount() == 1);
+
+            //目标尺寸变化：按新key重新走准入流程，两次绘制后产生第二个条目
+            pRender->DrawImage(pBitmap.get(), ui::UiRect(0, 0, 16, 16));
+            CHECK(DrawSkiaImage::GetImageScaleCacheCount() == 1);
+            pRender->DrawImage(pBitmap.get(), ui::UiRect(0, 0, 16, 16));
+            CHECK(DrawSkiaImage::GetImageScaleCacheCount() == 2);
+            CHECK(DrawSkiaImage::GetImageScaleCacheHitCount() == 1);
+        }
+    }
+
+    //OS-41 缓存路径的像素正确性：最近邻缩放后四个象限的颜色位置正确
+    {
+        std::unique_ptr<ui::IRender> pRender = pRenderFactory->CreateOffscreenRender(32, 32);
+        CHECK(pRender != nullptr);
+        if (pRender != nullptr) {
+            pRender->Clear(ui::UiColor(kWhiteColor));
+            pRender->DrawImage(pBitmap.get(), ui::UiRect(0, 0, 32, 32));  //命中缓存
+            CHECK(DrawSkiaImage::GetImageScaleCacheHitCount() == 2);
+
+            uint32_t nColor = 0;
+            CHECK(ReadPixel(pRender.get(), 4, 4, nColor) && (nColor == kRedColor));
+            CHECK(ReadPixel(pRender.get(), 28, 4, nColor) && (nColor == kGreenColor));
+            CHECK(ReadPixel(pRender.get(), 4, 28, nColor) && (nColor == kBlueColor));
+            CHECK(ReadPixel(pRender.get(), 28, 28, nColor) && (nColor == kWhiteColor));
+        }
+    }
+
+    //OS-42 Alpha 不被烘焙进缓存：同一缓存条目支持不同的 uFade
+    {
+        std::unique_ptr<ui::IRender> pRender = pRenderFactory->CreateOffscreenRender(16, 16);
+        CHECK(pRender != nullptr);
+        if (pRender != nullptr) {
+            //50% 透明的红色覆盖在白色背景上：R=255，G/B 约为 127
+            pRender->Clear(ui::UiColor(kWhiteColor));
+            ui::ImageDrawParam drawParam;
+            drawParam.uFade = 0x80;
+            pRender->DrawImage(pBitmap.get(), ui::UiRect(0, 0, 16, 16), ui::UiRect(0, 0, 64, 64), drawParam);
+
+            uint32_t nColor = 0;
+            CHECK(ReadPixel(pRender.get(), 4, 4, nColor));
+            CHECK(((nColor >> 16) & 0xFF) == 0xFF);
+            const int32_t nGreen = (int32_t)((nColor >> 8) & 0xFF);
+            const int32_t nBlue = (int32_t)(nColor & 0xFF);
+            CHECK((nGreen >= 120) && (nGreen <= 136));
+            CHECK((nBlue >= 120) && (nBlue <= 136));
+
+            //同一缓存条目再以完全不透明绘制：必须是纯红（说明Alpha没有写入缓存内容）
+            pRender->Clear(ui::UiColor(kWhiteColor));
+            pRender->DrawImage(pBitmap.get(), ui::UiRect(0, 0, 16, 16));
+            CHECK(ReadPixel(pRender.get(), 4, 4, nColor) && (nColor == kRedColor));
+        }
+    }
+
+    //OS-43 不进入缓存的绘制路径：子区域、无缩放、小图、缓存被禁用
+    {
+        std::unique_ptr<ui::IRender> pRender = pRenderFactory->CreateOffscreenRender(32, 32);
+        CHECK(pRender != nullptr);
+        if (pRender != nullptr) {
+            DrawSkiaImage::ClearImageScaleCache();
+            CHECK(DrawSkiaImage::GetImageScaleCacheCount() == 0);
+
+            //子区域绘制（非整幅源图）
+            pRender->DrawImage(pBitmap.get(), ui::UiRect(0, 0, 16, 16), ui::UiRect(0, 0, 32, 32), ui::ImageDrawParam());
+            CHECK(DrawSkiaImage::GetImageScaleCacheCount() == 0);
+
+            //目标尺寸与源尺寸相同（无缩放）
+            pRender->DrawImage(pBitmap.get(), ui::UiRect(0, 0, 64, 64));
+            CHECK(DrawSkiaImage::GetImageScaleCacheCount() == 0);
+
+            //源图片小于 64x64：不进入缓存
+            std::unique_ptr<ui::IBitmap> pSmallBitmap = CreateQuadrantBitmap(pRenderFactory, 32, 32);
+            CHECK(pSmallBitmap != nullptr);
+            if (pSmallBitmap != nullptr) {
+                pRender->DrawImage(pSmallBitmap.get(), ui::UiRect(0, 0, 16, 16));
+                CHECK(DrawSkiaImage::GetImageScaleCacheCount() == 0);
+            }
+
+            //禁用缓存：缩放绘制仍正确，但不产生缓存条目
+            DrawSkiaImage::EnableImageScaleCache(false);
+            CHECK(DrawSkiaImage::GetImageScaleCacheCount() == 0);
+            pRender->Clear(ui::UiColor(kWhiteColor));
+            pRender->DrawImage(pBitmap.get(), ui::UiRect(0, 0, 32, 32));
+            CHECK(DrawSkiaImage::GetImageScaleCacheCount() == 0);
+            CHECK(DrawSkiaImage::GetImageScaleCacheHitCount() == 0);
+            uint32_t nColor = 0;
+            CHECK(ReadPixel(pRender.get(), 4, 4, nColor) && (nColor == kRedColor));
+            CHECK(ReadPixel(pRender.get(), 28, 28, nColor) && (nColor == kWhiteColor));
+
+            DrawSkiaImage::EnableImageScaleCache(true);
+        }
+    }
+
+    //OS-44 源图片内容变化后缓存失效：按新的 uniqueID 生成新条目，绘制结果同步更新
+    {
+        std::unique_ptr<ui::IRender> pRender = pRenderFactory->CreateOffscreenRender(32, 32);
+        CHECK(pRender != nullptr);
+        if (pRender != nullptr) {
+            DrawSkiaImage::ClearImageScaleCache();
+            pRender->DrawImage(pBitmap.get(), ui::UiRect(0, 0, 32, 32));  //第1次：只记录准入
+            CHECK(DrawSkiaImage::GetImageScaleCacheCount() == 0);
+            pRender->DrawImage(pBitmap.get(), ui::UiRect(0, 0, 32, 32));  //第2次：创建缓存
+            CHECK(DrawSkiaImage::GetImageScaleCacheCount() == 1);
+
+            //把源图片整体改为绿色（内容变化后 Bitmap_Skia 会重建 SkImage）
+            uint32_t* pBits = (uint32_t*)pBitmap->LockPixelBits();
+            CHECK(pBits != nullptr);
+            if (pBits != nullptr) {
+                for (size_t i = 0; i < (size_t)64 * 64; ++i) {
+                    pBits[i] = kGreenColor;
+                }
+                pBitmap->UnLockPixelBits();
+            }
+
+            pRender->Clear(ui::UiColor(kWhiteColor));
+            pRender->DrawImage(pBitmap.get(), ui::UiRect(0, 0, 32, 32));  //新uniqueID：只记录准入
+            CHECK(DrawSkiaImage::GetImageScaleCacheCount() == 1);
+
+            uint32_t nColor = 0;
+            CHECK(ReadPixel(pRender.get(), 4, 4, nColor) && (nColor == kGreenColor));
+            CHECK(ReadPixel(pRender.get(), 28, 28, nColor) && (nColor == kGreenColor));
+
+            pRender->DrawImage(pBitmap.get(), ui::UiRect(0, 0, 32, 32));  //创建新缓存条目
+            CHECK(DrawSkiaImage::GetImageScaleCacheCount() == 2);
+            CHECK(DrawSkiaImage::GetImageScaleCacheHitCount() == 0);
+
+            pRender->Clear(ui::UiColor(kWhiteColor));
+            pRender->DrawImage(pBitmap.get(), ui::UiRect(0, 0, 32, 32));  //命中新缓存
+            CHECK(DrawSkiaImage::GetImageScaleCacheHitCount() == 1);
+            CHECK(ReadPixel(pRender.get(), 4, 4, nColor) && (nColor == kGreenColor));
+            CHECK(ReadPixel(pRender.get(), 28, 28, nColor) && (nColor == kGreenColor));
+        }
+    }
+
+    DrawSkiaImage::ClearImageScaleCache();
+}
+
 }//namespace
 
 int main(int /*argc*/, char* /*argv*/[])
@@ -781,6 +988,7 @@ int main(int /*argc*/, char* /*argv*/[])
             TestCompatEntry(pRenderFactory);
             TestBitmapExport(pRenderFactory);
             TestMultiPaintRects(pRenderFactory);
+            TestImageScaleCache(pRenderFactory);
         }
     }
 

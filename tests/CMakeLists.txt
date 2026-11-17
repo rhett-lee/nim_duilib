@@ -408,6 +408,44 @@ if(WIN32)
     endif()
 endif()
 
+# 图片缩放结果缓存的性能基准（不注册到 ctest，属于手工运行的评估工具）
+#
+# 对比 DrawSkiaImage 的"缩放结果缓存 + 1:1绘制"开启/关闭时的单次绘制耗时，
+# 覆盖静态大图、动图首轮帧序列、小图（低于缓存阈值）三类场景。
+# 评测请使用 Release 配置：
+#   python build/build.py build --offline --target bench_image_scale_cache
+#   out/x64/Release/tests/bench_image_scale_cache.exe --iterations 1000
+if(WIN32)
+    add_executable(bench_image_scale_cache
+        bench_image_scale_cache.cpp
+    )
+    target_include_directories(bench_image_scale_cache PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../"
+        "${DUILIB_SKIA_SRC_ROOT_DIR}"
+    )
+    target_link_directories(bench_image_scale_cache PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(bench_image_scale_cache PRIVATE
+        duilib
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(bench_image_scale_cache PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(bench_image_scale_cache PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(bench_image_scale_cache PRIVATE
+        UNICODE _UNICODE NOMINMAX WIN32_LEAN_AND_MEAN
+        DUILIB_BENCH_RESOURCE_DIR="${CMAKE_SOURCE_DIR}/bin/resources"
+    )
+    if(MSVC)
+        target_compile_options(bench_image_scale_cache PRIVATE /utf-8)
+    endif()
+endif()
+
+
 # 文字绘制相关类的单元测试：
 # 覆盖文本归一化、按编码枚举/转换、字形运行构建、单字符/整段测量、
 # 断行与布局、横向对齐/字间距/纵向文本测量与绘制、富文本省略号截断的绘制缓存路径。
@@ -608,6 +646,7 @@ if(WIN32)
     )
     target_include_directories(test_offscreen_render PRIVATE
         "${CMAKE_CURRENT_LIST_DIR}/../"
+        "${DUILIB_SKIA_SRC_ROOT_DIR}"
     )
     target_link_directories(test_offscreen_render PRIVATE
         "${DUILIB_LIB_PATH}"

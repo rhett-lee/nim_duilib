@@ -12,7 +12,15 @@
 #include "include/core/SkBitmap.h"
 #include "include/core/SkImageInfo.h"
 #include "include/core/SkData.h"
+#include "include/core/SkMatrix.h"
+#include "include/core/SkSurface.h"
 #include "SkiaHeaderEnd.h"
+
+#include <cstdint>
+#include <cstring>
+#include <list>
+#include <mutex>
+#include <unordered_map>
 
 //定义DUILIB_HAVE_OPENCV这个宏，表示启用OpenCV，使用OpenCV对图片进行缩放，速度是最快的
 //如果启用，需要做如下处理：
@@ -40,6 +48,294 @@
 
 namespace ui 
 {
+
+/** 图片缩放结果缓存的实现
+*
+* 背景：Skia 的 drawImageRect 每次绘制都会重新采样，图片从大尺寸缩到显示尺寸时开销较大
+*       （首页大图缩到 100~200 px，实测约 0.05 ms/张/帧）。由于同一个图片的显示尺寸在
+*       多帧之间通常不变，可以缓存"已缩放到目标尺寸"的 SkImage，绘制时按 1:1 拷贝，
+*       该优化对 Raster/GL/SDL 各后端通用（GL 后端还避免了重复的光栅化上传前采样）。
+*
+* 失效策略：缓存 key 包含源 SkImage 的 uniqueID（内容变化即生成新的 SkImage，uniqueID 变化）、
+*           目标宽高（控件尺寸/DPI 变化即变化）与采样参数，因此无需显式失效逻辑；
+*           缓存按字节数 + 条目数做 LRU 淘汰，内存占用有上限。
+*/
+namespace
+{
+/** 缓存占用的总字节数上限（超过后按 LRU 淘汰） */
+constexpr size_t kImageScaleCacheMaxBytes = 64 * 1024 * 1024;
+
+/** 缓存条目数上限 */
+constexpr size_t kImageScaleCacheMaxEntries = 512;
+
+/** 准入记录的条目数上限（记录"首次出现"的key，用于避免一次性绘制的内容进入缓存） */
+constexpr size_t kImageScaleCacheMaxPendingKeys = 256;
+
+/** 单个缓存条目允许的最大字节数（超过则不缓存，避免一张大图把缓存挤空） */
+constexpr size_t kImageScaleCacheMaxEntryBytes = kImageScaleCacheMaxBytes / 4u;
+
+/** 源图片像素数小于该值时，缩放本身很快，不进入缓存（避免图标类小图污染缓存） */
+constexpr int64_t kImageScaleCacheMinSrcPixels = 64 * 64;
+
+/** 缓存key：源图片 + 目标宽高 + 采样参数 */
+struct ImageScaleCacheKey
+{
+    uint32_t nImageID = 0;
+    int32_t nWidth = 0;
+    int32_t nHeight = 0;
+    uint32_t nSamplingKey = 0;
+
+    bool operator == (const ImageScaleCacheKey& r) const
+    {
+        return (nImageID == r.nImageID) && (nWidth == r.nWidth) &&
+               (nHeight == r.nHeight) && (nSamplingKey == r.nSamplingKey);
+    }
+};
+
+struct ImageScaleCacheKeyHash
+{
+    size_t operator()(const ImageScaleCacheKey& key) const
+    {
+        size_t nHash = std::hash<uint32_t>()(key.nImageID);
+        nHash = nHash * 31 + std::hash<int32_t>()(key.nWidth);
+        nHash = nHash * 31 + std::hash<int32_t>()(key.nHeight);
+        nHash = nHash * 31 + std::hash<uint32_t>()(key.nSamplingKey);
+        return nHash;
+    }
+};
+
+/** 把采样参数编码成整数，用于缓存key */
+uint32_t MakeSamplingKey(const SkSamplingOptions& sampling)
+{
+    uint32_t nKey = ((uint32_t)sampling.filter) & 0x03u;
+    nKey |= (((uint32_t)sampling.mipmap) & 0x03u) << 2;
+    if (sampling.useCubic) {
+        nKey |= 0x10u;
+        uint32_t nB = 0;
+        uint32_t nC = 0;
+        static_assert(sizeof(float) == sizeof(uint32_t), "float must be 32-bit");
+        ::memcpy(&nB, &sampling.cubic.B, sizeof(uint32_t));
+        ::memcpy(&nC, &sampling.cubic.C, sizeof(uint32_t));
+        nKey ^= (nB * 0x9E3779B9u) ^ (nC * 0x85EBCA6Bu);
+    }
+    return nKey;
+}
+
+struct ImageScaleCacheEntry
+{
+    sk_sp<SkImage> pImage;
+    size_t nBytes = 0;
+    std::list<ImageScaleCacheKey>::iterator lruIt;
+};
+
+/** 图片缩放结果的 LRU 缓存（支持多线程并发访问，绘制可能发生在多个UI线程） */
+class ImageScaleCache
+{
+public:
+    /** 获取进程内唯一实例（故意不析构，避免静态析构顺序问题） */
+    static ImageScaleCache& Instance();
+
+    bool IsEnabled() const;
+    void Enable(bool bEnable);
+
+    /** 查找缓存（命中时更新 LRU 顺序），未命中返回 nullptr */
+    sk_sp<SkImage> Find(const ImageScaleCacheKey& key);
+
+    /** 准入判断：同一个key首次出现时只记录、不缓存（一次性绘制的内容不产生额外开销），
+    *   第二次出现时才允许创建缓存。返回 true 表示允许创建缓存。
+    */
+    bool Admit(const ImageScaleCacheKey& key);
+
+    /** 插入缓存（已存在相同 key 时不重复插入） */
+    void Insert(const ImageScaleCacheKey& key, const sk_sp<SkImage>& pImage);
+
+    void Clear();
+
+    size_t GetEntryCount() const;
+    size_t GetHitCount() const;
+
+private:
+    ImageScaleCache() = default;
+    ImageScaleCache(const ImageScaleCache&) = delete;
+    ImageScaleCache& operator = (const ImageScaleCache&) = delete;
+
+    /** 淘汰超出预算的缓存条目（调用方需持有锁） */
+    void EvictIfNeeded();
+
+private:
+    mutable std::mutex m_mutex;
+    std::unordered_map<ImageScaleCacheKey, ImageScaleCacheEntry, ImageScaleCacheKeyHash> m_entries;
+    std::list<ImageScaleCacheKey> m_lruList;    //头部为最近使用
+    std::unordered_map<ImageScaleCacheKey, std::list<ImageScaleCacheKey>::iterator, ImageScaleCacheKeyHash> m_pendingKeys;
+    std::list<ImageScaleCacheKey> m_pendingOrder; //准入记录的FIFO顺序（头部为最近出现）
+    size_t m_nTotalBytes = 0;
+    size_t m_nHitCount = 0;
+    bool m_bEnabled = true;
+};
+
+ImageScaleCache& ImageScaleCache::Instance()
+{
+    static ImageScaleCache* pCache = new ImageScaleCache();
+    return *pCache;
+}
+
+bool ImageScaleCache::IsEnabled() const
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_bEnabled;
+}
+
+void ImageScaleCache::Enable(bool bEnable)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_bEnabled = bEnable;
+    if (!bEnable) {
+        m_entries.clear();
+        m_lruList.clear();
+        m_pendingKeys.clear();
+        m_pendingOrder.clear();
+        m_nTotalBytes = 0;
+    }
+}
+
+sk_sp<SkImage> ImageScaleCache::Find(const ImageScaleCacheKey& key)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if (!m_bEnabled) {
+        return nullptr;
+    }
+    auto it = m_entries.find(key);
+    if (it == m_entries.end()) {
+        return nullptr;
+    }
+    ++m_nHitCount;
+    m_lruList.splice(m_lruList.begin(), m_lruList, it->second.lruIt);
+    return it->second.pImage;
+}
+
+bool ImageScaleCache::Admit(const ImageScaleCacheKey& key)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if (!m_bEnabled) {
+        return false;
+    }
+    auto it = m_pendingKeys.find(key);
+    if (it != m_pendingKeys.end()) {
+        //第二次出现：允许创建缓存，并移除准入记录
+        m_pendingOrder.erase(it->second);
+        m_pendingKeys.erase(it);
+        return true;
+    }
+    m_pendingOrder.push_front(key);
+    m_pendingKeys.emplace(key, m_pendingOrder.begin());
+    while (m_pendingOrder.size() > kImageScaleCacheMaxPendingKeys) {
+        const ImageScaleCacheKey& oldestKey = m_pendingOrder.back();
+        m_pendingKeys.erase(oldestKey);
+        m_pendingOrder.pop_back();
+    }
+    return false;
+}
+
+void ImageScaleCache::Insert(const ImageScaleCacheKey& key, const sk_sp<SkImage>& pImage)
+{
+    if ((pImage == nullptr) || (pImage->width() <= 0) || (pImage->height() <= 0)) {
+        return;
+    }
+    const size_t nBytes = (size_t)pImage->width() * (size_t)pImage->height() * 4u;
+    //单张图片就超过预算的 1/4 时不缓存，避免一张大图把缓存挤空
+    if (nBytes > kImageScaleCacheMaxEntryBytes) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if (!m_bEnabled) {
+        return;
+    }
+    if (m_entries.find(key) != m_entries.end()) {
+        return;
+    }
+    m_lruList.push_front(key);
+    ImageScaleCacheEntry entry;
+    entry.pImage = pImage;
+    entry.nBytes = nBytes;
+    entry.lruIt = m_lruList.begin();
+    m_entries.emplace(key, std::move(entry));
+    m_nTotalBytes += nBytes;
+    EvictIfNeeded();
+}
+
+void ImageScaleCache::Clear()
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_entries.clear();
+    m_lruList.clear();
+    m_nTotalBytes = 0;
+    m_nHitCount = 0;
+    m_pendingKeys.clear();
+    m_pendingOrder.clear();
+}
+
+size_t ImageScaleCache::GetEntryCount() const
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_entries.size();
+}
+
+size_t ImageScaleCache::GetHitCount() const
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_nHitCount;
+}
+
+void ImageScaleCache::EvictIfNeeded()
+{
+    while ((!m_entries.empty()) &&
+           ((m_entries.size() > kImageScaleCacheMaxEntries) || (m_nTotalBytes > kImageScaleCacheMaxBytes))) {
+        const ImageScaleCacheKey& key = m_lruList.back();
+        auto it = m_entries.find(key);
+        if (it != m_entries.end()) {
+            m_nTotalBytes -= it->second.nBytes;
+            m_entries.erase(it);
+        }
+        m_lruList.pop_back();
+    }
+}
+
+/** 判断画布当前变换是否为"无缩放且为整数平移"：
+*   存在缩放/旋转时，预缩放的结果还会被二次采样，质量与直接绘制不一致，故不启用缓存。
+*/
+bool IsCanvasUnscaled(const SkCanvas* pSkCanvas)
+{
+    const SkMatrix matrix = pSkCanvas->getLocalToDeviceAs3x3();
+    return matrix.isScaleTranslate() &&
+           (matrix.getScaleX() == 1.0f) && (matrix.getScaleY() == 1.0f) &&
+           SkScalarIsInt(matrix.getTranslateX()) && SkScalarIsInt(matrix.getTranslateY());
+}
+
+/** 把整幅源图片缩放到目标尺寸，生成新的 SkImage（失败返回 nullptr）
+*   说明：缩放时使用 kSrc 混合作图，Alpha/混合等 paint 属性保留在绘制阶段应用，
+*         这样同一个缓存条目可被不同的 uFade 复用。
+*/
+sk_sp<SkImage> CreateScaledSkImage(const sk_sp<SkImage>& skSrcImage,
+                                   int32_t nDestWidth, int32_t nDestHeight,
+                                   const SkSamplingOptions& sampling)
+{
+    sk_sp<SkSurface> pSurface = SkSurfaces::Raster(SkImageInfo::MakeN32Premul(nDestWidth, nDestHeight));
+    if (pSurface == nullptr) {
+        return nullptr;
+    }
+    SkCanvas* pCanvas = pSurface->getCanvas();
+    if (pCanvas == nullptr) {
+        return nullptr;
+    }
+    SkPaint paint;
+    paint.setBlendMode(SkBlendMode::kSrc);
+    const SkRect rcSrc = SkRect::MakeIWH(skSrcImage->width(), skSrcImage->height());
+    const SkRect rcDst = SkRect::MakeIWH((SkScalar)nDestWidth, (SkScalar)nDestHeight);
+    pCanvas->drawImageRect(skSrcImage, rcSrc, rcDst, sampling, &paint, SkCanvas::kStrict_SrcRectConstraint);
+    return pSurface->makeImageSnapshot();
+}
+
+} //namespace
 
 #ifdef DUILIB_HAVE_OPENCV
 //OpenCV
@@ -187,6 +483,44 @@ void DrawSkiaImage::DrawImage(SkCanvas* pSkCanvas,
     SkIRect rcSkSrcI = { rcSrc.left, rcSrc.top, rcSrc.right, rcSrc.bottom };
     SkRect rcSkSrc = SkRect::Make(rcSkSrcI);
 
+    //快速路径：整幅源图片、需要缩放、且画布无缩放变换时，使用"缩放结果缓存"，
+    //缓存命中后按 1:1 绘制，避免 Skia 每帧重复采样。
+    //（九宫格/平铺使用子区域，仍走原有路径；画布有缩放时预缩放会二次采样，也不启用）
+    const int32_t nDestWidth = rcDest.Width();
+    const int32_t nDestHeight = rcDest.Height();
+    if ((nDestWidth > 0) && (nDestHeight > 0) &&
+        (rcSrc.left == 0) && (rcSrc.top == 0) &&
+        (rcSrc.right == skSrcImage->width()) && (rcSrc.bottom == skSrcImage->height()) &&
+        ((nDestWidth != skSrcImage->width()) || (nDestHeight != skSrcImage->height())) &&
+        ((int64_t)skSrcImage->width() * skSrcImage->height() >= kImageScaleCacheMinSrcPixels) &&
+        ((int64_t)nDestWidth * nDestHeight * 4 <= (int64_t)kImageScaleCacheMaxEntryBytes) &&
+        SkScalarIsInt(rcSkDest.fLeft) && SkScalarIsInt(rcSkDest.fTop) &&
+        IsCanvasUnscaled(pSkCanvas) &&
+        ImageScaleCache::Instance().IsEnabled()) {
+
+        ImageScaleCacheKey cacheKey;
+        cacheKey.nImageID = skSrcImage->uniqueID();
+        cacheKey.nWidth = nDestWidth;
+        cacheKey.nHeight = nDestHeight;
+        cacheKey.nSamplingKey = MakeSamplingKey(skSampling);
+
+        sk_sp<SkImage> skScaledImage = ImageScaleCache::Instance().Find(cacheKey);
+        //注意：同一个key首次出现时只记录、不缓存（一次性绘制的内容不付出额外开销），
+        //      第二次出现时才创建缓存，因此动画首轮、只绘制一次的图片仍走原有绘制路径。
+        if ((skScaledImage == nullptr) && ImageScaleCache::Instance().Admit(cacheKey)) {
+            skScaledImage = CreateScaledSkImage(skSrcImage, nDestWidth, nDestHeight, skSampling);
+            if (skScaledImage != nullptr) {
+                ImageScaleCache::Instance().Insert(cacheKey, skScaledImage);
+            }
+        }
+        if (skScaledImage != nullptr) {
+            //已缩放到目标尺寸，按 1:1 绘制（paint 的 Alpha/混合等属性保持不变）
+            const SkSamplingOptions blitSampling(SkFilterMode::kNearest, SkMipmapMode::kNone);
+            pSkCanvas->drawImageRect(skScaledImage, rcSkDest, blitSampling, &skPaint);
+            return;
+        }
+    }
+
 #ifdef DUILIB_HAVE_OPENCV
     sk_sp<SkImage> skNewImage;
     if (ResizeSkiaImageByOpenCV(skSrcImage, rcSrc, rcDest, skNewImage)) {
@@ -208,6 +542,26 @@ void DrawSkiaImage::DrawImage(SkCanvas* pSkCanvas,
         //PerformanceUtil statPerformance(_T("Render_Skia::DrawSkiaImage::DrawImage drawImageRect(Skia Only)"));
         pSkCanvas->drawImageRect(skSrcImage, rcSkSrc, rcSkDest, skSampling, &skPaint, SkCanvas::kStrict_SrcRectConstraint);
     }
+}
+
+void DrawSkiaImage::ClearImageScaleCache()
+{
+    ImageScaleCache::Instance().Clear();
+}
+
+size_t DrawSkiaImage::GetImageScaleCacheCount()
+{
+    return ImageScaleCache::Instance().GetEntryCount();
+}
+
+size_t DrawSkiaImage::GetImageScaleCacheHitCount()
+{
+    return ImageScaleCache::Instance().GetHitCount();
+}
+
+void DrawSkiaImage::EnableImageScaleCache(bool bEnable)
+{
+    ImageScaleCache::Instance().Enable(bEnable);
 }
 
 } // namespace ui
