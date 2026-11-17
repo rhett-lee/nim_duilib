@@ -3,6 +3,11 @@
 
 #include "duilib/Render/IRender.h"
 
+//Skia 头文件（需要完整类型定义，sk_sp<SkImage> 不能只用前置声明）
+#include "SkiaHeaderBegin.h"
+#include "include/core/SkImage.h"
+#include "SkiaHeaderEnd.h"
+
 //Skia相关类的前置声明
 class SkBitmap;
 
@@ -79,6 +84,16 @@ public:
     */
     const SkBitmap& GetSkBitmap() const;
 
+    /** 获取 Skia Image（懒创建并缓存，内容不变时后续调用直接复用）
+    * 用 asImage() 从 SkBitmap 创建，内部克隆像素副本，保证 SkImage 不依赖 SkBitmap 的后续修改；
+    * 因此在 SkBitmap 内容变更后需要调用 InvalidateSkImageCache() 让下次 DrawImage 时重建
+    */
+    sk_sp<SkImage> GetSkImage() const;
+
+    /** 强制让 SkImage 缓存失效（SkBitmap 像素内容被修改后调用）
+    */
+    void InvalidateSkImageCache();
+
 private:
     /** 更新图片的透明通道标志
     */
@@ -87,6 +102,11 @@ private:
     /** 执行数据初始化
     */
     bool InitImage(uint32_t nWidth, uint32_t nHeight, const void* pPixelBits, AlphaType alphaType);
+
+    /** 从 SkBitmap 懒创建 SkImage 缓存
+    * 用 mutable 成员实现 const GetSkImage() 中的懒加载
+    */
+    mutable sk_sp<SkImage> m_pSkImageCache;
 
 private:
     /** Skia 位图

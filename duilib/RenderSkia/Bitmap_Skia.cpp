@@ -4,6 +4,7 @@
 
 #include "SkiaHeaderBegin.h"
 #include "include/core/SkBitmap.h"
+#include "include/core/SkImage.h"
 #include "SkiaHeaderEnd.h"
 
 namespace ui
@@ -49,7 +50,31 @@ Bitmap_Skia::Bitmap_Skia()
 
 Bitmap_Skia::~Bitmap_Skia()
 {
+    //先释放 SkImage 缓存，再释放 SkBitmap（asImage 内部虽然 clone 了像素，
+    //但显式 reset 更清晰，避免析构顺序依赖）
+    m_pSkImageCache.reset();
     m_pSkBitmap.reset();
+}
+
+sk_sp<SkImage> Bitmap_Skia::GetSkImage() const
+{
+    //懒创建 + 跨帧复用：
+    //  Bitmap_Skia 持有 mutable m_pSkImageCache，内容稳定时后续调用直接返回同一个 SkImage 对象；
+    //  SkImage 的 uniqueID 每次 DrawImage 都相同 → Skia Ganesh 纹理缓存命中 → GPU 纹理只上传一次
+    if (m_pSkImageCache == nullptr) {
+        if (m_pSkBitmap == nullptr || !m_pSkBitmap->readyToDraw()) {
+            return nullptr;
+        }
+        //用 asImage() 从 SkBitmap 创建 SkImage——内部 clone 像素副本，
+        //保证 SkImage 不依赖 SkBitmap 后续的像素修改；SkBitmap 内容变更后我们会 reset 缓存
+        m_pSkImageCache = m_pSkBitmap->asImage();
+    }
+    return m_pSkImageCache;
+}
+
+void Bitmap_Skia::InvalidateSkImageCache()
+{
+    m_pSkImageCache.reset();
 }
 
 bool Bitmap_Skia::Init(uint32_t nWidth, uint32_t nHeight, const void* pPixelBits,
@@ -59,6 +84,9 @@ bool Bitmap_Skia::Init(uint32_t nWidth, uint32_t nHeight, const void* pPixelBits
     if ((nWidth == 0) || (nHeight == 0)) {
         return false;
     }
+    //位图内容即将完全替换，先失效 SkImage 缓存
+    InvalidateSkImageCache();
+
     m_fImageSizeScale = fImageSizeScale;
     if (ImageUtil::NeedResizeImage(fImageSizeScale)) {
         //调整图像大小
@@ -120,6 +148,9 @@ bool Bitmap_Skia::InitImage(uint32_t nWidth, uint32_t nHeight, const void* pPixe
     if ((nWidth == 0) || (nHeight == 0)) {
         return false;
     }
+
+    //位图内容即将完全替换，先失效 SkImage 缓存
+    InvalidateSkImageCache();
 
     m_pSkBitmap->reset();
     m_pSkBitmap->setInfo(SkImageInfo::Make(nWidth, nHeight, kN32_SkColorType, ToSkAlphaType(alphaType)));
@@ -222,7 +253,9 @@ void Bitmap_Skia::UnLockPixelBits()
     ASSERT(pPixelBits != nullptr);
     if (pPixelBits != nullptr) {
         UpdateAlphaFlag((uint8_t*)pPixelBits);
-    }    
+    }
+    //用户写像素已完成，SkBitmap 内容可能已变，失效 SkImage 缓存
+    InvalidateSkImageCache();
 }
 
 std::unique_ptr<IBitmap> Bitmap_Skia::Clone() const

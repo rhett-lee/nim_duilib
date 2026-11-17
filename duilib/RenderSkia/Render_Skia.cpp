@@ -917,14 +917,13 @@ void Render_Skia::DrawImage(const IBitmap* pBitmap,
         return;
     }
     
-    const SkBitmap& skSrcBitmap = skiaBitmap->GetSkBitmap();
-    SkPixmap skSrcPixmap;
-    sk_sp<SkImage> skImage;
-    if (skSrcBitmap.peekPixels(&skSrcPixmap)) {
-        skImage = SkImages::RasterFromPixmap(skSrcPixmap, nullptr, nullptr);
-    }
+    //用 Bitmap_Skia 缓存的 SkImage：
+    //  同一个 Bitmap_Skia 跨帧 DrawImage 时返回同一个 SkImage 对象（uniqueID 不变），
+    //  Skia Ganesh 纹理缓存命中 → GPU 纹理只上传一次，避免每帧重复 CPU→GPU 上传
+    sk_sp<SkImage> skImage = skiaBitmap->GetSkImage();
     if (skImage == nullptr) {
-        skImage = skSrcBitmap.asImage();
+        ASSERT(!"Bitmap_Skia::GetSkImage failed");
+        return;
     }
 
     UiRect rcTemp;

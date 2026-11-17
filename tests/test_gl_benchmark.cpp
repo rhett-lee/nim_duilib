@@ -1,4 +1,4 @@
-//
+﻿//
 // GL vs Raster 渲染后端性能基准（Windows 平台）
 //
 // 设计：
@@ -44,7 +44,7 @@ struct Config {
     int32_t frames = 200;
     int32_t width = 960;
     int32_t height = 600;
-    enum Workload { kLight, kMedium, kHeavy } workload = kMedium;
+    enum Workload { kLight, kMedium, kHeavy, kHeavyImage } workload = kMedium;
 };
 
 Config g_cfg;
@@ -68,6 +68,7 @@ void ParseArgs(int argc, char* argv[]) {
             if (!std::strcmp(w, "light")) g_cfg.workload = Config::kLight;
             else if (!std::strcmp(w, "medium")) g_cfg.workload = Config::kMedium;
             else if (!std::strcmp(w, "heavy")) g_cfg.workload = Config::kHeavy;
+            else if (!std::strcmp(w, "heavy_image")) g_cfg.workload = Config::kHeavyImage;
         }
     }
 }
@@ -182,17 +183,51 @@ void GetProcessTimes_ms(double& user_ms, double& kernel_ms) {
 class BenchPaint : public IRenderPaint {
 public:
     BenchPaint(IRender* pRender, Config::Workload workload):
-        m_pRender(pRender), m_workload(workload) {}
+        m_pRender(pRender), m_workload(workload) {
+        // kHeavyImage 模式：预创建一批 IBitmap（48x48，带随机像素），后续每帧 DrawImage 复用
+        // 这样 Bitmap_Skia 的 GetSkImage() 懒创建一次后跨帧复用，纹理缓存命中
+        if (m_workload == Config::kHeavyImage && m_pRender != nullptr) {
+            const int kBmpN = 40;
+            constexpr uint32_t kBmpSize = 48;
+            // 用 RenderFactory 创建 Bitmap（CreateBitmap 在 IRenderFactory 而非 IRender 上）
+            IRenderFactory* pFactory = GlobalManager::Instance().GetRenderFactory();
+            if (pFactory == nullptr) {
+                return;  // 无法创建 bitmap，跳过
+            }
+            m_bitmaps.reserve(kBmpN);
+            for (int i = 0; i < kBmpN; ++i) {
+                std::unique_ptr<IBitmap> bmp(pFactory->CreateBitmap(kBmpSize, kBmpSize, AlphaType::kPremul));
+                if (!bmp) break;
+                // 填像素（ARGB），构造一个简单图案：底色 + 对角线渐变
+                uint32_t* pBits = (uint32_t*)bmp->LockPixelBits();
+                if (pBits) {
+                    for (uint32_t y = 0; y < kBmpSize; ++y) {
+                        for (uint32_t x = 0; x < kBmpSize; ++x) {
+                            uint32_t r = (uint32_t)(x * 255 / kBmpSize);
+                            uint32_t g = (uint32_t)(y * 255 / kBmpSize);
+                            uint32_t b = (uint32_t)((x + y) * 255 / (kBmpSize * 2));
+                            uint32_t a = 0xFF;
+                            pBits[y * kBmpSize + x] = (a << 24) | (r << 16) | (g << 8) | b;
+                        }
+                    }
+                    bmp->UnLockPixelBits();
+                }
+                m_bitmaps.push_back(std::move(bmp));
+            }
+        }
+    }
     void SetRender(IRender* p) { m_pRender = p; }
     virtual bool DoPaint(const UiRect& rcPaint) override {
         if (m_pRender == nullptr) return false;
         m_pRender->Clear(UiColor(0xFF223344));
 
         int rectN = 0, textN = 0, imgN = 0;
+        bool bRealImage = false;
         switch (m_workload) {
-        case Config::kLight:  rectN = 12;  textN = 12;  break;
-        case Config::kMedium: rectN = 80;  textN = 60;  break;
-        case Config::kHeavy:  rectN = 200; textN = 160; imgN = 40; break;
+        case Config::kLight:      rectN = 12;  textN = 12;  break;
+        case Config::kMedium:     rectN = 80;  textN = 60;  break;
+        case Config::kHeavy:      rectN = 200; textN = 160; imgN = 40; break;
+        case Config::kHeavyImage: rectN = 200; textN = 160; bRealImage = true; break;
         }
         float W = (float)rcPaint.Width();
         float H = (float)rcPaint.Height();
@@ -215,11 +250,22 @@ public:
             dsp.dwTextColor = UiColor(0xFFFFFFFF);
             m_pRender->DrawString(s, dsp);
         }
-        for (int i = 0; i < imgN; ++i) {
-            float x = (i * 97.0f) / (imgN + 1) * W;
-            float y = (i * 59.0f) / (imgN + 1) * H;
-            uint32_t c = 0x80000000u | (((uint32_t)i * 2246822519u) & 0x00FFFFFFu);
-            m_pRender->FillRect(UiRectF(x, y, x + 48.0f, y + 48.0f), UiColor(c));
+        if (bRealImage) {
+            // 真实 DrawImage：复用预创建的 bitmap 数组，测试纹理缓存效果
+            const int n = (int)m_bitmaps.size();
+            for (int i = 0; i < n; ++i) {
+                float x = (i * 97.0f) / (n + 1) * W;
+                float y = (i * 59.0f) / (n + 1) * H;
+                m_pRender->DrawImage(m_bitmaps[i].get(), UiRect((int32_t)x, (int32_t)y, (int32_t)x + 48, (int32_t)y + 48));
+            }
+        }
+        else {
+            for (int i = 0; i < imgN; ++i) {
+                float x = (i * 97.0f) / (imgN + 1) * W;
+                float y = (i * 59.0f) / (imgN + 1) * H;
+                uint32_t c = 0x80000000u | (((uint32_t)i * 2246822519u) & 0x00FFFFFFu);
+                m_pRender->FillRect(UiRectF(x, y, x + 48.0f, y + 48.0f), UiColor(c));
+            }
         }
         return true;
     }
@@ -228,6 +274,7 @@ public:
 private:
     IRender* m_pRender;
     Config::Workload m_workload;
+    std::vector<std::unique_ptr<IBitmap>> m_bitmaps;  // kHeavyImage 模式下预创建，跨帧复用
 };
 
 // ---- 用 duilib::Window 来创建窗口 ----
@@ -348,11 +395,15 @@ int main(int argc, char* argv[]) {
 
     std::cout << "====================================================" << std::endl;
     std::cout << "  nim_duilib  GL vs Raster  Render Backend Benchmark" << std::endl;
+    const char* wlName = "heavy";
+    if (g_cfg.workload == Config::kLight) wlName = "light";
+    else if (g_cfg.workload == Config::kMedium) wlName = "medium";
+    else if (g_cfg.workload == Config::kHeavy) wlName = "heavy";
+    else if (g_cfg.workload == Config::kHeavyImage) wlName = "heavy_image";
     std::cout << "====================================================" << std::endl;
     std::cout << "  config : frames=" << g_cfg.frames
               << "  size=" << g_cfg.width << "x" << g_cfg.height
-              << "  workload=" << (g_cfg.workload == Config::kLight ? "light"
-                              : (g_cfg.workload == Config::kMedium ? "medium" : "heavy")) << std::endl;
+              << "  workload=" << wlName << std::endl;
     std::cout << "====================================================" << std::endl;
 
     FrameTimes r1, g1;
