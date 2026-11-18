@@ -742,6 +742,42 @@ if(WIN32)
     add_test(NAME gl_window_smoke
              COMMAND test_gl_window_smoke
     )
+
+    # SDL Raster 后端直绘路径测试：Skia后备缓冲直接包装SDL窗口表面的像素，
+    # 覆盖整幅绘制、present-only提交、局部更新、窗口缩放、透明度回退等路径。
+    if(DUILIB_ENABLE_SDL)
+        add_executable(test_sdl_raster_direct
+            test_sdl_raster_direct.cpp
+        )
+        target_include_directories(test_sdl_raster_direct PRIVATE
+            "${CMAKE_CURRENT_LIST_DIR}/../"
+            "${DUILIB_SDL_INCLUDE_DIR}"
+        )
+        target_link_directories(test_sdl_raster_direct PRIVATE
+            "${DUILIB_LIB_PATH}"
+            "${DUILIB_SKIA_LIB_PATH}"
+        )
+        target_link_libraries(test_sdl_raster_direct PRIVATE
+            duilib
+            ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+            Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+        )
+        if(DUILIB_ENABLE_CEF)
+            target_link_directories(test_sdl_raster_direct PRIVATE "${DUILIB_CEF_LIB_PATH}")
+            target_link_libraries(test_sdl_raster_direct PRIVATE ${DUILIB_CEF_LIBS})
+        endif()
+        target_compile_definitions(test_sdl_raster_direct PRIVATE UNICODE _UNICODE NOMINMAX WIN32_LEAN_AND_MEAN)
+        # 默认资源目录：源码树的 bin/resources
+        target_compile_definitions(test_sdl_raster_direct PRIVATE
+            DUILIB_TEST_RESOURCE_DIR="${CMAKE_SOURCE_DIR}/bin/resources"
+        )
+        if(MSVC)
+            target_compile_options(test_sdl_raster_direct PRIVATE /utf-8)
+        endif()
+        add_test(NAME sdl_raster_direct
+                 COMMAND test_sdl_raster_direct
+        )
+    endif()
 endif()
 
 # controls 示例页面的静态校验（XML 节点名、属性、class/颜色引用、语言词条、

@@ -23,6 +23,7 @@
 //SDL的类型，提前声明
 struct SDL_Window;
 struct SDL_Texture;
+struct SDL_Surface;
 
 namespace ui 
 {
@@ -74,6 +75,32 @@ protected:
     * @return 成功返回true，失败则返回false
     */
     bool SwapPaintBuffersFast(const std::vector<UiRect>& rcPaintList, uint8_t nLayeredWindowAlpha);
+
+    /** 绘制结束后，提交直绘模式下的数据到窗口
+    * 直绘模式下，Skia表面直接包装了SDL窗口表面的像素，绘制数据已经写入窗口表面，无需拷贝
+    * @param [in] rcPaintList 绘制的区域列表（多个不连续的脏矩形）
+    * @param [in] nLayeredWindowAlpha 窗口透明度（直绘模式只支持255）
+    * @return 成功返回true，失败则返回false
+    */
+    bool SwapPaintBuffersDirect(const std::vector<UiRect>& rcPaintList, uint8_t nLayeredWindowAlpha);
+
+    /** 准备后备缓冲：
+    * 条件满足时（SDL窗口表面的颜色字节顺序与Skia一致），后备缓冲直接包装SDL窗口表面的像素，
+    * 省去"绘制结果复制到窗口表面"的memcpy；条件不满足时，回退到内部内存缓冲的双缓冲路径。
+    * @param [in] nLayeredWindowAlpha 窗口透明度（非255时需要逐像素处理Alpha，不能直绘）
+    */
+    void EnsureBackbufferSurface(uint8_t nLayeredWindowAlpha);
+
+    /** 判断SDL窗口表面是否可以直接用于Skia绘制（颜色字节顺序、尺寸、像素格式均兼容）
+    * @param [in] sdlSurface SDL窗口表面
+    * @param [in] nLayeredWindowAlpha 窗口透明度
+    * @return 返回true表示可以直接绘制
+    */
+    bool CanUseDirectSurface(SDL_Surface* sdlSurface, uint8_t nLayeredWindowAlpha);
+
+    /** 回退到内部内存缓冲的双缓冲路径（后备缓冲重新包装内存缓冲的像素）
+    */
+    void SwitchToMemoryBackbuffer();
 
     /** 获取当前窗口的客户区矩形
     * @param [out] rcClient 返回窗口的客户区坐标
@@ -128,6 +155,14 @@ private:
     /** SDL绘制的Texture
     */
     SDL_Texture* m_sdlTextrue;
+
+    /** SDL窗口的绘制表面（直绘模式下，Skia的后备缓冲直接包装该表面的像素）
+    */
+    SDL_Surface* m_pSDLWindowSurface;
+
+    /** 后备缓冲是否直接包装了SDL窗口表面的像素（true：直绘模式，省去memcpy）
+    */
+    bool m_bDirectSurface;
 
     /** 后备缓冲的内容是否完整有效（完整绘制成功后为true，缓冲重建或尺寸变化后为false）
     */

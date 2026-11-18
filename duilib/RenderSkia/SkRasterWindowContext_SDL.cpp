@@ -12,6 +12,8 @@ SkRasterWindowContext_SDL::SkRasterWindowContext_SDL(SDL_Window* sdlWindow, std:
     skwindow::internal::RasterWindowContext(std::move(params)),
     m_sdlWindow(sdlWindow),
     m_sdlTextrue(nullptr),
+    m_pSDLWindowSurface(nullptr),
+    m_bDirectSurface(false),
     m_bBackBufferValid(false)
 {
     fWidth = 0;
@@ -27,6 +29,8 @@ void SkRasterWindowContext_SDL::Clear()
 {
     //缓冲内容失效，不能直接提交到窗口
     m_bBackBufferValid = false;
+    m_bDirectSurface = false;
+    m_pSDLWindowSurface = nullptr;
     if (m_sdlTextrue != nullptr) {
         SDL_DestroyTexture(m_sdlTextrue);
         m_sdlTextrue = nullptr;
@@ -130,6 +134,15 @@ bool SkRasterWindowContext_SDL::PaintAndSwapBuffers(IRender* pRender, IRenderPai
     //窗口透明度
     uint8_t nLayeredWindowAlpha = pRenderPaint->GetLayeredWindowAlpha();
 
+    //准备后备缓冲：尽可能直接包装SDL窗口表面的像素（省去绘制结果到窗口表面的memcpy）
+    //注意：必须在判断"只重新提交后备缓冲"之前执行，因为SDL窗口表面可能在窗口暴露、
+    //遮挡恢复、最小化还原等场景下失效，此时需要让后备缓冲失效并重新完整绘制
+    EnsureBackbufferSurface(nLayeredWindowAlpha);
+    ASSERT(m_fBackbufferSurface != nullptr);
+    if (m_fBackbufferSurface == nullptr) {
+        return false;
+    }
+
     //只重新提交后备缓冲（窗口暴露、遮挡恢复、最小化还原等场景）：
     //此时后备缓冲的内容仍然有效，直接把缓冲内容提交到窗口，跳过整棵控件树的重新绘制
     if (pRenderPaint->IsPresentOnly() && m_bBackBufferValid) {
@@ -220,6 +233,12 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffers(const std::vector<UiRect>& rcPa
     if (m_sdlWindow == nullptr) {
         return false;
     }
+
+    if (m_bDirectSurface) {
+        //直绘模式：绘制数据已经直接写入SDL窗口表面的像素缓冲，只需提交到窗口设备
+        return SwapPaintBuffersDirect(rcPaintList, nLayeredWindowAlpha);
+    }
+
     ASSERT(m_fSurfaceMemory.get() != nullptr);
     if (m_fSurfaceMemory.get() == nullptr) {
         return false;
@@ -401,6 +420,163 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffersFast(const std::vector<UiRect>& 
         SDL_UpdateWindowSurface(m_sdlWindow);
     }
     return true;
+}
+
+void SkRasterWindowContext_SDL::EnsureBackbufferSurface(uint8_t nLayeredWindowAlpha)
+{
+    ASSERT(m_sdlWindow != nullptr);
+    if (m_sdlWindow == nullptr) {
+        return;
+    }
+    if (nLayeredWindowAlpha != 255) {
+        //窗口透明度不是255时，需要逐像素处理Alpha，不能直绘
+        SwitchToMemoryBackbuffer();
+        return;
+    }
+    SDL_Surface* sdlSurface = SDL_GetWindowSurface(m_sdlWindow);
+    if (m_bDirectSurface && (sdlSurface != nullptr) && (sdlSurface == m_pSDLWindowSurface)) {
+        //已经是直绘模式，且SDL窗口表面未发生变化，像素缓冲可以直接复用
+        return;
+    }
+    if (!CanUseDirectSurface(sdlSurface, nLayeredWindowAlpha)) {
+        //SDL窗口表面不可用或者颜色格式不兼容：回退到内存缓冲的双缓冲路径
+        SwitchToMemoryBackbuffer();
+        return;
+    }
+    const skwindow::DisplayParams* pDisplayParams = getDisplayParams();
+    ASSERT(pDisplayParams != nullptr);
+    if (pDisplayParams == nullptr) {
+        SwitchToMemoryBackbuffer();
+        return;
+    }
+    //Skia表面直接包装SDL窗口表面的像素：绘制结果直接写入窗口表面，不需要memcpy
+    SkImageInfo info = SkImageInfo::Make(width(), height(), pDisplayParams->colorType(),
+                                         SkAlphaType::kPremul_SkAlphaType, pDisplayParams->colorSpace());
+    sk_sp<SkSurface> surface = SkSurfaces::WrapPixels(info, sdlSurface->pixels, (size_t)sdlSurface->pitch);
+    ASSERT(surface != nullptr);
+    if (surface == nullptr) {
+        SwitchToMemoryBackbuffer();
+        return;
+    }
+    m_fBackbufferSurface = std::move(surface);
+    m_pSDLWindowSurface = sdlSurface;
+    m_bDirectSurface = true;
+    //SDL窗口表面的像素内容未知（新创建或者重建），后备缓冲需要完整绘制一次
+    m_bBackBufferValid = false;
+}
+
+bool SkRasterWindowContext_SDL::CanUseDirectSurface(SDL_Surface* sdlSurface, uint8_t nLayeredWindowAlpha)
+{
+    if ((sdlSurface == nullptr) || (sdlSurface->pixels == nullptr)) {
+        return false;
+    }
+    if (nLayeredWindowAlpha != 255) {
+        //窗口透明度不是255时，需要逐像素处理Alpha，不能直绘
+        return false;
+    }
+    if ((sdlSurface->w != width()) || (sdlSurface->h != height())) {
+        //窗口表面的尺寸与绘制表面不一致（如窗口尺寸变化后SDL尚未重建表面）
+        return false;
+    }
+    if (sdlSurface->pitch < (width() * (int32_t)sizeof(uint32_t))) {
+        return false;
+    }
+    const skwindow::DisplayParams* pDisplayParams = getDisplayParams();
+    ASSERT(pDisplayParams != nullptr);
+    if (pDisplayParams == nullptr) {
+        return false;
+    }
+
+    int32_t backR = -1;
+    int32_t backG = -1;
+    int32_t backB = -1;
+    int32_t backA = -1;
+    if (!GetSkiaColorByteOrder(pDisplayParams->colorType(), backR, backG, backB, backA)) {
+        return false;
+    }
+
+    int32_t sdlR = -1;
+    int32_t sdlG = -1;
+    int32_t sdlB = -1;
+    int32_t sdlA = -1;
+    if (!GetSDLColorByteOrder(sdlSurface->format, sdlR, sdlG, sdlB, sdlA)) {
+        return false;
+    }
+
+    //只有颜色字节顺序完全一致时才能直接绘制（否则需要转换颜色字节顺序）
+    return (sdlR == backR) && (sdlG == backG) && (sdlB == backB) && (sdlA == backA);
+}
+
+void SkRasterWindowContext_SDL::SwitchToMemoryBackbuffer()
+{
+    if (!m_bDirectSurface) {
+        return;
+    }
+    m_bDirectSurface = false;
+    m_pSDLWindowSurface = nullptr;
+    //直绘模式下窗口表面的内容与内存缓冲不一致，需要重新完整绘制一次
+    m_bBackBufferValid = false;
+
+    const skwindow::DisplayParams* pDisplayParams = getDisplayParams();
+    ASSERT(pDisplayParams != nullptr);
+    if ((pDisplayParams == nullptr) || (m_fSurfaceMemory.get() == nullptr) || (width() <= 0) || (height() <= 0)) {
+        m_fBackbufferSurface.reset();
+        return;
+    }
+    SkImageInfo info = SkImageInfo::Make(width(), height(), pDisplayParams->colorType(),
+                                         SkAlphaType::kPremul_SkAlphaType, pDisplayParams->colorSpace());
+    m_fBackbufferSurface = SkSurfaces::WrapPixels(info, m_fSurfaceMemory.get(), (size_t)sizeof(uint32_t) * width());
+}
+
+bool SkRasterWindowContext_SDL::SwapPaintBuffersDirect(const std::vector<UiRect>& rcPaintList, uint8_t nLayeredWindowAlpha)
+{
+    PerformanceUtil statPerformance(_T("PaintWindow 9, SkRasterWindowContext_SDL::SwapPaintBuffersDirect"));
+    ASSERT(!rcPaintList.empty());
+    if (rcPaintList.empty()) {
+        return false;
+    }
+    ASSERT(m_sdlWindow != nullptr);
+    if (m_sdlWindow == nullptr) {
+        return false;
+    }
+    ASSERT(m_pSDLWindowSurface != nullptr);
+    if (m_pSDLWindowSurface == nullptr) {
+        return false;
+    }
+    ASSERT(nLayeredWindowAlpha == 255);
+    if (nLayeredWindowAlpha != 255) {
+        return false;
+    }
+    //确认SDL窗口表面未失效（窗口尺寸变化后，SDL会重新创建该表面）
+    SDL_Surface* sdlSurface = SDL_GetWindowSurface(m_sdlWindow);
+    if ((sdlSurface == nullptr) || (sdlSurface != m_pSDLWindowSurface)) {
+        m_bBackBufferValid = false;
+        return false;
+    }
+
+    //直绘模式下，绘制数据已经在SDL窗口表面的像素缓冲中，直接提交到窗口设备
+    const bool bFullPaint = (rcPaintList.size() == 1) && (rcPaintList[0].Width() == width()) && (rcPaintList[0].Height() == height());
+    if (bFullPaint) {
+        return SDL_UpdateWindowSurface(m_sdlWindow);
+    }
+
+    std::vector<SDL_Rect> sdlRects;
+    sdlRects.reserve(rcPaintList.size());
+    for (const UiRect& rcPaint : rcPaintList) {
+        if (rcPaint.IsEmpty()) {
+            continue;
+        }
+        SDL_Rect rect;
+        rect.x = rcPaint.left;
+        rect.y = rcPaint.top;
+        rect.w = rcPaint.Width();
+        rect.h = rcPaint.Height();
+        sdlRects.push_back(rect);
+    }
+    if (sdlRects.empty()) {
+        return true;
+    }
+    return SDL_UpdateWindowSurfaceRects(m_sdlWindow, sdlRects.data(), (int)sdlRects.size());
 }
 
 bool SkRasterWindowContext_SDL::GetSkiaColorByteOrder(SkColorType backSurfaceColorType, int32_t& backR, int32_t& backG, int32_t& backB, int32_t& backA) const
