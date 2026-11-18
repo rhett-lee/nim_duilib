@@ -8,6 +8,7 @@
 //  GS-09 ~ GS-12  运行过程中切换后端（GL -> CPU -> GL，模拟 Window::SetRenderBackendType）
 //  GS-13 ~ GS-16  两个GL窗口存活时，离屏GPU渲染复用窗口上下文
 //  GS-17 ~ GS-19  局部更新区域下只重绘脏区域（局部增量刷新）
+//  GS-20 ~ GS-23  全量重绘后持久化表面仍然有效，窗口暴露时只提交、不重绘
 //
 // 说明：
 //  1. 本测试会创建真实窗口（位于屏幕外、不激活），因此仅在 Windows 平台构建；
@@ -146,6 +147,12 @@ public:
         return false;
     }
 
+    /** 设置本次绘制是否只需提交后备缓冲（模拟窗口暴露、遮挡恢复等场景）
+    */
+    void SetPresentOnly(bool bPresentOnly) { m_bPresentOnly = bPresentOnly; }
+
+    virtual bool IsPresentOnly() const override { return m_bPresentOnly; }
+
     int32_t GetPaintCount() const { return m_nPaintCount; }
     const ui::UiRect& GetLastPaintRect() const { return m_rcLastPaint; }
 
@@ -153,6 +160,7 @@ private:
     ui::IRender* m_pRender;
     int32_t m_nPaintCount;
     ui::UiRect m_rcLastPaint;
+    bool m_bPresentOnly = false;
 };
 
 /** 请求一次绘制并检查结果 */
@@ -275,7 +283,7 @@ void TestGLMultiWindow(ui::IRenderFactory* pRenderFactory)
     //GS-17 ~ GS-19：局部增量刷新
     //GL后端在持久化表面可用时，只重绘窗口的更新区域，再把整幅表面拷贝到窗口
     {
-        //先做一次整幅绘制（此时持久化表面会被释放）
+        //先做一次整幅绘制
         CHECK(PaintOnce(pRenderA.get(), painterA, hWndA));
         RECT rcPartial = { 20, 20, 60, 40 };
         //第一次局部绘制：持久化表面需要重建，本次必须完整绘制一遍
@@ -292,6 +300,35 @@ void TestGLMultiWindow(ui::IRenderFactory* pRenderFactory)
         CHECK((rcPainted.right <= rcPartial.right) && (rcPainted.bottom <= rcPartial.bottom));
         //确认没有被扩大为整幅重绘
         CHECK((rcPainted.Width() < pRenderA->GetWidth()) || (rcPainted.Height() < pRenderA->GetHeight()));
+    }
+
+    //GS-20 ~ GS-23：全量重绘后持久化表面仍然有效，窗口暴露只需提交、不重绘
+    {
+        //GS-20：整幅绘制后，后备缓冲应保持有效（全量重绘不再释放持久化表面）
+        CHECK(PaintOnce(pRenderA.get(), painterA, hWndA));
+        CHECK(pRenderA->IsBackBufferValid());
+
+        //GS-21：模拟窗口暴露（遮挡恢复、最小化还原）：只提交后备缓冲，不重新绘制
+        const int32_t nPaintCount = painterA.GetPaintCount();
+        painterA.SetPresentOnly(true);
+        ::InvalidateRect(hWndA, nullptr, FALSE);
+        CHECK(pRenderA->PaintAndSwapBuffers(&painterA));
+        painterA.SetPresentOnly(false);
+        CHECK(painterA.GetPaintCount() == nPaintCount);
+        CHECK(pRenderA->IsBackBufferValid());
+
+        //GS-22：暴露提交后，后续的整幅绘制仍然正常（内容未被破坏）
+        CHECK(PaintOnce(pRenderA.get(), painterA, hWndA));
+        CHECK(painterA.GetPaintCount() == nPaintCount + 1);
+        CHECK(pRenderA->IsBackBufferValid());
+
+        //GS-23：窗口尺寸变化后缓冲失效，必须重新完整绘制并重新变为有效
+        ::SetWindowPos(hWndA, nullptr, 0, 0, 200, 150, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
+        CHECK(pRenderA->Resize(200, 150));
+        CHECK(!pRenderA->IsBackBufferValid());
+        CHECK(PaintOnce(pRenderA.get(), painterA, hWndA));
+        CHECK(painterA.GetPaintCount() == nPaintCount + 2);
+        CHECK(pRenderA->IsBackBufferValid());
     }
 
     //按"先销毁渲染对象、后销毁窗口"的顺序清理（与窗口的生命周期约束一致）

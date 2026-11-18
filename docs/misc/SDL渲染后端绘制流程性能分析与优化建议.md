@@ -433,7 +433,7 @@ Skia 绘制 → m_fSurfaceMemory →(memcpy)→ SDL 窗口表面 →(BitBlt/XShm
 | SDL 窗口 | `NativeWindow_SDL::PaintWindow` | 暴露事件（`SDL_EVENT_WINDOW_EXPOSED`）到达时，若"无脏区 + 缓冲有效"则只提交；存在脏区时仍按原逻辑重绘全部。`bPaintAll` 不再无条件清空脏区 |
 | Windows 上下文 | `SkRasterWindowContext_Windows` | 同样的有效性标志；`IsPresentOnly` 命中时 `BeginPaint` 后直接 `BitBlt` 后备缓冲的更新区域，不调用 `DoPaint` |
 | Windows 窗口 | `NativeWindow_Windows` | 新增 `m_bContentDirty`：`Invalidate`、`RedrawWindow`、`WM_SIZE`、`WM_DPICHANGED` 置 true；正常绘制成功后清 false。系统因遮挡/暴露产生的 WM_PAINT（未调用 `Invalidate`）即可走"只提交" |
-| GL 后端 | `SkGLWindowContext_Windows` | 持久化表面有效（尺寸匹配且 `m_bNeedFullRedraw == false`）时，把持久化表面快照 `kSrc` 拷入窗口表面后 `SwapBuffers`，不重绘控件树；无持久化表面时退化为完整绘制 |
+| GL 后端 | `SkGLWindowContext_Windows` | 持久化表面有效（尺寸匹配且 `m_bNeedFullRedraw == false`）时，用 `SkSurface::draw` 把持久化表面内容 `kSrc` 拷入窗口表面后 `SwapBuffers`，不重绘控件树；全量重绘同样绘制到持久化表面并整幅提交，使缓冲在帧间保持有效；无持久化表面时退化为完整绘制 |
 
 不改变的语义：
 
@@ -495,7 +495,7 @@ Skia 绘制 → m_fSurfaceMemory →(memcpy)→ SDL 窗口表面 →(BitBlt/XShm
 ### 12.4 已知限制
 
 - "只提交"依赖"缓冲内容完整有效"这一状态：若有代码绕过 `Invalidate` 直接修改控件缓存，界面会保持旧内容（与常见双缓冲框架的约定一致）；
-- GL 后端只有在持久化表面存在时才可"只提交"；一次完整直绘（首帧 / resize）后持久化表面被释放，紧接着的暴露仍会完整重绘一次，之后恢复优化；
+- GL 后端只有在持久化表面存在时才可"只提交"；原实现中"全量重绘直绘 FBO 0"会释放持久化表面，导致完整绘制后的下一次暴露仍要整页重绘，该问题已修复（改为全量重绘也绘制到持久化表面再整幅提交，见《GL渲染后端性能评测与优化报告》第十四节）；
 - Windows 原生后端的 `m_bContentDirty` 是"自上次绘制以来是否调用过 Invalidate"的粗粒度标志：即使失效区域为空也会置位，极端情况下会多做一次完整绘制；
 - 分层窗口、子窗口（应用自绘）不启用"只提交"，保持原有行为。
 

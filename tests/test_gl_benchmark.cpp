@@ -44,6 +44,8 @@ struct Config {
     int32_t width = 960;
     int32_t height = 600;
     enum Workload { kLight, kMedium, kHeavy, kHeavyImage } workload = kMedium;
+    // true: 每帧只使一小块区域失效（模拟局部增量刷新）；false: 每帧整幅失效
+    bool partial = false;
 };
 
 Config g_cfg;
@@ -68,6 +70,9 @@ void ParseArgs(int argc, char* argv[]) {
             else if (!std::strcmp(w, "medium")) g_cfg.workload = Config::kMedium;
             else if (!std::strcmp(w, "heavy")) g_cfg.workload = Config::kHeavy;
             else if (!std::strcmp(w, "heavy_image")) g_cfg.workload = Config::kHeavyImage;
+        }
+        else if (!std::strcmp(s, "partial=1")) {
+            g_cfg.partial = true;
         }
     }
 }
@@ -347,9 +352,16 @@ FrameTimes RunOnce(Window* pWin, RenderBackendType backend, const Config& cfg, c
 
     BenchPaint painter(pRender, cfg.workload);  // IRenderWindow inherits from IRender
 
+    //每帧的失效区域：局部模式下只失效一小块（触发后端的局部增量刷新），否则整幅失效
+    RECT rcInvalidate = { 0, 0, cfg.width, cfg.height };
+    if (cfg.partial) {
+        rcInvalidate.right = std::min<int32_t>(cfg.width, 240);
+        rcInvalidate.bottom = std::min<int32_t>(cfg.height, 180);
+    }
+
     // warmup 30 帧
     for (int i = 0; i < 30; ++i) {
-        ::InvalidateRect(hWnd, nullptr, FALSE);
+        ::InvalidateRect(hWnd, &rcInvalidate, FALSE);
         PumpMessages();
         pRender->PaintAndSwapBuffers(&painter);
     }
@@ -360,7 +372,7 @@ FrameTimes RunOnce(Window* pWin, RenderBackendType backend, const Config& cfg, c
     LTimer frameTimer;
     GetProcessTimes_ms(user0, krn0);
     for (int i = 0; i < cfg.frames; ++i) {
-        ::InvalidateRect(hWnd, nullptr, FALSE);
+        ::InvalidateRect(hWnd, &rcInvalidate, FALSE);
         frameTimer.begin();
         pRender->PaintAndSwapBuffers(&painter);
         double ms = frameTimer.now_ms();
@@ -402,7 +414,8 @@ int main(int argc, char* argv[]) {
     std::cout << "====================================================" << std::endl;
     std::cout << "  config : frames=" << g_cfg.frames
               << "  size=" << g_cfg.width << "x" << g_cfg.height
-              << "  workload=" << wlName << std::endl;
+              << "  workload=" << wlName
+              << "  invalidate=" << (g_cfg.partial ? "partial(240x180)" : "full") << std::endl;
     std::cout << "====================================================" << std::endl;
 
     FrameTimes r1, g1;

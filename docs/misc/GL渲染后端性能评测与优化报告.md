@@ -974,7 +974,7 @@ heavy_image workload DrawString 占比低于 medium，ctxOptions 收益相应减
 | 维度 | 工具/方法 | 覆盖内容 |
 |------|-----------|---------|
 | 单元测试 | ctest 17 个用例 | 渲染 API、位图、窗口属性、XML 页面、GL 多窗口冒烟 |
-| GL 专项 | `test_gl_window_smoke`（41 checks） | 双窗口/双上下文交替绘制、缩放、运行中切换后端、离屏复用、局部增量刷新 |
+| GL 专项 | `test_gl_window_smoke`（54 checks） | 双窗口/双上下文交替绘制、缩放、运行中切换后端、离屏复用、局部增量刷新、全量重绘后暴露只提交 |
 | 微基准 | `test_gl_benchmark`（4 种 workload） | 同一窗口先 Raster 后 GL，wall-clock / CPU / 分位数 / 直方图 |
 | 真实程序 | `controls.exe`、`render.exe` + 截屏 | 真实控件树下的显示正确性与 CPU 占用 |
 | 回归对比 | `git stash` 开关单项优化 | 保证每次优化的收益可单独归因，Raster 无降级 |
@@ -1003,7 +1003,61 @@ heavy_image workload DrawString 占比低于 medium，ctxOptions 收益相应减
 
 ### 13.7 最终状态
 
-- GL 后端：**全量重绘直绘 FBO 0（零拷贝）；局部重绘绘制到持久化表面后整幅拷贝到 FBO 0（脏区域外内容保留）**；vsync 默认禁用；GrContextOptions 已调优；
+- GL 后端：**全量/局部重绘都绘制到持久化表面，再整幅拷贝到 FBO 0（脏区域外内容保留，且内容在帧间保持有效）**；vsync 默认禁用；GrContextOptions 已调优；
 - 纹理：同一 `Bitmap_Skia` 的 SkImage 跨帧复用，失效点齐全；
-- 质量：ctest 17/17、GL 冒烟 41/41、controls.exe / render.exe 显示正常；
+- 质量：ctest 17/17、GL 冒烟 54/54、controls.exe / render.exe 显示正常；
 - 结论：GL 后端已经把"GPU 加速应有的收益"（CPU 占用大幅下降）落实到位，剩余空间属于应用层与 Skia 上游，不在本次范围内。
+
+---
+
+## 十四、修复：全量重绘不再释放持久化表面（2026-11-18）
+
+**问题**：`PaintAndSwapBuffers` 在全量重绘时把 `m_bRenderDirectToFBO0` 置为 true，绕过持久化表面直绘 FBO 0，并 `m_persistentSurface.reset()`。全量重绘本身是零拷贝（快），但：
+
+- FBO 0 的内容在 `SwapBuffers` 之后失效，`IsBackBufferValid()` 只能返回 false；
+- 紧随其后的窗口暴露（遮挡恢复、最小化还原、`RedrawWindow`）因此只能再次整页重绘。
+
+也就是说，"暴露事件只重新提交"在 GL 上只在"局部重绘之后"才生效；首帧、resize 之后的第一次暴露仍会重绘整棵控件树。
+
+### 14.1 修改内容
+
+| 位置 | 改动 |
+|------|------|
+| `SkGLWindowContext_Windows::PaintAndSwapBuffers` | 删除 `m_bRenderDirectToFBO0`：全量/局部重绘统一绘制到持久化表面，再把整幅内容拷贝到 FBO 0；是否整幅拷贝由"持久化表面是否可用"决定（不可用时退化为直绘 FBO 0） |
+| `getBackbufferSurface()` | 删除直绘 FBO 0 的分支；持久化表面只在窗口尺寸变化、上下文销毁时重建 |
+| 整幅提交 | `makeImageSnapshot()` + `drawImage` 改为 `SkSurface::draw()`（内部使用临时图像），去掉可写时复制导致的每帧一次内部整幅拷贝 |
+| `m_persistentSurface` 生命周期 | 全量重绘后保留（约 宽×高×4 字节显存），仅在 resize / 窗口销毁时释放 |
+
+### 14.2 验证
+
+| 项目 | 方法 | 结果 |
+|------|------|------|
+| 新增用例 | `gl_window_smoke` GS-20~GS-23：整幅绘制后 `IsBackBufferValid()` 为真；`IsPresentOnly()` 时 `DoPaint` 不被调用、缓冲仍有效；其后整幅绘制正常；resize 后失效并在完整绘制后重新有效 | 通过（`gl_window_smoke` 共 **54 checks，0 失败**） |
+| 全量回归 | `ctest`（17 个用例，含 `render_api`、`offscreen_render`、`gl_window_smoke`） | 17/17 通过（非 SDL 构建） |
+| 微基准 | `test_gl_benchmark` 的 full / partial 两种失效模式 | 见 14.3 |
+
+### 14.3 微基准 A/B（1280×800，heavy workload，300 帧，各 5 次均值）
+
+A/B 方式：`git diff --binary` 保存改动补丁 → `git checkout --` 还原基线 → 构建测量 → `git apply` 恢复改动 → 构建测量。
+
+| 失效模式 | 后端 | 修复前 | 修复后 | 结论（以同一次运行内的 GL/Raster 比值消除机器噪声） |
+|---------|------|--------|--------|------|
+| 每帧整幅失效（full） | Raster | 2.11 ms | 2.71 ms | 机器负载漂移，绝对值不可直接比较 |
+| 每帧整幅失效（full） | GL | **1.65 ms**（0.78× Raster） | **2.85 ms**（1.05× Raster） | 每帧多一次整幅提交，约 **+0.6~1.2 ms**，GL 与 Raster 基本持平 |
+| 每帧局部失效（partial，240×180） | Raster | 0.83 ms | 1.19 ms | 同上 |
+| 每帧局部失效（partial，240×180） | GL | 2.41 ms（2.90× Raster） | **2.67 ms（2.24× Raster）** | 去掉可写时复制拷贝，约 **-23%** |
+
+说明：`Raster` 两轮的绝对值差异来自评测期间的机器负载漂移（同一进程内先测 Raster 后测 GL），因此以同一次运行内的 GL/Raster 比值作为可比指标。
+
+### 14.4 权衡
+
+- **全量重绘帧**：多一次"整幅提交"（MSAA 解析 + 全幅 blit）。在"每帧整幅重绘"的极端负载下，GL 从明显快于 Raster 变为基本持平；
+- **局部重绘帧（真实界面稳态）**：少一次内部整幅拷贝，GL/Raster 比值由 2.90 降到 2.24；
+- **窗口暴露**：不再整页重绘，成本约等于一次整幅提交（此前是一次完整控件树绘制）；
+- **内存**：常驻一个整幅 GPU 表面（1280×800 约 4 MB），此前全量重绘后会释放。
+
+### 14.5 已知限制
+
+- 持久化表面不可用（GPU 不支持渲染到纹理）时仍退化为直绘 FBO 0，此时没有"只提交"；
+- 若将来要恢复"全量重绘零拷贝"，必须同时保证存在一份可在暴露后重新提交的完整内容（FBO 0 交换后内容未定义），两者不可兼得；
+- 当前只处理了 Windows 原生 GL 后端；SDL 后端的窗口表面由 SDL 管理，不涉及持久化表面的释放问题。

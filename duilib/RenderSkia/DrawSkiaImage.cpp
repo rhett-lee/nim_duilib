@@ -330,7 +330,7 @@ sk_sp<SkImage> CreateScaledSkImage(const sk_sp<SkImage>& skSrcImage,
     SkPaint paint;
     paint.setBlendMode(SkBlendMode::kSrc);
     const SkRect rcSrc = SkRect::MakeIWH(skSrcImage->width(), skSrcImage->height());
-    const SkRect rcDst = SkRect::MakeIWH((SkScalar)nDestWidth, (SkScalar)nDestHeight);
+    const SkRect rcDst = SkRect::MakeIWH(nDestWidth, nDestHeight);
     pCanvas->drawImageRect(skSrcImage, rcSrc, rcDst, sampling, &paint, SkCanvas::kStrict_SrcRectConstraint);
     return pSurface->makeImageSnapshot();
 }

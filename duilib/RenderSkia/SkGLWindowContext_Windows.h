@@ -102,9 +102,12 @@ private:
     HGLRC m_fHGLRC;
 
     /** 持久化的GPU绘制表面（FBO）
-    * 局部增量刷新时，界面绘制到该表面（每帧只重绘脏区域），然后把整幅内容拷贝到窗口的后台缓冲，
-    * 避免每帧重绘整个窗口（大窗口下的小动画可显著降低CPU/GPU占用）；
-    * 全量重绘时直接绘制到FBO 0，该表面会被释放
+    * 界面（全量与局部）都绘制到该表面，然后把整幅内容拷贝到窗口的后台缓冲：
+    *  1. 局部增量刷新时，每帧只重绘脏区域，其余内容来自上一帧，
+    *     避免每帧重绘整个窗口（大窗口下的小动画可显著降低CPU/GPU占用）；
+    *  2. 全量重绘时该表面被完整覆盖，内容在帧间仍然有效，
+    *     使得窗口暴露（遮挡恢复、最小化还原）时可以直接提交，不需要重绘整棵控件树。
+    * 该表面只在窗口尺寸变化、上下文销毁时重建，不再因全量重绘而释放
     */
     sk_sp<SkSurface> m_persistentSurface;
 
@@ -117,12 +120,6 @@ private:
     /** 是否需要完整重绘（首次绘制、尺寸变化、持久化表面重建后为true）
     */
     bool m_bNeedFullRedraw;
-
-    /** 是否跳过 persistent surface 直接绘制到 FBO 0
-    * 全量重绘时置 true：让 getBackbufferSurface() 和 GetSkCanvas() 都返回 FBO 0 的 surface，
-    * 避免 DoPaint 画到 persistent surface 再做 makeImageSnapshot + drawImage 的中间拷贝
-    */
-    bool m_bRenderDirectToFBO0;
 
     /** 是否退化为单采样的绘制表面
     * 部分GPU支持多重采样的窗口缓冲（默认帧缓冲），但不支持多重采样的渲染目标（渲染到纹理），

@@ -33,7 +33,6 @@ SkGLWindowContext_Windows::SkGLWindowContext_Windows(HWND hWnd, std::unique_ptr<
     m_hDC(nullptr),
     m_fHGLRC(nullptr),
     m_bNeedFullRedraw(true),
-    m_bRenderDirectToFBO0(false),
     m_bSingleSampleSurfaces(false)
 {
     ASSERT(::IsWindow(hWnd));
@@ -133,13 +132,6 @@ sk_sp<SkSurface> SkGLWindowContext_Windows::getBackbufferSurface()
     //同一线程内可能存在多个使用OpenGL绘制的窗口，读取后台缓冲前必须确保本窗口的上下文是当前上下文
     if (!MakeCurrent()) {
         return nullptr;
-    }
-
-    // ---- 渲染模式感知 ----
-    // 当 m_bRenderDirectToFBO0 为 true 时，跳过 persistent surface 直接返回 FBO 0 的 surface
-    // 这样整条链路（GetSkCanvas → IRender::DoPaint）都画到 FBO 0，避免中间拷贝
-    if (m_bRenderDirectToFBO0) {
-        return GetWindowSurface();
     }
 
     //尺寸变化后，持久化表面需要重建
@@ -411,11 +403,8 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* pRender, IRenderPai
             if ((pCanvas != nullptr) && (m_persistentSurface != nullptr)) {
                 SkPaint paint;
                 paint.setBlendMode(SkBlendMode::kSrc);
-                sk_sp<SkImage> snapshot = m_persistentSurface->makeImageSnapshot();
-                if (snapshot != nullptr) {
-                    pCanvas->drawImage(snapshot, 0, 0, SkSamplingOptions(SkFilterMode::kNearest), &paint);
-                    bPresented = true;
-                }
+                m_persistentSurface->draw(pCanvas, 0, 0, SkSamplingOptions(SkFilterMode::kNearest), &paint);
+                bPresented = true;
             }
         }
         ::EndPaint(hWnd, &ps);
@@ -478,37 +467,24 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* pRender, IRenderPai
         }
     }
 
-    // ---- 设置绘制目标，让整条 DoPaint 链路跟随 ----
-    bool bUsePersistentCopy = false;
-    m_bRenderDirectToFBO0 = false;
-    if (bFullRedraw) {
-        //全量重绘：跳过持久化表面，直接绘制到 FBO 0，避免中间拷贝
-        m_bRenderDirectToFBO0 = true;
-        //持久化表面的内容已过期（本次重绘覆盖窗口的全部内容），释放其占用的GPU内存
-        if (m_persistentSurface != nullptr) {
-            m_persistentSurface.reset();
-        }
+    // ---- 设置绘制目标：统一绘制到持久化表面，再整幅拷贝到窗口 FBO 0 ----
+    // 不能在全量重绘时绕开持久化表面直绘 FBO 0：FBO 0 的内容在 SwapBuffers 后即失效，
+    // 而持久化表面是"窗口暴露时只提交、不重绘"的前提（见 IsBackBufferValid）。
+    // 若全量重绘释放了持久化表面，紧随其后的暴露就只能再次整页重绘。
+    if ((m_persistentSurface == nullptr) && (getBackbufferSurface() == nullptr)) {
+        return false;
     }
-    else {
-        //局部重绘：绘制到持久化表面（保留帧间内容，只补脏区域），再整体拷贝到 FBO 0
-        if (getBackbufferSurface() == nullptr) {
-            return false;
-        }
-        if (m_persistentSurface == nullptr) {
-            //持久化表面不可用（GPU不支持渲染到纹理）：后台缓冲交换后内容未定义，
-            //无法保留上一帧的内容，只能退化为直接绘制到FBO 0的全量重绘
-            m_bRenderDirectToFBO0 = true;
-            bFullRedraw = true;
-        }
-        else {
-            bUsePersistentCopy = true;
-            if (m_bNeedFullRedraw) {
-                //持久化表面刚创建（内容已清为透明）或因窗口尺寸变化重建：
-                //本次必须完整绘制，否则把整幅表面拷贝到窗口后，脏区域以外的内容会被清空
-                bFullRedraw = true;
-            }
-        }
+    if (m_persistentSurface == nullptr) {
+        //持久化表面不可用（GPU不支持渲染到纹理）：后台缓冲交换后内容未定义，
+        //无法保留帧间内容，只能退化为直接绘制到FBO 0的全量重绘
+        bFullRedraw = true;
     }
+    else if (m_bNeedFullRedraw) {
+        //持久化表面刚创建（内容已清为透明）或因窗口尺寸变化重建：
+        //本次必须完整绘制，否则把整幅表面拷贝到窗口后，脏区域以外的内容会被清空
+        bFullRedraw = true;
+    }
+    const bool bUsePersistentCopy = (m_persistentSurface != nullptr);
 
     // ---- 确定 rcPaint ----
     UiRect rcPaint;
@@ -525,7 +501,6 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* pRender, IRenderPai
         }
     }
     if (rcPaint.IsEmpty()) {
-        m_bRenderDirectToFBO0 = false;
         return false;
     }
     m_bNeedFullRedraw = false;
@@ -539,13 +514,15 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* pRender, IRenderPai
 
     // ---- 执行绘制 ----
     // DoPaint 内部通过 IRender::GetSkCanvas() → Render_Skia_Windows::GetSkCanvas()
-    //   → m_pWindowContext->getBackbufferSurface() → 我们设的模式标志自动生效
+    //   → m_pWindowContext->getBackbufferSurface() 取到持久化表面
     pRenderPaint->DoPaint(rcPaint);
 
     // ---- 恢复裁剪状态 ----
     pRender->EndPaintRects(nClipState);
 
-    // ---- 局部重绘：把持久化表面的整幅内容拷贝到 FBO 0 ----
+    // ---- 把持久化表面的整幅内容拷贝到 FBO 0 ----
+    // 局部重绘时脏区域以外的内容来自上一帧；全量重绘时保证窗口显示与持久化表面一致，
+    // 从而使后续的窗口暴露可以直接提交（不需要重绘）
     if (bUsePersistentCopy) {
         sk_sp<SkSurface> backbuffer = GetWindowSurface();
         if (backbuffer != nullptr) {
@@ -553,16 +530,13 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* pRender, IRenderPai
             if ((pCanvas != nullptr) && (m_persistentSurface != nullptr)) {
                 SkPaint paint;
                 paint.setBlendMode(SkBlendMode::kSrc);
-                sk_sp<SkImage> snapshot = m_persistentSurface->makeImageSnapshot();
-                if (snapshot != nullptr) {
-                    pCanvas->drawImage(snapshot, 0, 0, SkSamplingOptions(SkFilterMode::kNearest), &paint);
-                }
+                //使用SkSurface::draw，而非makeImageSnapshot + drawImage：
+                //后者会创建可写时复制的SkImage，下一帧再绘制到持久化表面时会触发一次整幅内部拷贝
+                //（在每帧全量重绘的场景下，该拷贝约与"提交一次整幅内容"等价）
+                m_persistentSurface->draw(pCanvas, 0, 0, SkSamplingOptions(SkFilterMode::kNearest), &paint);
             }
         }
     }
-
-    // 清理渲染模式标志（必须在 EndPaint 之前：EndPaint 内部可能触发重绘消息的回调）
-    m_bRenderDirectToFBO0 = false;
 
     ::EndPaint(hWnd, &ps);
 
