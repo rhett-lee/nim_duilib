@@ -326,9 +326,9 @@ std::shared_ptr<IBitmap> Image::GetCurrentBitmap(bool bImageStretch,
         //如果设置了九宫格绘制，则按不拉伸处理(如果拉伸图片，四个角会变形)
         return GetBitmapData(rcSource, rcSourceCorners, bDecodeError);
     }
-    else if ((rcDest.Width() == rcSource.Width()) ||
+    else if ((rcDest.Width() == rcSource.Width()) &&
              (rcDest.Height() == rcSource.Height())) {
-        //如果绘制目标区域和图片源区域大小一致，无需拉伸
+        //如果绘制目标区域和图片源区域大小完全一致，无需拉伸
         return GetBitmapData(rcSource, rcSourceCorners, bDecodeError);
     }
     else {

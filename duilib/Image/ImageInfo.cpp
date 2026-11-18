@@ -74,7 +74,9 @@ std::shared_ptr<IBitmap> ImageInfo::GetSvgBitmap(const UiRect& rcDest, UiRect& r
 
     float fSizeScaleX = static_cast<float>(rcDest.Width()) / rcSource.Width();
     float fSizeScaleY = static_cast<float>(rcDest.Height()) / rcSource.Height();
-    float fImageSizeScale = fSizeScaleX < fSizeScaleY ? fSizeScaleX  : fSizeScaleY ;
+    //取两个方向中较大的缩放比例：保证栅格化后的位图在两个方向上都不低于绘制所需的分辨率，
+    //避免非等比拉伸时按较小比例栅格化、再被放大绘制而导致的模糊
+    float fImageSizeScale = fSizeScaleX > fSizeScaleY ? fSizeScaleX  : fSizeScaleY ;
     std::shared_ptr<IBitmap> pBitmap = GetSvgBitmap(fImageSizeScale, pControl);
     return pBitmap;
 }

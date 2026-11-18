@@ -141,7 +141,7 @@ std::shared_ptr<IBitmap> ImageDecoderFactory::DecodeImageData(const ImageDecodeP
                 if ((newDecodeParam.m_rcMaxDestRectSize.cx > 0) && (pImage->GetWidth() > 0)) {
                     fRealScaleX = (float)newDecodeParam.m_rcMaxDestRectSize.cx / (float)pImage->GetWidth();
                 }
-                if (newDecodeParam.m_rcMaxDestRectSize.cy > 0) {
+                if ((newDecodeParam.m_rcMaxDestRectSize.cy > 0) && (pImage->GetHeight() > 0)) {
                     fRealScaleY = (float)newDecodeParam.m_rcMaxDestRectSize.cy / (float)pImage->GetHeight();
                 }
                 float fRealScale = std::max(fRealScaleX, fRealScaleY);
