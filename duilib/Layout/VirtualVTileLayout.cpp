@@ -422,8 +422,13 @@ void VirtualVTileLayout::GetDisplayElements(UiRect rc, std::vector<size_t>& coll
     }
 
     int32_t nColumns = CalcTileColumns(rc.Width());
+    if (nColumns < 1) {
+        return;
+    }
+    //按整行计算可见元素：可见行数（含底部部分可见的一行）乘以列数
+    size_t nRows = (size_t)(rc.Height() / nEleHeight) + 1;
     size_t min = (size_t)(pOwnerBox->GetScrollPos().cy / nEleHeight) * nColumns;
-    size_t max = min + (size_t)(rc.Height() / nEleHeight) * nColumns;
+    size_t max = min + nRows * (size_t)nColumns - 1;
 
     size_t nCount = pOwnerBox->GetElementCount();
     if (nCount > 0) {

@@ -613,6 +613,7 @@ void VirtualListBox::GetDisplayElements(std::vector<size_t>& collection) const
     }
 
 #ifdef _DEBUG
+    //校验布局计算出的可见元素与界面控件绑定的元素索引是否一致
     std::vector<size_t> collection2;
     size_t nItemCount = GetItemCount();
     for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
@@ -620,9 +621,16 @@ void VirtualListBox::GetDisplayElements(std::vector<size_t>& collection) const
         IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
         if (pListBoxItem != nullptr) {
             size_t iElementIndex = pListBoxItem->GetElementIndex();
-            ASSERT(iElementIndex != Box::InvalidIndex);
+            if (iElementIndex == Box::InvalidIndex) {
+                //数据已经全部显示时，末尾的控件不绑定数据，无需校验
+                continue;
+            }
             collection2.push_back(iElementIndex);
         }
+    }
+    if (collection2.size() > collection.size()) {
+        //控件数量可能多于可见元素数量（多出的控件用于显示部分可见的行），多出的控件不参与校验
+        collection2.resize(collection.size());
     }
     ASSERT(collection2 == collection);
 #endif
