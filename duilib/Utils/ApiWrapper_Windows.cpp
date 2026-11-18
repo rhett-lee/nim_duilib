@@ -817,7 +817,7 @@ static bool CreateIconsFromImageData(const std::vector<uint8_t>& iconFileData,
             continue;
         }
 
-        void* pPixelBits = pBitmap->LockPixelBits();
+        const void* pPixelBits = pBitmap->GetPixelBits();
         ASSERT(pPixelBits != nullptr);
         if (pPixelBits == nullptr) {
             continue;
@@ -841,8 +841,6 @@ static bool CreateIconsFromImageData(const std::vector<uint8_t>& iconFileData,
             continue;
         }
         memcpy(pBits, pPixelBits, nWidth * nHeight * 4);
-        //获取像素数据后必须释放，否则部分渲染引擎(如Direct2D)的位图会一直处于锁定状态
-        pBitmap->UnLockPixelBits();
         pPixelBits = nullptr;
         HBITMAP hMask = ::CreateBitmap(nWidth, nHeight, 1, 1, NULL);
         if (hMask == nullptr) {

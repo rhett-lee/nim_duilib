@@ -122,7 +122,7 @@ HBITMAP BitmapHelper::CreateGDIBitmap(IBitmap* pBitmap)
     if (pBitmap == nullptr) {
         return nullptr;
     }
-    void* pLockBits = pBitmap->LockPixelBits();
+    const void* pLockBits = pBitmap->GetPixelBits();
     if (pLockBits == nullptr) {
         return nullptr;
     }
@@ -132,7 +132,6 @@ HBITMAP BitmapHelper::CreateGDIBitmap(IBitmap* pBitmap)
         //注意：pBitmap->GetWidth() * pBitmap->GetHeight() * 4 在 int32 范围内可能溢出（如 32768*32768*4 > INT32_MAX），必须先转为 size_t
         memcpy(pBitmapBits, pLockBits, (size_t)pBitmap->GetWidth() * pBitmap->GetHeight() * 4);
     }        
-    pBitmap->UnLockPixelBits();
     return hBitmap;
 }
 

@@ -229,14 +229,16 @@ public:
     */
     virtual float GetImageSizeScale() const = 0;
 
-    /** 锁定位图数据，数据长度 = GetWidth() * GetHeight() * 4
+    /** 锁定位图数据（可读写），数据长度 = GetWidth() * GetHeight() * 4
+    * @note 写入像素数据后，必须调用 UnLockPixelBits()，以便同步位图的内部状态
     */
     virtual void* LockPixelBits() = 0;
 
-    /** 只读锁定位图数据，数据长度 = GetWidth() * GetHeight() * 4
+    /** 获取位图数据的只读指针，数据长度 = GetWidth() * GetHeight() * 4
     * @return 返回只读的位图数据；位图无效时返回nullptr
+    * @note 该函数不加锁，调用后不需要调用 UnLockPixelBits()
     */
-    virtual const void* LockPixelBits() const = 0;
+    virtual const void* GetPixelBits() const = 0;
 
     /** 释放位图数据
     */

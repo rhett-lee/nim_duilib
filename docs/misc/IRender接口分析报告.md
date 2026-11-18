@@ -45,7 +45,7 @@
 
 > 补充（2026-11-14 第七批）：第六节 P0 的 8 组缺失接口已全部补齐——`FillArc`、`DrawEllipse`（2 个重载）、`FillEllipse`、`DrawPolygon`（2 个重载）、`FillPolygon`、`ClipPath`、`ImageSamplingQuality` + `Set/GetImageSamplingQuality`；新增 `render_shape` 单元测试覆盖。
 
-> 补充（2026-11-14 第八批）：第六节 P1、P2 已全部补齐——`IFont` 的 `GetFontMetrics`/`MeasureTextWidth`/`GetFontInfo`，`IBitmap` 的 `IsValid`/`GetRowBytes`/`GetAlphaType`/`GetImageSizeScale`/只读 `LockPixelBits`，`IRender` 的 `MeasureString` 轻量重载、`MakeImageSnapshot(rc)`、`SaveLayer`/`RestoreLayer`、`SetBlendMode`/`GetBlendMode`、`SetTransform`/`ConcatMatrix`，`IMatrix` 的 `Reset`/`Concat`/`Invert`/`IsIdentity`/`MapPoint`，`IPen` 的 `SetAntiAlias`/`SetMiterLimit`/`SetDashPattern`/`HasDashPattern`，`IBrush` 的线性/径向渐变，`IRenderFactory::CreateBitmap(w,h,alphaType)`；`DrawArc`/`FillArc` 的矩形参数统一为 `UiRectF`，并按"Draw 后紧跟 Fill"的分组规则调整了 `FillArc` 的位置；新增 `render_ext` 单元测试覆盖。
+> 补充（2026-11-14 第八批）：第六节 P1、P2 已全部补齐——`IFont` 的 `GetFontMetrics`/`MeasureTextWidth`/`GetFontInfo`，`IBitmap` 的 `IsValid`/`GetRowBytes`/`GetAlphaType`/`GetImageSizeScale`/只读 `GetPixelBits`，`IRender` 的 `MeasureString` 轻量重载、`MakeImageSnapshot(rc)`、`SaveLayer`/`RestoreLayer`、`SetBlendMode`/`GetBlendMode`、`SetTransform`/`ConcatMatrix`，`IMatrix` 的 `Reset`/`Concat`/`Invert`/`IsIdentity`/`MapPoint`，`IPen` 的 `SetAntiAlias`/`SetMiterLimit`/`SetDashPattern`/`HasDashPattern`，`IBrush` 的线性/径向渐变，`IRenderFactory::CreateBitmap(w,h,alphaType)`；`DrawArc`/`FillArc` 的矩形参数统一为 `UiRectF`，并按"Draw 后紧跟 Fill"的分组规则调整了 `FillArc` 的位置；新增 `render_ext` 单元测试覆盖。
 
 > 补充（2026-11-14 第九批）：完成第三节第 6 条的公共头文件注释普查——`IRender.h` 的 `RopMode` 枚举改为纯"行为描述与限制"，`SystemNotification.h` 的 SDL 构建说明改为"跨平台构建"；仅保留 `SharePtr.h` 的来源署名与后端专用头文件中的引擎命名。
 
@@ -335,7 +335,7 @@ virtual void RestoreLayer();                                                    
 
 // IBitmap
 virtual bool IsValid() const; virtual uint32_t GetRowBytes() const; virtual AlphaType GetAlphaType() const;
-virtual float GetImageSizeScale() const; virtual const void* LockPixelBits() const;     // 均新增
+virtual float GetImageSizeScale() const; virtual const void* GetPixelBits() const;     // 均新增
 ```
 
 | 接口 | 实现位置 | 说明 |
@@ -346,7 +346,7 @@ virtual float GetImageSizeScale() const; virtual const void* LockPixelBits() con
 | `IRender::MeasureString`（轻量重载） | `Render_Skia.cpp` | 内部组装 `MeasureStringParam` 后复用原实现，调用方无需再拼参数结构体 |
 | `IRender::MakeImageSnapshot(rc)` | `Render_Skia.cpp` | 区域先裁剪到画布范围，再逐行 `memcpy` 到新位图；区域无效返回 `nullptr` |
 | `IRender::SaveLayer/RestoreLayer` | `Render_Skia.cpp` | `SkCanvas::saveLayer` + 图层 Alpha；同步维护 `m_saveCount`，与 `RestoreClip` 的断言保持一致 |
-| `IBitmap` 只读查询 | `Bitmap_Skia.cpp` | `IsValid` 用 `readyToDraw()`；`GetRowBytes` 取 `SkPixmap::rowBytes()`；`GetAlphaType` 复用既有映射；`GetImageSizeScale` 记录 `Init` 入参；新增 `const` 版 `LockPixelBits` 返回 `SkPixmap::addr()` |
+| `IBitmap` 只读查询 | `Bitmap_Skia.cpp` | `IsValid` 用 `readyToDraw()`；`GetRowBytes` 取 `SkPixmap::rowBytes()`；`GetAlphaType` 复用既有映射；`GetImageSizeScale` 记录 `Init` 入参；新增只读接口 `GetPixelBits()`（`const`）返回 `SkPixmap::addr()`，不加锁、无需 `UnLockPixelBits` |
 
 > 未新增 `IBitmap::GetPixelFormat`：框架内位图恒为 ARGB8888（N32），新增单值枚举与第三节已删除的 `RenderType` 属同类"假抽象"，故不引入。若后续支持多像素格式，再随格式一起增加。
 
@@ -479,7 +479,7 @@ virtual IBitmap* CreateBitmap(uint32_t nWidth, uint32_t nHeight, AlphaType alpha
 | `IRender::DrawArc` / `FillArc` 的矩形参数 | `UiRect` / `const UiRect*` | `UiRectF` / `const UiRectF*`（与其它图元接口一致） | 调用方（`CircleProgress`）改用 `UiRectF::MakeFromRect`；浮点坐标不再被截断 |
 | `IRender::FillArc` 的声明位置 | 位于 `FillCircle` 之后 | 移到 `DrawArc` 之后（Draw/Fill 成对分组） | 仅头文件顺序调整，无语义变化 |
 | `IFont` 文本能力 | 无度量/宽度/信息读取接口 | 新增 `FontMetrics` 结构 + `GetFontMetrics`、`MeasureTextWidth`、`GetFontInfo`（均有默认实现返回 `false`/`0`） | 自定义 `IFont` 实现可按需覆盖；`MeasureTextWidth` 不依赖 Render/Canvas |
-| `IBitmap` 只读查询 | 只能 `GetSize` 与非常量 `LockPixelBits` | 新增 `IsValid`、`GetRowBytes`、`GetAlphaType`、`GetImageSizeScale`、`const void* LockPixelBits() const`（纯虚） | 自定义 `IBitmap` 实现需补齐这 5 个方法；未新增 `GetPixelFormat`（恒为 ARGB8888，避免假抽象） |
+| `IBitmap` 只读查询 | 只能 `GetSize` 与非常量 `LockPixelBits` | 新增 `IsValid`、`GetRowBytes`、`GetAlphaType`、`GetImageSizeScale`、`const void* GetPixelBits() const`（纯虚，只读、无需解锁） | 自定义 `IBitmap` 实现需补齐这 5 个方法；未新增 `GetPixelFormat`（恒为 ARGB8888，避免假抽象） |
 | `IRender::MeasureString` | 只有 `MeasureStringParam` 版本 | 新增轻量重载 `MeasureString(text, IFont*, uFormat = 0)`（纯虚） | 自定义 `IRender` 实现需补齐；内部复用原测量逻辑 |
 | `IRender::MakeImageSnapshot` | 只有整画布版本 | 新增 `MakeImageSnapshot(const UiRect& rc)`（纯虚） | 局部快照，区域无效返回 `nullptr` |
 | `IRender::SaveLayer` / `RestoreLayer` | 无（只能逐元素乘 Alpha） | 新增 `SaveLayer(rc, alpha = 255)` / `RestoreLayer()`（纯虚） | 用于整组淡出/离屏合成；与 `SaveClip`/`RestoreClip` 共用 `m_saveCount` 同步机制 |

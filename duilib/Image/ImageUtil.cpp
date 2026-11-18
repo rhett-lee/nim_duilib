@@ -226,7 +226,7 @@ std::unique_ptr<IBitmap> ImageUtil::ResizeImageBitmap(IBitmap* pBitmap, int32_t 
         return nullptr;
     }
 
-    void* pPixelBits = pBitmap->LockPixelBits();
+    const void* pPixelBits = pBitmap->GetPixelBits();
     if (pPixelBits == nullptr) {
         pNewBitmap->UnLockPixelBits();
         return nullptr;
@@ -236,13 +236,11 @@ std::unique_ptr<IBitmap> ImageUtil::ResizeImageBitmap(IBitmap* pBitmap, int32_t 
     // 同样的溢出保护
     if (nHeight > 0 && nWidth > (SIZE_MAX / 4 / (size_t)nHeight)) {
         ASSERT(!"ResizeImageBitmap: source image too large");
-        pBitmap->UnLockPixelBits();
         pNewBitmap->UnLockPixelBits();
         return nullptr;
     }
     size_t nPixelBitsLen = (size_t)nWidth * (size_t)nHeight * 4;
     if (nPixelBitsLen == 0) {
-        pBitmap->UnLockPixelBits();
         pNewBitmap->UnLockPixelBits();
         return nullptr;
     }
@@ -250,8 +248,6 @@ std::unique_ptr<IBitmap> ImageUtil::ResizeImageBitmap(IBitmap* pBitmap, int32_t 
     const bool bResized = ResizeImageData((const uint8_t*)pPixelBits, nPixelBitsLen, nWidth, nHeight,
                                           (uint8_t*)pOutPixelBits, nOutPixelBitsLen, (uint32_t)nNewWidth, (uint32_t)nNewHeight,
                                           alphaType);
-    //释放源位图的像素数据锁（成功和失败路径都必须释放，避免位图长期处于加锁状态）
-    pBitmap->UnLockPixelBits();
     if (bResized) {
         pNewBitmap->UnLockPixelBits();
     }
@@ -365,7 +361,7 @@ bool ImageUtil::SaveBitmapToBmpFile(IBitmap* pBitmap, const FilePath& filePath)
     const uint32_t nImageSize = (uint32_t)nImageSize64;
     const uint32_t nFileSize = (uint32_t)nFileSize64;
 
-    const void* pPixelBits = pBitmap->LockPixelBits();
+    const void* pPixelBits = pBitmap->GetPixelBits();
     if (pPixelBits == nullptr) {
         return false;
     }
@@ -413,7 +409,6 @@ bool ImageUtil::SaveBitmapToBmpFile(IBitmap* pBitmap, const FilePath& filePath)
             ::memcpy(pDstRow + (size_t)x * 4, &nColor, sizeof(nColor));
         }
     }
-    pBitmap->UnLockPixelBits();
     return FileUtil::WriteFileData(filePath, fileData);
 }
 

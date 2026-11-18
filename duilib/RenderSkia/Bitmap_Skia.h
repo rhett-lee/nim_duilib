@@ -62,13 +62,13 @@ public:
     */
     virtual float GetImageSizeScale() const override;
 
-    /** 锁定位图数据，数据长度 = GetWidth() * GetHeight() * 4
+    /** 锁定位图数据（可读写），数据长度 = GetWidth() * GetHeight() * 4
     */
     virtual void* LockPixelBits() override;
 
-    /** 只读锁定位图数据，数据长度 = GetWidth() * GetHeight() * 4
+    /** 获取位图数据的只读指针，数据长度 = GetWidth() * GetHeight() * 4
     */
-    virtual const void* LockPixelBits() const override;
+    virtual const void* GetPixelBits() const override;
 
     /** 释放位图数据
     */

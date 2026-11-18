@@ -532,7 +532,7 @@ bool BitmapControl::SetBitmapDataWithCopy(IBitmap* pBitmap)
     }
     int32_t nWidth = pBitmap->GetWidth();
     int32_t nHeight = pBitmap->GetHeight();
-    const uint8_t* pPixelBits = (const uint8_t*)pBitmap->LockPixelBits();
+    const uint8_t* pPixelBits = (const uint8_t*)pBitmap->GetPixelBits();
     int32_t nPixelBitsSize = nHeight * nWidth * sizeof(uint32_t);
     return SetBitmapData(nWidth, nHeight, pPixelBits, nPixelBitsSize);
 }

@@ -211,8 +211,7 @@ void ColorControl::OnSelectPosChanged(const UiRect& rect, const UiPoint& pt)
         int32_t nColumn = m_lastPt.x - rect.left;
         int32_t colorXY = nWidth * nRow + nColumn; //颜色所在点的坐标位置    
         ASSERT(colorXY < nWidth * nHeight);
-        void* pPixelBits = m_spBitmap->LockPixelBits();
-        uint32_t* pData = (uint32_t*)pPixelBits;
+        const uint32_t* pData = (const uint32_t*)m_spBitmap->GetPixelBits();
         if (pData != nullptr) {
             uint32_t colorValue = pData[colorXY];
             UiColor newColor = UiColor(colorValue);

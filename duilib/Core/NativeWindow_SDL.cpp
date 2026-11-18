@@ -3299,7 +3299,7 @@ bool NativeWindow_SDL::SetWindowIcon(const std::vector<uint8_t>& iconFileData, c
         return false;
     }
 
-    void* pPixelBits = pBitmap->LockPixelBits();
+    const void* pPixelBits = pBitmap->GetPixelBits();
     ASSERT(pPixelBits != nullptr);
     if (pPixelBits == nullptr) {
         return false;
@@ -3310,7 +3310,7 @@ bool NativeWindow_SDL::SetWindowIcon(const std::vector<uint8_t>& iconFileData, c
 #else
     SDL_PixelFormat format = SDL_PIXELFORMAT_RGBA32;
 #endif
-    SDL_Surface* cursorSurface = SDL_CreateSurfaceFrom(pBitmap->GetWidth(), pBitmap->GetHeight(), format, pPixelBits, pBitmap->GetWidth() * sizeof(uint32_t));
+    SDL_Surface* cursorSurface = SDL_CreateSurfaceFrom(pBitmap->GetWidth(), pBitmap->GetHeight(), format, (void*)pPixelBits, pBitmap->GetWidth() * sizeof(uint32_t));
     ASSERT(cursorSurface != nullptr);
     if (cursorSurface == nullptr) {
         return false;

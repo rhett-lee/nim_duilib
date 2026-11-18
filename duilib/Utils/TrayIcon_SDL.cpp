@@ -204,7 +204,7 @@ TrayIconImpl::TraySurfaceData TrayIconImpl::LoadSDLSurfaceFromFileData(const std
         return TraySurfaceData();
     }
 
-    void* pPixelBits = pBitmap->LockPixelBits();
+    const void* pPixelBits = pBitmap->GetPixelBits();
     ASSERT(pPixelBits != nullptr);
     if (pPixelBits == nullptr) {
         return TraySurfaceData();
@@ -215,7 +215,7 @@ TrayIconImpl::TraySurfaceData TrayIconImpl::LoadSDLSurfaceFromFileData(const std
 #else
     SDL_PixelFormat format = SDL_PIXELFORMAT_RGBA32;
 #endif
-    SDL_Surface* iconSurface = SDL_CreateSurfaceFrom(pBitmap->GetWidth(), pBitmap->GetHeight(), format, pPixelBits, pBitmap->GetWidth() * sizeof(uint32_t));
+    SDL_Surface* iconSurface = SDL_CreateSurfaceFrom(pBitmap->GetWidth(), pBitmap->GetHeight(), format, (void*)pPixelBits, pBitmap->GetWidth() * sizeof(uint32_t));
     ASSERT(iconSurface != nullptr);
     TraySurfaceData surfaceData;
     surfaceData.m_pIconSurface = iconSurface;

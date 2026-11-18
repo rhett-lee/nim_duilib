@@ -1538,15 +1538,13 @@ static bool ConvertFavIconImageData(std::vector<uint8_t>& imageFileData, uint32_
     if ((nWidth < 1) || (nHeight < 1)) {
         return false;
     }
-    void* pBits = pBitmap->LockPixelBits();
+    const void* pBits = pBitmap->GetPixelBits();
     if (pBits == nullptr) {
         return false;
     }
     size_t nDataSize = nHeight * nWidth * 4;
     imageData.resize(nDataSize);
     memcpy(imageData.data(), pBits, nDataSize);
-    pBitmap->UnLockPixelBits();
-    pBits = 0;
     return true;
 }
 

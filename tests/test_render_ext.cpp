@@ -3,7 +3,7 @@
 // 测试对象：
 //  1. IFont：GetFontMetrics / MeasureTextWidth / GetFontInfo；
 //  2. IBitmap：CreateBitmap(w,h) / IsValid / GetRowBytes / GetAlphaType /
-//     GetImageSizeScale / LockPixelBits（只读）；
+//     GetImageSizeScale / GetPixelBits（只读）；
 //  3. IRender：MeasureString 轻量重载、MakeImageSnapshot(rc)、
 //     SaveLayer/RestoreLayer、SetBlendMode/GetBlendMode、SetTransform；
 //  4. IMatrix：Reset / Concat / Invert / IsIdentity / MapPoint；
@@ -112,7 +112,7 @@ void TestBitmap(ui::IRenderFactory* pRenderFactory)
         CHECK(pBitmap->GetAlphaType() == ui::AlphaType::kPremul);
         CHECK(pBitmap->GetImageSizeScale() == 1.0f);
         const ui::IBitmap* pConstBitmap = pBitmap.get();
-        CHECK(pConstBitmap->LockPixelBits() != nullptr);
+        CHECK(pConstBitmap->GetPixelBits() != nullptr);
     }
 
     //未初始化的位图不是有效位图
@@ -121,7 +121,7 @@ void TestBitmap(ui::IRenderFactory* pRenderFactory)
     if (pEmpty != nullptr) {
         CHECK(!pEmpty->IsValid());
         const ui::IBitmap* pConstEmpty = pEmpty.get();
-        CHECK(pConstEmpty->LockPixelBits() == nullptr);
+        CHECK(pConstEmpty->GetPixelBits() == nullptr);
     }
 }
 
@@ -300,7 +300,7 @@ void TestSnapshotRect(ui::IRender* pRender)
     if (pBitmap != nullptr) {
         CHECK(pBitmap->GetSize().cx == 10);
         CHECK(pBitmap->GetSize().cy == 10);
-        const uint32_t* pBits = (const uint32_t*)pBitmap->LockPixelBits();
+        const uint32_t* pBits = (const uint32_t*)pBitmap->GetPixelBits();
         CHECK(pBits != nullptr);
         if (pBits != nullptr) {
             CHECK(pBits[0] == kRedColor);

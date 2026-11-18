@@ -771,7 +771,7 @@ private:
         UiColor selColor;
         const UiRect rcPickker = GetRect();
         if (m_spBitmap != nullptr) {
-            uint32_t* pPixelBits = (uint32_t*)m_spBitmap->LockPixelBits();
+            const uint32_t* pPixelBits = (const uint32_t*)m_spBitmap->GetPixelBits();
             if (pPixelBits != nullptr) {
                 const int32_t nWidth = (int32_t)m_spBitmap->GetWidth();
                 const int32_t nHeight = (int32_t)m_spBitmap->GetHeight();
@@ -801,7 +801,6 @@ private:
                 selColor = UiColor(selColor.GetB(), selColor.GetG(), selColor.GetR());
 #endif
             }
-            m_spBitmap->UnLockPixelBits();
         }
         return selColor;
     }
@@ -840,7 +839,7 @@ private:
         int32_t destColorIndex = 0;
         const UiRect rcPickker = GetRect();
         if (m_spBitmap != nullptr) {
-            uint32_t* pPixelBits = (uint32_t*)m_spBitmap->LockPixelBits();
+            const uint32_t* pPixelBits = (const uint32_t*)m_spBitmap->GetPixelBits();
             if (pPixelBits != nullptr) {
                 const int32_t nWidth = (int32_t)m_spBitmap->GetWidth();
                 const int32_t nHeight = (int32_t)m_spBitmap->GetHeight();
@@ -868,7 +867,6 @@ private:
                 }
             }
             ASSERT(destColorIndex == (int32_t)(spBitmap->GetWidth() * spBitmap->GetHeight()));
-            m_spBitmap->UnLockPixelBits();
         }
         spBitmap->UnLockPixelBits();
         return spBitmap;

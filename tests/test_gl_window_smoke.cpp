@@ -66,13 +66,12 @@ bool ReadBitmapPixel(ui::IBitmap* pBitmap, int32_t x, int32_t y, uint32_t& color
     if ((x < 0) || (y < 0) || (x >= (int32_t)pBitmap->GetWidth()) || (y >= (int32_t)pBitmap->GetHeight())) {
         return false;
     }
-    const void* pBits = pBitmap->LockPixelBits();
+    const void* pBits = pBitmap->GetPixelBits();
     if (pBits == nullptr) {
         return false;
     }
     const uint32_t* pLine = (const uint32_t*)((const uint8_t*)pBits + (size_t)y * pBitmap->GetRowBytes());
     color = pLine[x];
-    pBitmap->UnLockPixelBits();
     return true;
 }
 

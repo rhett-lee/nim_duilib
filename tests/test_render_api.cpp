@@ -1219,14 +1219,13 @@ void TestSnapshotAndClone(ui::IRenderFactory* pRenderFactory)
         if (pBitmap != nullptr) {
             CHECK(pBitmap->GetWidth() == 10);
             CHECK(pBitmap->GetHeight() == 10);
-            const void* pBits = pBitmap->LockPixelBits();
+            const void* pBits = pBitmap->GetPixelBits();
             CHECK(pBits != nullptr);
             if (pBits != nullptr) {
                 const uint32_t* pLine = (const uint32_t*)pBits;
                 CHECK(ColorNear(pLine[0], kRedColor));
                 CHECK(ColorNear(pLine[5 * 10 + 5], kRedColor));
             }
-            pBitmap->UnLockPixelBits();
         }
     }
 
@@ -1510,12 +1509,11 @@ void TestBitmap(ui::IRenderFactory* pRenderFactory)
             pLine[0] = kBlueColor;
         }
         pBitmap->UnLockPixelBits();
-        const void* pConstBits = pBitmap->LockPixelBits();
+        const void* pConstBits = pBitmap->GetPixelBits();
         CHECK(pConstBits != nullptr);
         if (pConstBits != nullptr) {
             CHECK(ColorNear(((const uint32_t*)pConstBits)[0], kBlueColor));
         }
-        pBitmap->UnLockPixelBits();
     }
 
     //RA-98 Clone：复制位图数据，且相互独立
@@ -1525,12 +1523,11 @@ void TestBitmap(ui::IRenderFactory* pRenderFactory)
         if (pClone != nullptr) {
             CHECK(pClone->GetWidth() == nWidth);
             CHECK(pClone->GetHeight() == nHeight);
-            const uint32_t* pCloneBits = (const uint32_t*)pClone->LockPixelBits();
+            const uint32_t* pCloneBits = (const uint32_t*)pClone->GetPixelBits();
             CHECK(pCloneBits != nullptr);
             if (pCloneBits != nullptr) {
                 CHECK(ColorNear(pCloneBits[0], kBlueColor));
             }
-            pClone->UnLockPixelBits();
         }
     }
 

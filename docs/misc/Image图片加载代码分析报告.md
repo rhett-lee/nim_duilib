@@ -34,7 +34,7 @@
 位置：`duilib/Image/ImageUtil.cpp`（`ResizeImageBitmap`）
 
 ```cpp
-void* pPixelBits = pBitmap->LockPixelBits();   // 源位图加锁
+void* pPixelBits = pBitmap->LockPixelBits();   // 源位图加锁（旧代码）
 ...
 if (ResizeImageData(...)) {
     pNewBitmap->UnLockPixelBits();             // 只解锁了新位图
@@ -46,7 +46,7 @@ else {
 
 源位图在多条路径上都缺少 `UnLockPixelBits()`。Skia/GDI 位图长期处于映射状态会导致后续 `LockPixelBits` 失败或绘制性能退化。
 
-修复：重采样结果先保存到 `bResized`，无论成功与否都先释放源位图的像素锁，再按结果处理新位图。
+修复：源位图在这里只读取像素，改用只读接口 `IBitmap::GetPixelBits()`（不加锁，也无需解锁）；仅新位图通过 `LockPixelBits()`/`UnLockPixelBits()` 包裹写入路径，失败分支同样释放新位图。
 
 ### 2. 重采样写死为预乘 Alpha，非预乘位图会被算错 — 已修复
 
@@ -215,5 +215,7 @@ nImageOffset = static_cast<int32_t>(std::ceil(nImageOffset * fImageSizeScale));
 | `duilib/Image/ImageAttribute.cpp` / `ImageAttribute.h` | 11、12、可维护性（unique_ptr、`m_bFade` 改名为 `m_nAlpha`） |
 | `duilib/Image/ImagePlayer.cpp` | 13、14 |
 | `duilib/Image/ImageDecoder_Common.cpp` | 16 |
+
+补充：第 1 项的修复还涉及接口层——`duilib/Render/IRender.h` 新增只读接口 `IBitmap::GetPixelBits() const`（不加锁、无需 `UnLockPixelBits`），`duilib/RenderSkia/Bitmap_Skia.h` / `Bitmap_Skia.cpp` 同步实现，并把框架内所有"只读像素"的 `LockPixelBits()` 调用点改为 `GetPixelBits()` 并去掉对应的 `UnLockPixelBits()`。
 
 验证方式：`python build/build.py build --config Debug --arch x64 --offline --no-deps --target duilib`，`/W4 /WX` 无警告。

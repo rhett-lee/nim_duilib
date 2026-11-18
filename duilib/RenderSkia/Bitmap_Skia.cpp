@@ -234,7 +234,7 @@ void* Bitmap_Skia::LockPixelBits()
     return pPixelBits;
 }
 
-const void* Bitmap_Skia::LockPixelBits() const
+const void* Bitmap_Skia::GetPixelBits() const
 {
     const void* pPixelBits = nullptr;
     SkPixmap pixmap;

@@ -256,7 +256,7 @@ auto pGpuOffscreen = pRenderFactory->CreateOffscreenRender(1024, 1024, GetRender
 
 | 编号 | 场景 | 步骤 | 预期 |
 | --- | --- | --- | --- |
-| OS-21 | 直绘到 IBitmap | `CreateBitmapRender(pBitmap)` 后绘制 | `pBitmap->LockPixelBits()` 立即可见绘制结果（零拷贝）；`Resize` 仅接受相同尺寸 |
+| OS-21 | 直绘到 IBitmap | `CreateBitmapRender(pBitmap)` 后绘制 | `pBitmap->GetPixelBits()` 立即可见绘制结果（零拷贝）；`Resize` 仅接受相同尺寸 |
 | OS-22 | 位图无效 | 传入未初始化的 `IBitmap` 或 `nullptr` | 返回 nullptr，不崩溃 |
 
 ### F. 多后端
@@ -278,7 +278,7 @@ auto pGpuOffscreen = pRenderFactory->CreateOffscreenRender(1024, 1024, GetRender
 | --- | --- | --- | --- |
 | OS-29 | 子线程 Raster | 在 `std::thread` 内创建/绘制/快照/析构 Raster 离屏 | 全程无断言、无崩溃，快照数据正确 |
 | OS-30 | 重复创建销毁 | 循环 200 次创建 16×16 → 绘制 → 快照 → 析构 | 无泄漏（配合 CRT 泄漏检测）、无崩溃 |
-| OS-31 | 快照跨线程 | 主线程创建快照，子线程读取 `LockPixelBits()` | 数据可读且内容正确 |
+| OS-31 | 快照跨线程 | 主线程创建快照，子线程读取 `GetPixelBits()` | 数据可读且内容正确 |
 
 ### H. 迁移回归（阶段 2 完成后）
 
