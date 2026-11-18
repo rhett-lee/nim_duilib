@@ -877,6 +877,30 @@ STRID_CONTROLS_ANI_GOTO = Goto
 STRID_CONTROLS_ANI_THE = 
 STRID_CONTROLS_ANI_FRAME = Frame
 
+# Image animation test: image selection and load parameters
+STRID_CONTROLS_ANI_IMAGE_LIST = Test Image:
+STRID_CONTROLS_ANI_IMAGE_APNG = APNG Animation
+STRID_CONTROLS_ANI_IMAGE_GIF = GIF Animation
+STRID_CONTROLS_ANI_IMAGE_FAN = GIF Animation (Fan)
+STRID_CONTROLS_ANI_IMAGE_WEBP = WEBP Animation
+STRID_CONTROLS_ANI_IMAGE_ICO = ICO Multi-Frame Animation
+STRID_CONTROLS_ANI_IMAGE_PAG = PAG Animation
+STRID_CONTROLS_ANI_IMAGE_LOTTIE = LOTTIE Animation
+STRID_CONTROLS_ANI_RELOAD = Reload
+STRID_CONTROLS_ANI_AUTO_PLAY = Auto Play
+STRID_CONTROLS_ANI_PLAY_COUNT = Play Count
+
+# Image animation test: frame control and status
+STRID_CONTROLS_ANI_STOP = Stop
+STRID_CONTROLS_ANI_PREV_FRAME = Prev Frame
+STRID_CONTROLS_ANI_NEXT_FRAME = Next Frame
+STRID_CONTROLS_ANI_INFO_FORMAT = Image Size: %d x %d    Frames: %d    Loop Count: %d    Frame Delay: %d ms
+STRID_CONTROLS_ANI_LOAD_ERROR = Failed to load image (file not found or format not supported)
+STRID_CONTROLS_ANI_EVENT_FORMAT = Events: Start %d, Stop %d, Frames %d
+STRID_CONTROLS_ANI_EVENT_START = Last Event: Animation Started
+STRID_CONTROLS_ANI_EVENT_STOP = Last Event: Animation Stopped
+STRID_CONTROLS_ANI_EVENT_FRAME = Last Event: Frame %d/%d
+
 # First-level menu items
 STRID_CONTROLS_MENU_FIRST_LEVEL_1 = Menu Item 1
 STRID_CONTROLS_MENU_FIRST_LEVEL_2 = Menu Item 2

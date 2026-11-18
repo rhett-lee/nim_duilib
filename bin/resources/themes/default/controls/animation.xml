@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="600,500" min_size="80,50" text_id="STRID_CONTROLS_ANI_WINDOW_TITLE"
+<Window size="920,720" min_size="780,560" text_id="STRID_CONTROLS_ANI_WINDOW_TITLE"
         caption="0,0,0,36" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36"
         shadow_type="default" shadow_snap="true" size_box="4,4,4,4" icon="public/caption/logo.ico">
     <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->
@@ -23,18 +23,63 @@
         </HBox>
         <!-- 标题栏区域结束 -->
 
-        <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
-        <VBox child_halign="center" child_valign="center">
-            <HBox height="40" margin="8,0,0,0">
-                <Button class="btn_global" name="animation_btn" text_id="STRID_CONTROLS_ANI_PLAY_PAUSE" width="96" height="30" border_round="3,3" margin="8,0,0,0" valign="center"/>
-                <Label text_id="STRID_CONTROLS_ANI_CURRENT_TOTAL_FRAME" valign="center" margin="8,0,0,0"/>
-                <Label name="animation_frame" text="[000/100]" width="120" valign="center" margin="8,0,0,0"/>
-                <Button class="btn_global" name="goto_frame_btn" text_id="STRID_CONTROLS_ANI_GOTO" width="56" height="30" border_round="3,3" margin="8,0,0,0" valign="center"/>
-                <Label text_id="STRID_CONTROLS_ANI_THE" valign="center" margin="8,0,0,0"/>
-                <RichEdit class="simple simple_border rich_edit_spin" name="goto_frame_number" number="true" width="80" min_number="0" max_number="10000" valign="center" text_align="vcenter" margin="8,0,0,0"/>
-                <Label text_id="STRID_CONTROLS_ANI_FRAME" valign="center" margin="8,0,0,0"/>
+        <!-- 工作区域：图片选择、播放控制、图片显示、状态信息 -->
+        <VBox width="stretch" height="stretch" padding="12,10,12,10">
+
+            <!-- 第一行：选择测试图片与加载参数 -->
+            <HBox width="stretch" height="30" child_margin="8" valign="center">
+                <Label text_id="STRID_CONTROLS_ANI_IMAGE_LIST" width="auto" valign="center"/>
+                <Combo class="combo" name="image_combo" combo_type="drop_list" dropbox_size="0,240"
+                       width="200" height="30" valign="center"/>
+                <Button class="btn_global" name="reload_btn" text_id="STRID_CONTROLS_ANI_RELOAD"
+                        width="96" height="30" border_round="3,3" valign="center"/>
+                <CheckBox class="checkbox_1" name="auto_play_check" text_id="STRID_CONTROLS_ANI_AUTO_PLAY"
+                          selected="true" valign="center"/>
+                <Label text_id="STRID_CONTROLS_ANI_PLAY_COUNT" width="auto" valign="center"/>
+                <RichEdit class="simple simple_border rich_edit_spin" name="play_count_edit" number="true"
+                          min_number="-1" max_number="100" width="64" valign="center"
+                          text_align="vcenter" text="-1"/>
+                <Control/>
             </HBox>
-            <Control name="animation_test" halign="center" valign="center" bkimage="file='render/apng_test.png' name='bk_animation_test' auto_play='true' icon_as_animation='true' icon_frame_delay='2000' valign='center' halign='center'"/>
+
+            <!-- 第二行：动画播放控制 -->
+            <HBox width="stretch" height="30" margin="0,8,0,0" child_margin="8" valign="center">
+                <Button class="btn_global" name="animation_btn" text_id="STRID_CONTROLS_ANI_PLAY_PAUSE"
+                        width="96" height="30" border_round="3,3" valign="center"/>
+                <Button class="btn_global" name="stop_btn" text_id="STRID_CONTROLS_ANI_STOP"
+                        width="72" height="30" border_round="3,3" valign="center"/>
+                <Button class="btn_global" name="prev_frame_btn" text_id="STRID_CONTROLS_ANI_PREV_FRAME"
+                        width="90" height="30" border_round="3,3" valign="center"/>
+                <Button class="btn_global" name="next_frame_btn" text_id="STRID_CONTROLS_ANI_NEXT_FRAME"
+                        width="90" height="30" border_round="3,3" valign="center"/>
+                <Button class="btn_global" name="goto_frame_btn" text_id="STRID_CONTROLS_ANI_GOTO"
+                        width="56" height="30" border_round="3,3" valign="center"/>
+                <RichEdit class="simple simple_border rich_edit_spin" name="goto_frame_number" number="true"
+                          width="72" min_number="0" max_number="10000" valign="center"
+                          text_align="vcenter" text="0"/>
+                <Label text_id="STRID_CONTROLS_ANI_FRAME" width="auto" valign="center"/>
+                <Control/>
+                <Label text_id="STRID_CONTROLS_ANI_CURRENT_TOTAL_FRAME" width="auto" valign="center"/>
+                <Label name="animation_frame" text="[0/0]" width="150" valign="center" single_line="true"/>
+            </HBox>
+
+            <!-- 图片显示区域 -->
+            <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="6,6"
+                  width="stretch" height="stretch" margin="0,10,0,0"
+                  child_halign="center" child_valign="center">
+                <Control name="animation_test" bkimage="file='render/apng_test.png' name='bk_animation_test' auto_play='true' play_count='-1' valign='center' halign='center'"/>
+            </VBox>
+
+            <!-- 图片信息与事件统计 -->
+            <Label name="image_info" text="-" font="system_regular_12" text_color="text_muted"
+                   width="stretch" height="auto" margin="0,8,0,0" single_line="true" auto_tooltip="true"/>
+            <HBox width="stretch" height="20" margin="0,4,0,0" valign="center">
+                <Label name="event_info" text="-" font="system_regular_12" text_color="text_muted"
+                       width="auto" valign="center" single_line="true"/>
+                <Control/>
+                <Label name="event_last" text="-" font="system_regular_12" text_color="text_muted"
+                       width="auto" valign="center" single_line="true"/>
+            </HBox>
         </VBox>
     </VBox>
 </Window>

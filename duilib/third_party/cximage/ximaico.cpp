@@ -95,7 +95,7 @@ bool CxImageICO::Decode(CxFile *hFile)
                 // read the palette
                 RGBQUAD pal[256] = {0};
                 size_t palSize = bih.biClrUsed ? bih.biClrUsed : head.biClrUsed;
-                if ((palSize > 0) && (palSize < 256)) {
+                if ((palSize > 0) && (palSize <= 256)) {
                     hFile->Read(pal, palSize * sizeof(RGBQUAD), 1);
                     SetPalette(pal, (uint32_t)palSize);    //palette assign
                 }
