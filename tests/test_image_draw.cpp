@@ -4,6 +4,8 @@
 //  1. 传 UiRect() 表示不限制，由渲染接口使用当前裁剪区域兜底；
 //  2. rcPaint 与目标区域不相交时，跳过绘制；
 //  3. rcPaint 与目标区域部分相交时，只绘制相交部分。
+// 另外覆盖 ui::ImageInfo::GetFrame 的动画帧对象复用：
+//  帧号与目标尺寸均未变化时复用上一帧对象，变化时重新读取。
 //
 // 本测试使用离屏渲染，不创建窗口；需要 duilib 的资源目录（编译期宏
 // DUILIB_TEST_RESOURCE_DIR，默认指向源码树的 bin/resources）。
@@ -14,7 +16,10 @@
 #endif
 
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/ImageManager.h"
 #include "duilib/Core/ResourceParam.h"
+#include "duilib/Image/ImageInfo.h"
+#include "duilib/Image/ImageLoadParam.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Utils/FilePath.h"
 #include "duilib/Utils/StringConvert.h"
@@ -151,6 +156,80 @@ void TestImagePaintRect(ui::IRender* pRender, ui::IRenderFactory* pRenderFactory
     }
 }
 
+/** 动画帧对象复用（ImageInfo::GetFrame）：
+ *  帧号与目标尺寸均未变化时复用上一帧对象，避免重复读取帧数据与创建对象；
+ *  帧号或目标尺寸变化时重新读取，返回的帧数据保持正确。
+ */
+void TestAnimationFrameReuse()
+{
+    const DString resourcePath = _T(DUILIB_TEST_RESOURCE_DIR);
+    const DString imagePath = resourcePath + _T("/themes/default/render/gif_test.gif");
+
+    ui::ImageLoadParam loadParam;
+    loadParam.SetImageDpiScaleEnabled(false);
+    loadParam.SetLoadDpiScale(100);
+    ui::ImageLoadPath loadPath;
+    loadPath.m_imageFullPath = ui::FilePath(imagePath);
+    loadPath.m_pathType = ui::ImageLoadPathType::kLocalPath;
+    loadParam.SetImageLoadPath(loadPath);
+
+    bool bFromCache = false;
+    const std::shared_ptr<ui::ImageInfo> pImageInfo =
+        ui::GlobalManager::Instance().Image().GetImage(loadParam, nullptr, bFromCache);
+    Check(pImageInfo != nullptr, "GetImage() is null");
+    if (pImageInfo == nullptr) {
+        return;
+    }
+    Check(pImageInfo->IsMultiFrameImage(), "gif_test.gif is not a multi-frame image");
+    Check(pImageInfo->GetFrameCount() >= 2, "gif_test.gif frame count < 2");
+    if (!pImageInfo->IsMultiFrameImage() || (pImageInfo->GetFrameCount() < 2)) {
+        return;
+    }
+
+    const ui::UiSize szFrameSize(64, 64);
+    const ui::UiSize szOtherSize(32, 32);
+
+    //用例1：首次读取，返回有效的帧数据
+    const ui::AnimationFramePtr pFrame0 = pImageInfo->GetFrame(0, szFrameSize);
+    Check(pFrame0 != nullptr, "GetFrame(0) is null");
+    if (pFrame0 == nullptr) {
+        return;
+    }
+    Check(!pFrame0->m_bDataPending, "frame 0 is pending");
+    Check(pFrame0->m_pBitmap != nullptr, "frame 0 bitmap is null");
+    Check(pFrame0->m_nFrameIndex == 0, "frame 0 index is invalid");
+
+    //用例2：帧号与目标尺寸均未变化，复用同一个帧对象
+    const ui::AnimationFramePtr pFrame0Again = pImageInfo->GetFrame(0, szFrameSize);
+    CHECK(pFrame0Again.get() == pFrame0.get());
+    CHECK(pFrame0Again->m_pBitmap.get() == pFrame0->m_pBitmap.get());
+
+    //用例3：帧号变化，返回新的帧对象，并且帧号正确
+    const ui::AnimationFramePtr pFrame1 = pImageInfo->GetFrame(1, szFrameSize);
+    Check(pFrame1 != nullptr, "GetFrame(1) is null");
+    if (pFrame1 != nullptr) {
+        Check(pFrame1.get() != pFrame0.get(), "frame 1 reuses frame 0 object");
+        Check(pFrame1->m_nFrameIndex == 1, "frame 1 index is invalid");
+        Check(pFrame1->m_pBitmap != nullptr, "frame 1 bitmap is null");
+    }
+
+    //用例4：帧号相同但目标尺寸变化，返回新的帧对象
+    const ui::AnimationFramePtr pFrame1Small = pImageInfo->GetFrame(1, szOtherSize);
+    Check(pFrame1Small != nullptr, "GetFrame(1, small size) is null");
+    if ((pFrame1Small != nullptr) && (pFrame1 != nullptr)) {
+        Check(pFrame1Small.get() != pFrame1.get(), "frame cache ignores dest size");
+    }
+
+    //用例5：回到之前的帧号+尺寸组合，缓存只有一帧，需要重新读取且帧数据正确
+    const ui::AnimationFramePtr pFrame0Reload = pImageInfo->GetFrame(0, szFrameSize);
+    Check(pFrame0Reload != nullptr, "GetFrame(0) reload is null");
+    if (pFrame0Reload != nullptr) {
+        Check(pFrame0Reload.get() != pFrame0.get(), "reload should not reuse stale object");
+        Check(pFrame0Reload->m_nFrameIndex == 0, "reload frame index is invalid");
+        Check(pFrame0Reload->m_pBitmap != nullptr, "reload frame bitmap is null");
+    }
+}
+
 }//namespace
 
 int main(int /*argc*/, char* /*argv*/[])
@@ -187,6 +266,9 @@ int main(int /*argc*/, char* /*argv*/[])
                 TestImagePaintRect(pRender.get(), pRenderFactory);
             }
         }
+
+        //动画帧对象复用（不依赖渲染对象）
+        TestAnimationFrameReuse();
     }
 
     std::cout << "image_draw: " << g_checkCount << " checks, "

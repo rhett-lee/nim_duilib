@@ -446,6 +446,42 @@ if(WIN32)
 endif()
 
 
+# 动画帧对象复用的性能基准（不注册到 ctest，属于手工运行的评估工具）
+#
+# 对比 ImageInfo::GetFrame 在"帧号+目标尺寸未变化时复用上一帧对象"前后的耗时，
+# 覆盖同帧重复读取、逐帧轮换、两个目标尺寸交替三类场景。
+# 评测请使用 Release 配置：
+#   python build/build.py build --offline --target bench_animation_frame_reuse
+#   out/x64/Release/tests/bench_animation_frame_reuse.exe --iterations 200000
+if(WIN32)
+    add_executable(bench_animation_frame_reuse
+        bench_animation_frame_reuse.cpp
+    )
+    target_include_directories(bench_animation_frame_reuse PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../"
+    )
+    target_link_directories(bench_animation_frame_reuse PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(bench_animation_frame_reuse PRIVATE
+        duilib
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(bench_animation_frame_reuse PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(bench_animation_frame_reuse PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(bench_animation_frame_reuse PRIVATE UNICODE _UNICODE)
+    target_compile_definitions(bench_animation_frame_reuse PRIVATE
+        DUILIB_BENCH_RESOURCE_DIR="${CMAKE_SOURCE_DIR}/bin/resources"
+    )
+    if(MSVC)
+        target_compile_options(bench_animation_frame_reuse PRIVATE /utf-8)
+    endif()
+endif()
+
 # 文字绘制相关类的单元测试：
 # 覆盖文本归一化、按编码枚举/转换、字形运行构建、单字符/整段测量、
 # 断行与布局、横向对齐/字间距/纵向文本测量与绘制、富文本省略号截断的绘制缓存路径。

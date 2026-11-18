@@ -215,6 +215,18 @@ private:
     */
     std::shared_ptr<IBitmap> m_pBitmap;
 
+    /** 最近一次读取的动画帧（缓存一帧，用于复用，避免重复读取帧数据）
+    */
+    AnimationFramePtr m_pLastFrame;
+
+    /** 最近一次读取的动画帧的帧号
+    */
+    uint32_t m_nLastFrameIndex;
+
+    /** 最近一次读取的动画帧的目标区域大小
+    */
+    UiSize m_lastFrameDestSize;
+
     /** 原图加载的宽度和高度缩放比例(1.0f表示无缩放)
     */
     float m_fImageSizeScale;

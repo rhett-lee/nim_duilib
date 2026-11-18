@@ -19,6 +19,7 @@ ImageInfo::ImageInfo():
     m_fCustomSizeScaleX(0),
     m_fCustomSizeScaleY(0),
     m_nImageFileDpiScale(100),
+    m_nLastFrameIndex((uint32_t)-1),
     m_fImageSizeScale(1.0f)
 {
 }
@@ -241,6 +242,14 @@ AnimationFramePtr ImageInfo::GetFrame(uint32_t nFrameIndex, const UiSize& szDest
 #endif //  DUILIB_PERFORMANCE_STAT_ENABLED
 
     GlobalManager::Instance().AssertUIThread();
+
+    //复用上一帧数据：帧号与目标区域大小均未变化时，直接返回缓存对象，避免重复读取帧数据与创建对象
+    if ((m_pLastFrame != nullptr) &&
+        (m_nLastFrameIndex == nFrameIndex) &&
+        (m_lastFrameDestSize == szDestRectSize)) {
+        return m_pLastFrame;
+    }
+
     std::shared_ptr<IAnimationImage> pAnimationImage = GetAnimationImage(nFrameIndex);
     ASSERT(pAnimationImage != nullptr);
     if (pAnimationImage == nullptr) {
@@ -259,12 +268,25 @@ AnimationFramePtr ImageInfo::GetFrame(uint32_t nFrameIndex, const UiSize& szDest
     if (pAnimationImage->ReadFrameData(nFrameIndex, szDestRectSize, pAnimationFrame.get())) {
         pAnimationFrame->m_nFrameIndex = nFrameIndex;
         if (pAnimationFrame->m_bDataPending) {
-            //数据解码未完成，直接返回
+            //数据解码未完成，直接返回（不缓存，下次仍需重新读取）
             ASSERT(pAnimationFrame->m_pBitmap == nullptr);
+            m_pLastFrame.reset();
+            m_nLastFrameIndex = (uint32_t)-1;
             return pAnimationFrame;
         }
         ASSERT(pAnimationFrame->GetDelayMs() > 0);
         ASSERT(pAnimationFrame->m_pBitmap != nullptr);
+        if (!pAnimationFrame->m_bDataError && (pAnimationFrame->m_pBitmap != nullptr)) {
+            //数据读取完成，缓存该帧数据，供下次绘制时复用
+            m_pLastFrame = pAnimationFrame;
+            m_nLastFrameIndex = nFrameIndex;
+            m_lastFrameDestSize = szDestRectSize;
+        }
+    }
+    if (m_pLastFrame != pAnimationFrame) {
+        //未缓存本次读取的帧，需要清除旧的缓存数据
+        m_pLastFrame.reset();
+        m_nLastFrameIndex = (uint32_t)-1;
     }
     return pAnimationFrame;
 }
@@ -342,6 +364,10 @@ bool ImageInfo::SetImageData(const ImageLoadParam& loadParam,
         m_fCustomSizeScaleY = static_cast<float>(nImageInfoHeight) / nImageHeight;
         m_bHasCustomSizeScale = true;
     }
+
+    //图片数据变化后，之前缓存的动画帧对象不再有效，需要清除
+    m_pLastFrame.reset();
+    m_nLastFrameIndex = (uint32_t)-1;
 
     m_loadParam = loadParam;
     m_pImageData = pImageData;    
