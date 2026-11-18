@@ -234,15 +234,15 @@ public:
     */
     virtual void* LockPixelBits() = 0;
 
+    /** 释放位图数据
+    */
+    virtual void UnLockPixelBits() = 0;
+
     /** 获取位图数据的只读指针，数据长度 = GetWidth() * GetHeight() * 4
     * @return 返回只读的位图数据；位图无效时返回nullptr
     * @note 该函数不加锁，调用后不需要调用 UnLockPixelBits()
     */
     virtual const void* GetPixelBits() const = 0;
-
-    /** 释放位图数据
-    */
-    virtual void UnLockPixelBits() = 0;
 
     /** 克隆生成新的的位图
     *@return 返回新生成的位图接口（所有权归调用方）
