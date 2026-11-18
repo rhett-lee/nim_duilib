@@ -367,7 +367,9 @@ bool ImageInfo::SetImageData(const ImageLoadParam& loadParam,
         m_bHasCustomSizeScale = true;
     }
 
-    //图片数据变化后，之前缓存的动画帧对象不再有效，需要清除
+    //图片数据变化后，之前缓存的图片数据、位图和动画帧对象都不再有效，需要清除
+    ReleaseImage(); //延迟释放旧的图片数据(必须在更新m_loadParam之前调用)
+    m_pBitmap.reset();
     m_pLastFrame.reset();
     m_nLastFrameIndex = (uint32_t)-1;
 

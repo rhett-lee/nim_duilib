@@ -18,8 +18,12 @@ Image::Image() :
 
 Image::~Image()
 {
-    if ((m_pImagePlayer != nullptr) && m_pImagePlayer->IsAnimationPlaying()) {
-        m_pImagePlayer->StopImageAnimation(AnimationImagePos::kFrameCurrent, false);
+    if (m_pImagePlayer != nullptr) {
+        //析构过程中关联的控件可能已进入销毁流程，先解除关联，避免停止动画时触发控件重绘
+        m_pImagePlayer->SetControl(nullptr);
+        if (m_pImagePlayer->IsAnimationPlaying()) {
+            m_pImagePlayer->StopImageAnimation(AnimationImagePos::kFrameCurrent, false);
+        }
     }
 }
 
