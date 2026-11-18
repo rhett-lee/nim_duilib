@@ -454,7 +454,8 @@ bool Image_GIF::IsDelayDecodeFinished() const
 uint32_t Image_GIF::GetDecodedFrameIndex() const
 {
     if (m_impl->m_frames.empty()) {
-        return 0;
+        //没有已解码的帧
+        return (uint32_t)-1;
     }
     else {
         return (uint32_t)m_impl->m_frames.size() - 1;

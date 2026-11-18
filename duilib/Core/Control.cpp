@@ -4720,6 +4720,15 @@ void Control::AsyncDecodeImageData(std::shared_ptr<TAsyncImageDecode> pAsyncDeco
                 return;
             }
 
+            //判断发起解码的图片是否已经被切换：图片切换后不再推进播放、不再发送解码事件，
+            //并停止继续解码，实现"切换视图/更换图片时取消图片加载"的效果
+            bool bImageChanged = true;
+            if (pAsyncDecoder->m_pImage != nullptr) {
+                std::shared_ptr<ImageInfo> pImageInfo = pAsyncDecoder->m_pImage->GetImageInfo();
+                bImageChanged = (pImageInfo == nullptr) ||
+                                (pImageInfo->GetImageData() != pAsyncDecoder->m_pImageData);
+            }
+
             //合并数据
             pAsyncDecoder->m_pImageData->MergeAsyncDecodeData();
 
@@ -4728,7 +4737,7 @@ void Control::AsyncDecodeImageData(std::shared_ptr<TAsyncImageDecode> pAsyncDeco
 
             //有新帧解码完成时通知播放模块：若当前正因缺帧而等待，则立即推进播放，
             //避免再多等一个定时器周期
-            if (pAsyncDecoder->m_pImage != nullptr) {
+            if (!bImageChanged && (pAsyncDecoder->m_pImage != nullptr)) {
                 pAsyncDecoder->m_pImage->OnImageFrameDataReady();
             }
 
@@ -4739,15 +4748,17 @@ void Control::AsyncDecodeImageData(std::shared_ptr<TAsyncImageDecode> pAsyncDeco
                 pAsyncDecoder->m_bDecodeResult &&
                 !pAsyncDecoder->m_bDecodeError) {
                 //多帧图片只保持播放位置前方的预解码窗口，避免把长动画的所有帧都解码后常驻内存
-                const bool bWindowOpen = (pAsyncDecoder->m_pImageData->GetImageType() != ImageType::kImageAnimation) ||
-                                         IsAsyncDecodeWindowOpen(pAsyncDecoder);
+                const bool bWindowOpen = !bImageChanged &&
+                                         ((pAsyncDecoder->m_pImageData->GetImageType() != ImageType::kImageAnimation) ||
+                                          IsAsyncDecodeWindowOpen(pAsyncDecoder));
                 if (bWindowOpen) {
                     //如果未完成，则继续解码下一帧
                     pAsyncDecoder->m_bDecodeExecuted = false;
                     AsyncDecodeImageData(pAsyncDecoder);
                 }
                 else {
-                    //预解码窗口已关闭：暂停解码，等播放推进到窗口边缘时，由图片播放模块请求继续解码
+                    //预解码窗口已关闭（或图片已经切换）：暂停解码，等播放推进到窗口边缘时，
+                    //由图片播放模块请求继续解码
                     pAsyncDecoder->m_pImageData->SetAsyncDecodeTaskId(0);
                 }
                 return;
@@ -4755,7 +4766,7 @@ void Control::AsyncDecodeImageData(std::shared_ptr<TAsyncImageDecode> pAsyncDeco
             //清除任务ID(仅在完成时清除)
             pAsyncDecoder->m_pImageData->SetAsyncDecodeTaskId(0);
 
-            if ((pAsyncDecoder->m_pControl != nullptr) && (pAsyncDecoder->m_pImage != nullptr)) {
+            if (!bImageChanged && (pAsyncDecoder->m_pControl != nullptr) && (pAsyncDecoder->m_pImage != nullptr)) {
                 bool bDecodeError = true; //默认为解码错误
                 if (!pAsyncDecoder->m_bDecodeError && bDecodeFinished) {
                     //解码完成
@@ -4891,6 +4902,11 @@ void Control::StartAsyncDecodeImage(Image& duiImage, const std::shared_ptr<Image
     }
     std::shared_ptr<IImage> pImageData = imageInfo->GetImageData();
     if (pImageData == nullptr) {
+        return;
+    }
+    if (pImageData->GetAsyncDecodeTaskId() != 0) {
+        //同一份图片数据被多个控件共享时(缓存命中)，可能已经存在解码任务：
+        //此时不能重复提交，否则多个工作线程会并发解码同一份数据，产生数据竞争
         return;
     }
     std::shared_ptr<TAsyncImageDecode> pAsyncDecoder = std::make_shared<TAsyncImageDecode>();

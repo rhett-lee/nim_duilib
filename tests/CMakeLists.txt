@@ -561,6 +561,42 @@ if(WIN32)
     )
 endif()
 
+# 覆盖 Image 异步解码与取消逻辑：GIF 多帧异步解码(立即取消/解码部分帧后取消/恢复解码)、
+# 静态 WEBP 解码期降采样、静态 WEBP/ICO 异步解码的 pending 与取消语义、
+# ImageInfo::GetBitmap 的尺寸容差与内联缩放缓存。仅在 Windows 平台构建。
+if(WIN32)
+    add_executable(test_image_async
+        test_image_async.cpp
+    )
+    target_include_directories(test_image_async PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../"
+    )
+    target_link_directories(test_image_async PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_image_async PRIVATE
+        duilib
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_image_async PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_image_async PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(test_image_async PRIVATE UNICODE _UNICODE NOMINMAX WIN32_LEAN_AND_MEAN)
+    # 默认资源目录：源码树的 bin/resources
+    target_compile_definitions(test_image_async PRIVATE
+        DUILIB_TEST_RESOURCE_DIR="${CMAKE_SOURCE_DIR}/bin/resources"
+    )
+    if(MSVC)
+        target_compile_options(test_image_async PRIVATE /utf-8)
+    endif()
+    add_test(NAME image_async
+             COMMAND test_image_async
+    )
+endif()
+
 # 覆盖常用图形绘制接口（FillEllipse/DrawEllipse/FillArc/FillPolygon/DrawPolygon/
 # ClipPath）与图片采样质量设置。该测试使用离屏渲染（不创建窗口），仅在 Windows 平台构建。
 if(WIN32)

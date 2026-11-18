@@ -591,7 +591,13 @@ bool Image_JPEG::IsDelayDecodeFinished() const
 
 uint32_t Image_JPEG::GetDecodedFrameIndex() const
 {
-    return 0;
+    //单帧图片：位图生成完成才算解码出一帧
+    //(m_pBitmap只在UI线程中读写；m_bDelayDecoded/m_bDecodeError是原子变量)
+    if ((m_impl->m_pBitmap != nullptr) || (m_impl->m_bDelayDecoded && !m_impl->m_bDecodeError)) {
+        return 0;
+    }
+    //没有已解码的帧
+    return (uint32_t)-1;
 }
 
 void Image_JPEG::SetAsyncDecoding(bool bDecoding)

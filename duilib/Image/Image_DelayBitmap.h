@@ -25,8 +25,8 @@ public:
     virtual ~Image_DelayBitmap() override;
 
     /** 初始化图片信息（不执行像素解码）
-    * @param [in] nWidth 图片宽度（从图片文件头解析得到）
-    * @param [in] nHeight 图片高度（从图片文件头解析得到）
+    * @param [in] nWidth 原图宽度（从图片文件头解析得到，未按缩放比例换算）
+    * @param [in] nHeight 原图高度（从图片文件头解析得到，未按缩放比例换算）
     * @param [in] fImageSizeScale 原图加载的缩放比例
     * @param [in] bAsyncDecode 是否支持异步线程解码
     * @param [in] decodeFunction 执行像素解码的回调函数
@@ -36,11 +36,11 @@ public:
                    bool bAsyncDecode, DecodeFunction decodeFunction);
 
 public:
-    /** 获取图片宽度
+    /** 获取图片宽度（按缩放比例换算后的绘制宽度）
     */
     virtual uint32_t GetWidth() const override;
 
-    /** 获取图片高度
+    /** 获取图片高度（按缩放比例换算后的绘制高度）
     */
     virtual uint32_t GetHeight() const override;
 
@@ -88,11 +88,11 @@ private:
     std::shared_ptr<IBitmap> DecodeToBitmap();
 
 private:
-    /** 图片宽度（从图片文件头解析得到）
+    /** 图片绘制宽度（原图宽度按缩放比例换算后的值）
     */
     uint32_t m_nWidth;
 
-    /** 图片高度（从图片文件头解析得到）
+    /** 图片绘制高度（原图高度按缩放比例换算后的值）
     */
     uint32_t m_nHeight;
 

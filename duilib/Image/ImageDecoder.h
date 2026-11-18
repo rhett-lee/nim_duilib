@@ -72,6 +72,7 @@ public:
     virtual bool IsAsyncDecodeFinished() const = 0;
 
     /** 获取当前异步解码完成的图片帧索引号（从0开始编号）
+    * @return 返回已经解码完成的最后一帧的索引号；如果还没有解码完成任何帧，返回(uint32_t)-1
     */
     virtual uint32_t GetDecodedFrameIndex() const = 0;
 

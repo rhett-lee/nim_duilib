@@ -67,7 +67,8 @@ uint32_t Image_Animation::GetDecodedFrameIndex() const
     if (m_pAnimationImage != nullptr) {
         return m_pAnimationImage->GetDecodedFrameIndex();
     }
-    return 0;
+    //没有已解码的帧
+    return (uint32_t)-1;
 }
 
 void Image_Animation::SetAsyncDecodeTaskId(size_t nTaskId)

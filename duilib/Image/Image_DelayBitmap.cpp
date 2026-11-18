@@ -1,5 +1,6 @@
 #include "Image_DelayBitmap.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Image/ImageUtil.h"
 #include "duilib/Render/IRender.h"
 
 namespace ui
@@ -24,8 +25,13 @@ bool Image_DelayBitmap::InitImage(uint32_t nWidth, uint32_t nHeight, float fImag
     if ((nWidth == 0) || (nHeight == 0) || !decodeFunction) {
         return false;
     }
-    m_nWidth = nWidth;
-    m_nHeight = nHeight;
+    //与IBitmap::Init的处理保持一致：GetWidth()/GetHeight()返回按缩放比例换算后的绘制尺寸，
+    //而传入的nWidth/nHeight是原图尺寸（解码函数返回的数据也是原图尺寸）
+    m_nWidth = ImageUtil::GetScaledImageSize(nWidth, fImageSizeScale);
+    m_nHeight = ImageUtil::GetScaledImageSize(nHeight, fImageSizeScale);
+    if ((m_nWidth == 0) || (m_nHeight == 0)) {
+        return false;
+    }
     m_fImageSizeScale = fImageSizeScale;
     m_bAsyncDecode = bAsyncDecode;
     m_decodeFunction = std::move(decodeFunction);
@@ -51,6 +57,9 @@ std::shared_ptr<IBitmap> Image_DelayBitmap::GetBitmap(bool* bDecodeError)
 {
     GlobalManager::Instance().AssertUIThread();
     if (m_pBitmap != nullptr) {
+        if (bDecodeError != nullptr) {
+            *bDecodeError = false;
+        }
         return m_pBitmap;
     }
     if (!m_bAsyncDecode) {
@@ -65,6 +74,9 @@ std::shared_ptr<IBitmap> Image_DelayBitmap::GetBitmap(bool* bDecodeError)
     }
     else if (m_bDecodeError && (bDecodeError != nullptr)) {
         *bDecodeError = true;
+    }
+    if ((m_pBitmap != nullptr) && (bDecodeError != nullptr)) {
+        *bDecodeError = false;
     }
     return m_pBitmap;
 }
@@ -84,7 +96,13 @@ bool Image_DelayBitmap::IsDelayDecodeFinished() const
 
 uint32_t Image_DelayBitmap::GetDecodedFrameIndex() const
 {
-    return 0;
+    //单帧图片：位图生成完成才算解码出一帧
+    //(m_pBitmap只在UI线程中读写；m_bDelayDecoded/m_bDecodeError是原子变量)
+    if ((m_pBitmap != nullptr) || (m_bDelayDecoded && !m_bDecodeError)) {
+        return 0;
+    }
+    //没有已解码的帧
+    return (uint32_t)-1;
 }
 
 void Image_DelayBitmap::SetAsyncDecoding(bool bDecoding)

@@ -237,3 +237,41 @@ nImageOffset = static_cast<int32_t>(std::ceil(nImageOffset * fImageSizeScale));
 异步解码相关的后续改造不在此清单内，包括：解码线程数可配置、批量解码与预解码窗口、帧就绪立即推进播放、大文件延迟读盘、延迟释放/延迟绘制索引优化、单帧大图异步缩放、静态 WEBP 解码阶段降采样等，详见《Image 图片异步解码流程分析报告.md》。
 
 验证方式：`python build/build.py build --config Debug --arch x64 --offline --no-deps --target duilib`，`/W4 /WX` 无警告。
+
+---
+
+## 六、异步解码与取消逻辑的复核修复
+
+在完成上述改造后，对 Image 目录的异步解码、缓存与取消逻辑再做一轮复核，修复了以下问题：
+
+| 问题 | 修复 |
+|:---|:---|
+| 未解码任何帧时 `GetDecodedFrameIndex()` 返回 `0`，被误判为"已解码 1 帧" | `Image_ICO`、`Image_JPEG`、`Image_DelayBitmap` 统一改为返回 `(uint32_t)-1`；位图生成后才返回 `0` |
+| 切换图片后，旧的异步解码完成通知仍会推进新图片播放并发送旧路径事件 | `Control::AsyncDecodeImageFinishNotify` 增加"图片已切换"判定：仍合并解码数据，但不再推进播放/发送事件，并停止继续批量解码 |
+| 多个控件共享同一份缓存 `ImageData` 时会重复提交解码任务，多个工作线程并发解码同一份数据 | `Control::StartAsyncDecodeImage` 增加 `GetAsyncDecodeTaskId() != 0` 去重判断 |
+| `Image_DelayBitmap::GetBitmap` 返回有效位图时不更新 `bDecodeError`，调用方必须预先初始化为 `false` | 返回有效位图（含异步合并后的位图）时显式置 `*bDecodeError = false` |
+| `Image_DelayBitmap` 的 `GetWidth()/GetHeight()` 返回原图尺寸，而解码出的位图是按缩放比例换算后的尺寸，`ImageInfo` 会因此把降采样后的位图再放大回去 | `InitImage` 保存按缩放比例换算后的绘制尺寸（与其他解码器语义一致），使 `ImageInfo` 尺寸与位图尺寸一致，避免二次缩放 |
+
+新增单元测试 `tests/test_image_async.cpp`（ctest 目标 `image_async`），覆盖：
+
+- GIF / 动画 WEBP 的异步解码：初始状态、立即取消、解码 1 帧后取消、取消后从下一帧恢复、
+  全部解码完成；
+- 静态 WEBP 解码阶段按目标区域降采样；
+- 静态 WEBP（解码器异步）与 ICO（`Image_DelayBitmap` 异步）的 pending、取消与合并语义；
+- `ImageInfo::GetBitmap` 的 ±1 尺寸容差复用；
+- `Image_DelayBitmap` 的尺寸语义：ICO（目标 40 / 条目 48）与 Common 解码器降采样
+  （`autumn.png` 180x186 → 90x93）下，`IImage` 尺寸、`ImageInfo` 尺寸与位图尺寸一致。
+
+取消逻辑的验证重点：取消后不产生任何新的已解码帧；已解码帧保持不变；恢复解码时从下一个
+未解码帧继续，而不是从头重解。这对应"加载尚未完成时切换视图 → 取消图片加载，再次显示时按需续解"。
+
+测试说明：测试进程没有消息循环，用例中通过 `ImageManager::SetReleaseImageCallback`
+返回 `false` 禁止图片进入延迟释放队列（立即释放），避免 30 秒延迟释放使缓存中残留
+旧加载参数的 `ImageData`，也避免向不存在的 UI 线程投递延迟任务。
+
+本节涉及的代码文件：`duilib/Core/Control.cpp`、`duilib/Image/ImageDecoder.h`、
+`duilib/Image/Image_ICO.cpp`、`duilib/Image/Image_JPEG.cpp`、
+`duilib/Image/Image_DelayBitmap.cpp`、`duilib/Image/Image_GIF.cpp`、
+`duilib/Image/Image_PNG.cpp`、`duilib/Image/Image_WEBP.cpp`、
+`duilib/Image/Image_Animation.cpp`、`tests/test_image_async.cpp`、
+`tests/CMakeLists.txt`。

@@ -501,3 +501,78 @@ UI 线程耗时，也不改变布局语义。
 
 如后续确有"隐藏窗口/滚出视图仍持续播放动画"的浪费，可单独评估更小范围的改动（例如动画播放器在
 控件不可见时暂停），而不是引入全局解码优先级调度。
+
+### 6.12 复核修复与取消逻辑（本轮）
+
+针对上述改造再做一轮全面复核，修复了以下问题，并补充了单元测试。
+
+#### 6.12.1 已解码帧索引的语义统一
+
+`IImageAsyncDecode::GetDecodedFrameIndex()` 的约定是"还没有解码完成任何帧时返回 `(uint32_t)-1`"。
+此前只有 GIF/PNG/WEBP/Animation 按此实现，`Image_ICO`、`Image_JPEG`、`Image_DelayBitmap` 在
+"没有帧"时返回 `0`，会被 `Control::AsyncDecodeImageData` 误判为"已解码 1 帧"，导致：
+
+- 首帧尚未解码时批量解码的目标帧少解 1 帧；
+- 预解码窗口（`IsAsyncDecodeWindowOpen`）的 `nDecodedCount` 计算偏差。
+
+现已统一为：没有已解码帧时返回 `(uint32_t)-1`。单帧解码器（JPEG/延迟位图）在
+"位图已生成"后才返回 `0`，读取的 `m_pBitmap` 只在 UI 线程访问，`m_bDelayDecoded`/
+`m_bDecodeError` 为原子变量，不引入新的数据竞争。
+
+#### 6.12.2 切换图片后停止续解，且不推进新图片（取消语义）
+
+`Control::AsyncDecodeImageFinishNotify` 新增"发起解码的图片是否已被切换"的判定：
+
+- 比较 `TAsyncImageDecode::m_pImage->GetImageInfo()->GetImageData()` 与 `m_pImageData`；
+  图片已切换（或 `Image` 已销毁）时，判定为"已切换"。
+- 已切换时：仍然调用 `MergeAsyncDecodeData()`（用于释放解码器、合并已解出的帧），
+  但不再调用 `Image::OnImageFrameDataReady()`、不再发送图片事件，并清空解码任务 ID、
+  关闭预解码窗口，从而**不再继续批量解码**。
+- 效果：切换视图/更换图片后，在途解码完成时不会误推进新图片的动画，也不会用旧路径
+  发送事件；恢复显示时由动画播放器的 `RequestAsyncDecodeImage` 按需重新发起续解。
+
+注意：延迟释放队列会持有 `IImage` 最多 30 秒，因此 `use_count() == 1` 的取消条件在该窗口内
+通常不成立；本判定是对该启发式取消的重要补充。
+
+#### 6.12.3 共享图片的解码任务去重
+
+`Control::StartAsyncDecodeImage` 在创建解码任务前检查 `GetAsyncDecodeTaskId() != 0`。
+同一份缓存 `ImageData` 被多个控件同时显示时（如虚表中多个子项使用同一张图片），
+只有一个控件会提交解码任务，避免多个工作线程并发解码同一份数据（`m_delayFrames`
+等成员存在数据竞争）。
+
+#### 6.12.4 延迟位图 `GetBitmap` 的错误码语义
+
+`Image_DelayBitmap::GetBitmap` 现在在返回有效位图（含合并后的位图）时显式把
+`*bDecodeError` 置为 `false`，与接口约定一致；此前调用方必须预先初始化为 `false` 才不会误判。
+
+#### 6.12.5 延迟位图的尺寸语义（避免二次缩放）
+
+`Image_DelayBitmap` 原先保存"从图片文件头解析出的原图宽高"，`GetWidth()/GetHeight()` 返回原图尺寸；
+但 `DecodeToBitmap()` 生成的是按 `m_fImageSizeScale` 换算后的位图（`IBitmap::Init` 内部完成缩放）。
+这导致 `ImageInfo` 的布局尺寸使用原图尺寸，而实际位图是缩放后的尺寸，`ImageInfo::GetBitmap`
+判定两者不一致后又把位图缩放回原图尺寸，等价于把"解码期降采样"的收益抵消掉，并且多一次整图缩放。
+
+现已改为：`InitImage` 保存按缩放比例换算后的尺寸（与 GIF/PNG/WEBP/ICO 等解码器
+`m_nWidth = GetScaledImageSize(...)` 的语义一致），`GetWidth()/GetHeight()` 返回绘制尺寸。
+`ImageInfo` 的尺寸与最终位图尺寸一致，不再触发二次缩放。
+
+#### 6.12.6 新增单元测试
+
+新增 `tests/test_image_async.cpp`（注册为 ctest 目标 `image_async`），覆盖：
+
+1. GIF 多帧：异步加载初始状态（未解码帧返回 `(uint32_t)-1`）、立即取消、
+   解码 1 帧后取消、取消后恢复从下一帧继续、全部解码完成；
+2. 动画 WEBP：同样的取消/恢复语义；
+3. 静态 WEBP：按目标区域在解码阶段降采样（`GetImageSizeScale() < 1`、输出尺寸受限）；
+4. 静态 WEBP/ICO 异步解码：未完成时位图不可用且不算解码错误、取消后仍不可用、
+   正常解码合并后位图可用；
+5. `ImageInfo::GetBitmap` 的 ±1 尺寸容差复用；
+6. `Image_DelayBitmap` 的尺寸语义：ICO（目标尺寸 40，条目 48x48，按 40/48 缩放）与
+   Common 解码器（`autumn.png` 180x186 降采样到 90x93）下，`GetWidth()/GetHeight()`、
+   `ImageInfo` 尺寸与最终位图尺寸三者一致。
+
+测试环境没有消息循环，测试中通过 `ImageManager::SetReleaseImageCallback` 返回 `false`
+禁止图片进入延迟释放队列（立即释放），避免 30 秒延迟释放导致缓存中残留旧参数的
+`ImageData`，同时避免在无 UI 线程消息循环时投递延迟任务。
+

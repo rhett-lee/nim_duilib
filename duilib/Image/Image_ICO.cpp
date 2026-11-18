@@ -44,7 +44,8 @@ uint32_t Image_ICO::GetDecodedFrameIndex() const
     if (!m_impl->m_frames.empty()) {
         return (uint32_t)m_impl->m_frames.size() - 1;
     }
-    return 0;
+    //没有已解码的帧
+    return (uint32_t)-1;
 }
 
 bool Image_ICO::DelayDecode(uint32_t /*nMinFrameIndex*/, std::function<bool(void)> /*IsAborted*/, bool* /*bDecodeError*/)
