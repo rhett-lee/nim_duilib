@@ -252,6 +252,12 @@ private:
     /** 本次绘制的脏区列表（客户区坐标），为空表示未设置脏区（按rcPaint绘制）
     */
     std::vector<UiRect> m_paintRects;
+
+    /** 设置脏区列表时的绘制原点偏移量（设备坐标 = 客户区坐标 + 该偏移）
+    *   绘制过程中原点可能被偏移（如滚动容器的滚动偏移、控件动画偏移），
+    *   控件级剔除时需要据此把脏区矩形转换到当前绘制坐标系
+    */
+    UiPoint m_ptPaintRectsOrg;
 };
 
 } // namespace ui

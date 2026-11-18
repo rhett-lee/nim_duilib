@@ -2217,10 +2217,12 @@ public:
     virtual void EndPaintRects(int32_t nClipState) = 0;
 
     /** 计算控件矩形与本次绘制脏区的交集，用于精确剔除不需要绘制的控件
-    * @param [in] rcItem 控件矩形（客户区坐标）
-    * @param [in] rcPaint 本次绘制的区域（客户区坐标）；未设置脏区列表时，作为脏区使用
-    * @param [out] rcResult 返回交集区域的边界（多个脏矩形与rcItem交集的并集边界）
+    * @param [in] rcItem 控件矩形（当前绘制坐标系）
+    * @param [in] rcPaint 本次绘制的区域（当前绘制坐标系）；未设置脏区列表时，作为脏区使用
+    * @param [out] rcResult 返回交集区域的边界（多个脏矩形与rcItem交集的并集边界，与rcItem同坐标系）
     * @return 返回false表示无交集，不需要绘制该控件
+    * @note 绘制原点可能被偏移（如滚动容器的滚动偏移、控件动画偏移），此时脏区列表是设置时的
+    *       客户区坐标，实现内部会自动换算到当前绘制坐标系，调用方只需保证rcItem与rcPaint一致
     */
     virtual bool IntersectPaintRect(const UiRect& rcItem, const UiRect& rcPaint, UiRect& rcResult) const = 0;
 

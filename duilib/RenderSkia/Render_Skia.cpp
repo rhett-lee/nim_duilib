@@ -2709,6 +2709,10 @@ bool Render_Skia::IsClipEmpty() const
 int32_t Render_Skia::BeginPaintRects(const std::vector<UiRect>& rcPaintList)
 {
     m_paintRects = rcPaintList;
+    //记录当前的绘制原点：脏区列表是客户区坐标，而绘制过程中原点可能被偏移
+    //（如滚动容器的滚动偏移、控件动画偏移），进行控件级剔除时需要做坐标转换
+    m_ptPaintRectsOrg.x = SkScalarTruncToInt(m_pSkPointOrg->fX);
+    m_ptPaintRectsOrg.y = SkScalarTruncToInt(m_pSkPointOrg->fY);
     if (rcPaintList.empty()) {
         return -1;
     }
@@ -2759,6 +2763,7 @@ int32_t Render_Skia::BeginPaintRects(const std::vector<UiRect>& rcPaintList)
 void Render_Skia::EndPaintRects(int32_t nClipState)
 {
     m_paintRects.clear();
+    m_ptPaintRectsOrg = UiPoint();
     if (nClipState >= 0) {
         RestoreClip(nClipState);
     }
@@ -2770,16 +2775,34 @@ bool Render_Skia::IntersectPaintRect(const UiRect& rcItem, const UiRect& rcPaint
     if (rcItem.IsEmpty()) {
         return false;
     }
-    if (m_paintRects.size() <= 1) {
-        //未设置脏区列表或只有一个脏矩形（包含完整绘制的情况）：与原逻辑一致，避免额外开销
-        const UiRect& rcPaintArea = m_paintRects.empty() ? rcPaint : m_paintRects[0];
+    if (m_paintRects.empty()) {
+        //未设置脏区列表：与原逻辑一致，直接使用传入的rcPaint（已是当前绘制坐标系）
+        return UiRect::Intersect(rcResult, rcItem, rcPaint);
+    }
+
+    //注意：脏区列表是BeginPaintRects时的客户区坐标，而绘制过程中原点可能被偏移
+    //（如滚动容器的滚动偏移、控件动画偏移），需要先把脏区转换到当前绘制坐标系，
+    //否则滚动后控件会被错误剔除，导致内容显示为空白
+    const int32_t nOffsetX = m_ptPaintRectsOrg.x - SkScalarTruncToInt(m_pSkPointOrg->fX);
+    const int32_t nOffsetY = m_ptPaintRectsOrg.y - SkScalarTruncToInt(m_pSkPointOrg->fY);
+    if (m_paintRects.size() == 1) {
+        //只有一个脏矩形（包含完整绘制的情况）：转换为当前绘制坐标系后判定，避免额外开销
+        UiRect rcPaintArea = m_paintRects[0];
+        if ((nOffsetX != 0) || (nOffsetY != 0)) {
+            rcPaintArea.Offset(nOffsetX, nOffsetY);
+        }
         return UiRect::Intersect(rcResult, rcItem, rcPaintArea);
     }
 
     //多个脏矩形：只要与其中一个相交，就需要绘制；返回所有交集的并集边界
     bool bIntersect = false;
     UiRect rcTemp;
-    for (const UiRect& rcPaintItem : m_paintRects) {
+    UiRect rcPaintItem;
+    for (const UiRect& rcPaintArea : m_paintRects) {
+        rcPaintItem = rcPaintArea;
+        if ((nOffsetX != 0) || (nOffsetY != 0)) {
+            rcPaintItem.Offset(nOffsetX, nOffsetY);
+        }
         if (UiRect::Intersect(rcTemp, rcItem, rcPaintItem)) {
             if (!bIntersect) {
                 rcResult = rcTemp;

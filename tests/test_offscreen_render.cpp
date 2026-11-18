@@ -11,6 +11,8 @@
 //  G. 线程与生命周期        OS-29 ~ OS-31
 //  H. 迁移回归              OS-32 ~ OS-33（需窗口，打印 SKIP）
 //  I. 位图导出              OS-35 ~ OS-36
+//  J. 多脏矩形局部绘制      OS-37 ~ OS-39、OS-45 ~ OS-46
+//  K. 图片缩放结果缓存      OS-40 ~ OS-44
 //
 // 本测试不创建窗口；未初始化尺寸的对象允许被安全使用。
 
@@ -664,7 +666,7 @@ void TestCompatEntry(ui::IRenderFactory* /*pRenderFactory*/)
 }
 
 // ---------------------------------------------------------------------------
-// J. 多脏矩形局部绘制（OS-37 ~ OS-39）
+// J. 多脏矩形局部绘制（OS-37 ~ OS-39、OS-45 ~ OS-46）
 // ---------------------------------------------------------------------------
 void TestMultiPaintRects(ui::IRenderFactory* pRenderFactory)
 {
@@ -737,6 +739,61 @@ void TestMultiPaintRects(ui::IRenderFactory* pRenderFactory)
             uint32_t nColor = 0;
             CHECK(ReadPixel(pRender.get(), 0, 0, nColor) && (nColor == kGreenColor));
             CHECK(ReadPixel(pRender.get(), 39, 29, nColor) && (nColor == kGreenColor));
+        }
+    }
+
+    //OS-45 绘制原点被偏移（模拟滚动容器/控件动画）时，脏区需要转换到当前绘制坐标系后再剔除控件
+    {
+        std::unique_ptr<ui::IRender> pRender = pRenderFactory->CreateOffscreenRender(200, 200);
+        CHECK(pRender != nullptr);
+        if (pRender != nullptr) {
+            std::vector<ui::UiRect> rcPaintList;
+            rcPaintList.push_back(ui::UiRect(0, 0, 200, 60));     //顶部横条
+            rcPaintList.push_back(ui::UiRect(0, 100, 60, 200));   //左下区域
+            const int32_t nClipState = pRender->BeginPaintRects(rcPaintList);
+
+            //模拟滚动容器：绘制原点向上偏移50像素（未滚动坐标 = 屏幕坐标 + 50）
+            const ui::UiPoint ptOldOrg = pRender->OffsetWindowOrg(ui::UiPoint(0, 50));
+
+            ui::UiRect rcResult;
+            //控件在未滚动坐标中为(0,80)-(90,90)，实际显示在(0,30)-(90,40)，位于顶部脏区：必须绘制
+            CHECK(pRender->IntersectPaintRect(ui::UiRect(0, 80, 90, 90), ui::UiRect(0, 0, 200, 200), rcResult));
+            CHECK(rcResult == ui::UiRect(0, 80, 90, 90));
+            //控件在未滚动坐标中为(10,160)-(50,170)，实际显示在(10,110)-(50,120)，位于左下脏区：必须绘制
+            CHECK(pRender->IntersectPaintRect(ui::UiRect(10, 160, 50, 170), ui::UiRect(0, 0, 200, 200), rcResult));
+            CHECK(rcResult == ui::UiRect(10, 160, 50, 170));
+            //控件实际显示在(0,70)-(50,80)，不属于任何脏区：不需要绘制
+            CHECK(!pRender->IntersectPaintRect(ui::UiRect(0, 120, 50, 130), ui::UiRect(0, 0, 200, 200), rcResult));
+            CHECK(rcResult.IsEmpty());
+
+            pRender->SetWindowOrg(ptOldOrg);
+            pRender->EndPaintRects(nClipState);
+        }
+    }
+
+    //OS-46 绘制原点偏移后，裁剪区域仍按设备坐标生效，绘制内容落在正确位置
+    {
+        std::unique_ptr<ui::IRender> pRender = pRenderFactory->CreateOffscreenRender(200, 200);
+        CHECK(pRender != nullptr);
+        if (pRender != nullptr) {
+            pRender->Clear(ui::UiColor(kWhiteColor));
+            std::vector<ui::UiRect> rcPaintList;
+            rcPaintList.push_back(ui::UiRect(0, 0, 200, 60));
+            rcPaintList.push_back(ui::UiRect(0, 100, 60, 200));
+            const int32_t nClipState = pRender->BeginPaintRects(rcPaintList);
+
+            const ui::UiPoint ptOldOrg = pRender->OffsetWindowOrg(ui::UiPoint(0, 50));
+            //在未滚动坐标(0,80)-(200,90)处绘制，实际显示在(0,30)-(200,40)，位于顶部脏区内
+            pRender->FillRect(ui::UiRectF(0.0f, 80.0f, 200.0f, 90.0f), ui::UiColor(kRedColor));
+            //该矩形实际显示在(0,70)-(200,80)，不在任何脏区内，应被裁剪
+            pRender->FillRect(ui::UiRectF(0.0f, 120.0f, 200.0f, 130.0f), ui::UiColor(kGreenColor));
+            pRender->SetWindowOrg(ptOldOrg);
+            pRender->EndPaintRects(nClipState);
+
+            uint32_t nColor = 0;
+            CHECK(ReadPixel(pRender.get(), 10, 35, nColor) && (nColor == kRedColor));
+            CHECK(ReadPixel(pRender.get(), 10, 75, nColor) && (nColor == kWhiteColor));
+            CHECK(ReadPixel(pRender.get(), 10, 110, nColor) && (nColor == kWhiteColor));
         }
     }
 }
