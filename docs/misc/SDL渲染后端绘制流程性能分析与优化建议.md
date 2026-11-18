@@ -159,8 +159,8 @@ Skia 绘制 → m_fSurfaceMemory →(memcpy)→ SDL 窗口表面 →(BitBlt/XShm
 | 3 | **暴露事件只重新提交，不重绘** | 区分"内容失效"（首帧 / resize / DPI 变化）与"仅需重新显示"；后者直接把后备缓冲提交到窗口 | 暴露、遮挡恢复、最小化还原等场景：`basic.exe` 单次暴露 **7.1 ms → 2.2 ms（-69%）**；`render.exe` 同场景总绘制耗时 **-12.6%** | 中：必须严格维护"后备缓冲内容有效"标志，resize 后必须置失效 | **已完成（详见第十二节）** |
 | 4 | **直绘窗口表面，去掉 memcpy** | 用 `SkSurface::MakeRasterDirect` 包装 SDL 窗口表面像素（Windows `XRGB8888` / X11 `RGB888` 的内存字节序与 Skia `kN32` 一致） | 全幅重绘 `-0.15~0.35 ms`；局部重绘 `-0.05~0.1 ms` | 中：SDL 表面在 resize 后失效需重建；格式不兼容时回退现有双缓冲路径 | **已完成（详见第十三节）** |
 | 5 | **多脏矩形替代单矩形 Union** | 维护少量脏矩形列表，Skia 侧多 clip 绘制，像素提交按矩形列表进行 | 重绘图片 `13 → 6` 张、重绘面积降至约 1/3，单次绘制 **-40%~50%** | 中大：需扩展 `IRenderPaint::GetUpdateRect` 这类单矩形接口 | **已完成（详见第九节）** |
-| 6 | **纹理兜底路径批量提交** | 识别 SDL texture 兜底路径后自管 `SDL_Texture`，合并脏区、帧末只 `RenderPresent` 一次；必要时设置 `SDL_HINT_RENDER_VSYNC=0` 解除 vsync 耦合 | Wayland 场景每次 9~17 ms 阻塞 → **< 1 ms** | 中：需按平台特性分支 | 未开始 |
-| 7 | 微项 | 缓存 `SDL_GetWindowSurface()` 与像素格式解析结果；缓存 `GetSkCanvas()` 的裸指针 | µs 级 | 小 | 未开始 |
+| 6 | 纹理兜底路径批量提交 | 识别 SDL texture 兜底路径后自管 `SDL_Texture`，合并脏区、帧末只 `RenderPresent` 一次；必要时设置 `SDL_HINT_RENDER_VSYNC=0` 解除 vsync 耦合 | Wayland 场景每次 9~17 ms 阻塞 → **< 1 ms** | 中：需按平台特性分支 | **不做**（仅影响无窗口表面的 Wayland/EGL 等平台，需自管纹理与平台分支，投入产出比不足） |
+| 7 | 微项 | 缓存 `SDL_GetWindowSurface()` 与像素格式解析结果；缓存 `GetSkCanvas()` 的裸指针 | µs 级 | 小 | **不做**（单次开销为 µs 级，相对现有 1 ms 量级的绘制可忽略） |
 
 ### 建议实施顺序
 
@@ -209,7 +209,7 @@ Skia 绘制 → m_fSurfaceMemory →(memcpy)→ SDL 窗口表面 →(BitBlt/XShm
 | 接口 | `IRenderPaint::GetUpdateRects(std::vector<UiRect>&)` | 新增**带默认实现**的虚函数（默认退化为 `GetUpdateRect` 单矩形），原有自研实现无需改动，源码/二进制兼容 |
 | 接口 | `IRender::BeginPaintRects` / `EndPaintRects` / `IntersectPaintRect` | 分别用于"设置脏区列表 + 建立裁剪"、"恢复裁剪"、"控件级精确剔除" |
 | Skia 通用 | `Render_Skia::BeginPaintRects` | 多矩形 → `SkRegion` 求并 + `clipRegion`；单矩形 → `clipIRect`（更快）；**脏区覆盖整个画布时不设置裁剪**（整画布上设置区域裁剪比不裁剪慢约 10%，实测发现并规避） |
-| 控件层 | `Control::AlphaPaint` | 对每个控件调用 `IntersectPaintRect(控件外扩矩形, rcPaint)`，与所有脏矩形都不相交则直接跳过（`m_paintRects.size() <= 1` 时走与原逻辑完全一致的快速路径，保证完整绘制无额外开销） |
+| 控件层 | `Control::AlphaPaint` | 对每个控件调用 `IntersectPaintRect(控件外扩矩形, rcPaint)`，与所有脏矩形都不相交则直接跳过（未设置脏区列表时使用传入的 `rcPaint`；只有一个脏矩形时只做一次坐标换算，避免额外遍历开销） |
 | Windows 原生 | `NativeWindow_Windows.cpp` | 在 `BeginPaint` **之前**用 `GetUpdateRgn` + `GetRegionData` 取矩形数组；为空或超过 12 个时退化为 `GetUpdateRect` 单矩形 |
 | SDL 原生 | `NativeWindow_SDL.cpp` | 新增 `m_updateRects` 脏区列表：被已有矩形包含则丢弃、否则追加（上限 12 个，超限合并为并集边界）；`PaintWindow` 结束时清空 |
 | Windows Raster | `SkRasterWindowContext_Windows.cpp` | 脏区分散（矩形数 ≤ 6 且总面积 ≤ 并集面积的一半）时按矩形逐个 `BitBlt`，否则按并集一次 `BitBlt`（减少调用次数带来的固定驱动开销）；分层窗口 `UpdateLayeredWindow` 路径保持整幅不变 |
@@ -275,8 +275,8 @@ Skia 绘制 → m_fSurfaceMemory →(memcpy)→ SDL 窗口表面 →(BitBlt/XShm
 
 | 验证项 | 内容 | 结果 |
 |--------|------|------|
-| 新增单元测试 | `tests/test_offscreen_render.cpp` 增加 OS-37/38/39：多脏矩形只有脏区内像素被更新（脏区外保持原像素）、`IntersectPaintRect` 的剔除/相交/跨矩形并集边界、`EndPaintRects` 后恢复单矩形语义、脏区覆盖整画布时不裁剪仍绘制正确 | 通过（`offscreen_render` 共 **146 项检查，0 失败**，2 项 SKIP 为需窗口的迁移用例） |
-| 全量回归 | `ctest`（17 个用例，含 `gl_window_smoke` 的局部矩形绘制用例、`render_api`、`render_ext`） | 非 SDL 与 SDL 构建均 **17/17 通过** |
+| 新增单元测试 | `tests/test_offscreen_render.cpp` 增加 OS-37/38/39：多脏矩形只有脏区内像素被更新（脏区外保持原像素）、`IntersectPaintRect` 的剔除/相交/跨矩形并集边界、`EndPaintRects` 后恢复单矩形语义、脏区覆盖整画布时不裁剪仍绘制正确；后续补充 OS-45~48（原点偏移下的剔除与 `ClearAlpha` 裁剪） | 通过（`offscreen_render` 共 **213 项检查，0 失败**，2 项 SKIP 为需窗口的迁移用例） |
+| 全量回归 | `ctest`（非 SDL 17 个用例 / SDL 18 个用例，含 `gl_window_smoke` 的局部矩形绘制用例、`render_api`、`render_ext`、`sdl_raster_direct`） | 非 SDL **17/17**、SDL **18/18 通过** |
 | GL 后端 | `gl_window_smoke` 的 GS-17~GS-19 局部增量刷新用例（多矩形裁剪在持久化表面上的绘制） | 通过 |
 | 显示正确性 | SDL / 非 SDL 下 `render.exe`、`controls.exe` 运行并截图；`controls.exe` 用 6 个分散脏矩形驱动 6 s 后截图 | 无残影、无缺失、无越界绘制 |
 | 兼容性 | `IRenderPaint::GetUpdateRects` 提供默认实现 | 既有自研 `IRenderPaint` 实现（如测试代码）无需修改即可编译运行 |
@@ -286,6 +286,22 @@ Skia 绘制 → m_fSurfaceMemory →(memcpy)→ SDL 窗口表面 →(BitBlt/XShm
 - 脏区列表上限为 12 个，超限合并为并集边界（避免 `SkRegion` 与逐矩形拷贝的开销失控）；
 - 分层窗口（`UpdateLayeredWindow`）与 GL 后端上屏仍需整幅拷贝，多脏矩形只减少光栅化与控件遍历；
 - SDL 后端的脏区列表仅由 duilib 内部 `Invalidate` 维护，外部系统发起的更新区域仍按整幅处理（可作为优化项 3 的输入）。
+
+### 9.6 回归修复：滚动后滚动区域内容显示为空白
+
+**问题**：`controls.exe` 启动后，在滚动区域滑动鼠标滚轮，滚动区域内的内容变为空白（RichText 文本被切成碎片）。
+
+**根因**：脏区列表按 `BeginPaintRects` 调用时的客户区坐标保存；而绘制过程中绘制原点会被偏移（滚动容器 `ScrollBox::PaintChild` 调用 `OffsetWindowOrg(scrollPos)`、控件动画偏移等），此时控件的 `GetRect()`／传入的 `rcPaint` 都处于"原点已偏移"的坐标系。`IntersectPaintRect` 直接用未换算的脏区与控件矩形求交，滚动后控件被整体误判为"不需要绘制"。滚轮滚动通常只产生**一个**脏矩形，正好走单矩形的快速路径，因此该缺陷在实际使用中必然复现。
+
+**修复**：
+
+| 文件 | 改动 |
+|------|------|
+| `Render_Skia.h` / `.cpp` | 新增 `m_ptPaintRectsOrg`，在 `BeginPaintRects` 记录设置脏区时的绘制原点；`IntersectPaintRect` 按 `offset = org(设置时) - org(当前)` 把脏区换算到当前绘制坐标系（单矩形与多矩形分支统一处理）；`EndPaintRects` 清除 |
+| `Render_Skia.cpp` | `ClearAlpha` / `RestoreAlpha` 直接写像素缓冲区、不受画布裁剪限制，改为按脏区列表逐个处理（用 `SkRegion` 求互不重叠的矩形），避免把脏区之间本帧不重绘的内容一并清除 |
+| `tests/test_offscreen_render.cpp` | 新增 OS-45/46（多矩形 + 原点偏移的剔除与像素落点）、OS-47（**单矩形** + 原点偏移的剔除）、OS-48（多矩形下 `ClearAlpha` 只处理脏区内像素） |
+
+**验证**：两种构建下 `controls.exe` 滑动滚轮后内容均正常绘制；单元测试通过。
 
 ---
 
@@ -338,7 +354,7 @@ Skia 绘制 → m_fSurfaceMemory →(memcpy)→ SDL 窗口表面 →(BitBlt/XShm
 
 | 验证项 | 内容 | 结果 |
 |--------|------|------|
-| 新增单元测试 | `tests/test_offscreen_render.cpp` 增加 OS-40~OS-44：准入/命中/目标尺寸变化、缓存路径像素正确性（四象限颜色）、`uFade` 不被烘焙进缓存、子区域/无缩放/小图/禁用缓存四条旁路、源图片内容变化后自动失效 | 通过（`offscreen_render` 共 **192 项检查，0 失败**） |
+| 新增单元测试 | `tests/test_offscreen_render.cpp` 增加 OS-40~OS-44：准入/命中/目标尺寸变化、缓存路径像素正确性（四象限颜色）、`uFade` 不被烘焙进缓存、子区域/无缩放/小图/禁用缓存四条旁路、源图片内容变化后自动失效 | 通过（`offscreen_render` 最终共 **213 项检查，0 失败**） |
 | 全量回归 | `ctest`（17 个用例，含 GL 后端的 `gl_window_smoke`） | 非 SDL 与 SDL 构建均 **17/17 通过** |
 | GL 后端 | `gl_window_smoke` 的窗口绘制用例（缓存生成的是 Raster 图像，GL 下按纹理上传后 1:1 绘制） | 通过 |
 | 显示/稳定性 | SDL 与非 SDL 下 `render.exe` 运行 6 s 后正常退出（无崩溃、无断言） | 通过 |
@@ -404,7 +420,7 @@ Skia 绘制 → m_fSurfaceMemory →(memcpy)→ SDL 窗口表面 →(BitBlt/XShm
 
 | 验证项 | 内容 | 结果 |
 |--------|------|------|
-| 新增单元测试 | `tests/test_image_draw.cpp` 增加"动画帧对象复用"用例：首次读取有效、同帧同尺寸复用同一对象、帧号变化不复用、目标尺寸变化不复用、回到旧组合时重新读取且帧数据正确（新增 17 项检查） | 通过（`image_draw` 共 **41 项检查，0 失败**） |
+| 新增单元测试 | `tests/test_image_draw.cpp` 增加"动画帧对象复用"用例：首次读取有效、同帧同尺寸复用同一对象、帧号变化不复用、目标尺寸变化不复用、回到旧组合时重新读取且帧数据正确（新增 17 项检查）；另补充 `SetImageData` 后缓存失效用例（+7 项） | 通过（`image_draw` 共 **48 项检查，0 失败**） |
 | 全量回归 | `ctest`（17 个用例，含 GL 后端的 `gl_window_smoke`） | 非 SDL 与 SDL 构建均 **17/17 通过** |
 | 待解码帧 | 后台解码未完成时返回新对象且不入缓存（代码走查 + GIF 同步/异步解码路径共用同一实现） | 代码走查确认 |
 | 图片切换 | `SetImageData` 清空缓存，避免新旧图片串帧 | 代码走查确认 |
@@ -511,7 +527,7 @@ Skia 绘制 → m_fSurfaceMemory →(memcpy)→ SDL 窗口表面 →(BitBlt/XShm
 | 层次 | 改动 | 说明 |
 |------|------|------|
 | 格式判定 | `CanUseDirectSurface()` | 只有同时满足：SDL 表面存在且 `pixels != nullptr`、`bpp == 32`、宽高与渲染上下文一致、`pitch >= width*4`、**SDL 与 Skia 的颜色字节顺序完全一致**（复用已有 `GetSDLColorByteOrder` / `GetSkiaColorByteOrder`）、窗口透明度为 255，才启用直绘 |
-| 表面创建 | `EnsureBackbufferSurface()` | 每帧绘制前执行：条件满足时用 `SkSurfaces::WrapPixels` 把 `sdlSurface->pixels` 包装为后备缓冲（`rowBytes` 取 `sdlSurface->pitch`，兼容带行填充的表面）；缓存 `SDL_Surface*`，表面指针未变化时直接复用，不重复创建 |
+| 表面创建 | `EnsureBackbufferSurface()` | 每帧绘制前执行：条件满足时用 `SkSurfaces::WrapPixels` 把 `sdlSurface->pixels` 包装为后备缓冲（`rowBytes` 取 `sdlSurface->pitch`，兼容带行填充的表面）；缓存 `SDL_Surface*` 及当时的 `pitch`，只有指针、宽高、`pitch`、像素地址均未变化时才复用，否则重新创建工作表面 |
 | 回退路径 | `SwitchToMemoryBackbuffer()` | 格式不兼容、透明度非 255、窗口表面失效时，把后备缓冲重新包装到内部 `m_fSurfaceMemory`，后续仍走原有的 memcpy/纹理兜底/透明度处理，行为与优化前一致 |
 | 提交 | `SwapPaintBuffersDirect()` | 直绘模式下像素已在窗口表面，整幅提交调用 `SDL_UpdateWindowSurface`，局部提交沿用多脏矩形 `SDL_UpdateWindowSurfaceRects`，不再做逐行 memcpy、颜色字节序转换与 Alpha 缩放 |
 | 失效 | `resize` / `Clear` / SDL 表面变化 | `resize` 与 `Clear` 清除直绘状态；每帧用 `SDL_GetWindowSurface()` 的返回值与缓存的指针比较，窗口缩放、全屏切换、最小化还原导致 SDL 重建表面时自动重建包装并**置缓冲失效**，触发完整重绘 |
@@ -559,5 +575,74 @@ Skia 绘制 → m_fSurfaceMemory →(memcpy)→ SDL 窗口表面 →(BitBlt/XShm
 - SDL 在窗口缩放、全屏切换等场景会销毁并重建窗口表面，此时必须完整重绘一次（与 resize 的既有行为一致）；
 - 内存缓冲仍然保留用于回退，直绘本身不降低内存占用；如需进一步压缩内存，可考虑在稳定直绘时按需释放（未实现）；
 - present-only 仍要求 `m_bBackBufferValid`：若窗口表面被 SDL 重建，优化项 3 的缓存内容无法复用，只能重新绘制。
+
+## 十四、整体总结
+
+### 14.1 优化项完成情况
+
+| 序号 | 优化项 | 状态 | 关键收益 | 章节 |
+|------|--------|------|----------|------|
+| 5 | 多脏矩形替代单矩形并集 | 已完成 | 帧级绘制耗时 **-24%~27%**；每帧绘制图片 12 张 → 1.8 张 | 第九节 |
+| 1 | 图片缩放结果缓存 | 已完成 | 同图同尺寸重复绘制 **12.4~17.8x**；一次性绘制无额外开销 | 第十节 |
+| 2 | 动画帧对象复用 | 已完成 | 同帧同尺寸取帧 **-51%**（0.134 → 0.066~0.068 µs） | 第十一节 |
+| 3 | 暴露事件只提交、不重绘 | 已完成 | 静态页面单次暴露 **6.1 → 2.3 ms（-62%）**；Windows 原生 CPU **-41%~-59%** | 第十二节 |
+| 4 | 直绘窗口表面（去掉 memcpy） | 已完成 | 整幅提交 **0.165 → 0.007~0.013 ms（约 -94%）**；局部提交约 **-14%** | 第十三节 |
+| 6 | 纹理兜底路径批量提交 | **不做** | 仅影响无窗口表面的 Wayland/EGL 等平台，需自管纹理与平台分支，投入产出比不足 | — |
+| 7 | 微项（缓存窗口表面/画布指针） | **不做** | 单次开销为 µs 级，相对 1 ms 量级的绘制可忽略 | — |
+
+### 14.2 最终数据与基线对比
+
+基线（一次性整页绘制，`render.exe` 首页，SDL Raster，测量方法见第三节）：**1.318 ms/帧（约 58 fps）**，其中 `DoPaint` 1.044 ms、提交 0.206 ms、其它 0.068 ms。
+
+各优化项在各自 A/B 条件下的最终数据如下（均为同一机器、同一二进制、交替测量）：
+
+| 指标 | 基线 | 最终 | 变化 |
+|------|------|------|------|
+| 首页帧级绘制耗时（多脏矩形 A/B） | 1.289 ms | 0.947 ~ 0.982 ms | **-24%~27%** |
+| `Control::PaintImage` 每帧合计 | 1.10 ms | 0.81 ms | **-26%** |
+| 每帧绘制图片数 | 12 张 | 1.8 张 | **-85%** |
+| 图片缩放（1024x768 → 170x130） | 122~156 µs | 7.5~8.9 µs | **16~18x** |
+| 动画取帧（同帧同尺寸） | 0.134 µs | 0.066~0.068 µs | **-49%~-51%** |
+| 静态页单次暴露（SDL） | 6.1 ms | 2.3 ms | **-62%** |
+| 动画页 `PaintWindow` 累计（10 次暴露） | 835 ms | 730 ms | **-12.6%** |
+| 整幅提交（1280x800，4.1 MB） | 0.165~0.169 ms | 0.007~0.013 ms | **约 -94%** |
+| 局部提交（8 个 200x100 矩形） | 0.099~0.101 ms | 0.069~0.110 ms | **约 -14%** |
+
+说明：
+
+1. 四项优化的作用层面不同（控件剔除/光栅化、图片缩放、对象分配、上屏），收益不能简单相加；对"动画首页"这类**每次内容都变化**的场景，帧级收益主要来自优化项 5，上屏收益来自优化项 4（整幅绘制时省去 4.1 MB `memcpy`）；
+2. 优化项 1、2 在 `render.exe` 首页上没有可测量收益（动画帧每帧不同，缓存不命中），其收益体现在滚动、静态图重绘、动图循环等"同图同尺寸重复绘制"场景；
+3. 优化项 3 与优化项 4 叠加：暴露/遮挡恢复时既跳过重绘，又不再做 `memcpy`；
+4. 本表数据分别来自各节的 A/B 测量；其中图片缩放与动画取帧的基准测试已于 2026-11-18 用最终代码重新运行，结果与表内区间一致。
+
+### 14.3 代码审查与缺陷修复（2026-11-18）
+
+对本系列改动的全面审查发现并修复了以下问题（均已包含在最终代码与测试中）：
+
+| 位置 | 问题 | 修复 |
+|------|------|------|
+| `Render_Skia` / `Control` / `ScrollBox` | 滚动容器偏移绘制原点后，脏区仍是设置时的坐标，控件被错误剔除，滚轮滚动后内容空白（即 9.6，属于回归） | 记录 `m_ptPaintRectsOrg` 并做坐标换算；单矩形与多矩形路径统一处理 |
+| `Render_Skia::ClearAlpha/RestoreAlpha` | 直接写像素缓冲区、不受多矩形裁剪限制，会把脏区之间本帧不重绘的内容一并清除（透明窗口/RichEdit 场景出现黑块或透明洞） | 按脏区列表用 `SkRegion` 求出互不重叠的区域逐个处理 |
+| `NativeWindow_SDL` | `EXPOSED` 且存在待绘制脏区时，先清空脏区再被判为"只提交"，内容变化被丢弃；绘制结束无条件清空脏区，绘制期间新增的失效丢失 | 引入内容变化标志参与 present-only 判定；用更新区域变更序号判断是否保留脏区 |
+| `SkRasterWindowContext_SDL` | 提交失败仍 `ValidateRect` 并返回成功；纹理兜底路径透明度恢复 255 后未复位 `alphaMod`；直绘表面只比较指针，未校验宽高/行字节数；`setDisplayParams` 清空缓冲后不重建 | 提交成功才校验并返回 `bRet && bSwapped`；始终设置 `alphaMod`；缓存并校验 `pitch` 等；重置尺寸后再 `resize` |
+| `NativeWindow_Windows` | 绘制期间产生的 `Invalidate` 被本次绘制成功后的清标志吞掉；无渲染对象时不结束 `BeginPaint`，可能造成 `WM_PAINT` 空转 | 绘制前先清标志、失败时恢复；无渲染对象时按失败处理 |
+| `SkRasterWindowContext_Windows` | `BitBlt`/`UpdateLayeredWindow` 失败仍报告成功 | 返回 `bRet && bSwapped`，失败时保留更新区域 |
+| `Render_Skia_Windows::Resize` | 先删除后备位图再释放内存 DC，位图仍被选中导致 `DeleteObject` 失败、每次 resize 泄漏一块 DIB | 先 `DeleteDC()` 再调整窗口上下文 |
+| `SkGLWindowContext_Windows` | 缓冲有效性未校验客户区尺寸（`resize` 失败后可能用小表面提交）；`DoPaint` 失败仍提交半帧；存在无定义的 `SwapPaintBuffers` 声明 | 校验客户区尺寸；失败时不提交并要求下次完整重绘；删除死代码 |
+
+审查中确认无需修改的项：`ImageInfo` 复用帧对象由调用方只读访问（已在文档与测试中约束）；present-only 被后端降级为完整绘制时最多多绘制一次（安全方向）；`GetUpdateRects` 未与可见区求交（仅少量性能损耗）。
+
+### 14.4 验证
+
+| 项目 | 结果 |
+|------|------|
+| 单元测试 | 非 SDL：`ctest` **17/17**；SDL：`ctest` **18/18**（含 `sdl_raster_direct`） |
+| 关键用例检查数 | `offscreen_render` **213**、`image_draw` **48**、`sdl_raster_direct` **43**、`render_api` **668**，均 0 失败 |
+| 真实应用 | `controls.exe` 启动后滑动滚轮，两种构建下滚动区域内容均正常绘制；`render.exe`、`basic.exe` 的暴露/resize/最小化用例通过 |
+| 构建配置 | 非 DLL 静态库，非 SDL 与 SDL 两种配置均编译通过 |
+
+### 14.5 结论
+
+基线中最突出的两个瓶颈（图片绘制 0.679 ms/帧、提交阶段 memcpy 0.155 ms/帧）都已被消除或显著压缩；多脏矩形把稳态重绘面积从整页降到约 15%，并带来 24%~27% 的帧级收益。所有改动保持了既有接口语义，未启用优化的平台/场景均有明确的回退路径。优化项 6、7 经评估不做，理由见 14.1。
 
 

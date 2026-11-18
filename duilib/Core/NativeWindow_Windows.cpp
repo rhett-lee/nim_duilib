@@ -1681,10 +1681,10 @@ LRESULT NativeWindow_Windows::OnPaintMsg(UINT uMsg, WPARAM wParam, LPARAM lParam
             if (m_pOwner != nullptr) {
                 UiRect rcPaint(rectUpdate.left, rectUpdate.top, rectUpdate.right, rectUpdate.bottom);
                 NativeMsg nativeMsg = NativeMsg(WM_PAINT, (WPARAM)m_hWnd, 0);
+                //应用层负责完成绘制：先清除内容变化标志，绘制过程中若又产生新的变化，标志会被重新置位
+                m_bContentDirty = false;
                 m_pOwner->OnNativePaintMsg(rcPaint, nativeMsg, bHandled);
                 bPaint = true;
-                //应用层已经完成绘制
-                m_bContentDirty = false;
             }
         }
         else {
@@ -1697,15 +1697,23 @@ LRESULT NativeWindow_Windows::OnPaintMsg(UINT uMsg, WPARAM wParam, LPARAM lParam
                 renderPaint.m_pOwner = m_pOwner;
                 renderPaint.m_nativeMsg = NativeMsg(uMsg, wParam, lParam);
                 renderPaint.m_bHandled = bHandled;
+                //记录本次绘制前的内容变化标志，并在绘制前清除：
+                //绘制过程中若再次产生内容变化（如控件位置调整），标志会被重新置位，不能在此后的绘制成功时被清除
+                const bool bContentDirty = m_bContentDirty;
+                m_bContentDirty = false;
                 //没有内容变化（如窗口暴露、遮挡恢复）且后备缓冲内容完整有效时，
                 //只重新提交后备缓冲，不重新绘制界面
-                renderPaint.m_bPresentOnly = CanPresentBackBufferOnly(pRender->IsBackBufferValid(), m_bContentDirty, false);
+                renderPaint.m_bPresentOnly = CanPresentBackBufferOnly(pRender->IsBackBufferValid(), bContentDirty, false);
                 bPaint = pRender->PaintAndSwapBuffers(&renderPaint);
                 bHandled = renderPaint.m_bHandled;
-                if (bPaint && !renderPaint.m_bPresentOnly) {
-                    //内容已经绘制完成
-                    m_bContentDirty = false;
+                if (!bPaint) {
+                    //绘制失败：保留内容变化标志，下次继续绘制
+                    m_bContentDirty = m_bContentDirty || bContentDirty;
                 }
+            }
+            else {
+                //无法获取渲染对象：结束绘制，避免WM_PAINT消息空转
+                bPaint = false;
             }
         }
     }

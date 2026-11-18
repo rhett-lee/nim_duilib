@@ -192,6 +192,7 @@ bool SkRasterWindowContext_Windows::PaintAndSwapBuffers(IRenderWindow* pRender, 
 
     //开始绘制
     bool bRet = false;
+    bool bSwapped = false;
     PAINTSTRUCT ps = { 0, };
     HDC hPaintDC = ::BeginPaint(hWnd, &ps);
     if (!rcPaint.IsEmpty() && (hPaintDC != nullptr)) {
@@ -211,7 +212,7 @@ bool SkRasterWindowContext_Windows::PaintAndSwapBuffers(IRenderWindow* pRender, 
         static_cast<IRender*>(pRender)->EndPaintRects(nClipState);
 
         //绘制完成后，更新到窗口
-        bool bSwapped = SwapPaintBuffers(hPaintDC, rcPaintList, pRender, nLayeredWindowAlpha);
+        bSwapped = SwapPaintBuffers(hPaintDC, rcPaintList, pRender, nLayeredWindowAlpha);
         //完整绘制成功后，后备缓冲保存了客户区的完整图像；局部绘制不会破坏其它区域的内容
         if (bRet && bSwapped && bFullPaint) {
             m_bBackBufferValid = true;
@@ -246,17 +247,20 @@ bool SkRasterWindowContext_Windows::PaintAndSwapBuffers(IRenderWindow* pRender, 
 
         //绘制完成后，更新到窗口
         hPaintDC = ::GetDC(hWnd);
-        bool bSwapped = SwapPaintBuffers(hPaintDC, rcPaintList, pRender, nLayeredWindowAlpha);
+        bSwapped = SwapPaintBuffers(hPaintDC, rcPaintList, pRender, nLayeredWindowAlpha);
         //完整绘制成功后，后备缓冲保存了客户区的完整图像
         if (bRet && bSwapped && bFullPaint) {
             m_bBackBufferValid = true;
         }
         ::ReleaseDC(hWnd, hPaintDC);
 
-        //标记绘制区域为有效区域
-        ::ValidateRect(hWnd, &rectUpdate);
+        //绘制并提交成功后，标记绘制区域为有效区域（提交失败时需要保留更新区域，下次重绘）
+        if (bSwapped) {
+            ::ValidateRect(hWnd, &rectUpdate);
+        }
     }
-    return bRet;
+    //提交失败等同于绘制失败：不能报告成功，否则调用方会清空内容变化标志，界面停留在旧内容上
+    return bRet && bSwapped;
 }
 
 bool SkRasterWindowContext_Windows::SwapPaintBuffers(HDC hPaintDC, const std::vector<UiRect>& rcPaintList, IRenderWindow* pRender, uint8_t nLayeredWindowAlpha) const

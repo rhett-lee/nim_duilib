@@ -311,12 +311,51 @@ IBitmap* Render_Skia::MakeImageSnapshot(const UiRect& rc)
     return pBitmap;
 }
 
+void Render_Skia::GetAlphaDirtyRects(const UiRect& rcDirty, std::vector<UiRect>& rcDirtyList) const
+{
+    rcDirtyList.clear();
+    if (rcDirty.IsEmpty()) {
+        return;
+    }
+    if (m_paintRects.empty()) {
+        //未设置脏区列表：与原逻辑一致，处理整个矩形
+        rcDirtyList.push_back(rcDirty);
+        return;
+    }
+    //脏区列表是BeginPaintRects时的客户区坐标，需要转换到当前绘制坐标系
+    const int32_t nOffsetX = m_ptPaintRectsOrg.x - SkScalarTruncToInt(m_pSkPointOrg->fX);
+    const int32_t nOffsetY = m_ptPaintRectsOrg.y - SkScalarTruncToInt(m_pSkPointOrg->fY);
+    SkRegion skRegion;
+    UiRect rcItem;
+    UiRect rcResult;
+    for (const UiRect& rcPaint : m_paintRects) {
+        rcItem = rcPaint;
+        if ((nOffsetX != 0) || (nOffsetY != 0)) {
+            rcItem.Offset(nOffsetX, nOffsetY);
+        }
+        if (UiRect::Intersect(rcResult, rcDirty, rcItem)) {
+            skRegion.op(SkIRect::MakeLTRB(rcResult.left, rcResult.top, rcResult.right, rcResult.bottom),
+                        SkRegion::kUnion_Op);
+        }
+    }
+    //SkRegion的迭代结果互不重叠，避免同一像素被重复处理（RestoreAlpha对同一像素处理两次会得到错误结果）
+    SkRegion::Iterator it(skRegion);
+    for (; !it.done(); it.next()) {
+        const SkIRect& skRect = it.rect();
+        rcDirtyList.push_back(UiRect(skRect.fLeft, skRect.fTop, skRect.fRight, skRect.fBottom));
+    }
+}
+
 void Render_Skia::ClearAlpha(const UiRect& rcDirty, uint8_t alpha)
 {
     void* pPixelBits = GetPixelBits();
     if (pPixelBits != nullptr) {
         BitmapAlpha bitmapAlpha((uint8_t*)pPixelBits, GetWidth(), GetHeight(), sizeof(uint32_t));
-        bitmapAlpha.ClearAlpha(rcDirty, alpha);
+        std::vector<UiRect> rcDirtyList;
+        GetAlphaDirtyRects(rcDirty, rcDirtyList);
+        for (const UiRect& rcItem : rcDirtyList) {
+            bitmapAlpha.ClearAlpha(rcItem, alpha);
+        }
     }
 }
 
@@ -325,7 +364,11 @@ void Render_Skia::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowP
     void* pPixelBits = GetPixelBits();
     if (pPixelBits != nullptr) {
         BitmapAlpha bitmapAlpha((uint8_t*)pPixelBits, GetWidth(), GetHeight(), sizeof(uint32_t));
-        bitmapAlpha.RestoreAlpha(rcDirty, rcShadowPadding, alpha);
+        std::vector<UiRect> rcDirtyList;
+        GetAlphaDirtyRects(rcDirty, rcDirtyList);
+        for (const UiRect& rcItem : rcDirtyList) {
+            bitmapAlpha.RestoreAlpha(rcItem, rcShadowPadding, alpha);
+        }
     }
 }
 
@@ -334,7 +377,11 @@ void Render_Skia::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowP
     void* pPixelBits = GetPixelBits();
     if (pPixelBits != nullptr) {
         BitmapAlpha bitmapAlpha((uint8_t*)pPixelBits, GetWidth(), GetHeight(), sizeof(uint32_t));
-        bitmapAlpha.RestoreAlpha(rcDirty, rcShadowPadding);
+        std::vector<UiRect> rcDirtyList;
+        GetAlphaDirtyRects(rcDirty, rcDirtyList);
+        for (const UiRect& rcItem : rcDirtyList) {
+            bitmapAlpha.RestoreAlpha(rcItem, rcShadowPadding);
+        }
     }
 }
 
@@ -2684,8 +2731,8 @@ UiRect Render_Skia::GetEffectivePaintRect(const UiRect& rcPaint) const
         return rcPaint;
     }
     //rcPaint为空：表示不限制绘制区域，使用当前裁剪区域兜底。
-    //注意：这里取裁剪区域的最大边界（向外取整），不能直接复用GetClipInfo的返回值，
-    //因为后者向内缩小了1个像素（用于抵消Skia设置Clip时的放大），会导致边缘漏画。
+    //注意：这里取裁剪区域的最大边界（设备坐标的裁剪边界），
+    //否则在窗口部分区域绘制时，控件无法获取到有效的绘制范围。
     UiRect rcClip;
     SkCanvas* skCanvas = GetSkCanvas();
     if (skCanvas != nullptr) {

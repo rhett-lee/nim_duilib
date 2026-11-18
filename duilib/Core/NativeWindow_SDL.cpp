@@ -798,6 +798,7 @@ NativeWindow_SDL::NativeWindow_SDL(INativeWindow* pOwner):
     m_ptLastMousePos(-1, -1),
     m_bInitWindowPosFlag(false),
     m_bImeComposing(false),
+    m_nUpdateSeq(0),
     m_systemShadowType(NativeWindowShadowType::kShadowSystemDisabled)
 {
     ASSERT(m_pOwner != nullptr);    
@@ -2780,6 +2781,7 @@ void NativeWindow_SDL::Invalidate(const UiRect& rcItem)
         }
         if (!bContained) {
             m_updateRects.push_back(rcItem);
+            ++m_nUpdateSeq;
             if (m_rcUpdateRect.IsZero()) {
                 m_rcUpdateRect = rcItem;
             }
@@ -2824,12 +2826,18 @@ void NativeWindow_SDL::PaintWindow(bool bPaintAll)
     //是否可能"只重新提交后备缓冲，不重新绘制界面"：
     //仅当没有待绘制的脏区时才成立（窗口暴露、遮挡恢复、最小化还原等场景）
     bool bHasUpdateRect = !m_updateRects.empty() || !m_rcUpdateRect.IsZero();
+    //是否存在内容变化：即使接下来按"绘制全部"处理，只要存在待绘制的脏区，内容就是变化的，
+    //不能降级为"只提交后备缓冲"，否则本次界面变化会被丢弃
+    bool bContentDirty = bHasUpdateRect;
     if (bPaintAll && bHasUpdateRect) {
         //绘制全部
         m_rcUpdateRect.Clear();
         m_updateRects.clear();
         bHasUpdateRect = false;
     }
+    //记录绘制前更新区域的变更序号：绘制过程中若又产生新的更新区域，结束时不能清空
+    const uint32_t nUpdateSeqBeforePaint = m_nUpdateSeq;
+    bool bPaintDone = false;
     INativeWindow* pOwner = m_pOwner;
     ASSERT(pOwner != nullptr);
     if (pOwner == nullptr) {
@@ -2846,6 +2854,7 @@ void NativeWindow_SDL::PaintWindow(bool bPaintAll)
                 bool bHandled = false;
                 NativeMsg nativeMsg = NativeMsg(SDL_EVENT_WINDOW_EXPOSED, (WPARAM)m_sdlWindow, 0);
                 pOwner->OnNativePaintMsg(rcPaint, nativeMsg, bHandled);
+                bPaintDone = true;
             }
         }
         else {
@@ -2861,15 +2870,21 @@ void NativeWindow_SDL::PaintWindow(bool bPaintAll)
 
                 //准备绘制阶段可能产生新的脏区（如布局调整），需要重新检查
                 bHasUpdateRect = bHasUpdateRect || !m_updateRects.empty() || !m_rcUpdateRect.IsZero();
+                bContentDirty = bContentDirty || bHasUpdateRect;
                 //只有后备缓冲内容完整有效、且没有待绘制的脏区时，才可以跳过界面重绘
-                renderPaint.m_bPresentOnly = CanPresentBackBufferOnly(pRender->IsBackBufferValid(), false, bHasUpdateRect);
+                renderPaint.m_bPresentOnly = CanPresentBackBufferOnly(pRender->IsBackBufferValid(), bContentDirty, bHasUpdateRect);
 
                 bPaint = pRender->PaintAndSwapBuffers(&renderPaint);
+                bPaintDone = bPaint;
             }
         }
     }
-    m_rcUpdateRect.Clear();
-    m_updateRects.clear();
+    if (bPaintDone && (m_nUpdateSeq == nUpdateSeqBeforePaint)) {
+        //绘制已完成，且绘制过程中没有产生新的更新区域：清空已处理的更新区域
+        m_rcUpdateRect.Clear();
+        m_updateRects.clear();
+    }
+    //绘制失败，或绘制过程中产生了新的更新区域：保留更新区域，下次绘制时继续处理
 }
 
 const UiRect& NativeWindow_SDL::GetUpdateRect() const

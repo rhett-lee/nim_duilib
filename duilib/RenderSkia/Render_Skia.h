@@ -258,6 +258,15 @@ private:
     *   控件级剔除时需要据此把脏区矩形转换到当前绘制坐标系
     */
     UiPoint m_ptPaintRectsOrg;
+
+private:
+    /** 获取Alpha处理的区域列表（与当前绘制脏区求交，返回互不重叠的矩形）
+    *   用于ClearAlpha/RestoreAlpha：这两个接口直接操作像素缓冲区，不受画布裁剪区域限制，
+    *   若不与脏区列表求交，会把脏区之间未被重绘的内容一并清除
+    * @param [in] rcDirty 需要处理的矩形（当前绘制坐标系）
+    * @param [out] rcDirtyList 返回需要处理的矩形列表（当前绘制坐标系，互不重叠）
+    */
+    void GetAlphaDirtyRects(const UiRect& rcDirty, std::vector<UiRect>& rcDirtyList) const;
 };
 
 } // namespace ui

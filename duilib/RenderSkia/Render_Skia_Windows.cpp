@@ -153,10 +153,11 @@ bool Render_Skia_Windows::Resize(int32_t width, int32_t height)
     if (m_pWindowContext == nullptr) {
         return false;
     }
+    //先释放绘制用的DC，再调整窗口上下文：
+    //窗口上下文调整时会删除旧的后备位图，如果位图仍被m_hDC选中，DeleteObject会失败，导致GDI对象泄漏
+    DeleteDC();
     m_pWindowContext->resize(width, height);
     ASSERT(GetSkCanvas() != nullptr);
-
-    DeleteDC();
     return true;
 }
 

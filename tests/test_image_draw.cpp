@@ -228,6 +228,24 @@ void TestAnimationFrameReuse()
         Check(pFrame0Reload->m_nFrameIndex == 0, "reload frame index is invalid");
         Check(pFrame0Reload->m_pBitmap != nullptr, "reload frame bitmap is null");
     }
+
+    //用例6：重新设置图片数据后，之前缓存的帧对象必须失效，不能返回旧的帧数据
+    {
+        const ui::AnimationFramePtr pFrameBefore = pImageInfo->GetFrame(0, szFrameSize);
+        Check(pFrameBefore != nullptr, "GetFrame(0) before SetImageData is null");
+        std::shared_ptr<ui::IImage> pImageData = pImageInfo->GetImageData();
+        Check(pImageData != nullptr, "GetImageData() is null");
+        if (pImageData != nullptr) {
+            Check(pImageInfo->SetImageData(loadParam, pImageData, false, 100), "SetImageData() failed");
+            const ui::AnimationFramePtr pFrameAfter = pImageInfo->GetFrame(0, szFrameSize);
+            Check(pFrameAfter != nullptr, "GetFrame(0) after SetImageData is null");
+            if ((pFrameBefore != nullptr) && (pFrameAfter != nullptr)) {
+                Check(pFrameAfter.get() != pFrameBefore.get(), "cached frame is not invalidated by SetImageData");
+                Check(pFrameAfter->m_nFrameIndex == 0, "frame index after SetImageData is invalid");
+                Check(pFrameAfter->m_pBitmap != nullptr, "frame bitmap after SetImageData is null");
+            }
+        }
+    }
 }
 
 }//namespace

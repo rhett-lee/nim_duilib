@@ -11,7 +11,7 @@
 //  G. 线程与生命周期        OS-29 ~ OS-31
 //  H. 迁移回归              OS-32 ~ OS-33（需窗口，打印 SKIP）
 //  I. 位图导出              OS-35 ~ OS-36
-//  J. 多脏矩形局部绘制      OS-37 ~ OS-39、OS-45 ~ OS-46
+//  J. 多脏矩形局部绘制      OS-37 ~ OS-39、OS-45 ~ OS-48
 //  K. 图片缩放结果缓存      OS-40 ~ OS-44
 //
 // 本测试不创建窗口；未初始化尺寸的对象允许被安全使用。
@@ -666,7 +666,7 @@ void TestCompatEntry(ui::IRenderFactory* /*pRenderFactory*/)
 }
 
 // ---------------------------------------------------------------------------
-// J. 多脏矩形局部绘制（OS-37 ~ OS-39、OS-45 ~ OS-46）
+// J. 多脏矩形局部绘制（OS-37 ~ OS-39、OS-45 ~ OS-48）
 // ---------------------------------------------------------------------------
 void TestMultiPaintRects(ui::IRenderFactory* pRenderFactory)
 {
@@ -794,6 +794,57 @@ void TestMultiPaintRects(ui::IRenderFactory* pRenderFactory)
             CHECK(ReadPixel(pRender.get(), 10, 35, nColor) && (nColor == kRedColor));
             CHECK(ReadPixel(pRender.get(), 10, 75, nColor) && (nColor == kWhiteColor));
             CHECK(ReadPixel(pRender.get(), 10, 110, nColor) && (nColor == kWhiteColor));
+        }
+    }
+
+    //OS-47 只有一个脏矩形且绘制原点被偏移时，控件剔除也需要做坐标转换
+    //      （滚动容器中滑动滚轮通常只产生一个脏矩形，此路径必须正确）
+    {
+        std::unique_ptr<ui::IRender> pRender = pRenderFactory->CreateOffscreenRender(200, 200);
+        CHECK(pRender != nullptr);
+        if (pRender != nullptr) {
+            std::vector<ui::UiRect> rcPaintList;
+            rcPaintList.push_back(ui::UiRect(0, 0, 200, 100));
+            const int32_t nClipState = pRender->BeginPaintRects(rcPaintList);
+
+            const ui::UiPoint ptOldOrg = pRender->OffsetWindowOrg(ui::UiPoint(0, 50));
+
+            ui::UiRect rcResult;
+            //控件在未滚动坐标中为(0,80)-(90,90)，实际显示在(0,30)-(90,40)，位于脏区内：必须绘制
+            CHECK(pRender->IntersectPaintRect(ui::UiRect(0, 80, 90, 90), ui::UiRect(0, 0, 200, 200), rcResult));
+            CHECK(rcResult == ui::UiRect(0, 80, 90, 90));
+            //控件实际显示在(-50)-(-40)，完全位于脏区外：不需要绘制
+            CHECK(!pRender->IntersectPaintRect(ui::UiRect(0, 0, 90, 10), ui::UiRect(0, 0, 200, 200), rcResult));
+            CHECK(rcResult.IsEmpty());
+
+            pRender->SetWindowOrg(ptOldOrg);
+            pRender->EndPaintRects(nClipState);
+        }
+    }
+
+    //OS-48 ClearAlpha直接操作像素缓冲区，多个脏矩形时必须只处理脏区内的像素，
+    //      不能把脏区之间（本帧不重绘）的内容一并清除
+    {
+        std::unique_ptr<ui::IRender> pRender = pRenderFactory->CreateOffscreenRender(100, 100);
+        CHECK(pRender != nullptr);
+        if (pRender != nullptr) {
+            pRender->Clear(ui::UiColor(kWhiteColor));
+            std::vector<ui::UiRect> rcPaintList;
+            rcPaintList.push_back(ui::UiRect(0, 0, 40, 40));
+            rcPaintList.push_back(ui::UiRect(60, 60, 100, 100));
+            const int32_t nClipState = pRender->BeginPaintRects(rcPaintList);
+
+            //传入的是脏区的并集边界，实现内部需要按脏区列表裁剪
+            pRender->ClearAlpha(ui::UiRect(0, 0, 100, 100), 0);
+            pRender->EndPaintRects(nClipState);
+
+            uint32_t nColor = 0;
+            //脏区内的像素Alpha被清除
+            CHECK(ReadPixel(pRender.get(), 10, 10, nColor) && (((nColor >> 24) & 0xFF) == 0));
+            CHECK(ReadPixel(pRender.get(), 80, 80, nColor) && (((nColor >> 24) & 0xFF) == 0));
+            //脏区之间的像素保持不变（不参与本帧绘制，不能被清除）
+            CHECK(ReadPixel(pRender.get(), 50, 50, nColor) && (nColor == kWhiteColor));
+            CHECK(ReadPixel(pRender.get(), 10, 80, nColor) && (nColor == kWhiteColor));
         }
     }
 }

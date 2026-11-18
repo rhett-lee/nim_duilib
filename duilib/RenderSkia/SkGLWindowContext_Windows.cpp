@@ -515,10 +515,17 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* pRender, IRenderPai
     // ---- 执行绘制 ----
     // DoPaint 内部通过 IRender::GetSkCanvas() → Render_Skia_Windows::GetSkCanvas()
     //   → m_pWindowContext->getBackbufferSurface() 取到持久化表面
-    pRenderPaint->DoPaint(rcPaint);
+    const bool bPaintOk = pRenderPaint->DoPaint(rcPaint);
 
     // ---- 恢复裁剪状态 ----
     pRender->EndPaintRects(nClipState);
+
+    if (!bPaintOk) {
+        //绘制未完成：持久化表面的内容不完整，下次必须完整重绘
+        m_bNeedFullRedraw = true;
+        ::EndPaint(hWnd, &ps);
+        return false;
+    }
 
     // ---- 把持久化表面的整幅内容拷贝到 FBO 0 ----
     // 局部重绘时脏区域以外的内容来自上一帧；全量重绘时保证窗口显示与持久化表面一致，
@@ -556,6 +563,14 @@ bool SkGLWindowContext_Windows::IsBackBufferValid() const
         return false;
     }
     if ((fWidth <= 0) || (fHeight <= 0)) {
+        return false;
+    }
+    //持久化表面的尺寸必须与客户区一致：
+    //resize过程中如果MakeCurrent失败会提前返回，此时fWidth/fHeight可能滞后于客户区尺寸，
+    //直接提交会把小尺寸表面拷贝到较大的窗口上，导致花屏
+    RECT rcClient = { 0, 0, 0, 0 };
+    ::GetClientRect(m_hWnd, &rcClient);
+    if (((rcClient.right - rcClient.left) != fWidth) || ((rcClient.bottom - rcClient.top) != fHeight)) {
         return false;
     }
     return (m_persistentSurface->width() == fWidth) && (m_persistentSurface->height() == fHeight);

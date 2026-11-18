@@ -870,6 +870,12 @@ private:
     */
     std::vector<UiRect> m_updateRects;
 
+    /** 更新区域的变更序号：每次新增更新区域时递增
+    *   绘制结束后，如果序号发生变化，说明绘制过程中产生了新的更新区域，
+    *   此时不能清空更新区域，否则新产生的界面变化会被丢弃
+    */
+    uint32_t m_nUpdateSeq;
+
     /** 拖放的支持
     */
     std::unique_ptr<WindowDropTarget> m_pWindowDropTarget;
