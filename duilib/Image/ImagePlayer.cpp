@@ -37,7 +37,8 @@ void ImagePlayer::SetImage(Image* pImage)
 
     m_pImage = pImage;
     if (m_pImage != nullptr) {
-        ASSERT(m_pImage->IsMultiFrameImage());
+        //注意：此处不要求图片一定是多帧图片：图片切换为单帧图片时，播放器对象可能被复用，
+        //播放相关接口在非多帧图片时会直接返回，不会启动动画
         //初始化播放循环次数
         m_nMaxPlayCount = m_pImage->GetImageAttribute().m_nPlayCount;
         if (m_nMaxPlayCount == 0) {

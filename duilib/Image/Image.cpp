@@ -129,8 +129,16 @@ void Image::SetImageInfo(const std::shared_ptr<ImageInfo>& imageInfo)
     const bool bImageChanged = (m_imageInfo != imageInfo);
     m_imageInfo = imageInfo;
     if (bImageChanged && (m_pImagePlayer != nullptr)) {
-        //图片变化后，重新初始化动画的播放参数(播放次数、是否自动播放等)，并复位播放状态
-        m_pImagePlayer->SetImage(this);
+        if (IsMultiFrameImage()) {
+            //图片变化后，重新初始化动画的播放参数(播放次数、是否自动播放等)，并复位播放状态
+            m_pImagePlayer->SetImage(this);
+        }
+        else {
+            //新图片不是多帧图片：停止并释放残留的动画播放器，避免它按单帧图片继续运行
+            //(播放器在首次显示动画图片时创建，之后更换为单帧图片时需要及时释放)
+            m_pImagePlayer->StopImageAnimation(AnimationImagePos::kFrameCurrent, false);
+            m_pImagePlayer.reset();
+        }
     }
 }
 
