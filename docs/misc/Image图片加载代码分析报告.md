@@ -195,7 +195,7 @@ nImageOffset = static_cast<int32_t>(std::ceil(nImageOffset * fImageSizeScale));
 
 - **已修复**：`duilib/Image/ImageAttribute` 的 4 个矩形成员（`m_rcDest`/`m_rcSource`/`m_rcCorner`/`m_rcMargin`）由裸指针改为 `std::unique_ptr`，拷贝赋值简化为 4 行，`Init()`/析构函数中的手工 `delete` 全部移除。
 - **不修改（按要求保留）**：各 `Image_PNG/GIF/WEBP/JPEG::LoadImageFile` 骨架重复，可抽公共基类。
-- **未修改（兼容性原因）**：`ImageAttribute::m_bFade` 是公共成员（`Control.cpp`、`StateImage.cpp` 均直接访问），改名 `m_nFade` 会破坏下游源码兼容性，因此保留原名；其注释已明确标注「透明度（0 - 255）」。
+- **已修复**：`ImageAttribute::m_bFade` 更名为 `m_nAlpha`（该成员是 `uint8_t` 透明度值，`b` 前缀误导为 bool；`Alpha` 与 `Control::SetAlpha`、`drawParam.uFade` 的语义一致），同步修改 `Control.cpp`、`Image.cpp`、`StateImage.cpp`。注意：`ControlLoading.cpp` 内 `LoadingAttribute::m_bFade` 是另一个独立结构体的成员，未改名。
 
 ---
 
@@ -212,7 +212,7 @@ nImageOffset = static_cast<int32_t>(std::ceil(nImageOffset * fImageSizeScale));
 | `duilib/Image/ImageInfo.cpp` / `ImageInfo.h` | 4、5、10、15 |
 | `duilib/Image/ImageDecoder_SVG.cpp` | 7 |
 | `duilib/Image/ImageLoadParam.cpp` | 8 |
-| `duilib/Image/ImageAttribute.cpp` / `ImageAttribute.h` | 11、12、可维护性（unique_ptr） |
+| `duilib/Image/ImageAttribute.cpp` / `ImageAttribute.h` | 11、12、可维护性（unique_ptr、`m_bFade` 改名为 `m_nAlpha`） |
 | `duilib/Image/ImagePlayer.cpp` | 13、14 |
 | `duilib/Image/ImageDecoder_Common.cpp` | 16 |
 

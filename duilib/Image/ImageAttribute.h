@@ -134,7 +134,7 @@ public:
     std::unique_ptr<TiledDrawParam> m_pTiledDrawParam;
 
     //透明度（0 - 255）
-    uint8_t m_bFade;
+    uint8_t m_nAlpha;
 
     //加载图片时是否支持DPI自适应，即按照DPI缩放图片大小（"dpi_scale"）
     bool m_bImageDpiScaleEnabled;

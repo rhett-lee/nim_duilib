@@ -37,7 +37,7 @@ ImageAttribute& ImageAttribute::operator=(const ImageAttribute& r)
     m_vAlign = r.m_vAlign;
     m_svgReplaceColors = r.m_svgReplaceColors;
 
-    m_bFade = r.m_bFade;
+    m_nAlpha = r.m_nAlpha;
     m_bWindowShadowMode = r.m_bWindowShadowMode;
     m_bAutoPlay = r.m_bAutoPlay;
     m_bAsyncLoad = r.m_bAsyncLoad;
@@ -84,7 +84,7 @@ void ImageAttribute::Init()
     m_vAlign.clear();
     m_svgReplaceColors.clear();
 
-    m_bFade = 0xFF;
+    m_nAlpha = 0xFF;
     m_bWindowShadowMode = false;
     m_bAutoPlay = true;
     m_bAsyncLoad = GlobalManager::Instance().Image().IsImageAsyncLoad();
@@ -241,7 +241,7 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
             else if (nFade > 0xFF) {
                 nFade = 0xFF;
             }
-            imageAttribute.m_bFade = (uint8_t)nFade;
+            imageAttribute.m_nAlpha = (uint8_t)nFade;
         }
         else if (name == _T("xtiled")) {
             //横向平铺

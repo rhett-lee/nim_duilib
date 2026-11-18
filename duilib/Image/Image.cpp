@@ -90,7 +90,7 @@ void Image::SetImagePlayCount(int32_t nPlayCount)
 
 void Image::SetImageFade(uint8_t nFade)
 {
-    m_imageAttribute.m_bFade = nFade;
+    m_imageAttribute.m_nAlpha = nFade;
 }
 
 const ImageAttribute& Image::GetImageAttribute() const

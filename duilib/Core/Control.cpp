@@ -3597,7 +3597,7 @@ bool Control::PaintImage(IRender* pRender,
         }
 
         //图片透明度属性
-        uint8_t iFade = (nFade == DUI_NOSET_VALUE) ? newImageAttribute.m_bFade : static_cast<uint8_t>(nFade);
+        uint8_t iFade = (nFade == DUI_NOSET_VALUE) ? newImageAttribute.m_nAlpha : static_cast<uint8_t>(nFade);
         ImageDrawParam drawParam;
         drawParam.uFade = iFade;
         drawParam.rcImageBorder = UiMargin(rcSourceCorners.left, rcSourceCorners.top,
