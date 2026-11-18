@@ -425,6 +425,13 @@ void Image::PauseImageAnimation()
     }
 }
 
+void Image::OnImageFrameDataReady()
+{
+    if (m_pImagePlayer != nullptr) {
+        m_pImagePlayer->OnImageFrameDataReady();
+    }
+}
+
 bool Image::StartImageAnimation(AnimationImagePos nStartFrame, int32_t nPlayCount)
 {
     bool bRet = false;

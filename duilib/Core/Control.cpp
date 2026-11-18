@@ -4644,6 +4644,11 @@ bool  Control::IsImageAnimationLoaded(const DString& imageName) const
 */
 constexpr uint32_t kAsyncDecodeLookahead = 3;
 
+/** 异步解码时单次任务最多解码的帧数：一次解码多帧，减少跨线程调度与UI线程唤醒次数
+*   实际解码帧数还会受到预解码窗口(kAsyncDecodeLookahead)的限制
+*/
+constexpr uint32_t kAsyncDecodeBatchSize = 3;
+
 /** 多线程解码的数据结构(异步，在子线程解码)
 */
 struct Control::TAsyncImageDecode
@@ -4655,9 +4660,6 @@ struct Control::TAsyncImageDecode
     std::shared_ptr<IImage> m_pImageData; //图片数据接口    
     DString m_imageKey;                   //图片数据的KEY，用于更新UI显示
     size_t m_nTaskId = 0;                 //在子线程中的任务ID
-
-    uint32_t m_nFrameCount = 0;           //该图片共有多少帧
-    uint32_t m_nDecodeCount = 0;          //共执行多少次异步解码
 
     bool m_bDecodeExecuted = false;       //释放执行过图片解码操作
     bool m_bDecodeResult = false;         //异步解码是否成功
@@ -4718,26 +4720,24 @@ void Control::AsyncDecodeImageData(std::shared_ptr<TAsyncImageDecode> pAsyncDeco
                 return;
             }
 
-            //解码计数
-            pAsyncDecoder->m_nDecodeCount++;
-
             //合并数据
             pAsyncDecoder->m_pImageData->MergeAsyncDecodeData();
 
             //通知相关的控件，重绘界面
             GlobalManager::Instance().Image().DelayPaintImage(pAsyncDecoder->m_imageKey);
 
+            //有新帧解码完成时通知播放模块：若当前正因缺帧而等待，则立即推进播放，
+            //避免再多等一个定时器周期
+            if (pAsyncDecoder->m_pImage != nullptr) {
+                pAsyncDecoder->m_pImage->OnImageFrameDataReady();
+            }
+
             bool bDecodeFinished = pAsyncDecoder->m_pImageData->IsAsyncDecodeFinished();
             bool bDecodeEnabled = pAsyncDecoder->m_pImageData->IsAsyncDecodeEnabled();
-            ASSERT(pAsyncDecoder->m_nDecodeCount <= pAsyncDecoder->m_nFrameCount);
-            if (pAsyncDecoder->m_nDecodeCount == pAsyncDecoder->m_nFrameCount) {
-                ASSERT(bDecodeFinished);
-            }
 
             if (!bDecodeFinished && bDecodeEnabled &&
                 pAsyncDecoder->m_bDecodeResult &&
-                !pAsyncDecoder->m_bDecodeError &&
-                (pAsyncDecoder->m_nDecodeCount <= pAsyncDecoder->m_nFrameCount)) {
+                !pAsyncDecoder->m_bDecodeError) {
                 //多帧图片只保持播放位置前方的预解码窗口，避免把长动画的所有帧都解码后常驻内存
                 const bool bWindowOpen = (pAsyncDecoder->m_pImageData->GetImageType() != ImageType::kImageAnimation) ||
                                          IsAsyncDecodeWindowOpen(pAsyncDecoder);
@@ -4768,28 +4768,50 @@ void Control::AsyncDecodeImageData(std::shared_ptr<TAsyncImageDecode> pAsyncDeco
             }
         };
 
-    //确认需要解码的帧索引号
-    uint32_t nCurFrameIndex = 0;
+    //确认本次需要解码到的帧索引号：一次解码多帧(最多kAsyncDecodeBatchSize帧)，
+    //减少跨线程调度次数与UI线程的唤醒次数
+    uint32_t nTargetFrameIndex = 0;
     if (pImageData->GetImageType() == ImageType::kImageAnimation) {
         //多帧
         std::shared_ptr<IAnimationImage> pAnimationImage = pImageData->GetImageAnimation();
         if (pAnimationImage != nullptr) {
             const int32_t nFrameCount = pAnimationImage->GetFrameCount();
             if (nFrameCount > 1) {
-                nCurFrameIndex = pAnimationImage->GetDecodedFrameIndex() + 1;
-                if (nCurFrameIndex >= (uint32_t)nFrameCount) {
-                    nCurFrameIndex = nFrameCount - 1;
+                //已经解码完成的帧数
+                const uint32_t nDecodedCount = pAnimationImage->GetDecodedFrameIndex() + 1;
+                //本次计划解码到的帧数(不含)：按批量大小推进
+                uint32_t nDecodeEnd = nDecodedCount + kAsyncDecodeBatchSize;
+                //受预解码窗口限制：不能超过"播放位置 + 预解码窗口"
+                uint32_t nCurPlayIndex = 0;
+                if (pAsyncDecoder->m_pImage != nullptr) {
+                    nCurPlayIndex = pAsyncDecoder->m_pImage->GetCurrentFrameIndex();
                 }
+                if (nCurPlayIndex >= (uint32_t)nFrameCount) {
+                    nCurPlayIndex = 0;
+                }
+                const uint32_t nWindowEnd = nCurPlayIndex + kAsyncDecodeLookahead;
+                if (nDecodeEnd > nWindowEnd) {
+                    nDecodeEnd = nWindowEnd;
+                }
+                if (nDecodeEnd > (uint32_t)nFrameCount) {
+                    nDecodeEnd = nFrameCount;
+                }
+                if (nDecodeEnd <= nDecodedCount) {
+                    //预解码窗口已满：暂停解码，等播放推进到窗口边缘时，由图片播放模块请求继续解码
+                    pImageData->SetAsyncDecodeTaskId(0);
+                    return;
+                }
+                nTargetFrameIndex = nDecodeEnd - 1;
             }
         }
     }
     else {
         //单帧
-        nCurFrameIndex = 0;
+        nTargetFrameIndex = 0;
     }
 
     //异步解码的函数，在子线程中执行
-    auto AsyncDecodeImageFunction = [pAsyncDecoder, nCurFrameIndex, AsyncDecodeImageFinishNotify]() {
+    auto AsyncDecodeImageFunction = [pAsyncDecoder, nTargetFrameIndex, AsyncDecodeImageFinishNotify]() {
             int32_t nUseCount = pAsyncDecoder->m_pImageData.use_count(); //资源引用计数(当计数为1时，表示资源已经释放，不需要再解码)
             if ((nUseCount > 1) &&
                 !pAsyncDecoder->m_pImageData->IsAsyncDecodeFinished() &&
@@ -4805,7 +4827,7 @@ void Control::AsyncDecodeImageData(std::shared_ptr<TAsyncImageDecode> pAsyncDeco
                     };
                 //对图片数据进行异步解码
                 pAsyncDecoder->m_bDecodeExecuted = true;
-                pAsyncDecoder->m_bDecodeResult = pAsyncDecoder->m_pImageData->AsyncDecode(nCurFrameIndex, IsAborted, &pAsyncDecoder->m_bDecodeError);
+                pAsyncDecoder->m_bDecodeResult = pAsyncDecoder->m_pImageData->AsyncDecode(nTargetFrameIndex, IsAborted, &pAsyncDecoder->m_bDecodeError);
             }
 
             // 通知UI（无论是否执行过图片解码操作，均需要通知UI，
@@ -4872,8 +4894,6 @@ void Control::StartAsyncDecodeImage(Image& duiImage, const std::shared_ptr<Image
         return;
     }
     std::shared_ptr<TAsyncImageDecode> pAsyncDecoder = std::make_shared<TAsyncImageDecode>();
-    pAsyncDecoder->m_nFrameCount = imageInfo->GetFrameCount();
-    pAsyncDecoder->m_nDecodeCount = 0;
     pAsyncDecoder->m_nTaskId = 0;
     pAsyncDecoder->m_pImageData = std::move(pImageData);
     pAsyncDecoder->m_imageKey = imageInfo->GetImageKey();

@@ -12,6 +12,7 @@ ImagePlayer::ImagePlayer():
     m_pImage(nullptr),
     m_bAnimationPlaying(false),
     m_bAutoPlay(true),
+    m_bWaitingFrameData(false),
     m_nCycledCount(0),
     m_nMaxPlayCount(-1)
 {
@@ -31,6 +32,7 @@ void ImagePlayer::SetImage(Image* pImage)
     //重新初始化图片时，先复位播放状态并取消旧的定时器，避免定时器仍按旧图片的状态运行
     m_animWeakFlag.Cancel();
     m_bAnimationPlaying = false;
+    m_bWaitingFrameData = false;
     m_nCycledCount = 0;
 
     m_pImage = pImage;
@@ -129,6 +131,7 @@ bool ImagePlayer::StartImageAnimation(AnimationImagePos nStartFrame, int32_t nPl
     }
     m_nCycledCount = 0;
     m_bAnimationPlaying = true;
+    m_bWaitingFrameData = false;
     RedrawImage();
     auto animationPlayCallback = UiBind(&ImagePlayer::PlayingImageAnimation, this);
     bool bRet = GlobalManager::Instance().Timer().AddTimer(m_animWeakFlag.GetWeakFlag(),
@@ -175,6 +178,7 @@ void ImagePlayer::PlayingImageAnimation()
         //      无需重新添加定时器
         //请求继续异步解码：多帧图片只保持播放位置前方的预解码窗口，
         //当窗口关闭后需要主动请求，才能继续解码后续的帧
+        m_bWaitingFrameData = true;
         m_pControl->RequestAsyncDecodeImage(m_pImage);
         return;
     }    
@@ -187,10 +191,13 @@ void ImagePlayer::PlayingImageAnimation()
         if (!pImageInfo->IsFrameDataReady(nNextFrameIndex)) {
             //下一帧图片数据尚未完成解码: 不切换到下一帧
             //请求继续异步解码，避免因预解码窗口关闭而停止解码
+            m_bWaitingFrameData = true;
             m_pControl->RequestAsyncDecodeImage(m_pImage);
             return;
         }
     }
+    //帧数据已就绪，可以推进播放
+    m_bWaitingFrameData = false;
 
     //播放下一帧
     int32_t nPreTimerInterval = pImageInfo->GetFrameDelayMs(nFrameIndex);
@@ -240,6 +247,7 @@ void ImagePlayer::PlayingImageAnimation()
 void ImagePlayer::StopImageAnimation(AnimationImagePos nStopFrame, bool bTriggerEvent)
 {
     m_bAnimationPlaying = false;
+    m_bWaitingFrameData = false;
     m_animWeakFlag.Cancel();
     if (IsMultiFrameImage() && (m_pImage != nullptr)) {
         uint32_t index = GetImageFrameIndex(nStopFrame);
@@ -272,6 +280,20 @@ void ImagePlayer::SetAutoPlay(bool bAutoPlay)
 bool ImagePlayer::IsAutoPlay() const
 {
     return m_bAutoPlay;
+}
+
+void ImagePlayer::OnImageFrameDataReady()
+{
+    if (!m_bWaitingFrameData) {
+        //播放未因缺帧而暂停：保持现有定时器的播放节奏，避免提前推进
+        return;
+    }
+    if (!IsAnimationPlaying() || !IsMultiFrameImage()) {
+        m_bWaitingFrameData = false;
+        return;
+    }
+    //帧数据已就绪：立即按播放逻辑推进到下一帧，无需等待下一个定时器周期
+    PlayingImageAnimation();
 }
 
 uint32_t ImagePlayer::GetImageFrameIndex(AnimationImagePos frame) const

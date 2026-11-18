@@ -185,6 +185,11 @@ public:
      */
     void PauseImageAnimation();
 
+    /** 通知：有新的图片帧数据解码完成
+    *   用于图片帧异步解码完成后，立即推进正在等待数据的动画播放
+    */
+    void OnImageFrameDataReady();
+
     /** 播放动画
      * @param [in] nStartFrame 从哪一帧开始播放，可设置第一帧、当前帧和最后一帧。请参考 AnimationImagePos 枚举
      * @param [in] nPlayCount 指定播放次数

@@ -65,6 +65,11 @@ public:
     */
     bool IsAutoPlay() const;
 
+    /** 通知：有新的图片帧数据解码完成
+    *   若播放曾因缺少帧数据而等待，则立即推进播放，避免再多等一个定时器周期
+    */
+    void OnImageFrameDataReady();
+
 private:
     /** 获取动画帧号
     */
@@ -118,6 +123,10 @@ private:
     /** 是否自动开始播放
     */
     bool m_bAutoPlay;
+
+    /** 是否正在等待下一帧的图片数据解码完成
+    */
+    bool m_bWaitingFrameData;
 };
 
 } // namespace ui

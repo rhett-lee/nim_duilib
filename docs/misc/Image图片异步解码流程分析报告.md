@@ -109,11 +109,13 @@ B 拿到空位图，既不会标记解码错误，也不会登记延迟绘制，
 
 1. **每帧一次 UI 往返、且一次只解一帧**：N 帧动画需要 2N 次跨线程调度。改为一次任务解 k 帧 + 一次通知，
    可显著降低调度与 UI 唤醒开销。
+   已实现：单次任务最多解码 `kAsyncDecodeBatchSize`（3）帧，且受预解码窗口限制，详见 6.6 节。
 2. **大文件 I/O 仍在 UI 线程**：JPEG/WEBP 在文件超过阈值（128KB）时于加载阶段把整个文件读入内存，
    而 PNG/GIF 是把读盘推迟到工作线程的。异步解码只异步了"解码"，没有异步"读盘"。
    已实现：JPEG 与静态 WEBP 在加载阶段只读 4KB 文件头解析宽高，完整文件数据与解码句柄推迟到解码线程准备，
    详见 6.5 节。
 3. **帧就绪不能立即推进播放**：`PlayingImageAnimation` 在下一帧未就绪时直接返回，需要等一个定时器周期后重试。
+   已实现：解码完成通知中回调 `Image::OnImageFrameDataReady()`，播放等待缺帧时立即推进，详见 6.6 节。
 4. **单帧图片的缩放留在 UI 线程**：`ImageInfo::GetBitmap()` 中的 `ResizeImageBitmap()` 发生在绘制路径上。
 5. **延迟释放队列的定时任务重复投递**：每次 `ReleaseImage()` 都投递一个延迟任务，整体复杂度 O(N²)；
    引用计数为 1 时可以直接释放。
@@ -140,6 +142,9 @@ B 拿到空位图，既不会标记解码错误，也不会登记延迟绘制，
   "加载阶段只解析文件头 + 解码线程执行像素解码"，详见 6.4 节。
 - 优化点 2：`Image_JPEG` 与 `Image_WEBP` 在加载阶段只读 4KB 文件头解析宽高，
   完整的文件数据与解码句柄推迟到解码线程准备，详见 6.5 节。
+- 优化点 1：单次解码任务解码多帧（批量大小 3，且受预解码窗口限制），详见 6.6 节。
+- 优化点 3：新增 `Image::OnImageFrameDataReady()` / `ImagePlayer::OnImageFrameDataReady()`，
+  解码完成通知中立即推进因缺帧而等待的播放，详见 6.6 节。
 
 ## 6. 图片解码线程数量与选择策略
 
@@ -226,3 +231,32 @@ B 拿到空位图，既不会标记解码错误，也不会登记延迟绘制，
     `m_bAsyncDecode && (!m_fileData.empty() || !m_imageFilePath.IsEmpty()) && (m_nFrameCount > 0) && !m_bDecodeError`。
 - 统一前提：只有 `bAsyncDecode == true` 时才走延迟读盘。无异步解码管道时，`DelayDecode()` 不会被调用，
   若在加载阶段不读数据会导致 `GetBitmap()` 永久为空，因此必须保留同步回退。
+
+### 6.6 批量解码与帧就绪立即推进播放（优化点 1、3）
+
+#### 批量解码（优化点 1）
+
+- 新增常量 `kAsyncDecodeBatchSize = 3`：`Control::AsyncDecodeImageData()` 计算本次任务的目标帧索引时，
+  由原来的"已解码帧数"（每次只解 1 帧）改为"已解码帧数 + 3"（上限为总帧数），一次任务解码多帧。
+- 目标帧索引仍受预解码窗口 `kAsyncDecodeLookahead`（3）限制：
+  `nDecodeEnd = min(已解码帧数 + 批量大小, 播放位置 + 预解码窗口, 总帧数)`，
+  当窗口已满（`nDecodeEnd <= 已解码帧数`）时直接暂停解码并清除任务 ID，等播放推进后再继续。
+- 解码器无需改动：`Image_PNG` / `Image_GIF` / `Image_WEBP` 的 `DelayDecode(nMinFrameIndex, ...)`
+  本身就是"循环解码直到已解码帧数超过 `nMinFrameIndex`"，传入更大的目标索引即可批量解码；
+  `Image_JPEG`、`Image_DelayBitmap` 等单帧图片忽略该参数，行为不变。
+- 通知次数：每批解码完成后只投递一次 `kThreadUI` 通知，UI 线程的唤醒次数与跨线程调度次数降为约 1/3。
+- 移除 `TAsyncImageDecode::m_nDecodeCount`（按任务计数，批量后不再等于帧数）及其相关断言，
+  解码进度统一通过 `IImageDelayDecode::GetDecodedFrameIndex()` 与 `IsAsyncDecodeFinished()` 获取。
+
+#### 帧就绪立即推进播放（优化点 3）
+
+- `ImagePlayer` 新增成员 `m_bWaitingFrameData`：`PlayingImageAnimation()` 在"当前帧未就绪"或
+  "下一帧未就绪"而返回时置位；成功推进到下一帧、`StartImageAnimation()`、`StopImageAnimation()`、
+  `SetImage()` 时清除。
+- 新增 `ImagePlayer::OnImageFrameDataReady()`：仅当 `m_bWaitingFrameData == true`（说明播放确实因缺帧而停住）
+  且动画正在播放时，直接调用 `PlayingImageAnimation()` 立即推进；未处于等待状态时不做任何事，
+  避免解码完成通知打乱正常定时器的播放节奏（例如动画刚开始时提前切换帧）。
+- 新增 `Image::OnImageFrameDataReady()` 转发到内部 `ImagePlayer`；
+  `Control::AsyncDecodeImageData()` 的解码完成通知在 `MergeAsyncDecodeData()` 与 `DelayPaintImage()` 之后调用它。
+- 效果：此前缺帧时需等一个完整定时器周期才重试，最坏情况下帧间隔接近两个周期；
+  现在数据一就绪即推进，动画不再出现卡顿式停顿。
