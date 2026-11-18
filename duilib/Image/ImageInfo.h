@@ -11,6 +11,7 @@ namespace ui
     class IRender;
     class Control;
     class DpiManager;
+    class WeakFlag;
 
 /** 图片信息
 */
@@ -140,6 +141,25 @@ private:
     */
     void ReleaseImage();
 
+    /** 位图尺寸与ImageInfo尺寸不一致时，是否需要把缩放操作放到图片解码线程执行
+    *   尺寸差异很小或位图像素较少时，直接在UI线程处理反而更快
+    */
+    bool NeedAsyncResizeBitmap(const std::shared_ptr<IBitmap>& pBitmap) const;
+
+    /** 请求在图片解码线程中把位图缩放为ImageInfo大小（完成后回到UI线程更新缓存并触发重绘）
+    * @return 返回true表示任务已经提交（异步执行）；返回false表示无法异步执行，需要调用方同步处理
+    */
+    bool RequestAsyncResizeBitmap(const std::shared_ptr<IBitmap>& pBitmap);
+
+    /** 异步缩放位图完成后的处理（仅在UI线程调用）
+    * @param [in] nRequestId 请求的ID，用于过滤已经过期的结果
+    * @param [in] imageKey 图片资源的KEY，用于触发相关界面重绘
+    * @param [in] pBitmap 缩放后的位图（nullptr表示缩放失败）
+    */
+    void OnAsyncResizeBitmapFinished(uint32_t nRequestId,
+                                     const DString& imageKey,
+                                     const std::shared_ptr<IBitmap>& pBitmap);
+
     /** 获取多帧图片的接口
     */
     std::shared_ptr<IAnimationImage> GetAnimationImage(uint32_t nFrameIndex) const;
@@ -214,6 +234,22 @@ private:
     /** 图片数据(单帧，缓存；但svg图片无缓存)
     */
     std::shared_ptr<IBitmap> m_pBitmap;
+
+    /** 是否正在等待异步缩放位图完成(完成后m_pBitmap有效)
+    */
+    bool m_bResizeBitmapPending;
+
+    /** 异步缩放位图是否出错
+    */
+    bool m_bResizeBitmapError;
+
+    /** 异步缩放位图的请求ID(用于过滤过期的异步结果)
+    */
+    uint32_t m_nResizeRequestId;
+
+    /** 对象生命周期的标记：异步缩放任务回到UI线程时，用于判断ImageInfo对象是否已经销毁
+    */
+    std::shared_ptr<WeakFlag> m_pWeakFlag;
 
     /** 最近一次读取的动画帧（缓存一帧，用于复用，避免重复读取帧数据）
     */

@@ -117,6 +117,8 @@ B 拿到空位图，既不会标记解码错误，也不会登记延迟绘制，
 3. **帧就绪不能立即推进播放**：`PlayingImageAnimation` 在下一帧未就绪时直接返回，需要等一个定时器周期后重试。
    已实现：解码完成通知中回调 `Image::OnImageFrameDataReady()`，播放等待缺帧时立即推进，详见 6.6 节。
 4. **单帧图片的缩放留在 UI 线程**：`ImageInfo::GetBitmap()` 中的 `ResizeImageBitmap()` 发生在绘制路径上。
+   已实现：大图缩放改为提交到图片解码线程执行（±1 像素差异直接复用位图），完成后回到 UI 线程更新缓存并触发重绘，
+   详见 6.9 节。
 5. **延迟释放队列的定时任务重复投递**：每次 `ReleaseImage()` 都投递一个延迟任务，整体复杂度 O(N²)；
    引用计数为 1 时可以直接释放。
    已实现：改为"单任务自续期 + 双索引"结构，取消/加入均为 O(1)/O(logN)，并保留延迟释放语义，详见 6.7 节。
@@ -151,6 +153,7 @@ B 拿到空位图，既不会标记解码错误，也不会登记延迟绘制，
   详见 6.7 节。
 - 优化点 6：延迟绘制列表新增图片指针索引，`AddDelayPaintData()` 与 `RemoveDelayPaintData(Image*)`
   的去重/移除降为 O(1)，详见 6.8 节。
+- 优化点 4：单帧图片的大图缩放移到图片解码线程执行，详见 6.9 节。
 
 ## 6. 图片解码线程数量与选择策略
 
@@ -341,3 +344,92 @@ B 拿到空位图，既不会标记解码错误，也不会登记延迟绘制，
 - 绘制热路径上的 `AddDelayPaintData()` / `RemoveDelayPaintData(Image*)`：O(1)；
 - `DelayPaintImage(imageKey)`：仅在异步解码批次完成时调用，保持 O(n) 遍历；
 - 消除了动画逐帧重绘时对"等待解码图片列表"的重复全表扫描。
+
+### 6.9 单帧图片缩放移出 UI 线程（优化点 4）
+
+#### 现状与触发条件
+
+`ImageInfo::GetBitmap()` 首次拿到解码位图后，若位图尺寸与 `m_nImageInfoWidth/Height`（布局尺寸）不一致，
+会在 UI 线程调用 `ImageUtil::ResizeImageBitmap()` 整图缩放并缓存到 `m_pBitmap`。主要触发场景：
+
+- `width`/`height` 使用**百分比**：解码阶段无法得到目标像素尺寸，按原始尺寸解码，UI 线程需做整图缩放；
+- `width`/`height` 使用绝对像素：解码阶段已通过 `m_rcMaxDestRectSize` 做过粗缩放，但 JPEG 的缩放因子是
+  1/2、1/3、1/8 等近似值，PNG 等存在 ±1 像素取整差，仍需整图复制一次。
+
+#### 改造前的业务流程（分析记录）
+
+1. **加载阶段（UI 线程）**：`Control::LoadImageInfo()` → `ImageManager::GetImage(loadParam)` →
+   解码器 `ImageDecoder_XXX::LoadImageData(decodeParam)`。`decodeParam` 中的 `m_rcMaxDestRectSize`
+   是调用方预估的目标区域，解码器可据此做粗缩放（如 JPEG 的 IDCT 缩放）；解码器返回的 `IImage`
+   宽高是**解码后位图的尺寸**。
+2. **计算布局尺寸（UI 线程）**：`ImageInfo::SetImageData()` → `CalcImageInfoSize()`，以
+   `IImage::GetWidth()/GetHeight()` 为基准，再叠加 DPI 自适应、`width='300'`（绝对像素）、
+   `width='50%'`（百分比）等属性，得到 `m_nImageInfoWidth/Height`（影响布局，可能与位图尺寸不同）。
+3. **绘制阶段（UI 线程）**：`Control::PaintImage()` → `Image::GetCurrentBitmap()` →
+   `ImageInfo::GetBitmap()`：
+   - `m_pBitmap` 已缓存：直接返回；
+   - 未缓存：`IBitmapImage::GetBitmap(&bDecodeError)` 取解码位图。异步解码未完成时返回 `nullptr`
+     且不置解码错误，`PaintImage()` 据此登记延迟绘制，等待解码完成通知后重绘；
+   - 拿到位图后，若位图尺寸与 `m_nImageInfoWidth/Height` 不一致，**在 UI 线程调用
+     `ImageUtil::ResizeImageBitmap()` 整图缩放**，结果缓存到 `m_pBitmap`，随后 `ReleaseImage()`
+     释放原图；
+   - 之后 `Image::AdjustImageSourceRect()` 会按"位图尺寸 / ImageInfo 尺寸"的比例映射 `rcSource`，
+     因此位图尺寸与布局尺寸存在小幅差异也能正确绘制。
+4. **痛点**：整图缩放的成本是 O(W×H) 的 stbir 拉伸，3840×2160 量级在 UI 线程上可达数十毫秒，
+   正好落在首帧绘制/滚动/展开这类交互路径上；而此时解码线程已经空闲（解码已完成），本可并行处理。
+
+#### 方案比较与取舍（阶段一 / 阶段二）
+
+**阶段一：让解码阶段直接产出布局尺寸的位图（尺寸下推）**
+
+思路是把最终的 `m_nImageInfoWidth/Height` 传给解码器，让解码线程一次解出目标尺寸，UI 线程完全不做缩放。
+
+评估后放弃，原因如下：
+
+1. **时序上拿不到布局尺寸**：`ImageManager::GetImage()` 调用解码器时，`ImageInfo` 尚未创建，
+   `CalcImageInfoSize()` 也尚未执行；而百分比尺寸的基准又是"解码后的位图尺寸"，存在循环依赖。
+2. **百分比会被重复应用**：`CalcImageInfoSize()` 是在解码后位图尺寸上再乘百分比的。若解码阶段
+   已按百分比缩小，则百分比被乘两次，布局尺寸错误（详见后文"为什么不把百分比直接下推到解码阶段"）。
+3. **JPEG 无法精确命中目标尺寸**：IDCT 缩放只有 1/1、1/2、1/4、1/8 等离散档位，最接近档位之外
+   仍需一次精确缩放，无法真正省掉缩放。
+4. **共享缓存会互相污染**：`ImageData` 以加载参数为键跨控件共享，不同控件对同一图片的布局尺寸
+   可能不同；按某一个控件的目标尺寸解码，会影响其他控件的显示效果。
+
+**阶段二：保留"原尺寸解码 + 缩放"，但把缩放移出 UI 线程（已采用）**
+
+- 复用图片解码线程（`GetNextImageDecodeThread()`）执行 `ResizeImageBitmap()`，源位图只读，
+  结果 `PostTask(kThreadUI)` 回到 UI 线程校验后写入缓存；
+- 增加 ±1 像素容差，消除取整差异导致的"无意义整图缩放"；
+- 小图（≤ 512×512）仍在 UI 线程内联处理，避免任务调度开销反超缩放本身；
+- 完全复用异步解码已有的"pending → 延迟绘制 → 完成通知重绘"机制，不修改解码器接口、
+  不修改缓存键、不改变布局尺寸语义。
+
+**结论**：采用阶段二；阶段一不再实施。阶段二能覆盖百分比与绝对像素两类触发场景，
+且风险局限于 `ImageInfo` 内部。
+
+#### 实现方式
+
+- **±1 像素容差**：位图尺寸与布局尺寸的差异 ≤1 像素时直接复用解码位图，不再为取整差异做整图缩放
+  （`kResizeSizeTolerance`）。
+- **大图缩放异步化**：位图像素数超过 `kInlineResizeMaxPixelCount`（512×512）时，
+  `GetBitmap()` 不再同步缩放，而是：
+  1. 置 `m_bResizeBitmapPending` 并递增 `m_nResizeRequestId`，返回 `nullptr`（不设置解码错误）；
+  2. 绘制路径按既有逻辑判定"数据未就绪"，登记延迟绘制；
+  3. 把源位图 `shared_ptr`、目标宽高、imageKey、请求 ID 提交到图片解码线程
+     （`GetNextImageDecodeThread()` 轮询，不可用时回退 `kThreadWorker`）；
+  4. 解码线程调用 `ResizeImageBitmap()`，完成后 `PostTask(kThreadUI)`；
+  5. UI 线程校验 `WeakFlag`（对象是否销毁）、请求 ID 与是否有待处理请求，然后写入 `m_pBitmap`、
+     调用 `ReleaseImage()` 释放原图，并 `DelayPaintImage(imageKey)` 触发重绘。
+- **状态保护**：
+  - `m_bResizeBitmapPending`：避免绘制期间重复提交缩放任务；
+  - `m_nResizeRequestId`：`SetImageData()` 更换图片时递增，使在途的旧结果被丢弃；
+  - `m_bResizeBitmapError`：缩放失败时返回解码错误，避免反复重试；
+  - `m_pWeakFlag`：异步任务回到 UI 线程时判断 ImageInfo 是否已销毁，防止访问悬空对象。
+- 小图或无法获取解码线程时，仍在 UI 线程内联缩放，行为与改造前一致。
+
+#### 为什么不把"百分比"直接下推到解码阶段
+
+`ImageInfo::CalcImageInfoSize()` 计算百分比尺寸时，是在**解码后的位图尺寸**基础上再乘百分比。
+若解码阶段已经按百分比缩小，则百分比会被应用两次，导致布局尺寸错误；而 JPEG 的粗粒度缩放因子也无法保证
+精确尺寸。因此百分比场景仍按原尺寸解码（在解码线程中完成），由上述异步缩放负责最终尺寸，既能避免
+UI 线程耗时，也不改变布局语义。

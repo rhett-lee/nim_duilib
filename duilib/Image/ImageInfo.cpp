@@ -2,11 +2,22 @@
 #include "duilib/Image/ImageUtil.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Control.h"
+#include "duilib/Core/Callback.h"
 #include "duilib/Utils/PerformanceUtil.h"
 #include <cmath>
+#include <cstdlib>
 
 namespace ui 
 {
+
+/** 位图缩放在UI线程内联执行的像素数上限：
+*   超过该值时，把缩放放到图片解码线程执行，避免大图缩放阻塞UI线程
+*/
+constexpr uint32_t kInlineResizeMaxPixelCount = 512 * 512;
+
+/** 位图尺寸与ImageInfo尺寸允许的差异(像素)：在该范围内认为尺寸一致，避免为取整差异做整图缩放
+*/
+constexpr int32_t kResizeSizeTolerance = 1;
 
 ImageInfo::ImageInfo():    
     m_nLoopCount(-1),
@@ -20,7 +31,11 @@ ImageInfo::ImageInfo():
     m_fCustomSizeScaleY(0),
     m_nImageFileDpiScale(100),
     m_nLastFrameIndex((uint32_t)-1),
-    m_fImageSizeScale(1.0f)
+    m_fImageSizeScale(1.0f),
+    m_bResizeBitmapPending(false),
+    m_bResizeBitmapError(false),
+    m_nResizeRequestId(0),
+    m_pWeakFlag(std::make_shared<WeakFlag>())
 {
 }
 
@@ -160,6 +175,16 @@ std::shared_ptr<IBitmap> ImageInfo::GetBitmap(bool* bDecodeError, Control* pCont
 
     ImageType imageType = pImageData->GetImageType();
     if (imageType == ImageType::kImageBitmap) {
+        //异步缩放位图进行中：返回nullptr且不设置解码错误，绘制模块会登记延迟绘制，等待缩放完成后的重绘通知
+        if (m_bResizeBitmapPending) {
+            return nullptr;
+        }
+        if (m_bResizeBitmapError) {
+            if (bDecodeError != nullptr) {
+                *bDecodeError = true;
+            }
+            return nullptr;
+        }
         std::shared_ptr<IBitmapImage> pBitmapImage = pImageData->GetImageBitmap();
         ASSERT(pBitmapImage != nullptr);
         if (pBitmapImage == nullptr) {
@@ -172,8 +197,16 @@ std::shared_ptr<IBitmap> ImageInfo::GetBitmap(bool* bDecodeError, Control* pCont
         if (pBitmap == nullptr) {
             return nullptr;
         }
-        if (((int32_t)pBitmap->GetWidth() == m_nImageInfoWidth) && ((int32_t)pBitmap->GetHeight() == m_nImageInfoHeight)) {
+        const int32_t nBitmapWidth = (int32_t)pBitmap->GetWidth();
+        const int32_t nBitmapHeight = (int32_t)pBitmap->GetHeight();
+        if ((std::abs(nBitmapWidth - m_nImageInfoWidth) <= kResizeSizeTolerance) &&
+            (std::abs(nBitmapHeight - m_nImageInfoHeight) <= kResizeSizeTolerance)) {
+            //尺寸一致(允许取整差异时)：直接使用，避免为像素级的取整差异做整图缩放
             m_pBitmap = pBitmap;
+        }
+        else if (NeedAsyncResizeBitmap(pBitmap) && RequestAsyncResizeBitmap(pBitmap)) {
+            //大图缩放已经提交到图片解码线程，避免在UI线程执行耗时操作
+            return nullptr;
         }
         else {
             //若大小不一致，生成缓存位图后，释放原图
@@ -196,6 +229,87 @@ std::shared_ptr<IBitmap> ImageInfo::GetBitmap(bool* bDecodeError, Control* pCont
         ASSERT(0);
     }
     return nullptr;
+}
+
+bool ImageInfo::NeedAsyncResizeBitmap(const std::shared_ptr<IBitmap>& pBitmap) const
+{
+    GlobalManager::Instance().AssertUIThread();
+    if (pBitmap == nullptr) {
+        return false;
+    }
+    //位图像素较多时，缩放开销较大，放到图片解码线程执行
+    const uint64_t nPixelCount = (uint64_t)pBitmap->GetWidth() * (uint64_t)pBitmap->GetHeight();
+    return nPixelCount > kInlineResizeMaxPixelCount;
+}
+
+bool ImageInfo::RequestAsyncResizeBitmap(const std::shared_ptr<IBitmap>& pBitmap)
+{
+    GlobalManager::Instance().AssertUIThread();
+    ASSERT(pBitmap != nullptr);
+    if (pBitmap == nullptr) {
+        return false;
+    }
+    m_bResizeBitmapPending = true;
+    m_bResizeBitmapError = false;
+    const uint32_t nRequestId = ++m_nResizeRequestId;
+
+    const int32_t nWidth = m_nImageInfoWidth;
+    const int32_t nHeight = m_nImageInfoHeight;
+    const DString imageKey = GetImageKey();
+    std::weak_ptr<WeakFlag> weakFlag = m_pWeakFlag;
+    ImageInfo* pThis = this;
+
+    //在图片解码线程中执行缩放，完成后回到UI线程更新缓存
+    auto resizeBitmapFunction = [weakFlag, pThis, nRequestId, imageKey, nWidth, nHeight, pBitmap]() {
+        std::shared_ptr<IBitmap> pNewBitmap = ImageUtil::ResizeImageBitmap(pBitmap.get(), nWidth, nHeight);
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI,
+                                                    [weakFlag, pThis, nRequestId, imageKey, pNewBitmap]() {
+            if (weakFlag.expired()) {
+                //ImageInfo对象已经销毁，丢弃缩放结果
+                return;
+            }
+            pThis->OnAsyncResizeBitmapFinished(nRequestId, imageKey, pNewBitmap);
+        });
+    };
+
+    //选择图片解码线程(与图片解码使用同一组线程，轮询均衡负载)，不可用时回退到工作线程
+    GlobalManager& globalManager = GlobalManager::Instance();
+    int32_t nThreadIdentifier = globalManager.GetNextImageDecodeThread();
+    if ((nThreadIdentifier == ui::kThreadNone) && globalManager.Thread().HasThread(ui::kThreadWorker)) {
+        nThreadIdentifier = ui::kThreadWorker;
+    }
+    size_t nTaskId = 0;
+    if (nThreadIdentifier != ui::kThreadNone) {
+        nTaskId = globalManager.Thread().PostTask(nThreadIdentifier, resizeBitmapFunction);
+    }
+    if (nTaskId == 0) {
+        //没有可用的子线程：由调用方在UI线程同步处理
+        m_bResizeBitmapPending = false;
+        return false;
+    }
+    return true;
+}
+
+void ImageInfo::OnAsyncResizeBitmapFinished(uint32_t nRequestId,
+                                            const DString& imageKey,
+                                            const std::shared_ptr<IBitmap>& pBitmap)
+{
+    GlobalManager::Instance().AssertUIThread();
+    if (!m_bResizeBitmapPending || (nRequestId != m_nResizeRequestId)) {
+        //过期结果(图片数据已经变化)，丢弃
+        return;
+    }
+    m_bResizeBitmapPending = false;
+    if (pBitmap != nullptr) {
+        m_pBitmap = pBitmap;
+    }
+    else {
+        m_bResizeBitmapError = true;
+    }
+    //与同步缩放路径一致：生成缓存位图后，释放原图
+    ReleaseImage();
+    //通知界面重绘(此前绘制时已经登记了延迟绘制)
+    GlobalManager::Instance().Image().DelayPaintImage(imageKey);
 }
 
 std::shared_ptr<IAnimationImage> ImageInfo::GetAnimationImage(uint32_t nFrameIndex) const
@@ -382,6 +496,10 @@ bool ImageInfo::SetImageData(const ImageLoadParam& loadParam,
     //图片数据变化后，之前缓存的图片数据、位图和动画帧对象都不再有效，需要清除
     ReleaseImage(); //延迟释放旧的图片数据(必须在更新m_loadParam之前调用)
     m_pBitmap.reset();
+    //使正在执行的异步缩放任务结果失效
+    m_bResizeBitmapPending = false;
+    m_bResizeBitmapError = false;
+    ++m_nResizeRequestId;
     m_pLastFrame.reset();
     m_pPendingFrame.reset();
     m_nLastFrameIndex = (uint32_t)-1;
