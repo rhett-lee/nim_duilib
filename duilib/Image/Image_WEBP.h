@@ -123,6 +123,11 @@ private:
     */
     bool PrepareDecodeData();
 
+    /** 静态图片的解码（支持解码阶段直接降采样，可以在多线程中调用）
+    * @return 返回解码后的图片帧数据，失败时返回nullptr
+    */
+    AnimationFramePtr DecodeStaticImage();
+
 private:
     /** 私有实现数据
     */

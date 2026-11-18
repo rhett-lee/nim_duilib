@@ -186,9 +186,9 @@ B 拿到空位图，既不会标记解码错误，也不会登记延迟绘制，
 
 ### 6.3 后续可继续优化的方向
 
-- 大图（像素数超过阈值）单独走一条解码通道，避免 3~4 张大图同时占满全部解码线程。
+- 大图（像素数超过阈值）单独走一条解码通道，避免 3~4 张大图同时占满全部解码线程（已确认不实施）。
 - 按可见区域排优先级（可见控件优先、已滚出视图的延后），减少无效解码。
-- 解码阶段直接降采样（JPEG 已支持，PNG/WEBP 尚未），可同时降低 CPU 占用与内存峰值。
+- 解码阶段直接降采样（JPEG 已支持）。静态 WEBP 已实现；PNG 与动画 WEBP 的解码库没有对应接口，不实施，详见 6.10 节。
 
 ### 6.4 加载阶段不解码的解码器改造（优化点 8）
 
@@ -433,3 +433,35 @@ B 拿到空位图，既不会标记解码错误，也不会登记延迟绘制，
 若解码阶段已经按百分比缩小，则百分比会被应用两次，导致布局尺寸错误；而 JPEG 的粗粒度缩放因子也无法保证
 精确尺寸。因此百分比场景仍按原尺寸解码（在解码线程中完成），由上述异步缩放负责最终尺寸，既能避免
 UI 线程耗时，也不改变布局语义。
+
+### 6.10 解码阶段直接降采样（优化点 3 剩余部分）
+
+目标：在解码阶段直接输出缩小后的像素，避免先解码出原始尺寸的完整缓冲区、再做一次整图缩放，
+从而降低内存峰值与缩放耗时。
+
+#### 解码库 API 调研结论
+
+- **libpng（PNG）**：没有任意尺寸降采样的接口。`png_set_scale_16` 只做 16 位→8 位，
+  `png_set_strip_16` 只丢弃低位，其余是 `png_set_expand` / `png_set_interlace_handling` 等格式变换；
+  逐行读取（`png_read_row`）可以做自定义行列抽取，但需要自己实现重采样算法，不属于解码库能力。
+  因此 PNG **不实施**。
+- **libwebp（WEBP）**：
+  - 静态图解码 `WebPDecode()` 支持 `WebPDecoderOptions.use_scaling` 与
+    `scaled_width` / `scaled_height`，可在解码过程中直接输出目标尺寸。
+  - 动画图使用的 `WebPAnimDecoder`（`WebPAnimDecoderOptions`）**没有**缩放选项；
+    若改为逐帧 Demux + WebPDecode，需要自行实现帧合成/混合，风险过大。因此动画 WEBP **不实施**。
+
+#### 实现方式（仅静态 WEBP）
+
+- `Image_WEBP` 新增原图宽高 `m_nSrcWidth` / `m_nSrcHeight`（缩放前的画布尺寸），
+  在完整文件加载与"只读文件头"两条加载路径中记录。
+- 新增 `Image_WEBP::DecodeStaticImage()`：`frameCount == 1` 时使用 `WebPDecode()` 解码；
+  当 `m_fImageSizeScale < 1` 且目标尺寸小于原图时，置 `use_scaling = 1`、
+  `scaled_width/scaled_height` 为目标宽高，`Bitmap::Init` 的缩放比例传 1.0f（不再二次缩放）；
+  放大场景仍按原尺寸解码，交给 `Bitmap::Init` 的 stbir 缩放，保持原有画质行为。
+- 静态 WEBP 不再创建 `WebPAnimDecoder`：`PrepareDecodeData()` 只需准备完整文件数据；
+  异步大文件路径因此少一次解复用器的创建与解析。
+- 同步解码路径（`ReadFrameData`）与异步延迟解码路径（`DelayDecode`）都按 `frameCount == 1` 分流到
+  `DecodeStaticImage()`，动画 WEBP 路径保持不变。
+- 差异说明：静态缩小时的重采样由 Skia stbir 改为 libwebp 的 rescaler，缩放结果可能有细微像素差异，
+  尺寸与布局行为一致。

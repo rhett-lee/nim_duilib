@@ -24,6 +24,7 @@
 | 14 | 更换图片未重置播放状态 | 已修复 |
 | 15 | 异步解码期间重复分配帧对象 | 已修复 |
 | 16 | 每次格式探测都拆分字符串 | 已修复 |
+| 17 | 切换为单帧图片时残留动画播放器导致断言 | 已修复 |
 
 ---
 
@@ -179,6 +180,21 @@ nImageOffset = static_cast<int32_t>(std::ceil(nImageOffset * fImageSizeScale));
 
 修复：改为直接扫描分号分隔的后缀列表逐个比较，不再生成容器（同时避免空扩展名被误判）。没有采用静态缓存，因为该函数可能被异步解码线程调用，静态可变缓存会带来线程安全问题。
 
+### 17. 切换为单帧图片时残留动画播放器导致断言 — 已修复
+
+位置：`duilib/Image/Image.cpp`（`Image::SetImageInfo`）、`duilib/Image/ImagePlayer.cpp`（`ImagePlayer::SetImage`）。
+
+`ImagePlayer` 只在首次遇到多帧图片时创建（`InitImagePlayer`），之后从不销毁；而 `Image::SetImageInfo` 在图片变化且播放器已存在时会无条件调用 `SetImage(this)`，后者用 `ASSERT(m_pImage->IsMultiFrameImage())` 假设图片一定是多帧。于是同一个 `Image` 先显示过动画、再切换为单帧图片时（典型场景：虚拟列表滚动导致列表项控件复用、同一控件换图），Debug 版本必然断言。
+
+多目录项的 ICO 也容易触发该问题：多目录项只代表不同尺寸/色深，不等于动画；未配置 `icon_as_animation="true"` 时，解码器只选一个最匹配的目录项，生成的是单帧位图。
+
+修复：
+
+- `Image::SetImageInfo`：图片变化且播放器已存在时先判断新图片是否多帧——多帧则沿用 `SetImage()` 重新初始化播放参数；非多帧则 `StopImageAnimation()` 停止动画并 `reset()` 释放播放器。
+- `ImagePlayer::SetImage`：移除多帧断言，改为注释说明该函数不要求图片一定是多帧图片（非多帧时播放相关接口直接返回，不会启动动画）。
+
+已知限制（本次不处理）：`ImageLoadParam::GetLoadKey()` 与 `ImageManager` 的 ImageData 缓存 key 均不包含 `icon_as_animation` / `icon_size` / `icon_frame_delay`，同一 ICO 被"静态图标"和"动画"两种方式加载时会共享缓存，帧数取决于先加载者。
+
 ---
 
 ## 三、界面美观度相关
@@ -208,12 +224,12 @@ nImageOffset = static_cast<int32_t>(std::ceil(nImageOffset * fImageSizeScale));
 | `duilib/RenderSkia/Bitmap_Skia.cpp` | 2 |
 | `duilib/RenderSkia/Render_Skia.cpp` | 美观度 4（九宫格边距压缩） |
 | `duilib/Image/ImageDecoderFactory.cpp` | 3 |
-| `duilib/Image/Image.cpp` | 4、6、14 |
+| `duilib/Image/Image.cpp` | 4、6、14、17 |
 | `duilib/Image/ImageInfo.cpp` / `ImageInfo.h` | 4、5、10、15 |
 | `duilib/Image/ImageDecoder_SVG.cpp` | 7 |
 | `duilib/Image/ImageLoadParam.cpp` | 8 |
 | `duilib/Image/ImageAttribute.cpp` / `ImageAttribute.h` | 11、12、可维护性（unique_ptr、`m_bFade` 改名为 `m_nAlpha`） |
-| `duilib/Image/ImagePlayer.cpp` | 13、14 |
+| `duilib/Image/ImagePlayer.cpp` | 13、14、17 |
 | `duilib/Image/ImageDecoder_Common.cpp` | 16 |
 
 补充：第 1 项的修复还涉及接口层——`duilib/Render/IRender.h` 新增只读接口 `IBitmap::GetPixelBits() const`（不加锁、无需 `UnLockPixelBits`），`duilib/RenderSkia/Bitmap_Skia.h` / `Bitmap_Skia.cpp` 同步实现，并把框架内所有"只读像素"的 `LockPixelBits()` 调用点改为 `GetPixelBits()` 并去掉对应的 `UnLockPixelBits()`。

@@ -84,6 +84,12 @@ public:
     //图片高度
     uint32_t m_nHeight = 0;
 
+    //原图宽度（解码前的宽度，用于解码阶段直接降采样）
+    uint32_t m_nSrcWidth = 0;
+
+    //原图高度（解码前的高度）
+    uint32_t m_nSrcHeight = 0;
+
     //图片总帧数
     int32_t m_nFrameCount = 0;
 
@@ -156,6 +162,62 @@ Image_WEBP::Image_WEBP()
 Image_WEBP::~Image_WEBP()
 {
     m_impl->ClearImageData();
+}
+
+AnimationFramePtr Image_WEBP::DecodeStaticImage()
+{
+    ASSERT(m_impl->m_nFrameCount == 1);
+    if ((m_impl->m_nFrameCount != 1) || m_impl->m_fileData.empty()) {
+        return nullptr;
+    }
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    ASSERT(pRenderFactory != nullptr);
+    if (pRenderFactory == nullptr) {
+        return nullptr;
+    }
+
+    WebPDecoderConfig config;
+    if (!WebPInitDecoderConfig(&config)) {
+        return nullptr;
+    }
+#ifdef DUILIB_BUILD_FOR_WIN
+    //数据格式：Window平台BGRA(预乘)，其他平台RGBA(预乘)
+    config.output.colorspace = MODE_bgrA;
+#else
+    config.output.colorspace = MODE_rgbA;
+#endif
+    //开启多线程解码
+    config.options.use_threads = 1;
+
+    //解码结果的目标尺寸缩放比例：解码阶段已经降采样时，此处不再缩放
+    float fBitmapSizeScale = m_impl->m_fImageSizeScale;
+    if ((fBitmapSizeScale > 0) && (fBitmapSizeScale < 1.0f) &&
+        ((m_impl->m_nWidth < m_impl->m_nSrcWidth) || (m_impl->m_nHeight < m_impl->m_nSrcHeight))) {
+        //静态图片：在解码阶段直接降采样，避免先解码出原始尺寸的完整数据后再缩放
+        config.options.use_scaling = 1;
+        config.options.scaled_width = static_cast<int>(m_impl->m_nWidth);
+        config.options.scaled_height = static_cast<int>(m_impl->m_nHeight);
+        fBitmapSizeScale = IMAGE_SIZE_SCALE_NONE;
+    }
+
+    AnimationFramePtr pFrameData;
+    if (WebPDecode(m_impl->m_fileData.data(), m_impl->m_fileData.size(), &config) == VP8_STATUS_OK) {
+        pFrameData = std::make_shared<IAnimationImage::AnimationFrame>();
+        pFrameData->m_nFrameIndex = 0;
+        pFrameData->SetDelayMs(0);
+        pFrameData->m_nOffsetX = 0;
+        pFrameData->m_nOffsetY = 0;
+        pFrameData->m_bDataPending = false;
+        pFrameData->m_pBitmap.reset(pRenderFactory->CreateBitmap());
+        ASSERT(pFrameData->m_pBitmap != nullptr);
+        if ((pFrameData->m_pBitmap == nullptr) ||
+            !pFrameData->m_pBitmap->Init(config.output.width, config.output.height,
+                                         config.output.u.RGBA.rgba, fBitmapSizeScale)) {
+            pFrameData.reset();
+        }
+    }
+    WebPFreeDecBuffer(&config.output);
+    return pFrameData;
 }
 
 bool Image_WEBP::LoadImageFile(std::vector<uint8_t>& fileData,
@@ -236,6 +298,8 @@ bool Image_WEBP::LoadImageFile(std::vector<uint8_t>& fileData,
 
     m_impl->m_nWidth = anim_info.canvas_width;
     m_impl->m_nHeight = anim_info.canvas_height;
+    m_impl->m_nSrcWidth = anim_info.canvas_width;
+    m_impl->m_nSrcHeight = anim_info.canvas_height;
     m_impl->m_nFrameCount = (int32_t)anim_info.frame_count;
 
     float fScale = fImageSizeScale;
@@ -309,6 +373,8 @@ bool Image_WEBP::LoadImageInfoFromFileHeader(const FilePath& imageFilePath,
             m_impl->m_nLoops = -1;
             m_impl->m_nWidth = nCanvasWidth;
             m_impl->m_nHeight = nCanvasHeight;
+            m_impl->m_nSrcWidth = nCanvasWidth;
+            m_impl->m_nSrcHeight = nCanvasHeight;
             float fScale = fImageSizeScale;
             if (ImageUtil::GetBestImageScale(rcMaxDestRectSize, m_impl->m_nWidth, m_impl->m_nHeight, fImageSizeScale, fScale)) {
                 m_impl->m_nWidth = ImageUtil::GetScaledImageSize(m_impl->m_nWidth, fScale);
@@ -349,6 +415,10 @@ bool Image_WEBP::PrepareDecodeData()
             return false;
         }
         m_impl->m_fileData.swap(fileData);
+    }
+    if (m_impl->m_nFrameCount == 1) {
+        //静态图片：使用完整的文件数据直接解码（解码阶段可降采样），不需要创建动画解码器
+        return true;
     }
     if (m_impl->m_pWebPAnimDecoder == nullptr) {
         m_impl->m_webpData.bytes = m_impl->m_fileData.data();
@@ -460,10 +530,16 @@ bool Image_WEBP::DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> 
         //每次解码一帧图片
         const size_t nFrameIndex = m_impl->m_delayFrames.size() + m_impl->m_frames.size();
         AnimationFramePtr pNewAnimationFrame;
-        pNewAnimationFrame = DecodeImage_WEBP(m_impl->m_pWebPAnimDecoder,
-                                              fImageSizeScale,
-                                              nFrameIndex,
-                                              m_impl->m_nPrevTimestamp);
+        if (m_impl->m_nFrameCount == 1) {
+            //静态图片：解码阶段直接降采样
+            pNewAnimationFrame = DecodeStaticImage();
+        }
+        else {
+            pNewAnimationFrame = DecodeImage_WEBP(m_impl->m_pWebPAnimDecoder,
+                                                  fImageSizeScale,
+                                                  nFrameIndex,
+                                                  m_impl->m_nPrevTimestamp);
+        }
         if (pNewAnimationFrame != nullptr) {
             m_impl->m_delayFrames.push_back(pNewAnimationFrame);
         }
@@ -593,10 +669,16 @@ bool Image_WEBP::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSi
             uint32_t nInitFrameIndex = (uint32_t)m_impl->m_frames.size();
             float fImageSizeScale = m_impl->m_fImageSizeScale;
             AnimationFramePtr pNewAnimationFrame;
-            pNewAnimationFrame = DecodeImage_WEBP(m_impl->m_pWebPAnimDecoder,
-                                                  fImageSizeScale,
-                                                  nInitFrameIndex,
-                                                  m_impl->m_nPrevTimestamp);
+            if (m_impl->m_nFrameCount == 1) {
+                //静态图片：解码阶段直接降采样
+                pNewAnimationFrame = DecodeStaticImage();
+            }
+            else {
+                pNewAnimationFrame = DecodeImage_WEBP(m_impl->m_pWebPAnimDecoder,
+                                                      fImageSizeScale,
+                                                      nInitFrameIndex,
+                                                      m_impl->m_nPrevTimestamp);
+            }
             if (pNewAnimationFrame != nullptr) {
                 m_impl->m_frames.push_back(pNewAnimationFrame);
             }
