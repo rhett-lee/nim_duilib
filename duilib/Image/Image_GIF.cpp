@@ -499,7 +499,13 @@ bool Image_GIF::DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> I
                                                m_impl->m_gifCanvas,
                                                m_impl->m_nLastFrameIndex);
         if (pNewAnimationFrame != nullptr) {
-            pNewAnimationFrame->SetDelayMs(GetFrameDelayMs(nFrameIndex));
+            //注意：此处不能调用GetFrameDelayMs()，该函数会读取UI线程合并数据的m_frames；
+            //      工作线程只读取加载阶段写入后不再修改的m_framesDelayMs
+            int32_t nFrameDelayMs = IMAGE_ANIMATION_DELAY_MS;
+            if ((size_t)nFrameIndex < m_impl->m_framesDelayMs.size()) {
+                nFrameDelayMs = m_impl->m_framesDelayMs[(size_t)nFrameIndex];
+            }
+            pNewAnimationFrame->SetDelayMs(nFrameDelayMs);
             m_impl->m_delayFrames.push_back(pNewAnimationFrame);
         }
         else {

@@ -13,8 +13,8 @@
 | E2 | 高 | `async_load`（Image 级）与实际异步状态（ImageData 级）不一致，导致图片永久空白 | 已修复 |
 | E3 | 中 | UI 线程合并帧数据与工作线程启动之间存在窗口竞争 | 已修复 |
 | E4 | 中 | 动画被全量预解码、无回压、无法取消，长动画内存失控 | 已补充预解码窗口 |
-| E5 | 低 | GIF 工作线程调用访问 UI 侧帧数据的接口 | 待处理 |
-| E6 | 低 | PNG 解码被中止时会误触发断言 | 待处理 |
+| E5 | 低 | GIF 工作线程调用访问 UI 侧帧数据的接口 | 已修复 |
+| E6 | 低 | PNG 解码被中止时会误触发断言 | 已修复 |
 
 ## 2. 异步解码链路（现状）
 
@@ -128,3 +128,6 @@ B 拿到空位图，既不会标记解码错误，也不会登记延迟绘制，
   PNG/GIF/WEBP/JPEG 移除原有的"重入即返回"判断。
 - E4：`Control::AsyncDecodeImageData()` 的续解判断增加预解码窗口；新增
   `Control::RequestAsyncDecodeImage()`，由 `ImagePlayer` 在帧未就绪时请求续解。
+- E5：`Image_GIF::DelayDecode()` 不再调用 `GetFrameDelayMs()`，改为直接读取加载阶段写入的
+  `m_framesDelayMs`，避免工作线程访问 UI 线程合并的 `m_frames`。
+- E6：`Image_PNG::DelayDecode()` 在未解出帧时先判断是否被 `IsAborted()` 中止，仅在确属解码错误时才断言。
