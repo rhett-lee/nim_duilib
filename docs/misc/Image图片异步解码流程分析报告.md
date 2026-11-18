@@ -121,6 +121,7 @@ B 拿到空位图，既不会标记解码错误，也不会登记延迟绘制，
    引用计数为 1 时可以直接释放。
    已实现：改为"单任务自续期 + 双索引"结构，取消/加入均为 O(1)/O(logN)，并保留延迟释放语义，详见 6.7 节。
 6. **延迟绘制列表在绘制热路径上是 O(n)**：`AddDelayPaintData()` 每次先全表扫描去重，动画每帧重绘都会走一次。
+   已实现：新增图片指针索引，去重与移除降为 O(1)，详见 6.8 节。
 7. **解码线程数量少**：`kThreadImage1` / `kThreadImage2` 各只有一个线程，一张超大图会阻塞同线程上的其它图片。
    已按"可配置线程数（2~4）+ 轮询选择"的方案实现，详见第 6 节。
 8. **部分解码器完全没走异步**：`ImageDecoder_Common`、ICO/Icon 仍在加载阶段整体解码，属于 UI 线程上的同步耗时。
@@ -148,6 +149,8 @@ B 拿到空位图，既不会标记解码错误，也不会登记延迟绘制，
   解码完成通知中立即推进因缺帧而等待的播放，详见 6.6 节。
 - 优化点 5：延迟释放队列改为"O(1) 取消 + 单任务自续期"，并保留 30 秒延迟释放的业务语义，
   详见 6.7 节。
+- 优化点 6：延迟绘制列表新增图片指针索引，`AddDelayPaintData()` 与 `RemoveDelayPaintData(Image*)`
+  的去重/移除降为 O(1)，详见 6.8 节。
 
 ## 6. 图片解码线程数量与选择策略
 
@@ -307,3 +310,34 @@ B 拿到空位图，既不会标记解码错误，也不会登记延迟绘制，
 - 单个释放任务处理 k 个到期数据：O(k·logN)，不再全表扫描；
 - 待执行任务数量：从"每次释放一个"降为"最多一个"，消除了 O(N²) 的累计开销与大量 UI 线程空转唤醒。
 - 延迟精度：由原来的"35 秒任务 + 30 秒阈值"（实际 30~65 秒）变为按超时时间精确调度（30 秒 + 50ms 定时器余量）。
+
+### 6.8 延迟绘制列表的去重与移除（优化点 6）
+
+#### 原实现的问题
+
+- `ImageManager::AddDelayPaintData()` 为"一个 Image 只保留一条记录"，每次调用先执行
+  `RemoveDelayPaintData(pImage)` 全表扫描；图片处于异步加载中的每次重绘都会走这条路径
+  （动画逐帧解码期间尤其频繁），列表长度等于当前等待解码的图片数量，整体为 O(n²)。
+- `RemoveDelayPaintData(Image*)` 在每次成功绘制后调用，同样是全表扫描。
+
+#### 新实现
+
+- 保留 `std::list<TImageDelayPaintData> m_delayPaintImageList` 作为插入顺序（`DelayPaintImage(imageKey)`
+  的重绘顺序与原实现一致）。
+- 新增 `std::unordered_map<Image*, std::list<TImageDelayPaintData>::iterator> m_delayPaintImageMap`，
+  以 Image 原始指针为 KEY 建立到列表节点的索引；节点内新增 `m_pImageRaw` 保存该 KEY
+  （弱引用 `m_pImage` 失效后仍可正确定位索引项）。
+- `AddDelayPaintData()`：按索引 O(1) 判断是否已存在；存在则先移除旧节点，再插入新节点并更新索引，
+  语义与原来的"移除 + 追加到队尾"完全一致。
+- `RemoveDelayPaintData(Image*)`：按索引 O(1) 定位并移除节点。
+- `RemoveDelayPaintData(Control*)`、`DelayPaintImage(imageKey)` 仍需要遍历列表（分别按控件、按图片 KEY
+  匹配，且需要顺带清理已失效的节点），但节点删除统一走 `EraseDelayPaintImage()`，
+  在删除列表节点之前先从索引中移除对应项，保证两个容器始终一致。
+- 索引 KEY 使用原始指针：Image 弱引用失效后原始指针不会被解引用，若该地址被新的 Image 复用，
+  再次添加时会先移除旧的失效节点，行为正确。
+
+复杂度与效果：
+
+- 绘制热路径上的 `AddDelayPaintData()` / `RemoveDelayPaintData(Image*)`：O(1)；
+- `DelayPaintImage(imageKey)`：仅在异步解码批次完成时调用，保持 O(n) 遍历；
+- 消除了动画逐帧重绘时对"等待解码图片列表"的重复全表扫描。

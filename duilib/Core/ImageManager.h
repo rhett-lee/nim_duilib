@@ -272,9 +272,18 @@ private:
     {
         ControlPtr m_pControl;          //关联的控件接口
         ControlPtrT<Image> m_pImage;    //关联的图片接口
+        Image* m_pImageRaw;             //图片接口的原始指针(作为索引KEY，对应列表节点)
         DString m_imageKey;             //图片资源的KEY
     };
     std::list<TImageDelayPaintData> m_delayPaintImageList;
+
+    /** 延迟绘制数据的索引：KEY为图片接口指针，用于O(1)去重与移除
+    */
+    std::unordered_map<Image*, std::list<TImageDelayPaintData>::iterator> m_delayPaintImageMap;
+
+    /** 移除延迟绘制列表中的一条数据(同时更新索引)
+    */
+    void EraseDelayPaintImage(std::list<TImageDelayPaintData>::iterator iter);
 };
 
 }

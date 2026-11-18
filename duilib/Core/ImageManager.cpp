@@ -585,18 +585,23 @@ void ImageManager::AddDelayPaintData(Control* pControl, Image* pImage, const DSt
     if ((pControl == nullptr) || (pImage == nullptr) || imageKey.empty()) {
         return;
     }
-    RemoveDelayPaintData(pImage); //一个Image资源，只保留一条记录
+    //一个Image资源，只保留一条记录：通过索引O(1)去重(重复添加时更新数据，并移到队尾保持原有顺序)
+    auto imageIter = m_delayPaintImageMap.find(pImage);
+    if (imageIter != m_delayPaintImageMap.end()) {
+        EraseDelayPaintImage(imageIter->second);
+    }
 
     TImageDelayPaintData delayPaint;
     delayPaint.m_pControl = pControl;
     delayPaint.m_pImage = pImage;
+    delayPaint.m_pImageRaw = pImage;
     delayPaint.m_imageKey = imageKey;
-    m_delayPaintImageList.push_back(delayPaint);
+    m_delayPaintImageList.push_back(std::move(delayPaint));
+    m_delayPaintImageMap.emplace(pImage, std::prev(m_delayPaintImageList.end()));
 }
 
 void ImageManager::RemoveDelayPaintData(Control* pControl)
 {
-    GlobalManager::Instance().AssertUIThread();
     GlobalManager::Instance().AssertUIThread();
     ASSERT(pControl != nullptr);
     if (pControl == nullptr) {
@@ -605,7 +610,9 @@ void ImageManager::RemoveDelayPaintData(Control* pControl)
     auto iter = m_delayPaintImageList.begin();
     while (iter != m_delayPaintImageList.end()) {
         if ((iter->m_pControl == pControl) || (iter->m_pControl == nullptr)) {
-            iter = m_delayPaintImageList.erase(iter);
+            auto eraseIter = iter;
+            ++iter;
+            EraseDelayPaintImage(eraseIter);
         }
         else {
             ++iter;
@@ -616,25 +623,19 @@ void ImageManager::RemoveDelayPaintData(Control* pControl)
 void ImageManager::RemoveDelayPaintData(Image* pImage)
 {
     GlobalManager::Instance().AssertUIThread();
-    GlobalManager::Instance().AssertUIThread();
     ASSERT((pImage != nullptr));
     if (pImage == nullptr) {
         return;
     }
-    auto iter = m_delayPaintImageList.begin();
-    while (iter != m_delayPaintImageList.end()) {
-        if ((iter->m_pImage == pImage) || (iter->m_pImage == nullptr)) {
-            iter = m_delayPaintImageList.erase(iter);
-        }
-        else {
-            ++iter;
-        }
+    //通过索引O(1)移除
+    auto imageIter = m_delayPaintImageMap.find(pImage);
+    if (imageIter != m_delayPaintImageMap.end()) {
+        EraseDelayPaintImage(imageIter->second);
     }
 }
 
 void ImageManager::DelayPaintImage(const DString& imageKey)
 {
-    GlobalManager::Instance().AssertUIThread();
     GlobalManager::Instance().AssertUIThread();
     ASSERT(!imageKey.empty());
     if (imageKey.empty()) {
@@ -644,7 +645,9 @@ void ImageManager::DelayPaintImage(const DString& imageKey)
     while (iter != m_delayPaintImageList.end()) {
         if ((iter->m_pControl == nullptr) || (iter->m_pImage == nullptr) || (iter->m_imageKey == imageKey)) {
             ControlPtrT<Image> pImage = iter->m_pImage;
-            iter = m_delayPaintImageList.erase(iter);
+            auto eraseIter = iter;
+            ++iter;
+            EraseDelayPaintImage(eraseIter);
             if (pImage != nullptr) {
                 pImage->RedrawImage();
             }
@@ -653,6 +656,21 @@ void ImageManager::DelayPaintImage(const DString& imageKey)
             ++iter;
         }
     }
+}
+
+void ImageManager::EraseDelayPaintImage(std::list<TImageDelayPaintData>::iterator iter)
+{
+    ASSERT(iter != m_delayPaintImageList.end());
+    if (iter == m_delayPaintImageList.end()) {
+        return;
+    }
+    const Image* pImageRaw = iter->m_pImageRaw;
+    //先移除索引(此时迭代器仍然有效)，再从列表中移除数据
+    auto imageIter = m_delayPaintImageMap.find(const_cast<Image*>(pImageRaw));
+    if ((imageIter != m_delayPaintImageMap.end()) && (imageIter->second == iter)) {
+        m_delayPaintImageMap.erase(imageIter);
+    }
+    m_delayPaintImageList.erase(iter);
 }
 
 } //namespace ui
