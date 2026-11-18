@@ -9,7 +9,8 @@ namespace ui {
 SkRasterWindowContext_Windows::SkRasterWindowContext_Windows(HWND hWnd, std::unique_ptr<const skwindow::DisplayParams> params):
     skwindow::internal::RasterWindowContext(std::move(params)),
     m_hWnd(hWnd),
-    m_hBitmap(nullptr)
+    m_hBitmap(nullptr),
+    m_bBackBufferValid(false)
 {
     fWidth = 0;
     fHeight = 0;
@@ -65,6 +66,9 @@ void SkRasterWindowContext_Windows::resize(int nWidth, int nHeight)
 
     fWidth = nWidth;
     fHeight = nHeight;
+
+    //缓冲重建，内容失效
+    m_bBackBufferValid = false;
 
     m_fBackbufferSurface.reset();
     if (m_hBitmap != nullptr) {
@@ -166,13 +170,33 @@ bool SkRasterWindowContext_Windows::PaintAndSwapBuffers(IRenderWindow* pRender, 
     //窗口透明度
     uint8_t nLayeredWindowAlpha = pRenderPaint->GetLayeredWindowAlpha();
 
+    //只重新提交后备缓冲（窗口暴露、遮挡恢复、最小化还原等场景）：
+    //此时后备缓冲的内容仍然有效，直接把缓冲内容提交到窗口，跳过整棵控件树的重新绘制
+    if (pRenderPaint->IsPresentOnly() && m_bBackBufferValid &&
+        (rcClient.Width() == width()) && (rcClient.Height() == height())) {
+        PAINTSTRUCT ps = { 0, };
+        HDC hPaintDC = ::BeginPaint(hWnd, &ps);
+        bool bPresented = false;
+        if (hPaintDC != nullptr) {
+            bPresented = SwapPaintBuffers(hPaintDC, rcPaintList, pRender, nLayeredWindowAlpha);
+        }
+        ::EndPaint(hWnd, &ps);
+        if (bPresented) {
+            return true;
+        }
+        //后备缓冲提交失败：退化为正常绘制流程
+    }
+
+    //是否为完全绘制
+    const bool bFullPaint = (rcPaint.Width() == rcClient.Width()) && (rcPaint.Height() == rcClient.Height());
+
     //开始绘制
     bool bRet = false;
     PAINTSTRUCT ps = { 0, };
     HDC hPaintDC = ::BeginPaint(hWnd, &ps);
     if (!rcPaint.IsEmpty() && (hPaintDC != nullptr)) {
         //完全绘制时，使用单个矩形，走快速路径
-        if ((rcPaint.Width() == rcClient.Width()) && (rcPaint.Height() == rcClient.Height())) {
+        if (bFullPaint) {
             rcPaintList.clear();
             rcPaintList.push_back(rcClient);
         }
@@ -187,7 +211,11 @@ bool SkRasterWindowContext_Windows::PaintAndSwapBuffers(IRenderWindow* pRender, 
         static_cast<IRender*>(pRender)->EndPaintRects(nClipState);
 
         //绘制完成后，更新到窗口
-        SwapPaintBuffers(hPaintDC, rcPaintList, pRender, nLayeredWindowAlpha);
+        bool bSwapped = SwapPaintBuffers(hPaintDC, rcPaintList, pRender, nLayeredWindowAlpha);
+        //完整绘制成功后，后备缓冲保存了客户区的完整图像；局部绘制不会破坏其它区域的内容
+        if (bRet && bSwapped && bFullPaint) {
+            m_bBackBufferValid = true;
+        }
 
         //结束本次绘制
         ::EndPaint(hWnd, &ps);
@@ -218,7 +246,11 @@ bool SkRasterWindowContext_Windows::PaintAndSwapBuffers(IRenderWindow* pRender, 
 
         //绘制完成后，更新到窗口
         hPaintDC = ::GetDC(hWnd);
-        SwapPaintBuffers(hPaintDC, rcPaintList, pRender, nLayeredWindowAlpha);
+        bool bSwapped = SwapPaintBuffers(hPaintDC, rcPaintList, pRender, nLayeredWindowAlpha);
+        //完整绘制成功后，后备缓冲保存了客户区的完整图像
+        if (bRet && bSwapped && bFullPaint) {
+            m_bBackBufferValid = true;
+        }
         ::ReleaseDC(hWnd, hPaintDC);
 
         //标记绘制区域为有效区域

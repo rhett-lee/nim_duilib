@@ -62,6 +62,10 @@ public:
     */
     virtual bool PaintAndSwapBuffers(IRenderPaint* pRenderPaint) override;
 
+    /** 窗口的后备缓冲内容是否完整有效
+    */
+    virtual bool IsBackBufferValid() const override;
+
 #ifdef DUILIB_BUILD_FOR_WIN
     /** 获取DC句柄，当不使用后，需要调用ReleaseDC接口释放资源（仅Windows平台支持）
     * @param [in] hWnd 窗口句柄

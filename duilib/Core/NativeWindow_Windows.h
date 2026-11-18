@@ -847,6 +847,11 @@ private:
     */
     bool m_bChildWindow;
 
+    /** 自上次绘制以来，界面内容是否发生了变化
+    *   （用于区分"内容失效需要重绘"与"仅窗口暴露需要重新提交缓冲"）
+    */
+    bool m_bContentDirty;
+
 private:
     /** 拖拽操作关联的IDataObject对象
     */

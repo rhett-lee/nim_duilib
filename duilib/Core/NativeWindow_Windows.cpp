@@ -87,6 +87,7 @@ NativeWindow_Windows::NativeWindow_Windows(INativeWindow* pOwner):
     m_pWindowDropTarget(nullptr),
     m_nWindowDpiScaleFactor(100),
     m_bChildWindow(false),
+    m_bContentDirty(false),
     m_pDataObj(nullptr),
     m_systemShadowType(NativeWindowShadowType::kShadowSystemDisabled)
 {
@@ -638,6 +639,8 @@ void NativeWindow_Windows::InitNativeWindow()
 
 void NativeWindow_Windows::ClearNativeWindow()
 {
+    //窗口销毁后，绘制状态失效
+    m_bContentDirty = false;
     //注销平板消息
     HWND hWnd = GetHWND();
     if (hWnd != nullptr) {
@@ -742,6 +745,7 @@ bool NativeWindow_Windows::SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
     }
     if (bRedraw && bChanged && IsWindow()) {
         // 强制窗口重绘
+        m_bContentDirty = true;
         ::RedrawWindow(m_hWnd, NULL, NULL, RDW_FRAME | RDW_INTERNALPAINT | RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
         ::SetWindowPos(m_hWnd, nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
     }
@@ -900,6 +904,7 @@ void NativeWindow_Windows::SetUseSystemCaption(bool bUseSystemCaption)
     }
 
     // 强制窗口重绘
+    m_bContentDirty = true;
     ::RedrawWindow(m_hWnd, NULL, NULL, RDW_FRAME | RDW_INTERNALPAINT | RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
     ::SetWindowPos(m_hWnd, nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 
@@ -1519,6 +1524,8 @@ void NativeWindow_Windows::Invalidate(const UiRect& rcItem)
     if (m_hWnd == nullptr) {
         return;
     }
+    //界面内容发生了变化，需要重新绘制（而不是只重新提交后备缓冲）
+    m_bContentDirty = true;
     RECT rc = { rcItem.left, rcItem.top, rcItem.right, rcItem.bottom };
     ::InvalidateRect(m_hWnd, &rc, FALSE);
     // Invalidating a layered window will not trigger a WM_PAINT message,
@@ -1547,6 +1554,7 @@ public:
     INativeWindow* m_pOwner = nullptr;
     NativeMsg m_nativeMsg;
     bool m_bHandled = false;
+    bool m_bPresentOnly = false;
 
 public:
     /** 通过回调接口，完成绘制
@@ -1560,6 +1568,13 @@ public:
             return true;
         }
         return false;
+    }
+
+    /** 是否只需要重新提交后备缓冲内容（不重新绘制界面）
+    */
+    virtual bool IsPresentOnly() const override
+    {
+        return m_bPresentOnly;
     }
 
     /** 回调接口，获取当前窗口的透明度值
@@ -1668,6 +1683,8 @@ LRESULT NativeWindow_Windows::OnPaintMsg(UINT uMsg, WPARAM wParam, LPARAM lParam
                 NativeMsg nativeMsg = NativeMsg(WM_PAINT, (WPARAM)m_hWnd, 0);
                 m_pOwner->OnNativePaintMsg(rcPaint, nativeMsg, bHandled);
                 bPaint = true;
+                //应用层已经完成绘制
+                m_bContentDirty = false;
             }
         }
         else {
@@ -1680,8 +1697,15 @@ LRESULT NativeWindow_Windows::OnPaintMsg(UINT uMsg, WPARAM wParam, LPARAM lParam
                 renderPaint.m_pOwner = m_pOwner;
                 renderPaint.m_nativeMsg = NativeMsg(uMsg, wParam, lParam);
                 renderPaint.m_bHandled = bHandled;
+                //没有内容变化（如窗口暴露、遮挡恢复）且后备缓冲内容完整有效时，
+                //只重新提交后备缓冲，不重新绘制界面
+                renderPaint.m_bPresentOnly = CanPresentBackBufferOnly(pRender->IsBackBufferValid(), m_bContentDirty, false);
                 bPaint = pRender->PaintAndSwapBuffers(&renderPaint);
                 bHandled = renderPaint.m_bHandled;
+                if (bPaint && !renderPaint.m_bPresentOnly) {
+                    //内容已经绘制完成
+                    m_bContentDirty = false;
+                }
             }
         }
     }
@@ -2534,6 +2558,8 @@ LRESULT NativeWindow_Windows::OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM l
 {
     ASSERT_UNUSED_VARIABLE(uMsg == WM_DPICHANGED);
     bHandled = false;
+    //DPI变化后需要重新绘制界面
+    m_bContentDirty = true;
     std::weak_ptr<WeakFlag> windowFlag = m_pOwner->GetWeakFlag();
 
     //窗口显示的DPI变化, 触发DPI发生变化的事件
@@ -2834,6 +2860,8 @@ LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPA
     }
     case WM_SIZE:
     {
+        //窗口尺寸变化后需要重新绘制界面
+        m_bContentDirty = true;
         WindowSizeType sizeType = static_cast<WindowSizeType>(wParam);
         UiSize newWindowSize;
         newWindowSize.cx = (int)(short)LOWORD(lParam);

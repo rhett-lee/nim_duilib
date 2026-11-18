@@ -153,6 +153,20 @@ bool Render_Skia_SDL::PaintAndSwapBuffers(IRenderPaint* pRenderPaint)
     return false;
 }
 
+bool Render_Skia_SDL::IsBackBufferValid() const
+{
+    if (m_pWindowContext == nullptr) {
+        return false;
+    }
+    if (m_backendType == RenderBackendType::kRaster_BackendType) {
+        SkRasterWindowContext_SDL* pWindowContext = dynamic_cast<SkRasterWindowContext_SDL*>(m_pWindowContext.get());
+        if (pWindowContext != nullptr) {
+            return pWindowContext->IsBackBufferValid();
+        }
+    }
+    return false;
+}
+
 SkSurface* Render_Skia_SDL::GetSkSurface() const
 {
     ASSERT(m_pWindowContext != nullptr);

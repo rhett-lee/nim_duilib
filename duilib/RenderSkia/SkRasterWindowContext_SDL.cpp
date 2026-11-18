@@ -11,7 +11,8 @@ namespace ui {
 SkRasterWindowContext_SDL::SkRasterWindowContext_SDL(SDL_Window* sdlWindow, std::unique_ptr<const skwindow::DisplayParams> params):
     skwindow::internal::RasterWindowContext(std::move(params)),
     m_sdlWindow(sdlWindow),
-    m_sdlTextrue(nullptr)
+    m_sdlTextrue(nullptr),
+    m_bBackBufferValid(false)
 {
     fWidth = 0;
     fHeight = 0;
@@ -24,6 +25,8 @@ SkRasterWindowContext_SDL::~SkRasterWindowContext_SDL()
 
 void SkRasterWindowContext_SDL::Clear()
 {
+    //缓冲内容失效，不能直接提交到窗口
+    m_bBackBufferValid = false;
     if (m_sdlTextrue != nullptr) {
         SDL_DestroyTexture(m_sdlTextrue);
         m_sdlTextrue = nullptr;
@@ -66,6 +69,9 @@ void SkRasterWindowContext_SDL::resize(int nWidth, int nHeight)
 
     fWidth = nWidth;
     fHeight = nHeight;
+
+    //缓冲重建，内容失效
+    m_bBackBufferValid = false;
 
     Clear();
     if ((nWidth == 0) || (nHeight == 0)) {
@@ -121,6 +127,26 @@ bool SkRasterWindowContext_SDL::PaintAndSwapBuffers(IRender* pRender, IRenderPai
         return false;
     }
 
+    //窗口透明度
+    uint8_t nLayeredWindowAlpha = pRenderPaint->GetLayeredWindowAlpha();
+
+    //只重新提交后备缓冲（窗口暴露、遮挡恢复、最小化还原等场景）：
+    //此时后备缓冲的内容仍然有效，直接把缓冲内容提交到窗口，跳过整棵控件树的重新绘制
+    if (pRenderPaint->IsPresentOnly() && m_bBackBufferValid) {
+        UiRect rcClient;
+        GetClientRect(rcClient);
+        if (!rcClient.IsEmpty() && (rcClient.Width() == width()) && (rcClient.Height() == height())) {
+            std::vector<UiRect> rcPresentList;
+            rcPresentList.push_back(rcClient);
+            if (SwapPaintBuffers(rcPresentList, nLayeredWindowAlpha)) {
+                //标记为有效区域，避免系统重复发送暴露事件
+                ValidateRect(rcPresentList);
+                return true;
+            }
+        }
+        //后备缓冲不可用：退化为正常绘制流程
+    }
+
     //获取需要绘制的区域列表（可能是多个不连续的脏矩形）
     std::vector<UiRect> rcPaintList;
     bool bUpdateRect = pRenderPaint->GetUpdateRects(rcPaintList); //返回true表示支持局部绘制，只绘制更新的部分区域，以提高效率
@@ -150,9 +176,6 @@ bool SkRasterWindowContext_SDL::PaintAndSwapBuffers(IRender* pRender, IRenderPai
         return false;
     }
 
-    //窗口透明度
-    uint8_t nLayeredWindowAlpha = pRenderPaint->GetLayeredWindowAlpha();
-
     //是否为完全绘制
     const bool bFullPaint = (rcPaint.Width() == width()) && (rcPaint.Height() == height());
     if (bFullPaint) {
@@ -172,7 +195,11 @@ bool SkRasterWindowContext_SDL::PaintAndSwapBuffers(IRender* pRender, IRenderPai
 
     if (bRet) {
         //绘制完成后，更新到窗口
-        SwapPaintBuffers(rcPaintList, nLayeredWindowAlpha);
+        bool bSwapped = SwapPaintBuffers(rcPaintList, nLayeredWindowAlpha);
+        //完整绘制成功后，后备缓冲保存了客户区的完整图像；局部绘制不会破坏其它区域的内容
+        if (bSwapped && bFullPaint) {
+            m_bBackBufferValid = true;
+        }
     }
 
     //绘制完成后，将已经绘制的区域标记为有效区域

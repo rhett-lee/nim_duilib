@@ -54,6 +54,10 @@ public:
     */
     bool PaintAndSwapBuffers(IRender* pRender, IRenderPaint* pRenderPaint);
 
+    /** 后备缓冲的内容是否完整有效（有效时可以直接提交到窗口，无需重新绘制）
+    */
+    bool IsBackBufferValid() const { return m_bBackBufferValid; }
+
 protected:
     virtual void onSwapBuffers() override;
 
@@ -124,6 +128,10 @@ private:
     /** SDL绘制的Texture
     */
     SDL_Texture* m_sdlTextrue;
+
+    /** 后备缓冲的内容是否完整有效（完整绘制成功后为true，缓冲重建或尺寸变化后为false）
+    */
+    bool m_bBackBufferValid;
 };
 
 } // namespace ui

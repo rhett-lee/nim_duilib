@@ -170,6 +170,7 @@ public:
     INativeWindow* m_pOwner = nullptr;
     NativeMsg m_nativeMsg;
     bool m_bHandled = false;
+    bool m_bPresentOnly = false;
 
 public:
     /** 通过回调接口，完成绘制
@@ -182,6 +183,13 @@ public:
             return true;
         }
         return false;
+    }
+
+    /** 是否只需要重新提交后备缓冲内容（不重新绘制界面）
+    */
+    virtual bool IsPresentOnly() const override
+    {
+        return m_bPresentOnly;
     }
 
     /** 回调接口，获取当前窗口的透明度值
@@ -2812,10 +2820,15 @@ void NativeWindow_SDL::Invalidate(const UiRect& rcItem)
 void NativeWindow_SDL::PaintWindow(bool bPaintAll)
 {
     PerformanceUtil statPerformance(_T("PaintWindow 0, NativeWindow_SDL::PaintWindow(Total)"));
-    if (bPaintAll) {
+
+    //是否可能"只重新提交后备缓冲，不重新绘制界面"：
+    //仅当没有待绘制的脏区时才成立（窗口暴露、遮挡恢复、最小化还原等场景）
+    bool bHasUpdateRect = !m_updateRects.empty() || !m_rcUpdateRect.IsZero();
+    if (bPaintAll && bHasUpdateRect) {
         //绘制全部
         m_rcUpdateRect.Clear();
         m_updateRects.clear();
+        bHasUpdateRect = false;
     }
     INativeWindow* pOwner = m_pOwner;
     ASSERT(pOwner != nullptr);
@@ -2845,6 +2858,12 @@ void NativeWindow_SDL::PaintWindow(bool bPaintAll)
                 renderPaint.m_pOwner = pOwner;
                 renderPaint.m_nativeMsg = NativeMsg(SDL_EVENT_WINDOW_EXPOSED, 0, 0);
                 renderPaint.m_bHandled = false;
+
+                //准备绘制阶段可能产生新的脏区（如布局调整），需要重新检查
+                bHasUpdateRect = bHasUpdateRect || !m_updateRects.empty() || !m_rcUpdateRect.IsZero();
+                //只有后备缓冲内容完整有效、且没有待绘制的脏区时，才可以跳过界面重绘
+                renderPaint.m_bPresentOnly = CanPresentBackBufferOnly(pRender->IsBackBufferValid(), false, bHasUpdateRect);
+
                 bPaint = pRender->PaintAndSwapBuffers(&renderPaint);
             }
         }

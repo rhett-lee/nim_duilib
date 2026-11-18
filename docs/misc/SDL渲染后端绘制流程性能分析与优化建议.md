@@ -156,7 +156,7 @@ Skia 绘制 → m_fSurfaceMemory →(memcpy)→ SDL 窗口表面 →(BitBlt/XShm
 |-------|--------|------|---------|------|------|
 | 1 | **图片缩放结果缓存** | 按 `(bitmap, 目标宽高)` 缓存缩放后的 `SkImage`（LRU），绘制改为 1:1 blit | 图片绘制 `0.68 ms → 0.2 ms`（**-35%~45%**），且 CPU/GL/SDL 全后端通用 | 小：内存占用增加；需在 DPI/控件尺寸变化时失效缓存 | **已完成（详见第十节）** |
 | 2 | **动画帧对象复用** | `ImageInfo::GetFrame` 在（帧号 + 目标尺寸）未变时复用上一帧对象，避免每帧 `make_shared` 与重复取帧 | 同帧重复读取 `0.134 → 0.066 µs/次`（**-51%**）；动画逐帧播放场景与优化前持平 | 小：每个 `ImageInfo` 额外缓存 1 帧对象 | **已完成（详见第十一节）** |
-| 3 | **暴露事件只重新提交，不重绘** | 区分"内容失效"（首帧 / resize / DPI 变化）与"仅需重新显示"；后者直接把后备缓冲提交到窗口 | 暴露、遮挡恢复、最小化还原等场景：**5~68 ms → 0.2 ms 量级** | 中：必须严格维护"后备缓冲内容有效"标志，resize 后必须置失效 | 未开始 |
+| 3 | **暴露事件只重新提交，不重绘** | 区分"内容失效"（首帧 / resize / DPI 变化）与"仅需重新显示"；后者直接把后备缓冲提交到窗口 | 暴露、遮挡恢复、最小化还原等场景：`basic.exe` 单次暴露 **7.1 ms → 2.2 ms（-69%）**；`render.exe` 同场景总绘制耗时 **-12.6%** | 中：必须严格维护"后备缓冲内容有效"标志，resize 后必须置失效 | **已完成（详见第十二节）** |
 | 4 | **直绘窗口表面，去掉 memcpy** | 用 `SkSurface::MakeRasterDirect` 包装 SDL 窗口表面像素（Windows `XRGB8888` / X11 `RGB888` 的内存字节序与 Skia `kN32` 一致） | 全幅重绘 `-0.15~0.35 ms`；局部重绘 `-0.05~0.1 ms` | 中：SDL 表面在 resize 后失效需重建；格式不兼容时回退现有双缓冲路径 | 未开始 |
 | 5 | **多脏矩形替代单矩形 Union** | 维护少量脏矩形列表，Skia 侧多 clip 绘制，像素提交按矩形列表进行 | 重绘图片 `13 → 6` 张、重绘面积降至约 1/3，单次绘制 **-40%~50%** | 中大：需扩展 `IRenderPaint::GetUpdateRect` 这类单矩形接口 | **已完成（详见第九节）** |
 | 6 | **纹理兜底路径批量提交** | 识别 SDL texture 兜底路径后自管 `SDL_Texture`，合并脏区、帧末只 `RenderPresent` 一次；必要时设置 `SDL_HINT_RENDER_VSYNC=0` 解除 vsync 耦合 | Wayland 场景每次 9~17 ms 阻塞 → **< 1 ms** | 中：需按平台特性分支 | 未开始 |
@@ -414,4 +414,89 @@ Skia 绘制 → m_fSurfaceMemory →(memcpy)→ SDL 窗口表面 →(BitBlt/XShm
 - 仅缓存最近一帧：多个控件共用同一 `ImageInfo` 且帧号/尺寸来回交替时，缓存会互相覆盖，退化为优化前的行为（功能正确，无收益）；
 - 常驻一个帧对象的引用：对按需渲染的格式（PAG/Lottie）会多保留一张帧位图，生命周期与 `ImageInfo` 相同；
 - 若外部修改了返回的 `AnimationFrame` 对象（当前代码库中没有这种用法），会影响下一次复用，后续如新增此类调用需要改为返回值拷贝。
+
+---
+
+## 十二、优化项 3 实现与评测（暴露事件只重新提交，不重绘）
+
+**状态**：已完成（2026-11-18）
+**目标**：区分"内容失效"（首帧 / resize / DPI 变化 / 控件失效）与"仅需重新显示"（窗口暴露、遮挡恢复、最小化还原），后者直接把后备缓冲提交到窗口，跳过整棵控件树的重新光栅化。
+
+### 12.1 实现要点
+
+| 层次 | 改动 | 说明 |
+|------|------|------|
+| 接口 | `IRenderPaint::IsPresentOnly()` | 新增**带默认实现**（返回 false）的虚函数：本次绘制只提交缓冲、不重绘。既有自研实现无需改动 |
+| 接口 | `IRenderWindow::IsBackBufferValid()` | 新增**带默认实现**（返回 false）的虚函数：后备缓冲是否保存了客户区的完整图像。默认关闭优化，源码兼容 |
+| 规则 | `CanPresentBackBufferOnly(缓冲有效, 内容变化, 存在脏区)` | 统一的判定函数：三个条件全部满足才允许"只提交"。SDL 与 Windows 原生共用，避免两端规则漂移 |
+| SDL 上下文 | `SkRasterWindowContext_SDL` | 新增 `m_bBackBufferValid`：`resize`/`Clear` 置 false；**完整绘制且提交成功**后置 true（局部绘制不会破坏其余区域）。`PaintAndSwapBuffers` 命中 `IsPresentOnly` 时跳过 `DoPaint` 与裁剪，直接把整幅缓冲提交并 `ValidateRect` |
+| SDL 窗口 | `NativeWindow_SDL::PaintWindow` | 暴露事件（`SDL_EVENT_WINDOW_EXPOSED`）到达时，若"无脏区 + 缓冲有效"则只提交；存在脏区时仍按原逻辑重绘全部。`bPaintAll` 不再无条件清空脏区 |
+| Windows 上下文 | `SkRasterWindowContext_Windows` | 同样的有效性标志；`IsPresentOnly` 命中时 `BeginPaint` 后直接 `BitBlt` 后备缓冲的更新区域，不调用 `DoPaint` |
+| Windows 窗口 | `NativeWindow_Windows` | 新增 `m_bContentDirty`：`Invalidate`、`RedrawWindow`、`WM_SIZE`、`WM_DPICHANGED` 置 true；正常绘制成功后清 false。系统因遮挡/暴露产生的 WM_PAINT（未调用 `Invalidate`）即可走"只提交" |
+| GL 后端 | `SkGLWindowContext_Windows` | 持久化表面有效（尺寸匹配且 `m_bNeedFullRedraw == false`）时，把持久化表面快照 `kSrc` 拷入窗口表面后 `SwapBuffers`，不重绘控件树；无持久化表面时退化为完整绘制 |
+
+不改变的语义：
+
+- 首帧、resize、DPI 变化、窗口创建时缓冲必然无效，仍走完整绘制；
+- resize 后 `WM_SIZE` / `SDL_EVENT_WINDOW_RESIZED` 同时使"内容变化"与"缓冲有效"失效，避免用旧尺寸的缓冲上屏；
+- 分层窗口（`UpdateLayeredWindow`）仍按原路径整幅提交，不新增分支；
+- 内存开销为每个窗口上下文 **1 个 bool**，不新增任何像素缓冲。
+
+### 12.2 可靠性验证
+
+| 验证项 | 内容 | 结果 |
+|--------|------|------|
+| 新增单元测试 | `tests/test_render_api.cpp` 新增 `TestPresentOnly`：`IsPresentOnly`/`GetUpdateRects` 的默认实现保持兼容、判定规则四种组合（缓冲无效 / 内容变化 / 存在脏区 / 三者均无） | 通过（`render_api` 共 668 项检查，0 失败） |
+| 暴露（隐藏/显示） | 用 `ShowWindow(SW_HIDE/SW_SHOW)` 制造真实暴露，不改变尺寸与内容 | 只提交缓冲，画面与隐藏前一致，无残影、无缺失 |
+| resize | 连续 6 次不同尺寸 `SetWindowPos` + 5 次最小化/还原 | 每次 resize 后均触发完整重绘（`OnPaintMsg` 次数同步增长），无花屏、进程 `Responding=true`、无崩溃 |
+| 最小化还原 | `SW_MINIMIZE` / `SW_RESTORE` | 还原后正常上屏；最小化期间的绘制请求被 `PreparePaint` 跳过，不产生无效重绘 |
+| 全量回归 | `ctest`（17 个用例，含 GL 后端的 `gl_window_smoke`、`render_api`） | 非 SDL 与 SDL 构建均 **17/17 通过** |
+| 双后端 | Windows 原生 Raster、SDL Raster 均实测；GL 后端复用同一接口与"持久化表面有效"判定，由 `gl_window_smoke` 覆盖 | 通过 |
+
+### 12.3 真实程序 A/B
+
+测量方法：临时在 `PerformanceUtil` 中增加按环境变量输出日志（测量后还原），用脚本隐藏/显示窗口 20 次（每次隐藏 200 ms、显示 500 ms），统计 `PaintWindow` 与 `OnPaintMsg` 的调用次数与累计耗时。A/B 通过 `git` 暂存实现改动生成补丁、还原基线后交替构建测量。
+
+**`basic.exe`（静态页面，SDL Raster，3 次均值）**
+
+| 指标 | 优化前 | 优化后 | 变化 |
+|------|--------|--------|------|
+| `PaintWindow` 调用次数 | 22 | 22 | 持平 |
+| 实际重绘次数（`Window::OnPaintMsg`） | **22** | **1** | **-95%** |
+| `PaintWindow` 单次平均 | 7.29 ms | 3.30 ms | **-55%** |
+| `AlphaPaint`（控件树光栅化）合计 | 113.3 ms | 24.3 ms（仅首帧） | **-79%** |
+| `SwapPaintBuffers` 合计 | 28.7 ms | 32 ms | 持平（暴露本身必须上屏） |
+| 单次暴露的绘制耗时（去除首帧） | **6.1 ms** | **2.3 ms** | **-62%** |
+
+**`basic.exe`（静态页面，Windows 原生 Raster）**
+
+| 指标 | 优化前 | 优化后 | 变化 |
+|------|--------|--------|------|
+| `PaintWindow` 调用次数 | 42 | 21 | -50% |
+| 实际重绘次数 | 42 | 1 | **-98%** |
+| `PaintWindow` 累计耗时 | 134 ms | 53 ms | **-60%** |
+| 进程 CPU 时间（同场景） | 266 ms | 109~156 ms | **-41%~-59%** |
+
+**`render.exe` 首页（动画持续重绘，SDL Raster，10 次隐藏/显示）**
+
+| 指标 | 优化前 | 优化后 | 变化 |
+|------|--------|--------|------|
+| `PaintWindow` 调用次数 | 684 | 683 | 持平 |
+| 实际重绘次数（`OnPaintMsg`） | 684 | 672 | 11 次暴露改为只提交 |
+| `PaintWindow` 累计耗时 | 835 ms | 730 ms | **-12.6%** |
+| `OnPaintMsg` 累计耗时 | 643 ms | 534 ms | **-17.0%** |
+
+结论：
+
+1. 静态页面的窗口暴露从"每次整页重绘"变为"只做一次整幅上屏"，单次暴露耗时下降 **62%**（Windows 原生下降更多，因为省掉的不只是控件树遍历，还包括 GDI 绘制）；
+2. 动画页面中暴露只占绘制总数的一小部分（11/683），因此总耗时下降 12.6%，与"暴露次数占比"相符；
+3. 收益上界由"上屏成本"决定：Raster 路径仍需一次 `memcpy + BitBlt`（`basic.exe` 约 1.3~2.3 ms），后续可由优化项 4（直绘窗口表面）继续压缩。
+
+### 12.4 已知限制
+
+- "只提交"依赖"缓冲内容完整有效"这一状态：若有代码绕过 `Invalidate` 直接修改控件缓存，界面会保持旧内容（与常见双缓冲框架的约定一致）；
+- GL 后端只有在持久化表面存在时才可"只提交"；一次完整直绘（首帧 / resize）后持久化表面被释放，紧接着的暴露仍会完整重绘一次，之后恢复优化；
+- Windows 原生后端的 `m_bContentDirty` 是"自上次绘制以来是否调用过 Invalidate"的粗粒度标志：即使失效区域为空也会置位，极端情况下会多做一次完整绘制；
+- 分层窗口、子窗口（应用自绘）不启用"只提交"，保持原有行为。
+
 

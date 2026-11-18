@@ -234,6 +234,29 @@ bool Render_Skia_Windows::PaintAndSwapBuffers(IRenderPaint* pRenderPaint)
     return false;
 }
 
+bool Render_Skia_Windows::IsBackBufferValid() const
+{
+    if (m_pWindowContext == nullptr) {
+        return false;
+    }
+#if !defined(_M_ARM64)
+    if (m_backendType == RenderBackendType::kNativeGL_BackendType) {
+        SkGLWindowContext_Windows* pWindowContext = dynamic_cast<SkGLWindowContext_Windows*>(m_pWindowContext.get());
+        if (pWindowContext != nullptr) {
+            return pWindowContext->IsBackBufferValid();
+        }
+        return false;
+    }
+#endif
+    if (m_backendType == RenderBackendType::kRaster_BackendType) {
+        SkRasterWindowContext_Windows* pWindowContext = dynamic_cast<SkRasterWindowContext_Windows*>(m_pWindowContext.get());
+        if (pWindowContext != nullptr) {
+            return pWindowContext->IsBackBufferValid();
+        }
+    }
+    return false;
+}
+
 SkSurface* Render_Skia_Windows::GetSkSurface() const
 {
     ASSERT(m_pWindowContext != nullptr);

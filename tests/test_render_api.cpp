@@ -1547,6 +1547,58 @@ void TestBitmap(ui::IRenderFactory* pRenderFactory)
     }
 }
 
+/** 测试用的IRenderPaint实现：未覆盖的接口使用基类的默认实现
+*/
+class TestRenderPaint final : public ui::IRenderPaint
+{
+public:
+    bool m_bPaintCalled = false;
+
+    virtual bool DoPaint(const ui::UiRect& /*rcPaint*/) override
+    {
+        m_bPaintCalled = true;
+        return true;
+    }
+    virtual uint8_t GetLayeredWindowAlpha() override
+    {
+        return 255;
+    }
+    virtual bool GetUpdateRect(ui::UiRect& /*rcUpdate*/) const override
+    {
+        return false;
+    }
+};
+
+/** 后备缓冲"只重新提交"的判断规则（窗口暴露/遮挡恢复场景）
+*   新增的接口/规则必须保持向后兼容：默认实现不启用该优化
+*/
+void TestPresentOnly()
+{
+    Section("TestPresentOnly");
+
+    //PO-01 IRenderPaint 的默认实现不启用"只重新提交"
+    {
+        TestRenderPaint renderPaint;
+        CHECK(!renderPaint.IsPresentOnly());
+        CHECK(!renderPaint.m_bPaintCalled);
+    }
+
+    //PO-02 GetUpdateRects 的默认实现：没有更新区域时返回false
+    {
+        TestRenderPaint renderPaint;
+        std::vector<ui::UiRect> rcUpdateList;
+        rcUpdateList.push_back(ui::UiRect(0, 0, 10, 10));
+        CHECK(!renderPaint.GetUpdateRects(rcUpdateList));
+        CHECK(rcUpdateList.empty());
+    }
+
+    //PO-03 ~ PO-06 判断规则：缓冲有效、无内容变化、无脏区三者同时成立时才可只提交缓冲
+    CHECK(!ui::CanPresentBackBufferOnly(false, false, false));
+    CHECK(!ui::CanPresentBackBufferOnly(true, true, false));
+    CHECK(!ui::CanPresentBackBufferOnly(true, false, true));
+    CHECK(ui::CanPresentBackBufferOnly(true, false, false));
+}
+
 } //namespace
 
 int main(int /*argc*/, char* /*argv*/[])
@@ -1592,6 +1644,8 @@ int main(int /*argc*/, char* /*argv*/[])
             TestBitmap(pRenderFactory);
         }
     }
+
+    TestPresentOnly();
 
     std::cout << "render_api: " << g_checkCount << " checks, "
               << g_failedCount << " failed" << std::endl;

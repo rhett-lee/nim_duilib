@@ -688,7 +688,28 @@ public:
         rcUpdateList.push_back(rcUpdate);
         return true;
     }
+
+    /** 是否只需要重新提交窗口的后备缓冲内容（不重新绘制界面）
+    *   用于窗口暴露、遮挡恢复、最小化还原等场景：此时后备缓冲的内容仍然有效，
+    *   只需把缓冲内容重新提交到窗口，无需重新光栅化整棵控件树。
+    *   默认返回false，保证与已有实现的兼容性。
+    */
+    virtual bool IsPresentOnly() const
+    {
+        return false;
+    }
 };
+
+/** 判断是否可以只重新提交窗口的后备缓冲内容（不重新绘制界面）
+* @param [in] bBackBufferValid 后备缓冲的内容是否完整有效
+* @param [in] bContentDirty 界面内容是否发生了变化（需要重新绘制）
+* @param [in] bHasUpdateRect 是否存在待绘制的脏区
+* @return 返回true表示可以直接提交后备缓冲，跳过界面重绘
+*/
+inline bool CanPresentBackBufferOnly(bool bBackBufferValid, bool bContentDirty, bool bHasUpdateRect)
+{
+    return bBackBufferValid && !bContentDirty && !bHasUpdateRect;
+}
 
 /** 光栅操作代码
  *
@@ -2236,6 +2257,16 @@ public:
     * @param [in] pRenderPaint 界面绘制所需的回调接口
     */
     virtual bool PaintAndSwapBuffers(IRenderPaint* pRenderPaint) = 0;
+
+    /** 窗口的后备缓冲内容是否完整有效
+    *   有效表示后备缓冲保存了当前客户区的完整图像，可以直接提交到窗口而不重新绘制。
+    *   窗口尺寸变化、DPI变化、缓冲重建等场景必须返回false。
+    *   默认返回false，保证与已有实现的兼容性。
+    */
+    virtual bool IsBackBufferValid() const
+    {
+        return false;
+    }
 
 #ifdef DUILIB_BUILD_FOR_WIN
     /** 获取DC句柄，当不使用后，需要调用ReleaseDC接口释放资源（仅Windows平台支持）

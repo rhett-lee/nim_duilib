@@ -43,6 +43,10 @@ public:
     */
     bool PaintAndSwapBuffers(IRender* pRender, IRenderPaint* pRenderPaint);
 
+    /** 后备缓冲的内容是否完整有效（有效时可以直接提交到窗口，无需重新绘制）
+    */
+    bool IsBackBufferValid() const;
+
     /** 将本窗口的OpenGL上下文设置为当前上下文
     * @return 成功返回true，失败返回false
     * @note 同一线程内可能存在多个使用OpenGL绘制的窗口，而每个线程只能有一个当前上下文，

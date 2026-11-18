@@ -63,6 +63,10 @@ public:
     */
     virtual bool PaintAndSwapBuffers(IRenderPaint* pRenderPaint) override;
 
+    /** 窗口的后备缓冲内容是否完整有效
+    */
+    virtual bool IsBackBufferValid() const override;
+
     /** 获取DC句柄，当不使用后，需要调用ReleaseDC接口释放资源（仅Windows平台支持）
     * @param [in] hWnd 窗口句柄
     * @return 返回窗口句柄关联的DC句柄

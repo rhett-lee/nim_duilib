@@ -399,6 +399,37 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* pRender, IRenderPai
         return false;
     }
 
+    // ---- 只重新提交后备缓冲（窗口暴露、遮挡恢复、最小化还原等场景） ----
+    // 持久化表面保存了客户区的完整图像且内容有效时，直接拷贝到窗口，跳过界面重绘
+    if (pRenderPaint->IsPresentOnly() && IsBackBufferValid()) {
+        PAINTSTRUCT ps = { 0, };
+        ::BeginPaint(hWnd, &ps);
+        bool bPresented = false;
+        sk_sp<SkSurface> backbuffer = GetWindowSurface();
+        if (backbuffer != nullptr) {
+            SkCanvas* pCanvas = backbuffer->getCanvas();
+            if ((pCanvas != nullptr) && (m_persistentSurface != nullptr)) {
+                SkPaint paint;
+                paint.setBlendMode(SkBlendMode::kSrc);
+                sk_sp<SkImage> snapshot = m_persistentSurface->makeImageSnapshot();
+                if (snapshot != nullptr) {
+                    pCanvas->drawImage(snapshot, 0, 0, SkSamplingOptions(SkFilterMode::kNearest), &paint);
+                    bPresented = true;
+                }
+            }
+        }
+        ::EndPaint(hWnd, &ps);
+        if (bPresented) {
+            //异步提交(kNo)：SwapBuffers本身会与显示同步
+            if (auto dContext = this->directContext()) {
+                dContext->flushAndSubmit(GrSyncCpu::kNo);
+            }
+            swapBuffers();
+            return true;
+        }
+        //后备缓冲提交失败：退化为正常绘制流程
+    }
+
     // ---- 查询更新区域 ----
     // 必须在BeginPaint之前查询：BeginPaint会验证（清空）窗口的更新区域，
     // 之后再调用GetUpdateRect会恒返回false，局部增量刷新将无法生效
@@ -542,6 +573,18 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* pRender, IRenderPai
 
     swapBuffers();
     return true;
+}
+
+bool SkGLWindowContext_Windows::IsBackBufferValid() const
+{
+    //持久化表面保存了客户区的完整图像，且内容没有因尺寸变化而失效时，才可以直接提交
+    if (m_bNeedFullRedraw || (m_persistentSurface == nullptr)) {
+        return false;
+    }
+    if ((fWidth <= 0) || (fHeight <= 0)) {
+        return false;
+    }
+    return (m_persistentSurface->width() == fWidth) && (m_persistentSurface->height() == fHeight);
 }
 
 } // namespace ui
