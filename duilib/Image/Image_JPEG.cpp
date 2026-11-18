@@ -229,6 +229,33 @@ bool Image_JPEG::LoadImageFile(std::vector<uint8_t>& fileData,
     TAutoReleaseJpeg jpegData;
 
     if (fileData.empty()) {
+        if (bAsyncDecode) {
+            //大文件（加载阶段未读取完整的文件数据）：只读取文件头部的数据，解析图片的宽高，
+            //完整的文件数据与解码句柄延迟到解码线程中准备，避免在UI线程读盘
+            std::vector<uint8_t> headerData;
+            FileUtil::ReadFileHeaderData(imageFilePath, 4 * 1024, headerData);
+            uint32_t nHeaderWidth = 0;
+            uint32_t nHeaderHeight = 0;
+            if (!headerData.empty() &&
+                GetImageSizeFromHeader(headerData, nHeaderWidth, nHeaderHeight) &&
+                (nHeaderWidth > 0) && (nHeaderHeight > 0)) {
+                if (!ImageUtil::IsValidImageScale(fImageSizeScale)) {
+                    fImageSizeScale = 1.0f;
+                }
+                m_impl->m_nWidth = 0;
+                m_impl->m_nHeight = 0;
+                m_impl->m_tjInstance = nullptr;
+                m_impl->m_bAsyncDecode = true;
+                m_impl->m_imageFilePath = imageFilePath;
+                m_impl->m_bDecodeError = false;
+                CalcImageSize((int32_t)nHeaderWidth, (int32_t)nHeaderHeight, fImageSizeScale, rcMaxDestRectSize);
+                if ((m_impl->m_nWidth > 0) && (m_impl->m_nHeight > 0)) {
+                    return true;
+                }
+                m_impl->m_bDecodeError = true;
+                return false;
+            }
+        }
         //没有直接支持传入文件路径的函数，需要自己读入到内存，然后再处理
         FileUtil::ReadFileData(imageFilePath, fileData);
         if (bAssertEnabled) {
@@ -276,6 +303,28 @@ bool Image_JPEG::LoadImageFile(std::vector<uint8_t>& fileData,
     if (!ImageUtil::IsValidImageScale(fImageSizeScale)) {
         fImageSizeScale = 1.0f;
     }
+    CalcImageSize(width, height, fImageSizeScale, rcMaxDestRectSize);
+    ASSERT((m_impl->m_nWidth > 0) && (m_impl->m_nHeight > 0));
+    if ((m_impl->m_nWidth <= 0) || (m_impl->m_nHeight <= 0)) {
+        m_impl->m_bDecodeError = true;
+        return false;
+    }
+
+    //加载成功
+    jpegData.tjInstance = nullptr;
+    jpegData.pFileData = nullptr;
+    m_impl->m_fileData.clear();
+
+    m_impl->m_tjInstance = tjInstance;
+    m_impl->m_fileData.swap(fileData);
+    m_impl->m_bAsyncDecode = bAsyncDecode;
+    m_impl->m_imageFilePath = imageFilePath;
+    m_impl->m_bDecodeError = false;
+    return true;
+}
+
+void Image_JPEG::CalcImageSize(int32_t nWidth, int32_t nHeight, float fImageSizeScale, const UiSize& rcMaxDestRectSize)
+{
     //加载缩放时，只支持固定的锁定的比例，如果比例不符合要求，会导致解码失败，该比例列表可以通过API查询到
     int numscalingfactors = 0;
     tjscalingfactor* pScalingFactors = tjGetScalingFactors(&numscalingfactors);
@@ -295,7 +344,7 @@ bool Image_JPEG::LoadImageFile(std::vector<uint8_t>& fileData,
         //查询所选择的缩放比
         bool bFoundImageScale = false;
         float fScale = fImageSizeScale;
-        if (ImageUtil::GetBestImageScale(rcMaxDestRectSize, width, height, fImageSizeScale, fScale)) {
+        if (ImageUtil::GetBestImageScale(rcMaxDestRectSize, nWidth, nHeight, fImageSizeScale, fScale)) {
             if (FindClosestScale1(scalingFactorList, fScale, selectedScalingfactor)) {
                 bFoundImageScale = true;
             }
@@ -310,26 +359,71 @@ bool Image_JPEG::LoadImageFile(std::vector<uint8_t>& fileData,
         selectedScalingfactor.num = 1;
         selectedScalingfactor.denom = 1;
     }
-    m_impl->m_nWidth = TJSCALED(width, selectedScalingfactor);
-    m_impl->m_nHeight = TJSCALED(height, selectedScalingfactor);
-    ASSERT((m_impl->m_nWidth > 0) && (m_impl->m_nHeight > 0));
-    if ((m_impl->m_nWidth <= 0) || (m_impl->m_nHeight <= 0)) {
-        m_impl->m_bDecodeError = true;
+    m_impl->m_nWidth = TJSCALED(nWidth, selectedScalingfactor);
+    m_impl->m_nHeight = TJSCALED(nHeight, selectedScalingfactor);
+    m_impl->m_fImageSizeScale = selectedScalingfactor.num * 1.0f / selectedScalingfactor.denom;
+}
+
+bool Image_JPEG::GetImageSizeFromHeader(const std::vector<uint8_t>& headerData, uint32_t& nWidth, uint32_t& nHeight)
+{
+    nWidth = 0;
+    nHeight = 0;
+    const size_t nDataSize = headerData.size();
+    //JPEG文件必须以SOI(0xFFD8)标记开始
+    if ((nDataSize < 4) || (headerData[0] != 0xFF) || (headerData[1] != 0xD8)) {
         return false;
     }
-
-    //加载成功
-    jpegData.tjInstance = nullptr;
-    jpegData.pFileData = nullptr;
-    m_impl->m_fileData.clear();
-
-    m_impl->m_fImageSizeScale = selectedScalingfactor.num * 1.0f / selectedScalingfactor.denom;
-    m_impl->m_tjInstance = tjInstance;
-    m_impl->m_fileData.swap(fileData);
-    m_impl->m_bAsyncDecode = bAsyncDecode;
-    m_impl->m_imageFilePath = imageFilePath;
-    m_impl->m_bDecodeError = false;
-    return true;
+    size_t nIndex = 2;
+    while (nIndex + 1 < nDataSize) {
+        //查找标记的起始字节(0xFF)
+        if (headerData[nIndex] != 0xFF) {
+            ++nIndex;
+            continue;
+        }
+        const uint8_t nMarker = headerData[nIndex + 1];
+        if (nMarker == 0xFF) {
+            //填充字节，继续查找
+            ++nIndex;
+            continue;
+        }
+        nIndex += 2;
+        if ((nMarker == 0xD8) || (nMarker == 0xD9) || (nMarker == 0x01) ||
+            ((nMarker >= 0xD0) && (nMarker <= 0xD7))) {
+            //没有长度字段的独立标记
+            continue;
+        }
+        if (nIndex + 1 >= nDataSize) {
+            return false;
+        }
+        //段长度（包含长度字段自身的2个字节）
+        const size_t nSegmentLength = ((size_t)headerData[nIndex] << 8) | (size_t)headerData[nIndex + 1];
+        if (nSegmentLength < 2) {
+            return false;
+        }
+        //SOF0~SOF15中，除DHT(0xC4)、JPG(0xC8)、DAC(0xCC)之外，都是帧头，其中包含图片的宽高
+        const bool bIsSOF = (nMarker >= 0xC0) && (nMarker <= 0xCF) &&
+                            (nMarker != 0xC4) && (nMarker != 0xC8) && (nMarker != 0xCC);
+        if (bIsSOF) {
+            //帧头结构: length(2) + precision(1) + height(2) + width(2)
+            if ((nSegmentLength < 7) || (nIndex + 7 > nDataSize)) {
+                return false;
+            }
+            const uint32_t nImageHeight = ((uint32_t)headerData[nIndex + 3] << 8) | (uint32_t)headerData[nIndex + 4];
+            const uint32_t nImageWidth = ((uint32_t)headerData[nIndex + 5] << 8) | (uint32_t)headerData[nIndex + 6];
+            if ((nImageWidth == 0) || (nImageHeight == 0)) {
+                return false;
+            }
+            nWidth = nImageWidth;
+            nHeight = nImageHeight;
+            return true;
+        }
+        if (nIndex + nSegmentLength > nDataSize) {
+            //数据长度不够，无法继续解析
+            return false;
+        }
+        nIndex += nSegmentLength;
+    }
+    return false;
 }
 
 uint32_t Image_JPEG::GetWidth() const
@@ -369,10 +463,38 @@ std::shared_ptr<IBitmap> Image_JPEG::GetBitmap(bool* bDecodeError)
     return pBitmap;
 }
 
-std::shared_ptr<IBitmap> Image_JPEG::DecodeBitmap() const
+bool Image_JPEG::PrepareDecodeData()
+{
+    if (m_impl->m_fileData.empty() && !m_impl->m_imageFilePath.IsEmpty()) {
+        //加载阶段只记录了文件路径（大文件），此处读取完整的文件数据
+        std::vector<uint8_t> fileData;
+        FileUtil::ReadFileData(m_impl->m_imageFilePath, fileData);
+        if (m_impl->m_bAssertEnabled) {
+            ASSERT(!fileData.empty());
+        }
+        if (fileData.empty()) {
+            return false;
+        }
+        m_impl->m_fileData.swap(fileData);
+    }
+    if ((m_impl->m_tjInstance == nullptr) && !m_impl->m_fileData.empty()) {
+        tjhandle tjInstance = tjInitDecompress();
+        ASSERT(tjInstance != nullptr);
+        if (tjInstance == nullptr) {
+            return false;
+        }
+        m_impl->m_tjInstance = tjInstance;
+    }
+    return (m_impl->m_tjInstance != nullptr) && !m_impl->m_fileData.empty();
+}
+
+std::shared_ptr<IBitmap> Image_JPEG::DecodeBitmap()
 {
     std::shared_ptr<IBitmap> pJpegBitmap;
-    const TImpl& impl = *m_impl;
+    if (!PrepareDecodeData()) {
+        return nullptr;
+    }
+    TImpl& impl = *m_impl;
     if ((impl.m_tjInstance != nullptr) &&
         !impl.m_fileData.empty() &&
         (impl.m_nWidth > 0) &&
@@ -449,8 +571,7 @@ bool Image_JPEG::IsDelayDecodeEnabled() const
     //注意：此处不能判断m_bAsyncDecoding，因为工作线程也需要调用该函数做前置校验；
     //      对m_pDelayBitmap的跨线程访问由m_bDelayDecoded和m_bAsyncDecoding共同保护
     if (m_impl->m_bAsyncDecode &&
-        (m_impl->m_tjInstance != nullptr) &&
-        !m_impl->m_fileData.empty() &&
+        (!m_impl->m_fileData.empty() || !m_impl->m_imageFilePath.IsEmpty()) &&
         (m_impl->m_nWidth > 0) &&
         (m_impl->m_nHeight > 0) &&
         !m_impl->m_bDelayDecoded &&
@@ -483,8 +604,7 @@ bool Image_JPEG::DelayDecode(uint32_t /*nMinFrameIndex*/, std::function<bool(voi
     bool bRet = false;
     //注意：此处不能调用IsDelayDecodeEnabled()，因为此时m_bAsyncDecoding已由UI线程置位
     const bool bCanDecode = m_impl->m_bAsyncDecode &&
-                            (m_impl->m_tjInstance != nullptr) &&
-                            !m_impl->m_fileData.empty() &&
+                            (!m_impl->m_fileData.empty() || !m_impl->m_imageFilePath.IsEmpty()) &&
                             (m_impl->m_nWidth > 0) &&
                             (m_impl->m_nHeight > 0) &&
                             !m_impl->m_bDecodeError;

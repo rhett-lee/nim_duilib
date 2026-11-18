@@ -111,6 +111,8 @@ B 拿到空位图，既不会标记解码错误，也不会登记延迟绘制，
    可显著降低调度与 UI 唤醒开销。
 2. **大文件 I/O 仍在 UI 线程**：JPEG/WEBP 在文件超过阈值（128KB）时于加载阶段把整个文件读入内存，
    而 PNG/GIF 是把读盘推迟到工作线程的。异步解码只异步了"解码"，没有异步"读盘"。
+   已实现：JPEG 与静态 WEBP 在加载阶段只读 4KB 文件头解析宽高，完整文件数据与解码句柄推迟到解码线程准备，
+   详见 6.5 节。
 3. **帧就绪不能立即推进播放**：`PlayingImageAnimation` 在下一帧未就绪时直接返回，需要等一个定时器周期后重试。
 4. **单帧图片的缩放留在 UI 线程**：`ImageInfo::GetBitmap()` 中的 `ResizeImageBitmap()` 发生在绘制路径上。
 5. **延迟释放队列的定时任务重复投递**：每次 `ReleaseImage()` 都投递一个延迟任务，整体复杂度 O(N²)；
@@ -136,6 +138,8 @@ B 拿到空位图，既不会标记解码错误，也不会登记延迟绘制，
 - E6：`Image_PNG::DelayDecode()` 在未解出帧时先判断是否被 `IsAborted()` 中止，仅在确属解码错误时才断言。
 - 优化点 8：新增 `Image_DelayBitmap`；`ImageDecoder_Common` 与单帧 `ImageDecoder_ICO` 改为
   "加载阶段只解析文件头 + 解码线程执行像素解码"，详见 6.4 节。
+- 优化点 2：`Image_JPEG` 与 `Image_WEBP` 在加载阶段只读 4KB 文件头解析宽高，
+  完整的文件数据与解码句柄推迟到解码线程准备，详见 6.5 节。
 
 ## 6. 图片解码线程数量与选择策略
 
@@ -189,3 +193,36 @@ B 拿到空位图，既不会标记解码错误，也不会登记延迟绘制，
   继续走同步路径，避免引入额外的跨线程开销。
 - 性能提示：单帧 ICO 在异步路径中会先把文件读入内存以解析目录信息（仅一次读取，内存由延迟解码对象持有），
   真正的 `CxImage` 逐像素解码与数据翻转已全部移到解码线程。
+
+### 6.5 大文件延迟读盘（优化点 2）
+
+改造目标：加载阶段（UI 线程）不再读取大文件的完整数据，只读取文件头得到布局所需的宽高；
+完整文件数据与解码句柄都在解码线程中原地补齐。
+
+背景约束：`ImageManager` 在文件大于 128KB 时不会预读文件内容（`m_pFileData == nullptr`），
+只有路径可用。而 `IBitmapImage::GetWidth()/GetHeight()` 在加载阶段就要被读取（`ImageInfo` 用它计算布局尺寸），
+因此头部解析必须能给出准确的宽高。
+
+- **Image_JPEG**
+  - 加载阶段：`bAsyncDecode == true` 时调用 `FileUtil::ReadFileHeaderData(path, 4 * 1024, headerData)`，
+    新增的静态函数 `GetImageSizeFromHeader()` 校验 SOI（`0xFFD8`）后逐段扫描 JPEG 段标记，
+    跳过无长度字段的标记（`D8/D9/01/D0~D7`），在 SOF 段（`0xC0~0xCF` 且排除 `C4/C8/CC`）中读取高度与宽度。
+    随后用 `CalcImageSize()`（由原加载逻辑抽出）按缩放比例与目标区域计算尺寸，宽高有效即返回成功。
+  - 解析失败（头部不足 4KB、无 SOF 段、宽高非法）时回退到原有的"读取完整文件"路径，行为与改造前一致。
+  - 解码线程：新增 `PrepareDecodeData()`，在 `m_fileData` 为空时按 `m_imageFilePath` 读取完整文件，
+    并在 `m_tjInstance == nullptr` 时调用 `tjInitDecompress()` 懒创建句柄；
+    `DecodeBitmap()`（改为非 `const`）一进入即调用它，失败直接返回 `nullptr`。
+  - `IsDelayDecodeEnabled()` / `DelayDecode()` 的可解码条件由 `m_tjInstance != nullptr` 改为
+    `!m_fileData.empty() || !m_imageFilePath.IsEmpty()`，不再依赖加载阶段已建好句柄。
+- **Image_WEBP**
+  - 加载阶段：新增 `LoadImageInfoFromFileHeader()`，用 4KB 头部构造 `WebPDemuxPartial()`，
+    当解复用状态超过 `WEBP_DEMUX_PARSING_HEADER` 时读取 `WEBP_FF_FORMAT_FLAGS / CANVAS_WIDTH / CANVAS_HEIGHT`。
+  - **仅对静态图延迟**：动画 WEBP 的帧数只有解析完整文件后才能得到，因此判断 `(formatFlags & ANIMATION_FLAG) == 0`
+    且宽高有效时才设 `m_nFrameCount = 1`、记录路径并返回成功；动画 WEBP 仍走原有"读取完整文件 + 建解码器"的路径。
+  - 解码线程：新增 `PrepareDecodeData()`，在文件数据为空时按路径读全文件、`m_pWebPAnimDecoder == nullptr` 时
+    设置 `m_webpData` 并 `WebPAnimDecoderNew()`（Windows 用 `MODE_bgrA`，其他平台 `MODE_rgbA`，`use_threads = 1`），
+    随后用 `WebPAnimDecoderGetInfo()` 回填帧数与循环次数；`DelayDecode()` 在置位解码状态后立即调用它，失败按解码错误处理。
+  - `IsDelayDecodeEnabled()` 的条件改为
+    `m_bAsyncDecode && (!m_fileData.empty() || !m_imageFilePath.IsEmpty()) && (m_nFrameCount > 0) && !m_bDecodeError`。
+- 统一前提：只有 `bAsyncDecode == true` 时才走延迟读盘。无异步解码管道时，`DelayDecode()` 不会被调用，
+  若在加载阶段不读数据会导致 `GetBitmap()` 永久为空，因此必须保留同步回退。

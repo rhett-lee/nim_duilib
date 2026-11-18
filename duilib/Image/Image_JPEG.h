@@ -85,9 +85,31 @@ public:
     virtual bool MergeDelayDecodeData() override;
 
 private:
-    /** 解码图片数据
+    /** 解码图片数据（可以在多线程中调用）
     */
-    std::shared_ptr<IBitmap> DecodeBitmap() const;
+    std::shared_ptr<IBitmap> DecodeBitmap();
+
+    /** 准备解码所需的数据：文件数据与解码句柄（可以在多线程中调用）
+    *   加载阶段对于大文件只记录了文件路径，文件数据与解码句柄在此处补齐
+    * @return 返回true表示数据准备成功
+    */
+    bool PrepareDecodeData();
+
+    /** 解析JPEG文件头，获取图片的宽度和高度（只使用文件头部的数据，不执行像素解码）
+    * @param [in] headerData 文件头部的数据（通常是文件的起始部分）
+    * @param [out] nWidth 返回图片的宽度
+    * @param [out] nHeight 返回图片的高度
+    * @return 返回true表示解析成功
+    */
+    static bool GetImageSizeFromHeader(const std::vector<uint8_t>& headerData, uint32_t& nWidth, uint32_t& nHeight);
+
+    /** 计算解码后的图片宽度、高度与缩放比例
+    * @param [in] nWidth 图片的原始宽度
+    * @param [in] nHeight 图片的原始高度
+    * @param [in] fImageSizeScale 期望的图片缩放比例
+    * @param [in] rcMaxDestRectSize 目标区域大小，用于优化加载性能
+    */
+    void CalcImageSize(int32_t nWidth, int32_t nHeight, float fImageSizeScale, const UiSize& rcMaxDestRectSize);
 
 private:
     /** 私有实现数据

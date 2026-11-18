@@ -104,6 +104,26 @@ public:
     virtual bool MergeDelayDecodeData() override;
 
 private:
+    /** 异步解码：加载阶段只读取文件头部的数据，解析静态图片的基本信息
+    *   该方法只支持静态图片（非动画），动画图片仍需要读取完整的文件数据
+    * @param [in] imageFilePath 图片文件路径
+    * @param [in] fImageSizeScale 图片缩放百分比
+    * @param [in] rcMaxDestRectSize 目标区域大小，用于优化加载性能
+    * @param [in] bAssertEnabled 当遇到图片数据错误时，是否允许断言
+    * @return 返回true表示解析成功（完整的文件数据延迟到解码线程读取），返回false表示需要回退到读取完整文件
+    */
+    bool LoadImageInfoFromFileHeader(const FilePath& imageFilePath,
+                                     float fImageSizeScale,
+                                     const UiSize& rcMaxDestRectSize,
+                                     bool bAssertEnabled);
+
+    /** 准备解码所需的数据：完整的文件数据与解码句柄（可以在多线程中调用）
+    *   加载阶段对于大文件只记录了文件路径，文件数据与解码句柄在此处补齐
+    * @return 返回true表示数据准备成功
+    */
+    bool PrepareDecodeData();
+
+private:
     /** 私有实现数据
     */
     struct TImpl;

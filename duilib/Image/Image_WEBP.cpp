@@ -172,6 +172,12 @@ bool Image_WEBP::LoadImageFile(std::vector<uint8_t>& fileData,
     }
     const bool bNeedRestoreData = !fileData.empty();
     if (fileData.empty()) {
+        if (bAsyncDecode) {
+            //异步解码：加载阶段只读取文件头部的数据，完整的文件数据延迟到解码线程读取
+            if (LoadImageInfoFromFileHeader(imageFilePath, fImageSizeScale, rcMaxDestRectSize, bAssertEnabled)) {
+                return true;
+            }
+        }
         //没有支持文件路径的接口, 需要读取到内存
         FileUtil::ReadFileData(imageFilePath, fileData);
         if (bAssertEnabled) {
@@ -267,11 +273,126 @@ bool Image_WEBP::LoadImageFile(std::vector<uint8_t>& fileData,
     return true;
 }
 
+bool Image_WEBP::LoadImageInfoFromFileHeader(const FilePath& imageFilePath,
+                                             float fImageSizeScale,
+                                             const UiSize& rcMaxDestRectSize,
+                                             bool bAssertEnabled)
+{
+    //只读取文件头部的数据，用于解析图片的宽高
+    std::vector<uint8_t> headerData;
+    FileUtil::ReadFileHeaderData(imageFilePath, 4 * 1024, headerData);
+    if (headerData.empty()) {
+        return false;
+    }
+    WebPData webpData;
+    webpData.bytes = headerData.data();
+    webpData.size = headerData.size();
+    WebPDemuxState demuxState = WEBP_DEMUX_PARSING_HEADER;
+    WebPDemuxer* pDemux = WebPDemuxPartial(&webpData, &demuxState);
+    if (pDemux == nullptr) {
+        return false;
+    }
+    bool bRet = false;
+    if (demuxState > WEBP_DEMUX_PARSING_HEADER) {
+        const uint32_t nFormatFlags = (uint32_t)WebPDemuxGetI(pDemux, WEBP_FF_FORMAT_FLAGS);
+        const uint32_t nCanvasWidth = (uint32_t)WebPDemuxGetI(pDemux, WEBP_FF_CANVAS_WIDTH);
+        const uint32_t nCanvasHeight = (uint32_t)WebPDemuxGetI(pDemux, WEBP_FF_CANVAS_HEIGHT);
+        //动画图片的帧数需要解析完整的文件数据才能得到，因此只对静态图片做延迟加载
+        if (((nFormatFlags & ANIMATION_FLAG) == 0) && (nCanvasWidth > 0) && (nCanvasHeight > 0)) {
+            m_impl->ClearImageData();
+            m_impl->m_bDecodeError = false;
+            m_impl->m_bAssertEnabled = bAssertEnabled;
+            m_impl->m_imageFilePath = imageFilePath;
+            m_impl->m_fImageSizeScale = fImageSizeScale;
+            m_impl->m_bAsyncDecode = true;
+            m_impl->m_nFrameCount = 1;
+            m_impl->m_nLoops = -1;
+            m_impl->m_nWidth = nCanvasWidth;
+            m_impl->m_nHeight = nCanvasHeight;
+            float fScale = fImageSizeScale;
+            if (ImageUtil::GetBestImageScale(rcMaxDestRectSize, m_impl->m_nWidth, m_impl->m_nHeight, fImageSizeScale, fScale)) {
+                m_impl->m_nWidth = ImageUtil::GetScaledImageSize(m_impl->m_nWidth, fScale);
+                m_impl->m_nHeight = ImageUtil::GetScaledImageSize(m_impl->m_nHeight, fScale);
+                m_impl->m_fImageSizeScale = fScale;
+            }
+            else {
+                m_impl->m_nWidth = ImageUtil::GetScaledImageSize(m_impl->m_nWidth, fImageSizeScale);
+                m_impl->m_nHeight = ImageUtil::GetScaledImageSize(m_impl->m_nHeight, fImageSizeScale);
+            }
+            if (m_impl->m_bAssertEnabled) {
+                ASSERT(m_impl->m_nWidth > 0);
+                ASSERT(m_impl->m_nHeight > 0);
+            }
+            bRet = (m_impl->m_nWidth > 0) && (m_impl->m_nHeight > 0);
+        }
+    }
+    WebPDemuxDelete(pDemux);
+    return bRet;
+}
+
+bool Image_WEBP::PrepareDecodeData()
+{
+    if ((m_impl->m_pWebPAnimDecoder != nullptr) && !m_impl->m_fileData.empty()) {
+        return true;
+    }
+    if (m_impl->m_fileData.empty()) {
+        if (m_impl->m_imageFilePath.IsEmpty()) {
+            return false;
+        }
+        //加载阶段只记录了文件路径（大文件），此处读取完整的文件数据
+        std::vector<uint8_t> fileData;
+        FileUtil::ReadFileData(m_impl->m_imageFilePath, fileData);
+        if (m_impl->m_bAssertEnabled) {
+            ASSERT(!fileData.empty());
+        }
+        if (fileData.empty()) {
+            return false;
+        }
+        m_impl->m_fileData.swap(fileData);
+    }
+    if (m_impl->m_pWebPAnimDecoder == nullptr) {
+        m_impl->m_webpData.bytes = m_impl->m_fileData.data();
+        m_impl->m_webpData.size = m_impl->m_fileData.size();
+
+        WebPAnimDecoderOptions dec_options;
+        WebPAnimDecoderOptionsInit(&dec_options);
+#ifdef DUILIB_BUILD_FOR_WIN
+        //数据格式：Window平台BGRA(预乘)，其他平台RGBA(预乘)
+        dec_options.color_mode = MODE_bgrA;
+#else
+        dec_options.color_mode = MODE_rgbA;
+#endif
+        //开启多线程解码
+        dec_options.use_threads = 1;
+
+        WebPAnimDecoder* dec = WebPAnimDecoderNew(&m_impl->m_webpData, &dec_options);
+        if (dec == nullptr) {
+            m_impl->m_webpData = { 0, 0 };
+            return false;
+        }
+        WebPAnimInfo anim_info;
+        if (WebPAnimDecoderGetInfo(dec, &anim_info) == 0) {
+            WebPAnimDecoderDelete(dec);
+            m_impl->m_webpData = { 0, 0 };
+            return false;
+        }
+        m_impl->m_pWebPAnimDecoder = dec;
+        if (m_impl->m_nFrameCount <= 0) {
+            m_impl->m_nFrameCount = (int32_t)anim_info.frame_count;
+        }
+        m_impl->m_nLoops = (int32_t)anim_info.loop_count;
+        if (m_impl->m_nLoops <= 0) {
+            m_impl->m_nLoops = -1;
+        }
+    }
+    return true;
+}
+
 bool Image_WEBP::IsDelayDecodeEnabled() const
 {
     if (m_impl->m_bAsyncDecode &&
-        !m_impl->m_fileData.empty() &&
-        (m_impl->m_pWebPAnimDecoder != nullptr) &&
+        (!m_impl->m_fileData.empty() || !m_impl->m_imageFilePath.IsEmpty()) &&
+        (m_impl->m_nFrameCount > 0) &&
         !m_impl->m_bDecodeError) {
         return true;
     }
@@ -321,6 +442,14 @@ bool Image_WEBP::DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> 
     }
     //正常调度时，该状态已由UI线程在提交任务前置位；此处置位用于兼容直接调用DelayDecode的场景
     m_impl->m_bAsyncDecoding = true;
+    if (!PrepareDecodeData()) {
+        m_impl->m_bDecodeError = true;
+        if (bDecodeError != nullptr) {
+            *bDecodeError = true;
+        }
+        m_impl->m_bAsyncDecoding = false;
+        return false;
+    }
     const size_t nFrameCount = (size_t)m_impl->m_nFrameCount;
 
     bool bRet = true;
