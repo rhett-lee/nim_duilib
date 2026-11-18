@@ -84,7 +84,7 @@ std::shared_ptr<IBitmap> ImageInfo::GetSvgBitmap(const UiRect& rcDest, UiRect& r
 std::shared_ptr<IBitmap> ImageInfo::GetSvgBitmap(float fImageSizeScale, Control* pControl)
 {
     GlobalManager::Instance().AssertUIThread();
-    //SVG图片，无缓存
+    //SVG图片：位图缓存由SVG图片对象内部按尺寸维护
     std::shared_ptr<IImage> pImageData = m_pImageData;
     ASSERT(pImageData != nullptr);
     if (pImageData == nullptr) {

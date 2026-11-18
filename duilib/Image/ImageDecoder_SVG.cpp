@@ -8,6 +8,7 @@
 #include "duilib/Core/GlobalManager.h"
 #include <cmath>
 #include <cstring>
+#include <list>
 
 #if defined(__GNUC__) && !defined(__clang__)
     #pragma GCC diagnostic push
@@ -142,16 +143,21 @@ public:
                 if ((svgDom != nullptr) && (nLoadedImageWidth == m_nImageWidth) && (nLoadedImageHeight == m_nImageHeight)) {
                     //重现加载成功
                     m_svgDom = svgDom;
-                    m_pBitmap.reset();
+                    m_cachedBitmaps.clear();
                 }
             }
         }
 
-        if ((m_pBitmap != nullptr) &&
-            (m_pBitmap->GetWidth() == nImageWidth) &&
-            (m_pBitmap->GetHeight() == nImageHeight)) {
-            //使用缓存位图
-            return m_pBitmap;
+        //查找缓存的位图：支持少量不同尺寸的缓存，避免同一SVG在不同尺寸间切换绘制时反复重新栅格化
+        for (std::list<CachedBitmap>::iterator it = m_cachedBitmaps.begin(); it != m_cachedBitmaps.end(); ++it) {
+            if ((it->nWidth == nImageWidth) && (it->nHeight == nImageHeight) && (it->pBitmap != nullptr)) {
+                std::shared_ptr<IBitmap> pCachedBitmap = it->pBitmap;
+                if (it != m_cachedBitmaps.begin()) {
+                    //LRU：将最近使用的缓存移动到链表头部
+                    m_cachedBitmaps.splice(m_cachedBitmaps.begin(), m_cachedBitmaps, it);
+                }
+                return pCachedBitmap;
+            }
         }
 
         ASSERT(m_svgDom != nullptr);
@@ -190,8 +196,17 @@ public:
         if (!pBitmap->Init(nImageWidth, nImageHeight, skBitmap.getPixels())) {
             pBitmap.reset();
         }
-        //记录缓存位图，避免每次都重新生成位图
-        m_pBitmap = pBitmap;
+        if (pBitmap != nullptr) {
+            //记录缓存位图，避免每次绘制都重新生成位图
+            CachedBitmap cachedBitmap;
+            cachedBitmap.nWidth = nImageWidth;
+            cachedBitmap.nHeight = nImageHeight;
+            cachedBitmap.pBitmap = pBitmap;
+            m_cachedBitmaps.push_front(cachedBitmap);
+            while (m_cachedBitmaps.size() > kMaxCachedBitmapCount) {
+                m_cachedBitmaps.pop_back();
+            }
+        }
         return pBitmap;
     }
 
@@ -403,8 +418,24 @@ public:
     sk_sp<SkSVGDOM> m_svgDom;
 
 private:
-    //缓存位图
-    std::shared_ptr<IBitmap> m_pBitmap;
+    //缓存位图的容量：支持同一SVG在少量不同尺寸下复用，避免单一缓存被不同尺寸交替覆盖导致重复栅格化
+    static constexpr size_t kMaxCachedBitmapCount = 3;
+
+    //缓存的位图信息
+    struct CachedBitmap
+    {
+        //位图宽度
+        uint32_t nWidth = 0;
+
+        //位图高度
+        uint32_t nHeight = 0;
+
+        //缓存的位图
+        std::shared_ptr<IBitmap> pBitmap;
+    };
+
+    //缓存位图列表：头部为最近使用的位图，尾部为最久未使用的位图
+    std::list<CachedBitmap> m_cachedBitmaps;
 };
 
 ImageDecoder_SVG::ImageDecoder_SVG()
