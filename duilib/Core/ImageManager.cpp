@@ -317,13 +317,23 @@ void ImageManager::OnImageDataDestroy(IImage* pImage)
 void ImageManager::RemoveAllImages()
 {
     m_imageDataMap.clear();
-    m_delayReleaseImageList.clear();
+    m_delayReleaseImageMap.clear();
+    m_delayReleaseImageTimeMap.clear();
     m_imageInfoMap.clear();
 }
 
+/** 延迟释放图片的等待时间(秒)：从最后一次释放请求开始计时，到期后才真正释放图片数据
+*   说明：该延迟是业务需要，用于虚表等场景下图片在格子间快速切换时，避免图片资源被反复释放后重新加载
+*/
+constexpr int32_t kImageReleaseDelaySeconds = 30;
+
+/** 投递延迟释放任务时，为定时器精度预留的余量(毫秒)：确保任务执行时数据已经到期
+*/
+constexpr int32_t kImageReleaseTimerMarginMs = 50;
+
 void ImageManager::ReleaseImage(const std::shared_ptr<IImage>& pImageData, const DString& imageFullPath)
 {
-    //先移除队列中的元素，从而确保只有一个元素在队列中
+    //先移除队列中的元素：确保同一张图片在队列中只有一条数据，并刷新其释放时间(重新开始计时)
     CancelReleaseImage(pImageData);
 
     //通过回调函数，可以避免放入延迟释放队列
@@ -338,43 +348,88 @@ void ImageManager::ReleaseImage(const std::shared_ptr<IImage>& pImageData, const
         TReleaseImageData imageData;
         imageData.m_pImage = pImageData;
         imageData.m_releaseTime = std::chrono::steady_clock::now();
-        m_delayReleaseImageList.push_back(imageData);
+        const std::chrono::steady_clock::time_point expireTime =
+            imageData.m_releaseTime + std::chrono::seconds(kImageReleaseDelaySeconds);
+        m_delayReleaseImageMap.emplace(pImageData.get(), std::move(imageData));
+        m_delayReleaseImageTimeMap.emplace(expireTime, pImageData.get());
     }
 
-    const int32_t nDelaySeconds = 35;
-    auto delayReleaseImage = [nDelaySeconds]() {
-        ImageManager& imageManager = GlobalManager::Instance().Image();
-        auto nowTime = std::chrono::steady_clock::now();
-        auto iter = imageManager.m_delayReleaseImageList.begin();
-        while (iter != imageManager.m_delayReleaseImageList.end()) {
-            const TReleaseImageData& imageData = *iter;
-            //检查并释放图片资源(间隔：30秒，释放原图，以避免影响图片共享)
-            auto seconds = std::chrono::duration_cast<std::chrono::seconds>(nowTime - imageData.m_releaseTime);
-            if (seconds.count() > (nDelaySeconds - 5)) {
-                iter = imageManager.m_delayReleaseImageList.erase(iter);
-            }
-            else {
-                ++iter;
-            }
-        }
-    };
-    GlobalManager::Instance().Thread().PostDelayedTask(ui::kThreadUI, delayReleaseImage, nDelaySeconds * 1000);
+    //只在没有待处理任务时投递一次延迟释放任务：
+    //后续加入的数据的到期时间一定不早于当前已安排的处理时间，因此无需重复投递
+    if (!m_bReleaseImageTaskPosted) {
+        PostDelayReleaseImageTask();
+    }
 }
 
 void ImageManager::CancelReleaseImage(const std::shared_ptr<IImage>& pImageData)
 {
-    if ((pImageData != nullptr) && !m_delayReleaseImageList.empty()) {
-        auto iter = m_delayReleaseImageList.begin();
-        while (iter != m_delayReleaseImageList.end()) {
-            const TReleaseImageData& imageData = *iter;
-            if (imageData.m_pImage == pImageData) {
-                iter = m_delayReleaseImageList.erase(iter);
-                break;
-            }
-            else {
-                ++iter;
-            }
+    if (pImageData == nullptr) {
+        return;
+    }
+    auto iter = m_delayReleaseImageMap.find(pImageData.get());
+    if (iter == m_delayReleaseImageMap.end()) {
+        return;
+    }
+    //从时间索引中移除对应的数据
+    const std::chrono::steady_clock::time_point expireTime =
+        iter->second.m_releaseTime + std::chrono::seconds(kImageReleaseDelaySeconds);
+    auto timeRange = m_delayReleaseImageTimeMap.equal_range(expireTime);
+    for (auto timeIter = timeRange.first; timeIter != timeRange.second; ++timeIter) {
+        if (timeIter->second == pImageData.get()) {
+            m_delayReleaseImageTimeMap.erase(timeIter);
+            break;
         }
+    }
+    m_delayReleaseImageMap.erase(iter);
+}
+
+void ImageManager::ProcessDelayReleaseImage()
+{
+    GlobalManager::Instance().AssertUIThread();
+    m_bReleaseImageTaskPosted = false;
+
+    //按时间顺序释放所有已经超时的图片数据
+    const auto nowTime = std::chrono::steady_clock::now();
+    auto iter = m_delayReleaseImageTimeMap.begin();
+    while ((iter != m_delayReleaseImageTimeMap.end()) && (iter->first <= nowTime)) {
+        IImage* pImageKey = iter->second;
+        iter = m_delayReleaseImageTimeMap.erase(iter);
+        //从主表中移除：最后一个引用释放后，图片数据被真正销毁
+        m_delayReleaseImageMap.erase(pImageKey);
+    }
+
+    //还有待释放的数据时，按最早的超时时间继续安排下一次处理
+    if (!m_delayReleaseImageTimeMap.empty()) {
+        PostDelayReleaseImageTask();
+    }
+}
+
+void ImageManager::PostDelayReleaseImageTask()
+{
+    if (m_bReleaseImageTaskPosted || m_delayReleaseImageTimeMap.empty()) {
+        return;
+    }
+    m_bReleaseImageTaskPosted = true;
+
+    const auto nowTime = std::chrono::steady_clock::now();
+    const std::chrono::steady_clock::time_point expireTime = m_delayReleaseImageTimeMap.begin()->first;
+    int64_t nDelayMs = 0;
+    if (expireTime > nowTime) {
+        nDelayMs = std::chrono::duration_cast<std::chrono::milliseconds>(expireTime - nowTime).count();
+    }
+    nDelayMs += kImageReleaseTimerMarginMs;
+    if (nDelayMs > INT32_MAX) {
+        nDelayMs = INT32_MAX;
+    }
+
+    auto delayReleaseImage = []() {
+        ImageManager& imageManager = GlobalManager::Instance().Image();
+        imageManager.ProcessDelayReleaseImage();
+    };
+    size_t nTaskId = GlobalManager::Instance().Thread().PostDelayedTask(ui::kThreadUI, delayReleaseImage, (int32_t)nDelayMs);
+    if (nTaskId == 0) {
+        //任务投递失败：重置状态，避免后续不再投递延迟释放任务
+        m_bReleaseImageTaskPosted = false;
     }
 }
 

@@ -202,7 +202,7 @@ private:
     int32_t m_nImageInfoHeight;
 
     /** 原图的图像接口(解码绘制的图片数据由此原图中提取，提取完成后，不再使用，可以释放，以减少内存占用)
-    *   使用完成后，放到ImageManager::m_delayReleaseImageList中，延迟释放，以实现原图共享功能
+    *   使用完成后，放到ImageManager::m_delayReleaseImageMap中，延迟释放，以实现原图共享功能
     */
     std::shared_ptr<IImage> m_pImageData;
 

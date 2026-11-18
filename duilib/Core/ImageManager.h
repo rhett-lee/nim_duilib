@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <map>
 #include <unordered_map>
 #include <memory>
 #include <chrono>
@@ -62,6 +63,14 @@ public:
     /** 取消释放原图图片
     */
     void CancelReleaseImage(const std::shared_ptr<IImage>& pImageData);
+
+    /** 处理延迟释放队列：释放已经超时的图片数据，并安排下一次处理(仅在UI线程中调用)
+    */
+    void ProcessDelayReleaseImage();
+
+    /** 投递延迟释放任务：按队列中最早的超时时间安排一次处理(仅在UI线程中调用)
+    */
+    void PostDelayReleaseImageTask();
 
     /** 设置延迟释放图片的回调函数，可以用来阻止图片资源放入延迟释放队列，立即释放图片资源
      *   备注：如果图片资源是在虚表的子项中使用，立即释放原图资源会导致性能降低，因为虚表的元素是每次刷新都重新填充
@@ -234,7 +243,23 @@ private:
         //数据释放的时间
         std::chrono::steady_clock::time_point m_releaseTime;
     };
-    std::vector<TReleaseImageData> m_delayReleaseImageList;
+
+    /** 按超时时间排序的索引(用于按时间顺序高效查找已超时的数据)
+    *   KEY: 超时时间, VALUE: 图片数据指针
+    */
+    using TReleaseImageTimeMap = std::multimap<std::chrono::steady_clock::time_point, IImage*>;
+
+    /** 等待释放的原图数据(KEY: 图片数据指针，支持O(1)查找与取消)
+    */
+    std::unordered_map<IImage*, TReleaseImageData> m_delayReleaseImageMap;
+
+    /** 等待释放的原图数据的时间索引(按超时时间排序)
+    */
+    TReleaseImageTimeMap m_delayReleaseImageTimeMap;
+
+    /** 延迟释放任务是否已经投递(避免每次ReleaseImage都投递一个定时任务)
+    */
+    bool m_bReleaseImageTaskPosted = false;
 
     /** 延迟释放图片的回调函数
     */
