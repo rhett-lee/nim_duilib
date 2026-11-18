@@ -186,16 +186,16 @@ nImageOffset = static_cast<int32_t>(std::ceil(nImageOffset * fImageSizeScale));
 1. **SVG 缩放策略偏保守** — 已修复：栅格化比例由 `min` 改为 `max`（见第 4 条）。
 2. **Alpha 预乘/非预乘混用** — 已修复（见第 2 条）。这是半透明圆角、阴影、渐变图标边缘发黑/发彩的最常见根因。
 3. **`ceil` 缩放导致 1px 错位/抖动** — 已修复（见第 9 条）。
-4. **九宫格边距只做 clamp** — 未修改：`duilib/Image/ImageInfo.cpp`（`ImageInfo::ScaleImageSourceRect`）在目标小于四角边距之和时，中间区域会被压成负尺寸，表现为圆角按钮被「切角/变形」。建议后续按比例压缩四边。
-5. **上采样滤波** — 未修改：`duilib/Image/ImageUtil.cpp` 用 `STBIR_FILTER_TRIANGLE`，小图标放大时偏软；可考虑 `STBIR_FILTER_CATMULLROM` 提升锐度，下采样显式指定 Mitchell 以减轻摩尔纹。
+4. **九宫格边距：目标区域小于边距之和时出现负尺寸** — 已修复。实际位置不在 `ImageInfo`，而在 `duilib/RenderSkia/Render_Skia.cpp`（`Render_Skia::DrawImage`）：原实现直接用图片边距计算目标中间区域，目标区域小于边距之和时 `rcDrawDest` 左右（或上下）反转，中间区域被压成负尺寸，表现为圆角按钮被「切角/变形」。修复：新增 `rcDestBorder`，目标区域不足时按比例压缩目标边距（且保证压缩后四边之和等于目标尺寸），源图片边距保持不变，四角/四边按压缩后的目标边距绘制。
+5. **上采样滤波** — 已修复：`duilib/Image/ImageUtil.cpp`（`ImageUtil::ResizeImageData`）改用 stb 的扩展接口按缩放方向选择滤波——放大时用 `STBIR_FILTER_CATMULLROM`（小图标放大更锐利），缩小时用 `STBIR_FILTER_MITCHELL`（减轻摩尔纹）。
 
 ---
 
-## 四、可维护性（未修改）
+## 四、可维护性
 
-- `duilib/Image/ImageAttribute.cpp` 用裸 `new/delete` 管理 4 个矩形成员（`m_rcDest`/`m_rcSource`/`m_rcCorner`/`m_rcMargin`），建议改为 `std::unique_ptr<UiRect>`（拷贝赋值/析构可整体简化）。
-- 各 `Image_PNG/GIF/WEBP/JPEG::LoadImageFile` 骨架高度重复，可抽公共基类。
-- `duilib/Image/Image.cpp` 中 `SetImageFade(uint8_t nFade)` 的命名与「透明度」语义不一致（成员叫 `m_bFade`）。
+- **已修复**：`duilib/Image/ImageAttribute` 的 4 个矩形成员（`m_rcDest`/`m_rcSource`/`m_rcCorner`/`m_rcMargin`）由裸指针改为 `std::unique_ptr`，拷贝赋值简化为 4 行，`Init()`/析构函数中的手工 `delete` 全部移除。
+- **不修改（按要求保留）**：各 `Image_PNG/GIF/WEBP/JPEG::LoadImageFile` 骨架重复，可抽公共基类。
+- **未修改（兼容性原因）**：`ImageAttribute::m_bFade` 是公共成员（`Control.cpp`、`StateImage.cpp` 均直接访问），改名 `m_nFade` 会破坏下游源码兼容性，因此保留原名；其注释已明确标注「透明度（0 - 255）」。
 
 ---
 
@@ -203,15 +203,16 @@ nImageOffset = static_cast<int32_t>(std::ceil(nImageOffset * fImageSizeScale));
 
 | 文件 | 涉及条目 |
 |:---|:---|
-| `duilib/Image/ImageUtil.cpp` | 1、2、9 |
+| `duilib/Image/ImageUtil.cpp` | 1、2、9、美观度 5 |
 | `duilib/Image/ImageUtil.h` | 2 |
 | `duilib/RenderSkia/Bitmap_Skia.cpp` | 2 |
+| `duilib/RenderSkia/Render_Skia.cpp` | 美观度 4（九宫格边距压缩） |
 | `duilib/Image/ImageDecoderFactory.cpp` | 3 |
 | `duilib/Image/Image.cpp` | 4、6、14 |
 | `duilib/Image/ImageInfo.cpp` / `ImageInfo.h` | 4、5、10、15 |
 | `duilib/Image/ImageDecoder_SVG.cpp` | 7 |
 | `duilib/Image/ImageLoadParam.cpp` | 8 |
-| `duilib/Image/ImageAttribute.cpp` | 11、12 |
+| `duilib/Image/ImageAttribute.cpp` / `ImageAttribute.h` | 11、12、可维护性（unique_ptr） |
 | `duilib/Image/ImagePlayer.cpp` | 13、14 |
 | `duilib/Image/ImageDecoder_Common.cpp` | 16 |
 

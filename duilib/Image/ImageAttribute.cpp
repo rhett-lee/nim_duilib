@@ -6,20 +6,12 @@
 
 namespace ui 
 {
-ImageAttribute::ImageAttribute():
-    m_rcDest(nullptr),
-    m_rcMargin(nullptr),
-    m_rcSource(nullptr),
-    m_rcCorner(nullptr)
+ImageAttribute::ImageAttribute()
 {
     Init();
 }
 
-ImageAttribute::ImageAttribute(const ImageAttribute& r) :
-    m_rcDest(nullptr),
-    m_rcMargin(nullptr),
-    m_rcSource(nullptr),
-    m_rcCorner(nullptr)
+ImageAttribute::ImageAttribute(const ImageAttribute& r)
 {
     Init();
     *this = r;
@@ -68,57 +60,10 @@ ImageAttribute& ImageAttribute::operator=(const ImageAttribute& r)
         m_pTiledDrawParam.reset();
     }
 
-    if (r.m_rcDest != nullptr) {
-        if (m_rcDest == nullptr) {
-            m_rcDest = new UiRect;
-        }
-        *m_rcDest = *r.m_rcDest;
-    }
-    else {
-        if (m_rcDest != nullptr) {
-            delete m_rcDest;
-            m_rcDest = nullptr;
-        }
-    }
-
-    if (r.m_rcMargin != nullptr) {
-        if (m_rcMargin == nullptr) {
-            m_rcMargin = new UiMargin16;
-        }
-        *m_rcMargin = *r.m_rcMargin;
-    }
-    else {
-        if (m_rcMargin != nullptr) {
-            delete m_rcMargin;
-            m_rcMargin = nullptr;
-        }
-    }
-
-    if (r.m_rcSource != nullptr) {
-        if (m_rcSource == nullptr) {
-            m_rcSource = new UiRect;
-        }
-        *m_rcSource = *r.m_rcSource;
-    }
-    else {
-        if (m_rcSource != nullptr) {
-            delete m_rcSource;
-            m_rcSource = nullptr;
-        }
-    }
-
-    if (r.m_rcCorner != nullptr) {
-        if (m_rcCorner == nullptr) {
-            m_rcCorner = new UiRect;
-        }
-        *m_rcCorner = *r.m_rcCorner;
-    }
-    else {
-        if (m_rcCorner != nullptr) {
-            delete m_rcCorner;
-            m_rcCorner = nullptr;
-        }
-    }
+    m_rcDest = r.m_rcDest ? std::make_unique<UiRect>(*r.m_rcDest) : nullptr;
+    m_rcMargin = r.m_rcMargin ? std::make_unique<UiMargin16>(*r.m_rcMargin) : nullptr;
+    m_rcSource = r.m_rcSource ? std::make_unique<UiRect>(*r.m_rcSource) : nullptr;
+    m_rcCorner = r.m_rcCorner ? std::make_unique<UiRect>(*r.m_rcCorner) : nullptr;
 
     return *this;
 }
@@ -153,43 +98,15 @@ void ImageAttribute::Init()
     m_bAdaptiveDestRect = false;
     m_pTiledDrawParam.reset();
 
-    if (m_rcDest != nullptr) {
-        delete m_rcDest;
-        m_rcDest = nullptr;
-    }
-    if (m_rcSource != nullptr) {
-        delete m_rcSource;
-        m_rcSource = nullptr;
-    }
-    if (m_rcMargin != nullptr) {
-        delete m_rcMargin;
-        m_rcMargin = nullptr;
-    }
-    if (m_rcCorner != nullptr) {
-        delete m_rcCorner;
-        m_rcCorner = nullptr;
-    }
+    m_rcDest.reset();
+    m_rcSource.reset();
+    m_rcMargin.reset();
+    m_rcCorner.reset();
     m_rcMarginScale = 0;
 }
 
 ImageAttribute::~ImageAttribute()
 {
-    if (m_rcDest != nullptr) {
-        delete m_rcDest;
-        m_rcDest = nullptr;
-    }
-    if (m_rcSource != nullptr) {
-        delete m_rcSource;
-        m_rcSource = nullptr;
-    }
-    if (m_rcMargin != nullptr) {
-        delete m_rcMargin;
-        m_rcMargin = nullptr;
-    }
-    if (m_rcCorner != nullptr) {
-        delete m_rcCorner;
-        m_rcCorner = nullptr;
-    }
     m_pTiledDrawParam.reset();
 }
 
@@ -238,7 +155,7 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
         else if ((name == _T("src")) || (name == _T("source"))) {
             //图片源区域设置：可以用于仅包含源图片的部分图片内容（比如通过此机制，将按钮的各个状态图片整合到一张大图片上，方便管理图片资源）
             if (imageAttribute.m_rcSource == nullptr) {
-                imageAttribute.m_rcSource = new UiRect;
+                imageAttribute.m_rcSource = std::make_unique<UiRect>();
             }
             AttributeUtil::ParseRectValue(value.c_str(), *imageAttribute.m_rcSource);
             imageAttribute.m_rcSource->left = std::max(imageAttribute.m_rcSource->left, 0);
@@ -248,7 +165,7 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
             //图片的圆角属性，如果设置此属性，绘制图片的时候，采用九宫格绘制方式绘制图片：
             //    四个角不拉伸图片，四个边部分拉伸，中间部分可以拉伸或者根据xtiled、ytiled属性来平铺绘制
             if (imageAttribute.m_rcCorner == nullptr) {
-                imageAttribute.m_rcCorner = new UiRect;
+                imageAttribute.m_rcCorner = std::make_unique<UiRect>();
             }
             //corner 的 4 个值是四条边各自的内缩量，互相独立（如 corner='28,20,22,22' 表示左边 28、上边 20、
             //右边 22、下边 22），不能按普通矩形做 "right - left >= 0" 的尺寸校验，
@@ -276,7 +193,7 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
             //设置目标区域，该区域是指相对于所属控件的Rect区域
             if (!value.empty()) {
                 if (imageAttribute.m_rcDest == nullptr) {
-                    imageAttribute.m_rcDest = new UiRect;
+                    imageAttribute.m_rcDest = std::make_unique<UiRect>();
                 }
                 UiRect& rect = *imageAttribute.m_rcDest;
                 DString::value_type* pstr = nullptr;
@@ -533,7 +450,7 @@ void ImageAttribute::SetImageMargin(const UiMargin& newMargin, bool bNeedDpiScal
         dpi.ScaleMargin(rcMarginDpi);
     }
     if (m_rcMargin == nullptr) {
-        m_rcMargin = new UiMargin16;
+        m_rcMargin = std::make_unique<UiMargin16>();
     }
     m_rcMargin->left = TruncateToUInt16(rcMarginDpi.left);
     m_rcMargin->top = TruncateToUInt16(rcMarginDpi.top);

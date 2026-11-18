@@ -1023,11 +1023,39 @@ void Render_Skia::DrawImage(const IBitmap* pBitmap,
     //九宫格边距（目标区域与源图片共用同一组边距）
     const UiMargin& rcImageBorder = drawParam.rcImageBorder;
 
+    //绘制目标区域使用的九宫格边距：当目标区域小于边距之和时，按比例压缩边距，
+    //避免中间区域出现负尺寸（表现为圆角被切掉、图形错位）
+    UiMargin rcDestBorder = rcImageBorder;
+    if (!rcDestBorder.IsEmpty()) {
+        const int32_t nBorderWidth = rcDestBorder.left + rcDestBorder.right;
+        if ((nBorderWidth > 0) && (nBorderWidth > rcDest.Width())) {
+            if (rcDest.Width() <= 0) {
+                rcDestBorder.left = 0;
+                rcDestBorder.right = 0;
+            }
+            else {
+                rcDestBorder.left = (int32_t)((int64_t)rcDestBorder.left * rcDest.Width() / nBorderWidth);
+                rcDestBorder.right = rcDest.Width() - rcDestBorder.left;
+            }
+        }
+        const int32_t nBorderHeight = rcDestBorder.top + rcDestBorder.bottom;
+        if ((nBorderHeight > 0) && (nBorderHeight > rcDest.Height())) {
+            if (rcDest.Height() <= 0) {
+                rcDestBorder.top = 0;
+                rcDestBorder.bottom = 0;
+            }
+            else {
+                rcDestBorder.top = (int32_t)((int64_t)rcDestBorder.top * rcDest.Height() / nBorderHeight);
+                rcDestBorder.bottom = rcDest.Height() - rcDestBorder.top;
+            }
+        }
+    }
+
     // 绘制目标中间区域的矩形范围
-    rcDrawDest.left = rcDest.left + rcImageBorder.left;
-    rcDrawDest.top = rcDest.top + rcImageBorder.top;
-    rcDrawDest.right = rcDest.right - rcImageBorder.right;
-    rcDrawDest.bottom = rcDest.bottom - rcImageBorder.bottom;
+    rcDrawDest.left = rcDest.left + rcDestBorder.left;
+    rcDrawDest.top = rcDest.top + rcDestBorder.top;
+    rcDrawDest.right = rcDest.right - rcDestBorder.right;
+    rcDrawDest.bottom = rcDest.bottom - rcDestBorder.bottom;
 
     if (bTiledX || bTiledY) {
         //中间部分，剪去平铺绘制的内边距
@@ -1190,75 +1218,75 @@ void Render_Skia::DrawImage(const IBitmap* pBitmap,
     };
 
     // left-top
-    if (rcImageBorder.left > 0 && rcImageBorder.top > 0) {
+    if (rcDestBorder.left > 0 && rcDestBorder.top > 0) {
         //左上角
         DrawCorner(
             rcDrawImageSource.left, rcDrawImageSource.top,
             rcDrawImageSource.left + rcImageBorder.left, rcDrawImageSource.top + rcImageBorder.top,
             rcDest.left, rcDest.top,
-            rcDest.left + rcImageBorder.left, rcDest.top + rcImageBorder.top);
+            rcDest.left + rcDestBorder.left, rcDest.top + rcDestBorder.top);
     }
     // top
-    if (rcImageBorder.top > 0) {
+    if (rcDestBorder.top > 0) {
         //边框：上
         DrawCorner(
             rcDrawImageSource.left + rcImageBorder.left, rcDrawImageSource.top,
             rcDrawImageSource.right - rcImageBorder.right, rcDrawImageSource.top + rcImageBorder.top,
-            rcDest.left + rcImageBorder.left, rcDest.top,
-            rcDest.right - rcImageBorder.right, rcDest.top + rcImageBorder.top);
+            rcDest.left + rcDestBorder.left, rcDest.top,
+            rcDest.right - rcDestBorder.right, rcDest.top + rcDestBorder.top);
     }
     // right-top
-    if (rcImageBorder.right > 0 && rcImageBorder.top > 0) {
+    if (rcDestBorder.right > 0 && rcDestBorder.top > 0) {
         //右上角
         DrawCorner(
             rcDrawImageSource.right - rcImageBorder.right, rcDrawImageSource.top,
             rcDrawImageSource.right, rcDrawImageSource.top + rcImageBorder.top,
-            rcDest.right - rcImageBorder.right, rcDest.top,
-            rcDest.right, rcDest.top + rcImageBorder.top);
+            rcDest.right - rcDestBorder.right, rcDest.top,
+            rcDest.right, rcDest.top + rcDestBorder.top);
     }
     // left
-    if (rcImageBorder.left > 0) {
+    if (rcDestBorder.left > 0) {
         //边框：左
         DrawCorner(
             rcDrawImageSource.left, rcDrawImageSource.top + rcImageBorder.top,
             rcDrawImageSource.left + rcImageBorder.left, rcDrawImageSource.bottom - rcImageBorder.bottom,
-            rcDest.left, rcDest.top + rcImageBorder.top,
-            rcDest.left + rcImageBorder.left, rcDest.bottom - rcImageBorder.bottom);
+            rcDest.left, rcDest.top + rcDestBorder.top,
+            rcDest.left + rcDestBorder.left, rcDest.bottom - rcDestBorder.bottom);
     }
     // right
-    if (rcImageBorder.right > 0) {
+    if (rcDestBorder.right > 0) {
         //边框：右
         DrawCorner(
             rcDrawImageSource.right - rcImageBorder.right, rcDrawImageSource.top + rcImageBorder.top,
             rcDrawImageSource.right, rcDrawImageSource.bottom - rcImageBorder.bottom,
-            rcDest.right - rcImageBorder.right, rcDest.top + rcImageBorder.top,
-            rcDest.right, rcDest.bottom - rcImageBorder.bottom);
+            rcDest.right - rcDestBorder.right, rcDest.top + rcDestBorder.top,
+            rcDest.right, rcDest.bottom - rcDestBorder.bottom);
     }
     // left-bottom
-    if (rcImageBorder.left > 0 && rcImageBorder.bottom > 0) {
+    if (rcDestBorder.left > 0 && rcDestBorder.bottom > 0) {
         //左下角
         DrawCorner(
             rcDrawImageSource.left, rcDrawImageSource.bottom - rcImageBorder.bottom,
             rcDrawImageSource.left + rcImageBorder.left, rcDrawImageSource.bottom,
-            rcDest.left, rcDest.bottom - rcImageBorder.bottom,
-            rcDest.left + rcImageBorder.left, rcDest.bottom);
+            rcDest.left, rcDest.bottom - rcDestBorder.bottom,
+            rcDest.left + rcDestBorder.left, rcDest.bottom);
     }
     // bottom
-    if (rcImageBorder.bottom > 0) {
+    if (rcDestBorder.bottom > 0) {
         //边框：下
         DrawCorner(
             rcDrawImageSource.left + rcImageBorder.left, rcDrawImageSource.bottom - rcImageBorder.bottom,
             rcDrawImageSource.right - rcImageBorder.right, rcDrawImageSource.bottom,
-            rcDest.left + rcImageBorder.left, rcDest.bottom - rcImageBorder.bottom,
-            rcDest.right - rcImageBorder.right, rcDest.bottom);
+            rcDest.left + rcDestBorder.left, rcDest.bottom - rcDestBorder.bottom,
+            rcDest.right - rcDestBorder.right, rcDest.bottom);
     }
     // right-bottom
-    if (rcImageBorder.right > 0 && rcImageBorder.bottom > 0) {
+    if (rcDestBorder.right > 0 && rcDestBorder.bottom > 0) {
         //右下角
         DrawCorner(
             rcDrawImageSource.right - rcImageBorder.right, rcDrawImageSource.bottom - rcImageBorder.bottom,
             rcDrawImageSource.right, rcDrawImageSource.bottom,
-            rcDest.right - rcImageBorder.right, rcDest.bottom - rcImageBorder.bottom,
+            rcDest.right - rcDestBorder.right, rcDest.bottom - rcDestBorder.bottom,
             rcDest.right, rcDest.bottom);
     }
 }

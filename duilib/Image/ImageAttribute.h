@@ -184,16 +184,16 @@ private:
     uint16_t m_rcMarginScale;
 
     //绘制目标区域位置和大小(相对于控件区域的位置, 未进行DPI缩放)
-    UiRect* m_rcDest;
+    std::unique_ptr<UiRect> m_rcDest;
 
     //在绘制目标区域中的外边距(如果指定了rcDest值，则此选项无效)
-    UiMargin16* m_rcMargin;
+    std::unique_ptr<UiMargin16> m_rcMargin;
 
     //图片源区域位置和大小(未进行DPI缩放)
-    UiRect* m_rcSource;
+    std::unique_ptr<UiRect> m_rcSource;
 
     //圆角属性(未进行DPI缩放)
-    UiRect* m_rcCorner;
+    std::unique_ptr<UiRect> m_rcCorner;
 };
 
 } // namespace ui

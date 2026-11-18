@@ -167,18 +167,19 @@ bool ImageUtil::ResizeImageData(const uint8_t* pPixelBits, size_t nPixelBitsLen,
     //使用stb_image实现：根据Alpha类型选择预乘/非预乘的像素布局，
     //避免非预乘的像素数据被当作预乘数据重采样，导致半透明区域的颜色出现偏差
     const stbir_pixel_layout pixelLayout = (alphaType == AlphaType::kUnpremul) ? STBIR_RGBA : STBIR_RGBA_PM;
-    const unsigned char* input_pixels = (const unsigned char*)pPixelBits;
-    int input_w = (int)nWidth;
-    int input_h = (int)nHeight;
-    int input_stride_in_bytes = 0;
-    unsigned char* output_pixels = (unsigned char*)pOutPixelBits;
-    int output_w = (int)nNewWidth;
-    int output_h = (int)nNewHeight;
-    int output_stride_in_bytes = 0;
-    unsigned char* result = stbir_resize_uint8_linear(input_pixels, input_w, input_h, input_stride_in_bytes,
-                                                      output_pixels, output_w, output_h, output_stride_in_bytes,
-                                                      pixelLayout);
-    return result != nullptr;
+    STBIR_RESIZE resizeInfo;
+    stbir_resize_init(&resizeInfo,
+                      pPixelBits, (int)nWidth, (int)nHeight, 0,
+                      pOutPixelBits, (int)nNewWidth, (int)nNewHeight, 0,
+                      pixelLayout, STBIR_TYPE_UINT8);
+    //放大时使用Catmull-Rom滤波(让小图标放大后更锐利)，缩小时使用Mitchell滤波(减少摩尔纹)
+    if (((int)nNewWidth > (int)nWidth) || ((int)nNewHeight > (int)nHeight)) {
+        stbir_set_filters(&resizeInfo, STBIR_FILTER_CATMULLROM, STBIR_FILTER_CATMULLROM);
+    }
+    else {
+        stbir_set_filters(&resizeInfo, STBIR_FILTER_MITCHELL, STBIR_FILTER_MITCHELL);
+    }
+    return stbir_resize_extended(&resizeInfo) != 0;
 }
 
 std::unique_ptr<IBitmap> ImageUtil::ResizeImageBitmap(IBitmap* pBitmap, int32_t nNewWidth, int32_t nNewHeight)
