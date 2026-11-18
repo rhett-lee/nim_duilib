@@ -107,6 +107,31 @@ namespace STBImageLoader
         stbi_image_free(rgbaData);
         return !argbData.empty();
     }
+
+    /** 获取图片的宽度和高度（只解析文件头，不执行像素解码）
+    */
+    static bool GetImageSize(const std::vector<uint8_t>& fileData, const FilePath& filePath,
+                             uint32_t& nWidth, uint32_t& nHeight)
+    {
+        int nImageWidth = 0;
+        int nImageHeight = 0;
+        int channels_in_file = 0;
+        int ret = 0;
+        if (!fileData.empty()) {
+            ret = stbi_info_from_memory(fileData.data(), (int)fileData.size(),
+                                        &nImageWidth, &nImageHeight, &channels_in_file);
+        }
+        else if (!filePath.IsEmpty()) {
+            const std::string filePathA = filePath.NativePathA();
+            ret = stbi_info(filePathA.c_str(), &nImageWidth, &nImageHeight, &channels_in_file);
+        }
+        if ((ret == 0) || (nImageWidth <= 0) || (nImageHeight <= 0)) {
+            return false;
+        }
+        nWidth = (uint32_t)nImageWidth;
+        nHeight = (uint32_t)nImageHeight;
+        return true;
+    }
 }//STBImageLoader
 
 /** 使用cximage加载图片（只支持GIF和ICO）两种格式
@@ -211,6 +236,84 @@ namespace CxImageLoader
             }
         }
         return true;
+    }
+
+    /** 解析ICO文件的目录信息（只解析文件头，不执行像素解码）
+    */
+    static bool GetIcoImageInfo(const std::vector<uint8_t>& fileData,
+                                std::vector<ImageDecoderUtil::IcoImageInfo>& iconInfoList)
+    {
+        iconInfoList.clear();
+        //ICONHEADER: idReserved(2) + idType(2) + idCount(2)
+        constexpr size_t iconHeaderSize = 6;
+        //ICONDIRENTRY: bWidth(1)+bHeight(1)+bColorCount(1)+bReserved(1)+wPlanes(2)+wBitCount(2)+dwBytesInRes(4)+dwImageOffset(4)
+        constexpr size_t iconDirEntrySize = 16;
+        if (fileData.size() < iconHeaderSize) {
+            return false;
+        }
+        const uint16_t idCount = (uint16_t)(fileData[4] | (fileData[5] << 8));
+        if (idCount == 0) {
+            return false;
+        }
+        if (fileData.size() < (iconHeaderSize + iconDirEntrySize * (size_t)idCount)) {
+            return false;
+        }
+        iconInfoList.reserve((size_t)idCount);
+        for (uint16_t index = 0; index < idCount; ++index) {
+            const size_t entryOffset = iconHeaderSize + iconDirEntrySize * (size_t)index;
+            ImageDecoderUtil::IcoImageInfo iconInfo;
+            //宽、高字段为0时，表示256像素
+            const uint32_t nWidth = fileData[entryOffset + 0];
+            const uint32_t nHeight = fileData[entryOffset + 1];
+            iconInfo.m_nWidth = (nWidth == 0) ? 256 : nWidth;
+            iconInfo.m_nHeight = (nHeight == 0) ? 256 : nHeight;
+            iconInfo.m_nColorCount = fileData[entryOffset + 2];
+            iconInfoList.push_back(iconInfo);
+        }
+        return !iconInfoList.empty();
+    }
+
+    /** 从ICO文件的目录信息中，选择一个需要加载的图标项
+    *   选择规则与解码后的选择规则一致：优先选择最匹配的尺寸，然后按颜色数0/256/16/2的优先级选择
+    */
+    static int32_t SelectIcoImageInfo(const std::vector<ImageDecoderUtil::IcoImageInfo>& iconInfoList,
+                                      uint32_t iconSize)
+    {
+        if (iconInfoList.empty()) {
+            return -1;
+        }
+        std::set<uint32_t> widthSet;
+        for (const ImageDecoderUtil::IcoImageInfo& iconInfo : iconInfoList) {
+            widthSet.insert(iconInfo.m_nWidth);
+        }
+        std::vector<uint32_t> widthList;
+        for (uint32_t nWidth : widthSet) {
+            widthList.push_back(nWidth);
+        }
+        uint32_t nBestIconSize = FindBestIconSize(widthList, iconSize);
+        if (nBestIconSize == 0) {
+            nBestIconSize = iconSize;
+        }
+        bool isIconSizeValid = false;
+        for (const ImageDecoderUtil::IcoImageInfo& iconInfo : iconInfoList) {
+            if (iconInfo.m_nWidth == nBestIconSize) {
+                isIconSizeValid = true;
+                break;
+            }
+        }
+
+        const std::vector<uint32_t> colors = { 0, 256, 16, 2 };
+        for (uint32_t color : colors) {
+            for (size_t index = 0; index < iconInfoList.size(); ++index) {
+                const ImageDecoderUtil::IcoImageInfo& iconInfo = iconInfoList[index];
+                if ((!isIconSizeValid || (iconInfo.m_nWidth == nBestIconSize)) &&
+                    (iconInfo.m_nColorCount == color)) {
+                    return (int32_t)index;
+                }
+            }
+        }
+        //没有找到完全匹配的图标项时，与解码后的处理保持一致：取第1个图标项
+        return 0;
     }
 
     static bool LoadImageFromMemory(const std::vector<uint8_t>& fileData,
@@ -426,6 +529,28 @@ bool ImageDecoderUtil::LoadImageFromFile(const FilePath& filePath,
 {
     std::vector<uint8_t> fileData;
     return STBImageLoader::LoadImageFromMemoryOrFile(fileData, filePath, imageData);
+}
+
+bool ImageDecoderUtil::GetImageSizeFromFile(const FilePath& filePath, uint32_t& nWidth, uint32_t& nHeight)
+{
+    std::vector<uint8_t> fileData;
+    return STBImageLoader::GetImageSize(fileData, filePath, nWidth, nHeight);
+}
+
+bool ImageDecoderUtil::GetImageSizeFromMemory(const std::vector<uint8_t>& fileData, uint32_t& nWidth, uint32_t& nHeight)
+{
+    FilePath filePath;
+    return STBImageLoader::GetImageSize(fileData, filePath, nWidth, nHeight);
+}
+
+bool ImageDecoderUtil::GetIcoImageInfo(const std::vector<uint8_t>& fileData, std::vector<IcoImageInfo>& iconInfoList)
+{
+    return CxImageLoader::GetIcoImageInfo(fileData, iconInfoList);
+}
+
+int32_t ImageDecoderUtil::SelectIcoImageInfo(const std::vector<IcoImageInfo>& iconInfoList, uint32_t iconSize)
+{
+    return CxImageLoader::SelectIcoImageInfo(iconInfoList, iconSize);
 }
 
 bool ImageDecoderUtil::LoadImageFromMemory(const std::vector<uint8_t>& fileData,

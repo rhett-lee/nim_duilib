@@ -32,6 +32,14 @@ public:
     @param [in] decodeParam 图片解码的相关参数
     */
     virtual std::unique_ptr<IImage> LoadImageData(const ImageDecodeParam& decodeParam) override;
+
+private:
+    /** 异步解码：加载阶段只解析ICO文件的目录信息，像素解码放到解码线程中执行
+    @param [in] decodeParam 图片解码的相关参数
+    @param [in] nIconSizeScaled 期望加载的图标大小（已经按缩放比例调整过）
+    @return 返回nullptr表示解析失败，需要回退到同步解码
+    */
+    std::unique_ptr<IImage> LoadImageDataAsync(const ImageDecodeParam& decodeParam, uint32_t nIconSizeScaled);
 };
 
 } //namespace ui

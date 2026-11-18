@@ -119,6 +119,8 @@ B 拿到空位图，既不会标记解码错误，也不会登记延迟绘制，
 7. **解码线程数量少**：`kThreadImage1` / `kThreadImage2` 各只有一个线程，一张超大图会阻塞同线程上的其它图片。
    已按"可配置线程数（2~4）+ 轮询选择"的方案实现，详见第 6 节。
 8. **部分解码器完全没走异步**：`ImageDecoder_Common`、ICO/Icon 仍在加载阶段整体解码，属于 UI 线程上的同步耗时。
+   已实现：`ImageDecoder_Common`（BMP/DIB 等）与单帧 ICO 改为"加载阶段只解析文件头 + 解码线程中执行像素解码"，
+   详见 6.4 节；`ImageDecoder_Icon` 的数据本身就是已解码的系统图标像素，继续走同步路径。
 
 ## 5. 修复说明
 
@@ -132,6 +134,8 @@ B 拿到空位图，既不会标记解码错误，也不会登记延迟绘制，
 - E5：`Image_GIF::DelayDecode()` 不再调用 `GetFrameDelayMs()`，改为直接读取加载阶段写入的
   `m_framesDelayMs`，避免工作线程访问 UI 线程合并的 `m_frames`。
 - E6：`Image_PNG::DelayDecode()` 在未解出帧时先判断是否被 `IsAborted()` 中止，仅在确属解码错误时才断言。
+- 优化点 8：新增 `Image_DelayBitmap`；`ImageDecoder_Common` 与单帧 `ImageDecoder_ICO` 改为
+  "加载阶段只解析文件头 + 解码线程执行像素解码"，详见 6.4 节。
 
 ## 6. 图片解码线程数量与选择策略
 
@@ -167,3 +171,21 @@ B 拿到空位图，既不会标记解码错误，也不会登记延迟绘制，
 - 大图（像素数超过阈值）单独走一条解码通道，避免 3~4 张大图同时占满全部解码线程。
 - 按可见区域排优先级（可见控件优先、已滚出视图的延后），减少无效解码。
 - 解码阶段直接降采样（JPEG 已支持，PNG/WEBP 尚未），可同时降低 CPU 占用与内存峰值。
+
+### 6.4 加载阶段不解码的解码器改造（优化点 8）
+
+新增 `Image_DelayBitmap`（`duilib/Image/Image_DelayBitmap.h/.cpp`）：单帧位图的延迟解码实现，
+加载阶段只记录宽度、高度、缩放比例和解码函数，像素解码在 `DelayDecode()` 中由解码线程执行，
+解码结果通过 `MergeDelayDecodeData()` 合入 UI 侧，完整复用 E1~E3 的并发保护机制。
+
+- **ImageDecoder_Common（BMP/DIB 等）**：新增 `ImageDecoderUtil::GetImageSizeFromFile/GetImageSizeFromMemory`，
+  用 `stbi_info` 只解析文件头得到宽高；宽高解析成功时用 `Image_DelayBitmap` 延迟解码，
+  解析失败则回退到原有的同步解码路径。
+- **ImageDecoder_ICO（单帧 ICO/CUR）**：新增 `ImageDecoderUtil::GetIcoImageInfo()`（解析 ICO 目录，只读文件头）
+  与 `SelectIcoImageInfo()`（按"最接近尺寸 + 颜色数 0/256/16/2 优先级"选择图标项，规则与解码后的选择一致）。
+  加载阶段据此得到宽高与缩放比例，像素解码在解码线程中通过 `LoadIcoFromMemory()` 执行。
+  `bIconAsAnimation == true`（多帧 ICO 作为动画）时仍走原有的同步路径。
+- **ImageDecoder_Icon（系统图标）**：数据本身已是解码后的像素数据（HICON 转换结果，尺寸很小），
+  继续走同步路径，避免引入额外的跨线程开销。
+- 性能提示：单帧 ICO 在异步路径中会先把文件读入内存以解析目录信息（仅一次读取，内存由延迟解码对象持有），
+  真正的 `CxImage` 逐像素解码与数据翻转已全部移到解码线程。

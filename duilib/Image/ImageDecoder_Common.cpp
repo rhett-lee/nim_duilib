@@ -1,6 +1,7 @@
 #include "ImageDecoder_Common.h"
 #include "duilib/Image/ImageDecoderUtil.h"
 #include "duilib/Image/Image_Bitmap.h"
+#include "duilib/Image/Image_DelayBitmap.h"
 #include "duilib/Image/ImageUtil.h"
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Utils/StringUtil.h"
@@ -59,6 +60,14 @@ std::unique_ptr<IImage> ImageDecoder_Common::LoadImageData(const ImageDecodePara
 {
     float fImageSizeScale = decodeParam.m_fImageSizeScale;
     std::unique_ptr<IImage> pImage;
+    if (decodeParam.m_bAsyncDecode) {
+        //异步解码：加载阶段只解析图片的宽高，像素解码放到解码线程中执行
+        pImage = LoadImageDataAsync(decodeParam);
+        if (pImage != nullptr) {
+            return pImage;
+        }
+        //解析图片信息失败时，回退到同步解码
+    }
     UiImageData imageData;
     bool bLoaded = false;
     if ((decodeParam.m_pFileData != nullptr) && !decodeParam.m_pFileData->empty()) {
@@ -87,6 +96,46 @@ std::unique_ptr<IImage> ImageDecoder_Common::LoadImageData(const ImageDecodePara
         pImage = Image_Bitmap::MakeImage(imageData.m_imageWidth, imageData.m_imageHeight, imageData.m_imageData.data(), fNewScale);
     }
     return pImage;
+}
+
+std::unique_ptr<IImage> ImageDecoder_Common::LoadImageDataAsync(const ImageDecodeParam& decodeParam)
+{
+    uint32_t nWidth = 0;
+    uint32_t nHeight = 0;
+    std::shared_ptr<std::vector<uint8_t>> pFileData;
+    FilePath imageFilePath;
+    bool bGotImageSize = false;
+    if ((decodeParam.m_pFileData != nullptr) && !decodeParam.m_pFileData->empty()) {
+        pFileData = decodeParam.m_pFileData;
+        bGotImageSize = ImageDecoderUtil::GetImageSizeFromMemory(*pFileData, nWidth, nHeight);
+    }
+    else if (!decodeParam.m_imageFilePath.IsEmpty()) {
+        imageFilePath = decodeParam.m_imageFilePath;
+        bGotImageSize = ImageDecoderUtil::GetImageSizeFromFile(imageFilePath, nWidth, nHeight);
+    }
+    if (!bGotImageSize || (nWidth == 0) || (nHeight == 0) ||
+        (nWidth > (uint32_t)INT32_MAX) || (nHeight > (uint32_t)INT32_MAX)) {
+        return nullptr;
+    }
+
+    float fNewScale = decodeParam.m_fImageSizeScale;
+    if (!ImageUtil::GetBestImageScale(decodeParam.m_rcMaxDestRectSize, (int32_t)nWidth, (int32_t)nHeight,
+                                      decodeParam.m_fImageSizeScale, fNewScale)) {
+        fNewScale = decodeParam.m_fImageSizeScale;
+    }
+
+    std::shared_ptr<Image_DelayBitmap> pDelayBitmap = std::make_shared<Image_DelayBitmap>();
+    Image_DelayBitmap::DecodeFunction decodeFunction =
+        [pFileData, imageFilePath](UiImageData& imageData) -> bool {
+            if (pFileData != nullptr) {
+                return ImageDecoderUtil::LoadImageFromMemory(*pFileData, imageData);
+            }
+            return ImageDecoderUtil::LoadImageFromFile(imageFilePath, imageData);
+        };
+    if (!pDelayBitmap->InitImage(nWidth, nHeight, fNewScale, true, decodeFunction)) {
+        return nullptr;
+    }
+    return Image_Bitmap::MakeImage(pDelayBitmap);
 }
 
 } //namespace ui

@@ -9,6 +9,21 @@ namespace ui
 class DUILIB_API ImageDecoderUtil
 {
 public:
+    /** ICO文件中一个图标项的简要信息（只解析文件头得到，不涉及像素解码）
+    */
+    struct IcoImageInfo
+    {
+        /** 图标宽度 */
+        uint32_t m_nWidth = 0;
+
+        /** 图标高度 */
+        uint32_t m_nHeight = 0;
+
+        /** 颜色数（0表示32位真彩色） */
+        uint32_t m_nColorCount = 0;
+    };
+
+public:
     /** 查询支持哪些类型的图片（按后缀名,后缀名不包含'.'字符，比如"BMP;JPG"等）
     */
     static DString GetSupportedFileExtentions();
@@ -18,6 +33,36 @@ public:
     * @param [in] dataLen 数据的长度
     */
     static bool CanDecode(const uint8_t* data, size_t dataLen);
+
+    /** 获取图片的宽度和高度（只解析文件头，不执行像素解码，用于延迟解码场景）
+    * @param [in] filePath 文件路径
+    * @param [out] nWidth 返回图片宽度
+    * @param [out] nHeight 返回图片高度
+    * @return 返回true表示成功，否则返回false
+    */
+    static bool GetImageSizeFromFile(const FilePath& filePath, uint32_t& nWidth, uint32_t& nHeight);
+
+    /** 获取图片的宽度和高度（只解析文件头，不执行像素解码，用于延迟解码场景）
+    * @param [in] fileData 文件数据
+    * @param [out] nWidth 返回图片宽度
+    * @param [out] nHeight 返回图片高度
+    * @return 返回true表示成功，否则返回false
+    */
+    static bool GetImageSizeFromMemory(const std::vector<uint8_t>& fileData, uint32_t& nWidth, uint32_t& nHeight);
+
+    /** 解析ICO文件的目录信息（只解析文件头，不执行像素解码，用于延迟解码场景）
+    * @param [in] fileData ICO文件数据
+    * @param [out] iconInfoList 返回每个图标项的信息（按文件中的顺序）
+    * @return 返回true表示成功，否则返回false
+    */
+    static bool GetIcoImageInfo(const std::vector<uint8_t>& fileData, std::vector<IcoImageInfo>& iconInfoList);
+
+    /** 从ICO文件的目录信息中，选择一个需要加载的图标项（选择规则与解码后的选择规则一致）
+    * @param [in] iconInfoList 图标项的信息列表
+    * @param [in] iconSize 期望加载的图标大小
+    * @return 返回选中图标项在列表中的索引号；返回-1表示选择失败
+    */
+    static int32_t SelectIcoImageInfo(const std::vector<IcoImageInfo>& iconInfoList, uint32_t iconSize);
 
     /** 加载图片(通用，支持多种文件格式, 但不支持加载多帧)
     * @param [in] filePath 文件路径

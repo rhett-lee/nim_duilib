@@ -657,6 +657,9 @@
     <ClCompile Include="Image\Image_Bitmap.cpp">
       <Filter>Image</Filter>
     </ClCompile>
+    <ClCompile Include="Image\Image_DelayBitmap.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
     <ClCompile Include="Image\ImagePlayer.cpp">
       <Filter>Image</Filter>
     </ClCompile>
@@ -1767,6 +1770,9 @@
       <Filter>Image</Filter>
     </ClInclude>
     <ClInclude Include="Image\Image_Bitmap.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\Image_DelayBitmap.h">
       <Filter>Image</Filter>
     </ClInclude>
     <ClInclude Include="Image\ImagePlayer.h">

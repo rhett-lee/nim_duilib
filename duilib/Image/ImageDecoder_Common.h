@@ -32,6 +32,13 @@ public:
     @param [in] decodeParam 图片解码的相关参数
     */
     virtual std::unique_ptr<IImage> LoadImageData(const ImageDecodeParam& decodeParam) override;
+
+private:
+    /** 异步解码：加载阶段只解析图片的宽高，像素解码放到解码线程中执行
+    @param [in] decodeParam 图片解码的相关参数
+    @return 返回nullptr表示不支持异步解码或者解析图片信息失败，需要回退到同步解码
+    */
+    std::unique_ptr<IImage> LoadImageDataAsync(const ImageDecodeParam& decodeParam);
 };
 
 } //namespace ui
