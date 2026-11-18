@@ -102,6 +102,8 @@ public:
     const std::shared_ptr<ImageInfo>& GetImageInfo() const;
 
     /** 设置图片信息接口
+    *   说明：如果图片发生变化，会重新初始化动画的播放参数；
+    *         如果新图片不是多帧图片，会停止并释放内部已创建的动画播放器
     */
     void SetImageInfo(const std::shared_ptr<ImageInfo>& imageInfo);
 
@@ -148,6 +150,8 @@ public:
     * @param [in,out] rcSource 图片源区域，如果缩放时，会同步修改此区域的相应大小
     * @param [in,out] rcSourceCorners 图片的九宫格圆角属性
     * @param [out] bDecodeError 返回true代表遇到图片解码错误
+    * @return 返回nullptr并且bDecodeError为false时，表示图片尚未完成解码，
+    *         或者单帧大图正在图片解码线程中执行缩放（完成后会触发界面重绘）
     */
     std::shared_ptr<IBitmap> GetCurrentBitmap(bool bImageStretch,
                                               const UiRect& rcDest,

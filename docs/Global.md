@@ -156,10 +156,10 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 | tiled_padding |  | UiPadding | 平铺绘制时，在目标区域内的内边距（此内边距结合TiledMargin可形成网格）， 仅当xtiled为true 或yxtiled为true时有效|
 | window_shadow_mode | false | bool | 九宫格绘制时，不绘制中间部分（比如窗口阴影，只需要绘制边框，不需要绘制中间部分，以避免不必要的绘制动作） |
 | icon_size | 32 | int | 如果是ICO文件，指定加载ICO文件的图片大小 |
-| icon_as_animation | false | bool | 如果是ICO文件，指定是否按多帧图片加载（按动画图片显示） |
+| icon_as_animation | false | bool | 如果是ICO文件，指定是否按多帧图片加载（按动画图片显示）。<br>未开启时，多目录项的ICO只按icon_size选择最匹配的一个目录项加载，多目录项本身并不等于动画 |
 | icon_frame_delay | 1000 | int | 如果是ICO文件，当按多帧图片显示时，每帧播放的时间间隔，毫秒 |
 | auto_play | true | bool | 如果是动画图片，是否自动播放，用法：auto_play="true" 或者 auto_play="false" |
-| async_load | true | bool | 该图片是否支持异步加载（即放在子线程中加载图片数据，避免主界面卡顿），<br> 用法：async_load="true" 或者 async_load="false"  <br>可通过GlobalManager::Instance().Image().SetImageAsyncLoad函数修改此默认值 |
+| async_load | true | bool | 该图片是否支持异步加载（图片文件的读取/解码在图片解码线程中执行，避免主界面卡顿），<br> 用法：async_load="true" 或者 async_load="false"  <br>可通过GlobalManager::Instance().Image().SetImageAsyncLoad函数修改此默认值；<br>解码线程数量可通过GlobalManager::Instance().SetImageDecodeThreadCount配置（默认按CPU核数自动计算，范围2~4）；<br>多帧图片采用预解码窗口，只保持播放位置前方若干帧的数据 |
 | play_count | -1 | int | 如果是动画图片，用于设置播放次数，取值代表的含义: <br> -1: 表示一直播放 <br> 0 : 表示无有效的播放次数，使用图片的默认值(如果动画图片无此功能，则会一直播放) <br> >0: 具体的播放次数，达到播放次数后，停止播放 |
 | pag_max_frame_rate | 30 | int | 如果是PAG文件，用于指定动画的帧率 |
 | svg_replace_colors | | string | SVG格式的颜色替换参数：支持将颜色A替换为颜色B，从而避免每个颜色主题下，都要单独配置一个svg文件，使用这个功能只要一个svg就够了。使用示例: `"#B5B5B5|color_gray_light"`，表示将`"#B5B5B5"`替换为`"color_gray_light"`，`"color_gray_light"`在global.xml中定义。若有多组颜色需要替换，则用分号分割，比如：`"#B5B5B5|color_gray_light;#B2B2B2|color_gray_dark"`。该功能当目标不是颜色值时，按字符串替换。|

@@ -22,22 +22,26 @@
 Control::PaintImage
   └─ Control::LoadImageInfo (UI 线程)
        ├─ ImageManager::GetImage            // UI 线程：解析文件头/签名，建立 ImageData 缓存
-       └─ Control::AsyncDecodeImageData     // UI 线程：调度解码任务
+       └─ Control::AsyncDecodeImageData     // UI 线程：调度解码任务（受预解码窗口限制）
             └─ ThreadManager::PostTask(kThreadImage1~4 轮询 / kThreadWorker 兜底)
-                 └─ IImage::AsyncDecode → Image_XXX::DelayDecode   // 工作线程：逐帧解码
+                 └─ IImage::AsyncDecode → Image_XXX::DelayDecode   // 工作线程：批量解码(最多3帧)
+                      ├─ 大文件在此读取完整数据(JPEG/静态WEBP)；静态WEBP在解码阶段直接降采样
                       └─ PostTask(UI) 完成通知
-                           ├─ MergeAsyncDecodeData     // UI 线程：把解码结果并入帧列表
-                           ├─ DelayPaintImage(imageKey) // 触发相关控件重绘
-                           └─ 满足条件则投递下一帧任务
+                           ├─ MergeAsyncDecodeData          // UI 线程：把解码结果并入帧列表
+                           ├─ Image::OnImageFrameDataReady  // 立即推进因缺帧等待的动画播放
+                           ├─ DelayPaintImage(imageKey)     // 触发相关控件重绘
+                           └─ 窗口未满则继续投递下一批解码任务
 ```
 
 关键参与者：
 
 - `Image_PNG` / `Image_GIF` / `Image_WEBP` / `Image_JPEG`：具体解码实现（`IImageDelayDecode`）。
+- `Image_DelayBitmap`：单帧位图的延迟解码实现（BMP/DIB、单帧 ICO 走此路径）。
 - `Image_Animation` / `Image_Bitmap`：对上面解码实现的包装（`IImageAsyncDecode`），也负责单帧图片的承载。
-- `ImageInfo`：图片信息缓存，持有 `IImage`，负责帧读取、缓存与资源释放。
-- `ImageManager`：`ImageData`/`ImageInfo` 两级缓存、延迟释放队列、延迟绘制列表。
-- `ImagePlayer`：动画播放（定时器、帧索引推进）。
+- `ImageInfo`：图片信息缓存，持有 `IImage`，负责帧读取、缓存、单帧大图的异步缩放与资源释放。
+- `ImageManager`：`ImageData`/`ImageInfo` 两级缓存、延迟释放队列（单任务自续期 + 双索引）、延迟绘制列表（图片指针索引）。
+- `ImagePlayer`：动画播放（定时器、帧索引推进、帧就绪后立即推进）。
+- `GlobalManager`：图片解码线程数量配置与轮询分配（`GetNextImageDecodeThread`）。
 
 ## 3. 真实错误
 
@@ -154,6 +158,8 @@ B 拿到空位图，既不会标记解码错误，也不会登记延迟绘制，
 - 优化点 6：延迟绘制列表新增图片指针索引，`AddDelayPaintData()` 与 `RemoveDelayPaintData(Image*)`
   的去重/移除降为 O(1)，详见 6.8 节。
 - 优化点 4：单帧图片的大图缩放移到图片解码线程执行，详见 6.9 节。
+- 解码阶段直接降采样：静态 WEBP 已实现（解码阶段输出目标尺寸）；PNG 与动画 WEBP 因解码库无对应接口，不实施，详见 6.10 节。
+- 按可见区域排优先级：评估为高风险、低收益，不实施，详见 6.11 节。
 
 ## 6. 图片解码线程数量与选择策略
 

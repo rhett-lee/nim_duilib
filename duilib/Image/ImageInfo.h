@@ -63,8 +63,9 @@ public:
     /** 获取一个位图图片数据（单帧图片）
      * @param [out] bDecodeError 返回是否出现解码错误
      * @param [in] pControl 该图片管理的控件接口
-     * @return 返回位图的接口指针，如果返回nullptr并且bDecodeError为false表示图片尚未完成解码（多线程解码的情况下）
-     *                          如果返回nullptr并且bDecodeError为true代表图片解码出现错误
+     * @return 返回位图的接口指针，如果返回nullptr并且bDecodeError为false表示图片尚未完成解码（多线程解码的情况下），
+     *         或者大图正在图片解码线程中执行缩放（完成后会触发延迟绘制）；
+     *         如果返回nullptr并且bDecodeError为true代表图片解码出现错误
      */
     std::shared_ptr<IBitmap> GetBitmap(bool* bDecodeError, Control* pControl);
 

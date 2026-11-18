@@ -234,4 +234,6 @@ nImageOffset = static_cast<int32_t>(std::ceil(nImageOffset * fImageSizeScale));
 
 补充：第 1 项的修复还涉及接口层——`duilib/Render/IRender.h` 新增只读接口 `IBitmap::GetPixelBits() const`（不加锁、无需 `UnLockPixelBits`），`duilib/RenderSkia/Bitmap_Skia.h` / `Bitmap_Skia.cpp` 同步实现，并把框架内所有"只读像素"的 `LockPixelBits()` 调用点改为 `GetPixelBits()` 并去掉对应的 `UnLockPixelBits()`。
 
+异步解码相关的后续改造不在此清单内，包括：解码线程数可配置、批量解码与预解码窗口、帧就绪立即推进播放、大文件延迟读盘、延迟释放/延迟绘制索引优化、单帧大图异步缩放、静态 WEBP 解码阶段降采样等，详见《Image 图片异步解码流程分析报告.md》。
+
 验证方式：`python build/build.py build --config Debug --arch x64 --offline --no-deps --target duilib`，`/W4 /WX` 无警告。

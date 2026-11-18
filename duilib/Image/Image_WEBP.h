@@ -6,6 +6,8 @@
 namespace ui
 {
 /** WEBP格式的图片数据
+*   大文件在加载阶段只解析文件头，完整文件数据在解码线程中读取；
+*   静态图片支持解码阶段直接降采样，动画图片按帧异步解码
 */
 class Image_WEBP: public IAnimationImage
 {
