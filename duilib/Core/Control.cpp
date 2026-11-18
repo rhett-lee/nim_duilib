@@ -4686,27 +4686,17 @@ void Control::AsyncDecodeImageData(std::shared_ptr<TAsyncImageDecode> pAsyncDeco
         }
     }
 
-    //放在子线程中解码
-    ThreadManager& threadManager = GlobalManager::Instance().Thread();
-    int32_t nThreadIdentifier = ui::kThreadUI;
-    std::vector<int32_t> threadIdentifiers;
-    if (pImageData->GetImageType() == ImageType::kImageAnimation) {
-        //多帧图片
-        threadIdentifiers.push_back(ui::kThreadImage2);
-        threadIdentifiers.push_back(ui::kThreadImage1);
-        threadIdentifiers.push_back(ui::kThreadWorker);
+    //放在子线程中解码：从图片解码线程中轮询选择，均衡各线程的解码负载
+    GlobalManager& globalManager = GlobalManager::Instance();
+    ThreadManager& threadManager = globalManager.Thread();
+    int32_t nThreadIdentifier = globalManager.GetNextImageDecodeThread();
+    if ((nThreadIdentifier == ui::kThreadNone) && threadManager.HasThread(ui::kThreadWorker)) {
+        //没有可用的图片解码线程时，回退到工作线程
+        nThreadIdentifier = ui::kThreadWorker;
     }
-    else {
-        //单帧图片
-        threadIdentifiers.push_back(ui::kThreadImage1);
-        threadIdentifiers.push_back(ui::kThreadImage2);
-        threadIdentifiers.push_back(ui::kThreadWorker);
-    }
-    for (int32_t nThread : threadIdentifiers) {
-        if (threadManager.HasThread(nThread)) {
-            nThreadIdentifier = nThread;
-            break;
-        }
+    if (nThreadIdentifier == ui::kThreadNone) {
+        //没有可用的工作线程时，回退到UI线程（与原有兜底行为一致）
+        nThreadIdentifier = ui::kThreadUI;
     }
     //异步解码完成的通知函数，在主线程中执行
     auto AsyncDecodeImageFinishNotify = [pAsyncDecoder]() {

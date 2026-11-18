@@ -29,6 +29,14 @@ namespace ui
 */
 class IRenderFactory;
 
+/** 图片解码线程数量的最小值
+*/
+constexpr int32_t kMinImageDecodeThreadCount = 2;
+
+/** 图片解码线程数量的最大值
+*/
+constexpr int32_t kMaxImageDecodeThreadCount = 4;
+
 /** 全局属性管理工具类
 *   用于管理一些全局属性的工具类，包含全局样式（global.xml）和语言设置等
 */
@@ -170,13 +178,32 @@ public:
     void RemoveAllClasss();
 
 public:
-    /** 停止一个内部线程(内部默认启动kThreadWorker/kThreadImage1/kThreadImage2这3个线程，如果不需要可停止掉)
+    /** 停止一个内部线程(内部默认启动kThreadWorker和若干个图片解码线程(数量可配置)，
+    *   图片解码线程的标识号范围为kThreadImage1~kThreadImage4，如果不需要可停止掉)
     */
     bool StopInnerThread(int32_t nThreadIdentifier);
 
-    /** 启动一个内部线程（kThreadWorker/kThreadNetwork/kThreadImage1/kThreadImage2）
+    /** 启动一个内部线程（kThreadWorker/kThreadNetwork/kThreadImage1/kThreadImage2/kThreadImage3/kThreadImage4）
     */
     bool StartInnerThread(int32_t nThreadIdentifier);
+
+    /** 设置图片解码线程的数量（取值范围：2~4，超出范围时按边界值处理）
+    *   说明：图片解码是CPU密集型任务，线程数超过CPU核数不会提升吞吐量，反而会增大内存峰值，
+    *         因此默认按CPU核数自动计算（核数/2-1，限制在2~4之间）
+    * @param [in] nThreadCount 图片解码线程的数量
+    * @note 在Startup()之前调用时，启动阶段按该数量创建线程；
+    *       在Startup()之后调用时，会立即启动/停止线程使数量与配置一致（需要在UI线程中调用）
+    */
+    void SetImageDecodeThreadCount(int32_t nThreadCount);
+
+    /** 获取图片解码线程的数量
+    */
+    int32_t GetImageDecodeThreadCount() const;
+
+    /** 获取下一个用于图片解码的线程标识号（轮询策略，用于均衡分配解码任务）
+    * @return 返回线程标识号；如果当前没有可用的图片解码线程，则返回kThreadNone
+    */
+    int32_t GetNextImageDecodeThread();
 
 public:
     /** 获取绘制接口类对象
@@ -642,6 +669,14 @@ private:
     /** 库内部使用的线程池
     */
     std::vector <std::shared_ptr<FrameworkThread>> m_threadList;
+
+    /** 图片解码线程的数量（取值范围：kMinImageDecodeThreadCount ~ kMaxImageDecodeThreadCount）
+    */
+    int32_t m_nImageDecodeThreadCount = kMinImageDecodeThreadCount;
+
+    /** 图片解码线程的轮询索引（用于均衡分配解码任务）
+    */
+    uint32_t m_nImageDecodeThreadIndex = 0;
 
     /** 别名管理
     */

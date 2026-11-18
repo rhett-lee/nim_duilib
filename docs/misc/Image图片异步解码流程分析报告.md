@@ -23,7 +23,7 @@ Control::PaintImage
   └─ Control::LoadImageInfo (UI 线程)
        ├─ ImageManager::GetImage            // UI 线程：解析文件头/签名，建立 ImageData 缓存
        └─ Control::AsyncDecodeImageData     // UI 线程：调度解码任务
-            └─ ThreadManager::PostTask(kThreadImage1 / kThreadImage2 / kThreadWorker)
+            └─ ThreadManager::PostTask(kThreadImage1~4 轮询 / kThreadWorker 兜底)
                  └─ IImage::AsyncDecode → Image_XXX::DelayDecode   // 工作线程：逐帧解码
                       └─ PostTask(UI) 完成通知
                            ├─ MergeAsyncDecodeData     // UI 线程：把解码结果并入帧列表
@@ -117,6 +117,7 @@ B 拿到空位图，既不会标记解码错误，也不会登记延迟绘制，
    引用计数为 1 时可以直接释放。
 6. **延迟绘制列表在绘制热路径上是 O(n)**：`AddDelayPaintData()` 每次先全表扫描去重，动画每帧重绘都会走一次。
 7. **解码线程数量少**：`kThreadImage1` / `kThreadImage2` 各只有一个线程，一张超大图会阻塞同线程上的其它图片。
+   已按"可配置线程数（2~4）+ 轮询选择"的方案实现，详见第 6 节。
 8. **部分解码器完全没走异步**：`ImageDecoder_Common`、ICO/Icon 仍在加载阶段整体解码，属于 UI 线程上的同步耗时。
 
 ## 5. 修复说明
@@ -131,3 +132,38 @@ B 拿到空位图，既不会标记解码错误，也不会登记延迟绘制，
 - E5：`Image_GIF::DelayDecode()` 不再调用 `GetFrameDelayMs()`，改为直接读取加载阶段写入的
   `m_framesDelayMs`，避免工作线程访问 UI 线程合并的 `m_frames`。
 - E6：`Image_PNG::DelayDecode()` 在未解出帧时先判断是否被 `IsAborted()` 中止，仅在确属解码错误时才断言。
+
+## 6. 图片解码线程数量与选择策略
+
+针对优化点 7（解码线程数量少，一张超大图会阻塞同线程上的其它图片），采用"可配置线程数 + 轮询选择"的方案。
+
+### 6.1 线程数量
+
+- 默认按 CPU 核数计算：`核数 / 2 - 1`，并限制在 2~4 之间；获取不到核数时取 2。
+
+| CPU 核数 | 默认解码线程数 |
+| -------- | -------------- |
+| 4 核 | 2 |
+| 6~8 核 | 3 |
+| ≥12 核 | 4（上限，不再增加） |
+
+- 上限取 4 的原因：解码是纯 CPU 密集型任务，线程数超过可用核数不会提升吞吐量，只会互相抢占 CPU；
+  同时每并发解码一张图就多一份 RGBA 缓冲（3840×2160 约 33MB），并发数越高内存峰值越大。
+- 对外接口：
+  - `GlobalManager::SetImageDecodeThreadCount(int32_t)`：配置线程数量，取值越界时按 2/4 边界处理。
+    `Startup()` 之前调用时，启动阶段按该数量创建线程；`Startup()` 之后调用时立即启动/停止线程使数量一致（需在 UI 线程调用）。
+  - `GlobalManager::GetImageDecodeThreadCount()`：获取当前线程数量。
+- 线程标识号为 `kThreadImage1` ~ `kThreadImage4`，`StartInnerThread()` / `StopInnerThread()` 均支持。
+
+### 6.2 选择策略
+
+- `GlobalManager::GetNextImageDecodeThread()` 采用轮询：每次取下一个可用线程，跳过未启动的线程；
+  全部不可用时返回 `kThreadNone`。
+- `Control::AsyncDecodeImageData()` 不再硬编码 `{Image2, Image1, Worker}`，改为调用上述接口获取线程；
+  取不到时依次回退到 `kThreadWorker`、UI 线程（兜底行为与原来一致）。
+
+### 6.3 后续可继续优化的方向
+
+- 大图（像素数超过阈值）单独走一条解码通道，避免 3~4 张大图同时占满全部解码线程。
+- 按可见区域排优先级（可见控件优先、已滚出视图的延后），减少无效解码。
+- 解码阶段直接降采样（JPEG 已支持，PNG/WEBP 尚未），可同时降低 CPU 占用与内存峰值。

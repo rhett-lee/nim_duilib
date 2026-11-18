@@ -34,6 +34,36 @@
 
 namespace ui 
 {
+/** 判断是否为一个内部线程的标识号
+*/
+static bool IsInnerThreadIdentifier(int32_t nThreadIdentifier)
+{
+    return (nThreadIdentifier == ui::kThreadWorker)  ||
+           (nThreadIdentifier == ui::kThreadNetwork) ||
+           (nThreadIdentifier == ui::kThreadImage1)  ||
+           (nThreadIdentifier == ui::kThreadImage2)  ||
+           (nThreadIdentifier == ui::kThreadImage3)  ||
+           (nThreadIdentifier == ui::kThreadImage4);
+}
+
+/** 计算默认的图片解码线程数量（按CPU核数计算：核数/2-1，限制在2~4之间）
+*/
+static int32_t GetDefaultImageDecodeThreadCount()
+{
+    const uint32_t nCpuCores = std::thread::hardware_concurrency();
+    if (nCpuCores == 0) {
+        return kMinImageDecodeThreadCount;
+    }
+    int32_t nThreadCount = (int32_t)(nCpuCores / 2) - 1;
+    if (nThreadCount < kMinImageDecodeThreadCount) {
+        nThreadCount = kMinImageDecodeThreadCount;
+    }
+    if (nThreadCount > kMaxImageDecodeThreadCount) {
+        nThreadCount = kMaxImageDecodeThreadCount;
+    }
+    return nThreadCount;
+}
+
 /** 库内部的工作线程
 */
 class UiWorkerThread : public ui::FrameworkThread
@@ -81,6 +111,8 @@ GlobalManager::GlobalManager():
     m_bAnimationEnabled(true),
     m_bStartup(false)
 {
+    //默认的图片解码线程数量（按CPU核数计算）
+    m_nImageDecodeThreadCount = GetDefaultImageDecodeThreadCount();
 }
 
 GlobalManager::~GlobalManager()
@@ -249,8 +281,10 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
 
     //初始化线程池
     StartInnerThread(ThreadIdentifier::kThreadWorker);
-    StartInnerThread(ThreadIdentifier::kThreadImage1);
-    StartInnerThread(ThreadIdentifier::kThreadImage2);
+    //启动图片解码线程（数量可配置，默认按CPU核数计算）
+    for (int32_t nIndex = 0; nIndex < m_nImageDecodeThreadCount; ++nIndex) {
+        StartInnerThread((int32_t)ThreadIdentifier::kThreadImage1 + nIndex);
+    }
 
     //加载资源
     if (!LoadGlobalResource(resParam)) {
@@ -331,14 +365,8 @@ void GlobalManager::Shutdown()
 bool GlobalManager::StopInnerThread(int32_t nThreadIdentifier)
 {
     AssertUIThread();
-    ASSERT((nThreadIdentifier == ui::kThreadWorker)  ||
-           (nThreadIdentifier == ui::kThreadNetwork) ||
-           (nThreadIdentifier == ui::kThreadImage1)  ||
-           (nThreadIdentifier == ui::kThreadImage2));
-    if ((nThreadIdentifier != ui::kThreadWorker)  &&
-        (nThreadIdentifier != ui::kThreadNetwork) &&
-        (nThreadIdentifier != ui::kThreadImage1)  &&
-        (nThreadIdentifier != ui::kThreadImage2)) {
+    ASSERT(IsInnerThreadIdentifier(nThreadIdentifier));
+    if (!IsInnerThreadIdentifier(nThreadIdentifier)) {
         return false;
     }
     bool bRet = false;
@@ -357,14 +385,8 @@ bool GlobalManager::StopInnerThread(int32_t nThreadIdentifier)
 bool GlobalManager::StartInnerThread(int32_t nThreadIdentifier)
 {
     AssertUIThread();
-    ASSERT((nThreadIdentifier == ui::kThreadWorker)  ||
-           (nThreadIdentifier == ui::kThreadNetwork) ||
-           (nThreadIdentifier == ui::kThreadImage1)  ||
-           (nThreadIdentifier == ui::kThreadImage2));
-    if ((nThreadIdentifier != ui::kThreadWorker)  &&
-        (nThreadIdentifier != ui::kThreadNetwork) &&
-        (nThreadIdentifier != ui::kThreadImage1)  &&
-        (nThreadIdentifier != ui::kThreadImage2)) {
+    ASSERT(IsInnerThreadIdentifier(nThreadIdentifier));
+    if (!IsInnerThreadIdentifier(nThreadIdentifier)) {
         return false;
     }
     bool bRet = false;
@@ -380,7 +402,9 @@ bool GlobalManager::StartInnerThread(int32_t nThreadIdentifier)
         std::vector<UiWorkerThread::Param> threadParams = { {_T("Worker"), ThreadIdentifier::kThreadWorker},
                                                             {_T("Network"), ThreadIdentifier::kThreadNetwork},
                                                             {_T("Image1"), ThreadIdentifier::kThreadImage1},
-                                                            {_T("Image2"), ThreadIdentifier::kThreadImage2} };
+                                                            {_T("Image2"), ThreadIdentifier::kThreadImage2},
+                                                            {_T("Image3"), ThreadIdentifier::kThreadImage3},
+                                                            {_T("Image4"), ThreadIdentifier::kThreadImage4} };
         for (const UiWorkerThread::Param& param : threadParams) {
             if (param.nIdentifier != nThreadIdentifier) {
                 continue;
@@ -393,6 +417,61 @@ bool GlobalManager::StartInnerThread(int32_t nThreadIdentifier)
         }
     }
     return bRet;
+}
+
+void GlobalManager::SetImageDecodeThreadCount(int32_t nThreadCount)
+{
+    if (nThreadCount < kMinImageDecodeThreadCount) {
+        nThreadCount = kMinImageDecodeThreadCount;
+    }
+    if (nThreadCount > kMaxImageDecodeThreadCount) {
+        nThreadCount = kMaxImageDecodeThreadCount;
+    }
+    if (m_nImageDecodeThreadCount == nThreadCount) {
+        return;
+    }
+    m_nImageDecodeThreadCount = nThreadCount;
+    if (!m_bStartup) {
+        //启动阶段会按该数量创建线程
+        return;
+    }
+    //立即调整线程数量，使实际线程数量与配置一致
+    AssertUIThread();
+    for (int32_t nIndex = 0; nIndex < kMaxImageDecodeThreadCount; ++nIndex) {
+        const int32_t nThreadIdentifier = (int32_t)ThreadIdentifier::kThreadImage1 + nIndex;
+        if (nIndex < nThreadCount) {
+            StartInnerThread(nThreadIdentifier);
+        }
+        else {
+            StopInnerThread(nThreadIdentifier);
+        }
+    }
+}
+
+int32_t GlobalManager::GetImageDecodeThreadCount() const
+{
+    return m_nImageDecodeThreadCount;
+}
+
+int32_t GlobalManager::GetNextImageDecodeThread()
+{
+    AssertUIThread();
+    const int32_t nThreadCount = m_nImageDecodeThreadCount;
+    if (nThreadCount <= 0) {
+        return ThreadIdentifier::kThreadNone;
+    }
+    //轮询选择：从上次选中的下一个线程开始，跳过没有启动的线程
+    const uint32_t nStartIndex = m_nImageDecodeThreadIndex % (uint32_t)nThreadCount;
+    m_nImageDecodeThreadIndex = (nStartIndex + 1) % (uint32_t)nThreadCount;
+    ThreadManager& threadManager = Thread();
+    for (uint32_t nOffset = 0; nOffset < (uint32_t)nThreadCount; ++nOffset) {
+        const int32_t nThreadIdentifier = (int32_t)ThreadIdentifier::kThreadImage1 +
+                                          (int32_t)((nStartIndex + nOffset) % (uint32_t)nThreadCount);
+        if (threadManager.HasThread(nThreadIdentifier)) {
+            return nThreadIdentifier;
+        }
+    }
+    return ThreadIdentifier::kThreadNone;
 }
 
 void GlobalManager::SetPlatformData(void* pPlatformData)
