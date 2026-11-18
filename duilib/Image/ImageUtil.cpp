@@ -101,7 +101,8 @@ bool ImageUtil::FlipPixelBits(uint8_t* pPixelBits, size_t nPixelBitsLen, uint32_
 
 bool ImageUtil::ResizeImageData(const uint8_t* pPixelBits, size_t nPixelBitsLen, uint32_t nWidth, uint32_t nHeight,
                                 float fImageSizeScale,
-                                std::vector<uint8_t>& outPixelBits, uint32_t& nNewWidth, uint32_t& nNewHeight)
+                                std::vector<uint8_t>& outPixelBits, uint32_t& nNewWidth, uint32_t& nNewHeight,
+                                AlphaType alphaType)
 {
     ASSERT((pPixelBits != nullptr) && (nPixelBitsLen > 0));
     if ((pPixelBits == nullptr) || (nPixelBitsLen == 0)) {
@@ -123,11 +124,12 @@ bool ImageUtil::ResizeImageData(const uint8_t* pPixelBits, size_t nPixelBitsLen,
     outPixelBits.resize(nOutPixelBitsLen);
     uint8_t* pOutPixelBits = outPixelBits.data();
     return ResizeImageData(pPixelBits, nPixelBitsLen, nWidth, nHeight,
-                           pOutPixelBits, nOutPixelBitsLen, nNewWidth, nNewHeight);
+                           pOutPixelBits, nOutPixelBitsLen, nNewWidth, nNewHeight, alphaType);
 }
 
 bool ImageUtil::ResizeImageData(const uint8_t* pPixelBits, size_t nPixelBitsLen, uint32_t nWidth, uint32_t nHeight,
-                                uint8_t* pOutPixelBits, size_t nOutPixelBitsLen, uint32_t nNewWidth, uint32_t nNewHeight)
+                                uint8_t* pOutPixelBits, size_t nOutPixelBitsLen, uint32_t nNewWidth, uint32_t nNewHeight,
+                                AlphaType alphaType)
 {
     ASSERT((pPixelBits != nullptr) && (nPixelBitsLen > 0));
     if ((pPixelBits == nullptr) || (nPixelBitsLen == 0)) {
@@ -162,23 +164,21 @@ bool ImageUtil::ResizeImageData(const uint8_t* pPixelBits, size_t nPixelBitsLen,
         return true;
     }
     //对图像数据执行resize操作
-    if (1) {
-        //使用stb_image实现
-        const unsigned char* input_pixels = (const unsigned char*)pPixelBits;
-        int input_w = (int)nWidth;
-        int input_h = (int)nHeight;
-        int input_stride_in_bytes = 0;
-        unsigned char* output_pixels = (unsigned char*)pOutPixelBits;
-        int output_w = (int)nNewWidth;
-        int output_h = (int)nNewHeight;
-        int output_stride_in_bytes = 0;
-        stbir_pixel_layout num_channels = STBIR_RGBA_PM;
-        unsigned char* result = stbir_resize_uint8_linear(input_pixels, input_w, input_h, input_stride_in_bytes,
-                                                          output_pixels, output_w, output_h, output_stride_in_bytes,
-                                                          num_channels);
-        return result != nullptr;
-    }
-    return false;
+    //使用stb_image实现：根据Alpha类型选择预乘/非预乘的像素布局，
+    //避免非预乘的像素数据被当作预乘数据重采样，导致半透明区域的颜色出现偏差
+    const stbir_pixel_layout pixelLayout = (alphaType == AlphaType::kUnpremul) ? STBIR_RGBA : STBIR_RGBA_PM;
+    const unsigned char* input_pixels = (const unsigned char*)pPixelBits;
+    int input_w = (int)nWidth;
+    int input_h = (int)nHeight;
+    int input_stride_in_bytes = 0;
+    unsigned char* output_pixels = (unsigned char*)pOutPixelBits;
+    int output_w = (int)nNewWidth;
+    int output_h = (int)nNewHeight;
+    int output_stride_in_bytes = 0;
+    unsigned char* result = stbir_resize_uint8_linear(input_pixels, input_w, input_h, input_stride_in_bytes,
+                                                      output_pixels, output_w, output_h, output_stride_in_bytes,
+                                                      pixelLayout);
+    return result != nullptr;
 }
 
 std::unique_ptr<IBitmap> ImageUtil::ResizeImageBitmap(IBitmap* pBitmap, int32_t nNewWidth, int32_t nNewHeight)
@@ -190,6 +190,9 @@ std::unique_ptr<IBitmap> ImageUtil::ResizeImageBitmap(IBitmap* pBitmap, int32_t 
         return nullptr;
     }
 
+    //源位图的Alpha类型：新位图需保持一致，重采样时也要按此类型处理
+    const AlphaType alphaType = pBitmap->GetAlphaType();
+
     std::unique_ptr<IBitmap> pNewBitmap;
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     ASSERT(pRenderFactory != nullptr);
@@ -200,7 +203,7 @@ std::unique_ptr<IBitmap> ImageUtil::ResizeImageBitmap(IBitmap* pBitmap, int32_t 
     if (pNewBitmap == nullptr) {
         return nullptr;
     }
-    if (!pNewBitmap->Init((uint32_t)nNewWidth, (uint32_t)nNewHeight, nullptr)) {
+    if (!pNewBitmap->Init((uint32_t)nNewWidth, (uint32_t)nNewHeight, nullptr, 1.0f, alphaType)) {
         ASSERT(0);
         return nullptr;
     }
@@ -243,8 +246,12 @@ std::unique_ptr<IBitmap> ImageUtil::ResizeImageBitmap(IBitmap* pBitmap, int32_t 
         return nullptr;
     }
 
-    if (ResizeImageData((const uint8_t*)pPixelBits, nPixelBitsLen, nWidth, nHeight,
-                        (uint8_t*)pOutPixelBits, nOutPixelBitsLen, (uint32_t)nNewWidth, (uint32_t)nNewHeight)) {
+    const bool bResized = ResizeImageData((const uint8_t*)pPixelBits, nPixelBitsLen, nWidth, nHeight,
+                                          (uint8_t*)pOutPixelBits, nOutPixelBitsLen, (uint32_t)nNewWidth, (uint32_t)nNewHeight,
+                                          alphaType);
+    //释放源位图的像素数据锁（成功和失败路径都必须释放，避免位图长期处于加锁状态）
+    pBitmap->UnLockPixelBits();
+    if (bResized) {
         pNewBitmap->UnLockPixelBits();
     }
     else {

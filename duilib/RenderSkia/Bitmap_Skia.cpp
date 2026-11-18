@@ -125,7 +125,8 @@ bool Bitmap_Skia::Init(uint32_t nWidth, uint32_t nHeight, const void* pPixelBits
                 return false;
             }
             bool bRet = ImageUtil::ResizeImageData((const uint8_t*)pPixelBits, nPixelBitsLen, nWidth, nHeight,
-                                                   (uint8_t*)pOutPixelBits, nOutPixelBitsLen, nNewWidth, nNewHeight);
+                                                   (uint8_t*)pOutPixelBits, nOutPixelBitsLen, nNewWidth, nNewHeight,
+                                                   alphaType);
             if (!bRet) {
                 m_pSkBitmap->reset();
                 return false;

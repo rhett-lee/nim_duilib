@@ -3,12 +3,10 @@
 
 #include "duilib/Core/UiTypes.h"
 #include "duilib/Utils/FilePath.h"
+#include "duilib/Render/IRender.h"
 
 namespace ui
 {
-/** 位图接口
-*/
-class IBitmap;
 
 /** SVG矢量图片接口
 */
@@ -78,10 +76,12 @@ public:
     * @param [out] outPixelBits 调整大小后的图像数据（数据长度等于nImageHeight * nNewWidth * 4）
     * @param [out] nNewWidth 调整后的图像宽度
     * @param [out] nNewHeight 调整后的图像高度
+    * @param [in] alphaType 像素数据的Alpha类型，用于选择正确的重采样方式（预乘/非预乘）
     */
     static bool ResizeImageData(const uint8_t* pPixelBits, size_t nPixelBitsLen, uint32_t nWidth, uint32_t nHeight,
                                 float fImageSizeScale,
-                                std::vector<uint8_t>& outPixelBits, uint32_t& nNewWidth, uint32_t& nNewHeight);
+                                std::vector<uint8_t>& outPixelBits, uint32_t& nNewWidth, uint32_t& nNewHeight,
+                                AlphaType alphaType = AlphaType::kPremul);
 
     /** 对图片大小进行调整
     * @param [in] pPixelBits 图像数据的起始地址
@@ -91,9 +91,11 @@ public:
     * @param [in] pOutPixelBits 输出调整大小后的图像数据（可写，数据长度等于nImageHeight * nNewWidth * 4）
     * @param [in] nNewWidth 调整后的图像宽度
     * @param [in] nNewHeight 调整后的图像高度
+    * @param [in] alphaType 像素数据的Alpha类型，用于选择正确的重采样方式（预乘/非预乘）
     */
     static bool ResizeImageData(const uint8_t* pPixelBits, size_t nPixelBitsLen, uint32_t nWidth, uint32_t nHeight,
-                                uint8_t* pOutPixelBits, size_t nOutPixelBitsLen, uint32_t nNewWidth, uint32_t nNewHeight);
+                                uint8_t* pOutPixelBits, size_t nOutPixelBitsLen, uint32_t nNewWidth, uint32_t nNewHeight,
+                                AlphaType alphaType = AlphaType::kPremul);
 
     /** 对位图调整大小
     * @param [in] pBitmap 需要调整大小的位图接口
