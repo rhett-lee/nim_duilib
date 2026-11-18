@@ -70,11 +70,30 @@ bool ImageLoadParam::IsSvgImageFile() const
     return false;
 }
 
+namespace
+{
+    /** 将变长字段追加到Key中
+    * @param [in,out] key 需要拼接的Key
+    * @param [in] field 字段内容
+    * 采用"长度:内容"的格式，避免字段内容本身包含分隔符时，不同的参数生成相同的Key
+    */
+    template<typename StringType>
+    void AppendKeyField(DString& key, const StringType& field)
+    {
+        const size_t nLen = StringUtil::StringLen(field.c_str());
+        key += StringUtil::UInt32ToString((uint32_t)nLen);
+        key += _T(':');
+        key.append(field.c_str(), nLen);
+    }
+}
+
 DString ImageLoadParam::GetLoadKey(uint32_t nLoadDpiScale) const
 {
-    //格式为(中括号内容为可选)：<图片路径>[@nLoadDpiScale]#IsImageDpiScaleEnabled()[$srcWidth:srcHeight]
+    //格式为(中括号内容为可选)：<图片路径>[@nLoadDpiScale]#IsImageDpiScaleEnabled()[$srcWidth:srcHeight][&svgReplaceColors]
+    //其中变长字段(图片路径、srcWidth、srcHeight、svgReplaceColors)使用"长度:内容"的格式拼接
     ASSERT(!m_srcImageLoadPath.m_imageFullPath.IsEmpty());
-    DString fullPath = m_srcImageLoadPath.m_imageFullPath.ToString();
+    DString fullPath;
+    AppendKeyField(fullPath, m_srcImageLoadPath.m_imageFullPath.ToString());
     if ((nLoadDpiScale != 0) && (nLoadDpiScale != 100)) {
         //追加缩放百分比
         fullPath += _T("@");
@@ -83,13 +102,12 @@ DString ImageLoadParam::GetLoadKey(uint32_t nLoadDpiScale) const
     fullPath += IsImageDpiScaleEnabled() ? _T("#1") : _T("#0");
     if (!m_srcWidth.empty() || !m_srcHeight.empty()) {
         fullPath += _T("$");
-        fullPath += m_srcWidth.c_str();
-        fullPath += _T(":");
-        fullPath += m_srcHeight.c_str();
+        AppendKeyField(fullPath, m_srcWidth);
+        AppendKeyField(fullPath, m_srcHeight);
     }
     if (!m_svgReplaceColors.empty()) {
         fullPath += _T("&");
-        fullPath += m_svgReplaceColors.c_str();
+        AppendKeyField(fullPath, m_svgReplaceColors);
     }
     return fullPath;
 }

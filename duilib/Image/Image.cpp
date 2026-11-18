@@ -126,7 +126,12 @@ const std::shared_ptr<ImageInfo>& Image::GetImageInfo() const
 
 void Image::SetImageInfo(const std::shared_ptr<ImageInfo>& imageInfo)
 {
+    const bool bImageChanged = (m_imageInfo != imageInfo);
     m_imageInfo = imageInfo;
+    if (bImageChanged && (m_pImagePlayer != nullptr)) {
+        //图片变化后，重新初始化动画的播放参数(播放次数、是否自动播放等)，并复位播放状态
+        m_pImagePlayer->SetImage(this);
+    }
 }
 
 void Image::ClearImageCache()

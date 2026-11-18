@@ -266,16 +266,28 @@ AnimationFramePtr ImageInfo::GetFrame(uint32_t nFrameIndex, const UiSize& szDest
     }
 
     AnimationFramePtr pAnimationFrame;
-    pAnimationFrame = std::make_shared<IAnimationImage::AnimationFrame>();
+    if ((m_pPendingFrame != nullptr) &&
+        (m_pPendingFrame->m_nFrameIndex == nFrameIndex) &&
+        (m_pendingFrameDestSize == szDestRectSize)) {
+        //该帧的数据仍在异步解码中，复用等待中的帧对象，避免每次绘制都重新分配
+        pAnimationFrame = m_pPendingFrame;
+    }
+    else {
+        pAnimationFrame = std::make_shared<IAnimationImage::AnimationFrame>();
+    }
     if (pAnimationImage->ReadFrameData(nFrameIndex, szDestRectSize, pAnimationFrame.get())) {
         pAnimationFrame->m_nFrameIndex = nFrameIndex;
         if (pAnimationFrame->m_bDataPending) {
-            //数据解码未完成，直接返回（不缓存，下次仍需重新读取）
+            //数据解码未完成，直接返回（下次仍需重新读取数据，但复用该帧对象等待解码完成）
             ASSERT(pAnimationFrame->m_pBitmap == nullptr);
+            m_pPendingFrame = pAnimationFrame;
+            m_pendingFrameDestSize = szDestRectSize;
             m_pLastFrame.reset();
             m_nLastFrameIndex = (uint32_t)-1;
             return pAnimationFrame;
         }
+        //数据已就绪，清除等待中的帧对象缓存
+        m_pPendingFrame.reset();
         ASSERT(pAnimationFrame->GetDelayMs() > 0);
         ASSERT(pAnimationFrame->m_pBitmap != nullptr);
         if (!pAnimationFrame->m_bDataError && (pAnimationFrame->m_pBitmap != nullptr)) {
@@ -371,6 +383,7 @@ bool ImageInfo::SetImageData(const ImageLoadParam& loadParam,
     ReleaseImage(); //延迟释放旧的图片数据(必须在更新m_loadParam之前调用)
     m_pBitmap.reset();
     m_pLastFrame.reset();
+    m_pPendingFrame.reset();
     m_nLastFrameIndex = (uint32_t)-1;
 
     m_loadParam = loadParam;
@@ -428,10 +441,8 @@ void ImageInfo::CalcImageInfoSize(const ImageLoadParam& loadParam,
         return;
     }
     if (!bImageDpiScaleEnabled) {
+        //禁用图片的DPI自适应时，如果加载的是DPI变体图片文件，则直接使用该图片文件的实际大小，不再按DPI换算
         ASSERT(nImageFileDpiScale == 100);
-        if (nImageFileDpiScale != 100) {
-            return;
-        }
     }
 
     //计算ImageInfo的宽度和高度（注意：与图片的实际宽度和高度值可能不相同）

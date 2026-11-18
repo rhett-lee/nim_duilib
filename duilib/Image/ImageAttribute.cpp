@@ -2,6 +2,7 @@
 #include "duilib/Core/DpiManager.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/AttributeUtil.h"
+#include "duilib/Utils/LogUtil.h"
 
 namespace ui 
 {
@@ -211,8 +212,7 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
     AttributeUtil::ParseAttributeList(strImageString, attributeList);
 
     ImageAttribute& imageAttribute = *this;
-    imageAttribute.m_bImageDpiScaleEnabled = true;
-    imageAttribute.m_bDestDpiScaleEnabled = true;
+    //注意：DPI相关的开关只在Init()中恢复默认值，此处不能重置，否则部分属性更新会把之前设置的dpi_scale/dest_scale覆盖掉
     for (const auto& attribute : attributeList) {
         const DString& name = attribute.first;
         const DString& value = attribute.second;
@@ -442,6 +442,14 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
             imageAttribute.m_bAssertEnabled = (value == _T("true"));
         }
         else {
+            //未知属性：输出日志(Release版本也生效)，便于发现配置文件中的属性名拼写错误
+            DString log(_T("ImageAttribute::ModifyAttribute: unknown attribute, image name: "));
+            log += imageAttribute.m_sImageName.c_str();
+            log += _T(", attribute: ");
+            log += name;
+            log += _T("=");
+            log += value;
+            LogUtil::OutputLine(log);
             ASSERT(!"ImageAttribute::ModifyAttribute: fount unknown attribute!");
         }
     }

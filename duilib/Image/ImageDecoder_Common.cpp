@@ -23,20 +23,30 @@ DString ImageDecoder_Common::GetFormatName() const
 
 bool ImageDecoder_Common::CanDecode(const DString& imageFilePath) const
 {
-    DString fileExtentions = ImageDecoderUtil::GetSupportedFileExtentions();
+    const DString fileExtentions = ImageDecoderUtil::GetSupportedFileExtentions();
     if (fileExtentions.empty()) {
         return false;
     }
     DString fileExt = FilePathUtil::GetFileExtension(imageFilePath);
     StringUtil::MakeUpperString(fileExt);
+    if (fileExt.empty()) {
+        return false;
+    }
 
-    std::list<DString> fileExtList = StringUtil::Split(fileExtentions, _T(";"));
-    for (DString& ext : fileExtList) {
+    //直接扫描分号分隔的后缀列表逐个比较，避免每次调用都拆分字符串生成临时容器
+    const DString::value_type* pszBegin = fileExtentions.c_str();
+    while (*pszBegin != 0) {
+        const DString::value_type* pszEnd = pszBegin;
+        while ((*pszEnd != 0) && (*pszEnd != _T(';'))) {
+            ++pszEnd;
+        }
+        DString ext(pszBegin, (size_t)(pszEnd - pszBegin));
         StringUtil::MakeUpperString(ext);
         if (fileExt == ext) {
             return true;
         }
-    }    
+        pszBegin = (*pszEnd == _T(';')) ? (pszEnd + 1) : pszEnd;
+    }
     return false;
 }
 

@@ -28,6 +28,11 @@ void ImagePlayer::SetControl(Control* pControl)
 
 void ImagePlayer::SetImage(Image* pImage)
 {
+    //重新初始化图片时，先复位播放状态并取消旧的定时器，避免定时器仍按旧图片的状态运行
+    m_animWeakFlag.Cancel();
+    m_bAnimationPlaying = false;
+    m_nCycledCount = 0;
+
     m_pImage = pImage;
     if (m_pImage != nullptr) {
         ASSERT(m_pImage->IsMultiFrameImage());
@@ -166,6 +171,8 @@ void ImagePlayer::PlayingImageAnimation()
     uint32_t nFrameIndex = m_pImage->GetCurrentFrameIndex();
     if (!pImageInfo->IsFrameDataReady(nFrameIndex)) {
         //当前帧的数据尚未完成解码，如果未完成解码，应该是还没绘制: 跳过一个帧的时间
+        //说明：此处的定时器是周期性触发的，直接返回后会在下一个定时器周期重试，
+        //      无需重新添加定时器
         //TODO：（待优化实现方式：等下一帧解码完成后，立即显示）
         return;
     }    
@@ -235,7 +242,8 @@ void ImagePlayer::StopImageAnimation(AnimationImagePos nStopFrame, bool bTrigger
         m_pImage->SetCurrentFrameIndex(index);
         RedrawImage();
     }
-    //一旦停止，标记为手动停止，不再自动播放动画
+    //停止后不再自动播放：控件每次绘制都会调用CheckStartImageAnimation，
+    //若不关闭自动播放，已停止(包括播放次数已用尽)的动画会在下次重绘时被重新启动
     m_bAutoPlay = false;
     if (bTriggerEvent && (m_pControl != nullptr) && (m_pImage != nullptr)) {
         if (m_pControl->HasEventCallback(kEventImageAnimationStop)) {

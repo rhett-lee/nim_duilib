@@ -227,6 +227,14 @@ private:
     */
     UiSize m_lastFrameDestSize;
 
+    /** 等待异步解码完成的动画帧（缓存该帧对象，避免每次绘制都重新分配）
+    */
+    AnimationFramePtr m_pPendingFrame;
+
+    /** 等待异步解码的动画帧的目标区域大小
+    */
+    UiSize m_pendingFrameDestSize;
+
     /** 原图加载的宽度和高度缩放比例(1.0f表示无缩放)
     */
     float m_fImageSizeScale;

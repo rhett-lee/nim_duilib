@@ -45,8 +45,8 @@ uint32_t ImageUtil::GetScaledImageSize(uint32_t nImageSize, float fImageSizeScal
 int32_t ImageUtil::GetScaledImageOffset(int32_t nImageOffset, float fImageSizeScale)
 {
     if (NeedResizeImage(fImageSizeScale)) {
-        //计算后，进行四舍五入
-        nImageOffset = static_cast<int32_t>(std::ceil(nImageOffset * fImageSizeScale));
+        //计算后，进行四舍五入(使用lround，负数时也能对称取整)
+        nImageOffset = static_cast<int32_t>(std::lround(nImageOffset * fImageSizeScale));
     }
     return nImageOffset;
 }
