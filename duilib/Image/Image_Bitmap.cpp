@@ -343,4 +343,11 @@ bool Image_Bitmap::MergeAsyncDecodeData()
     return false;
 }
 
+void Image_Bitmap::SetAsyncDecoding(bool bDecoding)
+{
+    if (m_pBitmapImage != nullptr) {
+        m_pBitmapImage->SetAsyncDecoding(bDecoding);
+    }
+}
+
 } //namespace ui

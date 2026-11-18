@@ -173,7 +173,9 @@ void ImagePlayer::PlayingImageAnimation()
         //当前帧的数据尚未完成解码，如果未完成解码，应该是还没绘制: 跳过一个帧的时间
         //说明：此处的定时器是周期性触发的，直接返回后会在下一个定时器周期重试，
         //      无需重新添加定时器
-        //TODO：（待优化实现方式：等下一帧解码完成后，立即显示）
+        //请求继续异步解码：多帧图片只保持播放位置前方的预解码窗口，
+        //当窗口关闭后需要主动请求，才能继续解码后续的帧
+        m_pControl->RequestAsyncDecodeImage(m_pImage);
         return;
     }    
     else {
@@ -184,6 +186,8 @@ void ImagePlayer::PlayingImageAnimation()
         }
         if (!pImageInfo->IsFrameDataReady(nNextFrameIndex)) {
             //下一帧图片数据尚未完成解码: 不切换到下一帧
+            //请求继续异步解码，避免因预解码窗口关闭而停止解码
+            m_pControl->RequestAsyncDecodeImage(m_pImage);
             return;
         }
     }

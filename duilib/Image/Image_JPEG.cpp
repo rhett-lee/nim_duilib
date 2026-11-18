@@ -2,6 +2,8 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/FileUtil.h"
 
+#include <atomic>
+
 #ifdef DUILIB_IMAGE_SUPPORT_JPEG_TURBO
 
 #include "turbojpeg.h"
@@ -44,6 +46,14 @@ struct Image_JPEG::TImpl
     /** 位图数据（延迟解码）
     */
     std::shared_ptr<IBitmap> m_pDelayBitmap;
+
+    /** 是否正在异步解码中（UI线程提交任务前置位，工作线程结束时清除，用于隔离两个线程对解码数据的访问）
+    */
+    std::atomic<bool> m_bAsyncDecoding = false;
+
+    /** 是否已经完成延迟解码（工作线程写入m_pDelayBitmap后置位，供UI线程安全判断解码状态）
+    */
+    std::atomic<bool> m_bDelayDecoded = false;
 };
 
 Image_JPEG::Image_JPEG()
@@ -436,12 +446,14 @@ std::shared_ptr<IBitmap> Image_JPEG::DecodeBitmap() const
 
 bool Image_JPEG::IsDelayDecodeEnabled() const
 {
+    //注意：此处不能判断m_bAsyncDecoding，因为工作线程也需要调用该函数做前置校验；
+    //      对m_pDelayBitmap的跨线程访问由m_bDelayDecoded和m_bAsyncDecoding共同保护
     if (m_impl->m_bAsyncDecode &&
         (m_impl->m_tjInstance != nullptr) &&
         !m_impl->m_fileData.empty() &&
         (m_impl->m_nWidth > 0) &&
         (m_impl->m_nHeight > 0) &&
-        (m_impl->m_pDelayBitmap == nullptr) &&
+        !m_impl->m_bDelayDecoded &&
         !m_impl->m_bDecodeError) {
         return true;
     }
@@ -450,7 +462,10 @@ bool Image_JPEG::IsDelayDecodeEnabled() const
 
 bool Image_JPEG::IsDelayDecodeFinished() const
 {
-    return (m_impl->m_pBitmap != nullptr) || (m_impl->m_pDelayBitmap != nullptr) || m_impl->m_bDecodeError;
+    if (m_impl->m_bAsyncDecoding) {
+        return false;
+    }
+    return (m_impl->m_pBitmap != nullptr) || m_impl->m_bDelayDecoded || m_impl->m_bDecodeError;
 }
 
 uint32_t Image_JPEG::GetDecodedFrameIndex() const
@@ -458,10 +473,24 @@ uint32_t Image_JPEG::GetDecodedFrameIndex() const
     return 0;
 }
 
+void Image_JPEG::SetAsyncDecoding(bool bDecoding)
+{
+    m_impl->m_bAsyncDecoding = bDecoding;
+}
+
 bool Image_JPEG::DelayDecode(uint32_t /*nMinFrameIndex*/, std::function<bool(void)> /*IsAborted*/, bool* bDecodeError)
 {
     bool bRet = false;
-    if (IsDelayDecodeEnabled()) {
+    //注意：此处不能调用IsDelayDecodeEnabled()，因为此时m_bAsyncDecoding已由UI线程置位
+    const bool bCanDecode = m_impl->m_bAsyncDecode &&
+                            (m_impl->m_tjInstance != nullptr) &&
+                            !m_impl->m_fileData.empty() &&
+                            (m_impl->m_nWidth > 0) &&
+                            (m_impl->m_nHeight > 0) &&
+                            !m_impl->m_bDecodeError;
+    if (bCanDecode) {
+        //正常调度时，该状态已由UI线程在提交任务前置位；此处置位用于兼容直接调用DelayDecode的场景
+        m_impl->m_bAsyncDecoding = true;
         ASSERT(m_impl->m_pDelayBitmap == nullptr);
         if (m_impl->m_pDelayBitmap == nullptr) {
             m_impl->m_pDelayBitmap = DecodeBitmap();
@@ -472,7 +501,10 @@ bool Image_JPEG::DelayDecode(uint32_t /*nMinFrameIndex*/, std::function<bool(voi
                     *bDecodeError = true;
                 }
             }
+            //置位后，UI线程才能安全地读取m_pDelayBitmap
+            m_impl->m_bDelayDecoded = true;
         }
+        m_impl->m_bAsyncDecoding = false;
     }
     return bRet;
 }

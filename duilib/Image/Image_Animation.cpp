@@ -98,4 +98,11 @@ bool Image_Animation::MergeAsyncDecodeData()
     return false;
 }
 
+void Image_Animation::SetAsyncDecoding(bool bDecoding)
+{
+    if (m_pAnimationImage != nullptr) {
+        m_pAnimationImage->SetAsyncDecoding(bDecoding);
+    }
+}
+
 } //namespace ui

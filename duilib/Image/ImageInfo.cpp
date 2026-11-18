@@ -267,7 +267,7 @@ AnimationFramePtr ImageInfo::GetFrame(uint32_t nFrameIndex, const UiSize& szDest
 
     AnimationFramePtr pAnimationFrame;
     if ((m_pPendingFrame != nullptr) &&
-        (m_pPendingFrame->m_nFrameIndex == nFrameIndex) &&
+        (m_pPendingFrame->m_nFrameIndex == (int32_t)nFrameIndex) &&
         (m_pendingFrameDestSize == szDestRectSize)) {
         //该帧的数据仍在异步解码中，复用等待中的帧对象，避免每次绘制都重新分配
         pAnimationFrame = m_pPendingFrame;

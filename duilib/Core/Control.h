@@ -12,6 +12,7 @@ namespace ui
     class Control;
     class ControlLoading;
     class Image;
+    class ImageInfo;
     class IMatrix;
     class StateColorMap;
     class StateColorMap2;
@@ -838,6 +839,13 @@ public:
     */
     bool IsImageAnimationLoaded() const;//背景图片
     bool IsImageAnimationLoaded(const DString& imageName) const;
+
+    /** 请求继续异步解码指定的图片数据
+    *   说明：多帧图片采用预解码窗口机制，只保持播放位置前方若干帧的预解码数据；
+    *         当播放推进到窗口边缘、需要新的帧数据时，由图片播放模块调用本函数请求继续解码
+    * @param [in] pImage 需要继续解码的图片接口
+    */
+    void RequestAsyncDecodeImage(Image* pImage);
 
     /** 监听动画播放开始通知(所有图片动画)
      * @param [in] callback 要监听动画停止播放的回调函数
@@ -1726,6 +1734,17 @@ private:
     */
     struct TAsyncImageDecode;
     static void AsyncDecodeImageData(std::shared_ptr<TAsyncImageDecode> pAsyncDecoder);
+
+    /** 启动图片数据的异步解码（如果满足启动条件）
+    * @param [in] duiImage 图片接口
+    * @param [in] imageInfo 图片信息
+    * @param [in] imagePath 图片文件路径（用于解码完成的事件通知）
+    */
+    void StartAsyncDecodeImage(Image& duiImage, const std::shared_ptr<ImageInfo>& imageInfo, const DString& imagePath) const;
+
+    /** 多帧图片的预解码窗口是否已关闭（返回false表示不需要继续解码，等播放推进后再继续）
+    */
+    static bool IsAsyncDecodeWindowOpen(const std::shared_ptr<TAsyncImageDecode>& pAsyncDecoder);
 
     /** 颜色转换函数的实现
     */

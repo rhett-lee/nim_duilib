@@ -86,6 +86,10 @@ public:
     */
     virtual uint32_t GetDecodedFrameIndex() const override;
 
+    /** 设置异步解码的状态（UI线程提交解码任务前置位，解码任务结束时清除）
+    */
+    virtual void SetAsyncDecoding(bool bDecoding) override;
+
     /** 延迟解码图片数据（可以在多线程中调用）
     * @param [in] nMinFrameIndex 至少需要解码到哪一帧（帧索引号，从0开始编号）
     * @param [in] IsAborted 解码终止终止测试函数，返回true表示终止，否则表示正常操作

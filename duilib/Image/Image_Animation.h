@@ -72,6 +72,10 @@ private:
     */
     virtual bool MergeAsyncDecodeData() override;
 
+    /** 设置异步解码的状态（由UI线程在提交解码任务之前调用）
+    */
+    virtual void SetAsyncDecoding(bool bDecoding) override;
+
 private:
     /** 动画图片
     */

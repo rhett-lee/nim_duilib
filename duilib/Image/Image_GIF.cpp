@@ -461,12 +461,14 @@ uint32_t Image_GIF::GetDecodedFrameIndex() const
     }
 }
 
+void Image_GIF::SetAsyncDecoding(bool bDecoding)
+{
+    m_impl->m_bAsyncDecoding = bDecoding;
+}
+
 bool Image_GIF::DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> IsAborted, bool* bDecodeError)
 {
     if (!IsDelayDecodeEnabled()) {
-        return false;
-    }
-    if (m_impl->m_bAsyncDecoding) {
         return false;
     }
     ASSERT(m_impl->m_nFrameCount > 0);
@@ -479,6 +481,7 @@ bool Image_GIF::DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> I
         }
         return false;
     }
+    //正常调度时，该状态已由UI线程在提交任务前置位；此处置位用于兼容直接调用DelayDecode的场景
     m_impl->m_bAsyncDecoding = true;
     const size_t nFrameCount = (size_t)m_impl->m_nFrameCount;
 

@@ -3542,14 +3542,10 @@ bool Control::PaintImage(IRender* pRender,
             }
         }
         else if (pAnimationFrame->m_bDataPending) {
-            //数据尚未准备好, 可忽略
+            //数据尚未准备好（异步解码中），登记延迟绘制，解码完成后重绘
+            //注意：是否异步解码取决于共享的图片数据，不能用当前图片的m_bAsyncLoad判断
             ASSERT(pAnimationFrame->m_pBitmap == nullptr);
-            if (duiImage.GetImageAttribute().m_bAsyncLoad) {
-                bDataPending = true;
-            }
-            else {
-                ASSERT(!"pAnimationFrame->m_bDataPending is invalid!");
-            }
+            bDataPending = true;
         }
         else if (pAnimationFrame->m_bDataError) {
             //遇到图片解码错误
@@ -3573,7 +3569,9 @@ bool Control::PaintImage(IRender* pRender,
         }        
         pBitmap = duiImage.GetCurrentBitmap(bImageStretch, rcImageDect, rcSource, rcSourceCorners, &bDecodeError);
         if (pBitmap == nullptr) {
-            if (!bDecodeError && duiImage.GetImageAttribute().m_bAsyncLoad) {
+            if (!bDecodeError) {
+                //位图为空且没有解码错误，说明异步解码尚未完成，登记延迟绘制，解码完成后重绘
+                //注意：是否异步解码取决于共享的图片数据，不能用当前图片的m_bAsyncLoad判断
                 bDataPending = true;
             }
         }
@@ -4642,6 +4640,10 @@ bool  Control::IsImageAnimationLoaded(const DString& imageName) const
     return pImage->GetImageInfo() != nullptr;
 }
 
+/** 多帧图片异步解码的预解码窗口：在播放位置前方保留的已解码帧数
+*/
+constexpr uint32_t kAsyncDecodeLookahead = 3;
+
 /** 多线程解码的数据结构(异步，在子线程解码)
 */
 struct Control::TAsyncImageDecode
@@ -4713,6 +4715,9 @@ void Control::AsyncDecodeImageData(std::shared_ptr<TAsyncImageDecode> pAsyncDeco
             if (pAsyncDecoder == nullptr) {
                 return;
             }
+            //此时工作线程的解码操作已经结束，清除"正在异步解码"状态：
+            //既保证UI线程后续可以安全读取/合并解码结果，也避免提前返回时该状态无法被清除
+            pAsyncDecoder->m_pImageData->SetAsyncDecoding(false);
             if (!pAsyncDecoder->m_bDecodeExecuted) {
                 //未执行图片解码操作，不需要再处理
                 return;
@@ -4743,25 +4748,33 @@ void Control::AsyncDecodeImageData(std::shared_ptr<TAsyncImageDecode> pAsyncDeco
                 pAsyncDecoder->m_bDecodeResult &&
                 !pAsyncDecoder->m_bDecodeError &&
                 (pAsyncDecoder->m_nDecodeCount <= pAsyncDecoder->m_nFrameCount)) {
-                //如果未完成，则继续解码下一帧
-                pAsyncDecoder->m_bDecodeExecuted = false;
-                AsyncDecodeImageData(pAsyncDecoder);
-            }
-            else {
-                //清除任务ID(仅在完成时清除)
-                pAsyncDecoder->m_pImageData->SetAsyncDecodeTaskId(0);
-
-                if ((pAsyncDecoder->m_pControl != nullptr) && (pAsyncDecoder->m_pImage != nullptr)) {
-                    bool bDecodeError = true; //默认为解码错误
-                    if (!pAsyncDecoder->m_bDecodeError && bDecodeFinished) {
-                        //解码完成
-                        bDecodeError = false;
-                    }
-                    if (pAsyncDecoder->m_bDecodeError) {
-                        pAsyncDecoder->m_pImage->SetImageError(true);
-                    }
-                    pAsyncDecoder->m_pControl->FireImageEvent(pAsyncDecoder->m_pImage.get(), pAsyncDecoder->m_imagePath, false, false, bDecodeError);
+                //多帧图片只保持播放位置前方的预解码窗口，避免把长动画的所有帧都解码后常驻内存
+                const bool bWindowOpen = (pAsyncDecoder->m_pImageData->GetImageType() != ImageType::kImageAnimation) ||
+                                         IsAsyncDecodeWindowOpen(pAsyncDecoder);
+                if (bWindowOpen) {
+                    //如果未完成，则继续解码下一帧
+                    pAsyncDecoder->m_bDecodeExecuted = false;
+                    AsyncDecodeImageData(pAsyncDecoder);
                 }
+                else {
+                    //预解码窗口已关闭：暂停解码，等播放推进到窗口边缘时，由图片播放模块请求继续解码
+                    pAsyncDecoder->m_pImageData->SetAsyncDecodeTaskId(0);
+                }
+                return;
+            }
+            //清除任务ID(仅在完成时清除)
+            pAsyncDecoder->m_pImageData->SetAsyncDecodeTaskId(0);
+
+            if ((pAsyncDecoder->m_pControl != nullptr) && (pAsyncDecoder->m_pImage != nullptr)) {
+                bool bDecodeError = true; //默认为解码错误
+                if (!pAsyncDecoder->m_bDecodeError && bDecodeFinished) {
+                    //解码完成
+                    bDecodeError = false;
+                }
+                if (pAsyncDecoder->m_bDecodeError) {
+                    pAsyncDecoder->m_pImage->SetImageError(true);
+                }
+                pAsyncDecoder->m_pControl->FireImageEvent(pAsyncDecoder->m_pImage.get(), pAsyncDecoder->m_imagePath, false, false, bDecodeError);
             }
         };
 
@@ -4811,10 +4824,99 @@ void Control::AsyncDecodeImageData(std::shared_ptr<TAsyncImageDecode> pAsyncDeco
             ASSERT_UNUSED_VARIABLE(nTaskId > 0);
         };
 
+    //在提交解码任务之前，先在UI线程置位"正在异步解码"状态，
+    //确保UI线程在任务执行期间不会读取/合并工作线程正在写入的解码中间数据
+    pAsyncDecoder->m_pImageData->SetAsyncDecoding(true);
+
     //放入子线程中，开始解码
     size_t nTaskId = threadManager.PostTask(nThreadIdentifier, AsyncDecodeImageFunction);
+    if (nTaskId == 0) {
+        //任务提交失败，恢复状态，避免图片数据一直处于"正在解码"状态
+        pAsyncDecoder->m_pImageData->SetAsyncDecoding(false);
+        pAsyncDecoder->m_nTaskId = 0;
+        return;
+    }
     pAsyncDecoder->m_nTaskId = nTaskId;
     pAsyncDecoder->m_pImageData->SetAsyncDecodeTaskId(nTaskId);
+}
+
+bool Control::IsAsyncDecodeWindowOpen(const std::shared_ptr<TAsyncImageDecode>& pAsyncDecoder)
+{
+    if ((pAsyncDecoder == nullptr) || (pAsyncDecoder->m_pImageData == nullptr)) {
+        return false;
+    }
+    std::shared_ptr<IAnimationImage> pAnimationImage = pAsyncDecoder->m_pImageData->GetImageAnimation();
+    if (pAnimationImage == nullptr) {
+        return true;
+    }
+    const uint32_t nFrameCount = pAnimationImage->GetFrameCount();
+    if (nFrameCount == 0) {
+        return false;
+    }
+    //已经解码的帧数
+    const uint32_t nDecodedCount = pAnimationImage->GetDecodedFrameIndex() + 1;
+    if (nDecodedCount >= nFrameCount) {
+        return false;
+    }
+    //当前的播放位置
+    uint32_t nCurFrameIndex = 0;
+    if (pAsyncDecoder->m_pImage != nullptr) {
+        nCurFrameIndex = pAsyncDecoder->m_pImage->GetCurrentFrameIndex();
+    }
+    if (nCurFrameIndex >= nFrameCount) {
+        nCurFrameIndex = 0;
+    }
+    //播放位置之后已经解码的帧数，达到窗口大小时暂停解码
+    const uint32_t nDecodedAhead = (nDecodedCount > nCurFrameIndex) ? (nDecodedCount - nCurFrameIndex) : 0;
+    return nDecodedAhead < kAsyncDecodeLookahead;
+}
+
+void Control::StartAsyncDecodeImage(Image& duiImage, const std::shared_ptr<ImageInfo>& imageInfo, const DString& imagePath) const
+{
+    GlobalManager::Instance().AssertUIThread();
+    if (imageInfo == nullptr) {
+        return;
+    }
+    std::shared_ptr<IImage> pImageData = imageInfo->GetImageData();
+    if (pImageData == nullptr) {
+        return;
+    }
+    std::shared_ptr<TAsyncImageDecode> pAsyncDecoder = std::make_shared<TAsyncImageDecode>();
+    pAsyncDecoder->m_nFrameCount = imageInfo->GetFrameCount();
+    pAsyncDecoder->m_nDecodeCount = 0;
+    pAsyncDecoder->m_nTaskId = 0;
+    pAsyncDecoder->m_pImageData = std::move(pImageData);
+    pAsyncDecoder->m_imageKey = imageInfo->GetImageKey();
+    pAsyncDecoder->m_pControl = const_cast<Control*>(this);
+    pAsyncDecoder->m_pImage = &duiImage;
+    pAsyncDecoder->m_imagePath = imagePath;
+    AsyncDecodeImageData(pAsyncDecoder);
+}
+
+void Control::RequestAsyncDecodeImage(Image* pImage)
+{
+    GlobalManager::Instance().AssertUIThread();
+    if (pImage == nullptr) {
+        return;
+    }
+    const std::shared_ptr<ImageInfo>& imageInfo = pImage->GetImageInfo();
+    if (imageInfo == nullptr) {
+        return;
+    }
+    std::shared_ptr<IImage> pImageData = imageInfo->GetImageData();
+    if (pImageData == nullptr) {
+        return;
+    }
+    if (!pImageData->IsAsyncDecodeEnabled() || pImageData->IsAsyncDecodeFinished()) {
+        //不支持异步解码，或者已经解码完成
+        return;
+    }
+    if (pImageData->GetAsyncDecodeTaskId() != 0) {
+        //已经有解码任务在队列中/执行中，无需重复提交
+        return;
+    }
+    //异步解码尚未完成：启动（或继续）异步解码任务
+    StartAsyncDecodeImage(*pImage, imageInfo, pImage->GetImagePath());
 }
 
 bool Control::LoadImageInfo(Image& duiImage, bool bPaintImage) const
@@ -4965,26 +5067,17 @@ bool Control::LoadImageInfo(Image& duiImage, bool bPaintImage) const
         duiImage.SetImageInfo(imageInfo);
         if (imageInfo != nullptr) {
             //检查并启动多线程解码，在子线程中解码图片数据
-            std::shared_ptr<IImage> pImageData = imageInfo->GetImageData();
-            if (pImageData != nullptr) {
-                std::shared_ptr<TAsyncImageDecode> pAsyncDecoder = std::make_shared<TAsyncImageDecode>();                
-                pAsyncDecoder->m_nFrameCount = imageInfo->GetFrameCount();
-                pAsyncDecoder->m_nDecodeCount = 0;
-                pAsyncDecoder->m_nTaskId = 0;
-                pAsyncDecoder->m_pImageData = std::move(pImageData);
-                pAsyncDecoder->m_imageKey = imageInfo->GetImageKey();
-                pAsyncDecoder->m_pControl = const_cast<Control*>(this);
-                pAsyncDecoder->m_pImage = &duiImage;
-                pAsyncDecoder->m_imagePath = imageLoadPath.m_imageFullPath.NativePath();
-
-                if (!bImageDataFromCache) {
-                    //重新加载的图片
-                    AsyncDecodeImageData(pAsyncDecoder);
-                }
-                else if (pAsyncDecoder->m_pImageData->IsAsyncDecodeEnabled() &&
-                         !pAsyncDecoder->m_pImageData->IsAsyncDecodeFinished()) {
-                    //从缓存中获取的图片，但尚未加载
-                    AsyncDecodeImageData(pAsyncDecoder);
+            if (!bImageDataFromCache) {
+                //重新加载的图片
+                StartAsyncDecodeImage(duiImage, imageInfo, imageLoadPath.m_imageFullPath.NativePath());
+            }
+            else {
+                //从缓存中获取的图片：如果尚未完成解码，则继续解码
+                std::shared_ptr<IImage> pImageData = imageInfo->GetImageData();
+                if ((pImageData != nullptr) &&
+                    pImageData->IsAsyncDecodeEnabled() &&
+                    !pImageData->IsAsyncDecodeFinished()) {
+                    StartAsyncDecodeImage(duiImage, imageInfo, imageLoadPath.m_imageFullPath.NativePath());
                 }
             }
         }

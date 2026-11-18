@@ -32,6 +32,13 @@ public:
     */
     virtual uint32_t GetDecodedFrameIndex() const = 0;
 
+    /** 设置异步解码的状态
+    *   由UI线程在提交解码任务之前调用（置为true），解码任务结束时由工作线程清除（置为false），
+    *   用于隔离工作线程与UI线程对解码中间数据的并发访问
+    * @param [in] bDecoding true表示异步解码即将开始，false表示异步解码已经结束
+    */
+    virtual void SetAsyncDecoding(bool /*bDecoding*/) {}
+
     /** 延迟解码图片数据（可以在多线程中调用）
     * @param [in] nMinFrameIndex 至少需要解码到哪一帧（帧索引号，从0开始编号）
     * @param [in] IsAborted 解码终止终止测试函数，返回true表示终止，否则表示正常操作
@@ -67,6 +74,11 @@ public:
     /** 获取当前异步解码完成的图片帧索引号（从0开始编号）
     */
     virtual uint32_t GetDecodedFrameIndex() const = 0;
+
+    /** 设置异步解码的状态（由UI线程在提交解码任务之前调用）
+    * @param [in] bDecoding true表示异步解码即将开始，false表示异步解码已经结束
+    */
+    virtual void SetAsyncDecoding(bool /*bDecoding*/) {}
 
     /** 设置异步解码的任务ID
     * @param [in] nTaskId 在子线程中的任务ID

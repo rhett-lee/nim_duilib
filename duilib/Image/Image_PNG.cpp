@@ -610,13 +610,14 @@ uint32_t Image_PNG::GetDecodedFrameIndex() const
     }
 }
 
+void Image_PNG::SetAsyncDecoding(bool bDecoding)
+{
+    m_impl->m_bAsyncDecoding = bDecoding;
+}
+
 bool Image_PNG::DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> IsAborted, bool* bDecodeError)
 {
     if (!IsDelayDecodeEnabled()) {
-        ASSERT(0);
-        return false;
-    }
-    if (m_impl->m_bAsyncDecoding) {
         ASSERT(0);
         return false;
     }
@@ -630,6 +631,7 @@ bool Image_PNG::DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> I
         }
         return false;
     }
+    //正常调度时，该状态已由UI线程在提交任务前置位；此处置位用于兼容直接调用DelayDecode的场景
     m_impl->m_bAsyncDecoding = true;
     const size_t nFrameCount = (size_t)m_impl->m_nFrameCount;
 
