@@ -15,7 +15,8 @@
 | 9 | 数值未变化也发送拖动事件 | 已修复 |
 | 10 | 代码重复与命名问题 | 已修复 |
 | 11 | 头注释与实现矛盾 | 已修复（代码注释 + `docs/Control.md` / `Control.en.md`） |
-| 三 | 功能不足（双击复位、拖动起止事件、拖动阈值等） | 未处理（规划中） |
+| 三 | 双击复位 | 已实现（属性 `double_click_reset`，默认 `false`） |
+| 三 | 功能不足（拖动起止事件、拖动阈值等） | 未处理（规划中） |
 
 ## 一、结论
 
@@ -140,11 +141,19 @@ if ((nNewMax > 0) && (nMax > nNewMax)) { nMax = nNewMax; }
 
 修复后重新验证：分割条左右拖动到最小宽度时不再触发断言，程序保持正常运行。
 
+### 双击复位实现说明
+
+- **属性**：新增 `double_click_reset`（默认 `false`），对应 `SetDoubleClickReset()` / `IsDoubleClickReset()`。默认为关闭，避免影响自行处理双击的场景（如 `ListCtrlHeader` 在 `SplitBox` 上挂的双击）。
+- **记录时机**：在 `ButtonDown` 中，首次真正开始拖动前记录两侧控件的 `UiFixedInt` 原始值（保留固定值、`stretch`、`auto` 三种类型）；双拉伸场景下，记录发生在"左上控件转固定值"之前，因此复位后可以恢复为双拉伸。
+- **复位行为**：覆写 `ButtonDoubleClick()`，先调用基类保持既有双击事件派发；当属性开启、已记录初始值且当前满足拖动条件时，用 `ResetAxisFixedSize()` 按原类型/原值恢复两侧控件，两者都改完后统一调用 `ArrangeAncestor()` 触发布局（避免单侧值未变化时 `SetFixedWidth` 不重排的问题）。
+- **交互结果**：复位后仍可继续拖动；再次双击仍恢复到"首次拖动前"的尺寸（初始值只记录一次，不随拖动更新）。
+- **验证**：Debug 版 `TreeView` 示例（非 DLL 模式）中给主分割条加 `double_click_reset="true"`，拖动使左面板由 280 增大到约 400，双击后恢复原宽度（截图测量：分割线物理像素 x 519 → 727 → 517），界面正常、无断言。
+
 ## 三、功能不足（建议补齐）
 
 | 能力 | 现状 | 建议 |
 | --- | --- | --- |
-| 双击复位 | 控件本身不支持（`ListCtrlHeader` 自己在 SplitBox 上挂双击） | 内建保存初始 `fixed` 值，双击恢复；属性 `double_click_reset` 控制 |
+| 双击复位 | 控件本身不支持（`ListCtrlHeader` 自己在 SplitBox 上挂双击） | 已实现：内建保存首次拖动前的 `fixed` 值（含固定/拉伸/自动类型），双击恢复；属性 `double_click_reset` 控制，默认 `false` |
 | 拖动开始/结束事件 | 只有 `kEventSplitDraged` | 增加 `kEventSplitDragBegin/kEventSplitDragEnd`，便于应用层暂停刷新、持久化布局 |
 | 拖动阈值 | 无，轻微移动即改尺寸并发事件 | 1~2px（DPI 缩放）阈值，仅在超过后才开始调整 |
 | 目标控件可指定 | 只能取"同父容器内、可见、非 float 的前后兄弟" | 增加 `left_top_ctrl_name` / `right_bottom_ctrl_name`，支持跨容器分割 |

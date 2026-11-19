@@ -15,6 +15,7 @@ namespace ui
 *    - 其中一个是拉伸类型时，只调整另一个控件，拉伸类型的控件由父容器自动分配尺寸；
 *    - 两个控件都是拉伸类型时，鼠标按下后会把左侧（上侧）控件转换为固定尺寸，然后可以正常拖动。
 *   如果父容器的布局不是HLayout或者VLayout，则不支持拖动（不显示调整光标）。
+*   属性 double_click_reset 为 true 时，双击分割条可以把两侧控件恢复到首次拖动前的尺寸。
 */
 template<typename InheritType = Control>
 class SplitTemplate : public InheritType
@@ -42,6 +43,15 @@ public:
     */
     bool IsEnableSplitSingle() const;
 
+    /** 设置双击分割条时，是否把两侧控件恢复到首次拖动前的尺寸
+    * @param [in] bDoubleClickReset true表示允许双击复位，false表示不处理双击
+    */
+    void SetDoubleClickReset(bool bDoubleClickReset);
+
+    /** 获取双击分割条时，是否把两侧控件恢复到首次拖动前的尺寸
+    */
+    bool IsDoubleClickReset() const;
+
     /** 监听拖动的事件
      * @param [in] callback 被选择时触发的回调函数
      * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
@@ -58,6 +68,7 @@ protected:
     virtual bool MouseEnter(const EventArgs& msg) override;
     virtual bool ButtonDown(const EventArgs& msg) override;
     virtual bool ButtonUp(const EventArgs& msg) override;
+    virtual bool ButtonDoubleClick(const EventArgs& msg) override;
     virtual bool MouseMove(const EventArgs& msg) override;
     virtual bool OnWindowKillFocus(const EventArgs& msg) override;
 
@@ -111,6 +122,12 @@ private:
     */
     void SetAxisFixedSize(Control* pControl, int32_t nValue, bool bArrange);
 
+    /** 恢复控件在主布局方向上的固定尺寸（固定值/拉伸/自动类型均按原值恢复）
+    * @param [in] bArrange true表示立即触发布局，false表示只修改值（由后续操作统一触发布局）
+    * @return 返回true表示尺寸发生了变化
+    */
+    bool ResetAxisFixedSize(Control* pControl, const UiFixedInt& fixedSize, bool bArrange);
+
     /** 获取控件在主布局方向上的最小尺寸
     */
     int32_t GetAxisMinSize(const Control* pControl) const;
@@ -137,6 +154,15 @@ private:
     //右侧（左右拖动）或者下侧（上下拖动）的控件的宽度（左右拖动）或者高度（上下拖动）
     UiFixedInt m_nRightBottomFixedValue;
 
+    //首次拖动前，左侧（上侧）控件的宽度（左右拖动）或者高度（上下拖动），用于双击复位
+    UiFixedInt m_nLeftTopInitFixedValue;
+
+    //首次拖动前，右侧（下侧）控件的宽度（左右拖动）或者高度（上下拖动），用于双击复位
+    UiFixedInt m_nRightBottomInitFixedValue;
+
+    //是否已经记录首次拖动前的尺寸（用于双击复位）
+    bool m_bInitSizeCaptured;
+
     //开始拖动时的鼠标位置
     UiPoint m_ptStart;
 
@@ -146,6 +172,10 @@ private:
     /** 当只有一个控件的时候，是否允许调整其宽度
     */
     bool m_bEnableSplitSingle;
+
+    /** 双击分割条时，是否把两侧控件恢复到首次拖动前的尺寸
+    */
+    bool m_bDoubleClickReset;
 };
 
 template<typename InheritType>
@@ -153,8 +183,10 @@ SplitTemplate<InheritType>::SplitTemplate(Window* pWindow):
     InheritType(pWindow),
     m_pLeftTop(nullptr),
     m_pRightBottom(nullptr),
+    m_bInitSizeCaptured(false),
     m_bHLayout(true),
-    m_bEnableSplitSingle(false)
+    m_bEnableSplitSingle(false),
+    m_bDoubleClickReset(false)
 {
     this->SetMouseEnabled(true);
 }
@@ -172,6 +204,9 @@ void SplitTemplate<InheritType>::SetAttribute(const DString& strName, const DStr
     if (strName == _T("enable_split_single")) {
         SetEnableSplitSingle(StringUtil::IsValueTrue(strNewValue));
     }
+    else if (strName == _T("double_click_reset")) {
+        SetDoubleClickReset(StringUtil::IsValueTrue(strNewValue));
+    }
     else {
         BaseClass::SetAttribute(strName, strNewValue);
     }
@@ -188,6 +223,18 @@ template<typename InheritType>
 bool SplitTemplate<InheritType>::IsEnableSplitSingle() const
 {
     return m_bEnableSplitSingle;
+}
+
+template<typename InheritType>
+void SplitTemplate<InheritType>::SetDoubleClickReset(bool bDoubleClickReset)
+{
+    m_bDoubleClickReset = bDoubleClickReset;
+}
+
+template<typename InheritType>
+bool SplitTemplate<InheritType>::IsDoubleClickReset() const
+{
+    return m_bDoubleClickReset;
 }
 
 template<typename InheritType>
@@ -268,6 +315,25 @@ void SplitTemplate<InheritType>::SetAxisFixedSize(Control* pControl, int32_t nVa
     else {
         pControl->SetFixedHeight(UiFixedInt(nValue), bArrange, false);
     }
+}
+
+template<typename InheritType>
+bool SplitTemplate<InheritType>::ResetAxisFixedSize(Control* pControl, const UiFixedInt& fixedSize, bool bArrange)
+{
+    ASSERT(pControl != nullptr);
+    if (pControl == nullptr) {
+        return false;
+    }
+    if (GetAxisFixedSize(pControl) == fixedSize) {
+        return false;
+    }
+    if (m_bHLayout) {
+        pControl->SetFixedWidth(fixedSize, bArrange, false);
+    }
+    else {
+        pControl->SetFixedHeight(fixedSize, bArrange, false);
+    }
+    return true;
 }
 
 template<typename InheritType>
@@ -463,6 +529,13 @@ bool SplitTemplate<InheritType>::ButtonDown(const EventArgs& msg)
             }
         }
 
+        //首次开始拖动前，记录两个控件的固定尺寸（保留固定值/拉伸/自动类型），用于双击复位
+        if (!m_bInitSizeCaptured) {
+            m_nLeftTopInitFixedValue = (m_pLeftTop != nullptr) ? GetAxisFixedSize(m_pLeftTop) : UiFixedInt(0);
+            m_nRightBottomInitFixedValue = (m_pRightBottom != nullptr) ? GetAxisFixedSize(m_pRightBottom) : UiFixedInt(0);
+            m_bInitSizeCaptured = true;
+        }
+
         //如果两个控件都是拉伸类型的，那么让左侧(上侧)的变为非拉伸的，允许拖动操作
         if ((m_pLeftTop != nullptr) && (m_pRightBottom != nullptr) &&
             m_nLeftTopFixedValue.IsStretch() && m_nRightBottomFixedValue.IsStretch()) {
@@ -481,6 +554,41 @@ bool SplitTemplate<InheritType>::ButtonUp(const EventArgs& msg)
         return false;
     }
     StopSplitDrag();
+    return bRet;
+}
+
+template<typename InheritType>
+bool SplitTemplate<InheritType>::ButtonDoubleClick(const EventArgs& msg)
+{
+    bool bRet = BaseClass::ButtonDoubleClick(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    if (!m_bDoubleClickReset || !m_bInitSizeCaptured || !CanStartDrag()) {
+        return bRet;
+    }
+    //双击复位：把两侧控件恢复到首次拖动前的尺寸
+    Control* pPrev = nullptr;
+    Control* pNext = nullptr;
+    FindPrevNextControl(pPrev, pNext);
+    m_bHLayout = IsHLayout(this->GetParent());
+
+    bool bAdjusted = false;
+    if (pPrev != nullptr) {
+        if (ResetAxisFixedSize(pPrev, m_nLeftTopInitFixedValue, false)) {
+            bAdjusted = true;
+        }
+    }
+    if (pNext != nullptr) {
+        if (ResetAxisFixedSize(pNext, m_nRightBottomInitFixedValue, false)) {
+            bAdjusted = true;
+        }
+    }
+    if (bAdjusted) {
+        //两个控件的值都恢复后，统一触发布局
+        this->ArrangeAncestor();
+        this->Invalidate();
+    }
     return bRet;
 }
 

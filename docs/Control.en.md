@@ -3334,9 +3334,12 @@ If the parent container's layout is not `HLayout` or `VLayout`, dragging is not 
 
 The `kEventSplitDraged` event is fired after dragging (`wParam` is the left/top control, `lParam` is the right/bottom control, which may be `nullptr`). It is recommended to register the callback with the correctly spelled `AttachSplitDragged` (`AttachSplitDraged` is kept for compatibility with old code).
 
+When the `double_click_reset` attribute is `true`, double-clicking the splitter restores both adjacent controls to the sizes they had before the first drag: the splitter records the sizes of the two controls before the first drag starts (including fixed value, stretch and auto types) and restores them by their original type and value on double click, then re-layouts. Dragging can continue afterwards, and double-clicking again still restores the sizes from before the first drag. This attribute defaults to `false` so that scenarios handling double-click themselves (such as `ListCtrlHeader`) are not affected.
+
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |
 | enable_split_single | false | bool | Whether to allow adjusting its width when there is only one control |
+| double_click_reset | false | bool | Whether double-clicking the splitter restores both adjacent controls to the sizes they had before the first drag |
 
 The Split control inherits the `Control` attributes. For more available attributes, please refer to the `Control` attributes.
 

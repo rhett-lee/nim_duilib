@@ -3336,9 +3336,12 @@ RichTextVBox 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`�
 
 拖动后触发 `kEventSplitDraged` 事件（`wParam` 为左侧/上侧控件，`lParam` 为右侧/下侧控件，可能为 `nullptr`），推荐使用拼写正确的 `AttachSplitDragged` 注册回调（`AttachSplitDraged` 保留是为了兼容旧代码）。
 
+当属性 `double_click_reset` 为 `true` 时，双击分割条可以把两侧控件恢复到首次拖动前的尺寸：分割条会在第一次开始拖动前记录两侧控件的尺寸（包括固定值、拉伸、自动类型），双击时按记录的原始类型和值恢复，并重新布局；恢复后可以继续拖动，再次双击仍恢复到首次拖动前的尺寸。该属性默认为 `false`，避免影响自行处理双击事件的场景（如 `ListCtrlHeader`）。
+
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | enable_split_single | false | bool | 当只有一个控件的时候，是否允许调整其宽度 |
+| double_click_reset | false | bool | 双击分割条时，是否把两侧控件恢复到首次拖动前的尺寸 |
 
 Split 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
 
