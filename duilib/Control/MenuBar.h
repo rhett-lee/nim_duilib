@@ -215,6 +215,16 @@ private:
     //将焦点设置到当前激活的菜单按钮（无激活项时设置到第一个可用按钮）
     void FocusTopMenuButton();
 
+    //切换菜单栏的键盘焦点状态（F10/Alt按下时调用：未聚焦则聚焦，已聚焦则取消）
+    void ToggleFocusTopMenuButton();
+
+    /** 把键盘焦点移动到相邻的顶级菜单按钮
+    * @param [in] pButton 当前有焦点的顶级菜单按钮
+    * @param [in] bNext true表示向右移动，false表示向左移动
+    * @return 成功移动返回true，到达边界或者无法移动时返回false
+    */
+    bool FocusAdjacentTopMenuButton(MenuBarButton* pButton, bool bNext);
+
     //取消等待中的悬停切换定时器
     void CancelHoverTimer();
 
@@ -263,6 +273,9 @@ private:
 
     //等待悬停切换的定时器ID（0表示没有定时器）
     size_t m_nHoverTimerId = 0;
+
+    //Alt键是否处于按下状态（用于过滤键盘自动重复产生的消息）
+    bool m_bAltKeyDown = false;
 };
 
 } // namespace ui

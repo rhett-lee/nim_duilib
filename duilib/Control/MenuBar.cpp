@@ -29,7 +29,16 @@ public:
 
     /** 设置是否为键盘操作获得焦点（只有键盘操作时才绘制焦点框）
     */
-    void SetKeyboardFocused(bool bKeyboardFocused) { m_bKeyboardFocus = bKeyboardFocused; }
+    void SetKeyboardFocused(bool bKeyboardFocused)
+    {
+        if (m_bKeyboardFocus != bKeyboardFocused) {
+            m_bKeyboardFocus = bKeyboardFocused;
+            Invalidate();
+        }
+    }
+
+    //是否由键盘操作获得焦点
+    bool IsKeyboardFocused() const { return m_bKeyboardFocus; }
 
 protected:
     /** 是否绘制焦点框：仅键盘操作获得焦点，并且窗口处于激活状态时绘制
@@ -103,6 +112,11 @@ void MenuBarButton::HandleEvent(const EventArgs& msg)
         else if (msg.vkCode == kVK_DOWN) {
             //向下键展开菜单（不收起已展开的菜单）
             m_pMenuBar->ShowPopupMenu(this);
+            return;
+        }
+        else if ((msg.vkCode == kVK_LEFT) || (msg.vkCode == kVK_RIGHT)) {
+            //左右方向键：在各个顶级菜单按钮之间切换键盘焦点
+            m_pMenuBar->FocusAdjacentTopMenuButton(this, msg.vkCode == kVK_RIGHT);
             return;
         }
     }
@@ -181,16 +195,29 @@ void MenuBar::OnInit()
             return true;
             });
 
-        //F10或者Alt键按下时，将焦点设置到菜单栏（键盘操作入口）
+        //F10或者Alt键按下时，切换菜单栏的键盘焦点状态（与Windows行为一致：再按一次取消焦点）
         pWindow->AttachWindowKeyDownMsg([pThis, menuBarFlag](const EventArgs& msg) {
             if (menuBarFlag.expired()) {
                 return true;
             }
             if (msg.vkCode == kVK_F10) {
-                pThis->FocusTopMenuButton();
+                pThis->ToggleFocusTopMenuButton();
             }
-            else if ((msg.vkCode == kVK_MENU) && ((msg.modifierKey & kFirstPress) != 0)) {
-                pThis->FocusTopMenuButton();
+            else if (msg.vkCode == kVK_MENU) {
+                //Alt键：不依赖kFirstPress标志（部分输入环境下该标志不可靠），
+                //使用按键状态过滤键盘自动重复产生的消息
+                if (!pThis->m_bAltKeyDown) {
+                    pThis->m_bAltKeyDown = true;
+                    pThis->ToggleFocusTopMenuButton();
+                }
+            }
+            return true;
+            });
+
+        //Alt键抬起时，复位按键状态
+        pWindow->AttachWindowKeyUpMsg([pThis, menuBarFlag](const EventArgs& msg) {
+            if (!menuBarFlag.expired() && (msg.vkCode == kVK_MENU)) {
+                pThis->m_bAltKeyDown = false;
             }
             return true;
             });
@@ -522,6 +549,57 @@ void MenuBar::FocusTopMenuButton()
             return;
         }
     }
+}
+
+void MenuBar::ToggleFocusTopMenuButton()
+{
+    Window* pWindow = GetWindow();
+    if (pWindow == nullptr) {
+        return;
+    }
+    MenuBarButton* pFocusButton = dynamic_cast<MenuBarButton*>(pWindow->GetFocusControl());
+    if ((pFocusButton != nullptr) && pFocusButton->IsKeyboardFocused() &&
+        (GetTopMenuIndex(pFocusButton) >= 0)) {
+        //当前焦点已经通过键盘设置在菜单栏按钮上，再次按下F10/Alt时取消焦点状态
+        pFocusButton->SetKeyboardFocused(false);
+        pWindow->SetFocusControl(nullptr);
+        return;
+    }
+    FocusTopMenuButton();
+}
+
+bool MenuBar::FocusAdjacentTopMenuButton(MenuBarButton* pButton, bool bNext)
+{
+    if (pButton == nullptr) {
+        return false;
+    }
+    //收集当前可见且可用的顶级菜单按钮
+    std::vector<MenuBarButton*> buttonList;
+    for (TopMenuData& menuData : m_topMenuList) {
+        MenuBarButton* pItem = menuData.m_pButton.get();
+        if ((pItem != nullptr) && pItem->IsVisible() && pItem->IsEnabled()) {
+            buttonList.push_back(pItem);
+        }
+    }
+    int32_t nIndex = -1;
+    for (int32_t i = 0; i < (int32_t)buttonList.size(); ++i) {
+        if (buttonList[i] == pButton) {
+            nIndex = i;
+            break;
+        }
+    }
+    if (nIndex < 0) {
+        return false;
+    }
+    int32_t nNewIndex = bNext ? (nIndex + 1) : (nIndex - 1);
+    if ((nNewIndex < 0) || (nNewIndex >= (int32_t)buttonList.size())) {
+        //到达边界，焦点保持在当前按钮
+        return false;
+    }
+    MenuBarButton* pNewButton = buttonList[nNewIndex];
+    pNewButton->SetKeyboardFocused(true);
+    pNewButton->SetFocus();
+    return true;
 }
 
 void MenuBar::CancelHoverTimer()
