@@ -1140,7 +1140,14 @@ void SplitTemplate<InheritType>::StartResetAnim(Control* pPrev, Control* pNext, 
         const int32_t nNext = (nTotal > 0) ? (nTotal - nFrom) : GetAxisSize(pNext);
         SetAxisFixedSize(pNext, nNext, false);
     }
-    this->ArrangeAncestor();
+    //触发布局：优先通过目标控件触发，兼容目标控件位于其它容器的情况
+    Control* pArrangeControl = (pNext != nullptr) ? pNext : pPrev;
+    if (pArrangeControl != nullptr) {
+        pArrangeControl->ArrangeAncestor();
+    }
+    else {
+        this->ArrangeAncestor();
+    }
 
     m_pResetAnimPrev = pPrev;
     m_pResetAnimNext = pNext;
@@ -1227,7 +1234,14 @@ void SplitTemplate<InheritType>::OnResetAnimFinished()
     m_nResetAnimTotal = 0;
 
     //统一触发布局，确保恢复拉伸/自动类型后的最终位置正确
-    this->ArrangeAncestor();
+    //（优先通过目标控件触发，兼容目标控件位于其它容器的情况）
+    Control* pArrangeControl = (pPrev != nullptr) ? pPrev : pNext;
+    if (pArrangeControl != nullptr) {
+        pArrangeControl->ArrangeAncestor();
+    }
+    else {
+        this->ArrangeAncestor();
+    }
     if (bAdjusted) {
         this->Invalidate();
     }
@@ -1248,8 +1262,14 @@ void SplitTemplate<InheritType>::ApplyResetImmediately()
         bAdjusted = true;
     }
     if (bAdjusted) {
-        //两个控件的值都恢复后，统一触发布局
-        this->ArrangeAncestor();
+        //两个控件的值都恢复后，统一触发布局（优先通过目标控件触发，兼容目标控件位于其它容器的情况）
+        Control* pArrangeControl = (pPrev != nullptr) ? pPrev : pNext;
+        if (pArrangeControl != nullptr) {
+            pArrangeControl->ArrangeAncestor();
+        }
+        else {
+            this->ArrangeAncestor();
+        }
         this->Invalidate();
     }
 }
@@ -1316,6 +1336,8 @@ bool SplitTemplate<InheritType>::OnKeyDown(const EventArgs& msg)
     if (nStep <= 0) {
         nStep = 1;
     }
+    //键盘调整前，停止尚未结束的复位动画，避免动画与键盘操作争抢控件尺寸
+    StopResetAnim();
     if (!PrepareDragTargets()) {
         return bRet;
     }
