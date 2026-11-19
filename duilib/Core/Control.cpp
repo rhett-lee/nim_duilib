@@ -3732,6 +3732,7 @@ std::shared_ptr<IBitmap> Control::CreateSnapshot(bool bIncludeChild)
     }
     PaintLoading(pRender.get(), rcCtrl);
     PaintForeColor(pRender.get());
+    PaintFocusRect(pRender.get());
     if (bNeedLayer) {
         pRender->RestoreLayer();
     }
@@ -3823,6 +3824,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
             }
             PaintLoading(pTempRender, rcPaintRect); //绘制Loading图片，无状态，需要在绘制完子控件后再绘制
             PaintForeColor(pTempRender); //绘制前景色
+            PaintFocusRect(pTempRender); //绘制焦点状态(最后绘制，避免被边框或前景色覆盖)
 
             pTempRender->SetWindowOrg(ptOldOrg);
         }
@@ -3889,6 +3891,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
         }
         PaintLoading(pRender, rcPaint); //绘制Loading状态，无状态，需要在绘制完子控件后再绘制
         PaintForeColor(pRender);        //绘制前景色
+        PaintFocusRect(pRender);        //绘制焦点状态(最后绘制，避免被边框或前景色覆盖)
 
         pRender->SetWindowOrg(ptOldOrg);//恢复视图原点
     }
@@ -3919,7 +3922,7 @@ void Control::Paint(IRender* pRender, const UiRect& rcPaint)
     if (!IsBordersOnTop()) {
         PaintBorder(pRender);     //绘制边框
     }    
-    PaintFocusRect(pRender);      //绘制焦点状态
+    //焦点框不在此时绘制：边框需要绘制在焦点框之上，统一在AlphaPaint中于边框之后再绘制焦点框
 }
 
 void Control::PaintShadow(IRender* pRender)
@@ -4062,6 +4065,17 @@ namespace
         }
         const float fSnapped = std::round(fWidth);
         return (fSnapped < 1.0f) ? 1.0f : fSnapped;
+    }
+
+    /** 计算焦点框的对比色：用于焦点框主色与控件背景同色时(如Primary按钮)仍能看清焦点框
+    * @param [in] focusColor 焦点框主色
+    * @return 主色偏暗时返回白色，偏亮时返回黑色
+    */
+    UiColor MakeFocusContrastColor(const UiColor& focusColor)
+    {
+        //按感知亮度(Rec.601)判断主色的明暗
+        const float fLuminance = 0.299f * focusColor.GetR() + 0.587f * focusColor.GetG() + 0.114f * focusColor.GetB();
+        return (fLuminance < 128.0f) ? UiColor(UiColors::White) : UiColor(UiColors::Black);
     }
 }
 
@@ -4294,33 +4308,70 @@ void Control::DoPaintFocusRect(IRender* pRender)
         return;
     }
 
-    //默认焦点框样式与Windows 11原生的焦点指示器保持一致：强调色的圆角描边（约2像素，内缩1像素）
-    UiColor borderColor;
+    //默认焦点框样式与Windows 11原生的焦点指示器保持一致：由外侧对比色描边和内侧强调色描边组成，
+    //即使焦点框颜色与控件背景相同(如Primary按钮)也能看清
+    UiColor focusColor;
     const DString focusRectColor = GetFocusedRectColor();
     if (!focusRectColor.empty()) {
-        borderColor = GetUiColor(focusRectColor);
+        focusColor = GetUiColor(focusRectColor);
     }
-    if (borderColor.IsEmpty()) {
+    if (focusColor.IsEmpty()) {
         //默认使用强调色，其次使用焦点框的默认颜色
-        borderColor = GetUiColor(_T("color_accent"));
+        focusColor = GetUiColor(_T("color_accent"));
     }
-    if (borderColor.IsEmpty()) {
-        borderColor = GetUiColor(_T("border_focus_ring"));
+    if (focusColor.IsEmpty()) {
+        focusColor = GetUiColor(_T("border_focus_ring"));
     }
-    if (borderColor.IsEmpty()) {
-        borderColor = UiColor(UiColors::Gray);
+    if (focusColor.IsEmpty()) {
+        focusColor = UiColor(UiColors::Gray);
     }
 
-    UiRect rcFocusRect = GetRect();
-    const int32_t nInset = Dpi().GetScaleInt(1);
-    rcFocusRect.Deflate(nInset, nInset);
-    if (rcFocusRect.IsEmpty()) {
+    const UiRect rcControl = GetRect();
+    if (rcControl.IsEmpty()) {
         return;
     }
-    float fWidth = SnapPaintLineWidth(Dpi().GetScaleFloat(2.0f));
-    const float fRadius = (float)Dpi().GetScaleInt(3);
-    pRender->DrawRoundRect(UiRectF(rcFocusRect.left, rcFocusRect.top, rcFocusRect.right, rcFocusRect.bottom),
-                           fRadius, fRadius, borderColor, fWidth);
+
+    //内缩量：边框宽度 + 1个逻辑像素的间隙，使焦点框完整落在边框内侧，不会与边框的抗锯齿边缘互相干扰
+    float fBorderSize = 0.0f;
+    if (m_pBorderData != nullptr) {
+        fBorderSize = std::max(std::max(m_pBorderData->m_rcBorderSize.left, m_pBorderData->m_rcBorderSize.right),
+                               std::max(m_pBorderData->m_rcBorderSize.top, m_pBorderData->m_rcBorderSize.bottom));
+    }
+    const float fInset = fBorderSize + Dpi().GetScaleFloat(1.0f);
+
+    //圆角与控件边框保持同心：未设置圆角时使用较小的默认圆角
+    float fRoundWidth = 0.0f;
+    float fRoundHeight = 0.0f;
+    if (!GetBorderRound(fRoundWidth, fRoundHeight)) {
+        fRoundWidth = Dpi().GetScaleFloat(3.0f);
+        fRoundHeight = fRoundWidth;
+    }
+
+    const float fContrastWidth = SnapPaintLineWidth(Dpi().GetScaleFloat(1.0f));
+    const float fPrimaryWidth = SnapPaintLineWidth(Dpi().GetScaleFloat(2.0f));
+    //对比色描边：焦点框主色与控件背景同色时(如Primary按钮的强调色背景)，仅靠主色会完全看不见
+    const UiColor contrastColor = MakeFocusContrastColor(focusColor);
+
+    //1. 外侧绘制对比色描边
+    {
+        const float fOffset = fInset + fContrastWidth * 0.5f;
+        UiRectF rcFocusRect((float)rcControl.left, (float)rcControl.top, (float)rcControl.right, (float)rcControl.bottom);
+        rcFocusRect.Deflate(fOffset, fOffset);
+        if (!rcFocusRect.IsEmpty()) {
+            const float fRadius = std::max(0.0f, fRoundWidth - fOffset);
+            pRender->DrawRoundRect(rcFocusRect, fRadius, fRadius, contrastColor, fContrastWidth);
+        }
+    }
+    //2. 内侧绘制焦点框主色描边
+    {
+        const float fOffset = fInset + fContrastWidth + fPrimaryWidth * 0.5f;
+        UiRectF rcFocusRect((float)rcControl.left, (float)rcControl.top, (float)rcControl.right, (float)rcControl.bottom);
+        rcFocusRect.Deflate(fOffset, fOffset);
+        if (!rcFocusRect.IsEmpty()) {
+            const float fRadius = std::max(0.0f, fRoundWidth - fOffset);
+            pRender->DrawRoundRect(rcFocusRect, fRadius, fRadius, focusColor, fPrimaryWidth);
+        }
+    }
 }
 
 bool Control::IsRootBox() const

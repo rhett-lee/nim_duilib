@@ -181,14 +181,7 @@ void Box::PaintChild(IRender* pRender, const UiRect& rcPaint)
             }            
         }
     }
-
-    if ((pRender != nullptr) && ShouldPaintFocusRect()) {
-        DoPaintFocusRect(pRender);    //绘制焦点状态
-    }
-}
-
-void Box::PaintFocusRect(IRender* /*pRender*/)
-{
+    //焦点框统一在 AlphaPaint 中绘制(位于边框之后)，此处不再绘制
 }
 
 void Box::OnSetEnabled(bool bChanged)

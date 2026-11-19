@@ -33,7 +33,6 @@ public:
     virtual void SetWindow(Window* pWindow) override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
-    virtual void PaintFocusRect(IRender* pRender) override;
     virtual Control* FindControl(FINDCONTROLPROC Proc, void* pProcData, uint32_t uFlags,
                                  const UiPoint& ptMouse = UiPoint(),
                                  const UiPoint& scrollPos = UiPoint()) override;
