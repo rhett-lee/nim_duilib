@@ -611,11 +611,19 @@
                                 selected_disabled_image="file='${PATH_MENU}/menu_selected_check_line.svg' valign='center' margin='0,1,0,0' fade='80'"/>
 
     <!-- 菜单栏 -->
-    <Class name="menu_bar_button" width="auto" height="auto" border_round="4,4" valign="center" 
-                                  text_align="vcenter" text_padding="8,4,8,4" normal_text_color="text_menu_bar"
+    <Class name="menu_bar" height="32" bkcolor="bg_menu_bar" padding="6,0,6,0"
+                                  child_margin="2,0,2,0" valign="center"/>
+    <Class name="menu_bar_button" width="auto" height="auto" min_height="26" border_round="4,4" valign="center" 
+                                  text_align="vcenter" text_padding="8,4,8,4" 
+                                  normal_text_color="text_menu_bar"
+                                  hovered_text_color="text_default"
+                                  pressed_text_color="text_default"
+                                  disabled_text_color="text_disabled"
                                   normal_color="" 
                                   hovered_color="bg_menu_bar_hovered" 
-                                  pressed_color="bg_menu_bar_pressed"/>
+                                  pressed_color="bg_menu_bar_pressed"
+                                  hovered_color_margin="2,0,2,0"
+                                  pressed_color_margin="2,0,2,0"/>
     
     <!-- 分割线 -->
     <Class name="splitline_hor_level1" bkcolor="border_split_level1" height="1"/>

@@ -781,7 +781,7 @@ Menu 是一个独立窗口（基于 `WindowImplBase` 实现），具体用法请
 Menu 控件继承了 `Window` 属性，更多可用属性请参考`Window`的属性
 
 ## MenuBar 控件（继承 HBox 属性）
-MenuBar 是窗口内的菜单栏控件，用于显示顶级菜单项；鼠标移入或点击顶级菜单后，弹出对应的菜单窗口。菜单项被激活（鼠标点击或键盘回车）后，通过 `AttachMenuBarItemActivated` 注册的回调通知应用层。
+MenuBar 是窗口内的菜单栏控件，用于显示顶级菜单项；点击顶级菜单（鼠标点击，或聚焦后按回车/空格）后弹出对应的菜单窗口。已有菜单展开时，鼠标悬停到其他顶级菜单可切换到该菜单。菜单项被激活（鼠标点击或键盘回车）后，通过 `AttachMenuBarItemActivated` 注册的回调通知应用层。
 
 XML 中的 `MenuBarItem` 节点只能作为 `MenuBar` 的子节点，支持的属性如下：
 
@@ -791,12 +791,14 @@ XML 中的 `MenuBarItem` 节点只能作为 `MenuBar` 的子节点，支持的�
 | text | | string | 顶级菜单项显示的文本 |
 | text_id | | string | 顶级菜单项文本的多语言ID（`text` 为空时使用） |
 | xml_path | | string | 该顶级菜单对应的菜单XML资源路径 |
+| class | menu_bar_button | string | 顶级菜单按钮的样式类名称（对应 `global.xml` 中的 `Class`） |
+| attributes | | string | 顶级菜单按钮的附加属性列表（如 `text_padding='10,4,10,4'`） |
 
 `MenuBarItem` 节点也可以用内嵌的 `<Menu>` 节点直接定义菜单内容（此时无需设置 `xml_path`）。示例：
 
 ```xml
-<MenuBar name="menu_bar_test" bkcolor="bg_menu_bar" height="36" margin="6,0,20,0" padding="4,0,0,0" border_round="4,4">
-    <MenuBarItem id="menu_file" text="File">
+<MenuBar name="menu_bar_test" class="menu_bar">
+    <MenuBarItem id="menu_file" text="File" class="menu_bar_button">
         <Menu class="menu" bkcolor="bg_menu" height="auto" width="auto">
             <MenuItem class="menu_element" text="New" height="28" width="auto" />
             <MenuItem class="menu_element" text="Open" height="28" width="auto" />

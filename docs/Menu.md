@@ -208,8 +208,8 @@ typedef std::function<void (Menu* pMenu, Control* pSender)> ContextMenuCreatingE
 7. 菜单栏（MenuBar）
 `MenuBar`（[MenuBar.h](../duilib/Control/MenuBar.h)）是窗口内的菜单栏控件（继承 `HBox`），用于显示顶级菜单。XML 中每个 `MenuBarItem` 描述一个顶级菜单，菜单内容可以通过 `xml_path` 指定菜单 XML，也可以在内嵌的 `<Menu>` 节点中直接定义（可参考 `color_theme.xml` 中“Menu Bar”部分的写法）：
 ```xml
-<MenuBar name="menu_bar_test" bkcolor="bg_menu_bar" height="36">
-    <MenuBarItem id="menu_file" text="File">
+<MenuBar name="menu_bar_test" class="menu_bar">
+    <MenuBarItem id="menu_file" text="File" class="menu_bar_button">
         <Menu class="menu" bkcolor="bg_menu" height="auto" width="auto">
             <MenuItem class="menu_element" text="New" height="28" width="auto"/>
             <MenuItem class="menu_element" text="Open" height="28" width="auto"/>
@@ -217,7 +217,7 @@ typedef std::function<void (Menu* pMenu, Control* pSender)> ContextMenuCreatingE
     </MenuBarItem>
 </MenuBar>
 ```
-`MenuBarItem` 节点支持的属性：`id`（顶级菜单项ID）、`text`（显示文本）、`text_id`（文本多语言ID）、`xml_path`（菜单XML资源路径）。
+`MenuBarItem` 节点支持的属性：`id`（顶级菜单项ID）、`text`（显示文本）、`text_id`（文本多语言ID）、`xml_path`（菜单XML资源路径）、`class`（顶级菜单按钮的样式类，默认 `menu_bar_button`）、`attributes`（顶级菜单按钮的附加属性列表）。点击顶级菜单（或聚焦后按回车/空格）展开菜单；已有菜单展开时，鼠标悬停可切换到其他顶级菜单。
 
 也可以在代码中添加顶级菜单并注册菜单项激活的回调函数：
 ```cpp

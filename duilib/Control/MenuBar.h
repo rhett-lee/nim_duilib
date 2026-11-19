@@ -73,7 +73,9 @@ public:
 
     /** 在指定位置添加一个顶级菜单，并返回其索引号
     * @param [in] nMenuIndex 指定的索引号
+    * @param [in] menuItemId 本菜单项的ID，回调函数中会使用，以标识哪个菜单中的命令被激活
     * @param [in] menuText 顶级菜单的文本
+    * @param [in] menuTextId 顶级菜单的文本ID, 用于支持多语言版
     * @param [in] menuXmlPath 菜单XML资源文件路径
     * @param [in] menuTextButtonClass 顶级菜单文本显示控件Button的属性Class名称，传空表示使用默认值
     * @param [in] menuTextButtonAttributes 顶级菜单文本显示控件Button的属性附加属性列表
@@ -97,7 +99,7 @@ public:
     * @param [in] nMenuIndex 指定的索引号
     * @param [out] menuBarItem 顶级菜单的相关数据
     */
-    bool GetTopMenu(int32_t nMenuIndex, MenuBarItem& menuBarItem);
+    bool GetTopMenu(int32_t nMenuIndex, MenuBarItem& menuBarItem) const;
 
     /** 根据顶级菜单索引号，移除一个顶级菜单
     */
@@ -132,16 +134,18 @@ private:
         UiString m_menuTextButtonClass;      //菜单文本显示控件Button的属性Class名称
         UiString m_menuTextButtonAttributes; //菜单文本显示控件Button的属性附加属性列表
 
-        size_t m_nItemDataId = Box::InvalidIndex;    //在UI容器中的控件ID号
-        bool m_bMouseEnter = false;                  //是否处于MouseEnter状态中（用于避免菜单重复弹出）
+        ControlPtrT<MenuBarButton> m_pButton; //对应的顶级菜单按钮控件
     };
 
 private:
-    //将顶级菜单添加到UI控件
-    void AddTopMenuToUI(const TopMenuData& menuData, size_t nInsertItem);
+    //将顶级菜单添加到UI控件（成功返回true）
+    bool AddTopMenuToUI(TopMenuData& menuData, size_t nInsertItem);
+
+    //获取插入顶级菜单时，对应的子控件插入位置
+    size_t GetInsertChildIndex(size_t nMenuIndex) const;
 
     //从UI控件中移除顶级菜单
-    void RemoveTopMenuFromUI(const TopMenuData& menuData);
+    void RemoveTopMenuFromUI(TopMenuData& menuData);
 
 private:
     //顶级菜单按钮的鼠标事件
@@ -150,8 +154,6 @@ private:
 
     void OnMenuMouseEnter(MenuBarButton* pButton, const EventArgs& msg);
     void OnMenuMouseLeave(MenuBarButton* pButton, const EventArgs& msg);
-    void OnMenuMouseButtonDown(MenuBarButton* pButton, const EventArgs& msg);
-    void OnMenuMouseButtonUp(MenuBarButton* pButton, const EventArgs& msg);
 
     //检查并按需显示子菜单
     void CheckShowPopupMenu(MenuBarButton* pButton);
@@ -161,6 +163,12 @@ private:
 
     //收起子菜单
     void HidePopupMenu(MenuBarButton* pButton);
+
+    //当前弹层是否属于指定的顶级菜单按钮
+    bool IsPopupMenuOf(MenuBarButton* pButton) const;
+
+    //切换指定顶级菜单按钮的弹层（已展开则收起，未展开则弹出）
+    void TogglePopupMenu(MenuBarButton* pButton);
 
     //当前是否存在激活的菜单
     bool HasActivePopupMenu() const;
@@ -172,6 +180,17 @@ private:
     */
     void OnMenuKeyDownMsg(Menu* pMenu, VirtualKeyCode vkCode, uint32_t modifierKey);
 
+protected:
+    /** 设置可见状态事件
+    * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
+    */
+    virtual void OnSetVisible(bool bChanged) override;
+
+    /** 设置可用状态事件
+    * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
+    */
+    virtual void OnSetEnabled(bool bChanged) override;
+
 private:
     //顶级菜单项数据
     std::vector<TopMenuData> m_topMenuList;
@@ -179,17 +198,8 @@ private:
     //菜单项激活回调函数
     std::vector<MenuBarItemActivatedEvent> m_callbackList;
 
-    //顶级菜单在UI中的ID值
-    size_t m_nItemDataId;
-
     //当前激活的菜单接口
     ControlPtrT<Menu> m_pActiveMenu;
-
-    //当前是否处于激活状态
-    bool m_bActiveState;
-
-    //当前是否允许按钮激活时显示菜单项
-    bool m_bEnableBtnActive;
 };
 
 } // namespace ui

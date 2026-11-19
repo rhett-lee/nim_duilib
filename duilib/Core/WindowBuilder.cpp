@@ -1448,6 +1448,8 @@ void WindowBuilder::ParseMenuBarItemXmlNode(const pugi::xml_node& node, Control*
     DString menuText = node.attribute(_T("text")).as_string();
     DString menuTextId = node.attribute(_T("text_id")).as_string();
     DString menuXmlPath = node.attribute(_T("xml_path")).as_string();
+    DString menuTextButtonClass = node.attribute(_T("class")).as_string();
+    DString menuTextButtonAttributes = node.attribute(_T("attributes")).as_string();
     ASSERT(!menuText.empty() || !menuTextId.empty());
     if (menuText.empty() && menuTextId.empty()) {
         return;
@@ -1470,7 +1472,7 @@ void WindowBuilder::ParseMenuBarItemXmlNode(const pugi::xml_node& node, Control*
             menuXmlPath += _T("</Window>");
         }
     }
-    pMenuBar->AddTopMenu(menuItemId, menuText, menuTextId, menuXmlPath);
+    pMenuBar->AddTopMenu(menuItemId, menuText, menuTextId, menuXmlPath, menuTextButtonClass, menuTextButtonAttributes);
 }
 
 void WindowBuilder::ParsePropertyGridGroupXmlNode(const pugi::xml_node& node, Control* pParent, Window* /*pWindow*/) const

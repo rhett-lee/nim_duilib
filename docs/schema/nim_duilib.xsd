@@ -10645,6 +10645,16 @@
   </xs:complexType>
   <xs:complexType name="MenuBarItemType" mixed="true">
     <xs:group ref="AnyNode" minOccurs="0" maxOccurs="unbounded"/>
+    <xs:attribute name="class" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>顶级菜单按钮的样式类名称（对应 global.xml 中的 Class），默认 menu_bar_button</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="attributes" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>顶级菜单按钮的附加属性列表（如 text_padding='10,4,10,4'）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:anyAttribute processContents="skip"/>
   </xs:complexType>
   <xs:complexType name="MenuItemType" mixed="true">

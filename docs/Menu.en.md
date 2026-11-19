@@ -214,8 +214,8 @@ Notes:
 7. Menu bar (MenuBar)
 `MenuBar` ([MenuBar.h](../duilib/Control/MenuBar.h)) is a menu bar control inside a window (inherits `HBox`) used to display top-level menus. In XML, each `MenuBarItem` describes one top-level menu. Its menu content can be specified by `xml_path`, or defined inline with a `<Menu>` child node (see the "Menu Bar" section of `color_theme.xml`):
 ```xml
-<MenuBar name="menu_bar_test" bkcolor="bg_menu_bar" height="36">
-    <MenuBarItem id="menu_file" text="File">
+<MenuBar name="menu_bar_test" class="menu_bar">
+    <MenuBarItem id="menu_file" text="File" class="menu_bar_button">
         <Menu class="menu" bkcolor="bg_menu" height="auto" width="auto">
             <MenuItem class="menu_element" text="New" height="28" width="auto"/>
             <MenuItem class="menu_element" text="Open" height="28" width="auto"/>
@@ -223,7 +223,7 @@ Notes:
     </MenuBarItem>
 </MenuBar>
 ```
-The `MenuBarItem` node supports the following attributes: `id` (top-level menu item ID), `text` (display text), `text_id` (multi-language ID of the text), and `xml_path` (menu XML resource path).
+The `MenuBarItem` node supports the following attributes: `id` (top-level menu item ID), `text` (display text), `text_id` (multi-language ID of the text), `xml_path` (menu XML resource path), `class` (style class of the top-level menu button, `menu_bar_button` by default), and `attributes` (extra attribute list for the top-level menu button). Clicking a top-level menu (or pressing Enter/Space while focused) opens its menu; while a menu is open, hovering another top-level menu switches to it.
 
 You can also add top-level menus in code and register the menu item activation callback:
 ```cpp

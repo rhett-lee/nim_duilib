@@ -783,7 +783,7 @@ Menus are also commonly used together with `MenuBar`: `MenuBar` displays the top
 The Menu control inherits the `Window` attributes. For more available attributes, please refer to the `Window` attributes.
 
 ## Attributes of MenuBar (inherits HBox attributes)
-MenuBar is a menu bar control inside a window. It displays top-level menu items; hovering over or clicking a top-level menu pops up the corresponding menu window. After a menu item is activated (by mouse click or Enter key), the callback registered with `AttachMenuBarItemActivated` is invoked.
+MenuBar is a menu bar control inside a window. It displays top-level menu items. Clicking a top-level menu (by mouse, or by pressing Enter/Space when focused) pops up the corresponding menu window. While a menu is open, hovering another top-level menu switches to it. After a menu item is activated (by mouse click or Enter key), the callback registered with `AttachMenuBarItemActivated` is invoked.
 
 The `MenuBarItem` node in XML can only be a child of `MenuBar`. Its supported attributes are:
 
@@ -793,12 +793,14 @@ The `MenuBarItem` node in XML can only be a child of `MenuBar`. Its supported at
 | text | | string | Text displayed by the top-level menu item |
 | text_id | | string | Multi-language ID for the top-level menu text (used when `text` is empty) |
 | xml_path | | string | Resource path of the menu XML for this top-level menu |
+| class | menu_bar_button | string | Style class name of the top-level menu button (a `Class` in `global.xml`) |
+| attributes | | string | Extra attribute list for the top-level menu button (e.g. `text_padding='10,4,10,4'`) |
 
 A `MenuBarItem` node can also define its menu content inline with a child `<Menu>` node (in that case `xml_path` is not needed). Example:
 
 ```xml
-<MenuBar name="menu_bar_test" bkcolor="bg_menu_bar" height="36" margin="6,0,20,0" padding="4,0,0,0" border_round="4,4">
-    <MenuBarItem id="menu_file" text="File">
+<MenuBar name="menu_bar_test" class="menu_bar">
+    <MenuBarItem id="menu_file" text="File" class="menu_bar_button">
         <Menu class="menu" bkcolor="bg_menu" height="auto" width="auto">
             <MenuItem class="menu_element" text="New" height="28" width="auto" />
             <MenuItem class="menu_element" text="Open" height="28" width="auto" />
