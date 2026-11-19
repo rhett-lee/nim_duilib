@@ -29,16 +29,16 @@ namespace ui
 {
 Control::Control(Window* pWindow) :
     PlaceHolder(pWindow),
-    m_bContextMenuUsed(false),
-    m_bMouseFocused(false),
-    m_bNoFocus(false),
-    m_bAllowTabstop(true),
-    m_cursorType(CursorType::kCursorArrow),
+    m_uUserDataID((size_t)-1),
+    m_bBoxShadowPainted(false),
     m_controlState(kControlStateNormal),
     m_nAlpha(255),
     m_nHoveredAlpha(0),
-    m_bBoxShadowPainted(false),
-    m_uUserDataID((size_t)-1),
+    m_bMouseFocused(false),
+    m_bContextMenuUsed(false),
+    m_bNoFocus(false),
+    m_bAllowTabstop(true),
+    m_cursorType(CursorType::kCursorArrow),
     m_bShowFocusedRect(false),
     m_nPaintOrder(0),
     m_bAnimationMode(false),
@@ -1966,7 +1966,7 @@ void Control::SetToolTipText(const DString& strText)
         m_pOtherData = std::make_unique<TOtherData>();
     }
     if (m_pOtherData->m_pTooltip == nullptr) {
-        m_pOtherData->m_pTooltip = std::make_unique<TTooltipData>();
+        m_pOtherData->m_pTooltip = std::make_unique<TTooltipData>(Dpi().GetScaleInt(TTooltipData::kDefaultWidth));
     }
     if (strText != m_pOtherData->m_pTooltip->m_sToolTipText) {
         DString strTemp(strText);
@@ -1996,7 +1996,7 @@ void Control::SetToolTipTextId(const DString& strTextId)
         m_pOtherData = std::make_unique<TOtherData>();
     }
     if (m_pOtherData->m_pTooltip == nullptr) {
-        m_pOtherData->m_pTooltip = std::make_unique<TTooltipData>();
+        m_pOtherData->m_pTooltip = std::make_unique<TTooltipData>(Dpi().GetScaleInt(TTooltipData::kDefaultWidth));
     }
 
     if (m_pOtherData->m_pTooltip->m_sToolTipTextId != strTextId) {
@@ -2040,7 +2040,7 @@ void Control::SetToolTipWidth(int32_t nWidth, bool bNeedDpiScale)
         m_pOtherData = std::make_unique<TOtherData>();
     }
     if (m_pOtherData->m_pTooltip == nullptr) {
-        m_pOtherData->m_pTooltip = std::make_unique<TTooltipData>();
+        m_pOtherData->m_pTooltip = std::make_unique<TTooltipData>(nWidth);
     }
     m_pOtherData->m_pTooltip->m_nTooltipWidth = nWidth;
 }

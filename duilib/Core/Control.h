@@ -366,6 +366,8 @@ public:
 
     /**@brief 设置当前鼠标指针类型
      * @param[in] cursorType 要设置的鼠标类型，参考 CursorType 枚举
+     * @note 只设置控件的光标类型属性，鼠标移动到控件上时由OnSetCursor应用；
+     *       如果需要立即修改系统光标，请使用SetCursor()
      */
     void SetCursorType(CursorType cursorType);
 
@@ -513,8 +515,8 @@ public:
     */
     DString GetFocusedRectColor() const;
 
-    /** 判断当前鼠标焦点是否在控件上
-     * @return 返回鼠标焦点是否在控件上，true 鼠标焦点在控件上，false 鼠标焦点不在控件上
+    /** 判断鼠标是否位于控件上（与键盘焦点无关，键盘焦点请使用IsFocused()）
+     * @return 返回鼠标是否位于控件上，true 鼠标位于控件上，false 鼠标不在控件上
      */
     virtual bool IsMouseFocused() const { return m_bMouseFocused;}
 
@@ -1640,7 +1642,7 @@ public:
     */
     Image* GetStateImageData(StateImageType imageType, ControlStateType stateType) const;
 
-    /** 设置光标
+    /** 立即设置系统光标（不改变控件的光标类型属性，鼠标移出后仍按控件的光标类型显示）
     * @param [in] cursorType 光标类型
     */
     void SetCursor(CursorType cursorType);
@@ -1786,6 +1788,11 @@ private:
         //通过XML中，配置<BubbledEvent标签添加的响应事件，最终由Control::OnApplyAttributeList函数响应具体操作
         EventMap* m_pXmlBubbledEvent = nullptr;
 
+        //该数据块通过std::unique_ptr独占持有，禁止拷贝，避免裸指针被浅拷贝后重复释放
+        TEventMapData() = default;
+        TEventMapData(const TEventMapData&) = delete;
+        TEventMapData& operator=(const TEventMapData&) = delete;
+
         //析构函数中释放资源
         ~TEventMapData()
         {
@@ -1807,6 +1814,11 @@ private:
     //Tootip数据
     struct TTooltipData
     {
+        //ToolTip的默认宽度（逻辑像素，创建数据时按当前DPI换算为实际像素）
+        static constexpr int32_t kDefaultWidth = 500;
+
+        explicit TTooltipData(int32_t nTooltipWidth) : m_nTooltipWidth(nTooltipWidth) {}
+
         //ToolTip的文本内容
         UiString m_sToolTipText;
 
@@ -1814,7 +1826,7 @@ private:
         UiString m_sToolTipTextId;
 
         //ToolTip的宽度
-        int32_t m_nTooltipWidth = 500;
+        int32_t m_nTooltipWidth;
     };
 
     //边框相关数据

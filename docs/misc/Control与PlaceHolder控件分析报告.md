@@ -22,11 +22,11 @@
 | C-3 | 文档 | 焦点框注释仍写“虚线构成的矩形”，与可重写的圆角描边不符 | 已修复 |
 | C-4 | 文档 | `OnApplyAttributeList` 注释为“待补充” | 已修复 |
 | C-5 | 文档 | `SetStateColor*` 注释参数与实际重载签名不匹配 | 已修复 |
-| C-6 | API | `SetCursor()` / `SetCursorType()` 语义不同但命名近似 | 待处理 |
-| C-7 | API | `IsMouseFocused()` 实际含义是“鼠标是否在控件上” | 待处理 |
-| C-8 | 健壮性 | `TEventMapData` 裸指针 + 自定义析构，未禁止拷贝（rule of five） | 待处理 |
-| C-9 | 代码质量 | 构造函数成员初始化顺序与声明顺序不一致 | 待处理 |
-| C-10 | 健壮性 | ToolTip 默认宽度 500 未按 DPI 初始化 | 待处理 |
+| C-6 | API | `SetCursor()` / `SetCursorType()` 语义不同但命名近似 | 已修复 |
+| C-7 | API | `IsMouseFocused()` 实际含义是“鼠标是否在控件上” | 已修复 |
+| C-8 | 健壮性 | `TEventMapData` 裸指针 + 自定义析构，未禁止拷贝（rule of five） | 已修复 |
+| C-9 | 代码质量 | 构造函数成员初始化顺序与声明顺序不一致 | 已修复 |
+| C-10 | 健壮性 | ToolTip 默认宽度 500 未按 DPI 初始化 | 已修复 |
 | C-11 | 结构 | `Control.h` 职责过重、`AttachXXX` 样板代码过多 | 待处理 |
 | U-1 | 美观度 | 通用焦点框为内缩 3px 的方形点线，观感较差 | 待处理 |
 | U-2 | 交互 | 焦点框只应在键盘操作后出现（MenuBar 方案未通用化） | 待处理 |
@@ -160,28 +160,30 @@
 - `SetStateColor*` 上方的注释原描述了合并后的 5 个参数，与三个重载各自的签名不一致。
 - 修复：以上注释均已按实际语义与签名重写；`OnApplyAttributeList()` 补充了 `strReceiver` 的四类取值（空/`#window#`/`./`或`.\\`/窗口内名称）、属性列表的花括号写法、返回值与调用来源。
 
-**C-6 / C-7 命名易混淆**
+**C-6 / C-7 命名易混淆（已修复：补充注释，未改名以保持兼容）**
 
-- `SetCursorType()`（约 361 行）只设置属性，等待 `OnSetCursor` 时生效；`SetCursor()`（约 1628-1631 行）会立即应用到系统光标。建议将后者改名（如 `ApplyCursor()`）或补充“立即生效”的说明。
-- `IsMouseFocused()`（约 506-509 行）实际表示“鼠标是否位于控件上”，与键盘焦点无关；建议改名 `IsMouseHovered()` 或补充注释。
+- `SetCursorType()`（约 361 行）只设置属性，等待 `OnSetCursor` 时生效；`SetCursor()`（约 1645-1648 行）会立即应用到系统光标。建议将后者改名（如 `ApplyCursor()`）或补充“立即生效”的说明。
+- `IsMouseFocused()`（约 518-521 行）实际表示“鼠标是否位于控件上”，与键盘焦点无关；建议改名 `IsMouseHovered()` 或补充注释。
+- 修复：两处均补充了明确的注释说明（未改名，避免破坏既有代码）；注释中指明键盘焦点应使用 `IsFocused()`。
 
-**C-8 `TEventMapData` 的 rule-of-five 问题**
+**C-8 `TEventMapData` 的 rule-of-five 问题（已修复）**
 
-- 位置：`Control.h` 约 1760-1790 行。
+- 位置：`Control.h` 约 1770-1812 行。
 - 现象：字段包含 `EventMap` 值对象与三个裸指针，析构中手工 `delete`，但未禁用拷贝构造/赋值。
 - 风险：若被按值拷贝会 double free。当前通过 `unique_ptr` 持有、实际未发生拷贝，但属于潜在隐患。
-- 建议：三个裸指针改为 `std::unique_ptr<EventMap>`，让析构函数恢复默认实现；或显式 `= delete` 拷贝操作。
+- 修复：显式声明默认构造 + `= delete` 的拷贝构造/拷贝赋值（数据块由 `std::unique_ptr` 独占持有），从编译期阻止浅拷贝；析构保持原有释放逻辑。
 
-**C-9 成员初始化顺序**
+**C-9 成员初始化顺序（已修复）**
 
 - `Control` 构造函数（`Control.cpp` 约 30-48 行）的初始化列表顺序与声明顺序不一致（如 `m_bBoxShadowPainted`、`m_uUserDataID` 在列表中较晚，但声明在前）。
-- 影响：MSVC C5038 / GCC `-Wreorder` 可能告警；实际初始化按声明顺序执行，阅读时易误判依赖关系。建议按声明顺序重排。
+- 影响：MSVC C5038 / GCC `-Wreorder` 可能告警；实际初始化按声明顺序执行，阅读时易误判依赖关系。
+- 修复：按成员声明顺序重排初始化列表（`m_uUserDataID` → `m_bBoxShadowPainted` → `m_controlState` → `m_nAlpha` → ... → `m_bMouseEnter`），初始化值不变，行为不受影响。
 
-**C-10 ToolTip 默认宽度未按 DPI 初始化**
+**C-10 ToolTip 默认宽度未按 DPI 初始化（已修复）**
 
-- 位置：`TTooltipData::m_nTooltipWidth = 500`（`Control.h` 约 1802 行），`GetToolTipWidth()` 返回 0 表示“无数据”（`Control.cpp` 约 2039-2046 行）。
+- 位置：`TTooltipData::m_nTooltipWidth = 500`（`Control.h` 约 1814-1830 行），`GetToolTipWidth()` 返回 0 表示“无数据”。
 - 现象：高 DPI 下首次创建 ToolTip 时得到 500 物理像素，逻辑宽度反而变窄；无数据时返回 0 又与结构体默认值不一致。
-- 建议：创建 ToolTip 时用 `Dpi().GetScaleInt(500)` 初始化，或统一约定 0 表示“自动宽度”并在文档中写明。
+- 修复：`TTooltipData` 改为必须显式传入宽度，并新增 `kDefaultWidth = 500`（逻辑像素）；创建 ToolTip 数据时统一使用 `Dpi().GetScaleInt(kDefaultWidth)` 初始化，高 DPI 下默认宽度保持 500 逻辑像素；显式调用 `SetToolTipWidth` 时仍以传入值为准。
 
 ### 3.2 结构性优化
 
