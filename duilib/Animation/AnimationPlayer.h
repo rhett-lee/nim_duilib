@@ -19,7 +19,7 @@ class AnimationScheduler;
 
 /** 控件动画播放器的基类接口
 */
-class DUILIB_API AnimationPlayer : public virtual SupportWeakCallback
+class DUILIB_API AnimationPlayer : public SupportWeakCallback
 {
 public:
     AnimationPlayer();

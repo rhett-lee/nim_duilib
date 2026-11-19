@@ -14,7 +14,7 @@ typedef std::function<void(size_t nStartIndex, size_t nEndIndex)> DataChangedNot
 typedef std::function<void()> CountChangedNotify;
 
 class VirtualListBox;
-class DUILIB_API VirtualListBoxElement : public virtual SupportWeakCallback
+class DUILIB_API VirtualListBoxElement : public SupportWeakCallback
 {
 public:
     VirtualListBoxElement();

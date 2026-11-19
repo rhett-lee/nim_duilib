@@ -5,7 +5,7 @@
 
 /** 多标签浏览器管理类
  */
-class BrowserManager : public virtual ui::SupportWeakCallback
+class BrowserManager : public ui::SupportWeakCallback
 {
 public:
     BrowserManager();

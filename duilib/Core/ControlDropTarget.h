@@ -12,7 +12,7 @@ class Control;
 
 /** 控件的拖放支持接口（Windows）
 */
-class DUILIB_API ControlDropTarget_Windows : public virtual SupportWeakCallback
+class DUILIB_API ControlDropTarget_Windows : public SupportWeakCallback
 {
 public:
     virtual ~ControlDropTarget_Windows() = default;
@@ -36,7 +36,7 @@ public:
 
 /** 控件的拖放支持接口（SDL）
 */
-class DUILIB_API ControlDropTarget_SDL : public virtual SupportWeakCallback
+class DUILIB_API ControlDropTarget_SDL : public SupportWeakCallback
 {
 public:
     virtual ~ControlDropTarget_SDL() = default;

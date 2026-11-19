@@ -39,7 +39,7 @@ class CefOsrDropTarget;
 #endif
 
 //实现CefClient接口，处理Cef浏览器对象发出的各个事件和消息，并与上层控件进行数据交互
-class CefBrowserHandler : public virtual ui::SupportWeakCallback,
+class CefBrowserHandler : public ui::SupportWeakCallback,
     public CefClient,
     public CefLifeSpanHandler,
     public CefRenderHandler,

@@ -13,7 +13,7 @@ class VBox;
 
 /** 日期时间选择控件的实现（统一的跨平台实现）
 */
-class DateTimeWnd : public virtual SupportWeakCallback
+class DateTimeWnd : public SupportWeakCallback
 {
 public:
     explicit DateTimeWnd(DateTime* pOwner);

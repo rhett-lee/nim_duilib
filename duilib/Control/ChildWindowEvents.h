@@ -10,7 +10,7 @@ namespace ui
 {
 /** 子窗口的事件接口
  */
-class DUILIB_API ChildWindowEvents: public virtual SupportWeakCallback
+class DUILIB_API ChildWindowEvents: public SupportWeakCallback
 {
 public:
     virtual ~ChildWindowEvents() = default;

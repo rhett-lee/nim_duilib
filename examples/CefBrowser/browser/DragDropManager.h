@@ -7,7 +7,7 @@ class DragForm;
 
 /** 多标签浏览器管理类，用于统一管理多标签拖拽功能
 */
-class DragDropManager : public virtual ui::SupportWeakCallback
+class DragDropManager : public ui::SupportWeakCallback
 {
 public:
     DragDropManager();

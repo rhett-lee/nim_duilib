@@ -36,7 +36,7 @@ enum ThreadIdentifier
 
 /** 框架线程
 */
-class DUILIB_API FrameworkThread : public virtual SupportWeakCallback
+class DUILIB_API FrameworkThread : public SupportWeakCallback
 {
 public:
     /** 使用线程名称和线程识别ID构造线程对象

@@ -40,7 +40,7 @@ private:
     std::list<CefUnregisterCallback> m_callbackList;
 };
 template<typename TCallback>
-class CefUnregistedCallbackList : public virtual ui::SupportWeakCallback
+class CefUnregistedCallbackList : public ui::SupportWeakCallback
 {
 public:
     CefUnregistedCallbackList() {}

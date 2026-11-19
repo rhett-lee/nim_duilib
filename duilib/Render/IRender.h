@@ -34,7 +34,7 @@ struct DUILIB_API FontMetrics
 
 /** 字体接口
 */
-class DUILIB_API IFont: public virtual SupportWeakCallback
+class DUILIB_API IFont: public SupportWeakCallback
 {
 public:
     virtual ~IFont() = default;
@@ -104,7 +104,7 @@ public:
 
 /** 字体回退管理器（当支持的字体无法显示字符时，会查询回退字体管理器，以正确显示文字）
 */
-class DUILIB_API IFallbackFontMgr : public virtual SupportWeakCallback
+class DUILIB_API IFallbackFontMgr : public SupportWeakCallback
 {
 public:
     virtual ~IFallbackFontMgr() = default;
@@ -119,7 +119,7 @@ public:
 
 /** 字体管理器接口
 */
-class DUILIB_API IFontMgr : public virtual SupportWeakCallback
+class DUILIB_API IFontMgr : public SupportWeakCallback
 {
 public:
     virtual ~IFontMgr() = default;
@@ -190,7 +190,7 @@ enum class DUILIB_API AlphaType: int
 
 /** 位图接口
 */
-class DUILIB_API IBitmap : public virtual SupportWeakCallback
+class DUILIB_API IBitmap : public SupportWeakCallback
 {
 public:
     virtual ~IBitmap() = default;
@@ -260,7 +260,7 @@ public:
 
 /** 画笔接口
 */
-class DUILIB_API IPen : public virtual SupportWeakCallback
+class DUILIB_API IPen : public SupportWeakCallback
 {
 public:
     virtual ~IPen() = default;
@@ -386,7 +386,7 @@ public:
 
 /** 画刷接口
 */
-class DUILIB_API IBrush : public virtual SupportWeakCallback
+class DUILIB_API IBrush : public SupportWeakCallback
 {
 public:
     virtual ~IBrush() = default;
@@ -432,7 +432,7 @@ public:
 /** 路径接口
 */
 class IMatrix;
-class DUILIB_API IPath : public virtual SupportWeakCallback
+class DUILIB_API IPath : public SupportWeakCallback
 {
 public:    
     virtual ~IPath() = default;
@@ -1615,7 +1615,7 @@ enum class BlendMode
 /** 渲染接口
 */
 class IRenderFactory;
-class DUILIB_API IRender : public virtual SupportWeakCallback
+class DUILIB_API IRender : public SupportWeakCallback
 {
 public:
     virtual ~IRender() = default;

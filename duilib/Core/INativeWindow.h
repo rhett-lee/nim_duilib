@@ -29,7 +29,7 @@ public:
 
 class Control;
 
-class DUILIB_API INativeWindow: public virtual SupportWeakCallback
+class DUILIB_API INativeWindow: public SupportWeakCallback
 {
 public:
     virtual ~INativeWindow() = default;
