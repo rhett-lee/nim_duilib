@@ -3503,6 +3503,10 @@ bool Control::PaintImage(IRender* pRender,
         //返回绘制的目标区域
         *pPaintedRect = rcImageDect;
     }
+    if (rcImageDect.IsEmpty()) {
+        //图片的绘制目标区域为空（控件不可见或者尺寸为0，例如被裁剪到可见区域之外），不需要绘制
+        return false;
+    }
     //设置动画图片的区域
     duiImage.SetDrawDestRect(rcImageDect);
 

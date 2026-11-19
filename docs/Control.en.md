@@ -3324,7 +3324,15 @@ The RichTextVBox control inherits the `VBox` attributes. For more available attr
 The splitter control can change the width or height of the left/right or top/bottom controls by dragging the splitter. Application method:     
 If placed in a horizontal layout (HLayout), drag left and right.    
 If placed in a vertical layout (VLayout), drag up and down.    
-Note: if both controls are set to stretch type, the splitter will not work properly.
+
+When dragging, the fixed width or fixed height of the two visible (non-float) sibling controls adjacent to the splitter in the same parent container is adjusted:
+- When both controls have fixed sizes, their total size stays unchanged, and neither control exceeds its own `min_width`/`max_width` (`min_height`/`max_height`);
+- When only one of them is stretch type, only the other control is adjusted, and the stretch control is sized by the parent container automatically;
+- When both controls are stretch type, the left (top) control is converted to a fixed size when the mouse is pressed, after which dragging works normally.
+
+If the parent container's layout is not `HLayout` or `VLayout`, dragging is not supported and no resize cursor is shown. The `size_we`/`size_ns` cursor is shown on mouse enter only when the control is enabled and the adjacent controls meet the drag conditions; otherwise the default cursor is restored.
+
+The `kEventSplitDraged` event is fired after dragging (`wParam` is the left/top control, `lParam` is the right/bottom control, which may be `nullptr`). It is recommended to register the callback with the correctly spelled `AttachSplitDragged` (`AttachSplitDraged` is kept for compatibility with old code).
 
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |

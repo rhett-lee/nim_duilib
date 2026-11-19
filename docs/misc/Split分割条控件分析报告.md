@@ -1,4 +1,21 @@
-下面的分析基于 `duilib/Control/Split.h`（以及其依赖的 `Control`、`PlaceHolder`、`ListCtrlHeader`、`global.xml` 中的相关代码）。本次只做分析，未改动代码。
+下面的分析基于 `duilib/Control/Split.h`（以及其依赖的 `Control`、`PlaceHolder`、`ListCtrlHeader`、`global.xml` 中的相关代码）。文中引用的行号是分析时（修复前）的版本。
+
+## 处理状态
+
+| 编号 | 内容 | 状态 |
+| --- | --- | --- |
+| 1 | 快速拖到边界时提前"卡住" | 已修复 |
+| 2 | `ButtonDown` 未清理上一次的拖动状态 | 已修复 |
+| 3 | 窗口失焦后拖动状态残留 | 已修复 |
+| 4 | 另一侧最小尺寸占满时最大值约束被跳过 | 已修复 |
+| 5 | `min > max` 冲突时结果可能小于最小值 | 已修复 |
+| 6 | 不可拖动时仍显示调整光标 | 已修复 |
+| 7 | `enable_split_single` 缺少父容器边界约束 | 已修复 |
+| 8 | 每次鼠标移动触发两次完整布局 | 已修复 |
+| 9 | 数值未变化也发送拖动事件 | 已修复 |
+| 10 | 代码重复与命名问题 | 已修复 |
+| 11 | 头注释与实现矛盾 | 已修复（代码注释 + `docs/Control.md` / `Control.en.md`） |
+| 三 | 功能不足（双击复位、拖动起止事件、拖动阈值等） | 未处理（规划中） |
 
 ## 一、结论
 
@@ -100,6 +117,29 @@ if ((nNewMax > 0) && (nMax > nNewMax)) { nMax = nNewMax; }
 
 建议：更新文档为"首次按下后自动把左上控件转换为固定尺寸"，并同步 `docs/Control.md#L3325-L3333`。
 
+### 修复实现说明（第 1~11 点）
+
+- **边界处理**：`MouseMove` 中两侧都是固定尺寸时，改为先计算第一个控件允许的"最小值/最大值"（同时扣除另一侧的最小/最大尺寸），再夹紧"按下时尺寸 + 累计偏移"，第二个控件取 `总尺寸 - 新值`，从而保证尺寸之和恒等于总尺寸；删除了"两侧独立计算后要求之和恰好相等"的放弃逻辑。`CalculateControlPos` 中最大值始终与 `总尺寸 - 另一侧最小值` 取小，并保证最大值不小于最小值。
+- **拖动状态生命周期**：`ButtonDown` 开头调用 `StopSplitDrag()`；新增 `OnWindowKillFocus` 覆写，窗口失焦时结束拖动并重绘。
+- **光标**：新增 `CanStartDrag()` 与 `UpdateCursor()`，只有控件可用、父容器为 H/V 布局且相邻控件满足条件时才显示 `size_we/size_ns`，否则恢复默认箭头；`MouseEnter` 与 `SetEnableSplitSingle` 都会刷新光标。
+- **单控件模式的边界**：`OnMouseMoveSingle` 新增父容器可用空间约束（扣除分割条与同一容器中其它控件占用的空间，拉伸控件按最小尺寸计算），并复用统一的 min/max 夹紧。
+- **性能与事件**：只有尺寸变化时才设置新值；两侧都需要调整时，第一侧以 `bArrange=false` 只改值，由第二侧触发布局，每次鼠标移动最多一次布局；尺寸未变化时不再派发 `kEventSplitDraged`。
+- **代码质量**：新增 `GetAxisSize` / `GetAxisFixedSize` / `SetAxisFixedSize` / `GetAxisMinSize` / `GetAxisMaxSize` / `GetParentAvailableSize` / `FindPrevNextControl` 等辅助函数，消除横向/纵向的重复分支；`m_nLeftUpFixedValue` 更名为 `m_nLeftTopFixedValue`；新增拼写正确的 `AttachSplitDragged`（`AttachSplitDraged` 保留兼容）；`IsSplitDragValid()` 改为 `const`。
+- **文档**：更新 `Split.h` 头注释，并同步 `docs/Control.md`、`docs/Control.en.md` 中 Split 的说明（双拉伸行为、光标行为、拖动事件）。
+
+### 回归验证与相关修复
+
+在 Debug 版 `TreeView` 示例中验证（非 DLL 模式）：
+
+- 拖动主界面的 `split_vertical`：左面板宽度由 280 增大到 480、再缩小到最小宽度 60，尺寸变化正确，光标在可拖动时显示 `size_we`。
+- 缩小到最小宽度时，出现 `Image.cpp(329) : Assertion failed: !rcDest.IsEmpty() && !rcSource.IsEmpty()`。
+
+该断言与分割条逻辑无关，属于绘制路径的健壮性问题：`TreeNode` 的子项（图标）在树控件被压窄后，其绘制目标区域会被裁剪为 0 宽/0 高（`rcDest` 为空），而 `Control::PaintImage` 仍然继续调用 `Image::GetCurrentBitmap`，触发了该断言（Debug 下会中断为未处理异常，Release 下则直接不绘制）。
+
+修复：在 `Control::PaintImage` 计算完 `rcImageDect` 后，如果目标区域为空则直接返回 `false`（同时仍通过 `pPaintedRect` 返回该空区域），不再进入图片解码/绘制流程。该修改只影响"完全不可见"的图片绘制，不改变可见状态下任何绘制结果。
+
+修复后重新验证：分割条左右拖动到最小宽度时不再触发断言，程序保持正常运行。
+
 ## 三、功能不足（建议补齐）
 
 | 能力 | 现状 | 建议 |
@@ -113,9 +153,11 @@ if ((nNewMax > 0) && (nMax > nNewMax)) { nMax = nNewMax; }
 
 ## 四、核心修复示例（边界夹紧）
 
+以下是修复思路（已在代码中实现，成员已更名为 `m_nLeftTopFixedValue`）：
+
 ```cpp
 // 两侧都是固定值时的正确做法：先把偏移夹紧到"两侧都合法"的区间，再推导数值
-int32_t nOrig1 = m_nLeftUpFixedValue.GetInt32();
+int32_t nOrig1 = m_nLeftTopFixedValue.GetInt32();
 int32_t nOrig2 = nTotal - nOrig1;
 
 int32_t nFirstMin  = m_bHLayout ? m_pLeftTop->GetMinWidth()    : m_pLeftTop->GetMinHeight();
