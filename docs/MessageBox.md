@@ -131,7 +131,7 @@ ui::MessageBoxWnd::Show(this,
 * **TAB / Shift+TAB**：在功能按钮之间正向/反向循环切换焦点；标题栏关闭按钮不参与 TAB 循环。
 * **Enter**：触发当前拥有焦点的按钮（按钮对 `kEventKeyDown` + `kVK_RETURN`/`kVK_SPACE` 响应 click）。
 * **ESC**：取消，返回 `kResultCancel(2)`。
-* **焦点矩形**：窗口初始弹出时不显示按钮的焦点虚线框；用户首次按 TAB 进行键盘导航后，
+* **焦点矩形**：窗口初始弹出时不显示按钮的焦点框；用户首次按 TAB 进行键盘导航后，
   才由 `MessageBoxWnd::OnKeyDownMsg` 调用 `SetShowFocusedRect(true)` 开启，避免界面一弹出就显示焦点环。
   该属性的 XML 名称为 `show_focused_rect`，详见 [Control.md](Control.md)。
 

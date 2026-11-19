@@ -498,8 +498,8 @@ public:
     */
     bool IsNoFocus() const { return m_bNoFocus; }
 
-    /** 设置是否显示焦点状态（获得键盘焦点时绘制焦点框，默认由DoPaintFocusRect绘制一个虚线矩形，
-     *  派生类可重写DoPaintFocusRect自定义焦点框的绘制样式）
+    /** 设置是否显示焦点状态（获得键盘焦点时绘制焦点框，默认由DoPaintFocusRect绘制强调色圆角描边，
+     *  与Windows原生的焦点指示器风格一致；派生类可重写DoPaintFocusRect自定义焦点框的绘制样式）
     */
     void SetShowFocusedRect(bool bShowFocusedRect);
 

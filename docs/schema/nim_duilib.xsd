@@ -875,7 +875,7 @@
     </xs:attribute>
     <xs:attribute name="show_focused_rect" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否显示焦点状态(一个虚线构成的矩形)</xs:documentation>
+        <xs:documentation>是否显示焦点框（默认为强调色圆角描边，仅窗口激活时绘制）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="focused_rect_color" type="xs:string">
@@ -1655,7 +1655,7 @@
     </xs:attribute>
     <xs:attribute name="show_focused_rect" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否显示焦点状态(一个虚线构成的矩形)</xs:documentation>
+        <xs:documentation>是否显示焦点框（默认为强调色圆角描边，仅窗口激活时绘制）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="focused_rect_color" type="xs:string">
@@ -2421,7 +2421,7 @@
     </xs:attribute>
     <xs:attribute name="show_focused_rect" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否显示焦点状态(一个虚线构成的矩形)</xs:documentation>
+        <xs:documentation>是否显示焦点框（默认为强调色圆角描边，仅窗口激活时绘制）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="focused_rect_color" type="xs:string">
@@ -3276,7 +3276,7 @@
     </xs:attribute>
     <xs:attribute name="show_focused_rect" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否显示焦点状态(一个虚线构成的矩形)</xs:documentation>
+        <xs:documentation>是否显示焦点框（默认为强调色圆角描边，仅窗口激活时绘制）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="focused_rect_color" type="xs:string">
@@ -7368,7 +7368,7 @@
     </xs:attribute>
     <xs:attribute name="show_focused_rect" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否显示焦点状态(一个虚线构成的矩形)</xs:documentation>
+        <xs:documentation>是否显示焦点框（默认为强调色圆角描边，仅窗口激活时绘制）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="focused_rect_color" type="xs:string">
@@ -9553,7 +9553,7 @@
     </xs:attribute>
     <xs:attribute name="show_focused_rect" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否显示焦点状态(一个虚线构成的矩形)</xs:documentation>
+        <xs:documentation>是否显示焦点框（默认为强调色圆角描边，仅窗口激活时绘制）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="focused_rect_color" type="xs:string">

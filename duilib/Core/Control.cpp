@@ -4272,57 +4272,37 @@ void Control::DoPaintFocusRect(IRender* pRender)
     if (pRender == nullptr) {
         return;
     }
-    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-    if (pRenderFactory == nullptr) {
-        return;
-    }
-    float fWidth =  Dpi().GetScaleFloat(1.5f); //画笔宽度
-    UiColor dwBorderColor;//画笔颜色
-    DString focusRectColor = GetFocusedRectColor();
+
+    //默认焦点框样式与Windows 11原生的焦点指示器保持一致：强调色的圆角描边（约2像素，内缩1像素）
+    UiColor borderColor;
+    const DString focusRectColor = GetFocusedRectColor();
     if (!focusRectColor.empty()) {
-        dwBorderColor = GetUiColor(focusRectColor);
+        borderColor = GetUiColor(focusRectColor);
     }
-    if (dwBorderColor.IsEmpty()) {
-        //默认聚焦状态的矩形边框颜色
-        dwBorderColor = GetUiColor(_T("border_focus_ring"));
+    if (borderColor.IsEmpty()) {
+        //默认使用强调色，其次使用焦点框的默认颜色
+        borderColor = GetUiColor(_T("color_accent"));
     }
-    if(dwBorderColor.IsEmpty()) {
-        dwBorderColor = UiColor(UiColors::Gray);
+    if (borderColor.IsEmpty()) {
+        borderColor = GetUiColor(_T("border_focus_ring"));
     }
-    UiRect rcBorderSize(1, 1, 1, 1); //功能开关
+    if (borderColor.IsEmpty()) {
+        borderColor = UiColor(UiColors::Gray);
+    }
+
     UiRect rcFocusRect = GetRect();
-    int32_t nFocusWidth = Dpi().GetScaleInt(3); //矩形间隙
-    rcFocusRect.Deflate(nFocusWidth, nFocusWidth);
+    const int32_t nInset = Dpi().GetScaleInt(1);
+    rcFocusRect.Deflate(nInset, nInset);
     if (rcFocusRect.IsEmpty()) {
         return;
     }
-    std::unique_ptr<IPen> pPen(pRenderFactory->CreatePen(dwBorderColor, fWidth));
-    pPen->SetDashStyle(IPen::DashStyle::kDashStyleDot);
-
-    if (rcBorderSize.left > 0) {
-        //左边线
-        UiPointF pt1(rcFocusRect.left, rcFocusRect.top);
-        UiPointF pt2(rcFocusRect.left, rcFocusRect.bottom);
-        pRender->DrawLine(pt1, pt2, pPen.get());
+    float fWidth = Dpi().GetScaleFloat(2.0f);
+    if (fWidth < 1.0f) {
+        fWidth = 1.0f;
     }
-    if (rcBorderSize.top > 0) {
-        //上边线
-        UiPointF pt1(rcFocusRect.left, rcFocusRect.top);
-        UiPointF pt2(rcFocusRect.right, rcFocusRect.top);
-        pRender->DrawLine(pt1, pt2, pPen.get());
-    }
-    if (rcBorderSize.right > 0) {
-        //右边线
-        UiPointF pt1(rcFocusRect.right, rcFocusRect.top);
-        UiPointF pt2(rcFocusRect.right, rcFocusRect.bottom);
-        pRender->DrawLine(pt1, pt2, pPen.get());
-    }
-    if (rcBorderSize.bottom > 0) {
-        //下边线
-        UiPointF pt1(rcFocusRect.left, rcFocusRect.bottom);
-        UiPointF pt2(rcFocusRect.right, rcFocusRect.bottom);
-        pRender->DrawLine(pt1, pt2, pPen.get());
-    }
+    const float fRadius = (float)Dpi().GetScaleInt(3);
+    pRender->DrawRoundRect(UiRectF(rcFocusRect.left, rcFocusRect.top, rcFocusRect.right, rcFocusRect.bottom),
+                           fRadius, fRadius, borderColor, fWidth);
 }
 
 bool Control::IsRootBox() const

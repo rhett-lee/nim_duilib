@@ -659,7 +659,7 @@ void PlaceHolder::SetRowSpan(int32_t rowSpan)
             return;
         }
         CheckPlaceHolderData();
-        m_pData->m_rowSpan = nNewSpan;
+        m_pData->m_rowSpan = ui::TruncateToInt16(nNewSpan);
         //合并的单元格数量变化后，GridLayout需要重新计算行列尺寸
         if (!m_bFloat) {
             ArrangeAncestor();
@@ -687,7 +687,7 @@ void PlaceHolder::SetColumnSpan(int32_t colSpan)
             return;
         }
         CheckPlaceHolderData();
-        m_pData->m_colSpan = nNewSpan;
+        m_pData->m_colSpan = ui::TruncateToInt16(nNewSpan);
         //合并的单元格数量变化后，GridLayout需要重新计算行列尺寸
         if (!m_bFloat) {
             ArrangeAncestor();

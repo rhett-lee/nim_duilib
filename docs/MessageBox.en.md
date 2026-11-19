@@ -136,7 +136,7 @@ ui::MessageBoxWnd::Show(this,
 * **TAB / Shift+TAB**: Cycles focus forward/backward between the functional buttons; the title bar close button does not participate in the TAB cycle.
 * **Enter**: Activates the currently focused button (buttons respond with click to `kEventKeyDown` + `kVK_RETURN`/`kVK_SPACE`).
 * **ESC**: Cancels and returns `kResultCancel(2)`.
-* **Focus rectangle**: When the window first pops up, the button focus dotted rectangle is not shown;
+* **Focus rectangle**: When the window first pops up, the button focus rectangle is not shown;
   it is enabled only after the user presses TAB for keyboard navigation, via
   `MessageBoxWnd::OnKeyDownMsg` calling `SetShowFocusedRect(true)`, to avoid showing a focus ring
   immediately when the UI appears. The XML attribute name is `show_focused_rect`;

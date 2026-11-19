@@ -27,8 +27,8 @@
 | C-8 | 健壮性 | `TEventMapData` 裸指针 + 自定义析构，未禁止拷贝（rule of five） | 已修复 |
 | C-9 | 代码质量 | 构造函数成员初始化顺序与声明顺序不一致 | 已修复 |
 | C-10 | 健壮性 | ToolTip 默认宽度 500 未按 DPI 初始化 | 已修复 |
-| C-11 | 结构 | `Control.h` 职责过重、`AttachXXX` 样板代码过多 | 待处理 |
-| U-1 | 美观度 | 通用焦点框为内缩 3px 的方形点线，观感较差 | 待处理 |
+| C-11 | 结构 | `Control.h` 职责过重、`AttachXXX` 样板代码过多 | 不处理 |
+| U-1 | 美观度 | 通用焦点框为内缩 3px 的方形点线，观感较差 | 已修复 |
 | U-2 | 交互 | 焦点框只应在键盘操作后出现（MenuBar 方案未通用化） | 待处理 |
 | U-3 | 交互 | 键盘焦点复用鼠标悬浮状态，导致悬浮状态被误清除 | 待处理 |
 | U-4 | 美观度 | ToolTip 最大宽度在高 DPI 下偏窄 | 待处理 |
@@ -187,7 +187,7 @@
 
 ### 3.2 结构性优化
 
-**C-11 `Control.h` 职责过重**
+**C-11 `Control.h` 职责过重（不处理）**
 
 - 现状：单头文件同时承载状态、颜色、图片、字体、动画、事件、拖动、ToolTip、右键菜单、快照、绘制顺序等能力；`AttachXXX` 系列内联包装超过 60 个。
 - 影响：头文件依赖广、下游工程重编译成本高；新增事件类型需要修改超大类。
@@ -195,18 +195,20 @@
   1. 把事件相关接口下沉到独立基类（如 `EventSource`），`Control` 继承之；
   2. 不常用能力（拖动、动画、快照）使用 pimpl 或 mixin，减少头文件暴露；
   3. 事件包装可考虑模板化生成，降低样板代码量。
+- 结论：属于结构性重构，影响面大、收益偏长期，经确认**暂不处理**，保留现状。
 
 ## 四、界面美观度与交互改进
 
-**U-1 通用焦点框观感较差**
+**U-1 通用焦点框观感较差（已修复）**
 
-- 现状：`Control::DoPaintFocusRect()`（`Control.cpp` 约 4253-4310 行）绘制内缩 3px、线宽 1.5px（DPI 缩放）的**方形点线**，不跟随控件圆角。
+- 原状：`Control::DoPaintFocusRect()` 绘制内缩 3px、线宽 1.5px（DPI 缩放）的**方形点线**，不跟随控件圆角。
 - 问题：小尺寸按钮上点线过密、方形描边与圆角按钮不协调，MenuBar 的实际效果被用户评价为“太难看”。
-- 建议（MenuBar 已验证可行）：
-  1. 改为圆角描边，圆角跟随 `border_round`；
-  2. 颜色优先 `focused_rect_color`，其次 `color_accent`，再回退 `border_focus_ring`；
-  3. 内缩 1px、线宽约 1.5-2px，保证高 DPI 下线宽至少 1px；
-  4. 新增主题属性 `focused_rect_width`、`focused_rect_round`，允许主题统一配置。
+- 修复（对齐 Windows 11 原生焦点指示器）：
+  1. 改为**强调色圆角描边**，内缩 1px、线宽约 2px（DPI 缩放且保证至少 1px）、圆角约 3px；
+  2. 颜色优先 `focused_rect_color`，其次 `color_accent`，再回退 `border_focus_ring`，最后 `Gray`；
+  3. 移除 `MenuBarButton::DoPaintFocusRect` 的私有定制，MenuBar 复用统一默认实现，避免两套视觉；
+  4. 线宽使用 `Dpi().GetScaleFloat(2.0f)` 并下限钳制到 1px，避免高 DPI 下过细。
+- 说明：主题新增 `focused_rect_width` / `focused_rect_round` 配置项暂未实现；如需不同主题差异化，后续可再扩展。
 
 **U-2 焦点框只应响应键盘操作**
 
@@ -246,6 +248,6 @@
 以下结论已对照实现核对，避免误报：
 
 - `SetPadding()` 传入负值不会产生 65531：`TruncateToUInt16(int32_t)` 内部已把负值钳到 0（见 `duilib/Core/UiTypes.h` 约 232-238 行），仅 Debug 下有断言。因此 PH-7 定为代码质量项而非功能缺陷。
-- `GetMaxWidth()` / `GetMaxHeight()` 在 `max < min` 时返回 `INT32_MAX`，使 `Layout.cpp` 中的 `std::clamp` 仍满足 `min <= max`，不会触发未定义行为；问题在于配置错误被隐藏，而不是立即崩溃。
+- `GetMaxWidth()` / `GetMaxHeight()` 在 `max < min` 时的兜底已由 `INT32_MAX` 改为返回 `min`（PH-6 修复后），保证 `Layout.cpp` 中的 `std::clamp` 始终满足 `min <= max`，不会触发未定义行为。
 - `Control::OnSetFocus()` 关闭输入法的行为与焦点视觉无关，属于既有设计，本报告不将其列为问题。
-- MenuBar 的焦点框已重写为圆角强调色描边（`MenuBarButton::DoPaintFocusRect`），因此 U-1 的“通用实现”改造可以复用该实现思路。
+- U-1 已把通用焦点框改为强调色圆角描边，MenuBar 的私有重写（`MenuBarButton::DoPaintFocusRect`）已移除，统一复用默认实现。

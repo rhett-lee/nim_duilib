@@ -88,8 +88,8 @@
 | menu | false | bool | |是否需要右键菜单,如"true"|
 | no_focus | false | bool | SetNoFocus|是否可以获取焦点,如"true"|
 | tab_stop | true | bool | SetTabStop| 是否允许通过按TAB键切换到此控件 |
-| show_focused_rect | false| bool | SetShowFocusedRect| 是否显示焦点状态(一个虚线构成的矩形)，仅在窗口处于激活状态时绘制 |
-| focused_rect_color | | string | SetFocusedRectColor| 焦点状态矩形的颜色 |
+| show_focused_rect | false| bool | SetShowFocusedRect| 是否显示焦点框（默认绘制强调色圆角描边，与 Windows 原生焦点指示器风格一致），仅在窗口处于激活状态时绘制 |
+| focused_rect_color | | string | SetFocusedRectColor| 焦点框线条的颜色（为空时依次回退到 color_accent、border_focus_ring） |
 | alpha | 255 | int | SetAlpha|控件的整体透明度,如alpha="128"，有效值为 0-255 |
 | state | normal | string | SetState|控件的当前状态: 支持normal、hovered、pressed、disabled状态 |
 | cursor_type | arrow | string | SetCursorType|鼠标移动到控件上时的鼠标光标: <br>"arrow"：箭头<br>"hand"：手型<br>"wait"：忙碌<br>"cross"：十字线<br>"ibeam"：I型光标,文本光标<br>"size_we"：水平调整<br>"size_ns"：垂直调整<br>"size_nwse"：对角线调整，西北-东南调整<br>"size_nesw"：对角线调整，东北-西南调整<br>"size_all"：移动，四向调整<br>"no"：禁止光标<br>"progress"：进度，应用启动光标|

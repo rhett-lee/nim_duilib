@@ -45,10 +45,6 @@ protected:
     */
     virtual bool ShouldPaintFocusRect() const override;
 
-    /** 绘制焦点框：使用圆角强调色描边，替代默认的虚线矩形
-    */
-    virtual void DoPaintFocusRect(IRender* pRender) override;
-
 private:
     MenuBar* m_pMenuBar;
     bool m_bKeyboardFocus;  //是否由键盘操作获得焦点（鼠标点击时为false）
@@ -127,40 +123,6 @@ bool MenuBarButton::ShouldPaintFocusRect() const
 {
     //只有通过键盘操作(如F10、Alt、回车等)获得焦点时才显示焦点框
     return m_bKeyboardFocus && BaseClass::ShouldPaintFocusRect();
-}
-
-void MenuBarButton::DoPaintFocusRect(IRender* pRender)
-{
-    if (pRender == nullptr) {
-        return;
-    }
-    //圆角描边样式的焦点框：贴合按钮的圆角，使用强调色，比默认虚线矩形更美观
-    UiRect rcFocusRect = GetRect();
-    const int32_t nInset = Dpi().GetScaleInt(1);
-    rcFocusRect.Deflate(nInset, nInset);
-    if (rcFocusRect.IsEmpty()) {
-        return;
-    }
-    UiColor borderColor = GetUiColor(GetFocusedRectColor());
-    if (borderColor.IsEmpty()) {
-        borderColor = GetUiColor(_T("color_accent"));
-    }
-    if (borderColor.IsEmpty()) {
-        borderColor = GetUiColor(_T("border_focus_ring"));
-    }
-    if (borderColor.IsEmpty()) {
-        borderColor = GetUiColor(_T("text_menu_bar"));
-    }
-    if (borderColor.IsEmpty()) {
-        borderColor = UiColor(UiColors::Gray);
-    }
-    float fWidth = Dpi().GetScaleFloat(1.5f);
-    if (fWidth < 1.0f) {
-        fWidth = 1.0f;
-    }
-    const float fRadius = (float)Dpi().GetScaleInt(5);
-    pRender->DrawRoundRect(UiRectF(rcFocusRect.left, rcFocusRect.top, rcFocusRect.right, rcFocusRect.bottom),
-                           fRadius, fRadius, borderColor, fWidth);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
