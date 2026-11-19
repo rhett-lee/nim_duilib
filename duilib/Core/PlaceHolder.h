@@ -56,6 +56,11 @@ public:
     */
     Box* GetAncestor(const DString& strName);
 
+    /** 根据名称获取祖先容器指针（const版本）
+    * @param [in] strName 要获取的祖先容器名称
+    */
+    const Box* GetAncestor(const DString& strName) const;
+
     /** 设置容器所属窗口
      * @param [in] pParent 父容器指针
      */
@@ -346,6 +351,9 @@ public:
     void SetRect(const UiRect& rc);
 
     /** 设置单元格合并属性（占几行），仅在GridLayout布局中生效
+    * @param [in] rowSpan 合并的行数，有效范围为[1, 32767]：
+    *                     <= 0 时忽略本次设置（Debug下断言）；> 32767 时按32767存储（Debug下断言）
+    * @note 值发生变化后会触发重新布局
     */
     void SetRowSpan(int32_t rowSpan);
 
@@ -355,6 +363,9 @@ public:
     int32_t GetRowSpan() const;
 
     /** 设置单元格合并属性（占几列），仅在GridLayout布局中生效
+    * @param [in] colSpan 合并的列数，有效范围为[1, 32767]：
+    *                     <= 0 时忽略本次设置（Debug下断言）；> 32767 时按32767存储（Debug下断言）
+    * @note 值发生变化后会触发重新布局
     */
     void SetColumnSpan(int32_t colSpan);
 
@@ -364,11 +375,17 @@ public:
     int32_t GetColumnSpan() const;
 
     /** 重绘控件
+    * @note 重绘区域按控件的绝对坐标（窗口客户区坐标）计算，内部会减去各层父容器的滚动偏移；
+    *       该区域最终受32位坐标限制，当内容滚动偏移超出int32范围时坐标会失真
     */
     virtual void Invalidate();
 
     /** 重绘控件的部分区域
-    * @param [in] rc 需要重绘的区域
+    * @param [in] rc 需要重绘的区域，使用控件的绝对坐标（窗口客户区坐标），
+    *                不包含父容器的滚动偏移；内部会先与控件的绘制区域（含box-shadow外展）
+    *                取交集，再减去各层父容器的滚动偏移后提交重绘
+    * @note 该区域最终受32位坐标限制，当内容滚动偏移超出int32范围时坐标会失真
+    *       （仅虚拟列表等极端数据量场景才会出现）
     */
     virtual void InvalidateRect(const UiRect& rc);
 
@@ -382,7 +399,11 @@ public:
     virtual void Arrange();
 
     /** 让父容器进行布局重排
-     */
+    *  若控件尚未关联窗口（或窗口无Root），则让父容器重排；没有父容器时调用本控件的ArrangeSelf()。
+    *  本函数只发起重排请求，实际布局在窗口处理布局消息时统一执行。
+    * @note ArrangeSelf()在控件不可见时直接返回，因此调用本函数不代表布局一定已经执行；
+    *       各布局相关的Setter约定在属性值未变化时不调用本函数，以避免无意义的重排与重绘
+    */
     virtual void ArrangeAncestor();
 
     /** 根据控件属性，判断需要重排布局或者只是重绘
@@ -476,6 +497,7 @@ protected:
 
 protected:
     /** 让自己重排
+    * @note 控件不可见时直接返回，不标记任何重排状态
     */
     virtual void ArrangeSelf();
 

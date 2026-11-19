@@ -4,7 +4,7 @@
 
 ## 处理状态
 
-本轮已完成 PH-1、PH-2、PH-3、PH-4、PH-5、PH-6、PH-7，其余项仍为“待处理”。
+本轮已完成 PH-1 ~ PH-9（PlaceHolder 部分全部完成），Control/美观度部分仍为“待处理”。
 
 | 编号 | 类别 | 内容 | 状态 |
 | --- | --- | --- | --- |
@@ -15,8 +15,8 @@
 | PH-5 | 交互 | `SetEnableControlPadding` 不触发重新布局 | 已修复 |
 | PH-6 | 健壮性 | `maxWidth` / `maxHeight` 允许小于 `min`，非法值被静默吞掉 | 已修复 |
 | PH-7 | 代码质量 | `SetMargin` 与 `SetPadding` 的负值处理不一致、存在冗余钳制 | 已修复 |
-| PH-8 | 文档 | `InvalidateRect()` 的坐标空间未说明；大内容下仍使用 32 位偏移 | 待处理 |
-| PH-9 | API | `GetAncestor()` 缺少 `const` 重载 | 待处理 |
+| PH-8 | 文档 | `InvalidateRect()` 的坐标空间未说明；大内容下仍使用 32 位偏移 | 已修复 |
+| PH-9 | API | `GetAncestor()` 缺少 `const` 重载 | 已修复 |
 | C-1 | 正确性 | `SetShowFocusedRect` / `SetFocusedRectColor` 修改后不重绘 | 待处理 |
 | C-2 | 文档 | `HoveredAlpha` 注释写成“焦点状态透明度” | 待处理 |
 | C-3 | 文档 | 焦点框注释仍写“虚线构成的矩形”，与可重写的圆角描边不符 | 待处理 |
@@ -119,22 +119,27 @@
 - 结论：**不会出现负值转成 65531 的问题**，因为 `TruncateToUInt16` 已做下限钳制；此处仅属于重复代码与风格不一致。
 - 修复：删除 `SetMargin` 中 `Validate()` 之后的 4 段重复负值钳制，两个 Setter 统一为“`ASSERT` → `Validate()` → 按需 DPI 缩放 → 比较 → `TruncateToUInt16` 存储”，行为不变。
 
-**PH-8 重绘接口的坐标契约与 64 位支持**
+**PH-8 重绘接口的坐标契约与 64 位支持（已修复）**
 
-- 位置：`Invalidate()` / `InvalidateRect()`（约 678-714 行）。
+- 位置：`Invalidate()` / `InvalidateRect()`（约 724-760 行）。
 - 说明：`InvalidateRect(rc)` 会先与控件绘制外展矩形取交集，再减去滚动偏移；因此 `rc` 必须是“未减滚动偏移的绝对坐标”，但接口注释未说明，容易误用。
 - 另外：重绘始终使用 32 位 `GetScrollOffsetInScrollBox()`；内容滚动超过 `int32` 范围时（虚拟列表极端数据量）偏移会失真。窗口重绘区域本身是 32 位限制，可接受，但建议注释说明该限制。
-- 建议：补充注释；必要时增加“本地坐标”重载，减少调用方自行换算。
+- 修复：在 `PlaceHolder.h` 的 `Invalidate()` / `InvalidateRect()` 注释中明确三点：重绘区域使用绝对坐标（窗口客户区坐标）、不包含父容器滚动偏移、内部会取交集并减去滚动偏移；同时注明最终受 32 位坐标限制及触发场景。未新增接口（“本地坐标”重载暂不需要）。
 
-**PH-9 缺少 `const` 重载**
+**PH-9 缺少 `const` 重载（已修复）**
 
-- `Box* GetAncestor(const DString& strName)`（`PlaceHolder.h` 约 57 行）为非 `const`，`const` 上下文中无法查询祖先。可补 `const Box* GetAncestor(...) const`。
+- 便于在 `const` 上下文中查询祖先容器，新增 `const Box* GetAncestor(const DString& strName) const`（`PlaceHolder.h` / `PlaceHolder.cpp`），与非 `const` 版本行为一致；非 `const` 对象仍优先匹配原重载，不影响既有调用。
 
-### 2.2 其他代码质量项
+### 2.2 其他代码质量项（已补充注释）
 
 - `SetRowSpan()` 使用 `TruncateToInt16` 存储（约 625 行），超出范围时静默饱和，建议在注释中说明上限（或改用 `int32`）。
 - `ArrangeAncestor()`（约 550-575 行）逻辑正确，但“window 为空且无父控件”的分支会调用 `ArrangeSelf()`，而 `ArrangeSelf()` 在不可见时直接返回，建议注释说明该行为，避免调用方误以为已重排。
 - `SetMargin`/`SetPadding`/`SetMinWidth` 等 Setter 的“值未变化则不重排”逻辑重复，可提取模板/辅助函数，减少遗漏。
+
+> 处理说明（按要求仅补充注释，不修改代码）：
+> - `SetRowSpan()` / `SetColumnSpan()`：头文件注释已明确有效范围 `[1, 32767]`，`<= 0` 忽略（Debug 断言）、`> 32767` 按 32767 存储（Debug 断言），并注明值变化后触发重排。
+> - `ArrangeAncestor()` / `ArrangeSelf()`：头文件注释已说明本函数只发起重排请求、实际布局由窗口统一执行，且 `ArrangeSelf()` 在控件不可见时直接返回。
+> - “值未变化则不重排”的约定：已记录在 `ArrangeAncestor()` 的注释中，作为各布局相关 Setter 的统一约定，后续新增 Setter 应遵循。
 
 ## 三、Control 的问题
 

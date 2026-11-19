@@ -65,6 +65,15 @@ ui::Box* PlaceHolder::GetAncestor(const DString& strName)
     return pAncestor;
 }
 
+const ui::Box* PlaceHolder::GetAncestor(const DString& strName) const
+{
+    const Box* pAncestor = GetParent();
+    while ((pAncestor != nullptr) && !pAncestor->IsNameEquals(strName)) {
+        pAncestor = pAncestor->GetParent();
+    }
+    return pAncestor;
+}
+
 std::string PlaceHolder::GetUTF8Name() const
 {
     std::string strOut = StringConvert::TToUTF8(GetName());
