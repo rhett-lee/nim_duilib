@@ -1,0 +1,163 @@
+下面的分析基于 `duilib/Control/Split.h`（以及其依赖的 `Control`、`PlaceHolder`、`ListCtrlHeader`、`global.xml` 中的相关代码）。本次只做分析，未改动代码。
+
+## 一、结论
+
+`Split.h` 采用"模板 + 头文件实现"的方式，被 `Split`（继承 `Control`）和 `SplitBox`（继承 `Box`）复用；实现方式是：拖动分割条时修改相邻两个兄弟控件的 `fixed_width/fixed_height`。
+
+整体思路清晰，DPI 处理正确（拖动值使用物理像素，`SetFixedWidth(..., false)` 不再做二次缩放），鼠标捕获期间的移动消息会被路由到按下的控件，因此拖动过程可以稳定工作。
+
+存在的问题集中在四个方面：
+
+1. 边界夹紧逻辑不一致（快速拖动时提前失效）；
+2. 拖动状态的生命周期管理不完整（遗留旧指针/旧方向）；
+3. 光标与可用性反馈失真；
+4. 代码重复较多，且缺少现代分割条的常用交互（双击复位、拖动起止事件、拖动阈值等）。
+
+## 二、错误与设计缺陷（按严重程度）
+
+### 1. 快速拖到边界时提前"卡住"，无法到达真正的极限位置（功能性 Bug，高）
+
+`Split.h#L428-L467`：两侧分别用 `nOffset` 和 `-nOffset` 独立计算新值，再要求 `nNewValue1 + nNewValue2 == nTotal`，否则整体放弃。
+
+举例：左侧 200、右侧 300（合计 500），`max_width = 300`。一次性拖到 +120：
+
+- `nNewValue1 = min(320, 300) = 300`
+- `nNewValue2 = 300 - 120 = 180`
+- `300 + 180 ≠ 500` → 直接 return，控件停在 +50 的位置。
+
+正确结果应是 `300 / 200`。也就是说：鼠标移动很快（事件步长较大）时，拖动会停在离边界还有一段距离的位置，并且继续往同方向拖持续无效，必须反向拖回才能恢复。这是实际使用中最容易被感知到的问题。
+
+根因是"先各自夹紧、再校验总和"。应改为：**先求出统一的有效偏移（同时满足两侧的 min/max），再由偏移推导两侧数值**，这样两侧之和必然等于 `nTotal`。
+
+### 2. `ButtonDown` 未清理上一次的拖动状态（高）
+
+`Split.h#L209-L291`：`m_pLeftTop / m_pRightBottom / m_bHLayout` 只在 `IsVLayout/IsHLayout` 分支里被覆盖。若控件在运行期被移动到非 H/V 布局的父容器（或父容器布局被替换），这些成员会保留旧值；而基类 `ButtonDown` 已经把 `IsMouseFocused` 置为 true，后续 `MouseMove` 会拿**旧的兄弟控件指针**去改尺寸（控件树重建后还可能悬空）。
+
+建议：在 `ButtonDown` 开头先调用 `StopSplitDrag()`，再根据当前父容器重新判定方向与邻居。
+
+### 3. 窗口失焦后拖动状态残留（中高）
+
+`Split.h#L155-L160` 的 `StopSplitDrag()` 只在 `ButtonUp` 时调用。窗口失焦时 `Control.cpp#L3256-L3276` 只会把 `IsMouseFocused` 置为 false，Split 的邻居指针仍然保留，导致公共接口 `IsSplitDragValid()` 在"没在拖动"时仍返回 true。
+
+建议：覆写 `OnKillFocus`，在其中调用 `StopSplitDrag()` 并 `Invalidate()`。
+
+### 4. `CalculateControlPos` 在另一侧最小尺寸已占满时跳过约束（中高）
+
+`Split.h#L347-L365`：
+
+```cpp
+if ((nNewMax > 0) && (nMax > nNewMax)) { nMax = nNewMax; }
+```
+
+当 `nTotal - pSecond->GetMinWidth() <= 0` 时约束被整个忽略，`nMax` 退化为 `pFirst->GetMaxWidth()`（默认 `INT32_MAX`），本侧可以被放大到超出可用空间。
+
+建议：改为 `nNewMax = max(0, nTotal - secondMin)` 且始终参与取小；若 `nTotal <= secondMin`，说明没有可调整空间，直接返回当前值。
+
+### 5. `min > max` 冲突时最终会小于最小值（中）
+
+`Split.h#L366-L369`：先夹 min 再夹 max，若配置的 `max_width < min_width`（或第 4 点导致 max 变负），结果会落在 min 之下。
+
+建议：最后统一执行 `nNewValue = std::clamp(nNewValue, nMin, std::max(nMin, nMax))`。
+
+### 6. 不可拖动时仍显示"可调整"光标（中，交互误导）
+
+`Split.h#L190-L206`：只根据父布局方向设置 `SizeWE/SizeNS`，没有判断：
+
+- 控件是否 `IsEnabled()`；
+- `enable_split_single = false` 且只有一个邻居；
+- 两侧都是 stretch（或唯一邻居是 stretch，此时 `OnMouseMoveSingle` 会直接返回）。
+
+这些情况下鼠标显示可拖动光标但实际拖不动，属于误导性反馈。另外父容器不是 H/V 布局时不会设置光标，但**也不会把它恢复为默认箭头**（例如布局方向在运行期变更后）。
+
+建议：抽出 `UpdateCursor()`，在所有前置条件变化处（`MouseEnter`、`SetAttribute`、子项增删）调用。
+
+### 7. `enable_split_single` 缺少父容器边界约束（中）
+
+`Split.h#L495-L596`：单邻居模式下，只受自身 `max_width/max_height` 限制，不受父容器可用空间限制，可能把内容撑出父容器（出现滚动条或被相邻内容遮挡）。
+
+### 8. 性能：每次鼠标移动触发两次完整布局（中）
+
+`Split.h#L470-L487`：两侧各调用一次 `SetFixedWidth(..., true, ...)`，而它在 `PlaceHolder.cpp#L217-L237` 内部会执行 `ArrangeAncestor()`。因此每次 `MouseMove` 产生两次全量布局，复杂界面上会造成拖动卡顿。
+
+建议：第一侧用 `bArrange = false`，第二侧用 `true`，保证一次布局。
+
+### 9. 数值没变化也会发送拖动事件（中）
+
+`Split.h#L489-L491`：`bAdjusted` 只表示"执行了赋值"，即使新旧值相同也会 `SendEvent(kEventSplitDraged)`。例如 `ListCtrlHeader` 的处理器会因此反复设置列宽。
+
+建议：只在"旧值 != 新值"时发送事件。
+
+### 10. 代码重复与命名问题（低）
+
+- `ButtonDown` 的 V/H 两段（`Split.h#L247-L290`）与 `MouseMove` 的宽/高两段（`Split.h#L432-L487`）几乎完全对称，可用 `GetAxisSize()/SetAxisFixed()` 两个小 helper 消除约 60 行重复。
+- `ButtonDown` 中 `IsVLayout/IsHLayout` 对同一父容器最多执行 3 次 `dynamic_cast` + `GetLayout()`，缓存一次即可。
+- 公开 API 拼写：`kEventSplitDraged` / `AttachSplitDraged`（应为 `Dragged`）、成员 `m_nLeftUpFixedValue`（应为 `LeftTop`）、`SetAttribute` 的参数名 `strValue2`。前者改动会破坏兼容，建议新增 `AttachSplitDragged` 别名，并在注释中标注旧名废弃。
+- `CalculateControlPos` 的注释写"nFirstFixedInt 是原始值"，而 `nFirstFixedInt.GetInt32() + nOffset` 的语义是"从按下时的值开始累计"，建议注释写清"鼠标当前相对按下点的累计偏移"。
+
+### 11. 头注释与实现矛盾（低，文档）
+
+`Split.h#L10-L14` 说"两个控件都设置为拉伸类型时分割条无法正常工作"，但 `Split.h#L295-L305` 在按下时会把左上控件转换为固定值，实际可以拖动。
+
+建议：更新文档为"首次按下后自动把左上控件转换为固定尺寸"，并同步 `docs/Control.md#L3325-L3333`。
+
+## 三、功能不足（建议补齐）
+
+| 能力 | 现状 | 建议 |
+| --- | --- | --- |
+| 双击复位 | 控件本身不支持（`ListCtrlHeader` 自己在 SplitBox 上挂双击） | 内建保存初始 `fixed` 值，双击恢复；属性 `double_click_reset` 控制 |
+| 拖动开始/结束事件 | 只有 `kEventSplitDraged` | 增加 `kEventSplitDragBegin/kEventSplitDragEnd`，便于应用层暂停刷新、持久化布局 |
+| 拖动阈值 | 无，轻微移动即改尺寸并发事件 | 1~2px（DPI 缩放）阈值，仅在超过后才开始调整 |
+| 目标控件可指定 | 只能取"同父容器内、可见、非 float 的前后兄弟" | 增加 `left_top_ctrl_name` / `right_bottom_ctrl_name`，支持跨容器分割 |
+| 键盘操作 | 无 | 聚焦后方向键 ±1/±10（配合 Shift）微调 |
+| 拖动尺寸提示 | 无 | 拖动时显示"320 px"气泡（类似 Qt Designer），提升可预期性 |
+
+## 四、核心修复示例（边界夹紧）
+
+```cpp
+// 两侧都是固定值时的正确做法：先把偏移夹紧到"两侧都合法"的区间，再推导数值
+int32_t nOrig1 = m_nLeftUpFixedValue.GetInt32();
+int32_t nOrig2 = nTotal - nOrig1;
+
+int32_t nFirstMin  = m_bHLayout ? m_pLeftTop->GetMinWidth()    : m_pLeftTop->GetMinHeight();
+int32_t nFirstMax  = m_bHLayout ? m_pLeftTop->GetMaxWidth()    : m_pLeftTop->GetMaxHeight();
+int32_t nSecondMin = m_bHLayout ? m_pRightBottom->GetMinWidth() : m_pRightBottom->GetMinHeight();
+
+nFirstMax = std::min(nFirstMax, nTotal - nSecondMin);   // 给另一侧留出最小空间
+nFirstMax = std::max(nFirstMax, nFirstMin);             // 处理 min > max 的冲突配置
+
+int32_t nMinOffset = nFirstMin - nOrig1;
+int32_t nMaxOffset = nFirstMax - nOrig1;
+nOffset = std::clamp(nOffset, nMinOffset, nMaxOffset);
+
+int32_t nNew1 = nOrig1 + nOffset;
+int32_t nNew2 = nTotal - nNew1;   // 恒等，不再需要 sum != nTotal 的放弃分支
+```
+
+这样能同时修掉第 1、4、5 点，并可删除 `nNewValue1 + nNewValue2 != nTotal` 的拒绝路径。
+
+## 五、界面美观度改进建议
+
+当前默认主题只给列头分割条定义了"3px 热区 + 1px 右对齐细线"（`bin/resources/themes/default/global.xml#L864-L865`），且都是手工拼装。建议：
+
+1. **提供通用主题类**，让所有分割条外观统一（`hovered_color` / `pressed_color` 已由基类状态驱动）：
+
+```xml
+<Class name="split_box"  width="5" height="100%" cursor_type="size_we"
+       hovered_color="bg_split_hovered" pressed_color="bg_split_pressed"/>
+<Class name="split_line" width="1" height="100%" halign="center" bkcolor="border_split"/>
+```
+
+2. **热区与视觉分离**：热区不小于 4~6px（随 DPI 缩放），视觉只画 1px 细线，既好抓取又不显笨重（列头已是这个模式，应固化为推荐用法）。
+3. **拖动反馈**：拖动中细线用强调色（`pressed_color` 自动生效），松手后恢复；可选加入约 150ms 的颜色过渡（复用现有动画播放器）。
+4. **双击复位 + 轻微动画**：恢复默认尺寸时做一次短促的宽度插值，符合现代软件的"可逆操作"直觉。
+5. **深浅色对比度**：`border_split` 在两套主题中都要保证与相邻背景有足够对比（建议 2:1 以上），避免浅色主题下"看不见分割条"。
+6. **光标语义**：只在真正可拖动时显示 `size_we/size_ns`；不可拖动时用默认箭头，减少"看起来能拖其实不能拖"的挫败感。
+
+## 六、建议实施顺序
+
+1. 修边界夹紧（第 1、4、5 点）—— 影响正确性；
+2. 拖动状态生命周期（第 2、3 点）+ 光标可用性（第 6 点）；
+3. 性能与事件去抖（第 8、9 点）；
+4. 代码去重/重命名、文档同步（第 10、11 点）；
+5. 新交互：双击复位、拖动开始/结束事件、拖动阈值、尺寸提示；
+6. 主题类与示例，统一各处的分割条观感。

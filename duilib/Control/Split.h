@@ -327,41 +327,34 @@ int32_t SplitTemplate<InheritType>::CalculateControlPos(bool bHLayout, const int
     if ((pFirst == nullptr) || (pSecond == nullptr)) {
         return 0;
     }
-    int32_t nNewValue = nFirstFixedInt.GetInt32() + nOffset; //新值，可以是正数，也可以是负数
-    if (nNewValue < 0) {
-        nNewValue = 0;
-    }
-
-    int32_t nMin = 0; //最小值
+    int32_t nMin = 0;       //最小值
+    int32_t nMax = 0;       //最大值
+    int32_t nSecondMin = 0; //另一侧控件的最小值
     if (bHLayout) {
         nMin = pFirst->GetMinWidth();
+        nMax = pFirst->GetMaxWidth();
+        nSecondMin = pSecond->GetMinWidth();
     }
     else {
         nMin = pFirst->GetMinHeight();
-    }    
+        nMax = pFirst->GetMaxHeight();
+        nSecondMin = pSecond->GetMinHeight();
+    }
+    //最大值需要给另一侧控件留出最小空间（另一侧的最小值为0时，也不能超过总尺寸）
+    int32_t nMaxBySecond = nTotal - nSecondMin;
+    if (nMax > nMaxBySecond) {
+        nMax = nMaxBySecond;
+    }
+    //最大值不能小于最小值（配置冲突时，以本控件的最小值为准）
+    if (nMax < nMin) {
+        nMax = nMin;
+    }
+
+    //新值，可以是正数，也可以是负数（从鼠标按下时的值开始，累计鼠标的偏移量）
+    int32_t nNewValue = nFirstFixedInt.GetInt32() + nOffset;
     //控制不小于最小值
     if (nNewValue < nMin) {
         nNewValue = nMin;
-    }
-
-    int32_t nMax = 0; //最大值, 并且按照另一侧的最小值设置，留出最小空间
-    if (bHLayout) {
-        nMax = pFirst->GetMaxWidth();
-        if (pSecond->GetMinWidth() > 0) {
-            int32_t nNewMax = nTotal - pSecond->GetMinWidth();
-            if ((nNewMax > 0) && (nMax > nNewMax)) {
-                nMax = nNewMax;
-            }
-        }
-    }
-    else {
-        nMax = pFirst->GetMaxHeight();
-        if (pSecond->GetMinHeight() > 0) {
-            int32_t nNewMax = nTotal - pSecond->GetMinHeight();
-            if ((nNewMax > 0) && (nMax > nNewMax)) {
-                nMax = nNewMax;
-            }
-        }
     }
     //控制不大于最大值
     if (nNewValue > nMax) {
@@ -392,27 +385,15 @@ bool SplitTemplate<InheritType>::MouseMove(const EventArgs& msg)
         nOffset = msg.ptMouse.y - m_ptStart.y;
     }
 
-    //拖动时，不能超过总的宽度值或者总的高度值
-    if (nOffset > 0) {
-        if (!m_nRightBottomFixedValue.IsStretch()) {
-            if (nOffset > m_nRightBottomFixedValue.GetInt32()) {
-                nOffset = m_nRightBottomFixedValue.GetInt32();
-            }
-        }
-    }
-    else if(nOffset < 0){
-        if (!m_nLeftUpFixedValue.IsStretch()) {
-            if (-nOffset > m_nLeftUpFixedValue.GetInt32()) {
-                nOffset = -m_nLeftUpFixedValue.GetInt32();
-            }
-        }
-    }
-    else {
+    //原地拖动，不需要调整
+    if (nOffset == 0) {
         return bRet;
     }
-    
+
     int32_t nTotal = 0; //总的宽度值或者总的高度值
-    if (m_nLeftUpFixedValue.IsInt32() && m_nRightBottomFixedValue.IsInt32()) {
+    bool bLeftTopFixed = !m_nLeftUpFixedValue.IsStretch();
+    bool bRightBottomFixed = !m_nRightBottomFixedValue.IsStretch();
+    if (bLeftTopFixed && bRightBottomFixed) {
         nTotal = m_nLeftUpFixedValue.GetInt32() + m_nRightBottomFixedValue.GetInt32();
     }
     else {
@@ -427,43 +408,63 @@ bool SplitTemplate<InheritType>::MouseMove(const EventArgs& msg)
     //对于拉伸类型的控件，不调整，交给父容器自动调整（如果两个控件都是拉伸类型的，分割条就无法工作了）
     Control* pControl1 = nullptr;
     Control* pControl2 = nullptr;
-    int32_t nNewValue1 = 0;
-    int32_t nNewValue2 = 0;
-    if (!m_nLeftUpFixedValue.IsStretch()) {
+    int32_t nNewValue1 = -1;
+    int32_t nNewValue2 = -1;
+    if (bLeftTopFixed && bRightBottomFixed) {
+        //两个控件都是固定尺寸：先按鼠标偏移量计算第一个控件的新值，再由总尺寸算出第二个控件的新值，
+        //保证两个控件的尺寸之和保持不变，并且两个控件都不会超出各自允许的范围
+        int32_t nFirstMin = 0;
+        int32_t nFirstMax = 0;
+        int32_t nSecondMin = 0;
+        int32_t nSecondMax = 0;
+        if (m_bHLayout) {
+            nFirstMin = m_pLeftTop->GetMinWidth();
+            nFirstMax = m_pLeftTop->GetMaxWidth();
+            nSecondMin = m_pRightBottom->GetMinWidth();
+            nSecondMax = m_pRightBottom->GetMaxWidth();
+        }
+        else {
+            nFirstMin = m_pLeftTop->GetMinHeight();
+            nFirstMax = m_pLeftTop->GetMaxHeight();
+            nSecondMin = m_pRightBottom->GetMinHeight();
+            nSecondMax = m_pRightBottom->GetMaxHeight();
+        }
+        //第一个控件允许的最小值和最大值（同时给第二个控件留出足够的空间）
+        int32_t nValidMin = nFirstMin;
+        int32_t nValidMax = nFirstMax;
+        if (nValidMin < nTotal - nSecondMax) {
+            nValidMin = nTotal - nSecondMax;
+        }
+        if (nValidMax > nTotal - nSecondMin) {
+            nValidMax = nTotal - nSecondMin;
+        }
+        if (nValidMax < nValidMin) {
+            //配置的最小值/最大值互相冲突时，优先保证两个控件的最小值
+            nValidMax = nValidMin;
+        }
+        int32_t nNewValue = m_nLeftUpFixedValue.GetInt32() + nOffset;
+        if (nNewValue < nValidMin) {
+            nNewValue = nValidMin;
+        }
+        if (nNewValue > nValidMax) {
+            nNewValue = nValidMax;
+        }
+        pControl1 = m_pLeftTop;
+        pControl2 = m_pRightBottom;
+        nNewValue1 = nNewValue;
+        nNewValue2 = nTotal - nNewValue;
+    }
+    else if (bLeftTopFixed) {
         pControl1 = m_pLeftTop;
         nNewValue1 = CalculateControlPos(m_bHLayout, nTotal, nOffset, m_pLeftTop, m_nLeftUpFixedValue, m_pRightBottom);
     }
-    else {
-        nNewValue1 = -1;
-    }
-    if (!m_nRightBottomFixedValue.IsStretch()) {
+    else if (bRightBottomFixed) {
         pControl2 = m_pRightBottom;
         nNewValue2 = CalculateControlPos(m_bHLayout, nTotal, -nOffset, m_pRightBottom, m_nRightBottomFixedValue, m_pLeftTop);
     }
     else {
-        nNewValue2 = -1;
-    }
-    if ((nNewValue1 < 0) && (nNewValue2 < 0)) {
         //两个控件都是拉伸类型的，不调整
         return bRet;
-    }
-    else if ((nNewValue1 >= 0) && (nNewValue2 >= 0)) {
-        if ((nNewValue1 + nNewValue2) != nTotal) {
-            //超过限制，不调整
-            return bRet;
-        }
-    }
-    else if (nNewValue1 >= 0) {
-        if (nNewValue1 > nTotal) {
-            //超过限制，不调整
-            return bRet;
-        }
-    }
-    else if (nNewValue2 >= 0) {
-        if (nNewValue2 > nTotal) {
-            //超过限制，不调整
-            return bRet;
-        }
     }
     
     bool bAdjusted = false;
