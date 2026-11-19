@@ -133,15 +133,24 @@ public:
      */
     UiSize GetStateColorRound(ControlStateType stateType) const;
 
-    /** 设置某个状态下的控件颜色、颜色外边距、颜色矩形的圆角大小
+    /** 设置某个状态下的控件颜色
      * @param [in] stateType 要设置何种状态下的颜色值，参考 ControlStateType 枚举
      * @param [in] strColor 要设置的颜色值，该值必须在 global.xml 中存在
+     */
+    void SetStateColor(ControlStateType stateType, const DString& strColor);
+
+    /** 设置某个状态下的颜色矩形外边距
+     * @param [in] stateType 要设置何种状态下的颜色值，参考 ControlStateType 枚举
      * @param [in] colorMargin 要设置的颜色矩形外边距，如果不设置，则颜色矩形与控件矩形重合
+     * @param [in] bNeedDpiScale 是否需要做DPI自适应
+     */
+    void SetStateColorMargin(ControlStateType stateType, UiMargin colorMargin, bool bNeedDpiScale);
+
+    /** 设置某个状态下的颜色矩形圆角大小
+     * @param [in] stateType 要设置何种状态下的颜色值，参考 ControlStateType 枚举
      * @param [in] colorRound 要设置的颜色矩形圆角大小，如果不设置，则颜色矩形跟随控件矩形的形状
      * @param [in] bNeedDpiScale 是否需要做DPI自适应
      */
-    void SetStateColor(ControlStateType stateType, const DString& strColor);
-    void SetStateColorMargin(ControlStateType stateType, UiMargin colorMargin, bool bNeedDpiScale);
     void SetStateColorRound(ControlStateType stateType, UiSize colorRound, bool bNeedDpiScale);
 
     /** 设置状态颜色区域的最小宽度或者最小高度（解决DPI缩放后的运算精度损失导致线条宽度失真问题）
@@ -487,19 +496,20 @@ public:
     */
     bool IsNoFocus() const { return m_bNoFocus; }
 
-    /** 设置是否显示焦点状态(一个虚线构成的矩形)
+    /** 设置是否显示焦点状态（获得键盘焦点时绘制焦点框，默认由DoPaintFocusRect绘制一个虚线矩形，
+     *  派生类可重写DoPaintFocusRect自定义焦点框的绘制样式）
     */
     void SetShowFocusedRect(bool bShowFocusedRect);
 
-    /** 设置是否显示焦点状态(一个虚线构成的矩形)
+    /** 是否显示焦点状态
     */
     bool IsShowFocusedRect() const;
 
-    /** 设置焦点状态虚线矩形的颜色(线条的颜色)
+    /** 设置焦点框的颜色（焦点框线条的颜色）
     */
     void SetFocusedRectColor(const DString& focusRectColor);
 
-    /** 获取焦点状态虚线矩形的颜色(线条的颜色)
+    /** 获取焦点框的颜色（焦点框线条的颜色）
     */
     DString GetFocusedRectColor() const;
 
@@ -642,9 +652,13 @@ public:
     void ApplyAttributeList(const DString& strList);
 
     /**
-     * @brief 待补充
-     * @param[in] 待补充
-     * @return 待补充
+     * @brief 处理XML中<Event或<BubbledEvent标签的响应事件：解析接收者并应用属性列表
+     * @param[in] strReceiver 接收属性的控件名称（空字符串表示当前控件；"#window#"表示关联窗口；
+     *                        "./name"或".\\name"表示在当前控件的子控件中查找；其他值表示在窗口内按名称查找）
+     * @param[in] strList 要应用的属性列表，编写时使用花括号{}替代双引号（如 {width="100"}）
+     * @param[in] eventArgs 触发事件时的参数（当前实现未使用）
+     * @return 成功应用属性返回true；找不到接收者时返回false（Debug下断言）
+     * @note 该函数由WindowBuilder解析XML事件时绑定为回调，业务代码一般不需要直接调用
      */
     bool OnApplyAttributeList(const DString& strReceiver, const DString& strList, const EventArgs& eventArgs);
 
@@ -706,13 +720,14 @@ public:
      */
     bool IsAlpha() const { return m_nAlpha != 255; }
 
-    /** 设置焦点状态透明度
-     * @param [in] alpha 0 ~ 255 的透明度值，255 为不透明
+    /** 设置鼠标悬浮状态下的淡入淡出进度
+     * @param [in] nHoveredAlpha 0 ~ 255，0 表示完全处于正常状态，255 表示完全处于悬浮状态；
+     *                           该值由悬浮动画在状态切换时自动设置，业务代码一般不需要调用
      */
     void SetHoveredAlpha(uint8_t nHoveredAlpha);
 
-    /** 获取焦点状态透明度
-     * @return 返回控件焦点状态的透明度
+    /** 获取鼠标悬浮状态下的淡入淡出进度
+     * @return 返回 0 ~ 255 的悬浮进度值，0 表示完全正常状态，255 表示完全悬浮状态
      */
     uint8_t GetHoveredAlpha() const { return m_nHoveredAlpha; }
 

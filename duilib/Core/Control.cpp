@@ -2302,7 +2302,14 @@ void Control::SetNoFocus()
 
 void Control::SetShowFocusedRect(bool bShowFocusedRect)
 {
+    if (m_bShowFocusedRect == bShowFocusedRect) {
+        return;
+    }
     m_bShowFocusedRect = bShowFocusedRect;
+    if (IsFocused()) {
+        //属性变化后立即重绘，使焦点框的显示状态马上生效（不需要等下一次其他原因触发的重绘）
+        Invalidate();
+    }
 }
 
 bool Control::IsShowFocusedRect() const

@@ -17,11 +17,11 @@
 | PH-7 | 代码质量 | `SetMargin` 与 `SetPadding` 的负值处理不一致、存在冗余钳制 | 已修复 |
 | PH-8 | 文档 | `InvalidateRect()` 的坐标空间未说明；大内容下仍使用 32 位偏移 | 已修复 |
 | PH-9 | API | `GetAncestor()` 缺少 `const` 重载 | 已修复 |
-| C-1 | 正确性 | `SetShowFocusedRect` / `SetFocusedRectColor` 修改后不重绘 | 待处理 |
-| C-2 | 文档 | `HoveredAlpha` 注释写成“焦点状态透明度” | 待处理 |
-| C-3 | 文档 | 焦点框注释仍写“虚线构成的矩形”，与可重写的圆角描边不符 | 待处理 |
-| C-4 | 文档 | `OnApplyAttributeList` 注释为“待补充” | 待处理 |
-| C-5 | 文档 | `SetStateColor*` 注释参数与实际重载签名不匹配 | 待处理 |
+| C-1 | 正确性 | `SetShowFocusedRect` / `SetFocusedRectColor` 修改后不重绘 | 已修复 |
+| C-2 | 文档 | `HoveredAlpha` 注释写成“焦点状态透明度” | 已修复 |
+| C-3 | 文档 | 焦点框注释仍写“虚线构成的矩形”，与可重写的圆角描边不符 | 已修复 |
+| C-4 | 文档 | `OnApplyAttributeList` 注释为“待补充” | 已修复 |
+| C-5 | 文档 | `SetStateColor*` 注释参数与实际重载签名不匹配 | 已修复 |
 | C-6 | API | `SetCursor()` / `SetCursorType()` 语义不同但命名近似 | 待处理 |
 | C-7 | API | `IsMouseFocused()` 实际含义是“鼠标是否在控件上” | 待处理 |
 | C-8 | 健壮性 | `TEventMapData` 裸指针 + 自定义析构，未禁止拷贝（rule of five） | 待处理 |
@@ -145,19 +145,20 @@
 
 ### 3.1 行为与状态
 
-**C-1 焦点框属性修改后不重绘**
+**C-1 焦点框属性修改后不重绘（已修复）**
 
-- 位置：`duilib/Core/Control.cpp` 的 `SetShowFocusedRect()`（约 2294-2297 行）与 `SetFocusedRectColor()`（约 2304 行起）。
+- 位置：`duilib/Core/Control.cpp` 的 `SetShowFocusedRect()`（约 2303-2313 行）与 `SetFocusedRectColor()`。
 - 现象：只更新数据，不调用 `Invalidate()`。
 - 影响：运行时开启/关闭焦点框、修改颜色后，必须等下一次其他原因触发重绘才生效。MenuBar 的键盘焦点功能因此额外调用了 `Invalidate()` 规避。
-- 建议：值变化时统一 `Invalidate()`（颜色值需先判断是否真的变化）。
+- 修复：`SetShowFocusedRect()` 增加值变化判断，值变化且控件持有焦点时立即 `Invalidate()`；`SetFocusedRectColor()` 原本已在值变化后调用 `Invalidate()`。
 
-**C-2 至 C-5 注释与实现脱节**
+**C-2 至 C-5 注释与实现脱节（已修复）**
 
-- `SetHoveredAlpha` / `GetHoveredAlpha` 注释写“焦点状态透明度”，实际含义是鼠标悬浮（hovered）状态透明度（`Control.h` 约 709-717 行）。
-- `SetShowFocusedRect` / `SetFocusedRectColor` 注释写“虚线构成的矩形”，但 `DoPaintFocusRect()` 已为虚函数，MenuBar 已重写为圆角描边（`Control.h` 约 490-504 行）。
-- `OnApplyAttributeList()` 注释仍为 `@brief 待补充`（`Control.h` 约 644-649 行）。
-- `SetStateColor*` 上方的注释描述了合并后的 5 个参数，与三个重载各自的签名不一致（`Control.h` 约 136-145 行）。
+- `SetHoveredAlpha` / `GetHoveredAlpha` 注释原写“焦点状态透明度”，实际是鼠标悬浮淡入淡出进度（0=正常，255=完全悬浮）。
+- `SetShowFocusedRect` / `SetFocusedRectColor` 注释原写“虚线构成的矩形”，但 `DoPaintFocusRect()` 已为虚函数，派生类可重写为圆角描边等样式。
+- `OnApplyAttributeList()` 注释原为 `@brief 待补充`。
+- `SetStateColor*` 上方的注释原描述了合并后的 5 个参数，与三个重载各自的签名不一致。
+- 修复：以上注释均已按实际语义与签名重写；`OnApplyAttributeList()` 补充了 `strReceiver` 的四类取值（空/`#window#`/`./`或`.\\`/窗口内名称）、属性列表的花括号写法、返回值与调用来源。
 
 **C-6 / C-7 命名易混淆**
 
