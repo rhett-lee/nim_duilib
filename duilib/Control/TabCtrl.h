@@ -704,6 +704,10 @@ public:
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual DString GetToolTipText() const override;
 
+    /** 获取控件的标志（仅当前选中的标签项参与TAB键焦点切换）
+    */
+    virtual uint32_t GetControlFlags() const override;
+
 public:
     /** 设置图标
     * @param [in] iconImageString 图标资源字符串

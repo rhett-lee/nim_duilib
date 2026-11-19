@@ -966,7 +966,7 @@
     <Class name="tab_ctrl_item_title" width="stretch" height="24" margin="2,0,12,0" valign="center" 
                                       font="system_regular_12" auto_tooltip="true" mouse_enabled="false"/>
     <Class name="tab_ctrl_item_close" width="${SIZE_ICON_SMALL}" height="${SIZE_ICON_SMALL}" margin="0,2,10,8"
-                                      float="true" halign="right" valign="center" visible="false" 
+                                      float="true" tab_stop="false" halign="right" valign="center" visible="false" 
                                       normal_image="file='${PATH_BUTTON}/btn_close.svg' height='${SIZE_ICON_SMALL}' width='${SIZE_ICON_SMALL}' halign='center' valign='center' svg_replace_colors='#333333|border_svg_image'"
                                       hovered_color="bg_tag_close_hover"
                                       hovered_image="file='${PATH_BUTTON}/btn_close.svg' height='${SIZE_ICON_SMALL}' width='${SIZE_ICON_SMALL}' halign='center' valign='center' svg_replace_colors='#333333|white'"

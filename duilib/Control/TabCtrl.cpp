@@ -1584,6 +1584,9 @@ TabCtrlItem::TabCtrlItem(Window* pWindow):
     m_hoveredPadding.left = -1;
     m_hoveredPadding.right = 0;
     m_hoveredPadding.bottom = 0;
+
+    //标签项是一个整体，默认纳入TAB键焦点循环（是否真正参与还取决于是否被选中，见GetControlFlags）
+    SetTabStop(true);
 }
 
 TabCtrlItem::~TabCtrlItem() = default;
@@ -1609,6 +1612,13 @@ void TabCtrlItem::OnThemeChanged(bool bRedraw)
 }
 
 DString TabCtrlItem::GetType() const { return DUI_CTR_TAB_CTRL_ITEM; }
+
+uint32_t TabCtrlItem::GetControlFlags() const
+{
+    //所有标签项作为一个整体只占一个TAB停靠点：仅当前选中的标签项参与TAB键焦点切换，
+    //这样按TAB进入标签栏时焦点落在选中的标签上，而不是固定落在第一个标签
+    return (IsSelected() && IsEnabled() && IsKeyboardEnabled() && IsAllowTabStop()) ? UIFLAG_TABSTOP : UIFLAG_DEFAULT;
+}
 
 void TabCtrlItem::SetAttribute(const DString& strName, const DString& strValue2)
 {
@@ -1741,6 +1751,15 @@ void TabCtrlItem::OnInit()
 
 void TabCtrlItem::HandleEvent(const EventArgs& msg)
 {
+    if ((msg.GetSender() == this) && (msg.eventType == kEventKeyDown) && IsEnabled() && IsKeyboardEnabled()) {
+        if (msg.vkCode == kVK_RETURN) {
+            //回车键激活标签项：切换到当前标签（与用鼠标点击标签项的行为保持一致）
+            if (!IsSelected() && IsActivatable()) {
+                Selected(true, true, 0);
+            }
+            return;
+        }
+    }
     BaseClass::HandleEvent(msg);
     if ((msg.GetSender() == this) && (msg.eventType == kEventStateChanged)) {
         //处理分割线的状态（内部对未变化的项直接跳过，不会再重复设置）
