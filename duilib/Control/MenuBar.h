@@ -276,6 +276,9 @@ private:
 
     //Alt键是否处于按下状态（用于过滤键盘自动重复产生的消息）
     bool m_bAltKeyDown = false;
+
+    //F10键是否处于按下状态（用于过滤键盘自动重复产生的消息）
+    bool m_bF10KeyDown = false;
 };
 
 } // namespace ui

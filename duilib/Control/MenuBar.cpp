@@ -201,10 +201,13 @@ void MenuBar::OnInit()
                 return true;
             }
             if (msg.vkCode == kVK_F10) {
-                pThis->ToggleFocusTopMenuButton();
+                //使用按键状态过滤键盘自动重复产生的消息
+                if (!pThis->m_bF10KeyDown) {
+                    pThis->m_bF10KeyDown = true;
+                    pThis->ToggleFocusTopMenuButton();
+                }
             }
             else if (msg.vkCode == kVK_MENU) {
-                //Alt键：不依赖kFirstPress标志（部分输入环境下该标志不可靠），
                 //使用按键状态过滤键盘自动重复产生的消息
                 if (!pThis->m_bAltKeyDown) {
                     pThis->m_bAltKeyDown = true;
@@ -218,6 +221,9 @@ void MenuBar::OnInit()
         pWindow->AttachWindowKeyUpMsg([pThis, menuBarFlag](const EventArgs& msg) {
             if (!menuBarFlag.expired() && (msg.vkCode == kVK_MENU)) {
                 pThis->m_bAltKeyDown = false;
+            }
+            if (!menuBarFlag.expired() && (msg.vkCode == kVK_F10)) {
+                pThis->m_bF10KeyDown = false;
             }
             return true;
             });
