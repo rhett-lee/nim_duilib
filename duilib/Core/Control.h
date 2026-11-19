@@ -1980,6 +1980,39 @@ private:
     */
     TDragDropData& CheckDragDropData();
 
+    /** 状态数据（状态颜色映射、状态图片映射，按需创建）
+    */
+    struct TStateData
+    {
+        /** 状态与颜色值MAP，每个状态可以指定不同的颜色
+        */
+        std::unique_ptr<StateColorMap2> m_pColorMap;
+
+        /** 控件图片类型与状态图片的MAP
+        */
+        std::unique_ptr<StateImageMap> m_pImageMap;
+    };
+
+    /** 检查并创建“状态数据”
+    */
+    TStateData& CheckStateData();
+
+    /** 获取状态颜色映射（未创建时返回nullptr，不会创建）
+    */
+    StateColorMap2* GetStateColorMap() const;
+
+    /** 检查并创建状态颜色映射
+    */
+    StateColorMap2& CheckStateColorMap();
+
+    /** 获取状态图片映射（未创建时返回nullptr，不会创建）
+    */
+    StateImageMap* GetStateImageMap() const;
+
+    /** 检查并创建状态图片映射
+    */
+    StateImageMap& CheckStateImageMap();
+
 private:
     /** 背景图片
     */
@@ -1993,13 +2026,9 @@ private:
     */
     std::unique_ptr<TColorData> m_pColorData;
 
-    /** 状态与颜色值MAP，每个状态可以指定不同的颜色
+    /** 状态数据（状态颜色映射、状态图片映射）
     */
-    std::unique_ptr<StateColorMap2> m_pColorMap;
-
-    /** 控件图片类型与状态图片的MAP
-    */
-    std::unique_ptr<StateImageMap> m_pImageMap;
+    std::unique_ptr<TStateData> m_pStateData;
 
     /** 回调事件管理器
     */

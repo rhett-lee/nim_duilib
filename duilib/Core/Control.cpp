@@ -68,8 +68,7 @@ Control::~Control()
     m_pBkImage.reset();
     m_pOtherData.reset();//包含动画、拖放、临时渲染、Hovered动画播放器等数据的释放
     m_pEventMapData.reset();
-    m_pImageMap.reset();
-    m_pColorMap.reset();
+    m_pStateData.reset();//包含状态颜色映射、状态图片映射
     m_pColorData.reset();
     m_pBorderData.reset();
 }
@@ -94,6 +93,43 @@ Control::TDragDropData& Control::CheckDragDropData()
         otherData.m_pDragDropData = std::make_unique<TDragDropData>();
     }
     return *otherData.m_pDragDropData;
+}
+
+Control::TStateData& Control::CheckStateData()
+{
+    if (m_pStateData == nullptr) {
+        m_pStateData = std::make_unique<TStateData>();
+    }
+    return *m_pStateData;
+}
+
+StateColorMap2* Control::GetStateColorMap() const
+{
+    return (m_pStateData != nullptr) ? m_pStateData->m_pColorMap.get() : nullptr;
+}
+
+StateColorMap2& Control::CheckStateColorMap()
+{
+    TStateData& stateData = CheckStateData();
+    if (stateData.m_pColorMap == nullptr) {
+        stateData.m_pColorMap = std::make_unique<StateColorMap2>(this);
+    }
+    return *stateData.m_pColorMap;
+}
+
+StateImageMap* Control::GetStateImageMap() const
+{
+    return (m_pStateData != nullptr) ? m_pStateData->m_pImageMap.get() : nullptr;
+}
+
+StateImageMap& Control::CheckStateImageMap()
+{
+    TStateData& stateData = CheckStateData();
+    if (stateData.m_pImageMap == nullptr) {
+        stateData.m_pImageMap = std::make_unique<StateImageMap>();
+        stateData.m_pImageMap->SetControl(this);
+    }
+    return *stateData.m_pImageMap;
 }
 
 DString Control::GetType() const { return DUI_CTR_CONTROL; }
@@ -793,20 +829,21 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
         SetFixedHeight(UiFixedInt(nFixedHeight), true, false);
     }
 
-    if (m_pColorMap != nullptr) {
+    StateColorMap2* pColorMap = GetStateColorMap();
+    if (pColorMap != nullptr) {
         for (int32_t nStateType = 0; nStateType < kControlStateCount; ++nStateType) {
             ControlStateType stateType = (ControlStateType)nStateType;
 
-            UiMargin colorMargin = m_pColorMap->GetStateColorMargin(stateType);
+            UiMargin colorMargin = pColorMap->GetStateColorMargin(stateType);
             UiMargin newColorMargin = Dpi().GetScaleMargin(colorMargin, nOldDpiScale);
             if (!newColorMargin.Equals(colorMargin)) {
-                m_pColorMap->SetStateColorMargin(stateType, newColorMargin);
+                pColorMap->SetStateColorMargin(stateType, newColorMargin);
             }
 
-            UiSize colorRound = m_pColorMap->GetStateColorRound(stateType);
+            UiSize colorRound = pColorMap->GetStateColorRound(stateType);
             UiSize newColorRound = Dpi().GetScaleSize(colorRound, nOldDpiScale);
             if (!newColorRound.Equals(colorRound)) {
-                m_pColorMap->SetStateColorRound(stateType, newColorRound);
+                pColorMap->SetStateColorRound(stateType, newColorRound);
             }
         }
     }
@@ -1224,24 +1261,27 @@ void Control::SetForeColor(const UiColor& color)
 
 DString Control::GetStateColor(ControlStateType stateType) const
 {
-    if (m_pColorMap != nullptr) {
-        return m_pColorMap->GetStateColor(stateType);
+    StateColorMap2* pColorMap = GetStateColorMap();
+    if (pColorMap != nullptr) {
+        return pColorMap->GetStateColor(stateType);
     }
     return DString();
 }
 
 UiMargin Control::GetStateColorMargin(ControlStateType stateType) const
 {
-    if (m_pColorMap != nullptr) {
-        return m_pColorMap->GetStateColorMargin(stateType);
+    StateColorMap2* pColorMap = GetStateColorMap();
+    if (pColorMap != nullptr) {
+        return pColorMap->GetStateColorMargin(stateType);
     }
     return UiMargin();
 }
 
 UiSize Control::GetStateColorRound(ControlStateType stateType) const
 {
-    if (m_pColorMap != nullptr) {
-        return m_pColorMap->GetStateColorRound(stateType);
+    StateColorMap2* pColorMap = GetStateColorMap();
+    if (pColorMap != nullptr) {
+        return pColorMap->GetStateColorRound(stateType);
     }
     return UiSize();
 }
@@ -1249,15 +1289,11 @@ UiSize Control::GetStateColorRound(ControlStateType stateType) const
 void Control::SetStateColor(ControlStateType stateType, const DString& strColor)
 {
     ASSERT(strColor.empty() || HasUiColor(strColor));
-    if (m_pColorMap != nullptr) {
-        if (m_pColorMap->GetStateColor(stateType) == strColor) {
-            return;
-        }
+    StateColorMap2* pColorMap = GetStateColorMap();
+    if ((pColorMap != nullptr) && (pColorMap->GetStateColor(stateType) == strColor)) {
+        return;
     }
-    if (m_pColorMap == nullptr) {
-        m_pColorMap = std::make_unique<StateColorMap2>(this);
-    }
-    m_pColorMap->SetStateColor(stateType, strColor);
+    CheckStateColorMap().SetStateColor(stateType, strColor);
     if (stateType == kControlStateHovered) {
         SetFadeHovered(true);
     }
@@ -1269,15 +1305,11 @@ void Control::SetStateColorMargin(ControlStateType stateType, UiMargin colorMarg
     if (bNeedDpiScale) {
         Dpi().ScaleMargin(colorMargin);
     }
-    if (m_pColorMap != nullptr) {
-        if (m_pColorMap->GetStateColorMargin(stateType).Equals(colorMargin)) {
-            return;
-        }
+    StateColorMap2* pColorMap = GetStateColorMap();
+    if ((pColorMap != nullptr) && pColorMap->GetStateColorMargin(stateType).Equals(colorMargin)) {
+        return;
     }
-    if (m_pColorMap == nullptr) {
-        m_pColorMap = std::make_unique<StateColorMap2>(this);
-    }
-    m_pColorMap->SetStateColorMargin(stateType, colorMargin);
+    CheckStateColorMap().SetStateColorMargin(stateType, colorMargin);
     if (stateType == kControlStateHovered) {
         SetFadeHovered(true);
     }
@@ -1289,15 +1321,11 @@ void Control::SetStateColorRound(ControlStateType stateType, UiSize colorRound, 
     if (bNeedDpiScale) {
         Dpi().ScaleSize(colorRound);
     }
-    if (m_pColorMap != nullptr) {
-        if (m_pColorMap->GetStateColorRound(stateType).Equals(colorRound)) {
-            return;
-        }
+    StateColorMap2* pColorMap = GetStateColorMap();
+    if ((pColorMap != nullptr) && pColorMap->GetStateColorRound(stateType).Equals(colorRound)) {
+        return;
     }
-    if (m_pColorMap == nullptr) {
-        m_pColorMap = std::make_unique<StateColorMap2>(this);
-    }
-    m_pColorMap->SetStateColorRound(stateType, colorRound);
+    CheckStateColorMap().SetStateColorRound(stateType, colorRound);
     if (stateType == kControlStateHovered) {
         SetFadeHovered(true);
     }
@@ -1306,34 +1334,30 @@ void Control::SetStateColorRound(ControlStateType stateType, UiSize colorRound, 
 
 void Control::SetStateColorMinWidth(float fMinWidth)
 {
-    if (m_pColorMap == nullptr) {
-        m_pColorMap = std::make_unique<StateColorMap2>(this);
-    }
-    m_pColorMap->SetStateColorMinWidth(fMinWidth);
+    CheckStateColorMap().SetStateColorMinWidth(fMinWidth);
     Invalidate();
 }
 
 void Control::SetStateColorMinHeight(float fMinHeight)
 {
-    if (m_pColorMap == nullptr) {
-        m_pColorMap = std::make_unique<StateColorMap2>(this);
-    }
-    m_pColorMap->SetStateColorMinHeight(fMinHeight);
+    CheckStateColorMap().SetStateColorMinHeight(fMinHeight);
     Invalidate();
 }
 
 float Control::GetStateColorMinWidth() const
 {
-    if (m_pColorMap != nullptr) {
-        return m_pColorMap->GetStateColorMinWidth();
+    StateColorMap2* pColorMap = GetStateColorMap();
+    if (pColorMap != nullptr) {
+        return pColorMap->GetStateColorMinWidth();
     }
     return 0.0f;
 }
 
 float Control::GetStateColorMinHeight() const
 {
-    if (m_pColorMap != nullptr) {
-        return m_pColorMap->GetStateColorMinHeight();
+    StateColorMap2* pColorMap = GetStateColorMap();
+    if (pColorMap != nullptr) {
+        return pColorMap->GetStateColorMinHeight();
     }
     return 0.0f;
 }
@@ -1454,35 +1478,34 @@ Box* Control::GetLoadingUiRootBox() const
 
 bool Control::HasStateImages(void) const
 {
-    if (m_pImageMap != nullptr) {
-        return m_pImageMap->HasStateImages();
+    StateImageMap* pImageMap = GetStateImageMap();
+    if (pImageMap != nullptr) {
+        return pImageMap->HasStateImages();
     }
     return false;
 }
 
 bool Control::HasStateImage(StateImageType stateImageType) const
 {
-    if (m_pImageMap != nullptr) {
-        return m_pImageMap->HasStateImage(stateImageType);
+    StateImageMap* pImageMap = GetStateImageMap();
+    if (pImageMap != nullptr) {
+        return pImageMap->HasStateImage(stateImageType);
     }
     return false;
 }
 
 DString Control::GetStateImage(StateImageType imageType, ControlStateType stateType) const
 {
-    if (m_pImageMap != nullptr) {
-        return m_pImageMap->GetImageString(imageType, stateType);
+    StateImageMap* pImageMap = GetStateImageMap();
+    if (pImageMap != nullptr) {
+        return pImageMap->GetImageString(imageType, stateType);
     }
     return DString();
 }
 
 void Control::SetStateImage(StateImageType imageType, ControlStateType stateType, const DString& strImage)
 {
-    if (m_pImageMap == nullptr) {
-        m_pImageMap = std::make_unique<StateImageMap>();
-        m_pImageMap->SetControl(this);
-    }
-    m_pImageMap->SetImageString(imageType, stateType, strImage, Dpi());
+    CheckStateImageMap().SetImageString(imageType, stateType, strImage, Dpi());
 }
 
 bool Control::PaintStateImage(IRender* pRender, StateImageType stateImageType, 
@@ -1490,8 +1513,9 @@ bool Control::PaintStateImage(IRender* pRender, StateImageType stateImageType,
                               const DString& sImageModify,
                               UiRect* pDestRect)
 {
-    if (m_pImageMap != nullptr) {
-        return m_pImageMap->PaintStateImage(pRender, stateImageType, stateType, sImageModify, pDestRect);
+    StateImageMap* pImageMap = GetStateImageMap();
+    if (pImageMap != nullptr) {
+        return pImageMap->PaintStateImage(pRender, stateImageType, stateType, sImageModify, pDestRect);
     }
     return false;
 }
@@ -1499,8 +1523,9 @@ bool Control::PaintStateImage(IRender* pRender, StateImageType stateImageType,
 UiSize Control::GetStateImageSize(StateImageType imageType, ControlStateType stateType)
 {
     Image* pImage = nullptr;
-    if (m_pImageMap != nullptr) {
-        pImage = m_pImageMap->GetStateImage(imageType, stateType);
+    StateImageMap* pImageMap = GetStateImageMap();
+    if (pImageMap != nullptr) {
+        pImage = pImageMap->GetStateImage(imageType, stateType);
     }
     UiSize imageSize;
     if (pImage != nullptr) {
@@ -1516,15 +1541,18 @@ UiSize Control::GetStateImageSize(StateImageType imageType, ControlStateType sta
 
 Image* Control::GetStateImageData(StateImageType imageType, ControlStateType stateType) const
 {
-    if (m_pImageMap != nullptr) {
-        return m_pImageMap->GetStateImage(imageType, stateType);
+    StateImageMap* pImageMap = GetStateImageMap();
+    if (pImageMap != nullptr) {
+        return pImageMap->GetStateImage(imageType, stateType);
     }
     return nullptr;
 }
 
 void Control::ClearStateImages()
 {
-    m_pImageMap.reset();
+    if (m_pStateData != nullptr) {
+        m_pStateData->m_pImageMap.reset();
+    }
     RelayoutOrRedraw();
 }
 
@@ -1565,8 +1593,9 @@ bool Control::AdjustStateImagesMarginLeft(int32_t leftOffset, bool bNeedDpiScale
         return false;
     }
     std::vector<Image*> allImages;
-    if (m_pImageMap != nullptr) {
-        m_pImageMap->GetAllImages(allImages);
+    StateImageMap* pImageMap = GetStateImageMap();
+    if (pImageMap != nullptr) {
+        pImageMap->GetAllImages(allImages);
     }
     bool bSetOk = false;
     UiMargin rcMargin;
@@ -2712,10 +2741,13 @@ Image* Control::GetEstimateImage()
     if ((m_pBkImage != nullptr) && !m_pBkImage->GetImagePath().empty()) {
         estimateImage = m_pBkImage.get();
     }
-    else if(m_pImageMap != nullptr){
-        estimateImage = m_pImageMap->GetEstimateImage(kStateImageBk);
-        if (estimateImage == nullptr) {
-            estimateImage = m_pImageMap->GetEstimateImage(kStateImageSelectedBk);
+    else {
+        StateImageMap* pImageMap = GetStateImageMap();
+        if (pImageMap != nullptr) {
+            estimateImage = pImageMap->GetEstimateImage(kStateImageBk);
+            if (estimateImage == nullptr) {
+                estimateImage = pImageMap->GetEstimateImage(kStateImageSelectedBk);
+            }
         }
     }
     return estimateImage;
@@ -2990,11 +3022,13 @@ bool Control::CheckEventType(const EventArgs& msg, EventType eventType) const
 bool Control::HasHoveredState()
 {
     bool bState = false;
-    if (m_pColorMap != nullptr) {
-        bState = m_pColorMap->HasHoveredColor();
+    StateColorMap2* pColorMap = GetStateColorMap();
+    if (pColorMap != nullptr) {
+        bState = pColorMap->HasHoveredColor();
     }
-    if (!bState && (m_pImageMap != nullptr)) {
-        bState = m_pImageMap->HasHoveredImage();
+    StateImageMap* pImageMap = GetStateImageMap();
+    if (!bState && (pImageMap != nullptr)) {
+        bState = pImageMap->HasHoveredImage();
     }
     if (!bState && (m_pBorderData != nullptr) && (m_pBorderData->m_pBorderColorMap != nullptr)) {
         bState = m_pBorderData->m_pBorderColorMap->HasHoveredColor();
@@ -4512,8 +4546,9 @@ Image* Control::GetBkImagePtr() const
 
 void Control::PaintStateColor(IRender* pRender, ControlStateType stateType) const
 {
-    if (m_pColorMap != nullptr) {
-        m_pColorMap->PaintStateColor(pRender, GetRect(), stateType);
+    StateColorMap2* pColorMap = GetStateColorMap();
+    if (pColorMap != nullptr) {
+        pColorMap->PaintStateColor(pRender, GetRect(), stateType);
     }
 }
 
@@ -4524,9 +4559,10 @@ void Control::PaintStateColors(IRender* pRender)
 
 void Control::PaintStateImages(IRender* pRender)
 {
-    if (m_pImageMap != nullptr) {
-        m_pImageMap->PaintStateImage(pRender, kStateImageBk, GetState());
-        m_pImageMap->PaintStateImage(pRender, kStateImageFore, GetState());
+    StateImageMap* pImageMap = GetStateImageMap();
+    if (pImageMap != nullptr) {
+        pImageMap->PaintStateImage(pRender, kStateImageBk, GetState());
+        pImageMap->PaintStateImage(pRender, kStateImageFore, GetState());
     }    
 }
 
@@ -4635,8 +4671,9 @@ void Control::PauseImageAnimation()
     if (m_pBkImage != nullptr) {
         m_pBkImage->PauseImageAnimation();
     }
-    if (m_pImageMap != nullptr) {
-        m_pImageMap->PauseImageAnimation();
+    StateImageMap* pImageMap = GetStateImageMap();
+    if (pImageMap != nullptr) {
+        pImageMap->PauseImageAnimation();
     }
 }
 
@@ -4651,9 +4688,12 @@ Image* Control::FindImageByName(const DString& imageName) const
         //背景图片
         pImage = m_pBkImage.get();
     }
-    else if (m_pImageMap != nullptr) {
-        //状态图片
-        pImage = m_pImageMap->FindImageByName(imageName);
+    else {
+        StateImageMap* pImageMap = GetStateImageMap();
+        if (pImageMap != nullptr) {
+            //状态图片
+            pImage = pImageMap->FindImageByName(imageName);
+        }
     }
     return pImage;
 }
@@ -5277,8 +5317,9 @@ void Control::FireImageEvent(Image* pImagePtr, const DString& imageFilePath, boo
 
 void Control::ClearImageCache()
 {
-    if (m_pImageMap != nullptr) {
-        m_pImageMap->ClearImageCache();
+    StateImageMap* pImageMap = GetStateImageMap();
+    if (pImageMap != nullptr) {
+        pImageMap->ClearImageCache();
     }
     if (m_pBkImage != nullptr) {
         m_pBkImage->ClearImageCache();
