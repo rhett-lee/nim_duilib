@@ -4,15 +4,15 @@
 
 ## 处理状态
 
-本轮已完成 PH-1、PH-2、PH-3，其余项仍为“待处理”。
+本轮已完成 PH-1、PH-2、PH-3、PH-4、PH-5，其余项仍为“待处理”。
 
 | 编号 | 类别 | 内容 | 状态 |
 | --- | --- | --- | --- |
 | PH-1 | 正确性 | 64 位滚动偏移与 32 位实现语义不一致 | 已修复 |
 | PH-2 | 性能 | `SetMinWidth` / `SetMinHeight` 先分配数据再比较 | 已修复 |
 | PH-3 | 性能 | `SetToolTipWidth(0)` 为无 ToolTip 的控件分配数据 | 已修复 |
-| PH-4 | 交互 | 运行时修改 `rowSpan` / `columnSpan` 不触发布局 | 待处理 |
-| PH-5 | 交互 | `SetEnableControlPadding` 不触发重新布局 | 待处理 |
+| PH-4 | 交互 | 运行时修改 `rowSpan` / `columnSpan` 不触发布局 | 已修复 |
+| PH-5 | 交互 | `SetEnableControlPadding` 不触发重新布局 | 已修复 |
 | PH-6 | 健壮性 | `maxWidth` / `maxHeight` 允许小于 `min`，非法值被静默吞掉 | 待处理 |
 | PH-7 | 代码质量 | `SetMargin` 与 `SetPadding` 的负值处理不一致、存在冗余钳制 | 待处理 |
 | PH-8 | 文档 | `InvalidateRect()` 的坐标空间未说明；大内容下仍使用 32 位偏移 | 待处理 |
@@ -84,18 +84,20 @@
   - `SetToolTipWidth()` 增加两处提前返回：宽度为 0 且无 ToolTip 数据时不创建数据块；值未变化时不重复赋值；
   - `ChangeDpiScale()` 的 ToolTip 宽度缩放条件由 `>= 0` 改为 `> 0`。
 
-**PH-4 运行时修改单元格合并不重排**
+**PH-4 运行时修改单元格合并不重排（已修复）**
 
 - 位置：`duilib/Core/PlaceHolder.cpp` 的 `SetRowSpan()` / `SetColumnSpan()`（约 620-652 行）。
 - 现象：只更新数据，不调用 `ArrangeAncestor()` / `RelayoutOrRedraw()`。
 - 影响：`GridLayout` 页面在运行时动态合并/拆分单元格后，界面要等到窗口尺寸变化才刷新。
 - 建议：值发生变化时调用 `RelayoutOrRedraw()`（该方法已根据 Auto 尺寸选择重排或重绘）。
+- 修复：`SetRowSpan()` / `SetColumnSpan()` 在值变化后按浮动状态调用 `ArrangeAncestor()` 或 `Arrange()`；同时对相同值提前返回，避免无意义的数据块创建与重排。
 
-**PH-5 `SetEnableControlPadding` 不刷新布局**
+**PH-5 `SetEnableControlPadding` 不刷新布局（已修复）**
 
 - 位置：`duilib/Core/PlaceHolder.cpp`（约 520-528 行）。
 - 影响：该属性参与 `GetControlPadding()`，切换后子控件可用区域不更新。
 - 建议：值变化时调用 `ArrangeAncestor()`（或 `RelayoutOrRedraw()`）。
+- 修复：值变化后按浮动状态调用 `ArrangeAncestor()` 或 `Arrange()`；值未变化时直接返回。
 
 **PH-6 最大尺寸允许小于最小尺寸**
 

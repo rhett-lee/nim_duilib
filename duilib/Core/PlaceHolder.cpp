@@ -521,7 +521,17 @@ void PlaceHolder::SetPadding(UiPadding rcPadding, bool bNeedDpiScale /*= true*/)
 
 void PlaceHolder::SetEnableControlPadding(bool bEnable)
 {
+    if (m_bEnableControlPadding == bEnable) {
+        return;
+    }
     m_bEnableControlPadding = bEnable;
+    //该属性决定内边距是否应用到内部的子控件，变化后需要重新布局
+    if (!m_bFloat) {
+        ArrangeAncestor();
+    }
+    else {
+        Arrange();
+    }
 }
 
 bool PlaceHolder::IsEnableControlPadding() const
@@ -623,8 +633,19 @@ void PlaceHolder::SetRowSpan(int32_t rowSpan)
 {
     ASSERT(rowSpan > 0);
     if (rowSpan > 0) {
+        const int32_t nNewSpan = ui::TruncateToInt16(rowSpan);
+        if (GetRowSpan() == nNewSpan) {
+            return;
+        }
         CheckPlaceHolderData();
-        m_pData->m_rowSpan = ui::TruncateToInt16(rowSpan);
+        m_pData->m_rowSpan = nNewSpan;
+        //合并的单元格数量变化后，GridLayout需要重新计算行列尺寸
+        if (!m_bFloat) {
+            ArrangeAncestor();
+        }
+        else {
+            Arrange();
+        }
     }
 }
 
@@ -640,8 +661,19 @@ void PlaceHolder::SetColumnSpan(int32_t colSpan)
 {
     ASSERT(colSpan > 0);
     if (colSpan > 0) {
+        const int32_t nNewSpan = ui::TruncateToInt16(colSpan);
+        if (GetColumnSpan() == nNewSpan) {
+            return;
+        }
         CheckPlaceHolderData();
-        m_pData->m_colSpan = ui::TruncateToInt16(colSpan);
+        m_pData->m_colSpan = nNewSpan;
+        //合并的单元格数量变化后，GridLayout需要重新计算行列尺寸
+        if (!m_bFloat) {
+            ArrangeAncestor();
+        }
+        else {
+            Arrange();
+        }
     }
 }
 
