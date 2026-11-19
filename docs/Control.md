@@ -783,6 +783,8 @@ Menu 控件继承了 `Window` 属性，更多可用属性请参考`Window`的属
 ## MenuBar 控件（继承 HBox 属性）
 MenuBar 是窗口内的菜单栏控件，用于显示顶级菜单项；点击顶级菜单（鼠标点击，或聚焦后按回车/空格）后弹出对应的菜单窗口。已有菜单展开时，鼠标悬停到其他顶级菜单可切换到该菜单。菜单项被激活（鼠标点击或键盘回车）后，通过 `AttachMenuBarItemActivated` 注册的回调通知应用层。
 
+键盘操作：按 F10 或 Alt 将焦点移到菜单栏；按钮聚焦后按回车/空格展开（再次按下收起），按向下键展开；菜单展开后按左右方向键切换顶级菜单，按 Esc 收起并把焦点返回顶级菜单按钮。展开的顶级菜单下方会绘制主题强调色指示条。
+
 XML 中的 `MenuBarItem` 节点只能作为 `MenuBar` 的子节点，支持的属性如下：
 
 | 属性名称 | 默认值 | 参数类型 | 用途 |
@@ -816,7 +818,11 @@ C++ 常用接口：
 | AddTopMenu / InsertTopMenu | 添加（或在指定位置插入）一个顶级菜单，成功返回索引号 |
 | GetTopMenu / RemoveTopMenu | 获取/移除指定索引号的顶级菜单 |
 | SetActiveTopMenuIndex / GetActiveTopMenuIndex | 设置/获取当前激活（已展开子菜单）的顶级菜单索引 |
+| SetTopMenuText | 运行时更新指定顶级菜单的文本（`menuTextId` 非空时优先使用多语言文本） |
+| SetTopMenuEnabled / SetTopMenuVisible | 运行时启用/禁用、显示/隐藏指定顶级菜单；禁用或隐藏时会先关闭其弹层 |
+| ClosePopupMenu | 关闭当前已展开的弹层菜单 |
 | AttachMenuBarItemActivated / ClearMenuBarItemActivated | 注册/清空菜单项激活回调 |
+| AttachMenuBarActiveChanged / ClearMenuBarActiveChanged | 注册/清空“激活的顶级菜单发生变化”回调 |
 
 回调函数原型：
 
@@ -824,9 +830,11 @@ C++ 常用接口：
 typedef std::function<void (const DString& menuItemId,
                             const DString& menuName, int32_t nMenuLevel,
                             const DString& itemName, size_t nItemIndex)> MenuBarItemActivatedEvent;
+
+typedef std::function<void (int32_t nOldIndex, int32_t nNewIndex)> MenuBarActiveChangedEvent;
 ```
 
-其中 `menuItemId` 为 `MenuBarItem` 的 `id`，`menuName` 为菜单XML中根节点的 `name`，`nMenuLevel` 为菜单层级（0 表示一级菜单），`itemName` 为被激活菜单项的 `name`，`nItemIndex` 为菜单项索引（从 0 开始）。
+其中 `menuItemId` 为 `MenuBarItem` 的 `id`，`menuName` 为菜单XML中根节点的 `name`，`nMenuLevel` 为菜单层级（0 表示一级菜单），`itemName` 为被激活菜单项的 `name`，`nItemIndex` 为菜单项索引（从 0 开始）。`MenuBarActiveChangedEvent` 的 `nOldIndex` / `nNewIndex` 为变化前后的激活索引，`-1` 表示没有激活的菜单。
 
 完整示例可参考 `examples/render` 示例程序，以及 [Menu 菜单](Menu.md) 的“菜单栏（MenuBar）”一节。
 

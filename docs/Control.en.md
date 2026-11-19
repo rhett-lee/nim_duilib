@@ -785,6 +785,8 @@ The Menu control inherits the `Window` attributes. For more available attributes
 ## Attributes of MenuBar (inherits HBox attributes)
 MenuBar is a menu bar control inside a window. It displays top-level menu items. Clicking a top-level menu (by mouse, or by pressing Enter/Space when focused) pops up the corresponding menu window. While a menu is open, hovering another top-level menu switches to it. After a menu item is activated (by mouse click or Enter key), the callback registered with `AttachMenuBarItemActivated` is invoked.
 
+Keyboard: press F10 or Alt to move focus to the menu bar; with a button focused, press Enter/Space to open (press again to close) or press Down to open; while a menu is open, use Left/Right to switch top-level menus and Esc to close it and return focus to the menu button. An accent indicator line is drawn under the open top-level menu.
+
 The `MenuBarItem` node in XML can only be a child of `MenuBar`. Its supported attributes are:
 
 | Attribute name | Default value | Parameter type | Purpose |
@@ -818,17 +820,23 @@ Common C++ interfaces:
 | AddTopMenu / InsertTopMenu | Add (or insert at the specified position) a top-level menu; returns its index on success |
 | GetTopMenu / RemoveTopMenu | Get/remove the top-level menu at the specified index |
 | SetActiveTopMenuIndex / GetActiveTopMenuIndex | Set/get the index of the currently active (expanded) top-level menu |
+| SetTopMenuText | Update the text of a top-level menu at runtime (`menuTextId` takes precedence when non-empty) |
+| SetTopMenuEnabled / SetTopMenuVisible | Enable/disable or show/hide a top-level menu at runtime; the popup is closed first when it is disabled or hidden |
+| ClosePopupMenu | Close the currently expanded popup menu |
 | AttachMenuBarItemActivated / ClearMenuBarItemActivated | Register/clear the menu item activation callback |
+| AttachMenuBarActiveChanged / ClearMenuBarActiveChanged | Register/clear the callback for changes of the active top-level menu |
 
-Callback prototype:
+Callback prototypes:
 
 ```cpp
 typedef std::function<void (const DString& menuItemId,
                             const DString& menuName, int32_t nMenuLevel,
                             const DString& itemName, size_t nItemIndex)> MenuBarItemActivatedEvent;
+
+typedef std::function<void (int32_t nOldIndex, int32_t nNewIndex)> MenuBarActiveChangedEvent;
 ```
 
-`menuItemId` is the `id` of the `MenuBarItem`, `menuName` is the `name` of the root node in the menu XML, `nMenuLevel` is the menu level (0 means the top-level menu), `itemName` is the `name` of the activated menu item, and `nItemIndex` is the menu item index (starting from 0).
+`menuItemId` is the `id` of the `MenuBarItem`, `menuName` is the `name` of the root node in the menu XML, `nMenuLevel` is the menu level (0 means the top-level menu), `itemName` is the `name` of the activated menu item, and `nItemIndex` is the menu item index (starting from 0). For `MenuBarActiveChangedEvent`, `nOldIndex` / `nNewIndex` are the active indexes before and after the change; `-1` means no active menu.
 
 For a complete example, see the `examples/render` sample program and the "Menu bar (MenuBar)" section of [Menu](Menu.en.md).
 

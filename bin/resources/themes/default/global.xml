@@ -623,7 +623,9 @@
                                   hovered_color="bg_menu_bar_hovered" 
                                   pressed_color="bg_menu_bar_pressed"
                                   hovered_color_margin="2,0,2,0"
-                                  pressed_color_margin="2,0,2,0"/>
+                                  pressed_color_margin="2,0,2,0"
+                                  show_focused_rect="true"
+                                  focused_rect_color="color_accent"/>
     
     <!-- 分割线 -->
     <Class name="splitline_hor_level1" bkcolor="border_split_level1" height="1"/>

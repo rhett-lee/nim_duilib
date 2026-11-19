@@ -32,6 +32,12 @@ typedef std::function<void (const DString& menuItemId,
                             const DString& menuName, int32_t nMenuLevel,
                             const DString& itemName, size_t nItemIndex)> MenuBarItemActivatedEvent;
 
+/** 当前激活的顶级菜单变化的回调函数原型
+* @param [in] nOldIndex 变化前的激活索引（-1表示没有激活的菜单）
+* @param [in] nNewIndex 变化后的激活索引（-1表示没有激活的菜单）
+*/
+typedef std::function<void (int32_t nOldIndex, int32_t nNewIndex)> MenuBarActiveChangedEvent;
+
 //MenuBar上的文字按钮
 class MenuBarButton;
 
@@ -47,6 +53,7 @@ public:
     /// 重写父类接口，提供个性化功能。方法具体说明请查看 Control 控件
     virtual DString GetType() const override;
     virtual void OnInit() override;
+    virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
 
 public:
     /** 添加一个顶级菜单，并返回其索引号
@@ -122,6 +129,41 @@ public:
     */
     void ClearMenuBarItemActivated();
 
+    /** 设置指定顶级菜单的文本
+    * @param [in] nMenuIndex 顶级菜单索引号
+    * @param [in] menuText 菜单文本
+    * @param [in] menuTextId 菜单文本ID，用于支持多语言版（非空时优先使用）
+    * @return 成功返回true，失败返回false
+    */
+    bool SetTopMenuText(int32_t nMenuIndex, const DString& menuText, const DString& menuTextId = _T(""));
+
+    /** 设置指定顶级菜单是否可用
+    * @param [in] nMenuIndex 顶级菜单索引号
+    * @param [in] bEnable true表示可用，false表示禁用
+    * @return 成功返回true，失败返回false
+    */
+    bool SetTopMenuEnabled(int32_t nMenuIndex, bool bEnable);
+
+    /** 设置指定顶级菜单是否可见
+    * @param [in] nMenuIndex 顶级菜单索引号
+    * @param [in] bVisible true表示可见，false表示隐藏
+    * @return 成功返回true，失败返回false
+    */
+    bool SetTopMenuVisible(int32_t nMenuIndex, bool bVisible);
+
+    /** 关闭当前已展开的菜单
+    */
+    void ClosePopupMenu();
+
+    /** 注册当前激活顶级菜单变化的回调函数
+    * @param [in] callback 回调函数，参数为变化前的索引和变化后的索引（-1表示没有激活的菜单）
+    */
+    void AttachMenuBarActiveChanged(MenuBarActiveChangedEvent callback);
+
+    /** 清空当前激活顶级菜单变化的回调函数
+    */
+    void ClearMenuBarActiveChanged();
+
 private:
     //顶级菜单项数据
     struct TopMenuData
@@ -161,8 +203,20 @@ private:
     //在指定顶级菜单项中，弹出子菜单
     void ShowPopupMenu(MenuBarButton* pButton);
 
-    //收起子菜单
-    void HidePopupMenu(MenuBarButton* pButton);
+    //收起子菜单（bNotify为false时，不触发激活状态变化事件）
+    void HidePopupMenu(MenuBarButton* pButton, bool bNotify = true);
+
+    //获取指定按钮对应的顶级菜单索引号（未找到返回-1）
+    int32_t GetTopMenuIndex(MenuBarButton* pButton) const;
+
+    //通知当前激活的顶级菜单发生变化
+    void NotifyActiveChanged(int32_t nOldIndex, int32_t nNewIndex);
+
+    //将焦点设置到当前激活的菜单按钮（无激活项时设置到第一个可用按钮）
+    void FocusTopMenuButton();
+
+    //取消等待中的悬停切换定时器
+    void CancelHoverTimer();
 
     //当前弹层是否属于指定的顶级菜单按钮
     bool IsPopupMenuOf(MenuBarButton* pButton) const;
@@ -198,8 +252,17 @@ private:
     //菜单项激活回调函数
     std::vector<MenuBarItemActivatedEvent> m_callbackList;
 
+    //当前激活菜单变化的回调函数
+    std::vector<MenuBarActiveChangedEvent> m_activeChangedList;
+
     //当前激活的菜单接口
     ControlPtrT<Menu> m_pActiveMenu;
+
+    //等待悬停切换的菜单按钮
+    ControlPtrT<MenuBarButton> m_pHoverButton;
+
+    //等待悬停切换的定时器ID（0表示没有定时器）
+    size_t m_nHoverTimerId = 0;
 };
 
 } // namespace ui

@@ -263,6 +263,10 @@ LRESULT Menu::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const Na
 {
     if (vkCode == kVK_ESCAPE) {
         bHandled = true;
+        if ((m_pOwner == nullptr) && (m_pMenuBar != nullptr)) {
+            //通知菜单栏，把键盘焦点还给对应的顶级菜单按钮
+            m_pMenuBar->OnMenuKeyDownMsg(this, vkCode, modifierKey);
+        }
         CloseMenu();
     }
     else if (vkCode == kVK_LEFT) {
