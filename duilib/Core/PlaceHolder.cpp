@@ -308,12 +308,17 @@ void PlaceHolder::SetMinWidth(int32_t cx, bool bNeedDpiScale)
         Dpi().ScaleInt(cx);
     }
 
-    if (GetMinWidth() == cx) {
-        //值未变化时直接返回，避免为默认值创建数据块
+    if ((GetMinWidth() == cx) && (GetMaxWidth() >= cx)) {
+        //值未变化，且不破坏 min <= max 的不变量时直接返回，避免为默认值创建数据块
         return;
     }
     CheckPlaceHolderData();
     m_pData->m_cxyMin.cx = cx;
+    if (m_pData->m_cxyMax.cx < cx) {
+        //最小宽度超过最大宽度时，两者同步收敛为同一个值：
+        //保证 min <= max 始终成立，且设置结果与 SetMinWidth/SetMaxWidth 的调用顺序无关
+        m_pData->m_cxyMax.cx = cx;
+    }
     if (!m_bFloat) {
         ArrangeAncestor();
     }
@@ -327,9 +332,11 @@ int32_t PlaceHolder::GetMaxWidth() const
     if (m_pData != nullptr) {
         ASSERT(m_pData->m_cxyMax.cx >= 0);
         ASSERT(m_pData->m_cxyMax.cx >= m_pData->m_cxyMin.cx);
-        if (m_pData->m_cxyMax.cx >= m_pData->m_cxyMin.cx) {            
+        if (m_pData->m_cxyMax.cx >= m_pData->m_cxyMin.cx) {
             return m_pData->m_cxyMax.cx;
         }
+        //容错：正常情况下不会出现max < min，仅当内部状态异常时以min为准，避免下游std::clamp的未定义行为
+        return m_pData->m_cxyMin.cx;
     }
     return INT32_MAX;// 返回默认值
 }
@@ -343,12 +350,17 @@ void PlaceHolder::SetMaxWidth(int32_t cx, bool bNeedDpiScale)
     if (bNeedDpiScale) {
         Dpi().ScaleInt(cx);
     }
-    if (GetMaxWidth() == cx) {
-        //值未变化时直接返回，避免为默认值创建数据块
+    if ((GetMaxWidth() == cx) && (GetMinWidth() <= cx)) {
+        //值未变化，且不破坏 min <= max 的不变量时直接返回，避免为默认值创建数据块
         return;
     }
     CheckPlaceHolderData();
     m_pData->m_cxyMax.cx = cx;
+    if (m_pData->m_cxyMin.cx > cx) {
+        //最大宽度小于最小宽度时，两者同步收敛为同一个值：
+        //保证 min <= max 始终成立，且设置结果与 SetMinWidth/SetMaxWidth 的调用顺序无关
+        m_pData->m_cxyMin.cx = cx;
+    }
     if (!m_bFloat) {
         ArrangeAncestor();
     }
@@ -374,12 +386,17 @@ void PlaceHolder::SetMinHeight(int32_t cy, bool bNeedDpiScale)
     if (bNeedDpiScale) {
         Dpi().ScaleInt(cy);
     }
-    if (GetMinHeight() == cy) {
-        //值未变化时直接返回，避免为默认值创建数据块
+    if ((GetMinHeight() == cy) && (GetMaxHeight() >= cy)) {
+        //值未变化，且不破坏 min <= max 的不变量时直接返回，避免为默认值创建数据块
         return;
     }
     CheckPlaceHolderData();
     m_pData->m_cxyMin.cy = cy;
+    if (m_pData->m_cxyMax.cy < cy) {
+        //最小高度超过最大高度时，两者同步收敛为同一个值：
+        //保证 min <= max 始终成立，且设置结果与 SetMinHeight/SetMaxHeight 的调用顺序无关
+        m_pData->m_cxyMax.cy = cy;
+    }
     if (!m_bFloat) {
         ArrangeAncestor();
     }
@@ -396,6 +413,8 @@ int32_t PlaceHolder::GetMaxHeight() const
         if (m_pData->m_cxyMax.cy >= m_pData->m_cxyMin.cy) {
             return m_pData->m_cxyMax.cy;
         }
+        //容错：正常情况下不会出现max < min，仅当内部状态异常时以min为准，避免下游std::clamp的未定义行为
+        return m_pData->m_cxyMin.cy;
     }
     return INT32_MAX; //返回默认值
 }
@@ -409,12 +428,17 @@ void PlaceHolder::SetMaxHeight(int32_t cy, bool bNeedDpiScale)
     if (bNeedDpiScale) {
         Dpi().ScaleInt(cy);
     }
-    if (GetMaxHeight() == cy) {
-        //值未变化时直接返回，避免为默认值创建数据块
+    if ((GetMaxHeight() == cy) && (GetMinHeight() <= cy)) {
+        //值未变化，且不破坏 min <= max 的不变量时直接返回，避免为默认值创建数据块
         return;
     }
     CheckPlaceHolderData();
     m_pData->m_cxyMax.cy = cy;
+    if (m_pData->m_cxyMin.cy > cy) {
+        //最大高度小于最小高度时，两者同步收敛为同一个值：
+        //保证 min <= max 始终成立，且设置结果与 SetMinHeight/SetMaxHeight 的调用顺序无关
+        m_pData->m_cxyMin.cy = cy;
+    }
     if (!m_bFloat) {
         ArrangeAncestor();
     }

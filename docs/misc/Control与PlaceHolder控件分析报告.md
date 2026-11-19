@@ -4,7 +4,7 @@
 
 ## 处理状态
 
-本轮已完成 PH-1、PH-2、PH-3、PH-4、PH-5，其余项仍为“待处理”。
+本轮已完成 PH-1、PH-2、PH-3、PH-4、PH-5、PH-6，其余项仍为“待处理”。
 
 | 编号 | 类别 | 内容 | 状态 |
 | --- | --- | --- | --- |
@@ -13,7 +13,7 @@
 | PH-3 | 性能 | `SetToolTipWidth(0)` 为无 ToolTip 的控件分配数据 | 已修复 |
 | PH-4 | 交互 | 运行时修改 `rowSpan` / `columnSpan` 不触发布局 | 已修复 |
 | PH-5 | 交互 | `SetEnableControlPadding` 不触发重新布局 | 已修复 |
-| PH-6 | 健壮性 | `maxWidth` / `maxHeight` 允许小于 `min`，非法值被静默吞掉 | 待处理 |
+| PH-6 | 健壮性 | `maxWidth` / `maxHeight` 允许小于 `min`，非法值被静默吞掉 | 已修复 |
 | PH-7 | 代码质量 | `SetMargin` 与 `SetPadding` 的负值处理不一致、存在冗余钳制 | 待处理 |
 | PH-8 | 文档 | `InvalidateRect()` 的坐标空间未说明；大内容下仍使用 32 位偏移 | 待处理 |
 | PH-9 | API | `GetAncestor()` 缺少 `const` 重载 | 待处理 |
@@ -99,12 +99,18 @@
 - 建议：值变化时调用 `ArrangeAncestor()`（或 `RelayoutOrRedraw()`）。
 - 修复：值变化后按浮动状态调用 `ArrangeAncestor()` 或 `Arrange()`；值未变化时直接返回。
 
-**PH-6 最大尺寸允许小于最小尺寸**
+**PH-6 最大尺寸允许小于最小尺寸（已修复）**
 
 - 位置：`SetMaxWidth()`（约 336-357 行）、`SetMaxHeight()`（约 401-422 行）；`GetMaxWidth()`（约 324-334 行）、`GetMaxHeight()`（约 389-399 行）。
 - 现象：Setter 只断言 `>= 0`，不校验与 min 的关系；Getter 检测到 `max < min` 时静默返回 `INT32_MAX`。
 - 影响：配置错误被掩盖，布局结果与配置预期不一致。`duilib/Layout/Layout.cpp` 使用 `std::clamp(v, min, max)`，目前依赖 Getter 的补偿才避免违规，属于隐式契约。
-- 建议：Setter 中执行 `max = std::max(min, max)`（或同时修正 min），并让 Getter 不再隐藏异常。
+- 时序问题（分析补充）：只在 max 的 Setter 里做 `max = max(min, max)`（或只在 min 的 Setter 里钳制），会导致“先设置的一方胜出、后设置的值被吞掉”。例如原区间 `[100, 200]` 要改成 `[40, 90]` 时，`SetMaxWidth(90)` 会先被抬到 100，再调用 `SetMinWidth(40)` 后结果变成 `[40, 100]`，与调用顺序相关。
+- 修复（采用方案 A：Setter 保持不变量 `min <= max`，双向收敛）：
+  - `SetMinWidth` / `SetMinHeight`：若设置值大于当前最大尺寸，同步把最大尺寸调整为该值；
+  - `SetMaxWidth` / `SetMaxHeight`：若设置值小于当前最小尺寸，同步把最小尺寸调整为该值；
+  - 因此任意调用顺序的最终结果一致，上例两种顺序都得到 `[40, 90]`；
+  - Getter 的异常兜底由 `INT32_MAX` 改为返回 min（`max < min` 时以 min 为准），保证下游 `std::clamp` 不会出现未定义行为；
+  - 提前返回条件同步扩展为“值未变化且不破坏不变量”，避免无意义的数据分配与重排。
 
 **PH-7 负值处理不一致（非功能缺陷）**
 

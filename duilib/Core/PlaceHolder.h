@@ -219,6 +219,8 @@ public:
     /**@brief 设置最小宽度
      * @param [in] cx 要设置的最小宽度（包含内边距，不包含外边距）（值 >= 0）
      * @param [in] bNeedDpiScale 是否需要做DPI自适应
+     * @note 若设置值大于当前最大宽度，会同步把最大宽度调整为该值，
+     *       从而始终保证最小宽度 <= 最大宽度，设置结果与最小/最大宽度的调用顺序无关
      */
     void SetMinWidth(int32_t cx, bool bNeedDpiScale);
 
@@ -230,6 +232,8 @@ public:
     /** 设置最大宽度
      * @param [in] cx 要设置的最大宽度（包含内边距，不包含外边距）（值 >= 0）
      * @param [in] bNeedDpiScale 是否需要做DPI自适应
+     * @note 若设置值小于当前最小宽度，会同步把最小宽度调整为该值，
+     *       从而始终保证最小宽度 <= 最大宽度，设置结果与最小/最大宽度的调用顺序无关
      */
     void SetMaxWidth(int32_t cx, bool bNeedDpiScale);
 
@@ -241,6 +245,8 @@ public:
     /** 设置最小高度
      * @param [in] cy 要设置的最小高度（包含内边距，不包含外边距）（值 >= 0）
      * @param [in] bNeedDpiScale 是否需要做DPI自适应
+     * @note 若设置值大于当前最大高度，会同步把最大高度调整为该值，
+     *       从而始终保证最小高度 <= 最大高度，设置结果与最小/最大高度的调用顺序无关
      */
     void SetMinHeight(int32_t cy, bool bNeedDpiScale);
 
@@ -252,6 +258,8 @@ public:
     /** 设置最大高度
      * @param[in] cy 要设置的最大高度（包含内边距，不包含外边距）（值 >= 0）
      * @param [in] bNeedDpiScale 是否需要做DPI自适应
+     * @note 若设置值小于当前最小高度，会同步把最小高度调整为该值，
+     *       从而始终保证最小高度 <= 最大高度，设置结果与最小/最大高度的调用顺序无关
      */
     void SetMaxHeight(int32_t cy, bool bNeedDpiScale);
 
