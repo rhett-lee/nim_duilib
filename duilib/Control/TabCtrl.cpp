@@ -3062,6 +3062,11 @@ void TabCtrl::PaintTabFocusRect(IRender* pRender)
     if ((pRender == nullptr) || !IsShowFocusedRect() || !IsFocusWithin()) {
         return;
     }
+    //窗口不是激活状态时，不绘制焦点框
+    Window* pWindow = GetWindow();
+    if ((pWindow == nullptr) || !pWindow->IsWindowFocused()) {
+        return;
+    }
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     if (pRenderFactory == nullptr) {
         return;

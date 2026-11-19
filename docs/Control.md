@@ -88,7 +88,7 @@
 | menu | false | bool | |是否需要右键菜单,如"true"|
 | no_focus | false | bool | SetNoFocus|是否可以获取焦点,如"true"|
 | tab_stop | true | bool | SetTabStop| 是否允许通过按TAB键切换到此控件 |
-| show_focused_rect | false| bool | SetShowFocusedRect| 是否显示焦点状态(一个虚线构成的矩形) |
+| show_focused_rect | false| bool | SetShowFocusedRect| 是否显示焦点状态(一个虚线构成的矩形)，仅在窗口处于激活状态时绘制 |
 | focused_rect_color | | string | SetFocusedRectColor| 焦点状态矩形的颜色 |
 | alpha | 255 | int | SetAlpha|控件的整体透明度,如alpha="128"，有效值为 0-255 |
 | state | normal | string | SetState|控件的当前状态: 支持normal、hovered、pressed、disabled状态 |

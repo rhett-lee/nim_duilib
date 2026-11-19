@@ -183,7 +183,11 @@ void Box::PaintChild(IRender* pRender, const UiRect& rcPaint)
     }
 
     if ((pRender != nullptr) && IsShowFocusedRect() && IsFocused()) {
-        DoPaintFocusRect(pRender);    //绘制焦点状态
+        //窗口不是激活状态时(如弹层菜单已打开)，不绘制焦点框
+        Window* pWindow = GetWindow();
+        if ((pWindow != nullptr) && pWindow->IsWindowFocused()) {
+            DoPaintFocusRect(pRender);    //绘制焦点状态
+        }
     }
 }
 
