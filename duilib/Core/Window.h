@@ -249,6 +249,12 @@ public:
     */
     void InvalidateAll();
 
+    /** 最近一次输入是否来自键盘（用于决定是否显示焦点框等键盘焦点提示）
+    *  Windows原生行为：使用键盘操作后显示焦点提示，使用鼠标点击后隐藏
+    * @return true 表示最近一次输入是键盘操作；false 表示是鼠标操作，或尚未有输入
+    */
+    bool IsKeyboardCueVisible() const { return m_bKeyboardCueVisible; }
+
     /** @} */
 
 public:
@@ -1164,7 +1170,14 @@ private:
     */
     std::unique_ptr<WindowRoot> m_windowRoot;
 
+    /** 更新“最近一次输入来源”状态（键盘/鼠标）：状态变化时重绘窗口，使焦点框立即显示或隐藏
+    */
+    void UpdateKeyboardCue(bool bFromKeyboard);
+
 private:
+    //最近一次输入是否来自键盘（用于决定是否显示焦点框等键盘焦点提示）
+    bool m_bKeyboardCueVisible = false;
+
     //布局是否变化，如果变化(true)则需要重新计算布局
     bool m_bIsArranged;
 

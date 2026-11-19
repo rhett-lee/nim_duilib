@@ -29,7 +29,7 @@
 | C-10 | 健壮性 | ToolTip 默认宽度 500 未按 DPI 初始化 | 已修复 |
 | C-11 | 结构 | `Control.h` 职责过重、`AttachXXX` 样板代码过多 | 不处理 |
 | U-1 | 美观度 | 通用焦点框为内缩 3px 的方形点线，观感较差 | 已修复 |
-| U-2 | 交互 | 焦点框只应在键盘操作后出现（MenuBar 方案未通用化） | 待处理 |
+| U-2 | 交互 | 焦点框只应在键盘操作后出现（MenuBar 方案已通用化到 Window） | 已修复 |
 | U-3 | 交互 | 键盘焦点复用鼠标悬浮状态，导致悬浮状态被误清除 | 待处理 |
 | U-4 | 美观度 | ToolTip 最大宽度在高 DPI 下偏窄 | 待处理 |
 | U-5 | 美观度 | 高 DPI 下边框/焦点框细线可能时隐时现 | 待处理 |
@@ -210,10 +210,16 @@
   4. 线宽使用 `Dpi().GetScaleFloat(2.0f)` 并下限钳制到 1px，避免高 DPI 下过细。
 - 说明：主题新增 `focused_rect_width` / `focused_rect_round` 配置项暂未实现；如需不同主题差异化，后续可再扩展。
 
-**U-2 焦点框只应响应键盘操作**
+**U-2 焦点框只应响应键盘操作（已修复）**
 
 - 现状：MenuBar 通过控件内 `m_bKeyboardFocus` 实现“仅键盘焦点显示”，其他控件未通用化；鼠标点击也会让控件获得键盘焦点并显示焦点框。
-- 建议：把“最近一次输入是键盘还是鼠标”上移到 `Window`（`WM_KEYDOWN` / `WM_SYSKEYDOWN` 与 `WM_MOUSEMOVE` / `WM_LBUTTONDOWN` 分别标记），提供 `Window::IsKeyboardCueVisible()`，`Control::ShouldPaintFocusRect()` 统一读取该状态。这样与 Windows 原生行为一致，且不需要每个控件重复实现。
+- 修复：把“最近一次输入是键盘还是鼠标”上移到 `Window`：
+  1. `Window` 新增 `m_bKeyboardCueVisible`（默认 false，与 Windows 初始隐藏焦点提示一致）与只读接口 `IsKeyboardCueVisible()`；
+  2. `Window::OnKeyDownMsg()`（含 `WM_SYSKEYDOWN`）置为 true；`OnMouseLButtonDownMsg()` / `OnMouseRButtonDownMsg()` / `OnMouseMButtonDownMsg()` 置为 false；
+  3. 状态变化时调用 `InvalidateAll()`，使焦点框立即显示或隐藏；
+  4. `Control::ShouldPaintFocusRect()` 增加该条件判断；`TabCtrl::PaintTabFocusRect()` 同步判断；
+  5. 移除 `MenuBarButton` 的 `m_bKeyboardFocus` / `SetKeyboardFocused()` / `ShouldPaintFocusRect()` 重写，统一由窗口状态驱动。
+- 效果：键盘操作（Tab、方向键、F10/Alt、回车等）后显示焦点框；鼠标按下后立即隐藏，与 Windows 原生行为一致。
 
 **U-3 键盘焦点复用鼠标悬浮状态**
 

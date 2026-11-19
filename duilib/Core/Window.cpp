@@ -1091,6 +1091,16 @@ void Window::InvalidateAll()
     }
 }
 
+void Window::UpdateKeyboardCue(bool bFromKeyboard)
+{
+    if (m_bKeyboardCueVisible == bFromKeyboard) {
+        return;
+    }
+    m_bKeyboardCueVisible = bFromKeyboard;
+    //键盘焦点提示(如焦点框)的显示状态发生变化，需要重绘
+    InvalidateAll();
+}
+
 void Window::OnWindowAlphaChanged()
 {
     InvalidateAll();
@@ -1920,6 +1930,8 @@ LRESULT Window::OnContextMenuMsg(const UiPoint& pt, const NativeMsg& /*nativeMsg
 
 LRESULT Window::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    //键盘操作：显示焦点框等键盘焦点提示（Windows原生行为）
+    UpdateKeyboardCue(true);
 #ifdef _DEBUG
     if (modifierKey & ModifierKey::kAlt) {
         if (vkCode != kVK_MENU) {
@@ -2249,6 +2261,8 @@ LRESULT Window::OnMouseLeaveMsg(const NativeMsg& /*nativeMsg*/, bool& bHandled)
 
 LRESULT Window::OnMouseLButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    //鼠标操作：隐藏焦点框等键盘焦点提示（Windows原生行为）
+    UpdateKeyboardCue(false);
 #ifdef _DEBUG
     if (modifierKey & ModifierKey::kControl) {
         ASSERT(Keyboard::IsKeyDown(kVK_CONTROL));
@@ -2297,6 +2311,8 @@ LRESULT Window::OnMouseLButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey
 
 LRESULT Window::OnMouseRButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    //鼠标操作：隐藏焦点框等键盘焦点提示（Windows原生行为）
+    UpdateKeyboardCue(false);
 #ifdef _DEBUG
     if (modifierKey & ModifierKey::kControl) {
         ASSERT(Keyboard::IsKeyDown(kVK_CONTROL));
@@ -2345,6 +2361,8 @@ LRESULT Window::OnMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey
 
 LRESULT Window::OnMouseMButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    //鼠标操作：隐藏焦点框等键盘焦点提示（Windows原生行为）
+    UpdateKeyboardCue(false);
 #ifdef _DEBUG
     if (modifierKey & ModifierKey::kControl) {
         ASSERT(Keyboard::IsKeyDown(kVK_CONTROL));

@@ -3067,6 +3067,10 @@ void TabCtrl::PaintTabFocusRect(IRender* pRender)
     if ((pWindow == nullptr) || !pWindow->IsWindowFocused()) {
         return;
     }
+    //与Windows原生行为一致：仅当最近一次输入来自键盘时才显示焦点框
+    if (!pWindow->IsKeyboardCueVisible()) {
+        return;
+    }
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     if (pRenderFactory == nullptr) {
         return;

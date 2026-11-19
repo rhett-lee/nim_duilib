@@ -4263,7 +4263,11 @@ bool Control::ShouldPaintFocusRect() const
     }
     //窗口不是激活状态时(如弹层菜单已打开)，不绘制焦点框，避免焦点框残留在非活动窗口上
     Window* pWindow = GetWindow();
-    return (pWindow != nullptr) && pWindow->IsWindowFocused();
+    if ((pWindow == nullptr) || !pWindow->IsWindowFocused()) {
+        return false;
+    }
+    //与Windows原生行为一致：仅当最近一次输入来自键盘时才显示焦点框，鼠标点击后不显示
+    return pWindow->IsKeyboardCueVisible();
 }
 
 void Control::DoPaintFocusRect(IRender* pRender)
