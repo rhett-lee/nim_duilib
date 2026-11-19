@@ -33,6 +33,8 @@ ButtonTemplate<InheritType>::ButtonTemplate(Window* pWindow):
     this->SetTextStyle(TEXT_VCENTER | TEXT_HCENTER | TEXT_END_ELLIPSIS | TEXT_NOCLIP | TEXT_SINGLELINE, false);
     //交互控件的键盘焦点反馈：默认显示焦点框（仅在键盘操作后绘制，鼠标操作时不显示）
     this->SetShowFocusedRect(true);
+    //交互控件默认纳入TAB键焦点循环
+    this->SetTabStop(true);
 }
 
 template<typename InheritType>

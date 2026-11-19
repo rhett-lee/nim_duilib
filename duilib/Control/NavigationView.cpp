@@ -41,6 +41,8 @@ NavigationViewItem::NavigationViewItem(Window* pWindow) :
     m_headerTextColor(_T("text_muted")),
     m_separatorColor(_T("border_window"))
 {
+    //可交互条目默认纳入TAB键焦点循环（是否真正参与还取决于 IsSelectable()）
+    SetTabStop(true);
 }
 
 DString NavigationViewItem::GetType() const
@@ -212,7 +214,7 @@ void NavigationViewItem::OnLanguageChanged(bool bRedraw)
 uint32_t NavigationViewItem::GetControlFlags() const
 {
     //可选中且可用时允许 Tab 聚焦（用于键盘导航）
-    return (IsSelectable() && IsEnabled() && IsKeyboardEnabled()) ? UIFLAG_TABSTOP : UIFLAG_DEFAULT;
+    return (IsSelectable() && IsEnabled() && IsKeyboardEnabled() && IsAllowTabStop()) ? UIFLAG_TABSTOP : UIFLAG_DEFAULT;
 }
 
 void NavigationViewItem::HandleEvent(const EventArgs& msg)

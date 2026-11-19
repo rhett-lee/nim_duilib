@@ -735,8 +735,11 @@ public:
 
     /**
      * @brief 设置是否接受TAB键切换焦点
-     * @param[in] enable
+     * @param[in] enable true 表示允许通过TAB键切换到此控件
      * @return 无
+     * @note 默认值为false（避免Label等非交互控件成为不可见的焦点停靠点）；
+     *       Button/Slider/RichEdit等交互控件已在构造函数中默认开启，
+     *       自定义的可聚焦控件需要自行调用本接口开启。
      */
     void SetTabStop(bool enable);
 
@@ -2022,7 +2025,7 @@ private:
     //控件不需要焦点（如果为true，则控件不会获得焦点）
     bool m_bNoFocus;
 
-    //是否允许TAB切换焦点
+    //是否允许TAB切换焦点（默认false，由交互控件在自己的构造函数中开启）
     bool m_bAllowTabstop;
 
     //控件的光标类型(CursorType)

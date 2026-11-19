@@ -870,7 +870,7 @@
     </xs:attribute>
     <xs:attribute name="tab_stop" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否允许通过按TAB键切换到此控件</xs:documentation>
+        <xs:documentation>是否允许通过按TAB键切换到此控件（默认false；Button/Slider/RichEdit等交互控件默认开启；Box类控件不支持TAB聚焦）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="show_focused_rect" type="xs:string">
@@ -1650,7 +1650,7 @@
     </xs:attribute>
     <xs:attribute name="tab_stop" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否允许通过按TAB键切换到此控件</xs:documentation>
+        <xs:documentation>是否允许通过按TAB键切换到此控件（默认false；Button/Slider/RichEdit等交互控件默认开启；Box类控件不支持TAB聚焦）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="show_focused_rect" type="xs:string">
@@ -2416,7 +2416,7 @@
     </xs:attribute>
     <xs:attribute name="tab_stop" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否允许通过按TAB键切换到此控件</xs:documentation>
+        <xs:documentation>是否允许通过按TAB键切换到此控件（默认false；Button/Slider/RichEdit等交互控件默认开启；Box类控件不支持TAB聚焦）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="show_focused_rect" type="xs:string">
@@ -3271,7 +3271,7 @@
     </xs:attribute>
     <xs:attribute name="tab_stop" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否允许通过按TAB键切换到此控件</xs:documentation>
+        <xs:documentation>是否允许通过按TAB键切换到此控件（默认false；Button/Slider/RichEdit等交互控件默认开启；Box类控件不支持TAB聚焦）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="show_focused_rect" type="xs:string">
@@ -7363,7 +7363,7 @@
     </xs:attribute>
     <xs:attribute name="tab_stop" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否允许通过按TAB键切换到此控件</xs:documentation>
+        <xs:documentation>是否允许通过按TAB键切换到此控件（默认false；Button/Slider/RichEdit等交互控件默认开启；Box类控件不支持TAB聚焦）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="show_focused_rect" type="xs:string">
@@ -9548,7 +9548,7 @@
     </xs:attribute>
     <xs:attribute name="tab_stop" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否允许通过按TAB键切换到此控件</xs:documentation>
+        <xs:documentation>是否允许通过按TAB键切换到此控件（默认false；Button/Slider/RichEdit等交互控件默认开启；Box类控件不支持TAB聚焦）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="show_focused_rect" type="xs:string">

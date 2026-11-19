@@ -37,7 +37,7 @@ Control::Control(Window* pWindow) :
     m_bMouseFocused(false),
     m_bContextMenuUsed(false),
     m_bNoFocus(false),
-    m_bAllowTabstop(true),
+    m_bAllowTabstop(false),
     m_cursorType(CursorType::kCursorArrow),
     m_bShowFocusedRect(false),
     m_nPaintOrder(0),

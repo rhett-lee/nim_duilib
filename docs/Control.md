@@ -87,7 +87,7 @@
 | fade_visible | true | bool | SetFadeVisible|是否可见,如"true",此属性会触发控件动画效果 |
 | menu | false | bool | |是否需要右键菜单,如"true"|
 | no_focus | false | bool | SetNoFocus|是否可以获取焦点,如"true"|
-| tab_stop | true | bool | SetTabStop| 是否允许通过按TAB键切换到此控件 |
+| tab_stop | false | bool | SetTabStop| 是否允许通过按TAB键切换到此控件。默认false，避免Label等非交互控件成为不可见的焦点停靠点；`Button`/`CheckBox`/`Option`/`Slider`/`RichEdit`/`NavigationViewItem` 等交互控件默认开启。注意：Box类控件（HBox/VBox/ListBox/Combo等）不支持TAB聚焦 |
 | show_focused_rect | false| bool | SetShowFocusedRect| 是否显示焦点框（默认绘制强调色圆角描边，与 Windows 原生焦点指示器风格一致）；仅在窗口激活且最近一次输入为键盘操作后绘制。`Button`/`CheckBox`/`Option`/`Combo`/`Slider`/`RichEdit`/`IPAddress`/`DateTime` 默认开启 |
 | focused_rect_color | | string | SetFocusedRectColor| 焦点框线条的颜色（为空时依次回退到 color_accent、border_focus_ring） |
 | alpha | 255 | int | SetAlpha|控件的整体透明度,如alpha="128"，有效值为 0-255 |
