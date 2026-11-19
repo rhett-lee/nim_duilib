@@ -68,7 +68,7 @@ bool IconManager::GetIconBitmapData(uint32_t id, IconBitmapData& bitmapData) con
         const IconBitmapData& data = iter->second;
         //先校验数据有效性，校验通过后再拷贝，避免无效数据也付出一次大块内存拷贝
         if (!data.m_bitmapData.empty() && (data.m_nBitmapWidth > 0) && (data.m_nBitmapHeight > 0) &&
-            (data.m_nBitmapHeight * data.m_nBitmapWidth * 4 == (int32_t)data.m_bitmapData.size())) {
+            ((int64_t)data.m_nBitmapHeight * data.m_nBitmapWidth * 4 == (int64_t)data.m_bitmapData.size())) {
             bitmapData = data;
             return true;
         }
@@ -81,12 +81,13 @@ uint32_t IconManager::AddIcon(const uint8_t* pBitmapData, int32_t nBitmapDataSiz
     if ((pBitmapData == nullptr) || (nBitmapDataSize < 1) || (nBitmapWidth < 1) || (nBitmapHeight < 1)) {
         return 0;
     }
-    ASSERT(nBitmapDataSize == nBitmapHeight * nBitmapWidth * 4);
-    if (nBitmapDataSize != nBitmapHeight * nBitmapWidth * 4) {
+    const int64_t nExpectedSize = (int64_t)nBitmapHeight * nBitmapWidth * 4;
+    ASSERT(nBitmapDataSize == nExpectedSize);
+    if (nBitmapDataSize != nExpectedSize) {
         return 0;
     }
     IconBitmapData bitmapData;
-    bitmapData.m_bitmapData.resize(nBitmapHeight * nBitmapWidth * 4);
+    bitmapData.m_bitmapData.resize((size_t)nExpectedSize);
     memcpy(bitmapData.m_bitmapData.data(), pBitmapData, (size_t)nBitmapDataSize);
     bitmapData.m_nBitmapHeight = nBitmapHeight;
     bitmapData.m_nBitmapWidth = nBitmapWidth;

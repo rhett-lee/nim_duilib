@@ -315,7 +315,10 @@ bool ControlLoading::StartLoading(int32_t nIntervalMs, int32_t nMaxCount)
             m_pLoadingBox->SetAlpha(m_pLoadingAttribute->m_bFade);
         }
         if (!m_pLoadingAttribute->m_sAnimationControlName.empty()) {
-            m_pAnimationControl = m_pControl->GetWindow()->FindSubControlByName(m_pLoadingBox.get(), m_pLoadingAttribute->m_sAnimationControlName.c_str());
+            Window* pWindow = m_pControl->GetWindow();
+            if (pWindow != nullptr) {
+                m_pAnimationControl = pWindow->FindSubControlByName(m_pLoadingBox.get(), m_pLoadingAttribute->m_sAnimationControlName.c_str());
+            }
         }
     }
     m_startTime = std::chrono::steady_clock::now();
@@ -352,8 +355,8 @@ bool ControlLoading::StartLoading(int32_t nIntervalMs, int32_t nMaxCount)
 
     ControlLoadingStatus status;
     status.m_pControl = pControl;
-    auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - m_startTime);
-    status.m_nElapsedTimeMs = (uint64_t)microseconds.count();
+    auto milliSeconds = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_startTime);
+    status.m_nElapsedTimeMs = (uint64_t)milliSeconds.count();
     status.m_pLoadingUiRootBox = pLoadingUiRootBox;
     status.m_pAnimationControl = pAnimationControl;
     status.m_bStopLoading = false;
@@ -376,8 +379,8 @@ void ControlLoading::StopLoading()
     ControlPtrT<Control> pControl(m_pControl);
     ControlLoadingStatus status;
     status.m_pControl = pControl;
-    auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - m_startTime);
-    status.m_nElapsedTimeMs = (uint64_t)microseconds.count();
+    auto milliSeconds = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_startTime);
+    status.m_nElapsedTimeMs = (uint64_t)milliSeconds.count();
     status.m_pLoadingUiRootBox = nullptr;
     status.m_pAnimationControl = nullptr;
     status.m_bStopLoading = false;

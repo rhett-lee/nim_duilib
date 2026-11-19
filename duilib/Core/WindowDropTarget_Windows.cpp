@@ -211,10 +211,16 @@ HRESULT WindowDropTarget::Drop(IDataObject* pDataObj, DWORD grfKeyState, POINTL 
         }
     }
 
-    if (pdwEffect == nullptr) {
-        return S_FALSE;
-    }
-    if (*pdwEffect == DROPEFFECT_NONE) {
+    if ((pdwEffect == nullptr) || (*pdwEffect == DROPEFFECT_NONE)) {
+        //未能完成拖放：释放数据对象，并通知悬停的控件拖放结束
+        if (m_pDataObj != nullptr) {
+            m_pDataObj->Release();
+            m_pDataObj = nullptr;
+        }
+        if (m_pHoverDropTarget != nullptr) {
+            m_pHoverDropTarget->DragLeave();
+            m_pHoverDropTarget = nullptr;
+        }
         return S_FALSE;
     }
     HRESULT hr = S_FALSE;

@@ -736,7 +736,7 @@ bool ControlResizableT<T>::ResizeControlToPoint(const UiPoint& ptMouse)
         }
         if (IsResizeKeepWithinParent() && (pParent != nullptr)) {
             //严格限制在父容器内，不允许溢出
-            if (xOffset < 0) {
+            if (yOffset < 0) {
                 if (rcNewPos.top < rcParent.top) {
                     rcNewPos.top = rcParent.top;
                     rcNewPos.Validate();
@@ -764,7 +764,7 @@ bool ControlResizableT<T>::ResizeControlToPoint(const UiPoint& ptMouse)
         }
         if (IsResizeKeepWithinParent() && (pParent != nullptr)) {
             //严格限制在父容器内，不允许溢出
-            if (xOffset > 0) {
+            if (yOffset > 0) {
                 if (rcNewPos.bottom > rcParent.bottom) {
                     rcNewPos.bottom = rcParent.bottom;
                     rcNewPos.Validate();

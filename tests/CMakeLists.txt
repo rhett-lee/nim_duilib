@@ -864,3 +864,147 @@ if(WIN32)
         target_compile_options(test_gl_benchmark PRIVATE /utf-8)
     endif()
 endif()
+
+# Core 基础几何类型（UiPoint/UiSize/UiRect/UiMargin/UiPadding 及浮点版本）：
+# 覆盖构造、有效性校验、偏移、膨胀/收缩、并集/交集、包含判断与比较运算
+add_executable(test_ui_geometry
+    test_ui_geometry.cpp
+)
+target_include_directories(test_ui_geometry PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_ui_geometry PRIVATE duilib)
+if(WIN32)
+    target_compile_definitions(test_ui_geometry PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_ui_geometry PRIVATE /utf-8)
+endif()
+add_test(NAME ui_geometry
+         COMMAND test_ui_geometry
+)
+
+# Core 字符串与字体结构（UiString/UiFont）：覆盖构造、拷贝/移动、赋值、
+# 比较、清空，以及 string_view 含内嵌 '\0' 时按长度完整复制
+add_executable(test_ui_string
+    test_ui_string.cpp
+)
+target_include_directories(test_ui_string PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_ui_string PRIVATE duilib)
+if(WIN32)
+    target_compile_definitions(test_ui_string PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_ui_string PRIVATE /utf-8)
+endif()
+add_test(NAME ui_string
+         COMMAND test_ui_string
+)
+
+# Core 尺寸数值类型（UiFixedInt/UiEstInt/UiTypes 工具函数）：覆盖三种数值类型、
+# 拉伸百分比计算、尺寸转换、CEILF/IsFloatEqual/Truncate* 等
+add_executable(test_ui_int_types
+    test_ui_int_types.cpp
+)
+target_include_directories(test_ui_int_types PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_ui_int_types PRIVATE duilib)
+if(WIN32)
+    target_compile_definitions(test_ui_int_types PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_ui_int_types PRIVATE /utf-8)
+endif()
+add_test(NAME ui_int_types
+         COMMAND test_ui_int_types
+)
+
+# Core 颜色（UiColor/StandardColorMap/ColorMap）：覆盖 ARGB 分量、COLORREF 互转、
+# Hex 解析/格式化、标准颜色名查询与颜色表增删查
+add_executable(test_ui_color
+    test_ui_color.cpp
+)
+target_include_directories(test_ui_color PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_ui_color PRIVATE duilib)
+# Debug 构建下 ColorMap 会访问 GlobalManager（重复添加断言），需要补齐第三方依赖
+if(WIN32)
+    target_link_directories(test_ui_color PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_ui_color PRIVATE
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_ui_color PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_ui_color PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+endif()
+if(WIN32)
+    target_compile_definitions(test_ui_color PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_ui_color PRIVATE /utf-8)
+endif()
+add_test(NAME ui_color
+         COMMAND test_ui_color
+)
+
+# Core DPI 管理器（DpiManager）：覆盖构造默认状态、缩放变化判断、
+# 100% 缩放下的数值换算与静态 MulDiv 工具函数
+add_executable(test_dpi_manager
+    test_dpi_manager.cpp
+)
+target_include_directories(test_dpi_manager PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_dpi_manager PRIVATE duilib)
+# DpiManager 的其它接口依赖全局管理器与窗口系统模块，需要补齐第三方依赖
+if(WIN32)
+    target_link_directories(test_dpi_manager PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_dpi_manager PRIVATE
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_dpi_manager PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_dpi_manager PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+endif()
+if(WIN32)
+    target_compile_definitions(test_dpi_manager PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_dpi_manager PRIVATE /utf-8)
+endif()
+add_test(NAME dpi_manager
+         COMMAND test_dpi_manager
+)
+
+# Core 颜色空间转换（ColorConverter）：覆盖 Hex/RGB 互转、RGB/HSL 互转、
+# 相对亮度与对比度、RGB/OKLCH 互转及参数钳制
+add_executable(test_color_converter
+    test_color_converter.cpp
+)
+target_include_directories(test_color_converter PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_color_converter PRIVATE duilib)
+if(WIN32)
+    target_compile_definitions(test_color_converter PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_color_converter PRIVATE /utf-8)
+endif()
+add_test(NAME color_converter
+         COMMAND test_color_converter
+)

@@ -308,6 +308,10 @@ void TimerManager::WorkerThreadProc()
             }
 #endif
             taskGuard.lock();
+            if (!bRet) {
+                //消息投递失败：清除挂起标志，避免工作线程永久等待
+                m_bHasPenddingPoll.store(false, std::memory_order_release);
+            }
             if (m_bRunning.load(std::memory_order_acquire)) {
                 ASSERT_UNUSED_VARIABLE(bRet);
             }

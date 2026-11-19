@@ -1951,13 +1951,13 @@ bool NativeWindow_Windows::GetModifiers(UINT message, WPARAM wParam, LPARAM lPar
             if (nMod & MOD_ALT) {
                 modifierKey |= ModifierKey::kAlt;
             }
-            else if (nMod & MOD_CONTROL) {
+            if (nMod & MOD_CONTROL) {
                 modifierKey |= ModifierKey::kControl;
             }
-            else if (nMod & MOD_SHIFT) {
+            if (nMod & MOD_SHIFT) {
                 modifierKey |= ModifierKey::kShift;
             }
-            else if (nMod & MOD_WIN) {
+            if (nMod & MOD_WIN) {
                 modifierKey |= ModifierKey::kWin;
             }
         }
@@ -2728,6 +2728,7 @@ LRESULT NativeWindow_Windows::OnTouchMsg(UINT uMsg, WPARAM wParam, LPARAM lParam
     else {
         CloseTouchInputHandleWrapper((HTOUCHINPUT)lParam);
         if (pInputs[0].dwID == 0) {
+            delete[] pInputs;
             return lResult;
         }
     }

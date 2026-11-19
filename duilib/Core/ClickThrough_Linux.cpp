@@ -173,6 +173,10 @@ static void GetDisplayOrderedWindows(Display* display, std::vector<::Window>& wi
                 }
                 XFree(children);
             }
+            //与EWMH分支保持一致：结果按"从底层到顶层"排列
+            if (!windows.empty()) {
+                std::reverse(windows.begin(), windows.end());
+            }
         }
     }
 }

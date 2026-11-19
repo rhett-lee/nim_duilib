@@ -42,7 +42,7 @@ public:
         if (!str.empty()) {
             size_t strSize = str.size();
             m_pData = new value_type[strSize + 1];
-            StringUtil::StringCopy(m_pData, strSize + 1, str.data());
+            StringUtil::StringNCopy(m_pData, strSize + 1, str.data(), strSize);
         }
     }
     UiStringT(const value_type* pstr) : m_pData(nullptr)

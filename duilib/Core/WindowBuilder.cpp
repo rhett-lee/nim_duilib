@@ -328,7 +328,8 @@ bool WindowBuilder::ParseXmlData(const DString& xmlFileData, const FilePath& xml
     //如果使用了 zip 压缩包，则从内存中读取
     if (xmlFileData.front() == _T('<')) {
 #ifdef DUILIB_UNICODE
-        pugi::xml_encoding encoding = pugi::xml_encoding::encoding_utf16;
+        //自动适配wchar_t的编码：Windows为UTF16，Linux/macOS为UTF32
+        pugi::xml_encoding encoding = pugi::xml_encoding::encoding_wchar;
 #else
         pugi::xml_encoding encoding = pugi::xml_encoding::encoding_utf8;
 #endif
@@ -1672,7 +1673,8 @@ void WindowBuilder::ParseListCtrlXmlNode(const pugi::xml_node& node, Control* pP
 bool WindowBuilder::ParseRichTextXmlText(const DString& xmlText, Control* pControl)
 {
 #ifdef DUILIB_UNICODE
-    pugi::xml_encoding encoding = pugi::xml_encoding::encoding_utf16;
+    //自动适配wchar_t的编码：Windows为UTF16，Linux/macOS为UTF32
+    pugi::xml_encoding encoding = pugi::xml_encoding::encoding_wchar;
 #else
     pugi::xml_encoding encoding = pugi::xml_encoding::encoding_utf8;
 #endif

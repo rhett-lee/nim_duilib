@@ -34,6 +34,7 @@ ThreadMessage::~ThreadMessage()
 
 void ThreadMessage::Initialize(void* /*platformData*/)
 {
+    m_impl->m_bTerm = false;
 }
 
 bool ThreadMessage::PostMsg(uint32_t msgId, WPARAM wParam, LPARAM lParam, uint32_t* nErrorCode)

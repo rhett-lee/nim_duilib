@@ -303,6 +303,7 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
         }
         }, (size_t)this);
 
+    m_bStartup = true;
     return true;
 }
 
@@ -317,7 +318,7 @@ void GlobalManager::Shutdown()
     m_threadList.clear();
 
     //清空字体回退管理器
-    if (m_renderFactory->GetFontMgr() != nullptr) {
+    if ((m_renderFactory != nullptr) && (m_renderFactory->GetFontMgr() != nullptr)) {
         m_renderFactory->GetFontMgr()->SetFallbackFontMgr(nullptr);
     }
 

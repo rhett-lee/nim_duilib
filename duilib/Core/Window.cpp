@@ -548,6 +548,7 @@ void Window::PreInitWindow()
         if (pRoot == nullptr) {
             // 根控件不是 Box 类型（XML 顶层必须为 Box）
             ASSERT(!"Window::PreInitWindow: root control is not a Box type");
+            delete pControl;
             return;
         }
     }
@@ -1852,11 +1853,12 @@ LRESULT Window::OnSetCursorMsg(const NativeMsg& /*nativeMsg*/, bool& bHandled)
     if (pControl != nullptr) {
         //返回值待确认：如果应用程序处理了此消息，它应返回 TRUE 以停止进一步处理或 FALSE 以继续。
         std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+        std::weak_ptr<WeakFlag> controlFlag = pControl->GetWeakFlag();
         EventArgs msgData;
         msgData.ptMouse = pt;
         pControl->SendEvent(kEventSetCursor, msgData);
         bHandled = true;
-        if (windowFlag.expired()) {
+        if (windowFlag.expired() || controlFlag.expired()) {
             return 0;
         }
         else if (pControl->IsCefOSR()) {
@@ -2459,8 +2461,9 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
     }    
     SetLastMousePos(pt);
     Control* pControl = FindControl(pt);
+    std::weak_ptr<WeakFlag> controlFlag;
     if (pControl != nullptr) {
-        std::weak_ptr<WeakFlag> controlFlag = pControl->GetWeakFlag();
+        controlFlag = pControl->GetWeakFlag();
         std::weak_ptr<WeakFlag> clickFlag;
         if (m_pEventClick != nullptr) {
             clickFlag = m_pEventClick->GetWeakFlag();
@@ -2510,7 +2513,7 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
     //   此时点击普通控件(如地址栏)，需要把键盘焦点从原生子窗口切换回当前窗口，
     //   否则会出现"页面与界面控件双焦点、地址栏无法输入中文"的问题。
     bool bNeedSetWindowFocus = !bWindowFocused;
-    if (!bNeedSetWindowFocus && (pControl != nullptr) && IsCheckSetWindowFocus() && !pControl->IsCefNative()) {
+    if (!bNeedSetWindowFocus && (pControl != nullptr) && !controlFlag.expired() && IsCheckSetWindowFocus() && !pControl->IsCefNative()) {
         bNeedSetWindowFocus = true;
     }
     if (bNeedSetWindowFocus && !windowFlag.expired()) {

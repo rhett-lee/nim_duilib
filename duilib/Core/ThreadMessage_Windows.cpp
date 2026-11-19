@@ -77,6 +77,7 @@ void ThreadMessage::Initialize(void* platformData)
     m_impl->m_hMessageWnd = ::CreateWindowW(wc.lpszClassName, 0, 0, 0, 0, 0, 0, HWND_MESSAGE, 0, hInstance, 0);
     if (::IsWindow(m_impl->m_hMessageWnd)) {
         ::SetWindowLongPtr(m_impl->m_hMessageWnd, GWLP_USERDATA, reinterpret_cast<LPARAM>(this));
+        m_impl->m_bTerm = false;
     }
 
     //在模块退出时，注销该ATOM

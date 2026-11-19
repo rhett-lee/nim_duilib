@@ -931,7 +931,7 @@ bool Control::OnApplyAttributeList(const DString& strReceiver, const DString& st
             pReceiverControl = pBox->FindSubControl(receiverName);
         }
     }
-    else if (!receiverName.empty()) {
+    else if (!receiverName.empty() && (GetWindow() != nullptr)) {
         pReceiverControl = GetWindow()->FindControl(receiverName);
     }
     else {
@@ -1452,10 +1452,14 @@ bool Control::StartLoading(int32_t nIntervalMs, int32_t nMaxCount)
 
 void Control::StopLoading()
 {
+    bool bLoading = IsLoading();
     if ((m_pOtherData != nullptr) && (m_pOtherData->m_pLoading != nullptr)) {
         m_pOtherData->m_pLoading->StopLoading();
     }
-    SetEnabled(true);
+    if (bLoading) {
+        //仅恢复因开始loading而被禁用的控件状态
+        SetEnabled(true);
+    }
 }
 
 bool Control::IsLoading() const

@@ -229,9 +229,11 @@ bool ScrollBar::ButtonUp(const EventArgs& msg)
         }
     }
 
-    UiRect ownerPos = m_pOwner->GetPos();
-    if (m_bAutoHide && !ownerPos.ContainsPt(pt)) {
-        SetFadeVisible(false);
+    if ((m_pOwner != nullptr) && m_bAutoHide) {
+        UiRect ownerPos = m_pOwner->GetPos();
+        if (!ownerPos.ContainsPt(pt)) {
+            SetFadeVisible(false);
+        }
     }
 
     return ret;
@@ -1050,16 +1052,30 @@ int64_t ScrollBar::CalcFastScrollOffset(int32_t posOffset) const
 {
     ASSERT(posOffset > 0);
     if (posOffset <= 0) {
-        return GetRect().Height();
+        return m_bHorizontal ? GetRect().Width() : GetRect().Height();
     }
     //做处理，避免数据量很大时，滚动条的速度非常慢，达不到鼠标所在位置
     int64_t nScrollOffset = 0;
-    int vRange = GetRect().Height() - m_rcThumb.Height();
-    if (m_bShowButton1) {
-        vRange -= GetFixedWidth().GetInt32();
+    int vRange = 0;
+    if (m_bHorizontal) {
+        //水平滚动条：按宽度计算
+        vRange = GetRect().Width() - m_rcThumb.Width();
+        if (m_bShowButton1) {
+            vRange -= GetFixedWidth().GetInt32();
+        }
+        if (m_bShowButton2) {
+            vRange -= GetFixedWidth().GetInt32();
+        }
     }
-    if (m_bShowButton2) {
-        vRange -= GetFixedWidth().GetInt32();
+    else {
+        //垂直滚动条：按高度计算
+        vRange = GetRect().Height() - m_rcThumb.Height();
+        if (m_bShowButton1) {
+            vRange -= GetFixedHeight().GetInt32();
+        }
+        if (m_bShowButton2) {
+            vRange -= GetFixedHeight().GetInt32();
+        }
     }
     if (vRange != 0) {
         nScrollOffset = posOffset * m_nRange / vRange;

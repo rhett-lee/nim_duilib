@@ -128,12 +128,8 @@ void ControlDropTargetImpl_Windows::ParseWindowsDataObject(void* pDataObj, std::
                 if (medium.hGlobal) {
                     ::GlobalUnlock(medium.hGlobal);
                 }
-                if (format == CF_HDROP) {
-                    ::DragFinish((HDROP)hGlobal);
-                }
-                else {
-                    ::ReleaseStgMedium(&medium);
-                }
+                //统一使用ReleaseStgMedium释放数据（CF_HDROP也由它释放，不能使用DragFinish）
+                ::ReleaseStgMedium(&medium);
             }
         }
     } while (res == S_OK);

@@ -160,7 +160,7 @@ public:
                     if (!rcPos.IsEmpty()) {
                         UiRectF rcRoot((float)rcPos.left, (float)rcPos.top, (float)rcPos.right, (float)rcPos.bottom);
 
-                        if ((borderRound.cy > 0) && (borderRound.cy > 0)) {
+                        if ((borderRound.cx > 0) && (borderRound.cy > 0)) {
                             pRender->DrawRoundRect(rcRoot, rx, ry, dwBorderColor, fBorderSize);
                         }
                         else {

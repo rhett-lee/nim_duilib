@@ -178,6 +178,7 @@ static SDL_Cursor* LoadCursorFromData(const Window* pWindow, std::vector<uint8_t
     SDL_Surface* cursorSurface = SDL_CreateSurfaceFrom(nWidth, nHeight, SDL_PIXELFORMAT_RGBA32, pPixelBits, nWidth * sizeof(uint32_t));
     ASSERT(cursorSurface != nullptr);
     if (cursorSurface == nullptr) {
+        pBitmap->UnLockPixelBits();
         return nullptr;
     }
 
@@ -206,6 +207,7 @@ static SDL_Cursor* LoadCursorFromData(const Window* pWindow, std::vector<uint8_t
     SDL_Cursor* sdlCursor = SDL_CreateColorCursor(cursorSurface, hot_x, hot_y);
     SDL_DestroySurface(cursorSurface);
     cursorSurface = nullptr;
+    pBitmap->UnLockPixelBits();
 
     ASSERT(sdlCursor != nullptr);
     return sdlCursor;

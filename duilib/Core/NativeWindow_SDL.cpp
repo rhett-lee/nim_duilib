@@ -713,7 +713,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
         {
             bHandled = true;
             if (m_pWindowDropTarget != nullptr) {
-                UiPoint pt((uint32_t)sdlEvent.drop.x, (uint32_t)sdlEvent.drop.y);
+                UiPoint pt((int32_t)sdlEvent.drop.x, (int32_t)sdlEvent.drop.y);
                 pOwner->OnNativeGetDpi().WindowSizeToClientSize(pt);
                 m_pWindowDropTarget->OnDropPosition(pt);
             }

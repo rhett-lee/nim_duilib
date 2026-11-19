@@ -1216,7 +1216,7 @@ LRESULT WindowBase::OnNativeSizeMsg(WindowSizeType sizeType, const UiSize& newWi
     else if (sizeType == WindowSizeType::kSIZE_MINIMIZED) {
         //最小化
         m_windowSizeState = WindowSizeState::kMinimized;
-        SendWindowEvent(kWindowMaximizedMsg);
+        SendWindowEvent(kWindowMinimizedMsg);
     }
     return lResult;
 }

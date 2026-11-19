@@ -53,6 +53,9 @@ public:
     //Tooltip信息
     TOOLINFOW m_ToolTip;
 
+    //Tooltip显示的文本内容（m_ToolTip.lpszText指向该缓冲区）
+    DStringW m_toolTipText;
+
     //Tooltip窗口
     HWND m_hwndTooltip;
 
@@ -121,7 +124,9 @@ void ToolTip::TImpl::ShowToolTip(const WindowBase* pParentWnd,
     }
 
     HWND hParentWnd = pParentWnd->NativeWnd()->GetHWND();
-    if ((m_hwndTooltip != nullptr) && IsWindowVisible(m_hwndTooltip)) {
+    bool bVisible = (m_hwndTooltip != nullptr) && (::IsWindowVisible(m_hwndTooltip) != FALSE);
+    bool bTextChanged = true;
+    if (bVisible) {
         TOOLINFOW toolTip = { 0 };
         toolTip.cbSize = sizeof(TOOLINFOW);
         toolTip.hwnd = hParentWnd;
@@ -131,10 +136,7 @@ void ToolTip::TImpl::ShowToolTip(const WindowBase* pParentWnd,
         toolTip.lpszText = const_cast<LPWSTR>((LPCWSTR)oldText.c_str());
         ::SendMessage(m_hwndTooltip, TTM_GETTOOLINFOW, 0, (LPARAM)&toolTip);
         oldText = DStringW(oldText.c_str());
-        if (newText == oldText) {
-            //文本内容均没有变化，不再设置
-            return;
-        }
+        bTextChanged = (newText != oldText);
     }
 
     //资源所在模块句柄
@@ -146,7 +148,9 @@ void ToolTip::TImpl::ShowToolTip(const WindowBase* pParentWnd,
     m_ToolTip.hwnd = hParentWnd;
     m_ToolTip.uId = (UINT_PTR)hParentWnd;
     m_ToolTip.hinst = hModule;
-    m_ToolTip.lpszText = const_cast<LPWSTR>((LPCWSTR)newText.c_str());
+    //文本内容由成员变量保存，避免m_ToolTip.lpszText指向局部变量的内存
+    m_toolTipText = newText;
+    m_ToolTip.lpszText = const_cast<LPWSTR>((LPCWSTR)m_toolTipText.c_str());
     m_ToolTip.rect.left = rect.left;
     m_ToolTip.rect.top = rect.top;
     m_ToolTip.rect.right = rect.right;
@@ -158,11 +162,16 @@ void ToolTip::TImpl::ShowToolTip(const WindowBase* pParentWnd,
                                           hParentWnd, nullptr, hModule, nullptr);
         ::SendMessage(m_hwndTooltip, TTM_ADDTOOL, 0, (LPARAM)&m_ToolTip);
         ::SetWindowPos(m_hwndTooltip, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        bVisible = false;
     }
-    if (!::IsWindowVisible(m_hwndTooltip)) {
+    if (!bVisible) {
         ::SendMessage(m_hwndTooltip, TTM_SETMAXTIPWIDTH, 0, maxWidth);
         ::SendMessage(m_hwndTooltip, TTM_SETTOOLINFOW, 0, (LPARAM)&m_ToolTip);
         ::SendMessage(m_hwndTooltip, TTM_TRACKACTIVATE, TRUE, (LPARAM)&m_ToolTip);
+    }
+    else if (bTextChanged) {
+        //Tooltip已显示且文本发生变化时，更新显示的文本
+        ::SendMessage(m_hwndTooltip, TTM_UPDATETIPTEXTW, 0, (LPARAM)&m_ToolTip);
     }
     ::SendMessage(m_hwndTooltip, TTM_TRACKPOSITION, 0, (LPARAM)(DWORD)MAKELONG(trackPos.x, trackPos.y));
     m_hParentWnd = hParentWnd;
@@ -222,6 +231,13 @@ void ToolTip::ClearMouseTracking()
 
 void ToolTip::DestroyToolTip()
 {
+    if (m_impl->m_hwndTooltip != nullptr) {
+        ::SendMessage(m_impl->m_hwndTooltip, TTM_TRACKACTIVATE, FALSE, (LPARAM)&m_impl->m_ToolTip);
+        ::DestroyWindow(m_impl->m_hwndTooltip);
+        m_impl->m_hwndTooltip = nullptr;
+    }
+    m_impl->m_ToolTip.lpszText = nullptr;
+    m_impl->m_toolTipText.clear();
 }
 
 } // namespace ui

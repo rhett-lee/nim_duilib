@@ -214,6 +214,7 @@ bool ThemeManager::SwitchTheme(const FilePath& themePath, ThemeType destThemeTyp
         m_defaultThemeInfo.m_bSelectedTheme = true;
         m_colorThemeInfo.m_bSelectedTheme = false;
         m_iconThemeInfo.m_bSelectedTheme = false;
+        themeInfo = m_defaultThemeInfo;
     }
     else {
         return false;
