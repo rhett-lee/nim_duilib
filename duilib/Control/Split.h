@@ -49,6 +49,7 @@ protected:
     virtual bool ButtonDown(const EventArgs& msg) override;
     virtual bool ButtonUp(const EventArgs& msg) override;
     virtual bool MouseMove(const EventArgs& msg) override;
+    virtual bool OnWindowKillFocus(const EventArgs& msg) override;
 
 private:
     //是否为垂直布局的容器
@@ -56,6 +57,20 @@ private:
 
     //是否为水平布局的容器
     bool IsHLayout(Control* pControl) const;
+
+    /** 查找同级的相邻控件（前一个和后一个可见的、非float的控件）
+    * @param [out] pPrev 返回前一个控件，如果没有，返回nullptr
+    * @param [out] pNext 返回后一个控件，如果没有，返回nullptr
+    */
+    void FindPrevNextControl(Control*& pPrev, Control*& pNext);
+
+    /** 当前是否可以拖动（根据父容器的布局方向与相邻控件判断）
+    */
+    bool CanStartDrag();
+
+    /** 更新鼠标光标：只有可以拖动时，才显示尺寸调整光标；不可拖动时恢复默认光标
+    */
+    void UpdateCursor();
 
     /** 调整两个控件中，其中一个（pFirst）控件的宽度或者高度
     * @param [in] bHLayout true表示横向布局，false表示纵向布局
@@ -131,6 +146,7 @@ template<typename InheritType>
 void SplitTemplate<InheritType>::SetEnableSplitSingle(bool bEnableSplitSingle)
 {
     m_bEnableSplitSingle = bEnableSplitSingle;
+    UpdateCursor();
 }
 
 template<typename InheritType>
@@ -188,20 +204,90 @@ bool SplitTemplate<InheritType>::IsHLayout(Control* pControl) const
 }
 
 template<typename InheritType>
+void SplitTemplate<InheritType>::FindPrevNextControl(Control*& pPrev, Control*& pNext)
+{
+    pPrev = nullptr;
+    pNext = nullptr;
+    Box* pParent = this->GetParent();
+    if (pParent == nullptr) {
+        return;
+    }
+    size_t nChildCount = pParent->GetItemCount();
+    bool bFoundThis = false;
+    for (size_t i = 0; i < nChildCount; ++i) {
+        Control* pControl = pParent->GetItemAt(i);
+        if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
+            continue;
+        }
+        if (bFoundThis) {
+            pNext = pControl;
+            break;
+        }
+        if (pControl == this) {
+            bFoundThis = true;
+        }
+        else {
+            pPrev = pControl;
+        }
+    }
+    if (!bFoundThis) {
+        //当前控件不是父容器的直接子控件，无法确定相邻控件
+        pPrev = nullptr;
+        pNext = nullptr;
+    }
+}
+
+template<typename InheritType>
+bool SplitTemplate<InheritType>::CanStartDrag()
+{
+    if (!this->IsEnabled()) {
+        return false;
+    }
+    Box* pParent = this->GetParent();
+    if ((pParent == nullptr) || (!IsHLayout(pParent) && !IsVLayout(pParent))) {
+        return false;
+    }
+    Control* pPrev = nullptr;
+    Control* pNext = nullptr;
+    FindPrevNextControl(pPrev, pNext);
+    if (IsEnableSplitSingle()) {
+        return (pPrev != nullptr) || (pNext != nullptr);
+    }
+    return (pPrev != nullptr) && (pNext != nullptr);
+}
+
+template<typename InheritType>
+void SplitTemplate<InheritType>::UpdateCursor()
+{
+    if ((this->IsEnabled()) && CanStartDrag()) {
+        Box* pParent = this->GetParent();
+        if (IsHLayout(pParent)) {
+            //横向布局：左右拖动
+            if (this->GetCursorType() != CursorType::kCursorSizeWE) {
+                this->SetCursorType(CursorType::kCursorSizeWE);
+            }
+            return;
+        }
+        else if (IsVLayout(pParent)) {
+            //纵向布局：上下拖动
+            if (this->GetCursorType() != CursorType::kCursorSizeNS) {
+                this->SetCursorType(CursorType::kCursorSizeNS);
+            }
+            return;
+        }
+    }
+    //当前不可拖动：如果光标是分割条设置的尺寸调整光标，则恢复为默认光标
+    CursorType cursorType = this->GetCursorType();
+    if ((cursorType == CursorType::kCursorSizeWE) || (cursorType == CursorType::kCursorSizeNS)) {
+        this->SetCursorType(CursorType::kCursorArrow);
+    }
+}
+
+template<typename InheritType>
 bool SplitTemplate<InheritType>::MouseEnter(const EventArgs& msg)
 {
-    if (IsHLayout(this->GetParent())) {
-        //横向布局
-        if (this->GetCursorType() != CursorType::kCursorSizeWE) {
-            this->SetCursorType(CursorType::kCursorSizeWE);
-        }
-    }
-    else if (IsVLayout(this->GetParent())) {
-        //纵向布局
-        if (this->GetCursorType() != CursorType::kCursorSizeNS) {
-            this->SetCursorType(CursorType::kCursorSizeNS);
-        }
-    }
+    //只有可以拖动时，才显示尺寸调整光标
+    UpdateCursor();
     return BaseClass::MouseEnter(msg);
 }
 
@@ -212,30 +298,16 @@ bool SplitTemplate<InheritType>::ButtonDown(const EventArgs& msg)
     if (msg.IsSenderExpired()) {
         return false;
     }
+    //清空上一次拖动的状态，避免遗留旧的控件指针（如控件树或父容器布局在两次拖动之间发生了变化）
+    StopSplitDrag();
+
     Box* pParent = this->GetParent();
     if (!this->IsEnabled() || (pParent == nullptr)) {
         return bRet;
     }
-    size_t nChildCount = pParent->GetItemCount();
     Control* pPrev = nullptr;
     Control* pNext = nullptr;
-    Control* pThis = nullptr;
-    for (size_t i = 0; i < nChildCount; ++i) {
-        Control* pControl = pParent->GetItemAt(i);
-        if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
-            continue;
-        }
-        if (pThis) {
-            pNext = pControl;
-            break;
-        }
-        if (pControl == this) {
-            pThis = pControl;
-        }
-        else {
-            pPrev = pControl;
-        }
-    }
+    FindPrevNextControl(pPrev, pNext);
     bool bDragValid = false;
     if (IsEnableSplitSingle()) {
         bDragValid = (pPrev != nullptr) || (pNext != nullptr);
@@ -243,7 +315,7 @@ bool SplitTemplate<InheritType>::ButtonDown(const EventArgs& msg)
     else {
         bDragValid = (pPrev != nullptr) && (pNext != nullptr);
     }
-    if (bDragValid && (pThis != nullptr)) {
+    if (bDragValid) {
         if (IsVLayout(pParent)) {
             m_bHLayout = false;
             m_pLeftTop = pPrev;
@@ -289,17 +361,14 @@ bool SplitTemplate<InheritType>::ButtonDown(const EventArgs& msg)
             }
         }
     }
-    if (!IsSplitDragValid()) {
-        StopSplitDrag();
-    }
     if ((m_pLeftTop != nullptr) && (m_pRightBottom != nullptr)) {
         //如果两个控件都是拉伸类型的，那么让左侧(上侧)的变为非拉伸的，允许拖动操作
         if (m_nLeftUpFixedValue.IsStretch() && m_nRightBottomFixedValue.IsStretch()) {
-            if (IsVLayout(pParent)) {
-                m_nLeftUpFixedValue.SetInt32(m_pLeftTop->GetHeight());
+            if (m_bHLayout) {
+                m_nLeftUpFixedValue.SetInt32(m_pLeftTop->GetWidth());
             }
             else {
-                m_nLeftUpFixedValue.SetInt32(m_pLeftTop->GetWidth());
+                m_nLeftUpFixedValue.SetInt32(m_pLeftTop->GetHeight());
             }
         }
     }
@@ -315,6 +384,19 @@ bool SplitTemplate<InheritType>::ButtonUp(const EventArgs& msg)
         return false;
     }
     StopSplitDrag();
+    return bRet;
+}
+
+template<typename InheritType>
+bool SplitTemplate<InheritType>::OnWindowKillFocus(const EventArgs& msg)
+{
+    bool bRet = BaseClass::OnWindowKillFocus(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    //窗口失去焦点时收不到ButtonUp消息，需要结束拖动（避免遗留拖动状态，拖动状态改变后需要重绘）
+    StopSplitDrag();
+    this->Invalidate();
     return bRet;
 }
 
