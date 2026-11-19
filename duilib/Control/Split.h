@@ -4,6 +4,9 @@
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Control/Label.h"
+#include "duilib/Animation/AnimationPlayer.h"
+
+#include <memory>
 
 namespace ui
 {
@@ -16,7 +19,8 @@ namespace ui
 *    - 其中一个是拉伸类型时，只调整另一个控件，拉伸类型的控件由父容器自动分配尺寸；
 *    - 两个控件都是拉伸类型时，鼠标按下后会把左侧（上侧）控件转换为固定尺寸，然后可以正常拖动。
 *   如果父容器的布局不是HLayout或者VLayout，则不支持拖动（不显示调整光标）。
-*   属性 double_click_reset 为 true 时，双击分割条可以把两侧控件恢复到首次拖动前的尺寸。
+*   属性 double_click_reset 为 true 时，双击分割条可以把两侧控件恢复到首次拖动前的尺寸；恢复过程带短暂的尺寸过渡动画，
+*   动画时长由属性 reset_anim 控制（单位毫秒，默认为 150，0 表示不使用动画）。
 *   属性 drag_threshold 用于设置拖动阈值：鼠标在布局方向上移动超过该距离后才开始调整尺寸（单位是 96 DPI 的逻辑像素，默认为 2，0 表示不启用阈值）。
 *   属性 left_top_ctrl_name / right_bottom_ctrl_name 可以显式指定要调整的两个控件的名称（在同一个窗口内查找），
 *   不指定时默认使用同一父容器中、位于分割条前面和后面的两个可见控件；指定目标控件后支持跨容器调整尺寸。
@@ -58,6 +62,15 @@ public:
     /** 获取双击分割条时，是否把两侧控件恢复到首次拖动前的尺寸
     */
     bool IsDoubleClickReset() const;
+
+    /** 设置双击复位时的过渡动画时长
+    * @param [in] nMillSeconds 动画时长（毫秒），0 表示不使用动画，默认值为 150
+    */
+    void SetResetAnimMillSeconds(int32_t nMillSeconds);
+
+    /** 获取双击复位时的过渡动画时长（毫秒）
+    */
+    int32_t GetResetAnimMillSeconds() const;
 
     /** 设置拖动阈值（鼠标移动超过该距离后才开始调整控件尺寸，避免轻微抖动导致尺寸变化）
     * @param [in] nDragThreshold 阈值，单位是 96 DPI 的逻辑像素，0 表示不启用阈值，默认值为 2
@@ -179,6 +192,40 @@ private:
     /** 隐藏拖动尺寸提示
     */
     void HideDragSizeTip();
+
+    /** 计算双击复位时，左侧（上侧）控件在布局方向上的目标尺寸
+    * @param [in] pPrev 左侧（上侧）控件
+    * @param [in] pNext 右侧（下侧）控件
+    * @param [in] nTotal 两侧控件当前的尺寸之和
+    * @return 返回目标尺寸；无法计算时返回 -1
+    */
+    int32_t CalcResetTargetSize(const Control* pPrev, const Control* pNext, int32_t nTotal) const;
+
+    /** 启动双击复位的尺寸动画
+    * @param [in] pPrev 左侧（上侧）控件
+    * @param [in] pNext 右侧（下侧）控件
+    * @param [in] nFrom 动画起始尺寸（左侧/上侧控件）
+    * @param [in] nTo 动画结束尺寸（左侧/上侧控件）
+    * @param [in] nTotal 两侧控件当前的尺寸之和（只有一侧控件时为 0）
+    */
+    void StartResetAnim(Control* pPrev, Control* pNext, int32_t nFrom, int32_t nTo, int32_t nTotal);
+
+    /** 停止双击复位的尺寸动画（不改变控件当前的尺寸）
+    */
+    void StopResetAnim();
+
+    /** 双击复位动画的每一帧：设置两侧控件的尺寸（不恢复原始类型）
+    * @param [in] nValue 左侧（上侧）控件在当前帧的尺寸
+    */
+    void OnResetAnimFrame(int32_t nValue);
+
+    /** 双击复位动画结束时：恢复两侧控件的原始尺寸类型
+    */
+    void OnResetAnimFinished();
+
+    /** 立即把两侧控件恢复到首次拖动前的尺寸（不使用动画）
+    */
+    void ApplyResetImmediately();
 
     /** 查找同级的相邻控件（前一个和后一个可见的、非float的控件）
     *   如果通过 left_top_ctrl_name / right_bottom_ctrl_name 指定了目标控件，则优先使用指定的控件
@@ -302,6 +349,23 @@ private:
     /** 双击分割条时，是否把两侧控件恢复到首次拖动前的尺寸
     */
     bool m_bDoubleClickReset;
+
+    /** 双击复位时的过渡动画时长（毫秒），0表示不使用动画
+    */
+    int32_t m_nResetAnimMs;
+
+    /** 双击复位动画对象
+    */
+    std::unique_ptr<AnimationPlayer> m_pResetAnimPlayer;
+
+    /** 双击复位动画中，左侧（上侧）控件的当前尺寸 */
+    ControlPtr m_pResetAnimPrev;
+
+    /** 双击复位动画中，右侧（下侧）控件的当前尺寸 */
+    ControlPtr m_pResetAnimNext;
+
+    /** 双击复位动画中，两侧控件当前的尺寸之和（0表示只有一侧控件） */
+    int32_t m_nResetAnimTotal;
 };
 
 template<typename InheritType>
@@ -317,7 +381,9 @@ SplitTemplate<InheritType>::SplitTemplate(Window* pWindow):
     m_nKeyboardStep(10),
     m_bDragSizeTip(false),
     m_bEnableSplitSingle(false),
-    m_bDoubleClickReset(false)
+    m_bDoubleClickReset(false),
+    m_nResetAnimMs(150),
+    m_nResetAnimTotal(0)
 {
     this->SetMouseEnabled(true);
 }
@@ -337,6 +403,10 @@ void SplitTemplate<InheritType>::SetAttribute(const DString& strName, const DStr
     }
     else if (strName == _T("double_click_reset")) {
         SetDoubleClickReset(StringUtil::IsValueTrue(strNewValue));
+    }
+    else if (strName == _T("reset_anim")) {
+        //双击复位时的过渡动画时长（毫秒，0表示不使用动画）
+        SetResetAnimMillSeconds(StringUtil::StringToInt32(strNewValue));
     }
     else if (strName == _T("drag_threshold")) {
         SetDragThreshold(StringUtil::StringToInt32(strNewValue));
@@ -381,6 +451,21 @@ template<typename InheritType>
 bool SplitTemplate<InheritType>::IsDoubleClickReset() const
 {
     return m_bDoubleClickReset;
+}
+
+template<typename InheritType>
+void SplitTemplate<InheritType>::SetResetAnimMillSeconds(int32_t nMillSeconds)
+{
+    if (nMillSeconds < 0) {
+        nMillSeconds = 0;
+    }
+    m_nResetAnimMs = nMillSeconds;
+}
+
+template<typename InheritType>
+int32_t SplitTemplate<InheritType>::GetResetAnimMillSeconds() const
+{
+    return m_nResetAnimMs;
 }
 
 template<typename InheritType>
@@ -866,6 +951,8 @@ bool SplitTemplate<InheritType>::ButtonDown(const EventArgs& msg)
     }
     //清空上一次拖动的状态，避免遗留旧的控件指针（如控件树或父容器布局在两次拖动之间发生了变化）
     StopSplitDrag();
+    //新的拖动开始前，停止尚未结束的复位动画，避免动画与拖动争抢控件尺寸
+    StopResetAnim();
 
     if (!this->IsEnabled()) {
         return bRet;
@@ -976,23 +1063,195 @@ bool SplitTemplate<InheritType>::ButtonDoubleClick(const EventArgs& msg)
     FindPrevNextControl(pPrev, pNext);
     m_bHLayout = IsHLayout(this->GetParent());
 
-    bool bAdjusted = false;
+    //先停止可能尚未结束的复位动画
+    StopResetAnim();
+
+    if ((m_nResetAnimMs <= 0) || ((pPrev == nullptr) && (pNext == nullptr))) {
+        ApplyResetImmediately();
+        return bRet;
+    }
+
+    //计算动画的起始尺寸和目标尺寸（动画值代表左侧/上侧控件的尺寸）
+    const int32_t nFrom = (pPrev != nullptr) ? GetAxisSize(pPrev) : GetAxisSize(pNext);
+    const int32_t nTotal = ((pPrev != nullptr) && (pNext != nullptr)) ? (GetAxisSize(pPrev) + GetAxisSize(pNext)) : 0;
+    const int32_t nTo = CalcResetTargetSize(pPrev, pNext, nTotal);
+    if (nTo < 0) {
+        //无法预估动画目标（例如只有一侧控件且恢复为拉伸类型），直接复位
+        ApplyResetImmediately();
+        return bRet;
+    }
+    if (nFrom == nTo) {
+        //尺寸没有变化，直接复位（恢复控件的原始尺寸类型）
+        ApplyResetImmediately();
+        return bRet;
+    }
+    StartResetAnim(pPrev, pNext, nFrom, nTo, nTotal);
+    return bRet;
+}
+
+template<typename InheritType>
+int32_t SplitTemplate<InheritType>::CalcResetTargetSize(const Control* pPrev, const Control* pNext, int32_t nTotal) const
+{
+    //确定动画对象：优先左侧（上侧）控件；只有右侧（下侧）控件时使用它
+    const Control* pFirst = (pPrev != nullptr) ? pPrev : pNext;
+    if (pFirst == nullptr) {
+        return -1;
+    }
+    const UiFixedInt& initFirst = (pPrev != nullptr) ? m_nLeftTopInitFixedValue : m_nRightBottomInitFixedValue;
+    const UiFixedInt& initOther = (pPrev != nullptr) ? m_nRightBottomInitFixedValue : m_nLeftTopInitFixedValue;
+
+    int32_t nTarget = -1;
+    if (!initFirst.IsStretch()) {
+        //恢复为固定尺寸：直接使用首次拖动前记录的值
+        nTarget = initFirst.GetInt32();
+    }
+    else if ((pPrev != nullptr) && (pNext != nullptr) && !initOther.IsStretch()) {
+        //恢复为拉伸类型：用两侧尺寸之和减去另一侧的固定尺寸
+        nTarget = nTotal - initOther.GetInt32();
+    }
+    else if ((pPrev != nullptr) && (pNext != nullptr)) {
+        //两侧都恢复为拉伸类型：按均分计算
+        nTarget = nTotal / 2;
+    }
+    else {
+        //只有一侧控件且恢复为拉伸类型：最终尺寸由父容器决定，无法预估
+        return -1;
+    }
+    //限制在控件允许的最小/最大尺寸范围内
+    const int32_t nMinSize = GetAxisMinSize(pFirst);
+    const int32_t nMaxSize = GetAxisMaxSize(pFirst);
+    if (nTarget < nMinSize) {
+        nTarget = nMinSize;
+    }
+    if (nTarget > nMaxSize) {
+        nTarget = nMaxSize;
+    }
+    return nTarget;
+}
+
+template<typename InheritType>
+void SplitTemplate<InheritType>::StartResetAnim(Control* pPrev, Control* pNext, int32_t nFrom, int32_t nTo, int32_t nTotal)
+{
+    //动画期间把两侧控件都转换为固定尺寸，避免父容器的自动布局打断动画
     if (pPrev != nullptr) {
-        if (ResetAxisFixedSize(pPrev, m_nLeftTopInitFixedValue, false)) {
-            bAdjusted = true;
-        }
+        SetAxisFixedSize(pPrev, nFrom, false);
     }
     if (pNext != nullptr) {
-        if (ResetAxisFixedSize(pNext, m_nRightBottomInitFixedValue, false)) {
-            bAdjusted = true;
+        const int32_t nNext = (nTotal > 0) ? (nTotal - nFrom) : GetAxisSize(pNext);
+        SetAxisFixedSize(pNext, nNext, false);
+    }
+    this->ArrangeAncestor();
+
+    m_pResetAnimPrev = pPrev;
+    m_pResetAnimNext = pNext;
+    m_nResetAnimTotal = nTotal;
+
+    AnimationPlayer* pAnim = new AnimationPlayer;
+    m_pResetAnimPlayer.reset(pAnim);
+    pAnim->SetAnimationType(AnimationType::kAnimationNone);
+    //缓出效果：复位过程先快后慢，符合"回到默认尺寸"的操作直觉
+    pAnim->SetEasingFunctionType(EaseOutCubic);
+    pAnim->SetTotalMillSeconds(m_nResetAnimMs);
+    pAnim->SetFrameIntervalMillSeconds(16);
+    pAnim->SetStartValue(nFrom);
+    pAnim->SetEndValue(nTo);
+
+    ControlPtrT<SplitTemplate<InheritType>> pThis(this);
+    pAnim->SetPlayCallback([pThis](int32_t nValue) {
+        if (pThis == nullptr) {
+            return;
         }
+        pThis->OnResetAnimFrame(nValue);
+    });
+    pAnim->SetCompleteCallback([pThis]() {
+        if (pThis == nullptr) {
+            return;
+        }
+        pThis->OnResetAnimFinished();
+    });
+    pAnim->Start();
+}
+
+template<typename InheritType>
+void SplitTemplate<InheritType>::StopResetAnim()
+{
+    if (m_pResetAnimPlayer != nullptr) {
+        m_pResetAnimPlayer->SetPlayCallback(nullptr);
+        m_pResetAnimPlayer->SetCompleteCallback(nullptr);
+        m_pResetAnimPlayer->Stop();
+        m_pResetAnimPlayer.reset();
+    }
+    m_pResetAnimPrev = nullptr;
+    m_pResetAnimNext = nullptr;
+    m_nResetAnimTotal = 0;
+}
+
+template<typename InheritType>
+void SplitTemplate<InheritType>::OnResetAnimFrame(int32_t nValue)
+{
+    Control* pPrev = m_pResetAnimPrev.get();
+    Control* pNext = m_pResetAnimNext.get();
+    if ((pPrev == nullptr) && (pNext == nullptr)) {
+        return;
+    }
+    if ((pPrev != nullptr) && (pNext != nullptr)) {
+        //两侧控件一起动画：两者尺寸之和保持不变
+        SetAxisFixedSize(pPrev, nValue, false);
+        SetAxisFixedSize(pNext, m_nResetAnimTotal - nValue, true);
+    }
+    else if (pPrev != nullptr) {
+        SetAxisFixedSize(pPrev, nValue, true);
+    }
+    else if (pNext != nullptr) {
+        SetAxisFixedSize(pNext, nValue, true);
+    }
+}
+
+template<typename InheritType>
+void SplitTemplate<InheritType>::OnResetAnimFinished()
+{
+    m_pResetAnimPlayer.reset();
+
+    //动画结束：恢复两侧控件的原始尺寸类型（固定/拉伸/自动）
+    bool bAdjusted = false;
+    Control* pPrev = m_pResetAnimPrev.get();
+    if ((pPrev != nullptr) && ResetAxisFixedSize(pPrev, m_nLeftTopInitFixedValue, false)) {
+        bAdjusted = true;
+    }
+    Control* pNext = m_pResetAnimNext.get();
+    if ((pNext != nullptr) && ResetAxisFixedSize(pNext, m_nRightBottomInitFixedValue, false)) {
+        bAdjusted = true;
+    }
+    m_pResetAnimPrev = nullptr;
+    m_pResetAnimNext = nullptr;
+    m_nResetAnimTotal = 0;
+
+    //统一触发布局，确保恢复拉伸/自动类型后的最终位置正确
+    this->ArrangeAncestor();
+    if (bAdjusted) {
+        this->Invalidate();
+    }
+}
+
+template<typename InheritType>
+void SplitTemplate<InheritType>::ApplyResetImmediately()
+{
+    Control* pPrev = nullptr;
+    Control* pNext = nullptr;
+    FindPrevNextControl(pPrev, pNext);
+
+    bool bAdjusted = false;
+    if ((pPrev != nullptr) && ResetAxisFixedSize(pPrev, m_nLeftTopInitFixedValue, false)) {
+        bAdjusted = true;
+    }
+    if ((pNext != nullptr) && ResetAxisFixedSize(pNext, m_nRightBottomInitFixedValue, false)) {
+        bAdjusted = true;
     }
     if (bAdjusted) {
         //两个控件的值都恢复后，统一触发布局
         this->ArrangeAncestor();
         this->Invalidate();
     }
-    return bRet;
 }
 
 template<typename InheritType>

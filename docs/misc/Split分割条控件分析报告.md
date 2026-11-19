@@ -21,6 +21,7 @@
 | 三 | 目标控件可指定 | 已实现（属性 `left_top_ctrl_name` / `right_bottom_ctrl_name`，支持跨容器调整） |
 | 三 | 键盘操作 | 已实现（获得焦点后方向键微调，属性 `keyboard_step` 默认 `10` 个 96 DPI 逻辑像素，Shift 为 10 倍步长） |
 | 三 | 拖动尺寸提示 | 已实现（属性 `drag_size_tip`，默认 `false`，拖动时在分割条附近显示当前尺寸） |
+| 五 | 界面美观度改进 | 已实现（主题类/热区分离/拖动反馈/对比度/光标语义此前已完成；本次补齐双击复位过渡动画，属性 `reset_anim` 默认 `150` 毫秒） |
 
 ## 一、结论
 
@@ -239,21 +240,39 @@ int32_t nNew2 = nTotal - nNew1;   // 恒等，不再需要 sum != nTotal 的放�
 
 ## 五、界面美观度改进建议
 
-当前默认主题只给列头分割条定义了"3px 热区 + 1px 右对齐细线"（`bin/resources/themes/default/global.xml#L864-L865`），且都是手工拼装。建议：
-
-1. **提供通用主题类**，让所有分割条外观统一（`hovered_color` / `pressed_color` 已由基类状态驱动）：
+原报告中"默认主题只给列头分割条定义了 3px 热区 + 1px 细线"的现象已经不存在：主题中已提供通用的分割条样式类（`bin/resources/themes/default/global.xml`）：
 
 ```xml
-<Class name="split_box"  width="5" height="100%" cursor_type="size_we"
-       hovered_color="bg_split_hovered" pressed_color="bg_split_pressed"/>
-<Class name="split_line" width="1" height="100%" halign="center" bkcolor="border_split"/>
+<Class name="split_vertical" width="5" state_color_min_width="1"
+       normal_color_margin="2,0,2,0" normal_color="bg_split_normal"
+       hovered_color_margin="1,0,1,0" hovered_color="bg_split_hovered"
+       pressed_color_margin="1,0,1,0" pressed_color="bg_split_pressed"
+       disabled_color_margin="2,0,2,0" disabled_color="bg_split_disabled" />
+<Class name="split_horizontal" height="5" state_color_min_height="1" ...（与上面一致，方向相反）... />
 ```
 
-2. **热区与视觉分离**：热区不小于 4~6px（随 DPI 缩放），视觉只画 1px 细线，既好抓取又不显笨重（列头已是这个模式，应固化为推荐用法）。
-3. **拖动反馈**：拖动中细线用强调色（`pressed_color` 自动生效），松手后恢复；可选加入约 150ms 的颜色过渡（复用现有动画播放器）。
-4. **双击复位 + 轻微动画**：恢复默认尺寸时做一次短促的宽度插值，符合现代软件的"可逆操作"直觉。
-5. **深浅色对比度**：`border_split` 在两套主题中都要保证与相邻背景有足够对比（建议 2:1 以上），避免浅色主题下"看不见分割条"。
-6. **光标语义**：只在真正可拖动时显示 `size_we/size_ns`；不可拖动时用默认箭头，减少"看起来能拖其实不能拖"的挫败感。
+各项建议的处理情况：
+
+1. **通用主题类**：已实现。`split_vertical` / `split_horizontal` 统一了所有示例中分割条的观感，使用基类的状态颜色驱动 `normal/hovered/pressed/disabled`。
+2. **热区与视觉分离**：已实现。热区为 5 个 96 DPI 逻辑像素（按 DPI 缩放），配合状态颜色的外边距，常态只画 1px 细线；悬停/按下时线条变粗（3px），更容易抓取。
+3. **拖动反馈**：已实现。按下时 `pressed_color` 自动生效，松开后恢复；颜色过渡（约 150ms）为可选项，当前未启用（状态颜色切换本身足够轻快，且可避免额外的动画定时器开销）。
+4. **双击复位 + 轻微动画**：本次已实现。属性 `double_click_reset` 打开后，双击复位默认带 150ms 的缓出尺寸过渡；动画时长由新增属性 `reset_anim` 控制（毫秒，`0` 表示不使用动画）。
+5. **深浅色对比度**：已实现。浅色/深色主题分别定义了 `bg_split_normal`（#D9D9D9 / #4D4D4D）、`bg_split_hovered`（#C2C2C2 / #666666）、`bg_split_pressed`（#A6A6A6 / #808080）、`bg_split_disabled`（#E6E6E6 / #3A3A3A），与两侧内容背景均有明显区分。
+6. **光标语义**：已实现。`UpdateCursor()` 只在真正可拖动（横向/纵向布局且存在有效目标控件）时显示 `size_we` / `size_ns`，否则恢复默认箭头；拖动过程中保持调整光标。
+
+### 双击复位动画实现说明
+
+- **属性与接口**：新增属性 `reset_anim`（默认 `150` 毫秒），对应 `SetResetAnimMillSeconds()` / `GetResetAnimMillSeconds()`；`0` 表示不使用动画，直接复位（与原行为一致）。
+- **目标尺寸计算**（`CalcResetTargetSize()`）：动画值代表左侧（上侧）控件的尺寸，按首次拖动前记录的类型计算目标值：
+  - 该侧恢复为固定尺寸：直接使用记录值；
+  - 该侧恢复为拉伸、另一侧为固定尺寸：用两侧当前尺寸之和减去另一侧的固定值；
+  - 两侧都恢复为拉伸：按两侧尺寸之和均分；
+  - 只有一侧控件且恢复为拉伸：最终尺寸由父容器决定、无法预估，跳过动画直接复位。
+  目标值还会夹紧到控件的 `min_width/max_width`（纵向为高度）。
+- **动画过程**：使用现有的 `AnimationPlayer`（`AnimationType::kAnimationNone` + `EaseOutCubic`，16ms 帧间隔）。动画期间把两侧控件临时转换为固定尺寸，每帧设置左侧为插值、右侧为“总尺寸 - 插值”（只有一侧控件时只调整该控件），保证动画期间总占用空间不变、分割线平滑移动。
+- **结束处理**：动画结束时按首次拖动前记录的原始类型和值恢复两侧控件（固定/拉伸/自动），统一触发布局并重绘；尺寸没有变化或动画时长为 0 时走立即复位的分支。
+- **交互冲突**：动画期间再次按下鼠标（开始新的拖动）会在 `ButtonDown()` 中立即停止动画，由拖动接管；再次双击也会先停止上一次动画，避免两个动画同时修改控件尺寸。
+- **验证**：Debug 版 `TreeView` 示例（非 DLL 模式）中给主分割条配置 `double_click_reset="true" reset_anim="1200"`（放大动画时长便于观察），先把分割线从物理像素 x=519 拖到 667，再双击分割条：动画中（约 350ms）分割线位于 x=567，动画结束后回到 x=517（与拖动前基本一致，误差为像素测量精度），进程无断言；恢复默认 150ms 后双击同样能正常复位。
 
 ## 六、建议实施顺序
 
