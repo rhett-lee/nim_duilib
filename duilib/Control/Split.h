@@ -16,6 +16,7 @@ namespace ui
 *    - 两个控件都是拉伸类型时，鼠标按下后会把左侧（上侧）控件转换为固定尺寸，然后可以正常拖动。
 *   如果父容器的布局不是HLayout或者VLayout，则不支持拖动（不显示调整光标）。
 *   属性 double_click_reset 为 true 时，双击分割条可以把两侧控件恢复到首次拖动前的尺寸。
+*   拖动开始、拖动过程和拖动结束时，分别触发 kEventSplitDragBegin、kEventSplitDraged、kEventSplitDragEnd 事件。
 */
 template<typename InheritType = Control>
 class SplitTemplate : public InheritType
@@ -51,6 +52,18 @@ public:
     /** 获取双击分割条时，是否把两侧控件恢复到首次拖动前的尺寸
     */
     bool IsDoubleClickReset() const;
+
+    /** 监听开始拖动的事件（WPARAM 为左侧/上侧控件，LPARAM 为右侧/下侧控件，可能为 nullptr）
+     * @param [in] callback 开始拖动时触发的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+     */
+    void AttachSplitDragBegin(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventSplitDragBegin, callback, callbackID); }
+
+    /** 监听结束拖动的事件（WPARAM 为左侧/上侧控件，LPARAM 为右侧/下侧控件，可能为 nullptr）
+     * @param [in] callback 结束拖动时触发的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+     */
+    void AttachSplitDragEnd(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventSplitDragEnd, callback, callbackID); }
 
     /** 监听拖动的事件
      * @param [in] callback 被选择时触发的回调函数
@@ -169,6 +182,9 @@ private:
     //布局方向: true表示横向布局，false表示纵向布局
     bool m_bHLayout;
 
+    //是否处于拖动状态（已发送拖动开始事件，尚未发送拖动结束事件）
+    bool m_bDragStarted;
+
     /** 当只有一个控件的时候，是否允许调整其宽度
     */
     bool m_bEnableSplitSingle;
@@ -185,6 +201,7 @@ SplitTemplate<InheritType>::SplitTemplate(Window* pWindow):
     m_pRightBottom(nullptr),
     m_bInitSizeCaptured(false),
     m_bHLayout(true),
+    m_bDragStarted(false),
     m_bEnableSplitSingle(false),
     m_bDoubleClickReset(false)
 {
@@ -253,8 +270,18 @@ bool SplitTemplate<InheritType>::IsSplitDragValid() const
 template<typename InheritType>
 void SplitTemplate<InheritType>::StopSplitDrag() 
 {
+    Control* pLeftTop = m_pLeftTop;
+    Control* pRightBottom = m_pRightBottom;
+    bool bDragStarted = m_bDragStarted;
+
+    //先清理拖动状态，再发送事件（避免事件处理过程中再次结束拖动）
     m_pLeftTop = nullptr; 
     m_pRightBottom = nullptr;
+    m_bDragStarted = false;
+
+    if (bDragStarted) {
+        this->SendEvent(kEventSplitDragEnd, (WPARAM)pLeftTop, (LPARAM)pRightBottom);
+    }
 }
 
 template<typename InheritType>
@@ -508,6 +535,7 @@ bool SplitTemplate<InheritType>::ButtonDown(const EventArgs& msg)
         m_bHLayout = IsHLayout(pParent);
         bLayoutValid = m_bHLayout || IsVLayout(pParent);
     }
+    bool bStartDrag = false;
     if (bLayoutValid) {
         m_pLeftTop = pPrev;
         m_pRightBottom = pNext;
@@ -541,8 +569,17 @@ bool SplitTemplate<InheritType>::ButtonDown(const EventArgs& msg)
             m_nLeftTopFixedValue.IsStretch() && m_nRightBottomFixedValue.IsStretch()) {
             m_nLeftTopFixedValue.SetInt32(GetAxisSize(m_pLeftTop));
         }
+
+        //进入拖动状态，在重绘后发送拖动开始事件
+        if (!m_bDragStarted) {
+            m_bDragStarted = true;
+            bStartDrag = true;
+        }
     }
     this->Invalidate();
+    if (bStartDrag) {
+        this->SendEvent(kEventSplitDragBegin, (WPARAM)m_pLeftTop, (LPARAM)m_pRightBottom);
+    }
     return bRet;
 }
 
@@ -600,8 +637,8 @@ bool SplitTemplate<InheritType>::OnWindowKillFocus(const EventArgs& msg)
         return false;
     }
     //窗口失去焦点时收不到ButtonUp消息，需要结束拖动（避免遗留拖动状态，拖动状态改变后需要重绘）
-    StopSplitDrag();
     this->Invalidate();
+    StopSplitDrag();
     return bRet;
 }
 

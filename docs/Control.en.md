@@ -3332,7 +3332,15 @@ When dragging, the fixed width or fixed height of the two visible (non-float) si
 
 If the parent container's layout is not `HLayout` or `VLayout`, dragging is not supported and no resize cursor is shown. The `size_we`/`size_ns` cursor is shown on mouse enter only when the control is enabled and the adjacent controls meet the drag conditions; otherwise the default cursor is restored.
 
-The `kEventSplitDraged` event is fired after dragging (`wParam` is the left/top control, `lParam` is the right/bottom control, which may be `nullptr`). It is recommended to register the callback with the correctly spelled `AttachSplitDragged` (`AttachSplitDraged` is kept for compatibility with old code).
+Drag-related events (`wParam` is the left/top control, `lParam` is the right/bottom control, both may be `nullptr`):
+
+| Event | When it is fired | Recommended attach function | Notes |
+| :--- | :--- | :--- | :--- |
+| kEventSplitDragBegin | When dragging starts (mouse button pressed and drag conditions met) | AttachSplitDragBegin | Always paired with `kEventSplitDragEnd`; can be used to pause UI refreshes |
+| kEventSplitDraged | After the control sizes change during dragging | AttachSplitDragged | Can be used to save the layout in real time |
+| kEventSplitDragEnd | When dragging ends (mouse button released or the window loses focus) | AttachSplitDragEnd | Can be used to refresh the UI and persist sizes |
+
+`AttachSplitDragged` is the recommended spelling (`AttachSplitDraged` is kept for compatibility with old code). Even if no size changes, one `kEventSplitDragBegin` and one `kEventSplitDragEnd` are fired after dragging starts.
 
 When the `double_click_reset` attribute is `true`, double-clicking the splitter restores both adjacent controls to the sizes they had before the first drag: the splitter records the sizes of the two controls before the first drag starts (including fixed value, stretch and auto types) and restores them by their original type and value on double click, then re-layouts. Dragging can continue afterwards, and double-clicking again still restores the sizes from before the first drag. This attribute defaults to `false` so that scenarios handling double-click themselves (such as `ListCtrlHeader`) are not affected.
 

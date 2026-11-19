@@ -192,7 +192,9 @@ if (msg.eventType == eventType) {
 |kEventVisibleChanged|"VisibleChanged"|"visible_changed"|
 |kEventStateChanged|"StateChanged"|"state_changed"|
 |kEventSelectColor|"SelectColor"|"select_color"|
+|kEventSplitDragBegin|"SplitDragBegin"|"split_drag_begin"|
 |kEventSplitDraged|"SplitDraged"|"split_draged"|
+|kEventSplitDragEnd|"SplitDragEnd"|"split_drag_end"|
 |kEventElementFilled|"ElementFilled"|"element_filled"|
 |kEventEnterEdit|"EnterEdit"|"enter_edit"|
 |kEventLeaveEdit|"LeaveEdit"|"leave_edit"|

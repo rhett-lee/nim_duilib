@@ -3334,7 +3334,15 @@ RichTextVBox 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`�
 
 如果父容器的布局不是 `HLayout` 或者 `VLayout`，则不支持拖动，也不显示调整光标。只有控件可用、相邻控件满足拖动条件时，鼠标移入时才显示 `size_we`/`size_ns` 光标；不满足条件时恢复默认光标。
 
-拖动后触发 `kEventSplitDraged` 事件（`wParam` 为左侧/上侧控件，`lParam` 为右侧/下侧控件，可能为 `nullptr`），推荐使用拼写正确的 `AttachSplitDragged` 注册回调（`AttachSplitDraged` 保留是为了兼容旧代码）。
+拖动相关的事件（`wParam` 为左侧/上侧控件，`lParam` 为右侧/下侧控件，均可能为 `nullptr`）：
+
+| 事件 | 触发时机 | 推荐注册函数 | 说明 |
+| :--- | :--- | :--- | :--- |
+| kEventSplitDragBegin | 开始拖动时（鼠标按下且满足拖动条件） | AttachSplitDragBegin | 与 `kEventSplitDragEnd` 成对出现，可用于暂停界面刷新等 |
+| kEventSplitDraged | 拖动过程中控件尺寸变化后 | AttachSplitDragged | 可用于实时保存布局 |
+| kEventSplitDragEnd | 结束拖动时（鼠标抬起或窗口失去焦点） | AttachSplitDragEnd | 可在此时统一刷新界面、持久化尺寸 |
+
+`AttachSplitDragged` 为拼写正确的推荐用法（`AttachSplitDraged` 保留是为了兼容旧代码）。即使没有发生尺寸变化，拖动开始后也会触发一次 `kEventSplitDragBegin` 和一次 `kEventSplitDragEnd`。
 
 当属性 `double_click_reset` 为 `true` 时，双击分割条可以把两侧控件恢复到首次拖动前的尺寸：分割条会在第一次开始拖动前记录两侧控件的尺寸（包括固定值、拉伸、自动类型），双击时按记录的原始类型和值恢复，并重新布局；恢复后可以继续拖动，再次双击仍恢复到首次拖动前的尺寸。该属性默认为 `false`，避免影响自行处理双击事件的场景（如 `ListCtrlHeader`）。
 

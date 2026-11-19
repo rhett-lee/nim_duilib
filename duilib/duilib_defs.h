@@ -480,7 +480,9 @@ namespace ui
         kEventStateChanged,         //Control类：当控件的State属性发生变化时触发, WPARAM是新状态，LPARAM是旧状态
         kEventSelectColor,          //ColorPicker类：当选择了新颜色时触发, WPARAM是新的颜色值，LPARAM是旧的颜色值
 
+        kEventSplitDragBegin,       //Split类：开始拖动分割条时触发，WPARAM是第一个控件接口，LPARAM是第二个控件接口
         kEventSplitDraged,          //Split类：通过拖动操作调整了控件的大小，WPARAM是第一个控件接口，LPARAM是第二个控件接口
+        kEventSplitDragEnd,         //Split类：结束拖动分割条时触发，WPARAM是第一个控件接口，LPARAM是第二个控件接口
 
         kEventElementFilled,            //VirtualListBox类：视图数据项UI元素填充事件(虚表), wParam是Control*指针, lParam是数据元素索引号
 

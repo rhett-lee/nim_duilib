@@ -16,7 +16,8 @@
 | 10 | 代码重复与命名问题 | 已修复 |
 | 11 | 头注释与实现矛盾 | 已修复（代码注释 + `docs/Control.md` / `Control.en.md`） |
 | 三 | 双击复位 | 已实现（属性 `double_click_reset`，默认 `false`） |
-| 三 | 功能不足（拖动起止事件、拖动阈值等） | 未处理（规划中） |
+| 三 | 拖动开始/结束事件 | 已实现（`kEventSplitDragBegin` / `kEventSplitDragEnd` + `AttachSplitDragBegin` / `AttachSplitDragEnd`） |
+| 三 | 功能不足（拖动阈值、目标控件可指定等） | 未处理（规划中） |
 
 ## 一、结论
 
@@ -149,12 +150,21 @@ if ((nNewMax > 0) && (nMax > nNewMax)) { nMax = nNewMax; }
 - **交互结果**：复位后仍可继续拖动；再次双击仍恢复到"首次拖动前"的尺寸（初始值只记录一次，不随拖动更新）。
 - **验证**：Debug 版 `TreeView` 示例（非 DLL 模式）中给主分割条加 `double_click_reset="true"`，拖动使左面板由 280 增大到约 400，双击后恢复原宽度（截图测量：分割线物理像素 x 519 → 727 → 517），界面正常、无断言。
 
+### 拖动开始/结束事件实现说明
+
+- **事件定义**：在 `duilib_defs.h` 中新增 `kEventSplitDragBegin`、`kEventSplitDragEnd`（与 `kEventSplitDraged` 相邻），并在 `EventArgs.cpp` 中注册事件名称（`SplitDragBegin`/`split_drag_begin`、`SplitDragEnd`/`split_drag_end`），支持代码和 XML 两种方式绑定。
+- **注册函数**：`Split` 新增 `AttachSplitDragBegin()` / `AttachSplitDragEnd()`，参数格式与 `AttachSplitDragged()` 一致（`wParam` 为左侧/上侧控件，`lParam` 为右侧/下侧控件，均可能为 `nullptr`）。
+- **开始事件**：在 `ButtonDown` 中，当相邻控件解析成功、拖动条件满足时，先置"拖动中"标记，再在 `Invalidate()` 之后发送 `kEventSplitDragBegin`（避免回调中删除控件导致后续访问失效）。
+- **结束事件**：`StopSplitDrag()` 中先取出控件指针、清理拖动状态并复位标记，然后发送 `kEventSplitDragEnd`；鼠标抬起（`ButtonUp`）和窗口失去焦点（`OnWindowKillFocus`）都会结束拖动，事件成对出现。即使按下后没有移动，也会收到一次开始和一次结束事件。
+- **重入保护**：事件发送前已完成状态清理，回调中再次调用 `StopSplitDrag()` 不会重复触发结束事件；`OnWindowKillFocus` 中的重绘调整到结束拖动之前，避免回调中删除控件后继续访问。
+- **验证**：Debug 版 `TreeView`（非 DLL 模式）下执行拖动 + 双击操作，拖动和双击复位行为正常（分割线物理像素 x 519 → 727 → 517），进程无断言、无崩溃。
+
 ## 三、功能不足（建议补齐）
 
 | 能力 | 现状 | 建议 |
 | --- | --- | --- |
 | 双击复位 | 控件本身不支持（`ListCtrlHeader` 自己在 SplitBox 上挂双击） | 已实现：内建保存首次拖动前的 `fixed` 值（含固定/拉伸/自动类型），双击恢复；属性 `double_click_reset` 控制，默认 `false` |
-| 拖动开始/结束事件 | 只有 `kEventSplitDraged` | 增加 `kEventSplitDragBegin/kEventSplitDragEnd`，便于应用层暂停刷新、持久化布局 |
+| 拖动开始/结束事件 | 只有 `kEventSplitDraged` | 已实现：新增 `kEventSplitDragBegin/kEventSplitDragEnd`（`AttachSplitDragBegin/AttachSplitDragEnd`），便于应用层暂停刷新、持久化布局 |
 | 拖动阈值 | 无，轻微移动即改尺寸并发事件 | 1~2px（DPI 缩放）阈值，仅在超过后才开始调整 |
 | 目标控件可指定 | 只能取"同父容器内、可见、非 float 的前后兄弟" | 增加 `left_top_ctrl_name` / `right_bottom_ctrl_name`，支持跨容器分割 |
 | 键盘操作 | 无 | 聚焦后方向键 ±1/±10（配合 Shift）微调 |
