@@ -27,13 +27,28 @@ public:
     */
     virtual void HandleEvent(const EventArgs& msg) override;
 
+    /** 设置是否为键盘操作获得焦点（只有键盘操作时才绘制焦点框）
+    */
+    void SetKeyboardFocused(bool bKeyboardFocused) { m_bKeyboardFocus = bKeyboardFocused; }
+
+protected:
+    /** 是否绘制焦点框：仅键盘操作获得焦点，并且窗口处于激活状态时绘制
+    */
+    virtual bool ShouldPaintFocusRect() const override;
+
+    /** 绘制焦点框：使用圆角强调色描边，替代默认的虚线矩形
+    */
+    virtual void DoPaintFocusRect(IRender* pRender) override;
+
 private:
     MenuBar* m_pMenuBar;
+    bool m_bKeyboardFocus;  //是否由键盘操作获得焦点（鼠标点击时为false）
 };
 
 MenuBarButton::MenuBarButton(MenuBar* pMenuBar) :
     ButtonBox(pMenuBar->GetWindow()),
-    m_pMenuBar(pMenuBar)
+    m_pMenuBar(pMenuBar),
+    m_bKeyboardFocus(false)
 {
     //使用RichText模式
     //SetRichText(true);
@@ -55,6 +70,8 @@ bool MenuBarButton::MouseLeave(const EventArgs& msg)
 
 bool MenuBarButton::ButtonDown(const EventArgs& msg)
 {
+    //鼠标操作获得焦点时，不显示焦点框
+    m_bKeyboardFocus = false;
     bool bRet = BaseClass::ButtonDown(msg);
     if (IsActivatable()) {
         //鼠标按下时切换菜单（此时菜单窗口可能刚因失焦而关闭，需要按关联关系判断）
@@ -76,6 +93,8 @@ bool MenuBarButton::ButtonUp(const EventArgs& msg)
 void MenuBarButton::HandleEvent(const EventArgs& msg)
 {
     if ((msg.eventType == kEventKeyDown) && IsEnabled() && IsKeyboardEnabled()) {
+        //键盘操作获得焦点时，显示焦点框
+        m_bKeyboardFocus = true;
         if ((msg.vkCode == kVK_SPACE) || (msg.vkCode == kVK_RETURN)) {
             //键盘回车/空格激活，与鼠标点击走同一入口
             m_pMenuBar->TogglePopupMenu(this);
@@ -88,6 +107,46 @@ void MenuBarButton::HandleEvent(const EventArgs& msg)
         }
     }
     BaseClass::HandleEvent(msg);
+}
+
+bool MenuBarButton::ShouldPaintFocusRect() const
+{
+    //只有通过键盘操作(如F10、Alt、回车等)获得焦点时才显示焦点框
+    return m_bKeyboardFocus && BaseClass::ShouldPaintFocusRect();
+}
+
+void MenuBarButton::DoPaintFocusRect(IRender* pRender)
+{
+    if (pRender == nullptr) {
+        return;
+    }
+    //圆角描边样式的焦点框：贴合按钮的圆角，使用强调色，比默认虚线矩形更美观
+    UiRect rcFocusRect = GetRect();
+    const int32_t nInset = Dpi().GetScaleInt(1);
+    rcFocusRect.Deflate(nInset, nInset);
+    if (rcFocusRect.IsEmpty()) {
+        return;
+    }
+    UiColor borderColor = GetUiColor(GetFocusedRectColor());
+    if (borderColor.IsEmpty()) {
+        borderColor = GetUiColor(_T("color_accent"));
+    }
+    if (borderColor.IsEmpty()) {
+        borderColor = GetUiColor(_T("border_focus_ring"));
+    }
+    if (borderColor.IsEmpty()) {
+        borderColor = GetUiColor(_T("text_menu_bar"));
+    }
+    if (borderColor.IsEmpty()) {
+        borderColor = UiColor(UiColors::Gray);
+    }
+    float fWidth = Dpi().GetScaleFloat(1.5f);
+    if (fWidth < 1.0f) {
+        fWidth = 1.0f;
+    }
+    const float fRadius = (float)Dpi().GetScaleInt(5);
+    pRender->DrawRoundRect(UiRectF(rcFocusRect.left, rcFocusRect.top, rcFocusRect.right, rcFocusRect.bottom),
+                           fRadius, fRadius, borderColor, fWidth);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -450,6 +509,7 @@ void MenuBar::FocusTopMenuButton()
     if ((nActiveIndex >= 0) && (nActiveIndex < (int32_t)m_topMenuList.size())) {
         MenuBarButton* pButton = m_topMenuList[nActiveIndex].m_pButton.get();
         if ((pButton != nullptr) && pButton->IsVisible() && pButton->IsEnabled()) {
+            pButton->SetKeyboardFocused(true);
             pButton->SetFocus();
             return;
         }
@@ -457,6 +517,7 @@ void MenuBar::FocusTopMenuButton()
     for (TopMenuData& menuData : m_topMenuList) {
         MenuBarButton* pButton = menuData.m_pButton.get();
         if ((pButton != nullptr) && pButton->IsVisible() && pButton->IsEnabled()) {
+            pButton->SetKeyboardFocused(true);
             pButton->SetFocus();
             return;
         }
@@ -691,6 +752,7 @@ void MenuBar::OnMenuKeyDownMsg(Menu* pMenu, VirtualKeyCode vkCode, uint32_t /*mo
         //关闭一级菜单后，把键盘焦点还给对应的顶级菜单按钮
         MenuBarButton* pButton = dynamic_cast<MenuBarButton*>(pMenu->GetRelatedControl());
         if (pButton != nullptr) {
+            pButton->SetKeyboardFocused(true);
             pButton->SetFocus();
         }
         return;

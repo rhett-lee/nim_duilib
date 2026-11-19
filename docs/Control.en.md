@@ -785,7 +785,7 @@ The Menu control inherits the `Window` attributes. For more available attributes
 ## Attributes of MenuBar (inherits HBox attributes)
 MenuBar is a menu bar control inside a window. It displays top-level menu items. Clicking a top-level menu (by mouse, or by pressing Enter/Space when focused) pops up the corresponding menu window. While a menu is open, hovering another top-level menu switches to it. After a menu item is activated (by mouse click or Enter key), the callback registered with `AttachMenuBarItemActivated` is invoked.
 
-Keyboard: press F10 or Alt to move focus to the menu bar; with a button focused, press Enter/Space to open (press again to close) or press Down to open; while a menu is open, use Left/Right to switch top-level menus and Esc to close it and return focus to the menu button. An accent indicator line is drawn under the open top-level menu.
+Keyboard: press F10 or Alt to move focus to the menu bar; with a button focused, press Enter/Space to open (press again to close) or press Down to open; while a menu is open, use Left/Right to switch top-level menus and Esc to close it and return focus to the menu button. The focus ring is shown only when focus is acquired through the keyboard (F10/Alt/Enter, etc.); it is an accent-colored outline that follows the button's rounded corners and is not shown for mouse clicks. An accent indicator line is drawn under the open top-level menu.
 
 The `MenuBarItem` node in XML can only be a child of `MenuBar`. Its supported attributes are:
 

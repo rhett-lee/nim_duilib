@@ -4235,15 +4235,19 @@ bool Control::ShouldBeRoundRectBorders() const
 
 void Control::PaintFocusRect(IRender* pRender)
 {
-    if ((pRender == nullptr) || !IsShowFocusedRect() || !IsFocused()) {
-        return;
+    if ((pRender != nullptr) && ShouldPaintFocusRect()) {
+        DoPaintFocusRect(pRender);    //绘制焦点状态
+    }
+}
+
+bool Control::ShouldPaintFocusRect() const
+{
+    if (!IsShowFocusedRect() || !IsFocused()) {
+        return false;
     }
     //窗口不是激活状态时(如弹层菜单已打开)，不绘制焦点框，避免焦点框残留在非活动窗口上
     Window* pWindow = GetWindow();
-    if ((pWindow == nullptr) || !pWindow->IsWindowFocused()) {
-        return;
-    }
-    DoPaintFocusRect(pRender);    //绘制焦点状态
+    return (pWindow != nullptr) && pWindow->IsWindowFocused();
 }
 
 void Control::DoPaintFocusRect(IRender* pRender)

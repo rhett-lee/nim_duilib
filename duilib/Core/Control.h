@@ -1450,6 +1450,11 @@ protected:
     virtual void PaintText(IRender* pRender);           //绘制文本
     virtual void PaintBorder(IRender* pRender);         //绘制边框
     virtual void PaintFocusRect(IRender* pRender);      //绘制焦点状态下的虚框
+
+    /** 是否绘制焦点框（默认为：开启焦点框属性、控件有焦点、并且所属窗口处于激活状态）
+    * @return true 表示需要绘制焦点框；派生类可以重写，以实现更精细的控制（如只响应键盘操作）
+    */
+    virtual bool ShouldPaintFocusRect() const;
     virtual void PaintLoading(IRender* pRender, const UiRect& rcPaint);//绘制控件loading状态
 
 protected:
@@ -1545,9 +1550,9 @@ protected:
     */
     void SetPaintRect(const UiRect& rect);
 
-    /** 绘制焦点状态的矩形（虚线组成的矩形）
+    /** 绘制焦点状态的矩形（派生类可以重写，绘制不同样式的焦点框）
     */
-    void DoPaintFocusRect(IRender* pRender);
+    virtual void DoPaintFocusRect(IRender* pRender);
 
     /** 暂停该控件内的所有动画播放(背景图片的动画等)
     */
