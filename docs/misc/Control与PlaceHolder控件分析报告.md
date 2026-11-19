@@ -4,7 +4,7 @@
 
 ## 处理状态
 
-本轮已完成 PH-1、PH-2、PH-3、PH-4、PH-5、PH-6，其余项仍为“待处理”。
+本轮已完成 PH-1、PH-2、PH-3、PH-4、PH-5、PH-6、PH-7，其余项仍为“待处理”。
 
 | 编号 | 类别 | 内容 | 状态 |
 | --- | --- | --- | --- |
@@ -14,7 +14,7 @@
 | PH-4 | 交互 | 运行时修改 `rowSpan` / `columnSpan` 不触发布局 | 已修复 |
 | PH-5 | 交互 | `SetEnableControlPadding` 不触发重新布局 | 已修复 |
 | PH-6 | 健壮性 | `maxWidth` / `maxHeight` 允许小于 `min`，非法值被静默吞掉 | 已修复 |
-| PH-7 | 代码质量 | `SetMargin` 与 `SetPadding` 的负值处理不一致、存在冗余钳制 | 待处理 |
+| PH-7 | 代码质量 | `SetMargin` 与 `SetPadding` 的负值处理不一致、存在冗余钳制 | 已修复 |
 | PH-8 | 文档 | `InvalidateRect()` 的坐标空间未说明；大内容下仍使用 32 位偏移 | 待处理 |
 | PH-9 | API | `GetAncestor()` 缺少 `const` 重载 | 待处理 |
 | C-1 | 正确性 | `SetShowFocusedRect` / `SetFocusedRectColor` 修改后不重绘 | 待处理 |
@@ -112,12 +112,12 @@
   - Getter 的异常兜底由 `INT32_MAX` 改为返回 min（`max < min` 时以 min 为准），保证下游 `std::clamp` 不会出现未定义行为；
   - 提前返回条件同步扩展为“值未变化且不破坏不变量”，避免无意义的数据分配与重排。
 
-**PH-7 负值处理不一致（非功能缺陷）**
+**PH-7 负值处理不一致（已修复）**
 
-- 位置：`SetMargin()`（约 465-492 行）与 `SetPadding()`（约 499-518 行）。
-- 说明：`SetMargin` 在 `Validate()` 之后又手工把四个方向钳到 `>= 0`；`SetPadding` 依赖 `TruncateToUInt16(int32_t)`（`duilib/Core/UiTypes.h` 约 232-238 行）把负值钳到 0。
+- 位置：`SetMargin()`（约 491-506 行）与 `SetPadding()`（约 513-532 行）。
+- 说明：`SetMargin` 在 `Validate()` 之后又手工把四个方向钳到 `>= 0`；`SetPadding` 依赖 `Validate()` + `TruncateToUInt16(int32_t)`（`duilib/Core/UiTypes.h` 约 232-238 行）把负值钳到 0。
 - 结论：**不会出现负值转成 65531 的问题**，因为 `TruncateToUInt16` 已做下限钳制；此处仅属于重复代码与风格不一致。
-- 建议：提取统一的值校验函数，两个 Setter 复用。
+- 修复：删除 `SetMargin` 中 `Validate()` 之后的 4 段重复负值钳制，两个 Setter 统一为“`ASSERT` → `Validate()` → 按需 DPI 缩放 → 比较 → `TruncateToUInt16` 存储”，行为不变。
 
 **PH-8 重绘接口的坐标契约与 64 位支持**
 

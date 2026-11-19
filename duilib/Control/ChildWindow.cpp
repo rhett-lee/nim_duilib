@@ -49,18 +49,6 @@ void ChildWindow::SetChildWindowMargin(UiMargin rcMargin, bool bNeedDpiScale)
     if (bNeedDpiScale) {
         Dpi().ScaleMargin(rcMargin);
     }
-    if (rcMargin.left < 0) {
-        rcMargin.left = 0;
-    }
-    if (rcMargin.top < 0) {
-        rcMargin.top = 0;
-    }
-    if (rcMargin.right < 0) {
-        rcMargin.right = 0;
-    }
-    if (rcMargin.bottom < 0) {
-        rcMargin.bottom = 0;
-    }
     if (rcMargin != m_childWindowMargin) {
         m_childWindowMargin = rcMargin;
         ArrangeAncestor();
