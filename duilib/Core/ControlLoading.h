@@ -39,7 +39,7 @@ class DUILIB_API ControlLoading: public SupportWeakCallback
 {
 public:
     explicit ControlLoading(Control* pControl);
-    virtual ~ControlLoading() override;
+    virtual ~ControlLoading();
     ControlLoading(const ControlLoading&) = delete;
     ControlLoading& operator = (const ControlLoading&) = delete;
 

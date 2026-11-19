@@ -18,7 +18,7 @@ class DUILIB_API Image : public virtual SupportWeakCallback
 {
 public:
     Image();
-    ~Image();
+    virtual ~Image();
     Image(const Image&) = delete;
     Image& operator=(const Image&) = delete;
 

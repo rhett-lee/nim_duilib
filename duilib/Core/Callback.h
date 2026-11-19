@@ -83,7 +83,10 @@ public:
     typedef std::weak_ptr<WeakFlag> _TyWeakFlag;
 public:
     SupportWeakCallback() = default;
-    virtual ~SupportWeakCallback() = default;
+    //注意：这里不声明虚析构函数，避免为该类的派生类额外引入虚表指针（节省内存）；
+    //该基类只用于提供弱回调标志，不支持通过SupportWeakCallback*指针删除派生类对象，
+    //如某个派生类需要多态删除，应由该派生类自行声明虚析构函数
+    ~SupportWeakCallback() = default;
 
     template<typename CallbackType>
     auto ToWeakCallback(const CallbackType& closure)

@@ -23,7 +23,7 @@ public:
 
     /** 析构函数
     */
-    virtual ~ExplorerView() override;
+    virtual ~ExplorerView();
 
 public:
     /** 用新的文件列表，替换原来的列表

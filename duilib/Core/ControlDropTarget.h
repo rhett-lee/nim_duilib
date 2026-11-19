@@ -15,6 +15,8 @@ class Control;
 class DUILIB_API ControlDropTarget_Windows : public virtual SupportWeakCallback
 {
 public:
+    virtual ~ControlDropTarget_Windows() = default;
+
     /** IDropTarget::DragEnter
     */
     virtual int32_t DragEnter(void* pDataObj, uint32_t grfKeyState, const UiPoint& pt, uint32_t* pdwEffect) = 0;
@@ -37,6 +39,8 @@ public:
 class DUILIB_API ControlDropTarget_SDL : public virtual SupportWeakCallback
 {
 public:
+    virtual ~ControlDropTarget_SDL() = default;
+
     /** SDL_EVENT_DROP_BEGIN
     * @param [in] pt 客户区坐标
     * @return 成功返回0，失败返回非0

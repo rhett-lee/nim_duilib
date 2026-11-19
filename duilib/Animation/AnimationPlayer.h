@@ -23,7 +23,7 @@ class DUILIB_API AnimationPlayer : public virtual SupportWeakCallback
 {
 public:
     AnimationPlayer();
-    virtual ~AnimationPlayer() override;
+    virtual ~AnimationPlayer();
 
     AnimationPlayer(const AnimationPlayer& r) = delete;
     AnimationPlayer& operator=(const AnimationPlayer& r) = delete;

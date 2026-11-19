@@ -32,6 +32,8 @@ class Control;
 class DUILIB_API INativeWindow: public virtual SupportWeakCallback
 {
 public:
+    virtual ~INativeWindow() = default;
+
     /** 获取该窗口对应的DPI管理器
     */
     virtual const DpiManager& OnNativeGetDpi() const = 0;

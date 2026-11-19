@@ -37,6 +37,8 @@ struct DUILIB_API FontMetrics
 class DUILIB_API IFont: public virtual SupportWeakCallback
 {
 public:
+    virtual ~IFont() = default;
+
     /** 初始化字体(内部未对字体大小做DPI自适应)
      */
     virtual bool InitFont(const UiFont& fontInfo) = 0;
@@ -105,6 +107,8 @@ public:
 class DUILIB_API IFallbackFontMgr : public virtual SupportWeakCallback
 {
 public:
+    virtual ~IFallbackFontMgr() = default;
+
     /** 创建指定字体的回退字体接口
     * @param [in] pFont 当前字体接口
     * @param [in] unicodeChar UTF32字符，如果为0表示不校验字符是否支持
@@ -118,6 +122,8 @@ public:
 class DUILIB_API IFontMgr : public virtual SupportWeakCallback
 {
 public:
+    virtual ~IFontMgr() = default;
+
     /** 获取字体个数
     * @return 返回字体的个数
     */
@@ -187,6 +193,8 @@ enum class DUILIB_API AlphaType: int
 class DUILIB_API IBitmap : public virtual SupportWeakCallback
 {
 public:
+    virtual ~IBitmap() = default;
+
     /** 从数据初始化（ARGB格式）
     @param [in] nWidth 宽度（像素）
     @param [in] nHeight 高度（像素）
@@ -255,6 +263,8 @@ public:
 class DUILIB_API IPen : public virtual SupportWeakCallback
 {
 public:
+    virtual ~IPen() = default;
+
     /** 设置画笔宽度
     */
     virtual void SetWidth(float fWidth) = 0;
@@ -379,6 +389,8 @@ public:
 class DUILIB_API IBrush : public virtual SupportWeakCallback
 {
 public:
+    virtual ~IBrush() = default;
+
     /** 画刷类型
     */
     enum class BrushType
@@ -423,6 +435,8 @@ class IMatrix;
 class DUILIB_API IPath : public virtual SupportWeakCallback
 {
 public:    
+    virtual ~IPath() = default;
+
     /** 填充类型，在路径或曲线相交时如何填充形成的区域
     */
     enum class FillType 
@@ -557,6 +571,8 @@ public:
 class DUILIB_API IMatrix : public SupportWeakCallback
 {
 public:
+    virtual ~IMatrix() = default;
+
     /** 平移操作（设置当前矩阵为纯平移矩阵，覆盖之前的变换）
     * 注意：本接口以及下面的 Scale/Rotate/Skew 都是"设置"矩阵，不是"叠加"变换；
     *       需要组合多种变换时，请分别创建矩阵，并使用 Concat 按顺序叠加。
@@ -635,6 +651,8 @@ public:
 class DUILIB_API IRenderDpi : public SupportWeakCallback
 {
 public:
+    virtual ~IRenderDpi() = default;
+
     /** 根据界面缩放比来缩放整数
     * @param [in] iValue 整数
     * @return int 缩放后的值
@@ -1600,6 +1618,8 @@ class IRenderFactory;
 class DUILIB_API IRender : public virtual SupportWeakCallback
 {
 public:
+    virtual ~IRender() = default;
+
     /** 获取后台渲染的类型
     */
     virtual RenderBackendType GetRenderBackendType() const = 0;

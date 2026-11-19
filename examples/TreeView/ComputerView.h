@@ -20,7 +20,7 @@ public:
 
     /** 析构函数
     */
-    virtual ~ComputerView() override;
+    virtual ~ComputerView();
 
 public:
     /** 显示"计算机"节点的内容

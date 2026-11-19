@@ -44,7 +44,7 @@ public:
     * @param [in] nThreadIdentifier 线程标识ID，跨线程通信时需要用到此值
     */
     FrameworkThread(const DString& threadName, int32_t nThreadIdentifier);
-    virtual ~FrameworkThread() override;
+    virtual ~FrameworkThread();
     FrameworkThread(const FrameworkThread&) = delete;
     FrameworkThread& operator = (const FrameworkThread&) = delete;
 

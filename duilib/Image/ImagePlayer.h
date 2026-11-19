@@ -17,7 +17,7 @@ class DUILIB_API ImagePlayer: public SupportWeakCallback
 {
 public:
     ImagePlayer();
-    virtual ~ImagePlayer() override;
+    virtual ~ImagePlayer();
     ImagePlayer(const ImagePlayer&) = delete;
     ImagePlayer& operator = (const ImagePlayer&) = delete;
 

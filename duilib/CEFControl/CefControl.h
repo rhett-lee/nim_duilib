@@ -24,6 +24,11 @@ class DUILIB_API CefControl: public Control, public CefBrowserHandlerDelegate
 {
     typedef Control BaseClass;
 public:
+    //CefControl同时继承Control与CefBrowserHandlerDelegate，二者均含SupportWeakCallback基类，
+    //这里明确使用Control对应的实现，避免弱回调相关接口的访问出现二义性
+    using BaseClass::GetWeakFlag;
+    using BaseClass::ToWeakCallback;
+
     explicit CefControl(ui::Window* pWindow);
     virtual ~CefControl() override;
 

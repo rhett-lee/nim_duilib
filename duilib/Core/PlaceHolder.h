@@ -12,13 +12,13 @@ namespace ui
 
 /** 控件的位置、大小、外观形状的基本封装
 */
-class DUILIB_API PlaceHolder : public virtual SupportWeakCallback
+class DUILIB_API PlaceHolder : public SupportWeakCallback
 {
 public:
     explicit PlaceHolder(Window* pWindow);
     PlaceHolder(const PlaceHolder& r) = delete;
     PlaceHolder& operator=(const PlaceHolder& r) = delete;
-    virtual ~PlaceHolder() override;
+    virtual ~PlaceHolder();
 
     /** 控件类型
     */

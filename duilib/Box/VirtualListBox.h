@@ -18,6 +18,7 @@ class DUILIB_API VirtualListBoxElement : public virtual SupportWeakCallback
 {
 public:
     VirtualListBoxElement();
+    virtual ~VirtualListBoxElement() = default;
 
     /** 创建一个数据项
     * @param [in] pVirtualListBox 关联的虚表的接口

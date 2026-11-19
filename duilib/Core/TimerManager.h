@@ -25,7 +25,7 @@ class DUILIB_API TimerManager: public SupportWeakCallback
 {
 public:
     TimerManager();
-    virtual ~TimerManager() override;
+    virtual ~TimerManager();
     TimerManager(const TimerManager&) = delete;
     TimerManager& operator = (const TimerManager&) = delete;
 
