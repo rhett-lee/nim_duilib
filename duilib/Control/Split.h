@@ -3,6 +3,7 @@
 
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Box.h"
+#include "duilib/Control/Label.h"
 
 namespace ui
 {
@@ -20,6 +21,7 @@ namespace ui
 *   属性 left_top_ctrl_name / right_bottom_ctrl_name 可以显式指定要调整的两个控件的名称（在同一个窗口内查找），
 *   不指定时默认使用同一父容器中、位于分割条前面和后面的两个可见控件；指定目标控件后支持跨容器调整尺寸。
 *   控件获得焦点后，支持键盘操作：按布局方向的方向键微调尺寸（Shift + 方向键为大步进），步长由属性 keyboard_step 控制。
+*   属性 drag_size_tip 为 true 时，拖动过程中在分割条附近显示当前尺寸提示（默认不显示）。
 *   拖动开始、拖动过程和拖动结束时，分别触发 kEventSplitDragBegin、kEventSplitDraged、kEventSplitDragEnd 事件。
 */
 template<typename InheritType = Control>
@@ -93,6 +95,15 @@ public:
     */
     int32_t GetKeyboardStep() const;
 
+    /** 设置拖动过程中，是否在分割条附近显示当前尺寸的提示
+    * @param [in] bDragSizeTip true表示显示尺寸提示，false表示不显示，默认值为false
+    */
+    void SetDragSizeTip(bool bDragSizeTip);
+
+    /** 获取拖动过程中，是否在分割条附近显示当前尺寸的提示
+    */
+    bool IsDragSizeTip() const;
+
     /** 监听开始拖动的事件（WPARAM 为左侧/上侧控件，LPARAM 为右侧/下侧控件，可能为 nullptr）
      * @param [in] callback 开始拖动时触发的回调函数
      * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
@@ -159,6 +170,15 @@ private:
     * @param [in] nOffset 偏移量（像素），正数表示向右/向下移动分割条
     */
     void ApplyDragOffsetSingle(int32_t nOffset);
+
+    /** 显示拖动尺寸提示
+    * @param [in] nSize 当前调整的控件在布局方向上的尺寸
+    */
+    void ShowDragSizeTip(int32_t nSize);
+
+    /** 隐藏拖动尺寸提示
+    */
+    void HideDragSizeTip();
 
     /** 查找同级的相邻控件（前一个和后一个可见的、非float的控件）
     *   如果通过 left_top_ctrl_name / right_bottom_ctrl_name 指定了目标控件，则优先使用指定的控件
@@ -269,6 +289,12 @@ private:
     //键盘操作时，每次按方向键调整的尺寸（单位是 96 DPI 的逻辑像素，0 表示不启用键盘操作）
     int32_t m_nKeyboardStep;
 
+    //拖动过程中，是否在分割条附近显示当前尺寸的提示
+    bool m_bDragSizeTip;
+
+    //拖动尺寸提示的控件（拖动过程中动态创建，随父容器一起销毁）
+    ControlPtr m_pDragSizeTip;
+
     /** 当只有一个控件的时候，是否允许调整其宽度
     */
     bool m_bEnableSplitSingle;
@@ -289,6 +315,7 @@ SplitTemplate<InheritType>::SplitTemplate(Window* pWindow):
     m_nDragThreshold(2),
     m_bDragThresholdExceeded(false),
     m_nKeyboardStep(10),
+    m_bDragSizeTip(false),
     m_bEnableSplitSingle(false),
     m_bDoubleClickReset(false)
 {
@@ -322,6 +349,9 @@ void SplitTemplate<InheritType>::SetAttribute(const DString& strName, const DStr
     }
     else if (strName == _T("keyboard_step")) {
         SetKeyboardStep(StringUtil::StringToInt32(strNewValue));
+    }
+    else if (strName == _T("drag_size_tip")) {
+        SetDragSizeTip(StringUtil::IsValueTrue(strNewValue));
     }
     else {
         BaseClass::SetAttribute(strName, strNewValue);
@@ -408,6 +438,108 @@ int32_t SplitTemplate<InheritType>::GetKeyboardStep() const
 }
 
 template<typename InheritType>
+void SplitTemplate<InheritType>::SetDragSizeTip(bool bDragSizeTip)
+{
+    m_bDragSizeTip = bDragSizeTip;
+    if (!m_bDragSizeTip) {
+        HideDragSizeTip();
+    }
+}
+
+template<typename InheritType>
+bool SplitTemplate<InheritType>::IsDragSizeTip() const
+{
+    return m_bDragSizeTip;
+}
+
+template<typename InheritType>
+void SplitTemplate<InheritType>::ShowDragSizeTip(int32_t nSize)
+{
+    if (!m_bDragSizeTip) {
+        return;
+    }
+    Box* pParent = this->GetParent();
+    if (pParent == nullptr) {
+        return;
+    }
+    const DpiManager& dpi = this->Dpi();
+    //提示框的宽度和高度（固定尺寸：避免设置文本时触发父容器重新布局，导致浮动控件的位置被重置）
+    const int32_t nTipWidth = dpi.GetScaleInt(76);
+    const int32_t nTipHeight = dpi.GetScaleInt(22);
+
+    Label* pTip = dynamic_cast<Label*>(m_pDragSizeTip.get());
+    if (pTip == nullptr) {
+        //首次显示时，动态创建提示控件（float 控件，不参与父容器的布局）
+        pTip = new Label(this->GetWindow());
+        pTip->SetFloat(true);
+        //保持外部设置的位置：父容器布局时，浮动控件的位置不会被重置
+        pTip->SetKeepFloatPos(true);
+        pTip->SetMouseEnabled(false);
+        pTip->SetBkColor(_T("#E6323232"));
+        const int32_t nRound = dpi.GetScaleInt(4);
+        pTip->SetBorderRound(UiSize(nRound, nRound));
+        pTip->SetTextStyle(TEXT_SINGLELINE | TEXT_HCENTER | TEXT_VCENTER, false);
+        pTip->SetStateTextColor(kControlStateNormal, _T("#FFFFFFFF"));
+        //宽度和高度使用固定值（而非默认的auto），设置文本时只重绘，不触发布局重排
+        pTip->SetFixedWidth(UiFixedInt(nTipWidth), false, false);
+        pTip->SetFixedHeight(UiFixedInt(nTipHeight), false, false);
+        pParent->AddItem(pTip);
+        m_pDragSizeTip = pTip;
+        if (m_pDragSizeTip.get() == nullptr) {
+            return;
+        }
+    }
+
+    //计算提示框的位置：显示在分割条的中部，横向布局在右侧、纵向布局在下方；空间不足时放到另一侧
+    //注意：SetPos 使用的是窗口坐标系（与 GetPos/GetRect 一致）
+    const UiRect rcSplit = this->GetPos();
+    const UiRect rcParent = pParent->GetRect();
+    const int32_t nMargin = dpi.GetScaleInt(6);
+    int32_t nLeft = 0;
+    int32_t nTop = 0;
+    if (m_bHLayout) {
+        nLeft = rcSplit.right + nMargin;
+        if (nLeft + nTipWidth > rcParent.right) {
+            nLeft = rcSplit.left - nTipWidth - nMargin;
+        }
+        nTop = rcSplit.top + (rcSplit.Height() - nTipHeight) / 2;
+    }
+    else {
+        nTop = rcSplit.bottom + nMargin;
+        if (nTop + nTipHeight > rcParent.bottom) {
+            nTop = rcSplit.top - nTipHeight - nMargin;
+        }
+        nLeft = rcSplit.left + (rcSplit.Width() - nTipWidth) / 2;
+    }
+    //限制在父容器范围内（提示框是父容器的子控件，超出部分会被裁剪）
+    if (nLeft + nTipWidth > rcParent.right) {
+        nLeft = rcParent.right - nTipWidth;
+    }
+    if (nTop + nTipHeight > rcParent.bottom) {
+        nTop = rcParent.bottom - nTipHeight;
+    }
+    if (nLeft < rcParent.left) {
+        nLeft = rcParent.left;
+    }
+    if (nTop < rcParent.top) {
+        nTop = rcParent.top;
+    }
+    pTip->SetPos(UiRect(nLeft, nTop, nLeft + nTipWidth, nTop + nTipHeight));
+    //显示的数值使用 96 DPI 的逻辑像素（与XML中配置的尺寸单位一致）
+    pTip->SetText(StringUtil::Printf(_T("%d px"), dpi.GetUnscaleInt(nSize)));
+    pTip->SetVisible(true);
+}
+
+template<typename InheritType>
+void SplitTemplate<InheritType>::HideDragSizeTip()
+{
+    Control* pTip = m_pDragSizeTip.get();
+    if (pTip != nullptr) {
+        pTip->SetVisible(false);
+    }
+}
+
+template<typename InheritType>
 Control* SplitTemplate<InheritType>::FindTargetControl(const DString& strCtrlName) const
 {
     if (strCtrlName.empty()) {
@@ -467,6 +599,7 @@ void SplitTemplate<InheritType>::StopSplitDrag()
     m_pLeftTop = nullptr; 
     m_pRightBottom = nullptr;
     m_bDragStarted = false;
+    HideDragSizeTip();
 
     if (bDragStarted) {
         this->SendEvent(kEventSplitDragEnd, (WPARAM)pLeftTop, (LPARAM)pRightBottom);
@@ -1005,6 +1138,11 @@ bool SplitTemplate<InheritType>::MouseMove(const EventArgs& msg)
         return bRet;
     }
     ApplyDragOffset(nOffset);
+    //显示当前尺寸提示（仅鼠标拖动时显示）
+    Control* pTipControl = (m_pLeftTop != nullptr) ? m_pLeftTop : m_pRightBottom;
+    if (pTipControl != nullptr) {
+        ShowDragSizeTip(GetAxisSize(pTipControl));
+    }
     return bRet;
 }
 
@@ -1120,6 +1258,11 @@ void SplitTemplate<InheritType>::OnMouseMoveSingle(const EventArgs& msg)
         return;
     }
     ApplyDragOffsetSingle(nOffset);
+    //显示当前尺寸提示（仅鼠标拖动时显示）
+    Control* pTipControl = (m_pLeftTop != nullptr) ? m_pLeftTop : m_pRightBottom;
+    if (pTipControl != nullptr) {
+        ShowDragSizeTip(GetAxisSize(pTipControl));
+    }
 }
 
 template<typename InheritType>

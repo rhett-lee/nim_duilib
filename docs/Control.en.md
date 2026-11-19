@@ -3350,11 +3350,14 @@ The `left_top_ctrl_name` / `right_bottom_ctrl_name` attributes explicitly specif
 
 Once the splitter has focus (it takes focus automatically on mouse down), keyboard operation is supported: use `←` / `→` in a horizontal layout and `↑` / `↓` in a vertical layout to fine-tune the sizes of both controls, by `keyboard_step` 96 DPI logical pixels per press (default `10`, scaled by the current DPI); hold `Shift` for a large step (10 times the step). Setting the `keyboard_step` attribute to `0` disables keyboard operation. Keyboard adjustment fires the `kEventSplitDraged` event but not the drag begin/end events.
 
+When `drag_size_tip` is `true`, a floating tooltip is shown near the middle of the splitter while dragging with the mouse, displaying the current size of the control being adjusted along the layout direction in real time (in 96 DPI logical pixels, the same unit used in XML). In a horizontal layout the tooltip appears to the right of the splitter; in a vertical layout it appears below the splitter. When there is not enough space it moves to the other side and is always kept inside the parent container. The tooltip is hidden automatically when the mouse button is released, the window loses focus, or the attribute is set to `false`. It defaults to `false` (no tooltip) and is not shown for keyboard adjustments.
+
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |
 | enable_split_single | false | bool | Whether to allow adjusting its width when there is only one control |
 | double_click_reset | false | bool | Whether double-clicking the splitter restores both adjacent controls to the sizes they had before the first drag |
 | drag_threshold | 2 | int | Drag threshold (96 DPI logical pixels); sizes are adjusted only after the mouse moves farther than this distance; 0 disables the threshold |
+| drag_size_tip | false | bool | Whether to show a tooltip with the current size near the splitter while dragging with the mouse |
 | left_top_ctrl_name | | string | Name of the left/top target control (looked up in the same window); when empty, the preceding visible control in the same parent container is used |
 | right_bottom_ctrl_name | | string | Name of the right/bottom target control (looked up in the same window); when empty, the following visible control in the same parent container is used |
 | keyboard_step | 10 | int | Size adjustment per arrow-key press during keyboard operation (96 DPI logical pixels); 0 disables keyboard operation; Shift + arrow key uses 10 times the step |
