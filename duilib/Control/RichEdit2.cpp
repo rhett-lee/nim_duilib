@@ -145,8 +145,6 @@ RichEdit2::RichEdit2(Window* pWindow) :
     m_nDropTextPos(-1)
 {
     m_pTextData = new RichEditData(this);
-    //交互控件的键盘焦点反馈：默认显示焦点框（仅在键盘操作后绘制，鼠标操作时不显示）
-    SetShowFocusedRect(true);
 }
 
 RichEdit2::~RichEdit2()
@@ -3911,9 +3909,7 @@ bool RichEdit2::OnSetFocus(const EventArgs& /*msg*/)
     }
 
     //不调用基类的方法
-    if (GetState() == kControlStateNormal) {
-        SetState(kControlStateHovered);
-    }
+    //焦点视觉由焦点框表达，不再借用Hovered状态
 
     Invalidate();
     return true;

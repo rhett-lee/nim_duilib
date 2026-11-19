@@ -30,7 +30,7 @@
 | C-11 | 结构 | `Control.h` 职责过重、`AttachXXX` 样板代码过多 | 不处理 |
 | U-1 | 美观度 | 通用焦点框为内缩 3px 的方形点线，观感较差 | 已修复 |
 | U-2 | 交互 | 焦点框只应在键盘操作后出现（MenuBar 方案已通用化到 Window） | 已修复 |
-| U-3 | 交互 | 键盘焦点复用鼠标悬浮状态，导致悬浮状态被误清除 | 待处理 |
+| U-3 | 交互 | 键盘焦点复用鼠标悬浮状态，导致悬浮状态被误清除 | 已修复 |
 | U-4 | 美观度 | ToolTip 最大宽度在高 DPI 下偏窄 | 待处理 |
 | U-5 | 美观度 | 高 DPI 下边框/焦点框细线可能时隐时现 | 待处理 |
 
@@ -220,17 +220,19 @@
   4. `Control::ShouldPaintFocusRect()` 增加该条件判断；`TabCtrl::PaintTabFocusRect()` 同步判断；
   5. 移除 `MenuBarButton` 的 `m_bKeyboardFocus` / `SetKeyboardFocused()` / `ShouldPaintFocusRect()` 重写，统一由窗口状态驱动。
 - 效果：键盘操作（Tab、方向键、F10/Alt、回车等）后显示焦点框；鼠标按下后立即隐藏，与 Windows 原生行为一致。
-- 配套调整（默认开启策略）：`Control` 仍保持默认 `false`，改由交互控件在构造函数中默认开启，避免给容器/装饰控件绘制大焦点框：
-  - 已开启：`Button`（含 `ButtonBox`/`ButtonHBox`/`ButtonVBox`，以及派生的 `CheckBox`/`Option`/`Switch`）、`Combo`、`Slider`、`RichEdit`（Windows 与 SDL 两个实现）、`IPAddress`、`DateTime`。
-  - 未开启：`ListBox`/`TreeView` 等容器类——焦点实际落在条目上，且 `Menu`、`Combo` 的下拉列表继承自 `ListBox`，整体开启会让菜单/下拉层出现边框；`TabCtrl` 保持既有实现（焦点框绘制在选中标签上）。
 
-**U-3 键盘焦点复用鼠标悬浮状态**
+**U-3 键盘焦点复用鼠标悬浮状态（已修复，采用“彻底解耦”方案）**
 
-- 现状：`Control::OnSetFocus()` 在 Normal 状态下把控件置为 `kControlStateHovered`（`Control.cpp` 约 3236-3254 行）；`OnKillFocus()` 再从 Hovered 恢复 Normal（约 3256-3276 行）。
+- 原状：`Control::OnSetFocus()` 在 Normal 状态下把控件置为 `kControlStateHovered`；`OnKillFocus()` 再把 Hovered 恢复为 Normal。
 - 问题：
-  1. 键盘焦点与鼠标悬浮视觉完全相同，用户难以区分两者；
-  2. 鼠标停在控件上时用 Tab 把焦点移走，`OnKillFocus` 会把状态改成 Normal，悬浮高亮错误消失，直到鼠标移动才恢复。
-- 建议：新增 `kControlStateFocused`（并提供 `focused_bk_color` / `focused_border_color` 等主题属性）；或在 `OnKillFocus` 中检测鼠标是否仍在控件内，仅在鼠标不在时恢复 Normal。更彻底的做法是焦点视觉只由焦点框表达，不再借用 Hovered 状态。
+  1. 键盘焦点与鼠标悬浮视觉完全相同，用户难以区分；
+  2. 鼠标停在控件上时用 Tab 移走焦点，`OnKillFocus` 会把状态改成 Normal，悬浮高亮错误消失，直到鼠标移动才恢复。
+- 修复：焦点视觉只由焦点框表达，不再借用 Hovered 状态：
+  1. `Control::OnSetFocus()` 不再修改控件状态，仅 `Invalidate()`；`OnKillFocus()` 仅保留“按下态异常恢复”逻辑（窗口失焦导致收不到鼠标弹起）；
+  2. `Window::OnSetFocusMsg()` 不再根据光标位置把焦点控件强制设为 Hovered/Normal，避免窗口重新激活时污染悬浮状态；
+  3. 移除各控件自带的同类处理：`RichEdit`（Windows / SDL）、`CefControlOffScreen` 在 `OnSetFocus` 中不再把 Normal 改为 Hovered；
+  4. 鼠标悬浮状态完全由 `MouseEnter` / `MouseLeave` 维护，焦点状态完全由焦点框绘制。
+- 效果：键盘焦点框与鼠标悬浮高亮互不干扰；鼠标停在控件上时 Tab 移走焦点，悬浮高亮保持正确。
 
 **U-4 ToolTip 最大宽度 DPI 化**
 

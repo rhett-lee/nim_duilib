@@ -1748,22 +1748,9 @@ LRESULT Window::OnSetFocusMsg(WindowBase* /*pLostFocusWindow*/, const NativeMsg&
     if ((pFocus != nullptr) && pFocus->IsEnabled()){
         pFocus->SendEvent(kEventWindowSetFocus);
 
-        //重新激活控件焦点（但不恢复Hovered状态，避免按钮等控件的显示状态异常）
+        //重新激活控件焦点（不改变控件的Hovered状态，焦点视觉由焦点框表达）
         if (!windowFlag.expired() && (pFocus == m_pFocus)) {
             pFocus->SendEvent(kEventSetFocus);
-        }
-        if (!windowFlag.expired() && (pFocus == m_pFocus)) {
-            UiPoint pt;
-            GetCursorPos(pt);
-            ScreenToClient(pt);
-            if (pFocus->IsPointInWithScrollOffset(pt)) {
-                //鼠标还在控件范围内，保持hot状态
-                pFocus->SetState(kControlStateHovered);
-            }
-            else {
-                //鼠标不再控件范围内，恢复为Normal状态
-                pFocus->SetState(kControlStateNormal);
-            }
         }
     }
     else {

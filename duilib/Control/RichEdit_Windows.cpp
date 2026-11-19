@@ -373,9 +373,6 @@ RichEdit::RichEdit(Window* pWindow) :
 
     //初始化是否隐藏选择文本
     m_bHideSelection = m_pRichHost->IsHideSelection();
-
-    //交互控件的键盘焦点反馈：默认显示焦点框（仅在键盘操作后绘制，鼠标操作时不显示）
-    SetShowFocusedRect(true);
 }
 
 RichEdit::~RichEdit()
@@ -2024,9 +2021,7 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
     }
 
     //不调用基类的方法
-    if (GetState() == kControlStateNormal) {
-        SetState(kControlStateHovered);
-    }
+    //焦点视觉由焦点框表达，不再借用Hovered状态
 
     //确保获取焦点时，需要显示选择状态，否则选择的文本状态无法正常看到
     if (!IsReadOnly() && IsEnabled()) {

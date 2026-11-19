@@ -644,9 +644,7 @@ void CefControlOffScreen::OnGotFocus()
 bool CefControlOffScreen::OnSetFocus(const EventArgs& /*msg*/)
 {
     //不调用基类的方法(基类的方法会关闭输入法)
-    if (GetState() == kControlStateNormal) {
-        SetState(kControlStateHovered);
-    }
+    //焦点视觉由焦点框表达，不再借用Hovered状态
 
     //设置输入法相关属性
     if (m_bHasFocusNode) {

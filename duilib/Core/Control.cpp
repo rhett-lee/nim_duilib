@@ -3262,10 +3262,8 @@ bool Control::OnSetFocus(const EventArgs& msg)
     }
 #endif
 
-    if (GetState() == kControlStateNormal) {
-        SetState(kControlStateHovered);
-        Invalidate();
-    }
+    //焦点视觉只由焦点框表达，不再借用鼠标悬浮(Hovered)状态，避免悬浮高亮被键盘焦点错误复用
+    Invalidate();
     return true;
 }
 
@@ -3274,10 +3272,7 @@ bool Control::OnKillFocus(const EventArgs& msg)
     if (!CheckEventType(msg, kEventKillFocus)) {
         return true;
     }
-    if (GetState() == kControlStateHovered) {
-        SetState(kControlStateNormal);
-    }
-    else if (GetState() == kControlStatePressed) {
+    if (GetState() == kControlStatePressed) {
         //失去焦点时，修复控件状态（如果鼠标按下时，窗口失去焦点，鼠标弹起事件这个控件就收不到了）
         SetMouseFocused(false);
         //停止Hovered状态动画
