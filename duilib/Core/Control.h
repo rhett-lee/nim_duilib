@@ -412,14 +412,14 @@ public:
     virtual void SetUTF8ToolTipTextId(const std::string& strTextId);
 
     /** 设置鼠标悬浮到控件上提示的文本单行最大宽度
-     * @param [in] nWidth 要设置的宽度值
-     * @param [in] bNeedDpiScale 是否支持DPI缩放
+     * @param [in] nWidth 要设置的宽度值（小于0按0处理；0表示不限制宽度）
+     * @param [in] bNeedDpiScale 是否支持DPI缩放（XML属性按逻辑像素解析并自动缩放）
      */
     virtual void SetToolTipWidth(int32_t nWidth, bool bNeedDpiScale);
 
     /**
      * @brief 获取鼠标悬浮到控件上提示的文本单行最大宽度
-     * @return 当前提示文本最大宽度
+     * @return 当前提示文本最大宽度（物理像素；0表示不限制宽度）
      */
     virtual int32_t GetToolTipWidth(void) const;
 

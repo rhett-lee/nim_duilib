@@ -31,8 +31,8 @@
 | U-1 | 美观度 | 通用焦点框为内缩 3px 的方形点线，观感较差 | 已修复 |
 | U-2 | 交互 | 焦点框只应在键盘操作后出现（MenuBar 方案已通用化到 Window） | 已修复 |
 | U-3 | 交互 | 键盘焦点复用鼠标悬浮状态，导致悬浮状态被误清除 | 已修复 |
-| U-4 | 美观度 | ToolTip 最大宽度在高 DPI 下偏窄 | 待处理 |
-| U-5 | 美观度 | 高 DPI 下边框/焦点框细线可能时隐时现 | 待处理 |
+| U-4 | 美观度 | ToolTip 最大宽度在高 DPI 下偏窄 | 已修复 |
+| U-5 | 美观度 | 高 DPI 下边框/焦点框细线可能时隐时现 | 已修复 |
 
 > PH-1 修复说明：在 `ScrollBox` 新增虚函数 `GetScrollOffset64ForChild(const PlaceHolder*)`（默认返回 `GetScrollOffset64()`），
 > `PlaceHolder::GetScrollOffsetInScrollBox64()` 改为调用该接口；`ListCtrlReportView` 同步重写，
@@ -234,14 +234,23 @@
   4. 鼠标悬浮状态完全由 `MouseEnter` / `MouseLeave` 维护，焦点状态完全由焦点框绘制。
 - 效果：键盘焦点框与鼠标悬浮高亮互不干扰；鼠标停在控件上时 Tab 移走焦点，悬浮高亮保持正确。
 
-**U-4 ToolTip 最大宽度 DPI 化**
+**U-4 ToolTip 最大宽度 DPI 化（已修复）**
 
-- 与 C-10 同源。高 DPI 下 500 物理像素的提示宽度过早换行，影响可读性。建议按逻辑像素定义并缩放，0 明确表示“不限制”。
+- 与 C-10 同源：默认宽度 500 在 C-10 中已改为按逻辑像素创建（`Dpi().GetScaleInt(500)`）；XML 属性 `tooltip_width` 在解析时也按逻辑像素缩放（`SetToolTipWidth(..., true)`）。
+- 语义确认与补充：
+  1. `SetToolTipWidth()` 传入 `<= 0` 按 0 处理，0 表示“不限制宽度”；
+  2. Windows 原生 ToolTip 的 `TTM_SETMAXTIPWIDTH` 传 0 即不换行；SDL 实现中 `SetToolTipMaxWidth(<=0)` 会转换为 `INT32_MAX`，两端行为一致；
+  3. `Control.h`、`Control.md` / `Control.en.md`、XSD 均补充“逻辑像素/物理像素、0 表示不限制”的说明。
+- 结论：无需改动运行时代码，文档语义补齐即可。
 
-**U-5 高 DPI 细线一致性**
+**U-5 高 DPI 下边框/焦点框细线时隐时现（已修复）**
 
-- 已有 `SetStateColorMinWidth()` / `SetStateColorMinHeight()` 解决状态色矩形在缩放后线条消失的问题（`Control.h` 约 147-152 行）。
-- 建议把同样的“最小可见宽度”思路扩展到 `border_size` 与焦点框线宽，避免 125%/150%/175% 缩放下边框时隐时现。
+- 原因：`border_size` 等按 DPI 缩放后可能是小数（如 1.25px、1.5px），抗锯齿绘制在控件位置变化时呈现深浅不一的细线，看起来“时隐时现”。
+- 修复：在 `Control.cpp` 增加 `SnapPaintLineWidth()`，把绘制用线宽对齐到整数物理像素（正数且不足 1px 时按 1px 处理）：
+  1. `PaintBorder()` 的圆角路径与四个边的分边绘制路径均使用对齐后的线宽（线宽为 1px 时的端点补偿判断也改用对齐值）；
+  2. `PaintBorders()` 入口统一对齐，覆盖所有调用者（TabCtrl 等自绘控件）；
+  3. `DoPaintFocusRect()` 的焦点框线宽同样使用该函数（替代原来仅做“下限 1px”的处理）。
+- 说明：仅影响绘制线宽，不改变 `border_size` 的存储值与布局计算，避免影响控件尺寸。
 
 ## 五、建议实施顺序
 

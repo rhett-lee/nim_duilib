@@ -79,7 +79,7 @@ English | [简体中文](Control.md)
 | fore_disabled_image |  | string | SetForeStateImage|State foreground image in disabled state |
 | tooltip_text |  | string | SetToolTipText|Mouse hover tooltip, e.g. "Please enter your password here" |
 | tooltip_text_id |  | string | SetToolTipTextId|Mouse hover tooltip, specifies the ID of the multilingual module; when tooltip_text is empty, this attribute is displayed, e.g. "TOOL_TIP_ID" |
-| tooltip_width |  | int | SetToolTipWidth| Width occupied by the mouse hover tooltip |
+| tooltip_width |  | int | SetToolTipWidth| Width occupied by the mouse hover tooltip (specified in logical pixels and scaled automatically; 0 means no width limit) |
 | data_id |  | string | SetDataID|Custom string data, an auxiliary function for user use |
 | user_data_id |  | size_t | SetUserDataID|Custom integer data, for user use |
 | enabled | true | bool | SetEnabled|Whether it can respond to user operations, e.g. "true"|

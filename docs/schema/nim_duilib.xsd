@@ -820,7 +820,7 @@
     </xs:attribute>
     <xs:attribute name="tooltip_width" type="xs:string">
       <xs:annotation>
-        <xs:documentation>鼠标悬浮提示所占的宽度</xs:documentation>
+        <xs:documentation>鼠标悬浮提示所占的宽度（按逻辑像素设置并自动缩放；0表示不限制宽度）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="data_id" type="xs:string">
@@ -1600,7 +1600,7 @@
     </xs:attribute>
     <xs:attribute name="tooltip_width" type="xs:string">
       <xs:annotation>
-        <xs:documentation>鼠标悬浮提示所占的宽度</xs:documentation>
+        <xs:documentation>鼠标悬浮提示所占的宽度（按逻辑像素设置并自动缩放；0表示不限制宽度）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="data_id" type="xs:string">
@@ -2366,7 +2366,7 @@
     </xs:attribute>
     <xs:attribute name="tooltip_width" type="xs:string">
       <xs:annotation>
-        <xs:documentation>鼠标悬浮提示所占的宽度</xs:documentation>
+        <xs:documentation>鼠标悬浮提示所占的宽度（按逻辑像素设置并自动缩放；0表示不限制宽度）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="data_id" type="xs:string">
@@ -3221,7 +3221,7 @@
     </xs:attribute>
     <xs:attribute name="tooltip_width" type="xs:string">
       <xs:annotation>
-        <xs:documentation>鼠标悬浮提示所占的宽度</xs:documentation>
+        <xs:documentation>鼠标悬浮提示所占的宽度（按逻辑像素设置并自动缩放；0表示不限制宽度）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="data_id" type="xs:string">
@@ -7313,7 +7313,7 @@
     </xs:attribute>
     <xs:attribute name="tooltip_width" type="xs:string">
       <xs:annotation>
-        <xs:documentation>鼠标悬浮提示所占的宽度</xs:documentation>
+        <xs:documentation>鼠标悬浮提示所占的宽度（按逻辑像素设置并自动缩放；0表示不限制宽度）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="data_id" type="xs:string">
@@ -9498,7 +9498,7 @@
     </xs:attribute>
     <xs:attribute name="tooltip_width" type="xs:string">
       <xs:annotation>
-        <xs:documentation>鼠标悬浮提示所占的宽度</xs:documentation>
+        <xs:documentation>鼠标悬浮提示所占的宽度（按逻辑像素设置并自动缩放；0表示不限制宽度）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="data_id" type="xs:string">

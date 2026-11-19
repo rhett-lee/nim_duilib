@@ -4049,6 +4049,22 @@ void Control::PaintForeColor(IRender* pRender)
     }
 }
 
+namespace
+{
+    /** 将绘制线宽对齐到整数像素：高DPI缩放后的线宽(如1.25px)在抗锯齿下会时隐时现
+    * @param [in] fWidth 已经过DPI缩放的线宽
+    * @return 对齐后的线宽；小于1像素的正数按1像素处理
+    */
+    float SnapPaintLineWidth(float fWidth)
+    {
+        if (fWidth <= 0.0f) {
+            return 0.0f;
+        }
+        const float fSnapped = std::round(fWidth);
+        return (fSnapped < 1.0f) ? 1.0f : fSnapped;
+    }
+}
+
 void Control::PaintBorder(IRender* pRender)
 {
     ASSERT(pRender != nullptr);
@@ -4076,58 +4092,62 @@ void Control::PaintBorder(IRender* pRender)
         IsFloatEqual(m_pBorderData->m_rcBorderSize.left, m_pBorderData->m_rcBorderSize.bottom)) {
         //四个边都存在，且大小相同，则直接绘制矩形, 支持圆角矩形
         if (ShouldBeRoundRectBorders()) {
-            //仅圆角矩形，使用这个函数绘制边线
-            PaintBorders(pRender, GetRect(), m_pBorderData->m_rcBorderSize.left, dwBorderColor, GetBorderDashStyle());
+            //仅圆角矩形，使用这个函数绘制边线（线宽对齐到整数像素，避免高DPI下线条时隐时现）
+            PaintBorders(pRender, GetRect(), SnapPaintLineWidth(m_pBorderData->m_rcBorderSize.left), dwBorderColor, GetBorderDashStyle());
             bPainted = true;
         }
     }
 
     if(!bPainted) {
-        //非圆角矩形，四个边分别按照设置绘制边线
+        //非圆角矩形，四个边分别按照设置绘制边线（线宽对齐到整数像素，避免高DPI下线条时隐时现）
         const float epsilon = 0.001f;
         if ((m_pBorderData != nullptr) && (m_pBorderData->m_rcBorderSize.left > epsilon)) {
             //左边线
             UiRect rcBorder = GetRect();
-            if (std::fabs(m_pBorderData->m_rcBorderSize.left - 1.0f) < epsilon) {
+            const float fBorderSize = SnapPaintLineWidth(m_pBorderData->m_rcBorderSize.left);
+            if (std::fabs(fBorderSize - 1.0f) < epsilon) {
                 rcBorder.bottom -= 1;
             }
-            const float fWidth = (float)m_pBorderData->m_rcBorderSize.left;
+            const float fWidth = fBorderSize;
             UiPointF pt1((float)rcBorder.left + fWidth / 2, (float)rcBorder.top);
             UiPointF pt2((float)rcBorder.left + fWidth / 2, (float)rcBorder.bottom);
-            DrawBorderLine(pRender, pt1, pt2, m_pBorderData->m_rcBorderSize.left, dwBorderColor, GetBorderDashStyle());
+            DrawBorderLine(pRender, pt1, pt2, fBorderSize, dwBorderColor, GetBorderDashStyle());
         }
         if ((m_pBorderData != nullptr) && (m_pBorderData->m_rcBorderSize.top > epsilon)) {
             //上边线
             UiRect rcBorder = GetRect();
-            if (std::fabs(m_pBorderData->m_rcBorderSize.top - 1.0f) < epsilon) {
+            const float fBorderSize = SnapPaintLineWidth(m_pBorderData->m_rcBorderSize.top);
+            if (std::fabs(fBorderSize - 1.0f) < epsilon) {
                 rcBorder.right -= 1;
             }
-            const float fWidth = (float)m_pBorderData->m_rcBorderSize.top;
+            const float fWidth = fBorderSize;
             UiPointF pt1((float)rcBorder.left, (float)rcBorder.top + fWidth / 2);
             UiPointF pt2((float)rcBorder.right, (float)rcBorder.top + fWidth / 2);
-            DrawBorderLine(pRender, pt1, pt2, m_pBorderData->m_rcBorderSize.top, dwBorderColor, GetBorderDashStyle());
+            DrawBorderLine(pRender, pt1, pt2, fBorderSize, dwBorderColor, GetBorderDashStyle());
         }
         if ((m_pBorderData != nullptr) && (m_pBorderData->m_rcBorderSize.right > epsilon)) {
             //右边线
             UiRect rcBorder = GetRect();
-            if (std::fabs(m_pBorderData->m_rcBorderSize.right - 1.0f) < epsilon) {
+            const float fBorderSize = SnapPaintLineWidth(m_pBorderData->m_rcBorderSize.right);
+            if (std::fabs(fBorderSize - 1.0f) < epsilon) {
                 rcBorder.bottom -= 1;
             }
-            const float fWidth = (float)m_pBorderData->m_rcBorderSize.right;
+            const float fWidth = fBorderSize;
             UiPointF pt1((float)rcBorder.right - fWidth / 2, (float)rcBorder.top);
             UiPointF pt2((float)rcBorder.right - fWidth / 2, (float)rcBorder.bottom);
-            DrawBorderLine(pRender, pt1, pt2, m_pBorderData->m_rcBorderSize.right, dwBorderColor, GetBorderDashStyle());
+            DrawBorderLine(pRender, pt1, pt2, fBorderSize, dwBorderColor, GetBorderDashStyle());
         }
         if ((m_pBorderData != nullptr) && (m_pBorderData->m_rcBorderSize.bottom > epsilon)) {
             //下边线
             UiRect rcBorder = GetRect();
-            if (std::fabs(m_pBorderData->m_rcBorderSize.bottom - 1.0f) < epsilon) {
+            const float fBorderSize = SnapPaintLineWidth(m_pBorderData->m_rcBorderSize.bottom);
+            if (std::fabs(fBorderSize - 1.0f) < epsilon) {
                 rcBorder.right -= 1;
             }
-            const float fWidth = (float)m_pBorderData->m_rcBorderSize.bottom;
+            const float fWidth = fBorderSize;
             UiPointF pt1((float)rcBorder.left, (float)rcBorder.bottom - fWidth / 2);
             UiPointF pt2((float)rcBorder.right, (float)rcBorder.bottom - fWidth / 2);
-            DrawBorderLine(pRender, pt1, pt2, m_pBorderData->m_rcBorderSize.bottom, dwBorderColor, GetBorderDashStyle());
+            DrawBorderLine(pRender, pt1, pt2, fBorderSize, dwBorderColor, GetBorderDashStyle());
         }
     }
 }
@@ -4164,6 +4184,8 @@ void Control::PaintBorders(IRender* pRender, UiRect rcDraw,
     if ((pRender == nullptr) || rcDraw.IsEmpty() || (fBorderSize < 0.1) || (dwBorderColor.GetARGB() == 0)) {
         return;
     }
+    //线宽对齐到整数像素，避免高DPI下缩放后的非整数线宽在抗锯齿下时隐时现
+    fBorderSize = SnapPaintLineWidth(fBorderSize);
 
     // 绘制边线
     UiRectF rcDrawF((float)rcDraw.left, (float)rcDraw.top, (float)rcDraw.right, (float)rcDraw.bottom);
@@ -4295,10 +4317,7 @@ void Control::DoPaintFocusRect(IRender* pRender)
     if (rcFocusRect.IsEmpty()) {
         return;
     }
-    float fWidth = Dpi().GetScaleFloat(2.0f);
-    if (fWidth < 1.0f) {
-        fWidth = 1.0f;
-    }
+    float fWidth = SnapPaintLineWidth(Dpi().GetScaleFloat(2.0f));
     const float fRadius = (float)Dpi().GetScaleInt(3);
     pRender->DrawRoundRect(UiRectF(rcFocusRect.left, rcFocusRect.top, rcFocusRect.right, rcFocusRect.bottom),
                            fRadius, fRadius, borderColor, fWidth);
