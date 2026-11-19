@@ -1516,7 +1516,6 @@ void SplitTemplate<InheritType>::OnMouseMoveSingle(const EventArgs& msg)
     if ((m_pLeftTop == nullptr) == (m_pRightBottom == nullptr)) {
         return;
     }
-    Control* pControl = (m_pLeftTop != nullptr) ? m_pLeftTop : m_pRightBottom;
     const UiFixedInt& nFixedInt = (m_pLeftTop != nullptr) ? m_nLeftTopFixedValue : m_nRightBottomFixedValue;
     if (nFixedInt.IsStretch()) {
         //控件为拉伸类型，不调整
