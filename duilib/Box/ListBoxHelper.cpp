@@ -7,16 +7,16 @@ namespace ui
 {
 ListBoxHelper::ListBoxHelper(ListBox* pListBox) :
     m_pListBox(pListBox),
+    m_bMouseDownInView(false),
     m_bMouseDown(false),
     m_bRMouseDown(false),
     m_bInMouseMove(false),
     m_pMouseSender(nullptr),
-    m_bMouseDownInView(false),
     m_bEnableFrameSelection(false),
-    m_frameSelectionBorderSize(1),
-    m_frameSelectionBorderColor(_T("#FF0078D7")),
     m_frameSelectionColor(_T("#FFAACCEE")),
     m_frameSelectionAlpha(128),
+    m_frameSelectionBorderColor(_T("#FF0078D7")),
+    m_frameSelectionBorderSize(1),
     m_nNormalItemTop(-1)
 {
 }

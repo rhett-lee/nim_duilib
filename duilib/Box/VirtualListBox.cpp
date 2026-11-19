@@ -1392,7 +1392,8 @@ bool VirtualListBox::OnListCtrlKeyDown(const EventArgs& msg)
 {
     ASSERT(msg.eventType == kEventKeyDown);
     bool bHandled = false;
-    bool bCtrlADown = (msg.eventType == kEventKeyDown) && ((msg.vkCode == _T('A')) || (msg.vkCode == _T('a')));
+    bool bCtrlADown = Keyboard::IsKeyDown(kVK_CONTROL) && (msg.eventType == kEventKeyDown) &&
+                      ((msg.vkCode == _T('A')) || (msg.vkCode == _T('a')));
     if (bCtrlADown) {
         //Ctrl + A 全选操作
         bHandled = true;

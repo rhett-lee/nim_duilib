@@ -16,12 +16,13 @@ ScrollBox::ScrollBox(Window* pWindow, Layout* pLayout) :
     Box(pWindow, pLayout),
     m_pVScrollBar(),
     m_pHScrollBar(),
-    m_bScrollBarFloat(true),
-    m_bVScrollBarAtLeft(false),
-    m_bHoldEnd(false),
+    m_scrollVirtualOffset(),
     m_rcScrollBarPadding(),
     m_nVScrollUnitPixels(0),
     m_nHScrollUnitPixels(0),
+    m_bHoldEnd(false),
+    m_bScrollBarFloat(true),
+    m_bVScrollBarAtLeft(false),
     m_bInertiaScroll(true),
     m_inertiaFriction(5.0),
     m_inertiaGain(0.6),
@@ -1169,6 +1170,10 @@ void ScrollBox::StartInertiaScroll(int32_t nDirection, int32_t nWheelDistance)
     }
     const int64_t nScrollRange = GetScrollRange().cy;
     if (nScrollRange <= 0) {
+        return;
+    }
+    if (nScrollRange > INT32_MAX) {
+        //惯性动画播放器使用int32_t数值，滚动范围超出时禁用惯性滚动，避免数值溢出
         return;
     }
     const int64_t nCurrentPos = GetScrollPos().cy;

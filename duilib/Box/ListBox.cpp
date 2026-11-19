@@ -2,8 +2,6 @@
 #include "ListBoxHelper.h"
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Core/Keyboard.h"
-#include "duilib/Layout/VirtualHTileLayout.h"
-#include "duilib/Layout/VirtualVTileLayout.h"
 
 namespace ui 
 {
@@ -39,6 +37,11 @@ ListBox::~ListBox()
         const size_t itemCount = GetItemCount();
         for (size_t i = 0; i < itemCount; ++i) {
             Control* p = GetItemAt(i);
+            IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(p);
+            if (pListItem != nullptr) {
+                //避免子项控件中保留已经销毁的ListBox指针
+                pListItem->SetOwner(nullptr);
+            }
             OnListBoxItemRemoved(p);
         }
     }
@@ -409,7 +412,8 @@ bool ListBox::OnListCtrlKeyDown(const EventArgs& msg)
     //该函数只实现非虚表情况下的快捷键逻辑，虚表模式下的相应逻辑在子类中实现
     ASSERT(msg.eventType == kEventKeyDown);
     bool bHandled = false;
-    bool bCtrlADown = (msg.eventType == kEventKeyDown) && ((msg.vkCode == _T('A')) || (msg.vkCode == _T('a')));
+    bool bCtrlADown = Keyboard::IsKeyDown(kVK_CONTROL) && (msg.eventType == kEventKeyDown) &&
+                      ((msg.vkCode == _T('A')) || (msg.vkCode == _T('a')));
     if (bCtrlADown) {
         //Ctrl + A 全选操作
         bHandled = true;
@@ -2066,9 +2070,7 @@ bool ListBox::RemoveItemAt(size_t iIndex)
         if (pListItem != nullptr) {
             pListItem->SetOwner(nullptr);
         }
-    }
-    if (!IsAutoDestroyChild()) {
-        OnListBoxItemRemoved(GetItemAt(iIndex));
+        OnListBoxItemRemoved(p);
     }
     if (!ScrollBox::RemoveItemAt(iIndex)) {
         return false;
@@ -2399,10 +2401,6 @@ void ListBox::GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nVScrollValue
     if (IsHorizontalLayout()) {
         //横向布局
         int32_t deltaValue = 0;
-        VirtualHTileLayout* pVirtualHTileLayout = dynamic_cast<VirtualHTileLayout*>(GetLayout());
-        if (pVirtualHTileLayout != nullptr) {
-            deltaValue = pVirtualHTileLayout->GetItemSize().cx * 2;
-        }
         HTileLayout* pHTileLayout = dynamic_cast<HTileLayout*>(GetLayout());
         if (pHTileLayout != nullptr) {
             deltaValue = pHTileLayout->GetItemSize().cx * 2;
@@ -2415,17 +2413,13 @@ void ListBox::GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nVScrollValue
     else {
         //纵向布局
         int32_t deltaValue = 0;
-        VirtualVTileLayout* pVirtualVTileLayout = dynamic_cast<VirtualVTileLayout*>(GetLayout());
-        if (pVirtualVTileLayout != nullptr) {
-            deltaValue = pVirtualVTileLayout->GetItemSize().cy * 2;            
-        }
-        VTileLayout* pVTileLayout = dynamic_cast<VirtualVTileLayout*>(GetLayout());
+        VTileLayout* pVTileLayout = dynamic_cast<VTileLayout*>(GetLayout());
         if (pVTileLayout != nullptr) {
             deltaValue = pVTileLayout->GetItemSize().cy * 2;
         }
         if (deltaValue > 0) {
             deltaValue = std::max(GetRect().Height() / 3, deltaValue);
-            nHScrollValue = deltaValue;
+            nVScrollValue = deltaValue;
         }
     }
 }
