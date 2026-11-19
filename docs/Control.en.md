@@ -3344,10 +3344,13 @@ Drag-related events (`wParam` is the left/top control, `lParam` is the right/bot
 
 When the `double_click_reset` attribute is `true`, double-clicking the splitter restores both adjacent controls to the sizes they had before the first drag: the splitter records the sizes of the two controls before the first drag starts (including fixed value, stretch and auto types) and restores them by their original type and value on double click, then re-layouts. Dragging can continue afterwards, and double-clicking again still restores the sizes from before the first drag. This attribute defaults to `false` so that scenarios handling double-click themselves (such as `ListCtrlHeader`) are not affected.
 
+The `drag_threshold` attribute sets the drag threshold: after the mouse button is pressed, sizes are adjusted only when the pointer has moved along the layout direction (horizontal for left/right dragging, vertical for up/down dragging) by more than the threshold, which prevents accidental size changes caused by slight mouse jitter. The threshold is expressed in 96 DPI logical pixels and is scaled by the current DPI automatically (for example, at 175% scaling a threshold of 2 corresponds to about 4 physical pixels). It defaults to `2`; setting it to `0` disables the threshold (sizes follow the mouse immediately after pressing). Once the threshold is exceeded, the full mouse offset is applied for the rest of the drag until the button is released.
+
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |
 | enable_split_single | false | bool | Whether to allow adjusting its width when there is only one control |
 | double_click_reset | false | bool | Whether double-clicking the splitter restores both adjacent controls to the sizes they had before the first drag |
+| drag_threshold | 2 | int | Drag threshold (96 DPI logical pixels); sizes are adjusted only after the mouse moves farther than this distance; 0 disables the threshold |
 
 The Split control inherits the `Control` attributes. For more available attributes, please refer to the `Control` attributes.
 

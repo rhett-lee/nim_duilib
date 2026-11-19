@@ -16,6 +16,7 @@ namespace ui
 *    - 两个控件都是拉伸类型时，鼠标按下后会把左侧（上侧）控件转换为固定尺寸，然后可以正常拖动。
 *   如果父容器的布局不是HLayout或者VLayout，则不支持拖动（不显示调整光标）。
 *   属性 double_click_reset 为 true 时，双击分割条可以把两侧控件恢复到首次拖动前的尺寸。
+*   属性 drag_threshold 用于设置拖动阈值：鼠标在布局方向上移动超过该距离后才开始调整尺寸（单位是 96 DPI 的逻辑像素，默认为 2，0 表示不启用阈值）。
 *   拖动开始、拖动过程和拖动结束时，分别触发 kEventSplitDragBegin、kEventSplitDraged、kEventSplitDragEnd 事件。
 */
 template<typename InheritType = Control>
@@ -52,6 +53,15 @@ public:
     /** 获取双击分割条时，是否把两侧控件恢复到首次拖动前的尺寸
     */
     bool IsDoubleClickReset() const;
+
+    /** 设置拖动阈值（鼠标移动超过该距离后才开始调整控件尺寸，避免轻微抖动导致尺寸变化）
+    * @param [in] nDragThreshold 阈值，单位是 96 DPI 的逻辑像素，0 表示不启用阈值，默认值为 2
+    */
+    void SetDragThreshold(int32_t nDragThreshold);
+
+    /** 获取拖动阈值（单位是 96 DPI 的逻辑像素）
+    */
+    int32_t GetDragThreshold() const;
 
     /** 监听开始拖动的事件（WPARAM 为左侧/上侧控件，LPARAM 为右侧/下侧控件，可能为 nullptr）
      * @param [in] callback 开始拖动时触发的回调函数
@@ -91,6 +101,12 @@ private:
 
     //是否为水平布局的容器
     bool IsHLayout(Control* pControl) const;
+
+    /** 判断拖动阈值是否已达到（达到后即开始调整控件尺寸）
+    * @param [in] nOffset 鼠标在布局方向上的偏移量（像素）
+    * @return true表示已达到阈值，可以调整尺寸；false表示尚未达到阈值
+    */
+    bool IsDragThresholdExceeded(int32_t nOffset);
 
     /** 查找同级的相邻控件（前一个和后一个可见的、非float的控件）
     * @param [out] pPrev 返回前一个控件，如果没有，返回nullptr
@@ -185,6 +201,12 @@ private:
     //是否处于拖动状态（已发送拖动开始事件，尚未发送拖动结束事件）
     bool m_bDragStarted;
 
+    //拖动阈值：鼠标移动超过该距离后才开始调整控件尺寸（单位是 96 DPI 的逻辑像素）
+    int32_t m_nDragThreshold;
+
+    //本次拖动是否已经超过拖动阈值
+    bool m_bDragThresholdExceeded;
+
     /** 当只有一个控件的时候，是否允许调整其宽度
     */
     bool m_bEnableSplitSingle;
@@ -202,6 +224,8 @@ SplitTemplate<InheritType>::SplitTemplate(Window* pWindow):
     m_bInitSizeCaptured(false),
     m_bHLayout(true),
     m_bDragStarted(false),
+    m_nDragThreshold(2),
+    m_bDragThresholdExceeded(false),
     m_bEnableSplitSingle(false),
     m_bDoubleClickReset(false)
 {
@@ -223,6 +247,9 @@ void SplitTemplate<InheritType>::SetAttribute(const DString& strName, const DStr
     }
     else if (strName == _T("double_click_reset")) {
         SetDoubleClickReset(StringUtil::IsValueTrue(strNewValue));
+    }
+    else if (strName == _T("drag_threshold")) {
+        SetDragThreshold(StringUtil::StringToInt32(strNewValue));
     }
     else {
         BaseClass::SetAttribute(strName, strNewValue);
@@ -252,6 +279,39 @@ template<typename InheritType>
 bool SplitTemplate<InheritType>::IsDoubleClickReset() const
 {
     return m_bDoubleClickReset;
+}
+
+template<typename InheritType>
+void SplitTemplate<InheritType>::SetDragThreshold(int32_t nDragThreshold)
+{
+    if (nDragThreshold < 0) {
+        nDragThreshold = 0;
+    }
+    m_nDragThreshold = nDragThreshold;
+}
+
+template<typename InheritType>
+int32_t SplitTemplate<InheritType>::GetDragThreshold() const
+{
+    return m_nDragThreshold;
+}
+
+template<typename InheritType>
+bool SplitTemplate<InheritType>::IsDragThresholdExceeded(int32_t nOffset)
+{
+    if (m_bDragThresholdExceeded) {
+        return true;
+    }
+    if (m_nDragThreshold > 0) {
+        //阈值的单位是 96 DPI 的逻辑像素，需要按当前 DPI 缩放后与物理像素的偏移量比较
+        const int32_t nThreshold = this->Dpi().GetScaleInt(m_nDragThreshold);
+        const int32_t nAbsOffset = (nOffset >= 0) ? nOffset : -nOffset;
+        if (nAbsOffset < nThreshold) {
+            return false;
+        }
+    }
+    m_bDragThresholdExceeded = true;
+    return true;
 }
 
 template<typename InheritType>
@@ -540,6 +600,7 @@ bool SplitTemplate<InheritType>::ButtonDown(const EventArgs& msg)
         m_pLeftTop = pPrev;
         m_pRightBottom = pNext;
         m_ptStart = msg.ptMouse;
+        m_bDragThresholdExceeded = false;
 
         m_nLeftTopFixedValue = UiFixedInt(0);
         if (m_pLeftTop != nullptr) {
@@ -705,6 +766,11 @@ bool SplitTemplate<InheritType>::MouseMove(const EventArgs& msg)
         return bRet;
     }
 
+    //鼠标移动未超过拖动阈值时，不调整尺寸（避免轻微抖动导致尺寸变化）
+    if (!IsDragThresholdExceeded(nOffset)) {
+        return bRet;
+    }
+
     int32_t nTotal = 0; //总的宽度值或者总的高度值
     bool bLeftTopFixed = !m_nLeftTopFixedValue.IsStretch();
     bool bRightBottomFixed = !m_nRightBottomFixedValue.IsStretch();
@@ -804,6 +870,11 @@ void SplitTemplate<InheritType>::OnMouseMoveSingle(const EventArgs& msg)
         nOffset = msg.ptMouse.y - m_ptStart.y;
     }
     if (nOffset == 0) {
+        return;
+    }
+
+    //鼠标移动未超过拖动阈值时，不调整尺寸（避免轻微抖动导致尺寸变化）
+    if (!IsDragThresholdExceeded(nOffset)) {
         return;
     }
 

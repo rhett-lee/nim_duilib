@@ -17,7 +17,8 @@
 | 11 | 头注释与实现矛盾 | 已修复（代码注释 + `docs/Control.md` / `Control.en.md`） |
 | 三 | 双击复位 | 已实现（属性 `double_click_reset`，默认 `false`） |
 | 三 | 拖动开始/结束事件 | 已实现（`kEventSplitDragBegin` / `kEventSplitDragEnd` + `AttachSplitDragBegin` / `AttachSplitDragEnd`） |
-| 三 | 功能不足（拖动阈值、目标控件可指定等） | 未处理（规划中） |
+| 三 | 拖动阈值 | 已实现（属性 `drag_threshold`，默认 `2` 个 96 DPI 逻辑像素，`0` 表示关闭） |
+| 三 | 功能不足（目标控件可指定、键盘操作、尺寸提示） | 未处理（规划中） |
 
 ## 一、结论
 
@@ -159,13 +160,22 @@ if ((nNewMax > 0) && (nMax > nNewMax)) { nMax = nNewMax; }
 - **重入保护**：事件发送前已完成状态清理，回调中再次调用 `StopSplitDrag()` 不会重复触发结束事件；`OnWindowKillFocus` 中的重绘调整到结束拖动之前，避免回调中删除控件后继续访问。
 - **验证**：Debug 版 `TreeView`（非 DLL 模式）下执行拖动 + 双击操作，拖动和双击复位行为正常（分割线物理像素 x 519 → 727 → 517），进程无断言、无崩溃。
 
+### 拖动阈值实现说明
+
+- **属性**：新增 `drag_threshold`（默认 `2`），对应 `SetDragThreshold()` / `GetDragThreshold()`；单位是 96 DPI 的逻辑像素，设置为 `0` 表示不启用阈值，负数按 `0` 处理。
+- **DPI 缩放**：比较时用 `Dpi().GetScaleInt(m_nDragThreshold)` 换算为物理像素，保证不同缩放下手感一致（例如 175% 缩放时默认阈值约 4 个物理像素）。
+- **状态**：新增成员 `m_nDragThreshold`、`m_bDragThresholdExceeded`；每次 `ButtonDown` 进入拖动时把 `m_bDragThresholdExceeded` 复位为 `false`。
+- **判定时机**：`MouseMove` 与 `OnMouseMoveSingle` 在算出布局方向的偏移量（`nOffset`）后，先调用 `IsDragThresholdExceeded(nOffset)`；未超过阈值时直接返回，不修改尺寸、不派发 `kEventSplitDraged`，但`kEventSplitDragBegin` 仍会在按下时触发（一次拖动只触发一对起止事件）。
+- **超过阈值后的行为**：一旦超过阈值，本次拖动按**完整的鼠标偏移量**调整尺寸（不做偏移补偿），并在剩余的拖动过程中不再重复判定，直到鼠标抬起。
+- **验证**：Debug 版 `TreeView` 示例（非 DLL 模式）中，对主分割条先做 2 个物理像素的轻微抖动（小于阈值），分割线位置不变（物理像素 x 519 → 519）；随后做 210 物理像素的正常拖动，分割线移动到 x 727，尺寸调整正常，进程无断言。
+
 ## 三、功能不足（建议补齐）
 
 | 能力 | 现状 | 建议 |
 | --- | --- | --- |
 | 双击复位 | 控件本身不支持（`ListCtrlHeader` 自己在 SplitBox 上挂双击） | 已实现：内建保存首次拖动前的 `fixed` 值（含固定/拉伸/自动类型），双击恢复；属性 `double_click_reset` 控制，默认 `false` |
 | 拖动开始/结束事件 | 只有 `kEventSplitDraged` | 已实现：新增 `kEventSplitDragBegin/kEventSplitDragEnd`（`AttachSplitDragBegin/AttachSplitDragEnd`），便于应用层暂停刷新、持久化布局 |
-| 拖动阈值 | 无，轻微移动即改尺寸并发事件 | 1~2px（DPI 缩放）阈值，仅在超过后才开始调整 |
+| 拖动阈值 | 无，轻微移动即改尺寸并发事件 | 已实现：新增属性 `drag_threshold`（默认 `2` 个 96 DPI 逻辑像素，按当前 DPI 缩放，`0` 表示关闭），鼠标在布局方向上移动超过该距离后才开始调整尺寸 |
 | 目标控件可指定 | 只能取"同父容器内、可见、非 float 的前后兄弟" | 增加 `left_top_ctrl_name` / `right_bottom_ctrl_name`，支持跨容器分割 |
 | 键盘操作 | 无 | 聚焦后方向键 ±1/±10（配合 Shift）微调 |
 | 拖动尺寸提示 | 无 | 拖动时显示"320 px"气泡（类似 Qt Designer），提升可预期性 |
