@@ -17,6 +17,8 @@ namespace ui
 *   如果父容器的布局不是HLayout或者VLayout，则不支持拖动（不显示调整光标）。
 *   属性 double_click_reset 为 true 时，双击分割条可以把两侧控件恢复到首次拖动前的尺寸。
 *   属性 drag_threshold 用于设置拖动阈值：鼠标在布局方向上移动超过该距离后才开始调整尺寸（单位是 96 DPI 的逻辑像素，默认为 2，0 表示不启用阈值）。
+*   属性 left_top_ctrl_name / right_bottom_ctrl_name 可以显式指定要调整的两个控件的名称（在同一个窗口内查找），
+*   不指定时默认使用同一父容器中、位于分割条前面和后面的两个可见控件；指定目标控件后支持跨容器调整尺寸。
 *   拖动开始、拖动过程和拖动结束时，分别触发 kEventSplitDragBegin、kEventSplitDraged、kEventSplitDragEnd 事件。
 */
 template<typename InheritType = Control>
@@ -63,6 +65,24 @@ public:
     */
     int32_t GetDragThreshold() const;
 
+    /** 设置左侧（上侧）目标控件的名称
+    * @param [in] strCtrlName 目标控件的名称，在同一个窗口内查找；设置为空时，使用同一父容器中的前一个可见控件
+    */
+    void SetLeftTopCtrlName(const DString& strCtrlName);
+
+    /** 获取左侧（上侧）目标控件的名称
+    */
+    const DString& GetLeftTopCtrlName() const;
+
+    /** 设置右侧（下侧）目标控件的名称
+    * @param [in] strCtrlName 目标控件的名称，在同一个窗口内查找；设置为空时，使用同一父容器中的后一个可见控件
+    */
+    void SetRightBottomCtrlName(const DString& strCtrlName);
+
+    /** 获取右侧（下侧）目标控件的名称
+    */
+    const DString& GetRightBottomCtrlName() const;
+
     /** 监听开始拖动的事件（WPARAM 为左侧/上侧控件，LPARAM 为右侧/下侧控件，可能为 nullptr）
      * @param [in] callback 开始拖动时触发的回调函数
      * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
@@ -108,7 +128,14 @@ private:
     */
     bool IsDragThresholdExceeded(int32_t nOffset);
 
+    /** 按名称查找目标控件（在同一个窗口内查找，并校验其可用性）
+    * @param [in] strCtrlName 控件名称
+    * @return 返回查找到的控件，未查找到或者控件不可用时返回nullptr
+    */
+    Control* FindTargetControl(const DString& strCtrlName) const;
+
     /** 查找同级的相邻控件（前一个和后一个可见的、非float的控件）
+    *   如果通过 left_top_ctrl_name / right_bottom_ctrl_name 指定了目标控件，则优先使用指定的控件
     * @param [out] pPrev 返回前一个控件，如果没有，返回nullptr
     * @param [out] pNext 返回后一个控件，如果没有，返回nullptr
     */
@@ -207,6 +234,12 @@ private:
     //本次拖动是否已经超过拖动阈值
     bool m_bDragThresholdExceeded;
 
+    //左侧（上侧）目标控件的名称（为空时，使用同一父容器中的前一个可见控件）
+    DString m_sLeftTopCtrlName;
+
+    //右侧（下侧）目标控件的名称（为空时，使用同一父容器中的后一个可见控件）
+    DString m_sRightBottomCtrlName;
+
     /** 当只有一个控件的时候，是否允许调整其宽度
     */
     bool m_bEnableSplitSingle;
@@ -251,6 +284,12 @@ void SplitTemplate<InheritType>::SetAttribute(const DString& strName, const DStr
     else if (strName == _T("drag_threshold")) {
         SetDragThreshold(StringUtil::StringToInt32(strNewValue));
     }
+    else if (strName == _T("left_top_ctrl_name")) {
+        SetLeftTopCtrlName(strNewValue);
+    }
+    else if (strName == _T("right_bottom_ctrl_name")) {
+        SetRightBottomCtrlName(strNewValue);
+    }
     else {
         BaseClass::SetAttribute(strName, strNewValue);
     }
@@ -294,6 +333,48 @@ template<typename InheritType>
 int32_t SplitTemplate<InheritType>::GetDragThreshold() const
 {
     return m_nDragThreshold;
+}
+
+template<typename InheritType>
+void SplitTemplate<InheritType>::SetLeftTopCtrlName(const DString& strCtrlName)
+{
+    m_sLeftTopCtrlName = strCtrlName;
+}
+
+template<typename InheritType>
+const DString& SplitTemplate<InheritType>::GetLeftTopCtrlName() const
+{
+    return m_sLeftTopCtrlName;
+}
+
+template<typename InheritType>
+void SplitTemplate<InheritType>::SetRightBottomCtrlName(const DString& strCtrlName)
+{
+    m_sRightBottomCtrlName = strCtrlName;
+}
+
+template<typename InheritType>
+const DString& SplitTemplate<InheritType>::GetRightBottomCtrlName() const
+{
+    return m_sRightBottomCtrlName;
+}
+
+template<typename InheritType>
+Control* SplitTemplate<InheritType>::FindTargetControl(const DString& strCtrlName) const
+{
+    if (strCtrlName.empty()) {
+        return nullptr;
+    }
+    Window* pWindow = this->GetWindow();
+    if (pWindow == nullptr) {
+        return nullptr;
+    }
+    Control* pControl = pWindow->FindControl(strCtrlName);
+    const Control* pThisControl = static_cast<const Control*>(this);
+    if ((pControl == nullptr) || (pControl == pThisControl) || (!pControl->IsVisible()) || pControl->IsFloat()) {
+        return nullptr;
+    }
+    return pControl;
 }
 
 template<typename InheritType>
@@ -451,10 +532,21 @@ int32_t SplitTemplate<InheritType>::GetParentAvailableSize(const Control* pContr
     if (pParent == nullptr) {
         return 0;
     }
+    //目标控件可能通过 left_top_ctrl_name / right_bottom_ctrl_name 指定到其它容器中，
+    //此时应以目标控件所在父容器的可用空间计算
+    Control* pTargetParent = (pControl != nullptr) ? pControl->GetParent() : nullptr;
+    Box* pBox = dynamic_cast<Box*>(pTargetParent);
+    const bool bSameParent = (pTargetParent == pParent);
+    if (pBox != nullptr) {
+        pParent = pBox;
+    }
+
     UiRect rcParent = pParent->GetPosWithoutPadding();
     int32_t nAvailableSize = m_bHLayout ? rcParent.Width() : rcParent.Height();
-    //扣除分割条自身占用的空间，保证调整后控件不会把分割条挤出父容器
-    nAvailableSize -= (m_bHLayout ? this->GetWidth() : this->GetHeight());
+    if (bSameParent) {
+        //扣除分割条自身占用的空间，保证调整后控件不会把分割条挤出父容器
+        nAvailableSize -= (m_bHLayout ? this->GetWidth() : this->GetHeight());
+    }
 
     //扣除同一容器中其它控件占用的空间：固定尺寸的控件按当前尺寸计算，拉伸类型的控件按最小尺寸计算
     const Control* pThisControl = static_cast<const Control*>(this);
@@ -483,32 +575,50 @@ void SplitTemplate<InheritType>::FindPrevNextControl(Control*& pPrev, Control*& 
 {
     pPrev = nullptr;
     pNext = nullptr;
+
+    //先查找同一父容器中位于分割条前面/后面的相邻控件
+    Control* pPrevSibling = nullptr;
+    Control* pNextSibling = nullptr;
     Box* pParent = this->GetParent();
-    if (pParent == nullptr) {
-        return;
+    if (pParent != nullptr) {
+        size_t nChildCount = pParent->GetItemCount();
+        bool bFoundThis = false;
+        for (size_t i = 0; i < nChildCount; ++i) {
+            Control* pControl = pParent->GetItemAt(i);
+            if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
+                continue;
+            }
+            if (bFoundThis) {
+                pNextSibling = pControl;
+                break;
+            }
+            const Control* pThisControl = static_cast<const Control*>(this);
+            if (pControl == pThisControl) {
+                bFoundThis = true;
+            }
+            else {
+                pPrevSibling = pControl;
+            }
+        }
+        if (!bFoundThis) {
+            //当前控件不是父容器的直接子控件，无法确定相邻控件
+            pPrevSibling = nullptr;
+            pNextSibling = nullptr;
+        }
     }
-    size_t nChildCount = pParent->GetItemCount();
-    bool bFoundThis = false;
-    for (size_t i = 0; i < nChildCount; ++i) {
-        Control* pControl = pParent->GetItemAt(i);
-        if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
-            continue;
-        }
-        if (bFoundThis) {
-            pNext = pControl;
-            break;
-        }
-        if (pControl == this) {
-            bFoundThis = true;
-        }
-        else {
-            pPrev = pControl;
-        }
+
+    //如果指定了目标控件的名称，则优先使用指定的控件（支持跨容器调整）
+    if (m_sLeftTopCtrlName.empty()) {
+        pPrev = pPrevSibling;
     }
-    if (!bFoundThis) {
-        //当前控件不是父容器的直接子控件，无法确定相邻控件
-        pPrev = nullptr;
-        pNext = nullptr;
+    else {
+        pPrev = FindTargetControl(m_sLeftTopCtrlName);
+    }
+    if (m_sRightBottomCtrlName.empty()) {
+        pNext = pNextSibling;
+    }
+    else {
+        pNext = FindTargetControl(m_sRightBottomCtrlName);
     }
 }
 

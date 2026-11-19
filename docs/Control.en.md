@@ -3346,11 +3346,15 @@ When the `double_click_reset` attribute is `true`, double-clicking the splitter 
 
 The `drag_threshold` attribute sets the drag threshold: after the mouse button is pressed, sizes are adjusted only when the pointer has moved along the layout direction (horizontal for left/right dragging, vertical for up/down dragging) by more than the threshold, which prevents accidental size changes caused by slight mouse jitter. The threshold is expressed in 96 DPI logical pixels and is scaled by the current DPI automatically (for example, at 175% scaling a threshold of 2 corresponds to about 4 physical pixels). It defaults to `2`; setting it to `0` disables the threshold (sizes follow the mouse immediately after pressing). Once the threshold is exceeded, the full mouse offset is applied for the rest of the drag until the button is released.
 
+The `left_top_ctrl_name` / `right_bottom_ctrl_name` attributes explicitly specify the names of the two controls to resize (looked up within the same window). When empty, the left/top side uses the visible control preceding the splitter in the same parent container, and the right/bottom side uses the following one; when a name is set, the named control is resized instead, which allows resizing across containers (the splitter and the target control do not share the same parent). The drag direction is still determined by the layout of the splitter's parent container (`HLayout` for left/right dragging, `VLayout` for up/down dragging), and the target controls must be resized along the same direction. If the named control does not exist, is invisible or is not a valid target, that side is treated as having no target control.
+
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |
 | enable_split_single | false | bool | Whether to allow adjusting its width when there is only one control |
 | double_click_reset | false | bool | Whether double-clicking the splitter restores both adjacent controls to the sizes they had before the first drag |
 | drag_threshold | 2 | int | Drag threshold (96 DPI logical pixels); sizes are adjusted only after the mouse moves farther than this distance; 0 disables the threshold |
+| left_top_ctrl_name | | string | Name of the left/top target control (looked up in the same window); when empty, the preceding visible control in the same parent container is used |
+| right_bottom_ctrl_name | | string | Name of the right/bottom target control (looked up in the same window); when empty, the following visible control in the same parent container is used |
 
 The Split control inherits the `Control` attributes. For more available attributes, please refer to the `Control` attributes.
 

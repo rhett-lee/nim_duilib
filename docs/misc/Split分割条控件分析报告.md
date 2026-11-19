@@ -18,7 +18,8 @@
 | 三 | 双击复位 | 已实现（属性 `double_click_reset`，默认 `false`） |
 | 三 | 拖动开始/结束事件 | 已实现（`kEventSplitDragBegin` / `kEventSplitDragEnd` + `AttachSplitDragBegin` / `AttachSplitDragEnd`） |
 | 三 | 拖动阈值 | 已实现（属性 `drag_threshold`，默认 `2` 个 96 DPI 逻辑像素，`0` 表示关闭） |
-| 三 | 功能不足（目标控件可指定、键盘操作、尺寸提示） | 未处理（规划中） |
+| 三 | 目标控件可指定 | 已实现（属性 `left_top_ctrl_name` / `right_bottom_ctrl_name`，支持跨容器调整） |
+| 三 | 功能不足（键盘操作、尺寸提示） | 未处理（规划中） |
 
 ## 一、结论
 
@@ -169,6 +170,15 @@ if ((nNewMax > 0) && (nMax > nNewMax)) { nMax = nNewMax; }
 - **超过阈值后的行为**：一旦超过阈值，本次拖动按**完整的鼠标偏移量**调整尺寸（不做偏移补偿），并在剩余的拖动过程中不再重复判定，直到鼠标抬起。
 - **验证**：Debug 版 `TreeView` 示例（非 DLL 模式）中，对主分割条先做 2 个物理像素的轻微抖动（小于阈值），分割线位置不变（物理像素 x 519 → 519）；随后做 210 物理像素的正常拖动，分割线移动到 x 727，尺寸调整正常，进程无断言。
 
+### 目标控件可指定实现说明
+
+- **属性与接口**：新增属性 `left_top_ctrl_name` / `right_bottom_ctrl_name`，对应 `SetLeftTopCtrlName()`/`GetLeftTopCtrlName()` 与 `SetRightBottomCtrlName()`/`GetRightBottomCtrlName()`。
+- **解析规则**：`FindPrevNextControl()` 先按原有逻辑求出同一父容器中的前后相邻控件；某一侧配置了名称时，改用 `FindTargetControl()` 在**同一个窗口内**按名称查找并覆盖该侧结果。未配置名称的一侧保持"相邻控件"行为，因此可以只指定一侧。
+- **有效性校验**：按名称找到的控件需要非空、不是分割条自身且当前可见，否则该侧视为没有目标控件（配合 `enable_split_single` 决定能否拖动）。
+- **跨容器支持**：`GetParentAvailableSize()` 改为以目标控件所在父容器计算可用空间；仅当目标控件与分割条在同一父容器时才扣除分割条自身占用的空间，因此跨容器调整时边界约束仍然正确。
+- **拖动方向**：仍由分割条所在父容器的布局决定（`HLayout` 左右、`VLayout` 上下），目标控件沿同一方向调整固定宽度/高度。
+- **验证**：Debug 版 `TreeView` 示例（非 DLL 模式）中给主分割条显式配置 `left_top_ctrl_name="tree_panel" right_bottom_ctrl_name="main_view_tab_box"`，拖动行为与默认（自动取相邻控件）一致：2 物理像素抖动不改变尺寸（x 519 → 519），210 物理像素拖动后分割线移动到 x 727，进程无断言。
+
 ## 三、功能不足（建议补齐）
 
 | 能力 | 现状 | 建议 |
@@ -176,7 +186,7 @@ if ((nNewMax > 0) && (nMax > nNewMax)) { nMax = nNewMax; }
 | 双击复位 | 控件本身不支持（`ListCtrlHeader` 自己在 SplitBox 上挂双击） | 已实现：内建保存首次拖动前的 `fixed` 值（含固定/拉伸/自动类型），双击恢复；属性 `double_click_reset` 控制，默认 `false` |
 | 拖动开始/结束事件 | 只有 `kEventSplitDraged` | 已实现：新增 `kEventSplitDragBegin/kEventSplitDragEnd`（`AttachSplitDragBegin/AttachSplitDragEnd`），便于应用层暂停刷新、持久化布局 |
 | 拖动阈值 | 无，轻微移动即改尺寸并发事件 | 已实现：新增属性 `drag_threshold`（默认 `2` 个 96 DPI 逻辑像素，按当前 DPI 缩放，`0` 表示关闭），鼠标在布局方向上移动超过该距离后才开始调整尺寸 |
-| 目标控件可指定 | 只能取"同父容器内、可见、非 float 的前后兄弟" | 增加 `left_top_ctrl_name` / `right_bottom_ctrl_name`，支持跨容器分割 |
+| 目标控件可指定 | 只能取"同父容器内、可见、非 float 的前后兄弟" | 已实现：新增属性 `left_top_ctrl_name` / `right_bottom_ctrl_name`（同一窗口内按名称查找），未指定的一侧仍按相邻控件处理，支持跨容器分割 |
 | 键盘操作 | 无 | 聚焦后方向键 ±1/±10（配合 Shift）微调 |
 | 拖动尺寸提示 | 无 | 拖动时显示"320 px"气泡（类似 Qt Designer），提升可预期性 |
 
