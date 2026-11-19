@@ -82,22 +82,36 @@ std::string PlaceHolder::GetUTF8Name() const
 
 DString PlaceHolder::GetName() const
 { 
-    return m_sName.c_str();
+    if (m_pData != nullptr) {
+        return m_pData->m_sName.c_str();
+    }
+    return DString();
 }
 
 bool PlaceHolder::IsNameEquals(const DString& name) const
 {
-    return StringUtil::StringCompare(m_sName.c_str(), name.c_str()) == 0;
+    if (m_pData == nullptr) {
+        return name.empty();
+    }
+    return StringUtil::StringCompare(m_pData->m_sName.c_str(), name.c_str()) == 0;
 }
 
 bool PlaceHolder::HasName() const
 {
-    return !m_sName.empty();
+    return (m_pData != nullptr) && !m_pData->m_sName.empty();
 }
 
 void PlaceHolder::SetName(const DString& strName)
 {
-    m_sName = strName;
+    if (strName.empty()) {
+        //名称为空时，仅清除已有的名称(不创建数据)
+        if (m_pData != nullptr) {
+            m_pData->m_sName.clear();
+        }
+        return;
+    }
+    CheckPlaceHolderData();
+    m_pData->m_sName = strName;
 }
 
 void PlaceHolder::SetUTF8Name(const std::string& strName)

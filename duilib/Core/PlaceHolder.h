@@ -519,6 +519,9 @@ private:
         //构造函数
         TPlaceHolderData();
 
+        //控件名称，用于查找控件等操作
+        UiString m_sName;
+
         //获取与父控件的相对位置(仅当控件为浮动控件时有效)
         UiSize m_uiFloatPos;
 
@@ -539,9 +542,6 @@ private:
     };
 
 private:
-    //控件名称，用于查找控件等操作
-    UiString m_sName;
-
     //关联的窗口对象
     Window* m_pWindow;
 
@@ -557,7 +557,7 @@ private:
     //估算控件大小的结果(仅当控件的宽度或者高度为auto时，才会用到此值)
     std::unique_ptr<UiEstResult> m_pEstResult;
 
-    //不常用数据
+    //不常用数据（包含控件名称、浮动位置、大小最小值/最大值、单元格合并属性等）
     std::unique_ptr<TPlaceHolderData> m_pData;
 
     //控件的外边距属性（上，下，左，右边距），外边距是m_uiRect以外的空间，不包含在m_uiRect以内
