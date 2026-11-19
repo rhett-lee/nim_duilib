@@ -132,10 +132,12 @@ UiSize64 VFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
     if (visibleControls.empty()) {
         //可见控件为空, 调整子控件的布局（浮动控件），然后直接返回
         if (!bEstimateOnly) {
+            UiRect rcFloat = rc;
+            DeflatePadding(rcFloat); //浮动控件的位置相对于内容区域（不含内边距）
             for (auto pControl : items) {
                 if ((pControl != nullptr) && pControl->IsVisible() && pControl->IsFloat()) {
                     //浮动控件（容器本身的对齐方式不生效）
-                    SetFloatPos(pControl, rc);
+                    SetFloatPos(pControl, rcFloat);
                 }
             }
         }

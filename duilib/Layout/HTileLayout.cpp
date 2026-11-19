@@ -515,6 +515,10 @@ UiSize64 HTileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
             rowHeights[rowIndex] = std::max(tileHeight, rowHeights[rowIndex]);
         }
     }
+    //最后一列正好排满时会多出一个空列（宽度为0），需要去掉，避免多计算一个列间距
+    if ((columnWidths.size() > 1) && (columnWidths.back() == 0)) {
+        columnWidths.pop_back();
+    }
 
     //由于内边距已经剪掉，计算宽度和高度的时候，需要算上内边距
     UiPadding rcPadding;

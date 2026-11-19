@@ -513,6 +513,10 @@ UiSize64 VTileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
             columnWidths[colIndex] = std::max(tileWidth, columnWidths[colIndex]);
         }
     }
+    //最后一行正好排满时会多出一个空行（高度为0），需要去掉，避免多计算一个行间距
+    if ((rowHeights.size() > 1) && (rowHeights.back() == 0)) {
+        rowHeights.pop_back();
+    }
 
     //由于内边距已经剪掉，计算宽度和高度的时候，需要算上内边距
     UiPadding rcPadding;

@@ -80,6 +80,8 @@ void GridLayout::ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiSc
     int32_t nGridHeight = GetGridHeight();
     nGridHeight = dpiManager.GetScaleInt(nGridHeight, nOldDpiScale);
     SetGridHeight(nGridHeight, false);
+    //子控件间距也需要按DPI缩放（基类中处理）
+    BaseClass::ChangeDpiScale(dpiManager, nOldDpiScale);
 }
 
 int32_t GridLayout::GetRows() const
@@ -195,10 +197,12 @@ UiSize64 GridLayout::ArrangeChildInternal(const std::vector<Control*>& items, Ui
     if (visibleControls.empty()) {
         //可见控件为空, 调整子控件的布局（浮动控件），然后直接返回
         if (!bEstimateOnly) {
+            UiRect rcFloat = rc;
+            DeflatePadding(rcFloat); //浮动控件的位置相对于内容区域（不含内边距）
             for (auto pControl : items) {
                 if ((pControl != nullptr) && pControl->IsVisible() && pControl->IsFloat()) {
                     //浮动控件（容器本身的对齐方式不生效）
-                    SetFloatPos(pControl, rc);
+                    SetFloatPos(pControl, rcFloat);
                 }
             }
         }
@@ -321,12 +325,12 @@ std::vector<int32_t> GridLayout::CalcRowHeights(const UiRect& contentRect, int32
 
     int32_t nGridHeight = GetGridHeight();
     if (nGridHeight > 0) {
-        // 已经设置了网格的固定宽度，直接使用
+        // 已经设置了网格的固定高度，直接使用
         std::vector<int32_t> heights(rows, nGridHeight);
         return heights;
     }
     else {
-        // 根据内容显示区域的总高度，计算每列的高度
+        // 根据内容显示区域的总高度，计算每行的高度
         int32_t availableHeight = contentRect.Height() - (rows - 1) * GetChildMarginY();
         int32_t baseHeight = std::max(0, availableHeight / rows);
         std::vector<int32_t> heights(rows, baseHeight);
