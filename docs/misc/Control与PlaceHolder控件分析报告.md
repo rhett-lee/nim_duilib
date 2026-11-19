@@ -4,13 +4,13 @@
 
 ## 处理状态
 
-本轮已完成 PH-1，其余项仍为“待处理”。
+本轮已完成 PH-1、PH-2、PH-3，其余项仍为“待处理”。
 
 | 编号 | 类别 | 内容 | 状态 |
 | --- | --- | --- | --- |
 | PH-1 | 正确性 | 64 位滚动偏移与 32 位实现语义不一致 | 已修复 |
-| PH-2 | 性能 | `SetMinWidth` / `SetMinHeight` 先分配数据再比较 | 待处理 |
-| PH-3 | 性能 | `SetToolTipWidth(0)` 为无 ToolTip 的控件分配数据 | 待处理 |
+| PH-2 | 性能 | `SetMinWidth` / `SetMinHeight` 先分配数据再比较 | 已修复 |
+| PH-3 | 性能 | `SetToolTipWidth(0)` 为无 ToolTip 的控件分配数据 | 已修复 |
 | PH-4 | 交互 | 运行时修改 `rowSpan` / `columnSpan` 不触发布局 | 待处理 |
 | PH-5 | 交互 | `SetEnableControlPadding` 不触发重新布局 | 待处理 |
 | PH-6 | 健壮性 | `maxWidth` / `maxHeight` 允许小于 `min`，非法值被静默吞掉 | 待处理 |
@@ -68,7 +68,7 @@
 - 建议：在 `ScrollBox` 中补充 `GetScrollOffset64ForChild(const PlaceHolder*)`（默认返回 `GetScrollOffset64()`，供子类重写），64 位版本改为调用该接口；或在文档中明确 64 位路径不支持冻结列并加断言。
 - 修复：已按上述第一种方案实现。`ScrollBox` 新增虚函数 `GetScrollOffset64ForChild()`，`PlaceHolder::GetScrollOffsetInScrollBox64()` 改为调用它；`ListCtrlReportView` 同步重写，对冻结列子控件返回横向偏移 0，与 32 位实现一致。
 
-**PH-2 / PH-3 DPI 切换时的无谓分配（建议优先修复）**
+**PH-2 / PH-3 DPI 切换时的无谓分配（已修复）**
 
 - 位置：`duilib/Core/Control.cpp` 的 `ChangeDpiScale()`（约 732-760 行）、`duilib/Core/PlaceHolder.cpp` 的 `SetMinWidth()`（约 301-322 行）/ `SetMinHeight()`（约 367-387 行）、`duilib/Core/Control.cpp` 的 `SetToolTipWidth()`（约 2022-2037 行）。
 - 现象：
@@ -79,6 +79,10 @@
   - Setter 先比较当前值再决定是否 `CheckPlaceHolderData()`；
   - `GetToolTipWidth()` 无法区分“无数据”和“宽度为 0”，建议增加 `HasToolTip()` 判断，或让 `ChangeDpiScale()` 仅在 `GetToolTipWidth() > 0` 时缩放；
   - `SetToolTipWidth()` 在 `nWidth == 0 && 无 ToolTip 文本` 时直接返回。
+- 修复：
+  - `SetMinWidth` / `SetMinHeight` / `SetMaxWidth` / `SetMaxHeight` 改为先与 `GetMinWidth()` / `GetMaxHeight()` 等 Getter 比较，值未变化时直接返回，再按需 `CheckPlaceHolderData()`；
+  - `SetToolTipWidth()` 增加两处提前返回：宽度为 0 且无 ToolTip 数据时不创建数据块；值未变化时不重复赋值；
+  - `ChangeDpiScale()` 的 ToolTip 宽度缩放条件由 `>= 0` 改为 `> 0`。
 
 **PH-4 运行时修改单元格合并不重排**
 

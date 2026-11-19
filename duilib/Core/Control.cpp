@@ -754,7 +754,7 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     }
 
     int32_t nToolTipWidth = GetToolTipWidth();
-    if (nToolTipWidth >= 0) {
+    if (nToolTipWidth > 0) {
         nToolTipWidth = Dpi().GetScaleInt(nToolTipWidth, nOldDpiScale);
         SetToolTipWidth(nToolTipWidth, false);
     }
@@ -2026,6 +2026,15 @@ void Control::SetToolTipWidth(int32_t nWidth, bool bNeedDpiScale)
     }
     if (bNeedDpiScale) {
         Dpi().ScaleInt(nWidth);
+    }
+    if ((nWidth == 0) && ((m_pOtherData == nullptr) || (m_pOtherData->m_pTooltip == nullptr))) {
+        //没有ToolTip数据且宽度为默认值(0)时，不需要创建数据块
+        return;
+    }
+    if ((m_pOtherData != nullptr) && (m_pOtherData->m_pTooltip != nullptr) &&
+        (m_pOtherData->m_pTooltip->m_nTooltipWidth == nWidth)) {
+        //值未变化，无需处理
+        return;
     }
     if (m_pOtherData == nullptr) {
         m_pOtherData = std::make_unique<TOtherData>();

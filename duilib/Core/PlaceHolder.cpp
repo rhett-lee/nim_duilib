@@ -308,10 +308,11 @@ void PlaceHolder::SetMinWidth(int32_t cx, bool bNeedDpiScale)
         Dpi().ScaleInt(cx);
     }
 
-    CheckPlaceHolderData();
-    if (m_pData->m_cxyMin.cx == cx) {
+    if (GetMinWidth() == cx) {
+        //值未变化时直接返回，避免为默认值创建数据块
         return;
     }
+    CheckPlaceHolderData();
     m_pData->m_cxyMin.cx = cx;
     if (!m_bFloat) {
         ArrangeAncestor();
@@ -342,11 +343,11 @@ void PlaceHolder::SetMaxWidth(int32_t cx, bool bNeedDpiScale)
     if (bNeedDpiScale) {
         Dpi().ScaleInt(cx);
     }
-    CheckPlaceHolderData();
-    if (m_pData->m_cxyMax.cx == cx) {
+    if (GetMaxWidth() == cx) {
+        //值未变化时直接返回，避免为默认值创建数据块
         return;
     }
-
+    CheckPlaceHolderData();
     m_pData->m_cxyMax.cx = cx;
     if (!m_bFloat) {
         ArrangeAncestor();
@@ -373,10 +374,11 @@ void PlaceHolder::SetMinHeight(int32_t cy, bool bNeedDpiScale)
     if (bNeedDpiScale) {
         Dpi().ScaleInt(cy);
     }
-    CheckPlaceHolderData();
-    if (m_pData->m_cxyMin.cy == cy) {
+    if (GetMinHeight() == cy) {
+        //值未变化时直接返回，避免为默认值创建数据块
         return;
     }
+    CheckPlaceHolderData();
     m_pData->m_cxyMin.cy = cy;
     if (!m_bFloat) {
         ArrangeAncestor();
@@ -407,11 +409,11 @@ void PlaceHolder::SetMaxHeight(int32_t cy, bool bNeedDpiScale)
     if (bNeedDpiScale) {
         Dpi().ScaleInt(cy);
     }
-    CheckPlaceHolderData();
-    if (m_pData->m_cxyMax.cy == cy) {
+    if (GetMaxHeight() == cy) {
+        //值未变化时直接返回，避免为默认值创建数据块
         return;
     }
-
+    CheckPlaceHolderData();
     m_pData->m_cxyMax.cy = cy;
     if (!m_bFloat) {
         ArrangeAncestor();
