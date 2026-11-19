@@ -12,7 +12,7 @@
     <!-- 属性页的表头 -->
     <Class name="property_grid_header" bkcolor="bg_property_grid_header" height="28" border_size="0,0,0,1" border_color="border_property_grid_header"/>
 
-    <Class name="property_grid_group" height="28" bkcolor="bg_property_grid_group" show_focused_rect="true"/>
+    <Class name="property_grid_group" height="28" bkcolor="bg_property_grid_group"/>
     <Class name="property_grid_group_label" normal_text_color="text_default" disabled_text_color="text_disabled"/>
     <Class name="property_grid_property" height="28" bkcolor="bg_property_grid_property"/>
     <Class name="property_grid_property_name_label" bkcolor="bg_property_grid_property_name"/>

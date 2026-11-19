@@ -99,6 +99,8 @@ IPAddress::IPAddress(Window* pWindow):
     m_bAllowEmpty(false),
     m_nSegmentWidth(kSegmentWidth)
 {
+    //交互控件的键盘焦点反馈：默认显示焦点框（仅在键盘操作后绘制，鼠标操作时不显示）
+    SetShowFocusedRect(true);
 }
 
 DString IPAddress::GetType() const { return DUI_CTR_IPADDRESS; }

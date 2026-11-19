@@ -31,6 +31,8 @@ ButtonTemplate<InheritType>::ButtonTemplate(Window* pWindow):
     LabelTemplate<InheritType>(pWindow)
 {
     this->SetTextStyle(TEXT_VCENTER | TEXT_HCENTER | TEXT_END_ELLIPSIS | TEXT_NOCLIP | TEXT_SINGLELINE, false);
+    //交互控件的键盘焦点反馈：默认显示焦点框（仅在键盘操作后绘制，鼠标操作时不显示）
+    this->SetShowFocusedRect(true);
 }
 
 template<typename InheritType>

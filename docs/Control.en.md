@@ -90,7 +90,7 @@ English | [简体中文](Control.md)
 | menu | false | bool | |Whether a right-click menu is needed, e.g. "true"|
 | no_focus | false | bool | SetNoFocus|Whether it can acquire focus, e.g. "true"|
 | tab_stop | true | bool | SetTabStop| Whether it is allowed to switch to this control by pressing the TAB key |
-| show_focused_rect | false| bool | SetShowFocusedRect| Whether to display the focus rect (an accent-colored rounded outline by default, matching the native Windows focus indicator); drawn only while the window is active and the latest input came from the keyboard |
+| show_focused_rect | false| bool | SetShowFocusedRect| Whether to display the focus rect (an accent-colored rounded outline by default, matching the native Windows focus indicator); drawn only while the window is active and the latest input came from the keyboard. Enabled by default for `Button`/`CheckBox`/`Option`/`Combo`/`Slider`/`RichEdit`/`IPAddress`/`DateTime` |
 | focused_rect_color | | string | SetFocusedRectColor| Color of the focus rect outline (falls back to color_accent, then border_focus_ring when empty) |
 | alpha | 255 | int | SetAlpha|Overall opacity of the control, e.g. alpha="128"; valid values are 0-255 |
 | state | normal | string | SetState|Current state of the control: supports normal, hovered, pressed, disabled states |

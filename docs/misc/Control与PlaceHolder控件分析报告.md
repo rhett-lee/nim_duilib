@@ -220,6 +220,9 @@
   4. `Control::ShouldPaintFocusRect()` 增加该条件判断；`TabCtrl::PaintTabFocusRect()` 同步判断；
   5. 移除 `MenuBarButton` 的 `m_bKeyboardFocus` / `SetKeyboardFocused()` / `ShouldPaintFocusRect()` 重写，统一由窗口状态驱动。
 - 效果：键盘操作（Tab、方向键、F10/Alt、回车等）后显示焦点框；鼠标按下后立即隐藏，与 Windows 原生行为一致。
+- 配套调整（默认开启策略）：`Control` 仍保持默认 `false`，改由交互控件在构造函数中默认开启，避免给容器/装饰控件绘制大焦点框：
+  - 已开启：`Button`（含 `ButtonBox`/`ButtonHBox`/`ButtonVBox`，以及派生的 `CheckBox`/`Option`/`Switch`）、`Combo`、`Slider`、`RichEdit`（Windows 与 SDL 两个实现）、`IPAddress`、`DateTime`。
+  - 未开启：`ListBox`/`TreeView` 等容器类——焦点实际落在条目上，且 `Menu`、`Combo` 的下拉列表继承自 `ListBox`，整体开启会让菜单/下拉层出现边框；`TabCtrl` 保持既有实现（焦点框绘制在选中标签上）。
 
 **U-3 键盘焦点复用鼠标悬浮状态**
 

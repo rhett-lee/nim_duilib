@@ -31,6 +31,9 @@ Slider::Slider(Window* pWindow) :
 
     //滑块拖动需要即时响应，默认关闭值变化动画（Progress 默认开启）
     SetAnimationEnabled(false);
+
+    //交互控件的键盘焦点反馈：默认显示焦点框（仅在键盘操作后绘制，鼠标操作时不显示）
+    SetShowFocusedRect(true);
 }
 
 DString Slider::GetType() const { return DUI_CTR_SLIDER; }

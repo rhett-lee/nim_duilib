@@ -1542,7 +1542,11 @@ private:
     class DUILIB_API RichEdit : public RichEdit2
     {
     public:
-        explicit RichEdit(Window* pWindow) : RichEdit2(pWindow) {}
+        explicit RichEdit(Window* pWindow) : RichEdit2(pWindow)
+        {
+            //交互控件的键盘焦点反馈：默认显示焦点框（仅在键盘操作后绘制，鼠标操作时不显示）
+            SetShowFocusedRect(true);
+        }
         RichEdit(const RichEdit2& r) = delete;
         RichEdit& operator=(const RichEdit& r) = delete;
         virtual ~RichEdit() override {};

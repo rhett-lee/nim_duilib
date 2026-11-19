@@ -342,6 +342,8 @@ Combo::Combo(Window* pWindow) :
     SetDropBoxSize({0, 150}, true);
     m_treeView.SetSelectNextWhenActiveRemoved(false);
     m_treeView.AttachSelect(UiBind(&Combo::OnSelectItem, this, std::placeholders::_1));
+    //交互控件的键盘焦点反馈：默认显示焦点框（仅在键盘操作后绘制，鼠标操作时不显示）
+    SetShowFocusedRect(true);
 }
 
 Combo::~Combo()

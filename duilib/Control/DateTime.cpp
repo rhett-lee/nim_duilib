@@ -30,6 +30,9 @@ DateTime::DateTime(Window* pWindow):
     SetAttribute(_T("text_padding"), _T("2,0,0,0"));
     SetAttribute(_T("padding"), _T("1,1,1,1"));
     SetAttribute(_T("spin_class"), _T("rich_edit_spin_box,rich_edit_spin_btn_up,rich_edit_spin_btn_down"));
+
+    //交互控件的键盘焦点反馈：默认显示焦点框（仅在键盘操作后绘制，鼠标操作时不显示）
+    SetShowFocusedRect(true);
 }
 
 DateTime::~DateTime()
