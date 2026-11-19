@@ -4339,13 +4339,13 @@ void Control::DoPaintFocusRect(IRender* pRender)
     }
     const float fInset = fBorderSize + Dpi().GetScaleFloat(1.0f);
 
-    //圆角与控件边框保持同心：未设置圆角时使用较小的默认圆角
+    //圆角：控件设置了圆角时与控件边框保持同心，否则使用焦点环自身的默认圆角
     float fRoundWidth = 0.0f;
     float fRoundHeight = 0.0f;
-    if (!GetBorderRound(fRoundWidth, fRoundHeight)) {
-        fRoundWidth = Dpi().GetScaleFloat(3.0f);
-        fRoundHeight = fRoundWidth;
-    }
+    const bool bHasBorderRound = GetBorderRound(fRoundWidth, fRoundHeight);
+    //焦点环的最小可见圆角：焦点环的内缩量(间隙+两道描边)会消耗控件圆角，
+    //若直接按"控件圆角-内缩量"计算，半径会被减到0而显示为直角(如无圆角的按钮、标签项)
+    const float fMinRingRound = Dpi().GetScaleFloat(3.0f);
 
     const float fContrastWidth = SnapPaintLineWidth(Dpi().GetScaleFloat(1.0f));
     const float fPrimaryWidth = SnapPaintLineWidth(Dpi().GetScaleFloat(2.0f));
@@ -4358,7 +4358,7 @@ void Control::DoPaintFocusRect(IRender* pRender)
         UiRectF rcFocusRect((float)rcControl.left, (float)rcControl.top, (float)rcControl.right, (float)rcControl.bottom);
         rcFocusRect.Deflate(fOffset, fOffset);
         if (!rcFocusRect.IsEmpty()) {
-            const float fRadius = std::max(0.0f, fRoundWidth - fOffset);
+            const float fRadius = bHasBorderRound ? std::max(fMinRingRound, fRoundWidth - fOffset) : fMinRingRound;
             pRender->DrawRoundRect(rcFocusRect, fRadius, fRadius, contrastColor, fContrastWidth);
         }
     }
@@ -4368,7 +4368,7 @@ void Control::DoPaintFocusRect(IRender* pRender)
         UiRectF rcFocusRect((float)rcControl.left, (float)rcControl.top, (float)rcControl.right, (float)rcControl.bottom);
         rcFocusRect.Deflate(fOffset, fOffset);
         if (!rcFocusRect.IsEmpty()) {
-            const float fRadius = std::max(0.0f, fRoundWidth - fOffset);
+            const float fRadius = bHasBorderRound ? std::max(fMinRingRound, fRoundWidth - fOffset) : fMinRingRound;
             pRender->DrawRoundRect(rcFocusRect, fRadius, fRadius, focusColor, fPrimaryWidth);
         }
     }
