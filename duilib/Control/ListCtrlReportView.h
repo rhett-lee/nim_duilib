@@ -233,6 +233,14 @@ protected:
     */
     virtual UiSize GetScrollOffsetForChild(const PlaceHolder* pChild) const override;
 
+    /** 获取某个子控件（含子孙控件）所属坐标空间的滚动偏移量（64位版本）
+    *  重写 ScrollBox::GetScrollOffset64ForChild，与 GetScrollOffsetForChild 的口径保持一致：
+    *  冻结列区域内的子控件固定显示在视口左侧，其横向偏移量按0计
+    * @param [in] pChild 待换算坐标的子控件（可能是子孙控件）
+    * @return 返回该子控件所在坐标空间对应的滚动偏移量
+    */
+    virtual UiSize64 GetScrollOffset64ForChild(const PlaceHolder* pChild) const override;
+
     /** 创建一个数据项
     * @return 返回创建后的数据项指针
     */

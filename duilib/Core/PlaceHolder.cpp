@@ -773,8 +773,11 @@ UiSize64 PlaceHolder::GetScrollOffsetInScrollBox64() const
                     //当前控件是浮动的，父控件是ScrollBox，不计入统计
                 }
                 else {
-                    scrollPos.cx += pScrollBox->GetScrollOffset64().cx;
-                    scrollPos.cy += pScrollBox->GetScrollOffset64().cy;
+                    //注意：与32位版本保持同一口径，使用GetScrollOffset64ForChild，
+                    //以便ScrollBox子类(如冻结列)重写不同子控件的偏移量
+                    const UiSize64 childScrollOffset = pScrollBox->GetScrollOffset64ForChild(this);
+                    scrollPos.cx += childScrollOffset.cx;
+                    scrollPos.cy += childScrollOffset.cy;
                 }
             }
         }

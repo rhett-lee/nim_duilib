@@ -1399,6 +1399,16 @@ UiSize ListCtrlReportView::GetScrollOffsetForChild(const PlaceHolder* pChild) co
     return scrollOffset;
 }
 
+UiSize64 ListCtrlReportView::GetScrollOffset64ForChild(const PlaceHolder* pChild) const
+{
+    UiSize64 scrollOffset = BaseClass::GetScrollOffset64ForChild(pChild);
+    //冻结列区域内的子控件固定显示在视口左侧、不随横向滚动移动：横向偏移量按0计
+    if ((scrollOffset.cx != 0) && IsChildInFrozenColumn(pChild)) {
+        scrollOffset.cx = 0;
+    }
+    return scrollOffset;
+}
+
 bool ListCtrlReportView::IsChildInFrozenColumn(const PlaceHolder* pChild) const
 {
     if ((pChild == nullptr) || (m_pListCtrl == nullptr)) {

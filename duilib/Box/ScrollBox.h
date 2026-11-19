@@ -69,6 +69,15 @@ public:
     */
     virtual UiSize GetScrollOffsetForChild(const PlaceHolder* pChild) const;
 
+    /** 获取某个子控件（含子孙控件）所属坐标空间的滚动偏移量（64位版本）
+    *   默认实现：返回 GetScrollOffset64()，即该子控件按本容器的滚动量进行坐标换算；
+    *   重写 GetScrollOffsetForChild 的子类，应同步重写本函数，保证32位与64位两条
+    *   坐标换算路径的口径保持一致（例如 ListCtrl 的冻结列区域横向偏移量按0计）
+    * @param [in] pChild 待换算坐标的子控件（可能是子孙控件，不一定是直接子控件）
+    * @return 返回该子控件所在坐标空间对应的滚动偏移量
+    */
+    virtual UiSize64 GetScrollOffset64ForChild(const PlaceHolder* pChild) const;
+
     /** 是否为滚动容器（重写PlaceHolder接口，避免高频路径上使用dynamic_cast）
     */
     virtual bool IsScrollBox() const override { return true; }
