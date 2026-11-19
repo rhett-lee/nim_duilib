@@ -19,6 +19,7 @@ namespace ui
 *   属性 drag_threshold 用于设置拖动阈值：鼠标在布局方向上移动超过该距离后才开始调整尺寸（单位是 96 DPI 的逻辑像素，默认为 2，0 表示不启用阈值）。
 *   属性 left_top_ctrl_name / right_bottom_ctrl_name 可以显式指定要调整的两个控件的名称（在同一个窗口内查找），
 *   不指定时默认使用同一父容器中、位于分割条前面和后面的两个可见控件；指定目标控件后支持跨容器调整尺寸。
+*   控件获得焦点后，支持键盘操作：按布局方向的方向键微调尺寸（Shift + 方向键为大步进），步长由属性 keyboard_step 控制。
 *   拖动开始、拖动过程和拖动结束时，分别触发 kEventSplitDragBegin、kEventSplitDraged、kEventSplitDragEnd 事件。
 */
 template<typename InheritType = Control>
@@ -83,6 +84,15 @@ public:
     */
     const DString& GetRightBottomCtrlName() const;
 
+    /** 设置键盘操作时，每次按方向键调整的尺寸（单位是 96 DPI 的逻辑像素）
+    * @param [in] nKeyboardStep 调整步长，0 表示不启用键盘操作，默认值为 10；按 Shift + 方向键时为 10 倍步长
+    */
+    void SetKeyboardStep(int32_t nKeyboardStep);
+
+    /** 获取键盘操作时，每次按方向键调整的尺寸（单位是 96 DPI 的逻辑像素）
+    */
+    int32_t GetKeyboardStep() const;
+
     /** 监听开始拖动的事件（WPARAM 为左侧/上侧控件，LPARAM 为右侧/下侧控件，可能为 nullptr）
      * @param [in] callback 开始拖动时触发的回调函数
      * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
@@ -114,6 +124,7 @@ protected:
     virtual bool ButtonDoubleClick(const EventArgs& msg) override;
     virtual bool MouseMove(const EventArgs& msg) override;
     virtual bool OnWindowKillFocus(const EventArgs& msg) override;
+    virtual bool OnKeyDown(const EventArgs& msg) override;
 
 private:
     //是否为垂直布局的容器
@@ -133,6 +144,21 @@ private:
     * @return 返回查找到的控件，未查找到或者控件不可用时返回nullptr
     */
     Control* FindTargetControl(const DString& strCtrlName) const;
+
+    /** 准备调整尺寸所需的目标控件和初始尺寸（鼠标按下或者键盘操作前调用）
+    * @return true表示可以调整尺寸；false表示当前不可调整
+    */
+    bool PrepareDragTargets();
+
+    /** 按布局方向的偏移量调整两侧控件的尺寸（鼠标拖动与键盘操作共用）
+    * @param [in] nOffset 偏移量（像素），正数表示向右/向下移动分割条
+    */
+    void ApplyDragOffset(int32_t nOffset);
+
+    /** 只有一侧控件时，按偏移量调整该控件的尺寸（鼠标拖动与键盘操作共用）
+    * @param [in] nOffset 偏移量（像素），正数表示向右/向下移动分割条
+    */
+    void ApplyDragOffsetSingle(int32_t nOffset);
 
     /** 查找同级的相邻控件（前一个和后一个可见的、非float的控件）
     *   如果通过 left_top_ctrl_name / right_bottom_ctrl_name 指定了目标控件，则优先使用指定的控件
@@ -240,6 +266,9 @@ private:
     //右侧（下侧）目标控件的名称（为空时，使用同一父容器中的后一个可见控件）
     DString m_sRightBottomCtrlName;
 
+    //键盘操作时，每次按方向键调整的尺寸（单位是 96 DPI 的逻辑像素，0 表示不启用键盘操作）
+    int32_t m_nKeyboardStep;
+
     /** 当只有一个控件的时候，是否允许调整其宽度
     */
     bool m_bEnableSplitSingle;
@@ -259,6 +288,7 @@ SplitTemplate<InheritType>::SplitTemplate(Window* pWindow):
     m_bDragStarted(false),
     m_nDragThreshold(2),
     m_bDragThresholdExceeded(false),
+    m_nKeyboardStep(10),
     m_bEnableSplitSingle(false),
     m_bDoubleClickReset(false)
 {
@@ -289,6 +319,9 @@ void SplitTemplate<InheritType>::SetAttribute(const DString& strName, const DStr
     }
     else if (strName == _T("right_bottom_ctrl_name")) {
         SetRightBottomCtrlName(strNewValue);
+    }
+    else if (strName == _T("keyboard_step")) {
+        SetKeyboardStep(StringUtil::StringToInt32(strNewValue));
     }
     else {
         BaseClass::SetAttribute(strName, strNewValue);
@@ -357,6 +390,21 @@ template<typename InheritType>
 const DString& SplitTemplate<InheritType>::GetRightBottomCtrlName() const
 {
     return m_sRightBottomCtrlName;
+}
+
+template<typename InheritType>
+void SplitTemplate<InheritType>::SetKeyboardStep(int32_t nKeyboardStep)
+{
+    if (nKeyboardStep < 0) {
+        nKeyboardStep = 0;
+    }
+    m_nKeyboardStep = nKeyboardStep;
+}
+
+template<typename InheritType>
+int32_t SplitTemplate<InheritType>::GetKeyboardStep() const
+{
+    return m_nKeyboardStep;
 }
 
 template<typename InheritType>
@@ -686,9 +734,35 @@ bool SplitTemplate<InheritType>::ButtonDown(const EventArgs& msg)
     //清空上一次拖动的状态，避免遗留旧的控件指针（如控件树或父容器布局在两次拖动之间发生了变化）
     StopSplitDrag();
 
-    Box* pParent = this->GetParent();
-    if (!this->IsEnabled() || (pParent == nullptr)) {
+    if (!this->IsEnabled()) {
         return bRet;
+    }
+    bool bStartDrag = false;
+    if (PrepareDragTargets()) {
+        m_ptStart = msg.ptMouse;
+        m_bDragThresholdExceeded = false;
+        //获取焦点后，支持键盘操作（方向键微调尺寸）
+        this->SetFocus();
+
+        //进入拖动状态，在重绘后发送拖动开始事件
+        if (!m_bDragStarted) {
+            m_bDragStarted = true;
+            bStartDrag = true;
+        }
+    }
+    this->Invalidate();
+    if (bStartDrag) {
+        this->SendEvent(kEventSplitDragBegin, (WPARAM)m_pLeftTop, (LPARAM)m_pRightBottom);
+    }
+    return bRet;
+}
+
+template<typename InheritType>
+bool SplitTemplate<InheritType>::PrepareDragTargets()
+{
+    Box* pParent = this->GetParent();
+    if (pParent == nullptr) {
+        return false;
     }
     Control* pPrev = nullptr;
     Control* pNext = nullptr;
@@ -705,53 +779,41 @@ bool SplitTemplate<InheritType>::ButtonDown(const EventArgs& msg)
         m_bHLayout = IsHLayout(pParent);
         bLayoutValid = m_bHLayout || IsVLayout(pParent);
     }
-    bool bStartDrag = false;
-    if (bLayoutValid) {
-        m_pLeftTop = pPrev;
-        m_pRightBottom = pNext;
-        m_ptStart = msg.ptMouse;
-        m_bDragThresholdExceeded = false;
+    if (!bLayoutValid) {
+        return false;
+    }
 
-        m_nLeftTopFixedValue = UiFixedInt(0);
-        if (m_pLeftTop != nullptr) {
-            m_nLeftTopFixedValue = GetAxisFixedSize(m_pLeftTop);
-            if (!m_nLeftTopFixedValue.IsStretch()) {
-                m_nLeftTopFixedValue.SetInt32(GetAxisSize(m_pLeftTop));
-            }
-        }
-
-        m_nRightBottomFixedValue = UiFixedInt(0);
-        if (m_pRightBottom != nullptr) {
-            m_nRightBottomFixedValue = GetAxisFixedSize(m_pRightBottom);
-            if (!m_nRightBottomFixedValue.IsStretch()) {
-                m_nRightBottomFixedValue.SetInt32(GetAxisSize(m_pRightBottom));
-            }
-        }
-
-        //首次开始拖动前，记录两个控件的固定尺寸（保留固定值/拉伸/自动类型），用于双击复位
-        if (!m_bInitSizeCaptured) {
-            m_nLeftTopInitFixedValue = (m_pLeftTop != nullptr) ? GetAxisFixedSize(m_pLeftTop) : UiFixedInt(0);
-            m_nRightBottomInitFixedValue = (m_pRightBottom != nullptr) ? GetAxisFixedSize(m_pRightBottom) : UiFixedInt(0);
-            m_bInitSizeCaptured = true;
-        }
-
-        //如果两个控件都是拉伸类型的，那么让左侧(上侧)的变为非拉伸的，允许拖动操作
-        if ((m_pLeftTop != nullptr) && (m_pRightBottom != nullptr) &&
-            m_nLeftTopFixedValue.IsStretch() && m_nRightBottomFixedValue.IsStretch()) {
+    m_pLeftTop = pPrev;
+    m_pRightBottom = pNext;
+    m_nLeftTopFixedValue = UiFixedInt(0);
+    if (m_pLeftTop != nullptr) {
+        m_nLeftTopFixedValue = GetAxisFixedSize(m_pLeftTop);
+        if (!m_nLeftTopFixedValue.IsStretch()) {
             m_nLeftTopFixedValue.SetInt32(GetAxisSize(m_pLeftTop));
         }
+    }
 
-        //进入拖动状态，在重绘后发送拖动开始事件
-        if (!m_bDragStarted) {
-            m_bDragStarted = true;
-            bStartDrag = true;
+    m_nRightBottomFixedValue = UiFixedInt(0);
+    if (m_pRightBottom != nullptr) {
+        m_nRightBottomFixedValue = GetAxisFixedSize(m_pRightBottom);
+        if (!m_nRightBottomFixedValue.IsStretch()) {
+            m_nRightBottomFixedValue.SetInt32(GetAxisSize(m_pRightBottom));
         }
     }
-    this->Invalidate();
-    if (bStartDrag) {
-        this->SendEvent(kEventSplitDragBegin, (WPARAM)m_pLeftTop, (LPARAM)m_pRightBottom);
+
+    //首次开始拖动前，记录两个控件的固定尺寸（保留固定值/拉伸/自动类型），用于双击复位
+    if (!m_bInitSizeCaptured) {
+        m_nLeftTopInitFixedValue = (m_pLeftTop != nullptr) ? GetAxisFixedSize(m_pLeftTop) : UiFixedInt(0);
+        m_nRightBottomInitFixedValue = (m_pRightBottom != nullptr) ? GetAxisFixedSize(m_pRightBottom) : UiFixedInt(0);
+        m_bInitSizeCaptured = true;
     }
-    return bRet;
+
+    //如果两个控件都是拉伸类型的，那么让左侧(上侧)的变为非拉伸的，允许拖动操作
+    if ((m_pLeftTop != nullptr) && (m_pRightBottom != nullptr) &&
+        m_nLeftTopFixedValue.IsStretch() && m_nRightBottomFixedValue.IsStretch()) {
+        m_nLeftTopFixedValue.SetInt32(GetAxisSize(m_pLeftTop));
+    }
+    return true;
 }
 
 template<typename InheritType>
@@ -811,6 +873,68 @@ bool SplitTemplate<InheritType>::OnWindowKillFocus(const EventArgs& msg)
     this->Invalidate();
     StopSplitDrag();
     return bRet;
+}
+
+template<typename InheritType>
+bool SplitTemplate<InheritType>::OnKeyDown(const EventArgs& msg)
+{
+    bool bRet = BaseClass::OnKeyDown(msg);
+    if (bRet || msg.IsSenderExpired()) {
+        return bRet;
+    }
+    if ((msg.eventType != kEventKeyDown) || !this->IsEnabled() || !this->IsKeyboardEnabled() || (m_nKeyboardStep <= 0)) {
+        return bRet;
+    }
+    Box* pParent = this->GetParent();
+    if (pParent == nullptr) {
+        return bRet;
+    }
+    const bool bHLayout = IsHLayout(pParent);
+    if (!bHLayout && !IsVLayout(pParent)) {
+        return bRet;
+    }
+
+    //只有布局方向上的方向键才处理：横向布局用左右键，纵向布局用上下键
+    int32_t nDirection = 0;
+    if (bHLayout) {
+        if (msg.vkCode == kVK_LEFT) {
+            nDirection = -1;
+        }
+        else if (msg.vkCode == kVK_RIGHT) {
+            nDirection = 1;
+        }
+    }
+    else {
+        if (msg.vkCode == kVK_UP) {
+            nDirection = -1;
+        }
+        else if (msg.vkCode == kVK_DOWN) {
+            nDirection = 1;
+        }
+    }
+    if (nDirection == 0) {
+        return bRet;
+    }
+
+    //默认按步长调整，Shift + 方向键时为大步进（10 倍步长）
+    int32_t nStep = this->Dpi().GetScaleInt(m_nKeyboardStep);
+    if ((msg.modifierKey & kShift) != 0) {
+        nStep *= 10;
+    }
+    if (nStep <= 0) {
+        nStep = 1;
+    }
+    if (!PrepareDragTargets()) {
+        return bRet;
+    }
+    const int32_t nOffset = nDirection * nStep;
+    if ((m_pLeftTop != nullptr) && (m_pRightBottom != nullptr)) {
+        ApplyDragOffset(nOffset);
+    }
+    else {
+        ApplyDragOffsetSingle(nOffset);
+    }
+    return true;
 }
 
 template<typename InheritType>
@@ -880,7 +1004,16 @@ bool SplitTemplate<InheritType>::MouseMove(const EventArgs& msg)
     if (!IsDragThresholdExceeded(nOffset)) {
         return bRet;
     }
+    ApplyDragOffset(nOffset);
+    return bRet;
+}
 
+template<typename InheritType>
+void SplitTemplate<InheritType>::ApplyDragOffset(int32_t nOffset)
+{
+    if ((m_pLeftTop == nullptr) || (m_pRightBottom == nullptr)) {
+        return;
+    }
     int32_t nTotal = 0; //总的宽度值或者总的高度值
     bool bLeftTopFixed = !m_nLeftTopFixedValue.IsStretch();
     bool bRightBottomFixed = !m_nRightBottomFixedValue.IsStretch();
@@ -938,14 +1071,14 @@ bool SplitTemplate<InheritType>::MouseMove(const EventArgs& msg)
     }
     else {
         //两个控件都是拉伸类型的，不调整
-        return bRet;
+        return;
     }
 
     //只有尺寸发生变化时才设置新值，避免无效的布局和事件通知
     bool bAdjust1 = (pControl1 != nullptr) && (nNewValue1 >= 0) && (nNewValue1 != GetAxisSize(pControl1));
     bool bAdjust2 = (pControl2 != nullptr) && (nNewValue2 >= 0) && (nNewValue2 != GetAxisSize(pControl2));
     if (!bAdjust1 && !bAdjust2) {
-        return bRet;
+        return;
     }
     if (bAdjust1) {
         //两侧都需要调整时，第一侧先只修改值，由第二侧触发布局（避免每次鼠标移动都布局两次）
@@ -955,7 +1088,6 @@ bool SplitTemplate<InheritType>::MouseMove(const EventArgs& msg)
         SetAxisFixedSize(pControl2, nNewValue2, true);
     }
     this->SendEvent(kEventSplitDraged, (WPARAM)pControl1, (LPARAM)pControl2);
-    return bRet;
 }
 
 template<typename InheritType>
@@ -985,6 +1117,22 @@ void SplitTemplate<InheritType>::OnMouseMoveSingle(const EventArgs& msg)
 
     //鼠标移动未超过拖动阈值时，不调整尺寸（避免轻微抖动导致尺寸变化）
     if (!IsDragThresholdExceeded(nOffset)) {
+        return;
+    }
+    ApplyDragOffsetSingle(nOffset);
+}
+
+template<typename InheritType>
+void SplitTemplate<InheritType>::ApplyDragOffsetSingle(int32_t nOffset)
+{
+    //只有一侧存在相邻控件时，才调整该控件的大小
+    if ((m_pLeftTop == nullptr) == (m_pRightBottom == nullptr)) {
+        return;
+    }
+    Control* pControl = (m_pLeftTop != nullptr) ? m_pLeftTop : m_pRightBottom;
+    const UiFixedInt& nFixedInt = (m_pLeftTop != nullptr) ? m_nLeftTopFixedValue : m_nRightBottomFixedValue;
+    if (nFixedInt.IsStretch()) {
+        //控件为拉伸类型，不调整
         return;
     }
 

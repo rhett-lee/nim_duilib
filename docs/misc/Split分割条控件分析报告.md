@@ -19,7 +19,8 @@
 | 三 | 拖动开始/结束事件 | 已实现（`kEventSplitDragBegin` / `kEventSplitDragEnd` + `AttachSplitDragBegin` / `AttachSplitDragEnd`） |
 | 三 | 拖动阈值 | 已实现（属性 `drag_threshold`，默认 `2` 个 96 DPI 逻辑像素，`0` 表示关闭） |
 | 三 | 目标控件可指定 | 已实现（属性 `left_top_ctrl_name` / `right_bottom_ctrl_name`，支持跨容器调整） |
-| 三 | 功能不足（键盘操作、尺寸提示） | 未处理（规划中） |
+| 三 | 键盘操作 | 已实现（获得焦点后方向键微调，属性 `keyboard_step` 默认 `10` 个 96 DPI 逻辑像素，Shift 为 10 倍步长） |
+| 三 | 功能不足（尺寸提示） | 未处理（规划中） |
 
 ## 一、结论
 
@@ -179,6 +180,15 @@ if ((nNewMax > 0) && (nMax > nNewMax)) { nMax = nNewMax; }
 - **拖动方向**：仍由分割条所在父容器的布局决定（`HLayout` 左右、`VLayout` 上下），目标控件沿同一方向调整固定宽度/高度。
 - **验证**：Debug 版 `TreeView` 示例（非 DLL 模式）中给主分割条显式配置 `left_top_ctrl_name="tree_panel" right_bottom_ctrl_name="main_view_tab_box"`，拖动行为与默认（自动取相邻控件）一致：2 物理像素抖动不改变尺寸（x 519 → 519），210 物理像素拖动后分割线移动到 x 727，进程无断言。
 
+### 键盘操作实现说明
+
+- **获取焦点**：鼠标按下并进入可拖动状态时调用 `SetFocus()`，使分割条获得焦点（不需要额外的 XML 配置）。
+- **属性与接口**：新增属性 `keyboard_step`（默认 `10`，单位 96 DPI 逻辑像素，负数按 `0` 处理），对应 `SetKeyboardStep()` / `GetKeyboardStep()`；`0` 表示不启用键盘操作。
+- **按键映射**：`OnKeyDown()` 中按布局方向处理——`HLayout` 用 `←` / `→`，`VLayout` 用 `↑` / `↓`，其余按键不处理并返回给父控件；步长按当前 DPI 缩放（175% 缩放时默认步长约 18 个物理像素），按住 `Shift` 时为 10 倍步长。
+- **复用拖动逻辑**：把原 `MouseMove` / `OnMouseMoveSingle` 的尺寸计算与边界夹紧提取为 `ApplyDragOffset()` / `ApplyDragOffsetSingle()`，鼠标拖动与键盘操作共用同一套计算；键盘操作前调用 `PrepareDragTargets()` 重新获取目标控件与当前尺寸，因此可以连续按键逐次累加。
+- **事件**：键盘调整尺寸时派发 `kEventSplitDraged`（两侧都有目标控件时 `wParam`/`lParam` 为两侧控件，单侧时为该控件 + `nullptr`），不派发拖动开始/结束事件。
+- **验证**：Debug 版 `TreeView` 示例（非 DLL 模式）中单击主分割条后连续按 `→`，分割线物理像素 x 依次为 519 → 535 → 553 → 571（每步约 18 像素）；`Shift + →` 单次移动约 180 像素（10 倍步长），进程无断言。
+
 ## 三、功能不足（建议补齐）
 
 | 能力 | 现状 | 建议 |
@@ -187,7 +197,7 @@ if ((nNewMax > 0) && (nMax > nNewMax)) { nMax = nNewMax; }
 | 拖动开始/结束事件 | 只有 `kEventSplitDraged` | 已实现：新增 `kEventSplitDragBegin/kEventSplitDragEnd`（`AttachSplitDragBegin/AttachSplitDragEnd`），便于应用层暂停刷新、持久化布局 |
 | 拖动阈值 | 无，轻微移动即改尺寸并发事件 | 已实现：新增属性 `drag_threshold`（默认 `2` 个 96 DPI 逻辑像素，按当前 DPI 缩放，`0` 表示关闭），鼠标在布局方向上移动超过该距离后才开始调整尺寸 |
 | 目标控件可指定 | 只能取"同父容器内、可见、非 float 的前后兄弟" | 已实现：新增属性 `left_top_ctrl_name` / `right_bottom_ctrl_name`（同一窗口内按名称查找），未指定的一侧仍按相邻控件处理，支持跨容器分割 |
-| 键盘操作 | 无 | 聚焦后方向键 ±1/±10（配合 Shift）微调 |
+| 键盘操作 | 无 | 已实现：新增属性 `keyboard_step`（默认 `10` 个 96 DPI 逻辑像素，`0` 表示关闭），获得焦点后按布局方向的方向键微调，Shift + 方向键为 10 倍步长 |
 | 拖动尺寸提示 | 无 | 拖动时显示"320 px"气泡（类似 Qt Designer），提升可预期性 |
 
 ## 四、核心修复示例（边界夹紧）
@@ -240,5 +250,5 @@ int32_t nNew2 = nTotal - nNew1;   // 恒等，不再需要 sum != nTotal 的放�
 2. 拖动状态生命周期（第 2、3 点）+ 光标可用性（第 6 点）；
 3. 性能与事件去抖（第 8、9 点）；
 4. 代码去重/重命名、文档同步（第 10、11 点）；
-5. 新交互：双击复位、拖动开始/结束事件、拖动阈值、尺寸提示；
+5. 新交互：双击复位、拖动开始/结束事件、拖动阈值、目标控件可指定、键盘操作、尺寸提示；
 6. 主题类与示例，统一各处的分割条观感。

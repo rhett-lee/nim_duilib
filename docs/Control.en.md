@@ -3348,6 +3348,8 @@ The `drag_threshold` attribute sets the drag threshold: after the mouse button i
 
 The `left_top_ctrl_name` / `right_bottom_ctrl_name` attributes explicitly specify the names of the two controls to resize (looked up within the same window). When empty, the left/top side uses the visible control preceding the splitter in the same parent container, and the right/bottom side uses the following one; when a name is set, the named control is resized instead, which allows resizing across containers (the splitter and the target control do not share the same parent). The drag direction is still determined by the layout of the splitter's parent container (`HLayout` for left/right dragging, `VLayout` for up/down dragging), and the target controls must be resized along the same direction. If the named control does not exist, is invisible or is not a valid target, that side is treated as having no target control.
 
+Once the splitter has focus (it takes focus automatically on mouse down), keyboard operation is supported: use `←` / `→` in a horizontal layout and `↑` / `↓` in a vertical layout to fine-tune the sizes of both controls, by `keyboard_step` 96 DPI logical pixels per press (default `10`, scaled by the current DPI); hold `Shift` for a large step (10 times the step). Setting the `keyboard_step` attribute to `0` disables keyboard operation. Keyboard adjustment fires the `kEventSplitDraged` event but not the drag begin/end events.
+
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |
 | enable_split_single | false | bool | Whether to allow adjusting its width when there is only one control |
@@ -3355,6 +3357,7 @@ The `left_top_ctrl_name` / `right_bottom_ctrl_name` attributes explicitly specif
 | drag_threshold | 2 | int | Drag threshold (96 DPI logical pixels); sizes are adjusted only after the mouse moves farther than this distance; 0 disables the threshold |
 | left_top_ctrl_name | | string | Name of the left/top target control (looked up in the same window); when empty, the preceding visible control in the same parent container is used |
 | right_bottom_ctrl_name | | string | Name of the right/bottom target control (looked up in the same window); when empty, the following visible control in the same parent container is used |
+| keyboard_step | 10 | int | Size adjustment per arrow-key press during keyboard operation (96 DPI logical pixels); 0 disables keyboard operation; Shift + arrow key uses 10 times the step |
 
 The Split control inherits the `Control` attributes. For more available attributes, please refer to the `Control` attributes.
 
