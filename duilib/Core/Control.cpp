@@ -53,11 +53,11 @@ Control::~Control()
     GlobalManager::Instance().Image().RemoveDelayPaintData(this);
 
     //清理动画相关资源，避免定时器再产生回调，引发错误
-    if (m_pAnimationData != nullptr) {
-        if (m_pAnimationData->m_animationManager != nullptr) {
-            m_pAnimationData->m_animationManager->Clear(this);
+    if ((m_pOtherData != nullptr) && (m_pOtherData->m_pAnimationData != nullptr)) {
+        if (m_pOtherData->m_pAnimationData->m_animationManager != nullptr) {
+            m_pOtherData->m_pAnimationData->m_animationManager->Clear(this);
         }
-        m_pAnimationData->m_animationManager.reset();
+        m_pOtherData->m_pAnimationData->m_animationManager.reset();
     }
 
     Window* pWindow = GetWindow();
@@ -65,15 +65,35 @@ Control::~Control()
         pWindow->ReapObjects(this);
     }
 
-    m_pAnimationData.reset();
     m_pBkImage.reset();
-    m_pDragDropData.reset();
-    m_pOtherData.reset();
+    m_pOtherData.reset();//包含动画、拖放、临时渲染、Hovered动画播放器等数据的释放
     m_pEventMapData.reset();
     m_pImageMap.reset();
     m_pColorMap.reset();
     m_pColorData.reset();
     m_pBorderData.reset();
+}
+
+Control::TOtherData& Control::CheckOtherData()
+{
+    if (m_pOtherData == nullptr) {
+        m_pOtherData = std::make_unique<TOtherData>();
+    }
+    return *m_pOtherData;
+}
+
+Control::TOtherData* Control::GetOtherData() const
+{
+    return m_pOtherData.get();
+}
+
+Control::TDragDropData& Control::CheckDragDropData()
+{
+    TOtherData& otherData = CheckOtherData();
+    if (otherData.m_pDragDropData == nullptr) {
+        otherData.m_pDragDropData = std::make_unique<TDragDropData>();
+    }
+    return *otherData.m_pDragDropData;
 }
 
 DString Control::GetType() const { return DUI_CTR_CONTROL; }
@@ -906,15 +926,16 @@ bool Control::OnApplyAttributeList(const DString& strReceiver, const DString& st
 void Control::SetFadeHovered(bool bFadeHovered)
 {
     if (bFadeHovered) {
-        if (m_pHoveredAnimationPlayer != nullptr) {
+        std::unique_ptr<AnimationPlayer>& pHoveredPlayer = CheckOtherData().m_pHoveredAnimationPlayer;
+        if (pHoveredPlayer != nullptr) {
             //已经存在动画播放器时，直接复用（其动画类型、起止值、回调、时间参数均与新建的一致），
             //避免重复分配AnimationPlayer(224字节)和两个回调闭包，降低内存占用与分配开销
-            if (m_pHoveredAnimationPlayer->GetAnimationType() == AnimationType::kAnimationHovered) {
+            if (pHoveredPlayer->GetAnimationType() == AnimationType::kAnimationHovered) {
                 return;
             }
             //数据异常（类型不一致）时，丢弃旧的播放器并重新创建，保证后续动画逻辑正确
             ASSERT(!"Control::SetFadeHovered: invalid animation type!");
-            m_pHoveredAnimationPlayer.reset();
+            pHoveredPlayer.reset();
         }
         AnimationPlayer* pAnimationPlayer = new AnimationPlayer;
         pAnimationPlayer->SetAnimationType(AnimationType::kAnimationHovered);
@@ -942,10 +963,13 @@ void Control::SetFadeHovered(bool bFadeHovered)
                 }
             };
         pAnimationPlayer->SetCompleteCallback(completeCallback);
-        m_pHoveredAnimationPlayer.reset(pAnimationPlayer);
+        pHoveredPlayer.reset(pAnimationPlayer);
     }
     else {
-        m_pHoveredAnimationPlayer.reset();
+        TOtherData* pOtherData = GetOtherData();
+        if (pOtherData != nullptr) {
+            pOtherData->m_pHoveredAnimationPlayer.reset();
+        }
     }
 }
 
@@ -954,62 +978,69 @@ AnimationPlayer* Control::GetHoveredAnimationPlayer() const
     if (!GlobalManager::Instance().IsAnimationEnabled()) {
         return nullptr;
     }
-    return m_pHoveredAnimationPlayer.get();
+    TOtherData* pOtherData = GetOtherData();
+    return (pOtherData != nullptr) ? pOtherData->m_pHoveredAnimationPlayer.get() : nullptr;
 }
 
 void Control::SetFadeHoveredFrameIntervalMillSeconds(int32_t frameIntervalMillSeconds)
 {
-    if (m_pHoveredAnimationPlayer == nullptr) {
+    TOtherData& otherData = CheckOtherData();
+    if (otherData.m_pHoveredAnimationPlayer == nullptr) {
         SetFadeHovered(true);
     }
-    ASSERT(m_pHoveredAnimationPlayer != nullptr);
-    if (m_pHoveredAnimationPlayer != nullptr) {
-        m_pHoveredAnimationPlayer->SetFrameIntervalMillSeconds(frameIntervalMillSeconds);
+    ASSERT(otherData.m_pHoveredAnimationPlayer != nullptr);
+    if (otherData.m_pHoveredAnimationPlayer != nullptr) {
+        otherData.m_pHoveredAnimationPlayer->SetFrameIntervalMillSeconds(frameIntervalMillSeconds);
     }
 }
 
 int32_t Control::GetFadeHoveredFrameIntervalMillSeconds() const
 {
-    if (m_pHoveredAnimationPlayer != nullptr) {
-        return m_pHoveredAnimationPlayer->GetFrameIntervalMillSeconds();
+    TOtherData* pOtherData = GetOtherData();
+    if ((pOtherData != nullptr) && (pOtherData->m_pHoveredAnimationPlayer != nullptr)) {
+        return pOtherData->m_pHoveredAnimationPlayer->GetFrameIntervalMillSeconds();
     }
     return -1;
 }
 
 void Control::SetFadeHoveredTotalMillSeconds(int32_t totalMillSeconds)
 {
-    if (m_pHoveredAnimationPlayer == nullptr) {
+    TOtherData& otherData = CheckOtherData();
+    if (otherData.m_pHoveredAnimationPlayer == nullptr) {
         SetFadeHovered(true);
     }
-    ASSERT(m_pHoveredAnimationPlayer != nullptr);
-    if (m_pHoveredAnimationPlayer != nullptr) {
-        m_pHoveredAnimationPlayer->SetTotalMillSeconds(totalMillSeconds);
+    ASSERT(otherData.m_pHoveredAnimationPlayer != nullptr);
+    if (otherData.m_pHoveredAnimationPlayer != nullptr) {
+        otherData.m_pHoveredAnimationPlayer->SetTotalMillSeconds(totalMillSeconds);
     }
 }
 
 int32_t Control::GetFadeHoveredTotalMillSeconds() const
 {
-    if (m_pHoveredAnimationPlayer != nullptr) {
-        return m_pHoveredAnimationPlayer->GetTotalMillSeconds();
+    TOtherData* pOtherData = GetOtherData();
+    if ((pOtherData != nullptr) && (pOtherData->m_pHoveredAnimationPlayer != nullptr)) {
+        return pOtherData->m_pHoveredAnimationPlayer->GetTotalMillSeconds();
     }
     return -1;
 }
 
 void Control::SetFadeHoveredEasingFunctionType(EasingFunctionType easingFunctionType)
 {
-    if (m_pHoveredAnimationPlayer == nullptr) {
+    TOtherData& otherData = CheckOtherData();
+    if (otherData.m_pHoveredAnimationPlayer == nullptr) {
         SetFadeHovered(true);
     }
-    ASSERT(m_pHoveredAnimationPlayer != nullptr);
-    if (m_pHoveredAnimationPlayer != nullptr) {
-        m_pHoveredAnimationPlayer->SetEasingFunctionType(easingFunctionType);
+    ASSERT(otherData.m_pHoveredAnimationPlayer != nullptr);
+    if (otherData.m_pHoveredAnimationPlayer != nullptr) {
+        otherData.m_pHoveredAnimationPlayer->SetEasingFunctionType(easingFunctionType);
     }
 }
 
 EasingFunctionType Control::GetFadeHoveredEasingFunctionType() const
 {
-    if (m_pHoveredAnimationPlayer != nullptr) {
-        return m_pHoveredAnimationPlayer->GetEasingFunctionType();
+    TOtherData* pOtherData = GetOtherData();
+    if ((pOtherData != nullptr) && (pOtherData->m_pHoveredAnimationPlayer != nullptr)) {
+        return pOtherData->m_pHoveredAnimationPlayer->GetEasingFunctionType();
     }
     return EasingFunctionType::EaseInOutCubic;
 }
@@ -1019,13 +1050,13 @@ bool Control::HasAnimationPlayer(AnimationType animationType) const
     if (!GlobalManager::Instance().IsAnimationEnabled()) {
         return false;
     }
+    TOtherData* pOtherData = GetOtherData();
     if (animationType == AnimationType::kAnimationHovered) {
-        return m_pHoveredAnimationPlayer != nullptr;
+        return (pOtherData != nullptr) && (pOtherData->m_pHoveredAnimationPlayer != nullptr);
     }
-    else if (m_pAnimationData != nullptr) {
-        if (m_pAnimationData->m_animationManager != nullptr) {
-            return m_pAnimationData->m_animationManager->HasAnimationPlayer(animationType);
-        }
+    else if ((pOtherData != nullptr) && (pOtherData->m_pAnimationData != nullptr) &&
+             (pOtherData->m_pAnimationData->m_animationManager != nullptr)) {
+        return pOtherData->m_pAnimationData->m_animationManager->HasAnimationPlayer(animationType);
     }
     return false;
 }
@@ -1035,11 +1066,14 @@ bool Control::IsAnimationPlayerPlaying(AnimationType animationType) const
     if (!GlobalManager::Instance().IsAnimationEnabled()) {
         return false;
     }
+    TOtherData* pOtherData = GetOtherData();
     if (animationType == AnimationType::kAnimationHovered) {
-        return (m_pHoveredAnimationPlayer != nullptr) && m_pHoveredAnimationPlayer->IsPlaying();
+        return (pOtherData != nullptr) && (pOtherData->m_pHoveredAnimationPlayer != nullptr) &&
+               pOtherData->m_pHoveredAnimationPlayer->IsPlaying();
     }
-    else if ((m_pAnimationData != nullptr) && (m_pAnimationData->m_animationManager != nullptr)) {
-        AnimationPlayer* pAnimationPlayer = m_pAnimationData->m_animationManager->GetAnimationPlayer(animationType);
+    else if ((pOtherData != nullptr) && (pOtherData->m_pAnimationData != nullptr) &&
+             (pOtherData->m_pAnimationData->m_animationManager != nullptr)) {
+        AnimationPlayer* pAnimationPlayer = pOtherData->m_pAnimationData->m_animationManager->GetAnimationPlayer(animationType);
         if (pAnimationPlayer != nullptr) {
             return pAnimationPlayer->IsPlaying();
         }
@@ -1049,13 +1083,14 @@ bool Control::IsAnimationPlayerPlaying(AnimationType animationType) const
 
 AnimationManager& Control::GetAnimationManager()
 {
-    if (m_pAnimationData == nullptr) {
-        m_pAnimationData = std::make_unique<TAnimationData>();
+    TOtherData& otherData = CheckOtherData();
+    if (otherData.m_pAnimationData == nullptr) {
+        otherData.m_pAnimationData = std::make_unique<TAnimationData>();
     }
-    if (m_pAnimationData->m_animationManager == nullptr) {
-        m_pAnimationData->m_animationManager = std::make_unique<AnimationManager>(this);
+    if (otherData.m_pAnimationData->m_animationManager == nullptr) {
+        otherData.m_pAnimationData->m_animationManager = std::make_unique<AnimationManager>(this);
     }
-    return *m_pAnimationData->m_animationManager;
+    return *otherData.m_pAnimationData->m_animationManager;
 }
 
 DString Control::GetBkColor() const
@@ -3782,10 +3817,11 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
         //当设置了透明度时，该控件（若为容器则包含子控件）需要完整绘制
         UiRect rcPaintRect = GetRect();
         SetPaintRect(rcPaintRect);
-        if (m_pTempRender == nullptr) {
-            m_pTempRender = CreateTempRender();
+        TOtherData& otherData = CheckOtherData();
+        if (otherData.m_pTempRender == nullptr) {
+            otherData.m_pTempRender = CreateTempRender();
         }
-        IRender* pTempRender = m_pTempRender.get();
+        IRender* pTempRender = otherData.m_pTempRender.get();
         ASSERT(pTempRender != nullptr);
         if (pTempRender == nullptr) {
             return;
@@ -3863,7 +3899,10 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
     }
     else {
         //清除临时的Render(当使用Hovered动画时，会出现使用Alpha的情况，结束后应清除并释放内存)
-        m_pTempRender.reset();
+        TOtherData* pOtherData = GetOtherData();
+        if (pOtherData != nullptr) {
+            pOtherData->m_pTempRender.reset();
+        }
 
         //本控件未设置透明度，不使用缓存绘制，直接在目标render上绘制本控件（若为容器，则也包含子控件）        
         UiPoint ptOldOrg = pRender->OffsetWindowOrg(renderOffset);//控件的位置偏移，显示为动画效果
@@ -4526,8 +4565,9 @@ void Control::SetTabStop(bool enable)
 
 UiPoint Control::GetRenderOffset() const
 {
-    if (m_pAnimationData != nullptr) {
-        return m_pAnimationData->m_renderOffset;
+    TOtherData* pOtherData = GetOtherData();
+    if ((pOtherData != nullptr) && (pOtherData->m_pAnimationData != nullptr)) {
+        return pOtherData->m_pAnimationData->m_renderOffset;
     }
     return UiPoint();
 }
@@ -4537,11 +4577,12 @@ void Control::SetRenderOffset(UiPoint renderOffset, bool bNeedDpiScale)
     if (bNeedDpiScale) {
         Dpi().ScalePoint(renderOffset);
     }
-    if (m_pAnimationData == nullptr) {
-        m_pAnimationData = std::make_unique<TAnimationData>();
+    TOtherData& otherData = CheckOtherData();
+    if (otherData.m_pAnimationData == nullptr) {
+        otherData.m_pAnimationData = std::make_unique<TAnimationData>();
     }
-    if (m_pAnimationData->m_renderOffset != renderOffset) {
-        m_pAnimationData->m_renderOffset = renderOffset;
+    if (otherData.m_pAnimationData->m_renderOffset != renderOffset) {
+        otherData.m_pAnimationData->m_renderOffset = renderOffset;
         Invalidate();
     }    
 }
@@ -4549,12 +4590,13 @@ void Control::SetRenderOffset(UiPoint renderOffset, bool bNeedDpiScale)
 void Control::SetRenderOffsetX(int32_t renderOffsetX)
 {
     int32_t x = renderOffsetX;
-    if (m_pAnimationData == nullptr) {
-        m_pAnimationData = std::make_unique<TAnimationData>();
+    TOtherData& otherData = CheckOtherData();
+    if (otherData.m_pAnimationData == nullptr) {
+        otherData.m_pAnimationData = std::make_unique<TAnimationData>();
     }
-    if (m_pAnimationData->m_renderOffset.x != x) {
-        int32_t nOldOffsetX = m_pAnimationData->m_renderOffset.x;
-        m_pAnimationData->m_renderOffset.x = x;
+    if (otherData.m_pAnimationData->m_renderOffset.x != x) {
+        int32_t nOldOffsetX = otherData.m_pAnimationData->m_renderOffset.x;
+        otherData.m_pAnimationData->m_renderOffset.x = x;
         Invalidate();
 
         //父控件也需要重绘(被覆盖的部分)
@@ -4569,12 +4611,13 @@ void Control::SetRenderOffsetX(int32_t renderOffsetX)
 void Control::SetRenderOffsetY(int32_t renderOffsetY)
 {
     int32_t y = renderOffsetY;
-    if (m_pAnimationData == nullptr) {
-        m_pAnimationData = std::make_unique<TAnimationData>();
+    TOtherData& otherData = CheckOtherData();
+    if (otherData.m_pAnimationData == nullptr) {
+        otherData.m_pAnimationData = std::make_unique<TAnimationData>();
     }
-    if (m_pAnimationData->m_renderOffset.y != y) {
-        int32_t nOldOffsetY = m_pAnimationData->m_renderOffset.y;
-        m_pAnimationData->m_renderOffset.y = y;
+    if (otherData.m_pAnimationData->m_renderOffset.y != y) {
+        int32_t nOldOffsetY = otherData.m_pAnimationData->m_renderOffset.y;
+        otherData.m_pAnimationData->m_renderOffset.y = y;
         Invalidate();
 
         //父控件也需要重绘(被覆盖的部分)
@@ -5931,34 +5974,32 @@ bool Control::HasXmlBubbledEventMap() const
 
 void Control::SetEnableDragDrop(bool bEnable)
 {
-    if (m_pDragDropData == nullptr) {
-        m_pDragDropData = std::make_unique<TDragDropData>();
-    }
-    m_pDragDropData->m_bDragDropEnabled = bEnable;
+    CheckDragDropData().m_bDragDropEnabled = bEnable;
 }
 
 bool Control::IsEnableDragDrop() const
 {
-    return (m_pDragDropData != nullptr) && m_pDragDropData->m_bDragDropEnabled;
+    TOtherData* pOtherData = GetOtherData();
+    return (pOtherData != nullptr) && (pOtherData->m_pDragDropData != nullptr) &&
+           pOtherData->m_pDragDropData->m_bDragDropEnabled;
 }
 
 void Control::SetEnableDropFile(bool bEnable)
 {
-    if (m_pDragDropData == nullptr) {
-        m_pDragDropData = std::make_unique<TDragDropData>();
-    }
-    m_pDragDropData->m_bDropFileEnabled = bEnable;
-    m_pDragDropData->m_bDropFileEnabledDefined = true;
+    TDragDropData& dragDropData = CheckDragDropData();
+    dragDropData.m_bDropFileEnabled = bEnable;
+    dragDropData.m_bDropFileEnabledDefined = true;
 }
 
 bool Control::IsEnableDropFile() const
 {
-    if (m_pDragDropData != nullptr) {
-        if (m_pDragDropData->m_bDropFileEnabledDefined) {
-            return m_pDragDropData->m_bDropFileEnabled;
+    TOtherData* pOtherData = GetOtherData();
+    if ((pOtherData != nullptr) && (pOtherData->m_pDragDropData != nullptr)) {
+        if (pOtherData->m_pDragDropData->m_bDropFileEnabledDefined) {
+            return pOtherData->m_pDragDropData->m_bDropFileEnabled;
         }
         else {
-            return m_pDragDropData->m_bDragDropEnabled;
+            return pOtherData->m_pDragDropData->m_bDragDropEnabled;
         }
     }
     return false;
@@ -5966,17 +6007,15 @@ bool Control::IsEnableDropFile() const
 
 void Control::SetDropFileTypes(const DString& fileTypes)
 {
-    if (m_pDragDropData == nullptr) {
-        m_pDragDropData = std::make_unique<TDragDropData>();
-    }
-    m_pDragDropData->m_dropFileTypes = fileTypes;
+    CheckDragDropData().m_dropFileTypes = fileTypes;
 }
 
 DString Control::GetDropFileTypes() const
 {
     DString fileTypes;
-    if (m_pDragDropData != nullptr) {
-        fileTypes = m_pDragDropData->m_dropFileTypes.c_str();
+    TOtherData* pOtherData = GetOtherData();
+    if ((pOtherData != nullptr) && (pOtherData->m_pDragDropData != nullptr)) {
+        fileTypes = pOtherData->m_pDragDropData->m_dropFileTypes.c_str();
     }
     return fileTypes;
 }
@@ -5985,12 +6024,9 @@ ControlDropTarget_Windows* Control::GetControlDropTarget()
 {
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     if (IsEnableDragDrop() && IsEnabled()) {
-        if (m_pDragDropData == nullptr) {
-            m_pDragDropData = std::make_unique<TDragDropData>();
-            m_pDragDropData->m_bDragDropEnabled = true;
-        }
-        m_pDragDropData->m_pDropTargetWindows = std::make_shared<ControlDropTargetImpl_Windows>(this);
-        return m_pDragDropData->m_pDropTargetWindows.get();
+        TDragDropData& dragDropData = CheckDragDropData();
+        dragDropData.m_pDropTargetWindows = std::make_shared<ControlDropTargetImpl_Windows>(this);
+        return dragDropData.m_pDropTargetWindows.get();
     }
 #endif
     return nullptr;
@@ -6000,12 +6036,9 @@ ControlDropTarget_SDL* Control::GetControlDropTarget_SDL()
 {
 #ifdef DUILIB_BUILD_FOR_SDL
     if (IsEnableDragDrop() && IsEnabled()) {
-        if (m_pDragDropData == nullptr) {
-            m_pDragDropData = std::make_unique<TDragDropData>();
-            m_pDragDropData->m_bDragDropEnabled = true;
-        }
-        m_pDragDropData->m_pDropTargetSDL = std::make_shared<ControlDropTargetImpl_SDL>(this);
-        return m_pDragDropData->m_pDropTargetSDL.get();
+        TDragDropData& dragDropData = CheckDragDropData();
+        dragDropData.m_pDropTargetSDL = std::make_shared<ControlDropTargetImpl_SDL>(this);
+        return dragDropData.m_pDropTargetSDL.get();
     }
 #endif
     return nullptr;

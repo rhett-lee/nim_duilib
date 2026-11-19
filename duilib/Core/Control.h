@@ -1947,10 +1947,38 @@ private:
         */
         std::unique_ptr<TContextMenuData> m_pContextMenuData;
 
+        /** 绘制渲染引擎接口(控件自身，仅当设置透明度时使用)
+        */
+        std::unique_ptr<IRender> m_pTempRender;
+
+        /** 控件动画相关数据
+        */
+        std::unique_ptr<TAnimationData> m_pAnimationData;
+
+        /** 拖放相关数据
+        */
+        std::unique_ptr<TDragDropData> m_pDragDropData;
+
+        /** Hovered动画的播放接口
+        */
+        std::unique_ptr<AnimationPlayer> m_pHoveredAnimationPlayer;
+
         /** 用户绑定到控件的自定义字符串数据（多数控件不会使用，按需分配）
         */
         UiString m_sDataID;
     };
+
+    /** 检查并创建“不常用的功能数据”
+    */
+    TOtherData& CheckOtherData();
+
+    /** 获取“不常用的功能数据”（未创建时返回nullptr，不会创建）
+    */
+    TOtherData* GetOtherData() const;
+
+    /** 检查并创建拖放相关数据
+    */
+    TDragDropData& CheckDragDropData();
 
 private:
     /** 背景图片
@@ -1973,29 +2001,13 @@ private:
     */
     std::unique_ptr<StateImageMap> m_pImageMap;
 
-    /** 绘制渲染引擎接口(控件自身，仅当设置透明度时使用)
-    */
-    std::unique_ptr<IRender> m_pTempRender;
-
     /** 回调事件管理器
     */
     std::unique_ptr<TEventMapData> m_pEventMapData;
 
-    /** 控件动画相关数据
-    */
-    std::unique_ptr<TAnimationData> m_pAnimationData;
-
-    /** 拖放相关数据
-    */
-    std::unique_ptr<TDragDropData> m_pDragDropData;
-
     /** 其他不常用的数据
     */
     std::unique_ptr<TOtherData> m_pOtherData;
-
-    /** Hovered动画的播放接口
-    */
-    std::unique_ptr<AnimationPlayer> m_pHoveredAnimationPlayer;
 
     /** 控件的绘制区域
     */
