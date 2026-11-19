@@ -2805,11 +2805,6 @@ void TabCtrl::PaintForeColor(IRender* pRender)
     PaintNewTabButton(pRender);
 }
 
-void TabCtrl::PaintFocusRect(IRender* /*pRender*/)
-{
-    //TabCtrl 的焦点框绘制在选中标签上，见 PaintTabFocusRect
-}
-
 void TabCtrl::PaintSelectedTabIndicator(IRender* pRender)
 {
     if (pRender == nullptr) {

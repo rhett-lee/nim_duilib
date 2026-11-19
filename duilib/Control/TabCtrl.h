@@ -393,10 +393,6 @@ protected:
     */
     virtual void PaintForeColor(IRender* pRender) override;
 
-    /** 绘制焦点框（TabCtrl 的焦点框绘制在选中标签上，避免整条标签栏外框）
-    */
-    virtual void PaintFocusRect(IRender* pRender) override;
-
     /** 子项的选择状态变化事件（用于启动指示条动画）
     */
     virtual void OnItemSelectedChanged(size_t iIndex, IListBoxItem* pListBoxItem) override;
