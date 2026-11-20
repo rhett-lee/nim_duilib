@@ -162,6 +162,11 @@ void AnimationScheduler::Tick(int64_t nNowMillSeconds)
         }
     }
     if (m_players.empty()) {
+        if (m_bTimerStarted) {
+            //所有动画都已结束（例如播放器被销毁且未主动注销），停止定时器，避免空转
+            m_bTimerStarted = false;
+            m_timerFlag.Cancel();
+        }
         return;
     }
 

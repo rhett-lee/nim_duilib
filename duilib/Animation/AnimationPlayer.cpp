@@ -403,6 +403,12 @@ void AnimationPlayer::OnTickPhysics(int64_t nNowMillSeconds)
         m_weakFlagOwner.Cancel();
         return;
     }
+    if (!bFinished && (m_playTotalMillSeconds > 0) &&
+        ((nNowMillSeconds - m_startTimeMillSeconds) >= static_cast<int64_t>(m_playTotalMillSeconds))) {
+        //达到兜底时长：弹簧在阻尼较小时可能长时间达不到静止条件，这里强制结束，
+        //避免动画定时器长时间空转（惯性动画在积分器内部已按该时长处理）
+        bFinished = true;
+    }
     m_currentValue = newCurrentValue;
     //记录近似进度（物理动画没有固定时长，仅供外部查询参考）
     m_playProgress = (m_playTotalMillSeconds > 0) ?

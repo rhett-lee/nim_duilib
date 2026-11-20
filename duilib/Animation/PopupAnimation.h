@@ -17,7 +17,7 @@ class WindowBase;
 *  窗口显示时把分层窗口的 Alpha 值从 0 渐变到 255，形成整体淡入效果。
 *
 *  说明：
-*  1. 默认关闭；关闭时弹出层按原有方式瞬时显示，行为与开启前完全一致；
+*  1. 默认开启；关闭后弹出层按原有方式瞬时显示；
 *  2. 所有弹出层共用同一套参数，单个弹出层不需要单独配置；
 *  3. 仅对分层窗口（Layered Window）生效，非分层窗口会自动跳过动画。
 */
@@ -54,7 +54,7 @@ public:
     * @param [in] pWindow 弹出层窗口（需要已经创建，且为分层窗口）
     * @param [in,out] pPlayer 动画播放器：内部创建并赋值；调用方负责保存该对象（通常作为窗口的成员），
     *                         重复调用时会先停止上一次动画
-    * @note 全局开关关闭、时长为 0 或窗口不是分层窗口时，直接把 Alpha 置为 255，不播放动画
+    * @note 全局开关关闭、时长为 0 或窗口不是分层窗口时，直接把 Alpha 置为窗口的目标 Alpha 值，不播放动画
     */
     static void PlayFadeIn(WindowBase* pWindow, std::unique_ptr<AnimationPlayer>& pPlayer);
 };

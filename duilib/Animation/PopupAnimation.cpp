@@ -49,18 +49,33 @@ EasingFunctionType PopupAnimation::GetEasingFunctionType()
 
 void PopupAnimation::PlayFadeIn(WindowBase* pWindow, std::unique_ptr<AnimationPlayer>& pPlayer)
 {
-    if (pPlayer != nullptr) {
+    //目标 Alpha：如果上一次淡入还没播完（窗口被提前隐藏/关闭），窗口当前的 Alpha 只是
+    //动画的中间值，甚至可能停在 0；此时改用上一次动画的结束值作为目标值，
+    //否则再次显示时窗口会变成半透明甚至完全不可见
+    const bool bHasPreviousPlayer = (pPlayer != nullptr);
+    int32_t nTargetAlpha = 0;
+    if (bHasPreviousPlayer) {
+        nTargetAlpha = pPlayer->GetEndValue();
         pPlayer->Stop();
         pPlayer.reset();
     }
     if (pWindow == nullptr) {
         return;
     }
+    if (!bHasPreviousPlayer) {
+        nTargetAlpha = pWindow->GetLayeredWindowAlpha();
+    }
+    if (nTargetAlpha < 0) {
+        nTargetAlpha = 0;
+    }
+    else if (nTargetAlpha > 255) {
+        nTargetAlpha = 255;
+    }
 
     const int32_t nTotalMillSeconds = GetTotalMillSeconds();
-    const int32_t nTargetAlpha = pWindow->GetLayeredWindowAlpha();
     if (!IsEnabled() || (nTotalMillSeconds <= 0) || !pWindow->IsLayeredWindow() || (nTargetAlpha <= 0)) {
-        //不播放动画：保持窗口原有的透明度（支持 XML 中的 alpha 属性）
+        //不播放动画：直接设置为窗口的目标 Alpha（支持 XML 中的 alpha 属性）
+        pWindow->SetLayeredWindowAlpha(nTargetAlpha);
         return;
     }
 
