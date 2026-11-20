@@ -373,7 +373,11 @@ namespace ui
             InvokeTraits<TInterface>::ArgCount
         >;
 
-        return ComPtr<TInterface>(new Impl(std::forward<TCallback>(callback)));
+        //注意：new创建的回调对象引用计数为1，这里直接写入ComPtr的内部指针（不调用AddRef），
+        //否则引用计数会多1，导致回调对象永远无法释放（内存泄漏）
+        ComPtr<TInterface> spCallback;
+        *spCallback.GetAddressOf() = new Impl(std::forward<TCallback>(callback));
+        return spCallback;
     }
 
     // 支持成员函数的版本（匹配 STDMETHODCALLTYPE 调用约定）

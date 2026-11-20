@@ -90,7 +90,7 @@ public:
     void SetAreDefaultContextMenusEnabled(bool bAreDefaultContextMenusEnabled);
     bool AreDefaultContextMenusEnabled() const;
 
-    /** 是否禁用缩放控制
+    /** 是否启用缩放控制
     */
     void SetZoomControlEnabled(bool bZoomControlEnabled);
     bool IsZoomControlEnabled() const;

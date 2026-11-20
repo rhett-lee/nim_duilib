@@ -121,13 +121,18 @@ bool DiskUtils::GetLogicalDriveInfo(const DString& driveString, DiskInfo& diskIn
 
 DString DiskUtils::GetDriveFromDirectoryPath(const DString& path) 
 {
-    if ( (path.size() < 2)) {
+    if (path.size() < 2) {
         return DString();
     }
-    if ( (path[1] != _T(':'))) {
+    if (path[1] != _T(':')) {
         return DString();
-    }    
-    return path.substr(0, 3);
+    }
+    //标准格式："C:\\"或者"C:/"时取前三个字符；"C:"或者相对盘符路径"C:abc"时补上路径分隔符，
+    //避免返回"C:a"这类无效盘符
+    if ((path.size() >= 3) && ((path[2] == _T('\\')) || (path[2] == _T('/')))) {
+        return path.substr(0, 3);
+    }
+    return path.substr(0, 2) + _T("\\");
 }
 
 DString DiskUtils::GetMaxFreeSpaceLocalDisk()

@@ -340,7 +340,10 @@ ComPtr<T> MakeComPtr(U* p)
 template<typename T>
 ComPtr<T> MakeComPtr()
 {
-    return ComPtr<T>(new T);
+    //注意：new创建的对象引用计数为1，直接写入内部指针（不调用AddRef），避免引用计数多1导致对象泄漏
+    ComPtr<T> spObject;
+    *spObject.GetAddressOf() = new T;
+    return spObject;
 }
 
 /**

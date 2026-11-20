@@ -179,9 +179,12 @@ CefString CefControl::GetURL()
 std::string CefControl::GetUTF8URL()
 {
     if (m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowser().get()) {
-        return ui::StringConvert::WStringToUTF8((const wchar_t*)GetURL().c_str());
+        //CefString::ToString() 在所有平台均返回 UTF-8 字符串：
+        //Windows 上 CefString 底层为宽字符，Linux/macOS 上底层为 UTF-8，
+        //因此不能统一按 wchar_t* 转换（否则非 Windows 平台会得到乱码）
+        return GetURL().ToString();
     }
-    return CefString();
+    return std::string();
 }
 
 CefString CefControl::GetMainURL(const CefString& url)
@@ -1215,7 +1218,8 @@ bool CefControl::IsCallbackExists(CefCallbackID nCallbackID)
     case CefCallbackID::OnResourceResponse:         return m_pfnResourceResponse != nullptr;
     case CefCallbackID::OnResourceLoadComplete:     return m_pfnResourceLoadComplete != nullptr;
     case CefCallbackID::OnProtocolExecution:        return m_pfnProtocolExecution != nullptr;
-    case CefCallbackID::OnAddressChange:            return m_pfnUrlChange != nullptr;
+    //只关联了主页面 URL 变化回调时，也需要接收 OnAddressChange 事件
+    case CefCallbackID::OnAddressChange:            return (m_pfnUrlChange != nullptr) || (m_pfnMainUrlChange != nullptr);
     case CefCallbackID::OnFaviconURLChange:         return m_pfnFaviconURLChange != nullptr;
     case CefCallbackID::OnFullscreenModeChange:     return m_pfnFullscreenModeChange != nullptr;
     case CefCallbackID::OnStatusMessage:            return m_pfnStatusMessage != nullptr;

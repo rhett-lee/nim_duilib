@@ -548,8 +548,8 @@ static bool CaptureWindowBitmap_Win32(HWND hwnd, RECT rect, std::vector<uint8_t>
     bi.biClrUsed = 0;
     bi.biClrImportant = 0;
 
-    // 分配内存并获取位图数据
-    bitmap.resize(width * height * 4);
+    // 分配内存并获取位图数据（先转换为size_t，避免三个int相乘时溢出）
+    bitmap.resize((size_t)width * height * 4);
     int nLines = ::GetDIBits(hdcMemDC, hBitmap, 0, height, bitmap.data(), (BITMAPINFO*)&bi, DIB_RGB_COLORS);
 
     // 清理资源
@@ -635,7 +635,7 @@ std::shared_ptr<IBitmap> WebView2Control::MakeImageSnapshot()
     int32_t width = 0;
     int32_t height = 0;
     bool bRet = CaptureWindowBitmap_Win32(this, bitmap, width, height);
-    if (bRet && (width > 0) && (height > 0) && ((int32_t)bitmap.size() == (width * height * 4))) {
+    if (bRet && (width > 0) && (height > 0) && (bitmap.size() == ((size_t)width * height * 4))) {
         std::shared_ptr<IBitmap> spBitmap;
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         ASSERT(pRenderFactory != nullptr);

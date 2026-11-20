@@ -798,6 +798,44 @@ if(WIN32)
     )
 endif()
 
+# 覆盖 duilib/Render 目录的基础设施类：
+# RichTextAttrTable（字体/颜色/图片索引表）、RichTextDataList、RichTextCharLayout
+# （含超宽行 32 位偏移切换）、RichTextLineText/RichTextLineInfo（共享文本与行文本视图）、
+# AutoClip（矩形/圆角/嵌套裁剪与析构恢复）、CanPresentBackBufferOnly。
+# AutoClip 部分使用离屏渲染（不创建窗口），仅在 Windows 平台构建。
+if(WIN32)
+    add_executable(test_render_core
+        test_render_core.cpp
+    )
+    target_include_directories(test_render_core PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../"
+    )
+    target_link_directories(test_render_core PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_render_core PRIVATE
+        duilib
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_render_core PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_render_core PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(test_render_core PRIVATE UNICODE _UNICODE NOMINMAX WIN32_LEAN_AND_MEAN)
+    # 默认资源目录：源码树的 bin/resources
+    target_compile_definitions(test_render_core PRIVATE
+        DUILIB_TEST_RESOURCE_DIR="${CMAKE_SOURCE_DIR}/bin/resources"
+    )
+    if(MSVC)
+        target_compile_options(test_render_core PRIVATE /utf-8)
+    endif()
+    add_test(NAME render_core
+             COMMAND test_render_core
+    )
+endif()
+
 # 覆盖离屏渲染接口（IRenderFactory::CreateOffscreenRender）：
 # 创建/Resize/超大尺寸、绘制与像素正确性、快照、Clone、多后端能力查询、
 # 线程与生命周期、窗口控件迁移回归（需窗口，打印 SKIP）。
@@ -1098,3 +1136,354 @@ endif()
 add_test(NAME color_converter
          COMMAND test_color_converter
 )
+
+# Utils/StringUtil：覆盖字符串替换、大小写转换、裁剪、分割、比较、数值与字符串互转、
+# 字符串复制（含超长截断）以及超长格式化输出
+add_executable(test_string_util
+    test_string_util.cpp
+)
+target_include_directories(test_string_util PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_string_util PRIVATE duilib)
+if(WIN32)
+    target_link_directories(test_string_util PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_string_util PRIVATE
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_string_util PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_string_util PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(test_string_util PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_string_util PRIVATE /utf-8)
+endif()
+add_test(NAME string_util
+         COMMAND test_string_util
+)
+
+# Utils/StringConvert + StringCharset：覆盖多编码相互转换与往返一致性、
+# BOM检测、ASCII/GBK/UTF-8/UTF-16流校验、字节流到字符串的转换
+add_executable(test_string_convert
+    test_string_convert.cpp
+)
+target_include_directories(test_string_convert PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_string_convert PRIVATE duilib)
+if(WIN32)
+    target_compile_definitions(test_string_convert PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_string_convert PRIVATE /utf-8)
+endif()
+add_test(NAME string_convert
+         COMMAND test_string_convert
+)
+
+# Utils/FilePath + FilePathUtil + FileUtil + FileTime：覆盖路径解析/拼接/规范化、
+# 父子目录判断、文件读写（含空内容）、文件时间往返与格式化
+add_executable(test_file_path
+    test_file_path.cpp
+)
+target_include_directories(test_file_path PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_file_path PRIVATE duilib)
+if(WIN32)
+    target_compile_definitions(test_file_path PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_file_path PRIVATE /utf-8)
+endif()
+add_test(NAME file_path
+         COMMAND test_file_path
+)
+
+# Utils/AttributeUtil + DiskUtils + ProcessSingletonData：覆盖尺寸/矩形/边距解析、
+# 百分比解析、属性列表解析、盘符提取、进程单例序列化/反序列化（含异常场景）
+add_executable(test_attribute_util
+    test_attribute_util.cpp
+)
+target_include_directories(test_attribute_util PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_attribute_util PRIVATE duilib)
+# AttributeUtil 引用了窗口/全局管理器模块，静态库模式下需要补齐第三方依赖
+if(WIN32)
+    target_link_directories(test_attribute_util PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_attribute_util PRIVATE
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_attribute_util PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_attribute_util PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(test_attribute_util PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_attribute_util PRIVATE /utf-8)
+endif()
+add_test(NAME attribute_util
+         COMMAND test_attribute_util
+)
+
+# Animation 目录：覆盖缓动函数（查找/名称解析/端点/对称性/取值）、
+# 物理动画（弹簧/惯性积分器与全局默认参数）、AnimationPlayer 状态与同步完成、
+# AnimationManager 的播放器管理、PopupAnimation 全局配置、调度器时间基准
+add_executable(test_animation
+    test_animation.cpp
+)
+target_include_directories(test_animation PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_animation PRIVATE duilib)
+# 该测试会实例化控件对象（Label），静态库模式下需要补齐 duilib 的第三方依赖（与示例程序一致）
+if(WIN32)
+    target_link_directories(test_animation PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_animation PRIVATE
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_animation PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_animation PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(test_animation PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_animation PRIVATE /utf-8)
+endif()
+add_test(NAME animation
+         COMMAND test_animation
+)
+
+# Box 目录：覆盖 Box 基类的子项增删/重排与 FindSelectable、
+# HBox/VBox/GridBox/TileBox 布局与 GridBox 行列属性、
+# ListBox 单选/多选/索引维护/框选配置、TabBox 页签选择与 InvalidIndex 回归、
+# Panel 折叠布局对 min_height 的临时放宽与恢复
+add_executable(test_box
+    test_box.cpp
+)
+target_include_directories(test_box PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_box PRIVATE duilib)
+# 该测试会实例化控件对象（Box/ListBox/TabBox/Panel），静态库模式下需要补齐第三方依赖
+if(WIN32)
+    target_link_directories(test_box PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_box PRIVATE
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_box PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_box PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(test_box PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_box PRIVATE /utf-8)
+endif()
+add_test(NAME box
+         COMMAND test_box
+)
+
+# Layout 目录：覆盖 Layout 基类的 child_margin/child_align 属性解析与取值钳制、
+# HLayout/VLayout 的固定+拉伸分配、间距与对齐、零尺寸子控件不占边距的回归，
+# GridLayout 的等分单元格、HTileLayout/VTileLayout 的自动行列计算、
+# HFlowLayout/VFlowLayout 的换行换列与 justify_content 分布
+add_executable(test_layout
+    test_layout.cpp
+)
+target_include_directories(test_layout PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_layout PRIVATE duilib)
+# 该测试会实例化控件对象（Box/GridBox/TileBox/FlowBox），静态库模式下需要补齐第三方依赖
+if(WIN32)
+    target_link_directories(test_layout PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_layout PRIVATE
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_layout PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_layout PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(test_layout PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_layout PRIVATE /utf-8)
+endif()
+add_test(NAME layout
+         COMMAND test_layout
+)
+
+# RenderSkia 目录：覆盖 SkUTF 的多编码计数/解码/编码与非法输入、
+# FastVector 的容量管理与移动语义、SkiaTextData 的字符枚举、
+# TextGlyphRunList 的 run 构建（含 positions 模式）、
+# 位图渲染的像素读写与快照裁剪、MeasureString 的行间距规则
+add_executable(test_render_skia
+    test_render_skia.cpp
+)
+target_include_directories(test_render_skia PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+    "${DUILIB_SKIA_SRC_ROOT_DIR}"
+)
+target_link_libraries(test_render_skia PRIVATE duilib)
+# 该测试直接使用 Skia 接口（位图像素、快照），静态库模式下需要补齐第三方依赖
+if(WIN32)
+    target_link_directories(test_render_skia PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_render_skia PRIVATE
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_render_skia PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_render_skia PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(test_render_skia PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_render_skia PRIVATE /utf-8)
+endif()
+target_compile_definitions(test_render_skia PRIVATE
+    DUILIB_TEST_RESOURCE_DIR="${CMAKE_SOURCE_DIR}/bin/resources"
+)
+add_test(NAME render_skia
+         COMMAND test_render_skia
+)
+
+# Image 目录：覆盖 ImageUtil 的缩放比例/尺寸偏移换算、像素行翻转与像素缩放、
+# GetBestImageScale 的最佳加载比例（含单边超出目标区域的回归用例）、
+# ImageLoadParam 的固定宽高/百分比/DPI 缩放与缓存 KEY、
+# ImageAttribute 的属性字符串解析与自适应矩形计算、
+# StateImage 的状态图片管理、ImageDecoderUtil 的 ICO 目录解析与选择规则。
+# 该测试为纯逻辑测试，不创建窗口，也不依赖图片资源。
+add_executable(test_image_core
+    test_image_core.cpp
+)
+target_include_directories(test_image_core PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_image_core PRIVATE duilib)
+if(WIN32)
+    target_link_directories(test_image_core PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_image_core PRIVATE
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_image_core PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_image_core PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(test_image_core PRIVATE UNICODE _UNICODE NOMINMAX WIN32_LEAN_AND_MEAN)
+endif()
+if(MSVC)
+    target_compile_options(test_image_core PRIVATE /utf-8)
+endif()
+add_test(NAME image_core
+         COMMAND test_image_core
+)
+
+# CEFControl 目录：覆盖 CefMemoryBlock 的初始化校验、整图/脏区域增量复制、
+# 尺寸变化重建、PaintData 的目标区域与裁剪、MakeImageSnapshot 的尺寸调整与参数校验，
+# 以及 CefUnregistedCallbackList / CefAutoUnregister 的回调注册、注销、清空与析构语义。
+# 该测试不启动 CEF 浏览器进程，只使用离屏渲染校验像素数据。
+if(DUILIB_ENABLE_CEF)
+    add_executable(test_cef_control
+        test_cef_control.cpp
+    )
+    target_include_directories(test_cef_control PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../"
+    )
+    target_link_libraries(test_cef_control PRIVATE duilib)
+    # 该测试会创建离屏渲染对象并读取像素，静态库模式下需要补齐第三方依赖
+    if(WIN32)
+        target_link_directories(test_cef_control PRIVATE
+            "${DUILIB_LIB_PATH}"
+            "${DUILIB_SKIA_LIB_PATH}"
+            "${DUILIB_CEF_LIB_PATH}"
+        )
+        target_link_libraries(test_cef_control PRIVATE
+            ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS} ${DUILIB_CEF_LIBS}
+            Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+        )
+        target_compile_definitions(test_cef_control PRIVATE UNICODE _UNICODE NOMINMAX WIN32_LEAN_AND_MEAN)
+    endif()
+    if(MSVC)
+        target_compile_options(test_cef_control PRIVATE /utf-8)
+    endif()
+    target_compile_definitions(test_cef_control PRIVATE
+        DUILIB_TEST_RESOURCE_DIR="${CMAKE_SOURCE_DIR}/bin/resources"
+    )
+    add_test(NAME cef_control
+             COMMAND test_cef_control
+    )
+endif()
+
+# WebView2 目录：覆盖 ComPtr 的引用计数/所有权语义、ComCallback 的回调对象创建与
+# Invoke 调用（引用计数不能多1，否则泄漏）、WebView2EnvironmentOptions 的接口查询与
+# 属性读写、WebView2Manager 的配置与语言回退、WebView2Control 的默认状态与
+# 初始URL拼接规则。该测试不启动 WebView2 运行时，也不创建窗口。
+# 测试目标需要与库使用相同的 DUILIB_WEBVIEW2 宏，否则看不到 WebView2 的类型定义。
+if(WIN32)
+    add_executable(test_webview2
+        test_webview2.cpp
+    )
+    target_include_directories(test_webview2 PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../"
+    )
+    target_link_libraries(test_webview2 PRIVATE duilib)
+    target_link_directories(test_webview2 PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_webview2 PRIVATE
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_webview2 PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_webview2 PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(test_webview2 PRIVATE
+        UNICODE _UNICODE NOMINMAX WIN32_LEAN_AND_MEAN
+        DUILIB_WEBVIEW2=1
+    )
+    if(MSVC)
+        target_compile_options(test_webview2 PRIVATE /utf-8)
+    endif()
+    target_compile_definitions(test_webview2 PRIVATE
+        DUILIB_TEST_RESOURCE_DIR="${CMAKE_SOURCE_DIR}/bin/resources"
+    )
+    add_test(NAME webview2
+             COMMAND test_webview2
+    )
+endif()

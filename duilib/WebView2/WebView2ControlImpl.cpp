@@ -28,11 +28,11 @@ namespace ui {
 
 WebView2Control::Impl::Impl(Control* pControl)
     : m_pControl(pControl)
+    , m_lastError(S_OK)
     , m_bInitializing(false)
     , m_bInitialized(false)
     , m_bNavigating(false)
     , m_bAlive(std::make_shared<bool>(true))
-    , m_lastError(S_OK)
     , m_bAreDevToolsEnabled(true)
     , m_bAreDevToolsEnabledSet(false)
     , m_bAreDefaultContextMenusEnabled(true)
@@ -41,6 +41,8 @@ WebView2Control::Impl::Impl(Control* pControl)
     , m_bAreDefaultScriptDialogsEnabledSet(false)
     , m_bWebMessageEnabled(true)
     , m_bWebMessageEnabledSet(false)
+    , m_bScriptEnabled(true)
+    , m_bScriptEnabledSet(false)
     , m_bZoomControlEnabled(true)
     , m_bZoomControlEnabledSet(false)
     , m_bEnableF12(true)
@@ -643,7 +645,8 @@ HRESULT WebView2Control::Impl::SetUserAgent(const DString& userAgent)
 DString WebView2Control::Impl::GetUserAgent() const
 {
     DString userAgent = m_userAgent;
-    if ((m_spWebView2 != nullptr) && !userAgent.empty()) {
+    //注意：即使本地未设置UserAgent，也需要读取运行时的实际值（WebView2有默认的UserAgent）
+    if (m_spWebView2 != nullptr) {
         ui::ComPtr<ICoreWebView2Settings> settings;
         HRESULT hr = m_spWebView2->get_Settings(&settings);
         if (FAILED(hr) || (settings == nullptr)) {
@@ -1438,17 +1441,17 @@ void WebView2Control::Impl::SetAreDevToolsEnabled(bool bAreDevToolsEnabled)
 
 bool WebView2Control::Impl::AreDevToolsEnabled() const
 {
-    bool bDevToolsEnabled = false;
     if (m_spWebView2 != nullptr) {
         ui::ComPtr<ICoreWebView2Settings> settings;
         if (SUCCEEDED(m_spWebView2->get_Settings(&settings)) && (settings != nullptr)) {
             BOOL areDevToolsEnabled = FALSE;
-            if (SUCCEEDED(settings->get_AreDevToolsEnabled(&areDevToolsEnabled)) && areDevToolsEnabled) {
-                bDevToolsEnabled = true;
+            if (SUCCEEDED(settings->get_AreDevToolsEnabled(&areDevToolsEnabled))) {
+                return areDevToolsEnabled ? true : false;
             }
         }
     }
-    return bDevToolsEnabled;
+    //未初始化（或读取失败）时，返回本地设置的值，与SetAreDevToolsEnabled的语义保持一致
+    return m_bAreDevToolsEnabled;
 }
 
 bool WebView2Control::Impl::OpenDevToolsWindow()
@@ -1542,7 +1545,8 @@ static bool ConvertFavIconImageData(std::vector<uint8_t>& imageFileData, uint32_
     if (pBits == nullptr) {
         return false;
     }
-    size_t nDataSize = nHeight * nWidth * 4;
+    //先转换为size_t，避免两个int相乘时溢出
+    size_t nDataSize = (size_t)nWidth * nHeight * 4;
     imageData.resize(nDataSize);
     memcpy(imageData.data(), pBits, nDataSize);
     return true;
