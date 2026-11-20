@@ -116,6 +116,8 @@ bool FileUtil::WriteFileData(const FilePath& filePath, const std::vector<uint8_t
 #endif
 
     if (f != nullptr) {
+        //空内容时，文件已成功创建(或截断为空)，应视为写入成功
+        isWriteOk = fileData.empty();
         if (!fileData.empty()) {
             size_t nWriteLen = ::fwrite(fileData.data(), 1, fileData.size(), f);
             ASSERT_UNUSED_VARIABLE(nWriteLen == fileData.size());
@@ -145,6 +147,8 @@ bool FileUtil::WriteFileData(const FilePath& filePath, const DStringW& fileData)
 #endif
 
     if (f != nullptr) {
+        //空内容时，文件已成功创建(或截断为空)，应视为写入成功
+        isWriteOk = fileData.empty();
         if (!fileData.empty()) {
             //按字符类型的实际大小写入，避免非Windows平台(wchar_t为4字节)时数据被截断
             size_t nWriteLen = ::fwrite(fileData.data(), sizeof(DStringW::value_type), fileData.size(), f);
@@ -175,6 +179,8 @@ bool FileUtil::WriteFileData(const FilePath& filePath, const DStringA& fileData)
 #endif
 
     if (f != nullptr) {
+        //空内容时，文件已成功创建(或截断为空)，应视为写入成功
+        isWriteOk = fileData.empty();
         if (!fileData.empty()) {
             size_t nWriteLen = ::fwrite(fileData.data(), 1, fileData.size(), f);
             ASSERT_UNUSED_VARIABLE(nWriteLen == fileData.size());

@@ -47,12 +47,17 @@ DString FileTime::ToString() const
     FILETIME ft = ToFileTime();
 
     //转换为UTC时间
-    SYSTEMTIME stUTC;
-    ::FileTimeToSystemTime(&ft, &stUTC);
+    SYSTEMTIME stUTC = { 0 };
+    if (::FileTimeToSystemTime(&ft, &stUTC) == FALSE) {
+        //无效的文件时间(如默认值为0的异常值)，返回空字符串，避免使用未初始化的SYSTEMTIME
+        return DString();
+    }
 
     //转换为本地时区SYSTEMTIME
-    SYSTEMTIME stLocal;
-    ::SystemTimeToTzSpecificLocalTime(nullptr, &stUTC, &stLocal);
+    SYSTEMTIME stLocal = { 0 };
+    if (::SystemTimeToTzSpecificLocalTime(nullptr, &stUTC, &stLocal) == FALSE) {
+        stLocal = stUTC;
+    }
 
     // 格式化为字符串
     return StringUtil::Printf(_T("%04d-%02d-%02d %02d:%02d:%02d"),
@@ -76,9 +81,12 @@ DString FileTime::ToString() const
 {
     uint64_t secondsSinceEpoch = ToSecondsSinceEpoch();
     
-    struct tm tm;
+    struct tm tm = { 0 };
     std::time_t time = (std::time_t)secondsSinceEpoch;
-    localtime_r(&time, &tm);
+    if (localtime_r(&time, &tm) == nullptr) {
+        //时间值非法(超出time_t可表示范围)时，返回空字符串
+        return DString();
+    }
 
     std::stringstream ss;
     ss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");

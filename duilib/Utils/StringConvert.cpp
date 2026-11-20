@@ -343,8 +343,9 @@ std::wstring StringConvert::MBCSToUnicode2(const char* input, size_t inputSize, 
         return output;
     }
 
+    //MultiByteToWideChar失败时返回0(不会返回负数)，这里统一按空字符串处理
     int length = ::MultiByteToWideChar(code_page, 0, input, static_cast<int>(inputSize), nullptr, 0);
-    if (length < 0) {
+    if (length <= 0) {
         length = 0;
     }
     output.resize(length);
@@ -370,8 +371,9 @@ DString StringConvert::MBCSToT(const std::string& input)
 std::string StringConvert::UnicodeToMBCS(const std::wstring& input, int32_t code_page)
 {
     std::string output;
+    //WideCharToMultiByte失败时返回0(不会返回负数)，这里统一按空字符串处理
     int length = ::WideCharToMultiByte(code_page, 0, input.c_str(), static_cast<int>(input.size()), nullptr, 0, nullptr, nullptr);
-    if (length < 0) {
+    if (length <= 0) {
         length = 0;
     }
     output.resize(length);

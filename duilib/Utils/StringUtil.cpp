@@ -4,6 +4,9 @@
 #include <cstdarg>
 #include <vector>
 #include <climits>
+#include <cstring>
+#include <cstdio>
+#include <algorithm>
 
 namespace ui
 {
@@ -82,6 +85,9 @@ size_t StringReplaceAllT(const std::basic_string<CharType> &find,
         memmove((void*)(data_ptr + offset),
                 (void*)data_ptr,
                 (output.size() - offset) * sizeof(CharType));
+
+        //第一遍仅用于统计，第二遍会重新统计实际替换次数，这里清零避免返回值被重复累加
+        replaced = 0;
     }
     else
     {
@@ -138,7 +144,20 @@ inline int vsnprintfT(char *dst, size_t count, const char *format, va_list ap)
 inline int vsnprintfT(wchar_t *dst, size_t count, const wchar_t *format, va_list ap)
 {
 #ifdef DUILIB_BUILD_FOR_WIN
-    return _vsnwprintf_s(dst, count, count, format, ap);
+    //不能直接在缓冲区不足时调用 _vsnwprintf_s：发生截断时会触发无效参数处理器
+    //(调试版弹出断言对话框、发布版直接终止进程)。这里先计算所需长度：
+    //缓冲区足够时正常格式化；不足时返回所需长度，由调用方扩容后重试
+    va_list ap_length;
+    va_copy(ap_length, ap);
+    const int needLength = ::_vscwprintf(format, ap_length);
+    va_end(ap_length);
+    if (needLength < 0) {
+        return -1;
+    }
+    if (static_cast<size_t>(needLength) < count) {
+        return ::_vsnwprintf_s(dst, count, count, format, ap);
+    }
+    return needLength;
 #else
     return vswprintf(dst, count, format, ap);
 #endif
@@ -667,22 +686,24 @@ bool StringUtil::IsEqualNoCase(const std::string& lhs, const char* rhs)
 
 bool StringUtil::IsEqualNoCase(const wchar_t* lhs, const wchar_t* rhs)
 {
+    //两个指针都为nullptr时视为相等；只有一个为nullptr时，与其它重载保持一致：返回不相等
     if (lhs == nullptr) {
-        return (rhs == nullptr) ? true : false;
+        return rhs == nullptr;
     }
     else if (rhs == nullptr) {
-        return true;
+        return false;
     }
     return IsEqualNoCasePrivate(lhs, rhs);
 }
 
 bool StringUtil::IsEqualNoCase(const char* lhs, const char* rhs)
 {
+    //两个指针都为nullptr时视为相等；只有一个为nullptr时，与其它重载保持一致：返回不相等
     if (lhs == nullptr) {
-        return (rhs == nullptr) ? true : false;
+        return rhs == nullptr;
     }
     else if (rhs == nullptr) {
-        return true;
+        return false;
     }
     return IsEqualNoCasePrivate(lhs, rhs);
 }
@@ -1075,15 +1096,13 @@ int32_t StringUtil::StringCopy(wchar_t* dest, size_t destSize, const wchar_t* sr
     if ((dest == nullptr) || (destSize == 0) || (src == nullptr)) {
         return 0;
     }
-#ifdef DUILIB_BUILD_FOR_WIN
-    return ::wcscpy_s(dest, destSize, src);
-#else
-    //最多拷贝 destSize - 1 个字符，给结尾的'\0'预留空间，避免写入 dest[destSize] 造成越界
+    //最多拷贝 destSize - 1 个字符，给结尾的'\0'预留空间，避免写入 dest[destSize] 造成越界。
+    //Windows平台原来使用 wcscpy_s：源字符串超长时会触发无效参数处理器(调试版断言、发布版终止进程)，
+    //而多数调用方传入的是系统结构体中的定长数组(内容长度不可控)，因此各平台统一按截断处理
     size_t nLen = std::min((size_t)wcslen(src), destSize - 1);
-    ::wcsncpy(dest, src, nLen);
+    memcpy(dest, src, nLen * sizeof(wchar_t));
     dest[nLen] = L'\0';
     return 0;
-#endif
 }
 
 int32_t StringUtil::StringNCopy(wchar_t* dest, size_t destSize, const wchar_t* src, size_t srcSize)
@@ -1091,15 +1110,12 @@ int32_t StringUtil::StringNCopy(wchar_t* dest, size_t destSize, const wchar_t* s
     if ((dest == nullptr) || (destSize == 0) || (src == nullptr) || (srcSize == 0)) {
         return 0;
     }
-#ifdef DUILIB_BUILD_FOR_WIN
-    return ::wcsncpy_s(dest, destSize, src, srcSize);
-#else
     //最多拷贝 destSize - 1 个字符，给结尾的'\0'预留空间，避免写入 dest[destSize] 造成越界
     size_t nLen = std::min(srcSize, destSize - 1);
-    ::wcsncpy(dest, src, nLen);
+    nLen = std::min(nLen, (size_t)wcsnlen(src, nLen));
+    memcpy(dest, src, nLen * sizeof(wchar_t));
     dest[nLen] = L'\0';
     return 0;
-#endif
 }
 
 #if defined(__GNUC__) && !defined(__clang__)
@@ -1112,15 +1128,12 @@ int32_t StringUtil::StringCopy(char* dest, size_t destSize, const char* src)
     if ((dest == nullptr) || (destSize == 0) || (src == nullptr)) {
         return 0;
     }
-#ifdef DUILIB_BUILD_FOR_WIN
-    return ::strcpy_s(dest, destSize, src);
-#else
-    //最多拷贝 destSize - 1 个字符，给结尾的'\0'预留空间，避免写入 dest[destSize] 造成越界
+    //最多拷贝 destSize - 1 个字符，给结尾的'\0'预留空间，避免写入 dest[destSize] 造成越界。
+    //与宽字符版本一致：源字符串超长时按截断处理，不触发无效参数处理器
     size_t nLen = std::min(destSize - 1, strlen(src));
-    ::strncpy(dest, src, nLen);
+    memcpy(dest, src, nLen);
     dest[nLen] = '\0';
     return 0;
-#endif
 }
 
 #if defined(__GNUC__) && !defined(__clang__)
@@ -1132,15 +1145,12 @@ int32_t StringUtil::StringNCopy(char* dest, size_t destSize, const char* src, si
     if ((dest == nullptr) || (destSize == 0) || (src == nullptr) || (srcSize == 0)) {
         return 0;
     }
-#ifdef DUILIB_BUILD_FOR_WIN
-    return ::strncpy_s(dest, destSize, src, srcSize);
-#else
     //最多拷贝 destSize - 1 个字符，给结尾的'\0'预留空间，避免写入 dest[destSize] 造成越界
     size_t nLen = std::min(srcSize, destSize - 1);
-    ::strncpy(dest, src, nLen);
+    nLen = std::min(nLen, strnlen(src, nLen));
+    memcpy(dest, src, nLen);
     dest[nLen] = '\0';
     return 0;
-#endif
 }
 
 size_t StringUtil::StringLen(const wchar_t* str)
