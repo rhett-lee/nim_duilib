@@ -1552,10 +1552,18 @@ void PanelTemplate<InheritType>::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t 
     m_contentPadding = this->Dpi().GetScalePadding(m_contentPadding, nOldDpiScale);
     m_nExpandedHeight = this->Dpi().GetScaleInt(m_nExpandedHeight, nOldDpiScale);
     if (m_nSavedMinHeight >= 0) {
-        //折叠布局生效中：同步缩放已保存的最小高度，并按新标题栏高度重新放宽
+        //保存了折叠前的最小高度：先按新 DPI 同步缩放
         m_nSavedMinHeight = this->Dpi().GetScaleInt(m_nSavedMinHeight, nOldDpiScale);
-        if (m_nSavedMinHeight > m_nTitleBarHeight) {
-            this->SetMinHeight(m_nTitleBarHeight, false);
+        if (m_bCollapsed) {
+            //折叠状态：按新标题栏高度重新放宽，折叠布局继续生效
+            if (m_nSavedMinHeight > m_nTitleBarHeight) {
+                this->SetMinHeight(m_nTitleBarHeight, false);
+            }
+        }
+        else {
+            //展开动画被中断：恢复用户配置的最小高度，避免最小值被永久放宽
+            this->SetMinHeight(m_nSavedMinHeight, false);
+            m_nSavedMinHeight = -1;
         }
     }
 

@@ -183,8 +183,9 @@ bool TabBox::RemoveItem(Control* pControl)
         }
         ArrangeAncestor();
     }
-    else if(m_nCurSel > index ) {
+    else if(Box::IsValidItemIndex(m_nCurSel) && (m_nCurSel > index)) {
         //更新当前选择页面的下标值，使其保持不变
+        //注意：m_nCurSel 为 InvalidIndex（size_t(-1)）时不能减一，否则会下溢成"有效索引"
         m_nCurSel -= 1;
     }
     return ret;
@@ -284,11 +285,13 @@ bool TabBox::DoSelectItem(size_t nItemIndex, bool bFadeSwith, bool bCheckChanged
         for (TabCtrl* pListener : m_tabSelectListeners) {
             listeners.emplace_back(pListener);
         }
-        SendEvent(kEventTabSelect, m_nCurSel, nOldSelIndex);
+        //事件回调中可能销毁本控件，后续只能使用局部变量，不能再访问成员
+        const size_t nNewSelIndex = m_nCurSel;
+        SendEvent(kEventTabSelect, nNewSelIndex, nOldSelIndex);
         //通知绑定到本控件的TabCtrl进行反向同步（内部有防重入保护）
         for (ControlPtrT<TabCtrl>& pTabCtrl : listeners) {
             if (pTabCtrl != nullptr) {
-                pTabCtrl->OnBoundTabBoxSelectChanged(m_nCurSel);
+                pTabCtrl->OnBoundTabBoxSelectChanged(nNewSelIndex);
             }
         }
     }    

@@ -2046,6 +2046,10 @@ bool ListBox::AddItemAt(Control* pControl, size_t iIndex)
     if (Box::IsValidItemIndex(m_iCurSel) && (m_iCurSel >= iIndex)) {
         m_iCurSel += 1;
     }
+    if (iIndex <= m_nLastNoShiftItem) {
+        //Shift 多选起点随插入位置后移，保持指向原来的那一项
+        m_nLastNoShiftItem += 1;
+    }
     OnListBoxItemAdded(pControl);
     return true;
 }
@@ -2100,6 +2104,10 @@ bool ListBox::RemoveItemAt(size_t iIndex)
             m_iCurSel -= 1;
         }
     }    
+    if ((m_nLastNoShiftItem >= iIndex) && (m_nLastNoShiftItem > 0)) {
+        //Shift 多选起点随删除位置前移，保持指向原来的那一项
+        m_nLastNoShiftItem -= 1;
+    }
     return true;
 }
 
@@ -2117,6 +2125,7 @@ void ListBox::RemoveAllItems()
         }
     }
     m_iCurSel = Box::InvalidIndex;
+    m_nLastNoShiftItem = 0;
     ScrollBox::RemoveAllItems();
 }
 
@@ -2152,6 +2161,8 @@ bool ListBox::SortItems(PFNCompareFunc pfnCompare, void* pCompareContext)
         }
     }
     SelectItem(Box::InvalidIndex);
+    //排序后原选择已清空，Shift 多选起点同步复位
+    m_nLastNoShiftItem = 0;
     SetPos(GetPos());
     Invalidate();
     return true;
