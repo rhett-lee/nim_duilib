@@ -269,7 +269,7 @@ bool ImageUtil::GetBestImageScale(const UiSize& rcMaxDestRectSize,
     }
     if ((rcMaxDestRectSize.cx > 0) && (rcMaxDestRectSize.cy > 0)) {
         //同时设置的宽度和高度
-        if ((nImageWidth <= rcMaxDestRectSize.cx) || (nImageHeight <= rcMaxDestRectSize.cy)) {
+        if ((nImageWidth <= rcMaxDestRectSize.cx) && (nImageHeight <= rcMaxDestRectSize.cy)) {
             //图片小于目标区域时，计算合适的缩放比（适当放大）
             float fScaleX = static_cast<float>(rcMaxDestRectSize.cx) / nImageWidth;
             float fScaleY = static_cast<float>(rcMaxDestRectSize.cy) / nImageHeight;
