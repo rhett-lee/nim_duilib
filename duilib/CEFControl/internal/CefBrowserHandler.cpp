@@ -223,8 +223,8 @@ bool CefBrowserHandler::DoOnBeforePopup(CefRefPtr<CefBrowser> browser,
 {
     //让新的链接在原浏览器对象中打开
     if (m_pHandlerDelegate && !m_bHostWindowClosed) {
-        // 返回true则继续在控件内打开新链接，false则禁止访问
-        return m_pHandlerDelegate->OnBeforePopup(browser, frame, popup_id, target_url, target_frame_name, target_disposition, user_gesture, popupFeatures, windowInfo, client, settings, extra_info, no_javascript_access);;
+        //返回true表示取消CEF创建新窗口（由业务在控件内加载新链接），返回false表示允许CEF创建新窗口
+        return m_pHandlerDelegate->OnBeforePopup(browser, frame, popup_id, target_url, target_frame_name, target_disposition, user_gesture, popupFeatures, windowInfo, client, settings, extra_info, no_javascript_access);
     }
     // 默认禁止弹出popup窗口
     return true;

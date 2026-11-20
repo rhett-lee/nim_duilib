@@ -903,7 +903,7 @@ static CefRect LogicalToDevice(const CefRect& value, float device_scale_factor)
 void CefControlOffScreen::OnImeCompositionRangeChanged(CefRefPtr<CefBrowser> /*browser*/, const CefRange& selected_range, const std::vector<CefRect>& character_bounds)
 {
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    CefCurrentlyOn(TID_UI);
+    ASSERT(CefCurrentlyOn(TID_UI));
     if (m_imeHandler != nullptr) {
         float device_scale_factor = Dpi().GetDisplayScale();
         // Convert from view coordinates to device coordinates.

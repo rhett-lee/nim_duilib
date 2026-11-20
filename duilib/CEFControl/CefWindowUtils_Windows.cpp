@@ -35,10 +35,12 @@ void SetCefWindowVisible(CefWindowHandle cefWindow, CefControl* pCefControl)
     HWND hwnd = (HWND)cefWindow;
     if (hwnd) {
         if (pCefControl->IsVisible()) {
-            ShowWindow(hwnd, SW_SHOW);
+            ::ShowWindow(hwnd, SW_SHOW);
         }
         else {
-            ::SetWindowPos(hwnd, nullptr, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
+            //隐藏时原来的 SetWindowPos 调用没有任何位置/尺寸/显示标志，实际不会隐藏子窗口，
+            //会导致控件隐藏后 CEF 子窗口仍然停留在界面上
+            ::ShowWindow(hwnd, SW_HIDE);
         }
     }
 }

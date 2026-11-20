@@ -100,7 +100,8 @@ void CefControlNative::ReCreateBrowser()
 #endif
     UiRect rc = GetRect();
     Dpi().ClientSizeToWindowSize(rc);
-    CefRect rect = { rc.left, rc.top, rc.right, rc.bottom};
+    //注意：CefRect 的第三个/第四个参数是宽和高，不能传入 UiRect 的 right/bottom
+    CefRect rect = { rc.left, rc.top, rc.Width(), rc.Height() };
 #ifdef DUILIB_BUILD_FOR_WIN
     //Windows
     window_info.SetAsChild(pWindow->NativeWnd()->GetHWND(), rect);

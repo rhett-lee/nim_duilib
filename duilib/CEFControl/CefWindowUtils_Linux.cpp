@@ -221,8 +221,8 @@ bool DoCaptureCefWindowBitmap(CefWindowHandle cefWindow, std::vector<uint8_t>& b
         ~ImageDestroyer() { if (img) XDestroyImage(img); }
     } imgDestroyer{ image };
 
-    // 分配内存并复制像素数据
-    bitmap.resize(width * height * 4);
+    //分配内存并复制像素数据（先转换为 size_t，避免 width * height * 4 在 int 范围内溢出）
+    bitmap.resize((size_t)width * height * 4);
 
     // 使用更安全的像素格式转换
     bool isRgbOrder = (image->red_mask == 0xFF0000);

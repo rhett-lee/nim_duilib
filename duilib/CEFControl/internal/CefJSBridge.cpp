@@ -23,6 +23,10 @@ bool CefJSBridge::CallCppFunction(const CefString& function_name, const CefStrin
     auto it = m_renderCallbackMap.find(m_jsCallbackId);
     if (it == m_renderCallbackMap.cend()) {
         CefRefPtr<CefV8Context> context = CefV8Context::GetCurrentContext();
+        if (context == nullptr) {
+            //没有有效的 V8 上下文时无法回复回调，直接返回失败
+            return false;
+        }
         CefRefPtr<CefProcessMessage> message = CefProcessMessage::Create(kCallCppFunctionMessage);
 
         message->GetArgumentList()->SetString(0, function_name);
