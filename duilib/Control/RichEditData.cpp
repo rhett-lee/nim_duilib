@@ -3058,9 +3058,14 @@ DStringW RichEditData::GetRowText(int32_t nRowIndex)
                     nStartIndex += lineText.m_rowInfo[i].m_charInfo.CharCount();
                 }
                 if (!lineText.m_rowInfo[nRow].m_charInfo.Empty()) {
-                    ASSERT(nStartIndex < lineText.m_nLineTextLen);
+                    //说明：文本以换行符结尾时，末尾会补一个空行（见AppendEmptyLine），
+                    //该空行的字符布局中包含1个仅用于定位光标的字符，但行文本长度为0，
+                    //此时起始下标等于行文本长度，属于正常情况，不做起始下标小于文本长度的断言
+                    ASSERT((lineText.m_nLineTextLen == 0) || (nStartIndex < lineText.m_nLineTextLen));
                     std::wstring_view lineView = lineText.GetLineTextView();
-                    rowText = lineView.substr(nStartIndex, lineText.m_rowInfo[nRow].m_charInfo.CharCount());
+                    if (nStartIndex < lineView.size()) {
+                        rowText = lineView.substr(nStartIndex, lineText.m_rowInfo[nRow].m_charInfo.CharCount());
+                    }
                 }
                 bFound = true;
                 break;
@@ -3138,8 +3143,8 @@ int32_t RichEditData::RowLength(int32_t nRowIndex)
 
 int32_t RichEditData::RowFromChar(int32_t nCharIndex)
 {
-    ASSERT(nCharIndex >= 0);
     if (nCharIndex < 0) {
+        //防御负值输入（LineFromChar(-1)的既有语义是返回第0行）
         return 0;
     }
     const int32_t nTextLength = (int32_t)GetTextLength();
