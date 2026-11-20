@@ -16,6 +16,7 @@ namespace ui
 
 namespace
 {
+
 #if defined(DUILIB_BUILD_FOR_WIN) && !defined(DUILIB_BUILD_FOR_SDL)
 /** 阴影区域的命中测试过滤器（仅 Windows 平台）
 *   浮层窗口的阴影区域不显示内容，却会拦截鼠标消息，导致其下方控件无法悬停、无法点击；
@@ -36,6 +37,33 @@ public:
                 bHandled = true;
                 return HTTRANSPARENT;
             }
+        }
+        return 0;
+    }
+
+private:
+    //所属浮层（本过滤器由该浮层持有，生命周期与其一致）
+    Flyout* m_pFlyout;
+};
+#endif // DUILIB_BUILD_FOR_WIN && !DUILIB_BUILD_FOR_SDL
+
+#if defined(DUILIB_BUILD_FOR_WIN) && !defined(DUILIB_BUILD_FOR_SDL)
+/** 父窗口的消息过滤器（浮层打开期间安装在父窗口上）
+*   不抢焦点模式下用于感知"点击浮层外部"：消息到达时同步判定，不受以下因素影响：
+*   1. 鼠标按下消息被其它进程/子窗口（如 WebView2、CEF 子窗口）处理；
+*   2. 点击非客户区（标题栏/边框）时系统进入模态移动循环，定时器无法按时触发；
+*   3. 定时轮询的周期与被点击时长不匹配，导致整个按下过程被漏采。
+*   同时通过父窗口的焦点/激活变化感知"焦点转移到其它窗口"（含子窗口、其它进程窗口）。
+*/
+class ParentWindowFilter : public IUIMessageFilter
+{
+public:
+    explicit ParentWindowFilter(Flyout* pFlyout) : m_pFlyout(pFlyout) {}
+
+    virtual LRESULT FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& /*bHandled*/) override
+    {
+        if (m_pFlyout != nullptr) {
+            m_pFlyout->OnParentWindowMessage(uMsg, wParam, lParam);
         }
         return 0;
     }
@@ -98,6 +126,7 @@ Flyout::Flyout(Window* pParentWindow) :
 Flyout::~Flyout()
 {
     StopDetectTimer();
+    RemoveParentWindowFilter();
     if (m_pFadeInPlayer != nullptr) {
         m_pFadeInPlayer->Stop();
         m_pFadeInPlayer.reset();
@@ -181,6 +210,18 @@ bool Flyout::ShowAt(Control* pAnchor, const DString& xmlFile, Placement placemen
 
     //计算锚点位置
     PositionAroundAnchor();
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    if (m_bNoFocus && bParentWasForeground && (m_pParentWindow != nullptr)) {
+        //浮层窗口的创建过程可能使浮层成为前台窗口并抢走键盘焦点：
+        //浮层不应持有键盘焦点，立即把前台状态与输入焦点恢复给父窗口
+        //（仅Windows平台：SDL实现创建窗口时不抢前台与输入焦点）
+        const HWND hFlyout = (HWND)GetWindowHandle();
+        if ((::GetForegroundWindow() == hFlyout) || (::GetFocus() == hFlyout)) {
+            m_pParentWindow->SetWindowForeground();
+            m_pParentWindow->SetWindowFocus();
+        }
+    }
+#endif
     //记录锚点的初始屏幕矩形，供跟随锚点时检测位移
     GetAnchorScreenRect(m_rcAnchorScreenLast, true);
 
@@ -214,6 +255,10 @@ bool Flyout::ShowAt(Control* pAnchor, const DString& xmlFile, Placement placemen
 
     m_bOpen = true;
     s_pActiveFlyout = this;
+
+    //安装父窗口消息过滤器：同步感知外部点击/焦点转移（安装在 ShowAt 完成之后，
+    //避免浮层窗口创建过程中的瞬时焦点变化被误判为"点击外部"）
+    InstallParentWindowFilter();
 
     if (m_bNoFocus || m_bFollowAnchor) {
         //不抢焦点模式需要检测外部点击；跟随锚点需要轮询锚点位置
@@ -489,6 +534,7 @@ void Flyout::OnFinalMessage()
         m_pShadowHitTestFilter.reset();
     }
     StopDetectTimer();
+    RemoveParentWindowFilter();
     m_bOpen = false;
     if (s_pActiveFlyout == this) {
         s_pActiveFlyout = nullptr;
@@ -820,6 +866,134 @@ void Flyout::StopDetectTimer()
     }
 }
 
+void Flyout::InstallParentWindowFilter()
+{
+#if defined(DUILIB_BUILD_FOR_WIN) && !defined(DUILIB_BUILD_FOR_SDL)
+    if ((m_pParentWindow != nullptr) && (m_pParentWindowFilter == nullptr)) {
+        m_pParentWindowFilter = std::make_unique<ParentWindowFilter>(this);
+        m_pParentWindow->AddMessageFilter(m_pParentWindowFilter.get());
+    }
+#endif
+}
+
+void Flyout::RemoveParentWindowFilter()
+{
+    if (m_pParentWindowFilter != nullptr) {
+        if (m_pParentWindow != nullptr) {
+            m_pParentWindow->RemoveMessageFilter(m_pParentWindowFilter.get());
+        }
+        m_pParentWindowFilter.reset();
+    }
+}
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+void Flyout::OnParentWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    if (!m_bOpen || m_bClosing) {
+        return;
+    }
+    switch (uMsg)
+    {
+    case WM_LBUTTONDOWN:
+    case WM_RBUTTONDOWN:
+    case WM_MBUTTONDOWN:
+    case WM_XBUTTONDOWN:
+    {
+        //客户区鼠标按下：lParam 为客户区坐标，转换为屏幕物理坐标后判定
+        if (!m_bAutoDismiss || !m_bClickOutsideDismiss || (m_pParentWindow == nullptr)) {
+            return;
+        }
+        UiPoint ptScreen((int32_t)GET_X_LPARAM(lParam), (int32_t)GET_Y_LPARAM(lParam));
+        m_pParentWindow->ClientToScreen(ptScreen);
+        CheckCloseOnOutsidePoint(ptScreen);
+        return;
+    }
+    case WM_NCLBUTTONDOWN:
+    case WM_NCRBUTTONDOWN:
+    case WM_NCMBUTTONDOWN:
+    case WM_NCXBUTTONDOWN:
+    {
+        //非客户区（标题栏/边框等）鼠标按下：lParam 已经是屏幕物理坐标
+        if (!m_bAutoDismiss || !m_bClickOutsideDismiss) {
+            return;
+        }
+        CheckCloseOnOutsidePoint(UiPoint((int32_t)GET_X_LPARAM(lParam), (int32_t)GET_Y_LPARAM(lParam)));
+        return;
+    }
+    case WM_KILLFOCUS:
+    {
+        //父窗口失去键盘焦点：焦点转移到本浮层时不算外部点击（例如点击候选项，
+        //浮层随后由候选项选中流程正常关闭），转移到其它窗口/子窗口（CEF 子窗口、
+        //WebView2 子窗口、其它进程窗口）时关闭浮层
+        if (!m_bAutoDismiss || !m_bClickOutsideDismiss) {
+            return;
+        }
+        HWND hFocus = (HWND)wParam;
+        if (hFocus != nullptr) {
+            HWND hFocusRoot = ::GetAncestor(hFocus, GA_ROOT);
+            if ((hFocusRoot != nullptr) && (hFocusRoot == (HWND)GetWindowHandle())) {
+                return;
+            }
+        }
+        DoClose(CloseReason::kClickOutside);
+        return;
+    }
+    case WM_ACTIVATE:
+    {
+        //父窗口被其它窗口激活取代：关闭浮层
+        if (!m_bAutoDismiss || !m_bClickOutsideDismiss) {
+            return;
+        }
+        if (LOWORD(wParam) == WA_INACTIVE) {
+            //浮层创建/显示期间可能产生瞬时激活，该通知在浮层显示完成、父窗口已恢复前台后
+            //才被处理；此时父窗口仍是前台窗口，不属于"被其它窗口激活取代"，需要忽略，
+            //否则浮层刚展开就会被误判为"点击外部"而关闭
+            HWND hForeground = ::GetForegroundWindow();
+            if (m_pParentWindow != nullptr) {
+                HWND hParent = (HWND)m_pParentWindow->GetWindowHandle();
+                if ((hForeground != nullptr) && (hForeground == hParent)) {
+                    return;
+                }
+            }
+            if ((hForeground != nullptr) && (::GetAncestor(hForeground, GA_ROOT) == (HWND)GetWindowHandle())) {
+                return;
+            }
+            DoClose(CloseReason::kClickOutside);
+        }
+        return;
+    }
+    case WM_KEYDOWN:
+    {
+        //父窗口收到 Esc：关闭浮层（不截获该按键，仍由父窗口继续处理）
+        if (m_bAutoDismiss && (wParam == VK_ESCAPE)) {
+            DoClose(CloseReason::kEscape);
+        }
+        return;
+    }
+    default:
+        return;
+    }
+}
+#endif // DUILIB_BUILD_FOR_WIN && !DUILIB_BUILD_FOR_SDL
+
+bool Flyout::CheckCloseOnOutsidePoint(const UiPoint& ptScreen)
+{
+    //落点判定使用可视区域（不含窗口阴影），阴影区域按"外部"处理
+    if (IsPointInVisualArea(ptScreen)) {
+        return false;
+    }
+    if (IsPointInAnchor(ptScreen)) {
+        return false;
+    }
+    //跟随锚点时，按下落在"锚点所在滚动容器的滚动条"上属于滚动操作（滚动过程中浮层会跟随锚点移动），
+    //此时不按"点击外部"关闭，否则拖动滚动条会把正在跟随的卡片关掉
+    if (m_bFollowAnchor && IsPointOnAnchorScrollBar(ptScreen)) {
+        return false;
+    }
+    DoClose(CloseReason::kClickOutside);
+    return true;
+}
+
 void Flyout::OnDetectTick()
 {
     if (!m_bOpen || m_bClosing) {
@@ -885,20 +1059,10 @@ void Flyout::OnDetectTick()
         if (bPointerPressed && m_bClickOutsideDismiss) {
             UiPoint ptCursor;
             GetCursorPos(ptCursor);
-
-            //落点判定使用可视区域（不含窗口阴影），阴影区域按"外部"处理
-            UiRect rcVisual;
-            GetVisualRect(rcVisual);
-            const bool bInsideFlyout = rcVisual.ContainsPt(ptCursor);
-
-            if (!bInsideFlyout && !IsPointInAnchor(ptCursor)) {
-                //跟随锚点时，按下落在"锚点所在滚动容器的滚动条"上属于滚动操作（滚动过程中浮层会跟随锚点移动），
-                //此时不按"点击外部"关闭，否则拖动滚动条会把正在跟随的卡片关掉
-                const bool bScrollOperation = m_bFollowAnchor && IsPointOnAnchorScrollBar(ptCursor);
-                if (!bScrollOperation) {
-                    DoClose(CloseReason::kClickOutside);
-                    return;
-                }
+            //兜底路径：正常情况下已由父窗口消息过滤器同步关闭；这里保留定时检测，
+            //用于父窗口收不到消息的场景（例如点击由其它进程的窗口直接消费）
+            if (CheckCloseOnOutsidePoint(ptCursor)) {
+                return;
             }
         }
 
@@ -933,6 +1097,7 @@ void Flyout::DoClose(CloseReason reason)
     m_bOpen = false;
 
     StopDetectTimer();
+    RemoveParentWindowFilter();
 
     if (s_pActiveFlyout == this) {
         s_pActiveFlyout = nullptr;

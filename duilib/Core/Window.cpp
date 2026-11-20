@@ -2512,8 +2512,15 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
     //   而SDL平台的IsWindowFocused()判断不正确(它依据GetForegroundWindow判断，仍认为窗口有焦点)，
     //   此时点击普通控件(如地址栏)，需要把键盘焦点从原生子窗口切换回当前窗口，
     //   否则会出现"页面与界面控件双焦点、地址栏无法输入中文"的问题。
-    bool bNeedSetWindowFocus = !bWindowFocused;
-    if (!bNeedSetWindowFocus && (pControl != nullptr) && !controlFlag.expired() && IsCheckSetWindowFocus() && !pControl->IsCefNative()) {
+    //不需要抢焦点的窗口（浮层Popup等WS_EX_NOACTIVATE窗口）不获取原生输入焦点：
+    //否则会从父窗口/编辑框抢走焦点，导致浮层展开期间无法继续输入
+    bool bNoActivateWindow = false;
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    HWND hWnd = (HWND)GetWindowHandle();
+    bNoActivateWindow = (hWnd != nullptr) && ((::GetWindowLong(hWnd, GWL_EXSTYLE) & WS_EX_NOACTIVATE) != 0);
+#endif
+    bool bNeedSetWindowFocus = !bWindowFocused && !bNoActivateWindow;
+    if (!bNeedSetWindowFocus && !bNoActivateWindow && (pControl != nullptr) && !controlFlag.expired() && IsCheckSetWindowFocus() && !pControl->IsCefNative()) {
         bNeedSetWindowFocus = true;
     }
     if (bNeedSetWindowFocus && !windowFlag.expired()) {

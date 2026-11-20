@@ -220,6 +220,17 @@ void UrlBar::OnInit()
     m_pEdit->AttachKillFocus([this](const EventArgs& /*args*/) {
         //焦点移出编辑框时重绘，更新本控件绘制的焦点框
         Invalidate();
+        OnEditKillFocus();
+        return true;
+        });
+    //点击编辑框：编辑框已持有焦点时不会再触发 SetFocus 事件，需要主动展开历史联想下拉
+    m_pEdit->AttachButtonDown([this](const EventArgs& /*args*/) {
+        OnEditClicked();
+        return true;
+        });
+    //点击地址栏的非编辑区域（安全图标、内边距等）：同样展开历史联想下拉
+    AttachButtonDown([this](const EventArgs& /*args*/) {
+        OnEditClicked();
         return true;
         });
 
@@ -463,6 +474,31 @@ void UrlBar::OnEditFocus()
         return;
     }
     //聚焦时展示全部历史记录；后续输入时再按文本过滤
+    //浮层已展开时保持现状：编辑框与浮层之间瞬时焦点变化不应重建浮层
+    if ((m_pFlyout != nullptr) && m_pFlyout->IsOpen()) {
+        return;
+    }
+    m_bUserTyping = false;
+    UpdatePopup();
+}
+
+void UrlBar::OnEditKillFocus()
+{
+    //编辑框失去焦点后无法继续输入，联想浮层必须关闭
+    ClosePopup();
+}
+
+void UrlBar::OnEditClicked()
+{
+    if (!m_bHistoryEnabled || (m_pEdit == nullptr)) {
+        return;
+    }
+    //浮层已展开时保持现状，不重建
+    if ((m_pFlyout != nullptr) && m_pFlyout->IsOpen()) {
+        return;
+    }
+    //用户主动点击地址栏，清除"聚焦不展开"的抑制标记
+    m_bSuppressNextFocusPopup = false;
     m_bUserTyping = false;
     UpdatePopup();
 }

@@ -210,6 +210,14 @@ public:
     */
     static void DismissActive();
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    /** 父窗口消息过滤器回调（框架内部使用，业务层不要调用）
+    *   浮层打开期间安装在父窗口上，用于同步感知外部点击与焦点转移
+    *   注：该机制依赖Win32窗口消息，SDL实现（非Windows平台）不使用
+    */
+    void OnParentWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
+#endif
+
 public:
     //WindowImplBase 接口
     virtual DString GetSkinFolder() override;
@@ -241,6 +249,15 @@ private:
     void StartDetectTimer();
     void StopDetectTimer();
     void OnDetectTick();
+
+    /** 安装/卸载父窗口消息过滤器（浮层打开期间用于同步感知外部点击与焦点转移） */
+    void InstallParentWindowFilter();
+    void RemoveParentWindowFilter();
+
+    /** 鼠标在屏幕坐标 ptScreen 处按下时，判断是否应关闭浮层
+    * @return true 表示已关闭浮层
+    */
+    bool CheckCloseOnOutsidePoint(const UiPoint& ptScreen);
 
     /** 触发"布局完成"回调（首次布局完成后、以及跟随锚点重新定位后调用）
     */
@@ -304,6 +321,9 @@ private:
 
     //窗口阴影区域的命中测试过滤器（Windows 平台，把阴影上的鼠标消息交给下层窗口）
     std::unique_ptr<IUIMessageFilter> m_pShadowHitTestFilter;
+
+    //父窗口的消息过滤器（Windows 平台，浮层打开期间安装，用于同步感知外部点击与焦点转移）
+    std::unique_ptr<IUIMessageFilter> m_pParentWindowFilter;
 
     //窗口显示时的淡入动画播放器（受 PopupAnimation 全局开关控制）
     std::unique_ptr<AnimationPlayer> m_pFadeInPlayer;
