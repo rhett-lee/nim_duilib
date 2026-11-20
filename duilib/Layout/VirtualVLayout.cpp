@@ -444,7 +444,8 @@ void VirtualVLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) const
     int64_t nNewPos = 0;
 
     if (bToTop) {
-        nNewPos = GetElementsHeight(rc, iIndex);
+        //把目标项滚动到最上方：与"向上"分支一致，需按 iIndex+1 计算边界
+        nNewPos = GetElementsHeight(rc, iIndex + 1);
         if (nNewPos >= elementHeight) {
             nNewPos -= elementHeight;
         }

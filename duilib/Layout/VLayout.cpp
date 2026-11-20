@@ -57,10 +57,7 @@ UiSize64 VLayout::ArrangeChildren(const std::vector<Control*>& items, UiRect rc,
             continue;
         }
 
-        totalAllControlsCount++;  // 统计参与布局的总控件数
         UiMargin rcMargin = pControl->GetMargin();
-        totalAllMargin += rcMargin.top + rcMargin.bottom;  // 统计所有控件边距总和（上+下）
-
         UiEstSize estSize = pControl->EstimateSize(szAvailable);
         UiSize sz = UiSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
 
@@ -76,6 +73,8 @@ UiSize64 VLayout::ArrangeChildren(const std::vector<Control*>& items, UiRect rc,
         // 处理高度（固定/拉伸分类）
         if (estSize.cy.IsStretch()) {
             cyStretchPercentageTotal += estSize.cy.GetStretchPercentValue();
+            totalAllControlsCount++;  // 统计参与布局的总控件数
+            totalAllMargin += rcMargin.top + rcMargin.bottom;  // 统计所有控件边距总和（上+下）
             stretchControls.push_back(pControl);
             stretchItemsMap[pControl] = estSize;
         }
@@ -88,6 +87,9 @@ UiSize64 VLayout::ArrangeChildren(const std::vector<Control*>& items, UiRect rc,
             cyFixedSelfTotal += sz.cy;  // 累加固定控件自身总高度（不含边距）
             // 累加固定控件总高度（含边距，不含间距）
             if (sz.cy > 0) {
+                //高度为0的固定控件会被忽略布局，其边距与间距不应参与计算
+                totalAllControlsCount++;
+                totalAllMargin += rcMargin.top + rcMargin.bottom;
                 cyFixedTotal += (sz.cy + rcMargin.top + rcMargin.bottom);
             }
             itemsMap[pControl] = estSize;

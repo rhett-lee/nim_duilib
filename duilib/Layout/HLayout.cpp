@@ -57,10 +57,7 @@ UiSize64 HLayout::ArrangeChildren(const std::vector<Control*>& items, UiRect rc,
             continue;
         }
 
-        totalAllControlsCount++;  // 统计参与布局的总控件数
         UiMargin rcMargin = pControl->GetMargin();
-        totalAllMargin += rcMargin.left + rcMargin.right;  // 统计所有控件边距总和
-
         UiEstSize estSize = pControl->EstimateSize(szAvailable);
         UiSize sz = UiSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
 
@@ -76,6 +73,8 @@ UiSize64 HLayout::ArrangeChildren(const std::vector<Control*>& items, UiRect rc,
         // 处理宽度（固定/拉伸分类）
         if (estSize.cx.IsStretch()) {
             cxStretchPercentageTotal += estSize.cx.GetStretchPercentValue();
+            totalAllControlsCount++;  // 统计参与布局的总控件数
+            totalAllMargin += rcMargin.left + rcMargin.right;  // 统计所有控件边距总和
             stretchControls.push_back(pControl);
             stretchItemsMap[pControl] = estSize;
         }
@@ -88,6 +87,9 @@ UiSize64 HLayout::ArrangeChildren(const std::vector<Control*>& items, UiRect rc,
             cxFixedSelfTotal += sz.cx;  // 累加固定控件自身总宽度（不含边距）
             // 累加固定控件总宽度（含边距，不含间距）
             if (sz.cx > 0) {
+                //宽度为0的固定控件会被忽略布局，其边距与间距不应参与计算
+                totalAllControlsCount++;
+                totalAllMargin += rcMargin.left + rcMargin.right;
                 cxFixedTotal += (sz.cx + rcMargin.left + rcMargin.right);
             }
             itemsMap[pControl] = estSize;

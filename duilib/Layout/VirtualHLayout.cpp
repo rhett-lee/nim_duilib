@@ -439,7 +439,8 @@ void VirtualHLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) const
     int64_t nNewPos = 0;
 
     if (bToTop) {
-        nNewPos = GetElementsWidth(rc, iIndex);
+        //把目标项滚动到最左侧：与"向左"分支一致，需按 iIndex+1 计算边界
+        nNewPos = GetElementsWidth(rc, iIndex + 1);
         if (nNewPos >= elementWidth) {
             nNewPos -= elementWidth;
         }
