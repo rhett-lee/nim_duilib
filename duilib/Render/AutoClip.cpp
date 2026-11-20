@@ -41,9 +41,11 @@ AutoClip::AutoClip(IRender* pRender, const UiRect& rc, bool bClip)
         if (m_pRender != nullptr) {
             // 设置矩形裁剪区域，内部会与当前裁剪区取交集并保存旧状态
             m_nClipState = m_pRender->ClipRect(rc);
-            // ClipRect 返回 -1 表示"没有实际设置裁剪"（例如矩形为空、渲染对象不可用），
+            // ClipRect 返回 -1 表示"没有实际设置裁剪"（例如渲染对象不可用），
             // 此时析构函数不能再调用 RestoreClip(-1)：该参数与 IRender 的约定
             // （nState 必须由 ClipRect/ClipRoundRect 成功返回）不符，Debug 下会触发 ASSERT。
+            // 注意：传入空矩形是合法输入，会返回有效标志并产生空裁剪区域（IsClipEmpty 为 true），
+            //       析构时仍需正常恢复。
             m_bClip = (m_nClipState >= 0);
         }
     }

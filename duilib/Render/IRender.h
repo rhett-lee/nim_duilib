@@ -878,7 +878,7 @@ public:
      */
     const UiFontEx* GetFont(uint16_t nIndex) const
     {
-        if ((nIndex == 0) || (nIndex > m_fontList.size())) {
+        if ((nIndex == 0) || ((size_t)nIndex > m_fontList.size())) {
             return nullptr;
         }
         return m_fontList[nIndex - 1].get();
@@ -890,7 +890,7 @@ public:
      */
     UiColor GetColor(uint16_t nIndex) const
     {
-        if ((nIndex == 0) || (nIndex > m_colorList.size())) {
+        if ((nIndex == 0) || ((size_t)nIndex > m_colorList.size())) {
             return UiColor();
         }
         return m_colorList[nIndex - 1];
@@ -903,7 +903,7 @@ public:
     const RichTextImageInfo& GetImage(uint16_t nIndex) const
     {
         static const RichTextImageInfo g_emptyImageInfo;
-        if ((nIndex == 0) || (nIndex > m_imageList.size())) {
+        if ((nIndex == 0) || ((size_t)nIndex > m_imageList.size())) {
             return g_emptyImageInfo;
         }
         return m_imageList[nIndex - 1];

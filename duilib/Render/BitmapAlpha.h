@@ -74,7 +74,7 @@ private:
     */
     int32_t m_nHeight;
 
-    /** 通道数，目前只支持4（ARGB）
+    /** 通道数，目前只支持4（BGRA/RGBA，Alpha 位于第4个字节）
     */
     int32_t m_nChannels;
 };
