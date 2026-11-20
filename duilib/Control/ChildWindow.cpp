@@ -15,6 +15,8 @@ ChildWindow::ChildWindow(Window* pWindow) :
 
 ChildWindow::~ChildWindow()
 {
+    //从父窗口反注册回调，避免控件反复创建/销毁后父窗口的回调表持续增长
+    UnregisterWindowCallbacks(GetWindow());
     if ((m_pChildWnd != nullptr) && m_pChildWnd->IsWindow()) {
         //同步关闭窗口
         m_pChildWnd->Close();
@@ -71,7 +73,10 @@ void ChildWindow::SetWindow(Window* pWindow)
     }
     if (pOldWindow != pWindow) {
         UnregisterWindowCallbacks(pOldWindow);
-        RegisterWindowCallbacks(pWindow);
+        //仅在子窗口已创建时注册回调，避免重复注册（CreateChildWindow 中也会注册）
+        if ((m_pChildWnd != nullptr) && (pWindow != nullptr)) {
+            RegisterWindowCallbacks(pWindow);
+        }
     }
 }
 

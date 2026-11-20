@@ -194,29 +194,30 @@ void CircleProgress::PaintStateImages(IRender* pRender)
         //起止角
         AccPoint(fStartAngle);
         AccPoint(fStartAngle + m_fSpanAngle);
-        //途经的象限极值点（0/90/180/270），否则半圆、缺口弧的包围盒会被算小
-        const float fStep = m_bClockwise ? 1.0f : -1.0f;
-        for (int i = 0; i <= 4; ++i) {
-            const float fQ = std::fmod(fStartAngle + fStep * 90.0f * i, 360.0f);
-            if (fQ < 0.0f) {
-                AccPoint(fQ + 360.0f);
-            }
-            else {
-                AccPoint(fQ);
-            }
+        //仅采样落在弧扫过区间内的象限极值点（0/90/180/270），
+        //否则会把弧未经过的方向也算进包围盒，导致绘制半径失真
+        const int32_t nFirstQuadrant = (int32_t)std::ceil(fStartAngle / 90.0f);
+        const int32_t nLastQuadrant = (int32_t)std::floor((fStartAngle + m_fSpanAngle) / 90.0f);
+        for (int32_t i = nFirstQuadrant; i <= nLastQuadrant; ++i) {
+            AccPoint(static_cast<float>(i) * 90.0f);
         }
 
         const float fArcW = fMaxX - fMinX;
         const float fArcH = fMaxY - fMinY;
         const float fAvailW = (rect.right - rect.left) / 2.0f;
         const float fAvailH = (rect.bottom - rect.top) / 2.0f;
-        //半径取各方向所需半径的最大值，保证弧完整落在控件内
-        float fRadius = 0.0f;
+        //半径需同时满足宽、高两个方向的约束，取两者中的较小值，避免弧从控件溢出
+        float fRadius = -1.0f;
         if (fArcW > 0.001f) {
-            fRadius = std::max(fRadius, fAvailW / fArcW);
+            fRadius = fAvailW / fArcW;
         }
         if (fArcH > 0.001f) {
-            fRadius = std::max(fRadius, fAvailH / fArcH);
+            if (fRadius <= 0.0f) {
+                fRadius = fAvailH / fArcH;
+            }
+            else {
+                fRadius = std::min(fRadius, fAvailH / fArcH);
+            }
         }
         if (fRadius <= 0.0f) {
             fRadius = std::min(fAvailW, fAvailH);
@@ -282,7 +283,8 @@ void CircleProgress::PaintStateImages(IRender* pRender)
             : (fStartAngle + fSweepAngle);
         if (spMatrix != nullptr) {
             const UiPoint ptScrollOffset = GetScrollOffsetInScrollBox();
-            spMatrix->RotateAt(fAngle, (float)center.x - ptScrollOffset.x, (float)center.y - ptScrollOffset.y);
+            //图形初始位于 12 点方向（对应角度 270°），旋转到弧的末端角度需减去该初始角
+            spMatrix->RotateAt(fAngle - 270.0f, (float)center.x - ptScrollOffset.x, (float)center.y - ptScrollOffset.y);
         }
 
         //先按 12 点方向摆位（弧的起始方向），再由上面的矩阵旋转到末端角度

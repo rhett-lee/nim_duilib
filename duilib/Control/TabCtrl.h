@@ -3,6 +3,7 @@
 
 #include "duilib/Box/ListBox.h"
 #include "duilib/Core/ControlDragable.h"
+#include "duilib/Core/ControlPtrT.h"
 #include "duilib/Core/Callback.h"
 #include "duilib/Control/IconControl.h"
 #include "duilib/Control/Badge.h"
@@ -536,9 +537,9 @@ private:
     */
     UiString m_tabBoxName;
 
-    /** 绑定的TabBox接口
+    /** 绑定的TabBox接口（弱引用，TabBox 先析构时自动失效）
     */
-    TabBox* m_pTabBox;
+    ControlPtrT<TabBox> m_pTabBox;
 
     /** 是否支持拖动改变列的顺序(功能开关)
     */

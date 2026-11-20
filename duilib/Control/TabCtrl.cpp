@@ -1358,8 +1358,13 @@ void TabCtrl::OnBoundTabBoxSelectChanged(size_t nTabBoxIndex)
     if (nIndex == Box::InvalidIndex) {
         return;
     }
+    //SelectItem 会同步派发用户的选择事件，监听者可能销毁本控件，需使用弱标志保护
+    std::weak_ptr<WeakFlag> weakFlag = GetWeakFlag();
     m_bSyncingTabBox = true;
     SelectItem(nIndex, false, true);
+    if (weakFlag.expired()) {
+        return;
+    }
     m_bSyncingTabBox = false;
 }
 
@@ -1402,16 +1407,22 @@ void TabCtrl::SyncTabBoxSelection()
         //未配置绑定索引时，回退为标签索引
         nItemIndex = GetItemIndex(pItem);
     }
-    if ((nItemIndex != Box::InvalidIndex) && (nItemIndex < m_pTabBox->GetItemCount())) {
+    TabBox* pTabBox = m_pTabBox.get();
+    if ((pTabBox != nullptr) && (nItemIndex != Box::InvalidIndex) && (nItemIndex < pTabBox->GetItemCount())) {
+        //TabBox 的选择变化可能同步触发用户事件，导致本控件被销毁
+        std::weak_ptr<WeakFlag> weakFlag = GetWeakFlag();
         m_bSyncingTabBox = true;
-        m_pTabBox->SelectItem(nItemIndex);
+        pTabBox->SelectItem(nItemIndex);
+        if (weakFlag.expired()) {
+            return;
+        }
         m_bSyncingTabBox = false;
     }
 }
 
 TabBox* TabCtrl::GetTabBox() const
 {
-    return m_pTabBox;
+    return m_pTabBox.get();
 }
 
 bool TabCtrl::SetItemIndex(Control* pControl, size_t iIndex)

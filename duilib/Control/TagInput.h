@@ -168,6 +168,10 @@ private:
     */
     bool m_bAllowDuplicate;
 
+    /** 是否正在删除标签（用于 kEventTagRemoved 回调中的重入保护）
+    */
+    bool m_bRemovingTag;
+
     /** 最多标签个数（0 表示不限制）
     */
     int32_t m_nMaxCount;

@@ -664,9 +664,10 @@ void CalendarFlyout::UpdateTitle()
         text = StringUtil::Printf(_T("%04d"), year);
     }
     else {
-        //十年视图：yyyy - yyyy
+        //十年视图：网格为 4x3 共 12 格，可点击范围是 startYear..startYear+11，
+        //标题需与网格实际范围保持一致
         int32_t startYear = (year / 10) * 10;
-        text = StringUtil::Printf(_T("%04d - %04d"), startYear, startYear + 9);
+        text = StringUtil::Printf(_T("%04d - %04d"), startYear, startYear + 11);
     }
 
     //标题按钮的"可交互/禁用"状态需与当前视图层级一致：

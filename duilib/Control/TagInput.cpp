@@ -129,7 +129,8 @@ TagInput::TagInput(Window* pWindow) :
     BaseClass(pWindow, new TagInputLayout()),
     m_pEdit(nullptr),
     m_bAllowDuplicate(false),
-    m_nMaxCount(0)
+    m_nMaxCount(0),
+    m_bRemovingTag(false)
 {
 }
 
@@ -286,20 +287,32 @@ bool TagInput::AddTag(const DString& text)
 
 bool TagInput::RemoveTagAt(size_t index)
 {
+    if (m_bRemovingTag) {
+        //重入保护：事件回调中再次删除标签会使索引与容器状态不一致，直接忽略
+        return false;
+    }
     if (index >= m_tags.size()) {
         return false;
     }
+    m_bRemovingTag = true;
     //先触发事件，回调中仍可读取被删除标签的文本
     SendEvent(kEventTagRemoved, static_cast<WPARAM>(index));
-    RemoveItemAt(index);
-    m_tags.erase(m_tags.begin() + index);
+    //事件回调可能已修改标签集合，删除前重新校验索引有效性
+    if (index < m_tags.size()) {
+        RemoveItemAt(index);
+        m_tags.erase(m_tags.begin() + index);
+    }
+    m_bRemovingTag = false;
     return true;
 }
 
 void TagInput::RemoveAllTags()
 {
     while (!m_tags.empty()) {
-        RemoveTagAt(m_tags.size() - 1);
+        //处于删除回调中或删除失败时退出，避免重入导致死循环
+        if (!RemoveTagAt(m_tags.size() - 1)) {
+            break;
+        }
     }
 }
 

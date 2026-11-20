@@ -1906,24 +1906,50 @@ void ListCtrlReportView::AdjustSubItemWidth(const std::map<size_t, int32_t>& sub
     if (subItemWidths.empty()) {
         return;
     }
+
+    //入参与子项宽度均以“表头列序号”为键；隐藏列不会生成子项，
+    //因此需要把列序号换算为子项序号（仅可见列参与编号），否则宽度会设置到错误的可见列
+    std::map<size_t, size_t> columnToSubItemIndex;
+    ListCtrlHeader* pHeaderCtrl = (m_pListCtrl != nullptr) ? m_pListCtrl->GetHeaderCtrl() : nullptr;
+    if (pHeaderCtrl != nullptr) {
+        size_t nVisibleIndex = 0;
+        const size_t nHeaderColumnCount = pHeaderCtrl->GetColumnCount();
+        for (size_t nColumnIndex = 0; nColumnIndex < nHeaderColumnCount; ++nColumnIndex) {
+            ListCtrlHeaderItem* pHeaderItem = pHeaderCtrl->GetColumn(nColumnIndex);
+            if ((pHeaderItem != nullptr) && pHeaderItem->IsColumnVisible()) {
+                columnToSubItemIndex[nColumnIndex] = nVisibleIndex;
+                ++nVisibleIndex;
+            }
+        }
+    }
+
     size_t itemCount = GetItemCount();
     for (size_t index = 1; index < itemCount; ++index) {
         ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(GetItemAt(index));
         if (pItem == nullptr) {
             continue;
         }
-        size_t columnCount = pItem->GetItemCount();
-        for (size_t nColumn = 0; nColumn < columnCount; ++nColumn) {
-            auto iter = subItemWidths.find(nColumn);
-            if (iter != subItemWidths.end()) {
-                int32_t nColumnWidth = iter->second;
-                if (nColumnWidth < 0) {
-                    nColumnWidth = 0;
+        const size_t nSubItemCount = pItem->GetItemCount();
+        for (const auto& widthPair : subItemWidths) {
+            size_t nSubItemIndex = widthPair.first;
+            if (pHeaderCtrl != nullptr) {
+                auto iter = columnToSubItemIndex.find(widthPair.first);
+                if (iter == columnToSubItemIndex.end()) {
+                    //列不存在或已隐藏，无需调整
+                    continue;
                 }
-                ListCtrlSubItem* pSubItem = dynamic_cast<ListCtrlSubItem*>(pItem->GetItemAt(nColumn));
-                if (pSubItem != nullptr) {
-                    pSubItem->SetFixedWidth(UiFixedInt(nColumnWidth), true, false);
-                }
+                nSubItemIndex = iter->second;
+            }
+            if (nSubItemIndex >= nSubItemCount) {
+                continue;
+            }
+            int32_t nColumnWidth = widthPair.second;
+            if (nColumnWidth < 0) {
+                nColumnWidth = 0;
+            }
+            ListCtrlSubItem* pSubItem = dynamic_cast<ListCtrlSubItem*>(pItem->GetItemAt(nSubItemIndex));
+            if (pSubItem != nullptr) {
+                pSubItem->SetFixedWidth(UiFixedInt(nColumnWidth), true, false);
             }
         }
     }

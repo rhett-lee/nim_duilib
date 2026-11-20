@@ -24,6 +24,10 @@ public:
     */
     void CloseComboWnd();
 
+    /** 宿主控件析构时关闭下拉窗口（不回调宿主，避免访问正在析构的对象）
+    */
+    void CloseComboWndOnOwnerDestroy();
+
     //基类虚函数的重写
     virtual void OnInitWindow() override;
     virtual void OnCloseWindow() override;
@@ -39,7 +43,8 @@ private:
     UiRect GetComboWndRect() const;
 
 private:
-    CheckCombo *m_pOwner = nullptr;
+    //关联的宿主控件（弱引用，宿主析构后自动失效）
+    ControlPtrT<CheckCombo> m_pOwner;
     //是否已经关闭
     bool m_bIsClosed = false;
 };
@@ -74,7 +79,7 @@ void CCheckComboWnd::InitComboWnd(CheckCombo* pOwner)
 
 UiRect CCheckComboWnd::GetComboWndRect() const
 {
-    CheckCombo* pOwner = m_pOwner;
+    CheckCombo* pOwner = m_pOwner.get();
     if (pOwner == nullptr) {
         return UiRect();
     }
@@ -134,7 +139,7 @@ UiRect CCheckComboWnd::GetComboWndRect() const
 
     UiRect rcWork;
     pOwner->GetWindow()->GetMonitorWorkRect(rcWork);
-    if (rc.bottom > rcWork.bottom || m_pOwner->IsPopupTop()) {
+    if (rc.bottom > rcWork.bottom || pOwner->IsPopupTop()) {
         rc.left = rcOwner.left;
         rc.right = rcOwner.right;
         if (szDrop.cx > 0) {
@@ -171,13 +176,13 @@ void CCheckComboWnd::CloseComboWnd()
     }
     m_bIsClosed = true;
     Box* pRootBox = GetRoot();
-    if ((pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
-        m_pOwner->GetListBox()->SetWindow(nullptr);
-        m_pOwner->GetListBox()->SetParent(nullptr);
+    CheckCombo* pOwner = m_pOwner.get();
+    if ((pOwner != nullptr) && (pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
+        pOwner->GetListBox()->SetWindow(nullptr);
+        pOwner->GetListBox()->SetParent(nullptr);
         pRootBox->RemoveAllItems();
     }
     //先将前端窗口切换为父窗口，避免前端窗口关闭后，切换到其他窗口
-    CheckCombo* pOwner = m_pOwner;
     if ((pOwner != nullptr) && (pOwner->GetWindow() != nullptr)) {
         if (IsWindowForeground()) {
             pOwner->GetWindow()->SetWindowForeground();
@@ -186,17 +191,38 @@ void CCheckComboWnd::CloseComboWnd()
     CloseWnd();
 }
 
+void CCheckComboWnd::CloseComboWndOnOwnerDestroy()
+{
+    if (m_bIsClosed) {
+        return;
+    }
+    m_bIsClosed = true;
+    Box* pRootBox = GetRoot();
+    CheckCombo* pOwner = m_pOwner.get();
+    if (pRootBox != nullptr) {
+        if (pOwner != nullptr) {
+            pOwner->GetListBox()->SetWindow(nullptr);
+            pOwner->GetListBox()->SetParent(nullptr);
+        }
+        pRootBox->RemoveAllItems();
+    }
+    //宿主正在析构，后续不再访问宿主
+    m_pOwner.reset();
+    CloseWnd();
+}
+
 void CCheckComboWnd::OnFinalMessage()
 {
-    if (m_pOwner != nullptr) {
-        if (m_pOwner->GetListBox()->GetWindow() == this) {
-            m_pOwner->GetListBox()->SetWindow(nullptr);
-            m_pOwner->GetListBox()->SetParent(nullptr);
+    CheckCombo* pOwner = m_pOwner.get();
+    if (pOwner != nullptr) {
+        if (pOwner->GetListBox()->GetWindow() == this) {
+            pOwner->GetListBox()->SetWindow(nullptr);
+            pOwner->GetListBox()->SetParent(nullptr);
         }
-        if (m_pOwner->m_pCheckComboWnd == this) {
-            m_pOwner->m_pCheckComboWnd = nullptr;
-            m_pOwner->SetState(kControlStateNormal);
-            m_pOwner->Invalidate();
+        if (pOwner->m_pCheckComboWnd == this) {
+            pOwner->m_pCheckComboWnd = nullptr;
+            pOwner->SetState(kControlStateNormal);
+            pOwner->Invalidate();
         }
     }    
     BaseClass::OnFinalMessage();
@@ -212,15 +238,19 @@ void CCheckComboWnd::OnWindowShadowTypeChanged()
 void CCheckComboWnd::OnInitWindow()
 {
     BaseClass::OnInitWindow();
-    SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
-    SetShadowType(m_pOwner->GetComboWndShadowType());
+    CheckCombo* pOwner = m_pOwner.get();
+    if (pOwner == nullptr) {
+        return;
+    }
+    SetResourcePath(pOwner->GetWindow()->GetResourcePath());
+    SetShadowType(pOwner->GetComboWndShadowType());
     //边框与菜单保持一致：1px 圆角边框由窗口阴影统一绘制，下拉列表不再绘制自身边框
     SetShadowBorderSize(1);
     SetShadowBorderColor(_T("border_window"));
 
     Box* pRoot = new Box(this);
     pRoot->SetAutoDestroyChild(false);
-    pRoot->AddItem(m_pOwner->GetListBox());
+    pRoot->AddItem(pOwner->GetListBox());
     AttachBox(AttachShadow(pRoot));
 
     //更新窗口位置
@@ -230,13 +260,17 @@ void CCheckComboWnd::OnInitWindow()
 void CCheckComboWnd::OnCloseWindow()
 {
     Box* pRootBox = GetRoot();
-    if ((pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
-        m_pOwner->GetListBox()->SetWindow(nullptr);
-        m_pOwner->GetListBox()->SetParent(nullptr);
+    CheckCombo* pOwner = m_pOwner.get();
+    if ((pOwner != nullptr) && (pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
+        pOwner->GetListBox()->SetWindow(nullptr);
+        pOwner->GetListBox()->SetParent(nullptr);
         pRootBox->RemoveAllItems();
     }
-    m_pOwner->SetPos(m_pOwner->GetPos());
-    m_pOwner->SetFocus();
+    //宿主控件可能已在下拉窗口关闭完成前被销毁，需判空
+    if ((pOwner != nullptr) && (pOwner->GetWindow() != nullptr) && pOwner->GetWindow()->IsWindow()) {
+        pOwner->SetPos(pOwner->GetPos());
+        pOwner->SetFocus();
+    }
     BaseClass::OnCloseWindow();
 }
 
@@ -289,6 +323,11 @@ CheckCombo::CheckCombo(Window* pWindow) :
 
 CheckCombo::~CheckCombo()
 {
+    //宿主析构时先关闭下拉窗口，避免下拉窗口继续持有即将销毁的列表容器
+    if (m_pCheckComboWnd != nullptr) {
+        m_pCheckComboWnd->CloseComboWndOnOwnerDestroy();
+        m_pCheckComboWnd = nullptr;
+    }
     SetAutoDestroyChild(false);
     Box::RemoveItem(m_pList.get());
     SetAutoDestroyChild(true);
@@ -581,7 +620,7 @@ void CheckCombo::UpdateComboWndPos()
 
 Window* CheckCombo::GetCheckComboWnd() const
 {
-    return m_pCheckComboWnd;
+    return m_pCheckComboWnd.get();
 }
 
 void CheckCombo::SetComboWndShadowType(ShadowType nShadowType)

@@ -2,6 +2,7 @@
 #define UI_CONTROL_COMBO_BUTTON_H_
 
 #include "duilib/Core/Box.h"
+#include "duilib/Core/ControlPtrT.h"
 #include "duilib/Box/VBox.h"
 #include "duilib/Control/TreeView.h"
 #include "duilib/Control/RichEdit.h"
@@ -198,9 +199,9 @@ private:
     bool OnButtonStateChanged(const EventArgs& args);
 
 private:
-    /** 下拉列表的窗口接口
+    /** 下拉列表的窗口接口（弱引用，窗口销毁后自动失效）
     */
-    ComboButtonWnd* m_pWindow;
+    ControlPtrT<ComboButtonWnd> m_pWindow;
 
     /** 阴影类型
     */

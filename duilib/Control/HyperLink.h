@@ -37,8 +37,9 @@ public:
         if (!IsActivatable()) {
             return;
         }
-        DString url = m_url.c_str();
-        SendEvent(kEventLinkClick, (WPARAM)url.c_str());
+        //wParam 指向控件成员 URL 的缓冲区，仅在本次同步事件派发期间有效
+        //（不再指向局部副本，避免事件返回后指针悬空）
+        SendEvent(kEventLinkClick, (WPARAM)m_url.c_str());
     }
 
 public:

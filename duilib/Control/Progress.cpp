@@ -242,14 +242,22 @@ void Progress::SetValue(double fValue)
         UpdatePercentText();
     }
 
+    //事件为同步派发，回调中可能销毁本控件，之后不可再访问成员
+    std::weak_ptr<WeakFlag> weakFlag = GetWeakFlag();
     //发送值变化事件
     SendValueChangedEvent(fValue, fOldValue);
+    if (weakFlag.expired()) {
+        return;
+    }
 
     //完成事件：从"未完成"跨到"完成端点"（正向到 max，倒数到 min）时触发一次
     const bool bOldCompleted = m_bReverse ? (fOldValue <= m_nMinValue) : (fOldValue >= m_nMaxValue);
     const bool bCompleted = m_bReverse ? (fValue <= m_nMinValue) : (fValue >= m_nMaxValue);
     if (bCompleted && !bOldCompleted) {
         SendEvent(kEventProgressCompleted, 0, 0);
+        if (weakFlag.expired()) {
+            return;
+        }
     }
 
     Invalidate();

@@ -158,9 +158,9 @@ private:
     void UpdateSelectedListHeight();
 
 private:
-    /** 下拉框的窗口接口
+    /** 下拉框的窗口接口（弱引用，窗口销毁后自动失效）
     */
-    CCheckComboWnd* m_pCheckComboWnd;
+    ControlPtrT<CCheckComboWnd> m_pCheckComboWnd;
 
     /** 阴影类型
     */

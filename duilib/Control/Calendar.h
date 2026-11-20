@@ -288,6 +288,11 @@ protected:
     */
     void GetMonthCells(int32_t year, int32_t month, std::vector<DayCell>& cells) const;
 
+    /** 获取月视图日期网格的矩形（已扣除内边距与星期标题行）
+    * @return 网格矩形，控件尺寸过小时返回空矩形
+    */
+    UiRect GetMonthGridRect() const;
+
     /** 根据坐标命中日期格子
     * @param [in] pt 鼠标坐标（控件客户区坐标）
     * @param [out] cell 命中格子的信息

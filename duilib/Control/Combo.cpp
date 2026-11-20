@@ -39,6 +39,10 @@ public:
     */
     void CloseComboWnd(bool bCanceled, bool needUpdateSelItem);
 
+    /** 宿主控件析构时关闭下拉窗口（不回调宿主，避免访问正在析构的对象）
+    */
+    void CloseComboWndOnOwnerDestroy();
+
 private:
     /** 计算下拉框的显示矩形
     */
@@ -260,19 +264,42 @@ void CComboWnd::OnInitWindow()
 {
     BaseClass::OnInitWindow();
 
-    SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
-    SetShadowType(m_pOwner->GetComboWndShadowType());
+    Combo* pOwner = m_pOwner.get();
+    if (pOwner == nullptr) {
+        return;
+    }
+    SetResourcePath(pOwner->GetWindow()->GetResourcePath());
+    SetShadowType(pOwner->GetComboWndShadowType());
     //边框与菜单保持一致：1px 圆角边框由窗口阴影统一绘制，TreeView 不再绘制自身边框
     SetShadowBorderSize(1);
     SetShadowBorderColor(_T("border_window"));
 
     Box* pRoot = new Box(this);
     pRoot->SetAutoDestroyChild(false);
-    pRoot->AddItem(m_pOwner->GetTreeView());
+    pRoot->AddItem(pOwner->GetTreeView());
     AttachBox(AttachShadow(pRoot));
 
     //更新窗口位置
     UpdateComboWnd();
+}
+
+void CComboWnd::CloseComboWndOnOwnerDestroy()
+{
+    if (m_bIsClosed) {
+        return;
+    }
+    m_bIsClosed = true;
+    Box* pRootBox = GetRoot();
+    if (pRootBox != nullptr) {
+        if (m_pOwner != nullptr) {
+            m_pOwner->GetTreeView()->SetWindow(nullptr);
+            m_pOwner->GetTreeView()->SetParent(nullptr);
+        }
+        pRootBox->RemoveAllItems();
+    }
+    //宿主正在析构，后续不再访问宿主
+    m_pOwner.reset();
+    CloseWnd();
 }
 
 void CComboWnd::OnCloseWindow()
@@ -348,6 +375,11 @@ Combo::Combo(Window* pWindow) :
 
 Combo::~Combo()
 {
+    //宿主析构时先关闭下拉窗口，避免下拉窗口继续持有即将销毁的 TreeView 等成员
+    if (m_pWindow != nullptr) {
+        m_pWindow->CloseComboWndOnOwnerDestroy();
+        m_pWindow = nullptr;
+    }
     if (!IsInited()) {
         if (m_pIconControl != nullptr) {
             delete m_pIconControl.get();

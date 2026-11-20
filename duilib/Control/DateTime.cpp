@@ -37,6 +37,11 @@ DateTime::DateTime(Window* pWindow):
 
 DateTime::~DateTime()
 {
+    //控件销毁前先关闭日历浮层，避免浮层回调访问已释放的 this
+    if (m_pCalendarFlyout != nullptr) {
+        m_pCalendarFlyout->Dismiss();
+        m_pCalendarFlyout = nullptr;
+    }
     //释放可能残留的 DateTimeWnd 对象（例如编辑尚未结束时控件就被销毁），
     //避免对象泄漏与悬空引用。m_pDateWindow 为空时 delete nullptr 是安全的。
     if (m_pDateWindow != nullptr) {
@@ -646,24 +651,35 @@ void DateTime::OpenCalendarFlyout()
 {
     CalendarFlyout* pFlyout = new CalendarFlyout(GetWindow());
     m_pCalendarFlyout = pFlyout;
+    //浮层回调可能晚于控件销毁触发，使用弱标志保护 this
+    std::weak_ptr<WeakFlag> weakFlag = GetWeakFlag();
 
     if (IsCalendarTimeFormat()) {
         //时间模式：日历(可选) + 时:分[:秒]，点"确定"统一提交
         pFlyout->SetTimeMode(GetEditFormat() == EditFormat::kDateTimeCalendar, m_bShowSeconds);
-        pFlyout->AttachDateTimeSelected([this](const struct tm& dateTime) {
+        pFlyout->AttachDateTimeSelected([this, weakFlag](const struct tm& dateTime) {
+            if (weakFlag.expired()) {
+                return;
+            }
             SetDateTime(dateTime);
         });
     }
     else {
         //旧的 date_calendar：点日期即提交并关闭
-        pFlyout->AttachDateSelected([this](WPARAM wParam, LPARAM lParam) {
+        pFlyout->AttachDateSelected([this, weakFlag](WPARAM wParam, LPARAM lParam) {
+            if (weakFlag.expired()) {
+                return;
+            }
             if (wParam == 0) {
                 time_t t = (time_t)lParam;
                 struct tm date = Calendar::TimeTToDate(t);
                 SetDateTime(date);
             }
         });
-        pFlyout->AttachDateCleared([this]() {
+        pFlyout->AttachDateCleared([this, weakFlag]() {
+            if (weakFlag.expired()) {
+                return;
+            }
             ClearTime();
         });
     }
@@ -672,7 +688,10 @@ void DateTime::OpenCalendarFlyout()
     pFlyout->SetDisabledDates(m_disabledDates.c_str());
     pFlyout->SetDisabledWeekdays(m_disabledWeekdays.c_str());
     pFlyout->SetFirstDayOfWeek(m_firstDayOfWeek);
-    pFlyout->AttachClosed([this](ui::Flyout::CloseReason) {
+    pFlyout->AttachClosed([this, weakFlag](ui::Flyout::CloseReason) {
+        if (weakFlag.expired()) {
+            return true;
+        }
         m_pCalendarFlyout = nullptr;
         //浮层关闭后焦点回落到本控件会触发 SetFocus，需抑制重开
         m_bSuppressCalendarReopen = true;
@@ -703,13 +722,13 @@ void DateTime::EndEditDateTime()
     //编辑结束时，必须复位并释放 DateTimeWnd 对象：
     //DateTimeWnd 仅在 m_pDateWindow 中通过弱引用被持有，若不复位，m_pDateWindow 将持续非空，
     //导致后续点击命中 HandleEvent 中的“m_pDateWindow != nullptr 直接返回”分支，
+    //再也无法重新进入编辑（编辑一次后点击再也无法编辑日期）。
+    //派发 kEventKillFocus 前先取走窗口指针并复位成员：监听者可能在事件中销毁本控件，
+    //派发后不能再访问 this 的任何成员。
+    DateTimeWnd* pWnd = m_pDateWindow.get();
+    m_pDateWindow = nullptr;
     SendEvent(kEventKillFocus);
-    if (m_pDateWindow != nullptr) {
-        //再也无法重新进入编辑（编辑一次后点击再也无法编辑日期）。
-        DateTimeWnd* pWnd = m_pDateWindow.get();
-        m_pDateWindow = nullptr;
-        delete pWnd;
-    }
+    delete pWnd;
 }
 
 UiSize DateTime::EstimateText(UiSize szAvailable)

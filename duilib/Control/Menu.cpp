@@ -1302,6 +1302,12 @@ void MenuItem::CreateMenuWnd()
             subMenuPt.y = rc.top - rcCorner.top;
         }
         m_pSubWindow->ShowMenu(subXmlFile.ToString(), subMenuPt, MenuPopupPosType::RIGHT_BOTTOM, false, this);
+        if (!m_pSubWindow->IsWindow()) {
+            //子菜单XML不存在或创建失败：此时不会触发 OnFinalMessage，
+            //需要主动释放对象并清空指针，否则对象泄漏且该菜单项之后无法再展开子菜单
+            delete m_pSubWindow;
+            m_pSubWindow = nullptr;
+        }
     }
 }
 

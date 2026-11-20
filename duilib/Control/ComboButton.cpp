@@ -28,9 +28,13 @@ public:
     */
     void CloseComboWnd(bool bCanceled);
 
+    /** 宿主控件析构时关闭下拉窗口（不回调宿主，避免访问正在析构的对象）
+    */
+    void CloseComboWndOnOwnerDestroy();
+
 private:
-    //关联的Combo接口
-    ComboButton* m_pOwner = nullptr;
+    //关联的宿主控件（弱引用，宿主析构后自动失效）
+    ControlPtrT<ComboButton> m_pOwner;
 
     //是否已经关闭
     bool m_bIsClosed = false;
@@ -64,7 +68,7 @@ void ComboButtonWnd::InitComboWnd(ComboButton* pOwner, bool bActivated)
 
 void ComboButtonWnd::UpdateComboWnd()
 {
-    ComboButton* pOwner = m_pOwner;
+    ComboButton* pOwner = m_pOwner.get();
     if (pOwner == nullptr) {
         return;
     }
@@ -129,7 +133,7 @@ void ComboButtonWnd::UpdateComboWnd()
 
     UiRect rcWork;
     GetMonitorWorkRect(rcWork);
-    if (rc.bottom > rcWork.bottom || m_pOwner->IsPopupTop()) {
+    if (rc.bottom > rcWork.bottom || pOwner->IsPopupTop()) {
         rc.left = rcOwner.left;
         rc.right = rcOwner.right;
         if (szDrop.cx > 0) {
@@ -145,15 +149,16 @@ void ComboButtonWnd::UpdateComboWnd()
 
 void ComboButtonWnd::OnFinalMessage()
 {
-    if (m_pOwner != nullptr) {
-        if (m_pOwner->GetComboBox()->GetWindow() == this) {
-            m_pOwner->GetComboBox()->SetWindow(nullptr);
-            m_pOwner->GetComboBox()->SetParent(nullptr);
+    ComboButton* pOwner = m_pOwner.get();
+    if (pOwner != nullptr) {
+        if (pOwner->GetComboBox()->GetWindow() == this) {
+            pOwner->GetComboBox()->SetWindow(nullptr);
+            pOwner->GetComboBox()->SetParent(nullptr);
         }
-        if (m_pOwner->m_pWindow == this) {            
-            m_pOwner->m_pWindow = nullptr;
-            m_pOwner->SetState(kControlStateNormal);
-            m_pOwner->Invalidate();
+        if (pOwner->m_pWindow == this) {            
+            pOwner->m_pWindow = nullptr;
+            pOwner->SetState(kControlStateNormal);
+            pOwner->Invalidate();
         }
     }
     BaseClass::OnFinalMessage();
@@ -173,33 +178,57 @@ void ComboButtonWnd::CloseComboWnd(bool bCanceled)
     }
     m_bIsClosed = true;
     Box* pRootBox = GetRoot();
-    if ((pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
-        m_pOwner->GetComboBox()->SetWindow(nullptr);
-        m_pOwner->GetComboBox()->SetParent(nullptr);
+    ComboButton* pOwner = m_pOwner.get();
+    if ((pOwner != nullptr) && (pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
+        pOwner->GetComboBox()->SetWindow(nullptr);
+        pOwner->GetComboBox()->SetParent(nullptr);
         pRootBox->RemoveAllItems();
     }
     //先将前端窗口切换为父窗口，避免前端窗口关闭后，切换到其他窗口
-    ComboButton* pOwner = m_pOwner;
     if ((pOwner != nullptr) && (pOwner->GetWindow() != nullptr)) {
         if (IsWindowForeground()) {
             pOwner->GetWindow()->SetWindowForeground();
         }
     }
     CloseWnd();
-    if (m_pOwner != nullptr) {
-        m_pOwner->OnComboWndClosed(bCanceled);
+    if (pOwner != nullptr) {
+        pOwner->OnComboWndClosed(bCanceled);
     }
+}
+
+void ComboButtonWnd::CloseComboWndOnOwnerDestroy()
+{
+    if (m_bIsClosed) {
+        return;
+    }
+    m_bIsClosed = true;
+    Box* pRootBox = GetRoot();
+    ComboButton* pOwner = m_pOwner.get();
+    if (pRootBox != nullptr) {
+        if (pOwner != nullptr) {
+            pOwner->GetComboBox()->SetWindow(nullptr);
+            pOwner->GetComboBox()->SetParent(nullptr);
+        }
+        pRootBox->RemoveAllItems();
+    }
+    //宿主正在析构，后续不再访问宿主
+    m_pOwner.reset();
+    CloseWnd();
 }
 
 void ComboButtonWnd::OnInitWindow()
 {
     BaseClass::OnInitWindow();
-    SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
-    SetShadowType(m_pOwner->GetComboWndShadowType());
+    ComboButton* pOwner = m_pOwner.get();
+    if (pOwner == nullptr) {
+        return;
+    }
+    SetResourcePath(pOwner->GetWindow()->GetResourcePath());
+    SetShadowType(pOwner->GetComboWndShadowType());
 
     Box* pRoot = new Box(this);
     pRoot->SetAutoDestroyChild(false);
-    pRoot->AddItem(m_pOwner->GetComboBox());
+    pRoot->AddItem(pOwner->GetComboBox());
     AttachBox(AttachShadow(pRoot));
 
     //更新窗口位置
@@ -209,13 +238,17 @@ void ComboButtonWnd::OnInitWindow()
 void ComboButtonWnd::OnCloseWindow()
 {
     Box* pRootBox = GetRoot();
-    if ((pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
-        m_pOwner->GetComboBox()->SetWindow(nullptr);
-        m_pOwner->GetComboBox()->SetParent(nullptr);
+    ComboButton* pOwner = m_pOwner.get();
+    if ((pOwner != nullptr) && (pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
+        pOwner->GetComboBox()->SetWindow(nullptr);
+        pOwner->GetComboBox()->SetParent(nullptr);
         pRootBox->RemoveAllItems();
     }
-    m_pOwner->SetPos(m_pOwner->GetPos());
-    m_pOwner->SetFocus();
+    //宿主控件可能已在下拉窗口关闭完成前被销毁，需判空
+    if ((pOwner != nullptr) && (pOwner->GetWindow() != nullptr) && pOwner->GetWindow()->IsWindow()) {
+        pOwner->SetPos(pOwner->GetPos());
+        pOwner->SetFocus();
+    }
     BaseClass::OnCloseWindow();
 }
 
@@ -263,6 +296,11 @@ ComboButton::ComboButton(Window* pWindow) :
 
 ComboButton::~ComboButton()
 {
+    //宿主析构时先关闭下拉窗口，避免下拉窗口继续持有即将销毁的下拉容器
+    if (m_pWindow != nullptr) {
+        m_pWindow->CloseComboWndOnOwnerDestroy();
+        m_pWindow = nullptr;
+    }
     if (!IsInited()) {
         if (m_pLeftButton != nullptr) {
             delete m_pLeftButton;

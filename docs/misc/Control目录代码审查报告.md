@@ -72,29 +72,44 @@
 | CTL-25 | `Progress.h` | 注释写“默认关闭”，构造函数实际为 `m_bAnimationEnabled(true)` | 注释改为“默认开启” |
 | CTL-26 | `Slider.h` | `m_nTickLength` 注释为“已 DPI 缩放”，实现保存的是未缩放原始值 | 注释改为“未做 DPI 缩放的原始值，绘制时按当前 DPI 缩放” |
 
-## 四、核查后未修改的项（建议）
+### 3.4 生命周期与绘制边界问题（本轮补充修复）
 
-以下问题经复核确认存在，但修复需要调整控件对外约定或涉及较大范围的生命周期设计，本轮仅记录，建议后续单独处理：
+| 编号 | 文件 | 问题 | 修复 |
+| --- | --- | --- | --- |
+| CTL-27 | `Combo.cpp`、`CheckCombo.*`、`ComboButton.*` | 下拉窗口持有宿主裸指针，宿主析构时未关闭下拉窗口，窗口延迟关闭时可能访问已释放对象 | `CheckCombo`、`ComboButton` 的下拉窗口宿主改为 `ControlPtrT` 弱引用，所有使用处判空；宿主成员改为 `ControlPtrT`；三个控件析构时先通过新增的 `CloseComboWndOnOwnerDestroy()` 解除子控件关联并关闭弹窗，不再回调宿主 |
+| CTL-28 | `DateTime.cpp` | 析构未关闭 `CalendarFlyout`，浮层回调以裸 `this` 捕获，控件销毁后关闭浮层会访问已释放对象 | 析构时先 `Dismiss()` 关闭浮层；日期选择、清除、关闭回调统一改为 `this + std::weak_ptr<WeakFlag>` 绑定，回调入口先判断弱标志是否失效 |
+| CTL-29 | `DateTime.cpp` | `EndEditDateTime` 派发 `kEventKillFocus` 后继续访问成员，监听者销毁控件时产生 UAF | 派发事件前先取走并复位 `m_pDateWindow`，事件返回后只释放局部指针，不再访问 `this` 成员 |
+| CTL-30 | `TabCtrl.*` | `m_pTabBox` 为裸指针，`TabBox` 先于 `TabCtrl` 析构时移除监听会解引用已释放对象 | 改为 `ControlPtrT<TabBox>` 弱引用；`GetTabBox` 返回 `get()`，其余判空逻辑自动适配 |
+| CTL-31 | `TabCtrl.cpp` | `SelectItem`/`TabBox::SelectItem` 同步派发用户事件后继续写入 `m_bSyncingTabBox`，业务层删除标签时存在 UAF 风险 | `SyncTabBoxSelection`、`OnBoundTabBoxSelectChanged` 在派发前记录弱标志，事件返回后若控件已销毁则直接返回；`NotifyTabCloseRequest` 派发后无后续成员访问，无需额外处理 |
+| CTL-32 | `Calendar.*` | 命中测试的惰性重算未填充 `DayCell::rect`，未绘制时点击全部落空；年/十年视图命中未扣除内边距，尺寸过小时 `cellWidth/cellHeight` 为 0 | 新增 `GetMonthGridRect()`，`GetMonthCells` 统一填充每格矩形；`HitTestDay` 按当前几何实时计算命中矩形并做除零保护；`DrawMonthView` 直接复用 `GetMonthCells` 的矩形；年/十年视图命中先扣除 `GetControlPadding()`，并对宽高与点击范围做保护 |
+| CTL-33 | `CircleProgress.cpp` | 非整圆弧包围盒固定采样 4 个象限点，半径约束取 `max`，弧可能溢出控件；指示点旋转角多 90° | 仅采样落在扫过区间内的 90° 倍数角；半径约束改为取宽、高两方向所需半径的较小值；指示点旋转角改为 `fAngle - 270°`（图像初始位于 12 点方向） |
+| CTL-34 | `HyperLink.h` | `kEventLinkClick` 的 `wParam` 指向局部副本的 `c_str()`，事件返回后失效 | 改为直接传递控件成员 `m_url.c_str()`，指针在控件存活期间有效 |
+| CTL-35 | `TagInput.*` | `RemoveTagAt` 先派发 `kEventTagRemoved` 再删除，回调中再次删除标签会导致越界 | 新增 `m_bRemovingTag` 重入保护，回调内再次删除直接忽略；删除前重新校验索引；`RemoveAllTags` 在删除失败时退出，避免死循环 |
+| CTL-36 | `Progress.cpp` | 事件回调后直接 `Invalidate()`，回调中销毁控件存在 UAF 风险 | `SetValue` 在派发值变化/完成事件前记录弱标志，事件返回后若已失效则提前返回；`Rating` 现有实现均为先 `Invalidate` 后派发事件，无需修改 |
+| CTL-37 | `ListCtrlData.cpp` | 从多选切回单选时未同步 `bSelected` 与 `m_nSelectedRowId`，出现“查询有选中、界面无选中” | 切换为单选时保留一行选中（优先 `m_nSelectedRowId`），清除其它行选中/勾选并回写 `m_nSelectedRowId` |
+| CTL-38 | `ListCtrlReportView.cpp` | 列被隐藏后列宽仍按“子项序号=列序号”设置，宽度作用到错误的可见列 | 根据表头可见列建立“列序号→子项序号”映射，按映射设置子项宽度；隐藏列直接跳过 |
+| CTL-39 | `Menu.cpp` | 子菜单 XML 不存在或创建失败时 `Menu` 对象泄漏且 `m_pSubWindow` 残留，之后无法再展开 | `ShowMenu` 后检测 `IsWindow()`，未创建成功则释放对象并清空 `m_pSubWindow` |
+| CTL-40 | `ChildWindow.cpp` | 窗口回调可能重复注册，析构未反注册，反复创建/销毁控件使回调表持续增长 | 析构时先 `UnregisterWindowCallbacks(GetWindow())`；`SetWindow` 仅在子窗口已创建时注册回调；`CreateChildWindow` 统一注册 |
+| CTL-41 | `CalendarFlyout.cpp` | 十年视图标题显示 `startYear..startYear+9`，网格实际为 12 格可点击到 `+11` | 标题改为 `startYear..startYear+11`，与可点击范围一致 |
 
-1. `Combo` / `CheckCombo` / `ComboButton`：下拉窗口持有宿主裸指针，宿主析构时未关闭下拉窗口（`Combo` 使用弱引用且已做保护，另外两个仍为裸指针）。建议统一改为 `ControlPtrT` 并在宿主析构时关闭弹窗。
-2. `DateTime`：析构未关闭已打开的 `CalendarFlyout`，浮层回调以裸 `this` 捕获，控件销毁后关闭浮层可能访问已释放对象。建议改用 `UiBind`/弱标志绑定并在析构中关闭。
-3. `DateTime::EndEditDateTime`：派发 `kEventKillFocus` 后继续访问成员；若监听者销毁控件会产生 UAF。建议派发前先取走窗口指针或使用弱标志保护。
-4. `TabCtrl`：`m_pTabBox` 为裸指针，`TabBox` 先于 `TabCtrl` 析构时监听移除会解引用已释放对象。建议改为弱引用或在 `kEventDestroy` 中置空。
-5. `TabCtrl`：`Selected` / `NotifyTabCloseRequest` 同步派发用户事件后继续使用 `this`，业务层删除标签时存在 UAF 风险。
-6. `Calendar`：命中测试的惰性重算只重建单元格数据，未填充 `DayCell::rect`，尚未绘制过时点击可能全部落空；年/十年视图命中网格未扣除内边距，且控件尺寸极小时 `cellWidth/cellHeight` 可能为 0。建议把单元格矩形计算移入 `GetMonthCells`，并复用绘制路径的矩形。
-7. `CircleProgress`：非整圆弧的包围盒采样固定取 4 个象限点、半径约束取 `max` 而非 `min`，可能使弧溢出控件；进度指示点旋转角恒多 90°。属于绘制算法调整，建议单独评估。
-8. `HyperLink`：`kEventLinkClick` 的 `wParam` 指向局部副本的 `c_str()`，事件返回后即失效（同步使用无问题）。建议改为控件成员或值传递。
-9. `TagInput`：`RemoveTagAt` 先派发 `kEventTagRemoved` 再删除，回调中再次删除标签会导致越界。建议增加重入保护。
-10. `Progress` / `Rating`：事件回调后直接 `Invalidate()`，回调中销毁控件存在 UAF 风险（框架内 `CheckBox` 已有弱标志保护写法）。建议统一加 `GetWeakFlag().expired()` 判断。
-11. `ListCtrlData`：从多选切回单选时未同步 `bSelected` 与 `m_nSelectedRowId`，可能出现“查询有选中、界面无选中”。
-12. `ListCtrlReportView`：列被隐藏后，调整列宽仍按“子项序号=列序号”处理，宽度会设置到错误的可见列。建议改用列 ID 匹配。
-13. `Menu::CreateMenuWnd`：子菜单 XML 不存在或创建失败时，`Menu` 对象泄漏且 `m_pSubWindow` 非空，之后该菜单项无法再展开子菜单。
-14. `ChildWindow`：窗口回调注册可能重复且析构未反注册，重复创建/销毁控件会使回调表持续增长。
-15. `CalendarFlyout`：十年视图标题显示 `startYear..startYear+9`，但网格为 12 格（可点击到 `+11`），标题与可点击范围不一致。
+## 四、原建议项的复核与处理结果
+
+本节所列 15 项问题已在本轮全部处理，详见 3.4 节的 CTL-27 ~ CTL-41。其中：
+
+- 跨控件裸指针统一改为 `ControlPtrT` 弱引用，并在宿主析构时主动关闭弹窗/浮层；
+- 事件派发后的成员访问统一使用弱标志或提前取走局部指针保护；
+- 绘制与命中测试的单元格矩形改为同一份计算逻辑，并对除零、极小尺寸、内边距做边界保护；
+- 列宽调整改为按“列序号→可见子项序号”映射，避免隐藏列造成错位。
+
+仍有以下事项未修改（非缺陷，属于设计取舍）：
+
+1. `DateTime` 浮层、`Combo` 系列下拉窗口在宿主析构时关闭后，窗口对象的真实销毁仍由消息循环完成（`CloseWnd` 异步）；由于宿主已改为弱引用，延迟销毁期间不会访问已释放对象。
+2. `CircleProgress` 非整圆弧的半径约束采用 `fAvailW / fArcW` 口径（相当于在控件内留出一圈安全边距），并非严格的几何最小包围；如需精确贴边，可后续配合离屏渲染用例单独评估。
 
 ## 五、验证情况
 
-- 编译验证：`python build\build.py build --config Debug --arch x64 --offline --target duilib` 通过（`DUILIB_DLL=OFF`）。
+- 编译验证：`python build\build.py build --config Debug --arch x64 --offline --target duilib` 通过（`DUILIB_DLL=OFF`），本轮修改的 15 个文件均在本次编译范围内。
+- 本轮回归：受影响测试目标 `test_calendar_date` 在 Debug x64 下重新编译通过，`ctest -R "calendar_date|calendar_disabled_weekdays"` 2/2 通过。
 - 单元测试：新增
   - `tests/test_color_convert.cpp`（CTest 名称 `color_convert`）：HSV/HSL/RGB 互转、参数校验、往返转换、`GetRGB` 与 `HSV_*`/`HSL_*` 取色缓冲区的写入数量与端点颜色；
   - `tests/test_calendar_date.cpp`（`calendar_date`）：日期比较、闭区间判断、`time_t` 往返、日期字符串解析与格式化；
@@ -106,5 +121,5 @@
 
 1. 对“可实例化但不依赖窗口”的控件属性逻辑继续补充测试（如 `Progress` 的百分比计算、`Badge` 的计数文本、`Rating` 的命中换算），可在构造时传入空窗口实现。
 2. 平台相关逻辑（目录树挂载点解析、路径规范化）建议抽为独立函数，便于在无窗口环境下测试。
-3. 下拉弹窗、浮层、TabBox 等跨控件引用建议统一采用弱引用 + 生命周期事件，减少悬垂指针类问题。
-4. 绘制算法类问题（`CircleProgress` 弧线、`Calendar` 网格命中）建议补充离屏渲染用例后再调整。
+3. 下拉弹窗、浮层、TabBox 等跨控件引用建议统一采用弱引用 + 生命周期事件，减少悬垂指针类问题（本轮已对 `Combo`/`CheckCombo`/`ComboButton`/`DateTime`/`TabCtrl` 落地）。
+4. 绘制算法类改动（`CircleProgress` 弧线、`Calendar` 网格命中）已按几何约束修正，建议后续补充离屏渲染用例做像素级回归。

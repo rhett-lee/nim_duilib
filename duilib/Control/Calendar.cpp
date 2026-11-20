@@ -938,6 +938,11 @@ void Calendar::GetMonthCells(int32_t year, int32_t month, std::vector<DayCell>& 
     ::localtime_r(&t, &gridStart);
 #endif
 
+    //网格几何：与绘制路径一致（扣除内边距与星期标题行），命中测试与绘制共用同一份矩形
+    const UiRect gridRect = GetMonthGridRect();
+    const int32_t cellWidth = gridRect.Width() / kDaysPerWeek;
+    const int32_t cellHeight = gridRect.Height() / kWeeksPerMonth;
+
     //填充42天
     for (int32_t i = 0; i < kDaysPerPage; ++i) {
         struct tm day = gridStart;
@@ -962,6 +967,14 @@ void Calendar::GetMonthCells(int32_t year, int32_t month, std::vector<DayCell>& 
         cell.bInRange = false;
         cell.bHovered = false;
         cell.bDisabled = false;
+
+        //单元格矩形（控件尺寸过小时 cellWidth/cellHeight 为 0，矩形为空，命中测试自然落空）
+        const int32_t col = i % kDaysPerWeek;
+        const int32_t row = i / kDaysPerWeek;
+        cell.rect.left = gridRect.left + col * cellWidth;
+        cell.rect.right = cell.rect.left + cellWidth;
+        cell.rect.top = gridRect.top + row * cellHeight;
+        cell.rect.bottom = cell.rect.top + cellHeight;
 
         //检查是否选中
         if (m_bHasSelectedDate && IsSameDay(day, m_selectedDate)) {
@@ -1003,6 +1016,15 @@ void Calendar::GetMonthCells(int32_t year, int32_t month, std::vector<DayCell>& 
     }
 }
 
+UiRect Calendar::GetMonthGridRect() const
+{
+    UiRect rect = GetRect();
+    rect.Deflate(GetControlPadding());
+    //与 Paint 中的星期标题行高度保持一致
+    rect.top += Dpi().GetScaleInt(24);
+    return rect;
+}
+
 bool Calendar::HitTestDay(const UiPoint& pt, DayCell& cell) const
 {
     if (m_viewMode != 0) {
@@ -1010,13 +1032,27 @@ bool Calendar::HitTestDay(const UiPoint& pt, DayCell& cell) const
     }
     //惰性重算：m_cells/m_bCellsDirty 均为 mutable，const 方法内可直接刷新缓存，
     //不再依赖「先 Paint 后命中测试」的调用顺序（构造顺序变化也不会导致点击失灵）
-    if (m_bCellsDirty) {
+    if (m_bCellsDirty || (m_cells.size() != (size_t)kDaysPerPage)) {
         GetMonthCells(m_displayYear, m_displayMonth, m_cells);
         m_bCellsDirty = false;
     }
-    for (const auto& c : m_cells) {
-        if (c.rect.ContainsPt(pt)) {
-            cell = c;
+    //命中矩形按当前控件几何实时计算，避免控件尺寸变化后缓存矩形失效
+    const UiRect gridRect = GetMonthGridRect();
+    const int32_t cellWidth = gridRect.Width() / kDaysPerWeek;
+    const int32_t cellHeight = gridRect.Height() / kWeeksPerMonth;
+    if ((cellWidth <= 0) || (cellHeight <= 0)) {
+        return false;
+    }
+    for (size_t i = 0; i < m_cells.size(); ++i) {
+        const int32_t col = (int32_t)(i % kDaysPerWeek);
+        const int32_t row = (int32_t)(i / kDaysPerWeek);
+        UiRect cellRect(gridRect.left + col * cellWidth,
+                        gridRect.top + row * cellHeight,
+                        gridRect.left + (col + 1) * cellWidth,
+                        gridRect.top + (row + 1) * cellHeight);
+        if (cellRect.ContainsPt(pt)) {
+            cell = m_cells[i];
+            cell.rect = cellRect;
             return true;
         }
     }
@@ -1139,7 +1175,7 @@ DString Calendar::GetMonthText(int32_t month) const
     return strText;
 }
 
-void Calendar::DrawMonthView(IRender* pRender, const UiRect& rect)
+void Calendar::DrawMonthView(IRender* pRender, const UiRect& /*rect*/)
 {
     //无条件重算格子：bSelected/bHovered/bInRange/bDisabled 等状态随 SetDate/悬停等随时变化，
     //若改为「仅 m_bCellsDirty 时重算」，则所有改变这些状态的 setter 都必须记得置脏，
@@ -1147,22 +1183,11 @@ void Calendar::DrawMonthView(IRender* pRender, const UiRect& rect)
     GetMonthCells(m_displayYear, m_displayMonth, m_cells);
     m_bCellsDirty = false;
 
-    int32_t cellWidth = rect.Width() / kDaysPerWeek;
-    int32_t cellHeight = rect.Height() / kWeeksPerMonth;
-
     IFont* pFont = GetIFontById(_T("system_regular_14"));
 
     for (size_t i = 0; i < m_cells.size(); ++i) {
-        DayCell& cell = m_cells[i];
-        int32_t row = (int32_t)(i / kDaysPerWeek);
-        int32_t col = (int32_t)(i % kDaysPerWeek);
-
-        cell.rect.left = rect.left + col * cellWidth;
-        cell.rect.right = cell.rect.left + cellWidth;
-        cell.rect.top = rect.top + row * cellHeight;
-        cell.rect.bottom = cell.rect.top + cellHeight;
-
-        DrawDayCell(pRender, cell, pFont);
+        //单元格矩形已在 GetMonthCells 中按当前控件几何计算，这里直接复用，保证与命中测试一致
+        DrawDayCell(pRender, m_cells[i], pFont);
     }
 }
 
@@ -1485,8 +1510,12 @@ bool Calendar::ButtonDown(const EventArgs& msg)
     else if (m_viewMode == 1) {
         //年视图：点击月份进入月视图
         UiRect rect = GetRect();
+        rect.Deflate(GetControlPadding());
         int32_t cellWidth = rect.Width() / kYearGridCols;
         int32_t cellHeight = rect.Height() / kYearGridRows;
+        if ((cellWidth <= 0) || (cellHeight <= 0) || !rect.ContainsPt(msg.ptMouse)) {
+            return bRet;
+        }
         int32_t col = (msg.ptMouse.x - rect.left) / cellWidth;
         int32_t row = (msg.ptMouse.y - rect.top) / cellHeight;
         if (col >= 0 && col < kYearGridCols && row >= 0 && row < kYearGridRows) {
@@ -1500,8 +1529,12 @@ bool Calendar::ButtonDown(const EventArgs& msg)
     else {
         //十年视图：点击年份进入年视图
         UiRect rect = GetRect();
+        rect.Deflate(GetControlPadding());
         int32_t cellWidth = rect.Width() / kYearGridCols;
         int32_t cellHeight = rect.Height() / kYearGridRows;
+        if ((cellWidth <= 0) || (cellHeight <= 0) || !rect.ContainsPt(msg.ptMouse)) {
+            return bRet;
+        }
         int32_t col = (msg.ptMouse.x - rect.left) / cellWidth;
         int32_t row = (msg.ptMouse.y - rect.top) / cellHeight;
         if (col >= 0 && col < kYearGridCols && row >= 0 && row < kYearGridRows) {

@@ -195,7 +195,34 @@ void ListCtrlData::SetMultiSelect(bool bMultiSelect)
                 rowData.bChecked = rowData.bSelected;
             }
         }
-    }    
+    }
+    else if (bChanged && !bMultiSelect) {
+        //从多选切回单选：只保留一行选中，并同步 m_nSelectedRowId，
+        //避免出现"查询有选中、界面无选中"的不一致状态
+        RowId keepRowId = kInvalidRowId;
+        if ((m_nSelectedRowId != kInvalidRowId) &&
+            (m_nSelectedRowId < m_rowDataList.size()) &&
+            m_rowDataList[m_nSelectedRowId].bSelected) {
+            keepRowId = m_nSelectedRowId;
+        }
+        else {
+            for (const RowId rowId : m_displayOrder) {
+                if ((rowId < m_rowDataList.size()) && m_rowDataList[rowId].bSelected) {
+                    keepRowId = rowId;
+                    break;
+                }
+            }
+        }
+        for (size_t rowId = 0; rowId < m_rowDataList.size(); ++rowId) {
+            ListCtrlItemData& rowData = m_rowDataList[rowId];
+            const bool bKeep = (static_cast<RowId>(rowId) == keepRowId);
+            rowData.bSelected = bKeep;
+            if (IsAutoCheckSelect()) {
+                rowData.bChecked = bKeep;
+            }
+        }
+        m_nSelectedRowId = keepRowId;
+    }
 }
 
 void ListCtrlData::SetListView(IListCtrlView* pListView)
