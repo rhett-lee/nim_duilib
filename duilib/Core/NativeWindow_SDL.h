@@ -283,6 +283,10 @@ public:
     */
     void CheckSetWindowFocus();
 
+    /** 窗口是否为"不抢焦点"窗口（创建时带 kWS_EX_NOACTIVATE 属性）
+    */
+    bool IsWindowNoActivate() const;
+
     /** 投递一个消息到消息队列
     * @param [in] uMsg 消息类型
     * @param [in] wParam 消息附加参数
@@ -826,6 +830,12 @@ private:
     /** 鼠标事件的捕获状态
     */
     bool m_bMouseCapture;
+
+    /** 忽略"失去焦点"通知的截止时间（SDL_GetTicks 计时，0 表示不忽略）
+    *   不抢焦点的子窗口（浮层）获得焦点后，本窗口会把焦点重新收回；
+    *   此过程中系统可能额外产生一次瞬时的失焦通知（kb=nullptr），需要忽略
+    */
+    uint64_t m_nIgnoreFocusLostUntil;
 
     /** 窗口透明度，该值在Windows平台是UpdateLayeredWindow函数中作为参数使用(BLENDFUNCTION.SourceConstantAlpha)，其他平台功能类似
     */

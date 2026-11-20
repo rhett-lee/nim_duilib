@@ -216,6 +216,10 @@ public:
     */
     void CheckSetWindowFocus();
 
+    /** 窗口是否为"不抢焦点"窗口（创建时带 WS_EX_NOACTIVATE 属性）
+    */
+    bool IsWindowNoActivate() const;
+
     /** 投递一个消息到消息队列
     * @param [in] uMsg 消息类型
     * @param [in] wParam 消息附加参数

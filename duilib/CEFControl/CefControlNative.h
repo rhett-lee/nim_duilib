@@ -27,6 +27,10 @@ public:
     virtual bool OnKillFocus(const EventArgs& msg) override;
     virtual void SetWindow(ui::Window* pWindow) override;
 
+    /** 是否为使用原生子窗口显示内容的控件
+    */
+    virtual bool IsNativeChildWindow() const override { return true; }
+
 protected:
     /** 重新创建Browser对象
     */
@@ -43,10 +47,6 @@ protected:
     /** 将网页保存为一张图片, 图片大小与控件大小相同
     */
     virtual std::shared_ptr<IBitmap> MakeImageSnapshot() override;
-
-    /** 是否为CEF的子窗口模式控件
-    */
-    virtual bool IsCefNative() const override;
 
     /** 页面获得了焦点
     */

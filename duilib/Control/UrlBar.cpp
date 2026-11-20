@@ -287,14 +287,19 @@ void UrlBar::SetUrl(const DString& url)
     if (m_pEdit->IsFocused() && m_bEditModifiedByUser) {
         return;
     }
-    m_bSuppressNextFocusPopup = true;
+    //用户正在地址栏交互（编辑框已获得焦点、联想浮层已展开）时，页面加载完成带来的
+    //URL 变化不应关闭浮层：否则点击地址栏展开浮层后，若页面恰好在此时加载完成，
+    //浮层会"闪一下就消失"（表现为点击地址栏没有反应）
+    if (!(m_pEdit->IsFocused() && (m_pFlyout != nullptr) && m_pFlyout->IsOpen())) {
+        m_bSuppressNextFocusPopup = true;
+        ClosePopup();
+    }
     m_pEdit->SetTextNoEvent(url);
     const int32_t nTextLength = m_pEdit->GetTextLength();
     m_pEdit->SetSel(nTextLength, nTextLength);
     m_bEditModifiedByUser = false;
     m_bUserTyping = false;
     m_bUserNavigated = false;
-    ClosePopup();
     UpdateSecureIcon();
     ScheduleClearSuppressFlag();
 }

@@ -1760,9 +1760,20 @@ LRESULT Window::OnSetFocusMsg(WindowBase* /*pLostFocusWindow*/, const NativeMsg&
     return 0;
 }
 
-LRESULT Window::OnKillFocusMsg(WindowBase* /*pSetFocusWindow*/, const NativeMsg& /*nativeMsg*/, bool& bHandled)
+LRESULT Window::OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
+    //焦点转移给本窗口的“不抢焦点”子窗口（例如自动完成浮层）时，不属于真正的失焦：
+    //该窗口不接收键盘输入，键盘输入仍应继续进入本窗口获得焦点的控件；
+    //若按失焦处理，输入框会失焦并关闭依赖焦点的浮层，导致点击浮层中的候选项无响应。
+    if ((pSetFocusWindow != nullptr) && (pSetFocusWindow->GetParentWindow() == this)) {
+        Window* pSetFocusWnd = dynamic_cast<Window*>(pSetFocusWindow);
+        if ((pSetFocusWnd != nullptr) && pSetFocusWnd->NativeWnd()->IsWindowNoActivate()) {
+            //标记为已处理：不再广播窗口级的"失去焦点"事件（该事件用于处理多焦点问题）
+            bHandled = true;
+            return 0;
+        }
+    }
     ControlPtr pEventClick = m_pEventClick;
     if (!Keyboard::IsKeyDown(VirtualKeyCode::kVK_LBUTTON) &&
         !Keyboard::IsKeyDown(VirtualKeyCode::kVK_RBUTTON) &&
@@ -2514,13 +2525,9 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
     //   否则会出现"页面与界面控件双焦点、地址栏无法输入中文"的问题。
     //不需要抢焦点的窗口（浮层Popup等WS_EX_NOACTIVATE窗口）不获取原生输入焦点：
     //否则会从父窗口/编辑框抢走焦点，导致浮层展开期间无法继续输入
-    bool bNoActivateWindow = false;
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    HWND hWnd = (HWND)GetWindowHandle();
-    bNoActivateWindow = (hWnd != nullptr) && ((::GetWindowLong(hWnd, GWL_EXSTYLE) & WS_EX_NOACTIVATE) != 0);
-#endif
+    const bool bNoActivateWindow = NativeWnd()->IsWindowNoActivate();
     bool bNeedSetWindowFocus = !bWindowFocused && !bNoActivateWindow;
-    if (!bNeedSetWindowFocus && !bNoActivateWindow && (pControl != nullptr) && !controlFlag.expired() && IsCheckSetWindowFocus() && !pControl->IsCefNative()) {
+    if (!bNeedSetWindowFocus && !bNoActivateWindow && (pControl != nullptr) && !controlFlag.expired() && IsCheckSetWindowFocus() && !pControl->IsNativeChildWindow()) {
         bNeedSetWindowFocus = true;
     }
     if (bNeedSetWindowFocus && !windowFlag.expired()) {
@@ -2634,7 +2641,7 @@ void Window::SetFocusControl(Control* pControl)
 
     if (!windowFlag.expired() && (pControl != nullptr) && !controlFlag.expired()) {
         //确保窗口有焦点(但CEF 子窗口模式的控件，不与子窗口争焦点)
-        if (IsCheckSetWindowFocus() && !pControl->IsCefNative()) {
+        if (IsCheckSetWindowFocus() && !pControl->IsNativeChildWindow()) {
             CheckSetWindowFocus();
             if (windowFlag.expired()) {
                 return;

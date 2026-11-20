@@ -314,6 +314,10 @@ public:
     virtual bool OnKillFocus(const EventArgs& msg) override;
     virtual void SetWindow(Window* pWindow) override;
 
+    /** 是否为使用原生子窗口显示内容的控件
+    */
+    virtual bool IsNativeChildWindow() const override { return true; }
+
     /** 设置是否允许F12快捷键(开发者工具)
     */
     void SetEnableF12(bool bEnableF12);

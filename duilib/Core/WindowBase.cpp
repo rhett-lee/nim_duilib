@@ -1302,8 +1302,16 @@ LRESULT WindowBase::OnNativeKillFocusMsg(INativeWindow* pSetFocusWindow, const N
         pSetFocusWindowBase = dynamic_cast<WindowBase*>(pSetFocusWindow);
     }
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    //焦点转移给本窗口的"不抢焦点"子窗口（例如自动完成浮层）时，不属于窗口失焦：
+    //此时不广播窗口级的"失去焦点"事件（该事件用于处理多焦点问题），
+    //否则应用层会在此事件中清空控件焦点，导致依赖焦点的浮层被提前关闭
+    bool bSendKillFocusEvent = true;
+    if ((pSetFocusWindowBase != nullptr) && (pSetFocusWindowBase->GetParentWindow() == this) &&
+        (pSetFocusWindowBase->NativeWnd() != nullptr) && pSetFocusWindowBase->NativeWnd()->IsWindowNoActivate()) {
+        bSendKillFocusEvent = false;
+    }
     LRESULT lResult = OnKillFocusMsg(pSetFocusWindowBase, nativeMsg, bHandled);
-    if (!windowFlag.expired()) {
+    if (!windowFlag.expired() && bSendKillFocusEvent) {
         SendWindowEvent(kWindowKillFocusMsg, (WPARAM)pSetFocusWindowBase);
     }
     return lResult;

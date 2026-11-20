@@ -27,6 +27,10 @@
 */
 #define WM_USER_HOVER_MSG (SDL_EVENT_USER + 4)
 
+/** 收回父窗口的键盘焦点（用于"不抢焦点"的子窗口意外获得焦点后恢复）
+*/
+#define WM_USER_RESTORE_FOCUS_MSG (SDL_EVENT_USER + 5)
+
 namespace ui {
 
 //窗口指针与SDL窗口ID的映射关系，用于转接消息
@@ -453,6 +457,23 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             lResult = pOwner->OnNativeMouseHoverMsg(pt, 0, NativeMsg(WM_USER_HOVER_MSG, 0, 0), bHandled);
         }
         break;
+    case WM_USER_RESTORE_FOCUS_MSG:
+        //收回键盘焦点（用于"不抢焦点"的子窗口意外获得焦点后恢复父窗口的焦点）
+        {
+#if defined (DUILIB_BUILD_FOR_WIN)
+            HWND hWnd = GetHWND();
+            if (hWnd != nullptr) {
+                //父窗口可能被"不抢焦点"的子窗口抢走了前台状态，需要一并恢复
+                if (::GetForegroundWindow() != hWnd) {
+                    ::SetForegroundWindow(hWnd);
+                }
+                ::SetFocus(hWnd);
+            }
+#else
+            SDL_RaiseWindow(m_sdlWindow);
+#endif
+        }
+        break;
     case SDL_EVENT_WINDOW_MOUSE_ENTER:
         //不需要处理，Windows没有这个消息
         break;
@@ -569,11 +590,39 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
         {
             //获取键盘输入焦点
             INativeWindow* pLostFocusWindow = nullptr;//此参数得不到（目前无影响，代码中目前没有使用这个参数的）
+            if (IsWindowNoActivate()) {
+                //"不抢焦点"的窗口（浮层、弹出层等）不持有键盘焦点：
+                //SDL 在鼠标点击此类窗口时仍会把键盘焦点移到这个窗口，这里把焦点还给父窗口，
+                //避免父窗口（例如地址栏所在的窗口）误判为失去焦点而提前关闭浮层、中断编辑框输入
+                SDL_Window* pParentWindow = SDL_GetWindowParent(m_sdlWindow);
+                if (pParentWindow != nullptr) {
+                    NativeWindow_SDL* pParentNative = GetWindowFromID(SDL_GetWindowID(pParentWindow));
+                    if (pParentNative != nullptr) {
+                        //焦点收回过程中系统可能额外产生一次瞬时的失焦通知，通知父窗口忽略
+                        pParentNative->m_nIgnoreFocusLostUntil = SDL_GetTicks() + 300;
+                        //延后到当前事件批次处理完再收回焦点：SDL 在本次鼠标点击过程中还可能
+                        //再次把键盘焦点设置到本窗口，同步收回会被覆盖而失效
+                        pParentNative->PostMsg(WM_USER_RESTORE_FOCUS_MSG, 0, 0);
+                    }
+                }
+                break;
+            }
+            //正常获得焦点：清除"忽略失焦通知"的标记
+            m_nIgnoreFocusLostUntil = 0;
             lResult = pOwner->OnNativeSetFocusMsg(pLostFocusWindow, NativeMsg(SDL_EVENT_WINDOW_FOCUS_GAINED, 0, 0), bHandled);
         }
         break;
     case SDL_EVENT_WINDOW_FOCUS_LOST:
         {
+            if (!IsWindowNoActivate() && (m_nIgnoreFocusLostUntil != 0) &&
+                (SDL_GetTicks() < m_nIgnoreFocusLostUntil) && (SDL_GetKeyboardFocus() == nullptr)) {
+                //不抢焦点的子窗口（浮层）获得焦点后，本窗口会把焦点重新收回：
+                //该过程中系统可能额外产生瞬时的"失焦且无新焦点窗口"的通知，
+                //此时窗口仍处于前台，不属于真正的焦点转移，忽略该通知（否则输入框会失焦、
+                //浮层被提前关闭）。该标记在窗口重新获得焦点时清除，或者超时后自动失效
+                break;
+            }
+            m_nIgnoreFocusLostUntil = 0;
             //失去焦点时结束输入法组合态，否则焦点切换后会一直停留在「组合中」，
             //导致下次输入时不再触发 kEventImeStartComposition。
             //注意必须派发 EndComposition 通知焦点控件：否则控件侧的组合态标志
@@ -786,6 +835,7 @@ NativeWindow_SDL::NativeWindow_SDL(INativeWindow* pOwner):
     m_nLayeredWindowOpacity(255),
     m_bUseSystemCaption(false),
     m_bMouseCapture(false),
+    m_nIgnoreFocusLostUntil(0),
     m_bCloseing(false),
     m_bChildWindow(false),
     m_closeParam(kWindowCloseNormal),
@@ -2367,6 +2417,11 @@ void NativeWindow_SDL::CheckSetWindowFocus()
 #elif defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
     SetFocus_Linux(GetX11WindowNumber());
 #endif
+}
+
+bool NativeWindow_SDL::IsWindowNoActivate() const
+{
+    return (m_createParam.m_dwExStyle & kWS_EX_NOACTIVATE) != 0;
 }
 
 LRESULT NativeWindow_SDL::PostMsg(UINT uMsg, WPARAM wParam, LPARAM lParam)

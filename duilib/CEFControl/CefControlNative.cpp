@@ -250,11 +250,6 @@ std::shared_ptr<IBitmap> CefControlNative::MakeImageSnapshot()
     return nullptr;
 }
 
-bool CefControlNative::IsCefNative() const
-{
-    return true;
-}
-
 } //namespace ui
 
 #endif //DUILIB_BUILD_FOR_CEF

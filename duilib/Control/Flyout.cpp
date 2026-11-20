@@ -11,11 +11,38 @@
 #include "duilib/Animation/PopupAnimation.h"
 #include "duilib/Animation/AnimationPlayer.h"
 
+#if defined (DUILIB_BUILD_FOR_SDL)
+    #include <SDL3/SDL.h>
+#endif
+
 namespace ui
 {
 
 namespace
 {
+
+/** 判断鼠标的任意键是否处于按下状态（轮询使用，跨平台）
+*   SDL 模式下需要使用全局鼠标状态：浮层窗口不抢焦点，点击可能落在浮层之外的窗口
+*   （例如 CEF 的原生子窗口）上，此时 SDL_GetMouseState 无法反映按键状态
+*/
+bool IsMouseButtonDownAny()
+{
+#if defined (DUILIB_BUILD_FOR_SDL)
+    const SDL_MouseButtonFlags nButtonState = SDL_GetGlobalMouseState(nullptr, nullptr);
+    return (nButtonState & (SDL_BUTTON_LMASK | SDL_BUTTON_RMASK | SDL_BUTTON_MMASK)) != 0;
+#else
+    return ((::GetAsyncKeyState(VK_LBUTTON) |
+             ::GetAsyncKeyState(VK_RBUTTON) |
+             ::GetAsyncKeyState(VK_MBUTTON)) & 0x8000) != 0;
+#endif
+}
+
+/** 判断 Esc 键是否处于按下状态（轮询使用，跨平台）
+*/
+bool IsEscapeKeyDown()
+{
+    return Keyboard::IsKeyDown(kVK_ESCAPE);
+}
 
 #if defined(DUILIB_BUILD_FOR_WIN) && !defined(DUILIB_BUILD_FOR_SDL)
 /** 阴影区域的命中测试过滤器（仅 Windows 平台）
@@ -846,9 +873,13 @@ void Flyout::StartDetectTimer()
     //以当前按键状态为初始值，避免触发浮层的那次点击在抬起前被误判为新的外部按下
     m_bPointerDownLast = (::GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
     m_bEscapeDownLast = (::GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0;
+#else
+    //SDL 模式：同样以当前按键状态为初始值（避免触发浮层的那次点击被误判）
+    m_bPointerDownLast = IsMouseButtonDownAny();
+    m_bEscapeDownLast = IsEscapeKeyDown();
 #endif
 
-    //该轮询任务同时用于：不抢焦点模式下的外部点击检测（仅 Windows）、跟随锚点时的位置检测
+    //该轮询任务同时用于：不抢焦点模式下的外部点击检测、跟随锚点时的位置检测
     m_nDetectTaskId = GlobalManager::Instance().Thread().PostDelayedTask(
         kThreadUI,
         UiBind(this, [this]() {
@@ -945,6 +976,11 @@ void Flyout::OnParentWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
             return;
         }
         if (LOWORD(wParam) == WA_INACTIVE) {
+            //激活目标是本浮层（点击浮层内容）时，不属于"点击外部"
+            HWND hNewActive = (HWND)lParam;
+            if ((hNewActive != nullptr) && (::GetAncestor(hNewActive, GA_ROOT) == (HWND)GetWindowHandle())) {
+                return;
+            }
             //浮层创建/显示期间可能产生瞬时激活，该通知在浮层显示完成、父窗口已恢复前台后
             //才被处理；此时父窗口仍是前台窗口，不属于"被其它窗口激活取代"，需要忽略，
             //否则浮层刚展开就会被误判为"点击外部"而关闭
@@ -1047,27 +1083,24 @@ void Flyout::OnDetectTick()
         }
     }
 
-#if defined(DUILIB_BUILD_FOR_WIN) && !defined(DUILIB_BUILD_FOR_SDL)
     if (m_bAutoDismiss) {
         //鼠标任意按键的按下边沿，且落点既不在浮层内也不在锚点上时关闭
         //（不吞掉这次点击：消息会继续发给点击的目标窗口，例如另一个触发按钮）
-        const bool bPointerDown = ((::GetAsyncKeyState(VK_LBUTTON) |
-                                    ::GetAsyncKeyState(VK_RBUTTON) |
-                                    ::GetAsyncKeyState(VK_MBUTTON)) & 0x8000) != 0;
+        const bool bPointerDown = IsMouseButtonDownAny();
         const bool bPointerPressed = bPointerDown && !m_bPointerDownLast;
         m_bPointerDownLast = bPointerDown;
         if (bPointerPressed && m_bClickOutsideDismiss) {
             UiPoint ptCursor;
             GetCursorPos(ptCursor);
             //兜底路径：正常情况下已由父窗口消息过滤器同步关闭；这里保留定时检测，
-            //用于父窗口收不到消息的场景（例如点击由其它进程的窗口直接消费）
+            //用于父窗口收不到消息的场景（例如点击由其它进程的窗口或原生子窗口直接消费）
             if (CheckCloseOnOutsidePoint(ptCursor)) {
                 return;
             }
         }
 
         //Esc 键的按下边沿
-        const bool bEscapeDown = (::GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0;
+        const bool bEscapeDown = IsEscapeKeyDown();
         const bool bEscapePressed = bEscapeDown && !m_bEscapeDownLast;
         m_bEscapeDownLast = bEscapeDown;
         if (bEscapePressed) {
@@ -1075,7 +1108,6 @@ void Flyout::OnDetectTick()
             return;
         }
     }
-#endif
 
     if (m_bOpen && !m_bClosing) {
         m_nDetectTaskId = GlobalManager::Instance().Thread().PostDelayedTask(

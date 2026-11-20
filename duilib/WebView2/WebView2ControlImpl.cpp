@@ -84,6 +84,12 @@ HRESULT WebView2Control::Impl::InitializeAsync(const DString& userDataFolder, In
         return E_FAIL;
     }
 
+    //WebView2控件使用原生子窗口显示页面：页面(子窗口)获得键盘焦点后，SDL平台会误认为窗口仍有焦点，
+    //导致点击地址栏等普通控件时，键盘焦点无法从页面切换回该控件(现象是页面与控件双焦点、
+    //地址栏无法输入中文)；开启该开关后，设置普通控件焦点时会把窗口焦点一并设置回来
+    //(设置WebView2控件自身的焦点时，不会与原生子窗口争抢输入焦点)
+    m_pControl->GetWindow()->SetCheckSetWindowFocus(true);
+
     ASSERT(!m_bInitializing);
     if (m_bInitializing) {
         return E_FAIL;

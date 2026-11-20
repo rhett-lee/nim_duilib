@@ -1191,6 +1191,14 @@ void NativeWindow_Windows::CheckSetWindowFocus()
     }
 }
 
+bool NativeWindow_Windows::IsWindowNoActivate() const
+{
+    if (!::IsWindow(m_hWnd)) {
+        return false;
+    }
+    return (::GetWindowLong(m_hWnd, GWL_EXSTYLE) & WS_EX_NOACTIVATE) != 0;
+}
+
 LRESULT NativeWindow_Windows::PostMsg(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     ASSERT(::IsWindow(m_hWnd));
@@ -2895,6 +2903,17 @@ LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPA
     case WM_PAINT:
     {
         lResult = OnPaintMsg(uMsg, wParam, lParam, bHandled);
+        break;
+    }
+    case WM_MOUSEACTIVATE:
+    {
+        //不抢焦点的窗口（浮层、弹出层等，WS_EX_NOACTIVATE）被点击时不激活自身：
+        //否则会夺走父窗口的键盘焦点，导致浮层展开期间无法继续在编辑框输入，
+        //并可能使父窗口误判"焦点转移到其它窗口"而提前关闭浮层
+        if (IsWindowNoActivate()) {
+            bHandled = true;
+            lResult = MA_NOACTIVATE;
+        }
         break;
     }
     case WM_SETFOCUS:

@@ -1219,9 +1219,11 @@ public:
     */
     bool IsKeyDown(const EventArgs& msg, ModifierKey modifierKey) const;
 
-    /** 是否为CEF的子窗口模式控件
+    /** 是否为使用原生子窗口显示内容的控件（例如CEF的子窗口模式控件、WebView2控件）
+    *   这类控件的内容由独立的原生子窗口显示，键盘焦点可能已转移到子窗口，
+    *   因此设置这些控件的焦点时，不能强制把窗口设为焦点窗口（会与子窗口争抢输入焦点）
     */
-    virtual bool IsCefNative() const { return false; }
+    virtual bool IsNativeChildWindow() const { return false; }
 
     /** 是否为CEF的离屏渲染控件
     */
