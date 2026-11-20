@@ -1076,6 +1076,8 @@ bool NavigationView::RemoveNavItem(NavigationViewItem* pItem, bool bRemovePage)
     //从所属容器中移除（可能是列表或底部固定区）
     bool bRemoved = false;
     const DString strPage = pItem->GetPageName();
+    //先从导航项列表中解除登记，再移除控件（移除后控件可能被销毁）
+    UnregisterNavItem(pItem);
     if (m_pItemHost != nullptr) {
         bRemoved = m_pItemHost->RemoveItem(pItem);
     }
@@ -1095,8 +1097,7 @@ bool NavigationView::RemoveNavItem(NavigationViewItem* pItem, bool bRemovePage)
         }
     }
 
-    UnregisterNavItem(pItem);
-    //控件从容器移除后，由调用方决定是否 delete（若由本控件动态创建，见 AddNavItem 的归属约定）
+    //控件从容器移除后由容器负责销毁，调用方不需要再 delete
     return bRemoved;
 }
 

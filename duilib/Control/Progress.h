@@ -140,7 +140,7 @@ public:
     */
     bool IsShowPercent() const { return m_bShowPercent; }
 
-    /** 设置是否启用值变化动画（默认关闭）
+    /** 设置是否启用值变化动画（默认开启）
     */
     void SetAnimationEnabled(bool bEnabled);
 

@@ -2035,7 +2035,10 @@ UiSize ChatMessageList::GetChatImageOriginSize(const DString& strPath)
             }
         }
     }
-    m_chatImageSizes[strFullPath] = size;
+    if ((size.cx > 0) && (size.cy > 0)) {
+        //仅在获取到有效尺寸时缓存，避免加载失败后一直退化为最大尺寸
+        m_chatImageSizes[strFullPath] = size;
+    }
     return size;
 }
 

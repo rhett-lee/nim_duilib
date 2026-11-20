@@ -837,6 +837,7 @@ bool Menu::RemoveMenuItem(MenuItem* pMenuItem)
             pElementUI = dynamic_cast<MenuItem*>(pLayoutListBox->GetItemAt(i));
             if (pMenuItem == pElementUI) {
                 pLayoutListBox->RemoveItemAt(i);
+                return true;
             }
             pElementUI = nullptr;
         }

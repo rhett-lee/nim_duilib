@@ -630,11 +630,12 @@ bool ListCtrlHeaderItem::SetShowCheckBox(bool bShow)
         if (!IsShowCheckBox()) {
             return true;
         }
+        //先取复选框宽度，再清除图片资源（清除后宽度会变为0）
+        int32_t nCheckBoxWidth = this->GetCheckBoxImageWidth();
         //清除CheckBox图片资源，就不显示了
         ClearStateImages();
         ASSERT(!IsShowCheckBox());
         UiPadding textPadding = GetTextPadding();
-        int32_t nCheckBoxWidth = this->GetCheckBoxImageWidth();
         if ((nCheckBoxWidth > 0) && (textPadding.left >= nCheckBoxWidth)) {
             textPadding.left -= nCheckBoxWidth;
             SetTextPadding(textPadding, false);

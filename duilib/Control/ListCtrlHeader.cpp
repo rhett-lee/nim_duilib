@@ -94,9 +94,9 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const List
         AddItem(pHeaderSplit);
     }
     else {
-        //插入在中间位置        
-        AddItemAt(pHeaderSplit, columnIndex);
-        AddItemAt(pHeaderItem, columnIndex);
+        //插入在中间位置（表头项与分隔控件交错排列，索引需乘以2）
+        AddItemAt(pHeaderSplit, static_cast<size_t>(columnIndex) * 2);
+        AddItemAt(pHeaderItem, static_cast<size_t>(columnIndex) * 2);
     }
 
     //设置属性

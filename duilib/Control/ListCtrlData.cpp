@@ -1377,9 +1377,7 @@ void ListCtrlData::GetDataItemsCheckStatus(bool& bChecked, bool& bPartChecked) c
     else if ((nCheckCount == 0) && (nUnCheckCount > 0)) {
         bChecked = false;
     }
-    else {
-        ASSERT(0);
-    }
+    //其余情况为所有行均不可见，保持默认值(false/false)
 }
 
 void ListCtrlData::GetDataItemsSelectStatus(bool& bSelected, bool& bPartSelected) const
@@ -1416,9 +1414,7 @@ void ListCtrlData::GetDataItemsSelectStatus(bool& bSelected, bool& bPartSelected
     else if ((nSelectCount == 0) && (nUnSelectCount > 0)) {
         bSelected = false;
     }
-    else {
-        ASSERT(0);
-    }
+    //其余情况为所有行均不可见，保持默认值(false/false)
 }
 
 void ListCtrlData::GetColumnCheckStatus(size_t columnId, bool& bChecked, bool& bPartChecked) const

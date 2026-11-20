@@ -457,6 +457,12 @@ void Carousel::SetInterval(int32_t nIntervalMs)
         m_nInterval = nIntervalMs;
         //重启定时器使新的间隔生效
         if (m_bAutoTimerStarted) {
+            if (m_nAutoTimerId > 0) {
+                GlobalManager::Instance().Timer().RemoveTimer(m_nAutoTimerId);
+                m_nAutoTimerId = 0;
+            }
+            m_bAutoTimerStarted = false;
+            m_autoFlag.Cancel();
             UpdateAutoPlayTimer();
         }
     }

@@ -249,7 +249,7 @@ private:
     //刻度相关
     bool m_bShowTicks;
     int32_t m_nTickCount;
-    int32_t m_nTickLength;      //已DPI 缩放
+    int32_t m_nTickLength;      //未做DPI缩放的原始值，绘制时按当前DPI缩放
     DString m_strTickColor;
     SliderTickPos m_tickPos;
     bool m_bShowTickLabels;

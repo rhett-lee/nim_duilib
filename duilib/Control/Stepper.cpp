@@ -599,8 +599,11 @@ bool Stepper::ButtonDown(const EventArgs& msg)
     }
     UiRect rc = GetRect();
     rc.Deflate(GetControlPadding());
+    //msg.ptMouse 是窗口客户区坐标，控件可能位于滚动容器内，需要补齐滚动偏移
+    UiPoint ptMouse(msg.ptMouse);
+    ptMouse.Offset(GetScrollOffsetInScrollBox());
     if (m_bClickToJump) {
-        const int32_t nHit = HitTestStep(rc, m_steps.size(), msg.ptMouse);
+        const int32_t nHit = HitTestStep(rc, m_steps.size(), ptMouse);
         if ((nHit >= 0) && (GetStepStatus(static_cast<size_t>(nHit)) != StepStatus::kDisabled)) {
             //记录按下态，并获取鼠标焦点，使按住期间持续收到鼠标消息以结束按下态
             m_nPressedStep = nHit;
@@ -630,7 +633,10 @@ bool Stepper::MouseMove(const EventArgs& msg)
         if (IsEnabled() && IsMouseEnabled() && m_bClickToJump && !m_steps.empty()) {
             UiRect rc = GetRect();
             rc.Deflate(GetControlPadding());
-            nHit = HitTestStep(rc, m_steps.size(), msg.ptMouse);
+            //msg.ptMouse 是窗口客户区坐标，需要补齐滚动偏移
+            UiPoint ptMouse(msg.ptMouse);
+            ptMouse.Offset(GetScrollOffsetInScrollBox());
+            nHit = HitTestStep(rc, m_steps.size(), ptMouse);
             if ((nHit >= 0) && (GetStepStatus(static_cast<size_t>(nHit)) == StepStatus::kDisabled)) {
                 nHit = -1;
             }

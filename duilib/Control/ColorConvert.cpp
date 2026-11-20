@@ -297,9 +297,10 @@ int ColorConvert::RGB2HSL(double red, double green, double blue, double* hue, do
         if (L < 0.5) S = del_Max / (Max + Min);
         else         S = del_Max / (2.0 - Max - Min);
 
-        del_R = ((Max - R) / 6.0) + (del_Max / 2.0) / del_Max;
-        del_G = ((Max - G) / 6.0) + (del_Max / 2.0) / del_Max;
-        del_B = ((Max - B) / 6.0) + (del_Max / 2.0) / del_Max;
+        //各分量相对最大值/最小值的偏移（需除以 del_Max 归一化）
+        del_R = (((Max - R) / 6.0) + (del_Max / 2.0)) / del_Max;
+        del_G = (((Max - G) / 6.0) + (del_Max / 2.0)) / del_Max;
+        del_B = (((Max - B) / 6.0) + (del_Max / 2.0)) / del_Max;
 
         if (R == Max) H = (del_B - del_G);
         else if (G == Max) H = (1.0 / 3.0) + del_R - del_B;
@@ -320,8 +321,13 @@ int ColorConvert::RGB2HSL(double red, double green, double blue, double* hue, do
 
 void ColorConvert::GetRGB(uint32_t* buffer, int samples, COLORREF start, COLORREF end)
 {
-    //samples < 1 时下面的 (samples - 1) 会除零，且 while 循环可能死循环写越界
+    //samples < 1 时下面的 while 循环可能死循环写越界
     if ((buffer == nullptr) || (samples < 1)) {
+        return;
+    }
+    if (samples == 1) {
+        //只有一个采样点时，(samples - 1) 会除零，直接取起始颜色（DIB 为 BGR 顺序）
+        *buffer = RGB(GetBValue(start), GetGValue(start), GetRValue(start));
         return;
     }
     int red = 0, green = 0, blue = 0;

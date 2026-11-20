@@ -2507,9 +2507,10 @@ bool ListCtrl::SetDataItemHeight(size_t itemIndex, int32_t nItemHeight, bool bNe
 {
     bool bChanged = false;
     if (nItemHeight < 0) {
-        nItemHeight = 0;
+        //负数表示使用默认行高（-1），不做DPI缩放
+        nItemHeight = -1;
     }
-    if (bNeedDpiScale) {
+    else if (bNeedDpiScale) {
         Dpi().ScaleInt(nItemHeight);
     }
     bool bRet = m_pData->SetDataItemHeight(itemIndex, nItemHeight, bChanged);

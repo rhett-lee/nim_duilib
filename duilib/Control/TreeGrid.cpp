@@ -611,6 +611,25 @@ bool TreeGrid::RemoveNode(TreeGridNode* pNode)
         }
     }
     pNode->m_pParentNode = nullptr;
+    //删除前先从行索引缓存中移除该节点及其子孙，避免RebuildRows访问已释放内存
+    for (auto iter = m_rowNodes.begin(); iter != m_rowNodes.end(); ) {
+        TreeGridNode* pRowNode = *iter;
+        TreeGridNode* pParent = pRowNode;
+        bool bInSubTree = false;
+        while (pParent != nullptr) {
+            if (pParent == pNode) {
+                bInSubTree = true;
+                break;
+            }
+            pParent = pParent->m_pParentNode;
+        }
+        if (bInSubTree) {
+            iter = m_rowNodes.erase(iter);
+        }
+        else {
+            ++iter;
+        }
+    }
     delete pNode;
     OnNodeStructureChanged();
     return true;
@@ -625,6 +644,25 @@ void TreeGrid::RemoveAllNodesOf(TreeGridNode* pParent)
 {
     if (pParent == nullptr) {
         return;
+    }
+    //删除前先从行索引缓存中移除这些节点及其子孙，避免RebuildRows访问已释放内存
+    for (auto iter = m_rowNodes.begin(); iter != m_rowNodes.end(); ) {
+        TreeGridNode* pRowNode = *iter;
+        TreeGridNode* pNode = pRowNode;
+        bool bInSubTree = false;
+        while (pNode != nullptr) {
+            if (pNode == pParent) {
+                bInSubTree = true;
+                break;
+            }
+            pNode = pNode->m_pParentNode;
+        }
+        if (bInSubTree) {
+            iter = m_rowNodes.erase(iter);
+        }
+        else {
+            ++iter;
+        }
     }
     for (TreeGridNode* pChild : pParent->m_childNodes) {
         pChild->m_pParentNode = nullptr;

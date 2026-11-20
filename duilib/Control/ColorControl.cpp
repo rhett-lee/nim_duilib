@@ -206,7 +206,9 @@ void ColorControl::OnSelectPosChanged(const UiRect& rect, const UiPoint& pt)
     //}
     ////
 
-    if (m_spBitmap != nullptr) {
+    if ((m_spBitmap != nullptr) &&
+        ((int32_t)m_spBitmap->GetWidth() == nWidth) &&
+        ((int32_t)m_spBitmap->GetHeight() == nHeight)) {
         int32_t nRow = m_lastPt.y - rect.top;
         int32_t nColumn = m_lastPt.x - rect.left;
         int32_t colorXY = nWidth * nRow + nColumn; //颜色所在点的坐标位置    

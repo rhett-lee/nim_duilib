@@ -316,7 +316,7 @@ void DateTimeWnd::EndEditDateTime()
     if (bSec && (m_editList[EditType::SEC] != nullptr)) {
         int32_t nSec = StringUtil::StringToInt32(m_editList[EditType::SEC]->GetText());
         if ((nSec >= 0) && (nSec <= 59)) {
-            timeValue.tm_min = nSec;
+            timeValue.tm_sec = nSec;
         }
     }
 

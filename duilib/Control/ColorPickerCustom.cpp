@@ -282,8 +282,8 @@ void ColorPickerCustom::InitHSV(const ColorUI& colorUI, int32_t maxValue, Change
                         pColorSlider->SetValue(nValue);
                     }
                 }
-                //输入框文本变化，触发RGB颜色变化事件
-                OnRGBChanged(reason);
+                //输入框文本变化，触发HSV颜色变化事件
+                OnHSVChanged(reason);
                 return true;
             });
     }
@@ -340,8 +340,8 @@ void ColorPickerCustom::InitHSL(const ColorUI& colorUI, int32_t maxValue, Change
                         pColorSlider->SetValue(nValue);
                     }
                 }
-                //输入框文本变化，触发RGB颜色变化事件
-                OnRGBChanged(reason);
+                //输入框文本变化，触发HSL颜色变化事件
+                OnHSLChanged(reason);
                 return true;
             });
     }

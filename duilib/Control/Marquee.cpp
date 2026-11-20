@@ -241,6 +241,12 @@ void Marquee::PaintText(IRender* pRender)
     }
     const DString text = GetText();
     if (text.empty()) {
+        //文本为空时不再需要滚动，避免定时器持续重绘
+        if (m_bScrolling) {
+            m_bScrolling = false;
+            StopTimer();
+        }
+        m_fOffset = 0.0f;
         BaseClass::PaintText(pRender);
         return;
     }

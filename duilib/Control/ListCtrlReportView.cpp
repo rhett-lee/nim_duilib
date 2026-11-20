@@ -2523,7 +2523,7 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
     //计算当前区域能够显示多少条数据
     int32_t nCalcItemCount = 0;
     if (!rc.IsEmpty()) {
-        pDataView->GetMaxDataItemsToShow(nScrollPosY, rc.Height());
+        nCalcItemCount = pDataView->GetMaxDataItemsToShow(nScrollPosY, rc.Height());
     }
     if (nCalcItemCount > (int32_t)(nItemCount - 1)) {
         //UI控件的个数不足，重新调整

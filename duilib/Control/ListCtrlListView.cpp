@@ -273,11 +273,18 @@ bool ListCtrlListView::FillDataItem(Control* pControl,
         }
     }
     pItemImage->SetBkImage(imageString);
+    //控件是复用的，无图标时需复位尺寸，避免沿用上一行的图标尺寸
     if (imageSize.cx > 0) {
         pItemImage->SetFixedWidth(UiFixedInt(imageSize.cx), false, false);
     }
+    else {
+        pItemImage->SetFixedWidth(UiFixedInt(0), false, false);
+    }
     if (imageSize.cy > 0) {
         pItemImage->SetFixedHeight(UiFixedInt(imageSize.cy), false, false);
+    }
+    else {
+        pItemImage->SetFixedHeight(UiFixedInt(0), false, false);
     }
     if (m_bSingleLineFlag) {
         pItemLabel->SetSingleLine(m_bSingleLine);

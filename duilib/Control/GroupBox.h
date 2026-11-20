@@ -911,7 +911,7 @@ void GroupBoxTemplate<InheritType>::PaintText(IRender* pRender)
         }
         else {
             //没有标题文字时，在标题区域内垂直居中
-            iconRect.top = (CalcTitleHeight() - nIconHeight) / 2;
+            iconRect.top = rcControl.top + (CalcTitleHeight() - nIconHeight) / 2;
         }
         iconRect.right = iconRect.left + nIconWidth;
         iconRect.bottom = iconRect.top + nIconHeight;

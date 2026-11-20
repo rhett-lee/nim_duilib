@@ -612,11 +612,14 @@ int32_t Progress::GetMarqueeElapsed() const
 
 void Progress::SetMarqueeElapsed(int32_t nMarqueeElapsed)
 {
-    if (!IsMarquee() || nMarqueeElapsed == m_nMarqueeElapsed) {
+    if (nMarqueeElapsed == m_nMarqueeElapsed) {
         return;
     }
-
+    //先保存配置值：属性可能写在 marquee 之前，此时定时器尚未启动
     m_nMarqueeElapsed = nMarqueeElapsed;
+    if (!IsMarquee()) {
+        return;
+    }
     m_timer.Cancel();
 
     auto playCallback = UiBind(&Progress::Play, this);

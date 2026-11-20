@@ -708,9 +708,11 @@ bool CheckBoxTemplate<InheritType>::PrivateSetSelected(bool bSelected)
         m_bPartSelected = false;
         bChanged = true;
     }
-    if (IsAutoCheckSelect()) {
-        //自动同步给Check变量
-        bChanged = PrivateSetChecked(m_bSelected);
+    if (IsAutoCheckSelect() && (m_bChecked != m_bSelected)) {
+        //自动同步给Check变量（比较目标值，避免与PrivateSetChecked相互递归）
+        if (PrivateSetChecked(m_bSelected)) {
+            bChanged = true;
+        }
     }
     if (bSelectChanged) {
         OnPrivateSetSelected();
@@ -808,9 +810,11 @@ bool CheckBoxTemplate<InheritType>::PrivateSetChecked(bool bChecked)
         m_bPartChecked = false;
         bChanged = true;
     }    
-    if (IsAutoSelectCheck()) {
-        //自动同步给Select变量
-        bChanged = PrivateSetSelected(m_bChecked);
+    if (IsAutoSelectCheck() && (m_bSelected != m_bChecked)) {
+        //自动同步给Select变量（比较目标值，避免与PrivateSetSelected相互递归）
+        if (PrivateSetSelected(m_bChecked)) {
+            bChanged = true;
+        }
     }
     if (bCheckChanged) {
         OnPrivateSetChecked();

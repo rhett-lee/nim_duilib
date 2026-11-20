@@ -81,6 +81,9 @@ void IconControl::Paint(IRender* pRender, const UiRect& rcPaint)
     if (HasIconData()) {
         UiRect rcDest = GetRect();
         rcDest.Deflate(GetControlPadding());
+        if ((rcDest.Width() <= 0) || (rcDest.Height() <= 0)) {
+            return;
+        }
 
         UiRect rcSource;
         rcSource.left = 0;
@@ -98,7 +101,7 @@ void IconControl::Paint(IRender* pRender, const UiRect& rcPaint)
             }
             if (rcSource.Height() < rcDest.Height()) {
                 rcDest.top = rcDest.top + (rcDest.Height() - rcSource.Height()) / 2;
-                rcDest.bottom = rcDest.bottom + rcSource.Height();
+                rcDest.bottom = rcDest.top + rcSource.Height();
             }
         }
         pRender->DrawImage(m_pBitmap.get(), rcDest, rcSource);

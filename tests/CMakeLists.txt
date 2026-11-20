@@ -219,6 +219,96 @@ add_test(NAME window_attributes
          COMMAND test_window_attributes
 )
 
+# ColorConvert：HSV/HSL 与 RGB 的互转、取色缓冲区生成（GetRGB/HSV_*/HSL_*）
+add_executable(test_color_convert
+    test_color_convert.cpp
+)
+target_include_directories(test_color_convert PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_color_convert PRIVATE duilib)
+if(WIN32)
+    target_link_directories(test_color_convert PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_color_convert PRIVATE
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_color_convert PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_color_convert PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(test_color_convert PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_color_convert PRIVATE /utf-8)
+endif()
+add_test(NAME color_convert
+         COMMAND test_color_convert
+)
+
+# Calendar 日期工具：日期比较、范围判断、字符串解析/格式化、time_t 互转
+add_executable(test_calendar_date
+    test_calendar_date.cpp
+)
+target_include_directories(test_calendar_date PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_calendar_date PRIVATE duilib)
+if(WIN32)
+    target_link_directories(test_calendar_date PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_calendar_date PRIVATE
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_calendar_date PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_calendar_date PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(test_calendar_date PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_calendar_date PRIVATE /utf-8)
+endif()
+add_test(NAME calendar_date
+         COMMAND test_calendar_date
+)
+
+# TextDrawer::ToPlainText：富文本标记去除的纯文本转换
+add_executable(test_text_drawer
+    test_text_drawer.cpp
+)
+target_include_directories(test_text_drawer PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_text_drawer PRIVATE duilib)
+if(WIN32)
+    target_link_directories(test_text_drawer PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_text_drawer PRIVATE
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_text_drawer PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_text_drawer PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(test_text_drawer PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_text_drawer PRIVATE /utf-8)
+endif()
+add_test(NAME text_drawer
+         COMMAND test_text_drawer
+)
+
 # 文本绘制性能基准（不注册到 ctest，属于手工运行的评估工具）
 #
 # 用于对比"字体回退性能优化"前后的效果，覆盖全部文本测量/绘制路径，

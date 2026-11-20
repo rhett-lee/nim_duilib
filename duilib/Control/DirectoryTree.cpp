@@ -501,9 +501,12 @@ bool DirectoryTree::ShowSubFolders(TreeNode* pTreeNode, const FilePath& path, St
                                 ClearPathInfoList(*folderList);
                             }
                             //加载失败，回滚加载标记，允许再次展开时重试
-                            FolderStatus* pFolder = GetFolderData(pTreeNode);
-                            if (pFolder != nullptr) {
-                                pFolder->m_bContentLoaded = false;
+                            //节点已被销毁时不能再访问，避免使用悬垂指针
+                            if (!treeNodeFlag.expired()) {
+                                FolderStatus* pFolder = GetFolderData(pTreeNode);
+                                if (pFolder != nullptr) {
+                                    pFolder->m_bContentLoaded = false;
+                                }
                             }
                         }
                         if (finishCallback) {
