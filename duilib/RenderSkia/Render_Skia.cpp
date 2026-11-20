@@ -2366,8 +2366,9 @@ UiRect Render_Skia::MeasureString(const DString& strText, const MeasureStringPar
                 textWidth = std::max(textWidth, lineTextIWidth);
             }
         }
-        float spacingMul = 1.0f;//行间距倍数，暂不支持设置
-        SkScalar scaledSpacing = fontHeight * spacingMul;
+        //行间距：与 DrawString 中 SkTextBox 的计算规则保持一致
+        //（SkTextBox 中每行的行距为 字体高度 × 倍数 + 附加量，总高度按行数累加）
+        const SkScalar scaledSpacing = fontHeight * measureParam.fSpacingMul + measureParam.fSpacingAdd;
         SkScalar textHeight = fontHeight;
         if (lineCount > 0) {
             textHeight += scaledSpacing * (lineCount - 1);

@@ -221,7 +221,7 @@ private:
     float GetScaleFloat(float fValue) const;
 
 private:
-    /** Canval保存的状态
+    /** Canvas保存的状态
     */
     int32_t m_saveCount;
 

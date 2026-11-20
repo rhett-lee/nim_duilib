@@ -340,7 +340,7 @@ sk_sp<SkImage> CreateScaledSkImage(const sk_sp<SkImage>& skSrcImage,
 #ifdef DUILIB_HAVE_OPENCV
 //OpenCV
 
-// 直接内存映射（零拷贝）
+// 获取源图片的像素视图（必要时复制一份并转换通道，不修改源图片）
 static cv::Mat SkImageToCvMat_Opt(const sk_sp<SkImage>& skImage)
 {
     // 获取像素信息
@@ -349,14 +349,20 @@ static cv::Mat SkImageToCvMat_Opt(const sk_sp<SkImage>& skImage)
         return cv::Mat();
     }
 
-    // 创建共享内存的Mat
-    cv::Mat viewMat(pixmap.height(), pixmap.width(), CV_8UC4, pixmap.writable_addr(), pixmap.rowBytes());
+    if (skImage->colorType() != SkColorType::kRGBA_8888_SkColorType) {
+        // 无需转换通道：直接使用共享内存的Mat（Mat的生命周期必须短于SkImage）
+        return cv::Mat(pixmap.height(), pixmap.width(), CV_8UC4,
+                       const_cast<void*>(pixmap.addr()), pixmap.rowBytes());
+    }
 
-    // 通道重排（RGBA -> BGRA）
-    if (skImage->colorType() == SkColorType::kRGBA_8888_SkColorType) {
-        cv::mixChannels(viewMat, viewMat, { 2,0, 1,1, 0,2, 3,3 }); // 原地交换R与B通道(OpenCV默认处理的是BGRA格式)
-    }    
-    return viewMat; // 注意：Mat的生命周期必须短于SkImage
+    // 通道重排（RGBA -> BGRA）：写入新的缓冲区，避免修改共享的源图片像素
+    //（源图片可能被多次绘制或缓存，原地交换会导致每次调用后颜色反转）
+    cv::Mat viewMat(pixmap.height(), pixmap.width(), CV_8UC4,
+                    const_cast<void*>(pixmap.addr()), pixmap.rowBytes());
+    cv::Mat srcMat;
+    srcMat.create(pixmap.height(), pixmap.width(), CV_8UC4);
+    cv::mixChannels(viewMat, srcMat, { 2,0, 1,1, 0,2, 3,3 }); // 交换R与B通道(OpenCV默认处理的是BGRA格式)
+    return srcMat;
 }
 
 // 优化版缩放函数
@@ -521,23 +527,18 @@ void DrawSkiaImage::DrawImage(SkCanvas* pSkCanvas,
         }
     }
 
+    //按需先缩放到目标尺寸（OpenCV / stb_image 两种可选实现），失败时直接交给Skia缩放
+    sk_sp<SkImage> skNewImage;
 #ifdef DUILIB_HAVE_OPENCV
-    sk_sp<SkImage> skNewImage;
-    if (ResizeSkiaImageByOpenCV(skSrcImage, rcSrc, rcDest, skNewImage)) {
-        //PerformanceUtil statPerformance(_T("Render_Skia::DrawSkiaImage::DrawImage drawImageRect(OpenCV)"));
-        rcSkSrc.fRight = rcSkSrc.fLeft + skNewImage->width();
-        rcSkSrc.fBottom = rcSkSrc.fTop + skNewImage->height();
-        pSkCanvas->drawImageRect(skNewImage, rcSkSrc, rcSkDest, skSampling, &skPaint, SkCanvas::kStrict_SrcRectConstraint);
-    }
+    const bool bResized = ResizeSkiaImageByOpenCV(skSrcImage, rcSrc, rcDest, skNewImage);
 #else
-    sk_sp<SkImage> skNewImage;
-    if (ResizeSkiaImageByStbImage(skSrcImage, rcSrc, rcDest, skNewImage)) {
-        //PerformanceUtil statPerformance(_T("Render_Skia::DrawSkiaImage::DrawImage drawImageRect(StbImage)"));
+    const bool bResized = ResizeSkiaImageByStbImage(skSrcImage, rcSrc, rcDest, skNewImage);
+#endif
+    if (bResized) {
         rcSkSrc.fRight = rcSkSrc.fLeft + skNewImage->width();
         rcSkSrc.fBottom = rcSkSrc.fTop + skNewImage->height();
         pSkCanvas->drawImageRect(skNewImage, rcSkSrc, rcSkDest, skSampling, &skPaint, SkCanvas::kStrict_SrcRectConstraint);
     }
-#endif
     else {
         //PerformanceUtil statPerformance(_T("Render_Skia::DrawSkiaImage::DrawImage drawImageRect(Skia Only)"));
         pSkCanvas->drawImageRect(skSrcImage, rcSkSrc, rcSkDest, skSampling, &skPaint, SkCanvas::kStrict_SrcRectConstraint);
