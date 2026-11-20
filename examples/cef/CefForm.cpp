@@ -9,7 +9,7 @@ CefForm::CefForm()
     m_pCefControl = nullptr;
     m_pCefControlDev = nullptr;
     m_pDevToolBtn = nullptr;
-    m_pEditUrl = nullptr;
+    m_pUrlBar = nullptr;
     m_pTitleLabel = nullptr;
     m_pBtnBack = nullptr;
     m_pBtnForward = nullptr;
@@ -40,19 +40,18 @@ void CefForm::OnInitWindow()
     m_pCefControl = dynamic_cast<ui::CefControl*>(FindControl(_T("cef_control")));
     m_pCefControlDev = dynamic_cast<ui::CefControl*>(FindControl(_T("cef_control_dev")));
     m_pDevToolBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_dev_tool")));
-    m_pEditUrl = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit_url")));
+    m_pUrlBar = dynamic_cast<ui::UrlBar*>(FindControl(_T("url_bar")));
     m_pTitleLabel = dynamic_cast<ui::Label*>(FindControl(_T("page_title")));
     m_pBtnBack = dynamic_cast<ui::Button*>(FindControl(_T("btn_back")));
     m_pBtnForward = dynamic_cast<ui::Button*>(FindControl(_T("btn_forward")));
     m_pBtnRefresh = dynamic_cast<ui::Button*>(FindControl(_T("btn_refresh")));
     m_pBtnStop = dynamic_cast<ui::Button*>(FindControl(_T("btn_stop")));
     ASSERT(m_pDevToolBtn != nullptr);
-    //ASSERT(m_pEditUrl != nullptr);
+    //ASSERT(m_pUrlBar != nullptr);
 
-    // 设置输入框样式
-    if (m_pEditUrl != nullptr) {
-        m_pEditUrl->SetSelAllOnFocus(true);
-        m_pEditUrl->AttachReturn(UiBind(&CefForm::OnNavigate, this, std::placeholders::_1));
+    //地址栏提交网址后执行导航
+    if (m_pUrlBar != nullptr) {
+        m_pUrlBar->AttachUrlChanged(UiBind(&CefForm::OnNavigate, this, std::placeholders::_1));
     }
 
     //初始状态：不允许后退、前进；显示刷新按钮，隐藏停止按钮
@@ -221,8 +220,10 @@ bool CefForm::OnClicked(const ui::EventArgs& msg)
         return true;
     }
     else if (name == _T("btn_navigate")) {
-        ui::EventArgs emptyMsg;
-        OnNavigate(emptyMsg);
+        //提交地址栏中的输入（触发 kEventUrlChanged 事件后执行导航）
+        if (m_pUrlBar != nullptr) {
+            m_pUrlBar->Submit();
+        }
         return true;
     }
     else if (name == _T("btn_refresh")) {
@@ -243,26 +244,15 @@ bool CefForm::OnClicked(const ui::EventArgs& msg)
 
 bool CefForm::OnNavigate(const ui::EventArgs& /*msg*/)
 {
-    if ((m_pEditUrl == nullptr) || (m_pCefControl == nullptr)) {
+    if ((m_pUrlBar == nullptr) || (m_pCefControl == nullptr)) {
         return true;
     }
 
-    //去除首尾的空白字符
-    DString url = m_pEditUrl->GetText();
-    size_t begin = url.find_first_not_of(_T(" \t\r\n"));
-    if (begin == DString::npos) {
+    //UrlBar 已完成网址归一化（补全协议、本地路径转 file://、搜索模板），直接导航
+    DString url = m_pUrlBar->GetUrl();
+    if (url.empty()) {
         return true;
     }
-    size_t end = url.find_last_not_of(_T(" \t\r\n"));
-    url = url.substr(begin, end - begin + 1);
-
-    //未输入协议时，按网址处理，默认使用https协议
-    if ((url.find(_T("://")) == DString::npos) &&
-        (url.find(_T("about:")) != 0) &&
-        (url.find(_T("file:")) != 0)) {
-        url = _T("https://") + url;
-    }
-
     m_pCefControl->LoadURL(url);
     m_pCefControl->SetFocus();
     return true;
@@ -317,8 +307,8 @@ void CefForm::OnUrlChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> fra
 void CefForm::OnMainUrlChange(const DString& oldUrl, const DString& newUrl)
 {
     ui::GlobalManager::Instance().AssertUIThread();
-    if (m_pEditUrl != nullptr) {
-        m_pEditUrl->SetText(newUrl);
+    if (m_pUrlBar != nullptr) {
+        m_pUrlBar->SetUrl(newUrl);
     }
 }
     

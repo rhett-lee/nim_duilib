@@ -67,11 +67,12 @@
                 <Button class="browser_tool_refresh" name="btn_refresh" tooltip_text_id="STRID_WEBVIEW2_BROWSER_REFRESH"/>
                 <Button class="browser_tool_stop" name="btn_stop" tooltip_text_id="STRID_WEBVIEW2_BROWSER_STOP" visible="false"/>
                 <Control width="1" height="18" bkcolor="border_split_level1" margin="6,0,6,0"/>
-                <RichEdit class="simple simple_border prompt" name="edit_url"
-                                              width="stretch" height="28" valign="center" border_round="6,6"
-                                              text_padding="6,0,6,0"
-                                              prompt_text_id="STRID_WEBVIEW2_BROWSER_INPUT_ADDRESS"
-                                              default_context_menu="true"/>
+                <UrlBar class="url_bar" name="url_bar"
+                                       width="stretch" height="30" valign="center"
+                                       prompt_text_id="STRID_WEBVIEW2_BROWSER_INPUT_ADDRESS"
+                                       search_url_template="https://www.bing.com/search?q=%s"
+                                       history_file="user/webview2_browser_url_history.txt"
+                                       default_context_menu="true"/>
                 <Control width="1" height="18" bkcolor="border_split_level1" margin="6,0,6,0"/>
                 <Button class="browser_tool_btn" name="btn_dev_tool" tooltip_text_id="STRID_WEBVIEW2_BROWSER_DEV_TOOL"
                         normal_image="file='dev_tool.svg' width='18' height='18' halign='center' valign='center' svg_replace_colors='#1E1E1E|border_svg_image'"/>

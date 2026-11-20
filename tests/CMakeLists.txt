@@ -1487,3 +1487,38 @@ if(WIN32)
              COMMAND test_webview2
     )
 endif()
+
+# UrlBar 浏览器地址栏控件：
+#  - UrlBarUtil 纯函数：协议解析、主机名解析、网址判定、file:// URL 生成、
+#    百分号编码、输入归一化（补全协议、本地路径、搜索模板）；
+#  - UrlBar 控件在未加入窗口时的默认行为：控件类型、网址读写、安全状态、
+#    搜索模板、历史记录管理与参数边界处理。
+# 该测试不创建窗口、不加载主题资源。
+if(WIN32)
+    add_executable(test_url_bar
+        test_url_bar.cpp
+    )
+    target_include_directories(test_url_bar PRIVATE
+        "${CMAKE_CURRENT_LIST_DIR}/../"
+    )
+    target_link_libraries(test_url_bar PRIVATE duilib)
+    target_link_directories(test_url_bar PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_url_bar PRIVATE
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_url_bar PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_url_bar PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+    target_compile_definitions(test_url_bar PRIVATE UNICODE _UNICODE NOMINMAX WIN32_LEAN_AND_MEAN)
+    if(MSVC)
+        target_compile_options(test_url_bar PRIVATE /utf-8)
+    endif()
+    add_test(NAME url_bar
+             COMMAND test_url_bar
+    )
+endif()

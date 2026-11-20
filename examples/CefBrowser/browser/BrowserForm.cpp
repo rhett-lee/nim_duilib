@@ -27,7 +27,7 @@ namespace
 
 BrowserForm::BrowserForm()
 {
-    m_pEditUrl = nullptr;
+    m_pUrlBar = nullptr;
     m_pTabCtrl = nullptr;
     m_pBorwserBoxTab = nullptr;
     m_pActiveBrowserBox = nullptr;
@@ -41,7 +41,7 @@ BrowserForm::BrowserForm()
 
 BrowserForm::~BrowserForm()
 {
-    m_pEditUrl = nullptr;
+    m_pUrlBar = nullptr;
     m_pTabCtrl = nullptr;
     m_pBorwserBoxTab = nullptr;
     m_pActiveBrowserBox = nullptr;
@@ -190,11 +190,10 @@ void BrowserForm::OnInitWindow()
 
     GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&BrowserForm::OnClicked, this, std::placeholders::_1), 0);
 
-    m_pEditUrl = dynamic_cast<RichEdit*>(FindControl(_T("edit_url")));
-    if (m_pEditUrl != nullptr) {
-        m_pEditUrl->AttachReturn(UiBind(&BrowserForm::OnReturn, this, std::placeholders::_1));
-        //鼠标点击切入地址栏时，全选文本
-        m_pEditUrl->SetSelAllOnFocus(true);
+    m_pUrlBar = dynamic_cast<UrlBar*>(FindControl(_T("url_bar")));
+    if (m_pUrlBar != nullptr) {
+        //回车提交或选中历史联想项后，导航到归一化后的网址
+        m_pUrlBar->AttachUrlChanged(UiBind(&BrowserForm::OnUrlChanged, this, std::placeholders::_1));
     }
 
     //替换标题栏的布局
@@ -354,9 +353,9 @@ bool BrowserForm::HandleShortcutKey(VirtualKeyCode vkCode)
     }
     //Ctrl+L：聚焦地址栏并全选
     if (bCtrl && (vkCode == VirtualKeyCode::kVK_L)) {
-        if (m_pEditUrl != nullptr) {
-            m_pEditUrl->SetFocus();
-            m_pEditUrl->SetSelAll();
+        if (m_pUrlBar != nullptr) {
+            m_pUrlBar->SetFocus();
+            m_pUrlBar->SelectAll();
         }
         return true;
     }
@@ -542,37 +541,24 @@ bool BrowserForm::OnClicked(const ui::EventArgs& arg )
     return false;
 }
 
-bool BrowserForm::OnReturn(const ui::EventArgs& arg)
+bool BrowserForm::OnUrlChanged(const ui::EventArgs& arg)
 {
-    if (m_pEditUrl != nullptr) {
-        DString url = m_pEditUrl->GetText();
-        //去掉首尾的空白字符
-        size_t nStart = url.find_first_not_of(_T(" \t\r\n"));
-        if (nStart != DString::npos) {
-            size_t nEnd = url.find_last_not_of(_T(" \t\r\n"));
-            url = url.substr(nStart, nEnd - nStart + 1);
-        }
-        else {
-            url.clear();
-        }
-        if (!url.empty()) {
-            //未输入协议时，按网址处理，默认使用https协议
-            if ((url.find(_T("://")) == DString::npos) &&
-                (url.find(_T("about:")) != 0) &&
-                (url.find(_T("file:")) != 0)) {
-                url = _T("https://") + url;
-            }
-            ui::CefControl* pCefControl = nullptr;
-            if (m_pActiveBrowserBox != nullptr) {
-                pCefControl = m_pActiveBrowserBox->GetCefControl();
-            }
-            if (pCefControl != nullptr) {
-                pCefControl->LoadURL(url);
-                //导航后把焦点交回网页
-                pCefControl->SetFocus();
-            }
-        }
+    if ((m_pUrlBar == nullptr) || (m_pActiveBrowserBox == nullptr)) {
+        return true;
     }
+    ui::CefControl* pCefControl = m_pActiveBrowserBox->GetCefControl();
+    if (pCefControl == nullptr) {
+        return true;
+    }
+
+    //UrlBar 已完成网址归一化（补全协议、本地路径转 file://、搜索模板），直接导航
+    DString url = m_pUrlBar->GetUrl();
+    if (url.empty()) {
+        return true;
+    }
+    pCefControl->LoadURL(url);
+    //导航后把焦点交回网页
+    pCefControl->SetFocus();
     return true;
 }
 
@@ -918,8 +904,8 @@ void BrowserForm::SetTabItemName(const DString& browserId, const DString& name)
 
 void BrowserForm::SetURL(const std::string& browserId, const DString& url)
 {
-    if ((m_pEditUrl != nullptr) && (m_pActiveBrowserBox != nullptr) && (m_pActiveBrowserBox->GetBrowserId() == browserId)) {
-        m_pEditUrl->SetText(url);
+    if ((m_pUrlBar != nullptr) && (m_pActiveBrowserBox != nullptr) && (m_pActiveBrowserBox->GetBrowserId() == browserId)) {
+        m_pUrlBar->SetUrl(url);
     }
 }
 
@@ -940,9 +926,9 @@ bool BrowserForm::ChangeToBox(const DString& browserId)
 
     // 根据当前激活的浏览器盒子，更新地址栏的内容
     ui::CefControl* pCefControl = m_pActiveBrowserBox->GetCefControl();
-    if ((m_pEditUrl != nullptr) && (pCefControl != nullptr)) {
+    if ((m_pUrlBar != nullptr) && (pCefControl != nullptr)) {
         DStringW urlW = pCefControl->GetURL();
-        m_pEditUrl->SetText(urlW);
+        m_pUrlBar->SetUrl(urlW);
     }
     OnLoadingStateChange(m_pActiveBrowserBox);
     UpdateWindowTitle();

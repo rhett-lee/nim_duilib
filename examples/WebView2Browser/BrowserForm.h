@@ -147,9 +147,9 @@ protected:
     */
     bool OnClicked(const ui::EventArgs& arg);
 
-    /** 回车事件
+    /** 地址栏提交网址事件（回车或选中历史联想项）
     */
-    bool OnReturn(const ui::EventArgs& arg);
+    bool OnUrlChanged(const ui::EventArgs& arg);
 
     /** 处理标签控件的选中消息
     * @param [in] param 消息的相关信息
@@ -260,7 +260,7 @@ private:
 protected:
     /** 地址栏控件（用于显示和输入URL）
     */
-    ui::RichEdit* m_pEditUrl;
+    ui::UrlBar* m_pUrlBar;
 
     /** 标签栏
     */

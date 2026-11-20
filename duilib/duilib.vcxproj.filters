@@ -1056,6 +1056,12 @@
     <ClCompile Include="Core\WindowAttributes.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Control\UrlBar.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\UrlBarUtil.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -2182,6 +2188,12 @@
     </ClInclude>
     <ClInclude Include="Core\WindowAttributes.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\UrlBarUtil.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\UrlBar.h">
+      <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

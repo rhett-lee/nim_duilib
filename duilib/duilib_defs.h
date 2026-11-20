@@ -113,6 +113,7 @@ namespace ui
     #define  DUI_CTR_RICHEDIT2                       (_T("RichEdit2"))
     #define  DUI_CTR_SPIN_BOX                        (_T("SpinBox"))
     #define  DUI_CTR_SEARCH_BOX                      (_T("SearchBox"))
+    #define  DUI_CTR_URL_BAR                         (_T("UrlBar"))
     #define  DUI_CTR_SWITCH                          (_T("Switch"))
     #define  DUI_CTR_BADGE                           (_T("Badge"))
     #define  DUI_CTR_AVATAR                          (_T("Avatar"))
@@ -548,6 +549,10 @@ namespace ui
         kEventTabClose,                 //TabCtrl类：请求关闭标签（点击关闭按钮或鼠标中键点击标签时触发），wParam是标签索引
                                         //            TabCtrl本身不删除标签，由业务层在事件响应中完成删除
         kEventTabNew,                   //TabCtrl类：点击"新建标签"按钮时触发，无参数
+
+        kEventUrlChanged,               //UrlBar类：用户提交了新网址（回车或选中联想项）时触发，无参数，
+                                        //           归一化后的网址通过 UrlBar::GetUrl() 获取
+        kEventUrlCancel,                //UrlBar类：用户按 Esc 取消编辑、恢复为已提交网址时触发，无参数
 
         kEventLast,                     //控件的最后一个消息
 

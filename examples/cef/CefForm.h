@@ -275,7 +275,7 @@ private:
     ui::CefControl* m_pCefControl;
     ui::CefControl* m_pCefControlDev;
     ui::Button* m_pDevToolBtn;
-    ui::RichEdit* m_pEditUrl;
+    ui::UrlBar* m_pUrlBar;
     ui::Label* m_pTitleLabel;
     ui::Button* m_pBtnBack;
     ui::Button* m_pBtnForward;

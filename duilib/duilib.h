@@ -74,6 +74,7 @@
 #include "Box/VBox.h"
 #include "Box/HBox.h"
 #include "Control/SearchBox.h"
+#include "Control/UrlBar.h"
 #include "Box/XmlBox.h"
 #include "Box/TileBox.h"
 #include "Box/TabBox.h"

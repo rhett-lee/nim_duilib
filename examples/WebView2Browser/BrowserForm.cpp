@@ -23,7 +23,7 @@ namespace
 
 BrowserForm::BrowserForm()
 {
-    m_pEditUrl = nullptr;
+    m_pUrlBar = nullptr;
     m_pTabCtrl = nullptr;
     m_pBorwserBoxTab = nullptr;
     m_pActiveBrowserBox = nullptr;
@@ -37,7 +37,7 @@ BrowserForm::BrowserForm()
 
 BrowserForm::~BrowserForm()
 {
-    m_pEditUrl = nullptr;
+    m_pUrlBar = nullptr;
     m_pTabCtrl = nullptr;
     m_pBorwserBoxTab = nullptr;
     m_pActiveBrowserBox = nullptr;
@@ -186,11 +186,10 @@ void BrowserForm::OnInitWindow()
 
     GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&BrowserForm::OnClicked, this, std::placeholders::_1), 0);
 
-    m_pEditUrl = dynamic_cast<RichEdit*>(FindControl(_T("edit_url")));
-    if (m_pEditUrl != nullptr) {
-        m_pEditUrl->AttachReturn(UiBind(&BrowserForm::OnReturn, this, std::placeholders::_1));
-        //鼠标点击切入地址栏时，全选文本
-        m_pEditUrl->SetSelAllOnFocus(true);
+    m_pUrlBar = dynamic_cast<UrlBar*>(FindControl(_T("url_bar")));
+    if (m_pUrlBar != nullptr) {
+        //回车提交或选中历史联想项后，导航到归一化后的网址
+        m_pUrlBar->AttachUrlChanged(UiBind(&BrowserForm::OnUrlChanged, this, std::placeholders::_1));
     }
 
     //替换标题栏的布局
@@ -354,10 +353,10 @@ bool BrowserForm::HandleShortcutKey(VirtualKeyCode vkCode)
     }
     else if ((vkCode == ui::kVK_L) && bCtrl) {
         //Ctrl+L: 聚焦地址栏并全选文本
-        if (m_pEditUrl != nullptr) {
+        if (m_pUrlBar != nullptr) {
             bHandled = true;
-            m_pEditUrl->SetFocus();
-            m_pEditUrl->SetSelAll();
+            m_pUrlBar->SetFocus();
+            m_pUrlBar->SelectAll();
         }
     }
     else if ((vkCode == ui::kVK_R) && bCtrl) {
@@ -519,9 +518,9 @@ bool BrowserForm::OnClicked(const ui::EventArgs& arg )
     return false;
 }
 
-bool BrowserForm::OnReturn(const ui::EventArgs& arg)
+bool BrowserForm::OnUrlChanged(const ui::EventArgs& arg)
 {
-    if ((m_pEditUrl == nullptr) || (m_pActiveBrowserBox == nullptr)) {
+    if ((m_pUrlBar == nullptr) || (m_pActiveBrowserBox == nullptr)) {
         return true;
     }
     ui::WebView2Control* pWebView2Control = m_pActiveBrowserBox->GetWebView2Control();
@@ -529,16 +528,11 @@ bool BrowserForm::OnReturn(const ui::EventArgs& arg)
         return true;
     }
 
-    //去除首尾的空白字符
-    DString url = m_pEditUrl->GetText();
-    size_t begin = url.find_first_not_of(_T(" \t\r\n"));
-    if (begin == DString::npos) {
+    //UrlBar 已完成网址归一化（补全协议、本地路径转 file://、搜索模板），直接导航
+    DString url = m_pUrlBar->GetUrl();
+    if (url.empty()) {
         return true;
     }
-    size_t end = url.find_last_not_of(_T(" \t\r\n"));
-    url = url.substr(begin, end - begin + 1);
-
-    //未输入协议时，由WebView2控件自动补全为https协议
     pWebView2Control->Navigate(url);
     pWebView2Control->SetFocus();
     return true;
@@ -885,8 +879,8 @@ void BrowserForm::SetTabItemName(const DString& browserId, const DString& name)
 
 void BrowserForm::SetURL(const std::string& browserId, const DString& url)
 {
-    if ((m_pEditUrl != nullptr) && (m_pActiveBrowserBox != nullptr) && (m_pActiveBrowserBox->GetBrowserId() == browserId)) {
-        m_pEditUrl->SetText(url);
+    if ((m_pUrlBar != nullptr) && (m_pActiveBrowserBox != nullptr) && (m_pActiveBrowserBox->GetBrowserId() == browserId)) {
+        m_pUrlBar->SetUrl(url);
     }
 }
 
@@ -907,8 +901,8 @@ bool BrowserForm::ChangeToBox(const DString& browserId)
 
     // 根据当前激活的浏览器盒子，更新地址栏、窗口标题和按钮状态
     ui::WebView2Control* pWebView2Control = pBoxItem->GetWebView2Control();
-    if ((pWebView2Control != nullptr) && (m_pEditUrl != nullptr)) {
-        m_pEditUrl->SetText(pWebView2Control->GetUrl());
+    if ((pWebView2Control != nullptr) && (m_pUrlBar != nullptr)) {
+        m_pUrlBar->SetUrl(pWebView2Control->GetUrl());
     }
     UpdateWindowTitle();
     OnLoadingStateChange(m_pActiveBrowserBox);

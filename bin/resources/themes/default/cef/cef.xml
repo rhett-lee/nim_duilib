@@ -56,11 +56,12 @@
                 <Button class="cef_tool_refresh" name="btn_refresh" tooltip_text_id="STRID_CEF_BROWSER_REFRESH"/>
                 <Button class="cef_tool_stop" name="btn_stop" tooltip_text_id="STRID_CEF_BROWSER_STOP" visible="false"/>
                 <Control width="1" height="18" bkcolor="border_split_level1" margin="6,0,6,0"/>
-                <RichEdit class="simple simple_border prompt" name="edit_url"
-                                              width="stretch" height="28" valign="center" border_round="6,6"
-                                              text_padding="6,0,6,0"
-                                              prompt_text_id="STRID_CEF_BROWSER_INPUT_ADDRESS"
-                                              default_context_menu="true"/>
+                <UrlBar class="url_bar" name="url_bar"
+                                       width="stretch" height="30" valign="center"
+                                       prompt_text_id="STRID_CEF_BROWSER_INPUT_ADDRESS"
+                                       search_url_template="https://www.bing.com/search?q=%s"
+                                       history_file="user/cef_url_history.txt"
+                                       default_context_menu="true"/>
                 <Button class="cef_text_btn" name="btn_navigate" text_id="STRID_CEF_BROWSER_BROWSE_TO" width="auto"/>
                 <Control width="1" height="18" bkcolor="border_split_level1" margin="6,0,6,0"/>
                 <Button class="cef_tool_btn" name="btn_dev_tool" tooltip_text_id="STRID_CEF_BROWSER_DEV_TOOL"

@@ -4,7 +4,7 @@
 MainForm::MainForm()
 {
     m_pWebView2Control = nullptr;
-    m_pEditUrl = nullptr;
+    m_pUrlBar = nullptr;
     m_pTitleLabel = nullptr;
     m_pBtnBack = nullptr;
     m_pBtnForward = nullptr;
@@ -33,17 +33,16 @@ void MainForm::OnInitWindow()
 
     GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&MainForm::OnClicked, this, std::placeholders::_1), 0);
     m_pWebView2Control = dynamic_cast<ui::WebView2Control*>(FindControl(_T("webview2_control")));
-    m_pEditUrl = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit_url")));
+    m_pUrlBar = dynamic_cast<ui::UrlBar*>(FindControl(_T("url_bar")));
     m_pTitleLabel = dynamic_cast<ui::Label*>(FindControl(_T("page_title")));
     m_pBtnBack = dynamic_cast<ui::Button*>(FindControl(_T("btn_back")));
     m_pBtnForward = dynamic_cast<ui::Button*>(FindControl(_T("btn_forward")));
     m_pBtnRefresh = dynamic_cast<ui::Button*>(FindControl(_T("btn_refresh")));
     m_pBtnStop = dynamic_cast<ui::Button*>(FindControl(_T("btn_stop")));
 
-    // 设置输入框样式
-    if (m_pEditUrl != nullptr) {
-        m_pEditUrl->SetSelAllOnFocus(true);
-        m_pEditUrl->AttachReturn(UiBind(&MainForm::OnNavigate, this, std::placeholders::_1));
+    //地址栏提交网址后执行导航
+    if (m_pUrlBar != nullptr) {
+        m_pUrlBar->AttachUrlChanged(UiBind(&MainForm::OnNavigate, this, std::placeholders::_1));
     }
 
     //初始状态：不允许后退、前进；显示刷新按钮，隐藏停止按钮
@@ -84,8 +83,8 @@ void MainForm::OnInitWindow()
         //更新URL
         m_pWebView2Control->SetSourceChangedCallback([this](const DString& url) {
             ui::GlobalManager::Instance().AssertUIThread();
-            if (m_pEditUrl != nullptr) {
-                m_pEditUrl->SetText(url);
+            if (m_pUrlBar != nullptr) {
+                m_pUrlBar->SetUrl(url);
             }
             });
 
@@ -142,8 +141,10 @@ bool MainForm::OnClicked(const ui::EventArgs& msg)
         return true;
     }
     else if (name == _T("btn_navigate")) {
-        ui::EventArgs emptyMsg;
-        OnNavigate(emptyMsg);
+        //提交地址栏中的输入（触发 kEventUrlChanged 事件后执行导航）
+        if (m_pUrlBar != nullptr) {
+            m_pUrlBar->Submit();
+        }
         return true;
     }
     else if (name == _T("btn_refresh")) {
@@ -164,20 +165,15 @@ bool MainForm::OnClicked(const ui::EventArgs& msg)
 
 bool MainForm::OnNavigate(const ui::EventArgs& /*msg*/)
 {
-    if ((m_pEditUrl == nullptr) || (m_pWebView2Control == nullptr)) {
+    if ((m_pUrlBar == nullptr) || (m_pWebView2Control == nullptr)) {
         return true;
     }
 
-    //去除首尾的空白字符
-    DString url = m_pEditUrl->GetText();
-    size_t begin = url.find_first_not_of(_T(" \t\r\n"));
-    if (begin == DString::npos) {
+    //UrlBar 已完成网址归一化（补全协议、本地路径转 file://、搜索模板），直接导航
+    DString url = m_pUrlBar->GetUrl();
+    if (url.empty()) {
         return true;
     }
-    size_t end = url.find_last_not_of(_T(" \t\r\n"));
-    url = url.substr(begin, end - begin + 1);
-
-    //未输入协议时，由WebView2控件自动补全为https协议
     m_pWebView2Control->Navigate(url);
     m_pWebView2Control->SetFocus();
     return true;

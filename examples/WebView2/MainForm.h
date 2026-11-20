@@ -62,7 +62,7 @@ private:
 
     /** 地址栏
     */
-    ui::RichEdit* m_pEditUrl;
+    ui::UrlBar* m_pUrlBar;
 
     /** 网页标题
     */

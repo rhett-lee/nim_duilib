@@ -24,6 +24,7 @@
 #include "duilib/Control/RichEdit.h"
 #include "duilib/Control/SpinBox.h"
 #include "duilib/Control/SearchBox.h"
+#include "duilib/Control/UrlBar.h"
 #include "duilib/Control/Switch.h"
 #include "duilib/Control/Badge.h"
 #include "duilib/Control/Avatar.h"
@@ -241,6 +242,7 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_RICHEDIT2, [](Window* pWindow) { return new RichEdit2(pWindow); }},
         {DUI_CTR_SPIN_BOX, [](Window* pWindow) { return new SpinBox(pWindow); }},
         {DUI_CTR_SEARCH_BOX, [](Window* pWindow) { return new SearchBox(pWindow); }},
+        {DUI_CTR_URL_BAR, [](Window* pWindow) { return new UrlBar(pWindow); }},
         {DUI_CTR_SWITCH, [](Window* pWindow) { return new Switch(pWindow); }},
         {DUI_CTR_BADGE, [](Window* pWindow) { return new Badge(pWindow); }},
         {DUI_CTR_AVATAR, [](Window* pWindow) { return new Avatar(pWindow); }},
