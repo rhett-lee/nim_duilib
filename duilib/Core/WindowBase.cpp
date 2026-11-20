@@ -1149,21 +1149,30 @@ void WindowBase::OnNativeFinalMessage()
 LRESULT WindowBase::OnNativeWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     LRESULT lResult = 0;
-    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-    //第一优先级：将消息发给过滤器进行过滤（可以通过设置bHandled为true来截获消息处理）
-    for (auto filter : m_aMessageFilters) {
-        if (filter == nullptr) {
-            continue;
+    if (!m_aMessageFilters.empty()) {
+        //有注册消息过滤器
+        std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+        //第一优先级：将消息发给过滤器进行过滤（可以通过设置bHandled为true来截获消息处理）
+        //使用快照遍历：过滤器在回调中可能增加/删除其它过滤器，直接遍历成员容器会导致迭代器失效
+        const std::vector<IUIMessageFilter*> messageFilters = m_aMessageFilters;
+        for (IUIMessageFilter* filter : messageFilters) {
+            if (filter == nullptr) {
+                continue;
+            }
+            lResult = filter->FilterMessage(uMsg, wParam, lParam, bHandled);
+            if (bHandled || windowFlag.expired()) {
+                //过滤器处理后截获此消息，不再进行派发
+                return lResult;
+            }
         }
-        lResult = filter->FilterMessage(uMsg, wParam, lParam, bHandled);
-        if (bHandled || windowFlag.expired()) {
-            //过滤器处理后截获此消息，不再进行派发
-            return lResult;
+
+        //第二优先级：派发给子类回调函数（子类可以通过设置bHandled为true来截获消息处理）   
+        if (!bHandled && !windowFlag.expired()) {
+            lResult = OnWindowMessage(uMsg, wParam, lParam, bHandled);
         }
     }
-
-    //第二优先级：派发给子类回调函数（子类可以通过设置bHandled为true来截获消息处理）   
-    if (!bHandled && !windowFlag.expired()) {
+    else {
+        //没有注册消息过滤器
         lResult = OnWindowMessage(uMsg, wParam, lParam, bHandled);
     }
     return lResult;

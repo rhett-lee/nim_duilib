@@ -1550,6 +1550,10 @@ DString& GlobalManager::ExpandVarStrings(DString& varValue) const
 
     bool hasPlaceholder = true;
     size_t currentPos = 0; // 记录当前查找位置，避免重复扫描
+    //限制展开次数：变量值自引用（如 A=${A}）或循环引用时，替换后占位符仍然存在，
+    //若不限制会形成死循环；超过上限后保留剩余占位符并退出
+    const size_t maxExpandCount = 100;
+    size_t expandCount = 0;
     while (hasPlaceholder) {
         hasPlaceholder = false;
         size_t start = varValue.find(_T("${"), currentPos); // 从当前位置开始查找
@@ -1569,6 +1573,10 @@ DString& GlobalManager::ExpandVarStrings(DString& varValue) const
         DString varName(varValue, start + 2, end - start - 2);
         auto it = m_defineMap.find(varName);
         if (it != m_defineMap.end()) {
+            if (++expandCount > maxExpandCount) {
+                //达到展开次数上限，停止展开，避免变量自引用/循环引用导致死循环
+                break;
+            }
             // 4. 执行替换（支持空值替换）
             const DString& replaceValue = it->second;
             varValue.replace(start, end - start + 1, replaceValue);
