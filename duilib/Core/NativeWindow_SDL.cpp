@@ -275,6 +275,59 @@ void NativeWindow_SDL::CheckWindowSnap(SDL_Window* window)
     }
 }
 
+namespace {
+    /** 判断SDL事件是否为鼠标输入事件
+    */
+    bool IsSDLMouseInputEvent(uint32_t eventType)
+    {
+        return (eventType == SDL_EVENT_MOUSE_MOTION) ||
+               (eventType == SDL_EVENT_MOUSE_BUTTON_DOWN) ||
+               (eventType == SDL_EVENT_MOUSE_BUTTON_UP) ||
+               (eventType == SDL_EVENT_MOUSE_WHEEL);
+    }
+
+    /** 获取鼠标事件在窗口内的坐标（窗口坐标系）
+    */
+    UiPoint GetSDLMouseEventPoint(const SDL_Event& sdlEvent)
+    {
+        UiPoint pt;
+        if (sdlEvent.type == SDL_EVENT_MOUSE_MOTION) {
+            pt.x = (int32_t)sdlEvent.motion.x;
+            pt.y = (int32_t)sdlEvent.motion.y;
+        }
+        else if ((sdlEvent.type == SDL_EVENT_MOUSE_BUTTON_DOWN) || (sdlEvent.type == SDL_EVENT_MOUSE_BUTTON_UP)) {
+            pt.x = (int32_t)sdlEvent.button.x;
+            pt.y = (int32_t)sdlEvent.button.y;
+        }
+        else {
+            pt.x = (int32_t)sdlEvent.wheel.mouse_x;
+            pt.y = (int32_t)sdlEvent.wheel.mouse_y;
+        }
+        return pt;
+    }
+
+    /** 将鼠标事件的坐标平移到目标窗口，并更新其窗口ID
+    */
+    void OffsetSDLMouseEvent(SDL_Event& sdlEvent, SDL_WindowID targetWindowID, int nOffsetX, int nOffsetY)
+    {
+        if (sdlEvent.type == SDL_EVENT_MOUSE_MOTION) {
+            sdlEvent.motion.windowID = targetWindowID;
+            sdlEvent.motion.x += (float)nOffsetX;
+            sdlEvent.motion.y += (float)nOffsetY;
+        }
+        else if ((sdlEvent.type == SDL_EVENT_MOUSE_BUTTON_DOWN) || (sdlEvent.type == SDL_EVENT_MOUSE_BUTTON_UP)) {
+            sdlEvent.button.windowID = targetWindowID;
+            sdlEvent.button.x += (float)nOffsetX;
+            sdlEvent.button.y += (float)nOffsetY;
+        }
+        else if (sdlEvent.type == SDL_EVENT_MOUSE_WHEEL) {
+            sdlEvent.wheel.windowID = targetWindowID;
+            sdlEvent.wheel.mouse_x += (float)nOffsetX;
+            sdlEvent.wheel.mouse_y += (float)nOffsetY;
+        }
+    }
+}
+
 bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
 {
     INativeWindow* pOwner = m_pOwner;
@@ -284,6 +337,33 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
     }
     //接口的生命周期标志
     std::weak_ptr<WeakFlag> ownerFlag = pOwner->GetWeakFlag();
+
+    //窗口的某些区域（例如浮层窗口的阴影区域）不接收鼠标消息：
+    //将这些区域上的鼠标消息转发给父窗口处理，与Windows平台命中测试的"穿透"效果一致
+    if (IsSDLMouseInputEvent(sdlEvent.type) && (m_sdlWindow != nullptr)) {
+        UiPoint pt = GetSDLMouseEventPoint(sdlEvent);
+        pOwner->OnNativeGetDpi().WindowSizeToClientSize(pt);
+        if (pOwner->OnNativeIsHitTestTransparent(pt)) {
+            SDL_Window* pParentWindow = SDL_GetWindowParent(m_sdlWindow);
+            if (pParentWindow != nullptr) {
+                NativeWindow_SDL* pParentNative = GetWindowFromID(SDL_GetWindowID(pParentWindow));
+                if (pParentNative != nullptr) {
+                    int nThisX = 0;
+                    int nThisY = 0;
+                    int nParentX = 0;
+                    int nParentY = 0;
+                    SDL_GetWindowPosition(m_sdlWindow, &nThisX, &nThisY);
+                    SDL_GetWindowPosition(pParentWindow, &nParentX, &nParentY);
+                    SDL_Event newEvent = sdlEvent;
+                    OffsetSDLMouseEvent(newEvent, SDL_GetWindowID(pParentWindow),
+                                        nThisX - nParentX, nThisY - nParentY);
+                    return pParentNative->OnSDLWindowEvent(newEvent);
+                }
+            }
+            //无法转发时，不处理该消息
+            return true;
+        }
+    }
 
     //消息首先转给过滤器(全部消息)
     bool bHandled = false;

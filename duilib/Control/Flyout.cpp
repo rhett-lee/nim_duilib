@@ -357,6 +357,25 @@ bool Flyout::IsPointInVisualArea(const UiPoint& ptScreen) const
     return !rcVisual.IsEmpty() && rcVisual.ContainsPt(ptScreen);
 }
 
+bool Flyout::IsHitTestTransparent(const UiPoint& pt) const
+{
+    if (!m_bShadowClickThrough) {
+        return false;
+    }
+    UiRect rcClient;
+    GetClientRect(rcClient);
+    if (rcClient.IsEmpty()) {
+        return false;
+    }
+    //窗口阴影占据的边缘区域不显示内容，也不接收鼠标消息
+    UiRect rcVisual = rcClient;
+    rcVisual.Deflate(GetCurrentShadowCorner());
+    if (rcVisual.IsEmpty()) {
+        return false;
+    }
+    return rcClient.ContainsPt(pt) && !rcVisual.ContainsPt(pt);
+}
+
 void Flyout::SetFollowAnchor(bool bFollow)
 {
     if (m_bFollowAnchor == bFollow) {

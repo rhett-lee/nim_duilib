@@ -69,6 +69,13 @@ public:
     */
     virtual bool OnNativeIsPtInCaptionBarControl(const UiPoint& pt) const = 0;
 
+    /** 判断鼠标命中测试：指定客户区坐标点的鼠标消息是否穿透到下层窗口
+    *   用于窗口的部分区域不接收鼠标消息的场景（例如浮层窗口的阴影区域）
+    * @param [in] pt 客户区坐标点
+    * @return 返回true表示该点不接收鼠标消息（穿透到下层窗口），返回false表示正常接收
+    */
+    virtual bool OnNativeIsHitTestTransparent(const UiPoint& /*pt*/) const { return false; }
+
     /** 判断是否含有最大化和最小化按钮
     * @param [out] bMinimizeBox 返回true表示含有最小化按钮
     * @param [out] bMaximizeBox 返回true表示含有最大化按钮

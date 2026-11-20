@@ -103,7 +103,7 @@ void WebView2Manager::SetLanguage(const DString& language)
 DString WebView2Manager::GetLanguage() const
 {
     //WebView2控件，在一个进程内不支持混合语言的页面，如果页面语言不匹配，则页面无法加载
-    static DString language = m_language;
+    static DString language = m_language; //此处必须使用static变量，否则切换语言后，新开标签页面都无法显示
     if (language.empty()) {
         //获取当前的默认语言: 如"zh-CN"、"en-US"等
         language = GlobalManager::GetTextById(DUILIB_LANGUAGE_NAME);

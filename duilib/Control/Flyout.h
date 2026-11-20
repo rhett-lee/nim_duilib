@@ -236,6 +236,11 @@ public:
     virtual void OnWindowDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewScaleFactor) override;
 
 protected:
+    /** 窗口阴影区域不接收鼠标消息：命中阴影区域时穿透到下层窗口
+    *   与 Windows 平台的阴影命中测试过滤等效（SDL 平台通过鼠标消息转发实现）
+    */
+    virtual bool IsHitTestTransparent(const UiPoint& pt) const override;
+
     /** 按锚点与方位重新计算浮层窗口的大小与位置
     *   子类在就地更新内容尺寸（例如候选项行数变化导致高度变化）后调用，
     *   从而复用当前窗口，避免销毁后重建

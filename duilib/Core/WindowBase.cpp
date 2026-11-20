@@ -1050,6 +1050,11 @@ bool WindowBase::OnNativeIsPtInCaptionBarControl(const UiPoint& pt) const
     return IsPtInCaptionBarControl(pt);
 }
 
+bool WindowBase::OnNativeIsHitTestTransparent(const UiPoint& pt) const
+{
+    return IsHitTestTransparent(pt);
+}
+
 bool WindowBase::OnNativeHasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) const
 {
     return HasMinMaxBox(bMinimizeBox, bMaximizeBox);

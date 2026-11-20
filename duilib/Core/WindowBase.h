@@ -927,6 +927,13 @@ protected:
     */
     virtual bool IsPtInCaptionBarControl(const UiPoint& pt) const = 0;
 
+    /** 判断鼠标命中测试：指定客户区坐标点的鼠标消息是否穿透到下层窗口
+    *   默认返回false（正常接收鼠标消息）；浮层窗口可重写本函数，使其阴影区域不接收鼠标消息
+    * @param [in] pt 客户区坐标点
+    * @return 返回true表示该点不接收鼠标消息（穿透到下层窗口），返回false表示正常接收
+    */
+    virtual bool IsHitTestTransparent(const UiPoint& /*pt*/) const { return false; }
+
     /** 判断是否含有最大化和最小化按钮
     * @param [out] bMinimizeBox 返回true表示含有最小化按钮
     * @param [out] bMaximizeBox 返回true表示含有最大化按钮
@@ -1376,6 +1383,7 @@ private:
     virtual void OnNativeGetCaptionRect(UiRect& captionRect) const override final;
     virtual void OnNativeGetSysMenuRect(UiRect& sysMenuRect) const override final;
     virtual bool OnNativeIsPtInCaptionBarControl(const UiPoint& pt) const override final;
+    virtual bool OnNativeIsHitTestTransparent(const UiPoint& pt) const override final;
     virtual bool OnNativeHasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) const override final;
     virtual bool OnNativeIsPtInMaximizeRestoreButton(const UiPoint& pt) const override final;
     virtual void OnNativeWindowEnterFullscreen() override final;
