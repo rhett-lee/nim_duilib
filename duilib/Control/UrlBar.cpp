@@ -3,7 +3,6 @@
 #include "duilib/Control/RichEdit.h"
 #include "duilib/Control/AutoComplete.h"
 #include "duilib/Core/Control.h"
-#include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Callback.h"
 #include "duilib/Core/Keycode.h"
@@ -57,9 +56,6 @@ UrlBar::UrlBar(Window* pWindow) :
     m_pIconInsecure(nullptr),
     m_bSecure(false),
     m_bEditModifiedByUser(false),
-    m_bUserTyping(false),
-    m_bSuppressNextFocusPopup(false),
-    m_nSuppressClearTaskId(0),
     m_bUpdatingPopup(false),
     m_bUserNavigated(false),
     m_pFlyout(nullptr),
@@ -71,10 +67,6 @@ UrlBar::UrlBar(Window* pWindow) :
 
 UrlBar::~UrlBar()
 {
-    if (m_nSuppressClearTaskId != 0) {
-        GlobalManager::Instance().Thread().CancelTask(m_nSuppressClearTaskId);
-        m_nSuppressClearTaskId = 0;
-    }
     ClosePopup();
 }
 
@@ -203,7 +195,7 @@ void UrlBar::OnInit()
     }
     AddItem(m_pEdit);
 
-    //转发内部编辑框事件：文本变化、回车提交、聚焦展开联想
+    //转发内部编辑框事件：文本变化、回车提交
     m_pEdit->AttachTextChanged([this](const EventArgs& /*args*/) {
         OnEditInput();
         return true;
@@ -213,24 +205,15 @@ void UrlBar::OnInit()
         return true;
         });
     m_pEdit->AttachSetFocus([this](const EventArgs& /*args*/) {
+        //焦点移入编辑框时重绘，更新本控件绘制的焦点框；
+        //参考 Edge 地址栏：获得焦点时不展开联想下拉，仅在输入时展开
         Invalidate();
-        OnEditFocus();
         return true;
         });
     m_pEdit->AttachKillFocus([this](const EventArgs& /*args*/) {
         //焦点移出编辑框时重绘，更新本控件绘制的焦点框
         Invalidate();
         OnEditKillFocus();
-        return true;
-        });
-    //点击编辑框：编辑框已持有焦点时不会再触发 SetFocus 事件，需要主动展开历史联想下拉
-    m_pEdit->AttachButtonDown([this](const EventArgs& /*args*/) {
-        OnEditClicked();
-        return true;
-        });
-    //点击地址栏的非编辑区域（安全图标、内边距等）：同样展开历史联想下拉
-    AttachButtonDown([this](const EventArgs& /*args*/) {
-        OnEditClicked();
         return true;
         });
 
@@ -287,21 +270,18 @@ void UrlBar::SetUrl(const DString& url)
     if (m_pEdit->IsFocused() && m_bEditModifiedByUser) {
         return;
     }
-    //用户正在地址栏交互（编辑框已获得焦点、联想浮层已展开）时，页面加载完成带来的
-    //URL 变化不应关闭浮层：否则点击地址栏展开浮层后，若页面恰好在此时加载完成，
-    //浮层会"闪一下就消失"（表现为点击地址栏没有反应）
+    //用户正在地址栏输入（编辑框已获得焦点、联想浮层已展开）时，页面加载完成带来的
+    //URL 变化不应关闭浮层：否则用户输入过程中若页面恰好在此时加载完成，
+    //浮层会"闪一下就消失"
     if (!(m_pEdit->IsFocused() && (m_pFlyout != nullptr) && m_pFlyout->IsOpen())) {
-        m_bSuppressNextFocusPopup = true;
         ClosePopup();
     }
     m_pEdit->SetTextNoEvent(url);
     const int32_t nTextLength = m_pEdit->GetTextLength();
     m_pEdit->SetSel(nTextLength, nTextLength);
     m_bEditModifiedByUser = false;
-    m_bUserTyping = false;
     m_bUserNavigated = false;
     UpdateSecureIcon();
-    ScheduleClearSuppressFlag();
 }
 
 DString UrlBar::GetEditText() const
@@ -462,65 +442,18 @@ DString UrlBar::GetHistoryFile() const
 void UrlBar::OnEditInput()
 {
     m_bEditModifiedByUser = true;
-    m_bUserTyping = true;
     //输入过程中实时更新安全状态图标（例如粘贴了https网址）
     UpdateSecureIcon();
-    //实时刷新联想浮层
+    //输入时按文本过滤历史记录并展开联想浮层
     UpdatePopup();
     //转发文本变化事件
     SendEvent(kEventTextChanged);
-}
-
-void UrlBar::OnEditFocus()
-{
-    //选中候选项回填后会再次 SetFocus，此时不应重新展开浮层
-    if (m_bSuppressNextFocusPopup) {
-        m_bSuppressNextFocusPopup = false;
-        return;
-    }
-    //聚焦时展示全部历史记录；后续输入时再按文本过滤
-    //浮层已展开时保持现状：编辑框与浮层之间瞬时焦点变化不应重建浮层
-    if ((m_pFlyout != nullptr) && m_pFlyout->IsOpen()) {
-        return;
-    }
-    m_bUserTyping = false;
-    UpdatePopup();
 }
 
 void UrlBar::OnEditKillFocus()
 {
     //编辑框失去焦点后无法继续输入，联想浮层必须关闭
     ClosePopup();
-}
-
-void UrlBar::OnEditClicked()
-{
-    if (!m_bHistoryEnabled || (m_pEdit == nullptr)) {
-        return;
-    }
-    //浮层已展开时保持现状，不重建
-    if ((m_pFlyout != nullptr) && m_pFlyout->IsOpen()) {
-        return;
-    }
-    //用户主动点击地址栏，清除"聚焦不展开"的抑制标记
-    m_bSuppressNextFocusPopup = false;
-    m_bUserTyping = false;
-    UpdatePopup();
-}
-
-void UrlBar::ScheduleClearSuppressFlag()
-{
-    if (m_nSuppressClearTaskId != 0) {
-        GlobalManager::Instance().Thread().CancelTask(m_nSuppressClearTaskId);
-        m_nSuppressClearTaskId = 0;
-    }
-    m_nSuppressClearTaskId = GlobalManager::Instance().Thread().PostDelayedTask(
-        ui::kThreadUI,
-        UiBind(this, [this]() {
-            m_nSuppressClearTaskId = 0;
-            m_bSuppressNextFocusPopup = false;
-        }),
-        100);
 }
 
 bool UrlBar::HandleEditKeyDown(const EventArgs& msg)
@@ -575,9 +508,7 @@ void UrlBar::CommitInput()
         return;
     }
 
-    m_bSuppressNextFocusPopup = true;
     ClosePopup();
-    m_bUserTyping = false;
     m_bUserNavigated = false;
     m_bEditModifiedByUser = false;
     m_committedUrl = url.c_str();
@@ -594,7 +525,6 @@ void UrlBar::CommitInput()
         m_pEdit->SetFocus();
     }
     SendEvent(kEventUrlChanged);
-    ScheduleClearSuppressFlag();
 }
 
 void UrlBar::CancelEdit()
@@ -602,10 +532,8 @@ void UrlBar::CancelEdit()
     if (m_pEdit == nullptr) {
         return;
     }
-    m_bSuppressNextFocusPopup = true;
     ClosePopup();
     m_bEditModifiedByUser = false;
-    m_bUserTyping = false;
     m_bUserNavigated = false;
     //恢复为最近一次提交的网址，并全选便于重新输入
     m_pEdit->SetTextNoEvent(DString(m_committedUrl.c_str()));
@@ -613,14 +541,13 @@ void UrlBar::CancelEdit()
     m_pEdit->SetSel(0, nTextLength);
     UpdateSecureIcon();
     SendEvent(kEventUrlCancel);
-    ScheduleClearSuppressFlag();
 }
 
 void UrlBar::UpdatePopup()
 {
     //防重入：AutoCompleteFlyout::ShowAt 创建浮层窗口时可能短暂夺走父窗口前台焦点，
-    //框架随即恢复父窗口焦点，这会同步触发编辑框 kEventSetFocus → OnEditFocus →
-    //UpdatePopup 嵌套调用；不阻断会重复创建浮层
+    //焦点恢复时会同步触发编辑框事件，并可能间接引发 UpdatePopup 嵌套调用；
+    //不阻断会重复创建浮层
     if (m_bUpdatingPopup) {
         return;
     }
@@ -684,11 +611,6 @@ void UrlBar::OpenPopup()
         }, std::placeholders::_1));
     pFlyout->AttachClosed(UiBind(this, [this](Flyout::CloseReason /*reason*/) {
         m_pFlyout = nullptr;
-        //浮层关闭后框架会把原生键盘焦点交还本窗口，部分场景（如点击网页内容时
-        //编辑框仍保持焦点）会再次触发 kEventSetFocus → OnEditFocus → 重新展开浮层；
-        //这里统一用一次性抑制标记挡住，避免浮层“点击外部后立即重新弹出”
-        m_bSuppressNextFocusPopup = true;
-        ScheduleClearSuppressFlag();
         }, std::placeholders::_1));
 
     //ShowAt 失败时对象已被框架销毁，回调不会再触发
@@ -715,9 +637,7 @@ void UrlBar::OnCandidateSelected(size_t nIndex)
     }
     const DString url = m_candidates[nIndex].c_str();
 
-    m_bSuppressNextFocusPopup = true;
     ClosePopup();
-    m_bUserTyping = false;
     m_bUserNavigated = false;
     m_bEditModifiedByUser = false;
     m_committedUrl = url.c_str();
@@ -733,22 +653,22 @@ void UrlBar::OnCandidateSelected(size_t nIndex)
         m_pEdit->SetFocus();
     }
     SendEvent(kEventUrlChanged);
-    ScheduleClearSuppressFlag();
 }
 
 void UrlBar::BuildCandidates()
 {
     m_candidates.clear();
-    if (!m_bHistoryEnabled || m_history.empty()) {
+    if (!m_bHistoryEnabled || m_history.empty() || (m_pEdit == nullptr)) {
         return;
     }
-    DString input;
-    if (m_bUserTyping && (m_pEdit != nullptr)) {
-        input = StringUtil::Trim(m_pEdit->GetText().c_str());
+    const DString input = StringUtil::Trim(m_pEdit->GetText().c_str());
+    if (input.empty()) {
+        //地址栏没有输入内容时不展开联想下拉（仅在输入时展示匹配的历史记录）
+        return;
     }
     m_candidates.reserve(m_history.size());
     for (const UiString& historyUrl : m_history) {
-        if (input.empty() || MatchItem(historyUrl.c_str(), input)) {
+        if (MatchItem(historyUrl.c_str(), input)) {
             m_candidates.push_back(historyUrl);
         }
     }
@@ -756,9 +676,6 @@ void UrlBar::BuildCandidates()
 
 bool UrlBar::MatchItem(const DString& item, const DString& input) const
 {
-    if (input.empty()) {
-        return true;
-    }
     const DString lowerItem = StringUtil::MakeLowerString(item);
     const DString lowerInput = StringUtil::MakeLowerString(input);
     return lowerItem.find(lowerInput) != DString::npos;
