@@ -2007,6 +2007,10 @@ size_t ListBox::EnsureVisible(size_t iIndex, ListBoxVerVisible vVisibleType, Lis
 
 bool ListBox::AddItem(Control* pControl)
 {
+    if (pControl != nullptr) {
+        //列表项不参与TAB键的焦点切换
+        pControl->SetTabStop(false);
+    }
     IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(pControl);
     if( pListItem != nullptr) {
         pListItem->SetOwner(this);
@@ -2022,6 +2026,10 @@ bool ListBox::AddItem(Control* pControl)
 
 bool ListBox::AddItemAt(Control* pControl, size_t iIndex)
 {
+    if (pControl != nullptr) {
+        //列表项不参与TAB键的焦点切换
+        pControl->SetTabStop(false);
+    }
     if (!ScrollBox::AddItemAt(pControl, iIndex)) {
         return false;
     }
