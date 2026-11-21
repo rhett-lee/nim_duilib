@@ -43,11 +43,25 @@ private:
     */
     UiRect GetComboWndRect() const;
 
+    /** 设置键盘导航时的当前项（更新高亮状态，并保证该项可见）
+    */
+    void SetKeyIndex(size_t nIndex);
+
+    /** 切换键盘导航当前项的选中状态
+    */
+    void ToggleKeyIndexItem();
+
+    /** 清除键盘导航的当前项高亮
+    */
+    void ResetKeyIndex();
+
 private:
     //关联的宿主控件（弱引用，宿主析构后自动失效）
     ControlPtrT<CheckCombo> m_pOwner;
     //是否已经关闭
     bool m_bIsClosed = false;
+    //键盘导航的当前项索引（Box::InvalidIndex 表示未定位）
+    size_t m_nKeyIndex = Box::InvalidIndex;
 };
 
 void CCheckComboWnd::InitComboWnd(CheckCombo* pOwner)
@@ -73,6 +87,11 @@ void CCheckComboWnd::InitComboWnd(CheckCombo* pOwner)
 
     ShowWindow(ui::kSW_SHOW_NORMAL);
     KeepParentActive();
+
+    //初始化键盘导航的当前项
+    if (pOwner->GetListBox()->GetItemCount() > 0) {
+        SetKeyIndex(0);
+    }
 
     //发送一个事件
     pOwner->SendEvent(kEventWindowCreate);
@@ -161,6 +180,75 @@ UiRect CCheckComboWnd::GetComboWndRect() const
     return rc;
 }
 
+void CCheckComboWnd::SetKeyIndex(size_t nIndex)
+{
+    CheckCombo* pOwner = m_pOwner.get();
+    if (pOwner == nullptr) {
+        return;
+    }
+    ScrollBox* pListBox = pOwner->GetListBox();
+    if (pListBox == nullptr) {
+        return;
+    }
+    ListBox* pDropListBox = dynamic_cast<ListBox*>(pListBox);
+    if (m_nKeyIndex != nIndex) {
+        if (Box::IsValidItemIndex(m_nKeyIndex)) {
+            Control* pOldItem = pListBox->GetItemAt(m_nKeyIndex);
+            if (pOldItem != nullptr) {
+                pOldItem->SetState(kControlStateNormal);
+            }
+        }
+        m_nKeyIndex = nIndex;
+        Control* pNewItem = pListBox->GetItemAt(m_nKeyIndex);
+        if (pNewItem != nullptr) {
+            pNewItem->SetState(kControlStateHovered);
+        }
+    }
+    if (Box::IsValidItemIndex(m_nKeyIndex) && (pDropListBox != nullptr)) {
+        pDropListBox->EnsureVisible(m_nKeyIndex);
+    }
+}
+
+void CCheckComboWnd::ToggleKeyIndexItem()
+{
+    CheckCombo* pOwner = m_pOwner.get();
+    if ((pOwner == nullptr) || !Box::IsValidItemIndex(m_nKeyIndex)) {
+        return;
+    }
+    ScrollBox* pListBox = pOwner->GetListBox();
+    if (pListBox == nullptr) {
+        return;
+    }
+    Control* pItem = pListBox->GetItemAt(m_nKeyIndex);
+    if (pItem == nullptr) {
+        return;
+    }
+    CheckBox* pCheckBox = dynamic_cast<CheckBox*>(pItem);
+    if (pCheckBox != nullptr) {
+        pCheckBox->Selected(!pCheckBox->IsSelected(), true);
+        return;
+    }
+    CheckBoxBox* pCheckBoxBox = dynamic_cast<CheckBoxBox*>(pItem);
+    if (pCheckBoxBox != nullptr) {
+        pCheckBoxBox->Selected(!pCheckBoxBox->IsSelected(), true);
+    }
+}
+
+void CCheckComboWnd::ResetKeyIndex()
+{
+    CheckCombo* pOwner = m_pOwner.get();
+    if ((pOwner != nullptr) && Box::IsValidItemIndex(m_nKeyIndex)) {
+        ScrollBox* pListBox = pOwner->GetListBox();
+        if (pListBox != nullptr) {
+            Control* pItem = pListBox->GetItemAt(m_nKeyIndex);
+            if (pItem != nullptr) {
+                pItem->SetState(kControlStateNormal);
+            }
+        }
+    }
+    m_nKeyIndex = Box::InvalidIndex;
+}
+
 void CCheckComboWnd::UpdateComboWnd()
 {
     UiRect rc = GetComboWndRect();
@@ -176,6 +264,7 @@ void CCheckComboWnd::CloseComboWnd()
         return;
     }
     m_bIsClosed = true;
+    ResetKeyIndex();
     Box* pRootBox = GetRoot();
     CheckCombo* pOwner = m_pOwner.get();
     if ((pOwner != nullptr) && (pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
@@ -198,6 +287,7 @@ void CCheckComboWnd::CloseComboWndOnOwnerDestroy()
         return;
     }
     m_bIsClosed = true;
+    ResetKeyIndex();
     Box* pRootBox = GetRoot();
     CheckCombo* pOwner = m_pOwner.get();
     if (pRootBox != nullptr) {
@@ -285,9 +375,40 @@ void CCheckComboWnd::OnCloseWindow()
 LRESULT CCheckComboWnd::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
     LRESULT lResult = BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
-    if (vkCode == kVK_ESCAPE) {
-        //按住ESC键，取消
+    if ((vkCode == kVK_ESCAPE) || (vkCode == kVK_RETURN)) {
+        //按ESC键，取消；按回车键，正常关闭
         CloseComboWnd();
+        return lResult;
+    }
+    CheckCombo* pOwner = m_pOwner.get();
+    if ((pOwner == nullptr) || (pOwner->GetListBox() == nullptr)) {
+        return lResult;
+    }
+    const size_t itemCount = pOwner->GetListBox()->GetItemCount();
+    if (itemCount == 0) {
+        return lResult;
+    }
+    if ((vkCode == kVK_DOWN) || (vkCode == kVK_UP)) {
+        //向上/向下箭头：切换键盘导航的当前项
+        size_t nIndex = m_nKeyIndex;
+        if (!Box::IsValidItemIndex(nIndex) || (nIndex >= itemCount)) {
+            nIndex = (vkCode == kVK_DOWN) ? 0 : (itemCount - 1);
+        }
+        else if (vkCode == kVK_DOWN) {
+            if (nIndex + 1 < itemCount) {
+                ++nIndex;
+            }
+        }
+        else {
+            if (nIndex > 0) {
+                --nIndex;
+            }
+        }
+        SetKeyIndex(nIndex);
+    }
+    else if (vkCode == kVK_SPACE) {
+        //按空格键：切换当前项的选中状态
+        ToggleKeyIndexItem();
     }
     return lResult;
 }
@@ -314,6 +435,9 @@ CheckCombo::CheckCombo(Window* pWindow) :
     m_iOrgHeight(CHECK_COMBO_DEFAULT_HEIGHT),
     m_nShadowType(ShadowType::kShadowSmallRound)
 {
+    //默认参与TAB键切换（可通过tab_stop属性关闭），并显示焦点框
+    SetTabStop(true);
+    SetShowFocusedRect(true);
     SetDropBoxSize({0, 150}, true);
     SetMaxHeight(m_iOrgHeight * 3, true);
     SetMinHeight(m_iOrgHeight, true);
@@ -322,6 +446,7 @@ CheckCombo::CheckCombo(Window* pWindow) :
     m_pDropList->EnableScrollBar();
     
     m_pList.reset(new ui::ListBox(pWindow, new ui::VTileLayout));
+    m_pList->SetNoFocus();//内部列表不接收焦点，焦点由CheckCombo自己管理
     m_pList->AttachButtonDown(UiBind(&CheckCombo::OnListButtonDown, this, std::placeholders::_1));
     m_pList->SetMouseChildEnabled(false);
     m_pList->EnableScrollBar();
@@ -344,6 +469,35 @@ CheckCombo::~CheckCombo()
 }
 
 DString CheckCombo::GetType() const { return DUI_CTR_CHECK_COMBO; }
+
+uint32_t CheckCombo::GetControlFlags() const
+{
+    //支持TAB键切换焦点（Box基类默认不支持）
+    return (IsEnabled() && IsKeyboardEnabled() && IsAllowTabStop()) ? UIFLAG_TABSTOP : UIFLAG_DEFAULT;
+}
+
+bool CheckCombo::OnKeyDown(const EventArgs& msg)
+{
+    if (!IsEnabled()) {
+        return false;
+    }
+    const VirtualKeyCode vkCode = (VirtualKeyCode)msg.vkCode;
+    if (m_pCheckComboWnd != nullptr) {
+        //下拉列表显示时，按键由下拉窗口处理
+        if (vkCode == kVK_ESCAPE) {
+            m_pCheckComboWnd->CloseComboWnd();
+            return true;
+        }
+        return false;
+    }
+    if ((vkCode == kVK_DOWN) || (vkCode == kVK_UP) || (vkCode == kVK_RETURN) ||
+        (vkCode == kVK_SPACE) || (vkCode == kVK_F4)) {
+        //按Up/Down、Enter、空格、F4 打开下拉列表
+        Activate(nullptr);
+        return true;
+    }
+    return false;
+}
 
 void CheckCombo::SetAttribute(const DString& strName, const DString& strValue2)
 {
@@ -773,7 +927,11 @@ void CheckCombo::ClearAll()
 
 bool CheckCombo::OnListButtonDown(const EventArgs& args)
 {
-    Activate(&args);
+    //鼠标点击内部列表区域时：先获取焦点，再打开下拉列表
+    if (IsPointInWithScrollOffset(args.ptMouse)) {
+        SetFocus();
+        Activate(&args);
+    }
     return true;
 }
 

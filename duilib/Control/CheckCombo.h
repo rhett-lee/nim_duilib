@@ -24,6 +24,8 @@ public:
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void Activate(const EventArgs* pMsg) override;
     virtual void SetPos(UiRect rc) override;
+    virtual uint32_t GetControlFlags() const override;
+    virtual bool OnKeyDown(const EventArgs& msg) override;
 
     /** DPI发生变化，更新控件大小和布局
     * @param [in] nOldDpiScale 旧的DPI缩放百分比

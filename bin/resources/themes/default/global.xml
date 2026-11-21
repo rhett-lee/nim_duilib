@@ -365,7 +365,7 @@
     <Class name="filter_combo" class="combo"/>
     <Class name="check_combo" class="combo_basic"
                               dropbox="padding='4,4,4,4' bkcolor='bg_menu' border_size='0,0,0,0'"
-                              dropbox_item_class="width='stretch' height='24' text_padding='24,0,8,0' text_align='left,vcenter'
+                              dropbox_item_class="width='stretch' height='24' text_padding='24,0,8,0' text_align='left,vcenter' normal_first='true'
                                                   hovered_color='bg_list_item_hovered'
                                                   normal_image={file='${PATH_CHECKBOX}/checkbox-outline-unchecked.svg' width='16' height='16' valign='center'} 
                                                   disabled_image={file='${PATH_CHECKBOX}/checkbox-outline-unchecked.svg' width='16' height='16' valign='center' fade='80'}
