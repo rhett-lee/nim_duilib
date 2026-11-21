@@ -347,6 +347,12 @@ protected:
     */
     virtual bool OnWindowKillFocus(const EventArgs& args) override;
 
+    /** 焦点丢失后延迟关闭下拉列表
+    * 下拉窗口显示/激活过程中，焦点会经历短暂的切换，立即关闭会导致
+    * 下拉列表展开后马上又被关闭；延迟后再确认焦点状态，避免误关闭。
+    */
+    void HideComboListOnFocusLost();
+
     /** 窗口移动
     * @param[in] args 参数列表
     * @return 始终返回 true
@@ -438,6 +444,10 @@ private:
     /** 鼠标按下的时候，是否正在显示下拉列表
     */
     bool m_bDropListShown;
+
+    /** 焦点丢失后，延迟关闭下拉列表的定时器ID（0表示无）
+    */
+    size_t m_nFocusLostTimerId = 0;
 };
 
 } // namespace ui

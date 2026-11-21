@@ -6,9 +6,14 @@
 #include "duilib/Core/WindowCreateParam.h"
 #include "duilib/Animation/PopupAnimation.h"
 #include "duilib/Animation/AnimationPlayer.h"
+#include "duilib/Core/GlobalManager.h"
 
 namespace ui
 {
+
+/** 焦点丢失后，延迟确认焦点状态的时间（毫秒）
+*/
+constexpr uint32_t kFocusLostCheckDelayMs = 20;
 
 /** 下拉列表窗口
 */
@@ -1233,7 +1238,7 @@ bool Combo::OnEditKillFocus(const EventArgs& /*args*/)
             return true;
         }
     }
-    HideComboList();
+    HideComboListOnFocusLost();
     Invalidate();
     //将RichEdit控件的焦点状态，作为Combo的焦点状态
     SendEvent(kEventKillFocus);
@@ -1247,7 +1252,7 @@ bool Combo::OnWindowKillFocus(const EventArgs& /*args*/)
             return true;
         }
     }
-    HideComboList();
+    HideComboListOnFocusLost();
     return true;
 }
 
@@ -1334,6 +1339,45 @@ void Combo::HideComboList()
 {
     if(m_pWindow != nullptr) {
         m_pWindow->CloseComboWnd(false, false);
+    }
+}
+
+void Combo::HideComboListOnFocusLost()
+{
+    if (m_pWindow == nullptr) {
+        return;
+    }
+    if (m_nFocusLostTimerId != 0) {
+        GlobalManager::Instance().Timer().RemoveTimer(m_nFocusLostTimerId);
+        m_nFocusLostTimerId = 0;
+    }
+    Window* pComboWnd = m_pWindow;
+    m_nFocusLostTimerId = GlobalManager::Instance().Timer().AddTimer(
+        GetWeakFlag(),
+        [this, pComboWnd]() {
+            m_nFocusLostTimerId = 0;
+            if ((m_pWindow == nullptr) || (m_pWindow != pComboWnd)) {
+                //下拉窗口已经关闭或者被新的下拉窗口替换
+                return;
+            }
+            if (m_pWindow->IsWindowFocused() || m_pWindow->IsWindowForeground()) {
+                //焦点在下拉窗口中，由下拉窗口自己处理关闭
+                return;
+            }
+            if ((m_pEditControl != nullptr) && m_pEditControl->IsFocused()) {
+                //焦点仍在本控件的编辑框中，保持下拉列表展开
+                return;
+            }
+            if (IsFocused()) {
+                //焦点仍在本控件
+                return;
+            }
+            HideComboList();
+        },
+        kFocusLostCheckDelayMs, 1);
+    if (m_nFocusLostTimerId == 0) {
+        //定时器创建失败：直接关闭
+        HideComboList();
     }
 }
 

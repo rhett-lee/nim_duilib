@@ -367,7 +367,9 @@ void CCheckComboWnd::OnCloseWindow()
     //宿主控件可能已在下拉窗口关闭完成前被销毁，需判空
     if ((pOwner != nullptr) && (pOwner->GetWindow() != nullptr) && pOwner->GetWindow()->IsWindow()) {
         pOwner->SetPos(pOwner->GetPos());
-        pOwner->SetFocus();
+        if (IsWindowForeground() || IsWindowFocused()) {
+            pOwner->SetFocus();
+        }
     }
     BaseClass::OnCloseWindow();
 }
