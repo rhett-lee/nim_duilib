@@ -1073,12 +1073,78 @@ bool Combo::OnEditButtonUp(const EventArgs& /*args*/)
 
 bool Combo::OnEditKeyDown(const EventArgs& args)
 {
-    if (m_comboType == kCombo_DropList) {
+    const VirtualKeyCode vkCode = (VirtualKeyCode)args.vkCode;
+    const bool bListShown = (m_pWindow != nullptr) && !m_pWindow->IsClosingWnd();
+    const bool bAltDownOpen = (vkCode == kVK_DOWN) && IsKeyDown(args, ModifierKey::kAlt);
+
+    //按方向键打开下拉列表时：如果没有选中项，则定位到首项/末项
+    auto selectOnOpen = [this](bool bSelectLast) {
+        if (Box::IsValidItemIndex(m_treeView.GetCurSel())) {
+            return;
+        }
+        const size_t itemCount = GetCount();
+        if (itemCount == 0) {
+            return;
+        }
+        m_treeView.SelectItem(bSelectLast ? (itemCount - 1) : 0, false, true);
+        };
+
+    if (vkCode == kVK_ESCAPE) {
+        //按住ESC键，取消
+        if (bListShown) {
+            m_pWindow->CloseComboWnd(true, false);
+            return false;
+        }
         return true;
     }
-    if (args.wParam == kVK_DOWN) {
-        if ((m_pWindow == nullptr) || m_pWindow->IsClosingWnd()) {
-            //按向下箭头的时候: 如果下拉列表未显示，则显示下拉列表
+
+    if (m_comboType == kCombo_DropList) {
+        //不可编辑模式：Alt+Down、F4 在打开/关闭下拉列表之间切换
+        if ((vkCode == kVK_F4) || bAltDownOpen) {
+            if (bListShown) {
+                m_pWindow->CloseComboWnd(false, false);
+            }
+            else {
+                ShowComboList();
+            }
+            return false;
+        }
+        //不可编辑模式：Up/Down 打开下拉列表并选择，Enter/空格打开或确认
+        if ((vkCode == kVK_UP) || (vkCode == kVK_DOWN) ||
+            (vkCode == kVK_RETURN) || (vkCode == kVK_SPACE)) {
+            if (!bListShown) {
+                if (vkCode == kVK_UP) {
+                    selectOnOpen(true);
+                }
+                else if (vkCode == kVK_DOWN) {
+                    selectOnOpen(false);
+                }
+                ShowComboList();
+            }
+            else if ((vkCode == kVK_RETURN) || (vkCode == kVK_SPACE)) {
+                m_pWindow->CloseComboWnd(false, false);
+            }
+            return false;
+        }
+        return true;
+    }
+
+    //可编辑模式(kCombo_DropDown)：Alt+Down、F4 在打开/关闭下拉列表之间切换
+    if ((vkCode == kVK_F4) || bAltDownOpen) {
+        if (bListShown) {
+            m_pWindow->CloseComboWnd(false, false);
+        }
+        else {
+            ShowComboList();
+        }
+        return false;
+    }
+
+    //可编辑模式(kCombo_DropDown)
+    if (vkCode == kVK_DOWN) {
+        if (!bListShown) {
+            //按向下箭头打开下拉列表时，选中项定位到首项
+            selectOnOpen(false);
             ShowComboList();
         }
         else {
@@ -1091,7 +1157,7 @@ bool Combo::OnEditKeyDown(const EventArgs& args)
                     m_treeView.SelectItem(0, false, true);
                 }
             }
-            else {                
+            else {
                 if ((itemCount > 0) && (nCurSel < itemCount)) {
                     if (nCurSel == (itemCount - 1)) {
                         //如果已经是最后一项，则取消选择
@@ -1104,10 +1170,16 @@ bool Combo::OnEditKeyDown(const EventArgs& args)
                 }
             }
         }
+        return false;
     }
-    else if (args.wParam == kVK_UP) {
+    else if (vkCode == kVK_UP) {
         //按向上箭头
-        if ((m_pWindow != nullptr) && !m_pWindow->IsClosingWnd()) {
+        if (!bListShown) {
+            //打开下拉列表，并定位到末项
+            selectOnOpen(true);
+            ShowComboList();
+        }
+        else {
             const size_t itemCount = GetCount();
             const size_t nCurSel = m_treeView.GetCurSel();
             if (Box::IsValidItemIndex(nCurSel)) {
@@ -1125,18 +1197,15 @@ bool Combo::OnEditKeyDown(const EventArgs& args)
                 m_treeView.SelectItem(itemCount - 1, false, true);
             }
         }
+        return false;
     }
-    else if (args.wParam == kVK_ESCAPE) {
-        //按住ESC键，取消
-        if (m_pWindow != nullptr) {
-            m_pWindow->CloseComboWnd(true, false);
-        }
-    }
-    else if (args.wParam == kVK_RETURN) {
+    else if (vkCode == kVK_RETURN) {
         //按回车键，关闭窗口，正常关闭
-        if (m_pWindow != nullptr) {
+        if (bListShown) {
             m_pWindow->CloseComboWnd(false, false);
+            return false;
         }
+        return true;
     }
     return true;
 }
