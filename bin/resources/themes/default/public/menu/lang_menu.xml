@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Window shadow_type="menu_round" shadow_border_size="1" shadow_border_color="border_window">
+<Window class="menu_window">
     <!-- 选中的语言菜单项前面的勾选图标样式 -->
     <Class name="menu_language_select_class" class="menu_selected_check_line"/>
     <MenuListBox class="menu" padding="0,0,0,6">

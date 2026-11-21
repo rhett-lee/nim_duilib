@@ -286,7 +286,7 @@ DString CalendarFlyout::BuildXml() const
     }
 
     DString xml;
-    xml += StringUtil::Printf(_T("<Window size=\"%d,%d\" caption=\"0,0,0,0\" use_system_caption=\"false\" shadow_type=\"default\" shadow_attached=\"true\" layered_window=\"true\" size_box=\"0,0,0,0\">\n"),
+    xml += StringUtil::Printf(_T("<Window class=\"popup_window\" size=\"%d,%d\">\n"),
                              width, height);
     xml += StringUtil::Printf(_T("  <VBox bkcolor=\"bg_window_card\" width=\"%d\" height=\"%d\" padding=\"%d,%d,%d,%d\">\n"),
                              width, height, padding, padding, padding, padding);

@@ -573,6 +573,15 @@
                                         hover_bg_color="bg_list_item_hovered" selected_bg_color="bg_list_item_selected"
                                         divider_color="border_split_level1" chevron_color="color_gray"
                                         scrollbar_color="color_gray"/>
+    <!-- 浮层窗口的公共属性（菜单、提示、下拉框、Toast、浮层卡片等弹出窗口复用）：
+         统一使用系统标题栏外的自绘圆角阴影与CPU绘制后端，避免受全局渲染后端配置影响 -->
+    <Class name="popup_window" use_system_caption="false" render_backend_type="CPU"
+                              shadow_type="small_round" layered_window="true" size_box="0,0,0,0"
+                              shadow_border_size="2" shadow_border_color="border_window"/>
+    <!-- 菜单窗口的公共属性：菜单使用 menu_round 圆角阴影与统一边框 -->
+    <Class name="menu_window" use_system_caption="false" render_backend_type="CPU"
+                              shadow_type="menu_round" layered_window="true" size_box="0,0,0,0"
+                              shadow_border_size="2" shadow_border_color="border_window"/>
     <!-- 菜单 -->
     <Class name="menu" width="auto" height="auto" bkcolor="bg_menu"/>
     <Class name="menu_element" height="32" padding="20,0,20,0" margin="1,1,1,1" 
@@ -788,9 +797,7 @@
                                hovered_border_color="border_richedit_hovered"/>
     <Class name="auto_complete_edit" class="richedit_base" width="stretch" height="stretch"
                                     text_padding="4,0,4,0" prompt_mode="true" prompt_color="text_richedit_prompt"/>
-    <Class name="auto_complete_flyout" width="260" height="auto" bkcolor="bg_window_card"
-                                      border_size="1" border_color="border_window" border_round="6,6"
-                                      padding="1,1,1,1"/>
+    <Class name="auto_complete_flyout" width="260" height="auto" bkcolor="bg_window_card" border_round="4,4"/>
     <Class name="auto_complete_list" bkcolor="bg_window_card" vscrollbar="true" paint_selected_colors="true"/>
     <Class name="auto_complete_item" text_padding="10,0,10,0" fade_hovered="false"
                                     text_color="text_default" selected_text_color="text_default"
@@ -1183,7 +1190,7 @@
                              button2_pressed_image="file='${PATH_SCROLLBAR_STANDARD}/hscrollbar/btn_right_pressed.svg' height='${SIZE_SCROLLBAR_HEIGHT}' svg_replace_colors='rgba(180,180,180,0.7)|bg_scrollbar_btn_pressed;rgba(80,80,80,1.0)|bg_scrollbar_btn_arrow_pressed'"
                              button2_disabled_image="file='${PATH_SCROLLBAR_STANDARD}/hscrollbar/btn_right_disabled.svg' height='${SIZE_SCROLLBAR_HEIGHT}' svg_replace_colors='rgba(220,220,220,0.1)|bg_scrollbar_btn_disabled;rgba(120,120,120,0.4)|bg_scrollbar_btn_arrow_disabled'" />
 
-    <!-- Flyout浮层容器：浮层窗口的内容根容器（窗口级阴影由XML根节点 shadow_attached="true" 配置） -->
+    <!-- Flyout浮层容器：浮层窗口的内容根容器（窗口级公共属性由 popup_window 样式配置） -->
     <Class name="flyout" width="240" height="auto" bkcolor="bg_window_card"
                             border_size="1" border_color="border_window" border_round="8,8"
                             padding="12,12,12,12"/>

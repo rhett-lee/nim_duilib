@@ -1470,7 +1470,7 @@ void WindowBuilder::ParseMenuBarItemXmlNode(const pugi::xml_node& node, Control*
             };
             xml_string_writer writer;
             menuNode.print(writer, _T("    "), pugi::format_default);
-            menuXmlPath = _T("<Window shadow_type = \"menu_round\" shadow_border_size = \"1\" shadow_border_color = \"border_window\">");
+            menuXmlPath = _T("<Window class = \"menu_window\">");
             menuXmlPath += writer.result;
             menuXmlPath += _T("</Window>");
         }

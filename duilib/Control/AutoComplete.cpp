@@ -82,8 +82,7 @@ bool AutoCompleteFlyout::ShowAt(Control* pAnchor, const std::vector<UiString>& i
     //内嵌皮肤 XML：Window size 为不含阴影的客户区尺寸，框架自动附加阴影
     //初始尺寸按当前候选项行数给出；后续文本变化时通过 UpdateItems 就地调整高度，不重建窗口
     DString sXml = StringUtil::Printf(
-        _T("<Window size=\"%d,%d\" caption=\"0,0,0,0\" use_system_caption=\"false\" ")
-        _T("shadow_type=\"default\" shadow_attached=\"true\" layered_window=\"true\" size_box=\"0,0,0,0\">")
+        _T("<Window class=\"popup_window\" size=\"%d,%d\">")
         _T("<VBox class=\"auto_complete_flyout\" name=\"auto_complete_content\" width=\"%d\" height=\"%d\">")
         _T("<VListBox class=\"auto_complete_list\" name=\"auto_complete_list\" ")
         _T("width=\"stretch\" height=\"stretch\"/>")

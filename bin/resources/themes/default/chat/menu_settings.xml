@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- chat 示例：左下角设置按钮弹出的菜单 -->
-<Window shadow_type="menu_round" shadow_border_size="1" shadow_border_color="border_window">
+<Window class="menu_window">
     <MenuListBox class="menu" name="main_menu" padding="0,4,0,4">
         <MenuItem class="menu_element" name="menu_new_chat" width="180">
             <Label class="menu_text" text_id="STRID_CHAT_MENU_NEW_CHAT" margin="12,0,0,0"

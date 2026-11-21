@@ -1,8 +1,11 @@
 #include "WindowAttributes.h"
 #include "duilib/Core/DpiManager.h"
+#include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/third_party/xml/pugixml.hpp"
+
+#include <functional>
 
 namespace ui
 {
@@ -24,6 +27,26 @@ namespace
         //未关联窗口的情况（按操作系统版本选择）
         return Shadow::GetDefaultShadowType(nullptr);
     }
+
+    /** 获取Class(样式)中定义的属性列表（支持别名）
+    */
+    DString GetWindowClassAttributes(const DString& strClassName)
+    {
+        const GlobalManager& globalManager = GlobalManager::Instance();
+        if (!globalManager.IsInUIThread()) {
+            //非UI线程（比如单元测试）不查询全局样式，避免触发UI线程断言
+            return DString();
+        }
+        DString classAttributes = globalManager.GetClassAttributes(strClassName);
+        if (classAttributes.empty()) {
+            //支持通过别名引用样式
+            const DString aliasValue = globalManager.GetAliasValue(strClassName);
+            if (!aliasValue.empty()) {
+                classAttributes = globalManager.GetClassAttributes(aliasValue);
+            }
+        }
+        return classAttributes;
+    }
 }
 
 bool ParseWindowAttributeValues(const pugi::xml_node& root, WindowAttributeValues& values,
@@ -37,9 +60,9 @@ bool ParseWindowAttributeValues(const pugi::xml_node& root, WindowAttributeValue
         return false;
     }
 
-    for (pugi::xml_attribute attr : root.attributes()) {
-        const DString strName = attr.name();
-        const DString strValue = attr.value();
+    //应用单个属性到values
+    std::function<void(const DString&, const DString&)> applyAttribute;
+    applyAttribute = [&values, pWindow](const DString& strName, const DString& strValue) {
         if (StringUtil::IsEqualNoCase(strName, _T("use_system_caption"))) {
             values.m_bUseSystemCaption = StringUtil::IsValueTrue(strValue);
             values.m_bUseSystemCaptionDefined = true;
@@ -200,6 +223,69 @@ bool ParseWindowAttributeValues(const pugi::xml_node& root, WindowAttributeValue
             //不认识的属性：记录下来，供调用方统一预警
             values.m_unknownAttributes.push_back(strName);
         }
+    };
+
+    //应用Class(样式)及其父Class中定义的属性：父Class先应用，当前Class后应用
+    std::vector<DString> resolvedClasses;
+    std::function<void(const DString&, int32_t)> applyClassAttributes;
+    applyClassAttributes = [&](const DString& strClassList, int32_t nDepth) {
+        if (nDepth > 16) {
+            //防止Class之间循环引用导致无限递归
+            return;
+        }
+        const std::list<DString> classList = StringUtil::Split(strClassList, _T(" \t\r\n"));
+        for (const DString& strClassName : classList) {
+            if (strClassName.empty()) {
+                continue;
+            }
+            bool bResolved = false;
+            for (const DString& strResolvedName : resolvedClasses) {
+                if (StringUtil::IsEqualNoCase(strResolvedName, strClassName)) {
+                    bResolved = true;
+                    break;
+                }
+            }
+            if (bResolved) {
+                continue;
+            }
+            resolvedClasses.push_back(strClassName);
+
+            const DString classAttributes = GetWindowClassAttributes(strClassName);
+            if (classAttributes.empty()) {
+                //未找到该Class定义的属性
+                continue;
+            }
+            std::vector<std::pair<DString, DString>> attributeList;
+            if (!AttributeUtil::ParseAttributeList(classAttributes, attributeList)) {
+                continue;
+            }
+            //先递归应用父Class，再应用当前Class中的其他属性
+            for (const auto& attribute : attributeList) {
+                if (StringUtil::IsEqualNoCase(attribute.first, _T("class"))) {
+                    applyClassAttributes(attribute.second, nDepth + 1);
+                }
+            }
+            for (const auto& attribute : attributeList) {
+                if (StringUtil::IsEqualNoCase(attribute.first, _T("class"))) {
+                    continue;
+                }
+                applyAttribute(attribute.first, attribute.second);
+            }
+        }
+    };
+
+    //先应用Class定义的公共属性，再应用节点自身的属性（节点属性的优先级更高）
+    const DString strClassList = root.attribute(_T("class")).as_string();
+    if (!strClassList.empty()) {
+        applyClassAttributes(strClassList, 0);
+    }
+    for (pugi::xml_attribute attr : root.attributes()) {
+        const DString strName = attr.name();
+        if (StringUtil::IsEqualNoCase(strName, _T("class"))) {
+            //Class属性已在上面处理
+            continue;
+        }
+        applyAttribute(strName, attr.value());
     }
     return true;
 }

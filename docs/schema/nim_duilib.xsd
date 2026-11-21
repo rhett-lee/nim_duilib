@@ -3961,6 +3961,11 @@
   </xs:attributeGroup>
   <xs:attributeGroup name="WindowAttrs">
     <!-- 来源：Window -->
+    <xs:attribute name="class" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>窗口复用的全局样式(Class)名称，多个名称以空格分隔；节点自身属性优先</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute name="caption" type="xs:string">
       <xs:annotation>
         <xs:documentation>窗口可拖动的标题栏大小的边距, 最后一个参数是指离上边框的距离,如"0,0,0,36"</xs:documentation>
@@ -5440,6 +5445,11 @@
   </xs:attributeGroup>
   <xs:attributeGroup name="WindowAttrs2">
     <!-- 来源：Window -->
+    <xs:attribute name="class" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>窗口复用的全局样式(Class)名称，多个名称以空格分隔；节点自身属性优先</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute name="caption" type="xs:string">
       <xs:annotation>
         <xs:documentation>窗口可拖动的标题栏大小的边距, 最后一个参数是指离上边框的距离,如"0,0,0,36"</xs:documentation>

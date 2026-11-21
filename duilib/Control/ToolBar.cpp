@@ -924,9 +924,8 @@ void ToolBar::ShowOverflowFlyout()
     xml += StringUtil::Int32ToString(nWidthDip);
     xml += _T(",");
     xml += StringUtil::Int32ToString(nHeightDip);
-    xml += _T("\" caption=\"0,0,0,0\" use_system_caption=\"false\"");
-    xml += _T(" shadow_type=\"default\" shadow_attached=\"true\"");
-    xml += _T(" layered_window=\"true\" size_box=\"0,0,0,0\"");
+    xml += _T("\"");
+    xml += _T(" class=\"popup_window\"");
     xml += _T(" icon=\"public/caption/logo.ico\">");
     xml += _T("<VBox bkcolor=\"bg_menu\" width=\"");
     xml += StringUtil::Int32ToString(nWidthDip);

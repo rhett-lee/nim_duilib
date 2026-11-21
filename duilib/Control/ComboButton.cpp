@@ -15,6 +15,7 @@ class ComboButtonWnd: public Window
 public:
     void InitComboWnd(ComboButton* pOwner, bool bActivated);
     void UpdateComboWnd();
+    virtual void PreInitWindow() override;
     virtual void OnInitWindow() override;
     virtual void OnCloseWindow() override;
     virtual void OnFinalMessage() override;
@@ -216,6 +217,13 @@ void ComboButtonWnd::CloseComboWndOnOwnerDestroy()
     CloseWnd();
 }
 
+void ComboButtonWnd::PreInitWindow()
+{
+    BaseClass::PreInitWindow();
+    //下拉弹窗统一强制使用CPU渲染后端，避免受全局渲染后端配置影响
+    SetRenderBackendType(RenderBackendType::kRaster_BackendType, 0, false);
+}
+
 void ComboButtonWnd::OnInitWindow()
 {
     BaseClass::OnInitWindow();
@@ -288,7 +296,7 @@ ComboButton::ComboButton(Window* pWindow) :
     m_pLabelBottom(nullptr),
     m_pRightButton(nullptr),
     m_bDropListShown(false),
-    m_nShadowType(ShadowType::kShadowMenu)
+    m_nShadowType(ShadowType::kShadowSmallRound)
 {
     m_pComboBox = new Box(pWindow);
     SetDropBoxSize({0, 150}, true);

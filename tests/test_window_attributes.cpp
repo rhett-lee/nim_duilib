@@ -163,6 +163,18 @@ void TestAliasesAndCaseInsensitive()
     CHECK(values.m_bMaxSizeDefined && (values.m_szMaxSize.cx == 300) && (values.m_szMaxSize.cy == 400));
 }
 
+/** Window节点支持class属性：class本身不算未知属性，且不影响节点自身属性的解析 */
+void TestWindowClassAttribute()
+{
+    ui::WindowAttributeValues values;
+    CHECK(ParseWindow(
+        _T("<Window class=\"popup_window\" render_backend_type=\"GL\" size=\"320,240\"/>"),
+        values));
+    CHECK(values.m_unknownAttributes.empty());
+    CHECK(values.m_bRenderBackendTypeDefined && (values.m_renderBackendType == ui::RenderBackendType::kNativeGL_BackendType));
+    CHECK(values.m_bSizeDefined && (values.m_szSize.cx == 320) && (values.m_szSize.cy == 240));
+}
+
 /** 未知属性被记录，已识别属性不被记录 */
 void TestUnknownAttributes()
 {
@@ -530,6 +542,7 @@ int main()
     TestParseAllAttributes();
     TestUndefinedAttributes();
     TestAliasesAndCaseInsensitive();
+    TestWindowClassAttribute();
     TestUnknownAttributes();
     TestAttributeOrderIndependent();
     TestResolveShadow();

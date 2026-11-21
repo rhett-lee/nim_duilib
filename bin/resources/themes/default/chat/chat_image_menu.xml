@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 图片选择菜单：点击输入区的图片按钮后弹出，选择一张示例图片发送 -->
-<Window shadow_type="menu_round" shadow_border_size="1" shadow_border_color="border_window">
+<Window class="menu_window">
     <Class name="my_menu_element" height="28" width="180" padding="10,0,10,0" />
     <Class name="my_menu_text" text_align="vcenter,left" disabled_text_color="text_disabled"/>
     <Class name="my_menu_text_hbox" margin="16,0,16,0"/>

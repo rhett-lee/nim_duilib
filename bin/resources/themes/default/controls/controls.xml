@@ -410,7 +410,7 @@
                                    margin="8,0,0,0" valign="center"/>
                             <Control/>
                         </HBox>
-                        <HBox height="32" margin="0,10,0,0" child_margin="8">
+                        <HBox height="34" margin="0,10,0,0" child_margin="8">
                             <SearchBox class="search_box" name="gallery_search_box" width="50%"
                                        prompt_text_id="STRID_CONTROLS_SEARCHBOX_PROMPT_HINT" suggestions="nim_duilib;C++;Skia;Qt;WPF"/>
                             <TagInput class="tag_input" name="gallery_tag_input" width="50%" tags="UI;XML;C++"
@@ -613,7 +613,7 @@
                           padding="16,14,16,14" height="stretch" width="50%">
                         <HBox height="24" valign="center">
                             <Control width="6" height="16" bkcolor="color_warning" border_round="3,3" valign="center"/>
-                            <Label text="MessageBox / Toast / Notification" font="system_bold_15" text_color="text_default"
+                            <Label text="MessageBox / Dialog / Toast / Notification" font="system_bold_15" text_color="text_default"
                                    margin="8,0,0,0" valign="center"/>
                             <Control/>
                         </HBox>

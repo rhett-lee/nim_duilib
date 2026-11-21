@@ -113,17 +113,15 @@ DString Dialog::GetSkinFile()
 DString Dialog::BuildWindowXml()
 {
     DString xml;
-    xml += _T("<Window size=\"");
+    xml += _T("<Window class=\"popup_window\"");
+    xml += _T(" size=\"");
     xml += StringUtil::Int32ToString(m_nWidth);
     xml += _T(",");
     xml += StringUtil::Int32ToString(m_nHeight);
-    xml += _T("\" caption=\"0,0,0,");
-    xml += m_bTitleBarVisible ? _T("36") : _T("0");
-    xml += _T("\" use_system_caption=\"false\" sys_menu=\"");
-    xml += m_bTitleBarVisible ? _T("true") : _T("false");
-    xml += _T("\" sys_menu_rect=\"0,0,36,36\"");
-    xml += _T(" shadow_type=\"default\" shadow_attached=\"true\"");
-    xml += _T(" layered_window=\"true\" size_box=\"0,0,0,0\"");
+    xml += _T("\"");
+    if (m_bTitleBarVisible) {
+        xml += _T(" caption=\"0,0,0,36\" sys_menu_rect=\"0,0,36,36\"");
+    }
     xml += _T(" icon=\"public/caption/logo.ico\">");
 
     //根容器：标题栏 + 内容区 + 按钮区

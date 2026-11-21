@@ -686,7 +686,7 @@ DString Popover::BuildCardXml(PopoverPlacement placement) const
     }
 
     DString xml;
-    xml += _T("<Window size=\"1,1\" caption=\"0,0,0,0\" use_system_caption=\"false\"");
+    xml += _T("<Window size=\"1,1\" caption=\"0,0,0,0\" use_system_caption=\"false\" render_backend_type=\"CPU\"");
     //卡片使用紧凑的自绘阴影（模糊半径 4、偏移 (1,2)，阴影边只有 12/14 像素），避免默认阴影过重、
     //边线过粗的观感；shadow_border_round 关闭客户区圆角裁剪（卡片自身的 border_round 已提供圆角）
     xml += _T(" shadow_type=\"custom\"");
@@ -695,7 +695,7 @@ DString Popover::BuildCardXml(PopoverPlacement placement) const
     xml += _T("' window_shadow_mode='true' corner='");
     xml += strShadowCorner;
     xml += _T("'\"");
-    xml += _T(" shadow_corner=\"12,12,14,14\" shadow_border_round=\"0,0\" shadow_border_size=\"0\" shadow_snap=\"false\"");
+    xml += _T(" shadow_corner=\"12,12,12,12\" shadow_border_round=\"0,0\" shadow_border_size=\"0\" shadow_snap=\"false\"");
     xml += _T(" shadow_attached=\"true\" layered_window=\"true\" size_box=\"0,0,0,0\">");
 
     //卡片根容器（其父容器为"卡片框"，卡片框负责放置尖角箭头）

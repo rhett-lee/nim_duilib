@@ -81,8 +81,7 @@ public:
 
         //内嵌皮肤 XML：Window size 为不含阴影的客户区尺寸，框架自动附加阴影
         DString sXml = StringUtil::Printf(
-            _T("<Window size=\"%d,%d\" caption=\"0,0,0,0\" use_system_caption=\"false\" ")
-            _T("shadow_type=\"default\" shadow_attached=\"true\" layered_window=\"true\" size_box=\"0,0,0,0\">")
+            _T("<Window class=\"popup_window\" size=\"%d,%d\">")
             _T("<VBox class=\"list_ctrl_combo_flyout\" name=\"list_ctrl_combo_content\" width=\"%d\" height=\"%d\">")
             _T("<VListBox class=\"list_ctrl_combo_list\" name=\"list_ctrl_combo_list\" ")
             _T("width=\"stretch\" height=\"stretch\"/>")

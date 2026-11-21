@@ -1467,7 +1467,7 @@ DString CascadingSelect::BuildPopupXml(int32_t nWidth, int32_t nHeight) const
 {
     const DString strClass = m_strPopupClass.empty() ? _T("cascading_select_popup") : m_strPopupClass;
     return StringUtil::Printf(
-        _T("<Window size=\"%d,%d\" caption=\"0,0,0,0\" use_system_caption=\"false\" size_box=\"0,0,0,0\">")
+        _T("<Window class=\"popup_window\" size=\"%d,%d\">")
         _T("<VBox bkcolor=\"bg_window_card\" width=\"%d\" height=\"%d\" padding=\"4,4,4,4\" border_round=\"6,6\">")
         _T("<CascadingSelect class=\"%s\" name=\"cascading_popup_list\" width=\"stretch\" height=\"stretch\"/>")
         _T("</VBox></Window>"),

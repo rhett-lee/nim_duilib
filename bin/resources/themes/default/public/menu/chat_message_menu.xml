@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Window shadow_type="menu_round" shadow_border_size="1" shadow_border_color="border_window">
+<Window class="menu_window">
     <Class name="my_menu_element" height="28" width="160" padding="10,0,10,0" />
     <Class name="my_menu_text" text_align="vcenter,left" disabled_text_color="text_disabled"/>
     <Class name="my_menu_shortcut" width="100%" text_align="vcenter,right" disabled_text_color="text_disabled"/>

@@ -29,6 +29,7 @@ public:
     void CloseComboWndOnOwnerDestroy();
 
     //基类虚函数的重写
+    virtual void PreInitWindow() override;
     virtual void OnInitWindow() override;
     virtual void OnCloseWindow() override;
     virtual void OnFinalMessage() override;
@@ -235,6 +236,13 @@ void CCheckComboWnd::OnWindowShadowTypeChanged()
     }
 }
 
+void CCheckComboWnd::PreInitWindow()
+{
+    BaseClass::PreInitWindow();
+    //下拉弹窗统一强制使用CPU渲染后端，避免受全局渲染后端配置影响
+    SetRenderBackendType(RenderBackendType::kRaster_BackendType, 0, false);
+}
+
 void CCheckComboWnd::OnInitWindow()
 {
     BaseClass::OnInitWindow();
@@ -304,7 +312,7 @@ CheckCombo::CheckCombo(Window* pWindow) :
     m_szDropBox(0, 0),
     m_bPopupTop(false),
     m_iOrgHeight(CHECK_COMBO_DEFAULT_HEIGHT),
-    m_nShadowType(ShadowType::kShadowMenuRound)
+    m_nShadowType(ShadowType::kShadowSmallRound)
 {
     SetDropBoxSize({0, 150}, true);
     SetMaxHeight(m_iOrgHeight * 3, true);

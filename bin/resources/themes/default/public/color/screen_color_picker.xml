@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="400,300" shadow_attached="false" layered_window="false">
+<Window size="400,300" shadow_attached="false" layered_window="false" render_backend_type="CPU">
     <Box>
         <!-- 从屏幕获取颜色的控件 -->
         <ScreenColorPicker name="screen_color_picker" cursor_file="public/color/dropcur.cur"/>
