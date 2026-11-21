@@ -3,6 +3,7 @@
 #include "duilib/Control/RichEdit.h"
 #include "duilib/Control/AutoComplete.h"
 #include "duilib/Control/Button.h"
+#include "duilib/Control/CheckBox.h"
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Callback.h"
@@ -79,7 +80,8 @@ UrlBar::UrlBar(Window* pWindow) :
     m_nMaxHistory(20),
     m_bHistoryEnabled(true),
     m_bClearButtonEnabled(true),
-    m_bFavoriteButtonEnabled(true)
+    m_bFavoriteButtonEnabled(true),
+    m_bFavorite(false)
 {
 }
 
@@ -157,6 +159,9 @@ void UrlBar::SetAttribute(const DString& strName, const DString& strValue2)
     else if (strName == _T("favorite_button_enabled")) {
         SetFavoriteButtonEnabled(StringUtil::IsValueTrue(strValue));
     }
+    else if (strName == _T("favorite")) {
+        SetFavorite(StringUtil::IsValueTrue(strValue));
+    }
     else {
         BaseClass::SetAttribute(strName, strValue);
     }
@@ -227,13 +232,18 @@ void UrlBar::OnInit()
     }
     AddItem(m_pEdit);
 
-    //最右侧收藏按钮（可点击，点击后触发 kEventUrlBarFavoriteClick 事件；不获取焦点）
-    m_pFavButton = new Button(GetWindow());
+    //最右侧收藏按钮（未收藏/已收藏两种状态，点击切换状态并触发 kEventUrlBarFavoriteClick 事件；不获取焦点）
+    m_pFavButton = new CheckBox(GetWindow());
     m_pFavButton->SetClass(_T("url_bar_fav_btn"));
     m_pFavButton->SetNoFocus();
     m_pFavButton->SetVisible(m_bFavoriteButtonEnabled);
-    m_pFavButton->AttachClick([this](const EventArgs& /*args*/) {
-        SendEvent(kEventUrlBarFavoriteClick);
+    m_pFavButton->Selected(m_bFavorite, false);//应用初始收藏状态（不触发事件）
+    m_pFavButton->AttachSelect([this](const EventArgs& /*args*/) {
+        OnFavoriteChanged();
+        return true;
+        });
+    m_pFavButton->AttachUnSelect([this](const EventArgs& /*args*/) {
+        OnFavoriteChanged();
         return true;
         });
     AddItem(m_pFavButton);
@@ -379,6 +389,31 @@ void UrlBar::SetFavoriteButtonEnabled(bool bEnabled)
 bool UrlBar::IsFavoriteButtonEnabled() const
 {
     return m_bFavoriteButtonEnabled;
+}
+
+void UrlBar::SetFavorite(bool bFavorite)
+{
+    m_bFavorite = bFavorite;
+    if (m_pFavButton != nullptr) {
+        m_pFavButton->Selected(bFavorite, false);//刷新界面，不触发事件
+    }
+}
+
+bool UrlBar::IsFavorite() const
+{
+    if (m_pFavButton != nullptr) {
+        return m_pFavButton->IsSelected();
+    }
+    return m_bFavorite;
+}
+
+void UrlBar::OnFavoriteChanged()
+{
+    if (m_pFavButton != nullptr) {
+        m_bFavorite = m_pFavButton->IsSelected();
+    }
+    //状态已切换，业务层可通过 IsFavorite() 获取当前状态
+    SendEvent(kEventUrlBarFavoriteClick);
 }
 
 void UrlBar::SetClearButtonEnabled(bool bEnabled)

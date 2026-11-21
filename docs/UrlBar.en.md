@@ -8,7 +8,8 @@ URLs. Its look and interaction follow common browsers (e.g. Edge):
 * A security-status icon on the left: a lock for https, a globe for other protocols; **clicking it fires an event**;
 * A single-line edit box in the middle: the text is selected automatically when it gets focus, and a
   clear button is shown while focused;
-* A favorite button on the far right; **clicking it fires an event**;
+* A favorite button on the far right with two states: not favorited (outline star) and favorited
+  (filled star); **clicking it toggles the state and fires an event**;
 * While typing, history is filtered and a suggestion drop-down is shown; Up/Down to navigate,
   Enter to confirm, Esc to close.
 
@@ -26,7 +27,8 @@ Drop-down open/close rules:
 * Skin classes (`global.xml`): `url_bar` / `url_bar_icon_secure` / `url_bar_icon_insecure` /
   `url_bar_edit` / `url_bar_clear_btn` / `url_bar_fav_btn`
 * Icon resources: `public/url_bar/lock.svg`, `public/url_bar/globe.svg`;
-  the favorite button reuses `public/checkbox/star_outline.svg`, and the clear button reuses
+  the favorite button reuses `public/checkbox/star_outline.svg` (not favorited) and
+  `public/checkbox/star_filled.svg` (favorited), and the clear button reuses
   `public/button/window-close.svg`
 * The suggestion drop-down reuses AutoComplete skins: `auto_complete_flyout` / `auto_complete_list` /
   `auto_complete_item`
@@ -42,7 +44,8 @@ Drop-down open/close rules:
         history_file="user/cef_browser_url_history.txt"
         default_context_menu="true"
         clear_button_enabled="true"
-        favorite_button_enabled="true"/>
+        favorite_button_enabled="true"
+        favorite="false"/>
 ```
 
 ### 2. XML Attributes
@@ -65,6 +68,7 @@ In addition to the common `HBox` attributes:
 | `default_context_menu` | empty | Whether to enable the edit box's default context menu (forwarded to the inner edit box) |
 | `clear_button_enabled` | `true` | Whether to enable the clear button of the edit box |
 | `favorite_button_enabled` | `true` | Whether to show the favorite button on the far right |
+| `favorite` | `false` | Initial favorite state: `true` shows a filled star (favorited), `false` shows an outline star (not favorited) |
 
 ### 3. Events
 
@@ -74,7 +78,7 @@ In addition to the common `HBox` attributes:
 | `kEventUrlChanged` | After the user submits a new URL (Enter or choosing a suggestion) | None; get the URL via `GetUrl()` | `AttachUrlChanged()` |
 | `kEventUrlCancel` | After the user presses Esc to cancel editing and restore the committed URL | None | `AttachUrlCancel()` |
 | `kEventUrlBarIconClick` | After clicking the security-status icon (lock/globe) on the left | None | `AttachIconClick()` |
-| `kEventUrlBarFavoriteClick` | After clicking the favorite button on the far right | None | `AttachFavoriteClick()` |
+| `kEventUrlBarFavoriteClick` | After clicking the favorite button on the far right, once its state has been toggled | None; get the current state via `IsFavorite()` | `AttachFavoriteClick()` |
 
 The inline XML event names are `text_changed`, `url_changed`, `url_cancel`,
 `url_bar_icon_click` and `url_bar_favorite_click` (the capitalized forms such as `UrlChanged` are
@@ -94,9 +98,10 @@ if (pUrlBar != nullptr) {
         ShowSiteInfo();
         return true;
     });
-    //Favorite button: the application can add/remove a favorite
+    //Favorite button: the state has already toggled; read it and add/remove the favorite
     pUrlBar->AttachFavoriteClick([this](const ui::EventArgs& /*args*/) {
-        ToggleFavorite(m_pUrlBar->GetUrl());
+        bool bFavorite = m_pUrlBar->IsFavorite();
+        UpdateFavorite(m_pUrlBar->GetUrl(), bFavorite);
         return true;
     });
 }
@@ -114,6 +119,7 @@ if (pUrlBar != nullptr) {
 | `SetSearchUrlTemplate()` / `GetSearchUrlTemplate()` | Sets/gets the search URL template |
 | `SetSecure()` / `IsSecure()` | Sets/reads the security state (lock/globe) |
 | `SetFavoriteButtonEnabled()` / `IsFavoriteButtonEnabled()` | Shows/hides the favorite button (shown by default) |
+| `SetFavorite()` / `IsFavorite()` | Sets/reads the favorite state (not favorited / favorited) |
 | `SetClearButtonEnabled()` / `IsClearButtonEnabled()` | Enables/disables the clear button (enabled by default) |
 | `SetHistoryEnabled()` / `IsHistoryEnabled()` | Whether to record and show URL history (enabled by default) |
 | `SetMaxHistory()` / `GetMaxHistory()` | Maximum number of history entries |
@@ -130,7 +136,7 @@ if (pUrlBar != nullptr) {
 | `url_bar_icon_insecure` | Left insecure icon (other protocols, globe) |
 | `url_bar_edit` | Inner single-line edit box |
 | `url_bar_clear_btn` | Clear button at the right side of the edit box |
-| `url_bar_fav_btn` | Favorite button (star) on the far right |
+| `url_bar_fav_btn` | Favorite button on the far right (outline star when not favorited, filled star when favorited) |
 
 Adjusting these skin classes changes the address bar appearance (size, corner radius, colors,
 icons, etc.) without touching application code.

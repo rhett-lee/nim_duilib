@@ -7,7 +7,7 @@
 
 * 左侧显示安全状态图标：https 显示锁图标，其它协议显示地球图标，**点击时触发事件**；
 * 中间为单行编辑框，获得焦点时自动全选文本，获得焦点后显示清除按钮；
-* 最右侧显示收藏按钮，**点击时触发事件**；
+* 最右侧显示收藏按钮，有未收藏（空心星）和已收藏（实心星）两种状态，**点击切换状态并触发事件**；
 * 输入时按历史记录过滤并弹出联想下拉，上下键导航、回车确认、Esc 收起。
 
 联想下拉的展开/关闭规则：
@@ -21,7 +21,8 @@
 * 皮肤类（`global.xml`）：`url_bar` / `url_bar_icon_secure` / `url_bar_icon_insecure` /
   `url_bar_edit` / `url_bar_clear_btn` / `url_bar_fav_btn`
 * 图标资源：`public/url_bar/lock.svg`、`public/url_bar/globe.svg`；
-  收藏按钮复用 `public/checkbox/star_outline.svg`，清除按钮复用 `public/button/window-close.svg`
+  收藏按钮复用 `public/checkbox/star_outline.svg`（未收藏）与 `public/checkbox/star_filled.svg`（已收藏），
+  清除按钮复用 `public/button/window-close.svg`
 * 联想下拉复用 AutoComplete 的皮肤：`auto_complete_flyout` / `auto_complete_list` / `auto_complete_item`
 * 完整演示：`examples/cef`、`examples/cef_browser`、`examples/webview2`、`examples/webview2_browser`
 
@@ -35,7 +36,8 @@
         history_file="user/cef_browser_url_history.txt"
         default_context_menu="true"
         clear_button_enabled="true"
-        favorite_button_enabled="true"/>
+        favorite_button_enabled="true"
+        favorite="false"/>
 ```
 
 ### 2. XML 属性
@@ -58,6 +60,7 @@
 | `default_context_menu` | 空 | 是否启用编辑框的默认右键菜单（转发给内部编辑框） |
 | `clear_button_enabled` | `true` | 是否启用编辑框的清除按钮 |
 | `favorite_button_enabled` | `true` | 是否显示最右侧的收藏按钮 |
+| `favorite` | `false` | 初始收藏状态：`true` 显示实心星（已收藏），`false` 显示空心星（未收藏） |
 
 ### 3. 事件
 
@@ -67,7 +70,7 @@
 | `kEventUrlChanged` | 用户提交新网址（回车或选中联想项）后触发 | 无；网址通过 `GetUrl()` 获取 | `AttachUrlChanged()` |
 | `kEventUrlCancel` | 用户按 Esc 取消编辑、恢复为已提交网址后触发 | 无 | `AttachUrlCancel()` |
 | `kEventUrlBarIconClick` | 点击左侧安全状态图标（锁/地球）后触发 | 无 | `AttachIconClick()` |
-| `kEventUrlBarFavoriteClick` | 点击最右侧收藏按钮后触发 | 无 | `AttachFavoriteClick()` |
+| `kEventUrlBarFavoriteClick` | 点击最右侧收藏按钮切换收藏状态后触发 | 无；当前状态通过 `IsFavorite()` 获取 | `AttachFavoriteClick()` |
 
 XML 内联事件名分别为 `text_changed`、`url_changed`、`url_cancel`、`url_bar_icon_click`、
 `url_bar_favorite_click`（也可使用首字母大写的 `UrlChanged` 等写法，详见
@@ -87,9 +90,10 @@ if (pUrlBar != nullptr) {
         ShowSiteInfo();
         return true;
     });
-    //收藏按钮点击：业务层可添加/取消收藏
+    //收藏按钮点击：状态已切换，业务层读取当前状态后添加/取消收藏
     pUrlBar->AttachFavoriteClick([this](const ui::EventArgs& /*args*/) {
-        ToggleFavorite(m_pUrlBar->GetUrl());
+        bool bFavorite = m_pUrlBar->IsFavorite();
+        UpdateFavorite(m_pUrlBar->GetUrl(), bFavorite);
         return true;
     });
 }
@@ -107,6 +111,7 @@ if (pUrlBar != nullptr) {
 | `SetSearchUrlTemplate()` / `GetSearchUrlTemplate()` | 设置/获取搜索 URL 模板 |
 | `SetSecure()` / `IsSecure()` | 设置/读取安全状态（锁图标/地球图标） |
 | `SetFavoriteButtonEnabled()` / `IsFavoriteButtonEnabled()` | 显示/隐藏收藏按钮（默认显示） |
+| `SetFavorite()` / `IsFavorite()` | 设置/读取收藏状态（未收藏/已收藏两种状态） |
 | `SetClearButtonEnabled()` / `IsClearButtonEnabled()` | 启用/禁用清除按钮（默认启用） |
 | `SetHistoryEnabled()` / `IsHistoryEnabled()` | 是否记录并展示网址历史（默认启用） |
 | `SetMaxHistory()` / `GetMaxHistory()` | 网址历史最多保留条数 |
@@ -123,6 +128,6 @@ if (pUrlBar != nullptr) {
 | `url_bar_icon_insecure` | 左侧非安全图标（其它协议，地球） |
 | `url_bar_edit` | 内部单行编辑框 |
 | `url_bar_clear_btn` | 编辑框内右侧的清除按钮 |
-| `url_bar_fav_btn` | 最右侧的收藏按钮（星形） |
+| `url_bar_fav_btn` | 最右侧的收藏按钮（未收藏为空心星，已收藏为实心星） |
 
 修改这些皮肤类即可统一调整地址栏的外观（尺寸、圆角、配色、图标等），无需改动业务代码。

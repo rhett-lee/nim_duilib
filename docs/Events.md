@@ -70,7 +70,7 @@
 |kEventUrlChanged           |     |     |     |     |       |     | UrlBar提交新网址（回车或选中联想项）后触发，无参数；网址通过UrlBar::GetUrl()获取，XML内联事件名为url_changed |
 |kEventUrlCancel            |     |     |     |     |       |     | UrlBar按Esc取消编辑、恢复为已提交网址后触发，无参数，XML内联事件名为url_cancel |
 |kEventUrlBarIconClick      |     |     |     |     |       |     | UrlBar点击左侧安全状态图标（锁/地球）时触发，无参数，XML内联事件名为url_bar_icon_click |
-|kEventUrlBarFavoriteClick  |     |     |     |     |       |     | UrlBar点击最右侧收藏按钮时触发，无参数，XML内联事件名为url_bar_favorite_click |
+|kEventUrlBarFavoriteClick  |     |     |     |     |       |     | UrlBar点击最右侧收藏按钮切换收藏（未收藏/已收藏）状态后触发，无参数，当前状态用IsFavorite()获取，XML内联事件名为url_bar_favorite_click |
 
 
 | 事件(eventType)           | 参数(wParam)  | 参数(lParam) | 参数(ptMouse) | 参数(vkCode) | 参数(modifierKey) |参数(eventData) | 备注     |

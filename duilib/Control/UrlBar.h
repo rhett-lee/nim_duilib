@@ -2,6 +2,7 @@
 #define UI_CONTROL_URL_BAR_H_
 
 #include "duilib/Box/HBox.h"
+#include "duilib/Control/CheckBox.h"
 #include <vector>
 
 namespace ui
@@ -15,7 +16,7 @@ class Control;
 *   外观与交互参考常见浏览器的地址栏：
 *   - 左侧显示安全状态图标：https 显示锁图标，其它协议显示地球图标，点击时触发事件
 *   - 中间为单行编辑框，获得焦点时自动全选文本，文本非空时显示清除按钮
-*   - 右侧显示收藏按钮，点击时触发事件
+*   - 右侧显示收藏按钮（未收藏/已收藏两种状态），点击时切换状态并触发事件
 *   - 输入时按历史记录过滤并弹出联想下拉，上下键导航、回车确认、Esc 收起
 *
 *   联想下拉的展开/关闭规则（参考 Edge 地址栏）：
@@ -44,6 +45,7 @@ class Control;
 *     default_context_menu 是否启用编辑框的默认右键菜单（转发给内部编辑框）
 *     clear_button_enabled 是否启用编辑框的清除按钮（默认 true）
 *     favorite_button_enabled 是否显示右侧收藏按钮（默认 true）
+*     favorite            初始收藏状态（true 显示实心星，false 显示空心星；默认 false）
 *
 *   事件：
 *   - kEventUrlChanged：用户提交了新网址（回车或选中联想项）后触发，无参数；
@@ -51,7 +53,8 @@ class Control;
 *   - kEventUrlCancel：用户按 Esc 取消编辑、恢复为已提交网址后触发，无参数
 *   - kEventTextChanged：内部编辑框文本变化时触发（实时，随输入触发）
 *   - kEventUrlBarIconClick：点击左侧安全状态图标后触发，无参数
-*   - kEventUrlBarFavoriteClick：点击右侧收藏按钮后触发，无参数
+*   - kEventUrlBarFavoriteClick：点击右侧收藏按钮切换收藏状态后触发，无参数；
+*                       当前收藏状态通过 IsFavorite() 获取
 *
 *   皮肤类（global.xml 中定义）：url_bar / url_bar_icon_secure / url_bar_icon_insecure /
 *   url_bar_edit / url_bar_clear_btn / url_bar_fav_btn；下拉浮层复用 auto_complete_flyout /
@@ -116,6 +119,11 @@ public:
     */
     void SetFavoriteButtonEnabled(bool bEnabled);
     bool IsFavoriteButtonEnabled() const;
+
+    /** 设置收藏状态（true 已收藏，显示实心星；false 未收藏，显示空心星）
+    */
+    void SetFavorite(bool bFavorite);
+    bool IsFavorite() const;
 
     /** 设置是否启用编辑框的清除按钮（默认启用）
     */
@@ -258,6 +266,10 @@ private:
     */
     void ApplySecureIcon(bool bSecure);
 
+    /** 收藏状态变化：同步内部状态并触发 kEventUrlBarFavoriteClick 事件
+    */
+    void OnFavoriteChanged();
+
     /** 从持久化文件加载网址历史
     */
     void LoadHistory();
@@ -283,9 +295,13 @@ private:
     */
     Control* m_pIconInsecure;
 
-    /** 右侧收藏按钮
+    /** 右侧收藏按钮（未收藏/已收藏两种状态）
     */
-    Control* m_pFavButton;
+    CheckBox* m_pFavButton;
+
+    /** 收藏状态（OnInit 前缓存 XML 中的 favorite 属性）
+    */
+    bool m_bFavorite;
 
     /** 初始网址文本（OnInit 前缓存 XML 中的 text 属性）
     */

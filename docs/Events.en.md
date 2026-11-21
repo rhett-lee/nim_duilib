@@ -72,7 +72,7 @@ The content related to control events is defined in the files [`duilib/Core/Even
 |kEventUrlChanged           |     |     |     |     |       |     | UrlBar: fired after the user submits a new URL (Enter or choosing a suggestion); no parameters; get the URL via UrlBar::GetUrl(); inline XML event name is `url_changed` |
 |kEventUrlCancel            |     |     |     |     |       |     | UrlBar: fired after the user presses Esc to cancel editing and restore the committed URL; no parameters; inline XML event name is `url_cancel` |
 |kEventUrlBarIconClick      |     |     |     |     |       |     | UrlBar: fired when the left security-status icon (lock/globe) is clicked; no parameters; inline XML event name is `url_bar_icon_click` |
-|kEventUrlBarFavoriteClick  |     |     |     |     |       |     | UrlBar: fired when the favorite button on the far right is clicked; no parameters; inline XML event name is `url_bar_favorite_click` |
+|kEventUrlBarFavoriteClick  |     |     |     |     |       |     | UrlBar: fired after the favorite button on the far right toggles the favorite (not favorited/favorited) state; no parameters; read the current state with `IsFavorite()`; inline XML event name is `url_bar_favorite_click` |
 
 
 | Event (eventType)           | Parameter (wParam)  | Parameter (lParam) | Parameter (ptMouse) | Parameter (vkCode) | Parameter (modifierKey) |Parameter (eventData) | Note     |
