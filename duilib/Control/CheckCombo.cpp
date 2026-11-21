@@ -451,8 +451,6 @@ CheckCombo::CheckCombo(Window* pWindow) :
     m_pList->SetNoFocus();//内部列表不接收焦点，焦点由CheckCombo自己管理
     m_pList->SetMouseEnabled(false); //内部列表不响应鼠标消息
     m_pList->SetMouseChildEnabled(false);//内部列表子控件也不响应鼠标消息
-    m_pList->AttachButtonDown(UiBind(&CheckCombo::OnListButtonDown, this, std::placeholders::_1));
-    m_pList->SetMouseChildEnabled(false);
     m_pList->EnableScrollBar();
 
     Box::AddItem(m_pList.get());
@@ -703,13 +701,15 @@ bool CheckCombo::SelectTextIdItem(const DString& itemTextId, bool bSelect)
     return false;
 }
 
-void CheckCombo::Activate(const EventArgs* /*pMsg*/)
+bool CheckCombo::ButtonDown(const EventArgs& msg)
 {
+    bool bRet = BaseClass::ButtonDown(msg);
     if (!IsActivatable()) {
-        return;
+        return bRet;
     }
     if (m_pCheckComboWnd != nullptr) {
-        return;
+        //如果已经显示，则外部会触发失去焦点关闭（开关属性）
+        return bRet;
     }
 
     m_pCheckComboWnd = new CCheckComboWnd();
@@ -731,6 +731,7 @@ void CheckCombo::Activate(const EventArgs* /*pMsg*/)
         return true;
     }));
     Invalidate();
+    return bRet;
 }
 
 void CheckCombo::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
@@ -927,16 +928,6 @@ void CheckCombo::ClearAll()
     m_pList->RemoveAllItems();
     m_pDropList->RemoveAllItems();
     SetFixedHeight(ui::UiFixedInt(m_iOrgHeight), true, true);
-}
-
-bool CheckCombo::OnListButtonDown(const EventArgs& args)
-{
-    //鼠标点击内部列表区域时：先获取焦点，再打开下拉列表
-    if (IsPointInWithScrollOffset(args.ptMouse)) {
-        SetFocus();
-        Activate(&args);
-    }
-    return true;
 }
 
 } //namespace ui

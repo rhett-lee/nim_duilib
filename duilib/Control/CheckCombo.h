@@ -22,7 +22,6 @@ public:
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
-    virtual void Activate(const EventArgs* pMsg) override;
     virtual void SetPos(UiRect rc) override;
     virtual uint32_t GetControlFlags() const override;
     virtual bool OnKeyDown(const EventArgs& msg) override;
@@ -148,7 +147,10 @@ private:
     */
     bool OnSelectItem(const ui::EventArgs& args);
     bool OnUnSelectItem(const ui::EventArgs& args);
-    bool OnListButtonDown(const ui::EventArgs& args);
+
+    /** 鼠标按下消息
+    */
+    virtual bool ButtonDown(const EventArgs& msg);
 
 private:
     /** 设置控件的属性列表
