@@ -36,11 +36,25 @@ public:
 
     virtual bool OnKeyDown(const EventArgs& msg) override
     {
+        //编辑框已开始接收按键（包括导航键）：隐藏宿主的焦点环
+        ClearFocusFromTab();
+
         //导航类按键交给宿主处理，不传递给编辑框（避免移动光标/回车换行）
         if ((m_pOwner != nullptr) && m_pOwner->HandleEditKeyDown(msg)) {
             return true;
         }
         return BaseClass::OnKeyDown(msg);
+    }
+
+    /** 焦点环由宿主控件绘制：编辑框的状态变化后需要通知宿主重绘
+    */
+    virtual void ClearFocusFromTab() override
+    {
+        bool bFocusFromTab = IsFocusFromTab();
+        BaseClass::ClearFocusFromTab();
+        if (bFocusFromTab && (m_pOwner != nullptr)) {
+            m_pOwner->Invalidate();
+        }
     }
 
 private:
@@ -225,8 +239,9 @@ void UrlBar::OnInit()
 
 bool UrlBar::ShouldPaintFocusRect() const
 {
-    //焦点实际落在内部编辑框上：编辑框获得焦点时，由本控件按胶囊形圆角绘制焦点框
-    if ((m_pEdit == nullptr) || !m_pEdit->IsFocused() || !IsShowFocusedRect()) {
+    //焦点实际落在内部编辑框上：仅当通过TAB键将焦点切入编辑框时才绘制焦点框，
+    //鼠标点击、代码设置焦点或开始编辑文本后都不显示
+    if ((m_pEdit == nullptr) || !m_pEdit->IsFocused() || !IsShowFocusedRect() || !m_pEdit->IsFocusFromTab()) {
         return false;
     }
     //窗口不是激活状态时(如浮层菜单已打开)，不绘制焦点框

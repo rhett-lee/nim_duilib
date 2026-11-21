@@ -224,6 +224,11 @@ public:
      */
     bool IsReadOnly() const;
 
+    /** 焦点是否由TAB键切换获得（仅此状态下绘制焦点框）
+    * @return 返回 true 表示当前焦点由TAB键切换获得；false 表示其他方式获得或已开始编辑文本
+    */
+    bool IsFocusFromTab() const { return m_bFocusFromTab; }
+
     /** 设置控件为只读状态
      * @param[in] bReadOnly 设置 true 让控件变为只读状态，false 为可写入状态
      */
@@ -965,7 +970,7 @@ protected:
 
     /** 清除“通过TAB键获得焦点”的状态，开始编辑文本后不再显示焦点框
     */
-    void ClearFocusFromTab();
+    virtual void ClearFocusFromTab();
 
     /** 文本字符输入消息
     * @param msg 文本输入的具体参数信息，参数取值详细内容如下
