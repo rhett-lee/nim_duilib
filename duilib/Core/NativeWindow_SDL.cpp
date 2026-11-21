@@ -2249,17 +2249,25 @@ bool NativeWindow_SDL::ShowWindow(ShowWindowCommands nCmdShow)
     case kSW_SHOW_NORMAL:
         {
             const bool bActivate = SDL_GetHintBoolean(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, true);
-            if (!bActivate) {
-                SDL_SetHint(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, "true");
-                ASSERT(SDL_GetHintBoolean(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, true) == true);
+            //"不抢焦点"的窗口（浮层、弹出层等）不能激活：否则会抢走宿主窗口的键盘焦点，
+            //导致宿主窗口先失焦、随后又收回焦点，浮层因此被遮挡或被提前关闭
+            const bool bKeepActivate = !IsWindowNoActivate();
+            if (bActivate != bKeepActivate) {
+                SDL_SetHint(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, bKeepActivate ? "true" : "false");
             }
             nRet = SDL_ShowWindow(m_sdlWindow);
-            if (!bActivate) {
-                SDL_SetHint(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, "false");
-                ASSERT(SDL_GetHintBoolean(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, true) == false);
+            if (bActivate != bKeepActivate) {
+                SDL_SetHint(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, bActivate ? "true" : "false");
             }
-            //调整窗口的Z-Order，避免有时候窗口不显示的问题
-            SDL_RaiseWindow(m_sdlWindow);
+            if (bKeepActivate) {
+                //调整窗口的Z-Order，避免有时候窗口不显示的问题
+                SDL_RaiseWindow(m_sdlWindow);
+            }
+            else {
+                //不激活的前提下把窗口置顶（SDL_RaiseWindow 会激活窗口，此处不能使用）
+                SetWindowPos(nullptr, InsertAfterFlag::kHWND_TOP, 0, 0, 0, 0,
+                             kSWP_NOMOVE | kSWP_NOSIZE | kSWP_NOACTIVATE);
+            }
         }        
         break;
     case kSW_SHOW_NA:
@@ -2440,6 +2448,13 @@ bool NativeWindow_SDL::SetWindowForeground()
     ASSERT(IsWindow());
     if (!IsWindow()) {
         return false;
+    }
+    if (IsWindowNoActivate()) {
+        //"不抢焦点"的窗口不能激活：只做不激活的置顶。
+        //SDL_RaiseWindow 内部会调用 SetForegroundWindow 激活窗口，抢走宿主窗口的键盘焦点，
+        //使宿主窗口先失焦、随后又收回焦点，导致弹层被遮挡或被提前关闭
+        return SetWindowPos(nullptr, InsertAfterFlag::kHWND_TOP, 0, 0, 0, 0,
+                            kSWP_NOMOVE | kSWP_NOSIZE | kSWP_NOACTIVATE);
     }
     bool nRet = SDL_RaiseWindow(m_sdlWindow);
     ASSERT(nRet);

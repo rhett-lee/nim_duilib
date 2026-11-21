@@ -358,7 +358,23 @@ LRESULT CComboWnd::OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& 
 {
     LRESULT lResult = BaseClass::OnKillFocusMsg(pSetFocusWindow, nativeMsg, bHandled);
     //失去焦点，关闭窗口，正常关闭
-    if (pSetFocusWindow != this) {
+    //注意："不抢焦点"的下拉窗口不持有键盘焦点：SDL下鼠标点击此窗口（或窗口显示）时，
+    //系统会短暂把键盘焦点移给本窗口，随后又把焦点还给宿主窗口，此时产生的失焦
+    //不属于真正的焦点转移。若在此关闭下拉窗口，会导致点击列表项无响应、
+    //DropList模式点击后下拉列表立即关闭。
+    //这种窗口的关闭由以下路径负责：宿主窗口失焦、按ESC/回车、选择列表项、再次点击宿主控件。
+    const bool bNoActivateWnd = (NativeWnd() != nullptr) && NativeWnd()->IsWindowNoActivate();
+    if (bNoActivateWnd) {
+        //焦点被还给宿主窗口时，系统可能把宿主窗口置顶，导致下拉窗口被遮挡（看起来像没有展开）：
+        //此时把下拉窗口重新置顶（不激活、不抢占焦点）
+        Combo* pOwner = m_pOwner.get();
+        Window* pOwnerWindow = (pOwner != nullptr) ? pOwner->GetWindow() : nullptr;
+        if ((pOwnerWindow != nullptr) && pOwnerWindow->IsWindowForeground()) {
+            SetWindowPos(InsertAfterWnd(InsertAfterFlag::kHWND_TOP), 0, 0, 0, 0,
+                         kSWP_NOMOVE | kSWP_NOSIZE | kSWP_NOACTIVATE);
+        }
+    }
+    else if (pSetFocusWindow != this) {
         CloseComboWnd(false, false);
     }
     return lResult;
@@ -1358,6 +1374,13 @@ void Combo::HideComboListOnFocusLost()
             m_nFocusLostTimerId = 0;
             if ((m_pWindow == nullptr) || (m_pWindow != pComboWnd)) {
                 //下拉窗口已经关闭或者被新的下拉窗口替换
+                return;
+            }
+            Window* pOwnerWindow = GetWindow();
+            if ((pOwnerWindow != nullptr) && !pOwnerWindow->IsWindowFocused()) {
+                //宿主窗口已不是活动窗口（例如切换到其他窗口或者应用）：关闭下拉列表，
+                //避免应用失去激活状态后下拉列表残留显示
+                HideComboList();
                 return;
             }
             if (m_pWindow->IsWindowFocused() || m_pWindow->IsWindowForeground()) {
