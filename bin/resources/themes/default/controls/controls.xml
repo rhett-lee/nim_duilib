@@ -358,7 +358,7 @@
                         <HBox height="24" valign="center">
                             <Control width="6" height="16" bkcolor="color_success" border_round="3,3" valign="center"/>
                             <Label text="Combo" font="system_bold_15" text_color="text_default" margin="8,0,0,0" valign="center"/>
-                            <Label text="ui::Combo / FilterCombo / CheckCombo" font="system_regular_12" text_color="text_muted"
+                            <Label text="ui::Combo/FilterCombo/CheckCombo" font="system_regular_12" text_color="text_muted"
                                    margin="8,0,0,0" valign="center" width="stretch" endellipsis="true"/>
                         </HBox>
                         <Combo class="combo" name="combo" combo_type="drop_list" dropbox_size="0,140" height="30" margin="0,12,0,0"/>

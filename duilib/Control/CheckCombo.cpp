@@ -902,10 +902,18 @@ void CheckCombo::UpdateSelectedListHeight()
     UiFixedInt oldFixedHeight = m_pList->GetFixedHeight();
     m_pList->SetFixedHeight(UiFixedInt::MakeAuto(), false, false);
     UiSize szAvailable(GetWidth(), 0);
+    const UiPadding rcPadding = GetPadding();
+    szAvailable.cx -= (rcPadding.top + rcPadding.bottom);
     UiEstSize estSize = m_pList->EstimateSize(szAvailable);
     m_pList->SetFixedHeight(oldFixedHeight, false, false);
     if (estSize.cy.IsInt32()) {
-        SetFixedHeight(ui::UiFixedInt(estSize.cy.GetInt32()), true, false);
+        int32_t nFixedHeight = estSize.cy.GetInt32();
+        const UiPadding rcListPadding = m_pList->GetPadding();
+        nFixedHeight -= (rcListPadding.top + rcListPadding.bottom);
+        nFixedHeight += (rcPadding.top + rcPadding.bottom);
+        if (nFixedHeight > 1) {
+            SetFixedHeight(ui::UiFixedInt(nFixedHeight), true, false);
+        }        
     }
     else {
         SetFixedHeight(ui::UiFixedInt((int)m_pList->GetItemCount() * m_iOrgHeight), true, true);
