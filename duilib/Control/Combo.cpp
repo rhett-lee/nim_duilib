@@ -87,9 +87,6 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
     createWndParam.m_dwExStyle = kWS_EX_LAYERED;
-#ifdef DUILIB_BUILD_FOR_SDL
-    createWndParam.m_dwExStyle |= kWS_EX_NOACTIVATE;
-#endif
     createWndParam.m_nX = rcWnd.left;
     createWndParam.m_nY = rcWnd.top;
     createWndParam.m_nWidth = rcWnd.Width();
@@ -99,6 +96,10 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
     //下拉窗口淡入动画：在显示前把 Alpha 置 0，显示时由动画渐变到完全不透明
     PopupAnimation::PlayFadeIn(this, m_pFadeInPlayer);
 
+#ifdef DUILIB_BUILD_FOR_SDL
+    //SDL模式，需要使用激活的窗口，否则列表中的滚动条无法正常工作（鼠标按滚动条的时候，无法滚动）
+    bActivated = true;
+#endif
     UpdateComboWnd();
     if (bActivated) {
         ShowWindow(ui::kSW_SHOW_NORMAL);
@@ -364,17 +365,7 @@ LRESULT CComboWnd::OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& 
     //DropList模式点击后下拉列表立即关闭。
     //这种窗口的关闭由以下路径负责：宿主窗口失焦、按ESC/回车、选择列表项、再次点击宿主控件。
     const bool bNoActivateWnd = (NativeWnd() != nullptr) && NativeWnd()->IsWindowNoActivate();
-    if (bNoActivateWnd) {
-        //焦点被还给宿主窗口时，系统可能把宿主窗口置顶，导致下拉窗口被遮挡（看起来像没有展开）：
-        //此时把下拉窗口重新置顶（不激活、不抢占焦点）
-        Combo* pOwner = m_pOwner.get();
-        Window* pOwnerWindow = (pOwner != nullptr) ? pOwner->GetWindow() : nullptr;
-        if ((pOwnerWindow != nullptr) && pOwnerWindow->IsWindowForeground()) {
-            SetWindowPos(InsertAfterWnd(InsertAfterFlag::kHWND_TOP), 0, 0, 0, 0,
-                         kSWP_NOMOVE | kSWP_NOSIZE | kSWP_NOACTIVATE);
-        }
-    }
-    else if (pSetFocusWindow != this) {
+    if (!bNoActivateWnd && pSetFocusWindow != this) {
         CloseComboWnd(false, false);
     }
     return lResult;
@@ -1176,6 +1167,7 @@ bool Combo::OnEditKeyDown(const EventArgs& args)
                 //如果未选择，则开始选择第一项
                 if (itemCount > 0) {
                     m_treeView.SelectItem(0, false, true);
+                    m_treeView.EnsureVisible(0);
                 }
             }
             else {
@@ -1187,6 +1179,7 @@ bool Combo::OnEditKeyDown(const EventArgs& args)
                     else {
                         //如果不是最后一项，则选择下一项
                         m_treeView.SelectItem(nCurSel + 1, false, true);
+                        m_treeView.EnsureVisible(nCurSel + 1);
                     }
                 }
             }
@@ -1211,11 +1204,13 @@ bool Combo::OnEditKeyDown(const EventArgs& args)
                 else {
                     //不是第一项，选择前面一项
                     m_treeView.SelectItem(nCurSel - 1, false, true);
+                    m_treeView.EnsureVisible(nCurSel - 1);
                 }
             }
             else {
                 //如果未选择，则选择最后一项
                 m_treeView.SelectItem(itemCount - 1, false, true);
+                m_treeView.EnsureVisible(itemCount - 1);
             }
         }
         return false;
