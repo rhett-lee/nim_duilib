@@ -338,6 +338,7 @@ RichEdit::RichEdit(Window* pWindow) :
     m_bNoCaretReadonly(false),
     m_bIsCaretVisible(false),
     m_bIsComposition(false),
+    m_bFocusFromTab(false),
     m_iCaretPosX(0),
     m_iCaretPosY(0),
     m_iCaretWidth(0),
@@ -2004,6 +2005,23 @@ bool RichEdit::OnSetCursor(const EventArgs& msg)
     }
 }
 
+bool RichEdit::ShouldPaintFocusRect() const
+{
+    //编辑框的焦点框仅用于提示由TAB键切换获得的焦点，开始编辑文本后不再显示
+    if (!m_bFocusFromTab) {
+        return false;
+    }
+    return BaseClass::ShouldPaintFocusRect();
+}
+
+void RichEdit::ClearFocusFromTab()
+{
+    if (m_bFocusFromTab) {
+        m_bFocusFromTab = false;
+        Invalidate();
+    }
+}
+
 bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
 {
     if (m_pRichHost != nullptr) {
@@ -2018,6 +2036,9 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
         bool bEnableIME = IsVisible() && !IsReadOnly() && IsEnabled();
         pWindow->NativeWnd()->SetImeOpenStatus(bEnableIME);
     }
+
+    //记录焦点来源：仅由TAB键切换获得的焦点才显示焦点框
+    m_bFocusFromTab = (pWindow != nullptr) && pWindow->IsTabFocusChange();
 
     if ((m_pClearButton != nullptr) && !IsReadOnly()){
         m_pClearButton->SetFadeVisible(true);
@@ -2043,6 +2064,8 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
 
 bool RichEdit::OnKillFocus(const EventArgs& msg)
 {
+    m_bFocusFromTab = false;
+
     if (m_pRichHost) {
         m_pRichHost->OnTxInPlaceDeactivate();
         m_richCtrl.TxSendMessage(WM_KILLFOCUS, 0, 0);
@@ -2123,6 +2146,8 @@ bool RichEdit::OnChar(const EventArgs& msg)
     if ((msg.eventData != WM_CHAR) && (msg.eventData != WM_SYSCHAR) && (msg.eventData != WM_UNICHAR)) {
         return true;
     }
+    //开始输入文本后，不再显示焦点框
+    ClearFocusFromTab();
     if (msg.eventData == WM_SYSCHAR) {
         m_richCtrl.TxSendMessage(WM_SYSCHAR, msg.wParam, msg.lParam);
         return true;
@@ -2257,6 +2282,9 @@ bool RichEdit::IsPasteLimited() const
 
 bool RichEdit::OnKeyDown(const EventArgs& msg)
 {
+    //开始编辑文本后，不再显示焦点框
+    ClearFocusFromTab();
+
     if (msg.vkCode == kVK_RETURN && ::GetKeyState(VK_SHIFT) >= 0) {
         bool bCtrlDown = (::GetKeyState(VK_CONTROL) < 0);
         if (bCtrlDown && !m_bWantCtrlReturn) {
@@ -2288,6 +2316,9 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
 
 bool RichEdit::OnImeStartComposition(const EventArgs& /*msg*/)
 {
+    //输入法开始输入文本后，不再显示焦点框
+    ClearFocusFromTab();
+
     HWND hWnd = GetWindowHWND();
     if (hWnd == nullptr) {
         return true;

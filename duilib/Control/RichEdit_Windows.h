@@ -959,6 +959,14 @@ protected:
     virtual bool OnSetFocus(const EventArgs& msg) override;
     virtual bool OnKillFocus(const EventArgs& msg) override;
 
+    /** 是否绘制焦点框：编辑框仅在通过TAB键获得焦点后、且尚未开始编辑文本时显示焦点框
+    */
+    virtual bool ShouldPaintFocusRect() const override;
+
+    /** 清除“通过TAB键获得焦点”的状态，开始编辑文本后不再显示焦点框
+    */
+    void ClearFocusFromTab();
+
     /** 文本字符输入消息
     * @param msg 文本输入的具体参数信息，参数取值详细内容如下
     *            ASSERT(msg.eventType == ui::kEventChar)
@@ -1158,6 +1166,8 @@ private:
     bool m_bContextMenuShown;   //是否正在显示右键菜单
 
     bool m_bIsComposition;      //输入法合成窗口是否可见
+
+    bool m_bFocusFromTab;       //焦点是否由TAB键切换获得（仅此状态下显示焦点框，开始编辑文本后清除）
 
 private:
     bool m_bNoCaretReadonly;    //只读模式下，不显示光标

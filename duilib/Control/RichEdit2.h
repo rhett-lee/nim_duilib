@@ -857,6 +857,15 @@ protected:
     virtual bool OnSetCursor(const EventArgs& msg) override;
     virtual bool OnSetFocus(const EventArgs& msg) override;
     virtual bool OnKillFocus(const EventArgs& msg) override;
+
+    /** 是否绘制焦点框：编辑框仅在通过TAB键获得焦点后、且尚未开始编辑文本时显示焦点框
+    */
+    virtual bool ShouldPaintFocusRect() const override;
+
+    /** 清除“通过TAB键获得焦点”的状态，开始编辑文本后不再显示焦点框
+    */
+    void ClearFocusFromTab();
+
     virtual bool OnImeStartComposition(const EventArgs& msg) override;
     virtual bool OnImeComposition(const EventArgs& msg) override;
     virtual bool OnImeEndComposition(const EventArgs& msg) override;
@@ -1411,6 +1420,10 @@ private:
     /** 当前控件是否处于激活状态
     */
     bool m_bActive;
+
+    /** 焦点是否由TAB键切换获得（仅此状态下显示焦点框，开始编辑文本后清除）
+    */
+    bool m_bFocusFromTab;
 
     /** 是否正在处于文本输入状态
     */

@@ -2729,7 +2729,10 @@ bool Window::SetNextTabControl(bool bForward)
         }
     }
     if (pControl != nullptr) {
+        //标记本次焦点切换来自TAB键，供编辑框等控件区分焦点来源
+        m_bTabFocusChange = true;
         SetFocusControl(pControl);
+        m_bTabFocusChange = false;
     }
     return true;
 }

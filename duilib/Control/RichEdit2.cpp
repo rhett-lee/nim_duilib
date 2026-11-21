@@ -122,6 +122,7 @@ RichEdit2::RichEdit2(Window* pWindow) :
     m_pShowPasswordButton(nullptr),
     m_bHideSelection(true),
     m_bActive(false),
+    m_bFocusFromTab(false),
     m_bTextInputMode(false),
     m_pTextData(nullptr),
     m_nSelStartIndex(0),
@@ -3881,6 +3882,23 @@ bool RichEdit2::OnSetCursor(const EventArgs& msg)
     return true;
 }
 
+bool RichEdit2::ShouldPaintFocusRect() const
+{
+    //编辑框的焦点框仅用于提示由TAB键切换获得的焦点，开始编辑文本后不再显示
+    if (!m_bFocusFromTab) {
+        return false;
+    }
+    return BaseClass::ShouldPaintFocusRect();
+}
+
+void RichEdit2::ClearFocusFromTab()
+{
+    if (m_bFocusFromTab) {
+        m_bFocusFromTab = false;
+        Invalidate();
+    }
+}
+
 bool RichEdit2::OnSetFocus(const EventArgs& /*msg*/)
 {
     m_bActive = true;
@@ -3896,6 +3914,9 @@ bool RichEdit2::OnSetFocus(const EventArgs& /*msg*/)
             pWindow->NativeWnd()->SetTextInputArea(&inputRect, 0);
         }
     }
+
+    //记录焦点来源：仅由TAB键切换获得的焦点才显示焦点框
+    m_bFocusFromTab = (pWindow != nullptr) && pWindow->IsTabFocusChange();
 
     if ((pWindow != nullptr) && IsVisible() && !IsReadOnly() && IsEnabled()) {
         m_bTextInputMode = true;
@@ -3924,6 +3945,7 @@ bool RichEdit2::OnSetFocus(const EventArgs& /*msg*/)
 bool RichEdit2::OnKillFocus(const EventArgs& msg)
 {
     m_bActive = false;
+    m_bFocusFromTab = false;
     ShowCaret(false);
     m_bSelAllEver = false;
     if (m_bNoSelOnKillFocus && IsReadOnly() && IsEnabled()) {
@@ -3995,6 +4017,9 @@ void RichEdit2::UpdateCompositionText(const EventArgs& msg)
 
 bool RichEdit2::OnImeStartComposition(const EventArgs& msg)
 {
+    //输入法开始输入文本后，不再显示焦点框
+    ClearFocusFromTab();
+
     UpdateCompositionText(msg);
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     HWND hWnd = GetWindowHWND();
@@ -4111,6 +4136,9 @@ void RichEdit2::HandleEvent(const EventArgs& msg)
 
 bool RichEdit2::OnKeyDown(const EventArgs& msg)
 {
+    //开始编辑文本后，不再显示焦点框
+    ClearFocusFromTab();
+
     //该函数实现支持的各种快捷键
     if (msg.vkCode == kVK_SHIFT) {
         //记录选择的起始位置(当Shift键一致按住的时候，就会一致触发此OnKeyDown事件)
@@ -4772,6 +4800,9 @@ bool RichEdit2::OnKeyUp(const EventArgs& msg)
 
 bool RichEdit2::OnChar(const EventArgs& msg)
 {
+    //开始输入文本后，不再显示焦点框
+    ClearFocusFromTab();
+
     //输入一个字符
     OnInputChar(msg);
     return true;
@@ -4779,6 +4810,9 @@ bool RichEdit2::OnChar(const EventArgs& msg)
 
 bool RichEdit2::ButtonDown(const EventArgs& msg)
 {
+    //鼠标点击编辑框后，不再显示焦点框
+    ClearFocusFromTab();
+
     bool bRet = BaseClass::ButtonDown(msg);
     if (msg.IsSenderExpired()) {
         return false;

@@ -255,6 +255,11 @@ public:
     */
     bool IsKeyboardCueVisible() const { return m_bKeyboardCueVisible; }
 
+    /** 当前是否正在通过TAB键切换控件焦点（用于编辑框等控件区分焦点来源）
+    * @return true 表示正在通过TAB键切换焦点；false 表示其他方式（鼠标点击、代码设置等）
+    */
+    bool IsTabFocusChange() const { return m_bTabFocusChange; }
+
     /** @} */
 
 public:
@@ -1177,6 +1182,9 @@ private:
 private:
     //最近一次输入是否来自键盘（用于决定是否显示焦点框等键盘焦点提示）
     bool m_bKeyboardCueVisible = false;
+
+    //当前是否正在通过TAB键切换控件焦点
+    bool m_bTabFocusChange = false;
 
     //布局是否变化，如果变化(true)则需要重新计算布局
     bool m_bIsArranged;
