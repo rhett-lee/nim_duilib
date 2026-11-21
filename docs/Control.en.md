@@ -88,7 +88,7 @@ English | [简体中文](Control.md)
 | visible | true | bool | SetVisible|Whether visible, e.g. "true"|
 | fade_visible | true | bool | SetFadeVisible|Whether visible, e.g. "true"; this attribute triggers the control animation effect |
 | menu | false | bool | |Whether a right-click menu is needed, e.g. "true"|
-| no_focus | false | bool | SetNoFocus|Whether it can acquire focus, e.g. "true"|
+| no_focus | false | bool | SetNoFocus|Whether it can acquire focus, e.g. "true"; when true, the control is also excluded from TAB focus navigation |
 | tab_stop | false | bool | SetTabStop| Whether it is allowed to switch to this control by pressing the TAB key. Defaults to false so non-interactive controls such as Label do not become invisible focus stops; interactive controls (`Button`/`CheckBox`/`Option`/`Slider`/`RichEdit`/`NavigationViewItem`) enable it by default. Note: Box-derived controls (HBox/VBox/ListBox/Combo, etc.) do not support TAB focus |
 | show_focused_rect | false| bool | SetShowFocusedRect| Whether to display the focus rect (an accent-colored rounded outline by default, matching the native Windows focus indicator); drawn only while the window is active and the latest input came from the keyboard. Enabled by default for `Button`/`CheckBox`/`Option`/`Combo`/`Slider`/`RichEdit`/`IPAddress`/`DateTime` |
 | focused_rect_color | | string | SetFocusedRectColor| Color of the focus rect outline (falls back to color_accent, then border_focus_ring when empty) |

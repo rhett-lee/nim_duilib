@@ -492,7 +492,7 @@ public:
 
     /** 让控件设置永远获取不到焦点
      */
-    void SetNoFocus(); // 控件永远不要焦点，与KillFocus不一样
+    void SetNoFocus(); // 控件永远不要焦点，与KillFocus不一样（同时禁止该控件参与TAB键切换）
 
     /** 该控件是否不获取焦点
     */

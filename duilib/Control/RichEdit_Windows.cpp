@@ -3674,9 +3674,14 @@ bool RichEdit::SetSpinClass(const DString& spinClass)
             AddItem(m_pSpinBox);
 
             pUpButton = new Button(GetWindow());
+            //Spin按钮不参与TAB键切换焦点，也不获取焦点（点击时不打断编辑框输入）
+            pUpButton->SetTabStop(false);
+            pUpButton->SetNoFocus();
             m_pSpinBox->AddItem(pUpButton);
 
             pDownButton = new Button(GetWindow());
+            pDownButton->SetTabStop(false);
+            pDownButton->SetNoFocus();
             m_pSpinBox->AddItem(pDownButton);
         }
         else {

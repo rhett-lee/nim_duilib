@@ -2059,6 +2059,8 @@ void TabCtrlItem::SetCloseButtonClass(const DString& closeButtonClass)
         if (m_pCloseBtn == nullptr) {
             m_pCloseBtn = new Button(GetWindow());
             m_pCloseBtn->SetClass(closeButtonClass);
+            //关闭按钮是标签的附属按钮，不参与TAB键切换焦点，也不获取焦点
+            m_pCloseBtn->SetNoFocus();
             //点击关闭按钮：只发送关闭请求事件，不删除标签（删除由业务层完成）
             m_pCloseBtn->AttachClick([this](const EventArgs&) -> bool {
                 if (m_bClosable && !IsFixed()) {

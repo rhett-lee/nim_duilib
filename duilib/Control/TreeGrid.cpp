@@ -803,6 +803,8 @@ TreeGridRow* TreeGrid::CreateRow(TreeGridNode* pNode)
 
             CheckBox* pExpand = new CheckBox(GetWindow());
             pExpand->SetClass(m_expandClass);
+            //行内的展开开关是列表的附属控件，不参与TAB键切换焦点，也不获取焦点
+            pExpand->SetNoFocus();
             pExpand->SetSupportCheckMode(true);
             pExpand->SetVerAlignType(VerAlignType::kAlignCenter);
             pExpand->SetFixedWidth(UiFixedInt(kTreeGridExpandWidth), true, true);
@@ -813,6 +815,8 @@ TreeGridRow* TreeGrid::CreateRow(TreeGridNode* pNode)
 
             CheckBox* pCheck = new CheckBox(GetWindow());
             pCheck->SetClass(m_checkClass);
+            //行内的复选框是列表的附属控件，不参与TAB键切换焦点，也不获取焦点
+            pCheck->SetNoFocus();
             pCheck->SetSupportCheckMode(true);
             pCheck->SetVerAlignType(VerAlignType::kAlignCenter);
             //左侧留出与展开开关的间隙，右侧留出与文本的间隙

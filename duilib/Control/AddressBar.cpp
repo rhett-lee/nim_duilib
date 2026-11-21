@@ -818,6 +818,8 @@ void AddressBar::OnInit()
         AddItem(m_pResetBtn);
         m_pResetBtn->SetClass(GetResetButtonClass());
         m_pResetBtn->SetFixedWidth(UiFixedInt(24), true, false);
+        //重置按钮是地址栏的附属按钮，不参与TAB键切换焦点，也不获取焦点
+        m_pResetBtn->SetNoFocus();
         m_pResetBtn->SetToolTipText(GlobalManager::Instance().Lang().GetStringByID(_T("STRID_ADDRESS_BAR_RESET_PATH")));
         m_pResetBtn->SetVisible(false);
         m_pResetBtn->AttachClick([this](const EventArgs&) {

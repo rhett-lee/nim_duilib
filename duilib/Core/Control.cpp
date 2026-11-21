@@ -2365,6 +2365,8 @@ uint32_t Control::GetControlFlags() const
 void Control::SetNoFocus()
 {
     m_bNoFocus = true;
+    //不获取焦点的控件同时禁止参与TAB键切换，避免TAB焦点停靠到无法获得焦点的控件上
+    m_bAllowTabstop = false;
     EnsureNoFocus();
 }
 
