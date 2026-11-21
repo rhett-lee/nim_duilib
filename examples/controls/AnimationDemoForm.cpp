@@ -235,18 +235,11 @@ void AnimationDemoForm::InitPopupDemo()
     //Combo 下拉：填充选项，展开下拉窗口时可观察淡入效果
     ui::Combo* pCombo = dynamic_cast<ui::Combo*>(FindControl(_T("popup_combo")));
     if (pCombo != nullptr) {
-        ui::TreeView* pTreeView = pCombo->GetTreeView();
-        ui::TreeNode* pRootNode = (pTreeView != nullptr) ? pTreeView->GetRootNode() : nullptr;
-        if (pRootNode != nullptr) {
-            const DString strPrefix = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_ANIM_POPUP_ITEM"));
-            for (int32_t nIndex = 0; nIndex < 8; ++nIndex) {
-                ui::TreeNode* pNode = new ui::TreeNode(this);
-                pNode->SetClass(_T("tree_node"));
-                pNode->SetText(ui::StringUtil::Printf(_T("%s %02d"), strPrefix.c_str(), nIndex + 1));
-                pRootNode->AddChildNode(pNode);
-            }
-            pCombo->SetCurSel(0, false);
+        const DString strPrefix = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_ANIM_POPUP_ITEM"));
+        for (int32_t nIndex = 0; nIndex < 8; ++nIndex) {
+            pCombo->AddTextItem(ui::StringUtil::Printf(_T("%s %02d"), strPrefix.c_str(), nIndex + 1));
         }
+        pCombo->SetCurSel(0, false);
     }
 
     //菜单：点击按钮后弹出，菜单窗口同样使用淡入效果

@@ -342,45 +342,45 @@
                         <VBox width="250" height="auto">
                             <Label text="Normal Combo(drop_list):" valign="center" height="auto"/>
                             <Combo class="combo" name="combo_normal" combo_type="drop_list" dropbox_size="0,150" height="30">
-                                <TreeNode class="tree_node" padding="4" text="Option 1"/>
-                                <TreeNode class="tree_node" padding="4" text="Option 2" selected="true"/>
-                                <TreeNode class="tree_node" padding="4" text="Option 3"/>
-                                <TreeNode class="tree_node" padding="4" text="Option 4"/>
+                                <TreeNode class="combo_list_item" text="Option 1"/>
+                                <TreeNode class="combo_list_item" text="Option 2" selected="true"/>
+                                <TreeNode class="combo_list_item" text="Option 3"/>
+                                <TreeNode class="combo_list_item" text="Option 4"/>
                             </Combo>
                             <Label text="Disabled Combo(drop_list):" valign="center" margin="0,10,0,0" height="auto"/>
                             <Combo class="combo" name="combo_disabled" combo_type="drop_list" dropbox_size="0,150" height="30" enabled="false">
-                                <TreeNode class="tree_node" padding="4" text="Option 1"/>
-                                <TreeNode class="tree_node" padding="4" text="Option 2"/>
+                                <TreeNode class="combo_list_item" text="Option 1"/>
+                                <TreeNode class="combo_list_item" text="Option 2"/>
                             </Combo>
                         </VBox>
                         <VBox width="250" height="auto">
                             <Label text="Normal Combo(drop_down):" valign="center" height="auto"/>
                             <Combo class="combo" name="combo_normal_drop_down" combo_type="drop_down" dropbox_size="0,150" height="30">
-                                <TreeNode class="tree_node" padding="4" text="Option 1"/>
-                                <TreeNode class="tree_node" padding="4" text="Option 2" selected="true"/>
-                                <TreeNode class="tree_node" padding="4" text="Option 3"/>
-                                <TreeNode class="tree_node" padding="4" text="Option 4"/>
+                                <TreeNode class="combo_list_item" text="Option 1"/>
+                                <TreeNode class="combo_list_item" text="Option 2" selected="true"/>
+                                <TreeNode class="combo_list_item" text="Option 3"/>
+                                <TreeNode class="combo_list_item" text="Option 4"/>
                             </Combo>
                             <Label text="Disabled Combo(drop_down):" valign="center" margin="0,10,0,0" height="auto"/>
                             <Combo class="combo" name="combo_disabled_drop_down" combo_type="drop_down" dropbox_size="0,150" height="30" enabled="false">
-                                <TreeNode class="tree_node" padding="4" text="Option 1"/>
-                                <TreeNode class="tree_node" padding="4" text="Option 2"/>
+                                <TreeNode class="combo_list_item" text="Option 1"/>
+                                <TreeNode class="combo_list_item" text="Option 2"/>
                             </Combo>
                         </VBox>
                         <VBox width="250" height="auto">
                             <Label text="Filter Combo:" valign="center" height="auto"/>
                             <FilterCombo class="filter_combo" name="filter_combo" dropbox_size="0,150" height="30">
-                                <TreeNode class="tree_node" padding="4" text="Option 1"/>
-                                <TreeNode class="tree_node" padding="4" text="Option 2" selected="true"/>
-                                <TreeNode class="tree_node" padding="4" text="Option 3"/>
-                                <TreeNode class="tree_node" padding="4" text="Option 4"/>
+                                <TreeNode class="combo_list_item" text="Option 1"/>
+                                <TreeNode class="combo_list_item" text="Option 2" selected="true"/>
+                                <TreeNode class="combo_list_item" text="Option 3"/>
+                                <TreeNode class="combo_list_item" text="Option 4"/>
                             </FilterCombo>
                             <Label text="Filter Combo: Disabled" valign="center" margin="0,10,0,0" height="auto"/>
                             <FilterCombo class="filter_combo" name="filter_combo_disabled" dropbox_size="0,150" height="30" enabled="false">
-                                <TreeNode class="tree_node" padding="4" text="Option 1"/>
-                                <TreeNode class="tree_node" padding="4" text="Option 2" selected="true"/>
-                                <TreeNode class="tree_node" padding="4" text="Option 3"/>
-                                <TreeNode class="tree_node" padding="4" text="Option 4"/>
+                                <TreeNode class="combo_list_item" text="Option 1"/>
+                                <TreeNode class="combo_list_item" text="Option 2" selected="true"/>
+                                <TreeNode class="combo_list_item" text="Option 3"/>
+                                <TreeNode class="combo_list_item" text="Option 4"/>
                             </FilterCombo>
                         </VBox>
                         <VBox width="250" height="auto">

@@ -90,19 +90,8 @@ void ComboForm::InitComboItems(ui::Combo* pCombo, const DString& prefix, int32_t
     if (pCombo == nullptr) {
         return;
     }
-    ui::TreeView* pTreeView = pCombo->GetTreeView();
-    if (pTreeView == nullptr) {
-        return;
-    }
-    ui::TreeNode* pRootNode = pTreeView->GetRootNode();
-    if (pRootNode == nullptr) {
-        return;
-    }
     for (int32_t i = 0; i < nCount; ++i) {
-        ui::TreeNode* pNode = new ui::TreeNode(this);
-        pNode->SetClass(_T("tree_node"));
-        pNode->SetText(ui::StringUtil::Printf(_T("%s %d"), prefix.c_str(), i));
-        pRootNode->AddChildNode(pNode);
+        pCombo->AddTextItem(ui::StringUtil::Printf(_T("%s %d"), prefix.c_str(), i));
     }
     pCombo->SetCurSel(0, false);
 }

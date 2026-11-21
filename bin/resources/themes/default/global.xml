@@ -343,6 +343,19 @@
                              selected_normal_image="file='${PATH_CHECKBOX}/checkbox-outline-checked.svg' width='18' height='18' valign='center'" 
                              selected_disabled_image="file='${PATH_CHECKBOX}/checkbox-outline-checked.svg' width='18' height='18' valign='center' fade='80'"/>
     
+    <!-- 下拉列表项：Combo / FilterCombo / CheckCombo 的下拉列表统一使用，悬停/选中呈 4px 圆角胶囊 -->
+    <Class name="combo_list_item" height="28" text_padding="10,0,10,0" text_align="left,vcenter" fade_hovered="false"
+                               hovered_color="bg_menu_item_hovered" hovered_color_round="4,4"
+                               pressed_color="bg_menu_item_pressed" pressed_color_round="4,4"
+                               selected_normal_color="bg_menu_item_selected" selected_normal_color_round="4,4"
+                               selected_normal_text_color="text_selected"/>
+    <!-- 多选下拉列表项：在统一样式基础上叠加复选框 -->
+    <Class name="check_combo_item" class="combo_list_item" width="stretch" text_padding="26,0,10,0" normal_first="true"
+                               normal_image="file='${PATH_CHECKBOX}/checkbox-outline-unchecked.svg' width='16' height='16' valign='center' margin='4,0,0,0'"
+                               disabled_image="file='${PATH_CHECKBOX}/checkbox-outline-unchecked.svg' width='16' height='16' valign='center' margin='4,0,0,0' fade='80'"
+                               selected_normal_image="file='${PATH_CHECKBOX}/checkbox-outline-checked.svg' width='16' height='16' valign='center' margin='4,0,0,0'"
+                               selected_disabled_image="file='${PATH_CHECKBOX}/checkbox-outline-checked.svg' width='16' height='16' valign='center' margin='4,0,0,0' fade='80'"/>
+
     <!-- 下拉框基类 -->
     <Class name="combo_basic" padding="1,1,1,1" border_size="1" border_round="4,4"
                               border_color="border_combo_normal" 
@@ -351,7 +364,7 @@
                               bkcolor="bg_combo" disabled_color="bg_combo_disabled"/>
     <Class name="combo_base" class="combo_basic"
                              combo_tree_view_class="class='tree_view' padding='4,4,4,4' border_size='0,0,0,0' bkcolor='bg_menu' indent='20'"
-                             combo_tree_node_class="class='tree_node' text_padding='8,0,8,0' hovered_color_round='4,4' selected_normal_color_round='4,4'"
+                             combo_tree_node_class="class='combo_list_item'"
                              combo_icon_class="bkimage='${PATH_CAPTION}/logo.svg' width='18' height='18' valign='center' margin='2,0,2,0'" 
                              combo_edit_class="bkcolor='' disabled_color='bg_combo_disabled' text_align='vcenter' text_padding='8,0,4,0' single_line='true' word_wrap='false' auto_hscroll='true'"/>
     <!-- 下拉框 -->
@@ -365,12 +378,7 @@
     <Class name="filter_combo" class="combo"/>
     <Class name="check_combo" class="combo_basic"
                               dropbox="padding='4,4,4,4' bkcolor='bg_menu' border_size='0,0,0,0'"
-                              dropbox_item_class="width='stretch' height='24' text_padding='24,0,8,0' text_align='left,vcenter' normal_first='true'
-                                                  hovered_color='bg_list_item_hovered'
-                                                  normal_image={file='${PATH_CHECKBOX}/checkbox-outline-unchecked.svg' width='16' height='16' valign='center'} 
-                                                  disabled_image={file='${PATH_CHECKBOX}/checkbox-outline-unchecked.svg' width='16' height='16' valign='center' fade='80'}
-                                                  selected_normal_image={file='${PATH_CHECKBOX}/checkbox-outline-checked.svg' width='16' height='16' valign='center'}
-                                                  selected_disabled_image={file='${PATH_CHECKBOX}/checkbox-outline-checked.svg' width='16' height='16' valign='center' fade='80'}" 
+                              dropbox_item_class="class='check_combo_item'"
                               selected_item_class="width='auto' height='22' margin='4,2,4,2' bkcolor='bg_menu_item_selected' border_round='3,3' text_padding='6,0,6,0'"/>
     <Class name="combo_button" padding="1,1,1,1" border_size="1" hovered_border_color="border_combo_hovered" 
                                hovered_color="bg_combo_btn_hovered" pressed_color="bg_combo_btn_pressed"

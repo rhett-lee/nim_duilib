@@ -115,13 +115,8 @@ void ControlForm::OnInitWindow()
     //初始化Combo的数据
     ui::Combo* combo = dynamic_cast<ui::Combo*>(FindControl(_T("combo")));
     if (combo != nullptr) {
-        ui::TreeView* pTreeView = combo->GetTreeView();
-        ui::TreeNode* pTreeNode = pTreeView->GetRootNode();
         for (auto i = 0; i < 10; i++) {
-            ui::TreeNode* node = new ui::TreeNode(this);
-            node->SetClass(_T("tree_node"));
-            node->SetText(ui::StringUtil::Printf(_T("ui::Combo::TreeNode %d"), i));
-            pTreeNode->AddChildNode(node);
+            combo->AddTextItem(ui::StringUtil::Printf(_T("ui::Combo::TreeNode %d"), i));
         }
     }
 
