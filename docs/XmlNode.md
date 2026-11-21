@@ -126,6 +126,7 @@
 | IconControl | "IconControl"| [duilib/Control/IconControl.h](../duilib/Control/IconControl.h) | 图标控件 |
 | BitmapControl | "BitmapControl"| [duilib/Control/BitmapControl.h](../duilib/Control/BitmapControl.h) | 位图控件，继承Box |
 | AddressBar | "AddressBar"| [duilib/Control/AddressBar.h](../duilib/Control/AddressBar.h) | 地址栏控件 |
+| UrlBar | "UrlBar"| [duilib/Control/UrlBar.h](../duilib/Control/UrlBar.h) | 浏览器地址栏控件，继承HBox，详见[UrlBar.md](UrlBar.md) |
 | MenuBar | "MenuBar"| [duilib/Control/MenuBar.h](../duilib/Control/MenuBar.h) | 菜单栏控件，继承HBox，可挂载顶级菜单 |
 | StatusBar | "StatusBar"| [duilib/Control/StatusBar.h](../duilib/Control/StatusBar.h) | 状态栏控件 |
 | ToolBar | "ToolBar"| [duilib/Control/ToolBar.h](../duilib/Control/ToolBar.h) | 工具栏控件 |

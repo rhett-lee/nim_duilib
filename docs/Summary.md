@@ -10,6 +10,7 @@
 * [容器的样式](Box.md)
 * [控件的样式](Control.md)
 * [菜单的样式](Menu.md)
+* [浏览器地址栏（UrlBar）](UrlBar.md)
 * [模态消息框（MessageBoxWnd）](MessageBox.md)
 * [非模态通知框（ToastWnd）](Toast.md)
 * [系统原生通知（SystemNotification）](SystemNotification.md)
@@ -309,6 +310,7 @@
 | IconControl | Control | [duilib/Control/IconControl.h](../duilib/Control/IconControl.h) | 用于显示图标的控件，如果不设置图标数据，则兼容基类Control的所有功能|
 | BitmapControl | Box | [duilib/Control/BitmapControl.h](../duilib/Control/BitmapControl.h) | 位图控件，用于显示位图内容 |
 | AddressBar | HBox | [duilib/Control/AddressBar.h](../duilib/Control/AddressBar.h) | 地址栏控件，用于显示本地文件系统的路径 |
+| UrlBar | HBox | [duilib/Control/UrlBar.h](../duilib/Control/UrlBar.h) | 浏览器地址栏控件（安全状态图标 + 网址编辑框 + 收藏按钮 + 历史联想下拉），点击图标/收藏按钮均会触发事件，详见[UrlBar.md](UrlBar.md) |
 | StatusBar | HBox | [duilib/Control/StatusBar.h](../duilib/Control/StatusBar.h) | 状态栏控件，相邻状态面板之间自动绘制分隔线；支持按索引读写状态面板（GetPanelCount/GetPanel/SetPanelText）；右下角尺寸手柄可真正拖拽调整窗口大小（size_grip_resize），详见[Control.md](Control.md#statusbar-控件继承-hbox-属性) |
 | ToolBar | HBox | [duilib/Control/ToolBar.h](../duilib/Control/ToolBar.h) | 工具条（工具栏）控件，承载工具按钮与分隔线，宽度不足时自动收纳尾部子控件并在右端显示"更多"按钮，详见[Control.md](Control.md#toolbar-控件继承-hbox-属性) |
 

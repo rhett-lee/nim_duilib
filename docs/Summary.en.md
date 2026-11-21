@@ -12,6 +12,7 @@ English | [简体中文](Summary.md)
 * [Container Styles](Box.en.md)
 * [Control Styles](Control.en.md)
 * [Menu Styles](Menu.en.md)
+* [Browser Address Bar (UrlBar)](UrlBar.en.md)
 * [Modal Message Box (MessageBoxWnd)](MessageBox.en.md)
 * [Non-Modal Toast Notification (ToastWnd)](Toast.en.md)
 * [Native System Notification (SystemNotification)](SystemNotification.en.md)
@@ -311,6 +312,7 @@ For detailed interface descriptions of each class, please refer to the associate
 | IconControl | Control | [duilib/Control/IconControl.h](../duilib/Control/IconControl.h) | Control used to display icons; if icon data is not set, it is compatible with all functions of the base class Control |
 | BitmapControl | Box | [duilib/Control/BitmapControl.h](../duilib/Control/BitmapControl.h) | Bitmap control used to display bitmap content |
 | AddressBar | HBox | [duilib/Control/AddressBar.h](../duilib/Control/AddressBar.h) | Address bar control, used to display the path of the local file system |
+| UrlBar | HBox | [duilib/Control/UrlBar.h](../duilib/Control/UrlBar.h) | Browser address bar control (security icon + URL edit box + favorite button + history suggestions); clicking the icon/favorite button fires events. See [UrlBar.en.md](UrlBar.en.md) |
 | StatusBar | HBox | [duilib/Control/StatusBar.h](../duilib/Control/StatusBar.h) | Status bar control; draws separators automatically between adjacent status panes; panes can be read/written by index (GetPanelCount/GetPanel/SetPanelText); the bottom-right size grip can really drag-resize the window (size_grip_resize). See [Control.en.md](Control.en.md#attributes-of-statusbar-inherits-hbox-attributes) |
 | ToolBar | HBox | [duilib/Control/ToolBar.h](../duilib/Control/ToolBar.h) | Toolbar control holding tool buttons and separators; automatically collapses trailing children and shows a "more" button at the right end when the width is insufficient. See [Control.en.md](Control.en.md#attributes-of-toolbar-inherits-hbox-attributes) |
 

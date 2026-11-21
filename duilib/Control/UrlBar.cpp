@@ -2,6 +2,7 @@
 #include "UrlBarUtil.h"
 #include "duilib/Control/RichEdit.h"
 #include "duilib/Control/AutoComplete.h"
+#include "duilib/Control/Button.h"
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Callback.h"
@@ -68,6 +69,7 @@ UrlBar::UrlBar(Window* pWindow) :
     m_pEdit(nullptr),
     m_pIconSecure(nullptr),
     m_pIconInsecure(nullptr),
+    m_pFavButton(nullptr),
     m_bSecure(false),
     m_bEditModifiedByUser(false),
     m_bUpdatingPopup(false),
@@ -75,7 +77,9 @@ UrlBar::UrlBar(Window* pWindow) :
     m_pFlyout(nullptr),
     m_nMaxVisible(8),
     m_nMaxHistory(20),
-    m_bHistoryEnabled(true)
+    m_bHistoryEnabled(true),
+    m_bClearButtonEnabled(true),
+    m_bFavoriteButtonEnabled(true)
 {
 }
 
@@ -147,6 +151,12 @@ void UrlBar::SetAttribute(const DString& strName, const DString& strValue2)
             m_pEdit->SetAttribute(strName, strValue);
         }
     }
+    else if (strName == _T("clear_button_enabled")) {
+        SetClearButtonEnabled(StringUtil::IsValueTrue(strValue));
+    }
+    else if (strName == _T("favorite_button_enabled")) {
+        SetFavoriteButtonEnabled(StringUtil::IsValueTrue(strValue));
+    }
     else {
         BaseClass::SetAttribute(strName, strValue);
     }
@@ -162,18 +172,24 @@ void UrlBar::OnInit()
     //焦点框改由本控件绘制（与胶囊形圆角边框一致），内部编辑框不绘制直角焦点矩形
     SetShowFocusedRect(true);
 
-    //左侧安全状态图标（不响应鼠标、不获取焦点）
-    m_pIconSecure = new Control(GetWindow());
+    //左侧安全状态图标（可点击，点击后触发 kEventUrlBarIconClick 事件；不获取焦点）
+    m_pIconSecure = new Button(GetWindow());
     m_pIconSecure->SetClass(_T("url_bar_icon_secure"));
     m_pIconSecure->SetNoFocus();
-    m_pIconSecure->SetMouseEnabled(false);
     m_pIconSecure->SetVisible(false);
+    m_pIconSecure->AttachClick([this](const EventArgs& /*args*/) {
+        SendEvent(kEventUrlBarIconClick);
+        return true;
+        });
     AddItem(m_pIconSecure);
 
-    m_pIconInsecure = new Control(GetWindow());
+    m_pIconInsecure = new Button(GetWindow());
     m_pIconInsecure->SetClass(_T("url_bar_icon_insecure"));
     m_pIconInsecure->SetNoFocus();
-    m_pIconInsecure->SetMouseEnabled(false);
+    m_pIconInsecure->AttachClick([this](const EventArgs& /*args*/) {
+        SendEvent(kEventUrlBarIconClick);
+        return true;
+        });
     AddItem(m_pIconInsecure);
 
     //中间编辑框
@@ -198,6 +214,8 @@ void UrlBar::OnInit()
     }
     //右侧清除按钮（文本非空时自动显示，点击清空，复用 RichEdit 内置机制）
     m_pEdit->SetAttribute(_T("clear_btn_class"), _T("url_bar_clear_btn"));
+    //清除按钮的开关（默认开启）
+    m_pEdit->SetClearButtonEnabled(m_bClearButtonEnabled);
     //获得焦点时全选，便于直接输入新网址
     m_pEdit->SetSelAllOnFocus(true);
     if (!m_initText.empty()) {
@@ -208,6 +226,17 @@ void UrlBar::OnInit()
         m_pEdit->SetAttribute(_T("text_id"), DString(m_initTextId.c_str()));
     }
     AddItem(m_pEdit);
+
+    //最右侧收藏按钮（可点击，点击后触发 kEventUrlBarFavoriteClick 事件；不获取焦点）
+    m_pFavButton = new Button(GetWindow());
+    m_pFavButton->SetClass(_T("url_bar_fav_btn"));
+    m_pFavButton->SetNoFocus();
+    m_pFavButton->SetVisible(m_bFavoriteButtonEnabled);
+    m_pFavButton->AttachClick([this](const EventArgs& /*args*/) {
+        SendEvent(kEventUrlBarFavoriteClick);
+        return true;
+        });
+    AddItem(m_pFavButton);
 
     //转发内部编辑框事件：文本变化、回车提交
     m_pEdit->AttachTextChanged([this](const EventArgs& /*args*/) {
@@ -337,6 +366,32 @@ void UrlBar::SetSecure(bool bSecure)
 bool UrlBar::IsSecure() const
 {
     return m_bSecure;
+}
+
+void UrlBar::SetFavoriteButtonEnabled(bool bEnabled)
+{
+    m_bFavoriteButtonEnabled = bEnabled;
+    if (m_pFavButton != nullptr) {
+        m_pFavButton->SetVisible(bEnabled);
+    }
+}
+
+bool UrlBar::IsFavoriteButtonEnabled() const
+{
+    return m_bFavoriteButtonEnabled;
+}
+
+void UrlBar::SetClearButtonEnabled(bool bEnabled)
+{
+    m_bClearButtonEnabled = bEnabled;
+    if (m_pEdit != nullptr) {
+        m_pEdit->SetClearButtonEnabled(bEnabled);
+    }
+}
+
+bool UrlBar::IsClearButtonEnabled() const
+{
+    return m_bClearButtonEnabled;
 }
 
 void UrlBar::SetHistoryEnabled(bool bEnabled)

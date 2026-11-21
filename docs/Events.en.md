@@ -69,6 +69,10 @@ The content related to control events is defined in the files [`duilib/Core/Even
 |kEventTagRemoved          |Removed tag index (0-based) |     |Client-area coordinates of the mouse |     | Key flags |     | Fired before a tag is removed from TagInput; its text is still readable via GetTagText in the callback |
 |kEventTagClick            |Tag index (0-based) |     |Client-area coordinates of the mouse |     | Key flags |     | Fired when the tag body (not the close button) in TagInput is clicked |
 |kEventAutoCompleteSelect  |Selected item index within the current candidate list (0-based) |     |Client-area coordinates of the mouse |     | Key flags |     | Fired after a candidate in AutoComplete is chosen (mouse click or Enter); inline XML event name is `auto_complete_select` |
+|kEventUrlChanged           |     |     |     |     |       |     | UrlBar: fired after the user submits a new URL (Enter or choosing a suggestion); no parameters; get the URL via UrlBar::GetUrl(); inline XML event name is `url_changed` |
+|kEventUrlCancel            |     |     |     |     |       |     | UrlBar: fired after the user presses Esc to cancel editing and restore the committed URL; no parameters; inline XML event name is `url_cancel` |
+|kEventUrlBarIconClick      |     |     |     |     |       |     | UrlBar: fired when the left security-status icon (lock/globe) is clicked; no parameters; inline XML event name is `url_bar_icon_click` |
+|kEventUrlBarFavoriteClick  |     |     |     |     |       |     | UrlBar: fired when the favorite button on the far right is clicked; no parameters; inline XML event name is `url_bar_favorite_click` |
 
 
 | Event (eventType)           | Parameter (wParam)  | Parameter (lParam) | Parameter (ptMouse) | Parameter (vkCode) | Parameter (modifierKey) |Parameter (eventData) | Note     |

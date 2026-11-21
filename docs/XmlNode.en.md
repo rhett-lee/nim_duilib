@@ -128,6 +128,7 @@ English | [简体中文](XmlNode.md)
 | IconControl | "IconControl"| [duilib/Control/IconControl.h](../duilib/Control/IconControl.h) | Icon control |
 | BitmapControl | "BitmapControl"| [duilib/Control/BitmapControl.h](../duilib/Control/BitmapControl.h) | Bitmap control, derived from Box |
 | AddressBar | "AddressBar"| [duilib/Control/AddressBar.h](../duilib/Control/AddressBar.h) | Address bar control |
+| UrlBar | "UrlBar"| [duilib/Control/UrlBar.h](../duilib/Control/UrlBar.h) | Browser address bar control, derived from HBox; see [UrlBar.en.md](UrlBar.en.md) |
 | MenuBar | "MenuBar"| [duilib/Control/MenuBar.h](../duilib/Control/MenuBar.h) | Menu bar control, derived from HBox, hosts top-level menus |
 | StatusBar | "StatusBar"| [duilib/Control/StatusBar.h](../duilib/Control/StatusBar.h) | Status bar control |
 | ToolBar | "ToolBar"| [duilib/Control/ToolBar.h](../duilib/Control/ToolBar.h) | Tool bar control |

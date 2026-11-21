@@ -362,6 +362,7 @@ RichEdit::RichEdit(Window* pWindow) :
     m_pSpinBox(nullptr),
     m_nSpinStep(1),
     m_pClearButton(nullptr),
+    m_bClearButtonEnabled(true),
     m_pShowPasswordButton(nullptr),
     m_nFocusBottomBorderSize(0),
     m_fRowSpacingMul(1.0f),
@@ -2040,7 +2041,7 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
     //记录焦点来源：仅由TAB键切换获得的焦点才显示焦点框
     m_bFocusFromTab = (pWindow != nullptr) && pWindow->IsTabFocusChange();
 
-    if ((m_pClearButton != nullptr) && !IsReadOnly()){
+    if (m_bClearButtonEnabled && (m_pClearButton != nullptr) && !IsReadOnly()) {
         m_pClearButton->SetFadeVisible(true);
     }
     if ((m_pShowPasswordButton != nullptr) && IsPasswordMode() && !IsShowPassword()) {
@@ -3904,6 +3905,19 @@ void RichEdit::SetClearBtnClass(const DString& btnClass)
             SetText(_T(""));
             return true;
             });
+    }
+}
+
+void RichEdit::SetClearButtonEnabled(bool bEnabled)
+{
+    m_bClearButtonEnabled = bEnabled;
+    if (m_pClearButton != nullptr) {
+        if (!bEnabled) {
+            m_pClearButton->SetFadeVisible(false);
+        }
+        else if (IsFocused() && !IsReadOnly()) {
+            m_pClearButton->SetFadeVisible(true);
+        }
     }
 }
 

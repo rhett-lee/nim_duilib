@@ -172,6 +172,10 @@ if (msg.eventType == eventType) {
 |kEventTagRemoved|"TagRemoved"|"tag_removed"|
 |kEventTagClick|"TagClick"|"tag_click"|
 |kEventAutoCompleteSelect|"AutoCompleteSelect"|"auto_complete_select"|
+|kEventUrlChanged|"UrlChanged"|"url_changed"|
+|kEventUrlCancel|"UrlCancel"|"url_cancel"|
+|kEventUrlBarIconClick|"UrlBarIconClick"|"url_bar_icon_click"|
+|kEventUrlBarFavoriteClick|"UrlBarFavoriteClick"|"url_bar_favorite_click"|
 |kEventTabClose|"TabClose"|"tab_close"|
 |kEventTabNew|"TabNew"|"tab_new"|
 |kEventZoom|"Zoom"|"zoom"|

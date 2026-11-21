@@ -119,6 +119,7 @@ RichEdit2::RichEdit2(Window* pWindow) :
     m_nSpinStep(1),
     m_pFocusedImage(nullptr),
     m_pClearButton(nullptr),
+    m_bClearButtonEnabled(true),
     m_pShowPasswordButton(nullptr),
     m_bHideSelection(true),
     m_bActive(false),
@@ -3385,6 +3386,19 @@ void RichEdit2::SetClearBtnClass(const DString& btnClass)
     }
 }
 
+void RichEdit2::SetClearButtonEnabled(bool bEnabled)
+{
+    m_bClearButtonEnabled = bEnabled;
+    if (m_pClearButton != nullptr) {
+        if (!bEnabled) {
+            m_pClearButton->SetFadeVisible(false);
+        }
+        else if (IsFocused() && !IsReadOnly()) {
+            m_pClearButton->SetFadeVisible(true);
+        }
+    }
+}
+
 void RichEdit2::SetShowPasswordBtnClass(const DString& btnClass)
 {
     if (!btnClass.empty()) {
@@ -3933,7 +3947,7 @@ bool RichEdit2::OnSetFocus(const EventArgs& /*msg*/)
     //设置是否显示光标
     ShowCaret(!HasSelText());
 
-    if ((m_pClearButton != nullptr) && !IsReadOnly()) {
+    if (m_bClearButtonEnabled && (m_pClearButton != nullptr) && !IsReadOnly()) {
         m_pClearButton->SetFadeVisible(true);
     }
     if ((m_pShowPasswordButton != nullptr) && IsPasswordMode() && !IsShowPassword()) {

@@ -553,6 +553,8 @@ namespace ui
         kEventUrlChanged,               //UrlBar类：用户提交了新网址（回车或选中联想项）时触发，无参数，
                                         //           归一化后的网址通过 UrlBar::GetUrl() 获取
         kEventUrlCancel,                //UrlBar类：用户按 Esc 取消编辑、恢复为已提交网址时触发，无参数
+        kEventUrlBarIconClick,          //UrlBar类：点击左侧安全状态图标时触发，无参数
+        kEventUrlBarFavoriteClick,      //UrlBar类：点击右侧收藏按钮时触发，无参数
 
         kEventLast,                     //控件的最后一个消息
 

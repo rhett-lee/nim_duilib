@@ -229,6 +229,14 @@ public:
     */
     bool IsFocusFromTab() const { return m_bFocusFromTab; }
 
+    /** 设置是否启用清除按钮（默认启用；禁用后即使编辑框获得焦点也不显示清除按钮）
+    */
+    void SetClearButtonEnabled(bool bEnabled);
+
+    /** 是否启用清除按钮
+    */
+    bool IsClearButtonEnabled() const { return m_bClearButtonEnabled; }
+
     /** 设置控件为只读状态
      * @param[in] bReadOnly 设置 true 让控件变为只读状态，false 为可写入状态
      */
@@ -1256,6 +1264,10 @@ private:
     /** 清除功能的按钮(仅当非只读模式有效)
     */
     Control* m_pClearButton;
+
+    /** 是否启用清除按钮（默认启用）
+    */
+    bool m_bClearButtonEnabled;
 
     /** 显示/隐藏密码按钮(仅当密码模式有效)
     */

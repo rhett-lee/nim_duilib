@@ -13,8 +13,9 @@ class Control;
 /** 浏览器地址栏控件（UrlBar）：安全状态图标 + 网址编辑框 + 历史联想下拉
 *
 *   外观与交互参考常见浏览器的地址栏：
-*   - 左侧显示安全状态图标：https 显示锁图标，其它协议显示地球图标
+*   - 左侧显示安全状态图标：https 显示锁图标，其它协议显示地球图标，点击时触发事件
 *   - 中间为单行编辑框，获得焦点时自动全选文本，文本非空时显示清除按钮
+*   - 右侧显示收藏按钮，点击时触发事件
 *   - 输入时按历史记录过滤并弹出联想下拉，上下键导航、回车确认、Esc 收起
 *
 *   联想下拉的展开/关闭规则（参考 Edge 地址栏）：
@@ -41,15 +42,19 @@ class Control;
 *     max_visible         联想下拉最多可见候选行数（默认 8，超出出现滚动条）
 *     secure              初始安全状态（true 显示锁图标，false 显示地球图标；默认 false）
 *     default_context_menu 是否启用编辑框的默认右键菜单（转发给内部编辑框）
+*     clear_button_enabled 是否启用编辑框的清除按钮（默认 true）
+*     favorite_button_enabled 是否显示右侧收藏按钮（默认 true）
 *
 *   事件：
 *   - kEventUrlChanged：用户提交了新网址（回车或选中联想项）后触发，无参数；
 *                       归一化后的网址通过 GetUrl() 获取
 *   - kEventUrlCancel：用户按 Esc 取消编辑、恢复为已提交网址后触发，无参数
 *   - kEventTextChanged：内部编辑框文本变化时触发（实时，随输入触发）
+*   - kEventUrlBarIconClick：点击左侧安全状态图标后触发，无参数
+*   - kEventUrlBarFavoriteClick：点击右侧收藏按钮后触发，无参数
 *
 *   皮肤类（global.xml 中定义）：url_bar / url_bar_icon_secure / url_bar_icon_insecure /
-*   url_bar_edit / url_bar_clear_btn；下拉浮层复用 auto_complete_flyout /
+*   url_bar_edit / url_bar_clear_btn / url_bar_fav_btn；下拉浮层复用 auto_complete_flyout /
 *   auto_complete_list / auto_complete_item
 */
 class DUILIB_API UrlBar : public HBox
@@ -107,6 +112,16 @@ public:
     void SetSecure(bool bSecure);
     bool IsSecure() const;
 
+    /** 设置是否显示右侧收藏按钮（默认显示）
+    */
+    void SetFavoriteButtonEnabled(bool bEnabled);
+    bool IsFavoriteButtonEnabled() const;
+
+    /** 设置是否启用编辑框的清除按钮（默认启用）
+    */
+    void SetClearButtonEnabled(bool bEnabled);
+    bool IsClearButtonEnabled() const;
+
     /** @name 网址历史
     *   提交网址时自动记录（MRU：最近使用的排在前面），同时作为联想下拉的候选数据源
     */
@@ -157,6 +172,20 @@ public:
     void AttachUrlCancel(const EventCallback& callback, EventCallbackID callbackID = 0)
     {
         AttachEvent(kEventUrlCancel, callback, callbackID);
+    }
+
+    /** 监听左侧安全状态图标点击事件
+    */
+    void AttachIconClick(const EventCallback& callback, EventCallbackID callbackID = 0)
+    {
+        AttachEvent(kEventUrlBarIconClick, callback, callbackID);
+    }
+
+    /** 监听右侧收藏按钮点击事件
+    */
+    void AttachFavoriteClick(const EventCallback& callback, EventCallbackID callbackID = 0)
+    {
+        AttachEvent(kEventUrlBarFavoriteClick, callback, callbackID);
     }
 
 protected:
@@ -254,6 +283,10 @@ private:
     */
     Control* m_pIconInsecure;
 
+    /** 右侧收藏按钮
+    */
+    Control* m_pFavButton;
+
     /** 初始网址文本（OnInit 前缓存 XML 中的 text 属性）
     */
     UiString m_initText;
@@ -325,6 +358,14 @@ private:
     /** 是否记录并展示网址历史（默认 true）
     */
     bool m_bHistoryEnabled;
+
+    /** 是否启用编辑框的清除按钮（默认 true）
+    */
+    bool m_bClearButtonEnabled;
+
+    /** 是否显示右侧收藏按钮（默认 true）
+    */
+    bool m_bFavoriteButtonEnabled;
 
     /** 网址历史持久化文件（相对路径基于可执行程序目录）
     */

@@ -214,6 +214,18 @@ void TestUrlBarDefaults()
     CHECK_EQ(urlBar.GetHistoryFile(), _T(""));
     CHECK(urlBar.GetHistory().empty());
 
+    //收藏按钮与清除按钮的开关：默认开启，可通过接口关闭
+    CHECK(urlBar.IsFavoriteButtonEnabled());
+    CHECK(urlBar.IsClearButtonEnabled());
+    urlBar.SetFavoriteButtonEnabled(false);
+    CHECK(!urlBar.IsFavoriteButtonEnabled());
+    urlBar.SetFavoriteButtonEnabled(true);
+    CHECK(urlBar.IsFavoriteButtonEnabled());
+    urlBar.SetClearButtonEnabled(false);
+    CHECK(!urlBar.IsClearButtonEnabled());
+    urlBar.SetClearButtonEnabled(true);
+    CHECK(urlBar.IsClearButtonEnabled());
+
     //网址读写：未初始化时缓存在内部，并同步安全状态
     urlBar.SetUrl(_T("https://example.com"));
     CHECK_EQ(urlBar.GetUrl(), _T("https://example.com"));

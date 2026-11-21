@@ -57,7 +57,7 @@
                 <Button class="webview2_tool_stop" name="btn_stop" tooltip_text_id="STRID_WEBVIEW2_BROWSER_STOP" visible="false"/>
                 <Control width="1" height="18" bkcolor="border_split_level1" margin="6,0,6,0"/>
                 <UrlBar class="url_bar" name="url_bar"
-                                       width="stretch" height="30" valign="center"
+                                       width="stretch" height="34" valign="center"
                                        prompt_text_id="STRID_WEBVIEW2_BROWSER_INPUT_ADDRESS"
                                        search_url_template="https://www.bing.com/search?q=%s"
                                        history_file="user/webview2_url_history.txt"
