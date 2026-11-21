@@ -134,7 +134,7 @@ Flyout::Flyout(Window* pParentWindow) :
     m_bAutoDismiss(true),
     m_bClickOutsideDismiss(true),
     m_bShadowClickThrough(true),
-    m_bFollowAnchor(false),
+    m_bFollowAnchor(true),
     m_bAnchorSuspended(false),
     m_bNoFocus(true),
     m_nGap(6),

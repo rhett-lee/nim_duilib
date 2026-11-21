@@ -2,6 +2,7 @@
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Keyboard.h"
 #include "duilib/Core/WindowCreateParam.h"
+#include "duilib/Core/WindowAnchorFollower.h"
 #include "duilib/Box/HBox.h"
 
 namespace ui
@@ -39,6 +40,9 @@ private:
 
     //是否已经关闭
     bool m_bIsClosed = false;
+
+    //跟随宿主控件的位置变化（宿主窗口移动、所在滚动容器滚动）
+    WindowAnchorFollower m_anchorFollower;
 };
 
 void ComboButtonWnd::InitComboWnd(ComboButton* pOwner, bool bActivated)
@@ -62,6 +66,25 @@ void ComboButtonWnd::InitComboWnd(ComboButton* pOwner, bool bActivated)
     else {
         ShowWindow(ui::kSW_SHOW_NA);
     }
+
+    //跟随宿主控件：窗口移动或滚动容器滚动时，下拉窗口同步更新位置
+    m_anchorFollower.Start(
+        [this]() -> UiRect {
+            ComboButton* pOwner = m_pOwner.get();
+            if ((pOwner == nullptr) || (pOwner->GetWindow() == nullptr)) {
+                return UiRect();
+            }
+            UiRect rcOwner = pOwner->GetPos();
+            UiPoint scrollOffset = pOwner->GetScrollOffsetInScrollBox();
+            rcOwner.Offset(-scrollOffset.x, -scrollOffset.y);
+            pOwner->GetWindow()->ClientToScreen(rcOwner);
+            return rcOwner;
+        },
+        [this]() {
+            if (!m_bIsClosed) {
+                UpdateComboWnd();
+            }
+        });
 
     //发送一个事件
     pOwner->SendEvent(kEventWindowCreate);
@@ -150,6 +173,7 @@ void ComboButtonWnd::UpdateComboWnd()
 
 void ComboButtonWnd::OnFinalMessage()
 {
+    m_anchorFollower.Stop();
     ComboButton* pOwner = m_pOwner.get();
     if (pOwner != nullptr) {
         if (pOwner->GetComboBox()->GetWindow() == this) {
@@ -178,6 +202,7 @@ void ComboButtonWnd::CloseComboWnd(bool bCanceled)
         return;
     }
     m_bIsClosed = true;
+    m_anchorFollower.Stop();
     Box* pRootBox = GetRoot();
     ComboButton* pOwner = m_pOwner.get();
     if ((pOwner != nullptr) && (pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
@@ -203,6 +228,7 @@ void ComboButtonWnd::CloseComboWndOnOwnerDestroy()
         return;
     }
     m_bIsClosed = true;
+    m_anchorFollower.Stop();
     Box* pRootBox = GetRoot();
     ComboButton* pOwner = m_pOwner.get();
     if (pRootBox != nullptr) {
@@ -245,6 +271,7 @@ void ComboButtonWnd::OnInitWindow()
 
 void ComboButtonWnd::OnCloseWindow()
 {
+    m_anchorFollower.Stop();
     Box* pRootBox = GetRoot();
     ComboButton* pOwner = m_pOwner.get();
     if ((pOwner != nullptr) && (pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {

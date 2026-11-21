@@ -5,6 +5,7 @@
 #include "duilib/Box/ListBox.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/AttributeUtil.h"
+#include "duilib/Core/WindowAnchorFollower.h"
 
 namespace ui
 {
@@ -62,6 +63,9 @@ private:
     bool m_bIsClosed = false;
     //键盘导航的当前项索引（Box::InvalidIndex 表示未定位）
     size_t m_nKeyIndex = Box::InvalidIndex;
+
+    //跟随宿主控件的位置变化（宿主窗口移动、所在滚动容器滚动）
+    WindowAnchorFollower m_anchorFollower;
 };
 
 void CCheckComboWnd::InitComboWnd(CheckCombo* pOwner)
@@ -92,6 +96,25 @@ void CCheckComboWnd::InitComboWnd(CheckCombo* pOwner)
     if (pOwner->GetListBox()->GetItemCount() > 0) {
         SetKeyIndex(0);
     }
+
+    //跟随宿主控件：窗口移动或滚动容器滚动时，下拉窗口同步更新位置
+    m_anchorFollower.Start(
+        [this]() -> UiRect {
+            CheckCombo* pOwner = m_pOwner.get();
+            if ((pOwner == nullptr) || (pOwner->GetWindow() == nullptr)) {
+                return UiRect();
+            }
+            UiRect rcOwner = pOwner->GetPos();
+            UiPoint scrollOffset = pOwner->GetScrollOffsetInScrollBox();
+            rcOwner.Offset(-scrollOffset.x, -scrollOffset.y);
+            pOwner->GetWindow()->ClientToScreen(rcOwner);
+            return rcOwner;
+        },
+        [this]() {
+            if (!m_bIsClosed) {
+                UpdateComboWnd();
+            }
+        });
 
     //发送一个事件
     pOwner->SendEvent(kEventWindowCreate);
@@ -264,6 +287,7 @@ void CCheckComboWnd::CloseComboWnd()
         return;
     }
     m_bIsClosed = true;
+    m_anchorFollower.Stop();
     ResetKeyIndex();
     Box* pRootBox = GetRoot();
     CheckCombo* pOwner = m_pOwner.get();
@@ -287,6 +311,7 @@ void CCheckComboWnd::CloseComboWndOnOwnerDestroy()
         return;
     }
     m_bIsClosed = true;
+    m_anchorFollower.Stop();
     ResetKeyIndex();
     Box* pRootBox = GetRoot();
     CheckCombo* pOwner = m_pOwner.get();
@@ -304,6 +329,7 @@ void CCheckComboWnd::CloseComboWndOnOwnerDestroy()
 
 void CCheckComboWnd::OnFinalMessage()
 {
+    m_anchorFollower.Stop();
     CheckCombo* pOwner = m_pOwner.get();
     if (pOwner != nullptr) {
         if (pOwner->GetListBox()->GetWindow() == this) {
@@ -357,6 +383,7 @@ void CCheckComboWnd::OnInitWindow()
 
 void CCheckComboWnd::OnCloseWindow()
 {
+    m_anchorFollower.Stop();
     Box* pRootBox = GetRoot();
     CheckCombo* pOwner = m_pOwner.get();
     if ((pOwner != nullptr) && (pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {

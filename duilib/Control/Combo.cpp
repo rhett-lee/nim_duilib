@@ -7,6 +7,7 @@
 #include "duilib/Animation/PopupAnimation.h"
 #include "duilib/Animation/AnimationPlayer.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/WindowAnchorFollower.h"
 
 namespace ui
 {
@@ -69,6 +70,9 @@ private:
 
     //窗口显示时的淡入动画播放器（受 PopupAnimation 全局开关控制）
     std::unique_ptr<AnimationPlayer> m_pFadeInPlayer;
+
+    //跟随宿主控件的位置变化（宿主窗口移动、所在滚动容器滚动）
+    WindowAnchorFollower m_anchorFollower;
 };
 
 void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
@@ -116,6 +120,25 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
         UpdateWindow();
         pOwner->GetTreeView()->EnsureVisible(m_iOldSel, ListBoxVerVisible::kVisibleAtCenter);
     }
+
+    //跟随宿主控件：窗口移动或滚动容器滚动时，下拉窗口同步更新位置
+    m_anchorFollower.Start(
+        [this]() -> UiRect {
+            Combo* pOwner = m_pOwner.get();
+            if ((pOwner == nullptr) || (pOwner->GetWindow() == nullptr)) {
+                return UiRect();
+            }
+            UiRect rcOwner = pOwner->GetPos();
+            UiPoint scrollOffset = pOwner->GetScrollOffsetInScrollBox();
+            rcOwner.Offset(-scrollOffset.x, -scrollOffset.y);
+            pOwner->GetWindow()->ClientToScreen(rcOwner);
+            return rcOwner;
+        },
+        [this]() {
+            if (!m_bIsClosed) {
+                UpdateComboWnd();
+            }
+        });
 
     //发送一个事件
     pOwner->SendEvent(kEventWindowCreate);
@@ -217,6 +240,7 @@ void CComboWnd::UpdateComboWnd()
 
 void CComboWnd::OnFinalMessage()
 {
+    m_anchorFollower.Stop();
     if (m_pOwner != nullptr) {
         if (m_pOwner->GetTreeView()->GetWindow() == this) {
             m_pOwner->GetTreeView()->SetWindow(nullptr);
@@ -244,6 +268,7 @@ void CComboWnd::CloseComboWnd(bool bCanceled, bool needUpdateSelItem)
         return;
     }
     m_bIsClosed = true;
+    m_anchorFollower.Stop();
     Box* pRootBox = GetRoot();
     if ((m_pOwner != nullptr) && (pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
         m_pOwner->GetTreeView()->SetWindow(nullptr);
@@ -303,6 +328,7 @@ void CComboWnd::CloseComboWndOnOwnerDestroy()
         return;
     }
     m_bIsClosed = true;
+    m_anchorFollower.Stop();
     Box* pRootBox = GetRoot();
     if (pRootBox != nullptr) {
         if (m_pOwner != nullptr) {
@@ -318,6 +344,7 @@ void CComboWnd::CloseComboWndOnOwnerDestroy()
 
 void CComboWnd::OnCloseWindow()
 {
+    m_anchorFollower.Stop();
     Box* pRootBox = GetRoot();
     if ((m_pOwner != nullptr) && (pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
         m_pOwner->GetTreeView()->SetWindow(nullptr);
