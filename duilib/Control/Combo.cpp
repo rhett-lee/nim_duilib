@@ -91,6 +91,9 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
     createWndParam.m_dwExStyle = kWS_EX_LAYERED;
+#if defined (DUILIB_BUILD_FOR_SDL) && !defined (DUILIB_BUILD_FOR_WIN)
+    createWndParam.m_dwExStyle |= kWS_EX_NOACTIVATE;
+#endif
     createWndParam.m_nX = rcWnd.left;
     createWndParam.m_nY = rcWnd.top;
     createWndParam.m_nWidth = rcWnd.Width();
@@ -100,7 +103,7 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
     //下拉窗口淡入动画：在显示前把 Alpha 置 0，显示时由动画渐变到完全不透明
     PopupAnimation::PlayFadeIn(this, m_pFadeInPlayer);
 
-#ifdef DUILIB_BUILD_FOR_SDL
+#if defined (DUILIB_BUILD_FOR_SDL) && defined (DUILIB_BUILD_FOR_WIN)
     //SDL模式，需要使用激活的窗口，否则列表中的滚动条无法正常工作（鼠标按滚动条的时候，无法滚动）
     bActivated = true;
 #endif
