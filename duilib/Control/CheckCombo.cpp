@@ -276,7 +276,7 @@ void CCheckComboWnd::CloseComboWnd()
     if ((pOwner != nullptr) && (pOwner->GetWindow() != nullptr)) {
         if (IsWindowForeground()) {
             pOwner->GetWindow()->SetWindowForeground();
-        }        
+        }
     }
     CloseWnd();
 }
@@ -449,6 +449,8 @@ CheckCombo::CheckCombo(Window* pWindow) :
     
     m_pList.reset(new ui::ListBox(pWindow, new ui::VTileLayout));
     m_pList->SetNoFocus();//内部列表不接收焦点，焦点由CheckCombo自己管理
+    m_pList->SetMouseEnabled(false); //内部列表不响应鼠标消息
+    m_pList->SetMouseChildEnabled(false);//内部列表子控件也不响应鼠标消息
     m_pList->AttachButtonDown(UiBind(&CheckCombo::OnListButtonDown, this, std::placeholders::_1));
     m_pList->SetMouseChildEnabled(false);
     m_pList->EnableScrollBar();
