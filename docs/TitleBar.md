@@ -13,14 +13,19 @@
 
 | 项目 | 配置位置 | 统一值 | 说明 |
 | :--- | :--- | :--- | :--- |
-| 标题栏高度 | `Window` 的 `caption` | `0,0,0,36` | 同时决定可拖动区域与标题栏视觉高度，两者必须一致 |
-| 系统菜单区域 | `Window` 的 `sys_menu_rect` | `0,0,36,36` | 需与标题栏高度一致；不设置则不启用该功能 |
-| 标题栏容器 | `HBox name="window_title_bar"` | `width="stretch" height="36"` | 背景色使用 `bkcolor="bg_titlebar"` |
-| 左上角图标 | `Control class="title_bar_logo"` | 公共类，见 `global.xml` | 类中已包含 18×18、`margin="8,0,0,0"`、`valign="center"` 与 Logo 图片 |
+| 标题栏高度 | `Window` 的 `caption` | `0,0,0,36`（字面量） | 同时决定可拖动区域与标题栏视觉高度，两者必须一致；改为其它值时需同步 `SIZE_TITLEBAR_HEIGHT` |
+| 系统菜单区域 | `Window` 的 `sys_menu_rect` | `0,0,36,36`（字面量） | 需与标题栏高度一致；不设置则不启用该功能 |
+| 标题栏容器 | `HBox name="window_title_bar"` | 宽 `stretch`、高 `${SIZE_TITLEBAR_HEIGHT}` | 背景色使用 `bkcolor="bg_titlebar"` |
+| 左上角图标 | `Control class="title_bar_logo"` | 公共类，见 `global.xml` | 类中已包含 `${SIZE_TITLE_LOGO}`（18）、`margin="8,0,0,0"`、`valign="center"` 与 Logo 图片 |
 | 标题文字 | `Label class="title_bar_title"` | 公共类，见 `global.xml` | 类中已包含 `font="system_regular_14"`、`margin="8,0,0,0"`、`valign="center"`；拉伸标题需覆盖 `margin="8,0,8,0"` |
-| 普通窗口按钮 | `Button` | `width="40" height="32"` `margin="0,2,0,2"` | 32 + 上下各 2 = 36，与标题栏等高 |
-| 最大化/还原 | `Box` + 两个 `Button` | `Box` 为 `40×32`、`margin="0,2,0,2"` | 两个按钮叠放，内部按钮 `width="stretch" height="stretch" margin="0"` |
-| 关闭按钮 | `Button` | `width="40" height="stretch"` `margin="0"` | 高度等于标题栏高度，紧贴顶部和右侧，无空隙 |
+| 普通窗口按钮 | `Button` 引用窗口按钮类 | 尺寸由 `global.xml` 的类定义 | `btn_wnd_base` 统一为 `${SIZE_WND_BTN_WIDTH}`×`${SIZE_WND_BTN_HEIGHT}`（40×32）；窗口 XML 只需 `margin="0,2,0,2"` |
+| 最大化/还原 | `Box` + 两个 `Button` | 外层 `Box` 定尺寸，按钮类内为 `stretch` | `Box` 为 `${SIZE_WND_BTN_WIDTH}`×`${SIZE_WND_BTN_HEIGHT}`、`margin="0,2,0,2"`；按钮的拉伸与 `margin="0"` 已由类提供 |
+| 关闭按钮 | `Button` 引用窗口按钮类 | `btn_wnd_close_11` 中为 `height="stretch"` | 宽度由基类提供，关闭按钮高度撑满；窗口 XML 只需 `margin="0"` |
+
+上述 `${SIZE_*}` 变量定义在 [global.xml](../bin/resources/themes/default/global.xml) 的
+“尺寸与路径变量”章节。**注意：`Window` 节点的属性（`caption`、`sys_menu_rect` 等）
+不参与变量展开**，只能用字面量书写，因此修改标题栏高度时需要同时修改
+`caption` 与 `SIZE_TITLEBAR_HEIGHT`，二者保持一致。
 
 ## 2. 标准结构
 
@@ -30,7 +35,7 @@
         shadow_type="default" size_box="4,4,4,4" icon="public/caption/logo.ico">
     <VBox bkcolor="bg_window_main">
         <!-- 标题栏 -->
-        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+        <HBox name="window_title_bar" width="stretch" height="${SIZE_TITLEBAR_HEIGHT}" bkcolor="bg_titlebar">
             <!-- 左侧：图标 + 标题（使用 global.xml 中的公共 Class） -->
             <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
                 <Control class="title_bar_logo"/>
@@ -39,23 +44,17 @@
             <!-- 中间空白，占满剩余宽度 -->
             <Control mouse_enabled="false"/>
             <!-- 右侧：窗口按钮（按需增减，不要改变已有按钮种类） -->
-            <HBox margin="0,0,0,0" valign="center" width="auto" height="36">
-                <Button class="btn_switch_theme" name="btn_window_theme"
-                        height="32" width="40" margin="0,2,0,2"/>
-                <Button class="btn_switch_lang" name="btn_window_language"
-                        height="32" width="40" margin="0,2,0,2"/>
-                <Button class="btn_wnd_min_11" name="btn_window_min"
-                        height="32" width="40" margin="0,2,0,2"/>
+            <HBox margin="0,0,0,0" valign="center" width="auto" height="${SIZE_TITLEBAR_HEIGHT}">
+                <Button class="btn_switch_theme" name="btn_window_theme" margin="0,2,0,2"/>
+                <Button class="btn_switch_lang" name="btn_window_language" margin="0,2,0,2"/>
+                <Button class="btn_wnd_min_11" name="btn_window_min" margin="0,2,0,2"/>
                 <!-- 最大化/还原：两个按钮叠放在同一位置，由框架切换显示 -->
-                <Box height="32" width="40" margin="0,2,0,2">
-                    <Button class="btn_wnd_max_11" height="stretch" width="stretch"
-                            name="btn_window_max" margin="0"/>
-                    <Button class="btn_wnd_restore_11" height="stretch" width="stretch"
-                            name="btn_window_restore" visible="false" margin="0"/>
+                <Box height="${SIZE_WND_BTN_HEIGHT}" width="${SIZE_WND_BTN_WIDTH}" margin="0,2,0,2">
+                    <Button class="btn_wnd_max_11" name="btn_window_max" margin="0"/>
+                    <Button class="btn_wnd_restore_11" name="btn_window_restore" visible="false" margin="0"/>
                 </Box>
                 <!-- 关闭按钮：满高、贴右、无空隙 -->
-                <Button class="btn_wnd_close_11" height="stretch" width="40"
-                        name="btn_window_close" margin="0"/>
+                <Button class="btn_wnd_close_11" name="btn_window_close" margin="0"/>
             </HBox>
         </HBox>
 
@@ -90,6 +89,8 @@
   这些控件名会被 `WindowImplBase` 自动识别并绑定默认行为（见
   [WinImplBase.cpp](../duilib/Utils/WinImplBase.cpp)）。
 - 类名中的 `_11` 是样式版本后缀；图标尺寸由 `SIZE_WND_ICON` 统一控制（默认 20）。
+- 窗口按钮的宽度和高度已在 `global.xml` 的类中统一控制（`btn_wnd_base` 为 40×32，
+  关闭按钮类内高度为 `stretch`），窗口 XML 不需要再写 `width`/`height`。
 - 标题栏上原有的按钮种类保持不变，只按本规范调整尺寸、边距等外观属性。
 
 ## 4. 关键规则
@@ -97,19 +98,23 @@
 1. **`caption` 与标题栏高度必须一致**
    `caption` 的最后一个值是可拖动区域距窗口顶部的距离，也是标题栏高度。
    两者不一致会出现“按钮可点击但拖不动”或“标题栏下方多出空白”的问题。
+   `caption` 只能用字面量书写（窗口属性不支持变量展开），修改时需同时调整
+   `SIZE_TITLEBAR_HEIGHT`。
 
 2. **关闭按钮必须满高贴边**
-   使用 `height="stretch"` 且 `margin="0"`，让关闭按钮高度等于标题栏高度，
-   并紧贴窗口顶部与右侧；不要写 `margin="0,0,0,2"` 或在高度上留余量，
-   否则关闭按钮上方或右侧会出现空隙。
+   `btn_wnd_close_11` 已把高度设为 `stretch`，窗口 XML 中只写 `margin="0"`，
+   关闭按钮便与标题栏等高，并紧贴窗口顶部与右侧；不要写 `margin="0,0,0,2"`
+   或在 XML 中覆盖高度，否则关闭按钮上方或右侧会出现空隙。
 
 3. **普通按钮保持上下各 2 像素**
    标题栏 36、按钮高 32、`margin="0,2,0,2"`，三者在垂直方向正好对齐。
-   不要单独修改某个按钮的高度或边距，否则会破坏整体一致性。
+   按钮宽高由类提供，不要在窗口 XML 中覆盖；调整整体尺寸时，
+   修改 `SIZE_TITLEBAR_HEIGHT` 与 `SIZE_WND_BTN_HEIGHT`（保持相差 4）即可。
 
 4. **最大化/还原按钮使用叠放容器**
-   外层 `Box` 使用固定尺寸 40×32 与 `margin="0,2,0,2"`，
-   内部两个按钮使用 `width="stretch" height="stretch" margin="0"`，
+   外层 `Box` 使用 `${SIZE_WND_BTN_WIDTH}`×`${SIZE_WND_BTN_HEIGHT}` 与
+   `margin="0,2,0,2"`；两个按钮的 `width="stretch" height="stretch" margin="0"`
+   已由对应类提供，窗口 XML 中只写 `class`、`name` 与 `visible` 等属性，
    由框架根据窗口状态切换 `visible`，避免两个按钮同时出现。
 
 5. **标题文字统一使用公共类**
@@ -124,8 +129,8 @@
 
 7. **标题栏包含标签页等复杂内容时**
    参考 `cef_browser.xml` / `webview2_browser.xml`：外层横条可命名为 `title_bar`，
-   右侧窗口按钮放入内层 `HBox name="window_title_bar" width="auto" height="36"`，
-   两层高度均保持 36。
+   右侧窗口按钮放入内层 `HBox name="window_title_bar" width="auto" height="${SIZE_TITLEBAR_HEIGHT}"`，
+   两层高度均使用 `${SIZE_TITLEBAR_HEIGHT}`。
 
 8. **浮动式标题栏**
    部分窗口（如 `chat/login.xml`）不使用标题栏背景，只在右上角浮动显示按钮。
@@ -141,22 +146,22 @@
 
 | 现象 | 原因 | 处理 |
 | :--- | :--- | :--- |
-| 关闭按钮上方/右侧有 2~4 像素空隙 | 按钮高度为 32/34，或 `margin` 底部/右侧非 0 | 改为 `height="stretch" width="40" margin="0"` |
-| 标题栏变矮后内容区顶部出现空白 | 只改了 `caption`，未改标题栏容器高度 | 两处同时设为 36 |
+| 关闭按钮上方/右侧有 2~4 像素空隙 | 按钮高度为固定值，或 `margin` 底部/右侧非 0 | 引用 `btn_wnd_close_11`（高度已为 `stretch`），窗口 XML 只写 `margin="0"` |
+| 标题栏变矮后内容区顶部出现空白 | 只改了 `caption`，未改标题栏容器高度 | 同时调整 `caption` 与 `SIZE_TITLEBAR_HEIGHT` |
 | 标题与右侧按钮间距过小 | 标题 `margin` 右侧为 0 且无分隔控件 | 使用 `margin="8,0,8,0"`，或保留中间 `<Control/>` 占位 |
 | 标题文字被按钮遮挡 | 标题使用百分比/固定宽度过大 | 去掉百分比标题的 `margin`，或改用 `width="stretch"` |
 | 标题字号与其它窗口不一致 | 未引用 `title_bar_title`，或单独覆盖了 `font` | 统一使用 `class="title_bar_title"` |
-| 最大化与还原按钮同时显示 | 未使用叠放 `Box`，或都未设置 `visible` | 使用 40×32 `Box` 叠放，还原按钮初始 `visible="false"` |
+| 最大化与还原按钮同时显示 | 未使用叠放 `Box`，或都未设置 `visible` | 使用 `${SIZE_WND_BTN_WIDTH}`×`${SIZE_WND_BTN_HEIGHT}` 的叠放 `Box`，还原按钮初始 `visible="false"` |
 
 ## 6. 自检清单
 
-- [ ] `caption="0,0,0,36"`，`sys_menu_rect="0,0,36,36"`（若启用系统菜单）
-- [ ] 标题栏容器 `height="36"`，右侧按钮组 `height="36"`
+- [ ] `caption="0,0,0,36"`，`sys_menu_rect="0,0,36,36"`（若启用系统菜单），且与 `SIZE_TITLEBAR_HEIGHT` 一致
+- [ ] 标题栏容器 `height="${SIZE_TITLEBAR_HEIGHT}"`，右侧按钮组同高
 - [ ] Logo 使用 `class="title_bar_logo"`（自定义图片时覆盖 `bkimage`）
 - [ ] 标题使用 `class="title_bar_title"`，拉伸标题覆盖 `margin="8,0,8,0"`
-- [ ] 普通按钮 40×32、`margin="0,2,0,2"`
-- [ ] 最大化/还原按钮在 40×32 的 `Box` 内且内部拉伸
-- [ ] 关闭按钮 `width="40" height="stretch" margin="0"`
+- [ ] 普通按钮直接引用窗口按钮类，尺寸由类提供，XML 只写 `margin="0,2,0,2"`
+- [ ] 最大化/还原按钮放在 `${SIZE_WND_BTN_WIDTH}`×`${SIZE_WND_BTN_HEIGHT}` 的 `Box` 内，按钮类已内置拉伸
+- [ ] 关闭按钮引用 `btn_wnd_close_11`（高度 `stretch` 已在类中），XML 只写 `margin="0"`
 - [ ] 中文与英文界面下标题均不换行、不与按钮重叠
 - [ ] 标题栏原有按钮的种类和数量未改变
 

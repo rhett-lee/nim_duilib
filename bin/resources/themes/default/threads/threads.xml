@@ -2,18 +2,18 @@
 <Window size="1140,720" min_size="920,680" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" size_box="4,4,4,4" icon="public/caption/logo.ico">
     <VBox bkcolor="bg_window_main" visible="true">
         <!-- 标题栏区域 -->
-        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+        <HBox name="window_title_bar" width="stretch" height="${SIZE_TITLEBAR_HEIGHT}" bkcolor="bg_titlebar">
             <Label class="title_bar_title" text_id="STRID_THREADS_TITLE" height="32" text_align="vcenter"/>
             <Control mouse_enabled="false"/>
-            <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
-            <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>
-            <Button class="btn_wnd_fullscreen_11" height="32" width="40" name="btn_window_fullscreen" margin="0,2,0,2"/>
-            <Button class="btn_wnd_min_11" height="32" width="40" name="btn_window_min" margin="0,2,0,2"/>
-            <Box height="32" width="40" margin="0,2,0,2">
-                <Button class="btn_wnd_max_11" height="stretch" width="stretch" name="btn_window_max" margin="0"/>
-                <Button class="btn_wnd_restore_11" height="stretch" width="stretch" name="btn_window_restore" visible="false" margin="0"/>
+            <Button class="btn_switch_theme" name="btn_window_theme" margin="0,2,0,2"/>
+            <Button class="btn_switch_lang" name="btn_window_language" margin="0,2,0,2"/>
+            <Button class="btn_wnd_fullscreen_11" name="btn_window_fullscreen" margin="0,2,0,2"/>
+            <Button class="btn_wnd_min_11" name="btn_window_min" margin="0,2,0,2"/>
+            <Box height="${SIZE_WND_BTN_HEIGHT}" width="${SIZE_WND_BTN_WIDTH}" margin="0,2,0,2">
+                <Button class="btn_wnd_max_11" name="btn_window_max" margin="0"/>
+                <Button class="btn_wnd_restore_11" name="btn_window_restore" visible="false" margin="0"/>
             </Box>
-            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0"/>
+            <Button class="btn_wnd_close_11" name="btn_window_close" margin="0"/>
         </HBox>
 
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->

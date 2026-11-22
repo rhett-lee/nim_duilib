@@ -3,11 +3,11 @@
     <!-- 卡片容器：与主窗口保持一致的样式 -->
     <Class name="panel_card" bkcolor="bg_window_card" border_size="1" border_color="border_split_level1" border_round="8,8"/>
     <VBox bkcolor="bg_window_main">
-        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+        <HBox name="window_title_bar" width="stretch" height="${SIZE_TITLEBAR_HEIGHT}" bkcolor="bg_titlebar">
             <Control class="title_bar_logo"/>
             <Label class="title_bar_title" text_id="STRID_RICHEDIT_FIND_TITLE"/>
             <Control />
-            <Button class="btn_wnd_close_11" name="btn_window_close" width="40" height="stretch" margin="0"/>
+            <Button class="btn_wnd_close_11" name="btn_window_close" margin="0"/>
         </HBox>
         <VBox padding="12,12,12,12" height="stretch">
             <VBox class="panel_card" padding="16,16,16,14" height="auto">

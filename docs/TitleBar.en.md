@@ -14,14 +14,20 @@ For the meaning of title-bar-related window attributes (`caption`, `sys_menu`,
 
 | Item | Where to configure | Unified value | Notes |
 | :--- | :--- | :--- | :--- |
-| Title bar height | `caption` of `Window` | `0,0,0,36` | Defines both the draggable area and the visual height; they must match |
-| System menu area | `sys_menu_rect` of `Window` | `0,0,36,36` | Must match the title bar height; the feature is disabled if not set |
-| Title bar container | `HBox name="window_title_bar"` | `width="stretch" height="36"` | Use `bkcolor="bg_titlebar"` for the background |
-| Top-left icon | `Control class="title_bar_logo"` | Shared class in `global.xml` | Already contains 18×18, `margin="8,0,0,0"`, `valign="center"`, and the logo image |
+| Title bar height | `caption` of `Window` | `0,0,0,36` (literal) | Defines both the draggable area and the visual height; they must match. Sync `SIZE_TITLEBAR_HEIGHT` when changing it |
+| System menu area | `sys_menu_rect` of `Window` | `0,0,36,36` (literal) | Must match the title bar height; the feature is disabled if not set |
+| Title bar container | `HBox name="window_title_bar"` | `width="stretch"`, `height="${SIZE_TITLEBAR_HEIGHT}"` | Use `bkcolor="bg_titlebar"` for the background |
+| Top-left icon | `Control class="title_bar_logo"` | Shared class in `global.xml` | Already contains `${SIZE_TITLE_LOGO}` (18), `margin="8,0,0,0"`, `valign="center"`, and the logo image |
 | Title text | `Label class="title_bar_title"` | Shared class in `global.xml` | Already contains `font="system_regular_14"`, `margin="8,0,0,0"`, `valign="center"`; stretched titles override `margin="8,0,8,0"` |
-| Normal window buttons | `Button` | `width="40" height="32"` `margin="0,2,0,2"` | 32 + 2 top + 2 bottom = 36, equal to the bar height |
-| Maximize/Restore | `Box` + two `Button`s | `Box` is `40×32`, `margin="0,2,0,2"` | The two buttons are stacked; inner buttons use `width="stretch" height="stretch" margin="0"` |
-| Close button | `Button` | `width="40" height="stretch"` `margin="0"` | Height equals the title bar height; flush with the top and right edges, no gaps |
+| Normal window buttons | `Button` referencing a window button class | Size defined by the class in `global.xml` | `btn_wnd_base` provides `${SIZE_WND_BTN_WIDTH}`×`${SIZE_WND_BTN_HEIGHT}` (40×32); the window XML only writes `margin="0,2,0,2"` |
+| Maximize/Restore | `Box` + two `Button`s | The outer `Box` sets the size; the classes provide `stretch` | `Box` is `${SIZE_WND_BTN_WIDTH}`×`${SIZE_WND_BTN_HEIGHT}` with `margin="0,2,0,2"`; stretching and `margin="0"` come from the classes |
+| Close button | `Button` referencing a window button class | `btn_wnd_close_11` sets `height="stretch"` | Width comes from the base class and the height fills the bar; the window XML only writes `margin="0"` |
+
+The `${SIZE_*}` variables are defined in the "size and path variables" section of
+[global.xml](../bin/resources/themes/default/global.xml). **Note that attributes of the
+`Window` node (`caption`, `sys_menu_rect`, etc.) do not expand variables**, so they must be
+written as literals. When changing the title bar height, update both `caption` and
+`SIZE_TITLEBAR_HEIGHT` so they stay in sync.
 
 ## 2. Standard Structure
 
@@ -31,7 +37,7 @@ For the meaning of title-bar-related window attributes (`caption`, `sys_menu`,
         shadow_type="default" size_box="4,4,4,4" icon="public/caption/logo.ico">
     <VBox bkcolor="bg_window_main">
         <!-- Title bar -->
-        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+        <HBox name="window_title_bar" width="stretch" height="${SIZE_TITLEBAR_HEIGHT}" bkcolor="bg_titlebar">
             <!-- Left: icon + title (using the shared classes in global.xml) -->
             <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
                 <Control class="title_bar_logo"/>
@@ -40,23 +46,17 @@ For the meaning of title-bar-related window attributes (`caption`, `sys_menu`,
             <!-- Middle spacer: takes the remaining width -->
             <Control mouse_enabled="false"/>
             <!-- Right: window buttons (add/remove as needed; do not change existing button types) -->
-            <HBox margin="0,0,0,0" valign="center" width="auto" height="36">
-                <Button class="btn_switch_theme" name="btn_window_theme"
-                        height="32" width="40" margin="0,2,0,2"/>
-                <Button class="btn_switch_lang" name="btn_window_language"
-                        height="32" width="40" margin="0,2,0,2"/>
-                <Button class="btn_wnd_min_11" name="btn_window_min"
-                        height="32" width="40" margin="0,2,0,2"/>
+            <HBox margin="0,0,0,0" valign="center" width="auto" height="${SIZE_TITLEBAR_HEIGHT}">
+                <Button class="btn_switch_theme" name="btn_window_theme" margin="0,2,0,2"/>
+                <Button class="btn_switch_lang" name="btn_window_language" margin="0,2,0,2"/>
+                <Button class="btn_wnd_min_11" name="btn_window_min" margin="0,2,0,2"/>
                 <!-- Maximize/Restore: stacked in the same cell; the framework toggles visibility -->
-                <Box height="32" width="40" margin="0,2,0,2">
-                    <Button class="btn_wnd_max_11" height="stretch" width="stretch"
-                            name="btn_window_max" margin="0"/>
-                    <Button class="btn_wnd_restore_11" height="stretch" width="stretch"
-                            name="btn_window_restore" visible="false" margin="0"/>
+                <Box height="${SIZE_WND_BTN_HEIGHT}" width="${SIZE_WND_BTN_WIDTH}" margin="0,2,0,2">
+                    <Button class="btn_wnd_max_11" name="btn_window_max" margin="0"/>
+                    <Button class="btn_wnd_restore_11" name="btn_window_restore" visible="false" margin="0"/>
                 </Box>
                 <!-- Close button: full height, flush right, no gaps -->
-                <Button class="btn_wnd_close_11" height="stretch" width="40"
-                        name="btn_window_close" margin="0"/>
+                <Button class="btn_wnd_close_11" name="btn_window_close" margin="0"/>
             </HBox>
         </HBox>
 
@@ -93,6 +93,9 @@ Notes:
   (see [WinImplBase.cpp](../duilib/Utils/WinImplBase.cpp)).
 - The `_11` suffix in class names is a style version suffix; the icon size is controlled
   by `SIZE_WND_ICON` (default 20).
+- Window button width and height are defined by the classes in `global.xml`
+  (`btn_wnd_base` is 40×32; the close class uses `stretch` height), so the window XML
+  no longer writes `width`/`height`.
 - Keep the existing set of title bar buttons unchanged; only adjust appearance attributes
   such as size and margins according to this specification.
 
@@ -101,22 +104,28 @@ Notes:
 1. **`caption` must match the title bar height**
    The last value of `caption` is the distance from the top of the window to the draggable
    area, i.e. the title bar height. If they differ, you get either "buttons clickable but
-   the window cannot be dragged" or extra blank space below the title bar.
+   the window cannot be dragged" or extra blank space below the title bar. `caption` must
+   be a literal (window attributes do not expand variables), so update
+   `SIZE_TITLEBAR_HEIGHT` together with it.
 
 2. **The close button must fill the height and sit flush to the edges**
-   Use `height="stretch"` and `margin="0"` so that the close button is exactly as tall as
-   the title bar and flush with the top and right edges. Do not use
-   `margin="0,0,0,2"` or leave any height margin, otherwise gaps appear above or to the
-   right of the close button.
+   `btn_wnd_close_11` already sets `height="stretch"`; write only `margin="0"` in the
+   window XML. The button then matches the title bar height and sits flush with the top
+   and right edges. Do not use `margin="0,0,0,2"` or override the height in XML,
+   otherwise gaps appear above or to the right of the close button.
 
 3. **Normal buttons keep 2 px above and below**
    Title bar 36, button height 32, `margin="0,2,0,2"` — the three values align vertically.
-   Do not change the height or margins of a single button, or the overall consistency breaks.
+   Button width and height come from the classes; do not override them in window XML.
+   To resize the whole bar, change `SIZE_TITLEBAR_HEIGHT` and `SIZE_WND_BTN_HEIGHT`
+   (keeping a difference of 4).
 
 4. **Maximize/Restore use a stacked container**
-   The outer `Box` uses a fixed 40×32 size and `margin="0,2,0,2"`; the two inner buttons
-   use `width="stretch" height="stretch" margin="0"`. The framework toggles their
-   `visible` state by window state, so both are never shown at the same time.
+   The outer `Box` uses `${SIZE_WND_BTN_WIDTH}`×`${SIZE_WND_BTN_HEIGHT}` and
+   `margin="0,2,0,2"`; the inner buttons' `width="stretch" height="stretch" margin="0"`
+   come from their classes, so the window XML only writes `class`, `name`, `visible`, and
+   similar attributes. The framework toggles their `visible` state by window state, so both
+   are never shown at the same time.
 
 5. **Use the shared class for title text**
    The title `Label` uses `class="title_bar_title"` directly (defined in `global.xml`
@@ -132,7 +141,8 @@ Notes:
 7. **Title bars with tabs or other complex content**
    See `cef_browser.xml` / `webview2_browser.xml`: the outer bar may be named `title_bar`,
    and the window buttons go into an inner
-   `HBox name="window_title_bar" width="auto" height="36"`. Both keep a height of 36.
+   `HBox name="window_title_bar" width="auto" height="${SIZE_TITLEBAR_HEIGHT}"`. Both use
+   `${SIZE_TITLEBAR_HEIGHT}`.
 
 8. **Floating title bars**
    Some windows (e.g. `chat/login.xml`) have no title bar background and only float buttons
@@ -149,22 +159,22 @@ Notes:
 
 | Symptom | Cause | Fix |
 | :--- | :--- | :--- |
-| 2–4 px gap above/right of the close button | Button height is 32/34, or bottom/right margin is not 0 | Use `height="stretch" width="40" margin="0"` |
-| Blank space below the title bar after shrinking it | Only `caption` was changed, not the container height | Set both to 36 |
+| 2–4 px gap above/right of the close button | Button height is fixed, or bottom/right margin is not 0 | Reference `btn_wnd_close_11` (height is already `stretch`) and write only `margin="0"` in the window XML |
+| Blank space below the title bar after shrinking it | Only `caption` was changed, not the container height | Update both `caption` and `SIZE_TITLEBAR_HEIGHT` |
 | Too little space between title and right buttons | Title right margin is 0 and there is no spacer | Use `margin="8,0,8,0"`, or keep the middle `<Control/>` spacer |
 | Title text hidden behind buttons | Percent/fixed title width is too large | Remove `margin` from percent-width titles, or use `width="stretch"` |
 | Title font differs from other windows | `title_bar_title` is not used, or `font` is overridden | Use `class="title_bar_title"` |
-| Maximize and restore buttons shown together | No stacked `Box`, or neither is hidden | Use a 40×32 stacked `Box` and set the restore button to `visible="false"` initially |
+| Maximize and restore buttons shown together | No stacked `Box`, or neither is hidden | Use a `${SIZE_WND_BTN_WIDTH}`×`${SIZE_WND_BTN_HEIGHT}` stacked `Box` and set the restore button to `visible="false"` initially |
 
 ## 6. Checklist
 
-- [ ] `caption="0,0,0,36"`, `sys_menu_rect="0,0,36,36"` (if the system menu is enabled)
-- [ ] Title bar container `height="36"`, right-side button group `height="36"`
+- [ ] `caption="0,0,0,36"`, `sys_menu_rect="0,0,36,36"` (if the system menu is enabled), matching `SIZE_TITLEBAR_HEIGHT`
+- [ ] Title bar container `height="${SIZE_TITLEBAR_HEIGHT}"`, right-side button group the same height
 - [ ] Logo uses `class="title_bar_logo"` (override `bkimage` for custom images)
 - [ ] Title uses `class="title_bar_title"`; stretched titles override `margin="8,0,8,0"`
-- [ ] Normal buttons are 40×32 with `margin="0,2,0,2"`
-- [ ] Maximize/Restore are inside a 40×32 `Box` and stretched inside it
-- [ ] Close button uses `width="40" height="stretch" margin="0"`
+- [ ] Normal buttons reference the window button classes; sizes come from the classes, so write only `margin="0,2,0,2"`
+- [ ] Maximize/Restore are inside a `${SIZE_WND_BTN_WIDTH}`×`${SIZE_WND_BTN_HEIGHT}` `Box`; the classes provide the stretching
+- [ ] Close button references `btn_wnd_close_11` (height `stretch` is in the class); write only `margin="0"`
 - [ ] Titles neither wrap nor overlap buttons in both Chinese and English UI
 - [ ] The types and number of existing title bar buttons are unchanged
 

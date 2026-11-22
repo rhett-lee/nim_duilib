@@ -14,13 +14,13 @@
         <!-- 窗口标题栏：主题/语言切换按钮 + 最小化/关闭按钮
              btn_window_theme 与 btn_window_language 由框架 WindowImplBase 自动识别，
              点击后弹出框架内置的主题/语言菜单，无需应用层写任何代码 -->
-        <HBox width="auto" height="36" halign="right" valign="top">
-            <Button class="btn_switch_theme" name="btn_window_theme" height="32" width="40" margin="0,2,0,2"
+        <HBox width="auto" height="${SIZE_TITLEBAR_HEIGHT}" halign="right" valign="top">
+            <Button class="btn_switch_theme" name="btn_window_theme" margin="0,2,0,2"
                     tooltip_text_id="STRID_PUBLIC_TIP_BTN_THEME"/>
-            <Button class="btn_switch_lang" name="btn_window_language" height="32" width="40" margin="0,2,0,2"
+            <Button class="btn_switch_lang" name="btn_window_language" margin="0,2,0,2"
                     tooltip_text_id="STRID_PUBLIC_TIP_BTN_LANGUAGE"/>
-            <Button class="btn_wnd_min_11" name="btn_window_min" height="32" width="40" margin="0,2,0,2"/>
-            <Button class="btn_wnd_close_11" name="btn_window_close" height="stretch" width="40" margin="0"/>
+            <Button class="btn_wnd_min_11" name="btn_window_min" margin="0,2,0,2"/>
+            <Button class="btn_wnd_close_11" name="btn_window_close" margin="0"/>
         </HBox>
 
         <!-- 品牌 Logo -->

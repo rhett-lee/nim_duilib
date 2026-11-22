@@ -3,11 +3,11 @@
         shadow_type="default" size_box="4,4,4,4" min_size="760,600">
     <VBox bkcolor="bg_window_main">
         <!-- 标题栏 -->
-        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+        <HBox name="window_title_bar" width="stretch" height="${SIZE_TITLEBAR_HEIGHT}" bkcolor="bg_titlebar">
             <Control class="title_bar_logo"/>
             <Label class="title_bar_title" name="label_title" text_id="STRID_SWITCH_WINDOW_TITLE"/>
             <Control/>
-            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0"/>
+            <Button class="btn_wnd_close_11" name="btn_window_close" margin="0"/>
         </HBox>
 
         <!-- 提示区 -->

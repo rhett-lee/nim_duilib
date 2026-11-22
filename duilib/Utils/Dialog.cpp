@@ -131,7 +131,7 @@ DString Dialog::BuildWindowXml()
         xml += _T("<Control width=\"18\" height=\"18\" bkimage=\"public/caption/logo.svg\" valign=\"center\" margin=\"8\" tab_stop=\"false\"/>");
         xml += _T("<Label name=\"dialog_title\" valign=\"center\" margin=\"8,0,0,0\" mouse_enabled=\"false\" tab_stop=\"false\"/>");
         xml += _T("<Control tab_stop=\"false\"/>");
-        xml += _T("<Button class=\"btn_wnd_close_11\" height=\"stretch\" width=\"40\" name=\"btn_window_close\" tab_stop=\"false\"/>");
+        xml += _T("<Button class=\"btn_wnd_close_11\" name=\"btn_window_close\" tab_stop=\"false\"/>");
         xml += _T("</HBox>");
     }
 

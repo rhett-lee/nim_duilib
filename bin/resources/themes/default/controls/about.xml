@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window size="400,220" caption="0,0,0,36" use_system_caption="true">
     <VBox bkcolor="bg_window_main" width="100%" height="100%">
-        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+        <HBox name="window_title_bar" width="stretch" height="${SIZE_TITLEBAR_HEIGHT}" bkcolor="bg_titlebar">
             <Control class="title_bar_logo"/>
             <Label class="title_bar_title" text="Controls"/>
             <Control mouse_enabled="false"/>
-            <Button class="btn_wnd_close_11" name="btn_window_close" width="40" height="stretch" margin="0"/>
+            <Button class="btn_wnd_close_11" name="btn_window_close" margin="0"/>
         </HBox>
         <Box>
             <VBox margin="0,0,0,0" valign="center" halign="center" width="100%" height="auto">

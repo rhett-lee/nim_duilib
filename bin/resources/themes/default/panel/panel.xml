@@ -4,22 +4,22 @@
         icon="public/caption/logo.ico">
     <VBox bkcolor="bg_window_main">
         <!-- 标题栏 -->
-        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+        <HBox name="window_title_bar" width="stretch" height="${SIZE_TITLEBAR_HEIGHT}" bkcolor="bg_titlebar">
             <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
                 <Control class="title_bar_logo"/>
                 <Label class="title_bar_title" text_id="STRID_PANEL_APP_NAME"/>
             </HBox>
             <Control mouse_enabled="false"/>
-            <HBox margin="0,0,0,0" valign="center" width="auto" height="36">
-                <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
-                <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>
-                <Button class="btn_wnd_fullscreen_11" height="32" width="40" name="btn_window_fullscreen" margin="0,2,0,2"/>
-                <Button class="btn_wnd_min_11" height="32" width="40" name="btn_window_min" margin="0,2,0,2"/>
-                <Box height="32" width="40" margin="0,2,0,2">
-                    <Button class="btn_wnd_max_11" height="stretch" width="stretch" name="btn_window_max" margin="0"/>
-                    <Button class="btn_wnd_restore_11" height="stretch" width="stretch" name="btn_window_restore" visible="false" margin="0"/>
+            <HBox margin="0,0,0,0" valign="center" width="auto" height="${SIZE_TITLEBAR_HEIGHT}">
+                <Button class="btn_switch_theme" name="btn_window_theme" margin="0,2,0,2"/>
+                <Button class="btn_switch_lang" name="btn_window_language" margin="0,2,0,2"/>
+                <Button class="btn_wnd_fullscreen_11" name="btn_window_fullscreen" margin="0,2,0,2"/>
+                <Button class="btn_wnd_min_11" name="btn_window_min" margin="0,2,0,2"/>
+                <Box height="${SIZE_WND_BTN_HEIGHT}" width="${SIZE_WND_BTN_WIDTH}" margin="0,2,0,2">
+                    <Button class="btn_wnd_max_11" name="btn_window_max" margin="0"/>
+                    <Button class="btn_wnd_restore_11" name="btn_window_restore" visible="false" margin="0"/>
                 </Box>
-                <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0"/>
+                <Button class="btn_wnd_close_11" name="btn_window_close" margin="0"/>
             </HBox>
         </HBox>
 
