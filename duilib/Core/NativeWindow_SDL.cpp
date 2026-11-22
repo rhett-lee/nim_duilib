@@ -668,6 +668,15 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
         break;
     case SDL_EVENT_WINDOW_FOCUS_GAINED:
         {
+            if (!IsWindowNoActivate()) {
+                //应用从其它程序切回时，系统可能把键盘焦点给到父窗口；
+                //若本窗口有可见的模态子窗口（显示模态子窗口时，父窗口会被系统禁用），
+                //把焦点转给模态子窗口，否则禁用的父窗口成为前台窗口，整个界面无法操作
+                NativeWindow_SDL* pModalChild = GetVisibleModalChildWindow();
+                if ((pModalChild != nullptr) && pModalChild->SetWindowForeground()) {
+                    break;
+                }
+            }
             //获取键盘输入焦点
             INativeWindow* pLostFocusWindow = nullptr;//此参数得不到（目前无影响，代码中目前没有使用这个参数的）
             if (IsWindowNoActivate()) {
@@ -2354,6 +2363,29 @@ bool NativeWindow_SDL::IsFakeModal() const
 bool NativeWindow_SDL::IsDoModal() const
 {
     return m_bDoModal;
+}
+
+NativeWindow_SDL* NativeWindow_SDL::GetVisibleModalChildWindow() const
+{
+    if (m_sdlWindow == nullptr) {
+        return nullptr;
+    }
+    for (const auto& iter : s_windowIDMap) {
+        NativeWindow_SDL* pNativeWindow = iter.second;
+        if ((pNativeWindow == nullptr) || (pNativeWindow == this) || (pNativeWindow->m_sdlWindow == nullptr)) {
+            continue;
+        }
+        //只处理直接子窗口
+        if (SDL_GetWindowParent(pNativeWindow->m_sdlWindow) != m_sdlWindow) {
+            continue;
+        }
+        //只处理可见的模态子窗口
+        SDL_WindowFlags nFlags = SDL_GetWindowFlags(pNativeWindow->m_sdlWindow);
+        if ((nFlags & SDL_WINDOW_MODAL) && ((nFlags & SDL_WINDOW_HIDDEN) == 0)) {
+            return pNativeWindow;
+        }
+    }
+    return nullptr;
 }
 
 void NativeWindow_SDL::CenterWindow()

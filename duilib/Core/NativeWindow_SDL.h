@@ -245,6 +245,11 @@ public:
     */
     bool IsDoModal() const;
 
+    /** 获取可见的模态子窗口（其父窗口为当前窗口）
+    * @return 返回可见的模态子窗口，没有时返回nullptr
+    */
+    NativeWindow_SDL* GetVisibleModalChildWindow() const;
+
     /** 居中窗口，支持扩展屏幕
     */
     void CenterWindow();
