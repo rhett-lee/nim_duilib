@@ -32,7 +32,7 @@
                        title_text_color="text_selected" title_font="system_bold_14"
                        padding="10,10,10,10">
                     <HBox height="auto" padding="0,0,0,6">
-                        <Label text_id="STRID_PANEL_DESC_BASIC" text_color="text_muted" width="stretch" valign="center"/>
+                        <Label text_id="STRID_PANEL_DESC_BASIC" text_color="text_muted" width="stretch" valign="center" multi_line="true"/>
                     </HBox>
                     <HBox height="auto">
                         <Button class="btn_global_blue_80x30" text_id="STRID_PANEL_BTN_1" margin="0,0,6,0"/>
@@ -51,7 +51,7 @@
                        collapsible="true" collapsed="false" collapse_anim="220"
                        padding="10,10,10,10">
                     <HBox height="auto" padding="0,0,0,6">
-                        <Label text_id="STRID_PANEL_DESC_COLLAPSIBLE" text_color="text_muted" width="stretch" valign="center"/>
+                        <Label text_id="STRID_PANEL_DESC_COLLAPSIBLE" text_color="text_muted" width="stretch" valign="center" multi_line="true"/>
                     </HBox>
                     <VBox height="auto">
                         <Option class="option_1" group="panel_option_group" text_id="STRID_PANEL_OPTION_A" selected="true" margin="0,2,0,2"/>
@@ -70,11 +70,11 @@
                        collapsible="false"
                        padding="10,10,10,10">
                     <HBox height="auto" padding="0,0,0,6">
-                        <Label text_id="STRID_PANEL_DESC_NESTED" text_color="text_muted" width="stretch" valign="center"/>
+                        <Label text_id="STRID_PANEL_DESC_NESTED" text_color="text_muted" width="stretch" valign="center" multi_line="true"/>
                     </HBox>
                     <HBox height="auto">
                         <!-- 内层可折叠面板 -->
-                        <PanelVBox width="0.5st" height="auto" min_height="100" border_size="1"
+                        <PanelVBox width="50%" height="auto" min_height="100" border_size="1"
                                    border_color="border_window" border_round="4,4" bkcolor="bg_content"
                                    title_id="STRID_PANEL_TITLE_NESTED_INNER" title_height="26" title_bk_color="bg_overlay"
                                    title_text_color="text_selected" title_font="system_bold_14"
@@ -85,7 +85,7 @@
                             <CheckBox class="checkbox_1" text_id="STRID_PANEL_SUB_OPTION_3" margin="0,2,0,2"/>
                         </PanelVBox>
                         <!-- 内层静态面板 -->
-                        <PanelHBox width="0.5st" height="auto" min_height="100" border_size="1"
+                        <PanelHBox width="50%" height="auto" min_height="100" border_size="1"
                                    border_color="border_window" border_round="4,4" bkcolor="bg_content"
                                    title_id="STRID_PANEL_TITLE_NESTED_HLAYOUT" title_height="26" title_bk_color="bg_overlay"
                                    title_text_color="text_selected" title_font="system_bold_14"
@@ -108,7 +108,7 @@
                            collapsible="true" collapsed="false" name="panel_cpp"
                            padding="10,10,10,10">
                     <HBox height="auto" padding="0,0,0,6">
-                        <Label text_id="STRID_PANEL_DESC_CPP" text_color="text_muted" width="stretch" valign="center"/>
+                        <Label text_id="STRID_PANEL_DESC_CPP" text_color="text_muted" width="stretch" valign="center" multi_line="true"/>
                     </HBox>
                     <HBox height="auto">
                         <Button class="btn_global_blue_80x30" name="btn_toggle" text_id="STRID_PANEL_BTN_TOGGLE" margin="0,0,6,0"/>
@@ -125,13 +125,13 @@
 
                 <!-- 5. 带圆角和边框的 VPanel：展示 VBox 布局的 Panel -->
                 <PanelVBox width="stretch" height="auto" min_height="120" border_size="2"
-                           border_color="border_focus_ring" border_round="8,8" bkcolor="bg_window_card"
+                           border_color="border_control_normal" border_round="8,8" bkcolor="bg_window_card"
                            title_id="STRID_PANEL_TITLE_V" title_height="30" title_bk_color="bg_overlay"
                            title_text_color="text_selected" title_font="system_bold_14"
                            collapsible="false"
                            padding="10,10,10,10">
                     <HBox height="auto" padding="0,0,0,6">
-                        <Label text_id="STRID_PANEL_DESC_V" text_color="text_muted" width="stretch" valign="center"/>
+                        <Label text_id="STRID_PANEL_DESC_V" text_color="text_muted" width="stretch" valign="center" multi_line="true"/>
                     </HBox>
                     <HBox height="auto">
                         <Label text_id="STRID_PANEL_ITEM_1" width="stretch" valign="center" height="28" bkcolor="bg_content" margin="0,0,0,4"/>
@@ -147,19 +147,20 @@
                 <Box height="10"/><!-- 间距 -->
 
                 <!-- 6. HPanel：展示 HBox 布局的 Panel -->
-                <PanelHBox width="stretch" height="auto" min_height="80" border_size="1"
+                <PanelHBox width="stretch" height="auto" min_height="120" border_size="1"
                            border_color="border_window" border_round="4,4" bkcolor="bg_container"
                            title_id="STRID_PANEL_TITLE_H" title_height="28" title_bk_color="bg_overlay"
                            title_text_color="text_selected" title_font="system_bold_14"
                            collapsible="false"
                            padding="10,10,10,10">
-                    <HBox height="auto" padding="0,0,0,6">
-                        <Label text_id="STRID_PANEL_DESC_H" text_color="text_muted" width="stretch" valign="center"/>
+                    <HBox height="stretch">
+                        <Label text_id="STRID_PANEL_DESC_H" text_color="text_muted" width="stretch" height="stretch"
+                               multi_line="true" text_align="left,vcenter"/>
                     </HBox>
-                    <HBox height="auto">
-                        <Button class="btn_global_blue_80x30" text="Btn A" margin="0,0,6,0"/>
-                        <Button class="btn_global_white_80x30" text="Btn B" margin="0,0,6,0"/>
-                        <Button class="btn_global_red_80x30" text="Btn C"/>
+                    <HBox height="stretch">
+                        <Button class="btn_global_blue_80x30" text="Btn A" valign="center" margin="0,0,6,0"/>
+                        <Button class="btn_global_white_80x30" text="Btn B" valign="center" margin="0,0,6,0"/>
+                        <Button class="btn_global_red_80x30" text="Btn C" valign="center"/>
                     </HBox>
                 </PanelHBox>
 
@@ -168,23 +169,23 @@
                 <!-- 7. 回归：stretch 高度模式折叠后展开，高度模式不被破坏 -->
                 <HBox width="stretch" height="200" border_size="1" border_color="border_window"
                       border_round="4,4" bkcolor="bg_container" padding="6,6,6,6">
-                    <PanelVBox width="0.5st" height="stretch" border_size="1"
+                    <PanelVBox width="50%" height="stretch" border_size="1"
                                border_color="border_control_normal" border_round="4,4" bkcolor="bg_content"
                                title_id="STRID_PANEL_TITLE_STRETCH_A" title_height="28" title_bk_color="bg_overlay"
                                title_text_color="text_selected" title_font="system_bold_14"
                                collapsible="true" collapse_anim="220"
                                padding="8,8,8,8" margin="0,0,3,0">
                         <Label text_id="STRID_PANEL_DESC_STRETCH_A"
-                               text_color="text_muted" width="stretch" height="stretch" text_align="left,top"/>
+                               text_color="text_muted" width="stretch" height="stretch" text_align="left,top" multi_line="true"/>
                     </PanelVBox>
-                    <PanelVBox width="0.5st" height="stretch" border_size="1"
+                    <PanelVBox width="50%" height="stretch" border_size="1"
                                border_color="border_control_normal" border_round="4,4" bkcolor="bg_content"
                                title_id="STRID_PANEL_TITLE_STRETCH_B" title_height="28" title_bk_color="bg_overlay"
                                title_text_color="text_selected" title_font="system_bold_14"
                                collapsible="true" collapsed="true" collapse_anim="220"
                                padding="8,8,8,8" margin="3,0,0,0">
                         <Label text_id="STRID_PANEL_DESC_STRETCH_B"
-                               text_color="text_muted" width="stretch" height="stretch" text_align="left,top"/>
+                               text_color="text_muted" width="stretch" height="stretch" text_align="left,top" multi_line="true"/>
                     </PanelVBox>
                 </HBox>
 
@@ -199,7 +200,7 @@
                            padding="10,10,10,10">
                     <HBox height="auto" padding="0,0,0,6">
                         <Label text_id="STRID_PANEL_DESC_VISIBLE"
-                               text_color="text_muted" width="stretch" valign="center"/>
+                               text_color="text_muted" width="stretch" valign="center" multi_line="true"/>
                     </HBox>
                     <HBox height="auto">
                         <Button class="btn_global_blue_80x30" name="btn_toggle_hidden" text_id="STRID_PANEL_BTN_TOGGLE_LABEL" margin="0,0,6,0"/>
@@ -220,7 +221,7 @@
                            padding="10,10,10,10">
                     <HBox height="auto" padding="0,0,0,6">
                         <Label text_id="STRID_PANEL_DESC_ARROW_ONLY"
-                               text_color="text_muted" width="stretch" valign="center"/>
+                               text_color="text_muted" width="stretch" valign="center" multi_line="true"/>
                     </HBox>
                     <HBox height="auto">
                         <Button class="btn_global_white_80x30" text_id="STRID_PANEL_BTN_NO_COLLAPSE"/>
@@ -236,7 +237,7 @@
                            title_text_color="text_selected" title_font="system_bold_14"
                            padding="10,8,10,8">
                     <Label text_id="STRID_PANEL_DESC_ACCORDION"
-                           text_color="text_muted" width="stretch" height="auto" padding="0,0,0,8"/>
+                           text_color="text_muted" width="stretch" height="auto" padding="0,0,0,8" multi_line="true"/>
 
                     <PanelVBox width="stretch" height="auto" border_size="1"
                                border_color="border_control_normal" border_round="4,4" bkcolor="bg_content"
@@ -245,7 +246,7 @@
                                collapsible="true" collapse_anim="220" group="settings"
                                padding="10,10,10,10" margin="0,0,0,6">
                         <Label text_id="STRID_PANEL_DESC_PROFILE"
-                               text_color="text_muted" width="stretch" height="auto"/>
+                               text_color="text_muted" width="stretch" height="auto" multi_line="true"/>
                     </PanelVBox>
 
                     <PanelVBox width="stretch" height="auto" border_size="1"
@@ -255,7 +256,7 @@
                                collapsible="true" collapsed="true" collapse_anim="220" group="settings"
                                padding="10,10,10,10" margin="0,0,0,6">
                         <Label text_id="STRID_PANEL_DESC_NOTIFY"
-                               text_color="text_muted" width="stretch" height="auto"/>
+                               text_color="text_muted" width="stretch" height="auto" multi_line="true"/>
                     </PanelVBox>
 
                     <PanelVBox width="stretch" height="auto" border_size="1"
@@ -265,7 +266,7 @@
                                collapsible="true" collapsed="true" collapse_anim="220" group="settings"
                                padding="10,10,10,10">
                         <Label text_id="STRID_PANEL_DESC_ABOUT"
-                               text_color="text_muted" width="stretch" height="auto"/>
+                               text_color="text_muted" width="stretch" height="auto" multi_line="true"/>
                     </PanelVBox>
                 </PanelVBox>
 
@@ -283,7 +284,7 @@
                            arrow_collapsed_hovered_image="file='public/panel/arrow_collapsed.svg' width='16' height='16' valign='center' svg_replace_colors='#333333|color_accent'"
                            padding="10,10,10,10">
                     <Label text_id="STRID_PANEL_DESC_CUSTOM_ARROW"
-                           text_color="text_muted" width="stretch" height="auto"/>
+                           text_color="text_muted" width="stretch" height="auto" multi_line="true"/>
                 </PanelVBox>
 
                 <Box height="10"/><!-- 间距 -->
@@ -297,7 +298,7 @@
                            collapsible="true" collapse_anim="220"
                            padding="10,10,10,10">
                     <Label text_id="STRID_PANEL_DESC_ARROW_LEFT"
-                           text_color="text_muted" width="stretch" height="auto"/>
+                           text_color="text_muted" width="stretch" height="auto" multi_line="true"/>
                 </PanelVBox>
 
                 <Box height="10"/><!-- 间距 -->
@@ -316,7 +317,7 @@
                         <Button class="btn_global_blue_80x30" name="btn_slot_refresh" text_id="STRID_PANEL_BTN_SLOT_REFRESH"/>
                     </HBox>
                     <Label text_id="STRID_PANEL_DESC_SLOT"
-                           text_color="text_muted" width="stretch" height="auto"/>
+                           text_color="text_muted" width="stretch" height="auto" multi_line="true"/>
                 </PanelVBox>
 
                 <Box height="10"/><!-- 间距 -->
@@ -335,7 +336,7 @@
                                   text_color="text_default" valign="center"/>
                     </HBox>
                     <Label text_id="STRID_PANEL_DESC_VETO"
-                           text_color="text_muted" width="stretch" height="auto"/>
+                           text_color="text_muted" width="stretch" height="auto" multi_line="true"/>
                 </PanelVBox>
 
         </VScrollBox>

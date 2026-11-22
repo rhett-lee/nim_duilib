@@ -310,6 +310,8 @@ Control* Box::FindControlInItems(const std::vector<Control*>& items,
     UiPoint boxPt(ptMouse);
     boxPt.Offset(scrollPos);
     UiRect rc = GetRectWithoutPadding();
+    //浮动子控件按float坐标独立定位（可位于padding区域内，如Panel标题栏槽位），
+    //其子树命中的控件不受正文区矩形约束，否则标题栏上的按钮会被误判为不可命中
     if ((uFlags & UIFIND_TOP_FIRST) != 0) {
         //倒序
         for (int32_t it = (int32_t)items.size() - 1; it >= 0; --it) {
@@ -319,7 +321,7 @@ Control* Box::FindControlInItems(const std::vector<Control*>& items,
             Control* pControl = items[it]->FindControl(Proc, pProcData, uFlags, boxPt);
             if (pControl != nullptr) {
                 if ((uFlags & UIFIND_HITTEST) != 0 &&
-                    !pControl->IsFloat() && !rc.ContainsPt(ptMouse)) {
+                    !pControl->IsFloat() && !items[it]->IsFloat() && !rc.ContainsPt(ptMouse)) {
                     continue;
                 }
                 else {
@@ -337,7 +339,7 @@ Control* Box::FindControlInItems(const std::vector<Control*>& items,
             Control* pControl = pItemControl->FindControl(Proc, pProcData, uFlags, boxPt);
             if (pControl != nullptr) {
                 if ((uFlags & UIFIND_HITTEST) != 0 && 
-                    !pControl->IsFloat() && !rc.ContainsPt(ptMouse)) {
+                    !pControl->IsFloat() && !pItemControl->IsFloat() && !rc.ContainsPt(ptMouse)) {
                     continue;
                 }
                 else {
