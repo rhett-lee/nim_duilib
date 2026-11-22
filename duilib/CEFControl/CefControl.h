@@ -25,9 +25,20 @@ class DUILIB_API CefControl: public Control, public CefBrowserHandlerDelegate
     typedef Control BaseClass;
 public:
     //CefControl同时继承Control与CefBrowserHandlerDelegate，二者均含SupportWeakCallback基类，
-    //这里明确使用Control对应的实现，避免弱回调相关接口的访问出现二义性
-    using BaseClass::GetWeakFlag;
-    using BaseClass::ToWeakCallback;
+    //使SupportWeakCallback成为CefControl的二义性基类；
+    //注意：using 声明在MSVC下可消除该二义性，但GCC下仍然报错（'SupportWeakCallback'是'CefControl'的有歧义的基类），
+    //因此这里用显式转发函数，明确使用Control对应的实现（两处弱回调标志的生命周期一致，功能等价）
+    std::weak_ptr<WeakFlag> GetWeakFlag()
+    {
+        return static_cast<BaseClass*>(this)->GetWeakFlag();
+    }
+
+    template<typename CallbackType>
+    auto ToWeakCallback(const CallbackType& closure)
+        ->WeakCallback<CallbackType>
+    {
+        return static_cast<BaseClass*>(this)->ToWeakCallback(closure);
+    }
 
     explicit CefControl(ui::Window* pWindow);
     virtual ~CefControl() override;
