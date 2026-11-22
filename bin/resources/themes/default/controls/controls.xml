@@ -381,17 +381,17 @@
                         </HBox>
                         <HBox height="30" margin="0,12,0,0" child_margin="8" valign="center">
                             <Label text_id="STRID_CONTROLS_DATE" width="54" valign="center"/>
-                            <DateTime width="108" height="26" text="2022-02-01"/>
-                            <DateTime width="92" height="26" edit_format="date_up_down"/>
+                            <DateTime width="auto" height="26" text="2022-02-01"/>
+                            <DateTime width="auto" height="26" edit_format="date_up_down"/>
                         </HBox>
                         <HBox height="30" margin="0,6,0,0" child_margin="8" valign="center">
                             <Label text_id="STRID_CONTROLS_TIME" width="54" valign="center"/>
-                            <DateTime width="108" height="26" edit_format="date_time_up_down"/>
-                            <DateTime width="92" height="26" edit_format="minute_up_down"/>
+                            <DateTime width="auto" height="26" edit_format="date_time_up_down"/>
+                            <DateTime width="auto" height="26" edit_format="minute_up_down"/>
                         </HBox>
                         <HBox height="30" margin="0,6,0,0" child_margin="8" valign="center">
                             <Label text_id="STRID_CONTROLS_DATE_TIME" width="70" valign="center"/>
-                            <DateTime width="196" height="26" text="2026-10-21 09:30:00"
+                            <DateTime width="auto" height="26" text="2026-10-21 09:30:00"
                                       edit_format="date_time_calendar" show_seconds="true"/>
                         </HBox>
                         <HBox height="28" margin="0,8,0,0">

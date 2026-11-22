@@ -115,7 +115,6 @@ bool DateTimeWnd::Init(DateTime* pOwner)
             pRichEdit->SetAttribute(_T("number_only"), _T("true"));
             pRichEdit->SetAttribute(_T("height"), _T("100%"));
             pRichEdit->SetAttribute(_T("width"), _T("auto"));
-            pRichEdit->SetAttribute(_T("text_padding"), _T("2,1,2,1"));
             pRichEdit->SetAttribute(_T("hide_selection"), _T("true"));
             pRichEdit->SetAttribute(_T("want_tab"), _T("false"));
             pRichEdit->SetAttribute(_T("want_return_msg"), _T("false"));
