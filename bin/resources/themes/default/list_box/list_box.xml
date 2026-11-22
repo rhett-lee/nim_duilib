@@ -5,7 +5,7 @@
          换成 HListBox / VTileListBox / HTileListBox 即可看到另一种布局，代码无需改动 -->
     <VBox bkcolor="bg_window_main">
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
-            <Label text_id="STRID_LISTBOX_TITLE" font="system_bold_14" valign="center" margin="8,0,8,0" width="stretch" mouse_enabled="false"/>
+            <Label class="title_bar_title" text_id="STRID_LISTBOX_TITLE" width="stretch" margin="8,0,8,0"/>
             <HBox width="auto">
                 <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
                 <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>

@@ -3,7 +3,7 @@
     <VBox bkcolor="bg_window_main" visible="true">
         <!-- 标题栏区域 -->
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
-            <Label text_id="MULTI_LANG_WINDOW_TEXT" height="32" width="stretch" margin="8,0,8,0" text_align="left,vcenter" mouse_enabled="false" font="system_bold_14"/>
+            <Label class="title_bar_title" text_id="MULTI_LANG_WINDOW_TEXT" height="32" width="stretch" text_align="left,vcenter" margin="8,0,8,0"/>
             <Control width="40" mouse_enabled="false"/>
             <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
             <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>

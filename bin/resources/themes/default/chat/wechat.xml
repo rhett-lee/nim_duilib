@@ -33,10 +33,8 @@
         <!-- ===================== 标题栏 ===================== -->
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
             <!-- 标题栏 Logo：使用正方形控件居中显示，避免非等比拉伸导致图标变形 -->
-            <Control width="18" height="18" halign="left" valign="center" mouse_enabled="false"
-                     margin="8,0,0,0" bkimage="file='logo.svg'"/>
-            <Label text_id="STRID_CHAT_APP_NAME" width="stretch" height="stretch"
-                   font="system_bold_14" text_align="left,vcenter" text_color="text_default" mouse_enabled="false" margin="8,0,8,0"/>
+            <Control class="title_bar_logo" halign="left" bkimage="file='logo.svg'"/>
+            <Label class="title_bar_title" text_id="STRID_CHAT_APP_NAME" width="stretch" height="stretch" text_align="left,vcenter" text_color="text_default" margin="8,0,8,0"/>
             <!-- 主题切换 / 多语言切换：控件名由 WindowImplBase 识别，点击后弹出框架内置菜单 -->
             <Button class="btn_switch_theme" name="btn_window_theme" height="32" width="40" margin="0,2,0,2"/>
             <Button class="btn_switch_lang" name="btn_window_language" height="32" width="40" margin="0,2,0,2"/>

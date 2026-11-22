@@ -16,8 +16,8 @@
 | 标题栏高度 | `Window` 的 `caption` | `0,0,0,36` | 同时决定可拖动区域与标题栏视觉高度，两者必须一致 |
 | 系统菜单区域 | `Window` 的 `sys_menu_rect` | `0,0,36,36` | 需与标题栏高度一致；不设置则不启用该功能 |
 | 标题栏容器 | `HBox name="window_title_bar"` | `width="stretch" height="36"` | 背景色使用 `bkcolor="bg_titlebar"` |
-| 左上角图标 | `Control` | `width="18" height="18"` `margin="8,0,0,0"` | `bkimage="public/caption/logo.svg"`，`valign="center"` |
-| 标题文字 | `Label` | `font="system_bold_14"` `margin="8,0,0,0"` | 拉伸宽度的标题使用 `margin="8,0,8,0"` |
+| 左上角图标 | `Control class="title_bar_logo"` | 公共类，见 `global.xml` | 类中已包含 18×18、`margin="8,0,0,0"`、`valign="center"` 与 Logo 图片 |
+| 标题文字 | `Label class="title_bar_title"` | 公共类，见 `global.xml` | 类中已包含 `font="system_bold_14"`、`margin="8,0,0,0"`、`valign="center"`；拉伸标题需覆盖 `margin="8,0,8,0"` |
 | 普通窗口按钮 | `Button` | `width="40" height="32"` `margin="0,2,0,2"` | 32 + 上下各 2 = 36，与标题栏等高 |
 | 最大化/还原 | `Box` + 两个 `Button` | `Box` 为 `40×32`、`margin="0,2,0,2"` | 两个按钮叠放，内部按钮 `width="stretch" height="stretch" margin="0"` |
 | 关闭按钮 | `Button` | `width="40" height="stretch"` `margin="0"` | 高度等于标题栏高度，紧贴顶部和右侧，无空隙 |
@@ -31,13 +31,10 @@
     <VBox bkcolor="bg_window_main">
         <!-- 标题栏 -->
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
-            <!-- 左侧：图标 + 标题 -->
+            <!-- 左侧：图标 + 标题（使用 global.xml 中的公共 Class） -->
             <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
-                <Control width="18" height="18" bkimage="public/caption/logo.svg"
-                         valign="center" margin="8,0,0,0"/>
-                <Label name="label_title" text_id="STRID_XXX_WINDOW_TITLE"
-                       font="system_bold_14" valign="center" margin="8,0,0,0"
-                       mouse_enabled="false"/>
+                <Control class="title_bar_logo"/>
+                <Label class="title_bar_title" name="label_title" text_id="STRID_XXX_WINDOW_TITLE"/>
             </HBox>
             <!-- 中间空白，占满剩余宽度 -->
             <Control mouse_enabled="false"/>
@@ -115,13 +112,15 @@
    内部两个按钮使用 `width="stretch" height="stretch" margin="0"`，
    由框架根据窗口状态切换 `visible`，避免两个按钮同时出现。
 
-5. **标题文字统一加粗 14 号字**
-   标题 `Label` 使用 `font="system_bold_14"`；宽度拉伸的标题使用
-   `margin="8,0,8,0"`，普通标题使用 `margin="8,0,0,0"`。
+5. **标题文字统一使用公共类**
+   标题 `Label` 直接使用 `class="title_bar_title"`（已在 `global.xml` 中定义
+   `font="system_bold_14"`、`margin="8,0,0,0"`、`valign="center"`）；
+   宽度拉伸的标题覆盖 `margin="8,0,8,0"`，不要重复书写字体与对齐属性。
 
-6. **百分比宽度的标题不要设置水平外边距**
-   若标题 `Label` 使用 `width="100%"`，不要再设置 `margin`，
-   否则会超出标题栏宽度并挤压右侧按钮；可改用 `text_padding` 控制文字缩进。
+6. **百分比宽度的标题需要覆盖边距**
+   若标题 `Label` 使用 `width="100%"`，需追加 `margin="0"`，
+   否则类中的左边距会使标题超出标题栏宽度并挤压右侧按钮；可改用
+   `text_padding` 控制文字缩进。
 
 7. **标题栏包含标签页等复杂内容时**
    参考 `cef_browser.xml` / `webview2_browser.xml`：外层横条可命名为 `title_bar`，
@@ -132,6 +131,12 @@
    部分窗口（如 `chat/login.xml`）不使用标题栏背景，只在右上角浮动显示按钮。
    这种情况仍使用相同的按钮尺寸与边距规范，关闭按钮同样使用满高 40 宽。
 
+9. **公共类的定义与定制**
+   `title_bar_logo` 与 `title_bar_title` 定义在
+   [global.xml](../bin/resources/themes/default/global.xml) 中。
+   个别窗口如需使用自己的 Logo 图片（如 `chat/wechat.xml`），
+   在引用 `class="title_bar_logo"` 的同时覆盖 `bkimage` 即可。
+
 ## 5. 常见问题
 
 | 现象 | 原因 | 处理 |
@@ -140,15 +145,15 @@
 | 标题栏变矮后内容区顶部出现空白 | 只改了 `caption`，未改标题栏容器高度 | 两处同时设为 36 |
 | 标题与右侧按钮间距过小 | 标题 `margin` 右侧为 0 且无分隔控件 | 使用 `margin="8,0,8,0"`，或保留中间 `<Control/>` 占位 |
 | 标题文字被按钮遮挡 | 标题使用百分比/固定宽度过大 | 去掉百分比标题的 `margin`，或改用 `width="stretch"` |
-| 标题字号与其它窗口不一致 | 使用了 `system_regular_14` 或 `bold_12` | 统一改为 `system_bold_14` |
+| 标题字号与其它窗口不一致 | 未引用 `title_bar_title`，或单独覆盖了 `font` | 统一使用 `class="title_bar_title"` |
 | 最大化与还原按钮同时显示 | 未使用叠放 `Box`，或都未设置 `visible` | 使用 40×32 `Box` 叠放，还原按钮初始 `visible="false"` |
 
 ## 6. 自检清单
 
 - [ ] `caption="0,0,0,36"`，`sys_menu_rect="0,0,36,36"`（若启用系统菜单）
 - [ ] 标题栏容器 `height="36"`，右侧按钮组 `height="36"`
-- [ ] Logo 为 18×18、`margin="8,0,0,0"`
-- [ ] 标题为 `font="system_bold_14"`，边距符合第 4 节
+- [ ] Logo 使用 `class="title_bar_logo"`（自定义图片时覆盖 `bkimage`）
+- [ ] 标题使用 `class="title_bar_title"`，拉伸标题覆盖 `margin="8,0,8,0"`
 - [ ] 普通按钮 40×32、`margin="0,2,0,2"`
 - [ ] 最大化/还原按钮在 40×32 的 `Box` 内且内部拉伸
 - [ ] 关闭按钮 `width="40" height="stretch" margin="0"`

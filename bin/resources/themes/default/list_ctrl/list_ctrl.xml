@@ -6,7 +6,7 @@
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
             <!-- 标题栏：窗口左上角显示区域 -->
             <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
-                <Label text_id="STRID_LISTCTRL_TEST_TITLE" valign="center" margin="8,0,0,0" mouse_enabled="false" font="system_bold_14"/>
+                <Label class="title_bar_title" text_id="STRID_LISTCTRL_TEST_TITLE"/>
             </HBox>
             <Control mouse_enabled="false"/>
             <!-- 标题栏：右侧窗口控制区域，窗口最小化、最大化、还原、关闭按钮 -->

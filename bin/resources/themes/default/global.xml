@@ -195,6 +195,13 @@
     <Class name="btn_switch_lang" class="btn_wnd_base" tooltip_text_id="STRID_PUBLIC_TIP_BTN_LANGUAGE"
                                   normal_image="file='${PATH_BUTTON}/switch_lang.svg' width='${SIZE_WND_ICON}' height='${SIZE_WND_ICON}' valign='center' halign='center' svg_replace_colors='#333333|border_svg_image'"
                                   disabled_image="file='${PATH_BUTTON}/switch_lang.svg' width='${SIZE_WND_ICON}' height='${SIZE_WND_ICON}' valign='center' halign='center' svg_replace_colors='#333333|border_svg_image' fade='128'"/>     
+
+    <!-- 标题栏左上角 Logo：统一尺寸、左边距与垂直居中方式，示例窗口直接引用该样式 -->
+    <Class name="title_bar_logo" width="18" height="18" bkimage="public/caption/logo.svg" margin="8,0,0,0" valign="center" mouse_enabled="false"/>
+
+    <!-- 标题栏标题文本：统一字体、左边距与垂直居中方式，示例窗口直接引用该样式 -->
+    <Class name="title_bar_title" font="system_regular_14" margin="8,0,0,0" valign="center" mouse_enabled="false"/>
+
     <!-- 退出全屏按钮 -->
     <Class name="btn_exit_fullscreen" width="${SIZE_BTN_EXIT_FULLSCREEN_WIDTH}" height="${SIZE_BTN_EXIT_FULLSCREEN_HEIGHT}" border_round="3,3" valign="top" halign="center" 
                                       bkcolor="bg_btn_exit_fullscreen" normal_text_color="text_btn_exit_fullscreen" 

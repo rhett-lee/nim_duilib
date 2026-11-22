@@ -17,8 +17,8 @@ For the meaning of title-bar-related window attributes (`caption`, `sys_menu`,
 | Title bar height | `caption` of `Window` | `0,0,0,36` | Defines both the draggable area and the visual height; they must match |
 | System menu area | `sys_menu_rect` of `Window` | `0,0,36,36` | Must match the title bar height; the feature is disabled if not set |
 | Title bar container | `HBox name="window_title_bar"` | `width="stretch" height="36"` | Use `bkcolor="bg_titlebar"` for the background |
-| Top-left icon | `Control` | `width="18" height="18"` `margin="8,0,0,0"` | `bkimage="public/caption/logo.svg"`, `valign="center"` |
-| Title text | `Label` | `font="system_bold_14"` `margin="8,0,0,0"` | Stretched titles use `margin="8,0,8,0"` |
+| Top-left icon | `Control class="title_bar_logo"` | Shared class in `global.xml` | Already contains 18×18, `margin="8,0,0,0"`, `valign="center"`, and the logo image |
+| Title text | `Label class="title_bar_title"` | Shared class in `global.xml` | Already contains `font="system_bold_14"`, `margin="8,0,0,0"`, `valign="center"`; stretched titles override `margin="8,0,8,0"` |
 | Normal window buttons | `Button` | `width="40" height="32"` `margin="0,2,0,2"` | 32 + 2 top + 2 bottom = 36, equal to the bar height |
 | Maximize/Restore | `Box` + two `Button`s | `Box` is `40×32`, `margin="0,2,0,2"` | The two buttons are stacked; inner buttons use `width="stretch" height="stretch" margin="0"` |
 | Close button | `Button` | `width="40" height="stretch"` `margin="0"` | Height equals the title bar height; flush with the top and right edges, no gaps |
@@ -32,13 +32,10 @@ For the meaning of title-bar-related window attributes (`caption`, `sys_menu`,
     <VBox bkcolor="bg_window_main">
         <!-- Title bar -->
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
-            <!-- Left: icon + title -->
+            <!-- Left: icon + title (using the shared classes in global.xml) -->
             <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
-                <Control width="18" height="18" bkimage="public/caption/logo.svg"
-                         valign="center" margin="8,0,0,0"/>
-                <Label name="label_title" text_id="STRID_XXX_WINDOW_TITLE"
-                       font="system_bold_14" valign="center" margin="8,0,0,0"
-                       mouse_enabled="false"/>
+                <Control class="title_bar_logo"/>
+                <Label class="title_bar_title" name="label_title" text_id="STRID_XXX_WINDOW_TITLE"/>
             </HBox>
             <!-- Middle spacer: takes the remaining width -->
             <Control mouse_enabled="false"/>
@@ -121,13 +118,16 @@ Notes:
    use `width="stretch" height="stretch" margin="0"`. The framework toggles their
    `visible` state by window state, so both are never shown at the same time.
 
-5. **Title text is bold 14 pt**
-   The title `Label` uses `font="system_bold_14"`. Stretched titles use
-   `margin="8,0,8,0"`; non-stretched titles use `margin="8,0,0,0"`.
+5. **Use the shared class for title text**
+   The title `Label` uses `class="title_bar_title"` directly (defined in `global.xml`
+   with `font="system_bold_14"`, `margin="8,0,0,0"`, and `valign="center"`).
+   Stretched titles override `margin="8,0,8,0"`; do not repeat the font and alignment
+   attributes in each XML.
 
-6. **Do not add horizontal margins to percent-width titles**
-   If the title `Label` uses `width="100%"`, do not set `margin`; otherwise it overflows the
-   title bar and squeezes the right-side buttons. Use `text_padding` to indent the text.
+6. **Percent-width titles must override the margin**
+   If the title `Label` uses `width="100%"`, add `margin="0"`; otherwise the left margin
+   from the class makes the title overflow and squeeze the right-side buttons. Use
+   `text_padding` to indent the text instead.
 
 7. **Title bars with tabs or other complex content**
    See `cef_browser.xml` / `webview2_browser.xml`: the outer bar may be named `title_bar`,
@@ -139,6 +139,12 @@ Notes:
    in the top-right corner. They still follow the same button size and margin rules, and
    the close button is still 40 wide with full height.
 
+9. **Where the shared classes live**
+   `title_bar_logo` and `title_bar_title` are defined in
+   [global.xml](../bin/resources/themes/default/global.xml). If a window needs its own
+   logo image (e.g. `chat/wechat.xml`), keep `class="title_bar_logo"` and override
+   `bkimage`.
+
 ## 5. Common Issues
 
 | Symptom | Cause | Fix |
@@ -147,15 +153,15 @@ Notes:
 | Blank space below the title bar after shrinking it | Only `caption` was changed, not the container height | Set both to 36 |
 | Too little space between title and right buttons | Title right margin is 0 and there is no spacer | Use `margin="8,0,8,0"`, or keep the middle `<Control/>` spacer |
 | Title text hidden behind buttons | Percent/fixed title width is too large | Remove `margin` from percent-width titles, or use `width="stretch"` |
-| Title font differs from other windows | Uses `system_regular_14` or `bold_12` | Change to `system_bold_14` |
+| Title font differs from other windows | `title_bar_title` is not used, or `font` is overridden | Use `class="title_bar_title"` |
 | Maximize and restore buttons shown together | No stacked `Box`, or neither is hidden | Use a 40×32 stacked `Box` and set the restore button to `visible="false"` initially |
 
 ## 6. Checklist
 
 - [ ] `caption="0,0,0,36"`, `sys_menu_rect="0,0,36,36"` (if the system menu is enabled)
 - [ ] Title bar container `height="36"`, right-side button group `height="36"`
-- [ ] Logo is 18×18 with `margin="8,0,0,0"`
-- [ ] Title uses `font="system_bold_14"` with the margins from section 4
+- [ ] Logo uses `class="title_bar_logo"` (override `bkimage` for custom images)
+- [ ] Title uses `class="title_bar_title"`; stretched titles override `margin="8,0,8,0"`
 - [ ] Normal buttons are 40×32 with `margin="0,2,0,2"`
 - [ ] Maximize/Restore are inside a 40×32 `Box` and stretched inside it
 - [ ] Close button uses `width="40" height="stretch" margin="0"`

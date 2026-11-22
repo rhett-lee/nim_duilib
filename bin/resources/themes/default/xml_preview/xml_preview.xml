@@ -5,7 +5,7 @@
     <VBox bkcolor="bg_window_main">
         <!-- 标题栏区域 -->
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
-            <Label text_id="STRID_XMLPREVIEW_TITLE" font="system_bold_14" valign="center" margin="8,0,8,0" mouse_enabled="false" width="stretch" single_line="true"/>
+            <Label class="title_bar_title" text_id="STRID_XMLPREVIEW_TITLE" width="stretch" single_line="true" margin="8,0,8,0"/>
             <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
             <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>
             <Button class="btn_wnd_fullscreen_11" height="32" width="40" name="btn_window_fullscreen" margin="0,2,0,2"/>
