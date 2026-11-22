@@ -89,6 +89,8 @@ public:
     void SetDefaultFontFamilyNames(const DString& defaultFontFamilyNames);
 
     /** 设置默认回退字体列表，用于显示Emoji字符/扩展汉字（2个UTF16字符表示的汉字）等
+    *   说明：该列表中的字体均无法显示某个字符时，会继续使用默认字体列表（SetDefaultFontFamilyNames）作为最后一级回退，
+    *        以保证Arial等不含常用汉字的字体也能正常显示中文等文字。
     * @param [in] fallbackFontFamilyNames 回退字体列表，不同字体用逗号分割，比如："Segoe UI Emoji,Noto Color Emoji, MingLiU-ExtB"
     */
     void SetFallbackFontFamilyNames(const DString& fallbackFontFamilyNames);

@@ -71,7 +71,8 @@ public:
         }
         //注意：这里使用引用，避免每次回退时复制字体名称列表（热路径）
         const std::vector<DString>& fallbackFontFamilyNames = m_pFontManager->m_fallbackFontFamilyNames;
-        if (fallbackFontFamilyNames.empty()) {
+        const std::vector<DString>& defaultFontFamilyNames = m_pFontManager->m_defaultFontFamilyNames;
+        if (fallbackFontFamilyNames.empty() && defaultFontFamilyNames.empty()) {
             return nullptr;
         }
 
@@ -143,39 +144,51 @@ public:
         cacheEntry.m_fontInfo = fontInfo;
 
         IFont* pRetFallbackFont = nullptr;
-        for (const DString& fallbackFontName : fallbackFontFamilyNames) {
-            if (fallbackFontName.empty()) {
-                continue;
-            }
-            if (!pFontMgr->HasFontName(fallbackFontName)) {
-                //不存在的字体
-                continue;
-            }
-            IFont* pFallbackFont = pRenderFactory->CreateIFont();
-            ASSERT(pFallbackFont != nullptr);
-            if (pFallbackFont == nullptr) {
-                continue;
-            }
-            // RAII 包装：异常路径下也能正确释放
-            std::unique_ptr<IFont> pFallbackFontHolder(pFallbackFont);
-            fontInfo.m_fontName = fallbackFontName; //设置回退的字体名称
-            bool isInitOk = pFallbackFont->InitFont(fontInfo);
-            ASSERT(isInitOk);
-            if (unicodeChar != 0) {
-                if (!pFallbackFont->IsUnicodeCharSupported(unicodeChar)) {
-                    //该字体不支持这个字符
-                    isInitOk = false;
+        //回退顺序：
+        //1. 主题中配置的回退字体列表（Emoji、扩展汉字等专用字体），优先匹配，
+        //   避免Emoji等字符被正文字体渲染；
+        //2. 默认正文字体列表（如微软雅黑、宋体），作为最后一级回退，
+        //   保证Arial等不含常用汉字的字体也能正常显示中文等文字。
+        const std::vector<DString>* fontFamilyNameLists[] = { &fallbackFontFamilyNames, &defaultFontFamilyNames };
+        for (const std::vector<DString>* pFontFamilyNames : fontFamilyNameLists) {
+            for (const DString& fallbackFontName : *pFontFamilyNames) {
+                if (fallbackFontName.empty()) {
+                    continue;
                 }
-            }
-            if (!isInitOk) {
-                // RAII 自动释放 pFallbackFont
-                continue;
-            }
+                if (!pFontMgr->HasFontName(fallbackFontName)) {
+                    //不存在的字体
+                    continue;
+                }
+                IFont* pFallbackFont = pRenderFactory->CreateIFont();
+                ASSERT(pFallbackFont != nullptr);
+                if (pFallbackFont == nullptr) {
+                    continue;
+                }
+                // RAII 包装：异常路径下也能正确释放
+                std::unique_ptr<IFont> pFallbackFontHolder(pFallbackFont);
+                fontInfo.m_fontName = fallbackFontName; //设置回退的字体名称
+                bool isInitOk = pFallbackFont->InitFont(fontInfo);
+                ASSERT(isInitOk);
+                if (unicodeChar != 0) {
+                    if (!pFallbackFont->IsUnicodeCharSupported(unicodeChar)) {
+                        //该字体不支持这个字符
+                        isInitOk = false;
+                    }
+                }
+                if (!isInitOk) {
+                    // RAII 自动释放 pFallbackFont
+                    continue;
+                }
 
-            //找到第一个匹配的，停止
-            //转移所有权到 pRetFallbackFont，RAII 释放器置空
-            pRetFallbackFont = pFallbackFontHolder.release();
-            break;
+                //找到第一个匹配的，停止
+                //转移所有权到 pRetFallbackFont，RAII 释放器置空
+                pRetFallbackFont = pFallbackFontHolder.release();
+                break;
+            }
+            if (pRetFallbackFont != nullptr) {
+                //已在前面的字体列表中匹配到，不再尝试后续列表
+                break;
+            }
         }
         if (pRetFallbackFont != nullptr) {
             //放入缓存列表，管理其生命周期

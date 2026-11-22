@@ -100,7 +100,8 @@
         freebsd="Noto Sans CJK SC"
     />
 
-    <!-- 回退字体列表（独立于默认正文字体），用于支持Emoji文字和扩展汉字(2个UTF16字符表示的汉字)等 -->
+    <!-- 回退字体列表（独立于默认正文字体），用于支持Emoji文字和扩展汉字(2个UTF16字符表示的汉字)等；
+         当该列表中的字体均无法显示某个字符时，会自动回退到上面的默认正文字体 -->
     <FallbackFontFamilyNames
         windows="Segoe UI Emoji, MingLiU-ExtB, Microsoft JhengHei-ExtB, SimSun-ExtB, SimSun-ExtG"
         macos="Apple Color Emoji, PingFang SC, Songti SC, Hiragino Sans GB"
