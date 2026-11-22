@@ -928,7 +928,7 @@ bool BrowserForm::ChangeToBox(const DString& browserId)
     ui::CefControl* pCefControl = m_pActiveBrowserBox->GetCefControl();
     if ((m_pUrlBar != nullptr) && (pCefControl != nullptr)) {
         DStringW urlW = pCefControl->GetURL();
-        m_pUrlBar->SetUrl(urlW);
+        m_pUrlBar->SetUrl(ui::StringConvert::WStringToT(urlW));
     }
     OnLoadingStateChange(m_pActiveBrowserBox);
     UpdateWindowTitle();
