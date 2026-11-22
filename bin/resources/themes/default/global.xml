@@ -968,10 +968,10 @@
                                                     halign='center' svg_replace_colors='${SVG_COLOR_BORDER}'"
                                       hovered_color="bg_tag_close_hover"
                                       hovered_image="file='${PATH_BUTTON}/btn_close.svg' width='12' height='12' valign='center'
-                                                     halign='center' svg_replace_colors='#333333|white'"
+                                                     halign='center' svg_replace_colors='#333333|color_white'"
                                       pressed_color="bg_tag_close_pressed"
                                       pressed_image="file='${PATH_BUTTON}/btn_close.svg' width='12' height='12' valign='center'
-                                                     halign='center' svg_replace_colors='#333333|white'"/>
+                                                     halign='center' svg_replace_colors='#333333|color_white'"/>
     <Class name="tag_input_edit" class="richedit_base" width="stretch" height="24" min_width="80" margin="2,0,2,0"
                                    valign="center" prompt_mode="true" prompt_color="text_richedit_prompt"/>
 
@@ -1196,11 +1196,11 @@
                                       hovered_color="bg_tag_close_hover"
                                       hovered_image="file='${PATH_BUTTON}/btn_close.svg' height='${SIZE_ICON_SMALL}'
                                                      width='${SIZE_ICON_SMALL}' halign='center' valign='center'
-                                                     svg_replace_colors='#333333|white'"
+                                                     svg_replace_colors='#333333|color_white'"
                                       pressed_color="bg_tag_close_pressed"
                                       pressed_image="file='${PATH_BUTTON}/btn_close.svg' height='${SIZE_ICON_SMALL}'
                                                      width='${SIZE_ICON_SMALL}' halign='center' valign='center'
-                                                     svg_replace_colors='#333333|white'"
+                                                     svg_replace_colors='#333333|color_white'"
                                       border_round="4,4" fade_alpha="true"/>
     <Class name="tab_ctrl_item_line" bkcolor="border_tab_ctrl_item" width="1" height="22" float="true"
                                      halign="right" valign="center" mouse_enabled="false"/>
@@ -1549,10 +1549,11 @@
     <Class name="popconfirm_ok_default" class="popconfirm_cancel"/>
     <Class name="popconfirm_ok_primary" class="btn_primary_global" width="auto" min_width="64" height="28" padding="10,0,10,0"
                                        border_round="6,6" font="system_regular_13" cursor_type="hand"/>
-    <!-- 危险操作按钮：复用框架既有的固定红色按钮配色（主题体系没有 danger 系列背景色） -->
+    <!-- 危险操作按钮：使用 danger 语义色（bg_btn_danger_*），颜色随主题切换 -->
     <Class name="popconfirm_ok_danger" class="popconfirm_btn" normal_text_color="color_white"
                                       disabled_text_color="color_gray" border_size="0"
-                                      normal_color="color_red_dark" hovered_color="#E0393E" pressed_color="#B71D22"/>
+                                      normal_color="bg_btn_danger_normal" hovered_color="bg_btn_danger_hovered"
+                                      pressed_color="bg_btn_danger_pressed"/>
     <!-- ===================== 十四、Avatar 与 Calendar ===================== -->
     <!-- Avatar 头像（尺寸/形状/类型）与 Calendar 日历各状态样式 -->
     <!-- Avatar头像：基础样式（圆形 32×32，文字字号取控件短边的 50%，文字头像按文本自动配色）
