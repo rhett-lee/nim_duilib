@@ -136,32 +136,32 @@ void TestParseAttributeList()
 
     // 双引号、单引号混合
     CHECK(ui::AttributeUtil::ParseAttributeList(
-        DString(L"normal_text_color=\"white\" bkcolor='red' offset=\"1,1\""), attributes));
+        DString(_T("normal_text_color=\"white\" bkcolor='red' offset=\"1,1\"")), attributes));
     CHECK_INT((int)attributes.size(), 3);
     if (attributes.size() == 3) {
-        CHECK_WSTR(attributes[0].first, DString(L"normal_text_color"));
-        CHECK_WSTR(attributes[0].second, DString(L"white"));
-        CHECK_WSTR(attributes[1].first, DString(L"bkcolor"));
-        CHECK_WSTR(attributes[1].second, DString(L"red"));
-        CHECK_WSTR(attributes[2].first, DString(L"offset"));
-        CHECK_WSTR(attributes[2].second, DString(L"1,1"));
+        CHECK_WSTR(attributes[0].first, DString(_T("normal_text_color")));
+        CHECK_WSTR(attributes[0].second, DString(_T("white")));
+        CHECK_WSTR(attributes[1].first, DString(_T("bkcolor")));
+        CHECK_WSTR(attributes[1].second, DString(_T("red")));
+        CHECK_WSTR(attributes[2].first, DString(_T("offset")));
+        CHECK_WSTR(attributes[2].second, DString(_T("1,1")));
     }
 
     // 花括号：内部可继续使用引号
     CHECK(ui::AttributeUtil::ParseAttributeList(
-        DString(L"normal_image={file='test/arrow.svg' valign='center'}"), attributes));
+        DString(_T("normal_image={file='test/arrow.svg' valign='center'}")), attributes));
     CHECK_INT((int)attributes.size(), 1);
     if (attributes.size() == 1) {
-        CHECK_WSTR(attributes[0].first, DString(L"normal_image"));
-        CHECK_WSTR(attributes[0].second, DString(L"file='test/arrow.svg' valign='center'"));
+        CHECK_WSTR(attributes[0].first, DString(_T("normal_image")));
+        CHECK_WSTR(attributes[0].second, DString(_T("file='test/arrow.svg' valign='center'")));
     }
 
     // 属性名两侧空白会被去除
-    CHECK(ui::AttributeUtil::ParseAttributeList(DString(L"  width =\"24\"   "), attributes));
+    CHECK(ui::AttributeUtil::ParseAttributeList(DString(_T("  width =\"24\"   ")), attributes));
     CHECK_INT((int)attributes.size(), 1);
     if (attributes.size() == 1) {
-        CHECK_WSTR(attributes[0].first, DString(L"width"));
-        CHECK_WSTR(attributes[0].second, DString(L"24"));
+        CHECK_WSTR(attributes[0].first, DString(_T("width")));
+        CHECK_WSTR(attributes[0].second, DString(_T("24")));
     }
 
     // 空输入、空分隔符（长度不匹配）返回false，并清空输出

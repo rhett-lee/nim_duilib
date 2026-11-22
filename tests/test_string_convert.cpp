@@ -52,9 +52,14 @@ void TestUTF8AndWString()
     CHECK(!emoji.empty());
     CHECK(ui::StringConvert::WStringToUTF8(emoji) == kEmojiUtf8);
 
-    // UTF8ToT 在Unicode版本下返回wstring
+    // UTF8ToT/TToUTF8 使用TString：Windows(Unicode)下为wstring，Linux/macOS/FreeBSD下为UTF-8的string
+#ifdef DUILIB_UNICODE
     CHECK(ui::StringConvert::UTF8ToT(kChineseUtf8) == chinese);
     CHECK(ui::StringConvert::TToUTF8(chinese) == kChineseUtf8);
+#else
+    CHECK(ui::StringConvert::UTF8ToT(kChineseUtf8) == kChineseUtf8);
+    CHECK(ui::StringConvert::TToUTF8(kChineseUtf8) == kChineseUtf8);
+#endif
 }
 
 void TestUTF16()

@@ -261,10 +261,10 @@ void TestFormat()
 
 void TestIsValueTrue()
 {
-    CHECK(ui::StringUtil::IsValueTrue(DString(L"true")));
-    CHECK(ui::StringUtil::IsValueTrue(DString(L"1")));
-    CHECK(!ui::StringUtil::IsValueTrue(DString(L"false")));
-    CHECK(!ui::StringUtil::IsValueTrue(DString(L"TRUE")));
+    CHECK(ui::StringUtil::IsValueTrue(DString(_T("true"))));
+    CHECK(ui::StringUtil::IsValueTrue(DString(_T("1"))));
+    CHECK(!ui::StringUtil::IsValueTrue(DString(_T("false"))));
+    CHECK(!ui::StringUtil::IsValueTrue(DString(_T("TRUE"))));
     CHECK(!ui::StringUtil::IsValueTrue(DString()));
 }
 
