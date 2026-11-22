@@ -2562,6 +2562,7 @@ STRID_COMBO_DROP_DOWN             = drop_down（可编辑）
 STRID_COMBO_DISABLED              = 禁用状态
 STRID_COMBO_FILTER                = FilterCombo（输入关键字过滤）
 STRID_COMBO_CHECK                 = CheckCombo（多选）
+STRID_COMBO_CHECK_PROMPT          = 请点击，在下拉表中选择（可多选）
 STRID_COMBO_SCROLL_HINT           = 下拉项支持滚动，适配大量数据。
 STRID_COMBO_EVENT                 = 事件回显
 STRID_COMBO_EVENT_DEFAULT         = 请选择上面任意一个下拉项...

@@ -363,7 +363,8 @@
                         </HBox>
                         <Combo class="combo" name="combo" combo_type="drop_list" dropbox_size="0,140" height="30" margin="0,12,0,0"/>
                         <FilterCombo class="filter_combo" name="filter_combo" dropbox_size="0,140" height="30" margin="0,6,0,0"/>
-                        <CheckCombo class="check_combo" name="check_combo" height="30" margin="0,6,0,0"/>
+                        <CheckCombo class="check_combo" name="check_combo" height="30" margin="0,6,0,0"
+                                   prompt_text_id="STRID_COMBO_CHECK_PROMPT"/>
                         <HBox height="28" margin="0,8,0,0">
                             <Control/>
                             <Button class="btn_global" name="btn_gallery_combo" text_id="STRID_GALLERY_OPEN_TEST"

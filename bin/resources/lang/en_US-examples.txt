@@ -2557,6 +2557,7 @@ STRID_COMBO_DROP_DOWN             = drop_down (editable)
 STRID_COMBO_DISABLED              = Disabled
 STRID_COMBO_FILTER                = FilterCombo (filter by keyword)
 STRID_COMBO_CHECK                 = CheckCombo (multi-select)
+STRID_COMBO_CHECK_PROMPT          = Please select (multi-select)
 STRID_COMBO_SCROLL_HINT           = The drop-down list supports scrolling and suits large data sets.
 STRID_COMBO_EVENT                 = Event Echo
 STRID_COMBO_EVENT_DEFAULT         = Select any drop-down item above...

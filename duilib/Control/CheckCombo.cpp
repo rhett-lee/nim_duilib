@@ -481,6 +481,18 @@ CheckCombo::CheckCombo(Window* pWindow) :
     m_pList->EnableScrollBar();
 
     Box::AddItem(m_pList.get());
+
+    //提示文本控件：没有选择任何项时显示，提示用户如何操作
+    //使用拉伸的宽高，使其覆盖整个控件的内容区域，不参与布局尺寸的计算
+    m_pPrompt.reset(new ui::Label(pWindow));
+    m_pPrompt->SetFixedWidth(ui::UiFixedInt::MakeStretch(), false, false);
+    m_pPrompt->SetFixedHeight(ui::UiFixedInt::MakeStretch(), false, false);
+    m_pPrompt->SetMouseEnabled(false);
+    m_pPrompt->SetKeyboardEnabled(false);
+    m_pPrompt->SetVisible(false);
+    m_pPrompt->SetAttribute(_T("text_color"), _T("text_richedit_prompt"));
+    m_pPrompt->SetAttribute(_T("text_padding"), _T("4,0,0,0"));
+    Box::AddItem(m_pPrompt.get());
 }
 
 CheckCombo::~CheckCombo()
@@ -492,8 +504,12 @@ CheckCombo::~CheckCombo()
     }
     SetAutoDestroyChild(false);
     Box::RemoveItem(m_pList.get());
+    if (m_pPrompt != nullptr) {
+        Box::RemoveItem(m_pPrompt.get());
+    }
     SetAutoDestroyChild(true);
     m_pList.reset();
+    m_pPrompt.reset();
     m_pDropList.reset();
 }
 
@@ -565,6 +581,15 @@ void CheckCombo::SetAttribute(const DString& strName, const DString& strValue2)
         if (Shadow::GetShadowType(strValue, nShadowType)) {
             SetComboWndShadowType(nShadowType);
         }
+    }
+    else if ((strName == _T("prompt_text")) || (strName == _T("prompttext"))) {
+        SetPromptText(strValue);
+    }
+    else if ((strName == _T("prompt_text_id")) || (strName == _T("prompt_textid")) || (strName == _T("prompttextid"))) {
+        SetPromptTextId(strValue);
+    }
+    else if ((strName == _T("prompt_color")) || (strName == _T("promptcolor"))) {
+        SetPromptTextColor(strValue);
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
@@ -805,6 +830,45 @@ void CheckCombo::SetSelectedItemClass(const DString& classValue)
     m_selectedItemClass = classValue;
 }
 
+void CheckCombo::SetPromptText(const DString& promptText)
+{
+    if (m_pPrompt == nullptr) {
+        return;
+    }
+    m_pPrompt->SetText(promptText);
+    UpdatePromptVisible();
+}
+
+void CheckCombo::SetPromptTextId(const DString& promptTextId)
+{
+    if (m_pPrompt == nullptr) {
+        return;
+    }
+    m_pPrompt->SetTextId(promptTextId);
+    UpdatePromptVisible();
+}
+
+void CheckCombo::SetPromptTextColor(const DString& promptColor)
+{
+    if (m_pPrompt == nullptr) {
+        return;
+    }
+    m_pPrompt->SetAttribute(_T("text_color"), promptColor);
+}
+
+void CheckCombo::UpdatePromptVisible()
+{
+    if (m_pPrompt == nullptr) {
+        return;
+    }
+    //没有设置提示文本，或者已经有选择项时，不显示提示文本
+    const bool bHasPrompt = !m_pPrompt->GetText().empty() || !m_pPrompt->GetTextId().empty();
+    const bool bShowPrompt = bHasPrompt && (m_pList->GetItemCount() == 0);
+    if (m_pPrompt->IsVisible() != bShowPrompt) {
+        m_pPrompt->SetVisible(bShowPrompt);
+    }
+}
+
 void CheckCombo::UpdateComboWndPos()
 {
     if (m_pCheckComboWnd != nullptr) {
@@ -893,6 +957,8 @@ bool CheckCombo::OnSelectItem(const ui::EventArgs& args)
     }    
     m_pList->AddItem(item);
     UpdateSelectedListHeight();
+    //有选择项时，隐藏提示文本
+    UpdatePromptVisible();
     return true;
 }
 
@@ -921,6 +987,8 @@ bool CheckCombo::OnUnSelectItem(const ui::EventArgs& args)
         }
     }
     UpdateSelectedListHeight();
+    //没有选择项时，显示提示文本
+    UpdatePromptVisible();
     return true;
 }
 
@@ -963,6 +1031,8 @@ void CheckCombo::ClearAll()
     m_pList->RemoveAllItems();
     m_pDropList->RemoveAllItems();
     SetFixedHeight(ui::UiFixedInt(m_iOrgHeight), true, true);
+    //没有选择项时，显示提示文本
+    UpdatePromptVisible();
 }
 
 } //namespace ui

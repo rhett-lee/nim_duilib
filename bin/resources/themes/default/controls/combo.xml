@@ -45,7 +45,8 @@
                         <FilterCombo class="filter_combo" name="filter_combo" dropbox_size="0,180"
                                      height="30" margin="0,8,0,0"/>
                         <Label text_id="STRID_COMBO_CHECK" font="system_regular_12" text_color="text_muted" margin="0,12,0,0"/>
-                        <CheckCombo class="check_combo" name="check_combo" height="30" margin="0,8,0,0"/>
+                        <CheckCombo class="check_combo" name="check_combo" height="30" margin="0,8,0,0"
+                                   prompt_text_id="STRID_COMBO_CHECK_PROMPT"/>
                         <Label text_id="STRID_COMBO_SCROLL_HINT" font="system_regular_12"
                                text_color="text_muted" margin="0,12,0,0"/>
                     </VBox>

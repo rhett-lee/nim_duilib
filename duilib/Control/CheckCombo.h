@@ -3,6 +3,7 @@
 
 #include "duilib/Box/ScrollBox.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Control/Label.h"
 
 namespace ui
 {
@@ -73,6 +74,22 @@ public:
     /** 清除所有列表项和选择项
     */
     void ClearAll();
+
+public:
+    /** 设置提示文本（没有选择任何项时显示，用于提示用户操作）
+    * @param [in] promptText 提示文本内容
+    */
+    void SetPromptText(const DString& promptText);
+
+    /** 设置提示文本ID（支持多语言，没有选择任何项时显示）
+    * @param [in] promptTextId 提示文本的ID
+    */
+    void SetPromptTextId(const DString& promptTextId);
+
+    /** 设置提示文本的颜色
+    * @param [in] promptColor 提示文本的颜色值
+    */
+    void SetPromptTextColor(const DString& promptColor);
 
 public:
     /** 获取当前所属的 List 对象
@@ -161,6 +178,10 @@ private:
     */
     void UpdateSelectedListHeight();
 
+    /** 更新提示文本的显示状态：没有选择任何项时显示
+    */
+    void UpdatePromptVisible();
+
 private:
     /** 下拉框的窗口接口（弱引用，窗口销毁后自动失效）
     */
@@ -193,6 +214,10 @@ private:
     /** 选择项的文本
     */
     std::vector<std::string> m_vecDate;
+
+    /** 提示文本控件（没有选择任何项时显示，提示用户操作）
+    */
+    std::unique_ptr<ui::Label> m_pPrompt;
 
     /** 下拉列表中每一个列表项的属性
     */
