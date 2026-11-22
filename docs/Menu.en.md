@@ -1,6 +1,6 @@
 English | [简体中文](Menu.md)
 
-> Last synced: 2026-11-02
+> Last synced: 2026-11-22
 
 ## Menu
 The implementation of the menu is based on the window ([WindowImplBase](../duilib/Utils/WinImplBase.h)), and mainly consists of two classes: [Menu](../duilib/Control/Menu.h) and [MenuItem](../duilib/Control/Menu.h).
@@ -134,7 +134,7 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point, ui::Control* pRelatedC
         menu_item->SetText(_T("Dynamically created"));
         menu_item->SetClass(_T("menu_element"));
         menu_item->SetFixedWidth(ui::UiFixedInt(180), true, true);
-        menu_item->SetFontId(_T("system_14"));
+        menu_item->SetFontId(_T("system_regular_14"));
         menu_item->SetTextPadding({ 20, 0, 20, 0 }, true);
         menu_fourth->AddSubMenuItemAt(menu_item, 1);//After adding, the resource is managed by the menu
     }

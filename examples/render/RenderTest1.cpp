@@ -292,7 +292,7 @@ void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
 
 void RenderTest1::PaintCellCaption(IRender* pRender, const char* pCaption, const UiRect& rcCaption)
 {
-    IFont* pFont = GlobalManager::Instance().Font().GetIFont(_T("system_12"), Dpi());
+    IFont* pFont = GlobalManager::Instance().Font().GetIFont(_T("system_regular_12"), Dpi());
     if ((pFont == nullptr) || (pCaption == nullptr)) {
         return;
     }

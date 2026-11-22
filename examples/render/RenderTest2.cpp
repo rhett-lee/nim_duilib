@@ -402,7 +402,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
 
 void RenderTest2::PaintCaption(IRender* pRender, const char* pCaption, const UiRect& rcCaption)
 {
-    IFont* pFont = GlobalManager::Instance().Font().GetIFont(_T("system_12"), Dpi());
+    IFont* pFont = GlobalManager::Instance().Font().GetIFont(_T("system_regular_12"), Dpi());
     if ((pFont == nullptr) || (pCaption == nullptr)) {
         return;
     }

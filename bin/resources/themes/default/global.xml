@@ -71,12 +71,8 @@
     <Var name="SVG_COLOR_DARK" value="#363636|border_svg_image"/>
 
     <!-- ===================== 字体配置 ===================== -->
-    <!-- 字体文件（放在资源根目录的fonts目录中），程序启动时加载，加载后可以按照使用系统字体相同的方式使用 -->
-    <!-- 注意事项：该RobotoMono字体只能用于显示英文字母，不支持中文 -->
-    <FontFile file="fonts/RobotoMono-Regular.ttf" desc="字体名称：Roboto Mono，常规字体"/>
-    <FontFile file="fonts/RobotoMono-Bold.ttf" desc="字体名称：Roboto Mono，粗体"/>
-    <FontFile file="fonts/RobotoMono-Italic.ttf" desc="字体名称：Roboto Mono，斜体"/>
-    <FontFile file="fonts/RobotoMono-BoldItalic.ttf" desc="字体名称：Roboto Mono，粗斜体"/>
+    <!-- 默认只使用系统字体。如需加载随程序分发的字体文件（无需安装为系统字体），
+         可在此添加 FontFile 标签，具体用法参见 docs/Global.md 的“字体文件（FontFile）”章节 -->
 
     <!-- 默认正文字体（纯文本）：列表形式，依次匹配，直到发现第一个有效字体作为默认字体名称，多个字体名称用逗号分隔 -->
     <DefaultFontFamilyNames

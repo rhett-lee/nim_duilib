@@ -1,6 +1,6 @@
 English | [简体中文](Global.md)
 
-> Last synced: 2026-09-29
+> Last synced: 2026-11-22
 
 # Global (Global Styles)
 
@@ -18,19 +18,21 @@ The above setting means that the default font name is determined in the order of
 
 ## 2. Font
 
+The theme already provides a set of font IDs named `system_<style>_<size>`, where `<style>` is one of regular, bold, underline, italic, strikeout, fullstyle, and `<size>` is one of 12, 13, 14, 15, 16, 18, 20, 22; `system_regular_14` is the default font. The legacy IDs (`system_12` to `system_22`) are kept only for compatibility with old XML files; use the new IDs in new code.
+
 If you want to add a font, add the following code in [global.xml](../bin/resources/themes/default/global.xml), and all font lists will be loaded into the cache after the program starts, distinguished by ID.
 
 ```xml
 <!-- name represents the font name, size represents the font size, bold represents whether it is bold, underline represents whether it includes an underline -->
-<Font id="system_12" name="system" size="12" bold="true" underline="true"/>
+<Font id="example_font_12" name="system" size="12" bold="true" underline="true"/>
 ```
 
-The id attribute of the Font tag defines a font ID, which defines a font attribute: font name, font size, bold, italic, strikeout, underline. When needed, just specify the font ID. For example, if you want a Button to use the font with ID `system_12`, you can write:
+The id attribute of the Font tag defines a font ID, which defines a font attribute: font name, font size, bold, italic, strikeout, underline. When needed, just specify the font ID. For example, if you want a Button to use the font with ID `example_font_12`, you can write:
 
 ```xml
-<Button text="Hello Button" font="system_12"/>
+<Button text="Hello Button" font="example_font_12"/>
 ```
-When displayed on the UI, the duilib GUI library will draw the text of this button with the font attribute identified by the font ID "system_12" (font name: system default font, font size: 12, bold: yes, underline: yes).
+When displayed on the UI, the duilib GUI library will draw the text of this button with the font attribute identified by the font ID "example_font_12" (font name: system default font, font size: 12, bold: yes, underline: yes).
 
 ### All Available Attributes of Font
 
@@ -48,40 +50,40 @@ When displayed on the UI, the duilib GUI library will draw the text of this butt
 For the code related to font attribute parsing, see the `WindowBuilder::ParseFontXmlNode` function.
 
 ## 3. Font File (FontFile)
-The program can use its own font files, loaded at program startup, without needing to be installed as system fonts.    
-Generally, to define a complete font, 4 font files are required: a regular font file, a bold file, an italic file, and a bold-italic file.    
-For example: if you want to add a font file with the font name `Roboto Mono`, add the following code in global.xml:
+The default theme does not load any font files and only uses system fonts. If you need to ship a custom font with your program (without installing it as a system font), follow these steps:
+
+1. Put the font files into the `fonts` directory under the resource root (for example `bin/resources/fonts`; when resources are packed into a zip, put them into the same directory inside the package).
+2. Register the font files in global.xml with `FontFile`. A complete font usually requires 4 files: regular, bold, italic, and bold-italic:
 ```xml
-<!-- Font file (placed in the fonts directory of the resource root directory), loaded at program startup; after loading, it can be used in the same way as using a system font -->
-<FontFile file="RobotoMono-Regular.ttf" desc="Font name: Roboto Mono, Regular"/>
-<FontFile file="RobotoMono-Bold.ttf" desc="Font name: Roboto Mono, Bold"/>
-<FontFile file="RobotoMono-Italic.ttf" desc="Font name: Roboto Mono, Italic"/>
-<FontFile file="RobotoMono-BoldItalic.ttf" desc="Font name: Roboto Mono, Bold Italic"/>
+<!-- file: file name relative to the fonts directory; desc: description only -->
+<FontFile file="MyFont-Regular.ttf" desc="MyFont, regular"/>
+<FontFile file="MyFont-Bold.ttf" desc="MyFont, bold"/>
+<FontFile file="MyFont-Italic.ttf" desc="MyFont, italic"/>
+<FontFile file="MyFont-BoldItalic.ttf" desc="MyFont, bold italic"/>
 ```
-Place these four font files, `RobotoMono-Regular.ttf`, `RobotoMono-Bold.ttf`, `RobotoMono-Italic.ttf`, `RobotoMono-BoldItalic.ttf`, in the fonts directory (bin\resources\fonts) of the resource root directory. After the program starts, these font files will be loaded.    
-After the font files are loaded, the `Roboto Mono` font can be used in the same way as fonts such as Microsoft YaHei and SimSun; see the description in `2. Font (Font)` in the document for usage.
+3. After the font files are loaded at startup, define a font ID with the `Font` tag. `name` must be the font family name embedded in the font file (not the file name); bold, italic and other styles are controlled by the attributes of the `Font` tag:
+```xml
+<Font id="my_font_12" name="MyFont" size="12" bold="true"/>
+```
+4. Use the font ID through the `font` attribute of a control:
+```xml
+<Button text="Hello Button" font="my_font_12"/>
+```
+
+Notes:
+- `file` may also be a path relative to the resource root (for example `fonts/MyFont-Regular.ttf`): the framework looks in `<resource root>/fonts` first, then in the resource root.
+- `name` must exactly match the font family name embedded in the font file (including spaces and letter case); otherwise the font cannot be used by that name after loading.
+- Whether a font supports Chinese depends on the font file itself. Fonts containing only Latin characters (such as the monospaced Roboto Mono) must not be used for Chinese text, otherwise the text may fall back to the default font or render incorrectly. The RobotoMono font files under `bin/resources/fonts` can serve as a reference example of loading a custom font.
+- To load only a few fonts dynamically, you can also call `GlobalManager::Instance().Font().AddFontFile(fileName, desc)` in code; the argument is a file name relative to the `fonts` directory.
 
 ### All Available Attributes of FontFile
 
 | Attribute Name | Default Value | Parameter Type | Purpose |
 | :--- | :--- | :--- | :--- |
-| file |      | string | The file name of the font file; the font file must be placed in the fonts directory of the resource root directory |
+| file |      | string | The file name of the font file, relative to the fonts directory of the resource root by default |
 | desc |      | string | The description information of the font file; no other use |
 
 After the font file is set, the usage method is exactly the same as for a system font (i.e., the font can be specified via the Font tag).
-
-### Usage Example of FontFile
-In the previous section of the document, the FontFile tag was used to define a font named `Roboto Mono`. When using it, first define a font ID:
-```xml
-<!-- name represents the font name, size represents the font size, bold represents whether it is bold, italic represents whether it is italic -->
-<Font id="roboto_mono_12" name="Roboto Mono" size="12" bold="true" italic="true"/>
-```
-Then use this font ID (`roboto_mono_12`) to define the font attribute of the text in a control.    
-Suppose you want to define a button with this font ID; the XML configuration can be written as:
-```xml
-<Button text="Roboto Mono Button" font="roboto_mono_12"/>
-```
-Note: This RobotoMono font can only be used to display English letters and does not support Chinese, so do not use this font to display Chinese.    
 
 ## 4. Color (ThemeColor)
 

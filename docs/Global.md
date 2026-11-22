@@ -17,19 +17,21 @@ DefaultFontFamilyNames只有一个value属性，用于设置默认字体列表�
 
 ## 2. 字体（Font）
 
-如果你想添加一个字体，则在 [global.xml](../bin/resources/themes/default/global.xml) 中添加如下代码，程序启动后会加载所有字体列表到缓存中，以 ID 作为区分。
+主题中已预置一组字体 ID，命名规则为 `system_<样式>_<字号>`：样式包括 regular、bold、underline、italic、strikeout、fullstyle，字号包括 12、13、14、15、16、18、20、22，其中 `system_regular_14` 为默认字体。旧式 ID（`system_12` ~ `system_22`）仅为兼容旧版 XML 而保留，新代码请使用新式 ID。
+
+如果需要新增字体，在 [global.xml](../bin/resources/themes/default/global.xml) 中添加如下代码，程序启动后会加载所有字体列表到缓存中，以 ID 作为区分。
 
 ```xml
 <!-- name 代表字体名称，size 代表字体大小，bold 代表是否粗体，underline 代表是否包含下划线 -->
-<Font id="system_12" name="system" size="12" bold="true" underline="true"/>
+<Font id="example_font_12" name="system" size="12" bold="true" underline="true"/>
 ```
 
-Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一个字体属性：字体名称、字体大小、粗体、斜体、删除线、下划线。当需要使用时，指定字体ID即可。比如你希望一个 Button 按钮使用 ID 为 `system_12` 的字体，可以这样写：
+Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一个字体属性：字体名称、字体大小、粗体、斜体、删除线、下划线。当需要使用时，指定字体ID即可。比如你希望一个 Button 按钮使用 ID 为 `example_font_12` 的字体，可以这样写：
 
 ```xml
-<Button text="Hello Button" font="system_12"/>
+<Button text="Hello Button" font="example_font_12"/>
 ```
-在界面显示时，duilib界面库会以字体ID为"system_12"标识的字体属性（字体名称：系统默认字体，字体大小：12，粗体：是，下划线：是）来绘制这个按钮的文字。
+在界面显示时，duilib界面库会以字体ID为"example_font_12"标识的字体属性（字体名称：系统默认字体，字体大小：12，粗体：是，下划线：是）来绘制这个按钮的文字。
 
 ### Font 所有可用属性
 
@@ -47,40 +49,40 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 字体属性解析相关代码，参见`WindowBuilder::ParseFontXmlNode`函数
 
 ## 3. 字体文件（FontFile）
-程序可用自带字体文件，在程序启动时加载，不需要安装为系统字体即可使用。    
-一般定义一个完整的字体，需要4个字体文件：常规字体文件、粗体文件、斜体文件、粗斜体文件。    
-举例：如果想添加一个字体名称为`Roboto Mono`的字体文件，可在 global.xml 中添加如下代码：
+默认主题不加载任何字体文件，只使用系统字体。如果需要随程序分发自定义字体（无需安装为系统字体），按以下步骤配置：
+
+1. 将字体文件放到资源根目录的 `fonts` 目录（如 `bin/resources/fonts`；使用 zip 打包资源时放入包内同一目录）。
+2. 在 global.xml 中用 `FontFile` 注册字体文件。一般一个完整的字体需要 4 个文件：常规、粗体、斜体、粗斜体：
 ```xml
-<!-- 字体文件（放在资源根目录的fonts目录中），程序启动时加载，加载后可以按照使用系统字体相同的方式使用 -->
-<FontFile file="RobotoMono-Regular.ttf" desc="字体名称：Roboto Mono，常规字体"/>
-<FontFile file="RobotoMono-Bold.ttf" desc="字体名称：Roboto Mono，粗体"/>
-<FontFile file="RobotoMono-Italic.ttf" desc="字体名称：Roboto Mono，斜体"/>
-<FontFile file="RobotoMono-BoldItalic.ttf" desc="字体名称：Roboto Mono，粗斜体"/>
+<!-- file：相对 fonts 目录的字体文件名；desc：仅作描述，无其他用途 -->
+<FontFile file="MyFont-Regular.ttf" desc="MyFont，常规字体"/>
+<FontFile file="MyFont-Bold.ttf" desc="MyFont，粗体"/>
+<FontFile file="MyFont-Italic.ttf" desc="MyFont，斜体"/>
+<FontFile file="MyFont-BoldItalic.ttf" desc="MyFont，粗斜体"/>
 ```
-将`RobotoMono-Regular.ttf`、`RobotoMono-Bold.ttf`、`RobotoMono-Italic.ttf`、`RobotoMono-BoldItalic.ttf`这四个字体文件，放在资源根目录的fonts目录（bin\resources\fonts）中，程序启动后，就会加载这些字体文件。    
-字体文件加载完成后，就可以使用`Roboto Mono`这个字体了，使用方法与微软雅黑、宋体这种字体的方法是相同的，参见文档中的`2. 字体（Font）`的描述的用法。
+3. 程序启动加载字体文件后，用 `Font` 标签定义字体 ID。`name` 必须填写字体文件内部的字体名称（不是文件名），粗体、斜体等样式由 `Font` 标签的属性决定：
+```xml
+<Font id="my_font_12" name="MyFont" size="12" bold="true"/>
+```
+4. 控件通过 `font` 属性使用该字体 ID：
+```xml
+<Button text="Hello Button" font="my_font_12"/>
+```
+
+注意事项：
+- `file` 也可以写成相对资源根目录的路径（如 `fonts/MyFont-Regular.ttf`）：框架会先在 `<资源根目录>/fonts` 下查找，找不到时再到资源根目录下查找。
+- `name` 要与字体文件内部的字体名称完全一致（包括空格和大小写），否则加载后无法通过该名称使用字体。
+- 字体是否支持中文取决于字体文件本身。只包含拉丁字符的字体（例如等宽的 Roboto Mono）不要用于显示中文，否则可能回退到默认字体或显示异常；仓库 `bin/resources/fonts` 目录下的 RobotoMono 字体文件可作为自定义字体加载的参考示例。
+- 如只需要动态加载少量字体，也可以在代码中调用 `GlobalManager::Instance().Font().AddFontFile(fileName, desc)`，参数为相对 `fonts` 目录的文件名。
 
 ### FontFile 所有可用属性
 
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
-| file |      | string | 字体文件的文件名，字体文件需放在资源根目录的fonts目录中|
+| file |      | string | 字体文件的文件名，默认相对资源根目录的 fonts 目录|
 | desc |      | string | 字体文件的描述信息，无其他用途|
 
 字体文件设置以后，使用方法与系统字体完全相同（即可以通过Font标签指定使用该字体）。
-
-### FontFile 的用法示例
-前序文档部分，使用FontFile标签定义了一个字体名称为`Roboto Mono`的字体，使用时首先定义一个字体ID：
-```xml
-<!-- name 代表字体名称，size 代表字体大小，bold 代表是否粗体，italic 代表是否斜体 -->
-<Font id="roboto_mono_12" name="Roboto Mono" size="12" bold="true" italic="true"/>
-```
-然后使用该字体ID（`roboto_mono_12`）定义控件中文字的字体属性了。    
-假设想要用该字体ID定义一个按钮，XML配置可以这样写：
-```xml
-<Button text="Roboto Mono Button" font="roboto_mono_12"/>
-```
-注意事项：该RobotoMono字体只能用于显示英文字母，不支持中文，所以不要用这个字体来显示中文。    
 
 ## 4. 颜色（ThemeColor）
 
