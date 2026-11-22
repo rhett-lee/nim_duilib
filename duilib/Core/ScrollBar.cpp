@@ -902,8 +902,9 @@ void ScrollBar::ScrollTimeHandle()
         if( !m_bHorizontal ) {
             //垂直滚动条
             if (m_pOwner != nullptr) {
+                //此处必须使用64位整型，否则超大滚动范围（超过INT32_MAX）时会发生截断，导致拖不到底部
                 m_pOwner->SetScrollPos(UiSize64(m_pOwner->GetScrollPos().cx,
-                                              static_cast<int>(m_nLastScrollPos + m_nLastScrollOffset)));
+                                              m_nLastScrollPos + m_nLastScrollOffset));
             }
             else {
                 SetScrollPos(m_nLastScrollPos + m_nLastScrollOffset);
@@ -912,7 +913,8 @@ void ScrollBar::ScrollTimeHandle()
         else {
             //水平滚动条
             if (m_pOwner != nullptr) {
-                m_pOwner->SetScrollPos(UiSize64(static_cast<int>(m_nLastScrollPos + m_nLastScrollOffset),
+                //此处必须使用64位整型，否则超大滚动范围（超过INT32_MAX）时会发生截断，导致拖不到最右端
+                m_pOwner->SetScrollPos(UiSize64(m_nLastScrollPos + m_nLastScrollOffset,
                                               m_pOwner->GetScrollPos().cy));
             }
             else {
