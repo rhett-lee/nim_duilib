@@ -277,10 +277,10 @@
                            title_id="STRID_PANEL_TITLE_CUSTOM_ARROW" title_height="32" title_bk_color="bg_header"
                            title_text_color="text_selected" title_font="system_bold_14"
                            collapsible="true" collapse_anim="220"
-                           arrow_expanded_normal_image="file='public/tree/expand_normal.svg' width='14' height='14' valign='center'"
-                           arrow_expanded_hovered_image="file='public/tree/expand_hovered.svg' width='14' height='14' valign='center'"
-                           arrow_collapsed_normal_image="file='public/tree/collapse_normal.svg' width='14' height='14' valign='center'"
-                           arrow_collapsed_hovered_image="file='public/tree/collapse_hovered.svg' width='14' height='14' valign='center'"
+                           arrow_expanded_normal_image="file='public/panel/arrow_expanded.svg' width='16' height='16' valign='center' svg_replace_colors='${SVG_COLOR_BORDER}'"
+                           arrow_expanded_hovered_image="file='public/panel/arrow_expanded.svg' width='16' height='16' valign='center' svg_replace_colors='#333333|color_accent'"
+                           arrow_collapsed_normal_image="file='public/panel/arrow_collapsed.svg' width='16' height='16' valign='center' svg_replace_colors='${SVG_COLOR_BORDER}'"
+                           arrow_collapsed_hovered_image="file='public/panel/arrow_collapsed.svg' width='16' height='16' valign='center' svg_replace_colors='#333333|color_accent'"
                            padding="10,10,10,10">
                     <Label text_id="STRID_PANEL_DESC_CUSTOM_ARROW"
                            text_color="text_muted" width="stretch" height="auto"/>

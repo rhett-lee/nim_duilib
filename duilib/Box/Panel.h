@@ -61,11 +61,11 @@ public:
 *                       定位到标题栏右侧（箭头左侧），用于放置按钮/复选框等任意控件
 *     arrow_expanded_normal_image / arrow_expanded_hovered_image /
 *     arrow_expanded_pushed_image / arrow_expanded_disabled_image
-*                       展开状态（▼）箭头在各控件状态下的图片
+*                       展开状态（▼）箭头在各控件状态下的图片（默认已配置SVG箭头，可覆盖）
 *     arrow_collapsed_normal_image / arrow_collapsed_hovered_image /
 *     arrow_collapsed_pushed_image / arrow_collapsed_disabled_image
-*                       折叠状态（▶）箭头在各控件状态下的图片
-*                       （未配置图片时使用默认字形箭头；某状态缺图时自动回退 normal 图）
+*                       折叠状态（▶）箭头在各控件状态下的图片（默认已配置SVG箭头，可覆盖）
+*                       （默认图片未加载成功时回退为内置字形箭头；某状态缺图时自动回退 normal 图）
 *
 *   布局说明：
 *     1. 标题栏空间由控件自动在内容区顶部预留；padding 属性保持标准语义，
@@ -455,6 +455,23 @@ PanelTemplate<InheritType>::PanelTemplate(Window* pWindow):
 {
     this->SetMouseEnabled(true);
     SetTitleBarHeight(28, true);
+
+    //默认折叠/展开指示图标：使用描边样式的SVG箭头（比内置矢量实心三角更精致），
+    //颜色通过 svg_replace_colors 映射到主题色（普通态为SVG图标色，悬停/按下为强调色，禁用态为禁用色），
+    //因此可随主题（浅色/深色）自动适配；XML 中配置 arrow_*_image 属性可覆盖这里的默认值
+    const DString expandedImage = _T("file='public/panel/arrow_expanded.svg' width='16' height='16' svg_replace_colors='");
+    const DString collapsedImage = _T("file='public/panel/arrow_collapsed.svg' width='16' height='16' svg_replace_colors='");
+    const DString normalColor = _T("#333333|border_svg_image'");
+    const DString hoveredColor = _T("#333333|color_accent'");
+    const DString disabledColor = _T("#333333|border_svg_image_disabled'");
+    SetArrowStateImage(true, kControlStateNormal, expandedImage + normalColor);
+    SetArrowStateImage(true, kControlStateHovered, expandedImage + hoveredColor);
+    SetArrowStateImage(true, kControlStatePressed, expandedImage + hoveredColor);
+    SetArrowStateImage(true, kControlStateDisabled, expandedImage + disabledColor);
+    SetArrowStateImage(false, kControlStateNormal, collapsedImage + normalColor);
+    SetArrowStateImage(false, kControlStateHovered, collapsedImage + hoveredColor);
+    SetArrowStateImage(false, kControlStatePressed, collapsedImage + hoveredColor);
+    SetArrowStateImage(false, kControlStateDisabled, collapsedImage + disabledColor);
 }
 
 template<typename InheritType>
