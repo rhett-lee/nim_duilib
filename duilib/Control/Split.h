@@ -3,6 +3,7 @@
 
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Box.h"
+#include "duilib/Core/Window.h"
 #include "duilib/Control/Label.h"
 #include "duilib/Animation/AnimationPlayer.h"
 
