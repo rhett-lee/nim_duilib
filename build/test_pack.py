@@ -1174,7 +1174,8 @@ class Msys2FallbackCandidateTests(_TempDirTest):
             pack._msys2_env_name = lambda: ''
             self._touch('out/gcc.msvcrt.x64.release/libSkia.a')
             self.assertEqual(
-                pack.resolve_skia_lib_dir(None, 'Release', 'x64', 'mingw', 'gcc'),
+                pack.resolve_skia_lib_dir(None, 'Release', 'x64', 'mingw', 'gcc',
+                                          windows=True),
                 os.path.join(self.tmp, 'out', 'gcc.msvcrt.x64.release'))
         finally:
             pack.SKIA_SRC_ROOT = old_root
@@ -1189,7 +1190,8 @@ class Msys2FallbackCandidateTests(_TempDirTest):
             variant = 'gcc.msvcrt.x64.release'
             self._touch(variant + '/lib/libSDL3.a')
             self.assertEqual(
-                pack.resolve_sdl_prefix(None, 'Release', 'x64', 'mingw', 'gcc'),
+                pack.resolve_sdl_prefix(None, 'Release', 'x64', 'mingw', 'gcc',
+                                        windows=True),
                 os.path.join(self.tmp, variant))
         finally:
             pack.SDL3_SRC_ROOT = old_root

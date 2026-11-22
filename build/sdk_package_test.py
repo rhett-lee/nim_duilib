@@ -1052,7 +1052,7 @@ def build_block_reason(info: PackageInfo) -> str:
     toolchain = info.meta("TOOLCHAIN")
     if system != host_system():
         return T('sdk.platform_differs') % (system, host_system())
-    if toolchain == "msvc" and sys.platform != "win32":
+    if toolchain == "msvc" and host_system() != "win":
         return T('sdk.msvc_windows_only')
     if toolchain == "mingw" and not os.environ.get("MSYSTEM"):
         return T('sdk.mingw_env_required')

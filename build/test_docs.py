@@ -8,48 +8,79 @@
   - 仓库根目录 `*.md`
   - `build/*.md`
   - `docs/*.md`
-  - `.trae/**/*.md`、`.workbuddy/**/*.md`（技能文档）
+  - `.trae/**/*.md`、`.workbuddy/**/*.md`（技能文档；纯英文/ASCII 环境跳过）
 
 检查两件事：
   1. 相对链接（`](path)` / `](path#anchor)`）指向的文件或目录确实存在；
   2. `docs/` 顶层的每份文档都有对应的中英文版本（`X.md` ↔ `X.en.md` 双向检查）。
 
 代码块与行内代码里出现的 `](...)` 常常是 C++ 签名示例，扫描前先剔除，
-避免把示例当链接。
+避免把示例当链接。绝对链接（`http:`/`file:` 等 URI、Windows 盘符与 UNC 路径）
+不属于相对链接，扫描时跳过。
 """
 
 from __future__ import annotations
 
 import re
+import sys
 import unittest
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
-DOC_PATTERNS = ("*.md", "build/*.md", "docs/*.md",
-                ".trae/**/*.md", ".workbuddy/**/*.md")
+DOC_PATTERNS = ("*.md", "build/*.md", "docs/*.md")
+# 中文撰写的技能/工作文档：无法表示中文的控制台环境下不参与检查
+_CHINESE_DOC_PATTERNS = (".trae/**/*.md", ".workbuddy/**/*.md")
 
 _FENCE = re.compile(r"```.*?```", re.S)
 _INLINE_CODE = re.compile(r"`[^`\n]*`")
 _LINK = re.compile(r"\]\(([^)\s]+)\)")
-_URL_PREFIXES = ("http://", "https://", "mailto:", "#")
+_SCHEME = re.compile(r"^[A-Za-z][A-Za-z0-9+.\-]*:")
+_DRIVE = re.compile(r"^[A-Za-z]:[\\/]")
+_UNC = re.compile(r"^\\\\")
+
+
+def _console_supports_chinese() -> bool:
+    """当前控制台能否表示中文（纯英文/ASCII 环境无法输出中文）。"""
+    encoding = getattr(sys.stdout, "encoding", "") or ""
+    if not encoding:
+        return True
+    try:
+        "中文".encode(encoding)
+    except (LookupError, UnicodeEncodeError):
+        return False
+    return True
+
+
+def _is_absolute_link(target: str) -> bool:
+    """是否为绝对链接：URI（http:/file: 等）、Windows 盘符或 UNC 路径。
+
+    Path.is_absolute() 的判定依赖宿主平台：`e:\\docs\\x.md` 在 Linux 上会被当成
+    相对路径，因此这里显式识别，保证跨平台行为一致。
+    """
+    return bool(_SCHEME.match(target) or _DRIVE.match(target) or _UNC.match(target))
 
 
 def maintained_docs() -> list[Path]:
     """需要保持链接有效的 Markdown 文件。"""
+    patterns = list(DOC_PATTERNS)
+    if _console_supports_chinese():
+        patterns.extend(_CHINESE_DOC_PATTERNS)
     docs: list[Path] = []
-    for pattern in DOC_PATTERNS:
+    for pattern in patterns:
         docs.extend(REPO_ROOT.glob(pattern))
     return sorted(path for path in docs if path.is_file())
 
 
 def relative_link_targets(text: str) -> list[str]:
-    """取出正文中的相对链接目标（去掉代码块、行内代码与外部链接）。"""
+    """取出正文中的相对链接目标（去掉代码块、行内代码与绝对链接）。"""
     text = _FENCE.sub("", text)
     text = _INLINE_CODE.sub("", text)
     targets: list[str] = []
     for target in _LINK.findall(text):
-        if target.startswith(_URL_PREFIXES):
+        if target.startswith("#"):
+            continue
+        if _is_absolute_link(target):
             continue
         if Path(target).is_absolute():
             continue

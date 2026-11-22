@@ -1104,11 +1104,12 @@ def _sdl_variant_name(config, arch_tag, toolchain=None, mingw_variant=None,
 
 
 def resolve_skia_lib_dir(explicit_dir, config, arch_tag, toolchain=None,
-                         mingw_variant=None, md_mode=False):
+                         mingw_variant=None, md_mode=False, windows=None):
     """解析 Skia 库目录。显式指定优先，否则按平台/配置/工具链探测。
 
     MSYS2 的 llvm.<arch>.release 与 MSVC 目录同名，因此除目录名外还要检查目录
     内容（.a / .lib），否则会把 MSVC 的 Skia 打进 MinGW 包。
+    windows 为空时按宿主判断（显式传入只为测试可在任意平台跑）。
     """
     if explicit_dir:
         path = explicit_dir if os.path.isabs(explicit_dir) \
@@ -1131,7 +1132,7 @@ def resolve_skia_lib_dir(explicit_dir, config, arch_tag, toolchain=None,
     out_dir = os.path.join(SKIA_SRC_ROOT, 'out')
     candidates = [os.path.join(out_dir, name) for name in
                   _skia_candidate_names(config, arch_tag, toolchain, mingw_variant,
-                                        md_mode)]
+                                        md_mode, windows=windows)]
 
     # 按目录内容过滤：目录名相同但库类型不符的候选（如 MSVC 的 .lib）直接跳过
     for path in candidates:
