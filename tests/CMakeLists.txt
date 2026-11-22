@@ -1522,3 +1522,50 @@ if(WIN32)
              COMMAND test_url_bar
     )
 endif()
+
+# 静态库模式下，实例化控件/渲染相关对象的测试目标需要补齐 duilib 的第三方依赖；
+# Windows 已在各测试目标处单独配置（还需额外的系统库与 CEF），这里为非 Windows 平台
+# 统一补齐：链接 libduilib.a 时若不显式链接 SDL3/Skia 等库，会报
+# SDL_DestroyCursor、SkSVGDOM::MakeFromStream 等未定义符号。
+# 链接列表与 cmake/duilib_bin_linux.cmake、duilib_bin_macos.cmake、
+# duilib_bin_freebsd.cmake 中示例目标的配置保持一致。
+if(NOT DUILIB_OS_WINDOWS)
+    set(_duilib_test_link_dirs
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    if(DUILIB_ENABLE_SDL)
+        list(APPEND _duilib_test_link_dirs "${DUILIB_SDL_LIB_PATH}")
+    endif()
+
+    set(_duilib_test_platform_libs
+        ${DUILIB_LIBS} ${DUILIB_SDL_LIBS} ${DUILIB_SKIA_LIBS}
+    )
+    if(DUILIB_OS_LINUX OR DUILIB_OS_FREEBSD)
+        # Linux/FreeBSD：X11 与字体相关依赖（统一使用 imported target）
+        include("${CMAKE_CURRENT_LIST_DIR}/../cmake/duilib_unix_font_libs.cmake")
+        find_package(X11 REQUIRED)
+        list(APPEND _duilib_test_platform_libs
+            X11::X11 ${DUILIB_FONT_LIBS} pthread dl
+        )
+    elseif(DUILIB_OS_MACOS)
+        # macOS：系统框架（与 cmake/duilib_bin_macos.cmake 保持一致）
+        find_library(_duilib_test_accelerate Accelerate)
+        find_library(_duilib_test_corefoundation CoreFoundation)
+        find_library(_duilib_test_coretext CoreText)
+        find_library(_duilib_test_coregraphics CoreGraphics)
+        list(APPEND _duilib_test_platform_libs
+            ${_duilib_test_accelerate} ${_duilib_test_corefoundation}
+            ${_duilib_test_coretext} ${_duilib_test_coregraphics}
+            pthread dl
+            "-framework AppKit" "-framework Foundation"
+            "-framework Metal" "-framework Cocoa"
+        )
+    endif()
+
+    get_property(_duilib_test_targets DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
+    foreach(_duilib_test_target IN LISTS _duilib_test_targets)
+        target_link_directories(${_duilib_test_target} PRIVATE ${_duilib_test_link_dirs})
+        target_link_libraries(${_duilib_test_target} PRIVATE ${_duilib_test_platform_libs})
+    endforeach()
+endif()
