@@ -1,25 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Global>
+
+    <!-- ===================== 文件说明 ===================== -->
+    <!--
+        本文件是主题的核心配置文件，只定义“结构样式”：
+        1) 尺寸与资源路径变量；2) 字体；3) 控件样式类（Class）；4) 兼容别名（Alias）。
+        颜色不在本文件定义：颜色名由 themes/color_dark、themes/color_light 提供，
+        样式只引用颜色名，避免结构与主题颜色耦合。
+        新增样式时，请追加到对应章节末尾，并保持“基类先于派生类”的顺序；
+        兼容别名仅供旧版 XML 使用，新代码不要引用。
+    -->
+
     <!-- 主题名称和主题类型 -->
     <Theme name="Default" type="Base" style="Combined" version="2.0"/>
-    
+
     <!-- ===================== 主题元数据 ===================== -->
     <ThemeMeta>
         <Property name="author" value="nim_duilib"/>
         <Property name="description" value="Default theme with base control styles for nim-duilib framework"/>
     </ThemeMeta>
-        
-    <!-- ===================== 全局变量定义 ===================== -->
-    <!-- 尺寸变量 -->
+
+    <!-- ===================== 尺寸与路径变量 ===================== -->
+    <!-- 尺寸 -->
     <Var name="SIZE_SCROLLBAR_WIDTH" value="12"/>
     <Var name="SIZE_SCROLLBAR_HEIGHT" value="12"/>
     <Var name="SIZE_BTN_EXIT_FULLSCREEN_WIDTH" value="180"/>
     <Var name="SIZE_BTN_EXIT_FULLSCREEN_HEIGHT" value="36"/>
     <Var name="SIZE_BTN_GLOBAL_DEFAULT" value="80x30"/>
     <Var name="SIZE_ICON_SMALL" value="16"/>
-    <Var name="SIZE_ICON_LARGE" value="24"/>
-    
-    <!-- 路径变量 -->
+    <Var name="SIZE_WND_ICON" value="20"/>
+
+    <!-- 按钮边框尺寸 -->
+    <Var name="border_primary_btn_size" value="1"/> <!-- 主要按默认边框：边框大小 -->
+    <Var name="border_btn_size" value="1"/> <!-- 次要按钮默认边框：边框大小 -->
+
+    <!-- 资源路径 -->
     <Var name="PATH_SCROLLBAR_SIMPLE" value="public/scrollbar01"/>
     <Var name="PATH_SCROLLBAR_STANDARD" value="public/scrollbar02"/>
     <Var name="PATH_BUTTON" value="public/button"/>
@@ -43,15 +58,15 @@
     <Var name="PATH_POPOVER" value="public/popover"/>
     <Var name="PATH_POPCONFIRM" value="public/popconfirm"/>
     <Var name="PATH_AVATAR" value="public/avatar"/>
-    
+
+    <!-- ===================== 字体配置 ===================== -->
     <!-- 字体文件（放在资源根目录的fonts目录中），程序启动时加载，加载后可以按照使用系统字体相同的方式使用 -->
     <!-- 注意事项：该RobotoMono字体只能用于显示英文字母，不支持中文 -->
     <FontFile file="fonts/RobotoMono-Regular.ttf" desc="字体名称：Roboto Mono，常规字体"/>
     <FontFile file="fonts/RobotoMono-Bold.ttf" desc="字体名称：Roboto Mono，粗体"/>
     <FontFile file="fonts/RobotoMono-Italic.ttf" desc="字体名称：Roboto Mono，斜体"/>
     <FontFile file="fonts/RobotoMono-BoldItalic.ttf" desc="字体名称：Roboto Mono，粗斜体"/>
-    
-    <!-- ===================== 字体配置 ===================== -->  
+
     <!-- 默认正文字体（纯文本）：列表形式，依次匹配，直到发现第一个有效字体作为默认字体名称，多个字体名称用逗号分隔 -->
     <DefaultFontFamilyNames
         windows="Microsoft YaHei, SimSun"
@@ -67,8 +82,7 @@
         linux="Noto Color Emoji, Source Han Serif CN, Source Han Sans CN"
         freebsd="Noto Color Emoji, Source Han Serif CN, Source Han Sans CN"
     />
-    
-    <!-- 系统字体：按 字体类型_样式_字号 命名 --> 
+
     <Font id="system_regular_12" name="system" size="12"/>
     <Font id="system_regular_13" name="system" size="13"/>
     <Font id="system_regular_14" name="system" size="14" default="true"/>
@@ -117,26 +131,22 @@
     <Font id="system_fullstyle_18" name="system" size="18" italic="true" strikeout="true" underline="true" bold="true"/>
     <Font id="system_fullstyle_20" name="system" size="20" italic="true" strikeout="true" underline="true" bold="true"/>
     <Font id="system_fullstyle_22" name="system" size="22" italic="true" strikeout="true" underline="true" bold="true"/>
-    <!-- 常规字体，保留以兼容旧版本程序 -->
     <Font id="system_12" name="system" size="12"/>
     <Font id="system_14" name="system" size="14"/>
     <Font id="system_16" name="system" size="16"/>
     <Font id="system_18" name="system" size="18"/>
     <Font id="system_20" name="system" size="20"/>
     <Font id="system_22" name="system" size="22"/>
-    
-    <Var name="border_primary_btn_size" value="1"/> <!-- 主要按默认边框：边框大小 -->
-    <Var name="border_btn_size" value="1"/> <!-- 次要按钮默认边框：边框大小 -->
-    
-    <!-- ===================== 完整兼容别名（旧属性名 → 新属性名） ===================== -->
-    <!-- 1. 颜色属性兼容别名 -->
+
+    <!-- ===================== 兼容别名（已废弃，仅供旧版 XML 兼容使用） ===================== -->
+    <!-- 颜色属性兼容别名 -->
     <Alias name="darkcolor" value="color_gray_dark"/>    
     <Alias name="lightcolor" value="color_gray_light"/>
     <Alias name="light_gray" value="color_gray_light"/>
     <Alias name="dark_gray" value="color_gray_dark"/>
     <Alias name="light_green" value="color_green_light"/>
-    
-    <!-- 2. 历史兼容别名（原有保留） -->
+
+    <!-- 历史兼容别名 -->
     <Alias name="bk_wnd_darkcolor" value="bg_window_main"/>
     <Alias name="bk_wnd_lightcolor" value="bg_container"/>
     <Alias name="splitline_level1" value="border_split_level1"/>
@@ -159,12 +169,13 @@
     <Alias name="richedit_focus_bottom_border_color" value="border_richedit_bottom_focused"/>
     <Alias name="slider_horizontal_green" value="slider_horizontal_blue"/>
     <Alias name="slider_vertical_green" value="slider_vertical_blue"/>
-    
+
+    <!-- ===================== 控件样式类 ===================== -->
+    <!-- ===================== 一、按钮与窗口标题栏 ===================== -->
     <!-- 按钮基类 -->
     <Class name="btn_global_base" fade_hovered="true"/>
     
     <!-- 窗口按钮 -->
-    <Var name="SIZE_WND_ICON" value="20"/>
     <Class name="btn_wnd_base" class="btn_global_base" hovered_color="bg_btn_window_hovered" pressed_color="bg_btn_window_pressed"/>
     <Class name="btn_wnd_min_11" class="btn_wnd_base" tooltip_text_id="STRID_PUBLIC_TIP_WND_BTN_MIN"
                                  normal_image="file='${PATH_BUTTON}/window-minimize.svg' width='${SIZE_WND_ICON}' height='${SIZE_WND_ICON}' valign='center' halign='center' svg_replace_colors='#333333|border_svg_image'"
@@ -226,6 +237,7 @@
                              normal_border_color="border_btn_normal" hovered_border_color="border_btn_hovered"
                              pressed_border_color="border_btn_pressed" disabled_border_color="border_btn_disabled"/>
 
+    <!-- ===================== 二、工具条与状态类控件 ===================== -->
     <!-- 工具条动态工具项的推荐样式（ToolBar::AddToolButton / AddToolCheckBox / AddToolSeparator） -->
     <Class name="toolbar_button" class="btn_global" width="64" height="28" border_round="3,3"/>
     <Class name="toolbar_check" class="btn_global" width="64" height="28" border_round="3,3"
@@ -337,7 +349,8 @@
 
     <!-- 遮罩/蒙版层（Mask）：半透明蒙层，默认铺满父容器并拦截鼠标输入；可用 highlight_control 镂空高亮指定控件 -->
     <Class name="mask" float="true" width="stretch" height="stretch" mask_color="bg_overlay"/>
-    
+
+    <!-- ===================== 三、复选框与下拉框 ===================== -->
     <!-- CheckBox控件 -->
     <Class name="checkbox_1" height="20" text_padding="20,0,0,0" text_align="vcenter" valign="center"
                              normal_image="file='${PATH_CHECKBOX}/checkbox-fill-unchecked.svg' width='16' height='16' valign='center'" 
@@ -404,7 +417,8 @@
                                                    pressed_color='bg_combo_btn_pressed' 
                                                    normal_image={file='${PATH_COMBO}/arrow_normal.svg' valign='center'} 
                                                    hovered_image={file='${PATH_COMBO}/arrow_hovered.svg' valign='center'}"/>
-    
+
+    <!-- ===================== 四、列表、树与树表 ===================== -->
     <!-- 列表控件 -->
     <Class name="list" bkcolor="bg_list" vscrollbar="true"/>
     <Class name="list_item" hovered_color="bg_list_item_hovered" 
@@ -457,7 +471,8 @@
                                   selected_disabled_image="file='${PATH_CHECKBOX}/checkbox-outline-checked.svg' valign='center' fade='80' svg_replace_colors='#808080|border_svg_image'" 
                                   part_selected_normal_image="file='${PATH_CHECKBOX}/checkbox-outline-mixed.svg' valign='center' svg_replace_colors='#808080|border_svg_image'" 
                                   part_selected_disabled_image="file='${PATH_CHECKBOX}/checkbox-outline-mixed.svg' valign='center' fade='80' svg_replace_colors='#808080|border_svg_image'"/>
-    
+
+    <!-- ===================== 五、进度与选择类控件 ===================== -->
     <!-- 进度条 -->
     <Class name="progress_horizontal_blue" valign="center" horizontal="true" height="4" width="stretch" value="0" max="100" min="0" 
                                            bkimage="${PATH_PROGRESS}/progress_blue_bg.png" 
@@ -588,8 +603,10 @@
                                         hover_bg_color="bg_list_item_hovered" selected_bg_color="bg_list_item_selected"
                                         divider_color="border_split_level1" chevron_color="color_gray"
                                         scrollbar_color="color_gray"/>
+    <!-- ===================== 六、浮层窗口、菜单与分组框 ===================== -->
     <!-- 浮层窗口的公共属性（菜单、提示、下拉框、Toast、浮层卡片等弹出窗口复用）：
          统一使用系统标题栏外的自绘圆角阴影与CPU绘制后端，避免受全局渲染后端配置影响 -->
+
     <Class name="popup_window" use_system_caption="false" render_backend_type="CPU"
                               shadow_type="small_round" layered_window="true" size_box="0,0,0,0"
                               shadow_border_size="2" shadow_border_color="border_window"/>
@@ -677,7 +694,8 @@
     <Class name="group_box_collapsible" collapsible="true" collapse_anim="200"
                                        collapse_icon_expanded="file='${PATH_GROUPBOX}/collapse_expanded.svg' width='14' height='14' svg_replace_colors='#1E1E1E|border_svg_image'"
                                        collapse_icon_collapsed="file='${PATH_GROUPBOX}/collapse_collapsed.svg' width='14' height='14' svg_replace_colors='#1E1E1E|border_svg_image'"/>
-    
+
+    <!-- ===================== 七、编辑框与文本类控件 ===================== -->
     <!-- 编辑框基类 -->
     <Class name="richedit_base" bkcolor="bg_richedit" caret_color="bg_richedit_caret" multi_line="false" auto_hscroll="true" rich_text="false"
                                 want_return="false" want_ctrl_return="false" want_tab="false" 
@@ -877,7 +895,8 @@
                              normal_text_color="text_link_normal"
                              hovered_text_color="text_link_hovered" 
                              pressed_text_color="text_link_pressed"/>
-    
+
+    <!-- ===================== 八、ListCtrl 列表控件 ===================== -->
     <!-- ListCtrl控件 -->
     <Class name="list_ctrl" bkcolor="bg_list_ctrl" type="report"
                             show_header="true" header_height="32" enable_header_drag_order="true" 
@@ -995,7 +1014,8 @@
                                      text_align="left,vcenter" height="28" border_size="1"
                                      text_padding="2,0,2,0" padding="1,1,1,1"
                                      bkcolor="bg_richedit"/>
-    
+
+    <!-- ===================== 九、TabCtrl 标签控件 ===================== -->
     <!-- TabCtrl控件 -->
     <Class name="tab_ctrl" width="stretch" height="36" border_round="4,4" bkcolor="bg_tab_ctrl" vscrollbar="true"
                            selected_tab_item_outline_width="1" selected_tab_item_outline_color="border_selected_tab_item_outline_color"
@@ -1049,6 +1069,7 @@
     <Class name="tab_ctrl_item_indicator_title" width="stretch" height="24" margin="0,0,0,0" valign="center"
            font="system_regular_12" text_align="hcenter" auto_tooltip="true" mouse_enabled="false"/>
 
+    <!-- ===================== 十、AddressBar 地址栏 ===================== -->
     <!-- AddressBar控件 -->
     <Class name="address_bar" width="stretch" height="28" border_size="1" border_color="border_address_bar" disabled_border_color="border_address_bar_disabled" border_round="6,6" 
                               bkcolor="bg_address_bar" disabled_color="bg_address_bar_disabled"
@@ -1145,6 +1166,7 @@
                                              disabled_image="file='${PATH_ADDRESS_BAR}/chevron-right.svg' width='12' height='12' 
                                                              halign='center' valign='center' svg_replace_colors='#5d656b|border_svg_image_disabled'"/>
 
+    <!-- ===================== 十一、Property Grid 属性表格 ===================== -->
     <!-- Property Grid控件，部分属性在default/public/property_grid/property_grid.xml中定义-->
     <Class name="property_grid" bkcolor="bg_property_grid" 
                                 left_column_width="200"
@@ -1161,11 +1183,10 @@
                                 property_font_normal="system_regular_14"
                                 property_font_modified="system_bold_14"/>
 
-    <!-- ===================== 基础控件样式基类 ===================== -->
+    <!-- ===================== 十二、滚动条 ===================== -->
     <!-- 滚动条基类 -->
     <Class name="scrollbar_base" fade_alpha="false"/>
 
-    <!-- ===================== 具体控件样式 ===================== -->
     <!-- 滚动条：简约风格（默认） -->
     <Class name="vscrollbar" class="scrollbar_base" width="${SIZE_SCROLLBAR_WIDTH}"
                              thumb_normal_image="file='${PATH_SCROLLBAR_SIMPLE}/vscrollbar/thumb_normal.svg' width='${SIZE_SCROLLBAR_WIDTH}' corner='0,8,0,8' svg_replace_colors='#C0C0C0|bg_scrollbar_thumb_normal'" 
@@ -1212,6 +1233,7 @@
                              button2_pressed_image="file='${PATH_SCROLLBAR_STANDARD}/hscrollbar/btn_right_pressed.svg' height='${SIZE_SCROLLBAR_HEIGHT}' svg_replace_colors='rgba(180,180,180,0.7)|bg_scrollbar_btn_pressed;rgba(80,80,80,1.0)|bg_scrollbar_btn_arrow_pressed'"
                              button2_disabled_image="file='${PATH_SCROLLBAR_STANDARD}/hscrollbar/btn_right_disabled.svg' height='${SIZE_SCROLLBAR_HEIGHT}' svg_replace_colors='rgba(220,220,220,0.1)|bg_scrollbar_btn_disabled;rgba(120,120,120,0.4)|bg_scrollbar_btn_arrow_disabled'" />
 
+    <!-- ===================== 十三、Flyout / Popover / Popconfirm 浮层组件 ===================== -->
     <!-- Flyout浮层容器：浮层窗口的内容根容器（窗口级公共属性由 popup_window 样式配置） -->
     <Class name="flyout" width="240" height="auto" bkcolor="bg_window_card"
                             border_size="1" border_color="border_window" border_round="8,8"
@@ -1296,9 +1318,10 @@
     <Class name="popconfirm_ok_danger" class="popconfirm_btn" normal_text_color="color_white"
                                       disabled_text_color="color_gray" border_size="0"
                                       normal_color="color_red_dark" hovered_color="#E0393E" pressed_color="#B71D22"/>
-
+    <!-- ===================== 十四、Avatar 与 Calendar ===================== -->
     <!-- Avatar头像：基础样式（圆形 32×32，文字字号取控件短边的 50%，文字头像按文本自动配色）
          注意：这里不设置 bkcolor，否则会压过自动调色板（背景优先级：color > bkcolor > 调色板 > bg_avatar） -->
+
     <Class name="avatar" size="32" width="32" height="32" shape="circle" corner="8"
                               font="system_regular_14" text_color="text_avatar"
                               text_scale="50" icon_scale="50" palette="true"/>
@@ -1348,5 +1371,4 @@
     <!-- Calendar日期格子（悬停） -->
     <Class name="calendar_day_hovered" width="stretch" height="stretch" font="system_regular_14"
                                   normal_text_color="text_default" text_align="hcenter,vcenter"/>
-
 </Global>

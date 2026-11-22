@@ -18,7 +18,7 @@ For the meaning of title-bar-related window attributes (`caption`, `sys_menu`,
 | System menu area | `sys_menu_rect` of `Window` | `0,0,36,36` | Must match the title bar height; the feature is disabled if not set |
 | Title bar container | `HBox name="window_title_bar"` | `width="stretch" height="36"` | Use `bkcolor="bg_titlebar"` for the background |
 | Top-left icon | `Control class="title_bar_logo"` | Shared class in `global.xml` | Already contains 18×18, `margin="8,0,0,0"`, `valign="center"`, and the logo image |
-| Title text | `Label class="title_bar_title"` | Shared class in `global.xml` | Already contains `font="system_bold_14"`, `margin="8,0,0,0"`, `valign="center"`; stretched titles override `margin="8,0,8,0"` |
+| Title text | `Label class="title_bar_title"` | Shared class in `global.xml` | Already contains `font="system_regular_14"`, `margin="8,0,0,0"`, `valign="center"`; stretched titles override `margin="8,0,8,0"` |
 | Normal window buttons | `Button` | `width="40" height="32"` `margin="0,2,0,2"` | 32 + 2 top + 2 bottom = 36, equal to the bar height |
 | Maximize/Restore | `Box` + two `Button`s | `Box` is `40×32`, `margin="0,2,0,2"` | The two buttons are stacked; inner buttons use `width="stretch" height="stretch" margin="0"` |
 | Close button | `Button` | `width="40" height="stretch"` `margin="0"` | Height equals the title bar height; flush with the top and right edges, no gaps |
@@ -120,7 +120,7 @@ Notes:
 
 5. **Use the shared class for title text**
    The title `Label` uses `class="title_bar_title"` directly (defined in `global.xml`
-   with `font="system_bold_14"`, `margin="8,0,0,0"`, and `valign="center"`).
+   with `font="system_regular_14"`, `margin="8,0,0,0"`, and `valign="center"`).
    Stretched titles override `margin="8,0,8,0"`; do not repeat the font and alignment
    attributes in each XML.
 

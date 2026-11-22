@@ -17,7 +17,7 @@
 | 系统菜单区域 | `Window` 的 `sys_menu_rect` | `0,0,36,36` | 需与标题栏高度一致；不设置则不启用该功能 |
 | 标题栏容器 | `HBox name="window_title_bar"` | `width="stretch" height="36"` | 背景色使用 `bkcolor="bg_titlebar"` |
 | 左上角图标 | `Control class="title_bar_logo"` | 公共类，见 `global.xml` | 类中已包含 18×18、`margin="8,0,0,0"`、`valign="center"` 与 Logo 图片 |
-| 标题文字 | `Label class="title_bar_title"` | 公共类，见 `global.xml` | 类中已包含 `font="system_bold_14"`、`margin="8,0,0,0"`、`valign="center"`；拉伸标题需覆盖 `margin="8,0,8,0"` |
+| 标题文字 | `Label class="title_bar_title"` | 公共类，见 `global.xml` | 类中已包含 `font="system_regular_14"`、`margin="8,0,0,0"`、`valign="center"`；拉伸标题需覆盖 `margin="8,0,8,0"` |
 | 普通窗口按钮 | `Button` | `width="40" height="32"` `margin="0,2,0,2"` | 32 + 上下各 2 = 36，与标题栏等高 |
 | 最大化/还原 | `Box` + 两个 `Button` | `Box` 为 `40×32`、`margin="0,2,0,2"` | 两个按钮叠放，内部按钮 `width="stretch" height="stretch" margin="0"` |
 | 关闭按钮 | `Button` | `width="40" height="stretch"` `margin="0"` | 高度等于标题栏高度，紧贴顶部和右侧，无空隙 |
@@ -114,7 +114,7 @@
 
 5. **标题文字统一使用公共类**
    标题 `Label` 直接使用 `class="title_bar_title"`（已在 `global.xml` 中定义
-   `font="system_bold_14"`、`margin="8,0,0,0"`、`valign="center"`）；
+   `font="system_regular_14"`、`margin="8,0,0,0"`、`valign="center"`）；
    宽度拉伸的标题覆盖 `margin="8,0,8,0"`，不要重复书写字体与对齐属性。
 
 6. **百分比宽度的标题需要覆盖边距**
