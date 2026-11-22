@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window shadow_type="custom" layered_window="true" render_backend_type="CPU" shadow_image="file='shadow_tooltip_round.svg' window_shadow_mode='true' corner='16,16,18,18'" shadow_corner="12,12,14,14" shadow_border_round="4,4" shadow_border_size="0" shadow_snap="false">
+<!-- SDL 窗口模式下的 ToolTip 窗口（Windows 原生窗口模式使用系统 ToolTip，不加载此文件）：
+     外观参考 Windows 11 / macOS 原生提示框：浅色浮层、圆角、1px 细边框、柔和阴影 -->
+<Window layered_window="true" render_backend_type="CPU" 
+        shadow_type="custom" shadow_image="file='shadow_tooltip_round.svg' window_shadow_mode='true' corner='16,16,18,18'" shadow_corner="12,12,14,14" shadow_border_round="4,4" shadow_border_size="0" shadow_snap="false">
     <VBox width="auto" height="auto" visible="true" bkcolor="bg_tooltip">
-        <Label name="tooltip_text" normal_text_color="text_tooltip" multi_line="true" valign="center" text_align="vcenter" text_padding="4,4,4,4" mouse_enabled="false"/>
+        <!-- 字号小于正文，横向留白略大于纵向，接近系统原生提示框的观感 -->
+        <Label name="tooltip_text" font="system_regular_12" normal_text_color="text_tooltip"
+               multi_line="true" valign="center" text_align="left,vcenter"
+               text_padding="10,6,10,6" mouse_enabled="false"/>
     </VBox>
 </Window>

@@ -266,7 +266,7 @@
     <ThemeColor name="bg_scrollbar_btn_arrow_pressed" value="#FF9A9A9A" type="scroll_bar" category="bg_color" role="neutral" derived_from="bg_scrollbar_btn_arrow_normal" adjust="lightness:-10" fixed="false" support_accent="false" contrast_bg="" comment_cn="滚动条按钮箭头按下态" comment_en="Scrollbar button arrow pressed"/>
 
     <!-- ===================== ToolTip颜色 (type: tooltip) ===================== -->
-    <ThemeColor name="bg_tooltip" value="#FFE6E6E6" type="tooltip" category="bg_color" role="neutral" derived_from="" adjust="" fixed="false" support_accent="false" contrast_bg="" comment_cn="工具提示背景" comment_en="Tooltip background"/>
+    <ThemeColor name="bg_tooltip" value="#FFFAFAFA" type="tooltip" category="bg_color" role="neutral" derived_from="" adjust="" fixed="false" support_accent="false" contrast_bg="" comment_cn="工具提示背景" comment_en="Tooltip background"/>
     <ThemeColor name="text_tooltip" value="#FF1A1A1A" type="tooltip" category="text_color" role="neutral" derived_from="text_default" adjust="" fixed="false" support_accent="false" contrast_bg="bg_tooltip" comment_cn="工具提示文本" comment_en="Tooltip text"/>
 
 </Global>

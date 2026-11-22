@@ -9,9 +9,9 @@
       <feOffset dx="2" dy="2" in="SourceAlpha" result="offset"/>
       <!-- 适度的模糊效果：stdDeviation为模糊半径 -->
       <feGaussianBlur in="offset" stdDeviation="4" result="blur"/>
-      <!-- 带透明度的阴影：第二行最后一个数字的是透明度，0.3代表透明度30% -->
+      <!-- 带透明度的阴影：最后一行最后一列是阴影透明度，0.3 表示 30% -->
       <feColorMatrix in="blur" type="matrix" 
-                    values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.2 0"/>
+                    values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.3 0"/>
     </filter>
   </defs>
 
