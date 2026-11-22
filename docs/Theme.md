@@ -147,16 +147,23 @@ ui::GlobalManager::Instance().Theme().SwitchColorTheme(ui::FilePath(_T("color_li
 
 - `name` 全局唯一，按 `snake_case` 命名，推荐遵循 `{prefix}_{component}[_{state}]` 模式：
   - 用途前缀：`bg_`（背景）、`border_`（边框）、`text_`（文本/前景）、`color_`（基础调色板）。
-  - 状态后缀：`_normal` / `_hover` / `_pressed` / `_disabled` / `_focus` / `_selected`。
+  - 状态后缀：`_normal` / `_hovered` / `_pressed` / `_disabled` / `_focused` / `_selected`；
+    少量历史颜色使用 `_hover`（如 `bg_tag_hover`），新增颜色请统一使用 `_hovered`。
 - `value` 是 ARGB 字符串：`#AARRGGBB`，Alpha 在前。
 - `role` 取值见 [§5 角色与派生链](#_6-强调色派生系统可选)。
 - `fixed="true"` 表示该颜色**不参与**强调色替换（语义/中性色）。
+- 新增颜色必须同时添加到 `themes/color_dark` 与 `themes/color_light`，名称保持一致；
+  修改后运行 `python docs/Tools/check_theme.py` 校验颜色矩阵与 SVG 颜色映射。
 
 ### 4.4 其他公共节点
 
 除主题相关节点外，`global.xml` 还可以包含：
 
-- `<Font>` / `<FontFile>`：字体定义（详见 [Global.md](./Global.md)）。
+- `<Font>` / `<FontFile>`：字体定义（详见 [Global.md](./Global.md)）。字体 id 统一为
+  `system_<样式>_<字号>`（样式：regular/bold/underline/italic/strikeout/fullstyle；
+  字号：12/13/14/15/16/18/20/22），默认字体为 `system_regular_14`。旧式 id
+  （`system_12` ~ `system_22`）仅为兼容旧版 XML 保留，新代码不要使用。默认主题不加载
+  外部字体文件，自定义字体文件的配置步骤见 Global.md 的“字体文件（FontFile）”章节。
 - `<Class>`：全局 Class 样式定义。
 - `<Var>`：变量定义。
 

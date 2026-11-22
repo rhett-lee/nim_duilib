@@ -75,6 +75,7 @@ Notes:
 - `name` must exactly match the font family name embedded in the font file (including spaces and letter case); otherwise the font cannot be used by that name after loading.
 - Whether a font supports Chinese depends on the font file itself. Fonts containing only Latin characters (such as the monospaced Roboto Mono) must not be used for Chinese text, otherwise the text may fall back to the default font or render incorrectly. The RobotoMono font files under `bin/resources/fonts` can serve as a reference example of loading a custom font.
 - To load only a few fonts dynamically, you can also call `GlobalManager::Instance().Font().AddFontFile(fileName, desc)` in code; the argument is a file name relative to the `fonts` directory.
+- Multilingual UI: a font file must contain the characters of the languages you display (Simplified Chinese and English); after switching languages, verify that the font size, line height and line wrapping of the same control still fit the layout.
 
 ### All Available Attributes of FontFile
 

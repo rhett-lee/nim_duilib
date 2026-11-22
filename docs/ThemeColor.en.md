@@ -1,6 +1,6 @@
 English | [简体中文](ThemeColor.md)
 
-> Last synced: 2026-09-29
+> Last synced: 2026-11-22
 
 # nim_duilib Theme Color Configuration XML Specification (v2.0)
 
@@ -66,21 +66,25 @@ English | [简体中文](ThemeColor.md)
 | | `text_` | Text/foreground color (Text/Foreground) | `text_default`, `text_btn_disabled` |
 | | `color_` | Base color / palette color | `color_blue`, `color_gray` |
 | **State suffix** | `_normal` | Default / normal | `border_btn_normal` |
-| | `_hover` | Mouse hover state | `bg_btn_hover` |
+| | `_hovered` | Mouse hover state | `bg_btn_hovered` |
 | | `_pressed` | Mouse click / pressed state | `bg_btn_pressed` |
 | | `_disabled` | Disabled state | `text_btn_disabled` |
-| | `_focus` | Keyboard focus state | `border_control_focus` |
+| | `_focused` | Keyboard focus state | `border_control_focused` |
 | | `_selected` | Selected state | `bg_tab_ctrl_item_selected` |
 
-### 2.3 Naming Consistency Verification (100% consistent)
+### 2.3 Naming Consistency Verification
 
 | Check item | Status | Verification result | Description |
 |--------|------|---------|------|
-| Purpose prefix | ✅ 100% consistent | 4 prefixes: `bg_`(62) / `border_`(24) / `color_`(19) / `text_`(14) | Total 119 color definitions |
-| State word position | ✅ 100% consistent | All state words are at the end of the name | e.g., `_hover`, `_pressed`, `_disabled`, etc. |
-| Naming pattern | ✅ 100% consistent | `{prefix}_{component}[_{subcomponent}]_{state}` | Can be precisely searched via patterns such as `*_hover`, `*btn*`, etc. |
+| Purpose prefix | ✅ 100% consistent | 4 prefixes: `bg_`(122) / `border_`(43) / `color_`(18) / `text_`(20) | Total 203 color definitions |
+| State word position | ✅ Consistent | All state words are at the end of the name | e.g., `_hovered`, `_pressed`, `_disabled`, etc. |
+| Naming pattern | ✅ Consistent | `{prefix}_{component}[_{subcomponent}]_{state}` | Can be precisely searched via patterns such as `*_hovered`, `*btn*`, etc. |
 | Case | ✅ 100% consistent | All lowercase + underscore separator | snake_case |
 | Attribute naming | ✅ 100% consistent | All attributes use snake_case | `fixed`, `derived_from`, `accent_support` |
+
+> State suffixes use `_hovered` / `_focused`. A few legacy colors still use `_hover`
+> (e.g. `bg_tag_hover`, `bg_tag_close_hover`) only for compatibility with existing XML;
+> do not use them for new colors.
 
 ### 2.4 Component Classification Statistics
 
@@ -491,7 +495,8 @@ The following 2 items are still missing from the current themes; it is suggested
 
 | Tool | Purpose |
 |-----|-----|
-| `validate_theme.py` | Python script: complete XML validation + derivation chain calculation |
-| Theme editor HTML | Visualization tool: preview accent color replacement effect + real-time editing |
+| [`check_theme.py`](Tools/check_theme.py) | Recommended: validates dark/light color matrix consistency, `ThemeColor` fields, `Alias` references, and `svg_replace_colors` against SVG file contents |
+| [`lint_xml.py`](Tools/lint_xml.py) | Validates color/font/image references in layout XML files |
+| [XmlTools.md](XmlTools.en.md) | Usage documentation for the tools above |
 | `xmllint` / `XML Validator` | General XML syntax validation tool |
 | Visual Studio | Enable IntelliSense during editing with XSD Schema |

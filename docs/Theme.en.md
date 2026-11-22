@@ -1,6 +1,6 @@
 English | [简体中文](Theme.md)
 
-> Last synced: 2026-09-29
+> Last synced: 2026-11-22
 
 # Theme Usage Guide
 
@@ -149,16 +149,24 @@ For detailed attribute descriptions, see [ThemeColor.md](./ThemeColor.en.md). Th
 
 - `name` is globally unique, named using `snake_case`, and it is recommended to follow the `{prefix}_{component}[_{state}]` pattern:
   - Purpose prefix: `bg_` (background), `border_` (border), `text_` (text/foreground), `color_` (base palette).
-  - State suffix: `_normal` / `_hover` / `_pressed` / `_disabled` / `_focus` / `_selected`.
+  - State suffix: `_normal` / `_hovered` / `_pressed` / `_disabled` / `_focused` / `_selected`;
+    a few legacy colors use `_hover` (e.g. `bg_tag_hover`), use `_hovered` for new colors.
 - `value` is an ARGB string: `#AARRGGBB`, with Alpha first.
 - The values of `role` are described in [§5 Role and Derivation Chain](#6-accent-color-derivation-system-optional).
 - `fixed="true"` indicates that this color does **not participate** in accent color replacement (semantic/neutral color).
+- A new color must be added to both `themes/color_dark` and `themes/color_light` with the same name;
+  after changing them, run `python docs/Tools/check_theme.py` to validate the color matrix and SVG color mappings.
 
 ### 4.4 Other Common Nodes
 
 In addition to the theme-related nodes, `global.xml` can also contain:
 
-- `<Font>` / `<FontFile>`: font definitions (see [Global.md](./Global.en.md)).
+- `<Font>` / `<FontFile>`: font definitions (see [Global.md](./Global.en.md)). Font IDs follow
+  `system_<style>_<size>` (style: regular/bold/underline/italic/strikeout/fullstyle;
+  size: 12/13/14/15/16/18/20/22), and the default font is `system_regular_14`. The legacy IDs
+  (`system_12` to `system_22`) are kept only for compatibility with old XML files and must not be
+  used in new code. The default theme does not load external font files; for custom font files,
+  see the "FontFile" section in Global.md.
 - `<Class>`: global Class style definition.
 - `<Var>`: variable definition.
 

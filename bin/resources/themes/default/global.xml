@@ -11,6 +11,24 @@
         兼容别名仅供旧版 XML 使用，新代码不要引用。
     -->
 
+    <!-- ===================== 颜色与字体规范 ===================== -->
+    <!--
+        颜色：
+        1) 本文件只引用颜色名，颜色值在 themes/color_dark、themes/color_light 中定义；
+           新增颜色必须同时添加到这两个颜色主题，并且名称保持一致；
+        2) 颜色名使用 snake_case，格式为“用途前缀_组件[_子组件][_状态]”：
+           用途前缀为 bg_ / border_ / text_ / color_，
+           状态后缀为 _normal / _hovered / _pressed / _disabled / _focused / _selected；
+        3) 除“固定色按钮”（如 btn_global_color_*）外，样式里不要写裸颜色值；
+           SVG 图标换色统一引用上面定义的 SVG_COLOR_* 变量；
+        4) 修改颜色矩阵后，运行 python docs/Tools/check_theme.py 校验。
+        字体：
+        1) 字体 id 使用 system_<样式>_<字号>，样式为 regular/bold/underline/italic/
+           strikeout/fullstyle，字号为 12/13/14/15/16/18/20/22；默认字体为 system_regular_14；
+        2) 旧式字体 id（system_12 ~ system_22）仅为兼容旧版 XML 保留，新代码不要使用；
+        3) 自定义字体文件的加载方式，参见 docs/Global.md 的“字体文件（FontFile）”章节。
+    -->
+
     <!-- 主题名称和主题类型 -->
     <Theme name="Default" type="Base" style="Combined" version="2.0"/>
 

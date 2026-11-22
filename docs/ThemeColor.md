@@ -64,21 +64,24 @@
 | | `text_` | 文本/前景色 (Text/Foreground) | `text_default`, `text_btn_disabled` |
 | | `color_` | 基础颜色/调色板色 | `color_blue`, `color_gray` |
 | **状态后缀** | `_normal` | 默认/常态 | `border_btn_normal` |
-| | `_hover` | 鼠标悬浮状态 | `bg_btn_hover` |
+| | `_hovered` | 鼠标悬浮状态 | `bg_btn_hovered` |
 | | `_pressed` | 鼠标点击/按下状态 | `bg_btn_pressed` |
 | | `_disabled` | 禁用状态 | `text_btn_disabled` |
-| | `_focus` | 键盘聚焦状态 | `border_control_focus` |
+| | `_focused` | 键盘聚焦状态 | `border_control_focused` |
 | | `_selected` | 选中状态 | `bg_tab_ctrl_item_selected` |
 
-### 2.3 命名一致性验证 (100% 一致)
+### 2.3 命名一致性验证
 
 | 检查项 | 状态 | 验证结果 | 说明 |
 |--------|------|---------|------|
-| 用途前缀 | ✅ 100% 一致 | 4种前缀：`bg_`(62) / `border_`(24) / `color_`(19) / `text_`(14) | 总计 119 个颜色定义 |
-| 状态词位置 | ✅ 100% 一致 | 所有状态词都在名称末尾 | 如 `_hover`, `_pressed`, `_disabled` 等 |
-| 命名模式 | ✅ 100% 一致 | `{用途}_{组件}[_{子组件}]_{状态}` | 可通过 `*_hover`, `*btn*` 等模式精确搜索 |
+| 用途前缀 | ✅ 100% 一致 | 4种前缀：`bg_`(122) / `border_`(43) / `color_`(18) / `text_`(20) | 总计 203 个颜色定义 |
+| 状态词位置 | ✅ 一致 | 所有状态词都在名称末尾 | 如 `_hovered`, `_pressed`, `_disabled` 等 |
+| 命名模式 | ✅ 一致 | `{用途}_{组件}[_{子组件}]_{状态}` | 可通过 `*_hovered`, `*btn*` 等模式精确搜索 |
 | 大小写 | ✅ 100% 一致 | 全小写 + 下划线分隔 | 蛇形命名法 (snake_case) |
 | 属性名命名 | ✅ 100% 一致 | 所有属性均采用 snake_case | `fixed`, `derived_from`, `accent_support` |
+
+> 状态后缀统一使用 `_hovered` / `_focused`。少量历史颜色仍保留 `_hover` 写法
+> （如 `bg_tag_hover`、`bg_tag_close_hover`），仅为兼容现有 XML，新增颜色不要沿用。
 
 ### 2.4 组件分类统计
 
@@ -489,8 +492,9 @@ bin/resources/themes/
 
 | 工具 | 用途 |
 |-----|-----|
-| `validate_theme.py` | Python 脚本：完整的 XML 验证 + 派生链计算 |
-| 主题编辑器 HTML | 可视化工具：预览强调色替换效果 + 实时编辑 |
+| [`check_theme.py`](Tools/check_theme.py) | 推荐使用：校验深/浅主题颜色矩阵一致性、`ThemeColor` 字段、`Alias` 引用、`svg_replace_colors` 与 SVG 文件内容匹配 |
+| [`lint_xml.py`](Tools/lint_xml.py) | 校验布局 XML 中的颜色/字体/图片等资源引用 |
+| [XmlTools.md](XmlTools.md) | 上述工具的使用说明 |
 | `xmllint` / `XML Validator` | 通用 XML 语法验证工具 |
 | Visual Studio | 配合 XSD Schema 实现编辑时智能提示 |
 
