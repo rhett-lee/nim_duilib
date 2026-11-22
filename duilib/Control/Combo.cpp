@@ -8,6 +8,10 @@
 #include "duilib/Animation/AnimationPlayer.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/WindowAnchorFollower.h"
+#if defined (DUILIB_BUILD_FOR_SDL) && defined (DUILIB_BUILD_FOR_WIN)
+    #include <SDL3/SDL.h>
+    #include "duilib/Utils/StringConvert.h"
+#endif
 
 namespace ui
 {
@@ -40,6 +44,17 @@ public:
     virtual LRESULT OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled) override;
 
+#if defined (DUILIB_BUILD_FOR_SDL) && defined (DUILIB_BUILD_FOR_WIN)
+    virtual LRESULT OnSetFocusMsg(WindowBase* pLostFocusWindow, const NativeMsg& nativeMsg, bool& bHandled) override;
+
+    /** SDL模式下，键盘消息过滤器回调：把文本输入和可编辑的按键转发给宿主Combo的编辑框
+    *   下拉窗口被激活后（SDL + Windows），键盘焦点在下拉窗口上，编辑框收不到键盘消息；
+    *   这里把除方向键、特殊功能键之外的键盘消息转发给编辑框，使下拉列表展开时也能输入和编辑文本
+    * @return true 表示已转发给编辑框，不再派发给下拉窗口的焦点控件
+    */
+    bool OnKeyboardFilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
+#endif
+
     /** 关闭下拉框
     * @param [in] bCanceled true表示取消，否则表示正常关闭
     * @param [in] needUpdateSelItem true表示需要更新选择项，否则不需要更新选择项
@@ -54,6 +69,20 @@ private:
     /** 计算下拉框的显示矩形
     */
     UiRect GetComboWndRect() const;
+
+#if defined (DUILIB_BUILD_FOR_SDL) && defined (DUILIB_BUILD_FOR_WIN)
+    /** 启动键盘输入转发：安装消息过滤器，并开启下拉窗口的文本输入 */
+    void StartKeyboardForward();
+
+    /** 停止键盘输入转发：移除消息过滤器，并关闭下拉窗口的文本输入 */
+    void StopKeyboardForward();
+
+    //键盘输入过滤器（SDL模式下，下拉窗口激活时使用）
+    std::unique_ptr<IUIMessageFilter> m_pKeyboardFilter;
+
+    //是否正在把键盘输入转发给编辑框
+    bool m_bKeyboardForwarding = false;
+#endif
 
 private:
     //关联的Combo接口
@@ -74,6 +103,112 @@ private:
     //跟随宿主控件的位置变化（宿主窗口移动、所在滚动容器滚动）
     WindowAnchorFollower m_anchorFollower;
 };
+
+#if defined (DUILIB_BUILD_FOR_SDL) && defined (DUILIB_BUILD_FOR_WIN)
+/** SDL的修饰键标志转换为duilib的ModifierKey标志
+*/
+uint32_t SDLKeyModToModifierKey(SDL_Keymod keymod)
+{
+    uint32_t modifierKey = 0;
+    if (keymod & SDL_KMOD_CTRL) {
+        modifierKey |= ModifierKey::kControl;
+    }
+    if (keymod & SDL_KMOD_SHIFT) {
+        modifierKey |= ModifierKey::kShift;
+    }
+    if (keymod & SDL_KMOD_ALT) {
+        modifierKey |= ModifierKey::kAlt;
+    }
+    if (keymod & SDL_KMOD_GUI) {
+        modifierKey |= ModifierKey::kWin;
+    }
+    return modifierKey;
+}
+
+/** 判断按键是否需要转发给编辑框：方向键与特殊功能键由下拉窗口自己处理，其余转发给编辑框
+*/
+bool IsEditForwardKey(VirtualKeyCode vkCode)
+{
+    if ((vkCode >= kVK_F1) && (vkCode <= kVK_F24)) {
+        //功能键
+        return false;
+    }
+    if ((vkCode >= kVK_BROWSER_BACK) && (vkCode <= kVK_LAUNCH_APP2)) {
+        //浏览器键、媒体键、启动键
+        return false;
+    }
+    switch (vkCode) {
+    case kVK_LEFT:
+    case kVK_UP:
+    case kVK_RIGHT:
+    case kVK_DOWN:
+        //方向键：用于下拉列表的导航
+        return false;
+    case kVK_HOME:
+    case kVK_END:
+    case kVK_PRIOR:
+    case kVK_NEXT:
+        //首尾键、翻页键：用于下拉列表的导航
+        return false;
+    case kVK_ESCAPE:
+    case kVK_RETURN:
+    case kVK_TAB:
+        //窗口控制键
+        return false;
+    case kVK_SHIFT:
+    case kVK_LSHIFT:
+    case kVK_RSHIFT:
+    case kVK_CONTROL:
+    case kVK_LCONTROL:
+    case kVK_RCONTROL:
+    case kVK_MENU:
+    case kVK_LMENU:
+    case kVK_RMENU:
+    case kVK_LWIN:
+    case kVK_RWIN:
+    case kVK_APPS:
+    case kVK_CAPITAL:
+    case kVK_NUMLOCK:
+    case kVK_SCROLL:
+    case kVK_SNAPSHOT:
+    case kVK_PAUSE:
+    case kVK_SLEEP:
+        //修饰键、锁定键与系统键
+        return false;
+    case kVK_PROCESSKEY:
+    case kVK_PACKET:
+        //输入法处理键
+        return false;
+    default:
+        break;
+    }
+    return true;
+}
+
+/** 下拉窗口的键盘输入过滤器（SDL模式）
+*   下拉窗口在 SDL 模式下需要激活才能正常拖动列表的滚动条，此时键盘焦点在下拉窗口上，
+*   输入法/文本输入事件不会到达 Combo 的编辑框，导致无法输入和编辑文本。
+*   该过滤器把键盘消息中除方向键、特殊功能键以外的按键及文本输入转发给编辑框，
+*   使下拉列表展开期间与编辑框获得焦点时的编辑行为保持一致。
+*/
+class ComboKeyboardFilter : public IUIMessageFilter
+{
+public:
+    explicit ComboKeyboardFilter(CComboWnd* pComboWnd) : m_pComboWnd(pComboWnd) { }
+
+    virtual LRESULT FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override
+    {
+        if (m_pComboWnd != nullptr) {
+            bHandled = m_pComboWnd->OnKeyboardFilterMessage(uMsg, wParam, lParam);
+        }
+        return 0;
+    }
+
+private:
+    //下拉窗口（生命周期由下拉窗口保证：关闭前会移除该过滤器）
+    CComboWnd* m_pComboWnd;
+};
+#endif
 
 void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
 {
@@ -114,6 +249,10 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
         KeepParentActive();
         pOwner->GetTreeView()->SetFocus();
         pOwner->SetState(kControlStateHovered);
+#if defined (DUILIB_BUILD_FOR_SDL) && defined (DUILIB_BUILD_FOR_WIN)
+        //下拉窗口被激活后，键盘焦点在下拉窗口上：把文本输入转发给编辑框
+        StartKeyboardForward();
+#endif
     }
     else {
         ShowWindow(ui::kSW_SHOW_NA);
@@ -146,6 +285,94 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
     //发送一个事件
     pOwner->SendEvent(kEventWindowCreate);
 }
+
+#if defined (DUILIB_BUILD_FOR_SDL) && defined (DUILIB_BUILD_FOR_WIN)
+bool CComboWnd::OnKeyboardFilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    Combo* pOwner = m_pOwner.get();
+    if ((pOwner == nullptr) || m_bIsClosed || (pOwner->GetComboType() != Combo::kCombo_DropDown)) {
+        return false;
+    }
+    RichEdit* pEditControl = pOwner->GetEditControl();
+    if ((pEditControl == nullptr) || !pEditControl->IsVisible() ||
+        !pEditControl->IsEnabled() || pEditControl->IsReadOnly()) {
+        return false;
+    }
+
+    if (uMsg == SDL_EVENT_TEXT_INPUT) {
+        //文本输入事件（含输入法提交的文本）：派发给编辑框插入文本（与原生窗口派发文本输入的约定一致）
+        const SDL_Event* pEvent = (const SDL_Event*)wParam;
+        if ((pEvent == nullptr) || (pEvent->text.text == nullptr)) {
+            return false;
+        }
+        DStringW textW = StringConvert::UTF8ToWString(pEvent->text.text);
+        if (textW.empty()) {
+            return false;
+        }
+        EventArgs msg;
+        msg.eventType = kEventChar;
+        msg.eventData = SDL_EVENT_TEXT_INPUT;
+        msg.vkCode = kVK_None;
+        msg.modifierKey = SDLKeyModToModifierKey(SDL_GetModState());
+        msg.wParam = (WPARAM)textW.c_str();
+        msg.lParam = (LPARAM)textW.size();
+        pEditControl->SendEvent(kEventChar, msg);
+        return true;
+    }
+
+    if ((uMsg == SDL_EVENT_KEY_DOWN) || (uMsg == SDL_EVENT_KEY_UP)) {
+        //按键消息（除方向键、特殊功能键以外）：派发给编辑框处理，例如退格、删除、Ctrl+C/V/X等
+        const SDL_Event* pEvent = (const SDL_Event*)wParam;
+        if (pEvent == nullptr) {
+            return false;
+        }
+        if ((uMsg == SDL_EVENT_KEY_DOWN) && (NativeWnd() != nullptr)) {
+            //焦点控件切换等场景会关闭输入法：保证后续按键仍能产生文本输入事件
+            NativeWnd()->SetImeOpenStatus(true);
+        }
+        VirtualKeyCode vkCode = Keycode::GetVirtualKeyCode(pEvent->key.key);
+        if (!IsEditForwardKey(vkCode)) {
+            return false;
+        }
+        EventArgs msg;
+        msg.eventType = (uMsg == SDL_EVENT_KEY_DOWN) ? kEventKeyDown : kEventKeyUp;
+        msg.eventData = (int32_t)uMsg;
+        msg.vkCode = vkCode;
+        msg.modifierKey = SDLKeyModToModifierKey(pEvent->key.mod);
+        msg.wParam = wParam;
+        msg.lParam = lParam;
+        pEditControl->SendEvent(msg.eventType, msg);
+        return true;
+    }
+    return false;
+}
+
+void CComboWnd::StartKeyboardForward()
+{
+    if (m_pKeyboardFilter == nullptr) {
+        m_pKeyboardFilter = std::make_unique<ComboKeyboardFilter>(this);
+    }
+    AddMessageFilter(m_pKeyboardFilter.get());
+    m_bKeyboardForwarding = true;
+
+    //下拉窗口被激活后，开启该窗口的文本输入，否则SDL不会产生文本输入事件
+    if (NativeWnd() != nullptr) {
+        NativeWnd()->SetImeOpenStatus(true);
+    }
+}
+
+void CComboWnd::StopKeyboardForward()
+{
+    m_bKeyboardForwarding = false;
+    if (m_pKeyboardFilter != nullptr) {
+        RemoveMessageFilter(m_pKeyboardFilter.get());
+    }
+    //关闭下拉窗口的文本输入，避免窗口销毁后影响宿主窗口的输入法状态
+    if (NativeWnd() != nullptr) {
+        NativeWnd()->SetImeOpenStatus(false);
+    }
+}
+#endif
 
 UiRect CComboWnd::GetComboWndRect() const
 {
@@ -244,6 +471,9 @@ void CComboWnd::UpdateComboWnd()
 void CComboWnd::OnFinalMessage()
 {
     m_anchorFollower.Stop();
+#if defined (DUILIB_BUILD_FOR_SDL) && defined (DUILIB_BUILD_FOR_WIN)
+    StopKeyboardForward();
+#endif
     if (m_pOwner != nullptr) {
         if (m_pOwner->GetTreeView()->GetWindow() == this) {
             m_pOwner->GetTreeView()->SetWindow(nullptr);
@@ -272,6 +502,9 @@ void CComboWnd::CloseComboWnd(bool bCanceled, bool needUpdateSelItem)
     }
     m_bIsClosed = true;
     m_anchorFollower.Stop();
+#if defined (DUILIB_BUILD_FOR_SDL) && defined (DUILIB_BUILD_FOR_WIN)
+    StopKeyboardForward();
+#endif
     Box* pRootBox = GetRoot();
     if ((m_pOwner != nullptr) && (pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
         m_pOwner->GetTreeView()->SetWindow(nullptr);
@@ -332,6 +565,9 @@ void CComboWnd::CloseComboWndOnOwnerDestroy()
     }
     m_bIsClosed = true;
     m_anchorFollower.Stop();
+#if defined (DUILIB_BUILD_FOR_SDL) && defined (DUILIB_BUILD_FOR_WIN)
+    StopKeyboardForward();
+#endif
     Box* pRootBox = GetRoot();
     if (pRootBox != nullptr) {
         if (m_pOwner != nullptr) {
@@ -348,6 +584,9 @@ void CComboWnd::CloseComboWndOnOwnerDestroy()
 void CComboWnd::OnCloseWindow()
 {
     m_anchorFollower.Stop();
+#if defined (DUILIB_BUILD_FOR_SDL) && defined (DUILIB_BUILD_FOR_WIN)
+    StopKeyboardForward();
+#endif
     Box* pRootBox = GetRoot();
     if ((m_pOwner != nullptr) && (pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
         m_pOwner->GetTreeView()->SetWindow(nullptr);
@@ -400,6 +639,19 @@ LRESULT CComboWnd::OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& 
     }
     return lResult;
 }
+
+#if defined (DUILIB_BUILD_FOR_SDL) && defined (DUILIB_BUILD_FOR_WIN)
+LRESULT CComboWnd::OnSetFocusMsg(WindowBase* pLostFocusWindow, const NativeMsg& nativeMsg, bool& bHandled)
+{
+    LRESULT lResult = BaseClass::OnSetFocusMsg(pLostFocusWindow, nativeMsg, bHandled);
+    //下拉窗口获得焦点时，焦点控件的事件处理会关闭输入法，导致SDL不再产生文本输入事件；
+    //这里重新开启文本输入，保证键盘输入能通过消息过滤器转发给编辑框
+    if (m_bKeyboardForwarding && (NativeWnd() != nullptr)) {
+        NativeWnd()->SetImeOpenStatus(true);
+    }
+    return lResult;
+}
+#endif
 
 ////////////////////////////////////////////////////////
 
