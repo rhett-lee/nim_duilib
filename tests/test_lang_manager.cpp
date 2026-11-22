@@ -5,7 +5,9 @@
 //   其他转义序列（如"\P"、"\t"）保持原样。
 // 本测试直接从内存加载语言表，不创建窗口、不依赖全局资源，可在命令行直接运行。
 
+#if defined(_WIN32)
 #include <crtdbg.h>
+#endif
 
 #include "duilib/Core/LangManager.h"
 
