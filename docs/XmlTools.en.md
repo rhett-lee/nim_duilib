@@ -11,6 +11,7 @@ nim_duilib interfaces are mainly written by hand in XML (`bin/resources/themes/d
 | Parse error location | Which file, line and column failed, and why | Built into the framework (`WindowBuilder`/`XmlBox`); the message is shown directly in the XmlPreview window |
 | XmlPreview sample program | See the UI immediately after saving XML | Run `examples/XmlPreview`, browse for or drop in an XML file |
 | [lint_xml.py](Tools/lint_xml.py) | Misspelled node names, wrong `class` position, duplicate `name`, invalid color/font/`text_id`/`Include`/image references | `python docs/Tools/lint_xml.py` |
+| [check_theme.py](Tools/check_theme.py) | Dark/light color matrix mismatch, invalid `ThemeColor` fields, and `svg_replace_colors` source colors that do not exist in the SVG file | `python docs/Tools/check_theme.py` |
 | [gen_xml_schema.py](Tools/gen_xml_schema.py) | Node/attribute completion and hover documentation in the editor | Generate `docs/schema/nim_duilib.xsd` and associate it with the editor |
 
 ## 1. Location Information for Parse Errors

@@ -9,6 +9,7 @@ nim_duilib 的界面主要靠手写 XML（`bin/resources/themes/default/<皮肤�
 | 解析错误定位 | XML 在哪个文件、哪一行、哪一列出错，原因是什么 | 框架内置（`WindowBuilder`/`XmlBox`），错误信息直接显示在 XmlPreview 窗口 |
 | XmlPreview 示例程序 | 改完 XML 立刻看到界面效果 | 运行 `examples/XmlPreview`，浏览或直接拖入 XML 文件 |
 | [lint_xml.py](Tools/lint_xml.py) | 节点名拼错、`class` 位置不对、`name` 重复、颜色/字体/`text_id`/`Include`/图片等资源引用错误 | `python docs/Tools/lint_xml.py` |
+| [check_theme.py](Tools/check_theme.py) | 深/浅主题颜色矩阵不一致、`ThemeColor` 字段非法、`svg_replace_colors` 源色在 SVG 中不存在等主题配置错误 | `python docs/Tools/check_theme.py` |
 | [gen_xml_schema.py](Tools/gen_xml_schema.py) | 编辑器中的节点名/属性名补全与属性悬浮说明 | 生成 `docs/schema/nim_duilib.xsd` 后关联到编辑器 |
 
 ## 一、解析错误的定位信息
