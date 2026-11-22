@@ -115,6 +115,15 @@ void MainForm::OnWindowDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nN
     UpdateUI();
 }
 
+void MainForm::OnInitLayout()
+{
+    ui::WindowImplBase::OnInitLayout();
+
+    //首次布局完成后，控件的坐标才有有效值，此时刷新界面数据，
+    //否则内容区（逻辑）会一直显示 0 × 0
+    UpdateUI();
+}
+
 LRESULT MainForm::OnSizeMsg(ui::WindowSizeType sizeType, const ui::UiSize& newWindowSize, const ui::NativeMsg& nativeMsg, bool& bHandled)
 {
     LRESULT lResult = ui::WindowImplBase::OnSizeMsg(sizeType, newWindowSize, nativeMsg, bHandled);

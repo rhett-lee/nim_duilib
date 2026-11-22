@@ -36,6 +36,11 @@ public:
     virtual void OnWindowDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewScaleFactor) override;
 
 protected:
+    /** 完成界面布局的初始化（各个控件的位置大小等布局信息完成初始化）
+    * 首次布局完成后才会得到有效的控件坐标，此时需要刷新一次界面数据
+    */
+    virtual void OnInitLayout() override;
+
     /** 窗口大小发生改变(WM_SIZE)
     * @param [in] sizeType 触发窗口大小改变的类型
     * @param [in] newWindowSize 新的窗口大小（宽度和高度）
