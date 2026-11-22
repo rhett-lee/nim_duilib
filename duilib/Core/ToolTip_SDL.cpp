@@ -222,8 +222,12 @@ void ToolTip::TImpl::ShowToolTip(WindowBase* pParentWnd,
     }
 
     WindowCreateParam createParam;
-    createParam.m_nX = windowPos.x + pParentWnd->Dpi().GetScaleInt(10); //在鼠标点，向右的偏移
-    createParam.m_nY = windowPos.y + pParentWnd->Dpi().GetScaleInt(10); //在鼠标点，向下的偏移
+    //在鼠标点的右下方显示：偏移量需大于鼠标箭头的大小（箭头自热点向右下约 12x20 逻辑像素），
+    //否则箭头会遮挡Tooltip的内容
+    const int32_t nOffsetX = pParentWnd->Dpi().GetScaleInt(16);
+    const int32_t nOffsetY = pParentWnd->Dpi().GetScaleInt(20);
+    createParam.m_nX = windowPos.x + nOffsetX;
+    createParam.m_nY = windowPos.y + nOffsetY;
     //阴影的偏移
     pParentWnd->Dpi().ScaleInt(rcShadowCorner.left);
     pParentWnd->Dpi().ScaleInt(rcShadowCorner.top);
