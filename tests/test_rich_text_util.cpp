@@ -10,6 +10,7 @@
 #include <functional>
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace
@@ -36,6 +37,20 @@ void Check(bool condition, const char* message)
 
 /** 比较字符串是否相等，失败时打印用例名 */
 void CheckText(const DString& actual, const DString& expected, const char* caseName)
+{
+    ++g_checkCount;
+    if (actual != expected) {
+        ++g_failedCount;
+        std::cerr << "[FAIL] " << caseName << ": actual size=" << actual.size()
+                  << ", expected size=" << expected.size() << std::endl;
+    }
+}
+
+/** 比较宽字符文本是否相等，失败时打印用例名
+*   说明：TrimRichTextSlices 的结果是 std::wstring_view（与 DString 编码无关），
+*        不同平台直接比较宽字符视图即可，避免 DString 编码差异导致编译/运行差异
+*/
+void CheckTextView(const std::wstring_view& actual, const std::wstring_view& expected, const char* caseName)
 {
     ++g_checkCount;
     if (actual != expected) {
@@ -241,38 +256,31 @@ void TestTrimRichTextSlices()
         //整段文本首尾的空格去掉，词间的空格保留
         std::vector<std::wstring_view> textViews = {L"  Hello ", L"world  "};
         ui::TrimRichTextSlices(textViews);
-        CheckText(DString(textViews[0].data(), textViews[0].size()), _T("Hello "),
-                  "slices: first keeps inner space");
-        CheckText(DString(textViews[1].data(), textViews[1].size()), _T("world"),
-                  "slices: last trims trailing");
+        CheckTextView(textViews[0], L"Hello ", "slices: first keeps inner space");
+        CheckTextView(textViews[1], L"world", "slices: last trims trailing");
     }
     {
         //中间的空白片段不产生多余空格
         std::vector<std::wstring_view> textViews = {L"  a  ", L"  b  ", L"  c  "};
         ui::TrimRichTextSlices(textViews);
-        CheckText(DString(textViews[0].data(), textViews[0].size()), _T("a "), "slices: a");
-        CheckText(DString(textViews[1].data(), textViews[1].size()), _T("b "), "slices: b");
-        CheckText(DString(textViews[2].data(), textViews[2].size()), _T("c"), "slices: c");
+        CheckTextView(textViews[0], L"a ", "slices: a");
+        CheckTextView(textViews[1], L"b ", "slices: b");
+        CheckTextView(textViews[2], L"c", "slices: c");
     }
     {
         //换行片段之后的行首空格需要去掉
         std::vector<std::wstring_view> textViews = {L"Hello", L"\n", L"  World  "};
         ui::TrimRichTextSlices(textViews);
-        CheckText(DString(textViews[0].data(), textViews[0].size()), _T("Hello"),
-                  "slices: before newline");
-        CheckText(DString(textViews[1].data(), textViews[1].size()), _T("\n"),
-                  "slices: newline kept");
-        CheckText(DString(textViews[2].data(), textViews[2].size()), _T("World"),
-                  "slices: line start trimmed");
+        CheckTextView(textViews[0], L"Hello", "slices: before newline");
+        CheckTextView(textViews[1], L"\n", "slices: newline kept");
+        CheckTextView(textViews[2], L"World", "slices: line start trimmed");
     }
     {
         //空片段不影响判断，且不能越界
         std::vector<std::wstring_view> textViews = {L"", L" x ", L"", L"", L" y ", L""};
         ui::TrimRichTextSlices(textViews);
-        CheckText(DString(textViews[1].data(), textViews[1].size()), _T("x "),
-                  "slices: empty items skipped 1");
-        CheckText(DString(textViews[4].data(), textViews[4].size()), _T("y"),
-                  "slices: empty items skipped 2");
+        CheckTextView(textViews[1], L"x ", "slices: empty items skipped 1");
+        CheckTextView(textViews[4], L"y", "slices: empty items skipped 2");
         Check(textViews[0].empty() && textViews[2].empty() && textViews[3].empty() && textViews[5].empty(),
               "slices: empty items stay empty");
     }
