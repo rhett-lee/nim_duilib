@@ -6,6 +6,7 @@
 * [快速上手（Windows + Visual Studio）](Getting-Started.md)
 * [示例程序说明](Examples.md)
 * [窗口的样式](Window.md)
+* [自绘制标题栏规范](TitleBar.md)
 * [窗口阴影参考文档](WindowShadow.md)
 * [容器的样式](Box.md)
 * [控件的样式](Control.md)
