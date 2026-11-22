@@ -186,8 +186,11 @@ void ChildWindow::RegisterWindowCallbacks(Window* pWindow)
 
 void ChildWindow::UnregisterWindowCallbacks(Window* pWindow)
 {
-    ASSERT((pWindow != nullptr) && pWindow->IsWindow());
-    if ((pWindow == nullptr) || !pWindow->IsWindow()) {
+    //注意：窗口关闭/析构过程中，原生窗口可能已经销毁（Window::IsWindow()为false），
+    //      但Window对象仍然有效，且其事件回调表是纯内存数据，此时仍需要移除回调，
+    //      否则控件销毁后窗口的回调表中会残留无效指针。
+    //      因此这里只校验Window对象指针，不校验原生窗口是否有效。
+    if (pWindow == nullptr) {
         return;
     }
     pWindow->DetachWindowEventCallbackByID(m_callbackID);
