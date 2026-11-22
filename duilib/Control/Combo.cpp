@@ -77,6 +77,9 @@ private:
     /** 停止键盘输入转发：移除消息过滤器，并关闭下拉窗口的文本输入 */
     void StopKeyboardForward();
 
+    /** 更新输入法的候选框定位区域：以编辑框的光标位置为基准，换算到下拉窗口的客户区坐标 */
+    void UpdateTextInputArea();
+
     //键盘输入过滤器（SDL模式下，下拉窗口激活时使用）
     std::unique_ptr<IUIMessageFilter> m_pKeyboardFilter;
 
@@ -138,9 +141,9 @@ bool IsEditForwardKey(VirtualKeyCode vkCode)
         return false;
     }
     switch (vkCode) {
-    case kVK_LEFT:
+    //case kVK_LEFT:
     case kVK_UP:
-    case kVK_RIGHT:
+    //case kVK_RIGHT:
     case kVK_DOWN:
         //方向键：用于下拉列表的导航
         return false;
@@ -317,6 +320,9 @@ bool CComboWnd::OnKeyboardFilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
         msg.wParam = (WPARAM)textW.c_str();
         msg.lParam = (LPARAM)textW.size();
         pEditControl->SendEvent(kEventChar, msg);
+
+        //文本插入后光标位置变化：更新输入法的候选框定位区域，供下一次组合输入使用
+        UpdateTextInputArea();
         return true;
     }
 
@@ -329,6 +335,8 @@ bool CComboWnd::OnKeyboardFilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
         if ((uMsg == SDL_EVENT_KEY_DOWN) && (NativeWnd() != nullptr)) {
             //焦点控件切换等场景会关闭输入法：保证后续按键仍能产生文本输入事件
             NativeWnd()->SetImeOpenStatus(true);
+            //更新输入法的候选框定位区域，避免候选框显示在屏幕左上角
+            UpdateTextInputArea();
         }
         VirtualKeyCode vkCode = Keycode::GetVirtualKeyCode(pEvent->key.key);
         if (!IsEditForwardKey(vkCode)) {
@@ -359,6 +367,31 @@ void CComboWnd::StartKeyboardForward()
     if (NativeWnd() != nullptr) {
         NativeWnd()->SetImeOpenStatus(true);
     }
+    //文本输入由本窗口持有，输入法的候选框定位区域需要按本窗口的坐标设置
+    UpdateTextInputArea();
+}
+
+void CComboWnd::UpdateTextInputArea()
+{
+    Combo* pOwner = m_pOwner.get();
+    if (pOwner == nullptr) {
+        return;
+    }
+    RichEdit* pEditControl = pOwner->GetEditControl();
+    Window* pOwnerWindow = pOwner->GetWindow();
+    if ((pEditControl == nullptr) || (pOwnerWindow == nullptr) || (NativeWnd() == nullptr)) {
+        return;
+    }
+    //取编辑框光标的位置（布局坐标，已包含控件位置并扣除控件内部滚动偏移）
+    UiRect rcCaret = pEditControl->GetCaretRect();
+    UiPoint scrollOffset = pEditControl->GetScrollOffsetInScrollBox();
+    rcCaret.Offset(-scrollOffset.x, -scrollOffset.y);
+
+    //换算到屏幕坐标后，再换算到本窗口（下拉窗口）的客户区坐标：
+    //编辑框属于宿主窗口，而文本输入由本窗口持有，候选框只能按本窗口的坐标定位
+    pOwnerWindow->ClientToScreen(rcCaret);
+    ScreenToClient(rcCaret);
+    NativeWnd()->SetTextInputArea(&rcCaret, Dpi().GetScaleInt(1));
 }
 
 void CComboWnd::StopKeyboardForward()
@@ -648,6 +681,7 @@ LRESULT CComboWnd::OnSetFocusMsg(WindowBase* pLostFocusWindow, const NativeMsg& 
     //这里重新开启文本输入，保证键盘输入能通过消息过滤器转发给编辑框
     if (m_bKeyboardForwarding && (NativeWnd() != nullptr)) {
         NativeWnd()->SetImeOpenStatus(true);
+        UpdateTextInputArea();
     }
     return lResult;
 }
