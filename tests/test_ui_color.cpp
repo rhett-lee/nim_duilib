@@ -84,30 +84,30 @@ void TestUiColorBasics()
 void TestUiColorColorref()
 {
     ui::UiColor color;
-    color.SetFromCOLORREF(RGB(0x11, 0x22, 0x33));
+    color.SetFromCOLORREF(ui::MakeColorRef(0x11, 0x22, 0x33));
     CHECK_INT(color.GetA(), 0xFF);
     CHECK_INT(color.GetR(), 0x11);
     CHECK_INT(color.GetG(), 0x22);
     CHECK_INT(color.GetB(), 0x33);
 
     //不透明：与主题无关，直接返回 RGB
-    CHECK_INT(color.ToCOLORREF(false), RGB(0x11, 0x22, 0x33));
-    CHECK_INT(color.ToCOLORREF(true), RGB(0x11, 0x22, 0x33));
+    CHECK_INT(color.ToCOLORREF(false), ui::MakeColorRef(0x11, 0x22, 0x33));
+    CHECK_INT(color.ToCOLORREF(true), ui::MakeColorRef(0x11, 0x22, 0x33));
 
     //半透明白色：深色主题下按 Alpha 衰减，浅色主题下与白色背景混合
     ui::UiColor halfWhite(0x80, 0xFF, 0xFF, 0xFF);
-    CHECK_INT(halfWhite.ToCOLORREF(true), RGB(0x80, 0x80, 0x80));
-    CHECK_INT(halfWhite.ToCOLORREF(false), RGB(0xFF, 0xFF, 0xFF));
+    CHECK_INT(halfWhite.ToCOLORREF(true), ui::MakeColorRef(0x80, 0x80, 0x80));
+    CHECK_INT(halfWhite.ToCOLORREF(false), ui::MakeColorRef(0xFF, 0xFF, 0xFF));
 
     //全透明：深色主题为黑色，浅色主题为白色
     ui::UiColor transparent(0x00, 0xFF, 0xFF, 0xFF);
-    CHECK_INT(transparent.ToCOLORREF(true), RGB(0x00, 0x00, 0x00));
-    CHECK_INT(transparent.ToCOLORREF(false), RGB(0xFF, 0xFF, 0xFF));
+    CHECK_INT(transparent.ToCOLORREF(true), ui::MakeColorRef(0x00, 0x00, 0x00));
+    CHECK_INT(transparent.ToCOLORREF(false), ui::MakeColorRef(0xFF, 0xFF, 0xFF));
 
     //半透明黑色
     ui::UiColor halfBlack(0x40, 0x00, 0x00, 0x00);
-    CHECK_INT(halfBlack.ToCOLORREF(true), RGB(0x00, 0x00, 0x00));
-    CHECK_INT(halfBlack.ToCOLORREF(false), RGB(0xBF, 0xBF, 0xBF));
+    CHECK_INT(halfBlack.ToCOLORREF(true), ui::MakeColorRef(0x00, 0x00, 0x00));
+    CHECK_INT(halfBlack.ToCOLORREF(false), ui::MakeColorRef(0xBF, 0xBF, 0xBF));
 }
 
 /** StandardColorMap：Hex 字符串与 UiColor 的互转 */

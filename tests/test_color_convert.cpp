@@ -49,10 +49,10 @@ uint32_t MakeBgr(uint8_t r, uint8_t g, uint8_t b)
     return static_cast<uint32_t>(b) | (static_cast<uint32_t>(g) << 8) | (static_cast<uint32_t>(r) << 16);
 }
 
-/** 与 ColorConvert.cpp 内部的 RGB 宏一致：低字节为 R，其次 G，再次 B */
+/** 颜色值（与 ui::MakeColorRef 一致：低字节为 R，其次 G，再次 B） */
 uint32_t RgbValue(uint8_t r, uint8_t g, uint8_t b)
 {
-    return static_cast<uint32_t>(r) | (static_cast<uint32_t>(g) << 8) | (static_cast<uint32_t>(b) << 16);
+    return ui::MakeColorRef(r, g, b);
 }
 
 /** RGB -> HSV 的常用取值 */

@@ -8,11 +8,10 @@
 
 #include <math.h>
 #include <stdint.h>
+#include "duilib/Core/UiColor.h"
 
 namespace ui
 {
-
-typedef unsigned long COLORREF;
 
 /** 颜色类型（RGB/HSV/HSL）转换类
 */
@@ -38,7 +37,7 @@ public:
     static int RGB2HSL(double red, double green, double blue, double* hue, double* sat, double* lightness);
 
     // Get rgb value.
-    static void GetRGB(uint32_t* buffer, int samples, COLORREF start, COLORREF end);
+    static void GetRGB(uint32_t* buffer, int samples, UiColorRef start, UiColorRef end);
 
     // hsv from hue.
     static void HSV_HUE(uint32_t* buffer, int samples, double sat, double val);

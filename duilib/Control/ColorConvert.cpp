@@ -5,35 +5,30 @@
 namespace ui
 {
 
-#define GetRValue(rgb)      ((uint8_t)(rgb))
-#define GetGValue(rgb)      ((uint8_t)(((uint16_t)(rgb)) >> 8))
-#define GetBValue(rgb)      ((uint8_t)((rgb)>>16))
-#define RGB(r,g,b)          ((COLORREF)(((uint8_t)(r)|((uint16_t)((uint8_t)(g))<<8))|(((uint32_t)(uint8_t)(b))<<16)))
-
 #define    HSV_LOOP_STEPS(w)    (((w) > 1) ? (w) - 1 : 1)
 
-#define    HSV_0()    RGB ((uint8_t) (coef1 >> int_extend),(uint8_t) (coef3 >> int_extend),(uint8_t) (val >> int_extend))
+#define    HSV_0()    MakeColorRef((uint8_t) (coef1 >> int_extend),(uint8_t) (coef3 >> int_extend),(uint8_t) (val >> int_extend))
 
 #define    HSV_HUE_ADV_0() coef1 += coef1_adv,coef3 += coef3_adv
 
-#define    HSV_1()    RGB ((uint8_t) (coef1 >> int_extend),(uint8_t) (val >> int_extend),(uint8_t) (coef2 >> int_extend))
+#define    HSV_1()    MakeColorRef((uint8_t) (coef1 >> int_extend),(uint8_t) (val >> int_extend),(uint8_t) (coef2 >> int_extend))
 
 #define    HSV_HUE_ADV_1()    coef1 += coef1_adv,    coef2 += coef2_adv
 
 
-#define    HSV_2()    RGB ((uint8_t) (coef3 >> int_extend),(uint8_t) (val >> int_extend),(uint8_t) (coef1 >> int_extend))
+#define    HSV_2()    MakeColorRef((uint8_t) (coef3 >> int_extend),(uint8_t) (val >> int_extend),(uint8_t) (coef1 >> int_extend))
 
 #define    HSV_HUE_ADV_2()        HSV_HUE_ADV_0()
 
-#define    HSV_3()    RGB ((uint8_t) (val >> int_extend),(uint8_t) (coef2 >> int_extend),(uint8_t) (coef1 >> int_extend))
+#define    HSV_3()    MakeColorRef((uint8_t) (val >> int_extend),(uint8_t) (coef2 >> int_extend),(uint8_t) (coef1 >> int_extend))
 
 #define    HSV_HUE_ADV_3()        HSV_HUE_ADV_1()
 
-#define    HSV_4()    RGB ((uint8_t) (val >> int_extend),(uint8_t) (coef1 >> int_extend),(uint8_t) (coef3 >> int_extend))
+#define    HSV_4()    MakeColorRef((uint8_t) (val >> int_extend),(uint8_t) (coef1 >> int_extend),(uint8_t) (coef3 >> int_extend))
 
 #define    HSV_HUE_ADV_4()        HSV_HUE_ADV_0()
 
-#define    HSV_5()     RGB (    (uint8_t) (coef2 >> int_extend),(uint8_t) (coef1 >> int_extend),(uint8_t) (val >> int_extend))
+#define    HSV_5()     MakeColorRef(    (uint8_t) (coef2 >> int_extend),(uint8_t) (coef1 >> int_extend),(uint8_t) (val >> int_extend))
 
 #define    HSV_HUE_ADV_5()        HSV_HUE_ADV_1()
 
@@ -78,19 +73,19 @@ namespace ui
 
 constexpr const int int_extend = 20;
 
-static inline int scaled_red(COLORREF c)
+static inline int scaled_red(UiColorRef c)
 {
-    return (GetRValue(c) << int_extend);
+    return ((uint8_t)c << int_extend);
 }
 
-static inline int scaled_green(COLORREF c)
+static inline int scaled_green(UiColorRef c)
 {
-    return (GetGValue(c) << int_extend);
+    return ((uint8_t)(c >> 8) << int_extend);
 }
 
-static inline int scaled_blue(COLORREF c)
+static inline int scaled_blue(UiColorRef c)
 {
-    return (GetBValue(c) << int_extend);
+    return ((uint8_t)(c >> 16) << int_extend);
 }
 
 template <class T, class T1> void in_range(T& x, T1 start, T1 end)
@@ -319,7 +314,7 @@ int ColorConvert::RGB2HSL(double red, double green, double blue, double* hue, do
     return 0;
 }
 
-void ColorConvert::GetRGB(uint32_t* buffer, int samples, COLORREF start, COLORREF end)
+void ColorConvert::GetRGB(uint32_t* buffer, int samples, UiColorRef start, UiColorRef end)
 {
     //samples < 1 时下面的 while 循环可能死循环写越界
     if ((buffer == nullptr) || (samples < 1)) {
@@ -327,7 +322,7 @@ void ColorConvert::GetRGB(uint32_t* buffer, int samples, COLORREF start, COLORRE
     }
     if (samples == 1) {
         //只有一个采样点时，(samples - 1) 会除零，直接取起始颜色（DIB 为 BGR 顺序）
-        *buffer = RGB(GetBValue(start), GetGValue(start), GetRValue(start));
+        *buffer = MakeColorRef((uint8_t)(start >> 16), (uint8_t)(start >> 8), (uint8_t)start);
         return;
     }
     int red = 0, green = 0, blue = 0;
@@ -343,7 +338,7 @@ void ColorConvert::GetRGB(uint32_t* buffer, int samples, COLORREF start, COLORRE
     while (samples--)
     {
         // set current pixel (in DIB bitmap format is BGR, not RGB!)
-        *buffer++ = RGB(
+        *buffer++ = MakeColorRef(
             (uint8_t)(blue >> int_extend),
             (uint8_t)(green >> int_extend),
             (uint8_t)(red >> int_extend));
@@ -586,7 +581,7 @@ void ColorConvert::HSL_HUE(uint32_t* buffer, int samples, double sat, double lig
             hue = 359.9;
         }
         HSL2RGB(hue, sat, lightness, red, green, blue);
-        *buffer++ = RGB(blue, green, red);
+        *buffer++ = MakeColorRef(blue, green, red);
 
         hue += hue_step;
     }
@@ -611,7 +606,7 @@ void ColorConvert::HSL_SAT(uint32_t* buffer, int samples, double hue, double lig
             sat = 1.0;
         }
         HSL2RGB(hue, sat, lightness, red, green, blue);
-        *buffer++ = RGB(blue, green, red);
+        *buffer++ = MakeColorRef(blue, green, red);
 
         sat += sat_step;
     }
@@ -637,7 +632,7 @@ void ColorConvert::HSL_LIG(uint32_t* buffer, int samples, double hue, double sat
             lightness = 1.0;
         }
         HSL2RGB(hue, sat, lightness, red, green, blue);
-        *buffer++ = RGB(blue, green, red);
+        *buffer++ = MakeColorRef(blue, green, red);
 
         lightness += lightness_step;
     }

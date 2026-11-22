@@ -5,13 +5,18 @@
 
 namespace ui 
 {
-#ifndef DUILIB_BUILD_FOR_WIN
-    typedef unsigned long COLORREF;
-    #define GetRValue(rgb)      ((uint8_t)(rgb))
-    #define GetGValue(rgb)      ((uint8_t)(((uint16_t)(rgb)) >> 8))
-    #define GetBValue(rgb)      ((uint8_t)((rgb)>>16))
-    #define RGB(r,g,b)          ((ui::COLORREF)(((uint8_t)(r)|((uint16_t)((uint8_t)(g))<<8))|(((uint32_t)(uint8_t)(b))<<16)))
-#endif
+/** COLORREF 风格的颜色值（32位，0x00BBGGRR，仅包含RGB值）
+*   说明：Windows SDK 与第三方库（如 cximage）都定义了全局的 COLORREF、RGB 等名字，
+*        为避免重名冲突，项目内部统一使用 UiColorRef 与 MakeColorRef
+*/
+typedef uint32_t UiColorRef;
+
+/** 组合RGB分量生成颜色值（等价于Windows的RGB宏，格式为0x00BBGGRR）
+*/
+inline constexpr UiColorRef MakeColorRef(uint8_t r, uint8_t g, uint8_t b)
+{
+    return (UiColorRef)((uint32_t)r | ((uint32_t)g << 8) | ((uint32_t)b << 16));
+}
 
 /** 颜色值的封装(ARGB格式)
 */
@@ -93,19 +98,19 @@ public:
 
     /** 从COLORREF颜色值设置颜色（COLORREF仅包含RGB值，不含A值）
     */
-    void SetFromCOLORREF(uint32_t rgb)
+    void SetFromCOLORREF(UiColorRef rgb)
     {
-        Argb = MakeARGB(255, GetRValue(rgb), GetGValue(rgb), GetBValue(rgb));
+        Argb = MakeARGB(255, (uint8_t)rgb, (uint8_t)(rgb >> 8), (uint8_t)(rgb >> 16));
     }
 
     /** 将ARGB颜色转换为COLORREF颜色值（COLORREF仅包含RGB值，不含A值）
     * @param [in] bDarkThemeStyle true表示为深色主题模式，false表示浅色主题模式
     */
-    uint32_t ToCOLORREF(bool bDarkThemeStyle) const
+    UiColorRef ToCOLORREF(bool bDarkThemeStyle) const
     {
         if (GetA() == 255) {
             //无透明度
-            return RGB(GetRed(), GetGreen(), GetBlue());
+            return MakeColorRef(GetRed(), GetGreen(), GetBlue());
         }
         else {
             if (bDarkThemeStyle) {
@@ -113,14 +118,14 @@ public:
                 uint32_t R = (uint32_t)GetA() * GetR() / 255;
                 uint32_t G = (uint32_t)GetA() * GetG() / 255;
                 uint32_t B = (uint32_t)GetA() * GetB() / 255;
-                return RGB((uint8_t)R, (uint8_t)G, (uint8_t)B);
+                return MakeColorRef((uint8_t)R, (uint8_t)G, (uint8_t)B);
             }
             else {
                 //浅色主题
                 uint32_t R = (uint32_t)GetA() * GetR() / 255 + 255 - GetA();
                 uint32_t G = (uint32_t)GetA() * GetG() / 255 + 255 - GetA();
                 uint32_t B = (uint32_t)GetA() * GetB() / 255 + 255 - GetA();
-                return RGB((uint8_t)R, (uint8_t)G, (uint8_t)B);
+                return MakeColorRef((uint8_t)R, (uint8_t)G, (uint8_t)B);
             }
         }
     }
