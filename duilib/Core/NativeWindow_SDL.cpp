@@ -2777,9 +2777,9 @@ bool NativeWindow_SDL::ExitFullscreen()
     //清除独占全屏模式，恢复默认的桌面全屏行为（Spaces）
     SDL_SetWindowFullscreenMode(m_sdlWindow, nullptr);
     //退出全屏后需要恢复窗口阴影（SDL 在独占全屏退出时可能未正确恢复）
-    ModifyNsWindowShadowType(GetNSWindow(), m_systemShadowType);
+    ModifyNsWindowShadowType(GetNSWindow(), m_systemShadowType, IsUseSystemCaption());
     //延迟再设置一次，确保 SDL 异步重置 style mask 后依然能恢复系统圆角
-    RestoreWindowShadowAfterFullscreen(GetNSWindow(), m_systemShadowType);
+    RestoreWindowShadowAfterFullscreen(GetNSWindow(), m_systemShadowType, IsUseSystemCaption());
 #endif
 
     if (m_lastWindowFlags & SDL_WINDOW_RESIZABLE) {
@@ -3838,7 +3838,7 @@ bool NativeWindow_SDL::SetSystemShadowType(NativeWindowShadowType nativeShadowTy
         return true;
     }
 #elif defined DUILIB_BUILD_FOR_MACOS
-    if (ModifyNsWindowShadowType(GetNSWindow(), nativeShadowType)) {
+    if (ModifyNsWindowShadowType(GetNSWindow(), nativeShadowType, IsUseSystemCaption())) {
         m_systemShadowType = nativeShadowType;
         //启用系统阴影成功
         return true;

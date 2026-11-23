@@ -34,9 +34,10 @@ bool SetFocus_MacOS(void* /*pNSWindow*/)
  解决：所有 'NSWindow may not respond to...' 编译警告
  @param pNSWindow NSWindow* 指针（由 C++ 传入 void*）
  @param nativeShadowType 阴影/圆角模式
+ @param bUseSystemCaption 是否使用系统标题栏（使用系统标题栏时，不能隐藏标题栏）
  @return 设置成功返回 YES，失败返回 NO
  */
-bool ModifyNsWindowShadowType(void* pNSWindow, NativeWindowShadowType nativeShadowType)
+bool ModifyNsWindowShadowType(void* pNSWindow, NativeWindowShadowType nativeShadowType, bool bUseSystemCaption)
 {
     if (!pNSWindow) {
         return false;
@@ -51,7 +52,7 @@ bool ModifyNsWindowShadowType(void* pNSWindow, NativeWindowShadowType nativeShad
     // 2. 确保在主线程执行
     if (![NSThread isMainThread]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            ModifyNsWindowShadowType(pNSWindow, nativeShadowType);
+            ModifyNsWindowShadowType(pNSWindow, nativeShadowType, bUseSystemCaption);
         });
         return true;
     }
@@ -73,7 +74,8 @@ bool ModifyNsWindowShadowType(void* pNSWindow, NativeWindowShadowType nativeShad
     //    替换 mask → 获得系统圆角和深度阴影
     //    FullSizeContentView + titlebarAppearsTransparent → 隐藏标题栏
     //    全屏退出后通过 toggle NSWindowStyleMaskTitled 强制 WindowServer 重新复合以恢复系统圆角
-    if (nativeShadowType != NativeWindowShadowType::kShadowSystemDisabled) {
+    //    注意：使用系统标题栏的窗口不能执行该改造，否则会把系统标题栏也隐藏掉
+    if (!bUseSystemCaption && (nativeShadowType != NativeWindowShadowType::kShadowSystemDisabled)) {
         window.titlebarAppearsTransparent = YES;
         window.titleVisibility = NSWindowTitleHidden;
         NSWindowStyleMask requiredMask = NSWindowStyleMaskTitled | NSWindowStyleMaskFullSizeContentView
@@ -148,14 +150,14 @@ bool ModifyNsWindowShadowType(void* pNSWindow, NativeWindowShadowType nativeShad
     return true;
 }
 
-void RestoreWindowShadowAfterFullscreen(void* pNSWindow, NativeWindowShadowType nativeShadowType)
+void RestoreWindowShadowAfterFullscreen(void* pNSWindow, NativeWindowShadowType nativeShadowType, bool bUseSystemCaption)
 {
     if (!pNSWindow) {
         return;
     }
     // 延迟到下一个 runloop 再设置，确保 SDL 退出全屏的动作完全结束
     dispatch_async(dispatch_get_main_queue(), ^{
-        ModifyNsWindowShadowType(pNSWindow, nativeShadowType);
+        ModifyNsWindowShadowType(pNSWindow, nativeShadowType, bUseSystemCaption);
     });
 }
 

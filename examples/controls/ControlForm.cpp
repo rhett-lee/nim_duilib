@@ -456,11 +456,12 @@ void ControlForm::ShowColorPicker(bool bDoModal)
 
 void ControlForm::ShowDoModalDlg()
 {
+    //带标题栏的对话框示例
     ui::WindowImplBase simpleWnd;
     simpleWnd.InitSkin(_T("controls"), _T("about.xml"));
     ui::WindowCreateParam createParam;
     createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    createParam.m_dwExStyle = 0;
     createParam.m_windowTitle = _T("AboutForm");
     createParam.m_bCenterWindow = true;
     simpleWnd.DoModal(this, createParam);
