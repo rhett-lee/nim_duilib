@@ -2255,12 +2255,30 @@ bool NativeWindow_SDL::ShowSdlWindow()
     SDL_SyncWindow(m_sdlWindow);
     bool bRet = SDL_ShowWindow(m_sdlWindow);
     //窗口显示后，再修正一次窗口位置(此时窗口内容尚未绘制，用户看不到窗口的位置变化)
-    SDL_SetWindowSize(m_sdlWindow, m_szInitWindow.cx, m_szInitWindow.cy);
+    //注意：此处不能设置窗口大小，否则SDL(Cocoa)会使用创建窗口时的初始坐标重新定位已经显示的窗口，
+    //导致窗口闪跳，并在原地留下绘制残留
     SDL_SetWindowPosition(m_sdlWindow, m_ptInitWindow.x, m_ptInitWindow.y);
     SDL_SyncWindow(m_sdlWindow);
     return bRet;
 #else
     return SDL_ShowWindow(m_sdlWindow);
+#endif
+}
+
+void NativeWindow_SDL::AdjustPopupWindowPosition()
+{
+#if defined (DUILIB_BUILD_FOR_MACOS)
+    if ((m_sdlWindow == nullptr) || IsChildWindow() || !IsWindowVisible()) {
+        return;
+    }
+    if ((m_createParam.m_dwStyle & kWS_POPUP) == 0) {
+        return;
+    }
+    if ((m_ptInitWindow.x == kCW_USEDEFAULT) || (m_ptInitWindow.y == kCW_USEDEFAULT)) {
+        return;
+    }
+    //只修正窗口的位置：窗口大小已经在显示前设置，此处设置窗口大小会导致窗口位置被重置
+    SDL_SetWindowPosition(m_sdlWindow, m_ptInitWindow.x, m_ptInitWindow.y);
 #endif
 }
 
@@ -2309,6 +2327,8 @@ bool NativeWindow_SDL::ShowWindow(ShowWindowCommands nCmdShow)
                 SetWindowPos(nullptr, InsertAfterFlag::kHWND_TOP, 0, 0, 0, 0,
                              kSWP_NOMOVE | kSWP_NOSIZE | kSWP_NOACTIVATE);
             }
+            //macOS平台：窗口激活后，再修正一次弹出式窗口的位置
+            AdjustPopupWindowPosition();
         }        
         break;
     case kSW_SHOW_NA:
@@ -2522,6 +2542,8 @@ bool NativeWindow_SDL::SetWindowForeground()
     }
     bool nRet = SDL_RaiseWindow(m_sdlWindow);
     ASSERT(nRet);
+    //macOS平台：窗口激活后，再修正一次弹出式窗口的位置
+    AdjustPopupWindowPosition();
 //#ifdef _DEBUG
 //    备注：这里有时候会出现条件不成立的情况，暂时未发现影响功能
 //    auto pKeyboardFocus = SDL_GetKeyboardFocus();
@@ -2779,9 +2801,16 @@ bool NativeWindow_SDL::SetWindowPos(const NativeWindow_SDL* pInsertAfterWindow,
             m_ptInitWindow.x = X;
             m_ptInitWindow.y = Y;
         }
-        //Wayland:该函数无法修改窗口位置，内部不支持
-        //Wayland:不支持设置窗口的初始坐标值
-        bool nRet = SDL_SetWindowPosition(m_sdlWindow, X, Y);
+    }
+    if (!(uFlags & kSWP_NOSIZE)) {
+        if (!m_bInitWindowPosFlag) {
+            m_szInitWindow.cx = cx;
+            m_szInitWindow.cy = cy;
+        }
+    }
+    //先设置窗口大小，再设置窗口位置：SDL(Cocoa)设置窗口大小时，会使用创建时的初始坐标重新定位窗口
+    if (!(uFlags & kSWP_NOSIZE)) {
+        bool nRet = SDL_SetWindowSize(m_sdlWindow, cx, cy);
         ASSERT_UNUSED_VARIABLE(nRet);
         if (!nRet) {
             bRet = false;
@@ -2790,12 +2819,10 @@ bool NativeWindow_SDL::SetWindowPos(const NativeWindow_SDL* pInsertAfterWindow,
             bModified = true;
         }
     }
-    if (!(uFlags & kSWP_NOSIZE)) {
-        if (!m_bInitWindowPosFlag) {
-            m_szInitWindow.cx = cx;
-            m_szInitWindow.cy = cy;
-        }
-        bool nRet = SDL_SetWindowSize(m_sdlWindow, cx, cy);
+    if (!(uFlags & kSWP_NOMOVE)) {
+        //Wayland:该函数无法修改窗口位置，内部不支持
+        //Wayland:不支持设置窗口的初始坐标值
+        bool nRet = SDL_SetWindowPosition(m_sdlWindow, X, Y);
         ASSERT_UNUSED_VARIABLE(nRet);
         if (!nRet) {
             bRet = false;
@@ -2850,19 +2877,27 @@ bool NativeWindow_SDL::SetWindowPos(const NativeWindow_SDL* pInsertAfterWindow,
     if (bRet) {
         SDL_SyncWindow(m_sdlWindow);
     }    
+    if (uFlags & kSWP_SHOWWINDOW) {
+        //macOS平台：窗口显示后，再修正一次弹出式窗口的位置
+        AdjustPopupWindowPosition();
+    }
     return bRet;
 }
 
 bool NativeWindow_SDL::MoveWindow(int32_t X, int32_t Y, int32_t nWidth, int32_t nHeight, bool bRepaint)
 {
     ASSERT(IsWindow());
-    bool bRet = SDL_SetWindowPosition(m_sdlWindow, X, Y);
-    ASSERT_UNUSED_VARIABLE(bRet);
+    if (!m_bInitWindowPosFlag) {
+        m_ptInitWindow.x = X;
+        m_ptInitWindow.y = Y;
+        m_szInitWindow.cx = nWidth;
+        m_szInitWindow.cy = nHeight;
+    }
+    //先设置窗口大小，再设置窗口位置：SDL(Cocoa)设置窗口大小时，会使用创建时的初始坐标重新定位窗口
     bool nRet = SDL_SetWindowSize(m_sdlWindow, nWidth, nHeight);
     ASSERT_UNUSED_VARIABLE(nRet);
-    if (!nRet) {
-        bRet = false;
-    }
+    bool bRet = SDL_SetWindowPosition(m_sdlWindow, X, Y);
+    ASSERT_UNUSED_VARIABLE(bRet);
     SDL_SyncWindow(m_sdlWindow);
     if (bRepaint) {
         UiRect rect;
