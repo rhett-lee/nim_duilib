@@ -5,6 +5,7 @@
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/WindowCreateParam.h"
+#include "duilib/Core/WindowCreateAttributes.h"
 #include "duilib/Core/WindowMessage.h"
 #include "duilib/Core/Keyboard.h"
 #include "duilib/Core/Callback.h"
@@ -213,8 +214,18 @@ bool Flyout::ShowAt(Control* pAnchor, const DString& xmlFile, Placement placemen
         //没有父窗口时作为工具窗口，避免出现在任务栏和 Alt+Tab 列表中
         createWndParam.m_dwExStyle |= kWS_EX_TOOLWINDOW;
     }
-    createWndParam.m_nX = rcAnchorInit.left;
-    createWndParam.m_nY = rcAnchorInit.top;
+    //计算创建时的初始位置：按方位预估目标位置（屏幕坐标），直接以目标位置创建窗口。
+    //macOS(Cocoa)在窗口显示时可能先把窗口摆到"创建位置"，再应用之后的定位；
+    //若创建位置不是目标位置，就会出现"先在错误位置显示一帧，再跳转到正常位置"的现象。
+    UiPoint ptInitPos(rcAnchorInit.left, rcAnchorInit.top);
+    UiSize szInitWindow;
+    UiPadding rcInitShadow;
+    if (GetPrefetchWindowSize(szInitWindow, rcInitShadow)) {
+        Placement actualInit = m_placement;
+        ptInitPos = CalcWindowPos(rcAnchorInit, szInitWindow, rcInitShadow, m_placement, m_bAllowFlip, actualInit);
+    }
+    createWndParam.m_nX = ptInitPos.x;
+    createWndParam.m_nY = ptInitPos.y;
 
     if (!CreateWnd(m_pParentWindow, createWndParam)) {
         //创建失败（通常是 XML 资源路径错误）：销毁对象并返回，避免泄漏。
@@ -692,6 +703,190 @@ bool Flyout::IsPointOnAnchorScrollBar(const UiPoint& ptScreen) const
     return false;
 }
 
+UiPoint Flyout::CalcWindowPos(const UiRect& rcAnchor, const UiSize& szWindow, const UiPadding& rcShadow,
+                              Placement placement, bool bAllowFlip, Placement& actualPlacement) const
+{
+    actualPlacement = placement;
+
+    //默认值：以锚点左上角作为窗口位置（后续按方位修正）
+    UiPoint ptWindowPos(rcAnchor.left - rcShadow.left, rcAnchor.top - rcShadow.top);
+
+    Control* pAnchor = m_pAnchor.get();
+    Window* pAnchorWindow = (pAnchor != nullptr) ? pAnchor->GetWindow() : nullptr;
+    if (pAnchorWindow == nullptr) {
+        return ptWindowPos;
+    }
+    //坐标换算统一使用锚点窗口的DPI：浮层与锚点必然在同一显示器上，
+    //以锚点窗口为基准可避免两个窗口的DPI状态不一致导致的坐标偏差
+    const DpiManager& anchorDpi = pAnchorWindow->Dpi();
+
+    //m_nGap 是逻辑像素：先按缩放比换算为物理像素，再换算为屏幕坐标
+    const int32_t nGap = anchorDpi.GetScaleWindowSize(m_nGap);
+
+    //以锚点中心点所在显示器的工作区为边界（屏幕坐标）
+    const UiPoint ptAnchorCenter((rcAnchor.left + rcAnchor.right) / 2, (rcAnchor.top + rcAnchor.bottom) / 2);
+    UiRect rcWork;
+    if (!pAnchorWindow->GetMonitorWorkRect(ptAnchorCenter, rcWork) || rcWork.IsEmpty()) {
+        return ptWindowPos;
+    }
+
+    //视觉区域的宽高（不含阴影，屏幕坐标）
+    const int32_t nClientWidth = szWindow.cx - rcShadow.left - rcShadow.right;
+    const int32_t nClientHeight = szWindow.cy - rcShadow.top - rcShadow.bottom;
+
+    //按期望方位计算视觉区域左上角（屏幕坐标）
+    int32_t nClientX = rcAnchor.left;
+    int32_t nClientY = rcAnchor.top;
+    switch (placement)
+    {
+    case Placement::Bottom:
+        nClientX = rcAnchor.left;
+        nClientY = rcAnchor.bottom + nGap;
+        break;
+    case Placement::BottomCenter:
+        nClientX = (rcAnchor.left + rcAnchor.right - nClientWidth) / 2;
+        nClientY = rcAnchor.bottom + nGap;
+        break;
+    case Placement::BottomEnd:
+        nClientX = rcAnchor.right - nClientWidth;
+        nClientY = rcAnchor.bottom + nGap;
+        break;
+    case Placement::Top:
+        nClientX = rcAnchor.left;
+        nClientY = rcAnchor.top - nGap - nClientHeight;
+        break;
+    case Placement::TopCenter:
+        nClientX = (rcAnchor.left + rcAnchor.right - nClientWidth) / 2;
+        nClientY = rcAnchor.top - nGap - nClientHeight;
+        break;
+    case Placement::TopEnd:
+        nClientX = rcAnchor.right - nClientWidth;
+        nClientY = rcAnchor.top - nGap - nClientHeight;
+        break;
+    case Placement::Right:
+        nClientX = rcAnchor.right + nGap;
+        nClientY = rcAnchor.top;
+        break;
+    case Placement::RightCenter:
+        nClientX = rcAnchor.right + nGap;
+        nClientY = (rcAnchor.top + rcAnchor.bottom - nClientHeight) / 2;
+        break;
+    case Placement::RightEnd:
+        nClientX = rcAnchor.right + nGap;
+        nClientY = rcAnchor.bottom - nClientHeight;
+        break;
+    case Placement::Left:
+        nClientX = rcAnchor.left - nGap - nClientWidth;
+        nClientY = rcAnchor.top;
+        break;
+    case Placement::LeftCenter:
+        nClientX = rcAnchor.left - nGap - nClientWidth;
+        nClientY = (rcAnchor.top + rcAnchor.bottom - nClientHeight) / 2;
+        break;
+    case Placement::LeftEnd:
+        nClientX = rcAnchor.left - nGap - nClientWidth;
+        nClientY = rcAnchor.bottom - nClientHeight;
+        break;
+    default:
+        break;
+    }
+
+    //空间不足时翻转到对侧
+    if (bAllowFlip) {
+        const bool bBottomSide = (placement == Placement::Bottom) ||
+                                 (placement == Placement::BottomCenter) ||
+                                 (placement == Placement::BottomEnd);
+        const bool bTopSide = (placement == Placement::Top) ||
+                              (placement == Placement::TopCenter) ||
+                              (placement == Placement::TopEnd);
+        const bool bRightSide = (placement == Placement::Right) ||
+                                (placement == Placement::RightCenter) ||
+                                (placement == Placement::RightEnd);
+        const bool bLeftSide = (placement == Placement::Left) ||
+                               (placement == Placement::LeftCenter) ||
+                               (placement == Placement::LeftEnd);
+
+        if (bBottomSide && (nClientY + nClientHeight > rcWork.bottom)) {
+            //下方放不下：尝试翻转到上方
+            int32_t nFlippedY = rcAnchor.top - nGap - nClientHeight;
+            if (nFlippedY >= rcWork.top) {
+                nClientY = nFlippedY;
+                actualPlacement = FlipPlacement(placement);
+            }
+        }
+        else if (bTopSide && (nClientY < rcWork.top)) {
+            //上方放不下：尝试翻转到下方
+            int32_t nFlippedY = rcAnchor.bottom + nGap;
+            if (nFlippedY + nClientHeight <= rcWork.bottom) {
+                nClientY = nFlippedY;
+                actualPlacement = FlipPlacement(placement);
+            }
+        }
+        else if (bRightSide && (nClientX + nClientWidth > rcWork.right)) {
+            //右方放不下：尝试翻转到左方
+            int32_t nFlippedX = rcAnchor.left - nGap - nClientWidth;
+            if (nFlippedX >= rcWork.left) {
+                nClientX = nFlippedX;
+                actualPlacement = FlipPlacement(placement);
+            }
+        }
+        else if (bLeftSide && (nClientX < rcWork.left)) {
+            //左方放不下：尝试翻转到右方
+            int32_t nFlippedX = rcAnchor.right + nGap;
+            if (nFlippedX + nClientWidth <= rcWork.right) {
+                nClientX = nFlippedX;
+                actualPlacement = FlipPlacement(placement);
+            }
+        }
+    }
+
+    //翻转后仍然溢出工作区时，夹持到工作区内
+    if (nClientX < rcWork.left) {
+        nClientX = rcWork.left;
+    }
+    else if (nClientX + nClientWidth > rcWork.right) {
+        nClientX = rcWork.right - nClientWidth;
+    }
+    if (nClientY < rcWork.top) {
+        nClientY = rcWork.top;
+    }
+    else if (nClientY + nClientHeight > rcWork.bottom) {
+        nClientY = rcWork.bottom - nClientHeight;
+    }
+
+    //窗口位置需要加上阴影内边距（均为屏幕坐标）
+    ptWindowPos.x = nClientX - rcShadow.left;
+    ptWindowPos.y = nClientY - rcShadow.top;
+    return ptWindowPos;
+}
+
+bool Flyout::GetPrefetchWindowSize(UiSize& szWindow, UiPadding& rcShadow)
+{
+    Control* pAnchor = m_pAnchor.get();
+    Window* pAnchorWindow = (pAnchor != nullptr) ? pAnchor->GetWindow() : nullptr;
+    if (pAnchorWindow == nullptr) {
+        return false;
+    }
+
+    //解析窗口XML属性（解析结果在窗口内部缓存，CreateWnd时会复用，不会重复解析）
+    WindowCreateAttributes createAttributes;
+    GetCreateWindowAttributes(createAttributes);
+    if ((createAttributes.m_szInitSize.cx <= 0) || (createAttributes.m_szInitSize.cy <= 0)) {
+        return false;
+    }
+
+    //窗口大小（含阴影区域）为窗口坐标
+    szWindow = createAttributes.m_szInitSize;
+
+    //阴影边距为DIP值，需要换算为窗口坐标（屏幕坐标）
+    const DpiManager& anchorDpi = pAnchorWindow->Dpi();
+    rcShadow.left = anchorDpi.GetScaleWindowSize(createAttributes.m_rcShadowCorner.left);
+    rcShadow.top = anchorDpi.GetScaleWindowSize(createAttributes.m_rcShadowCorner.top);
+    rcShadow.right = anchorDpi.GetScaleWindowSize(createAttributes.m_rcShadowCorner.right);
+    rcShadow.bottom = anchorDpi.GetScaleWindowSize(createAttributes.m_rcShadowCorner.bottom);
+    return true;
+}
+
 void Flyout::PositionAroundAnchor()
 {
     Box* pRoot = GetRoot();
@@ -749,140 +944,13 @@ void Flyout::PositionAroundAnchor()
     anchorDpi.ClientSizeToWindowSize(szWindow);
     UiPadding rcShadow = pRoot->GetPadding();
     anchorDpi.ClientSizeToWindowSize(rcShadow);
-    const int32_t nClientWidth = szWindow.cx - rcShadow.left - rcShadow.right;
-    const int32_t nClientHeight = szWindow.cy - rcShadow.top - rcShadow.bottom;
 
-    //m_nGap 是逻辑像素：先按缩放比换算为物理像素，再换算为屏幕坐标
-    const int32_t nGap = anchorDpi.GetScaleWindowSize(m_nGap);
-
-    //按期望方位计算视觉区域左上角（屏幕坐标）
     Placement actual = m_placement;
-    int32_t nClientX = rcAnchor.left;
-    int32_t nClientY = rcAnchor.top;
-    switch (m_placement)
-    {
-    case Placement::Bottom:
-        nClientX = rcAnchor.left;
-        nClientY = rcAnchor.bottom + nGap;
-        break;
-    case Placement::BottomCenter:
-        nClientX = (rcAnchor.left + rcAnchor.right - nClientWidth) / 2;
-        nClientY = rcAnchor.bottom + nGap;
-        break;
-    case Placement::BottomEnd:
-        nClientX = rcAnchor.right - nClientWidth;
-        nClientY = rcAnchor.bottom + nGap;
-        break;
-    case Placement::Top:
-        nClientX = rcAnchor.left;
-        nClientY = rcAnchor.top - nGap - nClientHeight;
-        break;
-    case Placement::TopCenter:
-        nClientX = (rcAnchor.left + rcAnchor.right - nClientWidth) / 2;
-        nClientY = rcAnchor.top - nGap - nClientHeight;
-        break;
-    case Placement::TopEnd:
-        nClientX = rcAnchor.right - nClientWidth;
-        nClientY = rcAnchor.top - nGap - nClientHeight;
-        break;
-    case Placement::Right:
-        nClientX = rcAnchor.right + nGap;
-        nClientY = rcAnchor.top;
-        break;
-    case Placement::RightCenter:
-        nClientX = rcAnchor.right + nGap;
-        nClientY = (rcAnchor.top + rcAnchor.bottom - nClientHeight) / 2;
-        break;
-    case Placement::RightEnd:
-        nClientX = rcAnchor.right + nGap;
-        nClientY = rcAnchor.bottom - nClientHeight;
-        break;
-    case Placement::Left:
-        nClientX = rcAnchor.left - nGap - nClientWidth;
-        nClientY = rcAnchor.top;
-        break;
-    case Placement::LeftCenter:
-        nClientX = rcAnchor.left - nGap - nClientWidth;
-        nClientY = (rcAnchor.top + rcAnchor.bottom - nClientHeight) / 2;
-        break;
-    case Placement::LeftEnd:
-        nClientX = rcAnchor.left - nGap - nClientWidth;
-        nClientY = rcAnchor.bottom - nClientHeight;
-        break;
-    default:
-        break;
-    }
-
-    //空间不足时翻转到对侧
-    if (m_bAllowFlip) {
-        const bool bBottomSide = (m_placement == Placement::Bottom) ||
-                                 (m_placement == Placement::BottomCenter) ||
-                                 (m_placement == Placement::BottomEnd);
-        const bool bTopSide = (m_placement == Placement::Top) ||
-                              (m_placement == Placement::TopCenter) ||
-                              (m_placement == Placement::TopEnd);
-        const bool bRightSide = (m_placement == Placement::Right) ||
-                                (m_placement == Placement::RightCenter) ||
-                                (m_placement == Placement::RightEnd);
-        const bool bLeftSide = (m_placement == Placement::Left) ||
-                               (m_placement == Placement::LeftCenter) ||
-                               (m_placement == Placement::LeftEnd);
-
-        if (bBottomSide && (nClientY + nClientHeight > rcWork.bottom)) {
-            //下方放不下：尝试翻转到上方
-            int32_t nFlippedY = rcAnchor.top - nGap - nClientHeight;
-            if (nFlippedY >= rcWork.top) {
-                nClientY = nFlippedY;
-                actual = FlipPlacement(m_placement);
-            }
-        }
-        else if (bTopSide && (nClientY < rcWork.top)) {
-            //上方放不下：尝试翻转到下方
-            int32_t nFlippedY = rcAnchor.bottom + nGap;
-            if (nFlippedY + nClientHeight <= rcWork.bottom) {
-                nClientY = nFlippedY;
-                actual = FlipPlacement(m_placement);
-            }
-        }
-        else if (bRightSide && (nClientX + nClientWidth > rcWork.right)) {
-            //右方放不下：尝试翻转到左方
-            int32_t nFlippedX = rcAnchor.left - nGap - nClientWidth;
-            if (nFlippedX >= rcWork.left) {
-                nClientX = nFlippedX;
-                actual = FlipPlacement(m_placement);
-            }
-        }
-        else if (bLeftSide && (nClientX < rcWork.left)) {
-            //左方放不下：尝试翻转到右方
-            int32_t nFlippedX = rcAnchor.right + nGap;
-            if (nFlippedX + nClientWidth <= rcWork.right) {
-                nClientX = nFlippedX;
-                actual = FlipPlacement(m_placement);
-            }
-        }
-    }
+    const UiPoint ptWindowPos = CalcWindowPos(rcAnchor, szWindow, rcShadow, m_placement, m_bAllowFlip, actual);
     m_actualPlacement = actual;
 
-    //翻转后仍然溢出工作区时，夹持到工作区内
-    if (nClientX < rcWork.left) {
-        nClientX = rcWork.left;
-    }
-    else if (nClientX + nClientWidth > rcWork.right) {
-        nClientX = rcWork.right - nClientWidth;
-    }
-    if (nClientY < rcWork.top) {
-        nClientY = rcWork.top;
-    }
-    else if (nClientY + nClientHeight > rcWork.bottom) {
-        nClientY = rcWork.bottom - nClientHeight;
-    }
-
-    //窗口位置需要加上阴影内边距（均为屏幕坐标）
-    const int32_t nWindowX = nClientX - rcShadow.left;
-    const int32_t nWindowY = nClientY - rcShadow.top;
-
     SetWindowPos(InsertAfterWnd(),
-                 nWindowX, nWindowY,
+                 ptWindowPos.x, ptWindowPos.y,
                  szWindow.cx, szWindow.cy,
                  kSWP_NOZORDER | kSWP_NOACTIVATE);
 }

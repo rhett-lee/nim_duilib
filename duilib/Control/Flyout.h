@@ -248,6 +248,23 @@ protected:
     void PositionAroundAnchor();
 
 private:
+    /** 按锚点与方位计算浮层窗口的位置（屏幕坐标）
+    * @param [in] rcAnchor 锚点的屏幕矩形（屏幕坐标）
+    * @param [in] szWindow 窗口大小（含阴影区域，屏幕坐标）
+    * @param [in] rcShadow 窗口阴影内边距（屏幕坐标）
+    * @param [in] placement 期望弹出方位
+    * @param [in] bAllowFlip 空间不足时是否允许翻转到对侧
+    * @param [out] actualPlacement 实际使用的方位（发生翻转时与期望方位不同）
+    * @return 窗口左上角坐标（屏幕坐标）
+    */
+    UiPoint CalcWindowPos(const UiRect& rcAnchor, const UiSize& szWindow, const UiPadding& rcShadow,
+                          Placement placement, bool bAllowFlip, Placement& actualPlacement) const;
+
+    /** 创建窗口前，从窗口XML属性预估窗口大小与阴影边距（屏幕坐标），用于计算初始位置
+    * @return false 表示XML未指定初始大小，无法预估
+    */
+    bool GetPrefetchWindowSize(UiSize& szWindow, UiPadding& rcShadow);
+
     /** 启动/停止外部输入检测（不抢焦点模式下通过定时器轮询全局鼠标与 Esc 状态；
     *   跟随锚点时也依赖该定时器轮询锚点位置）
     */
