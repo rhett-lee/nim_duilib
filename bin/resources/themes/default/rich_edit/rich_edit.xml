@@ -1,4 +1,4 @@
-<Window size="1120,760" min_size="880,640" size_box="4,4,4,4" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" text_id="STRID_RICHEDIT_TEST_TITLE" icon="public/caption/logo.ico">
+<Window size="1120,760" min_size="880,640" size_box="4,4,4,4" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,${SIZE_TITLEBAR_HEIGHT},${SIZE_TITLEBAR_HEIGHT}" caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}" shadow_attached="true" text_id="STRID_RICHEDIT_TEST_TITLE" icon="public/caption/logo.ico">
     <!-- 该窗口下的Class定义 -->
     <!-- 字体样式按钮（粗体/斜体/下划线/删除线）：圆角图标按钮，选中时文字使用强调色 -->
     <Class name="font_style_check" width="26" height="26" border_round="4,4" cursor_type="hand"

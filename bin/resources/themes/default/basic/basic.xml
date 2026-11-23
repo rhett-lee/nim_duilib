@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window size="768,504" min_size="640,420"
-        caption="0,0,0,36" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36"
+        caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,${SIZE_TITLEBAR_HEIGHT},${SIZE_TITLEBAR_HEIGHT}"
         shadow_type="default" shadow_attached="true" shadow_snap="true"
         size_box="4,4,4,4" icon="public/caption/logo.ico" text_id="STRID_BASIC_TITLE">
     <!-- 该窗口下的Class定义 -->

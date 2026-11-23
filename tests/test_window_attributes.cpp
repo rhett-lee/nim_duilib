@@ -8,6 +8,7 @@
 
 #include "duilib/Core/WindowAttributes.h"
 #include "duilib/Core/DpiManager.h"
+#include "duilib/Core/GlobalManager.h"
 #include "duilib/third_party/xml/pugixml.hpp"
 
 #include <functional>
@@ -526,6 +527,36 @@ void TestResolveInitSize()
     }
 }
 
+/** 窗口属性值支持变量展开（如 caption、sys_menu_rect 引用尺寸变量） */
+void TestAttributeVariables()
+{
+    ui::GlobalManager& globalManager = ui::GlobalManager::Instance();
+    globalManager.AddVar(_T("TEST_TITLEBAR_HEIGHT"), _T("36"));
+    globalManager.AddVar(_T("TEST_WINDOW_TEXT"), _T("About"));
+
+    ui::WindowAttributeValues values;
+    const bool bParsed = ParseWindow(
+        _T("<Window caption=\"0,0,0,${TEST_TITLEBAR_HEIGHT}\" ")
+        _T("sys_menu_rect=\"0,0,${TEST_TITLEBAR_HEIGHT},${TEST_TITLEBAR_HEIGHT}\" ")
+        _T("text=\"${TEST_WINDOW_TEXT}\" size=\"800,${TEST_TITLEBAR_HEIGHT}\"/>"),
+        values);
+    CHECK(bParsed);
+    CHECK(values.m_unknownAttributes.empty());
+    CHECK(values.m_bCaptionDefined && RectEquals(values.m_rcCaption, 0, 0, 0, 36));
+    CHECK(values.m_bSysMenuRectDefined && RectEquals(values.m_rcSysMenuRect, 0, 0, 36, 36));
+    CHECK(values.m_bWindowTextDefined && (values.m_windowText == _T("About")));
+    CHECK(values.m_bSizeDefined && (values.m_szSize.cx == 800) && (values.m_szSize.cy == 36));
+
+    //未定义的变量保持原样
+    ui::WindowAttributeValues undefinedValues;
+    CHECK(ParseWindow(_T("<Window text=\"${TEST_NOT_DEFINED_VAR}\"/>"), undefinedValues));
+    CHECK(undefinedValues.m_bWindowTextDefined &&
+          (undefinedValues.m_windowText == _T("${TEST_NOT_DEFINED_VAR}")));
+
+    globalManager.RemoveVar(_T("TEST_TITLEBAR_HEIGHT"));
+    globalManager.RemoveVar(_T("TEST_WINDOW_TEXT"));
+}
+
 /** 非Window节点或空节点解析失败 */
 void TestParseInvalidNode()
 {
@@ -549,6 +580,7 @@ int main()
     TestResolveLayeredWindow();
     TestResolveRenderBackend();
     TestResolveInitSize();
+    TestAttributeVariables();
     TestParseInvalidNode();
 
     std::cout << "window attributes tests: "

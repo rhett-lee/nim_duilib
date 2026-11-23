@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 消息框布局：固定宽度 420，根容器 height="auto"，窗口高度随消息文本自适应 -->
-<Window class="popup_window" size="420,200" caption="0,0,0,36"
-        sys_menu="true" sys_menu_rect="0,0,36,36"
+<Window class="popup_window" size="420,200" caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}"
+        sys_menu="true" sys_menu_rect="0,0,${SIZE_TITLEBAR_HEIGHT},${SIZE_TITLEBAR_HEIGHT}"
         icon="public/caption/logo.ico">
     <VBox width="420" height="auto" bkcolor="bg_window_main" max_height="600">
         <!-- 标题栏：只保留关闭按钮，无最小化/最大化 -->

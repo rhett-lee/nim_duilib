@@ -14,8 +14,8 @@ For the meaning of title-bar-related window attributes (`caption`, `sys_menu`,
 
 | Item | Where to configure | Unified value | Notes |
 | :--- | :--- | :--- | :--- |
-| Title bar height | `caption` of `Window` | `0,0,0,36` (literal) | Defines both the draggable area and the visual height; they must match. Sync `SIZE_TITLEBAR_HEIGHT` when changing it |
-| System menu area | `sys_menu_rect` of `Window` | `0,0,36,36` (literal) | Must match the title bar height; the feature is disabled if not set |
+| Title bar height | `caption` of `Window` | `0,0,0,${SIZE_TITLEBAR_HEIGHT}` | Defines both the draggable area and the visual height; they must match |
+| System menu area | `sys_menu_rect` of `Window` | `0,0,${SIZE_TITLEBAR_HEIGHT},${SIZE_TITLEBAR_HEIGHT}` | Must match the title bar height; the feature is disabled if not set |
 | Title bar container | `HBox name="window_title_bar"` | `width="stretch"`, `height="${SIZE_TITLEBAR_HEIGHT}"` | Use `bkcolor="bg_titlebar"` for the background |
 | Top-left icon | `Control class="title_bar_logo"` | Shared class in `global.xml` | Already contains `${SIZE_TITLE_LOGO}` (18), `margin="8,0,0,0"`, `valign="center"`, and the logo image |
 | Title text | `Label class="title_bar_title"` | Shared class in `global.xml` | Already contains `font="system_regular_14"`, `margin="8,0,0,0"`, `valign="center"`; stretched titles override `margin="8,0,8,0"` |
@@ -24,10 +24,10 @@ For the meaning of title-bar-related window attributes (`caption`, `sys_menu`,
 | Close button | `Button` referencing a window button class | `btn_wnd_close_11` sets `height="stretch"` | Width comes from the base class and the height fills the bar; the window XML only writes `margin="0"` |
 
 The `${SIZE_*}` variables are defined in the "size and path variables" section of
-[global.xml](../bin/resources/themes/default/global.xml). **Note that attributes of the
-`Window` node (`caption`, `sys_menu_rect`, etc.) do not expand variables**, so they must be
-written as literals. When changing the title bar height, update both `caption` and
-`SIZE_TITLEBAR_HEIGHT` so they stay in sync.
+[global.xml](../bin/resources/themes/default/global.xml). Attributes of the `Window` node
+(`caption`, `sys_menu_rect`, etc.) also expand variables, so write
+`caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}"` and changing `SIZE_TITLEBAR_HEIGHT` updates all
+windows at once.
 
 ## 2. Standard Structure
 
@@ -104,9 +104,10 @@ Notes:
 1. **`caption` must match the title bar height**
    The last value of `caption` is the distance from the top of the window to the draggable
    area, i.e. the title bar height. If they differ, you get either "buttons clickable but
-   the window cannot be dragged" or extra blank space below the title bar. `caption` must
-   be a literal (window attributes do not expand variables), so update
-   `SIZE_TITLEBAR_HEIGHT` together with it.
+   the window cannot be dragged" or extra blank space below the title bar. Both `caption`
+   and `sys_menu_rect` expand variables, so always write
+   `caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}"` and
+   `sys_menu_rect="0,0,${SIZE_TITLEBAR_HEIGHT},${SIZE_TITLEBAR_HEIGHT}"`.
 
 2. **The close button must fill the height and sit flush to the edges**
    `btn_wnd_close_11` already sets `height="stretch"`; write only `margin="0"` in the

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="540,490" min_size="460,485" caption="0,0,0,36" shadow_attached="true">
+<Window size="540,490" min_size="460,485" caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}" shadow_attached="true">
     <!-- 应用列表窗口：标题栏 + "常用应用" + "我的应用"，两个区域之间可以互相拖拽图标 -->
     <VBox bkcolor="bg_window_main">
         <!-- 标题栏区域 -->

@@ -62,7 +62,9 @@ bool ParseWindowAttributeValues(const pugi::xml_node& root, WindowAttributeValue
 
     //应用单个属性到values
     std::function<void(const DString&, const DString&)> applyAttribute;
-    applyAttribute = [&values, pWindow](const DString& strName, const DString& strValue) {
+    applyAttribute = [&values, pWindow](const DString& strName, const DString& strValue2) {
+        //窗口属性支持变量展开（与控件属性一致），如：caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}"
+        const DString strValue = GlobalManager::Instance().GetExpandVarStrings(strValue2);
         if (StringUtil::IsEqualNoCase(strName, _T("use_system_caption"))) {
             values.m_bUseSystemCaption = StringUtil::IsValueTrue(strValue);
             values.m_bUseSystemCaptionDefined = true;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window size="920,720" min_size="780,560" text_id="STRID_CONTROLS_ANI_WINDOW_TITLE"
-        caption="0,0,0,36" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36"
+        caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,${SIZE_TITLEBAR_HEIGHT},${SIZE_TITLEBAR_HEIGHT}"
         shadow_type="default" shadow_snap="true" size_box="4,4,4,4" icon="public/caption/logo.ico">
     <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->
     <VBox bkcolor="bg_window_main">

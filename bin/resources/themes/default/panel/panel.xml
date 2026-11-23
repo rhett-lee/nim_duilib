@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<Window text_id="STRID_PANEL_WINDOW_TITLE" size="900,700" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36"
-        caption="0,0,0,36" shadow_type="default" size_box="2,2,2,2" min_size="500,400"
+<Window text_id="STRID_PANEL_WINDOW_TITLE" size="900,700" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,${SIZE_TITLEBAR_HEIGHT},${SIZE_TITLEBAR_HEIGHT}"
+        caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}" shadow_type="default" size_box="2,2,2,2" min_size="500,400"
         icon="public/caption/logo.ico">
     <VBox bkcolor="bg_window_main">
         <!-- 标题栏 -->

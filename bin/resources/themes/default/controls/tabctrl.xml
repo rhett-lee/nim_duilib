@@ -29,7 +29,7 @@
   C10 垂直模式的分割线与边距适配由卡片 ①（切到垂直）和 ④ 覆盖。
   所有可见文案一律用 text_id / title_id / tooltip_text_id 引用语言文件，支持中英双语。
 -->
-<Window size="1000,860" text_id="STRID_TABCTRL_WINDOW_TITLE" use_system_caption="false" caption="0,0,0,36" shadow_type="default" size_box="2,2,2,2">
+<Window size="1000,860" text_id="STRID_TABCTRL_WINDOW_TITLE" use_system_caption="false" caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}" shadow_type="default" size_box="2,2,2,2">
     <VBox bkcolor="bg_window_main" height="stretch">
         <!-- 标题栏 -->
         <HBox name="window_title_bar" width="stretch" height="${SIZE_TITLEBAR_HEIGHT}" bkcolor="bg_titlebar">

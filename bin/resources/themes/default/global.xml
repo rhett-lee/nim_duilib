@@ -46,7 +46,7 @@
     <Var name="SIZE_BTN_EXIT_FULLSCREEN_HEIGHT" value="36"/>
     <Var name="SIZE_BTN_GLOBAL_DEFAULT" value="80x30"/>
     <Var name="SIZE_ICON_SMALL" value="16"/>
-    <!-- 标题栏尺寸（注意：窗口的 caption 不支持变量展开，需与本值保持一致） -->
+    <!-- 标题栏尺寸（窗口的 caption、sys_menu_rect 等属性均引用该变量） -->
     <Var name="SIZE_TITLEBAR_HEIGHT" value="36"/>
     <Var name="SIZE_WND_BTN_WIDTH" value="40"/>
     <Var name="SIZE_WND_BTN_HEIGHT" value="32"/>

@@ -98,8 +98,9 @@
 1. **`caption` 与标题栏高度必须一致**
    `caption` 的最后一个值是可拖动区域距窗口顶部的距离，也是标题栏高度。
    两者不一致会出现“按钮可点击但拖不动”或“标题栏下方多出空白”的问题。
-   `caption` 只能用字面量书写（窗口属性不支持变量展开），修改时需同时调整
-   `SIZE_TITLEBAR_HEIGHT`。
+   `caption` 与 `sys_menu_rect` 均支持变量展开，统一写作
+   `caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}"`、`sys_menu_rect="0,0,${SIZE_TITLEBAR_HEIGHT},${SIZE_TITLEBAR_HEIGHT}"`，
+   修改 `SIZE_TITLEBAR_HEIGHT` 即可同步生效。
 
 2. **关闭按钮必须满高贴边**
    `btn_wnd_close_11` 已把高度设为 `stretch`，窗口 XML 中只写 `margin="0"`，
