@@ -1891,6 +1891,15 @@ void NativeWindow_SDL::ClearNativeWindow()
     m_sdlRenderer = nullptr;
     m_sdlWindow = nullptr;
 
+    //在销毁窗口之前，先记录父窗口：窗口销毁后，父窗口被遮挡的区域需要整窗重绘
+    NativeWindow_SDL* pParentWindow = nullptr;
+    if (sdlWindow != nullptr) {
+        SDL_Window* sdlParentWindow = SDL_GetWindowParent(sdlWindow);
+        if (sdlParentWindow != nullptr) {
+            pParentWindow = NativeWindow_SDL::GetWindowFromID(SDL_GetWindowID(sdlParentWindow));
+        }
+    }
+
     if (sdlWindow != nullptr) {
         SDL_SetWindowHitTest(sdlWindow, nullptr, nullptr);
         SDL_DestroyWindow(sdlWindow);
@@ -1900,6 +1909,11 @@ void NativeWindow_SDL::ClearNativeWindow()
         SDL_DestroyRenderer(sdlRenderer);
         sdlRenderer = nullptr;
     }
+
+    //窗口销毁后，通知父窗口整窗重绘（仅macOS平台有效）：
+    //弹出式窗口(例如DoModal对话框)销毁时，系统不会通知父窗口重绘被遮挡的区域，
+    //父窗口会残留弹出式窗口的旧内容，因此需要通知父窗口重绘一次
+    RepaintWindow(pParentWindow);
 
     m_pWindowDropTarget.reset();
 }
@@ -2123,6 +2137,9 @@ void NativeWindow_SDL::Close()
         m_pOwner->OnNativePreCloseWindow();
     }
 
+    //macOS平台：关闭窗口前，通知父窗口重绘被遮挡的区域，避免留下残影
+    RepaintParentWindow();
+
     //关闭窗口
     ClearNativeWindow();
 }
@@ -2287,6 +2304,40 @@ void NativeWindow_SDL::AdjustPopupWindowPosition()
 #endif
 }
 
+void NativeWindow_SDL::RepaintParentWindow()
+{
+#if defined (DUILIB_BUILD_FOR_MACOS)
+    if (m_sdlWindow == nullptr) {
+        return;
+    }
+    SDL_Window* sdlParentWindow = SDL_GetWindowParent(m_sdlWindow);
+    if (sdlParentWindow == nullptr) {
+        return;
+    }
+    RepaintWindow(NativeWindow_SDL::GetWindowFromID(SDL_GetWindowID(sdlParentWindow)));
+#endif
+}
+
+void NativeWindow_SDL::RepaintWindow(NativeWindow_SDL* pWindow)
+{
+#if defined (DUILIB_BUILD_FOR_MACOS)
+    if (pWindow == nullptr) {
+        return;
+    }
+    //使用窗口自己的客户区坐标（开启像素密度时是像素坐标，与绘制时使用的坐标一致），
+    //不能直接使用SDL_GetWindowSize返回的逻辑尺寸，否则高DPI下只会重绘左上角的一部分区域
+    UiRect rcClient;
+    pWindow->GetClientRect(rcClient);
+    if (rcClient.IsEmpty()) {
+        return;
+    }
+    //通知窗口整窗重绘：窗口可能只做过局部绘制，被弹出式窗口遮挡的区域会残留旧内容
+    pWindow->Invalidate(rcClient);
+#else
+    UNUSED_VARIABLE(pWindow);
+#endif
+}
+
 bool NativeWindow_SDL::ShowWindow(ShowWindowCommands nCmdShow)
 {
     ASSERT(IsWindow());
@@ -2308,6 +2359,8 @@ bool NativeWindow_SDL::ShowWindow(ShowWindowCommands nCmdShow)
     {
     case kSW_HIDE:
         nRet = SDL_HideWindow(m_sdlWindow);
+        //macOS平台：窗口隐藏后，通知父窗口重绘被遮挡的区域，避免留下残影
+        RepaintParentWindow();
         break;
     case kSW_SHOW:
     case kSW_SHOW_NORMAL:

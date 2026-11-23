@@ -71,6 +71,7 @@ SkRasterWindowContext_SDL::SkRasterWindowContext_SDL(SDL_Window* sdlWindow, std:
     m_pSDLWindowSurface(nullptr),
     m_bDirectSurface(false),
     m_nDirectSurfacePitch(0),
+    m_pDirectSurfacePixels(nullptr),
     m_bBackBufferValid(false)
 {
     fWidth = 0;
@@ -89,6 +90,7 @@ void SkRasterWindowContext_SDL::Clear()
     m_bDirectSurface = false;
     m_pSDLWindowSurface = nullptr;
     m_nDirectSurfacePitch = 0;
+    m_pDirectSurfacePixels = nullptr;
     if (m_sdlTextrue != nullptr) {
         SDL_DestroyTexture(m_sdlTextrue);
         m_sdlTextrue = nullptr;
@@ -248,6 +250,15 @@ bool SkRasterWindowContext_SDL::PaintAndSwapBuffers(IRender* pRender, IRenderPai
     if (rcPaint.IsEmpty()) {
         //无需绘制
         return false;
+    }
+
+    //后备缓冲的内容无效时（刚创建、调整大小或者刚重建），必须整窗完整绘制一次：
+    //此时缓冲中除了本次脏区外的其它区域内容未定义（可能是其它窗口的旧图像），
+    //如果只做局部绘制并提交，窗口上就会显示残留内容
+    if (!m_bBackBufferValid && !rcClient.IsEmpty()) {
+        rcPaintList.clear();
+        rcPaintList.push_back(rcClient);
+        rcPaint = rcClient;
     }
 
     //是否为完全绘制
@@ -410,6 +421,18 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffers(const std::vector<UiRect>& rcPa
         return false;
     }
 
+    //纹理的尺寸必须与后备缓冲一致，否则重建纹理（SDL创建纹理时，其内容未定义）
+    if (m_sdlTextrue != nullptr) {
+        float fTextureWidth = 0;
+        float fTextureHeight = 0;
+        if (SDL_GetTextureSize(m_sdlTextrue, &fTextureWidth, &fTextureHeight)) {
+            if ((fTextureWidth != (float)width()) || (fTextureHeight != (float)height())) {
+                SDL_DestroyTexture(m_sdlTextrue);
+                m_sdlTextrue = nullptr;
+            }
+        }
+    }
+    bool bTextureCreated = false;
     if (m_sdlTextrue == nullptr) {
         // 渲染到窗口（IRender -> 绘制到 SDL Render -> 更新到 SDL 窗口）
 #ifdef DUILIB_BUILD_FOR_WIN
@@ -419,6 +442,8 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffers(const std::vector<UiRect>& rcPa
 #endif
         m_sdlTextrue = SDL_CreateTexture(sdlRenderer, format, SDL_TextureAccess::SDL_TEXTUREACCESS_STREAMING, width(), height());
         ASSERT(m_sdlTextrue != nullptr);
+        //新建纹理的内容是未定义的（可能残留其它窗口的旧图像），必须上传一次完整内容
+        bTextureCreated = (m_sdlTextrue != nullptr);
     }
     
     if (m_sdlTextrue == nullptr) {
@@ -454,8 +479,8 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffers(const std::vector<UiRect>& rcPa
         }
         ASSERT(bDrawOk);
     }
-    if (!bDrawOk) {
-        //完整绘制
+    if (!bDrawOk || bTextureCreated) {
+        //完整绘制（新建纹理时也必须完整上传，否则未上传的区域会显示残留内容）
         SDL_UpdateTexture(m_sdlTextrue, nullptr, m_fSurfaceMemory.get(), m_fBackbufferSurface->width() * sizeof(uint32_t));
     }
 
@@ -598,7 +623,8 @@ void SkRasterWindowContext_SDL::EnsureBackbufferSurface(uint8_t nLayeredWindowAl
     SDL_Surface* sdlSurface = SDL_GetWindowSurface(m_sdlWindow);
     if (m_bDirectSurface && (sdlSurface != nullptr) && (sdlSurface == m_pSDLWindowSurface) &&
         (sdlSurface->w == width()) && (sdlSurface->h == height()) &&
-        (sdlSurface->pitch == m_nDirectSurfacePitch) && (sdlSurface->pixels != nullptr)) {
+        (sdlSurface->pitch == m_nDirectSurfacePitch) && (sdlSurface->pixels == m_pDirectSurfacePixels) &&
+        (sdlSurface->pixels != nullptr)) {
         //已经是直绘模式，且SDL窗口表面的尺寸、行字节数和像素缓冲均未发生变化，可以直接复用
         return;
     }
@@ -625,6 +651,7 @@ void SkRasterWindowContext_SDL::EnsureBackbufferSurface(uint8_t nLayeredWindowAl
     m_fBackbufferSurface = std::move(surface);
     m_pSDLWindowSurface = sdlSurface;
     m_nDirectSurfacePitch = sdlSurface->pitch;
+    m_pDirectSurfacePixels = sdlSurface->pixels;
     m_bDirectSurface = true;
     //SDL窗口表面的像素内容未知（新创建或者重建），后备缓冲需要完整绘制一次
     m_bBackBufferValid = false;
@@ -690,6 +717,7 @@ void SkRasterWindowContext_SDL::SwitchToMemoryBackbuffer()
     m_bDirectSurface = false;
     m_pSDLWindowSurface = nullptr;
     m_nDirectSurfacePitch = 0;
+    m_pDirectSurfacePixels = nullptr;
     //直绘模式下窗口表面的内容与内存缓冲不一致，需要重新完整绘制一次
     m_bBackBufferValid = false;
 

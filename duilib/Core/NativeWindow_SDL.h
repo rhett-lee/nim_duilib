@@ -733,6 +733,17 @@ private:
     */
     void AdjustPopupWindowPosition();
 
+    /** 通知父窗口整窗重绘（仅macOS平台有效，其它平台为空实现）
+    *  macOS平台：弹出式窗口关闭/隐藏后，系统不会通知父窗口重绘被遮挡的区域，
+    *  而父窗口可能只做过局部绘制，会在父窗口上留下残影，因此需要通知父窗口重绘一次
+    */
+    void RepaintParentWindow();
+
+    /** 通知指定窗口整窗重绘（仅macOS平台有效，其它平台为空实现）
+    * @param [in] pWindow 需要重绘的窗口，可以为空
+    */
+    static void RepaintWindow(NativeWindow_SDL* pWindow);
+
 private:
     /** 设置窗口ID与窗口指针的关系
     */

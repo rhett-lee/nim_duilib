@@ -182,6 +182,10 @@ private:
     */
     int32_t m_nDirectSurfacePitch;
 
+    /** 直绘模式下，SDL窗口表面的像素缓冲区指针（用于检测窗口表面是否被重建）
+    */
+    void* m_pDirectSurfacePixels;
+
     /** 后备缓冲的内容是否完整有效（完整绘制成功后为true，缓冲重建或尺寸变化后为false）
     */
     bool m_bBackBufferValid;
