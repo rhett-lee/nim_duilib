@@ -18,6 +18,18 @@ ClickThrough::~ClickThrough()
 {
 }
 
+/** 激活指定的应用
+*  NSApplicationActivateIgnoringOtherApps 在 macOS 14 起被标记为弃用（该选项已无效果），
+*  但旧系统仍需要该选项才能把应用窗口带到前台，因此保留原调用并关闭弃用告警。
+*/
+static void MacOS_ActivateApplication(NSRunningApplication* app)
+{
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    [app activateWithOptions:NSApplicationActivateIgnoringOtherApps];
+#pragma clang diagnostic pop
+}
+
 static void MacOS_ActivateWindowByNumber(NSInteger windowNumber) 
 {
     if (windowNumber == 0) {
@@ -52,10 +64,10 @@ static void MacOS_ActivateWindowByNumber(NSInteger windowNumber)
     
     if (found && targetPID != 0) {
         NSRunningApplication *app = [NSRunningApplication runningApplicationWithProcessIdentifier:targetPID];
-        [app activateWithOptions:NSApplicationActivateIgnoringOtherApps];
+        MacOS_ActivateApplication(app);
         if (!app.isActive) {
             dispatch_async(dispatch_get_main_queue(), ^{
-                [app activateWithOptions:NSApplicationActivateIgnoringOtherApps];
+                MacOS_ActivateApplication(app);
             });
         }
     }

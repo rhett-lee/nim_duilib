@@ -49,6 +49,7 @@ namespace
         return ::strcasecmp(lhs.m_displayName.c_str(), rhs.m_displayName.c_str()) < 0;
     }
 
+#if defined (DUILIB_BUILD_FOR_LINUX)
     /** 还原挂载表中的八进制转义字符（如"\\040"表示空格）
     */
     std::string UnescapeMountPath(const std::string& value)
@@ -70,6 +71,7 @@ namespace
         }
         return result;
     }
+#endif //DUILIB_BUILD_FOR_LINUX
 
     /** 判断是否为需要跳过的虚拟文件系统
     */
@@ -104,6 +106,7 @@ namespace
                (fsType == "9p") || (fsType == "sshfs") || (fsType == "davfs");
     }
 
+#if defined (DUILIB_BUILD_FOR_LINUX)
     /** 获取设备名的基名（去掉分区号）
     * 例如: sda1 -> sda, nvme0n1p1 -> nvme0n1, mmcblk0p1 -> mmcblk0
     */
@@ -161,6 +164,7 @@ namespace
         std::getline(file, line);
         return line;
     }
+#endif //DUILIB_BUILD_FOR_LINUX
 
     /** 判断设备的类型
     */

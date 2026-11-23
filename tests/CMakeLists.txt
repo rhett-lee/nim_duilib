@@ -1538,8 +1538,12 @@ if(NOT DUILIB_OS_WINDOWS)
         list(APPEND _duilib_test_link_dirs "${DUILIB_SDL_LIB_PATH}")
     endif()
 
+    # DUILIB_LIBS 含 duilib 自身，而各测试目标前面已单独链接 duilib 目标；
+    # 若这里再展开一次，macOS/Linux 的 ld 会告警 "ignoring duplicate libraries"
+    set(_duilib_test_third_party_libs ${DUILIB_LIBS})
+    list(REMOVE_ITEM _duilib_test_third_party_libs duilib)
     set(_duilib_test_platform_libs
-        ${DUILIB_LIBS} ${DUILIB_SDL_LIBS} ${DUILIB_SKIA_LIBS}
+        ${_duilib_test_third_party_libs} ${DUILIB_SDL_LIBS} ${DUILIB_SKIA_LIBS}
     )
     if(DUILIB_OS_LINUX OR DUILIB_OS_FREEBSD)
         # Linux/FreeBSD：X11 与字体相关依赖（统一使用 imported target）

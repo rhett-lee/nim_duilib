@@ -10,10 +10,13 @@
 #include <cstring>
 #include <list>
 
-#if defined(__GNUC__) && !defined(__clang__)
+#if defined(__GNUC__) || defined(__clang__)
     #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
     #pragma GCC diagnostic ignored "-Wsign-compare"
+#endif
+#if defined(__GNUC__) && !defined(__clang__)
+    //该告警分组仅GCC支持，Clang下会提示未知分组
+    #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
 
 #pragma warning (push)
@@ -25,7 +28,7 @@
     #include "duilib/third_party/svg/nanosvgrast.h"
 #pragma warning (pop)
 
-#if defined(__GNUC__) && !defined(__clang__)
+#if defined(__GNUC__) || defined(__clang__)
     #pragma GCC diagnostic pop
 #endif
 

@@ -167,7 +167,7 @@ private:
 
     /** 鼠标按下消息
     */
-    virtual bool ButtonDown(const EventArgs& msg);
+    virtual bool ButtonDown(const EventArgs& msg) override;
 
 private:
     /** 设置控件的属性列表

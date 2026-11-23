@@ -217,10 +217,11 @@ void BrowserForm::OnInitWindow()
     }
 
     //缓存工具条按钮，并设置初始状态
-    m_pBtnBack = dynamic_cast<Button*>(FindControl(_T("btn_back")));
-    m_pBtnForward = dynamic_cast<Button*>(FindControl(_T("btn_forward")));
-    m_pBtnRefresh = dynamic_cast<Button*>(FindControl(_T("btn_refresh")));
-    m_pBtnStop = dynamic_cast<Button*>(FindControl(_T("btn_stop")));
+    //macOS 的 Carbon 头文件中存在全局的"Button"结构体，这里必须加 ui:: 限定
+    m_pBtnBack = dynamic_cast<ui::Button*>(FindControl(_T("btn_back")));
+    m_pBtnForward = dynamic_cast<ui::Button*>(FindControl(_T("btn_forward")));
+    m_pBtnRefresh = dynamic_cast<ui::Button*>(FindControl(_T("btn_refresh")));
+    m_pBtnStop = dynamic_cast<ui::Button*>(FindControl(_T("btn_stop")));
     if (m_pBtnBack != nullptr) {
         m_pBtnBack->SetEnabled(false);
     }

@@ -407,14 +407,14 @@ if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
     # 编译器的参数（公共定义见 cmake/duilib_compiler_flags.cmake）
     include(${DUILIB_SRC_ROOT_DIR}/cmake/duilib_compiler_flags.cmake)
 
+    #第三方giflib源码中的有符号/无符号比较告警：非本项目代码，定向关闭（GCC与Clang都会告警）
+    set_source_files_properties(${GIFLIB_SRCS} PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare")
+
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
         list(APPEND DUILIB_CXX_COMPILER_FLAGS
             -Wno-cast-function-type
           )
           set_source_files_properties("${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libudis86/decode.c" PROPERTIES COMPILE_OPTIONS "-Wno-implicit-fallthrough")
-
-          #第三方giflib源码中的有符号/无符号比较告警：非本项目代码，定向关闭
-          set_source_files_properties(${GIFLIB_SRCS} PROPERTIES COMPILE_OPTIONS "-Wno-sign-compare")
 
           #Skia的SkTemplates.h使用了clang专属属性（clang::reinitializes），GCC下会产生-Wattributes警告
           set_property(SOURCE "${SKIA_SRC_ROOT_DIR}/tools/window/WindowContext.cpp"
