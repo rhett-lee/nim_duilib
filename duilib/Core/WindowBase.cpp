@@ -524,6 +524,9 @@ UiRect WindowBase::GetWindowPos(bool bContainShadow) const
     if (!bContainShadow) {
         UiPadding rcShadow;
         GetCurrentShadowCorner(rcShadow);
+        //GetWindowRect返回的是屏幕坐标(窗口坐标)，而阴影边距是布局坐标(物理像素)，
+        //两者之间存在像素密度差异，必须先换算到同一坐标系再扣除，否则像素密度>1时定位会偏移
+        Dpi().ClientSizeToWindowSize(rcShadow);
         rcPos.Deflate(rcShadow);
     }
     return rcPos;
