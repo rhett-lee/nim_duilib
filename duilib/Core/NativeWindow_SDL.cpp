@@ -1188,7 +1188,7 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
     //显示窗口
     m_bCloseing = false;
     m_closeParam = kWindowCloseNormal;
-    SDL_ShowWindow(m_sdlWindow);
+    ShowSdlWindow();
 
     //进入内部消息循环
     MessageLoop_SDL messageLoop;
@@ -2239,18 +2239,22 @@ bool NativeWindow_SDL::ShowSdlWindow()
         return false;
     }
 #if defined (DUILIB_BUILD_FOR_MACOS)
-    //macOS平台：SDL(Cocoa)在窗口显示时，会把带父窗口的子窗口按父窗口的坐标系重新排列，
-    //导致弹出式窗口先出现在父窗口的左上角，然后再跳转到目标位置，并留下绘制残留。
-    //因此在显示窗口的前后，各设置一次窗口的位置和大小，确保窗口首次可见时就在目标位置。
-    const bool bAdjustPopupPos = !IsChildWindow() &&
-                                 ((m_createParam.m_dwStyle & kWS_POPUP) != 0) &&
-                                 (m_ptInitWindow.x != kCW_USEDEFAULT) && (m_ptInitWindow.y != kCW_USEDEFAULT) &&
-                                 (m_szInitWindow.cx > 0) && (m_szInitWindow.cy > 0);
-    if (!bAdjustPopupPos) {
+    //macOS平台：SDL(Cocoa)在窗口显示时，会把带父窗口的窗口重新排列，
+    //导致窗口先出现在初始位置(父窗口左上角/创建时的位置)，然后再跳转到目标位置，并留下绘制残留；
+    //另外SDL(Cocoa)在设置窗口大小时，会使用创建窗口时的初始坐标重新定位窗口。
+    //因此在显示窗口的前后，各设置一次窗口位置（显示前同时设置窗口大小），确保窗口首次可见时就在目标位置。
+    SDL_Window* sdlParentWindow = SDL_GetWindowParent(m_sdlWindow);
+    const bool bAdjustPos = !IsChildWindow() &&
+                            ((sdlParentWindow != nullptr) || ((m_createParam.m_dwStyle & kWS_POPUP) != 0)) &&
+                            (m_ptInitWindow.x != kCW_USEDEFAULT) && (m_ptInitWindow.y != kCW_USEDEFAULT);
+    if (!bAdjustPos) {
         return SDL_ShowWindow(m_sdlWindow);
     }
+    const bool bAdjustSize = (m_szInitWindow.cx > 0) && (m_szInitWindow.cy > 0);
     //先设置窗口大小，再设置窗口位置：SDL(Cocoa)设置窗口大小时，会使用创建时的初始坐标重新定位窗口
-    SDL_SetWindowSize(m_sdlWindow, m_szInitWindow.cx, m_szInitWindow.cy);
+    if (bAdjustSize) {
+        SDL_SetWindowSize(m_sdlWindow, m_szInitWindow.cx, m_szInitWindow.cy);
+    }
     SDL_SetWindowPosition(m_sdlWindow, m_ptInitWindow.x, m_ptInitWindow.y);
     SDL_SyncWindow(m_sdlWindow);
     bool bRet = SDL_ShowWindow(m_sdlWindow);
@@ -2271,7 +2275,8 @@ void NativeWindow_SDL::AdjustPopupWindowPosition()
     if ((m_sdlWindow == nullptr) || IsChildWindow() || !IsWindowVisible()) {
         return;
     }
-    if ((m_createParam.m_dwStyle & kWS_POPUP) == 0) {
+    SDL_Window* sdlParentWindow = SDL_GetWindowParent(m_sdlWindow);
+    if ((sdlParentWindow == nullptr) && ((m_createParam.m_dwStyle & kWS_POPUP) == 0)) {
         return;
     }
     if ((m_ptInitWindow.x == kCW_USEDEFAULT) || (m_ptInitWindow.y == kCW_USEDEFAULT)) {
@@ -2381,19 +2386,16 @@ void NativeWindow_SDL::ShowModalFake(NativeWindow_SDL* pParentWindow)
         pParentWindow = nullptr;
     }
     if (pParentWindow != nullptr) {
-        if (pParentWindow != nullptr) {
-            pParentWindow->EnableWindow(false);
-        }
-    }
-    ShowWindow(kSW_SHOW_NORMAL);
-    if (pParentWindow != nullptr) {
+        pParentWindow->EnableWindow(false);
+        //设置父窗口和模态属性(必须在显示窗口之前设置：窗口显示后修改父子关系，
+        //macOS(Cocoa)会重新排列窗口，导致窗口出现位置异常)
         bool nRet = SDL_SetWindowParent(m_sdlWindow, pParentWindow->m_sdlWindow);
         ASSERT_UNUSED_VARIABLE(nRet);
-
         nRet = SDL_SetWindowModal(m_sdlWindow, true);
         ASSERT_UNUSED_VARIABLE(nRet);
         m_bFakeModal = true;
-    }    
+    }
+    ShowWindow(kSW_SHOW_NORMAL);
 }
 
 void NativeWindow_SDL::OnCloseModalFake(NativeWindow_SDL* pParentWindow)
