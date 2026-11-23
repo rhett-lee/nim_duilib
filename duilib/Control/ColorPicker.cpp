@@ -382,7 +382,7 @@ void ColorPicker::AdjustWindowPos()
             const int32_t nOverflow = (rcOwnerVisible.right + nGap + nVisibleWidth) - rcWork.right;
             const int32_t nNewOwnerLeft = rcOwnerVisible.left - nOverflow;
             if (nNewOwnerLeft >= rcWork.left) {
-                const int32_t nOwnerShadowLeft = rcOwner.left - rcOwnerVisible.left;
+                const int32_t nOwnerShadowLeft = rcOwnerVisible.left - rcOwner.left;
                 pOwner->MoveWindow(nNewOwnerLeft - nOwnerShadowLeft,
                                   rcOwner.top,
                                   rcOwner.Width(), rcOwner.Height(), true);
