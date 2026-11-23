@@ -1225,7 +1225,22 @@ bool ControlDragableT<T>::DragOutMouseMove(const EventArgs& msg)
             WindowCreateParam createWndParam;
             createWndParam.m_dwStyle = kWS_POPUP;
             createWndParam.m_dwExStyle = kWS_EX_LAYERED | kWS_EX_NOACTIVATE | kWS_EX_TRANSPARENT;
-            m_pDragWindow->CreateWnd(this->GetWindow(), createWndParam);
+
+            //创建时就使用最终的位置和大小：macOS(Cocoa)显示窗口时会先按创建时的位置摆放一帧，
+            //若创建位置与最终位置不一致，窗口会先出现在错误位置，然后再跳转到正确位置
+            Window* pOwnerWindow = this->GetWindow();
+            if (pOwnerWindow != nullptr) {
+                UiPoint ptCursor;
+                pOwnerWindow->GetCursorPos(ptCursor);
+                const UiRect rcWnd = m_pDragWindow->CalcWindowRect(pDragImage.get(), ptCursor, pOwnerWindow->Dpi());
+                if (!rcWnd.IsEmpty()) {
+                    createWndParam.m_nX = rcWnd.left;
+                    createWndParam.m_nY = rcWnd.top;
+                    createWndParam.m_nWidth = rcWnd.Width();
+                    createWndParam.m_nHeight = rcWnd.Height();
+                }
+            }
+            m_pDragWindow->CreateWnd(pOwnerWindow, createWndParam);
             ASSERT(m_pDragWindow->IsWindow());
             if (m_pDragWindow->IsWindow()) {
                 m_pDragWindow->AddRef();

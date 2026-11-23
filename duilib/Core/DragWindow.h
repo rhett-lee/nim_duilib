@@ -8,6 +8,8 @@
 
 namespace ui
 {
+class DpiManager;
+
 /** 拖动过程中显示的窗口
 */
 class DUILIB_API DragWindow : public WindowImplBase
@@ -46,6 +48,15 @@ public:
     /** 调整窗口位置，跟随鼠标
     */
     virtual void AdjustPos();
+
+    /** 计算拖拽窗口的位置和大小（屏幕坐标，包含阴影区域）
+    *   用于创建窗口时直接指定位置和大小，避免窗口显示瞬间先出现在创建位置再跳转
+    * @param [in] pBitmap 拖拽时显示的位图（可以为空，为空时使用XML中配置的初始大小）
+    * @param [in] ptCursor 鼠标位置（屏幕坐标）
+    * @param [in] dpi 窗口使用的DPI管理器（用于像素密度换算）
+    * @return 窗口的位置和大小（屏幕坐标）
+    */
+    UiRect CalcWindowRect(const IBitmap* pBitmap, const UiPoint& ptCursor, const DpiManager& dpi);
 
 public:
     /** 增加引用计数

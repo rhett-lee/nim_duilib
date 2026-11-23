@@ -35,6 +35,11 @@ public:
     void CloseComboWndOnOwnerDestroy();
 
 private:
+    /** 计算下拉窗口的显示矩形（屏幕坐标，包含阴影区域）
+    */
+    UiRect GetComboWndRect() const;
+
+private:
     //关联的宿主控件（弱引用，宿主析构后自动失效）
     ControlPtrT<ComboButton> m_pOwner;
 
@@ -53,9 +58,19 @@ void ComboButtonWnd::InitComboWnd(ComboButton* pOwner, bool bActivated)
     }
     m_pOwner = pOwner;
     m_bIsClosed = false;
+
+    //设置下拉框的显示位置和大小：创建时就使用最终位置，避免弹出时出现位置跳变
+    //（macOS(Cocoa)显示窗口时会先按创建时的位置摆放一帧，再应用后续定位）
+    const UiRect rcWnd = GetComboWndRect();
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
     createWndParam.m_dwExStyle = kWS_EX_LAYERED;
+    if (!rcWnd.IsEmpty()) {
+        createWndParam.m_nX = rcWnd.left;
+        createWndParam.m_nY = rcWnd.top;
+        createWndParam.m_nWidth = rcWnd.Width();
+        createWndParam.m_nHeight = rcWnd.Height();
+    }
     CreateWnd(pOwner->GetWindow(), createWndParam);
     UpdateComboWnd();
     if (bActivated) {
@@ -92,13 +107,22 @@ void ComboButtonWnd::InitComboWnd(ComboButton* pOwner, bool bActivated)
 
 void ComboButtonWnd::UpdateComboWnd()
 {
+    const UiRect rc = GetComboWndRect();
+    if (rc.IsEmpty()) {
+        return;
+    }
+    SetWindowPos(InsertAfterWnd(), rc.left, rc.top, rc.Width(), rc.Height(), kSWP_NOZORDER | kSWP_NOACTIVATE);
+}
+
+UiRect ComboButtonWnd::GetComboWndRect() const
+{
     ComboButton* pOwner = m_pOwner.get();
     if (pOwner == nullptr) {
-        return;
+        return UiRect();
     }
     ui::Box* pComboBox = pOwner->GetComboBox();
     if (pComboBox == nullptr) {
-        return;
+        return UiRect();
     }
     //阴影的大小
     ui::UiPadding rcPadding;
@@ -156,7 +180,7 @@ void ComboButtonWnd::UpdateComboWnd()
     pOwner->GetWindow()->ClientToScreen(rc);
 
     UiRect rcWork;
-    GetMonitorWorkRect(rcWork);
+    pOwner->GetWindow()->GetMonitorWorkRect(rcWork);
     if (rc.bottom > rcWork.bottom || pOwner->IsPopupTop()) {
         rc.left = rcOwner.left;
         rc.right = rcOwner.right;
@@ -168,7 +192,7 @@ void ComboButtonWnd::UpdateComboWnd()
         rc.Inflate(rcPadding);
         pOwner->GetWindow()->ClientToScreen(rc);
     }
-    SetWindowPos(InsertAfterWnd(), rc.left, rc.top, rc.Width(), rc.Height(), kSWP_NOZORDER | kSWP_NOACTIVATE);
+    return rc;
 }
 
 void ComboButtonWnd::OnFinalMessage()

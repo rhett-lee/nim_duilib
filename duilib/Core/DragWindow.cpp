@@ -1,5 +1,7 @@
 #include "DragWindow.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/WindowCreateAttributes.h"
+#include "duilib/Core/DpiManager.h"
 
 namespace ui
 {
@@ -145,6 +147,53 @@ void DragWindow::SetDragImage(const std::shared_ptr<IBitmap>& pBitmap)
     Dpi().ClientSizeToWindowSize(cx);
     Dpi().ClientSizeToWindowSize(cy);
     Resize(cx, cy, false, false);
+}
+
+UiRect DragWindow::CalcWindowRect(const IBitmap* pBitmap, const UiPoint& ptCursor, const DpiManager& dpi)
+{
+    //预取窗口XML中的初始大小与阴影边距（阴影边距为DIP，需要换算）
+    WindowCreateAttributes createAttributes;
+    GetCreateWindowAttributes(createAttributes);
+
+    //阴影边距：DIP -> 屏幕坐标
+    UiPadding rcShadow;
+    rcShadow.left   = dpi.GetScaleWindowSize(createAttributes.m_rcShadowCorner.left);
+    rcShadow.top    = dpi.GetScaleWindowSize(createAttributes.m_rcShadowCorner.top);
+    rcShadow.right  = dpi.GetScaleWindowSize(createAttributes.m_rcShadowCorner.right);
+    rcShadow.bottom = dpi.GetScaleWindowSize(createAttributes.m_rcShadowCorner.bottom);
+
+    //客户区大小：优先使用位图大小（物理像素 -> 屏幕坐标），否则使用XML中配置的初始大小
+    int32_t nClientWidth = 0;
+    int32_t nClientHeight = 0;
+    if (pBitmap != nullptr) {
+        nClientWidth = pBitmap->GetWidth();
+        nClientHeight = pBitmap->GetHeight();
+        dpi.ClientSizeToWindowSize(nClientWidth);
+        dpi.ClientSizeToWindowSize(nClientHeight);
+    }
+    if ((nClientWidth <= 0) || (nClientHeight <= 0)) {
+        //XML中配置的初始大小已包含阴影，需要扣除阴影得到客户区大小
+        nClientWidth = createAttributes.m_szInitSize.cx;
+        nClientHeight = createAttributes.m_szInitSize.cy;
+        if (createAttributes.m_bShadowAttached) {
+            nClientWidth -= (rcShadow.left + rcShadow.right);
+            nClientHeight -= (rcShadow.top + rcShadow.bottom);
+        }
+        if (nClientWidth < 0) {
+            nClientWidth = 0;
+        }
+        if (nClientHeight < 0) {
+            nClientHeight = 0;
+        }
+    }
+
+    //与AdjustPos的定位规则保持一致：鼠标位置对准客户区的顶部中点
+    UiRect rcWindow;
+    rcWindow.left = ptCursor.x - rcShadow.left - nClientWidth / 2;
+    rcWindow.top = ptCursor.y - rcShadow.top;
+    rcWindow.right = rcWindow.left + nClientWidth + rcShadow.left + rcShadow.right;
+    rcWindow.bottom = rcWindow.top + nClientHeight + rcShadow.top + rcShadow.bottom;
+    return rcWindow;
 }
 
 void DragWindow::AdjustPos()
