@@ -2280,6 +2280,12 @@ bool NativeWindow_SDL::ShowSdlWindow()
     //导致窗口闪跳，并在原地留下绘制残留
     SDL_SetWindowPosition(m_sdlWindow, m_ptInitWindow.x, m_ptInitWindow.y);
     SDL_SyncWindow(m_sdlWindow);
+    //窗口显示并定位完成后，异步通知父窗口整窗重绘：
+    //macOS(Cocoa)显示带父窗口的窗口时，会先按创建位置合成一帧，然后再移动到目标位置；
+    //窗口移走后，父窗口在该区域留下的旧像素不会被系统可靠修复，
+    //用户移动鼠标触发父窗口局部绘制时，就会看到弹出式窗口的残影。
+    //此处必须使用异步重绘(Invalidate)，不能在AppKit的绘制周期内同步提交绘制结果
+    RepaintParentWindow();
     return bRet;
 #else
     return SDL_ShowWindow(m_sdlWindow);
@@ -2301,6 +2307,8 @@ void NativeWindow_SDL::AdjustPopupWindowPosition()
     }
     //只修正窗口的位置：窗口大小已经在显示前设置，此处设置窗口大小会导致窗口位置被重置
     SDL_SetWindowPosition(m_sdlWindow, m_ptInitWindow.x, m_ptInitWindow.y);
+    //窗口位置被修正后，父窗口被让出的区域也需要重绘（原因同ShowSdlWindow中的说明）
+    RepaintParentWindow();
 #endif
 }
 
