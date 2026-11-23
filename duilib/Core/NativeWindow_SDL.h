@@ -718,6 +718,12 @@ private:
     */
     void CheckWindowSnap(SDL_Window* window);
 
+    /** 显示SDL窗口
+    *  macOS平台：在显示窗口的前后修正弹出式窗口的位置，
+    *  避免窗口先出现在父窗口左上角，然后再跳转到目标位置
+    */
+    bool ShowSdlWindow();
+
 private:
     /** 设置窗口ID与窗口指针的关系
     */
