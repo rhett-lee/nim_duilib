@@ -218,7 +218,9 @@ void ToolTip::TImpl::ShowToolTip(WindowBase* pParentWnd,
         }
     }
     else {
-        rcShadowCorner = m_pTooltipWnd->GetCurrentShadowCorner();
+        //此处取未经DPI缩放的阴影九宫格值，与首次创建窗口时使用的一致性
+        //（GetCurrentShadowCorner返回的是已缩放的布局坐标，下面还会按DPI缩放，会重复放大）
+        rcShadowCorner = m_pTooltipWnd->GetShadowCorner();
     }
 
     WindowCreateParam createParam;

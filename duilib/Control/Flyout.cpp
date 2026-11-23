@@ -667,9 +667,9 @@ bool Flyout::IsPointOnAnchorScrollBar(const UiPoint& ptScreen) const
     }
 
     //屏幕物理坐标 -> 父窗口客户区布局坐标（与 FindControl 的入参坐标系一致）
+    //ScreenToClient 内部已按窗口像素密度换算为布局坐标，此处不能再做一次密度换算
     UiPoint ptClient = ptScreen;
     m_pParentWindow->ScreenToClient(ptClient);
-    m_pParentWindow->Dpi().WindowSizeToClientSize(ptClient);
     Control* pControl = m_pParentWindow->FindControl(ptClient);
     if (pControl == nullptr) {
         return false;

@@ -1291,15 +1291,19 @@ void MenuItem::CreateMenuWnd()
         if (pWindow != nullptr) {
             UiRect rcOwner = GetPos();
             UiRect rc = rcOwner;
+            //GetWindowRect返回的是屏幕坐标(窗口坐标)，阴影边距是布局坐标(物理像素)，
+            //需要先把阴影边距换算到窗口坐标，否则像素密度>1时子菜单初始位置会偏移
             UiPadding rcCorner = pWindow->GetCurrentShadowCorner();
+            UiPadding rcCornerWindow = rcCorner;
+            pWindow->Dpi().ClientSizeToWindowSize(rcCornerWindow);
             UiRect rcWindow;
             GetWindow()->GetWindowRect(rcWindow);
             //去阴影
-            rcWindow.Deflate(rcCorner);
+            rcWindow.Deflate(rcCornerWindow);
             GetWindow()->ClientToScreen(rc);
             rc.left = rcWindow.right;
-            subMenuPt.x = rc.left - rcCorner.left;
-            subMenuPt.y = rc.top - rcCorner.top;
+            subMenuPt.x = rc.left - rcCornerWindow.left;
+            subMenuPt.y = rc.top - rcCornerWindow.top;
         }
         m_pSubWindow->ShowMenu(subXmlFile.ToString(), subMenuPt, MenuPopupPosType::RIGHT_BOTTOM, false, this);
         if (!m_pSubWindow->IsWindow()) {
