@@ -196,7 +196,7 @@ public:
     */
     void AttachClosed(const FlyoutEvent& callback);
 
-    /** 注册浮层布局完成后的回调（在首次绘制前触发；跟随锚点重新定位后也会触发）
+    /** 注册浮层布局完成后的回调（在首次绘制前触发；跟随锚点重新定位后、窗口尺寸变化后也会触发）
     *   用于按控件的实际布局矩形调整内容的位置（例如把指示尖角定位到锚点中心）；
     *   回调中设置的浮动控件（float="true" keep_float_pos="true"）位置在后续布局中会被保持
     */
@@ -230,6 +230,11 @@ public:
     */
     virtual LRESULT OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
+
+    /** 窗口尺寸变化后布局会重排：重新通知布局回调，避免使用过期的窗口位置
+    *   （macOS 下浮层窗口可能先在"创建位置"完成首次布局，之后才移动到按锚点计算的最终位置）
+    */
+    virtual LRESULT OnSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, const NativeMsg& nativeMsg, bool& bHandled) override;
 
     /** DPI 变化时直接关闭浮层，避免跨屏后锚点坐标与尺寸错位
     */

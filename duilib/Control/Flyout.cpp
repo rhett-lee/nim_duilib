@@ -586,6 +586,17 @@ void Flyout::OnInitLayout()
     InvokeLayoutCallbacks();
 }
 
+LRESULT Flyout::OnSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, const NativeMsg& nativeMsg, bool& bHandled)
+{
+    LRESULT lResult = BaseClass::OnSizeMsg(sizeType, newWindowSize, nativeMsg, bHandled);
+    //窗口大小变化后布局已重排：重新通知回调，使依赖窗口实际布局与位置的内容重新定位。
+    //macOS 在 Retina 屏幕上创建浮层窗口时，窗口会先在"创建位置"显示并完成首次布局，
+    //此时窗口尚未按锚点移动到最终位置，首次布局回调中计算的位置会过期；
+    //窗口随后按锚点调整大小与位置，在尺寸变化后重新触发一次，确保回调使用最终的窗口位置。
+    InvokeLayoutCallbacks();
+    return lResult;
+}
+
 void Flyout::OnFinalMessage()
 {
     if (m_pShadowHitTestFilter != nullptr) {
