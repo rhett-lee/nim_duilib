@@ -579,12 +579,8 @@ void SearchBox::OpenPopup()
     }
     Window* pOwnerWindow = GetWindow();
     if (pOwnerWindow != nullptr) {
-        if (pOwnerWindow->Dpi().HasPixelDensity()) {
-            pOwnerWindow->Dpi().ClientSizeToWindowSize(nWidth);
-        }
-        else {
-            nWidth = pOwnerWindow->Dpi().GetUnscaleWindowSize(nWidth);
-        }
+        //物理像素 -> DIP：同时处理像素密度与界面缩放比
+        nWidth = pOwnerWindow->Dpi().GetDipSizeFromClientSize(nWidth);
     }
 
     AutoCompleteFlyout* pFlyout = new AutoCompleteFlyout(GetWindow());

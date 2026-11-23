@@ -199,9 +199,9 @@ bool Flyout::ShowAt(Control* pAnchor, const DString& xmlFile, Placement placemen
     //浮层窗口的创建过程可能使其意外成为前台窗口，从而使父窗口失去激活状态与键盘焦点
     const bool bParentWasForeground = (m_pParentWindow != nullptr) && m_pParentWindow->IsWindowForeground();
 
-    //窗口初始位置设为锚点左上角（物理像素），避免首次显示时在默认位置闪烁
+    //窗口初始位置设为锚点左上角（屏幕坐标），避免首次显示时在默认位置闪烁
     UiRect rcAnchorInit;
-    GetAnchorScreenRect(rcAnchorInit, true);
+    GetAnchorScreenRect(rcAnchorInit);
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
     createWndParam.m_dwExStyle = kWS_EX_LAYERED;
@@ -250,7 +250,7 @@ bool Flyout::ShowAt(Control* pAnchor, const DString& xmlFile, Placement placemen
     }
 #endif
     //记录锚点的初始屏幕矩形，供跟随锚点时检测位移
-    GetAnchorScreenRect(m_rcAnchorScreenLast, true);
+    GetAnchorScreenRect(m_rcAnchorScreenLast);
 
     //弹出层淡入动画：在窗口显示前把 Alpha 置 0，避免出现一帧全不透明的闪烁
     PopupAnimation::PlayFadeIn(this, m_pFadeInPlayer);
@@ -345,8 +345,11 @@ void Flyout::GetVisualRect(UiRect& rcVisual) const
     }
 
     //窗口阴影占据的边缘区域不显示内容，也不参与命中判断
+    //（GetWindowRect 返回屏幕坐标，阴影内边距是布局坐标，按像素密度换算后再扣除）
+    UiPadding rcShadow = GetCurrentShadowCorner();
+    Dpi().ClientSizeToWindowSize(rcShadow);
     UiRect rcTemp = rcWindow;
-    rcTemp.Deflate(GetCurrentShadowCorner());
+    rcTemp.Deflate(rcShadow);
     rcVisual = rcTemp.IsEmpty() ? rcWindow : rcTemp;
 }
 
@@ -407,7 +410,7 @@ bool Flyout::IsAnchorVisible() const
         return false;
     }
 
-    //锚点在窗口客户区视觉坐标（DIP）下的矩形：布局坐标扣除各级滚动容器累计的滚动偏移
+    //锚点在窗口客户区视觉坐标（布局坐标，物理像素）下的矩形：布局坐标扣除各级滚动容器累计的滚动偏移
     UiRect rcAnchor = pAnchor->GetPos();
     const UiPoint ptScrollOffset = pAnchor->GetScrollOffsetInScrollBox();
     rcAnchor.Offset(-ptScrollOffset.x, -ptScrollOffset.y);
@@ -415,10 +418,9 @@ bool Flyout::IsAnchorVisible() const
         return false;
     }
 
-    //被窗口客户区裁剪（例如滚动到客户区外）
+    //被窗口客户区裁剪（例如滚动到客户区外）：GetClientRect 与 GetPos 同为布局坐标，无需再做换算
     UiRect rcClient;
     pAnchorWindow->GetClientRect(rcClient);
-    pAnchorWindow->Dpi().WindowSizeToClientSize(rcClient);
     UiRect rcVisible = rcAnchor;
     if (!rcVisible.Intersect(rcClient)) {
         return false;
@@ -448,7 +450,7 @@ bool Flyout::UpdateAnchorPosition()
     }
     const Placement oldPlacement = m_actualPlacement;
     PositionAroundAnchor();
-    GetAnchorScreenRect(m_rcAnchorScreenLast, true);
+    GetAnchorScreenRect(m_rcAnchorScreenLast);
     InvokeLayoutCallbacks();
     return m_actualPlacement != oldPlacement;
 }
@@ -620,7 +622,7 @@ void Flyout::OnWindowDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNew
     DoClose(CloseReason::kAnchorLost);
 }
 
-bool Flyout::GetAnchorScreenRect(UiRect& rcAnchor, bool bPhysical) const
+bool Flyout::GetAnchorScreenRect(UiRect& rcAnchor) const
 {
     rcAnchor.Clear();
     Control* pAnchor = m_pAnchor.get();
@@ -632,30 +634,23 @@ bool Flyout::GetAnchorScreenRect(UiRect& rcAnchor, bool bPhysical) const
         return false;
     }
 
-    //锚点控件在窗口客户区内容坐标系（DIP）下的布局矩形
+    //锚点控件在窗口客户区中的布局矩形（物理像素）
     rcAnchor = pAnchor->GetPos();
     //扣除各级滚动容器累计的滚动偏移，换算为窗口客户区视觉坐标
     //（GetPos 为滚动内容坐标，视觉坐标 = 内容坐标 - 滚动偏移，与 Menu/MenuBar 的换算约定一致）
     UiPoint ptScrollOffset = pAnchor->GetScrollOffsetInScrollBox();
     rcAnchor.Offset(-ptScrollOffset.x, -ptScrollOffset.y);
 
-    if (bPhysical) {
-        //DIP -> 物理像素 -> 屏幕坐标，与 GetCursorPos/GetWindowRect 的物理坐标系一致
-        pAnchorWindow->Dpi().ClientSizeToWindowSize(rcAnchor);
-        pAnchorWindow->ClientToScreen(rcAnchor);
-    }
-    else {
-        //先按 DIP 值加窗口原点（物理），再整体缩放回 DIP（与 Menu 的坐标换算约定保持一致）
-        pAnchorWindow->ClientToScreen(rcAnchor);
-        pAnchorWindow->Dpi().WindowSizeToClientSize(rcAnchor);
-    }
+    //客户区布局坐标 -> 屏幕坐标：ClientToScreen 内部已按窗口像素密度换算，
+    //此处不能再做一次密度换算（否则高DPI下锚点矩形会被重复缩小/放大）
+    pAnchorWindow->ClientToScreen(rcAnchor);
     return true;
 }
 
 bool Flyout::IsPointInAnchor(const UiPoint& ptScreen) const
 {
     UiRect rcAnchor;
-    if (!GetAnchorScreenRect(rcAnchor, true)) {
+    if (!GetAnchorScreenRect(rcAnchor)) {
         return false;
     }
     return rcAnchor.ContainsPt(ptScreen);
@@ -709,46 +704,58 @@ void Flyout::PositionAroundAnchor()
         return;
     }
 
-    //锚点屏幕矩形（DIP）
+    //锚点屏幕矩形（屏幕坐标）
     UiRect rcAnchor;
-    if (!GetAnchorScreenRect(rcAnchor, false)) {
+    if (!GetAnchorScreenRect(rcAnchor)) {
         return;
     }
+    Window* pAnchorWindow = pAnchor->GetWindow();
+    if (pAnchorWindow == nullptr) {
+        return;
+    }
+    //坐标换算统一使用锚点窗口的DPI：浮层与锚点必然在同一显示器上，
+    //以锚点窗口为基准可避免两个窗口的DPI状态不一致导致的坐标偏差
+    const DpiManager& anchorDpi = pAnchorWindow->Dpi();
 
-    //以锚点中心点所在显示器的工作区为边界（DIP）
+    //以锚点中心点所在显示器的工作区为边界（屏幕坐标）
     UiPoint ptAnchorCenter((rcAnchor.left + rcAnchor.right) / 2, (rcAnchor.top + rcAnchor.bottom) / 2);
-    Dpi().ClientSizeToWindowSize(ptAnchorCenter);
     UiRect rcWork;
-    if (!GetMonitorWorkRect(ptAnchorCenter, rcWork)) {
+    if (!GetMonitorWorkRect(ptAnchorCenter, rcWork) || rcWork.IsEmpty()) {
         return;
     }
-    Dpi().WindowSizeToClientSize(rcWork);
 
-    //估算窗口大小（返回值包含阴影区域）
-    UiSize szAvailable(rcWork.Width(), rcWork.Height());
+    //估算窗口大小：EstimateSize 与控件布局使用同一坐标系（物理像素），
+    //需要先把工作区的屏幕坐标换算为该坐标系下的可用空间
+    UiRect rcWorkLayout = rcWork;
+    anchorDpi.WindowSizeToClientSize(rcWorkLayout);
+    UiSize szAvailable(rcWorkLayout.Width(), rcWorkLayout.Height());
     UiEstSize estSize = pRoot->EstimateSize(szAvailable);
-    UiSize szWindow = szAvailable;
+    UiSize szWindowLayout = szAvailable;
     if (estSize.cx.IsInt32()) {
-        szWindow.cx = estSize.cx.GetInt32();
+        szWindowLayout.cx = estSize.cx.GetInt32();
     }
     if (estSize.cy.IsInt32()) {
-        szWindow.cy = estSize.cy.GetInt32();
+        szWindowLayout.cy = estSize.cy.GetInt32();
     }
-    if (szWindow.cx > rcWork.Width()) {
-        szWindow.cx = rcWork.Width();
+    if (szWindowLayout.cx > rcWorkLayout.Width()) {
+        szWindowLayout.cx = rcWorkLayout.Width();
     }
-    if (szWindow.cy > rcWork.Height()) {
-        szWindow.cy = rcWork.Height();
+    if (szWindowLayout.cy > rcWorkLayout.Height()) {
+        szWindowLayout.cy = rcWorkLayout.Height();
     }
 
-    //窗口阴影所占据的边缘区域，视觉有效区域需要扣除
+    //窗口尺寸（包含阴影区域）与阴影内边距换算为屏幕坐标，参与下面的定位与夹持计算
+    UiSize szWindow = szWindowLayout;
+    anchorDpi.ClientSizeToWindowSize(szWindow);
     UiPadding rcShadow = pRoot->GetPadding();
-    int32_t nClientWidth = szWindow.cx - rcShadow.left - rcShadow.right;
-    int32_t nClientHeight = szWindow.cy - rcShadow.top - rcShadow.bottom;
+    anchorDpi.ClientSizeToWindowSize(rcShadow);
+    const int32_t nClientWidth = szWindow.cx - rcShadow.left - rcShadow.right;
+    const int32_t nClientHeight = szWindow.cy - rcShadow.top - rcShadow.bottom;
 
-    const int32_t nGap = Dpi().GetScaleInt(m_nGap);
+    //m_nGap 是逻辑像素：先按缩放比换算为物理像素，再换算为屏幕坐标
+    const int32_t nGap = anchorDpi.GetScaleWindowSize(m_nGap);
 
-    //按期望方位计算视觉区域左上角（屏幕 DIP 坐标）
+    //按期望方位计算视觉区域左上角（屏幕坐标）
     Placement actual = m_placement;
     int32_t nClientX = rcAnchor.left;
     int32_t nClientY = rcAnchor.top;
@@ -870,17 +877,13 @@ void Flyout::PositionAroundAnchor()
         nClientY = rcWork.bottom - nClientHeight;
     }
 
-    //窗口位置需要加上阴影内边距，并从 DIP 换算回物理像素
-    int32_t nWindowX = nClientX - rcShadow.left;
-    int32_t nWindowY = nClientY - rcShadow.top;
-    Dpi().ClientSizeToWindowSize(nWindowX);
-    Dpi().ClientSizeToWindowSize(nWindowY);
-    UiSize szWindowPhysical = szWindow;
-    Dpi().ClientSizeToWindowSize(szWindowPhysical);
+    //窗口位置需要加上阴影内边距（均为屏幕坐标）
+    const int32_t nWindowX = nClientX - rcShadow.left;
+    const int32_t nWindowY = nClientY - rcShadow.top;
 
     SetWindowPos(InsertAfterWnd(),
                  nWindowX, nWindowY,
-                 szWindowPhysical.cx, szWindowPhysical.cy,
+                 szWindow.cx, szWindow.cy,
                  kSWP_NOZORDER | kSWP_NOACTIVATE);
 }
 
@@ -1091,7 +1094,7 @@ void Flyout::OnDetectTick()
         }
         else {
             UiRect rcAnchorNow;
-            if (GetAnchorScreenRect(rcAnchorNow, true) && (rcAnchorNow != m_rcAnchorScreenLast)) {
+            if (GetAnchorScreenRect(rcAnchorNow) && (rcAnchorNow != m_rcAnchorScreenLast)) {
                 //重新定位时保持打开时的方位、不做翻转：浮层内容（例如尖角箭头与阴影）是按该方位生成的，
                 //翻转到另一侧会与内容不一致；方位这一侧空间不足时由 PositionAroundAnchor 夹持到工作区内
                 const bool bAllowFlipOld = m_bAllowFlip;

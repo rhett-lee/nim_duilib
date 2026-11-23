@@ -4747,12 +4747,8 @@ void ListCtrl::EnterComboEditMode(const ListCtrlEditParam& editParam, ListCtrlLa
     int32_t nWidth = pSubItem->GetPos().Width();
     Window* pOwnerWindow = GetWindow();
     if ((nWidth > 0) && (pOwnerWindow != nullptr)) {
-        if (pOwnerWindow->Dpi().HasPixelDensity()) {
-            pOwnerWindow->Dpi().ClientSizeToWindowSize(nWidth);
-        }
-        else {
-            nWidth = pOwnerWindow->Dpi().GetUnscaleWindowSize(nWidth);
-        }
+        //物理像素 -> DIP：同时处理像素密度与界面缩放比
+        nWidth = pOwnerWindow->Dpi().GetDipSizeFromClientSize(nWidth);
     }
     if (nWidth <= 0) {
         //兜底宽度，避免浮层宽度不可用导致弹出失败

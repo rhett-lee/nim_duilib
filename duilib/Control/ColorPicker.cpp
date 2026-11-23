@@ -365,7 +365,7 @@ void ColorPicker::AdjustWindowPos()
     const int32_t nHeight       = rcSelf.Height();
     const int32_t nVisibleWidth = rcSelfVisible.Width();
     const int32_t nVisibleHeight = rcSelfVisible.Height();
-    const int32_t nGap          = Dpi().GetScaleInt(8);
+    const int32_t nGap          = Dpi().GetScaleWindowSize(8);   //逻辑像素 -> 窗口坐标
 
     //优先放在父窗口右侧；右侧放不下则放左侧；两侧都不够宽时，
     //若父窗口+本窗口的总宽度不超过工作区，就把父窗口向左挪一点，给本窗口腾出完整的右侧空间，

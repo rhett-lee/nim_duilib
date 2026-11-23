@@ -797,7 +797,7 @@ void Popover::PositionCardArrow(Flyout* pFlyout)
     }
 
     //锚点中心在浮层客户区坐标系（布局坐标）下的位置
-    UiRect rcAnchor = GetScreenRectPhysical();
+    UiRect rcAnchor = GetScreenRect();
     pFlyout->ScreenToClient(rcAnchor);
     const UiPoint ptAnchorCenter((rcAnchor.left + rcAnchor.right) / 2,
                                  (rcAnchor.top + rcAnchor.bottom) / 2);
@@ -906,7 +906,7 @@ bool Popover::IsMouseOverAnchorOrCard() const
     UiPoint ptCursor;
     pWindow->GetCursorPos(ptCursor);
 
-    UiRect rcAnchor = GetScreenRectPhysical();
+    UiRect rcAnchor = GetScreenRect();
     if (rcAnchor.ContainsPt(ptCursor)) {
         return true;
     }
@@ -923,7 +923,7 @@ bool Popover::IsMouseOverAnchorOrCard() const
     return false;
 }
 
-UiRect Popover::GetScreenRectPhysical() const
+UiRect Popover::GetScreenRect() const
 {
     UiRect rcAnchor;
     Window* pWindow = GetWindow();
@@ -935,8 +935,8 @@ UiRect Popover::GetScreenRectPhysical() const
     UiPoint ptScrollOffset = GetScrollOffsetInScrollBox();
     rcAnchor.Offset(-ptScrollOffset.x, -ptScrollOffset.y);
 
-    //DIP -> 物理像素 -> 屏幕坐标（与 Flyout 的锚点坐标换算一致）
-    pWindow->Dpi().ClientSizeToWindowSize(rcAnchor);
+    //客户区布局坐标 -> 屏幕坐标：ClientToScreen 内部已按像素密度换算，
+    //不能再额外做一次密度换算（否则高DPI下锚点矩形会偏移）
     pWindow->ClientToScreen(rcAnchor);
     return rcAnchor;
 }

@@ -273,10 +273,10 @@ private:
     void DoClose(CloseReason reason);
 
     /** 计算锚点控件在屏幕坐标系下的矩形
-    * @param [in] bPhysical true 返回物理像素（与 GetCursorPos/GetWindowRect 同坐标系）；
-    *                       false 返回 DIP 逻辑像素（用于布局计算）
+    *   坐标系与 SetWindowPos/GetMonitorWorkRect/GetCursorPos/GetWindowRect 一致：
+    *   控件布局坐标（物理像素）经 ClientToScreen 单次换算得到，不再额外做像素密度换算
     */
-    bool GetAnchorScreenRect(UiRect& rcAnchor, bool bPhysical) const;
+    bool GetAnchorScreenRect(UiRect& rcAnchor) const;
 
     /** 判断屏幕坐标点是否落在锚点控件上
     */

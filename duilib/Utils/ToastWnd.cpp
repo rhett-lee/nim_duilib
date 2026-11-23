@@ -408,7 +408,8 @@ namespace ui
                 return;
             }
             int32_t nAlpha = 255 * nValue / 100;
-            int32_t nOffset = kEnterSlideOffset * (100 - nValue) / 100;
+            //滑动距离为逻辑像素，需要换算为布局坐标（物理像素）
+            int32_t nOffset = Dpi().GetScaleInt(kEnterSlideOffset) * (100 - nValue) / 100;
             SetLayeredWindowAlpha(nAlpha);
             MoveToWindowPos(m_nWindowX, m_nWindowY + nOffset);
         });
@@ -546,17 +547,22 @@ namespace ui
             return;
         }
 
-        //1. 计算锚点区域（屏幕客户区坐标/DIP）：优先用父窗口客户区，否则用显示器工作区
+        //1. 计算锚点区域：优先用父窗口客户区，否则用显示器工作区
+        //   计算过程中统一使用布局坐标（物理像素），屏幕坐标需要按像素密度换算
         UiRect rcAnchor;
         UiRect rcWork;
         Window* pParent = pToast->m_pParentWindow;
         if (pParent != nullptr) {
+            //父窗口客户区原点（屏幕坐标）
             UiPoint ptOrigin(0, 0);
             pParent->ClientToScreen(ptOrigin);
+            //父窗口客户区尺寸（布局坐标 -> 屏幕坐标），才能与客户区原点相加
             UiRect rcClient;
             pParent->GetClientRect(rcClient);
+            pParent->Dpi().ClientSizeToWindowSize(rcClient);
             rcAnchor = UiRect(ptOrigin.x, ptOrigin.y,
                               ptOrigin.x + rcClient.Width(), ptOrigin.y + rcClient.Height());
+            //锚点矩形整体换算为布局坐标，供后续定位计算使用
             pParent->Dpi().WindowSizeToClientSize(rcAnchor);
 
             pParent->GetMonitorWorkRect(rcWork);
@@ -591,6 +597,11 @@ namespace ui
         }
 
         //2. 统计同一锚点上、排在本通知之前的通知总高度（堆叠偏移）
+        //   常量均为逻辑像素，需要按缩放比换算为布局坐标（物理像素）
+        const DpiManager& toastDpi = pToast->Dpi();
+        const int32_t nToastGap = toastDpi.GetScaleInt(kToastGap);
+        const int32_t nRightMargin = toastDpi.GetScaleInt(kRightMargin);
+        const int32_t nAnchorMargin = toastDpi.GetScaleInt(kAnchorMargin);
         int32_t nStackOffset = 0;
         for (ToastWnd* pOther : s_toasts) {
             if (pOther == pToast) {
@@ -600,7 +611,7 @@ namespace ui
                 (pOther->m_pParentWindow == pToast->m_pParentWindow) &&
                 (pOther->m_position == pToast->m_position) &&
                 !pOther->m_bClosing) {
-                nStackOffset += pOther->m_nClientHeight + kToastGap;
+                nStackOffset += pOther->m_nClientHeight + nToastGap;
             }
         }
 
@@ -612,7 +623,7 @@ namespace ui
         switch (pToast->m_position) {
         case kPosTopRight:
         case kPosBottomRight:
-            nClientX = rcAnchor.right - kRightMargin - nClientW;
+            nClientX = rcAnchor.right - nRightMargin - nClientW;
             break;
         case kPosTop:
         case kPosCenter:
@@ -627,7 +638,7 @@ namespace ui
         switch (pToast->m_position) {
         case kPosBottom:
         case kPosBottomRight:
-            nClientY = rcAnchor.bottom - kAnchorMargin - nStackOffset - nClientH;
+            nClientY = rcAnchor.bottom - nAnchorMargin - nStackOffset - nClientH;
             break;
         case kPosCenter:
             nClientY = rcAnchor.CenterY() - nClientH / 2 + nStackOffset;
@@ -635,7 +646,7 @@ namespace ui
         case kPosTop:
         case kPosTopRight:
         default:
-            nClientY = rcAnchor.top + kAnchorMargin + nStackOffset;
+            nClientY = rcAnchor.top + nAnchorMargin + nStackOffset;
             break;
         }
 

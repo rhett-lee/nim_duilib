@@ -294,13 +294,13 @@ private:
     /** 派发打开状态变化事件 */
     void EmitOpenChanged(bool bOpen, PopoverCloseReason reason);
 
-    /** 判断鼠标当前是否位于本控件或卡片窗口内（物理像素坐标）
+    /** 判断鼠标当前是否位于本控件或卡片窗口内（屏幕坐标）
      */
     bool IsMouseOverAnchorOrCard() const;
 
-    /** 获取本控件在屏幕坐标系下的矩形（物理像素）
+    /** 获取本控件在屏幕坐标系下的矩形（与 GetCursorPos/GetWindowRect 同坐标系）
      */
-    UiRect GetScreenRectPhysical() const;
+    UiRect GetScreenRect() const;
 
     /** hover 触发：延时打开 */
     void ScheduleOpen();
