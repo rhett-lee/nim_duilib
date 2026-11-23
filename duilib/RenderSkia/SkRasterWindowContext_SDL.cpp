@@ -1,12 +1,68 @@
 #include "SkRasterWindowContext_SDL.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Utils/PerformanceUtil.h"
+#ifdef DUILIB_SDL_SWAP_BUFFER_DIAGNOSTICS
+#include "duilib/Utils/LogUtil.h"
+#include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/StringConvert.h"
+#endif
 
 #ifdef DUILIB_BUILD_FOR_SDL
 
 #include <SDL3/SDL.h>
 
+/** 快路径诊断日志的调用宏：未定义 DUILIB_SDL_SWAP_BUFFER_DIAGNOSTICS 时不产生任何代码
+*/
+#ifdef DUILIB_SDL_SWAP_BUFFER_DIAGNOSTICS
+#define SDL_SWAP_STATS_LOG(nReasonCode, pSdlSurface) LogSwapBufferDiagnostics(nReasonCode, pSdlSurface)
+#else
+#define SDL_SWAP_STATS_LOG(nReasonCode, pSdlSurface) ((void)0)
+#endif
+
 namespace ui {
+
+#ifdef DUILIB_SDL_SWAP_BUFFER_DIAGNOSTICS
+
+/** 将SDL返回的字符串转换为DString（SDL返回的字符串都是UTF-8编码）
+*/
+static DString SdlTextToDString(const char* sdlText)
+{
+    if (sdlText == nullptr) {
+        return DString();
+    }
+    return StringConvert::WStringToT(StringConvert::UTF8ToWString(std::string(sdlText)));
+}
+
+/** 将窗口标志转换为便于阅读的字符串（用于诊断，确认窗口是否被创建为OpenGL/Vulkan/Metal窗口）
+*/
+static DString SdlWindowFlagsToDString(SDL_WindowFlags nFlags)
+{
+    DString sFlags;
+    if ((nFlags & SDL_WINDOW_OPENGL) != 0) {
+        sFlags += _T("OPENGL ");
+    }
+    if ((nFlags & SDL_WINDOW_VULKAN) != 0) {
+        sFlags += _T("VULKAN ");
+    }
+    if ((nFlags & SDL_WINDOW_METAL) != 0) {
+        sFlags += _T("METAL ");
+    }
+    if ((nFlags & SDL_WINDOW_HIGH_PIXEL_DENSITY) != 0) {
+        sFlags += _T("HIGH_DPI ");
+    }
+    if ((nFlags & SDL_WINDOW_BORDERLESS) != 0) {
+        sFlags += _T("BORDERLESS ");
+    }
+    if ((nFlags & SDL_WINDOW_HIDDEN) != 0) {
+        sFlags += _T("HIDDEN ");
+    }
+    if (sFlags.empty()) {
+        sFlags = _T("<无>");
+    }
+    return sFlags;
+}
+
+#endif //DUILIB_SDL_SWAP_BUFFER_DIAGNOSTICS
 
 SkRasterWindowContext_SDL::SkRasterWindowContext_SDL(SDL_Window* sdlWindow, std::unique_ptr<const skwindow::DisplayParams> params):
     skwindow::internal::RasterWindowContext(std::move(params)),
@@ -229,6 +285,93 @@ bool SkRasterWindowContext_SDL::PaintAndSwapBuffers(IRender* pRender, IRenderPai
     return bRet && bSwapped;
 }
 
+#ifdef DUILIB_SDL_SWAP_BUFFER_DIAGNOSTICS
+void SkRasterWindowContext_SDL::LogSwapBufferDiagnostics(int32_t nReasonCode, const SDL_Surface* pSdlSurface)
+{
+    if ((nReasonCode < 1) || (nReasonCode > 31)) {
+        return;
+    }
+    const int32_t nReasonFlag = (int32_t)(1u << (nReasonCode - 1));
+    if ((m_nLoggedDiagnosticFlags & nReasonFlag) != 0) {
+        //同一个原因只输出一次，避免每帧输出导致日志刷屏
+        return;
+    }
+    m_nLoggedDiagnosticFlags |= nReasonFlag;
+
+    DString sReason;
+    switch (nReasonCode) {
+    case 1:  sReason = _T("窗口透明度不是255，需要逐像素处理Alpha"); break;
+    case 2:  sReason = _T("SDL_GetWindowSurface返回空"); break;
+    case 3:  sReason = _T("SDL窗口表面的尺寸或像素缓冲无效"); break;
+    case 4:  sReason = _T("SDL窗口表面的行字节数(pitch)不满足要求"); break;
+    case 5:  sReason = _T("Skia的颜色字节顺序未知"); break;
+    case 6:  sReason = _T("SDL窗口表面的颜色字节顺序未知"); break;
+    case 7:  sReason = _T("Skia与SDL的颜色字节顺序不一致"); break;
+    case 8:  sReason = _T("窗口没有关联的SDL_Renderer"); break;
+    case 9:  sReason = _T("直绘模式下SDL窗口表面已失效或被重建"); break;
+    case 10: sReason = _T("快路径提交成功（内存缓冲复制到窗口表面）"); break;
+    case 11: sReason = _T("直绘路径提交成功（Skia直接绘制到窗口表面）"); break;
+    case 12: sReason = _T("创建SDL纹理失败（慢路径不可用）"); break;
+    case 13: sReason = _T("SDL_UpdateWindowSurface提交失败"); break;
+    default: sReason = _T("未知原因"); break;
+    }
+
+    int32_t nWindowWidth = 0;
+    int32_t nWindowHeight = 0;
+    int32_t nPixelWidth = 0;
+    int32_t nPixelHeight = 0;
+    SDL_WindowFlags nWindowFlags = 0;
+    if (m_sdlWindow != nullptr) {
+        SDL_GetWindowSize(m_sdlWindow, &nWindowWidth, &nWindowHeight);
+        SDL_GetWindowSizeInPixels(m_sdlWindow, &nPixelWidth, &nPixelHeight);
+        nWindowFlags = SDL_GetWindowFlags(m_sdlWindow);
+    }
+
+    DString sRendererName = _T("<无>");
+    SDL_Renderer* sdlRenderer = (m_sdlWindow != nullptr) ? SDL_GetRenderer(m_sdlWindow) : nullptr;
+    if (sdlRenderer != nullptr) {
+        sRendererName = SdlTextToDString(SDL_GetRendererName(sdlRenderer));
+        if (sRendererName.empty()) {
+            sRendererName = _T("<未知>");
+        }
+    }
+
+    if ((pSdlSurface == nullptr) && (m_sdlWindow != nullptr)) {
+        pSdlSurface = SDL_GetWindowSurface(m_sdlWindow);
+    }
+    DString sSurface;
+    if (pSdlSurface == nullptr) {
+        sSurface = _T("<空>");
+    }
+    else {
+        sSurface = StringUtil::Printf(_T("w=%d, h=%d, pitch=%d, format=%s, pixels=%s"),
+                                      pSdlSurface->w, pSdlSurface->h, pSdlSurface->pitch,
+                                      SdlTextToDString(SDL_GetPixelFormatName(pSdlSurface->format)).c_str(),
+                                      (pSdlSurface->pixels != nullptr) ? _T("有效") : _T("空"));
+    }
+
+    const int32_t nSdlVersion = SDL_GetVersion();
+    DString sLog = StringUtil::Printf(
+        _T("[SwapPaintBuffers诊断] 原因(%d): %s\n")
+        _T("    绘制缓冲尺寸: %dx%d, 直绘模式: %s, 直绘pitch: %d\n")
+        _T("    窗口尺寸: 逻辑 %dx%d, 像素 %dx%d, 窗口标志: 0x%llX(%s)\n")
+        _T("    SDL_Renderer: %s, 视频驱动: %s, SDL版本: %d.%d.%d, 窗口表面加速: %s\n")
+        _T("    SDL窗口表面: %s\n")
+        _T("    SDL错误信息: %s"),
+        nReasonCode, sReason.c_str(),
+        width(), height(), m_bDirectSurface ? _T("true") : _T("false"), m_nDirectSurfacePitch,
+        nWindowWidth, nWindowHeight, nPixelWidth, nPixelHeight,
+        (unsigned long long)nWindowFlags, SdlWindowFlagsToDString(nWindowFlags).c_str(),
+        sRendererName.c_str(), SdlTextToDString(SDL_GetCurrentVideoDriver()).c_str(),
+        SDL_VERSIONNUM_MAJOR(nSdlVersion), SDL_VERSIONNUM_MINOR(nSdlVersion), SDL_VERSIONNUM_MICRO(nSdlVersion),
+        SdlTextToDString(SDL_GetHint(SDL_HINT_FRAMEBUFFER_ACCELERATION)).c_str(),
+        sSurface.c_str(),
+        SdlTextToDString(SDL_GetError()).c_str());
+
+    LogUtil::OutputLine(sLog);
+}
+#endif //DUILIB_SDL_SWAP_BUFFER_DIAGNOSTICS
+
 bool SkRasterWindowContext_SDL::SwapPaintBuffers(const std::vector<UiRect>& rcPaintList, uint8_t nLayeredWindowAlpha)
 {
     PerformanceUtil statPerformance(_T("PaintWindow 9, SkRasterWindowContext_SDL::SwapPaintBuffers"));
@@ -263,6 +406,7 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffers(const std::vector<UiRect>& rcPa
     SDL_Renderer* sdlRenderer = SDL_GetRenderer(m_sdlWindow);
     ASSERT(sdlRenderer != nullptr);
     if (sdlRenderer == nullptr) {
+        SDL_SWAP_STATS_LOG(8, nullptr);
         return false;
     }
 
@@ -278,6 +422,7 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffers(const std::vector<UiRect>& rcPa
     }
     
     if (m_sdlTextrue == nullptr) {
+        SDL_SWAP_STATS_LOG(12, nullptr);
         return false;
     }
 
@@ -349,11 +494,18 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffersFast(const std::vector<UiRect>& 
 
     SDL_Surface* sdlSurface = SDL_GetWindowSurface(m_sdlWindow);
     if (sdlSurface == nullptr) {
+        SDL_SWAP_STATS_LOG(2, nullptr);
         return false;
     }
 
-    if ((sdlSurface->pixels == nullptr) || (sdlSurface->w != width()) || (sdlSurface->h != height()) || (sdlSurface->pitch != width() * (int32_t)sizeof(uint32_t))) {
+    if ((sdlSurface->pixels == nullptr) || (sdlSurface->w != width()) || (sdlSurface->h != height())) {
         //大小不匹配
+        SDL_SWAP_STATS_LOG(3, sdlSurface);
+        return false;
+    }
+    if (sdlSurface->pitch != width() * (int32_t)sizeof(uint32_t)) {
+        //行字节数不匹配（本路径要求逐行数据完全对齐，pitch 必须严格等于 宽度*4）
+        SDL_SWAP_STATS_LOG(4, sdlSurface);
         return false;
     }
     
@@ -363,6 +515,7 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffersFast(const std::vector<UiRect>& 
     int32_t backB = -1;
     int32_t backA = -1;
     if (!GetSkiaColorByteOrder(backSurfaceColorType, backR, backG, backB, backA)) {
+        SDL_SWAP_STATS_LOG(5, sdlSurface);
         return false;
     }
 
@@ -372,6 +525,7 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffersFast(const std::vector<UiRect>& 
     int32_t sdlB = -1;
     int32_t sdlA = -1;
     if (!GetSDLColorByteOrder(sdlFormat, sdlR, sdlG, sdlB, sdlA)) {
+        SDL_SWAP_STATS_LOG(6, sdlSurface);
         return false;
     }
 
@@ -425,6 +579,7 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffersFast(const std::vector<UiRect>& 
         UpdateColorAlpha(sdlSurface->pixels, sdlSurface->w, rcClient, nLayeredWindowAlpha, sdlR, sdlG, sdlB, sdlA);
         SDL_UpdateWindowSurface(m_sdlWindow);
     }
+    SDL_SWAP_STATS_LOG(10, sdlSurface);
     return true;
 }
 
@@ -436,6 +591,7 @@ void SkRasterWindowContext_SDL::EnsureBackbufferSurface(uint8_t nLayeredWindowAl
     }
     if (nLayeredWindowAlpha != 255) {
         //窗口透明度不是255时，需要逐像素处理Alpha，不能直绘
+        SDL_SWAP_STATS_LOG(1, nullptr);
         SwitchToMemoryBackbuffer();
         return;
     }
@@ -477,17 +633,21 @@ void SkRasterWindowContext_SDL::EnsureBackbufferSurface(uint8_t nLayeredWindowAl
 bool SkRasterWindowContext_SDL::CanUseDirectSurface(SDL_Surface* sdlSurface, uint8_t nLayeredWindowAlpha)
 {
     if ((sdlSurface == nullptr) || (sdlSurface->pixels == nullptr)) {
+        SDL_SWAP_STATS_LOG(2, sdlSurface);
         return false;
     }
     if (nLayeredWindowAlpha != 255) {
         //窗口透明度不是255时，需要逐像素处理Alpha，不能直绘
+        SDL_SWAP_STATS_LOG(1, sdlSurface);
         return false;
     }
     if ((sdlSurface->w != width()) || (sdlSurface->h != height())) {
         //窗口表面的尺寸与绘制表面不一致（如窗口尺寸变化后SDL尚未重建表面）
+        SDL_SWAP_STATS_LOG(3, sdlSurface);
         return false;
     }
     if (sdlSurface->pitch < (width() * (int32_t)sizeof(uint32_t))) {
+        SDL_SWAP_STATS_LOG(4, sdlSurface);
         return false;
     }
     const skwindow::DisplayParams* pDisplayParams = getDisplayParams();
@@ -501,6 +661,7 @@ bool SkRasterWindowContext_SDL::CanUseDirectSurface(SDL_Surface* sdlSurface, uin
     int32_t backB = -1;
     int32_t backA = -1;
     if (!GetSkiaColorByteOrder(pDisplayParams->colorType(), backR, backG, backB, backA)) {
+        SDL_SWAP_STATS_LOG(5, sdlSurface);
         return false;
     }
 
@@ -509,11 +670,16 @@ bool SkRasterWindowContext_SDL::CanUseDirectSurface(SDL_Surface* sdlSurface, uin
     int32_t sdlB = -1;
     int32_t sdlA = -1;
     if (!GetSDLColorByteOrder(sdlSurface->format, sdlR, sdlG, sdlB, sdlA)) {
+        SDL_SWAP_STATS_LOG(6, sdlSurface);
         return false;
     }
 
     //只有颜色字节顺序完全一致时才能直接绘制（否则需要转换颜色字节顺序）
-    return (sdlR == backR) && (sdlG == backG) && (sdlB == backB) && (sdlA == backA);
+    const bool bSameColorOrder = (sdlR == backR) && (sdlG == backG) && (sdlB == backB) && (sdlA == backA);
+    if (!bSameColorOrder) {
+        SDL_SWAP_STATS_LOG(7, sdlSurface);
+    }
+    return bSameColorOrder;
 }
 
 void SkRasterWindowContext_SDL::SwitchToMemoryBackbuffer()
@@ -561,13 +727,24 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffersDirect(const std::vector<UiRect>
     SDL_Surface* sdlSurface = SDL_GetWindowSurface(m_sdlWindow);
     if ((sdlSurface == nullptr) || (sdlSurface != m_pSDLWindowSurface)) {
         m_bBackBufferValid = false;
+        SDL_SWAP_STATS_LOG(9, sdlSurface);
         return false;
     }
+
+    //说明：本函数只负责提交，不再校验颜色字节顺序，其正确性由直绘模式的进入条件保证：
+    //1. 进入直绘模式前，EnsureBackbufferSurface()->CanUseDirectSurface() 已逐项校验
+    //   Skia后备缓冲的颜色类型与SDL窗口表面的像素格式，只有颜色字节顺序完全一致时才直绘；
+    //2. Skia后备缓冲始终使用 getDisplayParams()->colorType()（即平台默认的N32颜色类型），
+    //   与 CanUseDirectSurface() 校验时用的是同一个颜色类型，setDisplayParams() 会先退出直绘模式；
+    //3. SDL窗口表面的像素格式在窗口创建后固定不变，表面被重建时指针会变化，下面的检查会退出直绘模式，
+    //   下次绘制时重新走进入条件的校验。
 
     //直绘模式下，绘制数据已经在SDL窗口表面的像素缓冲中，直接提交到窗口设备
     const bool bFullPaint = (rcPaintList.size() == 1) && (rcPaintList[0].Width() == width()) && (rcPaintList[0].Height() == height());
     if (bFullPaint) {
-        return SDL_UpdateWindowSurface(m_sdlWindow);
+        const bool bOk = SDL_UpdateWindowSurface(m_sdlWindow);
+        SDL_SWAP_STATS_LOG(bOk ? 11 : 13, sdlSurface);
+        return bOk;
     }
 
     std::vector<SDL_Rect> sdlRects;
@@ -586,7 +763,9 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffersDirect(const std::vector<UiRect>
     if (sdlRects.empty()) {
         return true;
     }
-    return SDL_UpdateWindowSurfaceRects(m_sdlWindow, sdlRects.data(), (int)sdlRects.size());
+    const bool bOk = SDL_UpdateWindowSurfaceRects(m_sdlWindow, sdlRects.data(), (int)sdlRects.size());
+    SDL_SWAP_STATS_LOG(bOk ? 11 : 13, sdlSurface);
+    return bOk;
 }
 
 bool SkRasterWindowContext_SDL::GetSkiaColorByteOrder(SkColorType backSurfaceColorType, int32_t& backR, int32_t& backG, int32_t& backB, int32_t& backA) const

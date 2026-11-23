@@ -25,6 +25,11 @@ struct SDL_Window;
 struct SDL_Texture;
 struct SDL_Surface;
 
+/** 快路径(内存缓冲复制/直绘)的诊断日志开关
+*   默认关闭：排查“快路径失效、界面不刷新、性能异常”等问题时，手工取消下面一行的注释重新编译即可开启
+*/
+//#define DUILIB_SDL_SWAP_BUFFER_DIAGNOSTICS
+
 namespace ui 
 {
 class UiRect;
@@ -139,6 +144,15 @@ private:
     void UpdateColorAlpha(void* surfacePixels, int32_t nSurfaceWidth, const UiRect& rcPaint, uint8_t nLayeredWindowAlpha,
                           int32_t sdlR, int32_t sdlG, int32_t sdlB, int32_t sdlA);
 
+#ifdef DUILIB_SDL_SWAP_BUFFER_DIAGNOSTICS
+    /** 输出快路径(直绘/内存缓冲复制)的诊断日志，用于确认快路径失效的具体原因
+    * 每个原因只输出一次，避免每帧输出导致日志刷屏
+    * @param [in] nReasonCode 诊断原因编号，取值1-31
+    * @param [in] pSdlSurface 当前SDL窗口表面（可以为空，为空时内部重新获取）
+    */
+    void LogSwapBufferDiagnostics(int32_t nReasonCode, const SDL_Surface* pSdlSurface);
+#endif
+
 private:
     /** Surface数据
     */
@@ -171,6 +185,12 @@ private:
     /** 后备缓冲的内容是否完整有效（完整绘制成功后为true，缓冲重建或尺寸变化后为false）
     */
     bool m_bBackBufferValid;
+
+#ifdef DUILIB_SDL_SWAP_BUFFER_DIAGNOSTICS
+    /** 已经输出过诊断日志的原因（按位标记，避免同一个原因重复输出）
+    */
+    int32_t m_nLoggedDiagnosticFlags = 0;
+#endif
 };
 
 } // namespace ui
