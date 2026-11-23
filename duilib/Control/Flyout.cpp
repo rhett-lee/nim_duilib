@@ -629,6 +629,12 @@ LRESULT Flyout::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const 
 void Flyout::OnWindowDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewScaleFactor)
 {
     BaseClass::OnWindowDisplayScaleChanged(nOldScaleFactor, nNewScaleFactor);
+    if ((nNewScaleFactor == 0) || (nOldScaleFactor == nNewScaleFactor)) {
+        //仅窗口的像素密度发生变化（界面显示比例不变）时，框架也会发出该通知：
+        //例如macOS在Retina屏幕上显示窗口时，窗口像素密度会从初始值同步为屏幕的真实值，
+        //但界面显示比例并未改变。此时浮层不需要关闭（否则会出现打开后立即自动关闭）。
+        return;
+    }
     //DPI 变化后锚点位置与窗口尺寸均需重算，直接关闭浮层更稳妥
     DoClose(CloseReason::kAnchorLost);
 }
