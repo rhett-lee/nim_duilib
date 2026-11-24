@@ -735,9 +735,12 @@ namespace
         const LayeredWindowAttributes layered = ResolveLayeredWindowAttributes(values, layeredParam);
         if (!bUseSystemCaption && layered.m_bIsLayeredWindowDefined &&
             (layered.m_bIsLayeredWindow != pWindow->IsLayeredWindow())) {
-            //仅当推导结果与窗口当前状态不同时才设置（窗口创建时已按相同规则设置过）：
-            //值相同时不调用，避免把XML配置误标记为"外部设置"，导致后续内部无法自动调整层窗口属性
-            pWindow->SetLayeredWindow(layered.m_bIsLayeredWindow, false);
+            //仅当推导结果与窗口当前状态不同时才设置（窗口创建时已按相同规则设置过）
+            LogUtil::OutputLine(StringUtil::Printf(_T("WindowBuilder: apply layered window: %s, current: %s"),
+                                                   layered.m_bIsLayeredWindow ? _T("true") : _T("false"),
+                                                   pWindow->IsLayeredWindow() ? _T("true") : _T("false")));
+            //窗口配置应用不标记为"外部设置"，后续内部仍可按阴影、系统标题栏等需求自动调整
+            pWindow->SetLayeredWindowForConfig(layered.m_bIsLayeredWindow, false);
         }
         if (layered.m_bAlphaDefined) {
             pWindow->SetLayeredWindowAlpha(layered.m_nAlpha);

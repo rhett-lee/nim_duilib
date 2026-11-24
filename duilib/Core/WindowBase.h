@@ -102,6 +102,14 @@ public:
     */
     bool SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw);
 
+    /** 设置是否为层窗口（应用窗口配置时使用）
+    *   与SetLayeredWindow的区别：不将该属性标记为"应用层的外部设置"，
+    *   窗口配置应用完成后，内部仍可根据阴影、系统标题栏等需求自动调整层窗口属性
+    * @param [in] bIsLayeredWindow true表示设置为层窗口，否则设置为非层窗口
+    * @param [in] bRedraw 是否重绘窗口（属性更改后，如果不重绘，则界面可能显示异常）
+    */
+    bool SetLayeredWindowForConfig(bool bIsLayeredWindow, bool bRedraw);
+
     /** 是否为层窗口
     */
     bool IsLayeredWindow() const;
@@ -1508,7 +1516,7 @@ private:
     //是否发送了DragEnter消息，确保DragLeave消息匹配
     bool m_bSendDragEnterMsg;
 
-    //是否设置了分层窗口属性
+    //应用层是否显式设置了分层窗口属性（窗口配置XML不算；系统标题栏互斥时不受该标志限制）
     bool m_bLayeredWindowSetFlag;
 };
 

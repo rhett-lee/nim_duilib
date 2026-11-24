@@ -177,6 +177,23 @@ bool WindowBase::SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
     return bRet;
 }
 
+bool WindowBase::SetLayeredWindowForConfig(bool bIsLayeredWindow, bool bRedraw)
+{
+    if (bIsLayeredWindow) {
+        //OpenGL渲染后端不支持层窗口：与SetLayeredWindow的检查保持一致
+        IRender* pRender = IsRenderCreated() ? GetRender() : nullptr;
+        if ((pRender != nullptr) && (pRender->GetRenderBackendType() == RenderBackendType::kNativeGL_BackendType)) {
+            return false;
+        }
+    }
+    //窗口配置应用：不设置"外部设置"标志，后续内部仍可根据阴影、系统标题栏等需求自动调整
+    if (m_pNativeWindow->SetLayeredWindow(bIsLayeredWindow, bRedraw)) {
+        OnLayeredWindowChanged();
+        return true;
+    }
+    return false;
+}
+
 bool WindowBase::IsLayeredWindow() const
 {
     return m_pNativeWindow->IsLayeredWindow();
