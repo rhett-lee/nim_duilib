@@ -1030,12 +1030,13 @@ void Shadow::CheckMouseClickOnShadow(EventType eventType, const UiPoint& pt)
         return;
     }
 
-    UiPadding rcShadowCorner = GetShadowCorner();
+    //使用当前阴影边距(已包含DPI缩放和贴边状态)，与窗口实际布局保持一致：
+    //否则窗口贴边后布局已经变化，但判定仍使用原始边距，会把窗口内容误判为阴影区域
+    UiPadding rcShadowCorner = GetCurrentShadowCorner();
     if ((rcShadowCorner.left <= 1) && (rcShadowCorner.top <= 1) && (rcShadowCorner.right <= 1) && (rcShadowCorner.bottom <= 1)) {
         //当前无阴影
         return;
     }
-    pShadowBox->Dpi().ScalePadding(rcShadowCorner);
     rcShadowBox.Deflate(rcShadowCorner);
     if (rcShadowBox.ContainsPt(pt)) {
         //鼠标不在阴影范围内
@@ -1068,6 +1069,10 @@ void Shadow::UpdateShadowInputRegion()
     //仅在"已附加自绘阴影"且"启用点击穿透"时，才把阴影区域从输入区域中排除
     INativeWindow* pNativeWindow = m_pWindow;
     pNativeWindow->OnNativeUpdateShadowInputRegion(m_bShadowAttached && m_bEnableClickThroughWindow);
+
+    //输入区域的修改在surface下一次提交时生效(由SDL在显示一帧时提交)，
+    //这里主动触发重绘，使输入区域的修改及时生效
+    m_pWindow->InvalidateAll();
 }
 
 } //namespace ui

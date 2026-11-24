@@ -6,6 +6,7 @@
 #include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/FileUtil.h"
 #include "duilib/Utils/PerformanceUtil.h"
+#include "duilib/Utils/LogUtil.h"
 
 #ifdef DUILIB_BUILD_FOR_SDL
 
@@ -95,6 +96,9 @@ wl_compositor* WaylandGetCompositor(wl_display* display)
 }
 
 /** 设置窗口的鼠标输入区域
+* 注意：输入区域在wl_surface下一次提交(commit)时生效，这里不主动提交surface：
+*      该surface由SDL管理，SDL在显示一帧时会提交surface，如果在此处提交，
+*      会与SDL的帧提交流程交叉，导致窗口显示和输入异常
 * @param [in] surface 窗口的wl_surface对象
 * @param [in] compositor 用于创建wl_region的对象，仅在bClickThrough为true时需要
 * @param [in] bClickThrough true表示只让rcInput区域接收鼠标事件(矩形之外的区域穿透到下层窗口)；
@@ -110,7 +114,6 @@ bool WaylandSetInputRegion(wl_surface* surface, wl_compositor* compositor, bool 
     if (!bClickThrough || rcInput.IsEmpty()) {
         //传入空指针表示整个窗口都接收鼠标事件，恢复到默认状态
         wl_surface_set_input_region(surface, nullptr);
-        wl_surface_commit(surface);
         return true;
     }
     if (compositor == nullptr) {
@@ -123,7 +126,6 @@ bool WaylandSetInputRegion(wl_surface* surface, wl_compositor* compositor, bool 
     wl_region_add(region, rcInput.left, rcInput.top, rcInput.Width(), rcInput.Height());
     wl_surface_set_input_region(surface, region);
     wl_region_destroy(region);
-    wl_surface_commit(surface);
     return true;
 }
 
@@ -349,6 +351,16 @@ void NativeWindow_SDL::CheckWindowSnap(SDL_Window* window)
     if ((flags & SDL_WINDOW_MAXIMIZED) || (flags & SDL_WINDOW_MINIMIZED) || (flags & SDL_WINDOW_FULLSCREEN) ) {
         return;
     }
+#if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
+    if (IsVideoDriverWayland()) {
+        //Wayland协议不允许客户端获取窗口的真实位置(SDL_GetWindowPosition返回的是无效值，
+        //通常是0,0)，无法进行贴边检测：否则窗口会被误判为贴边，导致贴边那一侧的阴影不显示
+        if (m_pOwner != nullptr) {
+            m_pOwner->OnNativeWindowPosSnapped(false, false, false, false);
+        }
+        return;
+    }
+#endif
 
     // 获取窗口所在显示器信息
     SDL_DisplayID displayID = SDL_GetDisplayForWindow(window);
@@ -2266,6 +2278,14 @@ void NativeWindow_SDL::UpdateWaylandInputRegion()
         rcInput.top = (int32_t)(rcShadowCorner.top * fScaleY);
         rcInput.right = nWindowWidth - (int32_t)(rcShadowCorner.right * fScaleX);
         rcInput.bottom = nWindowHeight - (int32_t)(rcShadowCorner.bottom * fScaleY);
+
+        //安全检查：输入区域必须有效，并且必须覆盖窗口的主要部分。
+        //避免窗口尺寸/阴影信息未同步时计算出异常区域，导致整个窗口都无法接收鼠标事件
+        if (rcInput.IsEmpty() ||
+            (rcInput.Width() * 2 < nWindowWidth) || (rcInput.Height() * 2 < nWindowHeight)) {
+            LogUtil::OutputLine(_T("UpdateShadowInputRegion: 计算的输入区域无效，保持整个窗口接收鼠标事件"));
+            rcInput.Clear();
+        }
     }
 
     wl_compositor* compositor = bClickThrough ? WaylandGetCompositor(display) : nullptr;
