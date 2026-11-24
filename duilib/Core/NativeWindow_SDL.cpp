@@ -15,6 +15,11 @@
     #include "SDL_MacOS.h"
 #elif defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
     #include "SDL_Linux.h"
+
+    #if defined (DUILIB_HAS_WAYLAND_CLIENT)
+        #include <wayland-client.h>
+        #include <cstring>
+    #endif
 #elif defined (DUILIB_BUILD_FOR_WIN)
     #include "duilib/Utils/ApiWrapper_Windows.h"
 #endif
@@ -32,6 +37,112 @@
 #define WM_USER_RESTORE_FOCUS_MSG (SDL_EVENT_USER + 5)
 
 namespace ui {
+
+#if (defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)) && defined (DUILIB_HAS_WAYLAND_CLIENT)
+namespace {
+
+/** Wayland的wl_compositor对象绑定状态
+*   同一个wl_display只需要绑定一次，进程内所有窗口共用;
+*   SDL没有对外暴露它自己的wl_compositor，因此这里通过wl_registry自行绑定。
+*/
+struct WaylandCompositorState
+{
+    wl_display* display = nullptr;
+    wl_registry* registry = nullptr;
+    wl_compositor* compositor = nullptr;
+};
+
+WaylandCompositorState s_waylandCompositor;
+
+void WaylandRegistryGlobal(void* data, wl_registry* registry, uint32_t name, const char* interface, uint32_t version)
+{
+    WaylandCompositorState* pState = (WaylandCompositorState*)data;
+    if ((pState == nullptr) || (pState->compositor != nullptr) || (interface == nullptr)) {
+        return;
+    }
+    if (strcmp(interface, wl_compositor_interface.name) == 0) {
+        //绑定到服务端提供的版本(不超过3)，wl_compositor v1起即支持create_region
+        uint32_t bindVersion = version < 3 ? version : 3;
+        pState->compositor = (wl_compositor*)wl_registry_bind(registry, name, &wl_compositor_interface, bindVersion);
+    }
+}
+
+void WaylandRegistryGlobalRemove(void* /*data*/, wl_registry* /*registry*/, uint32_t /*name*/)
+{
+}
+
+/** 获取wl_compositor对象
+*   首次调用时注册registry，全局对象在SDL分发事件时异步到达，此时可能返回nullptr(需要后续重试)
+*/
+wl_compositor* WaylandGetCompositor(wl_display* display)
+{
+    if (display == nullptr) {
+        return nullptr;
+    }
+    if (s_waylandCompositor.display != display) {
+        //窗口所在的wl_display发生了变化，需要重新绑定
+        s_waylandCompositor = WaylandCompositorState();
+        s_waylandCompositor.display = display;
+    }
+    if (s_waylandCompositor.registry == nullptr) {
+        s_waylandCompositor.registry = wl_display_get_registry(display);
+        if (s_waylandCompositor.registry != nullptr) {
+            static const wl_registry_listener registryListener = { WaylandRegistryGlobal, WaylandRegistryGlobalRemove };
+            wl_registry_add_listener(s_waylandCompositor.registry, &registryListener, &s_waylandCompositor);
+        }
+    }
+    return s_waylandCompositor.compositor;
+}
+
+/** 设置窗口的鼠标输入区域
+* @param [in] surface 窗口的wl_surface对象
+* @param [in] compositor 用于创建wl_region的对象，仅在bClickThrough为true时需要
+* @param [in] bClickThrough true表示只让rcInput区域接收鼠标事件(矩形之外的区域穿透到下层窗口)；
+*                           false表示整个窗口都接收鼠标事件
+* @param [in] rcInput 接收鼠标事件的区域（surface局部坐标）
+* @return 设置成功返回true；返回false时需要后续重试
+*/
+bool WaylandSetInputRegion(wl_surface* surface, wl_compositor* compositor, bool bClickThrough, const UiRect& rcInput)
+{
+    if (surface == nullptr) {
+        return false;
+    }
+    if (!bClickThrough || rcInput.IsEmpty()) {
+        //传入空指针表示整个窗口都接收鼠标事件，恢复到默认状态
+        wl_surface_set_input_region(surface, nullptr);
+        wl_surface_commit(surface);
+        return true;
+    }
+    if (compositor == nullptr) {
+        return false;
+    }
+    wl_region* region = wl_compositor_create_region(compositor);
+    if (region == nullptr) {
+        return false;
+    }
+    wl_region_add(region, rcInput.left, rcInput.top, rcInput.Width(), rcInput.Height());
+    wl_surface_set_input_region(surface, region);
+    wl_region_destroy(region);
+    wl_surface_commit(surface);
+    return true;
+}
+
+} //namespace
+
+/** Wayland下"阴影区域鼠标输入区域"的实现数据
+*/
+struct NativeWindow_SDL::WaylandInputRegionData
+{
+    /** 是否有待应用的更新（例如wl_compositor对象尚未就绪）
+    */
+    bool bPending = false;
+
+    /** 是否启用阴影区域的点击穿透
+    */
+    bool bClickThrough = false;
+};
+
+#endif
 
 //窗口指针与SDL窗口ID的映射关系，用于转接消息
 std::unordered_map<SDL_WindowID, NativeWindow_SDL*> NativeWindow_SDL::s_windowIDMap;
@@ -337,6 +448,13 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
     }
     //接口的生命周期标志
     std::weak_ptr<WeakFlag> ownerFlag = pOwner->GetWeakFlag();
+
+    //Wayland下：如果有待应用的阴影输入区域更新，先尝试应用(等待wl_compositor对象就绪)
+#if (defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)) && defined (DUILIB_HAS_WAYLAND_CLIENT)
+    if (m_pWaylandInputRegionData != nullptr) {
+        UpdateWaylandInputRegion();
+    }
+#endif
 
     //窗口的某些区域（例如浮层窗口的阴影区域）不接收鼠标消息：
     //将这些区域上的鼠标消息转发给父窗口处理，与Windows平台命中测试的"穿透"效果一致
@@ -938,7 +1056,8 @@ NativeWindow_SDL::NativeWindow_SDL(INativeWindow* pOwner):
     m_bInitWindowPosFlag(false),
     m_bImeComposing(false),
     m_nUpdateSeq(0),
-    m_systemShadowType(NativeWindowShadowType::kShadowSystemDisabled)
+    m_systemShadowType(NativeWindowShadowType::kShadowSystemDisabled),
+    m_pWaylandInputRegionData(nullptr)
 {
     ASSERT(m_pOwner != nullptr);    
 }
@@ -947,6 +1066,11 @@ NativeWindow_SDL::~NativeWindow_SDL()
 {
     //取消同步绘制窗口的watchers(确保取消，避免出现异常)
     SDL_RemoveEventWatch(OnNativeWindowExposedEvent, this);
+
+#if (defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)) && defined (DUILIB_HAS_WAYLAND_CLIENT)
+    delete m_pWaylandInputRegionData;
+    m_pWaylandInputRegionData = nullptr;
+#endif
 
     ASSERT(m_sdlWindow == nullptr);
     ClearNativeWindow();
@@ -2076,6 +2200,80 @@ size_t NativeWindow_SDL::GetWaylandDisplayPointer() const
     SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
     size_t nWaylandDisplay = (size_t)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER, nullptr);
     return nWaylandDisplay;
+}
+
+size_t NativeWindow_SDL::GetWaylandSurfacePointer() const
+{
+    if (!IsWindow()) {
+        return 0;
+    }
+    SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
+    size_t nWaylandSurface = (size_t)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER, nullptr);
+    return nWaylandSurface;
+}
+
+void NativeWindow_SDL::UpdateShadowInputRegion(bool bEnableClickThrough)
+{
+#if defined (DUILIB_HAS_WAYLAND_CLIENT)
+    if ((m_sdlWindow == nullptr) || !IsVideoDriverWayland()) {
+        return;
+    }
+    if (m_pWaylandInputRegionData == nullptr) {
+        m_pWaylandInputRegionData = new WaylandInputRegionData;
+    }
+    m_pWaylandInputRegionData->bClickThrough = bEnableClickThrough;
+    m_pWaylandInputRegionData->bPending = true;
+    UpdateWaylandInputRegion();
+#else
+    (void)bEnableClickThrough;
+#endif
+}
+
+void NativeWindow_SDL::UpdateWaylandInputRegion()
+{
+#if defined (DUILIB_HAS_WAYLAND_CLIENT)
+    if ((m_sdlWindow == nullptr) || (m_pWaylandInputRegionData == nullptr) || !m_pWaylandInputRegionData->bPending) {
+        return;
+    }
+    wl_display* display = (wl_display*)GetWaylandDisplayPointer();
+    wl_surface* surface = (wl_surface*)GetWaylandSurfacePointer();
+    if ((display == nullptr) || (surface == nullptr)) {
+        return;
+    }
+    const bool bClickThrough = m_pWaylandInputRegionData->bClickThrough;
+
+    //计算应接收鼠标事件的区域：客户区去掉阴影部分，使用surface局部坐标
+    //说明：surface局部坐标等于SDL窗口的逻辑坐标，而duilib的窗口坐标在启用像素密度时为物理像素，需要按比例换算
+    UiRect rcInput;
+    if (bClickThrough) {
+        int nWindowWidth = 0;
+        int nWindowHeight = 0;
+        if (!SDL_GetWindowSize(m_sdlWindow, &nWindowWidth, &nWindowHeight)) {
+            return;
+        }
+        UiRect rcClient;
+        GetClientRect(rcClient);
+        if ((rcClient.Width() <= 0) || (rcClient.Height() <= 0) || (nWindowWidth <= 0) || (nWindowHeight <= 0)) {
+            return;
+        }
+        UiPadding rcShadowCorner;
+        if (m_pOwner != nullptr) {
+            m_pOwner->OnNativeGetShadowCorner(rcShadowCorner);
+        }
+        const float fScaleX = (float)nWindowWidth / (float)rcClient.Width();
+        const float fScaleY = (float)nWindowHeight / (float)rcClient.Height();
+        rcInput.left = (int32_t)(rcShadowCorner.left * fScaleX);
+        rcInput.top = (int32_t)(rcShadowCorner.top * fScaleY);
+        rcInput.right = nWindowWidth - (int32_t)(rcShadowCorner.right * fScaleX);
+        rcInput.bottom = nWindowHeight - (int32_t)(rcShadowCorner.bottom * fScaleY);
+    }
+
+    wl_compositor* compositor = bClickThrough ? WaylandGetCompositor(display) : nullptr;
+    if (WaylandSetInputRegion(surface, compositor, bClickThrough, rcInput)) {
+        //设置成功，清除待处理状态；否则等后续事件中重试(等待wl_compositor对象就绪)
+        m_pWaylandInputRegionData->bPending = false;
+    }
+#endif
 }
 
 #endif

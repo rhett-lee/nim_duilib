@@ -7,8 +7,12 @@
 #include <X11/Xutil.h>
 #include <X11/Xatom.h> 
 #include <cstring>
-#include <unistd.h>
+#include <cstdlib>
+#include <algorithm>
+#include <sys/types.h>
 #include <iostream>
+
+#include "duilib/Utils/LogUtil.h"
 
 namespace ui
 {
@@ -20,7 +24,7 @@ ClickThrough::~ClickThrough()
 {
 }
 
-// 获取窗口对应的进程ID（调试辅助函数，当前仅在调试时使用）
+// 获取窗口对应的进程ID（仅调试时使用）
 [[maybe_unused]] static pid_t GetWindowPID(Display* display, ::Window window)
 {
     if (!display) {
@@ -107,6 +111,47 @@ ClickThrough::~ClickThrough()
         XFree(name);
     }
     return title;
+}
+
+// 获取窗口的父窗口/属主窗口(WM_TRANSIENT_FOR)链，按由近及远排列
+static void GetTransientForChain(Display* display, ::Window window, std::vector<::Window>& parentChain)
+{
+    parentChain.clear();
+    if ((display == nullptr) || (window == None)) {
+        return;
+    }
+    Atom transientFor = XInternAtom(display, "WM_TRANSIENT_FOR", False);
+    if (transientFor == None) {
+        return;
+    }
+    ::Window current = window;
+    //限制最大层数并检测重复，避免异常情况下出现死循环
+    const int32_t kMaxParentCount = 32;
+    while (parentChain.size() < (size_t)kMaxParentCount) {
+        Atom actualType = None;
+        int format = 0;
+        unsigned long numItems = 0;
+        unsigned long bytesAfter = 0;
+        unsigned char* prop = nullptr;
+        if (XGetWindowProperty(display, current, transientFor, 0, 1, False, XA_WINDOW,
+                               &actualType, &format, &numItems, &bytesAfter, &prop) != Success) {
+            break;
+        }
+        if ((prop == nullptr) || (numItems == 0) || (actualType != XA_WINDOW)) {
+            if (prop != nullptr) {
+                XFree(prop);
+            }
+            break;
+        }
+        ::Window parent = *reinterpret_cast<::Window*>(prop);
+        XFree(prop);
+        if ((parent == None) || (parent == current) ||
+            (std::find(parentChain.begin(), parentChain.end(), parent) != parentChain.end())) {
+            break;
+        }
+        parentChain.push_back(parent);
+        current = parent;
+    }
 }
 
 // 递归获取窗口及其所有子窗口
@@ -229,6 +274,33 @@ static ::Window FindWindowBelow(Display* display, ::Window window, int rootX, in
     }
 
     ::Window result = None;
+    if (targetIndex == -1) {
+        //_NET_CLIENT_LIST_STACKING 不包含 override-redirect 窗口（例如菜单类弹层），
+        //回退到 XQueryTree 获取根窗口子窗口的Z序（从底层到顶层），重新定位目标窗口
+        std::vector<::Window> rootChildren;
+        ::Window rootReturn = None;
+        ::Window parentReturn = None;
+        ::Window* children = nullptr;
+        unsigned int nchildren = 0;
+        if (::XQueryTree(display, DefaultRootWindow(display), &rootReturn, &parentReturn, &children, &nchildren) && (children != nullptr)) {
+            for (unsigned int i = 0; i < nchildren; i++) {
+                rootChildren.push_back(children[i]);
+            }
+            ::XFree(children);
+        }
+        allDisplayWindows.swap(rootChildren);
+        for (size_t i = 0; i < allDisplayWindows.size(); ++i) {
+            for (const auto& w : allWindows) {
+                if (allDisplayWindows[i] == w) {
+                    targetIndex = (int)i;
+                    break;
+                }
+            }
+            if (targetIndex != -1) {
+                break;
+            }
+        }
+    }
     if (targetIndex != -1) {
         // 检查Z序中位于目标窗口下方的窗口
         ::Window root = DefaultRootWindow(display);
@@ -256,26 +328,16 @@ static ::Window FindWindowBelow(Display* display, ::Window window, int rootX, in
 }
 
 /** 激活指定窗口（提升到前端并获取焦点）
+ * @param display 已经打开的X11连接
  * @param window  目标窗口ID
  * @param force   是否强制激活（忽略焦点策略）
  * @return        成功返回1，失败返回0
  */
-static int ActivateX11Window(::Window window, int force) 
+static int ActivateX11Window(Display* display, ::Window window, int force) 
 {
-    if (window == None) {
+    if ((display == nullptr) || (window == None)) {
         return 0;
     }
-
-    Display* display = ::XOpenDisplay(nullptr);
-    if (!display) {
-        return 0;
-    }
-
-    // RAII资源管理
-    struct DisplayCloser {
-        Display* d;
-        ~DisplayCloser() { if(d) ::XCloseDisplay(d); }
-    } closer{display};
 
     // 获取当前窗口属性
     ::XWindowAttributes currentAttrs;
@@ -285,8 +347,8 @@ static int ActivateX11Window(::Window window, int force)
 
     // 获取根窗口和必要的原子
     ::Window root = RootWindow(display, DefaultScreen(display));
-    Atom wm_state = XInternAtom(display, "_NET_WM_STATE", False);
     Atom wm_active = XInternAtom(display, "_NET_ACTIVE_WINDOW", False);
+    Atom wm_supported = XInternAtom(display, "_NET_SUPPORTED", False);
     Atom wm_protocols = XInternAtom(display, "WM_PROTOCOLS", False);
     Atom wm_take_focus = XInternAtom(display, "WM_TAKE_FOCUS", False);
     
@@ -298,10 +360,9 @@ static int ActivateX11Window(::Window window, int force)
     unsigned char *prop = nullptr;
     int supports_netwm = 0;
     
-    if (wm_active && XGetWindowProperty(display, root, 
-        XInternAtom(display, "_NET_SUPPORTED", False), 0, 1024, False, 
-                    XA_ATOM, &actual_type, &format, &num_items, &bytes_after, &prop) == Success) {
-        
+    if (wm_active && (::XGetWindowProperty(display, root, wm_supported, 0, 1024, False,
+                                           XA_ATOM, &actual_type, &format, &num_items, &bytes_after, &prop) == Success) &&
+        (actual_type == XA_ATOM) && (format == 32) && (prop != nullptr)) {
         Atom *supported = (Atom*)prop;
         for (unsigned long i = 0; i < num_items; i++) {
             if (supported[i] == wm_active) {
@@ -309,32 +370,34 @@ static int ActivateX11Window(::Window window, int force)
                 break;
             }
         }
-        if (prop) {
-            XFree(prop);
-            prop = nullptr;
-        }
+    }
+    if (prop != nullptr) {
+        XFree(prop);
+        prop = nullptr;
     }
     
-    // 1. 使用_NET_ACTIVE_WINDOW协议（优先方法）
+    // 1. 使用_NET_ACTIVE_WINDOW协议请求窗口管理器激活窗口（优先方法）
     if (supports_netwm) {
         XClientMessageEvent ev;
         memset(&ev, 0, sizeof(ev));
         ev.type = ClientMessage;
-        ev.window = root;
+        ev.window = window;         //需要激活的窗口
         ev.message_type = wm_active;
         ev.format = 32;
-        ev.data.l[0] = 2;  // _NET_ACTIVE_WINDOW_REMOVE
-        ev.data.l[1] = (long)window;
-        ev.data.l[2] = CurrentTime;
-        ev.data.l[3] = 0;  // source indication: application
+        ev.data.l[0] = 1;           //source indication: application
+        ev.data.l[1] = CurrentTime; //时间戳
+        ev.data.l[2] = None;        //当前活动窗口（未知）
+        ev.data.l[3] = 0;
         ev.data.l[4] = 0;
         
-        XSendEvent(display, root, False, 
-                  SubstructureRedirectMask | SubstructureNotifyMask,
-                  (XEvent*)&ev);
+        ::XSendEvent(display, root, False, 
+                     SubstructureRedirectMask | SubstructureNotifyMask,
+                     (XEvent*)&ev);
+        ::XFlush(display);
+        return 1;
     }
     
-    // 2. 发送WM_TAKE_FOCUS协议消息
+    // 2. 窗口管理器不支持EWMH协议时，回退到Xlib的方式
     if (wm_protocols && wm_take_focus) {
         XClientMessageEvent ev;
         memset(&ev, 0, sizeof(ev));
@@ -345,39 +408,20 @@ static int ActivateX11Window(::Window window, int force)
         ev.data.l[0] = wm_take_focus;
         ev.data.l[1] = CurrentTime;
         
-        XSendEvent(display, window, False, 0, (XEvent*)&ev);
+        ::XSendEvent(display, window, False, 0, (XEvent*)&ev);
     }
-    
-    // 3. 使用Xlib底层函数提升窗口
-    XMapRaised(display, window);
-    XRaiseWindow(display, window);
-    
-    // 4. 设置输入焦点
+    if (currentAttrs.map_state != IsViewable) {
+        ::XMapRaised(display, window);
+    }
+    ::XRaiseWindow(display, window);
     if (force) {
-        XSetInputFocus(display, window, RevertToParent, CurrentTime);
-    } else {
-        XSetInputFocus(display, window, RevertToPointerRoot, CurrentTime);
+        ::XSetInputFocus(display, window, RevertToParent, CurrentTime);
     }
-    
-    // 5. 处理可能的竞态条件（重复尝试）
-    for (int i = 0; i < 3; i++) {
-        XFlush(display);
-        usleep(10000);  // 等待10毫秒
-        XMapRaised(display, window);
+    else {
+        ::XSetInputFocus(display, window, RevertToPointerRoot, CurrentTime);
     }
-    
-    // 同步请求以确保所有操作完成
-    XSync(display, False);
-    
-    // 验证窗口是否可见（简单检查）
-    XWindowAttributes attrs;
-    if (XGetWindowAttributes(display, window, &attrs) && 
-        (attrs.map_state == IsViewable || attrs.map_state == IsUnmapped)) {
-        //std::cout << "ActivateX11Window: OK" << std::endl;
-        return 1;
-    }
-    
-    return 0;
+    ::XSync(display, False);
+    return 1;
 }
 
 bool ClickThrough::ClickThroughWindow(Window* pWindow, const UiPoint& ptMouse)
@@ -389,10 +433,14 @@ bool ClickThrough::ClickThroughWindow(Window* pWindow, const UiPoint& ptMouse)
 
     const char* sessionType = std::getenv("XDG_SESSION_TYPE");
     //只支持X11桌面环境
-    if (sessionType == nullptr) {        
-        return false;
-    }
-    if ((std::string(sessionType) != "x11") && (std::string(sessionType) != "X11")) {        
+    if ((sessionType == nullptr) ||
+        ((std::string(sessionType) != "x11") && (std::string(sessionType) != "X11"))) {
+        //Wayland等非X11环境不支持窗口激活，仅输出一次日志，避免反复输出
+        static bool bLoggedOnce = false;
+        if (!bLoggedOnce) {
+            bLoggedOnce = true;
+            LogUtil::OutputLine(_T("ClickThroughWindow: 当前会话为Wayland，阴影区域的点击穿透由窗口输入区域实现，此处不再激活窗口"), false);
+        }
         return false;
     }
 
@@ -419,14 +467,9 @@ bool ClickThrough::ClickThroughWindow(Window* pWindow, const UiPoint& ptMouse)
     newAttrs.event_mask = currentAttrs.all_event_masks & ~(ButtonPressMask|ButtonReleaseMask);
     ::XChangeWindowAttributes(display, x11Window, CWEventMask, &newAttrs);
     
-    // 鼠标坐标转换为根窗口坐标
-    int rootX = 0;
-    int rootY = 0;
-    ::Window root = DefaultRootWindow(display);
-    UiPoint ptClient = ptMouse;
-    pWindow->ScreenToClient(ptClient);
-    ::Window dummy = None;
-    XTranslateCoordinates(display, x11Window, root, ptClient.x, ptClient.y, &rootX, &rootY, &dummy);
+    //ptMouse为屏幕坐标，在X11中即根窗口坐标
+    const int rootX = ptMouse.x;
+    const int rootY = ptMouse.y;
 
     // 递归查找鼠标位置下的可见窗口
     ::Window targetWindow = FindWindowBelow(display, x11Window, rootX, rootY);
@@ -438,7 +481,18 @@ bool ClickThrough::ClickThroughWindow(Window* pWindow, const UiPoint& ptMouse)
 
     // 激活目标窗口
     if ((targetWindow != None) && (targetWindow != x11Window)) {
-        int nRet = ActivateX11Window(targetWindow, 1) ;
+        //鼠标下方是当前窗口的父窗口/属主窗口(WM_TRANSIENT_FOR，典型情况是子界面后方的主界面)时，
+        //保持现状，不切换前台窗口。
+        //注意：不能按进程判断，因为同一进程可能有多个独立的顶层窗口(例如多标签浏览器)
+        std::vector<::Window> parentChain;
+        GetTransientForChain(display, x11Window, parentChain);
+        if (std::find(parentChain.begin(), parentChain.end(), targetWindow) != parentChain.end()) {
+            return false;
+        }
+        int nRet = ActivateX11Window(display, targetWindow, 1);
+        if (nRet == 0) {
+            LogUtil::OutputLine(_T("ClickThroughWindow: 激活窗口失败(_NET_ACTIVE_WINDOW)"), false);
+        }
         return nRet != 0;
     }
     return false;

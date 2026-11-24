@@ -1048,6 +1048,18 @@ void WindowBase::OnNativeGetShadowCorner(UiPadding& rcShadow) const
     GetCurrentShadowCorner(rcShadow);
 }
 
+void WindowBase::OnNativeUpdateShadowInputRegion(bool bEnableClickThrough)
+{
+#if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
+    NativeWindow* pNativeWnd = NativeWnd();
+    if (pNativeWnd != nullptr) {
+        pNativeWnd->UpdateShadowInputRegion(bEnableClickThrough);
+    }
+#else
+    (void)bEnableClickThrough;
+#endif
+}
+
 UiRect WindowBase::OnNativeGetSizeBox() const
 {
     return GetSizeBox();

@@ -127,6 +127,14 @@ public:
 #endif
 
 #if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
+    /** 更新自绘阴影区域的鼠标输入区域（仅Wayland平台实现，其它平台为空实现）
+    *  Wayland下无法查询其它窗口并激活，因此把自绘阴影区域从窗口的输入区域中排除，
+    *  由窗口管理器把点击直接投递给下层的窗口。
+    * @param [in] bEnableClickThrough true表示阴影区域不接收鼠标事件（点击穿透到下层窗口）；
+    *                                 false表示整个窗口都接收鼠标事件
+    */
+    void UpdateShadowInputRegion(bool bEnableClickThrough);
+
     /** 当前窗口后端引擎是否为X11
     */
     bool IsVideoDriverX11() const;
@@ -150,6 +158,10 @@ public:
     /** 获取Wayland的窗口所在Display指针（对应于Wayland的wl_display*类型）
     */
     size_t GetWaylandDisplayPointer() const;
+
+    /** 获取Wayland的窗口Surface指针（对应于Wayland的wl_surface*类型）
+    */
+    size_t GetWaylandSurfacePointer() const;
 
 #endif
 
@@ -931,6 +943,15 @@ private:
     /** 操作系统级别的窗口阴影
     */
     NativeWindowShadowType m_systemShadowType;
+
+    /** Wayland下"阴影区域鼠标输入区域"的实现数据（仅Wayland平台使用，其它平台为空）
+    */
+    struct WaylandInputRegionData;
+    WaylandInputRegionData* m_pWaylandInputRegionData;
+
+    /** 更新Wayland下阴影区域的输入区域（内部函数，合成器对象尚未就绪时延迟到后续事件中重试）
+    */
+    void UpdateWaylandInputRegion();
 };
 
 /** 定义别名

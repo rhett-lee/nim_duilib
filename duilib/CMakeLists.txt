@@ -318,6 +318,17 @@ else()
     add_library(${PROJECT_NAME} ${LIBRARY_SOURCES})
 endif()
 
+# Linux / FreeBSD 的 Wayland 客户端库（可选依赖）：
+# 用于实现窗口自绘阴影区域的点击穿透；未安装时该功能自动降级为不处理
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+    include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_wayland_libs.cmake")
+    if(DUILIB_HAS_WAYLAND_CLIENT)
+        target_compile_definitions(${PROJECT_NAME} PRIVATE DUILIB_HAS_WAYLAND_CLIENT=1)
+        target_include_directories(${PROJECT_NAME} PRIVATE ${DUILIB_WAYLAND_INCLUDE_DIR})
+        target_link_libraries(${PROJECT_NAME} PRIVATE ${DUILIB_WAYLAND_LIBS})
+    endif()
+endif()
+
 # 把include目录应用到库目标上（CM-17：不再使用目录级的全局 include_directories）
 target_include_directories(${PROJECT_NAME} PRIVATE ${DUILIB_TARGET_INCLUDE_DIRS})
 

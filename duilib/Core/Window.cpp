@@ -1439,6 +1439,13 @@ LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize
         //大小变化
         m_windowRoot->ProcessWindowResized();
     }
+
+    //窗口大小变化后，更新阴影区域的鼠标输入区域(Wayland平台使用：实现阴影点击穿透)
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        pShadow->UpdateShadowInputRegion();
+    }
+
     if (windowFlag.expired()) {
         return 0;
     }

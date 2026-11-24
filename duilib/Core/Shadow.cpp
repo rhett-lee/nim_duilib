@@ -398,6 +398,7 @@ void Shadow::UpdateShadow()
         m_pShadowBox->ArrangeAncestor();
         m_pWindow->InvalidateAll();
     }
+    UpdateShadowInputRegion();
 }
 
 void Shadow::DoAttachShadow(Box* pShadowBox, Box* pXmlRoot, bool bShadowAttached, bool bWindowMaximized) const
@@ -919,6 +920,7 @@ void Shadow::MaximizedOrRestored(bool bWindowMaximized)
         UiPadding rcShadowCorner = GetCurrentShadowCorner();
         m_pShadowBox->SetPadding(rcShadowCorner, false);
     }
+    UpdateShadowInputRegion();
 }
 
 void Shadow::ClearImageCache()
@@ -939,6 +941,7 @@ void Shadow::ChangeDpiScale(const DpiManager& dpi, uint32_t /*nOldDpiScale*/, ui
         SetShadowImage(_T(""));
         SetShadowImage(shadowImage);
     }
+    UpdateShadowInputRegion();
 }
 
 void Shadow::SetWindowPosSnap(bool bLeftSnap, bool bRightSnap, bool bTopSnap, bool bBottomSnap)
@@ -1045,12 +1048,26 @@ void Shadow::CheckMouseClickOnShadow(EventType eventType, const UiPoint& pt)
 
 void Shadow::SetEnableClickThroughWindow(bool bEnable)
 {
+    if (m_bEnableClickThroughWindow == bEnable) {
+        return;
+    }
     m_bEnableClickThroughWindow = bEnable;
+    UpdateShadowInputRegion();
 }
 
 bool Shadow::IsEnableClickThroughWindow() const
 {
     return m_bEnableClickThroughWindow;
+}
+
+void Shadow::UpdateShadowInputRegion()
+{
+    if (m_pWindow == nullptr) {
+        return;
+    }
+    //仅在"已附加自绘阴影"且"启用点击穿透"时，才把阴影区域从输入区域中排除
+    INativeWindow* pNativeWindow = m_pWindow;
+    pNativeWindow->OnNativeUpdateShadowInputRegion(m_bShadowAttached && m_bEnableClickThroughWindow);
 }
 
 } //namespace ui

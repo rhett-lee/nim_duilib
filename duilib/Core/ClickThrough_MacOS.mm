@@ -7,6 +7,7 @@
 #include <ApplicationServices/ApplicationServices.h>
 #include <AppKit/AppKit.h>
 #include <CoreFoundation/CoreFoundation.h>
+#include "duilib/Utils/LogUtil.h"
 
 namespace ui
 {
@@ -19,26 +20,37 @@ ClickThrough::~ClickThrough()
 }
 
 /** 激活指定的应用
-*  NSApplicationActivateIgnoringOtherApps 在 macOS 14 起被标记为弃用（该选项已无效果），
-*  但旧系统仍需要该选项才能把应用窗口带到前台，因此保留原调用并关闭弃用告警。
 */
 static void MacOS_ActivateApplication(NSRunningApplication* app)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    [app activateWithOptions:NSApplicationActivateIgnoringOtherApps];
-#pragma clang diagnostic pop
-}
-
-static void MacOS_ActivateWindowByNumber(NSInteger windowNumber) 
-{
-    if (windowNumber == 0) {
+    if (app == nil) {
         return;
     }
+    if (@available(macOS 14.0, *)) {
+        //macOS 14 起使用新的激活接口
+        [app activate];
+    }
+    else {
+        //旧系统需要使用该选项才能把应用窗口带到前台
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        [app activateWithOptions:NSApplicationActivateIgnoringOtherApps];
+#pragma clang diagnostic pop
+    }
+}
+
+/** 激活指定窗口编号所属的应用
+* @return 找到该窗口并激活其应用时返回true
+*/
+static bool MacOS_ActivateWindowByNumber(NSInteger windowNumber) 
+{
+    if (windowNumber == 0) {
+        return false;
+    }
     
-    CFArrayRef windowList = CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly, kCGNullWindowID);    
+    CFArrayRef windowList = CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements, kCGNullWindowID);    
     if (!windowList) {
-        return;
+        return false;
     }
     
     BOOL found = NO;
@@ -64,13 +76,12 @@ static void MacOS_ActivateWindowByNumber(NSInteger windowNumber)
     
     if (found && targetPID != 0) {
         NSRunningApplication *app = [NSRunningApplication runningApplicationWithProcessIdentifier:targetPID];
-        MacOS_ActivateApplication(app);
-        if (!app.isActive) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                MacOS_ActivateApplication(app);
-            });
+        if (app != nil) {
+            MacOS_ActivateApplication(app);
+            return true;
         }
     }
+    return false;
 }
 
 bool ClickThrough::ClickThroughWindow(Window* pWindow, const UiPoint& ptMouse)
@@ -85,45 +96,35 @@ bool ClickThrough::ClickThroughWindow(Window* pWindow, const UiPoint& ptMouse)
         return false;
     }
     
-    // 坐标转换为窗口客户端坐标
+    //ptMouse为屏幕坐标(左上角为原点)，先转换为窗口客户端坐标，再转换为Cocoa的屏幕坐标
     UiPoint pt = ptMouse;
     pWindow->ScreenToClient(pt);
 
     // 当前处理的窗口
     NSWindow* currentWindow = pNSWindow;
-    
-    // 保存窗口原始状态以便恢复
-    NSWindowLevel originalLevel = [currentWindow level];
-    NSWindowCollectionBehavior originalBehavior = [currentWindow collectionBehavior];
-    BOOL originalIgnoresMouseEvents = [currentWindow ignoresMouseEvents];
-    
-    // 临时配置窗口为可穿透状态
-    [currentWindow setLevel:NSFloatingWindowLevel];
-    [currentWindow setCollectionBehavior:NSWindowCollectionBehaviorCanJoinAllSpaces |
-                                     NSWindowCollectionBehaviorIgnoresCycle |
-                                     NSWindowCollectionBehaviorStationary];
-    [currentWindow setIgnoresMouseEvents:YES];
-    
-    // 坐标转换: 窗口坐标 -> 屏幕坐标
     NSView* contentView = [currentWindow contentView];
-    NSPoint windowPoint = NSMakePoint(pt.x, pt.y);
-    NSPoint screenPoint = [contentView convertPoint:windowPoint toView:nil];
+    if (contentView == nil) {
+        return false;
+    }
+    NSPoint screenPoint = [contentView convertPoint:NSMakePoint(pt.x, pt.y) toView:nil];
     
-    // 获取鼠标点击位置下的窗口编号
+    //临时让当前窗口忽略鼠标事件，以便获取鼠标下方的窗口：
+    //只修改这一项，不修改窗口层级和collectionBehavior，避免引起窗口重新合成
+    BOOL originalIgnoresMouseEvents = [currentWindow ignoresMouseEvents];
+    [currentWindow setIgnoresMouseEvents:YES];
     NSInteger windowNumber = [NSWindow windowNumberAtPoint:screenPoint
                                 belowWindowWithWindowNumber:0];
-    
-    // 恢复窗口原始状态
     [currentWindow setIgnoresMouseEvents:originalIgnoresMouseEvents];
-    [currentWindow setLevel:originalLevel];
-    [currentWindow setCollectionBehavior:originalBehavior];
 
     // 如果点击到其他窗口，则激活该窗口
-    if (windowNumber != 0 && windowNumber != [currentWindow windowNumber]) {
-        MacOS_ActivateWindowByNumber(windowNumber);
+    if ((windowNumber != 0) && (windowNumber != [currentWindow windowNumber])) {
+        bool bActivated = MacOS_ActivateWindowByNumber(windowNumber);
+        if (!bActivated) {
+            LogUtil::OutputLine(_T("ClickThroughWindow: 激活窗口失败(NSRunningApplication)"));
+        }
+        return bActivated;
     }
-
-    return true;
+    return false;
 }
 
 }//namespace ui

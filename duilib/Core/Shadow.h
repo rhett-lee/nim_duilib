@@ -235,6 +235,12 @@ public:
     */
     bool IsEnableClickThroughWindow() const;
 
+    /** 更新阴影区域的鼠标输入区域
+    *   仅Wayland平台生效：把阴影区域从窗口的输入区域中排除，由窗口管理器把点击投递给下层窗口；
+    *   其它平台为空实现
+    */
+    void UpdateShadowInputRegion();
+
 private:
     /** 将阴影附加到窗口
      * @param [in] pShadowBox 新的根容器接口，阴影容器

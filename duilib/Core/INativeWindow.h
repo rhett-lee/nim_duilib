@@ -43,6 +43,14 @@ public:
     */
     virtual void OnNativeGetShadowCorner(UiPadding& rcShadow) const = 0;
 
+    /** 更新自绘阴影区域的鼠标输入区域（仅Wayland平台需要实现，其它平台无需处理）
+    *  Wayland 下无法查询其它窗口并激活，因此把自绘阴影区域从窗口的输入区域中排除，
+    *  由窗口管理器把点击直接投递给下层的窗口。
+    * @param [in] bEnableClickThrough true表示阴影区域不接收鼠标事件（点击穿透到下层窗口）；
+    *                                 false表示整个窗口都接收鼠标事件
+    */
+    virtual void OnNativeUpdateShadowInputRegion(bool /*bEnableClickThrough*/) {}
+
     /** 获取窗口四边可拉伸范围的大小
     */
     virtual UiRect OnNativeGetSizeBox() const = 0;

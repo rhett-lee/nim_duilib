@@ -1404,6 +1404,7 @@ private:
     //来自实现窗口的事件
     virtual const DpiManager& OnNativeGetDpi() const override final;
     virtual void OnNativeGetShadowCorner(UiPadding& rcShadow) const override final;
+    virtual void OnNativeUpdateShadowInputRegion(bool bEnableClickThrough) override final;
     virtual UiRect OnNativeGetSizeBox() const override final;
     virtual void OnNativeUseSystemCaptionBarChanged() override final;
     virtual void OnNativeGetCaptionRect(UiRect& captionRect) const override final;
