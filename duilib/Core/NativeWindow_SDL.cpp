@@ -3713,9 +3713,16 @@ float NativeWindow_SDL::GetWindowPixelDensity() const
 
 bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool /*bRedraw*/)
 {
-    //不支持该功能
+    //SDL_WINDOW_TRANSPARENT 只能在创建窗口时指定，创建后不支持修改：
+    //这里只校验请求是否与窗口的实际属性一致，避免内部状态与窗口属性不一致
+    if (m_sdlWindow != nullptr) {
+        const bool bTransparent = (SDL_GetWindowFlags(m_sdlWindow) & SDL_WINDOW_TRANSPARENT) != 0;
+        if (bIsLayeredWindow != bTransparent) {
+            //当前平台或者Render不支持透明窗口，无法设置为分层窗口
+            return false;
+        }
+    }
     m_bIsLayeredWindow = bIsLayeredWindow;
-    //SDL_WINDOW_TRANSPARENT 这个属性，不支持修改，所以此属性不支持修改，在创建窗口的时候已经设置正确的属性
     return true;
 }
 

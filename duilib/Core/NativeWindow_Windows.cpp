@@ -901,13 +901,16 @@ void NativeWindow_Windows::SetUseSystemCaption(bool bUseSystemCaption)
         }
         
     }
-    if (IsUseSystemCaption() && IsLayeredWindow()) {
-        //开启系统标题栏时，请求应用层关闭层窗口
-        m_pOwner->OnNativeRequestSetLayeredWindow(false, false);
+    //记录分层窗口状态：仅用于判断是否需要重绘
+    const bool bOldLayeredWindow = IsLayeredWindow();
+    if (IsUseSystemCaption() && bOldLayeredWindow) {
+        //使用系统标题栏与分层窗口互斥：这里必须关闭层窗口属性，
+        //不能受"外部设置过分层窗口属性"标志的限制，否则互斥规则会失效
+        SetLayeredWindow(false, false);
     }
 
-    //强制窗口重绘（仅在标题栏状态变化时需要）
-    if (bCaptionChanged && ::IsWindow(m_hWnd)) {
+    //强制窗口重绘（标题栏状态或者分层窗口状态变化时需要）
+    if ((bCaptionChanged || (bOldLayeredWindow != IsLayeredWindow())) && ::IsWindow(m_hWnd)) {
         m_bContentDirty = true;
         ::RedrawWindow(m_hWnd, NULL, NULL, RDW_FRAME | RDW_INTERNALPAINT | RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
         ::SetWindowPos(m_hWnd, nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);

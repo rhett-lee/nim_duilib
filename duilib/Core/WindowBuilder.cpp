@@ -729,12 +729,14 @@ namespace
 
         //【阶段4】层窗口与透明度（互斥与降级规则已在Resolve中统一处理）
         ShadowResolveParam layeredParam;
-        layeredParam.m_bLayeredWindow = false;
+        //窗口已创建：按当前的实际状态推导默认阴影类型（创建前使用的"未分层"状态已不适用）
+        layeredParam.m_bLayeredWindow = pWindow->IsLayeredWindow();
         layeredParam.m_bSystemShadowSupported = pWindow->NativeWnd()->IsSystemShadowSupported();
         const LayeredWindowAttributes layered = ResolveLayeredWindowAttributes(values, layeredParam);
         if (!bUseSystemCaption && layered.m_bIsLayeredWindowDefined &&
-            (values.m_bLayeredWindowDefined || (layered.m_bIsLayeredWindow != pWindow->IsLayeredWindow()))) {
-            //窗口创建时已按相同规则设置过分层属性，这里只应用XML中的显式配置或者与当前状态不同的结果
+            (layered.m_bIsLayeredWindow != pWindow->IsLayeredWindow())) {
+            //仅当推导结果与窗口当前状态不同时才设置（窗口创建时已按相同规则设置过）：
+            //值相同时不调用，避免把XML配置误标记为"外部设置"，导致后续内部无法自动调整层窗口属性
             pWindow->SetLayeredWindow(layered.m_bIsLayeredWindow, false);
         }
         if (layered.m_bAlphaDefined) {
