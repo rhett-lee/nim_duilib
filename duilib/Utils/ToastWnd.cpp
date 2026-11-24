@@ -11,7 +11,7 @@
 namespace ui
 {
     //静态成员初始化
-    std::vector<ToastWnd*> ToastWnd::s_toasts;
+    std::vector<ControlPtrT<ToastWnd>> ToastWnd::s_toasts;
     const int32_t ToastWnd::kToastGap          = 12;  //通知之间的垂直间距
     const int32_t ToastWnd::kAnchorMargin      = 24;  //距父窗口客户区顶/底边的边距
     const int32_t ToastWnd::kRightMargin       = 24;  //距父窗口客户区右边的边距
@@ -83,7 +83,9 @@ namespace ui
 
         //数量超过上限时，让最早出现的通知先关闭（关闭流程会自动从列表摘除）
         if (s_toasts.size() >= kMaxToastCount) {
-            s_toasts.front()->RequestClose();
+            if (s_toasts.front() != nullptr) {
+                s_toasts.front()->RequestClose();
+            }            
         }
 
         //不抢焦点：TOPMOST 浮层在创建/显示过程中可能意外成为前台窗口，
@@ -115,7 +117,7 @@ namespace ui
         }
 
         //创建完成后（OnInitWindow 中已完成内容填充与尺寸测量），加入活动列表并按堆叠序号定位
-        s_toasts.push_back(pToastWnd);
+        s_toasts.push_back(ToastWndPtr(pToastWnd));
         int32_t nX = 0;
         int32_t nY = 0;
         CalcTargetWindowPos(pToastWnd, nX, nY);
@@ -510,13 +512,13 @@ namespace ui
 
     void ToastWnd::LayoutAllToasts(bool bAnimate)
     {
-        for (ToastWnd* pToast : s_toasts) {
-            if ((pToast == nullptr) || pToast->m_bClosing) {
+        for (ToastWndPtr pToast : s_toasts) {
+            if ((pToast == nullptr) || pToast->m_bClosing || !pToast->IsWindow()) {
                 continue;
             }
             int32_t nNewX = 0;
             int32_t nNewY = 0;
-            CalcTargetWindowPos(pToast, nNewX, nNewY);
+            CalcTargetWindowPos(pToast.get(), nNewX, nNewY);
 
             const int32_t nOldY = pToast->m_nWindowY;
             pToast->m_nWindowX = nNewX;
@@ -551,8 +553,8 @@ namespace ui
         //   计算过程中统一使用布局坐标（物理像素），屏幕坐标需要按像素密度换算
         UiRect rcAnchor;
         UiRect rcWork;
-        Window* pParent = pToast->m_pParentWindow;
-        if (pParent != nullptr) {
+        WindowPtr pParent = pToast->m_pParentWindow;
+        if ((pParent != nullptr) && pParent->IsWindow()) {
             //父窗口客户区原点（屏幕坐标）
             UiPoint ptOrigin(0, 0);
             pParent->ClientToScreen(ptOrigin);
@@ -603,8 +605,8 @@ namespace ui
         const int32_t nRightMargin = toastDpi.GetScaleInt(kRightMargin);
         const int32_t nAnchorMargin = toastDpi.GetScaleInt(kAnchorMargin);
         int32_t nStackOffset = 0;
-        for (ToastWnd* pOther : s_toasts) {
-            if (pOther == pToast) {
+        for (ToastWndPtr pOther : s_toasts) {
+            if (pOther.get() == pToast) {
                 break;
             }
             if ((pOther != nullptr) &&

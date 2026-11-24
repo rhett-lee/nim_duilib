@@ -311,7 +311,7 @@ private:
 
 private:
     //父窗口（不持有引用，仅用于定位；父窗口销毁时本窗口作为其 owned window 一并销毁）
-    Window* m_pParentWindow;
+    ControlPtrT<Window> m_pParentWindow;
 
     //锚点控件（弱引用）
     ControlPtrT<Control> m_pAnchor;
@@ -384,7 +384,7 @@ private:
 
 private:
     //当前活动中的浮层（同一时刻只保留一个）
-    static Flyout* s_pActiveFlyout;
+    static ControlPtrT<Flyout> s_pActiveFlyout;
 
     //外部输入检测轮询周期（毫秒）
     static const int32_t kDetectIntervalMs;

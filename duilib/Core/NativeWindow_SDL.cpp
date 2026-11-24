@@ -1956,7 +1956,7 @@ DString NativeWindow_SDL::GetWindowRenderName() const
 
 bool NativeWindow_SDL::IsWindow() const
 {
-    return (m_sdlWindow != nullptr);
+    return (m_sdlWindow != nullptr) && (SDL_GetWindowID(m_sdlWindow) != 0);
 }
 
 bool NativeWindow_SDL::IsChildWindow() const

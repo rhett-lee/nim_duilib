@@ -125,7 +125,7 @@ Flyout::Placement FlipPlacement(Flyout::Placement placement)
 } // namespace
 
 //静态成员初始化
-Flyout* Flyout::s_pActiveFlyout = nullptr;
+ControlPtrT<Flyout> Flyout::s_pActiveFlyout;
 const int32_t Flyout::kDetectIntervalMs = 50;
 
 Flyout::Flyout(Window* pParentWindow) :
@@ -227,7 +227,7 @@ bool Flyout::ShowAt(Control* pAnchor, const DString& xmlFile, Placement placemen
     createWndParam.m_nX = ptInitPos.x;
     createWndParam.m_nY = ptInitPos.y;
 
-    if (!CreateWnd(m_pParentWindow, createWndParam)) {
+    if (!CreateWnd(m_pParentWindow.get(), createWndParam)) {
         //创建失败（通常是 XML 资源路径错误）：销毁对象并返回，避免泄漏。
         //注意：若本对象此前已是活动浮层（重复调用 ShowAt 且此前 ShowAt 成功过），
         //直接 delete this 会留下指向已释放内存的悬空静态指针，须先清空。
@@ -547,7 +547,7 @@ void Flyout::AttachLayouted(const FlyoutLayoutEvent& callback)
 
 Flyout* Flyout::GetActiveFlyout()
 {
-    return s_pActiveFlyout;
+    return s_pActiveFlyout.get();
 }
 
 void Flyout::DismissActive()

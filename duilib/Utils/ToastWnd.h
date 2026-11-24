@@ -177,7 +177,7 @@ private:
 
 private:
     //父窗口（不持有引用，仅用于定位；父窗口销毁时本窗口作为其 owned window 一并销毁）
-    ui::Window* m_pParentWindow;
+    ui::WindowPtr m_pParentWindow;
 
     //通知内容
     DString m_text;
@@ -239,7 +239,8 @@ private:
 
 private:
     //当前所有活动中的通知（按创建顺序，仅在 UI 线程访问）
-    static std::vector<ToastWnd*> s_toasts;
+    typedef ControlPtrT<ToastWnd> ToastWndPtr;
+    static std::vector<ControlPtrT<ToastWnd>> s_toasts;
 
     //通知之间的垂直间距，以及距锚点边缘的边距（客户区坐标）
     static const int32_t kToastGap;
