@@ -39,6 +39,44 @@
 
 namespace ui {
 
+#if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
+/** 当前是否使用Wayland视频驱动
+*/
+static bool IsWaylandVideoDriver()
+{
+    const char* pszVideoDriver = SDL_GetCurrentVideoDriver();
+    return (pszVideoDriver != nullptr) && (SDL_strcmp(pszVideoDriver, "wayland") == 0);
+}
+
+/** 窗口是否为Wayland下SDL的弹出窗口(xdg_popup)
+*/
+static bool IsWaylandPopupWindow(SDL_Window* pWindow)
+{
+    if ((pWindow == nullptr) || !IsWaylandVideoDriver()) {
+        return false;
+    }
+    const SDL_WindowFlags windowFlags = SDL_GetWindowFlags(pWindow);
+    return ((windowFlags & SDL_WINDOW_POPUP_MENU) != 0) || ((windowFlags & SDL_WINDOW_TOOLTIP) != 0);
+}
+
+/** 获取Wayland下SDL弹出窗口的父窗口位置
+*   SDL弹出窗口(xdg_popup)的位置是相对父窗口的偏移量，
+*   需要把窗口坐标减去父窗口位置，才是正确的偏移量。
+*/
+static void GetWaylandPopupParentPos(SDL_Window* pWindow, int32_t& nParentX, int32_t& nParentY)
+{
+    nParentX = 0;
+    nParentY = 0;
+    if (pWindow == nullptr) {
+        return;
+    }
+    SDL_Window* pParentWindow = SDL_GetWindowParent(pWindow);
+    if (pParentWindow != nullptr) {
+        SDL_GetWindowPosition(pParentWindow, &nParentX, &nParentY);
+    }
+}
+#endif
+
 #if (defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)) && defined (DUILIB_HAS_WAYLAND_CLIENT)
 namespace {
 
@@ -1809,6 +1847,32 @@ void NativeWindow_SDL::SetCreateWindowProperties(SDL_PropertiesID props, NativeW
         x = m_createParam.m_nX;
         y = m_createParam.m_nY;
     }
+    //窗口的初始位置(窗口坐标)：Wayland的SDL弹出窗口需要使用相对父窗口的偏移量，
+    //此处先保存原始的窗口坐标，供后续窗口位置计算使用(保持与其他平台一致的语义)
+    const int32_t xInit = x;
+    const int32_t yInit = y;
+
+    //是否为弹出式窗口(菜单、下拉框、浮层等)
+    const bool bPopupWindow = (m_createParam.m_dwStyle & kWS_POPUP) != 0;
+
+    //Wayland下，弹出式窗口必须创建为SDL的弹出窗口(xdg_popup)才能设置窗口位置，
+    //否则窗口位置会被窗口管理器忽略(显示在父窗口中心)
+    bool bWaylandPopupWindow = false;
+#if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
+    if (bPopupWindow && (pParentWindow != nullptr) && (pParentWindow->m_sdlWindow != nullptr) &&
+        IsWaylandVideoDriver()) {
+        bWaylandPopupWindow = true;
+        if ((x != kCW_USEDEFAULT) && (y != kCW_USEDEFAULT)) {
+            //SDL弹出窗口的位置是相对父窗口的偏移量，需要减去父窗口的位置
+            int32_t nParentX = 0;
+            int32_t nParentY = 0;
+            SDL_GetWindowPosition(pParentWindow->m_sdlWindow, &nParentX, &nParentY);
+            x -= nParentX;
+            y -= nParentY;
+        }
+    }
+#endif
+
     if ((m_createParam.m_nWidth != kCW_USEDEFAULT) && (m_createParam.m_nHeight != kCW_USEDEFAULT)) {
         cx = m_createParam.m_nWidth;
         cy = m_createParam.m_nHeight;
@@ -1827,8 +1891,8 @@ void NativeWindow_SDL::SetCreateWindowProperties(SDL_PropertiesID props, NativeW
     }
 
     m_bInitWindowPosFlag = false;
-    m_ptInitWindow.x = x;
-    m_ptInitWindow.y = y;
+    m_ptInitWindow.x = xInit;
+    m_ptInitWindow.y = yInit;
     m_szInitWindow.cx = cx;
     m_szInitWindow.cy = cy;
 
@@ -1855,7 +1919,6 @@ void NativeWindow_SDL::SetCreateWindowProperties(SDL_PropertiesID props, NativeW
     }
 
     //如果是弹出窗口，并且无阴影和标题栏，则默认为无边框
-    const bool bPopupWindow = m_createParam.m_dwStyle & kWS_POPUP;
     if (!IsUseSystemCaption()) {
         //只要没有使用系统标题栏，就需要设置此属性，否则窗口就会带系统标题栏
         windowFlags |= SDL_WINDOW_BORDERLESS;
@@ -1879,6 +1942,16 @@ void NativeWindow_SDL::SetCreateWindowProperties(SDL_PropertiesID props, NativeW
     }
     if (m_createParam.m_dwExStyle & kWS_EX_TOPMOST) {
         windowFlags |= SDL_WINDOW_ALWAYS_ON_TOP;
+    }
+    if (bWaylandPopupWindow) {
+        //Wayland下使用SDL的弹出窗口(xdg_popup)：不能同时使用UTILITY类型；
+        //弹出窗口天然位于父窗口之上，且不支持置顶属性
+        windowFlags &= ~SDL_WINDOW_UTILITY;
+        windowFlags &= ~SDL_WINDOW_ALWAYS_ON_TOP;
+        if ((m_createParam.m_dwExStyle & kWS_EX_TOOLTIP_WINDOW) == 0) {
+            //需要接收输入的弹出窗口(菜单、下拉框、浮层等)
+            windowFlags |= SDL_WINDOW_POPUP_MENU;
+        }
     }
 
 #ifdef DUILIB_BUILD_FOR_WIN
@@ -2015,7 +2088,12 @@ void NativeWindow_SDL::InitNativeWindow()
     SetWindowFromID(id, this);
 
     //设置Hit Test函数
-    if (!IsUseSystemCaption()) {
+    bool bWaylandPopupWindow = false;
+#if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
+    //Wayland下SDL弹出窗口(xdg_popup)不支持拖动/调整大小，无需设置Hit Test
+    bWaylandPopupWindow = IsWaylandPopupWindow(m_sdlWindow);
+#endif
+    if (!IsUseSystemCaption() && !bWaylandPopupWindow) {
         bool nRet = SDL_SetWindowHitTest(m_sdlWindow, NativeWindow_SDL_HitTest, this);
         ASSERT_UNUSED_VARIABLE(nRet);
     }
@@ -2489,7 +2567,12 @@ void NativeWindow_SDL::SetUseSystemCaption(bool bUseSystemCaption)
 #endif
 
     //窗口创建时已按该状态设置过标题栏与Hit Test，状态未变化时无需重复设置
-    if (IsUseSystemCaption() != bOldUseSystemCaption) {
+    bool bSkipWindowStyle = false;
+#if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
+    //Wayland下SDL弹出窗口(xdg_popup)不支持系统标题栏，也不支持设置Hit Test
+    bSkipWindowStyle = IsWaylandPopupWindow(m_sdlWindow);
+#endif
+    if (!bSkipWindowStyle && (IsUseSystemCaption() != bOldUseSystemCaption)) {
         if (IsUseSystemCaption()) {
             //使用系统默认标题栏, 需要增加标题栏风格
             bool nRet = SDL_SetWindowBordered(m_sdlWindow, true);
@@ -2876,6 +2959,12 @@ void NativeWindow_SDL::SetWindowAlwaysOnTop(bool bOnTop)
     if (!IsWindow() || IsChildWindow()) {
         return;
     }
+#if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
+    if (IsWaylandPopupWindow(m_sdlWindow)) {
+        //Wayland下SDL弹出窗口(xdg_popup)天然位于父窗口之上，且不支持置顶属性
+        return;
+    }
+#endif
     bool nRet = SDL_SetWindowAlwaysOnTop(m_sdlWindow, bOnTop ? true : false);
     ASSERT_UNUSED_VARIABLE(nRet);
 }
@@ -3183,9 +3272,20 @@ bool NativeWindow_SDL::SetWindowPos(const NativeWindow_SDL* pInsertAfterWindow,
         }
     }
     if (!(uFlags & kSWP_NOMOVE)) {
-        //Wayland:该函数无法修改窗口位置，内部不支持
-        //Wayland:不支持设置窗口的初始坐标值
-        bool nRet = SDL_SetWindowPosition(m_sdlWindow, X, Y);
+        int32_t nPosX = X;
+        int32_t nPosY = Y;
+#if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
+        //Wayland下SDL弹出窗口(xdg_popup)的位置是相对父窗口的偏移量；普通窗口无法设置位置
+        bool bWaylandPopupWindow = IsWaylandPopupWindow(m_sdlWindow);
+        if (bWaylandPopupWindow) {
+            int32_t nParentX = 0;
+            int32_t nParentY = 0;
+            GetWaylandPopupParentPos(m_sdlWindow, nParentX, nParentY);
+            nPosX -= nParentX;
+            nPosY -= nParentY;
+        }
+#endif
+        bool nRet = SDL_SetWindowPosition(m_sdlWindow, nPosX, nPosY);
         ASSERT_UNUSED_VARIABLE(nRet);
         if (!nRet) {
             bRet = false;
@@ -3219,7 +3319,13 @@ bool NativeWindow_SDL::SetWindowPos(const NativeWindow_SDL* pInsertAfterWindow,
             bModified = true;
         }
     }
-    if (!(uFlags & kSWP_NOZORDER) && (pInsertAfterWindow == nullptr)) {
+#if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
+    //Wayland下SDL弹出窗口(xdg_popup)始终位于父窗口之上，不支持置顶/提升操作
+    const bool bWaylandPopupWindow = IsWaylandPopupWindow(m_sdlWindow);
+#else
+    const bool bWaylandPopupWindow = false;
+#endif
+    if (!(uFlags & kSWP_NOZORDER) && (pInsertAfterWindow == nullptr) && !bWaylandPopupWindow) {
         //仅支持pInsertAfterWindow为nullptr的情况
         if (insertAfterFlag == InsertAfterFlag::kHWND_TOPMOST) {
             SDL_SetWindowAlwaysOnTop(m_sdlWindow, true);
@@ -3259,7 +3365,19 @@ bool NativeWindow_SDL::MoveWindow(int32_t X, int32_t Y, int32_t nWidth, int32_t 
     //先设置窗口大小，再设置窗口位置：SDL(Cocoa)设置窗口大小时，会使用创建时的初始坐标重新定位窗口
     bool nRet = SDL_SetWindowSize(m_sdlWindow, nWidth, nHeight);
     ASSERT_UNUSED_VARIABLE(nRet);
-    bool bRet = SDL_SetWindowPosition(m_sdlWindow, X, Y);
+    int32_t nPosX = X;
+    int32_t nPosY = Y;
+#if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
+    //Wayland下SDL弹出窗口(xdg_popup)的位置是相对父窗口的偏移量
+    if (IsWaylandPopupWindow(m_sdlWindow)) {
+        int32_t nParentX = 0;
+        int32_t nParentY = 0;
+        GetWaylandPopupParentPos(m_sdlWindow, nParentX, nParentY);
+        nPosX -= nParentX;
+        nPosY -= nParentY;
+    }
+#endif
+    bool bRet = SDL_SetWindowPosition(m_sdlWindow, nPosX, nPosY);
     ASSERT_UNUSED_VARIABLE(bRet);
     SDL_SyncWindow(m_sdlWindow);
     if (bRepaint) {
