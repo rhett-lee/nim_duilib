@@ -98,6 +98,7 @@ otherwise Ninja sees `bin/` files newer than its own objects and skips the link 
 | `--cef-version 109\|latest` | CEF version: `109` is the legacy build, `latest` follows the manifest default (currently 156 and tracking manifest upgrades) |
 | `--skia-ref` / `--sdl-ref` | select a ref from the version manifest, e.g. `chrome/m142`, `main` or `release-3.4.18` |
 | `--sdl` / `--no-sdl` | Windows only; off by default on Windows, forced on elsewhere |
+| `--cef` / `--no-cef` | CEF switch: on by default for Windows MSVC, Linux and macOS; unsupported on MinGW/FreeBSD; `--no-cef` skips downloading and compiling CEF sources and examples, and keeps CEF out of packages (conflicts with `--with-cef`) |
 | `--md` | use the MSVC dynamic runtime (/MD, /MDd); Windows only |
 | `--dll` | Windows MSVC DLL mode: implies `--md`, prepares Skia `.md/.mdd`, emits `bin/duilib*.dll`, synchronizes `msvc/PropertySheets/duilib_dll.flag`; it does not enable SDL (see `--sdl`) |
 | `--no-absolute-rpath` | Unix only; write only origin-relative rpath entries |

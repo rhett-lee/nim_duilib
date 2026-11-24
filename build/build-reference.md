@@ -86,6 +86,7 @@ Debug 与 Release 的示例输出同名，都写在共享的 `bin/`，而目标�
 | `--cef-version 109\|latest` | CEF 版本：`109` 为旧版，`latest` 取版本清单默认值（当前为 156，清单升级后自动跟随） |
 | `--skia-ref` / `--sdl-ref` | 选择版本清单中的 ref，如 `chrome/m142`、`main`、`release-3.4.18` |
 | `--sdl` / `--no-sdl` | 仅 Windows 有效；Windows 默认关闭，其他平台强制开启 |
+| `--cef` / `--no-cef` | CEF 开关：Windows MSVC/Linux/macOS 默认开启，MinGW/FreeBSD 不支持；`--no-cef` 时不下载、不编译 CEF 源码与示例，打包也不会包含 CEF（与 `--with-cef` 互斥） |
 | `--md` | 使用 MSVC 动态运行库（/MD、/MDd）；仅 Windows 有效 |
 | `--dll` | Windows MSVC DLL 模式：隐式 `--md`，自动准备 Skia `.md/.mdd`，输出 `bin/duilib*.dll`；同步 `msvc/PropertySheets/duilib_dll.flag`。SDL 不会自动开启（见 `--sdl`） |
 | `--no-absolute-rpath` | 仅 Unix 有效；产物只写相对 rpath，不附加 SDL3 等绝对兜底路径 |

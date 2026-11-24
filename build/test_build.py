@@ -366,6 +366,30 @@ class CmakeDefinePersistenceTests(unittest.TestCase):
         self.assertTrue(any(d.startswith('-DDUILIB_ENABLE_CEF=')
                             for d in defines[:-1]))
 
+    def test_no_cef_disables(self):
+        """--no-cef 不下载/不编译 CEF，显式传入 OFF。"""
+        defines = self._defines(['build', '--no-cef'])
+        self.assertIn('-DDUILIB_ENABLE_CEF=OFF', defines)
+
+    def test_explicit_cef_flag(self):
+        """--cef 在不支持的平台上仍由脚本归一为 OFF，与根工程一致。"""
+        defines = self._defines(['build', '--cef'])
+        expected = ('-DDUILIB_ENABLE_CEF=ON' if entry.cef_supported()
+                    else '-DDUILIB_ENABLE_CEF=OFF')
+        self.assertIn(expected, defines)
+
+    def test_plan_flags_track_cef(self):
+        """deps --dry-run 的缓存比对必须包含 DUILIB_ENABLE_CEF。"""
+        args = entry.parse_args(['deps', '--no-cef'])
+        self.assertEqual(entry._requested_plan_flags(args)['DUILIB_ENABLE_CEF'], 'OFF')
+        self.assertIn('DUILIB_ENABLE_CEF', entry._PLAN_CACHE_FLAGS)
+
+    def test_pack_rejects_with_cef_when_disabled(self):
+        """--no-cef 与 --with-cef 同时出现时直接报错，避免打出没有 CEF 的“CEF 包”。"""
+        args = entry.parse_args(['pack', '--no-cef', '--with-cef'])
+        with self.assertRaises(entry.BuildError):
+            entry.cmd_pack(args, entry.MESSAGES)
+
 
 class CefVersionTests(unittest.TestCase):
     """--cef-version：109 为旧版，latest 跟随版本清单，不硬编码当前版本号。"""

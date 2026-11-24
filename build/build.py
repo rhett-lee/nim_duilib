@@ -2,6 +2,7 @@
 
 用法：
   python3 build/build.py [--config Debug|Release]      # 默认：准备依赖 + 编译一个配置
+  python3 build/build.py --no-cef                      # 不下载/不编译 CEF（默认在支持的平台开启）
   python3 build/build.py build [--no-deps] [--target X]
   python3 build/build.py deps [--force]
   python3 build/build.py doctor
@@ -107,6 +108,19 @@ def resolve_cef_version(requested: str | None, manifest: dict) -> str:
                 default=default,
                 versions=T('help.list_sep').join(versions)))
     return requested
+
+
+def cef_supported() -> bool:
+    """当前环境是否支持 CEF：Windows MSVC、Linux、macOS；MinGW/MSYS2 与 FreeBSD 不支持。"""
+    if sys.platform == "win32":
+        return not os.environ.get("MSYSTEM")
+    return sys.platform == "darwin" or sys.platform.startswith("linux")
+
+
+def resolve_cef_enabled(requested: bool | None) -> bool:
+    """把 --cef/--no-cef 归一为开关；未指定时沿用平台默认（与根工程一致）。"""
+    supported = cef_supported()
+    return supported if requested is None else (supported and bool(requested))
 
 
 def host_arch() -> str:
@@ -581,6 +595,10 @@ def _add_common_options(parser: argparse.ArgumentParser, suppress_defaults: bool
                         help=_platform_help("help.sdl_windows", "help.sdl_other"))
     parser.add_argument("--no-sdl", dest="sdl", action="store_false", default=default(None),
                         help=_platform_help("help.no_sdl_windows", "help.no_sdl_other"))
+    parser.add_argument("--cef", dest="cef", action="store_true", default=default(None),
+                        help=_platform_help("help.cef_windows", "help.cef_other"))
+    parser.add_argument("--no-cef", dest="cef", action="store_false", default=default(None),
+                        help=_platform_help("help.no_cef_windows", "help.no_cef_other"))
     parser.add_argument("--md", action="store_true", default=default(False),
                         help=_platform_help("help.md_windows", "help.md_other"))
     parser.add_argument("--dll", action="store_true", default=default(False),
@@ -1015,14 +1033,11 @@ def _cmake_defines(args, arch: str, deps_mode: str, force: bool) -> list:
     rpath_absolute = getattr(args, "rpath_absolute", True)
     defines.append(f"-DDUILIB_RPATH_ABSOLUTE={'ON' if rpath_absolute else 'OFF'}")
     defines.append(f"-DDUILIB_BUILD_EXAMPLES={'OFF' if getattr(args, 'no_examples', False) else 'ON'}")
-    # CEF 是否编译进库：与根工程默认一致（Windows MSVC、Linux、macOS 开启；
-    # MinGW/MSYS2 与 FreeBSD 关闭）。这也是有状态的缓存项：一旦某次用
-    # `--cmake-arg=-DDUILIB_ENABLE_CEF=OFF` 关掉，后续不传就会一直沿用旧值。
-    # 这里每次显式传入，用户仍可用 `--cmake-arg` 覆盖（它排在最后）。
-    if sys.platform == "win32":
-        cef_enabled = not os.environ.get("MSYSTEM")
-    else:
-        cef_enabled = sys.platform == "darwin" or sys.platform.startswith("linux")
+    # CEF 是否编译进库：默认与根工程一致（Windows MSVC、Linux、macOS 开启；
+    # MinGW/MSYS2 与 FreeBSD 关闭），可用 --cef / --no-cef 显式控制。这也是有状态
+    # 的缓存项：一旦某次用 `--cmake-arg=-DDUILIB_ENABLE_CEF=OFF` 关掉，后续不传就会
+    # 一直沿用旧值。这里每次显式传入，用户仍可用 `--cmake-arg` 覆盖（它排在最后）。
+    cef_enabled = resolve_cef_enabled(getattr(args, "cef", None))
     defines.append(f"-DDUILIB_ENABLE_CEF={'ON' if cef_enabled else 'OFF'}")
     defines.append(f"-DDUILIB_CEF_VERSION={resolve_cef_version(args.cef_version, manifest)}")
     defines.append(f"-DDUILIB_SKIA_REF={args.skia_ref or manifest['skia']['default']}")
@@ -1094,6 +1109,9 @@ def _prepare(args, messages, runner: Runner, toolchain: Toolchain,
 def _check_cef_archive(args, messages) -> None:
     """--cef-archive 指向不存在的文件时提前给出明确错误。"""
     if not args.cef_archive:
+        return
+    # 关闭 CEF 时不下载/不校验归档，保留该参数也不影响构建。
+    if not resolve_cef_enabled(getattr(args, "cef", None)):
         return
     path = Path(args.cef_archive).expanduser().resolve()
     if not path.is_file():
@@ -1224,7 +1242,7 @@ def _ensure_skia_patch(args, messages, runner: Runner) -> None:
 
 
 # 计划命令由构建目录中上次配置生成的 -D 参数决定；这些缓存项变了，命令就过时了
-_PLAN_CACHE_FLAGS = ("DUILIB_MD", "DUILIB_DLL", "DUILIB_ENABLE_SDL")
+_PLAN_CACHE_FLAGS = ("DUILIB_MD", "DUILIB_DLL", "DUILIB_ENABLE_SDL", "DUILIB_ENABLE_CEF")
 
 
 def _requested_plan_flags(args) -> dict:
@@ -1237,6 +1255,7 @@ def _requested_plan_flags(args) -> dict:
         "DUILIB_MD": "ON" if getattr(args, "md", False) else "OFF",
         "DUILIB_DLL": "ON" if getattr(args, "dll", False) else "OFF",
         "DUILIB_ENABLE_SDL": "ON" if sdl_enabled else "OFF",
+        "DUILIB_ENABLE_CEF": "ON" if resolve_cef_enabled(getattr(args, "cef", None)) else "OFF",
     }
     # -D 参数按顺序生效，后面的覆盖前面的（与 CMake 行为一致）
     for item in getattr(args, "cmake_arg", None) or []:
@@ -1517,9 +1536,10 @@ def cmd_doctor(args, messages) -> int:
                     _ok_line(f"sdl prefix {config} {found}")
 
     # CEF 运行时由 deps 下载；MinGW 与 FreeBSD 不支持 CEF。
-    cef_supported = host in ("linux", "macos") or (host == "windows" and not os.environ.get("MSYSTEM"))
-    if not cef_supported:
+    if not cef_supported():
         _info_line("cef not supported in this environment")
+    elif not resolve_cef_enabled(getattr(args, "cef", None)):
+        _info_line("cef disabled (pass --cef to enable)")
     else:
         cef_version = getattr(args, "cef_version", None) or (manifest["cef"]["default"] if manifest else "")
         if manifest and cef_version == "latest":
@@ -1579,6 +1599,10 @@ def cmd_test(args, messages) -> int:
 
 
 def cmd_pack(args, messages) -> int:
+    if args.with_cef and getattr(args, "cef", None) is False:
+        # 编译阶段已明确关闭 CEF，包内不可能有可用的 CEF 开发文件/运行时。
+        raise BuildError(messages.t("pack.cef_disabled"),
+                         messages.hint("pack.cef_disabled_hint"))
     arch = resolve_arch(args.arch)
     if args.sdl and not args.with_sdl:
         # --sdl 是编译开关；打包走 pack.py 的 --with-sdl，两个开关容易混淆

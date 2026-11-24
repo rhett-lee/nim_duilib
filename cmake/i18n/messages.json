@@ -668,6 +668,22 @@
       "en": "Windows only; SDL is always enabled on other platforms and cannot be disabled",
       "zh_CN": "仅 Windows 有效；其他平台 SDL 始终开启，无法关闭"
     },
+    "help.cef_windows": {
+      "en": "enable CEF (on by default for MSVC, off for MinGW; when off, CEF is not downloaded, compiled or packaged)",
+      "zh_CN": "启用 CEF（MSVC 默认开启，MinGW 默认关闭；关闭时不下载、不编译、不打包 CEF 相关内容）"
+    },
+    "help.cef_other": {
+      "en": "enable CEF (on by default for Linux/macOS, unsupported on FreeBSD; when off, CEF is not downloaded, compiled or packaged)",
+      "zh_CN": "启用 CEF（Linux/macOS 默认开启，FreeBSD 不支持；关闭时不下载、不编译、不打包 CEF 相关内容）"
+    },
+    "help.no_cef_windows": {
+      "en": "disable CEF: skip downloading, compiling and packaging CEF; CEF examples are not built",
+      "zh_CN": "关闭 CEF：不下载、不编译、不打包 CEF 相关内容，且不编译 CEF 示例程序"
+    },
+    "help.no_cef_other": {
+      "en": "disable CEF: skip downloading, compiling and packaging CEF; CEF examples are not built (FreeBSD always has CEF off)",
+      "zh_CN": "关闭 CEF：不下载、不编译、不打包 CEF 相关内容，且不编译 CEF 示例程序（FreeBSD 始终关闭）"
+    },
     "help.md_windows": {
       "en": "use the MSVC dynamic runtime (/MD, /MDd); default: MT",
       "zh_CN": "使用 MSVC 动态运行库 (/MD, /MDd)；默认 MT"
@@ -811,6 +827,14 @@
     "pack.sdl_flag_hint": {
       "en": "[HINT] --sdl only enables SDL for the build; add --with-sdl to include SDL3 in the package",
       "zh_CN": "[提示] --sdl 只影响编译开关；包内包含 SDL3 需要额外加 --with-sdl"
+    },
+    "pack.cef_disabled": {
+      "en": "[ERROR] --with-cef conflicts with --no-cef: the build was configured without CEF",
+      "zh_CN": "[ERROR] --with-cef 与 --no-cef 冲突：本次按无 CEF 配置"
+    },
+    "pack.cef_disabled_hint": {
+      "en": "rebuild with CEF enabled (drop --no-cef) before packaging CEF, or remove --with-cef",
+      "zh_CN": "如需打包 CEF，请在编译时启用 CEF（去掉 --no-cef）；否则去掉 --with-cef"
     },
     "pkg.version_header_missing": {
       "en": "[ERROR] version header not found: %s",
