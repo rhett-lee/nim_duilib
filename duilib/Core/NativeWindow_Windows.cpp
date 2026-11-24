@@ -873,7 +873,10 @@ void NativeWindow_Windows::SetUseSystemCaption(bool bUseSystemCaption)
     if (IsChildWindow()) {
         return;
     }
+    //记录设置前的状态：属性值未变化时，跳过重绘等非必要动作（风格设置与回调仍需执行）
+    const bool bOldUseSystemCaption = IsUseSystemCaption();
     m_bUseSystemCaption = bUseSystemCaption;
+    const bool bCaptionChanged = (IsUseSystemCaption() != bOldUseSystemCaption);
 
     //使用系统默认标题栏, 需要增加标题栏风格
     if (IsWindow()) {
@@ -903,14 +906,16 @@ void NativeWindow_Windows::SetUseSystemCaption(bool bUseSystemCaption)
         m_pOwner->OnNativeRequestSetLayeredWindow(false, false);
     }
 
-    // 强制窗口重绘
-    m_bContentDirty = true;
-    ::RedrawWindow(m_hWnd, NULL, NULL, RDW_FRAME | RDW_INTERNALPAINT | RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
-    ::SetWindowPos(m_hWnd, nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+    //强制窗口重绘（仅在标题栏状态变化时需要）
+    if (bCaptionChanged && ::IsWindow(m_hWnd)) {
+        m_bContentDirty = true;
+        ::RedrawWindow(m_hWnd, NULL, NULL, RDW_FRAME | RDW_INTERNALPAINT | RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
+        ::SetWindowPos(m_hWnd, nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 
-    //重新激活窗口的非客户区绘制
-    if (IsWindowForeground()) {
-        KeepParentActive();
+        //重新激活窗口的非客户区绘制
+        if (IsWindowForeground()) {
+            KeepParentActive();
+        }
     }
 
     m_pOwner->OnNativeUseSystemCaptionBarChanged();

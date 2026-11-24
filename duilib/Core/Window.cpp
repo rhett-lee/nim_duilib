@@ -557,15 +557,10 @@ void Window::PreInitWindow()
         //关联窗口附加阴影
         pRoot = AttachShadow(pRoot);
 
-        //使用系统标题栏时，阴影必须关闭（此时阴影默认也是关闭的）
-        if (IsUseSystemCaption() && IsShadowAttached()) {
-            SetShadowAttached(false);
-        }
-
         //关联Root对象
         AttachBox(pRoot);
 
-        //更新自绘制标题栏状态
+        //更新自绘制标题栏状态（使用系统标题栏时，阴影在OnUseSystemCaptionBarChanged中统一关闭）
         OnUseSystemCaptionBarChanged();
     }
 }

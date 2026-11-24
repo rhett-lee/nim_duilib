@@ -1580,6 +1580,8 @@ void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& 
 
     if (IsUseSystemCaption()) {
         //使用系统标题栏
+        //注意：SDL后端不使用这些窗口style位（窗口边框/标题栏由IsUseSystemCaption()与SDL flags决定），
+        //这里保留写入是为了与Windows后端语义一致，并供GetWindowStyle()查询。
         if (m_createParam.m_dwStyle & kWS_POPUP) {
             //弹出式窗口
             m_createParam.m_dwStyle |= (kWS_CAPTION | kWS_SYSMENU);
@@ -1596,6 +1598,10 @@ void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& 
         }
     }
     else if (m_createParam.m_dwExStyle & kWS_EX_LAYERED) {
+        //说明：SDL构建下，ResolveLayeredWindowAttributes在XML未配置layered_window时会默认置为
+        //"已定义且为true"（窗口必须固定使用SDL_WINDOW_TRANSPARENT，以支持窗口阴影和系统标题栏动态切换），
+        //因此 m_bIsLayeredWindowDefined 恒为true，该分支实际不可达；
+        //WindowCreateParam中的kWS_EX_LAYERED不参与SDL窗口的创建决策，这里保留作为防御性代码。
         m_bIsLayeredWindow = true;
     }
 
@@ -2207,6 +2213,8 @@ void NativeWindow_SDL::SetUseSystemCaption(bool bUseSystemCaption)
         //子窗口模式下，不支持系统标题栏
         return;
     }
+    //记录设置前的状态：属性值未变化时，跳过对窗口的重复设置（回调仍需执行）
+    const bool bOldUseSystemCaption = IsUseSystemCaption();
     m_bUseSystemCaption = bUseSystemCaption;
     if (!IsWindow()) {
         return;
@@ -2223,23 +2231,26 @@ void NativeWindow_SDL::SetUseSystemCaption(bool bUseSystemCaption)
     }
 #endif
 
-    if (IsUseSystemCaption()) {
-        //使用系统默认标题栏, 需要增加标题栏风格
-        bool nRet = SDL_SetWindowBordered(m_sdlWindow, true);
-        ASSERT_UNUSED_VARIABLE(nRet);
+    //窗口创建时已按该状态设置过标题栏与Hit Test，状态未变化时无需重复设置
+    if (IsUseSystemCaption() != bOldUseSystemCaption) {
+        if (IsUseSystemCaption()) {
+            //使用系统默认标题栏, 需要增加标题栏风格
+            bool nRet = SDL_SetWindowBordered(m_sdlWindow, true);
+            ASSERT_UNUSED_VARIABLE(nRet);
 
-        //设置Hit Test函数为默认
-        SDL_SetWindowHitTest(m_sdlWindow, nullptr, nullptr);
-    }
-    else {
-        //需要提前设置这个属性，在无边框的情况下，可以保持调整窗口大小的功能
-        SDL_SetHint("SDL_BORDERLESS_RESIZABLE_STYLE", "true"); 
-        bool nRet = SDL_SetWindowBordered(m_sdlWindow, false);
-        ASSERT_UNUSED_VARIABLE(nRet);
+            //设置Hit Test函数为默认
+            SDL_SetWindowHitTest(m_sdlWindow, nullptr, nullptr);
+        }
+        else {
+            //需要提前设置这个属性，在无边框的情况下，可以保持调整窗口大小的功能
+            SDL_SetHint("SDL_BORDERLESS_RESIZABLE_STYLE", "true");
+            bool nRet = SDL_SetWindowBordered(m_sdlWindow, false);
+            ASSERT_UNUSED_VARIABLE(nRet);
 
-        //设置HitTest函数
-        nRet = SDL_SetWindowHitTest(m_sdlWindow, NativeWindow_SDL_HitTest, this);
-        ASSERT_UNUSED_VARIABLE(nRet);
+            //设置HitTest函数
+            nRet = SDL_SetWindowHitTest(m_sdlWindow, NativeWindow_SDL_HitTest, this);
+            ASSERT_UNUSED_VARIABLE(nRet);
+        }
     }
     m_pOwner->OnNativeUseSystemCaptionBarChanged();
 }

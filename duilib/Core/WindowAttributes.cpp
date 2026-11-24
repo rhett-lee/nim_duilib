@@ -367,7 +367,10 @@ LayeredWindowAttributes ResolveLayeredWindowAttributes(const WindowAttributeValu
     }
 
 #if defined (DUILIB_BUILD_FOR_SDL)
-    //默认开启支持透明度(SDL在Windows系统中，未使用分层窗口属性)
+    //SDL后端：XML未配置layered_window时，固定使用分层窗口（创建时必须带SDL_WINDOW_TRANSPARENT），
+    //否则窗口阴影与"运行时切换系统标题栏"功能会异常。
+    //该默认值会覆盖上面的"系统标题栏与分层窗口互斥"规则，这是SDL后端的既定设计：
+    //SDL窗口的透明标记在创建后无法修改，因此不能在创建时按互斥规则关闭（XML显式配置时以XML为准）。
     if (!bXmlLayeredDefined) {
         bDefined = true;
         bLayered = true;
