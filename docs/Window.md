@@ -4,7 +4,7 @@
 | 属性名称          | 属性分类| 默认值  |参数类型| 关联[Window.h](../duilib/Core/Window.h)中的函数| 用途 |
 | :---              | :---    | :---    | :---   |:---                     |:--- |
 | caption           | 标题栏  | "0,0,0,0" | rect   | SetCaptionRect          |窗口可拖动的标题栏大小的边距, 最后一个参数是指离上边框的距离,如"0,0,0,36" |
-| use_system_caption| 标题栏  | false   | bool   | SetUseSystemCaption     |设置是否使用系统标题栏 |
+| use_system_caption| 标题栏  | false   | bool   | SetUseSystemCaption     |设置是否使用系统标题栏；该属性在Wayland平台下无效，始终使用自绘标题栏（Wayland没有统一的系统标题栏，服务端装饰在GNOME等合成器上不可用，客户端装饰又依赖可选的libdecor，无法保证可用） |
 | snap_layout_menu  | 标题栏  | true    | bool   | SetEnableSnapLayoutMenu |是否支持显示贴靠布局菜单（Windows 11新功能：通过将鼠标悬停在窗口的最大化按钮上或按 Win + Z，可以轻松访问对齐布局。），该属性仅当在窗口为分层窗口或者使用系统阴影时默认开启 |
 | sys_menu          | 标题栏  | true    | bool   | SetEnableSysMenu        |在右键点击标题栏时，是否显示系统的窗口菜单（可进行调整窗口状态，关闭窗口等操作）|
 | sys_menu_rect     | 标题栏  | "0,0,0,0" | rect   | SetSysMenuRect          | 窗口菜单区域，在窗口标题栏的左上角（双击该区域可关闭窗口，点击显示系统的窗口菜单），该功能若XML中无设置，默认是关闭的 |

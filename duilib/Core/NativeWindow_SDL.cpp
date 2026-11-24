@@ -1718,6 +1718,17 @@ void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& 
     bSupportTransparent = true;
 #endif
 
+#if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
+    if (IsVideoDriverWayland()) {
+        //Wayland协议没有统一的系统标题栏：
+        //  1. GNOME等合成器不支持服务端装饰(xdg-decoration)，不会绘制标题栏；
+        //  2. SDL只在加载到libdecor(含装饰插件)时才绘制客户端装饰，而它是可选依赖，无法保证存在。
+        //系统标题栏不可用时窗口会完全没有标题栏(仅显示空白区域)，且无法拖动/调整大小，
+        //因此Wayland下统一使用duilib自绘标题栏(拖动/缩放由SDL HitTest转成xdg_toplevel的移动/缩放请求)。
+        m_bUseSystemCaption = false;
+    }
+#endif
+
     if (IsUseSystemCaption()) {
         //使用系统标题栏
         //注意：SDL后端不使用这些窗口style位（窗口边框/标题栏由IsUseSystemCaption()与SDL flags决定），
@@ -2466,6 +2477,14 @@ void NativeWindow_SDL::SetUseSystemCaption(bool bUseSystemCaption)
     QueryRenderProperties(_T(""), bHasOpenGL, bOpenGLES2, bSupportTransparent);
     if (!bSupportTransparent) {
         m_bUseSystemCaption = true;
+    }
+#endif
+
+#if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
+    if (IsVideoDriverWayland()) {
+        //Wayland下无法保证系统标题栏可用(详见SyncCreateWindowAttributes中的说明)，
+        //统一使用duilib自绘标题栏，避免出现没有标题栏且无法拖动窗口的情况
+        m_bUseSystemCaption = false;
     }
 #endif
 
