@@ -456,6 +456,14 @@ LRESULT Menu::OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nativ
     LRESULT lResult = BaseClass::OnKillFocusMsg(pSetFocusWindow, nativeMsg, bHandled);
     bHandled = true;
 
+    //当前菜单窗口正在关闭时（例如鼠标移动到同级菜单项，子菜单被关闭后正在销毁），
+    //窗口销毁引起的失焦不能传播到上级菜单：
+    //子菜单销毁时，系统会把焦点转移给其它窗口（可能是上级菜单，也可能是主窗口或空窗口），
+    //若按"焦点转移到菜单树之外"处理，会把上级菜单甚至根菜单一起关闭
+    if (IsClosingWnd()) {
+        return lResult;
+    }
+
     //焦点在同一棵菜单树内转移时（上级菜单与下级菜单之间切换），不关闭菜单；
     //注意：必须按“菜单树”判断，不能只判断新焦点窗口是否为某个菜单窗口，
     //否则另一个窗口或另一套菜单弹出时，本菜单会误认为焦点只是转给了自己的子菜单而一直不关闭
