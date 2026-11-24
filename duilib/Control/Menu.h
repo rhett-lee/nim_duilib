@@ -204,6 +204,10 @@ private:
 
 private:
 
+    /** 关闭整棵菜单树：关闭所有下级菜单、当前菜单自身以及所有上级菜单
+    */
+    void CloseMenuTree();
+
     virtual bool Receive(ContextMenuParam param) override;
 
     virtual ui::Control* CreateControl(const DString& pstrClass) override;
@@ -227,6 +231,13 @@ private:
     /** 鼠标在菜单窗口的自绘阴影区域按下时：视为点击菜单外部，关闭菜单
     */
     virtual bool OnShadowAreaMouseDown(const UiPoint& pt) override;
+
+    /** 判断点击位置是否属于菜单窗口的空白区域（未命中任何控件）：
+    *   为避免 DPI/贴边/根节点边距不一致导致阴影判定出现死区，
+    *   点击菜单窗口内未命中控件的位置统一视为“点击菜单外部”，用于关闭菜单
+    */
+    virtual bool IsPtInBlankArea(const UiPoint& pt) const override;
+
 
     /** 键盘按下(WM_KEYDOWN 或者 WM_SYSKEYDOWN)
     * @param [in] vkCode 虚拟键盘代码

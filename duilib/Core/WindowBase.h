@@ -956,6 +956,14 @@ protected:
     */
     virtual bool OnShadowAreaMouseDown(const UiPoint& /*pt*/) { return false; }
 
+    /** 判断客户区坐标是否属于窗口的“空白区域”（未命中任何控件，也不属于窗口的可视内容）
+    *   默认实现与 IsPtInShadowArea 一致（只按自绘阴影边距判断）；
+    *   弹层窗口可以重写本函数，把其他空白区域也视为“点击内容之外”（例如菜单的空白处）。
+    * @param [in] pt 客户区坐标点
+    * @return 返回true表示该点属于空白区域
+    */
+    virtual bool IsPtInBlankArea(const UiPoint& pt) const;
+
     /** 判断是否含有最大化和最小化按钮
     * @param [out] bMinimizeBox 返回true表示含有最小化按钮
     * @param [out] bMaximizeBox 返回true表示含有最大化按钮

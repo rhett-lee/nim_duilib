@@ -1110,6 +1110,12 @@ bool WindowBase::IsPtInShadowArea(const UiPoint& pt) const
     return !rcVisual.ContainsPt(pt);
 }
 
+bool WindowBase::IsPtInBlankArea(const UiPoint& pt) const
+{
+    //默认只把自绘阴影边距视为空白区域，派生类可以扩展判断范围
+    return IsPtInShadowArea(pt);
+}
+
 bool WindowBase::OnNativeHasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) const
 {
     return HasMinMaxBox(bMinimizeBox, bMaximizeBox);

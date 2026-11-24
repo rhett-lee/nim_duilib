@@ -2534,11 +2534,11 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
         }
     }
     else if (!IsUseSystemCaption()) {
-        //检查是否点击在窗口阴影区域(实现鼠标点击阴影，穿透到后面窗口的功能)
+        //检查是否点击在窗口空白区域(实现鼠标点击阴影，穿透到后面窗口的功能)
         Shadow* pShadow = m_windowRoot->GetShadow();
         if ((pShadow != nullptr) && IsShadowAttached()) {
-            if (IsPtInShadowArea(pt) && OnShadowAreaMouseDown(pt)) {
-                //点击在窗口的自绘阴影区域，且窗口已处理(例如关闭弹层)：
+            if (IsPtInBlankArea(pt) && OnShadowAreaMouseDown(pt)) {
+                //点击在窗口的空白区域(自绘阴影等)，且窗口已处理(例如关闭弹层)：
                 //不再执行点击穿透，也不再执行后续的焦点处理，
                 //避免把点击传递给后面的窗口，导致前台窗口被切换
                 return;

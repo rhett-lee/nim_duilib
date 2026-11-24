@@ -18,6 +18,30 @@ ContextMenuObserver& Menu::GetMenuObserver()
     return s_context_menu_observer;
 }
 
+namespace
+{
+    /** 获取窗口所属菜单树的根菜单（窗口不是菜单时返回nullptr）
+    *   子菜单窗口的父窗口就是上级菜单窗口，因此沿父窗口链向上即可找到根菜单
+    */
+    Menu* GetRootMenu(WindowBase* pWindow)
+    {
+        Menu* pMenu = dynamic_cast<Menu*>(pWindow);
+        if (pMenu == nullptr) {
+            return nullptr;
+        }
+        WindowBase* pParentWindow = pMenu->GetParentWindow();
+        while (pParentWindow != nullptr) {
+            Menu* pParentMenu = dynamic_cast<Menu*>(pParentWindow);
+            if (pParentMenu == nullptr) {
+                break;
+            }
+            pMenu = pParentMenu;
+            pParentWindow = pMenu->GetParentWindow();
+        }
+        return pMenu;
+    }
+}
+
 //二级或者多级子菜单的托管类
 class SubMenu: public ui::ListBoxItem
 {
@@ -260,36 +284,62 @@ DString Menu::GetSkinFile()
 
 bool Menu::OnShadowAreaMouseDown(const UiPoint& /*pt*/)
 {
-    //点击菜单的自绘阴影区域时，视为点击菜单外部：关闭菜单。
+    //点击菜单的自绘阴影区域时，视为点击菜单外部：关闭整棵菜单树。
     //返回true，由窗口消费该鼠标消息，避免点击传递到后面的窗口，导致前台窗口被切换
-    CloseMenu();
+    CloseMenuTree();
     return true;
+}
+
+void Menu::CloseMenuTree()
+{
+    //1. 关闭所有下级菜单
+    ContextMenuParam param;
+    param.pWindow = this;
+    param.wParam = MenuCloseType::eMenuCloseThis;
+    GetMenuObserver().RBroadcast(param);
+
+    //2. 关闭自身
+    CloseMenu();
+
+    //3. 关闭所有上级菜单（上级菜单不会收到本次失焦消息，需要显式关闭）
+    WindowBase* pParentWindow = GetParentWindow();
+    while (pParentWindow != nullptr) {
+        Menu* pParentMenu = dynamic_cast<Menu*>(pParentWindow);
+        if (pParentMenu == nullptr) {
+            break;
+        }
+        pParentMenu->CloseMenu();
+        pParentWindow = pParentMenu->GetParentWindow();
+    }
+}
+
+bool Menu::IsPtInBlankArea(const UiPoint& pt) const
+{
+    //点击菜单窗口内未命中任何控件的位置，统一视为“点击菜单外部”：
+    //自绘阴影边距的判定可能因DPI、贴边、根节点边距与布局不一致而出现死区，
+    //这里不再依赖阴影边距，避免出现点击菜单空白处却无法关闭菜单的问题
+    UiRect rcClient;
+    GetClientRect(rcClient);
+    if (rcClient.IsEmpty() || !rcClient.ContainsPt(pt)) {
+        return false;
+    }
+    return FindControl(pt) == nullptr;
 }
 
 LRESULT Menu::OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled)
 {
     LRESULT lResult = BaseClass::OnKillFocusMsg(pSetFocusWindow, nativeMsg, bHandled);
     bHandled = true;
-    bool bInMenuWindowList = false;
-    if (pSetFocusWindow != nullptr) {
-        ContextMenuObserver::Iterator<bool, ContextMenuParam> iterator(GetMenuObserver());
-        ReceiverImplBase<bool, ContextMenuParam>* pReceiver = iterator.next();
-        while (pReceiver != nullptr) {
-            Menu* pContextMenu = dynamic_cast<Menu*>(pReceiver);
-            if ((pContextMenu != nullptr) && (pContextMenu == pSetFocusWindow)) {
-                bInMenuWindowList = true;
-                break;
-            }
-            pReceiver = iterator.next();
-        }
+
+    //焦点在同一棵菜单树内转移时（上级菜单与下级菜单之间切换），不关闭菜单；
+    //注意：必须按“菜单树”判断，不能只判断新焦点窗口是否为某个菜单窗口，
+    //否则另一个窗口或另一套菜单弹出时，本菜单会误认为焦点只是转给了自己的子菜单而一直不关闭
+    if ((pSetFocusWindow != nullptr) && (GetRootMenu(pSetFocusWindow) == GetRootMenu(this))) {
+        return lResult;
     }
-    if (!bInMenuWindowList) {
-        ContextMenuParam param;
-        param.pWindow = this;
-        param.wParam = MenuCloseType::eMenuCloseAll;
-        GetMenuObserver().RBroadcast(param);
-        return 0;
-    }
+
+    //焦点转移到菜单树之外：关闭整棵菜单树
+    CloseMenuTree();
     return lResult;
 }
 
