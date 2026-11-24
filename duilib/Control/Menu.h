@@ -44,7 +44,11 @@ enum class MenuPopupPosType
 struct ContextMenuParam
 {
     MenuCloseType wParam;
-    WindowBase* pWindow;
+    /** 菜单相关的窗口（eMenuCloseThis 时用于查找上级菜单）
+    *   使用 ControlPtrT 做生命周期保护：窗口销毁后会自动失效（get() 返回 nullptr），
+    *   避免广播过程中窗口被销毁而出现悬空指针
+    */
+    ControlPtrT<WindowBase> pWindow;
 };
 
 typedef class ObserverImpl<bool, ContextMenuParam> ContextMenuObserver;

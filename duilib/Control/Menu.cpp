@@ -118,7 +118,7 @@ bool Menu::Receive(ContextMenuParam param)
         {
             Window* pParentWindow = GetParentWindow();
             while (pParentWindow != nullptr) {
-                if (pParentWindow == param.pWindow) {
+                if (param.pWindow.get() == pParentWindow) {
                     CloseMenu();
                     break;
                 }
@@ -154,6 +154,9 @@ Menu::~Menu()
         m_pFadeInPlayer->Stop();
         m_pFadeInPlayer.reset();
     }
+    //从菜单Observer中注销：窗口创建失败等场景下不会触发 OnCloseWindow，
+    //若不在这里注销，全局Observer中会残留指向已释放对象的指针
+    RemoveObserver();
 }
 
 void Menu::SetSkinFolder(const DString& skinFolder)
@@ -517,11 +520,14 @@ LRESULT Menu::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const Na
             MenuItem* pItem = dynamic_cast<MenuItem*>(pLayoutListBox->GetItemAt(index));
             if (pItem != nullptr) {
                 if (!pItem->CheckSubMenuItem()) {
-                    ContextMenuParam param;
-                    param.pWindow = this;
-                    param.wParam = MenuCloseType::eMenuCloseAll;
                     //回车时，激活当前选择的菜单项
                     pItem->Activate(nullptr);
+                    //eMenuCloseAll 不使用 pWindow；
+                    //且Activate()可能触发应用的回调（甚至销毁当前菜单窗口），
+                    //因此这里不保存this，避免出现悬空指针
+                    ContextMenuParam param;
+                    param.pWindow = nullptr;
+                    param.wParam = MenuCloseType::eMenuCloseAll;
                     Menu::GetMenuObserver().RBroadcast(param);
                 }
             }
@@ -1580,7 +1586,8 @@ void MenuItem::CreateMenuWnd()
         m_pSubWindow->ShowMenu(subXmlFile.ToString(), subMenuPt, MenuPopupPosType::RIGHT_BOTTOM, false, this);
         if (!m_pSubWindow->IsWindow()) {
             //子菜单XML不存在或创建失败：此时不会触发 OnFinalMessage，
-            //需要主动释放对象并清空指针，否则对象泄漏且该菜单项之后无法再展开子菜单
+            //需要注销Observer并主动释放对象，否则全局Observer中残留悬空指针，且该菜单项之后无法再展开子菜单
+            m_pSubWindow->RemoveObserver();
             delete m_pSubWindow;
             m_pSubWindow = nullptr;
         }
