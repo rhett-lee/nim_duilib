@@ -2600,31 +2600,6 @@ bool NativeWindow_SDL::IsUseSystemCaption() const
     return m_bUseSystemCaption;
 }
 
-void NativeWindow_SDL::PrepareShowWindow()
-{
-    if ((m_sdlWindow == nullptr) || (m_pOwner == nullptr)) {
-        return;
-    }
-    if (IsChildWindow()) {
-        //子窗口的布局由应用层负责
-        return;
-    }
-    if ((SDL_GetWindowFlags(m_sdlWindow) & SDL_WINDOW_HIDDEN) == 0) {
-        //窗口已经显示：显示后再调整尺寸会导致窗口闪跳并留下残留，此处不做处理
-        return;
-    }
-    //窗口处于隐藏状态：完成首次布局，并按根容器的auto属性调整窗口尺寸。
-    //这样窗口第一次显示时尺寸即为最终值，显示后不再改变窗口尺寸和位置：
-    //macOS(Cocoa)在窗口显示后改变尺寸时，会按创建窗口时的坐标重新排列窗口，
-    //在原位置留下绘制残留；同时新暴露的区域在首帧绘制前是空白，表现为界面先白屏。
-    m_pOwner->OnNativePreparePaint();
-
-    //布局后窗口尺寸可能发生变化，需要按最终尺寸重新居中（窗口仍处于隐藏状态，不会闪烁）
-    if (m_createParam.m_bCenterWindow) {
-        CenterWindow();
-    }
-}
-
 bool NativeWindow_SDL::ShowSdlWindow()
 {
     ASSERT(m_sdlWindow != nullptr);
@@ -2650,10 +2625,6 @@ bool NativeWindow_SDL::ShowSdlWindow()
     }
     SDL_SetWindowPosition(m_sdlWindow, m_ptInitWindow.x, m_ptInitWindow.y);
     SDL_SyncWindow(m_sdlWindow);
-
-    //显示前完成布局与自适应尺寸调整：所有显示路径(DoModal、ShowWindow、SetWindowPos等)
-    //最终都会调用此函数，在此统一处理，避免窗口显示后再次改变尺寸和位置
-    PrepareShowWindow();
     bool bRet = SDL_ShowWindow(m_sdlWindow);
     //窗口显示后，再修正一次窗口位置(此时窗口内容尚未绘制，用户看不到窗口的位置变化)
     //注意：此处不能设置窗口大小，否则SDL(Cocoa)会使用创建窗口时的初始坐标重新定位已经显示的窗口，
@@ -2668,9 +2639,6 @@ bool NativeWindow_SDL::ShowSdlWindow()
     RepaintParentWindow();
     return bRet;
 #else
-    //显示前完成布局与自适应尺寸调整：所有显示路径(DoModal、ShowWindow、SetWindowPos等)
-    //最终都会调用此函数，在此统一处理，避免窗口显示后再次改变尺寸和位置
-    PrepareShowWindow();
     return SDL_ShowWindow(m_sdlWindow);
 #endif
 }
