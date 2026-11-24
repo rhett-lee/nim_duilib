@@ -20,23 +20,18 @@ ClickThrough::~ClickThrough()
 }
 
 /** 激活指定的应用
+* 注意：NSRunningApplication没有activate方法(macOS 14起新增的是NSApplication.activate)，
+*      这里必须使用activateWithOptions，该接口在所有版本上均可用(14起该选项被忽略但接口仍有效)
 */
 static void MacOS_ActivateApplication(NSRunningApplication* app)
 {
     if (app == nil) {
         return;
     }
-    if (@available(macOS 14.0, *)) {
-        //macOS 14 起使用新的激活接口
-        [app activate];
-    }
-    else {
-        //旧系统需要使用该选项才能把应用窗口带到前台
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-        [app activateWithOptions:NSApplicationActivateIgnoringOtherApps];
+    [app activateWithOptions:NSApplicationActivateIgnoringOtherApps];
 #pragma clang diagnostic pop
-    }
 }
 
 /** 激活指定窗口编号对应的窗口
@@ -113,37 +108,45 @@ bool ClickThrough::ClickThroughWindow(Window* pWindow, const UiPoint& /*ptMouse*
     // 当前处理的窗口
     NSWindow* currentWindow = pNSWindow;
 
-    //使用鼠标的当前位置作为屏幕坐标：windowNumberAtPoint:要求的是Cocoa屏幕坐标
-    //(原点在主屏幕左下角)，该坐标与duilib窗口坐标的单位、DPI缩放无关，避免换算误差
-    NSPoint screenPoint = [NSEvent mouseLocation];
+    //调用AppKit接口时可能出现异常(例如接口在特定系统版本上不可用)，
+    //这里统一捕获，避免异常传播到C++代码导致进程退出
+    @try {
+        //使用鼠标的当前位置作为屏幕坐标：windowNumberAtPoint:要求的是Cocoa屏幕坐标
+        //(原点在主屏幕左下角)，该坐标与duilib窗口坐标的单位、DPI缩放无关，避免换算误差
+        NSPoint screenPoint = [NSEvent mouseLocation];
 
-    //以当前窗口为界，只查询位于当前窗口下方的窗口(当前窗口不参与命中)
-    NSInteger currentWindowNumber = [currentWindow windowNumber];
-    NSInteger windowNumber = 0;
-    if (currentWindowNumber != 0) {
-        windowNumber = [NSWindow windowNumberAtPoint:screenPoint
-                           belowWindowWithWindowNumber:currentWindowNumber];
-    }
-    if (windowNumber == 0) {
-        //兜底方案：临时让当前窗口忽略鼠标事件后重新查询(例如当前窗口不在窗口服务器的Z序中)
-        BOOL originalIgnoresMouseEvents = [currentWindow ignoresMouseEvents];
-        [currentWindow setIgnoresMouseEvents:YES];
-        windowNumber = [NSWindow windowNumberAtPoint:screenPoint
-                           belowWindowWithWindowNumber:0];
-        [currentWindow setIgnoresMouseEvents:originalIgnoresMouseEvents];
-    }
-    if (windowNumber == currentWindowNumber) {
-        //未找到当前窗口下方的其它窗口
-        windowNumber = 0;
-    }
-
-    // 如果点击到其他窗口，则激活该窗口
-    if (windowNumber != 0) {
-        bool bActivated = MacOS_ActivateWindowByNumber(windowNumber);
-        if (!bActivated) {
-            LogUtil::OutputLine(_T("ClickThroughWindow: 激活窗口失败(NSRunningApplication)"));
+        //以当前窗口为界，只查询位于当前窗口下方的窗口(当前窗口不参与命中)
+        NSInteger currentWindowNumber = [currentWindow windowNumber];
+        NSInteger windowNumber = 0;
+        if (currentWindowNumber != 0) {
+            windowNumber = [NSWindow windowNumberAtPoint:screenPoint
+                               belowWindowWithWindowNumber:currentWindowNumber];
         }
-        return bActivated;
+        if (windowNumber == 0) {
+            //兜底方案：临时让当前窗口忽略鼠标事件后重新查询(例如当前窗口不在窗口服务器的Z序中)
+            BOOL originalIgnoresMouseEvents = [currentWindow ignoresMouseEvents];
+            [currentWindow setIgnoresMouseEvents:YES];
+            windowNumber = [NSWindow windowNumberAtPoint:screenPoint
+                               belowWindowWithWindowNumber:0];
+            [currentWindow setIgnoresMouseEvents:originalIgnoresMouseEvents];
+        }
+        if (windowNumber == currentWindowNumber) {
+            //未找到当前窗口下方的其它窗口
+            windowNumber = 0;
+        }
+
+        // 如果点击到其他窗口，则激活该窗口
+        if (windowNumber != 0) {
+            bool bActivated = MacOS_ActivateWindowByNumber(windowNumber);
+            if (!bActivated) {
+                LogUtil::OutputLine(_T("ClickThroughWindow: 激活窗口失败(NSRunningApplication)"));
+            }
+            return bActivated;
+        }
+    }
+    @catch (NSException* exception) {
+        (void)exception;
+        LogUtil::OutputLine(_T("ClickThroughWindow: 处理异常(NSException)"));
     }
     return false;
 }
