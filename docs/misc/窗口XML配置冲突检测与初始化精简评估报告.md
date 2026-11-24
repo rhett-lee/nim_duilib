@@ -103,3 +103,42 @@
 遗留：
 1. `size` 超出屏幕压缩到 95%、非法百分比改为 75% 的纠正在 `AttributeUtil` 层，仍无日志（该函数被控件解析共用，本次未改动）。
 2. `docs/misc` 中的评估结论与实施结果以本文件与变更摘要为准。
+
+## 七、SDL 后端：显示前统一完成布局与自适应尺寸（2026-11-24 补充）
+
+### 7.1 问题现象
+
+macOS 平台：
+
+1. `MessageBoxWnd`（模态）弹出时先白屏，卡顿后才显示完整内容；关闭前鼠标在父窗口左上角移动会出现弹出窗口的残影。
+2. 同一界面中固定尺寸的 `ui::Dialog` 无上述现象。
+3. 普通窗口同样存在该问题：例如菜单弹出时先白屏，随后才刷出具体内容。
+
+### 7.2 根本原因
+
+`popup_window` 类窗口（`use_system_caption=false`、`render_backend_type=CPU`、`shadow_type=small_round`、`layered_window=true`）在 macOS 上属于非不透明窗口，内容在运行期才写入，且根容器常配置为 `height="auto"`：
+
+1. `PostInitWindow` 执行 `AutoResizeWindow` 时内容尚未写入（`OnInitWindow` 在其后执行），窗口先按“空内容”估算并被缩小；
+2. 随后直接显示窗口，此时尺寸并非最终尺寸，且表面尚未绘制；
+3. 首个 `SDL_EVENT_WINDOW_EXPOSED` 触发首次绘制时，`Window::PreparePaint` 才对**已可见窗口**再次执行 `AutoResizeWindow` → `SDL_SetWindowSize` + `SDL_SyncWindow`。
+
+macOS(Cocoa) 在窗口显示后改变尺寸时，会按创建窗口时的坐标重新排列窗口，被让出的父窗口区域没有被通知重绘；同时新暴露的区域在首帧绘制前为空白。因此表现为“先白屏、后出内容”，并在父窗口留下残影。
+
+`ui::Dialog` 尺寸固定、内容静态，显示后不再改变尺寸和位置，所以没有该现象。
+
+### 7.3 实施方式
+
+在 `NativeWindow_SDL` 中新增 `PrepareShowWindow()`，仅在窗口仍处于隐藏状态时执行：
+
+1. 调用 `OnNativePreparePaint()` 完成首次布局，并按根容器的 auto 属性把窗口尺寸调整为最终值；
+2. 若创建参数要求居中（`m_bCenterWindow`），按最终尺寸重新居中。
+
+调用点统一放在 `ShowSdlWindow()` 入口，因为所有显示路径（`DoModal`、`ShowWindow` 的 `kSW_SHOW`/`kSW_SHOW_NORMAL`/`kSW_SHOW_NA`/`kSW_SHOW_NOACTIVATE`、`SetWindowPos(kSWP_SHOWWINDOW)`、`ShowModalFake`、菜单弹出等）最终都经过该函数。窗口已经显示时该函数直接返回，不重复处理。
+
+效果：窗口第一次可见时尺寸与位置即为最终值，显示后不再触发尺寸/位置变更，从而消除白屏与残影；固定尺寸窗口的行为不变。
+
+### 7.4 验证
+
+- SDL 配置（`DUILIB_DLL=OFF`，`DUILIB_ENABLE_SDL=ON`）下 `duilib` 目标编译、链接通过。
+- Windows 原生后端代码路径未改动。
+
