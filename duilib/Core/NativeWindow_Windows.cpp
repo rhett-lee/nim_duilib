@@ -851,10 +851,7 @@ bool NativeWindow_Windows::SetLayeredWindowOpacity(int32_t nAlpha)
         }
     }
     else {
-        //必须先设置为分层窗口，然后才能设置成功
-        if (!IsLayeredWindow()) {
-            m_pOwner->OnNativeRequestSetLayeredWindow(true, false);
-        }        
+        //设置不透明度要求窗口已经是分层窗口（设置分层窗口的工作由调用方负责）
         ASSERT(IsLayeredWindow());
         bRet = ::SetLayeredWindowAttributes(m_hWnd, 0, m_nLayeredWindowOpacity, LWA_ALPHA) != FALSE;
         ASSERT_UNUSED_VARIABLE(bRet);

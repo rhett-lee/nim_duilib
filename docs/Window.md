@@ -28,7 +28,7 @@
 | round_corner      | 窗口形状| "0,0"     | size   | SetRoundCorner          |窗口圆角大小, 如"4,4"，该值**未经DPI缩放**（即逻辑像素值）。<br>该属性在使用自绘窗口阴影（即设置了shadow_type属性为非系统阴影）时，一般不需要设置，系统会自动根据阴影类型设置圆角。<br>当阴影类型为 `none_round` 时，框架会自动设置窗口圆角以避免窗口四个角出现黑色内容，无需手动指定此属性。 |
 | layered_window    | 窗口绘制| false   | bool   | SetLayeredWindow        |设置是否为层窗口，使用注意事项：<br>（1）该属性在使用窗口阴影（即设置了shadow_type属性）时不需要设置，窗口阴影功能会根据需要来管理该属性<br>（2）当使用系统标题栏时（即use_system_caption="true"），不应设置该属性 |
 | alpha             | 窗口绘制| 255     | int    | SetLayeredWindowAlpha   |设置透明度数值[0, 255]，当 alpha 为 0 时，窗口是完全透明的。 当 alpha 为 255 时，窗口是不透明的。<br>仅当layered_window="true"时有效，<br>该参数在UpdateLayeredWindow函数中作为参数使用(BLENDFUNCTION.SourceConstantAlpha)|
-| opacity           | 窗口绘制| 255     | int    | SetLayeredWindowOpacity |设置不透明度数值[0, 255]，当 opacity 为 0 时，窗口是完全透明的。 当 opacity 为 255 时，窗口是不透明的。<br> 仅当layered_window="true"时有效，所以如果当前不是分层窗口，内部会自动设置为分层窗口 <br>该参数在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)|
+| opacity           | 窗口绘制| 255     | int    | SetLayeredWindowOpacity |设置不透明度数值[0, 255]，当 opacity 为 0 时，窗口是完全透明的。 当 opacity 为 255 时，窗口是不透明的。<br> 仅当layered_window="true"时有效；该属性不会自动把窗口设置为分层窗口，需要显式配置 `layered_window="true"` 或调用 `SetLayeredWindow` <br>该参数在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)|
 | render_backend_type|窗口绘制| "CPU"   | string |SetRenderBackendType     | "CPU": CPU绘制 <br> "GL": 使用OpenGL绘制 <br> 注意事项: <br> （1）同一线程内可以有多个窗口使用OpenGL绘制，绘制前会自动切换当前上下文；但每个窗口都会创建一个独立的 GL 上下文，注意显存占用 <br> （2）OpenGL绘制的窗口，不能是分层窗口（即带有WS_EX_LAYERED属性的窗口），因此使用GL渲染时，`layered_window`、`alpha`、`opacity` 属性均无效 <br> （3）OpenGL绘制使用持久 FBO 做局部刷新，小区域动画不会整窗重绘，性能通常优于整窗重绘 <br> （4）窗口运行过程中，可通过SetAttribute("render_backend_type", "GL"/"CPU")实时切换（内部会重建渲染对象）|
 | vsync             | 窗口绘制| "true"  | bool   | SetRenderBackendType    |是否启用垂直同步，false 表示禁用；<br>仅当 render_backend_type="GL" 时有效<br>支持运行过程中通过SetAttribute实时切换|
 | msaa              | 窗口绘制| "0"     | int    | SetRenderBackendType    |MSAA 采样数，0 表示不启用 MSAA（按 1 倍采样）；<br>仅当 render_backend_type="GL" 时有效<br>支持运行过程中通过SetAttribute实时切换|
@@ -131,7 +131,7 @@ if (pBtn != nullptr) {
 | `void SetSysMenuRect(const UiRect& rcSysMenuRect, bool bNeedDpiScale)` | 设置系统菜单区域（点击显示系统菜单，双击关闭窗口） |
 | `void SetEnableSnapLayoutMenu(bool bEnable)` / `void SetEnableSysMenu(bool bEnable)` | 是否显示贴靠布局菜单 / 右键标题栏的系统菜单 |
 | `bool SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)` / `bool IsLayeredWindow() const` | 设置/判断是否为分层窗口 |
-| `bool SetLayeredWindowAlpha(int32_t nAlpha)` / `bool SetLayeredWindowOpacity(int32_t nAlpha)` | 设置窗口透明度的两种方式（取值 [0,255]，仅在分层窗口有效；`Opacity` 会自动切换为分层窗口） |
+| `bool SetLayeredWindowAlpha(int32_t nAlpha)` / `bool SetLayeredWindowOpacity(int32_t nAlpha)` | 设置窗口透明度的两种方式（取值 [0,255]，仅在分层窗口有效；两者都不会自动切换为分层窗口，需先调用 `SetLayeredWindow`） |
 | `void SetWindowMaximumSize(const UiSize& szMaxWindow, bool bNeedDpiScale)` / `void SetWindowMinimumSize(const UiSize& szMinWindow, bool bNeedDpiScale)` | 设置窗口最大/最小尺寸（值为 0 表示不限制） |
 | `bool SetWindowIcon(const DString& iconFilePath)` | 设置窗口图标（路径相对于资源根目录，推荐 ico 格式） |
 | `void SetText(const DString& strText)` / `void SetTextId(const DString& strTextId)` | 设置窗口标题文字 / 按多语言 ID 设置标题 |
