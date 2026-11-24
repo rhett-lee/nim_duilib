@@ -9,6 +9,10 @@
 #include "duilib/Animation/PopupAnimation.h"
 #include "duilib/Animation/AnimationPlayer.h"
 
+#if defined (DUILIB_BUILD_FOR_SDL)
+    #include <SDL3/SDL.h>
+#endif
+
 namespace ui {
 
 //菜单Observer对象：函数局部静态对象，进程内唯一，随进程生命周期管理
@@ -39,6 +43,40 @@ namespace
             pParentWindow = pMenu->GetParentWindow();
         }
         return pMenu;
+    }
+
+    /** 全局"点击菜单外部关闭菜单"检测的轮询周期(毫秒)
+    */
+    const int32_t kMenuOutsideCheckIntervalMs = 50;
+
+    /** 全局"点击菜单外部关闭菜单"检测的状态（仅UI线程访问）
+    */
+    struct TMenuOutsideCheckState
+    {
+        size_t nTaskId = 0;             //轮询任务ID，0表示检测未启动
+        bool bPointerDownLast = false;  //上次轮询时鼠标是否处于按下状态，用于识别按下边沿
+    };
+
+    TMenuOutsideCheckState& GetMenuOutsideCheckState()
+    {
+        static TMenuOutsideCheckState s_state;
+        return s_state;
+    }
+
+    /** 判断鼠标的任意键是否处于按下状态（轮询使用，跨平台）
+    *   SDL 模式下需要使用全局鼠标状态：菜单窗口可能没有焦点，点击可能落在菜单之外的窗口上，
+    *   此时 SDL_GetMouseState 无法反映按键状态
+    */
+    bool IsMouseButtonDownAny()
+    {
+#if defined (DUILIB_BUILD_FOR_SDL)
+        const SDL_MouseButtonFlags nButtonState = SDL_GetGlobalMouseState(nullptr, nullptr);
+        return (nButtonState & (SDL_BUTTON_LMASK | SDL_BUTTON_RMASK | SDL_BUTTON_MMASK)) != 0;
+#else
+        return ((::GetAsyncKeyState(VK_LBUTTON) |
+                 ::GetAsyncKeyState(VK_RBUTTON) |
+                 ::GetAsyncKeyState(VK_MBUTTON)) & 0x8000) != 0;
+#endif
     }
 }
 
@@ -237,6 +275,10 @@ void Menu::ShowMenu(const DString& xml, const UiPoint& point, MenuPopupPosType p
             }
         }        
     }
+
+    //启动"点击菜单外部关闭菜单"的全局检测：作为失焦关闭的兜底措施
+    //（进程内只需启动一次，菜单全部关闭后自动停止）
+    StartOutsideClickCheck();
 }
 
 void Menu::CloseMenu()
@@ -311,6 +353,86 @@ void Menu::CloseMenuTree()
         pParentMenu->CloseMenu();
         pParentWindow = pParentMenu->GetParentWindow();
     }
+}
+
+void Menu::StartOutsideClickCheck()
+{
+    TMenuOutsideCheckState& state = GetMenuOutsideCheckState();
+    if (state.nTaskId != 0) {
+        //已经在检测中
+        return;
+    }
+    //以当前鼠标按键状态为初始值，避免把触发菜单弹出的那次点击误判为"点击菜单外部"
+    //（例如菜单栏的菜单是在鼠标按下时弹出的）
+    state.bPointerDownLast = IsMouseButtonDownAny();
+    state.nTaskId = GlobalManager::Instance().Thread().PostDelayedTask(
+        kThreadUI,
+        []() { Menu::OnOutsideClickCheckTick(); },
+        kMenuOutsideCheckIntervalMs);
+}
+
+void Menu::OnOutsideClickCheckTick()
+{
+    TMenuOutsideCheckState& state = GetMenuOutsideCheckState();
+    if (state.nTaskId == 0) {
+        //检测已停止
+        return;
+    }
+    state.nTaskId = 0;
+
+    //收集当前打开中的菜单窗口
+    std::vector<Menu*> menuList;
+    ContextMenuObserver::Iterator<bool, ContextMenuParam> iterator(GetMenuObserver());
+    ReceiverImplBase<bool, ContextMenuParam>* pReceiver = iterator.next();
+    while (pReceiver != nullptr) {
+        Menu* pMenu = dynamic_cast<Menu*>(pReceiver);
+        if ((pMenu != nullptr) && pMenu->IsWindow() && pMenu->IsWindowVisible()) {
+            menuList.push_back(pMenu);
+        }
+        pReceiver = iterator.next();
+    }
+    if (menuList.empty()) {
+        //菜单已全部关闭，停止检测
+        state.bPointerDownLast = false;
+        return;
+    }
+
+    //鼠标按键的按下边沿检测
+    const bool bPointerDown = IsMouseButtonDownAny();
+    const bool bPointerPressed = bPointerDown && !state.bPointerDownLast;
+    state.bPointerDownLast = bPointerDown;
+    if (bPointerPressed) {
+        //获取光标位置（屏幕坐标，与GetWindowRect的坐标系一致）
+        UiPoint ptCursor;
+        menuList[0]->GetCursorPos(ptCursor);
+
+        //判断点击位置是否落在某个菜单窗口内（含窗口的阴影区域）
+        bool bInMenuWindow = false;
+        for (Menu* pMenu : menuList) {
+            UiRect rcWindow;
+            pMenu->GetWindowRect(rcWindow);
+            if (!rcWindow.IsEmpty() && rcWindow.ContainsPt(ptCursor)) {
+                bInMenuWindow = true;
+                break;
+            }
+        }
+        if (!bInMenuWindow) {
+            //点击落在所有菜单窗口之外：关闭所有菜单。
+            //这是"点击菜单外部关闭菜单"的兜底措施：菜单窗口没有获得焦点(noFocus)、
+            //焦点变化未被菜单感知（激活失败），或者点击被其它窗口/原生子窗口消费时，
+            //仍然能够通过检测鼠标按下的位置来关闭菜单
+            ContextMenuParam param;
+            param.pWindow = nullptr;
+            param.wParam = MenuCloseType::eMenuCloseAll;
+            GetMenuObserver().RBroadcast(param);
+        }
+    }
+
+    //继续下一轮检测
+    state.nTaskId = GlobalManager::Instance().Thread().PostDelayedTask(
+        kThreadUI,
+        []() { Menu::OnOutsideClickCheckTick(); },
+        kMenuOutsideCheckIntervalMs);
 }
 
 bool Menu::IsPtInBlankArea(const UiPoint& pt) const

@@ -208,6 +208,16 @@ private:
     */
     void CloseMenuTree();
 
+    /** 启动"点击菜单外部关闭菜单"的全局检测（进程内只需启动一次，菜单显示期间有效）
+    *   作为失焦关闭的兜底措施：菜单窗口没有获得焦点(noFocus)、焦点变化未被菜单感知，
+    *   或者点击被其它窗口/原生子窗口消费时，仍能通过检测鼠标按下位置关闭菜单
+    */
+    static void StartOutsideClickCheck();
+
+    /** "点击菜单外部关闭菜单"的全局轮询回调（UI线程）
+    */
+    static void OnOutsideClickCheckTick();
+
     virtual bool Receive(ContextMenuParam param) override;
 
     virtual ui::Control* CreateControl(const DString& pstrClass) override;
