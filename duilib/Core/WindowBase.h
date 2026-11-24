@@ -942,6 +942,20 @@ protected:
     */
     virtual bool IsHitTestTransparent(const UiPoint& /*pt*/) const { return false; }
 
+    /** 判断客户区坐标是否位于窗口的自绘阴影区域（可视内容与窗口边缘之间的部分）
+    * @param [in] pt 客户区坐标点
+    * @return 返回true表示该点位于自绘阴影区域
+    */
+    bool IsPtInShadowArea(const UiPoint& pt) const;
+
+    /** 鼠标在窗口的自绘阴影区域按下时调用
+    *   弹层窗口可以重写本函数，将阴影区域的点击视为"点击内容之外"（例如关闭弹层），
+    *   并消费该鼠标消息，避免点击传递到后面的窗口，导致前台窗口被切换。
+    * @param [in] pt 客户区坐标点
+    * @return 返回true表示已经处理，该鼠标消息不再按窗口内的普通点击处理
+    */
+    virtual bool OnShadowAreaMouseDown(const UiPoint& /*pt*/) { return false; }
+
     /** 判断是否含有最大化和最小化按钮
     * @param [out] bMinimizeBox 返回true表示含有最小化按钮
     * @param [out] bMaximizeBox 返回true表示含有最大化按钮

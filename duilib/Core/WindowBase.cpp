@@ -1078,6 +1078,26 @@ bool WindowBase::OnNativeIsHitTestTransparent(const UiPoint& pt) const
     return IsHitTestTransparent(pt);
 }
 
+bool WindowBase::IsPtInShadowArea(const UiPoint& pt) const
+{
+    UiRect rcClient;
+    GetClientRect(rcClient);
+    if (rcClient.IsEmpty() || !rcClient.ContainsPt(pt)) {
+        return false;
+    }
+    UiPadding rcShadow;
+    GetCurrentShadowCorner(rcShadow);
+    if (rcShadow.IsEmpty()) {
+        return false;
+    }
+    UiRect rcVisual = rcClient;
+    rcVisual.Deflate(rcShadow.left, rcShadow.top, rcShadow.right, rcShadow.bottom);
+    if (rcVisual.IsEmpty()) {
+        return false;
+    }
+    return !rcVisual.ContainsPt(pt);
+}
+
 bool WindowBase::OnNativeHasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) const
 {
     return HasMinMaxBox(bMinimizeBox, bMaximizeBox);

@@ -232,6 +232,14 @@ DString Menu::GetSkinFile()
     return m_xml.c_str();
 }
 
+bool Menu::OnShadowAreaMouseDown(const UiPoint& /*pt*/)
+{
+    //点击菜单的自绘阴影区域时，视为点击菜单外部：关闭菜单。
+    //返回true，由窗口消费该鼠标消息，避免点击传递到后面的窗口，导致前台窗口被切换
+    CloseMenu();
+    return true;
+}
+
 LRESULT Menu::OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled)
 {
     LRESULT lResult = BaseClass::OnKillFocusMsg(pSetFocusWindow, nativeMsg, bHandled);

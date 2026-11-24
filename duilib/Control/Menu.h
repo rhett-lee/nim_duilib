@@ -197,6 +197,10 @@ private:
     */
     virtual LRESULT OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled) override;
 
+    /** 鼠标在菜单窗口的自绘阴影区域按下时：视为点击菜单外部，关闭菜单
+    */
+    virtual bool OnShadowAreaMouseDown(const UiPoint& pt) override;
+
     /** 键盘按下(WM_KEYDOWN 或者 WM_SYSKEYDOWN)
     * @param [in] vkCode 虚拟键盘代码
     * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kFirstPress, ModifierKey::kAlt
