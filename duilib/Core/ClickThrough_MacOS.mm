@@ -39,8 +39,9 @@ static void MacOS_ActivateApplication(NSRunningApplication* app)
     }
 }
 
-/** 激活指定窗口编号所属的应用
-* @return 找到该窗口并激活其应用时返回true
+/** 激活指定窗口编号对应的窗口
+* 同一进程的其它窗口直接提升该窗口；其它进程的窗口通过激活其所属应用带到前台
+* @return 处理成功时返回true
 */
 static bool MacOS_ActivateWindowByNumber(NSInteger windowNumber) 
 {
@@ -74,17 +75,30 @@ static bool MacOS_ActivateWindowByNumber(NSInteger windowNumber)
     }
     CFRelease(windowList);
     
-    if (found && targetPID != 0) {
-        NSRunningApplication *app = [NSRunningApplication runningApplicationWithProcessIdentifier:targetPID];
-        if (app != nil) {
-            MacOS_ActivateApplication(app);
-            return true;
-        }
+    if (!found || (targetPID == 0)) {
+        return false;
     }
-    return false;
+
+    if (targetPID == [[NSProcessInfo processInfo] processIdentifier]) {
+        //当前进程的其它窗口：激活应用不会把指定的窗口提升到前面，直接提升该窗口
+        for (NSWindow* window in [NSApp windows]) {
+            if ([window windowNumber] == windowNumber) {
+                [window makeKeyAndOrderFront:nil];
+                return true;
+            }
+        }
+        return false;
+    }
+
+    NSRunningApplication *app = [NSRunningApplication runningApplicationWithProcessIdentifier:targetPID];
+    if (app == nil) {
+        return false;
+    }
+    MacOS_ActivateApplication(app);
+    return true;
 }
 
-bool ClickThrough::ClickThroughWindow(Window* pWindow, const UiPoint& ptMouse)
+bool ClickThrough::ClickThroughWindow(Window* pWindow, const UiPoint& /*ptMouse*/)
 {
     if (pWindow == nullptr) {
         return false;
@@ -96,28 +110,35 @@ bool ClickThrough::ClickThroughWindow(Window* pWindow, const UiPoint& ptMouse)
         return false;
     }
     
-    //ptMouse为屏幕坐标(左上角为原点)，先转换为窗口客户端坐标，再转换为Cocoa的屏幕坐标
-    UiPoint pt = ptMouse;
-    pWindow->ScreenToClient(pt);
-
     // 当前处理的窗口
     NSWindow* currentWindow = pNSWindow;
-    NSView* contentView = [currentWindow contentView];
-    if (contentView == nil) {
-        return false;
+
+    //使用鼠标的当前位置作为屏幕坐标：windowNumberAtPoint:要求的是Cocoa屏幕坐标
+    //(原点在主屏幕左下角)，该坐标与duilib窗口坐标的单位、DPI缩放无关，避免换算误差
+    NSPoint screenPoint = [NSEvent mouseLocation];
+
+    //以当前窗口为界，只查询位于当前窗口下方的窗口(当前窗口不参与命中)
+    NSInteger currentWindowNumber = [currentWindow windowNumber];
+    NSInteger windowNumber = 0;
+    if (currentWindowNumber != 0) {
+        windowNumber = [NSWindow windowNumberAtPoint:screenPoint
+                           belowWindowWithWindowNumber:currentWindowNumber];
     }
-    NSPoint screenPoint = [contentView convertPoint:NSMakePoint(pt.x, pt.y) toView:nil];
-    
-    //临时让当前窗口忽略鼠标事件，以便获取鼠标下方的窗口：
-    //只修改这一项，不修改窗口层级和collectionBehavior，避免引起窗口重新合成
-    BOOL originalIgnoresMouseEvents = [currentWindow ignoresMouseEvents];
-    [currentWindow setIgnoresMouseEvents:YES];
-    NSInteger windowNumber = [NSWindow windowNumberAtPoint:screenPoint
-                                belowWindowWithWindowNumber:0];
-    [currentWindow setIgnoresMouseEvents:originalIgnoresMouseEvents];
+    if (windowNumber == 0) {
+        //兜底方案：临时让当前窗口忽略鼠标事件后重新查询(例如当前窗口不在窗口服务器的Z序中)
+        BOOL originalIgnoresMouseEvents = [currentWindow ignoresMouseEvents];
+        [currentWindow setIgnoresMouseEvents:YES];
+        windowNumber = [NSWindow windowNumberAtPoint:screenPoint
+                           belowWindowWithWindowNumber:0];
+        [currentWindow setIgnoresMouseEvents:originalIgnoresMouseEvents];
+    }
+    if (windowNumber == currentWindowNumber) {
+        //未找到当前窗口下方的其它窗口
+        windowNumber = 0;
+    }
 
     // 如果点击到其他窗口，则激活该窗口
-    if ((windowNumber != 0) && (windowNumber != [currentWindow windowNumber])) {
+    if (windowNumber != 0) {
         bool bActivated = MacOS_ActivateWindowByNumber(windowNumber);
         if (!bActivated) {
             LogUtil::OutputLine(_T("ClickThroughWindow: 激活窗口失败(NSRunningApplication)"));
