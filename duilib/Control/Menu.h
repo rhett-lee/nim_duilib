@@ -68,6 +68,7 @@ typedef std::function<void (const DString& menuName, int32_t nMenuLevel,
 class MenuItem;
 class MenuBar;
 class AnimationPlayer;
+class DpiManager;
 class DUILIB_API Menu : public WindowImplBase, public ContextMenuReceiver
 {
     typedef WindowImplBase BaseClass;
@@ -161,6 +162,32 @@ private:
 
     // 重新调整子菜单的大小
     bool ResizeSubMenu();
+
+    /** 预取窗口的初始大小（菜单XML一般不需要设置size属性，因此该大小是可选的）
+    * @param [out] szWindow 窗口大小（含阴影区域，布局坐标）；XML未定义size时返回(0,0)表示大小未知
+    * @param [out] rcShadow 阴影边距（布局坐标），始终有效
+    */
+    void GetPrefetchWindowSize(UiSize& szWindow, UiPadding& rcShadow);
+
+    /** 计算菜单窗口的显示矩形（布局坐标）
+    * @param [in] szMenuWindow 窗口大小（含阴影区域）
+    * @param [in] rcShadowCorner 阴影边距
+    * @param [in] rcWork 显示器工作区
+    * @param [in] ptAnchor 弹出位置的锚点
+    * @return 窗口矩形（布局坐标）
+    */
+    UiRect CalcMenuWindowRect(const UiSize& szMenuWindow, const UiPadding& rcShadowCorner,
+                              const UiRect& rcWork, const UiPoint& ptAnchor) const;
+
+    /** 计算子菜单窗口的显示矩形（布局坐标）
+    * @param [in] szSubMenuWindow 子菜单窗口大小（含阴影区域）
+    * @param [in] rcCorner 阴影边距
+    * @param [in] rcWork 显示器工作区
+    * @param [in] dpi 用于坐标换算的DPI对象
+    * @return 窗口矩形（布局坐标，含阴影区域）
+    */
+    UiRect CalcSubMenuWindowRect(const UiSize& szSubMenuWindow, const UiPadding& rcCorner,
+                                 const UiRect& rcWork, const DpiManager& dpi) const;
 
     /** 获取布局管理的ListBox接口
     */

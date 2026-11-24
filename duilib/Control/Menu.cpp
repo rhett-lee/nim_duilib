@@ -3,6 +3,7 @@
 #include "duilib/Control/MenuBar.h"
 #include "duilib/Core/Keyboard.h"
 #include "duilib/Core/WindowCreateParam.h"
+#include "duilib/Core/WindowCreateAttributes.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Animation/PopupAnimation.h"
@@ -121,9 +122,34 @@ void Menu::ShowMenu(const DString& xml, const UiPoint& point, MenuPopupPosType p
         //父窗口为空时，设置ToolWindow属性，避免在状态栏出现
         createWndParam.m_dwExStyle |= kWS_EX_TOOLWINDOW;
     }
-    //设置初始位置，避免菜单初次显示时出现黑屏现象
-    createWndParam.m_nX = point.x;
-    createWndParam.m_nY = point.y;
+    //计算创建窗口时的初始位置：先按弹出的对齐方式预估目标位置，直接以目标位置创建窗口。
+    //macOS(Cocoa)在窗口显示时可能先把窗口摆到"创建位置"，再应用之后的定位；
+    //若创建位置不是目标位置，就会出现"先在错误位置显示一帧，再跳转到正常位置"的抖动现象。
+    //注：
+    //  1. 子菜单的创建位置已经由父菜单按子菜单的锚点预计算好(point)，此处只对顶级菜单预计算；
+    //  2. 菜单XML一般不需要设置size属性，窗口大小预估不到时(为0)，按锚点与阴影边距计算位置，
+    //     尺寸相关的偏移与智能吸附会被跳过，窗口显示前会再按实际大小校正位置。
+    UiPoint ptInitPos = point;
+    if (m_pOwner == nullptr) {
+        UiSize szInitWindow;
+        UiPadding rcInitShadow;
+        GetPrefetchWindowSize(szInitWindow, rcInitShadow);
+
+        //坐标换算统一使用父窗口的DPI：菜单与父窗口必然在同一显示器上，
+        //以父窗口为基准可避免两个窗口的DPI状态不一致导致的坐标偏差
+        const DpiManager& dpi = (m_pParentWindow != nullptr) ? m_pParentWindow->Dpi() : Dpi();
+        UiRect rcWork;
+        if (GetMonitorWorkRect(point, rcWork) && !rcWork.IsEmpty()) {
+            dpi.WindowSizeToClientSize(rcWork);
+            UiPoint ptAnchor(point);
+            dpi.WindowSizeToClientSize(ptAnchor);
+            UiRect rcInitWnd = CalcMenuWindowRect(szInitWindow, rcInitShadow, rcWork, ptAnchor);
+            dpi.ClientSizeToWindowSize(rcInitWnd);
+            ptInitPos = UiPoint(rcInitWnd.left, rcInitWnd.top);
+        }
+    }
+    createWndParam.m_nX = ptInitPos.x;
+    createWndParam.m_nY = ptInitPos.y;
     CreateWnd(m_pParentWindow, createWndParam);
 
     //菜单淡入动画：在显示前把 Alpha 置 0，显示时由动画渐变到完全不透明
@@ -444,106 +470,115 @@ LRESULT Menu::OnMouseRButtonDbClickMsg(const UiPoint& /*pt*/, uint32_t /*modifie
     return 0;
 }
 
-bool Menu::ResizeMenu()
+void Menu::GetPrefetchWindowSize(UiSize& szWindow, UiPadding& rcShadow)
 {
-    ui::Control* pRoot = GetRoot();
-    ASSERT(pRoot != nullptr);
-    if (pRoot == nullptr) {
-        return false;
-    }
-    //点击在哪里，以哪里的屏幕为主
-    ui::UiRect rcWork;
-    GetMonitorWorkRect(m_menuPoint, rcWork);
-    Dpi().WindowSizeToClientSize(rcWork);
-    Dpi().WindowSizeToClientSize(m_menuPoint);
+    szWindow.Clear();
+    rcShadow.Clear();
 
-    ui::UiSize szMenuWindow = { rcWork.Width(), rcWork.Height()};
-    UiEstSize estSize = pRoot->EstimateSize(szMenuWindow);   //这里返回的大小包含了阴影的大小
-    if (estSize.cx.IsInt32()) {
-        szMenuWindow.cx = estSize.cx.GetInt32();
-    }
-    if (estSize.cy.IsInt32()) {
-        szMenuWindow.cy = estSize.cy.GetInt32();
-    }
+    //解析窗口XML属性（解析结果在窗口内部缓存，CreateWnd时会复用，不会重复解析）
+    WindowCreateAttributes createAttributes;
+    GetCreateWindowAttributes(createAttributes);
 
-    UiPadding rcShadowCorner = pRoot->GetPadding(); //窗口阴影所占区域
-    ui::UiSize szMenuClient = szMenuWindow;
+    //此时窗口尚未创建，坐标换算使用父窗口的DPI
+    const DpiManager& dpi = (m_pParentWindow != nullptr) ? m_pParentWindow->Dpi() : Dpi();
+
+    //阴影边距为DIP值，需要换算为布局坐标
+    rcShadow = createAttributes.m_rcShadowCorner;
+    dpi.ScalePadding(rcShadow);
+
+    //菜单XML一般不需要设置size属性，因此窗口大小是可选的：
+    //取不到时返回(0,0)表示大小未知，由调用方跳过与尺寸相关的计算
+    if ((createAttributes.m_szInitSize.cx > 0) && (createAttributes.m_szInitSize.cy > 0)) {
+        //窗口大小（含阴影区域）为窗口坐标，需要换算为布局坐标
+        szWindow = createAttributes.m_szInitSize;
+        dpi.WindowSizeToClientSize(szWindow);
+    }
+}
+
+UiRect Menu::CalcMenuWindowRect(const UiSize& szMenuWindow, const UiPadding& rcShadowCorner,
+                                const UiRect& rcWork, const UiPoint& ptAnchor) const
+{
+    //窗口大小可能未知(菜单XML未定义size时为0)：此时只能按锚点与阴影边距估算位置，
+    //需要跳过与尺寸相关的偏移(右侧/底部对齐)和智能吸附，避免计算出无效位置
+    const bool bWidthKnown = szMenuWindow.cx > 0;
+    const bool bHeightKnown = szMenuWindow.cy > 0;
+
+    UiSize szMenuClient = szMenuWindow;
     szMenuClient.cx -= rcShadowCorner.left + rcShadowCorner.right;
     szMenuClient.cy -= rcShadowCorner.top + rcShadowCorner.bottom; //这里去掉阴影窗口，即用户的视觉有效面积
 
-    ui::UiPoint point(m_menuPoint);  //这里有个bug，由于坐标点与包含在窗口内，会直接出发mouseenter导致出来子菜单，偏移1个像素
+    UiPoint point(ptAnchor);  //这里有个bug，由于坐标点与包含在窗口内，会直接触发mouseenter导致出来子菜单，偏移1个像素
     if (static_cast<int>(m_popupPosType) & static_cast<int>(eMenuAlignment_Right)) {
-        point.x += -szMenuWindow.cx + rcShadowCorner.right + rcShadowCorner.left;
-        point.x -= 1;
+        if (bWidthKnown) {
+            point.x += -szMenuWindow.cx + rcShadowCorner.right + rcShadowCorner.left;
+            point.x -= 1;
+        }
     }
     else if (static_cast<int>(m_popupPosType) & static_cast<int>(eMenuAlignment_Left)) {
         point.x += 1;
     }
-    if (static_cast<int>(m_popupPosType) & static_cast<int>(eMenuAlignment_Bottom))    {
-        point.y += -szMenuWindow.cy + rcShadowCorner.bottom + rcShadowCorner.top;
-        point.y += 1;
+    if (static_cast<int>(m_popupPosType) & static_cast<int>(eMenuAlignment_Bottom)) {
+        if (bHeightKnown) {
+            point.y += -szMenuWindow.cy + rcShadowCorner.bottom + rcShadowCorner.top;
+            point.y += 1;
+        }
     }
     else if (static_cast<int>(m_popupPosType) & static_cast<int>(eMenuAlignment_Top)) {
         point.y += 1;
     }
     if (static_cast<int>(m_popupPosType) & static_cast<int>(eMenuAlignment_Intelligent)) {
-        if (point.x < rcWork.left) {
-            point.x = rcWork.left;
+        if (bWidthKnown) {
+            if (point.x < rcWork.left) {
+                point.x = rcWork.left;
+            }
+            else if (point.x + szMenuClient.cx > rcWork.right) {
+                point.x = rcWork.right - szMenuClient.cx;
+            }
         }
-        else if (point.x + szMenuClient.cx> rcWork.right) {
-            point.x = rcWork.right - szMenuClient.cx;
-        }
-        if (point.y < rcWork.top) {
-            point.y = rcWork.top ;
-        }
-        else if (point.y + szMenuClient.cy > rcWork.bottom) {
-            point.y = rcWork.bottom - szMenuClient.cy;
+        if (bHeightKnown) {
+            if (point.y < rcWork.top) {
+                point.y = rcWork.top;
+            }
+            else if (point.y + szMenuClient.cy > rcWork.bottom) {
+                point.y = rcWork.bottom - szMenuClient.cy;
+            }
         }
     }
 
-    int32_t x = point.x - rcShadowCorner.left;
-    int32_t y = point.y - rcShadowCorner.top;
-    Dpi().ClientSizeToWindowSize(x);
-    Dpi().ClientSizeToWindowSize(y);
-    Dpi().ClientSizeToWindowSize(szMenuWindow);
-    Dpi().ClientSizeToWindowSize(m_menuPoint);
-    SetWindowPos(InsertAfterWnd(InsertAfterFlag::kHWND_TOPMOST),
-                 x, y,
-                 szMenuWindow.cx, szMenuWindow.cy,
-                 kSWP_SHOWWINDOW | (m_noFocus ? kSWP_NOACTIVATE : 0));
-
-    if (!m_noFocus) {
-        SetWindowForeground();
-        ListBox* pLayoutListBox = Menu::GetLayoutListBox();
-        SetFocusControl(pLayoutListBox);
-    }
-    return true;
+    const int32_t x = point.x - rcShadowCorner.left;
+    const int32_t y = point.y - rcShadowCorner.top;
+    return UiRect(x, y, x + szMenuWindow.cx, y + szMenuWindow.cy);
 }
 
-bool Menu::ResizeSubMenu()
+UiRect Menu::CalcSubMenuWindowRect(const UiSize& szSubMenuWindow, const UiPadding& rcCorner,
+                                   const UiRect& rcWork, const DpiManager& dpi) const
 {
     ASSERT(m_pOwner != nullptr);
     if (m_pOwner == nullptr) {
-        return false;
+        return UiRect();
     }
-    ASSERT(m_pOwner->GetWindow() != nullptr);
+    Window* pOwnerWindow = m_pOwner->GetWindow();
+    if (pOwnerWindow == nullptr) {
+        return UiRect();
+    }
 
     // Position the popup window in absolute space
     UiRect rcOwner = m_pOwner->GetPos();
     UiRect rc = rcOwner;
-   
-    UiPadding rcCorner = GetCurrentShadowCorner();
-    UiRect rcWindow;
-    m_pOwner->GetWindow()->GetWindowRect(rcWindow);
-    Dpi().WindowSizeToClientSize(rcWindow);
 
-    UiRect rcClient;
-    GetClientRect(rcClient);
-    rcClient.Deflate(rcCorner);
-    int32_t cxFixed = rcClient.Width();
-    int32_t cyFixed = rcClient.Height();
-    rcClient.Inflate(rcCorner);
-    if (rcClient.Width() < (rcCorner.left + rcCorner.right)) {
+    UiRect rcWindow;
+    pOwnerWindow->GetWindowRect(rcWindow);
+    dpi.WindowSizeToClientSize(rcWindow);
+
+    int32_t cxFixed = szSubMenuWindow.cx - rcCorner.left - rcCorner.right;
+    int32_t cyFixed = szSubMenuWindow.cy - rcCorner.top - rcCorner.bottom;
+    if (cxFixed < 0) {
+        cxFixed = 0;
+    }
+    if (cyFixed < 0) {
+        cyFixed = 0;
+    }
+    if (szSubMenuWindow.cx < (rcCorner.left + rcCorner.right)) {
         //窗口大小还没有生效，需要估算
         Box* pRoot = GetRoot();
         if (pRoot != nullptr) {
@@ -572,9 +607,9 @@ bool Menu::ResizeSubMenu()
     //去阴影
     rcWindow.Deflate(rcCorner);
 
-    m_pOwner->GetWindow()->ClientToScreen(rc);
-    Dpi().WindowSizeToClientSize(rc);
-   
+    pOwnerWindow->ClientToScreen(rc);
+    dpi.WindowSizeToClientSize(rc);
+
     rc.left = rcWindow.right;
     rc.right = rc.left + cxFixed;
     rc.bottom = rc.top + cyFixed;
@@ -589,11 +624,11 @@ bool Menu::ResizeSubMenu()
         Menu* pContextMenu = dynamic_cast<Menu*>(pReceiver);
         if (pContextMenu != nullptr) {
             pContextMenu->GetWindowRect(rcPreWindow);  //需要减掉阴影
-            Dpi().WindowSizeToClientSize(rcPreWindow);
+            dpi.WindowSizeToClientSize(rcPreWindow);
 
             bReachRight = (rcPreWindow.left + rcCorner.left) >= rcWindow.right;
             bReachBottom = (rcPreWindow.top + rcCorner.top) >= rcWindow.bottom;
-            if (pContextMenu->GetWindowHandle() == m_pOwner->GetWindow()->GetWindowHandle()
+            if (pContextMenu->GetWindowHandle() == pOwnerWindow->GetWindowHandle()
                 || bReachBottom || bReachRight) {
                 break;
             }
@@ -609,10 +644,6 @@ bool Menu::ResizeSubMenu()
         rc.right = rcWindow.left;
         rc.left = rc.right - cxFixed;
     }
-
-    UiRect rcWork;
-    GetMonitorWorkRect(m_menuPoint, rcWork);
-    Dpi().WindowSizeToClientSize(rcWork);
 
     if (rc.bottom > rcWork.bottom) {
         rc.bottom = rc.top;
@@ -634,21 +665,82 @@ bool Menu::ResizeSubMenu()
         rc.right = rc.left + cxFixed;
     }
 
-    //调整窗口位置，显示窗口，但不调整窗口的大小
-    int32_t nNewWidth = rc.Width() + rcCorner.left + rcCorner.right;
-    int32_t nNewHeight = rc.Height() + rcCorner.top + rcCorner.bottom;
-    ASSERT(nNewWidth == rcClient.Width());
-    ASSERT(nNewHeight == rcClient.Height());
+    const int32_t nNewWidth = rc.Width() + rcCorner.left + rcCorner.right;
+    const int32_t nNewHeight = rc.Height() + rcCorner.top + rcCorner.bottom;
+    const int32_t x = rc.left - rcCorner.left;
+    const int32_t y = rc.top - rcCorner.top;
+    return UiRect(x, y, x + nNewWidth, y + nNewHeight);
+}
 
-    int32_t x = rc.left - rcCorner.left;
-    int32_t y = rc.top - rcCorner.top;
-    Dpi().ClientSizeToWindowSize(x);
-    Dpi().ClientSizeToWindowSize(y);
-    Dpi().ClientSizeToWindowSize(nNewWidth);
-    Dpi().ClientSizeToWindowSize(nNewHeight);
+bool Menu::ResizeMenu()
+{
+    ui::Control* pRoot = GetRoot();
+    ASSERT(pRoot != nullptr);
+    if (pRoot == nullptr) {
+        return false;
+    }
+    //点击在哪里，以哪里的屏幕为主
+    ui::UiRect rcWork;
+    GetMonitorWorkRect(m_menuPoint, rcWork);
+    Dpi().WindowSizeToClientSize(rcWork);
+    Dpi().WindowSizeToClientSize(m_menuPoint);
+
+    ui::UiSize szMenuWindow = { rcWork.Width(), rcWork.Height()};
+    UiEstSize estSize = pRoot->EstimateSize(szMenuWindow);   //这里返回的大小包含了阴影的大小
+    if (estSize.cx.IsInt32()) {
+        szMenuWindow.cx = estSize.cx.GetInt32();
+    }
+    if (estSize.cy.IsInt32()) {
+        szMenuWindow.cy = estSize.cy.GetInt32();
+    }
+
+    UiPadding rcShadowCorner = pRoot->GetPadding(); //窗口阴影所占区域
+    UiRect rcWindow = CalcMenuWindowRect(szMenuWindow, rcShadowCorner, rcWork, m_menuPoint);
+    Dpi().ClientSizeToWindowSize(rcWindow);
+    Dpi().ClientSizeToWindowSize(m_menuPoint);
+
     SetWindowPos(InsertAfterWnd(InsertAfterFlag::kHWND_TOPMOST),
-                 x, y,
-                 nNewWidth, nNewHeight,
+                 rcWindow.left, rcWindow.top,
+                 rcWindow.Width(), rcWindow.Height(),
+                 kSWP_SHOWWINDOW | (m_noFocus ? kSWP_NOACTIVATE : 0));
+
+    if (!m_noFocus) {
+        SetWindowForeground();
+        ListBox* pLayoutListBox = Menu::GetLayoutListBox();
+        SetFocusControl(pLayoutListBox);
+    }
+    return true;
+}
+
+bool Menu::ResizeSubMenu()
+{
+    ASSERT(m_pOwner != nullptr);
+    if (m_pOwner == nullptr) {
+        return false;
+    }
+    ASSERT(m_pOwner->GetWindow() != nullptr);
+    if (m_pOwner->GetWindow() == nullptr) {
+        return false;
+    }
+
+    //获取子菜单窗口的当前大小（含阴影区域）
+    UiRect rcClient;
+    GetClientRect(rcClient);
+    const UiSize szSubMenuWindow(rcClient.Width(), rcClient.Height());
+    const UiPadding rcCorner = GetCurrentShadowCorner();
+
+    UiRect rcWork;
+    GetMonitorWorkRect(m_menuPoint, rcWork);
+    Dpi().WindowSizeToClientSize(rcWork);
+
+    //计算子菜单窗口的显示位置
+    UiRect rcWindow = CalcSubMenuWindowRect(szSubMenuWindow, rcCorner, rcWork, Dpi());
+    Dpi().ClientSizeToWindowSize(rcWindow);
+
+    //调整窗口位置，显示窗口，但不调整窗口的大小
+    SetWindowPos(InsertAfterWnd(InsertAfterFlag::kHWND_TOPMOST),
+                 rcWindow.left, rcWindow.top,
+                 rcWindow.Width(), rcWindow.Height(),
                  kSWP_SHOWWINDOW | kSWP_NOSIZE | (m_noFocus ? kSWP_NOACTIVATE : 0));
 
     if (!m_noFocus) {
