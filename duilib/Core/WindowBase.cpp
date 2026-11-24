@@ -15,7 +15,8 @@ WindowBase::WindowBase():
     m_bWindowRgnSetFlag(false),
     m_windowSizeState(WindowSizeState::kUnknown),
     m_bSendDragEnterMsg(false),
-    m_bLayeredWindowSetFlag(false)
+    m_bLayeredWindowSetFlag(false),
+    m_bInitShadowAttached(true)
 {
     m_pNativeWindow = new NativeWindow(this);
 }
@@ -34,6 +35,7 @@ bool WindowBase::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam& c
     //解析XML，读取窗口的属性参数
     WindowCreateAttributes createAttributes;
     GetCreateWindowAttributes(createAttributes);
+    m_bInitShadowAttached = createAttributes.m_bShadowAttached;
     SetWindowId(createParam.m_windowId);
     m_windowClassName = createParam.m_className;
     m_pParentWindow = pParentWindow;
@@ -48,6 +50,7 @@ int32_t WindowBase::DoModal(WindowBase* pParentWindow, const WindowCreateParam& 
     //解析XML，读取窗口的属性参数
     WindowCreateAttributes createAttributes;
     GetCreateWindowAttributes(createAttributes);
+    m_bInitShadowAttached = createAttributes.m_bShadowAttached;
     SetWindowId(createParam.m_windowId);
     m_windowClassName = createParam.m_className;
     m_pParentWindow = pParentWindow;

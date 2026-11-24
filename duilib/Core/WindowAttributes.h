@@ -188,6 +188,10 @@ struct DUILIB_API WindowAttributeValues
     /** XML 中不认识的属性名称（用于配置错误预警）
     */
     std::vector<DString> m_unknownAttributes;
+
+    /** 配置告警信息（属性值非法或配置冲突时的纠正说明，由调用方统一输出）
+    */
+    std::vector<DString> m_warnings;
 };
 
 /** 单趟解析 XML 中窗口(Window 节点)的全部属性
@@ -268,11 +272,14 @@ struct DUILIB_API LayeredWindowAttributes
 *   2. 未配置时，opacity < 255 且未使用系统标题栏，则默认开启层窗口；
 *   3. 未配置时，使用系统标题栏，则默认关闭层窗口；
 *   4. 未配置时，启用阴影且阴影类型需要层窗口，则默认开启层窗口；
-*   5. 系统标题栏与层窗口互斥，同时配置时层窗口被关闭；
-*   6. SDL构建下，未显式配置 layered_window 时默认开启（与原有行为一致）。
+*   5. 系统标题栏与层窗口互斥，同时配置时层窗口被关闭（并在pWarnings中记录该冲突）；
+*   6. SDL构建下，未显式配置 layered_window 时默认开启（与原有行为一致）；
+*   7. 非分层窗口不支持透明度/不透明度，这些属性会被忽略（并在pWarnings中记录）。
+* @param [out] pWarnings 配置冲突的告警信息，可以为nullptr
 */
 LayeredWindowAttributes DUILIB_API ResolveLayeredWindowAttributes(const WindowAttributeValues& values,
-                                                                  const ShadowResolveParam& param);
+                                                                  const ShadowResolveParam& param,
+                                                                  std::vector<DString>* pWarnings = nullptr);
 
 /** 渲染后端推导的输入参数（窗口的默认配置或全局配置）
 */
@@ -315,11 +322,13 @@ struct DUILIB_API RenderBackendAttributes
 /** 推导窗口的渲染后端属性（纯函数，不依赖窗口对象）
 *   规则：
 *   1. XML中配置的 render_backend_type/vsync/msaa 优先，否则使用 param 中的默认值；
-*   2. 要求设置不透明度(opacity < 255)时，OpenGL绘制方式会降级为CPU绘制；
+*   2. 要求设置不透明度(opacity < 255)或显式配置layered_window="true"时，OpenGL绘制方式会降级为CPU绘制；
 *      使用默认配置（XML未配置 render_backend_type）降级时，MSAA与垂直同步同时复位。
+* @param [out] pWarnings 配置冲突的告警信息，可以为nullptr
 */
 RenderBackendAttributes DUILIB_API ResolveRenderBackendAttributes(const WindowAttributeValues& values,
-                                                                  const RenderBackendResolveParam& param);
+                                                                  const RenderBackendResolveParam& param,
+                                                                  std::vector<DString>* pWarnings = nullptr);
 
 /** 窗口初始大小推导的输入参数
 */
@@ -366,11 +375,13 @@ struct DUILIB_API WindowInitSizeResolveParam
 *   2. size 未做DPI缩放时进行缩放；
 *   3. size 不包含阴影时，按阴影九宫格向四周扩展（百分比宽度/高度不扩展）；
 *   4. 最后校验窗口大小，避免超出所在屏幕的工作区。
+* @param [out] pWarnings 配置冲突的告警信息，可以为nullptr
 * @return 返回最终的窗口大小；当XML未配置size属性时，返回空的大小
 */
 UiSize DUILIB_API ResolveWindowInitSize(const WindowAttributeValues& values,
                                         const WindowInitSizeResolveParam& param,
-                                        const DpiManager& dpi);
+                                        const DpiManager& dpi,
+                                        std::vector<DString>* pWarnings = nullptr);
 
 } // namespace ui
 

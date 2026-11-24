@@ -47,6 +47,18 @@ namespace
         }
         return classAttributes;
     }
+
+    /** 记录窗口配置的告警信息（属性值非法或配置冲突时的纠正说明，由调用方统一输出）
+    */
+    void AddAttributeWarning(std::vector<DString>* pWarnings, const DString& strAttribute,
+                             const DString& strValue, const DString& strReason)
+    {
+        if (pWarnings == nullptr) {
+            return;
+        }
+        pWarnings->push_back(StringUtil::Printf(_T("attribute=\"%s\", value=\"%s\": %s"),
+                                                strAttribute.c_str(), strValue.c_str(), strReason.c_str()));
+    }
 }
 
 bool ParseWindowAttributeValues(const pugi::xml_node& root, WindowAttributeValues& values,
@@ -106,7 +118,14 @@ bool ParseWindowAttributeValues(const pugi::xml_node& root, WindowAttributeValue
         else if (StringUtil::IsEqualNoCase(strName, _T("round_corner")) ||
                  StringUtil::IsEqualNoCase(strName, _T("roundcorner"))) {
             AttributeUtil::ParseSizeValue(strValue.c_str(), values.m_szRoundCorner);
-            values.m_bRoundCornerDefined = true;
+            if ((values.m_szRoundCorner.cx == 0) != (values.m_szRoundCorner.cy == 0)) {
+                //两个参数要么同时等于0，要么同时大于0
+                AddAttributeWarning(&values.m_warnings, strName, strValue,
+                                    _T("the two values must be both zero or both positive, ignored"));
+            }
+            else {
+                values.m_bRoundCornerDefined = true;
+            }
         }
         else if (StringUtil::IsEqualNoCase(strName, _T("size_contain_shadow"))) {
             values.m_bSizeContainShadow = StringUtil::IsValueTrue(strValue);
@@ -122,6 +141,9 @@ bool ParseWindowAttributeValues(const pugi::xml_node& root, WindowAttributeValue
             if (Shadow::GetShadowType(strValue, nShadowType)) {
                 values.m_nShadowType = nShadowType;
                 values.m_bShadowTypeDefined = true;
+            }
+            else {
+                AddAttributeWarning(&values.m_warnings, strName, strValue, _T("invalid value, ignored"));
             }
         }
         else if (StringUtil::IsEqualNoCase(strName, _T("shadow_image")) ||
@@ -162,6 +184,9 @@ bool ParseWindowAttributeValues(const pugi::xml_node& root, WindowAttributeValue
                 values.m_nAlpha = nAlpha;
                 values.m_bAlphaDefined = true;
             }
+            else {
+                AddAttributeWarning(&values.m_warnings, strName, strValue, _T("value out of range [0,255], ignored"));
+            }
         }
         else if (StringUtil::IsEqualNoCase(strName, _T("opacity"))) {
             //设置窗口的不透明度（0 - 255），该值在SetLayeredWindowAttributes函数中作为参数使用
@@ -169,6 +194,9 @@ bool ParseWindowAttributeValues(const pugi::xml_node& root, WindowAttributeValue
             if ((nOpacity >= 0) && (nOpacity <= 255)) {
                 values.m_nOpacity = nOpacity;
                 values.m_bOpacityDefined = true;
+            }
+            else {
+                AddAttributeWarning(&values.m_warnings, strName, strValue, _T("value out of range [0,255], ignored"));
             }
         }
         else if (StringUtil::IsEqualNoCase(strName, _T("drag_drop"))) {
@@ -182,8 +210,10 @@ bool ParseWindowAttributeValues(const pugi::xml_node& root, WindowAttributeValue
                 backendType = RenderBackendType::kNativeGL_BackendType;
             }
             else if (!StringUtil::IsEqualNoCase(strValue, _T("CPU"))) {
-                //无效的配置值：按CPU绘制处理（配置错误由未知属性/日志机制另行提示）
+                //无效的配置值：按CPU绘制处理，并记录告警
                 ASSERT(0);
+                AddAttributeWarning(&values.m_warnings, strName, strValue,
+                                    _T("invalid value, use CPU rendering"));
             }
             values.m_renderBackendType = backendType;
             values.m_bRenderBackendTypeDefined = true;
@@ -195,6 +225,8 @@ bool ParseWindowAttributeValues(const pugi::xml_node& root, WindowAttributeValue
         else if (StringUtil::IsEqualNoCase(strName, _T("msaa"))) {
             int32_t nMsaaSampleCount = StringUtil::StringToInt32(strValue);
             if (nMsaaSampleCount < 0) {
+                AddAttributeWarning(&values.m_warnings, strName, strValue,
+                                    _T("negative value, reset to 0"));
                 nMsaaSampleCount = 0;
             }
             values.m_nMsaaSampleCount = nMsaaSampleCount;
@@ -327,7 +359,8 @@ ShadowAttributes ResolveShadowAttributes(const WindowAttributeValues& values,
 }
 
 LayeredWindowAttributes ResolveLayeredWindowAttributes(const WindowAttributeValues& values,
-                                                       const ShadowResolveParam& param)
+                                                       const ShadowResolveParam& param,
+                                                       std::vector<DString>* pWarnings)
 {
     LayeredWindowAttributes result;
     //XML中是否显式配置了层窗口属性（SDL下用于判断是否应用默认值）
@@ -363,6 +396,11 @@ LayeredWindowAttributes ResolveLayeredWindowAttributes(const WindowAttributeValu
     }
     if (bUseSystemCaption && bLayered) {
         //系统标题栏与分层窗口属性互斥，使用系统标题栏时必须关闭分层窗口属性
+        if (values.m_bLayeredWindowDefined && values.m_bLayeredWindow) {
+            //XML中显式配置为分层窗口时，记录该冲突（配置被纠正）
+            AddAttributeWarning(pWarnings, _T("layered_window"), _T("true"),
+                                _T("conflicts with use_system_caption=\"true\", layered window is disabled"));
+        }
         bLayered = false;
     }
 
@@ -392,11 +430,26 @@ LayeredWindowAttributes ResolveLayeredWindowAttributes(const WindowAttributeValu
         result.m_nOpacity = values.m_nOpacity;
         result.m_bOpacityDefined = true;
     }
+
+    //非分层窗口不支持透明度/不透明度：忽略这些配置（避免设置失败）
+    if (!result.m_bIsLayeredWindow) {
+        if (result.m_bAlphaDefined) {
+            AddAttributeWarning(pWarnings, _T("alpha"), StringUtil::Printf(_T("%d"), result.m_nAlpha),
+                                _T("requires a layered window, ignored"));
+            result.m_bAlphaDefined = false;
+        }
+        if (result.m_bOpacityDefined) {
+            AddAttributeWarning(pWarnings, _T("opacity"), StringUtil::Printf(_T("%d"), result.m_nOpacity),
+                                _T("requires a layered window, ignored"));
+            result.m_bOpacityDefined = false;
+        }
+    }
     return result;
 }
 
 RenderBackendAttributes ResolveRenderBackendAttributes(const WindowAttributeValues& values,
-                                                       const RenderBackendResolveParam& param)
+                                                       const RenderBackendResolveParam& param,
+                                                       std::vector<DString>* pWarnings)
 {
     RenderBackendAttributes result;
     if (values.m_bRenderBackendTypeDefined) {
@@ -413,9 +466,18 @@ RenderBackendAttributes ResolveRenderBackendAttributes(const WindowAttributeValu
         result.m_bDisableVsync = param.m_bDefaultDisableVsync;
     }
 
-    //GL绘制方式不支持分层窗口：XML要求设置不透明度时，降级为CPU绘制（否则窗口内容无法显示）
+    //GL绘制方式不支持分层窗口：XML要求设置不透明度或显式开启层窗口时，降级为CPU绘制（否则窗口内容无法显示）
     const bool bNeedLayeredWindowOpacity = values.m_bOpacityDefined && (values.m_nOpacity < 255);
-    if ((result.m_backendType == RenderBackendType::kNativeGL_BackendType) && bNeedLayeredWindowOpacity) {
+#if defined (DUILIB_BUILD_FOR_SDL)
+    //SDL后端的层窗口标记是固定的（窗口创建时必须带SDL_WINDOW_TRANSPARENT），GL可以正常使用，不参与降级判断
+    const bool bNeedLayeredWindow = false;
+#else
+    //Windows后端：系统标题栏与层窗口互斥，冲突时层窗口不会真正启用
+    const bool bUseSystemCaption = values.m_bUseSystemCaptionDefined && values.m_bUseSystemCaption;
+    const bool bNeedLayeredWindow = values.m_bLayeredWindowDefined && values.m_bLayeredWindow && !bUseSystemCaption;
+#endif
+    if ((result.m_backendType == RenderBackendType::kNativeGL_BackendType) &&
+        (bNeedLayeredWindowOpacity || bNeedLayeredWindow)) {
         result.m_backendType = RenderBackendType::kRaster_BackendType;
         if (!values.m_bRenderBackendTypeDefined) {
             //使用默认配置降级时，MSAA与垂直同步同时复位（降级为CPU绘制后不再需要这些配置）
@@ -423,13 +485,18 @@ RenderBackendAttributes ResolveRenderBackendAttributes(const WindowAttributeValu
             result.m_bDisableVsync = false;
         }
         result.m_bFallbackToRaster = true;
+        if (bNeedLayeredWindow) {
+            AddAttributeWarning(pWarnings, _T("layered_window"), _T("true"),
+                                _T("OpenGL rendering does not support layered windows, fall back to CPU rendering"));
+        }
     }
     return result;
 }
 
 UiSize ResolveWindowInitSize(const WindowAttributeValues& values,
                              const WindowInitSizeResolveParam& param,
-                             const DpiManager& dpi)
+                             const DpiManager& dpi,
+                             std::vector<DString>* pWarnings)
 {
     UiSize initSize;
     if (!values.m_bSizeDefined) {
@@ -449,17 +516,26 @@ UiSize ResolveWindowInitSize(const WindowAttributeValues& values,
         dpi.ScaleWindowSize(minSize.cy);
         dpi.ScaleWindowSize(maxSize.cy);
     }
+    bool bClamped = false;
     if ((minSize.cx > 0) && (cx < minSize.cx)) {
         cx = minSize.cx;
+        bClamped = true;
     }
     if ((maxSize.cx > 0) && (cx > maxSize.cx)) {
         cx = maxSize.cx;
+        bClamped = true;
     }
     if ((minSize.cy > 0) && (cy < minSize.cy)) {
         cy = minSize.cy;
+        bClamped = true;
     }
     if ((maxSize.cy > 0) && (cy > maxSize.cy)) {
         cy = maxSize.cy;
+        bClamped = true;
+    }
+    if (bClamped) {
+        AddAttributeWarning(pWarnings, _T("size"), StringUtil::Printf(_T("%d,%d"), values.m_szSize.cx, values.m_szSize.cy),
+                            _T("clamped to the min_size/max_size range"));
     }
 
     //size的值未做DPI缩放时，进行DPI缩放

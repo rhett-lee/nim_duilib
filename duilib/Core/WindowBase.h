@@ -1377,6 +1377,10 @@ protected:
     bool SendWindowMouseEvent(EventType eventType, const UiPoint& pt, uint32_t modifierKey);
     bool SendWindowEvent(const EventArgs& msg);
 
+    /** 获取窗口初始化时的阴影状态（来自窗口配置XML中解析后的shadow_attached）
+    */
+    bool IsInitShadowAttached() const { return m_bInitShadowAttached; }
+
 private:
     /** 初始化窗口数据（内部函数，子类重写后，必须调用基类函数，否则影响功能）
     */
@@ -1518,6 +1522,9 @@ private:
 
     //应用层是否显式设置了分层窗口属性（窗口配置XML不算；系统标题栏互斥时不受该标志限制）
     bool m_bLayeredWindowSetFlag;
+
+    //窗口初始化时的阴影状态（来自窗口配置XML中解析后的shadow_attached）
+    bool m_bInitShadowAttached;
 };
 
 } // namespace ui

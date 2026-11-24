@@ -623,6 +623,16 @@ bool WindowBuilder::ParseWindowCreateAttributes(Window* pWindow, WindowCreateAtt
 
 namespace
 {
+    /** 输出窗口配置的告警信息（属性值非法或配置冲突时的纠正说明），输出后清空列表
+    */
+    void OutputWindowConfigWarnings(std::vector<DString>& warnings)
+    {
+        for (const DString& warning : warnings) {
+            LogUtil::OutputLine(StringUtil::Printf(_T("WindowBuilder: %s"), warning.c_str()));
+        }
+        warnings.clear();
+    }
+
     /** 将解析后的窗口属性应用到窗口
     *   按固定阶段执行，每个属性只出现一处，不依赖XML中属性的书写顺序：
     *   1. 渲染后端（后续属性的设置依赖Render对象）；
@@ -650,7 +660,9 @@ namespace
             renderParam.m_nDefaultMsaaSampleCount = globalManager.GetGlobalMsaaSampleCount();
             renderParam.m_bDefaultDisableVsync = globalManager.IsGlobalDisableVsync();
         }
-        const RenderBackendAttributes render = ResolveRenderBackendAttributes(values, renderParam);
+        std::vector<DString> warnings;
+        const RenderBackendAttributes render = ResolveRenderBackendAttributes(values, renderParam, &warnings);
+        OutputWindowConfigWarnings(warnings);
         if (render.m_bFallbackToRaster) {
             LogUtil::OutputLine(_T("WindowBuilder: OpenGL does not support layered windows, fall back to CPU rendering"));
         }
@@ -732,7 +744,8 @@ namespace
         //窗口已创建：按当前的实际状态推导默认阴影类型（创建前使用的"未分层"状态已不适用）
         layeredParam.m_bLayeredWindow = pWindow->IsLayeredWindow();
         layeredParam.m_bSystemShadowSupported = pWindow->NativeWnd()->IsSystemShadowSupported();
-        const LayeredWindowAttributes layered = ResolveLayeredWindowAttributes(values, layeredParam);
+        const LayeredWindowAttributes layered = ResolveLayeredWindowAttributes(values, layeredParam, &warnings);
+        OutputWindowConfigWarnings(warnings);
         if (!bUseSystemCaption && layered.m_bIsLayeredWindowDefined &&
             (layered.m_bIsLayeredWindow != pWindow->IsLayeredWindow())) {
             //仅当推导结果与窗口当前状态不同时才设置（窗口创建时已按相同规则设置过）
@@ -745,7 +758,7 @@ namespace
         if (layered.m_bAlphaDefined) {
             pWindow->SetLayeredWindowAlpha(layered.m_nAlpha);
         }
-        if (layered.m_bOpacityDefined) {
+        if (layered.m_bOpacityDefined && pWindow->IsLayeredWindow()) {
             pWindow->SetLayeredWindowOpacity(layered.m_nOpacity);
         }
 
@@ -765,7 +778,8 @@ namespace
             sizeParam.m_bSizeContainShadow = values.m_bSizeContainShadow;
             sizeParam.m_bWindowMaximized = pWindow->IsWindowMaximized();
             sizeParam.m_pWindow = pWindow;
-            const UiSize initSize = ResolveWindowInitSize(values, sizeParam, pWindow->Dpi());
+            const UiSize initSize = ResolveWindowInitSize(values, sizeParam, pWindow->Dpi(), &warnings);
+            OutputWindowConfigWarnings(warnings);
             pWindow->SetInitSize(initSize.cx, initSize.cy);
         }
     }
@@ -792,7 +806,10 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         LogUtil::OutputLine(StringUtil::Printf(_T("WindowBuilder: unknown window attribute: %s"), unknownName.c_str()));
     }
 
-    //3. 按固定阶段应用到窗口
+    //3. 输出属性值非法或配置冲突时的纠正信息
+    OutputWindowConfigWarnings(values.m_warnings);
+
+    //4. 按固定阶段应用到窗口
     ApplyWindowAttributes(pWindow, values);
 }
 

@@ -1278,6 +1278,14 @@ private:
     */
     bool m_bWindowInitFinished;
 
+    /** 是否延迟窗口阴影相关状态的刷新（初始化期间合并多次更新，减少RGN/层窗口的重复处理）
+    */
+    bool m_bDeferShadowUpdate;
+
+    /** 是否存在被延迟的阴影状态刷新
+    */
+    bool m_bShadowUpdatePending;
+
     /** 切换到GL绘制方式前保存的阴影类型（切换回CPU绘制时恢复，避免显示异常）
     */
     ShadowType m_savedShadowType;

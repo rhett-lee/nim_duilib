@@ -32,6 +32,8 @@ Window::Window() :
     m_bDisableVsync(kDefaultDisableVsync),
     m_bWindowAttributesApplied(false),
     m_bWindowInitFinished(false),
+    m_bDeferShadowUpdate(false),
+    m_bShadowUpdatePending(false),
     m_bCheckSetWindowFocus(false),
     m_savedShadowType(ShadowType::kShadowDefault),
     m_bShadowTypeSaved(false)
@@ -527,8 +529,8 @@ void Window::PreInitWindow()
     if (m_windowRoot == nullptr) {
         return;
     }
-    //阴影的默认状态：层窗口或者非系统标题栏时，默认开启阴影（与窗口创建属性中的默认值保持一致）
-    m_windowRoot->CreateShadow(IsLayeredWindow() || !IsUseSystemCaption());
+    //阴影的默认状态：XML中未禁用阴影，且不使用系统标题栏时，默认开启阴影
+    m_windowRoot->CreateShadow(IsInitShadowAttached() && !IsUseSystemCaption());
     //解析窗口关联的XML文件
     if (m_windowBuilder == nullptr) {
         ParseWindowXml();
@@ -537,7 +539,10 @@ void Window::PreInitWindow()
     Box* pRoot = nullptr;
     if (m_windowBuilder != nullptr) {
         auto callback = UiBind(&Window::CreateControl, this, std::placeholders::_1);
+        //初始化期间延迟阴影相关状态的刷新，避免多次重复处理RGN/层窗口
+        m_bDeferShadowUpdate = true;
         Control* pControl = m_windowBuilder->CreateControls(this, callback);
+        m_bDeferShadowUpdate = false;
         if (pControl == nullptr) {
             // XML 解析或控件创建失败，记录并中止初始化
             ASSERT(!"Window::PreInitWindow: failed to create controls from XML");
@@ -567,6 +572,12 @@ void Window::PreInitWindow()
 
 void Window::PostInitWindow()
 {
+    //初始化期间延迟的阴影状态刷新：统一执行一次
+    if (m_bShadowUpdatePending) {
+        m_bShadowUpdatePending = false;
+        ProcessWindowShadowTypeChanged();
+    }
+
     //创建渲染接口
     if (m_render == nullptr) {
         //统一走SetRenderBackendType，保证GL创建失败时回退到CPU绘制，并同步实际的渲染后端状态
@@ -574,9 +585,13 @@ void Window::PostInitWindow()
     }
     ASSERT(m_render != nullptr);
 
-    //根据XML的size属性，初始化窗口大小
+    //根据XML的size属性，初始化窗口大小（窗口创建时已按相同规则设置过，尺寸相同时不再重复设置）
     if ((m_szInitSize.cx > 0) && (m_szInitSize.cy > 0)) {
-        Resize(m_szInitSize.cx, m_szInitSize.cy, true, false);
+        UiRect rcWindow;
+        GetWindowRect(rcWindow);
+        if ((rcWindow.Width() != m_szInitSize.cx) || (rcWindow.Height() != m_szInitSize.cy)) {
+            Resize(m_szInitSize.cx, m_szInitSize.cy, true, false);
+        }
     }
 
     //检测是否需要根据root节点的auto类型设置窗口大小（比如菜单等有此种用法）
@@ -1256,6 +1271,12 @@ void Window::ApplyShadowType(ShadowType nShadowType)
 
 void Window::ProcessWindowShadowTypeChanged()
 {
+    if (m_bDeferShadowUpdate) {
+        //初始化期间：合并多次阴影状态变化，等窗口初始化时统一处理一次
+        m_bShadowUpdatePending = true;
+        return;
+    }
+    m_bShadowUpdatePending = false;
     UpdateWindowRGN(true); //处理RGN
     UpdateLayeredWindowStyleEx(true); //更新窗口的分层窗口属性
     OnWindowShadowTypeChanged();
