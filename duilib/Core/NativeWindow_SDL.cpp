@@ -142,6 +142,10 @@ struct NativeWindow_SDL::WaylandInputRegionData
     /** 是否启用阴影区域的点击穿透
     */
     bool bClickThrough = false;
+
+    /** 上次计算的输入区域是否为无效状态（用于避免重复输出日志）
+    */
+    bool bInvalidRegion = false;
 };
 
 #endif
@@ -2281,10 +2285,26 @@ void NativeWindow_SDL::UpdateWaylandInputRegion()
 
         //安全检查：输入区域必须有效，并且必须覆盖窗口的主要部分。
         //避免窗口尺寸/阴影信息未同步时计算出异常区域，导致整个窗口都无法接收鼠标事件
-        if (rcInput.IsEmpty() ||
-            (rcInput.Width() * 2 < nWindowWidth) || (rcInput.Height() * 2 < nWindowHeight)) {
-            LogUtil::OutputLine(_T("UpdateShadowInputRegion: 计算的输入区域无效，保持整个窗口接收鼠标事件"));
+        const bool bInvalidRegion = rcInput.IsEmpty() ||
+                                    (rcInput.Width() * 2 < nWindowWidth) ||
+                                    (rcInput.Height() * 2 < nWindowHeight);
+        if (bInvalidRegion) {
+            if (!m_pWaylandInputRegionData->bInvalidRegion) {
+                //仅在状态发生变化时输出一次日志，避免窗口反复刷新时日志刷屏
+                //(小窗口的阴影边距接近窗口尺寸时，会持续进入该分支，属于正常的兜底处理)
+                m_pWaylandInputRegionData->bInvalidRegion = true;
+                LogUtil::OutputLine(StringUtil::Printf(
+                    _T("UpdateShadowInputRegion: 计算的输入区域无效，保持整个窗口接收鼠标事件")
+                    _T(" (window=%dx%d, client=%dx%d, shadow=%d,%d,%d,%d, input=%d,%d,%d,%d)"),
+                    nWindowWidth, nWindowHeight,
+                    rcClient.Width(), rcClient.Height(),
+                    rcShadowCorner.left, rcShadowCorner.top, rcShadowCorner.right, rcShadowCorner.bottom,
+                    rcInput.left, rcInput.top, rcInput.right, rcInput.bottom));
+            }
             rcInput.Clear();
+        }
+        else {
+            m_pWaylandInputRegionData->bInvalidRegion = false;
         }
     }
 
