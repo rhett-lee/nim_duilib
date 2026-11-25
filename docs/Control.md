@@ -705,6 +705,7 @@ HotKey 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属�
 
 ### HotKey的交互行为
 - 获得焦点后按下组合键即录入热键，显示为 `Ctrl + C` 形式；热键必须符合规则：带 Ctrl/Shift/Alt 的组合键，或单独的功能键（`F1`~`F24`）；单个字母、数字等字符键必须搭配修饰键，否则忽略。
+- 修饰键统一显示为固定名称 `Ctrl` / `Shift` / `Alt`（不随平台或语言变化，避免 Alt 键被系统接口显示为 `Menu` 等名称）。
 - 仅按下修饰键（Ctrl/Shift/Alt）时只做预览显示，松开后回退，不会产生"只有修饰键"的无效热键。
 - `Esc` 取消本次输入，恢复为已提交的热键；`Delete`/`Backspace` 清空热键，恢复占位提示。
 - `Win` 键以及 `Alt + F4`、`Alt + Tab`、`Alt + Esc`、`Alt + Space`、`Ctrl + Esc` 等系统保留组合键不会被录制。
@@ -4073,7 +4074,7 @@ PropertyGrid 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`�
 | :--- | :--- | :--- | :--- |
 | AddBoolProperty / AddBoolPropertyById | PropertyGridBoolProperty | CheckBox | 取值必须是 `true`/`false`；编辑时仅显示复选框 |
 | AddNumberProperty / AddNumberPropertyById | PropertyGridNumberProperty | RichEdit（整数可带 Spin） | 支持整数/浮点、取值范围、小数位数、Spin 步长 |
-| AddMultiLineTextProperty / AddMultiLineTextPropertyById | PropertyGridMultiLineTextProperty | 多行 RichEdit | `Enter` 换行、`Ctrl+Enter` 提交；属性行固定为 90 DIP 行高 |
+| AddMultiLineTextProperty / AddMultiLineTextPropertyById | PropertyGridMultiLineTextProperty | 多行 RichEdit | `Enter` 换行、`Ctrl+Enter` 提交；非编辑状态也按多行显示，属性行固定为 90 DIP 行高 |
 
 ```cpp
 ui::PropertyGridBoolProperty* pBool = pPropertyGrid->AddBoolProperty(pGroup, _T("可用"), _T("true"), _T("是否启用"));
@@ -4129,16 +4130,19 @@ pProperty->AttachValueChanged([](const ui::EventArgs& args) { return true; });
 | ExpandAllGroups / CollapseAllGroups / SetExpandAllGroups | 展开/折叠全部分组 |
 | SortProperties(bool bAscending) | 按属性名称对分组内的属性排序 |
 | SetFilterText / GetFilterText | 按属性名称或分组名称过滤（大小写不敏感）；有匹配时自动展开分组 |
-| SetEnableFilterBox / IsFilterBoxVisible | 显示/隐藏过滤框（需要 `property_grid.xml` 中声明过滤框控件） |
+| SetEnableFilterBox / IsFilterBoxVisible | 显示/隐藏过滤框（需要 `property_grid.xml` 中声明过滤框控件；默认结构自带「×」关闭按钮，点击即可关闭过滤框并清空搜索条件） |
 | SetShowDescriptionToolTip / IsShowDescriptionToolTip | 鼠标悬停属性名称时显示属性描述信息 |
 | ShowDescriptionMessage | 在描述区域显示一条提示信息（如校验错误） |
 
 过滤框需要在 `property_grid.xml` 中声明（默认已包含，控件名固定为 `duilib_property_grid_search_box`，
-其所在行的控件名固定为 `duilib_property_grid_filter_area`，默认 `visible="false"`）：
+其所在行的控件名固定为 `duilib_property_grid_filter_area`，默认 `visible="false"`；关闭按钮的控件名固定为
+`duilib_property_grid_filter_close`，缺省时不会创建关闭按钮）：
 
 ```xml
 <HBox name="duilib_property_grid_filter_area" width="100%" height="32" padding="6,4,6,4" visible="false">
-    <RichEdit class="property_grid_search_edit" name="duilib_property_grid_search_box"/>
+    <RichEdit class="property_grid_search_edit" name="duilib_property_grid_search_box" width="stretch"/>
+    <Button class="property_grid_filter_close" name="duilib_property_grid_filter_close"
+            tooltip_text_id="STRID_PUBLIC_PROPERTY_SEARCH_CLOSE"/>
 </HBox>
 ```
 

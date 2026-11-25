@@ -96,8 +96,8 @@
     <Class name="property_grid_check_box" width="18" height="18" valign="center" margin="8,0,0,0"
            normal_image="file='${PATH_CHECKBOX}/checkbox-outline-unchecked.svg' width='16' height='16' valign='center' svg_replace_colors='#808080|border_svg_image'"
            disabled_image="file='${PATH_CHECKBOX}/checkbox-outline-unchecked.svg' width='16' height='16' valign='center' fade='80' svg_replace_colors='#808080|border_svg_image'"
-           selected_normal_image="file='${PATH_CHECKBOX}/checkbox-outline-checked.svg' width='16' height='16' valign='center' svg_replace_colors='#2F6FED|color_accent'"
-           selected_disabled_image="file='${PATH_CHECKBOX}/checkbox-outline-checked.svg' width='16' height='16' valign='center' fade='80' svg_replace_colors='#2F6FED|color_accent'"/>
+           selected_normal_image="file='${PATH_CHECKBOX}/checkbox-outline-checked.svg' width='16' height='16' valign='center' svg_replace_colors='#808080|color_accent'"
+           selected_disabled_image="file='${PATH_CHECKBOX}/checkbox-outline-checked.svg' width='16' height='16' valign='center' fade='80' svg_replace_colors='#808080|color_accent'"/>
 
     <!-- 多行文本属性的编辑框（Enter换行，Ctrl+Enter提交） -->
     <Class name="property_grid_property_multiline_edit" bkcolor="bg_richedit" width="100%" height="100%"
@@ -121,11 +121,23 @@
                                            hovered_border_color="border_richedit_hovered"
                                            focused_border_color="border_focus_ring"
                                            normal_text_color="text_default" disabled_text_color="text_disabled"/>
+    <!-- 过滤框的关闭按钮（关闭后可通过 SetEnableFilterBox(true) 再次显示） -->
+    <Class name="property_grid_filter_close" width="24" height="24" margin="6,0,0,0" valign="center"
+                                           border_round="4,4"
+                                           normal_image="file='${PATH_BUTTON}/window-close.svg' width='12' height='12' valign='center' halign='center'"
+                                           hovered_image="file='${PATH_BUTTON}/window-close.svg' width='12' height='12' valign='center' halign='center'"
+                                           pushed_image="file='${PATH_BUTTON}/window-close.svg' width='12' height='12' valign='center' halign='center'"
+                                           normal_color="bg_richedit_btn_normal"
+                                           hovered_color="bg_richedit_btn_hovered"
+                                           pressed_color="bg_richedit_btn_pressed"
+                                           disabled_color="bg_richedit_btn_disabled"/>
 
     <PropertyGrid>
-        <!-- 过滤框（默认隐藏，可通过 SetEnableFilterBox(true) 显示） -->
+        <!-- 过滤框（默认隐藏，可通过 SetEnableFilterBox(true) 显示，点击关闭按钮可关闭） -->
         <HBox name="duilib_property_grid_filter_area" width="100%" height="32" padding="6,4,6,4" visible="false">
-            <RichEdit class="property_grid_search_edit" name="duilib_property_grid_search_box"/>
+            <RichEdit class="property_grid_search_edit" name="duilib_property_grid_search_box" width="stretch"/>
+            <Button class="property_grid_filter_close" name="duilib_property_grid_filter_close"
+                    tooltip_text_id="STRID_PUBLIC_PROPERTY_SEARCH_CLOSE"/>
         </HBox>
         <!-- 表头 -->
         <HBox name="duilib_property_grid_header">

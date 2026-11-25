@@ -550,8 +550,12 @@ DString HotKey::FormatHotKeyName(uint8_t wVirtualKeyCode, uint8_t wModifiers)
             sKeyName += sKey;
         }
         };
-    //获取按键名称：系统接口无法获取时（比如部分输入法或键盘布局），使用固定的英文名称
+    //获取按键名称：修饰键统一使用固定名称（Ctrl/Shift/Alt），其他按键使用系统接口的名称
+    //备注：系统接口的名称与平台/语言相关（比如Alt键在部分环境下显示为"Menu"），不符合使用习惯
     auto getKeyName = [](VirtualKeyCode nVirtKey, bool fExtended) -> DString {
+        if ((nVirtKey == kVK_CONTROL) || (nVirtKey == kVK_SHIFT) || (nVirtKey == kVK_MENU)) {
+            return FindFixedKeyName((uint8_t)nVirtKey);
+        }
         DString sKey = Keyboard::GetKeyName(nVirtKey, fExtended);
         if (sKey.empty()) {
             sKey = FindFixedKeyName((uint8_t)nVirtKey);

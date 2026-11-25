@@ -707,6 +707,7 @@ The HotKey control inherits the `HBox` attributes. For more available attributes
 
 ### Interaction behavior of HotKey
 - After the control gets focus, press a key combination to record it, displayed as `Ctrl + C`; a single key without modifiers (e.g., `F5`) is also allowed.
+- Modifier keys always use the fixed names `Ctrl` / `Shift` / `Alt` (independent of platform and language, so the Alt key is never displayed as `Menu`).
 - Pressing only a modifier key (Ctrl/Shift/Alt) shows a preview only and rolls back on release, so an invalid "modifier-only" hot key is never produced.
 - `Esc` cancels the current input and restores the committed hot key; `Delete`/`Backspace` clears the hot key and restores the placeholder text.
 - The `Win` key and system combinations such as `Alt + F4`, `Alt + Tab`, `Alt + Space` are not recorded.
@@ -4076,7 +4077,7 @@ three new property types are available:
 | :--- | :--- | :--- | :--- |
 | AddBoolProperty / AddBoolPropertyById | PropertyGridBoolProperty | CheckBox | The value must be `true`/`false`; only the checkbox is shown while editing |
 | AddNumberProperty / AddNumberPropertyById | PropertyGridNumberProperty | RichEdit (integer type can have Spin) | Supports integer/float, value range, decimal places and Spin step |
-| AddMultiLineTextProperty / AddMultiLineTextPropertyById | PropertyGridMultiLineTextProperty | Multi-line RichEdit | `Enter` inserts a new line, `Ctrl+Enter` commits; the property row has a fixed height of 90 DIP |
+| AddMultiLineTextProperty / AddMultiLineTextPropertyById | PropertyGridMultiLineTextProperty | Multi-line RichEdit | `Enter` inserts a new line, `Ctrl+Enter` commits; the value is also displayed on multiple lines when not editing, and the property row has a fixed height of 90 DIP |
 
 ```cpp
 ui::PropertyGridBoolProperty* pBool = pPropertyGrid->AddBoolProperty(pGroup, _T("Enabled"), _T("true"), _T("Whether enabled"));
@@ -4133,16 +4134,19 @@ pProperty->AttachValueChanged([](const ui::EventArgs& args) { return true; });
 | ExpandAllGroups / CollapseAllGroups / SetExpandAllGroups | Expand/collapse all groups |
 | SortProperties(bool bAscending) | Sort properties inside each group by property name |
 | SetFilterText / GetFilterText | Filter by property name or group name (case insensitive); matched groups are expanded automatically |
-| SetEnableFilterBox / IsFilterBoxVisible | Show/hide the filter box (requires the filter control declared in `property_grid.xml`) |
+| SetEnableFilterBox / IsFilterBoxVisible | Show/hide the filter box (requires the filter control declared in `property_grid.xml`; the default layout includes a "×" close button that hides the filter box and clears the filter text) |
 | SetShowDescriptionToolTip / IsShowDescriptionToolTip | Show the property description when hovering over the property name |
 | ShowDescriptionMessage | Show a message (e.g. a validation error) in the description area |
 
 The filter box must be declared in `property_grid.xml` (included by default; the control name is fixed to
-`duilib_property_grid_search_box`, and its parent row is `duilib_property_grid_filter_area` with `visible="false"` by default):
+`duilib_property_grid_search_box`, and its parent row is `duilib_property_grid_filter_area` with `visible="false"` by default;
+the close button is fixed to `duilib_property_grid_filter_close` and is not created when it is absent):
 
 ```xml
 <HBox name="duilib_property_grid_filter_area" width="100%" height="32" padding="6,4,6,4" visible="false">
-    <RichEdit class="property_grid_search_edit" name="duilib_property_grid_search_box"/>
+    <RichEdit class="property_grid_search_edit" name="duilib_property_grid_search_box" width="stretch"/>
+    <Button class="property_grid_filter_close" name="duilib_property_grid_filter_close"
+            tooltip_text_id="STRID_PUBLIC_PROPERTY_SEARCH_CLOSE"/>
 </HBox>
 ```
 

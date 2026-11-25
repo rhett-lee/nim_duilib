@@ -248,6 +248,14 @@ void PropertyGrid::OnInit()
             //在XML中设置过 enable_filter_box 属性时，初始化后应用该设置
             SetEnableFilterBox(m_bEnableFilterBox);
         }
+        //过滤框的关闭按钮：点击后关闭过滤框，并清空搜索条件
+        Button* pFilterCloseButton = dynamic_cast<Button*>(FindSubControl(_T("duilib_property_grid_filter_close")));
+        if (pFilterCloseButton != nullptr) {
+            pFilterCloseButton->AttachClick([this](const EventArgs& /*args*/) {
+                SetEnableFilterBox(false);
+                return true;
+                });
+        }
     }
 }
 
@@ -5257,20 +5265,25 @@ PropertyGridMultiLineTextProperty::PropertyGridMultiLineTextProperty(Window* pWi
 
 DString PropertyGridMultiLineTextProperty::ConvertToDisplayText(const DString& editText) const
 {
-    //多行文本在属性值区域显示为单行预览
+    //非编辑状态也按多行显示：换行符统一为"\n"（避免"\r"被当作可见字符绘制）
     DString displayText = editText;
-    StringUtil::ReplaceAll(_T("\r\n"), _T(" "), displayText);
-    StringUtil::ReplaceAll(_T("\n"), _T(" "), displayText);
-    StringUtil::ReplaceAll(_T("\r"), _T(" "), displayText);
+    StringUtil::ReplaceAll(_T("\r\n"), _T("\n"), displayText);
+    StringUtil::ReplaceAll(_T("\r"), _T("\n"), displayText);
     return displayText;
 }
 
 void PropertyGridMultiLineTextProperty::OnInit()
 {
     BaseClass::OnInit();
-    //多行文本属性使用较高的属性行，便于编辑多行内容
+    //多行文本属性使用较高的属性行，便于显示与编辑多行内容
     SetFixedHeight(UiFixedInt(90), true, true);
-    //初始显示时，将多行文本转换为单行预览
+    //非编辑状态也按多行显示：取消单行模式，并让文本从顶部开始排列
+    LabelBox* pLabelBox = GetLabelBoxRight();
+    if (pLabelBox != nullptr) {
+        pLabelBox->SetSingleLine(false);
+        pLabelBox->SetTextStyle(TEXT_LEFT | TEXT_TOP | TEXT_END_ELLIPSIS, false);
+    }
+    //按显示规则转换换行符后，重新设置显示文本
     SetPropertyText(ConvertToDisplayText(GetPropertyValue()), false, false);
 }
 

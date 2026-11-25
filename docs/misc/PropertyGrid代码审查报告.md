@@ -783,19 +783,52 @@ RichEdit、热键、IP 地址一样在编辑时显示统一的聚焦边框色（
 
 ---
 
+## 十四、第十一批实施记录（用户反馈的三项问题）
+
+### 14.1 过滤框增加关闭入口
+
+- 问题：过滤框已有 `SetEnableFilterBox` / `enable_filter_box` 开关且默认隐藏，但界面上缺少直接关闭的入口。
+- 修改：默认 `property_grid.xml` 的过滤行增加「×」关闭按钮（控件名 `duilib_property_grid_filter_close`，
+  样式类 `property_grid_filter_close`），`PropertyGrid::OnInit` 挂接点击事件调用 `SetEnableFilterBox(false)`，
+  关闭过滤框的同时清空搜索条件；新增中英文提示文本 `STRID_PUBLIC_PROPERTY_SEARCH_CLOSE`。
+  自定义 `property_grid.xml` 未声明该按钮时，不创建关闭按钮，行为与之前一致。
+
+### 14.2 热键的 Alt 键名称
+
+- 问题：修饰键名称取自系统接口，部分平台/语言环境下 Alt 键会显示为 `Menu`，不符合 Windows 的使用习惯。
+- 修改：`HotKey::FormatHotKeyName` 中修饰键统一使用固定名称 `Ctrl` / `Shift` / `Alt`，其他按键仍使用系统名称，
+  系统名称缺失时回退为固定的英文键名。
+
+### 14.3 多行文本属性的非编辑状态显示
+
+- 问题：多行文本属性在编辑时为多行，非编辑状态却被转换为单行预览。
+- 修改：`PropertyGridMultiLineTextProperty::OnInit` 中把属性值显示控件设为多行模式（`SetSingleLine(false)`）
+  并改为顶部对齐；`ConvertToDisplayText` 只统一换行符为 `\n`，不再替换为空格。
+
+### 14.4 验证
+
+- 编译：duilib、render、test_property_grid 全部通过。
+- 单元测试：`80 checks, 0 failure(s)`；控件页面静态巡检 PASS。
+- 界面实测（render「属性页和标签页」）：
+  - 点击搜索框右侧「×」后，搜索框整行消失，属性表整体上移；
+  - 多行文本属性在非编辑状态显示为两行；
+  - 热键显示为 `Ctrl+Shift+Alt+C`，编辑时按 `Alt+X` 显示为 `Alt + X`，均未出现 `Menu`。
+
+---
+
 ## 附：涉及文件
 
 | 文件 | 作用 |
 |---|---|
 | `duilib/Control/PropertyGrid.h` | 控件与属性类型声明（3034 行） |
-| `duilib/Control/PropertyGrid.cpp` | 实现（5278 行） |
+| `duilib/Control/PropertyGrid.cpp` | 实现（多行文本显示、过滤框关闭按钮等） |
 | `bin/resources/themes/default/public/property_grid/property_grid.xml` | 默认结构与样式类 |
 | `bin/resources/themes/default/public/property_grid/color_combox.xml` | 颜色下拉面板 |
 | `bin/resources/themes/default/global.xml` | `property_grid` 样式类、`tree_view/tree_node` 颜色 |
 | `bin/resources/themes/color_light|color_dark/global.xml` | `bg_property_grid_*` 主题色 |
 | `examples/render/RenderForm.cpp` | 示例：属性类型全覆盖 |
 | `bin/resources/themes/default/render/page_property_grid.xml` | 示例布局 |
-| `duilib/Control/HotKey.h` / `HotKey.cpp` | 热键控件：内边距、热键规则校验、回车/ESC 通知 |
+| `duilib/Control/HotKey.h` / `HotKey.cpp` | 热键控件：内边距、热键规则校验、回车/ESC 通知、修饰键固定名称 |
 | `duilib/Control/Combo.cpp` | 组合框下拉窗口关闭事件携带取消标志 |
 | `duilib/Control/DateTime.h` / `DateTime.cpp` | 日期时间：取消编辑接口、日历浮层关闭通知 |
 | `duilib/Control/DateTimeWnd.h` / `DateTimeWnd.cpp` | 日期时间编辑窗口：回车确认、ESC 取消 |
@@ -803,7 +836,7 @@ RichEdit、热键、IP 地址一样在编辑时显示统一的聚焦边框色（
 | `duilib/Core/Window.h` / `Window.cpp` | 新增 `UpdateLayoutNow()`：显示弹出窗口前同步执行挂起的布局 |
 | `tests/test_property_grid.cpp` | 新增：PropertyGrid 数据模型的单元测试（80 项断言） |
 | `tests/CMakeLists.txt` | 注册 `test_property_grid` 测试目标 |
-| `bin/resources/lang/zh_CN-public.txt` / `en_US-public.txt` | 新增过滤框占位提示 `STRID_PUBLIC_PROPERTY_SEARCH` |
+| `bin/resources/lang/zh_CN-public.txt` / `en_US-public.txt` | 新增过滤框占位提示 `STRID_PUBLIC_PROPERTY_SEARCH` 与关闭提示 `STRID_PUBLIC_PROPERTY_SEARCH_CLOSE` |
 | `bin/resources/lang/zh_CN-examples.txt` / `en_US-examples.txt` | 新增分组九与布尔/整数/浮点/多行文本属性的中英文资源 |
 | `docs/Control.md` | PropertyGrid 属性类型、数据与状态、易用性、新增 XML 属性说明 |
 | `docs/Control.en.md` | 与中文文档对应的英文 PropertyGrid 说明（属性类型、数据与状态、易用性） |

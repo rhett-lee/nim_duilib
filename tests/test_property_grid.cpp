@@ -304,9 +304,10 @@ public:
 void TestMultiLineDisplayText()
 {
     TestMultiLineProperty property(nullptr);
-    CHECK(property.ToDisplayText(_T("Line1\nLine2")) == _T("Line1 Line2"));
-    CHECK(property.ToDisplayText(_T("Line1\r\nLine2")) == _T("Line1 Line2"));
-    CHECK(property.ToDisplayText(_T("Line1\rLine2")) == _T("Line1 Line2"));
+    //非编辑状态也按多行显示：仅统一换行符，不再压缩为单行
+    CHECK(property.ToDisplayText(_T("Line1\nLine2")) == _T("Line1\nLine2"));
+    CHECK(property.ToDisplayText(_T("Line1\r\nLine2")) == _T("Line1\nLine2"));
+    CHECK(property.ToDisplayText(_T("Line1\rLine2")) == _T("Line1\nLine2"));
     CHECK(property.ToDisplayText(_T("SingleLine")) == _T("SingleLine"));
 }
 
