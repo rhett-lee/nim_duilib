@@ -628,12 +628,167 @@ RichEdit、热键、IP 地址一样在编辑时显示统一的聚焦边框色（
 
 ---
 
+## 十二、第九批实施记录（通用属性编辑器能力补齐）
+
+### 12.1 背景
+
+用户反馈：属性页控件功能不完整，需要补齐控件类型、易用性、数据与状态能力，并完善工程（单元测试）。
+
+### 12.2 修改内容
+
+（1）补齐控件类型
+
+- 新增 `PropertyGridBoolProperty`：使用 CheckBox 编辑，取值 `true`/`false`。
+- 新增 `PropertyGridNumberProperty`：使用 RichEdit 编辑，支持整数/浮点、取值范围、小数位数、Spin 步长；
+  整数类型默认启用 Spin，提交前按范围截断并按精度格式化。
+- 新增 `PropertyGridMultiLineTextProperty`：使用多行 RichEdit 编辑，`Enter` 换行、`Ctrl+Enter` 提交；
+  属性值区域显示单行预览，属性行固定使用较高行高（90 DIP）。
+- `PropertyGridPropertyType` 新增 `kBool`、`kNumber`、`kMultiLineText`；
+  `GetValueEditorClass()` 按类型选择编辑控件的 Class。
+- 新增工厂方法 `AddBoolProperty` / `AddNumberProperty` / `AddMultiLineTextProperty`
+  （各含普通版、ById 版、PropertyGridParam 版）。
+
+（2）易用性增强
+
+- 属性名称/属性值区域获得焦点时，按 `F2` 或 `Enter` 进入编辑状态。
+- `ExpandAllGroups` / `CollapseAllGroups` / `SetExpandAllGroups`：展开/折叠全部分组。
+- `SortProperties(bool bAscending)`：按属性名称排序（临时关闭自动销毁，避免移除节点时节点被销毁）。
+- `SetFilterText` + 过滤框：按属性名称/分组名称过滤（大小写不敏感），有匹配时自动展开分组；
+  新增 `property_grid_search_edit` 样式类与 `duilib_property_grid_filter_area` / `duilib_property_grid_search_box` 控件，
+  占位提示新增语言 ID `STRID_PUBLIC_PROPERTY_SEARCH`（中英文）。
+- `SetShowDescriptionToolTip`：鼠标悬停属性名称时显示属性描述。
+- `ShowDescriptionMessage`：在描述区域显示提示信息（用于显示校验错误）。
+
+（3）数据与状态能力
+
+- `SetDefaultValue` / `GetDefaultValue` / `ResetPropertyValue` / `IsModified`。
+- `SetValueValidator` / `GetLastErrorText`：值校验失败时恢复原显示内容、拦截值变化事件，并在描述区显示错误。
+- `SetPropertyNewValue`：设置属性当前值（模拟编辑结果），只读时返回 `false`。
+- `PropertyGrid::ResetAllValues` / `IsModified` / `GetModifiedProperties`。
+- `SaveValuesToFile` / `LoadValuesFromFile`：使用内置 pugixml 以 XML 格式保存/加载属性值。
+- `PropertyGridGroup::SetReadOnly`：分组级只读（批量设置组内属性）。
+- `PropertyGrid::AttachValueChanged` / `PropertyGridProperty::AttachValueChanged`：网格级/属性级值变化事件。
+- 密码属性的显示掩码由 `*` 统一为 `●`。
+
+（4）工程完善
+
+- 新增单元测试 `tests/test_property_grid.cpp` 并注册到 `tests/CMakeLists.txt`（74 项断言）。
+- 示例程序新增“分组九”（布尔属性、整数属性、浮点数属性、多行文本属性），并启用过滤框与悬停描述，
+  同时补充中英文语言资源。
+
+### 12.3 关键问题与解决
+
+- `SetPropertyValue` 在值未变化时提前返回，无法用于“重置为默认值”：
+  新增 `ResetPropertyValue` 直接更新原值并刷新显示；`PropertyGridTextProperty` / `PropertyGridBoolProperty` /
+  `PropertyGridColorProperty` 覆写并同步各自的编辑控件与内部数据。
+- 过滤后清空搜索框，属性行文字变空白：属性节点的可见性依赖父节点（`TreeNode::IsVisibleInternal`），
+  若先设置属性可见、再设置分组可见，属性的可见性实际未发生变化（`bChanged == false`），
+  子控件的“祖先可见”标志不会恢复。改为两阶段更新：先更新分组可见性，再更新属性可见性。
+- 多行文本编辑框只有一行高：编辑时动态修改树节点的固定高度不会触发行重排（实测固定高度已写入但行高不变），
+  改为在 `OnInit` 中固定使用较高行高（90 DIP）。
+- 布尔复选框不可见：复选框 Class 使用 `width="auto"` 时尺寸为 0，改为显式 `18x18`。
+
+### 12.4 验证
+
+- `py -3 build/build.py build --no-deps --config Release --target duilib`（/MT，非 DLL）：通过。
+- `py -3 build/build.py build --no-deps --config Release --target render`：通过。
+- `py -3 build/build.py build --no-deps --config Release --target test_property_grid`：通过；
+  运行结果 `46 checks, 0 failure(s)`（第十批已扩充至 74 项）。
+- 界面实测（render 示例“属性页和标签页”）：
+  - 搜索框在未聚焦、内容为空时显示灰色占位提示“搜索属性”；
+  - 单击布尔属性显示复选框，可点击切换 `true`/`false`；
+  - 搜索 `abc` 时属性网格为空，清空搜索框后所有属性行的名称与取值正常恢复（无需切换页签）；
+  - 搜索“布尔”时只显示布尔属性行，分组标题保留；
+  - 多行文本属性行高约为普通行的 2.8 倍，编辑框可同时显示多行，`Enter` 换行、`ESC` 退出正常。
+
+---
+
+## 十三、第十批实施记录（收尾复查与问题修复）
+
+### 13.1 复查范围
+
+对 `PropertyGrid.h` / `PropertyGrid.cpp` 的全部新增代码做了一次完整复查，并在界面实测中发现并修复了以下问题。
+
+### 13.2 发现的问题与修复
+
+1. **F2 快捷键不生效（实测发现）**
+   - 现象：选中属性行后按 F2 无反应。
+   - 原因：按键事件是由焦点控件（TreeView/属性行）发出的，`AttachEvent` 只响应 `msg.GetSender() == this` 的事件，无法收到子控件冒泡的事件。
+   - 修复：改为 `AttachBubbledEvent(kEventKeyDown, ...)`，并在回调中通过 `GetSelectedProperty()` 取当前选中的属性行，校验焦点位置后调用 `BeginEdit()`。
+
+2. **Enter 快捷键不生效（实测发现）**
+   - 现象：选中属性行后按 Enter 无反应。
+   - 原因：`ListBoxItem::HandleEvent` 对 `kVK_RETURN` 处理后直接 `return`，不再向上冒泡，属性页收不到该事件。
+   - 修复：在 `PropertyGridProperty::HandleEvent` 中拦截回车键（仅当焦点位于本行或属性名称/属性值时），调用 `BeginEdit()`；编辑控件内的回车仍由编辑控件处理，不会重入。
+
+3. **非文本类属性 `IsModified` 判断错误**
+   - 原因：基类 `GetPropertyNewValue()` 直接返回原始值，而下拉框/颜色/日期时间等属性编辑后只更新显示文本。
+   - 修复：基类在未只读时以显示文本作为当前值（与原始值不同则返回显示文本），文本类属性仍使用各自的覆写实现。
+
+4. **数值属性未设置范围时取值被错误截断**
+   - 原因：`m_fMin/m_fMax` 默认为 0，未调用 `SetNumberRange` 时任何输入都会被截断为 0。
+   - 修复：新增 `m_bRangeSet` 标记，仅在显式设置范围后做截断；`SetNumberRange` 同时对最小值/最大值做交换保护；
+     `PropertyGridNumberProperty::SetPropertyNewValue` 也按范围与精度规范化输入。
+
+5. **分组级只读/禁用状态未应用到后续新增的属性**
+   - 修复：`PropertyGrid::AddProperty` 中检查分组的只读/启用状态并同步到新属性；
+     新增 `PropertyGridGroup::SetEnableProperties` / `IsPropertiesEnabled` 分组级禁用批量接口。
+
+6. **XML 属性 `enable_filter_box` 不生效**
+   - 原因：`SetAttribute` 执行时子控件尚未创建，`m_pSearchBox` 为空，设置被忽略。
+   - 修复：记录 `m_bEnableFilterBox` / `m_bEnableFilterBoxSet`，在 `OnInit` 找到过滤框后应用。
+
+7. **布尔属性编辑时取值文本与复选框重叠**
+   - 修复：进入编辑时隐藏属性值文本，点击复选框切换后仍保持隐藏，退出编辑时再写回 `true`/`false`；
+     同时增加“已在编辑状态”的重复进入保护。
+
+8. **保存/加载属性值不支持多语言**
+   - 修复：`SaveValuesToFile` 同时写入分组与属性的 `name_id`，`LoadValuesFromFile` 优先按名称ID匹配，
+     切换语言后仍可正确加载。
+
+9. **`ResetPropertyValue` 覆写的访问级别不一致**
+   - 修复：文本/布尔/颜色的 `ResetPropertyValue` 覆写调整为 `public`，与基类接口保持一致。
+
+10. **校验失败回滚后"已修改"状态被错误清除**
+    - 原因：文本属性在编辑提交失败时把 `bChanged` 强制置为 `false`，若该属性此前已有一次成功编辑
+      （回滚后的文本仍与原值不同），`m_bTextEdited` 会被错误清除，导致切换语言等场景下显示被重置为原值。
+    - 修复：回滚后按"回滚后的文本是否与原值一致"重新计算 `bChanged`。
+
+11. **`SetPropertyNewValue` 被校验拦截后显示与内部数据不一致**
+    - 原因：校验失败时仅把 `m_realText` 与编辑框恢复为原值，属性值区域的显示文本仍停留在回滚前的旧文本，
+      出现"显示已改、实际未改"的不一致。
+    - 修复：校验失败时清除编辑标记并调用 `OnPropertyValueChanged()`，统一同步编辑框、内部数据与显示文本（含密码掩码）。
+
+### 13.3 单元测试补齐
+
+`tests/test_property_grid.cpp` 从 46 项断言扩充到 **80 项**，新增覆盖：
+
+- 文本属性：密码模式、`SetNewTextValue` 后的 `IsModified`、重置后恢复原始值与未修改状态、只读拦截；
+- 布尔属性：默认值与重置、只读拦截、`SetPropertyNewValue`；
+- 数值属性：整数范围截断（150 → 100、-5 → 0）、浮点精度格式化（3.14159 → 3.14）、未设置范围时不截断；
+- 多行文本：`\n` / `\r\n` / `\r` 转换为单行预览；
+- 分组：启用/禁用批量接口与状态查询；
+- `SetPropertyNewValue` 被校验函数拒绝时：返回 `false`、取值保持原值、错误信息被记录，校验通过后错误信息清除。
+
+### 13.4 验证
+
+- 编译：duilib（/MT 静态库）、render、test_property_grid 全部通过，无编译警告。
+- 单元测试：`80 checks, 0 failure(s)`。
+- 界面实测（render“属性页和标签页”）：
+  - F2、Enter 均可让当前选中的属性行进入编辑；编辑框内 Enter 正常提交（不会重入）；
+  - 布尔属性编辑时只显示复选框、无文字重叠，ESC 恢复原值；
+  - 数值属性输入 500 被截断为 100，浮点输入 5.5 提交后显示 5.50；
+  - 多行文本、过滤、排序、悬停描述、搜索框占位提示均正常。
+- 静态巡检：`tests/test_controls_pages.py` 通过（38 个页面 XML、15808 项检查）。
+
+---
+
 ## 附：涉及文件
 
 | 文件 | 作用 |
 |---|---|
-| `duilib/Control/PropertyGrid.h` | 控件与属性类型声明（2257 行） |
-| `duilib/Control/PropertyGrid.cpp` | 实现（3595 行） |
+| `duilib/Control/PropertyGrid.h` | 控件与属性类型声明（3034 行） |
+| `duilib/Control/PropertyGrid.cpp` | 实现（5278 行） |
 | `bin/resources/themes/default/public/property_grid/property_grid.xml` | 默认结构与样式类 |
 | `bin/resources/themes/default/public/property_grid/color_combox.xml` | 颜色下拉面板 |
 | `bin/resources/themes/default/global.xml` | `property_grid` 样式类、`tree_view/tree_node` 颜色 |
@@ -646,4 +801,9 @@ RichEdit、热键、IP 地址一样在编辑时显示统一的聚焦边框色（
 | `duilib/Control/DateTimeWnd.h` / `DateTimeWnd.cpp` | 日期时间编辑窗口：回车确认、ESC 取消 |
 | `duilib/Control/IPAddress.cpp` | IP 地址：回车通知外部、ESC 取消编辑 |
 | `duilib/Core/Window.h` / `Window.cpp` | 新增 `UpdateLayoutNow()`：显示弹出窗口前同步执行挂起的布局 |
-| `docs/Control.md` | PropertyGrid 编辑交互、HotKey 交互行为与 C++ 接口说明 |
+| `tests/test_property_grid.cpp` | 新增：PropertyGrid 数据模型的单元测试（80 项断言） |
+| `tests/CMakeLists.txt` | 注册 `test_property_grid` 测试目标 |
+| `bin/resources/lang/zh_CN-public.txt` / `en_US-public.txt` | 新增过滤框占位提示 `STRID_PUBLIC_PROPERTY_SEARCH` |
+| `bin/resources/lang/zh_CN-examples.txt` / `en_US-examples.txt` | 新增分组九与布尔/整数/浮点/多行文本属性的中英文资源 |
+| `docs/Control.md` | PropertyGrid 属性类型、数据与状态、易用性、新增 XML 属性说明 |
+| `docs/Control.en.md` | 与中文文档对应的英文 PropertyGrid 说明（属性类型、数据与状态、易用性） |

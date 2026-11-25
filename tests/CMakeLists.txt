@@ -1523,6 +1523,45 @@ if(WIN32)
     )
 endif()
 
+# PropertyGrid 控件：
+#  - 属性参数与多语言ID的构造与读取；
+#  - 默认值、重置、是否已修改；
+#  - 属性值校验与 SetPropertyNewValue；
+#  - 分组的名称/描述/自定义数据与分组级只读；
+#  - 新增属性类型（布尔/数值/多行文本）的类型标识与默认取值。
+# 该测试不创建窗口、不加载主题资源。
+add_executable(test_property_grid
+    test_property_grid.cpp
+)
+target_include_directories(test_property_grid PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(test_property_grid PRIVATE duilib)
+# 该测试会实例化控件对象，静态库模式下需要补齐 duilib 的第三方依赖（与示例程序一致）
+if(WIN32)
+    target_link_directories(test_property_grid PRIVATE
+        "${DUILIB_LIB_PATH}"
+        "${DUILIB_SKIA_LIB_PATH}"
+    )
+    target_link_libraries(test_property_grid PRIVATE
+        ${DUILIB_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_SDL_LIBS}
+        Comctl32 Imm32 Opengl32 User32 shlwapi WinInet
+    )
+    if(DUILIB_ENABLE_CEF)
+        target_link_directories(test_property_grid PRIVATE "${DUILIB_CEF_LIB_PATH}")
+        target_link_libraries(test_property_grid PRIVATE ${DUILIB_CEF_LIBS})
+    endif()
+endif()
+if(WIN32)
+    target_compile_definitions(test_property_grid PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(test_property_grid PRIVATE /utf-8)
+endif()
+add_test(NAME property_grid
+         COMMAND test_property_grid
+)
+
 # 静态库模式下，实例化控件/渲染相关对象的测试目标需要补齐 duilib 的第三方依赖；
 # Windows 已在各测试目标处单独配置（还需额外的系统库与 CEF），这里为非 Windows 平台
 # 统一补齐：链接 libduilib.a 时若不显式链接 SDL3/Skia 等库，会报

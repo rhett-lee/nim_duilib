@@ -4,6 +4,8 @@
 #include "duilib/Control/ColorPicker.h"
 #include "duilib/Control/ColorPickerRegular.h"
 #include "duilib/Core/WindowCreateParam.h"
+#include "duilib/third_party/xml/pugixml.hpp"
+#include <algorithm>
 
 namespace ui
 {
@@ -21,6 +23,10 @@ PropertyGrid::PropertyGrid(Window* pWindow):
     m_pTreeView(nullptr),
     m_nSelectedItemIndex(Box::InvalidIndex),
     m_nLeftColumnWidth(0),
+    m_bShowDescriptionToolTip(false),
+    m_bEnableFilterBox(false),
+    m_bEnableFilterBoxSet(false),
+    m_pSearchBox(nullptr),
     m_fRowGridLineWidth(0),
     m_fColumnGridLineWidth(0)
 {
@@ -96,6 +102,18 @@ void PropertyGrid::SetAttribute(const DString& strName, const DString& strValue2
     }
     else if (strName == _T("property_spin_class")) {
         SetPropertySpinClass(strValue);
+    }
+    else if (strName == _T("property_check_box_class")) {
+        SetPropertyCheckBoxClass(strValue);
+    }
+    else if (strName == _T("property_multi_line_edit_class")) {
+        SetPropertyMultiLineEditClass(strValue);
+    }
+    else if (strName == _T("show_description_tooltip")) {
+        SetShowDescriptionToolTip(StringUtil::IsValueTrue(strValue));
+    }
+    else if (strName == _T("enable_filter_box")) {
+        SetEnableFilterBox(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("left_column_width")) {
         SetLeftColumnWidth(StringUtil::StringToInt32(strValue), true);
@@ -193,6 +211,44 @@ void PropertyGrid::OnInit()
             return true;
             });
     }
+
+    //F2/Enter键：对当前选中的属性进入编辑状态
+    //注意：按键事件是由焦点控件冒泡上来的，需要使用AttachBubbledEvent才能收到
+    AttachBubbledEvent(kEventKeyDown, [this](const EventArgs& args) {
+        if ((args.vkCode != kVK_F2) && (args.vkCode != kVK_RETURN)) {
+            return false;
+        }
+        PropertyGridProperty* pProperty = GetSelectedProperty();
+        if (pProperty == nullptr) {
+            return false;
+        }
+        //仅在焦点位于属性树/属性行/属性名称/属性值时响应，避免编辑控件中的按键导致重入
+        Window* pWindow = GetWindow();
+        Control* pFocus = (pWindow != nullptr) ? pWindow->GetFocusControl() : nullptr;
+        if ((pFocus != m_pTreeView) && (pFocus != this) && (pFocus != pProperty) &&
+            (pFocus != pProperty->GetLabelBoxLeft()) && (pFocus != pProperty->GetLabelBoxRight())) {
+            return false;
+        }
+        if (!pProperty->IsReadOnly() && pProperty->IsEnabled()) {
+            pProperty->BeginEdit();
+        }
+        return true;
+        }, 0);
+
+    //过滤框（配置文件中声明了搜索框控件时有效）
+    m_pSearchBox = dynamic_cast<RichEdit*>(FindSubControl(_T("duilib_property_grid_search_box")));
+    if (m_pSearchBox != nullptr) {
+        m_pSearchBox->AttachEvent(kEventTextChanged, [this](const EventArgs& /*args*/) {
+            if (m_pSearchBox != nullptr) {
+                SetFilterText(m_pSearchBox->GetText());
+            }
+            return true;
+            }, 0);
+        if (m_bEnableFilterBoxSet) {
+            //在XML中设置过 enable_filter_box 属性时，初始化后应用该设置
+            SetEnableFilterBox(m_bEnableFilterBox);
+        }
+    }
 }
 
 void PropertyGrid::UpdateDescriptionArea()
@@ -235,6 +291,11 @@ void PropertyGrid::UpdateDescriptionArea()
 void PropertyGrid::OnLanguageChanged(bool bRedraw)
 {
     BaseClass::OnLanguageChanged(bRedraw);
+    UpdateDescriptionToolTips();
+    if (!m_filterText.empty()) {
+        //属性名称可能发生变化，重新应用过滤
+        SetFilterText(m_filterText.c_str());
+    }
     UpdateDescriptionArea();
     if (bRedraw) {
         Invalidate();
@@ -790,6 +851,408 @@ DString PropertyGrid::GetPropertySpinClass() const
     return m_propertySpinClass.c_str();
 }
 
+void PropertyGrid::SetPropertyCheckBoxClass(const DString& checkBoxClass)
+{
+    m_propertyCheckBoxClass = checkBoxClass;
+}
+
+DString PropertyGrid::GetPropertyCheckBoxClass() const
+{
+    return m_propertyCheckBoxClass.c_str();
+}
+
+void PropertyGrid::SetPropertyMultiLineEditClass(const DString& editClass)
+{
+    m_propertyMultiLineEditClass = editClass;
+}
+
+DString PropertyGrid::GetPropertyMultiLineEditClass() const
+{
+    return m_propertyMultiLineEditClass.c_str();
+}
+
+void PropertyGrid::ExpandAllGroups()
+{
+    SetExpandAllGroups(true);
+}
+
+void PropertyGrid::CollapseAllGroups()
+{
+    SetExpandAllGroups(false);
+}
+
+void PropertyGrid::SetExpandAllGroups(bool bExpand)
+{
+    std::vector<PropertyGridGroup*> groups;
+    GetGroups(groups);
+    for (PropertyGridGroup* pGroup : groups) {
+        if (pGroup != nullptr) {
+            pGroup->SetExpand(bExpand, false);
+        }
+    }
+}
+
+void PropertyGrid::SortProperties(bool bAscending)
+{
+    if (m_pTreeView == nullptr) {
+        return;
+    }
+    std::vector<PropertyGridGroup*> groups;
+    GetGroups(groups);
+    bool bAutoDestroy = m_pTreeView->IsAutoDestroyChild();
+    for (PropertyGridGroup* pGroup : groups) {
+        if (pGroup == nullptr) {
+            continue;
+        }
+        std::vector<PropertyGridProperty*> properties;
+        pGroup->GetProperties(properties);
+        if (properties.size() < 2) {
+            continue;
+        }
+        std::stable_sort(properties.begin(), properties.end(),
+                         [bAscending](PropertyGridProperty* pProperty1, PropertyGridProperty* pProperty2) {
+                             DString name1 = StringUtil::MakeUpperString(pProperty1->GetPropertyName());
+                             DString name2 = StringUtil::MakeUpperString(pProperty2->GetPropertyName());
+                             return bAscending ? (name1 < name2) : (name1 > name2);
+                         });
+        //重排节点：暂时关闭"自动销毁子控件"，避免移除节点时节点被销毁
+        m_pTreeView->SetAutoDestroyChild(false);
+        pGroup->RemoveAllChildNodes();
+        for (PropertyGridProperty* pProperty : properties) {
+            pGroup->AddChildNode(pProperty);
+        }
+        m_pTreeView->SetAutoDestroyChild(bAutoDestroy);
+    }
+    //节点重排后，重新调整各属性的列宽
+    OnHeaderColumnResized();
+}
+
+void PropertyGrid::SetShowDescriptionToolTip(bool bShow)
+{
+    if (m_bShowDescriptionToolTip != bShow) {
+        m_bShowDescriptionToolTip = bShow;
+        UpdateDescriptionToolTips();
+    }
+}
+
+PropertyGridProperty* PropertyGrid::GetSelectedProperty() const
+{
+    if (m_pTreeView == nullptr) {
+        return nullptr;
+    }
+    std::vector<size_t> selectedIndexes;
+    m_pTreeView->GetSelectedItems(selectedIndexes);
+    if (selectedIndexes.empty()) {
+        return nullptr;
+    }
+    Control* pControl = m_pTreeView->GetItemAt(selectedIndexes[0]);
+    return dynamic_cast<PropertyGridProperty*>(pControl);
+}
+
+void PropertyGrid::UpdateDescriptionToolTips()
+{
+    if (m_pTreeView == nullptr) {
+        return;
+    }
+    std::vector<PropertyGridGroup*> groups;
+    GetGroups(groups);
+    for (PropertyGridGroup* pGroup : groups) {
+        if (pGroup == nullptr) {
+            continue;
+        }
+        std::vector<PropertyGridProperty*> properties;
+        pGroup->GetProperties(properties);
+        for (PropertyGridProperty* pProperty : properties) {
+            LabelBox* pLabelBox = pProperty->GetLabelBoxLeft();
+            if (pLabelBox == nullptr) {
+                continue;
+            }
+            if (m_bShowDescriptionToolTip) {
+                DString description = pProperty->GetDescription();
+                if (!description.empty()) {
+                    pLabelBox->SetToolTipText(description);
+                }
+            }
+            else {
+                pLabelBox->SetToolTipText(DString());
+            }
+        }
+    }
+}
+
+void PropertyGrid::SetFilterText(const DString& filterText)
+{
+    m_filterText = filterText;
+    std::vector<PropertyGridGroup*> groups;
+    GetGroups(groups);
+    const DString filterUpper = StringUtil::MakeUpperString(filterText);
+    const bool bFiltering = !filterUpper.empty();
+
+    //先计算各分组的过滤结果
+    struct GroupFilterState
+    {
+        PropertyGridGroup* m_pGroup = nullptr;
+        bool m_bGroupVisible = true;
+        std::vector<PropertyGridProperty*> m_properties;
+        std::vector<bool> m_propertyVisible;
+    };
+    std::vector<GroupFilterState> filterStates;
+    filterStates.reserve(groups.size());
+    for (PropertyGridGroup* pGroup : groups) {
+        if (pGroup == nullptr) {
+            continue;
+        }
+        GroupFilterState state;
+        state.m_pGroup = pGroup;
+        bool bGroupNameMatched = false;
+        if (bFiltering) {
+            bGroupNameMatched = StringUtil::MakeUpperString(pGroup->GetGroupName()).find(filterUpper) != DString::npos;
+        }
+        state.m_bGroupVisible = bGroupNameMatched;
+        pGroup->GetProperties(state.m_properties);
+        state.m_propertyVisible.reserve(state.m_properties.size());
+        for (PropertyGridProperty* pProperty : state.m_properties) {
+            bool bVisible = true;
+            if (bFiltering && !bGroupNameMatched) {
+                bVisible = StringUtil::MakeUpperString(pProperty->GetPropertyName()).find(filterUpper) != DString::npos;
+            }
+            state.m_propertyVisible.push_back(bVisible);
+            if (bVisible) {
+                state.m_bGroupVisible = true;
+            }
+        }
+        if (!bFiltering) {
+            state.m_bGroupVisible = true;
+        }
+        filterStates.push_back(std::move(state));
+    }
+
+    //第一步：更新分组的可见状态（属性节点的可见性依赖于父节点，必须先更新分组）
+    for (const GroupFilterState& state : filterStates) {
+        state.m_pGroup->SetVisible(state.m_bGroupVisible);
+        if (bFiltering && state.m_bGroupVisible) {
+            //有匹配内容时，展开分组，便于看到过滤结果
+            state.m_pGroup->SetExpand(true, false);
+        }
+    }
+    //第二步：更新属性的可见状态
+    for (const GroupFilterState& state : filterStates) {
+        for (size_t i = 0; i < state.m_properties.size(); ++i) {
+            state.m_properties[i]->SetVisible(state.m_propertyVisible[i]);
+        }
+    }
+
+    //可见状态变化后，需要重新布局并重绘
+    if (m_pTreeView != nullptr) {
+        m_pTreeView->Arrange();
+        m_pTreeView->Invalidate();
+    }
+}
+
+void PropertyGrid::SetEnableFilterBox(bool bEnable)
+{
+    m_bEnableFilterBox = bEnable;
+    m_bEnableFilterBoxSet = true;
+    if (m_pSearchBox == nullptr) {
+        //控件尚未初始化，在OnInit时应用该设置
+        return;
+    }
+    //过滤框所在的整行一起显示/隐藏
+    Control* pFilterArea = m_pSearchBox->GetParent();
+    if ((pFilterArea != nullptr) && (pFilterArea->GetName() == _T("duilib_property_grid_filter_area"))) {
+        pFilterArea->SetVisible(bEnable);
+    }
+    else {
+        m_pSearchBox->SetVisible(bEnable);
+    }
+    if (!bEnable) {
+        if (m_pSearchBox != nullptr) {
+            m_pSearchBox->SetText(_T(""));
+        }
+        SetFilterText(DString());
+    }
+}
+
+bool PropertyGrid::IsFilterBoxVisible() const
+{
+    if (m_pSearchBox == nullptr) {
+        return false;
+    }
+    Control* pFilterArea = m_pSearchBox->GetParent();
+    if ((pFilterArea != nullptr) && (pFilterArea->GetName() == _T("duilib_property_grid_filter_area"))) {
+        return pFilterArea->IsVisible();
+    }
+    return m_pSearchBox->IsVisible();
+}
+
+void PropertyGrid::ShowDescriptionMessage(const DString& message)
+{
+    if (m_pDescriptionArea == nullptr) {
+        return;
+    }
+    if (message.empty()) {
+        UpdateDescriptionArea();
+    }
+    else {
+        m_pDescriptionArea->SetText(message);
+    }
+}
+
+void PropertyGrid::ResetAllValues()
+{
+    std::vector<PropertyGridGroup*> groups;
+    GetGroups(groups);
+    for (PropertyGridGroup* pGroup : groups) {
+        if (pGroup == nullptr) {
+            continue;
+        }
+        std::vector<PropertyGridProperty*> properties;
+        pGroup->GetProperties(properties);
+        for (PropertyGridProperty* pProperty : properties) {
+            pProperty->ResetPropertyValue();
+        }
+    }
+}
+
+bool PropertyGrid::IsModified() const
+{
+    std::vector<PropertyGridGroup*> groups;
+    GetGroups(groups);
+    for (PropertyGridGroup* pGroup : groups) {
+        if (pGroup == nullptr) {
+            continue;
+        }
+        std::vector<PropertyGridProperty*> properties;
+        pGroup->GetProperties(properties);
+        for (PropertyGridProperty* pProperty : properties) {
+            if (pProperty->IsModified()) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+void PropertyGrid::GetModifiedProperties(std::vector<PropertyGridProperty*>& properties) const
+{
+    properties.clear();
+    std::vector<PropertyGridGroup*> groups;
+    GetGroups(groups);
+    for (PropertyGridGroup* pGroup : groups) {
+        if (pGroup == nullptr) {
+            continue;
+        }
+        std::vector<PropertyGridProperty*> groupProperties;
+        pGroup->GetProperties(groupProperties);
+        for (PropertyGridProperty* pProperty : groupProperties) {
+            if (pProperty->IsModified()) {
+                properties.push_back(pProperty);
+            }
+        }
+    }
+}
+
+bool PropertyGrid::SaveValuesToFile(const FilePath& filePath) const
+{
+    if (filePath.NativePath().empty()) {
+        return false;
+    }
+    pugi::xml_document doc;
+    pugi::xml_node root = doc.append_child(_T("PropertyGrid"));
+    std::vector<PropertyGridGroup*> groups;
+    GetGroups(groups);
+    for (PropertyGridGroup* pGroup : groups) {
+        if (pGroup == nullptr) {
+            continue;
+        }
+        pugi::xml_node groupNode = root.append_child(_T("Group"));
+        DString groupName = pGroup->GetGroupName();
+        DString groupNameId = pGroup->GetGroupNameId();
+        groupNode.append_attribute(_T("name")) = groupName.c_str();
+        if (!groupNameId.empty()) {
+            groupNode.append_attribute(_T("name_id")) = groupNameId.c_str();
+        }
+        std::vector<PropertyGridProperty*> properties;
+        pGroup->GetProperties(properties);
+        for (PropertyGridProperty* pProperty : properties) {
+            pugi::xml_node propertyNode = groupNode.append_child(_T("Property"));
+            DString propertyName = pProperty->GetPropertyName();
+            DString propertyNameId = pProperty->GetPropertyNameId();
+            DString propertyValue = pProperty->GetPropertyNewValue();
+            propertyNode.append_attribute(_T("name")) = propertyName.c_str();
+            if (!propertyNameId.empty()) {
+                propertyNode.append_attribute(_T("name_id")) = propertyNameId.c_str();
+            }
+            propertyNode.append_attribute(_T("value")) = propertyValue.c_str();
+        }
+    }
+    return doc.save_file(filePath.NativePath().c_str());
+}
+
+bool PropertyGrid::LoadValuesFromFile(const FilePath& filePath)
+{
+    if (filePath.NativePath().empty()) {
+        return false;
+    }
+    pugi::xml_document doc;
+    pugi::xml_parse_result loadResult = doc.load_file(filePath.NativePath().c_str());
+    if (!loadResult) {
+        return false;
+    }
+    pugi::xml_node root = doc.child(_T("PropertyGrid"));
+    if (!root) {
+        return false;
+    }
+    std::vector<PropertyGridGroup*> groups;
+    GetGroups(groups);
+    bool bLoaded = false;
+    for (pugi::xml_node groupNode : root.children(_T("Group"))) {
+        DString groupName = groupNode.attribute(_T("name")).as_string();
+        DString groupNameId = groupNode.attribute(_T("name_id")).as_string();
+        for (PropertyGridGroup* pGroup : groups) {
+            if (pGroup == nullptr) {
+                continue;
+            }
+            //优先按名称ID匹配（避免切换语言后名称变化导致无法匹配）
+            bool bGroupMatched = false;
+            if (!groupNameId.empty()) {
+                bGroupMatched = (pGroup->GetGroupNameId() == groupNameId);
+            }
+            if (!bGroupMatched) {
+                bGroupMatched = (pGroup->GetGroupName() == groupName);
+            }
+            if (!bGroupMatched) {
+                continue;
+            }
+            std::vector<PropertyGridProperty*> properties;
+            pGroup->GetProperties(properties);
+            for (pugi::xml_node propertyNode : groupNode.children(_T("Property"))) {
+                DString propertyName = propertyNode.attribute(_T("name")).as_string();
+                DString propertyNameId = propertyNode.attribute(_T("name_id")).as_string();
+                DString propertyValue = propertyNode.attribute(_T("value")).as_string();
+                for (PropertyGridProperty* pProperty : properties) {
+                    bool bPropertyMatched = false;
+                    if (!propertyNameId.empty()) {
+                        bPropertyMatched = (pProperty->GetPropertyNameId() == propertyNameId);
+                    }
+                    if (!bPropertyMatched) {
+                        bPropertyMatched = (pProperty->GetPropertyName() == propertyName);
+                    }
+                    if (!bPropertyMatched) {
+                        continue;
+                    }
+                    if (pProperty->SetPropertyNewValue(propertyValue)) {
+                        bLoaded = true;
+                    }
+                    break;
+                }
+            }
+            break;
+        }
+    }
+    return bLoaded;
+}
+
 int32_t PropertyGrid::AutoAdjustLeftColumnWidth(int32_t nMinWidth, int32_t nMaxWidth, int32_t nExtraWidth)
 {
     if (m_pTreeView == nullptr) {
@@ -972,12 +1435,24 @@ bool PropertyGrid::AddProperty(PropertyGridGroup* pGroup, PropertyGridProperty* 
     pProperty->SetWindow(GetWindow());
     pProperty->SetClass(GetPropertyClass());
     pProperty->SetPropertyGrid(this);
+    if (pGroup->IsReadOnly() && !pProperty->IsReadOnly()) {
+        //分组是只读状态时，新增加的属性也需要设置为只读
+        pProperty->SetReadOnly(true);
+    }
+    if (!pGroup->IsPropertiesEnabled()) {
+        //分组被禁用时，新增加的属性也需要禁用
+        pProperty->SetEnabled(false);
+    }
     if (!pGroup->AddChildNode(pProperty)) {
         return false;
     }
     int32_t nLeftColumnWidth = GetLeftColumnWidth();
     if (nLeftColumnWidth >= 0) {
         ResizePropertyColumn(pProperty, nLeftColumnWidth);
+    }
+    if (!m_filterText.empty()) {
+        //过滤状态时，新增的属性也需要应用过滤规则
+        SetFilterText(m_filterText.c_str());
     }
     return true;
 }
@@ -1239,6 +1714,78 @@ PropertyGridDirectoryProperty* PropertyGrid::AddDirectoryProperty(PropertyGridGr
     return AddPropertyImpl<PropertyGridDirectoryProperty>(pGroup, param);
 }
 
+PropertyGridBoolProperty* PropertyGrid::AddBoolProperty(PropertyGridGroup* pGroup,
+                                                        const DString& propertyName,
+                                                        const DString& propertyValue,
+                                                        const DString& description,
+                                                        size_t nPropertyData)
+{
+    return AddPropertyImpl<PropertyGridBoolProperty>(pGroup, MakePropertyParam(propertyName, propertyValue, description, nPropertyData));
+}
+
+PropertyGridBoolProperty* PropertyGrid::AddBoolPropertyById(PropertyGridGroup* pGroup,
+                                                            const DString& propertyNameId,
+                                                            const DString& propertyValue,
+                                                            const DString& descriptionId,
+                                                            size_t nPropertyData,
+                                                            bool bPropertyValueId)
+{
+    return AddPropertyImpl<PropertyGridBoolProperty>(pGroup, MakePropertyParamById(propertyNameId, propertyValue, descriptionId, nPropertyData, bPropertyValueId));
+}
+
+PropertyGridBoolProperty* PropertyGrid::AddBoolProperty(PropertyGridGroup* pGroup, const PropertyGridParam& param)
+{
+    return AddPropertyImpl<PropertyGridBoolProperty>(pGroup, param);
+}
+
+PropertyGridNumberProperty* PropertyGrid::AddNumberProperty(PropertyGridGroup* pGroup,
+                                                            const DString& propertyName,
+                                                            const DString& propertyValue,
+                                                            const DString& description,
+                                                            size_t nPropertyData)
+{
+    return AddPropertyImpl<PropertyGridNumberProperty>(pGroup, MakePropertyParam(propertyName, propertyValue, description, nPropertyData));
+}
+
+PropertyGridNumberProperty* PropertyGrid::AddNumberPropertyById(PropertyGridGroup* pGroup,
+                                                                const DString& propertyNameId,
+                                                                const DString& propertyValue,
+                                                                const DString& descriptionId,
+                                                                size_t nPropertyData,
+                                                                bool bPropertyValueId)
+{
+    return AddPropertyImpl<PropertyGridNumberProperty>(pGroup, MakePropertyParamById(propertyNameId, propertyValue, descriptionId, nPropertyData, bPropertyValueId));
+}
+
+PropertyGridNumberProperty* PropertyGrid::AddNumberProperty(PropertyGridGroup* pGroup, const PropertyGridParam& param)
+{
+    return AddPropertyImpl<PropertyGridNumberProperty>(pGroup, param);
+}
+
+PropertyGridMultiLineTextProperty* PropertyGrid::AddMultiLineTextProperty(PropertyGridGroup* pGroup,
+                                                                          const DString& propertyName,
+                                                                          const DString& propertyValue,
+                                                                          const DString& description,
+                                                                          size_t nPropertyData)
+{
+    return AddPropertyImpl<PropertyGridMultiLineTextProperty>(pGroup, MakePropertyParam(propertyName, propertyValue, description, nPropertyData));
+}
+
+PropertyGridMultiLineTextProperty* PropertyGrid::AddMultiLineTextPropertyById(PropertyGridGroup* pGroup,
+                                                                              const DString& propertyNameId,
+                                                                              const DString& propertyValue,
+                                                                              const DString& descriptionId,
+                                                                              size_t nPropertyData,
+                                                                              bool bPropertyValueId)
+{
+    return AddPropertyImpl<PropertyGridMultiLineTextProperty>(pGroup, MakePropertyParamById(propertyNameId, propertyValue, descriptionId, nPropertyData, bPropertyValueId));
+}
+
+PropertyGridMultiLineTextProperty* PropertyGrid::AddMultiLineTextProperty(PropertyGridGroup* pGroup, const PropertyGridParam& param)
+{
+    return AddPropertyImpl<PropertyGridMultiLineTextProperty>(pGroup, param);
+}
+
 void PropertyGrid::SetLeftColumnWidth(int32_t nLeftColumnWidth, bool bNeedDpiScale)
 {
     if (nLeftColumnWidth <= 0) {
@@ -1314,7 +1861,9 @@ PropertyGridGroup::PropertyGridGroup(Window* pWindow):
     TreeNode(pWindow),
     m_pLabelBox(nullptr),
     m_nGroupData(0),
-    m_pPropertyGrid(nullptr)
+    m_pPropertyGrid(nullptr),
+    m_bReadOnly(false),
+    m_bPropertiesEnabled(true)
 {
 }
 
@@ -1483,6 +2032,26 @@ bool PropertyGridGroup::RemoveProperty(PropertyGridProperty* pProperty)
 void PropertyGridGroup::RemoveAllProperties()
 {
     RemoveAllChildNodes();
+}
+
+void PropertyGridGroup::SetReadOnly(bool bReadOnly)
+{
+    m_bReadOnly = bReadOnly;
+    std::vector<PropertyGridProperty*> properties;
+    GetProperties(properties);
+    for (PropertyGridProperty* pProperty : properties) {
+        pProperty->SetReadOnly(bReadOnly);
+    }
+}
+
+void PropertyGridGroup::SetEnableProperties(bool bEnable)
+{
+    m_bPropertiesEnabled = bEnable;
+    std::vector<PropertyGridProperty*> properties;
+    GetProperties(properties);
+    for (PropertyGridProperty* pProperty : properties) {
+        pProperty->SetEnabled(bEnable);
+    }
 }
 
 void PropertyGridGroup::SetPropertyGrid(PropertyGrid* pPropertyGrid)
@@ -1709,6 +2278,49 @@ bool PropertyGridProperty::UsingPropertyValueId() const
     return m_propertyValue.empty() && !m_propertyValueId.empty();
 }
 
+void PropertyGridProperty::SetDefaultValue(const DString& defaultValue)
+{
+    m_defaultValue = defaultValue;
+}
+
+DString PropertyGridProperty::GetDefaultValue() const
+{
+    return m_defaultValue.c_str();
+}
+
+void PropertyGridProperty::ResetPropertyValue()
+{
+    DString newValue;
+    if (!m_defaultValue.empty()) {
+        newValue = m_defaultValue.c_str();
+    }
+    else {
+        newValue = GetPropertyValue();
+    }
+    m_propertyValue = newValue;
+    m_propertyValueId.clear();
+    m_lastErrorText.clear();
+    //重置后与原始值一致，按正常字体显示
+    UpdatePropertyDisplayText(newValue, false);
+    //同步子类中的编辑控件与内部数据
+    OnPropertyValueChanged();
+}
+
+bool PropertyGridProperty::IsModified() const
+{
+    return GetPropertyNewValue() != GetPropertyValue();
+}
+
+void PropertyGridProperty::SetValueValidator(std::function<DString(const DString&)> validator)
+{
+    m_valueValidator = std::move(validator);
+}
+
+DString PropertyGridProperty::GetLastErrorText() const
+{
+    return m_lastErrorText.c_str();
+}
+
 DString PropertyGridProperty::GetDescription() const
 {
     if (!m_description.empty()) {
@@ -1810,6 +2422,16 @@ void PropertyGridProperty::OnInit()
         return true;
         }, 0);
 
+    //F2/Enter键的处理，统一由PropertyGrid在收到冒泡的按键事件时处理
+
+    //悬停显示属性描述信息
+    if ((m_pPropertyGrid != nullptr) && m_pPropertyGrid->IsShowDescriptionToolTip() && (m_pLabelBoxLeft != nullptr)) {
+        DString description = GetDescription();
+        if (!description.empty()) {
+            m_pLabelBoxLeft->SetToolTipText(description);
+        }
+    }
+
     //编辑控件按需创建（首次点击属性值时创建），此处不再预创建
     //编辑控件相关的事件，由具体的属性子类在创建编辑控件时挂载
 }
@@ -1843,7 +2465,14 @@ DString PropertyGridProperty::GetValueEditorClass(const DString& defaultClass) c
     case PropertyGridPropertyType::kFontSize:
     case PropertyGridPropertyType::kFile:
     case PropertyGridPropertyType::kDirectory:
+    case PropertyGridPropertyType::kNumber:
         className = m_pPropertyGrid->GetPropertyEditClass();
+        break;
+    case PropertyGridPropertyType::kMultiLineText:
+        className = m_pPropertyGrid->GetPropertyMultiLineEditClass();
+        break;
+    case PropertyGridPropertyType::kBool:
+        className = m_pPropertyGrid->GetPropertyCheckBoxClass();
         break;
     case PropertyGridPropertyType::kCombo:
         className = m_pPropertyGrid->GetPropertyComboClass();
@@ -1893,35 +2522,32 @@ DString PropertyGridProperty::GetValueSpinClass(const DString& defaultClass) con
     return className;
 }
 
-void PropertyGridProperty::SetPropertyText(const DString& text, bool bChanged, bool bTriggerEvent)
+bool PropertyGridProperty::SetPropertyText(const DString& text, bool bChanged, bool bTriggerEvent)
 {
     DString oldText;
-    ASSERT(m_pLabelBoxRight != nullptr);
     if (m_pLabelBoxRight != nullptr) {
         oldText = m_pLabelBoxRight->GetText();
-        m_pLabelBoxRight->SetText(text);
-        m_pLabelBoxRight->SetTextId(_T("")); //需要清空文本ID，因为文本值为空时，会取文本ID的值
-        if (bChanged) {
-            DString propertyModifiedFontId;
-            ASSERT(m_pPropertyGrid != nullptr);
-            if (m_pPropertyGrid != nullptr) {
-                propertyModifiedFontId = m_pPropertyGrid->GetPropertyModifiedFontId();
-            }
-            if (!propertyModifiedFontId.empty()) {
-                m_pLabelBoxRight->SetFontId(propertyModifiedFontId);
+    }
+
+    if (bTriggerEvent && bChanged && (text != oldText)) {
+        //属性值校验：校验失败时，恢复原来的显示内容，并返回失败
+        if (m_valueValidator) {
+            DString errorText = m_valueValidator(text);
+            m_lastErrorText = errorText;
+            if (!errorText.empty()) {
+                UpdatePropertyDisplayText(oldText, oldText != GetPropertyValue());
+                if (m_pPropertyGrid != nullptr) {
+                    m_pPropertyGrid->ShowDescriptionMessage(errorText);
+                }
+                return false;
             }
         }
         else {
-            DString propertyNormalFontId;
-            ASSERT(m_pPropertyGrid != nullptr);
-            if (m_pPropertyGrid != nullptr) {
-                propertyNormalFontId = m_pPropertyGrid->GetPropertyNormalFontId();
-            }
-            if (!propertyNormalFontId.empty()) {
-                m_pLabelBoxRight->SetFontId(propertyNormalFontId);
-            }            
+            m_lastErrorText.clear();
         }
     }
+
+    UpdatePropertyDisplayText(text, bChanged);
 
     if (bTriggerEvent && bChanged && (text != oldText)) {
         //回调函数，供子类使用
@@ -1929,6 +2555,25 @@ void PropertyGridProperty::SetPropertyText(const DString& text, bool bChanged, b
             //触发事件，供应用层使用
             SendEvent(kEventValueChanged, (WPARAM)&oldText, (LPARAM)&text);
         }
+    }
+    return true;
+}
+
+void PropertyGridProperty::UpdatePropertyDisplayText(const DString& text, bool bChanged)
+{
+    ASSERT(m_pLabelBoxRight != nullptr);
+    if (m_pLabelBoxRight == nullptr) {
+        return;
+    }
+    m_pLabelBoxRight->SetText(text);
+    m_pLabelBoxRight->SetTextId(_T("")); //需要清空文本ID，因为文本值为空时，会取文本ID的值
+
+    DString fontId;
+    if (m_pPropertyGrid != nullptr) {
+        fontId = bChanged ? m_pPropertyGrid->GetPropertyModifiedFontId() : m_pPropertyGrid->GetPropertyNormalFontId();
+    }
+    if (!fontId.empty()) {
+        m_pLabelBoxRight->SetFontId(fontId);
     }
 }
 
@@ -1980,6 +2625,22 @@ void PropertyGridProperty::FinishEdit(bool bCancel, bool bMoveFocus)
         //编辑结束后，焦点回到属性值显示控件
         SetPropertyFocus();
     }
+}
+
+void PropertyGridProperty::HandleEvent(const EventArgs& msg)
+{
+    if ((msg.eventType == kEventKeyDown) && (msg.vkCode == kVK_RETURN) &&
+        !IsReadOnly() && IsEnabled()) {
+        //回车键：进入编辑状态
+        //（ListBoxItem处理回车键后不再向上冒泡，因此需要在本控件中拦截）
+        Window* pWindow = GetWindow();
+        Control* pFocus = (pWindow != nullptr) ? pWindow->GetFocusControl() : nullptr;
+        if ((pFocus == this) || (pFocus == m_pLabelBoxLeft.get()) || (pFocus == m_pLabelBoxRight.get())) {
+            BeginEdit();
+            return;
+        }
+    }
+    BaseClass::HandleEvent(msg);
 }
 
 void PropertyGridProperty::UpdateValueLabelTabStop(bool bEditing)
@@ -2037,7 +2698,24 @@ void PropertyGridProperty::SetReadOnly(bool bReadOnly)
 
 DString PropertyGridProperty::GetPropertyNewValue() const
 {
-    return GetPropertyValue();
+    DString propertyValue = GetPropertyValue();
+    if (!IsReadOnly() && (m_pLabelBoxRight != nullptr)) {
+        //非文本类的属性，其显示文本就是当前值（编辑后仅更新显示文本）
+        DString propertyText = m_pLabelBoxRight->GetText();
+        if (!propertyText.empty() && (propertyText != propertyValue)) {
+            return propertyText;
+        }
+    }
+    return propertyValue;
+}
+
+bool PropertyGridProperty::SetPropertyNewValue(const DString& newValue)
+{
+    if (IsReadOnly()) {
+        return false;
+    }
+    bool bChanged = (newValue != GetPropertyValue()); //相对原值，是否有修改
+    return SetPropertyText(newValue, bChanged);
 }
 
 void PropertyGridProperty::SetPropertyGrid(PropertyGrid* pPropertyGrid)
@@ -2171,7 +2849,11 @@ void PropertyGridTextProperty::EnableEditControl(bool bEnable)
     }
     m_bTextEdited = false;
     m_pRichEdit = new PropertyGridRichEdit(GetWindow());
-    m_pRichEdit->SetClass(GetValueEditorClass(_T("property_grid_property_edit")));
+    DString defaultClass = _T("property_grid_property_edit");
+    if (GetPropertyType() == PropertyGridPropertyType::kMultiLineText) {
+        defaultClass = _T("property_grid_property_multiline_edit");
+    }
+    m_pRichEdit->SetClass(GetValueEditorClass(defaultClass));
     if (!AddPropertySubItem(m_pRichEdit.get())) {
         delete m_pRichEdit.get();
         m_pRichEdit = nullptr;
@@ -2239,15 +2921,29 @@ void PropertyGridTextProperty::OnPropertyValueChanged()
         if (m_pRichEdit != nullptr) {
             m_pRichEdit->SetText(propValue);
         }
-        if (m_bPasswordMode && !propValue.empty()) {
+        DString displayText = ConvertToDisplayText(propValue);
+        if (m_bPasswordMode && !displayText.empty()) {
             DString showText;
-            showText.resize(propValue.size(), _T('*'));
+            showText.resize(displayText.size(), _T('\u25CF'));
             SetPropertyText(showText, false);
         }
         else {
-            SetPropertyText(propValue, false);
+            SetPropertyText(displayText, false);
         }
     }
+}
+
+DString PropertyGridTextProperty::ConvertToDisplayText(const DString& editText) const
+{
+    return editText;
+}
+
+void PropertyGridTextProperty::ResetPropertyValue()
+{
+    //重置后需要与原始值同步显示，清除编辑状态
+    m_bTextEdited = false;
+    m_realText.clear();
+    BaseClass::ResetPropertyValue();
 }
 
 Control* PropertyGridTextProperty::ShowEditControl(bool bShow, bool bCancel)
@@ -2284,13 +2980,22 @@ Control* PropertyGridTextProperty::ShowEditControl(bool bShow, bool bCancel)
         }
         bool bChanged = (newText != GetPropertyValue()); //相对原值，是否有修改
         m_realText = newText;
+        DString displayText = ConvertToDisplayText(newText);
+        bool bAccepted = true;
         if (IsPasswordMode()) {
             DString showText;
-            showText.resize(newText.size(), _T('*'));
-            SetPropertyText(showText, bChanged);
+            showText.resize(displayText.size(), _T('\u25CF'));
+            bAccepted = SetPropertyText(showText, bChanged);
         }
         else {
-            SetPropertyText(newText, bChanged);
+            bAccepted = SetPropertyText(displayText, bChanged);
+        }
+        if (!bAccepted) {
+            //被校验函数拦截：回滚编辑数据与显示，保持原来的值
+            m_realText = m_oldText.c_str();
+            m_pRichEdit->SetText(m_oldText.c_str());
+            //回滚后是否仍处于"已修改"状态，取决于回滚后的文本与原值是否一致
+            bChanged = (m_oldText.c_str() != GetPropertyValue());
         }
         m_pRichEdit->SetVisible(false);
         UpdateValueLabelTabStop(false);
@@ -2315,13 +3020,14 @@ void PropertyGridTextProperty::SetPasswordMode(bool bPasswordMode)
         m_pRichEdit->SetText(text);
     }
     bool bChanged = (text != GetPropertyValue()); //相对原值，是否有修改
+    DString displayText = ConvertToDisplayText(text);
     if (bPasswordMode) {
         DString showText;
-        showText.resize(text.size(), _T('*'));
+        showText.resize(displayText.size(), _T('\u25CF'));
         SetPropertyText(showText, bChanged);
     }
     else {
-        SetPropertyText(text, bChanged);
+        SetPropertyText(displayText, bChanged);
     }
 }
 
@@ -2351,10 +3057,15 @@ DString PropertyGridTextProperty::GetPropertyNewValue() const
     return propertyValue;
 }
 
-void PropertyGridTextProperty::SetNewTextValue(const DString& newText)
+bool PropertyGridTextProperty::SetPropertyNewValue(const DString& newValue)
+{
+    return SetNewTextValue(newValue);
+}
+
+bool PropertyGridTextProperty::SetNewTextValue(const DString& newText)
 {
     if (IsReadOnly()) {
-        return;
+        return false;
     }
     m_bTextEdited = true;
     if (m_pRichEdit != nullptr) {
@@ -2362,14 +3073,22 @@ void PropertyGridTextProperty::SetNewTextValue(const DString& newText)
     }
     m_realText = newText;
     bool bChanged = (newText != GetPropertyValue()); //相对原值，是否有修改
+    DString displayText = ConvertToDisplayText(newText);
+    bool bAccepted = true;
     if (IsPasswordMode()) {
         DString showText;
-        showText.resize(newText.size(), _T('*'));
-        SetPropertyText(showText, bChanged);
+        showText.resize(displayText.size(), _T('\u25CF'));
+        bAccepted = SetPropertyText(showText, bChanged);
     }
     else {
-        SetPropertyText(newText, bChanged);
+        bAccepted = SetPropertyText(displayText, bChanged);
     }
+    if (!bAccepted) {
+        //被校验函数拦截：回滚内部数据，并按当前属性值同步显示，避免显示与内部数据不一致
+        m_bTextEdited = false;
+        OnPropertyValueChanged();
+    }
+    return bAccepted;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -3558,6 +4277,15 @@ void PropertyGridColorProperty::OnSelectColor(const DString& color)
     }
 }
 
+void PropertyGridColorProperty::ResetPropertyValue()
+{
+    PropertyGridProperty::ResetPropertyValue();
+    //同步更新文字颜色与颜色选择控件
+    DString colorText = GetPropertyText();
+    SetPropertyTextColor(colorText);
+    OnSelectColor(colorText);
+}
+
 ////////////////////////////////////////////////////////////////////////////
 ///
 /** 日期时间控件
@@ -4110,6 +4838,440 @@ void PropertyGridDirectoryProperty::OnBrowseButtonClicked()
             pRichEdit->SetText(folderPath.ToString());
         }
     }
+}
+
+////////////////////////////////////////////////////////////////////////////
+///
+PropertyGridBoolProperty::PropertyGridBoolProperty(Window* pWindow,
+                                                   const DString& propertyName,
+                                                   const DString& propertyValue,
+                                                   const DString& description,
+                                                   size_t nPropertyData):
+    PropertyGridProperty(pWindow, propertyName, propertyValue, description, nPropertyData),
+    m_pCheckBox(nullptr),
+    m_bOldValue(false)
+{
+}
+
+PropertyGridBoolProperty::PropertyGridBoolProperty(Window* pWindow,
+                                                   bool bPropertyNameId,
+                                                   const DString& propertyName,
+                                                   bool bPropertyValueId,
+                                                   const DString& propertyValue,
+                                                   bool bDescriptionId,
+                                                   const DString& description,
+                                                   size_t nPropertyData):
+    PropertyGridProperty(pWindow, bPropertyNameId, propertyName,
+                         bPropertyValueId, propertyValue,
+                         bDescriptionId, description,
+                         nPropertyData),
+    m_pCheckBox(nullptr),
+    m_bOldValue(false)
+{
+}
+
+PropertyGridBoolProperty::PropertyGridBoolProperty(Window* pWindow, const PropertyGridParam& param):
+    PropertyGridProperty(pWindow, param),
+    m_pCheckBox(nullptr),
+    m_bOldValue(false)
+{
+}
+
+void PropertyGridBoolProperty::EnableEditControl(bool bEnable)
+{
+    ASSERT(IsInited());
+    if (!bEnable) {
+        if (m_pCheckBox != nullptr) {
+            RemovePropertySubItem(m_pCheckBox.get());
+            m_pCheckBox = nullptr;
+        }
+        return;
+    }
+    if (m_pCheckBox != nullptr) {
+        return;
+    }
+    m_pCheckBox = new CheckBox(GetWindow());
+    DString checkBoxClass = GetValueEditorClass(_T("property_grid_check_box"));
+    if (!checkBoxClass.empty()) {
+        m_pCheckBox->SetClass(checkBoxClass);
+    }
+    if (!AddPropertySubItem(m_pCheckBox.get())) {
+        delete m_pCheckBox.get();
+        m_pCheckBox = nullptr;
+        return;
+    }
+    //复选框不参与TAB键切换（TAB键仍然在属性值显示控件之间切换）
+    m_pCheckBox->SetTabStop(false);
+    m_pCheckBox->SetSelected(GetBoolValue());
+    m_pCheckBox->SetVisible(false);
+
+    //点击复选框：立即更新属性值（焦点切换时退出编辑状态）
+    m_pCheckBox->AttachSelect([this](const EventArgs&) {
+        if (m_pCheckBox != nullptr) {
+            SetBoolValue(true);
+            //编辑期间保持属性值文本隐藏，避免与复选框重叠显示
+            SetPropertyText(DString(), false, false);
+        }
+        return true;
+        }, 0);
+    m_pCheckBox->AttachUnSelect([this](const EventArgs&) {
+        if (m_pCheckBox != nullptr) {
+            SetBoolValue(false);
+            //编辑期间保持属性值文本隐藏，避免与复选框重叠显示
+            SetPropertyText(DString(), false, false);
+        }
+        return true;
+        }, 0);
+
+    //ESC键：取消编辑；回车/空格键：退出编辑状态
+    m_pCheckBox->AttachEvent(kEventKeyDown, [this](const EventArgs& args) {
+        if (args.vkCode == kVK_ESCAPE) {
+            FinishEdit(true);
+        }
+        else if ((args.vkCode == kVK_RETURN) || (args.vkCode == kVK_SPACE)) {
+            FinishEdit(false);
+        }
+        return true;
+        }, 0);
+    m_pCheckBox->AttachKillFocus([this](const EventArgs&) {
+        ShowEditControl(false, false);
+        return true;
+        });
+}
+
+Control* PropertyGridBoolProperty::ShowEditControl(bool bShow, bool bCancel)
+{
+    if (bShow) {
+        if (IsReadOnly()) {
+            return nullptr;
+        }
+        if (m_pCheckBox == nullptr) {
+            //首次编辑时创建编辑控件
+            EnableEditControl(true);
+        }
+        if (m_pCheckBox == nullptr) {
+            return nullptr;
+        }
+        if (m_pCheckBox->IsVisible()) {
+            //已经处于编辑状态
+            m_pCheckBox->SetFocus();
+            return m_pCheckBox.get();
+        }
+        m_bOldValue = GetBoolValue();
+        m_pCheckBox->SetSelected(m_bOldValue);
+        //编辑期间隐藏属性值文本，避免与复选框重叠显示
+        SetPropertyText(DString(), false, false);
+        m_pCheckBox->SetVisible(true);
+        UpdateValueLabelTabStop(true);
+        m_pCheckBox->SetFocus();
+    }
+    else {
+        if ((m_pCheckBox == nullptr) || !m_pCheckBox->IsVisible()) {
+            return m_pCheckBox.get();
+        }
+        bool bNewValue = false;
+        if (bCancel) {
+            //取消编辑，恢复原来的值
+            bNewValue = m_bOldValue;
+        }
+        else {
+            bNewValue = m_pCheckBox->IsSelected();
+        }
+        m_pCheckBox->SetSelected(bNewValue);
+        DString newText = bNewValue ? _T("true") : _T("false");
+        bool bChanged = (newText != GetPropertyValue()); //相对原值，是否有修改
+        SetPropertyText(newText, bChanged);
+        m_pCheckBox->SetVisible(false);
+        UpdateValueLabelTabStop(false);
+    }
+    return m_pCheckBox.get();
+}
+
+DString PropertyGridBoolProperty::GetPropertyNewValue() const
+{
+    if (!IsReadOnly() && (m_pCheckBox != nullptr)) {
+        return m_pCheckBox->IsSelected() ? _T("true") : _T("false");
+    }
+    return GetPropertyValue();
+}
+
+bool PropertyGridBoolProperty::SetPropertyNewValue(const DString& newValue)
+{
+    if (IsReadOnly()) {
+        return false;
+    }
+    return SetBoolValue(StringUtil::IsValueTrue(newValue));
+}
+
+bool PropertyGridBoolProperty::SetBoolValue(bool bValue, bool bTriggerEvent)
+{
+    if (m_pCheckBox != nullptr) {
+        m_pCheckBox->SetSelected(bValue);
+    }
+    DString newText = bValue ? _T("true") : _T("false");
+    bool bChanged = (newText != GetPropertyValue()); //相对原值，是否有修改
+    return SetPropertyText(newText, bChanged, bTriggerEvent);
+}
+
+bool PropertyGridBoolProperty::GetBoolValue() const
+{
+    return StringUtil::IsValueTrue(GetPropertyText());
+}
+
+void PropertyGridBoolProperty::ResetPropertyValue()
+{
+    BaseClass::ResetPropertyValue();
+    if (m_pCheckBox != nullptr) {
+        m_pCheckBox->SetSelected(GetBoolValue());
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////
+///
+namespace
+{
+/** 将浮点数按指定的小数位数格式化为字符串 */
+DString FormatDoubleValue(double fValue, int32_t nPrecision)
+{
+    double fScale = 1.0;
+    for (int32_t i = 0; i < nPrecision; ++i) {
+        fScale *= 10.0;
+    }
+    double fScaledValue = fValue * fScale;
+    int64_t nValue = static_cast<int64_t>((fScaledValue < 0) ? (fScaledValue - 0.5) : (fScaledValue + 0.5));
+    bool bNegative = (nValue < 0);
+    DString digits = StringUtil::Int64ToString(bNegative ? (-nValue) : nValue);
+    if (nPrecision > 0) {
+        while (static_cast<int32_t>(digits.size()) <= nPrecision) {
+            digits.insert(digits.begin(), _T('0'));
+        }
+        digits.insert(digits.begin() + static_cast<ptrdiff_t>(digits.size() - static_cast<size_t>(nPrecision)), _T('.'));
+    }
+    if (bNegative) {
+        digits.insert(digits.begin(), _T('-'));
+    }
+    return digits;
+}
+} // namespace
+
+PropertyGridNumberProperty::PropertyGridNumberProperty(Window* pWindow,
+                                                       const DString& propertyName,
+                                                       const DString& propertyValue,
+                                                       const DString& description,
+                                                       size_t nPropertyData):
+    PropertyGridTextProperty(pWindow, propertyName, propertyValue, description, nPropertyData),
+    m_bInteger(true),
+    m_bRangeSet(false),
+    m_fMin(0),
+    m_fMax(0),
+    m_nPrecision(0),
+    m_fStep(1.0)
+{
+}
+
+PropertyGridNumberProperty::PropertyGridNumberProperty(Window* pWindow,
+                                                       bool bPropertyNameId,
+                                                       const DString& propertyName,
+                                                       bool bPropertyValueId,
+                                                       const DString& propertyValue,
+                                                       bool bDescriptionId,
+                                                       const DString& description,
+                                                       size_t nPropertyData):
+    PropertyGridTextProperty(pWindow, bPropertyNameId, propertyName,
+                             bPropertyValueId, propertyValue,
+                             bDescriptionId, description,
+                             nPropertyData),
+    m_bInteger(true),
+    m_bRangeSet(false),
+    m_fMin(0),
+    m_fMax(0),
+    m_nPrecision(0),
+    m_fStep(1.0)
+{
+}
+
+PropertyGridNumberProperty::PropertyGridNumberProperty(Window* pWindow, const PropertyGridParam& param):
+    PropertyGridTextProperty(pWindow, param),
+    m_bInteger(true),
+    m_bRangeSet(false),
+    m_fMin(0),
+    m_fMax(0),
+    m_nPrecision(0),
+    m_fStep(1.0)
+{
+}
+
+void PropertyGridNumberProperty::SetNumberRange(bool bInteger, double fMin, double fMax, int32_t nPrecision, double fStep)
+{
+    m_bInteger = bInteger;
+    if (fMin > fMax) {
+        std::swap(fMin, fMax);
+    }
+    m_fMin = fMin;
+    m_fMax = fMax;
+    m_bRangeSet = true;
+    if (nPrecision < 0) {
+        nPrecision = 0;
+    }
+    else if (nPrecision > 6) {
+        nPrecision = 6;
+    }
+    m_nPrecision = nPrecision;
+    if (fStep < 1.0) {
+        fStep = 1.0;
+    }
+    m_fStep = fStep;
+
+    if (m_bInteger) {
+        //整数类型：启用Spin控件，便于使用按钮增减数值
+        SetEnableSpin(true, static_cast<int64_t>(m_fMin), static_cast<int64_t>(m_fMax));
+    }
+    else {
+        SetEnableSpin(false);
+    }
+    RichEdit* pRichEdit = GetRichEdit();
+    if ((pRichEdit != nullptr) && m_bInteger) {
+        pRichEdit->SetSpinStep(static_cast<int32_t>(m_fStep));
+    }
+}
+
+bool PropertyGridNumberProperty::SetPropertyNewValue(const DString& newValue)
+{
+    //按取值范围与精度规范化输入的数值
+    DString numberText = FormatNumberText(newValue);
+    if (numberText.empty()) {
+        numberText = newValue;
+    }
+    return BaseClass::SetPropertyNewValue(numberText);
+}
+
+void PropertyGridNumberProperty::EnableEditControl(bool bEnable)
+{
+    BaseClass::EnableEditControl(bEnable);
+    RichEdit* pRichEdit = GetRichEdit();
+    if (pRichEdit == nullptr) {
+        return;
+    }
+    pRichEdit->SetNumberOnly(m_bInteger);
+    if (m_bInteger) {
+        pRichEdit->SetSpinStep(static_cast<int32_t>(m_fStep));
+    }
+}
+
+Control* PropertyGridNumberProperty::ShowEditControl(bool bShow, bool bCancel)
+{
+    RichEdit* pRichEdit = GetRichEdit();
+    if (!bShow && !bCancel && (pRichEdit != nullptr) && pRichEdit->IsVisible()) {
+        //提交前，按取值范围与精度规范化输入的数值
+        DString text = pRichEdit->GetText();
+        DString numberText = FormatNumberText(text);
+        if (numberText.empty()) {
+            //非法输入：恢复为当前的属性值
+            pRichEdit->SetText(GetPropertyValue());
+        }
+        else if (numberText != text) {
+            pRichEdit->SetText(numberText);
+        }
+    }
+    return BaseClass::ShowEditControl(bShow, bCancel);
+}
+
+DString PropertyGridNumberProperty::FormatNumberText(const DString& text) const
+{
+    DString valueText = StringUtil::Trim(text.c_str());
+    if (valueText.empty()) {
+        return DString();
+    }
+    //严格校验输入的字符：仅允许数字、正负号和小数点
+    bool bHasDigit = false;
+    int32_t nDotCount = 0;
+    for (size_t i = 0; i < valueText.size(); ++i) {
+        const DString::value_type ch = valueText[i];
+        if ((ch >= _T('0')) && (ch <= _T('9'))) {
+            bHasDigit = true;
+        }
+        else if (ch == _T('.')) {
+            ++nDotCount;
+            if (nDotCount > 1) {
+                return DString();
+            }
+        }
+        else if ((ch == _T('+')) || (ch == _T('-'))) {
+            if (i != 0) {
+                return DString();
+            }
+        }
+        else {
+            return DString();
+        }
+    }
+    if (!bHasDigit) {
+        return DString();
+    }
+
+    double fValue = StringUtil::StringToDouble(valueText.c_str());
+    if (m_bRangeSet) {
+        if (fValue < m_fMin) {
+            fValue = m_fMin;
+        }
+        if (fValue > m_fMax) {
+            fValue = m_fMax;
+        }
+    }
+    if (m_bInteger) {
+        return StringUtil::Int64ToString(static_cast<int64_t>((fValue < 0) ? (fValue - 0.5) : (fValue + 0.5)));
+    }
+    return FormatDoubleValue(fValue, m_nPrecision);
+}
+
+////////////////////////////////////////////////////////////////////////////
+///
+PropertyGridMultiLineTextProperty::PropertyGridMultiLineTextProperty(Window* pWindow,
+                                                                     const DString& propertyName,
+                                                                     const DString& propertyValue,
+                                                                     const DString& description,
+                                                                     size_t nPropertyData):
+    PropertyGridTextProperty(pWindow, propertyName, propertyValue, description, nPropertyData)
+{
+}
+
+PropertyGridMultiLineTextProperty::PropertyGridMultiLineTextProperty(Window* pWindow,
+                                                                     bool bPropertyNameId,
+                                                                     const DString& propertyName,
+                                                                     bool bPropertyValueId,
+                                                                     const DString& propertyValue,
+                                                                     bool bDescriptionId,
+                                                                     const DString& description,
+                                                                     size_t nPropertyData):
+    PropertyGridTextProperty(pWindow, bPropertyNameId, propertyName,
+                             bPropertyValueId, propertyValue,
+                             bDescriptionId, description,
+                             nPropertyData)
+{
+}
+
+PropertyGridMultiLineTextProperty::PropertyGridMultiLineTextProperty(Window* pWindow, const PropertyGridParam& param):
+    PropertyGridTextProperty(pWindow, param)
+{
+}
+
+DString PropertyGridMultiLineTextProperty::ConvertToDisplayText(const DString& editText) const
+{
+    //多行文本在属性值区域显示为单行预览
+    DString displayText = editText;
+    StringUtil::ReplaceAll(_T("\r\n"), _T(" "), displayText);
+    StringUtil::ReplaceAll(_T("\n"), _T(" "), displayText);
+    StringUtil::ReplaceAll(_T("\r"), _T(" "), displayText);
+    return displayText;
+}
+
+void PropertyGridMultiLineTextProperty::OnInit()
+{
+    BaseClass::OnInit();
+    //多行文本属性使用较高的属性行，便于编辑多行内容
+    SetFixedHeight(UiFixedInt(90), true, true);
+    //初始显示时，将多行文本转换为单行预览
+    SetPropertyText(ConvertToDisplayText(GetPropertyValue()), false, false);
 }
 
 }//namespace ui

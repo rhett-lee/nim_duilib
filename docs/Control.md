@@ -4062,6 +4062,94 @@ PropertyGrid 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`�
 - 属性值区域参与 `Tab` 键切换：按 `Tab` 切换到下一个可编辑属性值时自动进入编辑状态，
   `Shift+Tab` 反向切换；只读、禁用以及折叠分组中的属性会被自动跳过。
 - 编辑过程中当前属性暂不参与 `Tab` 切换，避免 `Shift+Tab` 回到本属性自身。
+- 属性行处于选中状态（或属性值区域获得焦点）时，按 `F2` 或 `Enter` 也可进入编辑状态。
+- 密码属性的显示掩码统一为 `●`。
+
+### 属性类型
+
+除原有的文本、下拉框、字体、字号、颜色、日期时间、IP 地址、热键、文件、文件夹属性外，新增三种属性类型：
+
+| 工厂方法 | 属性类型 | 编辑控件 | 说明 |
+| :--- | :--- | :--- | :--- |
+| AddBoolProperty / AddBoolPropertyById | PropertyGridBoolProperty | CheckBox | 取值必须是 `true`/`false`；编辑时仅显示复选框 |
+| AddNumberProperty / AddNumberPropertyById | PropertyGridNumberProperty | RichEdit（整数可带 Spin） | 支持整数/浮点、取值范围、小数位数、Spin 步长 |
+| AddMultiLineTextProperty / AddMultiLineTextPropertyById | PropertyGridMultiLineTextProperty | 多行 RichEdit | `Enter` 换行、`Ctrl+Enter` 提交；属性行固定为 90 DIP 行高 |
+
+```cpp
+ui::PropertyGridBoolProperty* pBool = pPropertyGrid->AddBoolProperty(pGroup, _T("可用"), _T("true"), _T("是否启用"));
+pBool->SetDefaultValue(_T("true"));
+
+ui::PropertyGridNumberProperty* pInt = pPropertyGrid->AddNumberProperty(pGroup, _T("宽度"), _T("10"));
+pInt->SetNumberRange(true, 0, 100, 0, 5);       // 整数：范围[0,100]，步长 5
+
+ui::PropertyGridNumberProperty* pFloat = pPropertyGrid->AddNumberProperty(pGroup, _T("比例"), _T("1.5"));
+pFloat->SetNumberRange(false, 0.0, 10.0, 2, 1.0); // 浮点：保留两位小数
+
+ui::PropertyGridMultiLineTextProperty* pText = pPropertyGrid->AddMultiLineTextProperty(pGroup, _T("说明"), _T("第一行\n第二行"));
+```
+
+说明：
+- 数值属性未调用 `SetNumberRange` 时不限制取值范围；调用后，编辑提交和 `SetPropertyNewValue` 都会按范围截断并按精度格式化。
+- 数值属性的 Spin 按钮仅整数类型默认启用，步长由 `SetNumberRange` 的 `fStep` 决定。
+- 布尔属性的默认值、`SetPropertyNewValue` 的入参都应为 `true`/`false` 文本。
+
+### 数据与状态
+
+| 接口 | 说明 |
+| :--- | :--- |
+| SetDefaultValue / GetDefaultValue | 设置/获取属性的默认值 |
+| ResetPropertyValue | 将属性重置为默认值（未设置默认值时恢复为原始值） |
+| IsModified | 当前值是否与原始值不同（值不同时按"已修改"字体显示） |
+| SetValueValidator / GetLastErrorText | 设置值校验函数（返回空串表示通过，否则返回错误信息）；校验失败时恢复原值并在描述区显示错误 |
+| SetPropertyNewValue | 设置属性当前值（模拟编辑结果，可用于加载配置）；只读时返回 `false`；被值校验函数拒绝时返回 `false`，保持原值并记录错误信息 |
+| ResetAllValues | 重置网格内所有属性的值 |
+| IsModified / GetModifiedProperties | 网格级：是否存在修改 / 获取所有已修改的属性 |
+| SaveValuesToFile / LoadValuesFromFile | 以 XML 格式保存/加载各分组下所有属性的当前值（同时保存名称ID，加载时优先按名称ID匹配，支持切换语言后加载） |
+| PropertyGridGroup::SetReadOnly / IsReadOnly | 分组级只读（批量设置组内属性只读，之后新增的属性也保持只读） |
+| PropertyGridGroup::SetEnableProperties / IsPropertiesEnabled | 分组级启用/禁用（批量设置组内属性禁用，之后新增的属性也保持禁用） |
+
+网格级与属性级的值变化事件（事件沿父链冒泡，`args.GetSender()` 为发生变化的属性控件）：
+
+```cpp
+// 网格级：任意属性值变化（内部使用 AttachBubbledEvent 接收冒泡事件）
+pPropertyGrid->AttachValueChanged([](const ui::EventArgs& args) {
+    ui::PropertyGridProperty* pProperty = dynamic_cast<ui::PropertyGridProperty*>(args.GetSender());
+    // args.wParam 指向旧值字符串，args.lParam 指向新值字符串
+    return true;
+});
+
+// 属性级：单个属性值变化
+pProperty->AttachValueChanged([](const ui::EventArgs& args) { return true; });
+```
+
+### 易用性
+
+| 接口 | 说明 |
+| :--- | :--- |
+| ExpandAllGroups / CollapseAllGroups / SetExpandAllGroups | 展开/折叠全部分组 |
+| SortProperties(bool bAscending) | 按属性名称对分组内的属性排序 |
+| SetFilterText / GetFilterText | 按属性名称或分组名称过滤（大小写不敏感）；有匹配时自动展开分组 |
+| SetEnableFilterBox / IsFilterBoxVisible | 显示/隐藏过滤框（需要 `property_grid.xml` 中声明过滤框控件） |
+| SetShowDescriptionToolTip / IsShowDescriptionToolTip | 鼠标悬停属性名称时显示属性描述信息 |
+| ShowDescriptionMessage | 在描述区域显示一条提示信息（如校验错误） |
+
+过滤框需要在 `property_grid.xml` 中声明（默认已包含，控件名固定为 `duilib_property_grid_search_box`，
+其所在行的控件名固定为 `duilib_property_grid_filter_area`，默认 `visible="false"`）：
+
+```xml
+<HBox name="duilib_property_grid_filter_area" width="100%" height="32" padding="6,4,6,4" visible="false">
+    <RichEdit class="property_grid_search_edit" name="duilib_property_grid_search_box"/>
+</HBox>
+```
+
+PropertyGrid 新增的 XML 属性：
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| property_check_box_class | property_grid_check_box | string | 布尔属性的复选框 Class |
+| property_multi_line_edit_class | property_grid_property_multiline_edit | string | 多行文本属性的编辑框 Class |
+| show_description_tooltip | false | bool | 是否在悬停属性名称时显示属性描述 |
+| enable_filter_box | false | bool | 是否显示过滤框 |
 
 ## ColorPicker 控件（继承 Window 属性）
 ColorPicker 是一个独立窗口（基于 `WindowImplBase` 实现），用于选择颜色。默认皮肤目录为 `public`，皮肤文件为 `public/color/color_picker.xml`。

@@ -246,7 +246,7 @@ void RenderForm::TestPropertyGrid()
         0, false);  
     pPropertyGrid->AddHotKeyPropertyById(pGroup,
         _T("STRID_RENDER_PROPGRID_HOTKEY_4"),  // 热键4
-        _T("Ctrl+Shift"),
+        _T("Ctrl+Alt+C"),
         _T("STRID_RENDER_PROPGRID_DESC_HOTKEY_4"), // 描述信息：热键 HotKey控件4
         0, false);  
 
@@ -276,6 +276,39 @@ void RenderForm::TestPropertyGrid()
         _T("STRID_RENDER_PROPGRID_FOLDER"),  // 文件夹
         _T("C:\\Test\\"),
         _T("STRID_RENDER_PROPGRID_DESC_FOLDER"), 0, false);  // 描述信息：文件夹
+
+    // 分组九（布尔值/数值/多行文本）
+    pGroup = pPropertyGrid->AddGroupById(
+        _T("STRID_RENDER_PROPGRID_GROUP_9"),   // 分组九
+        _T("STRID_RENDER_PROPGRID_DESC_GROUP_9"));  // 描述信息九
+    auto p90 = pPropertyGrid->AddBoolPropertyById(pGroup,
+        _T("STRID_RENDER_PROPGRID_PROPERTY_BOOL"),  // 布尔属性
+        _T("true"),
+        _T("STRID_RENDER_PROPGRID_DESC_PROPERTY_BOOL"),  // 描述信息：布尔属性
+        0, false);
+    p90->SetDefaultValue(_T("true"));
+    auto p91 = pPropertyGrid->AddNumberPropertyById(pGroup,
+        _T("STRID_RENDER_PROPGRID_PROPERTY_INT"),  // 整数属性
+        _T("10"),
+        _T("STRID_RENDER_PROPGRID_DESC_PROPERTY_INT"),  // 描述信息：整数属性
+        0, false);
+    p91->SetNumberRange(true, -100, 100, 0, 5);
+    auto p92 = pPropertyGrid->AddNumberPropertyById(pGroup,
+        _T("STRID_RENDER_PROPGRID_PROPERTY_FLOAT"),  // 浮点数属性
+        _T("3.14"),
+        _T("STRID_RENDER_PROPGRID_DESC_PROPERTY_FLOAT"),  // 描述信息：浮点数属性
+        0, false);
+    p92->SetNumberRange(false, -100.0, 100.0, 2, 1.0);
+    auto p93 = pPropertyGrid->AddMultiLineTextPropertyById(pGroup,
+        _T("STRID_RENDER_PROPGRID_PROPERTY_MULTILINE"),  // 多行文本属性
+        _T("Line1\nLine2"),
+        _T("STRID_RENDER_PROPGRID_DESC_PROPERTY_MULTILINE"),  // 描述信息：多行文本属性
+        0, false);
+    p93->SetDefaultValue(_T("Line1\nLine2"));
+
+    // 启用过滤框与悬停描述信息
+    pPropertyGrid->SetEnableFilterBox(true);
+    pPropertyGrid->SetShowDescriptionToolTip(true);
 }
 
 void RenderForm::CheckPropertyGridResult()

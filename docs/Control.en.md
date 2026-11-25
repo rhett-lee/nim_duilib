@@ -4050,8 +4050,101 @@ See the ListCtrl example program for a full demo (the table freezes the first co
 | left_column_width |   | int | Width of the left column |
 | property_font_normal |   | string | Set the font Id of the property value (normal state) |
 | property_font_modified |   | string | Set the font Id of the property value (modified state) |
+| property_check_box_class | property_grid_check_box | string | Class of the checkbox used by boolean properties |
+| property_multi_line_edit_class | property_grid_property_multiline_edit | string | Class of the edit box used by multi-line text properties |
+| show_description_tooltip | false | bool | Show the property description when the mouse hovers over the property name |
+| enable_filter_box | false | bool | Show the filter box (requires the search box control declared in `property_grid.xml`) |
 
 The PropertyGrid control inherits the `VBox` attributes. For more available attributes, please refer to the `VBox` attributes.
+
+### Edit interaction
+
+- Left-click on the property value area to start editing (read-only and disabled properties do not respond).
+- While editing, press `ESC` to cancel and restore the previous value; press `Enter` to apply the result and leave edit mode.
+- The property value areas participate in `Tab` navigation: `Tab` moves to the next editable value and starts editing,
+  `Shift+Tab` navigates backwards; read-only, disabled properties and properties in collapsed groups are skipped.
+- The property being edited temporarily leaves the `Tab` chain, so `Shift+Tab` cannot return to itself.
+- When a property row is selected (or the property value area has focus), `F2` or `Enter` also starts editing.
+- Password properties are masked with `●`.
+
+### Property types
+
+Besides the existing text, combo, font, font size, color, date/time, IP address, hot key, file and folder properties,
+three new property types are available:
+
+| Factory method | Property type | Edit control | Notes |
+| :--- | :--- | :--- | :--- |
+| AddBoolProperty / AddBoolPropertyById | PropertyGridBoolProperty | CheckBox | The value must be `true`/`false`; only the checkbox is shown while editing |
+| AddNumberProperty / AddNumberPropertyById | PropertyGridNumberProperty | RichEdit (integer type can have Spin) | Supports integer/float, value range, decimal places and Spin step |
+| AddMultiLineTextProperty / AddMultiLineTextPropertyById | PropertyGridMultiLineTextProperty | Multi-line RichEdit | `Enter` inserts a new line, `Ctrl+Enter` commits; the property row has a fixed height of 90 DIP |
+
+```cpp
+ui::PropertyGridBoolProperty* pBool = pPropertyGrid->AddBoolProperty(pGroup, _T("Enabled"), _T("true"), _T("Whether enabled"));
+pBool->SetDefaultValue(_T("true"));
+
+ui::PropertyGridNumberProperty* pInt = pPropertyGrid->AddNumberProperty(pGroup, _T("Width"), _T("10"));
+pInt->SetNumberRange(true, 0, 100, 0, 5);          // Integer: range [0,100], step 5
+
+ui::PropertyGridNumberProperty* pFloat = pPropertyGrid->AddNumberProperty(pGroup, _T("Ratio"), _T("1.5"));
+pFloat->SetNumberRange(false, 0.0, 10.0, 2, 1.0);  // Float: two decimal places
+
+ui::PropertyGridMultiLineTextProperty* pText = pPropertyGrid->AddMultiLineTextProperty(pGroup, _T("Comment"), _T("Line1\nLine2"));
+```
+
+Notes:
+- A number property does not limit its range until `SetNumberRange` is called; after that, both edit commits and
+  `SetPropertyNewValue` clamp to the range and format according to the precision.
+- Spin buttons of number properties are enabled by default only for the integer type; the step is set by `fStep` of `SetNumberRange`.
+- The default value and the `SetPropertyNewValue` argument of a boolean property must be the `true`/`false` text.
+
+### Data and state
+
+| Interface | Description |
+| :--- | :--- |
+| SetDefaultValue / GetDefaultValue | Set/get the default value of a property |
+| ResetPropertyValue | Reset the property to its default value (or to the original value if no default is set) |
+| IsModified | Whether the current value differs from the original value (the "modified" font is used when different) |
+| SetValueValidator / GetLastErrorText | Set a value validator (empty string means accepted, otherwise the error text); on failure the previous value is restored and the error is shown in the description area |
+| SetPropertyNewValue | Set the current value (simulates an edit result, e.g. loading a configuration); returns `false` when read-only, and when rejected by the validator it returns `false`, keeps the previous value and records the error text |
+| ResetAllValues | Reset the values of all properties in the grid |
+| IsModified / GetModifiedProperties | Grid level: whether any property is modified / get all modified properties |
+| SaveValuesToFile / LoadValuesFromFile | Save/load the current values of all properties as XML (name IDs are saved too and matched first when loading, so loading still works after switching language) |
+| PropertyGridGroup::SetReadOnly / IsReadOnly | Group-level read-only (applied to all properties in the group, including properties added later) |
+| PropertyGridGroup::SetEnableProperties / IsPropertiesEnabled | Group-level enable/disable (applied to all properties in the group, including properties added later) |
+
+Value-changed events at grid level and property level (the event bubbles up the parent chain, and `args.GetSender()` is the property control that changed):
+
+```cpp
+// Grid level: any property value changed (implemented with AttachBubbledEvent internally)
+pPropertyGrid->AttachValueChanged([](const ui::EventArgs& args) {
+    ui::PropertyGridProperty* pProperty = dynamic_cast<ui::PropertyGridProperty*>(args.GetSender());
+    // args.wParam points to the old value string, args.lParam points to the new value string
+    return true;
+});
+
+// Property level: a single property value changed
+pProperty->AttachValueChanged([](const ui::EventArgs& args) { return true; });
+```
+
+### Usability
+
+| Interface | Description |
+| :--- | :--- |
+| ExpandAllGroups / CollapseAllGroups / SetExpandAllGroups | Expand/collapse all groups |
+| SortProperties(bool bAscending) | Sort properties inside each group by property name |
+| SetFilterText / GetFilterText | Filter by property name or group name (case insensitive); matched groups are expanded automatically |
+| SetEnableFilterBox / IsFilterBoxVisible | Show/hide the filter box (requires the filter control declared in `property_grid.xml`) |
+| SetShowDescriptionToolTip / IsShowDescriptionToolTip | Show the property description when hovering over the property name |
+| ShowDescriptionMessage | Show a message (e.g. a validation error) in the description area |
+
+The filter box must be declared in `property_grid.xml` (included by default; the control name is fixed to
+`duilib_property_grid_search_box`, and its parent row is `duilib_property_grid_filter_area` with `visible="false"` by default):
+
+```xml
+<HBox name="duilib_property_grid_filter_area" width="100%" height="32" padding="6,4,6,4" visible="false">
+    <RichEdit class="property_grid_search_edit" name="duilib_property_grid_search_box"/>
+</HBox>
+```
 
 ## Attributes of ColorPicker (inherits Window attributes)
 ColorPicker is a standalone window (based on `WindowImplBase`) used to select a color. Its default skin folder is `public` and its skin file is `public/color/color_picker.xml`.

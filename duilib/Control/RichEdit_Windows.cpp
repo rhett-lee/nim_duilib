@@ -1917,6 +1917,7 @@ uint32_t RichEdit::GetControlFlags() const
 
 void RichEdit::HandleEvent(const EventArgs& msg)
 {
+    std::weak_ptr<WeakFlag> richEditFlag = GetWeakFlag();
     if (IsDisabledEvents(msg)) {
         //如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
         Box* pParent = GetParent();
@@ -1982,7 +1983,9 @@ void RichEdit::HandleEvent(const EventArgs& msg)
         OnKeyDown(msg);
         return;
     }
-    ScrollBox::HandleEvent(msg);
+    if (!richEditFlag.expired()) {
+        ScrollBox::HandleEvent(msg);
+    }
 }
 
 bool RichEdit::OnSetCursor(const EventArgs& msg)

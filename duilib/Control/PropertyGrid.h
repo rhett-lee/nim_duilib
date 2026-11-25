@@ -11,11 +11,13 @@
 #include "duilib/Control/TreeView.h"
 #include "duilib/Control/Combo.h"
 #include "duilib/Control/ComboButton.h"
+#include "duilib/Control/CheckBox.h"
 #include "duilib/Control/DateTime.h"
 #include "duilib/Control/IPAddress.h"
 #include "duilib/Control/HotKey.h"
 #include "duilib/Utils/FileDialog.h"
 #include <utility>
+#include <functional>
 
 namespace ui
 {
@@ -33,6 +35,9 @@ class PropertyGridIPAddressProperty;    //IP地址
 class PropertyGridHotKeyProperty;       //热键
 class PropertyGridFileProperty;         //文件路径
 class PropertyGridDirectoryProperty;    //文件夹
+class PropertyGridBoolProperty;         //布尔值（复选框）
+class PropertyGridNumberProperty;       //数值
+class PropertyGridMultiLineTextProperty;//多行文本
 
 /** 属性的参数 (支持多语言版)
 */
@@ -524,6 +529,87 @@ public:
     */
     PropertyGridDirectoryProperty* AddDirectoryProperty(PropertyGridGroup* pGroup, const PropertyGridParam& param);
 
+    /** 增加一个属性(布尔值，使用复选框编辑)
+    * @param [in] pGroup 该属性所属的分组
+    * @param [in] propertyName 属性的名称
+    * @param [in] propertyValue 属性的值（"true"/"false"）
+    * @param [in] description 属性的描述信息
+    * @param [in] nPropertyData 用户自定义数据
+    * @return 返回该属性的接口
+    */
+    PropertyGridBoolProperty* AddBoolProperty(PropertyGridGroup* pGroup,
+                                              const DString& propertyName,
+                                              const DString& propertyValue,
+                                              const DString& description = _T(""),
+                                              size_t nPropertyData = 0);
+
+    /** 增加一个属性(布尔值)(支持多语言版)
+    */
+    PropertyGridBoolProperty* AddBoolPropertyById(PropertyGridGroup* pGroup,
+                                                  const DString& propertyNameId,
+                                                  const DString& propertyValue,
+                                                  const DString& descriptionId = _T(""),
+                                                  size_t nPropertyData = 0,
+                                                  bool bPropertyValueId = false);
+
+    /** 增加一个属性(布尔值)(支持多语言版)
+    */
+    PropertyGridBoolProperty* AddBoolProperty(PropertyGridGroup* pGroup, const PropertyGridParam& param);
+
+    /** 增加一个属性(数值)
+    * @param [in] pGroup 该属性所属的分组
+    * @param [in] propertyName 属性的名称
+    * @param [in] propertyValue 属性的值
+    * @param [in] description 属性的描述信息
+    * @param [in] nPropertyData 用户自定义数据
+    * @return 返回该属性的接口
+    */
+    PropertyGridNumberProperty* AddNumberProperty(PropertyGridGroup* pGroup,
+                                                  const DString& propertyName,
+                                                  const DString& propertyValue,
+                                                  const DString& description = _T(""),
+                                                  size_t nPropertyData = 0);
+
+    /** 增加一个属性(数值)(支持多语言版)
+    */
+    PropertyGridNumberProperty* AddNumberPropertyById(PropertyGridGroup* pGroup,
+                                                      const DString& propertyNameId,
+                                                      const DString& propertyValue,
+                                                      const DString& descriptionId = _T(""),
+                                                      size_t nPropertyData = 0,
+                                                      bool bPropertyValueId = false);
+
+    /** 增加一个属性(数值)(支持多语言版)
+    */
+    PropertyGridNumberProperty* AddNumberProperty(PropertyGridGroup* pGroup, const PropertyGridParam& param);
+
+    /** 增加一个属性(多行文本，使用Ctrl+Enter提交)
+    * @param [in] pGroup 该属性所属的分组
+    * @param [in] propertyName 属性的名称
+    * @param [in] propertyValue 属性的值
+    * @param [in] description 属性的描述信息
+    * @param [in] nPropertyData 用户自定义数据
+    * @return 返回该属性的接口
+    */
+    PropertyGridMultiLineTextProperty* AddMultiLineTextProperty(PropertyGridGroup* pGroup,
+                                                                const DString& propertyName,
+                                                                const DString& propertyValue,
+                                                                const DString& description = _T(""),
+                                                                size_t nPropertyData = 0);
+
+    /** 增加一个属性(多行文本)(支持多语言版)
+    */
+    PropertyGridMultiLineTextProperty* AddMultiLineTextPropertyById(PropertyGridGroup* pGroup,
+                                                                    const DString& propertyNameId,
+                                                                    const DString& propertyValue,
+                                                                    const DString& descriptionId = _T(""),
+                                                                    size_t nPropertyData = 0,
+                                                                    bool bPropertyValueId = false);
+
+    /** 增加一个属性(多行文本)(支持多语言版)
+    */
+    PropertyGridMultiLineTextProperty* AddMultiLineTextProperty(PropertyGridGroup* pGroup, const PropertyGridParam& param);
+
     /** 设置左侧一列的宽度
     * @param [in] nLeftColumnWidth 左侧一列的宽度
     * @param [in] bNeedDpiScale 是否需要对列宽值进行DPI自适应
@@ -683,6 +769,87 @@ public:
     void SetPropertySpinClass(const DString& spinClass);
     DString GetPropertySpinClass() const;
 
+    /** 布尔属性使用的复选框Class
+    */
+    void SetPropertyCheckBoxClass(const DString& checkBoxClass);
+    DString GetPropertyCheckBoxClass() const;
+
+    /** 多行文本属性使用的编辑框Class
+    */
+    void SetPropertyMultiLineEditClass(const DString& editClass);
+    DString GetPropertyMultiLineEditClass() const;
+
+    /** 监听所有属性值变化事件（args.pSender为发生变化的属性控件）
+    * 注意：属性值变化事件由属性控件冒泡上来，内部使用AttachBubbledEvent实现
+    */
+    void AttachValueChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachBubbledEvent(kEventValueChanged, callback, callbackID); }
+
+    /** 展开所有分组
+    */
+    void ExpandAllGroups();
+
+    /** 折叠所有分组
+    */
+    void CollapseAllGroups();
+
+    /** 设置所有分组的展开状态
+    * @param [in] bExpand true表示展开，false表示折叠
+    */
+    void SetExpandAllGroups(bool bExpand);
+
+    /** 按属性名称排序（同一分组内的属性排序）
+    * @param [in] bAscending true表示升序，false表示降序
+    */
+    void SortProperties(bool bAscending = true);
+
+    /** 设置是否在鼠标悬停属性名称时，显示属性描述信息
+    */
+    void SetShowDescriptionToolTip(bool bShow);
+    bool IsShowDescriptionToolTip() const { return m_bShowDescriptionToolTip; }
+
+    /** 设置过滤关键字（按属性名称或分组名称过滤，为空表示不过滤）
+    */
+    void SetFilterText(const DString& filterText);
+    DString GetFilterText() const { return m_filterText.c_str(); }
+
+    /** 是否启用过滤框（需要配置文件中包含搜索框控件）
+    */
+    bool IsFilterEnabled() const { return m_pSearchBox != nullptr; }
+
+    /** 显示或者隐藏过滤框（需要配置文件中包含搜索框控件）
+    * @param [in] bEnable true表示显示过滤框，false表示隐藏过滤框
+    */
+    void SetEnableFilterBox(bool bEnable);
+
+    /** 过滤框当前是否可见
+    */
+    bool IsFilterBoxVisible() const;
+
+    /** 在描述区域显示一条提示信息（例如属性值校验失败的信息）
+    * @param [in] message 提示信息，为空时恢复显示当前选中项的描述信息
+    */
+    void ShowDescriptionMessage(const DString& message);
+
+    /** 重置所有属性值为默认值
+    */
+    void ResetAllValues();
+
+    /** 是否有属性被修改
+    */
+    bool IsModified() const;
+
+    /** 获取所有被修改的属性
+    */
+    void GetModifiedProperties(std::vector<PropertyGridProperty*>& properties) const;
+
+    /** 保存所有属性的当前值到XML文件
+    */
+    bool SaveValuesToFile(const FilePath& filePath) const;
+
+    /** 从XML文件加载属性的值
+    */
+    bool LoadValuesFromFile(const FilePath& filePath);
+
     /** 根据当前语言自动调整左侧列宽（取所有属性名称中最宽的文本）
     * @param [in] nMinWidth 最小列宽（像素），小于等于0表示不限制
     * @param [in] nMaxWidth 最大列宽（像素），小于等于0表示不限制
@@ -727,6 +894,14 @@ protected:
     /** 调整一个属性节点的列宽
     */
     void ResizePropertyColumn(TreeNode* pPropertyNode, int32_t nLeftColumnWidth);
+
+    /** 更新所有属性名称控件的悬停提示（显示属性描述信息）
+    */
+    void UpdateDescriptionToolTips();
+
+    /** 获取当前选中的属性（未选中属性时返回nullptr）
+    */
+    PropertyGridProperty* GetSelectedProperty() const;
 
 private:
     /** 获取左侧列宽的值
@@ -854,6 +1029,34 @@ private:
     */
     UiString m_propertySpinClass;
 
+    /** 布尔属性使用的复选框Class
+    */
+    UiString m_propertyCheckBoxClass;
+
+    /** 多行文本属性使用的编辑框Class
+    */
+    UiString m_propertyMultiLineEditClass;
+
+    /** 是否在鼠标悬停属性名称时，显示属性描述信息
+    */
+    bool m_bShowDescriptionToolTip;
+
+    /** 是否显示过滤框
+    */
+    bool m_bEnableFilterBox;
+
+    /** 是否显式设置过过滤框的显示状态（用于覆盖配置文件中的初始状态）
+    */
+    bool m_bEnableFilterBoxSet;
+
+    /** 过滤关键字（为空表示不过滤）
+    */
+    UiString m_filterText;
+
+    /** 过滤框控件（配置文件中声明了搜索框控件时有效）
+    */
+    ControlPtrT<RichEdit> m_pSearchBox;
+
 private:
     /** 属性值的字体Id（正常状态）
     */
@@ -980,6 +1183,24 @@ public:
     */
     void RemoveAllProperties();
 
+    /** 设置该分组下所有属性的只读状态（批量接口）
+    * @param [in] bReadOnly true表示只读，false表示可编辑
+    */
+    void SetReadOnly(bool bReadOnly);
+
+    /** 该分组是否只读
+    */
+    bool IsReadOnly() const { return m_bReadOnly; }
+
+    /** 启用或者禁用该分组下所有属性（批量接口）
+    * @param [in] bEnable true表示启用，false表示禁用（禁用后属性不可编辑，显示为灰色）
+    */
+    void SetEnableProperties(bool bEnable);
+
+    /** 该分组下的属性是否处于启用状态
+    */
+    bool IsPropertiesEnabled() const { return m_bPropertiesEnabled; }
+
     /** 设置关联的属性页接口
     */
     void SetPropertyGrid(PropertyGrid* pPropertyGrid);
@@ -1021,6 +1242,13 @@ private:
     /** 属性名称的显示控件
     */
     ControlPtrT<LabelBox> m_pLabelBox;
+
+    /** 该分组是否只读
+    */
+    bool m_bReadOnly;
+
+    //该分组下的属性是否处于启用状态
+    bool m_bPropertiesEnabled;
 };
 
 /** 属性的类型
@@ -1038,6 +1266,9 @@ enum class PropertyGridPropertyType
     kHotKey,    //热键
     kFile,        //文件路径
     kDirectory,    //文件夹
+    kBool,          //布尔值（使用复选框编辑）
+    kNumber,        //数值（整数或者浮点数）
+    kMultiLineText, //多行文本
     kCustom        //用户自定义的类型，比如自己实现一个子类
 };
 
@@ -1141,6 +1372,28 @@ public:
     */
     bool UsingPropertyValueId() const;
 
+    /** 设置属性的默认值（未设置时，"重置"会恢复为原值）
+    */
+    void SetDefaultValue(const DString& defaultValue);
+    DString GetDefaultValue() const;
+
+    /** 重置属性值为默认值（未设置默认值时恢复为原值），并清除"已修改"的显示状态
+    */
+    virtual void ResetPropertyValue();
+
+    /** 属性值是否已修改（当前值与原值不一致）
+    */
+    bool IsModified() const;
+
+    /** 设置属性值校验函数
+    * @param [in] validator 校验函数：参数为新的属性值，返回值为空表示校验通过；否则返回错误信息
+    */
+    void SetValueValidator(std::function<DString(const DString&)> validator);
+
+    /** 获取最近一次校验失败的提示信息（校验通过时为空）
+    */
+    DString GetLastErrorText() const;
+
     /** 获取属性的描述信息
     */
     DString GetDescription() const;
@@ -1189,6 +1442,12 @@ public:
     */
     virtual DString GetPropertyNewValue() const;
 
+    /** 设置属性的当前值（模拟编辑结果，用于加载配置等场景）
+    * @param [in] newValue 新的属性值
+    * @return 返回true表示设置成功，返回false表示被只读状态或者校验函数拦截
+    */
+    virtual bool SetPropertyNewValue(const DString& newValue);
+
     /** 设置关联的属性页接口
     */
     void SetPropertyGrid(PropertyGrid* pPropertyGrid);
@@ -1207,6 +1466,11 @@ protected:
     /** 初始化函数
      */
     virtual void OnInit() override;
+
+    /** 消息处理函数（拦截回车键，用于进入编辑状态）
+    * @param [in] msg 消息内容
+    */
+    virtual void HandleEvent(const EventArgs& msg) override;
 
     /** 设置是否允许存在编辑框控件
     * @param [in] bEnable true表示允许存在编辑框控件，false表示不允许存在编辑框控件
@@ -1259,8 +1523,9 @@ protected:
     * @param [in] text 文本内容
     * @param [in] bChanged 是否标记为变化
     * @param [in] bTriggerEvent 是否触发变化事件（回调函数）
+    * @return 返回true表示设置成功，返回false表示被校验函数拦截（显示内容已恢复为原值）
     */
-    void SetPropertyText(const DString& text, bool bChanged, bool bTriggerEvent = true);
+    bool SetPropertyText(const DString& text, bool bChanged, bool bTriggerEvent = true);
 
     /** 获取属性值文本(显示控件)
     */
@@ -1301,6 +1566,26 @@ protected:
     /** 判断属性值的LabelBox中是否包含控件
     */
     bool HasPropertySubItem(Control* pControl) const;
+
+private:
+    /** 更新属性值的显示文本与字体（不触发事件，不做校验）
+    * @param [in] text 要显示的文本内容
+    * @param [in] bChanged true表示按"已修改"的字体显示，false表示按正常字体显示
+    */
+    void UpdatePropertyDisplayText(const DString& text, bool bChanged);
+
+private:
+    /** 属性的默认值
+    */
+    UiString m_defaultValue;
+
+    /** 属性值校验函数
+    */
+    std::function<DString(const DString&)> m_valueValidator;
+
+    /** 最近一次校验失败的提示信息
+    */
+    UiString m_lastErrorText;
 
 private:
     /** 关联的属性页接口
@@ -1407,14 +1692,23 @@ public:
     */
     virtual DString GetPropertyNewValue() const override;
 
+    /** 设置属性的当前值（模拟编辑结果）
+    */
+    virtual bool SetPropertyNewValue(const DString& newValue) override;
+
+    /** 重置属性值为默认值
+    */
+    virtual void ResetPropertyValue() override;
+
     /** 获取编辑框控件
     */
     RichEdit* GetRichEdit() const { return m_pRichEdit.get(); }
 
     /** 设置新的文本
     * @param [in] newText 新的文本内容
+    * @return 返回true表示设置成功，返回false表示被只读状态或者校验函数拦截
     */
-    void SetNewTextValue(const DString& newText);
+    bool SetNewTextValue(const DString& newText);
 
     /** 设置密码模式（显示 ***）
      * @param[in] bPasswordMode 设置为 true 让控件显示内容为 ***，false 为显示正常内容
@@ -1453,6 +1747,11 @@ protected:
     /** 旧的属性值发生了变化
     */
     virtual void OnPropertyValueChanged() override;
+
+    /** 将编辑框中的文本转换为属性值显示控件中的文本（默认原样返回）
+    * @param [in] editText 编辑框中的文本
+    */
+    virtual DString ConvertToDisplayText(const DString& editText) const;
 
 private:
     /** 编辑框控件(用于修改属性)
@@ -2004,6 +2303,11 @@ protected:
     */
     virtual void OnScrollPosChanged() override;
 
+public:
+    /** 重置属性值为默认值
+    */
+    virtual void ResetPropertyValue() override;
+
 private:
     /** 初始化设置颜色的Combo按钮
     */
@@ -2457,6 +2761,272 @@ private:
     /** 浏览按钮
     */
     ControlPtrT<Button> m_pBrowseBtn;
+};
+
+/** 布尔类型的属性：使用复选框编辑
+*/
+class DUILIB_API PropertyGridBoolProperty : public PropertyGridProperty
+{
+    typedef PropertyGridProperty BaseClass;
+public:
+    /** 构造一个属性
+    * @param [in] propertyName 属性的名称
+    * @param [in] propertyValue 属性的值（"true"或者"false"）
+    * @param [in] description 属性的描述信息
+    * @param [in] nPropertyData 用户自定义数据
+    */
+    PropertyGridBoolProperty(Window* pWindow,
+                             const DString& propertyName,
+                             const DString& propertyValue,
+                             const DString& description = _T(""),
+                             size_t nPropertyData = 0);
+
+    /** 构造一个属性(支持多语言版)
+    * @param [in] pWindow 关联的窗口
+    * @param [in] bPropertyNameId true表示propertyName为文本ID, false表示为普通文本
+    * @param [in] propertyName 属性的名称
+    * @param [in] bPropertyValueId true表示propertyValue为文本ID, false表示为普通文本
+    * @param [in] propertyValue 属性的值
+    * @param [in] bDescriptionId true表示description为文本ID, false表示为普通文本
+    * @param [in] description 属性的描述信息
+    * @param [in] nPropertyData 用户自定义数据
+    */
+    PropertyGridBoolProperty(Window* pWindow,
+                             bool bPropertyNameId,
+                             const DString& propertyName,
+                             bool bPropertyValueId,
+                             const DString& propertyValue,
+                             bool bDescriptionId,
+                             const DString& description,
+                             size_t nPropertyData = 0);
+
+    /** 构造一个属性(支持多语言版)
+    * @param [in] pWindow 关联的窗口
+    * @param [in] param 关联的参数
+    */
+    PropertyGridBoolProperty(Window* pWindow, const PropertyGridParam& param);
+
+public:
+    /** 获取属性类型
+    */
+    virtual PropertyGridPropertyType GetPropertyType() const override
+    {
+        return PropertyGridPropertyType::kBool;
+    }
+
+    /** 获取新的属性值（修改后的属性值, 如果无修改则返回原值）
+    */
+    virtual DString GetPropertyNewValue() const override;
+
+    /** 设置属性的当前值（模拟编辑结果）
+    */
+    virtual bool SetPropertyNewValue(const DString& newValue) override;
+
+    /** 设置布尔值
+    * @param [in] bValue 布尔值
+    * @param [in] bTriggerEvent 是否触发属性值变化事件
+    * @return 返回true表示设置成功，返回false表示被只读状态或者校验函数拦截
+    */
+    bool SetBoolValue(bool bValue, bool bTriggerEvent = true);
+
+    /** 获取布尔值（依据当前显示的取值解析）
+    */
+    bool GetBoolValue() const;
+
+    /** 获取复选框控件
+    */
+    CheckBox* GetCheckBox() const { return m_pCheckBox.get(); }
+
+    /** 重置属性值为默认值
+    */
+    virtual void ResetPropertyValue() override;
+
+protected:
+    /** 设置是否允许存在编辑框控件
+    */
+    virtual void EnableEditControl(bool bEnable) override;
+
+    /** 显示或者隐藏编辑框控件
+    */
+    virtual Control* ShowEditControl(bool bShow, bool bCancel) override;
+
+private:
+    /** 复选框控件(用于修改属性)
+    */
+    ControlPtrT<CheckBox> m_pCheckBox;
+
+    /** 编辑前的旧值
+    */
+    bool m_bOldValue;
+};
+
+/** 数值类型的属性：使用RichEdit编辑，可配置取值范围、精度与Spin步长
+*/
+class DUILIB_API PropertyGridNumberProperty : public PropertyGridTextProperty
+{
+    typedef PropertyGridTextProperty BaseClass;
+public:
+    /** 构造一个属性
+    * @param [in] propertyName 属性的名称
+    * @param [in] propertyValue 属性的值
+    * @param [in] description 属性的描述信息
+    * @param [in] nPropertyData 用户自定义数据
+    */
+    PropertyGridNumberProperty(Window* pWindow,
+                               const DString& propertyName,
+                               const DString& propertyValue,
+                               const DString& description = _T(""),
+                               size_t nPropertyData = 0);
+
+    /** 构造一个属性(支持多语言版)
+    * @param [in] pWindow 关联的窗口
+    * @param [in] bPropertyNameId true表示propertyName为文本ID, false表示为普通文本
+    * @param [in] propertyName 属性的名称
+    * @param [in] bPropertyValueId true表示propertyValue为文本ID, false表示为普通文本
+    * @param [in] propertyValue 属性的值
+    * @param [in] bDescriptionId true表示description为文本ID, false表示为普通文本
+    * @param [in] description 属性的描述信息
+    * @param [in] nPropertyData 用户自定义数据
+    */
+    PropertyGridNumberProperty(Window* pWindow,
+                               bool bPropertyNameId,
+                               const DString& propertyName,
+                               bool bPropertyValueId,
+                               const DString& propertyValue,
+                               bool bDescriptionId,
+                               const DString& description,
+                               size_t nPropertyData = 0);
+
+    /** 构造一个属性(支持多语言版)
+    * @param [in] pWindow 关联的窗口
+    * @param [in] param 关联的参数
+    */
+    PropertyGridNumberProperty(Window* pWindow, const PropertyGridParam& param);
+
+public:
+    /** 获取属性类型
+    */
+    virtual PropertyGridPropertyType GetPropertyType() const override
+    {
+        return PropertyGridPropertyType::kNumber;
+    }
+
+    /** 设置数值的取值范围与精度
+    * @param [in] bInteger true表示整数（默认），false表示浮点数
+    * @param [in] fMin 最小值
+    * @param [in] fMax 最大值
+    * @param [in] nPrecision 小数位数（浮点数有效，取值范围[0,6]）
+    * @param [in] fStep 步长（整数类型启用Spin控件时有效）
+    */
+    void SetNumberRange(bool bInteger, double fMin, double fMax, int32_t nPrecision = 0, double fStep = 1.0);
+
+    /** 是否为整数类型
+    */
+    bool IsInteger() const { return m_bInteger; }
+
+    /** 设置属性的当前值（模拟编辑结果，会按取值范围与精度规范化）
+    */
+    virtual bool SetPropertyNewValue(const DString& newValue) override;
+
+protected:
+    /** 设置是否允许存在编辑框控件
+    */
+    virtual void EnableEditControl(bool bEnable) override;
+
+    /** 显示或者隐藏编辑框控件
+    */
+    virtual Control* ShowEditControl(bool bShow, bool bCancel) override;
+
+private:
+    /** 按取值范围与精度规范化数值文本（非法输入返回空字符串）
+    */
+    DString FormatNumberText(const DString& text) const;
+
+private:
+    /** 是否为整数类型
+    */
+    bool m_bInteger;
+
+    /** 是否已经设置取值范围（未设置时不限制取值范围）
+    */
+    bool m_bRangeSet;
+
+    /** 最小值
+    */
+    double m_fMin;
+
+    /** 最大值
+    */
+    double m_fMax;
+
+    /** 小数位数（浮点数有效）
+    */
+    int32_t m_nPrecision;
+
+    /** 步长（整数类型启用Spin控件时有效）
+    */
+    double m_fStep;
+};
+
+/** 多行文本类型的属性：使用多行RichEdit编辑（Enter换行，Ctrl+Enter提交）
+*/
+class DUILIB_API PropertyGridMultiLineTextProperty : public PropertyGridTextProperty
+{
+    typedef PropertyGridTextProperty BaseClass;
+public:
+    /** 构造一个属性
+    * @param [in] propertyName 属性的名称
+    * @param [in] propertyValue 属性的值
+    * @param [in] description 属性的描述信息
+    * @param [in] nPropertyData 用户自定义数据
+    */
+    PropertyGridMultiLineTextProperty(Window* pWindow,
+                                      const DString& propertyName,
+                                      const DString& propertyValue,
+                                      const DString& description = _T(""),
+                                      size_t nPropertyData = 0);
+
+    /** 构造一个属性(支持多语言版)
+    * @param [in] pWindow 关联的窗口
+    * @param [in] bPropertyNameId true表示propertyName为文本ID, false表示为普通文本
+    * @param [in] propertyName 属性的名称
+    * @param [in] bPropertyValueId true表示propertyValue为文本ID, false表示为普通文本
+    * @param [in] propertyValue 属性的值
+    * @param [in] bDescriptionId true表示description为文本ID, false表示为普通文本
+    * @param [in] description 属性的描述信息
+    * @param [in] nPropertyData 用户自定义数据
+    */
+    PropertyGridMultiLineTextProperty(Window* pWindow,
+                                      bool bPropertyNameId,
+                                      const DString& propertyName,
+                                      bool bPropertyValueId,
+                                      const DString& propertyValue,
+                                      bool bDescriptionId,
+                                      const DString& description,
+                                      size_t nPropertyData = 0);
+
+    /** 构造一个属性(支持多语言版)
+    * @param [in] pWindow 关联的窗口
+    * @param [in] param 关联的参数
+    */
+    PropertyGridMultiLineTextProperty(Window* pWindow, const PropertyGridParam& param);
+
+public:
+    /** 获取属性类型
+    */
+    virtual PropertyGridPropertyType GetPropertyType() const override
+    {
+        return PropertyGridPropertyType::kMultiLineText;
+    }
+
+protected:
+    /** 初始化函数
+    */
+    virtual void OnInit() override;
+
+    /** 将编辑的文本转换为显示文本（多行文本转换为单行预览）
+    */
+    virtual DString ConvertToDisplayText(const DString& editText) const override;
 };
 
 }//namespace ui
