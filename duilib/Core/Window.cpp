@@ -2928,6 +2928,15 @@ bool Window::AutoResizeWindow(bool bRepaint)
     return bResized;
 }
 
+void Window::UpdateLayoutNow()
+{
+    if (GetRoot() == nullptr) {
+        return;
+    }
+    //执行挂起的布局：仅当有控件请求重新布局时才会真正重排，无请求时立即返回
+    ArrangeRoot();
+}
+
 void Window::ArrangeRoot()
 {
     UiRect rcClient;

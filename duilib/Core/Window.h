@@ -540,6 +540,14 @@ public:
     */
     void ExitControlFullscreen();
 
+    /** 立即执行挂起的控件布局（不触发窗口绘制）
+    *   说明：控件的可见状态等变化只会登记"需要重新布局"，实际布局在窗口绘制时统一执行；
+    *        分层窗口的 UpdateWindow 不会触发 WM_PAINT（内部走 post 消息），
+    *        因此在显示浮层/弹出窗口前需要调用本函数，确保锚点控件的最终位置已经确定，
+    *        避免弹出窗口先在错误位置出现、之后再跳到正确位置（闪跳）。
+    */
+    void UpdateLayoutNow();
+
 public:
     /** 语言发生变化
     *   更新窗口标题，通知控件树重新应用语言资源并重新布局，然后发送 kWindowLanguageChangedMsg 事件并重绘

@@ -592,6 +592,42 @@ RichEdit、热键、IP 地址一样在编辑时显示统一的聚焦边框色（
 
 ---
 
+## 十一、第八批实施记录（编辑窗口/浮层初始位置闪跳修复）
+
+### 11.1 问题
+
+进入编辑状态时，部分编辑控件的弹出窗口（典型为日历类型的浮层）会先出现在窗口左上角，
+随后再迅速跳到属性值所在位置，出现闪跳，体验较差。
+
+### 11.2 原因
+
+- 属性值的编辑控件是首次编辑时才创建的；`SetVisible(true)` 只登记了“需要重新布局”，
+  真正的控件布局在窗口绘制时统一执行（`Window::ArrangeRoot`）。
+- 原代码在打开编辑窗口前，仅当控件矩形为零时调用 `Window::UpdateWindow()` 兜底；
+  但 duilib 的窗口是分层窗口，`InvalidateRect` 不会触发 `WM_PAINT`（内部改为 `PostMessage(WM_PAINT)`），
+  而 `::UpdateWindow` 只处理系统更新区域，因此布局仍处于挂起状态。
+- 结果：日历浮层创建时锚点控件的矩形仍为 `(0,0,0,0)`，浮层先出现在客户区左上角；
+  待挂起的绘制完成布局后，浮层的“跟随锚点”轮询（50ms）再把它移到正确位置，表现为闪跳。
+
+### 11.3 修改
+
+- `duilib/Core/Window.h` / `Window.cpp`：新增公有接口 `Window::UpdateLayoutNow()`，
+  立即执行挂起的控件布局（不绘制窗口）。
+- `duilib/Control/DateTime.cpp`：打开日历浮层/`DateTimeWnd` 前调用 `GetWindow()->UpdateLayoutNow()`，
+  确保锚点控件位置已确定；移除原先失效的 `UpdateWindow()` 兜底。
+
+### 11.4 验证
+
+- `py -3 build/build.py build --no-deps --config Release --target duilib`（/MT，非 DLL）：通过。
+- `py -3 build/build.py build --no-deps --config Release --target render`：通过。
+- `py -3 tests/test_controls_pages.py`：`PASS: all checks succeeded`（15801 项检查）。
+- 实测（render 示例“属性页和标签页”）：对第一行“日期”属性连续 3 次点击打开日历浮层，
+  逐帧（30~60ms 采样）分析显示窗口左上角区域无任何像素变化，
+  浮层首次出现的那一帧就已位于属性值正下方，未再出现“左上角闪现后跳转”；
+  同时文本属性 `Enter` 应用、`ESC` 取消行为保持正常。
+
+---
+
 ## 附：涉及文件
 
 | 文件 | 作用 |
@@ -609,4 +645,5 @@ RichEdit、热键、IP 地址一样在编辑时显示统一的聚焦边框色（
 | `duilib/Control/DateTime.h` / `DateTime.cpp` | 日期时间：取消编辑接口、日历浮层关闭通知 |
 | `duilib/Control/DateTimeWnd.h` / `DateTimeWnd.cpp` | 日期时间编辑窗口：回车确认、ESC 取消 |
 | `duilib/Control/IPAddress.cpp` | IP 地址：回车通知外部、ESC 取消编辑 |
+| `duilib/Core/Window.h` / `Window.cpp` | 新增 `UpdateLayoutNow()`：显示弹出窗口前同步执行挂起的布局 |
 | `docs/Control.md` | PropertyGrid 编辑交互、HotKey 交互行为与 C++ 接口说明 |

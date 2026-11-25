@@ -449,9 +449,11 @@ void DateTime::HandleEvent(const EventArgs& msg)
             //（可能连续收到多次 SetFocus，标志在 KillFocus/MouseButtonDown 时才清除）
             return;
         }
-        if (GetRect().IsZero() && (GetWindow() != nullptr)) {
-            //尚未显示，刷新一次窗口，确保控件先确定位置，然后再显示编辑窗口
-            GetWindow()->UpdateWindow();
+        if (GetWindow() != nullptr) {
+            //控件可能是刚创建并显示的，布局还在挂起状态（分层窗口的UpdateWindow不会触发WM_PAINT）：
+            //此处同步执行一次布局，确保控件位置已经确定，否则编辑窗口/日历浮层会先出现在
+            //错误位置（如窗口左上角），随后再跳到正确位置，出现闪跳现象
+            GetWindow()->UpdateLayoutNow();
         }
         if (IsFocused() && IsEnabled()) {
             if (IsCalendarEditFormat()) {
