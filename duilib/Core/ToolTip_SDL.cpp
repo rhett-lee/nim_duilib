@@ -242,6 +242,10 @@ void ToolTip::TImpl::ShowToolTip(WindowBase* pParentWnd,
     pParentWnd->Dpi().ScaleWindowSize(createParam.m_nX);
     pParentWnd->Dpi().ScaleWindowSize(createParam.m_nY);
 
+    //先设置文本，确保创建窗口后，评估的宽度和高度都是正确的
+    m_pTooltipWnd->SetToolTipMaxWidth((int32_t)maxWidth);
+    m_pTooltipWnd->SetToolTipText(text);
+
     if (!m_pTooltipWnd->IsWindow()) {
         createParam.m_nWidth = pParentWnd->Dpi().GetScaleWindowSize(200); //窗口创建或者显示后，会自动设置宽度和高度
         createParam.m_nHeight = pParentWnd->Dpi().GetScaleWindowSize(80);
@@ -252,9 +256,6 @@ void ToolTip::TImpl::ShowToolTip(WindowBase* pParentWnd,
 
     //设置窗口位置
     m_pTooltipWnd->SetWindowPos(InsertAfterWnd(), createParam.m_nX, createParam.m_nY, 0, 0, kSWP_NOSIZE | kSWP_NOZORDER);
-
-    m_pTooltipWnd->SetToolTipMaxWidth((int32_t)maxWidth);
-    m_pTooltipWnd->SetToolTipText(text);
     m_pTooltipWnd->ShowWindow(kSW_SHOW_NOACTIVATE);
 }
 

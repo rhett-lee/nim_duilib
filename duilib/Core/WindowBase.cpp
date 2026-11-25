@@ -78,15 +78,13 @@ void WindowBase::OnNativeCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg,
     if (!windowFlag.expired()) {
         PreInitWindow();
     }
-
-    //内部初始化（内部使用）
-    if (!windowFlag.expired()) {
-        PostInitWindow();
-    }
-
     //调用子类的初始化函数
     if (!windowFlag.expired()) {
         OnInitWindow();
+    }
+    //内部初始化（内部使用）
+    if (!windowFlag.expired()) {
+        PostInitWindow();
     }
     if (!windowFlag.expired()) {
         OnWindowCreateMsg(bDoModal, nativeMsg, bHandled);

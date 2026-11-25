@@ -568,10 +568,7 @@ void Window::PreInitWindow()
         //更新自绘制标题栏状态（使用系统标题栏时，阴影在OnUseSystemCaptionBarChanged中统一关闭）
         OnUseSystemCaptionBarChanged();
     }
-}
 
-void Window::PostInitWindow()
-{
     //初始化期间延迟的阴影状态刷新：统一执行一次
     if (m_bShadowUpdatePending) {
         m_bShadowUpdatePending = false;
@@ -594,6 +591,16 @@ void Window::PostInitWindow()
         }
     }
 
+    //保证阴影状态已经初始化：窗口初次显示前Shadow::OnShadowAttached必须执行一次，否则阴影相关流程会出现异常
+    Shadow* pShadow = GetShadow();
+    if ((pShadow != nullptr) && pShadow->InitializeShadow()) {
+        //阴影状态发生变化，需要同步窗口RGN等属性
+        ProcessWindowShadowTypeChanged();
+    }
+}
+
+void Window::PostInitWindow()
+{
     //检测是否需要根据root节点的auto类型设置窗口大小（比如菜单等有此种用法）
     if (AutoResizeWindow(false)) {
         //调整大小后，需要再次进行窗口居中
@@ -604,13 +611,6 @@ void Window::PostInitWindow()
 
     //创建后，Render大小与客户区大小同步
     ResizeRenderToClientSize();
-
-    //保证阴影状态已经初始化：窗口初次显示前Shadow::OnShadowAttached必须执行一次，否则阴影相关流程会出现异常
-    Shadow* pShadow = GetShadow();
-    if ((pShadow != nullptr) && pShadow->InitializeShadow()) {
-        //阴影状态发生变化，需要同步窗口RGN等属性
-        ProcessWindowShadowTypeChanged();
-    }
 
     //窗口初始化完成
     m_bWindowInitFinished = true;
