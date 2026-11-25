@@ -402,6 +402,57 @@ void PropertyGrid::SetEnableDescriptionArea(bool bEnable)
 - `py -3 tests/test_controls_pages.py`：`PASS: all checks succeeded`（15801 项检查）。
 - `property_grid.xml` XML 结构校验：通过。
 
+### 9.5 第三批实施记录（针对用户反馈的 3 个问题）
+
+**问题 1：文本类属性的值修改后字体不变粗**
+
+- 原因：各属性子类（文本、下拉框、颜色、日期时间、IP 地址、热键等 8 处）计算“是否有修改”时写作
+  `bool bChanged = !UsingPropertyValueId() && (newText != GetPropertyValue());`。
+  对于“值使用资源 ID”的属性，`UsingPropertyValueId() == true` 会让 `bChanged` 恒为 `false`，
+  因此 `SetPropertyText()` 永远不会切换到 `property_font_modified`（加粗）字体。
+- 修复：统一改为 `bool bChanged = (newText != GetPropertyValue());`（相对“原值”比较，值 ID 属性同样生效）。
+
+**问题 2：热键属性单击后原有热键丢失修饰键（`Ctrl+C` → `C`）**
+
+`duilib/Control/HotKey.cpp`
+
+- 反向查找虚拟键码的映射由 `vkCodeMap[temp] = vkCode` 改为 `vkCodeMap.insert(...)`：
+  保留第一个（标准）键码。此前同名键（如 `c` 同时对应 0x43 与 0xAE）会被后来的编码覆盖，
+  导致 `"c"` 被解析成 0xAE，显示异常。
+- 修饰键匹配增加英文/别名兼容：`ctrl`/`control`、`shift`、`alt`/`menu`，
+  避免系统 `GetKeyNameText` 在部分键盘布局/语言下返回非预期名称时解析失败。
+- 新增 `FindFixedVirtualKey()` 作为最后一级后备：系统接口取不到键名时，
+  按固定英文规则解析字母（a-z）、数字（0-9）与 F1-F24。
+
+`duilib/Control/PropertyGrid.cpp` / `.h`（`PropertyGridHotKeyProperty`）
+
+- 创建编辑控件时不再用 `GetPropertyText()` 反向解析并覆盖热键状态。
+- 每次进入编辑状态时先 `ClearHotKey()` 再 `SetHotKeyName(GetPropertyText())`，并记录
+  `m_oldText` 与新增成员 `uint16_t m_nOldHotKeyValue`（编辑前的热键值）。
+- 失焦提交时先用 `GetHotKey() == m_nOldHotKeyValue` 判断值是否真的变化：
+  仅单击（未录入）或录入相同热键时不修改属性文本、不改字重；
+  仅含修饰键的无效文本（如 `Ctrl+Shift`）也不会再被清空。
+- 取消（Esc/`bCancel`）仍恢复 `m_oldText` 对应的显示。
+
+**问题 3：界面美观度（颜色色块被裁切、全部分组折叠后网格线贯穿空白区）**
+
+- 颜色色块：`PropertyGridColorProperty::PaintChild()` 计算色块右边距时扣除垂直滚动条占用宽度
+  （行宽会延伸到滚动条下方），并按值单元格的右内边距（24 = 14 色块 + 10 边距）定位；
+  空间不足时不绘制。色块尺寸 14×14，边框色 `#A0A0A0`。
+- 纵向网格线：`PropertyGrid::PaintGridLines()` 记录最后一个可见行的底部 `nLastRowBottom`，
+  纵向线只绘制到 `nLastRowBottom + 行间距`（并夹取到视口底部），
+  全部分组折叠后不再出现贯穿空白区域的竖线。
+
+**验证**
+
+- `py -3 build/build.py build --no-deps --md --config Release --target render`：通过。
+- 运行 `bin/render.exe` 实测（2448×1384 原生分辨率截图取证）：
+  1) 文本属性改为新值后显示为粗体（笔画游程 3.58 → 5.74），未修改属性仍为常规字体；
+  2) 单击“热键1（Ctrl+C）”后失焦仍为 `Ctrl+C`（像素比对与点击前完全一致，未变粗）；
+     单击“热键4（Ctrl+Shift）”后仍保留 `Ctrl+Shift`；实际按下 Ctrl+C 录入后显示 `Ctrl+C`，不再退化为 `C`；
+  3) 颜色行右角色块完整显示 14×14（含 1px 灰边框），距滚动条 10px，无遮挡；
+  4) 分组一~八全部折叠后，空白区域无纵向网格线贯穿。
+
 ---
 
 ## 附：涉及文件

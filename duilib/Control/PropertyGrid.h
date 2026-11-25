@@ -2265,6 +2265,10 @@ private:
     /** 开始编辑前的值（用于取消编辑时恢复）
     */
     UiString m_oldText;
+
+    /** 开始编辑前的热键值[由MAKEWORD(wVirtualKeyCode, wModifiers)生成]，用于判断值是否发生变化
+    */
+    uint16_t m_nOldHotKeyValue = 0;
 };
 
 /** 设置文件路径属性

@@ -8,6 +8,28 @@
 namespace ui
 {
 
+/** 当系统接口无法获取键名时，使用固定的英文键名解析虚拟键码（仅支持字母、数字和F1-F24）
+*/
+static uint8_t FindFixedVirtualKey(const DString& keyName)
+{
+    if (keyName.size() == 1) {
+        const wchar_t chKey = keyName[0];
+        if ((chKey >= _T('a')) && (chKey <= _T('z'))) {
+            return static_cast<uint8_t>(kVK_A + (chKey - _T('a')));
+        }
+        if ((chKey >= _T('0')) && (chKey <= _T('9'))) {
+            return static_cast<uint8_t>(kVK_0 + (chKey - _T('0')));
+        }
+    }
+    else if ((keyName.size() >= 2) && (keyName[0] == _T('f'))) {
+        const int32_t nIndex = StringUtil::StringToInt32(keyName.c_str() + 1);
+        if ((nIndex >= 1) && (nIndex <= 24)) {
+            return static_cast<uint8_t>(kVK_F1 + nIndex - 1);
+        }
+    }
+    return 0;
+}
+
 #define HOTKEYF_SHIFT           0x01
 #define HOTKEYF_CONTROL         0x02
 #define HOTKEYF_ALT             0x04
@@ -291,17 +313,18 @@ bool HotKey::SetHotKeyName(const DString& hotKeyName)
     auto iter = hotKeyList.begin();
     while (iter != hotKeyList.end()) {
         const DString& hotKey = *iter;
-        if (hotKey == keyCtrl) {
+        //修饰键的匹配：同时兼容系统本地化的名称和英文名称，避免不同输入法/键盘布局下解析失败
+        if ((hotKey == keyCtrl) || (hotKey == _T("ctrl")) || (hotKey == _T("control"))) {
             wModifiers |= kHotKey_Contrl;
             iter = hotKeyList.erase(iter);
             continue;
         }
-        else if (hotKey == keyShift) {
+        else if ((hotKey == keyShift) || (hotKey == _T("shift"))) {
             wModifiers |= kHotKey_Shift;
             iter = hotKeyList.erase(iter);
             continue;
         }
-        else if (hotKey == keyAlt) {
+        else if ((hotKey == keyAlt) || (hotKey == _T("alt")) || (hotKey == _T("menu"))) {
             wModifiers |= kHotKey_Alt;
             iter = hotKeyList.erase(iter);
             continue;
@@ -317,7 +340,8 @@ bool HotKey::SetHotKeyName(const DString& hotKeyName)
         for (uint32_t vkCode = 0; vkCode <= 256; ++vkCode) {
             temp = StringUtil::MakeLowerString(GetKeyName((uint8_t)vkCode, false));
             if (!temp.empty()) {
-                vkCodeMap[temp] = (uint8_t)vkCode;
+                //同一个名称可能对应多个虚拟键码（比如部分保留值的名称与字母键重复），保留第一个（即标准键码）
+                vkCodeMap.insert(std::make_pair(temp, (uint8_t)vkCode));
             }
         }
         for (const DString& hotKey : hotKeyList) {
@@ -335,7 +359,7 @@ bool HotKey::SetHotKeyName(const DString& hotKeyName)
         for (uint32_t vkCode = 0; vkCode <= 256; ++vkCode) {
             temp = StringUtil::MakeLowerString(GetKeyName((uint8_t)vkCode, true));
             if (!temp.empty()) {
-                vkCodeExtMap[temp] = (uint8_t)vkCode;
+                vkCodeExtMap.insert(std::make_pair(temp, (uint8_t)vkCode));
             }
         }
         for (const DString& hotKey : hotKeyList) {
@@ -344,6 +368,16 @@ bool HotKey::SetHotKeyName(const DString& hotKeyName)
                 //只支持一个键，其他的忽略掉
                 wVirtualKeyCode = pos->second;
                 wModifiers |= kHotKey_Ext;
+                break;
+            }
+        }
+    }
+    if ((wVirtualKeyCode == 0) && !hotKeyList.empty()) {
+        //系统接口无法获取键名时，使用固定的英文键名作为后备（如字母、数字、F1-F24）
+        for (const DString& hotKey : hotKeyList) {
+            uint8_t vkCode = FindFixedVirtualKey(hotKey);
+            if (vkCode != 0) {
+                wVirtualKeyCode = vkCode;
                 break;
             }
         }
