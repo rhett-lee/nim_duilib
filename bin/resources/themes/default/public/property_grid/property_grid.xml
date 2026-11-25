@@ -2,12 +2,12 @@
 <Global>
     <!-- 通用的Class 定义 -->
     <!-- 属性区域的背景色：包括编辑框等 -->
-    <Class name="property_grid_expand" expand_normal_image="file='public/property_grid/minus.svg' height='18' width='18' margin='2,0,0,0' valign='center'"
-                                       expand_hovered_image="file='public/property_grid/minus.svg' height='18' width='18' margin='2,0,0,0' valign='center'"
-                                       expand_disabled_image="file='public/property_grid/minus.svg' height='18' width='18' margin='2,0,0,0' valign='center' fade='80'"
-                                       collapse_normal_image="file='public/property_grid/plus.svg' height='18' width='18' margin='2,0,0,0' valign='center'"
-                                       collapse_hovered_image="file='public/property_grid/plus.svg' height='18' width='18' margin='2,0,0,0' valign='center'"
-                                       collapse_disabled_image="file='public/property_grid/plus.svg' height='18' width='18' margin='2,0,0,0' valign='center' fade='80'"
+    <Class name="property_grid_expand" expand_normal_image="file='public/property_grid/minus.svg' height='18' width='18' margin='2,0,0,0' valign='center' svg_replace_colors='#666666|border_svg_image'"
+                                       expand_hovered_image="file='public/property_grid/minus.svg' height='18' width='18' margin='2,0,0,0' valign='center' svg_replace_colors='#666666|border_svg_image'"
+                                       expand_disabled_image="file='public/property_grid/minus.svg' height='18' width='18' margin='2,0,0,0' valign='center' fade='80' svg_replace_colors='#666666|border_svg_image'"
+                                       collapse_normal_image="file='public/property_grid/plus.svg' height='18' width='18' margin='2,0,0,0' valign='center' svg_replace_colors='#666666|border_svg_image'"
+                                       collapse_hovered_image="file='public/property_grid/plus.svg' height='18' width='18' margin='2,0,0,0' valign='center' svg_replace_colors='#666666|border_svg_image'"
+                                       collapse_disabled_image="file='public/property_grid/plus.svg' height='18' width='18' margin='2,0,0,0' valign='center' fade='80' svg_replace_colors='#666666|border_svg_image'"
                                        icon_image_right_space="4"/>
     <!-- 属性页的表头 -->
     <Class name="property_grid_header" bkcolor="bg_property_grid_header" height="30" border_size="0,0,0,1" border_color="border_property_grid_header"/>

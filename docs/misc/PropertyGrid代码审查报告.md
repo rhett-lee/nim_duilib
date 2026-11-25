@@ -197,11 +197,11 @@ void PropertyGrid::SetEnableDescriptionArea(bool bEnable)
 | 4 未校验分组归属 | ✅ | `AddProperty()` 校验 `pGroup->GetPropertyGrid() == this` |
 | 5 `GetDescriptionAreaHeight()` 语义错误 | ✅ | 固定高度为 0 时返回 `m_pDescriptionArea->GetRect().Height()` |
 | 6 描述文本不转义、语言切换不刷新 | ✅ | 新增 `PropertyGrid::UpdateDescriptionArea()`：名称转义 `&`/`<`/`>` 后按 `<b>name</b><br/>desc` 拼接；新增 `OnLanguageChanged()` 覆盖并在 `bRedraw` 时 `Invalidate()` |
-| 7 `GetPropertyType()` 死接口 | ⏳ | 未删除（涉及公共 API 与所有子类），保留后续统一清理 |
+| 7 `GetPropertyType()` 死接口 | ✅（保留） | 按需求**保留该接口不删除**。它描述"属性种类"而非控件节点类型，无法安全替代 `PaintGridLines()` 中的节点类型转换，因此库内仍无调用点，作为公共查询接口提供给调用方 |
 | 8 日期/IP/热键无取消语义 | ✅ | 三者 `ShowEditControl()` 支持 `bCancel` 并恢复 `m_oldText` |
 | 9 调试残留 | ✅ | 已删除 `auto s0/s1` 及相关 `ASSERT` |
 | 10 接口拼写错误 | ✅ | 已重命名为 `GetPropertyNormalFontId` / `GetPropertyModifiedFontId`（调用点同步） |
-| 11 `SetEnableHeaderCtrl()` 断言/空文本 | ⏳ | 未改动；空字符串仍会把表头置空（调用方需传入有效文本） |
+| 11 `SetEnableHeaderCtrl()` 断言/空文本 | ✅ | 去掉 `ASSERT(IsInited())`；文本 ID 模式下空字符串回退到 `STRID_PUBLIC_PROPERTY_NAME` / `STRID_PUBLIC_PROPERTY_VALUE`，不再出现空白表头 |
 
 ---
 
@@ -223,34 +223,32 @@ void PropertyGrid::SetEnableDescriptionArea(bool bEnable)
 - **布局修正**：横向线的 `childMarginY` 改为取 `m_pTreeView->GetLayout()->GetChildMarginY()`（原误用 PropertyGrid 自身布局）。
 - **裁剪**：以 `viewRect`（树控件矩形）为界，`yPos <= top` 跳过、`yPos > bottom` 直接 `break`，竖线只画到 `viewRect.bottom`；横向线右端扣除垂直滚动条宽度。
 - **绘制顺序**：仍保留在 `BaseClass::PaintChild()` 之后。原因是属性行现在有不透明背景色（`bg_property_grid_property`）与 hover/selected 状态色，若先画线会被行背景覆盖；代价是竖线会与属性值编辑控件左边缘重叠 1px，实测不可见。
-- **未采用项**：`GetPropertyType()` 替换 `dynamic_cast` 与"仅遍历可见索引区间"依赖 TreeView 暴露可见区间/类型标记接口，本次未改动（当前单次遍历已去掉临时分配，属性数量下性能可接受）。
+- **未采用项**：`GetPropertyType()` 不能替代 `dynamic_cast`（它描述属性种类，基类/自定义子类都返回 `kNone`/`kCustom`，无法区分"是不是 PropertyGridProperty 节点"），因此热路径仍保留一次 `dynamic_cast`；"仅遍历可见索引区间"需要 TreeView 新增可见区间接口，本次未改动核心控件（当前单次遍历无临时分配、无多余虚调用，属性数量下性能可接受）。
 
 ---
 
-## 五、代码质量与可维护性 ⏳ 未实施（本次仅修缺陷与界面）
+## 五、代码质量与可维护性 ✅ 部分治理（第 1、5 项已实施）
 
-1. **工厂方法重复严重**
-   `AddTextProperty/AddComboProperty/...` 每种类型 3 个重载，约 450 行几乎逐字重复（L700-L1146）。建议模板化：
+1. **工厂方法重复严重** ✅ 已模板化
+   `AddTextProperty/AddComboProperty/...` 原先是每种类型 3 个重载、约 450 行几乎逐字重复。现已改为：
+   - 新增私有成员模板 `template<typename TProperty, typename... TArgs> TProperty* AddPropertyImpl(PropertyGridGroup*, const PropertyGridParam&, TArgs&&...)`，统一负责"创建 → 添加 → 失败时 delete"；
+   - 新增文件内辅助 `MakePropertyParam()` / `MakePropertyParamById()` 组装参数；
+   - 所有公开重载（含文件/目录/日期的附加参数）收缩为一行转发，工厂代码量减少约 60%，对外 API 与行为不变。
 
-   ```cpp
-   template<typename TProperty>
-   TProperty* AddProperty(PropertyGridGroup* pGroup, const PropertyGridParam& param);
-   ```
-   由各类型提供 `explicit TProperty(Window*, const PropertyGridParam&)` 构造即可，可去掉 2/3 的代码量。
+2. **构造函数参数过长** ✅ 已具备替代方案
+   每个类型都提供 `(Window*, const PropertyGridParam&)` 重载，`PropertyGridParam` 支持 C++20 指定初始化器（`.m_propertyName = ...`），可避免 6 参布尔序列传错位；旧重载保留以兼容现有调用。
 
-2. **构造函数参数过长**
-   每个类型 3 个构造函数 + `(bool, DString, bool, DString, bool, DString, size_t, ...)` 这种 6 参布尔序列极易传错。建议全场景统一走 `PropertyGridParam`（可增加静态构造辅助 `PropertyGridParam::Make(...)`）。
+3. **重复判空/断言** ⏳ 保持现状
+   `ASSERT + if` 双保险属于防御式写法，成本低且能在属性被移除后避免空指针；属性对象的生命周期确实可能短于 PropertyGrid（可被 `RemoveProperty` 删除），因此不改为引用。
 
-3. **重复判空/断言**
-   `ASSERT(m_pPropertyGrid != nullptr); if (m_pPropertyGrid != nullptr)` 在 `OnInit`/`SetPropertyText` 中反复出现。建议基类持有 `PropertyGrid&` 引用（属性对象生命周期内属性表必然存在），或提供 `PropertyGrid* GetGridChecked()`。
+4. **`UiString` ↔ `DString` 的 `.c_str()` 往返** ⏳ 保持现状
+   库内字符串类型约定为 `DString`（存储用 `UiString` 时为兼容历史成员），统一改造收益低、diff 大，暂不处理。
 
-4. **`UiString` ↔ `DString` 的 `.c_str()` 往返**遍布全文件，可统一在返回值处转换，内部尽量用 `DString`。
+5. **边栏类硬编码样式** ✅ 已支持 XML 配置
+   新增 PropertyGrid 属性与接口：`property_edit_class`、`property_combo_class`、`property_combo_button_class`、`property_date_time_class`、`property_ip_address_class`、`property_hot_key_class`、`property_button_class`、`property_spin_class`（及对应 `Set/Get` 方法）。未配置时回退到原有默认类名，行为不变；属性子类通过 `PropertyGridProperty::GetValueEditorClass()/GetValueButtonClass()/GetValueSpinClass()` 统一取样式。
 
-5. **边栏类硬编码样式**
-   编辑控件类名写死在代码里（`property_grid_property_edit`、`property_grid_combo`、`property_grid_button` 等），而其余样式都支持 XML 属性。建议补齐 `property_edit_class`、`combo_class` 等属性，保持扩展方式一致。
-
-6. **无单元测试**
-   `tests/` 下没有 PropertyGrid 用例。建议至少覆盖：按 ID 显示名称/值/描述、颜色取消、删除属性后滚动、只读→可编辑后密码模式、ComboBox 程序设值。
+6. **无单元测试** ⏳ 未实施
+   `tests/` 下没有 PropertyGrid 用例。建议覆盖：按 ID 显示名称/值/描述、颜色取消、删除属性后滚动、只读→可编辑后密码模式、ComboBox 程序设值。当前完整构建在链接测试目标时存在 `LNK2038`（预编译 `duilib-cximage.lib` 为 `/MD`，库为 `/MT`）的既有环境问题，新增 C++ 测试暂时无法稳定运行。
 
 ---
 
@@ -310,7 +308,8 @@ void PropertyGrid::SetEnableDescriptionArea(bool bEnable)
 - 编辑控件内边距同步为左 8（`property_grid_property_edit` 为 `text_padding="8,0,8,0"`，`property_grid_combo` 的 `combo_edit_class` 为 `text_padding='8,0,2,0'`），使"显示文本 → 进入编辑"不出现水平跳动；值列右内边距 24 为颜色色块留位。
 - 描述区：`height` 64 → 80，`text_padding` 2,2,0,0 → 8,6,8,6，并增加 `border_round="3,3"`；`split_horizontal` 本身已有 hover/pressed 颜色，无需改动。
 - 颜色属性常驻色块：`PropertyGridColorProperty::PaintChild()` 在值格右侧绘制 14×14 色块（`FillRect` + 1px `#FFA0A0A0` 边框），编辑状态下不绘制（由 `ComboButton` 显示）；未使用额外的 `property_grid_color_swatch` 类。
-- 未做项：展开箭头 `minus.svg/plus.svg` 换高对比色（属于图片资源调整，未在本次范围内）。
+- 展开箭头对比度：`property_grid_expand` 的六个状态图片增加 `svg_replace_colors='#666666|border_svg_image'`，随主题切换颜色（浅色主题深灰、深色主题浅色），无需替换 svg 文件；禁用态仍叠加 `fade='80'`。
+- 未做项：值格 hover 描边（现由整行 hover 背景提供反馈，避免与选中态重复）。
 
 ---
 
@@ -320,7 +319,7 @@ void PropertyGrid::SetEnableDescriptionArea(bool bEnable)
 2. **列宽**：默认 `left_column_width="200"` 对中文够用；英文长属性名（如 `Default Document Encoding`）在 200px 下会被截断（虽有 `SetAutoToolTip`）。建议：
    - 英文主题单独给 240px；或
    - 提供 `AutoAdjustLeftColumnWidth()`：按当前语言的属性名测量最大宽度 + 左侧图标宽度 + 边距，限制在 `[minWidth, maxWidth]` 内，语言切换后重新计算。
-   - **已实施**：`global.xml` 的 `property_grid` 样式类默认 `left_column_width` 由 200 调整为 220，中英文都可读且不挤压值列；`AutoAdjustLeftColumnWidth()` 未实现（属新增 API，按需再做）。
+   - **已实施**：`global.xml` 的 `property_grid` 样式类默认 `left_column_width` 由 200 调整为 220；同时新增 `PropertyGrid::AutoAdjustLeftColumnWidth(nMinWidth, nMaxWidth, nExtraWidth)`，按当前语言测量所有属性名称的最大文本宽度（含缩进与内边距），可限制在指定区间内。调用方可在语言切换后主动调用（本控件不自动改变布局，避免影响调用方的列宽设置）。
 3. **表头文案**已用 `STRID_PUBLIC_PROPERTY_NAME/VALUE`（中英均有），但 `RenderForm` 用的是 `STRID_RENDER_PROPGRID_PROPERTY/VALUE`，需确认英文译文长度在表头中不折行 —— 表头已左对齐且左侧留 8px，英文短词不会折行。
 4. **描述区**按语言重建（见第三节 6），否则切换语言后仍显示旧语言 —— 已由 `PropertyGrid::OnLanguageChanged()` 刷新。
 5. **密码/掩码符号**：中英文均建议用 `●` 这类与语言无关的符号，避免 `*` 在不同字体下的基线差异 —— 仍使用 `*`（`m_pRichEdit` 的 `SetFlashPasswordChar` 与显示层掩码），未改动。
@@ -331,8 +330,9 @@ void PropertyGrid::SetEnableDescriptionArea(bool bEnable)
 
 1. **第一批（改动小、风险低）**：P0-1 ~ P0-5 + 删除调试残留 + 拼写修正 —— ✅ 已完成。
 2. **第二批（结构调整）**：编辑控件延迟创建 + 状态回放（密码/Spin/选项/字号列表）；滚动监听收敛到 PropertyGrid；`SetPropertyValue` 与 Combo 的同步策略 —— ✅ 已完成。
-3. **第三批（绘制与视觉）**：网格线绘制顺序与性能、行选中/悬浮态、表头与分组样式、描述区样式、颜色色块常驻、双语列宽自适应 —— ✅ 已完成（列宽采用默认值 220 的折中方案，未做自动测量）。
+3. **第三批（绘制与视觉）**：网格线绘制顺序与性能、行选中/悬浮态、表头与分组样式、描述区样式、颜色色块常驻、双语列宽自适应 —— ✅ 已完成（默认列宽 220 + `AutoAdjustLeftColumnWidth()` 手动自适应）。
 4. **配套**：为 P0 与"只读 → 可编辑"场景补最小单元测试 —— ⏳ 未实施（见下节说明）。
+5. **补充批次（第二次提交）**：`GetPropertyType` 保留、表头接口健壮性、工厂方法模板化、编辑控件样式可由 XML 配置、展开箭头对比度 —— ✅ 已完成（见 9.4）。
 
 ---
 
@@ -373,6 +373,34 @@ void PropertyGrid::SetEnableDescriptionArea(bool bEnable)
 - `property_grid.xml` XML 结构校验：通过。
 - **构建环境遗留问题（与本次改动无关）**：完整构建在链接 `tests/test_label.exe` 等目标时因 `duilib-cximage.lib` 的 `LNK2038 RuntimeLibrary 不匹配（MD_DynamicRelease vs MT_StaticRelease）` 失败；预编译的 cximage 库为 `/MD`，而本仓库默认 `/MT`。库与示例本身编译通过。
 - 未做：PropertyGrid 单元测试（tests 目录当前无该控件用例，且上述链接问题会阻碍新增测试运行）。
+
+### 9.4 补充批次实施记录（第二次提交）
+
+`duilib/Control/PropertyGrid.h`
+
+- 保留 `GetPropertyType()` 公共接口（按要求不删除）。
+- 新增 `#include <utility>`；`PropertyGrid` 新增 8 组编辑控件样式类属性的 Set/Get：`SetPropertyEditClass`、`SetPropertyComboClass`、`SetPropertyComboButtonClass`、`SetPropertyDateTimeClass`、`SetPropertyIPAddressClass`、`SetPropertyHotKeyClass`、`SetPropertyButtonClass`、`SetPropertySpinClass`，以及对应成员变量。
+- 新增 `int32_t AutoAdjustLeftColumnWidth(int32_t nMinWidth = 0, int32_t nMaxWidth = 0, int32_t nExtraWidth = 24)`。
+- 新增私有成员模板 `AddPropertyImpl<TProperty, TArgs...>()`，统一"创建 + 添加 + 失败清理"。
+- `PropertyGridProperty` 新增受保护辅助方法：`GetValueEditorClass()`、`GetValueButtonClass()`、`GetValueSpinClass()`（按属性类型或类别取 PropertyGrid 配置的样式类，未配置时回退默认值）。
+
+`duilib/Control/PropertyGrid.cpp`
+
+- `SetAttribute()` 支持 `property_edit_class`、`property_combo_class`、`property_combo_button_class`、`property_date_time_class`、`property_ip_address_class`、`property_hot_key_class`、`property_button_class`、`property_spin_class`。
+- 新增 `MakePropertyParam()` / `MakePropertyParamById()`（匿名命名空间），30 个 `AddXxxProperty` / `AddXxxPropertyById` / `AddXxxProperty(param)` 全部改为一行转发到 `AddPropertyImpl`，消除约 450 行重复代码。
+- 各子类创建编辑控件时改用 `GetValueEditorClass(...)` / `GetValueButtonClass(...)` / `GetValueSpinClass(...)`，样式类可由 XML 覆盖。
+- `AutoAdjustLeftColumnWidth()`：用 `IRender::MeasureString` 逐个测量属性名（含文字内边距、控件内边距、行内边距与树缩进），取最大值加 `nExtraWidth`，按 `nMinWidth/nMaxWidth` 夹取后调用 `SetLeftColumnWidth(width, false)`。
+- `SetEnableHeaderCtrl()`：移除 `ASSERT(IsInited())`；文本 ID 为空时回退 `STRID_PUBLIC_PROPERTY_NAME` / `STRID_PUBLIC_PROPERTY_VALUE`。
+
+`bin/resources/themes/default/public/property_grid/property_grid.xml`
+
+- `property_grid_expand` 六张状态图片追加 `svg_replace_colors='#666666|border_svg_image'`，箭头颜色随主题（浅色深灰 / 深色浅色），禁用态保留 `fade='80'`。
+
+验证：
+
+- `py -3 build/build.py build --no-deps --config Release --target duilib`：通过。
+- `py -3 tests/test_controls_pages.py`：`PASS: all checks succeeded`（15801 项检查）。
+- `property_grid.xml` XML 结构校验：通过。
 
 ---
 

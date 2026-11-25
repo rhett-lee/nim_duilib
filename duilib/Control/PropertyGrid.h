@@ -15,6 +15,7 @@
 #include "duilib/Control/IPAddress.h"
 #include "duilib/Control/HotKey.h"
 #include "duilib/Utils/FileDialog.h"
+#include <utility>
 
 namespace ui
 {
@@ -642,6 +643,54 @@ public:
     void SetPropertyValueLabelClass(const DString& propertyValueLabelClass);
     DString GetPropertyValueLabelClass() const;
 
+    /** 属性的编辑框Class（文本类属性）
+    */
+    void SetPropertyEditClass(const DString& editClass);
+    DString GetPropertyEditClass() const;
+
+    /** 属性的下拉框Class
+    */
+    void SetPropertyComboClass(const DString& comboClass);
+    DString GetPropertyComboClass() const;
+
+    /** 颜色的下拉框按钮Class
+    */
+    void SetPropertyComboButtonClass(const DString& comboButtonClass);
+    DString GetPropertyComboButtonClass() const;
+
+    /** 日期时间控件的Class
+    */
+    void SetPropertyDateTimeClass(const DString& dateTimeClass);
+    DString GetPropertyDateTimeClass() const;
+
+    /** IP地址控件的Class
+    */
+    void SetPropertyIPAddressClass(const DString& ipAddressClass);
+    DString GetPropertyIPAddressClass() const;
+
+    /** 热键控件的Class
+    */
+    void SetPropertyHotKeyClass(const DString& hotKeyClass);
+    DString GetPropertyHotKeyClass() const;
+
+    /** 属性值中的按钮Class（文件/目录属性的浏览按钮）
+    */
+    void SetPropertyButtonClass(const DString& buttonClass);
+    DString GetPropertyButtonClass() const;
+
+    /** 数字调节按钮的Class（依次为：容器、向上按钮、向下按钮，用逗号分隔）
+    */
+    void SetPropertySpinClass(const DString& spinClass);
+    DString GetPropertySpinClass() const;
+
+    /** 根据当前语言自动调整左侧列宽（取所有属性名称中最宽的文本）
+    * @param [in] nMinWidth 最小列宽（像素），小于等于0表示不限制
+    * @param [in] nMaxWidth 最大列宽（像素），小于等于0表示不限制
+    * @param [in] nExtraWidth 额外增加的宽度（像素），用于图标与右侧留白
+    * @return 返回调整后的左侧列宽（像素）
+    */
+    int32_t AutoAdjustLeftColumnWidth(int32_t nMinWidth = 0, int32_t nMaxWidth = 0, int32_t nExtraWidth = 24);
+
 protected:
     /** 初始化函数
      */
@@ -683,6 +732,19 @@ private:
     /** 获取左侧列宽的值
     */
     int32_t GetLeftColumnWidthValue() const;
+
+    /** 添加属性（内部实现，统一处理创建后添加失败时的资源清理）
+    */
+    template<typename TProperty, typename... TArgs>
+    TProperty* AddPropertyImpl(PropertyGridGroup* pGroup, const PropertyGridParam& param, TArgs&&... args)
+    {
+        TProperty* pProperty = new TProperty(GetWindow(), param, std::forward<TArgs>(args)...);
+        if (!AddProperty(pGroup, pProperty)) {
+            delete pProperty;
+            pProperty = nullptr;
+        }
+        return pProperty;
+    }
 
 private:
     /** 配置XML文件
@@ -759,6 +821,38 @@ private:
     /** 属性的值文本控件Class
     */
     UiString m_propertyValueLabelClass;
+
+    /** 属性的编辑框Class（文本类属性）
+    */
+    UiString m_propertyEditClass;
+
+    /** 属性的下拉框Class
+    */
+    UiString m_propertyComboClass;
+
+    /** 颜色的下拉框按钮Class
+    */
+    UiString m_propertyComboButtonClass;
+
+    /** 日期时间控件的Class
+    */
+    UiString m_propertyDateTimeClass;
+
+    /** IP地址控件的Class
+    */
+    UiString m_propertyIPAddressClass;
+
+    /** 热键控件的Class
+    */
+    UiString m_propertyHotKeyClass;
+
+    /** 属性值中的按钮Class
+    */
+    UiString m_propertyButtonClass;
+
+    /** 数字调节按钮的Class
+    */
+    UiString m_propertySpinClass;
 
 private:
     /** 属性值的字体Id（正常状态）
@@ -1144,6 +1238,21 @@ protected:
     /** 获取编辑控件的Margin.right（避免滚动条遮挡编辑控件）
     */
     int32_t GetEditControlMarginRight() const;
+
+    /** 获取属性值编辑控件的样式Class（优先使用PropertyGrid中配置的样式）
+    * @param [in] defaultClass 未配置时使用的默认Class
+    */
+    DString GetValueEditorClass(const DString& defaultClass) const;
+
+    /** 获取属性值中按钮的样式Class（优先使用PropertyGrid中配置的样式）
+    * @param [in] defaultClass 未配置时使用的默认Class
+    */
+    DString GetValueButtonClass(const DString& defaultClass) const;
+
+    /** 获取数字调节按钮的样式Class（优先使用PropertyGrid中配置的样式）
+    * @param [in] defaultClass 未配置时使用的默认Class
+    */
+    DString GetValueSpinClass(const DString& defaultClass) const;
 
 protected:
     /** 设置属性值的文本(显示控件)，用于编辑属性后更新显示控件的文本内容

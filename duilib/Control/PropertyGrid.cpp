@@ -73,6 +73,30 @@ void PropertyGrid::SetAttribute(const DString& strName, const DString& strValue2
     else if (strName == _T("property_value_label_class")) {
         SetPropertyValueLabelClass(strValue);
     }
+    else if (strName == _T("property_edit_class")) {
+        SetPropertyEditClass(strValue);
+    }
+    else if (strName == _T("property_combo_class")) {
+        SetPropertyComboClass(strValue);
+    }
+    else if (strName == _T("property_combo_button_class")) {
+        SetPropertyComboButtonClass(strValue);
+    }
+    else if (strName == _T("property_date_time_class")) {
+        SetPropertyDateTimeClass(strValue);
+    }
+    else if (strName == _T("property_ip_address_class")) {
+        SetPropertyIPAddressClass(strValue);
+    }
+    else if (strName == _T("property_hot_key_class")) {
+        SetPropertyHotKeyClass(strValue);
+    }
+    else if (strName == _T("property_button_class")) {
+        SetPropertyButtonClass(strValue);
+    }
+    else if (strName == _T("property_spin_class")) {
+        SetPropertySpinClass(strValue);
+    }
     else if (strName == _T("left_column_width")) {
         SetLeftColumnWidth(StringUtil::StringToInt32(strValue), true);
     }
@@ -409,26 +433,36 @@ void PropertyGrid::ResizePropertyColumn(TreeNode* pPropertyNode, int32_t nLeftCo
 void PropertyGrid::SetEnableHeaderCtrl(bool bEnable, const DString& sLeftColumn,
                                        const DString& sRightColumn, bool bTextId)
 {
-    ASSERT(IsInited());
     m_bHeaderCtrl = bEnable;
     if (m_pHeaderCtrl != nullptr) {
         m_pHeaderCtrl->SetVisible(bEnable);
     }
     if (IsEnableHeaderCtrl()) {
+        //文本ID未指定时，使用默认的语言资源ID
+        DString sLeft = sLeftColumn;
+        DString sRight = sRightColumn;
+        if (bTextId) {
+            if (sLeft.empty()) {
+                sLeft = _T("STRID_PUBLIC_PROPERTY_NAME");
+            }
+            if (sRight.empty()) {
+                sRight = _T("STRID_PUBLIC_PROPERTY_VALUE");
+            }
+        }
         if (m_pHeaderLeft != nullptr) {
             if (bTextId) {
-                m_pHeaderLeft->SetTextId(sLeftColumn);
+                m_pHeaderLeft->SetTextId(sLeft);
             }
             else {
-                m_pHeaderLeft->SetText(sLeftColumn);
+                m_pHeaderLeft->SetText(sLeft);
             }
         }
         if (m_pHeaderRight != nullptr) {
             if (bTextId) {
-                m_pHeaderRight->SetTextId(sRightColumn);
+                m_pHeaderRight->SetTextId(sRight);
             }
             else {
-                m_pHeaderRight->SetText(sRightColumn);
+                m_pHeaderRight->SetText(sRight);
             }            
         }
     }
@@ -666,6 +700,140 @@ DString PropertyGrid::GetPropertyValueLabelClass() const
     return m_propertyValueLabelClass.c_str();
 }
 
+void PropertyGrid::SetPropertyEditClass(const DString& editClass)
+{
+    m_propertyEditClass = editClass;
+}
+
+DString PropertyGrid::GetPropertyEditClass() const
+{
+    return m_propertyEditClass.c_str();
+}
+
+void PropertyGrid::SetPropertyComboClass(const DString& comboClass)
+{
+    m_propertyComboClass = comboClass;
+}
+
+DString PropertyGrid::GetPropertyComboClass() const
+{
+    return m_propertyComboClass.c_str();
+}
+
+void PropertyGrid::SetPropertyComboButtonClass(const DString& comboButtonClass)
+{
+    m_propertyComboButtonClass = comboButtonClass;
+}
+
+DString PropertyGrid::GetPropertyComboButtonClass() const
+{
+    return m_propertyComboButtonClass.c_str();
+}
+
+void PropertyGrid::SetPropertyDateTimeClass(const DString& dateTimeClass)
+{
+    m_propertyDateTimeClass = dateTimeClass;
+}
+
+DString PropertyGrid::GetPropertyDateTimeClass() const
+{
+    return m_propertyDateTimeClass.c_str();
+}
+
+void PropertyGrid::SetPropertyIPAddressClass(const DString& ipAddressClass)
+{
+    m_propertyIPAddressClass = ipAddressClass;
+}
+
+DString PropertyGrid::GetPropertyIPAddressClass() const
+{
+    return m_propertyIPAddressClass.c_str();
+}
+
+void PropertyGrid::SetPropertyHotKeyClass(const DString& hotKeyClass)
+{
+    m_propertyHotKeyClass = hotKeyClass;
+}
+
+DString PropertyGrid::GetPropertyHotKeyClass() const
+{
+    return m_propertyHotKeyClass.c_str();
+}
+
+void PropertyGrid::SetPropertyButtonClass(const DString& buttonClass)
+{
+    m_propertyButtonClass = buttonClass;
+}
+
+DString PropertyGrid::GetPropertyButtonClass() const
+{
+    return m_propertyButtonClass.c_str();
+}
+
+void PropertyGrid::SetPropertySpinClass(const DString& spinClass)
+{
+    m_propertySpinClass = spinClass;
+}
+
+DString PropertyGrid::GetPropertySpinClass() const
+{
+    return m_propertySpinClass.c_str();
+}
+
+int32_t PropertyGrid::AutoAdjustLeftColumnWidth(int32_t nMinWidth, int32_t nMaxWidth, int32_t nExtraWidth)
+{
+    if (m_pTreeView == nullptr) {
+        return GetLeftColumnWidth();
+    }
+    IRender* pRender = nullptr;
+    if (GetWindow() != nullptr) {
+        pRender = GetWindow()->GetRender();
+    }
+    if (pRender == nullptr) {
+        return GetLeftColumnWidth();
+    }
+
+    //取所有属性名称中最宽的文本，加上缩进、内边距与额外留白
+    int32_t nMaxTextWidth = 0;
+    const int32_t nIndent = m_pTreeView->GetIndent();
+    const size_t nCount = m_pTreeView->GetItemCount();
+    for (size_t i = 0; i < nCount; ++i) {
+        PropertyGridProperty* pProperty = dynamic_cast<PropertyGridProperty*>(m_pTreeView->GetItemAt(i));
+        if ((pProperty == nullptr) || (pProperty->GetLabelBoxLeft() == nullptr)) {
+            continue;
+        }
+        LabelBox* pLabelBox = pProperty->GetLabelBoxLeft();
+        MeasureStringParam measureParam = pLabelBox->GetMeasureParam();
+        if (measureParam.pFont == nullptr) {
+            continue;
+        }
+        const int32_t nTextWidth = pRender->MeasureString(pLabelBox->GetText(), measureParam).Width();
+        const UiPadding rcTextPadding = pLabelBox->GetTextPadding();
+        const UiPadding rcControlPadding = pLabelBox->GetControlPadding();
+        const UiPadding rcRowPadding = pProperty->GetPadding();
+        int32_t nWidth = nTextWidth + rcTextPadding.left + rcTextPadding.right
+                         + rcControlPadding.left + rcControlPadding.right
+                         + rcRowPadding.left + rcRowPadding.right
+                         + nIndent * static_cast<int32_t>(pProperty->GetDepth());
+        if (nWidth > nMaxTextWidth) {
+            nMaxTextWidth = nWidth;
+        }
+    }
+    if (nMaxTextWidth <= 0) {
+        return GetLeftColumnWidth();
+    }
+
+    int32_t nWidth = nMaxTextWidth + nExtraWidth;
+    if ((nMinWidth > 0) && (nWidth < nMinWidth)) {
+        nWidth = nMinWidth;
+    }
+    if ((nMaxWidth > 0) && (nWidth > nMaxWidth)) {
+        nWidth = nMaxWidth;
+    }
+    SetLeftColumnWidth(nWidth, false);
+    return nWidth;
+}
+
 PropertyGridGroup* PropertyGrid::AddGroup(const DString& groupName,
                                           const DString& description,
                                           size_t nGroupData)
@@ -737,6 +905,45 @@ void PropertyGrid::RemoveAllGroups()
     }
 }
 
+namespace
+{
+/** 构造属性的参数（普通文本形式）
+*/
+PropertyGridParam MakePropertyParam(const DString& propertyName,
+                                    const DString& propertyValue,
+                                    const DString& description,
+                                    size_t nPropertyData)
+{
+    PropertyGridParam param;
+    param.m_propertyName = propertyName;
+    param.m_propertyValue = propertyValue;
+    param.m_description = description;
+    param.m_nPropertyData = nPropertyData;
+    return param;
+}
+
+/** 构造属性的参数（文本ID形式）
+*/
+PropertyGridParam MakePropertyParamById(const DString& propertyNameId,
+                                        const DString& propertyValue,
+                                        const DString& descriptionId,
+                                        size_t nPropertyData,
+                                        bool bPropertyValueId)
+{
+    PropertyGridParam param;
+    param.m_propertyNameId = propertyNameId;
+    if (bPropertyValueId) {
+        param.m_propertyValueId = propertyValue;
+    }
+    else {
+        param.m_propertyValue = propertyValue;
+    }
+    param.m_descriptionId = descriptionId;
+    param.m_nPropertyData = nPropertyData;
+    return param;
+}
+}//namespace
+
 bool PropertyGrid::AddProperty(PropertyGridGroup* pGroup, PropertyGridProperty* pProperty)
 {
     ASSERT((pGroup != nullptr) && (pProperty != nullptr));
@@ -771,12 +978,7 @@ PropertyGridTextProperty* PropertyGrid::AddTextProperty(PropertyGridGroup* pGrou
                                                         const DString& description,
                                                         size_t nPropertyData)
 {
-    PropertyGridTextProperty* pProperty = new PropertyGridTextProperty(GetWindow(), propertyName, propertyValue, description, nPropertyData);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridTextProperty>(pGroup, MakePropertyParam(propertyName, propertyValue, description, nPropertyData));
 }
 
 PropertyGridTextProperty* PropertyGrid::AddTextPropertyById(PropertyGridGroup* pGroup,
@@ -786,24 +988,12 @@ PropertyGridTextProperty* PropertyGrid::AddTextPropertyById(PropertyGridGroup* p
                                                             size_t nPropertyData,
                                                             bool bPropertyValueId)
 {
-    PropertyGridTextProperty* pProperty = new PropertyGridTextProperty(GetWindow(), true, propertyNameId,
-                                                                       bPropertyValueId, propertyValue,
-                                                                       true, descriptionId, nPropertyData);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridTextProperty>(pGroup, MakePropertyParamById(propertyNameId, propertyValue, descriptionId, nPropertyData, bPropertyValueId));
 }
 
 PropertyGridTextProperty* PropertyGrid::AddTextProperty(PropertyGridGroup* pGroup, const PropertyGridParam& param)
 {
-    PropertyGridTextProperty* pProperty = new PropertyGridTextProperty(GetWindow(), param);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridTextProperty>(pGroup, param);
 }
 
 PropertyGridComboProperty* PropertyGrid::AddComboProperty(PropertyGridGroup* pGroup,
@@ -812,12 +1002,7 @@ PropertyGridComboProperty* PropertyGrid::AddComboProperty(PropertyGridGroup* pGr
                                                           const DString& description,
                                                           size_t nPropertyData)
 {
-    PropertyGridComboProperty* pProperty = new PropertyGridComboProperty(GetWindow(), propertyName, propertyValue, description, nPropertyData);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridComboProperty>(pGroup, MakePropertyParam(propertyName, propertyValue, description, nPropertyData));
 }
 
 PropertyGridComboProperty* PropertyGrid::AddComboPropertyById(PropertyGridGroup* pGroup,
@@ -827,25 +1012,12 @@ PropertyGridComboProperty* PropertyGrid::AddComboPropertyById(PropertyGridGroup*
                                                               size_t nPropertyData,
                                                               bool bPropertyValueId)
 {
-    PropertyGridComboProperty* pProperty = new PropertyGridComboProperty(GetWindow(),
-                                                                         true, propertyNameId,
-                                                                         bPropertyValueId, propertyValue,
-                                                                         true, descriptionId, nPropertyData);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridComboProperty>(pGroup, MakePropertyParamById(propertyNameId, propertyValue, descriptionId, nPropertyData, bPropertyValueId));
 }
 
 PropertyGridComboProperty* PropertyGrid::AddComboProperty(PropertyGridGroup* pGroup, const PropertyGridParam& param)
 {
-    PropertyGridComboProperty* pProperty = new PropertyGridComboProperty(GetWindow(), param);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridComboProperty>(pGroup, param);
 }
 
 PropertyGridFontProperty* PropertyGrid::AddFontProperty(PropertyGridGroup* pGroup,
@@ -854,12 +1026,7 @@ PropertyGridFontProperty* PropertyGrid::AddFontProperty(PropertyGridGroup* pGrou
                                                         const DString& description,
                                                         size_t nPropertyData)
 {
-    PropertyGridFontProperty* pProperty = new PropertyGridFontProperty(GetWindow(), propertyName, propertyValue, description, nPropertyData);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridFontProperty>(pGroup, MakePropertyParam(propertyName, propertyValue, description, nPropertyData));
 }
 
 PropertyGridFontProperty* PropertyGrid::AddFontPropertyById(PropertyGridGroup* pGroup,
@@ -869,25 +1036,12 @@ PropertyGridFontProperty* PropertyGrid::AddFontPropertyById(PropertyGridGroup* p
                                                             size_t nPropertyData,
                                                             bool bPropertyValueId)
 {
-    PropertyGridFontProperty* pProperty = new PropertyGridFontProperty(GetWindow(),
-                                                                       true, propertyNameId,
-                                                                       bPropertyValueId, propertyValue,
-                                                                       true, descriptionId, nPropertyData);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridFontProperty>(pGroup, MakePropertyParamById(propertyNameId, propertyValue, descriptionId, nPropertyData, bPropertyValueId));
 }
 
 PropertyGridFontProperty* PropertyGrid::AddFontProperty(PropertyGridGroup* pGroup, const PropertyGridParam& param)
 {
-    PropertyGridFontProperty* pProperty = new PropertyGridFontProperty(GetWindow(), param);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridFontProperty>(pGroup, param);
 }
 
 PropertyGridFontSizeProperty* PropertyGrid::AddFontSizeProperty(PropertyGridGroup* pGroup,
@@ -896,12 +1050,7 @@ PropertyGridFontSizeProperty* PropertyGrid::AddFontSizeProperty(PropertyGridGrou
                                                                 const DString& description,
                                                                 size_t nPropertyData)
 {
-    PropertyGridFontSizeProperty* pProperty = new PropertyGridFontSizeProperty(GetWindow(), propertyName, propertyValue, description, nPropertyData);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridFontSizeProperty>(pGroup, MakePropertyParam(propertyName, propertyValue, description, nPropertyData));
 }
 
 PropertyGridFontSizeProperty* PropertyGrid::AddFontSizePropertyById(PropertyGridGroup* pGroup,
@@ -911,26 +1060,12 @@ PropertyGridFontSizeProperty* PropertyGrid::AddFontSizePropertyById(PropertyGrid
                                                                     size_t nPropertyData,
                                                                     bool bPropertyValueId)
 {
-    PropertyGridFontSizeProperty* pProperty = new PropertyGridFontSizeProperty(GetWindow(),
-                                                                               true, propertyNameId,
-                                                                               bPropertyValueId, propertyValue,
-                                                                               true, descriptionId,
-                                                                               nPropertyData);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridFontSizeProperty>(pGroup, MakePropertyParamById(propertyNameId, propertyValue, descriptionId, nPropertyData, bPropertyValueId));
 }
 
 PropertyGridFontSizeProperty* PropertyGrid::AddFontSizeProperty(PropertyGridGroup* pGroup, const PropertyGridParam& param)
 {
-    PropertyGridFontSizeProperty* pProperty = new PropertyGridFontSizeProperty(GetWindow(), param);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridFontSizeProperty>(pGroup, param);
 }
 
 PropertyGridColorProperty* PropertyGrid::AddColorProperty(PropertyGridGroup* pGroup,
@@ -939,12 +1074,7 @@ PropertyGridColorProperty* PropertyGrid::AddColorProperty(PropertyGridGroup* pGr
                                                           const DString& description,
                                                           size_t nPropertyData)
 {
-    PropertyGridColorProperty* pProperty = new PropertyGridColorProperty(GetWindow(), propertyName, propertyValue, description, nPropertyData);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridColorProperty>(pGroup, MakePropertyParam(propertyName, propertyValue, description, nPropertyData));
 }
 
 PropertyGridColorProperty* PropertyGrid::AddColorPropertyById(PropertyGridGroup* pGroup,
@@ -954,26 +1084,12 @@ PropertyGridColorProperty* PropertyGrid::AddColorPropertyById(PropertyGridGroup*
                                                              size_t nPropertyData,
                                                              bool bPropertyValueId)
 {
-    PropertyGridColorProperty* pProperty = new PropertyGridColorProperty(GetWindow(),
-                                                                         true, propertyNameId,
-                                                                         bPropertyValueId, propertyValue,
-                                                                         true, descriptionId,
-                                                                         nPropertyData);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridColorProperty>(pGroup, MakePropertyParamById(propertyNameId, propertyValue, descriptionId, nPropertyData, bPropertyValueId));
 }
 
 PropertyGridColorProperty* PropertyGrid::AddColorProperty(PropertyGridGroup* pGroup, const PropertyGridParam& param)
 {
-    PropertyGridColorProperty* pProperty = new PropertyGridColorProperty(GetWindow(), param);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridColorProperty>(pGroup, param);
 }
 
 PropertyGridDateTimeProperty* PropertyGrid::AddDateTimeProperty(PropertyGridGroup* pGroup,
@@ -983,12 +1099,7 @@ PropertyGridDateTimeProperty* PropertyGrid::AddDateTimeProperty(PropertyGridGrou
                                                                 size_t nPropertyData,
                                                                 DateTime::EditFormat editFormat)
 {
-    PropertyGridDateTimeProperty* pProperty = new PropertyGridDateTimeProperty(GetWindow(), propertyName, dateTimeValue, description, nPropertyData, editFormat);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridDateTimeProperty>(pGroup, MakePropertyParam(propertyName, dateTimeValue, description, nPropertyData), editFormat);
 }
 
 PropertyGridDateTimeProperty* PropertyGrid::AddDateTimePropertyById(PropertyGridGroup* pGroup,
@@ -999,27 +1110,13 @@ PropertyGridDateTimeProperty* PropertyGrid::AddDateTimePropertyById(PropertyGrid
                                                                     bool bPropertyValueId,
                                                                     DateTime::EditFormat editFormat)
 {
-    PropertyGridDateTimeProperty* pProperty = new PropertyGridDateTimeProperty(GetWindow(),
-                                                                               true, propertyNameId,
-                                                                               bPropertyValueId, dateTimeValue,
-                                                                               true, descriptionId,
-                                                                               nPropertyData, editFormat);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridDateTimeProperty>(pGroup, MakePropertyParamById(propertyNameId, dateTimeValue, descriptionId, nPropertyData, bPropertyValueId), editFormat);
 }
 
 PropertyGridDateTimeProperty* PropertyGrid::AddDateTimeProperty(PropertyGridGroup* pGroup, const PropertyGridParam& param,
                                                                 ui::DateTime::EditFormat editFormat)
 {
-    PropertyGridDateTimeProperty* pProperty = new PropertyGridDateTimeProperty(GetWindow(), param, editFormat);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridDateTimeProperty>(pGroup, param, editFormat);
 }
 
 PropertyGridIPAddressProperty* PropertyGrid::AddIPAddressProperty(PropertyGridGroup* pGroup,
@@ -1028,12 +1125,7 @@ PropertyGridIPAddressProperty* PropertyGrid::AddIPAddressProperty(PropertyGridGr
                                                                   const DString& description,
                                                                   size_t nPropertyData)
 {
-    PropertyGridIPAddressProperty* pProperty = new PropertyGridIPAddressProperty(GetWindow(), propertyName, propertyValue, description, nPropertyData);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridIPAddressProperty>(pGroup, MakePropertyParam(propertyName, propertyValue, description, nPropertyData));
 }
 
 PropertyGridIPAddressProperty* PropertyGrid::AddIPAddressPropertyById(PropertyGridGroup* pGroup,
@@ -1043,26 +1135,12 @@ PropertyGridIPAddressProperty* PropertyGrid::AddIPAddressPropertyById(PropertyGr
                                                                       size_t nPropertyData,
                                                                       bool bPropertyValueId)
 {
-    PropertyGridIPAddressProperty* pProperty = new PropertyGridIPAddressProperty(GetWindow(),
-                                                                                 true, propertyNameId,
-                                                                                 bPropertyValueId, propertyValue,
-                                                                                 true, descriptionId,
-                                                                                 nPropertyData);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridIPAddressProperty>(pGroup, MakePropertyParamById(propertyNameId, propertyValue, descriptionId, nPropertyData, bPropertyValueId));
 }
 
 PropertyGridIPAddressProperty* PropertyGrid::AddIPAddressProperty(PropertyGridGroup* pGroup, const PropertyGridParam& param)
 {
-    PropertyGridIPAddressProperty* pProperty = new PropertyGridIPAddressProperty(GetWindow(), param);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridIPAddressProperty>(pGroup, param);
 }
 
 PropertyGridHotKeyProperty* PropertyGrid::AddHotKeyProperty(PropertyGridGroup* pGroup,
@@ -1071,12 +1149,7 @@ PropertyGridHotKeyProperty* PropertyGrid::AddHotKeyProperty(PropertyGridGroup* p
                                                             const DString& description,
                                                             size_t nPropertyData)
 {
-    PropertyGridHotKeyProperty* pProperty = new PropertyGridHotKeyProperty(GetWindow(), propertyName, propertyValue, description, nPropertyData);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridHotKeyProperty>(pGroup, MakePropertyParam(propertyName, propertyValue, description, nPropertyData));
 }
 
 PropertyGridHotKeyProperty* PropertyGrid::AddHotKeyPropertyById(PropertyGridGroup* pGroup,
@@ -1086,26 +1159,12 @@ PropertyGridHotKeyProperty* PropertyGrid::AddHotKeyPropertyById(PropertyGridGrou
                                                                 size_t nPropertyData,
                                                                 bool bPropertyValueId)
 {
-    PropertyGridHotKeyProperty* pProperty = new PropertyGridHotKeyProperty(GetWindow(),
-                                                                           true, propertyNameId,
-                                                                           bPropertyValueId, propertyValue,
-                                                                           true, descriptionId,
-                                                                           nPropertyData);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridHotKeyProperty>(pGroup, MakePropertyParamById(propertyNameId, propertyValue, descriptionId, nPropertyData, bPropertyValueId));
 }
 
 PropertyGridHotKeyProperty* PropertyGrid::AddHotKeyProperty(PropertyGridGroup* pGroup, const PropertyGridParam& param)
 {
-    PropertyGridHotKeyProperty* pProperty = new PropertyGridHotKeyProperty(GetWindow(), param);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridHotKeyProperty>(pGroup, param);
 }
 
 PropertyGridFileProperty* PropertyGrid::AddFileProperty(PropertyGridGroup* pGroup,
@@ -1118,15 +1177,8 @@ PropertyGridFileProperty* PropertyGrid::AddFileProperty(PropertyGridGroup* pGrou
                                                         int32_t nFileTypeIndex,
                                                         const DString& defaultExt)
 {
-    PropertyGridFileProperty* pProperty = new PropertyGridFileProperty(GetWindow(), propertyName, propertyValue,
-                                                                       description, nPropertyData,
-                                                                       bOpenFileDialog, fileTypes,
-                                                                       nFileTypeIndex, defaultExt);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridFileProperty>(pGroup, MakePropertyParam(propertyName, propertyValue, description, nPropertyData),
+                                                     bOpenFileDialog, fileTypes, nFileTypeIndex, defaultExt);
 }
 
 PropertyGridFileProperty* PropertyGrid::AddFilePropertyById(PropertyGridGroup* pGroup,
@@ -1140,18 +1192,8 @@ PropertyGridFileProperty* PropertyGrid::AddFilePropertyById(PropertyGridGroup* p
                                                             int32_t nFileTypeIndex,
                                                             const DString& defaultExt)
 {
-    PropertyGridFileProperty* pProperty = new PropertyGridFileProperty(GetWindow(),
-                                                                       true, propertyNameId,
-                                                                       bPropertyValueId, propertyValue,
-                                                                       true, descriptionId,
-                                                                       nPropertyData,
-                                                                       bOpenFileDialog, fileTypes,
-                                                                       nFileTypeIndex, defaultExt);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridFileProperty>(pGroup, MakePropertyParamById(propertyNameId, propertyValue, descriptionId, nPropertyData, bPropertyValueId),
+                                                     bOpenFileDialog, fileTypes, nFileTypeIndex, defaultExt);
 }
 
 PropertyGridFileProperty* PropertyGrid::AddFileProperty(PropertyGridGroup* pGroup, const PropertyGridParam& param,
@@ -1160,14 +1202,7 @@ PropertyGridFileProperty* PropertyGrid::AddFileProperty(PropertyGridGroup* pGrou
                                                         int32_t nFileTypeIndex,
                                                         const DString& defaultExt)
 {
-    PropertyGridFileProperty* pProperty = new PropertyGridFileProperty(GetWindow(), param,
-                                                                       bOpenFileDialog, fileTypes,
-                                                                       nFileTypeIndex, defaultExt);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridFileProperty>(pGroup, param, bOpenFileDialog, fileTypes, nFileTypeIndex, defaultExt);
 }
 
 PropertyGridDirectoryProperty* PropertyGrid::AddDirectoryProperty(PropertyGridGroup* pGroup,
@@ -1176,12 +1211,7 @@ PropertyGridDirectoryProperty* PropertyGrid::AddDirectoryProperty(PropertyGridGr
                                                                   const DString& description,
                                                                   size_t nPropertyData)
 {
-    PropertyGridDirectoryProperty* pProperty = new PropertyGridDirectoryProperty(GetWindow(), propertyName, propertyValue, description, nPropertyData);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridDirectoryProperty>(pGroup, MakePropertyParam(propertyName, propertyValue, description, nPropertyData));
 }
 
 PropertyGridDirectoryProperty* PropertyGrid::AddDirectoryPropertyById(PropertyGridGroup* pGroup,
@@ -1191,26 +1221,12 @@ PropertyGridDirectoryProperty* PropertyGrid::AddDirectoryPropertyById(PropertyGr
                                                                       size_t nPropertyData,
                                                                       bool bPropertyValueId)
 {
-    PropertyGridDirectoryProperty* pProperty = new PropertyGridDirectoryProperty(GetWindow(),
-                                                                                 true, propertyNameId,
-                                                                                 bPropertyValueId, propertyValue,
-                                                                                 true, descriptionId,
-                                                                                 nPropertyData);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridDirectoryProperty>(pGroup, MakePropertyParamById(propertyNameId, propertyValue, descriptionId, nPropertyData, bPropertyValueId));
 }
 
 PropertyGridDirectoryProperty* PropertyGrid::AddDirectoryProperty(PropertyGridGroup* pGroup, const PropertyGridParam& param)
 {
-    PropertyGridDirectoryProperty* pProperty = new PropertyGridDirectoryProperty(GetWindow(), param);
-    if (!AddProperty(pGroup, pProperty)) {
-        delete pProperty;
-        pProperty = nullptr;
-    }
-    return pProperty;
+    return AddPropertyImpl<PropertyGridDirectoryProperty>(pGroup, param);
 }
 
 void PropertyGrid::SetLeftColumnWidth(int32_t nLeftColumnWidth, bool bNeedDpiScale)
@@ -1790,6 +1806,68 @@ int32_t PropertyGridProperty::GetEditControlMarginRight() const
     return nWidth;
 }
 
+DString PropertyGridProperty::GetValueEditorClass(const DString& defaultClass) const
+{
+    if (m_pPropertyGrid == nullptr) {
+        return defaultClass;
+    }
+    DString className;
+    switch (GetPropertyType()) {
+    case PropertyGridPropertyType::kText:
+    case PropertyGridPropertyType::kFont:
+    case PropertyGridPropertyType::kFontSize:
+    case PropertyGridPropertyType::kFile:
+    case PropertyGridPropertyType::kDirectory:
+        className = m_pPropertyGrid->GetPropertyEditClass();
+        break;
+    case PropertyGridPropertyType::kCombo:
+        className = m_pPropertyGrid->GetPropertyComboClass();
+        break;
+    case PropertyGridPropertyType::kColor:
+        className = m_pPropertyGrid->GetPropertyComboButtonClass();
+        break;
+    case PropertyGridPropertyType::kDateTime:
+        className = m_pPropertyGrid->GetPropertyDateTimeClass();
+        break;
+    case PropertyGridPropertyType::kIPAddress:
+        className = m_pPropertyGrid->GetPropertyIPAddressClass();
+        break;
+    case PropertyGridPropertyType::kHotKey:
+        className = m_pPropertyGrid->GetPropertyHotKeyClass();
+        break;
+    default:
+        break;
+    }
+    if (className.empty()) {
+        className = defaultClass;
+    }
+    return className;
+}
+
+DString PropertyGridProperty::GetValueButtonClass(const DString& defaultClass) const
+{
+    DString className;
+    if (m_pPropertyGrid != nullptr) {
+        className = m_pPropertyGrid->GetPropertyButtonClass();
+    }
+    if (className.empty()) {
+        className = defaultClass;
+    }
+    return className;
+}
+
+DString PropertyGridProperty::GetValueSpinClass(const DString& defaultClass) const
+{
+    DString className;
+    if (m_pPropertyGrid != nullptr) {
+        className = m_pPropertyGrid->GetPropertySpinClass();
+    }
+    if (className.empty()) {
+        className = defaultClass;
+    }
+    return className;
+}
+
 void PropertyGridProperty::SetPropertyText(const DString& text, bool bChanged, bool bTriggerEvent)
 {
     DString oldText;
@@ -2039,7 +2117,7 @@ void PropertyGridTextProperty::EnableEditControl(bool bEnable)
     }
     m_bTextEdited = false;
     m_pRichEdit = new PropertyGridRichEdit(GetWindow());
-    m_pRichEdit->SetClass(_T("property_grid_property_edit"));
+    m_pRichEdit->SetClass(GetValueEditorClass(_T("property_grid_property_edit")));
     if (!AddPropertySubItem(m_pRichEdit.get())) {
         delete m_pRichEdit.get();
         m_pRichEdit = nullptr;
@@ -2063,7 +2141,7 @@ void PropertyGridTextProperty::EnableEditControl(bool bEnable)
         m_pRichEdit->SetFlashPasswordChar(true);
     }
     if (m_bSpinEnable) {
-        DString spinClass = _T("property_grid_spin_box,property_grid_spin_btn_up,property_grid_spin_btn_down");
+        DString spinClass = GetValueSpinClass(_T("property_grid_spin_box,property_grid_spin_btn_up,property_grid_spin_btn_down"));
         m_pRichEdit->SetEnableSpin(true, spinClass, m_nSpinMin, m_nSpinMax);
     }
 
@@ -2197,7 +2275,7 @@ void PropertyGridTextProperty::SetEnableSpin(bool bEnable, int64_t nMin, int64_t
     m_nSpinMax = nMax;
 
     if (m_pRichEdit != nullptr) {
-        DString spinClass = _T("property_grid_spin_box,property_grid_spin_btn_up,property_grid_spin_btn_down");
+        DString spinClass = GetValueSpinClass(_T("property_grid_spin_box,property_grid_spin_btn_up,property_grid_spin_btn_down"));
         m_pRichEdit->SetEnableSpin(bEnable, spinClass, nMin, nMax);
     }
 }
@@ -2335,7 +2413,7 @@ void PropertyGridComboProperty::EnableEditControl(bool bEnable)
     }
     m_bComboEdited = false;
     m_pCombo = new PropertyGridCombo(GetWindow());
-    m_pCombo->SetClass(_T("property_grid_combo"));
+    m_pCombo->SetClass(GetValueEditorClass(_T("property_grid_combo")));
     if (!AddPropertySubItem(m_pCombo.get())) {
         delete m_pCombo.get();
         m_pCombo = nullptr;
@@ -3162,7 +3240,7 @@ void PropertyGridColorProperty::EnableEditControl(bool bEnable)
     }
     m_pComboButton = new ComboButton(GetWindow());
     //属性：在property_grid.xml中定义    
-    m_pComboButton->SetClass(_T("property_grid_combo_button"));
+    m_pComboButton->SetClass(GetValueEditorClass(_T("property_grid_combo_button")));
     if (!AddPropertySubItem(m_pComboButton.get())) {
         delete m_pComboButton.get();
         m_pComboButton = nullptr;
@@ -3443,7 +3521,7 @@ void PropertyGridDateTimeProperty::EnableEditControl(bool bEnable)
     }
     m_pDateTime = new PropertyGridDateTime(GetWindow());
     //属性：在property_grid.xml中定义
-    m_pDateTime->SetClass(_T("property_grid_date_time"));
+    m_pDateTime->SetClass(GetValueEditorClass(_T("property_grid_date_time")));
     if (!AddPropertySubItem(m_pDateTime.get())) {
         delete m_pDateTime.get();
         m_pDateTime = nullptr;
@@ -3553,7 +3631,7 @@ void PropertyGridIPAddressProperty::EnableEditControl(bool bEnable)
     }
     m_pIPAddress = new IPAddress(GetWindow());
     //属性：在property_grid.xml中定义    
-    m_pIPAddress->SetClass(_T("property_grid_ip_address"));
+    m_pIPAddress->SetClass(GetValueEditorClass(_T("property_grid_ip_address")));
     if (!AddPropertySubItem(m_pIPAddress.get())) {
         delete m_pIPAddress.get();
         m_pIPAddress = nullptr;
@@ -3661,7 +3739,7 @@ void PropertyGridHotKeyProperty::EnableEditControl(bool bEnable)
     }
     m_pHotKey = new HotKey(GetWindow());
     //属性：在property_grid.xml中定义    
-    m_pHotKey->SetClass(_T("property_grid_hot_key"));
+    m_pHotKey->SetClass(GetValueEditorClass(_T("property_grid_hot_key")));
     if (!AddPropertySubItem(m_pHotKey.get())) {
         delete m_pHotKey.get();
         m_pHotKey = nullptr;
@@ -3786,7 +3864,7 @@ void PropertyGridFileProperty::EnableEditControl(bool bEnable)
     }
     if (m_pBrowseBtn == nullptr) {
         m_pBrowseBtn = new Button(GetWindow());
-        m_pBrowseBtn->SetClass(_T("property_grid_button"));
+        m_pBrowseBtn->SetClass(GetValueButtonClass(_T("property_grid_button")));
         m_pBrowseBtn->SetNoFocus();
         pRichEdit->AddItem(m_pBrowseBtn.get());
 
@@ -3867,7 +3945,7 @@ void PropertyGridDirectoryProperty::EnableEditControl(bool bEnable)
     }
     if (m_pBrowseBtn == nullptr) {
         m_pBrowseBtn = new Button(GetWindow());
-        m_pBrowseBtn->SetClass(_T("property_grid_button"));
+        m_pBrowseBtn->SetClass(GetValueButtonClass(_T("property_grid_button")));
         m_pBrowseBtn->SetNoFocus();
         pRichEdit->AddItem(m_pBrowseBtn.get());
 
