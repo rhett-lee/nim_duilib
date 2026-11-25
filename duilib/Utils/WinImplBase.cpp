@@ -210,17 +210,8 @@ void WindowImplBase::OnSelectLanguage(Control* pBtnSelectLanguage)
     point.y = rect.bottom;
     ClientToScreen(point);
 
-    //显示选择语言菜单
-    ui::Menu* menu = new ui::Menu(this, pBtnSelectLanguage);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
-    WindowPtr spMenuWnd(menu);
-
-    //设置菜单xml所在的目录
-    menu->SetSkinFolder(DString(DUILIB_PUBLIC_RES_DIR) + _T("/menu/"));
-    DString xml(_T("lang_menu.xml"));
-    menu->ShowMenu(xml, point);
-
     //当前语言文件
-    DString currentLangFileName = GlobalManager::Instance().GetLanguageFileName();
+    const DString currentLangFileName = GlobalManager::Instance().GetLanguageFileName();
 
     //可用语言文件列表和显示名称
     std::vector<std::pair<DString, DString>> languageList;
@@ -229,36 +220,47 @@ void WindowImplBase::OnSelectLanguage(Control* pBtnSelectLanguage)
         languageList.push_back({ currentLangFileName , _T("") });
     }
 
-    //动态添加菜单项
-    for (auto& lang : languageList) {
-        const DString fileName = lang.first;
-        DString& displayName = lang.second;
-        if (spMenuWnd == nullptr) {
-            break;
-        }
+    //显示选择语言菜单
+    Menu* menu = new ui::Menu(this, pBtnSelectLanguage);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
+    ControlPtrT<Menu> spMenuWnd(menu);
+    menu->AttachWindowOnInitMsg([spMenuWnd, languageList, currentLangFileName](const EventArgs&) {
+            //动态添加菜单项
+            for (auto& lang : languageList) {
+                const DString fileName = lang.first;
+                const DString& displayName = lang.second;
+                if (spMenuWnd == nullptr) {
+                    break;
+                }
 
-        MenuItem* pMenuItem = new MenuItem(menu);
-        pMenuItem->SetClass(_T("menu_element"));
-        CheckBox* pCheckBox = new CheckBox(menu);
-        pCheckBox->SetClass(_T("menu_language_select_class"));
-        pCheckBox->SetText(!displayName.empty() ? displayName : fileName);
-        pMenuItem->AddItem(pCheckBox);
-        menu->AddMenuItem(pMenuItem);
+                MenuItem* pMenuItem = new MenuItem(spMenuWnd.get());
+                pMenuItem->SetClass(_T("menu_element"));
+                CheckBox* pCheckBox = new CheckBox(spMenuWnd.get());
+                pCheckBox->SetClass(_T("menu_language_select_class"));
+                pCheckBox->SetText(!displayName.empty() ? displayName : fileName);
+                pMenuItem->AddItem(pCheckBox);
+                spMenuWnd->AddMenuItem(pMenuItem);
 
-        if (ui::StringUtil::IsEqualNoCase(fileName, currentLangFileName)) {
-            pCheckBox->Selected(true);
-        }
+                if (ui::StringUtil::IsEqualNoCase(fileName, currentLangFileName)) {
+                    pCheckBox->Selected(true);
+                }
 
-        //挂载选择语言事件
-        pMenuItem->AttachClick([fileName](const EventArgs& /*args*/) {
-            //切换语言
-            ui::GlobalManager& globalManager = ui::GlobalManager::Instance();
-            if (globalManager.GetLanguageFileName() != fileName) {
-                globalManager.ReloadLanguage(ui::FilePath(), fileName, true);
+                //挂载选择语言事件
+                pMenuItem->AttachClick([fileName](const EventArgs& /*args*/) {
+                    //切换语言
+                    GlobalManager& globalManager = GlobalManager::Instance();
+                    if (globalManager.GetLanguageFileName() != fileName) {
+                        globalManager.ReloadLanguage(ui::FilePath(), fileName, true);
+                    }
+                    return true;
+                    });
             }
             return true;
-            });
-    }
+        });
+
+    //设置菜单xml所在的目录，显示菜单
+    menu->SetSkinFolder(DString(DUILIB_PUBLIC_RES_DIR) + _T("/menu/"));
+    DString xml(_T("lang_menu.xml"));
+    menu->ShowMenu(xml, point);
 }
 
 void WindowImplBase::OnSelectTheme(Control* pBtnSelectTheme)
@@ -273,44 +275,48 @@ void WindowImplBase::OnSelectTheme(Control* pBtnSelectTheme)
     point.y = rect.bottom;
     ClientToScreen(point);
 
-    //显示选择主题菜单
-    ui::Menu* menu = new ui::Menu(this, pBtnSelectTheme);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
-    WindowPtr spMenuWnd(menu);
-    //设置菜单xml所在的目录
-    menu->SetSkinFolder(DString(DUILIB_PUBLIC_RES_DIR) + _T("/menu/"));
-    DString xml(_T("theme_menu.xml"));
-    menu->ShowMenu(xml, point);
-
     //可选的主题列表
     std::vector<FilePath> themePathList; //支持的主题列表
     std::vector<ThemeInfo> themeInfoList;
     ThemeManager& theme = GlobalManager::Instance().Theme();
     theme.GetAllThemes(themePathList, themeInfoList);
 
-    //动态添加菜单项    
-    for (const auto& themeInfo : themeInfoList) {
-        if (spMenuWnd == nullptr) {
-            break;
-        }
-        MenuItem* pMenuItem = new MenuItem(menu);
-        pMenuItem->SetClass(_T("menu_element"));
-        CheckBox* pCheckBox = new CheckBox(menu);
-        pCheckBox->SetClass(_T("menu_theme_select_class"));
-        pCheckBox->SetText(themeInfo.m_themeName);
-        pMenuItem->AddItem(pCheckBox);
-        menu->AddMenuItem(pMenuItem);
+    //显示选择主题菜单
+    ui::Menu* menu = new ui::Menu(this, pBtnSelectTheme);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
+    ControlPtrT<Menu> spMenuWnd(menu);
+    
+    menu->AttachWindowOnInitMsg([spMenuWnd, themeInfoList](const EventArgs&) {
+            //动态添加菜单项    
+            for (const auto& themeInfo : themeInfoList) {
+                if (spMenuWnd == nullptr) {
+                    break;
+                }
+                MenuItem* pMenuItem = new MenuItem(spMenuWnd.get());
+                pMenuItem->SetClass(_T("menu_element"));
+                CheckBox* pCheckBox = new CheckBox(spMenuWnd.get());
+                pCheckBox->SetClass(_T("menu_theme_select_class"));
+                pCheckBox->SetText(themeInfo.m_themeName);
+                pMenuItem->AddItem(pCheckBox);
+                spMenuWnd->AddMenuItem(pMenuItem);
 
-        if (themeInfo.m_bSelectedTheme) {
-            pCheckBox->Selected(true);
-        }
-        //挂载选择主题事件
-        pMenuItem->AttachClick([themeInfo](const EventArgs& /*args*/) {
-            //切换主题
-            GlobalManager& globalManager = ui::GlobalManager::Instance();
-            globalManager.Theme().SwitchColorTheme(themeInfo.m_themePath);
+                if (themeInfo.m_bSelectedTheme) {
+                    pCheckBox->Selected(true);
+                }
+                //挂载选择主题事件
+                pMenuItem->AttachClick([themeInfo](const EventArgs& /*args*/) {
+                    //切换主题
+                    GlobalManager& globalManager = ui::GlobalManager::Instance();
+                    globalManager.Theme().SwitchColorTheme(themeInfo.m_themePath);
+                    return true;
+                    });
+            }
             return true;
-            });
-    }
+        });
+
+    //设置菜单xml所在的目录，显示菜单
+    menu->SetSkinFolder(DString(DUILIB_PUBLIC_RES_DIR) + _T("/menu/"));
+    DString xml(_T("theme_menu.xml"));
+    menu->ShowMenu(xml, point);
 }
 
 LRESULT WindowImplBase::OnSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, const NativeMsg& nativeMsg, bool& bHandled)

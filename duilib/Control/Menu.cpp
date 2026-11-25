@@ -936,8 +936,11 @@ bool Menu::ResizeSubMenu()
     return true;
 }
 
-void Menu::PostInitWindow()
+void Menu::PreInitWindow()
 {
+    //需要先调用基类的实现函数
+    BaseClass::PreInitWindow();
+
     ASSERT(m_pListBox == nullptr);
     if (m_pOwner != nullptr) {
         m_pListBox = dynamic_cast<ui::ListBox*>(FindControl(m_submenuNodeName.c_str()));
@@ -973,9 +976,6 @@ void Menu::PostInitWindow()
     if (m_pRelatedControl != nullptr) {
         m_pRelatedControl->SetState(kControlStatePressed);
     }
-
-    //需要在最后才调用基类的实现函数
-    BaseClass::PostInitWindow();
 }
 
 Control* Menu::GetRelatedControl() const

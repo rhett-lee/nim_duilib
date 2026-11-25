@@ -227,7 +227,7 @@ private:
     virtual ui::Control* CreateControl(const DString& pstrClass) override;
     virtual DString GetSkinFolder() override;
     virtual DString GetSkinFile() override;
-    virtual void PostInitWindow() override;
+    virtual void PreInitWindow() override;
     virtual void OnCloseWindow() override;
 
     /** 在窗口销毁时会被调用，这是该窗口的最后一个消息（该类默认实现是清理资源，并销毁该窗口对象）
