@@ -539,7 +539,7 @@ public:
 
     /** 获取属性值的字体ID（正常状态）
     */
-    DString GetProptertyNormalFontId() const;
+    DString GetPropertyNormalFontId() const;
 
     /** 设置属性值的字体Id（已修改状态）
     */
@@ -547,7 +547,7 @@ public:
 
     /** 获取属性值的字体ID（已修改状态）
     */
-    DString GetProptertyModifiedFontId() const;
+    DString GetPropertyModifiedFontId() const;
 
 public:
     /** 设置是否显示描述区域
@@ -655,6 +655,22 @@ protected:
     */
     void PaintGridLines(IRender* pRender);
 
+    /** 语言发生变化，刷新界面文字显示相关的内容
+    * @param [in] bRedraw true表示需要内部实现重绘，否则控件内部不需要重绘，由外部调用重绘
+    */
+    virtual void OnLanguageChanged(bool bRedraw) override;
+
+    /** 树控件的滚动位置发生变化
+    */
+    void OnTreeViewScrollPosChanged();
+
+public:
+    /** 刷新描述区域显示的内容（依据当前选中的分组或者属性）
+    */
+    void UpdateDescriptionArea();
+
+protected:
+
     /** 拖动列表头改变列宽的事件响应函数
     */
     void OnHeaderColumnResized();
@@ -715,6 +731,10 @@ private:
     /** 属性表的树控件接口
     */
     TreeView* m_pTreeView;
+
+    /** 当前选中的分组或者属性的索引（用于刷新描述区域的显示内容）
+    */
+    size_t m_nSelectedItemIndex;
 
     /** 表头的Class
     */
@@ -938,6 +958,7 @@ enum class PropertyGridPropertyType
 class DUILIB_API PropertyGridProperty: public TreeNode
 {
     typedef TreeNode BaseClass;
+    friend class PropertyGrid;
 public:
     /** 构造一个属性
     * @param [in] pWindow 关联的窗口
@@ -1325,6 +1346,22 @@ private:
     /** 是否有编辑过
     */
     bool m_bTextEdited;
+
+    /** 属性的真实文本内容（密码模式下显示为掩码，此处保存真实值）
+    */
+    UiString m_realText;
+
+    /** 是否启用Spin控件
+    */
+    bool m_bSpinEnable;
+
+    /** Spin控件的最小值
+    */
+    int64_t m_nSpinMin;
+
+    /** Spin控件的最大值
+    */
+    int64_t m_nSpinMax;
 };
 
 /** 下拉框类型的属性：使用Combo编辑
@@ -1485,6 +1522,20 @@ protected:
     virtual void OnPropertyValueChanged() override;
 
 private:
+    /** 下拉框选项（编辑控件未创建时先暂存，创建后再回放到下拉框中）
+    */
+    struct ComboOption
+    {
+        UiString m_text;
+        UiString m_textId;
+        size_t m_nData = 0;
+        bool m_bHasData = false;
+    };
+
+    /** 将暂存的选项回放到下拉框控件中
+    */
+    void ApplyComboOptions();
+
     /** 下拉框接口
     */
     ControlPtrT<Combo> m_pCombo;
@@ -1504,6 +1555,18 @@ private:
     /** 当前是否正在编辑状态
     */
     bool m_bComboEditing;
+
+    /** 下拉框选项列表（与下拉框控件中的选项保持同步）
+    */
+    std::vector<ComboOption> m_optionList;
+
+    /** 当前选择的列表项（编辑控件未创建时暂存）
+    */
+    size_t m_curSel;
+
+    /** 是否为列表模式
+    */
+    bool m_bListMode;
 };
 
 /** 设置字体名称的属性
@@ -1830,6 +1893,10 @@ private:
     */
     void OnSelectColor(const DString& color);
 
+    /** 绘制子控件（在属性值右侧绘制当前颜色的色块）
+    */
+    virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
+
 private:
     /** 颜色选择控件
     */
@@ -1926,6 +1993,10 @@ private:
     /** 日期时间的格式
     */
     DateTime::EditFormat m_editFormat;
+
+    /** 开始编辑前的值（用于取消编辑时恢复）
+    */
+    UiString m_oldText;
 };
 
 /** 设置IP地址的属性
@@ -2004,6 +2075,10 @@ private:
     /** IP地址控件
     */
     ControlPtrT<IPAddress> m_pIPAddress;
+
+    /** 开始编辑前的值（用于取消编辑时恢复）
+    */
+    UiString m_oldText;
 };
 
 /** 设置热键的属性
@@ -2077,6 +2152,10 @@ private:
     /** 热键控件
     */
     ControlPtrT<HotKey> m_pHotKey;
+
+    /** 开始编辑前的值（用于取消编辑时恢复）
+    */
+    UiString m_oldText;
 };
 
 /** 设置文件路径属性

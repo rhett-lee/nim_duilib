@@ -19,6 +19,7 @@ PropertyGrid::PropertyGrid(Window* pWindow):
     m_bDescriptionArea(true),
     m_pDescriptionAreaSplit(nullptr),
     m_pTreeView(nullptr),
+    m_nSelectedItemIndex(Box::InvalidIndex),
     m_nLeftColumnWidth(0),
     m_fRowGridLineWidth(0),
     m_fColumnGridLineWidth(0)
@@ -155,35 +156,85 @@ void PropertyGrid::OnInit()
     //关联描述区域
     if ((m_pDescriptionArea != nullptr) && (m_pTreeView != nullptr)) {
         m_pTreeView->AttachSelect([this](const EventArgs& args) {
-            Control* pItem = nullptr;
-            size_t nItem = args.wParam;
-            if (nItem != Box::InvalidIndex) {
-                pItem = m_pTreeView->GetItemAt(nItem);
-            }
-            DString description;
-            DString name;
-            if (pItem != nullptr) {
-                PropertyGridGroup* pGroup = dynamic_cast<PropertyGridGroup*>(pItem);
-                if (pGroup != nullptr) {
-                    description = pGroup->GetDescription();
-                    name = pGroup->GetGroupName();
-                }
-                else {
-                    PropertyGridProperty* pProperty = dynamic_cast<PropertyGridProperty*>(pItem);
-                    if (pProperty != nullptr) {
-                        description = pProperty->GetDescription();
-                        name = pProperty->GetPropertyName();
-                    }
-                }
-            }
-            if (m_pDescriptionArea != nullptr) {
-                if (!name.empty()) {
-                    description = _T("<b>") + name + _T("</b><br/>") + description;
-                }
-                m_pDescriptionArea->SetText(description);
-            }
+            m_nSelectedItemIndex = args.wParam;
+            UpdateDescriptionArea();
             return true;
             });
+    }
+
+    //树控件滚动时，统一处理各属性的弹出子窗口位置（避免每个属性分别注册回调）
+    if (m_pTreeView != nullptr) {
+        m_pTreeView->AttachScrollPosChanged([this](const EventArgs& /*args*/) {
+            OnTreeViewScrollPosChanged();
+            return true;
+            });
+    }
+}
+
+void PropertyGrid::UpdateDescriptionArea()
+{
+    if (m_pDescriptionArea == nullptr) {
+        return;
+    }
+    Control* pItem = nullptr;
+    if ((m_pTreeView != nullptr) && (m_nSelectedItemIndex != Box::InvalidIndex)) {
+        pItem = m_pTreeView->GetItemAt(m_nSelectedItemIndex);
+    }
+
+    DString description;
+    DString name;
+    if (pItem != nullptr) {
+        PropertyGridGroup* pGroup = dynamic_cast<PropertyGridGroup*>(pItem);
+        if (pGroup != nullptr) {
+            description = pGroup->GetDescription();
+            name = pGroup->GetGroupName();
+        }
+        else {
+            PropertyGridProperty* pProperty = dynamic_cast<PropertyGridProperty*>(pItem);
+            if (pProperty != nullptr) {
+                description = pProperty->GetDescription();
+                name = pProperty->GetPropertyName();
+            }
+        }
+    }
+    if (!name.empty()) {
+        //属性名称需要转义，避免名称中包含的富文本标记被解析
+        DString escapedName = name;
+        StringUtil::ReplaceAll(_T("&"), _T("&amp;"), escapedName);
+        StringUtil::ReplaceAll(_T("<"), _T("&lt;"), escapedName);
+        StringUtil::ReplaceAll(_T(">"), _T("&gt;"), escapedName);
+        description = _T("<b>") + escapedName + _T("</b><br/>") + description;
+    }
+    m_pDescriptionArea->SetText(description);
+}
+
+void PropertyGrid::OnLanguageChanged(bool bRedraw)
+{
+    BaseClass::OnLanguageChanged(bRedraw);
+    UpdateDescriptionArea();
+    if (bRedraw) {
+        Invalidate();
+    }
+}
+
+void PropertyGrid::OnTreeViewScrollPosChanged()
+{
+    if (m_pTreeView == nullptr) {
+        return;
+    }
+    const UiRect viewRect = m_pTreeView->GetRect();
+    const size_t itemCount = m_pTreeView->GetItemCount();
+    for (size_t index = 0; index < itemCount; ++index) {
+        PropertyGridProperty* pProperty = dynamic_cast<PropertyGridProperty*>(m_pTreeView->GetItemAt(index));
+        if ((pProperty == nullptr) || !pProperty->IsVisible()) {
+            continue;
+        }
+        //仅处理当前可见的属性，避免属性较多时做无用的遍历
+        const UiRect itemRect = pProperty->GetRect();
+        if (itemRect.IsEmpty() || (itemRect.bottom <= viewRect.top) || (itemRect.top >= viewRect.bottom)) {
+            continue;
+        }
+        pProperty->OnScrollPosChanged();
     }
 }
 
@@ -200,8 +251,8 @@ void PropertyGrid::PaintGridLines(IRender* pRender)
     if ((m_pTreeView == nullptr) || (pRender == nullptr)) {
         return;
     }
-    float fColumnLineWidth = GetColumnGridLineWidth();//纵向边线宽度        
-    float fRowLineWidth = GetRowGridLineWidth();   //横向边线宽度
+    const float fColumnLineWidth = GetColumnGridLineWidth();//纵向边线宽度
+    const float fRowLineWidth = GetRowGridLineWidth();      //横向边线宽度
     UiColor columnLineColor;
     UiColor rowLineColor;
     DString color = GetColumnGridLineColor();
@@ -212,87 +263,84 @@ void PropertyGrid::PaintGridLines(IRender* pRender)
     if (!color.empty()) {
         rowLineColor = GetUiColor(color);
     }
-
-    if ((fColumnLineWidth > 0.01) && !columnLineColor.IsEmpty()) {
-        //绘制纵向网格线
-        UiRect viewRect = m_pTreeView->GetRect();
-        int32_t yTop = viewRect.top;
-        std::vector<int32_t> xPosList;
-        const size_t itemCount = m_pTreeView->GetItemCount();
-        for (size_t index = 0; index < itemCount; ++index) {
-            PropertyGridProperty* pItem = dynamic_cast<PropertyGridProperty*>(m_pTreeView->GetItemAt(index));
-            if ((pItem == nullptr) || !pItem->IsVisible() || (pItem->GetHeight() <= 0)) {
-                continue;
-            }
-            if (pItem->GetLabelBoxLeft() != nullptr) {
-                UiRect leftRect = pItem->GetLabelBoxLeft()->GetRect();
-                xPosList.push_back(leftRect.right);
-                break;
-            }
-        }
-
-        for (int32_t xPos : xPosList) {
-            //横坐标位置放在每个子项控件的右侧部            
-            UiPointF pt1(xPos, yTop);
-            UiPointF pt2(xPos, viewRect.bottom);
-            pRender->DrawLine(pt1, pt2, columnLineColor, fColumnLineWidth);
-        }
+    if (((fColumnLineWidth <= 0.01) || columnLineColor.IsEmpty()) &&
+        ((fRowLineWidth <= 0.01) || rowLineColor.IsEmpty())) {
+        return;
     }
-    if ((fRowLineWidth > 0.01) && !rowLineColor.IsEmpty()) {
-        //绘制横向网格线
-        UiPoint treeScrollBoxOffset = m_pTreeView->GetScrollOffsetInScrollBox();
-        UiRect viewRect = m_pTreeView->GetRect();
-        const size_t itemCount = m_pTreeView->GetItemCount();
-        for (size_t index = 0; index < itemCount; ++index) {
-            PropertyGridProperty* pItem = dynamic_cast<PropertyGridProperty*>(m_pTreeView->GetItemAt(index));
-            if ((pItem == nullptr) || !pItem->IsVisible() || (pItem->GetHeight() <= 0)) {
-                continue;
-            }
-            //纵坐标位置放在每个子项控件的底部（Header控件的底部不画线）
-            UiPoint scrollBoxOffset = pItem->GetScrollOffsetInScrollBox();
-            UiRect rcItemRect = pItem->GetRect();
-            rcItemRect.Offset(-(scrollBoxOffset.x - treeScrollBoxOffset.x), -(scrollBoxOffset.y - treeScrollBoxOffset.y));
-            int32_t yPos = rcItemRect.bottom;
 
-            int32_t nChildMarginY = 0;
-            Layout* pLayout = GetLayout();
-            if (pLayout != nullptr) {
-                nChildMarginY = pLayout->GetChildMarginY();
-            }
-            yPos += nChildMarginY / 2;
-            if (yPos <= viewRect.top) {
-                //位置不在矩形区域内，不需要画线
-                continue;
-            }
-            if (yPos > viewRect.bottom) {
-                //已经超越底部边线，不再继续绘制
-                break;
-            }
+    const UiRect viewRect = m_pTreeView->GetRect();
+    if (viewRect.IsEmpty()) {
+        return;
+    }
+    const size_t itemCount = m_pTreeView->GetItemCount();
+    if (itemCount == 0) {
+        return;
+    }
 
-            UiRect leftRect = viewRect;
-            if (pItem->GetLabelBoxLeft() != nullptr) {
-                UiRect rcRect = pItem->GetLabelBoxLeft()->GetRect();
-                leftRect = rcRect;
-            }
-            UiRect rightRect = viewRect;
-            if (pItem->GetLabelBoxRight() != nullptr) {
-                UiRect rcRect = pItem->GetLabelBoxRight()->GetRect();
-                rightRect = rcRect;
+    //横向网格线位置：使用树控件的布局边距（各行由树控件布局）
+    int32_t nChildMarginY = 0;
+    Layout* pLayout = m_pTreeView->GetLayout();
+    if (pLayout != nullptr) {
+        nChildMarginY = pLayout->GetChildMarginY();
+    }
 
-                //横向网格线的右侧：如果滚动条正在显示，则不覆盖滚动条
-                if (m_pTreeView != nullptr) {
-                    ScrollBar* pVScrollBar = m_pTreeView->GetVScrollBar();
-                    if ((pVScrollBar != nullptr) && !m_pTreeView->IsVScrollBarAtLeft()) {
-                        if (pVScrollBar->IsVisible()) {
-                            rightRect.right -= pVScrollBar->GetWidth();
-                        }
-                    }
-                }
-            }
-            UiPointF pt1(leftRect.left, yPos);
-            UiPointF pt2(rightRect.right, yPos);
-            pRender->DrawLine(pt1, pt2, rowLineColor, fRowLineWidth);
+    //滚动条所在区域不绘制横向网格线
+    int32_t nVScrollBarWidth = 0;
+    ScrollBar* pVScrollBar = m_pTreeView->GetVScrollBar();
+    if ((pVScrollBar != nullptr) && pVScrollBar->IsVisible() && !m_pTreeView->IsVScrollBarAtLeft()) {
+        nVScrollBarWidth = pVScrollBar->GetWidth();
+    }
+
+    const bool bDrawRowLine = (fRowLineWidth > 0.01) && !rowLineColor.IsEmpty();
+    const UiPoint treeScrollBoxOffset = m_pTreeView->GetScrollOffsetInScrollBox();
+    int32_t xColumnLine = -1;
+    for (size_t index = 0; index < itemCount; ++index) {
+        PropertyGridProperty* pItem = dynamic_cast<PropertyGridProperty*>(m_pTreeView->GetItemAt(index));
+        if ((pItem == nullptr) || !pItem->IsVisible()) {
+            continue;
         }
+        const UiRect itemRect = pItem->GetRect();
+        if (itemRect.IsEmpty()) {
+            continue;
+        }
+        //纵向网格线的位置：取第一个可见属性的左侧单元格的右边界（各行的列宽一致，只需要计算一次）
+        if ((xColumnLine < 0) && (pItem->GetLabelBoxLeft() != nullptr)) {
+            xColumnLine = pItem->GetLabelBoxLeft()->GetRect().right;
+        }
+
+        if (!bDrawRowLine) {
+            continue;
+        }
+        //纵坐标位置放在每个子项控件的底部（Header控件的底部不画线）
+        const UiPoint scrollBoxOffset = pItem->GetScrollOffsetInScrollBox();
+        UiRect rcItemRect = itemRect;
+        rcItemRect.Offset(-(scrollBoxOffset.x - treeScrollBoxOffset.x), -(scrollBoxOffset.y - treeScrollBoxOffset.y));
+        const int32_t yPos = rcItemRect.bottom + nChildMarginY / 2;
+        if (yPos <= viewRect.top) {
+            //位置不在矩形区域内，不需要画线
+            continue;
+        }
+        if (yPos > viewRect.bottom) {
+            //已经超越底部边线，不再继续绘制
+            break;
+        }
+
+        UiRect leftRect = viewRect;
+        if (pItem->GetLabelBoxLeft() != nullptr) {
+            leftRect = pItem->GetLabelBoxLeft()->GetRect();
+        }
+        UiRect rightRect = viewRect;
+        if (pItem->GetLabelBoxRight() != nullptr) {
+            rightRect = pItem->GetLabelBoxRight()->GetRect();
+            rightRect.right -= nVScrollBarWidth;
+        }
+        pRender->DrawLine(UiPointF(leftRect.left, yPos), UiPointF(rightRect.right, yPos), rowLineColor, fRowLineWidth);
+    }
+
+    //绘制纵向网格线
+    if ((fColumnLineWidth > 0.01) && !columnLineColor.IsEmpty() && (xColumnLine > viewRect.left)) {
+        pRender->DrawLine(UiPointF(xColumnLine, viewRect.top), UiPointF(xColumnLine, viewRect.bottom),
+                          columnLineColor, fColumnLineWidth);
     }
 }
 
@@ -393,6 +441,10 @@ void PropertyGrid::SetEnableDescriptionArea(bool bEnable)
     if (m_pDescriptionArea != nullptr) {
         m_pDescriptionArea->SetVisible(bEnable);
     }
+    //描述区域隐藏时，分割条也一并隐藏
+    if (m_pDescriptionAreaSplit != nullptr) {
+        m_pDescriptionAreaSplit->SetVisible(bEnable);
+    }
 }
 
 void PropertyGrid::SetDescriptionAreaHeight(int32_t nHeight, bool bNeedDpiScale)
@@ -411,6 +463,10 @@ int32_t PropertyGrid::GetDescriptionAreaHeight() const
     int32_t nHeight = 0;
     if (m_pDescriptionArea != nullptr) {
         nHeight = m_pDescriptionArea->GetFixedHeight().GetInt32();
+        if (nHeight <= 0) {
+            //没有设置固定高度时，返回实际显示高度
+            nHeight = m_pDescriptionArea->GetRect().Height();
+        }
     }
     return nHeight;
 }
@@ -622,7 +678,10 @@ PropertyGridGroup* PropertyGrid::AddGroup(const DString& groupName,
     pGroup->SetWindow(GetWindow());
     pGroup->SetClass(GetGroupClass());
     pGroup->SetPropertyGrid(this);
-    m_pTreeView->GetRootNode()->AddChildNode(pGroup);
+    if (!m_pTreeView->GetRootNode()->AddChildNode(pGroup)) {
+        delete pGroup;
+        return nullptr;
+    }
     pGroup->SetExpand(true);
     return pGroup;
 }
@@ -639,7 +698,10 @@ PropertyGridGroup* PropertyGrid::AddGroupById(const DString& groupNameId,
     pGroup->SetWindow(GetWindow());
     pGroup->SetClass(GetGroupClass());
     pGroup->SetPropertyGrid(this);
-    m_pTreeView->GetRootNode()->AddChildNode(pGroup);
+    if (!m_pTreeView->GetRootNode()->AddChildNode(pGroup)) {
+        delete pGroup;
+        return nullptr;
+    }
     pGroup->SetExpand(true);
     return pGroup;
 }
@@ -681,6 +743,10 @@ bool PropertyGrid::AddProperty(PropertyGridGroup* pGroup, PropertyGridProperty* 
     if ((pGroup == nullptr) || (pProperty == nullptr)){
         return false;
     }
+    ASSERT(pGroup->GetPropertyGrid() == this);
+    if (pGroup->GetPropertyGrid() != this) {
+        return false;
+    }
     size_t nIndex = pGroup->GetChildNodeIndex(pProperty);
     ASSERT(nIndex == Box::InvalidIndex);
     if (nIndex != Box::InvalidIndex) {
@@ -689,7 +755,9 @@ bool PropertyGrid::AddProperty(PropertyGridGroup* pGroup, PropertyGridProperty* 
     pProperty->SetWindow(GetWindow());
     pProperty->SetClass(GetPropertyClass());
     pProperty->SetPropertyGrid(this);
-    pGroup->AddChildNode(pProperty);
+    if (!pGroup->AddChildNode(pProperty)) {
+        return false;
+    }
     int32_t nLeftColumnWidth = GetLeftColumnWidth();
     if (nLeftColumnWidth >= 0) {
         ResizePropertyColumn(pProperty, nLeftColumnWidth);
@@ -1198,7 +1266,7 @@ void PropertyGrid::SetPropertyNormalFontId(const DString& fontId)
     m_propertyNormalFontId = fontId;
 }
 
-DString PropertyGrid::GetProptertyNormalFontId() const
+DString PropertyGrid::GetPropertyNormalFontId() const
 {
     return m_propertyNormalFontId.c_str();
 }
@@ -1208,7 +1276,7 @@ void PropertyGrid::SetPropertyModifiedFontId(const DString& fontId)
     m_propertyModifiedFontId = fontId;
 }
 
-DString PropertyGrid::GetProptertyModifiedFontId() const
+DString PropertyGrid::GetPropertyModifiedFontId() const
 {
     return m_propertyModifiedFontId.c_str();
 }
@@ -1300,7 +1368,7 @@ DString PropertyGridGroup::GetDescription() const
         return m_description.c_str();
     }
     else if (!m_descriptionId.empty()) {
-        return GlobalManager::GetTextById(m_description.c_str());
+        return GlobalManager::GetTextById(m_descriptionId.c_str());
     }
     return DString();
 }
@@ -1308,6 +1376,9 @@ DString PropertyGridGroup::GetDescription() const
 void PropertyGridGroup::SetDescription(const DString& description)
 {
     m_description = description;
+    if (GetPropertyGrid() != nullptr) {
+        GetPropertyGrid()->UpdateDescriptionArea();
+    }
 }
 
 DString PropertyGridGroup::GetDescriptionId() const
@@ -1318,6 +1389,9 @@ DString PropertyGridGroup::GetDescriptionId() const
 void PropertyGridGroup::SetDescriptionId(const DString& descriptionId)
 {
     m_descriptionId = descriptionId;
+    if (GetPropertyGrid() != nullptr) {
+        GetPropertyGrid()->UpdateDescriptionArea();
+    }
 }
 
 void PropertyGridGroup::OnInit()
@@ -1429,7 +1503,8 @@ public:
             return;
         }
         BaseClass::OnInit();
-        SetShowFocusedRect(true);
+        //选中状态由整行的高亮显示，此处不再显示单元格级别的焦点框
+        SetShowFocusedRect(false);
         SetTabStop(false);
     }
 };
@@ -1552,8 +1627,18 @@ void PropertyGridProperty::SetPropertyValue(const DString& propertyValue)
 {
     if (m_propertyValue != propertyValue) {
         m_propertyValue = propertyValue;
+        m_propertyValueId.clear();
         if (m_pLabelBoxRight != nullptr) {
             m_pLabelBoxRight->SetText(propertyValue);
+            m_pLabelBoxRight->SetTextId(_T(""));
+            //设置原值时，恢复为正常字体（清除"已修改"的显示状态）
+            DString propertyNormalFontId;
+            if (m_pPropertyGrid != nullptr) {
+                propertyNormalFontId = m_pPropertyGrid->GetPropertyNormalFontId();
+            }
+            if (!propertyNormalFontId.empty()) {
+                m_pLabelBoxRight->SetFontId(propertyNormalFontId);
+            }
         }
         OnPropertyValueChanged();
     }
@@ -1568,8 +1653,18 @@ void PropertyGridProperty::SetPropertyValueId(const DString& propertyValueId)
 {
     if (m_propertyValueId != propertyValueId) {
         m_propertyValueId = propertyValueId;
+        m_propertyValue.clear();
         if (m_pLabelBoxRight != nullptr) {
-            m_pLabelBoxRight->SetText(propertyValueId);
+            m_pLabelBoxRight->SetText(_T(""));
+            m_pLabelBoxRight->SetTextId(propertyValueId);
+            //设置原值时，恢复为正常字体（清除"已修改"的显示状态）
+            DString propertyNormalFontId;
+            if (m_pPropertyGrid != nullptr) {
+                propertyNormalFontId = m_pPropertyGrid->GetPropertyNormalFontId();
+            }
+            if (!propertyNormalFontId.empty()) {
+                m_pLabelBoxRight->SetFontId(propertyNormalFontId);
+            }
         }
         OnPropertyValueChanged();
     }
@@ -1594,6 +1689,9 @@ DString PropertyGridProperty::GetDescription() const
 void PropertyGridProperty::SetDescription(const DString& description)
 {
     m_description = description;
+    if (GetPropertyGrid() != nullptr) {
+        GetPropertyGrid()->UpdateDescriptionArea();
+    }
 }
 
 DString PropertyGridProperty::GetDescriptionId() const
@@ -1604,6 +1702,9 @@ DString PropertyGridProperty::GetDescriptionId() const
 void PropertyGridProperty::SetDescriptionId(const DString& descriptionId)
 {
     m_descriptionId = descriptionId;
+    if (GetPropertyGrid() != nullptr) {
+        GetPropertyGrid()->UpdateDescriptionArea();
+    }
 }
 
 void PropertyGridProperty::OnInit()
@@ -1648,7 +1749,7 @@ void PropertyGridProperty::OnInit()
     DString propertyNormalFontId;
     ASSERT(m_pPropertyGrid != nullptr);
     if (m_pPropertyGrid != nullptr) {
-        propertyNormalFontId = m_pPropertyGrid->GetProptertyNormalFontId();
+        propertyNormalFontId = m_pPropertyGrid->GetPropertyNormalFontId();
     }
     if (!propertyNormalFontId.empty()) {
         m_pLabelBoxRight->SetFontId(propertyNormalFontId.c_str());
@@ -1668,17 +1769,8 @@ void PropertyGridProperty::OnInit()
         return true;
         });
 
-    //允许或者禁止编辑控件
-    EnableEditControl(!IsReadOnly());
-
-    //滚动条滚动事件
-    TreeView* pTreeView = GetTreeView();
-    if (pTreeView != nullptr) {
-        pTreeView->AttachScrollPosChanged([this](const EventArgs&) {
-            OnScrollPosChanged();
-            return true;
-            });
-    }
+    //编辑控件按需创建（首次点击属性值时创建），此处不再预创建
+    //编辑控件相关的事件，由具体的属性子类在创建编辑控件时挂载
 }
 
 int32_t PropertyGridProperty::GetEditControlMarginRight() const
@@ -1710,7 +1802,7 @@ void PropertyGridProperty::SetPropertyText(const DString& text, bool bChanged, b
             DString propertyModifiedFontId;
             ASSERT(m_pPropertyGrid != nullptr);
             if (m_pPropertyGrid != nullptr) {
-                propertyModifiedFontId = m_pPropertyGrid->GetProptertyModifiedFontId();
+                propertyModifiedFontId = m_pPropertyGrid->GetPropertyModifiedFontId();
             }
             if (!propertyModifiedFontId.empty()) {
                 m_pLabelBoxRight->SetFontId(propertyModifiedFontId);
@@ -1720,7 +1812,7 @@ void PropertyGridProperty::SetPropertyText(const DString& text, bool bChanged, b
             DString propertyNormalFontId;
             ASSERT(m_pPropertyGrid != nullptr);
             if (m_pPropertyGrid != nullptr) {
-                propertyNormalFontId = m_pPropertyGrid->GetProptertyNormalFontId();
+                propertyNormalFontId = m_pPropertyGrid->GetPropertyNormalFontId();
             }
             if (!propertyNormalFontId.empty()) {
                 m_pLabelBoxRight->SetFontId(propertyNormalFontId);
@@ -1804,7 +1896,10 @@ void PropertyGridProperty::SetReadOnly(bool bReadOnly)
 {
     if (m_bReadOnly != bReadOnly) {
         m_bReadOnly = bReadOnly;
-        EnableEditControl(!bReadOnly);
+        if (bReadOnly) {
+            //只读时销毁编辑控件；解除只读时按需创建（首次点击属性值时创建）
+            EnableEditControl(false);
+        }
     }
 }
 
@@ -1887,7 +1982,11 @@ PropertyGridTextProperty::PropertyGridTextProperty(Window* pWindow,
     PropertyGridProperty(pWindow, propertyName, propertyValue, description, nPropertyData),
     m_pRichEdit(nullptr),
     m_bPasswordMode(false),
-    m_bTextEdited(false)
+    m_bTextEdited(false),
+    m_realText(),
+    m_bSpinEnable(false),
+    m_nSpinMin(0),
+    m_nSpinMax(0)
 {
 }
 
@@ -1905,7 +2004,11 @@ PropertyGridTextProperty::PropertyGridTextProperty(Window* pWindow,
                          nPropertyData),
     m_pRichEdit(nullptr),
     m_bPasswordMode(false),
-    m_bTextEdited(false)
+    m_bTextEdited(false),
+    m_realText(),
+    m_bSpinEnable(false),
+    m_nSpinMin(0),
+    m_nSpinMax(0)
 {
 }
 
@@ -1913,7 +2016,11 @@ PropertyGridTextProperty::PropertyGridTextProperty(Window* pWindow, const Proper
     PropertyGridProperty(pWindow, param),
     m_pRichEdit(nullptr),
     m_bPasswordMode(false),
-    m_bTextEdited(false)
+    m_bTextEdited(false),
+    m_realText(),
+    m_bSpinEnable(false),
+    m_nSpinMin(0),
+    m_nSpinMax(0)
 {
 }
 
@@ -1938,9 +2045,27 @@ void PropertyGridTextProperty::EnableEditControl(bool bEnable)
         m_pRichEdit = nullptr;
         return;
     }
-    //编辑框的属性：在property_grid.xml中定义    
-    m_pRichEdit->SetText(GetPropertyText());
+    //编辑框的属性：在property_grid.xml中定义
+    DString initText;
+    if (!m_realText.empty()) {
+        initText = m_realText.c_str();
+    }
+    else {
+        //密码模式下，显示文本是掩码，不能作为编辑框的初始值
+        initText = m_bPasswordMode ? GetPropertyValue() : GetPropertyText();
+    }
+    m_pRichEdit->SetText(initText);
     m_pRichEdit->SetVisible(false);
+
+    //回放密码模式与Spin控件的设置
+    if (m_bPasswordMode) {
+        m_pRichEdit->SetPasswordMode(true);
+        m_pRichEdit->SetFlashPasswordChar(true);
+    }
+    if (m_bSpinEnable) {
+        DString spinClass = _T("property_grid_spin_box,property_grid_spin_btn_up,property_grid_spin_btn_down");
+        m_pRichEdit->SetEnableSpin(true, spinClass, m_nSpinMin, m_nSpinMax);
+    }
 
     //挂载回车和焦点切换事件
     m_pRichEdit->AttachReturn([this](const EventArgs&) {
@@ -1948,7 +2073,7 @@ void PropertyGridTextProperty::EnableEditControl(bool bEnable)
         return true;
         });
     m_pRichEdit->AttachEsc([this](const EventArgs&) {
-        m_pRichEdit->SetText(GetPropertyText());
+        m_pRichEdit->SetText(m_oldText.c_str());
         SetPropertyFocus();
         return true;
         });
@@ -1961,9 +2086,6 @@ void PropertyGridTextProperty::EnableEditControl(bool bEnable)
 void PropertyGridTextProperty::OnLanguageChanged(bool bRedraw)
 {
     BaseClass::OnLanguageChanged(bRedraw);
-    if (m_pRichEdit == nullptr) {
-        return;
-    }
     if (!UsingPropertyValueId()) {
         //未使用多语言版本的属性值ID，无需处理
         return;
@@ -1977,33 +2099,57 @@ void PropertyGridTextProperty::OnPropertyValueChanged()
 {
     BaseClass::OnPropertyValueChanged();
 
-    if (!m_bTextEdited && (m_pRichEdit != nullptr)) {
+    if (!m_bTextEdited) {
         //未编辑过，同步显示和编辑数据
         DString propValue = GetPropertyValue();
-        m_pRichEdit->SetText(propValue);
-        SetPropertyText(propValue, false);
+        m_realText = propValue;
+        if (m_pRichEdit != nullptr) {
+            m_pRichEdit->SetText(propValue);
+        }
+        if (m_bPasswordMode && !propValue.empty()) {
+            DString showText;
+            showText.resize(propValue.size(), _T('*'));
+            SetPropertyText(showText, false);
+        }
+        else {
+            SetPropertyText(propValue, false);
+        }
     }
 }
 
 Control* PropertyGridTextProperty::ShowEditControl(bool bShow, bool bCancel)
 {
-    if (IsReadOnly() || (m_pRichEdit == nullptr)) {
-        return nullptr;
-    }
-
     if (bShow) {
+        if (IsReadOnly()) {
+            return nullptr;
+        }
+        if (m_pRichEdit == nullptr) {
+            //首次编辑时创建编辑控件
+            EnableEditControl(true);
+        }
+        if (m_pRichEdit == nullptr) {
+            return nullptr;
+        }
         m_bTextEdited = true;
         m_oldText = m_pRichEdit->GetText();
         m_pRichEdit->SetVisible(true);
         m_pRichEdit->SetFocus();
     }
     else {
+        if (m_pRichEdit == nullptr) {
+            return nullptr;
+        }
+        DString newText;
         if (bCancel) {
             //取消编辑
             m_pRichEdit->SetText(m_oldText.c_str());
+            newText = m_oldText.c_str();
         }
-        DString newText = m_pRichEdit->GetText();
-        bool bChanged = newText != GetPropertyValue(); //相对原值，是否有修改
+        else {
+            newText = m_pRichEdit->GetText();
+        }
+        bool bChanged = !UsingPropertyValueId() && (newText != GetPropertyValue()); //相对原值，是否有修改
+        m_realText = newText;
         if (IsPasswordMode()) {
             DString showText;
             showText.resize(newText.size(), _T('*'));
@@ -2022,14 +2168,18 @@ Control* PropertyGridTextProperty::ShowEditControl(bool bShow, bool bCancel)
 
 void PropertyGridTextProperty::SetPasswordMode(bool bPasswordMode)
 {
-    m_bPasswordMode = bPasswordMode;
-    if (m_pRichEdit == nullptr) {
+    if (m_bPasswordMode == bPasswordMode) {
         return;
     }
-    m_pRichEdit->SetPasswordMode(bPasswordMode);
-    m_pRichEdit->SetFlashPasswordChar(true);
-    DString text = m_pRichEdit->GetText();
-    bool bChanged = text != GetPropertyValue(); //相对原值，是否有修改
+    m_bPasswordMode = bPasswordMode;
+
+    DString text = m_realText.empty() ? GetPropertyText() : m_realText.c_str();
+    if (m_pRichEdit != nullptr) {
+        m_pRichEdit->SetPasswordMode(bPasswordMode);
+        m_pRichEdit->SetFlashPasswordChar(true);
+        m_pRichEdit->SetText(text);
+    }
+    bool bChanged = !UsingPropertyValueId() && (text != GetPropertyValue()); //相对原值，是否有修改
     if (bPasswordMode) {
         DString showText;
         showText.resize(text.size(), _T('*'));
@@ -2042,39 +2192,48 @@ void PropertyGridTextProperty::SetPasswordMode(bool bPasswordMode)
 
 void PropertyGridTextProperty::SetEnableSpin(bool bEnable, int64_t nMin, int64_t nMax)
 {
-    RichEdit* pRichEdit = GetRichEdit();
-    if (IsEnabled()) {
-        ASSERT(pRichEdit != nullptr);
-    }    
-    if (pRichEdit != nullptr) {
+    m_bSpinEnable = bEnable;
+    m_nSpinMin = nMin;
+    m_nSpinMax = nMax;
+
+    if (m_pRichEdit != nullptr) {
         DString spinClass = _T("property_grid_spin_box,property_grid_spin_btn_up,property_grid_spin_btn_down");
-        pRichEdit->SetEnableSpin(bEnable, spinClass, nMin, nMax);
+        m_pRichEdit->SetEnableSpin(bEnable, spinClass, nMin, nMax);
     }
 }
 
 DString PropertyGridTextProperty::GetPropertyNewValue() const
 {
     DString propertyValue = GetPropertyValue();
-    if (!IsReadOnly() && (m_pRichEdit != nullptr)) {
-        propertyValue = m_pRichEdit->GetText();
+    if (!IsReadOnly()) {
+        if (m_pRichEdit != nullptr) {
+            propertyValue = m_pRichEdit->GetText();
+        }
+        else if (IsPasswordMode() && !m_realText.empty()) {
+            propertyValue = m_realText.c_str();
+        }
     }
     return propertyValue;
 }
 
 void PropertyGridTextProperty::SetNewTextValue(const DString& newText)
 {
-    if (!IsReadOnly() && (m_pRichEdit != nullptr)) {
-        m_bTextEdited = true;
+    if (IsReadOnly()) {
+        return;
+    }
+    m_bTextEdited = true;
+    if (m_pRichEdit != nullptr) {
         m_pRichEdit->SetText(newText);
-        bool bChanged = newText != GetPropertyValue(); //相对原值，是否有修改
-        if (IsPasswordMode()) {
-            DString showText;
-            showText.resize(newText.size(), _T('*'));
-            SetPropertyText(showText, bChanged);
-        }
-        else {
-            SetPropertyText(newText, bChanged);
-        }
+    }
+    m_realText = newText;
+    bool bChanged = !UsingPropertyValueId() && (newText != GetPropertyValue()); //相对原值，是否有修改
+    if (IsPasswordMode()) {
+        DString showText;
+        showText.resize(newText.size(), _T('*'));
+        SetPropertyText(showText, bChanged);
+    }
+    else {
+        SetPropertyText(newText, bChanged);
     }
 }
 
@@ -2092,9 +2251,13 @@ PropertyGridComboProperty::PropertyGridComboProperty(Window* pWindow,
                                                      size_t nPropertyData) :
     PropertyGridProperty(pWindow, propertyName, propertyValue, description, nPropertyData),
     m_pCombo(nullptr),
+    m_oldText(),
+    m_oldSelItem(Box::InvalidIndex),
     m_bComboEdited(false),
     m_bComboEditing(false),
-    m_oldSelItem(Box::InvalidIndex)
+    m_optionList(),
+    m_curSel(Box::InvalidIndex),
+    m_bListMode(false)
 {
 }
 
@@ -2111,19 +2274,50 @@ PropertyGridComboProperty::PropertyGridComboProperty(Window* pWindow,
                          bDescriptionId, description,
                          nPropertyData),
     m_pCombo(nullptr),
+    m_oldText(),
+    m_oldSelItem(Box::InvalidIndex),
     m_bComboEdited(false),
     m_bComboEditing(false),
-    m_oldSelItem(Box::InvalidIndex)
+    m_optionList(),
+    m_curSel(Box::InvalidIndex),
+    m_bListMode(false)
 {
 }
 
 PropertyGridComboProperty::PropertyGridComboProperty(Window* pWindow, const PropertyGridParam& param):
     PropertyGridProperty(pWindow, param),
     m_pCombo(nullptr),
+    m_oldText(),
+    m_oldSelItem(Box::InvalidIndex),
     m_bComboEdited(false),
     m_bComboEditing(false),
-    m_oldSelItem(Box::InvalidIndex)
+    m_optionList(),
+    m_curSel(Box::InvalidIndex),
+    m_bListMode(false)
 {
+}
+
+void PropertyGridComboProperty::ApplyComboOptions()
+{
+    if (m_pCombo == nullptr) {
+        return;
+    }
+    m_pCombo->DeleteAllItems();
+    for (size_t i = 0; i < m_optionList.size(); ++i) {
+        const ComboOption& option = m_optionList[i];
+        if (!option.m_textId.empty()) {
+            m_pCombo->AddTextIdItem(option.m_textId.c_str());
+        }
+        else {
+            m_pCombo->AddTextItem(option.m_text.c_str());
+        }
+        if (option.m_bHasData) {
+            m_pCombo->SetItemData(i, option.m_nData);
+        }
+    }
+    if ((m_curSel != Box::InvalidIndex) && (m_curSel < m_optionList.size())) {
+        m_pCombo->SetCurSel(m_curSel, false);
+    }
 }
 
 void PropertyGridComboProperty::EnableEditControl(bool bEnable)
@@ -2147,9 +2341,13 @@ void PropertyGridComboProperty::EnableEditControl(bool bEnable)
         m_pCombo = nullptr;
         return;
     }
-    //编辑框的属性：在property_grid.xml中定义    
-    m_pCombo->SetText(GetPropertyText());
+    //编辑框的属性：在property_grid.xml中定义
     m_pCombo->SetVisible(false);
+    m_pCombo->SetComboType(m_bListMode ? Combo::ComboType::kCombo_DropList : Combo::ComboType::kCombo_DropDown);
+
+    //回放暂存的选项
+    ApplyComboOptions();
+    m_pCombo->SetText(GetPropertyText());
 
     //挂载事件
     m_pCombo->AttachKillFocus([this](const EventArgs&) {
@@ -2179,11 +2377,17 @@ void PropertyGridComboProperty::EnableEditControl(bool bEnable)
 
 Control* PropertyGridComboProperty::ShowEditControl(bool bShow, bool bCancel)
 {
-    if (IsReadOnly() || (m_pCombo == nullptr)) {
-        return nullptr;
-    }
-
     if (bShow) {
+        if (IsReadOnly()) {
+            return nullptr;
+        }
+        if (m_pCombo == nullptr) {
+            //首次编辑时创建编辑控件
+            EnableEditControl(true);
+        }
+        if (m_pCombo == nullptr) {
+            return nullptr;
+        }
         m_bComboEditing = true;
         m_bComboEdited = true;
         m_pCombo->SetVisible(true);
@@ -2192,6 +2396,9 @@ Control* PropertyGridComboProperty::ShowEditControl(bool bShow, bool bCancel)
         m_oldText = m_pCombo->GetText();
     }
     else {
+        if (m_pCombo == nullptr) {
+            return nullptr;
+        }
         //取消
         if (bCancel) {
             m_pCombo->SetCurSel(m_oldSelItem, false);
@@ -2203,7 +2410,7 @@ Control* PropertyGridComboProperty::ShowEditControl(bool bShow, bool bCancel)
         }
 
         DString newText = m_pCombo->GetText();
-        bool bChanged = newText != GetPropertyValue(); //相对原值，是否有修改
+        bool bChanged = !UsingPropertyValueId() && (newText != GetPropertyValue()); //相对原值，是否有修改
         SetPropertyText(newText, bChanged);
         m_pCombo->SetVisible(false);
         if (!bChanged) {
@@ -2224,9 +2431,6 @@ void PropertyGridComboProperty::OnScrollPosChanged()
 void PropertyGridComboProperty::OnLanguageChanged(bool bRedraw)
 {
     BaseClass::OnLanguageChanged(bRedraw);
-    if (m_pCombo == nullptr) {
-        return;
-    }
     if (!UsingPropertyValueId()) {
         //未使用多语言版本的属性值ID，无需处理
         return;
@@ -2240,14 +2444,11 @@ void PropertyGridComboProperty::OnPropertyValueChanged()
 {
     BaseClass::OnPropertyValueChanged();
     if (m_pCombo != nullptr) {
-        bool bUpdateText = !m_bComboEdited; //未编辑过或者有选择项
-        if (m_pCombo->GetCurSel() != ui::Box::InvalidIndex) {
-            bUpdateText = true;
-        }
-        if (bUpdateText) {
-            //同步显示和编辑数据
+        //仅在编辑状态下，或者属性值使用多语言文本ID时，才用下拉框的文本覆盖显示值
+        //避免应用调用SetPropertyValue设置新的显示值时，被下拉框的旧文本覆盖
+        if (m_pCombo->IsVisible() || UsingPropertyValueId()) {
             DString newText = m_pCombo->GetText();
-            bool bChanged = newText != GetPropertyValue(); //相对原值，是否有修改
+            bool bChanged = !UsingPropertyValueId() && (newText != GetPropertyValue()); //相对原值，是否有修改
             SetPropertyText(newText, bChanged);
         }
     }
@@ -2256,35 +2457,50 @@ void PropertyGridComboProperty::OnPropertyValueChanged()
 DString PropertyGridComboProperty::GetPropertyNewValue() const
 {
     DString propertyValue = GetPropertyValue();
-    if (!IsReadOnly() && (m_pCombo != nullptr)) {
-        propertyValue = m_pCombo->GetText();
+    if (!IsReadOnly()) {
+        if (m_pCombo != nullptr) {
+            propertyValue = m_pCombo->GetText();
+        }
+        else if (m_curSel != Box::InvalidIndex) {
+            propertyValue = GetOption(m_curSel);
+        }
     }
     return propertyValue;
 }
 
 size_t PropertyGridComboProperty::AddOption(const DString& optionText)
 {
-    size_t nIndex = Box::InvalidIndex;
-    ASSERT(m_pCombo != nullptr);
+    ComboOption option;
+    option.m_text = optionText;
+    m_optionList.push_back(option);
+
+    size_t nIndex = m_optionList.size() - 1;
     if (m_pCombo != nullptr) {
-        nIndex = m_pCombo->AddTextItem(optionText);
+        ASSERT(m_pCombo->AddTextItem(optionText) == nIndex);
     }
     return nIndex;
 }
 
 size_t PropertyGridComboProperty::AddOptionById(const DString& optionTextId)
 {
-    size_t nIndex = Box::InvalidIndex;
-    ASSERT(m_pCombo != nullptr);
+    ComboOption option;
+    option.m_textId = optionTextId;
+    m_optionList.push_back(option);
+
+    size_t nIndex = m_optionList.size() - 1;
     if (m_pCombo != nullptr) {
-        nIndex = m_pCombo->AddTextIdItem(optionTextId);
+        ASSERT(m_pCombo->AddTextIdItem(optionTextId) == nIndex);
     }
     return nIndex;
 }
 
 void PropertyGridComboProperty::SetOptionData(size_t nIndex, size_t nOptionData)
 {
-    ASSERT(m_pCombo != nullptr);
+    ASSERT(nIndex < m_optionList.size());
+    if (nIndex < m_optionList.size()) {
+        m_optionList[nIndex].m_nData = nOptionData;
+        m_optionList[nIndex].m_bHasData = true;
+    }
     if (m_pCombo != nullptr) {
         m_pCombo->SetItemData(nIndex, nOptionData);
     }
@@ -2293,54 +2509,62 @@ void PropertyGridComboProperty::SetOptionData(size_t nIndex, size_t nOptionData)
 size_t PropertyGridComboProperty::GetOptionData(size_t nIndex) const
 {
     size_t nOptionData = 0;
-    ASSERT(m_pCombo != nullptr);
-    if (m_pCombo != nullptr) {
-        nOptionData = m_pCombo->GetItemData(nIndex);
+    if (nIndex < m_optionList.size()) {
+        nOptionData = m_optionList[nIndex].m_nData;
     }
     return nOptionData;
 }
 
 bool PropertyGridComboProperty::HasOptionData(size_t nIndex) const
 {
-    if (m_pCombo != nullptr) {
-        return m_pCombo->HasItemData(nIndex);
+    if (nIndex < m_optionList.size()) {
+        return m_optionList[nIndex].m_bHasData;
     }
     return false;
 }
 
 size_t PropertyGridComboProperty::GetOptionCount() const
 {
-    size_t nCount = 0;
-    ASSERT(m_pCombo != nullptr);
-    if (m_pCombo != nullptr) {
-        nCount = m_pCombo->GetCount();
-    }
-    return nCount;
+    return m_optionList.size();
 }
 
 DString PropertyGridComboProperty::GetOption(size_t nIndex) const
 {
     DString text;
-    ASSERT(m_pCombo != nullptr);
-    if (m_pCombo != nullptr) {
-        text = m_pCombo->GetItemText(nIndex);
+    if (nIndex < m_optionList.size()) {
+        const ComboOption& option = m_optionList[nIndex];
+        if (!option.m_text.empty()) {
+            text = option.m_text.c_str();
+        }
+        else if (!option.m_textId.empty()) {
+            text = GlobalManager::GetTextById(option.m_textId.c_str());
+        }
     }
     return text;
 }
 
 bool PropertyGridComboProperty::RemoveOption(size_t nIndex)
 {
-    bool bRet = false;
-    ASSERT(m_pCombo != nullptr);
-    if (m_pCombo != nullptr) {
-        bRet = m_pCombo->DeleteItem(nIndex);
+    if (nIndex >= m_optionList.size()) {
+        return false;
     }
-    return bRet;
+    m_optionList.erase(m_optionList.begin() + nIndex);
+    if (m_curSel == nIndex) {
+        m_curSel = Box::InvalidIndex;
+    }
+    else if ((m_curSel != Box::InvalidIndex) && (m_curSel > nIndex)) {
+        m_curSel -= 1;
+    }
+    if (m_pCombo != nullptr) {
+        m_pCombo->DeleteItem(nIndex);
+    }
+    return true;
 }
 
 void PropertyGridComboProperty::RemoveAllOptions()
 {
-    ASSERT(m_pCombo != nullptr);
+    m_optionList.clear();
+    m_curSel = Box::InvalidIndex;
     if (m_pCombo != nullptr) {
         m_pCombo->DeleteAllItems();
     }
@@ -2348,27 +2572,27 @@ void PropertyGridComboProperty::RemoveAllOptions()
 
 size_t PropertyGridComboProperty::GetCurSel() const
 {
-    size_t nIndex = Box::InvalidIndex;
-    ASSERT(m_pCombo != nullptr);
     if (m_pCombo != nullptr) {
-        nIndex = m_pCombo->GetCurSel();
+        return m_pCombo->GetCurSel();
     }
-    return nIndex;
+    return m_curSel;
 }
 
 bool PropertyGridComboProperty::SetCurSel(size_t nIndex, bool bTriggerEvent)
 {
-    bool bRet = false;
-    ASSERT(m_pCombo != nullptr);
-    if (m_pCombo != nullptr) {
-        bRet = m_pCombo->SetCurSel(nIndex, bTriggerEvent);
+    if (nIndex >= m_optionList.size()) {
+        return false;
     }
-    return bRet;
+    m_curSel = nIndex;
+    if (m_pCombo != nullptr) {
+        return m_pCombo->SetCurSel(nIndex, bTriggerEvent);
+    }
+    return true;
 }
 
 void PropertyGridComboProperty::SetComboListMode(bool bListMode)
 {
-    ASSERT(m_pCombo != nullptr);
+    m_bListMode = bListMode;
     if (m_pCombo != nullptr) {
         m_pCombo->SetComboType(bListMode ? Combo::ComboType::kCombo_DropList : Combo::ComboType::kCombo_DropDown);
     }
@@ -2376,12 +2600,12 @@ void PropertyGridComboProperty::SetComboListMode(bool bListMode)
 
 void PropertyGridComboProperty::UpdateEditText(bool bTriggerEvent)
 {
+    DString newText = GetOption(GetCurSel());
     if (m_pCombo != nullptr) {
-        DString newText = m_pCombo->GetItemText(GetCurSel());
         m_pCombo->SetText(newText);
-        bool bChanged = newText != GetPropertyValue(); //相对原值，是否有修改
-        SetPropertyText(newText, bChanged, bTriggerEvent);
     }
+    bool bChanged = !UsingPropertyValueId() && (newText != GetPropertyValue()); //相对原值，是否有修改
+    SetPropertyText(newText, bChanged, bTriggerEvent);
 }
 
 bool PropertyGridComboProperty::IsComboEditing() const
@@ -2590,6 +2814,10 @@ DString PropertyGridFontSizeProperty::GetPropertyNewValue() const
 void PropertyGridFontSizeProperty::SetFontSizeList(const std::vector<FontSizeInfo>& fontSizeList)
 {
     m_externfontSizeList = fontSizeList;
+    if (IsInited()) {
+        //已经初始化时，立即刷新选项列表
+        UpdateFontSizeOptionList();
+    }
 }
 
 void PropertyGridFontSizeProperty::GetFontSizeList(std::vector<FontSizeInfo>& fontSizeList) const
@@ -2973,11 +3201,17 @@ void PropertyGridColorProperty::EnableEditControl(bool bEnable)
 
 Control* PropertyGridColorProperty::ShowEditControl(bool bShow, bool bCancel)
 {
-    if (IsReadOnly() || (m_pComboButton == nullptr)) {
-        return nullptr;
-    }
-
     if (bShow) {
+        if (IsReadOnly()) {
+            return nullptr;
+        }
+        if (m_pComboButton == nullptr) {
+            //首次编辑时创建编辑控件
+            EnableEditControl(true);
+        }
+        if (m_pComboButton == nullptr) {
+            return nullptr;
+        }
         m_oldColor.clear();
         Label* pColorLabel = m_pComboButton->GetLabelTop();
         if (pColorLabel != nullptr) {
@@ -2987,6 +3221,9 @@ Control* PropertyGridColorProperty::ShowEditControl(bool bShow, bool bCancel)
         m_pComboButton->SetFocus();
     }
     else {
+        if (m_pComboButton == nullptr) {
+            return nullptr;
+        }
         if (bCancel) {
             //取消
             OnSelectColor(m_oldColor.c_str());
@@ -2996,12 +3233,38 @@ Control* PropertyGridColorProperty::ShowEditControl(bool bShow, bool bCancel)
         if (pColorLabel != nullptr) {            
             newText = pColorLabel->GetText();
         }
-        bool bChanged = newText != GetPropertyValue(); //相对原值，是否有修改
+        bool bChanged = !UsingPropertyValueId() && (newText != GetPropertyValue()); //相对原值，是否有修改
         SetPropertyText(newText, bChanged);
         SetPropertyTextColor(newText);
         m_pComboButton->SetVisible(false);
     }
     return m_pComboButton.get();
+}
+
+void PropertyGridColorProperty::PaintChild(IRender* pRender, const UiRect& rcPaint)
+{
+    PropertyGridProperty::PaintChild(pRender, rcPaint);
+    LabelBox* pLabelBoxRight = GetLabelBoxRight();
+    if ((pRender == nullptr) || (pLabelBoxRight == nullptr)) {
+        return;
+    }
+    if ((m_pComboButton != nullptr) && m_pComboButton->IsVisible()) {
+        //编辑状态下，颜色由编辑控件显示
+        return;
+    }
+    //在属性值右侧绘制当前颜色的色块，使得未进入编辑状态时也能看到颜色
+    const UiColor bkColor = GetUiColor(GetPropertyText());
+    if (bkColor.IsEmpty()) {
+        return;
+    }
+    const UiRect rcLabel = pLabelBoxRight->GetRect();
+    const int32_t nSize = 14;
+    const int32_t nMarginRight = 10;
+    const int32_t nTop = rcLabel.top + (rcLabel.Height() - nSize) / 2;
+    const UiRectF rcSwatch((float)(rcLabel.right - nSize - nMarginRight), (float)nTop,
+                           (float)(rcLabel.right - nMarginRight), (float)(nTop + nSize));
+    pRender->FillRect(rcSwatch, bkColor);
+    pRender->DrawRect(rcSwatch, UiColor(0xFFA0A0A0), 1.0f, true);
 }
 
 void PropertyGridColorProperty::OnScrollPosChanged()
@@ -3101,7 +3364,7 @@ void PropertyGridColorProperty::ShowColorPicker()
         }
         else {
             //如果是"取消"或者关闭窗口，则恢复原来的颜色
-            pColorLabel->SetBkColor(newColor);
+            pColorLabel->SetBkColor(oldTextColor);
             OnSelectColor(oldTextColor);
         }
         return true;
@@ -3188,14 +3451,9 @@ void PropertyGridDateTimeProperty::EnableEditControl(bool bEnable)
     }
 
     m_pDateTime->SetEditFormat(m_editFormat);
-    bool bValid = m_pDateTime->SetDateTimeString(GetPropertyText());
+    m_pDateTime->SetDateTimeString(GetPropertyText());
     m_pDateTime->SetVisible(false);
     m_pDateTime->SetText(GetPropertyText());
-
-    ASSERT_UNUSED_VARIABLE(bValid);
-    auto s0 = m_pDateTime->GetDateTimeString();
-    auto s1 = GetPropertyText();
-    ASSERT(m_pDateTime->GetDateTimeString() == GetPropertyText());
 
     //挂载焦点切换事件
     m_pDateTime->AttachKillFocus([this](const EventArgs&) {
@@ -3204,13 +3462,20 @@ void PropertyGridDateTimeProperty::EnableEditControl(bool bEnable)
         });
 }
 
-Control* PropertyGridDateTimeProperty::ShowEditControl(bool bShow, bool /*bCancel*/)
+Control* PropertyGridDateTimeProperty::ShowEditControl(bool bShow, bool bCancel)
 {
-    if (IsReadOnly() || (m_pDateTime == nullptr)) {
-        return nullptr;
-    }
-
     if (bShow) {
+        if (IsReadOnly()) {
+            return nullptr;
+        }
+        if (m_pDateTime == nullptr) {
+            //首次编辑时创建编辑控件
+            EnableEditControl(true);
+        }
+        if (m_pDateTime == nullptr) {
+            return nullptr;
+        }
+        m_oldText = m_pDateTime->GetText();
         int32_t nWidth = GetEditControlMarginRight();
         UiMargin rcMargin = m_pDateTime->GetMargin();
         rcMargin.right = nWidth;
@@ -3219,8 +3484,15 @@ Control* PropertyGridDateTimeProperty::ShowEditControl(bool bShow, bool /*bCance
         m_pDateTime->SetFocus();
     }
     else {
+        if (m_pDateTime == nullptr) {
+            return nullptr;
+        }
+        if (bCancel) {
+            //取消编辑，恢复原来的值
+            m_pDateTime->SetDateTimeString(m_oldText.c_str());
+        }
         DString newText = m_pDateTime->GetText();
-        bool bChanged = newText != GetPropertyValue(); //相对原值，是否有修改
+        bool bChanged = !UsingPropertyValueId() && (newText != GetPropertyValue()); //相对原值，是否有修改
         SetPropertyText(newText, bChanged);
         m_pDateTime->SetVisible(false);
     }
@@ -3298,19 +3570,33 @@ void PropertyGridIPAddressProperty::EnableEditControl(bool bEnable)
         });
 }
 
-Control* PropertyGridIPAddressProperty::ShowEditControl(bool bShow, bool /*bCancel*/)
+Control* PropertyGridIPAddressProperty::ShowEditControl(bool bShow, bool bCancel)
 {
-    if (IsReadOnly() || (m_pIPAddress == nullptr)) {
-        return nullptr;
-    }
-
     if (bShow) {
+        if (IsReadOnly()) {
+            return nullptr;
+        }
+        if (m_pIPAddress == nullptr) {
+            //首次编辑时创建编辑控件
+            EnableEditControl(true);
+        }
+        if (m_pIPAddress == nullptr) {
+            return nullptr;
+        }
+        m_oldText = m_pIPAddress->GetIPAddress();
         m_pIPAddress->SetVisible(true);
         m_pIPAddress->SetFocus();
     }
     else {
+        if (m_pIPAddress == nullptr) {
+            return nullptr;
+        }
+        if (bCancel) {
+            //取消编辑，恢复原来的值
+            m_pIPAddress->SetIPAddress(m_oldText.c_str());
+        }
         DString newText = m_pIPAddress->GetIPAddress();
-        bool bChanged = newText != GetPropertyValue(); //相对原值，是否有修改
+        bool bChanged = !UsingPropertyValueId() && (newText != GetPropertyValue()); //相对原值，是否有修改
         SetPropertyText(newText, bChanged);
         m_pIPAddress->SetVisible(false);
     }
@@ -3392,19 +3678,33 @@ void PropertyGridHotKeyProperty::EnableEditControl(bool bEnable)
         });
 }
 
-Control* PropertyGridHotKeyProperty::ShowEditControl(bool bShow, bool /*bCancel*/)
+Control* PropertyGridHotKeyProperty::ShowEditControl(bool bShow, bool bCancel)
 {
-    if (IsReadOnly() || (m_pHotKey == nullptr)) {
-        return nullptr;
-    }
-
     if (bShow) {
+        if (IsReadOnly()) {
+            return nullptr;
+        }
+        if (m_pHotKey == nullptr) {
+            //首次编辑时创建编辑控件
+            EnableEditControl(true);
+        }
+        if (m_pHotKey == nullptr) {
+            return nullptr;
+        }
+        m_oldText = m_pHotKey->GetHotKeyName();
         m_pHotKey->SetVisible(true);
         m_pHotKey->SetFocus();
     }
     else {
+        if (m_pHotKey == nullptr) {
+            return nullptr;
+        }
+        if (bCancel) {
+            //取消编辑，恢复原来的值
+            m_pHotKey->SetHotKeyName(m_oldText.c_str());
+        }
         DString newText = m_pHotKey->GetHotKeyName();
-        bool bChanged = newText != GetPropertyValue(); //相对原值，是否有修改
+        bool bChanged = !UsingPropertyValueId() && (newText != GetPropertyValue()); //相对原值，是否有修改
         SetPropertyText(newText, bChanged);
         m_pHotKey->SetVisible(false);
     }

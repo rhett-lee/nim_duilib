@@ -10,15 +10,25 @@
                                        collapse_disabled_image="file='public/property_grid/plus.svg' height='18' width='18' margin='2,0,0,0' valign='center' fade='80'"
                                        icon_image_right_space="4"/>
     <!-- 属性页的表头 -->
-    <Class name="property_grid_header" bkcolor="bg_property_grid_header" height="28" border_size="0,0,0,1" border_color="border_property_grid_header"/>
+    <Class name="property_grid_header" bkcolor="bg_property_grid_header" height="30" border_size="0,0,0,1" border_color="border_property_grid_header"/>
 
-    <Class name="property_grid_group" height="28" bkcolor="bg_property_grid_group"/>
-    <Class name="property_grid_group_label" normal_text_color="text_default" disabled_text_color="text_disabled"/>
-    <Class name="property_grid_property" height="28" bkcolor="bg_property_grid_property"/>
-    <Class name="property_grid_property_name_label" bkcolor="bg_property_grid_property_name"/>
-    <Class name="property_grid_property_value_label" bkcolor="bg_property_grid_property_value" text_padding="2,0,0,0"/>
+    <!-- 分组行与属性行：hover/selected 颜色由整行绘制（单元格不设不透明背景，避免盖住行状态色） -->
+    <Class name="property_grid_group" height="30" bkcolor="bg_property_grid_group"
+                                       hovered_color="bg_tree_view_node_hovered"
+                                       selected_normal_color="bg_tree_view_node_selected"
+                                       fade_hovered="false"/>
+    <Class name="property_grid_group_label" font="system_bold_14"
+                                            normal_text_color="text_default" disabled_text_color="text_disabled"/>
+    <Class name="property_grid_property" height="30" bkcolor="bg_property_grid_property"
+                                          hovered_color="bg_tree_view_node_hovered"
+                                          selected_normal_color="bg_tree_view_node_selected"
+                                          fade_hovered="false"/>
+    <Class name="property_grid_property_name_label" normal_text_color="text_default" disabled_text_color="text_disabled"
+                                                    text_padding="8,0,4,0"/>
+    <Class name="property_grid_property_value_label" normal_text_color="text_default" disabled_text_color="text_disabled"
+                                                     text_padding="8,0,24,0"/>
     <Class name="property_grid_property_edit" bkcolor="bg_richedit" width="100%" height="100%"
-                                               text_align="vcenter,left" text_padding="2,0,2,0" multi_line="false"
+                                               text_align="vcenter,left" text_padding="8,0,8,0" multi_line="false"
                                                auto_hscroll="true" want_return_msg="false" want_ctrl_return="false" want_tab="false"
                                                rich_text="false" default_context_menu="true"
                                                normal_text_color="text_default" disabled_text_color="text_disabled"/>
@@ -44,7 +54,7 @@
                         combo_tree_view_class="padding='0,0,0,0' bkcolor='bg_container' indent='20' class='tree_view'"
                         combo_tree_node_class="tree_node"
                         combo_icon_class=""
-                        combo_edit_class="bkcolor='bg_richedit' text_align='vcenter' text_padding='2,0,2,0' single_line='true' word_wrap='false' auto_hscroll='true'"
+                        combo_edit_class="bkcolor='bg_richedit' text_align='vcenter' text_padding='8,0,2,0' single_line='true' word_wrap='false' auto_hscroll='true'"
                         combo_button_class="height={stretch} width={auto} margin={1,0,0,0} padding={1,0,0,0} border_size={1,0,0,0} no_focus={true} hovered_border_color={border_combo_hovered} pressed_border_color={border_combo_hovered} valign={center} hovered_color={bg_combo_btn_hovered} pressed_color={bg_combo_btn_pressed} normal_image={file='public/combo/arrow_normal.svg' valign='center'} hovered_image={file='public/combo/arrow_hovered.svg' valign='center'}"/>
     <!--颜色选择下拉框-->
     <Class name="property_grid_combo_button" height="100%" width="100%" dropbox_size="200,250"
@@ -73,12 +83,12 @@
         <!-- 表头 -->
         <HBox name="duilib_property_grid_header">
             <Label name="duilib_property_grid_header_left" text_id="STRID_PUBLIC_PROPERTY_NAME" width="45%" height="100%"
-                                                           text_padding="4" text_align="vcenter,hcenter"
+                                                           font="system_bold_14" text_padding="8,0,4,0" text_align="vcenter,left"
                                                            normal_text_color="text_property_grid_header"
                                                            disabled_text_color="text_property_grid_header_disabled"/>
             <Split name="duilib_property_grid_header_split" bkcolor="border_property_grid_header_split" width="1" margin="0,1,0,1"/>
             <Label name="duilib_property_grid_header_right" text_id="STRID_PUBLIC_PROPERTY_VALUE" width="55%" height="100%"
-                                                            text_padding="4" text_align="vcenter,hcenter"
+                                                            font="system_bold_14" text_padding="8,0,4,0" text_align="vcenter,left"
                                                             normal_text_color="text_property_grid_header"
                                                             disabled_text_color="text_property_grid_header_disabled"/>
         </HBox>
@@ -87,9 +97,9 @@
         <!-- 分割条 -->
         <Split class="split_horizontal" name="duilib_property_grid_description_area_split"/>
         <!-- 底部描述区域 -->
-        <RichText name="duilib_property_grid_description_area" width="100%" height="64"
-                                        text_padding="2,2,0,0" text_align="top,left"
+        <RichText name="duilib_property_grid_description_area" width="100%" height="80"
+                                        text_padding="8,6,8,6" text_align="top,left"
                                         bkcolor="bg_richedit" text_color="text_default"
-                                        border_size="1" border_color="border_richedit_normal"/>
+                                        border_size="1" border_color="border_richedit_normal" border_round="3,3"/>
     </PropertyGrid>
 </Global>
