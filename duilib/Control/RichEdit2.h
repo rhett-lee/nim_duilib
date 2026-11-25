@@ -511,6 +511,10 @@ public:
      */
     UiRect GetCaretRect() const;
 
+    /** 设置光标到可见位置
+     */
+    void ScrollCaret();
+
     /** 设置光标位置
      * @param [in] xPos X 轴坐标
      * @param [in] yPos Y 轴坐标

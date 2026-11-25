@@ -2346,6 +2346,12 @@ UiRect RichEdit2::GetCaretRect() const
     return rc;
 }
 
+void RichEdit2::ScrollCaret()
+{
+    //将光标所在位置（当前选择区域的末尾）滚动到可见区域内
+    EnsureCharVisible(m_nSelEndCharIndex);
+}
+
 void RichEdit2::SetCaretPos(int32_t xPos, int32_t yPos)
 {
     SetCaretPos(UiPoint(xPos, yPos));
