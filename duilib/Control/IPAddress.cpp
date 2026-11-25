@@ -177,6 +177,11 @@ void IPAddress::OnInit()
             continue;
         }
         pRichEdit->AttachReturn([this, index](const EventArgs& /*args*/) {
+            //先通知外部（如属性页）处理回车：外部结束编辑时，不再切换编辑框
+            SendEvent(kEventReturn);
+            if (!IsVisible()) {
+                return true;
+            }
             //回车后，切换到下一个编辑框，并且循环
             if (index < m_editList.size()) {
                 if (index == (m_editList.size() - 1)) {
@@ -186,6 +191,11 @@ void IPAddress::OnInit()
                     FocusSegment(index + 1, true);
                 }
             }
+            return true;
+            });
+        pRichEdit->AttachEsc([this](const EventArgs& /*args*/) {
+            //通知外部（如属性页）取消编辑
+            SendEvent(kEventEsc);
             return true;
             });
         pRichEdit->AttachKillFocus([this, pRichEdit](const EventArgs& args) {

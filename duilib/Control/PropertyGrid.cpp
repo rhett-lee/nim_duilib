@@ -1531,7 +1531,15 @@ public:
         BaseClass::OnInit();
         //选中状态由整行的高亮显示，此处不再显示单元格级别的焦点框
         SetShowFocusedRect(false);
-        SetTabStop(false);
+    }
+
+    /** 获取控件的属性
+    */
+    virtual uint32_t GetControlFlags() const override
+    {
+        //Box默认不参与TAB键切换，属性值区域需要参与TAB键切换，
+        //以便按TAB键切换到属性值时自动进入编辑状态
+        return IsAllowTabStop() ? UIFLAG_TABSTOP : UIFLAG_DEFAULT;
     }
 };
 
@@ -1749,6 +1757,8 @@ void PropertyGridProperty::OnInit()
 
     m_pLabelBoxLeft = new PropertyGridLabelBox(GetWindow());
     m_pHBox->AddItem(m_pLabelBoxLeft.get());
+    //属性名称不参与TAB键切换，只有属性值可参与TAB键切换
+    m_pLabelBoxLeft->SetTabStop(false);
     ASSERT(m_pPropertyGrid != nullptr);
     if (m_pPropertyGrid != nullptr) {
         DString nameLabelClass = m_pPropertyGrid->GetPropertyNameLabelClass();
@@ -1784,16 +1794,21 @@ void PropertyGridProperty::OnInit()
     //挂载鼠标左键按下事件
     m_pLabelBoxRight->AttachButtonDown([this](const EventArgs&) {
         if (!IsReadOnly() && IsEnabled()) {
-            Control* pControl = ShowEditControl(true, false);
-            if (pControl != nullptr) {
-                int32_t nWidth = GetEditControlMarginRight();
-                UiMargin rcMargin = pControl->GetMargin();
-                rcMargin.right = nWidth;
-                pControl->SetMargin(rcMargin, false);
-            }
+            BeginEdit();
         }
         return true;
         });
+
+    //属性值显示控件参与TAB键切换：用TAB键切换焦点到本属性时，自动进入编辑状态
+    m_pLabelBoxRight->SetTabStop(!IsReadOnly());
+    m_pLabelBoxRight->AttachEvent(kEventSetFocus, [this](const EventArgs&) {
+        Window* pWindow = GetWindow();
+        if ((pWindow != nullptr) && pWindow->IsTabFocusChange() &&
+            !IsReadOnly() && IsEnabled()) {
+            BeginEdit();
+        }
+        return true;
+        }, 0);
 
     //编辑控件按需创建（首次点击属性值时创建），此处不再预创建
     //编辑控件相关的事件，由具体的属性子类在创建编辑控件时挂载
@@ -1947,6 +1962,33 @@ void PropertyGridProperty::SetPropertyFocus()
     }
 }
 
+void PropertyGridProperty::BeginEdit()
+{
+    Control* pControl = ShowEditControl(true, false);
+    if (pControl != nullptr) {
+        int32_t nWidth = GetEditControlMarginRight();
+        UiMargin rcMargin = pControl->GetMargin();
+        rcMargin.right = nWidth;
+        pControl->SetMargin(rcMargin, false);
+    }
+}
+
+void PropertyGridProperty::FinishEdit(bool bCancel, bool bMoveFocus)
+{
+    ShowEditControl(false, bCancel);
+    if (bMoveFocus) {
+        //编辑结束后，焦点回到属性值显示控件
+        SetPropertyFocus();
+    }
+}
+
+void PropertyGridProperty::UpdateValueLabelTabStop(bool bEditing)
+{
+    if (m_pLabelBoxRight != nullptr) {
+        m_pLabelBoxRight->SetTabStop(!bEditing && !IsReadOnly());
+    }
+}
+
 bool PropertyGridProperty::AddPropertySubItem(Control* pControl)
 {
     bool bRet = false;
@@ -1988,6 +2030,8 @@ void PropertyGridProperty::SetReadOnly(bool bReadOnly)
             //只读时销毁编辑控件；解除只读时按需创建（首次点击属性值时创建）
             EnableEditControl(false);
         }
+        //只读属性不参与TAB键切换
+        UpdateValueLabelTabStop(false);
     }
 }
 
@@ -2157,12 +2201,13 @@ void PropertyGridTextProperty::EnableEditControl(bool bEnable)
 
     //挂载回车和焦点切换事件
     m_pRichEdit->AttachReturn([this](const EventArgs&) {
-        SetPropertyFocus();
+        //回车：应用编辑结果，并退出编辑状态
+        FinishEdit(false);
         return true;
         });
     m_pRichEdit->AttachEsc([this](const EventArgs&) {
-        m_pRichEdit->SetText(m_oldText.c_str());
-        SetPropertyFocus();
+        //ESC：取消编辑，恢复原来的值
+        FinishEdit(true);
         return true;
         });
     m_pRichEdit->AttachKillFocus([this](const EventArgs&) {
@@ -2221,11 +2266,12 @@ Control* PropertyGridTextProperty::ShowEditControl(bool bShow, bool bCancel)
         m_bTextEdited = true;
         m_oldText = m_pRichEdit->GetText();
         m_pRichEdit->SetVisible(true);
+        UpdateValueLabelTabStop(true);
         m_pRichEdit->SetFocus();
     }
     else {
-        if (m_pRichEdit == nullptr) {
-            return nullptr;
+        if ((m_pRichEdit == nullptr) || !m_pRichEdit->IsVisible()) {
+            return m_pRichEdit.get();
         }
         DString newText;
         if (bCancel) {
@@ -2247,6 +2293,7 @@ Control* PropertyGridTextProperty::ShowEditControl(bool bShow, bool bCancel)
             SetPropertyText(newText, bChanged);
         }
         m_pRichEdit->SetVisible(false);
+        UpdateValueLabelTabStop(false);
         if (!bChanged) {
             m_bTextEdited = false;
         }
@@ -2448,16 +2495,22 @@ void PropertyGridComboProperty::EnableEditControl(bool bEnable)
         ShowEditControl(false, false);
         return true;
         });
+    m_pCombo->AttachWindowClose([this](const EventArgs& args) {
+        //下拉列表关闭后，退出编辑状态（按ESC关闭下拉列表时视为取消）
+        //焦点可能已经被用户点击到其他控件，此处不抢占焦点
+        FinishEdit(args.wParam != 0, false);
+        return true;
+        });
     RichEdit* pRichEdit = m_pCombo->GetEditControl();
     if (pRichEdit != nullptr) {
         pRichEdit->AttachReturn([this](const EventArgs&) {
-            //按回车键后，隐藏组合框
-            ShowEditControl(false, false);
+            //按回车键后，应用编辑结果并退出编辑状态
+            FinishEdit(false);
             return true;
             });
         pRichEdit->AttachEsc([this](const EventArgs&) {
-            //按ESC键后，隐藏组合框，同时取消编辑
-            ShowEditControl(false, true);
+            //按ESC键后，取消编辑并退出编辑状态
+            FinishEdit(true);
             return true;
             });
     }
@@ -2479,13 +2532,14 @@ Control* PropertyGridComboProperty::ShowEditControl(bool bShow, bool bCancel)
         m_bComboEditing = true;
         m_bComboEdited = true;
         m_pCombo->SetVisible(true);
+        UpdateValueLabelTabStop(true);
         m_pCombo->SetFocus();
         m_oldSelItem = m_pCombo->GetCurSel();
         m_oldText = m_pCombo->GetText();
     }
     else {
-        if (m_pCombo == nullptr) {
-            return nullptr;
+        if ((m_pCombo == nullptr) || !m_pCombo->IsVisible()) {
+            return m_pCombo.get();
         }
         //取消
         if (bCancel) {
@@ -2501,6 +2555,7 @@ Control* PropertyGridComboProperty::ShowEditControl(bool bShow, bool bCancel)
         bool bChanged = (newText != GetPropertyValue()); //相对原值，是否有修改
         SetPropertyText(newText, bChanged);
         m_pCombo->SetVisible(false);
+        UpdateValueLabelTabStop(false);
         if (!bChanged) {
             m_bComboEdited = false;
         }
@@ -3278,11 +3333,21 @@ void PropertyGridColorProperty::EnableEditControl(bool bEnable)
         });
     m_pComboButton->AttachEvent(ui::kEventKeyDown, [this](const EventArgs& args) {
         if (args.vkCode == ui::kVK_ESCAPE) {
-            //取消
-            ShowEditControl(false, true);
-        }        
+            //取消编辑
+            FinishEdit(true);
+        }
+        else if (args.vkCode == ui::kVK_RETURN) {
+            //应用编辑结果，并退出编辑状态
+            FinishEdit(false);
+        }
         return true;
         }, 0);
+    //下拉列表关闭后，退出编辑状态（按ESC关闭下拉列表时视为取消）
+    //焦点可能已经被用户点击到其他控件，此处不抢占焦点
+    m_pComboButton->AttachWindowClose([this](const EventArgs& args) {
+        FinishEdit(args.wParam != 0, false);
+        return true;
+        });
 
     InitColorCombo();
 }
@@ -3306,11 +3371,12 @@ Control* PropertyGridColorProperty::ShowEditControl(bool bShow, bool bCancel)
             m_oldColor = pColorLabel->GetText();
         }
         m_pComboButton->SetVisible(true);
+        UpdateValueLabelTabStop(true);
         m_pComboButton->SetFocus();
     }
     else {
-        if (m_pComboButton == nullptr) {
-            return nullptr;
+        if ((m_pComboButton == nullptr) || !m_pComboButton->IsVisible()) {
+            return m_pComboButton.get();
         }
         if (bCancel) {
             //取消
@@ -3325,6 +3391,7 @@ Control* PropertyGridColorProperty::ShowEditControl(bool bShow, bool bCancel)
         SetPropertyText(newText, bChanged);
         SetPropertyTextColor(newText);
         m_pComboButton->SetVisible(false);
+        UpdateValueLabelTabStop(false);
     }
     return m_pComboButton.get();
 }
@@ -3459,7 +3526,8 @@ void PropertyGridColorProperty::ShowColorPicker()
     //窗口关闭事件
     pColorPicker->AttachWindowClose([this, pColorPicker, oldTextColor, pColorLabel](const ui::EventArgs& args) {
         ui::UiColor newColor = pColorPicker->GetSelectedColor();
-        if ((args.wParam == kWindowCloseOK) && !newColor.IsEmpty()) {
+        bool bOk = (args.wParam == kWindowCloseOK) && !newColor.IsEmpty();
+        if (bOk) {
             //如果是"确认"，则设置控件的文本颜色
             pColorLabel->SetBkColor(newColor);
             OnSelectColor(GetColorString(newColor));
@@ -3469,6 +3537,8 @@ void PropertyGridColorProperty::ShowColorPicker()
             pColorLabel->SetBkColor(oldTextColor);
             OnSelectColor(oldTextColor);
         }
+        //颜色选择结束后，退出编辑状态
+        FinishEdit(!bOk);
         return true;
         });
 }
@@ -3562,6 +3632,17 @@ void PropertyGridDateTimeProperty::EnableEditControl(bool bEnable)
         ShowEditControl(false, false);
         return true;
         });
+    //回车/ESC键：应用编辑结果/取消编辑
+    m_pDateTime->AttachEvent(kEventReturn, [this](const EventArgs&) {
+        FinishEdit(false);
+        return true;
+        }, 0);
+    m_pDateTime->AttachEvent(kEventEsc, [this](const EventArgs&) {
+        //取消编辑：丢弃日期编辑窗口中的编辑结果
+        m_pDateTime->CancelEditDateTime();
+        FinishEdit(true);
+        return true;
+        }, 0);
 }
 
 Control* PropertyGridDateTimeProperty::ShowEditControl(bool bShow, bool bCancel)
@@ -3583,11 +3664,12 @@ Control* PropertyGridDateTimeProperty::ShowEditControl(bool bShow, bool bCancel)
         rcMargin.right = nWidth;
         m_pDateTime->SetMargin(rcMargin, false);
         m_pDateTime->SetVisible(true);
+        UpdateValueLabelTabStop(true);
         m_pDateTime->SetFocus();
     }
     else {
-        if (m_pDateTime == nullptr) {
-            return nullptr;
+        if ((m_pDateTime == nullptr) || !m_pDateTime->IsVisible()) {
+            return m_pDateTime.get();
         }
         if (bCancel) {
             //取消编辑，恢复原来的值
@@ -3597,6 +3679,7 @@ Control* PropertyGridDateTimeProperty::ShowEditControl(bool bShow, bool bCancel)
         bool bChanged = (newText != GetPropertyValue()); //相对原值，是否有修改
         SetPropertyText(newText, bChanged);
         m_pDateTime->SetVisible(false);
+        UpdateValueLabelTabStop(false);
     }
     return m_pDateTime.get();
 }
@@ -3670,6 +3753,16 @@ void PropertyGridIPAddressProperty::EnableEditControl(bool bEnable)
         ShowEditControl(false, false);
         return true;
         });
+    m_pIPAddress->AttachEvent(kEventReturn, [this](const EventArgs&) {
+        //回车：应用编辑结果，并退出编辑状态
+        FinishEdit(false);
+        return true;
+        }, 0);
+    m_pIPAddress->AttachEvent(kEventEsc, [this](const EventArgs&) {
+        //ESC：取消编辑，恢复原来的值
+        FinishEdit(true);
+        return true;
+        }, 0);
 }
 
 Control* PropertyGridIPAddressProperty::ShowEditControl(bool bShow, bool bCancel)
@@ -3687,11 +3780,12 @@ Control* PropertyGridIPAddressProperty::ShowEditControl(bool bShow, bool bCancel
         }
         m_oldText = m_pIPAddress->GetIPAddress();
         m_pIPAddress->SetVisible(true);
+        UpdateValueLabelTabStop(true);
         m_pIPAddress->SetFocus();
     }
     else {
-        if (m_pIPAddress == nullptr) {
-            return nullptr;
+        if ((m_pIPAddress == nullptr) || !m_pIPAddress->IsVisible()) {
+            return m_pIPAddress.get();
         }
         if (bCancel) {
             //取消编辑，恢复原来的值
@@ -3701,6 +3795,7 @@ Control* PropertyGridIPAddressProperty::ShowEditControl(bool bShow, bool bCancel
         bool bChanged = (newText != GetPropertyValue()); //相对原值，是否有修改
         SetPropertyText(newText, bChanged);
         m_pIPAddress->SetVisible(false);
+        UpdateValueLabelTabStop(false);
     }
     return m_pIPAddress.get();
 }
@@ -3776,6 +3871,16 @@ void PropertyGridHotKeyProperty::EnableEditControl(bool bEnable)
         ShowEditControl(false, false);
         return true;
         });
+    m_pHotKey->AttachEvent(kEventReturn, [this](const EventArgs&) {
+        //回车：应用编辑结果，并退出编辑状态
+        FinishEdit(false);
+        return true;
+        }, 0);
+    m_pHotKey->AttachEvent(kEventEsc, [this](const EventArgs&) {
+        //ESC：取消编辑，恢复原来的值
+        FinishEdit(true);
+        return true;
+        }, 0);
 }
 
 Control* PropertyGridHotKeyProperty::ShowEditControl(bool bShow, bool bCancel)
@@ -3797,28 +3902,32 @@ Control* PropertyGridHotKeyProperty::ShowEditControl(bool bShow, bool bCancel)
         m_oldText = m_pHotKey->GetHotKeyName();
         m_nOldHotKeyValue = m_pHotKey->GetHotKey();
         m_pHotKey->SetVisible(true);
+        UpdateValueLabelTabStop(true);
         m_pHotKey->SetFocus();
     }
     else {
-        if (m_pHotKey == nullptr) {
-            return nullptr;
+        if ((m_pHotKey == nullptr) || !m_pHotKey->IsVisible()) {
+            return m_pHotKey.get();
         }
         if (bCancel) {
             //取消编辑：恢复原来的值，属性显示的内容保持不变
             m_pHotKey->SetHotKeyName(m_oldText.c_str());
             m_pHotKey->SetVisible(false);
+            UpdateValueLabelTabStop(false);
             return m_pHotKey.get();
         }
         if (m_pHotKey->GetHotKey() == m_nOldHotKeyValue) {
             //热键值没有变化（比如仅点击了属性，或者输入了相同的热键）：
             //保持属性原有的显示文本和字体，不做任何修改
             m_pHotKey->SetVisible(false);
+            UpdateValueLabelTabStop(false);
             return m_pHotKey.get();
         }
         DString newText = m_pHotKey->GetHotKeyName();
         bool bChanged = (newText != GetPropertyValue()); //相对原值，是否有修改
         SetPropertyText(newText, bChanged);
         m_pHotKey->SetVisible(false);
+        UpdateValueLabelTabStop(false);
     }
     return m_pHotKey.get();
 }

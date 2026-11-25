@@ -1275,6 +1275,21 @@ protected:
     */
     void SetPropertyFocus();
 
+    /** 进入编辑状态：显示并聚焦编辑控件（同时处理编辑控件的右边距）
+    */
+    void BeginEdit();
+
+    /** 结束编辑状态
+    * @param [in] bCancel true表示取消编辑（恢复原来的值），false表示应用编辑结果
+    * @param [in] bMoveFocus true表示将焦点移回属性值显示控件
+    */
+    void FinishEdit(bool bCancel, bool bMoveFocus = true);
+
+    /** 更新属性值显示控件是否参与TAB键切换
+    * @param [in] bEditing true表示正在编辑（编辑期间该属性不参与TAB键切换，避免TAB回到本属性）
+    */
+    void UpdateValueLabelTabStop(bool bEditing);
+
     /** 在属性值的LabelBox中添加控件
     */
     bool AddPropertySubItem(Control* pControl);

@@ -29,6 +29,10 @@ public:
     //显示窗口
     void ShowWindow();
 
+    /** 取消编辑（丢弃编辑结果，不更新DateTime的值）
+    */
+    void CancelEdit();
+
 private:
     /** 清除与控件的关联
     */
@@ -72,8 +76,10 @@ private:
     void StopAutoAdjustTextNumber();
 
     /** 结束编辑
+    * @param [in] bApply true表示应用编辑结果，false表示丢弃编辑结果
+    * @param [in] bFromEnter true表示由回车键触发（需要通知外部，比如属性页退出编辑状态）
     */
-    void EndEditDateTime();
+    void EndEditDateTime(bool bApply, bool bFromEnter = false);
 
     /** 编辑框的焦点转移事件
     */
@@ -87,6 +93,10 @@ private:
     /** 是否已经初始化
     */
     bool m_bInited;
+
+    /** 是否为取消编辑（取消时不应用编辑结果）
+    */
+    bool m_bCanceled;
 
     /** 当前初始化的日期编辑格式
     */

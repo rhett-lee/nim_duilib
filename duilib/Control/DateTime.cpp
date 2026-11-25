@@ -688,13 +688,21 @@ void DateTime::OpenCalendarFlyout()
     pFlyout->SetDisabledDates(m_disabledDates.c_str());
     pFlyout->SetDisabledWeekdays(m_disabledWeekdays.c_str());
     pFlyout->SetFirstDayOfWeek(m_firstDayOfWeek);
-    pFlyout->AttachClosed([this, weakFlag](ui::Flyout::CloseReason) {
+    pFlyout->AttachClosed([this, weakFlag](ui::Flyout::CloseReason reason) {
         if (weakFlag.expired()) {
             return true;
         }
         m_pCalendarFlyout = nullptr;
         //浮层关闭后焦点回落到本控件会触发 SetFocus，需抑制重开
         m_bSuppressCalendarReopen = true;
+        if (reason == ui::Flyout::CloseReason::kEscape) {
+            //按ESC键关闭：取消编辑
+            SendEvent(kEventEsc);
+        }
+        else if (reason == ui::Flyout::CloseReason::kManual) {
+            //确认关闭（选择日期/时间或点击确定）：应用编辑结果
+            SendEvent(kEventReturn);
+        }
         return true;
     });
 
@@ -729,6 +737,15 @@ void DateTime::EndEditDateTime()
     m_pDateWindow = nullptr;
     SendEvent(kEventKillFocus);
     delete pWnd;
+}
+
+void DateTime::CancelEditDateTime()
+{
+    if (m_pDateWindow != nullptr) {
+        //标记取消：DateTimeWnd 在编辑结束时丢弃编辑结果
+        m_pDateWindow->CancelEdit();
+    }
+    m_bSuppressCalendarReopen = true;
 }
 
 UiSize DateTime::EstimateText(UiSize szAvailable)

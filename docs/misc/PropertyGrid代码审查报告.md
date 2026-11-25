@@ -551,6 +551,47 @@ RichEdit、热键、IP 地址一样在编辑时显示统一的聚焦边框色（
 
 ---
 
+## 十、第七批实施记录（编辑交互完整性：ESC/Enter 与 TAB 导航）
+
+### 10.1 问题
+
+1. 属性值处于编辑状态时，只有文本类属性支持 `ESC`（取消）和 `Enter`（应用并退出编辑），
+   组合框、颜色、日期时间、IP 地址、热键等类型行为不完整。
+2. 属性值区域未参与 `Tab` 键切换，无法用键盘在可编辑属性值之间连续编辑。
+
+### 10.2 修改
+
+- `duilib/Control/PropertyGrid.h` / `PropertyGrid.cpp`
+  - `PropertyGridProperty` 新增 `BeginEdit()`、`FinishEdit(bool bCancel, bool bMoveFocus = true)`、
+    `UpdateValueLabelTabStop(bool bEditing)`；鼠标点击与 `Tab` 切换统一走 `BeginEdit()`。
+  - 属性值显示控件（右侧 `PropertyGridLabelBox`）按 `SetTabStop(!IsReadOnly())` 参与 `Tab` 切换；
+    在 `kEventSetFocus` 中仅当 `Window::IsTabFocusChange()` 为 true 时自动进入编辑，
+    避免 `Enter`/`ESC` 后把焦点移回属性值时再次进入编辑。
+  - `PropertyGridLabelBox::GetControlFlags()` 返回 `UIFLAG_TABSTOP`（`Box` 默认不参与 `Tab` 切换）。
+  - 各编辑控件退出编辑后恢复属性值显示控件的 `Tab` 参与状态；`SetReadOnly()` 同步更新。
+  - 全部编辑控件的 `ShowEditControl(false, ...)` 增加“已隐藏则直接返回”的保护，避免重复提交。
+- 组合框：新增 `kEventWindowClose` 处理（下拉列表关闭即退出编辑，`ESC` 关闭视为取消）；
+  `Combo::OnComboWndClosed()` 的 `kEventWindowClose` 事件补充 `WPARAM`（非 0 表示取消）。
+- 颜色：`ComboButton` 增加 `Enter`（应用并退出编辑）；颜色选择器关闭后统一退出编辑状态。
+- 日期时间：`DateTimeWnd` 增加 `ESC`（通知外部取消）；`EndEditDateTime` 区分“回车确认/焦点切换”，
+  取消时丢弃编辑结果（`CancelEdit`）；`DateTime::CancelEditDateTime()` 供属性页取消；
+  日历浮层关闭时按关闭原因派发 `kEventEsc`（取消）或 `kEventReturn`（确认）。
+- IP 地址：分段编辑框回车先通知外部，外部结束编辑时不再跳段；新增 `ESC` 通知外部取消。
+- 热键：`HotKeyRichEdit` 的回车/`ESC` 通知外部（`kEventReturn`/`kEventEsc`）。
+
+### 10.3 验证
+
+- `py -3 build/build.py build --no-deps --config Release --target duilib`（/MT，非 DLL）：通过。
+- `py -3 build/build.py build --no-deps --config Release --target render`：通过。
+- `py -3 tests/test_controls_pages.py`：`PASS: all checks succeeded`（15801 项检查）。
+- 实测（render 示例“属性页和标签页”）：
+  - 文本属性输入后 `ESC` 恢复原值、`Enter` 提交为新值（显示为已修改字体）；
+  - `Tab` 切换到下一个可编辑属性值并自动进入编辑，`Shift+Tab` 反向切换；禁用的属性被跳过；
+  - 颜色/日期/IP/热键编辑态按 `ESC` 均取消并恢复原值；
+  - 微调型日期/时间属性 `Enter` 提交成功，`ESC` 丢弃修改；热键 `Ctrl+Alt+K` + `Enter` 提交成功。
+
+---
+
 ## 附：涉及文件
 
 | 文件 | 作用 |
@@ -563,5 +604,9 @@ RichEdit、热键、IP 地址一样在编辑时显示统一的聚焦边框色（
 | `bin/resources/themes/color_light|color_dark/global.xml` | `bg_property_grid_*` 主题色 |
 | `examples/render/RenderForm.cpp` | 示例：属性类型全覆盖 |
 | `bin/resources/themes/default/render/page_property_grid.xml` | 示例布局 |
-| `duilib/Control/HotKey.h` / `HotKey.cpp` | 热键控件：内边距、热键规则校验 |
-| `docs/Control.md` | HotKey 交互行为与 C++ 接口说明 |
+| `duilib/Control/HotKey.h` / `HotKey.cpp` | 热键控件：内边距、热键规则校验、回车/ESC 通知 |
+| `duilib/Control/Combo.cpp` | 组合框下拉窗口关闭事件携带取消标志 |
+| `duilib/Control/DateTime.h` / `DateTime.cpp` | 日期时间：取消编辑接口、日历浮层关闭通知 |
+| `duilib/Control/DateTimeWnd.h` / `DateTimeWnd.cpp` | 日期时间编辑窗口：回车确认、ESC 取消 |
+| `duilib/Control/IPAddress.cpp` | IP 地址：回车通知外部、ESC 取消编辑 |
+| `docs/Control.md` | PropertyGrid 编辑交互、HotKey 交互行为与 C++ 接口说明 |

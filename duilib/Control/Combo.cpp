@@ -1356,7 +1356,8 @@ void Combo::OnComboWndClosed(bool bCanceled, bool needUpdateSelItem, const DStri
     if (needUpdateSelItem) {
         OnSelectedItemChanged();
     }
-    SendEvent(kEventWindowClose);
+    //WPARAM: 非0表示取消关闭，0表示正常关闭
+    SendEvent(kEventWindowClose, bCanceled ? 1 : 0);
     Invalidate();
 }
 

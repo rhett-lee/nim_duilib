@@ -4055,6 +4055,14 @@ XML 中可直接配置并绑定内联事件：`<ListCtrl class="list_ctrl" selec
 
 PropertyGrid 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的属性
 
+### 编辑交互
+
+- 鼠标左键点击属性值区域进入编辑状态（只读属性与禁用属性不响应）。
+- 编辑状态下按 `ESC` 取消编辑并恢复原来的值；按 `Enter` 应用编辑结果并退出编辑状态。
+- 属性值区域参与 `Tab` 键切换：按 `Tab` 切换到下一个可编辑属性值时自动进入编辑状态，
+  `Shift+Tab` 反向切换；只读、禁用以及折叠分组中的属性会被自动跳过。
+- 编辑过程中当前属性暂不参与 `Tab` 切换，避免 `Shift+Tab` 回到本属性自身。
+
 ## ColorPicker 控件（继承 Window 属性）
 ColorPicker 是一个独立窗口（基于 `WindowImplBase` 实现），用于选择颜色。默认皮肤目录为 `public`，皮肤文件为 `public/color/color_picker.xml`。
 示例程序 `examples/ColorPicker` 和 `examples/controls` 演示了非模态与模态两种用法：

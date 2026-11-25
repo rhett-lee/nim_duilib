@@ -11,6 +11,7 @@ namespace ui
 DateTimeWnd::DateTimeWnd(DateTime* pOwner):
     m_pOwner(pOwner),
     m_bInited(false),
+    m_bCanceled(false),
     m_editFormat(-1),
     m_pSpinBox(nullptr)
 {
@@ -173,8 +174,15 @@ bool DateTimeWnd::Init(DateTime* pOwner)
             continue;
         }
         pRichEdit->AttachReturn([this](const EventArgs& /*args*/) {
-            //回车后，结束编辑
-            EndEditDateTime();
+            //回车后，结束编辑（应用编辑结果，并通知外部退出编辑状态）
+            EndEditDateTime(true, true);
+            return true;
+            });
+        pRichEdit->AttachEsc([this](const EventArgs& /*args*/) {
+            //ESC键：通知外部（如属性页）取消编辑
+            if (m_pOwner != nullptr) {
+                m_pOwner->SendEvent(kEventEsc);
+            }
             return true;
             });
     }
@@ -219,12 +227,23 @@ void DateTimeWnd::OnKillFocusEvent(Control* /*pControl*/, Control* pNewFocus)
         return;
     }
     //焦点切换到其他控件了，结束编辑
-    EndEditDateTime();
+    EndEditDateTime(!m_bCanceled);
 }
 
-void DateTimeWnd::EndEditDateTime()
+void DateTimeWnd::CancelEdit()
+{
+    m_bCanceled = true;
+}
+
+void DateTimeWnd::EndEditDateTime(bool bApply, bool bFromEnter)
 {
     if (m_pOwner == nullptr) {
+        return;
+    }
+    if (!bApply || m_bCanceled) {
+        //取消编辑：丢弃编辑结果
+        Clear();
+        m_pOwner->EndEditDateTime();
         return;
     }
     if (!m_pOwner->IsValidDateTime()) {
@@ -321,6 +340,10 @@ void DateTimeWnd::EndEditDateTime()
 
     Clear();
     m_pOwner->SetDateTime(timeValue);
+    if (bFromEnter) {
+        //通知外部（如属性页）：编辑结束（回车确认）
+        m_pOwner->SendEvent(kEventReturn);
+    }
     m_pOwner->EndEditDateTime();
 }
 

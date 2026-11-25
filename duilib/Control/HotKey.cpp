@@ -137,9 +137,15 @@ public:
         //本次按键对应的修饰键标志
         const uint8_t wModifiers = GetHotKeyModifiers(msg);
 
-        //Esc：取消本次输入，恢复为已提交热键的显示
+        //Esc：取消本次输入，恢复为已提交热键的显示，并通知外部（如属性页）退出编辑
         if (msg.vkCode == kVK_ESCAPE) {
             pOwner->RestoreDisplayText();
+            pOwner->SendEvent(kEventEsc);
+            return true;
+        }
+        //Enter：应用当前的热键，并通知外部（如属性页）退出编辑状态
+        if (msg.vkCode == kVK_RETURN) {
+            pOwner->SendEvent(kEventReturn);
             return true;
         }
         //Delete/Backspace：清空热键

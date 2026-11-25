@@ -226,6 +226,11 @@ public:
      */
     virtual void SendEventMsg(const EventArgs& msg) override;
 
+public:
+    /** 取消编辑（丢弃编辑过程中输入的内容，不修改日期时间值）
+    */
+    void CancelEditDateTime();
+
 private:
     /** 比较两个时间是否相同
     */
