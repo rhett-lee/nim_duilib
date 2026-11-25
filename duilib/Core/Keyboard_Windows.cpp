@@ -46,11 +46,11 @@ DString Keyboard::GetKeyName(VirtualKeyCode nVirtKey, bool fExtended)
         break;
     }
     if (fExtended) {
-        nScanCode |= 0x01000000L;
+        nScanCode |= 0x100; // Add extended bit
     }
 
     TCHAR szStr[MAX_PATH] = { 0 };
-    ::GetKeyNameText(nScanCode << 16, szStr, MAX_PATH);
+    ::GetKeyNameText((LONG)(nScanCode << 16), szStr, MAX_PATH);
     return DString(szStr);
 }
 

@@ -3355,7 +3355,7 @@ void PropertyGridColorProperty::PaintChild(IRender* pRender, const UiRect& rcPai
         }
     }
     const UiRect rcLabel = pLabelBoxRight->GetRect();
-    const int32_t nSize = 14;
+    const int32_t nSize = 20;
     const int32_t nMarginRight = 10;
     const int32_t nRight = rcLabel.right - nVScrollBarWidth - nMarginRight;
     const int32_t nLeft = nRight - nSize;

@@ -601,6 +601,11 @@ bool ComboButton::CanPlaceCaptionBar() const
 DString ComboButton::GetBorderColor(ControlStateType stateType) const
 {
     DString borderColor;
+    //内部按钮获得键盘焦点时，优先使用聚焦边框色（与编辑框、热键等控件保持一致）
+    if (((m_pLeftButton != nullptr) && m_pLeftButton->IsFocused()) ||
+        ((m_pRightButton != nullptr) && m_pRightButton->IsFocused())) {
+        borderColor = GetFocusedBorderColor();
+    }
     if (borderColor.empty() && (m_pLeftButton != nullptr)) {
         if (m_pLeftButton->IsFocused() || m_pLeftButton->IsMouseFocused() || m_pLeftButton->IsHoveredState()) {
             borderColor = BaseClass::GetBorderColor(kControlStateHovered);

@@ -453,6 +453,74 @@ void PropertyGrid::SetEnableDescriptionArea(bool bEnable)
   3) 颜色行右角色块完整显示 14×14（含 1px 灰边框），距滚动条 10px，无遮挡；
   4) 分组一~八全部折叠后，空白区域无纵向网格线贯穿。
 
+### 9.6 第四批实施记录（用户反馈的 2 个问题）
+
+**问题 1：颜色标识（色块）尺寸偏小**
+
+- `PropertyGridColorProperty::PaintChild()` 中色块尺寸由 14 调整为 20（逻辑像素），
+  与值单元格右侧内边距保持一致：`property_grid.xml` 中
+  `property_grid_property_value_label` 的 `text_padding` 由 `8,0,24,0` 调整为 `8,0,30,0`（20 色块 + 10 边距）。
+- 色块边框仍为 1px 灰色 `#A0A0A0`，定位仍扣除垂直滚动条宽度，避免被遮挡。
+
+**问题 2：点击热键属性后，编辑框内只显示末尾的字母（如 `C`）**
+
+原因：`HotKey::UpdateDisplayText()` 通过 `RichEdit::SetTextNoEvent()` 设置显示文本，而该函数内部先
+`SetSel(0, -1)`（全选）再 `ReplaceSel()`，光标因此停在文本末尾。单行 RichEdit 会自动滚动以显示光标位置，
+当控件宽度不足以显示完整文本（如 `Ctrl + Shift + Alt + C`）时，视图滚到末尾，用户只能看到最后的 `C`。
+
+修复（`duilib/Control/HotKey.cpp`）：
+
+- `UpdateDisplayText()` 设置文本后，将光标移到起始位置并滚动到起始处：
+  `SetSel(0, 0)` + `ScrollCaret()`，文本较长时优先显示前面的修饰键。
+- 内部 RichEdit 改为左对齐（`text_align="vcenter,left"`）并增加左右内边距 `6,0,6,0`，
+  与其它属性编辑框保持一致，文本被裁剪时也必定从修饰键开始显示。
+- `FormatHotKeyName()` 增加固定键名后备：当系统接口 `Keyboard::GetKeyName()` 返回空时
+  （部分输入法/键盘布局），使用 `FindFixedKeyName()` 生成英文键名（Ctrl/Shift/Alt、字母、数字、
+  F1-F24、方向键、常用功能键等），避免修饰键名称缺失导致只显示主键。
+- `HotKeyRichEdit::OnKeyDown()` 判断按键是否有效时同样使用该后备，避免系统取不到键名时按键被忽略。
+- 修正 `Keyboard::GetKeyName()` 的扩展键标志处理：原实现先把 `0x01000000` 或到扫描码再左移 16 位，
+  标志位会溢出丢失；改为在左移后按 `lParam` 规范设置扩展位（`nScanCode |= 0x100` 后再左移）。
+
+**验证**
+
+- `py -3 build/build.py build --no-deps --md --config Release --target render`：通过。
+- 窄窗口（560×791 逻辑像素，175% DPI）实测：
+  1) 单击“热键3（Ctrl+Shift+Alt+C）”，编辑框左对齐完整显示 `Ctrl + Shift + Alt + C`，不再只显示末尾 `C`；
+  2) 单击“热键1（Ctrl+C）”，编辑框显示 `Ctrl + C`；
+  3) 颜色色块实测 20×20 像素（18×18 填充 + 四周 1px 边框），未被滚动条裁切，与文字无重叠。
+- `py -3 build/build.py build --no-deps --config Release --target duilib`（/MT，非 DLL）：通过。
+- `py -3 tests/test_controls_pages.py`：`PASS: all checks succeeded`（15801 项检查）。
+
+### 9.7 第五批实施记录（统一各编辑控件的编辑态风格）
+
+**问题**：属性网格中各编辑控件进入编辑状态后的边框风格不统一：文本编辑框为直角且无边框、
+日期时间无边框、IP 地址有边框但无圆角、下拉框/颜色下拉框无圆角且不响应聚焦边框色，
+仅热键编辑框为 1px 边框 + 3px 圆角 + 聚焦边框色，视觉上明显割裂。
+
+**统一后的风格**（`property_grid.xml` 各样式类，均与热键编辑框一致）：
+
+| 样式类 | 涉及控件 | 修改内容 |
+|---|---|---|
+| `property_grid_property_edit` | 文本/数字等 RichEdit | 新增 `padding="1,1,1,1"`、`border_size="1"`、`border_round="4,4"`、`border_richedit_normal/hovered`、`focused_border_color="border_focus_ring"` |
+| `property_grid_combo` | 下拉框 | 新增 `border_round="4,4"`、`focused_border_color="border_focus_ring"` |
+| `property_grid_combo_button` | 颜色下拉框 | 新增 `border_round="4,4"`、`border_color="border_combo_normal"`、`focused_border_color="border_focus_ring"` |
+| `property_grid_date_time` | 日期时间 | 新增 `border_size="1"`、`border_round="4,4"`、默认/悬停/聚焦边框色 |
+| `property_grid_ip_address` | IP 地址 | 新增 `border_round="4,4"`、悬停/聚焦边框色 |
+| `property_grid_hot_key` | 热键 | 圆角由 `3,3` 调整为 `4,4` |
+
+**代码配合**（`duilib/Control/Combo.cpp`、`duilib/Control/ComboButton.cpp`）：
+两者原先只根据内部子控件是否获得鼠标焦点/悬停返回“悬停边框色”，不读取 `focused_border_color`；
+现在内部子控件获得键盘焦点时优先返回 `GetFocusedBorderColor()`，使下拉框/颜色下拉框与
+RichEdit、热键、IP 地址一样在编辑时显示统一的聚焦边框色（未定义聚焦色的样式类行为不变）。
+
+**验证**
+
+- `py -3 build/build.py build --no-deps --md --config Release --target render`：通过。
+- 191% DPI 实测（截图对比）：文本、下拉表、下拉框、颜色下拉框、热键、日期时间、IP 地址进入编辑状态后
+  外框几何一致（1px 边框、4px 圆角），边框像素均为 `#B4B4B4`（`border_focus_ring`），未发现直角或无边框控件。
+- `py -3 build/build.py build --no-deps --config Release --target duilib`（/MT，非 DLL）：通过。
+- `py -3 tests/test_controls_pages.py`：`PASS: all checks succeeded`（15801 项检查）。
+
 ---
 
 ## 附：涉及文件

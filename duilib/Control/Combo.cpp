@@ -916,7 +916,13 @@ bool Combo::CanPlaceCaptionBar() const
 DString Combo::GetBorderColor(ControlStateType stateType) const
 {
     DString borderColor;
-    if (m_pIconControl != nullptr) {
+    //内部子控件获得键盘焦点时，优先使用聚焦边框色（与编辑框、热键等控件保持一致）
+    if (((m_pIconControl != nullptr) && m_pIconControl->IsFocused()) ||
+        ((m_pEditControl != nullptr) && m_pEditControl->IsFocused()) ||
+        ((m_pButtonControl != nullptr) && m_pButtonControl->IsFocused())) {
+        borderColor = GetFocusedBorderColor();
+    }
+    if (borderColor.empty() && (m_pIconControl != nullptr)) {
         if (m_pIconControl->IsFocused() || m_pIconControl->IsMouseFocused()) {
             borderColor = BaseClass::GetBorderColor(kControlStateHovered);
         }

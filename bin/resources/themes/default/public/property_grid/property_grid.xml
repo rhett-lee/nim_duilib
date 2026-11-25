@@ -26,11 +26,15 @@
     <Class name="property_grid_property_name_label" normal_text_color="text_default" disabled_text_color="text_disabled"
                                                     text_padding="8,0,4,0"/>
     <Class name="property_grid_property_value_label" normal_text_color="text_default" disabled_text_color="text_disabled"
-                                                     text_padding="8,0,24,0"/>
+                                                     text_padding="8,0,30,0"/>
     <Class name="property_grid_property_edit" bkcolor="bg_richedit" width="100%" height="100%"
                                                text_align="vcenter,left" text_padding="8,0,8,0" multi_line="false"
                                                auto_hscroll="true" want_return_msg="false" want_ctrl_return="false" want_tab="false"
                                                rich_text="false" default_context_menu="true"
+                                               padding="1,1,1,1" border_size="1" border_round="4,4"
+                                               border_color="border_richedit_normal"
+                                               hovered_border_color="border_richedit_hovered"
+                                               focused_border_color="border_focus_ring"
                                                normal_text_color="text_default" disabled_text_color="text_disabled"/>
 
     <!--RichEdit上的Spin按钮样式: 四周都有边线-->
@@ -49,8 +53,9 @@
                                             pressed_color="bg_richedit_btn_pressed"/>
     <!--下拉框-->
     <Class name="property_grid_combo" bkcolor="bg_combo" dropbox_size="0,200" padding="1,1,1,1"
-                        border_size="1" border_color="border_combo_normal"
+                        border_size="1" border_round="4,4" border_color="border_combo_normal"
                         hovered_border_color="border_combo_hovered"
+                        focused_border_color="border_focus_ring"
                         combo_tree_view_class="padding='0,0,0,0' bkcolor='bg_container' indent='20' class='tree_view'"
                         combo_tree_node_class="tree_node"
                         combo_icon_class=""
@@ -58,7 +63,9 @@
                         combo_button_class="height={stretch} width={auto} margin={1,0,0,0} padding={1,0,0,0} border_size={1,0,0,0} no_focus={true} hovered_border_color={border_combo_hovered} pressed_border_color={border_combo_hovered} valign={center} hovered_color={bg_combo_btn_hovered} pressed_color={bg_combo_btn_pressed} normal_image={file='public/combo/arrow_normal.svg' valign='center'} hovered_image={file='public/combo/arrow_hovered.svg' valign='center'}"/>
     <!--颜色选择下拉框-->
     <Class name="property_grid_combo_button" height="100%" width="100%" dropbox_size="200,250"
-                               padding="1,1,1,1" border_size="1" hovered_border_color="border_combo_hovered" hovered_color="bg_combo_btn_hovered" pressed_color="bg_combo_btn_pressed"
+                               padding="1,1,1,1" border_size="1" border_round="4,4" border_color="border_combo_normal"
+                               hovered_border_color="border_combo_hovered" focused_border_color="border_focus_ring"
+                               hovered_color="bg_combo_btn_hovered" pressed_color="bg_combo_btn_pressed"
                                combo_box_class="padding='0,0,0,0' border_size='0,0,0,0' bkcolor='bg_combo'"
                                left_button_class="height={stretch} width={stretch} bkcolor={bg_combo} padding={0,0,1,0} border_size={0,0,1,0} hovered_border_color={border_combo_hovered} pressed_border_color={border_combo_hovered} valign={center}"
                                left_button_top_label_class="width={stretch} height={16} margin={1,0,1,0} font={system_regular_12} text_align={bottom,hcenter}"
@@ -66,13 +73,19 @@
                                right_button_class="height={stretch} width={auto} padding={1,0,0,0} border_size={1,0,0,0} hovered_border_color={border_combo_hovered} pressed_border_color={border_combo_hovered} valign={center} hovered_color={bg_combo_btn_hovered} pressed_color={bg_combo_btn_pressed} normal_image={file='public/combo/arrow_normal.svg' valign='center'} hovered_image={file='public/combo/arrow_hovered.svg' valign='center'}"/>
 
     <!--日期时间-->
-    <Class name="property_grid_date_time" bkcolor="bg_richedit" height="100%" width="100%"/>
+    <Class name="property_grid_date_time" bkcolor="bg_richedit" height="100%" width="100%" border_size="1" border_round="4,4"
+           border_color="border_richedit_normal"
+           hovered_border_color="border_richedit_hovered"
+           focused_border_color="border_focus_ring"/>
 
     <!--IP地址控件通用样式-->
-    <Class name="property_grid_ip_address" height="100%" width="100%" bkcolor="bg_richedit" border_size="1" border_color="border_richedit_normal"/>
+    <Class name="property_grid_ip_address" height="100%" width="100%" bkcolor="bg_richedit" border_size="1" border_round="4,4"
+           border_color="border_richedit_normal"
+           hovered_border_color="border_richedit_hovered"
+           focused_border_color="border_focus_ring"/>
 
     <!--HotKey控件通用样式-->
-    <Class name="property_grid_hot_key" height="100%" width="100%" bkcolor="bg_richedit" border_size="1" border_round="3,3"
+    <Class name="property_grid_hot_key" height="100%" width="100%" bkcolor="bg_richedit" border_size="1" border_round="4,4"
            border_color="border_richedit_normal"
            hovered_border_color="border_richedit_hovered"
            focused_border_color="border_focus_ring"/>

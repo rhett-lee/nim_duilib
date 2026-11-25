@@ -30,6 +30,56 @@ static uint8_t FindFixedVirtualKey(const DString& keyName)
     return 0;
 }
 
+/** 当系统接口无法获取键名时，使用固定的英文键名（用于显示热键）
+*/
+static DString FindFixedKeyName(uint8_t wVirtualKeyCode)
+{
+    if ((wVirtualKeyCode >= kVK_A) && (wVirtualKeyCode <= kVK_Z)) {
+        return DString(1, (wchar_t)(_T('A') + (wVirtualKeyCode - kVK_A)));
+    }
+    if ((wVirtualKeyCode >= kVK_0) && (wVirtualKeyCode <= kVK_9)) {
+        return DString(1, (wchar_t)(_T('0') + (wVirtualKeyCode - kVK_0)));
+    }
+    if ((wVirtualKeyCode >= kVK_NUMPAD0) && (wVirtualKeyCode <= kVK_NUMPAD9)) {
+        return _T("Num") + DString(1, (wchar_t)(_T('0') + (wVirtualKeyCode - kVK_NUMPAD0)));
+    }
+    if ((wVirtualKeyCode >= kVK_F1) && (wVirtualKeyCode <= kVK_F24)) {
+        return _T("F") + StringUtil::Int32ToString((int32_t)wVirtualKeyCode - (int32_t)kVK_F1 + 1);
+    }
+    switch (wVirtualKeyCode) {
+    case kVK_BACK:      return _T("Backspace");
+    case kVK_TAB:       return _T("Tab");
+    case kVK_RETURN:    return _T("Enter");
+    case kVK_SHIFT:     return _T("Shift");
+    case kVK_CONTROL:   return _T("Ctrl");
+    case kVK_MENU:      return _T("Alt");
+    case kVK_PAUSE:     return _T("Pause");
+    case kVK_CAPITAL:   return _T("CapsLock");
+    case kVK_ESCAPE:    return _T("Esc");
+    case kVK_SPACE:     return _T("Space");
+    case kVK_PRIOR:     return _T("PageUp");
+    case kVK_NEXT:      return _T("PageDown");
+    case kVK_END:       return _T("End");
+    case kVK_HOME:      return _T("Home");
+    case kVK_LEFT:      return _T("Left");
+    case kVK_UP:        return _T("Up");
+    case kVK_RIGHT:     return _T("Right");
+    case kVK_DOWN:      return _T("Down");
+    case kVK_INSERT:    return _T("Insert");
+    case kVK_DELETE:    return _T("Delete");
+    case kVK_SNAPSHOT:  return _T("PrintScreen");
+    case kVK_NUMLOCK:   return _T("NumLock");
+    case kVK_SCROLL:    return _T("ScrollLock");
+    case kVK_MULTIPLY:  return _T("Num*");
+    case kVK_ADD:       return _T("Num+");
+    case kVK_SUBTRACT:  return _T("Num-");
+    case kVK_DECIMAL:   return _T("Num.");
+    case kVK_DIVIDE:    return _T("Num/");
+    default:            break;
+    }
+    return _T("");
+}
+
 #define HOTKEYF_SHIFT           0x01
 #define HOTKEYF_CONTROL         0x02
 #define HOTKEYF_ALT             0x04
@@ -113,7 +163,12 @@ public:
             return true;
         }
         //普通按键：提交热键（允许不带修饰键的单独按键）
-        if (!Keyboard::GetKeyName(msg.vkCode, (wModifiers & HOTKEYF_EXT) != 0).empty()) {
+        DString sKeyName = Keyboard::GetKeyName(msg.vkCode, (wModifiers & HOTKEYF_EXT) != 0);
+        if (sKeyName.empty()) {
+            //系统接口无法获取键名时，使用固定的英文键名
+            sKeyName = FindFixedKeyName((uint8_t)msg.vkCode);
+        }
+        if (!sKeyName.empty()) {
             pOwner->ApplyHotKey(static_cast<uint8_t>(msg.vkCode), wModifiers);
         }
         return true;
@@ -149,7 +204,8 @@ HotKey::HotKey(Window* pWindow):
 {
     ASSERT(pWindow != nullptr);
     m_pRichEdit = new HotKeyRichEdit(pWindow, this);
-    m_pRichEdit->SetAttribute(_T("text_align"), _T("vcenter,hcenter"));
+    m_pRichEdit->SetAttribute(_T("text_align"), _T("vcenter,left"));
+    m_pRichEdit->SetAttribute(_T("text_padding"), _T("6,0,6,0"));
     m_pRichEdit->SetAttribute(_T("text_padding"), _T("0,0,0,0"));
     m_pRichEdit->SetAttribute(_T("want_tab"), _T("false"));
     //未设置热键时，显示灰色的占位提示文字
@@ -414,6 +470,9 @@ void HotKey::UpdateDisplayText()
     m_bPreviewing = false;
     if (m_pRichEdit != nullptr) {
         m_pRichEdit->SetTextNoEvent(GetHotKeyName());
+        //光标置于文本起始位置：文本较长时，优先显示前面的修饰键（避免只显示末尾的按键）
+        m_pRichEdit->SetSel(0, 0);
+        m_pRichEdit->ScrollCaret();
     }
 }
 
@@ -453,18 +512,26 @@ DString HotKey::FormatHotKeyName(uint8_t wVirtualKeyCode, uint8_t wModifiers)
             sKeyName += sKey;
         }
         };
+    //获取按键名称：系统接口无法获取时（比如部分输入法或键盘布局），使用固定的英文名称
+    auto getKeyName = [](VirtualKeyCode nVirtKey, bool fExtended) -> DString {
+        DString sKey = Keyboard::GetKeyName(nVirtKey, fExtended);
+        if (sKey.empty()) {
+            sKey = FindFixedKeyName((uint8_t)nVirtKey);
+        }
+        return sKey;
+        };
     if (wModifiers & HOTKEYF_CONTROL) {
-        appendKey(Keyboard::GetKeyName(kVK_CONTROL, false));
+        appendKey(getKeyName(kVK_CONTROL, false));
     }
     if (wModifiers & HOTKEYF_SHIFT) {
-        appendKey(Keyboard::GetKeyName(kVK_SHIFT, false));
+        appendKey(getKeyName(kVK_SHIFT, false));
     }
     if (wModifiers & HOTKEYF_ALT) {
-        appendKey(Keyboard::GetKeyName(kVK_MENU, false));
+        appendKey(getKeyName(kVK_MENU, false));
     }
     if ((wVirtualKeyCode != 0) &&
         (wVirtualKeyCode != kVK_SHIFT) && (wVirtualKeyCode != kVK_CONTROL) && (wVirtualKeyCode != kVK_MENU)) {
-        appendKey(Keyboard::GetKeyName((VirtualKeyCode)wVirtualKeyCode, (wModifiers & HOTKEYF_EXT) != 0));
+        appendKey(getKeyName((VirtualKeyCode)wVirtualKeyCode, (wModifiers & HOTKEYF_EXT) != 0));
     }
     return sKeyName;
 }
