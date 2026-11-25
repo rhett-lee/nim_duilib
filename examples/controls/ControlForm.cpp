@@ -473,6 +473,10 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point, ui::Control* pRelatedC
     menu->SetSkinFolder(GetResourcePath().ToString());
     DString xml(_T("menu/settings_menu.xml"));
     menu->ShowMenu(xml, point);
+    if (!menu->IsWindow()) {
+        //菜单窗口创建失败或者已经被关闭，不能再访问菜单里面的内容
+        return;
+    }
 
     //在二级菜单中，添加子菜单项
     ui::MenuItem* menu_fourth = dynamic_cast<ui::MenuItem*>(menu->FindControl(_T("fourth")));

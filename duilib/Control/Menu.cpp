@@ -141,6 +141,7 @@ Menu::Menu(Window* pParentWindow, Control* pRelatedControl, MenuBar* pMenuBar):
     m_popupPosType(MenuPopupPosType::RIGHT_TOP),
     m_noFocus(false),
     m_pOwner(nullptr),
+    m_pOwnerFlag(),
     m_pListBox(nullptr)
 {
     m_skinFolder = DString(DUILIB_PUBLIC_RES_DIR) + DString(_T("/menu/"));
@@ -154,6 +155,12 @@ Menu::~Menu()
         m_pFadeInPlayer->Stop();
         m_pFadeInPlayer.reset();
     }
+    //若菜单项仍然关联本窗口，清除该关联关系，避免菜单项持有已经销毁的子菜单窗口指针
+    if ((m_pOwner != nullptr) && !m_pOwnerFlag.expired() && (m_pOwner->m_pSubWindow == this)) {
+        m_pOwner->m_pSubWindow = nullptr;
+    }
+    m_pOwner = nullptr;
+    m_pOwnerFlag.reset();
     //从菜单Observer中注销：窗口创建失败等场景下不会触发 OnCloseWindow，
     //若不在这里注销，全局Observer中会残留指向已释放对象的指针
     RemoveObserver();
@@ -178,6 +185,7 @@ void Menu::ShowMenu(const DString& xml, const UiPoint& point, MenuPopupPosType p
     m_xml = xml;
     m_noFocus = noFocus;
     m_pOwner = pOwner;
+    m_pOwnerFlag = (pOwner != nullptr) ? pOwner->GetWeakFlag() : std::weak_ptr<WeakFlag>();
 
     Menu::GetMenuObserver().AddReceiver(this);
     WindowCreateParam createWndParam;
@@ -292,28 +300,100 @@ void Menu::CloseMenu()
 
 void Menu::DetachOwner()
 {
-    if (m_pOwner != nullptr) {
-        ListBox* pLayoutListBox = Menu::GetLayoutListBox();
-        if (pLayoutListBox != nullptr) {
-            pLayoutListBox->SelectItem(Box::InvalidIndex, false, false);
-        }
+    if (m_pOwner == nullptr) {
+        m_pOwnerFlag.reset();
+        return;
+    }
+    if (m_pOwnerFlag.expired()) {
+        //菜单项已经销毁：窗口的异步销毁顺序可能与菜单项所在窗口不同，
+        //此时不能再访问菜单项及其子控件，否则会写入已经释放的内存
+        m_pOwner = nullptr;
+        m_pOwnerFlag.reset();
+        return;
+    }
+    if (m_pOwner->m_pSubWindow != this) {
+        //菜单项已经关联了新的子菜单窗口(本窗口属于迟到关闭的旧窗口)：
+        //不能操作共享控件，避免破坏新子菜单窗口的布局
+        m_pOwner = nullptr;
+        m_pOwnerFlag.reset();
+        return;
+    }
+    ListBox* pLayoutListBox = Menu::GetLayoutListBox();
+    if (pLayoutListBox != nullptr) {
+        pLayoutListBox->SelectItem(Box::InvalidIndex, false, false);
+    }
 
-        //将在OnInitWindow中，添加到Layout上的节点，解除关联关系
-        std::vector<Control*> submenuControls;
-        MenuItem::GetAllSubMenuControls(m_pOwner, submenuControls);
-        for (auto pItem : submenuControls) {
-            if (pItem != nullptr) {
-                pItem->SetWindow(nullptr);
-                pItem->SetParent(nullptr);
+    //将在OnInitWindow中，添加到Layout上的节点，解除关联关系
+    std::vector<Control*> submenuControls;
+    MenuItem::GetAllSubMenuControls(m_pOwner, submenuControls);
+    for (auto pItem : submenuControls) {
+        if (pItem != nullptr) {
+            pItem->SetWindow(nullptr);
+            pItem->SetParent(nullptr);
+        }
+    }
+
+    if (pLayoutListBox != nullptr) {
+        pLayoutListBox->RemoveAllItems();
+    }
+    m_pOwner->m_pSubWindow = nullptr;
+    m_pOwner->Invalidate();
+    m_pOwner = nullptr;
+    m_pOwnerFlag.reset();
+}
+
+void Menu::DetachSubMenuWnds()
+{
+    ListBox* pLayoutListBox = Menu::GetLayoutListBox();
+    if (pLayoutListBox == nullptr) {
+        return;
+    }
+    //收集本菜单的所有菜单项(包括嵌套在SubMenu节点中的菜单项)
+    std::vector<MenuItem*> menuItems;
+    const size_t nItemCount = pLayoutListBox->GetItemCount();
+    for (size_t i = 0; i < nItemCount; ++i) {
+        Control* pControl = pLayoutListBox->GetItemAt(i);
+        MenuItem* pMenuItem = dynamic_cast<MenuItem*>(pControl);
+        if (pMenuItem != nullptr) {
+            menuItems.push_back(pMenuItem);
+            std::vector<MenuItem*> subMenuItems;
+            MenuItem::GetAllSubMenuItem(pMenuItem, subMenuItems);
+            for (auto pSubMenuItem : subMenuItems) {
+                if (pSubMenuItem != nullptr) {
+                    menuItems.push_back(pSubMenuItem);
+                }
+            }
+            continue;
+        }
+        //菜单项也可能放在SubMenu容器中
+        SubMenu* pSubMenu = dynamic_cast<SubMenu*>(pControl);
+        if (pSubMenu != nullptr) {
+            const size_t nSubItemCount = pSubMenu->GetItemCount();
+            for (size_t j = 0; j < nSubItemCount; ++j) {
+                MenuItem* pSubMenuItem = dynamic_cast<MenuItem*>(pSubMenu->GetItemAt(j));
+                if (pSubMenuItem != nullptr) {
+                    menuItems.push_back(pSubMenuItem);
+                }
             }
         }
-
-        if (pLayoutListBox != nullptr) {
-            pLayoutListBox->RemoveAllItems();
+    }
+    //先断开下级菜单窗口与菜单项的关联关系，再关闭下级菜单窗口：
+    //下级菜单窗口的销毁是异步的，可能晚于本菜单控件树的释放，提前断链可避免其访问已释放的菜单项
+    for (auto pMenuItem : menuItems) {
+        if (pMenuItem == nullptr) {
+            continue;
         }
-        m_pOwner->m_pSubWindow = nullptr;
-        m_pOwner->Invalidate();
-        m_pOwner = nullptr;
+        Menu* pSubWindow = pMenuItem->m_pSubWindow;
+        if (pSubWindow == nullptr) {
+            continue;
+        }
+        //解除子菜单对菜单项及共享控件的引用（此时本菜单的控件树仍然有效）
+        pSubWindow->DetachOwner();
+        if (pMenuItem->m_pSubWindow == pSubWindow) {
+            //DetachOwner未清除关联关系时（异常场景），由这里兜底清除
+            pMenuItem->m_pSubWindow = nullptr;
+        }
+        pSubWindow->CloseMenu();
     }
 }
 
@@ -1046,6 +1126,14 @@ void Menu::OnFinalMessage()
     BaseClass::OnFinalMessage();
 }
 
+void Menu::OnPreCloseWindow()
+{
+    //窗口即将关闭：在原生句柄销毁前，先解除所有下级菜单窗口与菜单项的关联关系并关闭它们，
+    //确保下级菜单窗口不会晚于本菜单的控件树销毁（SDL下窗口关闭是异步的，销毁顺序不受控）
+    DetachSubMenuWnds();
+    BaseClass::OnPreCloseWindow();
+}
+
 void Menu::OnCloseWindow()
 {
     RemoveObserver();
@@ -1520,6 +1608,12 @@ bool MenuItem::CheckSubMenuItem()
             GetOwner()->SelectItem(GetListBoxIndex(), true, true);
         }
         if (m_pSubWindow == nullptr) {
+            Window* pWindow = GetWindow();
+            if ((pWindow != nullptr) && pWindow->IsClosingWnd()) {
+                //菜单窗口正在关闭时，不再创建新的子菜单窗口：
+                //否则子菜单窗口可能在父菜单的控件树销毁之后才销毁
+                return false;
+            }
             CreateMenuWnd();
         }
         else {

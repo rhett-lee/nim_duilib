@@ -160,6 +160,11 @@ private:
     //与父菜单对象解除关联关系
     void DetachOwner();
 
+    /** 解除本菜单的所有下级菜单窗口与菜单项之间的关联关系，并关闭这些下级菜单窗口
+    *   需要在窗口原生句柄销毁前调用，确保下级菜单窗口不会晚于本菜单的控件树销毁
+    */
+    void DetachSubMenuWnds();
+
 private:
     // 重新调整菜单的大小
     bool ResizeMenu();
@@ -228,6 +233,10 @@ private:
     virtual DString GetSkinFolder() override;
     virtual DString GetSkinFile() override;
     virtual void PreInitWindow() override;
+
+    /** 当窗口即将被关闭时调用（此时窗口的原生句柄尚未销毁）
+    */
+    virtual void OnPreCloseWindow() override;
     virtual void OnCloseWindow() override;
 
     /** 在窗口销毁时会被调用，这是该窗口的最后一个消息（该类默认实现是清理资源，并销毁该窗口对象）
@@ -295,6 +304,9 @@ private:
 
     //菜单的父菜单接口
     MenuItem* m_pOwner;
+
+    //菜单的父菜单接口的有效性标记：用于判断 m_pOwner 是否已经销毁
+    std::weak_ptr<WeakFlag> m_pOwnerFlag;
 
     //菜单的布局接口
     ControlPtrT<ListBox> m_pListBox;
