@@ -173,6 +173,7 @@ if (pBtn != nullptr) {
 
 | 接口 | 触发时机 / `wParam` 含义 |
 | :--- | :--- |
+| `AttachWindowOnInitMsg` | 窗口初始化完成（对应 `OnInitWindow`，在窗口显示前触发，可用于初始化窗口布局等） |
 | `AttachWindowCreateMsg` | 窗口创建完成；`wParam` 为 1 表示通过 `DoModal` 创建，为 0 表示普通窗口 |
 | `AttachWindowCloseMsg` | 窗口关闭；`wParam` 为关闭参数（`kWindowCloseNormal`/`kWindowCloseOK`/`kWindowCloseCancel`） |
 | `AttachWindowFirstShown` | 窗口首次显示（界面布局已完成） |

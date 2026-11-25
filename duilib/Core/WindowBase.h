@@ -597,6 +597,12 @@ public:
     bool IsWindowFirstShown() const;
 
 public:
+    /** 监听窗口初始化事件（对应OnInitWindow，在窗口显示前触发）
+    * @param [in] callback 指定的回调函数，无参数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowOnInitMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
     /** 监听窗口创建事件
     * @param [in] callback 指定的回调函数，wParam是1表示为通过DoModal函数显示的模态对话框，wParam为0表示为普通窗口
     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）

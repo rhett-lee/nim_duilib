@@ -82,6 +82,10 @@ void WindowBase::OnNativeCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg,
     if (!windowFlag.expired()) {
         OnInitWindow();
     }
+    if (!windowFlag.expired()) {
+        //给应用层回调：窗口初始化完成（在窗口显示前初始化窗口布局等）
+        SendWindowEvent(kWindowOnInitMsg);
+    }
     //内部初始化（内部使用）
     if (!windowFlag.expired()) {
         PostInitWindow();
@@ -1757,6 +1761,11 @@ void WindowBase::DetachWindowEventCallback(EventType eventType)
 void WindowBase::DetachWindowEventCallbackByID(EventCallbackID callbackID)
 {
     EventUtils::RemoveEventCallbackByID(m_windowEventMap, callbackID);
+}
+
+void WindowBase::AttachWindowOnInitMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowOnInitMsg].AddEventCallback(callback, callbackID);
 }
 
 void WindowBase::AttachWindowCreateMsg(const EventCallback& callback, EventCallbackID callbackID)

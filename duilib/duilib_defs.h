@@ -561,6 +561,7 @@ namespace ui
         /** 窗口相关的事件，这些事件不会发给任何控件，直接发给应用层
         */
         kWindowMsgBegin,            //窗口消息的开始
+        kWindowOnInitMsg,           //窗口初始化消息（对应OnInitWindow，在窗口显示前触发，供应用层初始化窗口布局等）
         kWindowCreateMsg,           //窗口创建消息
         kWindowCloseMsg,            //窗口关闭消息
         kWindowShowWindowMsg,       //窗口显示或者隐藏

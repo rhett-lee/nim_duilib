@@ -181,6 +181,7 @@ Window events are registered through the `AttachWindowXxxMsg` functions; the cal
 
 | Interface | Trigger / meaning of `wParam` |
 | :--- | :--- |
+| `AttachWindowOnInitMsg` | Window initialization completed (equivalent to `OnInitWindow`, fired before the window is shown; use it to initialize the window layout, etc.) |
 | `AttachWindowCreateMsg` | Window creation completed; `wParam` is 1 for a window created via `DoModal`, 0 for a normal window |
 | `AttachWindowCloseMsg` | Window closing; `wParam` is the close parameter (`kWindowCloseNormal`/`kWindowCloseOK`/`kWindowCloseCancel`) |
 | `AttachWindowFirstShown` | The window is shown for the first time (layout is complete) |
