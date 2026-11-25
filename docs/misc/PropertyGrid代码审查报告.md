@@ -521,6 +521,34 @@ RichEdit、热键、IP 地址一样在编辑时显示统一的聚焦边框色（
 - `py -3 build/build.py build --no-deps --config Release --target duilib`（/MT，非 DLL）：通过。
 - `py -3 tests/test_controls_pages.py`：`PASS: all checks succeeded`（15801 项检查）。
 
+### 9.8 第六批实施记录（热键编辑框内边距与热键规则）
+
+**问题**
+
+1. 热键编辑框文字紧贴左边框：`HotKey` 构造函数中 `text_padding` 被连续设置两次，后一次 `0,0,0,0`
+   覆盖了前一次的设置，导致内边距为 0。
+2. 热键允许录入单个字母/数字（例如 `F`），不符合组合键的使用习惯。
+
+**修改**
+
+- `duilib/Control/HotKey.cpp`：删除重复的 `text_padding` 设置，统一为 `8,0,8,0`
+  （与属性网格文本编辑框的左内边距对齐）。
+- 新增 `HotKey::IsValidHotKey()`，并在 `ApplyHotKey()` 中校验，不符合规则时不修改当前热键：
+  1. 主键不能为空，也不能是修饰键本身；
+  2. 带 Ctrl/Shift/Alt 时视为组合键；
+  3. 不带修饰键时只允许单独的功能键（F1~F24），单个字母、数字等字符键必须搭配修饰键；
+  4. 系统保留组合键不允许：Alt+Tab、Alt+F4、Alt+Esc、Alt+Space、Ctrl+Esc。
+- `SetHotKey()`（两个重载）改为返回 `bool`，`SetHotKeyName()` 解析成功后复用同一校验；
+  签名变化对原有调用方源码兼容（返回值可忽略）。文档 `docs/Control.md` 同步更新。
+
+**验证**
+
+- `py -3 build/build.py build --no-deps --md --config Release --target render`：通过。
+- 实测：热键编辑框左侧留白约 8px；编辑态单独按 `K` 被忽略，显示仍为 `Ctrl + C`；
+  按 `Ctrl+Alt+K` 生效并提交为 `Ctrl + Alt + K`。
+- `py -3 build/build.py build --no-deps --config Release --target duilib`（/MT，非 DLL）：通过。
+- `py -3 tests/test_controls_pages.py`：`PASS: all checks succeeded`（15801 项检查）。
+
 ---
 
 ## 附：涉及文件
@@ -535,3 +563,5 @@ RichEdit、热键、IP 地址一样在编辑时显示统一的聚焦边框色（
 | `bin/resources/themes/color_light|color_dark/global.xml` | `bg_property_grid_*` 主题色 |
 | `examples/render/RenderForm.cpp` | 示例：属性类型全覆盖 |
 | `bin/resources/themes/default/render/page_property_grid.xml` | 示例布局 |
+| `duilib/Control/HotKey.h` / `HotKey.cpp` | 热键控件：内边距、热键规则校验 |
+| `docs/Control.md` | HotKey 交互行为与 C++ 接口说明 |

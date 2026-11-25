@@ -10,7 +10,8 @@ class HotKeyRichEdit;
 /** 热键控件
 *  内部使用一个编辑框捕获按键，支持组合键的录入：
 *  (1) 按下修饰键（Ctrl/Shift/Alt）时仅预览显示，松开后回退，不产生无效热键；
-*  (2) 按下其他键时提交热键，允许不带修饰键的单独按键；
+*  (2) 按下其他键时提交热键，热键必须符合规则：带修饰键的组合键，或者单独的功能键（F1-F24）；
+*      单个字母、数字等字符键不允许直接作为热键；
 *  (3) Delete/Backspace 清空热键，Esc 取消本次输入；
 *  (4) 未设置热键时，default_text/default_text_id 以灰色占位提示显示。
 */
@@ -42,8 +43,10 @@ public:
     * @param [in] wVirtualKeyCode 虚拟键盘码，比如：VK_DOWN等，可参考：https://learn.microsoft.com/zh-cn/windows/win32/inputdev/virtual-key-codes
     *             该值为 0 时表示清空热键（wModifiers 同时被清空）
     * @param [in] wModifiers 热键组合键标志位，参见HotKeyModifiers枚举类型的值
+    * @return 返回true表示设置成功，返回false表示热键不符合规则（此时不修改当前热键）
+    *         规则参见 IsValidHotKey 的说明
     */
-    void SetHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers);
+    bool SetHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers);
 
     /** 获取热键
     * @param [out] wVirtualKeyCode 虚拟键盘码，比如：VK_DOWN等
@@ -53,8 +56,9 @@ public:
 
     /** 设置热键的值[由MAKEWORD(wVirtualKeyCode, wModifiers)生成]
     * @param [in] dwHotKey 高8位为wModifiers，低8位为wVirtualKeyCode
+    * @return 返回true表示设置成功，返回false表示热键不符合规则（此时不修改当前热键）
     */
-    void SetHotKey(uint16_t dwHotKey);
+    bool SetHotKey(uint16_t dwHotKey);
 
     /** 获取热键的值[由MAKEWORD(wVirtualKeyCode, wModifiers)生成]
     * @return 热键的值，高8位为wModifiers，低8位为wVirtualKeyCode
@@ -71,7 +75,7 @@ public:
 
     /** 根据显示名称设置热键
     * @param [in] hotKeyName 热键名称，比如"Ctrl + C"等；传入空字符串时表示清空热键
-    * @return 返回true表示设置成功，返回false表示解析失败（此时不修改当前热键）
+    * @return 返回true表示设置成功，返回false表示解析失败或不符合热键规则（此时不修改当前热键）
     */
     bool SetHotKeyName(const DString& hotKeyName);
 
@@ -82,6 +86,17 @@ public:
     */
     static DString GetKeyName(uint8_t wVirtualKeyCode, bool fExtended);
 
+    /** 判断热键是否符合规则
+    * @param [in] wVirtualKeyCode 虚拟键盘码，比如：VK_DOWN等
+    * @param [in] wModifiers 热键组合键标志位，参见HotKeyModifiers枚举类型的值
+    * @return 返回true表示符合规则：
+    *         1) 主键不能为空，也不能是修饰键本身；
+    *         2) 带修饰键（Ctrl/Shift/Alt）时视为组合键；
+    *         3) 不带修饰键时，只允许功能键（F1-F24）单独作为热键；
+    *         4) 系统保留的组合键不允许（Alt+Tab、Alt+F4、Alt+Esc、Alt+Space、Ctrl+Esc）。
+    */
+    static bool IsValidHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers);
+
 protected:
     //初始化
     virtual void OnInit() override;
@@ -90,8 +105,9 @@ private:
     /** 应用热键值（内部修饰键标志为HOTKEYF_*格式）
     * @param [in] wVirtualKeyCode 虚拟键盘码，为 0 时表示清空热键
     * @param [in] wModifiers 内部修饰键标志（HOTKEYF_*）
+    * @return 返回true表示应用成功，返回false表示热键不符合规则（此时不修改当前热键）
     */
-    void ApplyHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers);
+    bool ApplyHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers);
 
     /** 刷新编辑框显示的文本（已提交的热键，或占位提示文字）
     */

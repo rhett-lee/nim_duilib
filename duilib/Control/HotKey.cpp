@@ -162,7 +162,7 @@ public:
             pOwner->PreviewHotKey(wModifiers);
             return true;
         }
-        //普通按键：提交热键（允许不带修饰键的单独按键）
+        //普通按键：提交热键（必须符合热键规则，不符合规则时保持原热键不变）
         DString sKeyName = Keyboard::GetKeyName(msg.vkCode, (wModifiers & HOTKEYF_EXT) != 0);
         if (sKeyName.empty()) {
             //系统接口无法获取键名时，使用固定的英文键名
@@ -205,8 +205,7 @@ HotKey::HotKey(Window* pWindow):
     ASSERT(pWindow != nullptr);
     m_pRichEdit = new HotKeyRichEdit(pWindow, this);
     m_pRichEdit->SetAttribute(_T("text_align"), _T("vcenter,left"));
-    m_pRichEdit->SetAttribute(_T("text_padding"), _T("6,0,6,0"));
-    m_pRichEdit->SetAttribute(_T("text_padding"), _T("0,0,0,0"));
+    m_pRichEdit->SetAttribute(_T("text_padding"), _T("8,0,8,0"));
     m_pRichEdit->SetAttribute(_T("want_tab"), _T("false"));
     //未设置热键时，显示灰色的占位提示文字
     m_pRichEdit->SetAttribute(_T("prompt_mode"), _T("true"));
@@ -294,7 +293,7 @@ bool HotKey::IsFocused() const
     return (m_pRichEdit != nullptr) && m_pRichEdit->IsFocused();
 }
 
-void HotKey::SetHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers)
+bool HotKey::SetHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers)
 {
     uint8_t wNewModifiers = 0;
     if (wModifiers & kHotKey_Shift) {
@@ -309,7 +308,7 @@ void HotKey::SetHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers)
     if (wModifiers & kHotKey_Ext) {
         wNewModifiers |= (HOTKEYF_EXT);
     }
-    ApplyHotKey(wVirtualKeyCode, wNewModifiers);
+    return ApplyHotKey(wVirtualKeyCode, wNewModifiers);
 }
 
 void HotKey::GetHotKey(uint8_t& wVirtualKeyCode, uint8_t& wModifiers) const
@@ -318,11 +317,11 @@ void HotKey::GetHotKey(uint8_t& wVirtualKeyCode, uint8_t& wModifiers) const
     wModifiers = m_wModifiers;
 }
 
-void HotKey::SetHotKey(uint16_t dwHotKey)
+bool HotKey::SetHotKey(uint16_t dwHotKey)
 {
     uint8_t wVirtualKeyCode = LOBYTE(dwHotKey);
     uint8_t wModifiers = HIBYTE(dwHotKey);
-    SetHotKey(wVirtualKeyCode, wModifiers);
+    return SetHotKey(wVirtualKeyCode, wModifiers);
 }
 
 uint16_t HotKey::GetHotKey() const
@@ -443,8 +442,7 @@ bool HotKey::SetHotKeyName(const DString& hotKeyName)
         //没有主键时（比如仅"Ctrl"），不是有效的热键
         return false;
     }
-    SetHotKey(wVirtualKeyCode, wModifiers);
-    return true;
+    return SetHotKey(wVirtualKeyCode, wModifiers);
 }
 
 DString HotKey::GetKeyName(uint8_t wVirtualKeyCode, bool fExtended)
@@ -452,17 +450,51 @@ DString HotKey::GetKeyName(uint8_t wVirtualKeyCode, bool fExtended)
     return Keyboard::GetKeyName((VirtualKeyCode)wVirtualKeyCode, fExtended);
 }
 
-void HotKey::ApplyHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers)
+bool HotKey::IsValidHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers)
+{
+    //主键不能为空，也不能是修饰键本身：热键必须包含一个非修饰键
+    if ((wVirtualKeyCode == 0) ||
+        (wVirtualKeyCode == kVK_SHIFT) ||
+        (wVirtualKeyCode == kVK_CONTROL) ||
+        (wVirtualKeyCode == kVK_MENU)) {
+        return false;
+    }
+    const uint8_t wKeyModifiers = wModifiers & (kHotKey_Contrl | kHotKey_Shift | kHotKey_Alt);
+    if (wKeyModifiers == 0) {
+        //不带修饰键时，只允许功能键（F1-F24）单独作为热键；
+        //单个字母、数字等字符键必须与修饰键组合使用
+        return (wVirtualKeyCode >= kVK_F1) && (wVirtualKeyCode <= kVK_F24);
+    }
+    if ((wKeyModifiers & kHotKey_Alt) && !(wKeyModifiers & (kHotKey_Contrl | kHotKey_Shift))) {
+        //系统保留的Alt组合键不允许
+        if ((wVirtualKeyCode == kVK_TAB) || (wVirtualKeyCode == kVK_F4) ||
+            (wVirtualKeyCode == kVK_ESCAPE) || (wVirtualKeyCode == kVK_SPACE)) {
+            return false;
+        }
+    }
+    if ((wKeyModifiers == kHotKey_Contrl) && (wVirtualKeyCode == kVK_ESCAPE)) {
+        //Ctrl+Esc为系统保留组合键（打开开始菜单）
+        return false;
+    }
+    return true;
+}
+
+bool HotKey::ApplyHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers)
 {
     if (wVirtualKeyCode == 0) {
         //虚拟键码为空时，视为清空热键
         wModifiers = 0;
+    }
+    else if (!IsValidHotKey(wVirtualKeyCode, wModifiers)) {
+        //不符合热键规则：不修改当前热键
+        return false;
     }
     m_bPreviewing = false;
     m_wVirtualKeyCode = wVirtualKeyCode;
     m_wModifiers = wModifiers;
     UpdateDisplayText();
     NotifyHotKeyChanged();
+    return true;
 }
 
 void HotKey::UpdateDisplayText()
