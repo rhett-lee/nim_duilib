@@ -243,7 +243,20 @@ void StringAppendVT(const CharType *format, va_list ap, std::basic_string<CharTy
     }
 }
 
-#define NOT_SPACE(x) ((x) != 0x20 && ((x) < 0 || 0x1d < (x)))
+/** 判断字符是否为空白字符（ASCII 空格与 ASCII 控制字符；宽字符还包括全角空格与不换行空格）
+*/
+inline bool StringIsSpaceChar(char ch)
+{
+    const unsigned char value = static_cast<unsigned char>(ch);
+    return (value == 0x20) || (value <= 0x1d);
+}
+
+inline bool StringIsSpaceChar(wchar_t ch)
+{
+    const uint32_t value = static_cast<uint32_t>(ch);
+    return (value == 0x20) || (value <= 0x1d) ||
+           (value == 0x3000) || (value == 0x00A0); //全角空格、不换行空格
+}
 
 template<typename CharType>
 void StringTrimT(std::basic_string<CharType> &output)
@@ -259,11 +272,11 @@ void StringTrimT(std::basic_string<CharType> &output)
     }
 
     for (; bound2 > 0; bound2--)
-        if (NOT_SPACE(src[bound2-1]))
+        if (!StringIsSpaceChar(src[bound2-1]))
             break;
 
     for (; bound1 < bound2; bound1++)
-        if (NOT_SPACE(src[bound1]))
+        if (!StringIsSpaceChar(src[bound1]))
             break;
 
     if (bound1 < bound2) {
@@ -286,7 +299,7 @@ void StringTrimLeftT(std::basic_string<CharType> &output)
     }
 
     for (; check < length; check++)
-        if (NOT_SPACE(src[check]))
+        if (!StringIsSpaceChar(src[check]))
             break;
 
     output.erase(0, check);
@@ -302,24 +315,10 @@ void StringTrimRightT(std::basic_string<CharType> &output)
     }
 
     for (; length > 0; length--)
-        if (NOT_SPACE(src[length-1]))
+        if (!StringIsSpaceChar(src[length-1]))
             break;
 
     output.resize(length);
-}
-
-/** 判断字符是否为空白字符（规则与 Trim 保持一致：空格及 ASCII 控制字符）
-*/
-inline bool StringIsSpaceChar(char ch)
-{
-    const unsigned char value = static_cast<unsigned char>(ch);
-    return (value == 0x20) || (value <= 0x1d);
-}
-
-inline bool StringIsSpaceChar(wchar_t ch)
-{
-    const uint32_t value = static_cast<uint32_t>(ch);
-    return (value == 0x20) || (value <= 0x1d);
 }
 
 /** 忽略大小写比较指定长度的字符串
@@ -1346,6 +1345,23 @@ std::string StringUtil::Int32ToString(int32_t value)
     return Int32ToStringA(value);
 }
 #endif
+
+DString StringUtil::BoolToString(bool value)
+{
+    return value ? _T("true") : _T("false");
+}
+
+DString StringUtil::DoubleToString(double value, int32_t nPrecision)
+{
+    //限制精度范围，避免异常参数导致输出过长
+    if (nPrecision < 0) {
+        nPrecision = 0;
+    }
+    else if (nPrecision > 17) {
+        nPrecision = 17;
+    }
+    return Printf(_T("%.*f"), static_cast<int>(nPrecision), value);
+}
 
 int32_t StringUtil::StringToInt32(const std::wstring& str)
 {

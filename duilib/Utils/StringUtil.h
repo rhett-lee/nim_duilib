@@ -8,7 +8,8 @@
 
 namespace ui
 {
-/** 字符串/路径操作的辅助类
+/** 字符串/路径操作的辅助类，功能要点如下：
+ *  1. 空白字符的判断规则：ASCII 空格与 ASCII 控制字符；宽字符版本还包括全角空格(U+3000)与不换行空格(U+00A0)
 */
 class DUILIB_API StringUtil
 {
@@ -144,7 +145,8 @@ public:
     static bool IsNullOrEmpty(const std::wstring& str);
     static bool IsNullOrEmpty(const std::string& str);
 
-    /** 判断字符串是否为空或全部由空白字符组成（空白字符的判断规则与 Trim 一致：空格及 ASCII 控制字符）
+    /** 判断字符串是否为空或全部由空白字符组成
+    *      空白字符的判断规则与 Trim 一致：ASCII 空格与 ASCII 控制字符，宽字符还包括全角空格与不换行空格
     * @param [in] str 要判断的字符串
     * @return 返回 true 表示为空或全为空白字符，否则返回 false
     */
@@ -301,6 +303,19 @@ public:
     static std::string Int64ToString(int64_t value);
     static std::string Int32ToString(int32_t value);
 #endif
+
+    /** 将布尔值转换为字符串
+    * @param [in] value 要转换的布尔值
+    * @return true 返回 "true"，false 返回 "false"（返回值类型随编码模式变化）
+    */
+    static DString BoolToString(bool value);
+
+    /** 将浮点数转换为字符串（按指定小数位数格式化，采用四舍五入）
+    * @param [in] value 要转换的浮点数
+    * @param [in] nPrecision 保留的小数位数，取值范围 0~17，超出范围时按边界值处理
+    * @return 返回格式化后的字符串（返回值类型随编码模式变化）
+    */
+    static DString DoubleToString(double value, int32_t nPrecision);
 
     /** 将字符串转换成整型（十进制）
     * @param [in] str 要转换的字符串（std::wstring/std::string 以及对应的字符指针）

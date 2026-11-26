@@ -417,6 +417,31 @@ void TestMakeReplaceAll()
     CHECK(ui::StringUtil::MakeReplaceAllNoCase(std::string("aAa"), std::string("A"), std::string("b")) == "bbb");
 }
 
+void TestBoolAndDoubleToString()
+{
+    CHECK(ui::StringUtil::BoolToString(true) == DString(_T("true")));
+    CHECK(ui::StringUtil::BoolToString(false) == DString(_T("false")));
+
+    CHECK(ui::StringUtil::DoubleToString(3.14159, 2) == DString(_T("3.14")));
+    CHECK(ui::StringUtil::DoubleToString(3.14159, 0) == DString(_T("3")));
+    CHECK(ui::StringUtil::DoubleToString(-1.5, 1) == DString(_T("-1.5")));
+
+    // 精度越界时按边界值处理：负精度按0位小数，超过17位按17位小数
+    CHECK(ui::StringUtil::DoubleToString(1.5, -1) == DString(_T("2")));
+    CHECK(ui::StringUtil::DoubleToString(1.0, 100) == DString(_T("1.00000000000000000")));
+}
+
+void TestUnicodeWhiteSpace()
+{
+    // 宽字符版本的 Trim 需要处理全角空格(U+3000)与不换行空格(U+00A0)
+    std::wstring text = L"\u3000 abc \u00A0";
+    ui::StringUtil::Trim(text);
+    CHECK_WSTR(text, L"abc");
+
+    CHECK(ui::StringUtil::IsNullOrWhiteSpace(std::wstring(L"\u3000\u00A0")));
+    CHECK(!ui::StringUtil::IsNullOrWhiteSpace(std::wstring(L"\u3000x\u00A0")));
+}
+
 } // namespace
 
 int main()
@@ -435,6 +460,8 @@ int main()
     TestEmptyAndWhiteSpace();
     TestSplitJoinAndLines();
     TestMakeReplaceAll();
+    TestBoolAndDoubleToString();
+    TestUnicodeWhiteSpace();
 
     if (g_failedCount == 0) {
         std::cout << "All tests passed (" << g_checkCount << " checks)." << std::endl;
