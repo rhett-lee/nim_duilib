@@ -929,6 +929,11 @@ private:
     */
     uint32_t m_nUpdateSeq;
 
+    /** 是否已经向事件队列投递了本窗口的绘制消息
+    *   用于避免每次记录更新区域时都遍历事件队列判断（O(1) 代替 O(队列长度)）
+    */
+    bool m_bPaintMsgQueued;
+
     /** 拖放的支持
     */
     std::unique_ptr<WindowDropTarget> m_pWindowDropTarget;

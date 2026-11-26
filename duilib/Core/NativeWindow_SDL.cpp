@@ -709,6 +709,9 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
         break;
     case WM_USER_PAINT_MSG:
         //主动发起的窗口绘制消息
+        //先清除"绘制消息已投递"的标记：绘制过程中若产生新的更新区域，会重新投递绘制消息，
+        //否则这些新的更新区域要等到下一个事件才会被绘制
+        m_bPaintMsgQueued = false;
         PaintWindow(false);
         break;
     case WM_USER_HOVER_MSG:
@@ -1121,6 +1124,7 @@ NativeWindow_SDL::NativeWindow_SDL(INativeWindow* pOwner):
     m_bInitWindowPosFlag(false),
     m_bImeComposing(false),
     m_nUpdateSeq(0),
+    m_bPaintMsgQueued(false),
     m_systemShadowType(NativeWindowShadowType::kShadowSystemDisabled),
     m_pWaylandInputRegionData(nullptr)
 {
@@ -3457,73 +3461,98 @@ bool NativeWindow_SDL::IsCaptured() const
     return m_bMouseCapture;
 }
 
-struct NativeWindowExposedEvent
-{
-    SDL_Window* m_sdlWindow = nullptr;
-    bool m_bFoundExposedEvent = false;
-};
-
-static bool SDLCALL FilterNativeWindowExposedEvent(void* userdata, SDL_Event* event)
-{
-    if ((userdata != nullptr) && (event != nullptr)) {
-        NativeWindowExposedEvent* data = (NativeWindowExposedEvent*)userdata;
-        if (!data->m_bFoundExposedEvent && (event->type == WM_USER_PAINT_MSG)) {
-            if (data->m_sdlWindow == SDL_GetWindowFromEvent(event)) {
-                data->m_bFoundExposedEvent = true;
-            }
-        }
-    }
-    return true;
-}
-
 void NativeWindow_SDL::Invalidate(const UiRect& rcItem)
 {
+    if (m_sdlWindow == nullptr) {
+        return;
+    }
+
+    UiRect rcClient;
+    GetClientRect(rcClient);
+
+    //判断是否需要完整绘制：
+    //1. 空矩形：与Win32的InvalidateRect(hwnd, NULL)语义一致，表示整个客户区无效；
+    //2. 矩形与客户区大小相同：同样按完整绘制处理；
+    //完整绘制会覆盖整个客户区，此时再叠加增量绘制的脏区没有意义，因此只保留一个整窗脏区，
+    //避免"完整绘制 + 增量绘制"同时进行。
+    const bool bFullPaint = rcItem.IsEmpty() ||
+        ((rcItem.left == rcClient.left) && (rcItem.top == rcClient.top) &&
+         (rcItem.right == rcClient.right) && (rcItem.bottom == rcClient.bottom));
+
     //记录更新的区域列表（多个不连续的矩形，避免合并为单矩形后导致重绘面积被放大）
-    if (!rcItem.IsEmpty()) {
-        bool bContained = false;
-        for (const UiRect& rcUpdate : m_updateRects) {
-            if (rcUpdate.ContainsRect(rcItem)) {
-                //已经包含在已有的更新区域中，无需重复记录
-                bContained = true;
-                break;
+    UiRect rcUpdate = bFullPaint ? rcClient : rcItem;
+    if (!rcUpdate.IsEmpty()) {
+        if (!bFullPaint && !rcClient.ContainsRect(rcUpdate)) {
+            //与客户区求交：客户区之外的脏区不会被执行绘制，但会把脏区并集撑大，
+            //导致局部刷新被放大成全窗绘制
+            rcUpdate.Intersect(rcClient);
+        }
+        if (bFullPaint) {
+            //完整绘制：脏区列表只保留一个整窗矩形
+            const bool bSameRect = (m_updateRects.size() == 1) &&
+                (m_updateRects[0].left == rcUpdate.left) && (m_updateRects[0].top == rcUpdate.top) &&
+                (m_updateRects[0].right == rcUpdate.right) && (m_updateRects[0].bottom == rcUpdate.bottom) &&
+                (m_rcUpdateRect.left == rcUpdate.left) && (m_rcUpdateRect.top == rcUpdate.top) &&
+                (m_rcUpdateRect.right == rcUpdate.right) && (m_rcUpdateRect.bottom == rcUpdate.bottom);
+            if (!bSameRect) {
+                m_updateRects.clear();
+                m_updateRects.push_back(rcUpdate);
+                m_rcUpdateRect = rcUpdate;
+                ++m_nUpdateSeq;
             }
         }
-        if (!bContained) {
-            m_updateRects.push_back(rcItem);
-            ++m_nUpdateSeq;
-            if (m_rcUpdateRect.IsZero()) {
-                m_rcUpdateRect = rcItem;
+        else {
+            bool bContained = false;
+            for (const UiRect& rcOld : m_updateRects) {
+                if (rcOld.ContainsRect(rcUpdate)) {
+                    //已经包含在已有的更新区域中，无需重复记录
+                    bContained = true;
+                    break;
+                }
             }
-            else {
-                m_rcUpdateRect.Union(rcItem);
-            }
-            /** 更新区域的数量上限：超过上限时合并为一个矩形，
-            *   避免控件绘制时需要判断的脏矩形数量过多，反而降低性能
-            */
-            constexpr size_t kMaxUpdateRects = 12;
-            if (m_updateRects.size() > kMaxUpdateRects) {
-                m_updateRects.clear();
-                m_updateRects.push_back(m_rcUpdateRect);
+            if (!bContained) {
+                m_updateRects.push_back(rcUpdate);
+                ++m_nUpdateSeq;
+                if (m_rcUpdateRect.IsZero()) {
+                    m_rcUpdateRect = rcUpdate;
+                }
+                else {
+                    m_rcUpdateRect.Union(rcUpdate);
+                }
+                /** 更新区域的数量上限：超过上限时合并为一个矩形，
+                *   避免控件绘制时需要判断的脏矩形数量过多，反而降低性能
+                */
+                constexpr size_t kMaxUpdateRects = 12;
+                if (m_updateRects.size() > kMaxUpdateRects) {
+                    m_updateRects.clear();
+                    m_updateRects.push_back(m_rcUpdateRect);
+                }
             }
         }
     }
+    if (m_updateRects.empty() && m_rcUpdateRect.IsZero()) {
+        //没有需要绘制的区域
+        return;
+    }
 
-    //暂时没有此功能, 只能发送一个绘制消息，触发界面绘制
-    if (m_sdlWindow != nullptr) {
-        NativeWindowExposedEvent data;
-        data.m_bFoundExposedEvent = false;
-        data.m_sdlWindow = m_sdlWindow;
-        SDL_FilterEvents(FilterNativeWindowExposedEvent, &data);
-        if (!data.m_bFoundExposedEvent) {
-            //如果队列中没有该窗口的绘制消息，则添加一个；但如果有的话，就不重复添加，避免重复绘制而影响性能
-            SDL_Event sdlEvent;
-            sdlEvent.type = WM_USER_PAINT_MSG;
-            sdlEvent.common.timestamp = 0;
-            sdlEvent.user.data1 = 0;
-            sdlEvent.user.data2 = 0;
-            sdlEvent.user.windowID = SDL_GetWindowID(m_sdlWindow);
-            bool nRet = SDL_PushEvent(&sdlEvent);
-            ASSERT_UNUSED_VARIABLE(nRet);
+    //窗口不可见（隐藏或最小化）时不需要绘制：此时投递的绘制消息会被跳过，
+    //更新区域已经记录，窗口恢复显示时（EXPOSED/SHOWN）会触发完整绘制
+    if (!IsWindowVisible() || IsWindowMinimized()) {
+        return;
+    }
+
+    //投递绘制消息：使用成员变量记录队列中是否已有本窗口的绘制消息，避免每次遍历事件队列
+    if (!m_bPaintMsgQueued) {
+        SDL_Event sdlEvent;
+        sdlEvent.type = WM_USER_PAINT_MSG;
+        sdlEvent.common.timestamp = 0;
+        sdlEvent.user.data1 = 0;
+        sdlEvent.user.data2 = 0;
+        sdlEvent.user.windowID = SDL_GetWindowID(m_sdlWindow);
+        m_bPaintMsgQueued = SDL_PushEvent(&sdlEvent);
+        if (!m_bPaintMsgQueued) {
+            //投递失败：保持更新区域不清空，后续的界面更新会重新尝试投递绘制消息
+            ASSERT(0);
         }
     }
 }
