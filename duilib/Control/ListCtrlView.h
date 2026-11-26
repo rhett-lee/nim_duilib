@@ -15,6 +15,7 @@ public:
     ListCtrlView(Window* pWindow, Layout* pLayout);
     virtual ~ListCtrlView() override;
 
+    /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override { return _T("ListCtrlView"); }
     virtual void HandleEvent(const EventArgs& msg) override;
 

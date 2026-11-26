@@ -20,6 +20,10 @@
 
 namespace ui
 {
+/** Browser进程的 CefApp 实现类，负责管理 CEF 模块的生命周期
+*   同时实现 CefBrowserProcessHandler 与 CefRenderProcessHandler 接口，
+*   处理自定义协议注册、命令行参数处理、JS 上下文创建与进程间消息等。
+*/
 class CefClientApp:
     public CefApp,
     public CefBrowserProcessHandler,
@@ -69,8 +73,11 @@ private:
                                           CefProcessId source_process,
                                           CefRefPtr<CefProcessMessage> message) override;
 private:
+    /** Render 进程使用的 JS 桥接接口
+    */
     std::shared_ptr<CefJSBridge> m_renderJsBridge;
-    // both the browser and renderer process.
+
+    // 引用计数实现（Browser 进程与 Render 进程都会用到）
     IMPLEMENT_REFCOUNTING(CefClientApp);
 };
 }

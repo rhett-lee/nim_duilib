@@ -23,6 +23,7 @@ public:
     explicit ListCtrlIconView(Window* pWindow);
     virtual ~ListCtrlIconView() override;
 
+    /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override { return _T("ListCtrlIconView"); }
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void HandleEvent(const EventArgs& msg) override;

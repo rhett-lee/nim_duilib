@@ -48,6 +48,7 @@ public:
     virtual ~SkRasterWindowContext_SDL() override;
 
 public:
+    /// 重写父类方法，请参考父类声明
     virtual sk_sp<SkSurface> getBackbufferSurface() override;
     virtual bool isValid() override { return m_sdlWindow != nullptr; }
     virtual void resize(int w, int h) override;
@@ -65,6 +66,7 @@ public:
     bool IsBackBufferValid() const { return m_bBackBufferValid; }
 
 protected:
+    /// 重写父类方法，请参考父类声明
     virtual void onSwapBuffers() override;
 
     /** 绘制结束后，绘制数据从渲染引擎更新到窗口
@@ -133,7 +135,7 @@ private:
     */
     int32_t GetColorByteOrder(uint32_t mask) const;
 
-    /** 更新颜值的顺序
+    /** 更新颜色的字节顺序
     */
     void UpdateColorByteOrder(void* surfacePixels, int32_t nSurfaceWidth, const UiRect& rcPaint,
                               int32_t backR, int32_t backG, int32_t backB, int32_t backA,

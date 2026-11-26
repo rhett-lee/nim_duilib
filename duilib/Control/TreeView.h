@@ -17,6 +17,12 @@ enum class TreeNodeCheck
 };
 
 class TreeView;
+
+/** 树节点控件（TreeNode），功能要点如下：
+*  1. 作为 TreeView 的节点，支持展开/收起子节点
+*  2. 支持节点图标、展开/收起标志图标与 CheckBox 勾选功能
+*  3. 支持多级节点的动态添加、删除与查找
+*/
 class DUILIB_API TreeNode : public ListBoxItem
 {
     typedef ListBoxItem BaseClass;
@@ -44,9 +50,20 @@ protected:
     virtual bool IsVisibleInternal() const override;
 
 private:
+    /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual void PaintStateImages(IRender* pRender) override;
     virtual bool ButtonDown(const EventArgs& msg) override;
+
+    /** 双击树节点事件处理
+    * @param [in] msg 鼠标事件内容
+    * @return true 表示已处理该事件
+    */
     virtual bool OnDoubleClickItem(const EventArgs& msg);
+
+    /** 回车键按下时的处理
+    * @param [in] msg 键盘事件内容
+    * @return true 表示已处理该事件
+    */
     virtual bool OnReturnKeyDown(const EventArgs& msg);
 
 public:
@@ -133,9 +150,9 @@ public:
     TreeNode* FindChildNodeByName(const DString& name, bool bRecursive) const;
 
     /** 根据子节点的显示文本(Text)，查找子节点
-    * @param [in] name 被查找的子节点的显示文本（即LabelTemplate::GetText()的值）
-    * @return 返回匹配的树节点指针，如果显示文本有重复的，只返回第一个
+    * @param [in] text 被查找的子节点的显示文本（即LabelTemplate::GetText()的值）
     * @param [in] bRecursive true表示递归查找，false表示不递归查找，只在当前节点的一级子节点查找
+    * @return 返回匹配的树节点指针，如果显示文本有重复的，只返回第一个
     */
     TreeNode* FindChildNodeByText(const DString& text, bool bRecursive) const;
 
@@ -246,7 +263,7 @@ private:
     DString GetExpandStateImage(ControlStateType stateType);
 
     /** 设置展开状态的图片
-     * @param [in] stateType 要设置哪中状态下的图片
+     * @param [in] stateType 要设置哪种状态下的图片
      * @param [in] strImage 图片路径和属性
      */
     void SetExpandStateImage(ControlStateType stateType, const DString& strImage);
@@ -258,7 +275,7 @@ private:
     DString GetCollapseStateImage(ControlStateType stateType);
 
     /** 设置未展开状态的图片
-     * @param [in] stateType 要设置哪中状态下的图片
+     * @param [in] stateType 要设置哪种状态下的图片
      * @param [in] strImage 图片路径和属性
      */
     void SetCollapseStateImage(ControlStateType stateType, const DString& strImage);
@@ -372,6 +389,12 @@ private:
     std::unique_ptr<UiRect> m_pCollapseImageRect;//DPI无关，每次绘制后会更新此值
 };
 
+/** 树控件（TreeView），功能要点如下：
+*  1. 以树形结构显示层级数据，节点可展开/收起
+*  2. 支持节点图标、展开/收起标志图标与 CheckBox 勾选功能
+*  3. 支持多选与多选勾选模式
+*  4. 支持节点的动态添加、删除、选择与查找
+*/
 class DUILIB_API TreeView : public ListBox
 {
     typedef ListBox BaseClass;

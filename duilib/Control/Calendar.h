@@ -46,10 +46,12 @@ public:
     Calendar& operator=(const Calendar& r) = delete;
     virtual ~Calendar() override = default;
 
+    /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
 
+    /// 重写父类方法，提供个性化功能，请参考父类声明：鼠标交互
     virtual bool MouseMove(const EventArgs& msg) override;
     virtual bool ButtonDown(const EventArgs& msg) override;
     virtual bool ButtonUp(const EventArgs& msg) override;
@@ -67,6 +69,9 @@ public:
     /** 设置选择模式
     */
     void SetMode(Mode mode);
+
+    /** 获取选择模式
+    */
     Mode GetMode() const { return m_mode; }
 
     /** 设置当前显示的年月（会触发重绘）
@@ -116,6 +121,9 @@ public:
     * @param [in] dayOfWeek 0=周日, 1=周一（默认 1）
     */
     void SetFirstDayOfWeek(int32_t dayOfWeek);
+
+    /** 获取每周第一天
+    */
     int32_t GetFirstDayOfWeek() const { return m_firstDayOfWeek; }
 
     /** 设置可选日期范围限制
@@ -171,6 +179,9 @@ public:
     /** 切换到年视图/十年视图
     */
     void SetViewMode(int32_t viewMode); // 0=月, 1=年, 2=十年
+
+    /** 获取当前视图模式（0=月, 1=年, 2=十年）
+    */
     int32_t GetViewMode() const { return m_viewMode; }
 
     /** 日期范围（用于 kEventValueChanged 事件，承载不受 time_t 字长限制的完整起止日期）

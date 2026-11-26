@@ -20,17 +20,18 @@ namespace ui
   #define MSFTEDIT_CLASS    "RICHEDIT50W"
 #endif
 
-/** RichEdit控件主要功能封装（来自WTL源码）
+/** RichEdit 控件的主要功能封装（来自 WTL 源码），功能要点如下：
+*  1. 封装 Windows RichEdit 控件的常用操作（文本、格式、剪贴板、OLE 等）
 */
 class DUILIB_API RichEditCtrl
 {
 public:
-// Constructors
+//构造函数
     RichEditCtrl(): m_pTextServices(nullptr)
     { }
 
 
-// Attributes
+//属性
     static LPCTSTR GetWndClassName()
     {
 #if (_RICHEDIT_VER >= 0x0500)
@@ -100,7 +101,7 @@ public:
         return (DWORD)TxSendMessage(EM_SETOPTIONS, wOperation, dwOptions);
     }
 
-    // NOTE: first word in lpszBuffer must contain the size of the buffer!
+    //注意：lpszBuffer 的第一个字必须包含缓冲区的大小！
     int GetLine(int nIndex, LPWSTR lpszBuffer) const
     {
         ASSERT(m_pTextServices != nullptr);
@@ -592,7 +593,7 @@ public:
         return (BOOL)TxSendMessage(EM_SETTYPOGRAPHYOPTIONS, wOptions, wMask);
     }
 
-    // Operations(设置最大字符格式，与SetLimitText相同)
+    //操作（设置最大字符格式，与 SetLimitText 相同）
     void LimitText(LONG nChars = 0)
     {
         ASSERT(m_pTextServices != nullptr);
@@ -731,7 +732,7 @@ public:
         return (DWORD)TxSendMessage(EM_FINDWORDBREAK, nCode, nStartChar);
     }
 
-    // Additional operations
+    //其他操作
     void ScrollCaret()
     {
         ASSERT(m_pTextServices != nullptr);
@@ -753,7 +754,7 @@ public:
         //return InsertText(this->GetWindowTextLength(), lpstrText, bCanUndo);
     }
 
-    // Clipboard operations
+    //剪贴板操作
     BOOL Undo()
     {
         ASSERT(m_pTextServices != nullptr);
@@ -784,7 +785,7 @@ public:
         TxSendMessage(WM_PASTE, 0, 0L);
     }
 
-    // OLE support
+    //OLE 支持
     IRichEditOle* GetOleInterface() const
     {
         ASSERT(m_pTextServices != nullptr);

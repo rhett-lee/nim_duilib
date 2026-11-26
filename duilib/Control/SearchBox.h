@@ -70,6 +70,7 @@ public:
     SearchBox& operator=(const SearchBox& r) = delete;
     virtual ~SearchBox() override;
 
+    /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
 
@@ -95,6 +96,9 @@ public:
      * @note 防抖同样作用于程序化 SetSearchText 引起的文本变化。
      */
     void SetDebounceInterval(size_t nIntervalMs);
+
+    /** 获取防抖间隔（毫秒）
+    */
     size_t GetDebounceInterval() const { return m_nDebounceIntervalMs; }
 
     /** @name 联想（建议）数据源
@@ -124,27 +128,42 @@ public:
     /** 设置下拉最多可见候选行数（超出出现滚动条）
      */
     void SetMaxVisible(int32_t nMaxVisible);
+
+    /** 获取下拉最多可见候选行数
+     */
     int32_t GetMaxVisible() const;
 
     /** 设置是否按输入文本过滤候选（默认 true）
      *   开启时输入达到 min_chars 才过滤；关闭则始终全量展示（不做输入过滤）
      */
     void SetFilterEnabled(bool bEnabled);
+
+    /** 是否按输入文本过滤候选
+     */
     bool IsFilterEnabled() const;
 
     /** 设置过滤触发的最少输入字符数（默认 1）
      */
     void SetMinChars(int32_t nMinChars);
+
+    /** 获取过滤触发的最少输入字符数
+     */
     int32_t GetMinChars() const;
 
     /** 设置过滤匹配模式（prefix 前缀 / contains 包含），默认 prefix
      */
     void SetMatchMode(AutoCompleteMatchMode matchMode);
+
+    /** 获取过滤匹配模式
+     */
     AutoCompleteMatchMode GetMatchMode() const;
 
     /** 设置过滤时是否忽略大小写（默认 true）
      */
     void SetIgnoreCase(bool bIgnoreCase);
+
+    /** 过滤时是否忽略大小写
+     */
     bool IsIgnoreCase() const;
     ///@}
 
@@ -156,11 +175,17 @@ public:
     /** 设置是否记录并展示搜索历史
     */
     void SetHistoryEnabled(bool bEnabled);
+
+    /** 是否记录并展示搜索历史
+     */
     bool IsHistoryEnabled() const;
 
     /** 设置搜索历史最多保留条数（超过后丢弃最旧）
     */
     void SetMaxHistory(int32_t nMax);
+
+    /** 获取搜索历史最多保留条数
+     */
     int32_t GetMaxHistory() const;
 
     /** 获取搜索历史（最近使用的排在前面）

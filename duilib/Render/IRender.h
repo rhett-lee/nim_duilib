@@ -168,7 +168,7 @@ public:
     virtual void ClearFontCache() = 0;
 
     /** 设置字体回退管理器
-    * @param [in] 字体回退管理器(生命周期由设置者来管理)
+    * @param [in] pFallbackFontMgr 字体回退管理器(生命周期由设置者来管理)
     */
     virtual void SetFallbackFontMgr(IFallbackFontMgr* pFallbackFontMgr) = 0;
 
@@ -252,7 +252,7 @@ public:
     */
     virtual const void* GetPixelBits() const = 0;
 
-    /** 克隆生成新的的位图
+    /** 克隆生成新的位图
     *@return 返回新生成的位图接口（所有权归调用方）
     */
     virtual std::unique_ptr<IBitmap> Clone() const = 0;
@@ -316,7 +316,7 @@ public:
     */
     virtual LineCap GetDashCap() const = 0;
 
-    /** 线段末尾使用的联接样式，该线段与另一个线段相遇
+    /** 线段连接处的联接样式（两条线段相交时使用）
     */
     enum LineJoin
     {
@@ -333,7 +333,9 @@ public:
     */
     virtual LineJoin GetLineJoin() const = 0;
 
-    /** 笔绘制的线条的线条样式
+    /** 线条样式（虚线类型）
+    *   说明：kDashStyleDash 为虚线，kDashStyleDot 为点线，
+    *        kDashStyleDashDot 为点划线，kDashStyleDashDotDot 为双点划线
     */
     enum DashStyle
     {
@@ -400,6 +402,9 @@ public:
         kRadialGradient     //径向渐变画刷
     };
 
+    /** 复制画刷对象
+    * @return 返回新生成的画刷接口（所有权归调用方）
+    */
     virtual std::unique_ptr<IBrush> Clone() const = 0;
 
     /** 获取画刷类型
@@ -441,19 +446,19 @@ public:
     */
     enum class FillType 
     {
-        /** Specifies that "inside" is computed by an odd number of edge crossings
+        /** 按边相交次数的奇偶性判断内部区域（奇偶填充规则）
         */
         kEvenOdd        = 0, //FillModeAlternate
 
-        /** Specifies that "inside" is computed by a non-zero sum of signed edge crossings 
+        /** 按有符号边相交次数累加后的非零值判断内部区域（非零填充规则）
         */
         kWinding        = 1, //FillModeWinding
 
-        /** Same as EvenOdd, but draws outside of the path, rather than inside 
+        /** 与 kEvenOdd 相同，但绘制路径外部而非内部
         */
         kInverseEvenOdd    = 2,
 
-        /** Same as Winding, but draws outside of the path, rather than inside 
+        /** 与 kWinding 相同，但绘制路径外部而非内部
         */
         kInverseWinding    = 3
     };
@@ -518,7 +523,7 @@ public:
     virtual void AddRect(const UiRectF& rect) = 0;
 
     /** 将椭圆添加到此路径
-    * @param [in] 椭圆的矩形区域 
+    * @param [in] rect 椭圆的矩形区域 
     *             left 椭圆边框左上角的 x 坐标
     *             top  椭圆边框左上角的 y 坐标
     *             right left + 椭圆边界矩形的宽度
@@ -528,7 +533,7 @@ public:
     virtual void AddEllipse(const UiRectF& rect) = 0;
 
     /** 将椭圆弧添加到此路径
-    * @param [in] 椭圆的矩形区域 
+    * @param [in] rect 椭圆的矩形区域 
     * @param [in] startAngle 椭圆水平轴与弧线起点之间的顺时针角度（以度为单位）
     * @param [in] sweepAngle 起点 (startAngle) 和弧的终点之间的顺时针角度（以度为单位）
     */
@@ -1533,6 +1538,8 @@ struct MeasureStringParam
     bool bRotate90ForAscii = true;      //纵向绘制时，对于字母数字等，旋转90度显示
 };
 
+/** 绘制文字使用的参数
+*/
 struct DrawStringParam
 {
     UiRect textRect;        //文字绘制的矩形区域
@@ -1640,14 +1647,14 @@ public:
      *  将原视区原点x值增加ptOffset.x后，作为新的视区原点x;
      *  将原视区原点y值增加ptOffset.y后，作为新的视区原点y;
      * @param [in] ptOffset 视区原点坐标偏移量
-     *@return 返回原来的视区原点坐标(x,y)
+     * @return 返回原来的视区原点坐标(x,y)
      * @note 视区原点用于滚动等场景：设置后，所有绘制接口传入的客户区坐标都会整体平移，
      *       使客户区坐标 pt 显示在设备坐标 (pt - 视区原点) 处
      */
     virtual UiPoint OffsetWindowOrg(UiPoint ptOffset) = 0;
 
     /** 将点(pt.x, pt.y)映射到视区原点 (0, 0)
-     *@return 返回原来的视区原点坐标(x,y)
+     * @return 返回原来的视区原点坐标(x,y)
      */
     virtual UiPoint SetWindowOrg(UiPoint pt) = 0;
 
@@ -1790,7 +1797,7 @@ public:
     * @param [in] pt1 起始点坐标
     * @param [in] pt2 终止点坐标
     * @param [in] penColor 画笔的颜色值
-    * @param [in] nWidth 画笔的宽度
+    * @param [in] fWidth 画笔的宽度
     */
     virtual void DrawLine(const UiPointF& pt1, const UiPointF& pt2, UiColor penColor, float fWidth) = 0;
 
@@ -2137,7 +2144,7 @@ public:
 
 
     /** 分离位图
-    *@return 返回位图接口，返回后由调用方管理资源（包括释放资源等）
+    * @return 返回位图接口，返回后由调用方管理资源（包括释放资源等）
     */
     virtual IBitmap* MakeImageSnapshot() = 0;
 

@@ -130,7 +130,7 @@ public:
         }
     }
 
-    /** 判断是否与另外一个点相同
+    /** 判断是否与另外一个颜色值相同
     */
     bool Equals(const UiColor& dst) const
     {
@@ -151,7 +151,7 @@ public:
         return !a.Equals(b);
     }
 
-    // Shift count and bit mask for A, R, G, B components
+    // A、R、G、B 各分量的移位位数
     enum
     {
         AlphaShift = 24,
@@ -168,7 +168,7 @@ public:
         BlueMask  = 0x000000ff
     };
 
-    // Assemble A, R, G, B values into a 32-bit integer
+    // 将 A、R、G、B 各分量组合成一个 32 位整数
     static ARGB MakeARGB(uint8_t a, uint8_t r, uint8_t g, uint8_t b)
     {
         return (((ARGB)(b) << BlueShift)  |

@@ -40,6 +40,7 @@ public:
     SpinBox& operator=(const SpinBox& r) = delete;
     virtual ~SpinBox() override = default;
 
+    /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
 
@@ -143,6 +144,7 @@ public:
 
 protected:
     //消息处理函数
+    /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual bool OnKeyDown(const EventArgs& msg) override;
     virtual bool OnKillFocus(const EventArgs& msg) override;
 

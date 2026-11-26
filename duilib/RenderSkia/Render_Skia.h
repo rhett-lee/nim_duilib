@@ -16,6 +16,11 @@ enum class SkTextEncoding;
 namespace ui 
 {
 
+/** Render_Skia 是 IRender 的 Skia 实现，负责用 Skia 完成画布管理与绘制，功能要点如下：
+ *  1. 实现清除、裁剪、图层、位块传输、图片/图形/文字绘制等渲染能力
+ *  2. 维护 Skia 的绘制状态，包括 Paint、视区原点、变换矩阵与混合模式
+ *  3. 作为窗口渲染与离屏渲染的公共基类，具体的 Skia 画布由派生类提供
+ */
 class Render_Skia : public virtual IRender
 {
 public:
@@ -24,11 +29,12 @@ public:
     Render_Skia& operator = (const Render_Skia& r) = delete;
     virtual ~Render_Skia() override;
 
+    /// 重写父类方法，请参考父类声明：画布清除、位图快照与Alpha处理
     virtual void Clear(const UiColor& uiColor) override;
     virtual void ClearRect(const UiRect& rcDirty, const UiColor& uiColor) override;
 
     /** 分离位图
-    *@return 返回位图接口，返回后由调用方管理资源（包括释放资源等）
+    * @return 返回位图接口，返回后由调用方管理资源（包括释放资源等）
     */
     virtual IBitmap* MakeImageSnapshot() override;
     virtual IBitmap* MakeImageSnapshot(const UiRect& rc) override;
@@ -37,6 +43,7 @@ public:
     virtual void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding, uint8_t alpha) override;
     virtual void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding = UiPadding()) override;
 
+    /// 重写父类方法，请参考父类声明：视区原点、变换矩阵与混合模式
     virtual UiPoint OffsetWindowOrg(UiPoint ptOffset) override;
     virtual UiPoint SetWindowOrg(UiPoint ptOffset) override;
     virtual UiPoint GetWindowOrg() const override;
@@ -45,6 +52,7 @@ public:
     virtual void SetBlendMode(BlendMode blendMode) override;
     virtual BlendMode GetBlendMode() const override;
 
+    /// 重写父类方法，请参考父类声明：裁剪区域与离屏图层
     virtual void SaveClip(int32_t& nState) override;
     virtual void RestoreClip(int32_t nState) override;
     virtual int32_t ClipRect(const UiRect& rc, bool bIntersect = true) override;
@@ -53,15 +61,18 @@ public:
     virtual void SaveLayer(const UiRect& rc, uint8_t alpha = 255) override;
     virtual void RestoreLayer() override;
 
+    /// 重写父类方法，请参考父类声明：位块传输
     virtual bool BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, const IRender* pSrcRender, int32_t xSrc, int32_t ySrc, RopMode rop) override;
     virtual bool StretchBlt(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest, const IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc, RopMode rop) override;
     virtual bool AlphaBlend(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc, uint8_t alpha = 255) override;
 
+    /// 重写父类方法，请参考父类声明：图片绘制
     virtual void DrawImage(const IBitmap* pBitmap, const UiRect& rcDest) override;
     virtual void DrawImage(const IBitmap* pBitmap,
                            const UiRect& rcDest, const UiRect& rcSource,
                            const ImageDrawParam& drawParam = ImageDrawParam()) override;
 
+    /// 重写父类方法，请参考父类声明：图形绘制（线、矩形、圆角矩形、圆、圆弧、椭圆、多边形、路径）
     virtual void DrawLine(const UiPointF& pt1, const UiPointF& pt2, UiColor penColor, float fWidth) override;
     virtual void DrawLine(const UiPointF& pt1, const UiPointF& pt2, IPen* pen) override;
 
@@ -97,6 +108,7 @@ public:
     virtual void FillPath(const IPath* path, const IBrush* brush) override;
     virtual void FillPath(const IPath* path, const UiRectF& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) override;
 
+    /// 重写父类方法，请参考父类声明：文字测量与绘制
     virtual UiRect MeasureString(const DString& strText, const MeasureStringParam& measureParam) override;
     virtual UiRect MeasureString(const DString& strText, IFont* pFont, uint32_t uFormat = 0) override;
     virtual void DrawString(const DString& strText, const DrawStringParam& drawParam) override;
@@ -114,6 +126,7 @@ public:
                               uint8_t uFade = 255,
                               std::vector<std::vector<UiRect>>* pRichTextRects = nullptr) override;
 
+    /// 重写父类方法，请参考父类声明：格式文本绘制缓存
     virtual bool CreateDrawRichTextCache(const UiRect& textRect,
                                          const UiSize& szScrollOffset,
                                          const RichTextDataList& richTextData,
@@ -150,6 +163,7 @@ public:
                                        std::vector<std::vector<UiRect>>* pRichTextRects = nullptr,
                                        const std::vector<UiColor>* pTextColors = nullptr) override;
 
+    /// 重写父类方法，请参考父类声明：阴影、像素读写、裁剪信息、脏区与DPI设置
     virtual void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int32_t nBlurRadius, int32_t nSpreadRadius, UiColor dwColor, uint8_t uAlpha) override;
 
     virtual bool ReadPixels(const UiRect& rc, void* dstPixels, size_t dstPixelsLen) override;
@@ -216,7 +230,7 @@ private:
     */
     void* GetPixelBits() const;
 
-    /** 整数的DPI转换
+    /** 浮点数的DPI转换
     */
     float GetScaleFloat(float fValue) const;
 

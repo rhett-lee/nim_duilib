@@ -45,10 +45,10 @@ public:
       * 当 @p bClip 为 false 时，本对象不会对 IRender 做任何操作，
       * 析构时也不会调用 RestoreClip()，相当于一个"空操作"守卫。
       *
-      * @param[in] pRender 目标渲染对象指针，必须保证在 AutoClip 生命周期内有效。
+      * @param [in] pRender 目标渲染对象指针，必须保证在 AutoClip 生命周期内有效。
       *                    当 @p bClip 为 true 时不允许传 nullptr。
-      * @param[in] rc      需要设置的矩形裁剪区域（坐标相对于当前渲染目标的左上角）。
-      * @param[in] bClip   是否启用裁剪。默认为 true。
+      * @param [in] rc      需要设置的矩形裁剪区域（坐标相对于当前渲染目标的左上角）。
+      * @param [in] bClip   是否启用裁剪。默认为 true。
       *                    传 false 可用于通过单个变量控制是否启用裁剪的模板/泛型代码。
       */
     AutoClip(IRender* pRender, const UiRect& rc, bool bClip = true);
@@ -60,19 +60,19 @@ public:
       * 将一个圆角矩形与当前裁剪区取交集作为新的裁剪区域；
       * 当 @p bClip 为 false 时，本对象不会对 IRender 做任何操作。
       *
-      * @param[in] pRender      目标渲染对象指针，必须保证在 AutoClip 生命周期内有效。
+      * @param [in] pRender      目标渲染对象指针，必须保证在 AutoClip 生命周期内有效。
       *                        当 @p bClip 为 true 时不允许传 nullptr。
-      * @param[in] rcRound      圆角矩形裁剪区域的外接矩形（坐标相对于当前渲染目标的左上角）。
-      * @param[in] fRoundWidth  圆角的水平半径（X 方向圆角半径）。
-      * @param[in] fRoundHeight 圆角的垂直半径（Y 方向圆角半径）。
-      * @param[in] bClip        是否启用裁剪。默认为 true。
+      * @param [in] rcRound      圆角矩形裁剪区域的外接矩形（坐标相对于当前渲染目标的左上角）。
+      * @param [in] fRoundWidth  圆角的水平半径（X 方向圆角半径）。
+      * @param [in] fRoundHeight 圆角的垂直半径（Y 方向圆角半径）。
+      * @param [in] bClip        是否启用裁剪。默认为 true。
       */
     AutoClip(IRender* pRender, const UiRect& rcRound, float fRoundWidth, float fRoundHeight, bool bClip = true);
 
     /** @brief 析构函数。
       *
       * 当且仅当构造时实际启用了裁剪（即 m_bClip 为 true）且 m_pRender 有效时，
-      * 才会调用 IRender::RestoreClip()，将渲染状态恢复到裁剪之前的水平。
+      * 才会调用 IRender::RestoreClip()，将渲染状态恢复到裁剪之前的状态。
       *
       * @note 析构函数不会抛出异常。
       */

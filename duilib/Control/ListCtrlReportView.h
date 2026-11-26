@@ -28,6 +28,7 @@ public:
     explicit ListCtrlReportView(Window* pWindow);
     virtual ~ListCtrlReportView() override;
 
+    /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override { return _T("ListCtrlReportView"); }
     virtual void HandleEvent(const EventArgs& msg) override;
 
@@ -102,6 +103,8 @@ public:
     */
     int32_t GetDataItemHeight(size_t itemIndex) const;
 
+    /** 需要展示的数据项信息
+    */
     struct ShowItemInfo
     {
         size_t nItemIndex;      //元素索引

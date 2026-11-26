@@ -627,7 +627,7 @@ public:
     void EmptyUndoBuffer();
 
     /** 设置撤销列表容纳的内容数量
-     * @param [in] nLimit
+     * @param [in] nLimit 撤销列表可容纳的最大内容数量
      * @return 返回设置后的撤销列表可容纳内容数量
      */
     uint32_t SetUndoLimit(uint32_t nLimit);

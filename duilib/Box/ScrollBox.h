@@ -32,6 +32,7 @@ public:
     ScrollBox& operator=(const ScrollBox& r) = delete;
     virtual ~ScrollBox() override;
 
+    /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void SetPos(UiRect rc) override;
@@ -52,7 +53,7 @@ public:
     */
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
-    /** 获取滚动条的真实偏移量, 以32位整型值标志偏移 (虚表会使用虚拟滚动条位置)
+    /** 获取滚动条的真实偏移量, 以32位整型值表示偏移 (虚表会使用虚拟滚动条位置)
     *   如果设置了ScrollVirtualOffset，那么这个函数会将滚动条的位置减去这个虚拟偏移；
     *   如果没有设置ScrollVirtualOffset，那么这个函数返回与UiSize64 GetScrollPos()相同的结果，但会检查是否越界；
     *   这个函数存在的意义是支持大数据量的虚表（VirtualScrollBox），避免UiRect越界。
@@ -82,7 +83,7 @@ public:
     */
     virtual bool IsScrollBox() const override { return true; }
 
-    /** 获取滚动条的真实偏移量, 以64位整型值标志偏移 (虚表会使用虚拟滚动条位置)
+    /** 获取滚动条的真实偏移量, 以64位整型值表示偏移 (虚表会使用虚拟滚动条位置)
     *   如果设置了ScrollVirtualOffset，那么这个函数会将滚动条的位置减去这个虚拟偏移；
     *   如果没有设置ScrollVirtualOffset，那么这个函数返回与UiSize64 GetScrollPos()相同的结果，但会检查是否越界；
     *   这个函数存在的意义是支持大数据量的虚表（VirtualScrollBox），避免UiRect越界。
@@ -184,7 +185,7 @@ public:
 
     /** 启用滚动条
      * @param[in] bEnableVertical 是否启用垂直滚动条，默认为 true
-     * @param[in] bEnableHorizontal 是否启用水平滚动条，默认为 true
+     * @param[in] bEnableHorizontal 是否启用水平滚动条，默认为 false
      */
     virtual void EnableScrollBar(bool bEnableVertical = true, bool bEnableHorizontal = false);
 
@@ -294,7 +295,7 @@ public:
     const UiSize64& GetScrollVirtualOffset() const;
 
     /** 设置滚动条虚拟偏移量
-     * @param[in] szPos 要设置的位置数据(cx代表横向滚动条的位置，cy代表纵向滚动条的位置)
+     * @param[in] szOffset 要设置的位置数据(cx代表横向滚动条的虚拟偏移量，cy代表纵向滚动条的虚拟偏移量)
      */
     void SetScrollVirtualOffset(const UiSize64& szOffset);
 

@@ -58,6 +58,7 @@ public:
     NavigationViewItem& operator=(const NavigationViewItem& r) = delete;
     virtual ~NavigationViewItem() override = default;
 
+    /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
     virtual void OnInit() override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
@@ -74,11 +75,17 @@ public:
     /** 设置项文字
     */
     void SetItemText(const DString& strText);
+
+    /** 获取项文字
+    */
     DString GetItemText() const;
 
     /** 设置项文字 ID（多语言）
     */
     void SetItemTextId(const DString& strTextId);
+
+    /** 获取项文字 ID（多语言）
+    */
     DString GetItemTextId() const;
 
     /** 获取当前应显示的文字（text_id 优先解析为当前语言文本）
@@ -88,11 +95,17 @@ public:
     /** 设置图标（图片属性串）
     */
     void SetIconAttr(const DString& strIcon);
+
+    /** 获取图标（图片属性串）
+    */
     DString GetIconAttr() const;
 
     /** 设置关联内容页 name
     */
     void SetPageName(const DString& strPage);
+
+    /** 获取关联内容页 name
+    */
     DString GetPageName() const;
 
     /** 设置形态
@@ -270,6 +283,7 @@ public:
     NavigationView& operator=(const NavigationView& r) = delete;
     virtual ~NavigationView() override;
 
+    /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
     virtual void OnInit() override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;

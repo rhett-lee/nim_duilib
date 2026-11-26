@@ -38,13 +38,17 @@ enum class TabCtrlCloseButtonShowMode
     kAlways      //始终显示
 };
 
-/** 多标签控件（类似浏览器的多标签）
-*/
 class TabBox;
 class TabCtrlItem;
 class IBrush;
 class IPath;
 class IPen;
+
+/** 多标签控件（类似浏览器的多标签），功能要点如下：
+*  1. 以标签页的形式管理多个子控件，同一时间只显示当前选中的标签页
+*  2. 支持标签的添加、删除、拖动排序与关闭按钮
+*  3. 支持标签的选中状态切换及相应的事件通知
+*/
 class DUILIB_API TabCtrl: public ListBox
 {
     typedef ListBox BaseClass;

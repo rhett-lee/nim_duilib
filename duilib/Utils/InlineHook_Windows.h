@@ -29,23 +29,35 @@ public:
     InlineHook& operator = (const InlineHook&) = delete;
 
 public:
-    //安装hook
+    /** 安装 hook
+    * @param [in] targetFunc 被 hook 的目标函数地址
+    * @param [in] hookFunc 替换后执行的钩子函数地址
+    * @return 返回 true 表示安装成功，否则返回 false
+    */
     bool Install(void* targetFunc, void* hookFunc);
 
-    //移除hook
+    /** 移除 hook，恢复目标函数的原始指令
+    * @return 返回 true 表示移除成功，否则返回 false
+    */
     bool Uninstall();
 
-    // 获取跳板函数地址（用于调用原始函数）
+    /** 获取跳板函数地址（用于调用原始函数）
+    * @return 返回转换为模板类型 T 的跳板函数地址
+    */
     template<typename T>
     T GetTrampoline() const {
         return reinterpret_cast<T>((char*)m_trampoline);
     }
 
 private:
-    //安装hook
+    /** 安装 hook（内部实现）
+    * @return 返回 true 表示安装成功，否则返回 false
+    */
     bool DoInstall(void);
 
-    //移除hook
+    /** 移除 hook（内部实现）
+    * @return 返回 true 表示移除成功，否则返回 false
+    */
     bool DoUninstall();
 
 private:
@@ -53,7 +65,8 @@ private:
     */
     void GenerateJump();
 
-    /** 生成跳板函数跳板函数
+    /** 生成跳板函数
+    * @return 返回 true 表示生成成功，否则返回 false
     */
     bool CreateTrampoline();
 

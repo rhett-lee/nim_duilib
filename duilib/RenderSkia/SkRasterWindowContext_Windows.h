@@ -35,6 +35,7 @@ public:
     virtual ~SkRasterWindowContext_Windows() override;
 
 public:
+    /// 重写父类方法，请参考父类声明
     virtual sk_sp<SkSurface> getBackbufferSurface() override;
     virtual bool isValid() override { return SkToBool(m_hWnd); }
     virtual void resize(int w, int h) override;
@@ -56,6 +57,7 @@ public:
     HBITMAP GetHBitmap() const;
 
 protected:
+    /// 重写父类方法，请参考父类声明
     virtual void onSwapBuffers() override;
 
     /** 绘制结束后，绘制数据从渲染引擎更新到窗口

@@ -29,7 +29,7 @@ typedef std::function<void (const std::vector<DString>& argumentList)> OnAlready
  */
 typedef std::function<void (CefSettings& settings)> OnCefSettingsEvent;
 
-//窗口类型
+//窗口类的前置声明
 class Window;
 
 /** 管理Cef组件的初始化、销毁、消息循环
@@ -187,7 +187,12 @@ public:
     const std::vector<std::pair<DString, DString>>& GetSwitchWithValues() const;
 
 public:
-    // CEF进程类型
+    /** CEF的进程类型
+    *   BrowserProcess：Browser进程（主进程）
+    *   RendererProcess：Render子进程
+    *   ZygoteProcess：Zygote进程（Linux平台使用）
+    *   OtherProcess：其他进程
+    */
     enum ProcessType
     {
         BrowserProcess,

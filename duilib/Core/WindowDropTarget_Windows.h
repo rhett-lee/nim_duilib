@@ -22,14 +22,16 @@ public:
     virtual ~WindowDropTarget();
 
 public:
-    // IUnkown 接口
+    // IUnknown 接口的实现（COM 引用计数管理）
     virtual HRESULT STDMETHODCALLTYPE QueryInterface(/* [in] */ REFIID riid,
                                                      /* [iid_is][out] */ _COM_Outptr_ void __RPC_FAR* __RPC_FAR* ppvObject) override;
     virtual ULONG STDMETHODCALLTYPE AddRef(void) override;
 
+    /** 释放引用计数（IUnknown 接口）
+    */
     virtual ULONG STDMETHODCALLTYPE Release(void) override;
 
-    // IDropTarget 接口
+    // IDropTarget 接口的实现（拖放目标事件处理）
     virtual HRESULT STDMETHODCALLTYPE DragEnter(/* [unique][in] */ __RPC__in_opt IDataObject* pDataObj,
                                                 /* [in] */ DWORD grfKeyState,
                                                 /* [in] */ POINTL pt,
@@ -41,6 +43,8 @@ public:
 
     virtual HRESULT STDMETHODCALLTYPE DragLeave(void) override;
 
+    /** 执行拖放操作（IDropTarget 接口）
+    */
     virtual HRESULT STDMETHODCALLTYPE Drop( /* [unique][in] */ __RPC__in_opt IDataObject* pDataObj,
                                             /* [in] */ DWORD grfKeyState,
                                             /* [in] */ POINTL pt,

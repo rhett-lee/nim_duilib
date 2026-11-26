@@ -50,6 +50,7 @@ public:
     TagInput& operator=(const TagInput& r) = delete;
     virtual ~TagInput() override = default;
 
+    /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
 

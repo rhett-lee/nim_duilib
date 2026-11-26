@@ -56,6 +56,7 @@ public:
     bool MakeCurrent();
 
 protected:
+    /// 重写父类方法，请参考父类声明
     virtual void resize(int w, int h) override;
     virtual void onSwapBuffers() override;
     virtual sk_sp<SkSurface> getBackbufferSurface() override;

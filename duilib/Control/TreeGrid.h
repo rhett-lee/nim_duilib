@@ -95,7 +95,14 @@ public:
     explicit TreeGridNode(TreeGrid* pTreeGrid);
     ~TreeGridNode();
 
+    /** 获取所属的树表格控件
+    * @return 返回所属的 TreeGrid 指针
+    */
     TreeGrid* GetTreeGrid() const { return m_pTreeGrid; }
+
+    /** 获取父节点
+    * @return 返回父节点指针（虚拟根节点的父节点为 nullptr）
+    */
     TreeGridNode* GetParentNode() const { return m_pParentNode; }
 
     /** 节点层级（虚拟根的一级子节点深度为 1）
@@ -129,24 +136,65 @@ public:
     bool IsChildOf(TreeGridNode* pNode) const;
 
 public:
+    /** 是否处于展开状态
+    * @return true 表示已展开
+    */
     bool IsExpand() const { return m_bExpand; }
+
+    /** 设置节点的展开状态（并触发展开/收起事件）
+    * @param [in] bExpand true 表示展开，false 表示收起
+    * @return true 表示设置成功（无子节点或状态未变化时返回 false）
+    */
     bool SetExpand(bool bExpand);
 
+    /** 是否处于全部勾选状态
+    * @return true 表示已全部勾选
+    */
     bool IsChecked() const { return m_bChecked; }
+
+    /** 设置节点的勾选状态（并触发勾选变化事件）
+    * @param [in] bChecked true 表示勾选，false 表示取消勾选
+    * @return true 表示设置成功
+    */
     bool SetChecked(bool bChecked);
 
     /** 节点勾选状态（三态）
     */
     TreeGridCheck GetCheckState() const;
 
+    /** 是否处于选中状态
+    * @return true 表示已选中
+    */
     bool IsSelected() const { return m_bSelected; }
+
+    /** 设置节点的选中状态（并触发选择相关事件）
+    * @param [in] bSelected true 表示选中，false 表示取消选中
+    * @return true 表示设置成功
+    */
     bool SetSelected(bool bSelected);
 
 public:
+    /** 设置指定列的单元格文本
+    * @param [in] nColumnId 列ID
+    * @param [in] text 单元格文本
+    * @return true 表示设置成功
+    */
     bool SetCellText(size_t nColumnId, const DString& text);
+
+    /** 获取指定列的单元格文本
+    * @param [in] nColumnId 列ID
+    * @return 返回单元格文本，不存在时返回空字符串
+    */
     DString GetCellText(size_t nColumnId) const;
 
+    /** 设置用户自定义数据
+    * @param [in] pData 用户数据指针（生命周期由外部管理）
+    */
     void SetUserData(void* pData) { m_pUserData = pData; }
+
+    /** 获取用户自定义数据
+    * @return 返回用户数据指针
+    */
     void* GetUserData() const { return m_pUserData; }
 
 public:
@@ -184,8 +232,10 @@ private:
     size_t m_nRowIndex = 0;
 };
 
-/** 树表格控件（TreeGrid）
-*  在同一控件内呈现"可展开/收起的层级行 + 多列表格"。
+/** 树表格控件（TreeGrid），功能要点如下：
+*  1. 在同一控件内呈现"可展开/收起的层级行 + 多列表格"
+*  2. 支持动态增删列与节点，并设置单元格文本与行高
+*  3. 支持节点选择（单选/多选）与复选框（支持父子级联、三态显示）
 */
 class DUILIB_API TreeGrid : public VBox
 {
@@ -215,67 +265,266 @@ protected:
 public:
     /* ---- 列管理 ---- */
     /** 追加一列（会重建表头并刷新所有已建行的单元格）
+    * @param [in] column 列定义
     */
     void AddColumn(const TreeGridColumn& column);
+
+    /** 获取列数
+    * @return 返回列的数量
+    */
     size_t GetColumnCount() const { return m_columns.size(); }
+
+    /** 获取指定索引的列定义
+    * @param [in] nColumnIndex 列的索引号
+    * @param [out] column 返回列定义
+    * @return true 表示获取成功，false 表示索引无效
+    */
     bool GetColumn(size_t nColumnIndex, TreeGridColumn& column) const;
+
+    /** 按列ID设置列宽
+    * @param [in] nColumnId 列ID
+    * @param [in] nWidth 列宽（原始像素值），必须大于0
+    * @return true 表示设置成功
+    */
     bool SetColumnWidthById(size_t nColumnId, int32_t nWidth);
+
+    /** 按列ID获取列宽
+    * @param [in] nColumnId 列ID
+    * @return 返回列宽（原始像素值），列不存在时返回0
+    */
     int32_t GetColumnWidthById(size_t nColumnId) const;
+
+    /** 按列ID设置列标题
+    * @param [in] nColumnId 列ID
+    * @param [in] title 列标题
+    * @return true 表示设置成功
+    */
     bool SetColumnTitleById(size_t nColumnId, const DString& title);
+
+    /** 清空所有列定义
+    */
     void ClearColumns();
 
 public:
     /* ---- 节点管理 ---- */
+    /** 获取虚拟根节点
+    * @return 返回虚拟根节点指针
+    */
     TreeGridNode* GetRootNode() const { return m_pRootNode; }
+
+    /** 在指定父节点下追加一个节点
+    * @param [in] pParent 父节点（为 nullptr 时使用虚拟根节点）
+    * @return 返回新建的节点指针，失败返回 nullptr
+    */
     TreeGridNode* AddNode(TreeGridNode* pParent);
+
+    /** 移除一个节点（含其子孙节点）
+    * @param [in] pNode 要移除的节点
+    * @return true 表示移除成功
+    */
     bool RemoveNode(TreeGridNode* pNode);
+
+    /** 移除所有节点（保留虚拟根节点）
+    */
     void RemoveAllNodes();
 
 public:
     /* ---- 数据设置 ---- */
+    /** 设置指定节点某列的文本
+    * @param [in] pNode 节点
+    * @param [in] nColumnId 列ID
+    * @param [in] text 单元格文本
+    * @return true 表示设置成功
+    */
     bool SetCellText(TreeGridNode* pNode, size_t nColumnId, const DString& text);
+
+    /** 获取指定节点某列的文本
+    * @param [in] pNode 节点
+    * @param [in] nColumnId 列ID
+    * @return 返回单元格文本
+    */
     DString GetCellText(TreeGridNode* pNode, size_t nColumnId) const;
+
+    /** 设置指定节点的行高
+    * @param [in] pNode 节点
+    * @param [in] nHeight 行高（原始像素值）
+    * @return true 表示设置成功
+    */
     bool SetNodeRowHeight(TreeGridNode* pNode, int32_t nHeight);
 
 public:
     /* ---- 展开 / 收起 ---- */
+    /** 设置节点的展开状态
+    * @param [in] pNode 节点
+    * @param [in] bExpand true 表示展开，false 表示收起
+    * @param [in] bTriggerEvent 是否触发 kEventExpand/kEventCollapse 事件
+    * @return true 表示设置成功（无子节点或状态未变化时返回 false）
+    */
     bool SetNodeExpand(TreeGridNode* pNode, bool bExpand, bool bTriggerEvent = false);
+
+    /** 判断节点是否处于展开状态
+    * @param [in] pNode 节点
+    * @return true 表示已展开
+    */
     bool IsNodeExpand(TreeGridNode* pNode) const;
+
+    /** 展开节点（如有未展开的祖先节点，会级联展开）
+    * @param [in] pNode 节点
+    * @return true 表示操作成功
+    */
     bool ExpandNode(TreeGridNode* pNode);
+
+    /** 确保节点可见（必要时级联展开祖先节点并滚动到可见区域）
+    * @param [in] pNode 节点
+    * @return true 表示操作成功
+    */
     bool EnsureNodeVisible(TreeGridNode* pNode);
 
 public:
     /* ---- 选择 ---- */
+    /** 设置是否允许多选
+    * @param [in] bMultiSelect true 表示允许多选
+    */
     void SetMultiSelect(bool bMultiSelect);
+
+    /** 是否允许多选
+    * @return true 表示允许多选
+    */
     bool IsMultiSelect() const;
+
+    /** 获取选中节点的个数
+    * @return 返回选中节点的个数
+    */
     size_t GetSelectNodeCount() const;
+
+    /** 获取指定索引的选中节点
+    * @param [in] nIndex 选中节点的索引号
+    * @return 返回选中节点指针，索引无效时返回 nullptr
+    */
     TreeGridNode* GetSelectNodeAt(size_t nIndex) const;
+
+    /** 获取所有选中节点
+    * @return 返回选中节点列表
+    */
     std::vector<TreeGridNode*> GetSelectNodes() const;
+
+    /** 判断节点是否已被选中
+    * @param [in] pNode 节点
+    * @return true 表示已选中
+    */
     bool IsNodeSelected(TreeGridNode* pNode) const;
+
+    /** 选择或取消选择节点
+    * @param [in] pNode 节点
+    * @param [in] bSelect true 表示选择，false 表示取消选择
+    * @param [in] bTriggerEvent 是否触发选择相关事件
+    * @return true 表示操作成功
+    */
     bool SelectNode(TreeGridNode* pNode, bool bSelect = true, bool bTriggerEvent = true);
+
+    /** 选择或取消选择所有节点
+    * @param [in] bSelect true 表示选择，false 表示取消选择
+    */
     void SelectAllNodes(bool bSelect = true);
+
+    /** 清除所有节点的选中状态
+    */
     void ClearSelectNodes();
 
 public:
     /* ---- 复选框（级联） ---- */
+    /** 是否启用复选框模式
+    * @return true 表示启用
+    */
     bool IsCheckMode() const { return m_bCheckMode; }
+
+    /** 设置是否启用复选框模式
+    * @param [in] bCheckMode true 表示启用
+    */
     void SetCheckMode(bool bCheckMode);
+
+    /** 复选框是否父子级联
+    * @return true 表示级联
+    */
     bool IsCheckCascade() const { return m_bCheckCascade; }
+
+    /** 设置复选框是否父子级联
+    * @param [in] bCascade true 表示级联
+    */
     void SetCheckCascade(bool bCascade) { m_bCheckCascade = bCascade; }
+
+    /** 判断节点是否被勾选
+    * @param [in] pNode 节点
+    * @return true 表示已全部勾选
+    */
     bool IsNodeChecked(TreeGridNode* pNode) const;
+
+    /** 设置节点的勾选状态
+    * @param [in] pNode 节点
+    * @param [in] bChecked true 表示勾选，false 表示取消勾选
+    * @param [in] bTriggerEvent 是否触发 kEventTreeGridCheckChanged 事件
+    * @return true 表示设置成功
+    */
     bool SetNodeChecked(TreeGridNode* pNode, bool bChecked, bool bTriggerEvent = true);
+
+    /** 获取节点的勾选状态（三态）
+    * @param [in] pNode 节点
+    * @return 返回勾选状态
+    */
     TreeGridCheck GetNodeCheckState(TreeGridNode* pNode) const;
+
+    /** 设置所有节点的勾选状态
+    * @param [in] bChecked true 表示勾选，false 表示取消勾选
+    */
     void SetAllNodesChecked(bool bChecked);
+
+    /** 获取所有已勾选的节点
+    * @return 返回已勾选的节点列表
+    */
     std::vector<TreeGridNode*> GetCheckedNodes() const;
 
 public:
     /* ---- 事件 ---- */
+    /** 监听节点展开事件（kEventExpand，pEventData 为节点）
+    * @param [in] callback 事件回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
     void AttachNodeExpanded(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventExpand, callback, callbackID); }
+
+    /** 监听节点收起事件（kEventCollapse，pEventData 为节点）
+    * @param [in] callback 事件回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
     void AttachNodeCollapsed(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventCollapse, callback, callbackID); }
+
+    /** 监听节点点击事件（kEventClick，pEventData 为节点）
+    * @param [in] callback 事件回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
     void AttachNodeClick(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventClick, callback, callbackID); }
+
+    /** 监听节点选中事件（kEventSelect，pEventData 为节点）
+    * @param [in] callback 事件回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
     void AttachNodeSelect(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventSelect, callback, callbackID); }
+
+    /** 监听节点取消选中事件（kEventUnSelect，pEventData 为节点）
+    * @param [in] callback 事件回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
     void AttachNodeUnSelect(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventUnSelect, callback, callbackID); }
+
+    /** 监听选中状态变化事件（kEventSelChanged）
+    * @param [in] callback 事件回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
     void AttachSelectChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventSelChanged, callback, callbackID); }
+
+    /** 监听勾选状态变化事件（kEventTreeGridCheckChanged，pEventData 为 TreeGridCheckValue）
+    * @param [in] callback 事件回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
     void AttachCheckChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventTreeGridCheckChanged, callback, callbackID); }
 
 private:

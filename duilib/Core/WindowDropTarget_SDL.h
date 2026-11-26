@@ -20,7 +20,7 @@ public:
     virtual ~WindowDropTarget();
 
 public:
-    // SDL_EVENT_DROP_BEGIN
+    // 拖放开始事件（SDL_EVENT_DROP_BEGIN）
     void OnDropBegin();
 
     /** SDL_EVENT_DROP_POSITION
@@ -39,12 +39,13 @@ public:
     */
     void OnDropFile(const DStringA& utf8Source, const DStringA& utf8File);
     
-    // SDL_EVENT_DROP_COMPLETE
+    // 拖放完成事件（SDL_EVENT_DROP_COMPLETE）
     void OnDropComplete();
 
 protected: 
     /** 找到某个点坐标对应的控件接口
     * @param [in] clientPt 客户区坐标点
+    * @return 返回鼠标所在位置的控件拖放接口，未找到时返回空指针
     */
     ControlPtrT<ControlDropTarget_SDL> GetControlDropTarget(const UiPoint& clientPt) const;
 

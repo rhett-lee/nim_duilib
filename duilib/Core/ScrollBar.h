@@ -18,7 +18,14 @@ public:
     ScrollBar(const ScrollBar& r) = delete;
     ScrollBar& operator=(const ScrollBar& r) = delete;
 
+    /** 获取关联的滚动条容器接口
+    * @return 返回支持滚动条的容器接口
+    */
     ScrollBox* GetOwner() const;
+
+    /** 设置关联的滚动条容器接口
+    * @param [in] pOwner 支持滚动条的容器接口
+    */
     void SetOwner(ScrollBox* pOwner);
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
@@ -29,6 +36,7 @@ public:
     virtual bool MouseEnter(const EventArgs& msg) override;
     virtual bool MouseLeave(const EventArgs& msg) override;
 
+    /// 重写父类方法，请参考父类声明
     virtual void SetPos(UiRect rc) override;
     virtual void HandleEvent(const EventArgs& msg) override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
@@ -49,8 +57,7 @@ public:
 
     /**
      * @brief 设置滚动条方向
-     * @param[in] 设置 true 代表是水平滚动条，设置 false 代表是垂直滚动条，默认为 true
-     * @return 无
+     * @param[in] bHorizontal 设置 true 代表是水平滚动条，设置 false 代表是垂直滚动条
      */
     void SetHorizontal(bool bHorizontal);
 
@@ -63,7 +70,6 @@ public:
     /**
      * @brief 是设置滚动范围
      * @param[in] nRange 要设置的滚动范围
-     * @return 无
      */
     void SetScrollRange(int64_t nRange);
 
@@ -82,7 +88,6 @@ public:
     /**
      * @brief 设置滚动条位置
      * @param[in] nPos 要设置的位置信息
-     * @return 无
      */
     void SetScrollPos(int64_t nPos);
 
@@ -119,7 +124,6 @@ public:
     /**
      * @brief 设置是否显示左或上按钮
      * @param[in] bShow 设置 true 为显示，false 为不显示
-     * @return 无
      */
     void SetShowButton1(bool bShow);
 
@@ -134,7 +138,6 @@ public:
      * @brief 设置指定状态下的向左或向上按钮图片
      * @param[in] stateType 要设置哪种状态下的图片
      * @param[in] pStrImage 图片位置
-     * @return 无
      */
     void SetButton1StateImage(ControlStateType stateType, const DString& pStrImage);
 
@@ -147,7 +150,6 @@ public:
     /**
      * @brief 设置是否显示右或下按钮
      * @param[in] bShow 设置 true 为显示，false 为不显示
-     * @return 无
      */
     void SetShowButton2(bool bShow);
 
@@ -162,7 +164,6 @@ public:
      * @brief 设置指定状态下的向右或向下按钮图片
      * @param[in] stateType 要设置哪种状态下的图片
      * @param[in] pStrImage 图片位置
-     * @return 无
      */
     void SetButton2StateImage(ControlStateType stateType, const DString& pStrImage);
 
@@ -177,7 +178,6 @@ public:
      * @brief 设置滑块指定状态下的图片
      * @param[in] stateType 要设置的状态标识，参考 ControlStateType 枚举
      * @param[in] pStrImage 图片位置
-     * @return 无
      */
     void SetThumbStateImage(ControlStateType stateType, const DString& pStrImage);
 
@@ -192,7 +192,6 @@ public:
      * @brief 设置指定状态下滑块中间标识图片
      * @param[in] stateType 要设置的状态标识，参考 ControlStateType 枚举
      * @param[in] pStrImage 图片位置
-     * @return 无
      */
     void SetRailStateImage(ControlStateType stateType, const DString& pStrImage);
 
@@ -207,7 +206,6 @@ public:
      * @brief 设置指定状态下的背景图片
      * @param[in] stateType 要设置的状态标识，参考 ControlStateType 枚举
      * @param[in] pStrImage 图片位置
-     * @return 无
      */
     void SetBkStateImage(ControlStateType stateType, const DString& pStrImage);
 
@@ -220,7 +218,6 @@ public:
     /**
      * @brief 设置是否自动隐藏滚动条
      * @param[in] hide 设置为 true 为自动隐藏，false 为不自动隐藏
-     * @return 无
      */
     void SetAutoHideScroll(bool hide);
 
@@ -246,6 +243,8 @@ protected:
     virtual void OnSetEnabled(bool bChanged) override;
 
 private:
+    /** 延迟滚动的定时器处理函数
+    */
     void ScrollTimeHandle();
 
     /// 绘制相关函数

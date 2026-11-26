@@ -121,7 +121,7 @@ public:
     bool SetLayeredWindowAlpha(int32_t nAlpha);
 
     /** 获取窗口透明度(仅当IsLayeredWindow()为true的时候有效)
-    * @param [in] nAlpha 透明度数值[0, 255]，当 nAlpha 为 0 时，窗口是完全透明的。 当 nAlpha 为 255 时，窗口是不透明的。
+    * @return 返回透明度数值[0, 255]，0表示完全透明，255表示不透明
     */
     uint8_t GetLayeredWindowAlpha() const;
 
@@ -132,7 +132,7 @@ public:
     bool SetLayeredWindowOpacity(int32_t nAlpha);
 
     /** 获取窗口不透明度(仅当IsLayeredWindow()为true的时候有效)
-    * @param [in] nAlpha 透明度数值[0, 255]，当 nAlpha 为 0 时，窗口是完全透明的。 当 nAlpha 为 255 时，窗口是不透明的。
+    * @return 返回不透明度数值[0, 255]，0表示完全透明，255表示不透明
     */
     uint8_t GetLayeredWindowOpacity() const;
 
@@ -414,23 +414,23 @@ public:
     */
     void SetRoundCorner(int32_t cx, int32_t cy);
 
-    /** 设置窗口大小的最小值（宽度和高度）
-    * @param [in] szMinWindow 窗口的最小宽度和最小高度，如果值为0，表示不做限制
+    /** 设置窗口大小的最大值（宽度和高度）
+    * @param [in] szMinWindow 窗口的最大宽度和最大高度，如果值为0，表示不做限制
     * @param [in] bNeedDpiScale 为 false 表示不需要根据 DPI 自动调整
     */
     void SetWindowMaximumSize(const UiSize& szMinWindow, bool bNeedDpiScale);
 
-    /** 获取窗口大小的最小值（宽度和高度）
+    /** 获取窗口大小的最大值（宽度和高度）
     */
     const UiSize& GetWindowMaximumSize() const;
 
-    /** 设置窗口大小的最大值（宽度和高度）
-    * @param [in] szMaxWindow 窗口的最大宽度和最小高度，如果值为0，表示不做限制
+    /** 设置窗口大小的最小值（宽度和高度）
+    * @param [in] szMaxWindow 窗口的最小宽度和最小高度，如果值为0，表示不做限制
     * @param [in] bNeedDpiScale 为 false 表示不需要根据 DPI 自动调整
     */
     void SetWindowMinimumSize(const UiSize& szMaxWindow, bool bNeedDpiScale);
 
-    /** 获取窗口大小的最大值（宽度和高度）
+    /** 获取窗口大小的最小值（宽度和高度）
     */
     const UiSize& GetWindowMinimumSize() const;
 
@@ -486,12 +486,12 @@ public:
     */
     void ClientToScreen(UiPoint& pt) const;
 
-    /* 将rc坐标从客户区坐标转换为屏幕坐标
+    /** 将rc坐标从客户区坐标转换为屏幕坐标
     * @param [out] rc 返回屏幕坐标
     */
     void ClientToScreen(UiRect& rc) const;
 
-    /* 将rc坐标从屏幕坐标转换为客户区坐标
+    /** 将rc坐标从屏幕坐标转换为客户区坐标
     * @param [out] rc 返回客户区坐标
     */
     void ScreenToClient(UiRect& rc) const;
@@ -525,7 +525,6 @@ public:
     bool GetMonitorWorkRect(const UiPoint& pt, UiRect& rcWork) const;
 
     /** 设置当要捕获的鼠标窗口句柄为当前绘制窗口
-    * @param [in]
     */
     void SetCapture();
 
@@ -1415,7 +1414,7 @@ private:
     void InitWindowBase();
 
 private:
-    //来自实现窗口的事件
+    /// 重写父类方法，请参考父类声明（DPI、阴影、尺寸、标题栏、全屏、绘制等窗口状态查询与请求）
     virtual const DpiManager& OnNativeGetDpi() const override final;
     virtual void OnNativeGetShadowCorner(UiPadding& rcShadow) const override final;
     virtual void OnNativeUpdateShadowInputRegion(bool bEnableClickThrough) override final;
@@ -1436,30 +1435,45 @@ private:
     virtual Control* OnNativeFindControl(const UiPoint& pt) const override final;
     virtual bool OnNativeRequestSetLayeredWindow(bool bIsLayeredWindow, bool bRedraw) override final;
 
+    /// 重写父类方法，请参考父类声明（窗口消息）
     virtual void    OnNativeFinalMessage() override final;
     virtual LRESULT OnNativeWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override final;
+
+    /// 重写父类方法，请参考父类声明（显示与DPI变化消息）
     virtual void    OnNativeDisplayResolutionChangedMsg(int32_t nColorDepth, int32_t nScreenWidth, int32_t nScreenHeight) override final;
     virtual void    OnNativeProcessDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity) override final;
     virtual void    OnNativeDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity) override final;
     virtual void    OnNativeDwmCompositionChangedMsg(bool bDwmCompositionEnabled) override final;
+
+    /// 重写父类方法，请参考父类声明（窗口创建、位置/大小、显示与绘制消息）
     virtual void    OnNativeCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativeWindowPosChangedMsg(const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativeSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativeMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativeShowWindowMsg(bool bShow, const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativePaintMsg(const UiRect& rcPaint, const NativeMsg& nativeMsg, bool& bHandled) override;
+
+    /// 重写父类方法，请参考父类声明（焦点消息）
     virtual LRESULT OnNativeSetFocusMsg(INativeWindow* pLostFocusWindow, const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativeKillFocusMsg(INativeWindow* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled) override final;
+
+    /// 重写父类方法，请参考父类声明（输入法消息）
     virtual LRESULT OnNativeImeStartCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativeImeSetContextMsg(const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativeImeCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativeImeEndCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled) override final;
+
+    /// 重写父类方法，请参考父类声明（鼠标消息：设置光标与上下文菜单）
     virtual LRESULT OnNativeSetCursorMsg(const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativeContextMenuMsg(const UiPoint& pt, const NativeMsg& nativeMsg, bool& bHandled) override final;
+
+    /// 重写父类方法，请参考父类声明（键盘消息）
     virtual LRESULT OnNativeKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativeKeyUpMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativeCharMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativeHotKeyMsg(int32_t hotkeyId, VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override final;
+
+    /// 重写父类方法，请参考父类声明（鼠标消息）
     virtual LRESULT OnNativeMouseWheelMsg(int32_t wheelDelta, const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativeMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, bool bFromNC, const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativeMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override final;
@@ -1474,8 +1488,12 @@ private:
     virtual LRESULT OnNativeMouseMButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativeMouseMButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativeCaptureChangedMsg(const NativeMsg& nativeMsg, bool& bHandled) override final;
+
+    /// 重写父类方法，请参考父类声明（窗口关闭与贴边消息）
     virtual LRESULT OnNativeWindowCloseMsg(uint32_t wParam, const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual void OnNativeWindowPosSnapped(bool bLeftSnap, bool bRightSnap, bool bTopSnap, bool bBottomSnap) override final;
+
+    /// 重写父类方法，请参考父类声明（拖放消息）
     virtual void OnNativeDropEnterMsg(ControlDropType dropType, void* pDropData) override final;
     virtual void OnNativeDropOverMsg(ControlDropType dropType, void* pDropData) override final;
     virtual void OnNativeDropMsg(ControlDropType dropType, void* pDropData) override final;

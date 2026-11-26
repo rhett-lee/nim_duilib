@@ -21,6 +21,7 @@ public:
     explicit CefControlNative(ui::Window* pWindow);
     virtual ~CefControlNative(void) override;
 
+    /// 重写父类方法，请参考父类声明
     virtual void Init() override;
     virtual void SetPos(ui::UiRect rc) override;
     virtual bool OnSetFocus(const EventArgs& msg) override;
@@ -58,7 +59,8 @@ protected:
     virtual void OnSetVisible(bool bChanged) override;
 
 private:
-    /** 关闭所有的Browser对象
+    /** 关闭所有的原生子窗口模式的Browser对象
+    * @param [in] bForceClose true表示强制关闭，false表示正常关闭
     */
     void DoCloseAllNativeBrowsers(bool bForceClose);
 

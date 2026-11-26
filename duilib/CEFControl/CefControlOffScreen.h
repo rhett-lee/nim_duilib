@@ -57,6 +57,9 @@ protected:
     /** 重新创建Browser控件
     */
     virtual void ReCreateBrowser() override;
+
+    /** 输入法组合文本的范围变化通知（CefRenderHandler 接口，在 CEF 的 UI 线程中调用）
+    */
     virtual void OnImeCompositionRangeChanged(CefRefPtr<CefBrowser> browser, const CefRange& selected_range, const std::vector<CefRect>& character_bounds) override;
 
     /** 焦点元素发生变化（在主线程中调用）
@@ -83,6 +86,7 @@ protected:
     virtual bool MouseLeave(const EventArgs& msg) override;
     virtual bool MouseWheel(const EventArgs& msg) override;
 
+    //鼠标按键消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
     virtual bool ButtonDown(const EventArgs& msg) override;
     virtual bool ButtonUp(const EventArgs& msg) override;
     virtual bool ButtonDoubleClick(const EventArgs& msg) override;
@@ -125,14 +129,25 @@ protected:
     virtual void OnGotFocus() override;
 
 private:
+    /** 把鼠标按下消息转发给 CEF 浏览器（转换为 CEF 鼠标按下事件）
+    * @param [in] msg 鼠标消息
+    */
     void SendButtonDownEvent(const EventArgs& msg);
+
+    /** 把鼠标抬起消息转发给 CEF 浏览器（转换为 CEF 鼠标抬起事件）
+    * @param [in] msg 鼠标消息
+    */
     void SendButtonUpEvent(const EventArgs& msg);
+
+    /** 把鼠标双击消息转发给 CEF 浏览器（转换为 CEF 鼠标双击事件）
+    * @param [in] msg 鼠标消息
+    */
     void SendButtonDoubleClickEvent(const EventArgs& msg);
 
-    /** @brief 转换普通鼠标消息到 CEF 可识别的鼠标消息
-     * @param [in] msg 消息
-     * @return 返回转换后的结果
-     */
+    /** 根据当前键盘与鼠标按键状态，生成 CEF 鼠标事件的修饰键标志
+    * @param [in] msg 鼠标消息（当前实现未使用该参数）
+    * @return 返回 EVENTFLAG_XXX 组合的修饰键标志
+    */
     int32_t GetCefMouseModifiers(const EventArgs& msg) const;
 
 #if defined (DUILIB_BUILD_FOR_SDL)

@@ -72,6 +72,7 @@ public:
     UrlBar& operator=(const UrlBar& r) = delete;
     virtual ~UrlBar() override;
 
+    /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
 
@@ -108,26 +109,41 @@ public:
     /** 设置搜索URL模板（需包含"%s"占位符）
     */
     void SetSearchUrlTemplate(const DString& urlTemplate);
+
+    /** 获取搜索URL模板
+    */
     DString GetSearchUrlTemplate() const;
 
     /** 设置安全状态（true 显示锁图标，false 显示地球图标）
     */
     void SetSecure(bool bSecure);
+
+    /** 当前是否处于安全状态（https）
+    */
     bool IsSecure() const;
 
     /** 设置是否显示右侧收藏按钮（默认显示）
     */
     void SetFavoriteButtonEnabled(bool bEnabled);
+
+    /** 是否显示右侧收藏按钮
+    */
     bool IsFavoriteButtonEnabled() const;
 
     /** 设置收藏状态（true 已收藏，显示实心星；false 未收藏，显示空心星）
     */
     void SetFavorite(bool bFavorite);
+
+    /** 是否已收藏
+    */
     bool IsFavorite() const;
 
     /** 设置是否启用编辑框的清除按钮（默认启用）
     */
     void SetClearButtonEnabled(bool bEnabled);
+
+    /** 是否启用编辑框的清除按钮
+    */
     bool IsClearButtonEnabled() const;
 
     /** @name 网址历史
@@ -137,16 +153,25 @@ public:
     /** 设置是否记录并展示网址历史
     */
     void SetHistoryEnabled(bool bEnabled);
+
+    /** 是否记录并展示网址历史
+    */
     bool IsHistoryEnabled() const;
 
     /** 设置网址历史最多保留条数
     */
     void SetMaxHistory(int32_t nMax);
+
+    /** 获取网址历史最多保留条数
+    */
     int32_t GetMaxHistory() const;
 
     /** 设置联想下拉最多可见候选行数
     */
     void SetMaxVisible(int32_t nMaxVisible);
+
+    /** 获取联想下拉最多可见候选行数
+    */
     int32_t GetMaxVisible() const;
 
     /** 获取网址历史（最近使用的排在前面）
@@ -164,6 +189,9 @@ public:
     /** 设置网址历史的持久化文件（相对路径基于可执行程序目录），为空则不持久化
     */
     void SetHistoryFile(const DString& historyFile);
+
+    /** 获取网址历史的持久化文件路径
+    */
     DString GetHistoryFile() const;
     ///@}
 

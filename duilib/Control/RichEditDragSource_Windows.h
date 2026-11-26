@@ -12,9 +12,8 @@ namespace ui
 
 class RichEdit2;
 
-/**
- * @brief RichEdit控件的拖放源类（Windows平台）
- * @details 实现IDropSource接口，用于支持从RichEdit控件拖出文本的功能
+/** RichEdit控件的拖放源类（Windows平台），功能要点如下：
+ *  1. 实现 IDropSource 接口，用于支持从RichEdit控件拖出文本的功能
  */
 class RichEditDragSource_Windows : public IDropSource
 {
@@ -30,6 +29,7 @@ public:
     explicit RichEditDragSource_Windows(RichEdit2* pRichEdit);
 
     // IUnknown 接口实现
+    /// 重写父类方法，提供个性化功能，请参考父类声明
     HRESULT __stdcall QueryInterface(REFIID iid, void** object) override;
     ULONG __stdcall AddRef() override;
     ULONG __stdcall Release() override;
@@ -70,9 +70,8 @@ private:
     ULONG m_refCount;
 };
 
-/**
- * @brief RichEdit控件的拖放数据对象类（Windows平台）
- * @details 实现IDataObject接口，用于封装拖放的文本数据
+/** RichEdit控件的拖放数据对象类（Windows平台），功能要点如下：
+ *  1. 实现 IDataObject 接口，用于封装拖放的文本数据
  */
 class RichEditDataObject_Windows : public IDataObject
 {
@@ -89,6 +88,7 @@ public:
     explicit RichEditDataObject_Windows(const DStringW& text);
 
     // IUnknown 接口实现
+    /// 重写父类方法，提供个性化功能，请参考父类声明
     HRESULT __stdcall QueryInterface(REFIID iid, void** object) override;
     ULONG __stdcall AddRef() override;
     ULONG __stdcall Release() override;
@@ -134,9 +134,8 @@ private:
     STGMEDIUM* m_pStgMedium;
 };
 
-/**
- * @brief RichEdit控件的格式枚举类（Windows平台）
- * @details 实现IEnumFORMATETC接口，用于枚举支持的剪贴板格式
+/** RichEdit控件的格式枚举类（Windows平台），功能要点如下：
+ *  1. 实现 IEnumFORMATETC 接口，用于枚举支持的剪贴板格式
  */
 class RichEditEnumFormatEtc_Windows : public IEnumFORMATETC
 {
@@ -158,6 +157,7 @@ public:
     virtual ~RichEditEnumFormatEtc_Windows();
 
     // IUnknown 接口实现
+    /// 重写父类方法，提供个性化功能，请参考父类声明
     HRESULT __stdcall QueryInterface(REFIID iid, void** object) override;
     ULONG __stdcall AddRef() override;
     ULONG __stdcall Release() override;

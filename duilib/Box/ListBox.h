@@ -52,7 +52,7 @@ public:
     virtual bool IsMultiSelect() const override;
 
     /** 设置是否支持多选，由界面层调用，保持与界面控件一致
-    * @return bMultiSelect true表示支持多选，false表示不支持多选
+    * @param [in] bMultiSelect true表示支持多选，false表示不支持多选
     */
     virtual void SetMultiSelect(bool bMultiSelect);
 
@@ -116,31 +116,43 @@ public:
     virtual bool UnSelectItem(size_t iIndex, bool bTriggerEvent) override;
 
     /** 选中上一项，并确保选中项可见
+    * @param [in] bTakeFocus 是否让子项控件成为焦点控件
+    * @param [in] bTriggerEvent 是否触发选择事件
     * @return 返回选中的子项索引，有效范围是：[0, GetItemCount())
     */
     virtual size_t SelectItemPrevious(bool bTakeFocus, bool bTriggerEvent);
 
     /** 选中下一项，并确保选中项可见
+    * @param [in] bTakeFocus 是否让子项控件成为焦点控件
+    * @param [in] bTriggerEvent 是否触发选择事件
     * @return 返回选中的子项索引，有效范围是：[0, GetItemCount())
     */
     virtual size_t SelectItemNext(bool bTakeFocus, bool bTriggerEvent);
 
     /** 向上滚动一页，选中一项，并确保选中项可见
+    * @param [in] bTakeFocus 是否让子项控件成为焦点控件
+    * @param [in] bTriggerEvent 是否触发选择事件
     * @return 返回选中的子项索引，有效范围是：[0, GetItemCount())
     */
     virtual size_t SelectItemPageUp(bool bTakeFocus, bool bTriggerEvent);
 
     /** 向下滚动一页，选中一项，并确保选中项可见
+    * @param [in] bTakeFocus 是否让子项控件成为焦点控件
+    * @param [in] bTriggerEvent 是否触发选择事件
     * @return 返回选中的子项索引，有效范围是：[0, GetItemCount())
     */
     virtual size_t SelectItemPageDown(bool bTakeFocus, bool bTriggerEvent);
 
     /** 滚动到第一页，选中第一项，并确保选中项可见
+    * @param [in] bTakeFocus 是否让子项控件成为焦点控件
+    * @param [in] bTriggerEvent 是否触发选择事件
     * @return 返回选中的子项索引，有效范围是：[0, GetItemCount())
     */
     virtual size_t SelectItemHome(bool bTakeFocus, bool bTriggerEvent);
 
     /** 滚动到最后一页，选中最后一项，并确保选中项可见
+    * @param [in] bTakeFocus 是否让子项控件成为焦点控件
+    * @param [in] bTriggerEvent 是否触发选择事件
     * @return 返回选中的子项索引，有效范围是：[0, GetItemCount())
     */
     virtual size_t SelectItemEnd(bool bTakeFocus, bool bTriggerEvent);
@@ -197,7 +209,7 @@ public:
      */
     virtual bool AddItemAt(Control* pControl, size_t  iIndex) override;
 
-    /** 根据子项指针
+    /** 根据子项指针移除一个子项
      * @param [in] pControl 子项指针
      */
     virtual bool RemoveItem(Control* pControl) override;
@@ -469,6 +481,11 @@ protected:
     static int ItemComareFuncLinux(const void* item1, const void* item2, void* pvlocale);
     static int ItemComareFuncMacOS(void* context, const void* item1, const void* item2);
 
+    /** 默认的子项对比方法（供排序回调使用）
+    * @param [in] item1 子项1
+    * @param [in] item2 子项2
+    * @return 返回对比结果：< 0 表示 item1 小于 item2，0 表示相等，> 0 表示大于
+    */
     int ItemComareFunc(const void* item1, const void* item2);
 
     /** 选择子项(单选)
@@ -514,7 +531,7 @@ protected:
     /** 确保选择项可见
     * @param [in] itemIndex 子项目的ID，范围是：[0, GetItemCount())
     * @param [in] bTakeFocus 是否让子项控件成为焦点控件
-    * return 返回新的控件索引号(虚表的情况下空间索引号可能会发生变化)，范围是：[0, GetItemCount())
+    * @return 返回新的控件索引号(虚表的情况下空间索引号可能会发生变化)，范围是：[0, GetItemCount())
     */
     size_t SelectEnsureVisible(size_t itemIndex, bool bTakeFocus);
 
@@ -552,7 +569,7 @@ protected:
     */
     int32_t CalcVTileColumns(VTileLayout* pVTileLayout) const;
 
-    /** 纵向瓦片布局，计算可现实行数
+    /** 纵向瓦片布局，计算可显示行数
     * @return 返回值：>= 1
     */
     int32_t CalcVTileRows(VTileLayout* pVTileLayout) const;

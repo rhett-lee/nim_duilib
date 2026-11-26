@@ -9,6 +9,10 @@ class SkBitmap;
 namespace ui 
 {
 
+/** Brush_Skia 是 IBrush 的 Skia 实现，用于描述纯色或渐变填充，功能要点如下：
+ *  1. 保存画刷的颜色、类型以及渐变起止点等参数
+ *  2. 根据画刷类型向 SkPaint 设置对应的着色器
+ */
 class Brush_Skia : public IBrush
 {
 public:
@@ -16,6 +20,7 @@ public:
     Brush_Skia(const Brush_Skia& r);
     Brush_Skia& operator=(const Brush_Skia& r) = delete;
 
+    /// 重写父类方法，请参考父类声明
     virtual std::unique_ptr<IBrush> Clone() const override;
 
     /** 获取画刷类型

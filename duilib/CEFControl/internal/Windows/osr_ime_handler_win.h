@@ -19,103 +19,130 @@
 
 namespace client {
 
-// Handles IME for the native parent window that hosts an off-screen browser.
-// This object is only accessed on the CEF UI thread.
+// 为承载离屏渲染浏览器的原生父窗口处理输入法（IME）相关逻辑。
+// 本对象只在 CEF 的 UI 线程中访问。
 class OsrImeHandlerWin {
  public:
+  /** 构造函数
+  * @param [in] hwnd 承载离屏浏览器的原生窗口句柄
+  */
   explicit OsrImeHandlerWin(HWND hwnd);
   virtual ~OsrImeHandlerWin();
 
-  // Retrieves whether or not there is an ongoing composition.
+  // 获取当前是否处于输入法组合（组字）状态
   bool is_composing() const { return is_composing_; }
 
-  // Retrieves the input language from Windows and update it.
+  // 从 Windows 获取当前输入语言并更新到内部状态
   void SetInputLanguage();
 
-  // Creates the IME caret windows if required.
+  // 按需创建输入法的光标窗口
   void CreateImeWindow();
 
-  // Destroys the IME caret windows.
+  // 销毁输入法的光标窗口
   void DestroyImeWindow();
 
-  // Cleans up the all resources attached to the given IMM32Manager object, and
-  // reset its composition status.
+  // 清理与该 IMM32 管理对象关联的所有资源，并复位组合状态
   void CleanupComposition();
 
-  // Resets the composition status and cancels the ongoing composition.
+  // 复位组合状态，并取消正在进行的组合操作
   void ResetComposition();
 
-  // Retrieves a composition result of the ongoing composition if it exists.
+  /** 获取当前组合操作的结果（如果存在组合操作）
+  * @param [in] lparam 与输入法消息关联的 lParam 参数
+  * @param [out] result 返回组合结果的文本
+  * @return 返回 true 表示获取成功，否则返回 false
+  */
   bool GetResult(LPARAM lparam, CefString& result);
 
-  // Retrieves the current composition status of the ongoing composition.
-  // Includes composition text, underline information and selection range in the
-  // composition text. IMM32 does not support char selection.
+  /** 获取当前组合操作的状态
+  * 包括组合文本、下划线信息以及组合文本中的选中范围。
+  * 说明：IMM32 不支持字符级选择。
+  * @param [in] lparam 与输入法消息关联的 lParam 参数
+  * @param [out] composition_text 返回组合文本
+  * @param [out] underlines 返回组合文本的下划线信息
+  * @param [out] composition_start 返回组合文本的起始位置
+  * @return 返回 true 表示获取成功，否则返回 false
+  */
   bool GetComposition(LPARAM lparam,
                       CefString& composition_text,
                       std::vector<CefCompositionUnderline>& underlines,
                       int& composition_start);
 
-  // Enables the IME attached to the given window.
+  // 启用指定窗口关联的输入法
   virtual void EnableIME();
 
-  // Disables the IME attached to the given window.
+  // 禁用指定窗口关联的输入法
   virtual void DisableIME();
 
-  // Cancels an ongoing composition of the IME.
+  // 取消输入法正在进行的组合操作
   virtual void CancelIME();
 
-  // Updates the IME caret position of the given window.
+  /** 更新指定窗口的输入法光标位置
+  * @param [in] index 光标在组合文本中的索引
+  */
   void UpdateCaretPosition(uint32_t index);
 
-  // Updates the composition range. |selected_range| is the range of characters
-  // that have been selected. |character_bounds| is the bounds of each character
-  // in view device coordinates.
+  /** 更新组合文本的范围
+  * selection_range 为已被选中的字符范围；
+  * character_bounds 为每个字符在视图设备坐标中的边界。
+  * @param [in] selection_range 选中的字符范围
+  * @param [in] character_bounds 每个字符的边界矩形
+  */
   void ChangeCompositionRange(const CefRange& selection_range,
                               const std::vector<CefRect>& character_bounds);
 
-  // Updates the position of the IME windows.
+  // 更新输入法窗口的位置
   void MoveImeWindow();
 
   //获取关联的窗口
   HWND GetHandlerHWND() const { return hwnd_; }
 
  private:
-  // Retrieves the composition information.
+  /** 获取组合信息
+  * @param [in] imm_context 输入法上下文
+  * @param [in] lparam 与输入法消息关联的 lParam 参数
+  * @param [out] composition_text 返回组合文本
+  * @param [out] underlines 返回组合文本的下划线信息
+  * @param [out] composition_start 返回组合文本的起始位置
+  */
   void GetCompositionInfo(HIMC imm_context,
                           LPARAM lparam,
                           CefString& composition_text,
                           std::vector<CefCompositionUnderline>& underlines,
                           int& composition_start);
 
-  // Retrieves a string from the IMM.
+  /** 从输入法管理器（IMM）获取字符串
+  * @param [in] imm_context 输入法上下文
+  * @param [in] lparam 与输入法消息关联的 lParam 参数
+  * @param [in] type 要获取的字符串类型
+  * @param [out] result 返回获取到的字符串
+  * @return 返回 true 表示获取成功，否则返回 false
+  */
   bool GetString(HIMC imm_context, WPARAM lparam, int type, CefString& result);
 
-  // Represents whether or not there is an ongoing composition.
+  // 当前是否处于输入法组合（组字）状态
   bool is_composing_ = false;
 
-  // The current composition character range and its bounds.
+  // 当前组合文本的字符范围及其边界矩形
   std::vector<CefRect> composition_bounds_;
 
-  // The current input Language ID retrieved from Windows -
-  // used for processing language-specific operations in IME.
+  // 从 Windows 获取的当前输入语言 ID
+  // 用于处理输入法中与语言相关的操作
   LANGID input_language_id_;
 
-  // Represents whether or not the current input context has created a system
-  // caret to set the position of its IME candidate window.
+  // 当前输入上下文是否已创建系统光标（用于设置输入法候选窗口的位置）
   bool system_caret_ = false;
 
-  // The rectangle of the input caret retrieved from a renderer process.
+  // 从渲染进程获取的输入光标矩形
   CefRect ime_rect_;
 
-  // The current cursor index in composition string.
+  // 组合文本中的当前光标索引
   uint32_t cursor_index_;
 
-  // The composition range in the string. This may be used to determine the
-  // offset in composition bounds.
+  // 组合文本的取值范围（可用于确定组合边界中的偏移量）
   CefRange composition_range_;
 
-  // Hwnd associated with this instance.
+  // 与本对象关联的窗口句柄
   HWND hwnd_;
 };
 

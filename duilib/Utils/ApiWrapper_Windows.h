@@ -61,7 +61,8 @@ namespace ui
     * @param [in] imageFilePath 图片的路径，用于判断图片类型
     * @param [in] uDpiScaleFactor 当前界面缩放百分比因子（举例：100代表缩放百分比为100%，无缩放）
     * @param [out] hSmallIcon 小图标句柄，图标句柄由外部负责释放
-    * @param [out] hBigIcon 小图标句柄，图标句柄由外部负责释放
+    * @param [out] hBigIcon 大图标句柄，图标句柄由外部负责释放
+    * @return 返回 true 表示生成成功，否则返回 false
     */
     bool CreateIconsFromData(const std::vector<uint8_t>& iconFileData,
                              const DString& imageFilePath,
@@ -84,13 +85,13 @@ namespace ui
     bool ModifyDwmStyle(HWND hWnd, NativeWindowShadowType nativeShadowType);
 
     /* 获取窗口 DWM 可见边框厚度
-     * @param hWnd 目标窗口句柄
-     * @param outThickness 输出边框厚度（UINT 类型，像素值）
+     * @param [in] hWnd 目标窗口句柄
+     * @param [out] outThickness 输出边框厚度（UINT 类型，像素值）
      * @return 成功返回 true，失败返回 false
      */
     bool GetDwmVisibleFrameBorderThickness(HWND hWnd, UINT& outThickness);
 
-    /** DWM设置是是否支持透明属性
+    /** DWM设置是否支持透明属性（启用/禁用窗口的模糊效果）
     */
     bool SetDwmEnableBlurBehindWindow(HWND hWnd, bool bEnable);
 

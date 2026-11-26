@@ -44,6 +44,9 @@ public:
     {
     }
 
+    /** 调用回调函数
+    *   如果关联的弱引用标志已经失效，则不执行回调，直接返回默认值
+    */
     template<class... Args>
     auto operator ()(Args && ... args) const
     {
@@ -55,16 +58,22 @@ public:
         }
     }
 
+    /** 判断关联的弱引用标志是否已经失效
+    */
     bool Expired() const
     {
         return m_weak_flag.expired();
     }
 
+    /** 获取关联的弱引用标志
+    */
     const std::weak_ptr<WeakFlag>& GetFlag() const
     {
         return m_weak_flag;
     }
 
+    /** 获取被包装的回调函数对象
+    */
     const T& GetFunc() const
     {
         return m_func;
@@ -88,6 +97,10 @@ public:
     //如某个派生类需要多态删除，应由该派生类自行声明虚析构函数
     ~SupportWeakCallback() = default;
 
+    /** 将普通回调函数包装为弱回调函数(与当前对象的生命周期绑定)
+    * @param [in] closure 要包装的回调函数
+    * @return 返回包装后的弱回调函数
+    */
     template<typename CallbackType>
     auto ToWeakCallback(const CallbackType& closure)
         ->WeakCallback<CallbackType>
@@ -95,6 +108,9 @@ public:
         return WeakCallback<CallbackType>(GetWeakFlag(), closure);
     }
 
+    /** 获取弱引用标志(如果尚未创建则创建一个)
+    * @return 返回弱引用标志
+    */
     std::weak_ptr<WeakFlag> GetWeakFlag()
     {
         if (m_weakFlag.use_count() == 0) {
@@ -126,21 +142,28 @@ protected:
 // 这里禁止继承，主要担心误用。当使用这个类的功能，打包出多个支持 Weak 语义的 Callback 时，一旦错误的调用了 Cancel，
 // 将会取消所有 Callback，这种情况可能不是用户希望的。此时，应该使用多个带有 Cancel() 函数的 WeakCallbackFlag 类型的成员变量，
 // 每个对应一个 Callback，一一对应的控制每个支持 Weak 语义的 Callback。
+/** 支持取消的弱回调标志类（使用 Cancel 后可让所有关联的弱回调立即失效）
+*/
 class DUILIB_API WeakCallbackFlag final : public SupportWeakCallback
 {
 public:
+    /** 取消所有关联的弱回调，使其立即失效
+    */
     void Cancel()
     {
         m_weakFlag.reset();
     }
 
+    /** 判断是否还有存活的关联弱回调
+    * @return 返回true表示仍有存活的关联弱回调
+    */
     bool HasUsed()
     {
         return m_weakFlag.use_count() != 0;
     }
 };
 
-// global function 
+// 全局函数
 template<class F, class... Args, class = typename std::enable_if<!std::is_member_function_pointer<F>::value>::type>
 auto UiBind(F && f, Args && ... args)
     ->decltype(std::bind(f, args...))
@@ -148,7 +171,7 @@ auto UiBind(F && f, Args && ... args)
     return std::bind(f, args...);
 }
 
-// global function using this
+// 绑定到对象的全局函数（使用对象的弱引用，对象销毁后回调自动失效）
 template<class C, class F, class... Args, class = typename std::enable_if<!std::is_member_function_pointer<F>::value>::type>
 auto UiBind(C* p, F&& f, Args && ... args)
     -> WeakCallback<decltype(std::bind(f, args...))>
@@ -160,7 +183,7 @@ auto UiBind(C* p, F&& f, Args && ... args)
     return weak_callback;
 }
 
-// const class member function 
+// const 类成员函数
 template<class R, class C, class... DArgs, class P, class... Args>
 auto UiBind(R(C::*f)(DArgs...) const, P && p, Args && ... args)
     ->WeakCallback<decltype(std::bind(f, p, args...))>
@@ -172,7 +195,7 @@ auto UiBind(R(C::*f)(DArgs...) const, P && p, Args && ... args)
     return weak_callback;
 }
 
-// non-const class member function 
+// 非 const 类成员函数
 template<class R, class C, class... DArgs, class P, class... Args>
 auto UiBind(R(C::*f)(DArgs...), P && p, Args && ... args)
     ->WeakCallback<decltype(std::bind(f, p, args...))>

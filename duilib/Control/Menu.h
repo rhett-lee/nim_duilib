@@ -59,20 +59,25 @@ typedef class ReceiverImpl<bool, ContextMenuParam> ContextMenuReceiver;
 
 
 /** 选择菜单项的回调函数原型: 在菜单消失后，用于获取用户点击了哪个菜单项(鼠标点击或者键盘回车激活)
-* @param [in] menuName 菜单名称(即XML里面的的name属性，这代表菜单项的ID)
+* @param [in] menuName 菜单名称(即XML 中的 name 属性，这代表菜单项的ID)
 * @param [in] nMenuLevel 菜单层级（0表示一级菜单，1表示二级菜单，...）
-* @param [in] itemName 菜单项的名称，相当于命令ID(即XML里面的的name属性，这代表菜单项的ID)
+* @param [in] itemName 菜单项的名称，相当于命令ID(即XML 中的 name 属性，这代表菜单项的ID)
 * @param [in] nItemIndex 菜单项的索引序号（从0开始的序号）
 */
 typedef std::function<void (const DString& menuName, int32_t nMenuLevel,
                             const DString& itemName, size_t nItemIndex)> MenuItemActivatedEvent;
 
-/** 菜单类
-*/
 class MenuItem;
 class MenuBar;
 class AnimationPlayer;
 class DpiManager;
+
+/** 菜单类，功能要点如下：
+*  1. 从XML资源文件加载菜单内容，并按指定位置弹出显示
+*  2. 支持多级子菜单，子菜单使用独立的XML模板
+*  3. 支持智能对齐，避免菜单被屏幕边缘遮挡
+*  4. 菜单项被激活（鼠标点击或者键盘回车）后，通过回调函数通知调用方
+*/
 class DUILIB_API Menu : public WindowImplBase, public ContextMenuReceiver
 {
     typedef WindowImplBase BaseClass;
@@ -107,7 +112,7 @@ public:
     * @param [in] point 菜单弹出位置, 屏幕坐标
     * @param [in] popupPosType 菜单弹出位置类型
     * @param [in] noFocus 菜单弹出后，不激活窗口，避免抢焦点
-    * @Param [in] pOwner 父菜单的接口，如果这个值不是nullptr，则这个菜单是多级菜单模式
+    * @param [in] pOwner 父菜单的接口，如果这个值不是nullptr，则这个菜单是多级菜单模式
     */
     void ShowMenu(const DString& xml, 
                   const UiPoint& point,
@@ -129,22 +134,51 @@ public:
     void ClearMenuItemActivated();
 
 public:
-    //添加子菜单项
+    /** 添加子菜单项
+    * @param [in] pMenuItem 子菜单项
+    * @return true 表示添加成功
+    */
     bool AddMenuItem(MenuItem* pMenuItem);
+
+    /** 在指定位置添加子菜单项
+    * @param [in] pMenuItem 子菜单项
+    * @param [in] iIndex 插入位置的索引号
+    * @return true 表示添加成功
+    */
     bool AddMenuItemAt(MenuItem* pMenuItem, size_t iIndex);
 
-    //删除菜单项
+    /** 删除菜单项
+    * @param [in] pMenuItem 要删除的菜单项
+    * @return true 表示删除成功
+    */
     bool RemoveMenuItem(MenuItem* pMenuItem);
+
+    /** 删除指定位置的菜单项
+    * @param [in] iIndex 菜单项的索引号
+    * @return true 表示删除成功
+    */
     bool RemoveMenuItemAt(size_t iIndex);
 
-    //获取菜单项个数
+    /** 获取菜单项个数
+    * @return 返回菜单项的个数
+    */
     size_t GetMenuItemCount() const;
 
-    //获取菜单项接口
+    /** 获取指定位置的菜单项
+    * @param [in] iIndex 菜单项的索引号
+    * @return 返回菜单项指针，不存在时返回 nullptr
+    */
     MenuItem* GetMenuItemAt(size_t iIndex) const;
+
+    /** 按名称获取菜单项
+    * @param [in] name 菜单项名称（XML 中的 name 属性）
+    * @return 返回菜单项指针，不存在时返回 nullptr
+    */
     MenuItem* GetMenuItemByName(const DString& name) const;
 
-    //获取菜单关联的控件
+    /** 获取菜单关联的控件
+    * @return 返回关联的控件指针
+    */
     Control* GetRelatedControl() const;
 
     /** 动态添加/删除菜单项后，重新计算菜单的大小与位置
@@ -203,9 +237,9 @@ private:
     ListBox* GetLayoutListBox() const;
 
     /** 菜单项激活(鼠标点击或者键盘回车激活)
-    * @param [in] menuName 菜单名称(即XML里面的的name属性，这代表菜单项的ID)
+    * @param [in] menuName 菜单名称(即XML 中的 name 属性，这代表菜单项的ID)
     * @param [in] nMenuLevel 菜单层级（0表示一级菜单，1表示二级菜单，...）
-    * @param [in] itemName 菜单项的名称(即XML里面的的name属性，这代表菜单项的ID)
+    * @param [in] itemName 菜单项的名称(即XML 中的 name 属性，这代表菜单项的ID)
     * @param [in] nItemIndex 菜单项的索引序号（从0开始的序号）
     */
     void OnMenuItemActivated(const DString& menuName, int32_t nMenuLevel,
@@ -227,8 +261,10 @@ private:
     */
     static void OnOutsideClickCheckTick();
 
+    /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual bool Receive(ContextMenuParam param) override;
 
+    /// 重写父类方法，提供个性化功能，请参考父类声明：皮肤文件与窗口初始化
     virtual ui::Control* CreateControl(const DString& pstrClass) override;
     virtual DString GetSkinFolder() override;
     virtual DString GetSkinFile() override;
@@ -272,6 +308,7 @@ private:
     virtual LRESULT OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
 
     //屏蔽的消息
+    /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual LRESULT OnContextMenuMsg(const UiPoint& pt, const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnMouseRButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnMouseRButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
@@ -335,7 +372,10 @@ private:
     std::unique_ptr<AnimationPlayer> m_pFadeInPlayer;
 };
 
-/** 菜单项
+/** 菜单项，功能要点如下：
+*  1. 作为菜单中的一项，可包含下级子菜单
+*  2. 支持动态添加、删除子菜单项
+*  3. 鼠标悬停时展开下级菜单，被激活时触发菜单项激活回调
 */
 class DUILIB_API MenuItem : public ListBoxItem
 {
@@ -343,23 +383,54 @@ class DUILIB_API MenuItem : public ListBoxItem
 public:
     explicit MenuItem(Window* pWindow);
 
-    //添加子菜单项
+    /** 添加子菜单项
+    * @param [in] pMenuItem 子菜单项
+    * @return true 表示添加成功
+    */
     bool AddSubMenuItem(MenuItem* pMenuItem);
+
+    /** 在指定位置添加子菜单项
+    * @param [in] pMenuItem 子菜单项
+    * @param [in] iIndex 插入位置的索引号
+    * @return true 表示添加成功
+    */
     bool AddSubMenuItemAt(MenuItem* pMenuItem, size_t iIndex);
 
-    //删除子菜单项
+    /** 删除子菜单项
+    * @param [in] pMenuItem 要删除的子菜单项
+    * @return true 表示删除成功
+    */
     bool RemoveSubMenuItem(MenuItem* pMenuItem);
+
+    /** 删除指定位置的子菜单项
+    * @param [in] iIndex 子菜单项的索引号
+    * @return true 表示删除成功
+    */
     bool RemoveSubMenuItemAt(size_t iIndex);
+
+    /** 删除所有子菜单项
+    */
     void RemoveAllSubMenuItem();
 
-    //获取子菜单项个数
+    /** 获取子菜单项个数
+    * @return 返回子菜单项的个数
+    */
     size_t GetSubMenuItemCount() const;
 
-    //获取子菜单项接口
+    /** 获取指定位置的子菜单项
+    * @param [in] iIndex 子菜单项的索引号
+    * @return 返回子菜单项指针，不存在时返回 nullptr
+    */
     MenuItem* GetSubMenuItemAt(size_t iIndex) const;
+
+    /** 按名称获取子菜单项
+    * @param [in] name 子菜单项名称（XML 中的 name 属性）
+    * @return 返回子菜单项指针，不存在时返回 nullptr
+    */
     MenuItem* GetSubMenuItemByName(const DString& name) const;
 
-    //菜单项激活（被点击获取通过回车激活）
+    /** 菜单项激活（被点击或者通过回车激活）
+    */
     virtual void Activate(const EventArgs* pMsg) override;
 
 private:
@@ -372,6 +443,7 @@ private:
                                       std::vector<Control*>& submenuControls);
 
 private:
+    /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual bool ButtonUp(const ui::EventArgs& msg) override;
     virtual bool MouseEnter(const ui::EventArgs& msg) override;
     virtual void PaintChild(ui::IRender* pRender, const ui::UiRect& rcPaint) override;
@@ -386,10 +458,13 @@ private:
 private:
     friend Menu; //需要访问部分私有成员函数
 
-    //检查子菜单，如果是下级菜单，则创建下级菜单窗口，并显示
+    /** 检查子菜单，如果是下级菜单，则创建下级菜单窗口，并显示
+    * @return true 表示有下级菜单并已显示
+    */
     bool CheckSubMenuItem();
 
-    //创建下级菜单窗口，并显示
+    /** 创建下级菜单窗口，并显示
+    */
     void CreateMenuWnd();
 
 private:

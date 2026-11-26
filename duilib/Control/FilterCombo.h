@@ -22,6 +22,7 @@ public:
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
 
 protected:
+    /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual void OnInit() override;
     
 protected:

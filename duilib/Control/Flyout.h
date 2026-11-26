@@ -103,6 +103,9 @@ public:
     *       （通过失去焦点感知外部点击）。
     */
     void SetAutoDismiss(bool bAutoDismiss);
+
+    /** 是否自动关闭
+    */
     bool IsAutoDismiss() const;
 
     /** 设置"点击浮层外部"时是否自动关闭，默认 true
@@ -113,6 +116,9 @@ public:
     *       关闭该选项后，外部点击（含阴影区域）不会关闭浮层，Esc 仍然有效。
     */
     void SetClickOutsideDismiss(bool bDismiss);
+
+    /** 点击浮层外部时是否关闭
+    */
     bool IsClickOutsideDismiss() const;
 
     /** 设置鼠标落在窗口阴影区域时是否穿透到浮层下面的窗口（仅 Windows 平台），默认 true
@@ -120,6 +126,9 @@ public:
     *       无法点击。开启后阴影区域上的鼠标消息交由下层窗口处理（与"点击浮层外部"判定一致）。
     */
     void SetShadowClickThrough(bool bClickThrough);
+
+    /** 阴影区域是否穿透鼠标消息
+    */
     bool IsShadowClickThrough() const;
 
     /** 获取浮层的可视区域（屏幕坐标、物理像素；已扣除窗口阴影占据的边缘）
@@ -140,6 +149,9 @@ public:
     *       自动按新位置恢复显示；因此滚动往返后浮层不会丢失
     */
     void SetFollowAnchor(bool bFollow);
+
+    /** 是否跟随锚点移动
+    */
     bool IsFollowAnchor() const;
 
     /** 判断锚点控件当前是否可见（未被窗口客户区或滚动容器裁剪掉）
@@ -159,16 +171,25 @@ public:
     *       浮层无法在点击外部时自动关闭；如需该能力，请改用 false（焦点模式）。
     */
     void SetNoFocus(bool bNoFocus);
+
+    /** 是否不抢焦点
+    */
     bool IsNoFocus() const;
 
     /** 设置浮层与锚点之间的间距（未经 DPI 缩放的逻辑值），默认 6
     */
     void SetGap(int32_t nGap);
+
+    /** 获取与锚点的间距（未经 DPI 缩放的逻辑值）
+    */
     int32_t GetGap() const;
 
     /** 设置主方位空间不足时是否允许自动翻转到对侧，默认 true
     */
     void SetAllowFlip(bool bAllowFlip);
+
+    /** 是否允许自动翻转到对侧
+    */
     bool IsAllowFlip() const;
 
     /** 获取锚点控件（浮层关闭或锚点销毁后可能为 nullptr）

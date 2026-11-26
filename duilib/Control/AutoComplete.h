@@ -79,6 +79,9 @@ public:
     /** 设置最多可见候选项行数（超出显示滚动条）
     */
     void SetMaxVisible(int32_t nMaxVisible);
+
+    /** 获取最多可见候选项行数
+    */
     int32_t GetMaxVisible() const;
 
     /** 设置候选项前缀高亮的字符数（0表示不高亮）
@@ -197,6 +200,7 @@ public:
     AutoComplete& operator=(const AutoComplete& r) = delete;
     virtual ~AutoComplete() override = default;
 
+    /// 重写父类方法，请参考父类声明
     virtual DString GetType() const override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
 
@@ -228,21 +232,33 @@ public:
     /** 设置最少输入字符数（达到后才弹出联想）
     */
     void SetMinChars(int32_t nMinChars);
+
+    /** 获取最少输入字符数
+    */
     int32_t GetMinChars() const;
 
     /** 设置浮层最多可见候选行数
     */
     void SetMaxVisible(int32_t nMaxVisible);
+
+    /** 获取浮层最多可见候选行数
+    */
     int32_t GetMaxVisible() const;
 
     /** 设置文本匹配模式
     */
     void SetMatchMode(AutoCompleteMatchMode matchMode);
+
+    /** 获取文本匹配模式
+    */
     AutoCompleteMatchMode GetMatchMode() const;
 
     /** 设置匹配时是否忽略大小写
     */
     void SetIgnoreCase(bool bIgnoreCase);
+
+    /** 获取匹配时是否忽略大小写
+    */
     bool IsIgnoreCase() const;
 
     /** 获取内部编辑框控件

@@ -38,7 +38,10 @@ class CefOsrDropTarget;
 
 #endif
 
-//实现CefClient接口，处理Cef浏览器对象发出的各个事件和消息，并与上层控件进行数据交互
+/** CefClient 接口的实现类，处理 CEF 浏览器对象的各个事件与消息
+*   并把需要与上层交互的事件转发给 CefBrowserHandlerDelegate 委托接口。
+*   同时实现了离屏渲染、右键菜单、显示、拖动、键盘、加载、请求、下载等各类 Handler 接口。
+*/
 class CefBrowserHandler : public ui::SupportWeakCallback,
     public CefClient,
     public CefLifeSpanHandler,
@@ -71,17 +74,37 @@ public:
     // 当指针所指的对象不需要处理事件时，应该给参数传入nullptr
     void SetHandlerDelegate(CefBrowserHandlerDelegate* handler);
 
-    // 设置Cef渲染内容的大小
+    /** 设置Cef渲染内容的大小
+    * @param [in] rc 渲染内容的矩形（控件坐标）
+    */
     void SetViewRect(const UiRect& rc);
+
+    /** 获取Cef渲染内容的大小
+    * @return 返回渲染内容的矩形（控件坐标）
+    */
     UiRect GetViewRect();
 
+    /** 获取 CEF 的浏览器对象
+    * @return 返回浏览器对象
+    */
     CefRefPtr<CefBrowser> GetBrowser(){ return m_browser; }
 
+    /** 获取 CEF 的浏览器宿主对象
+    * @return 返回浏览器宿主对象
+    */
     CefRefPtr<CefBrowserHost> GetBrowserHost();
+
+    /** 获取 CEF 浏览器窗口的句柄
+    * @return 返回浏览器窗口的句柄
+    */
     CefWindowHandle GetCefWindowHandle();
 
-    // 添加一个任务到队列中，当Browser对象创建成功后，会依次触发任务
-    // 比如创建Browser后调用LoadUrl加载网页，但是这时Browser很可能还没有创建成功，就把LoadUrl任务添加到队列
+    /** 添加一个任务到队列中，当Browser对象创建成功后，会依次触发这些任务
+    *   比如创建Browser后调用LoadUrl加载网页，但这时Browser很可能还没有创建成功，
+    *   此时可以把LoadUrl任务添加到队列，等Browser创建完成后再执行
+    * @param [in] cb 要在 Browser 创建后执行的任务
+    * @return 返回可用于取消该任务的回调对象
+    */
      CefUnregisterCallback AddAfterCreateTask(const ui::StdClosure& cb);
 
      /** 关闭所有的Browser对象
@@ -425,6 +448,22 @@ public:
     virtual void OnGotFocus(CefRefPtr<CefBrowser> browser) override;
 
 private:
+    /** 处理弹出窗口的创建（OnBeforePopup 的内部实现）
+    * @param [in] browser 浏览器对象
+    * @param [in] frame 发起弹出的框架
+    * @param [in] popup_id 弹出窗口的 ID（仅 CEF 高版本有效）
+    * @param [in] target_url 弹出窗口的目标地址
+    * @param [in] target_frame_name 目标框架的名称
+    * @param [in] target_disposition 窗口的打开方式
+    * @param [in] user_gesture 是否由用户操作触发
+    * @param [in] popupFeatures 弹出窗口的特性参数
+    * @param [in] windowInfo 弹出窗口的窗口信息
+    * @param [in] client 弹出窗口的 CefClient 对象
+    * @param [in] settings 弹出窗口的浏览器设置
+    * @param [in] extra_info 附加信息
+    * @param [out] no_javascript_access 返回是否禁止 JS 访问
+    * @return 返回 true 表示由应用自行创建弹出窗口，false 表示交给默认实现处理
+    */
     bool DoOnBeforePopup(CefRefPtr<CefBrowser> browser,
                          CefRefPtr<CefFrame> frame,
                          int popup_id,
@@ -440,6 +479,13 @@ private:
                          bool* no_javascript_access);
 
 #ifdef DUILIB_BUILD_FOR_WIN
+    /** 执行系统的拖放操作（Windows 平台）
+    * @param [in] browser 浏览器对象
+    * @param [in] drag_data 拖动的数据
+    * @param [in] allowed_ops 允许的拖动操作类型
+    * @param [in] x 拖动起点的 x 坐标（视图坐标）
+    * @param [in] y 拖动起点的 y 坐标（视图坐标）
+    */
     void DoDragDrop(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> drag_data, CefRenderHandler::DragOperationsMask allowed_ops, int x, int y);
 #endif
 
@@ -460,19 +506,28 @@ private:
     CefWindowHandle m_hCefWindowHandle;
     std::vector<CefRefPtr<CefBrowser>> m_browserList;
     ControlPtrT<ui::Window> m_spWindow; 
+
+    //浏览器事件的处理委托接口
     CefBrowserHandlerDelegate* m_pHandlerDelegate;
+
     //控件的位置
     UiRect m_rcCefControl;
+
+    //Browser对象创建后要执行的任务列表
     CefUnregistedCallbackList<ui::StdClosure> m_taskListAfterCreated;
+
+    //当前拖动操作的拖动类型
     CefRenderHandler::DragOperation m_currentDragOperation;
 
     //关联窗口是否已经关闭
     std::atomic<bool> m_bHostWindowClosed;
 
 #ifdef DUILIB_BUILD_FOR_WIN
+    //Windows平台的拖放目标接口
     std::shared_ptr<CefOsrDropTarget> m_pDropTarget;
 #endif
 
+    // CEF 引用计数的宏实现
     IMPLEMENT_REFCOUNTING(CefBrowserHandler);
 };
 }

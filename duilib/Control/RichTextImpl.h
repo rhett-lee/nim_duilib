@@ -95,7 +95,16 @@ public:
     RichTextImpl& operator=(const RichTextImpl& r) = delete;
     ~RichTextImpl();
 
+    /** 设置格式化文本相关的属性
+    * @param [in] strName 属性名称
+    * @param [in] strValue 属性值
+    * @return true 表示该属性已被识别并处理，false 表示未知属性
+    */
     bool SetAttribute(const DString& strName, const DString& strValue);
+
+    /** 绘制格式化文本
+    * @param [in] pRender 绘制接口，为 nullptr 时不做处理
+    */
     void PaintText(IRender* pRender);
 
     /** 绑定的窗口发生了变化

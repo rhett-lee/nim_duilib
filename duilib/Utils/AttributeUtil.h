@@ -12,7 +12,8 @@ class Window;
 class DUILIB_API AttributeUtil
 {
 public:
-    /** 配置字符串解析：跳过一个分隔符
+    /** 配置字符串解析：跳过一个分隔符（不会跳过字符串结尾的 '\0'，避免越界）
+    * @param [in,out] pPtr 当前解析位置的指针，函数返回后指向下一个字符
     */
     static void SkipSepChar(wchar_t*& pPtr);
     static void SkipSepChar(char*& pPtr);
@@ -27,14 +28,38 @@ public:
     static void ParsePointValue(const wchar_t* strValue, UiPoint& size);
     static void ParsePointValue(const char* strValue, UiPoint& size);
 
-    /** 从配置中解析一个Rect结构，输入格式如："80,50,60,70"
+    /** 从配置中解析一个Rect结构（宽字符版本），输入格式如："80,50,60,70"
+    * @param [in] strValue 待解析的字符串
+    * @param [out] rect 解析出的矩形（left, top, right, bottom）
+    * @param [in] bCheckSize 是否检查宽高是否为非负值（仅调试版断言）
     */
     static void ParseRectValue(const wchar_t* strValue, UiRect& rect, bool bCheckSize = true);
+    /** 从配置中解析一个Padding结构（宽字符版本），输入格式如："4,4,4,4"
+    * @param [in] strValue 待解析的字符串
+    * @param [out] padding 解析出的内边距（left, top, right, bottom）
+    */
     static void ParsePaddingValue(const wchar_t* strValue, UiPadding& padding);
+    /** 从配置中解析一个Margin结构（宽字符版本），输入格式如："4,4,4,4"
+    * @param [in] strValue 待解析的字符串
+    * @param [out] margin 解析出的外边距（left, top, right, bottom）
+    */
     static void ParseMarginValue(const wchar_t* strValue, UiMargin& margin);
 
+    /** 从配置中解析一个Rect结构（窄字符版本），输入格式如："80,50,60,70"
+    * @param [in] strValue 待解析的字符串
+    * @param [out] rect 解析出的矩形（left, top, right, bottom）
+    * @param [in] bCheckSize 是否检查宽高是否为非负值（仅调试版断言）
+    */
     static void ParseRectValue(const char* strValue, UiRect& rect, bool bCheckSize = true);
+    /** 从配置中解析一个Padding结构（窄字符版本），输入格式如："4,4,4,4"
+    * @param [in] strValue 待解析的字符串
+    * @param [out] padding 解析出的内边距（left, top, right, bottom）
+    */
     static void ParsePaddingValue(const char* strValue, UiPadding& padding);
+    /** 从配置中解析一个Margin结构（窄字符版本），输入格式如："4,4,4,4"
+    * @param [in] strValue 待解析的字符串
+    * @param [out] margin 解析出的外边距（left, top, right, bottom）
+    */
     static void ParseMarginValue(const char* strValue, UiMargin& margin);
 
     /** 解析属性列表，有效的格式示例

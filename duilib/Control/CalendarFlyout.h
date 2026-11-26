@@ -193,6 +193,7 @@ public:
     //WindowImplBase 接口
     //注意：不要重写 GetSkinFolder/GetSkinFile——Flyout 基类实现返回 m_skinFolder（父窗口资源路径）
     //和 m_xml（ShowAt 传入的内嵌 XML），重写为空会导致窗口 XML 加载失败、创建被销毁
+    /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual void OnInitWindow() override;
 
     /** 键盘导航：拦截方向键/PgUp/PgDn/Enter/Space 并转发给内部 Calendar；

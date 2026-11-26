@@ -10,10 +10,16 @@
 
 namespace ui {
 
+/** 数据内容发生变化时的通知回调，参数为发生变化的数据范围 [nStartIndex, nEndIndex]
+*/
 typedef std::function<void(size_t nStartIndex, size_t nEndIndex)> DataChangedNotify;
+/** 数据项个数发生变化时的通知回调
+*/
 typedef std::function<void()> CountChangedNotify;
 
 class VirtualListBox;
+/** 虚表数据代理接口：为 VirtualListBox 提供数据项的创建、填充与选择状态管理
+*/
 class DUILIB_API VirtualListBoxElement : public SupportWeakCallback
 {
 public:
@@ -59,7 +65,7 @@ public:
     virtual bool IsMultiSelect() const = 0;
 
     /** 设置是否支持多选，由界面层调用，保持与界面控件一致
-    * @return bMultiSelect true表示支持多选，false表示不支持多选
+    * @param [in] bMultiSelect true表示支持多选，false表示不支持多选
     */
     virtual void SetMultiSelect(bool bMultiSelect) = 0;
 
@@ -134,7 +140,7 @@ public:
     virtual bool IsMultiSelect() const override;
 
     /** 设置是否支持多选，由界面层调用，保持与界面控件一致
-    * @return bMultiSelect true表示支持多选，false表示不支持多选
+    * @param [in] bMultiSelect true表示支持多选，false表示不支持多选
     */
     virtual void SetMultiSelect(bool bMultiSelect) override;
 
@@ -245,7 +251,7 @@ public:
     void RefreshElements(size_t nStartElementIndex, size_t nEndElementIndex);
 
     /** 刷新指定的数据，保持数据与界面显示同步
-    * @param [elementIndexs] 列表中为元素索引号，有效范围：[0, GetElementCount())
+    * @param [in] elementIndexs 列表中为元素索引号，有效范围：[0, GetElementCount())
     */
     void RefreshElements(const std::vector<size_t>& elementIndexs);
 
@@ -472,6 +478,8 @@ protected:
     VirtualLayout* GetVirtualLayout() const;
 
 public:
+    /** 界面控件（Item）与数据元素（Element）的索引对应关系，用于界面刷新
+    */
     struct RefreshData
     {
         size_t nItemIndex = Box::InvalidIndex;      //界面控件的索引号

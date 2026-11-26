@@ -18,6 +18,10 @@ interface ICoreWebView2CustomSchemeRegistration;
 
 namespace ui
 {
+/** WebView2 运行环境选项的实现类
+*   同时实现 ICoreWebView2EnvironmentOptions 及其 2~8 版本的接口，
+*   用于在创建 WebView2 运行环境时传递浏览器参数、语言、渠道等配置。
+*/
 class DUILIB_API WebView2EnvironmentOptions :
     public ICoreWebView2EnvironmentOptions,
     public ICoreWebView2EnvironmentOptions2,

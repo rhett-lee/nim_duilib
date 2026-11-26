@@ -117,7 +117,7 @@ private:
         //代码执行总时间：微秒(千分之一毫秒)
         std::chrono::microseconds totalTimes = std::chrono::microseconds::zero();
 
-        /** 单次最大：：微秒(千分之一毫秒)
+        /** 单次最大：微秒(千分之一毫秒)
         */
         std::chrono::microseconds maxTime = std::chrono::microseconds::zero();
 #endif

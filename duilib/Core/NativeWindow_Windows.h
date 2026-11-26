@@ -40,6 +40,7 @@ public:
     /** 显示模态窗口
     * @param [in] pParentWindow 父窗口
     * @param [in] createParam 创建窗口所需的参数
+    * @param [in] createAttributes XML文件中Window的相关属性
     * @param [in] bCloseByEsc 按ESC键的时候，是否关闭窗口
     * @param [in] bCloseByEnter 按Enter键的时候，是否关闭窗口
     * @return 窗口退出时的返回值, 如果失败则返回-1
@@ -133,7 +134,7 @@ public:
     bool SetLayeredWindowAlpha(int32_t nAlpha);
 
     /** 获取窗口透明度(仅当IsLayeredWindow()为true的时候有效)
-    * @param [in] nAlpha 透明度数值[0, 255]，当 nAlpha 为 0 时，窗口是完全透明的。 当 nAlpha 为 255 时，窗口是不透明的。
+    * @return 返回透明度数值[0, 255]，0表示完全透明，255表示不透明
     */
     uint8_t GetLayeredWindowAlpha() const;
 
@@ -144,7 +145,7 @@ public:
     bool SetLayeredWindowOpacity(int32_t nAlpha);
 
     /** 获取窗口不透明度(仅当IsLayeredWindow()为true的时候有效)
-    * @param [in] nAlpha 透明度数值[0, 255]，当 nAlpha 为 0 时，窗口是完全透明的。 当 nAlpha 为 255 时，窗口是不透明的。
+    * @return 返回不透明度数值[0, 255]，0表示完全透明，255表示不透明
     */
     uint8_t GetLayeredWindowOpacity() const;
 
@@ -269,8 +270,8 @@ public:
 
 public:
     /** 设置窗口位置（对 ::SetWindowPos API 的一层封装，内部无DPI缩放）
-    * @param [in] pInsertAfterWindow 对应 SetWindowPos 的 hWndInsertAfter 选项
-    * @param [in] insertAfterFlag 对应 SetWindowPos 的 hWndInsertAfter 选项, 仅当pWindow为nullptr时有效
+    * @param [in] pInsertAfterWindow 插入位置的参照窗口，对应 SetWindowPos 的 hWndInsertAfter 选项
+    * @param [in] insertAfterFlag 参照窗口为空时使用的插入位置标志, 参考 InsertAfterFlag 枚举
     * @param [in] X 窗口的X坐标
     * @param [in] Y 窗口的Y坐标
     * @param [in] cx 窗口的宽度
@@ -310,27 +311,26 @@ public:
     */
     DString GetText() const;
 
-    /** 设置窗口大小的最小值（宽度和高度，内部不按DPI调整大小，DPI自适应需要调用方来做）
-    * @param [in] szMaxWindow 窗口的最大宽度和最小高度，如果值为0，表示不做限制
+    /** 设置窗口大小的最大值（宽度和高度，内部不按DPI调整大小，DPI自适应需要调用方来做）
+    * @param [in] szMaxWindow 窗口的最大宽度和最大高度，如果值为0，表示不做限制
     */
     void SetWindowMaximumSize(const UiSize& szMaxWindow);
 
-    /** 获取窗口大小的最小值（宽度和高度）
+    /** 获取窗口大小的最大值（宽度和高度）
     */
     const UiSize& GetWindowMaximumSize() const;
 
-    /** 设置窗口大小的最大值（宽度和高度，内部不按DPI调整大小，DPI自适应需要调用方来做）
+    /** 设置窗口大小的最小值（宽度和高度，内部不按DPI调整大小，DPI自适应需要调用方来做）
     * @param [in] szMinWindow 窗口的最小宽度和最小高度，如果值为0，表示不做限制
     */
     void SetWindowMinimumSize(const UiSize& szMinWindow);
 
-    /** 获取窗口大小的最大值（宽度和高度）
+    /** 获取窗口大小的最小值（宽度和高度）
     */
     const UiSize& GetWindowMinimumSize() const;
 
 public:
     /** 设置当要捕获的鼠标窗口句柄为当前绘制窗口
-    * @param [in]
     */
     void SetCapture();
 
@@ -517,7 +517,7 @@ public:
     */
     void SetEnableDragDrop(bool bEnable);
 
-    /** 注销一个拖放接口
+    /** 判断是否允许拖放操作
     */
     bool IsEnableDragDrop() const;
 
@@ -609,13 +609,16 @@ private:
     LRESULT OnDwmCompositionChangedMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnWindowPosChangingMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
+    // 控件通知、命令、控件颜色消息处理函数
     LRESULT OnNotifyMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnCommandMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnCtlColorMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
+    // 指针与触摸消息处理函数
     LRESULT OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnTouchMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
+    // 窗口创建与初始化消息处理函数
     LRESULT OnCreateMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnInitDialogMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
@@ -646,18 +649,24 @@ private:
     HWND GetWindowOwner() const;
 
     /** 获取指定窗口所在显示器的显示器矩形和工作区矩形
+    * @param [in] hWnd 窗口句柄
     * @param [out] rcMonitor 显示器的矩形区域
     * @param [out] rcWork 显示器的工作区矩形
     */
     bool GetMonitorRect(HWND hWnd, UiRect& rcMonitor, UiRect& rcWork) const;
 
-    /** 获取当前窗口的窗口区矩形
+    /** 获取指定窗口的窗口区矩形
+    * @param [in] hWnd 窗口句柄
     * @param [out] rcWindow 返回窗口左上角和右下角的屏幕坐标
     */
     void GetWindowRect(HWND hWnd, UiRect& rcWindow) const;
 
     /** 获取一个消息的按键标志位
+    * @param [in] message 消息类型
+    * @param [in] wParam 消息的wParam参数
+    * @param [in] lParam 消息的lParam参数
     * @param [out] modifierKey 返回标志位，参见类型定义：ModifierKey
+    * @return 返回true表示成功获取按键标志位，否则返回false
     */
     bool GetModifiers(UINT message, WPARAM wParam, LPARAM lParam, uint32_t& modifierKey) const;
 

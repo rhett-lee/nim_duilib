@@ -23,9 +23,9 @@ struct MenuBarItem
 
 /** 顶级菜单选择菜单项的回调函数原型: 在菜单消失后，用于获取用户点击了哪个菜单项(鼠标点击或者键盘回车激活)
 * @param [in] menuItemId 本菜单项的ID，即MenuBarItem里面的m_menuItemId值
-* @param [in] menuName 菜单名称(即XML里面的的name属性，这代表菜单项的ID)
+* @param [in] menuName 菜单名称(即XML 中的 name 属性，这代表菜单项的ID)
 * @param [in] nMenuLevel 菜单层级（0表示一级菜单，1表示二级菜单，...）
-* @param [in] itemName 菜单项的名称，相当于命令ID(即XML里面的的name属性，这代表菜单项的ID)
+* @param [in] itemName 菜单项的名称，相当于命令ID(即XML 中的 name 属性，这代表菜单项的ID)
 * @param [in] nItemIndex 菜单项的索引序号（从0开始的序号）
 */
 typedef std::function<void (const DString& menuItemId,
@@ -41,7 +41,10 @@ typedef std::function<void (int32_t nOldIndex, int32_t nNewIndex)> MenuBarActive
 //MenuBar上的文字按钮
 class MenuBarButton;
 
-/** 菜单栏
+/** 菜单栏，功能要点如下：
+*  1. 在窗口顶部显示多个顶级菜单按钮，点击后在按钮下方弹出对应的菜单
+*  2. 支持动态添加、插入、移除顶级菜单，并可设置其文本、可见性与可用性
+*  3. 支持鼠标悬停切换菜单，以及 F10/Alt/方向键等键盘操作
 */
 class DUILIB_API MenuBar: public HBox
 {
@@ -50,7 +53,7 @@ public:
     explicit MenuBar(Window* pWindow);
 
 public:
-    /// 重写父类接口，提供个性化功能。方法具体说明请查看 Control 控件
+    /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
     virtual void OnInit() override;
     virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
@@ -194,7 +197,16 @@ private:
     friend class MenuBarButton;
     friend class Menu;
 
+    /** 鼠标进入顶级菜单按钮（用于按需弹出子菜单）
+    * @param [in] pButton 顶级菜单按钮
+    * @param [in] msg 鼠标事件内容
+    */
     void OnMenuMouseEnter(MenuBarButton* pButton, const EventArgs& msg);
+
+    /** 鼠标离开顶级菜单按钮（用于按需收起子菜单）
+    * @param [in] pButton 顶级菜单按钮
+    * @param [in] msg 鼠标事件内容
+    */
     void OnMenuMouseLeave(MenuBarButton* pButton, const EventArgs& msg);
 
     //检查并按需显示子菜单

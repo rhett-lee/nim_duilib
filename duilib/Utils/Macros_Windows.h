@@ -16,18 +16,18 @@ namespace ui
 #define WM_GESTURENOTIFY                0x011A
 
 /*
-* RegisterTouchWindow flag values
+* RegisterTouchWindow 的标志值
 */
 #define TWF_FINETOUCH       (0x00000001)
 #define TWF_WANTPALM        (0x00000002)
 
 /*
-* Conversion of touch input coordinates to pixels
+* 将触摸输入的坐标转换为像素
 */
 #define TOUCH_COORD_TO_PIXEL(l)         ((l) / 100)
 
 /*
-* Touch input flag values (TOUCHINPUT.dwFlags)
+* 触摸输入的标志值 (TOUCHINPUT.dwFlags)
 */
 #define TOUCHEVENTF_MOVE            0x0001
 #define TOUCHEVENTF_DOWN            0x0002
@@ -39,7 +39,7 @@ namespace ui
 #define TOUCHEVENTF_PALM            0x0080
 
 /*
-* Touch input mask values (TOUCHINPUT.dwMask)
+* 触摸输入的掩码值 (TOUCHINPUT.dwMask)
 */
 #define TOUCHINPUTMASKF_TIMEFROMSYSTEM  0x0001  // the dwTime field contains a system generated value
 #define TOUCHINPUTMASKF_EXTRAINFO       0x0002  // the dwExtraInfo field is valid
@@ -188,7 +188,7 @@ typedef struct tagPOINTER_PEN_INFO {
 } POINTER_PEN_INFO;
 
 /*
-* Flags that appear in pointer input message parameters
+* 指针输入消息参数中出现的标志
 */
 #define POINTER_MESSAGE_FLAG_NEW                0x00000001 // New pointer
 #define POINTER_MESSAGE_FLAG_INRANGE            0x00000002 // Pointer has not departed
@@ -203,7 +203,7 @@ typedef struct tagPOINTER_PEN_INFO {
 #define POINTER_MESSAGE_FLAG_CANCELED           0x00008000 // Pointer is departing in an abnormal manner
 
 /*
-* Macros to retrieve information from pointer input message parameters
+* 从指针输入消息参数中提取信息的宏
 */
 #define GET_POINTERID_WPARAM(wParam)                (LOWORD(wParam))
 #define IS_POINTER_FLAG_SET_WPARAM(wParam, flag)    (((DWORD)HIWORD(wParam) & (flag)) == (flag))
@@ -220,7 +220,7 @@ typedef struct tagPOINTER_PEN_INFO {
 #define IS_POINTER_CANCELED_WPARAM(wParam)          IS_POINTER_FLAG_SET_WPARAM(wParam, POINTER_MESSAGE_FLAG_CANCELED)
 
 /*
-* WM_POINTERACTIVATE return codes
+* WM_POINTERACTIVATE 的返回值
 */
 #define PA_ACTIVATE                     MA_ACTIVATE
 #define PA_NOACTIVATE                   MA_NOACTIVATE

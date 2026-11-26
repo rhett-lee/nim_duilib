@@ -11,11 +11,14 @@ namespace client {
 
 namespace ui {
 
-/** CEF离屏渲染模式下的拖动目标
+/** CEF离屏渲染模式下的拖动目标（把控件的拖放事件转发给 CEF 浏览器）
  */
 class DUILIB_API CefOsrDropTarget : public ControlDropTarget_Windows
 {
 public:
+    /** 构造函数
+    * @param [in] pDropTargetWin Windows平台的拖放目标实现
+    */
     explicit CefOsrDropTarget(const std::shared_ptr<client::DropTargetWin>& pDropTargetWin);
     virtual ~CefOsrDropTarget() override;
 
@@ -33,6 +36,8 @@ public:
     virtual int32_t Drop(void* pDataObj, uint32_t grfKeyState, const UiPoint& pt, uint32_t* pdwEffect) override;
 
 private:
+    /** Windows平台下的拖放目标接口实现
+    */
     std::shared_ptr<client::DropTargetWin> m_pDropTargetWin;
 };
 

@@ -153,11 +153,14 @@ public:
      */
     void SetStateColorRound(ControlStateType stateType, UiSize colorRound, bool bNeedDpiScale);
 
-    /** 设置状态颜色区域的最小宽度或者最小高度（解决DPI缩放后的运算精度损失导致线条宽度失真问题）
+    /** 设置状态颜色区域的最小宽度（解决DPI缩放后的运算精度损失导致线条宽度失真问题）
     * @param [in] fMinWidth 设置状态颜色区域的最小宽度，未经DPI缩放
-    * @param [in] fMinHeight 设置状态颜色区域的最小高度，未经DPI缩放
     */
     void SetStateColorMinWidth(float fMinWidth);
+
+    /** 设置状态颜色区域的最小高度（解决DPI缩放后的运算精度损失导致线条宽度失真问题）
+    * @param [in] fMinHeight 设置状态颜色区域的最小高度，未经DPI缩放
+    */
     void SetStateColorMinHeight(float fMinHeight);
 
     /** 获取状态颜色区域的最小宽度或者最小高度（未经DPI缩放）
@@ -180,21 +183,19 @@ public:
     /**
      * @brief 设置背景图片
      * @param[in] strImage 要设置的图片路径
-     * @return 无
      */
     void SetBkImage(const DString& strImage);
 
     /**
      * @brief 设置背景图片（UTF8 格式字符串）
      * @param[in] strImage 要设置的图片路径
-     * @return 无
      */
     void SetUTF8BkImage(const std::string& strImage);
 
 public:
     /**
      * @brief 获取指定状态下的图片位置
-     * @param[in] 要获取何种状态下的图片，参考 ControlStateType 枚举
+     * @param[in] stateType 要获取何种状态下的图片，参考 ControlStateType 枚举
      * @return 指定状态下的图片位置
      */
     DString GetStateImage(ControlStateType stateType) const;
@@ -203,13 +204,12 @@ public:
      * @brief 设置某个状态下的图片
      * @param[in] stateType 要设置何种状态下的图片，参考 ControlStateType 枚举
      * @param[in] strImage 要设置的图片路径
-     * @return 无
      */
     void SetStateImage(ControlStateType stateType, const DString& strImage);
 
     /**
      * @brief 获取指定状态下的前景图片
-     * @param[in] 要获取何种状态下的图片，参考 `ControlStateType` 枚举
+     * @param[in] stateType 要获取何种状态下的图片，参考 `ControlStateType` 枚举
      * @return 指定状态下前景图片位置
      */
     DString GetForeStateImage(ControlStateType stateType) const;
@@ -218,7 +218,6 @@ public:
      * @brief 设置某个状态下前景图片
      * @param[in] stateType 要设置何种状态下的图片，参考 `ControlStateType` 枚举
      * @param[in] strImage 要设置的前景图片路径
-     * @return 无
      */
     void SetForeStateImage(ControlStateType stateType, const DString& strImage);
 
@@ -354,7 +353,7 @@ public:
     void SetBorderRound(UiSize borderRound);
 
     /** 设置边框阴影
-     * @param[in] 要设置的阴影属性
+     * @param[in] strShadow 要设置的阴影属性
      */
     void SetBoxShadow(const DString& strShadow);
 
@@ -386,28 +385,24 @@ public:
     /**
      * @brief 设置鼠标悬浮到控件显示的提示文本
      * @param[in] strText 要设置的文本
-     * @return 无
      */
     virtual void SetToolTipText(const DString& strText);
 
     /**
      * @brief 设置鼠标悬浮到控件显示的提示文本（UTF8 格式）
      * @param[in] strText 要设置的文本
-     * @return 无
      */
     virtual void SetUTF8ToolTipText(const std::string& strText);
 
     /**
      * @brief 设置鼠标悬浮到控件显示的提示文本在语言文件中对应的文字
      * @param[in] strTextId 在语言文件中对应的提示文字 ID
-     * @return 无
      */
     virtual void SetToolTipTextId(const DString& strTextId);
 
     /**
      * @brief 设置鼠标悬浮到控件显示的提示文本在语言文件中对应的文字（UTF8 格式）
      * @param[in] strTextId 在语言文件中对应的提示文字 ID
-     * @return 无
      */
     virtual void SetUTF8ToolTipTextId(const std::string& strTextId);
 
@@ -433,7 +428,6 @@ public:
     /**
      * @brief 设置控件响应上下文菜单消息
      * @param[in] bMenuUsed 是否响应上下文菜单消息，true 为是，false 为否
-     * @return 无
      */
     virtual void SetContextMenuUsed(bool bMenuUsed);
 
@@ -523,7 +517,6 @@ public:
     /**
      * @brief 设置是否将鼠标焦点到控件上
      * @param[in] bMouseFocused 为 true 时设置鼠标焦点到控件上，为 false 时让控件失去鼠标焦点
-     * @return 无
      */
     virtual void SetMouseFocused(bool bMouseFocused) { m_bMouseFocused = bMouseFocused; }
 
@@ -635,21 +628,18 @@ public:
      * @brief 设置控件指定属性
      * @param[in] strName 要设置的属性名称（如 width）
      * @param[in] strValue 要设置的属性值（如 100）
-     * @return 无
      */
     virtual void SetAttribute(const DString& strName, const DString& strValue);
 
     /**
      * @brief 设置控件的 class 全局属性
      * @param[in] strClass 要设置的 class 名称，该名称必须在 global.xml 中存在
-     * @return 无
      */
     void SetClass(const DString& strClass);
 
     /**
      * @brief 应用一套属性列表
      * @param[in] strList 属性列表的字符串表示，如 `width="100" height="30"`
-     * @return 无
      */
     void ApplyAttributeList(const DString& strList);
 
@@ -736,7 +726,6 @@ public:
     /**
      * @brief 设置是否接受TAB键切换焦点
      * @param[in] enable true 表示允许通过TAB键切换到此控件
-     * @return 无
      * @note 默认值为false（避免Label等非交互控件成为不可见的焦点停靠点）；
      *       Button/Slider/RichEdit等交互控件已在构造函数中默认开启，
      *       自定义的可聚焦控件需要自行调用本接口开启。
@@ -836,28 +825,42 @@ public:
                             AnimationImagePos nStopFrame = AnimationImagePos::kFrameCurrent,
                             bool bTriggerEvent = true);
 
-    /** 播放动画的当前帧
-     * @param [in] imageName 图片资源名称，即XML中配置图片资源中的name字段名称，如果为空串则表示是背景图片
+    /** 设置背景图片动画的当前帧
      * @param [in] nFrameIndex 从0开始的图片帧索引号
      */
     bool SetImageAnimationFrame(int32_t nFrameIndex);//背景图片
+
+    /** 设置指定图片动画的当前帧
+     * @param [in] imageName 图片资源名称，即XML中配置图片资源中的name字段名称
+     * @param [in] nFrameIndex 从0开始的图片帧索引号
+     */
     bool SetImageAnimationFrame(const DString& imageName, int32_t nFrameIndex);
 
-    /** 获取动画的当前帧的索引号
-    * @param [in] imageName 图片资源名称，即XML中配置图片资源中的name字段名称，如果为空串则表示是背景图片
+    /** 获取背景图片动画的当前帧的索引号
     */
     uint32_t GetImageAnimationFrameIndex() const;//背景图片
+
+    /** 获取指定图片动画的当前帧的索引号
+    * @param [in] imageName 图片资源名称，即XML中配置图片资源中的name字段名称
+    */
     uint32_t GetImageAnimationFrameIndex(const DString& imageName) const;
 
-    /** 获取动画的总帧数
-    * @param [in] imageName 图片资源名称，即XML中配置图片资源中的name字段名称，如果为空串则表示是背景图片
+    /** 获取背景图片动画的总帧数
     */
     uint32_t GetImageAnimationFrameCount();//背景图片
+
+    /** 获取指定图片动画的总帧数
+    * @param [in] imageName 图片资源名称，即XML中配置图片资源中的name字段名称
+    */
     uint32_t GetImageAnimationFrameCount(const DString& imageName);
 
-    /** 动画图片是否已经完成加载
+    /** 背景图片动画是否已经完成加载
     */
     bool IsImageAnimationLoaded() const;//背景图片
+
+    /** 指定图片动画是否已经完成加载
+    * @param [in] imageName 图片资源名称，即XML中配置图片资源中的name字段名称
+    */
     bool IsImageAnimationLoaded(const DString& imageName) const;
 
     /** 请求继续异步解码指定的图片数据
@@ -1282,18 +1285,37 @@ public:
 
     /** (m_pOnEvent)取消监听指定事件
      * @param [in] eventType 事件类型，见 EventType 枚举
-     * @param [in] callbackID 该回调函数对应的ID
      */
     void DetachEvent(EventType eventType);
+
+    /** (m_pOnEvent)根据回调函数ID取消监听
+     * @param [in] callbackID 该回调函数对应的ID
+     */
     void DetachEventByID(EventCallbackID callbackID);
+
+    /** (m_pOnEvent)根据事件类型和回调函数ID取消监听
+     * @param [in] eventType 事件类型，见 EventType 枚举
+     * @param [in] callbackID 该回调函数对应的ID
+     */
     void DetachEventByID(EventType eventType, EventCallbackID callbackID);
 
     /** (m_pOnEvent)是否含有指定事件
      * @param [in] eventType 事件类型，见 EventType 枚举
-     * @param [in] callbackID 该回调函数对应的ID
+     * @return 返回true表示含有该事件
      */
     bool HasEvent(EventType eventType) const;
+
+    /** (m_pOnEvent)是否含有指定回调函数ID的事件
+     * @param [in] callbackID 该回调函数对应的ID
+     * @return 返回true表示含有该事件
+     */
     bool HasEventByID(EventCallbackID callbackID) const;
+
+    /** (m_pOnEvent)是否含有指定事件类型和回调函数ID的事件
+     * @param [in] eventType 事件类型，见 EventType 枚举
+     * @param [in] callbackID 该回调函数对应的ID
+     * @return 返回true表示含有该事件
+     */
     bool HasEventByID(EventType eventType, EventCallbackID callbackID) const;
 
 public:
@@ -1306,18 +1328,37 @@ public:
 
     /** (m_pOnXmlEvent)取消监听指定事件
      * @param [in] eventType 事件类型，见 EventType 枚举
-     * @param [in] callbackID 该回调函数对应的ID
      */
     void DetachXmlEvent(EventType eventType);
+
+    /** (m_pOnXmlEvent)根据回调函数ID取消监听
+     * @param [in] callbackID 该回调函数对应的ID
+     */
     void DetachXmlEventByID(EventCallbackID callbackID);
+
+    /** (m_pOnXmlEvent)根据事件类型和回调函数ID取消监听
+     * @param [in] eventType 事件类型，见 EventType 枚举
+     * @param [in] callbackID 该回调函数对应的ID
+     */
     void DetachXmlEventByID(EventType eventType, EventCallbackID callbackID);
 
     /** (m_pOnXmlEvent)是否含有指定事件
      * @param [in] eventType 事件类型，见 EventType 枚举
-     * @param [in] callbackID 该回调函数对应的ID
+     * @return 返回true表示含有该事件
      */
     bool HasXmlEvent(EventType eventType) const;
+
+    /** (m_pOnXmlEvent)是否含有指定回调函数ID的事件
+     * @param [in] callbackID 该回调函数对应的ID
+     * @return 返回true表示含有该事件
+     */
     bool HasXmlEventByID(EventCallbackID callbackID) const;
+
+    /** (m_pOnXmlEvent)是否含有指定事件类型和回调函数ID的事件
+     * @param [in] eventType 事件类型，见 EventType 枚举
+     * @param [in] callbackID 该回调函数对应的ID
+     * @return 返回true表示含有该事件
+     */
     bool HasXmlEventByID(EventType eventType, EventCallbackID callbackID) const;
 
 public:
@@ -1330,18 +1371,37 @@ public:
 
     /** (m_pOnBubbledEvent)解绑事件处理函数
      * @param [in] eventType 事件类型
-     * @param [in] callbackID 该回调函数对应的ID
      */
     void DetachBubbledEvent(EventType eventType);
+
+    /** (m_pOnBubbledEvent)根据回调函数ID解绑事件处理函数
+     * @param [in] callbackID 该回调函数对应的ID
+     */
     void DetachBubbledEventByID(EventCallbackID callbackID);
+
+    /** (m_pOnBubbledEvent)根据事件类型和回调函数ID解绑事件处理函数
+     * @param [in] eventType 事件类型
+     * @param [in] callbackID 该回调函数对应的ID
+     */
     void DetachBubbledEventByID(EventType eventType, EventCallbackID callbackID);
 
     /** (m_pOnBubbledEvent)是否含有指定类型的事件处理函数
      * @param [in] eventType 事件类型
-     * @param [in] callbackID 该回调函数对应的ID
+     * @return 返回true表示含有该事件
      */
     bool HasBubbledEvent(EventType eventType) const;
+
+    /** (m_pOnBubbledEvent)是否含有指定回调函数ID的事件处理函数
+     * @param [in] callbackID 该回调函数对应的ID
+     * @return 返回true表示含有该事件
+     */
     bool HasBubbledEventByID(EventCallbackID callbackID) const;
+
+    /** (m_pOnBubbledEvent)是否含有指定事件类型和回调函数ID的事件处理函数
+     * @param [in] eventType 事件类型
+     * @param [in] callbackID 该回调函数对应的ID
+     * @return 返回true表示含有该事件
+     */
     bool HasBubbledEventByID(EventType eventType, EventCallbackID callbackID) const;
 
 public:
@@ -1354,18 +1414,37 @@ public:
 
     /** 解绑XML事件处理函数
      * @param [in] eventType 事件类型
-     * @param [in] callbackID 该回调函数对应的ID
      */
     void DetachXmlBubbledEvent(EventType eventType);
+
+    /** 根据回调函数ID解绑XML事件处理函数
+     * @param [in] callbackID 该回调函数对应的ID
+     */
     void DetachXmlBubbledEventByID(EventCallbackID callbackID);
+
+    /** 根据事件类型和回调函数ID解绑XML事件处理函数
+     * @param [in] eventType 事件类型
+     * @param [in] callbackID 该回调函数对应的ID
+     */
     void DetachXmlBubbledEventByID(EventType eventType, EventCallbackID callbackID);
 
     /** 是否含有指定的事件处理函数
      * @param [in] eventType 事件类型
-     * @param [in] callbackID 该回调函数对应的ID
+     * @return 返回true表示含有该事件
      */
     bool HasXmlBubbledEvent(EventType eventType) const;
+
+    /** 是否含有指定回调函数ID的事件处理函数
+     * @param [in] callbackID 该回调函数对应的ID
+     * @return 返回true表示含有该事件
+     */
     bool HasXmlBubbledEventByID(EventCallbackID callbackID) const;
+
+    /** 是否含有指定事件类型和回调函数ID的事件处理函数
+     * @param [in] eventType 事件类型
+     * @param [in] callbackID 该回调函数对应的ID
+     * @return 返回true表示含有该事件
+     */
     bool HasXmlBubbledEventByID(EventType eventType, EventCallbackID callbackID) const;
 
 public:
@@ -1672,7 +1751,7 @@ public:
     IFont* GetIFontById(const DString& strFontId) const;
 
     /** 设置为动画模式(该模式下，可减少不必要的绘制)
-    * @param [in] 
+    * @param [in] bAnimationMode true表示设置为动画模式，false表示取消动画模式
     */
     void SetAnimationMode(bool bAnimationMode);
 
@@ -1820,7 +1899,7 @@ private:
         }
     };
 
-    //Tootip数据
+    //Tooltip数据
     struct TTooltipData
     {
         //ToolTip的默认宽度（逻辑像素，创建数据时按当前DPI换算为实际像素）

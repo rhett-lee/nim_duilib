@@ -8,6 +8,11 @@ class SkFontMgr;
 namespace ui 
 {
 
+/** RenderFactory_Skia 是 IRenderFactory 的 Skia 实现，用于创建 Skia 后端的渲染资源，功能要点如下：
+ *  1. 创建字体、画笔、画刷、路径、矩阵、位图等基础渲染对象
+ *  2. 创建位图渲染对象、离屏渲染对象与窗口渲染对象
+ *  3. 管理并共享字体管理器，封装 Skia 相关的实现细节
+ */
 class RenderFactory_Skia : public IRenderFactory
 {
 public:
@@ -16,6 +21,7 @@ public:
     RenderFactory_Skia& operator = (const RenderFactory_Skia& r) = delete;
     virtual ~RenderFactory_Skia() override;
 
+    /// 重写父类方法，请参考父类声明：创建基础渲染对象
     virtual IFont* CreateIFont() override;
     virtual IPen* CreatePen(UiColor color, float fWidth = 1.0f) override;
     virtual IBrush* CreateBrush(UiColor color) override;

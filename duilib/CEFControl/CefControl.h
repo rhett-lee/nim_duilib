@@ -609,10 +609,9 @@ protected:
     */
     virtual Control* GetCefControl() override;
 
-    /// Method that will be executed when the image download has completed.
-    /// |image_url| is the URL that was downloaded and |http_status_code| is the
-    /// resulting HTTP status code. |image| is the resulting image, possibly at
-    /// multiple scale factors, or empty if the download failed.
+    /// 图片下载完成后的回调（供内部下载器 CefControlDownloadImageCallback 调用）
+    /// image_url 为下载的图片地址；http_status_code 为 HTTP 状态码；
+    /// image 为下载得到的图片（可能包含多个缩放比例），下载失败时为空。
     ///
     /*--cef(optional_param=image)--*/
     friend class CefControlDownloadImageCallback;

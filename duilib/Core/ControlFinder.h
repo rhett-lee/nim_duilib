@@ -9,11 +9,11 @@
 
 namespace ui 
 {
-// Flags for Control::GetControlFlags()
+// Control::GetControlFlags() 的标志位
 #define UIFLAG_DEFAULT       0x00000000        // 默认状态
 #define UIFLAG_TABSTOP       0x00000001        // 标识控件是否在收到 TAB 切换焦点时允许设置焦点
 
-// Flags for FindControl()
+// FindControl() 的查找标志位
 #define UIFIND_ALL           0x00000000
 #define UIFIND_VISIBLE       0x00000001
 #define UIFIND_ENABLED       0x00000002
@@ -26,11 +26,17 @@ namespace ui
 class Control;
 class Box;
 
+/** TAB 键切换焦点时使用的查找信息
+*/
 typedef struct tagFINDTABINFO
 {
+    //当前拥有焦点的控件
     Control* pFocus;
+    //遍历过程中上一个可接受 TAB 焦点的控件
     Control* pLast;
+    //是否向前(向后)查找
     bool bForward;
+    //是否已经找到下一个控件
     bool bNextIsIt;
 } FINDTABINFO;
 
@@ -75,7 +81,7 @@ public:
     */
     Box* FindDroppableBox(const UiPoint& pt, uint8_t nDropInId) const;
 
-    /** 根据控件名称查找控件
+    /** 根据控件名称在缓存中查找控件
      * @param [in] pAncestor 父祖级别的控件
      * @param [in] strName 控件名称
      * @return 返回控件指针
@@ -100,21 +106,56 @@ public:
     */
     void AddControl(Control* pControl);
 
-    /**@brief 回收控件（通过AddControl函数添加的控件）
+    /** 移除控件（删除该控件在名称索引中的记录）
      * @param[in] pControl 控件指针
      */
     void RemoveControl(Control* pControl);
 
-    /** 清除状态
+    /** 清除状态（清空根节点和控件名称索引）
     */
     void Clear();
 
 public:
+    /** 查找控件的匹配函数：判断坐标点是否落在控件内
+    * @param [in] pThis 当前遍历到的控件
+    * @param [in] pData 查找参数，类型为 UiPoint*（客户区坐标）
+    * @return 返回命中的控件，未命中返回nullptr
+    */
     static Control* FindControlFromPoint(Control* pThis, void* pData);
+
+    /** 查找控件的匹配函数：按 TAB 键顺序查找下一个可获得焦点的控件
+    * @param [in] pThis 当前遍历到的控件
+    * @param [in] pData 查找参数，类型为 FINDTABINFO*
+    * @return 返回命中的控件，未命中返回nullptr
+    */
     static Control* FindControlFromTab(Control* pThis, void* pData);
+
+    /** 查找控件的匹配函数：查找已完成布局的控件
+    * @param [in] pThis 当前遍历到的控件
+    * @param [in] pData 查找参数（未使用）
+    * @return 如果控件已完成布局则返回该控件，否则返回nullptr
+    */
     static Control* FindControlFromUpdate(Control* pThis, void* pData);
+
+    /** 查找控件的匹配函数：按名称查找控件（区分大小写）
+    * @param [in] pThis 当前遍历到的控件
+    * @param [in] pData 查找参数，类型为 const DString::value_type*（控件名称）
+    * @return 返回名称匹配的控件，未命中返回nullptr
+    */
     static Control* FindControlFromName(Control* pThis, void* pData);
+
+    /** 查找控件的匹配函数：查找响应上下文菜单的控件
+    * @param [in] pThis 当前遍历到的控件
+    * @param [in] pData 查找参数（未使用）
+    * @return 如果控件响应上下文菜单则返回该控件，否则返回nullptr
+    */
     static Control* FindContextMenuControl(Control* pThis, void* pData);
+
+    /** 查找控件的匹配函数：查找可接收指定拖放 ID 的控件
+    * @param [in] pThis 当前遍历到的控件
+    * @param [in] pData 查找参数，值为拖放的 ID（按 uint8_t 解释）
+    * @return 返回拖放 ID 匹配的控件，未命中返回nullptr
+    */
     static Control* FindControlFromDroppableBox(Control* pThis, void* pData);
 
 private:

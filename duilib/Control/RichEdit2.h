@@ -10,7 +10,11 @@ namespace ui
 class VBox;
 class DrawRichTextCache;
 
-/** RichEdit2 跨平台，自己实现，支持所有平台
+/** 跨平台富文本编辑控件（RichEdit2），功能要点如下：
+*  1. 跨平台自绘实现，支持单行/多行文本、密码模式与只读模式
+*  2. 支持富文本格式、对齐方式、字体与颜色设置
+*  3. 支持文本选择、光标操作、滚动、缩放与输入法
+*  4. 支持拖放、复制粘贴与撤销重做等编辑操作
 */
 class DUILIB_API RichEdit2 : public ScrollBox, protected IRichTextData
 {
@@ -767,7 +771,7 @@ public:
     void EmptyUndoBuffer();
 
     /** 设置撤销列表容纳的内容数量
-     * @param [in] nLimit
+     * @param [in] nLimit 撤销列表可容纳的最大内容数量
      */
     void SetUndoLimit(uint32_t nLimit);
 
@@ -883,6 +887,7 @@ protected:
     */
     virtual void ClearFocusFromTab();
 
+    /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual bool OnImeStartComposition(const EventArgs& msg) override;
     virtual bool OnImeComposition(const EventArgs& msg) override;
     virtual bool OnImeEndComposition(const EventArgs& msg) override;
@@ -987,13 +992,51 @@ protected:
     virtual bool IsScrollBoxLayoutByActualAreaSize() const override;
 
 private:
+    /** 鼠标左键按下事件处理
+    * @param [in] ptMouse 鼠标位置（窗口客户区坐标）
+    * @param [in] pSender 事件发送者控件
+    * @param [in] bShiftDown 是否按下了 Shift 键
+    */
     void OnLButtonDown(const UiPoint& ptMouse, Control* pSender, bool bShiftDown);
+
+    /** 鼠标左键弹起事件处理
+    * @param [in] ptMouse 鼠标位置（窗口客户区坐标）
+    * @param [in] pSender 事件发送者控件
+    */
     void OnLButtonUp(const UiPoint& ptMouse, Control* pSender);
+
+    /** 鼠标左键双击事件处理
+    * @param [in] ptMouse 鼠标位置（窗口客户区坐标）
+    * @param [in] pSender 事件发送者控件
+    */
     void OnLButtonDoubleClick(const UiPoint& ptMouse, Control* pSender);
+
+    /** 鼠标右键按下事件处理
+    * @param [in] ptMouse 鼠标位置（窗口客户区坐标）
+    * @param [in] pSender 事件发送者控件
+    */
     void OnRButtonDown(const UiPoint& ptMouse, Control* pSender);
+
+    /** 鼠标右键弹起事件处理
+    * @param [in] ptMouse 鼠标位置（窗口客户区坐标）
+    * @param [in] pSender 事件发送者控件
+    */
     void OnRButtonUp(const UiPoint& ptMouse, Control* pSender);
+
+    /** 鼠标移动事件处理
+    * @param [in] ptMouse 鼠标位置（窗口客户区坐标）
+    * @param [in] pSender 事件发送者控件
+    */
     void OnMouseMove(const UiPoint& ptMouse, Control* pSender);
+
+    /** 鼠标滚轮事件处理（Ctrl + 滚轮缩放文本）
+    * @param [in] wheelDelta 滚轮增量
+    * @param [in] bCtrlDown 是否按下了 Ctrl 键
+    */
     void OnMouseWheel(int32_t wheelDelta, bool bCtrlDown);
+
+    /** 控件所属窗口失去焦点时的处理，复位鼠标状态
+    */
     void OnWindowKillFocus();
 
     /** 判断当前鼠标按下是否属于三击（与上次双击的时间间隔足够短，并且点击位置接近）
@@ -1573,6 +1616,9 @@ private:
 #endif
 
 #ifdef DUILIB_NO_RICHEDIT
+    /** RichEdit 控件（无原生富文本实现时的兼容类），功能要点如下：
+    *  1. 在不支持 RICHEDIT 的编译配置下，提供与 RichEdit2 一致的接口
+    */
     class DUILIB_API RichEdit : public RichEdit2
     {
     public:
