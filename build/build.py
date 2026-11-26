@@ -988,7 +988,12 @@ def detect_toolchain(arch: str, vs_version: str | None, args=None) -> Toolchain:
         env["CC"], env["CXX"] = "gcc", "g++"
     ninja = _find_ninja(env, vs_install, args)
     if ninja:
-        env["PATH"] = str(ninja.parent) + os.pathsep + env.get("PATH", "")
+        # 只有当 ninja 不来自 PATH（VS 自带、skia/bin、补丁归档）时才把它的目录
+        # 前置到 PATH。已能从 PATH 找到时再前置，等于把 ninja 所在目录（Linux 上
+        # 通常是 /usr/bin）顶到最前，会遮蔽 PATH 中优先级更高的 cmake：后续
+        # find_cmake 就会拿到 /usr/bin/cmake 这类旧版本，而 `--preset` 需要 3.19+。
+        if shutil.which("ninja", path=env.get("PATH", "")) is None:
+            env["PATH"] = str(ninja.parent) + os.pathsep + env.get("PATH", "")
         generator = "Ninja"
     elif sys.platform == "win32" and not env.get("MSYSTEM"):
         # 没有 Ninja 时退回多配置的 VS 生成器；名字按实际安装的 VS 版本取，
