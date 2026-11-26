@@ -730,6 +730,10 @@
 
                 <!-- Section 9: Tab Box -->
                 <GroupVBox class="group_box_round" text="TabBox - All States" height="auto" margin="0,4,0,0" padding="10,20,6,10" control_padding="false">
+                    <TabCtrl class="tab_ctrl" tab_box_name="tab_box" selected_id="0" width="stretch" height="36">
+                        <TabCtrlItem class="tab_ctrl_item" title="Tab 1" width="96" tab_box_item_index="0"/>
+                        <TabCtrlItem class="tab_ctrl_item" title="Tab 2" width="96" tab_box_item_index="1"/>
+                    </TabCtrl>
                     <TabBox name="tab_box" bkcolor="bg_container" selected_id="0" height="auto">
                         <VBox padding="10,10,10,10" height="auto">
                             <Label text="Tab 1 Content" height="auto"/>

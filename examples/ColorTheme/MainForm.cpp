@@ -8,6 +8,70 @@
 #include <algorithm>
 #include <iterator>
 
+namespace
+{
+/** 读取当前颜色主题的 global.xml 完整路径
+*/
+bool GetCurrentColorThemeXmlPath(ui::FilePath& xmlFullPath)
+{
+    const DString globalXmlFileName = ui::GlobalManager::Instance().Theme().GetGlobalXmlFileName();
+    if (globalXmlFileName.empty()) {
+        return false;
+    }
+    xmlFullPath = ui::GlobalManager::Instance().Theme().GetThemeRootPath();
+    xmlFullPath /= ui::GlobalManager::Instance().Theme().GetCurrentColorThemeInfo().m_themePath;
+    xmlFullPath /= ui::FilePath(globalXmlFileName);
+    return true;
+}
+
+/** 从XML文件数据中加载全部颜色配置
+*/
+bool LoadColorConfigsFromXmlData(const std::string& xmlFileData, std::map<std::string, ui::ThemeColorConfig>& colorConfigs)
+{
+    if (xmlFileData.empty()) {
+        return false;
+    }
+    ui::ThemeGenerator themeGenerator;
+    if (!themeGenerator.LoadConfigFromXml(xmlFileData)) {
+        return false;
+    }
+    colorConfigs = themeGenerator.GetLoadedConfigs();
+    return !colorConfigs.empty();
+}
+
+/** 加载当前颜色主题的全部颜色配置
+*/
+bool LoadCurrentColorConfigs(std::map<std::string, ui::ThemeColorConfig>& colorConfigs)
+{
+    ui::FilePath xmlFullPath;
+    if (!GetCurrentColorThemeXmlPath(xmlFullPath)) {
+        return false;
+    }
+    ui::WindowBuilder windowBuilder;
+    return LoadColorConfigsFromXmlData(windowBuilder.ReadXmlFileData(xmlFullPath), colorConfigs);
+}
+
+/** 计算颜色块上的文字颜色：考虑半透明颜色与背景色的混合效果，保证文字可读
+*/
+DString GetColorCardTextColor(const std::string& colorValue, bool bDarkTheme)
+{
+    uint8_t alpha = 255, red = 0, green = 0, blue = 0;
+    if (!ui::ColorConverter::ParseHexColor(colorValue, alpha, red, green, blue)) {
+        return bDarkTheme ? _T("#FFFFFFFF") : _T("#FF000000");
+    }
+    if (alpha < 255) {
+        //半透明颜色实际显示的底色受其下方背景影响，这里与窗口背景色混合后再计算亮度
+        const uint8_t bgColor = bDarkTheme ? 0x1E : 0xF5;
+        const double fAlpha = (double)alpha / 255.0;
+        red = (uint8_t)(red * fAlpha + bgColor * (1.0 - fAlpha));
+        green = (uint8_t)(green * fAlpha + bgColor * (1.0 - fAlpha));
+        blue = (uint8_t)(blue * fAlpha + bgColor * (1.0 - fAlpha));
+    }
+    const double luminance = ui::ColorConverter::GetRelativeLuminance(red, green, blue);
+    return (luminance > 0.5) ? _T("#FF000000") : _T("#FFFFFFFF");
+}
+}
+
 MainForm::MainForm()
 {
 }
@@ -231,6 +295,16 @@ void MainForm::OnInitWindow()
     ShowLightDarkColorCompare();
 }
 
+bool MainForm::OnThemeChanged()
+{
+    bool bRet = BaseClass::OnThemeChanged();
+    //窗口级生成主题优先于全局主题：存在生成的主题数据时，全局主题切换不影响本窗口的颜色
+    if (m_colorThemeXmlData.empty()) {
+        UpdateAllColors();
+    }
+    return bRet;
+}
+
 void MainForm::OnGenColorEnableStateChanged(bool bEnabled)
 {
     if (bEnabled) {
@@ -240,7 +314,10 @@ void MainForm::OnGenColorEnableStateChanged(bool bEnabled)
         OnGenColorParamChanged();
     }
     else {
+        //关闭生成功能时，清除生成的主题数据，并刷新颜色卡片（恢复为当前颜色主题的颜色值）
+        m_colorThemeXmlData.clear();
         CloseColorTheme();
+        UpdateAllColors();
     }
 }
 
@@ -419,34 +496,21 @@ void MainForm::ShowAllColors()
         return;
     }
 
-    //从当前主题加载默认的配置
-    ui::FilePath globalXmlFileName = ui::FilePath(ui::GlobalManager::Instance().Theme().GetGlobalXmlFileName());
-    ASSERT(!globalXmlFileName.IsEmpty());
-    if (globalXmlFileName.IsEmpty()) {
+    //从当前颜色主题加载默认的配置
+    std::map<std::string, ui::ThemeColorConfig> themeColorConfigs;
+    if (!LoadCurrentColorConfigs(themeColorConfigs)) {
+        ASSERT(0);
         return;
     }
-
-    ui::FilePath themeFullPath = ui::GlobalManager::Instance().Theme().GetThemeRootPath();
-    themeFullPath /= ui::GlobalManager::Instance().Theme().GetCurrentColorThemeInfo().m_themePath;
-    themeFullPath /= globalXmlFileName;
-
-    ui::WindowBuilder windowBuilder;
-    std::string xmlFileData = windowBuilder.ReadXmlFileData(themeFullPath);
-    ASSERT(!xmlFileData.empty());
-    if (xmlFileData.empty()) {
-        return;
+    //重复调用时，先清理旧的显示内容
+    if (!m_allColorLabels.empty()) {
+        pAllColorsBox->RemoveAllItems();
     }
-
-    ui::ThemeGenerator themeGenerator;
-    if (!themeGenerator.LoadConfigFromXml(xmlFileData)) {
-        return;
-    }
-    //所有颜色
-    std::map<std::string, ui::ThemeColorConfig> themeColorConfigs = themeGenerator.GetLoadedConfigs();
     m_allColorLabels.clear();
 
     //按type分组
     std::map<std::string, ui::GridBox*> themeTypeGroupBoxs;
+    const bool bDarkTheme = IsColorThemeDarkMode();
     for (const auto& pair : themeColorConfigs) {
         const std::string& colorName = pair.first;
         const ui::ThemeColorConfig& colorConfig = pair.second;
@@ -483,38 +547,51 @@ void MainForm::ShowAllColors()
         pColorLabel->SetText(ui::StringConvert::UTF8ToT(colorName));
         pColorLabel->SetToolTipText(ui::StringConvert::UTF8ToT(colorName + " = " + colorConfig.value));
         pColorLabel->SetAttribute(_T("text_align"), _T("hcenter,vcenter"));
-
         //按色块亮度自动选择文字颜色，保证文字可读性
-        uint8_t alpha = 255, red = 0, green = 0, blue = 0;
-        if (ui::ColorConverter::ParseHexColor(colorConfig.value, alpha, red, green, blue)) {
-            double luminance = ui::ColorConverter::GetRelativeLuminance(red, green, blue);
-            pColorLabel->SetStateTextColor(ui::ControlStateType::kControlStateNormal,
-                                           (luminance > 0.5) ? _T("#FF000000") : _T("#FFFFFFFF"));
-        }
+        pColorLabel->SetStateTextColor(ui::ControlStateType::kControlStateNormal,
+                                       GetColorCardTextColor(colorConfig.value, bDarkTheme));
         m_allColorLabels[colorName] = pColorLabel;
     }
 
-    //刷新生成主题后的颜色值提示
+    //刷新生成主题后的颜色值和文字颜色
     UpdateAllColors();
 }
 
 void MainForm::UpdateAllColors()
 {
-    if (m_allColorLabels.empty() || m_colorThemeXmlData.empty()) {
+    if (m_allColorLabels.empty()) {
         return;
     }
-    ui::ThemeGenerator themeGenerator;
-    if (!themeGenerator.LoadConfigFromXml(m_colorThemeXmlData)) {
+    std::map<std::string, ui::ThemeColorConfig> themeColorConfigs;
+    bool bLoaded = false;
+    if (!m_colorThemeXmlData.empty()) {
+        //使用生成的主题数据
+        bLoaded = LoadColorConfigsFromXmlData(m_colorThemeXmlData, themeColorConfigs);
+    }
+    if (!bLoaded) {
+        //未开启主题生成功能时（或生成数据无效），使用当前颜色主题的配置
+        bLoaded = LoadCurrentColorConfigs(themeColorConfigs);
+    }
+    if (!bLoaded) {
         return;
     }
-    std::map<std::string, ui::ThemeColorConfig> themeColorConfigs = themeGenerator.GetLoadedConfigs();
     for (const auto& pair : themeColorConfigs) {
         auto iter = m_allColorLabels.find(pair.first);
-        if ((iter != m_allColorLabels.end()) && (iter->second != nullptr)) {
-            DString tooltip = ui::StringConvert::UTF8ToT(pair.first + " = " + pair.second.value);
-            iter->second->SetToolTipText(tooltip);
+        if ((iter == m_allColorLabels.end()) || (iter->second == nullptr)) {
+            continue;
         }
+        iter->second->SetToolTipText(ui::StringConvert::UTF8ToT(pair.first + " = " + pair.second.value));
+        UpdateColorLabelStyle(iter->second, pair.second.value);
     }
+}
+
+void MainForm::UpdateColorLabelStyle(ui::Label* pLabel, const std::string& colorValue)
+{
+    if (pLabel == nullptr) {
+        return;
+    }
+    pLabel->SetStateTextColor(ui::ControlStateType::kControlStateNormal,
+                              GetColorCardTextColor(colorValue, IsColorThemeDarkMode()));
 }
 
 void MainForm::CreateThemeGenerator()
@@ -628,6 +705,26 @@ void MainForm::ResetGenParams()
         return;
     }
     m_pThemeGenerator->ResetParams();
+
+    //重置生成参数的界面状态（Hue、基础色度、中性色模式、浅色/深色主题）
+    auto setSliderValue = [this](const DString& sliderName, double fValue) {
+        ui::Slider* pSlider = dynamic_cast<ui::Slider*>(FindControl(sliderName));
+        if (pSlider != nullptr) {
+            pSlider->SetValueNoEvent(fValue);
+        }
+    };
+    setSliderValue(_T("gen_color_slider_hue"), 0.0);
+    setSliderValue(_T("gen_color_slider_base_chroma"), 0.0);
+
+    ui::CheckBox* pNeutralMode = dynamic_cast<ui::CheckBox*>(FindControl(_T("gen_color_neutral_mode")));
+    if (pNeutralMode != nullptr) {
+        pNeutralMode->Selected(false);
+    }
+    ui::Option* pLightOption = dynamic_cast<ui::Option*>(FindControl(_T("gen_color_radio_light")));
+    if (pLightOption != nullptr) {
+        pLightOption->Selected(true);
+    }
+
     InitGenParamSliders();
     OnGenColorParamChanged();
 }

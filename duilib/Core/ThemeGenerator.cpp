@@ -994,6 +994,62 @@ std::string ThemeGenerator::GenerateThemeXml(bool isDark) const
         result = result.substr(0, valueStart) + newValue + result.substr(valueEnd);
     }
 
+    //第7步：修正主题的浅色/深色属性
+    //生成的XML基于原始主题文件（通常是浅色主题），需要按实际生成结果修正Theme节点的style和name，
+    //否则窗口加载生成的主题后，无法识别深色主题（影响IsColorThemeDarkMode相关的控件绘制逻辑）
+    const std::string newStyle = isDark ? "dark" : "light";
+    const std::string newThemeName = isDark ? "Dark" : "Light";
+    size_t themePos = result.find("<Theme ");
+    if (themePos != std::string::npos) {
+        size_t themeEnd = result.find('>', themePos);
+        if (themeEnd != std::string::npos) {
+            std::string themeTag = result.substr(themePos, themeEnd - themePos);
+            auto replaceAttribute = [](std::string& tag, const std::string& attrName, const std::string& attrValue) {
+                const std::string key = " " + attrName + "=\"";
+                size_t pos = tag.find(key);
+                if (pos == std::string::npos) {
+                    return;
+                }
+                size_t valueStart = pos + key.size();
+                size_t valueEnd = tag.find('"', valueStart);
+                if (valueEnd == std::string::npos) {
+                    return;
+                }
+                tag = tag.substr(0, valueStart) + attrValue + tag.substr(valueEnd);
+            };
+            replaceAttribute(themeTag, "style", newStyle);
+            replaceAttribute(themeTag, "name", newThemeName);
+            result.replace(themePos, themeEnd - themePos, themeTag);
+        }
+    }
+    //同步ThemeMeta中的基础亮度信息
+    const std::string oldLuminance = isDark ? "name=\"base_luminance\" value=\"light\"" : "name=\"base_luminance\" value=\"dark\"";
+    const std::string newLuminance = isDark ? "name=\"base_luminance\" value=\"dark\"" : "name=\"base_luminance\" value=\"light\"";
+    size_t luminancePos = result.find(oldLuminance);
+    if (luminancePos != std::string::npos) {
+        result.replace(luminancePos, oldLuminance.size(), newLuminance);
+    }
+
+    //同步ThemeMeta中的基础颜色与强调色
+    auto replaceMetaValue = [&result](const std::string& propertyName, const std::string& newValue) {
+        if (newValue.empty()) {
+            return;
+        }
+        const std::string key = "name=\"" + propertyName + "\" value=\"";
+        size_t pos = result.find(key);
+        if (pos == std::string::npos) {
+            return;
+        }
+        size_t valueStart = pos + key.size();
+        size_t valueEnd = result.find('"', valueStart);
+        if (valueEnd == std::string::npos) {
+            return;
+        }
+        result = result.substr(0, valueStart) + newValue + result.substr(valueEnd);
+    };
+    replaceMetaValue("base_color", GetGeneratedColor("--background"));
+    replaceMetaValue("accent_color", GetGeneratedColor("--accent"));
+
     return result;
 }
 

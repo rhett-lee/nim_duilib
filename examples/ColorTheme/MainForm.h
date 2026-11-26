@@ -33,6 +33,10 @@ public:
     */
     virtual void OnInitWindow() override;
 
+    /** 主题切换事件
+    */
+    virtual bool OnThemeChanged() override;
+
 private:
     /** 生成主题颜色的功能开关
     */
@@ -46,9 +50,13 @@ private:
     */
     void ShowAllColors();
 
-    /** 更新全量颜色卡片的提示信息（生成主题后调用）
+    /** 更新全量颜色卡片的文字颜色和提示信息（生成主题或主题切换后调用）
     */
     void UpdateAllColors();
+
+    /** 根据颜色值设置颜色卡片的文字颜色（保证文字可读）
+    */
+    void UpdateColorLabelStyle(ui::Label* pLabel, const std::string& colorValue);
 
     /** 创建并加载当前主题配置的主题生成器
     */
