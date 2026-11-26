@@ -187,7 +187,7 @@ python3 build/build.py pack            # 出包
    `--no-deps` 可跳过；
 7. `pack.py`、`release.py`、`autotest.py` 行为不变（需要两种配置时分两次调用），
    测试全绿；
-8. `python3 -m unittest build/test_build.py` 通过（标准库 unittest，无 pytest 依赖）；
+8. `python3 -m unittest build/testing/test_build.py` 通过（标准库 unittest，无 pytest 依赖）；
 9. `pack.py` 产物包含 `LICENSES/` 与 `THIRD-PARTY-NOTICES.md`；
 10. `build/build.md` 已删除，全仓库无指向它的链接；根 README 首屏只出现
     `python3 build/build.py` 与 `python3 build/build.py --config Debug`，不出现

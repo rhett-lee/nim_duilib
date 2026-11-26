@@ -1,5 +1,7 @@
 # Building an Example as a macOS App Bundle
 
+> Navigation: [build documentation index](../README.md)
+
 This document explains how to build a normal macOS example as an `.app` bundle
 without changing any C++ source. Windows, Linux and FreeBSD builds are unaffected.
 
@@ -300,7 +302,7 @@ spctl -a -vv bin/basic.app
 `--deep` is convenient for smoke tests; for release builds sign from the inside out
 (`Contents/Frameworks/libSDL3*.dylib` → main executable → `.app`) so no nested
 binary is missed. See the macOS section of
-[docs/Release.en.md](../docs/Release.en.md#signing-and-notarization) for CEF
+[docs/Release.en.md](../../docs/Release.en.md#signing-and-notarization) for CEF
 Helpers and Frameworks.
 
 ## 7. Packaging and package tests
@@ -314,11 +316,11 @@ python3 build/pack.py --config Release --with-examples
 ```
 
 The package contains `bin/basic.app/...`. C10 in
-`build/sdk_package_test.py` already accepts
+`build/testing/sdk_package_test.py` already accepts
 `bin/basic.app/Contents/MacOS/basic`:
 
 ```bash
-python3 build/sdk_package_test.py \
+python3 build/testing/sdk_package_test.py \
     --package dist/nim_duilib-<version>-macos-x64-examples.tar.gz
 ```
 

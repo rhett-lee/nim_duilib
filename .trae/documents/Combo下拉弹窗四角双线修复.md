@@ -42,7 +42,7 @@ combo_tree_view_class="class='tree_view' padding='4,4,4,4' border_size='0,0,0,0'
 ## 验证
 
 1. 构建 Debug x64（SDL）：
-   `.\build.bat`（或仓库既有构建脚本，仅 Debug x64）。
+   `python build\build.py`（或仓库既有构建脚本，仅 Debug x64）。
 2. 运行 `bin` 下的示例程序，打开 Combo 下拉框（示例程序里字号下拉、`controls_d` 中的 combo 均可）。
 3. 截图放大四角，确认：
    - 四角只有一层 6px 圆角的 1px 边框；

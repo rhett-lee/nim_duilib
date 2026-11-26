@@ -6,7 +6,7 @@ examples 目录中包含了一些示例程序，可以参考这些示例程序�
 ## 1. examples/basic
 一个基础的窗口示例程序，带有最小化、最大化、还原和关闭按钮。    
 macOS 下默认编译为 `bin/basic.app`，C++ 代码无需修改；配置方法见
-[build/macos-app-bundle.md](../build/macos-app-bundle.md)。    
+[build/docs/macos-app-bundle.md](../build/docs/macos-app-bundle.md)。    
 代码入口：[MainThread.cpp](../examples/basic/MainThread.cpp)、[MainForm.cpp](../examples/basic/MainForm.cpp)；界面资源：`bin/resources/themes/default/basic/basic.xml`；相关文档：[Getting-Started.md](Getting-Started.md)、[Window.md](Window.md)。    
 <img width="700" src="./Images/basic.png"/>
 

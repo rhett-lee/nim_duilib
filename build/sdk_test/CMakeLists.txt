@@ -1,7 +1,7 @@
 # nim_duilib SDK 消费者用例工程（发布包测试专用）
 #
 # 该工程只消费解包后的 SDK，不引用 nim_duilib 源码树。
-# 由 build/sdk_package_test.py 驱动，也可以手工配置：
+# 由 build/testing/sdk_package_test.py 驱动，也可以手工配置：
 #   cmake -S build/sdk_test -B <build-dir> -DNIM_DUILIB_SDK_DIR=<解包后的 SDK 根>
 # 解包后把 sdk_test 放在 SDK 根目录里时，可以省略该变量或写相对路径：
 #   cmake -S ./sdk_test -B ./build -DNIM_DUILIB_SDK_DIR=./

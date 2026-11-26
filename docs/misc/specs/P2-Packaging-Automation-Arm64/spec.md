@@ -76,7 +76,7 @@
 
 ## 3. P2-1：测试与自动化
 
-### 3.1 `build/test_pack.py` 扩展（不依赖真实构建产物）
+### 3.1 `build/testing/test_pack.py` 扩展（不依赖真实构建产物）
 
 新增用例分组：
 
@@ -108,21 +108,21 @@
 保持 `unittest` 单文件、零第三方依赖；全部用例可在 Windows 工作区 Python 与
 MSYS2 Python 下运行。
 
-### 3.2 新增 `build/autotest.py`
+### 3.2 新增 `build/testing/autotest.py`
 
 **定位**：本地可重复执行的打包自动化，不做 CI；默认只读，输出隔离。
 
 CLI：
 
 ```
-python3 build/autotest.py --list-presets
-python3 build/autotest.py --preset unit
-python3 build/autotest.py --preset pack-msvc-x64-release [--with-examples]
-python3 build/autotest.py --preset arm64-synthetic
-python3 build/autotest.py --preset all-ready
-python3 build/autotest.py --preset pack-msvc-x64-release --build
-python3 build/autotest.py --preset ... --dry-run
-python3 build/autotest.py --preset ... --out-dir C:\develop\temp\autotest\run1
+python3 build/testing/autotest.py --list-presets
+python3 build/testing/autotest.py --preset unit
+python3 build/testing/autotest.py --preset pack-msvc-x64-release [--with-examples]
+python3 build/testing/autotest.py --preset arm64-synthetic
+python3 build/testing/autotest.py --preset all-ready
+python3 build/testing/autotest.py --preset pack-msvc-x64-release --build
+python3 build/testing/autotest.py --preset ... --dry-run
+python3 build/testing/autotest.py --preset ... --out-dir C:\develop\temp\autotest\run1
 ```
 
 预设（`PRESETS` 表：名称 → lib 架构/配置/工具链、pack 参数、是否需要构建）：
@@ -162,17 +162,17 @@ python3 build/autotest.py --preset ... --out-dir C:\develop\temp\autotest\run1
 - `--dry-run` 只打印将执行的命令；
 - 不自动提交、不修改版本号、不删除现有产物（临时目录可选 `--keep` 保留）。
 
-### 3.3 `build/test_autotest.py`
+### 3.3 `build/testing/test_autotest.py`
 
 纯单元测试（不构建、不打包）：预设表完整性、命令拼装、前置条件判定、
 `--dry-run` 不执行外部命令、报告字段、退出码映射、arm64 合成库创建内容。
 
 ## 4. 验收标准
 
-1. `python3 build/test_pack.py`、MSYS2 Python 同命令全部通过；
-2. `python3 build/test_autotest.py` 全部通过；
-3. `python3 build/autotest.py --preset unit` 退出码 0；
-4. `python3 build/autotest.py --preset arm64-synthetic` 退出码 0：
+1. `python3 build/testing/test_pack.py`、MSYS2 Python 同命令全部通过；
+2. `python3 build/testing/test_autotest.py` 全部通过；
+3. `python3 build/testing/autotest.py --preset unit` 退出码 0；
+4. `python3 build/testing/autotest.py --preset arm64-synthetic` 退出码 0：
    产出 zip 内含 `msvc/manifest/duilib.arm64.manifest` 且架构为 ARM64，
    `--verify` 通过；
 5. 前置条件满足的 `pack-*` 预设：`--verify` 通过，报告记录包大小与 SHA 校验结果；

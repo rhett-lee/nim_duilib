@@ -18,7 +18,7 @@
 #
 # 读取调用方作用域内的 DUILIB_MD、DUILIB_COMPILER_GCC、DUILIB_MSYS2_ENV、
 # DUILIB_MINGW_NAME（与 duilib_skia_variants.cmake 相同的变量）。
-# build/test_cmake_scripts.py 会用同一组用例比对 build/pack.py 的打包侧实现
+# build/testing/test_cmake_scripts.py 会用同一组用例比对 build/pack.py 的打包侧实现
 # （_sdl_variant_name），防止两侧再次漂移。
 
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_skia_variants.cmake")

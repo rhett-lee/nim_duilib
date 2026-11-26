@@ -7,13 +7,13 @@
 系统临时目录下的 nim_duilib_autotest/<时间戳>）。
 
 用法：
-    python3 build/autotest.py --list-presets
-    python3 build/autotest.py --preset unit
-    python3 build/autotest.py --preset pack-msvc-x64-release
-    python3 build/autotest.py --preset arm64-synthetic
-    python3 build/autotest.py --preset all-ready
-    python3 build/autotest.py --preset pack-msvc-x64-release --build
-    python3 build/autotest.py --preset ... --dry-run
+    python3 build/testing/autotest.py --list-presets
+    python3 build/testing/autotest.py --preset unit
+    python3 build/testing/autotest.py --preset pack-msvc-x64-release
+    python3 build/testing/autotest.py --preset arm64-synthetic
+    python3 build/testing/autotest.py --preset all-ready
+    python3 build/testing/autotest.py --preset pack-msvc-x64-release --build
+    python3 build/testing/autotest.py --preset ... --dry-run
 
 退出码：0 有预设通过且无失败；1 存在失败；2 全部跳过（前置条件不足）。
 """
@@ -28,6 +28,11 @@ import sys
 import tempfile
 import time
 import zipfile
+
+TESTING_DIR = os.path.dirname(os.path.abspath(__file__))
+BUILD_DIR = os.path.dirname(TESTING_DIR)
+REPO_ROOT = os.path.dirname(BUILD_DIR)
+sys.path.insert(0, BUILD_DIR)
 
 from i18n import make_messages, set_console_utf8
 
@@ -57,10 +62,6 @@ def _requested_lang(argv):
             requested = argv[index + 1]
     return requested
 
-
-BUILD_DIR = os.path.dirname(os.path.abspath(__file__))
-REPO_ROOT = os.path.dirname(BUILD_DIR)
-sys.path.insert(0, BUILD_DIR)
 
 import pack  # noqa: E402
 
@@ -501,7 +502,7 @@ def _run_unit(name, args, log_fp):
     for script in ('test_pack.py', 'test_autotest.py'):
         step = _run_step(
             script,
-            [sys.executable, os.path.join(BUILD_DIR, script)],
+            [sys.executable, os.path.join(TESTING_DIR, script)],
             log_fp, 600, dry_run=args.dry_run)
         record['steps'].append(step)
         if step['status'] == 'failed':

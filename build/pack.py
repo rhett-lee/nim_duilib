@@ -1020,7 +1020,7 @@ def _skia_candidate_names(config, arch_tag, toolchain=None, mingw_variant=None,
       llvm.<arch>.release.md / llvm.<arch>.debug.mdd
 
     这些名字必须与 CMake 侧 cmake/duilib_skia_variants.cmake 的规则一致
-    （build/test_cmake_scripts.py 用同一组用例比对两侧，防止再次漂移）。
+    （build/testing/test_cmake_scripts.py 用同一组用例比对两侧，防止再次漂移）。
     msys2_env 为空时按当前环境推断（_msys2_env_name）；windows 为空时按宿主判断
     （显式传入只为测试可在任意平台跑）。无法推断出 MSYS2 环境（env 为空）且编译器
     是 gcc 时，末尾额外追加 gcc.msvcrt.<arch>.release 兜底：CMake 侧依据编译器
@@ -1084,7 +1084,7 @@ def _sdl_variant_name(config, arch_tag, toolchain=None, mingw_variant=None,
     复用 Skia 的 release 变体名（MinGW 的 CRT 由工具链决定，Debug/Release
     共用同一份静态库）。非 Windows 返回空串，表示沿用 <deps-root>/SDL3 单前缀。
 
-    该规则必须与 CMake 侧同步（build/test_cmake_scripts.py 逐项比对）。
+    该规则必须与 CMake 侧同步（build/testing/test_cmake_scripts.py 逐项比对）。
     """
     if not (is_windows_host() if windows is None else windows):
         return ''
@@ -1207,7 +1207,7 @@ def resolve_sdl_prefix(explicit_dir, config, arch_tag, toolchain=None,
     显式 --sdl-dir 视为自备的单前缀；默认在 <deps-root>/SDL3 下按 Windows 的
     “架构 × 配置 × 运行库”变体子目录解析（<root>/<variant>），变体不完整时
     回退 <root>（兼容旧布局与单前缀）。命名规则与
-    cmake/duilib_sdl_variants.cmake 一致（build/test_cmake_scripts.py 逐项比对）。
+    cmake/duilib_sdl_variants.cmake 一致（build/testing/test_cmake_scripts.py 逐项比对）。
     """
     if explicit_dir:
         path = explicit_dir if os.path.isabs(explicit_dir) \

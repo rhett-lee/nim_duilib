@@ -3,7 +3,7 @@
 
 不依赖已构建产物，可直接运行：
 
-    python3 build/test_release.py
+    python3 build/testing/test_release.py
 
 覆盖：DLL 模式预判（包名是否追加 `-dll`）、出包命令的语言转发、
 输出目录里的归档筛选、`git status --porcelain` 的路径解析与 `dist/` 忽略规则、
@@ -17,7 +17,9 @@ import tempfile
 import unittest
 from unittest import mock
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+TESTING_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, TESTING_DIR)
+sys.path.insert(0, os.path.dirname(TESTING_DIR))
 
 import release  # noqa: E402
 

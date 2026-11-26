@@ -2,33 +2,66 @@
 
 This directory contains the unified build entry point, packaging/release tools,
 unit tests and Visual Studio solutions. For full commands, options, dependencies
-and troubleshooting, see [build-reference.en.md](build-reference.en.md).
+and troubleshooting, see [docs/build-reference.en.md](docs/build-reference.en.md).
+
+## I want to… → read this
+
+| I want to… | Read this |
+| :--- | :--- |
+| Build the project | `python3 build/build.py build`; see [docs/build-reference.en.md](docs/build-reference.en.md) for every option |
+| Package and release | `python3 build/pack.py`, `python3 build/release.py check`; downstream integration in [docs/Release.en.md](../docs/Release.en.md) |
+| Look up platform dependencies | Linux: [docs/linux-dependencies.en.md](docs/linux-dependencies.en.md); macOS App Bundle: [docs/macos-app-bundle.en.md](docs/macos-app-bundle.en.md) |
+| Look up all options | `python3 build/build.py --help`, or [docs/build-reference.en.md](docs/build-reference.en.md) |
+| Read test reports and plans | [docs/test-matrix.md](docs/test-matrix.md), [docs/sdk-package-test.md](docs/sdk-package-test.md), [docs/arm64-test-plan.md](docs/arm64-test-plan.md) |
+| Self-test before committing | `python3 build/build.py test` (cases live in [testing/](testing/)) |
+
+## Files you do not need to read
+
+| Path | Purpose (for reference only) |
+| :--- | :--- |
+| `testing/` | unit tests and automation scripts (`test_*.py`, `autotest.py`, `sdk_package_test.py`), driven by `build.py test` or `testing/autotest.py` |
+| `testing/tests/` | CMake rule fixture `skia_variants_check.cmake`, run only by `testing/test_cmake_scripts.py` through `cmake -P` |
+| `*.sln` | Visual Studio solutions for opening in the IDE; use `build.py` for command-line builds |
+| `sdk_test/` | SDK consumer test projects, used only by `testing/sdk_package_test.py` |
+| `skia_patch/` | Skia patch archive and manifest, verified and used automatically by `build.py deps` |
+| `i18n.py` | shared language resolution and message catalog for the build scripts; application code never calls it directly |
 
 ## Files
+
+```text
+build/
+├── build.py                  # single command-line entry (deps / build / test / pack / doctor / clean)
+├── pack.py / release.py      # SDK packaging and release orchestration
+├── i18n.py                   # shared language resolution and message catalog
+├── README.md / README.en.md  # this document (navigation)
+├── docs/                     # documentation, Chinese/English pairs
+│   ├── build-reference.md / build-reference.en.md
+│   ├── linux-dependencies.md / linux-dependencies.en.md
+│   ├── macos-app-bundle.md / macos-app-bundle.en.md
+│   ├── test-matrix.md
+│   ├── sdk-package-test.md
+│   └── arm64-test-plan.md
+├── testing/                  # unit tests, automation and SDK package tests
+│   ├── test_*.py             # unit tests (discovered by build.py test)
+│   ├── autotest.py           # local packaging automation
+│   ├── sdk_package_test.py   # SDK package layout and artifact tests
+│   └── tests/                # CMake rule fixture skia_variants_check.cmake
+├── sdk_test/                 # SDK consumer test projects
+├── skia_patch/               # Skia patch archive
+└── *.sln                     # 4 Visual Studio solutions (paths unchanged)
+```
+
+Entries in detail:
 
 | File | Purpose |
 | :--- | :--- |
 | `build.py` | **the single command-line entry**: deps, build, test, pack, clean |
-| `build.bat` | thin Windows wrapper: locates Python 3 (`py -3` / `python` / `python3`); all logic lives in `build.py` |
 | `i18n.py` | shared language resolution and message catalog for the build entry points (single source: `cmake/i18n/messages.json`, same order as `cmake/duilib_i18n.cmake`) |
-| `build-reference.md` / `.en.md` | build reference manual (commands, deps, outputs, troubleshooting) |
-| `test-matrix.md` | build/packaging verification matrix and measured results (platforms, toolchains, architectures, configurations, features) |
-| `linux-dependencies.md` / `.en.md` | system dependency commands for Linux distributions and how to verify them |
-| `macos-app-bundle.md` / `.en.md` | reference for building examples as macOS `.app` bundles |
 | `pack.py` | produces SDK packages (collects existing artifacts, never builds) |
 | `release.py` | release orchestration: checks, packaging, verification (no commit/tag/push) |
-| `autotest.py` | local automation: environment check → build → package → verify → assertions |
-| `test_build.py` | unit tests for the build entry point |
-| `test_pack.py` / `test_autotest.py` | packaging and automation tests |
-| `test_cmake_scripts.py` | CMake script tests: Skia/SDL3 variants, CRT derivation, MSYS2 detection and a case-by-case comparison with the packaging side, plus the dependency plan mode (the Skia/SDL3 commands printed by `deps --dry-run` and its read-only guarantee) (cases are skipped when cmake cannot be located through `DUILIB_CMAKE_EXECUTABLE` → PATH → Visual Studio's bundled CMake) |
-| `tests/skia_variants_check.cmake` | fixture run by `test_cmake_scripts.py` through `cmake -P`: variant names, candidate fallback, multi-configuration preparation, CRT derivation, plan-mode command printing |
-| `test_docs.py` | documentation consistency regression tests: relative Markdown links inside the maintained scope must point to existing files (code blocks and inline code are ignored), and every document under `docs/` needs a Chinese/English counterpart (`X.md` ↔ `X.en.md`, checked in both directions; `docs/misc/` history is excluded) |
-| `test_sdk_package.py` | unit tests for the pure functions of the SDK package test orchestrator |
-| `test_release.py` | unit tests for `release.py`: DLL-mode package-name prediction, language forwarding of the packaging command, archive discovery in the output directory, `git status` path parsing and `dist/` ignore rules, CHANGELOG section extraction |
-| `sdk_package_test.py` | released-SDK package test orchestrator (structure checks + consumer build/run + negative cases) |
+| `docs/` | build and test references: build manual, Linux dependencies, macOS App Bundle, test matrix, SDK package test, arm64 test plan |
+| `testing/` | unit tests, automation and SDK package test scripts, plus the CMake fixture in `testing/tests/` |
 | `sdk_test/` | SDK consumer test projects (depend only on the unpacked SDK) |
-| `sdk-package-test.md` | SDK package test methods and purpose (Chinese) |
-| `arm64-test-plan.md` | arm64 test plan (Windows matrix, dependency checks, result backfill) (Chinese) |
 | `duilib.sln` / `duilib_no_cef.sln` | Visual Studio solutions (library only) |
 | `examples.sln` / `examples_no_cef.sln` | Visual Studio solutions (library + examples) |
 | `README.md` / `README.en.md` | this document |
@@ -59,7 +92,7 @@ verified with the new entry point); use `python3 build/build.py`.
 Domestic distributions (NFSChina/中科方德 and UnionTech UOS): **the compilers shipped with both systems cannot build Skia** (NFSChina ships clang 11.0.1 and gcc 10.2.1; UOS ships gcc older than 11), so users must install **clang 12+ (recommended) or gcc 11+** themselves. In addition, **the CMake 3.18.4 bundled with NFSChina does not meet the 3.24+ requirement** — upgrade CMake manually (3.25 or newer is recommended). Put the new compiler's `bin` directory first in `PATH`; `build.py doctor` prints the CMake version and the Skia toolchain actually in use.
 
 Per-platform package lists and version requirements are in
-[build-reference.en.md](build-reference.en.md), sections 1 and 8.
+[docs/build-reference.en.md](docs/build-reference.en.md), sections 1 and 8.
 
 ## Visual Studio solutions
 
@@ -168,19 +201,19 @@ when redistributing.
 
 ### Local packaging automation
 
-`autotest.py` chains environment checks → (optional) build → package → verification →
+`testing/autotest.py` chains environment checks → (optional) build → package → verification →
 structural assertions → (optional) smoke tests. It is **not wired into CI**, does not
 write the repository's `bin/`, `lib/` or `dist/`, and stores output under
 `<system temp>/nim_duilib_autotest/<timestamp>/` (override with `--out-dir`).
 
 ```bash
-python3 build/autotest.py --preset unit
-python3 build/autotest.py --preset pack-msvc-x64-release
-python3 build/autotest.py --preset arm64-synthetic
-python3 build/autotest.py --preset all-ready
-python3 build/autotest.py --preset pack-msvc-x64-release --build
-python3 build/autotest.py --preset arm64-synthetic --dry-run
-python3 build/autotest.py --preset pack-msvc-x64-release --with-examples --smoke
+python3 build/testing/autotest.py --preset unit
+python3 build/testing/autotest.py --preset pack-msvc-x64-release
+python3 build/testing/autotest.py --preset arm64-synthetic
+python3 build/testing/autotest.py --preset all-ready
+python3 build/testing/autotest.py --preset pack-msvc-x64-release --build
+python3 build/testing/autotest.py --preset arm64-synthetic --dry-run
+python3 build/testing/autotest.py --preset pack-msvc-x64-release --with-examples --smoke
 ```
 
 Exit codes: 0 some preset passed and none failed; 1 a failure; 2 all skipped.
@@ -191,10 +224,11 @@ Exit codes: 0 some preset passed and none failed; 1 a failure; 2 all skipped.
 Release presets (it unpacks and launches `bin/basic.exe` for 8 seconds, skipping
 when the example architecture differs from the host).
 
-`build.py`, `pack.py`, `release.py`, `autotest.py` and `sdk_package_test.py` all accept
+`build.py`, `pack.py`, `release.py`, `testing/autotest.py` and
+`testing/sdk_package_test.py` all accept
 `--lang auto|zh_CN|en` (default follows the system, also reads `DUILIB_LANG`, and a
 repeated option uses the last value), which switches both console messages and
-`--help`; `autotest.py` passes the language to the `build.py` / `pack.py` it spawns,
+`--help`; `testing/autotest.py` passes the language to the `build.py` / `pack.py` it spawns,
 so logs do not mix languages.
 
 arm64 scope: integration files and package layout are ready and libjpeg-turbo ships an
@@ -208,7 +242,7 @@ and four packages that were packed and package-tested (Release without CEF, Rele
 CEF, Release with CEF 109, Debug with CEF; all artifacts being PE `0xAA64`; packing was
 measured on 2026-10-28 when the default CEF version was 142, and arm64 packing has not been
 re-run after the 156 upgrade); steps and results are in the
-[arm64 test plan](arm64-test-plan.md) (Chinese).
+[arm64 test plan](docs/arm64-test-plan.md) (Chinese).
 
 ### Downstream integration
 
@@ -265,7 +299,7 @@ See [docs/Release.en.md](../docs/Release.en.md) for the complete guide.
 | :--- | :--- |
 | `Visual Studio not found` | install VS 2022+ with the C++ workload, or pass `--vs-version` |
 | `Skia not found` | run `python3 build/build.py deps` first |
-| `gn/ninja not found` | use VS's bundled tools on Windows, or run `python3 build/build.py deps` first to extract the bundled `bin/gn.exe` / `bin/ninja.exe` from the patch archive; install `ninja`/`gn` elsewhere (see section 10 of [build-reference.en.md](build-reference.en.md)) |
+| `gn/ninja not found` | use VS's bundled tools on Windows, or run `python3 build/build.py deps` first to extract the bundled `bin/gn.exe` / `bin/ninja.exe` from the patch archive; install `ninja`/`gn` elsewhere (see section 10 of [docs/build-reference.en.md](docs/build-reference.en.md)) |
 | CEF example does not start | ensure `bin/libcef_win/<arch>` or `bin/libcef_linux` has the runtime |
 | No text on Linux | install fontconfig and CJK fonts; check `bin/resources/fonts` |
 | Broken build tree | `python3 build/build.py clean` and retry |

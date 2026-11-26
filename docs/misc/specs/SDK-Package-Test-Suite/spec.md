@@ -4,9 +4,9 @@
 
 现有自动化测试覆盖的是**构建/打包过程**：
 
-- `build/test_build.py`：构建入口的参数解析、目录推导等纯函数；
-- `build/test_pack.py` / `build/autotest.py`：打包脚本的收集规则、结构与 `--verify`；
-- `build/test-matrix.md`：人工回归矩阵。
+- `build/testing/test_build.py`：构建入口的参数解析、目录推导等纯函数；
+- `build/testing/test_pack.py` / `build/testing/autotest.py`：打包脚本的收集规则、结构与 `--verify`；
+- `build/docs/test-matrix.md`：人工回归矩阵。
 
 缺少的是对**成品 SDK 包**的独立验证：解包后能否被下游工程正确消费。下游最常见的
 失败并非打包脚本报错，而是包内元数据、接入文件、头文件、库或运行期文件组合错误，
@@ -32,9 +32,9 @@
 | `build/sdk_test/header_duilib.cpp` | 头文件自包含用例：单独包含 `duilib/duilib.h` |
 | `build/sdk_test/header_cef.cpp` | CEF 头文件用例（仅 `HAS_CEF=1` 时参与编译） |
 | `build/sdk_test/header_webview2.cpp` | WebView2 头文件用例（仅 `HAS_WEBVIEW2=1` 时参与编译） |
-| `build/sdk_package_test.py` | 用例编排器：解包、Python 结构用例、CMake 消费用例、负向用例、报告 |
-| `build/test_sdk_package.py` | 编排器纯函数单元测试（由 `build.py test` 自动发现） |
-| `build/sdk-package-test.md` | 测试方法与用途文档（中文） |
+| `build/testing/sdk_package_test.py` | 用例编排器：解包、Python 结构用例、CMake 消费用例、负向用例、报告 |
+| `build/testing/test_sdk_package.py` | 编排器纯函数单元测试（由 `build.py test` 自动发现） |
+| `build/docs/sdk-package-test.md` | 测试方法与用途文档（中文） |
 | `build/README.md`（修改） | 文件概览表登记新增文件 |
 
 所有临时产物（解包目录、CMake 构建树、报告）默认写到
@@ -86,7 +86,7 @@ SDK_TEST_RESULT=ok
   成功后 `Shutdown()`；失败返回非 0。该路径会初始化 Skia 渲染工厂、字体管理器、
   解码器与内部线程并加载主题资源，是静态库完整链接的最强单项证明。
 
-### 3.2 编排器 `build/sdk_package_test.py`
+### 3.2 编排器 `build/testing/sdk_package_test.py`
 
 主要纯函数（可单测）：
 
@@ -135,7 +135,7 @@ SKIP 必须写明原因（例如「DLL 包但当前平台不支持运行」「�
 ## 5. CLI 约定
 
 ```
-python3 build/sdk_package_test.py --package dist/<包> [--package <包2>] \
+python3 build/testing/sdk_package_test.py --package dist/<包> [--package <包2>] \
        [--scenarios all|P01,C01,...] [--no-build] [--run-examples] \
        [--out-dir DIR] [--keep] [--jobs N] [--dry-run] [--list-scenarios]
 ```
@@ -147,7 +147,7 @@ python3 build/sdk_package_test.py --package dist/<包> [--package <包2>] \
 - 默认使用 Ninja（可用时），否则交给 CMake 选择默认生成器；`--jobs` 传给
   `cmake --build --parallel`。
 
-## 6. 文档 `build/sdk-package-test.md`
+## 6. 文档 `build/docs/sdk-package-test.md`
 
 章节：目的与定位（与其它测试的分工）、前置条件、快速开始、场景说明表、
 消费者工程单独用法、结果解读与报告结构、常见失败排查、扩展新场景的方法、
@@ -155,11 +155,11 @@ python3 build/sdk_package_test.py --package dist/<包> [--package <包2>] \
 
 ## 7. 验收步骤
 
-1. `python3 -m py_compile build/sdk_package_test.py build/test_sdk_package.py`；
+1. `python3 -m py_compile build/testing/sdk_package_test.py build/testing/test_sdk_package.py`；
 2. `python3 build/build.py test`：新增单测与既有单测全部通过；
-3. `python3 build/sdk_package_test.py --list-scenarios` 正确列出 P01–P08、C01–C10；
+3. `python3 build/testing/sdk_package_test.py --list-scenarios` 正确列出 P01–P08、C01–C10；
 4. 用现有 Debug 静态包执行：
-   `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-win-x64-examples-debug.zip`
+   `python3 build/testing/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-win-x64-examples-debug.zip`
    —— P* 与 C01 通过，负向场景（C03/C05/C07/C08/C09）通过；
 5. 用现有 DLL Debug 包执行同一命令：C02 通过、C01 SKIP；
 6. 若某负向场景因环境缺失无法执行，必须输出 SKIP 及原因，不得计为通过；

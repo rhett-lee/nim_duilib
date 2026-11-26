@@ -128,7 +128,7 @@ void SetSelectedTitleColor(const DString& color);  DString GetSelectedTitleColor
 
 1. 先结束正在运行的 `layout.exe`（避免链接失败）
 2. 构建：`e:\develop\nim_duilib` 下执行
-   `build\build.bat build --config Debug --arch x64 --sdl --no-deps --target layout`
+   `python build\build.py build --config Debug --arch x64 --sdl --no-deps --target layout`
 3. 运行 `bin\layout.exe`，截图检查：
    - 标签栏无灰色背景、无圆角、无竖分隔线，底部为 1px 分割线
    - 选中标签下方为 2px 主题色指示条，宽度与标题文字接近，中心与文字对齐

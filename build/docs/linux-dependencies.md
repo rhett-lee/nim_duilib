@@ -1,5 +1,7 @@
 # Linux 发行版系统依赖
 
+> 导航：[build 文档索引](../README.md)
+
 在 Linux 上从源码构建 nim_duilib 之前，需要先安装编译器、构建工具以及窗口/字体/图形相关的开发包。构建脚本会自动准备 Skia、SDL3、CEF 等第三方依赖，但这些系统包必须由使用者提前安装。
 
 本文列出的发行版命令来自仓库中已验证的构建文档（[build-reference.md](build-reference.md) 的“平台 × 编译器 × 依赖 × 可选模块”一节）；仓库中没有对应命令的发行版会明确标注“待确认”，请不要按其他发行版的经验直接套用包名。
@@ -10,7 +12,7 @@
 | :--- | :--- | :--- |
 | 编译器 | gcc/g++ 10+ 或 clang/clang++ 12+ | 编译界面库、示例与 Skia |
 | 构建工具 | CMake 3.24+、Ninja、gn（Ubuntu 系包名为 `generate-ninja`）、make、Git、Python 3.8+、unzip（部分发行版还需 bzip2、wget） | 生成并执行构建；Skia 依赖 gn/ninja |
-| 窗口与字体 | X11、Freetype、Fontconfig 的开发包 | CMake 配置阶段通过 `find_package(X11 REQUIRED)`、`find_package(Freetype REQUIRED)`、`find_package(Fontconfig REQUIRED)` 查找，见 [cmake/duilib_bin_linux.cmake](../cmake/duilib_bin_linux.cmake) 与 [cmake/duilib_unix_font_libs.cmake](../cmake/duilib_unix_font_libs.cmake) |
+| 窗口与字体 | X11、Freetype、Fontconfig 的开发包 | CMake 配置阶段通过 `find_package(X11 REQUIRED)`、`find_package(Freetype REQUIRED)`、`find_package(Fontconfig REQUIRED)` 查找，见 [cmake/duilib_bin_linux.cmake](../../cmake/duilib_bin_linux.cmake) 与 [cmake/duilib_unix_font_libs.cmake](../../cmake/duilib_unix_font_libs.cmake) |
 | 图形与输入 | OpenGL/GLES/EGL、Vulkan、DBus、ibus 开发包 | 渲染后端与输入法支持 |
 | Wayland（可选） | wayland、libxkbcommon 开发包 | Wayland 桌面环境下构建与运行 |
 

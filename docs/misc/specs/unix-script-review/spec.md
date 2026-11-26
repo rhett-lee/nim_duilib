@@ -31,7 +31,7 @@
 Windows 保留；Unix 省略该分量（与构建目录命名 `${DUILIB_ARCH}-release` 一致）。
 代价：已有 Unix 构建树 stamp 不匹配，首次运行重建一次 SDL3，可接受。
 
-**验收**：代码审查确认 stamp 组成；无法本机实测，记入 build/test-matrix.md 已知缺口。
+**验收**：代码审查确认 stamp 组成；无法本机实测，记入 build/docs/test-matrix.md 已知缺口。
 
 ## 修复 3：Skia 静态库绝对路径解析扩展到 Unix（中）
 
@@ -67,13 +67,13 @@ ninja 示例是否重链接）。
 
 ## 单元测试
 
-- `build/test_pack.py`：新增 Linux wrapper 名归一用例（修复 1）。
-- 修复 2/3/4 为 CMake 逻辑，pytest 无法覆盖，记入 `build/test-matrix.md` 已知缺口。
+- `build/testing/test_pack.py`：新增 Linux wrapper 名归一用例（修复 1）。
+- 修复 2/3/4 为 CMake 逻辑，pytest 无法覆盖，记入 `build/docs/test-matrix.md` 已知缺口。
 
 ## 文档同步
 
 - `CHANGELOG.md` / `CHANGELOG.en.md`：修复区追加 4 条（#1~#4）。
-- `build/build-reference.md` / `.en.md`：如涉及 wrapper 产物名或 SDL stamp 行为的
+- `build/docs/build-reference.md` / `.en.md`：如涉及 wrapper 产物名或 SDL stamp 行为的
   描述，同步更正；不涉及则不强行添加。
 
 ## 验证

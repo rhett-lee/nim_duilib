@@ -12,7 +12,7 @@
       Windows Release/Debug 构建、无 CEF / CEF 142（Release）与 CEF 142（Debug）三个包的
       出包与包测试已完成；DLL 模式、CEF109 与运行验证仍待补（运行验证需 Windows on ARM 设备）。三平台均可随包
       CEF（Windows 142 与 109 的 `windowsarm64` 预编译包、Linux `linuxarm64`、
-      macOS `macosarm64`）；执行步骤与结果见 `build/arm64-test-plan.md`。
+      macOS `macosarm64`）；执行步骤与结果见 `build/docs/arm64-test-plan.md`。
 - [ ] 确认依赖产物已按目标配置完整编译：
   - `duilib` 5 个库（`duilib`、`duilib-cximage`、`duilib-webp`、`duilib-png`、`duilib-zlib`）；
   - Skia 静态库目录；

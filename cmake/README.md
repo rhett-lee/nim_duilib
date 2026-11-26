@@ -57,8 +57,8 @@ cmake/
 `duilib_skia_toolchain.cmake` 负责 Skia 编译工具链选择和 `duilib_detect_msys2()`
 （MSYS2 与独立 MinGW-w64 判定），同样只有这一处实现。
 打包侧（`build/pack.py`）与 VS 属性表（`msvc/PropertySheets/*.props`）无法直接
-include CMake 脚本，只能按同一套规则实现；`build/tests/skia_variants_check.cmake`
-（`cmake -P` 夹具）与 `build/test_cmake_scripts.py`（Python 侧实现）用同一组用例
+include CMake 脚本，只能按同一套规则实现；`build/testing/tests/skia_variants_check.cmake`
+（`cmake -P` 夹具）与 `build/testing/test_cmake_scripts.py`（Python 侧实现）用同一组用例
 逐项比对，防止两侧再次漂移。
 
 编译 Skia 需要 clang 12+ 或 gcc 11+：`ml3`/`ml4` 目标在 Linux/x64 上固定使用
@@ -439,7 +439,7 @@ target_link_libraries(${PROJECT_NAME}
 - 切换 Bundle/普通程序时清理残留的另一种产物。
 
 目标列表也可以用根选项 `DUILIB_MACOS_BUNDLE_EXAMPLES` 指定。完整说明见
-[build/macos-app-bundle.md](../build/macos-app-bundle.md)。
+[build/docs/macos-app-bundle.md](../build/docs/macos-app-bundle.md)。
 
 ---
 
@@ -571,7 +571,7 @@ check_cxx_source_compiles("
   占位符并调用 `duilib_tf()`（如 `deps.retry`、`cmake.sdl_variant_fallback`）。
    Python 侧（`Messages.t()`）沿用 `%s` 占位符，由调用方 `% (...)` 插值（如
   `pkg.cef_lib_version_hint`）。同一条文案不得混用 `%s` 与 `{name}`
-  （`build/test_build.py` 会校验）。查不到键时两侧都直接输出键名本身，便于发现漏配；
+  （`build/testing/test_build.py` 会校验）。查不到键时两侧都直接输出键名本身，便于发现漏配；
   `MessageCatalogTests` 会静态扫描 CMake 脚本与构建入口的引用，确认每个键在中英
   两份文案里都存在；还会检查占位符是否真的被替换（`duilib_tf` 漏传 `name=`
   时报错，含 `{name}` 的文案误用不替换的接口也报错）。
@@ -595,7 +595,7 @@ check_cxx_source_compiles("
   乱码，可先执行 `chcp 65001`）。
 
 命令行统一走 `python3 build/build.py`（`deps` 完成准备），参数与排障见
-[build/build-reference.md](../build/build-reference.md)。
+[build/docs/build-reference.md](../build/docs/build-reference.md)。
 
 ---
 
@@ -650,7 +650,7 @@ cmake --build ./build_debug
 python3 build/build.py --config Debug
 ```
 
-构建树固定为 `out/<arch>/<Config>`；详见 `build/build-reference.md`。
+构建树固定为 `out/<arch>/<Config>`；详见 `build/docs/build-reference.md`。
 
 ---
 

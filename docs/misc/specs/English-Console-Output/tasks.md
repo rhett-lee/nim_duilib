@@ -13,10 +13,10 @@
       `clean` 控制台消息、校验失败原因、argparse help 双语化；`--lang` 同时挂在
       子命令上；生成的 `RELEASE-NOTES` 标题保持中文。
 - [x] T4（作废）~~两个 `.sh` 脚本的 `echo` 英文化~~：文件已删除，无需处理。
-- [x] T5 `build/autotest.py`（45 个 `auto.*` 键）：预设描述改为 key，在
+- [x] T5 `build/testing/autotest.py`（45 个 `auto.*` 键）：预设描述改为 key，在
       `--list-presets` 打印处取词；前置检查/构建/步骤/断言/冒烟原因、汇总与
       argparse help 双语化。
-- [x] T6 `build/sdk_package_test.py`（约 180 个 `sdk.*` 键）：场景说明改为 key，
+- [x] T6 `build/testing/sdk_package_test.py`（约 180 个 `sdk.*` 键）：场景说明改为 key，
       在 `print_scenarios()` 取词；`run_verify_cli()` 给 `pack.py --verify` 传
       `--lang`；`check_incomplete` 的预期文本改用 `pkg.headers_missing` /
       `pkg.static_libs_missing`。
@@ -34,5 +34,5 @@
       `--lang en`）非 ASCII 字符数均为 0；CJK 扫描确认输出上下文无中文。
 - [x] T11 文档：本目录 `spec.md` 与 `tasks.md` 改写为双语设计；
       `docs/misc/Packaging-Follow-Up-Items.md` 的 P3-3 勾选；
-      `build/test-matrix.md` 第 11 条更新；中英 `CHANGELOG` 增补条目。
+      `build/docs/test-matrix.md` 第 11 条更新；中英 `CHANGELOG` 增补条目。
 - [x] T12 汇报改动文件与验证结果（不提交、不编译 Release）。

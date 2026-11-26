@@ -1,5 +1,7 @@
 # 编译参考手册
 
+> 导航：[build 文档索引](../README.md)
+
 本文是 nim_duilib 的唯一编译参考手册，适用于命令行构建、依赖准备、出包与环境排查。
 旧的分平台构建脚本（`build_duilib_all_in_one.*`、`msvc_build.*`、`linux_build.sh` 等）
 已于 2026-10-29 删除（四个平台均验证过新入口），统一使用 `python3 build/build.py`。
@@ -47,9 +49,9 @@ python3 build/build.py doctor           # 环境自检（无副作用）
 python3 build/build.py pack --with-cef  # 出 SDK 包
 ```
 
-Windows 与 Unix 使用同一条命令；Windows 上没有 `python3` 时可改用 `py -3`、指向
-Python 3 的 `python`，或直接用薄封装 `build\build.bat`（参数与 `build.py` 相同），
-详见根 README 的「为什么统一使用 `python3 build/build.py`」。
+Windows 与 Unix 使用同一条命令；Windows 上没有 `python3` 时可改用 `py -3` 或指向
+Python 3 的 `python`（例如 `py -3 build\build.py`），详见根 README 的
+「为什么统一使用 `python3 build/build.py`」。
 
 构建目录固定为 `out/<arch>/<Config>`（例如 `out/x64/Debug`），与 `build/` 平级，
 不写入 `build/build_temp`。可执行文件与运行时资源始终输出到仓库根 `bin/`，
@@ -85,7 +87,7 @@ Debug 与 Release 的示例输出同名，都写在共享的 `bin/`，而目标�
 | :--- | :--- |
 | `--config Release\|Debug` | 构建配置，默认 `Release`；不提供 `--debug` 别名 |
 | `--arch auto\|x86\|x64\|arm64` | 目标架构，默认主机架构；Windows + Ninja 交叉编译 arm64 时必须显式指定 |
-| `--lang auto\|zh_CN\|en` | 交互语言，默认跟随系统；也读取环境变量 `DUILIB_LANG`，重复给出时以最后一个为准。`build.py pack` 调用的 `pack.py` 会收到同一个语言，子进程输出与本进程一致。全部文案集中在 [cmake/i18n/messages.json](../cmake/i18n/messages.json)，维护方式见 [cmake/README.md](../cmake/README.md) 的「构建消息目录」 |
+| `--lang auto\|zh_CN\|en` | 交互语言，默认跟随系统；也读取环境变量 `DUILIB_LANG`，重复给出时以最后一个为准。`build.py pack` 调用的 `pack.py` 会收到同一个语言，子进程输出与本进程一致。全部文案集中在 [cmake/i18n/messages.json](../../cmake/i18n/messages.json)，维护方式见 [cmake/README.md](../../cmake/README.md) 的「构建消息目录」 |
 | `--build-dir <dir>` | 覆盖构建目录，允许放到仓库外 |
 | `--deps-root <dir>` | 依赖源码/安装根目录，默认仓库同级目录（与 `nim_duilib` 平级）；Skia、SDL3、CEF 都安装到这里。相对路径按当前目录解析，且 `build.py pack` 会原样转给 `pack.py` |
 | `--jobs N` | 并行编译任务数，默认 CPU 逻辑核心数 |
@@ -208,7 +210,7 @@ ninja，仍找不到时从归档解压到 `out/.duilib-tools/bin/ninja.exe` 并�
 - CEF 运行时由下载/解压完成，计划模式只给一行提示，不展开下载命令。
 
 所有网络操作（git clone/fetch、CEF 下载）共用一套重试参数，维护在
-[third_party_versions.json](../cmake/third_party_versions.json) 的 `retry` 段：
+[third_party_versions.json](../../cmake/third_party_versions.json) 的 `retry` 段：
 
 ```json
 "retry": { "maxAttempts": 0, "delaySeconds": 20 }
@@ -219,7 +221,7 @@ ninja，仍找不到时从归档解压到 `out/.duilib-tools/bin/ninja.exe` 并�
 把依赖源码切到清单 ref 时，只有本地缺少目标提交才会 fetch；本地已有该提交时直接
 `git checkout`，离线构建同样可用。
 
-版本由 [third_party_versions.json](../cmake/third_party_versions.json) 统一锁定：
+版本由 [third_party_versions.json](../../cmake/third_party_versions.json) 统一锁定：
 
 - **Skia**：固定 commit（`skia.default`）+ 对应补丁 zip；Windows 使用 VS 自带
   clang/ninja。非 Windows 平台优先用 clang/clang++ 编译（GCC 版 Skia 运行性能明显
@@ -292,7 +294,7 @@ ninja，仍找不到时从归档解压到 `out/.duilib-tools/bin/ninja.exe` 并�
 打包进 exe 时，将整理后的 `resources/` 压成 `resources.zip` 替换 `bin/resources.zip`
 后重新编译，参见 `examples/basic`。
 
-CEF 运行时目录需要随程序一起发布；CEF 的用法见 [docs/CEF.md](../docs/CEF.md)。
+CEF 运行时目录需要随程序一起发布；CEF 的用法见 [docs/CEF.md](../../docs/CEF.md)。
 只有 `cef` 与 `CefBrowser` 示例链接 CEF（`DUILIB_EXAMPLE_CEF`），其余示例的可执行
 文件不导入 `libcef`；`DUILIB_ENABLE_CEF` 只决定库是否编译 CEF 控件源码。
 
@@ -323,7 +325,7 @@ python3 build/build.py pack --out-dir dist     # 指定输出目录
 
 `build.py pack` 只转发通用参数；`pack.py` 自身的 `--list`、`--verify`、
 `--msvc-runtime`、`--skia-lib-dir`、`--sdl-dir`、`--allow-missing`、`--deps-root`
-等选项见 [docs/Release.md 的命令行参数](../docs/Release.md#命令行参数)。
+等选项见 [docs/Release.md 的命令行参数](../../docs/Release.md#命令行参数)。
 
 包内包含 `include/duilib/`、`lib/`（平面结构，配置与架构由包名区分）、`bin/`
 （运行期 DLL 与 `bin/resources/`）、`msvc/`（Windows MSVC 接入层）、
@@ -342,7 +344,7 @@ macOS 例外：CEF 示例是 App Bundle（`bin/cef.app`、`bin/CefBrowser.app` �
 `--with-examples` 时同样以 `--with-cef` 决定 CEF 示例是否随包：未指定则跳过并告警，
 指定后整个目录（含 `Contents/Frameworks` 下的 CEF Framework 与 Helper）按原结构打包。
 Bundle 自带运行时，因此 macOS 的 `--with-cef` 只控制示例，不收集 CEF 开发文件与
-运行时目录（SDK 不含 macOS CEF 开发文件，需按 [Release.md](../docs/Release.md)
+运行时目录（SDK 不含 macOS CEF 开发文件，需按 [Release.md](../../docs/Release.md)
 的 macOS 章节从源码树构建）。
 
 ## 8. 平台 × 编译器 × 依赖 × 可选模块
@@ -418,7 +420,7 @@ MINGW64 会优先选带 `.msvcrt` 的目录（只在该环境提供，其他环�
 `llvm.<arch>.release` 也不是同一份产物，`pack.py` 会按库内符号（`libstdc++` / `libc++`）区分。
 上表规则由 `cmake/duilib_skia_variants.cmake` 统一实现（配置期解析、off 模式检查、
 依赖准备共用），`build/pack.py` 的打包侧候选与之保持一致，并由
-`build/test_cmake_scripts.py` 逐项比对。
+`build/testing/test_cmake_scripts.py` 逐项比对。
 需要强制指定某个 Skia 目录时用 `--skia-lib-dir <目录>`（编译侧对应
 `-DDUILIB_SKIA_LIB_SUBPATH=<目录>`）。
 
@@ -496,7 +498,7 @@ UCRT64 的产物，也不会漏掉实际存在的 msvcrt 变体。
 | MinGW Debug 链接报 `No space left on device` | MinGW Debug 示例单个约 200–280 MB，全部示例约 10 GB；清理 `bin/` 后重试，或改用 Release 配置 |
 
 历史验证记录（各平台、工具链、架构与特性组合的实测结论）见 [test-matrix.md](test-matrix.md)；
-已修复问题的来龙去脉见根目录 [CHANGELOG.md](../CHANGELOG.md)。
+已修复问题的来龙去脉见根目录 [CHANGELOG.md](../../CHANGELOG.md)。
 
 ## 11. 与旧脚本的差异
 

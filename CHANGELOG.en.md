@@ -44,9 +44,9 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `CMakeCache.txt` no longer lists dead paths.
 - Unified network retries: `git clone/fetch` and CEF downloads share the `retry` block in
   the version manifest (`maxAttempts=0` = unlimited, `delaySeconds=20`).
-- Bilingual build reference `build/build-reference.md` / `.en.md`; `build/README.md`
+- Bilingual build reference `build/docs/build-reference.md` / `.en.md`; `build/README.md`
   and `README.en.md` now focus on prerequisites and packaging.
-- `build/test_build.py`: standard-library unit tests for the build entry point and i18n.
+- `build/testing/test_build.py`: standard-library unit tests for the build entry point and i18n.
 - Compliance: `THIRD-PARTY-NOTICES.md`; SDK license directory renamed to `LICENSES/`.
 - Compliance: added the English third-party notices `THIRD-PARTY-NOTICES.en.md` at the
   repository root as a pair with the Chinese file; `pack.py` and the SDK package tests
@@ -97,7 +97,7 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `<App>.app/Contents/Resources/duilib/resources/`, `false` returns `resources/`
   next to the executable; non-bundle programs still fall back to the latter.
   `GetResourceZipPath(bool)` returns `.../duilib/resources.zip` for the zip mode.
-- macOS App Bundle reference `build/macos-app-bundle.md` / `.en.md`, plus an
+- macOS App Bundle reference `build/docs/macos-app-bundle.md` / `.en.md`, plus an
   `Info.plist` template and optional `.icns` icon support.
 - Windows MSVC DLL mode: `python3 build/build.py build --dll` builds duilib as
   `bin/duilib*.dll` (`duilib32*.dll` on x86, `_d` for Debug, with the import
@@ -273,7 +273,7 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   docstrings, `MANIFEST.txt`, `RELEASE-NOTES` and in-package Chinese content are
   unchanged.
 - One invocation builds one `--config` (Debug/Release); invoke twice for both.
-  `build/autotest.py` now builds through `build.py`.
+  `build/testing/autotest.py` now builds through `build.py`.
 - CEF runtime files are placed in `bin/libcef_win[/_109]/<arch>` or `bin/libcef_linux`
   using the `_minimal` distributions on every platform (about half the size of the
   standard package, still containing `include/`, `Release/` and `Resources/`);
@@ -304,7 +304,7 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   example startups), and `doctor`/`test`/`test_build`/`test_pack`/
   `test_sdk_package`/`test_autotest`/`autotest` all pass; `pack.py --with-cef`
   fails fast as expected (CEF is not supported on FreeBSD). See
-  `build/test-matrix.md` §4 for the matrix and results.
+  `build/docs/test-matrix.md` §4 for the matrix and results.
 - Windows example packages now get an in-package startup smoke test (C10), first
   run on 2026-10-29 across five packages: the x64 Release static CEF package
   (`win-x64-cef-examples.zip`, 1318 entries / 328.2 MB), the SDL package
@@ -337,7 +337,7 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Removed
 
-- `build/build.md`; its content moved into `build/build-reference.md`.
+- `build/build.md`; its content moved into `build/docs/build-reference.md`.
 - Removed the legacy per-platform build scripts (`build_duilib_all_in_one.*`,
   `msvc_build.bat`, `linux_build.sh`, `macos_build.sh`, `freebsd_build.sh`,
   `msys2_build.sh`, ...) on 2026-10-29 after all four platforms were verified with
@@ -490,7 +490,7 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   (`duilib_common.cmake`), off-mode checks (`duilib_deps.cmake`) and dependency
   preparation (`duilib_deps_run.cmake`) all call the same function instead of
   assembling names themselves. `build/pack.py` now derives its packaging candidates
-  from the same rule, and `build/test_cmake_scripts.py` compares both sides case by
+  from the same rule, and `build/testing/test_cmake_scripts.py` compares both sides case by
   case to prevent future drift. This also fixes MinGW Debug packaging missing the
   `.debug` variant; `gcc.msvcrt` is now a candidate only under MSYS2 MINGW64, so an
   incompatible msvcrt library is no longer picked for UCRT64 / standalone MinGW.
@@ -508,7 +508,7 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `find_cmake()` (`DUILIB_CMAKE_EXECUTABLE` → PATH → Visual Studio's bundled CMake),
   shared by configure/build/`doctor`/tests, so tests are no longer skipped when cmake
   is not on PATH. Besides script-level unit tests, `build.py test` now also performs
-  a real configure smoke test via `build/test_cmake_scripts.py` (prepare mode, no
+  a real configure smoke test via `build/testing/test_cmake_scripts.py` (prepare mode, no
   Skia required).
 - Dependency check for Debug configurations: with `DUILIB_DEPS_MODE=off`,
   `cmake/duilib_deps.cmake` selected the Skia variant from `DUILIB_BUILD_TYPE`, but that
@@ -971,9 +971,9 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `cmake/README.md` / `README.en.md` now shows the current
   `cmake.in_tree_build` message plus its Hint, the Q1 platform error reads
   `unsupported platform` (it was `Unknown OS`), the macOS CEF fallback line in
-  `build/build-reference.md` is rendered in Chinese with the English original in
+  `build/docs/build-reference.md` is rendered in Chinese with the English original in
   parentheses (`build-reference.en.md` stays English), and
-  `build/sdk-package-test.md` notes that the test project's messages are fixed
+  `build/docs/sdk-package-test.md` notes that the test project's messages are fixed
   Chinese. The "Build message catalog" sections of `cmake/README*.md` also list
   the places that deliberately bypass the catalog (internal guards, the build
   stamp script, key/value dumps, the packaged `packaging/cmake/*` files), and
@@ -988,26 +988,26 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   first and only uses it when it exists; otherwise the previous fallback is
   kept. Non-bundle programs are unchanged.
 - Build docs aligned again with the implementation: `preflight.dev_packages_hint`
-  now points to `build/linux-dependencies.md` (package lists are in
-  `build/build-reference.md`, section 8); the Linux system-library comment in
+  now points to `build/docs/linux-dependencies.md` (package lists are in
+  `build/docs/build-reference.md`, section 8); the Linux system-library comment in
   `duilib_preflight_tools.cmake` now matches the behaviour (`pkg-config` missing
   only warns, missing libraries fail once) and its unused variable is gone; the
   ninja bootstrap and phase B preflight rows in `cmake/README*.md` describe the
   actual lookup order and checks; `build/README(.en).md`,
   `build-reference(.en).md`, `linux-dependencies(.en).md`, the root
   `README(.en).md` and the AI guides all state Python 3.8+ (matching `build.py`).
-- New `build/test_docs.py`: `build.py test` now checks relative Markdown links
+- New `build/testing/test_docs.py`: `build.py test` now checks relative Markdown links
   inside the maintained scope (code blocks and inline code are ignored) and
   Chinese/English pairing for top-level `docs/` documents; the historical
   `docs/misc/` tree is excluded. Links in `docs/Summary(.en).md` that pointed to
   moved headers were fixed as well.
-- Test documentation now matches the implementation: `build/sdk-package-test.md`
+- Test documentation now matches the implementation: `build/docs/sdk-package-test.md`
   lists the current default CEF 156 instead of CEF 142 (`pack.py --cef-version`
   still accepts `latest`/`109`), states Python 3.8+, and describes the 11 required
   files that `check_layout()` really verifies instead of 10; the previously
   undocumented `--lang` option is listed as well, and `--keep` now describes the
   real `<out>/<NN>` directory name. The status table in
-  `build/arm64-test-plan.md` no longer says CEF 109 packaging is untested
+  `build/docs/arm64-test-plan.md` no longer says CEF 109 packaging is untested
   (W-A07/W-P25 passed) and notes that 142 was the manifest default at the time,
   while 156 is the current default.
 - Build documentation completed: the package-name rule in `build/README(.en).md`
@@ -1030,7 +1030,7 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   (now testing `startswith("Visual Studio")`) and `check_negative_arch()`; new
   `test_build.VsGeneratorTests` (3 cases) and
   `test_sdk_package.BuildBlockReasonTest` (4 cases). The Visual Studio generator
-  examples in `docs/Release(.en).md`, `build/sdk-package-test.md` and
+  examples in `docs/Release(.en).md`, `build/docs/sdk-package-test.md` and
   `TRAE.md`/`WORKBUDDY.md` now note that the generator name follows the installed
   VS version (VS 2022: `Visual Studio 17 2022`, VS 2026: `Visual Studio 18 2026`).
 - The message catalog only checked for references to missing keys; dead keys
@@ -1041,7 +1041,7 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `sdk.scn_p01` in `SCENARIO_ORDER`) count as references too. All 706 keys are
   currently referenced.
 - Build reference gap filled: the common-options table in
-  `build/build-reference(.en).md` now documents the `pack` subcommand's
+  `build/docs/build-reference(.en).md` now documents the `pack` subcommand's
   `--pack-arg` (appended verbatim to the `pack.py` command line), with
   `--pack-arg=--list` and `--pack-arg=--allow-missing` as examples, matching
   `build.py`.
@@ -1056,7 +1056,7 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   Debug) feeds `build_package_name(is_dll=...)`, and the check now verifies the
   archives newly created in the output directory, reporting the new
   `rel.pack_output_missing` message only when nothing new appeared. New
-  `build/test_release.py` (15 cases covering package-name prediction, archive
+  `build/testing/test_release.py` (15 cases covering package-name prediction, archive
   discovery, `git status` path parsing and `dist/` ignore rules, and CHANGELOG
   section extraction); the file table in `build/README(.en).md` and the release
   process in `docs/Release(.en).md` document it.
@@ -1096,9 +1096,9 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `<prefix><gcc|llvm>.<arch>.release`, matching the SDL3 variant naming and
   `pack.py`. Existing `.<arch>.debug` directories are no longer selected
   automatically (point at one explicitly with `--skia-lib-dir` /
-  `-DDUILIB_SKIA_LIB_SUBPATH`). The notes in `build/build-reference(.en).md`,
+  `-DDUILIB_SKIA_LIB_SUBPATH`). The notes in `build/docs/build-reference(.en).md`,
   `build/README(.en).md` and `cmake/README(.en).md`, plus the expected values in
-  `build/test_cmake_scripts.py`, were updated accordingly.
+  `build/testing/test_cmake_scripts.py`, were updated accordingly.
 - `deps --dry-run` expanded the plan from a stale cache while the build tree was about
   to be re-created: after a compiler switch (MSVC ↔ MinGW) or a runtime/DLL mode switch
   (`--md`/`--dll`) a real `deps` run clears and reconfigures the build tree first, yet the
@@ -1112,7 +1112,7 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `build.config_switch`, `build.dll_flag`, `build.toolchain_changed` and
   `build.mode_changed` now say "will remove / will be discarded / will be synchronized",
   which holds for both real runs and dry-runs (Chinese and English kept in sync).
-- `build/build-reference(.en).md` claimed that `--dry-run` never configures, which does
+- `build/docs/build-reference(.en).md` claimed that `--dry-run` never configures, which does
   not match the code: the plan target runs through `cmake --build`, so when a
   `CMakeLists.txt` or a `cmake/*.cmake` file is newer than the build system, CMake re-runs
   the configure step first (it only updates the build tree under `out/`; no dependency

@@ -30,7 +30,7 @@ python3 build/build.py deps
 python3 build/build.py
 ```
 
-依赖版本固定在 `cmake/third_party_versions.json`；构建树在 `out/<arch>/<Config>/`，产物在 `lib/` 与 `bin/`。完成后 `lib/` 目录下就有编译好的库了。详细参数见 `build/build-reference.md`。
+依赖版本固定在 `cmake/third_party_versions.json`；构建树在 `out/<arch>/<Config>/`，产物在 `lib/` 与 `bin/`。完成后 `lib/` 目录下就有编译好的库了。详细参数见 `build/docs/build-reference.md`。
 
 > **小贴士**：Skia 源码在仓库外且体积巨大，日常开发不需要全量链接构建。后面会讲怎么用 `/Zs` 语法检查模式快速验证代码，不生成 obj、不链接，几秒就能确认 API 用法对不对。
 

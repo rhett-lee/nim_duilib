@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""build/sdk_package_test.py 的纯函数单元测试（不需要真实发布包）。"""
+"""build/testing/sdk_package_test.py 的纯函数单元测试（不需要真实发布包）。"""
 
 import contextlib
 import importlib.util
@@ -730,7 +730,7 @@ def _print_help() -> None:
     直接交给 unittest.main() 时，--help 只显示 unittest 自己的参数说明，
     看不出本脚本测什么、不测什么，因此这里单独输出。
     """
-    print("build/test_sdk_package.py：sdk_package_test.py 的纯函数单元测试")
+    print("build/testing/test_sdk_package.py：sdk_package_test.py 的纯函数单元测试")
     print()
     print("覆盖范围：")
     print("  - 包名解析，CMake 元数据与 MANIFEST 字段解析")
@@ -739,13 +739,13 @@ def _print_help() -> None:
     print()
     print("不做什么：不读取真实 SDK 包，不调用 CMake，也不编译、链接或运行任何 C++ 代码。")
     print("要验证真实 SDK 包（含消费者编译/链接/运行），请使用：")
-    print("  python3 build/sdk_package_test.py --package <发布包>")
+    print("  python3 build/testing/sdk_package_test.py --package <发布包>")
     print("查看可执行场景：")
-    print("  python3 build/sdk_package_test.py --list-scenarios")
+    print("  python3 build/testing/sdk_package_test.py --list-scenarios")
     print()
     print("其余参数仍由 unittest 解析：-v、-q、-k <模式>、<测试类或测试方法>。")
     print("若误把编排器参数（如 --package）传给本脚本，会自动转交给")
-    print("build/sdk_package_test.py。")
+    print("build/testing/sdk_package_test.py。")
 
 
 # 只有 sdk_package_test.py（用例编排器）认识的选项。两个脚本名字相近，用户很容易
@@ -765,7 +765,7 @@ def _is_orchestrator_invocation(argv: list) -> bool:
 
 def _run_orchestrator(argv: list) -> int:
     orchestrator = Path(__file__).resolve().with_name("sdk_package_test.py")
-    print("build/test_sdk_package.py 只是纯函数单元测试，正在转交给用例编排器：")
+    print("build/testing/test_sdk_package.py 只是纯函数单元测试，正在转交给用例编排器：")
     print("  python3 %s %s" % (orchestrator, " ".join(argv)))
     sys.stdout.flush()
     try:

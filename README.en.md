@@ -91,7 +91,7 @@ Domestic distributions (NFSChina/中科方德 and UnionTech UOS): **the compiler
 
 ### Linux System Dependencies
 
-Linux also needs distribution-provided development packages for X11, fonts, OpenGL/EGL, DBus/ibus and so on. Package names differ between distributions, and a wrong or missing package usually shows up at the CMake stage as `Could not find X11`, `Could not find Freetype` or `Could not find Fontconfig`. Per-distribution install commands, the required package list and verification steps are in a separate document: [build/linux-dependencies.en.md](build/linux-dependencies.en.md). The commands come from the repository's build documentation and cover Ubuntu, Debian, Fedora, openSUSE, OpenEuler, OpenKylin, UbuntuKylin, Zhongke Fangde and UnionTech UOS; apart from Ubuntu they have not been tested one by one, and the document states the verification scope.
+Linux also needs distribution-provided development packages for X11, fonts, OpenGL/EGL, DBus/ibus and so on. Package names differ between distributions, and a wrong or missing package usually shows up at the CMake stage as `Could not find X11`, `Could not find Freetype` or `Could not find Fontconfig`. Per-distribution install commands, the required package list and verification steps are in a separate document: [build/docs/linux-dependencies.en.md](build/docs/linux-dependencies.en.md). The commands come from the repository's build documentation and cover Ubuntu, Debian, Fedora, openSUSE, OpenEuler, OpenKylin, UbuntuKylin, Zhongke Fangde and UnionTech UOS; apart from Ubuntu they have not been tested one by one, and the document states the verification scope.
 
 ### Platform Verification Status
 
@@ -107,7 +107,7 @@ The table records only results for which evidence exists in the repository; comb
 | Linux x64 | VMware virtual machine, CMake 3.31, gcc (clang also tested) | verified; distributions other than Ubuntu pending confirmation |
 | FreeBSD x64 | FreeBSD virtual machine, system clang | verified |
 
-Items still marked **pending confirmation**: Linux arm64, macOS arm64, actual verification on Linux distributions other than Ubuntu, and the minimum macOS version. Detailed cases, commands and results are in [build/test-matrix.md](build/test-matrix.md) (Chinese).
+Items still marked **pending confirmation**: Linux arm64, macOS arm64, actual verification on Linux distributions other than Ubuntu, and the minimum macOS version. Detailed cases, commands and results are in [build/docs/test-matrix.md](build/docs/test-matrix.md) (Chinese).
 
 ## Quick Start
 
@@ -117,7 +117,7 @@ The steps below assume the compilers and build tools from the tables above are i
 
 The repository no longer ships a separate build script per platform, and the documentation always writes `python3 build/build.py`. There are three reasons: the Skia build scripts call `python3` directly, so a missing `python3` fails before Skia starts compiling and `python` cannot substitute for it; common macOS/Linux environments only provide `python3`, so a command written with `python` ends in "command not found"; and with a single command the documentation only needs one set of commands, new users need not decide which script to use, and parameters, subcommands and output paths are identical on every platform, keeping the learning cost minimal. `build.py` detects the platform and compiler, selects the generator, prepares dependencies, and provides the subcommands `doctor` (environment check), `deps` (dependencies only), `test` (unit tests), `pack` (packaging) and `clean` (cleanup).
 
-On Windows, if there is no `python3` command, replace the leading `python3` with `py -3`, or with the `python` that points to Python 3 in your environment (check the version with `--version` first); you can also use the thin wrapper `build\build.bat`, which looks for an interpreter in the order `py -3` → `python` → `python3` and accepts the same arguments as `build.py` (for example `build\build.bat deps`). The first two forms apply to Windows only, and every other command in this document uses `python3`. Note that they only change how `build.py` is launched: the Skia build stage still requires `python3` on PATH, otherwise it aborts with an error before compiling Skia.
+On Windows, if there is no `python3` command, replace the leading `python3` with `py -3`, or with the `python` that points to Python 3 in your environment (check the version with `--version` first), for example `py -3 build\build.py deps`. These two forms apply to Windows only, and every other command in this document uses `python3`. Note that they only change how `build.py` is launched: the Skia build stage still requires `python3` on PATH, otherwise it aborts with an error before compiling Skia.
 
 ### Windows (verified: Windows 10/11 x64 + VS 2022/VS 2026)
 
@@ -140,7 +140,7 @@ bin\basic.exe
 
 ### Linux / macOS / FreeBSD
 
-Prerequisites: the compiler, CMake, Ninja, Git and Python 3.8+ as described above; on Linux also install the system development packages listed in [build/linux-dependencies.en.md](build/linux-dependencies.en.md).
+Prerequisites: the compiler, CMake, Ninja, Git and Python 3.8+ as described above; on Linux also install the system development packages listed in [build/docs/linux-dependencies.en.md](build/docs/linux-dependencies.en.md).
 
 ```bash
 git clone https://github.com/rhett-lee/nim_duilib.git
@@ -152,7 +152,7 @@ python3 build/build.py
 
 - On macOS, `basic` is built as `bin/basic.app` by default; the example C++ code needs no changes.
 - A successful build looks the same as on Windows: the log ends with `[OK] build finished`, and `bin/basic` (or `bin/basic.app`) starts.
-- If the CMake configure step cannot find X11 or font packages, install them as described in [build/linux-dependencies.en.md](build/linux-dependencies.en.md); if the Skia build cannot find `gn`/`ninja`/`clang`, install the corresponding build tools.
+- If the CMake configure step cannot find X11 or font packages, install them as described in [build/docs/linux-dependencies.en.md](build/docs/linux-dependencies.en.md); if the Skia build cannot find `gn`/`ninja`/`clang`, install the corresponding build tools.
 
 ### Using the Visual Studio Solution
 
@@ -188,7 +188,7 @@ Understanding the layout helps locate sources and documents quickly; the generat
 | `examples/` | Several ready-to-run examples covering basic windows, control demos, rendering, layouts and WebView; the list is in [docs/Examples.en.md](docs/Examples.en.md) |
 | `bin/` | Output directory for example programs, including the `resources/` skins and language resources and the CEF runtime (after building) |
 | `docs/` | Documents and screenshots for controls, layouts, events and deployment; index in [docs/Summary.en.md](docs/Summary.en.md) |
-| `build/` | Unified build entry `build.py`, packaging and release scripts, VS solutions, [build reference](build/build-reference.en.md), [Linux system dependencies](build/linux-dependencies.en.md), [platform test matrix](build/test-matrix.md) |
+| `build/` | Unified build entry `build.py`, packaging and release scripts, VS solutions, [build reference](build/docs/build-reference.en.md), [Linux system dependencies](build/docs/linux-dependencies.en.md), [platform test matrix](build/docs/test-matrix.md) |
 | `cmake/` | Shared CMake modules and the third-party version manifest |
 | `msvc/` | Windows manifest files and shared VS project settings (such as the libpag switch) |
 | `packaging/` | SDK integration layer (CMake package and MSVC props/targets) |
@@ -221,7 +221,7 @@ All commands run from the repository root, and one invocation builds one archite
 | Select architecture | `python3 build/build.py --arch arm64` |
 | Use CEF 109 (Windows 7) | `python3 build/build.py --cef-version 109` |
 | Offline build | `python3 build/build.py --offline` |
-| Full parameter reference | [build/build-reference.en.md](build/build-reference.en.md) |
+| Full parameter reference | [build/docs/build-reference.en.md](build/docs/build-reference.en.md) |
 
 ## Advanced Usage
 
@@ -229,18 +229,18 @@ The following paths cover deeper development scenarios; consult them as needed. 
 
 - **Writing your first window**: [examples/basic](examples/basic) is the minimal project; the step-by-step tutorial is in [docs/Getting-Started.en.md](docs/Getting-Started.en.md). The tutorial uses the VS solution as its example, so take `python3 build/build.py deps` as the dependency-preparation command and this document's "Quick Start" as the build entry.
 - **UI development documents**: [Windows](docs/Window.en.md), [containers/layouts](docs/Box.en.md), [controls](docs/Control.en.md), [menus](docs/Menu.en.md), [global styles](docs/Global.en.md), [events](docs/Events.en.md), [XML nodes](docs/XmlNode.en.md), [XML events](docs/XmlEvents.en.md), [XML editing helper tools](docs/XmlTools.en.md) (parse error locations, static checks, editor completion and validation).
-- **Building and releasing**: full parameters in [build/build-reference.en.md](build/build-reference.en.md); dependency directories and release packaging in [build/README.en.md](build/README.en.md).
+- **Building and releasing**: full parameters in [build/docs/build-reference.en.md](build/docs/build-reference.en.md); dependency directories and release packaging in [build/README.en.md](build/README.en.md).
 - **Built-in dialogs and notifications**: [MessageBoxWnd](docs/MessageBox.en.md), [ToastWnd](docs/Toast.en.md), [SystemNotification](docs/SystemNotification.en.md).
-- **Web controls**: [CEF control](docs/CEF.en.md), [WebView2 example](examples/WebView2); running CEF examples requires the matching runtime directory: `bin/libcef_win/<arch>` on Windows, `bin/libcef_linux` on Linux, and the App Bundle on macOS (see [build/macos-app-bundle.en.md](build/macos-app-bundle.en.md)).
+- **Web controls**: [CEF control](docs/CEF.en.md), [WebView2 example](examples/WebView2); running CEF examples requires the matching runtime directory: `bin/libcef_win/<arch>` on Windows, `bin/libcef_linux` on Linux, and the App Bundle on macOS (see [build/docs/macos-app-bundle.en.md](build/docs/macos-app-bundle.en.md)).
 - **SDK integration**: [docs/Deployment.en.md](docs/Deployment.en.md), [cmake/README.en.md](cmake/README.en.md) (CMake package integration and troubleshooting).
-- **macOS App Bundle**: [build/macos-app-bundle.en.md](build/macos-app-bundle.en.md).
+- **macOS App Bundle**: [build/docs/macos-app-bundle.en.md](build/docs/macos-app-bundle.en.md).
 - **Enabling PAG**: Windows + the MSVC solution only. Set `LibPagEnabled` to `1` in [msvc/PropertySheets/LibPagSettings.props](msvc/PropertySheets/LibPagSettings.props) and build libpag as described in [libpag-build.md](duilib/third_party/libpag/windows/libpag-build.md) (Chinese); CMake builds do not include PAG.
 - **AI-assisted development**: the repository ships three configurations—Claude, WorkBuddy and TRAE—with the same skill content, only loaded differently: Claude uses `.claude/skills/` with a registration script, WorkBuddy uses `.workbuddy/skills/nim-duilib/`, and TRAE uses `.trae/skills/nim-duilib/`; the three guides are [CLAUDE.md](CLAUDE.md) (Chinese), [WORKBUDDY.md](WORKBUDDY.md) (Chinese) and [TRAE.md](TRAE.md) (Chinese). For Claude, first run `.claude/register.bat` (Windows) or `bash .claude/register.sh` (Linux/macOS) to register the skills, then run `/nim-init` in any project; WorkBuddy and TRAE project-level skills need no registration script and trigger by intent. Start with `/nim-duilib-create-window`, `/nim-duilib-xml-layout`, `/nim-duilib-add-control`, `/nim-duilib-event-handler`, `/nim-duilib-theme` and `/nim-duilib-resource-pack`; the reference manual is [.claude/docs/nim-duilib-llm-reference.md](.claude/docs/nim-duilib-llm-reference.md) (Chinese).
 - **Change history**: [CHANGELOG.en.md](CHANGELOG.en.md).
 
 ## FAQ
 
-The table lists the most common symptoms and their fixes; for anything else, the output of `doctor` and the troubleshooting section of [build/build-reference.en.md](build/build-reference.en.md) usually pinpoint the failing step.
+The table lists the most common symptoms and their fixes; for anything else, the output of `doctor` and the troubleshooting section of [build/docs/build-reference.en.md](build/docs/build-reference.en.md) usually pinpoint the failing step.
 
 | Symptom | Fix |
 | :--- | :--- |
@@ -250,10 +250,10 @@ The table lists the most common symptoms and their fixes; for anything else, the
 | Skia fails with unknown target CPU 'x86-64-v3' / bad value 'x86-64-v3' | Compiler too old: install clang 12+ (recommended) or gcc 11+; the compilers bundled with NFSChina/UOS are not sufficient |
 | `python3` command not found | Install Python 3 and make sure `python3` is on PATH; see "Why Always `python3 build/build.py`" for the Windows special case |
 | `bin/` still holds old examples after switching Debug/Release | `build.py` removes the examples of the other configuration automatically; when invoking CMake by hand, clean `bin/` yourself |
-| CEF examples do not run | Check that the runtime directory exists: `bin/libcef_win/<arch>` on Windows (`bin/libcef_win_109/<arch>` for CEF 109), `bin/libcef_linux` on Linux, and the App Bundle on macOS (see [build/macos-app-bundle.en.md](build/macos-app-bundle.en.md)); package with `pack --with-cef`, and keep the CEF version used for building and packaging identical |
-| No text on Linux | Install fontconfig and a CJK font, see [build/linux-dependencies.en.md](build/linux-dependencies.en.md) |
+| CEF examples do not run | Check that the runtime directory exists: `bin/libcef_win/<arch>` on Windows (`bin/libcef_win_109/<arch>` for CEF 109), `bin/libcef_linux` on Linux, and the App Bundle on macOS (see [build/docs/macos-app-bundle.en.md](build/docs/macos-app-bundle.en.md)); package with `pack --with-cef`, and keep the CEF version used for building and packaging identical |
+| No text on Linux | Install fontconfig and a CJK font, see [build/docs/linux-dependencies.en.md](build/docs/linux-dependencies.en.md) |
 | WebView2 example fails to start | Check that `bin/WebView2Loader.dll` was generated; see the FAQ in [cmake/README.en.md](cmake/README.en.md) |
-| Other build problems | [build/build-reference.en.md §10 Troubleshooting](build/build-reference.en.md) |
+| Other build problems | [build/docs/build-reference.en.md §10 Troubleshooting](build/docs/build-reference.en.md) |
 
 ## License and Contributing
 

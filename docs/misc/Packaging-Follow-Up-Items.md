@@ -123,7 +123,7 @@
   `bin/basic`），`build.py doctor/test`、`test_build.py`、`test_pack.py`、
   `test_sdk_package.py`、`test_autotest.py`、`autotest.py` 亦全部通过；
   `--with-cef` 按不支持的平台直接报错（属预期的负向结果）。命令与结果见
-  `build/test-matrix.md` §4。
+  `build/docs/test-matrix.md` §4。
 - macOS x64 实测（2026-10-28 真机复测）：Release/Debug 构建、6 个出包、8 次包测试
   （含两次 `--run-examples`）与全部脚本测试通过；`basic.app` 的 `Info.plist`、
   仅改资源的增量同步与 CEF 示例 Bundle 均已验证。arm64 无真机，不安排。
@@ -399,17 +399,17 @@
 
 - [x] 为链接重写、MANIFEST、SHA256SUMS、元数据推断、接入文件生成编写测试。
 - [x] 不接入 CI（用户决策）；改为提供可本地重复执行的自动化脚本。
-- 现状（2026-10-25）：`build/test_pack.py` 扩展到 39 个用例（含 P0-2 关键产物
+- 现状（2026-10-25）：`build/testing/test_pack.py` 扩展到 39 个用例（含 P0-2 关键产物
   缺失与 `--allow-missing` 降级），覆盖包体检正/负向
   （zip 与 tar.gz）、文档断链、包名（含 arm64/DLL）、MSVC 运行库自动推断、
   MANIFEST 生成与时间确定性、接入文件生成、arm64 manifest/Skia/CEF/JPEG 行为、
   防回归；工作区 Python 与 MSYS2 UCRT64 Python 全部通过。
-  新增 `build/autotest.py`：预设化执行「环境检测 →（可选）构建 → 打包 →
+  新增 `build/testing/autotest.py`：预设化执行「环境检测 →（可选）构建 → 打包 →
   `--verify` → 结构断言 →（可选）冒烟」，输出 `report.json` / `autotest.log`
   到 `C:\develop\temp\autotest\<时间戳>/`，默认不写仓库 `bin/`、`lib/`、`dist/`；
   支持 `unit`、`pack-msvc-x64-release/debug`、`pack-msvc-x86-release`、
   `pack-mingw-x64-release`、`arm64-synthetic`、`all-ready` 与 `--dry-run`。
-  新增 `build/test_autotest.py`（17 个用例）。实测 `unit`、`arm64-synthetic`、
+  新增 `build/testing/test_autotest.py`（17 个用例）。实测 `unit`、`arm64-synthetic`、
   `pack-msvc-x64-release` 预设全部通过；CI 接入按决策不做。
 
 #### P2-2 包体检命令
@@ -461,7 +461,7 @@
   都发布 `windowsarm64` 预编译包，仓库 `libcef_win[_109]/lib/arm64/libcef.lib` 已入库；
   `pack.py` 按 `lib/arm64` 收集导入库、按 `bin/libcef_win[_109]/arm64/` 收集运行时，
   `third_party_versions.json` 补 109 的 `windows/arm64` 归档，`test_pack.py` 由
-  「报错」改为「收集」用例；执行步骤见 `build/arm64-test-plan.md`（W-A06/W-A07）。
+  「报错」改为「收集」用例；执行步骤见 `build/docs/arm64-test-plan.md`（W-A06/W-A07）。
 - 现状（2026-10-28，范围收敛）：arm64 本轮**只验证 Windows**——macOS / Linux / FreeBSD
   均无真机，不安排测试。Windows 侧 VS 2022 已装 MSVC 14.44.35207 ARM64 交叉工具，
   `build.py doctor --arch arm64` 通过；`build.py` 的 `vcvarsall` 参数此前固定传 `arm64`
@@ -481,7 +481,7 @@
 - 验收：Windows Release/Debug 构建、VS ARM64 静态与 DLL 模式、四个包的出包/包测试
   均已通过；DLL 模式（W-B28/W-B29）与 CEF109（W-A07/W-P25）已补齐。Windows on ARM
   真机运行验证无设备，标记未测、不跟进（不再列入待办）。计划与结果见
-  `build/arm64-test-plan.md`。
+  `build/docs/arm64-test-plan.md`。
 
 #### P2-5 Unix 共享库（.so/.dylib）
 
@@ -530,7 +530,7 @@
   每个包均先 `pack.py --verify`（SHA 全匹配），再
   `sdk_package_test.py --scenarios C10 --run-examples`，结果均为
   `[PASS] C10 examples.smoke`（`bin/basic.exe` 启动 3 秒后仍在运行，
-  PASS=1 / FAIL=0 / SKIP=0）；证据已回填 `build/test-matrix.md` §2/§7。
+  PASS=1 / FAIL=0 / SKIP=0）；证据已回填 `build/docs/test-matrix.md` §2/§7。
   DLL 回归后已执行 DLL → 静态恢复构建（`bin/duilib*.dll` 由 `build.py` 自动清理）。
 
 #### P3-2 x86 + SDL3 出包组合
@@ -543,7 +543,7 @@
   SDL3 79 项、21 个示例、CEF 库按未请求跳过）→ `pack.py --verify` 844 条目
   SHA 全匹配 → `sdk_package_test.py --run-examples`：PASS=16 / FAIL=0 / SKIP=3
   （含 `[PASS] C10 examples.smoke`，`bin/basic.exe` 启动 3 秒后仍在运行）。
-  证据已回填 `build/test-matrix.md` 的 W-B30、W-P27、§2/§7 与已知缺口第 10 条；
+  证据已回填 `build/docs/test-matrix.md` 的 W-B30、W-P27、§2/§7 与已知缺口第 10 条；
   P0-1 随之收口。测试后已恢复 x64 静态基线，并重新构建 x64 `SDL3-static.lib`。
 
 #### P3-3 `build/` 脚本控制台输出双语化（简体中文 / 英文）
@@ -575,7 +575,7 @@
 - [x] 已完成（2026-10-29）：删除 `build/legacy/` 下 11 个旧脚本
   （`build_duilib_all_in_one.*`、`msvc_build.bat`、`linux_build.sh`、`macos_build.sh`、
   `freebsd_build.sh`、`msys2_build.sh`、MinGW/VS 辅助脚本）；`README.md` / `README.en.md`、
-  `build/README*.md`、`build/build-reference*.md`、`CHANGELOG*.md` 与本文档同步为
+  `build/README*.md`、`build/docs/build-reference*.md`、`CHANGELOG*.md` 与本文档同步为
   「已删除」，仓库内已无对该目录的引用。
 
 #### P3-5 `release.py` 全流程演练
@@ -598,7 +598,7 @@
     `clean --version <非当前版本> --yes` 对临时目录可正常删除。
   - 演练环境整理：dist 由平铺改为 `dist/1.0.2026.1023/`（与 `release.py` 约定一致），
     临时负向用例目录与临时 tag 均已删除，主仓库工作区干净。
-  - 现状补充：`build/test_*.py` 仍无 release 自动化用例，本次以手工演练覆盖
+  - 现状补充：`build/testing/test_*.py` 仍无 release 自动化用例，本次以手工演练覆盖
     （P0-5 的验收记录由此补齐）。
 
 #### P3-6 许可合规遗留项
@@ -672,17 +672,17 @@
 | 2026-10-24 | `build_duilib_all_in_one.sh` 无人值守增强：克隆/更新失败按 `GIT_RETRY_MAX`（默认 5）重试；已有仓库时 `git pull` 失败只告警并沿用本地代码（实测 GitHub 连接被重置时构建未中断）；Skia 补丁解压增加 `.patch_stamp` 幂等判断，且以 `gn/is_mingw.py` + `BUILDCONFIG.gn` 实际内容校验补丁是否真的落地（避免工作区被 git 操作还原后仍跳过解压、gn 退回 MSVC `cl.exe` 导致失败）；本地已含基线提交时跳过 stash/checkout/pull，避免刷新 mtime 触发 Skia 全量重编 |
 | 2026-10-24 | 修复 MSYS2/gcc 下 `-sdl` 链接失败：SDL3 静态库在 Windows 上还引用 `hid`/`mincore`/`dinput8` 符号，而仓库只传了 `-lSDL3`。已在 `cmake/duilib_bin_windows.cmake`、`packaging/cmake/nim_duilibConfig.cmake`、`packaging/msvc/nim_duilib.props` 补齐系统库；21 个示例全部链接成功 |
 | 2026-10-24 | 新增 `pack.py --verify <包路径>`（P2-2 完成）：支持 zip/tgz/tarbz2，校验单根目录、`MANIFEST.txt`/`SHA256SUMS`、`include/duilib/` 与 `lib/` 布局、逐文件 SHA256、SDK 文档相对链接；4 个既有 MinGW 包全部通过，篡改/缺 MANIFEST/截断 zip/路径不存在均返回 1；`release.py package` 出包后自动调用该体检，坏包不进入 `dist/<版本>/`；`docs/Release.md` / `Release.en.md` 选项表同步 |
-| 2026-10-24 | 新增 `build/test_pack.py`（P2-1 部分完成）：11 个用例覆盖包体检正负向（zip/tar.gz）、坏 zip、缺文件、包名组合与 `SOURCE_DATE_EPOCH`，UCRT64 Python 运行通过；CI 接入仍待办 |
+| 2026-10-24 | 新增 `build/testing/test_pack.py`（P2-1 部分完成）：11 个用例覆盖包体检正负向（zip/tar.gz）、坏 zip、缺文件、包名组合与 `SOURCE_DATE_EPOCH`，UCRT64 Python 运行通过；CI 接入仍待办 |
 | 2026-10-24 | CLANG64 增量复测：网络中断时 `git pull` 失败仅告警并继续（实测 GitHub 连接重置未中断构建）；随后自动发现 Skia 补丁缺失并重新解压，`gn gen` 恢复 clang 工具链；本地已有基线提交时跳过 stash/checkout/pull（日志确认 skip update）。5 库 + 21 示例重建成功，`basic.exe` 可启动，`lib/x64/Release` 为 clang 产物；tgz 出包后用 `--verify` 校验 539 条目全部通过 |
 | 2026-10-24 | SDL 特性出包与端到端验证（UCRT64 gcc）：`pack.py --with-sdl` 产出 `-win-x64-mingw-gcc-sdl.zip`（619 个条目 / 616 个登记 SHA，SDL3 79 项：头文件 + `libSDL3.a` + 许可证），解包 SHA 616/616 通过；解包 SDK 的 CMake 工程链接命令包含 `libSDL3.a` 与 `-lHid -lMincore -lDinput8`，构建运行成功（bits=64、startup=1、退出码 0）；`pack.py` 同时修复 SDL3 许可证路径（CMake 安装位于 `share/licenses/SDL3`） |
 | 2026-10-24 | MSYS2 MINGW64（msvcrt）全链路实测：新增 `gcc.msvcrt.x64.release` Skia 目录（MINGW64 与 UCRT64 的 gcc 静态库 CRT 不同，不可互换），`build_duilib_all_in_one.sh` 在 MINGW64 下自动选用；全量构建成功（5 库 + 21 示例），`basic.exe` 启动正常；`pack.py` 产出 `-win-x64-mingw-gcc.zip`（536 文件/90.5 MB，zip 27.3 MB），`--verify` 与解包 SHA 536/536 匹配；解包 SDK 用 MINGW64 gcc 建 CMake 工程运行成功（bits=64、startup=1、dll=0、退出码 0） |
 | 2026-10-24 | MSVC DLL 模式（`/MD`）Release\|x64 全链路：新增 `msvc/PropertySheets/duilib_dll.flag` 触发的 DLL 构建，修复导出类强制实例化导致的 C2280/C2338/C2027（`ListCtrlData` 禁止拷贝、`TabBox` 析构移入 cpp）；新建 `/MD` 版 Skia `skia/out/llvm.x64.release.md` 消除 LNK2038；`SkiaSettings.props` 按 flag 切换 Skia 目录，`pack.py` 新增 `detect_dll_mode()` 自动选择 `.md` Skia 并产出 `-win-x64-dll.zip`（542 文件/94.9 MB，zip 27.3 MB），`--verify` 545 条目 SHA 全匹配；解包 SDK 用 VS2022 CMake 工程运行成功（bits=64、startup=1、dll=1、退出码 0，自动复制 `duilib.dll`/`WebView2Loader.dll` 与 214 个资源） |
-| 2026-10-24 | `build/test_pack.py` 增补 DLL 模式包名后缀用例（共 12 个），MINGW64 与工作区 Python 均通过；`--skia-lib-dir` 帮助与 `docs/Release.md`、`build/README.md` 补充 `.md/.mdd` Skia 说明 |
+| 2026-10-24 | `build/testing/test_pack.py` 增补 DLL 模式包名后缀用例（共 12 个），MINGW64 与工作区 Python 均通过；`--skia-lib-dir` 帮助与 `docs/Release.md`、`build/README.md` 补充 `.md/.mdd` Skia 说明 |
 | 2026-10-24 | MSVC DLL 模式补齐 Debug/x86：新建 Skia 变体 `llvm.x64.debug.mdd`、`llvm.x86.release.md`、`llvm.x86.debug.mdd`（GN 参数与普通版本一致，仅 `/MT`→`/MD`、`/MTd`→`/MDd`）；`SkiaSettings.props` 增加 Debug 的 `.mdd` 路径；MSBuild 产出 `duilib_d.dll`（24.7 MB）、`duilib32.dll`（14.8 MB）、`duilib32_d.dll`（19.9 MB）与导入库 |
 | 2026-10-24 | DLL 模式 Debug/x86 出包与端到端：`pack.py` 分别产出 `-win-x64-dll-debug.zip`（542 文件/100.4 MB，zip 27.8 MB）、`-win-x86-dll.zip`（542 文件/83.8 MB，zip 24.3 MB）、`-win-x86-dll-debug.zip`（542 文件/86.1 MB，zip 24.5 MB），`--verify` 均 545 条目 SHA 全匹配；解包 SDK 用 VS2022 CMake（`-A x64`/`-A Win32`）建工程，运行分别为 bits=64/32/32、startup=1、dll=1、退出码 0；x86 Release 在系统 `MSVCP140.dll` 14.29 下启动崩溃，附带 14.4x 运行库后正常，`Release.md`/`Release.en.md` 已注明该依赖 |
 | 2026-10-24 | P0-1 特性组合实测（MSVC）：以 `-DDUILIB_ENABLE_SDL=ON` 重建 duilib 与 21 个示例，出包 `-win-x64-sdl.zip`（621 文件，624 条目）、`-win-x64-examples.zip`（757 文件，760 条目）、`-win-x64-sdl-examples.zip`（837 文件，840 条目）；x86 示例重建后出包 `-win-x86-examples.zip`（757 文件，760 条目，示例为 32 位）。各包 `--verify` SHA 全匹配，解包后 `basic.exe`/`ChildWindow.exe`/`controls.exe` 均正常启动 |
 | 2026-10-24 | P0-1 特性组合实测（MinGW）：MINGW64 msvcrt 产物出包 `-win-x64-mingw-gcc-examples.zip`（752 文件，755 条目）与 `-win-x64-mingw-gcc-sdl-examples.zip`（832 文件，835 条目），`--verify` 通过，包内 `libSDL3.a` 为静态 SDL，解包后 `basic.exe` 独立运行；至此 P0-1 仅剩 arm64 与 Linux/macOS/FreeBSD 未覆盖，x86 SDL 因缺少 x86 SDL3 库暂未覆盖 |
-| 2026-10-24 | P2-1 自动化：`build/test_pack.py` 扩展到 30 个用例（链接重写、MANIFEST、MSVC 运行库推断、接入文件、arm64、防回归），工作区与 UCRT64 Python 全部通过；新增 `build/autotest.py`（预设化检测/可选构建/打包/`--verify`/结构断言/可选冒烟/JSON 报告）与 `build/test_autotest.py`（17 个用例）；`unit`、`arm64-synthetic`、`pack-msvc-x64-release` 实测通过；按用户决策不接入 CI |
+| 2026-10-24 | P2-1 自动化：`build/testing/test_pack.py` 扩展到 30 个用例（链接重写、MANIFEST、MSVC 运行库推断、接入文件、arm64、防回归），工作区与 UCRT64 Python 全部通过；新增 `build/testing/autotest.py`（预设化检测/可选构建/打包/`--verify`/结构断言/可选冒烟/JSON 报告）与 `build/testing/test_autotest.py`（17 个用例）；`unit`、`arm64-synthetic`、`pack-msvc-x64-release` 实测通过；按用户决策不接入 CI |
 | 2026-10-24 | P2-4 arm64 接入：新增 `msvc/manifest/duilib.arm64.manifest`；`pack.py` 的 Windows 包收集 x64/x86/arm64 三份 manifest，并对 `bin/*.dll` 做 PE 架构校验（交叉出包时跳过不匹配 DLL）；`nim_duilib.props`/`nim_duilibConfig.cmake`/`duilib_common.cmake`/`SkiaSettings.props` 增加 ARM64 识别与目录映射；`arm64-synthetic` 预设用临时假库出包并通过 `--verify` 与结构断言。arm64 真机编译/运行验证未做（无设备），CEF/JPEG 无 arm64 预编译包 |
 | 2026-10-25 | P0-2 改为实施：`pack.py` 增加关键产物缺失阻断（核心头文件、`bin/resources/`、Windows manifest、显式请求的 SDL3 运行期 DLL / CEF 运行时 / 示例程序；基础库与 Skia 原本已失败），以退出码 1 拒绝出包；新增 `--allow-missing` 仅供排查降级，`--list` 不受影响。`test_pack.py` 增至 39 个用例，覆盖各关键项缺失、降级与真实仓库无缺失；`unit`、`arm64-synthetic` 与 `pack-msvc-x64-release` 预设复测通过 |
 | 2026-10-25 | P1-3 Linux 已接入：`collect_cef` 收集 `bin/libcef_linux/` 运行时与头文件，`libcef.so` 不进 `lib/`，CMake 按绝对路径链接；`--cef-version 109` 仅 Windows；`test_pack.py` 新增 5 个 Linux CEF 用例（共 44 个），`test_autotest.py` 17 个通过 |
@@ -703,7 +703,7 @@
 | 2026-10-29 | libjpeg-turbo 3.2.x 静态库与 duilib-zlib 的 `z_errmsg` 符号冲突（LNK2005）：duilib-zlib 增加 `z_errmsg=duilib_z_errmsg` 编译宏（CMake 与 VS 两套构建），最小工程同链 `turbojpeg-static.lib` 验证通过 |
 | 2026-10-29 | FreeBSD x64 全量实测通过：Release/Debug 构建、4 个出包（默认 SDK 与 `--with-examples`）、4 次 `sdk_package_test.py`（含两次 `--run-examples` 的 C10 示例启动）与全部脚本测试（`doctor`/`test`/`test_build`/`test_pack`/`test_sdk_package`/`test_autotest`/`autotest`）通过；`pack.py --with-cef` 按预期报错。此前“FreeBSD Debug 与示例运行未测、不跟进”的结论已撤销，P0-1/P0-3 的 FreeBSD 缺口关闭 |
 | 2026-10-29 | 剩余跟进项收敛为 P3-1～P3-6（Windows 示例包 C10 冒烟、x86 SDL3 出包、脚本控制台英文化、`build/legacy/` 清理、`release.py` 全流程演练、许可合规遗留）；P0-3 改为完成；修正 P1-1 macOS 与 P1-3 Windows 的过期表述，建议推进顺序改为按 P3 排期 |
-| 2026-10-29 | P3-4 完成：删除 `build/legacy/` 下 11 个旧分平台脚本（`build_duilib_all_in_one.*`、`msvc_build.bat`、`linux_build.sh`、`macos_build.sh`、`freebsd_build.sh`、`msys2_build.sh` 与 MinGW/VS 辅助脚本）；`README(.en).md`、`build/README(.en).md`、`build/build-reference(.en).md`、`CHANGELOG(.en).md` 与 `CMake-Improvement-Plan.md` 统一改为「已删除」，仓库中无残留引用 |
+| 2026-10-29 | P3-4 完成：删除 `build/legacy/` 下 11 个旧分平台脚本（`build_duilib_all_in_one.*`、`msvc_build.bat`、`linux_build.sh`、`macos_build.sh`、`freebsd_build.sh`、`msys2_build.sh` 与 MinGW/VS 辅助脚本）；`README(.en).md`、`build/README(.en).md`、`build/docs/build-reference(.en).md`、`CHANGELOG(.en).md` 与 `CMake-Improvement-Plan.md` 统一改为「已删除」，仓库中无残留引用 |
 | 2026-10-29 | P3-1 部分完成：Windows 首次执行包内示例启动（C10）。x64 Release + CEF 示例包 `nim_duilib-1.0.2026.1023-win-x64-cef-examples.zip`（1318 条目 / 328.2 MB）`--verify` SHA 全匹配，`sdk_package_test.py --scenarios C10 --run-examples` 报 `[PASS] C10 examples.smoke`（`bin/basic.exe` 启动 3 秒后仍在运行，PASS=1 / FAIL=0 / SKIP=0）；SDL、DLL、无 CEF 三个变体待补 |
 | 2026-10-29 | P3-1 完成：补齐 SDL、无 CEF 与 DLL 组合，连同前一轮 x64 CEF 包共 5 个示例包的 C10 全部通过 —— `win-x64-sdl-cef-examples.zip`（1398 条目 / 352.9 MB）、`win-x64-examples.zip`（764 / 121.8 MB）、`win-x64-sdl-cef-examples-dll.zip`（1398 / 210.1 MB）、`win-x64-sdl-cef-examples-dll-debug.zip`（1398 / 219.6 MB），四包 `--verify` SHA 全匹配、C10 均 `[PASS]`；DLL 回归后已恢复静态构建并自动清理 `bin/duilib*.dll` |
 | 2026-10-29 | P3-2 完成：`build.py build --config Release --arch x86 --sdl`（786/786，SDL3 按 x86 重建、Skia `llvm.x86.release`）→ `pack.py --arch x86 --with-examples --with-sdl` 产出 `nim_duilib-1.0.2026.1023-win-x86-sdl-examples.zip`（844 条目 / 128.2 MB）；`--verify` 844 条目 SHA 全匹配，SDK 测试 PASS=16 / FAIL=0 / SKIP=3（含 C10 `bin/basic.exe` 启动）；W-B30/W-P27 回填后 P0-1 收口；测试后恢复 x64 静态基线并重建 x64 `SDL3-static.lib` |

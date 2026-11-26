@@ -61,7 +61,7 @@ if (rc.left < rcWork.left) {
 
 ## 验证
 
-1. 构建 Debug x64（SDL）：`build\build.bat --config Debug --arch x64 --sdl --offline --jobs 2 build`。
+1. 构建 Debug x64（SDL）：`python build\build.py --config Debug --arch x64 --sdl --offline --jobs 2 build`。
 2. 运行 `bin\RichEdit.exe`：
    - 工具栏字体/字号/缩放三个 Combo：确认控件为圆角描边、文字留白、右箭头按钮悬停为内缩圆角块。
    - 展开字号 Combo：确认弹窗为 6px 圆角 + 1px 描边 + 4px 内边距、列表项悬停为圆角高亮、滚动条正常、选中项显示正常。

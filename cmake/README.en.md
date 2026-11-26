@@ -61,8 +61,8 @@ implementation point for Skia build-toolchain selection and `duilib_detect_msys2
 (distinguishing MSYS2 from standalone MinGW-w64). The packaging side (`build/pack.py`)
 and the VS property sheets (`msvc/PropertySheets/*.props`) cannot include CMake
 scripts directly, so they mirror the same rules;
-`build/tests/skia_variants_check.cmake` (a `cmake -P` fixture)
-together with `build/test_cmake_scripts.py` (the Python implementation) compare both
+`build/testing/tests/skia_variants_check.cmake` (a `cmake -P` fixture)
+together with `build/testing/test_cmake_scripts.py` (the Python implementation) compare both
 sides case by case so they cannot drift apart again.
 
 Building Skia needs clang 12+ or gcc 11+: the `ml3`/`ml4` targets always use
@@ -457,7 +457,7 @@ target_link_libraries(${PROJECT_NAME}
   plain executable.
 
 The root option `DUILIB_MACOS_BUNDLE_EXAMPLES` can also select targets. See
-[build/macos-app-bundle.en.md](../build/macos-app-bundle.en.md) for details.
+[build/docs/macos-app-bundle.en.md](../build/docs/macos-app-bundle.en.md) for details.
 
 ---
 
@@ -597,7 +597,7 @@ a message here only:
   `cmake.sdl_variant_fallback`). On the Python side (`Messages.t()`) messages keep
   `%s` placeholders and the caller interpolates with `% (...)` (e.g.
   `pkg.cef_lib_version_hint`). A single message must not mix `%s` and `{name}`
-  (enforced by `build/test_build.py`). A missing key prints the key itself on both
+  (enforced by `build/testing/test_build.py`). A missing key prints the key itself on both
   sides, which makes gaps easy to spot; `MessageCatalogTests` statically checks that
   every key referenced by CMake scripts or the build entry points exists in both
   languages, and that placeholders are really substituted (a `duilib_tf` call that
@@ -628,7 +628,7 @@ a message here only:
   beforehand).
 
 The command line is always `python3 build/build.py` (`deps` prepares everything); see
-[build/build-reference.md](../build/build-reference.md) for options and troubleshooting.
+[build/docs/build-reference.md](../build/docs/build-reference.md) for options and troubleshooting.
 
 ---
 
@@ -684,7 +684,7 @@ For everyday builds use the unified entry (it prepares Skia/CEF automatically; S
 python3 build/build.py --config Debug
 ```
 
-The build tree is always `out/<arch>/<Config>`; see `build/build-reference.en.md`.
+The build tree is always `out/<arch>/<Config>`; see `build/docs/build-reference.en.md`.
 
 ---
 

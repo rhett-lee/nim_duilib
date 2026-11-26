@@ -1,6 +1,6 @@
 # Skia / SDL3 变体规则、off 模式检查与依赖准备的 CMake 侧测试夹具
 #
-# 由 build/test_cmake_scripts.py 以 `cmake -D... -P` 调用，结果从 stdout 的
+# 由 build/testing/test_cmake_scripts.py 以 `cmake -D... -P` 调用，结果从 stdout 的
 # "RESULT:" 行读取。模式：
 #
 #   DUILIB_TEST_MODE=candidates
@@ -52,7 +52,7 @@
 
 cmake_minimum_required(VERSION 3.24)
 
-get_filename_component(DUILIB_TEST_REPO_ROOT "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
+get_filename_component(DUILIB_TEST_REPO_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../.." ABSOLUTE)
 set(DUILIB_LANG "en")
 
 if("${DUILIB_TEST_MODE}" STREQUAL "candidates")

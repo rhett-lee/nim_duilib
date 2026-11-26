@@ -1,5 +1,7 @@
 # 把示例编译为 macOS App Bundle
 
+> 导航：[build 文档索引](../README.md)
+
 本文说明如何在不修改示例 C++ 代码的前提下，把 macOS 下的普通示例程序编译成
 `.app`（App Bundle）。Windows、Linux、FreeBSD 完全不受影响。
 
@@ -289,7 +291,7 @@ spctl -a -vv bin/basic.app
 `libSDL3*.dylib` → 主可执行文件 → `.app`），避免遗漏嵌套二进制。
 
 CEF 示例的签名、Helper 与 Framework 细节见
-[docs/Release.md 的 macOS 章节](../docs/Release.md#签名与公证)。
+[docs/Release.md 的 macOS 章节](../../docs/Release.md#签名与公证)。
 
 ## 7. 打包与包测试
 
@@ -300,11 +302,11 @@ python3 build/build.py --config Release
 python3 build/pack.py --config Release --with-examples
 ```
 
-产物位于 `dist/`，包内路径为 `bin/basic.app/...`。`build/sdk_package_test.py`
+产物位于 `dist/`，包内路径为 `bin/basic.app/...`。`build/testing/sdk_package_test.py`
 的 C10 用例已支持 `bin/basic.app/Contents/MacOS/basic`：
 
 ```bash
-python3 build/sdk_package_test.py \
+python3 build/testing/sdk_package_test.py \
     --package dist/nim_duilib-<版本>-macos-x64-examples.tar.gz
 ```
 

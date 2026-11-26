@@ -1,33 +1,66 @@
 # build 目录说明
 
 本目录保存统一构建入口、出包/发布工具、单元测试与 Visual Studio 解决方案。
-完整的命令、参数、依赖与排障说明见 [build-reference.md](build-reference.md)。
+完整的命令、参数、依赖与排障说明见 [docs/build-reference.md](docs/build-reference.md)。
+
+## 我想… → 看这里
+
+| 我想… | 看这里 |
+| :--- | :--- |
+| 构建项目 | `python3 build/build.py build`；全部参数见 [docs/build-reference.md](docs/build-reference.md) |
+| 打包与发布 | `python3 build/pack.py`、`python3 build/release.py check`；下游接入见 [docs/Release.md](../docs/Release.md) |
+| 查平台依赖 | Linux 见 [docs/linux-dependencies.md](docs/linux-dependencies.md)；macOS App Bundle 见 [docs/macos-app-bundle.md](docs/macos-app-bundle.md) |
+| 查全部参数 | `python3 build/build.py --help`，或 [docs/build-reference.md](docs/build-reference.md) |
+| 看测试报告与测试计划 | [docs/test-matrix.md](docs/test-matrix.md)、[docs/sdk-package-test.md](docs/sdk-package-test.md)、[docs/arm64-test-plan.md](docs/arm64-test-plan.md) |
+| 提交前自测 | `python3 build/build.py test`（用例在 [testing/](testing/)） |
+
+## 不需要阅读的文件
+
+| 路径 | 作用（了解即可） |
+| :--- | :--- |
+| `testing/` | 单元测试与自动化脚本（`test_*.py`、`autotest.py`、`sdk_package_test.py`），由 `build.py test` 或 `testing/autotest.py` 调用 |
+| `testing/tests/` | CMake 规则测试夹具 `skia_variants_check.cmake`，仅由 `testing/test_cmake_scripts.py` 以 `cmake -P` 执行 |
+| `*.sln` | Visual Studio 解决方案，供 IDE 打开；命令行构建请用 `build.py` |
+| `sdk_test/` | SDK 消费者用例工程，只被 `testing/sdk_package_test.py` 使用 |
+| `skia_patch/` | Skia 补丁归档与清单，由 `build.py deps` 自动校验并使用 |
+| `i18n.py` | 构建脚本共用的语言解析与文案目录，业务代码无需直接调用 |
 
 ## 目录文件概览
+
+```text
+build/
+├── build.py                  # 唯一命令行入口（deps / build / test / pack / doctor / clean）
+├── pack.py / release.py      # SDK 出包与发布编排
+├── i18n.py                   # 构建脚本共用的语言解析与文案目录
+├── README.md / README.en.md  # 本文件（导航）
+├── docs/                     # 说明文档，中英成对
+│   ├── build-reference.md / build-reference.en.md
+│   ├── linux-dependencies.md / linux-dependencies.en.md
+│   ├── macos-app-bundle.md / macos-app-bundle.en.md
+│   ├── test-matrix.md
+│   ├── sdk-package-test.md
+│   └── arm64-test-plan.md
+├── testing/                  # 单元测试、自动化与 SDK 包测试
+│   ├── test_*.py             # 单元测试（由 build.py test 发现）
+│   ├── autotest.py           # 本地打包自动化
+│   ├── sdk_package_test.py   # SDK 包结构与产物测试
+│   └── tests/                # CMake 规则夹具 skia_variants_check.cmake
+├── sdk_test/                 # SDK 消费者用例工程
+├── skia_patch/               # Skia 补丁归档
+└── *.sln                     # 4 个 Visual Studio 解决方案（路径未变）
+```
+
+各条目说明：
 
 | 文件 | 说明 |
 | :--- | :--- |
 | `build.py` | **唯一命令行入口**：生成依赖、编译、测试、出包、清理 |
-| `build.bat` | Windows 薄封装：只负责定位 Python 3（`py -3` / `python` / `python3`），逻辑全部在 `build.py` |
 | `i18n.py` | 构建入口共用的语言解析与消息目录（唯一维护点 `cmake/i18n/messages.json`，判定顺序与 `cmake/duilib_i18n.cmake` 一致） |
-| `build-reference.md` / `.en.md` | 编译参考手册（命令、依赖、产物、排障） |
-| `test-matrix.md` | 构建/打包验证矩阵与实测结论（平台、工具链、架构、配置、特性组合） |
-| `linux-dependencies.md` / `.en.md` | Linux 各发行版系统依赖安装命令与验证方法 |
-| `macos-app-bundle.md` / `.en.md` | 把示例编译为 macOS `.app` 的参考文档 |
 | `pack.py` | 生成 SDK 包（只收集已构建产物，不参与编译） |
 | `release.py` | 发布流程编排：预检、打包、校验（不做 commit/tag/push） |
-| `autotest.py` | 本地自动化：环境检测 → 构建 → 打包 → 校验 → 结构断言 |
-| `test_build.py` | 构建入口自身的单元测试 |
-| `test_pack.py` / `test_autotest.py` | 打包与自动化测试 |
-| `test_cmake_scripts.py` | CMake 脚本测试：Skia/SDL3 变体、CRT 推导、MSYS2 判定与打包侧口径逐项比对，以及依赖准备计划模式（`deps --dry-run` 打印的 Skia/SDL3 命令、只读约束）（cmake 按 `DUILIB_CMAKE_EXECUTABLE` → PATH → Visual Studio 自带的顺序查找，都找不到时相关用例跳过） |
-| `tests/skia_variants_check.cmake` | 规则脚本夹具（由 `test_cmake_scripts.py` 以 `cmake -P` 执行：变体命名、候选回退、多配置准备、CRT 推导、计划模式命令打印） |
-| `test_docs.py` | 文档一致性回归测试：维护范围内的 Markdown 相对链接必须指向存在的文件（代码块与行内代码不计），`docs/` 下每篇文档必须有中英文对照（`X.md` ↔ `X.en.md` 双向检查；`docs/misc/` 历史记录不参与） |
-| `test_sdk_package.py` | SDK 包测试编排器的纯函数单元测试 |
-| `test_release.py` | `release.py` 的单元测试：DLL 模式包名预判、出包命令的语言转发、输出目录归档筛选、`git status` 路径解析与 `dist/` 忽略规则、CHANGELOG 条目提取 |
-| `sdk_package_test.py` | 发布 SDK 包测试编排器（结构校验 + 消费者编译运行 + 负向用例） |
+| `docs/` | 构建与测试参考文档：编译参考、Linux 依赖、macOS App Bundle、测试矩阵、SDK 包测试、arm64 测试计划 |
+| `testing/` | 单元测试、自动化与 SDK 包测试脚本，以及 CMake 夹具 `testing/tests/` |
 | `sdk_test/` | SDK 消费者用例工程（仅依赖解包后的 SDK） |
-| `sdk-package-test.md` | SDK 包测试方法与用途说明 |
-| `arm64-test-plan.md` | arm64 测试计划（Windows 矩阵、依赖专项、结果回填） |
 | `duilib.sln` / `duilib_no_cef.sln` | Visual Studio 解决方案（只含库） |
 | `examples.sln` / `examples_no_cef.sln` | Visual Studio 解决方案（库 + 示例） |
 | `README.md` / `README.en.md` | 本文件 |
@@ -57,7 +90,7 @@
 
 国产系统注意（中科方德 / 统信 UOS）：这两个系统**自带的编译器都不满足 Skia 的编译要求**（中科方德自带 clang 11.0.1、gcc 10.2.1；统信 UOS 自带 gcc 低于 11），必须由用户自行安装 **clang 12+（推荐）或 gcc 11+**。另外**中科方德自带的 CMake 3.18.4 也不满足 3.24+ 要求**，需要自行升级 CMake（建议 3.25 或更新版本）。安装后请把新编译器的 `bin` 目录放到 `PATH` 最前面，`build.py doctor` 会显示实际使用的 CMake 版本与 Skia 工具链。
 
-各平台系统包清单与版本要求见 [build-reference.md](build-reference.md) 第 1、8 节。
+各平台系统包清单与版本要求见 [docs/build-reference.md](docs/build-reference.md) 第 1、8 节。
 
 ## Visual Studio 解决方案
 
@@ -172,18 +205,18 @@ DLL 与 `bin/resources/`）、`msvc/`（Windows MSVC 接入层）、`lib/cmake/n
 
 ### 打包自动化（本地）
 
-`autotest.py` 把「环境检测 →（可选）构建 → 打包 → 校验 → 结构断言 →（可选）冒烟」
+`testing/autotest.py` 把「环境检测 →（可选）构建 → 打包 → 校验 → 结构断言 →（可选）冒烟」
 串成可重复执行的任务，**不接入 CI**，默认不写仓库的 `bin/`、`lib/`、`dist/`，
 输出与日志放在系统临时目录下的 `nim_duilib_autotest/<时间戳>/`（可用 `--out-dir` 覆盖）。
 
 ```bash
-python3 build/autotest.py --preset unit                    # 单元测试
-python3 build/autotest.py --preset pack-msvc-x64-release   # 用现有产物出包并体检
-python3 build/autotest.py --preset arm64-synthetic         # 无 arm64 真机时验证包结构
-python3 build/autotest.py --preset all-ready               # 全部前置条件满足的预设
-python3 build/autotest.py --preset pack-msvc-x64-release --build  # 先构建再打包
-python3 build/autotest.py --preset arm64-synthetic --dry-run      # 只打印命令
-python3 build/autotest.py --preset pack-msvc-x64-release --with-examples --smoke  # 解包后启动 basic.exe
+python3 build/testing/autotest.py --preset unit                    # 单元测试
+python3 build/testing/autotest.py --preset pack-msvc-x64-release   # 用现有产物出包并体检
+python3 build/testing/autotest.py --preset arm64-synthetic         # 无 arm64 真机时验证包结构
+python3 build/testing/autotest.py --preset all-ready               # 全部前置条件满足的预设
+python3 build/testing/autotest.py --preset pack-msvc-x64-release --build  # 先构建再打包
+python3 build/testing/autotest.py --preset arm64-synthetic --dry-run      # 只打印命令
+python3 build/testing/autotest.py --preset pack-msvc-x64-release --with-examples --smoke  # 解包后启动 basic.exe
 ```
 
 退出码：0 有预设通过且无失败；1 存在失败；2 全部跳过。`--list-presets` 可查看
@@ -192,9 +225,9 @@ python3 build/autotest.py --preset pack-msvc-x64-release --with-examples --smoke
 `--with-examples` 原样传给 `pack.py`；`--smoke` 需要包内带示例，只对 Release 预设执行
 （解包后启动 `bin/basic.exe` 观察 8 秒，示例架构与主机不一致时跳过）。
 
-`build.py`、`pack.py`、`release.py`、`autotest.py`、`sdk_package_test.py` 都支持
-`--lang auto|zh_CN|en`（默认跟随系统，也读取 `DUILIB_LANG`；重复给出时以最后一个为准），
-控制台提示与 `--help` 文案随之切换，`autotest.py` 还会把语言传给它启动的
+`build.py`、`pack.py`、`release.py`、`testing/autotest.py`、`testing/sdk_package_test.py`
+都支持 `--lang auto|zh_CN|en`（默认跟随系统，也读取 `DUILIB_LANG`；重复给出时以最后一个为准），
+控制台提示与 `--help` 文案随之切换，`testing/autotest.py` 还会把语言传给它启动的
 `build.py` / `pack.py`，避免日志里中英文混排。
 
 `arm64` 支持范围：接入文件与包结构已就绪，libjpeg-turbo 提供 arm64 预编译库，
@@ -205,7 +238,7 @@ Windows on ARM 真机启动验证无设备，未测、不跟进）。Windows arm
 构建、DLL 模式，以及四个包的出包/包测试（Release 无 CEF、Release CEF、Release CEF 109、
 Debug CEF；产物均为 PE `0xAA64`；出包实测于 2026-10-28，当时默认 CEF 版本为 142，
 升级 156 后未复测 arm64 出包）；步骤与结果见
-[arm64 测试计划](arm64-test-plan.md)。
+[arm64 测试计划](docs/arm64-test-plan.md)。
 
 ### 下游接入
 
@@ -256,7 +289,7 @@ Debug CEF；产物均为 PE `0xAA64`；出包实测于 2026-10-28，当时默认
 | :--- | :--- |
 | `Visual Studio not found` | 安装 VS 2022+ 与 C++ 工作负载，或用 `--vs-version` |
 | `Skia not found` | 先运行 `python3 build/build.py deps` |
-| `gn/ninja not found` | Windows 使用 VS 自带目录，或先 `python3 build/build.py deps` 从补丁归档解压自带的 `bin/gn.exe` / `bin/ninja.exe`；其他平台安装 `ninja`、`gn`（详见 [build-reference.md](build-reference.md) 第 10 节） |
+| `gn/ninja not found` | Windows 使用 VS 自带目录，或先 `python3 build/build.py deps` 从补丁归档解压自带的 `bin/gn.exe` / `bin/ninja.exe`；其他平台安装 `ninja`、`gn`（详见 [docs/build-reference.md](docs/build-reference.md) 第 10 节） |
 | CEF 示例无法运行 | 确认 `bin/libcef_win/<arch>` 或 `bin/libcef_linux` 含运行时 |
 | Linux 文本不显示 | 安装 fontconfig 与中文字体，确认 `bin/resources/fonts` |
 | 构建目录异常 | `python3 build/build.py clean` 后重试 |

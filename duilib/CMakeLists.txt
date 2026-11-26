@@ -1,5 +1,5 @@
 # 最低版本 3.19：构建消息目录（cmake/i18n/messages.json）用 string(JSON) 解析。
-# 根工程整体仍要求 CMake 3.24+（见 build/build-reference.md）。
+# 根工程整体仍要求 CMake 3.24+（见 build/docs/build-reference.md）。
 cmake_minimum_required(VERSION 3.19)
 
 # 构建消息（中英文唯一维护点）：cmake/i18n/messages.json；本文件既被根工程

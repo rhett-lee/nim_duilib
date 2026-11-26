@@ -765,7 +765,7 @@ MyApp.app/Contents/Resources/duilib/resources/
 ```
 
 Ordinary examples built as `.app` use the same standard layout (see
-[build/macos-app-bundle.en.md](../build/macos-app-bundle.en.md)). Non-bundle macOS
+[build/docs/macos-app-bundle.en.md](../build/docs/macos-app-bundle.en.md)). Non-bundle macOS
 programs (or `false`) use `resources/` next to the executable.
 
 #### 5. Final layout (all required)
@@ -999,7 +999,7 @@ supported on FreeBSD and `--with-cef` fails fast (expected).
 
 ## Related documentation
 
-* [Build reference](../build/build-reference.en.md)
+* [Build reference](../build/docs/build-reference.en.md)
 * [Quick Start](Getting-Started.en.md)
 * [Example Programs](Examples.en.md)
 * [CEF Control](CEF.en.md)

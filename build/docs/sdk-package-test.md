@@ -1,12 +1,14 @@
 # nim_duilib 发布 SDK 包测试（sdk_package_test.py）
 
-本文说明 `build/sdk_package_test.py` 的用途、用法、场景判定、结果解读与扩展方式。
+> 导航：[build 文档索引](../README.md)
+
+本文说明 `build/testing/sdk_package_test.py` 的用途、用法、场景判定、结果解读与扩展方式。
 该工具以**解包后的成品 SDK 包**为唯一输入，不读取 `lib/`、`bin/` 或源码树，也不构建
 nim_duilib 自身；它验证的是下游用户实际拿到的东西。
 
 ## 1. 目的与定位
 
-`build/sdk_package_test.py` 做三件事：
+`build/testing/sdk_package_test.py` 做三件事：
 
 1. **包级校验**：解包、目录布局、SHA256SUMS、元数据、CMake/MSVC 接入文件、禁止内容、
    `pack.py --verify`、文档与许可证、tar 格式重打包；
@@ -22,12 +24,12 @@ nim_duilib 自身；它验证的是下游用户实际拿到的东西。
 | :--- | :--- | :--- | :--- |
 | `build/build.py` / `test_build.py` | 源码、构建目录 | 依赖准备、编译、测试、出包的统一入口；`test_build.py` 测入口逻辑 | 本工具不构建仓库，只复用 `build.py` 的 `detect_toolchain()` 探测编译环境 |
 | `build/pack.py` / `test_pack.py` | 已构建的 `lib/<arch>/<Config>`、`bin/` | 收集产物并生成发布包；`--verify` 校验已有包 | 本工具在 P07、C07、C08、C09 中调用 `pack.py --verify`，但不负责出包 |
-| `build/autotest.py` | 环境 + 现有产物（可选先构建） | 环境检测 → 构建 → 打包 → 体检 → 可选冒烟 → 报告 | 本工具从“包已经存在”开始，额外做下游消费者编译/运行和负向配置用例 |
-| `build/test-matrix.md` | 人工维护 | 构建与打包组合的回归矩阵、命令和状态记录 | 矩阵提供“待测包”的来源与组合清单；本工具提供包级与消费者级自动判断 |
-| `build/test_sdk_package.py` | 无（纯函数） | 覆盖包名解析、元数据解析、能力推断、场景适用性、场景选择 | 不需要真实发布包；随 `python3 build/build.py test` 一起执行 |
+| `build/testing/autotest.py` | 环境 + 现有产物（可选先构建） | 环境检测 → 构建 → 打包 → 体检 → 可选冒烟 → 报告 | 本工具从“包已经存在”开始，额外做下游消费者编译/运行和负向配置用例 |
+| `build/docs/test-matrix.md` | 人工维护 | 构建与打包组合的回归矩阵、命令和状态记录 | 矩阵提供“待测包”的来源与组合清单；本工具提供包级与消费者级自动判断 |
+| `build/testing/test_sdk_package.py` | 无（纯函数） | 覆盖包名解析、元数据解析、能力推断、场景适用性、场景选择 | 不需要真实发布包；随 `python3 build/build.py test` 一起执行 |
 
 > 两个脚本名字相近，注意区分：真正测试发布包的是
-> `python3 build/sdk_package_test.py --package <包>`；`build/test_sdk_package.py`
+> `python3 build/testing/sdk_package_test.py --package <包>`；`build/testing/test_sdk_package.py`
 > 只跑纯函数单测。若误把 `--package`、`--list-scenarios` 等编排器参数传给后者，
 > 它会打印提示并自动转交给 `sdk_package_test.py`。
 
@@ -120,16 +122,16 @@ nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109
 
 | 命令 | 作用 |
 | :--- | :--- |
-| `python3 build/sdk_package_test.py --list-scenarios` | 列出全部场景编号、名称、类型和说明后退出 |
-| `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-win-x64-cef-examples-debug.zip` | 对单个包执行全部适用场景 |
-| `python3 build/sdk_package_test.py --package dist/<包> --no-build` | 只做包级场景（P01–P08、C07–C09） |
-| `python3 build/sdk_package_test.py --package dist/<包> --scenarios P01,C01` | 只跑指定场景，编号大小写不敏感 |
-| `python3 build/sdk_package_test.py --package dist/<macOS包> --scenarios C11 --keep` | 只验证 macOS App Bundle（`FRAMEWORKS`/rpath/资源布局），保留构建目录与日志 |
-| `python3 build/sdk_package_test.py --package dist/a.zip --package dist/b.zip --jobs 4` | 多包依次执行；每个包独立输出目录与报告条目 |
-| `python3 build/sdk_package_test.py --package dist/<包> --keep` | 保留解包目录、消费者构建目录和日志 |
-| `python3 build/sdk_package_test.py --package dist/<包> --dry-run` | 不执行编译类场景；包级场景仍真实执行 |
-| `python3 build/sdk_package_test.py --package dist/<包> --run-examples` | 允许执行 C10 示例冒烟 |
-| `python3 build/sdk_package_test.py --package dist/<包> --out-dir <输出目录>/manual` | 指定输出目录（不再追加时间戳子目录） |
+| `python3 build/testing/sdk_package_test.py --list-scenarios` | 列出全部场景编号、名称、类型和说明后退出 |
+| `python3 build/testing/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-win-x64-cef-examples-debug.zip` | 对单个包执行全部适用场景 |
+| `python3 build/testing/sdk_package_test.py --package dist/<包> --no-build` | 只做包级场景（P01–P08、C07–C09） |
+| `python3 build/testing/sdk_package_test.py --package dist/<包> --scenarios P01,C01` | 只跑指定场景，编号大小写不敏感 |
+| `python3 build/testing/sdk_package_test.py --package dist/<macOS包> --scenarios C11 --keep` | 只验证 macOS App Bundle（`FRAMEWORKS`/rpath/资源布局），保留构建目录与日志 |
+| `python3 build/testing/sdk_package_test.py --package dist/a.zip --package dist/b.zip --jobs 4` | 多包依次执行；每个包独立输出目录与报告条目 |
+| `python3 build/testing/sdk_package_test.py --package dist/<包> --keep` | 保留解包目录、消费者构建目录和日志 |
+| `python3 build/testing/sdk_package_test.py --package dist/<包> --dry-run` | 不执行编译类场景；包级场景仍真实执行 |
+| `python3 build/testing/sdk_package_test.py --package dist/<包> --run-examples` | 允许执行 C10 示例冒烟 |
+| `python3 build/testing/sdk_package_test.py --package dist/<包> --out-dir <输出目录>/manual` | 指定输出目录（不再追加时间戳子目录） |
 
 `--package` 可重复指定，且每个路径必须是已存在的文件。`--scenarios` 默认为 `all`；
 空值、`all` 都表示全部场景；未知编号会直接报错退出。
@@ -401,7 +403,7 @@ cp -R <临时目录>/sdk_bundle/sdk_bundle.app /tmp/ && /tmp/sdk_bundle.app/Cont
 - 这个用例工程的提示文案**固定为中文**（它随发布包分发，包内没有源码树的
   `cmake/i18n/messages.json`），因此探测 `NIM_DUILIB_SDK_DIR` 的 `STATUS` 行和
   上述校验报错在英文环境下同样是中文；理由与重新评估条件见
-  [Packaging-Follow-Up-Items.md](../docs/misc/Packaging-Follow-Up-Items.md) 的 P2-6。
+  [Packaging-Follow-Up-Items.md](../../docs/misc/Packaging-Follow-Up-Items.md) 的 P2-6。
 
 ### 5.3 输出与退出码
 
@@ -665,9 +667,9 @@ SKIP 是“没测到”，不是通过。`--no-build`、`--dry-run`、包类型�
 6. **验证**：
 
    ```bash
-   python3 build/test_sdk_package.py -v
-   python3 build/build.py test          # 会 discover build/test_*.py
-   python3 build/sdk_package_test.py --list-scenarios
+   python3 build/testing/test_sdk_package.py -v
+   python3 build/build.py test          # 会 discover build/testing/test_*.py
+   python3 build/testing/sdk_package_test.py --list-scenarios
    ```
 
    改动 CLI 或场景语义时，同步更新本文的场景表和 README 的文件概览。
@@ -725,7 +727,7 @@ P01–P08、C07–C09 对任何可加载的包都会执行（其中 P02/P04/P05 
   无法运行 ARM64 产物（`WinError 216`），因此 `check_consumer()` 在链接后按
   `_can_run_arch()` 判为不可运行，C01 记为 SKIP 并注明「运行验证需 arm64 环境」，
   不再误判为 FAIL。C10 同样会 SKIP；Linux/macOS arm64 无真机时不安排（见
-  `build/arm64-test-plan.md`）。C04 在 Windows 用 `-A x64` 即可构造相反架构。
+  `build/docs/arm64-test-plan.md`）。C04 在 Windows 用 `-A x64` 即可构造相反架构。
   2026-10-28 实测：arm64 的 Release 无 CEF、Release CEF142、Debug CEF142 三个包均为
   `PASS=14 FAIL=0 SKIP=5`。
 - **Linux/macOS 运行**：C10 需要桌面会话、X11/字体或 macOS 窗口环境；纯 headless

@@ -393,7 +393,7 @@
      若后续需要 `cmake --install`，再单独评估。
   4. 验收：四平台（Windows x64/x86/arm64、Linux、macOS、FreeBSD）与非 CEF、DLL、SDL、
      CEF142/109、macOS Bundle 各分支均由该入口实际构建/出包；本项验收见
-     [test-matrix.md](../../build/test-matrix.md)。
+     [test-matrix.md](../../build/docs/test-matrix.md)。
   5. 方案与决策细节见 [Root-CMake-Build-Plan.md](Root-CMake-Build-Plan.md)。
 
 ---
@@ -635,5 +635,5 @@
 | `cmake -S . -B out/<arch>/<Config>` 一把配置 | 通过（Windows MSVC x64/x86/arm64、MinGW、Linux gcc/clang、macOS、FreeBSD 分支均由该入口配置） |
 | 依赖顺序 | 通过：第三方库 → `duilib` → 示例（含 CEF wrapper、WebView2、SDL、DLL 模式各分支） |
 | 旧脚本行为等价 | 通过：`build.py` 的命令行覆盖旧脚本的构建/出包能力，旧脚本归档后由文档标注「不再参与构建」 |
-| 跨平台实测 | Windows x64/x86/arm64、Linux x64、macOS x64、FreeBSD x64 的 Debug/Release 构建、出包与包测试全部通过（FreeBSD 2026-10-29，其余 2026-10-28）；详见 [test-matrix.md](../../build/test-matrix.md) |
+| 跨平台实测 | Windows x64/x86/arm64、Linux x64、macOS x64、FreeBSD x64 的 Debug/Release 构建、出包与包测试全部通过（FreeBSD 2026-10-29，其余 2026-10-28）；详见 [test-matrix.md](../../build/docs/test-matrix.md) |
 

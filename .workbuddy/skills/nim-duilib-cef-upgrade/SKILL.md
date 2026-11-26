@@ -115,10 +115,10 @@ description: nim_duilib 的 CEF（libcef）依赖升级手册。用于把仓库�
 
 ### 8. 脚本与文档同步（禁止硬编码版本号）
 
-- `build/pack.py`、`build/sdk_package_test.py`：默认版本提示从 `cmake/third_party_versions.json` 的 `cef.default` 读取；`test_build.py`、`test_pack.py` 的断言跟随清单。
+- `build/pack.py`、`build/testing/sdk_package_test.py`：默认版本提示从 `cmake/third_party_versions.json` 的 `cef.default` 读取；`test_build.py`、`test_pack.py` 的断言跟随清单。
 - `cmake/duilib_root_options.cmake` 的帮助文本、`build/build.py` 的注释不要写死版本。
-- 文档：`README(.en).md`、`docs/CEF(.en).md`（下载链接与日期）、`docs/Deployment(.en).md`、`docs/Differences(.en).md`、`build/build-reference(.en).md`、`build/README(.en).md`、`build/arm64-test-plan.md`、`duilib/third_party/README.md`（归档来源表）、`CHANGELOG(.en).md`，`build/test-matrix.md` 更新“当前基线”并追加当天的小节。
-- **历史记录不改**：`docs/misc/*`、`build/sdk-package-test.md` 的旧结果、test-matrix 的历史行。
+- 文档：`README(.en).md`、`docs/CEF(.en).md`（下载链接与日期）、`docs/Deployment(.en).md`、`docs/Differences(.en).md`、`build/docs/build-reference(.en).md`、`build/README(.en).md`、`build/docs/arm64-test-plan.md`、`duilib/third_party/README.md`（归档来源表）、`CHANGELOG(.en).md`，`build/docs/test-matrix.md` 更新“当前基线”并追加当天的小节。
+- **历史记录不改**：`docs/misc/*`、`build/docs/sdk-package-test.md` 的旧结果、test-matrix 的历史行。
 
 ### 9. 验证清单（按顺序）
 

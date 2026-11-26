@@ -319,9 +319,9 @@ python3 build/build.py deps     # Prepare dependencies only (Skia / SDL3 / CEF)
 python3 build/build.py          # Prepare dependencies and build (Release by default)
 ```
 
-Common options: `--config Debug|Release`, `--arch auto|x86|x64|arm64`, `--dll`, `--sdl`, `--jobs N`; see [build/build-reference.en.md](../build/build-reference.en.md) for the full reference.
-- Linux system dependencies: see [build/linux-dependencies.en.md](../build/linux-dependencies.en.md)
-- macOS App Bundle packaging: see [build/macos-app-bundle.en.md](../build/macos-app-bundle.en.md)
+Common options: `--config Debug|Release`, `--arch auto|x86|x64|arm64`, `--dll`, `--sdl`, `--jobs N`; see [build/docs/build-reference.en.md](../build/docs/build-reference.en.md) for the full reference.
+- Linux system dependencies: see [build/docs/linux-dependencies.en.md](../build/docs/linux-dependencies.en.md)
+- macOS App Bundle packaging: see [build/docs/macos-app-bundle.en.md](../build/docs/macos-app-bundle.en.md)
 - If the `python3` command is unavailable on Windows, use `python build/build.py`.
 
 ## About Visual Studio project configuration

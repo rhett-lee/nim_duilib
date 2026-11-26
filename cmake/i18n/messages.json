@@ -177,8 +177,8 @@
       "zh_CN": "安装 make（FreeBSD 上为 gmake）"
     },
     "preflight.dev_packages_hint": {
-      "en": "install the -dev packages listed in build/linux-dependencies.md (package lists: build/build-reference.md, section 8)",
-      "zh_CN": "安装 build/linux-dependencies.md 中列出的 -dev 软件包（系统包清单见 build/build-reference.md 第 8 节）"
+      "en": "install the -dev packages listed in build/docs/linux-dependencies.md (package lists: build/docs/build-reference.md, section 8)",
+      "zh_CN": "安装 build/docs/linux-dependencies.md 中列出的 -dev 软件包（系统包清单见 build/docs/build-reference.md 第 8 节）"
     },
     "preflight.vs_found_suffix": {
       "en": "(found {version})",
@@ -2761,8 +2761,8 @@
       "zh_CN": "[ERROR] 未找到 CEF_ROOT：{root}"
     },
     "cmake.cef_root_missing_hint": {
-      "en": "download the CEF binary distribution (see build/build-reference.md), or pass -DCEF_ROOT=<path-to-cef_binary>",
-      "zh_CN": "请下载 CEF 二进制分发包（见 build/build-reference.md），或用 -DCEF_ROOT=<cef_binary 目录> 指定"
+      "en": "download the CEF binary distribution (see build/docs/build-reference.md), or pass -DCEF_ROOT=<path-to-cef_binary>",
+      "zh_CN": "请下载 CEF 二进制分发包（见 build/docs/build-reference.md），或用 -DCEF_ROOT=<cef_binary 目录> 指定"
     },
     "cmake.cef_framework_release_fallback": {
       "en": "[WARN] CEF Debug framework not found; using the Release framework: {path}",

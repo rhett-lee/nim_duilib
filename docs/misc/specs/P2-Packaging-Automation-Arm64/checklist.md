@@ -12,11 +12,11 @@
 
 ## 测试
 
-- [x] `python3 build/test_pack.py` 全通过。
-- [x] MSYS2 Python 运行 `build/test_pack.py` 全通过。
-- [x] `python3 build/test_autotest.py` 全通过。
-- [x] `build/autotest.py --preset unit` 退出码 0。
-- [x] `build/autotest.py --preset arm64-synthetic` 退出码 0 且结构断言通过。
+- [x] `python3 build/testing/test_pack.py` 全通过。
+- [x] MSYS2 Python 运行 `build/testing/test_pack.py` 全通过。
+- [x] `python3 build/testing/test_autotest.py` 全通过。
+- [x] `build/testing/autotest.py --preset unit` 退出码 0。
+- [x] `build/testing/autotest.py --preset arm64-synthetic` 退出码 0 且结构断言通过。
 - [x] 至少一个 `pack-*` 预设的 `--verify` 通过。
 
 ## 文档

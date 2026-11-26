@@ -13,10 +13,10 @@
 
 ## P2-1 测试与自动化
 
-- [x] T8 `build/test_pack.py`：包名/元数据、MANIFEST、接入文件、arm64、文档链接、防回归用例。
-- [x] T9 新增 `build/autotest.py`：预设表、环境检测、可选构建、打包、`--verify`、结构断言、
+- [x] T8 `build/testing/test_pack.py`：包名/元数据、MANIFEST、接入文件、arm64、文档链接、防回归用例。
+- [x] T9 新增 `build/testing/autotest.py`：预设表、环境检测、可选构建、打包、`--verify`、结构断言、
       可选冒烟、JSON/日志报告、`--dry-run`。
-- [x] T10 新增 `build/test_autotest.py`：预设与命令拼装等纯单元测试。
+- [x] T10 新增 `build/testing/test_autotest.py`：预设与命令拼装等纯单元测试。
 
 ## 文档与验证
 

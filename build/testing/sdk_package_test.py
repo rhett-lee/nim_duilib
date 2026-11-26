@@ -9,10 +9,10 @@
   3. C03-C06：配置/架构/运行库/工具链不匹配时必须被 SDK 拒绝。
 
 用法：
-  python3 build/sdk_package_test.py --list-scenarios
-  python3 build/sdk_package_test.py --package dist/nim_duilib-...zip
-  python3 build/sdk_package_test.py --package dist/xxx.zip --no-build
-  python3 build/sdk_package_test.py --package dist/xxx.zip --scenarios P01,C01 --keep
+  python3 build/testing/sdk_package_test.py --list-scenarios
+  python3 build/testing/sdk_package_test.py --package dist/nim_duilib-...zip
+  python3 build/testing/sdk_package_test.py --package dist/xxx.zip --no-build
+  python3 build/testing/sdk_package_test.py --package dist/xxx.zip --scenarios P01,C01 --keep
 
 退出码：0 全部通过（允许 SKIP）、1 存在 FAIL、2 全部 SKIP。
 """
@@ -38,7 +38,8 @@ import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
-BUILD_DIR = Path(__file__).resolve().parent
+TESTING_DIR = Path(__file__).resolve().parent
+BUILD_DIR = TESTING_DIR.parent
 REPO_ROOT = BUILD_DIR.parent
 SDK_TEST_DIR = BUILD_DIR / "sdk_test"
 PACK_PY = BUILD_DIR / "pack.py"

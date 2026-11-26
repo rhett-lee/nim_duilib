@@ -1591,7 +1591,7 @@ def cmd_doctor(args, messages) -> int:
 
 
 def cmd_test(args, messages) -> int:
-    command = [sys.executable, "-m", "unittest", "discover", "-s", str(BUILD_DIR),
+    command = [sys.executable, "-m", "unittest", "discover", "-s", str(BUILD_DIR / "testing"),
                "-p", "test_*.py", "-v"]
     print("+ " + _format_command(command), flush=True)
     if args.dry_run:

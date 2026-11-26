@@ -34,9 +34,9 @@
   `DUILIB_SKIA_COMPILE_REPO` 缓存项，升级后 `CMakeCache.txt` 不再显示失效路径。
 - 网络操作统一重试：`git clone/fetch`、CEF 下载共用版本清单 `retry` 段
   （`maxAttempts=0` 无限重试、`delaySeconds=20`）。
-- 双语构建参考手册 `build/build-reference.md` / `.en.md`；`build/README.md` /
+- 双语构建参考手册 `build/docs/build-reference.md` / `.en.md`；`build/README.md` /
   `.en.md` 改为前置依赖与发布打包索引。
-- `build/test_build.py`：构建入口与 i18n 的标准库单元测试。
+- `build/testing/test_build.py`：构建入口与 i18n 的标准库单元测试。
 - 合规：`THIRD-PARTY-NOTICES.md`，SDK 包内许可证目录统一为 `LICENSES/`。
 - 合规：新增英文版第三方组件声明 `THIRD-PARTY-NOTICES.en.md`（根目录，与中文版成对）；
   `pack.py` 与 SDK 包测试改为同时打包、校验中英文两份声明。
@@ -75,7 +75,7 @@
   参数选择资源根：`true`（默认）返回 `<App>.app/Contents/Resources/duilib/resources/`，
   `false` 返回可执行文件同目录的 `resources/`；非 Bundle 程序仍回退到后者。
   `GetResourceZipPath(bool)` 的 zip 模式对应 `.../duilib/resources.zip`。
-- macOS App Bundle 参考文档 `build/macos-app-bundle.md` / `.en.md`，以及
+- macOS App Bundle 参考文档 `build/docs/macos-app-bundle.md` / `.en.md`，以及
   `Info.plist` 模板与可选的 `.icns` 图标配置。
 - Windows MSVC DLL 模式：`python3 build/build.py build --dll` 把 duilib 编为
   `bin/duilib*.dll`（x86 为 `duilib32*.dll`，Debug 带 `_d`，导入库统一为
@@ -229,7 +229,7 @@
   预期报错文本匹配。注释、docstring、`MANIFEST.txt`、`RELEASE-NOTES` 与包内中文
   内容保持原样。
 - 统一入口一次只构建一个 `--config`（Debug/Release），需要两者时调用两次；
-  `build/autotest.py` 的构建步骤改为调用 `build.py`。
+  `build/testing/autotest.py` 的构建步骤改为调用 `build.py`。
 - CEF 运行时按版本与架构输出到 `bin/libcef_win[/_109]/<arch>` 或 `bin/libcef_linux`，
   编译使用仓库跟踪的头文件与导入库。所有平台统一使用 `_minimal` 发行包（体积约为
   标准包的一半，含 `include/`、`Release/`、`Resources/`）。
@@ -253,7 +253,7 @@
   `--with-examples`）、4 次 `sdk_package_test.py`（含两次 `--run-examples` 的 C10
   示例启动）与 `doctor`/`test`/`test_build`/`test_pack`/`test_sdk_package`/
   `test_autotest`/`autotest` 全部通过；`pack.py --with-cef` 按预期报错
-  （FreeBSD 不支持 CEF）。测试矩阵与结论见 `build/test-matrix.md` §4。
+  （FreeBSD 不支持 CEF）。测试矩阵与结论见 `build/docs/test-matrix.md` §4。
 - Windows 示例包的包内启动冒烟（C10）已覆盖 5 个包（2026-10-29）：x64 Release 的
   静态 CEF 包（`win-x64-cef-examples.zip`，1318 条目 / 328.2 MB）、SDL 包
   （`win-x64-sdl-cef-examples.zip`，1398 / 352.9 MB）、无 CEF 包
@@ -343,7 +343,7 @@
 
 ### 移除
 
-- 删除 `build/build.md`，构建说明合并到 `build/build-reference.md`。
+- 删除 `build/build.md`，构建说明合并到 `build/docs/build-reference.md`。
 - 删除旧的分平台构建脚本（`build_duilib_all_in_one.*`、`msvc_build.bat`、
   `linux_build.sh`、`macos_build.sh`、`freebsd_build.sh`、`msys2_build.sh` 等）：
   四个平台均已验证新入口后于 2026-10-29 移除，统一使用 `build/build.py`。
@@ -510,7 +510,7 @@
   （`duilib_common.cmake`）、off 模式检查（`duilib_deps.cmake`）、依赖准备
   （`duilib_deps_run.cmake`）共用同一函数，不再各自拼目录名。`build/pack.py`
   的打包侧候选目录名也改为同一规则，并新增一致性用例逐一比对两侧
-  （`build/test_cmake_scripts.py`），防止再次漂移。顺带修正 MinGW Debug 打包
+  （`build/testing/test_cmake_scripts.py`），防止再次漂移。顺带修正 MinGW Debug 打包
   会漏掉 `.debug` 变体；`gcc.msvcrt` 只在 MSYS2 MINGW64 作为候选，不再把
   不兼容的 msvcrt 库打进 UCRT64/独立 MinGW 包。
 - CRT 标识推导统一：新增 `cmake/duilib_crt.cmake` 的 `duilib_crt_id()`，
@@ -524,7 +524,7 @@
 - 构建测试不再依赖 PATH 上有 cmake：`build/build.py` 新增 `find_cmake()`
   （`DUILIB_CMAKE_EXECUTABLE` → PATH → Visual Studio 自带 CMake），配置/构建/
   `doctor`/测试共用；缺少 cmake 时相关用例不再被跳过。`build.py test` 除脚本级
-  单元测试外，还通过 `build/test_cmake_scripts.py` 执行一次真实 configure 冒烟
+  单元测试外，还通过 `build/testing/test_cmake_scripts.py` 执行一次真实 configure 冒烟
   （prepare 模式，不依赖 Skia）。
 - Debug 配置的依赖检查：`cmake/duilib_deps.cmake` 在 `DUILIB_DEPS_MODE=off` 时用
   `DUILIB_BUILD_TYPE` 判断 Skia 变体，但该变量由 `duilib_common.cmake` 定义、只在
@@ -884,9 +884,9 @@
   Python 调用点，发现“文案自带 `[OK]/[WARN]/[INFO]` 且由包装接口输出”即失败。
 - 构建文档与实现对齐：`cmake/README.md` / `README.en.md` 的 in-tree 编译片段改为
   当前实现（`cmake.in_tree_build` + Hint），Q1 的平台报错改为
-  `unsupported platform`（旧版为 `Unknown OS`）；`build/build-reference.md` 的
+  `unsupported platform`（旧版为 `Unknown OS`）；`build/docs/build-reference.md` 的
   macOS CEF 回退日志改为中文渲染并在括号内注明英文原文，`build-reference.en.md`
-  保持英文；`build/sdk-package-test.md` 补充说明该用例工程的提示固定为中文。
+  保持英文；`build/docs/sdk-package-test.md` 补充说明该用例工程的提示固定为中文。
   另外在 `cmake/README*.md` 的「构建消息目录」中列出有意不接入目录的位置
   （内部守卫、构建标记脚本、键值 dump、随包分发的 `packaging/cmake/*`），
   并在 `Packaging-Follow-Up-Items.md` 新增 P2-6 记录包内提示语言的决策。
@@ -897,20 +897,20 @@
   `<App>.app/Contents/Resources/duilib/resources.zip` 定位，存在才采用，否则保留
   原有回退逻辑；非 Bundle 程序行为不变。
 - 构建文档与实现继续对齐：`preflight.dev_packages_hint` 改指
-  `build/linux-dependencies.md`（系统包清单见 `build/build-reference.md` 第 8 节）；
+  `build/docs/linux-dependencies.md`（系统包清单见 `build/docs/build-reference.md` 第 8 节）；
   `duilib_preflight_tools.cmake` 的 Linux 系统库注释由“可选，缺失只告警”改为
   实际行为（`pkg-config` 缺失只告警，库缺失一次性报错）并删除未使用的变量；
   `cmake/README*.md` 的 ninja 自举与阶段 B 预检描述改为实际查找顺序与校验项；
   `build/README(.en).md`、`build-reference(.en).md`、`linux-dependencies(.en).md`、
   根 `README(.en).md` 及 AI 指南统一把 Python 要求写为 3.8+（与 `build.py` 一致）。
-- 新增 `build/test_docs.py`：`build.py test` 现在会校验维护范围内 Markdown 的相对
+- 新增 `build/testing/test_docs.py`：`build.py test` 现在会校验维护范围内 Markdown 的相对
   链接（先剔除代码块与行内代码）以及 `docs/` 顶层文档的中英成对，历史目录
   `docs/misc/` 不参与；`docs/Summary(.en).md` 中指向已迁移头文件的链接同步修正。
-- 测试文档与实现对齐：`build/sdk-package-test.md` 的 CEF 维度取值由 CEF 142 改为
+- 测试文档与实现对齐：`build/docs/sdk-package-test.md` 的 CEF 维度取值由 CEF 142 改为
   当前默认 156（`pack.py --cef-version` 仍提供 `latest`/`109`），前置表的 Python
   要求写为 3.8+，P02 的“必需文件”由 10 项改为 `check_layout()` 实际的 11 项，
   并补上遗漏的 `--lang` 参数说明、把 `--keep` 的删除目录写法改为实际使用的
-  `<out>/<NN>`；`build/arm64-test-plan.md` 的现状表不再把
+  `<out>/<NN>`；`build/docs/arm64-test-plan.md` 的现状表不再把
   CEF 109 出包记为“未测”（W-A07/W-P25 已通过），并注明 142 是出包当时清单的
   默认版本、当前默认已升至 156。
 - 构建文档补全：`build/README(.en).md` 的包名规则补上 `-mingw-gcc|-mingw-llvm`
@@ -928,7 +928,7 @@
   `detect_toolchain()`、`build_block_reason()`（改用 `startswith("Visual Studio")`）
   与 `check_negative_arch()` 统一使用它，并新增 `test_build.VsGeneratorTests` 3 项、
   `test_sdk_package.BuildBlockReasonTest` 4 项；`docs/Release(.en).md`、
-  `build/sdk-package-test.md`、`TRAE.md`/`WORKBUDDY.md` 里的 VS 生成器示例也注明
+  `build/docs/sdk-package-test.md`、`TRAE.md`/`WORKBUDDY.md` 里的 VS 生成器示例也注明
   生成器名随本机 VS 版本变化（VS 2022 为 `Visual Studio 17 2022`，VS 2026 为
   `Visual Studio 18 2026`）。
 - 消息目录只有“引用了不存在的键”检查，反向的“死键”（`messages.json` 里留下但
@@ -936,7 +936,7 @@
   要求每个键名都作为字符串出现在 `cmake/**/*.cmake`、根与 `duilib/CMakeLists.txt`、
   `build/*.py`（不含测试）；键名经表格等数据传递（如 `SCENARIO_ORDER` 的
   `sdk.scn_p01`）同样算作引用。当前 706 个键全部有引用。
-- 构建参考手册补漏：`build/build-reference(.en).md` 的“常用参数”表新增 pack 子命令的
+- 构建参考手册补漏：`build/docs/build-reference(.en).md` 的“常用参数”表新增 pack 子命令的
   `--pack-arg`（原样追加到 `pack.py` 命令行），示例为 `--pack-arg=--list` 与
   `--pack-arg=--allow-missing`，与 `build.py` 的实现一致。
 - 发布编排脚本 `build/release.py` 的包名与体检口径修正：`package` 预判包名时没有传
@@ -946,7 +946,7 @@
   新增 `_expected_runtime_dll()`（与 `pack.collect_duilib_runtime_dll()` 同规则：
   x86 为 `duilib32[_d].dll`、Debug 带 `_d`）把 DLL 模式传给
   `build_package_name(is_dll=...)`；体检改为检查“输出目录中本次新增的归档”，仍无
-  新增时才报新消息 `rel.pack_output_missing`。新增 `build/test_release.py`（15 项，
+  新增时才报新消息 `rel.pack_output_missing`。新增 `build/testing/test_release.py`（15 项，
   覆盖包名预判、归档筛选、`git status` 路径解析与 `dist/` 忽略规则、CHANGELOG 条目
   提取），并在 `build/README(.en).md` 文件表与 `docs/Release(.en).md` 发布流程中
   同步说明。
@@ -976,8 +976,8 @@
   现在 MinGW 的 Skia 候选与配置无关，统一为 `<前缀><gcc|llvm>.<arch>.release`，
   配置期、`deps`、`pack.py` 与 SDL3 变体命名口径一致；已有的 `.<arch>.debug` 目录
   不再被自动选用（需要时用 `--skia-lib-dir` / `-DDUILIB_SKIA_LIB_SUBPATH` 显式指定）。
-  `build/build-reference(.en).md`、`build/README(.en).md`、`cmake/README(.en).md`
-  的说明与 `build/test_cmake_scripts.py` 的期望值同步更新。
+  `build/docs/build-reference(.en).md`、`build/README(.en).md`、`cmake/README(.en).md`
+  的说明与 `build/testing/test_cmake_scripts.py` 的期望值同步更新。
 - `deps --dry-run` 在构建树即将重建时仍按旧缓存展开计划：编译器切换（MSVC ↔ MinGW）
   或运行库/DLL 模式切换（`--md`/`--dll`）时，真正的 `deps` 会先清空构建树再重新配置，
   而 dry-run 仍会调用 `duilib_deps_plan`，打印出即将被丢弃的旧工具链/旧模式的
@@ -989,7 +989,7 @@
   `build.compiler_outputs`、`build.config_switch`、`build.dll_flag`、
   `build.toolchain_changed`、`build.mode_changed` 改为“将清理/将删除/将同步”，
   真实运行与 dry-run 都成立（中英同步）。
-- `build/build-reference(.en).md` 的“`--dry-run` 本身不会配置”与实际不符：计划目标经
+- `build/docs/build-reference(.en).md` 的“`--dry-run` 本身不会配置”与实际不符：计划目标经
   `cmake --build` 执行，`CMakeLists.txt`/`cmake/*.cmake` 比构建系统新时 CMake 会先重跑
   一次配置（只更新 `out/` 构建目录，不做依赖准备、不联网、不编译）。
   文档改为区分“dry-run 不主动配置”与“CMake 自身因配置过期而重跑配置”。

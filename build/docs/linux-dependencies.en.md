@@ -1,5 +1,7 @@
 # Linux Distribution System Dependencies
 
+> Navigation: [build documentation index](../README.md)
+
 Before building nim_duilib from source on Linux, you need to install a compiler,
 the build tools, and the development packages for windowing, fonts and graphics.
 The build script prepares Skia, SDL3, CEF and the other bundled third-party
@@ -18,7 +20,7 @@ different distribution.
 | :--- | :--- | :--- |
 | Compiler | gcc/g++ 10+ or clang/clang++ 12+ | Compile the UI library, examples and Skia |
 | Build tools | CMake 3.24+, Ninja, gn (package name `generate-ninja` on Ubuntu-based distributions), make, Git, Python 3.8+, unzip (some distributions also need bzip2 and wget) | Generate and run the build; Skia requires gn/ninja |
-| Windowing and fonts | Development packages for X11, Freetype and Fontconfig | Looked up during the CMake configure step through `find_package(X11 REQUIRED)`, `find_package(Freetype REQUIRED)` and `find_package(Fontconfig REQUIRED)`, see [cmake/duilib_bin_linux.cmake](../cmake/duilib_bin_linux.cmake) and [cmake/duilib_unix_font_libs.cmake](../cmake/duilib_unix_font_libs.cmake) |
+| Windowing and fonts | Development packages for X11, Freetype and Fontconfig | Looked up during the CMake configure step through `find_package(X11 REQUIRED)`, `find_package(Freetype REQUIRED)` and `find_package(Fontconfig REQUIRED)`, see [cmake/duilib_bin_linux.cmake](../../cmake/duilib_bin_linux.cmake) and [cmake/duilib_unix_font_libs.cmake](../../cmake/duilib_unix_font_libs.cmake) |
 | Graphics and input | Development packages for OpenGL/GLES/EGL, Vulkan, DBus and ibus | Rendering backend and input method support |
 | Wayland (optional) | Development packages for wayland and libxkbcommon | Building and running on Wayland desktops |
 

@@ -3,7 +3,7 @@
 
 不依赖已构建产物，可直接运行：
 
-    python3 build/test_pack.py
+    python3 build/testing/test_pack.py
 
 覆盖：正/负向包体检（zip 与 tar.gz）、包名组合、SOURCE_DATE_EPOCH 校验。
 """
@@ -20,7 +20,11 @@ import unittest
 import zipfile
 from unittest import mock
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+TESTING_DIR = os.path.dirname(os.path.abspath(__file__))
+BUILD_DIR = os.path.dirname(TESTING_DIR)
+for _path in (BUILD_DIR, TESTING_DIR):
+    if _path not in sys.path:
+        sys.path.insert(0, _path)
 
 import pack  # noqa: E402
 
@@ -1413,10 +1417,12 @@ class SdlVariantCallSiteTests(unittest.TestCase):
         import ast
         import inspect
         signature = inspect.signature(pack._sdl_variant_name)
-        build_dir = os.path.dirname(os.path.abspath(__file__))
         problems = []
-        for name in ('build.py', 'test_pack.py', 'test_cmake_scripts.py'):
-            path = os.path.join(build_dir, name)
+        sources = [(BUILD_DIR, 'build.py'),
+                   (TESTING_DIR, 'test_pack.py'),
+                   (TESTING_DIR, 'test_cmake_scripts.py')]
+        for directory, name in sources:
+            path = os.path.join(directory, name)
             with open(path, 'r', encoding='utf-8') as fp:
                 tree = ast.parse(fp.read(), filename=path)
             for node in ast.walk(tree):

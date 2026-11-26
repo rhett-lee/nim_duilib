@@ -50,7 +50,7 @@ trigger: 当用户要求升级 CEF/libcef 版本、deps 运行时版本不对、
    macOS 先把归档解压到 `<CEF_CACHE>/extract/...` 并校验，再清理 CEF_ROOT 的发行包条目
    （保留 `downloads/`、`extract/`）后复制；`--force` 不能删除整个 CEF_ROOT，否则会连带
    删掉刚校验的归档；复制后校验 libcef 大小，目标文件被占用时直接报错。
-8. **脚本/文档同步**：`build/pack.py`、`build/sdk_package_test.py` 的默认版本从清单读取；
+8. **脚本/文档同步**：`build/pack.py`、`build/testing/sdk_package_test.py` 的默认版本从清单读取；
    `test_build.py`/`test_pack.py` 断言跟随清单；README/docs/CHANGELOG/test-matrix 更新默认版本；
    历史记录不改。
 

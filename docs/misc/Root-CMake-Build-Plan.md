@@ -892,7 +892,7 @@ cmake --build --preset x64-release
   不保留兼容层（见 `Build-Entry-Simplification-Plan.md`）；
 - 删除前，`all_in_one` 的依赖准备段先行替换为
   `cmake -DDUILIB_DEPS_MODE=prepare`，确认行为一致后再移除脚本；
-- `build/autotest.py` 的预设（`unit`、`arm64-synthetic`、
+- `build/testing/autotest.py` 的预设（`unit`、`arm64-synthetic`、
   `pack-msvc-x64-release`）改为调用 `build.py` / 根工程；新增预设
   `root-cmake-release` 覆盖根工程参数组合；
 - `build/pack.py` 仍只收集产物，不感知构建方式。
@@ -953,7 +953,7 @@ cmake --build --preset x64-release
     即可得到两种配置的产物；`release.py` / `autotest.py` 不再单次构建两种配置；
 20. Python 3：环境缺少 `python3`/`py -3` 时预检报 `[ERROR]`，并给出安装提示；
     不存在绕过 Python 的构建路径；
-21. 测试：`python3 -m unittest build/test_build.py` 通过；中英文两种语言下断言一致；
+21. 测试：`python3 -m unittest build/testing/test_build.py` 通过；中英文两种语言下断言一致；
     下载重试/哈希测试不访问网络；
 22. SDK：根工程不提供 `install()` 目标；`pack.py` 产出的 `lib/cmake/nim_duilib`
     可被 `find_package(nim_duilib)` 使用；
@@ -980,7 +980,7 @@ cmake --build --preset x64-release
   根构建树统一为 `out/<arch>/<Config>` 并完善 `.gitignore`（整体忽略 `/out/`）、
   `build-reference.en.md` 双语文档、
   新增根工程自动化预设；`pack.py` / `release.py` / `autotest.py` 接入同一消息目录；
-  `build/test_build.py`（unittest）与 `LICENSES/`、`THIRD-PARTY-NOTICES.md`。
+  `build/testing/test_build.py`（unittest）与 `LICENSES/`、`THIRD-PARTY-NOTICES.md`。
 
 ## 9. 风险与开放问题
 
@@ -1105,7 +1105,7 @@ cmake --build --preset x64-release
 ### 10.5 P2：测试、CI、文档与合规
 
 20. **测试**（已决策）：用 Python 标准库 `unittest`，**不引入 pytest**；
-    新增 `build/test_build.py` 覆盖参数解析、`--config` 默认值、语言选择、
+    新增 `build/testing/test_build.py` 覆盖参数解析、`--config` 默认值、语言选择、
     清单校验、依赖就绪判定与预检模拟；中英文测试只断言标记、退出码与关键字；
     下载相关只测重试/哈希逻辑（假 curl），不访问真实网络。
 21. **CI 矩阵**（暂缓）：Windows/Linux/macOS/FreeBSD、架构与缓存策略留待后续

@@ -268,7 +268,7 @@ cmake --build build/build_temp/hello_button --config Release
 
 **仓库文档**：`docs/Summary.md`（索引）、`Getting-Started.md`（入门）、`Control.md`、`Box.md`、
 `Global.md`、`Window.md`、`Theme.md`、`ThemeColor.md`、`Events.md`、`XmlEvents.md`、`XmlNode.md`、
-`Examples.md`、`build/build-reference.md`（构建参考手册）、`docs/CEF.md`（CEF 模块）。
+`Examples.md`、`build/docs/build-reference.md`（构建参考手册）、`docs/CEF.md`（CEF 模块）。
 
 **权威源（写不确定的名字前先查这里）**
 

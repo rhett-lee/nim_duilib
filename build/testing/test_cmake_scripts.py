@@ -3,7 +3,7 @@
 
 运行：
   python3 build/build.py test
-  python3 -m unittest build.test_cmake_scripts -v
+  python3 -m unittest build.testing.test_cmake_scripts -v
 
 覆盖：
   * cmake/duilib_skia_variants.cmake 的候选目录名（并与 build/pack.py 打包侧比对，
@@ -20,7 +20,7 @@
   * build.py find_cmake() 的定位顺序（测试不再依赖 PATH 上一定有 cmake）；
   * 真实 configure 冒烟（prepare 模式，验证 CMake 改动能被完整解析/生成）。
 
-夹具 build/tests/skia_variants_check.cmake 通过 `cmake -P` 执行，结果取 stdout
+夹具 build/testing/tests/skia_variants_check.cmake 通过 `cmake -P` 执行，结果取 stdout
 中的 "RESULT:" 行。
 """
 import importlib.util
@@ -32,10 +32,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-BUILD_DIR = Path(__file__).resolve().parent
+TESTING_DIR = Path(__file__).resolve().parent
+BUILD_DIR = TESTING_DIR.parent
 REPO_ROOT = BUILD_DIR.parent
-if str(BUILD_DIR) not in sys.path:
-    sys.path.insert(0, str(BUILD_DIR))
+for _path in (BUILD_DIR, TESTING_DIR):
+    if str(_path) not in sys.path:
+        sys.path.insert(0, str(_path))
 
 import pack  # noqa: E402
 
@@ -44,7 +46,7 @@ _spec = importlib.util.spec_from_file_location("duilib_build_entry", BUILD_DIR /
 entry = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(entry)
 
-HARNESS = BUILD_DIR / "tests" / "skia_variants_check.cmake"
+HARNESS = TESTING_DIR / "tests" / "skia_variants_check.cmake"
 
 # 统一入口：PATH 上没有 cmake 时回退到 Visual Studio 自带的 CMake（build.py 同款逻辑）
 CMAKE = shutil.which("cmake") or entry.find_cmake()

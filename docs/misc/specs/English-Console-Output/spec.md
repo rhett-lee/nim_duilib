@@ -111,10 +111,10 @@ def _requested_lang(argv):
 
 ## 测试
 
-- `build/test_build.py`：`resolve_language` 的 CLI / 环境变量 / 系统区域优先级，
+- `build/testing/test_build.py`：`resolve_language` 的 CLI / 环境变量 / 系统区域优先级，
   新增繁体区域 → 英文、简体变体 → 中文用例；`--lang en` 时 argparse 帮助为
   纯 ASCII；`--help` 语言在 argparse 之前生效。
-- `build/test_pack.py`、`build/test_autotest.py`、`build/test_sdk_package.py`：
+- `build/testing/test_pack.py`、`build/testing/test_autotest.py`、`build/testing/test_sdk_package.py`：
   断言前固定 `MESSAGES = make_messages('zh_CN')`，避免宿主系统语言影响结果；
   另设英文用例断言关键文案为纯 ASCII。
 - `python3 build/build.py test`（`unittest discover -s build`）覆盖全部 236 个用例。
@@ -129,10 +129,10 @@ def _requested_lang(argv):
    python3 build/pack.py --list --lang en
    python3 build/release.py --help --lang en
    python3 build/release.py clean --list --lang en
-   python3 build/autotest.py --help --lang en
-   python3 build/autotest.py --list-presets --lang en
-   python3 build/sdk_package_test.py --help --lang en
-   python3 build/sdk_package_test.py --list-scenarios --lang en
+   python3 build/testing/autotest.py --help --lang en
+   python3 build/testing/autotest.py --list-presets --lang en
+   python3 build/testing/sdk_package_test.py --help --lang en
+   python3 build/testing/sdk_package_test.py --list-scenarios --lang en
    ```
 
 2. `DUILIB_LANG=zh_CN` / `zh_Hans` 显示中文；`zh_TW` / `zh_HK` / `zh_Hant` 显示英文。

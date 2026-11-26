@@ -315,9 +315,9 @@ python3 build/build.py deps     # 只准备依赖（Skia / SDL3 / CEF）
 python3 build/build.py          # 准备依赖并编译（默认 Release）
 ```
 
-常用参数：`--config Debug|Release`、`--arch auto|x86|x64|arm64`、`--dll`、`--sdl`、`--jobs N`；完整参数说明见 [build/build-reference.md](../build/build-reference.md)。
-- Linux 系统依赖安装：见 [build/linux-dependencies.md](../build/linux-dependencies.md)
-- macOS 应用打包（App Bundle）：见 [build/macos-app-bundle.md](../build/macos-app-bundle.md)
+常用参数：`--config Debug|Release`、`--arch auto|x86|x64|arm64`、`--dll`、`--sdl`、`--jobs N`；完整参数说明见 [build/docs/build-reference.md](../build/docs/build-reference.md)。
+- Linux 系统依赖安装：见 [build/docs/linux-dependencies.md](../build/docs/linux-dependencies.md)
+- macOS 应用打包（App Bundle）：见 [build/docs/macos-app-bundle.md](../build/docs/macos-app-bundle.md)
 - Windows 上没有 `python3` 命令时，可以使用 `python build/build.py`。
 
 ## 关于Visual Studio的工程配置

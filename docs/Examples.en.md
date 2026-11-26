@@ -8,7 +8,7 @@ The examples directory contains several example programs that you can reference 
 ## 1. examples/basic
 A basic window example program, with minimize, maximize, restore and close buttons.    
 On macOS it is built as `bin/basic.app` without C++ changes; see
-[build/macos-app-bundle.en.md](../build/macos-app-bundle.en.md) for configuration.    
+[build/docs/macos-app-bundle.en.md](../build/docs/macos-app-bundle.en.md) for configuration.    
 Code entry: [MainThread.cpp](../examples/basic/MainThread.cpp), [MainForm.cpp](../examples/basic/MainForm.cpp); skin resources: `bin/resources/themes/default/basic/basic.xml`; related docs: [Getting-Started.en.md](Getting-Started.en.md), [Window.en.md](Window.en.md).    
 <img width="700" src="./Images/basic.png"/>
 

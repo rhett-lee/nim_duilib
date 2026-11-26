@@ -44,7 +44,7 @@ XML 侧发现的问题：
 
 ## 三、验证
 
-1. 构建：`build\build.bat build --config Debug --arch x64 --sdl --no-deps --target layout`。
+1. 构建：`python build\build.py build --config Debug --arch x64 --sdl --no-deps --target layout`。
 2. 运行 `bin\layout.exe`（工作目录 `bin`），截图检查：
    - 内容区四周 10px 留白、TabBox 8px 圆角描边、标签栏与内容卡片间距 8px；
    - 标签显示完整名称（必要时出现横向滚动条），不再出现 `HFlo…`；

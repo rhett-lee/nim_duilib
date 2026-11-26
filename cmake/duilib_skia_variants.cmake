@@ -14,7 +14,7 @@
 #
 # 本文件曾被三处各自实现（duilib_common.cmake、duilib_deps.cmake、
 # duilib_deps_run.cmake），并且已经漂移过一次（/MD 后缀）。这里是唯一实现，
-# 另外 build/test_cmake_scripts.py 会比对 pack.py 的打包侧候选目录名。
+# 另外 build/testing/test_cmake_scripts.py 会比对 pack.py 的打包侧候选目录名。
 
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_skia_toolchain.cmake")
 

@@ -91,7 +91,7 @@ Windows 7 的兼容性来自库自身配置（[duilib/duilib_config.h](duilib/du
 
 ### Linux 系统依赖
 
-Linux 上还需要发行版提供的 X11、字体、OpenGL/EGL、DBus/ibus 等开发包。各发行版包名差异较大，装错或漏装通常表现为 CMake 阶段报 `Could not find X11`、`Could not find Freetype` 或 `Could not find Fontconfig`。按发行版划分的安装命令、必需包清单和验证方法见单独文档：[build/linux-dependencies.md](build/linux-dependencies.md)。其中的命令取自仓库构建文档，覆盖 Ubuntu、Debian、Fedora、openSUSE、OpenEuler、OpenKylin、UbuntuKylin、中科方德、统信 UOS；除 Ubuntu 外未逐一实测，文档中已说明验证范围。
+Linux 上还需要发行版提供的 X11、字体、OpenGL/EGL、DBus/ibus 等开发包。各发行版包名差异较大，装错或漏装通常表现为 CMake 阶段报 `Could not find X11`、`Could not find Freetype` 或 `Could not find Fontconfig`。按发行版划分的安装命令、必需包清单和验证方法见单独文档：[build/docs/linux-dependencies.md](build/docs/linux-dependencies.md)。其中的命令取自仓库构建文档，覆盖 Ubuntu、Debian、Fedora、openSUSE、OpenEuler、OpenKylin、UbuntuKylin、中科方德、统信 UOS；除 Ubuntu 外未逐一实测，文档中已说明验证范围。
 
 ### 平台验证状态
 
@@ -107,7 +107,7 @@ Linux 上还需要发行版提供的 X11、字体、OpenGL/EGL、DBus/ibus 等�
 | Linux x64 | VMware 虚拟机、CMake 3.31、gcc（另测 clang） | 已验证；Ubuntu 之外的发行版待确认 |
 | FreeBSD x64 | FreeBSD 虚拟机、系统 clang | 已验证 |
 
-仍标注 **待确认** 的项目：Linux arm64、macOS arm64、Ubuntu 之外 Linux 发行版的实际验证、macOS 最低系统版本。详细用例、命令与结果见 [build/test-matrix.md](build/test-matrix.md)。
+仍标注 **待确认** 的项目：Linux arm64、macOS arm64、Ubuntu 之外 Linux 发行版的实际验证、macOS 最低系统版本。详细用例、命令与结果见 [build/docs/test-matrix.md](build/docs/test-matrix.md)。
 
 ## 快速开始
 
@@ -117,7 +117,7 @@ Linux 上还需要发行版提供的 X11、字体、OpenGL/EGL、DBus/ibus 等�
 
 仓库不再为各平台提供不同的构建脚本，文档里的命令也统一写成 `python3 build/build.py`。这样做的原因有三点：Skia 的构建脚本固定调用 `python3`，缺少 `python3` 时会在编译 Skia 前直接失败，`python` 不能替代；macOS/Linux 的常见环境只提供 `python3`，命令若写成 `python` 会报 command not found；统一成同一条命令后，文档只需维护一套命令，新用户不必先判断自己该用哪个脚本，参数、子命令与产物路径在各平台完全一致，学习成本最低。`build.py` 会自动识别当前平台与编译器、选择生成器、准备依赖，并附带 `doctor`（环境自检）、`deps`（只准备依赖）、`test`（单元测试）、`pack`（出包）、`clean`（清理）等子命令。
 
-Windows 上如果没有 `python3` 命令，可以把命令开头的 `python3` 换成 `py -3`，或换成环境里指向 Python 3 的 `python`（先用 `--version` 确认版本）；也可以直接用薄封装 `build\build.bat`（它按 `py -3` → `python` → `python3` 的顺序找解释器），参数与 `build.py` 完全相同，例如 `build\build.bat deps`。前两种写法只适用于 Windows，本文其他命令示例一律使用 `python3`。需要注意，它们只改变 `build.py` 的启动方式，Skia 构建阶段仍要求 PATH 中存在 `python3`，否则会在编译 Skia 前报错终止。
+Windows 上如果没有 `python3` 命令，可以把命令开头的 `python3` 换成 `py -3`，或换成环境里指向 Python 3 的 `python`（先用 `--version` 确认版本），例如 `py -3 build\build.py deps`。这两种写法只适用于 Windows，本文其他命令示例一律使用 `python3`。需要注意，它们只改变 `build.py` 的启动方式，Skia 构建阶段仍要求 PATH 中存在 `python3`，否则会在编译 Skia 前报错终止。
 
 ### Windows（已验证：Windows 10/11 x64 + VS 2022/VS 2026）
 
@@ -140,7 +140,7 @@ bin\basic.exe
 
 ### Linux / macOS / FreeBSD
 
-前置：按上文安装编译器、CMake、Ninja、Git、Python 3.8+；Linux 还需按 [build/linux-dependencies.md](build/linux-dependencies.md) 安装系统开发包。
+前置：按上文安装编译器、CMake、Ninja、Git、Python 3.8+；Linux 还需按 [build/docs/linux-dependencies.md](build/docs/linux-dependencies.md) 安装系统开发包。
 
 ```bash
 git clone https://github.com/rhett-lee/nim_duilib.git
@@ -152,7 +152,7 @@ python3 build/build.py
 
 - macOS 下 `basic` 默认编译为 `bin/basic.app`，示例 C++ 代码无需修改。
 - 构建成功的表现与 Windows 相同：日志以 `[OK] 编译完成` 结束，`bin/basic`（或 `bin/basic.app`）可以启动。
-- 若在 CMake 配置阶段报找不到 X11/字体相关包，按 [build/linux-dependencies.md](build/linux-dependencies.md) 补装；若 Skia 编译阶段报找不到 `gn`/`ninja`/`clang`，补装对应构建工具。
+- 若在 CMake 配置阶段报找不到 X11/字体相关包，按 [build/docs/linux-dependencies.md](build/docs/linux-dependencies.md) 补装；若 Skia 编译阶段报找不到 `gn`/`ninja`/`clang`，补装对应构建工具。
 
 ### 使用 Visual Studio 解决方案
 
@@ -188,7 +188,7 @@ python3 build/build.py --dll --config Release
 | `examples/` | 仓库附带多个可直接运行的示例，覆盖基础窗口、控件演示、渲染、布局与 WebView 等场景；清单见 [docs/Examples.md](docs/Examples.md) |
 | `bin/` | 示例程序输出目录，包含 `resources/` 皮肤与语言资源、CEF 运行时（构建后） |
 | `docs/` | 控件、布局、事件、部署等文档与截图，索引见 [docs/Summary.md](docs/Summary.md) |
-| `build/` | 统一构建入口 `build.py`、出包与发布脚本、VS 解决方案、[构建参考手册](build/build-reference.md)、[Linux 系统依赖](build/linux-dependencies.md)、[平台测试矩阵](build/test-matrix.md) |
+| `build/` | 统一构建入口 `build.py`、出包与发布脚本、VS 解决方案、[构建参考手册](build/docs/build-reference.md)、[Linux 系统依赖](build/docs/linux-dependencies.md)、[平台测试矩阵](build/docs/test-matrix.md) |
 | `cmake/` | 公共 CMake 模块与第三方版本清单 |
 | `msvc/` | Windows 清单文件与 VS 工程公共配置（如 libpag 开关） |
 | `packaging/` | SDK 接入层（CMake 包与 MSVC props/targets） |
@@ -221,7 +221,7 @@ python3 build/build.py --dll --config Release
 | 指定架构 | `python3 build/build.py --arch arm64` |
 | 使用 CEF 109（Windows 7） | `python3 build/build.py --cef-version 109` |
 | 离线构建 | `python3 build/build.py --offline` |
-| 完整参数说明 | [build/build-reference.md](build/build-reference.md) |
+| 完整参数说明 | [build/docs/build-reference.md](build/docs/build-reference.md) |
 
 ## 进阶用法
 
@@ -229,18 +229,18 @@ python3 build/build.py --dll --config Release
 
 - **写第一个窗口**：[examples/basic](examples/basic) 是最小工程；分步教程见 [docs/Getting-Started.md](docs/Getting-Started.md)。该教程以 VS 解决方案为例，依赖准备请以 `python3 build/build.py deps` 为准，构建入口以本文“快速开始”为准。
 - **界面开发文档**：[窗口](docs/Window.md)、[容器/布局](docs/Box.md)、[控件](docs/Control.md)、[菜单](docs/Menu.md)、[全局样式](docs/Global.md)、[事件](docs/Events.md)、[XML 节点](docs/XmlNode.md)、[XML 事件](docs/XmlEvents.md)、[XML 编辑辅助工具](docs/XmlTools.md)（解析错误定位、静态检查、编辑器补全与校验）。
-- **构建与发布**：完整参数见 [build/build-reference.md](build/build-reference.md)；依赖目录与发布打包说明见 [build/README.md](build/README.md)。
+- **构建与发布**：完整参数见 [build/docs/build-reference.md](build/docs/build-reference.md)；依赖目录与发布打包说明见 [build/README.md](build/README.md)。
 - **内置对话框与通知**：[MessageBoxWnd](docs/MessageBox.md)、[ToastWnd](docs/Toast.md)、[SystemNotification](docs/SystemNotification.md)。
-- **网页控件**：[CEF 控件](docs/CEF.md)、[WebView2 示例](examples/WebView2)；CEF 示例运行需要对应的运行时目录：Windows 为 `bin/libcef_win/<arch>`，Linux 为 `bin/libcef_linux`，macOS 由 App Bundle 自动携带（见 [build/macos-app-bundle.md](build/macos-app-bundle.md)）。
+- **网页控件**：[CEF 控件](docs/CEF.md)、[WebView2 示例](examples/WebView2)；CEF 示例运行需要对应的运行时目录：Windows 为 `bin/libcef_win/<arch>`，Linux 为 `bin/libcef_linux`，macOS 由 App Bundle 自动携带（见 [build/docs/macos-app-bundle.md](build/docs/macos-app-bundle.md)）。
 - **接入 SDK**：[docs/Deployment.md](docs/Deployment.md)、[cmake/README.md](cmake/README.md)（CMake 包接入与排障，含英文版）。
-- **macOS App Bundle**：[build/macos-app-bundle.md](build/macos-app-bundle.md)。
+- **macOS App Bundle**：[build/docs/macos-app-bundle.md](build/docs/macos-app-bundle.md)。
 - **启用 PAG**：仅 Windows + MSVC 解决方案。将 [msvc/PropertySheets/LibPagSettings.props](msvc/PropertySheets/LibPagSettings.props) 中的 `LibPagEnabled` 改为 `1`，并按 [libpag-build.md](duilib/third_party/libpag/windows/libpag-build.md) 编译 libpag；CMake 构建不包含 PAG。
 - **AI 辅助开发**：仓库同时内置 Claude、WorkBuddy 与 TRAE 三套配置，技能内容同源，只是加载方式不同：Claude 使用 `.claude/skills/` 与注册脚本，WorkBuddy 使用 `.workbuddy/skills/nim-duilib/`，TRAE 使用 `.trae/skills/nim-duilib/`；三份指南分别为 [CLAUDE.md](CLAUDE.md)、[WORKBUDDY.md](WORKBUDDY.md)、[TRAE.md](TRAE.md)。Claude 需先执行 `.claude/register.bat`（Windows）或 `bash .claude/register.sh`（Linux/macOS）注册技能，然后在任意项目中运行 `/nim-init`；WorkBuddy 与 TRAE 的项目级技能无需注册脚本，按语义触发即可。可从 `/nim-duilib-create-window`、`/nim-duilib-xml-layout`、`/nim-duilib-add-control`、`/nim-duilib-event-handler`、`/nim-duilib-theme`、`/nim-duilib-resource-pack` 开始；参考手册见 [.claude/docs/nim-duilib-llm-reference.md](.claude/docs/nim-duilib-llm-reference.md)。
 - **变更记录**：[CHANGELOG.md](CHANGELOG.md)。
 
 ## 常见问题
 
-下表中列出了最常见的现象与处理方式；如果表中没有，`doctor` 的输出与 [build/build-reference.md](build/build-reference.md) 的排障章节通常能定位到具体环节。
+下表中列出了最常见的现象与处理方式；如果表中没有，`doctor` 的输出与 [build/docs/build-reference.md](build/docs/build-reference.md) 的排障章节通常能定位到具体环节。
 
 | 现象 | 处理 |
 | :--- | :--- |
@@ -250,10 +250,10 @@ python3 build/build.py --dll --config Release
 | Skia 编译报 unknown target CPU 'x86-64-v3' / bad value 'x86-64-v3' | 编译器版本过低：安装 clang 12+（推荐）或 gcc 11+；中科方德/UOS 自带编译器不满足要求，需自行升级 |
 | 找不到 `python3` 命令 | 安装 Python 3 并确保 `python3` 在 PATH 中；Windows 的特殊处理见「为什么统一使用 `python3 build/build.py`」 |
 | 切换 Debug/Release 后 `bin/` 仍是旧示例 | `build.py` 会自动清理另一种配置的示例；手工调用 CMake 时需自行清理 `bin/` |
-| CEF 示例无法运行 | 确认运行时目录存在：Windows 为 `bin/libcef_win/<arch>`（CEF 109 为 `bin/libcef_win_109/<arch>`），Linux 为 `bin/libcef_linux`，macOS 由 App Bundle 自动携带（见 [build/macos-app-bundle.md](build/macos-app-bundle.md)）；出包用 `pack --with-cef`，且编译与打包的 CEF 版本要一致 |
-| Linux 下界面文字不显示 | 安装 fontconfig 与中文字体，见 [build/linux-dependencies.md](build/linux-dependencies.md) |
+| CEF 示例无法运行 | 确认运行时目录存在：Windows 为 `bin/libcef_win/<arch>`（CEF 109 为 `bin/libcef_win_109/<arch>`），Linux 为 `bin/libcef_linux`，macOS 由 App Bundle 自动携带（见 [build/docs/macos-app-bundle.md](build/docs/macos-app-bundle.md)）；出包用 `pack --with-cef`，且编译与打包的 CEF 版本要一致 |
+| Linux 下界面文字不显示 | 安装 fontconfig 与中文字体，见 [build/docs/linux-dependencies.md](build/docs/linux-dependencies.md) |
 | WebView2 示例启动失败 | 确认 `bin/WebView2Loader.dll` 已生成，详见 [cmake/README.md](cmake/README.md) 的常见问题 |
-| 其他构建问题 | [build/build-reference.md §10 排障](build/build-reference.md) |
+| 其他构建问题 | [build/docs/build-reference.md §10 排障](build/docs/build-reference.md) |
 
 ## 许可证与贡献
 

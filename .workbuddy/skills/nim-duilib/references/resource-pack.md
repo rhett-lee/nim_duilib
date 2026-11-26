@@ -16,7 +16,7 @@ ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 在 Linux/macOS 上分隔符不对，不要照抄。）
 
 macOS `.app` 的构建方式、资源放置位置与签名/打包见
-`build/macos-app-bundle.md`；basic 示例默认编译为 `bin/basic.app`，资源位于
+`build/docs/macos-app-bundle.md`；basic 示例默认编译为 `bin/basic.app`，资源位于
 `Contents/Resources/duilib/resources/`（与普通程序的 `resources/` 同构），
 因此不需要改 C++ 代码。
 Bundle 内的资源清单由构建脚本按示例名（`project()` 名称）自动推导：

@@ -2,11 +2,12 @@
 
 运行：
   python3 build/build.py test
-  python3 -m unittest build.test_docs -v
+  python3 -m unittest build.testing.test_docs -v
 
 范围（`docs/misc/` 下的历史计划与 spec 属于历史记录，不在此列）：
   - 仓库根目录 `*.md`
-  - `build/*.md`
+  - `build/*.md`（README）
+  - `build/docs/*.md`
   - `docs/*.md`
   - `.trae/**/*.md`、`.workbuddy/**/*.md`（技能文档；纯英文/ASCII 环境跳过）
 
@@ -26,9 +27,9 @@ import sys
 import unittest
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
-DOC_PATTERNS = ("*.md", "build/*.md", "docs/*.md")
+DOC_PATTERNS = ("*.md", "build/*.md", "build/docs/*.md", "docs/*.md")
 # 中文撰写的技能/工作文档：无法表示中文的控制台环境下不参与检查
 _CHINESE_DOC_PATTERNS = (".trae/**/*.md", ".workbuddy/**/*.md")
 

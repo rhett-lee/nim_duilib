@@ -669,7 +669,7 @@ MyApp.app/Contents/Resources/duilib/resources/
   fonts/
 ```
 
-普通示例的 `.app` 同样使用上述标准布局（见 [build/macos-app-bundle.md](../build/macos-app-bundle.md)）。
+普通示例的 `.app` 同样使用上述标准布局（见 [build/docs/macos-app-bundle.md](../build/docs/macos-app-bundle.md)）。
 非 Bundle 的 macOS 程序（或传 `false`）使用可执行文件同级的 `resources/`。
 
 #### 5. 成品结构（缺一不可）
@@ -877,7 +877,7 @@ Windows 的 `.lib` 与 Unix 的 `.a` 均按目录白名单收集；Unix 的 `lib
 
 ## 相关文档
 
-* [编译参考手册](../build/build-reference.md)
+* [编译参考手册](../build/docs/build-reference.md)
 * [快速上手](Getting-Started.md)
 * [示例程序](Examples.md)
 * [CEF 控件](CEF.md)

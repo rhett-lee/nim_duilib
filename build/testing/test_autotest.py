@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""build/autotest.py 的纯单元测试：不构建、不实际打包。"""
+"""build/testing/autotest.py 的纯单元测试：不构建、不实际打包。"""
 
 import argparse
 import contextlib
@@ -13,7 +13,9 @@ import zipfile
 from types import SimpleNamespace
 from unittest import mock
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+TESTING_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, TESTING_DIR)
+sys.path.insert(0, os.path.dirname(TESTING_DIR))
 
 import autotest  # noqa: E402
 

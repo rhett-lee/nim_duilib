@@ -2,7 +2,7 @@
 
 运行：
   python3 build/build.py test
-  python3 -m unittest discover -s build -p test_*.py -v
+  python3 -m unittest discover -s build/testing -p test_*.py -v
 """
 
 from __future__ import annotations
@@ -23,10 +23,12 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-BUILD_DIR = Path(__file__).resolve().parent
+TESTING_DIR = Path(__file__).resolve().parent
+BUILD_DIR = TESTING_DIR.parent
 REPO_ROOT = BUILD_DIR.parent
-if str(BUILD_DIR) not in sys.path:
-    sys.path.insert(0, str(BUILD_DIR))
+for _path in (BUILD_DIR, TESTING_DIR):
+    if str(_path) not in sys.path:
+        sys.path.insert(0, str(_path))
 
 from i18n import Messages, resolve_language  # noqa: E402
 
@@ -954,8 +956,9 @@ class MessageCatalogTests(unittest.TestCase):
             path = REPO_ROOT / name
             if path.is_file():
                 files.append(path)
-        files += [path for path in sorted(BUILD_DIR.glob("*.py"))
-                  if path.name != "test_build.py" and not path.name.startswith("test_")]
+        for directory in (BUILD_DIR, TESTING_DIR):
+            files += [path for path in sorted(directory.glob("*.py"))
+                      if path.name != "test_build.py" and not path.name.startswith("test_")]
         return files
 
     def _referenced_keys(self):
@@ -1085,7 +1088,7 @@ class MessageCatalogTests(unittest.TestCase):
         # Python：包装函数会加前缀
         py_wrap_re = re.compile(r"_(?:ok|warn|info)_line\(")
         py_key_re = re.compile(r"messages\.t\(\s*\"([^\"]+)\"\s*\)")
-        for path in sorted(BUILD_DIR.glob("*.py")):
+        for path in sorted(list(BUILD_DIR.glob("*.py")) + list(TESTING_DIR.glob("*.py"))):
             if path.name.startswith("test_"):
                 continue
             for number, line in enumerate(path.read_text(encoding="utf-8",

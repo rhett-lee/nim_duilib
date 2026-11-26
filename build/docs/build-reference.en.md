@@ -1,5 +1,7 @@
 # Build Reference
 
+> Navigation: [build documentation index](../README.md)
+
 This is the single build reference for nim_duilib: command-line builds, dependency
 preparation, packaging and troubleshooting. The legacy per-platform scripts
 (`build_duilib_all_in_one.*`, `msvc_build.*`, `linux_build.sh`, ...) were deleted
@@ -43,7 +45,7 @@ with an error before compiling.
 Commands in this document use `python3 build/build.py` on Windows and Unix alike, with
 identical arguments. macOS/Linux/FreeBSD usually provide only `python3`; for the Windows
 fallback when no `python3` command exists, see the build-entry section of the root
-[README.en.md](../README.en.md). Because the Skia build scripts always invoke
+[README.en.md](../../README.en.md). Because the Skia build scripts always invoke
 `python3`, it must be on PATH on every platform.
 
 ## 2. Quick start
@@ -56,9 +58,8 @@ python3 build/build.py pack --with-cef  # build an SDK package
 ```
 
 Windows and Unix use the same command. When there is no `python3` command on Windows,
-use `py -3`, a `python` that points to Python 3, or the thin wrapper `build\build.bat`
-(same arguments as `build.py`); see the build-entry section of the root
-[README.en.md](../README.en.md).
+use `py -3` or a `python` that points to Python 3 (for example `py -3 build\build.py`);
+see the build-entry section of the root [README.en.md](../../README.en.md).
 
 The build tree is `out/<arch>/<Config>` (for example `out/x64/Debug`), a sibling of
 `build/`; `build/build_temp` is never written by the new entry. Executables and runtime
@@ -97,7 +98,7 @@ otherwise Ninja sees `bin/` files newer than its own objects and skips the link 
 | :--- | :--- |
 | `--config Release\|Debug` | configuration, default `Release`; no `--debug` alias |
 | `--arch auto\|x86\|x64\|arm64` | target architecture, default host; required for Windows+Ninja arm64 |
-| `--lang auto\|zh_CN\|en` | UI language, defaults to the system; also reads `DUILIB_LANG`, and a repeated option uses the last value. `pack.py` spawned by `build.py pack` receives the same language, so child output matches. All messages live in [cmake/i18n/messages.json](../cmake/i18n/messages.json); see the "Build message catalog" section of [cmake/README.en.md](../cmake/README.en.md) |
+| `--lang auto\|zh_CN\|en` | UI language, defaults to the system; also reads `DUILIB_LANG`, and a repeated option uses the last value. `pack.py` spawned by `build.py pack` receives the same language, so child output matches. All messages live in [cmake/i18n/messages.json](../../cmake/i18n/messages.json); see the "Build message catalog" section of [cmake/README.en.md](../../cmake/README.en.md) |
 | `--build-dir <dir>` | override the build directory (may be outside the repo) |
 | `--deps-root <dir>` | dependency source/install root, defaults to the repo's parent (next to `nim_duilib`); Skia, SDL3 and CEF are installed here. A relative path is resolved against the current directory, and `build.py pack` forwards it to `pack.py` |
 | `--jobs N` | parallel build jobs, defaulting to the CPU logical core count |
@@ -247,7 +248,7 @@ Notes:
 
 All network operations (git clone/fetch, CEF downloads) share one retry policy kept in
 the `retry` block of
-[third_party_versions.json](../cmake/third_party_versions.json):
+[third_party_versions.json](../../cmake/third_party_versions.json):
 
 ```json
 "retry": { "maxAttempts": 0, "delaySeconds": 20 }
@@ -259,7 +260,7 @@ before continuing with the local copy (matching the legacy script). Switching a
 dependency checkout to the manifest ref fetches only when the target commit is missing
 locally; an already fetched commit is checked out directly, which also works offline.
 
-Versions are pinned in [third_party_versions.json](../cmake/third_party_versions.json):
+Versions are pinned in [third_party_versions.json](../../cmake/third_party_versions.json):
 
 - **Skia**: fixed commit (`skia.default`) plus a patch zip; Visual Studio's bundled
   clang/ninja are used on Windows. On non-Windows platforms Skia is built with
@@ -347,7 +348,7 @@ Trimming `bin/resources` for release: delete `fonts/` when no custom fonts are u
 `themes/default/`. To embed resources in the executable, zip the trimmed `resources/`
 into `resources.zip`, replace `bin/resources.zip`, and rebuild; see `examples/basic`.
 
-Ship the CEF runtime directory with your application; see [docs/CEF.en.md](../docs/CEF.en.md)
+Ship the CEF runtime directory with your application; see [docs/CEF.en.md](../../docs/CEF.en.md)
 for usage. Only the `cef` and `CefBrowser` examples link CEF (`DUILIB_EXAMPLE_CEF`);
 other example executables do not import `libcef`. `DUILIB_ENABLE_CEF` only controls
 whether the library compiles the CEF control sources.
@@ -381,7 +382,7 @@ python3 build/build.py pack --out-dir dist     # custom output directory
 `build.py pack` forwards only the common options; `pack.py`'s own `--list`,
 `--verify`, `--msvc-runtime`, `--skia-lib-dir`, `--sdl-dir`, `--allow-missing`
 and `--deps-root` are documented in
-[docs/Release.en.md: Command-line options](../docs/Release.en.md#command-line-options).
+[docs/Release.en.md: Command-line options](../../docs/Release.en.md#command-line-options).
 
 Packages contain `include/duilib/`, `lib/` (flat layout; architecture and
 configuration are distinguished by the package name), `bin/` (runtime DLLs and
@@ -405,7 +406,7 @@ ship: omitted means they are skipped with a warning, specified means the whole b
 layout. Bundles carry their own runtime, so on macOS `--with-cef` only controls the
 examples and never collects CEF development files or a runtime directory (the SDK has
 no macOS CEF development files; build from the source tree as described in
-[Release.en.md](../docs/Release.en.md)).
+[Release.en.md](../../docs/Release.en.md)).
 
 ## 8. Platform × compiler × dependencies × optional modules
 
@@ -475,7 +476,7 @@ CLANG64's `llvm.<arch>.release`; `pack.py` tells them apart by library symbols
 (`libstdc++` / `libc++`). The rules above live in
 `cmake/duilib_skia_variants.cmake` (shared by configuration-time resolution, off-mode
 checks and dependency preparation); `build/pack.py` keeps the same candidates and
-`build/test_cmake_scripts.py` compares them case by case. Use
+`build/testing/test_cmake_scripts.py` compares them case by case. Use
 `--skia-lib-dir <dir>` to force a specific Skia directory (the build equivalent is
 `-DDUILIB_SKIA_LIB_SUBPATH=<dir>`).
 
@@ -560,7 +561,7 @@ sure the Skia libraries are the `mingw64-llvm.<arch>` variant.
 
 Historical verification records (measured results per platform, toolchain, architecture and
 feature combination) live in [test-matrix.md](test-matrix.md); the background of fixed
-issues is in the root [CHANGELOG.en.md](../CHANGELOG.en.md).
+issues is in the root [CHANGELOG.en.md](../../CHANGELOG.en.md).
 
 ## 11. Differences from the legacy scripts
 

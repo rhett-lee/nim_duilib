@@ -104,4 +104,4 @@ btn->AttachClick([this](const ui::EventArgs& args) {
 ## 构建
 - 统一入口: `python3 build/build.py`（`--config Debug` 构建 Debug）
 - Windows: 先 `python3 build/build.py deps`，再打开 `build/examples.sln`
-- 依赖: 由 `python3 build/build.py deps` 自动准备（参考 `build/build-reference.md`）
+- 依赖: 由 `python3 build/build.py deps` 自动准备（参考 `build/docs/build-reference.md`）

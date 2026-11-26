@@ -1,6 +1,8 @@
 # arm64 测试计划（Windows）
 
-目标：给出一份可直接执行、结果可直接回填 `build/test-matrix.md` 的 arm64 验证清单。
+> 导航：[build 文档索引](../README.md)
+
+目标：给出一份可直接执行、结果可直接回填 `build/docs/test-matrix.md` 的 arm64 验证清单。
 
 **范围决策（2026-10-28）**：本次 arm64 支持只验证 Windows；macOS / Linux / FreeBSD 均无
 真机环境，**不安排测试**，相应矩阵项标记为「不安排」而不是「未测」。
@@ -51,9 +53,9 @@ CEF 156 与 109 的构建与出包。
 
 ```bash
 python3 build/build.py test
-python3 build/test_build.py
-python3 build/test_pack.py
-python3 build/autotest.py --preset arm64-synthetic
+python3 build/testing/test_build.py
+python3 build/testing/test_pack.py
+python3 build/testing/autotest.py --preset arm64-synthetic
 ```
 
 期望：
@@ -76,7 +78,7 @@ Phase 0 不通过则先修脚本，不要继续。
 | W-A05 | Debug 出包 | `python3 build/pack.py --arch arm64 --config Debug --with-examples` | 包名含 `-debug`；`--verify` 通过 |
 | W-A06 | CEF 156 构建 + 出包 | `python3 build/build.py --arch arm64`（默认 CEF 156）；`python3 build/pack.py --arch arm64 --with-examples --with-cef` | 包名含 `-cef`；包内 `bin/libcef_win/arm64/libcef.dll` 与 `lib/libcef.lib` 齐全；PE 架构 AA64；`--verify` 通过 |
 | W-A07 | CEF 109 构建 + 出包 | 同 W-A06，换成 `--cef-version 109` | 包名含 `-cef109`；`bin/libcef_win_109/arm64/libcef.dll` 为 AA64；`--verify` 通过 |
-| W-A08 | 包测试（结构 + 编译校验） | `python3 build/sdk_package_test.py --package dist/<W-A04 产物> --out-dir ./temp` | P01–P08 通过；C01 用 VS ARM64 工具链编译运行（x64 主机可编译、不可运行，C10 会 SKIP）；C04 用 `-A x64` 构造相反架构并被拒绝 |
+| W-A08 | 包测试（结构 + 编译校验） | `python3 build/testing/sdk_package_test.py --package dist/<W-A04 产物> --out-dir ./temp` | P01–P08 通过；C01 用 VS ARM64 工具链编译运行（x64 主机可编译、不可运行，C10 会 SKIP）；C04 用 `-A x64` 构造相反架构并被拒绝 |
 | W-A09 | 启动示例（未测、不跟进：无 Windows on ARM 设备） | 同上加 `--run-examples` | 无设备，不执行、不列为待办 |
 | W-A10 | CEF 示例启动（未测、不跟进：无 Windows on ARM 设备） | 解包 W-A06 / W-A07 产物后运行 `bin\cef.exe`、`bin\CefBrowser.exe` | 无设备，不执行、不列为待办 |
 | W-A11 | VS 解决方案手动构建（可选，等价于 CMake 入口） | `msbuild build\duilib.sln /p:Configuration=Release /p:Platform=ARM64 /m`；`msbuild build\examples.sln /p:Configuration=Release /p:Platform=ARM64 /m:2`（Debug 相同） | 7 个库与 23 个示例全部成功；exe 为 PE `AA64`、清单 `processorArchitecture="ARM64"`；无 CEF109 误链接（`LNK2001`） |
@@ -132,10 +134,10 @@ W-A08 的 C01 若因工具链缺失 SKIP，说明 arm64 工具集未装好，回
 
 | 位置 | 回填内容 |
 | :--- | :--- |
-| `build/test-matrix.md` | W-B18、W-P23、W-P24、W-P25、W-P26 按结果更新（通过 / 部分 / 未测）；§0 基线补 arm64 工具链；L-B04、M-B03 改为「不安排（无真机）」；Windows on ARM 真机运行项标记「未测、不跟进」；§7 进展表与已知缺口同步 |
+| `build/docs/test-matrix.md` | W-B18、W-P23、W-P24、W-P25、W-P26 按结果更新（通过 / 部分 / 未测）；§0 基线补 arm64 工具链；L-B04、M-B03 改为「不安排（无真机）」；Windows on ARM 真机运行项标记「未测、不跟进」；§7 进展表与已知缺口同步 |
 | `build/README.md` / `README.en.md` | arm64 支持范围注明「仅 Windows 实测，其他平台无真机」 |
 | `CHANGELOG.md` / `.en.md` | 工具链探测、Skia 路径等修复按「修复」条目记录 |
-| `build/test-matrix.md` §7 | 本轮新发现的问题按「本轮发现与修复」表格记录 |
+| `build/docs/test-matrix.md` §7 | 本轮新发现的问题按「本轮发现与修复」表格记录 |
 
 ## 10. 执行顺序与耗时估算
 
@@ -153,7 +155,7 @@ Windows arm64 构建 + 出包 + 包测试        1–2 h
 
 | 编号 | 结果 | 关键数据 |
 | :--- | :--- | :--- |
-| Phase 0 | 通过 | `python3 -m unittest build.test_build build.test_pack build.test_sdk_package build.test_autotest`：227 项通过、2 项按平台跳过 |
+| Phase 0 | 通过 | `python3 -m unittest build.testing.test_build build.testing.test_pack build.testing.test_sdk_package build.testing.test_autotest`：227 项通过、2 项按平台跳过 |
 | W-A01 | 通过 | `build.py --arch arm64`：25/25 目标、21 个示例链接完成；`bin/*.exe` 23 个全部 PE `0xAA64`；`lib/arm64/Release` 6 个库 237 MB |
 | W-A02 | 通过 | `deps` 自动构建 `skia/out/llvm.arm64.debug`（1078 目标，约 6 分钟）；802/802 目标、23 个示例链接完成；`bin/*.exe` 均为 `0xAA64`，清单为 `processorArchitecture="ARM64"`；`lib/arm64/Debug` 6 个库 409.4 MB |
 | W-A03 | 通过 | `build.py --arch arm64 --dll`（Release）与 `--dll --config Debug`：`deps` 自动构建 `llvm.arm64.release.md` / `llvm.arm64.debug.mdd`；`bin/duilib.dll` 9.9 MB、`duilib_d.dll` 36 MB 均为 PE `0xAA64`；导入库 `lib/arm64/<Config>/duilib.lib` 4.15 / 4.17 MB；23 个示例链接正常，46 个 exe 全为 `0xAA64` |
@@ -163,9 +165,9 @@ Windows arm64 构建 + 出包 + 包测试        1–2 h
 | W-A07 | 通过 | `build.py --arch arm64 --cef-version 109`（779/779 目标）；`pack.py --arch arm64 --with-examples --with-cef --cef-version 109`：1131 条目 / 252.1 MB，`--verify` 全匹配；包内 `bin/libcef_win_109/arm64/libcef.dll` 为 `0xAA64`（165.5 MB），开发库仅 `lib/libcef_dll_wrapper_109.lib`（119.2 MB）；SDK 测试 PASS=14 FAIL=0 SKIP=5 |
 | W-A08 | 通过（C01 按架构 SKIP） | 三个包均 `PASS=14 FAIL=0 SKIP=5`；C01 已完成配置/编译/链接，因 x64 主机不能执行 ARM64 程序而 SKIP；C02 由 C01 覆盖，C06 缺 g++，C10 未开 `--run-examples`，C11 仅 macOS |
 | W-A09 / W-A10 / R-01 ~ R-04 | 未测（不跟进） | 无 Windows on ARM 设备，不具备测试条件；不列入待办 |
-| W-A11 | 通过（Release + Debug） | VS 解决方案 ARM64 配置：Release `lib/arm64/Release` 7 个库（`duilib.lib` 828.5 MB LTCG）+ 23 个示例；Debug `lib/arm64/Debug` 7 个库 + `bin/*_d.exe` 23 个；46 个 exe 均 PE `0xAA64`、清单 `processorArchitecture="ARM64"`；4 个 `.sln` 的 ARM64 配置经校验，其中 `duilib_no_cef.sln` / `examples_no_cef.sln` 的 Release/Debug 也实际编译通过（各 19 个示例）；构建问题（libwebp NEON、`libcef_dll_wrapper_109` 依赖、`C1060`）见 `build/test-matrix.md` §「2026-10-28 VS 工程 ARM64 支持」 |
+| W-A11 | 通过（Release + Debug） | VS 解决方案 ARM64 配置：Release `lib/arm64/Release` 7 个库（`duilib.lib` 828.5 MB LTCG）+ 23 个示例；Debug `lib/arm64/Debug` 7 个库 + `bin/*_d.exe` 23 个；46 个 exe 均 PE `0xAA64`、清单 `processorArchitecture="ARM64"`；4 个 `.sln` 的 ARM64 配置经校验，其中 `duilib_no_cef.sln` / `examples_no_cef.sln` 的 Release/Debug 也实际编译通过（各 19 个示例）；构建问题（libwebp NEON、`libcef_dll_wrapper_109` 依赖、`C1060`）见 `build/docs/test-matrix.md` §「2026-10-28 VS 工程 ARM64 支持」 |
 | W-A12 | 通过（Release + Debug） | 创建 `duilib_dll.flag` 后 `msbuild build\duilib.sln /p:Configuration=Release /p:Platform=ARM64 /m:2`（Debug 同）：`bin/duilib.dll` 17.3 MB、`duilib_d.dll` 27.3 MB，均为 PE `0xAA64`；导入库 `lib/arm64/<Config>/duilib.lib` 4.15 / 4.17 MB；flag 已删除。Debug 首次因 E: 盘写满报 `C2471`/`FTK1005`，清理 `build_temp` 与 PDB 后重跑 0 error |
 
-本轮修复（详见 `build/test-matrix.md` §7）：Skia ARM64 无 WGL（`Render_Skia_Windows`
+本轮修复（详见 `build/docs/test-matrix.md` §7）：Skia ARM64 无 WGL（`Render_Skia_Windows`
 固定 CPU 绘制）、arm64 manifest 选错、`nim_duilibConfig.cmake` 交叉架构识别、
 `_can_run_arch` 使 C01 按架构 SKIP。
