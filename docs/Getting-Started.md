@@ -319,6 +319,10 @@ python3 build/build.py          # 准备依赖并编译（默认 Release）
 - Linux 系统依赖安装：见 [build/docs/linux-dependencies.md](../build/docs/linux-dependencies.md)
 - macOS 应用打包（App Bundle）：见 [build/docs/macos-app-bundle.md](../build/docs/macos-app-bundle.md)
 - Windows 上没有 `python3` 命令时，可以使用 `python build/build.py`。
+- 编译器版本要求：主工程（Linux/macOS/FreeBSD）需要 gcc 10+ 或 clang 12+；编译 Skia 需要
+  clang 12+ 或 gcc 11+（Skia 的 `ml3`/`ml4` 目标使用 `-march=x86-64-v3` / `x86-64-v4`）。
+  中科方德、统信 UOS 自带的编译器（以及中科方德自带的 CMake 3.18.4）均不满足要求，
+  需要自行安装新版编译器与 CMake 3.24+，详见根 README 的「编译器与 CMake 版本要求」。
 
 ## 关于Visual Studio的工程配置
 项目中关于Visual Studio的工程配置是使用属性文件，保存在以下目录：`nim_duilib\msvc\PropertySheets`

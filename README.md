@@ -188,7 +188,7 @@ python3 build/build.py --dll --config Release
 | `examples/` | 仓库附带多个可直接运行的示例，覆盖基础窗口、控件演示、渲染、布局与 WebView 等场景；清单见 [docs/Examples.md](docs/Examples.md) |
 | `bin/` | 示例程序输出目录，包含 `resources/` 皮肤与语言资源、CEF 运行时（构建后） |
 | `docs/` | 控件、布局、事件、部署等文档与截图，索引见 [docs/Summary.md](docs/Summary.md) |
-| `build/` | 统一构建入口 `build.py`、出包与发布脚本、VS 解决方案、[构建参考手册](build/docs/build-reference.md)、[Linux 系统依赖](build/docs/linux-dependencies.md)、[平台测试矩阵](build/docs/test-matrix.md) |
+| `build/` | 统一构建入口 `build.py`、出包与发布脚本、VS 解决方案；说明文档在 `build/docs/`、测试脚本在 `build/testing/`（[构建参考手册](build/docs/build-reference.md)、[Linux 系统依赖](build/docs/linux-dependencies.md)、[平台测试矩阵](build/docs/test-matrix.md)） |
 | `cmake/` | 公共 CMake 模块与第三方版本清单 |
 | `msvc/` | Windows 清单文件与 VS 工程公共配置（如 libpag 开关） |
 | `packaging/` | SDK 接入层（CMake 包与 MSVC props/targets） |

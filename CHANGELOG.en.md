@@ -241,6 +241,21 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Changed
 
+- Build toolchain requirements are now explicit: gcc 10+ / clang 12+ for the main
+  project, and clang 12+ or gcc 11+ to build Skia (`ml3`/`ml4` always use
+  `-march=x86-64-v3` / `-march=x86-64-v4`). The root README,
+  `build/README(.en).md`, `build/docs/build-reference(.en).md`,
+  `build/docs/linux-dependencies(.en).md`, `cmake/README(.en).md`,
+  `docs/Getting-Started(.en).md`, `TRAE.md` and `WORKBUDDY.md` now carry the
+  version tables. The compilers bundled with NFSChina and UnionTech UOS are not
+  sufficient (NFSChina's CMake 3.18.4 also misses 3.24+), so users must install a
+  newer compiler and CMake manually.
+- `build/` is grouped by purpose: the documents moved into `build/docs/` (9 files)
+  and the test scripts/CMake fixtures into `build/testing/`; the main scripts and
+  the four `.sln` files keep their paths. `build.py`'s test discovery directory,
+  `test_docs.py`'s scan rules and every repository link were updated, and
+  `build/README(.en).md` now opens with a "what do you want to do" navigation
+  table plus the list of files you do not need to read.
 - CEF default version upgraded to 156 (`156.0.14+g4fa4ab5+chromium-156.0.8078.48`,
   2026-10-24), while 109 stays available for Windows 7. The three platform
   directories under `duilib/third_party/libcef/` were replaced with the 156 sources:
@@ -337,6 +352,8 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Removed
 
+- `build/build.bat`: use `py -3 build\build.py` or `python build\build.py` on
+  Windows; the root README and `build/docs/build-reference` were updated.
 - `build/build.md`; its content moved into `build/docs/build-reference.md`.
 - Removed the legacy per-platform build scripts (`build_duilib_all_in_one.*`,
   `msvc_build.bat`, `linux_build.sh`, `macos_build.sh`, `freebsd_build.sh`,
@@ -345,6 +362,14 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Fixed
 
+- Linux builds: `detect_toolchain` now prepends the ninja directory only when ninja
+  does not come from PATH; it used to put `/usr/bin` first, shadowing a newer cmake
+  with the system one (which rejects `--preset` with
+  `The source directory "<preset>" does not exist`).
+- Skia toolchain: fall back to gcc/g++ when clang is older than 12
+  (`-march=x86-64-v3` needs clang 12+), and fail during configure with a clear
+  message when Skia ends up on gcc older than 11, instead of hitting
+  `unknown target CPU 'x86-64-v3'` halfway through the build.
 - The inline hook reused an x86/x64-only instruction encoding (`E9 rel32` jump plus
   libudis86) on ARM64: the build reported `C4311` pointer truncation and the runtime
   would install invalid machine code. `DUILIB_ENABLE_INLINE_HOOK` is now defined only

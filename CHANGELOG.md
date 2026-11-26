@@ -199,6 +199,17 @@
 
 ### 变更
 
+- 构建工具链版本要求明确化：主工程需 gcc 10+ / clang 12+，编译 Skia 需 clang 12+ 或
+  gcc 11+（`ml3`/`ml4` 固定使用 `-march=x86-64-v3` / `x86-64-v4`）。根 README、
+  `build/README(.en).md`、`build/docs/build-reference(.en).md`、
+  `build/docs/linux-dependencies(.en).md`、`cmake/README(.en).md`、
+  `docs/Getting-Started(.en).md`、`TRAE.md` 与 `WORKBUDDY.md` 补充版本要求表；
+  明确中科方德、统信 UOS 自带编译器不满足要求（方德自带的 CMake 3.18.4 也不满足
+  3.24+），需用户自行安装新版编译器与 CMake。
+- `build/` 目录按用途分组：说明文档移入 `build/docs/`（9 份），测试脚本与 CMake 夹具
+  移入 `build/testing/`；主脚本与 4 个 `.sln` 路径保持不变，`build.py` 的测试发现目录、
+  `test_docs.py` 的扫描规则与全仓库链接同步更新，`build/README(.en).md` 首屏改为
+  「我想… → 看这里」导航表并列出无需阅读的文件。
 - 动画默认开启：`PopupAnimation`（弹出层淡入）、`Progress` 的 `animation_enabled`、`Panel` 的 `collapse_anim`（200ms）、`ScrollBox` 的 `inertia_scroll` 默认值统一改为开启，
   业务可按需在 XML 或 C++ 中关闭（`animation_enabled="false"`、`collapse_anim="0"`、`inertia_scroll="false"`、`PopupAnimation::SetEnabled(false)`），关闭后与原行为一致。
 - `GroupBox` 视觉细节改进：新增 `text_gap` 属性（默认 4，DPI 自适应），标题文字两侧与边框线之间留出间距，不再紧贴字形；
@@ -343,6 +354,8 @@
 
 ### 移除
 
+- 删除 `build/build.bat`：Windows 统一用 `py -3 build\build.py` 或
+  `python build\build.py` 启动，根 README 与 `build/docs/build-reference` 的说明同步更新。
 - 删除 `build/build.md`，构建说明合并到 `build/docs/build-reference.md`。
 - 删除旧的分平台构建脚本（`build_duilib_all_in_one.*`、`msvc_build.bat`、
   `linux_build.sh`、`macos_build.sh`、`freebsd_build.sh`、`msys2_build.sh` 等）：
@@ -350,6 +363,12 @@
 
 ### 修复
 
+- Linux 构建：`detect_toolchain` 只在 ninja 不来自 PATH 时才前置其目录；此前无条件把
+  ninja 所在目录提到 PATH 最前，导致优先的新版 cmake 被系统自带旧版遮蔽（旧版不认
+  `--preset`，报 `The source directory "<preset>" does not exist`）。
+- Skia 工具链：clang 主版本低于 12 时回退 gcc/g++（`-march=x86-64-v3` 需 clang 12+）；
+  Skia 最终使用 gcc 且 gcc 低于 11 时在配置阶段直接报错并给出提示，避免编译到一半
+  才报 `unknown target CPU 'x86-64-v3'`。
 - RichText 高优先级问题修复：
   - 内联标签之间的空格被丢弃（如 `Hello <b>World</b>` 显示为 `HelloWorld`、`</a> <a>` 之间的空格丢失）：
     解析时保留空白文本节点，跨节点的空白保留为一个空格，并去掉整段文本首尾的空白；

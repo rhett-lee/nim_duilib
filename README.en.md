@@ -188,7 +188,7 @@ Understanding the layout helps locate sources and documents quickly; the generat
 | `examples/` | Several ready-to-run examples covering basic windows, control demos, rendering, layouts and WebView; the list is in [docs/Examples.en.md](docs/Examples.en.md) |
 | `bin/` | Output directory for example programs, including the `resources/` skins and language resources and the CEF runtime (after building) |
 | `docs/` | Documents and screenshots for controls, layouts, events and deployment; index in [docs/Summary.en.md](docs/Summary.en.md) |
-| `build/` | Unified build entry `build.py`, packaging and release scripts, VS solutions, [build reference](build/docs/build-reference.en.md), [Linux system dependencies](build/docs/linux-dependencies.en.md), [platform test matrix](build/docs/test-matrix.md) |
+| `build/` | Unified build entry `build.py`, packaging and release scripts, VS solutions; documents live in `build/docs/`, test scripts in `build/testing/` ([build reference](build/docs/build-reference.en.md), [Linux system dependencies](build/docs/linux-dependencies.en.md), [platform test matrix](build/docs/test-matrix.md)) |
 | `cmake/` | Shared CMake modules and the third-party version manifest |
 | `msvc/` | Windows manifest files and shared VS project settings (such as the libpag switch) |
 | `packaging/` | SDK integration layer (CMake package and MSVC props/targets) |

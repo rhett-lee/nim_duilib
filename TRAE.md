@@ -33,6 +33,9 @@ python3 build/build.py doctor          # 环境自检
 
 - 前置软件：`git`、Python 3.8+、CMake 3.24+、Ninja；Windows 另需 Visual Studio 2022+
   （Skia 使用 VS 自带 clang/ninja），Linux/macOS/FreeBSD 使用系统 LLVM。
+- 编译器版本：主工程 gcc 10+ / clang 12+，编译 Skia 需 clang 12+ 或 gcc 11+；中科方德、
+  统信 UOS 自带的编译器（以及方德自带的 CMake 3.18.4）不满足要求，需自行安装新版
+  编译器与 CMake 3.24+。
 - `deps` 按 `cmake/third_party_versions.json` 锁定版本，自动下载/编译 Skia 与 CEF
   运行时；SDL3 在 Windows 默认关闭（`--sdl` 启用），其他平台自动构建。
 - 构建目录为 `out/<arch>/<Config>`；库在 `lib/<arch>/<Config>`，示例在 `bin/`。

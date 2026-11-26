@@ -323,6 +323,12 @@ Common options: `--config Debug|Release`, `--arch auto|x86|x64|arm64`, `--dll`, 
 - Linux system dependencies: see [build/docs/linux-dependencies.en.md](../build/docs/linux-dependencies.en.md)
 - macOS App Bundle packaging: see [build/docs/macos-app-bundle.en.md](../build/docs/macos-app-bundle.en.md)
 - If the `python3` command is unavailable on Windows, use `python build/build.py`.
+- Compiler requirements: the main project (Linux/macOS/FreeBSD) needs gcc 10+ or clang 12+;
+  building Skia needs clang 12+ or gcc 11+ (Skia's `ml3`/`ml4` targets use
+  `-march=x86-64-v3` / `-march=x86-64-v4`). The compilers bundled with NFSChina and
+  UnionTech UOS (and the CMake 3.18.4 shipped by NFSChina) are not sufficient — install a
+  newer compiler and CMake 3.24+ manually; see the compiler/CMake requirements section in
+  the root README.
 
 ## About Visual Studio project configuration
 The Visual Studio project configuration in the project uses property sheets, stored in the following directory: `nim_duilib\msvc\PropertySheets`
