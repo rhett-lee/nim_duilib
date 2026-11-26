@@ -555,6 +555,17 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
     case SDL_EVENT_WINDOW_SHOWN:
         {
             lResult = pOwner->OnNativeShowWindowMsg(true, NativeMsg(SDL_EVENT_WINDOW_SHOWN, 0, 0), bHandled);
+            //窗口显示后主动请求一次整窗重绘：
+            //X11下窗口映射由窗口管理器异步完成，显示时提交的首帧可能落在尚未映射的窗口上而丢失；
+            //没有定时器/动画持续刷新的程序会一直显示空白，直到最小化还原等事件再次触发绘制。
+            //此处按窗口客户区标记整窗为脏区，由消息循环在窗口映射完成后完成一次完整绘制
+            {
+                UiRect rcClient;
+                GetClientRect(rcClient);
+                if (!rcClient.IsEmpty()) {
+                    Invalidate(rcClient);
+                }
+            }
         }
         break;
     case SDL_EVENT_WINDOW_HIDDEN:
