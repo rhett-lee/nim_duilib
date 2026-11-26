@@ -6,10 +6,9 @@
      由引用处的 svg_replace_colors 完成替换，以适配不同颜色主题 -->
 <svg xmlns="http://www.w3.org/2000/svg"
      viewBox="0 0 9 16" width="9px" height="16px" preserveAspectRatio="none">
-  <!-- 压入卡片的部分：与卡片背景一致，覆盖卡片在尖角高度内的竖直边线 -->
-  <rect x="7.2" y="0" width="1.8" height="16" fill="#FFFFFF" stroke="none"/>
-  <!-- 尖角填充：与卡片背景一致 -->
-  <polygon points="7.2,0 7.2,16 0.5,8" fill="#FFFFFF" stroke="none"/>
+  <!-- 压入卡片的部分与尖角填充合并为单一图形：两者共用 x=7.2 的边界，
+       分开绘制时在 Retina 等小数缩放下该边界会出现半透明缝隙，露出下方阴影形成一条淡竖线 -->
+  <polygon points="9,0 9,16 7.2,16 0.5,8 7.2,0" fill="#FFFFFF" stroke="none"/>
   <!-- 两条斜边描边：起点落在卡片边线上，与卡片边线自然衔接 -->
   <path d="M8,0.5 L0.9,8 L8,15.5" fill="none" stroke="#D5D5D5" stroke-width="1"
         stroke-linejoin="miter" stroke-linecap="butt"/>

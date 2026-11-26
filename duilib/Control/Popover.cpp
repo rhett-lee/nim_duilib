@@ -159,7 +159,7 @@ PopoverSide GetPlacementSide(PopoverPlacement placement)
 const int32_t kArrowLength = 16;            //箭头沿卡片边的长度
 const int32_t kArrowDepth = 8;              //箭头垂直卡片边的深度（尖角伸出卡片边的长度）
 const int32_t kArrowOverlap = 1;            //箭头压入卡片边的长度（覆盖卡片边线，避免边线横穿箭头）
-const int32_t kArrowMinEdgeMargin = 12;     //箭头距卡片相邻边的最小距离（避开卡片圆角）
+const int32_t kArrowMinEdgeMargin = 12;     //卡片无圆角时，箭头距卡片相邻边的最小距离（逻辑值）
 
 /** 卡片在箭头一侧预留的箭头带宽度（逻辑值，与 kArrowDepth 一致）
 *   卡片在该侧内缩这么多，窗口阴影的主体边缘才能与卡片边缘对齐（见 BuildCardXml 中的阴影配置）
@@ -796,7 +796,8 @@ void Popover::PositionCardArrow(Flyout* pFlyout)
         return;
     }
 
-    //锚点中心在浮层客户区坐标系（布局坐标）下的位置
+    //锚点中心在浮层客户区坐标系（布局坐标，物理像素）下的位置；
+    //卡片与箭头的位置（GetPos）同样位于根容器坐标系，两者可直接相减
     UiRect rcAnchor = GetScreenRect();
     pFlyout->ScreenToClient(rcAnchor);
     const UiPoint ptAnchorCenter((rcAnchor.left + rcAnchor.right) / 2,
@@ -807,7 +808,18 @@ void Popover::PositionCardArrow(Flyout* pFlyout)
     //保证此处设置的矩形与控件的固定尺寸一致（否则重排后尺寸可能差 1 像素）
     const int32_t nThickness = pFlyout->Dpi().GetScaleInt(kArrowDepth + kArrowOverlap);
     const int32_t nOverlap = std::max(1, nThickness - pFlyout->Dpi().GetScaleInt(kArrowDepth));
-    const int32_t nMinMargin = pFlyout->Dpi().GetScaleInt(kArrowMinEdgeMargin);
+    //箭头距卡片相邻边的最小距离：取卡片圆角半径（尖角压到圆角上会被裁出缺口），
+    //用半径而不是更大的固定值，保证小尺寸锚点也能让尖角对准锚点中心；
+    //卡片无圆角时才使用固定值兜底
+    int32_t nMinMargin = 0;
+    float fRoundWidth = 0.0f;
+    float fRoundHeight = 0.0f;
+    if (pCard->GetBorderRound(fRoundWidth, fRoundHeight)) {
+        nMinMargin = (int32_t)std::max(fRoundWidth, fRoundHeight);
+    }
+    if (nMinMargin <= 0) {
+        nMinMargin = pFlyout->Dpi().GetScaleInt(kArrowMinEdgeMargin);
+    }
 
     //按实际方位（可能已翻转到锚点另一侧）决定箭头所在的边与朝向
     const PopoverSide side = GetPlacementSide(FromFlyoutPlacement(pFlyout->GetActualPlacement()));

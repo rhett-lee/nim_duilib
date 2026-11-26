@@ -460,9 +460,9 @@ bool Flyout::UpdateAnchorPosition()
         return false;
     }
     const Placement oldPlacement = m_actualPlacement;
+    //PositionAroundAnchor() 内部在窗口定位后会通知布局回调
     PositionAroundAnchor();
     GetAnchorScreenRect(m_rcAnchorScreenLast);
-    InvokeLayoutCallbacks();
     return m_actualPlacement != oldPlacement;
 }
 
@@ -577,6 +577,12 @@ void Flyout::OnInitWindow()
         AddMessageFilter(m_pShadowHitTestFilter.get());
     }
 #endif
+    //窗口实际位置变化后重新通知布局回调：SDL平台（X11/Wayland）的窗口移动由窗口管理器异步完成，
+    //SetWindowPos请求的位置可能与最终位置不一致，需要按窗口实际位置重新定位依赖屏幕坐标的内容
+    AttachWindowMoveMsg([this](const EventArgs& /*msg*/) {
+        InvokeLayoutCallbacks();
+        return true;
+        });
 }
 
 void Flyout::OnInitLayout()
@@ -970,6 +976,12 @@ void Flyout::PositionAroundAnchor()
                  ptWindowPos.x, ptWindowPos.y,
                  szWindow.cx, szWindow.cy,
                  kSWP_NOZORDER | kSWP_NOACTIVATE);
+
+    //窗口定位（可能同时改变位置与大小）后，重新通知布局回调：
+    //依赖窗口屏幕位置的内容（如Popover的尖角箭头）需要按最终位置重新计算；
+    //SDL平台（X11/Wayland/macOS）的窗口移动可能由窗口管理器异步完成，
+    //后续实际移动时还会通过窗口移动消息再次通知
+    InvokeLayoutCallbacks();
 }
 
 void Flyout::StartDetectTimer()
