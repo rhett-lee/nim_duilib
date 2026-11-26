@@ -54,8 +54,8 @@
     <Var name="SIZE_WND_ICON" value="20"/>
 
     <!-- 按钮边框尺寸 -->
-    <Var name="border_primary_btn_size" value="1"/> <!-- 主要按默认边框：边框大小 -->
-    <Var name="border_btn_size" value="1"/> <!-- 次要按钮默认边框：边框大小 -->
+    <Var name="SIZE_PRIMARY_BTN_BORDER" value="1"/> <!-- 主要按默认边框：边框大小 -->
+    <Var name="SIZE_BTN_BORDER" value="1"/> <!-- 次要按钮默认边框：边框大小 -->
 
     <!-- 资源路径 -->
     <Var name="PATH_SCROLLBAR_SIMPLE" value="public/scrollbar01"/>
@@ -297,7 +297,7 @@
                              normal_text_color="text_btn_normal" disabled_text_color="text_btn_disabled" 
                              normal_color="bg_btn_normal" hovered_color="bg_btn_hovered" 
                              pressed_color="bg_btn_pressed" disabled_color="bg_btn_disabled"
-                             border_size="${border_btn_size}"
+                             border_size="${SIZE_BTN_BORDER}"
                              normal_border_color="border_btn_normal" hovered_border_color="border_btn_hovered"
                              pressed_border_color="border_btn_pressed" disabled_border_color="border_btn_disabled"/>
 
@@ -314,7 +314,7 @@
                                      normal_text_color="text_primary_btn_normal" disabled_text_color="text_primary_btn_disabled" 
                                      normal_color="bg_primary_btn_normal" hovered_color="bg_primary_btn_hovered" 
                                      pressed_color="bg_primary_btn_pressed" disabled_color="bg_primary_btn_disabled"
-                                     border_size="${border_primary_btn_size}"
+                                     border_size="${SIZE_PRIMARY_BTN_BORDER}"
                                      normal_border_color="border_primary_btn_normal" hovered_border_color="border_primary_btn_hovered"
                                      pressed_border_color="border_primary_btn_pressed" disabled_border_color="border_primary_btn_disabled"/>
 
