@@ -555,17 +555,6 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
     case SDL_EVENT_WINDOW_SHOWN:
         {
             lResult = pOwner->OnNativeShowWindowMsg(true, NativeMsg(SDL_EVENT_WINDOW_SHOWN, 0, 0), bHandled);
-            //窗口显示后主动请求一次整窗重绘：
-            //X11下窗口映射由窗口管理器异步完成，显示时提交的首帧可能落在尚未映射的窗口上而丢失；
-            //没有定时器/动画持续刷新的程序会一直显示空白，直到最小化还原等事件再次触发绘制。
-            //此处按窗口客户区标记整窗为脏区，由消息循环在窗口映射完成后完成一次完整绘制
-            {
-                UiRect rcClient;
-                GetClientRect(rcClient);
-                if (!rcClient.IsEmpty()) {
-                    Invalidate(rcClient);
-                }
-            }
         }
         break;
     case SDL_EVENT_WINDOW_HIDDEN:
@@ -2654,7 +2643,19 @@ bool NativeWindow_SDL::ShowSdlWindow()
     RepaintParentWindow();
     return bRet;
 #else
-    return SDL_ShowWindow(m_sdlWindow);
+    bool bRet = SDL_ShowWindow(m_sdlWindow);
+    //X11/Wayland平台的窗口映射由窗口管理器异步完成，而 SDL_ShowWindow 内部会同步派发一个
+    //EXPOSED 事件（此时窗口尚未真正映射），在该事件的回调中绘制的首帧会被X服务器丢弃；
+    //窗口真正映射后，系统通常不会再补发暴露事件，导致界面一直空白，直到最小化还原等
+    //操作再次触发 EXPOSED 才显示（部分界面带定时器/动画时，靠后续局部绘制掩盖了这个问题）。
+    //这里先等待窗口状态（映射）生效，再请求一次完整绘制，确保首帧在窗口可显示之后提交。
+    SDL_SyncWindow(m_sdlWindow);
+    UiRect rcClient;
+    GetClientRect(rcClient);
+    if (!rcClient.IsEmpty()) {
+        Invalidate(rcClient);
+    }
+    return bRet;
 #endif
 }
 
