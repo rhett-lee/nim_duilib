@@ -1977,6 +1977,9 @@ STRID_COLORTHEME_COLOR_SURFACE_4   = Surface Level 4
 STRID_COLORTHEME_COLOR_SURFACE_5   = Surface Level 5
 STRID_COLORTHEME_COLOR_SURFACE_6   = Surface Level 6
 STRID_COLORTHEME_COLOR_SURFACE_7   = Surface Level 7
+STRID_COLORTHEME_URLBAR_DESC = UrlBar: url_bar, url_bar_icon_secure, url_bar_icon_insecure, url_bar_edit, url_bar_clear_btn, url_bar_fav_btn
+STRID_COLORTHEME_GROUPBOX_COLLAPSIBLE = Collapsible GroupBox
+STRID_COLORTHEME_GROUPBOX_COLLAPSIBLE_CONTENT = Content area (click the title to collapse or expand)
 
 # examples/panel
 # Window and title bar

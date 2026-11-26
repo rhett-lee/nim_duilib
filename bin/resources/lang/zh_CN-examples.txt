@@ -1982,6 +1982,9 @@ STRID_COLORTHEME_COLOR_SURFACE_4 = 4级表面色
 STRID_COLORTHEME_COLOR_SURFACE_5 = 5级表面色
 STRID_COLORTHEME_COLOR_SURFACE_6   = 6级表面色
 STRID_COLORTHEME_COLOR_SURFACE_7   = 7级表面色
+STRID_COLORTHEME_URLBAR_DESC = UrlBar：url_bar, url_bar_icon_secure, url_bar_icon_insecure, url_bar_edit, url_bar_clear_btn, url_bar_fav_btn
+STRID_COLORTHEME_GROUPBOX_COLLAPSIBLE = 可折叠分组框
+STRID_COLORTHEME_GROUPBOX_COLLAPSIBLE_CONTENT = 内容区域（点击标题可折叠或展开）
 
 # examples/panel
 # 窗口与标题栏

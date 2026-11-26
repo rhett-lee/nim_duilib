@@ -836,7 +836,7 @@
                 <!-- Section 13: Menu Bar -->
                 <GroupVBox class="group_box_round" text="Menu Bar - All States" height="auto" margin="0,4,0,0" padding="30,30,6,20" control_padding="false">
                     <HBox child_margin="5" height="auto">
-                        <MenuBar name="menu_bar" height="auto">
+                        <MenuBar class="menu_bar" name="menu_bar" height="auto">
                             <MenuBarItem id="menu_file" text="File">
                                 <Menu class="menu" bkcolor="bg_menu" height="auto" width="auto" padding="2,2,2,2">
                                     <MenuItem class="menu_element" text="New" height="28" width="auto" padding="10,4,10,4">
@@ -1241,6 +1241,12 @@
                             <Label text="GroupBox content" height="auto"/>
                         </GroupBox>
                     </HBox>
+                    <HBox child_margin="16" height="auto" margin="0,14,0,0">
+                        <GroupBox class="group_box_round group_box_collapsible" text_id="STRID_COLORTHEME_GROUPBOX_COLLAPSIBLE"
+                                  width="320" height="auto" padding="10,20,10,10" control_padding="false">
+                            <Label text_id="STRID_COLORTHEME_GROUPBOX_COLLAPSIBLE_CONTENT" width="stretch" height="auto" multi_line="true"/>
+                        </GroupBox>
+                    </HBox>
                     <HBox child_margin="12" height="56" margin="0,14,0,0">
                         <Popover class="popover_anchor_primary" name="preview_popover_hover" trigger="hover" placement="top" valign="center" text="Hover for Popover" title="Popover" content="Theme preview content"/>
                         <Popover class="popover_anchor" name="preview_popover_click" trigger="click" placement="bottom" valign="center" text="Click for Popover" title="Popover" content="Theme preview content"/>
@@ -1314,6 +1320,15 @@
                                 sub_path_current_class="address_bar_sub_path_button_current"
                                 collapse_button_class="address_bar_sub_path_collapse"
                                 path_separator_class="address_bar_path_separator"/>
+
+                    <!-- 32.3.1 UrlBar: url_bar, url_bar_icon_secure, url_bar_icon_insecure, url_bar_edit, url_bar_clear_btn, url_bar_fav_btn -->
+                    <Label text_id="STRID_COLORTHEME_URLBAR_DESC" height="auto" margin="0,8,0,0" multi_line="true"/>
+                    <HBox height="auto" child_margin="12" valign="center" margin="0,6,0,0">
+                        <UrlBar class="url_bar" width="360" height="34" text="https://www.example.com" secure="true" favorite="true"/>
+                        <UrlBar class="url_bar" width="360" height="34" text="http://www.example.com" secure="false" favorite="false"/>
+                        <UrlBar class="url_bar" width="360" height="34" text="Example"
+                                secure="false" favorite_button_enabled="false" clear_button_enabled="false" enabled="false"/>
+                    </HBox>
 
                     <!-- 32.4 AutoComplete: 6 classes -->
                     <Label text="AutoComplete: auto_complete_edit, auto_complete_flyout, auto_complete_item, auto_complete_item_match, auto_complete_item_text, auto_complete_list" height="auto" margin="0,8,0,0" multi_line="true"/>
