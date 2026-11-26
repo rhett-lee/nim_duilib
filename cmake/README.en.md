@@ -65,6 +65,14 @@ scripts directly, so they mirror the same rules;
 together with `build/test_cmake_scripts.py` (the Python implementation) compare both
 sides case by case so they cannot drift apart again.
 
+Building Skia needs clang 12+ or gcc 11+: the `ml3`/`ml4` targets always use
+`-march=x86-64-v3` / `-march=x86-64-v4` on Linux/x64, which older compilers do not
+understand. clang is preferred, falling back to gcc/g++ when the clang major version
+is below 12; when both are too old, `duilib_skia_toolchain_check()` ends the configure
+step with `FATAL_ERROR`. The compilers shipped with domestic distributions such as
+NFSChina (clang 11.0.1, gcc 10.2.1) and UnionTech UOS (gcc older than 11) do not meet
+the requirement, so users must install newer versions themselves.
+
 ---
 
 ## Configuration Files Explained

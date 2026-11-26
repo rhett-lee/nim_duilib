@@ -25,6 +25,16 @@ Chinese version: [build-reference.md](build-reference.md)
 | macOS | Xcode command line tools 13.5+, cmake/ninja/gn via Homebrew |
 | FreeBSD | clang, cmake, ninja, gn, fontconfig, freetype2 |
 
+### Compiler and CMake version requirements
+
+| Purpose | Minimum | Notes |
+| :--- | :--- | :--- |
+| Main project (Linux/macOS/FreeBSD) | gcc 10+ or clang 12+ | Checked by the preflight at configure time |
+| Building Skia (Linux/macOS/FreeBSD) | clang 12+ or gcc 11+ | Skia's `ml3`/`ml4` targets always use `-march=x86-64-v3` / `-march=x86-64-v4`, which only clang 12+ / gcc 11+ understand; clang is preferred and falls back to gcc when older than 12, and configuration fails early when both are too old |
+| CMake | 3.24+ (CMakePresets is version 6, so 3.25+ in practice) | The root project is configured via `cmake --preset` from `build.py` |
+
+Domestic distributions (NFSChina/中科方德 and UnionTech UOS): **the compilers shipped with both systems cannot build Skia** (NFSChina ships clang 11.0.1 and gcc 10.2.1; UOS ships gcc older than 11), so users must install **clang 12+ (recommended) or gcc 11+** themselves. In addition, **the CMake 3.18.4 bundled with NFSChina does not meet the 3.24+ requirement** — upgrade CMake manually (3.25 or newer is recommended). Put the new compiler's `bin` directory first in `PATH`; `build.py doctor` prints the CMake version and the Skia toolchain actually in use.
+
 Without Python 3.8+, `build.py` fails immediately and prints installation hints; there
 is no Python-free build path. The Skia build scripts invoke `python3`; if PATH provides
 only `python` / `py -3` and no `python3`, the preflight warns and the Skia build aborts
@@ -411,6 +421,8 @@ Per-distribution system packages are listed above; Skia is built automatically b
 `build.py deps`, so no manual preparation is needed. macOS needs
 `brew install cmake ninja` and `gn` built from source; FreeBSD uses
 `sudo pkg install git unzip python3 cmake ninja gn llvm fontconfig freetype2`.
+
+Note: the gcc/clang/cmake in the distribution repositories are too old (NFSChina ships CMake 3.18.4, clang 11.0.1 and gcc 10.2.1; UOS ships gcc older than 11). They cannot build Skia, so after running the commands above you still need to install clang 12+ (recommended) or gcc 11+ and upgrade to CMake 3.24+ (3.25+ recommended).
 
 ### Forcing a toolchain
 

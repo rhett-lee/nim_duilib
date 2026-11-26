@@ -48,6 +48,16 @@ verified with the new entry point); use `python3 build/build.py`.
   Windows fallback when no `python3` command exists, see the build-entry section of the
   root [README.md](../README.md) (in Chinese).
 
+### Compiler and CMake version requirements
+
+| Purpose | Minimum | Notes |
+| :--- | :--- | :--- |
+| Main project (Linux/macOS/FreeBSD) | gcc 10+ or clang 12+ | Checked by the preflight at configure time |
+| Building Skia (Linux/macOS/FreeBSD) | clang 12+ or gcc 11+ | Skia's `ml3`/`ml4` targets always use `-march=x86-64-v3` / `-march=x86-64-v4`, which only clang 12+ / gcc 11+ understand; clang is preferred and falls back to gcc when older than 12, and configuration fails early when both are too old |
+| CMake | 3.24+ (CMakePresets is version 6, so 3.25+ in practice) | The root project is configured via `cmake --preset` from `build.py` |
+
+Domestic distributions (NFSChina/中科方德 and UnionTech UOS): **the compilers shipped with both systems cannot build Skia** (NFSChina ships clang 11.0.1 and gcc 10.2.1; UOS ships gcc older than 11), so users must install **clang 12+ (recommended) or gcc 11+** themselves. In addition, **the CMake 3.18.4 bundled with NFSChina does not meet the 3.24+ requirement** — upgrade CMake manually (3.25 or newer is recommended). Put the new compiler's `bin` directory first in `PATH`; `build.py doctor` prints the CMake version and the Skia toolchain actually in use.
+
 Per-platform package lists and version requirements are in
 [build-reference.en.md](build-reference.en.md), sections 1 and 8.
 
@@ -286,3 +296,4 @@ with a warning.
 
 MSVC 19.30+ (VS 2022), gcc 10+, clang 12+. MSVC 2017/2019 are supported only on the
 `develop-cpp17` branch, and VS 2017 does not support CEF.
+Building Skia additionally needs clang 12+ or gcc 11+ (see the table above).

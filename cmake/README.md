@@ -61,6 +61,13 @@ include CMake 脚本，只能按同一套规则实现；`build/tests/skia_varian
 （`cmake -P` 夹具）与 `build/test_cmake_scripts.py`（Python 侧实现）用同一组用例
 逐项比对，防止两侧再次漂移。
 
+编译 Skia 需要 clang 12+ 或 gcc 11+：`ml3`/`ml4` 目标在 Linux/x64 上固定使用
+`-march=x86-64-v3` / `-march=x86-64-v4`，更旧的编译器不认识这组取值。工具链选择
+优先用 clang，clang 主版本低于 12 时自动回退 gcc/g++；两者都过旧时
+`duilib_skia_toolchain_check()` 以 `FATAL_ERROR` 结束配置。中科方德、统信 UOS
+等国产系统自带的编译器不满足要求（中科方德为 clang 11.0.1、gcc 10.2.1；统信 UOS
+的 gcc 低于 11），需用户自行安装新版本。
+
 ---
 
 ## 配置文件详解

@@ -79,6 +79,16 @@ Windows 7 compatibility comes from the library configuration ([duilib/duilib_con
 | macOS extras | `brew install cmake ninja`, and build `gn` from source | The Skia build needs `gn` |
 | FreeBSD extras | `sudo pkg install git unzip python3 cmake ninja gn llvm fontconfig freetype2` | Installs the toolchain and font dependencies in one go |
 
+### Compiler and CMake version requirements
+
+| Purpose | Minimum | Notes |
+| :--- | :--- | :--- |
+| Main project (Linux/macOS/FreeBSD) | gcc 10+ or clang 12+ | Checked by the preflight at configure time |
+| Building Skia (Linux/macOS/FreeBSD) | clang 12+ or gcc 11+ | Skia's `ml3`/`ml4` targets always use `-march=x86-64-v3` / `-march=x86-64-v4`, which only clang 12+ / gcc 11+ understand; clang is preferred and falls back to gcc when older than 12, and configuration fails early when both are too old |
+| CMake | 3.24+ (CMakePresets is version 6, so 3.25+ in practice) | The root project is configured via `cmake --preset` from `build.py` |
+
+Domestic distributions (NFSChina/中科方德 and UnionTech UOS): **the compilers shipped with both systems cannot build Skia** (NFSChina ships clang 11.0.1 and gcc 10.2.1; UOS ships gcc older than 11), so users must install **clang 12+ (recommended) or gcc 11+** themselves. In addition, **the CMake 3.18.4 bundled with NFSChina does not meet the 3.24+ requirement** — upgrade CMake manually (3.25 or newer is recommended). Put the new compiler's `bin` directory first in `PATH`; `build.py doctor` prints the CMake version and the Skia toolchain actually in use.
+
 ### Linux System Dependencies
 
 Linux also needs distribution-provided development packages for X11, fonts, OpenGL/EGL, DBus/ibus and so on. Package names differ between distributions, and a wrong or missing package usually shows up at the CMake stage as `Could not find X11`, `Could not find Freetype` or `Could not find Fontconfig`. Per-distribution install commands, the required package list and verification steps are in a separate document: [build/linux-dependencies.en.md](build/linux-dependencies.en.md). The commands come from the repository's build documentation and cover Ubuntu, Debian, Fedora, openSUSE, OpenEuler, OpenKylin, UbuntuKylin, Zhongke Fangde and UnionTech UOS; apart from Ubuntu they have not been tested one by one, and the document states the verification scope.
@@ -237,6 +247,7 @@ The table lists the most common symptoms and their fixes; for anything else, the
 | First build is very slow / fails while downloading | The first build compiles Skia and downloads CEF; with an existing cache or local archive use `--offline` or `--cef-archive <file>` |
 | `doctor` reports that Visual Studio is missing | Install the C++ desktop workload of VS 2022 or 2026; when several versions coexist, select one explicitly with `--vs-version 17` (or `18`) |
 | CMake version too old | Upgrade to 3.24+ |
+| Skia fails with unknown target CPU 'x86-64-v3' / bad value 'x86-64-v3' | Compiler too old: install clang 12+ (recommended) or gcc 11+; the compilers bundled with NFSChina/UOS are not sufficient |
 | `python3` command not found | Install Python 3 and make sure `python3` is on PATH; see "Why Always `python3 build/build.py`" for the Windows special case |
 | `bin/` still holds old examples after switching Debug/Release | `build.py` removes the examples of the other configuration automatically; when invoking CMake by hand, clean `bin/` yourself |
 | CEF examples do not run | Check that the runtime directory exists: `bin/libcef_win/<arch>` on Windows (`bin/libcef_win_109/<arch>` for CEF 109), `bin/libcef_linux` on Linux, and the App Bundle on macOS (see [build/macos-app-bundle.en.md](build/macos-app-bundle.en.md)); package with `pack --with-cef`, and keep the CEF version used for building and packaging identical |

@@ -19,6 +19,16 @@
 | macOS | Xcode 命令行工具 13.5+，Homebrew 安装 cmake/ninja/gn |
 | FreeBSD | clang、cmake、ninja、gn、fontconfig、freetype2 |
 
+### 编译器与 CMake 版本要求
+
+| 用途 | 最低版本 | 说明 |
+| :--- | :--- | :--- |
+| 主工程（Linux/macOS/FreeBSD） | gcc 10+ 或 clang 12+ | 配置阶段由 preflight 校验 |
+| 编译 Skia（Linux/macOS/FreeBSD） | clang 12+ 或 gcc 11+ | Skia 的 `ml3`/`ml4` 目标固定使用 `-march=x86-64-v3` / `x86-64-v4`，只有 clang 12+ / gcc 11+ 认识这组取值；工具链优先用 clang，clang 低于 12 时回退 gcc，两者都过旧时配置阶段直接报错 |
+| CMake | 3.24+（CMakePresets 为 version 6，需 3.25+） | 根工程由 `build.py` 通过 `cmake --preset` 配置 |
+
+国产系统注意（中科方德 / 统信 UOS）：这两个系统**自带的编译器都不满足 Skia 的编译要求**（中科方德自带 clang 11.0.1、gcc 10.2.1；统信 UOS 自带 gcc 低于 11），必须由用户自行安装 **clang 12+（推荐）或 gcc 11+**。另外**中科方德自带的 CMake 3.18.4 也不满足 3.24+ 要求**，需要自行升级 CMake（建议 3.25 或更新版本）。安装后请把新编译器的 `bin` 目录放到 `PATH` 最前面，`build.py doctor` 会显示实际使用的 CMake 版本与 Skia 工具链。
+
 Python 3.8+ 缺失时 `build.py` 会直接报错并给出安装提示，不提供绕过 Python 的构建
 路径。Skia 的构建脚本固定调用 `python3`；若 PATH 中只有 `python` / `py -3` 而没有
 `python3`，预检会给出告警，并在实际编译 Skia 前报错终止。
@@ -358,6 +368,8 @@ Linux 各发行版所需的系统包（字体、GL、X11、ibus 等）参考下�
 | Debian | GNOME (Wayland) | `sudo apt install -y gcc g++ gdb make git ninja-build generate-ninja python3 cmake llvm clang unzip libfontconfig-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libvulkan-dev libxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev libwayland-dev libxkbcommon-dev` |
 | Fedora | GNOME (Wayland) | `sudo dnf install -y gcc g++ gdb make git ninja-build gn python cmake llvm clang unzip fontconfig-devel mesa-libGL-devel mesa-libGLU-devel mesa-libGLES-devel mesa-libEGL-devel vulkan-devel libXext-devel libXcursor-devel libXi-devel libXrandr-devel dbus-devel ibus-devel wayland-devel libxkbcommon-devel` |
 | OpenSuse | KDE (X11) | `sudo zypper install -y gcc gcc-c++ gdb make git ninja gn python cmake llvm clang unzip fontconfig-devel Mesa-libGL-devel Mesa-libEGL-devel Mesa-libGLESv3-devel glu-devel vulkan-devel libXext-devel libXcursor-devel libXi-devel libXrandr-devel dbus-1-devel ibus-devel` |
+
+注意：发行版仓库里的 gcc/clang/cmake 版本偏旧（中科方德自带 CMake 3.18.4、clang 11.0.1、gcc 10.2.1；统信 UOS 自带 gcc 低于 11），均不满足 Skia 的编译要求，上述命令装完后仍需自行安装 clang 12+（推荐）或 gcc 11+，并升级到 CMake 3.24+（建议 3.25+）。
 
 各发行版的系统包命令见上表；Skia 由 `build.py deps` 自动编译，无需手工准备。
 macOS 需要 `brew install cmake ninja` 并从源码安装 `gn`；FreeBSD 执行

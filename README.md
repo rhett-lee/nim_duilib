@@ -79,6 +79,16 @@ Windows 7 的兼容性来自库自身配置（[duilib/duilib_config.h](duilib/du
 | macOS 额外 | `brew install cmake ninja`，并从源码安装 `gn` | Skia 构建需要 `gn` |
 | FreeBSD 额外 | `sudo pkg install git unzip python3 cmake ninja gn llvm fontconfig freetype2` | 一次性装齐工具链与字体依赖 |
 
+### 编译器与 CMake 版本要求
+
+| 用途 | 最低版本 | 说明 |
+| :--- | :--- | :--- |
+| 主工程（Linux/macOS/FreeBSD） | gcc 10+ 或 clang 12+ | 配置阶段由 preflight 校验 |
+| 编译 Skia（Linux/macOS/FreeBSD） | clang 12+ 或 gcc 11+ | Skia 的 `ml3`/`ml4` 目标固定使用 `-march=x86-64-v3` / `x86-64-v4`，只有 clang 12+ / gcc 11+ 认识这组取值；工具链优先用 clang，clang 低于 12 时回退 gcc，两者都过旧时配置阶段直接报错 |
+| CMake | 3.24+（CMakePresets 为 version 6，需 3.25+） | 根工程由 `build.py` 通过 `cmake --preset` 配置 |
+
+国产系统注意（中科方德 / 统信 UOS）：这两个系统**自带的编译器都不满足 Skia 的编译要求**（中科方德自带 clang 11.0.1、gcc 10.2.1；统信 UOS 自带 gcc 低于 11），必须由用户自行安装 **clang 12+（推荐）或 gcc 11+**。另外**中科方德自带的 CMake 3.18.4 也不满足 3.24+ 要求**，需要自行升级 CMake（建议 3.25 或更新版本）。安装后请把新编译器的 `bin` 目录放到 `PATH` 最前面，`build.py doctor` 会显示实际使用的 CMake 版本与 Skia 工具链。
+
 ### Linux 系统依赖
 
 Linux 上还需要发行版提供的 X11、字体、OpenGL/EGL、DBus/ibus 等开发包。各发行版包名差异较大，装错或漏装通常表现为 CMake 阶段报 `Could not find X11`、`Could not find Freetype` 或 `Could not find Fontconfig`。按发行版划分的安装命令、必需包清单和验证方法见单独文档：[build/linux-dependencies.md](build/linux-dependencies.md)。其中的命令取自仓库构建文档，覆盖 Ubuntu、Debian、Fedora、openSUSE、OpenEuler、OpenKylin、UbuntuKylin、中科方德、统信 UOS；除 Ubuntu 外未逐一实测，文档中已说明验证范围。
@@ -237,6 +247,7 @@ python3 build/build.py --dll --config Release
 | 首次构建很慢 / 失败于下载 | 首次需要编译 Skia 并下载 CEF；已有缓存或本地归档时用 `--offline`、`--cef-archive <file>` |
 | `doctor` 报找不到 Visual Studio | 安装 VS 2022 或 2026 的 C++ 桌面开发工作负载；多版本并存时用 `--vs-version 17`（或 `18`）显式指定 |
 | 报 CMake 版本过低 | 升级到 3.24+ |
+| Skia 编译报 unknown target CPU 'x86-64-v3' / bad value 'x86-64-v3' | 编译器版本过低：安装 clang 12+（推荐）或 gcc 11+；中科方德/UOS 自带编译器不满足要求，需自行升级 |
 | 找不到 `python3` 命令 | 安装 Python 3 并确保 `python3` 在 PATH 中；Windows 的特殊处理见「为什么统一使用 `python3 build/build.py`」 |
 | 切换 Debug/Release 后 `bin/` 仍是旧示例 | `build.py` 会自动清理另一种配置的示例；手工调用 CMake 时需自行清理 `bin/` |
 | CEF 示例无法运行 | 确认运行时目录存在：Windows 为 `bin/libcef_win/<arch>`（CEF 109 为 `bin/libcef_win_109/<arch>`），Linux 为 `bin/libcef_linux`，macOS 由 App Bundle 自动携带（见 [build/macos-app-bundle.md](build/macos-app-bundle.md)）；出包用 `pack --with-cef`，且编译与打包的 CEF 版本要一致 |

@@ -14,6 +14,16 @@
 | 图形与输入 | OpenGL/GLES/EGL、Vulkan、DBus、ibus 开发包 | 渲染后端与输入法支持 |
 | Wayland（可选） | wayland、libxkbcommon 开发包 | Wayland 桌面环境下构建与运行 |
 
+### 编译器与 CMake 版本要求
+
+| 用途 | 最低版本 | 说明 |
+| :--- | :--- | :--- |
+| 主工程（Linux/macOS/FreeBSD） | gcc 10+ 或 clang 12+ | 配置阶段由 preflight 校验 |
+| 编译 Skia（Linux/macOS/FreeBSD） | clang 12+ 或 gcc 11+ | Skia 的 `ml3`/`ml4` 目标固定使用 `-march=x86-64-v3` / `x86-64-v4`，只有 clang 12+ / gcc 11+ 认识这组取值；工具链优先用 clang，clang 低于 12 时回退 gcc，两者都过旧时配置阶段直接报错 |
+| CMake | 3.24+（CMakePresets 为 version 6，需 3.25+） | 根工程由 `build.py` 通过 `cmake --preset` 配置 |
+
+国产系统注意（中科方德 / 统信 UOS）：这两个系统**自带的编译器都不满足 Skia 的编译要求**（中科方德自带 clang 11.0.1、gcc 10.2.1；统信 UOS 自带 gcc 低于 11），必须由用户自行安装 **clang 12+（推荐）或 gcc 11+**。另外**中科方德自带的 CMake 3.18.4 也不满足 3.24+ 要求**，需要自行升级 CMake（建议 3.25 或更新版本）。安装后请把新编译器的 `bin` 目录放到 `PATH` 最前面，`build.py doctor` 会显示实际使用的 CMake 版本与 Skia 工具链。
+
 ## 2. 各发行版安装命令
 
 下表是仓库构建文档中列出的“必选”安装命令，“桌面”列注明了该命令对应的桌面环境（X11 与 Wayland 的差异体现在是否包含 wayland/xkbcommon 包）。
