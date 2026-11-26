@@ -4077,7 +4077,7 @@ three new property types are available:
 | :--- | :--- | :--- | :--- |
 | AddBoolProperty / AddBoolPropertyById | PropertyGridBoolProperty | CheckBox | The value must be `true`/`false`; only the checkbox is shown while editing |
 | AddNumberProperty / AddNumberPropertyById | PropertyGridNumberProperty | RichEdit (integer type can have Spin) | Supports integer/float, value range, decimal places and Spin step |
-| AddMultiLineTextProperty / AddMultiLineTextPropertyById | PropertyGridMultiLineTextProperty | Multi-line RichEdit | `Enter` inserts a new line, `Ctrl+Enter` commits; the value is also displayed on multiple lines when not editing, and the property row has a fixed height of 90 DIP |
+| AddMultiLineTextProperty / AddMultiLineTextPropertyById | PropertyGridMultiLineTextProperty | Multi-line RichEdit | `Enter` inserts a new line, `Ctrl+Enter` commits; the value is also displayed on multiple lines when not editing, and the property row has a fixed height of 90 DIP (the key behavior is guaranteed by the implementation and does not depend on `want_return_msg`/`want_ctrl_return` in the theme) |
 
 ```cpp
 ui::PropertyGridBoolProperty* pBool = pPropertyGrid->AddBoolProperty(pGroup, _T("Enabled"), _T("true"), _T("Whether enabled"));

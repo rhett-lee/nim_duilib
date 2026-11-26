@@ -805,14 +805,28 @@ RichEdit、热键、IP 地址一样在编辑时显示统一的聚焦边框色（
 - 修改：`PropertyGridMultiLineTextProperty::OnInit` 中把属性值显示控件设为多行模式（`SetSingleLine(false)`）
   并改为顶部对齐；`ConvertToDisplayText` 只统一换行符为 `\n`，不再替换为空格。
 
-### 14.4 验证
+### 14.4 多行文本 Ctrl+Enter 提交的加固
+
+- 问题：用户反馈多行文本编辑时按 `Ctrl+Enter` 不能提交修改。
+- 排查：默认主题中 `property_grid_property_multiline_edit` 的 `want_return_msg="true"` +
+  `want_ctrl_return="false"` 本身可以让 Ctrl+Enter 提交，但该行为完全依赖主题 XML 的设置；
+  若使用自定义/旧版本的编辑框样式（例如 `want_ctrl_return="true"`），Ctrl+Enter 会被当作换行，
+  无法提交。
+- 修复：`PropertyGridTextProperty::EnableEditControl` 在多行文本属性下显式设置
+  `SetWantReturn(true)` / `SetWantCtrlReturn(false)`，并在编辑框的 `kEventKeyDown` 事件中
+  直接处理 `Ctrl+Enter`（调用 `FinishEdit(false)` 提交），不再依赖主题样式配置；
+  该回调先于 `RichEdit::OnKeyDown` 执行，且不会与 `kEventReturn` 重复提交。
+
+### 14.5 验证
 
 - 编译：duilib、render、test_property_grid 全部通过。
 - 单元测试：`80 checks, 0 failure(s)`；控件页面静态巡检 PASS。
 - 界面实测（render「属性页和标签页」）：
   - 点击搜索框右侧「×」后，搜索框整行消失，属性表整体上移；
   - 多行文本属性在非编辑状态显示为两行；
-  - 热键显示为 `Ctrl+Shift+Alt+C`，编辑时按 `Alt+X` 显示为 `Alt + X`，均未出现 `Menu`。
+  - 热键显示为 `Ctrl+Shift+Alt+C`，编辑时按 `Alt+X` 显示为 `Alt + X`，均未出现 `Menu`；
+  - 多行文本编辑：`Enter` 插入换行不关闭，`Ctrl+Enter` 提交并关闭；修改后提交、未修改直接提交多次均正常，
+    提交后的值无多余空行。
 
 ---
 

@@ -2904,6 +2904,20 @@ void PropertyGridTextProperty::EnableEditControl(bool bEnable)
         ShowEditControl(false, false);
         return true;
         });
+    if (GetPropertyType() == PropertyGridPropertyType::kMultiLineText) {
+        //多行文本：Enter换行，Ctrl+Enter提交修改
+        //备注：此处显式处理，不依赖主题XML中的 want_return_msg / want_ctrl_return 设置，
+        //      避免自定义的编辑框样式导致Ctrl+Enter无法提交
+        m_pRichEdit->SetWantReturn(true);
+        m_pRichEdit->SetWantCtrlReturn(false);
+        m_pRichEdit->AttachEvent(kEventKeyDown, [this](const EventArgs& msg) {
+            if ((msg.vkCode == kVK_RETURN) && ((msg.modifierKey & ModifierKey::kControl) != 0)) {
+                FinishEdit(false);
+                return false;
+            }
+            return true;
+            }, 0);
+    }
 }
 
 void PropertyGridTextProperty::OnLanguageChanged(bool bRedraw)

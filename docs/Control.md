@@ -4074,7 +4074,7 @@ PropertyGrid 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`�
 | :--- | :--- | :--- | :--- |
 | AddBoolProperty / AddBoolPropertyById | PropertyGridBoolProperty | CheckBox | 取值必须是 `true`/`false`；编辑时仅显示复选框 |
 | AddNumberProperty / AddNumberPropertyById | PropertyGridNumberProperty | RichEdit（整数可带 Spin） | 支持整数/浮点、取值范围、小数位数、Spin 步长 |
-| AddMultiLineTextProperty / AddMultiLineTextPropertyById | PropertyGridMultiLineTextProperty | 多行 RichEdit | `Enter` 换行、`Ctrl+Enter` 提交；非编辑状态也按多行显示，属性行固定为 90 DIP 行高 |
+| AddMultiLineTextProperty / AddMultiLineTextPropertyById | PropertyGridMultiLineTextProperty | 多行 RichEdit | `Enter` 换行、`Ctrl+Enter` 提交；非编辑状态也按多行显示，属性行固定为 90 DIP 行高（提交行为由实现内部保证，不依赖主题样式中的 `want_return_msg`/`want_ctrl_return`） |
 
 ```cpp
 ui::PropertyGridBoolProperty* pBool = pPropertyGrid->AddBoolProperty(pGroup, _T("可用"), _T("true"), _T("是否启用"));
