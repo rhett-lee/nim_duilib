@@ -8,9 +8,13 @@
 
 namespace ui
 {
-/** 字符串/路径操作的辅助类，功能要点如下：
- *  1. 空白字符的判断规则：ASCII 空格与 ASCII 控制字符；宽字符版本还包括全角空格(U+3000)与不换行空格(U+00A0)
-*/
+/** 字符串操作的辅助类，主要提供以下功能：
+ *  1. 字符串格式化与替换；
+ *  2. 大小写转换、Trim、拆分与拼接；
+ *  3. 字符串比较，以及前缀、后缀、子串判断；
+ *  4. 数值、布尔值与字符串之间的相互转换。
+ *  说明：空白字符包括 ASCII 空格与 ASCII 控制字符；宽字符版本还包括全角空格(U+3000)与不换行空格(U+00A0)。
+ */
 class DUILIB_API StringUtil
 {
 public:
@@ -76,65 +80,76 @@ public:
     static std::string MakeUpperString(const std::string& str);
 
     /** 去掉字符串左侧的空白字符
-    * @param [in] input 要处理的字符串
-    * @return 返回去掉左侧空白字符后的新字符串（std::string 版本处理窄字符，std::wstring 版本处理宽字符）
+    * @param [in] input 要处理的字符串，可为 nullptr（此时返回空字符串）
+    * @return 返回去掉左侧空白字符后的新字符串
     */
     static std::string TrimLeft(const char *input);
+
     /** 去掉字符串右侧的空白字符
-    * @param [in] input 要处理的字符串
+    * @param [in] input 要处理的字符串，可为 nullptr（此时返回空字符串）
     * @return 返回去掉右侧空白字符后的新字符串
     */
     static std::string TrimRight(const char* input);
+
     /** 去掉字符串左右两侧的空白字符
-    * @param [in] input 要处理的字符串
+    * @param [in] input 要处理的字符串，可为 nullptr（此时返回空字符串）
     * @return 返回去掉两侧空白字符后的新字符串
     */
-    static std::string Trim(const char* input); /* both left and right */
+    static std::string Trim(const char* input);
+
     /** 去掉字符串左侧的空白字符（原地修改）
     * @param [in,out] input 要处理的字符串
     * @return 返回处理后的字符串引用（即 input 本身）
     */
     static std::string& TrimLeft(std::string& input);
+
     /** 去掉字符串右侧的空白字符（原地修改）
     * @param [in,out] input 要处理的字符串
     * @return 返回处理后的字符串引用（即 input 本身）
     */
     static std::string& TrimRight(std::string& input);
+
     /** 去掉字符串左右两侧的空白字符（原地修改）
     * @param [in,out] input 要处理的字符串
     * @return 返回处理后的字符串引用（即 input 本身）
     */
-    static std::string& Trim(std::string& input); /* both left and right */
+    static std::string& Trim(std::string& input);
+
     /** 去掉字符串左侧的空白字符（宽字符版本）
-    * @param [in] input 要处理的字符串
+    * @param [in] input 要处理的字符串，可为 nullptr（此时返回空字符串）
     * @return 返回去掉左侧空白字符后的新字符串
     */
     static std::wstring TrimLeft(const wchar_t* input);
+
     /** 去掉字符串右侧的空白字符（宽字符版本）
-    * @param [in] input 要处理的字符串
+    * @param [in] input 要处理的字符串，可为 nullptr（此时返回空字符串）
     * @return 返回去掉右侧空白字符后的新字符串
     */
     static std::wstring TrimRight(const wchar_t* input);
+
     /** 去掉字符串左右两侧的空白字符（宽字符版本）
-    * @param [in] input 要处理的字符串
+    * @param [in] input 要处理的字符串，可为 nullptr（此时返回空字符串）
     * @return 返回去掉两侧空白字符后的新字符串
     */
-    static std::wstring Trim(const wchar_t* input); /* both left and right */
+    static std::wstring Trim(const wchar_t* input);
+
     /** 去掉字符串左侧的空白字符（宽字符版本，原地修改）
     * @param [in,out] input 要处理的字符串
     * @return 返回处理后的字符串引用（即 input 本身）
     */
     static std::wstring& TrimLeft(std::wstring& input);
+
     /** 去掉字符串右侧的空白字符（宽字符版本，原地修改）
     * @param [in,out] input 要处理的字符串
     * @return 返回处理后的字符串引用（即 input 本身）
     */
     static std::wstring& TrimRight(std::wstring& input);
+
     /** 去掉字符串左右两侧的空白字符（宽字符版本，原地修改）
     * @param [in,out] input 要处理的字符串
     * @return 返回处理后的字符串引用（即 input 本身）
     */
-    static std::wstring& Trim(std::wstring& input); /* both left and right */
+    static std::wstring& Trim(std::wstring& input);
 
     /** 判断字符串是否为空（指针为 nullptr 或指向空字符串时视为空）
     * @param [in] str 要判断的字符串
@@ -159,6 +174,7 @@ public:
     * @param [in] input 要拆分的字符串
     * @param [in] delimitor 分隔符集合，其中每个字符都视为一个分隔符
     * @return 返回拆分后的子串列表（std::string 版本处理窄字符，std::wstring 版本处理宽字符）
+    * 说明：连续的分隔符不会产生空项；input 为空时返回空列表；需要保留空项时请使用 SplitByString
     */
     static std::list<std::string> Split(const std::string& input, const std::string& delimitor);
     static std::list<std::wstring> Split(const std::wstring& input, const std::wstring& delimitor);
@@ -182,7 +198,7 @@ public:
     /** 将多个字符串拼接为一个字符串
     * @param [in] parts 要拼接的字符串列表
     * @param [in] separator 各字符串之间的分隔字符串，可为空
-    * @return 返回拼接后的字符串
+    * @return 返回拼接后的字符串；parts 为空时返回空字符串
     */
     static std::string Join(const std::vector<std::string>& parts, const std::string& separator);
     static std::wstring Join(const std::vector<std::wstring>& parts, const std::wstring& separator);
@@ -243,12 +259,9 @@ public:
     static bool ContainsNoCase(const std::string& str, const std::string& sub);
 
     /** 比较字符串，区分大小写
-    @param [in] lhs 左值字符串
-    @param [in] rhs 右值字符串
-    @return 返回值定义如下：
-            0  : 相等
-            1  : lhs > rhs
-           -1  : lhs < rhs
+    * @param [in] lhs 左值字符串，可为 nullptr（此时视为小于非空字符串）
+    * @param [in] rhs 右值字符串，可为 nullptr（此时视为小于非空字符串）
+    * @return 返回比较结果：0 表示相等；大于0 表示 lhs > rhs；小于0 表示 lhs < rhs
     */
     static int32_t StringCompare(const std::wstring& lhs, const std::wstring& rhs);
     static int32_t StringCompare(const wchar_t* lhs, const wchar_t* rhs);
@@ -256,30 +269,25 @@ public:
     static int32_t StringCompare(const char* lhs, const char* rhs);
 
     /** 比较字符串，不区分大小写
-    @param [in] lhs 左值字符串
-    @param [in] rhs 右值字符串
-    @return 返回值定义如下：
-            0  : 相等
-            1  : lhs > rhs
-           -1  : lhs < rhs
+    * @param [in] lhs 左值字符串，可为 nullptr（此时视为小于非空字符串）
+    * @param [in] rhs 右值字符串，可为 nullptr（此时视为小于非空字符串）
+    * @return 返回比较结果：0 表示相等；大于0 表示 lhs > rhs；小于0 表示 lhs < rhs
     */
     static int32_t StringICompare(const std::wstring& lhs, const std::wstring& rhs);
     static int32_t StringICompare(const wchar_t* lhs, const wchar_t* rhs);
     static int32_t StringICompare(const std::string& lhs, const std::string& rhs);
     static int32_t StringICompare(const char* lhs, const char* rhs);
 
-    /** 将整型数值转换为字符串
+    /** 将无符号整型数值转换为字符串（十进制）
     * @param [in] value 要转换的整型数值
-    * @return 返回转换后的字符串，各重载的差异如下：
-    *         - UInt64/UInt32 前缀：无符号整数；Int64/Int32 前缀：有符号整数
-    *         - W 后缀：返回 std::wstring（宽字符）；A 后缀：返回 std::string（窄字符）
+    * @return 返回转换后的字符串：W 后缀返回 std::wstring（宽字符），A 后缀返回 std::string（窄字符）
     */
     static std::wstring UInt64ToStringW(uint64_t value);
     static std::wstring UInt32ToStringW(uint32_t value);
     static std::string UInt64ToStringA(uint64_t value);
     static std::string UInt32ToStringA(uint32_t value);
 
-    /** 将有符号整型数值转换为指定编码的字符串
+    /** 将有符号整型数值转换为字符串
     * @param [in] value 要转换的整型数值
     * @return 返回转换后的字符串：W 后缀返回 std::wstring（宽字符），A 后缀返回 std::string（窄字符）
     */
@@ -310,36 +318,45 @@ public:
     */
     static DString BoolToString(bool value);
 
-    /** 将浮点数转换为字符串（按指定小数位数格式化，采用四舍五入）
+    /** 将浮点数转换为字符串（按指定的小数位数格式化）
     * @param [in] value 要转换的浮点数
     * @param [in] nPrecision 保留的小数位数，取值范围 0~17，超出范围时按边界值处理
     * @return 返回格式化后的字符串（返回值类型随编码模式变化）
     */
     static DString DoubleToString(double value, int32_t nPrecision);
 
-    /** 将字符串转换成整型（十进制）
+    /** 将字符串转换成32位整型（十进制）
     * @param [in] str 要转换的字符串（std::wstring/std::string 以及对应的字符指针）
     * @return 返回转换后的32位整数，无法转换时返回0
+    * 说明：解析失败与合法的0无法区分；需要区分时请使用带 pbOk 参数的重载
     */
     static int32_t StringToInt32(const std::wstring& str);
     static int32_t StringToInt32(const std::wstring::value_type* str);
     static int32_t StringToInt32(const std::string& str);
     static int32_t StringToInt32(const std::string::value_type* str);
 
-    /** 将字符串转换成整型（可指定进制）
+    /** 将字符串转换成32位有符号整型（可指定进制）
     * @param [in] str 要转换的字符串
     * @param [out] pEndPtr 返回解析结束位置的字符指针，可为 nullptr（不需要时）
     * @param [in] nRadix 进制，取值范围通常为 2~36，10 表示十进制，16 表示十六进制
-    * @return 返回转换后的整数（有符号/无符号取决于函数名），无法转换时返回0
+    * @return 返回转换后的32位有符号整数，无法转换时返回0
     */
     static int32_t StringToInt32(const wchar_t* str, wchar_t** pEndPtr, int32_t nRadix);
     static int32_t StringToInt32(const char* str, char** pEndPtr, int32_t nRadix);
+
+    /** 将字符串转换成32位无符号整型（可指定进制）
+    * @param [in] str 要转换的字符串
+    * @param [out] pEndPtr 返回解析结束位置的字符指针，可为 nullptr（不需要时）
+    * @param [in] nRadix 进制，取值范围通常为 2~36，10 表示十进制，16 表示十六进制
+    * @return 返回转换后的32位无符号整数，无法转换时返回0
+    */
     static uint32_t StringToUInt32(const wchar_t* str, wchar_t** pEndPtr, int32_t nRadix);
     static uint32_t StringToUInt32(const char* str, char** pEndPtr, int32_t nRadix);
 
     /** 将字符串转换成64位整型（十进制）
     * @param [in] str 要转换的字符串（std::wstring/std::string 以及对应的字符指针）
     * @return 返回转换后的64位整数，无法转换时返回0
+    * 说明：解析失败与合法的0无法区分；需要区分时请使用带 pbOk 参数的重载
     */
     static int64_t StringToInt64(const std::wstring& str);
     static int64_t StringToInt64(const std::wstring::value_type* str);
@@ -367,6 +384,7 @@ public:
     /** 将字符串转换成浮点型（十进制，double）
     * @param [in] str 要转换的字符串（std::wstring/std::string 以及对应的字符指针）
     * @return 返回转换后的双精度浮点数，无法转换时返回0
+    * 说明：解析失败与合法的0无法区分；需要区分时请使用带 pbOk 参数的重载
     */
     static double StringToDouble(const std::wstring& str);
     static double StringToDouble(const std::wstring::value_type* str);
@@ -392,7 +410,8 @@ public:
 
     /** 将字符串转换成浮点型（十进制，float）
     * @param [in] str 要转换的字符串
-    * @param [out] pEndPtr 返回解析结束位置的字符指针，可为 nullptr（不需要时）
+    * @param [out] pEndPtr 返回解析结束位置的字符指针，可为 nullptr（不需要时）；
+    *                      不带 pEndPtr 参数的重载等价于传入 nullptr
     * @return 返回转换后的单精度浮点数，无法转换时返回0
     */
     static float StringToFloat(const wchar_t* str, wchar_t** pEndPtr);
@@ -419,6 +438,7 @@ public:
     * @return 返回值仅作占位，始终为0
     */
     static int32_t StringCopy(wchar_t* dest, size_t destSize, const wchar_t* src);
+
     /** 复制字符串的指定长度（宽字符版本，最多复制 destSize - 1 个字符）
     * @param [in,out] dest 目标缓冲区
     * @param [in] destSize 目标缓冲区的大小（字符数，含结尾的 '\0'）
@@ -441,6 +461,7 @@ public:
     * @return 返回值仅作占位，始终为0
     */
     static int32_t StringCopy(char* dest, size_t destSize, const char* src);
+
     /** 复制字符串的指定长度（窄字符版本，最多复制 destSize - 1 个字符）
     * @param [in,out] dest 目标缓冲区
     * @param [in] destSize 目标缓冲区的大小（字节数，含结尾的 '\0'）
@@ -452,7 +473,7 @@ public:
 
     /** 计算字符串的长度（不含结尾的 '\0'）
     * @param [in] str 要计算的字符串，为 nullptr 时返回0
-    * @return 返回字符串的字符数（std::wstring 版本为宽字符数，std::string 版本为窄字符数）
+    * @return 返回字符串的长度：宽字符版本为宽字符数，窄字符版本为字节数
     */
     static size_t StringLen(const wchar_t* str);
     static size_t StringLen(const char* str);
