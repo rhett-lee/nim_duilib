@@ -701,6 +701,10 @@ function(_duilib_prepare_skia_config config)
         return()
     endif()
 
+    # 旧编译器（clang < 12 且 gcc < 11）无法编译 Skia 的 ml3/ml4 目标，
+    # 在这里提前给出可读错误，而不是让 ninja 在编译到一半时报 -march 的原始错误。
+    duilib_skia_toolchain_check()
+
     # 补丁归档随仓库分发（build/skia_patch），这里只校验它与清单配套。
     set(_patch "")
     set(_patch_key "")

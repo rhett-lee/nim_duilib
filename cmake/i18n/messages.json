@@ -120,6 +120,14 @@
       "en": "upgrade clang",
       "zh_CN": "升级 clang"
     },
+    "preflight.skia_gcc_too_old": {
+      "en": "[ERROR] no compiler can build Skia: gcc {version} is older than 11 and clang is missing or older than 12",
+      "zh_CN": "[ERROR] 找不到可编译 Skia 的编译器：gcc {version} 低于 11，且 clang 缺失或低于 12"
+    },
+    "preflight.skia_gcc_too_old_hint": {
+      "en": "install clang 12+ (recommended) or gcc 11+: Skia's ml3/ml4 targets use -march=x86-64-v3",
+      "zh_CN": "安装 clang 12+（推荐）或 gcc 11+：Skia 的 ml3/ml4 目标使用 -march=x86-64-v3"
+    },
     "preflight.compiler_unsupported_hint": {
       "en": "use MSVC 2022+, gcc/g++, or clang/clang++",
       "zh_CN": "请使用 MSVC 2022+、gcc/g++ 或 clang/clang++"
@@ -141,8 +149,8 @@
       "zh_CN": "[OK]    Skia 工具链 {cc}（{cxx}）"
     },
     "preflight.skia_toolchain_gcc": {
-      "en": "[WARN]  Skia uses the gcc toolchain (clang/clang++ not found; Skia will be slower)",
-      "zh_CN": "[WARN]  Skia 使用 gcc 工具链（未找到 clang/clang++；Skia 性能会较低）"
+      "en": "[WARN]  Skia uses the gcc toolchain (clang/clang++ missing or older than 12; Skia will be slower)",
+      "zh_CN": "[WARN]  Skia 使用 gcc 工具链（未找到 clang/clang++ 或版本低于 12；Skia 性能会较低）"
     },
     "preflight.gn_deps_off": {
       "en": "[WARN]  gn not found (deps: off)",
