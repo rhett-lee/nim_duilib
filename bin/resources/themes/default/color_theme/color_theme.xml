@@ -999,16 +999,16 @@
                 <GroupVBox class="group_box_round" text="TabCtrl - All States" height="auto" margin="0,4,0,0" padding="10,24,6,10" control_padding="false">
                     <HBox child_margin="10" height="auto">
                         <TabCtrl class="tab_ctrl" name="tab_list1" margin="10,10,10,10" drag_order="true" drag_out_id="1" drop_in_id="2">
-                            <TabCtrlItem class="tab_ctrl_item" title="Item 1-1" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                            <TabCtrlItem class="tab_ctrl_item" title="Item 1-2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                            <TabCtrlItem class="tab_ctrl_item" title="Item 1-3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                            <TabCtrlItem class="tab_ctrl_item" title="Item 1-4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
+                            <TabCtrlItem class="tab_ctrl_item" title="Item 1-1" width="150" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
+                            <TabCtrlItem class="tab_ctrl_item" title="Item 1-2" width="150" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
+                            <TabCtrlItem class="tab_ctrl_item" title="Item 1-3" width="150" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
+                            <TabCtrlItem class="tab_ctrl_item" title="Item 1-4" width="150" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                         </TabCtrl>
                         <TabCtrl class="tab_ctrl" margin="10,10,10,10" drag_order="true" drop_in_id="1" drag_out_id="2">
-                            <TabCtrlItem class="tab_ctrl_item" title="Item 2-1" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                            <TabCtrlItem class="tab_ctrl_item" title="Item 2-2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                            <TabCtrlItem class="tab_ctrl_item" title="Item 2-3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                            <TabCtrlItem class="tab_ctrl_item" title="Item 2-4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
+                            <TabCtrlItem class="tab_ctrl_item" title="Item 2-1" width="150" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
+                            <TabCtrlItem class="tab_ctrl_item" title="Item 2-2" width="150" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
+                            <TabCtrlItem class="tab_ctrl_item" title="Item 2-3" width="150" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
+                            <TabCtrlItem class="tab_ctrl_item" title="Item 2-4" width="150" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                         </TabCtrl>
                     </HBox>
                 </GroupVBox>
@@ -1072,7 +1072,7 @@
                         <HBox height="32" child_margin="8">
                             <CascadingSelect class="cascader" name="preview_cascader" dropdown="true" width="360" height="32" placeholder="Select region..."
                                              items="East/Shanghai/Pudong|East/Hangzhou/Xihu|South/Guangzhou/Tianhe"/>
-                            <CascadingSelect class="cascader" name="preview_cascader_custom" dropdown="true" width="360" height="32" placeholder="Select component..." path_separator=">" value_separator=">"
+                            <CascadingSelect class="cascader" name="preview_cascader_custom" dropdown="true" width="360" height="32" placeholder="Select component..." value_separator=">"
                                              items="System/Network/Proxy|System/Network/DNS|System/Display/Theme"/>
                         </HBox>
                     </VBox>
@@ -1248,8 +1248,8 @@
                         </GroupBox>
                     </HBox>
                     <HBox child_margin="12" height="56" margin="0,14,0,0">
-                        <Popover class="popover_anchor_primary" name="preview_popover_hover" trigger="hover" placement="top" valign="center" text="Hover for Popover" title="Popover" content="Theme preview content"/>
-                        <Popover class="popover_anchor" name="preview_popover_click" trigger="click" placement="bottom" valign="center" text="Click for Popover" title="Popover" content="Theme preview content"/>
+                        <Popover class="popover_anchor_primary" name="preview_popover_hover" trigger="hover" placement="top" valign="center" width="auto" padding="12,0,12,0" text="Hover for Popover" title="Popover" content="Theme preview content"/>
+                        <Popover class="popover_anchor" name="preview_popover_click" trigger="click" placement="bottom" valign="center" width="auto" padding="12,0,12,0" text="Click for Popover" title="Popover" content="Theme preview content"/>
                         <Popconfirm class="popover_anchor" name="preview_popconfirm" placement="top" valign="center" width="auto" padding="12,0,12,0" text="Delete" title="Confirm" description="Are you sure?"/>
                     </HBox>
                 </GroupVBox>
