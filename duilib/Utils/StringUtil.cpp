@@ -6,7 +6,14 @@
 #include <climits>
 #include <cstring>
 #include <cstdio>
+#include <cerrno>
+#include <cstdint>
+#include <cwchar>
 #include <algorithm>
+
+#ifndef DUILIB_BUILD_FOR_WIN
+#include <strings.h>
+#endif
 
 namespace ui
 {
@@ -301,6 +308,270 @@ void StringTrimRightT(std::basic_string<CharType> &output)
     output.resize(length);
 }
 
+/** 判断字符是否为空白字符（规则与 Trim 保持一致：空格及 ASCII 控制字符）
+*/
+inline bool StringIsSpaceChar(char ch)
+{
+    const unsigned char value = static_cast<unsigned char>(ch);
+    return (value == 0x20) || (value <= 0x1d);
+}
+
+inline bool StringIsSpaceChar(wchar_t ch)
+{
+    const uint32_t value = static_cast<uint32_t>(ch);
+    return (value == 0x20) || (value <= 0x1d);
+}
+
+/** 忽略大小写比较指定长度的字符串
+*/
+inline int StringNICmp(const char* lhs, const char* rhs, size_t count)
+{
+#ifdef DUILIB_BUILD_FOR_WIN
+    return ::_strnicmp(lhs, rhs, count);
+#else
+    return ::strncasecmp(lhs, rhs, count);
+#endif
+}
+
+inline int StringNICmp(const wchar_t* lhs, const wchar_t* rhs, size_t count)
+{
+#ifdef DUILIB_BUILD_FOR_WIN
+    return ::_wcsnicmp(lhs, rhs, count);
+#else
+    return ::wcsncasecmp(lhs, rhs, count);
+#endif
+}
+
+template<typename CharType>
+bool StringStartsWithT(const std::basic_string<CharType>& str, const std::basic_string<CharType>& prefix)
+{
+    if (prefix.size() > str.size()) {
+        return false;
+    }
+    return str.compare(0, prefix.size(), prefix) == 0;
+}
+
+template<typename CharType>
+bool StringStartsWithNoCaseT(const std::basic_string<CharType>& str, const std::basic_string<CharType>& prefix)
+{
+    if (prefix.size() > str.size()) {
+        return false;
+    }
+    return StringNICmp(str.c_str(), prefix.c_str(), prefix.size()) == 0;
+}
+
+template<typename CharType>
+bool StringEndsWithT(const std::basic_string<CharType>& str, const std::basic_string<CharType>& suffix)
+{
+    if (suffix.size() > str.size()) {
+        return false;
+    }
+    return str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
+}
+
+template<typename CharType>
+bool StringEndsWithNoCaseT(const std::basic_string<CharType>& str, const std::basic_string<CharType>& suffix)
+{
+    if (suffix.size() > str.size()) {
+        return false;
+    }
+    return StringNICmp(str.c_str() + (str.size() - suffix.size()), suffix.c_str(), suffix.size()) == 0;
+}
+
+template<typename CharType>
+bool StringContainsNoCaseT(const std::basic_string<CharType>& str, const std::basic_string<CharType>& sub)
+{
+    if (sub.empty()) {
+        return true;
+    }
+    if (sub.size() > str.size()) {
+        return false;
+    }
+    for (size_t i = 0; i + sub.size() <= str.size(); ++i) {
+        if (StringNICmp(str.c_str() + i, sub.c_str(), sub.size()) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+template<typename CharType>
+std::basic_string<CharType> StringJoinT(const std::vector<std::basic_string<CharType>>& parts,
+                                        const std::basic_string<CharType>& separator)
+{
+    std::basic_string<CharType> output;
+    for (size_t i = 0; i < parts.size(); ++i) {
+        if (i != 0) {
+            output += separator;
+        }
+        output += parts[i];
+    }
+    return output;
+}
+
+template<typename CharType>
+std::vector<std::basic_string<CharType>> StringSplitByStringT(const std::basic_string<CharType>& input,
+                                                              const std::basic_string<CharType>& delimiter,
+                                                              bool keepEmpty)
+{
+    std::vector<std::basic_string<CharType>> output;
+    if (delimiter.empty()) {
+        output.push_back(input);
+        return output;
+    }
+    const size_t npos = std::basic_string<CharType>::npos;
+    size_t start = 0;
+    for (;;) {
+        const size_t pos = input.find(delimiter, start);
+        if (pos == npos) {
+            if (keepEmpty || (start < input.size())) {
+                output.push_back(input.substr(start));
+            }
+            break;
+        }
+        if (keepEmpty || (pos > start)) {
+            output.push_back(input.substr(start, pos - start));
+        }
+        start = pos + delimiter.size();
+    }
+    return output;
+}
+
+template<typename CharType>
+std::vector<std::basic_string<CharType>> StringSplitLinesT(const std::basic_string<CharType>& input)
+{
+    std::vector<std::basic_string<CharType>> output;
+    const size_t length = input.size();
+    if (length == 0) {
+        return output;
+    }
+    size_t start = 0;
+    for (size_t i = 0; i < length; ++i) {
+        const CharType ch = input[i];
+        if ((ch == static_cast<CharType>('\n')) || (ch == static_cast<CharType>('\r'))) {
+            output.push_back(input.substr(start, i - start));
+            if ((ch == static_cast<CharType>('\r')) && (i + 1 < length) && (input[i + 1] == static_cast<CharType>('\n'))) {
+                ++i;
+            }
+            start = i + 1;
+        }
+    }
+    if (start < length) {
+        output.push_back(input.substr(start));
+    }
+    return output;
+}
+
+template<typename CharType>
+std::basic_string<CharType> StringMakeReplaceAllT(const std::basic_string<CharType>& input,
+                                                  const std::basic_string<CharType>& find,
+                                                  const std::basic_string<CharType>& replace)
+{
+    if (input.empty() || find.empty()) {
+        return input;
+    }
+    std::basic_string<CharType> output = input;
+    StringReplaceAllT<CharType>(find, replace, output);
+    return output;
+}
+
+template<typename CharType>
+std::basic_string<CharType> StringMakeReplaceAllNoCaseT(const std::basic_string<CharType>& input,
+                                                        const std::basic_string<CharType>& find,
+                                                        const std::basic_string<CharType>& replace)
+{
+    if (input.empty() || find.empty()) {
+        return input;
+    }
+    std::basic_string<CharType> output;
+    output.reserve(input.size());
+    size_t lastPos = 0;
+    size_t pos = 0;
+    while (pos + find.size() <= input.size()) {
+        if (StringNICmp(input.c_str() + pos, find.c_str(), find.size()) == 0) {
+            output.append(input, lastPos, pos - lastPos);
+            output += replace;
+            pos += find.size();
+            lastPos = pos;
+        }
+        else {
+            ++pos;
+        }
+    }
+    output.append(input, lastPos, std::basic_string<CharType>::npos);
+    return output;
+}
+
+inline long long StringStrToInt64(const char* str, char** pEndPtr)
+{
+    return ::strtoll(str, pEndPtr, 10);
+}
+
+inline long long StringStrToInt64(const wchar_t* str, wchar_t** pEndPtr)
+{
+    return ::wcstoll(str, pEndPtr, 10);
+}
+
+inline double StringStrToDouble(const char* str, char** pEndPtr)
+{
+    return ::strtod(str, pEndPtr);
+}
+
+inline double StringStrToDouble(const wchar_t* str, wchar_t** pEndPtr)
+{
+    return ::wcstod(str, pEndPtr);
+}
+
+/** 解析64位整数：仅当整个字符串（去掉首尾空白后）都是合法十进制整数时返回 true
+*/
+template<typename CharType>
+bool StringParseInt64T(const std::basic_string<CharType>& str, int64_t& value)
+{
+    if (str.empty()) {
+        return false;
+    }
+    const CharType* begin = str.c_str();
+    CharType* end = nullptr;
+    errno = 0;
+    const long long parsed = StringStrToInt64(begin, &end);
+    if ((errno == ERANGE) || (end == begin)) {
+        return false;
+    }
+    while ((*end != 0) && StringIsSpaceChar(*end)) {
+        ++end;
+    }
+    if (*end != 0) {
+        return false;
+    }
+    value = static_cast<int64_t>(parsed);
+    return true;
+}
+
+/** 解析双精度浮点数：仅当整个字符串（去掉首尾空白后）都是合法浮点数时返回 true
+*/
+template<typename CharType>
+bool StringParseDoubleT(const std::basic_string<CharType>& str, double& value)
+{
+    if (str.empty()) {
+        return false;
+    }
+    const CharType* begin = str.c_str();
+    CharType* end = nullptr;
+    errno = 0;
+    const double parsed = StringStrToDouble(begin, &end);
+    if ((errno == ERANGE) || (end == begin)) {
+        return false;
+    }
+    while ((*end != 0) && StringIsSpaceChar(*end)) {
+        ++end;
+    }
+    if (*end != 0) {
+        return false;
+    }
+    value = parsed;
+    return true;
+}
+
 } // anonymous namespace
 
 
@@ -338,6 +609,26 @@ size_t StringUtil::ReplaceAll(const std::string& find, const std::string& replac
         return 0;
     }
     return StringReplaceAllT<char>(find, replace, output);
+}
+
+std::wstring StringUtil::MakeReplaceAll(const std::wstring& input, const std::wstring& find, const std::wstring& replace)
+{
+    return StringMakeReplaceAllT<wchar_t>(input, find, replace);
+}
+
+std::string StringUtil::MakeReplaceAll(const std::string& input, const std::string& find, const std::string& replace)
+{
+    return StringMakeReplaceAllT<char>(input, find, replace);
+}
+
+std::wstring StringUtil::MakeReplaceAllNoCase(const std::wstring& input, const std::wstring& find, const std::wstring& replace)
+{
+    return StringMakeReplaceAllNoCaseT<wchar_t>(input, find, replace);
+}
+
+std::string StringUtil::MakeReplaceAllNoCase(const std::string& input, const std::string& find, const std::string& replace)
+{
+    return StringMakeReplaceAllNoCaseT<char>(input, find, replace);
 }
 
 void StringUtil::LowerString(std::string& str)
@@ -462,21 +753,21 @@ std::string StringUtil::MakeUpperString(const std::string& str)
 
 std::string StringUtil::TrimLeft(const char *input)
 {
-    std::string output = input;
+    std::string output = (input != nullptr) ? std::string(input) : std::string();
     TrimLeft(output);
     return output;
 }
 
 std::string StringUtil::TrimRight(const char *input)
 {
-    std::string output = input;
+    std::string output = (input != nullptr) ? std::string(input) : std::string();
     TrimRight(output);
     return output;
 }
 
 std::string StringUtil::Trim(const char *input) /* both left and right */
 {
-    std::string output = input;
+    std::string output = (input != nullptr) ? std::string(input) : std::string();
     Trim(output);
     return output;
 }
@@ -501,21 +792,21 @@ std::string& StringUtil::Trim(std::string &input) /* both left and right */
 
 std::wstring StringUtil::TrimLeft(const wchar_t *input)
 {
-    std::wstring output = input;
+    std::wstring output = (input != nullptr) ? std::wstring(input) : std::wstring();
     TrimLeft(output);
     return output;
 }
 
 std::wstring StringUtil::TrimRight(const wchar_t *input)
 {
-    std::wstring output = input;
+    std::wstring output = (input != nullptr) ? std::wstring(input) : std::wstring();
     TrimRight(output);
     return output;
 }
 
 std::wstring StringUtil::Trim(const wchar_t *input) /* both left and right */
 {
-    std::wstring output = input;
+    std::wstring output = (input != nullptr) ? std::wstring(input) : std::wstring();
     Trim(output);
     return output;
 }
@@ -536,6 +827,72 @@ std::wstring& StringUtil::Trim(std::wstring&input) /* both left and right */
 {
     StringTrimT<wchar_t>(input);
     return input;
+}
+
+bool StringUtil::IsNullOrEmpty(const wchar_t* str)
+{
+    return (str == nullptr) || (*str == 0);
+}
+
+bool StringUtil::IsNullOrEmpty(const char* str)
+{
+    return (str == nullptr) || (*str == 0);
+}
+
+bool StringUtil::IsNullOrEmpty(const std::wstring& str)
+{
+    return str.empty();
+}
+
+bool StringUtil::IsNullOrEmpty(const std::string& str)
+{
+    return str.empty();
+}
+
+bool StringUtil::IsNullOrWhiteSpace(const wchar_t* str)
+{
+    if (str == nullptr) {
+        return true;
+    }
+    for (; *str != 0; ++str) {
+        if (!StringIsSpaceChar(*str)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool StringUtil::IsNullOrWhiteSpace(const char* str)
+{
+    if (str == nullptr) {
+        return true;
+    }
+    for (; *str != 0; ++str) {
+        if (!StringIsSpaceChar(*str)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool StringUtil::IsNullOrWhiteSpace(const std::wstring& str)
+{
+    for (wchar_t ch : str) {
+        if (!StringIsSpaceChar(ch)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool StringUtil::IsNullOrWhiteSpace(const std::string& str)
+{
+    for (char ch : str) {
+        if (!StringIsSpaceChar(ch)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 
@@ -590,10 +947,45 @@ std::list<std::wstring> StringUtil::Split(const std::wstring& input, const std::
     return output;
 }
 
+std::vector<std::string> StringUtil::SplitByString(const std::string& input, const std::string& delimiter, bool keepEmpty)
+{
+    return StringSplitByStringT<char>(input, delimiter, keepEmpty);
+}
+
+std::vector<std::wstring> StringUtil::SplitByString(const std::wstring& input, const std::wstring& delimiter, bool keepEmpty)
+{
+    return StringSplitByStringT<wchar_t>(input, delimiter, keepEmpty);
+}
+
+std::vector<std::string> StringUtil::SplitLines(const std::string& input)
+{
+    return StringSplitLinesT<char>(input);
+}
+
+std::vector<std::wstring> StringUtil::SplitLines(const std::wstring& input)
+{
+    return StringSplitLinesT<wchar_t>(input);
+}
+
+std::string StringUtil::Join(const std::vector<std::string>& parts, const std::string& separator)
+{
+    return StringJoinT<char>(parts, separator);
+}
+
+std::wstring StringUtil::Join(const std::vector<std::wstring>& parts, const std::wstring& separator)
+{
+    return StringJoinT<wchar_t>(parts, separator);
+}
+
 static bool IsEqualNoCasePrivate(const wchar_t* lhs, const wchar_t* rhs)
 {
-    if ((lhs == nullptr) || (rhs == nullptr)) {
-        return true;
+    //空指针统一按空字符串处理，保证各重载的空值语义一致
+    static const wchar_t kEmptyStr[] = L"";
+    if (lhs == nullptr) {
+        lhs = kEmptyStr;
+    }
+    if (rhs == nullptr) {
+        rhs = kEmptyStr;
     }
     if (lhs == rhs) {
         return true;
@@ -615,8 +1007,13 @@ static bool IsEqualNoCasePrivate(const wchar_t* lhs, const wchar_t* rhs)
 
 static bool IsEqualNoCasePrivate(const char* lhs, const char* rhs)
 {
-    if ((lhs == nullptr) || (rhs == nullptr)) {
-        return true;
+    //空指针统一按空字符串处理，保证各重载的空值语义一致
+    static const char kEmptyStr[] = "";
+    if (lhs == nullptr) {
+        lhs = kEmptyStr;
+    }
+    if (rhs == nullptr) {
+        rhs = kEmptyStr;
     }
     if (lhs == rhs) {
         return true;
@@ -646,25 +1043,16 @@ bool StringUtil::IsEqualNoCase(const std::wstring& lhs, const std::wstring& rhs)
 
 bool StringUtil::IsEqualNoCase(const wchar_t* lhs, const std::wstring& rhs)
 {
-    if (lhs == nullptr) {
-        return false;
-    }
     return IsEqualNoCasePrivate(lhs, rhs.c_str());
 }
 
 bool StringUtil::IsEqualNoCase(const char* lhs, const std::string& rhs)
 {
-    if (lhs == nullptr) {
-        return false;
-    }
     return IsEqualNoCasePrivate(lhs, rhs.c_str());
 }
 
 bool StringUtil::IsEqualNoCase(const std::wstring& lhs, const wchar_t* rhs)
 {
-    if (rhs == nullptr) {
-        return false;
-    }
     return IsEqualNoCasePrivate(lhs.c_str(), rhs);
 }
 
@@ -678,34 +1066,67 @@ bool StringUtil::IsEqualNoCase(const std::string& lhs, const std::string& rhs)
 
 bool StringUtil::IsEqualNoCase(const std::string& lhs, const char* rhs)
 {
-    if (rhs == nullptr) {
-        return false;
-    }
     return IsEqualNoCasePrivate(lhs.c_str(), rhs);
 }
 
 bool StringUtil::IsEqualNoCase(const wchar_t* lhs, const wchar_t* rhs)
 {
-    //两个指针都为nullptr时视为相等；只有一个为nullptr时，与其它重载保持一致：返回不相等
-    if (lhs == nullptr) {
-        return rhs == nullptr;
-    }
-    else if (rhs == nullptr) {
-        return false;
-    }
     return IsEqualNoCasePrivate(lhs, rhs);
 }
 
 bool StringUtil::IsEqualNoCase(const char* lhs, const char* rhs)
 {
-    //两个指针都为nullptr时视为相等；只有一个为nullptr时，与其它重载保持一致：返回不相等
-    if (lhs == nullptr) {
-        return rhs == nullptr;
-    }
-    else if (rhs == nullptr) {
-        return false;
-    }
     return IsEqualNoCasePrivate(lhs, rhs);
+}
+
+bool StringUtil::StartsWith(const std::wstring& str, const std::wstring& prefix)
+{
+    return StringStartsWithT<wchar_t>(str, prefix);
+}
+
+bool StringUtil::StartsWith(const std::string& str, const std::string& prefix)
+{
+    return StringStartsWithT<char>(str, prefix);
+}
+
+bool StringUtil::StartsWithNoCase(const std::wstring& str, const std::wstring& prefix)
+{
+    return StringStartsWithNoCaseT<wchar_t>(str, prefix);
+}
+
+bool StringUtil::StartsWithNoCase(const std::string& str, const std::string& prefix)
+{
+    return StringStartsWithNoCaseT<char>(str, prefix);
+}
+
+bool StringUtil::EndsWith(const std::wstring& str, const std::wstring& suffix)
+{
+    return StringEndsWithT<wchar_t>(str, suffix);
+}
+
+bool StringUtil::EndsWith(const std::string& str, const std::string& suffix)
+{
+    return StringEndsWithT<char>(str, suffix);
+}
+
+bool StringUtil::EndsWithNoCase(const std::wstring& str, const std::wstring& suffix)
+{
+    return StringEndsWithNoCaseT<wchar_t>(str, suffix);
+}
+
+bool StringUtil::EndsWithNoCase(const std::string& str, const std::string& suffix)
+{
+    return StringEndsWithNoCaseT<char>(str, suffix);
+}
+
+bool StringUtil::ContainsNoCase(const std::wstring& str, const std::wstring& sub)
+{
+    return StringContainsNoCaseT<wchar_t>(str, sub);
+}
+
+bool StringUtil::ContainsNoCase(const std::string& str, const std::string& sub)
+{
+    return StringContainsNoCaseT<char>(str, sub);
 }
 
 int32_t StringUtil::StringCompare(const std::wstring& lhs, const std::wstring& rhs)
@@ -1065,6 +1486,88 @@ double StringUtil::StringToDouble(const std::string::value_type* str)
     }
 }
 
+int32_t StringUtil::StringToInt32(const std::wstring& str, bool* pbOk)
+{
+    int64_t value = 0;
+    bool ok = StringParseInt64T(str, value);
+    if (ok && ((value < INT32_MIN) || (value > INT32_MAX))) {
+        ok = false;
+    }
+    if (pbOk != nullptr) {
+        *pbOk = ok;
+    }
+    return ok ? static_cast<int32_t>(value) : 0;
+}
+
+int32_t StringUtil::StringToInt32(const std::string& str, bool* pbOk)
+{
+    int64_t value = 0;
+    bool ok = StringParseInt64T(str, value);
+    if (ok && ((value < INT32_MIN) || (value > INT32_MAX))) {
+        ok = false;
+    }
+    if (pbOk != nullptr) {
+        *pbOk = ok;
+    }
+    return ok ? static_cast<int32_t>(value) : 0;
+}
+
+int64_t StringUtil::StringToInt64(const std::wstring& str, bool* pbOk)
+{
+    int64_t value = 0;
+    const bool ok = StringParseInt64T(str, value);
+    if (pbOk != nullptr) {
+        *pbOk = ok;
+    }
+    return ok ? value : 0;
+}
+
+int64_t StringUtil::StringToInt64(const std::string& str, bool* pbOk)
+{
+    int64_t value = 0;
+    const bool ok = StringParseInt64T(str, value);
+    if (pbOk != nullptr) {
+        *pbOk = ok;
+    }
+    return ok ? value : 0;
+}
+
+double StringUtil::StringToDouble(const wchar_t* str, wchar_t** pEndPtr)
+{
+    if (str == nullptr) {
+        return 0;
+    }
+    return ::wcstod(str, pEndPtr);
+}
+
+double StringUtil::StringToDouble(const char* str, char** pEndPtr)
+{
+    if (str == nullptr) {
+        return 0;
+    }
+    return ::strtod(str, pEndPtr);
+}
+
+double StringUtil::StringToDouble(const std::wstring& str, bool* pbOk)
+{
+    double value = 0;
+    const bool ok = StringParseDoubleT(str, value);
+    if (pbOk != nullptr) {
+        *pbOk = ok;
+    }
+    return ok ? value : 0;
+}
+
+double StringUtil::StringToDouble(const std::string& str, bool* pbOk)
+{
+    double value = 0;
+    const bool ok = StringParseDoubleT(str, value);
+    if (pbOk != nullptr) {
+        *pbOk = ok;
+    }
+    return ok ? value : 0;
+}
+
 float StringUtil::StringToFloat(const wchar_t* str, wchar_t** pEndPtr)
 {
     if (str == nullptr) {
@@ -1175,7 +1678,53 @@ size_t StringUtil::StringLen(const char* str)
 
 bool StringUtil::IsValueTrue(const DString& value)
 {
-    return (value == _T("true")) || (value == _T("1"));
+    return StringToBool(value, false);
+}
+
+bool StringUtil::StringToBool(const std::wstring& value, bool defaultValue)
+{
+    size_t begin = 0;
+    size_t end = value.size();
+    while ((begin < end) && StringIsSpaceChar(value[begin])) {
+        ++begin;
+    }
+    while ((end > begin) && StringIsSpaceChar(value[end - 1])) {
+        --end;
+    }
+    if (begin >= end) {
+        return defaultValue;
+    }
+    const std::wstring token = MakeLowerString(value.substr(begin, end - begin));
+    if ((token == L"true") || (token == L"1") || (token == L"yes") || (token == L"on")) {
+        return true;
+    }
+    if ((token == L"false") || (token == L"0") || (token == L"no") || (token == L"off")) {
+        return false;
+    }
+    return defaultValue;
+}
+
+bool StringUtil::StringToBool(const std::string& value, bool defaultValue)
+{
+    size_t begin = 0;
+    size_t end = value.size();
+    while ((begin < end) && StringIsSpaceChar(value[begin])) {
+        ++begin;
+    }
+    while ((end > begin) && StringIsSpaceChar(value[end - 1])) {
+        --end;
+    }
+    if (begin >= end) {
+        return defaultValue;
+    }
+    const std::string token = MakeLowerString(value.substr(begin, end - begin));
+    if ((token == "true") || (token == "1") || (token == "yes") || (token == "on")) {
+        return true;
+    }
+    if ((token == "false") || (token == "0") || (token == "no") || (token == "off")) {
+        return false;
+    }
+    return defaultValue;
 }
 
 } // namespace ui

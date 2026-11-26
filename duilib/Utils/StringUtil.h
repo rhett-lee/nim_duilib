@@ -4,6 +4,7 @@
 #include "duilib/duilib_defs.h"
 #include <string>
 #include <list>
+#include <vector>
 
 namespace ui
 {
@@ -28,6 +29,24 @@ public:
     */
     static size_t ReplaceAll(const std::wstring& find, const std::wstring& replace, std::wstring& output);
     static size_t ReplaceAll(const std::string& find, const std::string& replace, std::string& output);
+
+    /** 返回替换后的新字符串（不修改原字符串）
+    * @param [in] input 原始字符串
+    * @param [in] find 要被替换的字符串，为空时原样返回 input
+    * @param [in] replace 替换后的新字符串
+    * @return 返回替换后的新字符串
+    */
+    static std::wstring MakeReplaceAll(const std::wstring& input, const std::wstring& find, const std::wstring& replace);
+    static std::string MakeReplaceAll(const std::string& input, const std::string& find, const std::string& replace);
+
+    /** 返回替换后的新字符串，替换时忽略大小写（不修改原字符串）
+    * @param [in] input 原始字符串
+    * @param [in] find 要被替换的字符串，为空时原样返回 input
+    * @param [in] replace 替换后的新字符串
+    * @return 返回替换后的新字符串
+    */
+    static std::wstring MakeReplaceAllNoCase(const std::wstring& input, const std::wstring& find, const std::wstring& replace);
+    static std::string MakeReplaceAllNoCase(const std::string& input, const std::string& find, const std::string& replace);
 
     /** 将字符串中的英文字母转换为小写（原地修改）
     * @param [in,out] str 要转换的字符串（std::string 版本处理窄字符，std::wstring 版本处理宽字符）
@@ -116,6 +135,24 @@ public:
     */
     static std::wstring& Trim(std::wstring& input); /* both left and right */
 
+    /** 判断字符串是否为空（指针为 nullptr 或指向空字符串时视为空）
+    * @param [in] str 要判断的字符串
+    * @return 返回 true 表示为空，否则返回 false
+    */
+    static bool IsNullOrEmpty(const wchar_t* str);
+    static bool IsNullOrEmpty(const char* str);
+    static bool IsNullOrEmpty(const std::wstring& str);
+    static bool IsNullOrEmpty(const std::string& str);
+
+    /** 判断字符串是否为空或全部由空白字符组成（空白字符的判断规则与 Trim 一致：空格及 ASCII 控制字符）
+    * @param [in] str 要判断的字符串
+    * @return 返回 true 表示为空或全为空白字符，否则返回 false
+    */
+    static bool IsNullOrWhiteSpace(const wchar_t* str);
+    static bool IsNullOrWhiteSpace(const char* str);
+    static bool IsNullOrWhiteSpace(const std::wstring& str);
+    static bool IsNullOrWhiteSpace(const std::string& str);
+
     /** 按分隔符集合拆分字符串，delimitor 中的任意一个字符都作为分隔符
     * @param [in] input 要拆分的字符串
     * @param [in] delimitor 分隔符集合，其中每个字符都视为一个分隔符
@@ -123,6 +160,30 @@ public:
     */
     static std::list<std::string> Split(const std::string& input, const std::string& delimitor);
     static std::list<std::wstring> Split(const std::wstring& input, const std::wstring& delimitor);
+
+    /** 按分隔字符串拆分字符串（与按分隔符字符集拆分的 Split 不同，此处 delimiter 作为整体参与匹配，支持多字符分隔）
+    * @param [in] input 要拆分的字符串
+    * @param [in] delimiter 分隔字符串，为空时返回只包含 input 的列表
+    * @param [in] keepEmpty 是否保留空子串：为 true 时保留连续分隔符产生的空项；为 false 时丢弃空项
+    * @return 返回拆分后的子串列表
+    */
+    static std::vector<std::string> SplitByString(const std::string& input, const std::string& delimiter, bool keepEmpty);
+    static std::vector<std::wstring> SplitByString(const std::wstring& input, const std::wstring& delimiter, bool keepEmpty);
+
+    /** 按行拆分字符串（支持 "\r\n"、"\n"、"\r" 三种换行符）
+    * @param [in] input 要拆分的字符串
+    * @return 返回拆分后的行列表：不保留末尾换行产生的空行，中间的空行会保留
+    */
+    static std::vector<std::string> SplitLines(const std::string& input);
+    static std::vector<std::wstring> SplitLines(const std::wstring& input);
+
+    /** 将多个字符串拼接为一个字符串
+    * @param [in] parts 要拼接的字符串列表
+    * @param [in] separator 各字符串之间的分隔字符串，可为空
+    * @return 返回拼接后的字符串
+    */
+    static std::string Join(const std::vector<std::string>& parts, const std::string& separator);
+    static std::wstring Join(const std::vector<std::wstring>& parts, const std::wstring& separator);
 
     /** 比较两个字符串是否相等，比较时忽略大小写
     * @param [in] lhs 左值字符串
@@ -138,6 +199,46 @@ public:
     static bool IsEqualNoCase(const std::string& lhs, const char* rhs);
     static bool IsEqualNoCase(const wchar_t* lhs, const wchar_t* rhs);
     static bool IsEqualNoCase(const char* lhs, const char* rhs);
+
+    /** 判断字符串是否以指定的前缀开头（区分大小写）
+    * @param [in] str 要判断的字符串
+    * @param [in] prefix 前缀字符串，为空时返回 true
+    * @return 返回 true 表示以该前缀开头，否则返回 false
+    */
+    static bool StartsWith(const std::wstring& str, const std::wstring& prefix);
+    static bool StartsWith(const std::string& str, const std::string& prefix);
+
+    /** 判断字符串是否以指定的前缀开头（忽略大小写）
+    * @param [in] str 要判断的字符串
+    * @param [in] prefix 前缀字符串，为空时返回 true
+    * @return 返回 true 表示以该前缀开头，否则返回 false
+    */
+    static bool StartsWithNoCase(const std::wstring& str, const std::wstring& prefix);
+    static bool StartsWithNoCase(const std::string& str, const std::string& prefix);
+
+    /** 判断字符串是否以指定的后缀结尾（区分大小写）
+    * @param [in] str 要判断的字符串
+    * @param [in] suffix 后缀字符串，为空时返回 true
+    * @return 返回 true 表示以该后缀结尾，否则返回 false
+    */
+    static bool EndsWith(const std::wstring& str, const std::wstring& suffix);
+    static bool EndsWith(const std::string& str, const std::string& suffix);
+
+    /** 判断字符串是否以指定的后缀结尾（忽略大小写）
+    * @param [in] str 要判断的字符串
+    * @param [in] suffix 后缀字符串，为空时返回 true
+    * @return 返回 true 表示以该后缀结尾，否则返回 false
+    */
+    static bool EndsWithNoCase(const std::wstring& str, const std::wstring& suffix);
+    static bool EndsWithNoCase(const std::string& str, const std::string& suffix);
+
+    /** 判断字符串是否包含指定的子串（忽略大小写）
+    * @param [in] str 要判断的字符串
+    * @param [in] sub 要查找的子串，为空时返回 true
+    * @return 返回 true 表示包含该子串，否则返回 false
+    */
+    static bool ContainsNoCase(const std::wstring& str, const std::wstring& sub);
+    static bool ContainsNoCase(const std::string& str, const std::string& sub);
 
     /** 比较字符串，区分大小写
     @param [in] lhs 左值字符串
@@ -230,6 +331,24 @@ public:
     static int64_t StringToInt64(const std::string& str);
     static int64_t StringToInt64(const std::string::value_type* str);
 
+    /** 将字符串转换成32位整型（十进制），并返回解析是否成功
+    * @param [in] str 要转换的字符串（允许首尾空白）
+    * @param [out] pbOk 解析结果：成功为 true，失败为 false；可为 nullptr（不需要时）
+    * @return 返回转换后的32位整数；解析失败或数值越界时返回0
+    * 说明：仅当整个字符串（去掉首尾空白后）都是合法的十进制整数时，才算解析成功
+    */
+    static int32_t StringToInt32(const std::wstring& str, bool* pbOk);
+    static int32_t StringToInt32(const std::string& str, bool* pbOk);
+
+    /** 将字符串转换成64位整型（十进制），并返回解析是否成功
+    * @param [in] str 要转换的字符串（允许首尾空白）
+    * @param [out] pbOk 解析结果：成功为 true，失败为 false；可为 nullptr（不需要时）
+    * @return 返回转换后的64位整数；解析失败或数值越界时返回0
+    * 说明：仅当整个字符串（去掉首尾空白后）都是合法的十进制整数时，才算解析成功
+    */
+    static int64_t StringToInt64(const std::wstring& str, bool* pbOk);
+    static int64_t StringToInt64(const std::string& str, bool* pbOk);
+
     /** 将字符串转换成浮点型（十进制，double）
     * @param [in] str 要转换的字符串（std::wstring/std::string 以及对应的字符指针）
     * @return 返回转换后的双精度浮点数，无法转换时返回0
@@ -238,6 +357,23 @@ public:
     static double StringToDouble(const std::wstring::value_type* str);
     static double StringToDouble(const std::string& str);
     static double StringToDouble(const std::string::value_type* str);
+
+    /** 将字符串转换成浮点型（十进制，double，带解析结束位置）
+    * @param [in] str 要转换的字符串
+    * @param [out] pEndPtr 返回解析结束位置的字符指针，可为 nullptr（不需要时）
+    * @return 返回转换后的双精度浮点数，无法转换时返回0
+    */
+    static double StringToDouble(const wchar_t* str, wchar_t** pEndPtr);
+    static double StringToDouble(const char* str, char** pEndPtr);
+
+    /** 将字符串转换成浮点型（十进制，double），并返回解析是否成功
+    * @param [in] str 要转换的字符串（允许首尾空白）
+    * @param [out] pbOk 解析结果：成功为 true，失败为 false；可为 nullptr（不需要时）
+    * @return 返回转换后的双精度浮点数；解析失败或数值越界时返回0
+    * 说明：仅当整个字符串（去掉首尾空白后）都是合法的浮点数时，才算解析成功
+    */
+    static double StringToDouble(const std::wstring& str, bool* pbOk);
+    static double StringToDouble(const std::string& str, bool* pbOk);
 
     /** 将字符串转换成浮点型（十进制，float）
     * @param [in] str 要转换的字符串
@@ -307,10 +443,20 @@ public:
     static size_t StringLen(const char* str);
 
     /** 判断字符串表示的布尔值是否为真
-    * @param [in] value 要判断的字符串，取值为 "true" 或 "1" 时返回 true
-    * @return 返回 true 表示为真，否则返回 false
+    * @param [in] value 要判断的字符串（忽略首尾空白与大小写）
+    * @return 取值为 "true"、"1"、"yes"、"on" 时返回 true，否则返回 false
     */
     static bool IsValueTrue(const DString& value);
+
+    /** 将字符串转换为布尔值（忽略首尾空白与大小写）
+    * @param [in] value 要转换的字符串
+    * @param [in] defaultValue 无法识别时返回的默认值
+    * @return 取值为 "true"、"1"、"yes"、"on" 时返回 true；
+    *         取值为 "false"、"0"、"no"、"off" 时返回 false；
+    *         其他取值（含空字符串）返回 defaultValue
+    */
+    static bool StringToBool(const std::wstring& value, bool defaultValue = false);
+    static bool StringToBool(const std::string& value, bool defaultValue = false);
 };
 
 }

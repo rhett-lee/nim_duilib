@@ -262,10 +262,159 @@ void TestFormat()
 void TestIsValueTrue()
 {
     CHECK(ui::StringUtil::IsValueTrue(DString(_T("true"))));
+    CHECK(ui::StringUtil::IsValueTrue(DString(_T("TRUE"))));
     CHECK(ui::StringUtil::IsValueTrue(DString(_T("1"))));
+    CHECK(ui::StringUtil::IsValueTrue(DString(_T("yes"))));
+    CHECK(ui::StringUtil::IsValueTrue(DString(_T("on"))));
+    CHECK(ui::StringUtil::IsValueTrue(DString(_T(" 1 "))));
     CHECK(!ui::StringUtil::IsValueTrue(DString(_T("false"))));
-    CHECK(!ui::StringUtil::IsValueTrue(DString(_T("TRUE"))));
+    CHECK(!ui::StringUtil::IsValueTrue(DString(_T("off"))));
     CHECK(!ui::StringUtil::IsValueTrue(DString()));
+}
+
+void TestP0Fixes()
+{
+    // Trim 系列的空指针安全性
+    CHECK(ui::StringUtil::Trim(static_cast<const char*>(nullptr)).empty());
+    CHECK(ui::StringUtil::TrimLeft(static_cast<const char*>(nullptr)).empty());
+    CHECK(ui::StringUtil::TrimRight(static_cast<const char*>(nullptr)).empty());
+    CHECK(ui::StringUtil::Trim(static_cast<const wchar_t*>(nullptr)).empty());
+
+    // IsEqualNoCase：nullptr 等价于空字符串
+    CHECK(ui::StringUtil::IsEqualNoCase(static_cast<const wchar_t*>(nullptr), std::wstring()));
+    CHECK(ui::StringUtil::IsEqualNoCase(std::wstring(), static_cast<const wchar_t*>(nullptr)));
+    CHECK(ui::StringUtil::IsEqualNoCase(static_cast<const char*>(nullptr), std::string()));
+    CHECK(ui::StringUtil::IsEqualNoCase(std::string(), static_cast<const char*>(nullptr)));
+    CHECK(!ui::StringUtil::IsEqualNoCase(static_cast<const wchar_t*>(nullptr), std::wstring(L"a")));
+
+    // 数值解析的成功标志：仅接受完整合法的数值
+    bool ok = false;
+    const int32_t int32Value = ui::StringUtil::StringToInt32(std::wstring(L" 42 "), &ok);
+    CHECK_INT(int32Value, 42);
+    CHECK(ok);
+
+    ok = true;
+    const int32_t badInt32 = ui::StringUtil::StringToInt32(std::string("42x"), &ok);
+    CHECK_INT(badInt32, 0);
+    CHECK(!ok);
+
+    ok = true;
+    ui::StringUtil::StringToInt32(std::wstring(), &ok);
+    CHECK(!ok);
+
+    ok = false;
+    const int64_t int64Value = ui::StringUtil::StringToInt64(std::string("9223372036854775807"), &ok);
+    CHECK_INT(int64Value, INT64_MAX);
+    CHECK(ok);
+
+    ok = true;
+    ui::StringUtil::StringToInt64(std::string("9223372036854775808"), &ok);
+    CHECK(!ok);
+
+    ok = false;
+    const double doubleValue = ui::StringUtil::StringToDouble(std::wstring(L" 3.5 "), &ok);
+    CHECK(ok);
+    CHECK(doubleValue > 3.49 && doubleValue < 3.51);
+
+    ok = true;
+    ui::StringUtil::StringToDouble(std::string("3.5x"), &ok);
+    CHECK(!ok);
+
+    // StringToDouble 的 pEndPtr 版本
+    char* pEnd = nullptr;
+    const double parsedDouble = ui::StringUtil::StringToDouble("1.25abc", &pEnd);
+    CHECK(parsedDouble > 1.24 && parsedDouble < 1.26);
+    CHECK((pEnd != nullptr) && (*pEnd == 'a'));
+
+    // StringToBool
+    CHECK(ui::StringUtil::StringToBool(std::wstring(L" Yes ")));
+    CHECK(!ui::StringUtil::StringToBool(std::string("OFF")));
+    CHECK(ui::StringUtil::StringToBool(std::string("unknown"), true));
+    CHECK(ui::StringUtil::StringToBool(std::wstring(), true));
+    CHECK(!ui::StringUtil::StringToBool(std::wstring(), false));
+}
+
+void TestStartsWithEndsWith()
+{
+    CHECK(ui::StringUtil::StartsWith(std::wstring(L"abcdef"), std::wstring(L"abc")));
+    CHECK(!ui::StringUtil::StartsWith(std::wstring(L"abcdef"), std::wstring(L"abd")));
+    CHECK(ui::StringUtil::StartsWith(std::wstring(L"abc"), std::wstring()));
+    CHECK(ui::StringUtil::StartsWithNoCase(std::string("ABCdef"), std::string("abc")));
+    CHECK(!ui::StringUtil::StartsWithNoCase(std::string("ABC"), std::string("abcd")));
+
+    CHECK(ui::StringUtil::EndsWith(std::wstring(L"abcdef"), std::wstring(L"def")));
+    CHECK(!ui::StringUtil::EndsWith(std::wstring(L"abcdef"), std::wstring(L"de")));
+    CHECK(ui::StringUtil::EndsWithNoCase(std::string("abcDEF"), std::string("def")));
+    CHECK(ui::StringUtil::EndsWith(std::wstring(L"abc"), std::wstring()));
+
+    CHECK(ui::StringUtil::ContainsNoCase(std::string("Hello World"), std::string("WORLD")));
+    CHECK(!ui::StringUtil::ContainsNoCase(std::wstring(L"Hello"), std::wstring(L"xyz")));
+    CHECK(ui::StringUtil::ContainsNoCase(std::wstring(L"abc"), std::wstring()));
+}
+
+void TestEmptyAndWhiteSpace()
+{
+    CHECK(ui::StringUtil::IsNullOrEmpty(static_cast<const char*>(nullptr)));
+    CHECK(ui::StringUtil::IsNullOrEmpty(std::wstring()));
+    CHECK(!ui::StringUtil::IsNullOrEmpty(std::string(" ")));
+    CHECK(ui::StringUtil::IsNullOrWhiteSpace(std::string(" \t\r\n")));
+    CHECK(ui::StringUtil::IsNullOrWhiteSpace(static_cast<const wchar_t*>(nullptr)));
+    CHECK(!ui::StringUtil::IsNullOrWhiteSpace(std::wstring(L" x ")));
+}
+
+void TestSplitJoinAndLines()
+{
+    // SplitByString：多字符分隔符与空项控制
+    std::vector<std::string> parts = ui::StringUtil::SplitByString(std::string("a||b||||c"), std::string("||"), false);
+    CHECK_INT((int)parts.size(), 3);
+    if (parts.size() == 3) {
+        CHECK(parts[0] == "a");
+        CHECK(parts[1] == "b");
+        CHECK(parts[2] == "c");
+    }
+
+    parts = ui::StringUtil::SplitByString(std::string("a,b,,"), std::string(","), true);
+    CHECK_INT((int)parts.size(), 4);
+    if (parts.size() == 4) {
+        CHECK(parts[3].empty());
+    }
+
+    parts = ui::StringUtil::SplitByString(std::string("abc"), std::string(), false);
+    CHECK_INT((int)parts.size(), 1);
+
+    // Join
+    std::vector<std::wstring> wideParts;
+    wideParts.push_back(L"a");
+    wideParts.push_back(L"b");
+    wideParts.push_back(L"c");
+    CHECK_WSTR(ui::StringUtil::Join(wideParts, std::wstring(L"-")), L"a-b-c");
+    CHECK(ui::StringUtil::Join(std::vector<std::string>(), std::string(",")).empty());
+
+    // SplitLines：支持 \r\n、\n、\r，且不保留末尾换行产生的空行
+    std::vector<std::wstring> lines = ui::StringUtil::SplitLines(std::wstring(L"a\r\nb\nc\rd\n"));
+    CHECK_INT((int)lines.size(), 4);
+    if (lines.size() == 4) {
+        CHECK_WSTR(lines[0], L"a");
+        CHECK_WSTR(lines[1], L"b");
+        CHECK_WSTR(lines[2], L"c");
+        CHECK_WSTR(lines[3], L"d");
+    }
+
+    lines = ui::StringUtil::SplitLines(std::wstring(L"a\n\nb"));
+    CHECK_INT((int)lines.size(), 3);
+    if (lines.size() == 3) {
+        CHECK(lines[1].empty());
+    }
+    CHECK(ui::StringUtil::SplitLines(std::wstring()).empty());
+}
+
+void TestMakeReplaceAll()
+{
+    CHECK_WSTR(ui::StringUtil::MakeReplaceAll(std::wstring(L"a-b-a"), std::wstring(L"a"), std::wstring(L"xy")), L"xy-b-xy");
+    CHECK(ui::StringUtil::MakeReplaceAll(std::string("abc"), std::string("z"), std::string("y")) == "abc");
+    CHECK(ui::StringUtil::MakeReplaceAll(std::string("abc"), std::string(), std::string("y")) == "abc");
+    CHECK_WSTR(ui::StringUtil::MakeReplaceAllNoCase(std::wstring(L"AbcABC"), std::wstring(L"aBc"), std::wstring(L"x")), L"xx");
+    CHECK(ui::StringUtil::MakeReplaceAllNoCase(std::string("aAa"), std::string("A"), std::string("b")) == "bbb");
 }
 
 } // namespace
@@ -281,6 +430,11 @@ int main()
     TestCopy();
     TestFormat();
     TestIsValueTrue();
+    TestP0Fixes();
+    TestStartsWithEndsWith();
+    TestEmptyAndWhiteSpace();
+    TestSplitJoinAndLines();
+    TestMakeReplaceAll();
 
     if (g_failedCount == 0) {
         std::cout << "All tests passed (" << g_checkCount << " checks)." << std::endl;
