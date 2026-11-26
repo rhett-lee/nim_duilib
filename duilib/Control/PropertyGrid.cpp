@@ -4,6 +4,7 @@
 #include "duilib/Control/ColorPicker.h"
 #include "duilib/Control/ColorPickerRegular.h"
 #include "duilib/Core/WindowCreateParam.h"
+#include "duilib/Utils/StringConvert.h"
 #include "duilib/third_party/xml/pugixml.hpp"
 #include <algorithm>
 
@@ -1388,6 +1389,35 @@ void PropertyGrid::RemoveAllGroups()
 
 namespace
 {
+/** 密码模式显示属性值时的掩码字符：●（U+25CF）
+*   以该字符的UTF-8编码为唯一来源，通过StringConvert转换为当前构建模式下DString的编码：
+*   - Windows Unicode版本：DString为UTF-16/UTF-32，转换为宽字符；
+*   - Windows MBCS版本：DString为UTF-8编码（与系统代码页无关），保持UTF-8；
+*   - Linux/macOS/FreeBSD：DString为UTF-8编码，保持UTF-8。
+*/
+const DString& GetPasswordMaskChar()
+{
+    //"●"（U+25CF）的UTF-8字节序列：E2 97 8F
+    static const DString kPasswordMaskChar = StringConvert::UTF8ToT("\xE2\x97\x8F");
+    return kPasswordMaskChar;
+}
+
+/** 生成密码模式的掩码文本：原文本的每个字符显示为一个掩码字符
+*/
+DString MakePasswordMaskText(const DString& text)
+{
+    //先统一转换为宽字符，再按字符个数生成掩码，避免各构建模式下按字节数统计导致数量不正确：
+    //Windows Unicode版本直接使用UTF-16/UTF-32；Windows MBCS版本与其他平台由StringConvert从UTF-8解码
+    const DStringW textW = StringConvert::TToWString(text);
+    const DString& maskChar = GetPasswordMaskChar();
+    DString maskText;
+    maskText.reserve(textW.size() * maskChar.size());
+    for (size_t nIndex = 0; nIndex < textW.size(); ++nIndex) {
+        maskText += maskChar;
+    }
+    return maskText;
+}
+
 /** 构造属性的参数（普通文本形式）
 */
 PropertyGridParam MakePropertyParam(const DString& propertyName,
@@ -2945,9 +2975,7 @@ void PropertyGridTextProperty::OnPropertyValueChanged()
         }
         DString displayText = ConvertToDisplayText(propValue);
         if (m_bPasswordMode && !displayText.empty()) {
-            DString showText;
-            showText.resize(displayText.size(), _T('\u25CF'));
-            SetPropertyText(showText, false);
+            SetPropertyText(MakePasswordMaskText(displayText), false);
         }
         else {
             SetPropertyText(displayText, false);
@@ -3005,9 +3033,7 @@ Control* PropertyGridTextProperty::ShowEditControl(bool bShow, bool bCancel)
         DString displayText = ConvertToDisplayText(newText);
         bool bAccepted = true;
         if (IsPasswordMode()) {
-            DString showText;
-            showText.resize(displayText.size(), _T('\u25CF'));
-            bAccepted = SetPropertyText(showText, bChanged);
+            bAccepted = SetPropertyText(MakePasswordMaskText(displayText), bChanged);
         }
         else {
             bAccepted = SetPropertyText(displayText, bChanged);
@@ -3044,9 +3070,7 @@ void PropertyGridTextProperty::SetPasswordMode(bool bPasswordMode)
     bool bChanged = (text != GetPropertyValue()); //相对原值，是否有修改
     DString displayText = ConvertToDisplayText(text);
     if (bPasswordMode) {
-        DString showText;
-        showText.resize(displayText.size(), _T('\u25CF'));
-        SetPropertyText(showText, bChanged);
+        SetPropertyText(MakePasswordMaskText(displayText), bChanged);
     }
     else {
         SetPropertyText(displayText, bChanged);
@@ -3098,9 +3122,7 @@ bool PropertyGridTextProperty::SetNewTextValue(const DString& newText)
     DString displayText = ConvertToDisplayText(newText);
     bool bAccepted = true;
     if (IsPasswordMode()) {
-        DString showText;
-        showText.resize(displayText.size(), _T('\u25CF'));
-        bAccepted = SetPropertyText(showText, bChanged);
+        bAccepted = SetPropertyText(MakePasswordMaskText(displayText), bChanged);
     }
     else {
         bAccepted = SetPropertyText(displayText, bChanged);
