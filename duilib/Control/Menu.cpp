@@ -190,7 +190,7 @@ void Menu::ShowMenu(const DString& xml, const UiPoint& point, MenuPopupPosType p
     Menu::GetMenuObserver().AddReceiver(this);
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
-    createWndParam.m_dwExStyle = kWS_EX_TOPMOST | kWS_EX_LAYERED;
+    createWndParam.m_dwExStyle = kWS_EX_TOPMOST;
     if (m_pParentWindow == nullptr) {
         //父窗口为空时，设置ToolWindow属性，避免在状态栏出现
         createWndParam.m_dwExStyle |= kWS_EX_TOOLWINDOW;

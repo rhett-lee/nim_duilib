@@ -142,15 +142,16 @@ properties themselves:
 | Exit | 180ms | `EaseInCubic` | Fade out from alpha 255 to 0; `CloseWnd` is called when finished |
 | Reflow | 200ms | `EaseOutCubic` | After another toast closes, the remaining toasts slide along the Y axis to their new positions |
 
-The window itself is a layered window (`kWS_EX_LAYERED`); fade in/out is implemented with
-`SetLayeredWindowAlpha`. All animation callbacks are protected with `GetWeakFlag()`, so they
+The window itself is a layered window (derived internally from shadow/opacity settings;
+`kWS_EX_LAYERED` has been removed); fade in/out is implemented with `SetLayeredWindowAlpha`. All animation callbacks are protected with `GetWeakFlag()`, so they
 never touch members after the window has been destroyed. If a reflow is triggered while a
 toast is still playing its enter animation, that toast snaps directly to its target position
 to avoid the enter and move animations overriding each other.
 
 ### 9. Implementation Notes and Skin Structure
 
-The window style is `kWS_POPUP | kWS_EX_TOPMOST | kWS_EX_LAYERED | kWS_EX_NOACTIVATE`:
+The window style is `kWS_POPUP | kWS_EX_TOPMOST | kWS_EX_NOACTIVATE`, and the layered window is
+enabled before creation:
 topmost, layered, and **non-activating** (it never steals focus). When there is no parent
 window, `kWS_EX_TOOLWINDOW` is added as well, so the toast does not appear in the taskbar or
 the Alt+Tab list. The skin root node enables the window shadow (`shadow_attached="true"`).

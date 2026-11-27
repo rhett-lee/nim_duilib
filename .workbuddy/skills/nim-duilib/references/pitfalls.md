@@ -279,8 +279,8 @@ Enter/`IDOK` 对应 `kWindowCloseOK(1)`。
    在其中处理后再调基类（控件级 AttachMouseLeave 可同时保留，Resume 要幂等）。
 
 配套要点：非模态小窗口样式用
-`kWS_POPUP|kWS_EX_TOPMOST|kWS_EX_LAYERED|kWS_EX_NOACTIVATE`（不抢焦点），
-无父窗口时加 `kWS_EX_TOOLWINDOW`；倒计时不要用窗口定时器，用
+`kWS_POPUP|kWS_EX_TOPMOST|kWS_EX_NOACTIVATE`（不抢焦点），分层窗口由内部自动推导
+（`kWS_EX_LAYERED` 已删除，直接删除该标记位），无父窗口时加 `kWS_EX_TOOLWINDOW`；倒计时不要用窗口定时器，用
 `GlobalManager::Instance().Thread().PostDelayedTask(kThreadUI, ...)`
 + CancelTask，剩余时间用 steady_clock 时间戳计算；事件回调直接传裸 lambda，
 不要用 UiBind 包装（UiBind 只用于 Thread().PostXxxTask）；动画枚举写

@@ -105,7 +105,7 @@ namespace ui
 
         WindowCreateParam createWndParam;
         createWndParam.m_dwStyle = kWS_POPUP;
-        createWndParam.m_dwExStyle = kWS_EX_TOPMOST | kWS_EX_LAYERED | kWS_EX_NOACTIVATE;
+        createWndParam.m_dwExStyle = kWS_EX_TOPMOST | kWS_EX_NOACTIVATE;
         if (pParentWindow == nullptr) {
             //没有父窗口时作为工具窗口，避免出现在任务栏和 Alt+Tab 列表中
             createWndParam.m_dwExStyle |= kWS_EX_TOOLWINDOW;

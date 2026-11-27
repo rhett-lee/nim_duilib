@@ -147,7 +147,6 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point, ui::Control* pRelatedC
             AboutForm* about_form = new AboutForm();
             ui::WindowCreateParam createParam;
             createParam.m_dwStyle = ui::kWS_POPUP;
-            createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
             createParam.m_windowTitle = _T("AboutForm");
             createParam.m_bCenterWindow = true;
             about_form->CreateWnd(this, createParam);
@@ -157,6 +156,9 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point, ui::Control* pRelatedC
     }
 }
 ```
+
+> `kWS_EX_LAYERED` 已删除：示例中原来通过 `m_dwExStyle` 设置分层窗口的代码已删除，
+> 分层窗口由窗口内部根据 `layered_window`、阴影、透明度等配置自动推导。
 
 6. 便捷绑定右键菜单（一行代码）    
 除上述"手动创建 `Menu` + 坐标换算 + 绑定回调"的方式外，`Control` 提供了便捷接口 `AttachPopupMenu`：一行代码即可把右键菜单绑定到任意控件。右键点击控件时，会自动弹出指定菜单，并自动完成屏幕坐标换算；菜单项被激活（鼠标点击或键盘回车）后触发回调。

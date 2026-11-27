@@ -1224,7 +1224,7 @@ bool ControlDragableT<T>::DragOutMouseMove(const EventArgs& msg)
 
             WindowCreateParam createWndParam;
             createWndParam.m_dwStyle = kWS_POPUP;
-            createWndParam.m_dwExStyle = kWS_EX_LAYERED | kWS_EX_NOACTIVATE | kWS_EX_TRANSPARENT;
+            createWndParam.m_dwExStyle = kWS_EX_NOACTIVATE | kWS_EX_TRANSPARENT;
 
             //创建时就使用最终的位置和大小：macOS(Cocoa)显示窗口时会先按创建时的位置摆放一帧，
             //若创建位置与最终位置不一致，窗口会先出现在错误位置，然后再跳转到正确位置

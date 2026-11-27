@@ -343,7 +343,6 @@ void ControlForm::ShowChildForm(ui::WindowImplBase* pForm)
     }
     ui::WindowCreateParam createParam;
     createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("ControlsChildWindow");
     createParam.m_bCenterWindow = true;
     pForm->CreateWnd(this, createParam);
@@ -443,7 +442,6 @@ void ControlForm::ShowColorPicker(bool bDoModal)
 
     ui::WindowCreateParam createParam;
     createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_bCenterWindow = true;
     if (!bModalDlg) {
         pColorPicker->CreateWnd(this, createParam);

@@ -39,6 +39,12 @@
 
 namespace ui {
 
+namespace {
+/** WS_EX_LAYERED 的原始值：SDL构建下不使用该样式，仅用于从窗口创建参数中清除，避免误用
+*/
+constexpr uint32_t kExStyleLayered = 0x00080000L;
+}
+
 #if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
 /** 当前是否使用Wayland视频驱动
 */
@@ -1806,7 +1812,7 @@ void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& 
 
     //SDL构建不使用Windows的分层窗口属性(WS_EX_LAYERED)：
     //窗口透明由SDL_WINDOW_TRANSPARENT实现，这里清除外部传入的分层窗口标记，避免两种机制混用
-    m_createParam.m_dwExStyle &= ~kWS_EX_LAYERED;
+    m_createParam.m_dwExStyle &= ~kExStyleLayered;
 
     if (createAttributes.m_bInitSizeDefined) {
         if (createAttributes.m_szInitSize.cx > 0) {

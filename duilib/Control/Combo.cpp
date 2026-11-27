@@ -228,7 +228,6 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
     UiRect rcWnd = GetComboWndRect();
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
-    createWndParam.m_dwExStyle = kWS_EX_LAYERED;
 #if defined (DUILIB_BUILD_FOR_SDL) && !defined (DUILIB_BUILD_FOR_WIN)
     createWndParam.m_dwExStyle |= kWS_EX_NOACTIVATE;
 #endif

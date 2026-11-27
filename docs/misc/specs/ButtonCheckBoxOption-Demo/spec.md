@@ -266,7 +266,7 @@ void TestForm::ShowButtonCheckBoxWindow()
     ButtonCheckBoxForm* testForm = new ButtonCheckBoxForm();
     ui::WindowCreateParam createParam;
     createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    //kWS_EX_LAYERED 已删除：直接删除该标记位，分层窗口由内部自动推导
     createParam.m_windowTitle = _T("ButtonCheckBoxForm");
     createParam.m_bCenterWindow = true;
     testForm->CreateWnd(this, createParam);

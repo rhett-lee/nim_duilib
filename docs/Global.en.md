@@ -299,7 +299,7 @@ Notes:
 
 ## 8. Global Render Backend (render_backend_type)
 
-Setting the `render_backend_type` attribute on the `Global` root node of `global.xml` enables the "global render backend" switch: all windows (both existing and newly created ones) use that configuration, and the `render_backend_type`, `vsync`, `msaa` attributes in window XML files are ignored.
+Setting the `render_backend_type` attribute on the `Global` root node of `global.xml` enables the "global render backend" default configuration: **it is used only as the default for attributes that a window has not explicitly set**. Values explicitly set in window XML (including through `class` inheritance) take precedence over the global configuration; the global configuration applies only when the window leaves the attribute unset. The three attributes are resolved independently of each other.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -313,17 +313,18 @@ Attributes:
 
 | Attribute | Default | Type | Purpose |
 | :--- | :--- | :--- | :--- |
-| render_backend_type | | string | "CPU": CPU rendering; "GL"/"GPU": OpenGL rendering. Setting this attribute enables the global switch.<br>Support: only available on Windows when not built with SDL; other platforms/build modes (including Windows ARM64) automatically fall back to CPU rendering |
+| render_backend_type | | string | "CPU": CPU rendering; "GL"/"GPU": OpenGL rendering. Setting this attribute enables the global default configuration (effective only when a window does not set `render_backend_type`).<br>Support: only available on Windows when not built with SDL; other platforms/build modes (including Windows ARM64) automatically fall back to CPU rendering |
 | vsync | true | bool | Whether to enable vertical sync; only effective for GL rendering |
 | msaa | 0 | int | MSAA sample count; 0 disables MSAA; only effective for GL rendering |
 
 It can also be controlled at runtime through the API:
 
 ```cpp
-// Enable the global switch and apply it to all existing windows immediately
+// Enable the global default configuration: used only when a window does not explicitly set the attribute
+// bApplyToAllWindows=true: also apply it immediately to all existing windows (an imperative override)
 GlobalManager::Instance().SetGlobalRenderBackendType(RenderBackendType::kNativeGL_BackendType, 4, false, true, true);
 
-// Disable the global switch: new windows use their own configuration, existing windows keep their current rendering mode
+// Disable the global default configuration: new windows use only their own configuration, and existing windows keep their current rendering mode
 GlobalManager::Instance().ClearGlobalRenderBackendType();
 
 // Apply the current global configuration to all existing windows again
@@ -332,7 +333,8 @@ GlobalManager::Instance().ApplyGlobalRenderBackendTypeToAllWindows();
 
 Notes:
 
-- The global switch takes precedence over each window's own configuration;
+- **The global configuration is only a default for attributes a window has not set**: `render_backend_type`, `vsync`, and `msaa` are resolved independently; values explicitly set in window XML take precedence, and the global configuration applies only to fields the window leaves unset;
+- An explicit runtime call to `Window::SetRenderBackendType()` or `SetAttribute()` has the highest priority and overrides both window XML and the global configuration;
 - The GL/GPU backend is supported only on Windows when not built with SDL; SDL builds, non-Windows platforms and Windows ARM64 automatically fall back to CPU rendering;
 - Even on a supported platform, if a GL context cannot be created (e.g. remote desktop, virtual machine, missing OpenGL driver), it also falls back to CPU rendering; use `Window::GetRenderBackendType()` to check the backend actually in use;
 - OpenGL does not support layered windows (`layered_window="true"` or `opacity < 255`); such windows automatically use CPU rendering;

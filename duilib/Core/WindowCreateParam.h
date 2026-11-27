@@ -49,7 +49,9 @@ enum WindowExStyle : uint32_t
     kWS_EX_TRANSPARENT    = 0x00000020L, //该窗口显示为透明
     kWS_EX_TOOLTIP_WINDOW = 0x00000040L, //该窗口旨在用作Tooltip窗口（仅当SDL时使用）
     kWS_EX_TOOLWINDOW     = 0x00000080L, //该窗口旨在用作浮动工具栏。 工具窗口具有短于普通标题栏的标题栏和使用较小的字体绘制的窗口标题。 工具窗口不会显示在任务栏中，也不会显示在用户按 Alt+TAB 时显示的对话框中。 如果工具窗口具有系统菜单，则其图标不会显示在标题栏上。 
-    kWS_EX_LAYERED        = 0x00080000L, //该窗口是一个分层窗口
+    //注意：不再提供 kWS_EX_LAYERED 常量。
+    //分层窗口属性由窗口内部根据 layered_window、阴影、透明度等配置自动推导；
+    //请勿通过 m_dwExStyle 设置 WS_EX_LAYERED，迁移旧代码时直接删除该标记位即可。
     kWS_EX_NOACTIVATE     = 0x08000000L  //用户单击时，使用此样式创建的顶级窗口不会成为前台窗口。 当用户最小化或关闭前台窗口时，系统不会将此窗口带到前台。
 };
 
@@ -97,6 +99,8 @@ public:
     uint32_t m_dwStyle;
 
     /** 窗口扩展风格（可选参数，如不填写则使用默认值）, 参考上方定义：enum WindowExStyle
+    * @note 不要通过该字段设置 kWS_EX_LAYERED：该位不参与分层窗口决策，创建窗口时会被忽略。
+    *       分层窗口由窗口内部根据配置自动推导，无需手动设置。
     */
     uint32_t m_dwExStyle;
 

@@ -4093,7 +4093,7 @@
     </xs:attribute>
     <xs:attribute name="render_backend_type" type="xs:string">
       <xs:annotation>
-        <xs:documentation>"CPU": CPU绘制 "GL"/"GPU": 使用OpenGL绘制。支持条件：仅Windows平台且非SDL构建模式支持；SDL构建模式、非Windows平台和Windows ARM64会自动回退为CPU绘制；无法创建GL上下文（如远程桌面、虚拟机、缺少OpenGL驱动）时也会自动回退。实际使用的后端以GetRenderBackendType()的返回值为准。注意事项：（1）同一线程内可以有多个窗口使用OpenGL绘制（内部会切换当前上下文）（2）OpenGL绘制的窗口不能是分层窗口（即带有WS_EX_LAYERED属性的窗口），因此使用GL渲染时，layered_window、alpha、opacity 属性均无效（3）支持局部绘制（只重绘脏区域），但不一定总比CPU绘制快，请结合实际场景评估</xs:documentation>
+        <xs:documentation>"CPU": CPU绘制 "GL"/"GPU": 使用OpenGL绘制。窗口未设置该属性时使用global.xml的全局配置（全局配置仅作为默认值，窗口XML显式设置时优先；vsync、msaa同样按字段分别判断）。支持条件：仅Windows平台且非SDL构建模式支持；SDL构建模式、非Windows平台和Windows ARM64会自动回退为CPU绘制；无法创建GL上下文（如远程桌面、虚拟机、缺少OpenGL驱动）时也会自动回退。实际使用的后端以GetRenderBackendType()的返回值为准。注意事项：（1）同一线程内可以有多个窗口使用OpenGL绘制（内部会切换当前上下文）（2）OpenGL绘制的窗口不能是分层窗口（即带有WS_EX_LAYERED属性的窗口），因此使用GL渲染时，layered_window、alpha、opacity 属性均无效（3）支持局部绘制（只重绘脏区域），但不一定总比CPU绘制快，请结合实际场景评估</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>
@@ -5582,7 +5582,7 @@
     </xs:attribute>
     <xs:attribute name="render_backend_type" type="xs:string">
       <xs:annotation>
-        <xs:documentation>"CPU": CPU绘制 "GL"/"GPU": 使用OpenGL绘制。支持条件：仅Windows平台且非SDL构建模式支持；SDL构建模式、非Windows平台和Windows ARM64会自动回退为CPU绘制；无法创建GL上下文（如远程桌面、虚拟机、缺少OpenGL驱动）时也会自动回退。实际使用的后端以GetRenderBackendType()的返回值为准。注意事项：（1）同一线程内可以有多个窗口使用OpenGL绘制（内部会切换当前上下文）（2）OpenGL绘制的窗口不能是分层窗口（即带有WS_EX_LAYERED属性的窗口），因此使用GL渲染时，layered_window、alpha、opacity 属性均无效（3）支持局部绘制（只重绘脏区域），但不一定总比CPU绘制快，请结合实际场景评估</xs:documentation>
+        <xs:documentation>"CPU": CPU绘制 "GL"/"GPU": 使用OpenGL绘制。窗口未设置该属性时使用global.xml的全局配置（全局配置仅作为默认值，窗口XML显式设置时优先；vsync、msaa同样按字段分别判断）。支持条件：仅Windows平台且非SDL构建模式支持；SDL构建模式、非Windows平台和Windows ARM64会自动回退为CPU绘制；无法创建GL上下文（如远程桌面、虚拟机、缺少OpenGL驱动）时也会自动回退。实际使用的后端以GetRenderBackendType()的返回值为准。注意事项：（1）同一线程内可以有多个窗口使用OpenGL绘制（内部会切换当前上下文）（2）OpenGL绘制的窗口不能是分层窗口（即带有WS_EX_LAYERED属性的窗口），因此使用GL渲染时，layered_window、alpha、opacity 属性均无效（3）支持局部绘制（只重绘脏区域），但不一定总比CPU绘制快，请结合实际场景评估</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>

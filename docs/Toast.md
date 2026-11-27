@@ -127,14 +127,14 @@ ui::ToastWnd::Show(this,
 | 退场 | 180ms | `EaseInCubic` | 透明度 255→0 淡出，结束后调用 `CloseWnd` 关闭窗口 |
 | 补齐 | 200ms | `EaseOutCubic` | 其他通知关闭后，剩余通知沿 Y 轴平滑移动到新位置 |
 
-窗口本身是分层窗口（`kWS_EX_LAYERED`），淡入淡出通过 `SetLayeredWindowAlpha` 实现；
+窗口本身是分层窗口（由内部根据阴影、透明度等配置自动推导，`kWS_EX_LAYERED` 已删除），淡入淡出通过 `SetLayeredWindowAlpha` 实现；
 动画回调统一通过 `GetWeakFlag()` 做生命周期保护，窗口已销毁时不再访问成员。
 正在播入场动画的通知若遇到其他通知关闭触发重排，会直接吸附到目标位置，
 避免入场动画与位移动画互相覆盖。
 
 ### 9. 实现要点与皮肤结构
 
-窗口样式为 `kWS_POPUP | kWS_EX_TOPMOST | kWS_EX_LAYERED | kWS_EX_NOACTIVATE`：
+窗口样式为 `kWS_POPUP | kWS_EX_TOPMOST | kWS_EX_NOACTIVATE`，并在创建前启用分层窗口：
 置顶、分层、**不激活**（不抢焦点）；没有父窗口时额外加 `kWS_EX_TOOLWINDOW`，
 避免出现在任务栏和 Alt+Tab 列表中。皮肤根节点开启了窗口阴影（`shadow_attached="true"`）。
 

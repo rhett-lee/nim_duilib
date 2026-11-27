@@ -147,7 +147,6 @@ void MainForm::OpenColorPicker()
 
     ui::WindowCreateParam createParam;
     createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("ColorPicker");
     //不启用居中：居中会完全盖住主窗口；调色板在 OnInitWindow 中会自动贴到主窗口旁边显示
     createParam.m_bCenterWindow = false;

@@ -111,7 +111,7 @@
 - **语言资源**：`bin/resources/lang/zh_CN-examples.txt` 与 `en_US-examples.txt` 各新增 `STRID_CONTROLS_STEPPER_TEST`、`STRID_STEPPER_WINDOW_TITLE`、`STRID_STEPPER_HINT`、步骤标题/描述 STRID（水平 4 步 + 垂直 3 步）、`STRID_STEPPER_PREV`、`STRID_STEPPER_NEXT`、`STRID_STEPPER_GOTO`、`STRID_STEPPER_RESET`、`STRID_STEPPER_EVENT_NONE`、`STRID_STEPPER_EVENT_PREFIX`。
 - `examples/controls/controls.vcxproj` + `.filters`：新增 `StepperForm.h`（ClInclude）与 `StepperForm.cpp`（ClCompile）。
 - `examples/controls/TestForm.h`：新增 `void ShowStepperWindow();`。
-- `examples/controls/TestForm.cpp`：`#include "StepperForm.h"`；`OnInitWindow` 绑定 `stepper_btn` → `ShowStepperWindow()`；实现该方法（`kWS_POPUP + kWS_EX_LAYERED + m_bCenterWindow`，`ShowModalFake()`）。
+- `examples/controls/TestForm.cpp`：`#include "StepperForm.h"`；`OnInitWindow` 绑定 `stepper_btn` → `ShowStepperWindow()`；实现该方法（`kWS_POPUP + m_bCenterWindow`；`kWS_EX_LAYERED` 已删除，直接删除该标记位，分层窗口由内部自动推导；`ShowModalFake()`）。
 
 ### 4.4 文档同步
 

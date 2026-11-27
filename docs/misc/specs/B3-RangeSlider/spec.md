@@ -95,7 +95,7 @@
 - **语言资源**：`bin/resources/lang/zh_CN-examples.txt` 与 `en_US-examples.txt` 各新增 `STRID_CONTROLS_RANGESLIDER_TEST`、`STRID_RANGESLIDER_WINDOW_TITLE`、`STRID_RANGESLIDER_HINT`、`STRID_RANGESLIDER_PRICE`、`STRID_RANGESLIDER_LEVEL`、`STRID_RANGESLIDER_RESET`、`STRID_RANGESLIDER_FULL`、`STRID_RANGESLIDER_EVENT_NONE`、`STRID_RANGESLIDER_EVENT_PREFIX`。
 - `examples/controls/controls.vcxproj` + `.filters`：新增 `RangeSliderForm.h`（ClInclude）与 `RangeSliderForm.cpp`（ClCompile）。
 - `examples/controls/ControlForm.h`：新增 `void ShowRangeSliderWindow();`。
-- `examples/controls/ControlForm.cpp`：`#include "RangeSliderForm.h"`；`OnInitWindow` 绑定 `rangeslider_btn` → `ShowRangeSliderWindow()`；实现该方法（`kWS_POPUP + kWS_EX_LAYERED + m_bCenterWindow`，`ShowModalFake()`）。
+- `examples/controls/ControlForm.cpp`：`#include "RangeSliderForm.h"`；`OnInitWindow` 绑定 `rangeslider_btn` → `ShowRangeSliderWindow()`；实现该方法（`kWS_POPUP + m_bCenterWindow`；`kWS_EX_LAYERED` 已删除，直接删除该标记位，分层窗口由内部自动推导；`ShowModalFake()`）。
 
 ### 4.4 文档同步
 

@@ -29,9 +29,9 @@
 | layered_window    | 窗口绘制| false   | bool   | SetLayeredWindow        |设置是否为层窗口，使用注意事项：<br>（1）该属性在使用窗口阴影（即设置了shadow_type属性）时不需要设置，窗口阴影功能会根据需要来管理该属性<br>（2）当使用系统标题栏时（即use_system_caption="true"），不应设置该属性 |
 | alpha             | 窗口绘制| 255     | int    | SetLayeredWindowAlpha   |设置透明度数值[0, 255]，当 alpha 为 0 时，窗口是完全透明的。 当 alpha 为 255 时，窗口是不透明的。<br>仅当layered_window="true"时有效，<br>该参数在UpdateLayeredWindow函数中作为参数使用(BLENDFUNCTION.SourceConstantAlpha)|
 | opacity           | 窗口绘制| 255     | int    | SetLayeredWindowOpacity |设置不透明度数值[0, 255]，当 opacity 为 0 时，窗口是完全透明的。 当 opacity 为 255 时，窗口是不透明的。<br> 仅当layered_window="true"时有效；该属性不会自动把窗口设置为分层窗口，需要显式配置 `layered_window="true"` 或调用 `SetLayeredWindow` <br>该参数在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)|
-| render_backend_type|窗口绘制| "CPU"   | string |SetRenderBackendType     | "CPU": CPU绘制 <br> "GL": 使用OpenGL绘制 <br> 注意事项: <br> （1）支持条件：仅Windows平台且非SDL构建模式支持；SDL构建模式、非Windows平台和Windows ARM64不支持，会自动回退为CPU绘制；无法创建GL上下文（如远程桌面、虚拟机、缺少OpenGL驱动）时也会自动回退。<br>实际使用的后端请以 `GetRenderBackendType()` 的返回值为准 <br> （2）同一线程内可以有多个窗口使用OpenGL绘制，绘制前会自动切换当前上下文；但每个窗口都会创建一个独立的 GL 上下文，注意显存占用 <br> （3）OpenGL绘制的窗口，不能是分层窗口（即带有WS_EX_LAYERED属性的窗口），因此使用GL渲染时，`layered_window`、`alpha`、`opacity` 属性均无效 <br> （4）OpenGL绘制使用持久 FBO 做局部刷新，小区域动画不会整窗重绘，性能通常优于整窗重绘 <br> （5）窗口运行过程中，可通过SetAttribute("render_backend_type", "GL"/"CPU")实时切换（内部会重建渲染对象）|
-| vsync             | 窗口绘制| "true"  | bool   | SetRenderBackendType    |是否启用垂直同步，false 表示禁用；<br>仅当 render_backend_type="GL" 时有效<br>支持运行过程中通过SetAttribute实时切换|
-| msaa              | 窗口绘制| "0"     | int    | SetRenderBackendType    |MSAA 采样数，0 表示不启用 MSAA（按 1 倍采样）；<br>仅当 render_backend_type="GL" 时有效<br>支持运行过程中通过SetAttribute实时切换|
+| render_backend_type|窗口绘制| "CPU"   | string |SetRenderBackendType     | "CPU": CPU绘制 <br> "GL": 使用OpenGL绘制 <br> 注意事项: <br> （1）支持条件：仅Windows平台且非SDL构建模式支持；SDL构建模式、非Windows平台和Windows ARM64不支持，会自动回退为CPU绘制；无法创建GL上下文（如远程桌面、虚拟机、缺少OpenGL驱动）时也会自动回退。<br>实际使用的后端请以 `GetRenderBackendType()` 的返回值为准 <br> （2）同一线程内可以有多个窗口使用OpenGL绘制，绘制前会自动切换当前上下文；但每个窗口都会创建一个独立的 GL 上下文，注意显存占用 <br> （3）OpenGL绘制的窗口，不能是分层窗口（即带有WS_EX_LAYERED属性的窗口），因此使用GL渲染时，`layered_window`、`alpha`、`opacity` 属性均无效 <br> （4）OpenGL绘制使用持久 FBO 做局部刷新，小区域动画不会整窗重绘，性能通常优于整窗重绘 <br> （5）窗口运行过程中，可通过SetAttribute("render_backend_type", "GL"/"CPU")实时切换（内部会重建渲染对象）<br> （6）未设置该属性时，使用 `global.xml` 的全局配置；窗口 XML 显式设置时优先于全局配置（`vsync`、`msaa` 同样按字段分别判断）|
+| vsync             | 窗口绘制| "true"  | bool   | SetRenderBackendType    |是否启用垂直同步，false 表示禁用；<br>仅当 render_backend_type="GL" 时有效<br>支持运行过程中通过SetAttribute实时切换；未设置时使用全局配置|
+| msaa              | 窗口绘制| "0"     | int    | SetRenderBackendType    |MSAA 采样数，0 表示不启用 MSAA（按 1 倍采样）；<br>仅当 render_backend_type="GL" 时有效<br>支持运行过程中通过SetAttribute实时切换；未设置时使用全局配置|
 
 备注：窗口阴影相关的内容，请参考文档：[WindowShadow.md](WindowShadow.md)    
 备注：窗口属性的解析函数参见：[WindowBuilder::ParseWindowAttributes函数](../duilib/Core/WindowBuilder.cpp)    
@@ -85,13 +85,15 @@ pWindow->ShowWindow(ui::kSW_SHOW_NORMAL);
 ```cpp
 ui::WindowCreateParam createParam;
 createParam.m_dwStyle = ui::kWS_POPUP;
-createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
 createParam.m_bCenterWindow = true;
 
 MyDialog dlg;                        //继承 ui::WindowImplBase（或 ui::Dialog）
 dlg.DoModal(this, createParam);      //阻塞，直到窗口关闭
 //如果改用 CreateWnd + ShowModalFake()，窗口不会阻塞调用线程
 ```
+
+> `kWS_EX_LAYERED` 已删除：原示例中通过 `m_dwExStyle` 设置分层窗口的代码已删除，
+> 分层窗口由窗口内部根据 `layered_window`、阴影、透明度等配置自动推导，无需手动设置。
 
 > `Window::OnFinalMessage()` 的默认实现会在非 `DoModal` 窗口中执行 `delete this`，因此普通窗口关闭后不需要手动 delete；通过 `DoModal` 显示的窗口需由调用方自行管理对象生命周期（可参考 `ui::Dialog` 的用法）。
 

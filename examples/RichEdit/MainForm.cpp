@@ -1022,7 +1022,6 @@ void MainForm::OnFindText()
             });
         ui::WindowCreateParam createParam;
         createParam.m_dwStyle = ui::kWS_POPUP;
-        createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
         createParam.m_windowTitle = _T("FindForm");
         createParam.m_bCenterWindow = true;
         m_pFindForm->CreateWnd(this, createParam);
@@ -1049,7 +1048,6 @@ void MainForm::OnReplaceText()
             });
         ui::WindowCreateParam createParam;
         createParam.m_dwStyle = ui::kWS_POPUP;
-        createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
         createParam.m_windowTitle = _T("ReplaceForm");
         createParam.m_bCenterWindow = true;
         m_pReplaceForm->CreateWnd(this, createParam);

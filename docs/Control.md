@@ -4163,11 +4163,13 @@ ColorPicker 是一个独立窗口（基于 `WindowImplBase` 实现），用于�
 ui::ColorPicker* pColorPicker = new ui::ColorPicker;
 ui::WindowCreateParam createParam;
 createParam.m_dwStyle = ui::kWS_POPUP;
-createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
 // 默认按创建参数决定是否居中（m_bCenterWindow 的语义见 Window 文档），窗口定位沿用原有逻辑
 pColorPicker->CreateWnd(this, createParam);   // 非模态窗口，随后可调用 ShowModalFake()
 // pColorPicker->DoModal(this, createParam); // 模态窗口
 ```
+
+> `kWS_EX_LAYERED` 已删除：原示例中通过 `m_dwExStyle` 设置分层窗口的代码已删除，
+> 分层窗口由窗口内部根据 `layered_window`、阴影、透明度等配置自动推导，无需手动设置。
 
 窗口在创建时**默认不会**自动调整位置，完全按创建参数（如 `m_bCenterWindow`）决定定位，以保持对其他调用方（如 PropertyGrid 颜色属性、`examples/controls` 示例）的原有行为不变。
 

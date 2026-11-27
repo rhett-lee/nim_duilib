@@ -205,7 +205,6 @@ bool Flyout::ShowAt(Control* pAnchor, const DString& xmlFile, Placement placemen
     GetAnchorScreenRect(rcAnchorInit);
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
-    createWndParam.m_dwExStyle = kWS_EX_LAYERED;
     if (m_bNoFocus) {
         //不抢焦点：显示后父窗口保持激活
         createWndParam.m_dwExStyle |= kWS_EX_NOACTIVATE;

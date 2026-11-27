@@ -4158,12 +4158,15 @@ The `examples/ColorPicker` and `examples/controls` sample programs demonstrate b
 ui::ColorPicker* pColorPicker = new ui::ColorPicker;
 ui::WindowCreateParam createParam;
 createParam.m_dwStyle = ui::kWS_POPUP;
-createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
 // By default the window is positioned according to the create param (see m_bCenterWindow in the Window doc),
 // keeping the original positioning behavior unchanged
 pColorPicker->CreateWnd(this, createParam);   // Non-modal window; ShowModalFake() can be called afterwards
 // pColorPicker->DoModal(this, createParam); // Modal window
 ```
+
+> `kWS_EX_LAYERED` has been removed: the code that set the layered-window bit through `m_dwExStyle`
+> has been deleted. The layered window is derived internally from `layered_window`, shadow and
+> opacity settings; no manual setup is required.
 
 By default the window does **not** adjust its position automatically; it is positioned entirely according to the
 create param (e.g. `m_bCenterWindow`), so the original behavior for other callers (such as the PropertyGrid color

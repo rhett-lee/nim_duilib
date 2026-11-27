@@ -298,7 +298,7 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 
 ## 8. 全局渲染后端配置（render_backend_type）
 
-在 `global.xml` 的 `Global` 根节点上设置 `render_backend_type` 属性，即开启"全局渲染后端"开关：所有窗口（包括已经创建的窗口和之后新建的窗口）统一使用该配置，窗口XML中的 `render_backend_type`、`vsync`、`msaa` 属性会被忽略。
+在 `global.xml` 的 `Global` 根节点上设置 `render_backend_type` 属性，即开启"全局渲染后端"默认配置：**该配置仅作为窗口未显式设置对应属性时的默认值**。窗口 XML（含 `class` 继承）中显式设置的 `render_backend_type`、`vsync`、`msaa` 优先级更高；窗口未设置时，才使用全局配置。三个属性分别独立判断，互不影响。
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -312,17 +312,18 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
-| render_backend_type | | string | "CPU"：CPU绘制；"GL"/"GPU"：OpenGL绘制。设置该属性即启用全局开关。<br>支持条件：仅Windows平台且非SDL构建模式支持；其他平台/构建方式（含Windows ARM64）会自动回退为CPU绘制 |
+| render_backend_type | | string | "CPU"：CPU绘制；"GL"/"GPU"：OpenGL绘制。设置该属性即启用全局默认配置（仅当窗口未设置 `render_backend_type` 时生效）。<br>支持条件：仅Windows平台且非SDL构建模式支持；其他平台/构建方式（含Windows ARM64）会自动回退为CPU绘制 |
 | vsync | true | bool | 是否启用垂直同步，仅GL绘制有效 |
 | msaa | 0 | int | MSAA采样数，0表示不启用MSAA，仅GL绘制有效 |
 
 也可以通过接口在运行过程中动态控制：
 
 ```cpp
-// 启用全局开关，并立即应用到所有已经存在的窗口
+// 启用全局默认配置：窗口未显式设置对应属性时才会使用
+// bApplyToAllWindows=true：同时立即应用到所有已经存在的窗口（属于命令式覆盖）
 GlobalManager::Instance().SetGlobalRenderBackendType(RenderBackendType::kNativeGL_BackendType, 4, false, true, true);
 
-// 关闭全局开关：之后新建的窗口使用自身的配置，已创建的窗口保持当前渲染方式
+// 关闭全局默认配置：之后新建的窗口完全使用自身的配置，已创建的窗口保持当前渲染方式
 GlobalManager::Instance().ClearGlobalRenderBackendType();
 
 // 将当前的全局配置再次应用到所有已经存在的窗口
@@ -331,7 +332,8 @@ GlobalManager::Instance().ApplyGlobalRenderBackendTypeToAllWindows();
 
 注意事项：
 
-- 全局开关的优先级高于窗口自身的配置；
+- **全局配置仅作为窗口未设置时的默认值**：`render_backend_type`、`vsync`、`msaa` 分别独立判断，窗口 XML 显式设置的字段优先于全局配置；窗口未设置时才使用全局配置；
+- 运行时显式调用 `Window::SetRenderBackendType()` 或 `SetAttribute()` 的优先级最高，会覆盖窗口 XML 与全局配置；
 - GL/GPU 后端仅在 Windows 平台且非 SDL 构建模式下支持；SDL 构建模式、非 Windows 平台和 Windows ARM64 会自动回退为CPU绘制；
 - 即使平台支持，无法创建GL上下文（如远程桌面、虚拟机、缺少OpenGL驱动）时也会自动回退为CPU绘制；实际使用的后端请以 `Window::GetRenderBackendType()` 的返回值为准；
 - OpenGL不支持层窗口（`layered_window="true"` 或 `opacity < 255`），此类窗口会自动使用CPU绘制；

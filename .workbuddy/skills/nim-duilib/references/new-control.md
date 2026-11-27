@@ -209,7 +209,7 @@ VS 工程必须手工登记，否则链接/编译找不到文件。
 4. **入口逻辑**：
    - `examples/controls/TestForm.h` 新增 `void ShowXxxWindow();`
    - `examples/controls/TestForm.cpp` 引入头文件、绑定按钮、实现弹窗
-     （`kWS_POPUP + kWS_EX_LAYERED + m_bCenterWindow`，`ShowModalFake()`）。
+     （`kWS_POPUP + m_bCenterWindow`；`kWS_EX_LAYERED` 已删除，直接删除该标记位，分层窗口由内部自动推导；`ShowModalFake()`）。
 5. **工程登记**：`examples/controls/controls.vcxproj` + `.filters` 加入新 `ClInclude` / `ClCompile`。
 6. **语言资源**：中英两份 `examples.txt` 补齐窗口标题、提示、按钮、示例条目文案。
 7. **交互覆盖**：示例里要能手工触发所有公开 API（增删、跳转、禁用、reset、事件回显）。

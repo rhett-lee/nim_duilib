@@ -250,7 +250,7 @@ void ToolTip::TImpl::ShowToolTip(WindowBase* pParentWnd,
         createParam.m_nWidth = pParentWnd->Dpi().GetScaleWindowSize(200); //窗口创建或者显示后，会自动设置宽度和高度
         createParam.m_nHeight = pParentWnd->Dpi().GetScaleWindowSize(80);
         createParam.m_dwStyle = kWS_POPUPWINDOW;
-        createParam.m_dwExStyle = kWS_EX_NOACTIVATE | kWS_EX_TRANSPARENT | kWS_EX_LAYERED | kWS_EX_TOOLTIP_WINDOW;
+        createParam.m_dwExStyle = kWS_EX_NOACTIVATE | kWS_EX_TRANSPARENT | kWS_EX_TOOLTIP_WINDOW;
         m_pTooltipWnd->CreateWnd(pParentWnd, createParam);
     }
 

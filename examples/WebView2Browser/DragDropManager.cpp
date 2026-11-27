@@ -57,7 +57,7 @@ bool DragDropManager::StartDragBorwserBox(BrowserBox* browserBox, std::shared_pt
 
         ui::WindowCreateParam createWndParam;
         createWndParam.m_dwStyle = ui::kWS_POPUP;
-        createWndParam.m_dwExStyle = ui::kWS_EX_LAYERED | ui::kWS_EX_NOACTIVATE | ui::kWS_EX_TRANSPARENT;
+        createWndParam.m_dwExStyle = ui::kWS_EX_NOACTIVATE | ui::kWS_EX_TRANSPARENT;
         m_pDragForm->CreateWnd(nullptr, createWndParam);
         ASSERT(m_pDragForm->IsWindow());
         if (m_pDragForm->IsWindow()) {

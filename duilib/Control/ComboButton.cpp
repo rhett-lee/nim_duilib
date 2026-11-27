@@ -64,7 +64,6 @@ void ComboButtonWnd::InitComboWnd(ComboButton* pOwner, bool bActivated)
     const UiRect rcWnd = GetComboWndRect();
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
-    createWndParam.m_dwExStyle = kWS_EX_LAYERED;
     if (!rcWnd.IsEmpty()) {
         createWndParam.m_nX = rcWnd.left;
         createWndParam.m_nY = rcWnd.top;

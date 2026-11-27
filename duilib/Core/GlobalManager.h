@@ -211,16 +211,18 @@ public:
     IRenderFactory* GetRenderFactory();
 
 public:
-    /** 设置全局的窗口渲染后端配置（全局开关）
-    *   启用后，所有窗口统一使用该配置（包括已创建的窗口和后续创建的窗口），
-    *   窗口XML中配置的 render_backend_type/vsync/msaa 属性将被忽略
+    /** 设置全局的窗口渲染后端默认配置
+    *   该配置仅作为窗口未显式设置对应属性时的默认值：
+    *   窗口XML（包括Class继承）中显式配置的 render_backend_type/vsync/msaa 优先使用窗口自身的值，
+    *   只有窗口未配置的字段才使用全局配置；三个字段分别独立判断。
     * @param [in] backendType 渲染后端类型
     *       （kNativeGL_BackendType仅在Windows平台且非SDL构建模式下支持，其他情况会回退为CPU绘制；
     *        Windows ARM64即使为Windows平台也不支持GL）
     * @param [in] nMsaaSampleCount MSAA的采样数（仅GPU/GL渲染有效；0表示使用默认值，非法值按0处理）
     * @param [in] bDisableVsync 是否禁用垂直同步（仅GPU/GL渲染有效）
-    * @param [in] bEnable true表示启用全局配置，false表示关闭全局配置
+    * @param [in] bEnable true表示启用全局默认配置，false表示关闭全局默认配置
     * @param [in] bApplyToAllWindows true表示立即将该配置应用到当前已存在的所有窗口
+    *       （属于命令式覆盖；之后新建的窗口仍按“窗口XML优先、全局配置仅作默认值”的规则解析）
     */
     void SetGlobalRenderBackendType(RenderBackendType backendType,
                                     int32_t nMsaaSampleCount = 0,
@@ -228,28 +230,32 @@ public:
                                     bool bEnable = true,
                                     bool bApplyToAllWindows = true);
 
-    /** 关闭全局的窗口渲染后端配置开关
-    * @note 关闭后，新建的窗口使用窗口自身的配置；已经创建的窗口保持当前的渲染方式不变
+    /** 关闭全局的窗口渲染后端默认配置
+    * @note 关闭后，新建的窗口完全使用窗口自身的配置（未设置的字段使用内置默认值）；
+    *       已经创建的窗口保持当前的渲染方式不变
     */
     void ClearGlobalRenderBackendType();
 
-    /** 是否启用了全局的窗口渲染后端配置
+    /** 是否启用了全局的窗口渲染后端默认配置
+    *   （启用后，该配置仅作为窗口未显式设置对应属性时的默认值）
     */
     bool IsGlobalRenderBackendTypeEnabled() const;
 
-    /** 获取全局的渲染后端类型
+    /** 获取全局的渲染后端默认值
     */
     RenderBackendType GetGlobalRenderBackendType() const;
 
-    /** 获取全局的MSAA采样数
+    /** 获取全局的MSAA采样数默认值
     */
     int32_t GetGlobalMsaaSampleCount() const;
 
-    /** 获取全局的垂直同步设置（true表示禁用垂直同步）
+    /** 获取全局的垂直同步设置默认值（true表示禁用垂直同步）
     */
     bool IsGlobalDisableVsync() const;
 
-    /** 将全局的渲染后端配置应用到当前已存在的所有窗口
+    /** 将全局的渲染后端默认配置应用到当前已存在的所有窗口
+    * @note 该调用属于命令式覆盖，仅影响当前已存在的窗口；
+    *       之后新建的窗口仍按“窗口XML优先、全局配置仅作默认值”的规则解析
     */
     void ApplyGlobalRenderBackendTypeToAllWindows();
 
@@ -689,19 +695,19 @@ private:
     */
     std::unordered_map<DString, DString> m_defineMap;
 
-    /** 是否启用全局的窗口渲染后端配置（全局开关）
+    /** 是否启用全局的窗口渲染后端默认配置
     */
     bool m_bGlobalRenderBackendEnabled;
 
-    /** 全局的渲染后端类型（全局开关启用时生效）
+    /** 全局的渲染后端默认值（窗口未显式设置render_backend_type时生效）
     */
     RenderBackendType m_globalRenderBackendType;
 
-    /** 全局的MSAA采样数（仅GPU/GL渲染有效）
+    /** 全局的MSAA采样数默认值（仅GPU/GL渲染有效；窗口未设置msaa时生效）
     */
     int32_t m_globalMsaaSampleCount;
 
-    /** 全局是否禁用垂直同步（仅GPU/GL渲染有效）
+    /** 全局是否禁用垂直同步的默认值（仅GPU/GL渲染有效；窗口未设置vsync时生效）
     */
     bool m_bGlobalDisableVsync;
 

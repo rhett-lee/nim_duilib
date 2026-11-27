@@ -522,7 +522,9 @@ void NativeWindow_Windows::SyncCreateWindowAttributes(const WindowCreateAttribut
     }
 
     //初始化层窗口属性：
-    //优先级从高到低：创建前用户显式设置 > 窗口XML配置 > 窗口创建参数（m_createParam.m_dwExStyle）
+    //优先级从高到低：创建前用户显式设置 > 窗口XML配置 > 不透明度 > 默认值
+    //注意：m_createParam.m_dwExStyle 中的 WS_EX_LAYERED 不参与决策，外部传入的值会被忽略
+    m_createParam.m_dwExStyle &= ~WS_EX_LAYERED;
     bool bLayeredWindow = false;
     if (m_bLayeredWindowSetBeforeCreate) {
         //创建窗口前，用户显式调用过SetLayeredWindow，以其值为准
@@ -533,10 +535,6 @@ void NativeWindow_Windows::SyncCreateWindowAttributes(const WindowCreateAttribut
     }
     else if (createAttributes.m_bLayeredWindowOpacityDefined && (createAttributes.m_nLayeredWindowOpacity != 255)) {
         //XML未显式设置layered_window，但设置了不透明度时，需要层窗口
-        bLayeredWindow = true;
-    }
-    else if (m_createParam.m_dwExStyle & WS_EX_LAYERED) {
-        //程序化创建窗口时，直接通过创建参数指定的层窗口属性
         bLayeredWindow = true;
     }
 

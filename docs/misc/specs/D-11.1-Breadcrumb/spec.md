@@ -172,7 +172,7 @@
    - 操作按钮 4 个 + 事件回显 Label。
 3. `bin/resources/themes/default/controls/test.xml`：新增 `GroupHBox text="Breadcrumb"` 与 `<Button class="btn_global" name="breadcrumb_btn" text_id="STRID_CONTROLS_BREADCRUMB_TEST" .../>`。
 4. `examples/controls/TestForm.h`：新增 `void ShowBreadcrumbWindow();`。
-5. `examples/controls/TestForm.cpp`：`#include "BreadcrumbForm.h"`、绑定 `breadcrumb_btn`、实现 `ShowBreadcrumbWindow()`（`kWS_POPUP + kWS_EX_LAYERED + m_bCenterWindow` + `ShowModalFake()`）。
+5. `examples/controls/TestForm.cpp`：`#include "BreadcrumbForm.h"`、绑定 `breadcrumb_btn`、实现 `ShowBreadcrumbWindow()`（`kWS_POPUP + m_bCenterWindow`；`kWS_EX_LAYERED` 已删除，直接删除该标记位，分层窗口由内部自动推导；`ShowModalFake()`）。
 6. `examples/controls/controls.vcxproj` 与 `.filters`：加入 `BreadcrumbForm.h/.cpp`。
 7. `bin/resources/lang/zh_CN-examples.txt` / `en_US-examples.txt` 新增键：
    `STRID_CONTROLS_BREADCRUMB_TEST`、`STRID_BREADCRUMB_WINDOW_TITLE`、`STRID_BREADCRUMB_HINT`、

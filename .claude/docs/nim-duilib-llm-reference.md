@@ -1016,8 +1016,8 @@ ui::ToastWnd::Show(this, _T("STRID_TOAST_DEMO_ACTION_TEXT"),
 - 动画用 `AnimationPlayer`（`AnimationType::kAnimationNone` 回调驱动）：
   入场 200ms 淡入+上移 12DIP（EaseOutCubic），退场 180ms 淡出（EaseInCubic），
   分层窗口透明度用 `SetLayeredWindowAlpha`。
-- 窗口样式 `kWS_POPUP|kWS_EX_TOPMOST|kWS_EX_LAYERED|kWS_EX_NOACTIVATE`，
-  无父窗口时再加 `kWS_EX_TOOLWINDOW`（不进任务栏/Alt+Tab）。
+- 窗口样式 `kWS_POPUP|kWS_EX_TOPMOST|kWS_EX_NOACTIVATE`，分层窗口由内部自动推导
+  （`kWS_EX_LAYERED` 已删除，直接删除该标记位），无父窗口时再加 `kWS_EX_TOOLWINDOW`（不进任务栏/Alt+Tab）。
 - **四个实现坑（自写类似交互窗口时务必注意）**：
   ① 普通容器不派发 `kEventClick`，整条可点要用 `AttachButtonUp`（kEventMouseButtonUp）；
   ② 有阴影的窗口 `GetRoot()` 返回的 ShadowBox 已被 `SetMouseEnabled(false)`，
