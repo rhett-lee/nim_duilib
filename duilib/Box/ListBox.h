@@ -422,6 +422,7 @@ protected:
         kHome,        //定位到第一条数据
         kEnd        //定位到最后一条数据
     };
+
     /** 即将查找指定的元素（为虚表提供加载数据的机会）
     * @param [in] nCurSel 当前选择的显示控件索引号
     * @param [in] mode  查找的模式

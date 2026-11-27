@@ -79,6 +79,7 @@ public:
 public:
     /** 设置卡片描述（字面文本，多行用 \\n 分隔） */
     void SetDescription(const DString& strDescription);
+
     /** 获取卡片描述（多语言 ID 优先，否则为字面文本） */
     DString GetDescription() const;
 
@@ -94,6 +95,7 @@ public:
 
     /** 设置"确定"按钮的字面文本（空串表示改用多语言 ID） */
     void SetOkText(const DString& strText);
+
     /** 获取"确定"按钮的文本（多语言 ID 优先，否则为字面文本） */
     DString GetOkText() const;
 
@@ -104,6 +106,7 @@ public:
 
     /** 设置"取消"按钮的字面文本（空串表示改用多语言 ID） */
     void SetCancelText(const DString& strText);
+
     /** 获取"取消"按钮的文本（多语言 ID 优先，否则为字面文本） */
     DString GetCancelText() const;
 

@@ -120,6 +120,7 @@ public:
     /** 清空建议数据源
     */
     void ClearCandidates();
+
     ///@}
 
     /** @name 联想展示参数
@@ -165,6 +166,7 @@ public:
     /** 过滤时是否忽略大小写
      */
     bool IsIgnoreCase() const;
+
     ///@}
 
     /** @name 搜索历史

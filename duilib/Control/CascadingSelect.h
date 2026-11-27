@@ -328,8 +328,10 @@ public:
     /** 设置未选择时的提示文本（字面文本）
      */
     void SetPlaceholder(const DString& strText);
+
     /** 获取未选择时的提示文本（多语言 ID 优先） */
     DString GetPlaceholder() const;
+
     /** 设置未选择时的提示文本（多语言 ID） */
     void SetPlaceholderId(const DString& strTextId);
 

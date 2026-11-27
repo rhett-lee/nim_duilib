@@ -332,6 +332,7 @@ public:
                                                    const FilePath& resPath,
                                                    FilePath& windowResPath,
                                                    FilePath& windowXmlPath)>;
+
     /** 添加一个加载资源失败的回调函数
     * @param [in] callback 回调函数
     * @param [in] callbackId 回调函数的ID，删除回调函数时使用，由调用方确保ID的唯一性

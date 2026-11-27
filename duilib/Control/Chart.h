@@ -126,12 +126,14 @@ public:
             double t = (viewEnd <= viewStart) ? 0.5 : ((index - viewStart) / (viewEnd - viewStart));
             return static_cast<float>(rcPlot.left) + static_cast<float>(rcPlot.Width()) * static_cast<float>(t);
         }
+
         /** 数据值 → Y 像素坐标
         */
         float YToPixel(double value) const {
             double norm = (value - dMin) / dRange;
             return static_cast<float>(rcPlot.bottom) - static_cast<float>(rcPlot.Height()) * static_cast<float>(norm);
         }
+
         /** X 像素坐标 → 数据索引
         */
         double PixelToX(int32_t px) const {

@@ -123,6 +123,7 @@ public:
     /** 设置卡片标题（字面文本）
      */
     void SetTitle(const DString& strTitle);
+
     /** 获取卡片标题（多语言 ID 优先，否则为字面文本） */
     DString GetTitle() const;
 
@@ -133,6 +134,7 @@ public:
 
     /** 设置卡片正文（字面文本，多行用 \\n 分隔） */
     void SetContent(const DString& strContent);
+
     /** 获取卡片正文（多语言 ID 优先，否则为字面文本） */
     DString GetContent() const;
 
@@ -304,6 +306,7 @@ private:
 
     /** hover 触发：延时打开 */
     void ScheduleOpen();
+
     /** hover 触发：延时检查是否需要关闭 */
     void ScheduleCloseCheck();
 

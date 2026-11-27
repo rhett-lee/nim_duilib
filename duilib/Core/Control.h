@@ -1550,6 +1550,7 @@ protected:
     virtual void PaintStateImages(IRender* pRender);    //绘制状态图片
     virtual void PaintText(IRender* pRender);           //绘制文本
     virtual void PaintBorder(IRender* pRender);         //绘制边框
+
     /** 绘制焦点框
      * @note 该函数由 AlphaPaint 在绘制完边框、子控件和前景色之后调用，保证焦点框显示在最上层；
      *       基类默认调用 DoPaintFocusRect()，派生类可重写以实现自定义样式

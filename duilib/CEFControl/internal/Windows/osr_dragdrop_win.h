@@ -85,6 +85,7 @@ class DropTargetWin : public IDropTarget {
   * @return 返回窗口句柄
   */
   HWND GetHWND() { return hWnd_; };
+
   /** 构造函数
   * @param [in] hWnd 目标窗口句柄
   * @param [in] browser_handler 拖动事件的处理接口

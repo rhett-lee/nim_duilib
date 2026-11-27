@@ -113,24 +113,30 @@ public:
     /** 追加一个子节点（转发到 TreeGrid::AddNode）
     */
     TreeGridNode* AddChildNode(TreeGridNode* pNode);
+
     /** 移除一个子节点（转发到 TreeGrid::RemoveNode）
     */
     bool RemoveChildNode(TreeGridNode* pNode);
+
     /** 移除所有子节点
     */
     void RemoveAllChildNodes();
     /** 子节点个数
     */
     size_t GetChildNodeCount() const { return m_childNodes.size(); }
+
     /** 获取指定索引的子节点
     */
     TreeGridNode* GetChildNode(size_t iIndex) const;
+
     /** 获取指定子节点的索引，不存在则返回静态常量 npos
     */
     size_t GetChildNodeIndex(TreeGridNode* pNode) const;
+
     /** 递归子孙节点总数（不含自身）
     */
     size_t GetDescendantNodeCount() const;
+
     /** 是否为指定节点的子孙
     */
     bool IsChildOf(TreeGridNode* pNode) const;
@@ -531,107 +537,142 @@ private:
     /** 内部：把已存在的节点插入到指定父节点下（供 TreeGridNode::AddChildNode 使用）
     */
     bool InsertNode(TreeGridNode* pParent, TreeGridNode* pNode);
+
     /** 内部：保证列数不少于 nCount（不足时补默认列）
     */
     void EnsureColumnCount(size_t nCount);
+
     /** 内部：列定义变化后，重建表头并刷新所有行
     */
     void RefreshHeaderAndRows();
+
     /** 内部：按当前列定义刷新全部行的显示
     */
     void RefreshAllRows();
+
     /** 内部：移除某父节点的全部子节点
     */
     void RemoveAllNodesOf(TreeGridNode* pParent);
+
     /** 内部：重建表头
     */
     void RebuildHeader();
+
     /** 内部：重建所有数据行（结构变化时调用）
     */
     void RebuildRows();
+
     /** 内部：节点结构发生变化（增删节点）后刷新行
     */
     void OnNodeStructureChanged();
+
     /** 内部：为一个节点创建行控件（并追加到列表体）
     */
     TreeGridRow* CreateRow(TreeGridNode* pNode);
+
     /** 内部：刷新一个节点的行（文本 / 缩进 / 展开开关 / 复选框 / 可见性）
     */
     void UpdateRow(TreeGridNode* pNode);
+
     /** 内部：根据祖先展开状态递归刷新子孙行的可见性
     */
     void UpdateDescendantVisible(TreeGridNode* pNode);
+
     /** 内部：刷新单元格宽度（列宽变化 / DPI 变化后调用）
     */
     void UpdateCellWidths();
+
     /** 内部：刷新一个单元格的文本
     */
     void UpdateCellText(TreeGridNode* pNode, size_t nColumnId, const DString& text);
+
     /** 内部：计算一个节点的缩进占位宽度
      *  叶节点没有展开开关（隐藏后不占宽度），此处补足展开开关的占位宽度（原始像素），
      *  以保证同一层级的有子节点行与叶行的复选框/文本左对齐。
      */
     int32_t GetTreeIndentWidth(TreeGridNode* pNode) const;
+
     /** 内部：刷新缩进占位宽度
     */
     void UpdateRowIndent(TreeGridNode* pNode);
+
     /** 内部：刷新全部行的缩进占位宽度
     */
     void UpdateAllRowIndent();
+
     /** 内部：刷新全部行的行高
     */
     void UpdateAllRowHeight();
+
     /** 内部：刷新表头右侧的滚动条预留宽度
     */
     void UpdateHeaderPadding();
+
     /** 内部：把列对齐字符串归一化为 text_align 可用的取值
     */
     DString AlignText(const DString& strAlign) const;
+
     /** 内部：刷新行复选框显示状态
     */
     void UpdateCheckBoxDisplay(TreeGridNode* pNode);
+
     /** 内部：向上回溯修正祖先的勾选状态
     */
     void UpdateParentCheckState(TreeGridNode* pNode, bool bTriggerEvent);
+
     /** 内部：递归设置子孙勾选状态
     */
     void SetChildrenCheckState(TreeGridNode* pNode, bool bChecked, bool bTriggerEvent);
+
     /** 内部：从列表体的选择状态同步到节点
     */
     void SyncSelectedFromBody();
+
     /** 内部：获取节点在列表体中的索引
     */
     size_t GetRowIndex(TreeGridNode* pNode) const;
+
     /** 内部：按列ID查找列索引
     */
     size_t GetColumnIndexById(size_t nColumnId) const;
+
     /** 内部：取节点对应的行控件
     */
     TreeGridRow* GetRow(TreeGridNode* pNode) const;
+
     /** 内部：表头右侧预留滚动条宽度
     */
     int32_t GetScrollBarReserveWidth() const;
+
     /** 内部：列表体选择事件（转发为 TreeGrid 自身的 kEventSelect，pEventData 为节点） */
     void OnBodyItemSelected(const EventArgs& msg);
+
     /** 内部：列表体取消选择事件 */
     void OnBodyItemUnSelected(const EventArgs& msg);
+
     /** 内部：列表体选择状态变化事件 */
     void OnBodySelChanged(const EventArgs& msg);
+
     /** 内部：列表体键盘事件（Left / Right 收起 / 展开当前节点） */
     bool OnBodyKeyDown(const EventArgs& msg);
+
     /** 内部：行控件被点击（转发为 TreeGrid 自身的 kEventClick，pEventData 为节点） */
     void OnRowClicked(TreeGridNode* pNode);
+
     /** 内部：展开开关被切换 */
     void OnExpandToggle(TreeGridNode* pNode, bool bExpand);
+
     /** 内部：行复选框被切换 */
     void OnCheckToggle(TreeGridNode* pNode, bool bChecked);
 
     /** 内部：判断节点的行是否应当可见（其所有祖先都处于展开状态）
     */
     bool IsNodeRowVisible(TreeGridNode* pNode) const;
+
     /** 内部：取节点的行高（逐行行高优先，否则用全局值）
     */
     int32_t GetNodeRowHeight(TreeGridNode* pNode) const;
+
     /** 内部：派发复选框状态变化事件
     */
     void FireCheckEvent(TreeGridNode* pNode);

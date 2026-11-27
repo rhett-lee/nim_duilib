@@ -391,6 +391,7 @@ private:
         bool m_bFolder = true;              //是否为文件夹
         bool m_bIconShared = false;         //该图标ID关联的图标是否为共享图标（共享图标不允许释放）        
     };
+
     /** 删除目录列表数据
     */
     void DeleteFolderStatus(FolderStatus* pFolderStatus);

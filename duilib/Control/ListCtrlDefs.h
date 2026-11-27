@@ -237,6 +237,7 @@ public:
         ListCtrlItemBaseV(pWindow)
     {
     }
+
     /** 获取控件类型
     */
     virtual DString GetType() const override { return _T("ListCtrlIconViewItem"); }
@@ -317,6 +318,7 @@ public:
         ListCtrlItemBaseH(pWindow)
     {
     }
+
     /** 获取控件类型
     */
     virtual DString GetType() const override { return _T("ListCtrlListViewItem"); }

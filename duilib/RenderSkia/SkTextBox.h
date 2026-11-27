@@ -218,6 +218,7 @@ public:
     class Visitor {
     public:
         virtual ~Visitor() {}
+
         /** 处理一行文字
          * @param [in] textData 本行可绘制的文本数据
          * @param [in] x 本行绘制X坐标

@@ -23,6 +23,7 @@ public:
         right = nRight;
         bottom = nBottom;
     }
+
     /** 清零
     */
     void Clear()

@@ -50,6 +50,7 @@ public:
     virtual void AddArc(const UiRectF& rect, float startAngle, float sweepAngle) override;
     virtual void AddPolygon(const UiPoint* points, int32_t count) override;
     virtual void AddPolygon(const UiPointF* points, int32_t count) override;
+
     /// 重写父类方法，请参考父类声明：路径变换
     virtual void Transform(const IMatrix* pMatrix) override;
 
