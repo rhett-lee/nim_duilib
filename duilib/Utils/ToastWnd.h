@@ -99,9 +99,14 @@ private:
     ToastWnd();
     virtual ~ToastWnd() override;
 
-    /** 资源相关接口
+    /** 获取窗口皮肤目录
+    * @return 返回窗口皮肤目录（相对路径，当前实现为 public/toast）
     */
     virtual DString GetSkinFolder() override;
+
+    /** 获取窗口皮肤 XML 描述文件
+    * @return 返回皮肤 XML 文件名（相对于 GetSkinFolder() 的目录，当前实现为 toast.xml）
+    */
     virtual DString GetSkinFile() override;
 
     /** 窗口创建完成后：填充内容、绑定交互、计算位置并播放入场动画、启动自动关闭计时
@@ -134,11 +139,21 @@ private:
     */
     void InitInteraction();
 
-    /** 启动/暂停/恢复自动关闭计时
+    /** 启动自动关闭计时
+    * @param [in] nDelayMs 延迟时长（毫秒），小于等于 0 表示不自动关闭
     */
     void StartAutoCloseTimer(int32_t nDelayMs);
+
+    /** 暂停自动关闭计时，并记录剩余的停留时长（鼠标悬停在通知上时调用）
+    */
     void PauseAutoCloseTimer();
+
+    /** 恢复自动关闭计时（鼠标移开后调用）；若剩余时长已耗尽，则直接关闭通知
+    */
     void ResumeAutoCloseTimer();
+
+    /** 取消自动关闭计时（重新计时或关闭窗口前调用）
+    */
     void CancelAutoCloseTimer();
 
     /** 播放入场动画（淡入 + 向上轻微滑动）

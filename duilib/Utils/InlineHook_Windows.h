@@ -18,7 +18,11 @@
 
 namespace ui 
 {
-/** inline hook的功能封装
+/** inline hook 的功能封装（仅支持 Windows 的 x86/x64 平台）
+*  1. Install() 在目标函数入口写入跳转指令，转到 hook 函数执行；
+*  2. 通过 GetTrampoline() 取得跳板函数地址，可在 hook 函数内调用原始函数；
+*  3. Uninstall() 恢复目标函数的原始指令。
+*  说明：ARM64 平台不支持该功能（DUILIB_ENABLE_INLINE_HOOK 未定义），相关接口调用会返回失败。
 */
 class InlineHook
 {
@@ -30,14 +34,16 @@ public:
 
 public:
     /** 安装 hook
-    * @param [in] targetFunc 被 hook 的目标函数地址
-    * @param [in] hookFunc 替换后执行的钩子函数地址
-    * @return 返回 true 表示安装成功，否则返回 false
+    * @param [in] targetFunc 被 hook 的目标函数地址，不能为 nullptr
+    * @param [in] hookFunc 替换后执行的钩子函数地址，不能为 nullptr
+    * @return 返回 true 表示安装成功，否则返回 false（参数为空、平台不支持或写入指令失败）
+    * @note 对同一个目标函数重复安装时只增加引用计数，需调用相同次数的 Uninstall() 才会真正移除
     */
     bool Install(void* targetFunc, void* hookFunc);
 
     /** 移除 hook，恢复目标函数的原始指令
     * @return 返回 true 表示移除成功，否则返回 false
+    * @note 引用计数减为 0 时才会真正恢复原始指令；未安装时调用会直接返回失败
     */
     bool Uninstall();
 

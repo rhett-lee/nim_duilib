@@ -12,6 +12,8 @@
 namespace ui
 {
 /** 跨进程单例的实现（通信协议部分）
+*  负责进程间传递数据的序列化与反序列化：
+*  数据包 = 协议头(ProtocolHeader) + 负载(各个参数以单元分隔符 0x1E 连接)。
 */
 class DUILIB_API ProcessSingletonData
 {
@@ -38,8 +40,11 @@ public:
     static constexpr size_t MAX_DATA_SIZE = 4096;
     
 public:
-    /** 序列化协议
-    * @param vecArgs 需要序列号的参数，单条数据最大1024字节，数据总长度最大4096字节
+    /** 序列化协议：把参数列表打包成可发送的数据包
+    * @param [in] vecArgs 需要序列化的参数，单条数据最大1024字节，数据总长度最大4096字节（MAX_DATA_SIZE）
+    * @return 返回序列化后的数据包（协议头 + 负载）
+    * @throw std::invalid_argument 单条参数超过1024字节时抛出
+    * @throw std::length_error 参数总长度超过 MAX_DATA_SIZE 时抛出
     */
     static std::string SerializeArguments(const std::vector<std::string>& vecArgs) 
     {
@@ -68,7 +73,11 @@ public:
         return strPackage;
     }
 
-    // 反序列化协议
+    /** 反序列化协议：把收到的数据包解析为参数列表
+    * @param [in] strPackage 收到的数据包（协议头 + 负载）
+    * @return 返回解析出的参数列表；参数为空时返回空列表
+    * @throw std::runtime_error 数据包长度不足、魔数不匹配、协议版本过高或负载长度超限时抛出
+    */
     static std::vector<std::string> DeserializeData(const std::string& strPackage) 
     {
         if (strPackage.size() < sizeof(ProtocolHeader)) {

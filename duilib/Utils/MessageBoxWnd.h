@@ -101,9 +101,14 @@ private:
     MessageBoxWnd();
     virtual ~MessageBoxWnd() override;
 
-    /** 资源相关接口
+    /** 获取窗口皮肤目录
+    * @return 返回窗口皮肤目录（相对路径，当前实现为 public/messagebox）
     */
     virtual DString GetSkinFolder() override;
+
+    /** 获取窗口皮肤 XML 描述文件
+    * @return 返回皮肤 XML 文件名（相对于 GetSkinFolder() 的目录，当前实现为 messagebox.xml）
+    */
     virtual DString GetSkinFile() override;
 
     /** 窗口创建完成后，填充文本/图标并按参数显隐按钮

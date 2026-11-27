@@ -16,6 +16,8 @@
 namespace ui
 {
 /** 跨进程单例的实现（通信部分，Linux实现）
+*  1. 使用用户运行时目录下的锁文件（flock）检测是否已有实例在运行；
+*  2. 使用 Unix 域套接字（SOCK_STREAM）把新进程的启动参数传递给已运行的实例。
 */
 class DUILIB_API ProcessSingletonImpl: public ProcessSingleton
 {
@@ -37,6 +39,9 @@ protected:
     ProcessSingletonImpl& operator=(const ProcessSingletonImpl&) = delete;
 
 public:
+    /** 初始化功能组件：创建运行时目录和锁文件，并尝试加排他锁
+    * @note 锁已被其他进程占用（已有实例在运行）时直接返回，不抛出异常；其他错误抛出 std::system_error
+    */
     virtual void InitializePlatformComponents() override final
     {
         try {
@@ -65,11 +70,18 @@ public:
         }
     }
 
+    /** 检查是否有其他进程正在运行
+    * @return 返回 true 表示锁已被其他进程占用（已有实例在运行），否则返回 false
+    */
     virtual bool PlatformCheckInstance() override final
     {
         return errno == EWOULDBLOCK;
     }
 
+    /** 向已经运行的进程发送数据（通过 Unix 域套接字）
+    * @param [in] strData 已经序列化的协议数据
+    * @return 返回 true 表示数据全部写入成功，否则返回 false（如套接字连接失败）
+    */
     virtual bool PlatformSendData(const std::string& strData) override final
     {
         try {
@@ -98,6 +110,8 @@ public:
         }
     }
 
+    /** 监听其他进程启动的事件：创建并绑定 Unix 域套接字，接收并解析数据后通过回调通知调用方
+    */
     virtual void PlatformListen() override final
     {
         try {
@@ -149,6 +163,8 @@ public:
         }
     }
     
+    /** 清理功能组件：解锁并关闭锁文件、关闭监听套接字，并等待监听线程退出
+    */
     virtual void CleanupPlatformComponents() override final
     {
         if (m_nLockFile != -1) {
@@ -166,6 +182,9 @@ public:
     }
 
 private:
+    /** 获取当前用户的运行时目录（优先 $XDG_RUNTIME_DIR，其次 $HOME/.cache，最后回退到 /tmp）
+    * @return 返回运行时目录的路径（不保证目录已存在）
+    */
     std::string GetUserRuntimePath() 
     {
         const char* pszXdgRuntimeDir = ::getenv("XDG_RUNTIME_DIR");
@@ -181,6 +200,10 @@ private:
         return "/tmp/.cppapp_" + std::to_string(getuid());
     }
     
+    /** 逐级创建目录（权限 0700），已存在的目录会被跳过
+    * @param [in] strPath 需要创建的目录路径
+    * @throw std::system_error 创建目录失败时抛出
+    */
     static void CreateDirectoryRecursive(const std::string& strPath)
     {
         std::string::size_type nPos = 0;

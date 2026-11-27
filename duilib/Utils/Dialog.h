@@ -41,6 +41,7 @@ public:
     void SetTitle(const DString& title);
 
     /** 设置文字是否使用多语言 ID（影响标题与按钮文字，默认 false）
+    * @param [in] bTextId true表示按多语言 ID 处理，false表示直接使用原始文字
     */
     void SetTextIdMode(bool bTextId);
 
@@ -60,6 +61,7 @@ public:
     void SetSize(int32_t nWidth, int32_t nHeight);
 
     /** 是否显示标题栏（默认 true）；隐藏后只能通过 ESC 或按钮关闭
+    * @param [in] bVisible true显示标题栏，false隐藏标题栏
     */
     void SetTitleBarVisible(bool bVisible);
 
@@ -95,18 +97,25 @@ public:
     */
     int32_t DoModal(ui::WindowBase* pParentWindow);
 
-    /** 获取被点击按钮的索引（取消/关闭时为 -1）
+    /** 获取被点击按钮的索引（取消/关闭或创建失败时为 -1）
+    * @return 被点击按钮的索引（从 0 开始）；未点击任何按钮时返回 -1
     */
     int32_t GetClickedButtonIndex() const;
 
     /** 获取被点击按钮的标识（取消/关闭时为空）
+    * @return 被点击按钮的标识；未点击任何按钮时返回空字符串
     */
     DString GetClickedButtonId() const;
 
 public:
-    /** 资源相关接口
+    /** 获取资源目录（相对资源根目录，默认为 "public"）
+    * @return 资源目录名称
     */
     virtual DString GetSkinFolder() override;
+
+    /** 获取窗口布局的 XML（由本类在运行时动态生成，不依赖独立的 XML 文件）
+    * @return 窗口布局的 XML 字符串
+    */
     virtual DString GetSkinFile() override;
 
 protected:
@@ -119,6 +128,11 @@ protected:
     virtual void OnPreCloseWindow() override;
 
     /** 键盘按下：TAB 导航时开启按钮的焦点矩形显示
+    * @param [in] vkCode 虚拟键码
+    * @param [in] modifierKey 修饰键状态（Ctrl/Shift/Alt 等）
+    * @param [in] nativeMsg 平台原生消息
+    * @param [out] bHandled 是否已处理该消息
+    * @return 消息处理结果
     */
     virtual LRESULT OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
 
@@ -138,14 +152,18 @@ private:
     };
 
     /** 组装窗口 XML（标题栏 + 内容区 + 按钮区）
+    * @return 组装完成的窗口 XML 字符串
     */
     DString BuildWindowXml();
 
     /** 返回默认按钮的索引：优先标记为默认的按钮，否则返回第一个按钮
+    * @return 默认按钮的索引；没有按钮时返回 -1
     */
     int32_t GetDefaultButtonIndex() const;
 
     /** XML 属性值转义
+    * @param [in] text 待转义的原始文本
+    * @return 转义后的文本（& < > " ' 会被转换为对应的 XML 实体）
     */
     static DString XmlEscape(const DString& text);
 

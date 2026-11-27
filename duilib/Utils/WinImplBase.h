@@ -116,10 +116,13 @@ protected:
     /** 判断是否含有最大化和最小化按钮
     * @param [out] bMinimizeBox 返回true表示含有最小化按钮
     * @param [out] bMaximizeBox 返回true表示含有最大化按钮
+    * @return 当前实现始终返回 true
     */
     virtual bool HasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) const override;
 
     /** 判断一个点是否在最大化或者还原按钮上
+    * @param [in] pt 待判断的点（客户区坐标）
+    * @return 返回 true 表示该点在最大化按钮或还原按钮上，否则返回 false
     */
     virtual bool IsPtInMaximizeRestoreButton(const UiPoint& pt) const override;
 
@@ -139,34 +142,42 @@ protected:
 
 protected:
     /** 获取窗口标题栏控件
+    * @return 返回标题栏控件指针，未找到时返回 nullptr
     */
     Control* GetWindowTitleBar() const;
 
     /** 获取窗口最大化按钮
+    * @return 返回最大化按钮控件指针，未找到时返回 nullptr
     */
     Control* GetBtnWindowMax() const;
 
     /** 获取窗口还原按钮
+    * @return 返回还原按钮控件指针，未找到时返回 nullptr
     */
     Control* GetBtnWindowRestore() const;
 
     /** 获取窗口最小化按钮
+    * @return 返回最小化按钮控件指针，未找到时返回 nullptr
     */
     Control* GetBtnWindowMin() const;
 
     /** 获取窗口关闭按钮
+    * @return 返回关闭按钮控件指针，未找到时返回 nullptr
     */
     Control* GetBtnWindowClose() const;
 
     /** 获取窗口全屏按钮
+    * @return 返回全屏按钮控件指针，未找到时返回 nullptr
     */
     Control* GetBtnWindowFullscreen() const;
 
     /** 获取选择语言按钮
+    * @return 返回选择语言按钮控件指针，未找到时返回 nullptr
     */
     Control* GetBtnSelectLanguage() const;
 
     /** 获取选择主题按钮
+    * @return 返回选择主题按钮控件指针，未找到时返回 nullptr
     */
     Control* GetBtnSelectTheme() const;
 
@@ -174,6 +185,7 @@ private:
     /** 获取窗口按钮
     * @param [in] newCtrlName 控件最新的名称
     * @param [in] oldCtrlName 控件旧的名称（为了保持兼容性）
+    * @return 返回找到的按钮控件指针，未找到时返回 nullptr
     */
     Control* GetBtnWindowByName(const DString& newCtrlName, const DString& oldCtrlName) const;
 

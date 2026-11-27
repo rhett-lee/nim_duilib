@@ -31,7 +31,9 @@ enum class TrayIconMessageType
  */
 typedef std::function<void(TrayIconMessageType msgType, int32_t x, int32_t y)> TrayIconMessageCallback;
 
-/** 托盘图标功能
+/** 托盘图标功能（Windows 平台基于 Shell_NotifyIcon，SDL 平台基于 SDL_Tray）
+*   通过 Create 创建实例，支持设置图标、提示文本、气泡提示、显示/隐藏与移除；
+*   鼠标消息通过 SetMessageCallback 设置的回调函数通知调用方。
 */
 class DUILIB_API TrayIcon
 {
@@ -44,16 +46,16 @@ public:
     virtual ~TrayIcon();
 
     /** 创建托盘图标实例
-    * @param [in] pWindow 关联的窗口指针
+    * @param [in] pWindow 关联的窗口指针，可为 nullptr（用于查找相对路径的图片资源）
     * @param [in] iconFilePath 图标文件路径（支持*.ico格式，其他格式也支持，但推荐ICO格式）
-    * @param [in] tooltip 托盘提示文本
+    * @param [in] tooltip 托盘提示文本，默认为空
     * @return 托盘图标实例指针，创建失败返回nullptr
     */
     static std::unique_ptr<TrayIcon> Create(const Window* pWindow, const DString& iconFilePath, const DString& tooltip = _T(""));
 
 public:
     /** 设置托盘图标
-    * @param [in] pWindow 关联的窗口指针(用于查找图片资源)
+    * @param [in] pWindow 关联的窗口指针(用于查找图片资源)，可为 nullptr
     * @param [in] iconFilePath 图标文件路径（支持*.ico格式，其他格式也支持，但推荐ICO格式）
     * @return 设置成功返回true，失败返回false
     */
@@ -97,7 +99,7 @@ public:
     virtual bool Remove() = 0;
 
     /** 获取内部实现的托盘句柄
-    *@return SDL实现时，返回的是SDL_Tray*，Windows SDK实现时，返回的是托盘窗口句柄HWND 
+    * @return SDL实现时，返回的是 SDL_Tray*；Windows SDK实现时，返回的是托盘窗口句柄 HWND
     */
     virtual void* GetTrayHandle() const = 0;
 
@@ -107,7 +109,10 @@ public:
     void SetMessageCallback(TrayIconMessageCallback callback);
 
 protected:
-    /** 触发消息回调
+    /** 触发消息回调（未设置回调时不做任何处理）
+    * @param [in] msgType 消息类型
+    * @param [in] x 鼠标X坐标（屏幕坐标）
+    * @param [in] y 鼠标Y坐标（屏幕坐标）
     */
     void NotifyMessage(TrayIconMessageType msgType, int32_t x, int32_t y);
 

@@ -9,56 +9,70 @@
 namespace ui
 {
 class Window;
+
+/** 界面属性解析工具类，主要提供以下功能：
+ *  1. 解析 Size、Point、Rect、Padding、Margin 等基础几何属性；
+ *  2. 解析带引号或花括号的复合属性列表；
+ *  3. 解析并校验窗口大小（支持像素值和屏幕百分比）。
+ */
 class DUILIB_API AttributeUtil
 {
 public:
     /** 配置字符串解析：跳过一个分隔符（不会跳过字符串结尾的 '\0'，避免越界）
-    * @param [in,out] pPtr 当前解析位置的指针，函数返回后指向下一个字符
+    * @param [in,out] pPtr 当前解析位置的指针，函数返回后指向下一个字符；为 nullptr 时不做任何处理
     */
     static void SkipSepChar(wchar_t*& pPtr);
     static void SkipSepChar(char*& pPtr);
 
     /** 从配置中解析一个Size结构，输入格式如："800,500"
+    * @param [in] strValue 待解析的字符串，可为 nullptr（此时 size 被清空）
+    * @param [out] size 解析出的尺寸（cx 对应宽度，cy 对应高度）
     */
     static void ParseSizeValue(const wchar_t* strValue, UiSize& size);
     static void ParseSizeValue(const char* strValue, UiSize& size);
 
     /** 从配置中解析一个Point结构，输入格式如："800,500"
+    * @param [in] strValue 待解析的字符串，可为 nullptr（此时坐标点为 (0,0)）
+    * @param [out] size 解析出的坐标点（x、y 依次对应输入的两个数值）
     */
     static void ParsePointValue(const wchar_t* strValue, UiPoint& size);
     static void ParsePointValue(const char* strValue, UiPoint& size);
 
     /** 从配置中解析一个Rect结构（宽字符版本），输入格式如："80,50,60,70"
-    * @param [in] strValue 待解析的字符串
+    * @param [in] strValue 待解析的字符串，可为 nullptr（此时 rect 被清空）
     * @param [out] rect 解析出的矩形（left, top, right, bottom）
-    * @param [in] bCheckSize 是否检查宽高是否为非负值（仅调试版断言）
+    * @param [in] bCheckSize 是否检查宽高是否为非负值（仅调试版断言，默认 true）
     */
     static void ParseRectValue(const wchar_t* strValue, UiRect& rect, bool bCheckSize = true);
+
     /** 从配置中解析一个Padding结构（宽字符版本），输入格式如："4,4,4,4"
-    * @param [in] strValue 待解析的字符串
-    * @param [out] padding 解析出的内边距（left, top, right, bottom）
+    * @param [in] strValue 待解析的字符串，可为 nullptr（此时 padding 被清空）
+    * @param [out] padding 解析出的内边距（left, top, right, bottom）；负值会被修正为 0
     */
     static void ParsePaddingValue(const wchar_t* strValue, UiPadding& padding);
+
     /** 从配置中解析一个Margin结构（宽字符版本），输入格式如："4,4,4,4"
-    * @param [in] strValue 待解析的字符串
-    * @param [out] margin 解析出的外边距（left, top, right, bottom）
+    * @param [in] strValue 待解析的字符串，可为 nullptr（此时 margin 被清空）
+    * @param [out] margin 解析出的外边距（left, top, right, bottom）；负值会被修正为 0
     */
     static void ParseMarginValue(const wchar_t* strValue, UiMargin& margin);
 
     /** 从配置中解析一个Rect结构（窄字符版本），输入格式如："80,50,60,70"
-    * @param [in] strValue 待解析的字符串
+    * @param [in] strValue 待解析的字符串，可为 nullptr（此时 rect 被清空）
     * @param [out] rect 解析出的矩形（left, top, right, bottom）
-    * @param [in] bCheckSize 是否检查宽高是否为非负值（仅调试版断言）
+    * @param [in] bCheckSize 是否检查宽高是否为非负值（仅调试版断言，默认 true）
     */
     static void ParseRectValue(const char* strValue, UiRect& rect, bool bCheckSize = true);
+
     /** 从配置中解析一个Padding结构（窄字符版本），输入格式如："4,4,4,4"
-    * @param [in] strValue 待解析的字符串
-    * @param [out] padding 解析出的内边距（left, top, right, bottom）
+    * @param [in] strValue 待解析的字符串，可为 nullptr（此时 padding 被清空）
+    * @param [out] padding 解析出的内边距（left, top, right, bottom）；负值会被修正为 0
     */
     static void ParsePaddingValue(const char* strValue, UiPadding& padding);
+
     /** 从配置中解析一个Margin结构（窄字符版本），输入格式如："4,4,4,4"
-    * @param [in] strValue 待解析的字符串
-    * @param [out] margin 解析出的外边距（left, top, right, bottom）
+    * @param [in] strValue 待解析的字符串，可为 nullptr（此时 margin 被清空）
+    * @param [out] margin 解析出的外边距（left, top, right, bottom）；负值会被修正为 0
     */
     static void ParseMarginValue(const char* strValue, UiMargin& margin);
 
@@ -69,31 +83,32 @@ public:
      * (4) 使用花括号(当无法用单引号和双引号时，可适当使用花括号):
      *     combo_button_class="height='stretch' hovered_image={file='test/arrow_hot.svg' valign='center'}"
      * @param [in] strList 需要解析的属性列表，格式如上说明
-     * @param [out] attributeList 返回解析结果的name和value列表
-     * @param [in] seperateStartChars 起始分隔符集合（如_T("\"'{["）
-     * @param [in] seperateEndChars 结束分隔符集合，必须与起始分隔符集合配对（如_T("\"'}]"));
+     * @param [out] attributeList 返回解析结果的name和value列表（函数内部会先清空）
+     * @param [in] seperateStartChars 起始分隔符集合，默认为双引号、单引号、左花括号和左方括号
+     * @param [in] seperateEndChars 结束分隔符集合，必须与起始分隔符集合配对，默认为双引号、单引号、右花括号和右方括号
      * @return 当解析出至少一个属性-值时，返回true，否则返回false
      */
     static bool ParseAttributeList(const DString& strList, std::vector<std::pair<DString, DString>>& attributeList,
                                    const DString& seperateStartChars = _T("\"'{["),
                                    const DString& seperateEndChars = _T("\"'}]"));
 
-    /** 解析一个字符串（格式为："500,"或者"50%,"，逗号可有可无，也可以是其他字符），得到整型值或者浮点数
-    * @param [in] strValue 待解析的字符串地址
-    * @param [out] pEndPtr 解析完成后，字符串结束地址，用于继续解析后面的内容
-    * @return 返回整型值或者百分比，返回值中，0 或者 0.0f 表示无效值
+    /** 解析一个字符串（格式为："500,"或者"50%,"，逗号可有可无，也可以是其他字符），得到整型值或者百分比
+    * @param [in] strValue 待解析的字符串地址，可为 nullptr（此时返回 (0, 0.0f)）
+    * @param [out] pEndPtr 解析完成后，字符串结束地址，用于继续解析后面的内容；可为 nullptr（此时不输出该地址）
+    * @return 返回 (整型值, 百分比值)：配置为整型值时百分比值为 0.0f；
+    *         配置为百分比时整型值为 0，百分比值单位为 %（例如 50.0f 表示 50%）；解析失败时返回 (0, 0.0f)
     */
     static std::tuple<int32_t, float> ParseString(const wchar_t* strValue, wchar_t** pEndPtr);
     static std::tuple<int32_t, float> ParseString(const char* strValue, char** pEndPtr);
 
-    /** 获取配置中的窗口大小
-    * @param [in] pWindow 关联的窗口，可以为nullptr
+    /** 获取配置中的窗口大小，支持 "1200,800"、"50%,50%"、"1200,50%" 等格式（百分比指屏幕工作区的百分比）
+    * @param [in] pWindow 关联的窗口，可以为nullptr（此时按主显示器的工作区计算，且不做DPI缩放）
     * @param [in] strValue 需要解析的窗口大小字符串
-    * @param [out] size 解析出的窗口大小值（像素）
-    * @param [out] pScaledCX 返回窗口宽度size.cx值是否执行过DPI缩放
-    * @param [out] pScaledCY 返回窗口高度size.cy值是否执行过DPI缩放
-    * @param [out] pPercentCX 返回窗口宽度size.cx值的配置是否为屏幕百分比
-    * @param [out] pPercentCY 返回窗口高度size.cy值的配置是否为屏幕百分比
+    * @param [out] size 解析出的窗口大小值（像素）；结果不会超过屏幕工作区的宽高
+    * @param [out] pScaledCX 返回窗口宽度size.cx值是否执行过DPI缩放，可为 nullptr
+    * @param [out] pScaledCY 返回窗口高度size.cy值是否执行过DPI缩放，可为 nullptr
+    * @param [out] pPercentCX 返回窗口宽度size.cx值的配置是否为屏幕百分比，可为 nullptr
+    * @param [out] pPercentCY 返回窗口高度size.cy值的配置是否为屏幕百分比，可为 nullptr
     */
     static void ParseWindowSize(const Window* pWindow, const DString::value_type* strValue,
                                 UiSize& size,
@@ -101,9 +116,10 @@ public:
                                 bool* pPercentCX, bool* pPercentCY);
 
     /** 对窗口大小进行校验，避免超出窗口所在屏幕的区域
-    * @param [in] pWindow 关联的窗口，可以为nullptr
-    * @param [in,out] nWindowWidth 窗口宽度
-    * @param [in,out] nWindowHeight 窗口高度
+    * @param [in] pWindow 关联的窗口，可以为nullptr（此时按主显示器的工作区计算）
+    * @param [in,out] nWindowWidth 窗口宽度；超过屏幕工作区宽度时，按工作区宽度的95%修正
+    * @param [in,out] nWindowHeight 窗口高度；超过屏幕工作区高度时，按工作区高度的95%修正
+    * @note 显示器信息获取失败（工作区为空）时不做修正
     */
     static void ValidateWindowSize(const Window* pWindow, int32_t& nWindowWidth, int32_t& nWindowHeight);
 };

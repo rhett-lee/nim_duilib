@@ -13,6 +13,8 @@
 namespace ui
 {
 /** 跨进程单例的实现（通信部分, Windows实现）
+*  1. 使用命名互斥体（名称包含当前用户SID）检测是否已有实例在运行；
+*  2. 使用命名管道（重叠I/O）把新进程的启动参数传递给已运行的实例。
 */
 class DUILIB_API ProcessSingletonImpl : public ProcessSingleton
 {
@@ -34,6 +36,9 @@ protected:
     ProcessSingletonImpl& operator=(const ProcessSingletonImpl&) = delete;
 
 public:
+    /** 初始化功能组件：创建命名互斥体和用于退出监听的取消事件
+    * @note 创建失败时抛出 std::system_error 等异常，并先清理已创建的资源
+    */
     virtual void InitializePlatformComponents() override final
     {
         try {
@@ -65,11 +70,18 @@ public:
         }
     }
 
+    /** 检查是否有其他进程正在运行
+    * @return 返回 true 表示互斥体已存在（已有实例在运行），否则返回 false
+    */
     virtual bool PlatformCheckInstance() override final
     {
         return m_dwLastError == ERROR_ALREADY_EXISTS;
     }
 
+    /** 向已经运行的进程发送数据（通过命名管道）
+    * @param [in] strData 已经序列化的协议数据
+    * @return 返回 true 表示数据全部写入成功，否则返回 false
+    */
     virtual bool PlatformSendData(const std::string& strData) override final
     {
         try {
@@ -115,6 +127,8 @@ public:
         }
     }
 
+    /** 监听其他进程启动的事件：在循环中创建命名管道，接收并解析数据后通过回调通知调用方
+    */
     virtual void PlatformListen() override final
     {
         while (m_bRunning) {
@@ -196,6 +210,8 @@ public:
         }
     }
     
+    /** 清理功能组件：通知并等待监听线程退出，然后关闭取消事件和互斥体句柄
+    */
     virtual void CleanupPlatformComponents() override final
     {
         m_bRunning = false;
@@ -216,6 +232,13 @@ public:
     }
     
 private:
+    /** 等待重叠I/O操作完成（同时监听取消事件）
+    * @param [in] hPipe 命名管道句柄
+    * @param [in,out] overlapped 重叠I/O结构体（其中 hEvent 为操作完成事件）
+    * @param [in] hCancelEvent 取消事件句柄，触发时取消当前I/O操作
+    * @param [out] pBytesTransferred 返回实际传输的字节数，可为 nullptr
+    * @return 返回 true 表示操作完成且成功，否则返回 false（被取消或出错）
+    */
     bool WaitForPipe(HANDLE hPipe, OVERLAPPED& overlapped, HANDLE hCancelEvent, DWORD* pBytesTransferred = nullptr) const
     {
         HANDLE waitHandles[2] = {overlapped.hEvent, hCancelEvent};
@@ -260,6 +283,11 @@ private:
         }
         return bRet;
     }
+
+    /** 获取包含当前用户SID的唯一名称（用于互斥体和管道命名）
+    * @return 返回 "Local\\应用名_SID" 形式的名称（应用名从UTF-8转换为UTF-16）
+    * @throw std::system_error 或 std::runtime_error 获取用户SID失败时抛出
+    */
     std::wstring GetUserSpecificName() 
     {
         HANDLE hToken = nullptr;

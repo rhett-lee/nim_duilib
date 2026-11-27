@@ -7,10 +7,13 @@
 
 namespace ui 
 {
+    /** 位图与渲染对象的辅助功能（SDL 平台实现）
+    */
     namespace BitmapHelper 
     {
         /** 创建一个Render对象，并复制Bitmap上的内容到Render
-        * @return 返回的Render对象，由调用者负责释放资源
+        * @param [in] pBitmap 源Bitmap，不能为nullptr
+        * @return 返回的Render对象，由调用者负责释放资源；创建失败时返回nullptr
         */
         IRender* CreateRenderObject(IBitmap* pBitmap);
     }

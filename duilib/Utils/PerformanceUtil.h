@@ -18,7 +18,9 @@
 
 namespace ui 
 {
-/** 代码执行性能分析工具
+/** 代码执行性能分析工具（按字符串名称统计）
+*  构造时开始计时（统计项不存在时会自动添加），析构或调用 EndStat() 时结束本次统计；
+*  统计结果由 PerformanceUtilHelper 统一累计，并在其析构时输出统计日志。
 */
 class DUILIB_API PerformanceUtil
 {
@@ -26,7 +28,8 @@ public:
     explicit PerformanceUtil(const DString& statName);
     ~PerformanceUtil();
 
-    //主动结束统计
+    /** 主动结束统计（结束后析构函数不会重复统计）
+    */
     void EndStat();
 
 private:
@@ -34,7 +37,8 @@ private:
     size_t m_nameHash;  //统计项的显示名称的Hash值
 };
 
-/** 代码执行性能分析工具（快速版，避免使用字符串的hash函数）
+/** 代码执行性能分析工具（快速版，避免每次统计都计算字符串的hash值）
+*  构造时传入预先计算好的名称Hash值并开始计时；析构或调用 EndStat() 时结束本次统计。
 */
 class DUILIB_API PerformanceUtilFast
 {
@@ -42,14 +46,16 @@ public:
     explicit PerformanceUtilFast(size_t nameHash);
     ~PerformanceUtilFast();
 
-    //主动结束统计
+    /** 主动结束统计（结束后析构函数不会重复统计）
+    */
     void EndStat();
 
 private:
     size_t m_nameHash;  //统计项的显示名称的Hash值
 };
 
-/** 代码执行性能分析工具（实现）
+/** 代码执行性能分析工具的实现类（单例）
+*  负责统计项的注册、计时累计与结果输出；是否输出统计日志由 DUILIB_PERFORMANCE_STAT_ENABLED 宏控制。
 */
 class DUILIB_API PerformanceUtilHelper
 {
@@ -57,32 +63,34 @@ public:
     PerformanceUtilHelper();
     ~PerformanceUtilHelper();
 
-    /** 单例对象
+    /** 获取单例对象
+    * @return 返回全局唯一的实现类对象引用
     */
     static PerformanceUtilHelper& Instance();
 
-    /** 代码开始执行，开始计时
-    * @param [in] name 统计项的名称
+    /** 代码开始执行，开始计时（统计项不存在时会自动添加）
+    * @param [in] name 统计项的名称，不能为空
     */
     void BeginStat(const DString& name);
 
     /** 代码结束执行，统计执行性能
-    * @param [in] name 统计项的名称
+    * @param [in] name 统计项的名称，需与 BeginStat 使用的名称一致
     */
     void EndStat(const DString& name);
 
 public:
-    /** 增加一个统计，但不开始统计
+    /** 增加一个统计项，但不开始统计
+    * @param [in] name 统计项的名称，不能为空
     */
     void AddStat(const DString& name);
 
-    /** 代码开始执行，开始计时
-    * @param [in] nameHash 统计项的名称的Hash值
+    /** 代码开始执行，开始计时（统计项不存在时会自动添加）
+    * @param [in] nameHash 统计项的名称的Hash值（std::hash<DString> 的结果）
     */
     void BeginStat(size_t nameHash);
 
     /** 代码结束执行，统计执行性能
-    * @param [in] nameHash 统计项的名称的Hash值
+    * @param [in] nameHash 统计项的名称的Hash值，需与 BeginStat 使用的值一致
     */
     void EndStat(size_t nameHash);
     
