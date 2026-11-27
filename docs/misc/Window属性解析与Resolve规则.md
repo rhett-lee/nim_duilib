@@ -247,6 +247,7 @@ GL 有效时：
 | 显式 `layered_window="true"` 且无高优先级冲突 | `true` |
 | 显式 `layered_window="false"` | `false` |
 | 未显式设置，但 `opacity < 255` | `true` |
+| 未显式设置，但 `alpha < 255` | `true` |
 | 未显式设置，但阴影类型要求分层 | `true` |
 | 其他 | `false` |
 
@@ -297,7 +298,8 @@ SDL 不使用操作系统分层窗口，`layered_window` 语义映射为 **`SDL_
 1. **创建窗口前显式调用 `Window::SetLayeredWindow` 的请求值**；
 2. `WindowCreateAttributes.m_bIsLayeredWindow`（应来自 Resolve）；
 3. `WindowCreateAttributes` 未定义分层窗口、但 `opacity < 255` 时，推导为 true；
-4. 默认 false。
+4. `WindowCreateAttributes` 未定义分层窗口、但 `alpha < 255` 时，推导为 true；
+5. 默认 false。
 
 **`WindowCreateParam::m_dwExStyle` 不参与分层窗口决策：**
 
@@ -307,11 +309,11 @@ SDL 不使用操作系统分层窗口，`layered_window` 语义映射为 **`SDL_
 
 补充决策：
 
-- `m_bIsLayeredWindowDefined=true` 时以它的值为准；显式 `false` 不会被 `opacity` 重新打开；
-- 只有在 `m_bIsLayeredWindowDefined=false` 时，才允许根据 `opacity` 推导；
+- `m_bIsLayeredWindowDefined=true` 时以它的值为准；显式 `false` 不会被 `opacity`、`alpha` 重新打开；
+- 只有在 `m_bIsLayeredWindowDefined=false` 时，才允许根据 `opacity`、`alpha` 推导；
 - 使用系统标题栏时，XML/Resolve 配置必须关闭分层窗口；创建前 API 显式设置优先（运行时显式命令高于配置）；
 - 创建前 API 的请求值由原生窗口保存，创建窗口成功后清除"创建前设置"标志；
-- `WindowCreateAttributes` 应只由 `WindowAttributes` 的 Resolve 产生。若调用方手工构造，必须自行保证 `m_bIsLayeredWindow` 已包含标题栏、opacity、阴影的最终结论；原生层不再二次裁决；
+- `WindowCreateAttributes` 应只由 `WindowAttributes` 的 Resolve 产生。若调用方手工构造，必须自行保证 `m_bIsLayeredWindow` 已包含标题栏、opacity、alpha、阴影的最终结论；原生层不再二次裁决；
 - 子窗口：父窗口为分层窗口时，Windows 8+ 子窗口继承 `WS_EX_LAYERED`；Windows 7 及更早不支持，创建后设置请求返回失败，创建前设置会被忽略；
 - 窗口创建后，`InitNativeWindow` 以实际 `GetWindowLong(GWL_EXSTYLE)` 回写缓存，保证不变量：
   `IsLayeredWindow() == ((GetWindowLong(GWL_EXSTYLE) & WS_EX_LAYERED) != 0)`；
@@ -330,7 +332,9 @@ SDL 不使用操作系统分层窗口，`layered_window` 语义映射为 **`SDL_
 | 外部 API 设置后，WindowBuilder 应用 layered 配置 | 外部 API 优先，不覆盖；系统标题栏切换除外 |
 | XML/Resolved 分层=true，系统标题栏=true | 标题栏优先，`false` |
 | XML 未定义分层，`opacity < 255` | 分层，`true` |
+| XML 未定义分层，`alpha < 255` | 分层，`true` |
 | XML 显式分层=false，`opacity < 255` | 显式 false 优先，`false`，opacity 有效值关闭 |
+| XML 显式分层=false，`alpha < 255` | 显式 false 优先，`false`，alpha 有效值关闭 |
 | `m_createParam.m_dwExStyle` 含 `WS_EX_LAYERED`（无其他分层来源） | 忽略并清除，`false` |
 | `m_createParam.m_dwExStyle` 含 `WS_EX_LAYERED`，XML/Resolved 分层=true | 以 XML/Resolved 为准，`true`；该位不增加决策输入 |
 | Windows 7 及更早的子窗口请求分层=true | 不支持，创建后请求失败；创建前设置被忽略 |
