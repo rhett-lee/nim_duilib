@@ -1,12 +1,12 @@
 简体中文 | [English](README.en.md)
 
-> 英文版 `README.en.md` 最近同步于 2026-10-31。
+> 英文版 `README.en.md` 最近同步于 2026-11-27。
 
 # nim_duilib
 
 [nim_duilib](https://github.com/rhett-lee/nim_duilib) 是一款基于 **C++20** 的跨平台桌面 UI 库，源于经典 duilib（经 NIM_Duilib_Framework 演进）：用 XML 描述界面结构与样式，用 C++ 编写业务逻辑，渲染由 Skia 完成。同一套界面代码可以构建到 Windows、Linux、macOS 与 FreeBSD，适合既需要原生窗口能力（托盘、网页控件、系统通知、DPI 感知）、又不想为每个平台重写一套界面的桌面客户端。
 
-- 语言标准：`main`、`develop` 为 C++20；`develop-cpp17` 分支为 C++17（仅用于 Windows VS2017/VS2019）
+- 语言标准：常规开发使用 `main`（默认分支，C++20）；`develop` 为 C++20 开发分支，`develop-cpp17` 为 C++17（仅用于 Windows VS2017/VS2019）
 - 支持平台：Windows 7/10/11（x86/x64/arm64；Windows 7 使用 CEF 109）、Linux x64、macOS x64/arm64、FreeBSD x64
 - 版本信息：版本号见 [duilib/duilib_version.h](duilib/duilib_version.h)，发布包见 GitHub Releases，变更记录见 [CHANGELOG.md](CHANGELOG.md)
 - 许可证：[MIT](LICENSE)
@@ -51,11 +51,17 @@
 
 <img width="760" src="docs/Images/controls.png"/>
 
+上图为完整控件演示；下图是 `examples/basic` 的最小窗口，也是新手创建自己程序时的起点：
+
+<img width="480" src="docs/Images/basic.png"/>
+
 其余示例（basic、render、layout、ListCtrl、TreeView、CEF 等）的截图与说明见 [docs/Examples.md](docs/Examples.md)。
 
 ## 环境与依赖要求
 
 构建分为两部分：编译器与基础工具由你准备，第三方源码依赖（Skia/SDL3/CEF）由 `build.py` 按 [版本清单](cmake/third_party_versions.json) 自动获取、编译并缓存到仓库同级目录。因此本机不需要预装这些依赖的库文件；但系统开发包缺失时，CMake 配置阶段会直接报错，按报错补装即可。
+
+**首次构建的资源要求**：需要从源码编译 Skia 并下载 CEF，建议预留 **10 GB 以上空闲磁盘**（依赖源码、构建树与 CEF 运行时会占用数 GB）和 **8 GB 以上内存**。首次构建通常需要十几分钟到一小时，之后增量构建不会重复下载与编译。网络受限时可用 `--offline`（只使用已缓存或本地归档）或 `--cef-archive <file>` 指定本地 CEF 归档；依赖目录可用 `--deps-root` 放到其他磁盘，避免占用系统盘。
 
 ### 语言与编译器
 
@@ -111,13 +117,15 @@ Linux 上还需要发行版提供的 X11、字体、OpenGL/EGL、DBus/ibus 等�
 
 ## 快速开始
 
-以下步骤假设机器上已装好上表中的编译器与构建工具，并且能访问 GitHub。首次构建需要从源码编译 Skia 并下载 CEF 运行时，耗时从十几分钟到一小时不等；依赖会缓存在仓库同级目录（可用 `--deps-root` 修改），之后的增量构建不再重复下载和编译。
+以下步骤假设机器上已装好上表中的编译器与构建工具，并且能访问 GitHub。首次构建的耗时与资源占用见上一节；依赖会缓存在仓库同级目录（可用 `--deps-root` 修改），之后的增量构建不再重复下载和编译。
 
 ### 为什么统一使用 `python3 build/build.py`
 
-仓库不再为各平台提供不同的构建脚本，文档里的命令也统一写成 `python3 build/build.py`。这样做的原因有三点：Skia 的构建脚本固定调用 `python3`，缺少 `python3` 时会在编译 Skia 前直接失败，`python` 不能替代；macOS/Linux 的常见环境只提供 `python3`，命令若写成 `python` 会报 command not found；统一成同一条命令后，文档只需维护一套命令，新用户不必先判断自己该用哪个脚本，参数、子命令与产物路径在各平台完全一致，学习成本最低。`build.py` 会自动识别当前平台与编译器、选择生成器、准备依赖，并附带 `doctor`（环境自检）、`deps`（只准备依赖）、`test`（单元测试）、`pack`（出包）、`clean`（清理）等子命令。
+仓库不再为各平台提供不同的构建脚本，所有命令统一写成 `python3 build/build.py`：Skia 的构建脚本固定调用 `python3`，缺少时会在编译 Skia 前直接失败；macOS/Linux 的常见环境也只提供 `python3`。`build.py` 会自动识别平台与编译器、选择生成器、准备依赖，并提供 `doctor`（环境自检）、`deps`（只准备依赖）、`test`（单元测试）、`pack`（出包）、`clean`（清理）等子命令。
 
-Windows 上如果没有 `python3` 命令，可以把命令开头的 `python3` 换成 `py -3`，或换成环境里指向 Python 3 的 `python`（先用 `--version` 确认版本），例如 `py -3 build\build.py deps`。这两种写法只适用于 Windows，本文其他命令示例一律使用 `python3`。需要注意，它们只改变 `build.py` 的启动方式，Skia 构建阶段仍要求 PATH 中存在 `python3`，否则会在编译 Skia 前报错终止。
+`python3 build/build.py` 不带子命令时等价于 `python3 build/build.py build`，即构建 Release 的库与示例。
+
+> **Windows 提示**：没有 `python3` 命令时，把命令开头的 `python3` 换成 `py -3`（如 `py -3 build\build.py deps`），或换成指向 Python 3 的 `python`（先用 `--version` 确认版本）。这只改变 `build.py` 的启动方式；Skia 构建阶段仍要求 PATH 中存在 `python3`，否则会在编译 Skia 前报错终止。
 
 ### Windows（已验证：Windows 10/11 x64 + VS 2022/VS 2026）
 
@@ -131,7 +139,15 @@ python3 build/build.py
 bin\basic.exe
 ```
 
-- `doctor` 只做环境自检，不修改仓库。预期看到编译器、CMake、Python、依赖目录的摘要；若某项缺失或版本过低，会给出提示，先按提示修好环境再继续。
+- `doctor` 只做环境自检，不修改仓库。正常输出类似下面这样（版本号与路径会不同）；若某项缺失或版本过低，会给出提示，先按提示修好环境再继续：
+
+  ```
+  [OK] platform windows/x64
+  [OK] python3 3.13.0 (...)
+  [OK] cmake 4.0.2
+  [OK] generator Ninja
+  [OK] deps root ...
+  ```
 - 首次构建会先准备依赖再编译。成功时日志以 `[OK] 编译完成` 结束；失败时以 `[ERROR] 编译失败` 结束并提示查看上方的编译输出。
 - 产物：示例程序在 `bin\`（Debug/Release 同名），静态库在 `lib\x64\Release`，构建树在 `out\x64\Release`。`bin\basic.exe` 能正常打开窗口即说明工具链、依赖与运行资源都已就绪。
 - 只想先确认库能编译通过：`python3 build/build.py build --no-examples --target duilib`。
@@ -153,6 +169,29 @@ python3 build/build.py
 - macOS 下 `basic` 默认编译为 `bin/basic.app`，示例 C++ 代码无需修改。
 - 构建成功的表现与 Windows 相同：日志以 `[OK] 编译完成` 结束，`bin/basic`（或 `bin/basic.app`）可以启动。
 - 若在 CMake 配置阶段报找不到 X11/字体相关包，按 [build/docs/linux-dependencies.md](build/docs/linux-dependencies.md) 补装；若 Skia 编译阶段报找不到 `gn`/`ninja`/`clang`，补装对应构建工具。
+
+### 常用构建与运行命令
+
+所有命令都在仓库根目录执行，且一次调用只构建一个架构 + 一个配置；需要 Debug 与 Release 时执行两次。Windows 与 Unix 使用同一条 `python3 build/build.py` 命令。
+
+| 目的 | 命令 |
+| :--- | :--- |
+| 环境自检 | `python3 build/build.py doctor` |
+| 构建 Release（库 + 示例） | `python3 build/build.py` |
+| 构建 Debug | `python3 build/build.py --config Debug` |
+| 只准备依赖（Skia/SDL3/CEF） | `python3 build/build.py deps` |
+| 只打印依赖构建命令（不执行） | `python3 build/build.py deps --dry-run`（输出 Skia 的 `gn gen`/`ninja` 与 SDL3 的 configure/build/install 命令，便于手工复现与排障） |
+| 只编译库 | `python3 build/build.py build --no-examples --target duilib` |
+| 运行单元测试 | `python3 build/build.py test` |
+| 生成 SDK 包 | `python3 build/build.py pack --with-cef`（需要示例时再加 `--with-examples`） |
+| 清理构建树 | `python3 build/build.py clean`（`clean --deps` 同时清理依赖） |
+| 启用 SDL3（Windows） | `python3 build/build.py --sdl` |
+| 动态运行库 | `python3 build/build.py --md` |
+| DLL 模式（仅 Windows MSVC） | `python3 build/build.py --dll`（隐式 `--md`；产物 `bin/duilib*.dll` + `lib/<arch>/<Config>/duilib.lib` 导入库） |
+| 指定架构 | `python3 build/build.py --arch arm64` |
+| 使用 CEF 109（Windows 7） | `python3 build/build.py --cef-version 109` |
+| 离线构建 | `python3 build/build.py --offline` |
+| 完整参数说明 | [build/docs/build-reference.md](build/docs/build-reference.md) |
 
 ### 使用 Visual Studio 解决方案
 
@@ -178,6 +217,60 @@ python3 build/build.py --dll --config Release
 - 该模式只支持 Windows + MSVC；Linux/macOS/FreeBSD 仍构建静态库。`--dll` 不会顺带开启 SDL，需要时另加 `--sdl`。
 - 打包时 `pack.py` 会自动收集 `bin/duilib*.dll`，包名追加 `-dll`；在 DLL 与静态模式之间切换时构建目录会自动清理，避免混用旧产物。
 
+### 新手学习路径
+
+1. 按上面的步骤跑通 `basic`，确认工具链、依赖与资源都正常。
+2. 写第一个窗口：Windows + VS 用户看 [Getting-Started.md](docs/Getting-Started.md)；CMake 或非 Windows 平台用户按下面的「路径 B」接入 SDK（详见 [Deployment.md](docs/Deployment.md)）。
+3. 学 XML 布局与控件：[窗口](docs/Window.md)、[容器/布局](docs/Box.md)、[控件](docs/Control.md)、[事件](docs/Events.md)。
+4. 对照 [examples/](examples) 找相近场景，改成自己的界面。
+5. 需要发布时看「打包与发布」。
+
+### 下一步：创建你的第一个应用
+
+`examples/basic` 是最小模板：一个窗口 XML + 少量 C++ 入口代码。按用途选一条路径：
+
+**路径 A：以 basic 为模板学习（最快）**
+
+- 阅读 [examples/basic](examples/basic) 的入口代码、窗口 XML，以及 `bin/resources` 的资源引用方式。
+- 在自己的工程中照搬"加载 XML → 创建窗口 → 消息循环"的结构；界面资源可先复制仓库 `bin/resources/` 或 SDK 的 `resources/`，再按需修改。
+
+**路径 B：正式项目接入（推荐）**
+
+1. 生成 SDK 包：`python3 build/build.py pack --with-cef`（不需要 CEF 时去掉该参数），产物在 `dist/` 下。
+2. 按 [Deployment.md](docs/Deployment.md) 安装：
+   - CMake 工程：`find_package(nim_duilib CONFIG REQUIRED)`，链接 `nim_duilib::duilib`；
+   - Windows + VS：在 `.vcxproj` 末尾导入 `<SDK根>\msvc\nim_duilib.targets`。
+3. 最小工程结构：
+
+| 文件/目录 | 作用 |
+| :--- | :--- |
+| `CMakeLists.txt` 或 `.vcxproj` | 接入 SDK，启用 C++20 |
+| `main.cpp` | 程序入口：创建主窗口并进入消息循环 |
+| `MainForm.xml` | 窗口结构与样式 |
+| `resources/` | 皮肤、语言、图片资源，可先用 SDK 自带的一份 |
+| 运行期目录 | Windows 需要 `resources/`、CEF 目录、`WebView2Loader.dll`、`duilib*.dll`（DLL 模式） |
+
+CMake 最小片段（完整说明见 [Deployment.md](docs/Deployment.md)）：
+
+```cmake
+find_package(nim_duilib CONFIG REQUIRED)
+target_link_libraries(my_app PRIVATE nim_duilib::duilib)
+nim_duilib_copy_runtime(my_app RESOURCES)
+```
+
+## 跨平台开发注意事项
+
+同一套 XML + C++ 可以构建到四个平台，但以下差异需要提前处理：
+
+- **资源路径区分大小写**：Linux/macOS/FreeBSD 区分大小写，XML 中的图片与字体路径必须和磁盘文件名大小写一致。
+- **源码编码**：源码与 XML 统一使用 UTF-8；MSVC 工程需开启 `/utf-8`（本仓库的 CMake 构建已统一设置）。
+- **字体**：Linux 需要 fontconfig 与中文字体，否则界面文字不显示（见 [linux-dependencies.md](build/docs/linux-dependencies.md)）。
+- **窗口引擎**：Linux/macOS/FreeBSD 强制使用 SDL3 管理窗口与输入；Windows 默认关闭，需要时加 `--sdl`。
+- **CEF 运行时目录**：Windows 为 `bin/libcef_win/<arch>`，Linux 为 `bin/libcef_linux`，macOS 由 App Bundle 携带。
+- **平台专属能力**：WebView2 与"DPI 独立设置"仅 Windows；系统窗口阴影仅 Windows/macOS。
+- **路径处理**：使用库提供的路径工具或 `std::filesystem`，不要手写 `\`；测试时覆盖包含中文与空格的路径。
+- **macOS 产物形态**：默认输出 `bin/<示例名>.app`，发布前按 [macos-app-bundle.md](build/docs/macos-app-bundle.md) 检查资源与 Frameworks。
+
 ## 目录结构
 
 了解目录划分有助于快速定位源码与文档；生成目录（`out/`、`lib/`、`dist/`）可以随时删除，重新构建即可恢复。
@@ -200,43 +293,65 @@ python3 build/build.py --dll --config Release
 | `.workbuddy/` | WorkBuddy 的项目级 AI 技能（与 `.claude` 同源） |
 | `.trae/` | TRAE 的项目级 AI 技能（与 `.claude` 同源） |
 
-## 常用构建与运行命令
+## 打包与发布
 
-所有命令都在仓库根目录执行，且一次调用只构建一个架构 + 一个配置；需要 Debug 与 Release 时执行两次。Windows 与 Unix 使用同一条 `python3 build/build.py` 命令。
+`pack` 用于生成可分发的 SDK 包（根 CMake 工程不提供 `install()`）：
 
-| 目的 | 命令 |
+```bash
+python3 build/build.py pack                    # Release SDK
+python3 build/build.py pack --config Debug     # Debug SDK（包名带 -debug）
+python3 build/build.py pack --with-cef         # 包含 CEF 运行时
+python3 build/build.py pack --with-examples    # 包含示例程序
+python3 build/build.py pack --out-dir dist     # 指定输出目录（默认为 dist）
+```
+
+- 产物：`dist/` 下的压缩包，文件名格式为 `nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109][-examples][-dll][-debug].zip`；通过 `build/release.py package` 发布时输出到 `dist/<版本>/`。
+- 包内包含：`include/duilib/`、`lib/`（平面结构，架构与配置由包名区分）、`bin/`（运行期 DLL 与 `bin/resources/`）、`msvc/`（Windows MSVC 接入层）、`lib/cmake/nim_duilib/`、`docs/`、`LICENSES/`、`VERSION`、`MANIFEST.txt`、`SHA256SUMS`。分发 SDK 时必须保留 `LICENSES/` 与第三方声明。
+- 验证：解压后按 [Deployment.md](docs/Deployment.md) 编译一个最小工程并运行；带示例的包可直接运行 `bin/` 下的程序。
+- CEF：编译与打包必须使用同一 CEF 版本（默认 156，Windows 7 用 `--cef-version 109`）；只加 `--with-examples` 不加 `--with-cef` 时会自动跳过 CEF 示例。
+
+应用发布时的运行期文件清单：
+
+| 文件/目录 | 何时需要 |
 | :--- | :--- |
-| 环境自检 | `python3 build/build.py doctor` |
-| 构建 Release（库 + 示例） | `python3 build/build.py` |
-| 构建 Debug | `python3 build/build.py --config Debug` |
-| 只准备依赖（Skia/SDL3/CEF） | `python3 build/build.py deps` |
-| 只打印依赖构建命令（不执行） | `python3 build/build.py deps --dry-run`（输出 Skia 的 `gn gen`/`ninja` 与 SDL3 的 configure/build/install 命令，便于手工复现与排障） |
-| 只编译库 | `python3 build/build.py build --no-examples --target duilib` |
-| 运行单元测试 | `python3 build/build.py test` |
-| 生成 SDK 包 | `python3 build/build.py pack --with-cef`（需要示例时再加 `--with-examples`） |
-| 清理构建树 | `python3 build/build.py clean`（`clean --deps` 同时清理依赖） |
-| 启用 SDL3（Windows） | `python3 build/build.py --sdl` |
-| 动态运行库 | `python3 build/build.py --md` |
-| DLL 模式（仅 Windows MSVC） | `python3 build/build.py --dll`（隐式 `--md`；产物 `bin/duilib*.dll` + `lib/<arch>/<Config>/duilib.lib` 导入库） |
-| 指定架构 | `python3 build/build.py --arch arm64` |
-| 使用 CEF 109（Windows 7） | `python3 build/build.py --cef-version 109` |
-| 离线构建 | `python3 build/build.py --offline` |
-| 完整参数说明 | [build/docs/build-reference.md](build/docs/build-reference.md) |
+| 应用可执行文件 | 必须 |
+| `resources/` | 必须（XML 皮肤、语言、图片），除非应用自带完整主题资源 |
+| `bin/libcef_win/<arch>` 或 `bin/libcef_linux` | 使用 CEF 时（macOS 由 `.app` 携带） |
+| `WebView2Loader.dll` | 使用 WebView2 时（仅 Windows） |
+| `duilib*.dll` | 使用 DLL 模式时 |
+| VC++ 运行库 | 默认静态运行库（/MT）无需分发；改用 `--md` 时需要 |
+| 字体 | Linux 使用系统字体，不随包分发 |
+
+完整参数、包结构与各平台差异见 [build/docs/build-reference.md](build/docs/build-reference.md) 的「出包」章节与 [Deployment.md](docs/Deployment.md)。
 
 ## 进阶用法
 
-下面这些路径对应更深入的开发场景，按需查阅即可；新手先按“快速开始”跑通再深入会更顺畅。
+按任务查找：
 
-- **写第一个窗口**：[examples/basic](examples/basic) 是最小工程；分步教程见 [docs/Getting-Started.md](docs/Getting-Started.md)。该教程以 VS 解决方案为例，依赖准备请以 `python3 build/build.py deps` 为准，构建入口以本文“快速开始”为准。
-- **界面开发文档**：[窗口](docs/Window.md)、[容器/布局](docs/Box.md)、[控件](docs/Control.md)、[菜单](docs/Menu.md)、[全局样式](docs/Global.md)、[事件](docs/Events.md)、[XML 节点](docs/XmlNode.md)、[XML 事件](docs/XmlEvents.md)、[XML 编辑辅助工具](docs/XmlTools.md)（解析错误定位、静态检查、编辑器补全与校验）。
-- **构建与发布**：完整参数见 [build/docs/build-reference.md](build/docs/build-reference.md)；依赖目录与发布打包说明见 [build/README.md](build/README.md)。
-- **内置对话框与通知**：[MessageBoxWnd](docs/MessageBox.md)、[ToastWnd](docs/Toast.md)、[SystemNotification](docs/SystemNotification.md)。
-- **网页控件**：[CEF 控件](docs/CEF.md)、[WebView2 示例](examples/WebView2)；CEF 示例运行需要对应的运行时目录：Windows 为 `bin/libcef_win/<arch>`，Linux 为 `bin/libcef_linux`，macOS 由 App Bundle 自动携带（见 [build/docs/macos-app-bundle.md](build/docs/macos-app-bundle.md)）。
-- **接入 SDK**：[docs/Deployment.md](docs/Deployment.md)、[cmake/README.md](cmake/README.md)（CMake 包接入与排障，含英文版）。
-- **macOS App Bundle**：[build/docs/macos-app-bundle.md](build/docs/macos-app-bundle.md)。
-- **启用 PAG**：仅 Windows + MSVC 解决方案。将 [msvc/PropertySheets/LibPagSettings.props](msvc/PropertySheets/LibPagSettings.props) 中的 `LibPagEnabled` 改为 `1`，并按 [libpag-build.md](duilib/third_party/libpag/windows/libpag-build.md) 编译 libpag；CMake 构建不包含 PAG。
-- **AI 辅助开发**：仓库同时内置 Claude、WorkBuddy 与 TRAE 三套配置，技能内容同源，只是加载方式不同：Claude 使用 `.claude/skills/` 与注册脚本，WorkBuddy 使用 `.workbuddy/skills/nim-duilib/`，TRAE 使用 `.trae/skills/nim-duilib/`；三份指南分别为 [CLAUDE.md](CLAUDE.md)、[WORKBUDDY.md](WORKBUDDY.md)、[TRAE.md](TRAE.md)。Claude 需先执行 `.claude/register.bat`（Windows）或 `bash .claude/register.sh`（Linux/macOS）注册技能，然后在任意项目中运行 `/nim-init`；WorkBuddy 与 TRAE 的项目级技能无需注册脚本，按语义触发即可。可从 `/nim-duilib-create-window`、`/nim-duilib-xml-layout`、`/nim-duilib-add-control`、`/nim-duilib-event-handler`、`/nim-duilib-theme`、`/nim-duilib-resource-pack` 开始；参考手册见 [.claude/docs/nim-duilib-llm-reference.md](.claude/docs/nim-duilib-llm-reference.md)。
-- **变更记录**：[CHANGELOG.md](CHANGELOG.md)。
+**写界面**
+
+- 第一个窗口：[examples/basic](examples/basic) 是最小工程；分步教程见 [docs/Getting-Started.md](docs/Getting-Started.md)（以 VS 解决方案为例，依赖准备请以 `python3 build/build.py deps` 为准，构建入口以本文“快速开始”为准）。
+- 界面开发文档：[窗口](docs/Window.md)、[容器/布局](docs/Box.md)、[控件](docs/Control.md)、[菜单](docs/Menu.md)、[全局样式](docs/Global.md)、[事件](docs/Events.md)、[XML 节点](docs/XmlNode.md)、[XML 事件](docs/XmlEvents.md)、[XML 编辑辅助工具](docs/XmlTools.md)（解析错误定位、静态检查、编辑器补全与校验）。
+
+**内置窗口与通知**
+
+- [MessageBoxWnd](docs/MessageBox.md)、[ToastWnd](docs/Toast.md)、[SystemNotification](docs/SystemNotification.md)。
+
+**网页控件**
+
+- [CEF 控件](docs/CEF.md)、[WebView2 示例](examples/WebView2)；CEF 运行需要对应的运行时目录：Windows 为 `bin/libcef_win/<arch>`，Linux 为 `bin/libcef_linux`，macOS 由 App Bundle 自动携带（见 [build/docs/macos-app-bundle.md](build/docs/macos-app-bundle.md)）。
+
+**接入、构建与发布**
+
+- 完整参数见 [build/docs/build-reference.md](build/docs/build-reference.md)，依赖目录与发布打包说明见 [build/README.md](build/README.md)。
+- SDK 接入：[Deployment.md](docs/Deployment.md)、[cmake/README.md](cmake/README.md)（CMake 包接入与排障，含英文版）。
+- macOS App Bundle：[build/docs/macos-app-bundle.md](build/docs/macos-app-bundle.md)。
+
+**其他**
+
+- 启用 PAG：仅 Windows + MSVC 解决方案。将 [msvc/PropertySheets/LibPagSettings.props](msvc/PropertySheets/LibPagSettings.props) 中的 `LibPagEnabled` 改为 `1`，并按 [libpag-build.md](duilib/third_party/libpag/windows/libpag-build.md) 编译 libpag；CMake 构建不包含 PAG。
+- AI 辅助开发：仓库同时内置 Claude、WorkBuddy 与 TRAE 三套配置，技能内容同源，只是加载方式不同：Claude 使用 `.claude/skills/` 与注册脚本，WorkBuddy 使用 `.workbuddy/skills/nim-duilib/`，TRAE 使用 `.trae/skills/nim-duilib/`；三份指南分别为 [CLAUDE.md](CLAUDE.md)、[WORKBUDDY.md](WORKBUDDY.md)、[TRAE.md](TRAE.md)。Claude 需先执行 `.claude/register.bat`（Windows）或 `bash .claude/register.sh`（Linux/macOS）注册技能，然后在任意项目中运行 `/nim-init`；WorkBuddy 与 TRAE 的项目级技能无需注册脚本，按语义触发即可。可从 `/nim-duilib-create-window`、`/nim-duilib-xml-layout`、`/nim-duilib-add-control`、`/nim-duilib-event-handler`、`/nim-duilib-theme`、`/nim-duilib-resource-pack` 开始；参考手册见 [.claude/docs/nim-duilib-llm-reference.md](.claude/docs/nim-duilib-llm-reference.md)。
+- 变更记录：[CHANGELOG.md](CHANGELOG.md)。
 
 ## 常见问题
 
@@ -245,14 +360,17 @@ python3 build/build.py --dll --config Release
 | 现象 | 处理 |
 | :--- | :--- |
 | 首次构建很慢 / 失败于下载 | 首次需要编译 Skia 并下载 CEF；已有缓存或本地归档时用 `--offline`、`--cef-archive <file>` |
+| 构建中途提示磁盘空间不足 | 预留 10 GB 以上空闲空间；用 `--deps-root <dir>` 把依赖目录放到其他磁盘 |
 | `doctor` 报找不到 Visual Studio | 安装 VS 2022 或 2026 的 C++ 桌面开发工作负载；多版本并存时用 `--vs-version 17`（或 `18`）显式指定 |
-| 报 CMake 版本过低 | 升级到 3.24+ |
+| 报 CMake 版本过低 | 升级到 3.24+（建议 3.25+）；中科方德/UOS 自带的 CMake 低于 3.24，需手工安装 |
 | Skia 编译报 unknown target CPU 'x86-64-v3' / bad value 'x86-64-v3' | 编译器版本过低：安装 clang 12+（推荐）或 gcc 11+；中科方德/UOS 自带编译器不满足要求，需自行升级 |
 | 找不到 `python3` 命令 | 安装 Python 3 并确保 `python3` 在 PATH 中；Windows 的特殊处理见「为什么统一使用 `python3 build/build.py`」 |
 | 切换 Debug/Release 后 `bin/` 仍是旧示例 | `build.py` 会自动清理另一种配置的示例；手工调用 CMake 时需自行清理 `bin/` |
 | CEF 示例无法运行 | 确认运行时目录存在：Windows 为 `bin/libcef_win/<arch>`（CEF 109 为 `bin/libcef_win_109/<arch>`），Linux 为 `bin/libcef_linux`，macOS 由 App Bundle 自动携带（见 [build/docs/macos-app-bundle.md](build/docs/macos-app-bundle.md)）；出包用 `pack --with-cef`，且编译与打包的 CEF 版本要一致 |
 | Linux 下界面文字不显示 | 安装 fontconfig 与中文字体，见 [build/docs/linux-dependencies.md](build/docs/linux-dependencies.md) |
 | WebView2 示例启动失败 | 确认 `bin/WebView2Loader.dll` 已生成，详见 [cmake/README.md](cmake/README.md) 的常见问题 |
+| 不知道如何创建自己的工程 | 见「下一步：创建你的第一个应用」；正式项目按 [Deployment.md](docs/Deployment.md) 接入 SDK |
+| 打包后不确定要带哪些文件 | 见「打包与发布」中的运行期文件清单 |
 | 其他构建问题 | [build/docs/build-reference.md §10 排障](build/docs/build-reference.md) |
 
 ## 许可证与贡献
