@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 登录窗口：圆角无阴影，卡片式表单布局 -->
-<Window size="360,486" caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}" shadow_type="none_round" shadow_attached="true"
+<Window size="360,486" caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}" shadow_type="none_round"
         layered_window="true" shadow_corner="24,24,24,24" shadow_border_round="16,16">
     <!-- 登录窗口专用样式（窗口私有，不影响其他示例程序）
          注意：窗口私有样式无法跨文件共享，若 wechat.xml 中同名样式有调整，需同步修改 -->
