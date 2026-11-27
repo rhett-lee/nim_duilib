@@ -355,7 +355,7 @@ bool HotKey::SetHotKeyName(const DString& hotKeyName)
         return true;
     }
 
-    std::list<DString> hotKeyList = StringUtil::Split(hotKeyText, _T("+"));
+    std::vector<DString> hotKeyList = StringUtil::Split(hotKeyText, _T("+"));
     for (DString& hotKey : hotKeyList) {
         StringUtil::Trim(hotKey);
         hotKey = StringUtil::MakeLowerString(hotKey);

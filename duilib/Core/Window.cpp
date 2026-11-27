@@ -128,7 +128,7 @@ void Window::SetClass(const DString& strClass)
     if (strClass.empty()) {
         return;
     }
-    std::list<DString> splitList = StringUtil::Split(strClass, _T(" "));
+    std::vector<DString> splitList = StringUtil::Split(strClass, _T(" "));
     for (auto it = splitList.begin(); it != splitList.end(); it++) {
         DString pDefaultAttributes = GlobalManager::Instance().GetClassAttributes((*it));
         if (pDefaultAttributes.empty()) {

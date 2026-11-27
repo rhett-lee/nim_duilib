@@ -337,7 +337,7 @@ void RangeSlider::SetMarks(const std::vector<SliderMark>& marks)
 void RangeSlider::SetMarks(const DString& strMarks)
 {
     std::vector<SliderMark> marks;
-    const std::list<DString> items = StringUtil::Split(strMarks, _T("|"));
+    const std::vector<DString> items = StringUtil::Split(strMarks, _T("|"));
     for (const DString& item : items) {
         DString strItem = item;
         StringUtil::Trim(strItem);

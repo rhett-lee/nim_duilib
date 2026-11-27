@@ -132,7 +132,7 @@ void Breadcrumb::ParseItemsField(const DString& strValue, bool bTranslate)
 {
     //只有文本字段：整体替换，避免残留旧条目
     m_items.clear();
-    std::list<DString> parts = StringUtil::Split(strValue, _T("|"));
+    std::vector<DString> parts = StringUtil::Split(strValue, _T("|"));
     for (const DString& part : parts) {
         DString s = part;
         StringUtil::Trim(s);
@@ -153,7 +153,7 @@ void Breadcrumb::ParseDisabledItems(const DString& strValue)
     //统一分隔符：把逗号替换为竖线，再按 `|` 拆分
     DString str = strValue;
     std::replace(str.begin(), str.end(), _T(','), _T('|'));
-    std::list<DString> parts = StringUtil::Split(str, _T("|"));
+    std::vector<DString> parts = StringUtil::Split(str, _T("|"));
     m_disabledItems.clear();
     for (const DString& part : parts) {
         DString s = part;

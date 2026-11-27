@@ -279,7 +279,7 @@ void Chart::SetDataLabelsId(const DString& strLabelsId)
     }
     //逗号分隔的多个 STRID，逐个从语言文件解析为类目标签
     std::vector<DString> labels;
-    std::list<DString> parts = StringUtil::Split(m_strDataLabelsId, _T(","));
+    std::vector<DString> parts = StringUtil::Split(m_strDataLabelsId, _T(","));
     for (const DString& part : parts) {
         DString s = part;
         StringUtil::Trim(s);
@@ -750,7 +750,7 @@ void Chart::ParseDataString(const DString& strData, std::vector<double>& data)
     if (strData.empty()) {
         return;
     }
-    std::list<DString> parts = StringUtil::Split(strData, _T(","));
+    std::vector<DString> parts = StringUtil::Split(strData, _T(","));
     for (const DString& part : parts) {
         DString s = part;
         StringUtil::Trim(s);
@@ -767,7 +767,7 @@ void Chart::ParseLabelsString(const DString& strLabels, std::vector<DString>& la
     if (strLabels.empty()) {
         return;
     }
-    std::list<DString> parts = StringUtil::Split(strLabels, _T(","));
+    std::vector<DString> parts = StringUtil::Split(strLabels, _T(","));
     for (const DString& part : parts) {
         DString s = part;
         StringUtil::Trim(s);

@@ -454,7 +454,7 @@ void TagInput::ParseInitTags(const DString& tags)
     if (tags.empty()) {
         return;
     }
-    std::list<DString> tagList = StringUtil::Split(DString(tags), DString(_T(";")));
+    std::vector<DString> tagList = StringUtil::Split(DString(tags), DString(_T(";")));
     for (const DString& tag : tagList) {
         DString strTag = StringUtil::Trim(tag.c_str());
         if (!strTag.empty()) {

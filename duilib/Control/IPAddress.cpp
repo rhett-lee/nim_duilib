@@ -70,7 +70,7 @@ namespace
      */
     bool TryParseIPAddress(const DString& ipAddress, int32_t values[kSegmentCount])
     {
-        std::list<DString> ipList = StringUtil::Split(ipAddress, _T("."));
+        std::vector<DString> ipList = StringUtil::Split(ipAddress, _T("."));
         if (ipList.size() != static_cast<size_t>(kSegmentCount)) {
             return false;
         }

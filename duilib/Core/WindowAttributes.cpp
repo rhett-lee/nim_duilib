@@ -267,7 +267,7 @@ bool ParseWindowAttributeValues(const pugi::xml_node& root, WindowAttributeValue
             //防止Class之间循环引用导致无限递归
             return;
         }
-        const std::list<DString> classList = StringUtil::Split(strClassList, _T(" \t\r\n"));
+        const std::vector<DString> classList = StringUtil::Split(strClassList, _T(" \t\r\n"));
         for (const DString& strClassName : classList) {
             if (strClassName.empty()) {
                 continue;

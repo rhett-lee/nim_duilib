@@ -12,7 +12,7 @@ bool ControlDropTargetUtils::IsFilteredFileTypes(const DString& fileTypes, const
         return true;
     }
 
-    std::list<DString> fileTypeList = StringUtil::Split(fileTypes, _T(";"));
+    std::vector<DString> fileTypeList = StringUtil::Split(fileTypes, _T(";"));
     for (DString& fileExt : fileTypeList) {
         StringUtil::Trim(fileExt);
     }
@@ -34,7 +34,7 @@ void ControlDropTargetUtils::RemoveUnsupportedFiles(std::vector<DString>& fileLi
         return;
     }
 
-    std::list<DString> fileTypeList = StringUtil::Split(fileTypes, _T(";"));
+    std::vector<DString> fileTypeList = StringUtil::Split(fileTypes, _T(";"));
     for (DString& fileExt : fileTypeList) {
         StringUtil::Trim(fileExt);
     }

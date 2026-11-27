@@ -320,7 +320,7 @@ void Pagination::SetPageSizeOptions(const DString& strOptions)
     DString strValue = strOptions;
     StringUtil::ReplaceAll(_T("|"), _T(","), strValue);
     std::vector<int32_t> options;
-    const std::list<DString> items = StringUtil::Split(strValue, _T(","));
+    const std::vector<DString> items = StringUtil::Split(strValue, _T(","));
     for (const DString& strItem : items) {
         DString strText = strItem;
         StringUtil::Trim(strText);

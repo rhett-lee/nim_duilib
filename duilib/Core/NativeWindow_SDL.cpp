@@ -1603,7 +1603,7 @@ void NativeWindow_SDL::GetRenderNameList(const DString& externalRenderName, std:
 
     //外部设置的Render名称优先
     if (!externalRenderName.empty()) {
-        std::list<DString> renderNameList = StringUtil::Split(externalRenderName, _T(","));
+        std::vector<DString> renderNameList = StringUtil::Split(externalRenderName, _T(","));
         for (auto iter = renderNameList.begin(); iter != renderNameList.end(); ++iter) {
             DString name = *iter;
             StringUtil::Trim(name);

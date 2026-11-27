@@ -875,7 +875,7 @@ void Control::SetClass(const DString& strClass)
     if (strClass.empty()) {
         return;
     }
-    std::list<DString> splitList = StringUtil::Split(strClass, _T(" "));
+    std::vector<DString> splitList = StringUtil::Split(strClass, _T(" "));
     for (auto it = splitList.begin(); it != splitList.end(); it++) {
         if (it->empty()) {
             //容错：跳过拆分产生的空类名（如连续空格），避免用空字符串查询类属性

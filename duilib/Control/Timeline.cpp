@@ -155,7 +155,7 @@ void Timeline::OnLanguageChanged(bool bRedraw)
 void Timeline::ParseItemsField(const DString& strValue, int32_t nField, bool bTranslate)
 {
     //按 `|` 分隔条目，逐条填充指定字段；不足的条目自动补空条目
-    std::list<DString> parts = StringUtil::Split(strValue, _T("|"));
+    std::vector<DString> parts = StringUtil::Split(strValue, _T("|"));
     size_t nIndex = 0;
     for (const DString& part : parts) {
         DString s = part;

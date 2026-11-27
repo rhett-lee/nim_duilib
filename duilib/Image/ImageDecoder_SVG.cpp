@@ -234,10 +234,10 @@ public:
             return;
         }
         DStringA svgReplaceColor = StringConvert::TToUTF8(strSvgReplaceColor);
-        std::list<DStringA> colorsList = StringUtil::Split(svgReplaceColor, ";");
+        std::vector<DStringA> colorsList = StringUtil::Split(svgReplaceColor, ";");
         for (DStringA colorPair : colorsList) {
             StringUtil::Trim(colorPair);
-            std::list<DStringA> colors = StringUtil::Split(colorPair, "|");
+            std::vector<DStringA> colors = StringUtil::Split(colorPair, "|");
             if (colors.size() == 2) {
                 DStringA srcColor = *colors.begin();
                 DStringA destColor = *colors.rbegin();

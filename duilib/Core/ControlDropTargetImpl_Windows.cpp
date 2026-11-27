@@ -71,7 +71,7 @@ void ControlDropTargetImpl_Windows::ParseWindowsDataObject(void* pDataObj, std::
                     DStringW text = (std::wstring::value_type*)hGlobal;
                     if (!text.empty()) {
                         if (!text.empty()) {
-                            std::list<std::wstring> lines = StringUtil::Split(text, L"\r\n");
+                            std::vector<std::wstring> lines = StringUtil::Split(text, L"\r\n");
                             for (const std::wstring& line : lines) {
                                 if (!line.empty()) {
                                     unicodeTextList.push_back(StringConvert::WStringToT(line));
@@ -90,7 +90,7 @@ void ControlDropTargetImpl_Windows::ParseWindowsDataObject(void* pDataObj, std::
                         text = StringConvert::WStringToT(unicodeText);
                     }
                     if (!text.empty()) {
-                        std::list<DString> lines = StringUtil::Split(text, _T("\r\n"));
+                        std::vector<DString> lines = StringUtil::Split(text, _T("\r\n"));
                         for (const DString& line : lines) {
                             if (!line.empty()) {
                                 ansiTextList.push_back(line);

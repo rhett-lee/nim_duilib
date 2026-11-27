@@ -152,7 +152,7 @@ void Stepper::OnLanguageChanged(bool bRedraw)
 void Stepper::ParseItemsField(const DString& strValue, int32_t nField, bool bTranslate)
 {
     //按 `|` 分隔步骤，逐条填充指定字段；不足的步骤自动补空步骤
-    std::list<DString> parts = StringUtil::Split(strValue, _T("|"));
+    std::vector<DString> parts = StringUtil::Split(strValue, _T("|"));
     size_t nIndex = 0;
     for (const DString& part : parts) {
         DString s = part;
@@ -180,7 +180,7 @@ void Stepper::ParseDisabledSteps(const DString& strValue)
     //统一分隔符：把逗号替换为竖线，再按 `|` 拆分
     DString str = strValue;
     std::replace(str.begin(), str.end(), _T(','), _T('|'));
-    std::list<DString> parts = StringUtil::Split(str, _T("|"));
+    std::vector<DString> parts = StringUtil::Split(str, _T("|"));
     m_disabledSteps.clear();
     for (const DString& part : parts) {
         DString s = part;

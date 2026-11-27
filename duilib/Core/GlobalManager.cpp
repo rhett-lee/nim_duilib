@@ -653,7 +653,7 @@ void GlobalManager::ClearThemeCache()
 
 /** 读取包含的语言文件列表
 */
-static void ReadIncludeLanguageFiles(const LangManager& langManager, std::list<DString>& includeLangFileList)
+static void ReadIncludeLanguageFiles(const LangManager& langManager, std::vector<DString>& includeLangFileList)
 {
     includeLangFileList.clear();
     DString includeLangFiles;
@@ -700,7 +700,7 @@ bool GlobalManager::ReloadLanguage(const FilePath& languagePath,
     bool bReadOk = LoadLanguageFile(newLanguagePath, languageFileName);
     if (bReadOk) {
         //加载包含的语言文件
-        std::list<DString> includeLangFileList;
+        std::vector<DString> includeLangFileList;
         ReadIncludeLanguageFiles(m_langManager, includeLangFileList);
         for (DString& includeLangFileName : includeLangFileList) {
             if (!LoadLanguageFile(newLanguagePath, includeLangFileName)) {
@@ -819,7 +819,7 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<DString, DString>>& la
                 if (langManager.HasStringByID(languageNameID)) {
                     displayName = langManager.GetStringByID(languageNameID);
                 }
-                std::list<DString> includeLangFileList;
+                std::vector<DString> includeLangFileList;
                 ReadIncludeLanguageFiles(langManager, includeLangFileList);
                 for (DString& includeLangFileName : includeLangFileList) {
                     includeLangFileSet.insert(includeLangFileName);
@@ -851,7 +851,7 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<DString, DString>>& la
                     if (langManager.HasStringByID(languageNameID)) {
                         displayName = langManager.GetStringByID(languageNameID);
                     }
-                    std::list<DString> includeLangFileList;
+                    std::vector<DString> includeLangFileList;
                     ReadIncludeLanguageFiles(langManager, includeLangFileList);
                     for (DString& includeLangFileName : includeLangFileList) {
                         includeLangFileSet.insert(includeLangFileName);

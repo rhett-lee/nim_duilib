@@ -1168,6 +1168,27 @@ add_test(NAME string_util
          COMMAND test_string_util
 )
 
+# StringUtil::Split 与 StringUtil::SplitByString 的性能基准
+# （不注册到 ctest，属于手工运行的评估工具）
+#
+# 对比两种切分实现在"大量短字段、少量长字段、常规配置串、宽字符、多字符分隔符"
+# 场景下的单次调用耗时与吞吐量。评测请使用 Release 配置：
+#   python build/build.py build --offline --target bench_string_split
+#   out/x64/Release/tests/bench_string_split.exe --iterations 1
+add_executable(bench_string_split
+    bench_string_split.cpp
+)
+target_include_directories(bench_string_split PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../"
+)
+target_link_libraries(bench_string_split PRIVATE duilib)
+if(WIN32)
+    target_compile_definitions(bench_string_split PRIVATE UNICODE _UNICODE)
+endif()
+if(MSVC)
+    target_compile_options(bench_string_split PRIVATE /utf-8)
+endif()
+
 # Utils/StringConvert + StringCharset：覆盖多编码相互转换与往返一致性、
 # BOM检测、ASCII/GBK/UTF-8/UTF-16流校验、字节流到字符串的转换
 add_executable(test_string_convert

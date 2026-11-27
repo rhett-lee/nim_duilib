@@ -788,7 +788,7 @@ UiSize DateTime::EstimateText(UiSize szAvailable)
 int32_t DateTime::GetSpinBoxWidth(const DString& spinClass) const
 {
     //spin_class 格式："spin容器class,上按钮class,下按钮class"，取首段（容器）的 width
-    std::list<DString> classNames = StringUtil::Split(spinClass, _T(","));
+    std::vector<DString> classNames = StringUtil::Split(spinClass, _T(","));
     if (classNames.empty()) {
         return 0;
     }

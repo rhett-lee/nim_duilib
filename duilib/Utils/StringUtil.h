@@ -172,12 +172,14 @@ public:
 
     /** 按分隔符集合拆分字符串，delimitor 中的任意一个字符都作为分隔符
     * @param [in] input 要拆分的字符串
-    * @param [in] delimitor 分隔符集合，其中每个字符都视为一个分隔符
+    * @param [in] delimitor 分隔符集合，其中每个字符都视为一个分隔符；为空时不拆分，返回只包含 input 的列表
+    * @param [in] keepEmpty 是否保留空子串：为 true 时保留连续分隔符及首尾分隔符产生的空项；
+    *                       为 false 时丢弃空项，与原有实现的行为完全一致
     * @return 返回拆分后的子串列表（std::string 版本处理窄字符，std::wstring 版本处理宽字符）
-    * 说明：连续的分隔符不会产生空项；input 为空时返回空列表；需要保留空项时请使用 SplitByString
+    * 说明：keepEmpty 为 false 时，input 为空返回空列表；为 true 时，input 为空返回仅含一个空字符串的列表
     */
-    static std::list<std::string> Split(const std::string& input, const std::string& delimitor);
-    static std::list<std::wstring> Split(const std::wstring& input, const std::wstring& delimitor);
+    static std::vector<std::string> Split(const std::string& input, const std::string& delimitor, bool keepEmpty = false);
+    static std::vector<std::wstring> Split(const std::wstring& input, const std::wstring& delimitor, bool keepEmpty = false);
 
     /** 按分隔字符串拆分字符串（与按分隔符字符集拆分的 Split 不同，此处 delimiter 作为整体参与匹配，支持多字符分隔）
     * @param [in] input 要拆分的字符串

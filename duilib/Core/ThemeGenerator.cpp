@@ -935,7 +935,7 @@ std::string ThemeGenerator::GenerateThemeXml(bool isDark) const
             continue;
         }
 
-        std::list<std::string> contrastBgList = StringUtil::Split(attrs.contrast_bg, ",");
+        std::vector<std::string> contrastBgList = StringUtil::Split(attrs.contrast_bg, ",");
         for (std::string& contrastBg : contrastBgList) {
             StringUtil::Trim(contrastBg);
             if (!contrastBg.empty()) {

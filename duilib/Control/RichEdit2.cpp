@@ -3133,7 +3133,7 @@ bool RichEdit2::SetSpinClass(const DString& spinClass)
     DString spinBoxClass;
     DString spinBtnUpClass;
     DString spinBtnDownClass;
-    std::list<DString> classNames = StringUtil::Split(spinClass, _T(","));
+    std::vector<DString> classNames = StringUtil::Split(spinClass, _T(","));
     if (classNames.size() == 3) {
         auto iter = classNames.begin();
         spinBoxClass = *iter++;

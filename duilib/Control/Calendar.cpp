@@ -260,13 +260,13 @@ void Calendar::AddDisabledDates(const DString& disabledDates)
         return;
     }
     //多个项用 ',' 或 ';' 分隔；每项为单日或 start~end 闭区间
-    std::list<DString> items = StringUtil::Split(disabledDates, _T(",;"));
+    std::vector<DString> items = StringUtil::Split(disabledDates, _T(",;"));
     for (DString item : items) {
         StringUtil::Trim(item);
         if (item.empty()) {
             continue;
         }
-        std::list<DString> range = StringUtil::Split(item, _T("~"));
+        std::vector<DString> range = StringUtil::Split(item, _T("~"));
         if (range.size() >= 2) {
             DString start = range.front();
             DString end = range.back();

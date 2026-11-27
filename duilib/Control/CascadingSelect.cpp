@@ -74,7 +74,7 @@ void CascadingSelect::SetAttribute(const DString& strName, const DString& strVal
     DString strValue = GetExpandVarStrings(strValue2);
     if ((strName == _T("items")) || (strName == _T("item_paths"))) {
         m_strIdPaths.clear();
-        std::list<DString> parts = StringUtil::Split(strValue, _T("|"));
+        std::vector<DString> parts = StringUtil::Split(strValue, _T("|"));
         std::vector<DString> paths;
         for (DString part : parts) {
             StringUtil::Trim(part);
@@ -85,7 +85,7 @@ void CascadingSelect::SetAttribute(const DString& strName, const DString& strVal
         SetItems(paths);
     }
     else if ((strName == _T("items_id")) || (strName == _T("item_paths_id"))) {
-        std::list<DString> parts = StringUtil::Split(strValue, _T("|"));
+        std::vector<DString> parts = StringUtil::Split(strValue, _T("|"));
         std::vector<DString> paths;
         for (DString part : parts) {
             StringUtil::Trim(part);
@@ -111,7 +111,7 @@ void CascadingSelect::SetAttribute(const DString& strName, const DString& strVal
         SetTextPadding(StringUtil::StringToInt32(strValue));
     }
     else if ((strName == _T("disabled_paths")) || (strName == _T("disabledpaths"))) {
-        std::list<DString> parts = StringUtil::Split(strValue, _T("|"));
+        std::vector<DString> parts = StringUtil::Split(strValue, _T("|"));
         std::vector<DString> paths;
         for (DString part : parts) {
             StringUtil::Trim(part);
@@ -596,7 +596,7 @@ bool CascadingSelect::SetSelectionByText(const DString& strText, bool bTriggerEv
 {
     const size_t nDepth = GetDepth();
     std::vector<int32_t> newSelection(nDepth, -1);
-    std::list<DString> parts = StringUtil::Split(strText, m_strValueSeparator);
+    std::vector<DString> parts = StringUtil::Split(strText, m_strValueSeparator);
     const std::vector<Node>* pSiblings = &m_roots;
     size_t nLevel = 0;
     for (DString part : parts) {
@@ -918,7 +918,7 @@ void CascadingSelect::InsertPath(const DString& path, bool bUseIds)
     if (strPath.empty()) {
         return;
     }
-    std::list<DString> segments = StringUtil::Split(strPath, m_strPathSeparator);
+    std::vector<DString> segments = StringUtil::Split(strPath, m_strPathSeparator);
     std::vector<Node>* pNodes = &m_roots;
     for (DString segment : segments) {
         StringUtil::Trim(segment);
@@ -949,7 +949,7 @@ void CascadingSelect::RebuildFromIds()
     if (m_strIdPaths.empty()) {
         return;
     }
-    std::list<DString> parts = StringUtil::Split(m_strIdPaths, _T("|"));
+    std::vector<DString> parts = StringUtil::Split(m_strIdPaths, _T("|"));
     std::vector<DString> paths;
     for (DString part : parts) {
         StringUtil::Trim(part);
@@ -1526,7 +1526,7 @@ void CascadingSelect::BuildValue(CascadingSelectValue& value) const
 std::vector<DString> CascadingSelect::SplitPathList(const DString& strList)
 {
     std::vector<DString> paths;
-    std::list<DString> parts = StringUtil::Split(strList, _T("|"));
+    std::vector<DString> parts = StringUtil::Split(strList, _T("|"));
     for (DString part : parts) {
         StringUtil::Trim(part);
         if (!part.empty()) {

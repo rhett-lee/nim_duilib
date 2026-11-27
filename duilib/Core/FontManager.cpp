@@ -261,7 +261,7 @@ void FontManager::SetDefaultFontFamilyNames(const DString& defaultFontFamilyName
     m_defaultFontFamilyNames.clear();
     m_bDefaultFontInited = false;
     if (!defaultFontFamilyNames.empty()) {
-        std::list<DString> fontFamilyNames = StringUtil::Split(defaultFontFamilyNames, _T(","));
+        std::vector<DString> fontFamilyNames = StringUtil::Split(defaultFontFamilyNames, _T(","));
         for (DString fontFamilyName : fontFamilyNames) {
             StringUtil::Trim(fontFamilyName);
             if (!fontFamilyName.empty()) {
@@ -278,7 +278,7 @@ void FontManager::SetFallbackFontFamilyNames(const DString& fallbackFontFamilyNa
     m_fallbackFontFamilyNames.clear();
     m_bFallbackFontInited = false;
     if (!fallbackFontFamilyNames.empty()) {
-        std::list<DString> fontFamilyNames = StringUtil::Split(fallbackFontFamilyNames, _T(","));
+        std::vector<DString> fontFamilyNames = StringUtil::Split(fallbackFontFamilyNames, _T(","));
         for (DString fontFamilyName : fontFamilyNames) {
             StringUtil::Trim(fontFamilyName);
             if (!fontFamilyName.empty()) {
@@ -702,9 +702,9 @@ void FontManager::GetFontSizeList(std::vector<FontSizeInfo>& fontSizeList) const
         //1英寸,95.6;大特号,83.7;特号,71.7;初号,56.0;小初,48.0;一号,34.7;小一,32.0;二号,29.3;小二,24.0;三号,21.3;小三,20.0;四号,18.7;小四,16.0;五号,14.0;小五,12.0;六号,10.0;小六,8.7;七号,7.3;八号,6.7
         DString fontSizeListString = GlobalManager::GetTextById(_T("STRID_PUBLIC_FONT_SIZE_LIST"));
         if (!fontSizeListString.empty()) {
-            std::list<DString> fontSizePairList = StringUtil::Split(fontSizeListString, _T(";"));
+            std::vector<DString> fontSizePairList = StringUtil::Split(fontSizeListString, _T(";"));
             for (const DString& fontSizePair : fontSizePairList) {
-                std::list<DString> fontSizeName = StringUtil::Split(fontSizePair, _T(","));
+                std::vector<DString> fontSizeName = StringUtil::Split(fontSizePair, _T(","));
                 if (fontSizeName.size() != 2) {
                     continue;
                 }

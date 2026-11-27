@@ -124,13 +124,12 @@ void TestTrim()
 
 void TestSplit()
 {
-    std::list<std::string> tokens = ui::StringUtil::Split("a,b,,c", ",");
+    std::vector<std::string> tokens = ui::StringUtil::Split("a,b,,c", ",");
     CHECK_INT((int)tokens.size(), 3);
     if (tokens.size() == 3) {
-        auto it = tokens.begin();
-        CHECK(*it++ == "a");
-        CHECK(*it++ == "b");
-        CHECK(*it++ == "c");
+        CHECK(tokens[0] == "a");
+        CHECK(tokens[1] == "b");
+        CHECK(tokens[2] == "c");
     }
 
     // 分隔符集合中的任意字符都作为分隔符
@@ -141,8 +140,33 @@ void TestSplit()
     CHECK(ui::StringUtil::Split(std::string(), ",").empty());
     CHECK(ui::StringUtil::Split(",,,", ",").empty());
 
-    std::list<std::wstring> wideTokens = ui::StringUtil::Split(L"x y z", L" ");
+    std::vector<std::wstring> wideTokens = ui::StringUtil::Split(L"x y z", L" ");
     CHECK_INT((int)wideTokens.size(), 3);
+
+    // keepEmpty = true：保留连续分隔符及首尾分隔符产生的空项
+    std::vector<std::string> keepAll = ui::StringUtil::Split("a,,b,", ",", true);
+    CHECK_INT((int)keepAll.size(), 4);
+    if (keepAll.size() == 4) {
+        CHECK(keepAll[0] == "a");
+        CHECK(keepAll[1].empty());
+        CHECK(keepAll[2] == "b");
+        CHECK(keepAll[3].empty());
+    }
+    CHECK_INT((int)ui::StringUtil::Split(",", ",", true).size(), 2);
+    CHECK_INT((int)ui::StringUtil::Split(std::string(), ",", true).size(), 1);
+    CHECK(ui::StringUtil::Split(std::string(), ",", true)[0].empty());
+    CHECK_INT((int)ui::StringUtil::Split(std::wstring(L"a,,b"), std::wstring(L","), true).size(), 3);
+
+    // 空分隔符：整体作为一个字段（与原实现一致）
+    std::vector<std::string> whole = ui::StringUtil::Split("abc", "");
+    CHECK_INT((int)whole.size(), 1);
+    CHECK(whole[0] == "abc");
+
+    // 内嵌'\0'：只处理其前面的内容（与原strtok实现一致）
+    const std::string withNul("a\0b", 3);
+    std::vector<std::string> nulTokens = ui::StringUtil::Split(withNul, ",");
+    CHECK_INT((int)nulTokens.size(), 1);
+    CHECK(nulTokens[0] == "a");
 }
 
 void TestCompare()

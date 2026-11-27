@@ -554,7 +554,7 @@ DString ImageManager::GetDpiScaledPath(uint32_t dpiScale, const DString& imageFu
 {
     DString strPathDir;
     DString strPathFileName;
-    std::list<DString> strPathList = StringUtil::Split(imageFullPath, _T("\\"));
+    std::vector<DString> strPathList = StringUtil::Split(imageFullPath, _T("\\"));
     for (auto it = strPathList.begin(); it != strPathList.end(); ++it) {
         auto itTemp = it;
         if (++itTemp == strPathList.end()) {

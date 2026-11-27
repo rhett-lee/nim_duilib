@@ -107,7 +107,7 @@ typedef std::map<std::string, std::string> SettingsMap;
 void ParseSettingsText(const std::string& text, SettingsMap& settings)
 {
     settings.clear();
-    std::list<std::string> lines = ui::StringUtil::Split(text, "\n");
+    std::vector<std::string> lines = ui::StringUtil::Split(text, "\n");
     for (std::string& line : lines) {
         ui::StringUtil::Trim(line);
         if (line.empty() || (line[0] == '#') || (line[0] == ';')) {

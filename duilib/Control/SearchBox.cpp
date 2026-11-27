@@ -705,7 +705,7 @@ bool SearchBox::MatchItem(const DString& item, const DString& input) const
 
 void SearchBox::ParseInitItems(const DString& items)
 {
-    std::list<DString> itemList = StringUtil::Split(items, _T(";"));
+    std::vector<DString> itemList = StringUtil::Split(items, _T(";"));
     for (const DString& item : itemList) {
         AddCandidate(item);
     }

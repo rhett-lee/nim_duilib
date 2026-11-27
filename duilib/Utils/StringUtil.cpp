@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include <cstdarg>
 #include <vector>
+#include <array>
+#include <type_traits>
 #include <climits>
 #include <cstring>
 #include <cstdio>
@@ -462,6 +464,105 @@ std::vector<std::basic_string<CharType>> StringSplitLinesT(const std::basic_stri
 }
 
 template<typename CharType>
+std::vector<std::basic_string<CharType>> StringSplitT(const std::basic_string<CharType>& input,
+                                                      const std::basic_string<CharType>& delimitor,
+                                                      bool keepEmpty)
+{
+    typedef std::basic_string<CharType> StringType;
+    std::vector<StringType> output;
+    const size_t npos = StringType::npos;
+
+    if (input.empty()) {
+        if (keepEmpty) {
+            output.emplace_back();
+        }
+        return output;
+    }
+
+    //与原实现保持一致：strtok 遇到内嵌的 '\0' 时只处理其前面的内容
+    const size_t nulPos = input.find(static_cast<CharType>(0));
+    const size_t dataLength = (nulPos == npos) ? input.size() : nulPos;
+
+    if (delimitor.empty()) {
+        output.emplace_back(input, 0, dataLength);
+        return output;
+    }
+    if (dataLength == 0) {
+        if (keepEmpty) {
+            output.emplace_back();
+        }
+        return output;
+    }
+
+    //单字符分隔符（最常见）走find快速路径；多字符分隔符使用ASCII查表
+    const bool isSingleDelimiter = (delimitor.size() == 1);
+    const CharType singleDelimiter = isSingleDelimiter ? delimitor[0] : static_cast<CharType>(0);
+
+    //预估容量，减少vector扩容次数
+    output.reserve(8);
+
+    if (isSingleDelimiter) {
+        //单字符分隔符：使用find定位下一个分隔符（内部为memchr实现，比逐字符比较更快）
+        size_t pos = 0;
+        while (pos <= dataLength) {
+            size_t delimiterPos = input.find(singleDelimiter, pos);
+            if ((delimiterPos == npos) || (delimiterPos > dataLength)) {
+                delimiterPos = dataLength;
+            }
+            if ((delimiterPos > pos) || keepEmpty) {
+                output.emplace_back(input, pos, delimiterPos - pos);
+            }
+            if (delimiterPos == dataLength) {
+                break;
+            }
+            pos = delimiterPos + 1;
+        }
+        return output;
+    }
+
+    //多字符分隔符集合：使用ASCII查表，非ASCII字符回退到集合查找，单遍扫描完成拆分
+    constexpr size_t kDelimiterMapSize = 256;
+    bool delimiterMap[kDelimiterMapSize] = {};
+    for (CharType ch : delimitor) {
+        const uint32_t index = static_cast<uint32_t>(static_cast<std::make_unsigned_t<CharType>>(ch));
+        if (index < kDelimiterMapSize) {
+            delimiterMap[index] = true;
+        }
+    }
+    const auto isDelimiter = [&](CharType ch) -> bool {
+        const uint32_t index = static_cast<uint32_t>(static_cast<std::make_unsigned_t<CharType>>(ch));
+        if (index < kDelimiterMapSize) {
+            return delimiterMap[index];
+        }
+        return delimitor.find(ch) != npos;
+    };
+
+    size_t tokenStart = npos;
+    for (size_t i = 0; i < dataLength; ++i) {
+        if (isDelimiter(input[i])) {
+            if (tokenStart != npos) {
+                output.emplace_back(input, tokenStart, i - tokenStart);
+                tokenStart = npos;
+            }
+            else if (keepEmpty) {
+                output.emplace_back();
+            }
+        }
+        else if (tokenStart == npos) {
+            tokenStart = i;
+        }
+    }
+    if (tokenStart != npos) {
+        output.emplace_back(input, tokenStart, dataLength - tokenStart);
+    }
+    else if (keepEmpty) {
+        //末尾分隔符产生的空项
+        output.emplace_back();
+    }
+    return output;
+}
+
+template<typename CharType>
 std::basic_string<CharType> StringMakeReplaceAllT(const std::basic_string<CharType>& input,
                                                   const std::basic_string<CharType>& find,
                                                   const std::basic_string<CharType>& replace)
@@ -895,55 +996,14 @@ bool StringUtil::IsNullOrWhiteSpace(const std::string& str)
 }
 
 
-std::list<std::string> StringUtil::Split(const std::string& input, const std::string& delimitor)
+std::vector<std::string> StringUtil::Split(const std::string& input, const std::string& delimitor, bool keepEmpty)
 {
-    std::list<std::string> output;
-    std::string input2(input);
-
-    if (input2.empty())
-        return output;
-
-    char* context = nullptr;
-#ifdef DUILIB_BUILD_FOR_WIN
-    char *token = strtok_s(input2.data(), delimitor.c_str(), &context);
-#else
-    char* token = strtok_r(input2.data(), delimitor.c_str(), &context);
-#endif
-    while (token != nullptr) {
-        output.push_back(token);
-#ifdef DUILIB_BUILD_FOR_WIN
-        token = strtok_s(nullptr, delimitor.c_str(), &context);
-#else
-        token = strtok_r(nullptr, delimitor.c_str(), &context);
-#endif
-    }
-    return output;
+    return StringSplitT<char>(input, delimitor, keepEmpty);
 }
 
-std::list<std::wstring> StringUtil::Split(const std::wstring& input, const std::wstring& delimitor)
+std::vector<std::wstring> StringUtil::Split(const std::wstring& input, const std::wstring& delimitor, bool keepEmpty)
 {
-    std::list<std::wstring> output;
-    std::wstring input2(input);
-
-    if (input2.empty()) {
-        return output;
-    }
-
-    wchar_t* context = nullptr;
-#ifdef DUILIB_BUILD_FOR_WIN
-    wchar_t* token = wcstok_s(input2.data(), delimitor.c_str(), &context);
-#else
-    wchar_t* token = wcstok(input2.data(), delimitor.c_str(), &context);
-#endif
-    while (token != nullptr) {
-        output.push_back(token);
-#ifdef DUILIB_BUILD_FOR_WIN
-        token = wcstok_s(nullptr, delimitor.c_str(), &context);
-#else
-        token = wcstok(nullptr, delimitor.c_str(), &context);
-#endif
-    }
-    return output;
+    return StringSplitT<wchar_t>(input, delimitor, keepEmpty);
 }
 
 std::vector<std::string> StringUtil::SplitByString(const std::string& input, const std::string& delimiter, bool keepEmpty)
