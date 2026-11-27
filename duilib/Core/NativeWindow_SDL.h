@@ -195,13 +195,19 @@ public:
     int32_t GetCloseParam() const;
 
 public:
-    /** 设置是否为层窗口
-    * @param [in] bIsLayeredWindow true表示设置为层窗口，否则设置为非层窗口
+    /** 设置是否启用SDL透明窗口
+    *   说明：SDL构建下不使用Windows的 WS_EX_LAYERED 分层窗口属性，
+    *         该接口实际控制 SDL_WINDOW_TRANSPARENT（窗口透明），与"分层窗口"不是同一个概念。
+    *         SDL_WINDOW_TRANSPARENT 只能在创建窗口时指定：
+    *         （1）创建窗口前调用：记录请求值，创建窗口时优先于XML配置；
+    *         （2）创建窗口后调用：仅校验请求值与窗口实际状态是否一致，不支持修改。
+    * @param [in] bIsLayeredWindow true表示启用SDL透明窗口，false表示使用非透明窗口
     * @param [in] bRedraw 是否重绘窗口（属性更改后，如果不重绘，则界面可能显示异常）
     */
     bool SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw);
 
-    /** 是否为层窗口
+    /** 是否启用了SDL透明窗口（对应SDL_WINDOW_TRANSPARENT）
+    * @note 该值不代表Windows的 WS_EX_LAYERED 分层窗口属性
     */
     bool IsLayeredWindow() const;
 
@@ -905,9 +911,17 @@ private:
     */
     WindowCreateParam m_createParam;
 
-    /** 是否为层窗口
+    /** 是否启用了SDL透明窗口（SDL_WINDOW_TRANSPARENT）
+    *   说明：SDL构建下不使用Windows的 WS_EX_LAYERED 分层窗口属性，
+    *         该值仅表示SDL透明窗口的状态，不代表操作系统分层窗口。
     */
     bool m_bIsLayeredWindow;
+
+    /** 创建窗口前，用户是否显式调用过SetLayeredWindow
+    *   用于决定创建窗口时 SDL_WINDOW_TRANSPARENT 的优先级：
+    *   创建前API设置 > 窗口XML配置 > 默认值（true）
+    */
+    bool m_bLayeredWindowSetBeforeCreate;
 
     /** 是否正处于输入法组合输入过程中
     *   SDL 只有一个 SDL_EVENT_TEXT_EDITING 事件，需要靠这个标志区分

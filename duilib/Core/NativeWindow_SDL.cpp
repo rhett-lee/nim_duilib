@@ -1094,7 +1094,8 @@ NativeWindow_SDL::NativeWindow_SDL(INativeWindow* pOwner):
     m_pOwner(pOwner),
     m_sdlWindow(nullptr),
     m_sdlRenderer(nullptr),
-    m_bIsLayeredWindow(false),
+    m_bIsLayeredWindow(true),
+    m_bLayeredWindowSetBeforeCreate(false),
     m_nLayeredWindowAlpha(255),
     m_nLayeredWindowOpacity(255),
     m_bUseSystemCaption(false),
@@ -1784,27 +1785,28 @@ void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& 
         }
     }
 
-    //初始化层窗口属性
+    //初始化SDL透明窗口状态：
+    //SDL构建下，m_bIsLayeredWindow 表示是否启用SDL透明窗口（SDL_WINDOW_TRANSPARENT），
+    //与Windows的WS_EX_LAYERED分层窗口属性无关。
+    //优先级从高到低：创建前用户显式设置 > 窗口XML显式配置 > 默认值（true）
+    bool bRequestLayeredWindow = true;
     if (createAttributes.m_bIsLayeredWindowDefined) {
-        if (createAttributes.m_bIsLayeredWindow) {
-            m_bIsLayeredWindow = true;
-        }
+        bRequestLayeredWindow = createAttributes.m_bIsLayeredWindow;
     }
-    else if (m_createParam.m_dwExStyle & kWS_EX_LAYERED) {
-        //说明：SDL构建下，ResolveLayeredWindowAttributes在XML未配置layered_window时会默认置为
-        //"已定义且为true"（窗口必须固定使用SDL_WINDOW_TRANSPARENT，以支持窗口阴影和系统标题栏动态切换），
-        //因此 m_bIsLayeredWindowDefined 恒为true，该分支实际不可达；
-        //WindowCreateParam中的kWS_EX_LAYERED不参与SDL窗口的创建决策，这里保留作为防御性代码。
-        m_bIsLayeredWindow = true;
+    if (m_bLayeredWindowSetBeforeCreate) {
+        //创建窗口前，用户显式调用过SetLayeredWindow，以其值为准
+        bRequestLayeredWindow = m_bIsLayeredWindow;
+    }
+    m_bIsLayeredWindow = bRequestLayeredWindow && bSupportTransparent;
+    //本次创建已消费"创建前设置"的请求值，后续创建窗口时重新按XML/API设置决定
+    m_bLayeredWindowSetBeforeCreate = false;
+    if (bRequestLayeredWindow && !bSupportTransparent) {
+        LogUtil::OutputLine(_T("NativeWindow_SDL: the current platform or renderer does not support transparent windows, use a non-transparent window"));
     }
 
-    //如果设置了不透明度，则设置为层窗口
-    if (createAttributes.m_bLayeredWindowOpacityDefined && (createAttributes.m_nLayeredWindowOpacity != 255)) {
-        m_bIsLayeredWindow = true;
-    }
-    if (createAttributes.m_bLayeredWindowAlphaDefined && (createAttributes.m_nLayeredWindowAlpha != 255)) {
-        m_bIsLayeredWindow = true;
-    }
+    //SDL构建不使用Windows的分层窗口属性(WS_EX_LAYERED)：
+    //窗口透明由SDL_WINDOW_TRANSPARENT实现，这里清除外部传入的分层窗口标记，避免两种机制混用
+    m_createParam.m_dwExStyle &= ~kWS_EX_LAYERED;
 
     if (createAttributes.m_bInitSizeDefined) {
         if (createAttributes.m_szInitSize.cx > 0) {
@@ -1813,17 +1815,6 @@ void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& 
         if (createAttributes.m_szInitSize.cy > 0) {
             m_createParam.m_nHeight = createAttributes.m_szInitSize.cy;
         }
-    }
-
-    //Linux平台，仅部分Render支持透明窗口; Windows平台支持透明窗口
-    if (!bSupportTransparent) {
-        m_bIsLayeredWindow = false;
-    }
-    if (m_bIsLayeredWindow) {
-        m_createParam.m_dwExStyle |= kWS_EX_LAYERED;
-    }
-    else {
-        m_createParam.m_dwExStyle &= ~kWS_EX_LAYERED;
     }
 }
 
@@ -2129,6 +2120,10 @@ void NativeWindow_SDL::ClearNativeWindow()
     SDL_Window* sdlWindow = m_sdlWindow;
     m_sdlRenderer = nullptr;
     m_sdlWindow = nullptr;
+
+    //窗口已销毁：重置透明窗口状态，避免后续查询到过期的状态
+    m_bIsLayeredWindow = true;
+    m_bLayeredWindowSetBeforeCreate = false;
 
     //在销毁窗口之前，先记录父窗口：窗口销毁后，父窗口被遮挡的区域需要整窗重绘
     NativeWindow_SDL* pParentWindow = nullptr;
@@ -4129,14 +4124,19 @@ float NativeWindow_SDL::GetWindowPixelDensity() const
 
 bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool /*bRedraw*/)
 {
+    if (m_sdlWindow == nullptr) {
+        //窗口创建前：记录用户显式设置的请求值，创建窗口时优先于XML配置
+        m_bLayeredWindowSetBeforeCreate = true;
+        m_bIsLayeredWindow = bIsLayeredWindow;
+        return true;
+    }
+
     //SDL_WINDOW_TRANSPARENT 只能在创建窗口时指定，创建后不支持修改：
     //这里只校验请求是否与窗口的实际属性一致，避免内部状态与窗口属性不一致
-    if (m_sdlWindow != nullptr) {
-        const bool bTransparent = (SDL_GetWindowFlags(m_sdlWindow) & SDL_WINDOW_TRANSPARENT) != 0;
-        if (bIsLayeredWindow != bTransparent) {
-            //当前平台或者Render不支持透明窗口，无法设置为分层窗口
-            return false;
-        }
+    const bool bTransparent = (SDL_GetWindowFlags(m_sdlWindow) & SDL_WINDOW_TRANSPARENT) != 0;
+    if (bIsLayeredWindow != bTransparent) {
+        //当前平台或者Render不支持透明窗口，无法修改透明窗口属性
+        return false;
     }
     m_bIsLayeredWindow = bIsLayeredWindow;
     return true;
