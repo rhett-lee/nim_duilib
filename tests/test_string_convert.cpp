@@ -116,6 +116,8 @@ void TestBOM()
     CHECK_INT((int)ui::StringCharset::GetBOMSize(ui::CharsetType::UTF8), 3);
     CHECK_INT((int)ui::StringCharset::GetBOMSize(ui::CharsetType::UTF16_LE), 2);
     CHECK_INT((int)ui::StringCharset::GetBOMSize(ui::CharsetType::UTF16_BE), 2);
+    CHECK_INT((int)ui::StringCharset::GetBOMSize(ui::CharsetType::UTF32_LE), 4);
+    CHECK_INT((int)ui::StringCharset::GetBOMSize(ui::CharsetType::UTF32_BE), 4);
     CHECK_INT((int)ui::StringCharset::GetBOMSize(ui::CharsetType::ANSI), 0);
     CHECK_INT((int)ui::StringCharset::GetBOMSize(ui::CharsetType::UNKNOWN), 0);
 
@@ -127,6 +129,19 @@ void TestBOM()
 
     const char utf16BeBom[] = "\xFE\xFF";
     CHECK(ui::StringCharset::GetDataCharsetByBOM(utf16BeBom, 2) == ui::CharsetType::UTF16_BE);
+
+    const char utf32LeBom[] = { (char)0xFF, (char)0xFE, 0x00, 0x00 };
+    CHECK(ui::StringCharset::GetDataCharsetByBOM(utf32LeBom, 4) == ui::CharsetType::UTF32_LE);
+    const char utf32BeBom[] = { 0x00, 0x00, (char)0xFE, (char)0xFF };
+    CHECK(ui::StringCharset::GetDataCharsetByBOM(utf32BeBom, 4) == ui::CharsetType::UTF32_BE);
+
+    // HasBOM / SkipBOM
+    CHECK(ui::StringCharset::HasBOM(utf8Bom, 3));
+    CHECK_INT((int)ui::StringCharset::SkipBOM(utf8Bom, 3), 3);
+    CHECK(ui::StringCharset::HasBOM(utf32LeBom, 4));
+    CHECK_INT((int)ui::StringCharset::SkipBOM(utf32LeBom, 4), 4);
+    CHECK(!ui::StringCharset::HasBOM("abc", 3));
+    CHECK_INT((int)ui::StringCharset::SkipBOM("abc", 3), 0);
 
     // 数据太短或为空
     CHECK(ui::StringCharset::GetDataCharsetByBOM(nullptr, 0) == ui::CharsetType::UNKNOWN);
@@ -146,6 +161,13 @@ void TestValidateStream()
     // 截断的UTF-8序列不合法
     CHECK(!ui::StringCharset::IsValidateUTF8Stream(kChineseUtf8.data(), 2));
     CHECK(!ui::StringCharset::IsValidateUTF8Stream(nullptr, 0));
+    // 过长编码（C0 80）、代理区编码（ED A0 80）、超出U+10FFFF（F4 90 80 80）均不合法
+    const char overlongUtf8[] = { (char)0xC0, (char)0x80 };
+    CHECK(!ui::StringCharset::IsValidateUTF8Stream(overlongUtf8, 2));
+    const char surrogateUtf8[] = { (char)0xED, (char)0xA0, (char)0x80 };
+    CHECK(!ui::StringCharset::IsValidateUTF8Stream(surrogateUtf8, 3));
+    const char tooLargeUtf8[] = { (char)0xF4, (char)0x90, (char)0x80, (char)0x80 };
+    CHECK(!ui::StringCharset::IsValidateUTF8Stream(tooLargeUtf8, 4));
 
     // GBK："中文"的GBK编码为 D6 D0 CE C4
     const char gbkChinese[] = { (char)0xD6, (char)0xD0, (char)0xCE, (char)0xC4 };
@@ -155,6 +177,9 @@ void TestValidateStream()
     // 0xFF 不是合法的GBK首字节
     const char invalidGbk[] = { (char)0xFF, (char)0xFF };
     CHECK(!ui::StringCharset::IsValidateGBKStream(invalidGbk, 2));
+    // 0x7F 不是合法的GBK尾字节
+    const char invalidGbkTrail[] = { (char)0xD6, (char)0x7F };
+    CHECK(!ui::StringCharset::IsValidateGBKStream(invalidGbkTrail, 2));
     // UTF-8编码的"中文"不满足GBK的尾字节规则(AD后跟E6是合法的，但E4 B8也是合法的，
     // 因此这里用4字节emoji验证：F0 9F 98 80 中 0x9F 是合法尾字节，仍能通过；
     // 这里仅验证空指针与空长度返回false)
@@ -178,6 +203,23 @@ void TestValidateStream()
     CHECK(!ui::StringCharset::IsValidateUTF16BEStream(utf16Be, 3));
     const char surrogatePairBE[] = { (char)0xD8, 0x00, (char)0xDC, 0x00 };
     CHECK(ui::StringCharset::IsValidateUTF16BEStream(surrogatePairBE, 4));
+
+    // UTF-32LE："AB" = 41 00 00 00 42 00 00 00
+    const char utf32Le[] = { 0x41, 0x00, 0x00, 0x00, 0x42, 0x00, 0x00, 0x00 };
+    CHECK(ui::StringCharset::IsValidateUTF32LEStream(utf32Le, 8));
+    CHECK(!ui::StringCharset::IsValidateUTF32LEStream(utf32Le, 6));
+    CHECK(!ui::StringCharset::IsValidateUTF32LEStream(nullptr, 8));
+    // 代理区码点(0xD800)在UTF-32中非法
+    const char utf32Surrogate[] = { 0x00, (char)0xD8, 0x00, 0x00 };
+    CHECK(!ui::StringCharset::IsValidateUTF32LEStream(utf32Surrogate, 4));
+    // 超出U+10FFFF的码点非法
+    const char utf32TooLarge[] = { 0x00, 0x00, 0x11, 0x00 };
+    CHECK(!ui::StringCharset::IsValidateUTF32LEStream(utf32TooLarge, 4));
+
+    // UTF-32BE："AB" = 00 00 00 41 00 00 00 42
+    const char utf32Be[] = { 0x00, 0x00, 0x00, 0x41, 0x00, 0x00, 0x00, 0x42 };
+    CHECK(ui::StringCharset::IsValidateUTF32BEStream(utf32Be, 8));
+    CHECK(!ui::StringCharset::IsValidateUTF32BEStream(utf32Be, 6));
 }
 
 void TestDetectCharset()
@@ -187,10 +229,28 @@ void TestDetectCharset()
     // UTF-8编码的中文(同时也满足GBK校验，但优先识别为UTF-8)
     CHECK(ui::StringCharset::GetDataCharset(kChineseUtf8.data(), (uint32_t)kChineseUtf8.size()) ==
           ui::CharsetType::UTF8);
-    // GBK编码的中文
+    // GBK编码的中文（不再归为ANSI）
     const char gbkChinese[] = { (char)0xD6, (char)0xD0, (char)0xCE, (char)0xC4 };
-    CHECK(ui::StringCharset::GetDataCharset(gbkChinese, 4) == ui::CharsetType::ANSI);
+    CHECK(ui::StringCharset::GetDataCharset(gbkChinese, 4) == ui::CharsetType::GBK);
     CHECK(ui::StringCharset::GetDataCharset(nullptr, 0) == ui::CharsetType::UNKNOWN);
+
+    // 无BOM的UTF-16LE文本（"AB" = 41 00 42 00），按0字节分布识别
+    const char utf16LeText[] = { 0x41, 0x00, 0x42, 0x00 };
+    CHECK(ui::StringCharset::GetDataCharset(utf16LeText, 4) == ui::CharsetType::UTF16_LE);
+    // 严格策略下不尝试UTF-16，纯ASCII字节按ANSI处理
+    CHECK(ui::StringCharset::GetDataCharset(utf16LeText, 4, ui::CharsetDetectPolicy::kStrict) ==
+          ui::CharsetType::ANSI);
+
+    // 无BOM的UTF-32LE文本（"AB" = 41 00 00 00 42 00 00 00）
+    const char utf32LeText[] = { 0x41, 0x00, 0x00, 0x00, 0x42, 0x00, 0x00, 0x00 };
+    CHECK(ui::StringCharset::GetDataCharset(utf32LeText, 8) == ui::CharsetType::UTF32_LE);
+    CHECK(ui::StringCharset::GetDataCharset(utf32LeText, 8, ui::CharsetDetectPolicy::kStrict) ==
+          ui::CharsetType::ANSI);
+
+    // 编码名称
+    CHECK(std::string(ui::StringCharset::GetCharsetName(ui::CharsetType::GBK)) == "GBK");
+    CHECK(std::string(ui::StringCharset::GetCharsetName(ui::CharsetType::UTF8)) == "UTF-8");
+    CHECK(std::string(ui::StringCharset::GetCharsetName(ui::CharsetType::UNKNOWN)) == "UNKNOWN");
 }
 
 void TestDataAsString()
@@ -223,10 +283,7 @@ void TestDataAsString()
     // UTF-16BE BOM + "AB"
     const char utf16BeData[] = { (char)0xFE, (char)0xFF, 0x00, 0x41, 0x00, 0x42 };
     CHECK(ui::StringCharset::GetDataAsString(utf16BeData, 6, result, outCharsetType, bomSize));
-#if defined(WCHAR_T_IS_UTF16)
-    // 仅当 wchar_t 为UTF-16时，结果直接是"AB"（非Windows平台wchar_t为32位，当前实现仅做字节序反转）
     CHECK(result == L"AB");
-#endif
     CHECK(outCharsetType == ui::CharsetType::UTF16_BE);
 
     // 无BOM的纯ASCII：按ANSI处理
@@ -242,11 +299,131 @@ void TestDataAsString()
     CHECK(result == L"AB");
     CHECK(outCharsetType == ui::CharsetType::UTF16_LE);
 
+    // 无BOM的UTF-16LE中文（"中文" = 2D 4E 87 65）：按内容检测会判为GBK，
+    // 但显式指定UTF16_LE时应按指定编码解码
+    const char utf16LeChinese[] = { 0x2D, 0x4E, (char)0x87, 0x65 };
+    CHECK(ui::StringCharset::IsValidateUTF16LEStream(utf16LeChinese, 4));
+    CHECK(ui::StringCharset::GetDataAsString(utf16LeChinese, 4, ui::CharsetType::UTF16_LE,
+                                             result, outCharsetType, bomSize));
+    CHECK(result == std::wstring(L"\u4E2D\u6587"));
+
     // 显式编码与BOM头不一致时返回失败
     CHECK(!ui::StringCharset::GetDataAsString(utf16LeData, 6, ui::CharsetType::UTF8,
                                              result, outCharsetType, bomSize));
+
+    // UTF-32LE BOM + "AB"
+    const char utf32LeData[] = { (char)0xFF, (char)0xFE, 0x00, 0x00,
+                                 0x41, 0x00, 0x00, 0x00, 0x42, 0x00, 0x00, 0x00 };
+    CHECK(ui::StringCharset::GetDataAsString(utf32LeData, 12, result, outCharsetType, bomSize));
+    CHECK(result == L"AB");
+    CHECK(outCharsetType == ui::CharsetType::UTF32_LE);
+    CHECK_INT(bomSize, 4);
+
+    // UTF-32BE BOM + "AB"
+    const char utf32BeData[] = { 0x00, 0x00, (char)0xFE, (char)0xFF,
+                                 0x00, 0x00, 0x00, 0x41, 0x00, 0x00, 0x00, 0x42 };
+    CHECK(ui::StringCharset::GetDataAsString(utf32BeData, 12, result, outCharsetType, bomSize));
+    CHECK(result == L"AB");
+    CHECK(outCharsetType == ui::CharsetType::UTF32_BE);
+    CHECK_INT(bomSize, 4);
+
+    // BOM头指示UTF-8但内容非法时返回失败
+    const char invalidUtf8Data[] = { (char)0xEF, (char)0xBB, (char)0xBF, (char)0xFF };
+    CHECK(!ui::StringCharset::GetDataAsString(invalidUtf8Data, 4, result, outCharsetType, bomSize));
+    CHECK(result.empty());
+
+    // 带BOM的UTF-16数据长度为奇数时返回失败
+    const char oddUtf16Data[] = { (char)0xFF, (char)0xFE, 0x41, 0x00, 0x42 };
+    CHECK(!ui::StringCharset::GetDataAsString(oddUtf16Data, 5, result, outCharsetType, bomSize));
+
+    // 非对齐缓冲区：BOM之后的数据起始地址为奇数
+    const std::string unalignedData = std::string("X") + std::string("\xFF\xFE\x41\x00\x42\x00", 6);
+    CHECK(ui::StringCharset::GetDataAsString(unalignedData.data() + 1, 6,
+                                             result, outCharsetType, bomSize));
+    CHECK(result == L"AB");
+
+#ifdef DUILIB_BUILD_FOR_WIN
+    // GBK数据：自动检测与显式指定均可正确解码
+    const char gbkChineseData[] = { (char)0xD6, (char)0xD0, (char)0xCE, (char)0xC4 };
+    CHECK(ui::StringCharset::GetDataAsString(gbkChineseData, 4, result, outCharsetType, bomSize));
+    CHECK(result == std::wstring(L"\u4E2D\u6587"));
+    CHECK(outCharsetType == ui::CharsetType::GBK);
+    CHECK(ui::StringCharset::GetDataAsString(gbkChineseData, 4, ui::CharsetType::GBK,
+                                             result, outCharsetType, bomSize));
+    CHECK(result == std::wstring(L"\u4E2D\u6587"));
+    // 显式指定GBK时，纯ASCII数据可正常解码
+    CHECK(ui::StringCharset::GetDataAsString("abc", 3, ui::CharsetType::GBK,
+                                             result, outCharsetType, bomSize));
+    CHECK(result == L"abc");
+#endif
+
     // 空数据返回失败
     CHECK(!ui::StringCharset::GetDataAsString(nullptr, 0, result));
+}
+
+void TestWStringToData()
+{
+    const std::wstring text = std::wstring(L"\u4E2D\u6587");
+    std::string data;
+    std::wstring result;
+
+    // UTF-8：不带BOM
+    CHECK(ui::StringCharset::WStringToData(text, ui::CharsetType::UTF8, data));
+    CHECK(ui::StringCharset::IsValidateUTF8Stream(data.data(), (uint32_t)data.size()));
+    CHECK(ui::StringCharset::GetDataAsString(data.data(), (uint32_t)data.size(), result));
+    CHECK(result == text);
+
+    // UTF-8：带BOM
+    CHECK(ui::StringCharset::WStringToData(text, ui::CharsetType::UTF8, data, true));
+    CHECK_INT((int)ui::StringCharset::SkipBOM(data.data(), (uint32_t)data.size()), 3);
+    CHECK(ui::StringCharset::GetDataAsString(data.data(), (uint32_t)data.size(), result));
+    CHECK(result == text);
+
+    // UTF-16LE / UTF-16BE：带BOM往返
+    CHECK(ui::StringCharset::WStringToData(text, ui::CharsetType::UTF16_LE, data, true));
+    CHECK(ui::StringCharset::GetDataAsString(data.data(), (uint32_t)data.size(), result));
+    CHECK(result == text);
+    CHECK(ui::StringCharset::WStringToData(text, ui::CharsetType::UTF16_BE, data, true));
+    CHECK(ui::StringCharset::GetDataAsString(data.data(), (uint32_t)data.size(), result));
+    CHECK(result == text);
+
+    // UTF-32LE / UTF-32BE：带BOM往返
+    CHECK(ui::StringCharset::WStringToData(text, ui::CharsetType::UTF32_LE, data, true));
+    CHECK(ui::StringCharset::GetDataAsString(data.data(), (uint32_t)data.size(), result));
+    CHECK(result == text);
+    CHECK(ui::StringCharset::WStringToData(text, ui::CharsetType::UTF32_BE, data, true));
+    CHECK(ui::StringCharset::GetDataAsString(data.data(), (uint32_t)data.size(), result));
+    CHECK(result == text);
+
+    // 表情符号(代理对)的UTF-16BE往返
+#if defined(WCHAR_T_IS_UTF16)
+    const std::wstring emoji = std::wstring(1, (wchar_t)0xD83D) + std::wstring(1, (wchar_t)0xDE00);
+#else
+    const std::wstring emoji = std::wstring(1, (wchar_t)0x1F600);
+#endif
+    CHECK(ui::StringCharset::WStringToData(emoji, ui::CharsetType::UTF16_BE, data, true));
+    CHECK(ui::StringCharset::GetDataAsString(data.data(), (uint32_t)data.size(), result));
+    CHECK(result == emoji);
+
+    // 非法参数
+    CHECK(!ui::StringCharset::WStringToData(text, ui::CharsetType::UNKNOWN, data));
+    CHECK(data.empty());
+
+#ifdef DUILIB_BUILD_FOR_WIN
+    // GBK往返
+    CHECK(ui::StringCharset::WStringToData(text, ui::CharsetType::GBK, data));
+    CHECK(ui::StringCharset::GetDataAsString(data.data(), (uint32_t)data.size(), result));
+    CHECK(result == text);
+#endif
+
+    // ANSI：纯ASCII文本可无损往返
+    CHECK(ui::StringCharset::WStringToData(std::wstring(L"abc"), ui::CharsetType::ANSI, data));
+    CHECK(ui::StringCharset::GetDataAsString(data.data(), (uint32_t)data.size(), result));
+    CHECK(result == L"abc");
+
+    // 空字符串
+    CHECK(ui::StringCharset::WStringToData(std::wstring(), ui::CharsetType::UTF8, data));
+    CHECK(data.empty());
 }
 
 } // namespace
@@ -263,6 +440,7 @@ int main()
     TestValidateStream();
     TestDetectCharset();
     TestDataAsString();
+    TestWStringToData();
 
     if (g_failedCount == 0) {
         std::cout << "All tests passed (" << g_checkCount << " checks)." << std::endl;

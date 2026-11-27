@@ -51,10 +51,15 @@ std::basic_string<DUTF16Char> StringConvert::UTF8ToUTF16(const DUTF8Char* utf8, 
 
 DStringW StringConvert::UTF8ToWString(const std::string& utf8)
 {
+    return UTF8ToWString(utf8.c_str(), utf8.length());
+}
+
+DStringW StringConvert::UTF8ToWString(const DUTF8Char* utf8, size_t length)
+{
 #if defined(WCHAR_T_IS_UTF16)
-    return UTF8ToUTF16(utf8.c_str(), utf8.length());
+    return UTF8ToUTF16(utf8, length);
 #else
-    return UTF8ToUTF32(utf8.c_str(), utf8.length());
+    return UTF8ToUTF32(utf8, length);
 #endif
 }
 

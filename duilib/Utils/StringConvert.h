@@ -29,6 +29,13 @@ public:
     */
     static DStringW UTF8ToWString(const std::string& utf8);
 
+    /** UTF8字符串转换为std::wstring（字符指针加长度版本）
+    * @param [in] utf8 源字符串（UTF8 编码），不可为 nullptr
+    * @param [in] length 源字符串的长度（UTF8 字节数，不含结尾的 '\0'）
+    * @return 返回转换后的宽字符串（Windows 平台为 UTF16 编码，其他平台为 UTF32 编码），输入为空时返回空字符串
+    */
+    static DStringW UTF8ToWString(const DUTF8Char* utf8, size_t length);
+
     /** UTF16字符串转换为UTF8字符串
     * @param [in] utf16 源字符串（UTF16 编码）
     * @param [in] length 源字符串的长度（UTF16 字符数，不含结尾的 '\0'）

@@ -81,16 +81,13 @@ void ControlDropTargetImpl_Windows::ParseWindowsDataObject(void* pDataObj, std::
                     }
                 }
                 else if (format == CF_TEXT) {
-                    //编码类型：可能是Ansi或者UTF8等（Edge网页拖出的文本类型是UTF8的,NotePad拖出的文本类型是Ansi的）
-                    ansiTextList.clear();                    
+                    //编码类型：可能是Ansi、GBK、UTF8、UTF16等（Edge网页拖出的文本类型是UTF8的,NotePad拖出的文本类型是Ansi的）
+                    ansiTextList.clear();
                     DStringA rawText = (std::string::value_type*)hGlobal;
-                    CharsetType charset = StringCharset::GetDataCharset(rawText.data(), (uint32_t)rawText.size());
+                    std::wstring unicodeText;
                     DString text;
-                    if (charset == CharsetType::ANSI) {
-                        text = StringConvert::MBCSToT(rawText);
-                    }
-                    else if (charset == CharsetType::UTF8) {
-                        text = StringConvert::UTF8ToT(rawText);
+                    if (StringCharset::GetDataAsString(rawText.data(), (uint32_t)rawText.size(), unicodeText)) {
+                        text = StringConvert::WStringToT(unicodeText);
                     }
                     if (!text.empty()) {
                         std::list<DString> lines = StringUtil::Split(text, _T("\r\n"));
