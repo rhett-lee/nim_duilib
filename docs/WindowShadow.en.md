@@ -248,7 +248,7 @@ For the complete example, see [render/page_window_shadow.xml](../bin/resources/t
 - **`layered_window`**: When using the self-drawn shadow, there is no need to manually set `layered_window`; duilib will enable the layered window attribute as needed. System shadows and layered windows are mutually exclusive.
 - **`size`**: By default, `size` only represents the size of the client area, excluding the shadow. Setting `size_contain_shadow="true"` lets `size` include the shadow dimensions.
 - **`round_corner`**: When using self-drawn shadows, the window naturally has rounded corners (determined by `shadow_*`), so generally there is no need to set `round_corner` again. The `round_corner` value is **not DPI-scaled** (logical pixels); the framework automatically scales it according to the current DPI before applying. When the shadow type is `none_round`, the framework automatically sets the window rounded corners (using the value of `shadow_border_round`); there is no need to configure `round_corner` manually.
-- **`render_backend_type="GL"`**: A window rendered with OpenGL cannot be a layered window, so it is incompatible with the self-drawn shadow; it is usually used together with the system shadow.
+- **`render_backend_type="GL"`**: A window rendered with OpenGL cannot be a layered window, so it is incompatible with the self-drawn shadow; it is usually used together with the system shadow. The GL backend is supported only on Windows when not built with SDL; otherwise it automatically falls back to CPU rendering.
 
 ---
 

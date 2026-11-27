@@ -313,7 +313,7 @@ Attributes:
 
 | Attribute | Default | Type | Purpose |
 | :--- | :--- | :--- | :--- |
-| render_backend_type | | string | "CPU": CPU rendering; "GL"/"GPU": OpenGL rendering. Setting this attribute enables the global switch |
+| render_backend_type | | string | "CPU": CPU rendering; "GL"/"GPU": OpenGL rendering. Setting this attribute enables the global switch.<br>Support: only available on Windows when not built with SDL; other platforms/build modes (including Windows ARM64) automatically fall back to CPU rendering |
 | vsync | true | bool | Whether to enable vertical sync; only effective for GL rendering |
 | msaa | 0 | int | MSAA sample count; 0 disables MSAA; only effective for GL rendering |
 
@@ -333,6 +333,8 @@ GlobalManager::Instance().ApplyGlobalRenderBackendTypeToAllWindows();
 Notes:
 
 - The global switch takes precedence over each window's own configuration;
+- The GL/GPU backend is supported only on Windows when not built with SDL; SDL builds, non-Windows platforms and Windows ARM64 automatically fall back to CPU rendering;
+- Even on a supported platform, if a GL context cannot be created (e.g. remote desktop, virtual machine, missing OpenGL driver), it also falls back to CPU rendering; use `Window::GetRenderBackendType()` to check the backend actually in use;
 - OpenGL does not support layered windows (`layered_window="true"` or `opacity < 255`); such windows automatically use CPU rendering;
 - Switching at runtime recreates the render object (and the OpenGL context for GL); avoid calling it while a window is painting.
 

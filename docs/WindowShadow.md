@@ -246,7 +246,7 @@ pWindow->SetEnableShadowSnap(true);
 - **`layered_window`**：使用自绘阴影时无需手动设置 `layered_window`，duilib 会按需开启分层窗口属性。系统阴影与分层窗口互斥。
 - **`size`**：默认情况下，`size` 只表示客户区大小，不包含阴影。设置 `size_contain_shadow="true"` 可让 `size` 包含阴影的尺寸。
 - **`round_corner`**：使用自绘阴影时窗口自然有圆角（由 `shadow_*` 决定），一般不必再设置 `round_corner`。`round_corner` 的值**未经 DPI 缩放**（逻辑像素），框架内部会按当前 DPI 自动缩放后应用。当阴影类型为 `none_round` 时，框架会自动设置窗口圆角（取 `shadow_border_round` 的值），无需手动配置 `round_corner`。
-- **`render_backend_type="GL"`**：OpenGL 渲染的窗口不能是分层窗口，因此与自绘阴影不兼容；通常配合系统阴影使用。
+- **`render_backend_type="GL"`**：OpenGL 渲染的窗口不能是分层窗口，因此与自绘阴影不兼容；通常配合系统阴影使用。GL 后端仅在 Windows 平台且非 SDL 构建模式下支持，不支持时会自动回退为 CPU 绘制。
 
 ---
 
