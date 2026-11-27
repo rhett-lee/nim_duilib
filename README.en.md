@@ -220,7 +220,7 @@ python3 build/build.py --dll --config Release
 ### Learning Path for Newcomers
 
 1. Follow the steps above to run `basic`, confirming the toolchain, dependencies and resources work.
-2. Write your first window: Windows + VS users read [Getting-Started.en.md](docs/Getting-Started.en.md); CMake or non-Windows users follow "Path B" below to integrate the SDK (details in [Deployment.en.md](docs/Deployment.en.md)).
+2. Write your first window: Windows + VS users read [Getting-Started.en.md](docs/Getting-Started.en.md); CMake users (Windows/Linux/macOS/FreeBSD) read [Getting-Started-CMake.en.md](docs/Getting-Started-CMake.en.md) (SDK integration details are in [Deployment.en.md](docs/Deployment.en.md)).
 3. Learn XML layouts and controls: [Windows](docs/Window.en.md), [containers/layouts](docs/Box.en.md), [controls](docs/Control.en.md), [events](docs/Events.en.md).
 4. Compare with [examples/](examples) for a similar scenario and adapt it to your UI.
 5. See "Packaging and Release" when you are ready to ship.
@@ -330,7 +330,7 @@ Browse by task:
 
 **Writing the UI**
 
-- First window: [examples/basic](examples/basic) is the minimal project; the step-by-step tutorial is in [docs/Getting-Started.en.md](docs/Getting-Started.en.md) (it uses the VS solution, so take `python3 build/build.py deps` as the dependency-preparation command and this document's "Quick Start" as the build entry).
+- First window: [examples/basic](examples/basic) is the minimal project; the step-by-step tutorial is in [docs/Getting-Started.en.md](docs/Getting-Started.en.md) (it uses the VS solution, so take `python3 build/build.py deps` as the dependency-preparation command and this document's "Quick Start" as the build entry); CMake users can follow [docs/Getting-Started-CMake.en.md](docs/Getting-Started-CMake.en.md).
 - UI development documents: [Windows](docs/Window.en.md), [containers/layouts](docs/Box.en.md), [controls](docs/Control.en.md), [menus](docs/Menu.en.md), [global styles](docs/Global.en.md), [events](docs/Events.en.md), [XML nodes](docs/XmlNode.en.md), [XML events](docs/XmlEvents.en.md), [XML editing helper tools](docs/XmlTools.en.md) (parse error locations, static checks, editor completion and validation).
 
 **Built-in dialogs and notifications**

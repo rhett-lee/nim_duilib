@@ -4,6 +4,8 @@ English | [简体中文](Getting-Started.md)
 
 # Quick Start (Windows, using VS 2022 as an example)
 
+> For CMake users (Windows/Linux/macOS/FreeBSD), see [Quick Start (CMake)](Getting-Started-CMake.en.md).
+
 This example will guide you to quickly deploy a basic application based on nim_duilib. This example is similar to the `basic` project in `examples`; if you prefer to read code, you can open the `build\examples.sln` solution and refer to the example code without spending extra time.
 
 ## Get the code and prepare dependencies

@@ -1,11 +1,12 @@
 English | [简体中文](Summary.md)
 
-> Last synced: 2026-11-02
+> Last synced: 2026-11-27
 
 ## Project Related Content Links
 
 * [Global Styles: Fonts, Colors, Images, and Other Resources](Global.en.md)
 * [Getting Started (Windows + Visual Studio)](Getting-Started.en.md)
+* [Getting Started (CMake, Windows/Linux/macOS/FreeBSD)](Getting-Started-CMake.en.md)
 * [Sample Programs](Examples.en.md)
 * [Window Styles](Window.en.md)
 * [Self-Drawn Title Bar Guidelines](TitleBar.en.md)

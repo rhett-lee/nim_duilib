@@ -2,6 +2,8 @@
 
 # 快速上手（Windows 系统，以 VS 2022 为例）
 
+> 使用 CMake 的用户（Windows/Linux/macOS/FreeBSD），请参考 [快速上手（CMake）](Getting-Started-CMake.md)。
+
 此示例将引导你快速部署一个基于 nim_duilib 的基本应用。此示例与 `examples` 中的 `basic` 项目相似；如果你更喜欢直接看代码，可以打开 `build\examples.sln` 工程，参考示例代码而无需多花费时间。
 
 ## 获取项目代码并准备依赖

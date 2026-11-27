@@ -4,6 +4,7 @@
 
 * [全局样式：字体、颜色、图片等资源](Global.md)
 * [快速上手（Windows + Visual Studio）](Getting-Started.md)
+* [快速上手（CMake，Windows/Linux/macOS/FreeBSD）](Getting-Started-CMake.md)
 * [示例程序说明](Examples.md)
 * [窗口的样式](Window.md)
 * [自绘制标题栏规范](TitleBar.md)

@@ -220,7 +220,7 @@ python3 build/build.py --dll --config Release
 ### 新手学习路径
 
 1. 按上面的步骤跑通 `basic`，确认工具链、依赖与资源都正常。
-2. 写第一个窗口：Windows + VS 用户看 [Getting-Started.md](docs/Getting-Started.md)；CMake 或非 Windows 平台用户按下面的「路径 B」接入 SDK（详见 [Deployment.md](docs/Deployment.md)）。
+2. 写第一个窗口：Windows + VS 用户看 [Getting-Started.md](docs/Getting-Started.md)；使用 CMake 的用户（Windows/Linux/macOS/FreeBSD）看 [Getting-Started-CMake.md](docs/Getting-Started-CMake.md)（SDK 接入详见 [Deployment.md](docs/Deployment.md)）。
 3. 学 XML 布局与控件：[窗口](docs/Window.md)、[容器/布局](docs/Box.md)、[控件](docs/Control.md)、[事件](docs/Events.md)。
 4. 对照 [examples/](examples) 找相近场景，改成自己的界面。
 5. 需要发布时看「打包与发布」。
@@ -330,7 +330,7 @@ python3 build/build.py pack --out-dir dist     # 指定输出目录（默认为 
 
 **写界面**
 
-- 第一个窗口：[examples/basic](examples/basic) 是最小工程；分步教程见 [docs/Getting-Started.md](docs/Getting-Started.md)（以 VS 解决方案为例，依赖准备请以 `python3 build/build.py deps` 为准，构建入口以本文“快速开始”为准）。
+- 第一个窗口：[examples/basic](examples/basic) 是最小工程；分步教程见 [docs/Getting-Started.md](docs/Getting-Started.md)（以 VS 解决方案为例，依赖准备请以 `python3 build/build.py deps` 为准，构建入口以本文“快速开始”为准）；使用 CMake 的用户见 [docs/Getting-Started-CMake.md](docs/Getting-Started-CMake.md)。
 - 界面开发文档：[窗口](docs/Window.md)、[容器/布局](docs/Box.md)、[控件](docs/Control.md)、[菜单](docs/Menu.md)、[全局样式](docs/Global.md)、[事件](docs/Events.md)、[XML 节点](docs/XmlNode.md)、[XML 事件](docs/XmlEvents.md)、[XML 编辑辅助工具](docs/XmlTools.md)（解析错误定位、静态检查、编辑器补全与校验）。
 
 **内置窗口与通知**
