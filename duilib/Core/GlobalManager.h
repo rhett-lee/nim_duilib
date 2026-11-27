@@ -215,6 +215,8 @@ public:
     *   启用后，所有窗口统一使用该配置（包括已创建的窗口和后续创建的窗口），
     *   窗口XML中配置的 render_backend_type/vsync/msaa 属性将被忽略
     * @param [in] backendType 渲染后端类型
+    *       （kNativeGL_BackendType仅在Windows平台且非SDL构建模式下支持，其他情况会回退为CPU绘制；
+    *        Windows ARM64即使为Windows平台也不支持GL）
     * @param [in] nMsaaSampleCount MSAA的采样数（仅GPU/GL渲染有效；0表示使用默认值，非法值按0处理）
     * @param [in] bDisableVsync 是否禁用垂直同步（仅GPU/GL渲染有效）
     * @param [in] bEnable true表示启用全局配置，false表示关闭全局配置

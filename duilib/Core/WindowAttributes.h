@@ -322,7 +322,8 @@ struct DUILIB_API RenderBackendAttributes
 /** 推导窗口的渲染后端属性（纯函数，不依赖窗口对象）
 *   规则：
 *   1. XML中配置的 render_backend_type/vsync/msaa 优先，否则使用 param 中的默认值；
-*   2. 要求设置不透明度(opacity < 255)或显式配置layered_window="true"时，OpenGL绘制方式会降级为CPU绘制；
+*   2. 要求设置不透明度(opacity < 255)或显式配置layered_window="true"时，OpenGL绘制方式会降级为CPU绘制
+*      （SDL构建模式不支持OpenGL绘制方式，始终为CPU绘制）；
 *      使用默认配置（XML未配置 render_backend_type）降级时，MSAA与垂直同步同时复位。
 * @param [out] pWarnings 配置冲突的告警信息，可以为nullptr
 */

@@ -28,23 +28,15 @@ std::unique_ptr<skwindow::WindowContext> MakeRasterForSDL(SDL_Window* sdlWindow,
     return ctx;
 }
 
-/** 创建GPU实现的WindowContext
-* @param [in] hWnd 关联的窗口句柄，可以为nullptr
-* @param [in] params 显示相关的参数
-*/
-//std::unique_ptr<skwindow::WindowContext> MakeGLForWin(HWND hWnd, const skwindow::DisplayParams& params)
-//{
-//    std::unique_ptr<skwindow::WindowContext> ctx(new SkGLWindowContext_Windows(hWnd, params));
-//    if (!ctx->isValid()) {
-//        return nullptr;
-//    }
-//    return ctx;
-//}
+//注意：SDL构建模式暂未实现GPU（OpenGL）的WindowContext，因此没有对应的MakeGLForSDL函数，
+//调用方请求kNativeGL_BackendType时，会回退为CPU绘制（见Render_Skia_SDL的构造函数）
 
 Render_Skia_SDL::Render_Skia_SDL(SDL_Window* sdlWindow, RenderBackendType backendType):
     m_sdlWindow(sdlWindow),
     m_backendType(backendType)
 {
+    //SDL构建模式暂不支持kNativeGL_BackendType后端（没有基于SDL窗口的GL WindowContext实现），
+    //无论请求哪种后端，最终都回退为CPU绘制；实际后端以GetRenderBackendType()的返回值为准
     if (backendType == RenderBackendType::kNativeGL_BackendType) {
         //GPU的绘制，必须绑定窗口
         ASSERT(m_sdlWindow != nullptr);
@@ -52,16 +44,7 @@ Render_Skia_SDL::Render_Skia_SDL(SDL_Window* sdlWindow, RenderBackendType backen
             backendType = RenderBackendType::kRaster_BackendType;
         }
     }
-    //创建WindowContext
-    //if (backendType == RenderBackendType::kNativeGL_BackendType) {
-    //    //GPU绘制
-    //    m_pWindowContext = MakeGLForWin(hWnd, skwindow::DisplayParams());
-    //    ASSERT(m_pWindowContext != nullptr);
-    //    if (m_pWindowContext != nullptr) {
-    //        m_backendType = RenderBackendType::kNativeGL_BackendType;
-    //    }        
-    //}
-    //如果GL不成功，则创建CPU绘制的上下文
+    //SDL后端不支持GL绘制，直接创建CPU绘制的上下文
     if (m_pWindowContext == nullptr) {
         //CPU绘制
         m_pWindowContext = MakeRasterForSDL(m_sdlWindow, std::make_unique<skwindow::DisplayParams>());
@@ -133,11 +116,8 @@ bool Render_Skia_SDL::PaintAndSwapBuffers(IRenderPaint* pRenderPaint)
     ASSERT(m_pWindowContext != nullptr);
     if ((m_pWindowContext != nullptr) && (pRenderPaint != nullptr)) {
         if (m_backendType == RenderBackendType::kNativeGL_BackendType) {
-            /*SkGLWindowContext_Windows* pWindowContext = dynamic_cast<SkGLWindowContext_Windows*>(m_pWindowContext.get());
-            ASSERT(pWindowContext != nullptr);
-            if (pWindowContext != nullptr) {
-                return pWindowContext->PaintAndSwapBuffers(this, pRenderPaint);
-            }*/
+            //SDL构建模式不支持GL后端：构造时已回退为CPU绘制，不会进入该分支
+            ASSERT(false);
         }
         else if (m_backendType == RenderBackendType::kRaster_BackendType) {
             SkRasterWindowContext_SDL* pWindowContext = dynamic_cast<SkRasterWindowContext_SDL*>(m_pWindowContext.get());

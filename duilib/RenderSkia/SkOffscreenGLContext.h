@@ -18,7 +18,8 @@ namespace ui
 *  1. GL上下文是线程私有的，GPU离屏渲染对象必须在创建它的线程上使用和析构；
 *  2. 同一线程内已存在窗口的GL上下文时，复用其中一个窗口的GrDirectContext（支持多窗口，后注册的窗口优先）；
 *  3. 否则惰性创建一个隐藏窗口承载的后台GL上下文（1x1，不显示）；
-*  4. Windows ARM64没有WGL实现，恒不支持GPU离屏渲染。
+*  4. 仅在Windows平台且非ARM64、非SDL构建模式下支持（Windows ARM64没有WGL实现；
+*     SDL构建模式没有对应的GL WindowContext实现，恒不支持GPU离屏渲染）。
 */
 class OffscreenGLContext
 {

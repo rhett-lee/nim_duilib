@@ -82,6 +82,8 @@ public:
 
     /** 设置该窗口的渲染引擎绘制后台类型及参数
     * @param [in] backendType 渲染引擎绘制后台类型
+    *        注意：kNativeGL_BackendType仅在Windows平台且非SDL构建模式下支持；
+    *              SDL构建模式和其他平台会自动回退为CPU绘制，Windows ARM64也不支持GL
     * @param [in] nMsaaSampleCount MSAA的采样数（仅OpenGL绘制有效；0表示使用默认值，最小值1，非法值按1处理）
     * @param [in] bDisableVsync 是否禁用垂直同步（仅OpenGL绘制有效；true表示禁用，false表示启用）
     * @return 如果设置成功返回true, 否则返回false

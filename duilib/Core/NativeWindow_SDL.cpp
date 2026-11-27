@@ -1430,7 +1430,7 @@ bool NativeWindow_SDL::CreateChildWnd(NativeWindow_SDL* pParentWindow, int32_t n
     //该窗口不需要焦点
     windowFlags |= SDL_WINDOW_NOT_FOCUSABLE; //SDL_WINDOW_INPUT_FOCUS
 
-    //添加OpenGL标志
+    //添加OpenGL标志（SDL窗口的创建标志，与渲染后端RenderBackendType::kNativeGL_BackendType无关）
     windowFlags |= SDL_WINDOW_OPENGL;
 
     //不能包含此标志，否则子窗口会跑到主窗口后面去（SDL内部实现时，未真正使用父子窗口关系）
@@ -1962,7 +1962,7 @@ void NativeWindow_SDL::SetCreateWindowProperties(SDL_PropertiesID props, NativeW
     bUseOpenGL = false;
 #endif
     if (bUseOpenGL) {
-        //添加OpenGL标志
+        //添加OpenGL标志（SDL窗口的创建标志，与渲染后端RenderBackendType::kNativeGL_BackendType无关）
         windowFlags |= SDL_WINDOW_OPENGL;
     }
 

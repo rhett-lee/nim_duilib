@@ -1504,11 +1504,21 @@ enum class RenderBackendType
     */
     kRaster_BackendType = 0,
 
-    /** 使用OpenGL的绘制
-    *   注意事项：
-    *   （1）一个线程内，只允许有一个窗口使用OpenGL绘制，否则会出现导致程序崩溃的问题
-    *   （2）OpenGL绘制的窗口，不能是分层窗口（即带有WS_EX_LAYERED属性的窗口）
-    *   （3）使用OpenGL的窗口，每次绘制都是绘制整个窗口，不支持局部绘制，所以不一定比使用CPU绘制的情况下性能更好，最好根据实际情况评估使用最佳的绘制方式
+    /** 使用OpenGL（GPU）绘制
+    *   平台支持情况：
+    *   （1）仅在Windows平台且非SDL构建模式下支持；Windows ARM64不支持（Skia未提供WGL实现）；
+    *       SDL构建模式（包括Windows下的SDL构建）不支持该后端，会回退为CPU绘制；
+    *   （2）运行环境无法创建GL上下文（如远程桌面、虚拟机、缺少OpenGL驱动）时会自动回退为CPU绘制；
+    *       实际使用的后端请以 IRender::GetRenderBackendType() 的返回值为准。
+    *   功能限制：
+    *   （1）OpenGL绘制的窗口不能是分层窗口（即带有WS_EX_LAYERED属性的窗口），
+    *       内部会自动关闭分层窗口属性，无法关闭时回退为CPU绘制；
+    *   （2）不支持自绘阴影，内部会自动切换为系统阴影，或在不支持系统阴影时关闭阴影；
+    *   （3）MSAA采样数和垂直同步（vsync）只在GL绘制方式下生效。
+    *   性能说明：
+    *   同一线程内允许多个窗口使用OpenGL绘制（内部会切换当前上下文）；
+    *   支持局部绘制（只重绘脏区域），大窗口的小范围动画可降低CPU/GPU占用；
+    *   但GPU绘制涉及上下文切换和纹理提交，不一定总优于CPU绘制，请结合实际场景评估。
     */
     kNativeGL_BackendType = 1
 };
@@ -2386,7 +2396,8 @@ public:
     /** 查询指定后端是否支持离屏渲染
     * @param [in] backendType 待查询的后端类型
     * @return 支持返回true，否则返回false
-    * @note kRaster_BackendType 恒为true；GPU后端取决于当前平台与运行环境（如Windows ARM64不支持GL）
+    * @note kRaster_BackendType 恒为true；GPU后端取决于当前平台与运行环境
+    *       （仅Windows平台且非SDL构建模式、非ARM64，并且GL上下文创建成功时返回true）
     */
     virtual bool IsOffscreenBackendSupported(RenderBackendType backendType) const = 0;
 
@@ -2407,6 +2418,7 @@ public:
     * @param [in] spRenderDpi 关联的DPI转换接口
     * @param [in] platformData 平台相关的数据，Windows平台该值是窗口句柄
     * @param [in] backendType 后台绘制方式
+    *       （kNativeGL_BackendType仅在Windows平台且非SDL构建模式下支持，不支持时会回退为CPU绘制）
     * @param [in] nMsaaSampleCount MSAA的采样数（0表示使用默认值；最小值1，非法值按1处理）
     * @param [in] bDisableVsync 是否禁用垂直同步（true表示禁用，false表示启用）
     * @return 返回窗口渲染接口，返回后由调用方管理资源；创建失败时返回nullptr

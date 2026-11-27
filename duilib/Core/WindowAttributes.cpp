@@ -469,7 +469,8 @@ RenderBackendAttributes ResolveRenderBackendAttributes(const WindowAttributeValu
     //GL绘制方式不支持分层窗口：XML要求设置不透明度或显式开启层窗口时，降级为CPU绘制（否则窗口内容无法显示）
     const bool bNeedLayeredWindowOpacity = values.m_bOpacityDefined && (values.m_nOpacity < 255);
 #if defined (DUILIB_BUILD_FOR_SDL)
-    //SDL后端的层窗口标记是固定的（窗口创建时必须带SDL_WINDOW_TRANSPARENT），GL可以正常使用，不参与降级判断
+    //SDL构建模式不支持GL绘制方式（始终使用CPU绘制），窗口的透明标记在创建时由SDL_WINDOW_TRANSPARENT固定，
+    //因此不需要按"分层窗口"规则做降级判断
     const bool bNeedLayeredWindow = false;
 #else
     //Windows后端：系统标题栏与层窗口互斥，冲突时层窗口不会真正启用

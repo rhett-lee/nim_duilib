@@ -896,6 +896,7 @@ void WindowBuilder::ParseGlobalAttributes(const pugi::xml_node& root)
 {
     //全局渲染配置（可选）：在Global节点上设置render_backend_type后，所有窗口统一使用该配置
     //支持属性：render_backend_type（"CPU"/"GL"/"GPU"）、vsync（"true"/"false"）、msaa（整数）
+    //注意："GL"/"GPU"仅在Windows平台且非SDL构建模式下支持，其他情况会自动回退为CPU绘制
     {
         DString renderBackendType;
         int32_t nMsaaSampleCount = 0;

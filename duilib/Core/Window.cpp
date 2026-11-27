@@ -169,8 +169,9 @@ Window* Window::GetParentWindow() const
 bool Window::SetRenderBackendType(RenderBackendType backendType, int32_t nMsaaSampleCount, bool bDisableVsync)
 {
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    //Windows平台支持GPU/GL绘制
+    //Windows平台且非SDL构建模式：支持GPU/GL绘制
 #else
+    //SDL构建模式和非Windows平台不支持GL绘制方式：强制使用CPU绘制
     backendType = RenderBackendType::kRaster_BackendType;
     nMsaaSampleCount = 0;
     bDisableVsync = false;

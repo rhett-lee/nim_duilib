@@ -692,6 +692,7 @@ private:
 
     /** 根据创建窗口的输入参数，设置创建窗口的属性
     * @param [in] bUseOpenGL 是否使用OpenGL的渲染接口，仅非Windows系统有效
+    *       （这里的OpenGL指SDL窗口的创建标志/透明窗口支持，与渲染后端RenderBackendType::kNativeGL_BackendType无关）
     */
     void SetCreateWindowProperties(SDL_PropertiesID props,
                                    NativeWindow_SDL* pParentWindow,
