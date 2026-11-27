@@ -1,127 +1,169 @@
 English | [简体中文](Examples.md)
 
-> Last synced: 2026-11-02
+> Last synced: 2026-11-27
 
-## Example Programs
-The examples directory contains several example programs that you can reference to improve your own applications.
+## Sample Programs
+
+The `examples` directory contains 23 ready-to-build samples covering everything from a first window and common controls to rich text, themes, multi-language, multi-threading, and CEF/WebView2 browsers. Every sample can serve as the starting point for a new project: run it first to see the result, then follow the code entry links to read the implementation.
+
+> New here? Complete the build steps in [Quick Start (Windows + Visual Studio)](Getting-Started.en.md) or [Quick Start (CMake)](Getting-Started-CMake.en.md) first. All samples are written to the `bin` directory at the repository root after building, and can be run directly.
+
+### Choose a sample by goal
+
+| What you want to do | Recommended samples |
+| :--- | :--- |
+| Create your first window and understand the app skeleton | [basic](#1-examplesbasic) |
+| See common controls, message boxes, and Toast at a glance | [controls](#3-examplescontrols) |
+| Learn lists, tables, trees, and virtual lists | [ListBox](#5-exampleslistbox), [ListCtrl](#6-exampleslistctrl), [TreeView](#10-examplestreeview), [VirtualListBox](#11-examplesvirtuallistbox) |
+| Learn layouts, drag-and-drop, and panel containers | [layout](#15-exampleslayout), [MoveControl](#7-examplesmovecontrol), [panel](#23-examplespanel) |
+| Build a notepad or rich-text editor | [RichEdit](#9-examplesrichedit) |
+| Themes, multi-language, and DPI adaptation | [ColorTheme](#22-examplescolortheme), [MultiLang](#12-examplesmultilang), [DpiAware](#13-examplesdpiaware) |
+| Learn multithreading and timers | [threads](#14-examplesthreads) |
+| Color picker, child windows, XML preview | [ColorPicker](#2-examplescolorpicker), [ChildWindow](#20-exampleschildwindow), [XmlPreview](#21-examplesxmlpreview) |
+| Embed a browser | [cef](#16-examplescef), [CefBrowser](#17-examplescefbrowser), [WebView2](#18-exampleswebview2), [WebView2Browser](#19-exampleswebview2browser) |
+| Build a complete chat interface | [chat](#4-exampleschat) |
 
 ## 1. examples/basic
-A basic window example program, with minimize, maximize, restore and close buttons.    
-On macOS it is built as `bin/basic.app` without C++ changes; see
-[build/docs/macos-app-bundle.en.md](../build/docs/macos-app-bundle.en.md) for configuration.    
-Code entry: [MainThread.cpp](../examples/basic/MainThread.cpp), [MainForm.cpp](../examples/basic/MainForm.cpp); skin resources: `bin/resources/themes/default/basic/basic.xml`; related docs: [Getting-Started.en.md](Getting-Started.en.md), [Window.en.md](Window.en.md).    
-<img width="700" src="./Images/basic.png"/>
+**The minimal window skeleton.** A window sample you can use directly as the starting point for a new project: standard title bar, minimize/maximize/restore/close buttons, and theme/language switch buttons, all implemented with C++ plus XML skins.    
+**Best for**: your first contact with nim_duilib, or understanding the minimum set of files a runnable app needs.    
+**Code entry**: [MainThread.cpp](../examples/basic/MainThread.cpp), [MainForm.cpp](../examples/basic/MainForm.cpp); **UI resources**: `bin/resources/themes/default/basic/basic.xml`; **Related docs**: [Getting-Started.en.md](Getting-Started.en.md), [Window.en.md](Window.en.md).    
+<img width="900" src="./Images/basic.png"/>
 
 ## 2. examples/ColorPicker
-A program demonstrating how to use the color picker control: the main window shows the current color (swatch, #AARRGGBB and the R/G/B/A components); the "Open picker" button opens the real color picker, AttachSelectColor previews the color while dragging, and AttachWindowClose delivers the final color only on OK (Cancel or Esc discards it); an event log records every callback.    
-Code entry: [MainThread.cpp](../examples/ColorPicker/MainThread.cpp), [MainForm.cpp](../examples/ColorPicker/MainForm.cpp); skin resources: `bin/resources/themes/default/color_picker_demo/ColorPickerDemo.xml` (demo window) and `bin/resources/themes/default/public/color/color_picker.xml` (the color picker itself is a standalone window whose skin folder is `public`); related docs: the ColorPicker section in [Control.en.md](Control.en.md).    
-<img width="700" src="./Images/ColorPicker.png"/>
+**A complete color picker integration.** The main window shows the current color swatch, `#AARRGGBB`, and R/G/B/A components. Click "Open Palette" to show the true-color picker; dragging previews the color through `AttachSelectColor`, "OK" returns the final color through `AttachWindowClose`, "Cancel" or Esc discards it, and the event log records each callback.    
+**Best for**: choosing colors in an app, or learning independent windows, modal interaction, and live preview callbacks.    
+**Code entry**: [MainThread.cpp](../examples/ColorPicker/MainThread.cpp), [MainForm.cpp](../examples/ColorPicker/MainForm.cpp); **UI resources**: `bin/resources/themes/default/color_picker_demo/ColorPickerDemo.xml` (demo window) and `bin/resources/themes/default/public/color/color_picker.xml` (the picker is a separate window whose skin folder is `public`); **Related docs**: the ColorPicker section in [Control.en.md](Control.en.md).    
+<img width="900" src="./Images/ColorPicker.png"/>    
+(Left: demo main window; right: color picker)
 
 ## 3. examples/controls
-Examples of how to use the styles of some commonly used controls.    
-Code entry: [MainThread.cpp](../examples/controls/MainThread.cpp), [ControlForm.cpp](../examples/controls/ControlForm.cpp); skin resources: `bin/resources/themes/default/controls/controls.xml` (the same folder also contains example XML files for individual controls, such as `message_box_test.xml`, `toast_test.xml`, and `tree_grid.xml`); related docs: [Control.en.md](Control.en.md), [MessageBox.en.md](MessageBox.en.md), [Toast.en.md](Toast.en.md).    
+**A control gallery.** Common control styles and interactions are shown in one window: buttons, check boxes, combo boxes, progress bars, sliders, dates, menus, message boxes, Toast, tree grids, and more. The directory also splits the XML by control (for example `message_box_test.xml`, `toast_test.xml`, `tree_grid.xml`), so you can copy what you need into your own project.    
+**Best for**: quickly checking which controls the framework provides, how they look, and which XML drives them.    
+**Code entry**: [MainThread.cpp](../examples/controls/MainThread.cpp), [ControlForm.cpp](../examples/controls/ControlForm.cpp); **UI resources**: `bin/resources/themes/default/controls/controls.xml`; **Related docs**: [Control.en.md](Control.en.md), [MessageBox.en.md](MessageBox.en.md), [Toast.en.md](Toast.en.md).    
 <img width="900" src="./Images/controls.png"/>
 
 ## 4. examples/chat
-Includes a login window and a window example simulating a PC chat layout: the login window tells you that any username and password will sign you in, and it provides theme / language buttons in the top-right corner (they open the framework built-in menus, take effect immediately, and the login background image follows the light / dark theme); after signing in the chat main window is shown (the program keeps running), and the main window has a title bar, a navigation rail, switchable conversation/contacts/favorites panels, a message area and an input area, supporting sending messages and simulated auto replies; the message area is rendered with the framework's ChatMessageList control. The settings button in the bottom-left corner pops up a menu (New Chat / Contacts / About This Demo / Sign Out), and "Sign Out" closes the main window and ends the program; press Enter in the input area to send and Ctrl+Enter for a new line; a sent message walks through "Sending / Delivered / Read", typing text starting with `/fail` simulates a failed send and clicking "Failed to send, click to retry" resends it; double-clicking a message copies its text, and right-clicking keeps the current selection (or selects that message when nothing is selected) before showing the Copy / Select All menu (Copy is grayed out when there is no selection); a message that arrives while you are reading history does not yank the view away, instead a "N new messages" pill appears at the bottom of the message area and clicking it jumps back to the latest message; tool buttons that are not wired up report back with a Toast message; conversations keep their own message history, so switching between them preserves each conversation's messages and delivery states; the red pill on a conversation row is the unread badge - it counts up when a message arrives for a conversation you are not looking at, and resets when you open it; clicking a friend in Contacts starts a chat (it switches to the existing conversation, or creates a new one and inserts it into the conversation list); typing in the search box above the conversation list filters the conversations and contacts by name / preview text, and shows "No matching results" when nothing matches;the message area supports four kinds of messages: text, image (click the image button in the input toolbar and pick one of the sample images in the popup menu), quoted (click the quote button in the input toolbar to quote the latest message, or right-click a message and pick "Quote"; the bubble shows a quote summary, and double-clicking the quote block jumps to the quoted message with a brief highlight) and recalled (right-click a message you sent and pick "Recall"; it is replaced by a gray notice and can no longer be copied); message avatars are drawn from image resources, and clicking an avatar switches it between a text avatar and an image avatar (the choice is kept per conversation); the theme and language buttons at the right end of the title bar open the framework built-in menus and take effect immediately (conversation names, preview texts, the title bar and the message timestamps are all rebuilt in the new language, so no text from the previous language is left behind); the window can be maximized / restored and resized by dragging its edges, and the layout adapts to any size, consistent with other examples such as examples/controls.    
-Code entry: [MainThread.cpp](../examples/chat/MainThread.cpp), [LoginForm.cpp](../examples/chat/LoginForm.cpp), [ChatForm.cpp](../examples/chat/ChatForm.cpp); skin resources: `bin/resources/themes/default/chat/wechat.xml`, `bin/resources/themes/default/chat/login.xml`, `bin/resources/themes/default/chat/menu_settings.xml`, `bin/resources/themes/default/chat/chat_message_menu.xml`, `bin/resources/themes/default/chat/chat_image_menu.xml`; related docs: [Box.en.md](Box.en.md), [Control.en.md](Control.en.md), [Menu.en.md](Menu.en.md).    
-<img width="800" src="./Images/chat.png"/>
+**A complete chat application.** Start from the login window, then enter the chat main window where navigation, conversations, messages, the input area, and message interactions are all connected — a practical reference for organizing a complex UI.    
+**Best for**: IM/customer-support style interfaces, or multi-panel layouts with coordinated events.    
+**Highlights**:
+- Log in and enter the chat UI; theme and language switches take effect immediately;
+- Conversations/contacts/favorites navigation, unread badges, search filtering, and per-conversation history;
+- Text, image, quoted, and recalled messages, plus sending/delivered/read states and failure retry;
+- Double-click to copy, context menus, a "new messages" hint while browsing history, and avatar style switching;
+- Resizable window with adaptive layout; unconnected buttons give Toast feedback.
+
+**Code entry**: [MainThread.cpp](../examples/chat/MainThread.cpp), [LoginForm.cpp](../examples/chat/LoginForm.cpp), [ChatForm.cpp](../examples/chat/ChatForm.cpp); **UI resources**: `bin/resources/themes/default/chat/wechat.xml`, `login.xml`, `menu_settings.xml`, `chat_message_menu.xml`, `chat_image_menu.xml`; **Related docs**: [Box.en.md](Box.en.md), [Control.en.md](Control.en.md), [Menu.en.md](Menu.en.md).    
+<img width="900" src="./Images/chat.png"/>
 
 ## 5. examples/ListBox
-A program demonstrating how to use the ListBox container: the status bar shows the container type, item count and selection count, with a multi-select toggle; the event log at the bottom shows Select/UnSelect/SelChanged/Click/DoubleClick/RClick/Return and keyboard events with their item index; items carry an icon, a progress bar and a per-item delete button. Change the container tag in list_box.xml (VListBox / HListBox / VTileListBox / HTileListBox) to switch layout with no code changes.    
-Code entry: [MainThread.cpp](../examples/ListBox/MainThread.cpp), [ListBoxForm.cpp](../examples/ListBox/ListBoxForm.cpp); skin resources: `bin/resources/themes/default/list_box/list_box.xml`, `list_box/item.xml`; related docs: [Control.en.md](Control.en.md).    
-<img width="600" src="./Images/ListBox.png"/>
-    
+**The ListBox family.** The status bar shows the current container type, item count, and selected count, with a multi-select toggle. The event log shows Select/UnSelect/SelChanged/Click/DoubleClick/RClick/Return and keyboard events. Items support icons, progress bars, and individual deletion. Change the container tag in `list_box.xml` (`VListBox` / `HListBox` / `VTileListBox` / `HTileListBox`) to switch layouts without touching C++ code.    
+**Best for**: learning the layout differences, selection modes, and event arguments of the ListBox family.    
+**Code entry**: [MainThread.cpp](../examples/ListBox/MainThread.cpp), [ListBoxForm.cpp](../examples/ListBox/ListBoxForm.cpp); **UI resources**: `bin/resources/themes/default/list_box/list_box.xml`, `list_box/item.xml`; **Related docs**: [Control.en.md](Control.en.md).    
+<img width="900" src="./Images/ListBox.png"/>
+
 ## 6. examples/ListCtrl
-A program demonstrating how to use the ListCtrl control.    
-Code entry: [MainThread.cpp](../examples/ListCtrl/MainThread.cpp), [MainForm.cpp](../examples/ListCtrl/MainForm.cpp); skin resources: `bin/resources/themes/default/list_ctrl/list_ctrl.xml` (the same folder also contains `loading*.xml` examples of loading states); related docs: [Control.en.md](Control.en.md).    
-<img width="1000" src="./Images/ListCtrl.png"/>
+**Table/report control.** Demonstrates how ListCtrl organizes columns, headers, items, and sub-items. The directory also contains `loading*.xml` loading-state samples, making it a good base for data lists, task lists, and file lists.    
+**Best for**: table or report views, or loading placeholders for large lists.    
+**Code entry**: [MainThread.cpp](../examples/ListCtrl/MainThread.cpp), [MainForm.cpp](../examples/ListCtrl/MainForm.cpp); **UI resources**: `bin/resources/themes/default/list_ctrl/list_ctrl.xml`; **Related docs**: [Control.en.md](Control.en.md).    
+<img width="900" src="./Images/ListCtrl.png"/>
 
 ## 7. examples/MoveControl
-A program demonstrating how to use the "drag_out_id" and "drop_in_id" attributes of the Box container to move controls between different containers: the app icons are SVG vector images (sharp at any scale), and the frequent-app state is saved to AppDb after dragging (simulated with in-memory storage).    
-Code entry: [MainThread.cpp](../examples/MoveControl/MainThread.cpp), [MoveControlForm.cpp](../examples/MoveControl/MoveControlForm.cpp); skin resources: `bin/resources/themes/default/move_control/main.xml`, `move_control/app_item.xml`; related docs: [Control.en.md](Control.en.md), [XmlNode.en.md](XmlNode.en.md).    
-<img width="600" src="./Images/MoveControl.png"/>
-   
+**Drag and drop across containers.** Uses the `drag_out_id` and `drop_in_id` properties of Box to move controls between containers. App icons are SVG vectors and stay sharp at any scale; the "favorite apps" state is stored in the sample's AppDb (an in-memory mock database).    
+**Best for**: desktop icon organizers, kanban boards, and draggable panels.    
+**Code entry**: [MainThread.cpp](../examples/MoveControl/MainThread.cpp), [MoveControlForm.cpp](../examples/MoveControl/MoveControlForm.cpp); **UI resources**: `bin/resources/themes/default/move_control/main.xml`, `move_control/app_item.xml`; **Related docs**: [Control.en.md](Control.en.md), [XmlNode.en.md](XmlNode.en.md).    
+<img width="900" src="./Images/MoveControl.png"/>
+
 ## 8. examples/render
-A program demonstrating how to use the rendering engine, which also includes usage examples of various controls/containers.    
-Code entry: [MainThread.cpp](../examples/render/MainThread.cpp), [RenderForm.cpp](../examples/render/RenderForm.cpp); skin resources: `bin/resources/themes/default/render/render.xml` (the same folder also contains the `page_*.xml` page examples); related docs: [Control.en.md](Control.en.md), [WindowShadow.en.md](WindowShadow.en.md).    
+**Rendering engine and control gallery.** Demonstrates the Skia rendering interfaces while showing controls, containers, and window shadows across multiple pages. Besides `render.xml`, the `page_*.xml` files provide page-by-page examples.    
+**Best for**: learning custom drawing and rendering interfaces, or browsing control effects page by page.    
+**Code entry**: [MainThread.cpp](../examples/render/MainThread.cpp), [RenderForm.cpp](../examples/render/RenderForm.cpp); **UI resources**: `bin/resources/themes/default/render/render.xml`, `render/page_*.xml`; **Related docs**: [Control.en.md](Control.en.md), [WindowShadow.en.md](WindowShadow.en.md).    
 <img width="900" src="./Images/render01.png"/>
 <img width="900" src="./Images/render02.png"/>
 <img width="900" src="./Images/render03.png"/>
 <img width="900" src="./Images/render04.png"/>
 
 ## 9. examples/RichEdit
-A program demonstrating how to use the RichEdit control, implementing a simple text editor: new, open (TXT/RTF), save, find and replace, font name and size, bold/italic/underline/strikeout, text color, zoom (ratio combo, Ctrl+mouse wheel), word wrap, rich-text mode with row spacing, copy/cut/paste/undo/redo/select all, and opening files by dropping `.txt`/`.rtf` onto the window; the status bar shows the caret position, character count, zoom ratio, edit mode and encoding, plus operation results; window position and size, left panel width, zoom, font, word wrap and rich-text state are saved on exit and restored on the next start.    
-Shortcuts: Ctrl+N new, Ctrl+O open, Ctrl+S save, Ctrl+Shift+S save as, Ctrl+F find, Ctrl+H replace, F3 find next, Ctrl+0 reset zoom to 100%, Ctrl+mouse wheel zoom; in the find/replace dialogs, Enter executes, Esc closes and F3 finds the next match.    
-Code entry: [MainThread.cpp](../examples/RichEdit/MainThread.cpp), [MainForm.cpp](../examples/RichEdit/MainForm.cpp), [FindForm.cpp](../examples/RichEdit/FindForm.cpp), [ReplaceForm.cpp](../examples/RichEdit/ReplaceForm.cpp); skin resources: `bin/resources/themes/default/rich_edit/rich_edit.xml`, `rich_edit/find.xml`, `rich_edit/replace.xml`; user settings file: `user/RichEdit_settings.ini`; related docs: [Control.en.md](Control.en.md).    
+**A simple notepad.** Covers common rich-text editing features: new, open (TXT/RTF), save, find/replace, font and size, bold/italic/underline/strikethrough, text color, zoom, word wrap, rich-text mode and line spacing, copy/cut/paste/undo/redo/select all, and drag-and-drop opening of `.txt`/`.rtf` files. The status bar shows cursor position, character count, zoom, edit mode, and encoding; window and editor settings are saved on exit.    
+**Best for**: text editing, rich-text display, or coordinating RichEdit with menus and toolbars.    
+**Shortcuts**: Ctrl+N new, Ctrl+O open, Ctrl+S save, Ctrl+Shift+S save as, Ctrl+F find, Ctrl+H replace, F3 find next, Ctrl+0 reset zoom, Ctrl+wheel zoom.    
+**Code entry**: [MainThread.cpp](../examples/RichEdit/MainThread.cpp), [MainForm.cpp](../examples/RichEdit/MainForm.cpp), [FindForm.cpp](../examples/RichEdit/FindForm.cpp), [ReplaceForm.cpp](../examples/RichEdit/ReplaceForm.cpp); **UI resources**: `bin/resources/themes/default/rich_edit/rich_edit.xml`, `find.xml`, `replace.xml`; **Related docs**: [Control.en.md](Control.en.md).    
 <img width="900" src="./Images/RichEdit.png"/>
 
 ## 10. examples/TreeView
-A program demonstrating how to use the TreeView (directory tree) control, implementing a File Explorer-like browser: a directory tree on the left and a file list on the right (list view / icon views), with view switching, column sorting, back/forward/up navigation, address-bar path jumping, name-based filtering within the current folder, and a status bar showing the current path, item statistics and the view/sort mode.    
-Code entry: [MainThread.cpp](../examples/TreeView/MainThread.cpp), [MainForm.cpp](../examples/TreeView/MainForm.cpp); skin resources: `bin/resources/themes/default/tree_view/tree_view.xml`, `tree_view/tree_node.xml`; related docs: [Control.en.md](Control.en.md).    
+**An Explorer-style file browser.** A directory tree on the left and a file list on the right, with list/icon/large-icon views, column sorting, back/forward/up navigation, address-bar path entry, and name filtering within the current folder. The status bar shows the current path, item statistics, and view/sort mode.    
+**Best for**: directory-tree plus file-list interfaces, or TreeView/list coordination.    
+**Code entry**: [MainThread.cpp](../examples/TreeView/MainThread.cpp), [MainForm.cpp](../examples/TreeView/MainForm.cpp); **UI resources**: `bin/resources/themes/default/tree_view/tree_view.xml`, `tree_view/tree_node.xml`; **Related docs**: [Control.en.md](Control.en.md).    
 <img width="900" src="./Images/TreeView.png"/>
-    
+
 ## 11. examples/VirtualListBox
-A program demonstrating how to use a ListBox container implemented based on a virtual list.    
-Code entry: [MainThread.cpp](../examples/VirtualListBox/MainThread.cpp), [MainForm.cpp](../examples/VirtualListBox/MainForm.cpp); skin resources: `bin/resources/themes/default/virtual_list_box/main.xml`, `virtual_list_box/item.xml`; related docs: [Control.en.md](Control.en.md).    
+**Virtual list.** Demonstrates a ListBox backed by a virtual table: only visible items are created, making it suitable for large data sets; the sample shows the data source, item template, and scrolling organization.    
+**Best for**: large lists where memory and creation cost matter.    
+**Code entry**: [MainThread.cpp](../examples/VirtualListBox/MainThread.cpp), [MainForm.cpp](../examples/VirtualListBox/MainForm.cpp); **UI resources**: `bin/resources/themes/default/virtual_list_box/main.xml`, `virtual_list_box/item.xml`; **Related docs**: [Control.en.md](Control.en.md).    
 <img width="900" src="./Images/VirtualListBox.png"/>
-    
+
 ## 12. examples/MultiLang
-A program demonstrating the multi-language feature: shows the current language name and language file, and renders the same text in three ways (Label, RichText control, and the rich_text property of Label); the language button in the title bar switches languages dynamically, refreshing every window immediately.    
-Code entry: [MainThread.cpp](../examples/MultiLang/MainThread.cpp), [MainForm.cpp](../examples/MultiLang/MainForm.cpp); skin resources: `bin/resources/themes/default/MultiLang/MultiLang.xml`; related docs: [Global.en.md](Global.en.md).    
-<img width="432" src="./Images/MultiLang.png"/>
+**Multi-language switching.** Shows the current language name and language file, plus three ways to render the same text (Label, RichText control, and the `rich_text` property of Label). Click the language button in the title bar to switch instantly; all window text refreshes immediately.    
+**Best for**: internationalization, or learning how `text_id` and language resources are organized.    
+**Code entry**: [MainThread.cpp](../examples/MultiLang/MainThread.cpp), [MainForm.cpp](../examples/MultiLang/MainForm.cpp); **UI resources**: `bin/resources/themes/default/MultiLang/MultiLang.xml`; **Related docs**: [Global.en.md](Global.en.md).    
+<img width="900" src="./Images/MultiLang.png"/>
 
 ## 13. examples/DpiAware
-A program demonstrating how to use the DPI awareness feature and how to dynamically set the window's DPI: the layout shows the DPI awareness mode, the monitor and window scale factors, and the window (physical pixels) versus content area (logical pixels) sizes; the right-hand panel demonstrates how the framework automatically picks the closest source image when 8 variants from 100% to 300% are provided; the bottom bar dynamically changes the display scale (60-500) and can open extra windows for comparison.    
-Code entry: [MainThread.cpp](../examples/DpiAware/MainThread.cpp), [MainForm.cpp](../examples/DpiAware/MainForm.cpp); skin resources: `bin/resources/themes/default/dpi_aware/DpiAware.xml`; related docs: the Window C++ interfaces (DPI-related) in [Window.en.md](Window.en.md).    
-<img width="700" src="./Images/DpiAware.png"/>
+**DPI adaptation.** Panels show the DPI awareness mode, primary-monitor and window scale percentages, and the window's physical pixels versus the content area's logical pixels. The right side uses the same image at 100%–300% (8 variants) to show how the framework picks the closest source. The bottom lets you enter 60–500 to change UI scale dynamically, or create another window for comparison.    
+**Best for**: high-DPI screens, multiple monitors, or scalable UIs.    
+**Code entry**: [MainThread.cpp](../examples/DpiAware/MainThread.cpp), [MainForm.cpp](../examples/DpiAware/MainForm.cpp); **UI resources**: `bin/resources/themes/default/dpi_aware/DpiAware.xml`; **Related docs**: DPI interfaces in [Window.en.md](Window.en.md).    
+<img width="900" src="./Images/DpiAware.png"/>
 
 ## 14. examples/threads
-A program demonstrating the multi-threading feature: configurable thread pool size, live running state, OS thread ID and task counters of each worker thread, immediate/delayed/repeated/long-running tasks, a concurrency check that reports measured time and speedup against the serial baseline, and task cancellation; the pool stops in the background without blocking the UI and the log is timestamped. Timer (TimerManager) add/stop/tick observation is also included.    
-Code entry: [MainThread.cpp](../examples/threads/MainThread.cpp), [MainForm.cpp](../examples/threads/MainForm.cpp), [WorkerThread.cpp](../examples/threads/WorkerThread.cpp); skin resources: `bin/resources/themes/default/threads/threads.xml`; related docs: the "Introducing the thread library" section in [Getting-Started.en.md](Getting-Started.en.md).    
-<img width="800" src="./Images/threads.png"/>
+**Thread pool and timers.** Configure the thread-pool size and watch each worker's state, OS thread ID, and task count in real time. Supports immediate, delayed, repeated, and long-running tasks, concurrent speed-up verification, and task cancellation. Stopping the pool happens in the background without blocking the UI, and TimerManager add/stop/trigger observation is included.    
+**Best for**: background work, thread pools, and timers in UI applications.    
+**Code entry**: [MainThread.cpp](../examples/threads/MainThread.cpp), [MainForm.cpp](../examples/threads/MainForm.cpp), [WorkerThread.cpp](../examples/threads/WorkerThread.cpp); **UI resources**: `bin/resources/themes/default/threads/threads.xml`; **Related docs**: the thread library section in [Getting-Started.en.md](Getting-Started.en.md).    
+<img width="900" src="./Images/threads.png"/>
 
 ## 15. examples/layout
-A program demonstrating the various layouts of containers.    
-Code entry: [MainThread.cpp](../examples/layout/MainThread.cpp), [MainForm.cpp](../examples/layout/MainForm.cpp); skin resources: `bin/resources/themes/default/layout/layout.xml` (the `page_*.xml` files in the same folder demonstrate the various layout containers); related docs: [Box.en.md](Box.en.md).    
-<img width="1000" src="./Images/layout.png"/>
+**The layout container gallery.** Demonstrates VBox/HBox, flow layouts, tile layouts, grid layouts, scroll containers, split bars, and more. The `page_*.xml` files in the same directory correspond to different layouts; edit the XML to compare effects.    
+**Best for**: finding the right layout container, or understanding stretch, alignment, margins, and scrolling.    
+**Code entry**: [MainThread.cpp](../examples/layout/MainThread.cpp), [MainForm.cpp](../examples/layout/MainForm.cpp); **UI resources**: `bin/resources/themes/default/layout/layout.xml`, `layout/page_*.xml`; **Related docs**: [Box.en.md](Box.en.md).    
+<img width="900" src="./Images/layout.png"/>
 
 ## 16. examples/cef
-A program demonstrating how to use the CEF control, including C++ and JavaScript interaction.    
-Code entry: [MainThread.cpp](../examples/cef/MainThread.cpp), [CefForm.cpp](../examples/cef/CefForm.cpp); skin resources: `bin/resources/themes/default/cef/cef.xml`; related docs: [CEF.en.md](CEF.en.md).    
-<img width="700" src="./Images/cef.png"/>
+**CEF control and JS interop.** Embeds a CEF browser in a window and demonstrates two-way C++/JavaScript calls, page loading, and browser events — suitable for desktop apps that need embedded Chromium.    
+**Code entry**: [MainThread.cpp](../examples/cef/MainThread.cpp), [CefForm.cpp](../examples/cef/CefForm.cpp); **UI resources**: `bin/resources/themes/default/cef/cef.xml`; **Related docs**: [CEF.en.md](CEF.en.md).    
+<img width="900" src="./Images/cef.png"/>
 
 ## 17. examples/CefBrowser
-A custom multi-tab draggable browser example based on CEF.    
-Code entry: [MainThread.cpp](../examples/CefBrowser/MainThread.cpp), [BrowserForm.cpp](../examples/CefBrowser/browser/BrowserForm.cpp), [DragForm.cpp](../examples/CefBrowser/browser/DragForm.cpp); skin resources: `bin/resources/themes/default/cef_browser/cef_browser.xml`, `cef_browser/drag_form.xml`, `cef_browser/browser_box.xml`, `cef_browser/tab_item.xml`; related docs: [CEF.en.md](CEF.en.md).    
-<img width="800" src="./Images/CefBrowser.png"/>
-    
+**A multi-tab CEF browser.** Multi-tab support, tab dragging, an address bar, and back/forward navigation provide a browser-app skeleton.    
+**Code entry**: [MainThread.cpp](../examples/CefBrowser/MainThread.cpp), [BrowserForm.cpp](../examples/CefBrowser/browser/BrowserForm.cpp), [DragForm.cpp](../examples/CefBrowser/browser/DragForm.cpp); **UI resources**: `bin/resources/themes/default/cef_browser/cef_browser.xml`, `drag_form.xml`, `browser_box.xml`, `tab_item.xml`; **Related docs**: [CEF.en.md](CEF.en.md).    
+<img width="900" src="./Images/CefBrowser.png"/>
+
 ## 18. examples/WebView2
-A program demonstrating how to use the WebView2 control.    
-Code entry: [MainThread.cpp](../examples/WebView2/MainThread.cpp), [MainForm.cpp](../examples/WebView2/MainForm.cpp); skin resources: `bin/resources/themes/default/webview2/webview2.xml`; related docs: the WebView2Control section in [Control.en.md](Control.en.md).    
-<img width="800" src="./Images/WebView2.png"/>
+**WebView2 control.** Embeds web pages using the system Edge WebView2 runtime, demonstrating control creation, navigation, and basic interaction. Compared with CEF, it has a smaller deployment footprint and is a good fit for Windows apps.    
+**Code entry**: [MainThread.cpp](../examples/WebView2/MainThread.cpp), [MainForm.cpp](../examples/WebView2/MainForm.cpp); **UI resources**: `bin/resources/themes/default/webview2/webview2.xml`; **Related docs**: the WebView2Control section in [Control.en.md](Control.en.md).    
+<img width="900" src="./Images/WebView2.png"/>
 
 ## 19. examples/WebView2Browser
-A custom multi-tab draggable browser example based on WebView2.    
-Code entry: [MainThread.cpp](../examples/WebView2Browser/MainThread.cpp), [BrowserForm.cpp](../examples/WebView2Browser/BrowserForm.cpp), [DragForm.cpp](../examples/WebView2Browser/DragForm.cpp); skin resources: `bin/resources/themes/default/webview2_browser/webview2_browser.xml`, `webview2_browser/drag_form.xml`, `webview2_browser/browser_box.xml`, `webview2_browser/tab_item.xml`; related docs: the WebView2Control section in [Control.en.md](Control.en.md).    
-<img width="800" src="./Images/WebView2Browser.png"/>
-    
-## 20. examples/ChildWindow    
-A demonstration example of the child window control's features.    
-Code entry: [MainThread.cpp](../examples/ChildWindow/MainThread.cpp), [MainForm.cpp](../examples/ChildWindow/MainForm.cpp); skin resources: `bin/resources/themes/default/child_window/child_window.xml`, `child_window/child_window_item.xml`; related docs: the ChildWindow section in [Control.en.md](Control.en.md).    
-<img width="800" src="./Images/ChildWindow.png"/>
-    
-## 21. examples/XmlPreview    
-A demonstration example of the XML file interface preview feature: open an XML file, drop an XML file into the preview area, reload, and clear the preview; the info card on top shows the full path, the load status (Loaded / Load failed / Waiting) and failure details (file, line and column); enabling "Auto Refresh" re-previews the file whenever it changes, using the configured interval (1–60 seconds).    
-Code entry: [MainThread.cpp](../examples/XmlPreview/MainThread.cpp), [MainForm.cpp](../examples/XmlPreview/MainForm.cpp); skin resources: `bin/resources/themes/default/xml_preview/xml_preview.xml`; related docs: [XmlNode.en.md](XmlNode.en.md), [XmlEvents.en.md](XmlEvents.en.md), [XmlTools.en.md](XmlTools.en.md).    
-<img width="800" src="./Images/XmlPreview.png"/>
-    
-## 22. examples/ColorTheme    
-A demonstration example of the theme color preview and generation feature.    
-Code entry: [MainThread.cpp](../examples/ColorTheme/MainThread.cpp), [MainForm.cpp](../examples/ColorTheme/MainForm.cpp); skin resources: `bin/resources/themes/default/color_theme/color_theme.xml`, `color_theme/flyout_demo.xml`; related docs: [Theme.en.md](Theme.en.md), [ThemeColor.en.md](ThemeColor.en.md).    
-<img width="800" src="./Images/ColorTheme.png"/>
+**A multi-tab WebView2 browser.** Combines multi-tab browsing, tab dragging, an address bar, and navigation buttons — a lightweight browser UI for Windows apps.    
+**Code entry**: [MainThread.cpp](../examples/WebView2Browser/MainThread.cpp), [BrowserForm.cpp](../examples/WebView2Browser/BrowserForm.cpp), [DragForm.cpp](../examples/WebView2Browser/DragForm.cpp); **UI resources**: `bin/resources/themes/default/webview2_browser/webview2_browser.xml`, `drag_form.xml`, `browser_box.xml`, `tab_item.xml`; **Related docs**: the WebView2Control section in [Control.en.md](Control.en.md).    
+<img width="900" src="./Images/WebView2Browser.png"/>
+
+## 20. examples/ChildWindow
+**Child window container.** Shows how ChildWindow embeds the content of another window into the current window's control tree, useful for multi-document interfaces and embedded panels.    
+**Code entry**: [MainThread.cpp](../examples/ChildWindow/MainThread.cpp), [MainForm.cpp](../examples/ChildWindow/MainForm.cpp); **UI resources**: `bin/resources/themes/default/child_window/child_window.xml`, `child_window/child_window_item.xml`; **Related docs**: the ChildWindow section in [Control.en.md](Control.en.md).    
+<img width="900" src="./Images/ChildWindow.png"/>
+
+## 21. examples/XmlPreview
+**Live XML UI preview.** Open an XML file or drop it into the preview area to see the result. Reload and clear are supported; the info card shows the full path, load state, and failure details (file, line, column). With "Auto refresh" enabled, file changes are detected every 1–60 seconds and previewed again.    
+**Best for**: editing skin XML with instant feedback, or diagnosing XML load errors.    
+**Code entry**: [MainThread.cpp](../examples/XmlPreview/MainThread.cpp), [MainForm.cpp](../examples/XmlPreview/MainForm.cpp); **UI resources**: `bin/resources/themes/default/xml_preview/xml_preview.xml`; **Related docs**: [XmlNode.en.md](XmlNode.en.md), [XmlEvents.en.md](XmlEvents.en.md), [XmlTools.en.md](XmlTools.en.md).    
+<img width="900" src="./Images/XmlPreview.png"/>
+
+## 22. examples/ColorTheme
+**Theme color preview and generation.** Demonstrates previewing, switching, and generating theme colors, plus a Flyout popup sample — a reference for custom themes and brand recoloring.    
+**Best for**: dark/light themes, brand palettes, or theme generation tools.    
+**Code entry**: [MainThread.cpp](../examples/ColorTheme/MainThread.cpp), [MainForm.cpp](../examples/ColorTheme/MainForm.cpp); **UI resources**: `bin/resources/themes/default/color_theme/color_theme.xml`, `color_theme/flyout_demo.xml`; **Related docs**: [Theme.en.md](Theme.en.md), [ThemeColor.en.md](ThemeColor.en.md).    
+<img width="900" src="./Images/ColorTheme.png"/>
 
 ## 23. examples/panel
-Demonstrates the titled Panel/PanelHBox/PanelVBox panel containers, including: title bar styling, collapsing/expanding by clicking the title bar (with animation), accordion groups, collapse trigger hit areas, custom arrow state images, left-aligned arrow and title alignment, title bar slots, the before-collapse cancel event, and controlling the panel state from C++ code.    
-Code entry: [MainThread.cpp](../examples/panel/MainThread.cpp), [PanelForm.cpp](../examples/panel/PanelForm.cpp); skin resources: `bin/resources/themes/default/panel/panel.xml`; related docs: the Panel/PanelHBox/PanelVBox section in [Box.en.md](Box.en.md).    
+**Panel containers with title bars.** Demonstrates Panel/PanelHBox/PanelVBox: title bar styles, click-to-collapse/expand with animation, accordion groups, collapse hot zones, custom arrow state images, left-aligned arrows and title alignment, title bar slots, cancel-before-collapse events, and controlling panel state from C++.    
+**Best for**: settings pages, collapsible groups, and sidebar sections.    
+**Code entry**: [MainThread.cpp](../examples/panel/MainThread.cpp), [PanelForm.cpp](../examples/panel/PanelForm.cpp); **UI resources**: `bin/resources/themes/default/panel/panel.xml`; **Related docs**: the Panel/PanelHBox/PanelVBox section in [Box.en.md](Box.en.md).    
 <img width="900" src="./Images/panel.png"/>
