@@ -13,8 +13,8 @@
 <Window size="800,600" min_size="240,100"
         caption="0,0,0,36" use_system_caption="false"
         snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36"
-        shadow_type="default" shadow_attached="true"
-        layered_window="true" alpha="255" size_box="4,4,4,4"
+        shadow_type="default"
+        size_box="4,4,4,4"
         icon="../public/caption/logo.ico">
   <VBox bkcolor="bg_window_main">
     <!-- 标题栏（name 必须是 window_title_bar；旧名 window_caption_bar 仅为兼容 fallback） -->
@@ -44,8 +44,8 @@
 | caption | rect | 标题栏可拖动区域 "0,0,0,36" |
 | size_box | rect | 可拖动调整大小的边距 "4,4,4,4" |
 | shadow_type | string | 阴影类型: default/big/big_round/small/small_round/menu/menu_round/none/none_round/custom/system_default/system_not_round/system_round/system_small_round |
-| shadow_attached | bool | 是否附加阴影 |
-| layered_window | bool | 是否为层窗口 |
+| shadow_attached | bool | 是否附加阴影，默认 true；一般只在关闭阴影时设为 false，无需显式设为 true |
+| layered_window | bool | 是否为层窗口；一般无需设置，内部按需推导，仅浮层/下拉列表等特殊场景才显式开启 |
 | alpha | int | 透明度 0-255 |
 | round_corner | size | 窗口圆角 "4,4"，该值未经 DPI 缩放（逻辑像素）。使用自绘阴影时无需设置；`none_round` 类型会自动设置 |
 | icon | string | 窗口图标路径(ico) |
@@ -491,7 +491,7 @@ C++ 接口：`SetBadgeCount/GetBadgeCount`、`SetBadgeMaxCount/GetBadgeMaxCount`
 ### Flyout 浮层窗口(继承 WindowImplBase)
 
 通用浮层（弹出卡片）窗口（`duilib/Control/Flyout.h`，已在 duilib.h 中 include）。在锚点控件周围浮出任意 Box 内容，非模态、不抢焦点、点击外部/Esc 自动关闭、全局单活，窗口关闭后框架自动 delete。
-窗口样式由 C++ 内部固定（`WS_POPUP|WS_EX_LAYERED|WS_EX_TOPMOST`，noFocus 时加 `WS_EX_NOACTIVATE`），调用方只提供**内容 XML**：普通 `<Window shadow_type="default" shadow_attached="true" layered_window="true" caption="0,0,0,0" use_system_caption="false">` + 固定 `size="宽,高"`（DIP 逻辑像素，高度须容纳全部内容，超出会画到阴影区；框架自动在外层包阴影）。
+窗口样式由 C++ 内部固定（`WS_POPUP|WS_EX_LAYERED|WS_EX_TOPMOST`，noFocus 时加 `WS_EX_NOACTIVATE`），调用方只提供**内容 XML**：普通 `<Window shadow_type="default" caption="0,0,0,0" use_system_caption="false">` + 固定 `size="宽,高"`（DIP 逻辑像素，高度须容纳全部内容，超出会画到阴影区；框架自动在外层包阴影）。
 
 C++ 接口（无 XML 控件属性）：
 - `Flyout(Window* pParentWindow)`：构造，锚点控件必须属于父窗口；

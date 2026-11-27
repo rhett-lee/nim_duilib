@@ -2645,12 +2645,11 @@ Flyout是通用浮层（弹出卡片）窗口，继承自WindowImplBase，对应
 
 ### 内容XML编写要点
 
-浮层窗口本身由C++创建并设置样式，调用方只需提供**内容XML**：根节点为普通`<Window>`，需开启阴影与层窗口，并按内容给定固定尺寸（框架在其外层包裹阴影）：
+浮层窗口本身由C++创建并设置样式，调用方只需提供**内容XML**：根节点为普通`<Window>`，阴影与层窗口由框架自动推导，并按内容给定固定尺寸（框架在其外层包裹阴影）：
 
 ```xml
 <Window size="240,210" caption="0,0,0,0" use_system_caption="false"
-        shadow_type="default" shadow_attached="true"
-        layered_window="true" size_box="0,0,0,0">
+        shadow_type="default" size_box="0,0,0,0">
     <VBox class="flyout" width="240" height="auto">
         <Label class="flyout_title" text="浮层标题"/>
         <Label class="flyout_desc" text="说明文字……" margin="0,6,0,10"/>

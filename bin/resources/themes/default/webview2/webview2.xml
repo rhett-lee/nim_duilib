@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window size="80%,80%" min_size="760,540" caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}" size_box="4,4,4,4"
-        shadow_attached="true" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,${SIZE_TITLEBAR_HEIGHT},${SIZE_TITLEBAR_HEIGHT}"
+        snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,${SIZE_TITLEBAR_HEIGHT},${SIZE_TITLEBAR_HEIGHT}"
         icon="public/caption/logo.ico" text_id="STRID_WEBVIEW2_TITLE">
     <!-- 卡片容器：内容区域分组显示，与 TreeView 示例保持一致 -->
     <Class name="webview2_card" bkcolor="bg_window_card" border_size="1" border_color="border_split_level1"

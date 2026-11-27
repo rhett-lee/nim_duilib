@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="540,700" min_size="480,420" caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}" shadow_attached="true" size_box="4,4,4,4">
+<Window size="540,700" min_size="480,420" caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}" size_box="4,4,4,4">
     <!-- 列表窗口：标题栏 + 状态栏 + 列表 + 事件日志（默认隐藏，由状态栏的"显示日志"控制）。
          列表容器的类型由 list_box.xml 中第 <VListBox> 这一行决定，
          换成 HListBox / VTileListBox / HTileListBox 即可看到另一种布局，代码无需改动 -->

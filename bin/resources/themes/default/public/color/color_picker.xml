@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="600,520" min_size="560,500" caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}" shadow_attached="true" size_box="4,4,4,4">
+<Window size="600,520" min_size="560,500" caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}" size_box="4,4,4,4">
     <Class name="color_picker_tab_option" width="72" height="32" font="system_regular_14" text_align="hcenter,vcenter"
                                           normal_color="bg_tab_ctrl"
                                           hovered_color="bg_tab_ctrl_item_hovered"

@@ -75,8 +75,8 @@ void <FormName>::OnInitWindow()
 <Window size="<width>,<height>" min_size="240,100"
         caption="0,0,0,36" use_system_caption="false"
         snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36"
-        shadow_type="default" shadow_attached="true"
-        layered_window="true" alpha="255" size_box="4,4,4,4"
+        shadow_type="default"
+        size_box="4,4,4,4"
         icon="../public/caption/logo.ico">
     <VBox bkcolor="bk_wnd_darkcolor">
         <!-- 标题栏：name 必须用 window_title_bar + btn_window_*（旧名仅兼容 fallback） -->

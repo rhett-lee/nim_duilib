@@ -1,4 +1,4 @@
-﻿<Window size="80%,80%" shadow_attached="true" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,${SIZE_TITLEBAR_HEIGHT},${SIZE_TITLEBAR_HEIGHT}" 
+﻿<Window size="80%,80%" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,${SIZE_TITLEBAR_HEIGHT},${SIZE_TITLEBAR_HEIGHT}" 
         caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}" size_box="4,4,4,4" text_id="STRID_TREEVIEW_TITLE">
     <!-- 该窗口下的Class定义 -->
     <Class name="btn_view_common" width="32" height="26" border_round="6,6" valign="center"

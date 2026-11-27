@@ -2645,12 +2645,11 @@ Key features:
 
 ### Writing the Content XML
 
-The flyout window itself is created and styled in C++; the caller only provides a **content XML**. Its root is an ordinary `<Window>` with shadow and layered window enabled, and a fixed size fitting the content (the framework wraps a shadow around it):
+The flyout window itself is created and styled in C++; the caller only provides a **content XML**. Its root is an ordinary `<Window>` with a fixed size fitting the content (shadow and layered window are derived automatically by the framework, which wraps a shadow around it):
 
 ```xml
 <Window size="240,210" caption="0,0,0,0" use_system_caption="false"
-        shadow_type="default" shadow_attached="true"
-        layered_window="true" size_box="0,0,0,0">
+        shadow_type="default" size_box="0,0,0,0">
     <VBox class="flyout" width="240" height="auto">
         <Label class="flyout_title" text="Flyout Title"/>
         <Label class="flyout_desc" text="Description text..." margin="0,6,0,10"/>

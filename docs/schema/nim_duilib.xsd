@@ -4013,7 +4013,7 @@
     </xs:attribute>
     <xs:attribute name="shadow_attached" type="xs:string">
       <xs:annotation>
-        <xs:documentation>窗口是否附加阴影效果，如"true"表示开启窗口阴影功能，"false"表示关闭窗口阴影功能 如果设置了shadow_type属性，相当于隐式将shadow_attached设置为"true"， 所以一般设置了shadow_type属性以后，不需要再单独设置shadow_attached属性</xs:documentation>
+        <xs:documentation>窗口是否附加阴影效果，如"true"表示开启窗口阴影功能，"false"表示关闭窗口阴影功能 默认即为"true"，一般只需在需要关闭阴影时设置为"false"；设置了shadow_type属性即代表开启阴影，不需要再单独设置shadow_attached="true"</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="shadow_type" type="xs:string">
@@ -4083,12 +4083,12 @@
     </xs:attribute>
     <xs:attribute name="layered_window" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置是否为层窗口，使用注意事项： （1）该属性在使用窗口阴影（即设置了shadow_type属性）时不需要设置，窗口阴影功能会根据需要来管理该属性 （2）当使用系统标题栏时（即use_system_caption="true"），不应设置该属性</xs:documentation>
+        <xs:documentation>设置是否为层窗口，使用注意事项： （1）一般窗口无需设置该属性，分层窗口由内部根据阴影、透明度等配置自动推导；仅浮层、下拉列表等特殊场景才需要显式开启 （2）该属性在使用窗口阴影（即设置了shadow_type属性）时不需要设置，窗口阴影功能会根据需要来管理该属性 （3）当使用系统标题栏时（即use_system_caption="true"），不应设置该属性</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="opacity" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置不透明度数值[0, 255]，当 opacity 为 0 时，窗口是完全透明的。 当 opacity 为 255 时，窗口是不透明的。 仅当layered_window="true"时有效，所以如果当前不是分层窗口，内部会自动设置为分层窗口 该参数在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)</xs:documentation>
+        <xs:documentation>设置不透明度数值[0, 255]，当 opacity 为 0 时，窗口是完全透明的。 当 opacity 为 255 时，窗口是不透明的。 仅当窗口为分层窗口时有效；设置 opacity &lt; 255 时，内部会自动推导开启分层窗口，无需显式配置 layered_window="true" 该参数在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="render_backend_type" type="xs:string">
@@ -5497,7 +5497,7 @@
     </xs:attribute>
     <xs:attribute name="shadow_attached" type="xs:string">
       <xs:annotation>
-        <xs:documentation>窗口是否附加阴影效果，如"true"表示开启窗口阴影功能，"false"表示关闭窗口阴影功能 如果设置了shadow_type属性，相当于隐式将shadow_attached设置为"true"， 所以一般设置了shadow_type属性以后，不需要再单独设置shadow_attached属性</xs:documentation>
+        <xs:documentation>窗口是否附加阴影效果，如"true"表示开启窗口阴影功能，"false"表示关闭窗口阴影功能 默认即为"true"，一般只需在需要关闭阴影时设置为"false"；设置了shadow_type属性即代表开启阴影，不需要再单独设置shadow_attached="true"</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="shadow_type" type="xs:string">
@@ -5567,17 +5567,17 @@
     </xs:attribute>
     <xs:attribute name="layered_window" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置是否为层窗口，使用注意事项： （1）该属性在使用窗口阴影（即设置了shadow_type属性）时不需要设置，窗口阴影功能会根据需要来管理该属性 （2）当使用系统标题栏时（即use_system_caption="true"），不应设置该属性</xs:documentation>
+        <xs:documentation>设置是否为层窗口，使用注意事项： （1）一般窗口无需设置该属性，分层窗口由内部根据阴影、透明度等配置自动推导；仅浮层、下拉列表等特殊场景才需要显式开启 （2）该属性在使用窗口阴影（即设置了shadow_type属性）时不需要设置，窗口阴影功能会根据需要来管理该属性 （3）当使用系统标题栏时（即use_system_caption="true"），不应设置该属性</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="alpha" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置透明度数值[0, 255]，当 alpha 为 0 时，窗口是完全透明的。 当 alpha 为 255 时，窗口是不透明的。 仅当layered_window="true"时有效， 该参数在UpdateLayeredWindow函数中作为参数使用(BLENDFUNCTION.SourceConstantAlpha)</xs:documentation>
+        <xs:documentation>设置透明度数值[0, 255]，当 alpha 为 0 时，窗口是完全透明的。 当 alpha 为 255 时，窗口是不透明的。 仅当窗口为分层窗口时有效（分层窗口由内部按需推导，一般无需显式设置layered_window）， 该参数在UpdateLayeredWindow函数中作为参数使用(BLENDFUNCTION.SourceConstantAlpha)</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="opacity" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置不透明度数值[0, 255]，当 opacity 为 0 时，窗口是完全透明的。 当 opacity 为 255 时，窗口是不透明的。 仅当layered_window="true"时有效，所以如果当前不是分层窗口，内部会自动设置为分层窗口 该参数在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)</xs:documentation>
+        <xs:documentation>设置不透明度数值[0, 255]，当 opacity 为 0 时，窗口是完全透明的。 当 opacity 为 255 时，窗口是不透明的。 仅当窗口为分层窗口时有效；设置 opacity &lt; 255 时，内部会自动推导开启分层窗口，无需显式配置 layered_window="true" 该参数在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="render_backend_type" type="xs:string">

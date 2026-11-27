@@ -42,7 +42,7 @@
 ### 2. 界面皮肤（bin/resources）
 
 - [child_window.xml](e:\develop\nim_duilib\bin\resources\themes\default\child_window\child_window.xml)
-  - Window：`size="80%,85%"`、`min_size="720,480"`、`use_system_caption="false"`、`shadow_type="default"`、`shadow_attached="true"`，标题栏结构保持现有框架约定。
+  - Window：`size="80%,85%"`、`min_size="720,480"`、`use_system_caption="false"`、`shadow_type="default"`，标题栏结构保持现有框架约定。
   - 本地新增 `panel_card` Class（`bg_window_card` + 1px `border_split_level1` + `border_round="10,10"`）。
   - 内容区改为 `padding="16,12,16,16"`、`child_margin="12"`，背景 `bg_window_main`；增加一行紧凑说明卡片（Logo + `system_bold_14` 标题 + `system_regular_12` 灰色说明）。
   - GridBox 改为 `bkcolor="bg_window_main"`、`child_margin="12"`，去掉无效的 `valign="center"`。

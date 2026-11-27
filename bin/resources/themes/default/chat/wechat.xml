@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="1180,760" min_size="960,620" caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}" use_system_caption="false" shadow_attached="true"
+<Window size="1180,760" min_size="960,620" caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}" use_system_caption="false"
         size_box="4,4,4,4">
     <!-- 聊天窗口专用样式（窗口私有，不影响其他示例程序）
          注意：窗口私有样式无法跨文件共享，若 login.xml 中同名样式有调整，需同步修改 -->

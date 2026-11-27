@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="900,520" min_size="820,480" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,${SIZE_TITLEBAR_HEIGHT},${SIZE_TITLEBAR_HEIGHT}" caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}" shadow_attached="true" size_box="4,4,4,4">
+<Window size="900,520" min_size="820,480" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,${SIZE_TITLEBAR_HEIGHT},${SIZE_TITLEBAR_HEIGHT}" caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}" size_box="4,4,4,4">
     <VBox bkcolor="bg_window_main" visible="true">
         <!-- 标题栏区域 -->
         <HBox name="window_title_bar" width="stretch" height="${SIZE_TITLEBAR_HEIGHT}" bkcolor="bg_titlebar">

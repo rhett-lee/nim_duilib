@@ -121,7 +121,7 @@ cmake --build build/build_temp/msvc/panel   --config Release --target panel
 会自行给 `pReturn` 赋值，下面的写法正常可用：
 
 ```xml
-<Window size="900,32" layered_window="true">
+<Window size="900,32">
     <Include src="status_bar.xml"/>
 </Window>
 ```

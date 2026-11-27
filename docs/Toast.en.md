@@ -151,10 +151,10 @@ to avoid the enter and move animations overriding each other.
 ### 9. Implementation Notes and Skin Structure
 
 The window style is `kWS_POPUP | kWS_EX_TOPMOST | kWS_EX_NOACTIVATE`, and the layered window is
-enabled before creation:
-topmost, layered, and **non-activating** (it never steals focus). When there is no parent
-window, `kWS_EX_TOOLWINDOW` is added as well, so the toast does not appear in the taskbar or
-the Alt+Tab list. The skin root node enables the window shadow (`shadow_attached="true"`).
+derived automatically by the framework: topmost, layered, and **non-activating** (it never
+steals focus). When there is no parent window, `kWS_EX_TOOLWINDOW` is added as well, so the
+toast does not appear in the taskbar or the Alt+Tab list. The skin root node enables the window
+shadow by default; `shadow_attached` does not need to be set.
 
 Key structure of the `toast.xml` skin:
 

@@ -53,7 +53,7 @@ All the following attributes are configured on the `<Window>` tag.
 
 | Attribute | Default value | Type | Description |
 | :--- | :--- | :--- | :--- |
-| `shadow_attached` | `true` | bool | Whether to enable the shadow. `true` enables, `false` disables. If `shadow_type` is also set, `shadow_type` implicitly sets `shadow_attached` to `true`, so it is generally not necessary to set it separately. |
+| `shadow_attached` | `true` | bool | Whether to enable the shadow. It defaults to `true`, so it only needs to be set to `false` when you want to **disable** the shadow; setting `shadow_type` already means the shadow is enabled, and `shadow_attached="true"` is unnecessary. |
 | `shadow_type` | - | string | Shadow type; see below for available values. |
 | `shadow_image` | - | string | Custom shadow image, generally only used when `shadow_type="custom"`. For example `file='public/shadow/shadow_big.svg' corner='64,64,68,70'`. |
 | `shadow_corner` | `"0,0,0,0"` | rect | Nine-grid description of the shadow image (left, top, right, bottom), generally only used in `custom` mode. |
@@ -244,7 +244,7 @@ For the complete example, see [render/page_window_shadow.xml](../bin/resources/t
 
 ## 8. Relationship with Other Window Attributes
 
-- **`use_system_caption`**: If the system caption bar is enabled, when `shadow_attached="false"` is not explicitly set, duilib will automatically disable the self-drawn shadow to avoid double shadows; if you need the self-drawn shadow, set `shadow_attached="true"` at the same time and choose a self-drawn type.
+- **`use_system_caption`**: If the system caption bar is enabled, duilib will automatically disable the self-drawn shadow to avoid double shadows (setting `shadow_attached="true"` has no effect in this case); if you need the self-drawn shadow, disable the system caption bar (`use_system_caption="false"`) and choose a self-drawn shadow type.
 - **`layered_window`**: When using the self-drawn shadow, there is no need to manually set `layered_window`; duilib will enable the layered window attribute as needed. System shadows and layered windows are mutually exclusive.
 - **`size`**: By default, `size` only represents the size of the client area, excluding the shadow. Setting `size_contain_shadow="true"` lets `size` include the shadow dimensions.
 - **`round_corner`**: When using self-drawn shadows, the window naturally has rounded corners (determined by `shadow_*`), so generally there is no need to set `round_corner` again. The `round_corner` value is **not DPI-scaled** (logical pixels); the framework automatically scales it according to the current DPI before applying. When the shadow type is `none_round`, the framework automatically sets the window rounded corners (using the value of `shadow_border_round`); there is no need to configure `round_corner` manually.
@@ -257,7 +257,7 @@ For the complete example, see [render/page_window_shadow.xml](../bin/resources/t
 **Q1: I set the shadow but don't see any effect?**
 
 - Check whether the window is maximized: the self-drawn shadow is automatically hidden when maximized.
-- Check whether `use_system_caption` is `true`: when the system caption bar is enabled, the self-drawn shadow will not be displayed; please explicitly set `shadow_attached="true"` and choose a self-drawn type.
+- Check whether `use_system_caption` is `true`: when the system caption bar is enabled, the self-drawn shadow is forcibly disabled (setting `shadow_attached="true"` has no effect); if you need the self-drawn shadow, disable the system caption bar and choose a self-drawn type.
 - Check whether `shadow_attached` is set to `false`.
 
 **Q2: I set `system_round` on Win7 / Win10, why doesn't it take effect?**

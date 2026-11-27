@@ -1511,7 +1511,7 @@
                                   pressed_border_color="border_primary_btn_pressed" disabled_border_color="border_primary_btn_disabled"
                                   normal_text_color="text_primary_btn_normal" hovered_text_color="text_primary_btn_normal"
                                   pressed_text_color="text_primary_btn_normal" disabled_text_color="text_primary_btn_disabled"/>
-    <!-- Popover气泡卡片：卡片根容器（窗口级阴影由XML根节点 shadow_attached="true" 配置） -->
+    <!-- Popover气泡卡片：卡片根容器（窗口级阴影由 XML 根节点的 shadow_type 配置，默认开启，无需设置 shadow_attached） -->
     <Class name="popover_card" width="240" height="auto" bkcolor="bg_window_card"
                                border_size="1" border_color="border_window" border_round="8,8"
                                padding="12,12,12,12"/>

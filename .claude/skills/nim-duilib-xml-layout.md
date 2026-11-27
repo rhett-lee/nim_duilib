@@ -163,7 +163,7 @@ else if (strClass == _T("Include")) {
 
 ```xml
 <!-- ✅ 现在可以：<Include> 直接作为 <Window> 的唯一子节点 -->
-<Window size="900,32" layered_window="true" ...>
+<Window size="900,32" ...>
     <Include src="status_bar.xml"/>
 </Window>
 ```
@@ -172,7 +172,7 @@ else if (strClass == _T("Include")) {
 以及让共享片段的根节点和宿主结构保持一致。
 
 ```xml
-<Window size="900,32" layered_window="true" ...>
+<Window size="900,32" ...>
     <HBox>
         <Include src="status_bar.xml"/>
     </HBox>
@@ -206,7 +206,7 @@ else if (strClass == _T("Include")) {
 </Window>
 
 <!-- host_b.xml：HUD 小窗口（推荐包一层 Box） -->
-<Window size="900,32" layered_window="true" ...>
+<Window size="900,32" ...>
     <HBox>
         <Include src="status_bar.xml"/>
     </HBox>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="560,334" min_size="500,316" caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}" text_id="STRID_RICHEDIT_REPLACE_TITLE" use_system_caption="false" shadow_attached="true" icon="public/caption/logo.ico">
+<Window size="560,334" min_size="500,316" caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}" text_id="STRID_RICHEDIT_REPLACE_TITLE" use_system_caption="false" icon="public/caption/logo.ico">
     <!-- 卡片容器：与主窗口保持一致的样式 -->
     <Class name="panel_card" bkcolor="bg_window_card" border_size="1" border_color="border_split_level1" border_round="8,8"/>
     <VBox bkcolor="bg_window_main">

@@ -11,8 +11,8 @@
 <Window size="800,600" min_size="240,100"
         caption="0,0,0,36" use_system_caption="false"
         snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36"
-        shadow_type="default" shadow_attached="true"
-        layered_window="true" alpha="255" size_box="4,4,4,4"
+        shadow_type="default"
+        size_box="4,4,4,4"
         icon="../public/caption/logo.ico">
   <VBox bkcolor="bk_wnd_darkcolor">
     <!-- 标题栏（name 必须是 window_title_bar；旧名 window_caption_bar 仅为兼容 fallback） -->
@@ -41,8 +41,8 @@
 | caption | rect | 标题栏可拖动区域 "0,0,0,36" |
 | size_box | rect | 可拖动调整大小的边距 "4,4,4,4" |
 | shadow_type | string | 阴影类型: default/big/big_round/small/small_round/menu/menu_round/none/none_round/custom/system_default/system_not_round/system_round/system_small_round |
-| shadow_attached | bool | 是否附加阴影 |
-| layered_window | bool | 是否为层窗口 |
+| shadow_attached | bool | 是否附加阴影，默认 true；一般只在关闭阴影时设为 false，无需显式设为 true |
+| layered_window | bool | 是否为层窗口；一般无需设置，内部按需推导，仅浮层/下拉列表等特殊场景才显式开启 |
 | alpha | int | 透明度 0-255 |
 | round_corner | size | 窗口圆角 "4,4"，该值未经 DPI 缩放（逻辑像素）。使用自绘阴影时无需设置；`none_round` 类型会自动设置 |
 | icon | string | 窗口图标路径(ico) |
@@ -359,7 +359,7 @@ TabCtrlItem 内置角标（`duilib/Control/TabCtrl.h`，懒创建 Badge 子控�
 `duilib/Control/Flyout.h`（duilib.h 已 include）。锚点周围浮出任意 Box 内容；非模态、关闭后框架自动 delete；默认不抢焦点（WS_EX_NOACTIVATE）、点击外部/Esc 自动关闭、12 方位（8 个边角 + BottomCenter/TopCenter/RightCenter/LeftCenter 居中）空间不足自动翻转+工作区夹持、全局单活。
 C++：`Flyout(Window*)` → `SetSkinFolder(path)`（默认父窗口 GetResourcePath）→ `bool ShowAt(Control* anchor, xmlFile, Placement=Bottom)`（**xmlFile 只传文件名**；失败内部已 delete this 返回 false）；`Dismiss()`、`SetAutoDismiss`(true)、`SetClickOutsideDismiss`(true，仅控制"点击外部"关闭，Esc 仍由 SetAutoDismiss 控制)、`SetShadowClickThrough`(true，阴影上的鼠标穿透给下层窗口，仅 Windows)、`GetVisualRect/IsPointInVisualArea`（可视区域：屏幕物理像素、已去阴影）、`SetNoFocus`(true)、`SetGap`(6 DIP)、`SetAllowFlip`(true)、`GetAnchor/GetPlacement/IsOpen`、`AttachOpened/AttachClosed`（`std::function<void(CloseReason)>`）、`AttachLayouted(cb)`（布局完成回调：首帧绘制前一次，跟随锚点重新定位后也会触发）、`SetFollowAnchor/IsFollowAnchor`（默认 false；开启后约 50ms 轮询锚点位置，锚点位移时重新定位——保持打开时方位不翻转、空间不足夹持工作区；锚点被滚出客户区或 `ScrollBox` 可视区域时浮层窗口暂时隐藏、打开状态保留，锚点重新可见后按新位置恢复显示；按下锚点所在滚动容器的滚动条视为滚动操作、不按点击外部关闭）、`IsAnchorVisible()`、`UpdateAnchorPosition()`（重新定位并触发 AttachLayouted，返回实际方位是否变化）、静态 `GetActiveFlyout/DismissActive`。
 `Placement{Bottom,BottomEnd,Top,TopEnd,Right,RightEnd,Left,LeftEnd,BottomCenter,TopCenter,RightCenter,LeftCenter}`（前 8 个为旧值不变）；`CloseReason{kManual,kClickOutside,kEscape,kAnchorLost}`（父窗口销毁/隐藏/最小化、锚点失效、DPI 变化）。
-内容 XML：`<Window size="240,210" caption="0,0,0,0" use_system_caption="false" shadow_type="default" shadow_attached="true" layered_window="true" size_box="0,0,0,0">`，固定 DIP 尺寸（内容超出会画进阴影区）。皮肤类 `flyout`（240 宽 bg_window_card/border_window/圆角8/padding12）、`flyout_title`（bold14）、`flyout_desc`（regular12 text_muted 多行）。
+内容 XML：`<Window size="240,210" caption="0,0,0,0" use_system_caption="false" shadow_type="default" size_box="0,0,0,0">`，固定 DIP 尺寸（内容超出会画进阴影区）。皮肤类 `flyout`（240 宽 bg_window_card/border_window/圆角8/padding12）、`flyout_title`（bold14）、`flyout_desc`（regular12 text_muted 多行）。
 ShowAt 成功后再 `FindControl` 绑事件；同锚点切换关闭由调用方比较 `GetActiveFlyout()->GetAnchor()`；外部点击检测仅 Windows（50ms 轮询），非 Win 平台 SetNoFocus(false)；锚点在滚动容器内自动扣除累计滚动偏移，开启跟随（`SetFollowAnchor(true)`，Popover 默认开启）后滚动/布局位移时约 50ms 内重新定位、锚点滚出滚动区域时卡片窗口暂时隐藏（`IsOpen()` 仍为 true），锚点重新可见后恢复显示（`trigger="focus"` 的锚点在已持有焦点时再次点击可重新打开已关闭的卡片）；父窗口 OpenColorTheme 私有颜色主题自动继承（Window::GetColorThemeXmlData）；窗口阴影不拦截鼠标（OnInitWindow 装 IUIMessageFilter，WM_NCHITTEST 落在 GetVisualRect 之外返回 HTTRANSPARENT），"浮层内/外"判定一律用 GetVisualRect 而非 GetWindowRect（后者含阴影）。
 
 ### Mask 属性(继承 Box，遮罩/蒙版层)

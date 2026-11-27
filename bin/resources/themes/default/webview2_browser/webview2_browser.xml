@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <Window size="80%,80%" min_size="760,540" caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}" size_box="4,4,4,4"
-        shadow_attached="true" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,${SIZE_TITLEBAR_HEIGHT},${SIZE_TITLEBAR_HEIGHT}"
+        snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,${SIZE_TITLEBAR_HEIGHT},${SIZE_TITLEBAR_HEIGHT}"
         icon="public/caption/logo.ico" text_id="STRID_WEBVIEW2_BROWSER_MULTI_TAB">
     <!--新建标签按钮：纯色按钮-->
     <Class name="tab_item_new_add_btn" font="system_regular_18" text_align="hcenter,vcenter" valign="center"

@@ -98,7 +98,7 @@ enum class Placement : uint32_t
         shadow_type="custom"
         shadow_image="file='public/shadow/shadow_popover_arrow_down.svg' window_shadow_mode='true' corner='20,20,22,30'"
         shadow_corner="12,12,14,14" shadow_border_round="0,0" shadow_border_size="0" shadow_snap="false"
-        shadow_attached="true" layered_window="true" size_box="0,0,0,0">
+        layered_window="true" size_box="0,0,0,0">
   <!-- 方位为 top 时：卡片在上、箭头带在下（卡片在该侧留出 8 的 margin） -->
   <VBox name="popover_frame" width="..." height="auto">
     <VBox class="popover_card" name="popover_card" width="..." height="auto" margin="0,0,0,8">

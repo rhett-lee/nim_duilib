@@ -51,7 +51,7 @@ duilib 的窗口阴影为窗口提供"立体悬浮"的视觉外观。实现方�
 
 | 属性 | 默认值 | 类型 | 说明 |
 | :--- | :--- | :--- | :--- |
-| `shadow_attached` | `true` | bool | 是否启用阴影。`true` 启用，`false` 关闭。若同时设置 `shadow_type`，则 `shadow_type` 会隐式将 `shadow_attached` 置为 `true`，一般不必再单独设置。 |
+| `shadow_attached` | `true` | bool | 是否启用阴影。默认即为 `true`，一般只需在需要**关闭**阴影时设置为 `false`；设置 `shadow_type` 已代表开启阴影，无需再写 `shadow_attached="true"`。 |
 | `shadow_type` | - | string | 阴影类型，可选值见下文。 |
 | `shadow_image` | - | string | 自定义阴影图片，一般仅在 `shadow_type="custom"` 时使用。例如 `file='public/shadow/shadow_big.svg' corner='64,64,68,70'`。 |
 | `shadow_corner` | `"0,0,0,0"` | rect | 阴影图片的九宫格描述（左、上、右、下），一般仅在 `custom` 模式时使用。 |
@@ -242,7 +242,7 @@ pWindow->SetEnableShadowSnap(true);
 
 ## 8. 与其他窗口属性的关系
 
-- **`use_system_caption`**：若启用系统标题栏，未显式设置 `shadow_attached="false"` 时，duilib 会自动关闭自绘阴影以避免双重阴影；如需自绘阴影，请同时设置 `shadow_attached="true"` 并选择自绘类型。
+- **`use_system_caption`**：若启用系统标题栏，duilib 会自动关闭自绘阴影以避免双重阴影（此时即使设置 `shadow_attached="true"` 也不会生效）；如需自绘阴影，请关闭系统标题栏（`use_system_caption="false"`）并选择自绘阴影类型。
 - **`layered_window`**：使用自绘阴影时无需手动设置 `layered_window`，duilib 会按需开启分层窗口属性。系统阴影与分层窗口互斥。
 - **`size`**：默认情况下，`size` 只表示客户区大小，不包含阴影。设置 `size_contain_shadow="true"` 可让 `size` 包含阴影的尺寸。
 - **`round_corner`**：使用自绘阴影时窗口自然有圆角（由 `shadow_*` 决定），一般不必再设置 `round_corner`。`round_corner` 的值**未经 DPI 缩放**（逻辑像素），框架内部会按当前 DPI 自动缩放后应用。当阴影类型为 `none_round` 时，框架会自动设置窗口圆角（取 `shadow_border_round` 的值），无需手动配置 `round_corner`。
@@ -255,7 +255,7 @@ pWindow->SetEnableShadowSnap(true);
 **Q1：设置了阴影但看不到效果？**
 
 - 检查窗口是否处于最大化状态：最大化时自绘阴影会自动隐藏。
-- 检查 `use_system_caption` 是否为 `true`：开启系统标题栏时自绘阴影不会显示，请显式设置 `shadow_attached="true"` 并选择自绘类型。
+- 检查 `use_system_caption` 是否为 `true`：开启系统标题栏时自绘阴影会被强制关闭（此时设置 `shadow_attached="true"` 也无效）；如需自绘阴影，请关闭系统标题栏并选择自绘类型。
 - 检查 `shadow_attached` 是否被设置为 `false`。
 
 **Q2：在 Win7 / Win10 上设置了 `system_round`，为什么不生效？**

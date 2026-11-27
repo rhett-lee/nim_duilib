@@ -134,9 +134,9 @@ ui::ToastWnd::Show(this,
 
 ### 9. 实现要点与皮肤结构
 
-窗口样式为 `kWS_POPUP | kWS_EX_TOPMOST | kWS_EX_NOACTIVATE`，并在创建前启用分层窗口：
+窗口样式为 `kWS_POPUP | kWS_EX_TOPMOST | kWS_EX_NOACTIVATE`，分层窗口由内部自动推导；
 置顶、分层、**不激活**（不抢焦点）；没有父窗口时额外加 `kWS_EX_TOOLWINDOW`，
-避免出现在任务栏和 Alt+Tab 列表中。皮肤根节点开启了窗口阴影（`shadow_attached="true"`）。
+避免出现在任务栏和 Alt+Tab 列表中。皮肤根节点默认开启窗口阴影，无需设置 `shadow_attached`。
 
 皮肤 `toast.xml` 的关键结构：
 
