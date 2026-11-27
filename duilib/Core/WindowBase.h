@@ -114,6 +114,11 @@ public:
     */
     bool IsLayeredWindow() const;
 
+    /** 是否由外部显式设置过分层窗口属性
+    * @return 外部调用SetLayeredWindow成功后返回true；界面库内部自动设置不会改变该值
+    */
+    bool IsLayeredWindowSetByUser() const;
+
     /** 设置窗口透明度(仅当IsLayeredWindow()为true的时候有效)
     * @param [in] nAlpha 透明度数值[0, 255]，当 nAlpha 为 0 时，窗口是完全透明的。 当 nAlpha 为 255 时，窗口是不透明的。
     *             该参数在UpdateLayeredWindow函数中作为参数使用(BLENDFUNCTION.SourceConstantAlpha)。

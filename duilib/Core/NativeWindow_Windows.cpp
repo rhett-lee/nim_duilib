@@ -63,6 +63,7 @@ NativeWindow_Windows::NativeWindow_Windows(INativeWindow* pOwner):
     m_hParentWnd(nullptr),
     m_hDcPaint(nullptr),
     m_bIsLayeredWindow(false),
+    m_bLayeredWindowSetBeforeCreate(false),
     m_nLayeredWindowAlpha(255),
     m_nLayeredWindowOpacity(255),
     m_bUseSystemCaption(false),
@@ -445,6 +446,16 @@ bool NativeWindow_Windows::CreateChildWnd(NativeWindow_Windows* pParentWindow, i
             m_createParam.m_dwExStyle = WS_EX_LAYERED;
         }
     }
+    if (m_bLayeredWindowSetBeforeCreate) {
+        //创建窗口前用户显式设置过分层窗口属性时，优先于父窗口的默认推导
+        if (m_bIsLayeredWindow && ::IsWindows8OrGreater()) {
+            m_createParam.m_dwExStyle |= WS_EX_LAYERED;
+        }
+        else {
+            //Windows 7及更早版本的子窗口不支持分层窗口，这里保持非分层窗口
+            m_createParam.m_dwExStyle &= ~WS_EX_LAYERED;
+        }
+    }
 
     //父窗口句柄
     m_hParentWnd = pParentWindow->GetHWND();
@@ -510,31 +521,38 @@ void NativeWindow_Windows::SyncCreateWindowAttributes(const WindowCreateAttribut
         m_bUseSystemCaption = true;
     }
 
-    //初始化层窗口属性
-    m_bIsLayeredWindow = false;
-    if (createAttributes.m_bIsLayeredWindowDefined) {
-        if (createAttributes.m_bIsLayeredWindow) {
-            m_bIsLayeredWindow = true;
-            m_createParam.m_dwExStyle |= WS_EX_LAYERED;
-        }
-        else {
-            m_createParam.m_dwExStyle &= ~WS_EX_LAYERED;
-        }
+    //初始化层窗口属性：
+    //优先级从高到低：创建前用户显式设置 > 窗口XML配置 > 窗口创建参数（m_createParam.m_dwExStyle）
+    bool bLayeredWindow = false;
+    if (m_bLayeredWindowSetBeforeCreate) {
+        //创建窗口前，用户显式调用过SetLayeredWindow，以其值为准
+        bLayeredWindow = m_bIsLayeredWindow;
+    }
+    else if (createAttributes.m_bIsLayeredWindowDefined) {
+        bLayeredWindow = createAttributes.m_bIsLayeredWindow;
+    }
+    else if (createAttributes.m_bLayeredWindowOpacityDefined && (createAttributes.m_nLayeredWindowOpacity != 255)) {
+        //XML未显式设置layered_window，但设置了不透明度时，需要层窗口
+        bLayeredWindow = true;
     }
     else if (m_createParam.m_dwExStyle & WS_EX_LAYERED) {
-        m_bIsLayeredWindow = true;
+        //程序化创建窗口时，直接通过创建参数指定的层窗口属性
+        bLayeredWindow = true;
     }
 
-    //如果使用系统标题栏，关闭层窗口
-    if (createAttributes.m_bUseSystemCaptionDefined && createAttributes.m_bUseSystemCaption) {
-        m_bIsLayeredWindow = false;
-        m_createParam.m_dwExStyle &= ~WS_EX_LAYERED;
+    //使用系统标题栏时，关闭层窗口（创建前API显式设置除外）
+    if (!m_bLayeredWindowSetBeforeCreate &&
+        createAttributes.m_bUseSystemCaptionDefined && createAttributes.m_bUseSystemCaption) {
+        bLayeredWindow = false;
     }
 
-    //如果设置了不透明度，则设置为层窗口
-    if (createAttributes.m_bLayeredWindowOpacityDefined && (createAttributes.m_nLayeredWindowOpacity != 255)) {
+    m_bIsLayeredWindow = bLayeredWindow;
+    //"创建前设置"标志在窗口创建成功后由InitNativeWindow清除，创建失败时保留请求值
+    if (bLayeredWindow) {
         m_createParam.m_dwExStyle |= WS_EX_LAYERED;
-        m_bIsLayeredWindow = true;
+    }
+    else {
+        m_createParam.m_dwExStyle &= ~WS_EX_LAYERED;
     }
 
     if (createAttributes.m_bInitSizeDefined) {
@@ -604,13 +622,12 @@ void NativeWindow_Windows::InitNativeWindow()
         return;
     }
 
-    //检查并更新曾窗口属性
-    m_bIsLayeredWindow = false;
-    if (m_createParam.m_dwExStyle & WS_EX_LAYERED) {
-        m_bIsLayeredWindow = true;
-    }
+    //检查并更新层窗口属性：
+    //窗口创建后，以窗口实际样式为准，保证内部状态与系统状态一致
     bool bChanged = false;
     SetLayeredWindowStyle(m_bIsLayeredWindow, bChanged);
+    m_bIsLayeredWindow = (::GetWindowLong(m_hWnd, GWL_EXSTYLE) & WS_EX_LAYERED) != 0;
+    m_bLayeredWindowSetBeforeCreate = false;
 
     //初始化窗口相关DC
     ASSERT(m_hDcPaint == nullptr);
@@ -665,6 +682,10 @@ void NativeWindow_Windows::ClearNativeWindow()
         m_pWindowDropTarget = nullptr;
     }
     m_hWnd = nullptr;
+
+    //窗口已销毁：重置层窗口状态，避免后续查询到过期的状态
+    m_bIsLayeredWindow = false;
+    m_bLayeredWindowSetBeforeCreate = false;
 }
 
 HWND NativeWindow_Windows::GetHWND() const
@@ -736,23 +757,36 @@ bool NativeWindow_Windows::SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
         //并且绘制流程会按分层窗口处理（无法绘制到窗口上），因此这里直接拒绝该请求。
         return false;
     }
-    bool bChanged = false;
-    bool bRet = SetLayeredWindowStyle(bIsLayeredWindow, bChanged);
-    if (bRet || !IsWindow()) {
-        //只有在样式设置成功（或者窗口还未创建，样式已在窗口创建参数中指定）时，
-        //才更新内部状态，保证与系统窗口样式保持一致
+
+    if (!IsWindow()) {
+        //窗口尚未创建：记录请求值并同步到窗口创建参数，创建窗口时优先于XML配置使用
+        m_bLayeredWindowSetBeforeCreate = true;
         m_bIsLayeredWindow = bIsLayeredWindow;
+        if (bIsLayeredWindow) {
+            m_createParam.m_dwExStyle |= WS_EX_LAYERED;
+        }
+        else {
+            m_createParam.m_dwExStyle &= ~WS_EX_LAYERED;
+        }
+        return true;
     }
-    if (bRedraw && bChanged && IsWindow()) {
+
+    bool bChanged = false;
+    if (!SetLayeredWindowStyle(bIsLayeredWindow, bChanged)) {
+        //样式设置失败：不更新内部状态，保持与系统窗口样式一致
+        return false;
+    }
+    m_bIsLayeredWindow = bIsLayeredWindow;
+    if (bRedraw && bChanged) {
         // 强制窗口重绘
         m_bContentDirty = true;
         ::RedrawWindow(m_hWnd, NULL, NULL, RDW_FRAME | RDW_INTERNALPAINT | RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
         ::SetWindowPos(m_hWnd, nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
     }
-    return bRet || !IsWindow();
+    return true;
 }
 
-bool NativeWindow_Windows::SetLayeredWindowStyle(bool bIsLayeredWindow, bool& bChanged) const
+bool NativeWindow_Windows::SetLayeredWindowStyle(bool bIsLayeredWindow, bool& bChanged)
 {
     bChanged = false;
     if (::IsWindow(m_hWnd)) {
@@ -838,23 +872,29 @@ bool NativeWindow_Windows::SetLayeredWindowOpacity(int32_t nAlpha)
     if ((nAlpha < 0) || (nAlpha > 255)) {
         return false;
     }
+    const uint8_t nOpacity = static_cast<uint8_t>(nAlpha);
     bool bRet = false;
-    m_nLayeredWindowOpacity = static_cast<uint8_t>(nAlpha);
-    if (m_nLayeredWindowOpacity == 255) {
+    if (nOpacity == 255) {
+        //255表示不透明：该值在非分层窗口下也有意义，直接更新缓存
+        m_nLayeredWindowOpacity = nOpacity;
         COLORREF crKey = 0;
         BYTE bAlpha = 0;
         DWORD dwFlags = LWA_ALPHA | LWA_COLORKEY;
         bool bAttributes = ::GetLayeredWindowAttributes(m_hWnd, &crKey, &bAlpha, &dwFlags) != FALSE;
         if (bAttributes) {
-            bRet = ::SetLayeredWindowAttributes(m_hWnd, 0, m_nLayeredWindowOpacity, LWA_ALPHA) != FALSE;
+            bRet = ::SetLayeredWindowAttributes(m_hWnd, 0, nOpacity, LWA_ALPHA) != FALSE;
             ASSERT_UNUSED_VARIABLE(bRet);
         }
     }
     else {
         //设置不透明度要求窗口已经是分层窗口（设置分层窗口的工作由调用方负责）
         ASSERT(IsLayeredWindow());
-        bRet = ::SetLayeredWindowAttributes(m_hWnd, 0, m_nLayeredWindowOpacity, LWA_ALPHA) != FALSE;
+        bRet = ::SetLayeredWindowAttributes(m_hWnd, 0, nOpacity, LWA_ALPHA) != FALSE;
         ASSERT_UNUSED_VARIABLE(bRet);
+        if (bRet) {
+            //只有设置成功时才更新缓存，避免查询到未实际生效的值
+            m_nLayeredWindowOpacity = nOpacity;
+        }
     }
     return bRet;
 }

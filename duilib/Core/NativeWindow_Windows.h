@@ -117,13 +117,16 @@ public:
     int32_t GetCloseParam() const;
 
 public:
-    /** 设置是否为层窗口
+    /** 设置是否为层窗口（WS_EX_LAYERED）
+    *   窗口创建前调用时，该设置会写入窗口创建参数，并在创建窗口时优先于XML配置；
+    *   窗口创建后调用时，只有在系统窗口样式设置成功后才会更新内部状态。
     * @param [in] bIsLayeredWindow true表示设置为层窗口，否则设置为非层窗口
     * @param [in] bRedraw 是否重绘窗口（属性更改后，如果不重绘，则界面可能显示异常）
     */
     bool SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw);
 
     /** 是否为层窗口
+    * @note 窗口创建后，该值与窗口实际扩展样式中的 WS_EX_LAYERED 保持一致
     */
     bool IsLayeredWindow() const;
 
@@ -670,9 +673,9 @@ private:
     */
     bool GetModifiers(UINT message, WPARAM wParam, LPARAM lParam, uint32_t& modifierKey) const;
 
-    /** 设置是否为层窗口
+    /** 设置是否为层窗口（仅修改窗口样式，不更新m_bIsLayeredWindow）
     */
-    bool SetLayeredWindowStyle(bool bIsLayeredWindow, bool& bChanged) const;
+    bool SetLayeredWindowStyle(bool bIsLayeredWindow, bool& bChanged);
 
     /** 更新最大化/最小化按钮的窗口风格，与程序的逻辑保持一致
     */
@@ -762,8 +765,16 @@ private:
     */
     bool m_bCloseByEnter;
 
-    //是否为层窗口
+    /** 是否为层窗口（WS_EX_LAYERED）
+    *   不变量：窗口创建后，该值必须与窗口实际扩展样式中的 WS_EX_LAYERED 保持一致
+    */
     bool m_bIsLayeredWindow;
+
+    /** 创建窗口前，用户是否显式调用过SetLayeredWindow
+    *   用于确定创建窗口时的优先级：
+    *   创建前API设置 > 窗口XML配置 > 窗口创建参数（m_createParam.m_dwExStyle）
+    */
+    bool m_bLayeredWindowSetBeforeCreate;
 
     //窗口透明度，该值在UpdateLayeredWindow函数中作为参数使用(BLENDFUNCTION.SourceConstantAlpha)
     uint8_t m_nLayeredWindowAlpha;

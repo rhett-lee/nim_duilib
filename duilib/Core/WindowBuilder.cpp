@@ -746,7 +746,8 @@ namespace
         layeredParam.m_bSystemShadowSupported = pWindow->NativeWnd()->IsSystemShadowSupported();
         const LayeredWindowAttributes layered = ResolveLayeredWindowAttributes(values, layeredParam, &warnings);
         OutputWindowConfigWarnings(warnings);
-        if (!bUseSystemCaption && layered.m_bIsLayeredWindowDefined &&
+        if (!pWindow->IsLayeredWindowSetByUser() && !bUseSystemCaption &&
+            layered.m_bIsLayeredWindowDefined &&
             (layered.m_bIsLayeredWindow != pWindow->IsLayeredWindow())) {
             //仅当推导结果与窗口当前状态不同时才设置（窗口创建时已按相同规则设置过）
             LogUtil::OutputLine(StringUtil::Printf(_T("WindowBuilder: apply layered window: %s, current: %s"),

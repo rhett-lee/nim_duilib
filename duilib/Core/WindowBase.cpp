@@ -204,6 +204,11 @@ bool WindowBase::IsLayeredWindow() const
     return m_pNativeWindow->IsLayeredWindow();
 }
 
+bool WindowBase::IsLayeredWindowSetByUser() const
+{
+    return m_bLayeredWindowSetFlag;
+}
+
 bool WindowBase::OnRequestSetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
 {
     if (bIsLayeredWindow == IsLayeredWindow()) {

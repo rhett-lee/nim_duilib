@@ -1239,7 +1239,7 @@ bool NativeWindow_SDL::CreateWindowAndRender(NativeWindow_SDL* pParentWindow, co
 SDL_Window* NativeWindow_SDL::CreateSdlWindow(NativeWindow_SDL* pParentWindow, const WindowCreateAttributes& createAttributes)
 {
     bool bOpenGL = false;
-    bool bSupportTransparent = false;
+    bool bSupportTransparent = true;
 #ifndef DUILIB_BUILD_FOR_WIN
     //macOS/Linux/FreeBSD平台
     bool bOpenGLES2 = false;    
@@ -1751,10 +1751,10 @@ void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& 
     if (createAttributes.m_bUseSystemCaptionDefined && createAttributes.m_bUseSystemCaption) {
         //使用系统标题栏
         m_bUseSystemCaption = true;
-    }
-    //由于目前Linux系统尚不支持透明，所以强制使用系统标题栏
+    }    
 #ifndef DUILIB_BUILD_FOR_WIN
-    if (!bSupportTransparent && createAttributes.m_bUseSystemCaptionDefined) {
+    if (!bSupportTransparent) {
+        //由于有些系统尚不支持透明，所以强制使用系统标题栏，避免自绘阴影出现黑边
         m_bUseSystemCaption = true;
     }
 #else
@@ -2550,7 +2550,7 @@ void NativeWindow_SDL::SetUseSystemCaption(bool bUseSystemCaption)
     //目前Linux系统只有OpenGLES2这个Render支持窗口半透明，所以如果不支持时，强制使用系统标题栏
     bool bHasOpenGL = false;
     bool bOpenGLES2 = false;
-    bool bSupportTransparent = false;
+    bool bSupportTransparent = true;
     QueryRenderProperties(_T(""), bHasOpenGL, bOpenGLES2, bSupportTransparent);
     if (!bSupportTransparent) {
         m_bUseSystemCaption = true;
