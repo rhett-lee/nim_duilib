@@ -835,7 +835,7 @@ bool RichEditData::SetText(const DStringW& text)
             lineTextInfo.resize(nLineCount);
             for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
                 const std::wstring_view& lineTextView = lineTextViewList[nIndex];
-                ASSERT((lineTextView.data() >= pSourceData) && ((lineTextView.data() + lineTextView.size()) <= (pSourceData + nTextSize)));
+                ASSERT_UNUSED_VARIABLE((lineTextView.data() >= pSourceData) && ((lineTextView.data() + lineTextView.size()) <= (pSourceData + nTextSize)));
                 RichTextLineInfoPtr& lineText = lineTextInfo[nIndex];
                 lineText.reset(new RichTextLineInfo);
                 lineText->m_lineText.SetShareText(spText, (uint32_t)(lineTextView.data() - pSourceData));

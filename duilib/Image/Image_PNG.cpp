@@ -661,7 +661,7 @@ bool Image_PNG::DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> I
     if (!bDecodeResult) {
         //需要区分"被外部中止"与"遇到解码错误"：被中止时没有解码出帧是正常情况
         const bool bAborted = (IsAborted != nullptr) && IsAborted();
-        ASSERT(bAborted || m_impl->m_bDecodeError);
+        ASSERT_UNUSED_VARIABLE(bAborted || m_impl->m_bDecodeError);
     }
     return bDecodeResult;
 }
