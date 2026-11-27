@@ -108,6 +108,14 @@ void TestMBCS()
     // 空数据时返回空字符串
     CHECK(ui::StringConvert::MBCSToUnicode2(nullptr, 0).empty());
     CHECK(ui::StringConvert::UnicodeToMBCS(std::wstring()).empty());
+
+    // 指定代码页与严格模式
+    const std::string gbk = ui::StringConvert::UnicodeToMBCS(std::wstring(L"\u4E2D\u6587"), 936, true);
+    CHECK(!gbk.empty());
+    CHECK(ui::StringConvert::MBCSToUnicode(gbk, 936, true) == std::wstring(L"\u4E2D\u6587"));
+    // 非法UTF-8字节：严格模式返回空字符串，非严格模式替换为替代字符
+    CHECK(ui::StringConvert::MBCSToUnicode(std::string("\xFF", 1), CP_UTF8, true).empty());
+    CHECK(!ui::StringConvert::MBCSToUnicode(std::string("\xFF", 1), CP_UTF8, false).empty());
 }
 #endif
 
@@ -426,6 +434,92 @@ void TestWStringToData()
     CHECK(data.empty());
 }
 
+void TestStrictConversion()
+{
+    // 非法UTF-8字节：严格模式下返回空字符串（0x80不能作为首字节）
+    const std::string invalidUtf8 = std::string("A") + std::string("\x80", 1);
+    CHECK(ui::StringConvert::UTF8ToUTF16(invalidUtf8.data(), invalidUtf8.size()).empty());
+    CHECK(ui::StringConvert::UTF8ToUTF32(invalidUtf8).empty());
+    CHECK(ui::StringConvert::UTF8ToWString(invalidUtf8).empty());
+    CHECK(ui::StringConvert::UTF8ToT(invalidUtf8.data(), invalidUtf8.size()).empty());
+
+    // 末尾不完整的多字节序列：保留已转换的有效前缀
+    const std::string incompleteUtf8 = std::string("A") + std::string("\xE4\xB8", 2);
+    CHECK(ui::StringConvert::UTF8ToWString(incompleteUtf8) == std::wstring(L"A"));
+
+    // 过长编码（C0 80）不合法
+    const std::string overlongUtf8("\xC0\x80", 2);
+    CHECK(ui::StringConvert::UTF8ToUTF16(overlongUtf8.data(), overlongUtf8.size()).empty());
+
+    // 孤立代理项：UTF16转换为空
+    const DUTF16Char loneHigh[] = { (DUTF16Char)0xD83D };
+    CHECK(ui::StringConvert::UTF16ToUTF8(loneHigh, 1).empty());
+    CHECK(ui::StringConvert::UTF16ToUTF32(loneHigh, 1).empty());
+    CHECK(ui::StringConvert::UTF16ToWString(loneHigh, 1).empty());
+    const DUTF16Char loneLow[] = { (DUTF16Char)0xDE00 };
+    CHECK(ui::StringConvert::UTF16ToUTF8(loneLow, 1).empty());
+
+    // 非法UTF32码点：代理区与超出U+10FFFF
+    const DUTF32Char surrogateCodePoint[] = { (DUTF32Char)0xD800 };
+    CHECK(ui::StringConvert::UTF32ToUTF8(surrogateCodePoint, 1).empty());
+    CHECK(ui::StringConvert::UTF32ToUTF16(surrogateCodePoint, 1).empty());
+    CHECK(ui::StringConvert::UTF32ToWString(surrogateCodePoint, 1).empty());
+    const DUTF32Char tooLargeCodePoint[] = { (DUTF32Char)0x110000 };
+    CHECK(ui::StringConvert::UTF32ToWString(tooLargeCodePoint, 1).empty());
+
+    // 空指针处理
+    CHECK(ui::StringConvert::UTF8ToT((const DUTF8Char*)nullptr, 3).empty());
+    CHECK(ui::StringConvert::UTF16ToWString((const DUTF16Char*)nullptr, 3).empty());
+    CHECK(ui::StringConvert::UTF32ToUTF16((const DUTF32Char*)nullptr, 3).empty());
+}
+
+void TestNewConversions()
+{
+    const std::wstring text(L"\u4E2D\u6587");
+    const std::basic_string<DUTF16Char> utf16 = ui::StringConvert::WStringToUTF16(text);
+    CHECK(!utf16.empty());
+    CHECK(ui::StringConvert::UTF16ToWString(utf16) == text);
+    CHECK(ui::StringConvert::UTF16ToWString(utf16.data(), utf16.size()) == text);
+
+    const std::basic_string<DUTF32Char> utf32 = ui::StringConvert::WStringToUTF32(text);
+    const std::basic_string<DUTF16Char> fromUtf32 = ui::StringConvert::UTF32ToUTF16(utf32);
+    CHECK(fromUtf32 == utf16);
+    CHECK(ui::StringConvert::UTF32ToUTF16(utf32.data(), utf32.size()) == utf16);
+
+    // 字符串重载
+    CHECK(ui::StringConvert::UTF8ToUTF16(kChineseUtf8) == utf16);
+    CHECK(ui::StringConvert::UTF16ToUTF8(utf16) == kChineseUtf8);
+    CHECK(ui::StringConvert::UTF16ToUTF32(utf16) == utf32);
+
+    // 表情符号(代理对)往返
+    const std::basic_string<DUTF16Char> emoji16 = ui::StringConvert::UTF8ToUTF16(kEmojiUtf8);
+    CHECK_INT((int)emoji16.size(), 2);
+    CHECK(ui::StringConvert::UTF16ToWString(emoji16) == ui::StringConvert::UTF8ToWString(kEmojiUtf8));
+    CHECK(ui::StringConvert::UTF32ToUTF16(ui::StringConvert::UTF8ToUTF32(kEmojiUtf8)) == emoji16);
+}
+
+void TestValidation()
+{
+    CHECK(ui::StringConvert::IsValidUTF8(kChineseUtf8.data(), kChineseUtf8.size()));
+    CHECK(ui::StringConvert::IsValidUTF8(kEmojiUtf8.data(), kEmojiUtf8.size()));
+    CHECK(!ui::StringConvert::IsValidUTF8(nullptr, 0));
+    CHECK(!ui::StringConvert::IsValidUTF8("\xFF", 1));
+    CHECK(!ui::StringConvert::IsValidUTF8("\xC0\x80", 2));
+    CHECK(!ui::StringConvert::IsValidUTF8("\xE4\xB8", 2));  // 截断的UTF-8序列
+
+    const std::basic_string<DUTF16Char> utf16 = ui::StringConvert::UTF8ToUTF16(kChineseUtf8);
+    CHECK(ui::StringConvert::IsValidUTF16(utf16.data(), utf16.size()));
+    const DUTF16Char loneSurrogate[] = { (DUTF16Char)0xD83D };
+    CHECK(!ui::StringConvert::IsValidUTF16(loneSurrogate, 1));
+    CHECK(!ui::StringConvert::IsValidUTF16(nullptr, 0));
+
+    const std::basic_string<DUTF32Char> utf32 = ui::StringConvert::UTF8ToUTF32(kEmojiUtf8);
+    CHECK(ui::StringConvert::IsValidUTF32(utf32.data(), utf32.size()));
+    const DUTF32Char badCodePoint[] = { (DUTF32Char)0x110000 };
+    CHECK(!ui::StringConvert::IsValidUTF32(badCodePoint, 1));
+    CHECK(!ui::StringConvert::IsValidUTF32(nullptr, 0));
+}
+
 } // namespace
 
 int main()
@@ -441,6 +535,9 @@ int main()
     TestDetectCharset();
     TestDataAsString();
     TestWStringToData();
+    TestStrictConversion();
+    TestNewConversions();
+    TestValidation();
 
     if (g_failedCount == 0) {
         std::cout << "All tests passed (" << g_checkCount << " checks)." << std::endl;

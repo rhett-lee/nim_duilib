@@ -633,70 +633,8 @@ bool StringCharset::IsValidateGBKStream(const char* stream, uint32_t length)
 
 bool StringCharset::IsValidateUTF8Stream(const char* stream, uint32_t length)
 {
-    if ((stream == nullptr) || (length == 0)) {
-        return false;
-    }
-    const unsigned char* data = reinterpret_cast<const unsigned char*>(stream);
-    uint32_t i = 0;
-    while (i < length) {
-        const uint32_t lead = data[i];
-        if ((lead & 0x80) == 0) {
-            //ASCII字符
-            ++i;
-            continue;
-        }
-
-        uint32_t codePoint = 0;
-        uint32_t followCount = 0;
-        if ((lead & 0xE0) == 0xC0) {
-            codePoint = lead & 0x1F;
-            followCount = 1;
-        }
-        else if ((lead & 0xF0) == 0xE0) {
-            codePoint = lead & 0x0F;
-            followCount = 2;
-        }
-        else if ((lead & 0xF8) == 0xF0) {
-            codePoint = lead & 0x07;
-            followCount = 3;
-        }
-        else {
-            //0x80-0xBF 作为首字节，或0xF8-0xFF，均为非法
-            return false;
-        }
-
-        if ((i + followCount) >= length) {
-            return false;
-        }
-        for (uint32_t j = 1; j <= followCount; ++j) {
-            const uint32_t next = data[i + j];
-            if ((next & 0xC0) != 0x80) {
-                return false;
-            }
-            codePoint = (codePoint << 6) | (next & 0x3F);
-        }
-
-        //拒绝过长编码
-        if ((followCount == 1) && (codePoint < 0x80)) {
-            return false;
-        }
-        if ((followCount == 2) && (codePoint < 0x800)) {
-            return false;
-        }
-        if ((followCount == 3) && (codePoint < 0x10000)) {
-            return false;
-        }
-        //拒绝代理区码点与超出Unicode范围的码点
-        if ((codePoint >= 0xD800) && (codePoint <= 0xDFFF)) {
-            return false;
-        }
-        if (codePoint > 0x10FFFF) {
-            return false;
-        }
-
-        i += followCount + 1;
-    }
-    return true;
+    //复用StringConvert中的UTF-8校验实现，避免两处逻辑不一致
+    return StringConvert::IsValidUTF8(stream, static_cast<size_t>(length));
 }
 
 bool StringCharset::IsValidateUTF16LEStream(const char* stream, uint32_t length)
