@@ -1417,19 +1417,16 @@ bool GlobalManager::IsAnimationEnabled() const
 void GlobalManager::SetGlobalRenderBackendType(RenderBackendType backendType,
                                                int32_t nMsaaSampleCount,
                                                bool bDisableVsync,
-                                               bool bEnable,
-                                               bool bApplyToAllWindows)
+                                               bool bEnable)
 {
     if (nMsaaSampleCount < 0) {
         nMsaaSampleCount = 0;
     }
+    //该配置只作为之后新建窗口的默认值，不修改已存在窗口的渲染后端
     m_bGlobalRenderBackendEnabled = bEnable;
     m_globalRenderBackendType = backendType;
     m_globalMsaaSampleCount = nMsaaSampleCount;
     m_bGlobalDisableVsync = bDisableVsync;
-    if (bEnable && bApplyToAllWindows) {
-        ApplyGlobalRenderBackendTypeToAllWindows();
-    }
 }
 
 void GlobalManager::ClearGlobalRenderBackendType()
@@ -1455,20 +1452,6 @@ int32_t GlobalManager::GetGlobalMsaaSampleCount() const
 bool GlobalManager::IsGlobalDisableVsync() const
 {
     return m_bGlobalDisableVsync;
-}
-
-void GlobalManager::ApplyGlobalRenderBackendTypeToAllWindows()
-{
-    if (!m_bGlobalRenderBackendEnabled) {
-        return;
-    }
-    std::vector<WindowPtr> windowList = m_windowManager.GetAllWindowList();
-    for (const WindowPtr& pWindow : windowList) {
-        Window* pWnd = pWindow.get();
-        if (pWnd != nullptr) {
-            pWnd->SetRenderBackendType(m_globalRenderBackendType, m_globalMsaaSampleCount, m_bGlobalDisableVsync);
-        }
-    }
 }
 
 void GlobalManager::AddAlias(const DString& name, const DString& value)

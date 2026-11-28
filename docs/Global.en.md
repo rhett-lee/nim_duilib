@@ -320,20 +320,17 @@ Attributes:
 It can also be controlled at runtime through the API:
 
 ```cpp
-// Enable the global default configuration: used only when a window does not explicitly set the attribute
-// bApplyToAllWindows=true: also apply it immediately to all existing windows (an imperative override)
-GlobalManager::Instance().SetGlobalRenderBackendType(RenderBackendType::kNativeGL_BackendType, 4, false, true, true);
+// Enable the global default configuration: applies only to windows created afterwards
+GlobalManager::Instance().SetGlobalRenderBackendType(RenderBackendType::kNativeGL_BackendType, 4, false, true);
 
 // Disable the global default configuration: new windows use only their own configuration, and existing windows keep their current rendering mode
 GlobalManager::Instance().ClearGlobalRenderBackendType();
-
-// Apply the current global configuration to all existing windows again
-GlobalManager::Instance().ApplyGlobalRenderBackendTypeToAllWindows();
 ```
 
 Notes:
 
 - **The global configuration is only a default for attributes a window has not set**: `render_backend_type`, `vsync`, and `msaa` are resolved independently; values explicitly set in window XML take precedence, and the global configuration applies only to fields the window leaves unset;
+- **The global configuration affects only windows created afterwards**: enabling, changing, or clearing it never switches the render backend of existing windows; to switch an existing window, call `Window::SetRenderBackendType()` or `SetAttribute()`;
 - An explicit runtime call to `Window::SetRenderBackendType()` or `SetAttribute()` has the highest priority and overrides both window XML and the global configuration;
 - The GL/GPU backend is supported only on Windows when not built with SDL; SDL builds, non-Windows platforms and Windows ARM64 automatically fall back to CPU rendering;
 - Even on a supported platform, if a GL context cannot be created (e.g. remote desktop, virtual machine, missing OpenGL driver), it also falls back to CPU rendering; use `Window::GetRenderBackendType()` to check the backend actually in use;

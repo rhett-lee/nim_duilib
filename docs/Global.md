@@ -319,20 +319,17 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 也可以通过接口在运行过程中动态控制：
 
 ```cpp
-// 启用全局默认配置：窗口未显式设置对应属性时才会使用
-// bApplyToAllWindows=true：同时立即应用到所有已经存在的窗口（属于命令式覆盖）
-GlobalManager::Instance().SetGlobalRenderBackendType(RenderBackendType::kNativeGL_BackendType, 4, false, true, true);
+// 启用全局默认配置：仅对之后新建的窗口生效
+GlobalManager::Instance().SetGlobalRenderBackendType(RenderBackendType::kNativeGL_BackendType, 4, false, true);
 
 // 关闭全局默认配置：之后新建的窗口完全使用自身的配置，已创建的窗口保持当前渲染方式
 GlobalManager::Instance().ClearGlobalRenderBackendType();
-
-// 将当前的全局配置再次应用到所有已经存在的窗口
-GlobalManager::Instance().ApplyGlobalRenderBackendTypeToAllWindows();
 ```
 
 注意事项：
 
 - **全局配置仅作为窗口未设置时的默认值**：`render_backend_type`、`vsync`、`msaa` 分别独立判断，窗口 XML 显式设置的字段优先于全局配置；窗口未设置时才使用全局配置；
+- **全局配置只影响之后创建的窗口**：启用、修改或关闭全局配置都不会切换已存在窗口的渲染后端；如需切换已存在窗口，请调用 `Window::SetRenderBackendType()` 或 `SetAttribute()`；
 - 运行时显式调用 `Window::SetRenderBackendType()` 或 `SetAttribute()` 的优先级最高，会覆盖窗口 XML 与全局配置；
 - GL/GPU 后端仅在 Windows 平台且非 SDL 构建模式下支持；SDL 构建模式、非 Windows 平台和 Windows ARM64 会自动回退为CPU绘制；
 - 即使平台支持，无法创建GL上下文（如远程桌面、虚拟机、缺少OpenGL驱动）时也会自动回退为CPU绘制；实际使用的后端请以 `Window::GetRenderBackendType()` 的返回值为准；

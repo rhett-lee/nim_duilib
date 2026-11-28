@@ -68,13 +68,13 @@ Resolve 不应直接写死平台分支，而应基于平台能力描述：
 
 示例：全局配置 `GL + msaa=4 + vsync=off`，窗口 XML 只写 `render_backend_type="GL"`，则最终应仍使用全局的 `msaa=4、vsync=off`，而不是回落到 `msaa=0、vsync=on`。
 
-### 3.3 全局应用到已有窗口
+### 3.3 全局配置仅对新窗口生效
 
-`SetGlobalRenderBackendType(..., bApplyToAllWindows=true)` 是显式运行时命令：
+`SetGlobalRenderBackendType()`、`ClearGlobalRenderBackendType()` 以及 `global.xml` 中的全局配置只作为之后新建窗口的默认值：
 
-- 对当前已创建的窗口立即生效；
-- 同时更新这些窗口的请求值，保证后续重新 Resolve 时不会意外恢复旧值；
-- 对之后新建的窗口，仍按 3.1 的 XML 优先规则解析。
+- 不修改已经创建窗口的渲染后端（避免浮层、下拉框、菜单等被统一切换为 GL 后端）；
+- 已存在窗口如需切换，调用 `Window::SetRenderBackendType()` 或 `SetAttribute("render_backend_type", ...)`；
+- 关闭全局配置后，已创建窗口保持当前渲染方式，新建窗口恢复使用自身配置。
 
 ## 4. 解析流程
 

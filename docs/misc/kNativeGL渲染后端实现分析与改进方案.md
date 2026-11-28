@@ -410,12 +410,13 @@ GL 默认帧缓冲在 `SwapBuffers` 后内容未定义，因此当前只能整�
 | 能力 | 位置 | 说明 |
 | --- | --- | --- |
 | 窗口属性实时切换 | `Window::SetAttribute` | 支持 `render_backend_type`、`vsync`、`msaa`；`Window::SetRenderBackendType()` 发现生效配置变化时，销毁并重建 Render 对象，随后同步尺寸并重绘窗口 |
-| 全局开关（属性） | `WindowBuilder::ParseGlobalAttributes` | 在 `global.xml` 的 `Global` 根节点设置 `render_backend_type`（可选 `vsync`、`msaa`）即启用全局开关，所有窗口统一使用该配置 |
-| 全局开关（函数） | `GlobalManager` | `SetGlobalRenderBackendType()` / `ClearGlobalRenderBackendType()` / `ApplyGlobalRenderBackendTypeToAllWindows()` 及配套 getter |
+| 全局开关（属性） | `WindowBuilder::ParseGlobalAttributes` | 在 `global.xml` 的 `Global` 根节点设置 `render_backend_type`（可选 `vsync`、`msaa`）即启用全局开关，之后新建的窗口使用该配置 |
+| 全局开关（函数） | `GlobalManager` | `SetGlobalRenderBackendType()` / `ClearGlobalRenderBackendType()` 及配套 getter |
 
 注意事项：
 
-- 全局开关优先级高于窗口自身配置，`Window::SetRenderBackendType()` 入口处统一做覆盖；
+- 全局配置仅作为窗口未显式设置字段的默认值，窗口自身配置优先；`Window::SetRenderBackendType()` 等运行时显式设置的优先级最高；
+- 全局配置只影响之后新建的窗口，不修改已存在窗口的渲染后端；如需切换已存在窗口，调用 `Window::SetRenderBackendType()`；
 - 运行过程中切换到 GL 时，若窗口是层窗口则自动降级为 CPU 绘制（GL 不支持层窗口）；
 - 全局开关关闭后，已创建的窗口保持当前渲染方式，新建窗口恢复使用自身配置。
 

@@ -215,20 +215,19 @@ public:
     *   该配置仅作为窗口未显式设置对应属性时的默认值：
     *   窗口XML（包括Class继承）中显式配置的 render_backend_type/vsync/msaa 优先使用窗口自身的值，
     *   只有窗口未配置的字段才使用全局配置；三个字段分别独立判断。
+    * @note 该配置只对之后创建的窗口生效，不会修改已存在窗口的渲染后端；
+    *       如需切换已存在窗口的渲染后端，请调用 Window::SetRenderBackendType()。
     * @param [in] backendType 渲染后端类型
     *       （kNativeGL_BackendType仅在Windows平台且非SDL构建模式下支持，其他情况会回退为CPU绘制；
     *        Windows ARM64即使为Windows平台也不支持GL）
     * @param [in] nMsaaSampleCount MSAA的采样数（仅GPU/GL渲染有效；0表示使用默认值，非法值按0处理）
     * @param [in] bDisableVsync 是否禁用垂直同步（仅GPU/GL渲染有效）
     * @param [in] bEnable true表示启用全局默认配置，false表示关闭全局默认配置
-    * @param [in] bApplyToAllWindows true表示立即将该配置应用到当前已存在的所有窗口
-    *       （属于命令式覆盖；之后新建的窗口仍按“窗口XML优先、全局配置仅作默认值”的规则解析）
     */
     void SetGlobalRenderBackendType(RenderBackendType backendType,
                                     int32_t nMsaaSampleCount = 0,
                                     bool bDisableVsync = kDefaultDisableVsync,
-                                    bool bEnable = true,
-                                    bool bApplyToAllWindows = true);
+                                    bool bEnable = true);
 
     /** 关闭全局的窗口渲染后端默认配置
     * @note 关闭后，新建的窗口完全使用窗口自身的配置（未设置的字段使用内置默认值）；
@@ -252,12 +251,6 @@ public:
     /** 获取全局的垂直同步设置默认值（true表示禁用垂直同步）
     */
     bool IsGlobalDisableVsync() const;
-
-    /** 将全局的渲染后端默认配置应用到当前已存在的所有窗口
-    * @note 该调用属于命令式覆盖，仅影响当前已存在的窗口；
-    *       之后新建的窗口仍按“窗口XML优先、全局配置仅作默认值”的规则解析
-    */
-    void ApplyGlobalRenderBackendTypeToAllWindows();
 
     /** 获取颜色管理器
     */
