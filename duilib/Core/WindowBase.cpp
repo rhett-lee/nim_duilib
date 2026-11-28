@@ -110,6 +110,9 @@ void WindowBase::ClearWindowBase()
 
 void WindowBase::SetUseSystemCaption(bool bUseSystemCaption)
 {
+    //先更新请求值：Native窗口状态变化后会在回调中按请求值重新Resolve阴影、分层窗口等属性，
+    //如果后更新请求值，回调会使用旧值，导致动态切换标题栏时属性恢复错误
+    OnRequestedUseSystemCaptionChanged(bUseSystemCaption);
     m_pNativeWindow->SetUseSystemCaption(bUseSystemCaption);
 }
 
@@ -131,6 +134,7 @@ bool WindowBase::IsUseSystemShadow() const
 bool WindowBase::SetLayeredWindowAlpha(int32_t nAlpha)
 {
     if (m_pNativeWindow->SetLayeredWindowAlpha(nAlpha)) {
+        OnRequestedLayeredWindowAlphaChanged(nAlpha);
         OnWindowAlphaChanged();
         return true;
     }
@@ -152,6 +156,7 @@ bool WindowBase::SetLayeredWindowOpacity(int32_t nAlpha)
         }
     }
     if (m_pNativeWindow->SetLayeredWindowOpacity(nAlpha)) {
+        OnRequestedLayeredWindowOpacityChanged(nAlpha);
         OnWindowAlphaChanged();
         return true;
     }
@@ -177,6 +182,7 @@ bool WindowBase::SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
         //设置成功后才标记外部设置过该属性，避免设置失败（如Windows 7的子窗口不支持分层属性）后，
         //界面库内部无法再根据阴影等需求自动设置该属性
         m_bLayeredWindowSetFlag = true;
+        OnRequestedLayeredWindowChanged(bIsLayeredWindow);
         OnLayeredWindowChanged();
     }
     return bRet;

@@ -93,7 +93,7 @@
 | 目标 1：已知属性非法值提示 | `shadow_type`、`render_backend_type`、`alpha/opacity`、`msaa`、`round_corner` 增加校验与告警，并按规则纠正 | 已完成 |
 | 目标 1：互斥/冲突提示 | 系统标题栏与层窗口冲突、非分层窗口的透明度配置、`size` 与 min/max 冲突均记录告警 | 已完成 |
 | 目标 1：统一出口 | 告警记录在 `WindowAttributeValues::m_warnings`，由 `WindowBuilder` 统一输出 | 已完成（未新增强制类型） |
-| GL + 层窗口并入 Resolve | 显式 `layered_window="true"` 与 `opacity<255` 一样触发 CPU 降级并提示；**SDL 后端不参与该判断**（SDL 透明窗口与 GL 兼容） | 已完成 |
+| GL + 层窗口并入 Resolve | 显式 `layered_window="true"`、`opacity<255` 或 `alpha<255` 触发 CPU 降级并提示；**SDL 后端不参与该判断**（SDL 透明窗口与 GL 兼容） | 已完成 |
 | 目标 2 第 1 点：初始尺寸去重 | `PostInitWindow` 在 Resize 前比较窗口当前尺寸，相同则跳过 | 已完成 |
 | 目标 2 第 2 点：阴影刷新合并 | 初始化应用 XML 期间延迟阴影刷新，在 `PostInitWindow` 创建渲染接口前统一执行一次 | 已完成 |
 | 目标 2 第 3 点：阴影先建后关 | `CreateShadow` 的初始附加状态改用创建前解析出的 `shadow_attached`；`Shadow` 对象仍需创建（阶段 3 属性设置依赖它） | 已完成（实现方式调整） |

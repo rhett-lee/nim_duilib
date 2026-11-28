@@ -5,7 +5,7 @@
 | :---              | :---    | :---    | :---   |:---                     |:--- |
 | caption           | 标题栏  | "0,0,0,0" | rect   | SetCaptionRect          |窗口可拖动的标题栏大小的边距, 最后一个参数是指离上边框的距离,如"0,0,0,36" |
 | use_system_caption| 标题栏  | false   | bool   | SetUseSystemCaption     |设置是否使用系统标题栏；该属性在Wayland平台下无效，始终使用自绘标题栏（Wayland没有统一的系统标题栏，服务端装饰在GNOME等合成器上不可用，客户端装饰又依赖可选的libdecor，无法保证可用） |
-| snap_layout_menu  | 标题栏  | true    | bool   | SetEnableSnapLayoutMenu |是否支持显示贴靠布局菜单（Windows 11新功能：通过将鼠标悬停在窗口的最大化按钮上或按 Win + Z，可以轻松访问对齐布局。），该属性仅当在窗口为分层窗口或者使用系统阴影时默认开启 |
+| snap_layout_menu  | 标题栏  | Win11 条件开启 | bool   | SetEnableSnapLayoutMenu |是否支持显示贴靠布局菜单（Windows 11新功能：通过将鼠标悬停在窗口的最大化按钮上或按 Win + Z，可以轻松访问对齐布局。），该属性仅当在窗口为分层窗口或者使用系统阴影时默认开启；Windows 11 之外始终为 false |
 | sys_menu          | 标题栏  | true    | bool   | SetEnableSysMenu        |在右键点击标题栏时，是否显示系统的窗口菜单（可进行调整窗口状态，关闭窗口等操作）|
 | sys_menu_rect     | 标题栏  | "0,0,0,0" | rect   | SetSysMenuRect          | 窗口菜单区域，在窗口标题栏的左上角（双击该区域可关闭窗口，点击显示系统的窗口菜单），该功能若XML中无设置，默认是关闭的 |
 | icon              | 标题栏  |         | string | SetWindowIcon           |设置窗口的图标文件路径，支持ico格式 |
@@ -13,7 +13,7 @@
 | text_id           | 标题栏  |         | string | SetTextId               |窗体标题字符串的ID, ID在多语言文件中指定, 如"STRID_MIANWINDOW_TITLE" |
 | drag_drop         | 拖放    | true    | bool   | SetEnableDragDrop       |设置窗口内控件是否支持拖放操作（拖入文件/文本）：true=支持，false=不支持 |
 | shadow_attached   | 窗口阴影| true    | bool   | SetShadowAttached       |窗口是否附加阴影效果，如"true"表示开启窗口阴影功能，"false"表示关闭窗口阴影功能<br>如果设置了shadow_type属性，相当于隐式将shadow_attached设置为"true"，<br>所以一般设置了shadow_type属性以后，不需要再单独设置shadow_attached属性|
-| shadow_type       | 窗口阴影|         | string | SetShadowType           |设置窗口的阴影类型：<br> "default"：默认自绘阴影 <br> "big"：有自绘阴影（大），直角，有边框（适合普通窗口）<br> "big_round"：有自绘阴影（大），圆角，有边框（适合普通窗口）<br> "small"：有自绘阴影（小），直角，有边框（适合普通窗口）<br> "small_round"：有自绘阴影（小），圆角，有边框（适合普通窗口）<br> "menu"：有自绘阴影（小），直角，有边框（适合弹出式窗口，比如菜单等）<br> "menu_round"：有自绘阴影（小），圆角，有边框（适合弹出式窗口，比如菜单等）<br> "none"：无阴影，直角，有边框<br> "none_round"：无阴影，圆角，有边框（自绘）<br> "custom": 自定义自绘阴影，该类型需要同时设置`shadow_image`、`shadow_corner`、`shadow_border_round属性` <br> "system_default"：使用系统阴影，跟随操作系统默认窗口阴影属性<br> "system_not_round"：使用系统阴影，直角<br> "system_round"：使用系统阴影，圆角<br> "system_small_round"：使用系统阴影，小圆角<br>兼容性说明：<br>（1）对于Win7和Win10系统：系统阴影仅支持"system_default"这一个，其他三个不支持<br>（2）对于Win11系统，四个系统阴影属性均支持，系统默认阴影为圆角<br>（3）对于macOS系统，四个系统阴影属性均支持，系统默认阴影为圆角<br>（4）对于Linux系统和FreeBSD系统，不支持系统阴影<br>（5）若设置为不支持的系统阴影，会自动切换为相应支持的系统阴影或者自绘阴影|
+| shadow_type       | 窗口阴影|         | string | SetShadowType           |设置窗口的阴影类型：<br> "default"：默认自绘阴影 <br> "big"：有自绘阴影（大），直角，有边框（适合普通窗口）<br> "big_round"：有自绘阴影（大），圆角，有边框（适合普通窗口）<br> "small"：有自绘阴影（小），直角，有边框（适合普通窗口）<br> "small_round"：有自绘阴影（小），圆角，有边框（适合普通窗口）<br> "menu"：有自绘阴影（小），直角，有边框（适合弹出式窗口，比如菜单等）<br> "menu_round"：有自绘阴影（小），圆角，有边框（适合弹出式窗口，比如菜单等）<br> "none"：无阴影，直角，有边框<br> "none_round"：无阴影，圆角，有边框（自绘）<br> "custom": 自定义自绘阴影，该类型通常需要同时设置`shadow_image`、`shadow_corner`、`shadow_border_round`属性 <br> "system_default"：使用系统阴影，跟随操作系统默认窗口阴影属性<br> "system_not_round"：使用系统阴影，直角<br> "system_round"：使用系统阴影，圆角<br> "system_small_round"：使用系统阴影，小圆角<br>兼容性说明：<br>（1）对于Win7和Win10系统：系统阴影仅支持"system_default"这一个，其他三个不支持<br>（2）对于Win11系统，四个系统阴影属性均支持，系统默认阴影为圆角<br>（3）对于macOS系统，四个系统阴影属性均支持，系统默认阴影为圆角<br>（4）对于Linux系统和FreeBSD系统，不支持系统阴影<br>（5）若设置为不支持的系统阴影，会自动切换为相应支持的系统阴影或者自绘阴影|
 | shadow_image      | 窗口阴影|         | string | SetShadowImage          |使用自定义的阴影图片去代替默认的阴影效果，该属性一般仅当shadow_type="custom"时设置<br>设置的路径要注意相对路径以及九宫格属性，<br>如(file='public/shadow/shadow_big.svg' corner='64,64,68,70') |
 | shadow_corner     | 窗口阴影| "0,0,0,0" | rect   | SetShadowCorner       |设置了shadow_image属性后，设置此属性来指定阴影素材的九宫格描述，该属性一般仅当shadow_type="custom"时设置 |
 | shadow_border_round| 窗口阴影| "0,0"    | size  | SetShadowBorderRound|设置了shadow_image属性后，设置此属性来指定阴影的圆角属性，该属性一般仅当shadow_type="custom"时设置 |
@@ -26,12 +26,13 @@
 | max_size          | 窗口大小| "0,0"     | size   | SetWindowMaximumSize    |窗口最大大小, 如"1600,1200" |
 | size_box          | 窗口大小| "0,0,0,0" | rect   | SetSizeBox              |窗口可拖动改变窗口大小的边距, 如"4,4,4,4" |
 | round_corner      | 窗口形状| "0,0"     | size   | SetRoundCorner          |窗口圆角大小, 如"4,4"，该值**未经DPI缩放**（即逻辑像素值）。<br>该属性在使用自绘窗口阴影（即设置了shadow_type属性为非系统阴影）时，一般不需要设置，系统会自动根据阴影类型设置圆角。<br>当阴影类型为 `none_round` 时，框架会自动设置窗口圆角以避免窗口四个角出现黑色内容，无需手动指定此属性。 |
-| layered_window    | 窗口绘制| false   | bool   | SetLayeredWindow        |设置是否为层窗口，使用注意事项：<br>（1）一般窗口无需设置该属性，分层窗口由内部根据阴影、透明度等配置自动推导；仅浮层、下拉列表等特殊场景才需要显式开启<br>（2）该属性在使用窗口阴影（即设置了shadow_type属性）时不需要设置，窗口阴影功能会根据需要来管理该属性<br>（3）当使用系统标题栏时（即use_system_caption="true"），不应设置该属性 |
-| alpha             | 窗口绘制| 255     | int    | SetLayeredWindowAlpha   |设置透明度数值[0, 255]，当 alpha 为 0 时，窗口是完全透明的。 当 alpha 为 255 时，窗口是不透明的。<br>仅当窗口为分层窗口时有效（分层窗口由内部按需推导，一般无需显式设置 layered_window），<br>该参数在UpdateLayeredWindow函数中作为参数使用(BLENDFUNCTION.SourceConstantAlpha)|
-| opacity           | 窗口绘制| 255     | int    | SetLayeredWindowOpacity |设置不透明度数值[0, 255]，当 opacity 为 0 时，窗口是完全透明的。 当 opacity 为 255 时，窗口是不透明的。<br> 仅当窗口为分层窗口时有效；设置 opacity < 255 时，内部会自动推导开启分层窗口，无需显式配置 `layered_window="true"` <br>该参数在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)|
-| render_backend_type|窗口绘制| "CPU"   | string |SetRenderBackendType     | "CPU": CPU绘制 <br> "GL": 使用OpenGL绘制 <br> 注意事项: <br> （1）支持条件：仅Windows平台且非SDL构建模式支持；SDL构建模式、非Windows平台和Windows ARM64不支持，会自动回退为CPU绘制；无法创建GL上下文（如远程桌面、虚拟机、缺少OpenGL驱动）时也会自动回退。<br>实际使用的后端请以 `GetRenderBackendType()` 的返回值为准 <br> （2）同一线程内可以有多个窗口使用OpenGL绘制，绘制前会自动切换当前上下文；但每个窗口都会创建一个独立的 GL 上下文，注意显存占用 <br> （3）OpenGL绘制的窗口，不能是分层窗口（即带有WS_EX_LAYERED属性的窗口），因此使用GL渲染时，`layered_window`、`alpha`、`opacity` 属性均无效 <br> （4）OpenGL绘制使用持久 FBO 做局部刷新，小区域动画不会整窗重绘，性能通常优于整窗重绘 <br> （5）窗口运行过程中，可通过SetAttribute("render_backend_type", "GL"/"CPU")实时切换（内部会重建渲染对象）<br> （6）未设置该属性时，使用 `global.xml` 的全局配置；窗口 XML 显式设置时优先于全局配置（`vsync`、`msaa` 同样按字段分别判断）|
-| vsync             | 窗口绘制| "true"  | bool   | SetRenderBackendType    |是否启用垂直同步，false 表示禁用；<br>仅当 render_backend_type="GL" 时有效<br>支持运行过程中通过SetAttribute实时切换；未设置时使用全局配置|
+| layered_window    | 窗口绘制| false   | bool   | SetLayeredWindow        |设置是否为层窗口，使用注意事项：<br>（1）一般窗口无需设置该属性，分层窗口由内部根据阴影、透明度等配置自动推导；仅浮层、下拉列表等特殊场景才需要显式开启<br>（2）该属性在使用窗口阴影（即设置了shadow_type属性）时不需要设置，窗口阴影功能会根据需要来管理该属性<br>（3）当使用系统标题栏时（即use_system_caption="true"），不应设置该属性<br>（4）SDL 构建下该属性表示透明窗口（`SDL_WINDOW_TRANSPARENT`），默认开启，且只能在创建时设置 |
+| alpha             | 窗口绘制| 255     | int    | SetLayeredWindowAlpha   |设置透明度数值[0, 255]，当 alpha 为 0 时，窗口是完全透明的。 当 alpha 为 255 时，窗口是不透明的。<br>仅当窗口为分层窗口时有效（分层窗口由内部按需推导，一般无需显式设置 layered_window），<br>该参数在UpdateLayeredWindow函数中作为参数使用(BLENDFUNCTION.SourceConstantAlpha)<br>XML 中设置 alpha < 255 时，与 opacity 一样会在窗口创建/Resolve 阶段自动推导分层窗口（SDL 下要求透明窗口）；运行时调用 SetLayeredWindowAlpha 不会自动切换分层窗口 |
+| opacity           | 窗口绘制| 255     | int    | SetLayeredWindowOpacity |设置不透明度数值[0, 255]，当 opacity 为 0 时，窗口是完全透明的。 当 opacity 为 255 时，窗口是不透明的。<br> 仅当窗口为分层窗口时有效；设置 opacity < 255 时，内部会自动推导开启分层窗口，无需显式配置 `layered_window="true"` <br>该参数在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)<br>SDL 构建下 opacity 通过 SDL_SetWindowOpacity 设置，不依赖透明窗口 |
+| render_backend_type|窗口绘制| "CPU"   | string |SetRenderBackendType     | "CPU": CPU绘制 <br> "GL": 使用OpenGL绘制 <br> 注意事项: <br> （1）支持条件：仅Windows平台且非SDL构建模式支持；SDL构建模式、非Windows平台和Windows ARM64不支持，会自动回退为CPU绘制；无法创建GL上下文（如远程桌面、虚拟机、缺少OpenGL驱动）时也会自动回退。<br>实际使用的后端请以 `GetRenderBackendType()` 的返回值为准 <br> （2）同一线程内可以有多个窗口使用OpenGL绘制，绘制前会自动切换当前上下文；但每个窗口都会创建一个独立的 GL 上下文，注意显存占用 <br> （3）OpenGL绘制的窗口不能是分层窗口（即带有WS_EX_LAYERED属性的窗口）；当窗口请求分层（显式 `layered_window="true"`，或 `alpha`/`opacity` < 255）时，会自动降级为CPU绘制，这些属性仍按CPU绘制路径生效 <br> （4）OpenGL绘制使用持久 FBO 做局部刷新，小区域动画不会整窗重绘，性能通常优于整窗重绘 <br> （5）窗口运行过程中，可通过SetAttribute("render_backend_type", "GL"/"CPU")实时切换（内部会重建渲染对象）<br> （6）未设置该属性时，使用 `global.xml` 的全局配置；窗口 XML 显式设置时优先于全局配置（`vsync`、`msaa` 同样按字段分别判断）|
+| vsync             | 窗口绘制| "false" | bool   | SetRenderBackendType    |是否启用垂直同步，false 表示禁用（内置默认禁用，即 kDefaultDisableVsync=true）；<br>仅当 render_backend_type="GL" 时有效<br>支持运行过程中通过SetAttribute实时切换；未设置时使用全局配置|
 | msaa              | 窗口绘制| "0"     | int    | SetRenderBackendType    |MSAA 采样数，0 表示不启用 MSAA（按 1 倍采样）；<br>仅当 render_backend_type="GL" 时有效<br>支持运行过程中通过SetAttribute实时切换；未设置时使用全局配置|
+| sdl_render_name   | 窗口绘制| ""      | string | WindowCreateAttributes  |仅 SDL 构建下生效：指定期望的 SDL Render 名称，多个候选可用逗号分隔并按顺序尝试。可选值：Windows 为 `gpu`、`direct3d11`、`direct3d12`、`direct3d`、`opengl`、`opengles2`、`vulkan`、`software`；Linux 为 `gpu`、`opengl`、`opengles2`、`vulkan`、`software`。实际可用值取决于平台与驱动；全部失败时回退到 SDL 默认 Render。非 SDL 构建忽略该属性 |
 
 备注：窗口阴影相关的内容，请参考文档：[WindowShadow.md](WindowShadow.md)    
 备注：窗口属性的解析函数参见：[WindowBuilder::ParseWindowAttributes函数](../duilib/Core/WindowBuilder.cpp)    
@@ -93,7 +94,7 @@ dlg.DoModal(this, createParam);      //阻塞，直到窗口关闭
 ```
 
 > `kWS_EX_LAYERED` 已删除：原示例中通过 `m_dwExStyle` 设置分层窗口的代码已删除，
-> 分层窗口由窗口内部根据 `layered_window`、阴影、透明度等配置自动推导，无需手动设置。
+> 分层窗口由窗口内部根据 `layered_window`、阴影、`opacity`、`alpha` 等配置自动推导，无需手动设置。
 
 > `Window::OnFinalMessage()` 的默认实现会在非 `DoModal` 窗口中执行 `delete this`，因此普通窗口关闭后不需要手动 delete；通过 `DoModal` 显示的窗口需由调用方自行管理对象生命周期（可参考 `ui::Dialog` 的用法）。
 
@@ -133,7 +134,7 @@ if (pBtn != nullptr) {
 | `void SetSysMenuRect(const UiRect& rcSysMenuRect, bool bNeedDpiScale)` | 设置系统菜单区域（点击显示系统菜单，双击关闭窗口） |
 | `void SetEnableSnapLayoutMenu(bool bEnable)` / `void SetEnableSysMenu(bool bEnable)` | 是否显示贴靠布局菜单 / 右键标题栏的系统菜单 |
 | `bool SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)` / `bool IsLayeredWindow() const` | 设置/判断是否为分层窗口 |
-| `bool SetLayeredWindowAlpha(int32_t nAlpha)` / `bool SetLayeredWindowOpacity(int32_t nAlpha)` | 设置窗口透明度的两种方式（取值 [0,255]，仅在分层窗口有效；两者都不会自动切换为分层窗口，需先调用 `SetLayeredWindow`） |
+| `bool SetLayeredWindowAlpha(int32_t nAlpha)` / `bool SetLayeredWindowOpacity(int32_t nAlpha)` | 设置窗口透明度的两种方式（取值 [0,255]，仅在分层窗口有效；运行时调用两者都不会自动切换为分层窗口，需先调用 `SetLayeredWindow`；XML 中的 `alpha`/`opacity` < 255 在窗口创建阶段会自动推导分层窗口） |
 | `void SetWindowMaximumSize(const UiSize& szMaxWindow, bool bNeedDpiScale)` / `void SetWindowMinimumSize(const UiSize& szMinWindow, bool bNeedDpiScale)` | 设置窗口最大/最小尺寸（值为 0 表示不限制） |
 | `bool SetWindowIcon(const DString& iconFilePath)` | 设置窗口图标（路径相对于资源根目录，推荐 ico 格式） |
 | `void SetText(const DString& strText)` / `void SetTextId(const DString& strTextId)` | 设置窗口标题文字 / 按多语言 ID 设置标题 |

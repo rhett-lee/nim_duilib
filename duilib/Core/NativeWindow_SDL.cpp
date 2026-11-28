@@ -4142,6 +4142,7 @@ bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool /*bRedraw*/)
     const bool bTransparent = (SDL_GetWindowFlags(m_sdlWindow) & SDL_WINDOW_TRANSPARENT) != 0;
     if (bIsLayeredWindow != bTransparent) {
         //当前平台或者Render不支持透明窗口，无法修改透明窗口属性
+        LogUtil::OutputLine(_T("NativeWindow_SDL: the transparent window flag can only be set when the window is created, ignored"));
         return false;
     }
     m_bIsLayeredWindow = bIsLayeredWindow;

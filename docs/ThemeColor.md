@@ -7,14 +7,14 @@
 ```xml
 <Global>
     <!-- 主题元数据：定义主题的基本属性 -->
-    <Theme 
-        name="Light"            <!-- 主题名称 -->
-        type="Color"            <!-- 主题类型，固定为 Color -->
-        style="Light"           <!-- 主题风格 -->
-        accent_support="true"   <!-- 是否支持强调色替换 -->
-        version="2.0"           <!-- 格式版本号 -->
+    <Theme
+        name="Light"
+        type="Color"
+        style="Light"
+        accent_support="true"
+        version="2.0"
     />
-    
+
     <!-- 主题元数据扩展（可选）：存储额外的主题配置信息 -->
     <ThemeMeta>
         <Property name="author" value="nim_duilib"/>
@@ -22,19 +22,19 @@
         <Property name="accent_color" value="#FF0078D4"/> <!-- 主题默认强调色 -->
         <Property name="base_luminance" value="light"/>    <!-- 基础亮度：light/dark -->
     </ThemeMeta>
-    
+
     <!-- 颜色定义区：所有的颜色配置都在这里 -->
-    <ThemeColor 
-        name="color_blue"        <!-- 颜色唯一标识符，全局唯一，程序中通过此名称引用颜色 -->
-        value="#FF0078D4"        <!-- 颜色实际值，格式为 #AARRGGBB，Alpha 通道在前 -->
-        type="common"            <!-- 控件类型分组，按所属功能模块划分，便于按组件分类管理 -->
-        category="basic_color"   <!-- 颜色用途分类，按视觉作用划分，便于按功能批量筛选 -->
-        role="primary"           <!-- 颜色角色：用于强调色派生 -->
-        derived_from=""          <!-- 派生来源：从哪个颜色派生而来 -->
-        adjust=""                <!-- 调整公式：派生时的颜色调整规则 -->
-        fixed="false"            <!-- 是否固定：强调色替换时是否保持不变 -->
-        comment_cn="核心强调色"         <!-- 中文注释说明 -->
-        comment_en="Core accent color"  <!-- 英文注释说明 -->
+    <ThemeColor
+        name="color_blue"
+        value="#FF0078D4"
+        type="common"
+        category="basic_color"
+        role="primary"
+        derived_from=""
+        adjust=""
+        fixed="false"
+        comment_cn="核心强调色"
+        comment_en="Core accent color"
     />
 </Global>
 ```
@@ -111,12 +111,14 @@
 | `name` | snake_case | string | ✅ | 主题名称 | `Light`, `Dark` |
 | `type` | snake_case | string | ✅ | 主题类型 | 固定为 `Color` |
 | `style` | snake_case | string | ✅ | 主题风格 | `Light`, `Dark`, `HighContrastBlack` |
-| `version` | snake_case | string | ✅ | 格式版本号 | `2.0` |
-| `accent_support` | snake_case | boolean | - | 是否支持强调色替换 | `true` / `false` |
+| `version` | snake_case | string | - | 格式版本号（保留字段，当前运行时未读取） | `2.0` |
+| `accent_support` | snake_case | boolean | - | 是否支持强调色替换（保留字段，当前运行时未读取；强调色由 `ThemeColor` 的 `support_accent` 控制） | `true` / `false` |
 
 ### 3.2 ThemeMeta 节点属性
 
-| 属性名 (name) | 命名风格 | 类型 | 说明 | 示例值 |
+`ThemeMeta` 通过子节点 `<Property name="..." value="..."/>` 保存任意键值；下表为约定使用的 `name` 值。
+
+| Property name | 命名风格 | 类型 | 说明 | 示例值 |
 |---------------|---------|------|------|--------|
 | `author` | snake_case | string | 主题作者/来源 | `nim_duilib` |
 | `contrast_ratio` | snake_case | float | **对比度**：主题默认的 WCAG 对比度值，用于无障碍访问检查 | `7.2`, `4.5` |
@@ -134,11 +136,13 @@
 | `role` | snake_case | enum | ⭐ | **颜色角色**，在强调色派生系统中的定位 | `primary`, `neutral` |
 | `derived_from` | snake_case | string | ⭐ | **派生来源**，引用另一个颜色的 `name`，表示此颜色派生自该颜色 | `color_blue` |
 | `adjust` | formula | string | ⭐ | **派生调整公式**，派生时的颜色变换规则 | `lightness:+15` |
-| `fixed` | snake_case | boolean | ⭐ | **是否固定不变**：<br>`true` = 强调色替换时**保持不变**<br>`false` = 强调色替换时**需要重新计算** | `true` / `false` |
+| `fixed` | snake_case | boolean | ⭐ | **是否固定不变**：<br>`true` = 不参与颜色生成，保留 `value`<br>`false` = 参与强调色/语义色派生计算 | `true` / `false` |
+| `support_accent` | snake_case | boolean | - | 是否使用主题强调色：`true` 时生成的颜色值取强调色（`fixed="true"` 时优先保留固定值） | `true` / `false` |
+| `contrast_bg` | - | string | - | 对比度检查使用的背景色名（仅主题检查工具使用，不参与运行时颜色生成） | `bg_window_main` |
 | `comment_cn` | - | string | - | **中文注释说明** | "核心强调色" |
 | `comment_en` | - | string | - | **英文注释说明** | "Core accent color" |
 
-> **重要说明**：`fixed` 是唯一判断标准 - 只有 `fixed="false"` 的颜色会参与强调色派生链的计算。
+> **重要说明**：`fixed="true"` 的颜色不参与生成，直接使用 `value`；`fixed="false"` 的颜色参与派生，其中 `support_accent="true"` 的颜色取主题强调色，其余按 `category`/`role` 规则生成。
 
 ### 3.4 type / category 属性取值说明
 
@@ -485,7 +489,8 @@ bin/resources/themes/
 | fixed 是布尔值 | `//ThemeColor[@fixed[not(. = 'true' or . = 'false')]]` | 空节点集 |
 | role 在枚举范围内 | `//ThemeColor[@role[not(. = ('primary', 'primary_light', 'primary_dark', 'neutral', 'semantic_success', 'semantic_error', 'semantic_warning'))]]` | 空节点集 |
 | 值是 ARGB 格式 | `//ThemeColor[not(matches(@value, '^#[0-9A-Fa-f]{8}$'))]` | 空节点集 |
-| 无旧属性残留 | `//ThemeColor[@support_accent]` | 空节点集 |
+| support_accent 是布尔值 | `//ThemeColor[@support_accent[not(. = 'true' or . = 'false')]]` | 空节点集 |
+| contrast_bg 引用的颜色存在 | `//ThemeColor[@contrast_bg and not(//ThemeColor/@name = @contrast_bg)]` | 空节点集 |
 | 属性命名统一 | `//ThemeColor[@*[starts-with(name(), 'd') and not(starts-with(name(), 'derived_from'))]]` | 空节点集 |
 
 ### 9.2 推荐验证工具

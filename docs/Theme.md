@@ -131,17 +131,19 @@ ui::GlobalManager::Instance().Theme().SwitchColorTheme(ui::FilePath(_T("color_li
 
 ```xml
 <ThemeColor
-    name="color_blue"             <!-- 必填：颜色名（唯一） -->
-    value="#FF2966A3"             <!-- 必填：ARGB 颜色值 -->
-    type="common"                 <!-- 控件类型分组 -->
-    category="basic_color"        <!-- 颜色用途分类 -->
-    role="primary"                <!-- 角色（与强调色派生相关） -->
-    derived_from="color_gray"     <!-- 派生来源 -->
-    adjust="lightness:+15"        <!-- 派生调整公式 -->
-    fixed="false"                 <!-- 是否参与强调色替换 -->
-    comment_cn="核心强调色"         <!-- 中文注释 -->
-    comment_en="Core accent color"/>  <!-- 英文注释 -->
+    name="color_blue"
+    value="#FF2966A3"
+    type="common"
+    category="basic_color"
+    role="primary"
+    derived_from="color_gray"
+    adjust="lightness:+15"
+    fixed="false"
+    comment_cn="核心强调色"
+    comment_en="Core accent color"/>
 ```
+
+各属性含义：`name` 为必填的唯一颜色名，`value` 为必填的 ARGB 颜色值，其余属性用于分组、强调色派生与注释。
 
 详细属性说明参见 [ThemeColor.md](./ThemeColor.md)，常用规则如下：
 

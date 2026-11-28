@@ -56,7 +56,7 @@ SDK 是**免安装**的：解压到任意目录即可，不需要写注册表、
 在 `.vcxproj` 末尾导入接入文件（它会自动导入 `nim_duilib.props`）：
 
 ```xml
-<Import Project="<SDK根>\msvc\nim_duilib.targets" />
+<Import Project="&lt;SDK根&gt;\msvc\nim_duilib.targets" />
 ```
 
 接入文件会完成：

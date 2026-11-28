@@ -300,7 +300,7 @@ ScrollBar 控件继承了 `Control` 属性，更多可用属性请参考`Control
 | :--- | :--- | :--- | :--- |
 | text |  | string | 显示文本 |
 | text_id |  | string | 多语言功能的文本ID |
-| rich_text | false | bool | 设置文本内容是否为RichText <br> 使用示例如下：`<Label rich_text="true" text="一个简单<b>窗口</b><br/>带有<u>标题栏</u>和<u>常规按钮</u>，<b>粗体，<font color='#FF0000'>红色字体</font></b>" />` <br> 备注：在支持RichText的模式下，不支持如下功能：<br> （1）不支持path_ellipsis属性<br> （2）与vertical_text同时使用时，rich_text属性会被忽略，按纯文本显示（去除富文本标记）<br>（3）auto_tooltip属性可以正常使用，提示内容为去除富文本标记后的纯文本|
+| rich_text | false | bool | 设置文本内容是否为RichText <br> 使用示例如下：`<Label rich_text="true" text="一个简单&lt;b&gt;窗口&lt;/b&gt;&lt;br/&gt;带有&lt;u&gt;标题栏&lt;/u&gt;和&lt;u&gt;常规按钮&lt;/u&gt;，&lt;b&gt;粗体，&lt;font color='#FF0000'&gt;红色字体&lt;/font&gt;&lt;/b&gt;" />`<br>注意：在XML属性中书写富文本标记时，需要把 `<`、`>` 转义为 `&lt;`、`&gt;` <br> 备注：在支持RichText的模式下，不支持如下功能：<br> （1）不支持path_ellipsis属性<br> （2）与vertical_text同时使用时，rich_text属性会被忽略，按纯文本显示（去除富文本标记）<br>（3）auto_tooltip属性可以正常使用，提示内容为去除富文本标记后的纯文本|
 | text_align | "left,vcenter" | string | 设置文字的水平与垂直对齐方式，用半角逗号分隔，如"hcenter,vcenter" 。<br>水平对齐方式可取值：left（靠左对齐）、hcenter（居中对齐）、right（靠右对齐）、hjustify（两端对齐） <br>垂直对齐方式可取值：top（靠上对齐）、vcenter（居中对齐）、bottom（靠下对齐）、vjustify（两端对齐）<br>注意：同一方向出现多个取值时，按 hcenter、right、left、hjustify 的先后顺序匹配（如同时包含"left"与"hjustify"时以 left 为准），垂直方向同理按 top、vcenter、bottom、vjustify 匹配 |
 | text_padding | 0,0,0,0 | rect | 文字显示的内边距, 格式为"left,top,right,bottom"，分别代表在目标区域的左侧、上方、右侧、下方设置内边距值，如："2,2,2,2" |
 | font | | string | 字体ID，该字体ID必须在 global.xml 中存在 |
@@ -788,6 +788,8 @@ MenuBar 是窗口内的菜单栏控件，用于显示顶级菜单项；点击顶
 键盘操作：按 F10 或 Alt 将焦点移到菜单栏（再次按下取消焦点）；按钮聚焦后按回车/空格展开（再次按下收起），按向下键展开，按左右方向键在可见的顶级菜单按钮间切换焦点；菜单展开后按左右方向键切换顶级菜单，按 Esc 收起并把焦点返回顶级菜单按钮。焦点框仅在通过键盘操作（F10/Alt/回车等）获得焦点时显示，为贴合按钮圆角的强调色描边，鼠标点击不显示焦点框。展开的顶级菜单下方会绘制主题强调色指示条。
 
 XML 中的 `MenuBarItem` 节点只能作为 `MenuBar` 的子节点，支持的属性如下：
+
+### MenuBarItem 的属性
 
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
@@ -4168,7 +4170,7 @@ pColorPicker->CreateWnd(this, createParam);   // 非模态窗口，随后可调�
 ```
 
 > `kWS_EX_LAYERED` 已删除：原示例中通过 `m_dwExStyle` 设置分层窗口的代码已删除，
-> 分层窗口由窗口内部根据 `layered_window`、阴影、透明度等配置自动推导，无需手动设置。
+> 分层窗口由窗口内部根据 `layered_window`、阴影、`opacity`、`alpha` 等配置自动推导，无需手动设置。
 
 窗口在创建时**默认不会**自动调整位置，完全按创建参数（如 `m_bCenterWindow`）决定定位，以保持对其他调用方（如 PropertyGrid 颜色属性、`examples/controls` 示例）的原有行为不变。
 
@@ -4310,11 +4312,22 @@ BitmapControl 控件继承了 `Box` 属性，更多可用属性请参考`Box`的
 | esc_update_ui | true | bool | 设置按ESC时自动更新显示控件 |
 | kill_focus_update_ui | true | bool | 设置失去焦点时自动更新显示控件 |
 | rich_edit_class | "address_bar_edit" | string | 设置编辑框的Class |
-| rich_edit_clear_btn_class | "rich_edit_clear_btn" | string | 设置编辑框的清除按钮Class |
+| reset_button_class | "address_bar_reset_button" | string | 设置编辑框右侧“恢复当前路径”按钮的Class |
 | sub_path_hbox_class | "address_bar_sub_path_hbox"| string | 设置地址栏路径的容器（HBox）Class，每个子路径一个HBox容器 |
 | sub_path_button_class | "address_bar_sub_path_button"| string | 设置地址栏子路径按钮的Class |
 | sub_path_root_class | "address_bar_sub_path_root" | string | 设置地址栏根路径的Class（"/"路径） |
+| sub_path_drive_class | "address_bar_sub_path_drive" | string | 设置驱动器路径的Class |
+| sub_path_current_class | "address_bar_sub_path_button_current" | string | 设置当前路径按钮的Class |
+| collapse_button_class | "address_bar_sub_path_collapse" | string | 设置路径折叠按钮的Class |
 | path_separator_class | "address_bar_path_separator" | string | 设置地址栏路径分隔符的Class |
+| right_padding | 16 | int | 设置右侧内边距 |
+| empty_display_text |  | string | 设置路径为空时显示的文本 |
+| empty_display_text_id |  | string | 设置路径为空时显示文本的多语言ID |
+| history_enabled | true | bool | 是否启用历史记录 |
+| max_history | 20 | int | 历史记录最大条数 |
+| drop_navigation | true | bool | 是否允许拖放导航 |
+| default_context_menu | false | bool | 是否使用默认的右键菜单 |
+| history_file |  | string | 历史记录文件路径 |
 
 AddressBar 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
 

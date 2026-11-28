@@ -2,6 +2,7 @@
 #define UI_CORE_WINDOW_H_
 
 #include "duilib/Core/WindowBase.h"
+#include "duilib/Core/WindowAttributes.h"
 #include "duilib/Core/Shadow.h"
 #include "duilib/Core/ControlFinder.h"
 #include "duilib/Core/ColorManager.h"
@@ -106,6 +107,15 @@ public:
     /** 获取渲染引擎的垂直同步设置（true表示禁用垂直同步）
     */
     bool IsRenderDisableVsync() const;
+
+    /** 保存窗口属性的请求值（由WindowBuilder在解析XML后调用）
+    *   动态切换（GL↔CPU、系统标题栏开关等）时，按请求值重新Resolve并恢复被冲突关闭的属性。
+    */
+    void SetRequestedWindowAttributes(const WindowAttributeValues& values);
+
+    /** 获取窗口属性的请求值（仅当SetRequestedWindowAttributes被调用过时有效）
+    */
+    const WindowAttributeValues& GetRequestedWindowAttributes() const;
 
     /** 设置窗口图标（支持*.ico格式，其他格式也支持，但推荐ICO格式）
     *  @param [in] iconFilePath 图标文件的路径（在资源根目录内的相对路径）
@@ -630,6 +640,22 @@ protected:
     /** 窗口的层窗口属性发生变化
     */
     virtual void OnLayeredWindowChanged() override;
+
+    /** 运行时显式设置系统标题栏后，更新请求值
+    */
+    virtual void OnRequestedUseSystemCaptionChanged(bool bUseSystemCaption) override;
+
+    /** 运行时显式设置分层窗口后，更新请求值
+    */
+    virtual void OnRequestedLayeredWindowChanged(bool bIsLayeredWindow) override;
+
+    /** 运行时显式设置窗口透明度后，更新请求值
+    */
+    virtual void OnRequestedLayeredWindowAlphaChanged(int32_t nAlpha) override;
+
+    /** 运行时显式设置窗口不透明度后，更新请求值
+    */
+    virtual void OnRequestedLayeredWindowOpacityChanged(int32_t nOpacity) override;
 
     /** 窗口的透明度发生变化
     */
@@ -1303,6 +1329,27 @@ private:
     /** 是否保存了阴影类型
     */
     bool m_bShadowTypeSaved;
+
+    /** 窗口属性的请求值（XML/Class/运行时API），用于动态切换时重新Resolve
+    */
+    WindowAttributeValues m_requestedAttributes;
+
+    /** 请求值是否有效（窗口XML属性已经解析并保存）
+    */
+    bool m_bRequestedAttributesValid;
+
+    /** 是否正在应用Resolve结果（避免内部应用过程更新请求值）
+    */
+    bool m_bApplyingResolvedAttributes;
+
+private:
+    /** 应用渲染后端配置（不更新请求值，供SetAttribute的逐字段修改使用）
+    */
+    bool ApplyRenderBackendType(RenderBackendType backendType, int32_t nMsaaSampleCount, bool bDisableVsync);
+
+    /** 按请求值重新Resolve，并恢复被动态切换关闭的分层窗口、透明度与阴影属性
+    */
+    void RestoreRequestedWindowAttributes();
 };
 
 } // namespace ui

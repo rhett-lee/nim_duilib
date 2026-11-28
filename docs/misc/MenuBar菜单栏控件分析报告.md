@@ -50,7 +50,7 @@
 1. 弹出菜单状态用了一个全局 `bool m_bActiveState` 维护，与真实弹出菜单（`m_pActiveMenu`）可能脱节，导致点击行为不符合直觉；
 2. 键盘左右切换的索引计算错误，存在隐藏/禁用项或非菜单子控件时会切错项；
 3. 键盘聚焦顶级按钮后回车/空格无法打开菜单；
-4. XML 中的 `class` 等样式属性被静默忽略，资源示例已经写了但没生效；
+4. XML 中的 `class` 等样式属性此前被静默忽略（现已修复，`class`/`attributes` 均已生效）；
 5. 顶级菜单项与子控件的索引/ID 隐式耦合，增删和插入容易错位；
 6. 主题只有 `menu_bar_button`，缺少菜单栏容器样式与状态文字颜色，浅色主题的悬浮反馈偏弱。
 
@@ -168,21 +168,19 @@ void MenuBar::OnMenuMouseButtonDown(MenuBarButton* pButton, const EventArgs&) {
 
 建议在 `ShowPopupMenu()` 开头统一做防御性检查，悬停和程序调用都受益。
 
-### 7. XML 中 `MenuBarItem` 的样式属性被忽略（中）
+### 7. XML 中 `MenuBarItem` 的样式属性（已修复）
 
-`ParseMenuBarItemXmlNode`（`WindowBuilder.cpp#L1439-L1474`）只读取 `id/text/text_id/xml_path`，没有读取 `class` 或任何按钮附加属性，最终 `AddTopMenu()` 的 `menuTextButtonClass` 参数为空。
+当前 `ParseMenuBarItemXmlNode`（`WindowBuilder.cpp#L1469-L1506`）已读取 `id/text/text_id/xml_path/class/attributes`，并把 `class`、`attributes` 传给 `AddTopMenu()` 的 `menuTextButtonClass` / `menuTextButtonAttributes`。`class` 用于指定顶部菜单按钮样式类，`attributes` 可追加按钮属性（如 `text_padding`）。
 
-资源里已经出现了这种写法：`bin/resources/themes/default/color_theme/color_theme.xml#L872` 的 `class="menu_bar_button"`。因为正好与默认类同名，所以看起来正常；一旦改成自定义类就不会生效。
-
-建议支持：
+支持的写法：
 
 ```xml
 <MenuBarItem id="menu_file" text="File"
              class="menu_bar_button"
-             attributes="text_padding='10,4,10,4'">
+             attributes="text_padding='10,4,10,4'"/>
 ```
 
-并在 `docs/schema/nim_duilib.xsd#L5579-L5601`、`docs/Control.md#L783-L808` 同步说明。
+相关属性已同步到 `docs/Control.md` 与 `docs/schema/nim_duilib.xsd`。
 
 ### 8. 顶级菜单索引与子控件索引耦合（中）
 
@@ -279,7 +277,7 @@ void MenuBar::OnMenuMouseButtonDown(MenuBarButton* pButton, const EventArgs&) {
 
 1. P0（行为正确性）：修正键盘左右索引；用真实弹层状态替代 `m_bActiveState`；修复 Enter/Space 打开；移除激活菜单时关闭弹层；`ShowPopupMenu` 增加可用性校验。
 2. P1（结构健壮性）：`TopMenuData` 改为保存按钮控件指针；同一项不重复重建；菜单加载失败处理；`AddItemAt` 失败释放资源。
-3. P2（XML/主题）：支持 `MenuBarItem` 的 `class`/`attributes`；新增 `menu_bar` 样式类；完善 `menu_bar_button` 状态颜色与焦点样式；调整浅色主题悬浮对比度。
+3. P2（XML/主题）：`MenuBarItem` 的 `class`/`attributes` 已支持；新增 `menu_bar` 样式类；完善 `menu_bar_button` 状态颜色与焦点样式；调整浅色主题悬浮对比度。
 4. P3（功能增强）：激活状态事件、运行时更新/禁用 API、Alt/F10/方向键导航、悬停延迟、溢出折叠、菜单窗口复用与缓存、窗口移动/隐藏时自动关闭弹层。
 
 ## 七、验证建议

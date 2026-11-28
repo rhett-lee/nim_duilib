@@ -160,8 +160,8 @@ Add the Associated Response Function for the Menu Item:
 ```
 
 > `kWS_EX_LAYERED` has been removed: the code that set the layered-window bit through `m_dwExStyle`
-> has been deleted. The layered window is derived internally from `layered_window`, shadow and
-> opacity settings.
+> has been deleted. The layered window is derived internally from `layered_window`, shadow,
+> `opacity` and `alpha` settings.
 
 6. Convenient Right-click Context Menu Binding (One Line of Code)    
 In addition to the manual way above (create `Menu` + convert coordinates + bind callbacks), `Control` provides the convenience interface `AttachPopupMenu`: one line of code binds a context menu to any control. When the user right-clicks the control, the specified menu pops up automatically with the screen coordinates resolved, and the callback is triggered after a menu item is activated (mouse click or Enter key).

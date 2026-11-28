@@ -543,6 +543,50 @@ Control* WindowBuilder::CreateControls(Window* pWindow, CreateControlCallback pC
     return nullptr;
 }
 
+namespace
+{
+    /** 输出窗口配置的告警信息（属性值非法或配置冲突时的纠正说明），输出后清空列表
+    */
+    void OutputWindowConfigWarnings(std::vector<DString>& warnings)
+    {
+        for (const DString& warning : warnings) {
+            LogUtil::OutputLine(StringUtil::Printf(_T("WindowBuilder: %s"), warning.c_str()));
+        }
+        warnings.clear();
+    }
+
+    /** 构造渲染后端的默认配置（窗口当前配置与全局配置，后者优先作为默认值）
+    */
+    RenderBackendResolveParam MakeRenderBackendResolveParam(Window* pWindow)
+    {
+        RenderBackendResolveParam renderParam;
+        if (pWindow != nullptr) {
+            renderParam.m_defaultBackendType = pWindow->GetRenderBackendType();
+            renderParam.m_nDefaultMsaaSampleCount = pWindow->GetRenderMsaaSampleCount();
+            renderParam.m_bDefaultDisableVsync = pWindow->IsRenderDisableVsync();
+        }
+        const GlobalManager& globalManager = GlobalManager::Instance();
+        if (globalManager.IsGlobalRenderBackendTypeEnabled()) {
+            renderParam.m_defaultBackendType = globalManager.GetGlobalRenderBackendType();
+            renderParam.m_nDefaultMsaaSampleCount = globalManager.GetGlobalMsaaSampleCount();
+            renderParam.m_bDefaultDisableVsync = globalManager.IsGlobalDisableVsync();
+        }
+        return renderParam;
+    }
+
+    /** 构造阴影/分层窗口推导的平台参数
+    */
+    ShadowResolveParam MakeShadowResolveParam(Window* pWindow, bool bLayeredWindow)
+    {
+        ShadowResolveParam param;
+        if (pWindow != nullptr) {
+            param.m_bSystemShadowSupported = pWindow->NativeWnd()->IsSystemShadowSupported();
+        }
+        param.m_bLayeredWindow = bLayeredWindow;
+        return param;
+    }
+}
+
 bool WindowBuilder::ParseWindowCreateAttributes(Window* pWindow, WindowCreateAttributes& createAttributes)
 {
     //该函数应在窗口创建前调用
@@ -572,47 +616,33 @@ bool WindowBuilder::ParseWindowCreateAttributes(Window* pWindow, WindowCreateAtt
     createAttributes.m_rcCaption = values.m_rcCaption;
     createAttributes.m_bCaptionDefined = values.m_bCaptionDefined;
 
-    createAttributes.m_bShadowAttached = values.m_bShadowAttached;
-    createAttributes.m_bShadowAttachedDefined = values.m_bShadowAttachedDefined;
-
     createAttributes.m_sdlRenderName = values.m_sdlRenderName;
 
-    //窗口尚不存在，此时不是分层窗口
-    ShadowResolveParam layeredParam;
-    if (pWindow != nullptr) {
-        layeredParam.m_bSystemShadowSupported = pWindow->NativeWnd()->IsSystemShadowSupported();
-    }
-    layeredParam.m_bLayeredWindow = false;
+    //创建前统一Resolve：与创建后使用同一套规则，避免两套推导结果不一致
+    const RenderBackendResolveParam renderParam = MakeRenderBackendResolveParam(pWindow);
+    std::vector<DString> warnings = values.m_warnings;
+    const ShadowResolveParam resolveParam = MakeShadowResolveParam(pWindow, false);
+    const ResolvedWindowAttributes resolved = ResolveWindowAttributes(values, renderParam, resolveParam, &warnings);
+    OutputWindowConfigWarnings(warnings);
 
-    //分层窗口属性（系统标题栏互斥、SDL默认值等规则在Resolve中统一处理）
-    const LayeredWindowAttributes layered = ResolveLayeredWindowAttributes(values, layeredParam);
-    createAttributes.m_bIsLayeredWindow = layered.m_bIsLayeredWindow;
-    createAttributes.m_bIsLayeredWindowDefined = layered.m_bIsLayeredWindowDefined;
-    createAttributes.m_nLayeredWindowAlpha = (uint8_t)layered.m_nAlpha;
-    createAttributes.m_bLayeredWindowAlphaDefined = layered.m_bAlphaDefined;
-    createAttributes.m_nLayeredWindowOpacity = (uint8_t)layered.m_nOpacity;
-    createAttributes.m_bLayeredWindowOpacityDefined = layered.m_bOpacityDefined;
+    createAttributes.m_bShadowAttached = resolved.m_shadow.m_bShadowAttached;
+    createAttributes.m_bShadowAttachedDefined = values.m_bShadowAttachedDefined;
 
-#ifdef _DEBUG
-    //使用Opacity属性时，应该开启分层窗口属性
-    if (createAttributes.m_bLayeredWindowOpacityDefined) {
-        ASSERT(createAttributes.m_bIsLayeredWindow);
-    }
-#endif
-
-    //阴影属性（默认阴影类型依赖分层窗口状态，与窗口创建后的状态保持一致）
-    ShadowResolveParam shadowParam = layeredParam;
-    shadowParam.m_bLayeredWindow = layered.m_bIsLayeredWindow;
-    const ShadowAttributes shadow = ResolveShadowAttributes(values, shadowParam);
-    createAttributes.m_rcShadowCorner = shadow.m_rcShadowCorner;
+    createAttributes.m_bIsLayeredWindow = resolved.m_layered.m_bIsLayeredWindow;
+    createAttributes.m_bIsLayeredWindowDefined = resolved.m_layered.m_bIsLayeredWindowDefined;
+    createAttributes.m_nLayeredWindowAlpha = (uint8_t)resolved.m_layered.m_nAlpha;
+    createAttributes.m_bLayeredWindowAlphaDefined = resolved.m_layered.m_bAlphaDefined;
+    createAttributes.m_nLayeredWindowOpacity = (uint8_t)resolved.m_layered.m_nOpacity;
+    createAttributes.m_bLayeredWindowOpacityDefined = resolved.m_layered.m_bOpacityDefined;
+    createAttributes.m_rcShadowCorner = resolved.m_shadow.m_rcShadowCorner;
 
     //评估窗口的初始大小（必须依据最终的阴影九宫格与min/max属性）
     if (values.m_bSizeDefined) {
         WindowInitSizeResolveParam sizeParam;
         sizeParam.m_szMinSize = values.m_szMinSize;
         sizeParam.m_szMaxSize = values.m_szMaxSize;
-        sizeParam.m_rcShadowCorner = shadow.m_rcShadowCorner;
-        sizeParam.m_bShadowAttached = shadow.m_bShadowAttached;
+        sizeParam.m_rcShadowCorner = resolved.m_shadow.m_rcShadowCorner;
+        sizeParam.m_bShadowAttached = resolved.m_shadow.m_bShadowAttached;
         sizeParam.m_bSizeContainShadow = values.m_bSizeContainShadow;
         sizeParam.m_pWindow = nullptr;
         createAttributes.m_szInitSize = ResolveWindowInitSize(values, sizeParam, GlobalManager::Instance().Dpi());
@@ -623,16 +653,6 @@ bool WindowBuilder::ParseWindowCreateAttributes(Window* pWindow, WindowCreateAtt
 
 namespace
 {
-    /** 输出窗口配置的告警信息（属性值非法或配置冲突时的纠正说明），输出后清空列表
-    */
-    void OutputWindowConfigWarnings(std::vector<DString>& warnings)
-    {
-        for (const DString& warning : warnings) {
-            LogUtil::OutputLine(StringUtil::Printf(_T("WindowBuilder: %s"), warning.c_str()));
-        }
-        warnings.clear();
-    }
-
     /** 将解析后的窗口属性应用到窗口
     *   按固定阶段执行，每个属性只出现一处，不依赖XML中属性的书写顺序：
     *   1. 渲染后端（后续属性的设置依赖Render对象）；
@@ -649,24 +669,17 @@ namespace
             return;
         }
 
-        //【阶段1】渲染后端：必须最先设置，后续属性依赖Render对象
-        RenderBackendResolveParam renderParam;
-        renderParam.m_defaultBackendType = pWindow->GetRenderBackendType();
-        renderParam.m_nDefaultMsaaSampleCount = pWindow->GetRenderMsaaSampleCount();
-        renderParam.m_bDefaultDisableVsync = pWindow->IsRenderDisableVsync();
-        const GlobalManager& globalManager = GlobalManager::Instance();
-        if (globalManager.IsGlobalRenderBackendTypeEnabled()) {
-            renderParam.m_defaultBackendType = globalManager.GetGlobalRenderBackendType();
-            renderParam.m_nDefaultMsaaSampleCount = globalManager.GetGlobalMsaaSampleCount();
-            renderParam.m_bDefaultDisableVsync = globalManager.IsGlobalDisableVsync();
-        }
-        std::vector<DString> warnings;
-        const RenderBackendAttributes render = ResolveRenderBackendAttributes(values, renderParam, &warnings);
+        //统一Resolve：渲染后端 → 阴影 → 分层窗口（与创建前使用同一套规则）
+        const RenderBackendResolveParam renderParam = MakeRenderBackendResolveParam(pWindow);
+        const ShadowResolveParam resolveParam = MakeShadowResolveParam(pWindow, pWindow->IsLayeredWindow());
+        std::vector<DString> warnings = values.m_warnings;
+        const ResolvedWindowAttributes resolved = ResolveWindowAttributes(values, renderParam, resolveParam, &warnings);
         OutputWindowConfigWarnings(warnings);
-        if (render.m_bFallbackToRaster) {
-            LogUtil::OutputLine(_T("WindowBuilder: OpenGL does not support layered windows, fall back to CPU rendering"));
-        }
-        pWindow->SetRenderBackendType(render.m_backendType, render.m_nMsaaSampleCount, render.m_bDisableVsync);
+
+        //【阶段1】渲染后端：必须最先设置，后续属性依赖Render对象
+        pWindow->SetRenderBackendType(resolved.m_render.m_backendType,
+                                      resolved.m_render.m_nMsaaSampleCount,
+                                      resolved.m_render.m_bDisableVsync);
 
         //【阶段2】结构性属性：其他属性依赖这些属性（尤其是use_system_caption）
         if (values.m_bMinSizeDefined) {
@@ -706,11 +719,8 @@ namespace
             pWindow->SetRoundCorner(values.m_szRoundCorner.cx, values.m_szRoundCorner.cy);
         }
 
-        //【阶段3】阴影：先设置阴影类型（会重置默认的图片与九宫格），再应用显式配置
-        const bool bUseSystemCaption = pWindow->IsUseSystemCaption();
-        if (values.m_bShadowTypeDefined) {
-            pWindow->SetShadowType(values.m_nShadowType);
-        }
+        //【阶段3】阴影：使用Resolve后的有效类型，再应用显式配置，最后应用有效开关
+        pWindow->SetShadowType(resolved.m_shadow.m_nShadowType);
         if (values.m_bShadowImageDefined) {
             pWindow->SetShadowImage(values.m_shadowImage);
         }
@@ -729,38 +739,28 @@ namespace
         if (values.m_bEnableShadowSnapDefined) {
             pWindow->SetEnableShadowSnap(values.m_bEnableShadowSnap);
         }
-        if (values.m_bShadowAttachedDefined) {
-            //最后设置，避免受到"shadow_type"的影响
-            if (!values.m_bShadowAttached) {
-                pWindow->SetShadowAttached(false);
-            }
-            else if (!bUseSystemCaption) {
-                pWindow->SetShadowAttached(true);
-            }
+        //最后设置，避免受到"shadow_type"自动开启阴影的影响
+        if (pWindow->IsShadowAttached() != resolved.m_shadow.m_bShadowAttached) {
+            pWindow->SetShadowAttached(resolved.m_shadow.m_bShadowAttached);
         }
 
-        //【阶段4】层窗口与透明度（互斥与降级规则已在Resolve中统一处理）
-        ShadowResolveParam layeredParam;
-        //窗口已创建：按当前的实际状态推导默认阴影类型（创建前使用的"未分层"状态已不适用）
-        layeredParam.m_bLayeredWindow = pWindow->IsLayeredWindow();
-        layeredParam.m_bSystemShadowSupported = pWindow->NativeWnd()->IsSystemShadowSupported();
-        const LayeredWindowAttributes layered = ResolveLayeredWindowAttributes(values, layeredParam, &warnings);
-        OutputWindowConfigWarnings(warnings);
-        if (!pWindow->IsLayeredWindowSetByUser() && !bUseSystemCaption &&
-            layered.m_bIsLayeredWindowDefined &&
-            (layered.m_bIsLayeredWindow != pWindow->IsLayeredWindow())) {
+        //【阶段4】层窗口与透明度（互斥与降级规则已在统一Resolve中处理）
+        if (!pWindow->IsLayeredWindowSetByUser() &&
+            resolved.m_layered.m_bIsLayeredWindowDefined &&
+            (resolved.m_layered.m_bIsLayeredWindow != pWindow->IsLayeredWindow())) {
             //仅当推导结果与窗口当前状态不同时才设置（窗口创建时已按相同规则设置过）
             LogUtil::OutputLine(StringUtil::Printf(_T("WindowBuilder: apply layered window: %s, current: %s"),
-                                                   layered.m_bIsLayeredWindow ? _T("true") : _T("false"),
+                                                   resolved.m_layered.m_bIsLayeredWindow ? _T("true") : _T("false"),
                                                    pWindow->IsLayeredWindow() ? _T("true") : _T("false")));
             //窗口配置应用不标记为"外部设置"，后续内部仍可按阴影、系统标题栏等需求自动调整
-            pWindow->SetLayeredWindowForConfig(layered.m_bIsLayeredWindow, false);
+            pWindow->SetLayeredWindowForConfig(resolved.m_layered.m_bIsLayeredWindow, false);
         }
-        if (layered.m_bAlphaDefined) {
-            pWindow->SetLayeredWindowAlpha(layered.m_nAlpha);
+        if (resolved.m_layered.m_bAlphaDefined) {
+            pWindow->SetLayeredWindowAlpha(resolved.m_layered.m_nAlpha);
         }
-        if (layered.m_bOpacityDefined && pWindow->IsLayeredWindow()) {
-            pWindow->SetLayeredWindowOpacity(layered.m_nOpacity);
+        if (resolved.m_layered.m_bOpacityDefined) {
+            //SDL下opacity不依赖透明窗口；Windows下Resolve已保证只在分层窗口有效时才标记为Defined
+            pWindow->SetLayeredWindowOpacity(resolved.m_layered.m_nOpacity);
         }
 
         //【阶段5】无依赖的属性
@@ -812,6 +812,9 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
 
     //4. 按固定阶段应用到窗口
     ApplyWindowAttributes(pWindow, values);
+
+    //5. 保存请求值：动态切换（GL↔CPU、标题栏开关等）需要按请求值重新Resolve并恢复冲突属性
+    pWindow->SetRequestedWindowAttributes(values);
 }
 
 void WindowBuilder::ParseWindowShareAttributes(Window* pWindow, const pugi::xml_node& root)

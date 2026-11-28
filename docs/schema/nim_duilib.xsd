@@ -47,6 +47,7 @@
       <xs:element ref="CascadingSelect"/>
       <xs:element ref="CefControl"/>
       <xs:element ref="Chart"/>
+      <xs:element ref="ChatMessageList"/>
       <xs:element ref="CheckBox"/>
       <xs:element ref="CheckBoxBox"/>
       <xs:element ref="CheckBoxHBox"/>
@@ -178,6 +179,7 @@
       <xs:element ref="TreeGrid"/>
       <xs:element ref="TreeNode"/>
       <xs:element ref="TreeView"/>
+      <xs:element ref="UrlBar"/>
       <xs:element ref="VBox"/>
       <xs:element ref="VBoxDragable"/>
       <xs:element ref="VBoxMovable"/>
@@ -225,6 +227,7 @@
       <xs:element ref="CascadingSelect"/>
       <xs:element ref="CefControl"/>
       <xs:element ref="Chart"/>
+      <xs:element ref="ChatMessageList"/>
       <xs:element ref="CheckBox"/>
       <xs:element ref="CheckBoxBox"/>
       <xs:element ref="CheckBoxHBox"/>
@@ -356,6 +359,7 @@
       <xs:element ref="TreeGrid"/>
       <xs:element ref="TreeNode"/>
       <xs:element ref="TreeView"/>
+      <xs:element ref="UrlBar"/>
       <xs:element ref="VBox"/>
       <xs:element ref="VBoxDragable"/>
       <xs:element ref="VBoxMovable"/>
@@ -442,9 +446,9 @@
         <xs:documentation>设置编辑框的Class</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="rich_edit_clear_btn_class" type="xs:string">
+    <xs:attribute name="reset_button_class" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置编辑框的清除按钮Class</xs:documentation>
+        <xs:documentation>设置编辑框右侧“恢复当前路径”按钮的Class</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="sub_path_hbox_class" type="xs:string">
@@ -462,9 +466,64 @@
         <xs:documentation>设置地址栏根路径的Class（"/"路径）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="sub_path_drive_class" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>设置驱动器路径的Class</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="sub_path_current_class" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>设置当前路径按钮的Class</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="collapse_button_class" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>设置路径折叠按钮的Class</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute name="path_separator_class" type="xs:string">
       <xs:annotation>
         <xs:documentation>设置地址栏路径分隔符的Class</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="right_padding" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>设置右侧内边距</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="empty_display_text" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>设置路径为空时显示的文本</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="empty_display_text_id" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>设置路径为空时显示文本的多语言ID</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="history_enabled" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否启用历史记录</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="max_history" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>历史记录最大条数</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="drop_navigation" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否允许拖放导航</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="default_context_menu" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否使用默认的右键菜单</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="history_file" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>历史记录文件路径</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>
@@ -820,7 +879,7 @@
     </xs:attribute>
     <xs:attribute name="tooltip_width" type="xs:string">
       <xs:annotation>
-        <xs:documentation>鼠标悬浮提示所占的宽度（按逻辑像素设置并自动缩放；0表示不限制宽度）</xs:documentation>
+        <xs:documentation>鼠标悬浮提示所占的宽度（按逻辑像素设置并自动缩放；0 表示不限制宽度）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="data_id" type="xs:string">
@@ -865,22 +924,22 @@
     </xs:attribute>
     <xs:attribute name="no_focus" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否可以获取焦点,如"true"</xs:documentation>
+        <xs:documentation>是否可以获取焦点,如"true"；设为true时同时禁止该控件参与TAB键切换焦点</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="tab_stop" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否允许通过按TAB键切换到此控件（默认false；Button/Slider/RichEdit等交互控件默认开启；Box类控件不支持TAB聚焦）</xs:documentation>
+        <xs:documentation>是否允许通过按TAB键切换到此控件。默认false，避免Label等非交互控件成为不可见的焦点停靠点；Button/CheckBox/Option/Slider/RichEdit/NavigationViewItem 等交互控件默认开启。注意：Box类控件（HBox/VBox/ListBox/Combo等）不支持TAB聚焦</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="show_focused_rect" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否显示焦点框（默认为强调色圆角描边；仅窗口激活且最近输入为键盘操作时绘制；交互控件默认开启）</xs:documentation>
+        <xs:documentation>是否显示焦点框（默认绘制强调色圆角描边，与 Windows 原生焦点指示器风格一致）；仅在窗口激活且最近一次输入为键盘操作后绘制。Button/CheckBox/Option/Combo/Slider/RichEdit/IPAddress/DateTime 默认开启</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="focused_rect_color" type="xs:string">
       <xs:annotation>
-        <xs:documentation>焦点状态矩形的颜色</xs:documentation>
+        <xs:documentation>焦点框线条的颜色（为空时依次回退到 color_accent、border_focus_ring）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="alpha" type="xs:string">
@@ -1192,12 +1251,12 @@
     </xs:attribute>
     <xs:attribute name="rich_text" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置文本内容是否为RichText 使用示例如下：&lt;Label rich_text="true" text="一个简单&lt;b&gt;窗口&lt;/b&gt; 带有&lt;u&gt;标题栏&lt;/u&gt;和&lt;u&gt;常规按钮&lt;/u&gt;，&lt;b&gt;粗体，&lt;font color='#FF0000'&gt;红色字体&lt;/font&gt;&lt;/b&gt;" /&gt; 备注：在支持RichText的模式下，不支持如下功能： （1）对齐方式不支持两端对齐 （2）不支持vertical_text属性（也不支持纵向文本相关属性） （3）不支持end_ellipsis属性 （4）不支持path_ellipsis属性 （5）不支持auto_tooltip属性 （6）不支持word_spacing属性</xs:documentation>
+        <xs:documentation>设置文本内容是否为RichText 使用示例如下：&lt;Label rich_text="true" text="一个简单&amp;lt;b&amp;gt;窗口&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;带有&amp;lt;u&amp;gt;标题栏&amp;lt;/u&amp;gt;和&amp;lt;u&amp;gt;常规按钮&amp;lt;/u&amp;gt;，&amp;lt;b&amp;gt;粗体，&amp;lt;font color='#FF0000'&amp;gt;红色字体&amp;lt;/font&amp;gt;&amp;lt;/b&amp;gt;" /&gt; 注意：在XML属性中书写富文本标记时，需要把 &lt;、&gt; 转义为 &amp;lt;、&amp;gt; 备注：在支持RichText的模式下，不支持如下功能： （1）不支持path_ellipsis属性 （2）与vertical_text同时使用时，rich_text属性会被忽略，按纯文本显示（去除富文本标记） （3）auto_tooltip属性可以正常使用，提示内容为去除富文本标记后的纯文本</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="text_align" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置文字的水平与垂直对齐方式，用半角逗号分隔，如"hcenter,vcenter" 。 水平对齐方式可取值：left（靠左对齐）、hcenter（居中对齐）、right（靠右对齐）、hjustify（两端对齐） 垂直对齐方式可取值：top（靠上对齐）、vcenter（居中对齐）、bottom（靠下对齐）、vjustify（两端对齐）</xs:documentation>
+        <xs:documentation>设置文字的水平与垂直对齐方式，用半角逗号分隔，如"hcenter,vcenter" 。 水平对齐方式可取值：left（靠左对齐）、hcenter（居中对齐）、right（靠右对齐）、hjustify（两端对齐） 垂直对齐方式可取值：top（靠上对齐）、vcenter（居中对齐）、bottom（靠下对齐）、vjustify（两端对齐） 注意：同一方向出现多个取值时，按 hcenter、right、left、hjustify 的先后顺序匹配（如同时包含"left"与"hjustify"时以 left 为准），垂直方向同理按 top、vcenter、bottom、vjustify 匹配</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="text_padding" type="xs:string">
@@ -1600,7 +1659,7 @@
     </xs:attribute>
     <xs:attribute name="tooltip_width" type="xs:string">
       <xs:annotation>
-        <xs:documentation>鼠标悬浮提示所占的宽度（按逻辑像素设置并自动缩放；0表示不限制宽度）</xs:documentation>
+        <xs:documentation>鼠标悬浮提示所占的宽度（按逻辑像素设置并自动缩放；0 表示不限制宽度）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="data_id" type="xs:string">
@@ -1645,22 +1704,22 @@
     </xs:attribute>
     <xs:attribute name="no_focus" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否可以获取焦点,如"true"</xs:documentation>
+        <xs:documentation>是否可以获取焦点,如"true"；设为true时同时禁止该控件参与TAB键切换焦点</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="tab_stop" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否允许通过按TAB键切换到此控件（默认false；Button/Slider/RichEdit等交互控件默认开启；Box类控件不支持TAB聚焦）</xs:documentation>
+        <xs:documentation>是否允许通过按TAB键切换到此控件。默认false，避免Label等非交互控件成为不可见的焦点停靠点；Button/CheckBox/Option/Slider/RichEdit/NavigationViewItem 等交互控件默认开启。注意：Box类控件（HBox/VBox/ListBox/Combo等）不支持TAB聚焦</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="show_focused_rect" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否显示焦点框（默认为强调色圆角描边；仅窗口激活且最近输入为键盘操作时绘制；交互控件默认开启）</xs:documentation>
+        <xs:documentation>是否显示焦点框（默认绘制强调色圆角描边，与 Windows 原生焦点指示器风格一致）；仅在窗口激活且最近一次输入为键盘操作后绘制。Button/CheckBox/Option/Combo/Slider/RichEdit/IPAddress/DateTime 默认开启</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="focused_rect_color" type="xs:string">
       <xs:annotation>
-        <xs:documentation>焦点状态矩形的颜色</xs:documentation>
+        <xs:documentation>焦点框线条的颜色（为空时依次回退到 color_accent、border_focus_ring）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="alpha" type="xs:string">
@@ -2366,7 +2425,7 @@
     </xs:attribute>
     <xs:attribute name="tooltip_width" type="xs:string">
       <xs:annotation>
-        <xs:documentation>鼠标悬浮提示所占的宽度（按逻辑像素设置并自动缩放；0表示不限制宽度）</xs:documentation>
+        <xs:documentation>鼠标悬浮提示所占的宽度（按逻辑像素设置并自动缩放；0 表示不限制宽度）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="data_id" type="xs:string">
@@ -2411,22 +2470,22 @@
     </xs:attribute>
     <xs:attribute name="no_focus" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否可以获取焦点,如"true"</xs:documentation>
+        <xs:documentation>是否可以获取焦点,如"true"；设为true时同时禁止该控件参与TAB键切换焦点</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="tab_stop" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否允许通过按TAB键切换到此控件（默认false；Button/Slider/RichEdit等交互控件默认开启；Box类控件不支持TAB聚焦）</xs:documentation>
+        <xs:documentation>是否允许通过按TAB键切换到此控件。默认false，避免Label等非交互控件成为不可见的焦点停靠点；Button/CheckBox/Option/Slider/RichEdit/NavigationViewItem 等交互控件默认开启。注意：Box类控件（HBox/VBox/ListBox/Combo等）不支持TAB聚焦</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="show_focused_rect" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否显示焦点框（默认为强调色圆角描边；仅窗口激活且最近输入为键盘操作时绘制；交互控件默认开启）</xs:documentation>
+        <xs:documentation>是否显示焦点框（默认绘制强调色圆角描边，与 Windows 原生焦点指示器风格一致）；仅在窗口激活且最近一次输入为键盘操作后绘制。Button/CheckBox/Option/Combo/Slider/RichEdit/IPAddress/DateTime 默认开启</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="focused_rect_color" type="xs:string">
       <xs:annotation>
-        <xs:documentation>焦点状态矩形的颜色</xs:documentation>
+        <xs:documentation>焦点框线条的颜色（为空时依次回退到 color_accent、border_focus_ring）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="alpha" type="xs:string">
@@ -2690,7 +2749,7 @@
     </xs:attribute>
     <xs:attribute name="transition_easing" type="xs:string">
       <xs:annotation>
-        <xs:documentation>切换动画的缓动曲线名称（EasingFunctionType 枚举名，如 EaseOutCubic），默认 EaseLinear</xs:documentation>
+        <xs:documentation>切换动画的缓动曲线名称（EasingFunctionType 枚举名，如 EaseOutCubic）；默认线性，与原有表现一致</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="show_indicator" type="xs:string">
@@ -3221,7 +3280,7 @@
     </xs:attribute>
     <xs:attribute name="tooltip_width" type="xs:string">
       <xs:annotation>
-        <xs:documentation>鼠标悬浮提示所占的宽度（按逻辑像素设置并自动缩放；0表示不限制宽度）</xs:documentation>
+        <xs:documentation>鼠标悬浮提示所占的宽度（按逻辑像素设置并自动缩放；0 表示不限制宽度）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="data_id" type="xs:string">
@@ -3266,22 +3325,22 @@
     </xs:attribute>
     <xs:attribute name="no_focus" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否可以获取焦点,如"true"</xs:documentation>
+        <xs:documentation>是否可以获取焦点,如"true"；设为true时同时禁止该控件参与TAB键切换焦点</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="tab_stop" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否允许通过按TAB键切换到此控件（默认false；Button/Slider/RichEdit等交互控件默认开启；Box类控件不支持TAB聚焦）</xs:documentation>
+        <xs:documentation>是否允许通过按TAB键切换到此控件。默认false，避免Label等非交互控件成为不可见的焦点停靠点；Button/CheckBox/Option/Slider/RichEdit/NavigationViewItem 等交互控件默认开启。注意：Box类控件（HBox/VBox/ListBox/Combo等）不支持TAB聚焦</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="show_focused_rect" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否显示焦点框（默认为强调色圆角描边；仅窗口激活且最近输入为键盘操作时绘制；交互控件默认开启）</xs:documentation>
+        <xs:documentation>是否显示焦点框（默认绘制强调色圆角描边，与 Windows 原生焦点指示器风格一致）；仅在窗口激活且最近一次输入为键盘操作后绘制。Button/CheckBox/Option/Combo/Slider/RichEdit/IPAddress/DateTime 默认开启</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="focused_rect_color" type="xs:string">
       <xs:annotation>
-        <xs:documentation>焦点状态矩形的颜色</xs:documentation>
+        <xs:documentation>焦点框线条的颜色（为空时依次回退到 color_accent、border_focus_ring）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="alpha" type="xs:string">
@@ -3613,6 +3672,257 @@
     <xs:attribute name="animation_duration" type="xs:string">
       <xs:annotation>
         <xs:documentation>数据更新动画时长（毫秒）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="ChatMessageListAttrs">
+    <!-- 来源：ChatMessageList -->
+    <xs:attribute name="avatar_size" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>头像直径（像素，自动DPI缩放）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="bubble_max_width" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>气泡最大宽度（像素，自动DPI缩放），超出则自动换行</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="bubble_padding_h" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>气泡左右内边距（像素，自动DPI缩放）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="bubble_padding_v" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>气泡上下内边距（像素，自动DPI缩放）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="bubble_radius" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>气泡圆角半径（像素，自动DPI缩放）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="bubble_spacing" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>相邻消息间距（像素，自动DPI缩放）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="show_time" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否显示时间分隔条</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="show_new_message_tip" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否在未滚动到底部时显示"N 条新消息"提示</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="avatar_font" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>头像文字字体</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="text_font" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>消息正文字体</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="time_font" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>时间文字字体</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="bubble_color_self" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>自己消息的气泡底色（语义色名或颜色值）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="bubble_color_other" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>对方消息的气泡底色（语义色名或颜色值）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="text_color_self" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>自己消息的文字颜色（语义色名或颜色值）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="text_color_other" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>对方消息的文字颜色（语义色名或颜色值）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="avatar_text_color" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>头像文字颜色（语义色名或颜色值）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="system_text_color" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>系统提示文字颜色（语义色名或颜色值）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="scrollbar_track_color" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>滚动条轨道颜色（语义色名或颜色值）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="scrollbar_thumb_color" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>滚动条滑块颜色（语义色名或颜色值）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="auto_hide_scrollbar" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否仅在鼠标悬停时显示滚动条</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="selection_bk_color" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>文本选中区域背景色（语义色名或颜色值）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="selection_text_color" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>文本选中区域文字颜色（语义色名或颜色值）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="enable_selection" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否允许鼠标拖选文本</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="show_status" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否显示消息状态文字</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="status_font" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>消息状态文字字体</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="status_text_color" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>消息状态文字颜色（语义色名或颜色值）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="status_failed_color" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>发送失败时状态文字颜色（语义色名或颜色值）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="image_folder" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>图片消息与图片头像的资源目录（相对窗口 xml 所在目录）；为空时直接按消息里的路径解析（与其它控件的 normal_image 一致）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="image_max_width" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>图片消息的最大显示宽度（像素，自动DPI缩放）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="image_max_height" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>图片消息的最大显示高度（像素，自动DPI缩放）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="quote_text_color" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>引用块文字颜色（语义色名或颜色值）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="quote_bk_color" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>引用块背景颜色（语义色名或颜色值）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="recalled_text_color" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>撤回提示文字颜色（语义色名或颜色值）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="highlight_color" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>定位高亮的描边颜色（语义色名或颜色值）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="ScrollBoxAttrs">
+    <!-- 来源：ScrollBox -->
+    <xs:attribute name="vscrollbar" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否使用竖向滚动条,如(true)</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="hscrollbar" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否使用横向滚动条,如(true)</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="vscrollbar_style" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>设置本容器的纵向滚动条的样式</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="hscrollbar_style" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>设置本容器的横向滚动条的样式</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="vscrollbar_class" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>设置本容器的纵向滚动条的Class</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="hscrollbar_class" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>设置本容器的横向滚动条的Class</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="scrollbar_padding" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>滚动条的外边距,可以让滚动条不占满容器,如"2,2,2,2"</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="vscroll_unit" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>容器的垂直滚动条滚动步长, 0代表使用默认步长</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="hscroll_unit" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>容器的水平滚动条滚动步长, 0代表使用默认步长</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="scrollbar_float" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>容器的滚动条是否悬浮在子控件上面,如"true"</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="vscrollbar_left" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>容器的滚动条是否在左侧显示</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="hold_end" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否一直保持显示末尾位置,如"true"</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="inertia_scroll" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否启用惯性滚动（默认开启）：滚轮滚动结束后按摩擦衰减继续滑行一段距离；仅在物理动画总开关开启时生效</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="inertia_friction" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>惯性滚动的摩擦系数（1/秒），越大停得越快</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="inertia_gain" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>惯性增益：额外滑行距离 = 滚轮滚动距离 × 该系数，0 表示无额外滑行</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>
@@ -3961,11 +4271,6 @@
   </xs:attributeGroup>
   <xs:attributeGroup name="WindowAttrs">
     <!-- 来源：Window -->
-    <xs:attribute name="class" type="xs:string">
-      <xs:annotation>
-        <xs:documentation>窗口复用的全局样式(Class)名称，多个名称以空格分隔；节点自身属性优先</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
     <xs:attribute name="caption" type="xs:string">
       <xs:annotation>
         <xs:documentation>窗口可拖动的标题栏大小的边距, 最后一个参数是指离上边框的距离,如"0,0,0,36"</xs:documentation>
@@ -3973,12 +4278,12 @@
     </xs:attribute>
     <xs:attribute name="use_system_caption" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置是否使用系统标题栏</xs:documentation>
+        <xs:documentation>设置是否使用系统标题栏；该属性在Wayland平台下无效，始终使用自绘标题栏（Wayland没有统一的系统标题栏，服务端装饰在GNOME等合成器上不可用，客户端装饰又依赖可选的libdecor，无法保证可用）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="snap_layout_menu" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否支持显示贴靠布局菜单（Windows 11新功能：通过将鼠标悬停在窗口的最大化按钮上或按 Win + Z，可以轻松访问对齐布局。），该属性仅当在窗口为分层窗口或者使用系统阴影时默认开启</xs:documentation>
+        <xs:documentation>是否支持显示贴靠布局菜单（Windows 11新功能：通过将鼠标悬停在窗口的最大化按钮上或按 Win + Z，可以轻松访问对齐布局。），该属性仅当在窗口为分层窗口或者使用系统阴影时默认开启；Windows 11 之外始终为 false</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="sys_menu" type="xs:string">
@@ -4013,12 +4318,12 @@
     </xs:attribute>
     <xs:attribute name="shadow_attached" type="xs:string">
       <xs:annotation>
-        <xs:documentation>窗口是否附加阴影效果，如"true"表示开启窗口阴影功能，"false"表示关闭窗口阴影功能 默认即为"true"，一般只需在需要关闭阴影时设置为"false"；设置了shadow_type属性即代表开启阴影，不需要再单独设置shadow_attached="true"</xs:documentation>
+        <xs:documentation>窗口是否附加阴影效果，如"true"表示开启窗口阴影功能，"false"表示关闭窗口阴影功能 如果设置了shadow_type属性，相当于隐式将shadow_attached设置为"true"， 所以一般设置了shadow_type属性以后，不需要再单独设置shadow_attached属性</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="shadow_type" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置窗口的阴影类型： "default"：默认自绘阴影 "big"：有自绘阴影（大），直角，有边框（适合普通窗口） "big_round"：有自绘阴影（大），圆角，有边框（适合普通窗口） "small"：有自绘阴影（小），直角，有边框（适合普通窗口） "small_round"：有自绘阴影（小），圆角，有边框（适合普通窗口） "menu"：有自绘阴影（小），直角，有边框（适合弹出式窗口，比如菜单等） "menu_round"：有自绘阴影（小），圆角，有边框（适合弹出式窗口，比如菜单等） "none"：无阴影，直角，有边框 "none_round"：无阴影，圆角，有边框（自绘） "custom": 自定义自绘阴影，该类型需要同时设置shadow_image、shadow_corner、shadow_border_round属性 "system_default"：使用系统阴影，跟随操作系统默认窗口阴影属性 "system_not_round"：使用系统阴影，直角 "system_round"：使用系统阴影，圆角 "system_small_round"：使用系统阴影，小圆角 兼容性说明： （1）对于Win7和Win10系统：系统阴影仅支持"system_default"这一个，其他三个不支持 （2）对于Win11系统，四个系统阴影属性均支持，系统默认阴影为圆角 （3）对于macOS系统，四个系统阴影属性均支持，系统默认阴影为圆角 （4）对于Linux系统和FreeBSD系统，不支持系统阴影 （5）若设置为不支持的系统阴影，会自动切换为相应支持的系统阴影或者自绘阴影</xs:documentation>
+        <xs:documentation>设置窗口的阴影类型： "default"：默认自绘阴影 "big"：有自绘阴影（大），直角，有边框（适合普通窗口） "big_round"：有自绘阴影（大），圆角，有边框（适合普通窗口） "small"：有自绘阴影（小），直角，有边框（适合普通窗口） "small_round"：有自绘阴影（小），圆角，有边框（适合普通窗口） "menu"：有自绘阴影（小），直角，有边框（适合弹出式窗口，比如菜单等） "menu_round"：有自绘阴影（小），圆角，有边框（适合弹出式窗口，比如菜单等） "none"：无阴影，直角，有边框 "none_round"：无阴影，圆角，有边框（自绘） "custom": 自定义自绘阴影，该类型通常需要同时设置shadow_image、shadow_corner、shadow_border_round属性 "system_default"：使用系统阴影，跟随操作系统默认窗口阴影属性 "system_not_round"：使用系统阴影，直角 "system_round"：使用系统阴影，圆角 "system_small_round"：使用系统阴影，小圆角 兼容性说明： （1）对于Win7和Win10系统：系统阴影仅支持"system_default"这一个，其他三个不支持 （2）对于Win11系统，四个系统阴影属性均支持，系统默认阴影为圆角 （3）对于macOS系统，四个系统阴影属性均支持，系统默认阴影为圆角 （4）对于Linux系统和FreeBSD系统，不支持系统阴影 （5）若设置为不支持的系统阴影，会自动切换为相应支持的系统阴影或者自绘阴影</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="shadow_image" type="xs:string">
@@ -4078,22 +4383,37 @@
     </xs:attribute>
     <xs:attribute name="round_corner" type="xs:string">
       <xs:annotation>
-        <xs:documentation>窗口圆角大小, 如"4,4"，该属性在使用窗口阴影（即设置了shadow_type属性）时，一般不需要设置</xs:documentation>
+        <xs:documentation>窗口圆角大小, 如"4,4"，该值未经DPI缩放（即逻辑像素值）。 该属性在使用自绘窗口阴影（即设置了shadow_type属性为非系统阴影）时，一般不需要设置，系统会自动根据阴影类型设置圆角。 当阴影类型为 none_round 时，框架会自动设置窗口圆角以避免窗口四个角出现黑色内容，无需手动指定此属性。</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="layered_window" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置是否为层窗口，使用注意事项： （1）一般窗口无需设置该属性，分层窗口由内部根据阴影、透明度等配置自动推导；仅浮层、下拉列表等特殊场景才需要显式开启 （2）该属性在使用窗口阴影（即设置了shadow_type属性）时不需要设置，窗口阴影功能会根据需要来管理该属性 （3）当使用系统标题栏时（即use_system_caption="true"），不应设置该属性</xs:documentation>
+        <xs:documentation>设置是否为层窗口，使用注意事项： （1）一般窗口无需设置该属性，分层窗口由内部根据阴影、透明度等配置自动推导；仅浮层、下拉列表等特殊场景才需要显式开启 （2）该属性在使用窗口阴影（即设置了shadow_type属性）时不需要设置，窗口阴影功能会根据需要来管理该属性 （3）当使用系统标题栏时（即use_system_caption="true"），不应设置该属性 （4）SDL 构建下该属性表示透明窗口（SDL_WINDOW_TRANSPARENT），默认开启，且只能在创建时设置</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="opacity" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置不透明度数值[0, 255]，当 opacity 为 0 时，窗口是完全透明的。 当 opacity 为 255 时，窗口是不透明的。 仅当窗口为分层窗口时有效；设置 opacity &lt; 255 时，内部会自动推导开启分层窗口，无需显式配置 layered_window="true" 该参数在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)</xs:documentation>
+        <xs:documentation>设置不透明度数值[0, 255]，当 opacity 为 0 时，窗口是完全透明的。 当 opacity 为 255 时，窗口是不透明的。 仅当窗口为分层窗口时有效；设置 opacity &lt; 255 时，内部会自动推导开启分层窗口，无需显式配置 layered_window="true" 该参数在SetLayeredWindowAttributes函数中作为参数使用(bAlpha) SDL 构建下 opacity 通过 SDL_SetWindowOpacity 设置，不依赖透明窗口</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="render_backend_type" type="xs:string">
       <xs:annotation>
-        <xs:documentation>"CPU": CPU绘制 "GL"/"GPU": 使用OpenGL绘制。窗口未设置该属性时使用global.xml的全局配置（全局配置仅作为默认值，窗口XML显式设置时优先；vsync、msaa同样按字段分别判断）。支持条件：仅Windows平台且非SDL构建模式支持；SDL构建模式、非Windows平台和Windows ARM64会自动回退为CPU绘制；无法创建GL上下文（如远程桌面、虚拟机、缺少OpenGL驱动）时也会自动回退。实际使用的后端以GetRenderBackendType()的返回值为准。注意事项：（1）同一线程内可以有多个窗口使用OpenGL绘制（内部会切换当前上下文）（2）OpenGL绘制的窗口不能是分层窗口（即带有WS_EX_LAYERED属性的窗口），因此使用GL渲染时，layered_window、alpha、opacity 属性均无效（3）支持局部绘制（只重绘脏区域），但不一定总比CPU绘制快，请结合实际场景评估</xs:documentation>
+        <xs:documentation>"CPU": CPU绘制 "GL": 使用OpenGL绘制 注意事项: （1）支持条件：仅Windows平台且非SDL构建模式支持；SDL构建模式、非Windows平台和Windows ARM64不支持，会自动回退为CPU绘制；无法创建GL上下文（如远程桌面、虚拟机、缺少OpenGL驱动）时也会自动回退。 实际使用的后端请以 GetRenderBackendType() 的返回值为准 （2）同一线程内可以有多个窗口使用OpenGL绘制，绘制前会自动切换当前上下文；但每个窗口都会创建一个独立的 GL 上下文，注意显存占用 （3）OpenGL绘制的窗口不能是分层窗口（即带有WS_EX_LAYERED属性的窗口）；当窗口请求分层（显式 layered_window="true"，或 alpha/opacity &lt; 255）时，会自动降级为CPU绘制，这些属性仍按CPU绘制路径生效 （4）OpenGL绘制使用持久 FBO 做局部刷新，小区域动画不会整窗重绘，性能通常优于整窗重绘 （5）窗口运行过程中，可通过SetAttribute("render_backend_type", "GL"/"CPU")实时切换（内部会重建渲染对象） （6）未设置该属性时，使用 global.xml 的全局配置；窗口 XML 显式设置时优先于全局配置（vsync、msaa 同样按字段分别判断）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="vsync" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否启用垂直同步，false 表示禁用（内置默认禁用，即 kDefaultDisableVsync=true）； 仅当 render_backend_type="GL" 时有效 支持运行过程中通过SetAttribute实时切换；未设置时使用全局配置</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="msaa" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>MSAA 采样数，0 表示不启用 MSAA（按 1 倍采样）； 仅当 render_backend_type="GL" 时有效 支持运行过程中通过SetAttribute实时切换；未设置时使用全局配置</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="sdl_render_name" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>仅 SDL 构建下生效：指定期望的 SDL Render 名称，多个候选可用逗号分隔并按顺序尝试。可选值：Windows 为 gpu、direct3d11、direct3d12、direct3d、opengl、opengles2、vulkan、software；Linux 为 gpu、opengl、opengles2、vulkan、software。实际可用值取决于平台与驱动；全部失败时回退到 SDL 默认 Render。非 SDL 构建忽略该属性</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>
@@ -4178,84 +4498,6 @@
     <xs:attribute name="select_like_list_ctrl" type="xs:string">
       <xs:annotation>
         <xs:documentation>设置选择模式：与ListCtrl类似（即Windows资源管理器中，对文件操作类似的方式），仅多选模式有效</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-  </xs:attributeGroup>
-  <xs:attributeGroup name="ScrollBoxAttrs">
-    <!-- 来源：ScrollBox -->
-    <xs:attribute name="vscrollbar" type="xs:string">
-      <xs:annotation>
-        <xs:documentation>是否使用竖向滚动条,如(true)</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="hscrollbar" type="xs:string">
-      <xs:annotation>
-        <xs:documentation>是否使用横向滚动条,如(true)</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="vscrollbar_style" type="xs:string">
-      <xs:annotation>
-        <xs:documentation>设置本容器的纵向滚动条的样式</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="hscrollbar_style" type="xs:string">
-      <xs:annotation>
-        <xs:documentation>设置本容器的横向滚动条的样式</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="vscrollbar_class" type="xs:string">
-      <xs:annotation>
-        <xs:documentation>设置本容器的纵向滚动条的Class</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="hscrollbar_class" type="xs:string">
-      <xs:annotation>
-        <xs:documentation>设置本容器的横向滚动条的Class</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="scrollbar_padding" type="xs:string">
-      <xs:annotation>
-        <xs:documentation>滚动条的外边距,可以让滚动条不占满容器,如"2,2,2,2"</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="vscroll_unit" type="xs:string">
-      <xs:annotation>
-        <xs:documentation>容器的垂直滚动条滚动步长, 0代表使用默认步长</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="hscroll_unit" type="xs:string">
-      <xs:annotation>
-        <xs:documentation>容器的水平滚动条滚动步长, 0代表使用默认步长</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="scrollbar_float" type="xs:string">
-      <xs:annotation>
-        <xs:documentation>容器的滚动条是否悬浮在子控件上面,如"true"</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="vscrollbar_left" type="xs:string">
-      <xs:annotation>
-        <xs:documentation>容器的滚动条是否在左侧显示</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="hold_end" type="xs:string">
-      <xs:annotation>
-        <xs:documentation>是否一直保持显示末尾位置,如"true"</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="inertia_scroll" type="xs:string">
-      <xs:annotation>
-        <xs:documentation>是否启用惯性滚动：true/false，默认 true；滚轮滚动结束后按摩擦衰减继续滑行一段距离，仅在物理动画总开关开启时生效</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="inertia_friction" type="xs:string">
-      <xs:annotation>
-        <xs:documentation>惯性滚动的摩擦系数（1/秒），越大停得越快，默认 5.0</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="inertia_gain" type="xs:string">
-      <xs:annotation>
-        <xs:documentation>惯性增益：额外滑行距离相对滚轮滚动距离的比例，默认 0.6，0 表示无额外滑行</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>
@@ -4802,12 +5044,30 @@
     <!-- 来源：FontFile -->
     <xs:attribute name="file" type="xs:string">
       <xs:annotation>
-        <xs:documentation>字体文件的文件名，字体文件需放在资源根目录的fonts目录中</xs:documentation>
+        <xs:documentation>字体文件的文件名，默认相对资源根目录的 fonts 目录</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="desc" type="xs:string">
       <xs:annotation>
         <xs:documentation>字体文件的描述信息，无其他用途</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="GlobalAttrs">
+    <!-- 来源：Global -->
+    <xs:attribute name="render_backend_type" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>"CPU"：CPU绘制；"GL"/"GPU"：OpenGL绘制。设置该属性即启用全局默认配置（仅当窗口未设置 render_backend_type 时生效）。 支持条件：仅Windows平台且非SDL构建模式支持；其他平台/构建方式（含Windows ARM64）会自动回退为CPU绘制</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="vsync" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否启用垂直同步，仅GL绘制有效；未设置时默认禁用（kDefaultDisableVsync=true）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="msaa" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>MSAA采样数，0表示不启用MSAA，仅GL绘制有效</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>
@@ -4881,22 +5141,22 @@
     </xs:attribute>
     <xs:attribute name="line_color" type="xs:string">
       <xs:annotation>
-        <xs:documentation>线条颜色（为空时跟随深浅色主题：深色主题为半透明白，浅色主题为半透明灰）</xs:documentation>
+        <xs:documentation>线条颜色（为空时跟随主题：深色主题为半透明白，浅色主题为半透明灰）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="text_gap" type="xs:string">
       <xs:annotation>
-        <xs:documentation>标题文字与边框线之间的间距（左右各留出该间距，默认 4，避免线条紧贴文字）</xs:documentation>
+        <xs:documentation>标题文字与边框线之间的间距（左右各留出该间距，避免线条紧贴文字）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="collapsible" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否允许折叠（点击标题区域折叠/展开），默认 false</xs:documentation>
+        <xs:documentation>是否允许折叠（点击标题区域折叠/展开）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="collapsed" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否处于折叠状态（仅在 collapsible="true" 时生效），默认 false</xs:documentation>
+        <xs:documentation>是否处于折叠状态（仅在 collapsible="true" 时生效）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="collapse_icon_expanded" type="xs:string">
@@ -4911,7 +5171,7 @@
     </xs:attribute>
     <xs:attribute name="collapse_anim" type="xs:string">
       <xs:annotation>
-        <xs:documentation>折叠/展开动画的时长（毫秒），默认 200；0 表示不使用动画（立即切换）</xs:documentation>
+        <xs:documentation>折叠/展开动画的时长（毫秒），0 表示不使用动画（立即切换）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="text" type="xs:string">
@@ -4929,12 +5189,12 @@
     </xs:attribute>
     <xs:attribute name="rich_text" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置文本内容是否为RichText 使用示例如下：&lt;Label rich_text="true" text="一个简单&lt;b&gt;窗口&lt;/b&gt; 带有&lt;u&gt;标题栏&lt;/u&gt;和&lt;u&gt;常规按钮&lt;/u&gt;，&lt;b&gt;粗体，&lt;font color='#FF0000'&gt;红色字体&lt;/font&gt;&lt;/b&gt;" /&gt; 备注：在支持RichText的模式下，不支持如下功能： （1）对齐方式不支持两端对齐 （2）不支持vertical_text属性（也不支持纵向文本相关属性） （3）不支持end_ellipsis属性 （4）不支持path_ellipsis属性 （5）不支持auto_tooltip属性 （6）不支持word_spacing属性</xs:documentation>
+        <xs:documentation>设置文本内容是否为RichText 使用示例如下：&lt;Label rich_text="true" text="一个简单&amp;lt;b&amp;gt;窗口&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;带有&amp;lt;u&amp;gt;标题栏&amp;lt;/u&amp;gt;和&amp;lt;u&amp;gt;常规按钮&amp;lt;/u&amp;gt;，&amp;lt;b&amp;gt;粗体，&amp;lt;font color='#FF0000'&amp;gt;红色字体&amp;lt;/font&amp;gt;&amp;lt;/b&amp;gt;" /&gt; 注意：在XML属性中书写富文本标记时，需要把 &lt;、&gt; 转义为 &amp;lt;、&amp;gt; 备注：在支持RichText的模式下，不支持如下功能： （1）不支持path_ellipsis属性 （2）与vertical_text同时使用时，rich_text属性会被忽略，按纯文本显示（去除富文本标记） （3）auto_tooltip属性可以正常使用，提示内容为去除富文本标记后的纯文本</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="text_align" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置文字的水平与垂直对齐方式，用半角逗号分隔，如"hcenter,vcenter" 。 水平对齐方式可取值：left（靠左对齐）、hcenter（居中对齐）、right（靠右对齐）、hjustify（两端对齐） 垂直对齐方式可取值：top（靠上对齐）、vcenter（居中对齐）、bottom（靠下对齐）、vjustify（两端对齐）</xs:documentation>
+        <xs:documentation>设置文字的水平与垂直对齐方式，用半角逗号分隔，如"hcenter,vcenter" 。 水平对齐方式可取值：left（靠左对齐）、hcenter（居中对齐）、right（靠右对齐）、hjustify（两端对齐） 垂直对齐方式可取值：top（靠上对齐）、vcenter（居中对齐）、bottom（靠下对齐）、vjustify（两端对齐） 注意：同一方向出现多个取值时，按 hcenter、right、left、hjustify 的先后顺序匹配（如同时包含"left"与"hjustify"时以 left 为准），垂直方向同理按 top、vcenter、bottom、vjustify 匹配</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="text_padding" type="xs:string">
@@ -5125,12 +5385,12 @@
     <!-- 来源：HotKey -->
     <xs:attribute name="default_text" type="xs:string">
       <xs:annotation>
-        <xs:documentation>默认显示的文字</xs:documentation>
+        <xs:documentation>未设置热键时显示的占位提示文字（灰色显示）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="default_text_id" type="xs:string">
       <xs:annotation>
-        <xs:documentation>默认显示的文字ID</xs:documentation>
+        <xs:documentation>未设置热键时显示的占位提示文字ID（灰色显示）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>
@@ -5445,11 +5705,6 @@
   </xs:attributeGroup>
   <xs:attributeGroup name="WindowAttrs2">
     <!-- 来源：Window -->
-    <xs:attribute name="class" type="xs:string">
-      <xs:annotation>
-        <xs:documentation>窗口复用的全局样式(Class)名称，多个名称以空格分隔；节点自身属性优先</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
     <xs:attribute name="caption" type="xs:string">
       <xs:annotation>
         <xs:documentation>窗口可拖动的标题栏大小的边距, 最后一个参数是指离上边框的距离,如"0,0,0,36"</xs:documentation>
@@ -5457,12 +5712,12 @@
     </xs:attribute>
     <xs:attribute name="use_system_caption" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置是否使用系统标题栏</xs:documentation>
+        <xs:documentation>设置是否使用系统标题栏；该属性在Wayland平台下无效，始终使用自绘标题栏（Wayland没有统一的系统标题栏，服务端装饰在GNOME等合成器上不可用，客户端装饰又依赖可选的libdecor，无法保证可用）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="snap_layout_menu" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否支持显示贴靠布局菜单（Windows 11新功能：通过将鼠标悬停在窗口的最大化按钮上或按 Win + Z，可以轻松访问对齐布局。），该属性仅当在窗口为分层窗口或者使用系统阴影时默认开启</xs:documentation>
+        <xs:documentation>是否支持显示贴靠布局菜单（Windows 11新功能：通过将鼠标悬停在窗口的最大化按钮上或按 Win + Z，可以轻松访问对齐布局。），该属性仅当在窗口为分层窗口或者使用系统阴影时默认开启；Windows 11 之外始终为 false</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="sys_menu" type="xs:string">
@@ -5497,12 +5752,12 @@
     </xs:attribute>
     <xs:attribute name="shadow_attached" type="xs:string">
       <xs:annotation>
-        <xs:documentation>窗口是否附加阴影效果，如"true"表示开启窗口阴影功能，"false"表示关闭窗口阴影功能 默认即为"true"，一般只需在需要关闭阴影时设置为"false"；设置了shadow_type属性即代表开启阴影，不需要再单独设置shadow_attached="true"</xs:documentation>
+        <xs:documentation>窗口是否附加阴影效果，如"true"表示开启窗口阴影功能，"false"表示关闭窗口阴影功能 如果设置了shadow_type属性，相当于隐式将shadow_attached设置为"true"， 所以一般设置了shadow_type属性以后，不需要再单独设置shadow_attached属性</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="shadow_type" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置窗口的阴影类型： "default"：默认自绘阴影 "big"：有自绘阴影（大），直角，有边框（适合普通窗口） "big_round"：有自绘阴影（大），圆角，有边框（适合普通窗口） "small"：有自绘阴影（小），直角，有边框（适合普通窗口） "small_round"：有自绘阴影（小），圆角，有边框（适合普通窗口） "menu"：有自绘阴影（小），直角，有边框（适合弹出式窗口，比如菜单等） "menu_round"：有自绘阴影（小），圆角，有边框（适合弹出式窗口，比如菜单等） "none"：无阴影，直角，有边框 "none_round"：无阴影，圆角，有边框（自绘） "custom": 自定义自绘阴影，该类型需要同时设置shadow_image、shadow_corner、shadow_border_round属性 "system_default"：使用系统阴影，跟随操作系统默认窗口阴影属性 "system_not_round"：使用系统阴影，直角 "system_round"：使用系统阴影，圆角 "system_small_round"：使用系统阴影，小圆角 兼容性说明： （1）对于Win7和Win10系统：系统阴影仅支持"system_default"这一个，其他三个不支持 （2）对于Win11系统，四个系统阴影属性均支持，系统默认阴影为圆角 （3）对于macOS系统，四个系统阴影属性均支持，系统默认阴影为圆角 （4）对于Linux系统和FreeBSD系统，不支持系统阴影 （5）若设置为不支持的系统阴影，会自动切换为相应支持的系统阴影或者自绘阴影</xs:documentation>
+        <xs:documentation>设置窗口的阴影类型： "default"：默认自绘阴影 "big"：有自绘阴影（大），直角，有边框（适合普通窗口） "big_round"：有自绘阴影（大），圆角，有边框（适合普通窗口） "small"：有自绘阴影（小），直角，有边框（适合普通窗口） "small_round"：有自绘阴影（小），圆角，有边框（适合普通窗口） "menu"：有自绘阴影（小），直角，有边框（适合弹出式窗口，比如菜单等） "menu_round"：有自绘阴影（小），圆角，有边框（适合弹出式窗口，比如菜单等） "none"：无阴影，直角，有边框 "none_round"：无阴影，圆角，有边框（自绘） "custom": 自定义自绘阴影，该类型通常需要同时设置shadow_image、shadow_corner、shadow_border_round属性 "system_default"：使用系统阴影，跟随操作系统默认窗口阴影属性 "system_not_round"：使用系统阴影，直角 "system_round"：使用系统阴影，圆角 "system_small_round"：使用系统阴影，小圆角 兼容性说明： （1）对于Win7和Win10系统：系统阴影仅支持"system_default"这一个，其他三个不支持 （2）对于Win11系统，四个系统阴影属性均支持，系统默认阴影为圆角 （3）对于macOS系统，四个系统阴影属性均支持，系统默认阴影为圆角 （4）对于Linux系统和FreeBSD系统，不支持系统阴影 （5）若设置为不支持的系统阴影，会自动切换为相应支持的系统阴影或者自绘阴影</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="shadow_image" type="xs:string">
@@ -5562,32 +5817,47 @@
     </xs:attribute>
     <xs:attribute name="round_corner" type="xs:string">
       <xs:annotation>
-        <xs:documentation>窗口圆角大小, 如"4,4"，该属性在使用窗口阴影（即设置了shadow_type属性）时，一般不需要设置</xs:documentation>
+        <xs:documentation>窗口圆角大小, 如"4,4"，该值未经DPI缩放（即逻辑像素值）。 该属性在使用自绘窗口阴影（即设置了shadow_type属性为非系统阴影）时，一般不需要设置，系统会自动根据阴影类型设置圆角。 当阴影类型为 none_round 时，框架会自动设置窗口圆角以避免窗口四个角出现黑色内容，无需手动指定此属性。</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="layered_window" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置是否为层窗口，使用注意事项： （1）一般窗口无需设置该属性，分层窗口由内部根据阴影、透明度等配置自动推导；仅浮层、下拉列表等特殊场景才需要显式开启 （2）该属性在使用窗口阴影（即设置了shadow_type属性）时不需要设置，窗口阴影功能会根据需要来管理该属性 （3）当使用系统标题栏时（即use_system_caption="true"），不应设置该属性</xs:documentation>
+        <xs:documentation>设置是否为层窗口，使用注意事项： （1）一般窗口无需设置该属性，分层窗口由内部根据阴影、透明度等配置自动推导；仅浮层、下拉列表等特殊场景才需要显式开启 （2）该属性在使用窗口阴影（即设置了shadow_type属性）时不需要设置，窗口阴影功能会根据需要来管理该属性 （3）当使用系统标题栏时（即use_system_caption="true"），不应设置该属性 （4）SDL 构建下该属性表示透明窗口（SDL_WINDOW_TRANSPARENT），默认开启，且只能在创建时设置</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="alpha" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置透明度数值[0, 255]，当 alpha 为 0 时，窗口是完全透明的。 当 alpha 为 255 时，窗口是不透明的。 仅当窗口为分层窗口时有效（分层窗口由内部按需推导，一般无需显式设置layered_window）， 该参数在UpdateLayeredWindow函数中作为参数使用(BLENDFUNCTION.SourceConstantAlpha)</xs:documentation>
+        <xs:documentation>设置透明度数值[0, 255]，当 alpha 为 0 时，窗口是完全透明的。 当 alpha 为 255 时，窗口是不透明的。 仅当窗口为分层窗口时有效（分层窗口由内部按需推导，一般无需显式设置 layered_window）， 该参数在UpdateLayeredWindow函数中作为参数使用(BLENDFUNCTION.SourceConstantAlpha) XML 中设置 alpha &lt; 255 时，与 opacity 一样会在窗口创建/Resolve 阶段自动推导分层窗口（SDL 下要求透明窗口）；运行时调用 SetLayeredWindowAlpha 不会自动切换分层窗口</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="opacity" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置不透明度数值[0, 255]，当 opacity 为 0 时，窗口是完全透明的。 当 opacity 为 255 时，窗口是不透明的。 仅当窗口为分层窗口时有效；设置 opacity &lt; 255 时，内部会自动推导开启分层窗口，无需显式配置 layered_window="true" 该参数在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)</xs:documentation>
+        <xs:documentation>设置不透明度数值[0, 255]，当 opacity 为 0 时，窗口是完全透明的。 当 opacity 为 255 时，窗口是不透明的。 仅当窗口为分层窗口时有效；设置 opacity &lt; 255 时，内部会自动推导开启分层窗口，无需显式配置 layered_window="true" 该参数在SetLayeredWindowAttributes函数中作为参数使用(bAlpha) SDL 构建下 opacity 通过 SDL_SetWindowOpacity 设置，不依赖透明窗口</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="render_backend_type" type="xs:string">
       <xs:annotation>
-        <xs:documentation>"CPU": CPU绘制 "GL"/"GPU": 使用OpenGL绘制。窗口未设置该属性时使用global.xml的全局配置（全局配置仅作为默认值，窗口XML显式设置时优先；vsync、msaa同样按字段分别判断）。支持条件：仅Windows平台且非SDL构建模式支持；SDL构建模式、非Windows平台和Windows ARM64会自动回退为CPU绘制；无法创建GL上下文（如远程桌面、虚拟机、缺少OpenGL驱动）时也会自动回退。实际使用的后端以GetRenderBackendType()的返回值为准。注意事项：（1）同一线程内可以有多个窗口使用OpenGL绘制（内部会切换当前上下文）（2）OpenGL绘制的窗口不能是分层窗口（即带有WS_EX_LAYERED属性的窗口），因此使用GL渲染时，layered_window、alpha、opacity 属性均无效（3）支持局部绘制（只重绘脏区域），但不一定总比CPU绘制快，请结合实际场景评估</xs:documentation>
+        <xs:documentation>"CPU": CPU绘制 "GL": 使用OpenGL绘制 注意事项: （1）支持条件：仅Windows平台且非SDL构建模式支持；SDL构建模式、非Windows平台和Windows ARM64不支持，会自动回退为CPU绘制；无法创建GL上下文（如远程桌面、虚拟机、缺少OpenGL驱动）时也会自动回退。 实际使用的后端请以 GetRenderBackendType() 的返回值为准 （2）同一线程内可以有多个窗口使用OpenGL绘制，绘制前会自动切换当前上下文；但每个窗口都会创建一个独立的 GL 上下文，注意显存占用 （3）OpenGL绘制的窗口不能是分层窗口（即带有WS_EX_LAYERED属性的窗口）；当窗口请求分层（显式 layered_window="true"，或 alpha/opacity &lt; 255）时，会自动降级为CPU绘制，这些属性仍按CPU绘制路径生效 （4）OpenGL绘制使用持久 FBO 做局部刷新，小区域动画不会整窗重绘，性能通常优于整窗重绘 （5）窗口运行过程中，可通过SetAttribute("render_backend_type", "GL"/"CPU")实时切换（内部会重建渲染对象） （6）未设置该属性时，使用 global.xml 的全局配置；窗口 XML 显式设置时优先于全局配置（vsync、msaa 同样按字段分别判断）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="vsync" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否启用垂直同步，false 表示禁用（内置默认禁用，即 kDefaultDisableVsync=true）； 仅当 render_backend_type="GL" 时有效 支持运行过程中通过SetAttribute实时切换；未设置时使用全局配置</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="msaa" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>MSAA 采样数，0 表示不启用 MSAA（按 1 倍采样）； 仅当 render_backend_type="GL" 时有效 支持运行过程中通过SetAttribute实时切换；未设置时使用全局配置</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="sdl_render_name" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>仅 SDL 构建下生效：指定期望的 SDL Render 名称，多个候选可用逗号分隔并按顺序尝试。可选值：Windows 为 gpu、direct3d11、direct3d12、direct3d、opengl、opengles2、vulkan、software；Linux 为 gpu、opengl、opengles2、vulkan、software。实际可用值取决于平台与驱动；全部失败时回退到 SDL 默认 Render。非 SDL 构建忽略该属性</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>
-  <xs:attributeGroup name="MenuBarAttrs">
-    <!-- 来源：MenuBar -->
+  <xs:attributeGroup name="MenuBarItemAttrs">
+    <!-- 来源：MenuBarItem -->
     <xs:attribute name="id" type="xs:string">
       <xs:annotation>
         <xs:documentation>顶级菜单项的ID，回调函数中用于标识菜单来源</xs:documentation>
@@ -5606,6 +5876,16 @@
     <xs:attribute name="xml_path" type="xs:string">
       <xs:annotation>
         <xs:documentation>该顶级菜单对应的菜单XML资源路径</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="class" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>顶级菜单按钮的样式类名称（对应 global.xml 中的 Class）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="attributes" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>顶级菜单按钮的附加属性列表（如 text_padding='10,4,10,4'）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>
@@ -5932,7 +6212,7 @@
     </xs:attribute>
     <xs:attribute name="collapse_physics" type="xs:string">
       <xs:annotation>
-        <xs:documentation>折叠/展开是否使用物理动画（弹簧）：true/false，默认 false；需同时满足 collapse_anim 大于 0 且物理动画总开关开启，否则自动回退为缓动函数</xs:documentation>
+        <xs:documentation>折叠/展开是否使用弹簧物理动画；需同时满足 collapse_anim &gt; 0 且物理动画总开关开启，否则自动回退为缓动函数</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="arrow_align" type="xs:string">
@@ -6108,7 +6388,7 @@
     </xs:attribute>
     <xs:attribute name="collapse_physics" type="xs:string">
       <xs:annotation>
-        <xs:documentation>折叠/展开是否使用物理动画（弹簧）：true/false，默认 false；需同时满足 collapse_anim 大于 0 且物理动画总开关开启，否则自动回退为缓动函数</xs:documentation>
+        <xs:documentation>折叠/展开是否使用弹簧物理动画；需同时满足 collapse_anim &gt; 0 且物理动画总开关开启，否则自动回退为缓动函数</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="arrow_align" type="xs:string">
@@ -6231,7 +6511,7 @@
     </xs:attribute>
     <xs:attribute name="collapse_physics" type="xs:string">
       <xs:annotation>
-        <xs:documentation>折叠/展开是否使用物理动画（弹簧）：true/false，默认 false；需同时满足 collapse_anim 大于 0 且物理动画总开关开启，否则自动回退为缓动函数</xs:documentation>
+        <xs:documentation>折叠/展开是否使用弹簧物理动画；需同时满足 collapse_anim &gt; 0 且物理动画总开关开启，否则自动回退为缓动函数</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="arrow_align" type="xs:string">
@@ -6488,6 +6768,26 @@
         <xs:documentation>设置属性值的字体Id（已修改状态）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="property_check_box_class" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>布尔属性的复选框 Class</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="property_multi_line_edit_class" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>多行文本属性的编辑框 Class</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="show_description_tooltip" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否在悬停属性名称时显示属性描述</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="enable_filter_box" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否显示过滤框</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:attributeGroup>
   <xs:attributeGroup name="GridLayoutAttrs">
     <!-- 来源：GridLayout -->
@@ -6737,7 +7037,7 @@
     </xs:attribute>
     <xs:attribute name="password_char" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置密码字符，默认为"*"，可通过此属性修改；掩码按 UTF-16 码元计数（emoji 等增补平面字符显示为 2 个掩码字符）</xs:documentation>
+        <xs:documentation>设置密码字符，默认为 "*"，可通过此属性修改（密码掩码按 UTF-16 码元计数，一个 emoji 等增补平面字符显示为 2 个掩码字符）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="flash_password_char" type="xs:string">
@@ -6747,7 +7047,7 @@
     </xs:attribute>
     <xs:attribute name="number_only" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否只允许输入有符号整数（负号 + 数字），不支持小数点与正号；需要小数时请使用 SpinBox（decimals/step 等属性）</xs:documentation>
+        <xs:documentation>是否只允许输入有符号整数（负号 + 数字），不支持小数点与正号；需要小数或格式化数字时请使用 SpinBox（decimals/step 等属性）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="max_number" type="xs:string">
@@ -6832,7 +7132,7 @@
     </xs:attribute>
     <xs:attribute name="limit_text" type="xs:string">
       <xs:annotation>
-        <xs:documentation>限制最多字符数（按 UTF-16 码元计数，一个 emoji 等增补平面字符计为 2 个）</xs:documentation>
+        <xs:documentation>限制最多字符数（按 UTF-16 码元计数，一个 emoji 等增补平面字符计为 2 个）；RichEdit2 在本次修改因超限被丢弃时派发 kEventTextLimit（无参数，可用 AttachTextLimit 绑定）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="limit_chars" type="xs:string">
@@ -7015,17 +7315,17 @@
     </xs:attribute>
     <xs:attribute name="inertia_scroll" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否启用惯性滚动：true/false，默认 true；滚轮滚动结束后按摩擦衰减继续滑行一段距离，仅在物理动画总开关开启时生效</xs:documentation>
+        <xs:documentation>是否启用惯性滚动（默认开启）：滚轮滚动结束后按摩擦衰减继续滑行一段距离；仅在物理动画总开关开启时生效</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="inertia_friction" type="xs:string">
       <xs:annotation>
-        <xs:documentation>惯性滚动的摩擦系数（1/秒），越大停得越快，默认 5.0</xs:documentation>
+        <xs:documentation>惯性滚动的摩擦系数（1/秒），越大停得越快</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="inertia_gain" type="xs:string">
       <xs:annotation>
-        <xs:documentation>惯性增益：额外滑行距离相对滚轮滚动距离的比例，默认 0.6，0 表示无额外滑行</xs:documentation>
+        <xs:documentation>惯性增益：额外滑行距离 = 滚轮滚动距离 × 该系数，0 表示无额外滑行</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>
@@ -7323,7 +7623,7 @@
     </xs:attribute>
     <xs:attribute name="tooltip_width" type="xs:string">
       <xs:annotation>
-        <xs:documentation>鼠标悬浮提示所占的宽度（按逻辑像素设置并自动缩放；0表示不限制宽度）</xs:documentation>
+        <xs:documentation>鼠标悬浮提示所占的宽度（按逻辑像素设置并自动缩放；0 表示不限制宽度）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="data_id" type="xs:string">
@@ -7368,22 +7668,22 @@
     </xs:attribute>
     <xs:attribute name="no_focus" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否可以获取焦点,如"true"</xs:documentation>
+        <xs:documentation>是否可以获取焦点,如"true"；设为true时同时禁止该控件参与TAB键切换焦点</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="tab_stop" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否允许通过按TAB键切换到此控件（默认false；Button/Slider/RichEdit等交互控件默认开启；Box类控件不支持TAB聚焦）</xs:documentation>
+        <xs:documentation>是否允许通过按TAB键切换到此控件。默认false，避免Label等非交互控件成为不可见的焦点停靠点；Button/CheckBox/Option/Slider/RichEdit/NavigationViewItem 等交互控件默认开启。注意：Box类控件（HBox/VBox/ListBox/Combo等）不支持TAB聚焦</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="show_focused_rect" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否显示焦点框（默认为强调色圆角描边；仅窗口激活且最近输入为键盘操作时绘制；交互控件默认开启）</xs:documentation>
+        <xs:documentation>是否显示焦点框（默认绘制强调色圆角描边，与 Windows 原生焦点指示器风格一致）；仅在窗口激活且最近一次输入为键盘操作后绘制。Button/CheckBox/Option/Combo/Slider/RichEdit/IPAddress/DateTime 默认开启</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="focused_rect_color" type="xs:string">
       <xs:annotation>
-        <xs:documentation>焦点状态矩形的颜色</xs:documentation>
+        <xs:documentation>焦点框线条的颜色（为空时依次回退到 color_accent、border_focus_ring）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="alpha" type="xs:string">
@@ -7591,7 +7891,7 @@
     </xs:attribute>
     <xs:attribute name="password_char" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置密码字符，默认为"*"，可通过此属性修改；掩码按 UTF-16 码元计数（emoji 等增补平面字符显示为 2 个掩码字符）</xs:documentation>
+        <xs:documentation>设置密码字符，默认为 "*"，可通过此属性修改（密码掩码按 UTF-16 码元计数，一个 emoji 等增补平面字符显示为 2 个掩码字符）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="flash_password_char" type="xs:string">
@@ -7601,7 +7901,7 @@
     </xs:attribute>
     <xs:attribute name="number_only" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否只允许输入有符号整数（负号 + 数字），不支持小数点与正号；需要小数时请使用 SpinBox（decimals/step 等属性）</xs:documentation>
+        <xs:documentation>是否只允许输入有符号整数（负号 + 数字），不支持小数点与正号；需要小数或格式化数字时请使用 SpinBox（decimals/step 等属性）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="max_number" type="xs:string">
@@ -7686,7 +7986,7 @@
     </xs:attribute>
     <xs:attribute name="limit_text" type="xs:string">
       <xs:annotation>
-        <xs:documentation>限制最多字符数（按 UTF-16 码元计数，一个 emoji 等增补平面字符计为 2 个）</xs:documentation>
+        <xs:documentation>限制最多字符数（按 UTF-16 码元计数，一个 emoji 等增补平面字符计为 2 个）；RichEdit2 在本次修改因超限被丢弃时派发 kEventTextLimit（无参数，可用 AttachTextLimit 绑定）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="limit_chars" type="xs:string">
@@ -7819,7 +8119,7 @@
     <!-- 来源：RichText -->
     <xs:attribute name="text_align" type="xs:string">
       <xs:annotation>
-        <xs:documentation>文字的水平与垂直对齐方式, 可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter"；取值区分大小写（须为小写），不支持 hjustify / vjustify</xs:documentation>
+        <xs:documentation>文字的水平与垂直对齐方式, 可取值: left、right、hcenter、center、justify、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter"（"center"与"hcenter"等价；"justify"为两端对齐，段落的最后一行保持左对齐；兼容别名 textalign；默认纵向居中，与Label保持一致）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="text_padding" type="xs:string">
@@ -7854,7 +8154,7 @@
     </xs:attribute>
     <xs:attribute name="trim_policy" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置Trim文本的策略："all"表示去除全部空格；"none"表示不需要去除空格；"keep_one"表示只保留一个空格</xs:documentation>
+        <xs:documentation>设置Trim文本的策略："all"表示去除每个文本节点首尾的空白，并保留词间的一个空格（跨节点时也保留一个空格）；"none"表示不对文本做任何处理；"keep_one"表示把连续的空白压缩为一个空格。回车和换行会被替换为空格，TAB（"\t"）则保留，用于制表位对齐（每个制表位为4个标准字符宽度）。该属性在解析 text/text_id 内容时生效，需要放置在 text/text_id 属性前面。如果格式文本解析失败，会自动按纯文本降级显示，避免内容丢失</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="default_link_font_color" type="xs:string">
@@ -7872,9 +8172,14 @@
         <xs:documentation>超级链接：鼠标按下状态文本颜色值</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="visited_link_font_color" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>超级链接：已访问状态文本颜色值（点击过的链接）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute name="link_font_underline" type="xs:string">
       <xs:annotation>
-        <xs:documentation>超级链接：是否使用带下划线的字体</xs:documentation>
+        <xs:documentation>超级链接：是否使用带下划线的字体（为 true 时常规状态始终显示下划线；为 false 时常规状态不显示下划线，但 Hover/按下状态仍会绘制一条下划线，保证可点击的视觉反馈）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="row_spacing_mul" type="xs:string">
@@ -7887,9 +8192,44 @@
         <xs:documentation>行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="letter_spacing" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>字间距（像素）：大于0时按逐字绘制，0表示使用字体默认间距</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="text_indent" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>首行缩进（像素），只对段落的第一行生效</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="paragraph_spacing" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>段落间距（像素），用于 &lt;p&gt;/&lt;h1&gt;~&lt;h6&gt;/&lt;ul&gt;/&lt;li&gt;/&lt;hr&gt; 之间的附加间距</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="max_lines" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>最大显示行数，0表示不限制；超出时按 text_overflow 处理</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="text_overflow" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>超出显示范围时的处理方式："ellipsis"表示在行尾显示省略号，"clip"表示直接裁剪。超出显示范围包括两种情况：超过 max_lines 限制，以及 word_wrap="false" 时单行文本超出控件宽度</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute name="word_wrap" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否自动换行，如果为false，则只有在 标签的时候才换行</xs:documentation>
+        <xs:documentation>是否自动换行，如果为false，则只有在 标签的时候才换行，且超出控件宽度的文本按 text_overflow 处理（默认为显示省略号）</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="selection_bg_color" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>鼠标选择文本时，选中区域的背景颜色，如"#660099FF"（AARRGGBB）；未设置时使用默认的淡蓝色</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="enable_text_select" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否允许用鼠标拖拽选择文本</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>
@@ -8221,7 +8561,7 @@
     </xs:attribute>
     <xs:attribute name="password_char" type="xs:string">
       <xs:annotation>
-        <xs:documentation>设置密码字符，默认为"*"，可通过此属性修改；掩码按 UTF-16 码元计数（emoji 等增补平面字符显示为 2 个掩码字符）</xs:documentation>
+        <xs:documentation>设置密码字符，默认为 "*"，可通过此属性修改（密码掩码按 UTF-16 码元计数，一个 emoji 等增补平面字符显示为 2 个掩码字符）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="flash_password_char" type="xs:string">
@@ -8231,7 +8571,7 @@
     </xs:attribute>
     <xs:attribute name="number_only" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否只允许输入有符号整数（负号 + 数字），不支持小数点与正号；需要小数时请使用 SpinBox（decimals/step 等属性）</xs:documentation>
+        <xs:documentation>是否只允许输入有符号整数（负号 + 数字），不支持小数点与正号；需要小数或格式化数字时请使用 SpinBox（decimals/step 等属性）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="text_align" type="xs:string">
@@ -8306,7 +8646,7 @@
     </xs:attribute>
     <xs:attribute name="limit_text" type="xs:string">
       <xs:annotation>
-        <xs:documentation>限制最多字符数（按 UTF-16 码元计数，一个 emoji 等增补平面字符计为 2 个）</xs:documentation>
+        <xs:documentation>限制最多字符数（按 UTF-16 码元计数，一个 emoji 等增补平面字符计为 2 个）；RichEdit2 在本次修改因超限被丢弃时派发 kEventTextLimit（无参数，可用 AttachTextLimit 绑定）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="limit_chars" type="xs:string">
@@ -8440,6 +8780,41 @@
     <xs:attribute name="enable_split_single" type="xs:string">
       <xs:annotation>
         <xs:documentation>当只有一个控件的时候，是否允许调整其宽度</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="double_click_reset" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>双击分割条时，是否把两侧控件恢复到首次拖动前的尺寸</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="reset_anim" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>双击复位时的过渡动画时长（毫秒），0 表示不使用动画、立即复位</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="drag_threshold" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>拖动阈值（96 DPI 逻辑像素），鼠标移动超过该距离后才开始调整控件尺寸；0 表示不启用阈值</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="drag_size_tip" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>鼠标拖动过程中，是否在分割条附近显示当前尺寸的提示</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="left_top_ctrl_name" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>左侧（上侧）目标控件的名称（同一窗口内查找）；为空时使用同一父容器中前面的可见控件</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="right_bottom_ctrl_name" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>右侧（下侧）目标控件的名称（同一窗口内查找）；为空时使用同一父容器中后面的可见控件</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="keyboard_step" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>键盘操作时每次按方向键调整的尺寸（96 DPI 逻辑像素），0 表示不启用键盘操作；Shift + 方向键为 10 倍步长</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>
@@ -8689,7 +9064,7 @@
     </xs:attribute>
     <xs:attribute name="drag_order" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否支持拖动调整顺序（在同一个标签内），默认是开启的</xs:documentation>
+        <xs:documentation>是否支持拖动调整顺序（在同一个标签内），默认是开启的。这是标签栏级的总开关，标签项还需自身的 drag_order 开启才可拖动</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="drag_out_id" type="xs:string">
@@ -8724,12 +9099,12 @@
     </xs:attribute>
     <xs:attribute name="selected_tab_item_show_bg" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否绘制选中标签的背景色：false时不绘制选中背景（通常配合底部指示条使用）</xs:documentation>
+        <xs:documentation>是否绘制选中标签的背景色：false 时不绘制选中背景（通常配合底部指示条使用）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="selected_tab_item_indicator_width" type="xs:string">
       <xs:annotation>
-        <xs:documentation>选中标签的底部指示条宽度：数值表示固定宽度（未做DPI缩放）；填auto时自动跟随标签标题文字宽度；为0时不绘制指示条</xs:documentation>
+        <xs:documentation>选中标签的底部指示条宽度：数值表示固定宽度（未做DPI缩放）；填 auto 时自动跟随标签标题文字宽度；为 0 时不绘制指示条</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="selected_tab_item_indicator_height" type="xs:string">
@@ -8744,17 +9119,17 @@
     </xs:attribute>
     <xs:attribute name="selected_tab_item_indicator_animation" type="xs:string">
       <xs:annotation>
-        <xs:documentation>选中切换时，指示条是否以位置/宽度插值动画过渡；关闭后立即跳变，默认开启</xs:documentation>
+        <xs:documentation>选中切换时，指示条是否以位置/宽度插值动画过渡；关闭后立即跳变</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="selected_tab_item_indicator_animation_duration" type="xs:string">
       <xs:annotation>
-        <xs:documentation>指示条滑动动画时长（毫秒），范围0-2000；为0时不播放动画，默认200</xs:documentation>
+        <xs:documentation>指示条滑动动画时长（毫秒），范围 0–2000；为 0 时不播放动画</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="tab_ctrl_bottom_line_mode" type="xs:string">
       <xs:annotation>
-        <xs:documentation>底边线在选中项处的断开策略：auto（绘制选中背景时断开）/ break（始终断开）/ full（始终连续），默认auto</xs:documentation>
+        <xs:documentation>底边线在选中项处的断开策略：auto（绘制选中背景时断开）/ break（始终断开）/ full（始终连续）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="tab_ctrl_orientation" type="xs:string">
@@ -8769,17 +9144,17 @@
     </xs:attribute>
     <xs:attribute name="overflow_buttons" type="xs:string">
       <xs:annotation>
-        <xs:documentation>标签溢出时，是否在标签栏两端显示左右（垂直方向为上下）滚动箭头按钮，点击可按可视范围翻页滚动；启用时隐藏悬浮滚动条（两者互斥），默认开启</xs:documentation>
+        <xs:documentation>标签溢出时，是否在标签栏两端显示左右（垂直方向为上下）滚动箭头按钮，点击可按可视范围翻页滚动。启用时会隐藏悬浮滚动条（两者互斥显示），滚动位置仍由内部滚动条对象维护</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="wheel_switch" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否启用鼠标滚轮切换标签：滚动滚轮选择上一个/下一个标签；默认关闭，滚轮用于滚动标签栏</xs:documentation>
+        <xs:documentation>是否启用鼠标滚轮切换标签：滚动滚轮选择上一个/下一个标签；默认 false，滚轮用于滚动标签栏</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="middle_click_close" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否启用鼠标中键关闭标签：中键点击标签时发送kEventTabClose事件（不会自动删除标签），默认开启</xs:documentation>
+        <xs:documentation>是否启用鼠标中键关闭标签：中键点击标签时发送 kEventTabClose 事件（不会自动删除标签）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="drag_insert_color" type="xs:string">
@@ -8789,12 +9164,12 @@
     </xs:attribute>
     <xs:attribute name="tab_item_justify" type="xs:string">
       <xs:annotation>
-        <xs:documentation>标签是否等宽填充：true时按标签栏可用宽度（垂直方向按高度）平分每个标签，并自动关闭滚动条；可用标签项的min_width/max_width做进一步约束</xs:documentation>
+        <xs:documentation>标签是否等宽填充：true 时按标签栏可用宽度（垂直方向按高度）平分每个标签，并自动关闭滚动条；此时可用标签项的 min_width/max_width 做进一步约束</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="new_tab_button" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否在标签栏末尾显示"新建标签"按钮（+），点击时发送kEventTabNew事件，不会自动创建标签</xs:documentation>
+        <xs:documentation>是否在标签栏末尾显示"新建标签"按钮（"+"），点击时发送 kEventTabNew 事件，不会自动创建标签</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>
@@ -8895,7 +9270,7 @@
     </xs:attribute>
     <xs:attribute name="selected_title_font" type="xs:string">
       <xs:annotation>
-        <xs:documentation>标签标题在选中状态下使用的字体ID（如system_bold_12）；为空时使用title_class的字体</xs:documentation>
+        <xs:documentation>标签标题在选中状态下使用的字体ID（如 system_bold_12）；为空时使用 title_class 的字体</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="icon" type="xs:string">
@@ -8940,17 +9315,17 @@
     </xs:attribute>
     <xs:attribute name="close_button_show_mode" type="xs:string">
       <xs:annotation>
-        <xs:documentation>关闭按钮显示策略：auto（沿用auto_hide_close_button：选中或悬停时显示）/ hover（仅悬停时显示，选中也不常显；适合指示条风格）/ always（始终显示），默认auto</xs:documentation>
+        <xs:documentation>关闭按钮显示策略：auto（沿用 auto_hide_close_button：选中或悬停时显示）/ hover（仅悬停时显示，选中也不常显；适合指示条风格）/ always（始终显示）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="closable" type="xs:string">
       <xs:annotation>
-        <xs:documentation>标签是否可关闭：false时隐藏关闭按钮，且鼠标中键点击也不会发送关闭请求事件，默认可关闭</xs:documentation>
+        <xs:documentation>标签是否可关闭：false 时隐藏关闭按钮，且鼠标中键点击也不会发送关闭请求事件</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="drag_order" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否支持拖动调整顺序（在同一个标签栏内），默认是开启的；实际生效还需TabCtrl的drag_order总开关开启。固定标签期间该开关被临时关闭，取消固定（SetFixed(false)）后按此值恢复</xs:documentation>
+        <xs:documentation>是否支持拖动调整顺序（在同一个标签栏内）；实际生效还需 TabCtrl 的 drag_order 总开关开启。固定标签期间该开关被临时关闭，取消固定（SetFixed(false)）后按此值恢复</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="fixed" type="xs:string">
@@ -8981,6 +9356,19 @@
     <xs:attribute name="badge_float" type="xs:string">
       <xs:annotation>
         <xs:documentation>角标是否浮动定位到标签右上角（float=true、右对齐/顶部对齐），不占用标题布局宽度；适合长标题或固定窄宽度的标签</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="ControlDragableTAttrs2">
+    <!-- 来源：ControlDragableT -->
+    <xs:attribute name="drag_out" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>是否支持拖出操作（在相同窗口的不同容器内），默认是开启的</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="drag_alpha" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>拖动顺序时，控件的透明度</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>
@@ -9102,27 +9490,14 @@
         <xs:documentation>派生调整公式，派生时的颜色变换规则</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-  </xs:attributeGroup>
-  <xs:attributeGroup name="ThemeMetaAttrs">
-    <!-- 来源：ThemeMeta -->
-    <xs:attribute name="author" type="xs:string">
+    <xs:attribute name="support_accent" type="xs:string">
       <xs:annotation>
-        <xs:documentation>主题作者/来源</xs:documentation>
+        <xs:documentation>是否使用主题强调色：true 时生成的颜色值取强调色（fixed="true" 时优先保留固定值）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="contrast_ratio" type="xs:string">
+    <xs:attribute name="contrast_bg" type="xs:string">
       <xs:annotation>
-        <xs:documentation>对比度：主题默认的 WCAG 对比度值，用于无障碍访问检查</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="accent_color" type="xs:string">
-      <xs:annotation>
-        <xs:documentation>默认强调色：主题出厂的主色调锚点</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="base_luminance" type="xs:string">
-      <xs:annotation>
-        <xs:documentation>基础亮度：主题的整体明暗基调</xs:documentation>
+        <xs:documentation>对比度检查使用的背景色名（仅主题检查工具使用，不参与运行时颜色生成）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:attributeGroup>
@@ -9508,7 +9883,7 @@
     </xs:attribute>
     <xs:attribute name="tooltip_width" type="xs:string">
       <xs:annotation>
-        <xs:documentation>鼠标悬浮提示所占的宽度（按逻辑像素设置并自动缩放；0表示不限制宽度）</xs:documentation>
+        <xs:documentation>鼠标悬浮提示所占的宽度（按逻辑像素设置并自动缩放；0 表示不限制宽度）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="data_id" type="xs:string">
@@ -9553,22 +9928,22 @@
     </xs:attribute>
     <xs:attribute name="no_focus" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否可以获取焦点,如"true"</xs:documentation>
+        <xs:documentation>是否可以获取焦点,如"true"；设为true时同时禁止该控件参与TAB键切换焦点</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="tab_stop" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否允许通过按TAB键切换到此控件（默认false；Button/Slider/RichEdit等交互控件默认开启；Box类控件不支持TAB聚焦）</xs:documentation>
+        <xs:documentation>是否允许通过按TAB键切换到此控件。默认false，避免Label等非交互控件成为不可见的焦点停靠点；Button/CheckBox/Option/Slider/RichEdit/NavigationViewItem 等交互控件默认开启。注意：Box类控件（HBox/VBox/ListBox/Combo等）不支持TAB聚焦</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="show_focused_rect" type="xs:string">
       <xs:annotation>
-        <xs:documentation>是否显示焦点框（默认为强调色圆角描边；仅窗口激活且最近输入为键盘操作时绘制；交互控件默认开启）</xs:documentation>
+        <xs:documentation>是否显示焦点框（默认绘制强调色圆角描边，与 Windows 原生焦点指示器风格一致）；仅在窗口激活且最近一次输入为键盘操作后绘制。Button/CheckBox/Option/Combo/Slider/RichEdit/IPAddress/DateTime 默认开启</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="focused_rect_color" type="xs:string">
       <xs:annotation>
-        <xs:documentation>焦点状态矩形的颜色</xs:documentation>
+        <xs:documentation>焦点框线条的颜色（为空时依次回退到 color_accent、border_focus_ring）</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="alpha" type="xs:string">
@@ -10196,6 +10571,14 @@
     <xs:attributeGroup ref="ControlAttrs2"/>
     <xs:anyAttribute processContents="skip"/>
   </xs:complexType>
+  <xs:complexType name="ChatMessageListType" mixed="true">
+    <xs:group ref="AnyNode" minOccurs="0" maxOccurs="unbounded"/>
+    <xs:attributeGroup ref="ChatMessageListAttrs"/>
+    <xs:attributeGroup ref="ScrollBoxAttrs"/>
+    <xs:attributeGroup ref="BoxAttrs"/>
+    <xs:attributeGroup ref="ControlAttrs"/>
+    <xs:anyAttribute processContents="skip"/>
+  </xs:complexType>
   <xs:complexType name="CheckBoxType" mixed="true">
     <xs:group ref="AnyNode" minOccurs="0" maxOccurs="unbounded"/>
     <xs:attributeGroup ref="CheckBoxAttrs"/>
@@ -10388,6 +10771,7 @@
   </xs:complexType>
   <xs:complexType name="GlobalType" mixed="true">
     <xs:group ref="AnyNode" minOccurs="0" maxOccurs="unbounded"/>
+    <xs:attributeGroup ref="GlobalAttrs"/>
     <xs:anyAttribute processContents="skip"/>
   </xs:complexType>
   <xs:complexType name="GridBoxType" mixed="true">
@@ -10648,23 +11032,13 @@
   </xs:complexType>
   <xs:complexType name="MenuBarType" mixed="true">
     <xs:group ref="AnyNode" minOccurs="0" maxOccurs="unbounded"/>
-    <xs:attributeGroup ref="MenuBarAttrs"/>
     <xs:attributeGroup ref="BoxAttrs"/>
     <xs:attributeGroup ref="ControlAttrs"/>
     <xs:anyAttribute processContents="skip"/>
   </xs:complexType>
   <xs:complexType name="MenuBarItemType" mixed="true">
     <xs:group ref="AnyNode" minOccurs="0" maxOccurs="unbounded"/>
-    <xs:attribute name="class" type="xs:string">
-      <xs:annotation>
-        <xs:documentation>顶级菜单按钮的样式类名称（对应 global.xml 中的 Class），默认 menu_bar_button</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="attributes" type="xs:string">
-      <xs:annotation>
-        <xs:documentation>顶级菜单按钮的附加属性列表（如 text_padding='10,4,10,4'）</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
+    <xs:attributeGroup ref="MenuBarItemAttrs"/>
     <xs:anyAttribute processContents="skip"/>
   </xs:complexType>
   <xs:complexType name="MenuItemType" mixed="true">
@@ -10991,7 +11365,7 @@
   <xs:complexType name="TabCtrlItemType" mixed="true">
     <xs:group ref="AnyNode" minOccurs="0" maxOccurs="unbounded"/>
     <xs:attributeGroup ref="TabCtrlItemAttrs"/>
-    <xs:attributeGroup ref="ControlDragableTAttrs"/>
+    <xs:attributeGroup ref="ControlDragableTAttrs2"/>
     <xs:anyAttribute processContents="skip"/>
   </xs:complexType>
   <xs:complexType name="TagInputType" mixed="true">
@@ -11014,7 +11388,6 @@
   </xs:complexType>
   <xs:complexType name="ThemeMetaType" mixed="true">
     <xs:group ref="GlobalContent" minOccurs="0" maxOccurs="unbounded"/>
-    <xs:attributeGroup ref="ThemeMetaAttrs"/>
     <xs:anyAttribute processContents="skip"/>
   </xs:complexType>
   <xs:complexType name="TimelineType" mixed="true">
@@ -11052,6 +11425,12 @@
     <xs:attributeGroup ref="TreeViewAttrs"/>
     <xs:attributeGroup ref="ListBoxAttrs2"/>
     <xs:attributeGroup ref="ScrollBoxAttrs"/>
+    <xs:attributeGroup ref="BoxAttrs"/>
+    <xs:attributeGroup ref="ControlAttrs"/>
+    <xs:anyAttribute processContents="skip"/>
+  </xs:complexType>
+  <xs:complexType name="UrlBarType" mixed="true">
+    <xs:group ref="AnyNode" minOccurs="0" maxOccurs="unbounded"/>
     <xs:attributeGroup ref="BoxAttrs"/>
     <xs:attributeGroup ref="ControlAttrs"/>
     <xs:anyAttribute processContents="skip"/>
@@ -11235,6 +11614,7 @@
   <xs:element name="CascadingSelect" type="CascadingSelectType"/>
   <xs:element name="CefControl" type="CefControlType"/>
   <xs:element name="Chart" type="ChartType"/>
+  <xs:element name="ChatMessageList" type="ChatMessageListType"/>
   <xs:element name="CheckBox" type="CheckBoxType"/>
   <xs:element name="CheckBoxBox" type="CheckBoxBoxType"/>
   <xs:element name="CheckBoxHBox" type="CheckBoxHBoxType"/>
@@ -11366,6 +11746,7 @@
   <xs:element name="TreeGrid" type="TreeGridType"/>
   <xs:element name="TreeNode" type="TreeNodeType"/>
   <xs:element name="TreeView" type="TreeViewType"/>
+  <xs:element name="UrlBar" type="UrlBarType"/>
   <xs:element name="VBox" type="VBoxType"/>
   <xs:element name="VBoxDragable" type="VBoxDragableType"/>
   <xs:element name="VBoxMovable" type="VBoxMovableType"/>

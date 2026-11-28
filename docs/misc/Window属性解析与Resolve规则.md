@@ -2,7 +2,7 @@
 
 > 适用范围：`duilib/Core/WindowAttributes.h`、`duilib/Core/WindowBuilder.cpp`、`duilib/Core/Window.cpp` 及 Windows/SDL 原生窗口实现。
 >
-> 文档状态：设计规则与现状差异分析。Windows 原生层的分层窗口规则与 SDL 原生层的透明窗口规则已实现，其余差异待修复。
+> 文档状态：设计规则与实现说明。文中的 Resolve 规则（统一入口、逐字段后端解析、分层/阴影冲突、SDL 差异、请求值保存与动态恢复）已在代码中实现。
 
 ## 1. 文档目的
 
@@ -440,7 +440,7 @@ SDL 不使用操作系统分层窗口，`layered_window` 语义映射为 **`SDL_
 
 ## 10. 当前实现与目标规则的差异
 
-以下为现状分析结果，代码暂未修改。
+以下为改造前的现状分析结果，相关差异已按本文档修复；保留本节用于说明改造背景。
 
 ### 10.1 全局与 XML 的文档描述错误
 
@@ -466,13 +466,13 @@ SDL 不使用操作系统分层窗口，`layered_window` 语义映射为 **`SDL_
 - 创建前 `SetLayeredWindow` 的请求值优先于 XML，创建后只校验实际透明标记；
 - 仍需确认 `WindowBuilder` 的 opacity/alpha 应用路径与 6.4.2 的透明窗口规则一致。
 
-### 10.6 后端降级使用了原始 opacity
+### 10.6 后端降级使用分层窗口的有效结果（已修复）
 
-`ResolveRenderBackendAttributes` 只要看到 `opacity < 255` 就降级 GL，但没有判断该 opacity 是否真的会导致分层窗口。例如系统标题栏或 `layered_window="false"` 会关闭 opacity，此时不应因 opacity 降级后端。应复用分层窗口的有效 Resolve 结果。
+`ResolveRenderBackendAttributes` 改为复用分层窗口的有效 Resolve 结果：只有分层窗口真正生效（显式分层、自绘阴影或 `opacity`/`alpha` < 255）时才因 GL 冲突降级；系统标题栏或显式 `layered_window="false"` 关闭透明度时，不再误降级后端。
 
-### 10.7 opacity 自动分层与文档冲突
+### 10.7 opacity/alpha 自动分层与文档冲突（已修复）
 
-代码会在 `opacity < 255` 时自动启用分层窗口，但 `docs/Window.md` 仍写"不会自动启用分层窗口"。需要统一文档与行为。
+代码在未显式设置 `layered_window` 时，`opacity < 255` 或 `alpha < 255` 会自动启用分层窗口；`docs/Window.md` 已同步说明“XML 创建阶段自动推导”与“运行时 API 不会自动切换”的区别。
 
 ### 10.8 降级后 msaa/vsync 状态残留
 
@@ -507,6 +507,8 @@ XML 解析大小写不敏感且支持别名，`Window::SetAttribute` 严格区�
 - `WindowCreateParam::m_dwExStyle` 携带 `WS_EX_LAYERED` 时应被忽略并清除；
 - 系统标题栏 + opacity、显式 `layered_window=false` + opacity 的冲突；
 - 原生设置失败路径。
+
+> 上述缺口中的大部分已由单元测试和 `basic.exe` 属性矩阵补充覆盖（SDL 分支、175% DPI、创建前/创建后 API、系统标题栏与透明度冲突等），详见第 12 章；多显示器不同 DPI 与运行时交互式切换仍未自动化。
 
 ### 10.14 Windows 原生层分层窗口逻辑（已修复）
 
@@ -564,3 +566,179 @@ XML 解析大小写不敏感且支持别名，`Window::SetAttribute` 严格区�
 - `Windows SDL 不使用分层窗口，已忽略 WS_EX_LAYERED 设置`
 - `layered_window=false 与 opacity 冲突，opacity 已临时关闭，配置值已保留`
 - `SDL 透明窗口已关闭，alpha 已临时关闭，配置值已保留`
+
+## 12. 总体测试情况总结
+
+### 12.1 测试对象与方法
+
+- 测试程序：`examples/basic`（`basic.exe`），入口配置为 `bin/resources/themes/default/basic/basic.xml`。
+- 测试方式：将 `<Window>` 节点的属性替换为 79 组变体，逐组启动 `basic.exe`；临时注入的属性导出代码在 `ShowWindow` 之后输出窗口的有效属性，由脚本解析并与规则比对。
+- 测试配置：Windows x64 Release（非 SDL）与 Windows x64 Release（SDL），均使用非 DLL 模式；测试机 DPI 为 175%。
+- 辅助验证：
+  - 使用 Win32 `GetWindowLongPtr(GWL_EXSTYLE)` 检查 `WS_EX_LAYERED` 是否真实生效；
+  - 使用 `GetLayeredWindowAttributes` 检查 `alpha` 的实际生效值；
+  - 对透明度、系统标题栏、阴影等代表性场景截图抽检。
+- 测试用临时导出代码已移除，`basic.xml` 已恢复原样，仓库不保留测试注入代码。
+
+> 说明：矩阵验证窗口对象公开状态及操作系统窗口样式；`shadow_border_round`、`shadow_border_size`、`shadow_border_color`、`sdl_render_name` 等无公开读取接口的属性，仅验证设置路径无异常。
+
+### 12.2 覆盖范围
+
+| 分类 | 覆盖内容 | 代表性用例 |
+|---|---|---|
+| 标题栏 / 系统菜单 / 贴边布局 | `use_system_caption` 真/假；`snap_layout_menu` 真/假；`sys_menu` 真/假；`sys_menu_rect` | `caption_true`、`caption_true_layered_true_opacity128`、`snap_false`、`sysmenu_false`、`sysmenu_rect` |
+| 拉伸区域与标题栏区域 | `size_box`（0、8、别名）；`caption` 自定义区域 | `sizebox_0`、`sizebox_8`、`sizebox_alias`、`caption_rect` |
+| 图标与标题文本 | `icon` 有效/无效；`text`；`text_id`；`textid` 别名；`text` 与 `text_id` 同时设置 | `icon_invalid`、`text`、`textid_alias`、`text_and_textid` |
+| 圆角 / 拖放 / 阴影贴边 | `round_corner` 有效值/别名；`drag_drop` 真/假；`shadow_snap` 真/假 | `round_corner_8`、`round_corner_alias`、`drag_drop_false`、`shadow_snap_false` |
+| 阴影 | `shadow_attached` 真/假及别名；全部 `shadow_type` 枚举（含系统阴影、`none`、`none_round`、`custom`）；`custom` + `shadow_corner`/`shadow_border_round`/`shadow_border_size`/`shadow_border_color`；非法 `shadow_type`；无效 `shadow_image`；阴影与标题栏/分层冲突 | `shadow_type_big`、`shadow_type_custom`、`shadow_custom_attrs`、`shadow_type_invalid`、`caption_true_shadow_big`、`layered_false_shadow_big` |
+| 分层窗口与透明度 | `layered_window` 真/假及别名；`alpha`/`opacity` 取 0/128/255；越界值；`alpha=0`；显式 `layered_window=false` 冲突 | `layered_true_alpha_128`、`layered_true_opacity_128`、`layered_alias`、`layered_false_alpha128`、`alpha_out_of_range` |
+| 渲染后端 | `render_backend_type` 取 CPU/GL/GPU/非法值；GL + `opacity`；GL + `msaa`；GL + `vsync`；`msaa` 越界；`vsync`/`msaa` 默认值；`sdl_render_name` | `backend_cpu`、`backend_gl`、`backend_gpu`、`gl_opacity128`、`gl_msaa4`、`default_vsync`、`sdl_render_name_opengl` |
+| 尺寸 | 像素、百分比、半百分比；`min_size`/`max_size` 及别名；`min_size > max_size`；`size_contain_shadow` 真/假 | `size_800_600`、`size_50_percent`、`min_size_clamp`、`max_size_clamp`、`min_gt_max`、`size_contain_shadow_small_true` |
+| 其他 | 未知属性；属性名大小写与别名（单元测试补充） | `unknown_attribute`、`TestAliasesAndCaseInsensitive` |
+
+### 12.3 执行结果
+
+| 项目 | Windows 非 SDL | SDL |
+|---|---|---|
+| 属性用例数 | 79 | 79 |
+| 成功生成属性报告 | 79 | 79 |
+| 启动失败/崩溃 | 0 | 0 |
+| 运行期 stderr 输出 | 0 | 0 |
+| 单元测试 `test_window_attributes` | 327 checks / 0 failures | 322 checks / 0 failures |
+
+SDL 构建下部分平台相关断言条件编译不参与，因此检查项数量少于非 SDL 构建。
+
+### 12.4 关键行为验证
+
+| 场景 | Windows 非 SDL | SDL | 结论 |
+|---|---|---|---|
+| `use_system_caption=true` | 分层关闭，`alpha`/`opacity` 有效值回到 255，自绘阴影关闭并改用系统阴影 | 透明窗口保持，`alpha` 仍生效 | 与第 7 节冲突矩阵一致 |
+| `alpha=128` | 分层=1，`alpha=128`；OS 层 `GetLayeredWindowAttributes` 返回 alpha=128 | 透明窗口 `alpha=128` | 一致 |
+| `opacity=128` | 分层=1，`opacity=128` | `opacity=128`，不依赖透明窗口 | 一致 |
+| `layered_window=false` + `alpha=128` | 分层=0，`alpha=255`（请求值保留） | 透明窗口关闭，`alpha` 关闭 | 一致 |
+| `layered_window=false` + `opacity=128` | 分层=0，`opacity=255` | `opacity=128` 仍生效 | 符合 6.5 的 SDL 差异 |
+| `render_backend_type=GL` | 后端=GL，分层=0，`opacity`/`alpha` 关闭 | 归一为 CPU | 符合 6.2 / 第 8 节 |
+| `shadow_attached=false` + 非 `none` 的 `shadow_type` | 自绘阴影关闭 | 自绘阴影关闭 | 一致 |
+| `layered_window=false` + `shadow_type=big_round` | 阴影关闭 | 阴影保持（SDL 不依赖分层） | 符合平台对照 |
+| `min_size > max_size` | 以 `min_size` 为准，忽略 `max_size` 并告警；实际窗口尺寸受桌面最大化跟踪尺寸限制 | 以 `min_size` 为准 | 符合 6.6 |
+| `size_contain_shadow=true/false` | `true` 时窗口尺寸等于 `size`；`false` 时窗口尺寸包含阴影区域 | 一致 | 一致 |
+
+### 12.5 测试中发现并修复的问题
+
+1. **Windows 下 `opacity`/`alpha` 未保持分层窗口**
+   - 现象：`opacity=128`、`alpha=128`、`layered_window=true` 的用例导出 `layered=0`，透明度不生效。
+   - 根因：阴影延迟更新调用 `UpdateLayeredWindowStyleEx` 时只依据阴影类型决定是否保留分层窗口，未考虑透明度/不透明度和显式分层请求。
+   - 修复：在 `Window::UpdateLayeredWindowStyleEx` 中把 `alpha < 255`、`opacity < 255`、显式 `layered_window=true` 纳入分层窗口需求；系统标题栏与 GL 后端仍优先关闭分层。
+   - 验证：79 组 Windows 用例中相关用例均得到 `layered=1`，OS 层 alpha=128。
+
+2. **分层窗口状态变化后未按请求值恢复阴影**
+   - 现象：动态改变分层窗口后，阴影有效值可能停留在旧状态，与统一 Resolve 结果不一致。
+   - 修复：`Window::OnLayeredWindowChanged` 在分层状态变化后按保存的请求值重新 Resolve 阴影，并仅在有效值变化时更新。
+   - 验证：单元测试与 `layered_false_shadow_big` / `layered_true_shadow_big` 用例结果符合规则。
+
+3. **`min_size` 大于 `max_size` 时最小尺寸约束失效**
+   - 现象：`min_size=1000,700`、`max_size=500,400` 时窗口小于最小尺寸。
+   - 修复：`ResolveWindowInitSize` 检测到 `min_size > max_size` 时忽略 `max_size` 并输出告警。
+   - 验证：新增单元测试；`basic.exe` 的 `min_gt_max` 用例以最小尺寸为准。
+
+4. **Windows 原生层缺少 `alpha < 255` 的分层推导**
+   - 修复：`SyncCreateWindowAttributes` 增加 `alpha < 255` 时推导分层窗口，与 `opacity < 255` 规则对齐。
+
+5. **SDL 运行时修改透明标记失败无提示**
+   - 修复：`NativeWindow_SDL` 在创建后修改透明标记失败时输出告警日志，与第 7 节的“创建后不可修改”规则一致。
+
+6. **SDL 下 `opacity` 与透明窗口的关系**
+   - 修复/确认：SDL 的 `opacity` 直接映射 `SDL_SetWindowOpacity`，不依赖透明窗口；`alpha` 依赖透明窗口。单元测试按平台分支修正，`layered_window=false` + `opacity=128` 在 SDL 下仍生效。
+
+### 12.6 环境限制与未覆盖项
+
+- **Windows 10 的贴边布局菜单**：`snap_layout_menu=true` 时有效值为 `false`（系统不支持 Snap Layouts），需在 Windows 11 上补充验证。
+- **实际窗口尺寸受系统限制**：`min_size=2000x1500`、DPI 175% 时理论尺寸为 3500x2625，Windows 下实际为 2736x1643（受屏幕工作区/最大化跟踪尺寸限制）；SDL 下可得到 3500x2625。属系统行为，不是属性解析问题。
+- **截图范围**：受 DPI 虚拟化影响，截图尺寸可能与窗口实际尺寸不同，仅用于透明度、系统标题栏、圆角阴影的视觉抽检。
+- **无公开读取接口的属性**：`shadow_border_round`、`shadow_border_size`、`shadow_border_color`、`sdl_render_name` 未做数值级校验，仅验证设置路径无异常。
+- **运行时交互**：标题栏、阴影、GL↔CPU 的运行时切换已由 12.7 的动态测试在 `basic.exe` 中验证；多显示器不同 DPI 下的动态切换、透明窗口的运行时切换仍未做交互级验证；贴边布局菜单、拖动、双击最大化等鼠标交互未自动化。
+- **平台差异**：SDL 的系统标题栏能力依赖具体平台，Windows 10 与 Windows 11 的结果可能不同。
+
+### 12.7 动态切换测试（标题栏 / 阴影 / 渲染后端）
+
+- 测试准备：在 `examples/basic/MainThread.cpp` 中临时注入运行时切换序列，每一步之后导出窗口有效属性、请求值及 Win32 窗口样式；用环境变量 `DUILIB_DYNTEST_SCENARIO` 选择场景、`DUILIB_DYNTEST_REPORT` 输出报告。测试完成后临时代码已移除，`basic.xml` 已恢复原样。
+- 测试配置：Windows x64 Release（非 SDL 与 SDL），非 DLL 模式，DPI 175%；两种模式各自独立构建 `basic.exe`，执行相同的 8 个场景。
+
+| 场景 | XML 初始状态 | 验证重点 |
+|---|---|---|
+| `plain` | 默认属性 | 标题栏、阴影开关/类型、GL↔CPU 往返 |
+| `alpha` | `layered_window="true" alpha="128"` | 标题栏切换后透明度与自绘阴影恢复 |
+| `opacity` | `layered_window="true" opacity="128"` | 同上 |
+| `layered` | `layered_window="true"` | 用户显式设置分层窗口后 GL 请求的行为 |
+| `glrepeat` | GL 后端，`msaa=0` | GL↔CPU 反复切换 |
+| `glmsaa` | GL 后端 | MSAA 4 与 0 之间切换 |
+| `glstress` | GL 后端 | 连续 GL(4)→GL(8)→CPU→GL(0) |
+| `capgl` | `use_system_caption="true"` + GL | 系统标题栏下的 GL 切换 |
+
+- 切换序列：`initial → cap_on → cap_off → shadow_off → shadow_on → type_system_round → type_small_round → type_none_round → type_big_round → type_none → type_big_round → shadow_off → cap_on_shadow_off → shadow_on_while_cap → cap_off_restore → [透明度运行时修改] → gl(msaa4) → gl_msaa8 → gl_vsync_on/off → gl_shadow_off/on → gl_type_big_round/none/default → gl_cap_on/off → cpu_restore → [透明度恢复 255] → cap_on_after_cpu → gl_while_cap → cpu_while_cap → attr_gl → attr_gpu → attr_cpu → cap_off_final`；`alpha`/`opacity`/`layered` 场景在 GL 切换前分别把 `alpha`/`opacity` 改为 180、64（`layered` 改为 128），GL→CPU 恢复后再设为 255；`layered` 场景额外执行 `user_layered`、`gl_after_user_layered`。
+- 结果（Windows 非 SDL，均为导出的有效值）：
+
+| 验证点 | 结果 |
+|---|---|
+| 标题栏开→关（`alpha`/`opacity`/`layered`） | 开启后 `layered=0`、`shadow_attached=0`；关闭后 `layered=1`、`shadow_attached=1`、`shadow_type=2`，`alpha`/`opacity` 恢复为 128 |
+| 标题栏开→关（`plain`，无分层需求） | 关闭后 `shadow_attached=1`；无分层窗口时使用系统阴影 `shadow_type=10` |
+| 阴影开关 | 关闭后 `shadow_attached=0`；再次开启恢复请求值；系统标题栏开启期间不显示自绘阴影 |
+| 阴影类型 | `system_round→12`、`small_round→4`、`none_round→8`、`big_round→2`（并自动开启分层窗口）、`none→7`，动态切换立即生效 |
+| 运行时透明度/不透明度 | `alpha`/`opacity` 设为 180、64 后立即生效，请求值同步更新；GL→CPU 后恢复为切换前的值（64 或 128），设为 255 后不破坏已生效的分层与自绘阴影 |
+| GL 请求 | `layered=0`；自绘阴影类型替换为系统阴影 `10`，`none` 保持 `7`；`alpha`/`opacity` 不生效但请求值保留 |
+| GL 下切换标题栏 | 开/关均成功；`gl_cap_on` 后 `shadow_attached=0`，关闭后恢复 |
+| GL→CPU | 分层、透明度、自绘阴影恢复：`layered=1`、`shadow_attached=1`、`shadow_type=2`、`alpha`/`opacity` 为切换前的运行时值 |
+| 系统标题栏 + GL（`capgl`） | `caption=1` 时 `backend=1`，CPU↔GL 切换均成功 |
+| `glrepeat`（`msaa=0`） | GL→CPU→GL→CPU→GL 全部成功（3/3） |
+| GPU 别名（`attr_gpu`） | 与 `GL` 请求一致；受当前窗口 MSAA 像素格式限制时回退 CPU，请求值保留 |
+| 显式分层 + GL（`gl_after_user_layered`） | 实际后端保持 CPU、`layered=1`，GL 请求值保留，未破坏外部设置 |
+
+SDL 构建下的结果：
+
+| 验证点 | SDL 结果 |
+|---|---|
+| 初始状态 | `backend=0`、`layered=1`（默认透明窗口）、自绘阴影 `shadow_type=2` |
+| 标题栏开→关 | 开启后 `layered` 保持 1、`shadow_attached=0`；关闭后恢复 `shadow_attached=1` |
+| 阴影开关/类型 | 与非 SDL 一致：`system_round→12`、`small_round→4`、`none_round→8`、`big_round→2`、`none→7` |
+| GL/GPU 请求 | 有效后端恒为 CPU（`backend=0`），`req_backend=1` 保留；透明窗口与阴影状态不受影响 |
+| GL 下切换标题栏 | 开/关均正常，`shadow_attached` 按 0/1 切换 |
+| 运行时透明度/不透明度 | `alpha`/`opacity` 修改立即生效，GL 请求不影响；恢复 255 正常 |
+| 显式分层 + GL | `layered=1` 保持，GL 请求归一为 CPU |
+| 场景执行 | 8 个场景全部生成完整报告（`done`），无崩溃 |
+
+SDL 的 `render_backend_type=GL` 归一为 CPU、透明窗口不随系统标题栏关闭，均与 6.2 / 第 8 节一致。
+
+#### 12.7.1 动态测试中发现并修复的问题
+
+1. **动态切换系统标题栏后阴影状态反向**
+   - 现象：开启系统标题栏后 `shadow_attached` 仍为 1，关闭后变为 0。
+   - 根因：`WindowBase::SetUseSystemCaption` 先调用 Native 接口、后更新请求值；Native 状态变化回调中按旧请求值重新 Resolve 阴影。
+   - 修复：先调用 `OnRequestedUseSystemCaptionChanged` 更新请求值，再修改 Native 窗口状态。
+   - 验证：`cap_on` 后 `caption=1 / shadow_attached=0`，`cap_off` 后 `shadow_attached=1`。
+
+2. **关闭系统标题栏后自绘阴影未恢复**
+   - 现象：`alpha`/`opacity`/`layered_window=true` 场景关闭系统标题栏后 `shadow_attached=0`。
+   - 根因：`Window::RestoreRequestedWindowAttributes` 先恢复阴影、后恢复分层窗口；阴影 Resolve 使用切换前的旧分层状态，且 `m_bApplyingResolvedAttributes` 抑制了 `OnLayeredWindowChanged` 的二次恢复。
+   - 修复：调整顺序为“先恢复分层窗口/透明度，再按最新分层状态恢复阴影”；恢复期间继续抑制重复回调。
+   - 验证：`alpha`/`opacity`/`layered` 场景 `cap_off` 后 `layered=1`、`shadow_attached=1`、`shadow_type=2`。
+
+3. **GL→CPU 后阴影类型停留在系统阴影**
+   - 现象：请求 `shadow_type=default` 且窗口需要分层时，GL→CPU 后 `shadow_type=10`（系统阴影），未恢复为自绘阴影 `2`。
+   - 根因：GL 下 `SetShadowType` 保存的是经 GL 替换后的系统阴影类型，恢复时只恢复了开关、未恢复类型。
+   - 修复：`RestoreRequestedWindowAttributes` 在恢复开关的同时按 Resolve 结果调用 `ApplyShadowType`。
+   - 验证：`cpu_restore` 后 `layered=1`、`shadow_attached=1`、`shadow_type=2`。
+
+#### 12.7.2 动态切换的限制
+
+- **同一窗口的 GL 多重采样像素格式（仅 Windows 非 SDL）**：窗口第一次以 `msaa>0` 创建 GL 上下文后，再请求 `msaa=0` 的 GL 会创建失败（`glmsaa`、`glstress` 可复现）：实际后端回退 CPU，GL 请求值保留；`msaa=0` 的往返切换（`glrepeat`）正常。原因是 Win32 窗口的像素格式在首次设置后无法按新的采样数重新选择，需要重建窗口才能切换，属平台限制而非 Resolve 逻辑问题；SDL 构建下 GL 恒归一为 CPU，不涉及该限制。
+- **GL 与分层窗口**：GL 后端不支持分层窗口；内部自动关闭分层（请求值保留）。用户通过 `SetLayeredWindow(true)` 显式设置后，GL 请求不再生效（实际保持 CPU）。
+- **SDL 构建**：`render_backend_type=GL` 恒为 CPU，属平台能力限制（见第 8 节）。
+- **SDL 透明窗口的运行时关闭**：`SDL_WINDOW_TRANSPARENT` 只能在创建时设置，动态测试只验证了“显式开启分层窗口后请求 GL”的场景，未覆盖运行时关闭透明窗口（平台不支持）。
+
+### 12.8 结论
+
+- 79 组属性用例在 Windows 非 SDL 与 SDL 两种配置下全部正常启动并生成属性报告，无崩溃、无 stderr 输出。
+- 标题栏、阴影、分层窗口、透明度、渲染后端、尺寸等属性的有效值与本文档规则一致，平台差异符合第 6～8 节约定。
+- 静态属性测试发现并修复 3 个实现问题（分层窗口被阴影关闭、分层变化后阴影未恢复、`min_size > max_size`）及 3 项平台一致性/告警问题。
+- 动态切换测试在 Windows 非 SDL 与 SDL 两种模式下各执行 8 个场景（标题栏、阴影开关/类型、运行时透明度、GL/GPU↔CPU 往返），共 16 次场景运行全部完成；发现并修复 3 个状态恢复问题（标题栏切换顺序、分层先于阴影恢复、GL 后阴影类型恢复）；GL 的 MSAA 像素格式限制与 SDL 透明窗口限制已记录。
+- Windows 与 SDL 两种配置的 `test_window_attributes` 单元测试全部通过（327 / 322 checks，0 failures），可作为后续回归基线。

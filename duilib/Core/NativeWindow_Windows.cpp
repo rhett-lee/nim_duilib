@@ -537,6 +537,10 @@ void NativeWindow_Windows::SyncCreateWindowAttributes(const WindowCreateAttribut
         //XML未显式设置layered_window，但设置了不透明度时，需要层窗口
         bLayeredWindow = true;
     }
+    else if (createAttributes.m_bLayeredWindowAlphaDefined && (createAttributes.m_nLayeredWindowAlpha != 255)) {
+        //XML未显式设置layered_window，但设置了透明度时，需要层窗口
+        bLayeredWindow = true;
+    }
 
     //使用系统标题栏时，关闭层窗口（创建前API显式设置除外）
     if (!m_bLayeredWindowSetBeforeCreate &&

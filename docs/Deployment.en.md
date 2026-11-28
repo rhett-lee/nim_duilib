@@ -62,7 +62,7 @@ Import the integration file at the end of the `.vcxproj` (it imports
 `nim_duilib.props` automatically):
 
 ```xml
-<Import Project="<SDK root>\msvc\nim_duilib.targets" />
+<Import Project="&lt;SDK root&gt;\msvc\nim_duilib.targets" />
 ```
 
 The integration file:

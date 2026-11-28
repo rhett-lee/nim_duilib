@@ -9,14 +9,14 @@ English | [简体中文](ThemeColor.md)
 ```xml
 <Global>
     <!-- Theme metadata: defines the basic attributes of the theme -->
-    <Theme 
-        name="Light"            <!-- Theme name -->
-        type="Color"            <!-- Theme type, fixed as Color -->
-        style="Light"           <!-- Theme style -->
-        accent_support="true"   <!-- Whether accent color replacement is supported -->
-        version="2.0"           <!-- Format version number -->
+    <Theme
+        name="Light"
+        type="Color"
+        style="Light"
+        accent_support="true"
+        version="2.0"
     />
-    
+
     <!-- Theme metadata extension (optional): stores additional theme configuration information -->
     <ThemeMeta>
         <Property name="author" value="nim_duilib"/>
@@ -24,19 +24,19 @@ English | [简体中文](ThemeColor.md)
         <Property name="accent_color" value="#FF0078D4"/> <!-- Default accent color of the theme -->
         <Property name="base_luminance" value="light"/>    <!-- Base luminance: light/dark -->
     </ThemeMeta>
-    
+
     <!-- Color definition area: all color configurations are here -->
-    <ThemeColor 
-        name="color_blue"        <!-- Unique color identifier, globally unique; referenced by this name in the program -->
-        value="#FF0078D4"        <!-- Actual color value, format is #AARRGGBB, with Alpha channel first -->
-        type="common"            <!-- Control type group, divided by functional module, for component-based management -->
-        category="basic_color"   <!-- Color usage category, divided by visual role, for batch filtering by function -->
-        role="primary"           <!-- Color role: used for accent color derivation -->
-        derived_from=""          <!-- Derivation source: which color it is derived from -->
-        adjust=""                <!-- Adjustment formula: color adjustment rules during derivation -->
-        fixed="false"            <!-- Whether fixed: whether it remains unchanged during accent color replacement -->
-        comment_cn="Core accent color"         <!-- Chinese comment -->
-        comment_en="Core accent color"  <!-- English comment -->
+    <ThemeColor
+        name="color_blue"
+        value="#FF0078D4"
+        type="common"
+        category="basic_color"
+        role="primary"
+        derived_from=""
+        adjust=""
+        fixed="false"
+        comment_cn="Core accent color"
+        comment_en="Core accent color"
     />
 </Global>
 ```
@@ -114,12 +114,14 @@ English | [简体中文](ThemeColor.md)
 | `name` | snake_case | string | ✅ | Theme name | `Light`, `Dark` |
 | `type` | snake_case | string | ✅ | Theme type | Fixed as `Color` |
 | `style` | snake_case | string | ✅ | Theme style | `Light`, `Dark`, `HighContrastBlack` |
-| `version` | snake_case | string | ✅ | Format version number | `2.0` |
-| `accent_support` | snake_case | boolean | - | Whether accent color replacement is supported | `true` / `false` |
+| `version` | snake_case | string | - | Format version number (reserved field; not read by the current runtime) | `2.0` |
+| `accent_support` | snake_case | boolean | - | Whether accent color replacement is supported (reserved field; not read by the current runtime; accent color is controlled by `ThemeColor`'s `support_accent`) | `true` / `false` |
 
 ### 3.2 ThemeMeta Node Attributes
 
-| Attribute name (name) | Naming style | Type | Description | Example value |
+`ThemeMeta` stores arbitrary key-value pairs through child nodes `<Property name="..." value="..."/>`; the table below lists the conventional `name` values.
+
+| Property name | Naming style | Type | Description | Example value |
 |---------------|---------|------|------|--------|
 | `author` | snake_case | string | Theme author / source | `nim_duilib` |
 | `contrast_ratio` | snake_case | float | **Contrast ratio**: the theme's default WCAG contrast value, used for accessibility checking | `7.2`, `4.5` |
@@ -137,11 +139,13 @@ English | [简体中文](ThemeColor.md)
 | `role` | snake_case | enum | ⭐ | **Color role**, its position in the accent color derivation system | `primary`, `neutral` |
 | `derived_from` | snake_case | string | ⭐ | **Derivation source**, references the `name` of another color, indicating this color is derived from that color | `color_blue` |
 | `adjust` | formula | string | ⭐ | **Derivation adjustment formula**, the color transformation rule during derivation | `lightness:+15` |
-| `fixed` | snake_case | boolean | ⭐ | **Whether fixed**:<br>`true` = **remains unchanged** during accent color replacement<br>`false` = **needs recalculation** during accent color replacement | `true` / `false` |
+| `fixed` | snake_case | boolean | ⭐ | **Whether fixed**:<br>`true` = does not participate in color generation; the `value` is kept<br>`false` = participates in accent/semantic color derivation | `true` / `false` |
+| `support_accent` | snake_case | boolean | - | Whether to use the theme accent color: when `true`, the generated color value is the accent color (`fixed="true"` keeps the fixed value) | `true` / `false` |
+| `contrast_bg` | - | string | - | Background color name used for contrast checking (theme checking tools only; not used in runtime color generation) | `bg_window_main` |
 | `comment_cn` | - | string | - | **Chinese comment description** | "Core accent color" |
 | `comment_en` | - | string | - | **English comment description** | "Core accent color" |
 
-> **Important note**: `fixed` is the only criterion - only colors with `fixed="false"` participate in the calculation of the accent color derivation chain.
+> **Important note**: colors with `fixed="true"` do not participate in generation and use `value` directly; colors with `fixed="false"` participate in derivation, where `support_accent="true"` colors use the theme accent color and the rest are generated by `category`/`role` rules.
 
 ### 3.4 Description of `type` / `category` Attribute Values
 
@@ -488,7 +492,8 @@ The following 2 items are still missing from the current themes; it is suggested
 | fixed is a boolean | `//ThemeColor[@fixed[not(. = 'true' or . = 'false')]]` | Empty node set |
 | role is within the enumeration range | `//ThemeColor[@role[not(. = ('primary', 'primary_light', 'primary_dark', 'neutral', 'semantic_success', 'semantic_error', 'semantic_warning'))]]` | Empty node set |
 | Value is in ARGB format | `//ThemeColor[not(matches(@value, '^#[0-9A-Fa-f]{8}$'))]` | Empty node set |
-| No leftover old attributes | `//ThemeColor[@support_accent]` | Empty node set |
+| support_accent is a boolean | `//ThemeColor[@support_accent[not(. = 'true' or . = 'false')]]` | Empty node set |
+| contrast_bg references an existing color | `//ThemeColor[@contrast_bg and not(//ThemeColor/@name = @contrast_bg)]` | Empty node set |
 | Attribute naming is consistent | `//ThemeColor[@*[starts-with(name(), 'd') and not(starts-with(name(), 'derived_from'))]]` | Empty node set |
 
 ### 9.2 Recommended Validation Tools

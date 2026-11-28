@@ -36,7 +36,9 @@ Window::Window() :
     m_bShadowUpdatePending(false),
     m_bCheckSetWindowFocus(false),
     m_savedShadowType(ShadowType::kShadowDefault),
-    m_bShadowTypeSaved(false)
+    m_bShadowTypeSaved(false),
+    m_bRequestedAttributesValid(false),
+    m_bApplyingResolvedAttributes(false)
 {
     m_toolTip = std::make_unique<ToolTip>();
     m_windowRoot = std::make_unique<WindowRoot>(this);
@@ -54,38 +56,132 @@ Window::~Window()
 
 void Window::SetAttribute(const DString& strName, const DString& strValue)
 {
-    if (strName == _T("use_system_caption")) {
+    //属性名称的匹配与XML解析保持一致：不区分大小写，并支持历史别名
+    if (StringUtil::IsEqualNoCase(strName, _T("use_system_caption"))) {
         //是否使用操作系统默认的标题栏
         SetUseSystemCaption(StringUtil::IsValueTrue(strValue));
     }
-    else if (strName == _T("shadow_attached")) {
+    else if (StringUtil::IsEqualNoCase(strName, _T("shadow_attached")) ||
+             StringUtil::IsEqualNoCase(strName, _T("shadowattached"))) {
         //是否开启阴影
         SetShadowAttached(StringUtil::IsValueTrue(strValue));
     }
-    else if (strName == _T("shadow_type")) {
+    else if (StringUtil::IsEqualNoCase(strName, _T("shadow_type"))) {
         //设置窗口的阴影类型
         ShadowType nShadowType = ShadowType::kShadowDefault;
         if (Shadow::GetShadowType(strValue, nShadowType)) {
             SetShadowType(nShadowType);
         }
-    }    
-    else if (strName == _T("layered_window")) {
+    }
+    else if (StringUtil::IsEqualNoCase(strName, _T("shadow_image"))) {
+        //阴影图片
+        SetShadowImage(strValue);
+    }
+    else if (StringUtil::IsEqualNoCase(strName, _T("shadow_corner"))) {
+        //阴影九宫格属性
+        UiPadding rcShadowCorner;
+        AttributeUtil::ParsePaddingValue(strValue.c_str(), rcShadowCorner);
+        SetShadowCorner(rcShadowCorner);
+    }
+    else if (StringUtil::IsEqualNoCase(strName, _T("shadow_border_round"))) {
+        //阴影的圆角大小
+        UiSize szShadowBorderRound;
+        AttributeUtil::ParseSizeValue(strValue.c_str(), szShadowBorderRound);
+        SetShadowBorderRound(szShadowBorderRound);
+    }
+    else if (StringUtil::IsEqualNoCase(strName, _T("shadow_border_size"))) {
+        //阴影的边框大小
+        SetShadowBorderSize(StringUtil::StringToInt32(strValue));
+    }
+    else if (StringUtil::IsEqualNoCase(strName, _T("shadow_border_color"))) {
+        //阴影的边框颜色
+        SetShadowBorderColor(strValue);
+    }
+    else if (StringUtil::IsEqualNoCase(strName, _T("shadow_snap"))) {
+        //阴影是否支持窗口贴边操作
+        SetEnableShadowSnap(StringUtil::IsValueTrue(strValue));
+    }
+    else if (StringUtil::IsEqualNoCase(strName, _T("size_box")) ||
+             StringUtil::IsEqualNoCase(strName, _T("sizebox"))) {
+        //窗口四边可拉伸范围
+        UiRect rcSizeBox;
+        AttributeUtil::ParseRectValue(strValue.c_str(), rcSizeBox, false);
+        SetSizeBox(rcSizeBox, true);
+    }
+    else if (StringUtil::IsEqualNoCase(strName, _T("caption"))) {
+        //标题栏区域
+        UiRect rcCaption;
+        AttributeUtil::ParseRectValue(strValue.c_str(), rcCaption);
+        SetCaptionRect(rcCaption, true);
+    }
+    else if (StringUtil::IsEqualNoCase(strName, _T("snap_layout_menu"))) {
+        //是否启用贴边布局菜单
+        SetEnableSnapLayoutMenu(StringUtil::IsValueTrue(strValue));
+    }
+    else if (StringUtil::IsEqualNoCase(strName, _T("sys_menu"))) {
+        //是否启用系统菜单
+        SetEnableSysMenu(StringUtil::IsValueTrue(strValue));
+    }
+    else if (StringUtil::IsEqualNoCase(strName, _T("sys_menu_rect"))) {
+        //系统菜单区域
+        UiRect rcSysMenuRect;
+        AttributeUtil::ParseRectValue(strValue.c_str(), rcSysMenuRect);
+        SetSysMenuRect(rcSysMenuRect, true);
+    }
+    else if (StringUtil::IsEqualNoCase(strName, _T("round_corner")) ||
+             StringUtil::IsEqualNoCase(strName, _T("roundcorner"))) {
+        //窗口圆角大小
+        UiSize szRoundCorner;
+        AttributeUtil::ParseSizeValue(strValue.c_str(), szRoundCorner);
+        SetRoundCorner(szRoundCorner.cx, szRoundCorner.cy);
+    }
+    else if (StringUtil::IsEqualNoCase(strName, _T("icon"))) {
+        //窗口图标
+        SetWindowIcon(strValue);
+    }
+    else if (StringUtil::IsEqualNoCase(strName, _T("text"))) {
+        //窗口标题文本
+        SetText(strValue);
+    }
+    else if (StringUtil::IsEqualNoCase(strName, _T("text_id")) ||
+             StringUtil::IsEqualNoCase(strName, _T("textid"))) {
+        //窗口标题的文本ID（多语言）
+        SetTextId(strValue);
+    }
+    else if (StringUtil::IsEqualNoCase(strName, _T("min_size")) ||
+             StringUtil::IsEqualNoCase(strName, _T("mininfo"))) {
+        //窗口最小大小
+        UiSize szMinSize;
+        AttributeUtil::ParseSizeValue(strValue.c_str(), szMinSize);
+        SetWindowMinimumSize(szMinSize, true);
+    }
+    else if (StringUtil::IsEqualNoCase(strName, _T("max_size")) ||
+             StringUtil::IsEqualNoCase(strName, _T("maxinfo"))) {
+        //窗口最大大小
+        UiSize szMaxSize;
+        AttributeUtil::ParseSizeValue(strValue.c_str(), szMaxSize);
+        SetWindowMaximumSize(szMaxSize, true);
+    }
+    else if (StringUtil::IsEqualNoCase(strName, _T("layered_window")) ||
+             StringUtil::IsEqualNoCase(strName, _T("layeredwindow"))) {
         //是否为分层窗口
         SetLayeredWindow(StringUtil::IsValueTrue(strValue), true);
     }
-    else if ((strName == _T("alpha")) || (strName == _T("layered_window_alpha"))) {
+    else if (StringUtil::IsEqualNoCase(strName, _T("alpha")) ||
+             StringUtil::IsEqualNoCase(strName, _T("layered_window_alpha"))) {
         //分层窗口的透明度, 该值在UpdateLayeredWindow函数中作为参数使用
         SetLayeredWindowAlpha(StringUtil::StringToInt32(strValue));
     }
-    else if ((strName == _T("opacity")) || (strName == _T("layered_window_opacity"))) {
+    else if (StringUtil::IsEqualNoCase(strName, _T("opacity")) ||
+             StringUtil::IsEqualNoCase(strName, _T("layered_window_opacity"))) {
         //分层窗口的透明度, 该值在SetLayeredWindowAttributes函数中作为参数使用
         SetLayeredWindowOpacity(StringUtil::StringToInt32(strValue));
     }
-    else if (strName == _T("drag_drop")) {
+    else if (StringUtil::IsEqualNoCase(strName, _T("drag_drop"))) {
         //是否允许拖放操作
         SetEnableDragDrop(StringUtil::IsValueTrue(strValue));
     }
-    else if (strName == _T("render_backend_type")) {
+    else if (StringUtil::IsEqualNoCase(strName, _T("render_backend_type"))) {
         //渲染引擎的绘制方式（窗口运行过程中可以实时切换）
         RenderBackendType backendType = RenderBackendType::kRaster_BackendType;
         if (StringUtil::IsEqualNoCase(strValue, _T("GL")) || StringUtil::IsEqualNoCase(strValue, _T("GPU"))) {
@@ -98,19 +194,120 @@ void Window::SetAttribute(const DString& strName, const DString& strValue)
             ASSERT(0);
         }
         SetRenderBackendType(backendType, m_nMsaaSampleCount, m_bDisableVsync);
+        if (m_bRequestedAttributesValid && !m_bApplyingResolvedAttributes) {
+            m_requestedAttributes.m_renderBackendType = backendType;
+            m_requestedAttributes.m_bRenderBackendTypeDefined = true;
+        }
     }
-    else if (strName == _T("vsync")) {
+    else if (StringUtil::IsEqualNoCase(strName, _T("vsync"))) {
         //是否启用垂直同步（窗口运行过程中可以实时切换，仅GL绘制方式有效）
-        SetRenderBackendType(GetRenderBackendType(), m_nMsaaSampleCount, !StringUtil::IsValueTrue(strValue));
+        const bool bVsync = StringUtil::IsValueTrue(strValue);
+        ApplyRenderBackendType(GetRenderBackendType(), m_nMsaaSampleCount, !bVsync);
+        if (m_bRequestedAttributesValid && !m_bApplyingResolvedAttributes) {
+            m_requestedAttributes.m_bVsync = bVsync;
+            m_requestedAttributes.m_bVsyncDefined = true;
+        }
     }
-    else if (strName == _T("msaa")) {
+    else if (StringUtil::IsEqualNoCase(strName, _T("msaa"))) {
         //MSAA采样数（窗口运行过程中可以实时切换，仅GL绘制方式有效）
         int32_t nMsaaSampleCount = StringUtil::StringToInt32(strValue);
         if (nMsaaSampleCount < 0) {
             nMsaaSampleCount = 0;
         }
-        SetRenderBackendType(GetRenderBackendType(), nMsaaSampleCount, m_bDisableVsync);
+        ApplyRenderBackendType(GetRenderBackendType(), nMsaaSampleCount, m_bDisableVsync);
+        if (m_bRequestedAttributesValid && !m_bApplyingResolvedAttributes) {
+            m_requestedAttributes.m_nMsaaSampleCount = nMsaaSampleCount;
+            m_requestedAttributes.m_bMsaaDefined = true;
+        }
     }
+}
+
+void Window::SetRequestedWindowAttributes(const WindowAttributeValues& values)
+{
+    m_requestedAttributes = values;
+    m_bRequestedAttributesValid = true;
+}
+
+const WindowAttributeValues& Window::GetRequestedWindowAttributes() const
+{
+    return m_requestedAttributes;
+}
+
+void Window::OnRequestedUseSystemCaptionChanged(bool bUseSystemCaption)
+{
+    if (!m_bRequestedAttributesValid || m_bApplyingResolvedAttributes) {
+        return;
+    }
+    m_requestedAttributes.m_bUseSystemCaption = bUseSystemCaption;
+    m_requestedAttributes.m_bUseSystemCaptionDefined = true;
+}
+
+void Window::OnRequestedLayeredWindowChanged(bool bIsLayeredWindow)
+{
+    if (!m_bRequestedAttributesValid || m_bApplyingResolvedAttributes) {
+        return;
+    }
+    m_requestedAttributes.m_bLayeredWindow = bIsLayeredWindow;
+    m_requestedAttributes.m_bLayeredWindowDefined = true;
+}
+
+void Window::OnRequestedLayeredWindowAlphaChanged(int32_t nAlpha)
+{
+    if (!m_bRequestedAttributesValid || m_bApplyingResolvedAttributes) {
+        return;
+    }
+    m_requestedAttributes.m_nAlpha = nAlpha;
+    m_requestedAttributes.m_bAlphaDefined = true;
+}
+
+void Window::OnRequestedLayeredWindowOpacityChanged(int32_t nOpacity)
+{
+    if (!m_bRequestedAttributesValid || m_bApplyingResolvedAttributes) {
+        return;
+    }
+    m_requestedAttributes.m_nOpacity = nOpacity;
+    m_requestedAttributes.m_bOpacityDefined = true;
+}
+
+void Window::RestoreRequestedWindowAttributes()
+{
+    if (!m_bRequestedAttributesValid) {
+        return;
+    }
+    ShadowResolveParam param;
+    param.m_bSystemShadowSupported = NativeWnd()->IsSystemShadowSupported();
+    param.m_bGlBackendActive = (GetRenderBackendType() == RenderBackendType::kNativeGL_BackendType);
+    param.m_bLayeredWindow = IsLayeredWindow();
+
+    m_bApplyingResolvedAttributes = true;
+
+    //先恢复分层窗口与透明度：阴影Resolve依赖分层窗口的有效状态，
+    //如果先恢复阴影，会使用切换前的旧分层状态，导致标题栏关闭后自绘阴影无法恢复
+    const LayeredWindowAttributes layered = ResolveLayeredWindowAttributes(m_requestedAttributes, param, nullptr);
+    if (layered.m_bIsLayeredWindowDefined &&
+        (layered.m_bIsLayeredWindow != IsLayeredWindow())) {
+        SetLayeredWindowForConfig(layered.m_bIsLayeredWindow, true);
+    }
+    if (layered.m_bAlphaDefined) {
+        SetLayeredWindowAlpha(layered.m_nAlpha);
+    }
+    if (layered.m_bOpacityDefined) {
+        //SDL下opacity不依赖透明窗口；Windows下Resolve已保证只在分层窗口有效时才标记为Defined
+        SetLayeredWindowOpacity(layered.m_nOpacity);
+    }
+
+    //再按更新后的分层窗口状态恢复阴影的开关（阴影类型由GL切换逻辑负责恢复）
+    param.m_bLayeredWindow = IsLayeredWindow();
+    const ShadowAttributes shadow = ResolveShadowAttributes(m_requestedAttributes, param, nullptr);
+    if (IsShadowAttached() != shadow.m_bShadowAttached) {
+        SetShadowAttached(shadow.m_bShadowAttached);
+    }
+    if (GetShadowType() != shadow.m_nShadowType) {
+        //恢复阴影类型：GL切换到CPU后，默认阴影类型需要按当前分层窗口状态重新解析
+        ApplyShadowType(shadow.m_nShadowType);
+    }
+
+    m_bApplyingResolvedAttributes = false;
 }
 
 void Window::SetEnableDragDrop(bool bEnable)
@@ -167,6 +364,21 @@ Window* Window::GetParentWindow() const
 }
 
 bool Window::SetRenderBackendType(RenderBackendType backendType, int32_t nMsaaSampleCount, bool bDisableVsync)
+{
+    const bool bRet = ApplyRenderBackendType(backendType, nMsaaSampleCount, bDisableVsync);
+    if (bRet && m_bRequestedAttributesValid && !m_bApplyingResolvedAttributes) {
+        //运行时显式切换：更新请求值，保证后续Resolve不会恢复旧值
+        m_requestedAttributes.m_renderBackendType = backendType;
+        m_requestedAttributes.m_bRenderBackendTypeDefined = true;
+        m_requestedAttributes.m_nMsaaSampleCount = (nMsaaSampleCount >= 0) ? nMsaaSampleCount : 0;
+        m_requestedAttributes.m_bMsaaDefined = true;
+        m_requestedAttributes.m_bVsync = !bDisableVsync;
+        m_requestedAttributes.m_bVsyncDefined = true;
+    }
+    return bRet;
+}
+
+bool Window::ApplyRenderBackendType(RenderBackendType backendType, int32_t nMsaaSampleCount, bool bDisableVsync)
 {
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     //Windows平台且非SDL构建模式：支持GPU/GL绘制
@@ -267,6 +479,10 @@ bool Window::SetRenderBackendType(RenderBackendType backendType, int32_t nMsaaSa
     else if (m_render != nullptr) {
         //Render创建后，需要更新窗口属性
         OnWindowRenderCreated();
+    }
+    if (bRet && bRecreate && m_bWindowInitFinished) {
+        //后端切换后，按请求值恢复被冲突关闭的分层窗口、透明度与阴影属性
+        RestoreRequestedWindowAttributes();
     }
     ASSERT(bRet);
     return bRet;
@@ -666,6 +882,11 @@ void Window::ClearWindow()
 
     RemoveAllClass();
     RemoveAllOptionGroups();
+
+    //窗口销毁后，请求值失效（避免后续重新初始化时使用过期配置）
+    m_requestedAttributes = WindowAttributeValues();
+    m_bRequestedAttributesValid = false;
+    m_bApplyingResolvedAttributes = false;
 }
 
 bool Window::AttachBox(Box* pRoot)
@@ -1071,6 +1292,11 @@ void Window::ClearImageCache()
 
 void Window::OnUseSystemCaptionBarChanged()
 {
+    //运行过程中切换系统标题栏：按请求值重新Resolve，关闭或恢复阴影、分层窗口与透明度
+    if (m_bWindowInitFinished && m_bRequestedAttributesValid) {
+        RestoreRequestedWindowAttributes();
+        return;
+    }
     if (IsUseSystemCaption()) {
         //使用系统标题栏时，阴影必须关闭
         if (IsShadowAttached()) {
@@ -1078,7 +1304,6 @@ void Window::OnUseSystemCaptionBarChanged()
         }
     }
     else {
-        //运行过程中关闭系统标题栏时，需要开启阴影；
         //窗口创建过程中，阴影状态以XML配置为准，避免重复设置阴影（减少开销）
         if (!IsShadowAttached() && m_bWindowInitFinished) {
             SetShadowAttached(true);
@@ -1088,7 +1313,19 @@ void Window::OnUseSystemCaptionBarChanged()
 
 void Window::OnLayeredWindowChanged()
 {
-    //根据窗口是否为层窗口，重新初始化阴影附加属性值(层窗口为true，否则为false)
+    //分层窗口状态变化后，按请求值重新判断自绘阴影是否可用（只调整有效值，请求值保留）
+    if (m_bRequestedAttributesValid && !m_bApplyingResolvedAttributes && IsWindow()) {
+        ShadowResolveParam param;
+        param.m_bSystemShadowSupported = NativeWnd()->IsSystemShadowSupported();
+        param.m_bGlBackendActive = (GetRenderBackendType() == RenderBackendType::kNativeGL_BackendType);
+        param.m_bLayeredWindow = IsLayeredWindow();
+        m_bApplyingResolvedAttributes = true;
+        const ShadowAttributes shadow = ResolveShadowAttributes(m_requestedAttributes, param, nullptr);
+        if (IsShadowAttached() != shadow.m_bShadowAttached) {
+            SetShadowAttached(shadow.m_bShadowAttached);
+        }
+        m_bApplyingResolvedAttributes = false;
+    }
     InvalidateAll();
 }
 
@@ -1206,6 +1443,19 @@ void Window::UpdateLayeredWindowStyleEx(bool bRedraw)
         }
         bNeedLayeredWindow = Shadow::IsShadowTypeNeedLayeredWindow(shadowType);
     }
+    //透明度/不透明度也要求分层窗口：不能因阴影的内部自动调整而关闭分层窗口
+    if ((GetLayeredWindowAlpha() < 255) || (GetLayeredWindowOpacity() < 255)) {
+        bNeedLayeredWindow = true;
+    }
+    //请求值显式开启分层窗口时，以请求值为准（系统标题栏、GL后端的强制互斥规则在下面处理）
+    if (m_bRequestedAttributesValid &&
+        m_requestedAttributes.m_bLayeredWindowDefined && m_requestedAttributes.m_bLayeredWindow) {
+        bNeedLayeredWindow = true;
+    }
+    //系统标题栏与GL后端不允许分层窗口：高优先级规则关闭有效值
+    if (IsUseSystemCaption()) {
+        bNeedLayeredWindow = false;
+    }
     IRender* pRender = IsRenderCreated() ? GetRender() : nullptr;
     if ((pRender != nullptr) && (pRender->GetRenderBackendType() == RenderBackendType::kNativeGL_BackendType)) {
         bNeedLayeredWindow = false;
@@ -1229,6 +1479,10 @@ void Window::SetShadowAttached(bool bShadowAttached)
     if (m_windowRoot->IsControlFullscreen()) {
         return;
     }
+    if (m_bRequestedAttributesValid && !m_bApplyingResolvedAttributes) {
+        m_requestedAttributes.m_bShadowAttached = bShadowAttached;
+        m_requestedAttributes.m_bShadowAttachedDefined = true;
+    }
     m_windowRoot->SetShadowAttached(bShadowAttached);
 
     ProcessWindowShadowTypeChanged();
@@ -1244,6 +1498,10 @@ void Window::SetShadowType(ShadowType nShadowType)
     ASSERT(!m_windowRoot->IsControlFullscreen());
     if (m_windowRoot->IsControlFullscreen()) {
         return;
+    }
+    if (m_bRequestedAttributesValid && !m_bApplyingResolvedAttributes) {
+        m_requestedAttributes.m_nShadowType = nShadowType;
+        m_requestedAttributes.m_bShadowTypeDefined = true;
     }
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     IRender* pRender = IsRenderCreated() ? GetRender() : nullptr;

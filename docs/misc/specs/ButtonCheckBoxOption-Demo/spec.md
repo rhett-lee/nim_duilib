@@ -100,6 +100,8 @@
 ```xml
 <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window"
       border_round="6,6" padding="16,14,16,14" width="50%" height="auto" margin="0,0,6,0">
+    <!-- 卡片内容 -->
+</VBox>
 ```
 
 ### 5.2 卡片布局

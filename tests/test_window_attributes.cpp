@@ -7,6 +7,9 @@
 // 这些接口不创建窗口，可直接在命令行（含 CI）运行。
 
 #include "duilib/Core/WindowAttributes.h"
+#include "duilib/Core/Window.h"
+#include "duilib/Core/WindowBuilder.h"
+#include "duilib/Core/WindowCreateAttributes.h"
 #include "duilib/Core/DpiManager.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/third_party/xml/pugixml.hpp"
@@ -319,10 +322,13 @@ void TestResolveLayeredWindow()
         CHECK(!layered.m_bOpacityDefined);
     }
     {
-        //系统标题栏与层窗口互斥：显式配置层窗口时被关闭
+        //Windows非SDL：系统标题栏与层窗口互斥，显式配置层窗口时被关闭
         ui::WindowAttributeValues values;
         CHECK(ParseWindow(_T("<Window use_system_caption=\"true\" layered_window=\"true\"/>"), values));
-        const ui::LayeredWindowAttributes layered = ui::ResolveLayeredWindowAttributes(values, param);
+        ui::ShadowResolveParam winParam = param;
+        winParam.m_bSdlTransparent = false;
+        winParam.m_bLayeredRequiredForSelfDrawnShadow = true;
+        const ui::LayeredWindowAttributes layered = ui::ResolveLayeredWindowAttributes(values, winParam);
         CHECK(layered.m_bIsLayeredWindowDefined);
         CHECK(!layered.m_bIsLayeredWindow);
     }
@@ -384,6 +390,7 @@ void TestResolveRenderBackend()
         ui::WindowAttributeValues values;
         CHECK(ParseWindow(_T("<Window render_backend_type=\"GL\" vsync=\"false\" msaa=\"4\"/>"), values));
         ui::RenderBackendResolveParam param;
+        param.m_bGlSupported = true;
         const ui::RenderBackendAttributes result = ui::ResolveRenderBackendAttributes(values, param);
         CHECK(result.m_backendType == ui::RenderBackendType::kNativeGL_BackendType);
         CHECK(result.m_nMsaaSampleCount == 4);
@@ -395,38 +402,69 @@ void TestResolveRenderBackend()
         ui::WindowAttributeValues values;
         CHECK(ParseWindow(_T("<Window render_backend_type=\"GPU\"/>"), values));
         ui::RenderBackendResolveParam param;
+        param.m_bGlSupported = true;
         const ui::RenderBackendAttributes result = ui::ResolveRenderBackendAttributes(values, param);
         CHECK(result.m_backendType == ui::RenderBackendType::kNativeGL_BackendType);
     }
     {
-        //XML配置GL + opacity < 255：降级为CPU绘制，XML中的MSAA配置保留
+        //XML配置GL + opacity < 255：后端保持GL（分层窗口冲突由分层Resolve关闭，不再降级后端）
         ui::WindowAttributeValues values;
         CHECK(ParseWindow(_T("<Window render_backend_type=\"GL\" msaa=\"4\" opacity=\"128\"/>"), values));
         ui::RenderBackendResolveParam param;
+        param.m_bGlSupported = true;
         const ui::RenderBackendAttributes result = ui::ResolveRenderBackendAttributes(values, param);
-        CHECK(result.m_backendType == ui::RenderBackendType::kRaster_BackendType);
+        CHECK(result.m_backendType == ui::RenderBackendType::kNativeGL_BackendType);
         CHECK(result.m_nMsaaSampleCount == 4);
-        CHECK(result.m_bFallbackToRaster);
+        CHECK(!result.m_bFallbackToRaster);
     }
     {
-        //使用默认配置GL + opacity < 255：降级时MSAA与垂直同步复位
+        //使用默认配置GL + opacity < 255：保持GL，默认MSAA与垂直同步不被复位
         ui::WindowAttributeValues values;
         CHECK(ParseWindow(_T("<Window opacity=\"128\"/>"), values));
         ui::RenderBackendResolveParam param;
+        param.m_bGlSupported = true;
         param.m_defaultBackendType = ui::RenderBackendType::kNativeGL_BackendType;
         param.m_nDefaultMsaaSampleCount = 8;
         param.m_bDefaultDisableVsync = true;
         const ui::RenderBackendAttributes result = ui::ResolveRenderBackendAttributes(values, param);
+        CHECK(result.m_backendType == ui::RenderBackendType::kNativeGL_BackendType);
+        CHECK(result.m_nMsaaSampleCount == 8);
+        CHECK(result.m_bDisableVsync);
+        CHECK(!result.m_bFallbackToRaster);
+    }
+    {
+        //逐字段解析：XML只配置后端时，MSAA与垂直同步仍继承默认配置
+        ui::WindowAttributeValues values;
+        CHECK(ParseWindow(_T("<Window render_backend_type=\"GL\"/>"), values));
+        ui::RenderBackendResolveParam param;
+        param.m_bGlSupported = true;
+        param.m_nDefaultMsaaSampleCount = 4;
+        param.m_bDefaultDisableVsync = true;
+        const ui::RenderBackendAttributes result = ui::ResolveRenderBackendAttributes(values, param);
+        CHECK(result.m_backendType == ui::RenderBackendType::kNativeGL_BackendType);
+        CHECK(result.m_nMsaaSampleCount == 4);
+        CHECK(result.m_bDisableVsync);
+    }
+    {
+        //平台/构建不支持GL：在Resolve阶段归一为CPU，并复位MSAA/垂直同步
+        ui::WindowAttributeValues values;
+        CHECK(ParseWindow(_T("<Window render_backend_type=\"GL\" msaa=\"4\" vsync=\"true\"/>"), values));
+        ui::RenderBackendResolveParam param;
+        param.m_bGlSupported = false;
+        std::vector<DString> warnings;
+        const ui::RenderBackendAttributes result = ui::ResolveRenderBackendAttributes(values, param, &warnings);
         CHECK(result.m_backendType == ui::RenderBackendType::kRaster_BackendType);
         CHECK(result.m_nMsaaSampleCount == 0);
         CHECK(!result.m_bDisableVsync);
         CHECK(result.m_bFallbackToRaster);
+        CHECK(!warnings.empty());
     }
     {
         //XML未配置：使用传入的默认值
         ui::WindowAttributeValues values;
         CHECK(ParseWindow(_T("<Window/>"), values));
         ui::RenderBackendResolveParam param;
+        param.m_bGlSupported = true;
         param.m_defaultBackendType = ui::RenderBackendType::kNativeGL_BackendType;
         param.m_nDefaultMsaaSampleCount = 2;
         param.m_bDefaultDisableVsync = true;
@@ -441,6 +479,7 @@ void TestResolveRenderBackend()
         ui::WindowAttributeValues values;
         CHECK(ParseWindow(_T("<Window render_backend_type=\"CPU\"/>"), values));
         ui::RenderBackendResolveParam param;
+        param.m_bGlSupported = true;
         param.m_defaultBackendType = ui::RenderBackendType::kNativeGL_BackendType;
         const ui::RenderBackendAttributes result = ui::ResolveRenderBackendAttributes(values, param);
         CHECK(result.m_backendType == ui::RenderBackendType::kRaster_BackendType);
@@ -452,6 +491,346 @@ void TestResolveRenderBackend()
         CHECK(ParseWindow(_T("<Window msaa=\"-4\"/>"), values));
         CHECK(values.m_bMsaaDefined && (values.m_nMsaaSampleCount == 0));
     }
+}
+
+/** 分层窗口补充规则：alpha推导、显式false优先、SDL与Windows的差异 */
+void TestResolveLayeredWindowExtra()
+{
+    ui::ShadowResolveParam winParam;
+    winParam.m_bSdlTransparent = false;
+    winParam.m_bLayeredRequiredForSelfDrawnShadow = true;
+    winParam.m_bSdlTransparentSupported = true;
+
+    {
+        //未显式配置layered_window，alpha < 255：默认开启分层窗口
+        ui::WindowAttributeValues values;
+        CHECK(ParseWindow(_T("<Window alpha=\"128\" shadow_attached=\"false\"/>"), values));
+        const ui::LayeredWindowAttributes layered = ui::ResolveLayeredWindowAttributes(values, winParam);
+        CHECK(layered.m_bIsLayeredWindowDefined);
+        CHECK(layered.m_bIsLayeredWindow);
+        CHECK(layered.m_bAlphaDefined && (layered.m_nAlpha == 128));
+    }
+    {
+        //显式layered_window=false优先：alpha/opacity只关闭有效值（请求值保留在values中）
+        ui::WindowAttributeValues values;
+        CHECK(ParseWindow(_T("<Window layered_window=\"false\" alpha=\"128\" opacity=\"128\" shadow_attached=\"false\"/>"), values));
+        const ui::LayeredWindowAttributes layered = ui::ResolveLayeredWindowAttributes(values, winParam);
+        CHECK(layered.m_bIsLayeredWindowDefined);
+        CHECK(!layered.m_bIsLayeredWindow);
+        CHECK(!layered.m_bAlphaDefined);
+        CHECK(!layered.m_bOpacityDefined);
+        CHECK(values.m_bAlphaDefined && (values.m_nAlpha == 128));
+        CHECK(values.m_bOpacityDefined && (values.m_nOpacity == 128));
+    }
+    {
+        //GL有效时不允许分层窗口：opacity的有效值被关闭，请求值保留
+        ui::WindowAttributeValues values;
+        CHECK(ParseWindow(_T("<Window opacity=\"128\"/>"), values));
+        ui::ShadowResolveParam param = winParam;
+        param.m_bGlBackendActive = true;
+        const ui::LayeredWindowAttributes layered = ui::ResolveLayeredWindowAttributes(values, param);
+        CHECK(layered.m_bIsLayeredWindowDefined);
+        CHECK(!layered.m_bIsLayeredWindow);
+        CHECK(!layered.m_bOpacityDefined);
+        CHECK(values.m_bOpacityDefined);
+    }
+    {
+        //SDL：系统标题栏不强制关闭透明窗口，alpha/opacity均可生效
+        ui::WindowAttributeValues values;
+        CHECK(ParseWindow(_T("<Window use_system_caption=\"true\" layered_window=\"true\" alpha=\"128\" opacity=\"128\"/>"), values));
+        ui::ShadowResolveParam param = winParam;
+        param.m_bSdlTransparent = true;
+        param.m_bLayeredRequiredForSelfDrawnShadow = false;
+        const ui::LayeredWindowAttributes layered = ui::ResolveLayeredWindowAttributes(values, param);
+        CHECK(layered.m_bIsLayeredWindowDefined);
+        CHECK(layered.m_bIsLayeredWindow);
+        CHECK(layered.m_bAlphaDefined);
+        CHECK(layered.m_bOpacityDefined);
+    }
+    {
+        //SDL：显式关闭透明窗口时，alpha关闭、opacity仍可生效
+        ui::WindowAttributeValues values;
+        CHECK(ParseWindow(_T("<Window layered_window=\"false\" alpha=\"128\" opacity=\"128\"/>"), values));
+        ui::ShadowResolveParam param = winParam;
+        param.m_bSdlTransparent = true;
+        param.m_bLayeredRequiredForSelfDrawnShadow = false;
+        const ui::LayeredWindowAttributes layered = ui::ResolveLayeredWindowAttributes(values, param);
+        CHECK(!layered.m_bIsLayeredWindow);
+        CHECK(!layered.m_bAlphaDefined);
+        CHECK(layered.m_bOpacityDefined);
+    }
+    {
+        //SDL：平台不支持透明窗口时，有效值关闭并告警
+        ui::WindowAttributeValues values;
+        CHECK(ParseWindow(_T("<Window/>"), values));
+        ui::ShadowResolveParam param = winParam;
+        param.m_bSdlTransparent = true;
+        param.m_bSdlTransparentSupported = false;
+        std::vector<DString> warnings;
+        const ui::LayeredWindowAttributes layered = ui::ResolveLayeredWindowAttributes(values, param, &warnings);
+        CHECK(layered.m_bIsLayeredWindowDefined);
+        CHECK(!layered.m_bIsLayeredWindow);
+        CHECK(!warnings.empty());
+    }
+}
+
+/** 阴影补充规则：标题栏、GL、分层窗口关闭时的冲突处理 */
+void TestResolveShadowExtra()
+{
+    ui::ShadowResolveParam param;
+    param.m_bSdlTransparent = false;
+    param.m_bLayeredRequiredForSelfDrawnShadow = true;
+    param.m_bLayeredWindow = true;
+
+    {
+        //使用系统标题栏：有效阴影关闭
+        ui::WindowAttributeValues values;
+        CHECK(ParseWindow(_T("<Window use_system_caption=\"true\" shadow_type=\"big_round\"/>"), values));
+        const ui::ShadowAttributes shadow = ui::ResolveShadowAttributes(values, param);
+        CHECK(!shadow.m_bShadowAttached);
+        CHECK(shadow.m_rcShadowCorner.IsEmpty());
+    }
+    {
+        //GL有效：自绘阴影切换为系统阴影（支持系统阴影时）
+        ui::WindowAttributeValues values;
+        CHECK(ParseWindow(_T("<Window shadow_type=\"big_round\"/>"), values));
+        ui::ShadowResolveParam glParam = param;
+        glParam.m_bGlBackendActive = true;
+        glParam.m_bSystemShadowSupported = true;
+        const ui::ShadowAttributes shadow = ui::ResolveShadowAttributes(values, glParam);
+        CHECK(shadow.m_bShadowAttached);
+        CHECK(shadow.m_nShadowType == ui::ShadowType::kShadowSystemDefault);
+        CHECK(values.m_bShadowTypeDefined && (values.m_nShadowType == ui::ShadowType::kShadowBigRound));
+    }
+    {
+        //GL有效且不支持系统阴影：自绘阴影切换为None
+        ui::WindowAttributeValues values;
+        CHECK(ParseWindow(_T("<Window shadow_type=\"big_round\"/>"), values));
+        ui::ShadowResolveParam glParam = param;
+        glParam.m_bGlBackendActive = true;
+        glParam.m_bSystemShadowSupported = false;
+        const ui::ShadowAttributes shadow = ui::ResolveShadowAttributes(values, glParam);
+        CHECK(shadow.m_bShadowAttached);
+        CHECK(shadow.m_nShadowType == ui::ShadowType::kShadowNone);
+    }
+    {
+        //分层窗口被关闭：自绘阴影无法工作，有效阴影关闭
+        ui::WindowAttributeValues values;
+        CHECK(ParseWindow(_T("<Window shadow_type=\"big_round\"/>"), values));
+        ui::ShadowResolveParam noLayeredParam = param;
+        noLayeredParam.m_bLayeredWindow = false;
+        noLayeredParam.m_bSystemShadowSupported = false;
+        const ui::ShadowAttributes shadow = ui::ResolveShadowAttributes(values, noLayeredParam);
+        CHECK(!shadow.m_bShadowAttached);
+    }
+    {
+        //分层窗口被关闭，但使用系统阴影：阴影仍可用
+        ui::WindowAttributeValues values;
+        CHECK(ParseWindow(_T("<Window shadow_type=\"system_default\"/>"), values));
+        ui::ShadowResolveParam noLayeredParam = param;
+        noLayeredParam.m_bLayeredWindow = false;
+        noLayeredParam.m_bSystemShadowSupported = true;
+        const ui::ShadowAttributes shadow = ui::ResolveShadowAttributes(values, noLayeredParam);
+        CHECK(shadow.m_bShadowAttached);
+        CHECK(shadow.m_nShadowType == ui::ShadowType::kShadowSystemDefault);
+    }
+}
+
+/** 统一Resolve：按顺序确定后端、阴影与分层窗口，请求值保留 */
+void TestResolveWindowAttributes()
+{
+    ui::RenderBackendResolveParam renderParam;
+    renderParam.m_bGlSupported = true;
+    ui::ShadowResolveParam param;
+    param.m_bSdlTransparent = false;
+    param.m_bLayeredRequiredForSelfDrawnShadow = true;
+    param.m_bSystemShadowSupported = false;
+
+    {
+        //GL + opacity + 自绘阴影：GL优先，分层窗口与自绘阴影的有效值被关闭/切换
+        ui::WindowAttributeValues values;
+        CHECK(ParseWindow(_T("<Window render_backend_type=\"GL\" opacity=\"128\" shadow_type=\"big_round\"/>"), values));
+        const ui::ResolvedWindowAttributes resolved = ui::ResolveWindowAttributes(values, renderParam, param);
+        CHECK(resolved.m_render.m_backendType == ui::RenderBackendType::kNativeGL_BackendType);
+        CHECK(resolved.m_layered.m_bIsLayeredWindowDefined);
+        CHECK(!resolved.m_layered.m_bIsLayeredWindow);
+        CHECK(!resolved.m_layered.m_bOpacityDefined);
+        CHECK(resolved.m_shadow.m_bShadowAttached);
+        CHECK(resolved.m_shadow.m_nShadowType == ui::ShadowType::kShadowNone);
+        //请求值必须保留
+        CHECK(values.m_bOpacityDefined && (values.m_nOpacity == 128));
+        CHECK(values.m_bLayeredWindowDefined == false);
+    }
+    {
+        //未配置阴影：支持系统阴影时默认使用系统阴影，且不需要分层窗口
+        ui::WindowAttributeValues values;
+        CHECK(ParseWindow(_T("<Window/>"), values));
+        ui::ShadowResolveParam systemParam = param;
+        systemParam.m_bSystemShadowSupported = true;
+        const ui::ResolvedWindowAttributes resolved = ui::ResolveWindowAttributes(values, renderParam, systemParam);
+        CHECK(resolved.m_shadow.m_bShadowAttached);
+        CHECK(resolved.m_shadow.m_nShadowType == ui::ShadowType::kShadowSystemDefault);
+        CHECK(!resolved.m_layered.m_bIsLayeredWindow);
+    }
+    {
+        //未配置阴影且不支持系统阴影：自绘阴影需要分层窗口，分层窗口被推导为开启
+        ui::WindowAttributeValues values;
+        CHECK(ParseWindow(_T("<Window/>"), values));
+        const ui::ResolvedWindowAttributes resolved = ui::ResolveWindowAttributes(values, renderParam, param);
+        CHECK(resolved.m_shadow.m_bShadowAttached);
+        CHECK(resolved.m_shadow.m_nShadowType == ui::ShadowType::kShadowBigRound);
+        CHECK(resolved.m_layered.m_bIsLayeredWindowDefined);
+        CHECK(resolved.m_layered.m_bIsLayeredWindow);
+    }
+}
+
+/** WindowBuilder 创建前属性解析：验证创建参数与统一Resolve结果一致 */
+void TestWindowBuilderCreateAttributes()
+{
+    ui::Window window;
+
+    {
+        //显式关闭分层窗口：opacity/alpha只关闭有效值，不设置到创建参数
+        ui::WindowBuilder builder;
+        CHECK(builder.ParseXmlData(_T("<Window layered_window=\"false\" opacity=\"128\" alpha=\"64\" shadow_attached=\"false\"/>")));
+        ui::WindowCreateAttributes attributes;
+        CHECK(builder.ParseWindowCreateAttributes(&window, attributes));
+        CHECK(attributes.m_bIsLayeredWindowDefined);
+        CHECK(!attributes.m_bIsLayeredWindow);
+#if defined (DUILIB_BUILD_FOR_SDL)
+        //SDL下opacity不依赖透明窗口，alpha依赖透明窗口
+        CHECK(attributes.m_bLayeredWindowOpacityDefined);
+        CHECK(attributes.m_nLayeredWindowOpacity == 128);
+        CHECK(!attributes.m_bLayeredWindowAlphaDefined);
+#else
+        CHECK(!attributes.m_bLayeredWindowOpacityDefined);
+        CHECK(!attributes.m_bLayeredWindowAlphaDefined);
+#endif
+        CHECK(!attributes.m_bShadowAttached);
+    }
+    {
+        //opacity < 255 推导为分层窗口
+        ui::WindowBuilder builder;
+        CHECK(builder.ParseXmlData(_T("<Window opacity=\"128\" shadow_attached=\"false\"/>")));
+        ui::WindowCreateAttributes attributes;
+        CHECK(builder.ParseWindowCreateAttributes(&window, attributes));
+        CHECK(attributes.m_bIsLayeredWindowDefined);
+        CHECK(attributes.m_bIsLayeredWindow);
+        CHECK(attributes.m_bLayeredWindowOpacityDefined);
+        CHECK(attributes.m_nLayeredWindowOpacity == 128);
+    }
+    {
+        //alpha < 255 推导为分层窗口
+        ui::WindowBuilder builder;
+        CHECK(builder.ParseXmlData(_T("<Window alpha=\"64\" shadow_attached=\"false\"/>")));
+        ui::WindowCreateAttributes attributes;
+        CHECK(builder.ParseWindowCreateAttributes(&window, attributes));
+        CHECK(attributes.m_bIsLayeredWindowDefined);
+        CHECK(attributes.m_bIsLayeredWindow);
+        CHECK(attributes.m_bLayeredWindowAlphaDefined);
+        CHECK(attributes.m_nLayeredWindowAlpha == 64);
+    }
+    {
+        //系统标题栏：阴影关闭；Windows非SDL关闭分层窗口，SDL保留透明窗口与opacity
+        ui::WindowBuilder builder;
+        CHECK(builder.ParseXmlData(_T("<Window use_system_caption=\"true\" shadow_type=\"big_round\" opacity=\"128\"/>")));
+        ui::WindowCreateAttributes attributes;
+        CHECK(builder.ParseWindowCreateAttributes(&window, attributes));
+        CHECK(!attributes.m_bShadowAttached);
+#if defined (DUILIB_BUILD_FOR_SDL)
+        CHECK(attributes.m_bIsLayeredWindowDefined);
+        CHECK(attributes.m_bIsLayeredWindow);
+        CHECK(attributes.m_bLayeredWindowOpacityDefined);
+#else
+        CHECK(attributes.m_bIsLayeredWindowDefined);
+        CHECK(!attributes.m_bIsLayeredWindow);
+        CHECK(!attributes.m_bLayeredWindowOpacityDefined);
+#endif
+    }
+    {
+        //GL后端与分层窗口的冲突：Windows非SDL下GL优先；SDL构建归一为CPU
+        ui::WindowBuilder builder;
+        CHECK(builder.ParseXmlData(_T("<Window render_backend_type=\"GL\" opacity=\"128\" shadow_type=\"big_round\"/>")));
+        ui::WindowCreateAttributes attributes;
+        CHECK(builder.ParseWindowCreateAttributes(&window, attributes));
+#if defined (DUILIB_BUILD_FOR_SDL)
+        //SDL默认开启透明窗口，opacity独立生效
+        CHECK(attributes.m_bIsLayeredWindowDefined);
+        CHECK(attributes.m_bIsLayeredWindow);
+        CHECK(attributes.m_bLayeredWindowOpacityDefined);
+#else
+        CHECK(attributes.m_bIsLayeredWindowDefined);
+        CHECK(!attributes.m_bIsLayeredWindow);
+        CHECK(!attributes.m_bLayeredWindowOpacityDefined);
+#endif
+    }
+    {
+        //窗口初始大小（关闭阴影，避免平台差异）：直接使用配置值
+        ui::WindowBuilder builder;
+        CHECK(builder.ParseXmlData(_T("<Window size=\"300,200\" shadow_attached=\"false\"/>")));
+        ui::WindowCreateAttributes attributes;
+        CHECK(builder.ParseWindowCreateAttributes(&window, attributes));
+        CHECK(attributes.m_bInitSizeDefined);
+        CHECK((attributes.m_szInitSize.cx == 300) && (attributes.m_szInitSize.cy == 200));
+    }
+    {
+        //无效的XML根节点：解析失败
+        ui::WindowBuilder builder;
+        CHECK(builder.ParseXmlData(_T("<NotWindow/>")));
+        ui::WindowCreateAttributes attributes;
+        CHECK(!builder.ParseWindowCreateAttributes(&window, attributes));
+    }
+}
+
+/** WindowBuilder 的XML属性映射与错误信息 */
+void TestWindowBuilderParseAttributes()
+{
+    ui::WindowBuilder builder;
+    CHECK(builder.ParseXmlData(_T("<Window text=\"hello\" shadow_attached=\"false\"/>")));
+    std::map<DString, DString> attributes;
+    CHECK(builder.ParseWindowAttributes(attributes));
+    CHECK(attributes.size() == 2);
+    CHECK(attributes[_T("text")] == _T("hello"));
+    CHECK(attributes[_T("shadow_attached")] == _T("false"));
+
+    ui::WindowBuilder badBuilder;
+    CHECK(!badBuilder.ParseXmlData(_T("<Window text=\"unclosed\">")));
+    CHECK(!badBuilder.GetLastError().empty());
+}
+
+/** Window 请求值的保存与运行时API联动 */
+void TestWindowRequestedAttributes()
+{
+    ui::Window window;
+    ui::WindowAttributeValues values;
+    CHECK(ParseWindow(_T("<Window layered_window=\"true\" alpha=\"128\"/>"), values));
+    window.SetRequestedWindowAttributes(values);
+
+    const ui::WindowAttributeValues& requested = window.GetRequestedWindowAttributes();
+    CHECK(requested.m_bLayeredWindowDefined);
+    CHECK(requested.m_bLayeredWindow);
+    CHECK(requested.m_bAlphaDefined);
+    CHECK(requested.m_nAlpha == 128);
+
+    //创建前显式设置分层窗口：请求值同步更新
+    CHECK(window.SetLayeredWindow(false, false));
+    CHECK(window.GetRequestedWindowAttributes().m_bLayeredWindowDefined);
+    CHECK(!window.GetRequestedWindowAttributes().m_bLayeredWindow);
+
+    //创建前设置透明度：请求值同步更新
+    CHECK(window.SetLayeredWindowAlpha(200));
+    CHECK(window.GetRequestedWindowAttributes().m_bAlphaDefined);
+    CHECK(window.GetRequestedWindowAttributes().m_nAlpha == 200);
+
+    //属性名不区分大小写，且支持历史别名
+    window.SetAttribute(_T("LAYEREDWINDOW"), _T("true"));
+    CHECK(window.GetRequestedWindowAttributes().m_bLayeredWindow);
+    window.SetAttribute(_T("Use_System_Caption"), _T("true"));
+    CHECK(window.GetRequestedWindowAttributes().m_bUseSystemCaptionDefined);
+    CHECK(window.GetRequestedWindowAttributes().m_bUseSystemCaption);
+    window.SetAttribute(_T("SHADOWATTACHED"), _T("false"));
+    CHECK(window.GetRequestedWindowAttributes().m_bShadowAttachedDefined);
+    CHECK(!window.GetRequestedWindowAttributes().m_bShadowAttached);
 }
 
 /** 初始大小的推导：min/max夹取、阴影扩展、百分比与边界条件 */
@@ -501,6 +880,18 @@ void TestResolveInitSize()
         CHECK((size.cx == 740) && (size.cy == 560));
     }
     {
+        //min_size大于max_size：忽略max_size，保证最小尺寸约束
+        ui::WindowAttributeValues values;
+        CHECK(ParseWindow(_T("<Window size=\"800,600\" min_size=\"1000,700\" max_size=\"500,400\"/>"), values));
+        ui::WindowInitSizeResolveParam param = MakeSizeParam(ui::UiPadding(10, 20, 30, 40));
+        param.m_szMinSize = values.m_szMinSize;
+        param.m_szMaxSize = values.m_szMaxSize;
+        std::vector<DString> warnings;
+        const ui::UiSize size = ui::ResolveWindowInitSize(values, param, dpi, &warnings);
+        CHECK((size.cx == 1040) && (size.cy == 760));
+        CHECK(!warnings.empty());
+    }
+    {
         //百分比配置：不扩展阴影
         ui::WindowAttributeValues values;
         CHECK(ParseWindow(_T("<Window size=\"50%,50%\"/>"), values));
@@ -524,6 +915,37 @@ void TestResolveInitSize()
         ui::WindowAttributeValues percentValues;
         CHECK(ParseWindow(_T("<Window size=\"50%,600\"/>"), percentValues));
         CHECK(percentValues.m_bSizeScaledCX && !percentValues.m_bSizeScaledCY);
+    }
+}
+
+/** 150% DPI下的初始大小：min/max与size在同一坐标系下比较，阴影九宫格按DPI扩展 */
+void TestResolveInitSizeDpi()
+{
+    ui::DpiManager dpi;
+    dpi.SetDisplayScale(1.5f, 1.0f);
+
+    {
+        //固定尺寸先按DPI缩放，再与min_size夹取，最后按DPI缩放后的九宫格扩展阴影
+        ui::WindowAttributeValues values;
+        CHECK(ParseWindow(_T("<Window size=\"400,300\" min_size=\"500,350\"/>"), values));
+        ui::WindowInitSizeResolveParam param = MakeSizeParam(ui::UiPadding(10, 20, 30, 40));
+        param.m_szMinSize = values.m_szMinSize;
+        const ui::UiSize size = ui::ResolveWindowInitSize(values, param, dpi);
+        CHECK(dpi.GetDisplayScaleFactor() == 150);
+        const int32_t expectedCx = dpi.GetScaleWindowSize(500) + dpi.GetScaleWindowSize(10) + dpi.GetScaleWindowSize(30);
+        const int32_t expectedCy = dpi.GetScaleWindowSize(350) + dpi.GetScaleWindowSize(20) + dpi.GetScaleWindowSize(40);
+        Check((size.cx == expectedCx) && (size.cy == expectedCy), [size, expectedCx, expectedCy]() {
+            return "DPI size mismatch: actual=" + std::to_string(size.cx) + "," + std::to_string(size.cy) +
+                   " expected=" + std::to_string(expectedCx) + "," + std::to_string(expectedCy);
+        });
+        CHECK((size.cx > 500) && (size.cy > 350));
+    }
+    {
+        //百分比尺寸：按工作区计算的结果不再缩放，也不扩展阴影
+        ui::WindowAttributeValues values;
+        CHECK(ParseWindow(_T("<Window size=\"50%,50%\"/>"), values));
+        const ui::UiSize size = ui::ResolveWindowInitSize(values, MakeSizeParam(ui::UiPadding(10, 20, 30, 40)), dpi);
+        CHECK((size.cx == values.m_szSize.cx) && (size.cy == values.m_szSize.cy));
     }
 }
 
@@ -578,8 +1000,15 @@ int main()
     TestAttributeOrderIndependent();
     TestResolveShadow();
     TestResolveLayeredWindow();
+    TestResolveLayeredWindowExtra();
+    TestResolveShadowExtra();
+    TestResolveWindowAttributes();
     TestResolveRenderBackend();
+    TestWindowBuilderCreateAttributes();
+    TestWindowBuilderParseAttributes();
+    TestWindowRequestedAttributes();
     TestResolveInitSize();
+    TestResolveInitSizeDpi();
     TestAttributeVariables();
     TestParseInvalidNode();
 

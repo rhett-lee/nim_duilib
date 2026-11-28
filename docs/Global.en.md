@@ -268,8 +268,8 @@ The root node of the referenced file must be `Global`. For example, create a `my
     <!-- Custom color -->
     <ThemeColor name="my_brand_color" value="#FF3B82F6"/>
 
-    <!-- Custom common style -->
-    <Class name="btn_my_style" font="system_regular_14" normal_text_color="white" .../>
+    <!-- Custom common style (add other attributes as needed) -->
+    <Class name="btn_my_style" font="system_regular_14" normal_text_color="white"/>
 </Global>
 ```
 
@@ -314,7 +314,7 @@ Attributes:
 | Attribute | Default | Type | Purpose |
 | :--- | :--- | :--- | :--- |
 | render_backend_type | | string | "CPU": CPU rendering; "GL"/"GPU": OpenGL rendering. Setting this attribute enables the global default configuration (effective only when a window does not set `render_backend_type`).<br>Support: only available on Windows when not built with SDL; other platforms/build modes (including Windows ARM64) automatically fall back to CPU rendering |
-| vsync | true | bool | Whether to enable vertical sync; only effective for GL rendering |
+| vsync | false | bool | Whether to enable vertical sync; only effective for GL rendering. Disabled by default when unset (kDefaultDisableVsync=true) |
 | msaa | 0 | int | MSAA sample count; 0 disables MSAA; only effective for GL rendering |
 
 It can also be controlled at runtime through the API:
@@ -337,7 +337,7 @@ Notes:
 - An explicit runtime call to `Window::SetRenderBackendType()` or `SetAttribute()` has the highest priority and overrides both window XML and the global configuration;
 - The GL/GPU backend is supported only on Windows when not built with SDL; SDL builds, non-Windows platforms and Windows ARM64 automatically fall back to CPU rendering;
 - Even on a supported platform, if a GL context cannot be created (e.g. remote desktop, virtual machine, missing OpenGL driver), it also falls back to CPU rendering; use `Window::GetRenderBackendType()` to check the backend actually in use;
-- OpenGL does not support layered windows (`layered_window="true"` or `opacity < 255`); such windows automatically use CPU rendering;
+- OpenGL does not support layered windows (`layered_window="true"`, `opacity < 255`, or `alpha < 255`); such windows automatically use CPU rendering;
 - Switching at runtime recreates the render object (and the OpenGL context for GL); avoid calling it while a window is painting.
 
 ## 9. Interfaces Related to Global Resource Management

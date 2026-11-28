@@ -12,11 +12,15 @@ namespace ui
 
 namespace
 {
-    /** 推导默认阴影类型（不依赖窗口状态，保持与 Shadow::GetDefaultShadowType 的语义一致）
+    /** 推导默认阴影类型（不依赖窗口状态）
+    *   规则：
+    *   1. 窗口已经使用分层窗口（或SDL透明窗口）时，使用自绘默认阴影，避免系统阴影与分层窗口混用；
+    *   2. 系统支持系统阴影时，使用系统阴影；
+    *   3. 否则使用自绘默认阴影（圆角）。
     */
     ShadowType GetDefaultShadowTypeForResolve(const ShadowResolveParam& param)
     {
-        if (param.m_bLayeredWindow) {
+        if (param.m_bLayeredWindow && (param.m_bLayeredRequiredForSelfDrawnShadow || param.m_bSdlTransparent)) {
             //分层窗口，默认为自绘阴影，圆角
             return ShadowType::kShadowBigRound;
         }
@@ -24,8 +28,26 @@ namespace
             //该窗口支持系统阴影
             return ShadowType::kShadowSystemDefault;
         }
-        //未关联窗口的情况（按操作系统版本选择）
-        return Shadow::GetDefaultShadowType(nullptr);
+        //系统不支持系统阴影：使用自绘默认阴影（圆角）
+        return ShadowType::kShadowBigRound;
+    }
+
+    /** 阴影请求是否要求开启分层窗口（Windows非SDL下自绘阴影必须使用分层窗口）
+    */
+    bool IsShadowRequestNeedLayeredWindow(const WindowAttributeValues& values, const ShadowResolveParam& param)
+    {
+        if (!param.m_bLayeredRequiredForSelfDrawnShadow || param.m_bGlBackendActive) {
+            return false;
+        }
+        if (values.m_bShadowAttachedDefined && !values.m_bShadowAttached) {
+            return false;
+        }
+        ShadowType nShadowType = values.m_bShadowTypeDefined ? values.m_nShadowType : ShadowType::kShadowDefault;
+        if (nShadowType == ShadowType::kShadowDefault) {
+            nShadowType = GetDefaultShadowTypeForResolve(param);
+        }
+        nShadowType = Shadow::GetSupportedShadowType(nShadowType, param.m_bSystemShadowSupported);
+        return Shadow::IsShadowTypeNeedLayeredWindow(nShadowType);
     }
 
     /** 获取Class(样式)中定义的属性列表（支持别名）
@@ -325,11 +347,19 @@ bool ParseWindowAttributeValues(const pugi::xml_node& root, WindowAttributeValue
 }
 
 ShadowAttributes ResolveShadowAttributes(const WindowAttributeValues& values,
-                                         const ShadowResolveParam& param)
+                                         const ShadowResolveParam& param,
+                                         std::vector<DString>* pWarnings)
 {
     ShadowAttributes shadow;
-    //shadow_attached未定义时，默认支持阴影
-    shadow.m_bShadowAttached = !values.m_bShadowAttachedDefined || values.m_bShadowAttached;
+
+    //使用系统标题栏时，有效阴影必须关闭（请求值保留）
+    const bool bUseSystemCaption = values.m_bUseSystemCaptionDefined && values.m_bUseSystemCaption;
+    shadow.m_bShadowAttached = (!values.m_bShadowAttachedDefined || values.m_bShadowAttached) && !bUseSystemCaption;
+    if (bUseSystemCaption && (!values.m_bShadowAttachedDefined || values.m_bShadowAttached)) {
+        AddAttributeWarning(pWarnings, _T("shadow_attached"), _T("true"),
+                            _T("conflicts with use_system_caption=\"true\", shadow is temporarily disabled, "
+                               "the configured value is preserved"));
+    }
 
     //推导有效的阴影类型
     shadow.m_nShadowType = values.m_bShadowTypeDefined ? values.m_nShadowType : ShadowType::kShadowDefault;
@@ -338,6 +368,25 @@ ShadowAttributes ResolveShadowAttributes(const WindowAttributeValues& values,
     }
     //不支持系统阴影时，转换为实际支持的自绘阴影类型
     shadow.m_nShadowType = Shadow::GetSupportedShadowType(shadow.m_nShadowType, param.m_bSystemShadowSupported);
+
+    //GL有效时，不允许使用自绘阴影：切换为系统阴影（支持时）或None
+    if (shadow.m_bShadowAttached && param.m_bGlBackendActive &&
+        Shadow::IsShadowTypeNeedLayeredWindow(shadow.m_nShadowType)) {
+        shadow.m_nShadowType = param.m_bSystemShadowSupported ? ShadowType::kShadowSystemDefault
+                                                              : ShadowType::kShadowNone;
+        AddAttributeWarning(pWarnings, _T("shadow_type"), _T("self_drawn"),
+                            _T("conflicts with render_backend_type=\"GL\", switched to a supported shadow type, "
+                               "the configured value is preserved"));
+    }
+
+    //Windows非SDL：分层窗口被关闭时，自绘阴影无法绘制，有效阴影关闭（请求值保留）
+    if (shadow.m_bShadowAttached && param.m_bLayeredRequiredForSelfDrawnShadow && !param.m_bLayeredWindow &&
+        Shadow::IsShadowTypeNeedLayeredWindow(shadow.m_nShadowType)) {
+        shadow.m_bShadowAttached = false;
+        AddAttributeWarning(pWarnings, _T("shadow_attached"), _T("true"),
+                            _T("requires a layered window, shadow is temporarily disabled, "
+                               "the configured value is preserved"));
+    }
 
     if (!shadow.m_bShadowAttached) {
         //阴影被禁用：九宫格属性清空（阴影图片不再参与计算）
@@ -363,86 +412,101 @@ LayeredWindowAttributes ResolveLayeredWindowAttributes(const WindowAttributeValu
                                                        std::vector<DString>* pWarnings)
 {
     LayeredWindowAttributes result;
-    //XML中是否显式配置了层窗口属性（SDL下用于判断是否应用默认值）
-    const bool bXmlLayeredDefined = values.m_bLayeredWindowDefined;
-
+    const bool bSdl = param.m_bSdlTransparent;
     const bool bUseSystemCaption = values.m_bUseSystemCaptionDefined && values.m_bUseSystemCaption;
-    const bool bShadowAttached = !values.m_bShadowAttachedDefined || values.m_bShadowAttached;
-    //opacity < 255 时要求窗口必须是层窗口
-    const bool bNeedLayeredByOpacity = values.m_bOpacityDefined && (values.m_nOpacity < 255);
+    const bool bAlphaRequest = values.m_bAlphaDefined && (values.m_nAlpha < 255);
+    const bool bOpacityRequest = values.m_bOpacityDefined && (values.m_nOpacity < 255);
 
     bool bDefined = values.m_bLayeredWindowDefined;
     bool bLayered = values.m_bLayeredWindow;
-    if (!bDefined && !bUseSystemCaption && bNeedLayeredByOpacity) {
-        //使用Opacity属性，默认需要开启分层窗口
-        bDefined = true;
-        bLayered = true;
-    }
-    else if (!bDefined && bUseSystemCaption) {
-        //使用系统标题栏属性，默认不开启分层窗口
-        bDefined = true;
-        bLayered = false;
-    }
-    if (!bDefined && bShadowAttached && !bUseSystemCaption) {
-        //阴影启用时，若阴影类型需要层窗口，则默认开启分层窗口
-        ShadowType nShadowType = values.m_bShadowTypeDefined ? values.m_nShadowType : ShadowType::kShadowDefault;
-        if (nShadowType == ShadowType::kShadowDefault) {
-            nShadowType = GetDefaultShadowTypeForResolve(param);
+    if (!bDefined) {
+        if (bSdl) {
+            //SDL：layered_window 表示 SDL_WINDOW_TRANSPARENT，未显式配置时默认开启
+            bDefined = true;
+            bLayered = param.m_bSdlTransparentSupported;
+            if (!bLayered) {
+                AddAttributeWarning(pWarnings, _T("layered_window"), _T("true"),
+                                    _T("the current platform or renderer does not support transparent windows, "
+                                       "the configured value is preserved"));
+            }
         }
-        if (Shadow::IsShadowTypeNeedLayeredWindow(nShadowType)) {
+        else if (param.m_bGlBackendActive) {
+            //GL有效：不允许分层窗口
+            bDefined = true;
+            bLayered = false;
+        }
+        else if (bUseSystemCaption) {
+            //使用系统标题栏：默认不开启分层窗口
+            bDefined = true;
+            bLayered = false;
+        }
+        else if (bOpacityRequest || bAlphaRequest) {
+            //使用opacity/alpha：默认需要开启分层窗口
+            bDefined = true;
+            bLayered = true;
+        }
+        else if (IsShadowRequestNeedLayeredWindow(values, param)) {
+            //阴影类型需要分层窗口
             bDefined = true;
             bLayered = true;
         }
     }
-    if (bUseSystemCaption && bLayered) {
-        //系统标题栏与分层窗口属性互斥，使用系统标题栏时必须关闭分层窗口属性
+
+    //冲突处理：高优先级条件关闭分层窗口的有效值，请求值保留
+    if (!bSdl && bUseSystemCaption && bLayered) {
         if (values.m_bLayeredWindowDefined && values.m_bLayeredWindow) {
-            //XML中显式配置为分层窗口时，记录该冲突（配置被纠正）
             AddAttributeWarning(pWarnings, _T("layered_window"), _T("true"),
-                                _T("conflicts with use_system_caption=\"true\", layered window is disabled"));
+                                _T("conflicts with use_system_caption=\"true\", layered window is disabled, "
+                                   "the configured value is preserved"));
         }
         bLayered = false;
     }
-
-#if defined (DUILIB_BUILD_FOR_SDL)
-    //SDL后端：XML未配置layered_window时，固定使用分层窗口（创建时必须带SDL_WINDOW_TRANSPARENT），
-    //否则窗口阴影与"运行时切换系统标题栏"功能会异常。
-    //该默认值会覆盖上面的"系统标题栏与分层窗口互斥"规则，这是SDL后端的既定设计：
-    //SDL窗口的透明标记在创建后无法修改，因此不能在创建时按互斥规则关闭（XML显式配置时以XML为准）。
-    if (!bXmlLayeredDefined) {
-        bDefined = true;
-        bLayered = true;
+    if (!bSdl && param.m_bGlBackendActive && bLayered) {
+        AddAttributeWarning(pWarnings, _T("layered_window"), _T("true"),
+                            _T("conflicts with render_backend_type=\"GL\", layered window is disabled, "
+                               "the configured value is preserved"));
+        bLayered = false;
     }
-#else
-    //仅SDL构建使用该变量（XML中是否定义了分层窗口属性），非SDL构建时显式标记为未使用
-    UNUSED_VARIABLE(bXmlLayeredDefined);
-#endif
+    if (bSdl && bLayered && !param.m_bSdlTransparentSupported) {
+        AddAttributeWarning(pWarnings, _T("layered_window"), _T("true"),
+                            _T("transparent windows are not supported, the configured value is preserved"));
+        bLayered = false;
+    }
 
     result.m_bIsLayeredWindow = bLayered;
     result.m_bIsLayeredWindowDefined = bDefined;
 
-    //透明度/不透明度：只记录需要设置的有效值（与创建窗口时的记录规则一致）
-    if (values.m_bAlphaDefined && (values.m_nAlpha < 255)) {
+    //透明度/不透明度：只记录需要设置的有效值
+    bool bAlphaEffective = bAlphaRequest;
+    bool bOpacityEffective = bOpacityRequest;
+    if (bSdl) {
+        //SDL：opacity直接映射SDL_SetWindowOpacity，不依赖透明窗口；alpha依赖透明窗口
+        if (!bLayered && bAlphaEffective) {
+            AddAttributeWarning(pWarnings, _T("alpha"), StringUtil::Printf(_T("%d"), values.m_nAlpha),
+                                _T("requires a transparent window, ignored, the configured value is preserved"));
+            bAlphaEffective = false;
+        }
+    }
+    else if (!bLayered) {
+        //Windows非SDL：透明度/不透明度都要求分层窗口
+        if (bAlphaEffective) {
+            AddAttributeWarning(pWarnings, _T("alpha"), StringUtil::Printf(_T("%d"), values.m_nAlpha),
+                                _T("requires a layered window, ignored, the configured value is preserved"));
+            bAlphaEffective = false;
+        }
+        if (bOpacityEffective) {
+            AddAttributeWarning(pWarnings, _T("opacity"), StringUtil::Printf(_T("%d"), values.m_nOpacity),
+                                _T("requires a layered window, ignored, the configured value is preserved"));
+            bOpacityEffective = false;
+        }
+    }
+    if (bAlphaEffective) {
         result.m_nAlpha = values.m_nAlpha;
         result.m_bAlphaDefined = true;
     }
-    if (values.m_bOpacityDefined && (values.m_nOpacity < 255)) {
+    if (bOpacityEffective) {
         result.m_nOpacity = values.m_nOpacity;
         result.m_bOpacityDefined = true;
-    }
-
-    //非分层窗口不支持透明度/不透明度：忽略这些配置（避免设置失败）
-    if (!result.m_bIsLayeredWindow) {
-        if (result.m_bAlphaDefined) {
-            AddAttributeWarning(pWarnings, _T("alpha"), StringUtil::Printf(_T("%d"), result.m_nAlpha),
-                                _T("requires a layered window, ignored"));
-            result.m_bAlphaDefined = false;
-        }
-        if (result.m_bOpacityDefined) {
-            AddAttributeWarning(pWarnings, _T("opacity"), StringUtil::Printf(_T("%d"), result.m_nOpacity),
-                                _T("requires a layered window, ignored"));
-            result.m_bOpacityDefined = false;
-        }
     }
     return result;
 }
@@ -452,46 +516,48 @@ RenderBackendAttributes ResolveRenderBackendAttributes(const WindowAttributeValu
                                                        std::vector<DString>* pWarnings)
 {
     RenderBackendAttributes result;
-    if (values.m_bRenderBackendTypeDefined) {
-        //XML中配置了绘制方式：MSAA与垂直同步只取XML配置值（未配置时使用默认值）
-        result.m_backendType = values.m_renderBackendType;
-        result.m_nMsaaSampleCount = values.m_bMsaaDefined ? values.m_nMsaaSampleCount : 0;
-        //XML中的vsync属性为true表示开启垂直同步；未配置时使用默认值
-        result.m_bDisableVsync = values.m_bVsyncDefined ? !values.m_bVsync : kDefaultDisableVsync;
-    }
-    else {
-        //XML中未配置绘制方式：使用传入的默认配置
-        result.m_backendType = param.m_defaultBackendType;
-        result.m_nMsaaSampleCount = param.m_nDefaultMsaaSampleCount;
-        result.m_bDisableVsync = param.m_bDefaultDisableVsync;
-    }
+    //逐字段解析：XML > 默认配置（全局配置）> 内置默认值
+    result.m_backendType = values.m_bRenderBackendTypeDefined ? values.m_renderBackendType
+                                                              : param.m_defaultBackendType;
+    result.m_nMsaaSampleCount = values.m_bMsaaDefined ? values.m_nMsaaSampleCount
+                                                      : param.m_nDefaultMsaaSampleCount;
+    //XML中的vsync属性为true表示开启垂直同步
+    result.m_bDisableVsync = values.m_bVsyncDefined ? !values.m_bVsync
+                                                    : param.m_bDefaultDisableVsync;
 
-    //GL绘制方式不支持分层窗口：XML要求设置不透明度或显式开启层窗口时，降级为CPU绘制（否则窗口内容无法显示）
-    const bool bNeedLayeredWindowOpacity = values.m_bOpacityDefined && (values.m_nOpacity < 255);
-#if defined (DUILIB_BUILD_FOR_SDL)
-    //SDL构建模式不支持GL绘制方式（始终使用CPU绘制），窗口的透明标记在创建时由SDL_WINDOW_TRANSPARENT固定，
-    //因此不需要按"分层窗口"规则做降级判断
-    const bool bNeedLayeredWindow = false;
-#else
-    //Windows后端：系统标题栏与层窗口互斥，冲突时层窗口不会真正启用
-    const bool bUseSystemCaption = values.m_bUseSystemCaptionDefined && values.m_bUseSystemCaption;
-    const bool bNeedLayeredWindow = values.m_bLayeredWindowDefined && values.m_bLayeredWindow && !bUseSystemCaption;
-#endif
-    if ((result.m_backendType == RenderBackendType::kNativeGL_BackendType) &&
-        (bNeedLayeredWindowOpacity || bNeedLayeredWindow)) {
+    //平台/构建不支持GL时，在Resolve阶段归一为CPU，并记录告警（避免在SetRenderBackendType中静默修改）
+    if ((result.m_backendType == RenderBackendType::kNativeGL_BackendType) && !param.m_bGlSupported) {
         result.m_backendType = RenderBackendType::kRaster_BackendType;
-        if (!values.m_bRenderBackendTypeDefined) {
-            //使用默认配置降级时，MSAA与垂直同步同时复位（降级为CPU绘制后不再需要这些配置）
-            result.m_nMsaaSampleCount = 0;
-            result.m_bDisableVsync = false;
-        }
+        result.m_nMsaaSampleCount = 0;
+        result.m_bDisableVsync = false;
         result.m_bFallbackToRaster = true;
-        if (bNeedLayeredWindow) {
-            AddAttributeWarning(pWarnings, _T("layered_window"), _T("true"),
-                                _T("OpenGL rendering does not support layered windows, fall back to CPU rendering"));
-        }
+        AddAttributeWarning(pWarnings, _T("render_backend_type"), _T("GL"),
+                            _T("GL backend is not supported in this build/platform, use CPU rendering, "
+                               "the configured value is preserved"));
     }
     return result;
+}
+
+ResolvedWindowAttributes ResolveWindowAttributes(const WindowAttributeValues& values,
+                                                 const RenderBackendResolveParam& renderParam,
+                                                 const ShadowResolveParam& param,
+                                                 std::vector<DString>* pWarnings)
+{
+    ResolvedWindowAttributes resolved;
+
+    //【步骤1/2】渲染后端：最高优先级的有效结论，后续冲突以它为准
+    resolved.m_render = ResolveRenderBackendAttributes(values, renderParam, pWarnings);
+
+    ShadowResolveParam shadowParam = param;
+    shadowParam.m_bGlBackendActive = (resolved.m_render.m_backendType == RenderBackendType::kNativeGL_BackendType);
+
+    //【步骤2】分层窗口：按请求值与渲染后端确定有效值
+    resolved.m_layered = ResolveLayeredWindowAttributes(values, shadowParam, pWarnings);
+
+    //【步骤3】阴影：使用最终的分层窗口状态判断自绘阴影是否可用
+    shadowParam.m_bLayeredWindow = resolved.m_layered.m_bIsLayeredWindow;
+    resolved.m_shadow = ResolveShadowAttributes(values, shadowParam, pWarnings);
+    return resolved;
 }
 
 UiSize ResolveWindowInitSize(const WindowAttributeValues& values,
@@ -517,6 +583,19 @@ UiSize ResolveWindowInitSize(const WindowAttributeValues& values,
         dpi.ScaleWindowSize(minSize.cy);
         dpi.ScaleWindowSize(maxSize.cy);
     }
+
+    //min_size大于max_size属于配置冲突：忽略max_size，保证最小尺寸约束不被突破
+    if ((minSize.cx > 0) && (maxSize.cx > 0) && (minSize.cx > maxSize.cx)) {
+        AddAttributeWarning(pWarnings, _T("max_size"), StringUtil::Printf(_T("%d"), maxSize.cx),
+                            _T("is smaller than min_size, ignored"));
+        maxSize.cx = 0;
+    }
+    if ((minSize.cy > 0) && (maxSize.cy > 0) && (minSize.cy > maxSize.cy)) {
+        AddAttributeWarning(pWarnings, _T("max_size"), StringUtil::Printf(_T("%d"), maxSize.cy),
+                            _T("is smaller than min_size, ignored"));
+        maxSize.cy = 0;
+    }
+
     bool bClamped = false;
     if ((minSize.cx > 0) && (cx < minSize.cx)) {
         cx = minSize.cx;

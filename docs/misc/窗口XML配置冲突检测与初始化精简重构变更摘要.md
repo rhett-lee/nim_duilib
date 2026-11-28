@@ -28,15 +28,15 @@
 | `msaa` 为负数 | 复位为 0 | `negative value, reset to 0` |
 | `round_corner` 仅一个方向非 0 | 忽略该属性 | `the two values must be both zero or both positive, ignored` |
 | `use_system_caption="true"` + `layered_window="true"` | 关闭层窗口（系统标题栏优先） | `conflicts with use_system_caption="true", layered window is disabled` |
-| 非分层窗口配置 `alpha/opacity` | 忽略这两个属性，避免设置失败 | `requires a layered window, ignored` |
+| 非分层窗口配置 `alpha/opacity`（显式 `layered_window="false"` 或与系统标题栏/GL 冲突） | 忽略这两个属性，避免设置失败 | `requires a layered window, ignored` |
 | `size` 超出 `min_size/max_size` | 夹取到合法范围 | `clamped to the min_size/max_size range` |
-| `render_backend_type="GL"` + `layered_window="true"` | 降级为 CPU 绘制 | `OpenGL rendering does not support layered windows, fall back to CPU rendering` |
+| `render_backend_type="GL"` + `layered_window="true"`（或 `opacity`/`alpha` < 255） | 降级为 CPU 绘制 | `OpenGL rendering does not support layered windows, fall back to CPU rendering` |
 
-说明：`layered_window="false"` + `opacity<255` 不再出现“内部自动把窗口变成分层窗口”的隐式行为（该逻辑此前已移除），现在会按上表忽略 `opacity` 并提示。
+说明：未显式设置 `layered_window` 时，`opacity<255` 或 `alpha<255` 会在 Resolve 阶段自动推导分层窗口；只有显式 `layered_window="false"` 时才以显式值为准，并忽略 `opacity`/`alpha` 并提示。
 
 ### 2.2 渲染后端规则调整
 
-- Windows 后端：显式 `layered_window="true"` 与 `opacity<255` 一样，会使 `render_backend_type="GL"` 降级为 CPU，保证窗口内容可见。
+- Windows 后端：显式 `layered_window="true"`、`opacity<255` 或 `alpha<255`，会使 `render_backend_type="GL"` 降级为 CPU，保证窗口内容可见。
 - SDL 后端：不参与该降级判断。SDL 窗口固定使用透明标记，GL 渲染可正常工作，若同样降级会导致 macOS/Linux 上 GL 失效。
 
 ### 2.3 初始化动作精简

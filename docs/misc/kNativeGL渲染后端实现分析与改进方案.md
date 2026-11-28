@@ -1,6 +1,7 @@
 # kNativeGL 渲染后端实现分析与改进方案
 
 > 状态：分析报告（2026-11-14）；阶段 1（正确性）、阶段 2（性能）、阶段 3（体验）、阶段 4（工程化）已实施（2026-11-14）；阴影/分层窗口规则完善（2026-11-16，见 12.6）；启动期 `GetSkCanvas()` 断言修复（2026-11-16，见 12.7）
+> 注：文中涉及分层窗口冲突的 `opacity < 255` 规则，当前实现同时覆盖 `alpha < 255`；最终规则以 [Window属性解析与Resolve规则.md](Window属性解析与Resolve规则.md) 为准。
 > 适用范围：Windows 平台（`DUILIB_BUILD_FOR_WIN`，不含 `_M_ARM64`），Skia Ganesh + WGL
 > 关联文档：[IRender职责拆分与离屏渲染设计方案.md](IRender职责拆分与离屏渲染设计方案.md)、[IRender接口分析报告.md](IRender接口分析报告.md)
 

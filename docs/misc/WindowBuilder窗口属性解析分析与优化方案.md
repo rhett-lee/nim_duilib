@@ -102,7 +102,7 @@ XML 属性 ──(单趟 Parse)──► WindowAttributeValues（纯数据，含
 
 3. **抽出三个共享推导函数（纯函数，不读窗口状态）**：
    - `ResolveShadow(const WindowAttributeValues&, bool bSystemCaption, bool bSystemShadowSupported, bool bLayeredWindow, ShadowParams&)`；
-   - `ResolveLayeredWindow(...)`：把"显式 layered / opacity<255 / 自绘阴影需要分层 / 系统标题栏互斥 / 后端不支持分层"合并成一处判断，输出最终 `layered`、`alpha`、`opacity` 和**有效后端**；
+   - `ResolveLayeredWindow(...)`：把"显式 layered / opacity<255 / alpha<255 / 自绘阴影需要分层 / 系统标题栏互斥 / 后端不支持分层"合并成一处判断，输出最终 `layered`、`alpha`、`opacity` 和**有效后端**；
    - `CalcInitSize(...)`：min/max 夹取 + 阴影九宫格扩展 + DPI 缩放 + 校验，创建与应用共用。
 
    同时给 `Shadow` 增加显式参数版本（如 `GetShadowParam(ShadowType, bool bLayeredWindow, bool bSystemShadowSupported, ...)`），去掉"临时改窗口状态再恢复"的 hack 和上述循环依赖。

@@ -72,7 +72,7 @@ void <FormName>::OnInitWindow()
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="<width>,<height>" min_size="240,100"
+<Window size="800,600" min_size="240,100"
         caption="0,0,0,36" use_system_caption="false"
         snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36"
         shadow_type="default"
@@ -81,7 +81,7 @@ void <FormName>::OnInitWindow()
     <VBox bkcolor="bk_wnd_darkcolor">
         <!-- 标题栏：name 必须用 window_title_bar + btn_window_*（旧名仅兼容 fallback） -->
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
-            <Label text="<窗口标题>" margin="12,0,0,0" valign="center" normal_text_color="white"/>
+            <Label text="我的窗口" margin="12,0,0,0" valign="center" normal_text_color="white"/>
             <Control />
             <Button class="btn_wnd_min_11" height="32" width="40" name="btn_window_min" margin="0,2,0,2"/>
             <Box height="stretch" width="40" margin="0,2,0,2">
@@ -94,7 +94,7 @@ void <FormName>::OnInitWindow()
         <Box padding="12,12,12,12">
             <VBox>
                 <!-- TODO: 在这里添加内容控件 -->
-                <Label text="<窗口标题>" text_align="hcenter,vcenter" height="100%" width="100%"/>
+                <Label text="我的窗口" text_align="hcenter,vcenter" height="100%" width="100%"/>
             </VBox>
         </Box>
     </VBox>

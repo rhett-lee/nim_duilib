@@ -1015,6 +1015,22 @@ protected:
     */
     virtual bool OnRequestSetLayeredWindow(bool bIsLayeredWindow, bool bRedraw);
 
+    /** 运行时显式设置系统标题栏后的通知（供子类保存请求值，默认不做处理）
+    */
+    virtual void OnRequestedUseSystemCaptionChanged(bool /*bUseSystemCaption*/) {}
+
+    /** 运行时显式设置分层窗口后的通知（供子类保存请求值，默认不做处理）
+    */
+    virtual void OnRequestedLayeredWindowChanged(bool /*bIsLayeredWindow*/) {}
+
+    /** 运行时显式设置窗口透明度后的通知（供子类保存请求值，默认不做处理）
+    */
+    virtual void OnRequestedLayeredWindowAlphaChanged(int32_t /*nAlpha*/) {}
+
+    /** 运行时显式设置窗口不透明度后的通知（供子类保存请求值，默认不做处理）
+    */
+    virtual void OnRequestedLayeredWindowOpacityChanged(int32_t /*nOpacity*/) {}
+
 protected:
     /** 是否自动设置窗口形状（Windows平台是指设置窗口的RGN）
     *   默认情况下，子窗口不自动设置，顶层窗口自动设置

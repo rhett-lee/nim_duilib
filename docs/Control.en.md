@@ -302,7 +302,7 @@ but by the ScrollBox container that uses the scrollbar. See the "Keyboard naviga
 | :--- | :--- | :--- | :--- |
 | text |  | string | Display text |
 | text_id |  | string | Text ID for the multilingual function |
-| rich_text | false | bool | Set whether the text content is RichText <br> Usage example: `<Label rich_text="true" text="A simple <b>window</b><br/>with a <u>title bar</u> and <u>normal buttons</u>, <b>bold, <font color='#FF0000'>red font</font></b>" />` <br> Note: in RichText mode, the following functions are not supported:<br> (1) The path_ellipsis attribute is not supported<br>(2) When combined with vertical_text, the rich_text attribute is ignored and the text is displayed as plain text (rich text markup is removed)<br>(3) The auto_tooltip attribute works, and the tooltip shows plain text with the markup removed|
+| rich_text | false | bool | Set whether the text content is RichText <br> Usage example: `<Label rich_text="true" text="A simple &lt;b&gt;window&lt;/b&gt;&lt;br/&gt;with a &lt;u&gt;title bar&lt;/u&gt; and &lt;u&gt;normal buttons&lt;/u&gt;, &lt;b&gt;bold, &lt;font color='#FF0000'&gt;red font&lt;/font&gt;&lt;/b&gt;" />`<br>Note: when writing rich-text markup in an XML attribute, escape `<` and `>` as `&lt;` and `&gt;` <br> Note: in RichText mode, the following functions are not supported:<br> (1) The path_ellipsis attribute is not supported<br>(2) When combined with vertical_text, the rich_text attribute is ignored and the text is displayed as plain text (rich text markup is removed)<br>(3) The auto_tooltip attribute works, and the tooltip shows plain text with the markup removed|
 | text_align | "left,vcenter" | string | Set the horizontal and vertical alignment of the text, separated by a half-width comma, e.g. "hcenter,vcenter". <br>Horizontal alignment values: left (align left), hcenter (center align), right (align right), hjustify (justify) <br>Vertical alignment values: top (align top), vcenter (center align), bottom (align bottom), vjustify (justify)<br>Note: when multiple values are given for the same direction, they are matched in the order hcenter, right, left, hjustify (e.g. if both "left" and "hjustify" are present, left wins); the vertical direction follows the same rule with top, vcenter, bottom, vjustify |
 | text_padding | 0,0,0,0 | rect | Padding of the displayed text, in the format "left,top,right,bottom", representing the padding values set on the left, top, right and bottom of the target area, e.g. "2,2,2,2" |
 | font | | string | Font ID; this font ID must exist in global.xml |
@@ -789,6 +789,8 @@ MenuBar is a menu bar control inside a window. It displays top-level menu items.
 Keyboard: press F10 or Alt to move focus to the menu bar (press again to clear the focus); with a button focused, press Enter/Space to open (press again to close), press Down to open, and press Left/Right to move focus between the visible top-level menu buttons; while a menu is open, use Left/Right to switch top-level menus and Esc to close it and return focus to the menu button. The focus ring is shown only when focus is acquired through the keyboard (F10/Alt/Enter, etc.); it is an accent-colored outline that follows the button's rounded corners and is not shown for mouse clicks. An accent indicator line is drawn under the open top-level menu.
 
 The `MenuBarItem` node in XML can only be a child of `MenuBar`. Its supported attributes are:
+
+### Attributes of MenuBarItem
 
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |
@@ -4164,8 +4166,8 @@ pColorPicker->CreateWnd(this, createParam);   // Non-modal window; ShowModalFake
 ```
 
 > `kWS_EX_LAYERED` has been removed: the code that set the layered-window bit through `m_dwExStyle`
-> has been deleted. The layered window is derived internally from `layered_window`, shadow and
-> opacity settings; no manual setup is required.
+> has been deleted. The layered window is derived internally from `layered_window`, shadow,
+> `opacity` and `alpha` settings; no manual setup is required.
 
 By default the window does **not** adjust its position automatically; it is positioned entirely according to the
 create param (e.g. `m_bCenterWindow`), so the original behavior for other callers (such as the PropertyGrid color
@@ -4313,11 +4315,22 @@ The BitmapControl control inherits the `Box` attributes. For more available attr
 | esc_update_ui | true | bool | Set to automatically update the display control when ESC is pressed |
 | kill_focus_update_ui | true | bool | Set to automatically update the display control when focus is lost |
 | rich_edit_class | "address_bar_edit" | string | Set the Class of the edit box |
-| rich_edit_clear_btn_class | "rich_edit_clear_btn" | string | Set the Class of the edit box's clear button |
+| reset_button_class | "address_bar_reset_button" | string | Set the Class of the "restore current path" button on the right side of the edit box |
 | sub_path_hbox_class | "address_bar_sub_path_hbox"| string | Set the Class of the container (HBox) for the address bar path; each sub-path has one HBox container |
 | sub_path_button_class | "address_bar_sub_path_button"| string | Set the Class of the address bar sub-path button |
 | sub_path_root_class | "address_bar_sub_path_root" | string | Set the Class of the address bar root path ("/" path) |
+| sub_path_drive_class | "address_bar_sub_path_drive" | string | Set the Class of the drive path |
+| sub_path_current_class | "address_bar_sub_path_button_current" | string | Set the Class of the current path button |
+| collapse_button_class | "address_bar_sub_path_collapse" | string | Set the Class of the path collapse button |
 | path_separator_class | "address_bar_path_separator" | string | Set the Class of the address bar path separator |
+| right_padding | 16 | int | Set the right padding |
+| empty_display_text |  | string | Set the text displayed when the path is empty |
+| empty_display_text_id |  | string | Set the multi-language ID of the text displayed when the path is empty |
+| history_enabled | true | bool | Whether history is enabled |
+| max_history | 20 | int | Maximum number of history entries |
+| drop_navigation | true | bool | Whether drag-and-drop navigation is enabled |
+| default_context_menu | false | bool | Whether to use the default context menu |
+| history_file |  | string | History file path |
 
 The AddressBar control inherits the `HBox` attributes. For more available attributes, please refer to the `HBox` attributes.
 

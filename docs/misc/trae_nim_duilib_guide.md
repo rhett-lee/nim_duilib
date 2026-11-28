@@ -267,10 +267,15 @@ cl.exe -nologo -std:c++20 -utf-8 -EHsc -Zs -W3 \
 ```xml
 <!-- 正确：语义色名，深色主题自动切换 -->
 <VBox bkcolor="bg_window_main">
-<Label normal_text_color="text_default"/>
+    <Label normal_text_color="text_default"/>
+</VBox>
+```
 
+```xml
 <!-- 错误：写死色值，深色主题失效 -->
 <VBox bkcolor="#FFFFFFFF">
+    <Label normal_text_color="#FF000000"/>
+</VBox>
 ```
 
 语义色的真实色值定义在 `bin/resources/themes/color_light/global.xml` 和 `color_dark/global.xml`。`themes/default/global.xml` 里只剩旧名→新名的 `<Alias>` 映射。打包时必须带上 `color_light/` 和 `color_dark/`，否则整屏无色。

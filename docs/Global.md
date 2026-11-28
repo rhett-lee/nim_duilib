@@ -267,8 +267,8 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
     <!-- 自定义颜色 -->
     <ThemeColor name="my_brand_color" value="#FF3B82F6"/>
 
-    <!-- 自定义通用样式 -->
-    <Class name="btn_my_style" font="system_regular_14" normal_text_color="white" .../>
+    <!-- 自定义通用样式（其他属性按需添加） -->
+    <Class name="btn_my_style" font="system_regular_14" normal_text_color="white"/>
 </Global>
 ```
 
@@ -313,7 +313,7 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | render_backend_type | | string | "CPU"：CPU绘制；"GL"/"GPU"：OpenGL绘制。设置该属性即启用全局默认配置（仅当窗口未设置 `render_backend_type` 时生效）。<br>支持条件：仅Windows平台且非SDL构建模式支持；其他平台/构建方式（含Windows ARM64）会自动回退为CPU绘制 |
-| vsync | true | bool | 是否启用垂直同步，仅GL绘制有效 |
+| vsync | false | bool | 是否启用垂直同步，仅GL绘制有效；未设置时默认禁用（kDefaultDisableVsync=true） |
 | msaa | 0 | int | MSAA采样数，0表示不启用MSAA，仅GL绘制有效 |
 
 也可以通过接口在运行过程中动态控制：
@@ -336,7 +336,7 @@ GlobalManager::Instance().ApplyGlobalRenderBackendTypeToAllWindows();
 - 运行时显式调用 `Window::SetRenderBackendType()` 或 `SetAttribute()` 的优先级最高，会覆盖窗口 XML 与全局配置；
 - GL/GPU 后端仅在 Windows 平台且非 SDL 构建模式下支持；SDL 构建模式、非 Windows 平台和 Windows ARM64 会自动回退为CPU绘制；
 - 即使平台支持，无法创建GL上下文（如远程桌面、虚拟机、缺少OpenGL驱动）时也会自动回退为CPU绘制；实际使用的后端请以 `Window::GetRenderBackendType()` 的返回值为准；
-- OpenGL不支持层窗口（`layered_window="true"` 或 `opacity < 255`），此类窗口会自动使用CPU绘制；
+- OpenGL不支持层窗口（`layered_window="true"`、`opacity < 255` 或 `alpha < 255`），此类窗口会自动使用CPU绘制；
 - 运行时切换会重建渲染对象（GL会重建OpenGL上下文），建议避免在窗口绘制过程中调用。
 
 ## 9. 全局资源管理相关的接口

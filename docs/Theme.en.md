@@ -133,17 +133,19 @@ Used to record extended information such as author, contrast ratio, and accent c
 
 ```xml
 <ThemeColor
-    name="color_blue"             <!-- Required: color name (unique) -->
-    value="#FF2966A3"             <!-- Required: ARGB color value -->
-    type="common"                 <!-- Control type group -->
-    category="basic_color"        <!-- Color usage category -->
-    role="primary"                <!-- Role (related to accent color derivation) -->
-    derived_from="color_gray"     <!-- Derivation source -->
-    adjust="lightness:+15"        <!-- Derivation adjustment formula -->
-    fixed="false"                 <!-- Whether to participate in accent color replacement -->
-    comment_cn="Core accent color"         <!-- Chinese comment -->
-    comment_en="Core accent color"/>  <!-- English comment -->
+    name="color_blue"
+    value="#FF2966A3"
+    type="common"
+    category="basic_color"
+    role="primary"
+    derived_from="color_gray"
+    adjust="lightness:+15"
+    fixed="false"
+    comment_cn="Core accent color"
+    comment_en="Core accent color"/>
 ```
+
+Attribute meanings: `name` is the required unique color name, `value` is the required ARGB color value, and the remaining attributes are used for grouping, accent-color derivation, and comments.
 
 For detailed attribute descriptions, see [ThemeColor.md](./ThemeColor.en.md). The common rules are as follows:
 

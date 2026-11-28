@@ -211,9 +211,33 @@ struct DUILIB_API ShadowResolveParam
     */
     bool m_bSystemShadowSupported = false;
 
-    /** 窗口当前是否为分层窗口（用于推导默认阴影类型）
+    /** 窗口当前是否为分层窗口（用于判断自绘阴影是否可用）
     */
     bool m_bLayeredWindow = false;
+
+    /** 当前有效的渲染后端是否为GL（GL有效时不允许分层窗口与自绘阴影）
+    */
+    bool m_bGlBackendActive = false;
+
+    /** 是否为SDL构建（SDL下 layered_window 表示 SDL_WINDOW_TRANSPARENT，不使用操作系统分层窗口）
+    */
+#if defined (DUILIB_BUILD_FOR_SDL)
+    bool m_bSdlTransparent = true;
+#else
+    bool m_bSdlTransparent = false;
+#endif
+
+    /** SDL透明窗口是否受平台/Render支持（非SDL构建时忽略该字段）
+    */
+    bool m_bSdlTransparentSupported = true;
+
+    /** 自绘阴影是否必须使用分层窗口（Windows非SDL为true，SDL为false）
+    */
+#if defined (DUILIB_BUILD_FOR_SDL)
+    bool m_bLayeredRequiredForSelfDrawnShadow = false;
+#else
+    bool m_bLayeredRequiredForSelfDrawnShadow = true;
+#endif
 };
 
 /** 阴影属性的推导结果
@@ -237,11 +261,16 @@ struct DUILIB_API ShadowAttributes
 /** 推导窗口的阴影属性（纯函数，不依赖窗口对象）
 *   规则：
 *   1. shadow_attached 未定义时默认为true；显式设置为false时，九宫格属性被清空；
-*   2. shadow_type 未定义或者配置为"default"时，按默认阴影类型推导；
-*   3. shadow_corner 未定义或者解析结果为空时，使用阴影类型对应的默认九宫格属性。
+*   2. 使用系统标题栏时，有效阴影被关闭（请求值保留，并记录告警）；
+*   3. shadow_type 未定义或者配置为"default"时，系统支持系统阴影则使用系统阴影，否则使用自绘默认阴影；
+*   4. GL有效时，自绘阴影切换为系统阴影（支持时）或None（请求值保留，并记录告警）；
+*   5. Windows非SDL且分层窗口被关闭时，自绘阴影无法工作，有效阴影被关闭（请求值保留，并记录告警）；
+*   6. shadow_corner 未定义或者解析结果为空时，使用阴影类型对应的默认九宫格属性。
+* @param [out] pWarnings 配置冲突的告警信息，可以为nullptr
 */
 ShadowAttributes DUILIB_API ResolveShadowAttributes(const WindowAttributeValues& values,
-                                                    const ShadowResolveParam& param);
+                                                    const ShadowResolveParam& param,
+                                                    std::vector<DString>* pWarnings = nullptr);
 
 /** 层窗口属性推导的结果
 */
@@ -268,13 +297,14 @@ struct DUILIB_API LayeredWindowAttributes
 
 /** 推导窗口的层窗口与透明度属性（纯函数，不依赖窗口对象）
 *   规则（与创建窗口时的推导保持一致）：
-*   1. 显式配置的 layered_window 优先；
-*   2. 未配置时，opacity < 255 且未使用系统标题栏，则默认开启层窗口；
-*   3. 未配置时，使用系统标题栏，则默认关闭层窗口；
-*   4. 未配置时，启用阴影且阴影类型需要层窗口，则默认开启层窗口；
-*   5. 系统标题栏与层窗口互斥，同时配置时层窗口被关闭（并在pWarnings中记录该冲突）；
-*   6. SDL构建下，未显式配置 layered_window 时默认开启（与原有行为一致）；
-*   7. 非分层窗口不支持透明度/不透明度，这些属性会被忽略（并在pWarnings中记录）。
+*   1. 显式配置的 layered_window 优先；显式false不会被opacity/alpha重新打开；
+*   2. 未配置时（Windows非SDL）：opacity < 255 或 alpha < 255 时默认开启层窗口；
+*   3. 未配置时（Windows非SDL）：系统标题栏或GL后端有效时默认关闭层窗口；
+*   4. 未配置时（Windows非SDL）：启用阴影且阴影类型需要层窗口，则默认开启层窗口；
+*   5. Windows非SDL下，系统标题栏、GL后端与层窗口互斥，同时配置时层窗口被关闭（记录告警）；
+*   6. SDL构建下，未显式配置 layered_window 时默认开启透明窗口；系统标题栏不强制关闭透明窗口；
+*   7. SDL下 opacity 不依赖透明窗口，alpha 依赖透明窗口；
+*   8. 非分层窗口不支持透明度/不透明度（SDL下opacity例外），冲突时只关闭有效值并告警。
 * @param [out] pWarnings 配置冲突的告警信息，可以为nullptr
 */
 LayeredWindowAttributes DUILIB_API ResolveLayeredWindowAttributes(const WindowAttributeValues& values,
@@ -296,6 +326,14 @@ struct DUILIB_API RenderBackendResolveParam
     /** 默认是否关闭垂直同步
     */
     bool m_bDefaultDisableVsync = kDefaultDisableVsync;
+
+    /** 平台/构建是否支持GL后端（Windows非SDL为true；SDL与其他平台为false）
+    */
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    bool m_bGlSupported = true;
+#else
+    bool m_bGlSupported = false;
+#endif
 };
 
 /** 渲染后端属性的推导结果
@@ -314,22 +352,48 @@ struct DUILIB_API RenderBackendAttributes
     */
     bool m_bDisableVsync = kDefaultDisableVsync;
 
-    /** 是否因"OpenGL不支持层窗口"而降级为CPU绘制（调用方负责输出日志）
+    /** 是否因平台/构建不支持GL而归一为CPU绘制（调用方负责输出日志）
     */
     bool m_bFallbackToRaster = false;
 };
 
 /** 推导窗口的渲染后端属性（纯函数，不依赖窗口对象）
 *   规则：
-*   1. XML中配置的 render_backend_type/vsync/msaa 优先，否则使用 param 中的默认值；
-*   2. 要求设置不透明度(opacity < 255)或显式配置layered_window="true"时，OpenGL绘制方式会降级为CPU绘制
-*      （SDL构建模式不支持OpenGL绘制方式，始终为CPU绘制）；
-*      使用默认配置（XML未配置 render_backend_type）降级时，MSAA与垂直同步同时复位。
+*   1. render_backend_type、msaa、vsync 逐字段解析：XML > 默认配置（全局配置）；
+*   2. 平台/构建不支持GL时，有效后端归一为CPU，MSAA与垂直同步复位，并记录告警；
+*   3. GL与分层窗口/透明度/自绘阴影的冲突由分层窗口与阴影的 Resolve 按顺序关闭，此处不做降级。
 * @param [out] pWarnings 配置冲突的告警信息，可以为nullptr
 */
 RenderBackendAttributes DUILIB_API ResolveRenderBackendAttributes(const WindowAttributeValues& values,
                                                                   const RenderBackendResolveParam& param,
                                                                   std::vector<DString>* pWarnings = nullptr);
+
+/** 窗口属性的统一Resolve结果（按文档规定的顺序：标题栏 → 渲染后端 → 阴影 → 分层窗口）
+*/
+struct DUILIB_API ResolvedWindowAttributes
+{
+    /** 渲染后端 */
+    RenderBackendAttributes m_render;
+
+    /** 阴影 */
+    ShadowAttributes m_shadow;
+
+    /** 分层窗口与透明度 */
+    LayeredWindowAttributes m_layered;
+};
+
+/** 统一 Resolve 窗口属性（纯函数，不依赖窗口对象）
+*   按固定顺序执行：确定渲染后端 → 确定阴影 → 最后确定分层窗口；
+*   高优先级步骤只关闭低优先级属性的有效值，不修改请求值，所有冲突都会记录告警。
+*   创建前与创建后使用同一套规则，避免两套推导结果不一致。
+* @param [in] renderParam 渲染后端的默认配置（全局配置）
+* @param [in] param 平台能力与当前窗口状态
+* @param [out] pWarnings 配置冲突的告警信息，可以为nullptr
+*/
+ResolvedWindowAttributes DUILIB_API ResolveWindowAttributes(const WindowAttributeValues& values,
+                                                            const RenderBackendResolveParam& renderParam,
+                                                            const ShadowResolveParam& param,
+                                                            std::vector<DString>* pWarnings = nullptr);
 
 /** 窗口初始大小推导的输入参数
 */
