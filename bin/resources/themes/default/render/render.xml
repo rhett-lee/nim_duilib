@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="85%,80%" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,${SIZE_TITLEBAR_HEIGHT},${SIZE_TITLEBAR_HEIGHT}" caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}" size_box="4,4,4,4" text_id="STRID_RENDER_WINDOW_TITLE">
+<Window size="85%,85%" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,${SIZE_TITLEBAR_HEIGHT},${SIZE_TITLEBAR_HEIGHT}" caption="0,0,0,${SIZE_TITLEBAR_HEIGHT}" size_box="4,4,4,4" text_id="STRID_RENDER_WINDOW_TITLE">
     <!-- 内容卡片样式：与 layout 示例保持一致 -->
     <Class name="render_card" bkcolor="bg_window_card" border_size="1" border_color="border_split_level1" border_round="8,8"/>
     <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->
@@ -90,7 +90,7 @@
                 <VBox name="main_view_page_08" padding="10,10,10,10">
                     <Include src="page_property_grid.xml"/>
                 </VBox>
-                <VBox name="main_view_page_09" padding="10,10,10,10">
+                <VBox name="main_view_page_09" width="stretch" height="stretch" padding="10,10,10,10">
                     <Label text_id="STRID_RENDER_PAGE10_DESC" normal_text_color="text_muted" margin="0,0,0,8"/>
                     <Include src="page_window_shadow.xml"/>
                 </VBox>

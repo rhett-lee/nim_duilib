@@ -3,6 +3,7 @@
 
 // duilib
 #include "duilib/duilib.h"
+#include <vector>
 
 class RenderForm : public ui::WindowImplBase
 {
@@ -32,6 +33,18 @@ public:
     virtual ui::Control* CreateControl(const DString& strClass) override;
 
 private:
+    //初始化“窗口属性动态切换”页：绑定选项事件并同步一次界面状态
+    void InitShadowTestPage();
+
+    //为页面内所有单选选项绑定选中事件（在属性应用之后刷新界面状态）
+    void AttachOptionSelectEvents(ui::Control* pControl);
+
+    //按窗口的实际状态，同步各选项的可用性与选中状态
+    void RefreshShadowTestPageState();
+
+    //页面内所有单选选项（用于统一设置禁用时的透明度）
+    std::vector<ui::Control*> m_shadowOptions;
+
     //测试PropertyGrid控件
     void TestPropertyGrid();
 

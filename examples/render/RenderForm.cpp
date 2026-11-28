@@ -49,6 +49,154 @@ void RenderForm::OnInitWindow()
             };
         pMenuBar->AttachMenuBarItemActivated(callback);
     }
+
+#if defined (DUILIB_BUILD_FOR_SDL) || !defined (DUILIB_BUILD_FOR_WIN) || defined (_M_ARM64)
+    //GL渲染后端仅在Windows平台且非SDL构建模式下可用：不可用时隐藏“渲染后端”分组
+    ui::Control* pBackendBox = FindControl(_T("render_backend_box"));
+    if (pBackendBox != nullptr) {
+        pBackendBox->SetVisible(false);
+    }
+#endif
+    InitShadowTestPage();
+}
+
+void RenderForm::InitShadowTestPage()
+{
+    m_shadowOptions.clear();
+    //为页面内所有单选选项绑定选中事件：XML中的apply_attribute先执行，本事件随后同步界面状态
+    AttachOptionSelectEvents(FindControl(_T("shadow_page_scroll")));
+    RefreshShadowTestPageState();
+}
+
+void RenderForm::AttachOptionSelectEvents(ui::Control* pControl)
+{
+    if (pControl == nullptr) {
+        return;
+    }
+    if (dynamic_cast<ui::Option*>(pControl) != nullptr) {
+        m_shadowOptions.push_back(pControl);
+        //使用冒泡事件：冒泡事件的回调在XML的普通事件(apply_attribute)之后执行
+        pControl->AttachBubbledEvent(ui::kEventSelect, [this](const ui::EventArgs& /*args*/) {
+            RefreshShadowTestPageState();
+            return true;
+        }, 0);
+    }
+    ui::Box* pBox = dynamic_cast<ui::Box*>(pControl);
+    if (pBox != nullptr) {
+        const size_t nItemCount = pBox->GetItemCount();
+        for (size_t i = 0; i < nItemCount; ++i) {
+            AttachOptionSelectEvents(pBox->GetItemAt(i));
+        }
+    }
+}
+
+void RenderForm::RefreshShadowTestPageState()
+{
+    const bool bSystemShadowSupported = IsSystemShadowSupported();
+    const bool bUseSystemCaption = IsUseSystemCaption();
+    const bool bShadowAttached = IsShadowAttached();
+    const bool bLayeredWindow = IsLayeredWindow();
+    const bool bGpuBackend = GetRenderBackendType() == ui::RenderBackendType::kNativeGL_BackendType;
+
+    auto SetControlEnabled = [this](const DString& controlName, bool bEnable) {
+        ui::Control* pControl = FindControl(controlName);
+        if (pControl != nullptr) {
+            pControl->SetEnabled(bEnable);
+        }
+    };
+    auto SelectOption = [this](const DString& optionName) {
+        ui::Option* pOption = dynamic_cast<ui::Option*>(FindControl(optionName));
+        if (pOption != nullptr) {
+            pOption->Selected(true);
+        }
+    };
+
+    //阴影类型：未开启阴影或使用系统标题栏时整体禁用
+    ui::Control* pShadowTypeBox = FindControl(_T("shadow_type_box"));
+    if (pShadowTypeBox != nullptr) {
+        pShadowTypeBox->SetEnabled(bShadowAttached && !bUseSystemCaption);
+    }
+    //系统阴影选项：本机不支持系统阴影时禁用
+    const DString systemShadowOptions[] = {
+        _T("shadow_type_system_default"),
+        _T("shadow_type_system_not_round"),
+        _T("shadow_type_system_round"),
+        _T("shadow_type_system_small_round"),
+    };
+    for (const DString& optionName : systemShadowOptions) {
+        SetControlEnabled(optionName, bSystemShadowSupported);
+    }
+
+    //阴影开启或者关闭：仅在自绘标题栏时开启
+    SetControlEnabled(_T("shadow_on"), !bUseSystemCaption);
+    SetControlEnabled(_T("shadow_off"), !bUseSystemCaption);
+
+    //吸附：仅在开启阴影时可用
+    SetControlEnabled(_T("snap_on"), bShadowAttached);
+    SetControlEnabled(_T("snap_off"), bShadowAttached);
+
+    //alpha/opacity：仅在分层窗口时可用
+    SetControlEnabled(_T("alpha_128"), bLayeredWindow);
+    SetControlEnabled(_T("alpha_255"), bLayeredWindow);
+    SetControlEnabled(_T("opacity_128"), bLayeredWindow);
+    SetControlEnabled(_T("opacity_255"), bLayeredWindow);
+
+    //抗锯齿/垂直同步：仅在GL/GPU渲染后端时可用
+    SetControlEnabled(_T("msaa_0"), bGpuBackend);
+    SetControlEnabled(_T("msaa_4"), bGpuBackend);
+    SetControlEnabled(_T("msaa_8"), bGpuBackend);
+    SetControlEnabled(_T("vsync_on"), bGpuBackend);
+    SetControlEnabled(_T("vsync_off"), bGpuBackend);
+
+    //统一设置禁用选项的透明度，提供可见的禁用反馈
+    for (ui::Control* pOption : m_shadowOptions) {
+        if (pOption != nullptr) {
+            pOption->SetAlpha(pOption->IsEnabled() ? 255 : 96);
+        }
+    }
+
+    //同步各选项的选中状态（属性切换可能联动修改分层窗口、阴影等属性）
+    SelectOption(bUseSystemCaption ? _T("caption_system") : _T("caption_custom"));
+    SelectOption(bLayeredWindow ? _T("layered_on") : _T("layered_off"));
+    SelectOption(GetLayeredWindowAlpha() <= 128 ? _T("alpha_128") : _T("alpha_255"));
+    SelectOption(GetLayeredWindowOpacity() <= 128 ? _T("opacity_128") : _T("opacity_255"));
+    SelectOption(bShadowAttached ? _T("shadow_on") : _T("shadow_off"));
+    SelectOption(IsEnableShadowSnap() ? _T("snap_on") : _T("snap_off"));
+
+    DString shadowTypeOption;
+    switch (GetShadowType()) {
+    case ui::ShadowType::kShadowDefault:        shadowTypeOption = _T("shadow_type_default"); break;
+    case ui::ShadowType::kShadowBig:            shadowTypeOption = _T("shadow_type_big"); break;
+    case ui::ShadowType::kShadowBigRound:       shadowTypeOption = _T("shadow_type_big_round"); break;
+    case ui::ShadowType::kShadowSmall:          shadowTypeOption = _T("shadow_type_small"); break;
+    case ui::ShadowType::kShadowSmallRound:     shadowTypeOption = _T("shadow_type_small_round"); break;
+    case ui::ShadowType::kShadowMenu:           shadowTypeOption = _T("shadow_type_menu"); break;
+    case ui::ShadowType::kShadowMenuRound:      shadowTypeOption = _T("shadow_type_menu_round"); break;
+    case ui::ShadowType::kShadowNone:           shadowTypeOption = _T("shadow_type_none"); break;
+    case ui::ShadowType::kShadowNoneRound:      shadowTypeOption = _T("shadow_type_none_round"); break;
+    case ui::ShadowType::kShadowSystemDefault:  shadowTypeOption = _T("shadow_type_system_default"); break;
+    case ui::ShadowType::kShadowSystemDoNotRound: shadowTypeOption = _T("shadow_type_system_not_round"); break;
+    case ui::ShadowType::kShadowSystemRound:    shadowTypeOption = _T("shadow_type_system_round"); break;
+    case ui::ShadowType::kShadowSystemSmallRound: shadowTypeOption = _T("shadow_type_system_small_round"); break;
+    default: break;
+    }
+    if (!shadowTypeOption.empty()) {
+        SelectOption(shadowTypeOption);
+    }
+
+    //渲染后端相关
+    SelectOption(bGpuBackend ? _T("backend_gl") : _T("backend_cpu"));
+    const int32_t nMsaaSampleCount = GetRenderMsaaSampleCount();
+    if (nMsaaSampleCount >= 8) {
+        SelectOption(_T("msaa_8"));
+    }
+    else if (nMsaaSampleCount >= 4) {
+        SelectOption(_T("msaa_4"));
+    }
+    else {
+        SelectOption(_T("msaa_0"));
+    }
+    SelectOption(IsRenderDisableVsync() ? _T("vsync_off") : _T("vsync_on"));
 }
 
 void RenderForm::OnCloseWindow()

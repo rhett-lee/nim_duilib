@@ -1,90 +1,204 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
-    <Class name="page_window_shadow_vbox"     width="180" height="200"/>
-    <Class name="page_window_shadow_control"  width="180" height="100%"/>
-    <Class name="page_window_shadow_label"    width="100%" height="20" text_align="hcenter" margin="8"/>
-    <VScrollBox width="stretch" height="stretch" vscrollbar="true" hscrollbar="true">
-        <HBox width="auto" height="auto">
-            <VBox class="page_window_shadow_vbox">
-                <Control class="page_window_shadow_control" bkimage="file='public/shadow/shadow_big.svg' width='180' valign='center' halign='center' svg_replace_colors='#B5B5B5|border_window'"/>
-                <Label class="page_window_shadow_label" text_id="STRID_RENDER_SHADOW_BIG"/>
+    <!-- 阴影预览卡片：等宽，浅色底，轻微圆角 -->
+    <Class name="shadow_preview_item" width="stretch" height="auto" margin="2,0,2,0" padding="6,6,6,6"
+                                          bkcolor="bg_window_main" border_size="1" border_color="border_control_normal" border_round="6,6"/>
+    <Class name="shadow_preview_label"    width="stretch" height="20" text_align="hcenter" font="system_regular_12" text_color="text_muted" margin="0,4,0,0"/>
+    <!-- 设置分组卡片 -->
+    <Class name="shadow_section"          height="auto" padding="12,10,12,10" bkcolor="bg_window_main"
+                                          border_size="1" border_color="border_control_normal" border_round="6,6"/>
+    <Class name="shadow_section_title"    width="stretch" height="24" valign="center" font="system_bold_14"
+                                          text_color="text_default" text_align="left,vcenter"/>
+    <Class name="shadow_sub_title"        width="stretch" height="20" valign="center" font="system_bold_12"
+                                          text_color="text_default" margin="0,8,0,4"/>
+    <Class name="shadow_inline_title"     width="auto" height="26" valign="center" font="system_bold_12" text_color="text_default"/>
+    <Class name="shadow_hint"             width="stretch" height="auto" font="system_regular_12" text_color="text_muted"
+                                          single_line="false" margin="0,6,0,0"/>
+
+    <VScrollBox name="shadow_page_scroll" width="stretch" height="stretch" vscrollbar="true" hscrollbar="false">
+        <!-- 阴影样式预览：6 张卡片平分整行宽度 -->
+        <HBox width="stretch" height="auto" margin="0,0,0,8">
+            <VBox class="shadow_preview_item" name="shadow_preview_1">
+                <Control height="68" width="stretch" bkimage="file='public/shadow/shadow_big.svg' width='170' valign='center' halign='center' svg_replace_colors='#B5B5B5|border_window'"/>
+                <Label class="shadow_preview_label" text_id="STRID_RENDER_SHADOW_BIG"/>
             </VBox>
-            <VBox class="page_window_shadow_vbox">
-                <Control class="page_window_shadow_control" bkimage="file='public/shadow/shadow_big_round.svg' width='180' valign='center' halign='center' svg_replace_colors='#B5B5B5|border_window'"/>
-                <Label class="page_window_shadow_label" text_id="STRID_RENDER_SHADOW_BIG_ROUND"/>
+            <VBox class="shadow_preview_item" name="shadow_preview_2">
+                <Control height="68" width="stretch" bkimage="file='public/shadow/shadow_big_round.svg' width='170' valign='center' halign='center' svg_replace_colors='#B5B5B5|border_window'"/>
+                <Label class="shadow_preview_label" text_id="STRID_RENDER_SHADOW_BIG_ROUND"/>
             </VBox>
-            <VBox class="page_window_shadow_vbox">
-                <Control class="page_window_shadow_control" bkimage="file='public/shadow/shadow_small.svg' width='180' valign='center' halign='center' svg_replace_colors='#B5B5B5|border_window'"/>
-                <Label class="page_window_shadow_label" text_id="STRID_RENDER_SHADOW_SMALL"/>
+            <VBox class="shadow_preview_item" name="shadow_preview_3">
+                <Control height="68" width="stretch" bkimage="file='public/shadow/shadow_small.svg' width='170' valign='center' halign='center' svg_replace_colors='#B5B5B5|border_window'"/>
+                <Label class="shadow_preview_label" text_id="STRID_RENDER_SHADOW_SMALL"/>
             </VBox>
-            <VBox class="page_window_shadow_vbox">
-                <Control class="page_window_shadow_control" bkimage="file='public/shadow/shadow_small_round.svg' width='180' valign='center' halign='center' svg_replace_colors='#B5B5B5|border_window'"/>
-                <Label class="page_window_shadow_label" text_id="STRID_RENDER_SHADOW_SMALL_ROUND"/>
+            <VBox class="shadow_preview_item" name="shadow_preview_4">
+                <Control height="68" width="stretch" bkimage="file='public/shadow/shadow_small_round.svg' width='170' valign='center' halign='center' svg_replace_colors='#B5B5B5|border_window'"/>
+                <Label class="shadow_preview_label" text_id="STRID_RENDER_SHADOW_SMALL_ROUND"/>
             </VBox>
-            <VBox class="page_window_shadow_vbox">
-                <Control class="page_window_shadow_control" bkimage="file='public/shadow/shadow_menu.svg' width='180' valign='center' halign='center' svg_replace_colors='#B5B5B5|border_window'"/>
-                <Label class="page_window_shadow_label" text_id="STRID_RENDER_SHADOW_MENU"/>
+            <VBox class="shadow_preview_item" name="shadow_preview_5">
+                <Control height="68" width="stretch" bkimage="file='public/shadow/shadow_menu.svg' width='170' valign='center' halign='center' svg_replace_colors='#B5B5B5|border_window'"/>
+                <Label class="shadow_preview_label" text_id="STRID_RENDER_SHADOW_MENU"/>
             </VBox>
-            <VBox class="page_window_shadow_vbox">
-                <Control class="page_window_shadow_control" bkimage="file='public/shadow/shadow_menu_round.svg' width='180' valign='center' halign='center' svg_replace_colors='#B5B5B5|border_window'"/>
-                <Label class="page_window_shadow_label" text_id="STRID_RENDER_SHADOW_MENU_ROUND"/>
-            </VBox>
-        </HBox>
-        <HBox height="auto">
-            <VBox height="auto">
-                <Label text_id="STRID_RENDER_SHADOW_TEST_TITLE" valign="center" margin="12,30,10,0"/>
-                <Option class="checkbox_2" group="shadow_type" text_id="STRID_RENDER_SHADOW_TYPE_DEFAULT" selected="true" valign="center" margin="30,4,0,2">
-                    <Event type="select" receiver="#window#" apply_attribute="shadow_type={default}" />
-                </Option>
-                <Option class="checkbox_2" group="shadow_type" text_id="STRID_RENDER_SHADOW_TYPE_BIG" selected="false" valign="center" margin="30,4,0,2">
-                    <Event type="select" receiver="#window#" apply_attribute="shadow_type={big}" />
-                </Option>
-                <Option class="checkbox_2" group="shadow_type" text_id="STRID_RENDER_SHADOW_TYPE_BIG_ROUND" selected="false" valign="center" margin="30,4,0,2">
-                    <Event type="select" receiver="#window#" apply_attribute="shadow_type={big_round}" />
-                </Option>
-                <Option class="checkbox_2" group="shadow_type" text_id="STRID_RENDER_SHADOW_TYPE_SMALL" selected="false" valign="center" margin="30,4,0,2">
-                    <Event type="select" receiver="#window#" apply_attribute="shadow_type={small}" />
-                </Option>
-                <Option class="checkbox_2" group="shadow_type" text_id="STRID_RENDER_SHADOW_TYPE_SMALL_ROUND" selected="false" valign="center" margin="30,4,0,2">
-                    <Event type="select" receiver="#window#" apply_attribute="shadow_type={small_round}" />
-                </Option>
-                <Option class="checkbox_2" group="shadow_type" text_id="STRID_RENDER_SHADOW_TYPE_MENU" selected="false" valign="center" margin="30,4,0,2">
-                    <Event type="select" receiver="#window#" apply_attribute="shadow_type={menu}" />
-                </Option>
-                <Option class="checkbox_2" group="shadow_type" text_id="STRID_RENDER_SHADOW_TYPE_MENU_ROUND" selected="false" valign="center" margin="30,4,0,2">
-                    <Event type="select" receiver="#window#" apply_attribute="shadow_type={menu_round}" />
-                </Option>
-                <Option class="checkbox_2" group="shadow_type" text_id="STRID_RENDER_SHADOW_TYPE_NONE" selected="false" valign="center" margin="30,4,0,2">
-                    <Event type="select" receiver="#window#" apply_attribute="shadow_type={none}" />
-                </Option>
-                <Option class="checkbox_2" group="shadow_type" text_id="STRID_RENDER_SHADOW_TYPE_NONE_ROUND" selected="false" valign="center" margin="30,4,0,2">
-                    <Event type="select" receiver="#window#" apply_attribute="shadow_type={none_round}" />
-                </Option>
-                <Option class="checkbox_2" group="shadow_type" text_id="STRID_RENDER_SHADOW_TYPE_SYSTEM_DEFAULT" selected="false" valign="center" margin="30,4,0,2">
-                    <Event type="select" receiver="#window#" apply_attribute="shadow_type={system_default}" />
-                </Option>
-                <Option class="checkbox_2" group="shadow_type" text_id="STRID_RENDER_SHADOW_TYPE_SYSTEM_NOT_ROUND" selected="false" valign="center" margin="30,4,0,2">
-                    <Event type="select" receiver="#window#" apply_attribute="shadow_type={system_not_round}" />
-                </Option>
-                <Option class="checkbox_2" group="shadow_type" text_id="STRID_RENDER_SHADOW_TYPE_SYSTEM_ROUND" selected="false" valign="center" margin="30,4,0,2">
-                    <Event type="select" receiver="#window#" apply_attribute="shadow_type={system_round}" />
-                </Option>
-                <Option class="checkbox_2" group="shadow_type" text_id="STRID_RENDER_SHADOW_TYPE_SYSTEM_SMALL_ROUND" selected="false" valign="center" margin="30,4,0,2">
-                    <Event type="select" receiver="#window#" apply_attribute="shadow_type={system_small_round}" />
-                </Option>
-                <Option class="checkbox_2" group="shadow_type" text_id="STRID_RENDER_SHADOW_CLOSE_FUNC" selected="false" valign="center" margin="30,4,0,2">
-                    <Event type="select" receiver="#window#" apply_attribute="shadow_attached={false}" />
-                </Option>
-            </VBox>
-            <VBox height="auto">
-                <Label text_id="STRID_RENDER_SYSTEM_CAPTION_TEST_TITLE" valign="center" margin="12,30,10,0"/>
-                <Option class="checkbox_2" group="caption" text_id="STRID_RENDER_SYSTEM_CAPTION_ON" selected="false" valign="center" margin="30,14,0,2">
-                    <Event type="select" receiver="#window#" apply_attribute="use_system_caption={true}" />
-                </Option>
-                <Option class="checkbox_2" group="caption" text_id="STRID_RENDER_SYSTEM_CAPTION_OFF" selected="true" valign="center" margin="30,4,0,2">
-                    <Event type="select" receiver="#window#" apply_attribute="use_system_caption={false}" />
-                </Option>
+            <VBox class="shadow_preview_item" name="shadow_preview_6">
+                <Control height="68" width="stretch" bkimage="file='public/shadow/shadow_menu_round.svg' width='170' valign='center' halign='center' svg_replace_colors='#B5B5B5|border_window'"/>
+                <Label class="shadow_preview_label" text_id="STRID_RENDER_SHADOW_MENU_ROUND"/>
             </VBox>
         </HBox>
+
+        <!-- 阴影类型 / 窗口效果：两栏等宽并排 -->
+        <HBox width="stretch" height="auto" margin="0,0,0,10">
+            <VBox class="shadow_section" name="shadow_type_box" width="stretch" height="auto" margin="0,0,6,0">
+                <HBox width="stretch" height="24" valign="center">
+                    <Control width="3" height="14" bkcolor="color_accent" border_round="2,2"/>
+                    <Label class="shadow_section_title" text_id="STRID_RENDER_SHADOW_TYPE_TITLE" margin="8,0,0,0"/>
+                </HBox>
+                <Control width="stretch" height="1" bkcolor="border_split_level1" margin="0,8,0,2"/>
+                <HBox width="stretch" height="auto">
+                    <VBox width="50%" height="auto">
+                        <Label class="shadow_sub_title" text_id="STRID_RENDER_SHADOW_CUSTOM_GROUP"/>
+                        <Option class="option_1" name="shadow_type_default" text_padding="22,0,0,0" group="shadow_type" text_id="STRID_RENDER_SHADOW_ITEM_DEFAULT" selected="true" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="shadow_type={default}" />
+                        </Option>
+                        <Option class="option_1" name="shadow_type_big" text_padding="22,0,0,0" group="shadow_type" text_id="STRID_RENDER_SHADOW_ITEM_BIG" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="shadow_type={big}" />
+                        </Option>
+                        <Option class="option_1" name="shadow_type_big_round" text_padding="22,0,0,0" group="shadow_type" text_id="STRID_RENDER_SHADOW_ITEM_BIG_ROUND" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="shadow_type={big_round}" />
+                        </Option>
+                        <Option class="option_1" name="shadow_type_small" text_padding="22,0,0,0" group="shadow_type" text_id="STRID_RENDER_SHADOW_ITEM_SMALL" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="shadow_type={small}" />
+                        </Option>
+                        <Option class="option_1" name="shadow_type_small_round" text_padding="22,0,0,0" group="shadow_type" text_id="STRID_RENDER_SHADOW_ITEM_SMALL_ROUND" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="shadow_type={small_round}" />
+                        </Option>
+                        <Option class="option_1" name="shadow_type_menu" text_padding="22,0,0,0" group="shadow_type" text_id="STRID_RENDER_SHADOW_ITEM_MENU" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="shadow_type={menu}" />
+                        </Option>
+                        <Option class="option_1" name="shadow_type_menu_round" text_padding="22,0,0,0" group="shadow_type" text_id="STRID_RENDER_SHADOW_ITEM_MENU_ROUND" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="shadow_type={menu_round}" />
+                        </Option>
+                    </VBox>
+                    <VBox width="50%" height="auto">
+                        <Label class="shadow_sub_title" text_id="STRID_RENDER_SHADOW_SYSTEM_GROUP"/>
+                        <Option class="option_1" name="shadow_type_none" text_padding="22,0,0,0" group="shadow_type" text_id="STRID_RENDER_SHADOW_ITEM_NONE" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="shadow_type={none}" />
+                        </Option>
+                        <Option class="option_1" name="shadow_type_none_round" text_padding="22,0,0,0" group="shadow_type" text_id="STRID_RENDER_SHADOW_ITEM_NONE_ROUND" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="shadow_type={none_round}" />
+                        </Option>
+                        <Option class="option_1" name="shadow_type_system_default" text_padding="22,0,0,0" group="shadow_type" text_id="STRID_RENDER_SHADOW_ITEM_SYSTEM_DEFAULT" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="shadow_type={system_default}" />
+                        </Option>
+                        <Option class="option_1" name="shadow_type_system_not_round" text_padding="22,0,0,0" group="shadow_type" text_id="STRID_RENDER_SHADOW_ITEM_SYSTEM_NOT_ROUND" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="shadow_type={system_not_round}" />
+                        </Option>
+                        <Option class="option_1" name="shadow_type_system_round" text_padding="22,0,0,0" group="shadow_type" text_id="STRID_RENDER_SHADOW_ITEM_SYSTEM_ROUND" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="shadow_type={system_round}" />
+                        </Option>
+                        <Option class="option_1" name="shadow_type_system_small_round" text_padding="22,0,0,0" group="shadow_type" text_id="STRID_RENDER_SHADOW_ITEM_SYSTEM_SMALL_ROUND" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="shadow_type={system_small_round}" />
+                        </Option>
+                    </VBox>
+                </HBox>
+                <!-- 与右侧“窗口效果”卡片等高，使两张卡片底部对齐 -->
+                <Control width="stretch" height="58"/>
+                <Label class="shadow_hint" text_id="STRID_RENDER_SHADOW_TYPE_HINT"/>
+            </VBox>
+
+            <VBox class="shadow_section" name="window_effect_box" width="stretch" height="auto">
+                <HBox width="stretch" height="24" valign="center">
+                    <Control width="3" height="14" bkcolor="color_accent" border_round="2,2"/>
+                    <Label class="shadow_section_title" text_id="STRID_RENDER_WINDOW_EFFECT_TITLE" margin="8,0,0,0"/>
+                </HBox>
+                <Control width="stretch" height="1" bkcolor="border_split_level1" margin="0,8,0,2"/>
+                <HBox width="stretch" height="auto">
+                    <VBox width="50%" height="auto">
+                        <Label class="shadow_sub_title" text_id="STRID_RENDER_CAPTION_TITLE"/>
+                        <Option class="option_1" name="caption_system" text_padding="22,0,0,0" group="caption" text_id="STRID_RENDER_SYSTEM_CAPTION_ON" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="use_system_caption={true}" />
+                        </Option>
+                        <Option class="option_1" name="caption_custom" text_padding="22,0,0,0" group="caption" text_id="STRID_RENDER_SYSTEM_CAPTION_OFF" selected="true" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="use_system_caption={false}" />
+                        </Option>
+                        <Label class="shadow_sub_title" text_id="STRID_RENDER_LAYERED_TITLE"/>
+                        <Option class="option_1" name="layered_on" text_padding="22,0,0,0" group="layered" text_id="STRID_RENDER_EFFECT_LAYERED_ON" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="layered_window={true}" />
+                        </Option>
+                        <Option class="option_1" name="layered_off" text_padding="22,0,0,0" group="layered" text_id="STRID_RENDER_EFFECT_LAYERED_OFF" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="layered_window={false}" />
+                        </Option>
+                        <Option class="option_1" name="alpha_128" text_padding="22,0,0,0" group="alpha" text_id="STRID_RENDER_EFFECT_ALPHA_128" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="alpha={128}" />
+                        </Option>
+                        <Option class="option_1" name="alpha_255" text_padding="22,0,0,0" group="alpha" text_id="STRID_RENDER_EFFECT_ALPHA_255" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="alpha={255}" />
+                        </Option>
+                        <Option class="option_1" name="opacity_128" text_padding="22,0,0,0" group="opacity" text_id="STRID_RENDER_EFFECT_OPACITY_128" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="opacity={128}" />
+                        </Option>
+                        <Option class="option_1" name="opacity_255" text_padding="22,0,0,0" group="opacity" text_id="STRID_RENDER_EFFECT_OPACITY_255" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="opacity={255}" />
+                        </Option>
+                    </VBox>
+                    <VBox width="50%" height="auto">
+                        <Label class="shadow_sub_title" text_id="STRID_RENDER_SHADOW_AND_ROUND_TITLE"/>
+                        <Option class="option_1" name="shadow_on" text_padding="22,0,0,0" group="shadow_attached" text_id="STRID_RENDER_EFFECT_SHADOW_ON" selected="true" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="shadow_attached={true}" />
+                        </Option>
+                        <Option class="option_1" name="shadow_off" text_padding="22,0,0,0" group="shadow_attached" text_id="STRID_RENDER_EFFECT_SHADOW_OFF" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="shadow_attached={false}" />
+                        </Option>
+                        <Option class="option_1" name="snap_on" text_padding="22,0,0,0" group="shadow_snap" text_id="STRID_RENDER_EFFECT_SNAP_ON" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="shadow_snap={true}" />
+                        </Option>
+                        <Option class="option_1" name="snap_off" text_padding="22,0,0,0" group="shadow_snap" text_id="STRID_RENDER_EFFECT_SNAP_OFF" height="26" width="auto">
+                            <Event type="select" receiver="#window#" apply_attribute="shadow_snap={false}" />
+                        </Option>
+                    </VBox>
+                </HBox>
+                <Label class="shadow_hint" text_id="STRID_RENDER_EFFECT_HINT"/>
+            </VBox>
+        </HBox>
+
+        <!-- 渲染后端：整行铺满；抗锯齿/垂直同步缩进显示，表示跟随GL/GPU -->
+        <VBox class="shadow_section" name="render_backend_box" width="stretch" height="auto">
+            <HBox width="stretch" height="24" valign="center">
+                <Control width="3" height="14" bkcolor="color_accent" border_round="2,2"/>
+                <Label class="shadow_section_title" text_id="STRID_RENDER_RENDER_BACKEND_TITLE" margin="8,0,0,0"/>
+            </HBox>
+            <Control width="stretch" height="1" bkcolor="border_split_level1" margin="0,8,0,6"/>
+            <HBox width="stretch" height="auto" valign="center">
+                <Label class="shadow_inline_title" text_id="STRID_RENDER_BACKEND_MODE_TITLE" margin="0,0,8,0"/>
+                <Option class="option_1" name="backend_cpu" text_padding="22,0,0,0" group="render_backend" text_id="STRID_RENDER_BACKEND_CPU" selected="true" height="26" width="auto">
+                    <Event type="select" receiver="#window#" apply_attribute="render_backend_type={CPU}" />
+                </Option>
+                <Option class="option_1" name="backend_gl" text_padding="22,0,0,0" group="render_backend" text_id="STRID_RENDER_BACKEND_GL" height="26" width="auto" margin="20,0,0,0">
+                    <Event type="select" receiver="#window#" apply_attribute="render_backend_type={GL}" />
+                </Option>
+            </HBox>
+            <VBox width="stretch" height="auto" margin="24,6,0,0">
+                <HBox width="stretch" height="auto" valign="center">
+                    <Label class="shadow_inline_title" text_id="STRID_RENDER_BACKEND_MSAA_TITLE" margin="0,0,8,0"/>
+                    <Option class="option_1" name="msaa_0" text_padding="22,0,0,0" group="msaa" text_id="STRID_RENDER_BACKEND_MSAA_OFF" height="26" width="auto">
+                        <Event type="select" receiver="#window#" apply_attribute="msaa={0}" />
+                    </Option>
+                    <Option class="option_1" name="msaa_4" text_padding="22,0,0,0" group="msaa" text_id="STRID_RENDER_BACKEND_MSAA_4" height="26" width="auto" margin="20,0,0,0">
+                        <Event type="select" receiver="#window#" apply_attribute="msaa={4}" />
+                    </Option>
+                    <Option class="option_1" name="msaa_8" text_padding="22,0,0,0" group="msaa" text_id="STRID_RENDER_BACKEND_MSAA_8" height="26" width="auto" margin="20,0,0,0">
+                        <Event type="select" receiver="#window#" apply_attribute="msaa={8}" />
+                    </Option>
+                </HBox>
+                <HBox width="stretch" height="auto" valign="center" margin="0,6,0,0">
+                    <Label class="shadow_inline_title" text_id="STRID_RENDER_BACKEND_VSYNC_TITLE" margin="0,0,8,0"/>
+                    <Option class="option_1" name="vsync_on" text_padding="22,0,0,0" group="vsync" text_id="STRID_RENDER_BACKEND_VSYNC_ON" selected="true" height="26" width="auto">
+                        <Event type="select" receiver="#window#" apply_attribute="vsync={true}" />
+                    </Option>
+                    <Option class="option_1" name="vsync_off" text_padding="22,0,0,0" group="vsync" text_id="STRID_RENDER_BACKEND_VSYNC_OFF" height="26" width="auto" margin="20,0,0,0">
+                        <Event type="select" receiver="#window#" apply_attribute="vsync={false}" />
+                    </Option>
+                </HBox>
+            </VBox>
+            <Label class="shadow_hint" text_id="STRID_RENDER_BACKEND_HINT"/>
+        </VBox>
     </VScrollBox>
 </Window>
