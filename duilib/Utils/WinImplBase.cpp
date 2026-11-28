@@ -384,8 +384,8 @@ void WindowImplBase::OnWindowMinimized()
 
 void WindowImplBase::OnUseSystemCaptionBarChanged()
 {
-    BaseClass::OnUseSystemCaptionBarChanged();
     if (GetRoot() == nullptr) {
+        BaseClass::OnUseSystemCaptionBarChanged();
         return;
     }
     Control* pTitleBar = GetWindowTitleBar();
@@ -395,6 +395,7 @@ void WindowImplBase::OnUseSystemCaptionBarChanged()
             ProcessMaxRestoreStatus();
         }
     }
+    BaseClass::OnUseSystemCaptionBarChanged();
 }
 
 void WindowImplBase::OnWindowDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewScaleFactor)

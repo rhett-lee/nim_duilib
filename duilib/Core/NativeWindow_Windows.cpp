@@ -913,7 +913,7 @@ uint8_t NativeWindow_Windows::GetLayeredWindowOpacity() const
 void NativeWindow_Windows::SetUseSystemCaption(bool bUseSystemCaption)
 {
     ASSERT(!IsChildWindow());
-    if (IsChildWindow()) {
+    if (IsChildWindow() || (m_pOwner == nullptr)) {
         return;
     }
     //记录设置前的状态：属性值未变化时，跳过重绘等非必要动作（风格设置与回调仍需执行）
@@ -952,19 +952,27 @@ void NativeWindow_Windows::SetUseSystemCaption(bool bUseSystemCaption)
         SetLayeredWindow(false, false);
     }
 
+    //需要先给客户端回调，修改自绘标题栏的状态
+    std::weak_ptr<WeakFlag> ownerFlag = m_pOwner->GetWeakFlag();
+    m_pOwner->OnNativeUseSystemCaptionBarChanged();
+    if (ownerFlag.expired()) {
+        return;
+    }
+
     //强制窗口重绘（标题栏状态或者分层窗口状态变化时需要）
     if ((bCaptionChanged || (bOldLayeredWindow != IsLayeredWindow())) && ::IsWindow(m_hWnd)) {
         m_bContentDirty = true;
-        ::RedrawWindow(m_hWnd, NULL, NULL, RDW_FRAME | RDW_INTERNALPAINT | RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
         ::SetWindowPos(m_hWnd, nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 
         //重新激活窗口的非客户区绘制
         if (IsWindowForeground()) {
             KeepParentActive();
         }
+        //标题栏状态切换会改变客户区大小，且回调中可能修改控件可见性（如隐藏自绘标题栏）；
+        //这里需要再次强制重绘：确保后续一次绘制使用新的客户区大小重新布局，避免界面停留在旧布局状态
+        m_bContentDirty = true;
+        ::RedrawWindow(m_hWnd, NULL, NULL, RDW_FRAME | RDW_INTERNALPAINT | RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_UPDATENOW);
     }
-
-    m_pOwner->OnNativeUseSystemCaptionBarChanged();
 }
 
 bool NativeWindow_Windows::IsUseSystemCaption() const
