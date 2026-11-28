@@ -215,6 +215,11 @@ bool WindowBase::IsLayeredWindowSetByUser() const
     return m_bLayeredWindowSetFlag;
 }
 
+void WindowBase::ResetLayeredWindowSetByUser()
+{
+    m_bLayeredWindowSetFlag = false;
+}
+
 bool WindowBase::OnRequestSetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
 {
     if (bIsLayeredWindow == IsLayeredWindow()) {

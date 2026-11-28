@@ -1,6 +1,32 @@
 #include "RenderForm.h"
 #include "RenderTest1.h"
 #include "RenderTest2.h"
+#include "duilib/Core/Shadow.h"
+
+namespace
+{
+/** 获取阴影类型对应的标识字符串（与页面中选项名称的后缀一致）
+*/
+DString GetShadowTypeName(ui::ShadowType nShadowType)
+{
+    switch (nShadowType) {
+    case ui::ShadowType::kShadowDefault:            return _T("default");
+    case ui::ShadowType::kShadowBig:                return _T("big");
+    case ui::ShadowType::kShadowBigRound:           return _T("big_round");
+    case ui::ShadowType::kShadowSmall:              return _T("small");
+    case ui::ShadowType::kShadowSmallRound:         return _T("small_round");
+    case ui::ShadowType::kShadowMenu:               return _T("menu");
+    case ui::ShadowType::kShadowMenuRound:          return _T("menu_round");
+    case ui::ShadowType::kShadowNone:               return _T("none");
+    case ui::ShadowType::kShadowNoneRound:          return _T("none_round");
+    case ui::ShadowType::kShadowSystemDefault:      return _T("system_default");
+    case ui::ShadowType::kShadowSystemDoNotRound:   return _T("system_not_round");
+    case ui::ShadowType::kShadowSystemRound:        return _T("system_round");
+    case ui::ShadowType::kShadowSystemSmallRound:   return _T("system_small_round");
+    default:                                        return DString();
+    }
+}
+}//namespace
 
 RenderForm::RenderForm()
 {
@@ -65,6 +91,16 @@ void RenderForm::InitShadowTestPage()
     m_shadowOptions.clear();
     //为页面内所有单选选项绑定选中事件：XML中的apply_attribute先执行，本事件随后同步界面状态
     AttachOptionSelectEvents(FindControl(_T("shadow_page_scroll")));
+
+    //“恢复默认”按钮：XML中先执行apply_attribute(shadow_type=default)，本事件随后同步界面状态
+    ui::Control* pDefaultButton = FindControl(_T("shadow_default_btn"));
+    if (pDefaultButton != nullptr) {
+        pDefaultButton->AttachBubbledEvent(ui::kEventClick, [this](const ui::EventArgs& /*args*/) {
+            RefreshShadowTestPageState();
+            return true;
+        }, 0);
+    }
+
     RefreshShadowTestPageState();
 }
 
@@ -163,25 +199,20 @@ void RenderForm::RefreshShadowTestPageState()
     SelectOption(bShadowAttached ? _T("shadow_on") : _T("shadow_off"));
     SelectOption(IsEnableShadowSnap() ? _T("snap_on") : _T("snap_off"));
 
-    DString shadowTypeOption;
-    switch (GetShadowType()) {
-    case ui::ShadowType::kShadowDefault:        shadowTypeOption = _T("shadow_type_default"); break;
-    case ui::ShadowType::kShadowBig:            shadowTypeOption = _T("shadow_type_big"); break;
-    case ui::ShadowType::kShadowBigRound:       shadowTypeOption = _T("shadow_type_big_round"); break;
-    case ui::ShadowType::kShadowSmall:          shadowTypeOption = _T("shadow_type_small"); break;
-    case ui::ShadowType::kShadowSmallRound:     shadowTypeOption = _T("shadow_type_small_round"); break;
-    case ui::ShadowType::kShadowMenu:           shadowTypeOption = _T("shadow_type_menu"); break;
-    case ui::ShadowType::kShadowMenuRound:      shadowTypeOption = _T("shadow_type_menu_round"); break;
-    case ui::ShadowType::kShadowNone:           shadowTypeOption = _T("shadow_type_none"); break;
-    case ui::ShadowType::kShadowNoneRound:      shadowTypeOption = _T("shadow_type_none_round"); break;
-    case ui::ShadowType::kShadowSystemDefault:  shadowTypeOption = _T("shadow_type_system_default"); break;
-    case ui::ShadowType::kShadowSystemDoNotRound: shadowTypeOption = _T("shadow_type_system_not_round"); break;
-    case ui::ShadowType::kShadowSystemRound:    shadowTypeOption = _T("shadow_type_system_round"); break;
-    case ui::ShadowType::kShadowSystemSmallRound: shadowTypeOption = _T("shadow_type_system_small_round"); break;
-    default: break;
+    //阴影类型：显示实际生效的类型（default 会被解析为具体类型）
+    ui::ShadowType nShadowType = GetShadowType();
+    if (nShadowType == ui::ShadowType::kShadowDefault) {
+        nShadowType = ui::Shadow::GetSupportedShadowType(this, nShadowType);
     }
-    if (!shadowTypeOption.empty()) {
-        SelectOption(shadowTypeOption);
+    const DString shadowTypeName = GetShadowTypeName(nShadowType);
+    if (!shadowTypeName.empty()) {
+        SelectOption(_T("shadow_type_") + shadowTypeName);
+    }
+
+    //default 在当前环境下的解析结果（随分层窗口、系统阴影支持情况变化）
+    ui::Label* pResolvedLabel = dynamic_cast<ui::Label*>(FindControl(_T("shadow_default_resolved")));
+    if (pResolvedLabel != nullptr) {
+        pResolvedLabel->SetText(GetShadowTypeName(ui::Shadow::GetSupportedShadowType(this, ui::ShadowType::kShadowDefault)));
     }
 
     //渲染后端相关

@@ -1483,6 +1483,10 @@ void Window::SetShadowAttached(bool bShadowAttached)
         m_requestedAttributes.m_bShadowAttached = bShadowAttached;
         m_requestedAttributes.m_bShadowAttachedDefined = true;
     }
+    if (!m_bApplyingResolvedAttributes) {
+        //应用层显式切换阴影开关时，阴影对分层窗口的依赖优先于此前的分层窗口设置
+        ResetLayeredWindowSetByUser();
+    }
     m_windowRoot->SetShadowAttached(bShadowAttached);
 
     ProcessWindowShadowTypeChanged();
@@ -1502,6 +1506,10 @@ void Window::SetShadowType(ShadowType nShadowType)
     if (m_bRequestedAttributesValid && !m_bApplyingResolvedAttributes) {
         m_requestedAttributes.m_nShadowType = nShadowType;
         m_requestedAttributes.m_bShadowTypeDefined = true;
+    }
+    if (!m_bApplyingResolvedAttributes) {
+        //应用层显式切换阴影类型时，阴影对分层窗口的依赖优先于此前的分层窗口设置
+        ResetLayeredWindowSetByUser();
     }
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     IRender* pRender = IsRenderCreated() ? GetRender() : nullptr;

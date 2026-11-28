@@ -119,6 +119,12 @@ public:
     */
     bool IsLayeredWindowSetByUser() const;
 
+    /** 清除“外部显式设置分层窗口属性”的标记
+    *   应用层显式切换阴影开关/阴影类型时，阴影对分层窗口的依赖优先于之前设置的分层窗口属性，
+    *   此时调用本函数清除标记，界面库内部即可按新的阴影需求自动调整分层窗口属性
+    */
+    void ResetLayeredWindowSetByUser();
+
     /** 设置窗口透明度(仅当IsLayeredWindow()为true的时候有效)
     * @param [in] nAlpha 透明度数值[0, 255]，当 nAlpha 为 0 时，窗口是完全透明的。 当 nAlpha 为 255 时，窗口是不透明的。
     *             该参数在UpdateLayeredWindow函数中作为参数使用(BLENDFUNCTION.SourceConstantAlpha)。

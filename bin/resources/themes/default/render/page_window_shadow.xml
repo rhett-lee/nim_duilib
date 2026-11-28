@@ -50,14 +50,15 @@
                 <HBox width="stretch" height="24" valign="center">
                     <Control width="3" height="14" bkcolor="color_accent" border_round="2,2"/>
                     <Label class="shadow_section_title" text_id="STRID_RENDER_SHADOW_TYPE_TITLE" margin="8,0,0,0"/>
+                    <Button class="btn_global" name="shadow_default_btn" width="auto" height="22" padding="10,0,10,0"
+                            border_round="4,4" font="system_regular_12" text_id="STRID_RENDER_SHADOW_DEFAULT_BTN">
+                        <Event type="click" receiver="#window#" apply_attribute="shadow_type={default}" />
+                    </Button>
                 </HBox>
                 <Control width="stretch" height="1" bkcolor="border_split_level1" margin="0,8,0,2"/>
                 <HBox width="stretch" height="auto">
                     <VBox width="50%" height="auto">
                         <Label class="shadow_sub_title" text_id="STRID_RENDER_SHADOW_CUSTOM_GROUP"/>
-                        <Option class="option_1" name="shadow_type_default" text_padding="22,0,0,0" group="shadow_type" text_id="STRID_RENDER_SHADOW_ITEM_DEFAULT" selected="true" height="26" width="auto">
-                            <Event type="select" receiver="#window#" apply_attribute="shadow_type={default}" />
-                        </Option>
                         <Option class="option_1" name="shadow_type_big" text_padding="22,0,0,0" group="shadow_type" text_id="STRID_RENDER_SHADOW_ITEM_BIG" height="26" width="auto">
                             <Event type="select" receiver="#window#" apply_attribute="shadow_type={big}" />
                         </Option>
@@ -99,8 +100,13 @@
                         </Option>
                     </VBox>
                 </HBox>
+                <!-- default 是“跟随本机”的别名，会被解析为具体阴影类型，此处展示解析结果 -->
+                <HBox width="stretch" height="20" valign="center" margin="0,8,0,0">
+                    <Label width="auto" height="20" valign="center" font="system_regular_12" text_color="text_muted" text_id="STRID_RENDER_SHADOW_DEFAULT_RESOLVED"/>
+                    <Label name="shadow_default_resolved" width="auto" height="20" valign="center" font="system_bold_12" text_color="color_accent" text="system_default" margin="4,0,0,0"/>
+                </HBox>
                 <!-- 与右侧“窗口效果”卡片等高，使两张卡片底部对齐 -->
-                <Control width="stretch" height="58"/>
+                <Control width="stretch" height="56"/>
                 <Label class="shadow_hint" text_id="STRID_RENDER_SHADOW_TYPE_HINT"/>
             </VBox>
 
