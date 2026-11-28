@@ -1313,8 +1313,9 @@ void Window::OnUseSystemCaptionBarChanged()
 
 void Window::OnLayeredWindowChanged()
 {
-    //分层窗口状态变化后，按请求值重新判断自绘阴影是否可用（只调整有效值，请求值保留）
-    if (m_bRequestedAttributesValid && !m_bApplyingResolvedAttributes && IsWindow()) {
+    //外部显式设置分层窗口属性时，不联动修改阴影属性：此时仅分层窗口状态变化，阴影的请求值与有效值都保持不变
+    //内部分层窗口状态变化时，按请求值重新判断自绘阴影是否可用（只调整有效值，请求值保留）
+    if (m_bRequestedAttributesValid && !m_bApplyingResolvedAttributes && IsWindow() && !IsLayeredWindowSetByUser()) {
         ShadowResolveParam param;
         param.m_bSystemShadowSupported = NativeWnd()->IsSystemShadowSupported();
         param.m_bGlBackendActive = (GetRenderBackendType() == RenderBackendType::kNativeGL_BackendType);
