@@ -779,6 +779,10 @@ bool NativeWindow_Windows::SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
         return false;
     }
     m_bIsLayeredWindow = bIsLayeredWindow;
+    if (bIsLayeredWindow && bChanged && (m_nLayeredWindowOpacity != 255)) {
+        //重新启用分层窗口时，系统已丢弃之前设置的分层窗口属性（不透明度），需要恢复
+        ::SetLayeredWindowAttributes(m_hWnd, 0, m_nLayeredWindowOpacity, LWA_ALPHA);
+    }
     if (bRedraw && bChanged) {
         // 强制窗口重绘
         m_bContentDirty = true;

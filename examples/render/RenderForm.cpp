@@ -172,9 +172,9 @@ void RenderForm::RefreshShadowTestPageState()
     SetControlEnabled(_T("snap_off"), bShadowAttached);
 
     //alpha/opacity：仅在分层窗口时可用
-    SetControlEnabled(_T("alpha_128"), bLayeredWindow);
+    SetControlEnabled(_T("alpha_220"), bLayeredWindow);
     SetControlEnabled(_T("alpha_255"), bLayeredWindow);
-    SetControlEnabled(_T("opacity_128"), bLayeredWindow);
+    SetControlEnabled(_T("opacity_220"), bLayeredWindow);
     SetControlEnabled(_T("opacity_255"), bLayeredWindow);
 
     //抗锯齿/垂直同步：仅在GL/GPU渲染后端时可用
@@ -194,8 +194,8 @@ void RenderForm::RefreshShadowTestPageState()
     //同步各选项的选中状态（属性切换可能联动修改分层窗口、阴影等属性）
     SelectOption(bUseSystemCaption ? _T("caption_system") : _T("caption_custom"));
     SelectOption(bLayeredWindow ? _T("layered_on") : _T("layered_off"));
-    SelectOption(GetLayeredWindowAlpha() <= 128 ? _T("alpha_128") : _T("alpha_255"));
-    SelectOption(GetLayeredWindowOpacity() <= 128 ? _T("opacity_128") : _T("opacity_255"));
+    SelectOption(GetLayeredWindowAlpha() <= 237 ? _T("alpha_220") : _T("alpha_255"));
+    SelectOption(GetLayeredWindowOpacity() <= 237 ? _T("opacity_220") : _T("opacity_255"));
     SelectOption(bShadowAttached ? _T("shadow_on") : _T("shadow_off"));
     SelectOption(IsEnableShadowSnap() ? _T("snap_on") : _T("snap_off"));
 
